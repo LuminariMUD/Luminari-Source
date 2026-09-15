@@ -9,7 +9,7 @@
 
 ## Native object-file serialization
 
-The authoritative reader is `parse_object()` in [db.c](https://github.com/LuminariMUD/Luminari-Source/blob/master/src/db.c); the
+The authoritative reader is `parse_object()` in [db.c](https://github.com/LuminariMUD/Luminari-Source/blob/master/src/core/db.c); the
 writer is `save_objects()` in [genobj.c](https://github.com/LuminariMUD/Luminari-Source/blob/master/src/olc/genobj.c). Menu letters
 and serialized extension letters are different interfaces. Compare both reader
 and writer before generating files by hand.
@@ -121,7 +121,7 @@ write. The notes here cover the cases that behave unusually:
 ### Armor (`ITEM_ARMOR` and `ITEM_CLANARMOR`)
 - Normal armor takes its subtype at `Value2` (`value[1]`) and auto-fills AC, size, material, and wear flags via `set_armor_object()`.
 - `Value1` (`value[0]`) is the AC-apply, in tenths of an armor-class point: `armor_list[].armorBonus` is stored that way and players see it divided by ten.
-- The AC-apply counts only when the piece is worn on `WEAR_SHIELD`, `WEAR_HEAD`, `WEAR_BODY`, `WEAR_ARMS`, or `WEAR_LEGS` (`apply_ac()`, `src/handler.c`). On any other slot it is ignored - give those slots armor class with an `APPLY_AC_NEW` affection instead. Those same five slots are the ones charged armor check penalty, spell failure, and the max-dex cap (`src/combat/assign_wpn_armor.c`).
+- The AC-apply counts only when the piece is worn on `WEAR_SHIELD`, `WEAR_HEAD`, `WEAR_BODY`, `WEAR_ARMS`, or `WEAR_LEGS` (`apply_ac()`, `src/core/handler.c`). On any other slot it is ignored - give those slots armor class with an `APPLY_AC_NEW` affection instead. Those same five slots are the ones charged armor check penalty, spell failure, and the max-dex cap (`src/combat/assign_wpn_armor.c`).
 - Clan armor uses that same slot for the clan vnum instead. The value must identify an existing clan.
 - Both armor types collect an enhancement bonus at `Value5` (`value[4]`).
 
@@ -373,9 +373,9 @@ menu uses the same offset. Below is the complete list:
 
 **Total: 125 flags (bits 0-124, `NUM_ITEM_FLAGS`)**
 
-**Note:** These flags are defined in `src/structs.h` as the `ITEM_*` define block
+**Note:** These flags are defined in `src/core/structs.h` as the `ITEM_*` define block
 ending at `ITEM_ROL_WHOLE_HEAD`, and their display names in the `extra_bits[]`
-table in `src/constants.c`.
+table in `src/core/constants.c`.
 
 The RoL source `DARK` object flag is intentionally not persisted. Source tracing
 confirmed that it requested light recalculation but was never consumed by the
@@ -543,7 +543,7 @@ numbering. When a prompt says "Value5: Enhancement bonus", that is `value[4]`.
 ### The value line in a `.obj` file
 
 The second numeric line of an object record holds the values. `parse_object()`
-in `src/db.c` accepts **exactly 4 integers or exactly 16** - any other count is
+in `src/core/db.c` accepts **exactly 4 integers or exactly 16** - any other count is
 a fatal boot error:
 
 ```

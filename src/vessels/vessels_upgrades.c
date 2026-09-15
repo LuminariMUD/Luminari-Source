@@ -6,16 +6,16 @@
  * ********************************************************************** */
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
-#include "handler.h"
-#include "rewards.h"
-#include "interpreter.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/db.h"
+#include "core/handler.h"
+#include "character/rewards.h"
+#include "core/interpreter.h"
 #include "vessels.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "comms/new_mail.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];

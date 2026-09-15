@@ -5,19 +5,19 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "interpreter.h"
-#include "handler.h"
-#include "comm.h"
-#include "utils.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
+#include "core/comm.h"
+#include "core/utils.h"
+#include "core/db.h"
 #include "oasis.h"
-#include "screen.h"
-#include "constants.h"
+#include "core/screen.h"
+#include "core/constants.h"
 #include "genolc.h"
-#include "act.h"
+#include "act/act.h"
 
 /* local utility functions */
 static int aedit_find_command(const char *txt);

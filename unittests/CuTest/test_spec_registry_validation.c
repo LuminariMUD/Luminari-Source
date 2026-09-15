@@ -1,11 +1,11 @@
 #include "CuTest.h"
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
-#include "../../src/utils.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/utils.h"
 
-#include "../../src/act.h"
+#include "../../src/act/act.h"
 #include "../../src/character/backgrounds.h"
 #include "../../src/character/guild_services.h"
 #include "../../src/character/vampire_cloak.h"
@@ -910,7 +910,7 @@ void Test_spec_registry_boot_validation_precedes_world_parsing(CuTest *tc)
   bool order_valid;
 
   source = NULL;
-  source_loaded = spec_test_read_source("src/db.c", &source);
+  source_loaded = spec_test_read_source("src/core/db.c", &source);
   order_valid = false;
   if (source_loaded)
   {

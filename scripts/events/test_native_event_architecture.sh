@@ -4,7 +4,7 @@ set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 # CPPFLAGS lets a CMake tree point the preprocessor at its generated conf.h;
-# an Autotools tree already has src/conf.h.
+# an Autotools tree generates it in the project root.
 # shellcheck disable=SC2086
 default_dg_event=$(mktemp)
 default_event_runtime=$(mktemp)
@@ -25,7 +25,7 @@ scheduler_api_pattern='game_scheduler_(create|shutdown|destroy|register_type|sea
 direct_scheduler_users=$(
   find "$project_root/src" "$project_root/util" -type f \( -name '*.c' -o -name '*.h' \) -print0 |
     xargs -0 grep -En -- "$scheduler_api_pattern" |
-    grep -Ev '/src/(game_scheduler|event_runtime)\.[ch]:' || true
+    grep -Ev '/src/events/(game_scheduler|event_runtime)\.[ch]:' || true
 )
 if [[ -n $direct_scheduler_users ]]; then
   printf '%s\n' "$direct_scheduler_users" >&2
@@ -35,14 +35,14 @@ fi
 grep -Rl --include='*.c' 'struct game_scheduler \*' "$project_root/src" "$project_root/util" |
   sed "s|^$project_root/||" | sort >"$actual"
 cat >"$expected" <<'EOF'
-src/event_runtime.c
-src/game_scheduler.c
+src/events/event_runtime.c
+src/events/game_scheduler.c
 EOF
 if ! diff -u "$expected" "$actual"; then
   fail "physical scheduler ownership escaped its implementation and runtime boundary"
 fi
 
-if [[ $(grep -Eoc 'game_scheduler_create[[:space:]]*\(' "$project_root/src/event_runtime.c") -ne 1 ]]; then
+if [[ $(grep -Eoc 'game_scheduler_create[[:space:]]*\(' "$project_root/src/events/event_runtime.c") -ne 1 ]]; then
   fail "the game-facing runtime must create exactly one physical timing wheel"
 fi
 
@@ -50,32 +50,32 @@ fi
 # product build sees them. Rollback APIs and selectors must disappear, not
 # merely remain unused.
 printf '#include "dgscript/dg_event.h"\n' |
-  "${CC:-cc}" ${CPPFLAGS:-} -E -P -I"$project_root/src" -xc - >"$default_public_header"
+  "${CC:-cc}" ${CPPFLAGS:-} -E -P -I"$project_root" -I"$project_root/src" -xc - >"$default_public_header"
 if grep -Eq 'EVENTFUNC|EVENT_BACKEND_LEGACY_QUEUE|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(|event_handle_(cancel|time|is_live|is_queued)' \
     "$default_public_header"; then
   fail "the default public header exposes the rollback event facade"
 fi
 printf '#include "dgscript/dg_scripts.h"\n' |
   "${CC:-cc}" ${CPPFLAGS:-} -DLUMINARI_ENABLE_EVENT_ROLLBACK=0 -E -P \
-    -I"$project_root/src" -xc - >"$default_public_header"
+    -I"$project_root" -I"$project_root/src" -xc - >"$default_public_header"
 if grep -Eq 'EVENTFUNC|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(|event_handle_(cancel|time|is_live|is_queued)' \
     "$default_public_header"; then
   fail "an explicit zero rollback definition exposes the DG rollback facade"
 fi
-"${CC:-cc}" ${CPPFLAGS:-} -E -P -I"$project_root/src" \
+"${CC:-cc}" ${CPPFLAGS:-} -E -P -I"$project_root" -I"$project_root/src" \
   "$project_root/src/dgscript/dg_event.c" >"$default_dg_event"
 if grep -Eq 'EVENT_BACKEND_LEGACY_QUEUE|legacy_event|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(|event_create(_[[:alnum:]_]+)?[[:space:]]*\(|queue_(init|enq|deq|head|key|free)[[:space:]]*\(' \
     "$default_dg_event"; then
   fail "the default timed-event implementation still contains rollback architecture"
 fi
-"${CC:-cc}" ${CPPFLAGS:-} -DLUMINARI_ENABLE_EVENT_ROLLBACK=0 -E -P -I"$project_root/src" \
+"${CC:-cc}" ${CPPFLAGS:-} -DLUMINARI_ENABLE_EVENT_ROLLBACK=0 -E -P -I"$project_root" -I"$project_root/src" \
   "$project_root/src/dgscript/dg_event.c" >"$default_dg_event"
 if grep -Eq 'EVENT_BACKEND_LEGACY_QUEUE|legacy_event|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(|event_create(_[[:alnum:]_]+)?[[:space:]]*\(|queue_(init|enq|deq|head|key|free)[[:space:]]*\(' \
     "$default_dg_event"; then
   fail "an explicit zero rollback definition retains rollback implementation"
 fi
-"${CC:-cc}" ${CPPFLAGS:-} -E -P -I"$project_root/src" \
-  "$project_root/src/event_runtime.c" >"$default_event_runtime"
+"${CC:-cc}" ${CPPFLAGS:-} -E -P -I"$project_root" -I"$project_root/src" \
+  "$project_root/src/events/event_runtime.c" >"$default_event_runtime"
 if grep -Eq 'legacy_event|EVENT_BACKEND_LEGACY_QUEUE|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(' \
     "$default_event_runtime"; then
   fail "the default game-facing runtime still contains rollback adapter identity"
@@ -93,22 +93,22 @@ grep -Fq 'depth_after = event_runtime_event_count();' \
 
 # Native producers must retain stable, human-readable semantic identities.
 semantic_types=(
-  'affected.character.duration|src/affected_owners.c'
-  'affected.room.duration|src/affected_owners.c'
-  'character.maintenance|src/character_periodic.c'
-  'object.automatic_procedure|src/periodic_owners.c'
-  'dg.random_trigger|src/periodic_owners.c'
+  'affected.character.duration|src/events/affected_owners.c'
+  'affected.room.duration|src/events/affected_owners.c'
+  'character.maintenance|src/events/character_periodic.c'
+  'object.automatic_procedure|src/events/periodic_owners.c'
+  'dg.random_trigger|src/events/periodic_owners.c'
   'dg.trigger.wait|src/dgscript/dg_scripts.c'
-  'world.mud_hour_update|src/point_update_periodic.c'
+  'world.mud_hour_update|src/events/point_update_periodic.c'
   'vessel.greyhawk.agenda|src/vessels/vessel_periodic.c'
   'vessel.shared.agenda|src/vessels/vessel_periodic.c'
   'vessel.rol.agenda|src/vessels/vessels_rol.c'
-  'mobile.autonomous.agenda|src/active_world.c'
-  'activity.primary.step|src/activity_manager.c'
+  'mobile.autonomous.agenda|src/events/active_world.c'
+  'activity.primary.step|src/events/activity_manager.c'
   'combat.encounter.round|src/combat/combat_encounters.c'
-  'ai.response.delivery|src/ai_events.c'
-  'ai.request.retry|src/ai_events.c'
-  'service.persistence_batch|src/comm.c'
+  'ai.response.delivery|src/ai/ai_events.c'
+  'ai.request.retry|src/ai/ai_events.c'
+  'service.persistence_batch|src/core/comm.c'
 )
 for registration in "${semantic_types[@]}"; do
   name=${registration%%|*}
@@ -117,13 +117,13 @@ for registration in "${semantic_types[@]}"; do
     fail "semantic event type '$name' is missing from $file"
 done
 
-grep -Fq 'snprintf(name, capacity, "mud.%03u."' "$project_root/src/mud_event.c" ||
+grep -Fq 'snprintf(name, capacity, "mud.%03u."' "$project_root/src/events/mud_event.c" ||
   fail "MUD events no longer expose stable per-ID semantic names"
 grep -Fq 'for (id = ePROTOCOLS; id < eMUD_EVENT_COUNT; id++)' \
-  "$project_root/src/mud_event.c" ||
+  "$project_root/src/events/mud_event.c" ||
   fail "MUD event registration no longer covers the complete usable ID range"
 
-grep -Fq 'event_runtime_seal_types()' "$project_root/src/comm.c" ||
+grep -Fq 'event_runtime_seal_types()' "$project_root/src/core/comm.c" ||
   fail "boot no longer seals the immutable semantic type registry"
 
 # Immortal diagnostics must support direct entity ownership and script-only
@@ -134,14 +134,14 @@ for command in \
   'eventdebug object <name> [limit]' \
   'eventdebug room <here|vnum> [limit]' \
   'eventdebug scripts <kind> <target> [limit]'; do
-  grep -Fq "$command" "$project_root/src/event_debug.c" ||
+  grep -Fq "$command" "$project_root/src/events/event_debug.c" ||
     fail "eventdebug help is missing '$command'"
 done
-grep -Fq 'filter.type_contains = "dg.";' "$project_root/src/event_debug.c" ||
+grep -Fq 'filter.type_contains = "dg.";' "$project_root/src/events/event_debug.c" ||
   fail "eventdebug script filtering no longer selects DG semantic types"
-grep -Fq 'filter->owner_generation_set = false;' "$project_root/src/event_debug.c" ||
+grep -Fq 'filter->owner_generation_set = false;' "$project_root/src/events/event_debug.c" ||
   fail "entity filtering no longer spans all live generations for the selected owner"
-grep -Fq 'Payloads: redacted' "$project_root/src/event_debug.c" ||
+grep -Fq 'Payloads: redacted' "$project_root/src/events/event_debug.c" ||
   fail "eventdebug payload redaction is missing"
 
 # These linked CuTests supply runtime evidence for the source constraints above.

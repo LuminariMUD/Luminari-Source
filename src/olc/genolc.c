@@ -8,12 +8,12 @@
 #define __GENOLC_C__
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "db.h"
-#include "handler.h"
-#include "comm.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/db.h"
+#include "core/handler.h"
+#include "core/comm.h"
 #include "obj/shop.h"
 #include "oasis.h"
 #include "genolc.h"
@@ -23,10 +23,10 @@
 #include "genzon.h"
 #include "genobj.h"
 #include "dgscript/dg_olc.h"
-#include "constants.h"
-#include "interpreter.h"
-#include "act.h"    /* for the space_to_minus function */
-#include "modify.h" /* for smash_tilde */
+#include "core/constants.h"
+#include "core/interpreter.h"
+#include "act/act.h"    /* for the space_to_minus function */
+#include "core/modify.h" /* for smash_tilde */
 #include "quest/quest.h"
 #include "craft/craft.h" // get_obj_material
 

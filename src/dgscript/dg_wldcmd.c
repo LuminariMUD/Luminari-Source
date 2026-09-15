@@ -8,17 +8,17 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
 #include "movement/door_state.h"
-#include "screen.h"
+#include "core/screen.h"
 #include "dg_scripts.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "handler.h"
-#include "db.h"
-#include "constants.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
+#include "core/db.h"
+#include "core/constants.h"
 #include "olc/genzon.h"   /* for zone_rnum real_zone_by_thing */
 #include "combat/fight.h" /* for die() */
 

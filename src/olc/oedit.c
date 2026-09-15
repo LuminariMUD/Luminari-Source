@@ -6,15 +6,15 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
 #include "magic/spells.h"
-#include "db.h"
+#include "core/db.h"
 #include "comms/boards.h"
-#include "constants.h"
+#include "core/constants.h"
 #include "obj/shop.h"
 #include "genolc.h"
 #include "genobj.h"
@@ -23,21 +23,21 @@
 #include "improved-edit.h"
 #include "dgscript/dg_olc.h"
 #include "combat/fight.h"
-#include "modify.h"
-#include "clan.h"
+#include "core/modify.h"
+#include "clan/clan.h"
 #include "craft/craft.h"
 #include "combat/spec_abilities.h"
 #include "character/feats.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
 #include "obj/treasure.h" /* set_weapon_object */
-#include "act.h"          /* get_eq_score() */
+#include "act/act.h"      /* get_eq_score() */
 #include "character/feats.h"
-#include "handler.h"
+#include "core/handler.h"
 #include "spec/spec_binding.h"
 #include "spec/spec_registry.h"
 #include "spec_menu.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 /* local functions */
 static void oedit_disp_size_menu(struct descriptor_data *d);

@@ -11,7 +11,7 @@
 #ifndef _QUEST_H_
 #define _QUEST_H_
 
-#include "domain_event_types.h"
+#include "events/domain_event_types.h"
 
 /* Aquest related defines ********************************************* */
 #define AQ_UNDEFINED -1        /* (R) Quest unavailable                   */

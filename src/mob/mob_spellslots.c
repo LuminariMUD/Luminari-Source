@@ -9,17 +9,17 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "magic/spells.h"
-#include "handler.h"
-#include "comm.h"
-#include "db.h"
-#include "constants.h"
+#include "core/handler.h"
+#include "core/comm.h"
+#include "core/db.h"
+#include "core/constants.h"
 #include "magic/spell_prep.h"
 #include "character/class.h"
-#include "active_world.h"
+#include "events/active_world.h"
 #include "mob_spellslots.h"
 
 #define MOB_SPELL_SLOT_RECOVERY_SECONDS 300

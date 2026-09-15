@@ -9,20 +9,20 @@
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <time.h>
-#include "structs.h"
-#include "comm.h"
-#include "utils.h"
-#include "handler.h"
-#include "interpreter.h"
-#include "db.h"
+#include "core/structs.h"
+#include "core/comm.h"
+#include "core/utils.h"
+#include "core/handler.h"
+#include "core/interpreter.h"
+#include "core/db.h"
 #include "comms/boards.h"
 #include "oasis.h"
 #include "genolc.h"
 #include "genzon.h"
 #include "obj/house.h"
-#include "screen.h"
+#include "core/screen.h"
 
 /*------------------------------------------------------------------------*/
 /*. External data .*/

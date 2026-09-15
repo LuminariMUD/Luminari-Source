@@ -9,10 +9,10 @@ on the balance decisions listed in Part 0. See
 stand-in first proposed for this issue was rejected; the target is the full
 mechanic: real weapon slots, real doubled limb slots, real extra swings, and
 a save format that carries them. Duris source verified at
-`/home/aiwithapex/projects/duris`; our side traced in `src/structs.h`,
-`src/obj/act.item.c`, `src/obj/objsave.c`, `src/handler.c`,
-`src/combat/fight.c`, `src/character/race.c`, `src/constants.c`,
-`src/act.informative.c`, `src/players.c`, and `src/db.c`.
+`/home/aiwithapex/projects/duris`; our side traced in `src/core/structs.h`,
+`src/obj/act.item.c`, `src/obj/objsave.c`, `src/core/handler.c`,
+`src/combat/fight.c`, `src/character/race.c`, `src/core/constants.c`,
+`src/act/act.informative.c`, `src/player/players.c`, and `src/core/db.c`.
 
 Review baseline: LuminariMUD `6a048b0d34fe0f17faea30577d87bac72b5ec3d3`,
 Duris `9e0bfac624aa19eccbfc8045edbfa8cfddfb575f` (both clean when traced).
@@ -46,8 +46,8 @@ it landed.
 
 | Area | What exists at the end of step 1 |
 |------|-----------------|
-| Constants | `WEAR_WIELD_3` 44 .. `WEAR_WRIST_L2` 50, `NUM_WEARS` 51, `FEAT_FOUR_ARMS` 1321, `FEAT_LAST_FEAT` 1322, `NUM_FEATS` 1323 (renumbered past the casting-speed and Minotaur feats when merged with master) in `src/structs.h`. Attack types THIRD/FOURTH are not added yet (step 3). |
-| Capability | `has_four_arms()`, `is_four_arm_wear_slot()`, `is_second_pair_wield_slot()`, `four_arm_slot_base()`, `second_pair_rejects_object()` in `src/utils.c`, declared in `src/utils.h`. Grant sources: mob feats (NPC, disguised wild shape), `HAS_REAL_FEAT`, `APPLY_FEAT` gear in ordinary slots only. |
+| Constants | `WEAR_WIELD_3` 44 .. `WEAR_WRIST_L2` 50, `NUM_WEARS` 51, `FEAT_FOUR_ARMS` 1321, `FEAT_LAST_FEAT` 1322, `NUM_FEATS` 1323 (renumbered past the casting-speed and Minotaur feats when merged with master) in `src/core/structs.h`. Attack types THIRD/FOURTH are not added yet (step 3). |
+| Capability | `has_four_arms()`, `is_four_arm_wear_slot()`, `is_second_pair_wield_slot()`, `four_arm_slot_base()`, `second_pair_rejects_object()` in `src/core/utils.c`, declared in `src/core/utils.h`. Grant sources: mob feats (NPC, disguised wild shape), `HAS_REAL_FEAT`, `APPLY_FEAT` gear in ordinary slots only. |
 | Feat | `feato(FEAT_FOUR_ARMS, ...)` in `assign_feats()`: innate, in game, not learnable, not stackable. `test_racial_innate_feats.c` sentinel moved to `FEAT_FOUR_ARMS + 1`. |
 | Anatomy gate | `character_wear_slot_restriction()` refuses the seven slots without the capability before the NPC early return, then maps each doubled slot to its base slot for the race table (Trelux cannot use lower hands). |
 | Hand budget | `hands_have()` +2 with four arms (Vestigial Arm still stacks); `hands_used()` counts WIELD_3/WIELD_4 as one and WIELD_2H_2 as two. |
@@ -76,8 +76,8 @@ Decisions taken in step 1 that Part 3 left open:
 
 | Area | What exists now |
 |------|-----------------|
-| Reconciliation | `four_arms_reconcile()` in `src/obj/act.item.c`, declared in `src/handler.h`. Runs at the end of `affect_total()` (every completed equipment, affect, feat or form change) and at the close of an affect batch. Re-entry guarded by `ch->four_arms_reconciling`; skipped for characters being extracted (`DEAD()`). |
-| Deferral | `four_arms_defer_begin()` / `four_arms_defer_end()` on a runtime counter `ch->four_arms_defer` in `struct char_data`; a loss noticed while deferred sets `four_arms_dirty` and is acted on when the outermost deferral ends. `save_char_checked()` in `src/players.c` brackets its unequip/re-equip cycle (no early returns exist between the two loops). |
+| Reconciliation | `four_arms_reconcile()` in `src/obj/act.item.c`, declared in `src/core/handler.h`. Runs at the end of `affect_total()` (every completed equipment, affect, feat or form change) and at the close of an affect batch. Re-entry guarded by `ch->four_arms_reconciling`; skipped for characters being extracted (`DEAD()`). |
+| Deferral | `four_arms_defer_begin()` / `four_arms_defer_end()` on a runtime counter `ch->four_arms_defer` in `struct char_data`; a loss noticed while deferred sets `four_arms_dirty` and is acted on when the outermost deferral ends. `save_char_checked()` in `src/player/players.c` brackets its unequip/re-equip cycle (no early returns exist between the two loops). |
 | Loss action | Order: WIELD_2H_2, WIELD_4, WIELD_3, WRIST_L2, WRIST_R2, HANDS_2, ARMS_2; then, only when the character had four arms at the last completed check (`four_arms_active`) and the old positions exceed the budget: HOLD_2H, HOLD_2, HOLD_1, WIELD_OFFHAND, SHIELD, WIELD_2H, WIELD_1 until it fits. Each displacement wraps a `domain_object_transfer_begin/finish` (`DOMAIN_TRANSFER_RESTORE`), runs `remove_otrigger()` for its side effects but ignores a veto, re-reads the slot in case the trigger moved or purged the object, then `obj_to_char(unequip_char())`: inventory, never the room, inventory limits bypassed. Message: "You can no longer keep hold of $p and tuck it into your inventory." (suppressed under `mute_equip_messages`). |
 | Restoration | `auto_equip()` marks four-arm gear whose slot is closed at that moment with `obj->four_arms_restore_slot` (runtime-only field on `struct obj_data`) and holds it in inventory. `crash_restore_records()` (shared by `Crash_load_objs()`, `pet_load_objs()` and the `test_restore_loaded_objects()` hook) runs the record loop under deferral, then `four_arms_restore_deferred()` retries those objects with their contents, then ends the deferral so capacity is checked once. Gear whose provider never arrives stays in inventory with its marker cleared. Copyover reconnects through `Crash_load()`, so it shares the path. |
 | Tests | `TestFourArmsLossClosesExtraSlots`, `TestFourArmsLossTrimsOldPositionsToCapacity`, `TestFourArmsDeferralSpansProviderCycle` (nested deferral and affect batch), `TestFourArmsLossIgnoresRemoveTriggerVeto` (real DG trigger returning 0), `TestFourArmsRestoreIsOrderIndependent` (flat-file round trip through `objsave_parse_objects()`: provider after dependents, container contents, missing provider). Full suite: 1467 tests pass. |
@@ -102,7 +102,7 @@ Decisions taken in step 2:
 
 | Area | What exists now |
 |------|-----------------|
-| Attack types | `ATTACK_TYPE_THIRD` 23, `ATTACK_TYPE_FOURTH` 24 in `src/structs.h`. |
+| Attack types | `ATTACK_TYPE_THIRD` 23, `ATTACK_TYPE_FOURTH` 24 in `src/core/structs.h`. |
 | Pair helpers | In `src/combat/fight.c`, declared in `fight.h`: `is_second_pair_attack()`, `attack_is_offhand_role()`, `attack_pair_two_hand_slot()`, `is_dual_wielding_second_pair()`, `second_pair_dual_wielding_penalty()` (shares `dual_wielding_penalty_for()` with the first pair); static `pair_two_hander()` and `spare_hand_for_attack()`. `is_using_double_weapon_at(ch, slot)` in `assign_wpn_armor.c`. |
 | Weapon lookup | `get_wielded()`: THIRD is WIELD_3 then WIELD_2H_2; FOURTH is the lower double weapon or WIELD_4. `skill_message()` picks the same weapon for THIRD/FOURTH messages. |
 | Attack bonus | `compute_attack_bonus_full_with_weapon()`: the two-weapon block uses the attacking pair's dual test and penalty table; THIRD/FOURTH join the finesse case; the oversized-weapon check compares against the attack's own 2H slot. `is_using_light_weapon()` treats WIELD_4 like OFFHAND for Oversized Two-Weapon Fighting. |
@@ -336,7 +336,7 @@ equipment. This selector is not a model for Luminari mob equipment.
 
 ### Wear positions and hands
 
-`src/structs.h:1738` defines 44 positions (`NUM_WEARS 44`). Hands are modeled
+`src/core/structs.h:1738` defines 44 positions (`NUM_WEARS 44`). Hands are modeled
 as six slots: `WEAR_WIELD_1` 16, `WEAR_HOLD_1` 17, `WEAR_WIELD_OFFHAND` 18,
 `WEAR_HOLD_2` 19, `WEAR_WIELD_2H` 20, `WEAR_HOLD_2H` 21, plus `WEAR_SHIELD`
 11. Positions 28 to 31 and 42 are marked "currently unused; reserved for
@@ -414,10 +414,10 @@ themselves.
 Many ownership and transfer loops use `NUM_WEARS` and scale automatically.
 Other loops also contain explicit slot lists: armor spell failure, armor
 penalties, max Dexterity, enhancement and sleeve proficiency in
-`src/combat/assign_wpn_armor.c`, for example. `apply_ac()` in `src/handler.c`
+`src/combat/assign_wpn_armor.c`, for example. `apply_ac()` in `src/core/handler.c`
 explicitly recognizes `WEAR_ARMS`. These must include the lower sleeves.
 
-`save_char()` (`src/players.c:2488,3914`) temporarily unequips and re-equips
+`save_char()` (`src/player/players.c:2488,3914`) temporarily unequips and re-equips
 all gear to serialize base character data. This is not a loss of anatomy.
 Any new cleanup must defer across the complete save operation, including
 error paths. Otherwise saving an item-supported character can move valid
@@ -477,8 +477,8 @@ alongside the latter combination.
 
 ### Predicate, feat identity and hand budget
 
-Expose `bool has_four_arms(const struct char_data *ch)` in `src/utils.h`,
-with its implementation in `src/utils.c`; return false for NULL. Do not
+Expose `bool has_four_arms(const struct char_data *ch)` in `src/core/utils.h`,
+with its implementation in `src/core/utils.c`; return false for NULL. Do not
 assume that a bare `HAS_FEAT()` call implements every promised grant:
 `get_feat_value()` scans worn `APPLY_FEAT` objects only for ordinary PCs.
 NPCs and PCs in a wild shape with a disguise race use `MOB_HAS_FEAT()`.
@@ -495,7 +495,7 @@ inactive equipment grant usable arms. This item dependency rule is a deliberate
 addition to the conversion and must be explained in help.
 
 At the review baseline, `FEAT_EXTRA_ARMS` is 1316, `FEAT_LAST_FEAT` is 1317,
-and `NUM_FEATS` is 1318, all in `src/structs.h`. Append `FEAT_FOUR_ARMS`
+and `NUM_FEATS` is 1318, all in `src/core/structs.h`. Append `FEAT_FOUR_ARMS`
 before the sentinel and advance both bounds (1317/1318/1319 respectively if
 nothing else is appended first). Do not reuse or renumber Extra Arms: it
 already has runtime behavior and tests. Four Arms grants replace the proposed
@@ -677,8 +677,8 @@ stochastic count paths touched by this work; the Air Embodiment branch is
 not a safe precedent for a pure query.
 
 Audit explicit wield-slot consumers in `src/combat/assign_wpn_armor.c`,
-`src/combat/fight.c`, `src/combat/act.offensive.c`, `src/utils.c`,
-`src/obj/act.item.c` and `src/act.informative.c`: speed, bare-handed/monk
+`src/combat/fight.c`, `src/combat/act.offensive.c`, `src/core/utils.c`,
+`src/obj/act.item.c` and `src/act/act.informative.c`: speed, bare-handed/monk
 eligibility, weapon requirements for parry and disarm, double-weapon defenses,
 `skill_message()` weapon selection, and score/equipment output. Distinguish "any weapon equipped" from
 "the weapon delivering this hit"; broadening a global special-ability check
@@ -770,13 +770,13 @@ balanced progression across classes.
 
 | Area | Files | Change |
 |------|-------|--------|
-| Constants | `src/structs.h` | Seven positions, `NUM_WEARS`, Four Arms feat and both feat bounds, two attack types; any scoped lifecycle state |
-| Slot tables and display | `src/constants.c`, `src/act.informative.c`, `src/obj/act.item.c` | Labels, ordering, messages, keywords, slot/size classification and proficiency output |
-| Feat and capability | `src/character/feats.c`, `src/utils.c`, `src/utils.h` | Registration, effective grant sources, pair-aware two-hand utility |
-| Equipment lifecycle | `src/obj/act.item.c`, `src/obj/item.h`, `src/handler.c`, `src/handler.h`, `src/players.c` | Placement, shared validation, mandatory cleanup, save/load deferral, AC |
+| Constants | `src/core/structs.h` | Seven positions, `NUM_WEARS`, Four Arms feat and both feat bounds, two attack types; any scoped lifecycle state |
+| Slot tables and display | `src/core/constants.c`, `src/act/act.informative.c`, `src/obj/act.item.c` | Labels, ordering, messages, keywords, slot/size classification and proficiency output |
+| Feat and capability | `src/character/feats.c`, `src/core/utils.c`, `src/core/utils.h` | Registration, effective grant sources, pair-aware two-hand utility |
+| Equipment lifecycle | `src/obj/act.item.c`, `src/obj/item.h`, `src/core/handler.c`, `src/core/handler.h`, `src/player/players.c` | Placement, shared validation, mandatory cleanup, save/load deferral, AC |
 | Anatomy and race data | `src/character/race.c`, relevant registry headers | Extra-slot eligibility and base restriction mapping; playable race registration after conversion/balance decisions |
 | Combat | `src/combat/fight.c`, `src/combat/fight.h`, `src/combat/assign_wpn_armor.c`, `src/combat/assign_wpn_armor.h`, affected offensive selectors | Weapon routing, attack opportunities, phase/count/display behavior, armor and explicit weapon consumers |
-| Persistence | `src/obj/objsave.c`, `src/players.c` | Provider/dependent restore order, final validation, pet lifecycle and fingerprint checks |
+| Persistence | `src/obj/objsave.c`, `src/player/players.c` | Provider/dependent restore order, final validation, pet lifecycle and fingerprint checks |
 | Docs | `docs/systems/SAVE_SYSTEMS_BREAKDOWN.md`, `docs/guides/PLAYER_RACES_REFERENCE.md`, `docs/systems/GAME_MECHANICS_SYSTEMS.md` | Format/rollback notes, correct stand-in description and provisional pricing, mechanic rules |
 | Help | `lib/text/help/help.hlp`, `sql/components/help_duris_racial_innate_entries.sql`, development help database | FOUR-ARMS entry; apply the SQL to the intended development DB and verify both copies agree |
 | Constants sync | `scripts/world/wtool_constants.json` | Regenerate/resync changed constants and bounds |

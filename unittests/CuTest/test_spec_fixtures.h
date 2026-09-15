@@ -2,8 +2,8 @@
 #define TEST_SPEC_FIXTURES_H
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
 #include "../../src/spec/spec_registry.h"
 
 enum spec_test_owner

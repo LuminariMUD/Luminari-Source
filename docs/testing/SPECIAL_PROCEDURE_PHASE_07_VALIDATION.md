@@ -87,7 +87,7 @@ The compiled source comparison is exact:
   CMake `CUTEST_TEST_SOURCES`; and
 - each of the four assignment sources occurs once in both production lists.
 
-Incidental header listings are not compiled membership: Automake lists `src/player_rename.h`, while
+Incidental header listings are not compiled membership: Automake lists `src/player/player_rename.h`, while
 CMake lists `src/net/msdp_json.h`. They are excluded from the C-source parity comparison.
 
 ## Verification Gates

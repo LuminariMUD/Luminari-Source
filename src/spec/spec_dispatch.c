@@ -8,12 +8,12 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
-#include "db.h"
-#include "perfmon.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/db.h"
+#include "core/perfmon.h"
 #include "spec/spec_context.h"
 #include "spec/spec_dispatch.h"
 

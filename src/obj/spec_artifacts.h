@@ -15,7 +15,7 @@
 /* --------------------------------------------------------------------------
  * VNUM allocation - zone 1699, range 169900-169999.
  *
- * src/vnums.h is gitignored local configuration and must not be edited, so
+ * src/config/vnums.h is gitignored local configuration and must not be edited, so
  * the artifact vnums live here.  Never hardcode these numbers elsewhere.
  * -------------------------------------------------------------------------- */
 #define ARTIFACT_ZONE 1699

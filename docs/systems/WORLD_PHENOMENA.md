@@ -15,7 +15,7 @@ delivery retry queue, or heartbeat scan.
 
 ## Contract
 
-The payload in `src/domain_event_types.h` carries:
+The payload in `src/events/domain_event_types.h` carries:
 
 - a generation-aware origin-room handle for room propagation;
 - source coordinates and elevation for coordinate propagation;

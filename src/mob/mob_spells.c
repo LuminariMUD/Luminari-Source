@@ -9,18 +9,18 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
-#include "handler.h"
-#include "interpreter.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/db.h"
+#include "core/handler.h"
+#include "core/interpreter.h"
 #include "magic/spells.h"
-#include "constants.h"
-#include "act.h"
+#include "core/constants.h"
+#include "act/act.h"
 #include "combat/fight.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "obj/shop.h"             /* for shop_keeper */
 #include "dgscript/dg_scripts.h"  /* for SCRIPT and TRIGGERS */
 #include "quest/quest.h"          /* for questmaster checks */

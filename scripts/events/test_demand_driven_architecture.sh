@@ -4,11 +4,11 @@ set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 # CPPFLAGS lets a CMake tree point the preprocessor at its generated conf.h;
-# an Autotools tree already has src/conf.h.
+# an Autotools tree generates it in the project root.
 # shellcheck disable=SC2086
-active_world="$project_root/src/active_world.c"
+active_world="$project_root/src/events/active_world.c"
 mob_activity="$project_root/src/mob/mob_act.c"
-runtime_services="$project_root/src/comm.c"
+runtime_services="$project_root/src/core/comm.c"
 agenda_body=$(mktemp)
 scheduled_body=$(mktemp)
 service_needed_body=$(mktemp)
@@ -75,7 +75,7 @@ if grep -q 'RUNTIME_SERVICE_MOBILE_ACTIVITY' "$runtime_services"; then
   fail "whole-mobile rollback service must be removed"
 fi
 
-"${CC:-cc}" ${CPPFLAGS:-} -E -P -I"$project_root/src" "$runtime_services" >"$default_comm"
+"${CC:-cc}" ${CPPFLAGS:-} -E -P -I"$project_root" -I"$project_root/src" "$runtime_services" >"$default_comm"
 if grep -Eq '^[[:space:]]*mobile_activity_run_legacy_(cycle|slice)[[:space:]]*\(' "$default_comm"; then
   fail "the default preprocessed runtime still dispatches whole-mobile rollback work"
 fi

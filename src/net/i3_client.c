@@ -5,17 +5,17 @@
 ************************************************************************ */
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "handler.h"
-#include "db.h"
-#include "screen.h"
-#include "act.h"
-#include "modify.h"
-#include "dotenv.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
+#include "core/db.h"
+#include "core/screen.h"
+#include "act/act.h"
+#include "core/modify.h"
+#include "config/dotenv.h"
 
 #include "i3_client.h"
 /* Temporarily disabled for compilation

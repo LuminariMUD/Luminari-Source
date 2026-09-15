@@ -289,7 +289,7 @@ ai reset             # Reset rate limits
 ### Core Components
 
 #### ai_service.c (Main Service Implementation)
-**Location**: `src/ai_service.c`  
+**Location**: `src/ai/ai_service.c`  
 **Purpose**: Main API interface and request handling
 
 **Key Features**:
@@ -331,7 +331,7 @@ ai reset             # Reset rate limits
 - Detached thread creation for non-blocking operations
 
 #### ai_security.c (Security Layer)
-**Location**: `src/ai_security.c`  
+**Location**: `src/ai/ai_security.c`  
 **Purpose**: Security functions for API key handling and input sanitization
 
 **Key Functions**:
@@ -353,7 +353,7 @@ See "Secret Lifecycle and Threat Model" under Security Considerations for the
 honest statement of what is and is not protected.
 
 #### ai_cache.c (Response Caching)
-**Location**: `src/ai_cache.c`  
+**Location**: `src/ai/ai_cache.c`  
 **Purpose**: LRU cache implementation for response reuse
 
 **Key Functions**:
@@ -372,7 +372,7 @@ honest statement of what is and is not protected.
 - Two-phase cleanup: expired entries first, then oldest
 
 #### ai_events.c (Event System Integration)
-**Location**: `src/ai_events.c`  
+**Location**: `src/ai/ai_events.c`  
 **Purpose**: Async response delivery and retry logic
 
 **Key Functions**:

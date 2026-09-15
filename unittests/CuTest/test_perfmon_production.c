@@ -1,18 +1,18 @@
 #include "CuTest.h"
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
-#include "../../src/utils.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/utils.h"
 #include "../../src/combat/fight.h"
-#include "../../src/db.h"
+#include "../../src/core/db.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/dgscript/dg_scripts.h"
-#include "../../src/handler.h"
+#include "../../src/core/handler.h"
 #include "../../src/magic/spells.h"
 #include "../../src/olc/hedit.h"
-#include "../../src/perfmon.h"
-#include "../../src/point_update_periodic.h"
+#include "../../src/core/perfmon.h"
+#include "../../src/events/point_update_periodic.h"
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -677,7 +677,7 @@ void Test_player_live_entry_registers_loaded_timed_affects(CuTest *tc)
   player.next = NULL;
   character_list = &player;
   entry_hook_present =
-      perfmon_file_contains("src/interpreter.c", "affected_registry_attach(d->character);");
+      perfmon_file_contains("src/core/interpreter.c", "affected_registry_attach(d->character);");
 
   count_before_attach = affected_registry_count();
   affected_registry_attach(&player);
@@ -719,7 +719,7 @@ void Test_player_live_entry_registers_for_point_updates(CuTest *tc)
   player.next = NULL;
   character_list = &player;
   entry_hook_present =
-      perfmon_file_contains("src/interpreter.c", "point_update_character_sync(d->character);");
+      perfmon_file_contains("src/core/interpreter.c", "point_update_character_sync(d->character);");
   point_update_character_sync(&player);
 
   CuAssertTrue(tc, entry_hook_present);
@@ -734,8 +734,8 @@ void Test_player_live_entry_registers_for_point_updates(CuTest *tc)
 
 void Test_world_cleanup_owns_stable_location_trail_registry(CuTest *tc)
 {
-  CuAssertTrue(tc, perfmon_file_contains("src/db.c", "movement_trail_registry_shutdown();"));
-  CuAssertTrue(tc, !perfmon_file_contains("src/structs.h", "trail_tracks"));
+  CuAssertTrue(tc, perfmon_file_contains("src/core/db.c", "movement_trail_registry_shutdown();"));
+  CuAssertTrue(tc, !perfmon_file_contains("src/core/structs.h", "trail_tracks"));
 }
 
 void Test_dg_random_registry_tracks_owners_and_safe_removal(CuTest *tc)

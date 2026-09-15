@@ -62,7 +62,7 @@ Relevant scratch logs:
 Corrections made
 ----------------
 
-- src/db.c repeats character_periodic_forget at the final free_char release
+- src/core/db.c repeats character_periodic_forget at the final free_char release
   boundary.  Affect cleanup can otherwise re-register a descriptor-owned
   temporary character after the early teardown pass.
 - TestCharacterPeriodicFreeCharDetachesOwnerBeforeRelease now frees a character

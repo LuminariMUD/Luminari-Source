@@ -6,12 +6,12 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "interpreter.h"
-#include "comm.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/interpreter.h"
+#include "core/comm.h"
+#include "core/db.h"
 #include "obj/shop.h"
 #include "genolc.h"
 #include "genmob.h"
@@ -20,10 +20,10 @@
 #include "genwld.h"
 #include "genobj.h"
 #include "oasis.h"
-#include "screen.h"
+#include "core/screen.h"
 #include "dgscript/dg_olc.h"
-#include "act.h"
-#include "handler.h" /* for is_name */
+#include "act/act.h"
+#include "core/handler.h" /* for is_name */
 #include "quest/quest.h"
 #include "comms/ibt.h"
 #include "msgedit.h"

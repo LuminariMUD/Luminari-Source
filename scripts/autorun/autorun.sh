@@ -72,7 +72,7 @@ readonly LIB_DIR="${LIB_DIR:-lib}"
 readonly LOG_DIR="${LOG_DIR:-log}"
 readonly DUMPS_DIR="${DUMPS_DIR:-dumps}"
 
-# Keep this value synchronized with MUD_EXIT_REBOOT in src/comm.h. The
+# Keep this value synchronized with MUD_EXIT_REBOOT in src/core/comm.h. The
 # supervision regression test fails if the two definitions drift apart.
 readonly MUD_EXIT_REBOOT=52
 

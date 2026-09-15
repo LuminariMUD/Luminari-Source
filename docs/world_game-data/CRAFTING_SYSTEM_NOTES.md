@@ -92,7 +92,7 @@ adamantine
 
 ## Crafting Commands
 
-All of the following are registered in `cmd_info[]` (`src/interpreter.c`).
+All of the following are registered in `cmd_info[]` (`src/core/interpreter.c`).
 
 | Command | Effect |
 |---------|--------|

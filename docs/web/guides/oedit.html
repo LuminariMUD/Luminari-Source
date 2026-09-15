@@ -205,7 +205,7 @@ new values after you <code>Q</code>+<code>Y</code> or
 <h2 id="native-object-file-serialization">Native object-file
 serialization</h2>
 <p>The authoritative reader is <code>parse_object()</code> in <a
-href="https://github.com/LuminariMUD/Luminari-Source/blob/master/src/db.c">db.c</a>;
+href="https://github.com/LuminariMUD/Luminari-Source/blob/master/src/core/db.c">db.c</a>;
 the writer is <code>save_objects()</code> in <a
 href="https://github.com/LuminariMUD/Luminari-Source/blob/master/src/olc/genobj.c">genobj.c</a>.
 Menu letters and serialized extension letters are different interfaces.
@@ -449,7 +449,7 @@ stored that way and players see it divided by ten.</li>
 <code>WEAR_SHIELD</code>, <code>WEAR_HEAD</code>,
 <code>WEAR_BODY</code>, <code>WEAR_ARMS</code>, or
 <code>WEAR_LEGS</code> (<code>apply_ac()</code>,
-<code>src/handler.c</code>). On any other slot it is ignored - give
+<code>src/core/handler.c</code>). On any other slot it is ignored - give
 those slots armor class with an <code>APPLY_AC_NEW</code> affection
 instead. Those same five slots are the ones charged armor check penalty,
 spell failure, and the max-dex cap
@@ -1679,9 +1679,10 @@ it</td>
 <p><strong>Total: 125 flags (bits 0-124,
 <code>NUM_ITEM_FLAGS</code>)</strong></p>
 <p><strong>Note:</strong> These flags are defined in
-<code>src/structs.h</code> as the <code>ITEM_*</code> define block
+<code>src/core/structs.h</code> as the <code>ITEM_*</code> define block
 ending at <code>ITEM_ROL_WHOLE_HEAD</code>, and their display names in
-the <code>extra_bits[]</code> table in <code>src/constants.c</code>.</p>
+the <code>extra_bits[]</code> table in
+<code>src/core/constants.c</code>.</p>
 <p>The RoL source <code>DARK</code> object flag is intentionally not
 persisted. Source tracing confirmed that it requested light
 recalculation but was never consumed by the source light counters;
@@ -2346,7 +2347,7 @@ Enhancement bonus&#x201D;, that is <code>value[4]</code>.</p>
 <h3 id="the-value-line-in-a-.obj-file">The value line in a
 <code>.obj</code> file</h3>
 <p>The second numeric line of an object record holds the values.
-<code>parse_object()</code> in <code>src/db.c</code> accepts
+<code>parse_object()</code> in <code>src/core/db.c</code> accepts
 <strong>exactly 4 integers or exactly 16</strong> - any other count is a
 fatal boot error:</p>
 <pre><code>SYSERR: Format error in second numeric line (expecting 4 or 16 args, got N)</code></pre>

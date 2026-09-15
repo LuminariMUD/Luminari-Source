@@ -10,11 +10,11 @@
 * @LuminariMUD/core-team
 
 # Core Systems
-src/comm.c             @LuminariMUD/core-team
-src/db.c               @LuminariMUD/core-team
-src/interpreter.c      @LuminariMUD/core-team
-src/handler.c          @LuminariMUD/core-team
-src/utils.c            @LuminariMUD/core-team
+src/core/comm.c             @LuminariMUD/core-team
+src/core/db.c               @LuminariMUD/core-team
+src/core/interpreter.c      @LuminariMUD/core-team
+src/core/handler.c          @LuminariMUD/core-team
+src/core/utils.c            @LuminariMUD/core-team
 
 # Combat System
 src/combat/            @LuminariMUD/combat-team
@@ -39,8 +39,8 @@ docs/                  @LuminariMUD/docs-team
 CLAUDE.md              @LuminariMUD/core-team
 
 # Database
-src/mysql.c            @LuminariMUD/database-team
-src/db_init.c          @LuminariMUD/database-team
+src/database/mysql.c            @LuminariMUD/database-team
+src/database/db_init.c          @LuminariMUD/database-team
 src/comms/mysql_boards.c @LuminariMUD/database-team
 sql/                   @LuminariMUD/database-team
 

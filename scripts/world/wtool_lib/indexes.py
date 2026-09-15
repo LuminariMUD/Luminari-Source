@@ -27,7 +27,7 @@ class ParsedIndex:
 
 
 def is_safe_path_component(name: str) -> bool:
-  """Mirror src/utils.c:is_safe_path_component() for ASCII world filenames."""
+  """Mirror src/core/utils.c:is_safe_path_component() for ASCII world filenames."""
 
   return bool(
       name

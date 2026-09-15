@@ -49,7 +49,7 @@ require_reservation 8181
 require_reservation 8182
 
 require_pattern "compiled local MUD default port 4100" \
-  'DFLT_PORT[[:space:]]*=[[:space:]]*4100;' "$repo_root/src/config.c"
+  'DFLT_PORT[[:space:]]*=[[:space:]]*4100;' "$repo_root/src/config/config.c"
 if [[ -e "$repo_root/lib/etc/config" ]]; then
   require_pattern "runtime local MUD default port 4100" \
     '^DFLT_PORT[[:space:]]*=[[:space:]]*4100$' "$repo_root/lib/etc/config"

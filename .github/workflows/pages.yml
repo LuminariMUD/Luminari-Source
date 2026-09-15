@@ -7,8 +7,8 @@ on:
     paths:
       - 'docs/**'
       - 'scripts/development/check-dg-docs.py'
-      - 'src/constants.c'
-      - 'src/interpreter.c'
+      - 'src/core/constants.c'
+      - 'src/core/interpreter.c'
       - 'src/dgscript/**'
       - '.github/workflows/pages.yml'
 

@@ -159,8 +159,8 @@ Checkpoint 4 consolidates the complete legacy moving-room package under
 - `prepMovingRoom()`, `unlinkMovingRoom()`, and `linkMovingRoom()`; and
 - the legacy `moving_rooms` callback reached through the Phase 01 gateway.
 
-The loader and scheduler moved out of `src/db.c`; the relocation helpers and callback moved out of
-`src/spec_procs.c`. `src/comm.c`, `src/db.c`, `src/olc/genwld.c`, and the production-linked
+The loader and scheduler moved out of `src/core/db.c`; the relocation helpers and callback moved out of
+`src/spec_procs.c`. `src/core/comm.c`, `src/core/db.c`, `src/olc/genwld.c`, and the production-linked
 moving-room tests include the owner header directly. `src/spec_procs.h` retains it as a compatibility
 include, while `src/olc/oasis.h` no longer publishes declarations owned by vessels.
 
@@ -234,7 +234,7 @@ to the clan subsystem:
   `solid_elemental`, `wraith_elemental`, and `bonedancer`;
 - the legacy `perform_lichdrain()` helper moves with the lich archetype while retaining its global
   name and type; and
-- `src/clan_services.c` and `.h` own `clan_cleric` and `clan_guard`, including clan-hall lookup,
+- `src/clan/clan_services.c` and `.h` own `clan_cleric` and `clan_guard`, including clan-hall lookup,
   membership policy, spell pricing, and entrance blocking.
 
 The dedicated archetype file keeps both general mobile sources below the 1,000-line review prompt.
@@ -540,7 +540,7 @@ command, authored-data, or behavior contract changed.
 ## Checkpoint 14 - Equipment Predicate Ownership
 
 Checkpoint 14 moves the exported `is_wearing()` predicate from `src/spec_procs.c` to
-`src/handler.c` and publishes it beside `equip_char()` and `unequip_char()` in `src/handler.h`.
+`src/core/handler.c` and publishes it beside `equip_char()` and `unequip_char()` in `src/core/handler.h`.
 Its consumers in general object procedures, Jot objects, offensive combat, and core combat already
 include that equipment-owner header. The redundant `spec_procs.h` declaration and the duplicate
 special-procedure include in `src/combat/act.offensive.c` are removed.

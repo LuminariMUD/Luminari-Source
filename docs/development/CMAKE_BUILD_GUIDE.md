@@ -43,9 +43,9 @@ options) that need them.
 
 ```bash
 # Configure required headers (one-time setup on a fresh clone)
-cp src/campaign.example.h src/campaign.h
-cp src/mud_options.example.h src/mud_options.h
-cp src/vnums.example.h src/vnums.h
+cp src/config/campaign.example.h src/config/campaign.h
+cp src/config/mud_options.example.h src/config/mud_options.h
+cp src/config/vnums.example.h src/config/vnums.h
 
 cmake --preset dev
 cmake --build --preset dev -j"$(nproc)"
@@ -136,11 +136,11 @@ cmake --preset dev -DCMAKE_C_FLAGS="-march=native"
 
 ## Feature definitions
 
-Configuration writes the same platform macros `configure.ac` produces into the
-gitignored `src/conf.h` from `cmake/cmake_config.h.in`. Keeping the header in
-`src/` matches Autotools and lets the standalone scripts under `scripts/`
-preprocess sources with `-Isrc`. The generated `build_identity.h` lives in the
-build directory.
+Configuration writes the same platform macros `configure.ac` produces into
+`conf.h` in the build directory, from `cmake/cmake_config.h.in`, beside the
+generated `build_identity.h`. Autotools generates both headers in its build
+root. CTest points the standalone scripts that preprocess sources at the build
+directory through `CPPFLAGS`.
 
 The two headers differ only in macros no source consumes: Autotools also
 emits `PACKAGE_*`, `VERSION`, and `HAVE_EVENT2_EVENT_H`. Fallback `pid_t`,
@@ -230,7 +230,12 @@ CMake Error: campaign.h not found!
 ```
 
 Copy the three `.example.h` templates as shown in the quick start. Never
-overwrite an existing local header.
+overwrite an existing local header. If configuration instead stops because a
+local header must move to `src/config/`, move the existing headers:
+
+```bash
+mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/
+```
 
 ### Source style
 

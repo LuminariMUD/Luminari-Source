@@ -6,25 +6,25 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/db.h"
 #include "obj/shop.h"
-#include "constants.h"
+#include "core/constants.h"
 #include "genolc.h"
 #include "genobj.h"
 #include "genzon.h"
 #include "dgscript/dg_olc.h"
-#include "handler.h"
-#include "interpreter.h"
+#include "core/handler.h"
+#include "core/interpreter.h"
 #include "comms/boards.h" /* for board_info */
 #include "craft/craft.h"
 #include "magic/spells.h"
 #include "spec/spec_binding.h"
 #include "spec/spec_registry.h"
 #include "spec/spec_effective_binding.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 /* local functions */
 static int update_all_objects(struct obj_data *obj);

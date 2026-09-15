@@ -22,7 +22,7 @@ preserve established compatibility unless the change explicitly migrates it.
   practical and fix new `-Wall -Wextra` warnings.
 - Use bounded string operations such as `snprintf`; check pointers before
   dereference and log internal failures with `log("SYSERR: ...")`.
-- Never edit local `src/campaign.h`, `src/mud_options.h`, or `src/vnums.h`.
+- Never edit local `src/config/campaign.h`, `src/config/mud_options.h`, or `src/config/vnums.h`.
   Change the matching `.example.h` template only when the template contract
   changes.
 - Never commit or overwrite `lib/mysql_config` or `lib/.env`. The tracked

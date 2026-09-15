@@ -1,11 +1,11 @@
 #include "CuTest.h"
 
 /* Include paths relative to src/ for CMake build */
-#include "../../src/bool.h"
-#include "../../src/utils.h"
-#include "../../src/structs.h"
-#include "../../src/interpreter.h"
-#include "../../src/act.h"
+#include "../../src/core/bool.h"
+#include "../../src/core/utils.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/interpreter.h"
+#include "../../src/act/act.h"
 #include "../../src/craft/craft.h"
 #include "../../src/magic/spells.h"
 #include "../../src/net/protocol.h"

@@ -13,7 +13,7 @@
 #ifndef _HEDIT_H_
 #define _HEDIT_H_
 
-#include "utils.h" /* for ACMD definition */
+#include "core/utils.h" /* for ACMD definition */
 
 /* Functions made externally available */
 /* Utility functions */

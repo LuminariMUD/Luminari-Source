@@ -5,22 +5,22 @@
  * ********************************************************************** */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <float.h>
 #include <math.h>
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/db.h"
 #include "olc/oasis.h"
-#include "screen.h"
-#include "interpreter.h"
-#include "modify.h"
-#include "handler.h"
-#include "constants.h"
+#include "core/screen.h"
+#include "core/interpreter.h"
+#include "core/modify.h"
+#include "core/handler.h"
+#include "core/constants.h"
 #include "vessels.h"
 #include "vessel_periodic.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "dgscript/dg_scripts.h"
 #include "wilderness/wilderness.h"
 

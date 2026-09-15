@@ -40,7 +40,7 @@ A new race is complete only when all of the following are true:
 The active data flow is:
 
 ```text
-src/structs.h numeric ID and bounds
+src/core/structs.h numeric ID and bounds
                   |
                   v
 src/character/race.c assign_races() ---> race_list[]
@@ -184,13 +184,13 @@ conversion post-state, consumption, or reload transaction.
 ## 2. Resolve the numeric ID before implementation
 
 Race IDs are durable data, not reorderable enum positions. The player file
-writes the number as `Race: <id>` in `src/players.c`; account unlocks store the
+writes the number as `Race: <id>` in `src/player/players.c`; account unlocks store the
 number as `unlocked_races.race_id`; other SQL and world data can also retain
 numeric race references. Never renumber or reuse a released ID.
 
 ### Current allocation constraints
 
-As of this guide's verification date, `src/structs.h` has these boundaries:
+As of this guide's verification date, `src/core/structs.h` has these boundaries:
 
 - IDs 0 through 27 remain the original dense creation range, with `NUM_RACES`
   set to 28 for legacy positional tables. Creation eligibility is no longer
@@ -247,7 +247,7 @@ player files and account unlock rows remain valid.
 Use these searches during the allocation review:
 
 ```bash
-rg -n '^#define (RACE_|NUM_RACES|NUM_EXTENDED|LEGACY_RACE)' src/structs.h
+rg -n '^#define (RACE_|NUM_RACES|NUM_EXTENDED|LEGACY_RACE)' src/core/structs.h
 rg -n '\b(NUM_RACES|NUM_EXTENDED_PC_RACES|NUM_EXTENDED_RACES)\b' src unittests
 rg -n '\b(Race:|race_id|race_reward)\b' src sql docs lib/world
 rg -n 'GET_(REAL_)?RACE|race_list\[' src --glob '*.[ch]'
@@ -263,13 +263,13 @@ following common consumers:
 
 | Source | Why it matters |
 |--------|----------------|
-| `src/interpreter.c` | Terminal creation menus, direct validation, and race help dispatch |
-| `src/db.c` | `init_char()` applies the shared creation-eligibility policy |
-| `src/account.c` | Account-XP listing and purchase apply the shared sparse policy |
+| `src/core/interpreter.c` | Terminal creation menus, direct validation, and race help dispatch |
+| `src/core/db.c` | `init_char()` applies the shared creation-eligibility policy |
+| `src/player/account.c` | Account-XP listing and purchase apply the shared sparse policy |
 | `src/net/onboarding.c` | Web catalog policy and keyed sparse media lookup |
-| `src/utils.c` | `get_race_by_name()` scans creation-eligible sparse entries |
+| `src/core/utils.c` | `get_race_by_name()` scans creation-eligible sparse entries |
 | `src/character/race.c` | Random basic-race selection and extended registry allocation |
-| `src/constants.c` | `racial_spells[NUM_RACES][3]` has positional entries |
+| `src/core/constants.c` | `racial_spells[NUM_RACES][3]` has positional entries |
 | `src/character/feats.c` | Legacy race-feat display scans the extended registry |
 | `src/movement/movement_tracks.c` | PC race-name lookup uses the extended bound |
 | `src/olc/medit.c` | One random PC-race display path uses `NUM_RACES` |
@@ -283,7 +283,7 @@ test.
 ## 3. Add the registry constant and bounds
 
 After the ID plan is approved, add the permanent `RACE_NEW` constant in the
-concrete-race block in `src/structs.h`. Adjust only the bounds required by the
+concrete-race block in `src/core/structs.h`. Adjust only the bounds required by the
 chosen registry design.
 
 Do not:
@@ -292,7 +292,7 @@ Do not:
 - assume `NUM_RACES`, `NUM_EXTENDED_PC_RACES`, and `NUM_EXTENDED_RACES` mean the
   same thing;
 - place a concrete player race in the `RACE_TYPE_*` namespace;
-- change `src/campaign.h`, `src/mud_options.h`, or `src/vnums.h` as part of the
+- change `src/config/campaign.h`, `src/config/mud_options.h`, or `src/config/vnums.h` as part of the
   race addition.
 
 Most playable races reuse an existing family such as
@@ -301,7 +301,7 @@ Most playable races reuse an existing family such as
 `RACE_TYPE_*`, a new `NUM_RACE_TYPES` bound, and corresponding entries in the
 `morph_to_*`, `race_family_abbrevs`, `race_family_short`,
 `race_family_types`, and `race_family_types_plural` tables in
-`src/constants.c`, plus OLC and favored-enemy validation.
+`src/core/constants.c`, plus OLC and favored-enemy validation.
 
 ## 4. Register the race in `assign_races()`
 
@@ -367,7 +367,7 @@ names suggest:
   normal-form natural attacks through the combat/feat path instead.
 - `morph_to_char` and `morph_to_room` are stored by `set_race_details()`, but
   current transformation output uses the family-level `morph_to_*` tables in
-  `src/constants.c`. Do not assume the per-race strings will be emitted.
+  `src/core/constants.c`. Do not assume the per-race strings will be emitted.
 - `race_feat_assign.stacks` is displayed by `race feats`, but
   `process_race_level_feats()` currently increments every matching assignment
   without consulting it. Lich obtains Armor Skin +5 from five separate
@@ -386,7 +386,7 @@ feat or add an explicitly tested consumer first.
 `race_list[GET_RACE(ch)].size`. Test both a custom build and at least one
 premade build; they apply the same registry values through different code.
 
-`TOTAL_STAT_POINTS()` in `src/utils.h` has special budgets for Human and Half
+`TOTAL_STAT_POINTS()` in `src/core/utils.h` has special budgets for Human and Half
 Elf. Add a race there only when its design intentionally changes the point-buy
 budget; ordinary racial modifiers do not require a new case.
 
@@ -399,7 +399,7 @@ character reaches the configured level.
 
 If a racial feature needs a new feat, implement the feat end to end:
 
-1. Add its stable `FEAT_*` constant in the feat-ID block in `src/structs.h`.
+1. Add its stable `FEAT_*` constant in the feat-ID block in `src/core/structs.h`.
 2. Register its metadata with `feato()` in `assign_feats()` in
    `src/character/feats.c`.
 3. Implement the behavior in the subsystem that owns the mechanic.
@@ -423,7 +423,7 @@ multiple ranks such as Lich's five Armor Skin assignments.
 The `level_adjustment` and `epic_adv` registry fields do not implement
 progression. Review `init_start_char()`, `do_start()`, and `advance_level()` in
 `src/character/class.c` for one-time and per-level racial bonuses. Review
-`calculate_max_hp()` in `src/utils.c` and equivalent derived-stat rebuilders so
+`calculate_max_hp()` in `src/core/utils.c` and equivalent derived-stat rebuilders so
 the bonus survives recomputation. Review `level_exp()` in
 `src/character/class.c` if the race has an XP multiplier. Add explicit cases
 and tests only for mechanics in the approved race specification.
@@ -448,7 +448,7 @@ test the new race instead of relying on the existing exceptions.
 ### Family predicates, anatomy, and special choices
 
 Do not assume that `race_list[RACE_NEW].family` automatically affects all
-family mechanics. Several `IS_*` predicates in `src/utils.h` special-case PCs;
+family mechanics. Several `IS_*` predicates in `src/core/utils.h` special-case PCs;
 for example, non-morphed PCs are generally treated as humanoid, while Undead
 and Construct PCs require explicit handling. Test the new race against every
 family-sensitive mechanic in its design.
@@ -457,12 +457,12 @@ Update these optional surfaces when applicable:
 
 - `is_furry()`, `has_horns()`, `has_scales()`, and `race_has_no_hair()` in
   `src/character/race.c` for character-description choices.
-- Race convenience predicates in `src/utils.h` when existing mechanics need
+- Race convenience predicates in `src/core/utils.h` when existing mechanics need
   an exact race or ancestry grouping.
 - `has_racial_abils_unchosen()` and the study flow when the race must choose an
   ancestry, cantrip, resistance, or similar option. The choice also needs a
   persisted field, save/load coverage, web presentation, and restart rules.
-- `racial_spells[NUM_RACES][3]` in `src/constants.c` only after tracing a live
+- `racial_spells[NUM_RACES][3]` in `src/core/constants.c` only after tracing a live
   consumer. The current table has no reader and must not be mistaken for a
   working spell grant.
 - `invalid_race()` and object flags only if the design adds race-specific item
@@ -479,7 +479,7 @@ This section does not apply to a transformation-only race. Its parser name may
 remain useful to `race info`, but creation must reject it as described in
 section 8.
 
-The terminal creation flow is in `nanny()` in `src/interpreter.c`. The menu and
+The terminal creation flow is in `nanny()` in `src/core/interpreter.c`. The menu and
 the submitted-name handler are separate control-flow surfaces, but both now
 apply `race_is_selectable_for_creation()`. The direct handler first applies
 `race_is_creation_eligible()` so a forged unlock cannot authorize a
@@ -502,7 +502,7 @@ selection-mode and creation-bound policy rather than reusing that helper alone.
    `perform_help(d, "race-new-race")`.
 4. Confirm that `CON_QRACE_HELP` can return to the menu and that the selected
    race reaches class selection.
-5. Confirm `init_char()` in `src/db.c` accepts the ID through
+5. Confirm `init_char()` in `src/core/db.c` accepts the ID through
    `race_is_creation_eligible()` instead of resetting it to `RACE_UNDEFINED`.
 
 `parse_race()` is the old single-character mapping used by legacy race
@@ -530,7 +530,7 @@ only the menu is not enforcement.
   supported configuration; use zero for a free race.
 
 For a creation-selectable locked race, verify all of these paths in
-`src/account.c`. Its race listing and purchase scan the extended registry but
+`src/player/account.c`. Its race listing and purchase scan the extended registry but
 must filter every entry through `race_is_creation_eligible()`:
 
 - `accexp race` lists it with the correct cost;
@@ -651,8 +651,8 @@ If the owner is a registered special procedure, add its registry entry and
 test its irreversible preflight and trigger semantics. Bind it to the intended
 world entities and update `docs/guides/OLC_SpecProcs.md`. Do not copy the RoL
 rite's locally hardcoded offering numbers: use existing symbolic VNUMs, or add
-new configuration symbols to `src/vnums.example.h`; never edit the local
-`src/vnums.h` while implementing the feature. If legacy high-level quest
+new configuration symbols to `src/config/vnums.example.h`; never edit the local
+`src/config/vnums.h` while implementing the feature. If legacy high-level quest
 compatibility is intentionally extended, update
 `docs/world_game-data/HLQUEST_FILE_FORMAT.md` and its validation too. Do not
 introduce another magic sentinel unless that legacy format is explicitly the
@@ -910,19 +910,19 @@ renumber, reuse, or erase the ID.
 
 | Area | Authority |
 |------|-----------|
-| Concrete race IDs and bounds | `src/structs.h` |
-| Runtime race structure | `struct race_data` in `src/structs.h` |
+| Concrete race IDs and bounds | `src/core/structs.h` |
+| Runtime race structure | `struct race_data` in `src/core/structs.h` |
 | Registry and parser | `src/character/race.c`, `assign_races()`, `parse_race_long()` |
 | Registry declarations | `src/character/race.h` |
-| Terminal creation | `src/interpreter.c`, `CON_QRACE` and `CON_QRACE_HELP` |
-| Creation initialization | `src/db.c`, `init_char()` |
-| Stats, grants, and XP | `src/character/class.c`, `src/utils.c` |
+| Terminal creation | `src/core/interpreter.c`, `CON_QRACE` and `CON_QRACE_HELP` |
+| Creation initialization | `src/core/db.c`, `init_char()` |
+| Stats, grants, and XP | `src/character/class.c`, `src/core/utils.c` |
 | Ability build paths | `src/character/premadebuilds.c`, `src/character/study.c` |
-| Feat IDs and registry | `src/structs.h`, `src/character/feats.c` |
+| Feat IDs and registry | `src/core/structs.h`, `src/character/feats.c` |
 | Feat mechanics | The subsystem that owns the feature |
-| Account unlock and hard-lock policy | `src/account.c`, `unlocked_races` |
+| Account unlock and hard-lock policy | `src/player/account.c`, `unlocked_races` |
 | Web catalog and media | `src/net/onboarding.c` |
-| Respec behavior | `respec_engine()` in `src/act.other.c` |
+| Respec behavior | `respec_engine()` in `src/act/act.other.c` |
 | Dedicated Lich rite | `src/spec/spec_rol_conversion.c`, `src/spec/spec_registry.c` |
 | Special-procedure builder contract | `docs/guides/OLC_SpecProcs.md` |
 | Lich rite mechanics tests | `unittests/CuTest/test_spec_mechanics.c` |
@@ -932,7 +932,7 @@ renumber, reuse, or erase the ID.
 | Quest validator tests | `scripts/world/tests/test_semantics.py` |
 | Quest race-reward format | `docs/world_game-data/QUEST_FILE_FORMAT.md` |
 | Legacy quest format | `docs/world_game-data/HLQUEST_FILE_FORMAT.md` |
-| Character persistence | `src/players.c`, `Race:` |
+| Character persistence | `src/player/players.c`, `Race:` |
 | Help architecture | `docs/systems/HELP_SYSTEM.md` |
 | Flat help mirror | `lib/text/help/help.hlp` |
 | SQL help authority | `sql/components/help_race_<slug>_entries.sql` |

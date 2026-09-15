@@ -1,28 +1,28 @@
 #include "CuTest.h"
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
-#include "../../src/utils.h"
-#include "../../src/account.h"
-#include "../../src/act.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/utils.h"
+#include "../../src/player/account.h"
+#include "../../src/act/act.h"
 #include "../../src/character/race.h"
-#include "../../src/comm.h"
-#include "../../src/db.h"
-#include "../../src/handler.h"
-#include "../../src/interpreter.h"
-#include "../../src/mysql.h"
+#include "../../src/core/comm.h"
+#include "../../src/core/db.h"
+#include "../../src/core/handler.h"
+#include "../../src/core/interpreter.h"
+#include "../../src/database/mysql.h"
 #include "../../src/net/protocol.h"
-#include "../../src/db_init.h"
-#include "../../src/mudlim.h"
-#include "../../src/mud_event.h"
-#include "../../src/domain_event_world.h"
-#include "../../src/pet_vnums.h"
+#include "../../src/database/db_init.h"
+#include "../../src/core/mudlim.h"
+#include "../../src/events/mud_event.h"
+#include "../../src/events/domain_event_world.h"
+#include "../../src/config/pet_vnums.h"
 #include "../../src/magic/spells.h"
 #include "../../src/dgscript/dg_event.h"
-#include "../../src/event_runtime.h"
-#include "../../src/periodic_owners.h"
-#include "../../src/point_update_periodic.h"
+#include "../../src/events/event_runtime.h"
+#include "../../src/events/periodic_owners.h"
+#include "../../src/events/point_update_periodic.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -1308,7 +1308,7 @@ void Test_pet_rows_follow_a_renamed_owner_and_ignore_the_freed_name(CuTest *tc)
   renamed.owner.player.time.birth = (time_t)500;
   saved_before_rename = schema_created && save_char_pets(&renamed.owner);
 
-  /* This is exactly what src/player_rename.c rewrites for the pet tables. */
+  /* This is exactly what src/player/player_rename.c rewrites for the pet tables. */
   saved_after_rename =
       mysql_query(connection, "UPDATE pet_data SET owner_name = 'NewName'") == 0 &&
       mysql_query(connection, "UPDATE pet_save_objs SET owner_name = 'NewName'") == 0;

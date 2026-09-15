@@ -234,10 +234,10 @@ void save_room_state(room_rnum room) {
 
 #### Prepared Statements
 
-`src/mysql.h` provides the `PREPARED_STMT` wrapper. It is the default way to
+`src/database/mysql.h` provides the `PREPARED_STMT` wrapper. It is the default way to
 run any SQL that carries a data value: the statement text stays constant and
 every value is bound, so quoting, character sets, backslashes, and the session
-`sql_mode` cannot change the statement's meaning. `src/account.c` is the
+`sql_mode` cannot change the statement's meaning. `src/player/account.c` is the
 reference migration for this pattern.
 
 ```c
@@ -360,7 +360,7 @@ void release_db_connection(MYSQL *conn) {
 
 Multi-row statements append placeholders only; the row values are bound after
 the statement is prepared, exactly as `save_account_integer_set()` does for
-unlock sets in `src/account.c`.
+unlock sets in `src/player/account.c`.
 
 ```c
 void batch_save_players() {

@@ -36,18 +36,18 @@ typed-handler conversion, or composition.
 
 | Event | Gateway | Caller | Stop Contract |
 |-------|---------|--------|---------------|
-| Command (room) | `spec_gateway_command_room` | `special()` in `src/interpreter.c` | Consume the command, stop later owner traversal |
+| Command (room) | `spec_gateway_command_room` | `special()` in `src/core/interpreter.c` | Consume the command, stop later owner traversal |
 | Command (object) | `spec_gateway_command_object` | `special()` | Same |
 | Command (mobile) | `spec_gateway_command_mobile` | `special()` | Same |
 | Mobile activity | `spec_gateway_mobile_activity` | owner-local mobile agenda execution in `src/mob/mob_act.c` | Skip remaining default activity for this mobile |
 | Mobile combat turn | `spec_gateway_mobile_combat_turn` | `perform_violence()` in `src/combat/fight.c` | None; notification only |
-| Object automatic activity | `spec_gateway_object_automatic_activity` | object automatic owner execution in `src/comm.c` | Skip the carried-object fallback invocation |
+| Object automatic activity | `spec_gateway_object_automatic_activity` | object automatic owner execution in `src/core/comm.c` | Skip the carried-object fallback invocation |
 | Item identify | `spec_gateway_item_identify` | item display in `src/obj/act.item.c` | None; notification only |
 | Weapon hit | `spec_gateway_weapon_hit` | `weapon_special()` in `src/combat/fight.c` | None; raw legacy return is passed through |
 | Defense reaction | `spec_gateway_defense_reaction` | `skill_message()` and total-defense paths in `src/combat/fight.c` | None; notification only |
 | Combat maneuver | `spec_gateway_combat_maneuver` | shield maneuvers in `src/combat/act.offensive.c` | None; notification only |
 | Mount charge | `spec_gateway_mount_charge` | `perform_charge()` in `src/combat/act.offensive.c` | None; notification only |
-| Moving room | `spec_gateway_moving_room` | `moving_rooms_update()` in `src/db.c` | None; notification only |
+| Moving room | `spec_gateway_moving_room` | `moving_rooms_update()` in `src/core/db.c` | None; notification only |
 | Shop secondary | `spec_gateway_shop_secondary` | `shop_keeper()` in `src/obj/shop.c` | Nonzero propagates to the wrapper's caller |
 | Quest secondary | `spec_gateway_quest_secondary` | `questmaster()` in `src/quest/quest.c` | Nonzero propagates to the wrapper's caller |
 
@@ -84,10 +84,10 @@ supplies them.
 
 Both corrections are intentional behavior changes, not translation, and each is tested.
 
-1. `special()` in `src/interpreter.c` caches `next_content` before invoking a carried-object or
+1. `special()` in `src/core/interpreter.c` caches `next_content` before invoking a carried-object or
    room-content callback. Previously a handler that extracted its own object and returned zero left
    the traversal reading that object's successor pointer after removal.
-2. `proc_update()` in `src/comm.c` caches `obj->next` before invoking the auto-proc gateway, for the
+2. `proc_update()` in `src/core/comm.c` caches `obj->next` before invoking the auto-proc gateway, for the
    same reason on the global object list.
 
 The equipped-object traversal indexes `GET_EQ()` fresh each iteration and needed no change. The

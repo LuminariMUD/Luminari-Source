@@ -36,9 +36,9 @@ cooldown mechanics, typed-handler conversion, or general multiple-handler compos
 | Phase 00 Criterion | Implementation Evidence | Production-Linked Evidence |
 |--------------------|-------------------------|----------------------------|
 | Phase 00 is fully complete and verified. | The delivered control plane is identified below by production owner. | All 78 dedicated tests and every reproducible closeout gate passed on 2026-08-07. |
-| Every verified invocation category and registry compatibility behavior is characterized. | Existing callers in `src/interpreter.c`, `src/mob/mob_act.c`, `src/comm.c`, `src/combat/`, `src/obj/act.item.c`, shops, quests, and moving rooms remain unchanged. | `test_spec_registry_persistence.c` (10), `test_spec_command_pulse.c` (13), and `test_spec_combat_secondary.c` (14). |
+| Every verified invocation category and registry compatibility behavior is characterized. | Existing callers in `src/core/interpreter.c`, `src/mob/mob_act.c`, `src/core/comm.c`, `src/combat/`, `src/obj/act.item.c`, shops, quests, and moving rooms remain unchanged. | `test_spec_registry_persistence.c` (10), `test_spec_command_pulse.c` (13), and `test_spec_combat_secondary.c` (14). |
 | Every definition has valid identity and complete metadata. | `src/spec/spec_registry.c` immutable definition table. | `Test_spec_registry_production_metadata_validates`, `Test_spec_registry_canonical_inventory_and_metadata`, and event/owner contract tests in `test_spec_registry_validation.c`. |
-| Invalid metadata fails before world parsing and accessors are bounds-safe. | `spec_registry_boot_validate()` precedes `boot_world()` in `src/db.c`; registry accessors validate indices and one-bit masks. | `Test_spec_registry_accessors_reject_extreme_inputs`, all malformed-definition tests, and `Test_spec_registry_boot_validation_precedes_world_parsing`. |
+| Invalid metadata fails before world parsing and accessors are bounds-safe. | `spec_registry_boot_validate()` precedes `boot_world()` in `src/core/db.c`; registry accessors validate indices and one-bit masks. | `Test_spec_registry_accessors_reject_extreme_inputs`, all malformed-definition tests, and `Test_spec_registry_boot_validation_precedes_world_parsing`. |
 | Medit, oedit, and redit list only compatible definitions and explain prerequisites. | `src/olc/spec_menu.c` shared filtered menu and three editor integrations. | All seven `test_spec_owner_aware_olc.c` tests, including exact inventories, menu metadata, strict selection, and activation-flag preservation. |
 | Known, aliased, incompatible, and unresolved authored identities survive defined load/edit/save actions. | `src/spec/spec_binding.c`, three loaders/editors, and authored-first writers. | Seven `test_spec_authored_bindings.c` tests plus seven `test_spec_binding_round_trip.c` tests. |
 | Effective sources, collisions, and wrapper secondaries are diagnosable without precedence drift. | `src/spec/spec_effective_binding.c`, boot instrumentation, shop and quest contributions, and startup report. | Seven `test_spec_effective_binding.c` tests plus shop/quest composition tests in `test_spec_combat_secondary.c`. |
@@ -263,7 +263,7 @@ against production.
 - Compare every `sql/components/*.sql` basename with `ci_schema_manifest.txt` exactly once.
 - Resolve every relative Markdown link changed in Session 09.
 - Scan changed text for non-ASCII and CR bytes and run `git diff --check`.
-- Confirm no diff in `src/campaign.h`, `src/mud_options.h`, `src/vnums.h`, `lib/.env`,
+- Confirm no diff in `src/config/campaign.h`, `src/config/mud_options.h`, `src/config/vnums.h`, `lib/.env`,
   `lib/mysql_config`, or `lib/world/`.
 - Confirm the checked-in world digest is unchanged, no validation sandbox remains, `bin/luminari` is
   executable, and root `luminari` is absent.

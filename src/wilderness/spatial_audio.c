@@ -11,12 +11,12 @@
 ************************************************************************ */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <math.h>
 
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
 #include "wilderness.h"
 #include "spatial_core.h"
 #include "spatial_audio.h"

@@ -44,7 +44,7 @@ runs:
         echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
         ccache --max-size=2G
         for header in campaign mud_options vnums; do
-          if [[ ! -e "src/$header.h" ]]; then
-            cp "src/$header.example.h" "src/$header.h"
+          if [[ ! -e "src/config/$header.h" ]]; then
+            cp "src/config/$header.example.h" "src/config/$header.h"
           fi
         done

@@ -6,15 +6,15 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "db.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/db.h"
 #include "magic/spells.h"
-#include "graph.h"
+#include "movement/graph.h"
 #include "movement/movement.h"
 #include "dgscript/dg_scripts.h"
 #include "spec_zone_menzoberranzan.h"

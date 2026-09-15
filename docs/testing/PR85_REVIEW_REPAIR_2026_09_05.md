@@ -8,7 +8,7 @@ Rebase target: 668c9d4adb5601466407c65d335493368ea11fd6 (master)
 
 `gh api repos/LuminariMUD/Luminari-Source/pulls/85/comments --paginate`
 and the GraphQL `reviewThreads` connection identified six unresolved CodeQL
-comments, all in `load_events_v2()` in `src/players.c`. The reviews endpoint
+comments, all in `load_events_v2()` in `src/player/players.c`. The reviews endpoint
 contained one CodeQL review; the issue-comments endpoint contained only the
 review-size notice. CodeRabbit skipped its review because the PR exceeded its
 300-file limit; it supplied no code findings.

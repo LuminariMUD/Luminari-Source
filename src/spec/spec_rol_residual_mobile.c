@@ -4,21 +4,21 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
+#include "core/structs.h"
+#include "core/utils.h"
 
-#include "act.h"
+#include "act/act.h"
 #include "combat/fight.h"
-#include "comm.h"
-#include "db.h"
-#include "interpreter.h"
+#include "core/comm.h"
+#include "core/db.h"
+#include "core/interpreter.h"
 #include "magic/domains_schools.h"
 #include "magic/spells.h"
-#include "mud_event.h"
-#include "mudlim.h"
-#include "rewards.h"
+#include "events/mud_event.h"
+#include "core/mudlim.h"
+#include "character/rewards.h"
 #include "spec/spec_dispatch.h"
 #include "spec/spec_rol_conversion.h"
 

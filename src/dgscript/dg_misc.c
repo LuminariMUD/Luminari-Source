@@ -8,21 +8,21 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "dg_scripts.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "handler.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
 #include "dg_event.h"
-#include "db.h"
-#include "screen.h"
+#include "core/db.h"
+#include "core/screen.h"
 #include "magic/spells.h"
-#include "constants.h"
+#include "core/constants.h"
 #include "combat/fight.h"
 #include "combat/combat_death.h"
-#include "mudlim.h"
+#include "core/mudlim.h"
 
 /* copied from spell_parser.c: */
 #define SINFO spell_info[spellnum]

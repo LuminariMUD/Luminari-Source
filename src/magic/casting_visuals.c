@@ -14,14 +14,14 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "spells.h"
-#include "comm.h"
+#include "core/comm.h"
 #include "domains_schools.h"
 #include "casting_visuals.h"
-#include "mud_options.h"
+#include "config/mud_options.h"
 
 /*
  * School-specific start messages.

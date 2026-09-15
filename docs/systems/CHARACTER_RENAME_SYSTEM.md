@@ -93,7 +93,7 @@ This was also a data-only repair; it did not fix `change_player_name()`.
 
 ### 1. `change_player_name()` only updates part of the identity
 
-[`change_player_name()`](../../src/act.wizard.c#L7851) currently:
+[`change_player_name()`](../../src/act/act.wizard.c#L7851) currently:
 
 1. checks whether the new name can be loaded;
 2. changes `player_table[i].name`;
@@ -112,15 +112,15 @@ SELECT name FROM player_data WHERE account_id = ?
 ```
 
 See
-[`load_account_characters()`](../../src/account.c#L773). Consequently,
+[`load_account_characters()`](../../src/player/account.c#L773). Consequently,
 `player_data.name` and the player-file/index name must always agree.
 
 ### 2. The account menu trusts the stale database name
 
-[`show_account_menu()`](../../src/account.c#L1108) iterates the names loaded from
+[`show_account_menu()`](../../src/player/account.c#L1108) iterates the names loaded from
 `player_data`, then calls `load_char()` for each name. Selecting a menu entry
 also calls `load_char()` with the account's stored name in
-[`interpreter.c`](../../src/interpreter.c#L2761).
+[`interpreter.c`](../../src/core/interpreter.c#L2761).
 
 After the partial rename, these paths asked for `Bartof` while only
 `hartof.plr` existed.
@@ -128,7 +128,7 @@ After the partial rename, these paths asked for `Bartof` while only
 ### 3. Offline saves can drop the durable account identity
 
 The player-file loader reads `Acct:` into `GET_ACCOUNT_NAME(ch)` in
-[`players.c`](../../src/players.c#L715).
+[`players.c`](../../src/player/players.c#L715).
 
 The save path writes `Acct:` only when all of the following are present:
 
@@ -136,12 +136,12 @@ The save path writes `Acct:` only when all of the following are present:
 ch->desc && ch->desc->account && ch->desc->account->name
 ```
 
-See [`save_char()`](../../src/players.c#L2148). A character loaded by
+See [`save_char()`](../../src/player/players.c#L2148). A character loaded by
 `set file ...` has no descriptor, so saving the renamed offline character
 silently removes `Acct:` even though `GET_ACCOUNT_NAME(ch)` was loaded.
 
 That omission also breaks the account auto-relink path in
-[`interpreter.c`](../../src/interpreter.c#L2862), which intentionally uses the
+[`interpreter.c`](../../src/core/interpreter.c#L2862), which intentionally uses the
 player-file account name when restoring an unlinked character.
 
 ### 4. Object persistence is keyed by character name
@@ -172,7 +172,7 @@ object ownership is serialized as the immutable numeric `GET_OBJ_BOUND_ID`
 (`Bind:`), so it must not be text-replaced with a character name. Saved
 follower `runtime_state` must likewise remain byte-for-byte unchanged.
 
-[`save_char_pets()`](../../src/players.c#L6330) is specifically unsafe as a migration
+[`save_char_pets()`](../../src/player/players.c#L6330) is specifically unsafe as a migration
 mechanism: it deletes all `pet_save_objs` and `pet_data` rows for the owner and
 then rebuilds them from currently loaded followers. Rename the ownership
 columns in place instead.
@@ -186,7 +186,7 @@ history. These must be deliberately classified and migrated.
 Two easy-to-miss active keys are:
 
 - `player_eidolons.owner`, used by `save_eidolon_descs()` and
-  `set_eidolon_descs()` in [`players.c`](../../src/players.c#L5527); and
+  `set_eidolon_descs()` in [`players.c`](../../src/player/players.c#L5527); and
 - both `player_mail.sender` and `player_mail.receiver`, used by inbox/outbox
   listing, read access, delete access, and mail alerts in
   [`new_mail.c`](../../src/comms/new_mail.c#L308).
@@ -198,7 +198,7 @@ along with `player_mail_read.player_name` and
 
 The introduction feature is a file-based fan-out relationship. Every player's
 `Intr:` block stores names of other characters, and
-[`knows_character()`](../../src/introduce.c#L28) compares those strings to
+[`knows_character()`](../../src/character/introduce.c#L28) compares those strings to
 `GET_NAME(vict)`. The deployed configuration currently has
 `use_introduction_system = 0`, but the data format and runtime feature still
 exist. A rename must have an explicit policy for these references before that
@@ -266,8 +266,8 @@ The rename must report success only if all applicable invariants are true:
 Move orchestration out of `act.wizard.c` into a focused service, for example:
 
 ```text
-src/player_rename.c
-src/player_rename.h
+src/player/player_rename.c
+src/player/player_rename.h
 ```
 
 Suggested public API:
@@ -479,7 +479,7 @@ not be folded into those counts.
 
 There is also schema drift to resolve or explicitly accommodate:
 
-- [`src/db_init.c`](../../src/db_init.c#L147) creates `player_data.account_id`.
+- [`src/database/db_init.c`](../../src/database/db_init.c#L147) creates `player_data.account_id`.
 - The current
   [`sql/master_schema.sql`](../../sql/master_schema.sql#L31) definition does not
   include `account_id`.

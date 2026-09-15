@@ -7,14 +7,14 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "movement/door_state.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "handler.h"
-#include "db.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
+#include "core/db.h"
 #include "obj/shop.h"
 #include "genshp.h"
 #include "genolc.h"
@@ -22,11 +22,11 @@
 #include "genwld.h"
 #include "oasis.h"
 #include "improved-edit.h"
-#include "constants.h"
+#include "core/constants.h"
 #include "dgscript/dg_scripts.h"
 #include "wilderness/wilderness.h"
 #include "quest/quest.h"
-#include "act.h"
+#include "act/act.h"
 
 /* Local, filescope function prototypes */
 /* Utility function for buildwalk */

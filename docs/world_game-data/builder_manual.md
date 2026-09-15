@@ -231,7 +231,7 @@ extra <keyword>            # Add extra description
 
 The index is the number selected in REDIT and stored in the room file. The
 source contract is the `SECT_INSIDE` through `NUM_ROOM_SECTORS` block in
-`src/structs.h`; the labels are from `sector_types[]`.
+`src/core/structs.h`; the labels are from `sector_types[]`.
 
 | Index | OLC Display Name | Source Constant |
 |-------|------------------|-----------------|

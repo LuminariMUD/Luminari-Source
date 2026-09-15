@@ -6,18 +6,18 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/db.h"
 #include "spec/spec_assign.h"
-#include "constants.h"
+#include "core/constants.h"
 #include "genolc.h"
 #include "oasis.h"
 #include "improved-edit.h"
-#include "modify.h"
+#include "core/modify.h"
 #include "vessels/vessel_periodic.h"
 
 #define CHECK_VAR(var) ((var == YES) ? "Yes" : "No")

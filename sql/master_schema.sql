@@ -1,6 +1,6 @@
 -- ============================================================================
 -- LuminariMUD Master Database Schema
--- Sources: src/db_init.c and retained compatibility schemas
+-- Sources: src/database/db_init.c and retained compatibility schemas
 -- This schema captures the runtime expectations baked into the codebase so
 -- freshly cloned environments can provision MySQL/MariaDB consistently.
 -- ============================================================================

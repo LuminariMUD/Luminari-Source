@@ -1,14 +1,14 @@
 #include "CuTest.h"
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
-#include "../../src/utils.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/utils.h"
 
-#include "../../src/comm.h"
+#include "../../src/core/comm.h"
 #include "../../src/combat/fight.h"
-#include "../../src/db.h"
-#include "../../src/interpreter.h"
+#include "../../src/core/db.h"
+#include "../../src/core/interpreter.h"
 #include "../../src/obj/item.h"
 #include "../../src/obj/shop.h"
 #include "../../src/obj/vendor.h"
@@ -974,9 +974,9 @@ void Test_spec_secondary_assignment_and_boot_gates_preserve_composition(CuTest *
   quest_loaded =
       spec_combat_load_region("src/quest/quest.c", "void assign_the_quests(void)",
                               "void set_quest(struct char_data *ch, qst_rnum rnum,", &quest_region);
-  world_loaded = spec_combat_load_region("src/db.c", "void boot_world(void)",
+  world_loaded = spec_combat_load_region("src/core/db.c", "void boot_world(void)",
                                          "static void free_extra_descriptions(", &world_region);
-  boot_loaded = spec_combat_load_region("src/db.c", "void boot_db(void)",
+  boot_loaded = spec_combat_load_region("src/core/db.c", "void boot_db(void)",
                                         "static void reset_time(void)", &boot_region);
 
   shop_save = shop_loaded

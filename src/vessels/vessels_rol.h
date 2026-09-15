@@ -6,7 +6,7 @@
 #ifndef LUMINARI_VESSELS_ROL_H
 #define LUMINARI_VESSELS_ROL_H
 
-#include "structs.h"
+#include "core/structs.h"
 
 int rol_ship(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_ship_control(struct char_data *ch, void *me, int cmd, const char *argument);

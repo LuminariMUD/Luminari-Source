@@ -7,23 +7,23 @@
  ***************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/db.h"
 #include "wilderness.h"
 #include "perlin.h"
 #include "resource_system.h"
 #include "harvest.h"
 #include "resource_depletion.h"    /* Phase 6: Add depletion system */
 #include "resource_descriptions.h" /* For elevation functions */
-#include "mysql.h"
+#include "database/mysql.h"
 #include "magic/spells.h"
 #include "olc/genolc.h"
-#include "constants.h"
+#include "core/constants.h"
 #include "kdtree.h"
-#include "screen.h"
+#include "core/screen.h"
 
 /* Simple absolute value function to avoid math.h conflicts */
 static double simple_fabs(double value)

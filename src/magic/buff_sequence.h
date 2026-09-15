@@ -1,7 +1,7 @@
 #ifndef BUFF_SEQUENCE_H
 #define BUFF_SEQUENCE_H
 
-#include "domain_events.h"
+#include "events/domain_events.h"
 
 struct char_data;
 enum domain_event_status buff_sequences_init(struct domain_event_bus *bus);

@@ -1,0 +1,301 @@
+/**
+ * @file ai_service.h
+ * @author Zusuk
+ * @brief OpenAI API integration service for NPC dialogue and content generation
+ *
+ * This module provides AI-powered features including:
+ * - Dynamic NPC dialogue responses
+ * - Procedural room description generation
+ * - Content moderation
+ * - Quest/mission generation assistance
+ *
+ * PUBLIC API INTERFACE:
+ * This header defines the public interface between AI components
+ * and the rest of the MUD. Components interact as follows:
+ *
+ * INITIALIZATION:
+ * - init_ai_service() - Called once from comm.c at startup
+ * - shutdown_ai_service() - Called on MUD shutdown
+ *
+ * CORE FUNCTIONALITY:
+ * - ai_npc_dialogue_async() - Primary interface from act.comm.c
+ * - is_ai_enabled() - Global enable check
+ *
+ * ADMIN INTERFACE:
+ * - load_ai_config() - Reload configuration
+ * - ai_cache_clear() - Clear response cache
+ * - ai_reset_rate_limits() - Reset API limits
+ *
+ * Part of the LuminariMUD distribution.
+ */
+
+#ifndef AI_SERVICE_H
+#define AI_SERVICE_H
+
+#include "core/structs.h"
+#include "core/utils.h"
+#include "events/domain_events.h"
+
+/* bool is provided by stdbool.h (via bool.h or directly) or C23+ */
+#include <stdbool.h>
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+/* Forward declarations */
+struct curl_slist;
+typedef void CURL;
+
+/* Configuration defaults - these can be overridden in lib/.env
+ * See lib/.env_example for full documentation of each setting
+ */
+
+/* API Endpoints (can override via OPENAI_API_ENDPOINT, OLLAMA_API_ENDPOINT in .env) */
+#define DEFAULT_OPENAI_API_ENDPOINT "https://api.openai.com/v1/chat/completions"
+#define DEFAULT_OLLAMA_API_ENDPOINT "http://localhost:11434/api/generate"
+
+/* General settings (override via AI_* variables in .env) */
+#define DEFAULT_AI_CACHE_EXPIRE_TIME 3600 /* 1 hour, override: AI_CACHE_EXPIRE_SECONDS */
+#define DEFAULT_AI_MAX_RETRIES 3          /* override: AI_MAX_RETRIES */
+#define DEFAULT_AI_TIMEOUT_MS 30000       /* 30 seconds, override: AI_TIMEOUT_MS */
+#define DEFAULT_AI_MAX_TOKENS 500         /* override: AI_MAX_TOKENS */
+#define DEFAULT_AI_MAX_CACHE_SIZE 5000    /* override: AI_MAX_CACHE_SIZE */
+#define DEFAULT_AI_DEBUG_MODE 0           /* override: AI_DEBUG_MODE */
+
+/* Ollama defaults (override via OLLAMA_* variables in .env) */
+#define DEFAULT_OLLAMA_MODEL "llama3.2:1b" /* override: OLLAMA_MODEL */
+#define DEFAULT_OLLAMA_TIMEOUT_MS 10000    /* 10 seconds, override: OLLAMA_TIMEOUT_MS */
+#define DEFAULT_OLLAMA_MAX_TOKENS 100      /* override: OLLAMA_MAX_TOKENS */
+#define DEFAULT_OLLAMA_TEMPERATURE 7       /* 0.7, override: OLLAMA_TEMPERATURE */
+#define DEFAULT_OLLAMA_TOP_K 40            /* override: OLLAMA_TOP_K */
+#define DEFAULT_OLLAMA_TOP_P 90            /* 0.9, override: OLLAMA_TOP_P */
+
+/* Legacy compatibility defines - use these in code, they reference defaults */
+#define OPENAI_API_ENDPOINT DEFAULT_OPENAI_API_ENDPOINT
+#define AI_CACHE_EXPIRE_TIME DEFAULT_AI_CACHE_EXPIRE_TIME
+#define AI_MAX_RETRIES DEFAULT_AI_MAX_RETRIES
+#define AI_TIMEOUT_MS DEFAULT_AI_TIMEOUT_MS
+#define AI_MAX_TOKENS DEFAULT_AI_MAX_TOKENS
+#define AI_MAX_CACHE_SIZE DEFAULT_AI_MAX_CACHE_SIZE
+
+/* Debug mode - runtime configurable via AI_DEBUG_MODE in .env
+ * Note: Compile-time debug uses DEFAULT_AI_DEBUG_MODE
+ * For runtime debug, check ai_state.config->debug_mode */
+#define AI_DEBUG_MODE DEFAULT_AI_DEBUG_MODE
+
+/* Debug logging macro */
+#if AI_DEBUG_MODE
+#define AI_DEBUG(fmt, ...)                                                                         \
+  do                                                                                               \
+  {                                                                                                \
+    log("AI_DEBUG [%s:%d in %s()]: " fmt, __FILE__, __LINE__, __func__, ##__VA_ARGS__);            \
+  } while (0)
+#else
+#define AI_DEBUG(fmt, ...)                                                                         \
+  do                                                                                               \
+  {                                                                                                \
+    if (0)                                                                                         \
+      log((fmt), ##__VA_ARGS__);                                                                   \
+  } while (0)
+#endif
+
+/* Request types for logging and rate limiting */
+enum ai_request_type
+{
+  AI_REQUEST_TEST = 0,
+  AI_REQUEST_NPC_DIALOGUE = 1,
+  AI_REQUEST_ROOM_DESC = 2,
+  AI_REQUEST_QUEST_GEN = 3,
+  AI_REQUEST_MODERATION = 4
+};
+
+/* AI Service State
+ * GLOBAL STATE shared across all AI components:
+ * - ai_service.c: Owns and manages this state
+ * - ai_cache.c: Directly accesses cache_head and cache_size
+ * - ai_security.c: Accesses config for API key operations
+ * - ai_events.c: Reads state for validation
+ */
+struct ai_service_state
+{
+  bool initialized;                  /* Service ready flag */
+  bool openai_configured;            /* Remote provider has an API key */
+  bool ollama_available;             /* Local provider passed its startup probe */
+  CURL *curl_handle;                 /* Persistent connection pooling */
+  struct ai_config *config;          /* Runtime configuration */
+  struct ai_cache_entry *cache_head; /* Response cache list */
+  int cache_size;                    /* Current cache entries */
+  struct rate_limiter *limiter;      /* API rate limiting */
+};
+
+enum ai_service_health
+{
+  AI_SERVICE_UNAVAILABLE = 0,
+  AI_SERVICE_DEGRADED,
+  AI_SERVICE_HEALTHY
+};
+
+/* AI Configuration - loaded from lib/.env at startup */
+struct ai_config
+{
+  /* OpenAI settings. The API key itself is not stored here; see ai_security.c. */
+  char openai_endpoint[256]; /* OPENAI_API_ENDPOINT */
+  char model[64];            /* AI_MODEL: gpt-4o-mini, etc */
+  int max_tokens;            /* AI_MAX_TOKENS */
+  double temperature;        /* AI_TEMPERATURE / 10 */
+  int timeout_ms;            /* AI_TIMEOUT_MS */
+
+  /* Ollama settings */
+  char ollama_endpoint[256]; /* OLLAMA_API_ENDPOINT */
+  char ollama_model[64];     /* OLLAMA_MODEL */
+  int ollama_timeout_ms;     /* OLLAMA_TIMEOUT_MS */
+  int ollama_max_tokens;     /* OLLAMA_MAX_TOKENS (num_predict) */
+  double ollama_temperature; /* OLLAMA_TEMPERATURE / 10 */
+  int ollama_top_k;          /* OLLAMA_TOP_K */
+  double ollama_top_p;       /* OLLAMA_TOP_P / 100 */
+
+  /* General settings */
+  int max_retries;             /* AI_MAX_RETRIES */
+  int cache_expire_seconds;    /* AI_CACHE_EXPIRE_SECONDS */
+  int max_cache_size;          /* AI_MAX_CACHE_SIZE */
+  bool debug_mode;             /* AI_DEBUG_MODE */
+  bool content_filter_enabled; /* AI_CONTENT_FILTER_ENABLED */
+  bool enabled;                /* Runtime toggle via 'ai enable/disable' */
+};
+
+/* Cache Entry */
+struct ai_cache_entry
+{
+  char *key;
+  char *response;
+  time_t expires_at;
+  struct ai_cache_entry *next;
+};
+
+/* Rate Limiting */
+struct rate_limiter
+{
+  int requests_per_minute;
+  int current_minute_count;
+  time_t minute_reset;
+  int requests_per_hour;
+  int current_hour_count;
+  time_t hour_reset;
+};
+
+/* Global AI state - extern declaration */
+extern struct ai_service_state ai_state;
+
+/* Core Service Functions
+ * PRIMARY INTERFACE - Called by main MUD systems
+ */
+void init_ai_service(void);                 /* Initialize at startup (comm.c) */
+void shutdown_ai_service(void);             /* Cleanup at shutdown */
+void load_ai_config(void);                  /* Reload from .env file */
+bool ai_endpoint_is_https(const char *url); /* Custom OpenAI endpoints must be https */
+bool is_ai_enabled(void);                   /* Global enable check (all components) */
+enum ai_service_health ai_get_service_health(void);
+const char *ai_service_health_name(void);
+const char *ai_service_active_provider(void);
+
+/* API Request Functions
+ * MAIN FUNCTIONALITY - Called by game systems
+ */
+char *ai_generate_response(const char *prompt, int request_type); /* Generic AI request */
+char *ai_npc_dialogue(struct char_data *npc, struct char_data *ch,
+                      const char *input); /* BLOCKING (testing only) */
+void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch,
+                           const char *input); /* PRIMARY: Non-blocking NPC dialogue */
+char *ai_generate_room_desc(int room_vnum, int sector_type); /* TODO: Not implemented */
+bool ai_moderate_content(const char *text);                  /* TODO: Not implemented */
+
+/* Cache Management
+ * PERFORMANCE OPTIMIZATION - Reduces API calls
+ * Implemented in ai_cache.c, called by ai_service.c
+ */
+void ai_cache_response(const char *key, const char *response); /* Store response */
+char *ai_cache_get(const char *key); /* Retrieve (returns ptr, don't free) */
+void ai_cache_clear(void);           /* Admin command: clear all */
+void ai_cache_cleanup(void);         /* Remove expired/excess entries */
+int get_cache_size(void);            /* Current cache size */
+
+/* Rate Limiting */
+bool ai_check_rate_limit(void);
+void ai_reset_rate_limits(void);
+
+/* Security Functions (defined in ai_security.c)
+ * CRITICAL SECURITY - All API keys and user input pass through here.
+ * The API key is held in one mutex-guarded process-private buffer; it is
+ * never encrypted at rest, persisted, logged, or shown to players or staff.
+ */
+#define AI_API_KEY_MAX_LEN 256                    /* Includes the terminating NUL */
+bool ai_api_key_set(const char *key);             /* Store key; FALSE if too long */
+bool ai_api_key_is_set(void);                     /* Non-empty key stored? */
+bool ai_api_key_copy(char *out, size_t out_size); /* Copy into caller buffer */
+void ai_api_key_clear(void);                      /* Wipe the stored key */
+void sanitize_ai_input(const char *input, char *out, size_t out_size); /* Prompt injection */
+void secure_memset(void *ptr, int value, size_t num);                  /* Clear sensitive memory */
+
+/* Utility Functions */
+void log_ai_error(const char *function, const char *error);
+void log_ai_interaction(struct char_data *ch, struct char_data *npc, const char *response,
+                        const char *backend, bool from_cache);
+char *generate_fallback_response(const char *prompt);
+
+/* Event Functions (defined in ai_events.c)
+ * ASYNC DELIVERY - Thread-safe response handling
+ */
+void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *response,
+                       const char *backend, bool from_cache); /* Queue response for delivery */
+void queue_ai_request_retry(const char *prompt, int request_type,
+                            int retry_count, /* Retry with backoff */
+                            struct char_data *ch, struct char_data *npc);
+void queue_ai_response_for_entities(struct domain_entity_handle player,
+                                    struct domain_entity_handle npc, const char *response,
+                                    const char *backend, const char *cache_key, bool from_cache);
+void queue_ai_request_retry_for_entities(const char *prompt, int request_type, int retry_count,
+                                         struct domain_entity_handle player,
+                                         struct domain_entity_handle npc);
+bool ai_retry_request_async(const char *prompt, int request_type, int retry_count,
+                            struct domain_entity_handle player, struct domain_entity_handle npc);
+
+struct ai_event_ingress_stats
+{
+  bool available;
+  size_t depth;
+  size_t capacity;
+  uint64_t high_water;
+  uint64_t accepted;
+  uint64_t processed;
+  uint64_t rejected;
+  uint64_t wake_failures;
+  uint64_t schedule_failures;
+};
+
+bool ai_events_runtime_init(void);
+bool ai_events_ingress_init(void);
+void ai_events_ingress_shutdown(void);
+int ai_events_ingress_fd(void);
+void ai_events_process_ingress(void);
+void ai_events_get_ingress_stats(struct ai_event_ingress_stats *stats);
+
+#if defined(LUMINARI_CUTEST)
+void ai_event_test_reset_cleanup_count(void);
+int ai_event_test_cleanup_count(void);
+bool ai_service_test_start_waiting_worker(void);
+size_t ai_service_test_active_workers(void);
+void ai_service_test_reset_worker_state(void);
+#endif
+
+/* Async API Functions
+ * INTERNAL USE - Called by retry system
+ */
+char *ai_generate_response_async(const char *prompt, int request_type,
+                                 int retry_count); /* Single attempt, no retry */
+
+#endif /* AI_SERVICE_H */

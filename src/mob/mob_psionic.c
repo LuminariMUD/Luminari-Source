@@ -9,14 +9,14 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
-#include "handler.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/db.h"
+#include "core/handler.h"
 #include "magic/spells.h"
-#include "constants.h"
+#include "core/constants.h"
 #include "magic/psionics.h"
 #include "mob_utils.h"
 #include "mob_spells.h" /* for OFFENSIVE_AOE_SPELLS define */

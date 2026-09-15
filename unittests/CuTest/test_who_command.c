@@ -4,13 +4,13 @@
 #include "CuTest.h"
 #include <string.h>
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
-#include "../../src/utils.h"
-#include "../../src/act.h"
-#include "../../src/comm.h"
-#include "../../src/db.h"
-#include "../../src/interpreter.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/utils.h"
+#include "../../src/act/act.h"
+#include "../../src/core/comm.h"
+#include "../../src/core/db.h"
+#include "../../src/core/interpreter.h"
 #include "../../src/net/protocol.h"
 
 #define WHO_TEST_PLAYERS 3

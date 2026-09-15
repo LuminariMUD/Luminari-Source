@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-# Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
+# Version: Keep in sync with src/core/constants.c, src/core/structs.h, configure.ac
 project(LuminariMUD VERSION 2.5063 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
@@ -35,7 +35,7 @@ include(CheckCCompilerFlag)
 # (check_function_exists declares each function as "char f(void)") warn under
 # -Wall and would flip to "not found" under a caller's -Werror, activating
 # fallback definitions.  Keep -Werror out of every probe and restore the
-# caller's flags once src/conf.h is generated.
+# caller's flags once conf.h is generated.
 set(LUMINARI_USER_C_FLAGS "${CMAKE_C_FLAGS}")
 string(REGEX REPLACE "(^| )-Werror(=[^ ]*)?( |$)" " " CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 
@@ -100,15 +100,26 @@ if (GIT_HEAD_REFERENCE)
     endif()
 endif()
 
+# The local configuration headers live in src/config/. One still directly under
+# src/ means this checkout has not moved them, and a script that copies the
+# examples would build with the defaults instead.
+foreach(LUMINARI_LOCAL_HEADER campaign mud_options vnums)
+    if (EXISTS ${CMAKE_SOURCE_DIR}/src/${LUMINARI_LOCAL_HEADER}.h)
+        message(FATAL_ERROR
+            "src/${LUMINARI_LOCAL_HEADER}.h must move to src/config/; run: "
+            "mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/")
+    endif()
+endforeach()
+
 # Check for required configuration headers
-if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/campaign.h)
-    message(FATAL_ERROR "campaign.h not found! Copy src/campaign.example.h to src/campaign.h and configure it.")
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/config/campaign.h)
+    message(FATAL_ERROR "campaign.h not found! Copy src/config/campaign.example.h to src/config/campaign.h and configure it.")
 endif()
-if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/mud_options.h)
-    message(FATAL_ERROR "mud_options.h not found! Copy src/mud_options.example.h to src/mud_options.h and configure it.")
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/config/mud_options.h)
+    message(FATAL_ERROR "mud_options.h not found! Copy src/config/mud_options.example.h to src/config/mud_options.h and configure it.")
 endif()
-if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/vnums.h)
-    message(FATAL_ERROR "vnums.h not found! Copy src/vnums.example.h to src/vnums.h and configure it.")
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/config/vnums.h)
+    message(FATAL_ERROR "vnums.h not found! Copy src/config/vnums.example.h to src/config/vnums.h and configure it.")
 endif()
 
 # ========== Dependencies ==========
@@ -303,10 +314,9 @@ if (UNIX)
 endif()
 
 # Generate the header included by both the server and utility sources after all
-# platform checks have populated their feature variables. It lands at
-# src/conf.h, the same gitignored location configure.ac uses, because the
-# standalone test scripts under scripts/ preprocess sources with -Isrc.
-configure_file(cmake/cmake_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/conf.h)
+# platform checks have populated their feature variables. As with configure.ac,
+# it lands in the build root, which luminari_build searches ahead of src/.
+configure_file(cmake/cmake_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/conf.h)
 # The profile comes last so the repository policy is the last word, exactly
 # as configure.ac orders it.
 set(CMAKE_C_FLAGS "${LUMINARI_USER_C_FLAGS} ${PRODUCTION_CFLAGS}")
@@ -354,26 +364,26 @@ endif()
 # ========== Source files ==========
 # Main C source files
 set(SRC_C_FILES
-    src/account.c
-    src/act.comm.c
-    src/act.comm.do_spec_comm.c
-    src/act.informative.c
+    src/player/account.c
+    src/act/act.comm.c
+    src/act/act.comm.do_spec_comm.c
+    src/act/act.informative.c
     src/obj/act.item.c
     src/combat/act.offensive.c
-    src/act.other.c
-    src/ready_action.c
-    src/tactical_effects.c
-    src/act.social.c
-    src/act.wizard.c
-    src/actionqueues.c
-    src/actions.c
+    src/act/act.other.c
+    src/events/ready_action.c
+    src/combat/tactical_effects.c
+    src/act/act.social.c
+    src/act/act.wizard.c
+    src/events/actionqueues.c
+    src/events/actions.c
     src/olc/aedit.c
-    src/ai_cache.c
-    src/ai_events.c
-    src/ai_security.c
-    src/ai_service.c
+    src/ai/ai_cache.c
+    src/ai/ai_events.c
+    src/ai/ai_security.c
+    src/ai/ai_service.c
     src/craft/alchemy.c
-    src/asciimap.c
+    src/movement/asciimap.c
     src/combat/assign_wpn_armor.c
     src/combat/projectiles.c
     src/combat/projectiles.h
@@ -382,35 +392,35 @@ set(SRC_C_FILES
     src/character/guild_services.c
     src/character/character_creation.c
     src/character/character_creation_content.c
-    src/ban.c
-    src/bardic_performance.c
+    src/player/ban.c
+    src/character/bardic_performance.c
     src/olc/bedit.c
     src/comms/boards.c
     src/craft/brew.c
-    src/bsd-snprintf.c
+    src/core/bsd-snprintf.c
     src/olc/cedit.c
-    src/char_descs.c
-    src/clan.c
-    src/clan_services.c
-    src/clan_economy.c
+    src/character/char_descs.c
+    src/clan/clan.c
+    src/clan/clan_services.c
+    src/clan/clan_economy.c
     src/olc/clan_edit.c
-    src/clan_transactions.c
+    src/clan/clan_transactions.c
     src/character/class.c
     src/combat/combat_modes.c
-    src/comm.c
-    src/config.c
-    src/constants.c
-    src/copyover_diagnostic.c
+    src/core/comm.c
+    src/config/config.c
+    src/core/constants.c
+    src/core/copyover_diagnostic.c
     src/craft/craft.c
     src/craft/crafting_molds.c
     src/craft/crafting_new.c
     src/craft/crafting_recipes.c
     src/craft/crafts.c
-    src/db.c
-    src/db_init.c
-    src/db_init_data.c
-    src/db_startup_init.c
-    src/db_admin_commands.c
+    src/core/db.c
+    src/database/db_init.c
+    src/database/db_init_data.c
+    src/database/db_startup_init.c
+    src/database/db_admin_commands.c
     src/character/deities.c
     src/wilderness/desc_engine.c
     src/dgscript/dg_comm.c
@@ -428,8 +438,8 @@ set(SRC_C_FILES
     src/dgscript/dg_wldcmd.c
     src/magic/domain_powers.c
     src/magic/domains_schools.c
-    src/dotenv.c
-    src/elf_build_id.c
+    src/config/dotenv.c
+    src/core/elf_build_id.c
     src/combat/encounters.c
     src/combat/combat_encounters.c
     src/combat/combat_damage.c
@@ -450,21 +460,21 @@ set(SRC_C_FILES
     src/olc/genshp.c
     src/olc/genwld.c
     src/olc/genzon.c
-    src/game_scheduler.c
-    src/game_scheduler.h
-    src/event_runtime.c
-    src/event_runtime.h
-    src/event_handle.h
-    src/active_world.c
-    src/active_world.h
-    src/activity_manager.c
-    src/activity_manager.h
-    src/affected_owners.c
-    src/affected_owners.h
-    src/character_periodic.c
-    src/character_periodic.h
-    src/point_update_periodic.c
-    src/point_update_periodic.h
+    src/events/game_scheduler.c
+    src/events/game_scheduler.h
+    src/events/event_runtime.c
+    src/events/event_runtime.h
+    src/events/event_handle.h
+    src/events/active_world.c
+    src/events/active_world.h
+    src/events/activity_manager.c
+    src/events/activity_manager.h
+    src/events/affected_owners.c
+    src/events/affected_owners.h
+    src/events/character_periodic.c
+    src/events/character_periodic.h
+    src/events/point_update_periodic.c
+    src/events/point_update_periodic.h
     src/vessels/vessel_periodic.c
     src/vessels/vessel_periodic.h
     src/quest/staff_event_agenda.c
@@ -475,28 +485,28 @@ set(SRC_C_FILES
     src/magic/buff_sequence.h
     src/vessels/transport_jobs.c
     src/vessels/transport_jobs.h
-    src/periodic_owners.c
-    src/periodic_owners.h
-    src/domain_events.c
-    src/domain_events.h
-    src/domain_event_types.c
-    src/domain_event_world.c
-    src/domain_event_world.h
-    src/domain_event_types.h
-    src/domain_object_transfer.c
-    src/domain_object_transfer.h
-    src/domain_event_runtime.c
-    src/domain_event_runtime.h
-    src/event_debug.c
-    src/event_debug.h
-    src/reactor.c
-    src/reactor.h
-    src/graph.c
+    src/events/periodic_owners.c
+    src/events/periodic_owners.h
+    src/events/domain_events.c
+    src/events/domain_events.h
+    src/events/domain_event_types.c
+    src/events/domain_event_world.c
+    src/events/domain_event_world.h
+    src/events/domain_event_types.h
+    src/events/domain_object_transfer.c
+    src/events/domain_object_transfer.h
+    src/events/domain_event_runtime.c
+    src/events/domain_event_runtime.h
+    src/events/event_debug.c
+    src/events/event_debug.h
+    src/net/reactor.c
+    src/net/reactor.h
+    src/movement/graph.c
     src/combat/grapple.c
-    src/handler.c
+    src/core/handler.c
     src/olc/hedit.c
-    src/help.c
-    src/helpers.c
+    src/core/help.c
+    src/core/helpers.c
     src/olc/hlqedit.c
     src/quest/hlquest.c
     src/obj/house.c
@@ -504,11 +514,11 @@ set(SRC_C_FILES
     src/quest/hunts.c
     src/comms/ibt.c
     src/olc/improved-edit.c
-    src/interpreter.c
-    src/introduce.c
+    src/core/interpreter.c
+    src/character/introduce.c
     src/wilderness/kdtree.c
-    src/limits.c
-    src/lists.c
+    src/core/limits.c
+    src/core/lists.c
     src/magic/magic.c
     src/comms/mail.c
     src/olc/medit.c
@@ -526,12 +536,12 @@ set(SRC_C_FILES
     src/mob/mob_known_spells.c
     src/mob/mob_spells.c
     src/mob/mob_spellslots.c
-    src/modify.c
+    src/core/modify.c
     src/magic/moon_bonus_spells.c
     src/olc/msgedit.c
-    src/mud_event.c
-    src/mud_event_list.c
-    src/mysql.c
+    src/events/mud_event.c
+    src/events/mud_event_list.c
+    src/database/mysql.c
     src/comms/mysql_boards.c
     src/comms/new_mail.c
     src/olc/oasis.c
@@ -541,12 +551,12 @@ set(SRC_C_FILES
     src/obj/objsave.c
     src/obj/player_shop.c
     src/olc/oedit.c
-    src/password.c
-    src/perfmon.c
+    src/player/password.c
+    src/core/perfmon.c
     src/character/perks.c
     src/wilderness/perlin.c
-    src/player_rename.c
-    src/players.c
+    src/player/player_rename.c
+    src/player/players.c
     src/olc/prefedit.c
     src/character/premadebuilds.c
     src/net/msdp_json.c
@@ -556,21 +566,21 @@ set(SRC_C_FILES
     src/olc/qedit.c
     src/quest/quest.c
     src/quest/quest_services.c
-    src/rol_feats.c
+    src/character/rol_feats.c
     src/character/race.c
-    src/random.c
-    src/random_names.c
-    src/rank.c
-    src/rewards.c
+    src/core/random.c
+    src/mob/random_names.c
+    src/player/rank.c
+    src/character/rewards.c
     src/olc/redit.c
     src/wilderness/resource_system.c
     src/wilderness/harvest.c
     src/wilderness/harvest.h
-    src/harvest_vnums.h
+    src/config/harvest_vnums.h
     src/wilderness/resource_depletion.c
     src/wilderness/resource_descriptions.c
     src/wilderness/resource_regeneration.c
-    src/roleplay.c
+    src/character/roleplay.c
     src/vessels/routing.c
     src/olc/sedit.c
     src/olc/spec_menu.c
@@ -662,7 +672,7 @@ set(SRC_C_FILES
     src/combat/traps_new.c
     src/obj/treasure.c
     src/obj/treasure_const.c
-    src/utils.c
+    src/core/utils.c
     src/vessels/vehicles.c
     src/vessels/vehicles_commands.c
     src/vessels/vehicles_transport.c
@@ -691,11 +701,11 @@ set(SRC_C_FILES
     src/vessels/vessels_piracy.c
     src/vessels/vessels_trade.c
     src/vessels/vessels_upgrades.c
-    src/weather.c
+    src/core/weather.c
     src/wilderness/wilderness.c
     src/wilderness/wilderness_kb.c
     src/olc/zedit.c
-    src/zmalloc.c
+    src/core/zmalloc.c
     src/movement/movement.c
     src/movement/movement_validation.c
     src/movement/movement_cost.c
@@ -720,10 +730,10 @@ set(SRC_C_FILES
     src/net/i3_client.c
     src/net/i3_commands.c
     src/net/i3_utils.c
-    src/pet_vnums.h
-    src/elf_build_id.h
-    src/player_rename.h
-    src/tactical_effects.h
+    src/config/pet_vnums.h
+    src/core/elf_build_id.h
+    src/player/player_rename.h
+    src/combat/tactical_effects.h
 )
 
 set(SRC_FILES ${SRC_C_FILES} ${BUILD_IDENTITY_HEADER})
@@ -1132,7 +1142,7 @@ set(PROTOCOL_FOCUSED_TEST_SOURCES
 if (BUILD_TESTS)
     enable_testing()
 
-    add_executable(bsd_snprintf_fallback_test src/bsd-snprintf.c)
+    add_executable(bsd_snprintf_fallback_test src/core/bsd-snprintf.c)
     target_compile_definitions(bsd_snprintf_fallback_test PRIVATE
         BROKEN_SNPRINTF
         TEST_SNPRINTF)

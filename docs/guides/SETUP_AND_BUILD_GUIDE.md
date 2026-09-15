@@ -82,18 +82,26 @@ that root artifact.
 Only when the real local files do not exist, copy the tracked examples:
 
 ```bash
-test -e src/campaign.h || cp src/campaign.example.h src/campaign.h
-test -e src/mud_options.h || cp src/mud_options.example.h src/mud_options.h
-test -e src/vnums.h || cp src/vnums.example.h src/vnums.h
+test -e src/config/campaign.h || cp src/config/campaign.example.h src/config/campaign.h
+test -e src/config/mud_options.h || cp src/config/mud_options.example.h src/config/mud_options.h
+test -e src/config/vnums.h || cp src/config/vnums.example.h src/config/vnums.h
 test -e lib/mysql_config || install -m 600 lib/mysql_config_example lib/mysql_config
 test -e lib/.env || install -m 600 lib/.env_example lib/.env
 ```
 
 Edit local configuration without committing it. Never overwrite an existing
-`src/campaign.h`, `src/mud_options.h`, `src/vnums.h`, `lib/mysql_config`, or
+`src/config/campaign.h`, `src/config/mud_options.h`, `src/config/vnums.h`, `lib/mysql_config`, or
 `lib/.env`. Database initialization details are in the
 [deployment guide](../deployment/DEPLOYMENT_GUIDE.md) and
 [database initialization guide](DATABASE_INITIALIZATION_GUIDE.md).
+
+A checkout created before the local headers moved to `src/config/` moves them
+once. Until it does, configure, CMake, `deploy.sh`, and `setup.sh` stop and
+print this command:
+
+```bash
+mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/
+```
 
 World and text data must exist under `lib/`. Use the deployment script for a
 fresh minimal world rather than assembling the required indexes manually.
@@ -181,7 +189,7 @@ repository-wide tier lists are never weakened to accommodate one site.
 Feature detection is independent of the warning policy: no configure or
 CMake probe uses `-Werror` unless the probe itself requires it, and
 `scripts/ci/check_configure_probes.sh` configures both build systems with
-strict flags and plainly and fails if `src/conf.h` differs.
+strict flags and plainly and fails if the generated `conf.h` differs.
 
 ## CMake
 

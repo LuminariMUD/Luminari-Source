@@ -11,7 +11,7 @@
 #ifndef _RESOURCE_CASCADE_H_
 #define _RESOURCE_CASCADE_H_
 
-#include "structs.h"
+#include "core/structs.h"
 #include "resource_system.h"
 
 /* Ecosystem health states */

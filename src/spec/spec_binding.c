@@ -4,7 +4,7 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
 #include "spec/spec_binding.h"
 

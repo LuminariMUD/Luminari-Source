@@ -11,11 +11,11 @@
  * to avoid conflict between math.h's log() function and the log() macro
  * defined in utils.h. The sequence below ensures correct include order. */
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <inttypes.h>
 #include <math.h>
 #include "vessels.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "wilderness/wilderness.h"
 
 #define SCHEDULE_ROUTE_VALIDATION_MAX_STEPS 10000

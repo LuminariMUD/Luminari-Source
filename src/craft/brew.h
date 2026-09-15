@@ -6,8 +6,8 @@
 #ifndef BREW_H
 #define BREW_H
 
-#include "structs.h"
-#include "utils.h"
+#include "core/structs.h"
+#include "core/utils.h"
 
 /* Function prototypes */
 int get_mote_type_for_school(int school);

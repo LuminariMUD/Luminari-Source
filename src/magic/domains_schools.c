@@ -6,18 +6,18 @@
  ************************************************************************ */
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/db.h"
 #include "spells.h"
 #include "character/feats.h"
 #include "domains_schools.h"
 #include "combat/assign_wpn_armor.h"
-#include "screen.h"
-#include "modify.h"
+#include "core/screen.h"
+#include "core/modify.h"
 #include "character/class.h"
 
 struct domain_info domain_list[NUM_DOMAINS];

@@ -15,19 +15,19 @@
  ****************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "db.h"
-#include "screen.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/db.h"
+#include "core/screen.h"
 #include "genolc.h"
 #include "oasis.h"
 #include "improved-edit.h"
-#include "comm.h"        /* descriptor_list etc */
-#include "interpreter.h" /* one_argument() etc */
-#include "modify.h"      /* string_write etc */
+#include "core/comm.h"        /* descriptor_list etc */
+#include "core/interpreter.h" /* one_argument() etc */
+#include "core/modify.h"      /* string_write etc */
 #include "comms/ibt.h"
-#include "clan.h"
+#include "clan/clan.h"
 
 /* Static internal (only used in clan_edit.c) functions */
 static void clanedit_setup(struct descriptor_data *d); /* Initialize clan editor for a descriptor */

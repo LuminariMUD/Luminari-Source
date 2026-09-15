@@ -25,7 +25,7 @@ Updating this skill does not authorize executing it or resuming a paused burn-in
 - Follow the repository prohibition on production code changes. Production access in `lib/.env`
   does not authorize stopping production, migrating its database, or publishing local repairs.
   Do not change an environment marker to pass a development guard.
-- Preserve `src/campaign.h`, `src/mud_options.h`, `src/vnums.h`, `lib/mysql_config`, and `lib/.env`.
+- Preserve `src/config/campaign.h`, `src/config/mud_options.h`, `src/config/vnums.h`, `lib/mysql_config`, and `lib/.env`.
   Use their tracked examples only as permitted by `AGENTS.md`. Keep player files, world files,
   runtime databases, existing releases, and crash evidence intact.
 - Keep logs, test runtimes, and separate build trees in a unique ignored `.burnin-runtime*`
@@ -60,15 +60,15 @@ Use autorun for the subsequent development start, not `luminari.service`.
 ## Handle Luminari's database contract
 
 The server gets its database connection from `lib/mysql_config`; `DB_*` entries in `lib/.env`
-are not a substitute for tracing `src/mysql.c`. Inspect the configured runtime read-only before
+are not a substitute for tracing `src/database/mysql.c`. Inspect the configured runtime read-only before
 repairing it, keeping credentials out of command arguments and output.
 
 Luminari initializes missing tables and runs embedded, versioned migrations during startup:
 
-- `src/db_startup_init.c`: `startup_database_init()` and `initialize_missing_tables()`;
-- `src/db_init.c`: `run_database_migrations()`, `run_pet_persistence_migrations()`, and
+- `src/database/db_startup_init.c`: `startup_database_init()` and `initialize_missing_tables()`;
+- `src/database/db_init.c`: `run_database_migrations()`, `run_pet_persistence_migrations()`, and
   `schema_migrations` bookkeeping;
-- `src/db_init_data.c`: required player-table and pet-persistence verification.
+- `src/database/db_init_data.c`: required player-table and pet-persistence verification.
 
 Trace these current requirements and any affected subsystem's checked-in SQL. Recorded migration
 versions are evidence of application, not proof that the current columns, indexes, and engines
@@ -155,7 +155,7 @@ available work and report the burn-in as incomplete with its exact coverage gap.
    when no listener exists. Invoke it only after autorun is healthy and the ports match;
    its fallback is not the burn-in startup path.
 4. Randomize a selection of safe inspection commands across player and staff systems. Trace
-   registrations and handlers in `src/interpreter.c` and the owning subsystem first. Candidates
+   registrations and handlers in `src/core/interpreter.c` and the owning subsystem first. Candidates
    include `score`, `inventory`, `equipment`, `time`, `weather`, `who`, `activity`, `show stats`,
    `eventdebug`, and read-only `perfmon` output. Record exact arguments and verify sensible
    responses; helper success alone does not prove command correctness. Normal

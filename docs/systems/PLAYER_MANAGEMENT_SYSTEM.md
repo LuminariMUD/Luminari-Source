@@ -5,10 +5,10 @@ Last verified: 2026-07-29
 ## Scope
 
 Player management is an account-first, descriptor-driven workflow. The
-`nanny()` state machine in `src/interpreter.c` owns account authentication,
+`nanny()` state machine in `src/core/interpreter.c` owns account authentication,
 character selection, character creation, the selected-character menu, and the
-transition into play. `src/account.c` owns account persistence and account-wide
-unlocks. `src/players.c` owns character loading, character saving, and the
+transition into play. `src/player/account.c` owns account persistence and account-wide
+unlocks. `src/player/players.c` owns character loading, character saving, and the
 player index.
 
 The classic Telnet menus and the structured web experience are two
@@ -35,7 +35,7 @@ persistence map, see [SAVE_SYSTEMS_BREAKDOWN.md](SAVE_SYSTEMS_BREAKDOWN.md).
 
 ## Account Model
 
-`struct account_data` is declared in `src/structs.h`. Its active fields include:
+`struct account_data` is declared in `src/core/structs.h`. Its active fields include:
 
 - database ID and account name;
 - password hash and failed-password count;
@@ -100,7 +100,7 @@ path or use an authenticated encrypted tunnel.
 
 ## Password Storage
 
-`src/password.c` owns hashing and verification. New and changed passwords are
+`src/player/password.c` owns hashing and verification. New and changed passwords are
 stored as self-describing yescrypt strings (`$y$...`) from libxcrypt with a
 random salt per password and the cost fixed by `PASSWORD_HASH_COST`.
 Verification runs the stored setting back through `crypt_rn()` and compares
@@ -153,7 +153,7 @@ The current new-character sequence is:
 | 13 | `CON_RMOTD`, `CON_MENU` | Shows the MOTD and selected-character menu |
 
 The point-buy block is compiled out by `CHARGEN_NO_STATISTICS` in
-`src/interpreter.c`. Ability scores, feats, skills, and level-one study are not
+`src/core/interpreter.c`. Ability scores, feats, skills, and level-one study are not
 part of the active initial creation workflow.
 
 Navigation follows the state machine's explicit confirmation and reselection
@@ -234,11 +234,11 @@ domain-specific mutability rules. Their handlers use descriptor-local pending
 values and checked commit helpers so a rejected or failed save can restore the
 previous character and player-index state. The seven free-text fields share
 field IDs, field-specific byte limits, UTF-8 validation, normalization, and
-`save_char_checked()` through `src/roleplay.c`.
+`save_char_checked()` through `src/character/roleplay.c`.
 
 ## Checked and Legacy Save APIs
 
-`src/players.c` exposes both:
+`src/player/players.c` exposes both:
 
 ```c
 bool save_char_checked(struct char_data *ch, int mode);
@@ -293,12 +293,12 @@ When changing account or character creation:
 
 | File | Responsibility |
 | --- | --- |
-| `src/interpreter.c` | `nanny()` account, creation, character-menu, and play transitions |
-| `src/account.c` | Account load/save, membership, unlocks, and account menu |
-| `src/players.c` | Character files, checked saves, loads, and player index |
-| `src/roleplay.c` | Role-play field authority, pending selections, checked commits |
-| `src/char_descs.c` | Generated short-description workflow |
-| `src/comm.c` | Descriptor lifecycle, input queue, and game-loop dispatch |
+| `src/core/interpreter.c` | `nanny()` account, creation, character-menu, and play transitions |
+| `src/player/account.c` | Account load/save, membership, unlocks, and account menu |
+| `src/player/players.c` | Character files, checked saves, loads, and player index |
+| `src/character/roleplay.c` | Role-play field authority, pending selections, checked commits |
+| `src/character/char_descs.c` | Generated short-description workflow |
+| `src/core/comm.c` | Descriptor lifecycle, input queue, and game-loop dispatch |
 | `src/net/protocol.c` | Telnet negotiation, no-echo, MSDP parsing |
 | `src/net/onboarding.c` | Structured presentation adapter |
-| `src/structs.h` | Account, descriptor, character, and connection-state definitions |
+| `src/core/structs.h` | Account, descriptor, character, and connection-state definitions |

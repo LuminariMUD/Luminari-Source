@@ -9,26 +9,26 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "string.h"
-#include "comm.h"
+#include "core/comm.h"
 #include "spells.h"
-#include "handler.h"
-#include "db.h"
-#include "constants.h"
+#include "core/handler.h"
+#include "core/db.h"
+#include "core/constants.h"
 #include "character/perks.h"
-#include "interpreter.h"
+#include "core/interpreter.h"
 #include "dgscript/dg_scripts.h"
-#include "act.h"
+#include "act/act.h"
 #include "combat/fight.h"
-#include "mud_event.h"
-#include "obj/house.h" /* for house_can_enter() */
-#include "screen.h"    /* for QNRM, etc */
+#include "events/mud_event.h"
+#include "obj/house.h"   /* for house_can_enter() */
+#include "core/screen.h" /* for QNRM, etc */
 #include "craft/craft.h"
-#include "mudlim.h"
-#include "rewards.h"
+#include "core/mudlim.h"
+#include "character/rewards.h"
 #include "obj/item.h"
 #include "obj/treasure.h"
 #include "domains_schools.h"
@@ -36,14 +36,14 @@
 #include "olc/genzon.h" /* for real_zone_by_thing */
 #include "psionics.h"
 #include "combat/assign_wpn_armor.h"
-#include "actions.h" /* for use_ACTION() */
+#include "events/actions.h" /* for use_ACTION() */
 #include "vessels/transport.h"
 #include "character/evolutions.h"
 #include "character/feats.h"
 #include "vessels/routing.h"
 #include "movement/movement_validation.h"
-#include "character_periodic.h"
-#include "domain_event_world.h"
+#include "events/character_periodic.h"
+#include "events/domain_event_world.h"
 #include "quest/missions.h"
 
 /************************************************************/

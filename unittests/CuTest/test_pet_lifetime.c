@@ -1,15 +1,15 @@
 #include "CuTest.h"
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
-#include "../../src/utils.h"
-#include "../../src/db.h"
-#include "../../src/handler.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/utils.h"
+#include "../../src/core/db.h"
+#include "../../src/core/handler.h"
 #include "../../src/magic/spells.h"
-#include "../../src/mud_event.h"
+#include "../../src/events/mud_event.h"
 #include "../../src/dgscript/dg_event.h"
-#include "../../src/event_runtime.h"
+#include "../../src/events/event_runtime.h"
 
 #include <stdlib.h>
 #include <string.h>

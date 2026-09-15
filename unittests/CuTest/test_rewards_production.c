@@ -1,19 +1,19 @@
-/* Production-linked regressions for the reward API in src/rewards.c and the staff
+/* Production-linked regressions for the reward API in src/character/rewards.c and the staff
  * award command, which lists the same award types. */
 
 #include "CuTest.h"
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
-#include "../../src/utils.h"
-#include "../../src/comm.h"
-#include "../../src/db.h"
-#include "../../src/constants.h"
-#include "../../src/act.h"
-#include "../../src/handler.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/utils.h"
+#include "../../src/core/comm.h"
+#include "../../src/core/db.h"
+#include "../../src/core/constants.h"
+#include "../../src/act/act.h"
+#include "../../src/core/handler.h"
 #include "../../src/net/protocol.h"
-#include "../../src/rewards.h"
+#include "../../src/character/rewards.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -73,7 +73,7 @@ static void reward_actor_release(struct reward_actor *actor)
   actor->ch.desc = NULL;
 }
 
-/** Read the balance an award type changes, independently of src/rewards.c. */
+/** Read the balance an award type changes, independently of src/character/rewards.c. */
 static long reward_balance(struct char_data *ch, int type)
 {
   switch (type)

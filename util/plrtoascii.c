@@ -13,12 +13,12 @@
  ************************************************************************* */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
-#include "db.h"
-#include "pfdefaults.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/db.h"
+#include "player/pfdefaults.h"
 
 // first some stock circle 3.0 defines. Change where appropriate.
 #define MAX_NAME_LENGTH 20 /* Used in char_file_u *DO*NOT*CHANGE* */

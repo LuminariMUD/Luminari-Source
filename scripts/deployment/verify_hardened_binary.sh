@@ -9,7 +9,7 @@
 # The hardening properties alone cannot distinguish the profile from a
 # distribution whose compiler defaults already include them, so the profile
 # also embeds a marker section (see LUMINARI_PRODUCTION_PROFILE in
-# src/constants.c) and this check requires it.
+# src/core/constants.c) and this check requires it.
 
 set -euo pipefail
 
@@ -46,7 +46,7 @@ check()
   fi
 }
 
-# Profile marker: src/constants.c places this section only when the compile
+# Profile marker: src/core/constants.c places this section only when the compile
 # line carried the profile's LUMINARI_PRODUCTION_PROFILE definition.
 profile_marker=0
 if readelf -W -p .luminari.profile "$binary" 2>/dev/null | grep -q 'LuminariMUD production profile'; then

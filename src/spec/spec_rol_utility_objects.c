@@ -4,27 +4,27 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
+#include "core/structs.h"
+#include "core/utils.h"
 
-#include "act.h"
+#include "act/act.h"
 #include "combat/fight.h"
-#include "comm.h"
-#include "db.h"
+#include "core/comm.h"
+#include "core/db.h"
 #include "dgscript/dg_scripts.h"
-#include "handler.h"
-#include "rewards.h"
-#include "interpreter.h"
+#include "core/handler.h"
+#include "character/rewards.h"
+#include "core/interpreter.h"
 #include "magic/spells.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "spec_combat.h"
 #include "spec_context.h"
 #include "spec_cooldown.h"
 #include "spec_dispatch.h"
 #include "spec_rol_utility_objects.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 #define ROL_GOODBERRY_VNUM 2000876
 #define ROL_LOOT_BLOCKER_VNUM 2000897

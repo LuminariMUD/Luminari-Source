@@ -1,8 +1,8 @@
 #ifndef COMBAT_DAMAGE_H
 #define COMBAT_DAMAGE_H
 
-#include "domain_events.h"
-#include "structs.h"
+#include "events/domain_events.h"
+#include "core/structs.h"
 
 /* Outcome of a damage submission.
  * REJECTED   - the packet could not be applied or scheduled at all.

@@ -6,20 +6,20 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "db.h"
-#include "constants.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/db.h"
+#include "core/constants.h"
 #include "genolc.h"
 #include "genzon.h"
 #include "genmob.h"
 #include "oasis.h"
 #include "dgscript/dg_scripts.h"
-#include "handler.h"
-#include "clan.h"
+#include "core/handler.h"
+#include "clan/clan.h"
 
 /* Nasty internal macros to clean up the code. */
 //#define ZCMD            (zone_table[OLC_ZNUM(d)].cmd[subcmd])

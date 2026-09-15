@@ -127,7 +127,7 @@ prints the enabled set and warns for each unsupported item. On architectures
 without `-fcf-protection` that item is reported as unsupported and left out.
 
 The profile also defines `LUMINARI_PRODUCTION_PROFILE`, which makes
-`src/constants.c` embed a marker in a `.luminari.profile` ELF section. That
+`src/core/constants.c` embed a marker in a `.luminari.profile` ELF section. That
 marker is what lets the verifier below distinguish the repository profile from
 a distribution whose compiler defaults happen to include the same hardening.
 
@@ -227,12 +227,19 @@ machine measured a 2x slowdown under load.
 
 The following real files are local and protected:
 
-- `src/campaign.h`, `src/mud_options.h`, and `src/vnums.h`
+- `src/config/campaign.h`, `src/config/mud_options.h`, and `src/config/vnums.h`
 - `lib/mysql_config` and `lib/.env`
 
-Their tracked examples are `src/*.example.h`, `lib/mysql_config_example`, and
-`lib/.env_example`. Copy an example only on a fresh clone when the real file is
-absent. Never commit credentials or replace an existing local configuration.
+Their tracked examples are `src/config/*.example.h`, `lib/mysql_config_example`,
+and `lib/.env_example`. Copy an example only on a fresh clone when the real file
+is absent. Never commit credentials or replace an existing local configuration.
+
+A checkout from before the headers moved to `src/config/`, production included,
+moves them once before building the first release that contains the move:
+
+```bash
+mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/
+```
 
 For manual database creation and schema initialization, use the
 [database initialization guide](../guides/DATABASE_INITIALIZATION_GUIDE.md).

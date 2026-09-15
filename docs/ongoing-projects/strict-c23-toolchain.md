@@ -66,7 +66,7 @@ warning debt, and feature detection that strict flags cannot influence.
   probes no longer emit diagnostics. Three unused `-Werror` probes were
   deleted.
 - `scripts/ci/check_configure_probes.sh` configures both build systems with
-  and without strict flags and fails when `src/conf.h` differs. It caught the
+  and without strict flags and fails when the generated `conf.h` differs. It caught the
   `socklen_t` fallback and the `AC_CHECK_FUNCS` false negatives.
 
 ### Source fixes surfaced by the new compilers and flags
@@ -413,7 +413,7 @@ Notes from step 3.4:
   copies of them. Zone export builds its `tar` arguments in local buffers
   because `execvp` takes `char *const[]`.
 - The pre-commit hook pins clang-format 18.1.8 and never formats
-  `src/olc/genolc.c` or `src/utils.h`; format with that binary and leave
+  `src/olc/genolc.c` or `src/core/utils.h`; format with that binary and leave
   those two files alone, or the hook and a local clang-format disagree.
 - `-Wwrite-strings` and `-Wcast-qual` moved to the baseline tier after clean
   baseline builds with GCC 13 and Clang 18.
@@ -661,7 +661,7 @@ migration list to the baseline list in `production_profile.sh`.
 
 | Lever | Sites it clears | Evidence |
 |-------|-----------------|----------|
-| `IS_SET_AR` in `src/utils.h` | about 11000 Clang `sign-conversion` | the `&` of an `int` array element with the `unsigned` `Q_BIT` mask converts the element; `IS_NPC` alone is 3084 sites, `GET_NAME` 1248, `AFF_FLAGGED` 939, the `*_FLAGGED` family and every colour macro (they expand to `PRF_FLAGGED`) the rest |
+| `IS_SET_AR` in `src/core/utils.h` | about 11000 Clang `sign-conversion` | the `&` of an `int` array element with the `unsigned` `Q_BIT` mask converts the element; `IS_NPC` alone is 3084 sites, `GET_NAME` 1248, `AFF_FLAGGED` 939, the `*_FLAGGED` family and every colour macro (they expand to `PRF_FLAGGED`) the rest |
 | `sh_int` and `byte` fields in `struct affected_type` and friends | about 1450 GCC `conversion`, about 1000 Clang `implicit-int-conversion` | 975 sites are `int` to `sh_int`, 281 `int` to `byte`, 195 `int` to `sbyte`; `src/magic/magic.c` alone has 509 |
 | generated test prototypes | 1485 of 2123 `missing-prototypes` | every `Test*` function in `unittests/CuTest/` |
 | scripted `-Wformat` conversions | 964 GCC `format=` | all are `%d` with an unsigned or vnum argument; GCC's fix-it turned out to be a no-op, see the step 2.2 notes |

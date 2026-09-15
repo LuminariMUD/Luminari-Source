@@ -3,8 +3,8 @@
 set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
-rename_source="$project_root/src/player_rename.c"
-wizard_source="$project_root/src/act.wizard.c"
+rename_source="$project_root/src/player/player_rename.c"
+wizard_source="$project_root/src/act/act.wizard.c"
 
 fail()
 {
@@ -99,10 +99,10 @@ for failure_point in "${failure_points[@]}"; do
   assert_contains "$rename_source" "$failure_point"
 done
 
-assert_contains "$project_root/src/players.c" "player_file_account_name(ch)"
-assert_contains "$project_root/src/players.c" "if (GET_MOB_VNUM(mob) == MOB_CLONE)"
-assert_contains "$project_root/Makefile.am" "src/player_rename.c"
-assert_contains "$project_root/CMakeLists.txt" "src/player_rename.c"
+assert_contains "$project_root/src/player/players.c" "player_file_account_name(ch)"
+assert_contains "$project_root/src/player/players.c" "if (GET_MOB_VNUM(mob) == MOB_CLONE)"
+assert_contains "$project_root/Makefile.am" "src/player/player_rename.c"
+assert_contains "$project_root/CMakeLists.txt" "src/player/player_rename.c"
 
 for table in player_mail player_mail_deleted player_mail_read; do
   assert_contains "$project_root/sql/components/character_rename_transactional_schema.sql" \
@@ -111,7 +111,7 @@ done
 
 implementation_files=(
   "$rename_source"
-  "$project_root/src/player_rename.h"
+  "$project_root/src/player/player_rename.h"
   "$project_root/unittests/CuTest/test_player_rename.c"
   "$project_root/scripts/character-rename/test_character_rename_schema.sh"
   "$project_root/sql/components/character_rename_transactional_schema.sql"

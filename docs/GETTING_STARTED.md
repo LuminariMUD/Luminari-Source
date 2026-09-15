@@ -199,9 +199,9 @@ saveall              - Save all OLC work
 ## Configuration
 
 ### Main Configuration Files
-- `src/campaign.h` - Core game settings
-- `src/mud_options.h` - Server options
-- `src/vnums.h` - Virtual number assignments
+- `src/config/campaign.h` - Core game settings
+- `src/config/mud_options.h` - Server options
+- `src/config/vnums.h` - Virtual number assignments
 - `lib/etc/config` - Runtime configuration
 
 ### Changing Port

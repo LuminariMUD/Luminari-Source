@@ -65,9 +65,9 @@ The audit traced all three authored formats and their writers:
 
 | Owner | Loader | Writer | Cardinality |
 |-------|--------|--------|-------------|
-| Mobile | `SpecProc:` in `src/db.c` | `src/olc/genmob.c` | Zero or one name |
-| Object | `Z` in `src/db.c` | `src/olc/genobj.c` | Zero or one name |
-| Room | `Z` in `src/db.c` | `src/olc/genwld.c` | Zero or one name |
+| Mobile | `SpecProc:` in `src/core/db.c` | `src/olc/genmob.c` | Zero or one name |
+| Object | `Z` in `src/core/db.c` | `src/olc/genobj.c` | Zero or one name |
+| Room | `Z` in `src/core/db.c` | `src/olc/genwld.c` | Zero or one name |
 
 Room moving data remains a separate `M` parser hook and is still mutually exclusive with a named
 room `Z` binding. Phase 06 introduces no alternate record, delimiter, list field, schema table, or

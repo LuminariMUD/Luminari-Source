@@ -13,19 +13,19 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
 #include "dg_scripts.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "handler.h"
-#include "db.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
+#include "core/db.h"
 #include "olc/oasis.h"
-#include "constants.h"
+#include "core/constants.h"
 #include "magic/spells.h" /* for skill_name() */
-#include "act.h"          /* for cmd_door[] */
-#include "modify.h"       /* For strip_colors() */
+#include "act/act.h"      /* for cmd_door[] */
+#include "core/modify.h"  /* For strip_colors() */
 
 /* Enable this to debug DG script parameter corruption issues */
 /* #define SCRIPT_DEBUG */

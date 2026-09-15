@@ -4,17 +4,17 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
+#include "core/structs.h"
+#include "core/utils.h"
 
-#include "act.h"
-#include "comm.h"
-#include "db.h"
+#include "act/act.h"
+#include "core/comm.h"
+#include "core/db.h"
 #include "dgscript/dg_scripts.h"
-#include "handler.h"
-#include "mud_event.h"
+#include "core/handler.h"
+#include "events/mud_event.h"
 #include "spec/spec_context.h"
 #include "spec/spec_dispatch.h"
 #include "spec/spec_rol_drow.h"

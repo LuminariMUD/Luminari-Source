@@ -9,25 +9,25 @@
 ************************************************************************ */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "db.h"
-#include "utils.h"
+#include "core/structs.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/db.h"
+#include "core/utils.h"
 #include "magic/spells.h"
-#include "handler.h"
+#include "core/handler.h"
 #include "mail.h"
-#include "screen.h"
+#include "core/screen.h"
 #include "olc/oasis.h"
 #include "olc/genolc.h"
 #include "dgscript/dg_scripts.h"
-#include "char_descs.h"
+#include "character/char_descs.h"
 #include "character/deities.h"
-#include "helpers.h"
+#include "core/helpers.h"
 
-#include "mysql.h"
+#include "database/mysql.h"
 #include "mysql_boards.h"
 
 /* External Variables */

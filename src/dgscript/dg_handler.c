@@ -13,18 +13,18 @@
 ***************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "dg_scripts.h"
-#include "comm.h"
-#include "db.h"
-#include "handler.h"
+#include "core/comm.h"
+#include "core/db.h"
+#include "core/handler.h"
 #include "magic/spells.h"
 #include "dg_event.h"
-#include "constants.h"
-#include "periodic_owners.h"
-#include "point_update_periodic.h"
+#include "core/constants.h"
+#include "events/periodic_owners.h"
+#include "events/point_update_periodic.h"
 
 #define DG_RANDOM_OWNER_TYPES 3
 #define DG_TIME_OWNER_TYPES 3

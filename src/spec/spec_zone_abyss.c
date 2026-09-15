@@ -6,14 +6,14 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "movement/door_state.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "db.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/db.h"
 #include "spec_zone_abyss.h"
 
 #define ZONE_VNUM 1423

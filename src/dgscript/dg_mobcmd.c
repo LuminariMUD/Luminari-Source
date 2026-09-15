@@ -8,29 +8,29 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
 #include "movement/door_state.h"
-#include "utils.h"
-#include "screen.h"
+#include "core/utils.h"
+#include "core/screen.h"
 #include "dg_scripts.h"
-#include "db.h"
-#include "handler.h"
-#include "rewards.h"
-#include "domain_event_world.h"
-#include "domain_event_runtime.h"
-#include "interpreter.h"
-#include "comm.h"
+#include "core/db.h"
+#include "core/handler.h"
+#include "character/rewards.h"
+#include "events/domain_event_world.h"
+#include "events/domain_event_runtime.h"
+#include "core/interpreter.h"
+#include "core/comm.h"
 #include "magic/spells.h"
-#include "constants.h"
-#include "graph.h"
+#include "core/constants.h"
+#include "movement/graph.h"
 #include "movement/movement.h"
 #include "olc/genzon.h" /* for real_zone_by_thing */
-#include "act.h"
+#include "act/act.h"
 #include "combat/fight.h"
-#include "obj/shop.h" /* shop keepers and mhunt */
-#include "clan.h"     /* clan system */
-#include "active_world.h"
+#include "obj/shop.h"  /* shop keepers and mhunt */
+#include "clan/clan.h" /* clan system */
+#include "events/active_world.h"
 
 /* Local file scope functions. */
 static void mob_log(char_data *mob, const char *format, ...) __attribute__((format(printf, 2, 3)));

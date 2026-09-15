@@ -1,0 +1,8171 @@
+/**************************************************************************
+ *  File: players.c                                    Part of LuminariMUD *
+ *  Usage: Player loading/saving and utility routines.                     *
+ *                                                                         *
+ *  All rights reserved.  See license for complete information.            *
+ *                                                                         *
+ *  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
+ *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+ **************************************************************************/
+
+#include "conf.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "vessels/transport_jobs.h"
+#include "core/utils.h"
+#include "combat/tactical_effects.h"
+#include "core/db.h"
+#include "database/db_init.h"
+#include "core/handler.h"
+#include "events/domain_event_world.h"
+#include "combat/fight.h"
+#include "pfdefaults.h"
+#include "dgscript/dg_scripts.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "database/mysql.h"
+#include "olc/genolc.h"          /* for strip_cr */
+#include "config/config.h"       /* for pclean_criteria[] */
+#include "dgscript/dg_scripts.h" /* To enable saving of player variables to disk */
+#include "quest/quest.h"
+#include "magic/spells.h"
+#include "clan/clan.h"
+#include "events/mud_event.h"
+#include "core/mudlim.h"
+#include "craft/craft.h" // crafting (auto craft quest inits)
+#include "magic/spell_prep.h"
+#include "craft/alchemy.h"
+#include "character/templates.h"
+#include "character/premadebuilds.h"
+#include "quest/missions.h"
+#include "character/evolutions.h"
+#include "character/class.h"
+#include "character/perks.h"
+#include "spec/spec_mobile_archetypes.h"
+#include "olc/oasis.h"
+#include "craft/crafting_new.h"
+#include "wilderness/resource_system.h"
+#include "character/character_creation.h"
+#include "vessels/vessels.h"
+#include "character/bardic_performance.h"
+#include "core/perfmon.h"
+#include <inttypes.h>
+#include <stdint.h>
+#include <sys/time.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include "obj/objsave.h"
+
+#define LOAD_HIT 0
+#define LOAD_PSP 1
+#define LOAD_MOVE 2
+#define LOAD_STRENGTH 3
+
+#define PLAYER_AFFECT_FILE_VERSION 1
+#define BOARDING_ABILITY_PFILE_VERSION 1
+
+#define PET_RUNTIME_STATE_VERSION 4
+#define PET_RUNTIME_STATE_INITIAL_SIZE 4096
+#define PET_RUNTIME_STATE_MAX_SIZE 65535
+
+_Static_assert(AF_ARRAY_MAX == 4, "pet runtime format requires four affect flag words");
+_Static_assert(PM_ARRAY_MAX == 4, "pet runtime format requires four mobile flag words");
+_Static_assert(NUM_OF_SAVING_THROWS == 5, "pet runtime format requires five saving throws");
+
+#define PT_PNAME(i) (player_table[(i)].name)
+#define PT_IDNUM(i) (player_table[(i)].id)
+#define PT_LEVEL(i) (player_table[(i)].level)
+#define PT_FLAGS(i) (player_table[(i)].flags)
+#define PT_LLAST(i) (player_table[(i)].last)
+#define PT_PCLAN(i) (player_table[(i)].clan)
+
+/* 'global' vars defined here and used externally */
+/** @deprecated Since this file really is basically a functional extension
+ * of the database handling in db.c, until the day that the mud is broken
+ * down to be less monolithic, I don't see why the following should be defined
+ * anywhere but there.
+struct player_index_element *player_table = NULL;
+int top_of_p_table = 0;
+int top_of_p_file = 0;
+long top_idnum = 0;
+ */
+
+/* local functions */
+struct pending_durable_event
+{
+  struct mud_event_durable_record record;
+  struct pending_durable_event *next;
+};
+
+static void load_dr(FILE *fl, struct char_data *ch);
+static void load_events(FILE *fl, struct char_data *ch);
+static void load_events_v2(FILE *fl, struct char_data *ch, const char *header,
+                           struct pending_durable_event **pending);
+static void load_affects(FILE *fl, struct char_data *ch, int affect_file_version);
+static void load_skills(FILE *fl, struct char_data *ch);
+static void load_feats(FILE *fl, struct char_data *ch);
+static void load_evolutions(FILE *fl, struct char_data *ch);
+static void load_known_evolutions(FILE *fl, struct char_data *ch);
+static void load_class_feat_points(FILE *fl, struct char_data *ch);
+static void load_epic_class_feat_points(FILE *fl, struct char_data *ch);
+static void load_skill_focus(FILE *fl, struct char_data *ch);
+static void load_abilities(FILE *fl, struct char_data *ch);
+static void load_ability_exp(FILE *fl, struct char_data *ch);
+static void load_favored_enemy(FILE *fl, struct char_data *ch);
+static void load_favored_terrains(FILE *fl, struct char_data *ch);
+static void load_spec_abil(FILE *fl, struct char_data *ch);
+static void load_warding(FILE *fl, struct char_data *ch);
+static void load_class_level(FILE *fl, struct char_data *ch);
+static void load_coord_location(FILE *fl, struct char_data *ch);
+static void load_praying(FILE *fl, struct char_data *ch);
+static void load_praying_metamagic(FILE *fl, struct char_data *ch);
+static void load_prayed(FILE *fl, struct char_data *ch);
+static void load_prayed_metamagic(FILE *fl, struct char_data *ch);
+static void load_devices(FILE *fl, struct char_data *ch);
+static void load_praytimes(FILE *fl, struct char_data *ch);
+static void load_quests(FILE *fl, struct char_data *ch);
+static void load_failed_dialogue_quests(FILE *fl, struct char_data *ch);
+static void load_introductions(FILE *fl, struct char_data *ch);
+static void load_HMVS(struct char_data *ch, const char *line, int mode);
+static void write_aliases_ascii(FILE *file, struct char_data *ch);
+static void read_aliases_ascii(FILE *file, struct char_data *ch, int count);
+static void load_bombs(FILE *fl, struct char_data *ch);
+static void load_craft_mats_onhand(FILE *fl, struct char_data *ch);
+static void load_craft_motes_onhand(FILE *fl, struct char_data *ch);
+static void load_judgements(FILE *fl, struct char_data *ch);
+static void load_potions(FILE *fl, struct char_data *ch);
+static void load_scrolls(FILE *fl, struct char_data *ch);
+static void load_wands(FILE *fl, struct char_data *ch);
+static void load_staves(FILE *fl, struct char_data *ch);
+static void load_discoveries(FILE *fl, struct char_data *ch);
+void load_temp_evolutions(FILE *fl, struct char_data *ch);
+static void load_mercies(FILE *fl, struct char_data *ch);
+static void load_cruelties(FILE *fl, struct char_data *ch);
+static void load_buffs(FILE *fl, struct char_data *ch);
+static void load_languages(FILE *fl, struct char_data *ch);
+static void load_craft_affects(FILE *fl, struct char_data *ch);
+static void load_craft_materials(FILE *fl, struct char_data *ch);
+static void load_craft_motes(FILE *fl, struct char_data *ch);
+static void load_perks(FILE *fl, struct char_data *ch);
+static void load_perk_points(FILE *fl, struct char_data *ch);
+static void load_perk_toggles(FILE *fl, struct char_data *ch);
+
+/* The legacy pet_data columns retain descriptions and core attributes.  This
+ * versioned payload holds state that cannot be reconstructed from a mobile
+ * prototype: timed affects, raw runtime flags, generated combat statistics,
+ * and follower-type markers.  Prototype flags and reward values are excluded
+ * so current world fixes win on reload and saved followers cannot regain XP. */
+struct pet_runtime_state
+{
+  int extra_aff[AF_ARRAY_MAX];
+  int extra_aff2[AF_ARRAY_MAX];
+  int extra_mob[PM_ARRAY_MAX];
+  int race;
+  int size;
+  int move;
+  int max_move;
+  int psp;
+  int max_psp;
+  int hitroll;
+  int damroll;
+  int damnodice;
+  int damsizedice;
+  int alignment;
+  int saves[NUM_OF_SAVING_THROWS];
+  int spell_slots[10];
+  int max_spell_slots[10];
+  int feat_values[MAX_FEATS];
+  struct affected_type affects[MAX_AFFECT];
+  int affect_count;
+  bool hired_mercenary;
+  bool mercenary_proc_fired;
+  int source_spell;
+  int behavior;
+  int lifetime_kind;    /* PET_SAVED_LIFETIME_* */
+  long long expires_at; /* Real-time epoch for deadline records; zero otherwise. */
+};
+
+/* Persisted lifetime kinds.  Timed control affects are already carried by
+ * the affect records, so only the event deadline needs its own marker. */
+#define PET_SAVED_LIFETIME_DURABLE 0
+#define PET_SAVED_LIFETIME_DEADLINE 1
+
+static char *serialize_pet_runtime_state(struct char_data *pet);
+static bool parse_pet_runtime_state(const char *serialized, struct pet_runtime_state *state);
+static void apply_pet_runtime_state(struct char_data *pet, const struct pet_runtime_state *state);
+static char *build_pet_keyword_list(const char *saved_keywords, const char *prototype_keywords);
+
+
+// external functions
+
+/* New version to build player index for ASCII Player Files. Generate index
+ * table for the player file. */
+void build_player_index(void)
+{
+  int rec_count = 0, i, nr;
+  size_t name_length;
+  FILE *plr_index;
+  char index_name[40], line[MEDIUM_STRING] = {'\0'}, bits[64];
+  char arg2[80];
+
+  snprintf(index_name, sizeof(index_name), "%s%s", LIB_PLRFILES, INDEX_FILE);
+  if (!(plr_index = fopen(index_name, "r")))
+  {
+    top_of_p_table = -1;
+    log("No player index file!  First new char will be IMP!");
+    return;
+  }
+
+  while (get_line(plr_index, line))
+    if (*line != '~')
+      rec_count++;
+  rewind(plr_index);
+
+  if (rec_count == 0)
+  {
+    player_table = NULL;
+    top_of_p_table = -1;
+    return;
+  }
+
+  CREATE(player_table, struct player_index_element, rec_count);
+
+  /* Initialize all fields to prevent uninitialized value access */
+  for (i = 0; i < rec_count; i++)
+  {
+    player_table[i].name = NULL;
+    player_table[i].id = 0;
+    player_table[i].level = 0;
+    player_table[i].flags = 0;
+    player_table[i].last = 0;
+    player_table[i].clan = NO_CLAN;
+  }
+
+  for (i = 0; i < rec_count; i++)
+  {
+    get_line(plr_index, line);
+    if ((nr = sscanf(line, "%ld %79s %d %63s %ld %d", &player_table[i].id, arg2,
+                     &player_table[i].level, bits, (long *)&player_table[i].last,
+                     &player_table[i].clan)) != 6)
+    {
+      if ((nr = sscanf(line, "%ld %79s %d %63s %ld", &player_table[i].id, arg2,
+                       &player_table[i].level, bits, (long *)&player_table[i].last)) != 5)
+      {
+        log("SYSERR: Invalid line in player index (%s)", line);
+        continue;
+      }
+      player_table[i].clan = NO_CLAN;
+    }
+    name_length = strlen(arg2) + 1;
+    CREATE(player_table[i].name, char, name_length);
+    memcpy(player_table[i].name, arg2, name_length);
+    player_table[i].flags = (int)asciiflag_conv(bits);
+    top_idnum = long_max(top_idnum, player_table[i].id);
+  }
+
+  fclose(plr_index);
+  top_of_p_file = top_of_p_table = i - 1;
+}
+
+/* Create a new entry in the in-memory index table for the player file. If the
+ * name already exists, by overwriting a deleted character, then we re-use the
+ * old position. */
+int create_entry(char *name)
+{
+  int i, pos;
+
+  if (top_of_p_table == -1)
+  { /* no table */
+    pos = top_of_p_table = 0;
+    CREATE(player_table, struct player_index_element, 1);
+  }
+  else if ((pos = (int)get_ptable_by_name(name)) == -1)
+  { /* new name */
+    i = ++top_of_p_table + 1;
+
+    RECREATE(player_table, struct player_index_element, i);
+    pos = top_of_p_table;
+  }
+
+  CREATE(player_table[pos].name, char, strlen(name) + 1);
+
+  /* copy lowercase equivalent of name to table field */
+  for (i = 0; (player_table[pos].name[i] = LOWER(name[i])); i++)
+    /* Nothing */;
+
+  /* clear the bitflag and clan in case we have garbage data */
+  player_table[pos].flags = 0;
+  player_table[pos].clan = NO_CLAN;
+
+  /* Initialize all fields to prevent uninitialized value access */
+  player_table[pos].id = 0;
+  player_table[pos].level = 0;
+  player_table[pos].last = 0;
+
+  return (pos);
+}
+
+/* Remove an entry from the in-memory player index table.               *
+ * Requires the 'pos' value returned by the get_ptable_by_name function */
+static void remove_player_from_index(int pos)
+{
+  int i;
+
+  if (pos < 0 || pos > top_of_p_table)
+    return;
+
+  /* We only need to free the name string */
+  free(PT_PNAME(pos));
+
+  /* Move every other item in the list down the index */
+  for (i = pos + 1; i <= top_of_p_table; i++)
+  {
+    PT_PNAME(i - 1) = PT_PNAME(i);
+    PT_IDNUM(i - 1) = PT_IDNUM(i);
+    PT_LEVEL(i - 1) = PT_LEVEL(i);
+    PT_FLAGS(i - 1) = PT_FLAGS(i);
+    PT_LLAST(i - 1) = PT_LLAST(i);
+    PT_PCLAN(i - 1) = PT_PCLAN(i);
+  }
+  PT_PNAME(top_of_p_table) = NULL;
+
+  /* Reduce the index table counter */
+  top_of_p_table--;
+
+  /* And reduce the size of the table */
+  if (top_of_p_table >= 0)
+    RECREATE(player_table, struct player_index_element, (top_of_p_table + 1));
+  else
+  {
+    free(player_table);
+    player_table = NULL;
+  }
+}
+
+/* This function necessary to save a separate ASCII player index */
+bool save_player_index_checked(void)
+{
+  int i = 0;
+  int fd = -1;
+  int index_exists;
+  int write_failed = FALSE;
+  char index_name[MAX_FILEPATH] = {'\0'}, temp_name[MAX_FILEPATH] = {'\0'}, bits[64] = {'\0'};
+  FILE *index_file;
+  struct stat index_stat;
+
+  i = snprintf(index_name, sizeof(index_name), "%s%s", LIB_PLRFILES, INDEX_FILE);
+  if (i < 0 || i >= (int)sizeof(index_name))
+  {
+    log("SYSERR: Player index path is too long");
+    return FALSE;
+  }
+  i = snprintf(temp_name, sizeof(temp_name), "%s.rename-tmp.XXXXXX", index_name);
+  if (i < 0 || i >= (int)sizeof(temp_name))
+  {
+    log("SYSERR: Player index temporary path is too long");
+    return FALSE;
+  }
+
+  if ((fd = mkstemp(temp_name)) < 0)
+  {
+    log("SYSERR: Could not create temporary player index file: %s", strerror(errno));
+    return FALSE;
+  }
+
+  index_exists = lstat(index_name, &index_stat) == 0;
+  if (!index_exists && errno != ENOENT)
+  {
+    log("SYSERR: Could not inspect player index file: %s", strerror(errno));
+    close(fd);
+    unlink(temp_name);
+    return FALSE;
+  }
+
+  if (index_exists &&
+      (!S_ISREG(index_stat.st_mode) || fchown(fd, index_stat.st_uid, index_stat.st_gid) != 0 ||
+       fchmod(fd, index_stat.st_mode & 07777) != 0))
+  {
+    log("SYSERR: Could not preserve player index permissions: %s", strerror(errno));
+    close(fd);
+    unlink(temp_name);
+    return FALSE;
+  }
+
+  if (!(index_file = fdopen(fd, "w")))
+  {
+    log("SYSERR: Could not open temporary player index file: %s", strerror(errno));
+    close(fd);
+    unlink(temp_name);
+    return FALSE;
+  }
+
+  for (i = 0; i <= top_of_p_table; i++)
+    if (player_table[i].name && *player_table[i].name)
+    {
+      sprintascii(bits, player_table[i].flags);
+      if (player_table[i].clan == (int)NO_CLAN)
+      {
+        if (fprintf(index_file, "%ld %s %d %s %ld\n", player_table[i].id, player_table[i].name,
+                    player_table[i].level, *bits ? bits : "0", (long)player_table[i].last) < 0)
+          write_failed = TRUE;
+      }
+      else
+      {
+        if (fprintf(index_file, "%ld %s %d %s %ld %d\n", player_table[i].id, player_table[i].name,
+                    player_table[i].level, *bits ? bits : "0", (long)player_table[i].last,
+                    player_table[i].clan) < 0)
+          write_failed = TRUE;
+      }
+    }
+  if (fprintf(index_file, "~\n") < 0)
+    write_failed = TRUE;
+
+  if (fflush(index_file) != 0 || ferror(index_file) || fsync(fileno(index_file)) != 0)
+    write_failed = TRUE;
+  if (fclose(index_file) != 0)
+    write_failed = TRUE;
+
+  if (write_failed)
+  {
+    log("SYSERR: Could not durably write player index file: %s", strerror(errno));
+    unlink(temp_name);
+    return FALSE;
+  }
+
+  if (rename(temp_name, index_name) != 0)
+  {
+    log("SYSERR: Could not install player index file: %s", strerror(errno));
+    unlink(temp_name);
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+void save_player_index(void)
+{
+  if (!save_player_index_checked())
+    log("SYSERR: Could not write player index file");
+}
+
+void free_player_index(void)
+{
+  int tp;
+
+  if (!player_table)
+    return;
+
+  for (tp = 0; tp <= top_of_p_table; tp++)
+    if (player_table[tp].name)
+      free(player_table[tp].name);
+
+  free(player_table);
+  player_table = NULL;
+  top_of_p_table = 0;
+}
+
+long get_ptable_by_name(const char *name)
+{
+  int i;
+
+  for (i = 0; i <= top_of_p_table; i++)
+    if (!str_cmp(player_table[i].name, name))
+      return (i);
+
+  return (-1);
+}
+
+long get_id_by_name(const char *name)
+{
+  int i;
+
+  for (i = 0; i <= top_of_p_table; i++)
+    if (!str_cmp(player_table[i].name, name))
+      return (player_table[i].id);
+
+  return (-1);
+}
+
+char *get_name_by_id(long id)
+{
+  int i;
+
+  for (i = 0; i <= top_of_p_table; i++)
+    if (player_table[i].id == id)
+      return (player_table[i].name);
+
+  return (NULL);
+}
+
+/* Stuff related to the save/load player system. */
+
+/* New load_char reads ASCII Player Files. Load a char, TRUE if loaded, FALSE
+ * if not. */
+int load_char(const char *name, struct char_data *ch)
+{
+  struct pending_durable_event *pending_events = NULL;
+  struct pending_durable_event *pending_event;
+  enum mud_event_restore_status restore_status;
+  int id, i, j, parsed;
+  int64_t cooldown_saved_at_epoch = 0;
+  bool boarding_ability_current = FALSE;
+  FILE *fl;
+  char filename[40];
+  char buf[128], buf2[128], line[MAX_INPUT_LENGTH + 1], tag[6];
+  char f1[128], f2[128], f3[128], f4[128];
+  trig_data *t = NULL;
+  trig_rnum t_rnum = NOTHING;
+
+  if ((id = (int)get_ptable_by_name(name)) < 0)
+    return (-1);
+  else
+  {
+    if (!get_filename(filename, sizeof(filename), PLR_FILE, player_table[id].name))
+      return (-1);
+    if (!(fl = fopen(filename, "r")))
+    {
+      mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't open player file %s", filename);
+      return (-1);
+    }
+
+    /* Character initializations. Necessary to keep some things straight. */
+    ch->affected = NULL;
+    for (i = 0; i < MAX_CLASSES; i++)
+    {
+      CLASS_LEVEL(ch, i) = 0;
+      GET_SPEC_ABIL(ch, i) = 0;
+    }
+    for (i = 0; i < MAX_ENEMIES; i++)
+      GET_FAVORED_ENEMY(ch, i) = 0;
+    for (i = 0; i < MAX_ENEMIES; i++)
+      GET_FAVORED_TERRAINS(ch, i) = -1;
+    GET_FAVORED_TERRAIN(ch) = -1;
+    GET_FAVORED_TERRAIN_RESET(ch) = 0;
+    for (i = 0; i < MAX_WARDING; i++)
+      GET_WARDING(ch, i) = 0;
+    for (i = 1; i < MAX_SKILLS; i++)
+      GET_SKILL(ch, i) = 0;
+    for (i = 1; i <= MAX_ABILITIES; i++)
+    {
+      GET_ABILITY(ch, i) = 0;
+      GET_CRAFT_SKILL_EXP(ch, i) = 0;
+    }
+    for (i = 0; i < NUM_FEATS; i++)
+      SET_FEAT(ch, i, 0);
+    for (i = 0; i < (END_GENERAL_ABILITIES + 1); i++)
+      for (j = 0; j < NUM_SKFEATS; j++)
+        ch->player_specials->saved.skill_focus[i][j] = 0;
+    for (i = 0; i < NUM_CFEATS; i++)
+      for (j = 0; j < FT_ARRAY_MAX; j++)
+        ch->char_specials.saved.combat_feats[i][j] = 0;
+
+    for (i = 0; i < NUM_SFEATS; i++)
+      ch->char_specials.saved.school_feats[i] = 0;
+
+    ch->char_specials.post_combat_exp = ch->char_specials.post_combat_gold =
+        ch->char_specials.post_combat_account_exp = 0;
+
+    BLASTING(ch) = FALSE;
+
+    for (i = 0; i < NUM_CLASSES; i++)
+    {
+      GET_CLASS_FEATS(ch, i) = 0;
+      GET_EPIC_CLASS_FEATS(ch, i) = 0;
+    }
+    GET_HOMETOWN(ch) = 0;
+    GET_FEAT_POINTS(ch) = 0;
+    GET_EPIC_FEAT_POINTS(ch) = 0;
+    destroy_spell_prep_queue(ch);
+    destroy_innate_magic_queue(ch);
+    destroy_spell_collection(ch);
+    destroy_known_spells(ch);
+    GET_CH_AGE(ch) = 0;
+    ch->player_specials->saved.character_age_saved = false;
+    GET_REAL_SIZE(ch) = PFDEF_SIZE;
+    IS_MORPHED(ch) = PFDEF_MORPHED;
+    GET_SEX(ch) = PFDEF_SEX;
+    GET_CLASS(ch) = PFDEF_CLASS;
+    GET_LEVEL(ch) = PFDEF_LEVEL;
+    GET_HEIGHT(ch) = PFDEF_HEIGHT;
+    GET_WEIGHT(ch) = PFDEF_WEIGHT;
+    GET_ALIGNMENT(ch) = PFDEF_ALIGNMENT;
+    for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
+      GET_REAL_SAVE(ch, i) = PFDEF_SAVETHROW;
+    for (i = 0; i < NUM_DAM_TYPES; i++)
+      GET_REAL_RESISTANCES(ch, i) = PFDEF_RESISTANCES;
+    GET_LOADROOM(ch) = PFDEF_LOADROOM;
+    GET_INVIS_LEV(ch) = PFDEF_INVISLEV;
+    GET_FREEZE_LEV(ch) = PFDEF_FREEZELEV;
+    GET_WIMP_LEV(ch) = PFDEF_WIMPLEV;
+    GET_COND(ch, HUNGER) = PFDEF_HUNGER;
+    GET_COND(ch, THIRST) = PFDEF_THIRST;
+    GET_COND(ch, DRUNK) = PFDEF_DRUNK;
+    GET_BAD_PWS(ch) = PFDEF_BADPWS;
+    GET_PRACTICES(ch) = PFDEF_PRACTICES;
+    GET_TRAINS(ch) = PFDEF_TRAINS;
+    GET_BOOSTS(ch) = PFDEF_BOOSTS;
+    GET_SPECIALTY_SCHOOL(ch) = PFDEF_SPECIALTY_SCHOOL;
+    GET_PREFERRED_ARCANE(ch) = PFDEF_PREFERRED_ARCANE;
+    GET_PREFERRED_DIVINE(ch) = PFDEF_PREFERRED_DIVINE;
+    GET_1ST_RESTRICTED_SCHOOL(ch) = PFDEF_RESTRICTED_SCHOOL_1;
+    GET_2ND_RESTRICTED_SCHOOL(ch) = PFDEF_RESTRICTED_SCHOOL_2;
+    GET_1ST_DOMAIN(ch) = PFDEF_DOMAIN_1;
+    GET_2ND_DOMAIN(ch) = PFDEF_DOMAIN_2;
+    GET_GOLD(ch) = PFDEF_GOLD;
+    GET_BANK_GOLD(ch) = PFDEF_BANK;
+    GET_EXP(ch) = PFDEF_EXP;
+    GET_REAL_HITROLL(ch) = PFDEF_HITROLL;
+    GET_REAL_DAMROLL(ch) = PFDEF_DAMROLL;
+    GET_REAL_AC(ch) = PFDEF_AC;
+    ch->real_abils.str_add = PFDEF_STRADD;
+    GET_REAL_STR(ch) = PFDEF_STR;
+    GET_REAL_CON(ch) = PFDEF_CON;
+    GET_REAL_DEX(ch) = PFDEF_DEX;
+    GET_REAL_INT(ch) = PFDEF_INT;
+    GET_REAL_WIS(ch) = PFDEF_WIS;
+    GET_REAL_CHA(ch) = PFDEF_CHA;
+    GET_DR_MOD(ch) = 0;
+    GET_HIT(ch) = PFDEF_HIT;
+    GET_REAL_MAX_HIT(ch) = PFDEF_MAXHIT;
+    GET_PSP(ch) = PFDEF_PSP;
+    GET_REAL_MAX_PSP(ch) = PFDEF_MAXPSP;
+    GET_MOVE(ch) = PFDEF_MOVE;
+    GET_REAL_SPELL_RES(ch) = PFDEF_SPELL_RES;
+    GET_REAL_MAX_MOVE(ch) = PFDEF_MAXMOVE;
+    GET_OLC_ZONE(ch) = PFDEF_OLC;
+    GET_PAGE_LENGTH(ch) = PFDEF_PAGELENGTH;
+    GET_SCREEN_WIDTH(ch) = PFDEF_SCREENWIDTH;
+    GET_ALIASES(ch) = NULL;
+    SITTING(ch) = NULL;
+    NEXT_SITTING(ch) = NULL;
+    GET_QUESTPOINTS(ch) = PFDEF_QUESTPOINTS;
+    GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) = 0;
+    GET_DRAGON_BOND_TYPE(ch) = 0;
+    GET_DRAGON_RIDER_DRAGON_TYPE(ch) = 0;
+    GET_FORAGE_COOLDOWN(ch) = 0;
+    GET_RETAINER_COOLDOWN(ch) = 0;
+    GET_SCROUNGE_COOLDOWN(ch) = 0;
+    GET_SPIRITUAL_WEAPON_COOLDOWN(ch) = 0;
+    GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch) = 0;
+    GET_QUICK_CAST_COOLDOWN(ch) = 0;
+    GET_SPELL_RECALL_COOLDOWN(ch) = 0;
+    GET_BONUS_DOMAIN_SLOTS_USED(ch) = 0;
+    GET_BONUS_DOMAIN_REGEN_TIMER(ch) = 0;
+    GET_BONUS_SLOTS_USED(ch) = 0;
+    GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
+    GET_PVP_TIMER(ch) = 0;
+    GET_VESSEL_INSURANCE_CLAIM(ch) = 0;
+    GET_VESSEL_MERCHANT_CONSEQUENCE(ch) = 0;
+    GET_QUIT_SURVEY_DONE(ch) = FALSE;
+    ch->player_specials->saved.last_device_recharge = 0;
+
+    for (i = 0; i < MAX_CURRENT_QUESTS; i++)
+    { /* loop through all the character's quest slots */
+      GET_QUEST_COUNTER(ch, i) = PFDEF_QUESTCOUNT;
+      GET_QUEST(ch, i) = PFDEF_CURRQUEST;
+    }
+
+    GET_IMM_TITLE(ch) = NULL;
+    ch->player.goals = NULL;
+    ch->player.personality = NULL;
+    ch->player.ideals = NULL;
+    ch->player.bonds = NULL;
+    ch->player.flaws = NULL;
+    GET_HP_REGEN(ch) = 0;
+    GET_MV_REGEN(ch) = 0;
+    GET_PSP_REGEN(ch) = 0;
+    GET_ENCUMBRANCE_MOD(ch) = 0;
+    GET_FAST_HEALING_MOD(ch) = 0;
+    GET_ELDRITCH_ESSENCE(ch) = -1;
+    GET_ELDRITCH_SHAPE(ch) = -1;
+    GET_NUM_QUESTS(ch) = PFDEF_COMPQUESTS;
+    GET_LAST_MOTD(ch) = PFDEF_LASTMOTD;
+    GET_LAST_NEWS(ch) = PFDEF_LASTNEWS;
+    GET_REAL_RACE(ch) = PFDEF_RACE;
+    GET_AUTOCQUEST_VNUM(ch) = PFDEF_AUTOCQUEST_VNUM;
+    GET_AUTOCQUEST_MAKENUM(ch) = PFDEF_AUTOCQUEST_MAKENUM;
+    GET_AUTOCQUEST_QP(ch) = PFDEF_AUTOCQUEST_QP;
+    GET_AUTOCQUEST_EXP(ch) = PFDEF_AUTOCQUEST_EXP;
+    GET_AUTOCQUEST_GOLD(ch) = PFDEF_AUTOCQUEST_GOLD;
+    GET_AUTOCQUEST_DESC(ch) = NULL;
+    GET_AUTOCQUEST_MATERIAL(ch) = PFDEF_AUTOCQUEST_MATERIAL;
+    GET_CURRENT_MISSION(ch) = 0;
+    GET_CURRENT_MISSION_ROOM(ch) = 0;
+    GET_MISSION_CREDITS(ch) = 0;
+    GET_MISSION_STANDING(ch) = 0;
+    GET_MISSION_FACTION(ch) = 0;
+    GET_MISSION_REP(ch) = 0;
+    GET_MISSION_EXP(ch) = 0;
+    GET_MISSION_COOLDOWN(ch) = 0;
+    GET_MISSION_DIFFICULTY(ch) = 0;
+    GET_MISSION_NPC_NAME_NUM(ch) = 0;
+    GET_FACTION_STANDING(ch, FACTION_ADVENTURERS) = 0;
+    GET_SALVATION_ROOM(ch) = NOWHERE;
+    GET_SALVATION_NAME(ch) = NULL;
+    GUARDING(ch) = NULL;
+    SHADOWING(ch) = NULL;
+    ACCOMPANYING(ch) = NULL;
+    GET_TOTAL_AOO(ch) = 0;
+    GET_ACCOUNT_NAME(ch) = NULL;
+    LEVELUP(ch) = NULL;
+    CNDNSD(ch) = NULL;
+    GET_DR(ch) = NULL;
+    GET_WALKTO_LOC(ch) = 0;
+    GET_TEMPLATE(ch) = PFDEF_TEMPLATE;
+    GET_BACKGROUND(ch) = 0;
+    /*
+     * Legacy player files predate the idempotency tag. Treat their permanent
+     * effects as already applied; a newly chosen background resets this flag.
+     */
+    BACKGROUND_EFFECTS_APPLIED(ch) = TRUE;
+    CREATION_STAGE(ch) = CHARACTER_CREATION_STAGE_NONE;
+    GET_PREMADE_BUILD_CLASS(ch) = PFDEF_PREMADE_BUILD;
+    init_spell_prep_queue(ch);
+    init_innate_magic_queue(ch);
+    init_collection_queue(ch);
+    init_known_spells(ch);
+    reset_current_craft(ch, NULL, false, false);
+
+    /* Initialize introduction list */
+    for (i = 0; i < MAX_INTROS; i++)
+      ch->player_specials->saved.intro_list[i] = NULL;
+    for (i = 0; i < NUM_CRAFT_MOTES; i++)
+      GET_CRAFT_MOTES(ch, i) = 0;
+    for (i = 0; i < NUM_CRAFT_MATS; i++)
+      GET_CRAFT_MAT(ch, i) = 0;
+    GET_DIPTIMER(ch) = PFDEF_DIPTIMER;
+    GET_CLAN(ch) = PFDEF_CLAN;
+    GET_CLANRANK(ch) = PFDEF_CLANRANK;
+    GET_CLANPOINTS(ch) = PFDEF_CLANPOINTS;
+    GET_DISGUISE_RACE(ch) = PFDEF_RACE;
+    GET_DISGUISE_STR(ch) = 0;
+    GET_DISGUISE_CON(ch) = 0;
+    GET_DISGUISE_DEX(ch) = 0;
+    GET_DISGUISE_AC(ch) = 0;
+    EFREETI_MAGIC_USES(ch) = 0;
+    EFREETI_MAGIC_TIMER(ch) = 0;
+    LAUGHING_TOUCH_USES(ch) = 0;
+    LAUGHING_TOUCH_TIMER(ch) = 0;
+    FLEETING_GLANCE_USES(ch) = 0;
+    FLEETING_GLANCE_TIMER(ch) = 0;
+    FEY_SHADOW_WALK_USES(ch) = 0;
+    FEY_SHADOW_WALK_TIMER(ch) = 0;
+    DRAGON_MAGIC_USES(ch) = 0;
+    DRAGON_MAGIC_TIMER(ch) = 0;
+    IS_CASTING(ch) = 0;
+    CASTING_TIME(ch) = 0;
+    CASTING_TCH(ch) = NULL;
+    CASTING_TOBJ(ch) = NULL;
+    CASTING_SPELLNUM(ch) = 0;
+    CASTING_METAMAGIC(ch) = 0;
+    CASTING_CLASS(ch) = 0;
+    GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch) = 0;
+    for (i = 0; i < MAX_BUFFS; i++)
+    {
+      GET_BUFF(ch, i, 0) = 0;
+      GET_BUFF(ch, i, 1) = 0;
+    }
+    GET_LAST_ROOM(ch) = 0;
+    GET_CURRENT_BUFF_SLOT(ch) = 0;
+    IS_BUFFING(ch) = false;
+    initialize_bardic_performance_state(ch);
+    PIXIE_DUST_USES(ch) = 0;
+    PIXIE_DUST_TIMER(ch) = 0;
+    GRAVE_TOUCH_USES(ch) = PFDEF_GRAVE_TOUCH_USES;
+    GRAVE_TOUCH_TIMER(ch) = PFDEF_GRAVE_TOUCH_TIMER;
+    GRASP_OF_THE_DEAD_USES(ch) = PFDEF_GRASP_OF_THE_DEAD_USES;
+    GRASP_OF_THE_DEAD_TIMER(ch) = PFDEF_GRASP_OF_THE_DEAD_TIMER;
+    INCORPOREAL_FORM_USES(ch) = PFDEF_INCORPOREAL_FORM_USES;
+    INCORPOREAL_FORM_TIMER(ch) = PFDEF_INCORPOREAL_FORM_TIMER;
+    HAS_SET_STATS_STUDY(ch) = PFDEF_HAS_SET_STATS_STUDY;
+    GET_BLOODLINE_SUBTYPE(ch) = PFDEF_SORC_BLOODLINE_SUBTYPE;
+    NEW_ARCANA_SLOT(ch, 0) = NEW_ARCANA_SLOT(ch, 1) = NEW_ARCANA_SLOT(ch, 2) =
+        NEW_ARCANA_SLOT(ch, 3) = 0;
+    GET_DRAGONBORN_ANCESTRY(ch) = 0;
+    HIGH_ELF_CANTRIP(ch) = 0;
+    for (i = 0; i < AF_ARRAY_MAX; i++)
+      AFF_FLAGS(ch)[i] = PFDEF_AFFFLAGS;
+    for (i = 0; i < PM_ARRAY_MAX; i++)
+      PLR_FLAGS(ch)[i] = PFDEF_PLRFLAGS;
+    for (i = 0; i < PR_ARRAY_MAX; i++)
+      PRF_FLAGS(ch)[i] = PFDEF_PREFFLAGS;
+    for (i = 0; i < NUM_EVOLUTIONS; i++)
+    {
+      HAS_REAL_EVOLUTION(ch, i) = 0;
+      HAS_TEMP_EVOLUTION(ch, i) = 0;
+      KNOWS_EVOLUTION(ch, i) = 0;
+    }
+    GET_EIDOLON_BASE_FORM(ch) = 0;
+    CALL_EIDOLON_COOLDOWN(ch) = 0;
+    MERGE_FORMS_TIMER(ch) = 0;
+    for (i = 0; i < MAX_BOMBS_ALLOWED; i++)
+      GET_BOMB(ch, i) = 0;
+    for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
+      KNOWS_DISCOVERY(ch, i) = 0;
+    GET_GRAND_DISCOVERY(ch) = 0;
+    for (i = 0; i < NUM_PALADIN_MERCIES; i++)
+      KNOWS_MERCY(ch, i) = 0;
+    for (i = 0; i < STAFF_RAN_EVENTS_VAR; i++)
+      STAFFRAN_PVAR(ch, i) = PFDEF_STAFFRAN_EVENT_VAR;
+    GET_PSIONIC_ENERGY_TYPE(ch) = PFDEF_PSIONIC_ENERGY_TYPE;
+    GET_DEITY(ch) = 0;
+    for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
+      KNOWS_CRUELTY(ch, i) = 0;
+    ch->player_specials->saved.active_fiendish_boons = 0;
+    ch->player_specials->saved.channel_energy_type = 0;
+
+    for (i = 0; i < NUM_LANGUAGES; i++)
+      ch->player_specials->saved.languages_known[i] = 0;
+    SPEAKING(ch) = LANG_COMMON;
+    GET_REGION(ch) = REGION_NONE;
+
+    NECROMANCER_CAST_TYPE(ch) = 0;
+
+    GET_PC_DESCRIPTOR_1(ch) = 0;
+    GET_PC_ADJECTIVE_1(ch) = 0;
+    GET_PC_DESCRIPTOR_2(ch) = 0;
+    GET_PC_ADJECTIVE_2(ch) = 0;
+
+    GET_EIDOLON_LONG_DESCRIPTION(ch) = NULL;
+    GET_EIDOLON_SHORT_DESCRIPTION(ch) = NULL;
+
+    VITAL_STRIKING(ch) = FALSE;
+
+    for (i = 0; i < MAX_BAGS; i++)
+    {
+      GET_BAG_NAME(ch, i) = NULL;
+    }
+
+    GET_ARCANE_MARK(ch) = NULL;
+
+    for (i = 0; i < 100; i++)
+    {
+      ch->player_specials->saved.failed_dialogue_quests[i] = 0;
+    }
+
+    ch->sticky_bomb[0] = 0;
+    ch->sticky_bomb[1] = 0;
+    ch->sticky_bomb[2] = 0;
+    ch->mission_owner = 0;
+    ch->dead = 0;
+    ch->confuser_idnum = 0;
+    ch->preserve_organs_procced = 0;
+    ch->mute_equip_messages = 0;
+
+    GET_HOLY_WEAPON_TYPE(ch) = PFDEF_HOLY_WEAPON_TYPE;
+    for (i = 0; i < MAX_SPELLS; i++)
+    {
+      STORED_POTIONS(ch, i) = STORED_SCROLLS(ch, i) = STORED_WANDS(ch, i) = STORED_STAVES(ch, i) =
+          0;
+    }
+
+    /* finished inits, start loading from file */
+
+    while (get_line(fl, line))
+    {
+      tag_argument(line, tag);
+
+      switch (*tag)
+      {
+      case 'A':
+        if (!strcmp(tag, "Ablt"))
+          load_abilities(fl, ch);
+        if (!strcmp(tag, "AbXP"))
+          load_ability_exp(fl, ch);
+        else if (!strcmp(tag, "Ac  "))
+          GET_REAL_AC(ch) = atoi(line);
+        else if (!strcmp(tag, "Acct"))
+        {
+          GET_ACCOUNT_NAME(ch) = strdup(line);
+          if (ch->desc && ch->desc->account == NULL)
+          {
+            CREATE(ch->desc->account, struct account_data, 1);
+            for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
+              ch->desc->account->character_names[i] = NULL;
+
+            load_account(GET_ACCOUNT_NAME(ch), ch->desc->account);
+          }
+        }
+        else if (!strcmp(tag, "Act "))
+        {
+          if (sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4) == 4)
+          {
+            PLR_FLAGS(ch)
+            [0] = (int)asciiflag_conv(f1);
+            PLR_FLAGS(ch)
+            [1] = (int)asciiflag_conv(f2);
+            PLR_FLAGS(ch)
+            [2] = (int)asciiflag_conv(f3);
+            PLR_FLAGS(ch)
+            [3] = (int)asciiflag_conv(f4);
+          }
+          else
+            PLR_FLAGS(ch)
+          [0] = (int)asciiflag_conv(line);
+        }
+        else if (!strcmp(tag, "Aff "))
+        {
+          if (sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4) == 4)
+          {
+            AFF_FLAGS(ch)
+            [0] = (int)asciiflag_conv(f1);
+            AFF_FLAGS(ch)
+            [1] = (int)asciiflag_conv(f2);
+            AFF_FLAGS(ch)
+            [2] = (int)asciiflag_conv(f3);
+            AFF_FLAGS(ch)
+            [3] = (int)asciiflag_conv(f4);
+          }
+          else
+            AFF_FLAGS(ch)
+          [0] = (int)asciiflag_conv(line);
+        }
+        else if (!strcmp(tag, "AExp"))
+          GET_ARTISAN_EXP(ch) = atoi(line);
+        else if (!strcmp(tag, "Affs"))
+          load_affects(fl, ch, atoi(line));
+        else if (!strcmp(tag, "Alin"))
+          GET_ALIGNMENT(ch) = atoi(line);
+        else if (!strcmp(tag, "Age "))
+          GET_CH_AGE(ch) = atoi(line);
+        else if (!strcmp(tag, "AgeS"))
+          (ch)->player_specials->saved.character_age_saved = atoi(line);
+        else if (!strcmp(tag, "Alis"))
+          read_aliases_ascii(fl, ch, atoi(line));
+        else if (!strcmp(tag, "AMrk"))
+        {
+          if (GET_ARCANE_MARK(ch))
+            free(GET_ARCANE_MARK(ch));
+          GET_ARCANE_MARK(ch) = NULL;
+          if (*line && strcmp(line, "(null)") && strcmp(line, "null"))
+            GET_ARCANE_MARK(ch) = strdup(line);
+        }
+        break;
+
+      case 'B':
+        if (!strcmp(tag, "Badp"))
+          GET_BAD_PWS(ch) = (ubyte)atoi(line);
+        else if (!strcmp(tag, "BGnd"))
+          GET_BACKGROUND(ch) = atoi(line);
+        else if (!strcmp(tag, "BgFx"))
+          BACKGROUND_EFFECTS_APPLIED(ch) = atoi(line) != 0;
+        else if (!strcmp(tag, "Bond"))
+          ch->player.bonds = fread_string(fl, buf2);
+        else if (!strcmp(tag, "Bag1"))
+          GET_BAG_NAME(ch, 1) = strdup(line);
+        else if (!strcmp(tag, "Blst"))
+          BLASTING(ch) = atoi(line);
+        else if (!strcmp(tag, "BlCt"))
+          ch->bleeding_critical_pulses = MAX(1, atoi(line));
+        else if (!strcmp(tag, "Bag2"))
+          GET_BAG_NAME(ch, 2) = strdup(line);
+        else if (!strcmp(tag, "Bag3"))
+          GET_BAG_NAME(ch, 3) = strdup(line);
+        else if (!strcmp(tag, "Bag4"))
+          GET_BAG_NAME(ch, 4) = strdup(line);
+        else if (!strcmp(tag, "Bag5"))
+          GET_BAG_NAME(ch, 5) = strdup(line);
+        else if (!strcmp(tag, "Bag6"))
+          GET_BAG_NAME(ch, 6) = strdup(line);
+        else if (!strcmp(tag, "Bag7"))
+          GET_BAG_NAME(ch, 7) = strdup(line);
+        else if (!strcmp(tag, "Bag8"))
+          GET_BAG_NAME(ch, 8) = strdup(line);
+        else if (!strcmp(tag, "Bag9"))
+          GET_BAG_NAME(ch, 9) = strdup(line);
+        else if (!strcmp(tag, "Bag0"))
+          GET_BAG_NAME(ch, 10) = strdup(line);
+        else if (!strcmp(tag, "Bane"))
+          GET_BANE_TARGET_TYPE(ch) = atoi(line);
+        else if (!strcmp(tag, "BGrd"))
+          ch->player.background = fread_string(fl, buf2);
+        else if (!strcmp(tag, "Bomb"))
+          load_bombs(fl, ch);
+        else if (!strcmp(tag, "Bost"))
+          GET_BOOSTS(ch) = (ubyte)atoi(line);
+        else if (!strcmp(tag, "Bank"))
+          GET_BANK_GOLD(ch) = atoi(line);
+        else if (!strcmp(tag, "Brth"))
+          ch->player.time.birth = atol(line);
+        else if (!strcmp(tag, "BrdV"))
+          boarding_ability_current = atoi(line) >= BOARDING_ABILITY_PFILE_VERSION;
+        else if (!strcmp(tag, "Buff"))
+          load_buffs(fl, ch);
+        break;
+
+      case 'C':
+        if (!strcmp(tag, "CbFt"))
+        {
+          if (sscanf(line, "%d %127s %127s %127s %127s", &i, f1, f2, f3, f4) != 5)
+          {
+            log("load_char: %s has an invalid combat feat record: %s", GET_NAME(ch), line);
+            break;
+          }
+          if (i < 0 || i >= NUM_CFEATS)
+          {
+            log("load_char: %s combat feat record out of range: %s", GET_NAME(ch), line);
+            break;
+          }
+          ch->char_specials.saved.combat_feats[i][0] = (int)asciiflag_conv(f1);
+          ch->char_specials.saved.combat_feats[i][1] = (int)asciiflag_conv(f2);
+          ch->char_specials.saved.combat_feats[i][2] = (int)asciiflag_conv(f3);
+          ch->char_specials.saved.combat_feats[i][3] = (int)asciiflag_conv(f4);
+        }
+        else if (!strcmp(tag, "Cfpt"))
+          load_class_feat_points(fl, ch);
+        else if (!strcmp(tag, "Cha "))
+          GET_REAL_CHA(ch) = atoi(line);
+        else if (!strcmp(tag, "Clas"))
+          GET_CLASS(ch) = atoi(line);
+        else if (!strcmp(tag, "ClkT"))
+          GET_SETCLOAK_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "CkAt"))
+          cooldown_saved_at_epoch = strtoll(line, NULL, 10);
+        else if (!strcmp(tag, "Coll"))
+          load_spell_collection(fl, ch);
+        else if (!strcmp(tag, "Con "))
+          GET_REAL_CON(ch) = atoi(line);
+        else if (!strcmp(tag, "CfMt"))
+          load_craft_mats_onhand(fl, ch);
+        else if (!strcmp(tag, "CLoc"))
+          load_coord_location(fl, ch);
+        else if (!strcmp(tag, "CLvl"))
+          load_class_level(fl, ch);
+        else if (!strcmp(tag, "Cln "))
+          GET_CLAN(ch) = atoi(line);
+        else if (!strcmp(tag, "Clrk"))
+          GET_CLANRANK(ch) = atoi(line);
+        else if (!strcmp(tag, "Clty"))
+          load_cruelties(fl, ch);
+        else if (!strcmp(tag, "CPts"))
+          GET_CLANPOINTS(ch) = atoi(line);
+        else if (!strcmp(tag, "Cvnm"))
+          GET_AUTOCQUEST_VNUM(ch) = atoi(line);
+        else if (!strcmp(tag, "Cmnm"))
+          GET_AUTOCQUEST_MAKENUM(ch) = (ubyte)atoi(line);
+        else if (!strcmp(tag, "Cqps"))
+          GET_AUTOCQUEST_QP(ch) = (ubyte)atoi(line);
+        else if (!strcmp(tag, "Cexp"))
+          GET_AUTOCQUEST_EXP(ch) = atoi(line);
+        else if (!strcmp(tag, "Cgld"))
+          GET_AUTOCQUEST_GOLD(ch) = atoi(line);
+        else if (!strcmp(tag, "Cdsc"))
+          GET_AUTOCQUEST_DESC(ch) = strdup(line);
+        else if (!strcmp(tag, "Cmat"))
+          GET_AUTOCQUEST_MATERIAL(ch) = (ubyte)atoi(line);
+        else if (!strcmp(tag, "ChEn"))
+          ch->player_specials->saved.channel_energy_type = atoi(line);
+        else if (!strcmp(tag, "CrAf"))
+          load_craft_affects(fl, ch);
+        else if (!strcmp(tag, "CrMo"))
+          load_craft_motes(fl, ch);
+        else if (!strcmp(tag, "CrMa"))
+          load_craft_materials(fl, ch);
+        else if (!strcmp(tag, "CrMe"))
+          GET_CRAFT(ch).crafting_method = atoi(line);
+        else if (!strcmp(tag, "CrIT"))
+          GET_CRAFT(ch).crafting_item_type = atoi(line);
+        else if (!strcmp(tag, "CrSp"))
+          GET_CRAFT(ch).crafting_specific = atoi(line);
+        else if (!strcmp(tag, "CrSk"))
+          GET_CRAFT(ch).skill_type = atoi(line);
+        else if (!strcmp(tag, "CrRe"))
+          GET_CRAFT(ch).crafting_recipe = atoi(line);
+        else if (!strcmp(tag, "CrSt"))
+        {
+          int stage = atoi(line);
+
+          CREATION_STAGE(ch) =
+              character_creation_stage_is_valid(stage) ? stage : CHARACTER_CREATION_STAGE_NONE;
+        }
+        else if (!strcmp(tag, "CrVt"))
+          GET_CRAFT(ch).craft_variant = atoi(line);
+        else if (!strcmp(tag, "CrMe"))
+          GET_CRAFT(ch).crafting_method = atoi(line);
+        else if (!strcmp(tag, "CrEn"))
+          GET_CRAFT(ch).enhancement = atoi(line);
+        else if (!strcmp(tag, "CrEM"))
+          GET_CRAFT(ch).enhancement_motes_required = atoi(line);
+        else if (!strcmp(tag, "CrRl"))
+          GET_CRAFT(ch).skill_roll = atoi(line);
+        else if (!strcmp(tag, "CrDC"))
+          GET_CRAFT(ch).dc = atoi(line);
+        else if (!strcmp(tag, "CrDu"))
+          GET_CRAFT(ch).craft_duration = atoi(line);
+        else if (!strcmp(tag, "CrKy"))
+        {
+          if (GET_CRAFT(ch).keywords)
+            free(GET_CRAFT(ch).keywords);
+          GET_CRAFT(ch).keywords = strdup(line);
+        }
+        else if (!strcmp(tag, "CrSD"))
+        {
+          if (GET_CRAFT(ch).short_description)
+            free(GET_CRAFT(ch).short_description);
+          GET_CRAFT(ch).short_description = strdup(line);
+        }
+        else if (!strcmp(tag, "CrRD"))
+        {
+          if (GET_CRAFT(ch).room_description)
+            free(GET_CRAFT(ch).room_description);
+          GET_CRAFT(ch).room_description = strdup(line);
+        }
+        else if (!strcmp(tag, "CrEx"))
+        {
+          if (GET_CRAFT(ch).ex_description)
+            free(GET_CRAFT(ch).ex_description);
+          GET_CRAFT(ch).ex_description = strdup(line);
+        }
+        else if (!strcmp(tag, "CrOL"))
+          GET_CRAFT(ch).obj_level = atoi(line);
+        else if (!strcmp(tag, "CrLA"))
+          GET_CRAFT(ch).level_adjust = atoi(line);
+        else if (!strcmp(tag, "CrSN"))
+          GET_CRAFT(ch).supply_num_required = atoi(line);
+        else if (!strcmp(tag, "CrSR"))
+          GET_CRAFT(ch).survey_rooms = atoi(line);
+        else if (!strcmp(tag, "CrIy"))
+          GET_CRAFT(ch).instrument_type = atoi(line);
+        else if (!strcmp(tag, "CrIQ"))
+          GET_CRAFT(ch).instrument_quality = atoi(line);
+        else if (!strcmp(tag, "CrIE"))
+          GET_CRAFT(ch).instrument_effectiveness = atoi(line);
+        else if (!strcmp(tag, "CrIB"))
+          GET_CRAFT(ch).instrument_breakability = atoi(line);
+        else if (!strcmp(tag, "CrI1"))
+          GET_CRAFT(ch).instrument_motes[1] = atoi(line);
+        else if (!strcmp(tag, "CrI2"))
+          GET_CRAFT(ch).instrument_motes[2] = atoi(line);
+        else if (!strcmp(tag, "CrI3"))
+          GET_CRAFT(ch).instrument_motes[3] = atoi(line);
+        else if (!strcmp(tag, "CrAS"))
+          GET_CRAFT(ch).supply_active_slot = atoi(line);
+
+        break;
+
+      case 'D':
+        if (!strcmp(tag, "DmgR"))
+          load_dr(fl, ch);
+        else if (!strcmp(tag, "Desc"))
+          ch->player.description = fread_string(fl, buf2);
+        else if (!strcmp(tag, "DvCD"))
+          ch->player_specials->saved.device_creation_cooldown = (time_t)atol(line);
+        else if (!strcmp(tag, "Dvis"))
+          load_devices(fl, ch);
+        else if (!strcmp(tag, "DrgB"))
+          GET_DRAGONBORN_ANCESTRY(ch) = atoi(line);
+        else if (!strcmp(tag, "DAd1"))
+          GET_PC_ADJECTIVE_1(ch) = atoi(line);
+        else if (!strcmp(tag, "DAd2"))
+          GET_PC_ADJECTIVE_2(ch) = atoi(line);
+        else if (!strcmp(tag, "DDs1"))
+          GET_PC_DESCRIPTOR_1(ch) = atoi(line);
+        else if (!strcmp(tag, "DDs2"))
+          GET_PC_DESCRIPTOR_2(ch) = atoi(line);
+        else if (!strcmp(tag, "Dex "))
+          GET_REAL_DEX(ch) = atoi(line);
+        else if (!strcmp(tag, "DRMd"))
+          GET_DR_MOD(ch) = atoi(line);
+        else if (!strcmp(tag, "Drnk"))
+          GET_COND(ch, DRUNK) = (sbyte)atoi(line);
+        else if (!strcmp(tag, "Drol"))
+          GET_REAL_DAMROLL(ch) = atoi(line);
+        else if (!strcmp(tag, "Disc"))
+          load_discoveries(fl, ch);
+        else if (!strcmp(tag, "DipT"))
+          GET_DIPTIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "DRac"))
+          GET_DISGUISE_RACE(ch) = (sh_int)atoi(line);
+        else if (!strcmp(tag, "DDex"))
+          GET_DISGUISE_DEX(ch) = atoi(line);
+        else if (!strcmp(tag, "DStr"))
+          GET_DISGUISE_STR(ch) = atoi(line);
+        else if (!strcmp(tag, "DCon"))
+          GET_DISGUISE_CON(ch) = atoi(line);
+        else if (!strcmp(tag, "DAC "))
+          GET_DISGUISE_AC(ch) = atoi(line);
+        else if (!strcmp(tag, "Dom1"))
+          GET_1ST_DOMAIN(ch) = (byte)atoi(line);
+        else if (!strcmp(tag, "Dom2"))
+          GET_2ND_DOMAIN(ch) = (byte)atoi(line);
+        else if (!strcmp(tag, "DrMU"))
+          DRAGON_MAGIC_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "DrMT"))
+          DRAGON_MAGIC_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "DrBT"))
+          GET_DRAGON_BOND_TYPE(ch) = atoi(line);
+        else if (!strcmp(tag, "DrDT"))
+          GET_DRAGON_RIDER_DRAGON_TYPE(ch) = atoi(line);
+        break;
+
+      case 'E':
+        if (!strcmp(tag, "Exp "))
+          GET_EXP(ch) = atoi(line);
+        else if (!strcmp(tag, "Evnt"))
+          load_events(fl, ch);
+        else if (!strcmp(tag, "Evn2"))
+          load_events_v2(fl, ch, line, &pending_events);
+        else if (!strcmp(tag, "Evol"))
+          load_evolutions(fl, ch);
+        else if (!strcmp(tag, "Ecfp"))
+          load_epic_class_feat_points(fl, ch);
+        else if (!strcmp(tag, "Efpt"))
+          GET_EPIC_FEAT_POINTS(ch) = (byte)atoi(line);
+        else if (!strcmp(tag, "EidB"))
+          GET_EIDOLON_BASE_FORM(ch) = atoi(line);
+        else if (!strcmp(tag, "EidC"))
+          CALL_EIDOLON_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "EfMU"))
+          EFREETI_MAGIC_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "EfMT"))
+          EFREETI_MAGIC_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "EldE"))
+          GET_ELDRITCH_ESSENCE(ch) = atoi(line);
+        else if (!strcmp(tag, "EldS"))
+          GET_ELDRITCH_SHAPE(ch) = atoi(line);
+        else if (!strcmp(tag, "EncM"))
+          GET_ENCUMBRANCE_MOD(ch) = atoi(line);
+        break;
+
+      case 'F':
+        if (!strcmp(tag, "Frez"))
+          GET_FREEZE_LEV(ch) = (byte)atoi(line);
+        if (!strcmp(tag, "FBAB"))
+          FIXED_BAB(ch) = atoi(line);
+        else if (!strcmp(tag, "FaEn"))
+          load_favored_enemy(fl, ch);
+        else if (!strcmp(tag, "FaTr"))
+          load_favored_terrains(fl, ch);
+        else if (!strcmp(tag, "FaAd"))
+          GET_FACTION_STANDING(ch, FACTION_ADVENTURERS) = atol(line);
+        else if (!strcmp(tag, "Fa01"))
+          GET_FACTION_STANDING(ch, 1) = atol(line);
+        else if (!strcmp(tag, "Fa02"))
+          GET_FACTION_STANDING(ch, 2) = atol(line);
+        else if (!strcmp(tag, "Fa03"))
+          GET_FACTION_STANDING(ch, 3) = atol(line);
+        else if (!strcmp(tag, "Feat"))
+          load_feats(fl, ch);
+        else if (!strcmp(tag, "FrgC"))
+          GET_FORAGE_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "FLGT"))
+          FLEETING_GLANCE_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "Flaw"))
+          ch->player.flaws = fread_string(fl, buf2);
+        else if (!strcmp(tag, "FdBn"))
+          ch->player_specials->saved.active_fiendish_boons = atoi(line);
+        else if (!strcmp(tag, "FLGU"))
+          FLEETING_GLANCE_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "Ftpt"))
+          GET_FEAT_POINTS(ch) = (byte)atoi(line);
+        else if (!strcmp(tag, "FSWT"))
+          FEY_SHADOW_WALK_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "FSWU"))
+          FEY_SHADOW_WALK_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "FstH"))
+          GET_FAST_HEALING_MOD(ch) = atoi(line);
+        else if (!strcmp(tag, "FttD"))
+          GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "FDQs"))
+          load_failed_dialogue_quests(fl, ch);
+        break;
+
+      case 'G':
+        if (!strcmp(tag, "Gold"))
+          GET_GOLD(ch) = atoi(line);
+        if (!strcmp(tag, "God "))
+          GET_DEITY(ch) = atoi(line);
+        else if (!strcmp(tag, "GMCP") && ch->desc)
+          ch->desc->pProtocol->bGMCP = atoi(line);
+        else if (!strcmp(tag, "GrDs"))
+          GET_GRAND_DISCOVERY(ch) = atoi(line);
+        else if (!strcmp(tag, "GjTp"))
+          ch->player_specials->inq_greater_judgment_type = atoi(line);
+        else if (!strcmp(tag, "GTCT"))
+          GRAVE_TOUCH_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "GTCU"))
+          GRAVE_TOUCH_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "GODT"))
+          GRASP_OF_THE_DEAD_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "GODU"))
+          GRASP_OF_THE_DEAD_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "Goal"))
+          ch->player.goals = fread_string(fl, buf2);
+        break;
+
+      case 'H':
+        if (!strcmp(tag, "Hit "))
+          load_HMVS(ch, line, LOAD_HIT);
+        else if (!strcmp(tag, "Hite"))
+          GET_HEIGHT(ch) = atoi(line);
+        else if (!strcmp(tag, "HECn"))
+          HIGH_ELF_CANTRIP(ch) = atoi(line);
+        else if (!strcmp(tag, "HlyW"))
+          GET_HOLY_WEAPON_TYPE(ch) = atoi(line);
+        else if (!strcmp(tag, "Home"))
+          GET_REGION(ch) = atoi(line);
+        else if (!strcmp(tag, "HomT"))
+          GET_HOMETOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "Host"))
+        {
+          if (GET_HOST(ch))
+            free(GET_HOST(ch));
+          GET_HOST(ch) = strdup(line);
+        }
+        else if (!strcmp(tag, "HPRg"))
+          GET_HP_REGEN(ch) = atoi(line);
+        else if (!strcmp(tag, "Hrol"))
+          GET_REAL_HITROLL(ch) = atoi(line);
+        else if (!strcmp(tag, "Hung"))
+          GET_COND(ch, HUNGER) = (sbyte)atoi(line);
+        break;
+
+      case 'I':
+        if (!strcmp(tag, "Id  "))
+          GET_IDNUM(ch) = atol(line);
+        else if (!strcmp(tag, "InqT"))
+          GET_FAVORED_TERRAIN(ch) = atoi(line);
+        else if (!strcmp(tag, "InqR"))
+          GET_FAVORED_TERRAIN_RESET(ch) = atol(line);
+        else if (!strcmp(tag, "Idel"))
+          ch->player.ideals = fread_string(fl, buf2);
+        else if (!strcmp(tag, "InMa"))
+          load_innate_magic_queue(fl, ch);
+        else if (!strcmp(tag, "Intr"))
+          load_introductions(fl, ch);
+        else if (!strcmp(tag, "Int "))
+          GET_REAL_INT(ch) = atoi(line);
+        else if (!strcmp(tag, "Invs"))
+          GET_INVIS_LEV(ch) = (sh_int)atoi(line);
+        else if (!strcmp(tag, "InFT"))
+          INCORPOREAL_FORM_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "InFU"))
+          INCORPOREAL_FORM_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "ITtl"))
+          GET_IMM_TITLE(ch) = strdup(line);
+        break;
+
+      case 'J':
+        if (!strcmp(tag, "Judg"))
+          load_judgements(fl, ch);
+        break;
+
+      case 'K':
+        if (!strcmp(tag, "KnSp"))
+          load_known_spells(fl, ch);
+        else if (!strcmp(tag, "KpkS"))
+          GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "KEvo"))
+          load_known_evolutions(fl, ch);
+        break;
+
+      case 'L':
+        if (!strcmp(tag, "Last"))
+          ch->player.time.logon = atol(line);
+        else if (!strcmp(tag, "Lang"))
+          load_languages(fl, ch);
+        else if (!strcmp(tag, "Lern"))
+          GET_PRACTICES(ch) = atoi(line);
+        else if (!strcmp(tag, "Levl"))
+          GET_LEVEL(ch) = atoi(line);
+        else if (!strcmp(tag, "Lmot"))
+          GET_LAST_MOTD(ch) = atoi(line);
+        else if (!strcmp(tag, "Lnew"))
+          GET_LAST_NEWS(ch) = atoi(line);
+        else if (!strcmp(tag, "LTCT"))
+          LAUGHING_TOUCH_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "LTCU"))
+          LAUGHING_TOUCH_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "LstR"))
+          GET_LAST_ROOM(ch) = atoi(line);
+        break;
+
+      case 'M':
+        if (!strcmp(tag, "Move"))
+          load_HMVS(ch, line, LOAD_MOVE);
+        else if (!strcmp(tag, "Mote"))
+          load_craft_motes_onhand(fl, ch);
+        else if (!strcmp(tag, "Mrph"))
+          IS_MORPHED(ch) = (ubyte)(atol(line));
+        else if (!strcmp(tag, "MFrm"))
+          MERGE_FORMS_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "Mrcy"))
+          load_mercies(fl, ch);
+        else if (!strcmp(tag, "Mat "))
+        {
+          /* Phase 4.5: Load individual wilderness material entries */
+          int category, subtype, quality, quantity;
+          if (sscanf(line, "%d %d %d %d", &category, &subtype, &quality, &quantity) == 4)
+          {
+            /* Ensure material storage is initialized */
+            if (!ch->player_specials)
+            {
+              CREATE(ch->player_specials, struct player_special_data, 1);
+            }
+            /* Find the first empty slot to load this material */
+            int inner_i;
+            for (inner_i = 0; inner_i < MAX_STORED_MATERIALS; inner_i++)
+            {
+              if (ch->player_specials->saved.stored_materials[inner_i].quantity == 0)
+              {
+                if (validate_material_data(category, subtype, quality) && quantity > 0)
+                {
+                  ch->player_specials->saved.stored_materials[inner_i].category = category;
+                  ch->player_specials->saved.stored_materials[inner_i].subtype = subtype;
+                  ch->player_specials->saved.stored_materials[inner_i].quality = quality;
+                  ch->player_specials->saved.stored_materials[inner_i].quantity = quantity;
+                }
+                break;
+              }
+            }
+          }
+        }
+        // Faction mission system
+        else if (!strcmp(tag, "MiCu"))
+          GET_CURRENT_MISSION(ch) = atoi(line);
+        else if (!strcmp(tag, "MiCr"))
+          GET_MISSION_CREDITS(ch) = atol(line);
+        else if (!strcmp(tag, "MiCd"))
+          GET_MISSION_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "MiSt"))
+          GET_MISSION_STANDING(ch) = atoi(line);
+        else if (!strcmp(tag, "MiFa"))
+          GET_MISSION_FACTION(ch) = atoi(line);
+        else if (!strcmp(tag, "MiRe"))
+          GET_MISSION_REP(ch) = atoi(line);
+        else if (!strcmp(tag, "MiXp"))
+          GET_MISSION_EXP(ch) = atol(line);
+        else if (!strcmp(tag, "MiDf"))
+          GET_MISSION_DIFFICULTY(ch) = atoi(line);
+        else if (!strcmp(tag, "MiRN"))
+          GET_MISSION_NPC_NAME_NUM(ch) = atoi(line);
+        else if (!strcmp(tag, "MiRm"))
+          GET_CURRENT_MISSION_ROOM(ch) = atoi(line);
+        else if (!strcmp(tag, "MVRg"))
+          GET_MV_REGEN(ch) = atoi(line);
+        /* Moon bonus spells */
+        else if (!strcmp(tag, "MBSp"))
+          ch->player_specials->saved.moon_bonus_spells = atoi(line);
+        else if (!strcmp(tag, "MBSU"))
+          ch->player_specials->saved.moon_bonus_spells_used = atoi(line);
+        else if (!strcmp(tag, "MBSR"))
+          ch->player_specials->saved.moon_bonus_regen_timer = atoi(line);
+        break;
+
+      case 'N':
+        if (!strcmp(tag, "Name"))
+          GET_PC_NAME(ch) = strdup(line);
+        else if (!strcmp(tag, "NAr0"))
+          NEW_ARCANA_SLOT(ch, 0) = atoi(line);
+        else if (!strcmp(tag, "NAr1"))
+          NEW_ARCANA_SLOT(ch, 1) = atoi(line);
+        else if (!strcmp(tag, "NAr2"))
+          NEW_ARCANA_SLOT(ch, 2) = atoi(line);
+        else if (!strcmp(tag, "NAr3"))
+          NEW_ARCANA_SLOT(ch, 3) = atoi(line);
+        else if (!strcmp(tag, "NecC"))
+          NECROMANCER_CAST_TYPE(ch) = atoi(line);
+        break;
+
+      case 'O':
+        if (!strcmp(tag, "Olc "))
+          GET_OLC_ZONE(ch) = atoi(line);
+        break;
+
+      case 'P':
+        if (!strcmp(tag, "Page"))
+          GET_PAGE_LENGTH(ch) = (ubyte)atoi(line);
+        else if (!strcmp(tag, "Pass"))
+          strlcpy(GET_PASSWD(ch), line, sizeof(ch->player.passwd));
+        else if (!strcmp(tag, "Potn"))
+          load_potions(fl, ch);
+        else if (!strcmp(tag, "Plyd"))
+          ch->player.time.played = atoi(line);
+        else if (!strcmp(tag, "PreB"))
+          GET_PREMADE_BUILD_CLASS(ch) = atoi(line);
+        else if (!strcmp(tag, "Pryg"))
+          load_praying(fl, ch);
+        else if (!strcmp(tag, "Prgm"))
+          load_praying_metamagic(fl, ch);
+        else if (!strcmp(tag, "Pryd"))
+          load_prayed(fl, ch);
+        else if (!strcmp(tag, "Prdm"))
+          load_prayed_metamagic(fl, ch);
+        else if (!strcmp(tag, "Pryt"))
+          load_praytimes(fl, ch);
+        else if (!strcmp(tag, "PfIn"))
+          POOFIN(ch) = strdup(line);
+        else if (!strcmp(tag, "PfOt"))
+          POOFOUT(ch) = strdup(line);
+        else if (!strcmp(tag, "Pref"))
+        {
+          parsed = sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4);
+          if (parsed == 4)
+          {
+            PRF_FLAGS(ch)
+            [0] = (int)asciiflag_conv(f1);
+            PRF_FLAGS(ch)
+            [1] = (int)asciiflag_conv(f2);
+            PRF_FLAGS(ch)
+            [2] = (int)asciiflag_conv(f3);
+            PRF_FLAGS(ch)
+            [3] = (int)asciiflag_conv(f4);
+          }
+          else if (parsed == 1)
+            PRF_FLAGS(ch)
+          [0] = (int)asciiflag_conv(f1);
+          else log("load_char: %s has an invalid preference flag record: %s", GET_NAME(ch), line);
+        }
+        else if (!strcmp(tag, "PrQu"))
+          load_spell_prep_queue(fl, ch);
+        else if (!strcmp(tag, "PCAr"))
+          GET_PREFERRED_ARCANE(ch) = (byte)atoi(line);
+        else if (!strcmp(tag, "PCDi"))
+          GET_PREFERRED_DIVINE(ch) = (byte)atoi(line);
+        else if (!strcmp(tag, "PSP "))
+          load_HMVS(ch, line, LOAD_PSP);
+        else if (!strcmp(tag, "PSRg"))
+          GET_PSP_REGEN(ch) = atoi(line);
+        else if (!strcmp(tag, "PsET"))
+          GET_PSIONIC_ENERGY_TYPE(ch) = atoi(line);
+        else if (!strcmp(tag, "PxDU"))
+          PIXIE_DUST_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "PxDT"))
+          PIXIE_DUST_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "Pers"))
+          ch->player.personality = fread_string(fl, buf2);
+        else if (!strcmp(tag, "PvPT"))
+          GET_PVP_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "DvRc"))
+          ch->player_specials->saved.last_device_recharge = atol(line);
+        else if (!strcmp(tag, "Perk"))
+          load_perks(fl, ch);
+        else if (!strcmp(tag, "PPts"))
+          load_perk_points(fl, ch);
+        else if (!strcmp(tag, "PStg"))
+          ch->player_specials->saved.stage_info.current_stage = atoi(line);
+        else if (!strcmp(tag, "PSXp"))
+          ch->player_specials->saved.stage_info.stage_exp = atoi(line);
+        else if (!strcmp(tag, "PTog"))
+          load_perk_toggles(fl, ch);
+        else if (!strcmp(tag, "PKil"))
+        {
+          long timestamp;
+          int used;
+          if (sscanf(line, "%ld %d", &timestamp, &used) == 2)
+          {
+            ch->player_specials->saved.perfect_kill_last_combat = (time_t)timestamp;
+            ch->player_specials->saved.perfect_kill_used = (used != 0);
+          }
+        }
+        else if (!strcmp(tag, "PCBr"))
+        {
+          long timestamp;
+          int used;
+          if (sscanf(line, "%ld %d", &timestamp, &used) == 2)
+          {
+            ch->player_specials->saved.chimeric_breath_last_combat = (time_t)timestamp;
+            ch->player_specials->saved.chimeric_breath_used = (used != 0);
+          }
+        }
+        else if (!strcmp(tag, "PMxS"))
+        {
+          long timestamp;
+          if (sscanf(line, "%ld", &timestamp) == 1)
+          {
+            ch->player_specials->saved.maximize_spell_cooldown = (time_t)timestamp;
+          }
+        }
+        else if (!strcmp(tag, "PEmS"))
+        {
+          long timestamp;
+          int uses;
+          /* Try new format first (cooldown + uses) */
+          if (sscanf(line, "%ld %d", &timestamp, &uses) == 2)
+          {
+            ch->player_specials->saved.empower_spell_cooldown = (time_t)timestamp;
+            ch->player_specials->saved.empower_spell_uses = uses;
+          }
+          /* Fall back to old format (just cooldown) for backwards compatibility */
+          else if (sscanf(line, "%ld", &timestamp) == 1)
+          {
+            ch->player_specials->saved.empower_spell_cooldown = (time_t)timestamp;
+            /* If on cooldown, assume 0 uses; otherwise assume full charges */
+            ch->player_specials->saved.empower_spell_uses = (timestamp > time(0)) ? 0 : 2;
+          }
+        }
+        else if (!strcmp(tag, "PMoE"))
+        {
+          int element_type;
+          if (sscanf(line, "%d", &element_type) == 1)
+          {
+            ch->player_specials->saved.master_of_elements_type = element_type;
+          }
+        }
+        else if (!strcmp(tag, "PwSt"))
+        {
+          int power_strike_value;
+          if (sscanf(line, "%d", &power_strike_value) == 1)
+          {
+            ch->player_specials->saved.power_strike = (sbyte)power_strike_value;
+          }
+        }
+        else if (!strcmp(tag, "PPsS"))
+        {
+          long timestamp;
+          int uses, active;
+          if (sscanf(line, "%ld %d %d", &timestamp, &uses, &active) == 3)
+          {
+            ch->player_specials->saved.persistent_spell_cooldown = (time_t)timestamp;
+            ch->player_specials->saved.persistent_spell_uses = uses;
+            ch->player_specials->saved.persistent_spell_active = (active != 0);
+          }
+        }
+        else if (!strcmp(tag, "PSpE"))
+        {
+          long timestamp;
+          if (sscanf(line, "%ld", &timestamp) == 1)
+          {
+            ch->player_specials->saved.split_enchantment_cooldown = (time_t)timestamp;
+          }
+        }
+        else if (!strcmp(tag, "PDCt"))
+        {
+          int timer, remaining = 0;
+          int fields = sscanf(line, "%d %d", &timer, &remaining);
+          if (fields >= 1)
+          {
+            ch->player_specials->saved.defensive_casting_timer =
+                timer > 0 && (fields == 1 || remaining > 0) ? timer : 0;
+            ch->player_specials->saved.defensive_casting_pulses = MAX(0, remaining);
+          }
+        }
+        else if (!strcmp(tag, "PARc"))
+        {
+          long timestamp;
+          if (sscanf(line, "%ld", &timestamp) == 1)
+          {
+            ch->player_specials->saved.arcane_recovery_cooldown = (time_t)timestamp;
+          }
+        }
+        else if (!strcmp(tag, "PSSt"))
+        {
+          int timer;
+          if (sscanf(line, "%d", &timer) == 1)
+          {
+            ch->player_specials->saved.spell_shield_timer = timer;
+          }
+        }
+        else if (!strcmp(tag, "PSSc"))
+        {
+          long timestamp;
+          if (sscanf(line, "%ld", &timestamp) == 1)
+          {
+            ch->player_specials->saved.spell_shield_cooldown = (time_t)timestamp;
+          }
+        }
+        else if (!strcmp(tag, "PVSt"))
+        {
+          int timer;
+          if (sscanf(line, "%d", &timer) == 1)
+          {
+            ch->player_specials->saved.void_strike_timer = timer;
+          }
+        }
+        else if (!strcmp(tag, "PVSc"))
+        {
+          long timestamp;
+          if (sscanf(line, "%ld", &timestamp) == 1)
+          {
+            ch->player_specials->saved.void_strike_cooldown = (time_t)timestamp;
+          }
+        }
+        else if (!strcmp(tag, "PFSt"))
+        {
+          int timer;
+          if (sscanf(line, "%d", &timer) == 1)
+          {
+            ch->player_specials->saved.firesnake_timer = timer;
+          }
+        }
+        else if (!strcmp(tag, "PEEt"))
+        {
+          int timer, type;
+          if (sscanf(line, "%d %d", &timer, &type) == 2)
+          {
+            ch->player_specials->saved.elemental_embodiment_timer = timer;
+            ch->player_specials->saved.elemental_embodiment_type = type;
+          }
+        }
+        else if (!strcmp(tag, "PMRd"))
+        {
+          long timestamp;
+          int uses;
+          /* Load metamagic reduction cooldown and uses */
+          if (sscanf(line, "%ld %d", &timestamp, &uses) == 2)
+          {
+            ch->player_specials->saved.metamagic_reduction_cooldown = (time_t)timestamp;
+            ch->player_specials->saved.metamagic_reduction_uses = uses;
+          }
+          /* If no saved data, initialize to 2 uses available */
+          else
+          {
+            ch->player_specials->saved.metamagic_reduction_uses = 2;
+            ch->player_specials->saved.metamagic_reduction_cooldown = 0;
+          }
+        }
+        else if (!strcmp(tag, "PEMa"))
+        {
+          long timestamp;
+          int active;
+          /* Load elemental mastery cooldown and active state */
+          if (sscanf(line, "%ld %d", &timestamp, &active) == 2)
+          {
+            ch->player_specials->saved.elemental_mastery_cooldown = (time_t)timestamp;
+            ch->player_specials->saved.elemental_mastery_active = (active != 0);
+          }
+        }
+        break;
+
+      case 'Q':
+        if (!strcmp(tag, "Qstp"))
+          GET_QUESTPOINTS(ch) = atoi(line);
+        else if (!strcmp(tag, "Qpnt"))
+          GET_QUESTPOINTS(ch) = atoi(line); /* Backward compatibility */
+        else if (!strcmp(tag, "Qcur"))
+          GET_QUEST(ch, 0) = atoi(line);
+        else if (!strcmp(tag, "Qcu1"))
+          GET_QUEST(ch, 1) = atoi(line);
+        else if (!strcmp(tag, "Qcu2"))
+          GET_QUEST(ch, 2) = atoi(line);
+        else if (!strcmp(tag, "Qcnt"))
+          GET_QUEST_COUNTER(ch, 0) = atoi(line);
+        else if (!strcmp(tag, "Qcn1"))
+          GET_QUEST_COUNTER(ch, 1) = atoi(line);
+        else if (!strcmp(tag, "Qcn2"))
+          GET_QUEST_COUNTER(ch, 2) = atoi(line);
+        else if (!strcmp(tag, "Qtim"))
+          GET_QUEST_TIME(ch, 0) = atoi(line);
+        else if (!strcmp(tag, "Qti1"))
+          GET_QUEST_TIME(ch, 1) = atoi(line);
+        else if (!strcmp(tag, "Qti2"))
+          GET_QUEST_TIME(ch, 2) = atoi(line);
+        else if (!strcmp(tag, "Qest"))
+          load_quests(fl, ch);
+        else if (!strcmp(tag, "QSvy"))
+          GET_QUIT_SURVEY_DONE(ch) = atoi(line);
+        break;
+
+      case 'R':
+        if (!strcmp(tag, "Race"))
+          GET_REAL_RACE(ch) = atoi(line);
+        if (!strcmp(tag, "RacR"))
+          ch->player_specials->saved.new_race_stats = atoi(line);
+        else if (!strcmp(tag, "Room"))
+          GET_LOADROOM(ch) = atoi(line);
+        else if (!strcmp(tag, "Res1"))
+          GET_REAL_RESISTANCES(ch, 1) = atoi(line);
+        else if (!strcmp(tag, "Res2"))
+          GET_REAL_RESISTANCES(ch, 2) = atoi(line);
+        else if (!strcmp(tag, "Res3"))
+          GET_REAL_RESISTANCES(ch, 3) = atoi(line);
+        else if (!strcmp(tag, "Res4"))
+          GET_REAL_RESISTANCES(ch, 4) = atoi(line);
+        else if (!strcmp(tag, "Res5"))
+          GET_REAL_RESISTANCES(ch, 5) = atoi(line);
+        else if (!strcmp(tag, "Res6"))
+          GET_REAL_RESISTANCES(ch, 6) = atoi(line);
+        else if (!strcmp(tag, "Res7"))
+          GET_REAL_RESISTANCES(ch, 7) = atoi(line);
+        else if (!strcmp(tag, "Res8"))
+          GET_REAL_RESISTANCES(ch, 8) = atoi(line);
+        else if (!strcmp(tag, "Res9"))
+          GET_REAL_RESISTANCES(ch, 9) = atoi(line);
+        else if (!strcmp(tag, "ResA"))
+          GET_REAL_RESISTANCES(ch, 10) = atoi(line);
+        else if (!strcmp(tag, "ResB"))
+          GET_REAL_RESISTANCES(ch, 11) = atoi(line);
+        else if (!strcmp(tag, "ResC"))
+          GET_REAL_RESISTANCES(ch, 12) = atoi(line);
+        else if (!strcmp(tag, "ResD"))
+          GET_REAL_RESISTANCES(ch, 13) = atoi(line);
+        else if (!strcmp(tag, "ResE"))
+          GET_REAL_RESISTANCES(ch, 14) = atoi(line);
+        else if (!strcmp(tag, "ResF"))
+          GET_REAL_RESISTANCES(ch, 15) = atoi(line);
+        else if (!strcmp(tag, "ResG"))
+          GET_REAL_RESISTANCES(ch, 16) = atoi(line);
+        else if (!strcmp(tag, "ResH"))
+          GET_REAL_RESISTANCES(ch, 17) = atoi(line);
+        else if (!strcmp(tag, "ResI"))
+          GET_REAL_RESISTANCES(ch, 18) = atoi(line);
+        else if (!strcmp(tag, "ResJ"))
+          GET_REAL_RESISTANCES(ch, 19) = atoi(line);
+        else if (!strcmp(tag, "ResK"))
+          GET_REAL_RESISTANCES(ch, 20) = atoi(line);
+        else if (!strcmp(tag, "RSc1"))
+          GET_1ST_RESTRICTED_SCHOOL(ch) = (byte)atoi(line);
+        else if (!strcmp(tag, "RSc2"))
+          GET_2ND_RESTRICTED_SCHOOL(ch) = (byte)atoi(line);
+        else if (!strcmp(tag, "RetC"))
+          GET_RETAINER_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "BDsU"))
+          GET_BONUS_DOMAIN_SLOTS_USED(ch) = atoi(line);
+        else if (!strcmp(tag, "BDsT"))
+          GET_BONUS_DOMAIN_REGEN_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "BSlU"))
+          GET_BONUS_SLOTS_USED(ch) = atoi(line);
+        else if (!strcmp(tag, "BSlT"))
+          GET_BONUS_SLOTS_REGEN_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "RM00"))
+          GET_CRAFT(ch).refining_materials[0][0] = atoi(line);
+        else if (!strcmp(tag, "RM01"))
+          GET_CRAFT(ch).refining_materials[0][1] = atoi(line);
+        else if (!strcmp(tag, "RM10"))
+          GET_CRAFT(ch).refining_materials[1][0] = atoi(line);
+        else if (!strcmp(tag, "RM11"))
+          GET_CRAFT(ch).refining_materials[1][1] = atoi(line);
+        else if (!strcmp(tag, "RM20"))
+          GET_CRAFT(ch).refining_materials[2][0] = atoi(line);
+        else if (!strcmp(tag, "RM21"))
+          GET_CRAFT(ch).refining_materials[2][1] = atoi(line);
+        else if (!strcmp(tag, "RRs0"))
+          GET_CRAFT(ch).refining_result[0] = atoi(line);
+        else if (!strcmp(tag, "RRs1"))
+          GET_CRAFT(ch).refining_result[1] = atoi(line);
+        else if (!strcmp(tag, "RSSz"))
+          GET_CRAFT(ch).new_size = atoi(line);
+        else if (!strcmp(tag, "RSMT"))
+          GET_CRAFT(ch).resize_mat_type = atoi(line);
+        else if (!strcmp(tag, "RSMN"))
+          GET_CRAFT(ch).resize_mat_num = atoi(line);
+        break;
+
+      case 'S':
+        if (!strcmp(tag, "Sex "))
+          GET_SEX(ch) = atoi(line);
+        else if (!strcmp(tag, "SBld"))
+          GET_BLOODLINE_SUBTYPE(ch) = atoi(line);
+        else if (!strcmp(tag, "SclF"))
+        {
+          if (sscanf(line, "%d %127s", &i, f1) != 2)
+          {
+            log("load_char: %s has an invalid school feat record: %s", GET_NAME(ch), line);
+            break;
+          }
+          if (i < 0 || i >= NUM_SFEATS)
+          {
+            log("load_char: %s school feat record out of range: %s", GET_NAME(ch), line);
+            break;
+          }
+          ch->char_specials.saved.school_feats[i] = (int)asciiflag_conv(f1);
+        }
+        else if (!strcmp(tag, "Scrl"))
+          load_scrolls(fl, ch);
+        else if (!strcmp(tag, "Scrg"))
+          GET_SCROUNGE_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "ScrW"))
+          GET_SCREEN_WIDTH(ch) = (ubyte)atoi(line);
+        else if (!strcmp(tag, "SpWC"))
+          GET_SPIRITUAL_WEAPON_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "IrMC"))
+          GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "QkCs"))
+          GET_QUICK_CAST_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "SpRc"))
+          GET_SPELL_RECALL_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "Skil"))
+          load_skills(fl, ch);
+        else if (!strcmp(tag, "SklF"))
+          load_skill_focus(fl, ch);
+        else if (!strcmp(tag, "SpAb"))
+          load_spec_abil(fl, ch);
+        else if (!strcmp(tag, "Spek"))
+          SPEAKING(ch) = atoi(line);
+        else if (!strcmp(tag, "SpRs"))
+          GET_REAL_SPELL_RES(ch) = atoi(line);
+        else if (!strcmp(tag, "Size"))
+          GET_REAL_SIZE(ch) = atoi(line);
+        else if (!strcmp(tag, "Stav"))
+          load_staves(fl, ch);
+        else if (!strcmp(tag, "Slyr"))
+          GET_SLAYER_JUDGEMENT(ch) = (byte)atoi(line);
+        else if (!strcmp(tag, "SySt"))
+          HAS_SET_STATS_STUDY(ch) = atoi(line);
+        else if (!strcmp(tag, "Str "))
+          load_HMVS(ch, line, LOAD_STRENGTH);
+        else if (!strcmp(tag, "SSch"))
+          GET_SPECIALTY_SCHOOL(ch) = (byte)atoi(line);
+        else if (!strcmp(tag, "SpNM"))
+          GET_NSUPPLY_NUM_MADE(ch) = atoi(line);
+        else if (!strcmp(tag, "SpCd"))
+          GET_NSUPPLY_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "SuSl"))
+        {
+          /* Load supply contract slot: slot_idx type recipe variant quantity reward difficulty time_limit reputation expiration */
+          int slot_idx, contract_type, recipe, variant, quantity, reward, difficulty_modifier,
+              time_limit, reputation_requirement;
+          long expiration_time;
+          if (sscanf(line, "%d %d %d %d %d %d %d %d %d %ld", &slot_idx, &contract_type, &recipe,
+                     &variant, &quantity, &reward, &difficulty_modifier, &time_limit,
+                     &reputation_requirement, &expiration_time) == 10)
+          {
+            if (slot_idx >= 0 && slot_idx < 5)
+            {
+              GET_CRAFT(ch).supply_slot_active[slot_idx] = true;
+              GET_CRAFT(ch).supply_slots[slot_idx].contract_id = slot_idx + 1;
+              GET_CRAFT(ch).supply_slots[slot_idx].contract_type = contract_type;
+              GET_CRAFT(ch).supply_slots[slot_idx].recipe = recipe;
+              GET_CRAFT(ch).supply_slots[slot_idx].variant = variant;
+              GET_CRAFT(ch).supply_slots[slot_idx].quantity = quantity;
+              GET_CRAFT(ch).supply_slots[slot_idx].reward = reward;
+              GET_CRAFT(ch).supply_slots[slot_idx].difficulty_modifier = difficulty_modifier;
+              GET_CRAFT(ch).supply_slots[slot_idx].time_limit = time_limit;
+              GET_CRAFT(ch).supply_slots[slot_idx].reputation_requirement = reputation_requirement;
+              GET_CRAFT(ch).supply_slots[slot_idx].expiration_time = (time_t)expiration_time;
+              GET_CRAFT(ch).supply_slots[slot_idx].description =
+                  NULL; /* Will be loaded separately */
+              GET_CRAFT(ch).supply_slots[slot_idx].requirements =
+                  NULL; /* Will be loaded separately */
+            }
+          }
+        }
+        else if (!strcmp(tag, "SuSD"))
+        {
+          /* Load supply slot description: slot_idx description */
+          int slot_idx;
+          char desc_buf[MAX_INPUT_LENGTH];
+          if (sscanf(line, "%d %[^\r\n]", &slot_idx, desc_buf) == 2)
+          {
+            if (slot_idx >= 0 && slot_idx < 5 && GET_CRAFT(ch).supply_slot_active[slot_idx])
+            {
+              if (GET_CRAFT(ch).supply_slots[slot_idx].description)
+                free(GET_CRAFT(ch).supply_slots[slot_idx].description);
+              GET_CRAFT(ch).supply_slots[slot_idx].description = strdup(desc_buf);
+            }
+          }
+        }
+        else if (!strcmp(tag, "SuSR"))
+        {
+          /* Load supply slot requirements: slot_idx requirements */
+          int slot_idx;
+          char req_buf[MAX_INPUT_LENGTH];
+          if (sscanf(line, "%d %[^\r\n]", &slot_idx, req_buf) == 2)
+          {
+            if (slot_idx >= 0 && slot_idx < 5 && GET_CRAFT(ch).supply_slot_active[slot_idx])
+            {
+              if (GET_CRAFT(ch).supply_slots[slot_idx].requirements)
+                free(GET_CRAFT(ch).supply_slots[slot_idx].requirements);
+              GET_CRAFT(ch).supply_slots[slot_idx].requirements = strdup(req_buf);
+            }
+          }
+        }
+        else if (!strcmp(tag, "SuLR"))
+          GET_CRAFT(ch).supply_slots_last_refresh = (time_t)atol(line);
+        else if (!strcmp(tag, "SuNR"))
+          GET_CRAFT(ch).supply_slots_next_refresh = (time_t)atol(line);
+        else if (!strcmp(tag, "SuCD"))
+        {
+          /* Load supply slot cooldowns: slot_idx timestamp */
+          int slot_idx;
+          long timestamp;
+          if (sscanf(line, "%d %ld", &slot_idx, &timestamp) == 2)
+          {
+            if (slot_idx >= 0 && slot_idx < 5)
+            {
+              GET_CRAFT(ch).supply_slot_cooldowns[slot_idx] = (time_t)timestamp;
+            }
+          }
+        }
+        break;
+
+      case 'T':
+        if (!strcmp(tag, "Trv1"))
+        {
+          long long destination, seconds, type, locale;
+
+          if (sscanf(line, "%lld %lld %lld %lld", &destination, &seconds, &type, &locale) == 4 &&
+              destination >= 0 && destination <= INT_MAX && seconds >= 0 && seconds <= INT_MAX &&
+              type >= 1 && type <= 4 && locale >= 0 && locale <= INT_MAX &&
+              transport_locale_valid((int)type, (int)locale))
+          {
+            ch->player_specials->destination = (int)destination;
+            ch->player_specials->travel_timer = (int)seconds;
+            ch->player_specials->travel_type = (int)type;
+            ch->player_specials->travel_locale = (int)locale;
+          }
+        }
+        else if (!strcmp(tag, "Tmpl"))
+          GET_TEMPLATE(ch) = (ubyte)atoi(line);
+        else if (!strcmp(tag, "Tlpt"))
+          GET_TALENT_POINTS(ch) = atoi(line);
+        else if (!strcmp(tag, "Tlbt"))
+        {
+          /* Legacy bitset: store and migrate into rank array (rank 1 if bit set) */
+          unsigned int b1 = 0, b2 = 0;
+          sscanf(line, "%u %u", &b1, &b2);
+          ch->player_specials->saved.talents_bits[0] = b1;
+          ch->player_specials->saved.talents_bits[1] = b2;
+          {
+            int inner_t;
+            for (inner_t = 1; inner_t < 64; inner_t++)
+            {
+              unsigned int idx = (inner_t / 32);
+              unsigned int mask = (1U << (inner_t % 32));
+              if (((idx == 0 ? b1 : b2) & mask) &&
+                  ch->player_specials->saved.talent_ranks[inner_t] == 0)
+                ch->player_specials->saved.talent_ranks[inner_t] = 1;
+            }
+          }
+        }
+        else if (!strcmp(tag, "Tlrk"))
+        {
+          /* New rank array: pairs of (talent rank) across 64 entries */
+          /* Format: Tlrk: <t0> <t1> ... <t63> (we will actually use indices 1..TALENT_MAX-1) */
+          int consumed = 0;
+          const char *p = line;
+          int val;
+          int inner_t;
+          for (inner_t = 0; inner_t < 64; inner_t++)
+          {
+            if (sscanf(p, "%d%n", &val, &consumed) == 1)
+            {
+              ch->player_specials->saved.talent_ranks[inner_t] = (ubyte)MAX(0, MIN(255, val));
+              p += consumed;
+            }
+            else
+              break;
+          }
+        }
+        else if (!strcmp(tag, "TEvo"))
+          load_temp_evolutions(fl, ch);
+        else if (!strcmp(tag, "Thir"))
+          GET_COND(ch, THIRST) = (sbyte)atoi(line);
+        else if (!strcmp(tag, "Thr1"))
+          GET_REAL_SAVE(ch, 0) = atoi(line);
+        else if (!strcmp(tag, "Thr2"))
+          GET_REAL_SAVE(ch, 1) = atoi(line);
+        else if (!strcmp(tag, "Thr3"))
+          GET_REAL_SAVE(ch, 2) = atoi(line);
+        else if (!strcmp(tag, "Thr4"))
+          GET_REAL_SAVE(ch, 3) = atoi(line);
+        else if (!strcmp(tag, "Thr5"))
+          GET_REAL_SAVE(ch, 4) = atoi(line);
+        else if (!strcmp(tag, "Titl"))
+          GET_TITLE(ch) = strdup(line);
+        else if (!strcmp(tag, "Trig") && CONFIG_SCRIPT_PLAYERS)
+        {
+          if ((t_rnum = real_trigger(atoi(line))) != NOTHING)
+          {
+            t = read_trigger(t_rnum);
+            if (!SCRIPT(ch))
+              CREATE(SCRIPT(ch), struct script_data, 1);
+            dg_script_bind_owner(SCRIPT(ch), ch, MOB_TRIGGER);
+            add_trigger(SCRIPT(ch), t, -1);
+          }
+        }
+        else if (!strcmp(tag, "Trns"))
+          GET_TRAINS(ch) = atoi(line);
+        else if (!strcmp(tag, "Todo"))
+        {
+          CREATE(GET_TODO(ch), struct txt_block, 1);
+          struct txt_block *tmp = GET_TODO(ch);
+
+          get_line(fl, line);
+          while (*line != '~')
+          {
+            tmp->text = strdup(line);
+            get_line(fl, line);
+
+            if (*line != '~')
+            {
+              CREATE(tmp->next, struct txt_block, 1);
+              tmp = tmp->next;
+            }
+          }
+        }
+        break;
+
+      case 'U':
+        if (!strcmp(tag, "UTF8") && ch->desc)
+          ch->desc->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt = atoi(line);
+        break;
+
+      case 'V':
+        if (!strcmp(tag, "Vars"))
+          read_saved_vars_ascii(fl, ch, atoi(line));
+        else if (!strcmp(tag, "VitS"))
+          VITAL_STRIKING(ch) = atoi(line);
+        else if (!strcmp(tag, "VIns"))
+          GET_VESSEL_INSURANCE_CLAIM(ch) = strtoull(line, NULL, 10);
+        else if (!strcmp(tag, "VMer"))
+          GET_VESSEL_MERCHANT_CONSEQUENCE(ch) = strtoull(line, NULL, 10);
+        break;
+
+      case 'W':
+        if (!strcmp(tag, "Wate"))
+          GET_WEIGHT(ch) = atoi(line);
+        else if (!strcmp(tag, "Wand"))
+          load_wands(fl, ch);
+        else if (!strcmp(tag, "Wimp"))
+          GET_WIMP_LEV(ch) = atoi(line);
+        else if (!strcmp(tag, "Ward"))
+          load_warding(fl, ch);
+        else if (!strcmp(tag, "Wis "))
+          GET_REAL_WIS(ch) = atoi(line);
+        else if (!strcmp(tag, "WMat"))
+        {
+          /* Phase 4.5: Load wilderness material storage count */
+          int material_count = atoi(line);
+          if (material_count > 0 && material_count <= MAX_STORED_MATERIALS)
+          {
+            ch->player_specials->saved.stored_material_count = material_count;
+            /* Reset all material slots to zero before loading */
+            memset(ch->player_specials->saved.stored_materials, 0,
+                   sizeof(ch->player_specials->saved.stored_materials));
+          }
+        }
+        break;
+
+      case 'X':
+        if (!strcmp(tag, "XTrm") && ch->desc)
+          ch->desc->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = atoi(line);
+        break;
+
+      default:
+        snprintf(buf, sizeof(buf), "SYSERR: Unknown tag %s in pfile %s", tag, name);
+      }
+    }
+  }
+
+  /* Slot 27 previously held Jump and remained serialized after that ability
+   * was retired. Clear it exactly once so legacy ranks cannot become free
+   * Boarding training; current saves carry BrdV and preserve real ranks. */
+  if (!boarding_ability_current)
+  {
+    SET_ABILITY(ch, ABILITY_BOARDING, 0);
+  }
+
+  resetCastingData(ch);
+  CLOUDKILL(ch) = 0; // make sure init cloudkill burst
+  DOOM(ch) = 0;      // make sure init creeping doom
+  TENACIOUS_PLAGUE(ch) = 0;
+  INCENDIARY(ch) = 0; // make sure init incendiary burst
+
+  if (GET_CRAFT(ch).new_size)
+  {
+    GET_CRAFT_MAT(ch, GET_CRAFT(ch).resize_mat_type) += GET_CRAFT(ch).resize_mat_num;
+    GET_CRAFT(ch).new_size = GET_CRAFT(ch).resize_mat_type = GET_CRAFT(ch).resize_mat_num =
+        GET_CRAFT(ch).crafting_method = GET_CRAFT(ch).craft_duration = 0;
+  }
+
+  affect_total(ch);
+
+  /* Charge intervals depend on effective stats, not partially parsed pfile data. */
+  while (pending_events != NULL)
+  {
+    pending_event = pending_events;
+    pending_events = pending_event->next;
+    restore_status =
+        mud_event_restore_character_record(ch, &pending_event->record, (int64_t)time(NULL));
+    if (restore_status != MUD_EVENT_RESTORE_OK && restore_status != MUD_EVENT_RESTORE_EXPIRED)
+      log("SYSERR: Ignoring durable event %u for %s: %s.", pending_event->record.event_type,
+          GET_NAME(ch), mud_event_restore_status_name(restore_status));
+    free(pending_event);
+  }
+
+  if (cooldown_saved_at_epoch <= 0)
+    cooldown_saved_at_epoch = (int64_t)ch->player.time.logon;
+  reconcile_player_offline_cooldowns(ch, cooldown_saved_at_epoch, (int64_t)time(NULL));
+
+  /* initialization for imms */
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+  {
+    for (i = 1; i < MAX_SKILLS; i++)
+      GET_SKILL(ch, i) = 100;
+    for (i = 1; i <= MAX_ABILITIES; i++)
+      GET_ABILITY(ch, i) = 40;
+    GET_COND(ch, HUNGER) = -1;
+    GET_COND(ch, THIRST) = -1;
+    GET_COND(ch, DRUNK) = -1;
+  }
+
+  /* Initialize material storage if not present (for existing characters) */
+  if (ch->player_specials && ch->player_specials->saved.stored_material_count == 0)
+  {
+    init_material_storage(ch);
+  }
+
+  /* Initialize craft variant if invalid (for existing characters) */
+  if (GET_CRAFT(ch).crafting_item_type == 0 && GET_CRAFT(ch).craft_variant != -1)
+  {
+    GET_CRAFT(ch).craft_variant = -1; // Ensure proper initialization
+  }
+
+  fclose(fl);
+  return (id);
+}
+
+/* Write the vital data of a player to the player file. */
+
+static bool append_player_save_buffer(char **buffer, size_t *capacity, size_t *used,
+                                      const char *format, ...)
+    __attribute__((format(printf, 4, 5)));
+
+/* Helper function for save_char to optimize string operations */
+static bool buffer_write_string_field(char **buffer, size_t *capacity, size_t *used,
+                                      const char *field_name, const char *field_value)
+{
+  if (field_value && *field_value)
+  {
+    char stripped[MAX_STRING_LENGTH];
+
+    strlcpy(stripped, field_value, sizeof(stripped));
+    strip_cr(stripped);
+    return append_player_save_buffer(buffer, capacity, used, "%s:\n%s~\n", field_name, stripped);
+  }
+  return true;
+}
+
+/* This is the ASCII Player Files save routine. */
+const char *player_file_account_name(const struct char_data *ch)
+{
+  if (!ch)
+    return NULL;
+  if (ch->desc && ch->desc->account && ch->desc->account->name && *ch->desc->account->name)
+    return ch->desc->account->name;
+  if (ch->player_specials && GET_ACCOUNT_NAME(ch) && *GET_ACCOUNT_NAME(ch))
+    return GET_ACCOUNT_NAME(ch);
+  return NULL;
+}
+
+static bool apply_clone_owner_identity(struct char_data *mob, const char *owner_name)
+{
+  char *name;
+  char *short_description;
+  mob_rnum prototype_rnum;
+
+  if (!mob || !owner_name)
+    return FALSE;
+  name = strdup(owner_name);
+  short_description = strdup(owner_name);
+  if (!name || !short_description)
+  {
+    free(name);
+    free(short_description);
+    return FALSE;
+  }
+
+  prototype_rnum = GET_MOB_RNUM(mob);
+  if (mob->player.name &&
+      !(mob_proto && prototype_rnum != NOBODY && prototype_rnum <= top_of_mobt &&
+        mob->player.name == mob_proto[prototype_rnum].player.name))
+    free(mob->player.name);
+  if (mob->player.short_descr &&
+      !(mob_proto && prototype_rnum != NOBODY && prototype_rnum <= top_of_mobt &&
+        mob->player.short_descr == mob_proto[prototype_rnum].player.short_descr))
+    free(mob->player.short_descr);
+  mob->player.name = name;
+  mob->player.short_descr = short_description;
+  return TRUE;
+}
+
+#ifdef LUMINARI_CUTEST
+bool apply_clone_owner_identity_for_test(struct char_data *mob, const char *owner_name)
+{
+  return apply_clone_owner_identity(mob, owner_name);
+}
+#endif
+
+static bool append_player_save_buffer(char **buffer, size_t *capacity, size_t *used,
+                                      const char *format, ...)
+{
+  va_list args;
+  va_list args_copy;
+  char *new_buffer;
+  size_t required, new_capacity;
+  int needed, written;
+
+  va_start(args, format);
+  va_copy(args_copy, args);
+  needed = vsnprintf(NULL, 0, format, args);
+  va_end(args);
+  if (needed < 0 || (size_t)needed > SIZE_MAX - *used - 1)
+  {
+    va_end(args_copy);
+    return false;
+  }
+
+  required = *used + (size_t)needed + 1;
+  if (required > *capacity)
+  {
+    new_capacity = *capacity;
+    while (new_capacity < required)
+    {
+      if (new_capacity > SIZE_MAX / 2)
+      {
+        new_capacity = required;
+        break;
+      }
+      new_capacity *= 2;
+    }
+
+    new_buffer = realloc(*buffer, new_capacity);
+    if (!new_buffer)
+    {
+      va_end(args_copy);
+      return false;
+    }
+    *buffer = new_buffer;
+    *capacity = new_capacity;
+  }
+
+  written = vsnprintf(*buffer + *used, *capacity - *used, format, args_copy);
+  va_end(args_copy);
+  if (written != needed)
+    return false;
+
+  *used += (size_t)written;
+  return true;
+}
+
+/**
+ * Write a player file, reporting whether the write actually succeeded.
+ *
+ * This is the real implementation; save_char() below is a result-discarding
+ * wrapper kept for the many legacy call sites. Every allocation, open, write,
+ * flush, close, and player-index failure returns FALSE, so a caller that must
+ * not acknowledge durable success until the bytes are down (the structured
+ * onboarding role-play commits) can tell the difference.
+ */
+bool save_char_checked(struct char_data *ch, int mode)
+{
+  FILE *fl;
+  bool save_ok = TRUE;
+  bool four_arms_deferred = FALSE;
+  bool old_mute_equip_messages = FALSE;
+  const char *account_name = NULL;
+  char filename[40] = {'\0'}, bits[127] = {'\0'}, bits2[127] = {'\0'}, bits3[127] = {'\0'},
+       bits4[127] = {'\0'};
+  int i = 0, j = 0, id = 0, save_index = FALSE;
+  int64_t save_epoch;
+  int aff_count = 0, saved_aff_count = 0;
+  int bleeding_remaining = 0;
+  uint64_t bleeding_turn = 0U;
+  struct affected_type *aff = NULL;
+  struct affected_type tmp_aff[MAX_AFFECT] = {{0}};
+  struct damage_reduction_type *tmp_dr = NULL, *cur_dr = NULL;
+  struct obj_data *char_eq[NUM_WEARS] = {NULL};
+  trig_data *t = NULL;
+  struct mud_event_data *pMudEvent = NULL;
+
+  /* PERFORMANCE OPTIMIZATION: Buffered I/O system */
+  struct mud_event_durable_record saved_events[eMUD_EVENT_COUNT];
+  size_t saved_event_count = 0;
+  size_t saved_event_index;
+  char *write_buffer = NULL;
+  size_t buffer_size = 65536; /* 64KB initial buffer */
+  size_t buffer_used = 0;
+  unsigned int b1, b2; /* legacy talent bitset words */
+
+  /* Performance timing */
+  struct timeval start_time, end_time;
+  gettimeofday(&start_time, NULL);
+  PERF_PROF_ENTER_SAMPLED(pr_save_char_checked_, "save.character");
+
+  if (IS_NPC(ch) || GET_PFILEPOS(ch) < 0)
+  {
+    PERF_PROF_EXIT(pr_save_char_checked_);
+    return FALSE;
+  }
+
+  save_epoch = (int64_t)time(NULL);
+  if (save_epoch <= 0)
+  {
+    log("SYSERR: save_char: Unable to obtain cooldown checkpoint time for %s", GET_NAME(ch));
+    PERF_PROF_EXIT(pr_save_char_checked_);
+    return FALSE;
+  }
+
+  /* Allocate write buffer for performance */
+  CREATE(write_buffer, char, buffer_size);
+  if (!write_buffer)
+  {
+    log("SYSERR: save_char: Could not allocate write buffer for %s", GET_NAME(ch));
+    PERF_PROF_EXIT(pr_save_char_checked_);
+    return FALSE;
+  }
+
+/* Helper macro for buffered writes */
+#define BUFFER_WRITE(...)                                                                          \
+  do                                                                                               \
+  {                                                                                                \
+    if (!append_player_save_buffer(&write_buffer, &buffer_size, &buffer_used, __VA_ARGS__))        \
+    {                                                                                              \
+      log("SYSERR: save_char: Buffer formatting or allocation failed");                            \
+      save_ok = FALSE;                                                                             \
+      goto save_char_restore; /* re-equip, re-affect, end the four-arm deferral */                 \
+    }                                                                                              \
+  } while (0)
+
+#define BUFFER_WRITE_STRING(field_name, field_value)                                               \
+  do                                                                                               \
+  {                                                                                                \
+    if (!buffer_write_string_field(&write_buffer, &buffer_size, &buffer_used, field_name,          \
+                                   field_value))                                                   \
+    {                                                                                              \
+      log("SYSERR: save_char: String buffer formatting or allocation failed");                     \
+      save_ok = FALSE;                                                                             \
+      goto save_char_restore;                                                                      \
+    }                                                                                              \
+  } while (0)
+
+  /* If ch->desc is not null, then update session data before saving. */
+  if (ch->desc)
+  {
+    if (*ch->desc->host)
+    {
+      if (!GET_HOST(ch))
+        GET_HOST(ch) = strdup(ch->desc->host);
+      else if (GET_HOST(ch) && strcmp(GET_HOST(ch), ch->desc->host))
+      {
+        free(GET_HOST(ch));
+        GET_HOST(ch) = strdup(ch->desc->host);
+      }
+    }
+
+    /* Only update the time.played and time.logon if the character is playing. */
+    if (STATE(ch->desc) == CON_PLAYING)
+    {
+      ch->player.time.played += (int)(time(0) - ch->player.time.logon);
+      ch->player.time.logon = time(0);
+    }
+  }
+
+  /* any problems with file handling? */
+  if (!get_filename(filename, sizeof(filename), PLR_FILE, GET_NAME(ch)))
+  {
+    free(write_buffer);
+    PERF_PROF_EXIT(pr_save_char_checked_);
+    return FALSE;
+  }
+  if (!(fl = fopen_restricted(filename, "w")))
+  {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't open player file %s for write", filename);
+    free(write_buffer);
+    PERF_PROF_EXIT(pr_save_char_checked_);
+    return FALSE;
+  }
+
+  /* Capture cooldown cadence before save-file bookkeeping removes equipment
+   * and affects that determine daily uses. No callbacks run during this save. */
+  if (mode != 1)
+  {
+    simple_list(NULL);
+    while (ch->events != NULL && (pMudEvent = simple_list(ch->events)) != NULL)
+    {
+      if (mud_event_persistence_policy(pMudEvent->iId)->storage_class != MUD_EVENT_PERSISTED)
+        continue;
+      if (saved_event_count >= eMUD_EVENT_COUNT ||
+          !mud_event_make_durable_record(ch, pMudEvent, save_epoch,
+                                         &saved_events[saved_event_count]))
+      {
+        log("SYSERR: Unable to serialize persisted event %u (%s) for %s.", pMudEvent->iId,
+            mud_event_index[pMudEvent->iId].event_name, GET_NAME(ch));
+        save_ok = FALSE;
+        continue;
+      }
+      saved_event_count++;
+    }
+    simple_list(NULL);
+  }
+
+  /* Unaffect everything a character can be affected by.  This is save-file
+   * bookkeeping, not a visible equipment change, so suppress both removal
+   * and wear messages while the equipment hooks run. */
+  old_mute_equip_messages = ch->mute_equip_messages;
+  ch->mute_equip_messages = TRUE;
+  /* providers leave and return with the rest of the gear: no four-arm
+   * reconciliation until the matching re-equip pass below has finished */
+  four_arms_defer_begin(ch);
+  four_arms_deferred = TRUE;
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (GET_EQ(ch, i))
+    {
+      char_eq[i] = unequip_char(ch, i);
+#ifndef NO_EXTRANEOUS_TRIGGERS
+      remove_otrigger(char_eq[i], ch);
+#endif
+    }
+    else
+      char_eq[i] = NULL;
+  }
+  ch->mute_equip_messages = old_mute_equip_messages;
+
+  bleeding_remaining = tactical_bleeding_remaining(ch);
+  bleeding_turn = ch->bleeding_critical_turn;
+  aff_count = 0;
+  saved_aff_count = 0;
+
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->spell == SPELL_ARTIFACT_PASSIVE || aff->spell == SPELL_ARTIFACT_BONUS)
+      continue;
+
+    aff_count++;
+    if (saved_aff_count < MAX_AFFECT)
+    {
+      tmp_aff[saved_aff_count] = *aff;
+      for (j = 0; j < AF_ARRAY_MAX; j++)
+        tmp_aff[saved_aff_count].bitvector[j] = aff->bitvector[j];
+      tmp_aff[saved_aff_count].next = 0;
+      saved_aff_count++;
+    }
+  }
+
+  for (i = saved_aff_count; i < MAX_AFFECT; i++)
+  {
+    new_affect(&(tmp_aff[i]));
+    tmp_aff[i].next = 0;
+  }
+
+  /* Save off the dr since that is attached to affects (i.e. stoneskin will
+   * create a dr structure that is loosely coupled to the affect for the spell.
+   * If the spell affect is removed, however, the stoneskin dr is dropped.)
+   * This only counts for dr where spell is != 0. */
+  if (ch && GET_DR(ch) != NULL)
+  {
+    for (cur_dr = GET_DR(ch); cur_dr != NULL; cur_dr = cur_dr->next)
+    {
+      if (cur_dr->spell != 0)
+      {
+        struct damage_reduction_type *tmp;
+
+        CREATE(tmp, struct damage_reduction_type, 1);
+        *tmp = *cur_dr;
+        tmp->next = tmp_dr;
+        tmp_dr = tmp;
+      }
+    }
+  }
+
+  /* Remove the affections so that the raw values are stored; otherwise the
+   * effects are doubled when the char logs back in. */
+
+  while (ch->affected)
+    affect_remove(ch, ch->affected);
+
+  if (aff_count > MAX_AFFECT)
+    log("SYSERR: WARNING: OUT OF STORE ROOM FOR AFFECTED TYPES for %s (%d affects, max %d)!",
+        GET_NAME(ch), aff_count, MAX_AFFECT);
+
+  ch->aff_abils = ch->real_abils;
+  reset_char_points(ch);
+
+  /* Make sure size doesn't go over/under caps */
+
+  /* end char_to_store code */
+
+  if (GET_NAME(ch))
+    BUFFER_WRITE("Name: %s\n", GET_NAME(ch));
+  if (GET_PASSWD(ch))
+    BUFFER_WRITE("Pass: %s\n", GET_PASSWD(ch));
+  account_name = player_file_account_name(ch);
+
+  if (account_name)
+  {
+    BUFFER_WRITE("Acct: %s\n", account_name);
+    //    BUFFER_WRITE( "ActN: %s\n", ch->desc->account->name);
+  }
+
+  if (GET_TITLE(ch))
+    BUFFER_WRITE("Titl: %s\n", GET_TITLE(ch));
+  if (GET_IMM_TITLE(ch) && GET_LEVEL(ch) >= LVL_IMMORT)
+    BUFFER_WRITE("ITtl: %s\n", GET_IMM_TITLE(ch));
+
+  /*save todo lists*/
+  struct txt_block *tmp;
+  if ((tmp = GET_TODO(ch)))
+  {
+    BUFFER_WRITE("Todo:\n");
+    while (tmp)
+    {
+      if (tmp->text)
+        BUFFER_WRITE("%s\n", tmp->text);
+      tmp = tmp->next;
+    }
+    BUFFER_WRITE("~\n");
+  }
+
+  /* Optimize string field writes */
+  BUFFER_WRITE_STRING("Desc", ch->player.description);
+  BUFFER_WRITE_STRING("BGrd", ch->player.background);
+  BUFFER_WRITE_STRING("Goal", ch->player.goals);
+  BUFFER_WRITE_STRING("Pers", ch->player.personality);
+  BUFFER_WRITE_STRING("Idel", ch->player.ideals);
+  BUFFER_WRITE_STRING("Bond", ch->player.bonds);
+  BUFFER_WRITE_STRING("Flaw", ch->player.flaws);
+  if (BLASTING(ch))
+    BUFFER_WRITE("Blst: 1\n");
+  if (POOFIN(ch))
+    BUFFER_WRITE("PfIn: %s\n", POOFIN(ch));
+  if (POOFOUT(ch))
+    BUFFER_WRITE("PfOt: %s\n", POOFOUT(ch));
+  if (GET_SEX(ch) != PFDEF_SEX)
+    BUFFER_WRITE("Sex : %d\n", GET_SEX(ch));
+  if (GET_BLOODLINE_SUBTYPE(ch) != PFDEF_SORC_BLOODLINE_SUBTYPE)
+    BUFFER_WRITE("SBld: %d\n", GET_BLOODLINE_SUBTYPE(ch));
+  if (GET_CLASS(ch) != PFDEF_CLASS)
+    BUFFER_WRITE("Clas: %d\n", GET_CLASS(ch));
+  if (GET_REAL_RACE(ch) != PFDEF_RACE)
+    BUFFER_WRITE("Race: %d\n", GET_REAL_RACE(ch));
+  if (GET_REAL_SIZE(ch) != PFDEF_SIZE)
+    BUFFER_WRITE("Size: %d\n", GET_REAL_SIZE(ch));
+  if (HAS_SET_STATS_STUDY(ch) != PFDEF_HAS_SET_STATS_STUDY)
+    BUFFER_WRITE("SySt: %d\n", HAS_SET_STATS_STUDY(ch));
+  if (GET_LEVEL(ch) != PFDEF_LEVEL)
+    BUFFER_WRITE("Levl: %d\n", GET_LEVEL(ch));
+  if (GET_DISGUISE_RACE(ch))
+    BUFFER_WRITE("DRac: %d\n", GET_DISGUISE_RACE(ch));
+  if (GET_DISGUISE_STR(ch))
+    BUFFER_WRITE("DStr: %d\n", GET_DISGUISE_STR(ch));
+  if (GET_DISGUISE_DEX(ch))
+    BUFFER_WRITE("DDex: %d\n", GET_DISGUISE_DEX(ch));
+  if (GET_DISGUISE_CON(ch))
+    BUFFER_WRITE("DCon: %d\n", GET_DISGUISE_CON(ch));
+  if (GET_DISGUISE_AC(ch))
+    BUFFER_WRITE("DAC: %d\n", GET_DISGUISE_AC(ch));
+  if (NEW_ARCANA_SLOT(ch, 0))
+    BUFFER_WRITE("NAr0: %d\n", NEW_ARCANA_SLOT(ch, 0));
+  if (NEW_ARCANA_SLOT(ch, 1))
+    BUFFER_WRITE("NAr1: %d\n", NEW_ARCANA_SLOT(ch, 1));
+  if (NEW_ARCANA_SLOT(ch, 2))
+    BUFFER_WRITE("NAr2: %d\n", NEW_ARCANA_SLOT(ch, 2));
+  if (NEW_ARCANA_SLOT(ch, 3))
+    BUFFER_WRITE("NAr3: %d\n", NEW_ARCANA_SLOT(ch, 3));
+  if (NECROMANCER_CAST_TYPE(ch))
+    BUFFER_WRITE("NecC: %d\n", NECROMANCER_CAST_TYPE(ch));
+  BUFFER_WRITE("Id  : %ld\n", GET_IDNUM(ch));
+  BUFFER_WRITE("Brth: %ld\n", (long)ch->player.time.birth);
+  BUFFER_WRITE("BrdV: %d\n", BOARDING_ABILITY_PFILE_VERSION);
+  BUFFER_WRITE("Plyd: %d\n", ch->player.time.played);
+  BUFFER_WRITE("Last: %ld\n", (long)ch->player.time.logon);
+  BUFFER_WRITE("CkAt: %" PRId64 "\n", save_epoch);
+  BUFFER_WRITE("LstR: %d\n", (int)GET_LAST_ROOM(ch));
+
+  if (GET_LAST_MOTD(ch) != PFDEF_LASTMOTD)
+    BUFFER_WRITE("Lmot: %d\n", (int)GET_LAST_MOTD(ch));
+  if (GET_LAST_NEWS(ch) != PFDEF_LASTNEWS)
+    BUFFER_WRITE("Lnew: %d\n", (int)GET_LAST_NEWS(ch));
+
+  BUFFER_WRITE("DrgB: %d\n", GET_DRAGONBORN_ANCESTRY(ch));
+
+  BUFFER_WRITE("Spek: %d\n", SPEAKING(ch));
+  BUFFER_WRITE("Home: %d\n", GET_REGION(ch));
+  BUFFER_WRITE("HomT: %d\n", GET_HOMETOWN(ch));
+  BUFFER_WRITE("DAd1: %d\n", GET_PC_ADJECTIVE_1(ch));
+  BUFFER_WRITE("DAd2: %d\n", GET_PC_ADJECTIVE_2(ch));
+  BUFFER_WRITE("DDs1: %d\n", GET_PC_DESCRIPTOR_1(ch));
+  BUFFER_WRITE("DDs2: %d\n", GET_PC_DESCRIPTOR_2(ch));
+
+  if (ch->player_specials->saved.new_race_stats)
+    BUFFER_WRITE("RacR: %d\n", ch->player_specials->saved.new_race_stats);
+
+  if (GET_HOST(ch))
+    BUFFER_WRITE("Host: %s\n", GET_HOST(ch));
+  if (GET_ARCANE_MARK(ch) && *GET_ARCANE_MARK(ch))
+    BUFFER_WRITE("AMrk: %s\n", GET_ARCANE_MARK(ch));
+  if (GET_HEIGHT(ch) != PFDEF_HEIGHT)
+    BUFFER_WRITE("Hite: %d\n", GET_HEIGHT(ch));
+  if (HIGH_ELF_CANTRIP(ch))
+    BUFFER_WRITE("HECn: %d\n", HIGH_ELF_CANTRIP(ch));
+  if (GET_HOLY_WEAPON_TYPE(ch) != PFDEF_HOLY_WEAPON_TYPE)
+    BUFFER_WRITE("HlyW: %d\n", GET_HOLY_WEAPON_TYPE(ch));
+  if (GET_WEIGHT(ch) != PFDEF_WEIGHT)
+    BUFFER_WRITE("Wate: %d\n", GET_WEIGHT(ch));
+  if (GET_ALIGNMENT(ch) != PFDEF_ALIGNMENT)
+    BUFFER_WRITE("Alin: %d\n", GET_ALIGNMENT(ch));
+  if (GET_CH_AGE(ch) != 0)
+    BUFFER_WRITE("Age : %d\n", GET_CH_AGE(ch));
+  if ((ch)->player_specials->saved.character_age_saved != 0)
+    BUFFER_WRITE("AgeS: %d\n", (ch)->player_specials->saved.character_age_saved);
+  if (GET_TEMPLATE(ch) != PFDEF_TEMPLATE)
+    BUFFER_WRITE("Tmpl: %d\n", GET_TEMPLATE(ch));
+  // Faction mission system
+  BUFFER_WRITE("MiCu: %d\n", GET_CURRENT_MISSION(ch));
+  BUFFER_WRITE("MiCr: %ld\n", GET_MISSION_CREDITS(ch));
+  BUFFER_WRITE("MiCd: %d\n", GET_MISSION_COOLDOWN(ch));
+  BUFFER_WRITE("MiSt: %ld\n", GET_MISSION_STANDING(ch));
+  BUFFER_WRITE("MiFa: %d\n", GET_MISSION_FACTION(ch));
+  BUFFER_WRITE("MiRe: %ld\n", GET_MISSION_REP(ch));
+  BUFFER_WRITE("MiXp: %ld\n", GET_MISSION_EXP(ch));
+  BUFFER_WRITE("MiDf: %d\n", GET_MISSION_DIFFICULTY(ch));
+  BUFFER_WRITE("MiRN: %d\n", GET_MISSION_NPC_NAME_NUM(ch));
+  BUFFER_WRITE("MiRm: %d\n", (int)GET_CURRENT_MISSION_ROOM(ch));
+
+  if (GET_QUIT_SURVEY_DONE(ch))
+    BUFFER_WRITE("QSvy: %d\n", GET_QUIT_SURVEY_DONE(ch));
+
+  if (VITAL_STRIKING(ch))
+    BUFFER_WRITE("VitS: %d\n", VITAL_STRIKING(ch));
+  if (GET_VESSEL_INSURANCE_CLAIM(ch) != 0)
+    BUFFER_WRITE("VIns: %llu\n", GET_VESSEL_INSURANCE_CLAIM(ch));
+  if (GET_VESSEL_MERCHANT_CONSEQUENCE(ch) != 0)
+    BUFFER_WRITE("VMer: %llu\n", GET_VESSEL_MERCHANT_CONSEQUENCE(ch));
+
+  sprintascii(bits, PLR_FLAGS(ch)[0]);
+  sprintascii(bits2, PLR_FLAGS(ch)[1]);
+  sprintascii(bits3, PLR_FLAGS(ch)[2]);
+  sprintascii(bits4, PLR_FLAGS(ch)[3]);
+  BUFFER_WRITE("Act : %s %s %s %s\n", bits, bits2, bits3, bits4);
+
+  sprintascii(bits, AFF_FLAGS(ch)[0]);
+  sprintascii(bits2, AFF_FLAGS(ch)[1]);
+  sprintascii(bits3, AFF_FLAGS(ch)[2]);
+  sprintascii(bits4, AFF_FLAGS(ch)[3]);
+  BUFFER_WRITE("Aff : %s %s %s %s\n", bits, bits2, bits3, bits4);
+
+  sprintascii(bits, PRF_FLAGS(ch)[0]);
+  sprintascii(bits2, PRF_FLAGS(ch)[1]);
+  sprintascii(bits3, PRF_FLAGS(ch)[2]);
+  sprintascii(bits4, PRF_FLAGS(ch)[3]);
+  BUFFER_WRITE("Pref: %s %s %s %s\n", bits, bits2, bits3, bits4);
+
+  if (GET_SAVE(ch, 0) != PFDEF_SAVETHROW)
+    BUFFER_WRITE("Thr1: %d\n", GET_SAVE(ch, 0));
+  if (GET_SAVE(ch, 1) != PFDEF_SAVETHROW)
+    BUFFER_WRITE("Thr2: %d\n", GET_SAVE(ch, 1));
+  if (GET_SAVE(ch, 2) != PFDEF_SAVETHROW)
+    BUFFER_WRITE("Thr3: %d\n", GET_SAVE(ch, 2));
+  if (GET_SAVE(ch, 3) != PFDEF_SAVETHROW)
+    BUFFER_WRITE("Thr4: %d\n", GET_SAVE(ch, 3));
+  if (GET_SAVE(ch, 4) != PFDEF_SAVETHROW)
+    BUFFER_WRITE("Thr5: %d\n", GET_SAVE(ch, 4));
+
+  if (GET_RESISTANCES(ch, 1) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("Res1: %d\n", GET_RESISTANCES(ch, 1));
+  if (GET_RESISTANCES(ch, 2) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("Res2: %d\n", GET_RESISTANCES(ch, 2));
+  if (GET_RESISTANCES(ch, 3) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("Res3: %d\n", GET_RESISTANCES(ch, 3));
+  if (GET_RESISTANCES(ch, 4) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("Res4: %d\n", GET_RESISTANCES(ch, 4));
+  if (GET_RESISTANCES(ch, 5) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("Res5: %d\n", GET_RESISTANCES(ch, 5));
+  if (GET_RESISTANCES(ch, 6) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("Res6: %d\n", GET_RESISTANCES(ch, 6));
+  if (GET_RESISTANCES(ch, 7) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("Res7: %d\n", GET_RESISTANCES(ch, 7));
+  if (GET_RESISTANCES(ch, 8) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("Res8: %d\n", GET_RESISTANCES(ch, 8));
+  if (GET_RESISTANCES(ch, 9) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("Res9: %d\n", GET_RESISTANCES(ch, 9));
+  if (GET_RESISTANCES(ch, 10) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("ResA: %d\n", GET_RESISTANCES(ch, 10));
+  if (GET_RESISTANCES(ch, 11) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("ResB: %d\n", GET_RESISTANCES(ch, 11));
+  if (GET_RESISTANCES(ch, 12) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("ResC: %d\n", GET_RESISTANCES(ch, 12));
+  if (GET_RESISTANCES(ch, 13) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("ResD: %d\n", GET_RESISTANCES(ch, 13));
+  if (GET_RESISTANCES(ch, 14) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("ResE: %d\n", GET_RESISTANCES(ch, 14));
+  if (GET_RESISTANCES(ch, 15) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("ResF: %d\n", GET_RESISTANCES(ch, 15));
+  if (GET_RESISTANCES(ch, 16) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("ResG: %d\n", GET_RESISTANCES(ch, 16));
+  if (GET_RESISTANCES(ch, 17) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("ResH: %d\n", GET_RESISTANCES(ch, 17));
+  if (GET_RESISTANCES(ch, 18) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("ResI: %d\n", GET_RESISTANCES(ch, 18));
+  if (GET_RESISTANCES(ch, 19) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("ResJ: %d\n", GET_RESISTANCES(ch, 19));
+  if (GET_RESISTANCES(ch, 20) != PFDEF_RESISTANCES)
+    BUFFER_WRITE("ResK: %d\n", GET_RESISTANCES(ch, 20));
+
+  if (GET_WIMP_LEV(ch) != PFDEF_WIMPLEV)
+    BUFFER_WRITE("Wimp: %d\n", GET_WIMP_LEV(ch));
+  if (GET_FREEZE_LEV(ch) != PFDEF_FREEZELEV)
+    BUFFER_WRITE("Frez: %d\n", GET_FREEZE_LEV(ch));
+  if (GET_INVIS_LEV(ch) != PFDEF_INVISLEV)
+    BUFFER_WRITE("Invs: %d\n", GET_INVIS_LEV(ch));
+  if (GET_LOADROOM(ch) != PFDEF_LOADROOM)
+    BUFFER_WRITE("Room: %d\n", (int)GET_LOADROOM(ch));
+  if (ch->player_specials->saved.active_fiendish_boons != 0)
+    BUFFER_WRITE("FdBn: %d\n", ch->player_specials->saved.active_fiendish_boons);
+  if (ch->player_specials->saved.channel_energy_type != 0)
+    BUFFER_WRITE("ChEn: %d\n", ch->player_specials->saved.channel_energy_type);
+
+  if (FIXED_BAB(ch) != 0)
+    BUFFER_WRITE("FBAB: %d\n", FIXED_BAB(ch));
+
+  BUFFER_WRITE("FaAd: %ld\n", GET_FACTION_STANDING(ch, FACTION_ADVENTURERS));
+  BUFFER_WRITE("Fa01: %ld\n", GET_FACTION_STANDING(ch, 1));
+  BUFFER_WRITE("Fa02: %ld\n", GET_FACTION_STANDING(ch, 2));
+  BUFFER_WRITE("Fa03: %ld\n", GET_FACTION_STANDING(ch, 3));
+
+  if (GET_BAD_PWS(ch) != PFDEF_BADPWS)
+    BUFFER_WRITE("Badp: %d\n", GET_BAD_PWS(ch));
+  if (GET_BACKGROUND(ch) != 0)
+    BUFFER_WRITE("BGnd: %d\n", GET_BACKGROUND(ch));
+  BUFFER_WRITE("BgFx: %d\n", BACKGROUND_EFFECTS_APPLIED(ch) ? 1 : 0);
+  BUFFER_WRITE("CrSt: %d\n", CREATION_STAGE(ch));
+  if (GET_PRACTICES(ch) != PFDEF_PRACTICES)
+    BUFFER_WRITE("Lern: %d\n", GET_PRACTICES(ch));
+  if (GET_TRAINS(ch) != PFDEF_TRAINS)
+    BUFFER_WRITE("Trns: %d\n", GET_TRAINS(ch));
+  if (GET_BOOSTS(ch) != PFDEF_BOOSTS)
+    BUFFER_WRITE("Bost: %d\n", GET_BOOSTS(ch));
+
+  if (GET_1ST_DOMAIN(ch) != PFDEF_DOMAIN_1)
+    BUFFER_WRITE("Dom1: %d\n", GET_1ST_DOMAIN(ch));
+  if (GET_2ND_DOMAIN(ch) != PFDEF_DOMAIN_2)
+    BUFFER_WRITE("Dom2: %d\n", GET_2ND_DOMAIN(ch));
+  if (GET_SPECIALTY_SCHOOL(ch) != PFDEF_SPECIALTY_SCHOOL)
+    BUFFER_WRITE("SSch: %d\n", GET_SPECIALTY_SCHOOL(ch));
+  if (GET_1ST_RESTRICTED_SCHOOL(ch) != PFDEF_RESTRICTED_SCHOOL_1)
+    BUFFER_WRITE("RSc1: %d\n", GET_1ST_RESTRICTED_SCHOOL(ch));
+  if (GET_2ND_RESTRICTED_SCHOOL(ch) != PFDEF_RESTRICTED_SCHOOL_2)
+    BUFFER_WRITE("RSc2: %d\n", GET_2ND_RESTRICTED_SCHOOL(ch));
+
+  if (GET_PREFERRED_ARCANE(ch) != PFDEF_PREFERRED_ARCANE)
+    BUFFER_WRITE("PCAr: %d\n", GET_PREFERRED_ARCANE(ch));
+  if (GET_PREFERRED_DIVINE(ch) != PFDEF_PREFERRED_DIVINE)
+    BUFFER_WRITE("PCDi: %d\n", GET_PREFERRED_DIVINE(ch));
+
+  if (GET_FEAT_POINTS(ch) != 0)
+    BUFFER_WRITE("Ftpt: %d\n", GET_FEAT_POINTS(ch));
+
+  if (GET_TALENT_POINTS(ch) != 0)
+    BUFFER_WRITE("Tlpt: %d\n", GET_TALENT_POINTS(ch));
+  /* Save rank array (fixed 64 entries) */
+  BUFFER_WRITE("Tlrk:");
+  for (i = 0; i < 64; i++)
+    BUFFER_WRITE(" %d", ch->player_specials->saved.talent_ranks[i]);
+  BUFFER_WRITE("\n");
+  /* Also write a zeroed legacy bitset for compatibility, or synthesize from ranks */
+  b1 = 0;
+  b2 = 0;
+  for (i = 1; i < 64; i++)
+    if (ch->player_specials->saved.talent_ranks[i] > 0)
+    {
+      if (i < 32)
+        b1 |= (1U << (i % 32));
+      else
+        b2 |= (1U << (i % 32));
+    }
+  BUFFER_WRITE("Tlbt: %u %u\n", b1, b2);
+
+  BUFFER_WRITE("Cfpt:\n");
+  for (i = 0; i < NUM_CLASSES; i++)
+    if (GET_CLASS_FEATS(ch, i) != 0)
+      BUFFER_WRITE("%d %d\n", i, GET_CLASS_FEATS(ch, i));
+  BUFFER_WRITE("0\n");
+
+  if (GET_EPIC_FEAT_POINTS(ch) != 0)
+    BUFFER_WRITE("Efpt: %d\n", GET_EPIC_FEAT_POINTS(ch));
+
+  BUFFER_WRITE("Ecfp:\n");
+  for (i = 0; i < NUM_CLASSES; i++)
+    if (GET_EPIC_CLASS_FEATS(ch, i) != 0)
+      BUFFER_WRITE("%d %d\n", i, GET_EPIC_CLASS_FEATS(ch, i));
+  BUFFER_WRITE("0\n");
+
+  if (GET_COND(ch, HUNGER) != PFDEF_HUNGER && GET_LEVEL(ch) < LVL_IMMORT)
+    BUFFER_WRITE("Hung: %d\n", GET_COND(ch, HUNGER));
+  if (GET_COND(ch, THIRST) != PFDEF_THIRST && GET_LEVEL(ch) < LVL_IMMORT)
+    BUFFER_WRITE("Thir: %d\n", GET_COND(ch, THIRST));
+  if (GET_COND(ch, DRUNK) != PFDEF_DRUNK && GET_LEVEL(ch) < LVL_IMMORT)
+    BUFFER_WRITE("Drnk: %d\n", GET_COND(ch, DRUNK));
+
+  if (GET_HIT(ch) != PFDEF_HIT || GET_MAX_HIT(ch) != PFDEF_MAXHIT)
+    BUFFER_WRITE("Hit : %d/%d\n", GET_HIT(ch), GET_MAX_HIT(ch));
+  if (GET_PSP(ch) != PFDEF_PSP || GET_MAX_PSP(ch) != PFDEF_MAXPSP)
+    BUFFER_WRITE("PSP : %d/%d\n", GET_PSP(ch), GET_MAX_PSP(ch));
+  if (GET_MOVE(ch) != PFDEF_MOVE || GET_MAX_MOVE(ch) != PFDEF_MAXMOVE)
+    BUFFER_WRITE("Move: %d/%d\n", GET_MOVE(ch), GET_MAX_MOVE(ch));
+
+  if (GET_HP_REGEN(ch) != PFDEF_HP_REGEN)
+    BUFFER_WRITE("HPRg : %d\n", GET_HP_REGEN(ch));
+  if (GET_MV_REGEN(ch) != PFDEF_MV_REGEN)
+    BUFFER_WRITE("MVRg : %d\n", GET_MV_REGEN(ch));
+  if (GET_PSP_REGEN(ch) != PFDEF_PSP_REGEN)
+    BUFFER_WRITE("PSRg : %d\n", GET_PSP_REGEN(ch));
+
+  /* Moon bonus spells */
+  if (ch->player_specials->saved.moon_bonus_spells != 0)
+    BUFFER_WRITE("MBSp: %d\n", ch->player_specials->saved.moon_bonus_spells);
+  if (ch->player_specials->saved.moon_bonus_spells_used != 0)
+    BUFFER_WRITE("MBSU: %d\n", ch->player_specials->saved.moon_bonus_spells_used);
+  if (ch->player_specials->saved.moon_bonus_regen_timer != 0)
+    BUFFER_WRITE("MBSR: %d\n", ch->player_specials->saved.moon_bonus_regen_timer);
+
+  if (GET_SETCLOAK_TIMER(ch) != PFDEF_SETCLOAK_TIMER)
+    BUFFER_WRITE("ClkT : %d\n", GET_SETCLOAK_TIMER(ch));
+
+  if (GET_PVP_TIMER(ch) != 0)
+    BUFFER_WRITE("PvPT: %ld\n", GET_PVP_TIMER(ch));
+
+  if (ch->player_specials->saved.last_device_recharge != 0)
+    BUFFER_WRITE("DvRc: %ld\n", ch->player_specials->saved.last_device_recharge);
+
+  if (GET_STR(ch) != PFDEF_STR || GET_ADD(ch) != PFDEF_STRADD)
+    BUFFER_WRITE("Str : %d/%d\n", GET_STR(ch), GET_ADD(ch));
+
+  if (GET_INT(ch) != PFDEF_INT)
+    BUFFER_WRITE("Int : %d\n", GET_INT(ch));
+  if (GET_WIS(ch) != PFDEF_WIS)
+    BUFFER_WRITE("Wis : %d\n", GET_WIS(ch));
+  if (GET_DEX(ch) != PFDEF_DEX)
+    BUFFER_WRITE("Dex : %d\n", GET_DEX(ch));
+  if (GET_CON(ch) != PFDEF_CON)
+    BUFFER_WRITE("Con : %d\n", GET_CON(ch));
+  if (GET_CHA(ch) != PFDEF_CHA)
+    BUFFER_WRITE("Cha : %d\n", GET_CHA(ch));
+
+  if (GET_AC(ch) != PFDEF_AC)
+    BUFFER_WRITE("Ac  : %d\n", GET_AC(ch));
+  if (GET_GOLD(ch) != PFDEF_GOLD)
+    BUFFER_WRITE("Gold: %d\n", GET_GOLD(ch));
+  if (GET_BANK_GOLD(ch) != PFDEF_BANK)
+    BUFFER_WRITE("Bank: %d\n", GET_BANK_GOLD(ch));
+  if (GET_EXP(ch) != PFDEF_EXP)
+    BUFFER_WRITE("Exp : %ld\n", GET_EXP(ch));
+  if (GET_ARTISAN_EXP(ch) != 0)
+    BUFFER_WRITE("AExp: %d\n", GET_ARTISAN_EXP(ch));
+  if (GET_HITROLL(ch) != PFDEF_HITROLL)
+    BUFFER_WRITE("Hrol: %d\n", GET_HITROLL(ch));
+  if (GET_DAMROLL(ch) != PFDEF_DAMROLL)
+    BUFFER_WRITE("Drol: %d\n", GET_DAMROLL(ch));
+  if (GET_SPELL_RES(ch) != PFDEF_SPELL_RES)
+    BUFFER_WRITE("SpRs: %d\n", GET_SPELL_RES(ch));
+  if (IS_MORPHED(ch) != PFDEF_MORPHED)
+    BUFFER_WRITE("Mrph: %d\n", IS_MORPHED(ch));
+  if (MERGE_FORMS_TIMER(ch) != 0)
+    BUFFER_WRITE("MFrm: %d\n", MERGE_FORMS_TIMER(ch));
+  if (GET_EIDOLON_BASE_FORM(ch) != 0)
+    BUFFER_WRITE("EidB: %d\n", GET_EIDOLON_BASE_FORM(ch));
+  if (CALL_EIDOLON_COOLDOWN(ch) != 0)
+    BUFFER_WRITE("EidC: %d\n", CALL_EIDOLON_COOLDOWN(ch));
+  if (GET_FORAGE_COOLDOWN(ch) != 0)
+    BUFFER_WRITE("FrgC: %d\n", GET_FORAGE_COOLDOWN(ch));
+  if (GET_SCROUNGE_COOLDOWN(ch) != 0)
+    BUFFER_WRITE("Scrg: %d\n", GET_SCROUNGE_COOLDOWN(ch));
+  if (GET_SPIRITUAL_WEAPON_COOLDOWN(ch) != 0)
+    BUFFER_WRITE("SpWC: %d\n", GET_SPIRITUAL_WEAPON_COOLDOWN(ch));
+  if (GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch) != 0)
+    BUFFER_WRITE("IrMC: %d\n", GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch));
+  if (GET_QUICK_CAST_COOLDOWN(ch) != 0)
+    BUFFER_WRITE("QkCs: %d\n", GET_QUICK_CAST_COOLDOWN(ch));
+  if (GET_SPELL_RECALL_COOLDOWN(ch) != 0)
+    BUFFER_WRITE("SpRc: %d\n", GET_SPELL_RECALL_COOLDOWN(ch));
+  if (GET_RETAINER_COOLDOWN(ch) != 0)
+    BUFFER_WRITE("RetC: %d\n", GET_RETAINER_COOLDOWN(ch));
+  if (GET_BONUS_DOMAIN_SLOTS_USED(ch) != 0)
+    BUFFER_WRITE("BDsU: %d\n", GET_BONUS_DOMAIN_SLOTS_USED(ch));
+  if (GET_BONUS_DOMAIN_REGEN_TIMER(ch) != 0)
+    BUFFER_WRITE("BDsT: %d\n", GET_BONUS_DOMAIN_REGEN_TIMER(ch));
+  if (GET_BONUS_SLOTS_USED(ch) != 0)
+    BUFFER_WRITE("BSlU: %d\n", GET_BONUS_SLOTS_USED(ch));
+  if (GET_BONUS_SLOTS_REGEN_TIMER(ch) != 0)
+    BUFFER_WRITE("BSlT: %d\n", GET_BONUS_SLOTS_REGEN_TIMER(ch));
+  BUFFER_WRITE("God : %d\n", GET_DEITY(ch));
+  if (GET_AUTOCQUEST_VNUM(ch) != PFDEF_AUTOCQUEST_VNUM)
+    BUFFER_WRITE("Cvnm: %d\n", (int)GET_AUTOCQUEST_VNUM(ch));
+  if (GET_AUTOCQUEST_MAKENUM(ch) != PFDEF_AUTOCQUEST_MAKENUM)
+    BUFFER_WRITE("Cmnm: %d\n", GET_AUTOCQUEST_MAKENUM(ch));
+  if (GET_AUTOCQUEST_QP(ch) != PFDEF_AUTOCQUEST_QP)
+    BUFFER_WRITE("Cqps: %d\n", GET_AUTOCQUEST_QP(ch));
+  if (GET_AUTOCQUEST_EXP(ch) != PFDEF_AUTOCQUEST_EXP)
+    BUFFER_WRITE("Cexp: %d\n", (int)GET_AUTOCQUEST_EXP(ch));
+  if (GET_AUTOCQUEST_GOLD(ch) != PFDEF_AUTOCQUEST_GOLD)
+    BUFFER_WRITE("Cgld: %d\n", (int)GET_AUTOCQUEST_GOLD(ch));
+  if (GET_AUTOCQUEST_DESC(ch) != PFDEF_AUTOCQUEST_DESC)
+    BUFFER_WRITE("Cdsc: %s\n", GET_AUTOCQUEST_DESC(ch));
+  if (GET_AUTOCQUEST_MATERIAL(ch) != PFDEF_AUTOCQUEST_MATERIAL)
+    BUFFER_WRITE("Cmat: %d\n", GET_AUTOCQUEST_MATERIAL(ch));
+
+  if (EFREETI_MAGIC_USES(ch) != PFDEF_EFREETI_MAGIC_USES)
+    BUFFER_WRITE("EfMU: %d\n", EFREETI_MAGIC_USES(ch));
+  if (EFREETI_MAGIC_TIMER(ch) != PFDEF_EFREETI_MAGIC_TIMER)
+    BUFFER_WRITE("EfMT: %d\n", EFREETI_MAGIC_TIMER(ch));
+  if (GET_ENCUMBRANCE_MOD(ch) != 0)
+    BUFFER_WRITE("EncM: %d\n", GET_ENCUMBRANCE_MOD(ch));
+  BUFFER_WRITE("EldE: %d\n", GET_ELDRITCH_ESSENCE(ch));
+  BUFFER_WRITE("EldS: %d\n", GET_ELDRITCH_SHAPE(ch));
+  if (GET_DR_MOD(ch) > 0)
+    BUFFER_WRITE("DRMd: %d\n", GET_DR_MOD(ch));
+
+  if (DRAGON_MAGIC_USES(ch) != PFDEF_DRAGON_MAGIC_USES)
+    BUFFER_WRITE("DrMU: %d\n", DRAGON_MAGIC_USES(ch));
+  if (DRAGON_MAGIC_TIMER(ch) != PFDEF_DRAGON_MAGIC_TIMER)
+    BUFFER_WRITE("DrMT: %d\n", DRAGON_MAGIC_TIMER(ch));
+  if (PIXIE_DUST_USES(ch) != PFDEF_PIXIE_DUST_USES)
+    BUFFER_WRITE("PxDU: %d\n", PIXIE_DUST_USES(ch));
+  if (PIXIE_DUST_TIMER(ch) != PFDEF_PIXIE_DUST_TIMER)
+    BUFFER_WRITE("PxDT: %d\n", PIXIE_DUST_TIMER(ch));
+
+  if (LAUGHING_TOUCH_USES(ch) != PFDEF_LAUGHING_TOUCH_USES)
+    BUFFER_WRITE("LTCU: %d\n", LAUGHING_TOUCH_USES(ch));
+  if (LAUGHING_TOUCH_TIMER(ch) != PFDEF_LAUGHING_TOUCH_TIMER)
+    BUFFER_WRITE("LTCT: %d\n", LAUGHING_TOUCH_TIMER(ch));
+
+  if (FLEETING_GLANCE_USES(ch) != PFDEF_FLEETING_GLANCE_USES)
+    BUFFER_WRITE("FLGU: %d\n", FLEETING_GLANCE_USES(ch));
+  if (FLEETING_GLANCE_TIMER(ch) != PFDEF_FLEETING_GLANCE_TIMER)
+    BUFFER_WRITE("FLGT: %d\n", FLEETING_GLANCE_TIMER(ch));
+
+  if (FEY_SHADOW_WALK_USES(ch) != PFDEF_FEY_SHADOW_WALK_USES)
+    BUFFER_WRITE("FSWU: %d\n", FEY_SHADOW_WALK_USES(ch));
+  if (FEY_SHADOW_WALK_TIMER(ch) != PFDEF_FEY_SHADOW_WALK_TIMER)
+    BUFFER_WRITE("FSWT: %d\n", FEY_SHADOW_WALK_TIMER(ch));
+
+  if (GET_FAST_HEALING_MOD(ch) != 0)
+    BUFFER_WRITE("FstH: %d\n", GET_FAST_HEALING_MOD(ch));
+  if (GRAVE_TOUCH_USES(ch) != PFDEF_GRAVE_TOUCH_USES)
+    BUFFER_WRITE("GTCU: %d\n", GRAVE_TOUCH_USES(ch));
+  if (GRAVE_TOUCH_TIMER(ch) != PFDEF_GRAVE_TOUCH_TIMER)
+    BUFFER_WRITE("GTCT: %d\n", GRAVE_TOUCH_TIMER(ch));
+  if (GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) != 0)
+    BUFFER_WRITE("FttD: %d\n", GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch));
+  if (GET_DRAGON_BOND_TYPE(ch) != 0)
+    BUFFER_WRITE("DrBT: %d\n", GET_DRAGON_BOND_TYPE(ch));
+  if (GET_DRAGON_RIDER_DRAGON_TYPE(ch) != 0)
+    BUFFER_WRITE("DrDT: %d\n", GET_DRAGON_RIDER_DRAGON_TYPE(ch));
+
+  if (GRASP_OF_THE_DEAD_USES(ch) != PFDEF_GRASP_OF_THE_DEAD_USES)
+    BUFFER_WRITE("GODU: %d\n", GRASP_OF_THE_DEAD_USES(ch));
+  if (GRASP_OF_THE_DEAD_TIMER(ch) != PFDEF_GRASP_OF_THE_DEAD_TIMER)
+    BUFFER_WRITE("GODT: %d\n", GRASP_OF_THE_DEAD_TIMER(ch));
+
+  if (INCORPOREAL_FORM_USES(ch) != PFDEF_INCORPOREAL_FORM_USES)
+    BUFFER_WRITE("InFU: %d\n", INCORPOREAL_FORM_USES(ch));
+  if (INCORPOREAL_FORM_TIMER(ch) != PFDEF_INCORPOREAL_FORM_TIMER)
+    BUFFER_WRITE("InFT: %d\n", INCORPOREAL_FORM_TIMER(ch));
+
+  if (GET_PSIONIC_ENERGY_TYPE(ch) != PFDEF_PSIONIC_ENERGY_TYPE)
+    BUFFER_WRITE("PsET: %d\n", GET_PSIONIC_ENERGY_TYPE(ch));
+
+  if (GET_OLC_ZONE(ch) != (int)PFDEF_OLC)
+    BUFFER_WRITE("Olc : %d\n", GET_OLC_ZONE(ch));
+  if (GET_PAGE_LENGTH(ch) != PFDEF_PAGELENGTH)
+    BUFFER_WRITE("Page: %d\n", GET_PAGE_LENGTH(ch));
+  if (GET_SCREEN_WIDTH(ch) != PFDEF_SCREENWIDTH)
+    BUFFER_WRITE("ScrW: %d\n", GET_SCREEN_WIDTH(ch));
+  if (GET_QUESTPOINTS(ch) != PFDEF_QUESTPOINTS)
+    BUFFER_WRITE("Qstp: %d\n", GET_QUESTPOINTS(ch));
+  if (GET_QUEST_COUNTER(ch, 0) != PFDEF_QUESTCOUNT)
+    BUFFER_WRITE("Qcnt: %d\n", GET_QUEST_COUNTER(ch, 0));
+  if (GET_QUEST_COUNTER(ch, 1) != PFDEF_QUESTCOUNT)
+    BUFFER_WRITE("Qcn1: %d\n", GET_QUEST_COUNTER(ch, 1));
+  if (GET_QUEST_COUNTER(ch, 2) != PFDEF_QUESTCOUNT)
+    BUFFER_WRITE("Qcn2: %d\n", GET_QUEST_COUNTER(ch, 2));
+  if (GET_NUM_QUESTS(ch) != PFDEF_COMPQUESTS)
+  {
+    BUFFER_WRITE("Qest:\n");
+    for (i = 0; i < GET_NUM_QUESTS(ch); i++)
+      BUFFER_WRITE("%d\n", (int)ch->player_specials->saved.completed_quests[i]);
+    BUFFER_WRITE("%d\n", (int)NOTHING);
+  }
+
+  /* Save introduction list */
+  {
+    int intro_count = 0;
+    for (i = 0; i < MAX_INTROS && ch->player_specials->saved.intro_list[i] != NULL; i++)
+      intro_count++;
+
+    if (intro_count > 0)
+    {
+      BUFFER_WRITE("Intr:\n");
+      for (i = 0; i < intro_count; i++)
+        BUFFER_WRITE("%s\n", ch->player_specials->saved.intro_list[i]);
+      BUFFER_WRITE("~\n");
+    }
+  }
+
+  if (GET_NSUPPLY_COOLDOWN(ch) != 0)
+    BUFFER_WRITE("SpCd: %d\n", GET_NSUPPLY_COOLDOWN(ch));
+  if (GET_NSUPPLY_NUM_MADE(ch) != 0)
+    BUFFER_WRITE("SpNM: %d\n", GET_NSUPPLY_NUM_MADE(ch));
+
+  if (GET_QUEST(ch, 0) != (int)PFDEF_CURRQUEST)
+    BUFFER_WRITE("Qcur: %d\n", GET_QUEST(ch, 0));
+  if (GET_QUEST(ch, 1) != (int)PFDEF_CURRQUEST)
+    BUFFER_WRITE("Qcu1: %d\n", GET_QUEST(ch, 1));
+  if (GET_QUEST(ch, 2) != (int)PFDEF_CURRQUEST)
+    BUFFER_WRITE("Qcu2: %d\n", GET_QUEST(ch, 2));
+  if (GET_QUEST_TIME(ch, 0) != 0)
+    BUFFER_WRITE("Qtim: %d\n", GET_QUEST_TIME(ch, 0));
+  if (GET_QUEST_TIME(ch, 1) != 0)
+    BUFFER_WRITE("Qti1: %d\n", GET_QUEST_TIME(ch, 1));
+  if (GET_QUEST_TIME(ch, 2) != 0)
+    BUFFER_WRITE("Qti2: %d\n", GET_QUEST_TIME(ch, 2));
+  if (GET_DIPTIMER(ch) != PFDEF_DIPTIMER)
+    BUFFER_WRITE("DipT: %d\n", GET_DIPTIMER(ch));
+  if (GET_CLAN(ch) != PFDEF_CLAN)
+    BUFFER_WRITE("Cln : %d\n", (int)GET_CLAN(ch));
+  if (GET_CLANRANK(ch) != PFDEF_CLANRANK)
+    BUFFER_WRITE("Clrk: %d\n", GET_CLANRANK(ch));
+  if (GET_CLANPOINTS(ch) != PFDEF_CLANPOINTS)
+    BUFFER_WRITE("CPts: %d\n", GET_CLANPOINTS(ch));
+  if (GET_SLAYER_JUDGEMENT(ch) != 0)
+    BUFFER_WRITE("Slyr: %d\n", GET_SLAYER_JUDGEMENT(ch));
+  if (GET_BANE_TARGET_TYPE(ch) != 0)
+    BUFFER_WRITE("Bane: %d\n", GET_BANE_TARGET_TYPE(ch));
+  if (GET_FAVORED_TERRAIN(ch) != -1)
+    BUFFER_WRITE("InqT: %d\n", GET_FAVORED_TERRAIN(ch));
+  if (GET_FAVORED_TERRAIN_RESET(ch) != 0)
+    BUFFER_WRITE("InqR: %ld\n", (long)GET_FAVORED_TERRAIN_RESET(ch));
+  if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch) != 0)
+    BUFFER_WRITE("KpkS: %d\n", GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch));
+  if (SCRIPT(ch))
+  {
+    for (t = TRIGGERS(SCRIPT(ch)); t; t = t->next)
+      BUFFER_WRITE("Trig: %d\n", (int)GET_TRIG_VNUM(t));
+  }
+
+  if (ch->desc)
+  {
+    BUFFER_WRITE("GMCP: %d\n", (int)ch->desc->pProtocol->bGMCP);
+    BUFFER_WRITE("XTrm: %d\n", ch->desc->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt);
+    BUFFER_WRITE("UTF8: %d\n", ch->desc->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt);
+  }
+
+  if (GET_PREMADE_BUILD_CLASS(ch) != PFDEF_PREMADE_BUILD)
+    BUFFER_WRITE("PreB: %d\n", GET_PREMADE_BUILD_CLASS(ch));
+
+  // save device creation cooldown
+  if (ch->player_specials->saved.device_creation_cooldown > 0)
+    BUFFER_WRITE("DvCD: %ld\n", (long)ch->player_specials->saved.device_creation_cooldown);
+
+  // save devices from do_device here
+  if (ch->player_specials->saved.num_inventions > 0)
+  {
+    int inner_j;
+    BUFFER_WRITE("Dvis:\n");
+    BUFFER_WRITE("%d\n", ch->player_specials->saved.num_inventions);
+    for (i = 0; i < ch->player_specials->saved.num_inventions; i++)
+    {
+      struct player_invention *inv = &ch->player_specials->saved.inventions[i];
+      BUFFER_WRITE("%d\n", i); /* invention index */
+      BUFFER_WRITE("%s\n", inv->keywords);
+      BUFFER_WRITE("%s\n", inv->short_description);
+      BUFFER_WRITE("%s\n", inv->long_description);
+      BUFFER_WRITE("%d %d %d %d %ld\n", inv->num_spells, inv->duration, inv->reliability, inv->uses,
+                   (long)inv->cooldown_expires);
+      /* Save spell effects */
+      for (inner_j = 0; inner_j < inv->num_spells && inner_j < MAX_INVENTION_SPELLS; inner_j++)
+        BUFFER_WRITE("%d\n", inv->spell_effects[inner_j]);
+      /* Fill remaining spell slots with -1 */
+      for (inner_j = inv->num_spells; inner_j < MAX_INVENTION_SPELLS; inner_j++)
+        BUFFER_WRITE("-1\n");
+
+      /* Save chosen spell levels (marker + values for backward compatibility) */
+      BUFFER_WRITE("Lvls:\n");
+      for (inner_j = 0; inner_j < inv->num_spells && inner_j < MAX_INVENTION_SPELLS; inner_j++)
+        BUFFER_WRITE("%d\n", inv->spell_levels[inner_j]);
+      for (inner_j = inv->num_spells; inner_j < MAX_INVENTION_SPELLS; inner_j++)
+        BUFFER_WRITE("0\n");
+    }
+    BUFFER_WRITE("-1\n"); /* terminator */
+  }
+
+  /* Save skills */
+  if (GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    BUFFER_WRITE("Skil:\n");
+    for (i = 1; i < MAX_SKILLS; i++)
+    {
+      if (GET_SKILL(ch, i))
+        BUFFER_WRITE("%d %d\n", i, GET_SKILL(ch, i));
+    }
+    BUFFER_WRITE("0 0\n");
+  }
+
+  /* Save abilities */
+  if (GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    BUFFER_WRITE("Ablt:\n");
+    for (i = 1; i <= MAX_ABILITIES; i++)
+    {
+      if (GET_ABILITY(ch, i))
+        BUFFER_WRITE("%d %d\n", i, GET_ABILITY(ch, i));
+    }
+    BUFFER_WRITE("0 0\n");
+  }
+  if (GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    BUFFER_WRITE("AbXP:\n");
+    for (i = 1; i <= MAX_ABILITIES; i++)
+    {
+      if (GET_CRAFT_SKILL_EXP(ch, i))
+        BUFFER_WRITE("%d %d\n", i, GET_CRAFT_SKILL_EXP(ch, i));
+    }
+    BUFFER_WRITE("0 0\n");
+  }
+
+  // Save Buffs
+  BUFFER_WRITE("Buff:\n");
+  for (i = 0; i < MAX_BUFFS; i++)
+    BUFFER_WRITE("%d %d %d\n", i, GET_BUFF(ch, i, 0), GET_BUFF(ch, i, 1));
+  BUFFER_WRITE("-1 -1 -1\n");
+
+  // Save Bags
+  if (GET_BAG_NAME(ch, 1))
+    BUFFER_WRITE("Bag1: %s\n", GET_BAG_NAME(ch, 1));
+  if (GET_BAG_NAME(ch, 2))
+    BUFFER_WRITE("Bag2: %s\n", GET_BAG_NAME(ch, 2));
+  if (GET_BAG_NAME(ch, 3))
+    BUFFER_WRITE("Bag3: %s\n", GET_BAG_NAME(ch, 3));
+  if (GET_BAG_NAME(ch, 4))
+    BUFFER_WRITE("Bag4: %s\n", GET_BAG_NAME(ch, 4));
+  if (GET_BAG_NAME(ch, 5))
+    BUFFER_WRITE("Bag5: %s\n", GET_BAG_NAME(ch, 5));
+  if (GET_BAG_NAME(ch, 6))
+    BUFFER_WRITE("Bag6: %s\n", GET_BAG_NAME(ch, 6));
+  if (GET_BAG_NAME(ch, 7))
+    BUFFER_WRITE("Bag7: %s\n", GET_BAG_NAME(ch, 7));
+  if (GET_BAG_NAME(ch, 8))
+    BUFFER_WRITE("Bag8: %s\n", GET_BAG_NAME(ch, 8));
+  if (GET_BAG_NAME(ch, 9))
+    BUFFER_WRITE("Bag9: %s\n", GET_BAG_NAME(ch, 9));
+  if (GET_BAG_NAME(ch, 10))
+    BUFFER_WRITE("Bag0: %s\n", GET_BAG_NAME(ch, 10));
+
+  /* Save Bombs */
+  BUFFER_WRITE("Bomb:\n");
+  for (i = 0; i < MAX_BOMBS_ALLOWED; i++)
+    BUFFER_WRITE("%d\n", GET_BOMB(ch, i));
+  BUFFER_WRITE("-1\n");
+
+  // Save Craft mats onhand
+  BUFFER_WRITE("CfMt:\n");
+  for (i = 0; i < NUM_CRAFT_MATS; i++)
+    BUFFER_WRITE("%d\n", GET_CRAFT_MAT(ch, i));
+  BUFFER_WRITE("-1\n");
+
+  // Save Craft motes onhand
+  BUFFER_WRITE("Mote:\n");
+  for (i = 0; i < NUM_CRAFT_MOTES; i++)
+    BUFFER_WRITE("%d\n", GET_CRAFT_MOTES(ch, i));
+  BUFFER_WRITE("-1\n");
+
+  // Save Craft Affects
+  BUFFER_WRITE("CrAf:\n");
+  for (i = 0; i < MAX_OBJ_AFFECT; i++)
+    BUFFER_WRITE("%d %d %d %d %d\n", i, GET_CRAFT(ch).affected[i].location,
+                 GET_CRAFT(ch).affected[i].modifier, GET_CRAFT(ch).affected[i].bonus_type,
+                 GET_CRAFT(ch).affected[i].specific);
+  BUFFER_WRITE("-1\n");
+
+  // Save Craft Motes
+  BUFFER_WRITE("CrMo:\n");
+  for (i = 0; i < MAX_OBJ_AFFECT; i++)
+    BUFFER_WRITE("%d %d\n", i, GET_CRAFT(ch).motes_required[i]);
+  BUFFER_WRITE("-1\n");
+
+  if (transport_locale_valid(ch->player_specials->travel_type, ch->player_specials->travel_locale))
+    BUFFER_WRITE("Trv1: %d %d %d %d\n", ch->player_specials->destination,
+                 transport_remaining_seconds(ch), ch->player_specials->travel_type,
+                 ch->player_specials->travel_locale);
+
+  // Save Craft Materials
+  BUFFER_WRITE("CrMa:\n");
+  for (i = 0; i < NUM_CRAFT_GROUPS; i++)
+    BUFFER_WRITE("%d %d %d\n", i, GET_CRAFT(ch).materials[i][0], GET_CRAFT(ch).materials[i][1]);
+  BUFFER_WRITE("-1\n");
+
+  // misc craft things
+  BUFFER_WRITE("CrMe: %d\n", GET_CRAFT(ch).crafting_method);
+  BUFFER_WRITE("CrIT: %d\n", GET_CRAFT(ch).crafting_item_type);
+  BUFFER_WRITE("CrSp: %d\n", GET_CRAFT(ch).crafting_specific);
+  BUFFER_WRITE("CrSk: %d\n", GET_CRAFT(ch).skill_type);
+  BUFFER_WRITE("CrRe: %d\n", GET_CRAFT(ch).crafting_recipe);
+  BUFFER_WRITE("CrVt: %d\n", GET_CRAFT(ch).craft_variant);
+  BUFFER_WRITE("CrMe: %d\n", GET_CRAFT(ch).crafting_method);
+  BUFFER_WRITE("CrEn: %d\n", GET_CRAFT(ch).enhancement);
+  BUFFER_WRITE("CrEM: %d\n", GET_CRAFT(ch).enhancement_motes_required);
+  BUFFER_WRITE("CrRl: %d\n", GET_CRAFT(ch).skill_roll);
+  BUFFER_WRITE("CrDC: %d\n", GET_CRAFT(ch).dc);
+  BUFFER_WRITE("CrDu: %d\n", GET_CRAFT(ch).craft_duration);
+  BUFFER_WRITE("CrKy: %s\n", GET_CRAFT(ch).keywords);
+  BUFFER_WRITE("CrSD: %s\n", GET_CRAFT(ch).short_description);
+  BUFFER_WRITE("CrRD: %s\n", GET_CRAFT(ch).room_description);
+  BUFFER_WRITE("CrEx: %s\n", GET_CRAFT(ch).ex_description);
+
+  // refining stuff
+  BUFFER_WRITE("RM00: %d\n", GET_CRAFT(ch).refining_materials[0][0]);
+  BUFFER_WRITE("RM01: %d\n", GET_CRAFT(ch).refining_materials[0][1]);
+  BUFFER_WRITE("RM10: %d\n", GET_CRAFT(ch).refining_materials[1][0]);
+  BUFFER_WRITE("RM11: %d\n", GET_CRAFT(ch).refining_materials[1][1]);
+  BUFFER_WRITE("RM20: %d\n", GET_CRAFT(ch).refining_materials[2][0]);
+  BUFFER_WRITE("RM21: %d\n", GET_CRAFT(ch).refining_materials[2][1]);
+  BUFFER_WRITE("RRs0: %d\n", GET_CRAFT(ch).refining_result[0]);
+  BUFFER_WRITE("RRs1: %d\n", GET_CRAFT(ch).refining_result[1]);
+
+  // resizing stuff
+  BUFFER_WRITE("RSSz: %d\n", GET_CRAFT(ch).new_size);
+  BUFFER_WRITE("RSMT: %d\n", GET_CRAFT(ch).resize_mat_type);
+  BUFFER_WRITE("RSMN: %d\n", GET_CRAFT(ch).resize_mat_num);
+
+  BUFFER_WRITE("CrOL: %d\n", GET_CRAFT(ch).obj_level);
+  BUFFER_WRITE("CrLA: %d\n", GET_CRAFT(ch).level_adjust);
+
+  BUFFER_WRITE("CrSN: %d\n", GET_CRAFT(ch).supply_num_required);
+  BUFFER_WRITE("CrAS: %d\n", GET_CRAFT(ch).supply_active_slot);
+
+  /* Save individual supply slot cooldowns */
+  {
+    int slot_idx;
+    for (slot_idx = 0; slot_idx < 5; slot_idx++)
+    {
+      if (GET_CRAFT(ch).supply_slot_cooldowns[slot_idx] > 0)
+      {
+        BUFFER_WRITE("SuCD: %d %ld\n", slot_idx,
+                     (long)GET_CRAFT(ch).supply_slot_cooldowns[slot_idx]);
+      }
+    }
+  }
+
+  BUFFER_WRITE("CrSR: %d\n", GET_CRAFT(ch).survey_rooms);
+  BUFFER_WRITE("CrIy: %d\n", GET_CRAFT(ch).instrument_type);
+  BUFFER_WRITE("CrIQ: %d\n", GET_CRAFT(ch).instrument_quality);
+  BUFFER_WRITE("CrIE: %d\n", GET_CRAFT(ch).instrument_effectiveness);
+  BUFFER_WRITE("CrIB: %d\n", GET_CRAFT(ch).instrument_breakability);
+  BUFFER_WRITE("CrI1: %d\n", GET_CRAFT(ch).instrument_motes[1]);
+  BUFFER_WRITE("CrI2: %d\n", GET_CRAFT(ch).instrument_motes[2]);
+  BUFFER_WRITE("CrI3: %d\n", GET_CRAFT(ch).instrument_motes[3]);
+
+  /* Save supply contract slots */
+  {
+    int slot_idx;
+    for (slot_idx = 0; slot_idx < 5; slot_idx++)
+    {
+      if (GET_CRAFT(ch).supply_slot_active[slot_idx])
+      {
+        struct supply_contract *slot = &GET_CRAFT(ch).supply_slots[slot_idx];
+        BUFFER_WRITE("SuSl: %d %d %d %d %d %d %d %d %d %ld\n", slot_idx, slot->contract_type,
+                     slot->recipe, slot->variant, slot->quantity, slot->reward,
+                     slot->difficulty_modifier, slot->time_limit, slot->reputation_requirement,
+                     (long)slot->expiration_time);
+        if (slot->description)
+          BUFFER_WRITE("SuSD: %d %s\n", slot_idx, slot->description);
+        if (slot->requirements)
+          BUFFER_WRITE("SuSR: %d %s\n", slot_idx, slot->requirements);
+      }
+    }
+  }
+
+  /* Save supply contract timing data */
+  if (GET_CRAFT(ch).supply_slots_last_refresh > 0)
+    BUFFER_WRITE("SuLR: %ld\n", (long)GET_CRAFT(ch).supply_slots_last_refresh);
+  if (GET_CRAFT(ch).supply_slots_next_refresh > 0)
+    BUFFER_WRITE("SuNR: %ld\n", (long)GET_CRAFT(ch).supply_slots_next_refresh);
+
+
+  // Save consumables: potions, scrolls, wands and staves
+  BUFFER_WRITE("Potn:\n");
+  for (i = 0; i < MAX_SPELLS; i++)
+    if (STORED_POTIONS(ch, i) > 0)
+      BUFFER_WRITE("%d %d\n", i, STORED_POTIONS(ch, i));
+  BUFFER_WRITE("-1\n");
+
+  BUFFER_WRITE("Scrl:\n");
+  for (i = 0; i < MAX_SPELLS; i++)
+    if (STORED_SCROLLS(ch, i) > 0)
+      BUFFER_WRITE("%d %d\n", i, STORED_SCROLLS(ch, i));
+  BUFFER_WRITE("-1\n");
+
+  BUFFER_WRITE("Stav:\n");
+  for (i = 0; i < MAX_SPELLS; i++)
+    if (STORED_STAVES(ch, i) > 0)
+      BUFFER_WRITE("%d %d\n", i, STORED_STAVES(ch, i));
+  BUFFER_WRITE("-1\n");
+
+  BUFFER_WRITE("Wand:\n");
+  for (i = 0; i < MAX_SPELLS; i++)
+    if (STORED_WANDS(ch, i) > 0)
+      BUFFER_WRITE("%d %d\n", i, STORED_WANDS(ch, i));
+  BUFFER_WRITE("-1\n");
+  // End save consumables
+
+  BUFFER_WRITE("Disc:\n");
+  for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
+    BUFFER_WRITE("%d\n", KNOWS_DISCOVERY(ch, i));
+  BUFFER_WRITE("-1\n");
+  BUFFER_WRITE("GrDs: %d\n", GET_GRAND_DISCOVERY(ch));
+
+  BUFFER_WRITE("Mrcy:\n");
+  for (i = 0; i < NUM_PALADIN_MERCIES; i++)
+    BUFFER_WRITE("%d\n", KNOWS_MERCY(ch, i));
+  BUFFER_WRITE("-1\n");
+
+  BUFFER_WRITE("FDQs:\n");
+  for (i = 0; i < 100; i++)
+    if (ch->player_specials->saved.failed_dialogue_quests[i] > 0)
+      BUFFER_WRITE("%d\n", ch->player_specials->saved.failed_dialogue_quests[i]);
+  BUFFER_WRITE("-1\n");
+
+  BUFFER_WRITE("Clty:\n");
+  for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
+    BUFFER_WRITE("%d\n", KNOWS_CRUELTY(ch, i));
+  BUFFER_WRITE("-1\n");
+
+  BUFFER_WRITE("Judg:\n");
+  for (i = 0; i < NUM_INQ_JUDGEMENTS; i++)
+    BUFFER_WRITE("%d\n", IS_JUDGEMENT_ACTIVE(ch, i));
+  BUFFER_WRITE("-1\n");
+
+  /* Inquisitor Greater Judgment selection */
+  BUFFER_WRITE("GjTp: %d\n", ch->player_specials->inq_greater_judgment_type);
+
+  BUFFER_WRITE("Lang:\n");
+  for (i = 0; i < NUM_LANGUAGES; i++)
+    BUFFER_WRITE("%d\n", ch->player_specials->saved.languages_known[i]);
+  BUFFER_WRITE("-1\n");
+
+  /* Save Combat Feats */
+  for (i = 0; i < NUM_CFEATS; i++)
+  {
+    sprintascii(bits, ch->char_specials.saved.combat_feats[i][0]);
+    sprintascii(bits2, ch->char_specials.saved.combat_feats[i][1]);
+    sprintascii(bits3, ch->char_specials.saved.combat_feats[i][2]);
+    sprintascii(bits4, ch->char_specials.saved.combat_feats[i][3]);
+    BUFFER_WRITE("CbFt: %d %s %s %s %s\n", i, bits, bits2, bits3, bits4);
+  }
+
+  /* Save School Feats */
+  for (i = 0; i < NUM_SFEATS; i++)
+  {
+    sprintascii(bits, ch->char_specials.saved.school_feats[i]);
+    BUFFER_WRITE("SclF: %d %s\n", i, bits);
+  }
+
+  /* Save Skill Foci */
+  BUFFER_WRITE("SklF:\n");
+  for (i = 0; i < MAX_ABILITIES; i++)
+  {
+    BUFFER_WRITE("%d ", i);
+    for (j = 0; j < NUM_SKFEATS; j++)
+    {
+      BUFFER_WRITE("%d ", ch->player_specials->saved.skill_focus[i][j]);
+    }
+    BUFFER_WRITE("\n");
+  }
+  BUFFER_WRITE("-1 -1 -1\n");
+
+  /* Save feats */
+  BUFFER_WRITE("Feat:\n");
+  for (i = 1; i < NUM_FEATS; i++)
+  {
+    if (HAS_REAL_FEAT(ch, i))
+      BUFFER_WRITE("%d %d\n", i, HAS_REAL_FEAT(ch, i));
+  }
+  BUFFER_WRITE("0 0\n");
+
+  /* Save perks */
+  BUFFER_WRITE("Perk:\n");
+  {
+    struct char_perk_data *perk;
+    for (perk = ch->player_specials->saved.perks; perk != NULL; perk = perk->next)
+    {
+      BUFFER_WRITE("%d %d %d\n", perk->perk_id, perk->perk_class, perk->current_rank);
+    }
+  }
+  BUFFER_WRITE("0 0 0\n");
+
+  /* Save perk points per class */
+  BUFFER_WRITE("PPts:\n");
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    BUFFER_WRITE("%d %d\n", i, get_perk_points(ch, i));
+  }
+  BUFFER_WRITE("-1 -1\n");
+
+  /* Save stage progression */
+  BUFFER_WRITE("PStg: %d\n", ch->player_specials->saved.stage_info.current_stage);
+  BUFFER_WRITE("PSXp: %d\n", ch->player_specials->saved.stage_info.stage_exp);
+
+  /* Save perk toggles as hex string (32 bytes = 256 bits = 64 hex chars) */
+  BUFFER_WRITE("PTog: ");
+  for (i = 0; i < 32; i++)
+  {
+    BUFFER_WRITE("%02x", (unsigned int)ch->player_specials->saved.perk_toggles[i]);
+  }
+  BUFFER_WRITE("\n");
+
+  /* Save Perfect Kill data */
+  BUFFER_WRITE("PKil: %ld %d\n", (long)ch->player_specials->saved.perfect_kill_last_combat,
+               ch->player_specials->saved.perfect_kill_used ? 1 : 0);
+
+  /* Save Chimeric Transmutation (Alchemist) data */
+  BUFFER_WRITE("PCBr: %ld %d\n", (long)ch->player_specials->saved.chimeric_breath_last_combat,
+               ch->player_specials->saved.chimeric_breath_used ? 1 : 0);
+
+  /* Save Maximize Spell cooldown */
+  BUFFER_WRITE("PMxS: %ld\n", (long)ch->player_specials->saved.maximize_spell_cooldown);
+
+  /* Save Empower Spell cooldown and uses */
+  BUFFER_WRITE("PEmS: %ld %d\n", (long)ch->player_specials->saved.empower_spell_cooldown,
+               ch->player_specials->saved.empower_spell_uses);
+
+  /* Save Master of Elements preference */
+  BUFFER_WRITE("PMoE: %d\n", ch->player_specials->saved.master_of_elements_type);
+
+  /* Save Power Strike value */
+  BUFFER_WRITE("PwSt: %d\n", ch->player_specials->saved.power_strike);
+
+  /* Save Persistent Spell cooldown, uses, and active flag */
+  BUFFER_WRITE("PPsS: %ld %d %d\n", (long)ch->player_specials->saved.persistent_spell_cooldown,
+               ch->player_specials->saved.persistent_spell_uses,
+               ch->player_specials->saved.persistent_spell_active ? 1 : 0);
+
+  /* Save Split Enchantment cooldown */
+  BUFFER_WRITE("PSpE: %ld\n", (long)ch->player_specials->saved.split_enchantment_cooldown);
+
+  /* Save Defensive Casting timer */
+  if (ch->player_specials->saved.defensive_casting_timer > 0)
+  {
+    BUFFER_WRITE("PDCt: %d %d\n", ch->player_specials->saved.defensive_casting_timer,
+                 tactical_defense_remaining(ch));
+  }
+
+  /* Save Arcane Recovery cooldown */
+  BUFFER_WRITE("PARc: %ld\n", (long)ch->player_specials->saved.arcane_recovery_cooldown);
+
+  /* Save Spell Shield timer */
+  if (ch->player_specials->saved.spell_shield_timer > 0)
+  {
+    BUFFER_WRITE("PSSt: %d\n", ch->player_specials->saved.spell_shield_timer);
+  }
+
+  /* Save Spell Shield cooldown */
+  BUFFER_WRITE("PSSc: %ld\n", (long)ch->player_specials->saved.spell_shield_cooldown);
+
+  /* Save Void Strike timer */
+  if (ch->player_specials->saved.void_strike_timer > 0)
+  {
+    BUFFER_WRITE("PVSt: %d\n", ch->player_specials->saved.void_strike_timer);
+  }
+
+  /* Save Void Strike cooldown */
+  BUFFER_WRITE("PVSc: %ld\n", (long)ch->player_specials->saved.void_strike_cooldown);
+
+  /* Save Firesnake timer */
+  if (ch->player_specials->saved.firesnake_timer > 0)
+  {
+    BUFFER_WRITE("PFSt: %d\n", ch->player_specials->saved.firesnake_timer);
+  }
+
+  /* Save Elemental Embodiment timer and type */
+  if (ch->player_specials->saved.elemental_embodiment_timer > 0)
+  {
+    BUFFER_WRITE("PEEt: %d %d\n", ch->player_specials->saved.elemental_embodiment_timer,
+                 ch->player_specials->saved.elemental_embodiment_type);
+  }
+
+  /* Save Metamagic Reduction cooldown and uses */
+  BUFFER_WRITE("PMRd: %ld %d\n", (long)ch->player_specials->saved.metamagic_reduction_cooldown,
+               ch->player_specials->saved.metamagic_reduction_uses);
+
+  /* Save Elemental Mastery cooldown and active state */
+  BUFFER_WRITE("PEMa: %ld %d\n", (long)ch->player_specials->saved.elemental_mastery_cooldown,
+               ch->player_specials->saved.elemental_mastery_active ? 1 : 0);
+
+  /* Save evolutions */
+  BUFFER_WRITE("Evol:\n");
+  for (i = 1; i < NUM_EVOLUTIONS; i++)
+  {
+    if (HAS_REAL_EVOLUTION(ch, i))
+      BUFFER_WRITE("%d %d\n", i, HAS_REAL_EVOLUTION(ch, i));
+  }
+  BUFFER_WRITE("0 0\n");
+
+  /* Save temp evolutions */
+  BUFFER_WRITE("TEvo:\n");
+  for (i = 1; i < NUM_EVOLUTIONS; i++)
+  {
+    if (HAS_TEMP_EVOLUTION(ch, i))
+      BUFFER_WRITE("%d %d\n", i, HAS_TEMP_EVOLUTION(ch, i));
+  }
+  BUFFER_WRITE("0 0\n");
+
+  /* Save known evolutions */
+  BUFFER_WRITE("KEvo:\n");
+  for (i = 1; i < NUM_EVOLUTIONS; i++)
+  {
+    if (KNOWS_EVOLUTION(ch, i))
+      BUFFER_WRITE("%d %d\n", i, KNOWS_EVOLUTION(ch, i));
+  }
+  BUFFER_WRITE("0 0\n");
+
+  /* spell prep system */
+  save_spell_prep_queue(fl, ch);
+  save_innate_magic_queue(fl, ch);
+  save_spell_collection(fl, ch);
+  save_known_spells(fl, ch);
+  /* end spell prep system */
+
+  // Save memorizing list of prayers, prayed list and times
+  /* Note: added metamagic to pfile.  19.01.2015 Ornir */
+  BUFFER_WRITE("Pryg:\n");
+  for (i = 0; i < MAX_MEM; i++)
+  {
+    BUFFER_WRITE("%d ", i);
+    for (j = 0; j < NUM_CASTERS; j++)
+    {
+      if (PREPARATION_QUEUE(ch, i, j).spell < MAX_SPELLS)
+        BUFFER_WRITE("%d ", PREPARATION_QUEUE(ch, i, j).spell);
+      else
+        BUFFER_WRITE("0 ");
+    }
+    BUFFER_WRITE("\n");
+  }
+  BUFFER_WRITE("Prgm:\n");
+  for (i = 0; i < MAX_MEM; i++)
+  {
+    BUFFER_WRITE("%d ", i);
+    for (j = 0; j < NUM_CASTERS; j++)
+    {
+      if (PREPARATION_QUEUE(ch, i, j).spell < MAX_SPELLS)
+        BUFFER_WRITE("%d ", PREPARATION_QUEUE(ch, i, j).metamagic);
+      else
+        BUFFER_WRITE("0 ");
+    }
+    BUFFER_WRITE("\n");
+  }
+  BUFFER_WRITE("-1 -1\n");
+  BUFFER_WRITE("Pryd:\n");
+  for (i = 0; i < MAX_MEM; i++)
+  {
+    BUFFER_WRITE("%d ", i);
+    for (j = 0; j < NUM_CASTERS; j++)
+    {
+      BUFFER_WRITE("%d ", PREPARED_SPELLS(ch, i, j).spell);
+    }
+    BUFFER_WRITE("\n");
+  }
+  BUFFER_WRITE("-1 -1\n");
+
+  BUFFER_WRITE("Pryt:\n");
+  for (i = 0; i < MAX_MEM; i++)
+  {
+    BUFFER_WRITE("%d ", i);
+    for (j = 0; j < NUM_CASTERS; j++)
+    {
+      BUFFER_WRITE("%d ", PREP_TIME(ch, i, j));
+    }
+    BUFFER_WRITE("\n");
+  }
+  BUFFER_WRITE("-1 -1\n");
+
+  BUFFER_WRITE("Prdm:\n");
+  for (i = 0; i < MAX_MEM; i++)
+  {
+    BUFFER_WRITE("%d ", i);
+    for (j = 0; j < NUM_CASTERS; j++)
+    {
+      BUFFER_WRITE("%d ", PREPARED_SPELLS(ch, i, j).metamagic);
+    }
+    BUFFER_WRITE("\n");
+  }
+  BUFFER_WRITE("-1 -1\n");
+
+  // class levels
+  BUFFER_WRITE("CLvl:\n");
+  for (i = 0; i < MAX_CLASSES; i++)
+  {
+    BUFFER_WRITE("%d %d\n", i, CLASS_LEVEL(ch, i));
+  }
+  BUFFER_WRITE("-1 -1\n");
+
+  // coordinate location
+  BUFFER_WRITE("CLoc:\n");
+  BUFFER_WRITE("%d %d\n", ch->coords[0], ch->coords[1]);
+
+  // warding, etc..
+  BUFFER_WRITE("Ward:\n");
+  for (i = 0; i < MAX_WARDING; i++)
+  {
+    BUFFER_WRITE("%d %d\n", i, GET_WARDING(ch, i));
+  }
+  BUFFER_WRITE("-1 -1\n");
+
+  // spec abilities
+  BUFFER_WRITE("SpAb:\n");
+  for (i = 0; i < MAX_CLASSES; i++)
+  {
+    BUFFER_WRITE("%d %d\n", i, GET_SPEC_ABIL(ch, i));
+  }
+  BUFFER_WRITE("-1 -1\n");
+
+  // favored enemies (rangers)
+  BUFFER_WRITE("FaEn:\n");
+  for (i = 0; i < MAX_ENEMIES; i++)
+  {
+    BUFFER_WRITE("%d %d\n", i, GET_FAVORED_ENEMY(ch, i));
+  }
+  BUFFER_WRITE("-1 -1\n");
+
+  // favored terrains (inquisitors)
+  BUFFER_WRITE("FaTr:\n");
+  for (i = 0; i < MAX_ENEMIES; i++)
+  {
+    BUFFER_WRITE("%d %d\n", i, GET_FAVORED_TERRAINS(ch, i));
+  }
+  BUFFER_WRITE("-1 -1\n");
+
+  /* save_char(x, 1) will skip this block (i.e. not saving events)
+     this is necessary due to clearing events that occurs immediately
+     before extract_char_final() in extract_char() -Zusuk */
+  if (mode != 1)
+  {
+    const struct mud_event_durable_record *record;
+
+    BUFFER_WRITE("Evn2: %u\n", MUD_EVENT_DURABLE_FORMAT_VERSION);
+    for (saved_event_index = 0; saved_event_index < saved_event_count; saved_event_index++)
+    {
+      record = &saved_events[saved_event_index];
+      BUFFER_WRITE("%d %u %" PRId64 " %" PRId64 " %" PRId64 " %d %" PRId64 "\n",
+                   (int)record->event_type, record->schema_version, record->owner_id,
+                   record->remaining_ticks, record->saved_at_epoch, record->payload_value,
+                   record->recovery_interval_ticks);
+    }
+    BUFFER_WRITE("-1\n");
+  }
+
+  if (bleeding_remaining > 0)
+    BUFFER_WRITE("BlCt: %d\n", bleeding_remaining);
+
+  /* Save affects */
+  if (tmp_aff[0].spell > 0)
+  {
+    BUFFER_WRITE("Affs: %d\n", PLAYER_AFFECT_FILE_VERSION);
+    for (i = 0; i < MAX_AFFECT; i++)
+    {
+      aff = &tmp_aff[i];
+      if (aff->spell && !rol_elemental_embodiment_affect_is_transient(aff->spell))
+        BUFFER_WRITE("%d %d %d %d %d %d %d %d %d %d %d %d %d %d\n", aff->spell, aff->duration,
+                     aff->modifier, aff->location, aff->bitvector[0], aff->bitvector[1],
+                     aff->bitvector[2], aff->bitvector[3], aff->bonus_type, aff->specific,
+                     aff->bitvector2[0], aff->bitvector2[1], aff->bitvector2[2],
+                     aff->bitvector2[3]);
+    }
+    BUFFER_WRITE("0 0 0 0 0 0 0 0 0 0 0 0 0 0\n");
+  }
+
+  /* Save Damage Reduction */
+  if ((tmp_dr != NULL) || (GET_DR(ch) != NULL))
+  {
+    struct damage_reduction_type *dr;
+    int k = 0, x = 0;
+    int max_loops =
+        100; /* zusuk put this here to limit the loop, we were having issues with pfiles 10/27/22 */
+    int snum[100] = {0}; /* Initialize array to prevent uninitialized value access */
+    bool found = false;
+
+    BUFFER_WRITE("DmgR:\n");
+
+    /* DR from affects...*/
+    for (dr = tmp_dr; dr != NULL && 0 <= max_loops--; dr = dr->next)
+    {
+      // dupe check -- only want one DR entry per spell/ability/power
+      found = false;
+      for (x = 0; x < 100; x++)
+      {
+        if (snum[x] == dr->spell)
+        {
+          found = true;
+          break;
+        }
+        else if (snum[x] == 0)
+        {
+          snum[x] = dr->spell;
+          break;
+        }
+      }
+      if (found || x == 100)
+        continue;
+
+      BUFFER_WRITE("1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
+      for (k = 0; k < MAX_DR_BYPASS; k++)
+      {
+        BUFFER_WRITE("%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
+      }
+    }
+
+    /* reset our counter */
+    max_loops = 100;
+
+    /* Permanent DR. */
+    for (dr = GET_DR(ch); dr != NULL && 0 <= max_loops--; dr = dr->next)
+    {
+      // dupe check -- only want one DR entry per spell/ability/power
+      found = false;
+      for (x = 0; x < 100; x++)
+      {
+        if (snum[x] == dr->spell)
+        {
+          found = true;
+          break;
+        }
+        else if (snum[x] == 0)
+        {
+          snum[x] = dr->spell;
+          break;
+        }
+      }
+      if (found || x == 100)
+        continue;
+      BUFFER_WRITE("1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
+      for (k = 0; k < MAX_DR_BYPASS; k++)
+      {
+        BUFFER_WRITE("%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
+      }
+    }
+
+    /* done close off */
+    BUFFER_WRITE("0 0 0 0 0\n");
+  }
+  /* end DR saving */
+
+  /* Phase 4.5: Save wilderness material storage */
+  if (ch->player_specials)
+  {
+    /* Count non-empty materials */
+    int material_count = 0;
+    for (i = 0; i < ch->player_specials->saved.stored_material_count; i++)
+    {
+      if (ch->player_specials->saved.stored_materials[i].quantity > 0)
+      {
+        material_count++;
+      }
+    }
+
+    if (material_count > 0)
+    {
+      BUFFER_WRITE("WMat: %d\n", material_count);
+      for (i = 0; i < ch->player_specials->saved.stored_material_count; i++)
+      {
+        struct material_storage *mat = &ch->player_specials->saved.stored_materials[i];
+        if (mat->quantity > 0)
+        {
+          BUFFER_WRITE("Mat : %d %d %d %d\n", mat->category, mat->subtype, mat->quality,
+                       mat->quantity);
+        }
+      }
+    }
+  }
+
+  write_aliases_ascii(fl, ch);
+  save_char_vars_ascii(fl, ch);
+
+  /* Write buffer to file and close */
+  if (buffer_used > 0)
+  {
+    if (fwrite(write_buffer, 1, buffer_used, fl) != buffer_used)
+    {
+      log("SYSERR: save_char: Failed to write buffer for %s", GET_NAME(ch));
+      save_ok = FALSE;
+    }
+  }
+
+/* A buffer failure above lands here with save_ok FALSE: the file is closed
+ * and everything stripped for serialization is put back before returning. */
+save_char_restore:
+
+  /*
+   * Flush explicitly so a full disk or quota is reported here rather than
+   * being swallowed. Deliberately no early return: the code below restores the
+   * equipment and affects that were stripped for serialization, and skipping
+   * that would corrupt the in-memory character on top of a failed save.
+   */
+  if (fflush(fl) != 0)
+  {
+    log("SYSERR: save_char: Failed to flush player file for %s", GET_NAME(ch));
+    save_ok = FALSE;
+  }
+
+  /* FILE CLOSED!!! */
+  if (fclose(fl) != 0)
+  {
+    log("SYSERR: save_char: Failed to close player file for %s", GET_NAME(ch));
+    save_ok = FALSE;
+  }
+
+  /* Free the write buffer */
+  free(write_buffer);
+#undef BUFFER_WRITE
+#undef BUFFER_WRITE_STRING
+
+  /* add affects, dr, etc back in */
+
+  /* More char_to_store code to add spell and eq affections back in. */
+  for (i = 0; i < MAX_AFFECT; i++)
+  {
+    if (tmp_aff[i].spell)
+      affect_to_char_source(ch, &tmp_aff[i], tmp_aff[i].source_id);
+  }
+
+  if (bleeding_remaining > 0)
+    tactical_bleeding_restore_clock(ch, bleeding_remaining, bleeding_turn);
+
+  /* Reapply dr.*/
+  if (tmp_dr != NULL)
+  {
+    GET_DR(ch) = tmp_dr;
+  }
+
+  /* Keep the matching re-equip pass silent as well. */
+  old_mute_equip_messages = ch->mute_equip_messages;
+  ch->mute_equip_messages = TRUE;
+
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (char_eq[i])
+#ifndef NO_EXTRANEOUS_TRIGGERS
+      if (wear_otrigger(char_eq[i], ch, i))
+#endif
+        equip_char(ch, char_eq[i], i);
+#ifndef NO_EXTRANEOUS_TRIGGERS
+      else
+        obj_to_char(char_eq[i], ch);
+#endif
+  }
+
+  ch->mute_equip_messages = old_mute_equip_messages;
+  if (four_arms_deferred)
+    four_arms_defer_end(ch);
+
+  /* end char_to_store code */
+
+  if (!save_ok)
+  {
+    PERF_PROF_EXIT(pr_save_char_checked_);
+    return FALSE;
+  }
+
+  if ((id = (int)get_ptable_by_name(GET_NAME(ch))) < 0)
+  {
+    PERF_PROF_EXIT(pr_save_char_checked_);
+    return FALSE;
+  }
+
+  /* update the player in the player index */
+  if (player_table[id].level != GET_LEVEL(ch))
+  {
+    save_index = TRUE;
+    player_table[id].level = GET_LEVEL(ch);
+  }
+  if (player_table[id].last != ch->player.time.logon)
+  {
+    save_index = TRUE;
+    player_table[id].last = ch->player.time.logon;
+  }
+  i = player_table[id].flags;
+  if (PLR_FLAGGED(ch, PLR_DELETED))
+    SET_BIT(player_table[id].flags, PINDEX_DELETED);
+  else
+    REMOVE_BIT(player_table[id].flags, PINDEX_DELETED);
+  if (PLR_FLAGGED(ch, PLR_NODELETE) || PLR_FLAGGED(ch, PLR_CRYO))
+    SET_BIT(player_table[id].flags, PINDEX_NODELETE);
+  else
+    REMOVE_BIT(player_table[id].flags, PINDEX_NODELETE);
+
+  if (PLR_FLAGGED(ch, PLR_FROZEN) || PLR_FLAGGED(ch, PLR_NOWIZLIST))
+    SET_BIT(player_table[id].flags, PINDEX_NOWIZLIST);
+  else
+    REMOVE_BIT(player_table[id].flags, PINDEX_NOWIZLIST);
+
+  if (player_table[id].flags != i || save_index)
+    save_player_index();
+
+  /* Log performance metrics */
+  gettimeofday(&end_time, NULL);
+  long elapsed_usec =
+      (end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec);
+  long elapsed_ms = elapsed_usec / 1000;
+
+  /* Log if save took more than 260ms */
+  if (elapsed_ms > 260)
+  {
+    log("PERF: save_char(%s) took %ldms (buffer: %zu bytes)", GET_NAME(ch), elapsed_ms,
+        buffer_used);
+  }
+
+  PERF_PROF_EXIT(pr_save_char_checked_);
+  return save_ok;
+}
+
+/**
+ * Compatibility wrapper for the existing call sites, which have no way to act
+ * on a failure. New code that must confirm durability should call
+ * save_char_checked() directly.
+ */
+void save_char(struct char_data *ch, int mode)
+{
+  (void)save_char_checked(ch, mode);
+}
+
+/* Separate a 4-character id tag from the data it precedes */
+void tag_argument(char *argument, char *tag)
+{
+  char *tmp = argument, *ttag = tag, *wrt = argument;
+  int i;
+
+  for (i = 0; i < 4; i++)
+    *(ttag++) = *(tmp++);
+  *ttag = '\0';
+
+  while (*tmp == ':' || *tmp == ' ')
+    tmp++;
+
+  while (*tmp)
+    *(wrt++) = *(tmp++);
+  *wrt = '\0';
+}
+
+/* Stuff related to the player file cleanup system. */
+
+struct player_removal_transaction
+{
+  int index_position;
+  struct player_index_element index_entry;
+  char original_paths[MAX_FILES][MAX_FILEPATH];
+  char staged_paths[MAX_FILES][MAX_FILEPATH];
+  bool staged[MAX_FILES];
+  bool index_removed;
+};
+
+static bool restore_player_index_entry(struct player_removal_transaction *transaction)
+{
+  int index = 0;
+  int position = 0;
+
+  if (transaction == NULL || !transaction->index_removed || transaction->index_entry.name == NULL)
+    return FALSE;
+
+  position = MIN(transaction->index_position, top_of_p_table + 1);
+  top_of_p_table++;
+  RECREATE(player_table, struct player_index_element, top_of_p_table + 1);
+
+  for (index = top_of_p_table; index > position; index--)
+    player_table[index] = player_table[index - 1];
+
+  player_table[position] = transaction->index_entry;
+  transaction->index_entry.name = NULL;
+  transaction->index_removed = FALSE;
+  return TRUE;
+}
+
+static void free_player_removal_transaction(struct player_removal_transaction *transaction)
+{
+  if (transaction == NULL)
+    return;
+
+  if (transaction->index_entry.name != NULL)
+    free(transaction->index_entry.name);
+  free(transaction);
+}
+
+bool rollback_player_removal_checked(struct player_removal_transaction *transaction)
+{
+  bool restored = TRUE;
+  int file_type = 0;
+
+  if (transaction == NULL)
+    return FALSE;
+
+  if (transaction->index_removed)
+  {
+    if (!restore_player_index_entry(transaction) || !save_player_index_checked())
+      restored = FALSE;
+  }
+
+  for (file_type = MAX_FILES - 1; file_type >= 0; file_type--)
+  {
+    if (!transaction->staged[file_type])
+      continue;
+
+    if (rename(transaction->staged_paths[file_type], transaction->original_paths[file_type]) != 0)
+    {
+      log("SYSERR: Could not restore staged player file %s: %s",
+          transaction->original_paths[file_type], strerror(errno));
+      restored = FALSE;
+    }
+  }
+
+  free_player_removal_transaction(transaction);
+  return restored;
+}
+
+struct player_removal_transaction *prepare_player_removal_checked(int pfilepos)
+{
+  struct player_removal_transaction *transaction = NULL;
+  struct stat file_status;
+  int file_type = 0;
+  int path_attempt = 0;
+  int written = 0;
+  size_t original_path_length = 0;
+
+  if (pfilepos < 0 || pfilepos > top_of_p_table || player_table[pfilepos].name == NULL ||
+      !*player_table[pfilepos].name)
+    return NULL;
+
+  CREATE(transaction, struct player_removal_transaction, 1);
+  transaction->index_position = pfilepos;
+  transaction->index_entry = player_table[pfilepos];
+  transaction->index_entry.name = strdup(player_table[pfilepos].name);
+  if (transaction->index_entry.name == NULL)
+  {
+    free_player_removal_transaction(transaction);
+    return NULL;
+  }
+
+  for (file_type = 0; file_type < MAX_FILES; file_type++)
+  {
+    if (!get_filename(transaction->original_paths[file_type],
+                      sizeof(transaction->original_paths[file_type]), file_type,
+                      transaction->index_entry.name))
+      continue;
+
+    if (lstat(transaction->original_paths[file_type], &file_status) != 0)
+    {
+      if (errno == ENOENT)
+        continue;
+      log("SYSERR: Could not inspect player file %s before removal: %s",
+          transaction->original_paths[file_type], strerror(errno));
+      rollback_player_removal_checked(transaction);
+      return NULL;
+    }
+
+    for (path_attempt = 0; path_attempt < 100; path_attempt++)
+    {
+      original_path_length = strlen(transaction->original_paths[file_type]);
+      written = snprintf(NULL, 0, ".creation-restart-%ld-%d", (long)getpid(), path_attempt);
+      if (written < 0 ||
+          original_path_length + (size_t)written >= sizeof(transaction->staged_paths[file_type]))
+      {
+        log("SYSERR: Staged player-file path is too long");
+        rollback_player_removal_checked(transaction);
+        return NULL;
+      }
+      strlcpy(transaction->staged_paths[file_type], transaction->original_paths[file_type],
+              sizeof(transaction->staged_paths[file_type]));
+      snprintf_append(transaction->staged_paths[file_type],
+                      sizeof(transaction->staged_paths[file_type]), (int)original_path_length,
+                      ".creation-restart-%ld-%d", (long)getpid(), path_attempt);
+      if (lstat(transaction->staged_paths[file_type], &file_status) != 0 && errno == ENOENT)
+        break;
+    }
+
+    if (path_attempt >= 100 ||
+        rename(transaction->original_paths[file_type], transaction->staged_paths[file_type]) != 0)
+    {
+      log("SYSERR: Could not stage player file %s for removal: %s",
+          transaction->original_paths[file_type], strerror(errno));
+      rollback_player_removal_checked(transaction);
+      return NULL;
+    }
+    transaction->staged[file_type] = TRUE;
+  }
+
+  remove_player_from_index(pfilepos);
+  transaction->index_removed = TRUE;
+  if (!save_player_index_checked())
+  {
+    rollback_player_removal_checked(transaction);
+    return NULL;
+  }
+
+  return transaction;
+}
+
+bool commit_player_removal_checked(struct player_removal_transaction *transaction)
+{
+  bool removed = TRUE;
+  int file_type = 0;
+
+  if (transaction == NULL || !transaction->index_removed)
+    return FALSE;
+
+  for (file_type = 0; file_type < MAX_FILES; file_type++)
+  {
+    if (!transaction->staged[file_type])
+      continue;
+    if (unlink(transaction->staged_paths[file_type]) != 0 && errno != ENOENT)
+    {
+      log("SYSERR: Could not delete staged player file %s: %s",
+          transaction->staged_paths[file_type], strerror(errno));
+      removed = FALSE;
+    }
+  }
+
+  free_player_removal_transaction(transaction);
+  return removed;
+}
+
+/* remove_player() removes all files associated with a player who is self-deleted,
+ * deleted by an immortal, or deleted by the auto-wipe system (if enabled). */
+bool remove_player(int pfilepos)
+{
+  char filename[MAX_STRING_LENGTH] = {'\0'}, timestr[64];
+  int i;
+
+  if (pfilepos < 0 || pfilepos > top_of_p_table || !*player_table[pfilepos].name)
+    return FALSE;
+
+  /* Soft deletion remains restorable. This hook runs only for permanent file
+   * removal; if durable vessel cleanup cannot commit, preserve the player so
+   * the cleanup can be retried without orphaning their ships. */
+  if (!vessel_handle_player_removal(player_table[pfilepos].name))
+  {
+    log("SYSERR: Permanent player removal deferred for %s: vessel cleanup failed",
+        player_table[pfilepos].name);
+    return FALSE;
+  }
+
+  /* Unlink all player-owned files */
+  for (i = 0; i < MAX_FILES; i++)
+  {
+    if (get_filename(filename, sizeof(filename), i, player_table[pfilepos].name))
+      unlink(filename);
+  }
+
+  format_time_string(player_table[pfilepos].last, "%c", timestr, sizeof(timestr));
+  log("PCLEAN: %s Lev: %d Last: %s", player_table[pfilepos].name, player_table[pfilepos].level,
+      timestr);
+  player_table[pfilepos].name[0] = '\0';
+
+  /* Update index table. */
+  remove_player_from_index(pfilepos);
+
+  save_player_index();
+  return TRUE;
+}
+
+void clean_pfiles(void)
+{
+  int i, ci;
+
+  for (i = 0; i <= top_of_p_table; i++)
+  {
+    /* We only want to go further if the player isn't protected from deletion
+     * and hasn't already been deleted. */
+    if (!IS_SET(player_table[i].flags, PINDEX_NODELETE) && *player_table[i].name)
+    {
+      /* If the player is already flagged for deletion, then go ahead and get
+       * rid of him. */
+      if (IS_SET(player_table[i].flags, PINDEX_DELETED))
+      {
+        remove_player(i);
+      }
+      else
+      {
+        /* Check to see if the player has overstayed his welcome based on level. */
+        for (ci = 0; pclean_criteria[ci].level > -1; ci++)
+        {
+          if (player_table[i].level <= pclean_criteria[ci].level &&
+              ((time(0) - player_table[i].last) > (pclean_criteria[ci].days * SECS_PER_REAL_DAY)))
+          {
+            remove_player(i);
+            break;
+          }
+        }
+        /* If we got this far and the players hasn't been kicked out, then he
+         * can stay a little while longer. */
+      }
+    }
+  }
+  /* After everything is done, we should rebuild player_index and remove the
+   * entries of the players that were just deleted. */
+}
+
+/* Load Damage Reduction - load_dr */
+static void load_dr(FILE *f1, struct char_data *ch)
+{
+  struct damage_reduction_type *dr;
+  int i, num, num2, num3, num4, num5, n_vars;
+  char line[MAX_INPUT_LENGTH + 1];
+  int max_loops =
+      200; /* zusuk put this here to limit the loop, we were having issues with pfiles 10/27/22 */
+
+  do
+  {
+    if (!get_line(f1, line))
+    {
+      log("SYSERR: Unexpected end of player file while loading damage reduction.");
+      return;
+    }
+    n_vars = sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
+    if (n_vars < 1)
+    {
+      log("SYSERR: Invalid damage reduction line: %s", line);
+      return;
+    }
+    if (num > 0)
+    {
+      if (n_vars == 5)
+      {
+        /* Set the DR data.*/
+        CREATE(dr, struct damage_reduction_type, 1);
+        dr->duration = 0; /* Initialize duration field - CRITICAL FIX (loaded from file) */
+        dr->amount = num2;
+        dr->max_damage = num3;
+        dr->spell = num4;
+        dr->feat = num5;
+
+        for (i = 0; i < MAX_DR_BYPASS; i++)
+        {
+          get_line(f1, line);
+          n_vars = sscanf(line, "%d %d", &num2, &num3);
+          if (n_vars == 2)
+          {
+            dr->bypass_cat[i] = num2;
+            dr->bypass_val[i] = num3;
+          }
+          else
+          {
+            log("SYSERR: Invalid dr bypass in pfile (%s), expecting 2 values", GET_NAME(ch));
+          }
+        }
+        dr->next = GET_DR(ch);
+        GET_DR(ch) = dr;
+      }
+      else
+      {
+        log("SYSERR: Invalid dr in pfile (%s), expecting 5 values", GET_NAME(ch));
+      }
+    }
+  } while (num != 0 && 0 <= max_loops--);
+}
+
+static void load_craft_affects(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
+    if (num != -1)
+    {
+      GET_CRAFT(ch).affected[num].location = num2;
+      GET_CRAFT(ch).affected[num].modifier = num3;
+      GET_CRAFT(ch).affected[num].bonus_type = num4;
+      GET_CRAFT(ch).affected[num].specific = num5;
+    }
+  } while (num != -1);
+}
+
+static void load_craft_materials(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0, num3 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d %d", &num, &num2, &num3);
+    if (num != -1)
+    {
+      GET_CRAFT(ch).materials[num][0] = num2;
+      GET_CRAFT(ch).materials[num][1] = num3;
+    }
+  } while (num != -1);
+}
+
+static void load_craft_motes_onhand(FILE *fl, struct char_data *ch)
+{
+  int num = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  int i = 0;
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+      GET_CRAFT_MOTES(ch, i) = num;
+    i++;
+  } while (num != -1);
+}
+
+static void load_craft_motes(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != -1)
+    {
+      GET_CRAFT(ch).motes_required[num] = num2;
+    }
+  } while (num != -1);
+}
+
+/* Load character's purchased perks */
+static void load_perks(FILE *fl, struct char_data *ch)
+{
+  int perk_id = 0, class_id = 0, rank = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+  struct char_perk_data *new_perk;
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d %d", &perk_id, &class_id, &rank);
+    if (perk_id > 0 && rank > 0)
+    {
+      /* Directly create the perk entry without deducting points */
+      CREATE(new_perk, struct char_perk_data, 1);
+      new_perk->perk_id = perk_id;
+      new_perk->perk_class = class_id;
+      new_perk->current_rank = rank;
+      new_perk->next = ch->player_specials->saved.perks;
+      ch->player_specials->saved.perks = new_perk;
+    }
+  } while (perk_id > 0);
+}
+
+/* Load character's perk points per class */
+static void load_perk_points(FILE *fl, struct char_data *ch)
+{
+  int cls = 0, pts = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &cls, &pts);
+    if (cls >= 0 && cls < NUM_CLASSES)
+      ch->player_specials->saved.perk_points[cls] = pts;
+  } while (cls >= 0);
+}
+
+/* Load character's perk toggle bitfield */
+static void load_perk_toggles(FILE *fl, struct char_data *ch)
+{
+  char line[MAX_INPUT_LENGTH + 1];
+  int i;
+  unsigned int value;
+
+  /* Initialize all toggles to 0 */
+  memset(ch->player_specials->saved.perk_toggles, 0, 32);
+
+  get_line(fl, line);
+
+  /* Parse hex string (64 hex chars, 2 per byte) */
+  if (strlen(line) >= 64)
+  {
+    /* Read each pair of hex digits as a byte */
+    for (i = 0; i < 32; i++)
+    {
+      if (sscanf(line + (i * 2), "%2x", &value) == 1)
+      {
+        ch->player_specials->saved.perk_toggles[i] = (byte)value;
+      }
+    }
+  }
+}
+
+/* Migrate perk IDs that were historically stored in the spell/affect namespace. Some of the old
+ * values overlap real spell IDs, so require the legacy affect's distinguishing fields before
+ * changing those entries. */
+static void migrate_legacy_perk_affect(struct affected_type *af, int affect_file_version)
+{
+  if (!af)
+    return;
+
+  switch (af->spell)
+  {
+  case ABILITY_INTIMIDATE:
+    if (IS_SET_AR(af->bitvector, AFF_SHAKEN))
+      af->spell = AFFECT_INTIMIDATING_PRESENCE;
+    break;
+  case PERK_WIZARD_IRRESISTIBLE_MAGIC:
+    if (af->location == APPLY_SPECIAL && af->modifier == 0)
+      af->spell = AFFECT_WIZARD_IRRESISTIBLE_MAGIC;
+    break;
+  case PERK_CLERIC_BEACON_OF_HOPE:
+    if (af->modifier == 4 &&
+        (af->location == APPLY_SAVING_FORT || af->location == APPLY_SAVING_REFL ||
+         af->location == APPLY_SAVING_WILL))
+      af->spell = AFFECT_CLERIC_BEACON_OF_HOPE;
+    break;
+  case PERK_CLERIC_AVATAR_OF_WAR:
+    if (af->location == APPLY_SPECIAL)
+      af->spell = AFFECT_CLERIC_AVATAR_OF_WAR;
+    break;
+  case PERK_MONK_AVATAR_OF_ELEMENTS:
+    af->spell = AFFECT_MONK_AVATAR_OF_ELEMENTS;
+    break;
+  case PERK_BERSERKER_INDOMITABLE_WILL:
+    af->spell = AFFECT_BERSERKER_INDOMITABLE_WILL;
+    break;
+  case PERK_BERSERKER_CRIPPLING_BLOW:
+    af->spell = AFFECT_BERSERKER_CRIPPLING_BLOW;
+    break;
+  case PERK_BERSERKER_STUNNING_BLOW:
+    af->spell = AFFECT_BERSERKER_STUNNING_BLOW;
+    break;
+  case PERK_RANGER_NATURES_WRATH:
+    af->spell = AFFECT_RANGER_NATURES_WRATH;
+    break;
+  case PERK_BARD_HEIGHTENED_HARMONY:
+    af->spell = AFFECT_BARD_HEIGHTENED_HARMONY;
+    break;
+  case PERK_BARD_SYMPHONIC_RESONANCE:
+    af->spell = AFFECT_BARD_SYMPHONIC_RESONANCE;
+    break;
+  case PERK_BARD_FROSTBITE_REFRAIN_I:
+    af->spell = AFFECT_BARD_FROSTBITE_REFRAIN_I;
+    break;
+  case PERK_BARD_FROSTBITE_REFRAIN_II:
+    af->spell = AFFECT_BARD_FROSTBITE_REFRAIN_II;
+    break;
+  case PERK_BARD_COMMANDING_CADENCE:
+    af->spell = IS_SET_AR(af->bitvector, AFF_DAZED) ? AFFECT_BARD_COMMANDING_CADENCE
+                                                    : AFFECT_BARD_COMMANDING_CADENCE_IMMUNITY;
+    break;
+  case PERK_BARD_WINTERS_WAR_MARCH:
+    af->spell = af->location == APPLY_NONE ? AFFECT_BARD_WINTERS_WAR_MARCH_IMMUNITY
+                                           : AFFECT_BARD_WINTERS_WAR_MARCH;
+    break;
+  case PERK_ALCHEMIST_DISCOVERY_EXTRACTION:
+    if (af->location == APPLY_INT && af->modifier > 0)
+      af->spell = AFFECT_ALCHEMIST_DISCOVERY_EXTRACTION;
+    break;
+  case PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION:
+    if (af->location == APPLY_HIT && af->modifier > 0)
+      af->spell = AFFECT_ALCHEMIST_QUINTESSENTIAL_EXTRACTION;
+    break;
+  case PERK_PSIONICIST_FOCUS_CHANNELING:
+    if (af->location == APPLY_NONE)
+      af->spell = AFFECT_PSIONICIST_FOCUS_CHANNELING;
+    break;
+  case PERK_PSIONICIST_OVERWHELM:
+    if (af->location == APPLY_NONE)
+      af->spell = AFFECT_PSIONICIST_OVERWHELM;
+    break;
+  case PERK_PSIONICIST_LINKED_MENACE:
+    if (af->location == APPLY_AC && af->modifier == 2)
+      af->spell = AFFECT_PSIONICIST_LINKED_MENACE;
+    break;
+  case PERK_PSIONICIST_PSYCHIC_SUNDERING:
+    /* Legacy Psychic Sundering and the ambush recovery marker both use ID 1309 and have
+     * otherwise identical fields once Sundering reaches its final ticks. The version on the
+     * Affs header is therefore the only discriminator that remains valid for the full effect. */
+    if (affect_file_version < PLAYER_AFFECT_FILE_VERSION)
+      af->spell = AFFECT_PSIONICIST_PSYCHIC_SUNDERING;
+    break;
+  case PERK_INQUISITOR_PERFECT_ADAPTATION:
+    if (af->modifier > 0)
+      af->spell = AFFECT_INQUISITOR_PERFECT_ADAPTATION;
+    break;
+  case PERK_INQUISITOR_SUPREMACY:
+    if (af->duration == -1 && af->modifier == 2)
+      af->spell = AFFECT_INQUISITOR_SUPREMACY;
+    break;
+  default:
+    break;
+  }
+}
+
+/* load_affects function now handles both 32-bit and
+   128-bit affect bitvectors for backward compatibility */
+static void load_affects(FILE *fl, struct char_data *ch, int affect_file_version)
+{
+  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0, num9 = 0, i,
+      n_vars, num10, num11, num12, num13, num14, num15;
+  char line[MAX_INPUT_LENGTH + 1];
+  struct affected_type af;
+
+  i = 0;
+  do
+  {
+    new_affect(&af);
+    get_line(fl, line);
+    n_vars =
+        sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4,
+               &num5, &num6, &num7, &num8, &num9, &num10, &num11, &num12, &num13, &num14, &num15);
+    if (num > 0)
+    {
+      af.spell = num;
+      af.duration = num2;
+      af.modifier = num3;
+      af.location = num4;
+      if (n_vars == 14)
+      { /* Version with bonus type! */
+        af.bitvector[0] = num5;
+        af.bitvector[1] = num6;
+        af.bitvector[2] = num7;
+        af.bitvector[3] = num8;
+        af.bonus_type = num9;
+        af.specific = num10;
+        af.bitvector2[0] = num11;
+        af.bitvector2[1] = num12;
+        af.bitvector2[2] = num13;
+        af.bitvector2[3] = num14;
+      }
+      else if (n_vars == 10)
+      { /* Version with bonus type! */
+        af.bitvector[0] = num5;
+        af.bitvector[1] = num6;
+        af.bitvector[2] = num7;
+        af.bitvector[3] = num8;
+        af.bonus_type = num9;
+        af.specific = num10;
+      }
+      else if (n_vars == 9)
+      { /* Version with bonus type! */
+        af.bitvector[0] = num5;
+        af.bitvector[1] = num6;
+        af.bitvector[2] = num7;
+        af.bitvector[3] = num8;
+        af.bonus_type = num9;
+      }
+      else if (n_vars == 8)
+      { /* New 128-bit version */
+        af.bitvector[0] = num5;
+        af.bitvector[1] = num6;
+        af.bitvector[2] = num7;
+        af.bitvector[3] = num8;
+      }
+      else if (n_vars == 7)
+      { /* New 128-bit version */
+        af.bitvector[0] = num5;
+        af.bitvector[1] = num6;
+        af.bitvector[2] = num7;
+      }
+      else if (n_vars == 5)
+      {                                       /* Old 32-bit conversion version */
+        if (num5 > 0 && num5 < NUM_AFF_FLAGS) /* Ignore invalid values */
+          SET_BIT_AR(af.bitvector, num5);
+      }
+      else
+      {
+        log("SYSERR: Invalid affects in pfile (%s), expecting 5, 8, 9 values, got %d", GET_NAME(ch),
+            n_vars);
+      }
+      migrate_legacy_perk_affect(&af, affect_file_version);
+      if (af.spell == SPELL_ARTIFACT_PASSIVE || af.spell == SPELL_ARTIFACT_BONUS)
+      {
+        /* Equipment-derived artifact passives and bonuses are restored dynamically on equip */
+        continue;
+      }
+      /* Camps are room-owned; discard records saved by the earlier character-affect version. */
+      if (af.spell == SKILL_CAMP)
+        continue;
+      if (rol_elemental_embodiment_affect_is_transient(af.spell))
+        continue;
+      affect_to_char(ch, &af);
+      i++;
+    }
+  } while (num != 0);
+  (void)i;
+}
+
+/* praytimes loading isn't a loop, so has to be manually changed if you
+   change NUM_CASTERS! */
+static void load_praytimes(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0;
+  int counter = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    num2 = 0;
+    num3 = 0;
+    num4 = 0;
+    num5 = 0;
+    num6 = 0;
+    num7 = 0;
+    num8 = 0;
+    get_line(fl, line);
+
+    sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5, &num6, &num7, &num8);
+    if (num != -1)
+    {
+      PREP_TIME(ch, num, 0) = num2;
+      PREP_TIME(ch, num, 1) = num3;
+      PREP_TIME(ch, num, 2) = num4;
+      PREP_TIME(ch, num, 3) = num5;
+      PREP_TIME(ch, num, 4) = num6;
+      PREP_TIME(ch, num, 5) = num7;
+      PREP_TIME(ch, num, 6) = num8;
+    }
+    counter++;
+  } while (counter < MAX_MEM && num != -1);
+}
+
+/* prayed loading isn't a loop, so has to be manually changed if you
+   change NUM_CASTERS! */
+static void load_prayed_metamagic(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0;
+  int counter = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    num2 = 0;
+    num3 = 0;
+    num4 = 0;
+    num5 = 0;
+    num6 = 0;
+    num7 = 0;
+    num8 = 0;
+    get_line(fl, line);
+    sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5, &num6, &num7, &num8);
+    if (num != -1)
+    {
+      PREPARED_SPELLS(ch, num, 0).metamagic = num2;
+      PREPARED_SPELLS(ch, num, 1).metamagic = num3;
+      PREPARED_SPELLS(ch, num, 2).metamagic = num4;
+      PREPARED_SPELLS(ch, num, 3).metamagic = num5;
+      PREPARED_SPELLS(ch, num, 4).metamagic = num6;
+      PREPARED_SPELLS(ch, num, 5).metamagic = num7;
+      PREPARED_SPELLS(ch, num, 6).metamagic = num8;
+    }
+    counter++;
+  } while (counter < MAX_MEM && num != -1);
+}
+
+/* prayed loading isn't a loop, so has to be manually changed if you
+   change NUM_CASTERS! */
+static void load_prayed(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0;
+  int counter = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    num2 = 0;
+    num3 = 0;
+    num4 = 0;
+    num5 = 0;
+    num6 = 0;
+    num7 = 0;
+    num8 = 0;
+    get_line(fl, line);
+    sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5, &num6, &num7, &num8);
+    if (num != -1)
+    {
+      PREPARED_SPELLS(ch, num, 0).spell = num2;
+      PREPARED_SPELLS(ch, num, 1).spell = num3;
+      PREPARED_SPELLS(ch, num, 2).spell = num4;
+      PREPARED_SPELLS(ch, num, 3).spell = num5;
+      PREPARED_SPELLS(ch, num, 4).spell = num6;
+      PREPARED_SPELLS(ch, num, 5).spell = num7;
+      PREPARED_SPELLS(ch, num, 6).spell = num8;
+    }
+    counter++;
+  } while (counter < MAX_MEM && num != -1);
+}
+
+/* praying loading isn't a loop, so has to be manually changed if you
+   change NUM_CASTERS! */
+static void load_praying(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+  int counter = 0;
+
+  do
+  {
+    num2 = 0;
+    num3 = 0;
+    num4 = 0;
+    num5 = 0;
+    num6 = 0;
+    num7 = 0;
+    num8 = 0;
+    get_line(fl, line);
+    sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5, &num6, &num7, &num8);
+    if (num != -1)
+    {
+      if (num2 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 0).spell = num2;
+      if (num3 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 1).spell = num3;
+      if (num4 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 2).spell = num4;
+      if (num5 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 3).spell = num5;
+      if (num6 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 4).spell = num6;
+      if (num7 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 5).spell = num7;
+      if (num8 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 6).spell = num8;
+    }
+    counter++;
+  } while (num != -1 && counter < MAX_MEM);
+}
+
+/* praying loading isn't a loop, so has to be manually changed if you
+   change NUM_CASTERS! */
+static void load_praying_metamagic(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+  int counter = 0;
+
+  do
+  {
+    num2 = 0;
+    num3 = 0;
+    num4 = 0;
+    num5 = 0;
+    num6 = 0;
+    num7 = 0;
+    num8 = 0;
+    get_line(fl, line);
+    sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5, &num6, &num7, &num8);
+    if (num != -1)
+    {
+      if (num2 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 0).metamagic = num2;
+      if (num3 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 1).metamagic = num3;
+      if (num4 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 2).metamagic = num4;
+      if (num5 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 3).metamagic = num5;
+      if (num6 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 4).metamagic = num6;
+      if (num7 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 5).metamagic = num7;
+      if (num8 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 6).metamagic = num8;
+    }
+    counter++;
+  } while (num != -1 && counter < MAX_MEM);
+}
+
+static void load_class_level(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != -1)
+      CLASS_LEVEL(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_coord_location(FILE *fl, struct char_data *ch)
+{
+  char line[MAX_INPUT_LENGTH + 1];
+
+  get_line(fl, line);
+  sscanf(line, "%d %d", ch->coords, ch->coords + 1);
+}
+
+static void load_warding(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != -1)
+      GET_WARDING(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_spec_abil(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != -1)
+      GET_SPEC_ABIL(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_mercies(FILE *fl, struct char_data *ch)
+{
+  int num = 0, i = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+    {
+      KNOWS_MERCY(ch, i) = num;
+      i++;
+    }
+  } while (num != -1);
+}
+
+static void load_failed_dialogue_quests(FILE *fl, struct char_data *ch)
+{
+  int num = 0, i = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+    {
+      ch->player_specials->saved.failed_dialogue_quests[i] = num;
+      i++;
+    }
+  } while (num != -1);
+}
+
+static void load_cruelties(FILE *fl, struct char_data *ch)
+{
+  int num = 0, i = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+    {
+      KNOWS_CRUELTY(ch, i) = num;
+      i++;
+    }
+  } while (num != -1);
+}
+
+static void load_languages(FILE *fl, struct char_data *ch)
+{
+  int num = 0, i = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    if (!get_line(fl, line))
+      break;
+    sscanf(line, "%d", &num);
+    if (num != -1)
+    {
+      if (i < NUM_LANGUAGES)
+        ch->player_specials->saved.languages_known[i] = num;
+      i++;
+    }
+  } while (num != -1);
+}
+
+static void load_discoveries(FILE *fl, struct char_data *ch)
+{
+  int num = 0, i = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+    {
+      KNOWS_DISCOVERY(ch, i) = num;
+      i++;
+    }
+  } while (num != -1);
+}
+
+static void load_judgements(FILE *fl, struct char_data *ch)
+{
+  int num = 0, i = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+    {
+      IS_JUDGEMENT_ACTIVE(ch, i) = (byte)num;
+      i++;
+    }
+  } while (num != -1);
+}
+
+static void load_bombs(FILE *fl, struct char_data *ch)
+{
+  int num = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  int i = 0;
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+      GET_BOMB(ch, i) = num;
+    i++;
+  } while (num != -1);
+}
+
+static void load_craft_mats_onhand(FILE *fl, struct char_data *ch)
+{
+  int num = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  int i = 0;
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+      GET_CRAFT_MAT(ch, i) = num;
+    i++;
+  } while (num != -1);
+}
+
+static void load_favored_enemy(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num >= 0 && num < MAX_ENEMIES)
+      GET_FAVORED_ENEMY(ch, num) = (ubyte)num2;
+  } while (num != -1);
+}
+
+static void load_favored_terrains(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != -1 && num >= 0 && num < MAX_ENEMIES)
+      GET_FAVORED_TERRAINS(ch, num) = (sbyte)num2;
+  } while (num != -1);
+}
+
+static void load_potions(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num > 0 && num < MAX_SPELLS)
+      STORED_POTIONS(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_buffs(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0, num3 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d %d", &num, &num2, &num3);
+    if (num >= 0 && num < MAX_BUFFS)
+    {
+      GET_BUFF(ch, num, 0) = num2;
+      GET_BUFF(ch, num, 1) = num3;
+    }
+  } while (num != -1);
+}
+
+static void load_scrolls(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num > 0 && num < MAX_SPELLS)
+      STORED_SCROLLS(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_wands(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num > 0 && num < MAX_SPELLS)
+      STORED_WANDS(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_staves(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num > 0 && num < MAX_SPELLS)
+      STORED_STAVES(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_abilities(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != 0)
+      GET_ABILITY(ch, num) = (ubyte)num2;
+  } while (num != 0);
+}
+
+static void load_ability_exp(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != 0)
+      GET_CRAFT_SKILL_EXP(ch, num) = num2;
+  } while (num != 0);
+}
+
+static void load_devices(FILE *fl, struct char_data *ch)
+{
+  int num_inventions = 0;
+  int inv_idx = 0;
+  int j = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+  char pre_line[MAX_INPUT_LENGTH + 1];
+  int has_pre_line = 0;
+
+  /* Read number of inventions */
+  get_line(fl, line);
+  sscanf(line, "%d", &num_inventions);
+
+  ch->player_specials->saved.num_inventions = num_inventions;
+
+  /* Read each invention */
+  for (j = 0; j < num_inventions && j < MAX_PLAYER_INVENTIONS; j++)
+  {
+    struct player_invention *inv = &ch->player_specials->saved.inventions[j];
+    int spell_idx = 0;
+
+    /* Read invention index */
+    if (has_pre_line)
+    {
+      strncpy(line, pre_line, sizeof(line) - 1);
+      line[sizeof(line) - 1] = '\0';
+      has_pre_line = 0;
+    }
+    else
+    {
+      get_line(fl, line);
+    }
+    sscanf(line, "%d", &inv_idx);
+
+    /* Read keywords */
+    get_line(fl, inv->keywords);
+
+    /* Read short description */
+    get_line(fl, inv->short_description);
+
+    /* Read long description */
+    get_line(fl, inv->long_description);
+
+    /* Read num_spells, duration, reliability, and optionally uses, cooldown_expires */
+    get_line(fl, line);
+    long cooldown_long = 0;
+    int scanned = sscanf(line, "%d %d %d %d %ld", &inv->num_spells, &inv->duration,
+                         &inv->reliability, &inv->uses, &cooldown_long);
+
+    /* Handle backward compatibility - if only 3 values were read, initialize new fields */
+    if (scanned < 4)
+    {
+      inv->uses = 0;             /* Default to no uses */
+      inv->cooldown_expires = 0; /* Default to no cooldown */
+    }
+    else if (scanned < 5)
+    {
+      inv->cooldown_expires = 0; /* Default to no cooldown if uses was read but not cooldown */
+    }
+    else
+    {
+      inv->cooldown_expires = (time_t)cooldown_long;
+    }
+
+    /* Read spell effects */
+    for (spell_idx = 0; spell_idx < MAX_INVENTION_SPELLS; spell_idx++)
+    {
+      get_line(fl, line);
+      sscanf(line, "%d", &inv->spell_effects[spell_idx]);
+      /* Stop reading if we hit -1 */
+      if (inv->spell_effects[spell_idx] == -1)
+        inv->spell_effects[spell_idx] = 0; /* Reset invalid spells to 0 */
+    }
+
+    /* Attempt to read optional chosen levels block marked by 'Lvls:' */
+    get_line(fl, line);
+    if (strncmp(line, "Lvls:", 5) == 0)
+    {
+      for (spell_idx = 0; spell_idx < MAX_INVENTION_SPELLS; spell_idx++)
+      {
+        get_line(fl, line);
+        sscanf(line, "%d", &inv->spell_levels[spell_idx]);
+        if (inv->spell_levels[spell_idx] < 0)
+          inv->spell_levels[spell_idx] = 0;
+      }
+    }
+    else
+    {
+      /* No levels section in save; use default 0s and stash pre-read line for next loop/terminator */
+      for (spell_idx = 0; spell_idx < MAX_INVENTION_SPELLS; spell_idx++)
+        inv->spell_levels[spell_idx] = 0;
+      snprintf(pre_line, sizeof(pre_line), "%s", line);
+      has_pre_line = 1;
+    }
+  }
+
+  /* Read terminator if not already pre-read */
+  if (!has_pre_line)
+  {
+    get_line(fl, line);
+  }
+  else
+  {
+    /* consume pre-read terminator by clearing flag */
+    has_pre_line = 0;
+  }
+}
+
+static void load_skills(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0, counter = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != 0)
+    {
+      /* this is a hack since we moved the skill numbering */
+      if (num < START_SKILLS)
+        num += 1600;
+
+      if (counter >= (MAX_SKILLS + 1))
+        ;
+      else
+      {
+        GET_SKILL(ch, num) = num2;
+      }
+      /* end hack */
+
+      counter++;
+    }
+  } while (num != 0 && counter < MAX_SKILLS);
+}
+
+void load_feats(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != 0)
+      SET_FEAT(ch, num, num2);
+  } while (num != 0);
+}
+
+void load_evolutions(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != 0)
+      HAS_REAL_EVOLUTION(ch, num) = num2;
+  } while (num != 0);
+}
+
+void load_temp_evolutions(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != 0)
+      HAS_TEMP_EVOLUTION(ch, num) = num2;
+  } while (num != 0);
+}
+
+void load_known_evolutions(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != 0)
+      KNOWS_EVOLUTION(ch, num) = num2;
+  } while (num != 0);
+}
+
+void load_class_feat_points(FILE *fl, struct char_data *ch)
+{
+  int cls = 0, pts = 0, num_fields = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+
+    if ((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
+      return;
+    GET_CLASS_FEATS(ch, cls) = (byte)pts;
+  } while (1);
+}
+
+void load_epic_class_feat_points(FILE *fl, struct char_data *ch)
+{
+  int cls = 0, pts = 0, num_fields = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+
+    if ((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
+      return;
+    GET_EPIC_CLASS_FEATS(ch, cls) = (byte)pts;
+  } while (1);
+}
+
+/* if NUM_SKFEATS changes, this must be modified manually */
+void load_skill_focus(FILE *fl, struct char_data *ch)
+{
+  int skfeat = 0, skill = 0, skfeat_epic = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d %d", &skill, &skfeat, &skfeat_epic);
+    if (skill != -1)
+    {
+      ch->player_specials->saved.skill_focus[skill][0] = skfeat;
+      ch->player_specials->saved.skill_focus[skill][1] = skfeat_epic;
+    }
+  } while (skill != -1);
+}
+
+static void load_events(FILE *fl, struct char_data *ch)
+{
+  const struct mud_event_persistence_policy *policy;
+  struct mud_event_durable_record record;
+  enum mud_event_restore_status restore_status;
+  int consumed;
+  int fields;
+  int num;
+  long num2;
+  int num3;
+  char trailing;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  while (get_line(fl, line))
+  {
+    num = 0;
+    num2 = 0;
+    num3 = -1;
+    consumed = 0;
+    fields = sscanf(line, "%d %ld %d %c", &num, &num2, &num3, &trailing);
+    if (fields >= 1 && num == -1)
+      return;
+    if ((fields != 2 && fields != 3) ||
+        (fields == 2 &&
+         (sscanf(line, "%d %ld %n", &num, &num2, &consumed) != 2 || line[consumed] != '\0')))
+    {
+      log("SYSERR: Ignoring malformed legacy persisted event record for %s.", GET_NAME(ch));
+      continue;
+    }
+    if (num <= eNULL || num >= eMUD_EVENT_COUNT)
+    {
+      log("SYSERR: Ignoring unknown legacy persisted event type %d for %s.", num, GET_NAME(ch));
+      continue;
+    }
+    policy = mud_event_persistence_policy((event_id)num);
+    memset(&record, 0, sizeof(record));
+    record.event_type = (event_id)num;
+    record.schema_version = policy->schema_version;
+    record.owner_id = GET_IDNUM(ch);
+    record.remaining_ticks = num2;
+    record.saved_at_epoch = (int64_t)time(NULL);
+    record.payload_value =
+        policy->payload_policy == MUD_EVENT_PAYLOAD_USES && fields == 3 && num3 > 0 ? num3 : -1;
+    restore_status = mud_event_restore_character_record(ch, &record, record.saved_at_epoch);
+    if (restore_status != MUD_EVENT_RESTORE_OK)
+      log("SYSERR: Ignoring legacy persisted event %d for %s: %s.", num, GET_NAME(ch),
+          mud_event_restore_status_name(restore_status));
+  }
+
+  log("SYSERR: Unterminated legacy persisted event section for %s.", GET_NAME(ch));
+}
+
+static bool skip_durable_event_section(FILE *fl)
+{
+  char line[MAX_INPUT_LENGTH + 1];
+
+  while (get_line(fl, line))
+  {
+    if (!strcmp(line, "-1"))
+      return true;
+  }
+  return false;
+}
+
+#ifdef LUMINARI_CUTEST
+void load_legacy_events_for_test(FILE *fl, struct char_data *ch)
+{
+  load_events(fl, ch);
+}
+
+bool skip_durable_event_section_for_test(FILE *fl)
+{
+  return skip_durable_event_section(fl);
+}
+#endif
+
+static void load_events_v2(FILE *fl, struct char_data *ch, const char *header,
+                           struct pending_durable_event **pending)
+{
+  struct mud_event_durable_record record;
+  struct pending_durable_event *entry;
+  unsigned int format_version;
+  long long owner_id;
+  long long remaining_ticks;
+  long long saved_at_epoch;
+  long long recovery_interval_ticks;
+  int event_type;
+  int payload_value;
+  int consumed;
+  unsigned int schema_version;
+  char trailing;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  while (*pending != NULL)
+    pending = &(*pending)->next;
+
+  if (header == NULL || sscanf(header, "%u %c", &format_version, &trailing) != 1 ||
+      (format_version != 1U && format_version != MUD_EVENT_DURABLE_FORMAT_VERSION))
+  {
+    log("SYSERR: Unsupported durable event section version for %s.", GET_NAME(ch));
+    if (!skip_durable_event_section(fl))
+      log("SYSERR: Unterminated unsupported durable event section for %s; remaining player-file "
+          "tags were discarded.",
+          GET_NAME(ch));
+    return;
+  }
+
+  while (get_line(fl, line))
+  {
+    if (!strcmp(line, "-1"))
+      return;
+    recovery_interval_ticks = 0;
+    consumed = 0;
+    if (sscanf(line, "%d %u %lld %lld %lld %d %n", &event_type, &schema_version, &owner_id,
+               &remaining_ticks, &saved_at_epoch, &payload_value, &consumed) != 6)
+    {
+      log("SYSERR: Ignoring malformed durable event record for %s.", GET_NAME(ch));
+      continue;
+    }
+    if (format_version == 1U
+            ? line[consumed] != '\0'
+            : sscanf(line + consumed, "%lld %c", &recovery_interval_ticks, &trailing) != 1)
+    {
+      log("SYSERR: Ignoring malformed durable event record for %s.", GET_NAME(ch));
+      continue;
+    }
+
+    memset(&record, 0, sizeof(record));
+    record.event_type = (event_id)event_type;
+    record.schema_version = schema_version;
+    record.owner_id = owner_id;
+    record.remaining_ticks = remaining_ticks;
+    record.saved_at_epoch = saved_at_epoch;
+    record.payload_value = payload_value;
+    record.recovery_interval_ticks = recovery_interval_ticks;
+    CREATE(entry, struct pending_durable_event, 1);
+    entry->record = record;
+    *pending = entry;
+    pending = &entry->next;
+  }
+
+  log("SYSERR: Unterminated durable event section for %s.", GET_NAME(ch));
+}
+
+#ifdef LUMINARI_CUTEST
+size_t load_durable_events_for_test(FILE *fl, struct char_data *ch, const char *header,
+                                    struct mud_event_durable_record *records, size_t capacity)
+{
+  struct pending_durable_event *pending = NULL;
+  struct pending_durable_event *entry;
+  size_t count = 0;
+
+  load_events_v2(fl, ch, header, &pending);
+  while (pending != NULL)
+  {
+    entry = pending;
+    pending = entry->next;
+    if (count < capacity)
+      records[count] = entry->record;
+    count++;
+    free(entry);
+  }
+  return count;
+}
+#endif
+
+void load_quests(FILE *fl, struct char_data *ch)
+{
+  int num = (int)NOTHING;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != (int)NOTHING)
+      add_completed_quest(ch, num);
+  } while (num != (int)NOTHING);
+}
+
+/* Load introduction list */
+static void load_introductions(FILE *fl, struct char_data *ch)
+{
+  char line[MAX_INPUT_LENGTH + 1];
+  int i = 0;
+  long test_num;
+
+  /* Initialize all slots to NULL first */
+  for (i = 0; i < MAX_INTROS; i++)
+    ch->player_specials->saved.intro_list[i] = NULL;
+
+  i = 0;
+
+  /* Read first line to detect format */
+  get_line(fl, line);
+
+  /* Check if this is old numeric format by testing first line */
+  if (sscanf(line, "%ld", &test_num) == 1 && strlen(line) < 10)
+  {
+    /* Keep reading and discarding old format data */
+    while (1)
+    {
+      get_line(fl, line);
+      /* Stop when we hit NOTHING (-1) or a non-numeric line */
+      if (sscanf(line, "%ld", &test_num) != 1 || test_num == -1 || test_num == NOTHING)
+        break;
+    }
+    /* Old format data has been skipped, intro list remains empty */
+    return;
+  }
+
+  /* New format - process the first line we already read */
+  if (strcmp(line, "~") != 0 && *line)
+  {
+    ch->player_specials->saved.intro_list[i] = strdup(line);
+    i++;
+  }
+
+  /* Continue reading new format data */
+  while (i < MAX_INTROS)
+  {
+    get_line(fl, line);
+    if (strcmp(line, "~") == 0)
+      break;
+
+    if (*line)
+    {
+      ch->player_specials->saved.intro_list[i] = strdup(line);
+      i++;
+    }
+  }
+}
+
+static void load_HMVS(struct char_data *ch, const char *line, int mode)
+{
+  int num = 0, num2 = 0;
+
+  sscanf(line, "%d/%d", &num, &num2);
+
+  switch (mode)
+  {
+  case LOAD_HIT:
+    GET_HIT(ch) = num;
+    GET_REAL_MAX_HIT(ch) = num2;
+    break;
+
+  case LOAD_PSP:
+    GET_PSP(ch) = num;
+    GET_REAL_MAX_PSP(ch) = num2;
+    break;
+
+  case LOAD_MOVE:
+    GET_MOVE(ch) = num;
+    GET_REAL_MAX_MOVE(ch) = num2;
+    break;
+
+  case LOAD_STRENGTH:
+    GET_REAL_STR(ch) = num;
+    ch->real_abils.str_add = num2;
+    break;
+  }
+}
+
+static void write_aliases_ascii(FILE *file, struct char_data *ch)
+{
+  struct alias_data *temp;
+  int count = 0;
+
+  if (GET_ALIASES(ch) == NULL)
+    return;
+
+  for (temp = GET_ALIASES(ch); temp; temp = temp->next)
+    count++;
+
+  fprintf(file, "Alis: %d\n", count);
+
+  for (temp = GET_ALIASES(ch); temp; temp = temp->next)
+    fprintf(file,
+            " %s\n" /* Alias: prepend a space in order to avoid issues with aliases beginning
+                           * with * (get_line treats lines beginning with * as comments and ignores them */
+            "%s\n"  /* Replacement: always prepended with a space in memory anyway */
+            "%d\n", /* Type */
+            temp->alias, temp->replacement, temp->type);
+}
+
+static void read_aliases_ascii(FILE *file, struct char_data *ch, int count)
+{
+  int i;
+
+  if (count == 0)
+  {
+    GET_ALIASES(ch) = NULL;
+    return; /* No aliases in the list. */
+  }
+
+  /* This code goes both ways for the old format (where alias and replacement start at the
+   * first character on the line) and the new (where they are prepended by a space in order
+   * to avoid the possibility of a * at the start of the line */
+  for (i = 0; i < count; i++)
+  {
+    char abuf[MAX_INPUT_LENGTH + 1], rbuf[MAX_INPUT_LENGTH + 1], tbuf[MAX_INPUT_LENGTH] = {'\0'};
+
+    /* Read the aliased command. */
+    get_line(file, abuf);
+
+    /* Read the replacement. This needs to have a space prepended before placing in
+     * the in-memory struct. The space may be there already, but we can't be certain! */
+    rbuf[0] = ' ';
+    get_line(file, rbuf + 1);
+
+    /* read the type */
+    get_line(file, tbuf);
+
+    if (abuf[0] && rbuf[1] && *tbuf)
+    {
+      struct alias_data *temp;
+      CREATE(temp, struct alias_data, 1);
+      temp->alias = strdup(abuf[0] == ' ' ? abuf + 1 : abuf);
+      temp->replacement = strdup(rbuf[1] == ' ' ? rbuf + 1 : rbuf);
+      temp->type = atoi(tbuf);
+      temp->next = GET_ALIASES(ch);
+      GET_ALIASES(ch) = temp;
+    }
+  }
+}
+
+bool update_player_last_on_single(struct char_data *ch)
+{
+  char buf[2048]; /* For MySQL insert. */
+  char char_info[1000];
+  char classes_list[MAX_INPUT_LENGTH] = {'\0'};
+  size_t len = 0;
+  int class_len = 0;
+  enum perf_sql_category previous_sql_category;
+  char *escaped_char_info;
+  char *escaped_name_update;
+  char *escaped_name_update2;
+  bool success;
+
+  if (ch == NULL || IS_NPC(ch) || GET_NAME(ch) == NULL)
+    return false;
+
+  PERF_PROF_ENTER_SAMPLED(pr_last_online_save_, "save.last_online");
+  previous_sql_category = PERF_sql_scope_set(PERF_SQL_LAST_ONLINE);
+  success = false;
+
+  if (GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    int inc, class_count = 0;
+    len = snprintf_append(classes_list, sizeof(classes_list), (int)len, "[%2d %4s ", GET_LEVEL(ch),
+                          RACE_ABBR_REAL(ch));
+    for (inc = 0; inc < MAX_CLASSES; inc++)
+    {
+      if (CLASS_LEVEL(ch, inc))
+      {
+        if (class_count)
+          len = snprintf_append(classes_list, sizeof(classes_list), (int)len, "|");
+        len =
+            snprintf_append(classes_list, sizeof(classes_list), (int)len, "%s", CLSLIST_ABBRV(inc));
+        class_count++;
+      }
+    }
+    class_len = (int)(strlen(classes_list) - count_color_chars(classes_list));
+    while (class_len < 11)
+    {
+      len = snprintf_append(classes_list, sizeof(classes_list), (int)len, " ");
+      class_len++;
+    }
+    snprintf(char_info, sizeof(char_info), "%s]", classes_list);
+  }
+  else
+  {
+    snprintf(char_info, sizeof(char_info), "[%2d %s] ", GET_LEVEL(ch), GET_IMM_TITLE(ch));
+  }
+
+  escaped_char_info = mysql_escape_string_alloc(conn, char_info);
+  escaped_name_update = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  if (!escaped_char_info || !escaped_name_update)
+  {
+    log("SYSERR: Failed to escape strings in last_online update");
+    free(escaped_char_info);
+    free(escaped_name_update);
+    goto cleanup;
+  }
+
+  snprintf(buf, sizeof(buf),
+           "UPDATE player_data SET last_online = NOW(), character_info='%s' WHERE name = '%s';",
+           escaped_char_info, escaped_name_update);
+  free(escaped_char_info);
+  free(escaped_name_update);
+  if (mysql_query(conn, buf))
+  {
+    /* Try without character_info column for compatibility. */
+    escaped_name_update2 = mysql_escape_string_alloc(conn, GET_NAME(ch));
+    if (!escaped_name_update2)
+    {
+      log("SYSERR: Failed to escape character name in last_online fallback");
+      goto cleanup;
+    }
+    snprintf(buf, sizeof(buf), "UPDATE player_data SET last_online = NOW() WHERE name = '%s';",
+             escaped_name_update2);
+    free(escaped_name_update2);
+    if (mysql_query(conn, buf))
+    {
+      log("SYSERR: Unable to UPDATE last_online for %s on PLAYER_DATA: %s", GET_NAME(ch),
+          mysql_error(conn));
+      goto cleanup;
+    }
+  }
+  success = true;
+
+cleanup:
+  PERF_sql_scope_restore(previous_sql_category);
+  PERF_PROF_EXIT(pr_last_online_save_);
+  return success;
+}
+
+void update_player_last_on(void)
+{
+  struct descriptor_data *d;
+
+  for (d = descriptor_list; d; d = d->next)
+    if (d->character != NULL)
+      (void)update_player_last_on_single(d->character);
+}
+
+static bool pet_has_valid_prototype(struct char_data *pet)
+{
+  mob_rnum rnum;
+
+  if (!pet || !mob_proto || !mob_index)
+    return false;
+
+  rnum = GET_MOB_RNUM(pet);
+  return rnum != NOBODY && rnum <= top_of_mobt;
+}
+
+static bool pet_is_hired_mercenary(struct char_data *pet)
+{
+  mob_rnum rnum;
+
+  if (!pet || !IS_NPC(pet))
+    return false;
+  if (MOB_FLAGGED(pet, MOB_MERCENARY))
+    return true;
+  if (!pet_has_valid_prototype(pet))
+    return false;
+
+  rnum = GET_MOB_RNUM(pet);
+  return mob_index[rnum].func == mercenary;
+}
+
+static void init_pet_runtime_state(struct pet_runtime_state *state)
+{
+  int i;
+
+  memset(state, 0, sizeof(*state));
+  for (i = 0; i < MAX_FEATS; i++)
+    state->feat_values[i] = -1;
+}
+
+static void mask_pet_state_bits(int *bits, int array_size, int valid_bits)
+{
+  int bit;
+
+  for (bit = valid_bits; bit < array_size * 32; bit++)
+    REMOVE_BIT_AR(bits, bit);
+}
+
+static void snapshot_pet_runtime_flags(struct char_data *pet, struct pet_runtime_state *state)
+{
+  struct affected_type *af;
+  struct obj_data *obj;
+  mob_rnum rnum;
+  int i, wear;
+
+  for (i = 0; i < AF_ARRAY_MAX; i++)
+  {
+    state->extra_aff[i] = AFF_FLAGS(pet)[i];
+    state->extra_aff2[i] = AFF2_FLAGS(pet)[i];
+  }
+
+  /* Affect and equipment records are restored independently.  Retain only
+   * raw runtime flags here so those sources are not applied twice. */
+  for (af = pet->affected; af; af = af->next)
+  {
+    for (i = 0; i < AF_ARRAY_MAX; i++)
+    {
+      state->extra_aff[i] &= ~af->bitvector[i];
+      state->extra_aff2[i] &= ~af->bitvector2[i];
+    }
+  }
+  for (wear = 0; wear < NUM_WEARS; wear++)
+  {
+    obj = GET_EQ(pet, wear);
+    if (!obj)
+      continue;
+    for (i = 0; i < AF_ARRAY_MAX; i++)
+    {
+      state->extra_aff[i] &= ~GET_OBJ_AFFECT(obj)[i];
+      state->extra_aff2[i] &= ~GET_OBJ_AFFECT2(obj)[i];
+    }
+  }
+
+  for (i = 0; i < PM_ARRAY_MAX; i++)
+    state->extra_mob[i] = MOB_FLAGS(pet)[i];
+
+  if (pet_has_valid_prototype(pet))
+  {
+    rnum = GET_MOB_RNUM(pet);
+    for (i = 0; i < AF_ARRAY_MAX; i++)
+    {
+      state->extra_aff[i] &= ~AFF_FLAGS(mob_proto + rnum)[i];
+      state->extra_aff2[i] &= ~AFF2_FLAGS(mob_proto + rnum)[i];
+    }
+    for (i = 0; i < PM_ARRAY_MAX; i++)
+      state->extra_mob[i] &= ~MOB_FLAGS(mob_proto + rnum)[i];
+  }
+
+  REMOVE_BIT_AR(state->extra_mob, MOB_NOTDEADYET);
+  mask_pet_state_bits(state->extra_aff, AF_ARRAY_MAX, NUM_AFF_FLAGS);
+  mask_pet_state_bits(state->extra_aff2, AF_ARRAY_MAX, NUM_AFF2_FLAGS);
+  mask_pet_state_bits(state->extra_mob, PM_ARRAY_MAX, NUM_MOB_FLAGS);
+}
+
+static char *serialize_pet_runtime_state(struct char_data *pet)
+{
+  struct pet_runtime_state state;
+  struct affected_type *af;
+  char *buffer;
+  size_t capacity, used;
+  mob_rnum rnum;
+  int affect_count, i;
+
+  if (!pet || !IS_NPC(pet))
+    return NULL;
+
+  init_pet_runtime_state(&state);
+  snapshot_pet_runtime_flags(pet, &state);
+  state.race = GET_REAL_RACE(pet);
+  state.size = GET_REAL_SIZE(pet);
+  state.move = GET_MOVE(pet);
+  state.max_move = GET_REAL_MAX_MOVE(pet);
+  state.psp = GET_PSP(pet);
+  state.max_psp = GET_REAL_MAX_PSP(pet);
+  state.hitroll = GET_REAL_HITROLL(pet);
+  state.damroll = GET_REAL_DAMROLL(pet);
+  state.damnodice = pet->mob_specials.damnodice;
+  state.damsizedice = pet->mob_specials.damsizedice;
+  state.alignment = GET_ALIGNMENT(pet);
+  state.hired_mercenary = pet_is_hired_mercenary(pet);
+  state.mercenary_proc_fired = state.hired_mercenary && PROC_FIRED(pet);
+  state.source_spell = pet->pet_source_spell;
+  state.behavior = pet->pet_behavior;
+  /* The scheduler handle is runtime-only; persist the absolute deadline it
+   * represents.  A deadline-class follower without a live event is already
+   * spent, so it is saved as expired rather than promoted to durable. */
+  if (pet_lifetime_kind(pet) == PET_LIFETIME_DEADLINE)
+  {
+    state.lifetime_kind = PET_SAVED_LIFETIME_DEADLINE;
+    state.expires_at = pet_lifetime_deadline(pet);
+    if (state.expires_at <= 0)
+      state.expires_at = (long long)time(NULL);
+  }
+  for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
+    state.saves[i] = GET_REAL_SAVE(pet, i);
+  for (i = 0; i < 10; i++)
+  {
+    state.spell_slots[i] = pet->mob_specials.spell_slots[i];
+    state.max_spell_slots[i] = pet->mob_specials.max_spell_slots[i];
+  }
+
+  capacity = PET_RUNTIME_STATE_INITIAL_SIZE;
+  used = 0;
+  buffer = malloc(capacity);
+  if (!buffer)
+    return NULL;
+  buffer[0] = '\0';
+
+#define PET_STATE_APPEND(...)                                                                      \
+  do                                                                                               \
+  {                                                                                                \
+    if (!append_player_save_buffer(&buffer, &capacity, &used, __VA_ARGS__) ||                      \
+        used > PET_RUNTIME_STATE_MAX_SIZE)                                                         \
+      goto serialize_failure;                                                                      \
+  } while (0)
+
+  /* V=version, P=source spell, H=behavior, T=lifetime kind and deadline,
+   * B=affect bits, M=mobile bits, S=stats, R=saves, L=spell slots,
+   * F=feat override, A=timed affect, and E=end. */
+  PET_STATE_APPEND("V %d\n", PET_RUNTIME_STATE_VERSION);
+  PET_STATE_APPEND("P %d\n", state.source_spell);
+  PET_STATE_APPEND("H %d\n", state.behavior);
+  PET_STATE_APPEND("T %d %lld\n", state.lifetime_kind, state.expires_at);
+  PET_STATE_APPEND("B %d %d %d %d %d %d %d %d\n", state.extra_aff[0], state.extra_aff[1],
+                   state.extra_aff[2], state.extra_aff[3], state.extra_aff2[0], state.extra_aff2[1],
+                   state.extra_aff2[2], state.extra_aff2[3]);
+  PET_STATE_APPEND("M %d %d %d %d\n", state.extra_mob[0], state.extra_mob[1], state.extra_mob[2],
+                   state.extra_mob[3]);
+  PET_STATE_APPEND("S %d %d %d %d %d %d %d %d %d %d %d %d %d\n", state.race, state.size, state.move,
+                   state.max_move, state.psp, state.max_psp, state.hitroll, state.damroll,
+                   state.damnodice, state.damsizedice, state.alignment, state.hired_mercenary,
+                   state.mercenary_proc_fired);
+  PET_STATE_APPEND("R %d %d %d %d %d\n", state.saves[0], state.saves[1], state.saves[2],
+                   state.saves[3], state.saves[4]);
+  PET_STATE_APPEND("L %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+                   state.spell_slots[0], state.spell_slots[1], state.spell_slots[2],
+                   state.spell_slots[3], state.spell_slots[4], state.spell_slots[5],
+                   state.spell_slots[6], state.spell_slots[7], state.spell_slots[8],
+                   state.spell_slots[9], state.max_spell_slots[0], state.max_spell_slots[1],
+                   state.max_spell_slots[2], state.max_spell_slots[3], state.max_spell_slots[4],
+                   state.max_spell_slots[5], state.max_spell_slots[6], state.max_spell_slots[7],
+                   state.max_spell_slots[8], state.max_spell_slots[9]);
+
+  rnum = pet_has_valid_prototype(pet) ? GET_MOB_RNUM(pet) : NOBODY;
+  for (i = 0; i < MAX_FEATS; i++)
+  {
+    if (rnum != NOBODY && MOB_HAS_FEAT(pet, i) == MOB_HAS_FEAT(mob_proto + rnum, i))
+      continue;
+    if (rnum == NOBODY && MOB_HAS_FEAT(pet, i) == 0)
+      continue;
+    PET_STATE_APPEND("F %d %d\n", i, MOB_HAS_FEAT(pet, i));
+  }
+
+  affect_count = 0;
+  for (af = pet->affected; af; af = af->next)
+  {
+    if (rol_elemental_embodiment_affect_is_transient(af->spell))
+      continue;
+    if (affect_count >= MAX_AFFECT)
+      break;
+    PET_STATE_APPEND("A %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n", af->spell, af->duration,
+                     af->modifier, af->location, af->bitvector[0], af->bitvector[1],
+                     af->bitvector[2], af->bitvector[3], af->bonus_type, af->specific,
+                     af->bitvector2[0], af->bitvector2[1], af->bitvector2[2], af->bitvector2[3]);
+    affect_count++;
+  }
+  PET_STATE_APPEND("E\n");
+
+#undef PET_STATE_APPEND
+  return buffer;
+
+serialize_failure:
+#undef PET_STATE_APPEND
+  free(buffer);
+  return NULL;
+}
+
+static bool pet_state_line_is_complete(const char *line, int consumed)
+{
+  if (consumed < 0)
+    return false;
+  while (line[consumed] && isspace((unsigned char)line[consumed]))
+    consumed++;
+  return line[consumed] == '\0';
+}
+
+static bool pet_state_values_are_valid(const struct pet_runtime_state *state)
+{
+  const struct affected_type *af;
+  int i;
+
+  if (state->race < 0 || state->race >= NUM_RACE_TYPES || state->size < 0 ||
+      state->size >= NUM_SIZES || state->move < 0 || state->max_move < 0 || state->psp < 0 ||
+      state->max_psp < 0 || state->hitroll < SCHAR_MIN || state->hitroll > SCHAR_MAX ||
+      state->damroll < SCHAR_MIN || state->damroll > SCHAR_MAX || state->damnodice < 0 ||
+      state->damsizedice < 0 || state->alignment < -1000 || state->alignment > 1000 ||
+      state->source_spell < 0 || state->source_spell >= MAX_SPELLS || state->behavior < 0 ||
+      state->behavior >= NUM_PET_BEHAVIORS)
+    return false;
+  if (state->lifetime_kind == PET_SAVED_LIFETIME_DURABLE
+          ? state->expires_at != 0
+          : state->lifetime_kind != PET_SAVED_LIFETIME_DEADLINE || state->expires_at <= 0)
+    return false;
+
+  for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
+    if (state->saves[i] < SHRT_MIN || state->saves[i] > SHRT_MAX)
+      return false;
+  for (i = 0; i < 10; i++)
+    if (state->spell_slots[i] < 0 || state->max_spell_slots[i] < 0)
+      return false;
+  for (i = 0; i < MAX_FEATS; i++)
+    if (state->feat_values[i] < -1 || state->feat_values[i] > UCHAR_MAX)
+      return false;
+
+  for (i = 0; i < state->affect_count; i++)
+  {
+    af = &state->affects[i];
+    if (af->spell < 0 || af->location < 0 || af->location >= NUM_APPLIES || af->bonus_type < 0 ||
+        af->bonus_type >= NUM_BONUS_TYPES)
+      return false;
+  }
+
+  return true;
+}
+
+static bool parse_pet_runtime_state(const char *serialized, struct pet_runtime_state *state)
+{
+  struct affected_type *af;
+  char *copy, *line, *saveptr;
+  size_t serialized_length;
+  int consumed, feat, feat_value, hired, proc_fired, version;
+  int saw_version, saw_base, saw_mob, saw_stats, saw_saves, saw_slots, saw_end, saw_source;
+  bool saw_behavior;
+  bool saw_lifetime;
+  int affect_values[14];
+  int values[20];
+
+  if (!serialized || !*serialized || !state)
+    return false;
+  serialized_length = strlen(serialized);
+  if (serialized_length > PET_RUNTIME_STATE_MAX_SIZE)
+    return false;
+
+  copy = strdup(serialized);
+  if (!copy)
+    return false;
+  init_pet_runtime_state(state);
+  saveptr = NULL;
+  saw_version = saw_base = saw_mob = saw_stats = saw_saves = saw_slots = saw_end = false;
+  saw_source = false;
+  saw_behavior = false;
+  saw_lifetime = false;
+  version = 0;
+
+  for (line = strtok_r(copy, "\n", &saveptr); line; line = strtok_r(NULL, "\n", &saveptr))
+  {
+    consumed = -1;
+    if (saw_end)
+      goto parse_failure;
+    if (line[0] == 'V')
+    {
+      if (saw_version || sscanf(line, "V %d %n", &version, &consumed) != 1 ||
+          !pet_state_line_is_complete(line, consumed) || version < 1 ||
+          version > PET_RUNTIME_STATE_VERSION)
+        goto parse_failure;
+      saw_version = true;
+    }
+    else if (line[0] == 'P')
+    {
+      if (!saw_version || version < 2 || saw_source ||
+          sscanf(line, "P %d %n", &state->source_spell, &consumed) != 1 ||
+          !pet_state_line_is_complete(line, consumed) || state->source_spell < 0 ||
+          state->source_spell >= MAX_SPELLS)
+        goto parse_failure;
+      saw_source = true;
+    }
+    else if (line[0] == 'H')
+    {
+      if (!saw_version || version < 3 || saw_behavior ||
+          sscanf(line, "H %d %n", &state->behavior, &consumed) != 1 ||
+          !pet_state_line_is_complete(line, consumed))
+        goto parse_failure;
+      saw_behavior = true;
+    }
+    else if (line[0] == 'T')
+    {
+      if (!saw_version || version < 4 || saw_lifetime ||
+          sscanf(line, "T %d %lld %n", &state->lifetime_kind, &state->expires_at, &consumed) != 2 ||
+          !pet_state_line_is_complete(line, consumed))
+        goto parse_failure;
+      saw_lifetime = true;
+    }
+    else if (line[0] == 'B')
+    {
+      if (!saw_version || saw_base ||
+          sscanf(line, "B %d %d %d %d %d %d %d %d %n", &state->extra_aff[0], &state->extra_aff[1],
+                 &state->extra_aff[2], &state->extra_aff[3], &state->extra_aff2[0],
+                 &state->extra_aff2[1], &state->extra_aff2[2], &state->extra_aff2[3],
+                 &consumed) != 8 ||
+          !pet_state_line_is_complete(line, consumed))
+        goto parse_failure;
+      saw_base = true;
+    }
+    else if (line[0] == 'M')
+    {
+      if (!saw_version || saw_mob ||
+          sscanf(line, "M %d %d %d %d %n", &state->extra_mob[0], &state->extra_mob[1],
+                 &state->extra_mob[2], &state->extra_mob[3], &consumed) != 4 ||
+          !pet_state_line_is_complete(line, consumed))
+        goto parse_failure;
+      saw_mob = true;
+    }
+    else if (line[0] == 'S')
+    {
+      if (!saw_version || saw_stats ||
+          sscanf(line, "S %d %d %d %d %d %d %d %d %d %d %d %d %d %n", &state->race, &state->size,
+                 &state->move, &state->max_move, &state->psp, &state->max_psp, &state->hitroll,
+                 &state->damroll, &state->damnodice, &state->damsizedice, &state->alignment, &hired,
+                 &proc_fired, &consumed) != 13 ||
+          !pet_state_line_is_complete(line, consumed) || (hired != 0 && hired != 1) ||
+          (proc_fired != 0 && proc_fired != 1))
+        goto parse_failure;
+      state->hired_mercenary = hired;
+      state->mercenary_proc_fired = proc_fired;
+      saw_stats = true;
+    }
+    else if (line[0] == 'R')
+    {
+      if (!saw_version || saw_saves ||
+          sscanf(line, "R %d %d %d %d %d %n", &state->saves[0], &state->saves[1], &state->saves[2],
+                 &state->saves[3], &state->saves[4], &consumed) != 5 ||
+          !pet_state_line_is_complete(line, consumed))
+        goto parse_failure;
+      saw_saves = true;
+    }
+    else if (line[0] == 'L')
+    {
+      if (!saw_version || saw_slots ||
+          sscanf(line, "L %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %n",
+                 &values[0], &values[1], &values[2], &values[3], &values[4], &values[5], &values[6],
+                 &values[7], &values[8], &values[9], &values[10], &values[11], &values[12],
+                 &values[13], &values[14], &values[15], &values[16], &values[17], &values[18],
+                 &values[19], &consumed) != 20 ||
+          !pet_state_line_is_complete(line, consumed))
+        goto parse_failure;
+      for (feat = 0; feat < 10; feat++)
+      {
+        state->spell_slots[feat] = values[feat];
+        state->max_spell_slots[feat] = values[feat + 10];
+      }
+      saw_slots = true;
+    }
+    else if (line[0] == 'F')
+    {
+      if (!saw_version || sscanf(line, "F %d %d %n", &feat, &feat_value, &consumed) != 2 ||
+          !pet_state_line_is_complete(line, consumed) || feat < 0 || feat >= MAX_FEATS ||
+          feat_value < 0 || feat_value > UCHAR_MAX)
+        goto parse_failure;
+      state->feat_values[feat] = feat_value;
+    }
+    else if (line[0] == 'A')
+    {
+      if (!saw_version || state->affect_count >= MAX_AFFECT)
+        goto parse_failure;
+      af = &state->affects[state->affect_count];
+      if (sscanf(line, "A %d %d %d %d %d %d %d %d %d %d %d %d %d %d %n", &affect_values[0],
+                 &affect_values[1], &affect_values[2], &affect_values[3], &affect_values[4],
+                 &affect_values[5], &affect_values[6], &affect_values[7], &affect_values[8],
+                 &affect_values[9], &affect_values[10], &affect_values[11], &affect_values[12],
+                 &affect_values[13], &consumed) != 14 ||
+          !pet_state_line_is_complete(line, consumed) || affect_values[0] < 0 ||
+          affect_values[0] > SHRT_MAX || affect_values[1] < SHRT_MIN ||
+          affect_values[1] > SHRT_MAX || affect_values[2] < SHRT_MIN ||
+          affect_values[2] > SHRT_MAX || affect_values[3] < 0 || affect_values[3] >= NUM_APPLIES ||
+          affect_values[8] < 0 || affect_values[8] >= NUM_BONUS_TYPES ||
+          affect_values[9] < SHRT_MIN || affect_values[9] > SHRT_MAX)
+        goto parse_failure;
+      af->spell = affect_values[0];
+      af->duration = affect_values[1];
+      af->modifier = affect_values[2];
+      af->location = affect_values[3];
+      af->bitvector[0] = affect_values[4];
+      af->bitvector[1] = affect_values[5];
+      af->bitvector[2] = affect_values[6];
+      af->bitvector[3] = affect_values[7];
+      af->bonus_type = affect_values[8];
+      af->specific = affect_values[9];
+      af->bitvector2[0] = affect_values[10];
+      af->bitvector2[1] = affect_values[11];
+      af->bitvector2[2] = affect_values[12];
+      af->bitvector2[3] = affect_values[13];
+      af->next = NULL;
+      state->affect_count++;
+    }
+    else if (!strcmp(line, "E"))
+    {
+      saw_end = true;
+    }
+    else
+    {
+      goto parse_failure;
+    }
+  }
+
+  free(copy);
+  if (!saw_version || !saw_base || !saw_mob || !saw_stats || !saw_saves || !saw_slots || !saw_end ||
+      (version >= 2 && !saw_source) || (version >= 3 && !saw_behavior) ||
+      (version >= 4 && !saw_lifetime) || !pet_state_values_are_valid(state))
+    return false;
+
+  mask_pet_state_bits(state->extra_aff, AF_ARRAY_MAX, NUM_AFF_FLAGS);
+  mask_pet_state_bits(state->extra_aff2, AF_ARRAY_MAX, NUM_AFF2_FLAGS);
+  mask_pet_state_bits(state->extra_mob, PM_ARRAY_MAX, NUM_MOB_FLAGS);
+  REMOVE_BIT_AR(state->extra_mob, MOB_NOTDEADYET);
+  return true;
+
+parse_failure:
+  free(copy);
+  return false;
+}
+
+/* Reapply a decoded runtime-state record to a freshly read prototype copy:
+ * stats, flags beyond the prototype, feats, spell slots, and affects. */
+static void apply_pet_runtime_state(struct char_data *pet, const struct pet_runtime_state *state)
+{
+  struct affected_type af;
+  int i;
+
+  if (!pet || !state)
+    return;
+
+  for (i = 0; i < AF_ARRAY_MAX; i++)
+  {
+    AFF_FLAGS(pet)[i] |= state->extra_aff[i];
+    AFF2_FLAGS(pet)[i] |= state->extra_aff2[i];
+  }
+  for (i = 0; i < PM_ARRAY_MAX; i++)
+    MOB_FLAGS(pet)[i] |= state->extra_mob[i];
+  REMOVE_BIT_AR(MOB_FLAGS(pet), MOB_NOTDEADYET);
+
+  GET_REAL_RACE(pet) = state->race;
+  pet->pet_source_spell = state->source_spell;
+  pet->pet_behavior = state->behavior;
+  GET_REAL_SIZE(pet) = state->size;
+  GET_MOVE(pet) = state->move;
+  GET_REAL_MAX_MOVE(pet) = state->max_move;
+  GET_PSP(pet) = state->psp;
+  GET_REAL_MAX_PSP(pet) = state->max_psp;
+  GET_REAL_HITROLL(pet) = state->hitroll;
+  GET_REAL_DAMROLL(pet) = state->damroll;
+  pet->mob_specials.damnodice = (byte)state->damnodice;
+  pet->mob_specials.damsizedice = (byte)state->damsizedice;
+  GET_ALIGNMENT(pet) = state->alignment;
+  for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
+    GET_REAL_SAVE(pet, i) = state->saves[i];
+  for (i = 0; i < 10; i++)
+  {
+    pet->mob_specials.spell_slots[i] = state->spell_slots[i];
+    pet->mob_specials.max_spell_slots[i] = state->max_spell_slots[i];
+  }
+  for (i = 0; i < MAX_FEATS; i++)
+    if (state->feat_values[i] >= 0)
+      MOB_SET_FEAT(pet, i, state->feat_values[i]);
+  for (i = state->affect_count - 1; i >= 0; i--)
+  {
+    af = state->affects[i];
+    if (rol_elemental_embodiment_affect_is_transient(af.spell))
+      continue;
+    af.next = NULL;
+    affect_to_char(pet, &af);
+  }
+
+  /* The mercenary category comes from the prototype or the kept flag line;
+   * only the one-time hit-point roll marker is carried here so a restored
+   * hireling matches its live category accounting. */
+  if (state->hired_mercenary)
+    PROC_FIRED(pet) = state->mercenary_proc_fired;
+  if (!AFF_FLAGGED(pet, AFF_CHARM))
+    SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+}
+
+/* Rebuild the follower's lifetime from its saved record.  Deadlines are real
+ * time, so offline time counts against them; an elapsed deadline, or a
+ * deadline-class follower saved without one, is rejected.  A NULL state is a
+ * legacy row and is durable unless its category requires a deadline. */
+static bool restore_pet_lifetime(struct char_data *pet, const struct pet_runtime_state *state,
+                                 time_t now)
+{
+  enum pet_lifetime_kind kind;
+  long long remaining;
+
+  if (!pet)
+    return false;
+  if (!state || state->lifetime_kind == PET_SAVED_LIFETIME_DURABLE)
+  {
+    /* Session summons and decoys saved before the policy existed are spent. */
+    kind = pet_lifetime_kind(pet);
+    return kind == PET_LIFETIME_DURABLE || kind == PET_LIFETIME_CONTROL;
+  }
+  remaining = state->expires_at - (long long)now;
+  if (remaining <= 0)
+    return false;
+  if (remaining > LONG_MAX / PASSES_PER_SEC)
+    remaining = LONG_MAX / PASSES_PER_SEC;
+  attach_mud_event(new_mud_event(ePURGEMOB, pet, NULL), (long)remaining * PASSES_PER_SEC);
+  /* Admission can fail; a deadline follower without its event would be immortal. */
+  if (!mud_event_is_live(char_has_mud_event(pet, ePURGEMOB)))
+  {
+    log("SYSERR: %s: Could not schedule the expiry of saved follower %ld", __func__,
+        pet->pet_data_id);
+    return false;
+  }
+  return true;
+}
+
+#ifdef LUMINARI_CUTEST
+char *serialize_pet_runtime_state_for_test(struct char_data *pet)
+{
+  return serialize_pet_runtime_state(pet);
+}
+
+bool restore_pet_runtime_state_for_test(struct char_data *pet, const char *serialized)
+{
+  struct pet_runtime_state state;
+
+  if (!parse_pet_runtime_state(serialized, &state))
+    return false;
+  apply_pet_runtime_state(pet, &state);
+  return restore_pet_lifetime(pet, &state, time(NULL));
+}
+#endif
+
+bool valid_pet_name(char *name)
+{
+  if (!name)
+    return false;
+
+  if (strstr(name, ";") || strstr(name, "\""))
+    return false;
+  return true;
+}
+
+/* Preserve prototype keywords when restoring a custom pet name. Staff and
+ * owner targeting must continue to recognize the creature's base identity. */
+static char *build_pet_keyword_list(const char *saved_keywords, const char *prototype_keywords)
+{
+  char *keywords;
+  size_t length;
+
+  if (!saved_keywords || !*saved_keywords)
+    return prototype_keywords && *prototype_keywords ? strdup(prototype_keywords) : NULL;
+  if (!prototype_keywords || !*prototype_keywords || !strcmp(saved_keywords, prototype_keywords))
+    return strdup(saved_keywords);
+
+  length = strlen(saved_keywords) + strlen(prototype_keywords) + 2;
+  keywords = malloc(length);
+  if (!keywords)
+    return NULL;
+  snprintf(keywords, length, "%s %s", saved_keywords, prototype_keywords);
+  return keywords;
+}
+
+/* Names use existing pet text fields. A known save failure restores all live
+ * pointers, so the player never receives success for an unsaved rename. */
+bool pet_set_custom_name(struct char_data *owner, struct char_data *pet, const char *name,
+                         const char **reason)
+{
+  struct char_data *prototype;
+  char *keywords, *short_desc, *long_desc;
+  char *old_keywords, *old_short, *old_long;
+  char normalized[25];
+  size_t length, i;
+  bool letter;
+
+  if (reason)
+    *reason = "Only a loyal pet here can be named.";
+  if (!owner || IS_NPC(owner) || !pet_order_check(owner, pet) || !pet_has_valid_prototype(pet))
+    return false;
+  prototype = &mob_proto[GET_MOB_RNUM(pet)];
+  if (pet == prototype || GET_MOB_VNUM(pet) == MOB_CLONE)
+  {
+    if (reason)
+      *reason = "That creature keeps its existing identity.";
+    return false;
+  }
+  if (reason)
+    *reason = "Use 3-24 ASCII letters, with optional internal apostrophes or hyphens.";
+  if (!name || (length = strlen(name)) < 3 || length > 24)
+    return false;
+  for (i = 0; i < length; i++)
+  {
+    letter = (name[i] >= 'A' && name[i] <= 'Z') || (name[i] >= 'a' && name[i] <= 'z');
+    if (!letter && (i == 0 || i == length - 1 || (name[i] != '\'' && name[i] != '-')))
+      return false;
+  }
+  snprintf(normalized, sizeof(normalized), "%s", name);
+  if (fill_word(normalized) || reserved_word(normalized) || !str_cmp(normalized, "followers") ||
+      !str_cmp(normalized, "restore"))
+  {
+    if (reason)
+      *reason = "That name is reserved by pet commands.";
+    return false;
+  }
+  if (reason)
+    *reason = "The name could not be allocated; nothing changed.";
+  keywords = build_pet_keyword_list(name, prototype->player.name);
+  short_desc = strdup(name);
+  long_desc = malloc(length + sizeof(" is here.\r\n"));
+  if (!keywords || !short_desc || !long_desc)
+  {
+    free(keywords);
+    free(short_desc);
+    free(long_desc);
+    return false;
+  }
+  snprintf(long_desc, length + sizeof(" is here.\r\n"), "%s is here.\r\n", name);
+  old_keywords = pet->player.name;
+  old_short = pet->player.short_descr;
+  old_long = pet->player.long_descr;
+  pet->player.name = keywords;
+  pet->player.short_descr = short_desc;
+  pet->player.long_descr = long_desc;
+  if (!save_char_pets(owner))
+  {
+    pet->player.name = old_keywords;
+    pet->player.short_descr = old_short;
+    pet->player.long_descr = old_long;
+    free(keywords);
+    free(short_desc);
+    free(long_desc);
+    if (reason)
+      *reason = "Your pets could not be saved. The name is unchanged; try again later.";
+    return false;
+  }
+  if (old_keywords != prototype->player.name)
+    free(old_keywords);
+  if (old_short != prototype->player.short_descr)
+    free(old_short);
+  if (old_long != prototype->player.long_descr)
+    free(old_long);
+  if (reason)
+    *reason = NULL;
+  return true;
+}
+
+#ifdef LUMINARI_CUTEST
+char *build_pet_keyword_list_for_test(const char *saved_keywords, const char *prototype_keywords)
+{
+  return build_pet_keyword_list(saved_keywords, prototype_keywords);
+}
+#endif
+
+#define PET_SAVE_LOG_BUCKETS 32
+#define PET_SAVE_LOG_INTERVAL 60
+#define PET_SAVE_LOG_OWNER_LENGTH 50
+#define PET_SAVE_LOG_DETAIL_LENGTH 160
+#define PET_SAVE_CACHE_CAPACITY 256
+
+struct pet_save_record
+{
+  struct char_data *pet;
+  char *insert_query;
+  size_t fingerprint_length;
+  long saved_id;
+  int pet_vnum;
+  struct pet_save_record *next;
+};
+
+struct pet_save_log_bucket
+{
+  char owner[PET_SAVE_LOG_OWNER_LENGTH + 1];
+  time_t last_logged;
+  unsigned int suppressed;
+};
+
+static struct pet_save_log_bucket pet_save_log_buckets[PET_SAVE_LOG_BUCKETS];
+
+struct pet_save_cache_entry
+{
+  long owner_id;
+  uint64_t fingerprint;
+  bool used;
+};
+
+static struct pet_save_cache_entry pet_save_cache[PET_SAVE_CACHE_CAPACITY];
+
+#ifdef LUMINARI_CUTEST
+void reset_pet_save_cache_for_test(void)
+{
+  memset(pet_save_cache, 0, sizeof(pet_save_cache));
+}
+#endif
+
+static uint64_t pet_hash_bytes(uint64_t hash, const void *data, size_t size)
+{
+  const unsigned char *bytes;
+  size_t i;
+
+  bytes = data;
+  for (i = 0; i < size; i++)
+  {
+    hash ^= bytes[i];
+    hash *= UINT64_C(1099511628211);
+  }
+  return hash;
+}
+
+static uint64_t pet_hash_string(uint64_t hash, const char *text)
+{
+  if (text == NULL)
+    return pet_hash_bytes(hash, "", 1);
+  return pet_hash_bytes(hash, text, strlen(text) + 1);
+}
+
+static uint64_t pet_hash_objects(uint64_t hash, const struct obj_data *obj)
+{
+  const struct extra_descr_data *extra;
+  const struct obj_special_ability *ability;
+  unsigned char marker;
+  int vnum;
+  int i;
+
+  for (; obj != NULL; obj = obj->next_content)
+  {
+    marker = 1;
+    hash = pet_hash_bytes(hash, &marker, sizeof(marker));
+    vnum = GET_OBJ_VNUM(obj);
+    hash = pet_hash_bytes(hash, &vnum, sizeof(vnum));
+    hash = pet_hash_bytes(hash, &obj->obj_flags, sizeof(obj->obj_flags));
+    hash = pet_hash_bytes(hash, obj->affected, sizeof(obj->affected));
+    hash = pet_hash_bytes(hash, &obj->weapon_poison, sizeof(obj->weapon_poison));
+    hash = pet_hash_bytes(hash, obj->activate_spell, sizeof(obj->activate_spell));
+    hash = pet_hash_bytes(hash, &obj->tinker_bonus, sizeof(obj->tinker_bonus));
+    hash = pet_hash_string(hash, obj->name);
+    hash = pet_hash_string(hash, obj->description);
+    hash = pet_hash_string(hash, obj->short_description);
+    hash = pet_hash_string(hash, obj->action_description);
+    hash = pet_hash_string(hash, obj->arcane_mark);
+    hash = pet_hash_string(hash, obj->restring_identifier);
+    for (extra = obj->ex_description; extra != NULL; extra = extra->next)
+    {
+      hash = pet_hash_string(hash, extra->keyword);
+      hash = pet_hash_string(hash, extra->description);
+    }
+    marker = 2;
+    hash = pet_hash_bytes(hash, &marker, sizeof(marker));
+    if (obj->sbinfo != NULL)
+      for (i = 0; i < SPELLBOOK_SIZE; i++)
+        hash = pet_hash_bytes(hash, &obj->sbinfo[i], sizeof(obj->sbinfo[i]));
+    for (ability = obj->special_abilities; ability != NULL; ability = ability->next)
+    {
+      hash = pet_hash_bytes(hash, &ability->ability, sizeof(ability->ability));
+      hash = pet_hash_bytes(hash, &ability->level, sizeof(ability->level));
+      hash = pet_hash_bytes(hash, &ability->activation_method, sizeof(ability->activation_method));
+      hash = pet_hash_bytes(hash, ability->value, sizeof(ability->value));
+      hash = pet_hash_string(hash, ability->command_word);
+    }
+    hash = pet_hash_objects(hash, obj->contains);
+  }
+  marker = 0;
+  hash = pet_hash_bytes(hash, &marker, sizeof(marker));
+  return hash;
+}
+
+static uint64_t pet_save_fingerprint(const struct pet_save_record *records)
+{
+  const struct pet_save_record *record;
+  uint64_t hash;
+  int wear;
+
+  hash = UINT64_C(1469598103934665603);
+  for (record = records; record != NULL; record = record->next)
+  {
+    /* The trailing SQL identity is represented by the committed live ID below,
+     * so assigning a new row ID does not invalidate an unchanged snapshot. */
+    hash = pet_hash_bytes(hash, record->insert_query, record->fingerprint_length);
+    hash = pet_hash_bytes(hash, &record->pet->pet_data_id, sizeof(record->pet->pet_data_id));
+    for (wear = 0; wear < NUM_WEARS; wear++)
+    {
+      hash = pet_hash_bytes(hash, &wear, sizeof(wear));
+      hash = pet_hash_objects(hash, GET_EQ(record->pet, wear));
+    }
+    wear = -1;
+    hash = pet_hash_bytes(hash, &wear, sizeof(wear));
+    hash = pet_hash_objects(hash, record->pet->carrying);
+  }
+  return hash;
+}
+
+static struct pet_save_cache_entry *pet_save_cache_entry(long owner_id)
+{
+  struct pet_save_cache_entry *entry;
+  size_t start;
+  size_t index;
+
+  start = ((uint64_t)owner_id * UINT64_C(11400714819323198485)) % PET_SAVE_CACHE_CAPACITY;
+  index = start;
+  do
+  {
+    entry = &pet_save_cache[index];
+    if (!entry->used || entry->owner_id == owner_id)
+      return entry;
+    index = (index + 1) % PET_SAVE_CACHE_CAPACITY;
+  } while (index != start);
+  return &pet_save_cache[start];
+}
+
+static void log_pet_save_failure(struct char_data *owner, int pet_vnum, const char *operation,
+                                 unsigned int error_code, const char *detail)
+{
+  struct pet_save_log_bucket *bucket;
+  struct pet_save_log_bucket *empty;
+  struct pet_save_log_bucket *oldest;
+  const char *owner_name;
+  char safe_detail[PET_SAVE_LOG_DETAIL_LENGTH + 1];
+  time_t now;
+  unsigned int suppressed;
+  size_t index;
+
+  owner_name = owner && GET_NAME(owner) ? GET_NAME(owner) : "unknown";
+  detail = detail && *detail ? detail : "no database error detail";
+  snprintf(safe_detail, sizeof(safe_detail), "%s", detail);
+  for (index = 0; safe_detail[index] != '\0'; index++)
+    if (safe_detail[index] == '\r' || safe_detail[index] == '\n')
+      safe_detail[index] = ' ';
+
+  bucket = NULL;
+  empty = NULL;
+  oldest = &pet_save_log_buckets[0];
+  for (index = 0; index < PET_SAVE_LOG_BUCKETS; index++)
+  {
+    if (strncmp(pet_save_log_buckets[index].owner, owner_name, PET_SAVE_LOG_OWNER_LENGTH) == 0)
+    {
+      bucket = &pet_save_log_buckets[index];
+      break;
+    }
+    if (!empty && pet_save_log_buckets[index].owner[0] == '\0')
+      empty = &pet_save_log_buckets[index];
+    if (pet_save_log_buckets[index].last_logged < oldest->last_logged)
+      oldest = &pet_save_log_buckets[index];
+  }
+  if (!bucket)
+  {
+    bucket = empty ? empty : oldest;
+    strlcpy(bucket->owner, owner_name, sizeof(bucket->owner));
+    bucket->last_logged = 0;
+    bucket->suppressed = 0;
+  }
+
+  now = time(NULL);
+  if (bucket->last_logged != 0 && now >= bucket->last_logged &&
+      now - bucket->last_logged < PET_SAVE_LOG_INTERVAL)
+  {
+    bucket->suppressed++;
+    return;
+  }
+
+  suppressed = bucket->suppressed;
+  bucket->suppressed = 0;
+  bucket->last_logged = now;
+  log("SYSERR: save_char_pets: operation=%.40s owner=%.50s pet_vnum=%d mysql_errno=%u "
+      "schema=%d detail=\"%.160s\" suppressed=%u",
+      operation ? operation : "unknown", owner_name, pet_vnum, error_code,
+      PET_PERSISTENCE_SCHEMA_VERSION, safe_detail, suppressed);
+}
+
+static void free_pet_save_records(struct pet_save_record *records)
+{
+  struct pet_save_record *next;
+
+  while (records)
+  {
+    next = records->next;
+    free(records->insert_query);
+    free(records);
+    records = next;
+  }
+}
+
+/* Bind saved pets to the pfile owner rather than the reusable owner name.  A
+ * numeric pfile ID alone can be handed to a later character, so the owner's
+ * creation time is stored with it; both must match before a saved row is
+ * treated as this character's pet. */
+void pet_owner_binding(struct char_data *ch, long int *owner_id, long long *owner_created)
+{
+  *owner_id = ch ? (long int)GET_IDNUM(ch) : 0;
+  *owner_created = ch ? (long long)ch->player.time.birth : 0;
+}
+
+static struct pet_save_record *prepare_pet_save_record(struct char_data *owner,
+                                                       struct char_data *pet,
+                                                       const char *escaped_owner, int pet_state)
+{
+  struct pet_save_record *record;
+  char *escaped_description;
+  char *escaped_long_desc;
+  char *escaped_pet_name;
+  char *escaped_runtime_state;
+  char *escaped_short_desc;
+  char *insert_query;
+  char *runtime_state;
+  const char *description;
+  const char *long_desc;
+  const char *pet_name;
+  const char *short_desc;
+  size_t query_size;
+  int pet_vnum;
+  int written;
+  long int owner_id;
+  long long owner_created;
+  char pet_id_sql[32];
+
+  pet_owner_binding(owner, &owner_id, &owner_created);
+
+  if (pet->pet_data_id < 0)
+    return NULL;
+  if (pet->pet_data_id > 0)
+    snprintf(pet_id_sql, sizeof(pet_id_sql), "%ld", pet->pet_data_id);
+  else
+    strlcpy(pet_id_sql, "NULL", sizeof(pet_id_sql));
+
+  record = NULL;
+  escaped_description = NULL;
+  escaped_long_desc = NULL;
+  escaped_pet_name = NULL;
+  escaped_runtime_state = NULL;
+  escaped_short_desc = NULL;
+  insert_query = NULL;
+  runtime_state = NULL;
+  pet_vnum = GET_MOB_VNUM(pet);
+
+  pet_name = valid_pet_name(pet->player.name) ? GET_NAME(pet) : "";
+  short_desc = valid_pet_name(pet->player.short_descr) ? pet->player.short_descr : "";
+  long_desc = valid_pet_name(pet->player.long_descr) ? pet->player.long_descr : "";
+  description = valid_pet_name(pet->player.description) ? pet->player.description : "";
+  runtime_state = serialize_pet_runtime_state(pet);
+  if (!runtime_state)
+  {
+    log_pet_save_failure(owner, pet_vnum, "serialize runtime state", 0,
+                         "runtime-state serialization failed");
+    goto cleanup;
+  }
+
+  escaped_pet_name = mysql_escape_string_alloc(conn, pet_name);
+  escaped_short_desc = mysql_escape_string_alloc(conn, short_desc);
+  escaped_long_desc = mysql_escape_string_alloc(conn, long_desc);
+  escaped_description = mysql_escape_string_alloc(conn, description);
+  escaped_runtime_state = mysql_escape_string_alloc(conn, runtime_state);
+  if (!escaped_pet_name || !escaped_short_desc || !escaped_long_desc || !escaped_description ||
+      !escaped_runtime_state)
+  {
+    log_pet_save_failure(owner, pet_vnum, "escape pet snapshot", mysql_errno(conn),
+                         "memory allocation while escaping pet snapshot");
+    goto cleanup;
+  }
+
+  query_size = strlen(escaped_owner) + strlen(escaped_pet_name) + strlen(escaped_short_desc) +
+               strlen(escaped_long_desc) + strlen(escaped_description) +
+               strlen(escaped_runtime_state) + 768;
+  insert_query = malloc(query_size);
+  if (!insert_query)
+  {
+    log_pet_save_failure(owner, pet_vnum, "allocate pet insert", 0, "pet INSERT allocation failed");
+    goto cleanup;
+  }
+
+  written = snprintf(
+      insert_query, query_size,
+      "INSERT INTO pet_data SET "
+      "owner_name='%s', pet_name='%s', pet_sdesc='%s', pet_ldesc='%s', pet_ddesc='%s', "
+      "vnum=%d, level=%d, hp=%d, max_hp=%d, str=%d, con=%d, dex=%d, ac=%d, intel=%d, "
+      "wis=%d, cha=%d, runtime_state='%s', owner_id=%ld, owner_created=%lld, pet_state=%d, "
+      "pet_data_id=%s",
+      escaped_owner, escaped_pet_name, escaped_short_desc, escaped_long_desc, escaped_description,
+      pet_vnum, GET_LEVEL(pet), GET_HIT(pet), GET_REAL_MAX_HIT(pet), GET_REAL_STR(pet),
+      GET_REAL_CON(pet), GET_REAL_DEX(pet), GET_REAL_AC(pet), GET_REAL_INT(pet), GET_REAL_WIS(pet),
+      GET_REAL_CHA(pet), escaped_runtime_state, owner_id, owner_created, pet_state, pet_id_sql);
+  if (written < 0 || (size_t)written >= query_size)
+  {
+    log_pet_save_failure(owner, pet_vnum, "format pet insert", 0,
+                         "pet INSERT exceeded its allocated buffer");
+    goto cleanup;
+  }
+
+  record = malloc(sizeof(*record));
+  if (!record)
+  {
+    log_pet_save_failure(owner, pet_vnum, "allocate pet record", 0,
+                         "pet save-record allocation failed");
+    goto cleanup;
+  }
+  record->pet = pet;
+  record->insert_query = insert_query;
+  record->fingerprint_length = (size_t)written - strlen(pet_id_sql);
+  record->saved_id = pet->pet_data_id;
+  record->pet_vnum = pet_vnum;
+  record->next = NULL;
+  insert_query = NULL;
+
+cleanup:
+  free(insert_query);
+  free(escaped_pet_name);
+  free(escaped_short_desc);
+  free(escaped_long_desc);
+  free(escaped_description);
+  free(escaped_runtime_state);
+  free(runtime_state);
+  return record;
+}
+
+bool save_char_pets(struct char_data *ch)
+{
+  struct pet_save_record *current;
+  struct pet_save_record *records;
+  struct pet_save_record *tail;
+  struct follow_type *f;
+  char delete_query[640];
+  char *escaped_owner;
+  long int owner_id;
+  long long owner_created;
+  const char *error_detail;
+  long int insert_id;
+  my_ulonglong raw_insert_id;
+  bool success;
+  bool transaction_started;
+  enum perf_sql_category previous_sql_category;
+  struct pet_save_cache_entry *cache_entry;
+  uint64_t fingerprint;
+
+  if (!ch || IS_NPC(ch) || !GET_NAME(ch) || !*GET_NAME(ch))
+    return false;
+
+  if (ch->pet_roster_load_state != PET_ROSTER_LOADED)
+  {
+    log("SYSERR: Refusing pet snapshot replacement before complete restore for %s", GET_NAME(ch));
+    return false;
+  }
+
+  PERF_PROF_ENTER_SAMPLED(pr_save_pet_, "save.pet");
+  previous_sql_category = PERF_sql_scope_set(PERF_SQL_PET);
+
+  /* Ensure database connection is active before save operations */
+  if (!MYSQL_PING_CONN(conn))
+  {
+    log_pet_save_failure(ch, NOBODY, "connect", conn ? mysql_errno(conn) : 0,
+                         conn ? mysql_error(conn) : "database connection unavailable");
+    return false;
+  }
+
+  pet_owner_binding(ch, &owner_id, &owner_created);
+  escaped_owner = NULL;
+  records = NULL;
+  tail = NULL;
+  success = false;
+  transaction_started = false;
+  cache_entry = NULL;
+  fingerprint = 0;
+  escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  if (!escaped_owner)
+  {
+    log_pet_save_failure(ch, NOBODY, "escape owner", mysql_errno(conn),
+                         "owner-name escaping failed");
+    goto cleanup;
+  }
+
+  /* Prepare every pet row before opening the replacement transaction. */
+  for (f = ch->followers; f; f = f->next)
+  {
+    if (!f->follower || !IS_NPC(f->follower) || !AFF_FLAGGED(f->follower, AFF_CHARM) ||
+        MOB_FLAGGED(f->follower, MOB_NOTDEADYET) || !pet_lifetime_persists(f->follower))
+      continue;
+
+    current = prepare_pet_save_record(ch, f->follower, escaped_owner, PET_STATE_ACTIVE);
+    if (!current)
+      goto cleanup;
+    if (tail)
+      tail->next = current;
+    else
+      records = current;
+    tail = current;
+  }
+
+  fingerprint = pet_save_fingerprint(records);
+  cache_entry = pet_save_cache_entry(GET_IDNUM(ch));
+  if (cache_entry->used && cache_entry->owner_id == GET_IDNUM(ch) &&
+      cache_entry->fingerprint == fingerprint)
+  {
+    success = true;
+    goto cleanup;
+  }
+
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log_pet_save_failure(ch, NOBODY, "start transaction", mysql_errno(conn), mysql_error(conn));
+    goto cleanup;
+  }
+  transaction_started = true;
+
+  /* Replace only rows this owner binding owns; a differently bound row under the
+   * same reused name is ambiguous and is retained for review.  Saved objects
+   * are addressed through the pet rows being replaced, never through the
+   * mutable owner name on the object row.  The cascading foreign key would
+   * remove them with the pet row anyway; the explicit statement keeps the
+   * transaction self-describing on tables that cannot carry the constraint. */
+  snprintf(delete_query, sizeof(delete_query),
+           "DELETE FROM pet_save_objs WHERE pet_idnum IN "
+           "(SELECT pet_data_id FROM pet_data WHERE owner_name = '%s' AND pet_state = %d AND "
+           "(owner_id = 0 OR (owner_id = %ld AND owner_created = %lld)))",
+           escaped_owner, PET_STATE_ACTIVE, owner_id, owner_created);
+  if (mysql_query(conn, delete_query))
+  {
+    log_pet_save_failure(ch, NOBODY, "delete pet objects", mysql_errno(conn), mysql_error(conn));
+    goto rollback;
+  }
+
+  snprintf(delete_query, sizeof(delete_query),
+           "DELETE FROM pet_data WHERE owner_name = '%s' AND pet_state = %d AND "
+           "(owner_id = 0 OR (owner_id = %ld AND owner_created = %lld))",
+           escaped_owner, PET_STATE_ACTIVE, owner_id, owner_created);
+  if (mysql_query(conn, delete_query))
+  {
+    log_pet_save_failure(ch, NOBODY, "delete pet rows", mysql_errno(conn), mysql_error(conn));
+    goto rollback;
+  }
+
+  for (current = records; current; current = current->next)
+  {
+    if (mysql_query(conn, current->insert_query))
+    {
+      log_pet_save_failure(ch, current->pet_vnum, "insert pet row", mysql_errno(conn),
+                           mysql_error(conn));
+      goto rollback;
+    }
+    raw_insert_id = current->saved_id > 0 ? (my_ulonglong)current->saved_id : mysql_insert_id(conn);
+    if (raw_insert_id == 0 || raw_insert_id > LONG_MAX)
+    {
+      log_pet_save_failure(ch, current->pet_vnum, "read pet insert id", 0,
+                           "pet INSERT returned an invalid identifier");
+      goto rollback;
+    }
+    insert_id = (long int)raw_insert_id;
+    current->saved_id = insert_id;
+
+    if (!pet_save_objs(current->pet, ch, insert_id))
+    {
+      error_detail = mysql_error(conn);
+      log_pet_save_failure(ch, current->pet_vnum, "insert pet objects", mysql_errno(conn),
+                           error_detail && *error_detail ? error_detail
+                                                         : "pet object serialization failed");
+      goto rollback;
+    }
+  }
+
+  if (mysql_query(conn, "COMMIT"))
+  {
+    log_pet_save_failure(ch, NOBODY, "commit transaction", mysql_errno(conn), mysql_error(conn));
+    goto rollback;
+  }
+  transaction_started = false;
+  success = true;
+  for (current = records; current; current = current->next)
+    current->pet->pet_data_id = current->saved_id;
+  cache_entry->used = true;
+  cache_entry->owner_id = GET_IDNUM(ch);
+  cache_entry->fingerprint = pet_save_fingerprint(records);
+  goto cleanup;
+
+rollback:
+  if (mysql_query(conn, "ROLLBACK"))
+    log_pet_save_failure(ch, NOBODY, "rollback transaction", mysql_errno(conn), mysql_error(conn));
+  transaction_started = false;
+
+cleanup:
+  if (transaction_started && mysql_query(conn, "ROLLBACK"))
+    log_pet_save_failure(ch, NOBODY, "cleanup rollback", mysql_errno(conn), mysql_error(conn));
+  free_pet_save_records(records);
+  free(escaped_owner);
+  PERF_sql_scope_restore(previous_sql_category);
+  PERF_PROF_EXIT(pr_save_pet_);
+  return success;
+}
+
+/* Restore one saved pet row for its owner.  Both login restore and keeper
+ * retrieval publish a pet through this single path so validation, identity, and
+ * failure handling stay identical. */
+#define PET_DENIAL_REASON_LENGTH 64
+
+/* A retry after a partial restore must not publish a pet twice.  Live pets keep
+ * their saved row identity, so an already published row is simply skipped. */
+static bool pet_row_already_published(struct char_data *ch, long int pet_idnum)
+{
+  struct follow_type *follower;
+
+  for (follower = ch->followers; follower; follower = follower->next)
+    if (follower->follower && IS_NPC(follower->follower) &&
+        follower->follower->pet_data_id == pet_idnum)
+      return true;
+  return false;
+}
+
+/* Returns the staged, roomless follower, or NULL.  A row that failed to decode
+ * sets *restore_failed and is retained; a row whose lifetime has ended sets
+ * *expired so the caller can drop it. */
+static struct char_data *prepare_saved_pet_row(struct char_data *ch, MYSQL_ROW row,
+                                               long int owner_id, long long owner_created,
+                                               bool *restore_failed, bool *expired)
+{
+  struct pet_runtime_state runtime_state;
+  struct char_data *mob = NULL;
+  char buf[MAX_EXTRA_DESC];
+  char desc2[MAX_STRING_LENGTH] = {'\0'};
+  char desc3[MAX_STRING_LENGTH] = {'\0'};
+  char desc4[MAX_STRING_LENGTH] = {'\0'};
+  char *pet_keywords;
+  const char *prototype_keywords;
+  long int pet_idnum = 0;
+  long int row_owner_id;
+  long long row_owner_created;
+  char *id_end;
+  bool has_runtime_state;
+  bool hired_mercenary;
+
+  if (!row[0])
+  {
+    log("SYSERR: %s: Saved follower for %s has no mobile vnum", __func__, GET_NAME(ch));
+    *restore_failed = true;
+    return NULL;
+  }
+
+  errno = 0;
+  id_end = NULL;
+  pet_idnum = row[15] ? strtol(row[15], &id_end, 10) : 0;
+  if (errno == ERANGE || pet_idnum <= 0 || id_end == NULL || *id_end != '\0')
+  {
+    log("SYSERR: %s: Retaining invalid saved pet identity for %s", __func__, GET_NAME(ch));
+    *restore_failed = true;
+    return NULL;
+  }
+  /* Legacy rows carry no binding and are adopted by the named owner; a row
+   * bound to a different character survives untouched for review. */
+  row_owner_id = row[17] ? strtol(row[17], NULL, 10) : 0;
+  row_owner_created = row[18] ? strtoll(row[18], NULL, 10) : 0;
+  if (row_owner_id != 0 && (row_owner_id != owner_id || row_owner_created != owner_created))
+  {
+    log("Info: %s: Retaining pet row %ld bound to another owner of the name %s", __func__,
+        pet_idnum, GET_NAME(ch));
+    return NULL;
+  }
+
+  if (pet_row_already_published(ch, pet_idnum))
+    return NULL;
+
+  has_runtime_state = row[16] && *row[16] && parse_pet_runtime_state(row[16], &runtime_state);
+  if (row[16] && *row[16] && !has_runtime_state)
+  {
+    log("SYSERR: %s: Retaining invalid follower runtime state for %s (vnum %d)", __func__,
+        GET_NAME(ch), atoi(row[0]));
+    *restore_failed = true;
+    return NULL;
+  }
+
+  mob = read_mobile(atoi(row[0]), VIRTUAL);
+  if (!mob)
+  {
+    *restore_failed = true;
+    return NULL;
+  }
+  mob->pet_data_id = pet_idnum;
+  hired_mercenary = pet_is_hired_mercenary(mob);
+  if (isSummonMob(atoi(row[0])))
+  {
+    if (GET_LEVEL(mob) <= 10)
+    {
+      GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      mob->mob_specials.damnodice =
+          (byte)(mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100);
+      mob->mob_specials.damsizedice =
+          (byte)(mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100);
+    }
+    else if (GET_LEVEL(mob) <= 20)
+    {
+      GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      mob->mob_specials.damnodice =
+          (byte)(mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100);
+      mob->mob_specials.damsizedice =
+          (byte)(mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100);
+    }
+    else
+    {
+      GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      mob->mob_specials.damnodice =
+          (byte)(mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100);
+      mob->mob_specials.damsizedice =
+          (byte)(mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100);
+    }
+  }
+  log("Pet for %s: %s, loaded.", GET_NAME(ch), GET_NAME(mob));
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+  {
+    X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+    Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+  }
+  IS_CARRYING_W(mob) = 0;
+  IS_CARRYING_N(mob) = 0;
+  GET_LEVEL(mob) = row[1] ? atoi(row[1]) : GET_LEVEL(mob);
+  autoroll_mob(mob, TRUE, TRUE);
+  if (row[11] && *row[11])
+  {
+    prototype_keywords = mob->player.name;
+    pet_keywords = build_pet_keyword_list(row[11], prototype_keywords);
+    if (pet_keywords)
+      mob->player.name = pet_keywords;
+  }
+  if (row[12] && *row[12])
+  {
+    snprintf(desc2, sizeof(desc2), "%s", row[12]);
+    mob->player.short_descr = strdup(desc2);
+  }
+  if (row[13] && *row[13])
+  {
+    snprintf(desc3, sizeof(desc3), "%s", row[13]);
+    mob->player.long_descr = strdup(desc3);
+  }
+  if (row[14] && *row[14])
+  {
+    snprintf(desc4, sizeof(desc4), "%s", row[14]);
+    mob->player.description = strdup(desc4);
+  }
+  /*
+   * Clone names are derived from their current owner.  Apply this after
+   * loading saved pet text so a pre-rename owner name cannot overwrite it.
+   */
+  if (GET_MOB_VNUM(mob) == MOB_CLONE)
+  {
+    if (!apply_clone_owner_identity(mob, GET_NAME(ch)))
+      log("SYSERR: Unable to derive clone identity for %s", GET_NAME(ch));
+  }
+  if (has_runtime_state && IS_SET_AR(runtime_state.extra_mob, MOB_EIDOLON))
+    SET_BIT_AR(MOB_FLAGS(mob), MOB_EIDOLON);
+  if (MOB_FLAGGED(mob, MOB_EIDOLON))
+  {
+    set_eidolon_descs(ch);
+    assign_eidolon_evolutions(ch, mob, false);
+    if (GET_EIDOLON_SHORT_DESCRIPTION(ch) && GET_EIDOLON_LONG_DESCRIPTION(ch))
+    {
+      /* Saved pet identity wins over owner defaults on restore. */
+      if (!row[11] || !*row[11])
+      {
+        snprintf(buf, sizeof(buf), "%s eidolon", GET_EIDOLON_SHORT_DESCRIPTION(ch));
+        mob->player.name = strdup(buf);
+      }
+      if (!row[12] || !*row[12])
+        mob->player.short_descr = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
+      if (!row[13] || !*row[13])
+        mob->player.long_descr = strdup(GET_EIDOLON_LONG_DESCRIPTION(ch));
+      if (!row[14] || !*row[14])
+      {
+        snprintf(buf, sizeof(buf), "%s\n", GET_EIDOLON_LONG_DESCRIPTION(ch));
+        mob->player.description = strdup(buf);
+      }
+    }
+  }
+  if (row[4])
+    GET_REAL_STR(mob) = MIN(100, atoi(row[4]));
+  if (row[5])
+    GET_REAL_CON(mob) = MIN(100, atoi(row[5]));
+  if (row[6])
+    GET_REAL_DEX(mob) = MIN(100, atoi(row[6]));
+  if (row[8])
+    GET_REAL_INT(mob) = MIN(100, atoi(row[8]));
+  if (row[9])
+    GET_REAL_WIS(mob) = MIN(100, atoi(row[9]));
+  if (row[10])
+    GET_REAL_CHA(mob) = MIN(100, atoi(row[10]));
+  if (row[7])
+    GET_REAL_AC(mob) = MIN(100, atoi(row[7]));
+  if (row[3])
+    GET_REAL_MAX_HIT(mob) = MAX(1, atoi(row[3]));
+  if (row[2])
+    GET_HIT(mob) = MIN(GET_REAL_MAX_HIT(mob), atoi(row[2]));
+
+  if (has_runtime_state)
+    apply_pet_runtime_state(mob, &runtime_state);
+  else
+  {
+    SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
+    if (hired_mercenary)
+      PROC_FIRED(mob) = TRUE;
+  }
+  affect_total(mob);
+  update_pos(mob);
+  if (GET_POS(mob) == POS_DEAD)
+  {
+    log("SYSERR: %s: Discarding dead saved follower for %s (vnum %d)", __func__, GET_NAME(ch),
+        atoi(row[0]));
+    extract_char(mob);
+    return NULL;
+  }
+  /* Nothing else about the roster failed; the active snapshot drops the row on
+   * the next save and the keeper releases a stored one on reclaim. */
+  if (!restore_pet_lifetime(mob, has_runtime_state ? &runtime_state : NULL, time(NULL)))
+  {
+    log("Info: %s: Discarding expired saved follower %ld for %s (vnum %d)", __func__, pet_idnum,
+        GET_NAME(ch), atoi(row[0]));
+    *expired = true;
+    extract_char(mob);
+    return NULL;
+  }
+  if (pet_load_objs(mob, ch, pet_idnum) == PET_OBJECT_LOAD_FAILED)
+  {
+    *restore_failed = true;
+    extract_char(mob);
+    return NULL;
+  }
+  return mob;
+}
+
+static void discard_unpublished_saved_pet(struct char_data *pet)
+{
+  int wear;
+
+  if (!pet)
+    return;
+  for (wear = 0; wear < NUM_WEARS; wear++)
+    if (GET_EQ(pet, wear))
+      extract_obj(unequip_char(pet, wear));
+  while (pet->carrying)
+    extract_obj(pet->carrying);
+  if (!MOB_FLAGGED(pet, MOB_NOTDEADYET))
+    extract_char(pet);
+}
+
+/* Publish only fully decoded pets. Keeper callers must commit activation first. */
+static struct char_data *publish_saved_pet(struct char_data *owner, struct char_data *pet)
+{
+  struct domain_entity_handle owner_handle, pet_handle;
+
+  owner_handle = domain_event_character_handle(owner);
+  pet_handle = domain_event_character_handle(pet);
+  if (!place_pet_follower(owner, pet))
+  {
+    discard_unpublished_saved_pet(pet);
+    return NULL;
+  }
+  load_mtrigger(pet);
+  owner = domain_event_world_resolve_character(owner_handle);
+  pet = domain_event_world_resolve_character(pet_handle);
+  if (!owner || !pet || MOB_FLAGGED(pet, MOB_NOTDEADYET) || pet->master != owner)
+  {
+    discard_unpublished_saved_pet(pet);
+    return NULL;
+  }
+  if (!GROUP(pet) && GROUP(owner) && GROUP_LEADER(GROUP(owner)) == owner)
+    join_group(pet, GROUP(owner));
+  owner = domain_event_world_resolve_character(owner_handle);
+  pet = domain_event_world_resolve_character(pet_handle);
+  if (!owner || !pet || MOB_FLAGGED(pet, MOB_NOTDEADYET) || pet->master != owner)
+  {
+    discard_unpublished_saved_pet(pet);
+    return NULL;
+  }
+  act("$N appears beside you.", true, owner, 0, pet, TO_CHAR);
+  act("$N appears beside $n.", true, owner, 0, pet, TO_ROOM);
+  return pet;
+}
+
+/* Rejected keeper-eligible followers move to the keeper so the next active
+ * snapshot cannot drop them; a rejected timed follower is spent, and its row
+ * leaves with the next snapshot exactly like an expired one. */
+static bool stable_rejected_saved_pets(struct char_data *ch, struct char_data **staged,
+                                       const bool *admitted, int count)
+{
+  char query[128];
+  int i;
+  bool transaction_started = false;
+
+  for (i = 0; i < count; i++)
+    if (!admitted[i] && pet_keeper_accepts(staged[i]))
+      break;
+  if (i == count)
+    return true;
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: %s: Unable to start stabling for %s: %s", __func__, GET_NAME(ch),
+        mysql_error(conn));
+    return false;
+  }
+  transaction_started = true;
+  for (; i < count; i++)
+  {
+    if (admitted[i] || !pet_keeper_accepts(staged[i]))
+      continue;
+    snprintf(query, sizeof(query),
+             "UPDATE pet_data SET pet_state = %d WHERE pet_data_id = %ld AND pet_state = %d",
+             PET_STATE_STORED, staged[i]->pet_data_id, PET_STATE_ACTIVE);
+    if (mysql_query(conn, query) || mysql_affected_rows(conn) != 1)
+    {
+      log("SYSERR: %s: Unable to stable rejected saved follower %ld for %s: %s", __func__,
+          staged[i]->pet_data_id, GET_NAME(ch), mysql_error(conn));
+      goto rollback;
+    }
+  }
+  if (mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: %s: Unable to commit stabling for %s: %s", __func__, GET_NAME(ch),
+        mysql_error(conn));
+    goto rollback;
+  }
+  return true;
+
+rollback:
+  if (transaction_started && mysql_query(conn, "ROLLBACK"))
+    log("SYSERR: %s: Unable to roll back stabling for %s: %s", __func__, GET_NAME(ch),
+        mysql_error(conn));
+  return false;
+}
+
+/* Restore order is the priority when capacity is short: followers the keeper
+ * can hold come first, then timed followers, each oldest saved identity first.
+ * Rows arrive ordered by identity, so a stable partition keeps that order. */
+static void order_staged_pets(struct char_data **staged, int count)
+{
+  struct char_data *kept_pet;
+  int i, j, kept = 0;
+
+  for (i = 0; i < count; i++)
+  {
+    if (!pet_keeper_accepts(staged[i]))
+      continue;
+    kept_pet = staged[i];
+    for (j = i; j > kept; j--)
+      staged[j] = staged[j - 1];
+    staged[kept++] = kept_pet;
+  }
+}
+
+/* Every saved row is decoded before any pet enters the world.  A row that
+ * cannot be decoded keeps the whole roster unpublished and retained; an
+ * over-capacity roster publishes one deterministic allowed set and hands the
+ * rest to the keeper.  Both leave a retry unable to duplicate a pet, because
+ * published pets keep their row identity and unpublished rows stay saved. */
+void load_char_pets(struct char_data *ch)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  struct char_data *pet;
+  struct char_data **staged = NULL;
+  struct domain_entity_handle owner_handle;
+  bool *admitted = NULL;
+  char *reasons = NULL;
+  char query[512];
+  char *escaped_name;
+  long int owner_id;
+  long long owner_created;
+  int capacity, count = 0, i;
+  bool restore_failed = false;
+  bool expired = false;
+  enum perf_entity_reason previous_entity_reason;
+
+  if (!ch || IS_NPC(ch))
+    return;
+
+  /* A second load could duplicate a successfully or partially published set. */
+  if (ch->pet_roster_load_state != PET_ROSTER_UNLOADED)
+    return;
+  ch->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return;
+
+  /* Ensure database connection is active before load operations */
+  if (!MYSQL_PING_CONN(conn))
+  {
+    log("SYSERR: %s: Database connection failed for player %s", __func__, GET_NAME(ch));
+    return;
+  }
+
+  pet_owner_binding(ch, &owner_id, &owner_created);
+
+  escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  if (!escaped_name)
+  {
+    log("SYSERR: Failed to escape player name in load_pet_data");
+    return;
+  }
+  snprintf(query, sizeof(query),
+           "SELECT vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha, pet_name, "
+           "pet_sdesc, pet_ldesc, pet_ddesc, pet_data_id, runtime_state, owner_id, "
+           "owner_created FROM pet_data WHERE owner_name='%s' AND pet_state = %d "
+           "ORDER BY pet_data_id",
+           escaped_name, PET_STATE_ACTIVE);
+  free(escaped_name);
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: Unable to SELECT from pet_data: %s", mysql_error(conn));
+    return;
+  }
+
+  if (!(result = mysql_store_result(conn)))
+  {
+    log("SYSERR: Unable to SELECT from pet_data: %s", mysql_error(conn));
+    return;
+  }
+
+  capacity = (int)u64_min(mysql_num_rows(result), (my_ulonglong)INT_MAX);
+  if (capacity > 0)
+  {
+    CREATE(staged, struct char_data *, capacity);
+    CREATE(admitted, bool, capacity);
+    CREATE(reasons, char, (size_t)capacity *PET_DENIAL_REASON_LENGTH);
+  }
+
+  previous_entity_reason = PERF_entity_scope_set(PERF_ENTITY_PET_RESTORE);
+  while (count < capacity && (row = mysql_fetch_row(result)))
+  {
+    pet = prepare_saved_pet_row(ch, row, owner_id, owner_created, &restore_failed, &expired);
+    if (pet)
+      staged[count++] = pet;
+  }
+  mysql_free_result(result);
+
+  if (!restore_failed)
+  {
+    order_staged_pets(staged, count);
+    select_restorable_followers(ch, staged, count, admitted, reasons, PET_DENIAL_REASON_LENGTH);
+    restore_failed = !stable_rejected_saved_pets(ch, staged, admitted, count);
+  }
+  if (restore_failed)
+  {
+    for (i = 0; i < count; i++)
+      discard_unpublished_saved_pet(staged[i]);
+    count = 0;
+  }
+
+  /* Publication stops at the first failure so the roster is not further
+   * exposed piecemeal.  The unpublished rows stay saved, the failed state
+   * keeps the next snapshot from replacing them, and 'pets restore' retries
+   * while skipping every pet already published by identity. */
+  owner_handle = domain_event_character_handle(ch);
+  for (i = 0; i < count; i++)
+  {
+    pet = staged[i];
+    if (!ch || restore_failed)
+    {
+      discard_unpublished_saved_pet(pet);
+      continue;
+    }
+    if (!admitted[i])
+    {
+      send_to_char(ch, "%s cannot follow you right now (%s); %s\r\n",
+                   GET_NAME(pet) ? GET_NAME(pet) : "A saved follower",
+                   reasons + (size_t)i * PET_DENIAL_REASON_LENGTH,
+                   pet_keeper_accepts(pet) ? "the keeper is holding it for you."
+                                           : "its remaining time is spent.");
+      log("Info: %s: Saved follower %ld for %s was not admitted (%s)", __func__, pet->pet_data_id,
+          GET_NAME(ch), reasons + (size_t)i * PET_DENIAL_REASON_LENGTH);
+      discard_unpublished_saved_pet(pet);
+      continue;
+    }
+    if (!publish_saved_pet(ch, pet))
+      restore_failed = true;
+    ch = domain_event_world_resolve_character(owner_handle);
+  }
+
+  PERF_entity_scope_restore(previous_entity_reason);
+  free(staged);
+  free(admitted);
+  free(reasons);
+  if (ch && !restore_failed)
+    ch->pet_roster_load_state = PET_ROSTER_LOADED;
+}
+
+/* ---------------------------------------------------------------------------
+ * Keeper storage: list, store, retrieve.
+ *
+ * Stored rows use the same snapshot and restore paths as ordinary play, so a
+ * reclaimed pet keeps its identity, statistics, effects, and equipment.  Every
+ * durable change runs inside one transaction and the live world is only changed
+ * after the database reports success.
+ * ------------------------------------------------------------------------- */
+
+/* Count the pets this owner currently holds at a keeper.  A negative result
+ * reports a failed query so callers never treat it as spare capacity. */
+int pet_stored_count(struct char_data *owner)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char query[256];
+  char *escaped_owner;
+  long int owner_id;
+  long long owner_created;
+  int count = -1;
+
+  if (!owner || IS_NPC(owner) || !GET_NAME(owner) || !MYSQL_PING_CONN(conn))
+    return -1;
+
+  pet_owner_binding(owner, &owner_id, &owner_created);
+  escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(owner));
+  if (!escaped_owner)
+    return -1;
+  snprintf(query, sizeof(query),
+           "SELECT COUNT(*) FROM pet_data WHERE owner_name = '%s' AND pet_state = %d AND "
+           "(owner_id = 0 OR (owner_id = %ld AND owner_created = %lld))",
+           escaped_owner, PET_STATE_STORED, owner_id, owner_created);
+  free(escaped_owner);
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: %s: Unable to count stored pets: %s", __func__, mysql_error(conn));
+    return -1;
+  }
+  result = mysql_store_result(conn);
+  if (!result)
+    return -1;
+  row = mysql_fetch_row(result);
+  if (row && row[0])
+    count = atoi(row[0]);
+  mysql_free_result(result);
+  return count;
+}
+
+/* Show the owner every pet held for them, with the stable ID used to reclaim. */
+void pet_list_stored(struct char_data *owner)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char query[512];
+  char *escaped_owner;
+  long int owner_id;
+  long long owner_created;
+  int listed = 0;
+
+  if (!owner || IS_NPC(owner) || !GET_NAME(owner))
+    return;
+  if (!MYSQL_PING_CONN(conn))
+  {
+    send_to_char(owner, "The keeper cannot reach the stables right now.\r\n");
+    return;
+  }
+
+  pet_owner_binding(owner, &owner_id, &owner_created);
+  escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(owner));
+  if (!escaped_owner)
+  {
+    send_to_char(owner, "The keeper cannot reach the stables right now.\r\n");
+    return;
+  }
+  snprintf(query, sizeof(query),
+           "SELECT pet_data_id, pet_sdesc, pet_name, level, vnum FROM pet_data "
+           "WHERE owner_name = '%s' AND pet_state = %d AND "
+           "(owner_id = 0 OR (owner_id = %ld AND owner_created = %lld)) ORDER BY pet_data_id",
+           escaped_owner, PET_STATE_STORED, owner_id, owner_created);
+  free(escaped_owner);
+
+  if (mysql_query(conn, query) || !(result = mysql_store_result(conn)))
+  {
+    log("SYSERR: %s: Unable to list stored pets: %s", __func__, mysql_error(conn));
+    send_to_char(owner, "The keeper cannot reach the stables right now.\r\n");
+    return;
+  }
+
+  while ((row = mysql_fetch_row(result)))
+  {
+    if (listed == 0)
+      send_to_char(owner, "The keeper is holding:\r\n");
+    listed++;
+    /* The short position is what a player types; the stable ID stays visible so
+     * it can be quoted to staff and remains stable as the list changes. */
+    send_to_char(owner, "  %2d) %s (level %s) [stable ID %s]\r\n", listed,
+                 row[1] && *row[1] ? row[1] : (row[2] && *row[2] ? row[2] : "an unnamed follower"),
+                 row[3] ? row[3] : "?", row[0] ? row[0] : "?");
+  }
+  mysql_free_result(result);
+  if (listed == 0)
+    send_to_char(owner, "The keeper is holding none of your followers.\r\n");
+  else
+  {
+    send_to_char(owner, "%d of %d stable slots used.\r\n", listed, PET_KEEPER_CAPACITY);
+    send_to_char(owner, "Reclaim one with its listed number, for example 'stable reclaim 1'.\r\n");
+  }
+}
+
+/* Resolve a listed keeper position to its stable pet ID.  Positions follow the
+ * same order the listing uses, so what a player reads is what they can type. */
+long int pet_stored_id_at(struct char_data *owner, int position)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char query[512];
+  char *escaped_owner;
+  long int owner_id;
+  long long owner_created;
+  long int pet_id = 0;
+  int index = 0;
+
+  if (!owner || IS_NPC(owner) || !GET_NAME(owner) || position < 1 || !MYSQL_PING_CONN(conn))
+    return 0;
+
+  pet_owner_binding(owner, &owner_id, &owner_created);
+  escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(owner));
+  if (!escaped_owner)
+    return 0;
+  snprintf(query, sizeof(query),
+           "SELECT pet_data_id FROM pet_data WHERE owner_name = '%s' AND pet_state = %d AND "
+           "(owner_id = 0 OR (owner_id = %ld AND owner_created = %lld)) ORDER BY pet_data_id",
+           escaped_owner, PET_STATE_STORED, owner_id, owner_created);
+  free(escaped_owner);
+
+  if (mysql_query(conn, query) || !(result = mysql_store_result(conn)))
+    return 0;
+  while ((row = mysql_fetch_row(result)))
+  {
+    index++;
+    if (index == position)
+    {
+      pet_id = row[0] ? strtol(row[0], NULL, 10) : 0;
+      break;
+    }
+  }
+  mysql_free_result(result);
+  return pet_id;
+}
+
+/* Hand one live pet to the keeper.  The pet only leaves play after its row and
+ * items are committed, so a failed store keeps the original pet and gear. */
+bool pet_store_pet(struct char_data *owner, struct char_data *pet)
+{
+  struct pet_save_record *record;
+  char query[512];
+  char *escaped_owner;
+  const char *error_detail;
+  long int owner_id;
+  long int insert_id;
+  long long owner_created;
+  my_ulonglong raw_insert_id;
+  int wear;
+  bool success = false;
+  bool transaction_started = false;
+
+  if (!owner || IS_NPC(owner) || !GET_NAME(owner) || !pet || !IS_NPC(pet))
+    return false;
+  /* Session summons and timed summons end on their own; the keeper boards
+   * only followers that keep. */
+  if (!pet_keeper_accepts(pet))
+    return false;
+  if (owner->pet_roster_load_state != PET_ROSTER_LOADED)
+  {
+    log("SYSERR: %s: Refusing pet storage before complete restore for %s", __func__,
+        GET_NAME(owner));
+    return false;
+  }
+  if (!MYSQL_PING_CONN(conn))
+  {
+    log_pet_save_failure(owner, GET_MOB_VNUM(pet), "connect", conn ? mysql_errno(conn) : 0,
+                         "database connection unavailable");
+    return false;
+  }
+
+  pet_owner_binding(owner, &owner_id, &owner_created);
+  escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(owner));
+  if (!escaped_owner)
+    return false;
+
+  record = prepare_pet_save_record(owner, pet, escaped_owner, PET_STATE_STORED);
+  if (!record)
+  {
+    free(escaped_owner);
+    return false;
+  }
+
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log_pet_save_failure(owner, record->pet_vnum, "start transaction", mysql_errno(conn),
+                         mysql_error(conn));
+    goto cleanup;
+  }
+  transaction_started = true;
+
+  /* Replace this pet's own rows only; other followers stay untouched.  The
+   * saved objects are removed by pet identity ahead of the row the foreign
+   * key would cascade from. */
+  if (record->saved_id > 0)
+  {
+    snprintf(query, sizeof(query), "DELETE FROM pet_save_objs WHERE pet_idnum = %ld",
+             record->saved_id);
+    if (mysql_query(conn, query))
+    {
+      log_pet_save_failure(owner, record->pet_vnum, "delete pet objects", mysql_errno(conn),
+                           mysql_error(conn));
+      goto rollback;
+    }
+    snprintf(query, sizeof(query),
+             "DELETE FROM pet_data WHERE pet_data_id = %ld AND owner_name = '%s'", record->saved_id,
+             escaped_owner);
+    if (mysql_query(conn, query))
+    {
+      log_pet_save_failure(owner, record->pet_vnum, "delete pet row", mysql_errno(conn),
+                           mysql_error(conn));
+      goto rollback;
+    }
+  }
+
+  if (mysql_query(conn, record->insert_query))
+  {
+    log_pet_save_failure(owner, record->pet_vnum, "insert stored pet row", mysql_errno(conn),
+                         mysql_error(conn));
+    goto rollback;
+  }
+  raw_insert_id = record->saved_id > 0 ? (my_ulonglong)record->saved_id : mysql_insert_id(conn);
+  if (raw_insert_id == 0 || raw_insert_id > LONG_MAX)
+  {
+    log_pet_save_failure(owner, record->pet_vnum, "read pet insert id", 0,
+                         "stored pet INSERT returned an invalid identifier");
+    goto rollback;
+  }
+  insert_id = (long int)raw_insert_id;
+
+  if (!pet_save_objs(pet, owner, insert_id))
+  {
+    error_detail = mysql_error(conn);
+    log_pet_save_failure(owner, record->pet_vnum, "insert stored pet objects", mysql_errno(conn),
+                         error_detail && *error_detail ? error_detail
+                                                       : "pet object serialization failed");
+    goto rollback;
+  }
+
+  if (mysql_query(conn, "COMMIT"))
+  {
+    log_pet_save_failure(owner, record->pet_vnum, "commit transaction", mysql_errno(conn),
+                         mysql_error(conn));
+    goto rollback;
+  }
+  transaction_started = false;
+  pet->pet_data_id = insert_id;
+  /* Keeper transitions change the active snapshot outside save_char_pets(). */
+  pet_save_cache_entry(GET_IDNUM(owner))->used = false;
+  /* The pet only leaves play once its row and items are durable.  Its saved
+   * gear is removed with it so ordinary extraction cannot drop a second copy
+   * of every stored item into the room. */
+  for (wear = 0; wear < NUM_WEARS; wear++)
+    if (GET_EQ(pet, wear))
+      extract_obj(unequip_char(pet, wear));
+  while (pet->carrying)
+    extract_obj(pet->carrying);
+  extract_char(pet);
+  success = true;
+  goto cleanup;
+
+rollback:
+  if (mysql_query(conn, "ROLLBACK"))
+    log_pet_save_failure(owner, record->pet_vnum, "rollback transaction", mysql_errno(conn),
+                         mysql_error(conn));
+  transaction_started = false;
+
+cleanup:
+  if (transaction_started && mysql_query(conn, "ROLLBACK"))
+    log_pet_save_failure(owner, record->pet_vnum, "cleanup rollback", mysql_errno(conn),
+                         mysql_error(conn));
+  free_pet_save_records(record);
+  free(escaped_owner);
+  return success;
+}
+
+/* Owner death ends following, so eligible pets are handed to the keeper before
+ * the native follower cleanup runs.  Ownership survives; the pet is reclaimed
+ * later with the same identity.  Storage beyond the keeper's capacity is not
+ * possible, so those pets are released exactly as before. */
+int pet_store_surviving_followers(struct char_data *owner)
+{
+  struct follow_type *follower;
+  struct follow_type *next_follower;
+  struct char_data *pet;
+  int stored_count;
+  int stored = 0;
+
+  if (!owner || IS_NPC(owner) || owner->pet_roster_load_state != PET_ROSTER_LOADED)
+    return 0;
+
+  stored_count = pet_stored_count(owner);
+  if (stored_count < 0)
+    return 0;
+
+  for (follower = owner->followers; follower; follower = next_follower)
+  {
+    next_follower = follower->next;
+    pet = follower->follower;
+    if (!pet || !IS_NPC(pet) || !AFF_FLAGGED(pet, AFF_CHARM) || MOB_FLAGGED(pet, MOB_NOTDEADYET))
+      continue;
+    if (stored_count + stored >= PET_KEEPER_CAPACITY)
+      break;
+    if (!pet_store_pet(owner, pet))
+      continue;
+    stored++;
+  }
+  return stored;
+}
+
+static bool restore_stored_pet_after_publication_failure(struct char_data *owner, long int pet_id,
+                                                         const char *escaped_owner,
+                                                         long int owner_id, long long owner_created)
+{
+  char query[640];
+  bool transaction_started = false;
+
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: %s: Unable to start recovery for stored pet %ld: %s", __func__, pet_id,
+        mysql_error(conn));
+    return false;
+  }
+  transaction_started = true;
+  snprintf(query, sizeof(query),
+           "UPDATE pet_data SET pet_state = %d WHERE pet_data_id = %ld AND owner_name = '%s' "
+           "AND pet_state = %d AND "
+           "(owner_id = 0 OR (owner_id = %ld AND owner_created = %lld))",
+           PET_STATE_STORED, pet_id, escaped_owner, PET_STATE_ACTIVE, owner_id, owner_created);
+  if (mysql_query(conn, query) || mysql_affected_rows(conn) != 1)
+  {
+    log("SYSERR: %s: Unable to restore stored pet %ld for %s: %s", __func__, pet_id,
+        GET_NAME(owner), mysql_error(conn));
+    goto rollback;
+  }
+  if (mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: %s: Unable to commit recovery for stored pet %ld: %s", __func__, pet_id,
+        mysql_error(conn));
+    goto rollback;
+  }
+  return true;
+
+rollback:
+  if (transaction_started && mysql_query(conn, "ROLLBACK"))
+    log("SYSERR: %s: Unable to roll back recovery for stored pet %ld: %s", __func__, pet_id,
+        mysql_error(conn));
+  return false;
+}
+
+/* Prepare one stored pet outside the world, commit its active state, then
+ * publish it. Any publication failure restores the saved pet to storage. */
+struct char_data *pet_retrieve_stored(struct char_data *owner, long int pet_id, const char **reason)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  struct char_data *mob = NULL;
+  char query[640];
+  char *escaped_owner;
+  long int owner_id;
+  long long owner_created;
+  static char denial_reason[PET_DENIAL_REASON_LENGTH + 80];
+  char denial[PET_DENIAL_REASON_LENGTH];
+  bool restored;
+  bool admitted;
+  bool restore_failed = false;
+  bool expired = false;
+  enum perf_entity_reason previous_entity_reason;
+
+  if (reason)
+    *reason = "The keeper cannot reach the stables right now.";
+  if (!owner || IS_NPC(owner) || !GET_NAME(owner) || pet_id <= 0)
+    return NULL;
+  if (owner->pet_roster_load_state != PET_ROSTER_LOADED || IN_ROOM(owner) == NOWHERE)
+    return NULL;
+  if (!MYSQL_PING_CONN(conn))
+    return NULL;
+
+  pet_owner_binding(owner, &owner_id, &owner_created);
+  escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(owner));
+  if (!escaped_owner)
+    return NULL;
+
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: %s: Unable to start retrieval: %s", __func__, mysql_error(conn));
+    free(escaped_owner);
+    return NULL;
+  }
+
+  snprintf(query, sizeof(query),
+           "SELECT vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha, pet_name, "
+           "pet_sdesc, pet_ldesc, pet_ddesc, pet_data_id, runtime_state, owner_id, owner_created "
+           "FROM pet_data WHERE pet_data_id = %ld AND owner_name = '%s' AND pet_state = %d AND "
+           "(owner_id = 0 OR (owner_id = %ld AND owner_created = %lld)) FOR UPDATE",
+           pet_id, escaped_owner, PET_STATE_STORED, owner_id, owner_created);
+  if (mysql_query(conn, query) || !(result = mysql_store_result(conn)))
+  {
+    log("SYSERR: %s: Unable to read stored pet %ld: %s", __func__, pet_id, mysql_error(conn));
+    goto rollback;
+  }
+
+  row = mysql_fetch_row(result);
+  if (!row || !row[0])
+  {
+    if (reason)
+      *reason = "The keeper is holding no such follower for you.";
+    mysql_free_result(result);
+    goto rollback;
+  }
+  {
+    previous_entity_reason = PERF_entity_scope_set(PERF_ENTITY_PET_RESTORE);
+    mob = prepare_saved_pet_row(owner, row, owner_id, owner_created, &restore_failed, &expired);
+    PERF_entity_scope_restore(previous_entity_reason);
+  }
+  mysql_free_result(result);
+  /* The staged pet carries its saved source and flags, so it is classified by
+   * its own identity rather than by its prototype. */
+  if (mob && !select_restorable_followers(owner, &mob, 1, &admitted, denial, sizeof(denial)))
+  {
+    snprintf(denial_reason, sizeof(denial_reason),
+             "You cannot take responsibility for another follower right now (%s).", denial);
+    if (reason)
+      *reason = denial_reason;
+    discard_unpublished_saved_pet(mob);
+    goto rollback;
+  }
+  if (!mob && expired)
+  {
+    /* The row is locked by the SELECT above; release the spent follower so the
+     * stable slot is not held forever. */
+    snprintf(query, sizeof(query), "DELETE FROM pet_save_objs WHERE pet_idnum = %ld", pet_id);
+    if (mysql_query(conn, query))
+      goto release_failed;
+    snprintf(query, sizeof(query),
+             "DELETE FROM pet_data WHERE pet_data_id = %ld AND owner_name = '%s' AND "
+             "pet_state = %d",
+             pet_id, escaped_owner, PET_STATE_STORED);
+    if (mysql_query(conn, query) || mysql_query(conn, "COMMIT"))
+      goto release_failed;
+    free(escaped_owner);
+    if (reason)
+      *reason = "That follower's time ran out while it was stabled; the keeper has released it.";
+    return NULL;
+
+  release_failed:
+    log("SYSERR: %s: Unable to release expired stored pet %ld for %s: %s", __func__, pet_id,
+        GET_NAME(owner), mysql_error(conn));
+    goto rollback;
+  }
+  if (!mob)
+  {
+    if (reason)
+      *reason = "The keeper cannot rouse that follower.";
+    goto rollback;
+  }
+
+  snprintf(query, sizeof(query), "UPDATE pet_data SET pet_state = %d WHERE pet_data_id = %ld",
+           PET_STATE_ACTIVE, pet_id);
+  if (mysql_query(conn, query) || mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: %s: Unable to activate stored pet %ld: %s", __func__, pet_id, mysql_error(conn));
+    extract_char(mob);
+    mob = NULL;
+    goto rollback;
+  }
+  mob = publish_saved_pet(owner, mob);
+  if (!mob)
+  {
+    restored = restore_stored_pet_after_publication_failure(owner, pet_id, escaped_owner, owner_id,
+                                                            owner_created);
+    free(escaped_owner);
+    if (reason)
+      *reason = restored ? "The follower could not enter the world and remains with the keeper."
+                         : "The keeper could not finish returning that follower; contact staff.";
+    return NULL;
+  }
+  free(escaped_owner);
+  /* An empty cached roster must not suppress a later dismissal save. */
+  pet_save_cache_entry(GET_IDNUM(owner))->used = false;
+  if (reason)
+    *reason = NULL;
+  return mob;
+
+rollback:
+  if (mysql_query(conn, "ROLLBACK"))
+    log("SYSERR: %s: Unable to roll back retrieval: %s", __func__, mysql_error(conn));
+  free(escaped_owner);
+  return NULL;
+}
+
+void save_eidolon_descs(struct char_data *ch)
+{
+  char query[1000];
+  char *end2 = NULL;
+
+  if (!GET_EIDOLON_SHORT_DESCRIPTION(ch) || !GET_EIDOLON_LONG_DESCRIPTION(ch))
+    return;
+
+  char *escaped_name_del = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  if (!escaped_name_del)
+  {
+    log("SYSERR: Failed to escape player name in save_eidolon_data delete");
+    return;
+  }
+  snprintf(query, sizeof(query), "DELETE FROM player_eidolons WHERE owner='%s'", escaped_name_del);
+  free(escaped_name_del);
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: 1 Unable to DELETE from player_eidolons: %s", mysql_error(conn));
+  }
+
+  snprintf(query, sizeof(query),
+           "INSERT INTO player_eidolons (idnum,owner,short_desc,long_desc) VALUES(NULL,");
+  end2 =
+      stpcpy(query, "INSERT INTO player_eidolons (idnum,owner,short_desc,long_desc) VALUES(NULL,");
+
+  *end2++ = '\'';
+  end2 += mysql_real_escape_string(conn, end2, GET_NAME(ch), strlen(GET_NAME(ch)));
+  *end2++ = '\'';
+  *end2++ = ',';
+
+  if (valid_pet_name(GET_EIDOLON_SHORT_DESCRIPTION(ch)))
+  {
+    *end2++ = '\'';
+    end2 += mysql_real_escape_string(conn, end2, GET_EIDOLON_SHORT_DESCRIPTION(ch),
+                                     strlen(GET_EIDOLON_SHORT_DESCRIPTION(ch)));
+    *end2++ = '\'';
+  }
+  else
+  {
+    *end2++ = '\'';
+    *end2++ = '\'';
+  }
+  *end2++ = ',';
+  if (valid_pet_name(GET_EIDOLON_LONG_DESCRIPTION(ch)))
+  {
+    *end2++ = '\'';
+    end2 += mysql_real_escape_string(conn, end2, GET_EIDOLON_LONG_DESCRIPTION(ch),
+                                     strlen(GET_EIDOLON_LONG_DESCRIPTION(ch)));
+    *end2++ = '\'';
+  }
+  else
+  {
+    *end2++ = '\'';
+    *end2++ = '\'';
+  }
+  *end2++ = ')';
+  *end2++ = '\0';
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: 1 Unable to INSERT into player_eidolons: %s", mysql_error(conn));
+  }
+}
+
+void set_eidolon_descs(struct char_data *ch)
+{
+  if (!ch)
+    return;
+
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char query[200];
+
+  char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  if (!escaped_name)
+  {
+    log("SYSERR: Failed to escape player name in load_eidolon_data");
+    return;
+  }
+  snprintf(query, sizeof(query), "SELECT * FROM player_eidolons WHERE owner='%s'", escaped_name);
+  free(escaped_name);
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: 1 Unable to SELECT from player_eidolons: %s", mysql_error(conn));
+    return;
+  }
+
+  if (!(result = mysql_store_result(conn)))
+  {
+    log("SYSERR: 2 Unable to SELECT from player_eidolons: %s", mysql_error(conn));
+    return;
+  }
+
+  if ((row = mysql_fetch_row(result)))
+  {
+    /* The owner keeps its own copies; release the previous ones before replacing them. */
+    free(GET_EIDOLON_SHORT_DESCRIPTION(ch));
+    free(GET_EIDOLON_LONG_DESCRIPTION(ch));
+    GET_EIDOLON_SHORT_DESCRIPTION(ch) = row[2] ? strdup(row[2]) : NULL;
+    GET_EIDOLON_LONG_DESCRIPTION(ch) = row[3] ? strdup(row[3]) : NULL;
+  }
+
+  mysql_free_result(result);
+}

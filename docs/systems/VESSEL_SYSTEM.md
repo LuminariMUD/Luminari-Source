@@ -1598,8 +1598,8 @@ and the trigger was removed.
 
 | File | Purpose |
 |------|---------|
-| `src/db_init.c` | Table creation (init_vessel_system_tables) |
-| `src/db_init_data.c` | Template population |
+| `src/database/db_init.c` | Table creation (init_vessel_system_tables) |
+| `src/database/db_init_data.c` | Template population |
 | `sql/components/vessels_phase2_*` | Core schema, rollback, and verification |
 | `sql/components/vessels_phase4_*` | Prototype schema, rollback, and verification |
 | `sql/components/vessels_phase6_*` | Ownership schema, rollback, and verification |
@@ -1651,12 +1651,12 @@ and the trigger was removed.
 | File | Purpose |
 |------|---------|
 | `src/wilderness/wilderness.c` | Coordinate system and room allocation |
-| `src/weather.c` | Weather integration via `get_weather()` |
+| `src/core/weather.c` | Weather integration via `get_weather()` |
 | `src/vessels/vessels_legacy.c` | Boarding special procedure (`greyhawk_ship_object`), establishes critical linkages |
-| `src/interpreter.c` | Command registration |
-| `src/db.c` | Boot sequence integration |
+| `src/core/interpreter.c` | Command registration |
+| `src/core/db.c` | Boot sequence integration |
 | `src/dgscript/dg_scripts.c/h` | Trigger integration for interior movement |
-| `src/mysql.c` | Persistence layer (required) |
+| `src/database/mysql.c` | Persistence layer (required) |
 
 ### Reserved Resources
 

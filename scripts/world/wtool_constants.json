@@ -23,7 +23,7 @@
       "value": 64
     },
     "LVL_IMPL": {
-      "source": "src/structs.h:LVL_IMPL",
+      "source": "src/core/structs.h:LVL_IMPL",
       "value": 34
     },
     "MAX_CONTAINER_SIZE": {
@@ -31,15 +31,15 @@
       "value": 10000
     },
     "MAX_FILEPATH": {
-      "source": "src/structs.h:MAX_FILEPATH",
+      "source": "src/core/structs.h:MAX_FILEPATH",
       "value": 256
     },
     "MAX_GOLD": {
-      "source": "src/structs.h:MAX_GOLD",
+      "source": "src/core/structs.h:MAX_GOLD",
       "value": 2140000000
     },
     "MAX_MOVING_ROOMS": {
-      "source": "src/structs.h:MAX_MOVING_ROOMS",
+      "source": "src/core/structs.h:MAX_MOVING_ROOMS",
       "value": 150
     },
     "MAX_NUMBER_OF_ACTIVATED_SPELL_USES": {
@@ -47,11 +47,11 @@
       "value": 5
     },
     "MAX_OBJ_AFFECT": {
-      "source": "src/structs.h:MAX_OBJ_AFFECT",
+      "source": "src/core/structs.h:MAX_OBJ_AFFECT",
       "value": 6
     },
     "MAX_PATH": {
-      "source": "src/structs.h:MAX_PATH",
+      "source": "src/core/structs.h:MAX_PATH",
       "value": 50
     },
     "MAX_PEOPLE": {
@@ -83,7 +83,7 @@
       "value": 2000
     },
     "MAX_STRING_LENGTH": {
-      "source": "src/structs.h:MAX_STRING_LENGTH",
+      "source": "src/core/structs.h:MAX_STRING_LENGTH",
       "value": 49152
     },
     "MAX_TRADE": {
@@ -91,7 +91,7 @@
       "value": 5
     },
     "MAX_WEAPON_SPELLS": {
-      "source": "src/structs.h:MAX_WEAPON_SPELLS",
+      "source": "src/core/structs.h:MAX_WEAPON_SPELLS",
       "value": 3
     },
     "NUM_ABILITIES": {
@@ -107,7 +107,7 @@
       "value": 28
     },
     "NUM_ATTACK_TYPES": {
-      "source": "src/structs.h:NUM_ATTACK_TYPES",
+      "source": "src/core/structs.h:NUM_ATTACK_TYPES",
       "value": 24
     },
     "NUM_CHURCHES": {
@@ -115,35 +115,35 @@
       "value": 13
     },
     "NUM_CITIES": {
-      "source": "src/structs.h:NUM_CITIES",
+      "source": "src/core/structs.h:NUM_CITIES",
       "value": 3
     },
     "NUM_CLASSES": {
-      "source": "src/structs.h:NUM_CLASSES",
+      "source": "src/core/structs.h:NUM_CLASSES",
       "value": 38
     },
     "NUM_CONT_FLAGS": {
-      "source": "src/structs.h:NUM_CONT_FLAGS",
+      "source": "src/core/structs.h:NUM_CONT_FLAGS",
       "value": 4
     },
     "NUM_DOMAIN_PHENOMENON_KINDS": {
-      "source": "src/domain_event_types.h:NUM_DOMAIN_PHENOMENON_KINDS",
+      "source": "src/events/domain_event_types.h:NUM_DOMAIN_PHENOMENON_KINDS",
       "value": 7
     },
     "NUM_FACTIONS": {
-      "source": "src/structs.h:NUM_FACTIONS",
+      "source": "src/core/structs.h:NUM_FACTIONS",
       "value": 4
     },
     "NUM_FEATS": {
-      "source": "src/structs.h:NUM_FEATS",
+      "source": "src/core/structs.h:NUM_FEATS",
       "value": 1323
     },
     "NUM_GENDERS": {
-      "source": "src/structs.h:NUM_GENDERS",
+      "source": "src/core/structs.h:NUM_GENDERS",
       "value": 3
     },
     "NUM_LIQ_TYPES": {
-      "source": "src/structs.h:NUM_LIQ_TYPES",
+      "source": "src/core/structs.h:NUM_LIQ_TYPES",
       "value": 23
     },
     "NUM_MISSION_DIFFICULTIES": {
@@ -151,19 +151,19 @@
       "value": 6
     },
     "NUM_PORTAL_TYPES": {
-      "source": "src/structs.h:NUM_PORTAL_TYPES",
+      "source": "src/core/structs.h:NUM_PORTAL_TYPES",
       "value": 4
     },
     "NUM_RACE_TYPES": {
-      "source": "src/structs.h:NUM_RACE_TYPES",
+      "source": "src/core/structs.h:NUM_RACE_TYPES",
       "value": 17
     },
     "NUM_REGIONS": {
-      "source": "src/structs.h:NUM_REGIONS",
+      "source": "src/core/structs.h:NUM_REGIONS",
       "value": 14
     },
     "NUM_SIZES": {
-      "source": "src/structs.h:NUM_SIZES",
+      "source": "src/core/structs.h:NUM_SIZES",
       "value": 10
     },
     "NUM_SPECABS": {
@@ -175,59 +175,59 @@
       "value": 614
     },
     "NUM_SUB_RACES": {
-      "source": "src/structs.h:NUM_SUB_RACES",
+      "source": "src/core/structs.h:NUM_SUB_RACES",
       "value": 23
     },
     "NUM_TRAP_SPECIAL_EFFECTS": {
-      "source": "src/structs.h:NUM_TRAP_SPECIAL_EFFECTS",
+      "source": "src/core/structs.h:NUM_TRAP_SPECIAL_EFFECTS",
       "value": 11
     },
     "NUM_TRAP_TRIGGERS": {
-      "source": "src/structs.h:NUM_TRAP_TRIGGERS",
+      "source": "src/core/structs.h:NUM_TRAP_TRIGGERS",
       "value": 6
     },
     "NUM_WEARS": {
-      "source": "src/structs.h:NUM_WEARS",
+      "source": "src/core/structs.h:NUM_WEARS",
       "value": 51
     },
     "PORTAL_CHECKFLAGS": {
-      "source": "src/structs.h:PORTAL_CHECKFLAGS",
+      "source": "src/core/structs.h:PORTAL_CHECKFLAGS",
       "value": 2
     },
     "PORTAL_CLANHALL": {
-      "source": "src/structs.h:PORTAL_CLANHALL",
+      "source": "src/core/structs.h:PORTAL_CLANHALL",
       "value": 3
     },
     "PORTAL_NORMAL": {
-      "source": "src/structs.h:PORTAL_NORMAL",
+      "source": "src/core/structs.h:PORTAL_NORMAL",
       "value": 0
     },
     "PORTAL_RANDOM": {
-      "source": "src/structs.h:PORTAL_RANDOM",
+      "source": "src/core/structs.h:PORTAL_RANDOM",
       "value": 1
     },
     "RACE_LICH": {
-      "source": "src/structs.h:RACE_LICH",
+      "source": "src/core/structs.h:RACE_LICH",
       "value": 45
     },
     "RACE_UNDEFINED": {
-      "source": "src/structs.h:RACE_UNDEFINED",
+      "source": "src/core/structs.h:RACE_UNDEFINED",
       "value": -1
     },
     "RACE_VAMPIRE": {
-      "source": "src/structs.h:RACE_VAMPIRE",
+      "source": "src/core/structs.h:RACE_VAMPIRE",
       "value": 46
     },
     "READ_SIZE": {
-      "source": "src/utils.h:READ_SIZE",
+      "source": "src/core/utils.h:READ_SIZE",
       "value": 512
     },
     "RQ_MAXSIZE": {
-      "source": "src/db.h:RQ_MAXSIZE",
+      "source": "src/core/db.h:RQ_MAXSIZE",
       "value": 127
     },
     "SPELLBOOK_SIZE": {
-      "source": "src/structs.h:SPELLBOOK_SIZE",
+      "source": "src/core/structs.h:SPELLBOOK_SIZE",
       "value": 200
     },
     "SPELL_RESERVED_DBC": {
@@ -243,7 +243,7 @@
   "source_branch": "LUMINARI",
   "symbols": {
     "classes": {
-      "source_defines": "src/structs.h:CLASS_WIZARD..NUM_CLASSES",
+      "source_defines": "src/core/structs.h:CLASS_WIZARD..NUM_CLASSES",
       "values": {
         "CLASS_ALCHEMIST": 17,
         "CLASS_ARCANEARCHER": 12,
@@ -312,7 +312,7 @@
       }
     },
     "race-types": {
-      "source_defines": "src/structs.h:RACE_TYPE_UNKNOWN..NUM_RACE_TYPES",
+      "source_defines": "src/core/structs.h:RACE_TYPE_UNKNOWN..NUM_RACE_TYPES",
       "values": {
         "RACE_TYPE_ABERRATION": 6,
         "RACE_TYPE_ANIMAL": 3,
@@ -334,7 +334,7 @@
       }
     },
     "sizes": {
-      "source_defines": "src/structs.h:SIZE_RESERVED..NUM_SIZES",
+      "source_defines": "src/core/structs.h:SIZE_RESERVED..NUM_SIZES",
       "values": {
         "SIZE_COLOSSAL": 9,
         "SIZE_DIMINUTIVE": 2,
@@ -349,7 +349,7 @@
       }
     },
     "subraces": {
-      "source_defines": "src/structs.h:SUBRACE_UNKNOWN..NUM_SUB_RACES",
+      "source_defines": "src/core/structs.h:SUBRACE_UNKNOWN..NUM_SUB_RACES",
       "values": {
         "SUBRACE_AIR": 1,
         "SUBRACE_ANGEL": 2,
@@ -1274,8 +1274,8 @@
         }
       ],
       "serialized_chunks": 4,
-      "source_defines": "src/structs.h:AFF_DONTUSE..NUM_AFF_FLAGS",
-      "source_table": "src/constants.c:affected_bits"
+      "source_defines": "src/core/structs.h:AFF_DONTUSE..NUM_AFF_FLAGS",
+      "source_table": "src/core/constants.c:affected_bits"
     },
     "affect2": {
       "count_symbol": "NUM_AFF2_FLAGS",
@@ -1317,8 +1317,8 @@
         }
       ],
       "serialized_chunks": 4,
-      "source_defines": "src/structs.h:AFF2_DONTUSE..NUM_AFF2_FLAGS",
-      "source_table": "src/constants.c:affected2_bits"
+      "source_defines": "src/core/structs.h:AFF2_DONTUSE..NUM_AFF2_FLAGS",
+      "source_table": "src/core/constants.c:affected2_bits"
     },
     "directions": {
       "count_symbol": "NUM_OF_DIRS",
@@ -1404,9 +1404,9 @@
           "reverse_index": 7
         }
       ],
-      "reverse_source": "src/constants.c:rev_dir",
-      "source_defines": "src/structs.h:NORTH..NUM_OF_DIRS",
-      "source_table": "src/constants.c:dirs"
+      "reverse_source": "src/core/constants.c:rev_dir",
+      "source_defines": "src/core/structs.h:NORTH..NUM_OF_DIRS",
+      "source_table": "src/core/constants.c:dirs"
     },
     "hlquest-commands": {
       "entries": [
@@ -1962,8 +1962,8 @@
           "reserved": false
         }
       ],
-      "source_defines": "src/structs.h:ITEM_LIGHT..NUM_ITEM_TYPES",
-      "source_table": "src/constants.c:item_types"
+      "source_defines": "src/core/structs.h:ITEM_LIGHT..NUM_ITEM_TYPES",
+      "source_table": "src/core/constants.c:item_types"
     },
     "mission-difficulties": {
       "count_symbol": "NUM_MISSION_DIFFICULTIES",
@@ -2915,8 +2915,8 @@
         }
       ],
       "serialized_chunks": 4,
-      "source_defines": "src/structs.h:MOB_SPEC..NUM_MOB_FLAGS",
-      "source_table": "src/constants.c:action_bits"
+      "source_defines": "src/core/structs.h:MOB_SPEC..NUM_MOB_FLAGS",
+      "source_table": "src/core/constants.c:action_bits"
     },
     "obj-extra": {
       "count_symbol": "NUM_ITEM_FLAGS",
@@ -3798,8 +3798,8 @@
         }
       ],
       "serialized_chunks": 4,
-      "source_defines": "src/structs.h:ITEM_GLOW..NUM_ITEM_FLAGS",
-      "source_table": "src/constants.c:extra_bits"
+      "source_defines": "src/core/structs.h:ITEM_GLOW..NUM_ITEM_FLAGS",
+      "source_table": "src/core/constants.c:extra_bits"
     },
     "obj-wear": {
       "count_symbol": "NUM_ITEM_WEARS",
@@ -4051,8 +4051,8 @@
         }
       ],
       "serialized_chunks": 4,
-      "source_defines": "src/structs.h:ITEM_WEAR_TAKE..NUM_ITEM_WEARS",
-      "source_table": "src/constants.c:wear_bits"
+      "source_defines": "src/core/structs.h:ITEM_WEAR_TAKE..NUM_ITEM_WEARS",
+      "source_table": "src/core/constants.c:wear_bits"
     },
     "positions": {
       "count_symbol": "NUM_POSITIONS",
@@ -4130,8 +4130,8 @@
           "reserved": false
         }
       ],
-      "source_defines": "src/structs.h:POS_DEAD..NUM_POSITIONS",
-      "source_table": "src/constants.c:position_types"
+      "source_defines": "src/core/structs.h:POS_DEAD..NUM_POSITIONS",
+      "source_table": "src/core/constants.c:position_types"
     },
     "quest": {
       "count_symbol": "NUM_AQ_FLAGS",
@@ -4699,8 +4699,8 @@
         }
       ],
       "serialized_chunks": 4,
-      "source_defines": "src/structs.h:ROOM_DARK..NUM_ROOM_FLAGS",
-      "source_table": "src/constants.c:room_bits"
+      "source_defines": "src/core/structs.h:ROOM_DARK..NUM_ROOM_FLAGS",
+      "source_table": "src/core/constants.c:room_bits"
     },
     "sectors": {
       "count_symbol": "NUM_ROOM_SECTORS",
@@ -4969,8 +4969,8 @@
           "reserved": false
         }
       ],
-      "source_defines": "src/structs.h:SECT_INSIDE..NUM_ROOM_SECTORS",
-      "source_table": "src/constants.c:sector_types"
+      "source_defines": "src/core/structs.h:SECT_INSIDE..NUM_ROOM_SECTORS",
+      "source_table": "src/core/constants.c:sector_types"
     },
     "trigger-types-mob": {
       "entries": [
@@ -5123,7 +5123,7 @@
         }
       ],
       "source_defines": "src/dgscript/dg_scripts.h:MTRIG_GLOBAL",
-      "source_table": "src/constants.c:trig_types"
+      "source_table": "src/core/constants.c:trig_types"
     },
     "trigger-types-object": {
       "entries": [
@@ -5269,7 +5269,7 @@
         }
       ],
       "source_defines": "src/dgscript/dg_scripts.h:OTRIG_GLOBAL",
-      "source_table": "src/constants.c:otrig_types"
+      "source_table": "src/core/constants.c:otrig_types"
     },
     "trigger-types-world": {
       "entries": [
@@ -5415,7 +5415,7 @@
         }
       ],
       "source_defines": "src/dgscript/dg_scripts.h:WTRIG_GLOBAL",
-      "source_table": "src/constants.c:wtrig_types"
+      "source_table": "src/core/constants.c:wtrig_types"
     },
     "wear-slots": {
       "entries": [
@@ -5726,7 +5726,7 @@
           "required_wear_macro": "ITEM_WEAR_WRIST"
         }
       ],
-      "source_names": "src/constants.c:equipment_types",
+      "source_names": "src/core/constants.c:equipment_types",
       "source_table": "src/obj/act.item.c:perform_wear.wear_bitvectors"
     },
     "zone": {
@@ -5871,8 +5871,8 @@
         }
       ],
       "serialized_chunks": 4,
-      "source_defines": "src/structs.h:ZONE_CLOSED..NUM_ZONE_FLAGS",
-      "source_table": "src/constants.c:zone_bits"
+      "source_defines": "src/core/structs.h:ZONE_CLOSED..NUM_ZONE_FLAGS",
+      "source_table": "src/core/constants.c:zone_bits"
     }
   }
 }

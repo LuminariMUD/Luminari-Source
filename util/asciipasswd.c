@@ -8,17 +8,17 @@
 *  player files. It takes a player name as its argument, reads the        *
 *  plaintext password from the terminal without echo (or from standard    *
 *  input when that is not a terminal), and outputs the hash using the     *
-*  same scheme and policy as the main MUD server (see src/password.h).    *
+*  same scheme and policy as the main MUD server (see src/player/password.h).    *
 *  The password is never accepted on the command line, where it would be  *
 *  visible in process listings and shell history.                         *
 ************************************************************************* */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
-#include "password.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "player/password.h"
 
 #include <crypt.h>
 #include <termios.h>

@@ -13,7 +13,7 @@
 #ifndef _SPATIAL_CORE_H_
 #define _SPATIAL_CORE_H_
 
-#include "structs.h"
+#include "core/structs.h"
 
 /* Spatial System Configuration */
 #define SPATIAL_MAX_RANGE 2000.0

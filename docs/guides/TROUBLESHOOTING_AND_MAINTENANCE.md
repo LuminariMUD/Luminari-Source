@@ -37,12 +37,35 @@ autoreconf -fvi
 On a fresh clone only, create files that do not already exist:
 
 ```bash
-test -e src/campaign.h || cp src/campaign.example.h src/campaign.h
-test -e src/mud_options.h || cp src/mud_options.example.h src/mud_options.h
-test -e src/vnums.h || cp src/vnums.example.h src/vnums.h
+test -e src/config/campaign.h || cp src/config/campaign.example.h src/config/campaign.h
+test -e src/config/mud_options.h || cp src/config/mud_options.example.h src/config/mud_options.h
+test -e src/config/vnums.h || cp src/config/vnums.example.h src/config/vnums.h
 ```
 
 Never overwrite or commit those local headers.
+
+### Local Headers Still Under `src/`
+
+Configure or CMake stops with a message that a local header must move to
+`src/config/`. Move the customized headers once; never copy the examples over
+them:
+
+```bash
+mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/
+```
+
+### Stale Products at the Top of `src/`
+
+A checkout built before every source moved into a directory under `src/` keeps
+old build products there. Remove them:
+
+```bash
+rm -rf src/*.o src/.deps src/.dirstamp src/stamp-h1 src/conf.h src/pubsub
+```
+
+If `make` does not regenerate the build files on its own, run `autoreconf -fvi`
+and your usual `./configure` command once, and reconfigure existing CMake build
+directories.
 
 ### Clean Rebuild and Test
 

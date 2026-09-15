@@ -9,8 +9,8 @@
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 /* includes */
-#include "utils.h"   /* for the ACMD macro */
-#include <stdbool.h> /* for bool type in state management functions */
+#include "core/utils.h" /* for the ACMD macro */
+#include <stdbool.h>    /* for bool type in state management functions */
 /* end includes */
 
 /***/

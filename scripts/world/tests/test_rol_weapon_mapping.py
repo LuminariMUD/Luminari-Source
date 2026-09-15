@@ -14,10 +14,10 @@ from wtool_lib.rol_weapon_table import weapon_table
 from wtool_lib import rol_weapon_mapping as mapping
 
 
-# WEAPON_FLAG_RANGED, src/structs.h.
+# WEAPON_FLAG_RANGED, src/core/structs.h.
 _WEAPON_FLAG_RANGED = 1 << 3
 
-# WEAPON_FLAG_THROWN, src/structs.h.
+# WEAPON_FLAG_THROWN, src/core/structs.h.
 _WEAPON_FLAG_THROWN = 1 << 4
 
 # The has_ammo_in_pouch() pairings, restated for the kit simulation.
@@ -101,7 +101,7 @@ class RolWeaponMappingTests(unittest.TestCase):
     return self._source_record(body)
 
   def test_weapon_type_table_matches_the_target_header(self) -> None:
-    header = (self.root / "src/structs.h").read_text(encoding="utf-8", errors="ignore")
+    header = (self.root / "src/core/structs.h").read_text(encoding="utf-8", errors="ignore")
     declared = {
         int(value): name
         for name, value in re.findall(r"#define (WEAPON_TYPE_\w+) (\d+)", header)
@@ -321,7 +321,7 @@ class RolWeaponMappingTests(unittest.TestCase):
     return emitted, int(header[0]), values, economy, blocks
 
   def test_ammo_type_table_matches_the_target_header(self) -> None:
-    header = (self.root / "src/structs.h").read_text(encoding="utf-8", errors="ignore")
+    header = (self.root / "src/core/structs.h").read_text(encoding="utf-8", errors="ignore")
     declared = {
         int(value): name
         for name, value in re.findall(r"#define (AMMO_TYPE_\w+) (\d+)", header)

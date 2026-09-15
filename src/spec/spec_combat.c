@@ -4,9 +4,9 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
+#include "core/structs.h"
 #include "combat/combat_damage.h"
 #include "combat/fight.h"
 #include "spec/spec_combat.h"

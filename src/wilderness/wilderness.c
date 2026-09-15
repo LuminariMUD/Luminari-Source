@@ -28,17 +28,17 @@
 
 #include "perlin.h"
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
-#include "constants.h"
-#include "mud_event.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/db.h"
+#include "core/constants.h"
+#include "events/mud_event.h"
 #include "wilderness.h"
 #include "kdtree.h"
 
-#include "mysql.h"
+#include "database/mysql.h"
 #include "desc_engine.h"
 
 

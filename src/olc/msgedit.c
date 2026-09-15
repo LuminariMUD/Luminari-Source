@@ -6,18 +6,18 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "screen.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/screen.h"
 #include "magic/spells.h"
-#include "db.h"
+#include "core/db.h"
 #include "msgedit.h"
 #include "oasis.h"
 #include "genolc.h"
-#include "interpreter.h"
-#include "modify.h"
+#include "core/interpreter.h"
+#include "core/modify.h"
 
 /* Statics */
 static void free_messages_type(struct msg_type *msg);

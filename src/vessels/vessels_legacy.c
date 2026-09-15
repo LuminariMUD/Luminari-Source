@@ -6,21 +6,21 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "handler.h"
-#include "db.h"
-#include "constants.h"
-#include "act.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
+#include "core/db.h"
+#include "core/constants.h"
+#include "act/act.h"
 #include "vessels_legacy.h"
-#include "modify.h"
-#include "graph.h"
+#include "core/modify.h"
+#include "movement/graph.h"
 #include "vessels/vessels.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 /* External vessel data for ship boarding. */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];

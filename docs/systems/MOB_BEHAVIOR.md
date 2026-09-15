@@ -31,7 +31,7 @@ The LuminariMUD mobile behavior system is a sophisticated AI framework that cont
 ## System Architecture
 
 The mob behavior system is demand driven. Each NPC with concrete autonomous
-work owns one scheduled agenda in `src/active_world.c`. The agenda stores reason
+work owns one scheduled agenda in `src/events/active_world.c`. The agenda stores reason
 bits and the nearest deadline; dormant NPCs do not receive callbacks merely
 because they exist. Off-screen wandering, patrols, hunts, scripts, and NPC wars
 remain autonomous work and do not depend on player proximity.

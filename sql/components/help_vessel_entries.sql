@@ -1,6 +1,6 @@
 -- Vessel and transport help entries -> help_entries / help_keywords
 --
--- The help system runs in dual mode (src/db.c): database help is authoritative
+-- The help system runs in dual mode (src/core/db.c): database help is authoritative
 -- when a keyword exists. Runtime help files are ignored deployment data, and
 -- standalone autopilot.hlp or schedule.hlp files are not indexed or maintained
 -- sources. A deployment that provisions file fallback should generate one
@@ -12,7 +12,7 @@
 --
 -- Covers every command registered for the vessel, vehicle, transport, autopilot,
 -- and vessel staff surfaces. Keep the keyword audit at the end of this file in
--- step with src/interpreter.c whenever that command surface changes.
+-- step with src/core/interpreter.c whenever that command surface changes.
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('VESSELS', 'Vessel navigation and boarding:

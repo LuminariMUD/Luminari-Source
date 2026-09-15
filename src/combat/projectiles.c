@@ -4,13 +4,13 @@
  *****************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "assign_wpn_armor.h"
-#include "comm.h"
-#include "db.h"
-#include "handler.h"
+#include "core/comm.h"
+#include "core/db.h"
+#include "core/handler.h"
 #include "projectiles.h"
 #include "spec_abilities.h"
 

@@ -6,18 +6,18 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "handler.h"
-#include "db.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
+#include "core/db.h"
 #include "magic/spells.h"
 #include "spec_zone_air_plane.h"
 #include "combat/fight.h"
-#include "graph.h"
+#include "movement/graph.h"
 
 /* call allies to help yan */
 bool yan_yell(struct char_data *ch)

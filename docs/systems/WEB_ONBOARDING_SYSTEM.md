@@ -78,7 +78,7 @@ The following approaches remain outside this design:
 The implementation touches four lifecycle boundaries:
 
 1. `src/net/protocol.c` recognizes reserved capability and action MSDP variables.
-2. `src/comm.c` initializes and resets onboarding state with the descriptor.
+2. `src/core/comm.c` initializes and resets onboarding state with the descriptor.
 3. The main game loop calls `web_onboarding_tick()` once per pulse for every
    descriptor.
 4. `nanny()` input marks the descriptor dirty after processing, including when
@@ -528,13 +528,13 @@ If a new `.c` file is added, update both `Makefile.am` and `CMakeLists.txt`.
 | --- | --- |
 | `src/net/onboarding.h` | Versions, bounds, variables, errors, and public API |
 | `src/net/onboarding.c` | Screens, catalogs, emission, transfers, and cleanup |
-| `src/comm.c` | Per-pulse emission and descriptor lifecycle |
+| `src/core/comm.c` | Per-pulse emission and descriptor lifecycle |
 | `src/net/protocol.c` | Reserved MSDP capability and action dispatch |
-| `src/interpreter.c` | Authoritative account and core creation state machine |
-| `src/roleplay.c` | Role-play field IDs, limits, validation, and checked commits |
-| `src/char_descs.c` | Generated short-description states and checked commit |
-| `src/account.c` | Account data, unlocks, membership, and account menu |
-| `src/structs.h` | Descriptor tracking and `CON_*` state definitions |
+| `src/core/interpreter.c` | Authoritative account and core creation state machine |
+| `src/character/roleplay.c` | Role-play field IDs, limits, validation, and checked commits |
+| `src/character/char_descs.c` | Generated short-description states and checked commit |
+| `src/player/account.c` | Account data, unlocks, membership, and account menu |
+| `src/core/structs.h` | Descriptor tracking and `CON_*` state definitions |
 | `unittests/CuTest/test_web_onboarding.c` | Production-linked behavior and boundary tests |
 
 ## Early screen-reader choice (issue #137)

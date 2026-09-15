@@ -150,27 +150,39 @@ install_dependencies() {
 setup_config_files() {
     print_header "Setting Up Configuration Files"
 
+    # The local configuration headers live in src/config/. Copying the examples
+    # while a customized header still sits directly under src/ would build with
+    # the defaults.
+    local header
+    for header in campaign mud_options vnums; do
+        if [[ -e "$PROJECT_ROOT/src/$header.h" ]]; then
+            print_msg "$RED" "src/$header.h must move to src/config/. From $PROJECT_ROOT, run:"
+            print_msg "$RED" "  mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/"
+            exit 1
+        fi
+    done
+
     # Setup local Luminari configuration
-    if [[ ! -f "$PROJECT_ROOT/src/campaign.h" ]]; then
+    if [[ ! -f "$PROJECT_ROOT/src/config/campaign.h" ]]; then
         print_msg "$GREEN" "Creating campaign.h from template..."
-        cp "$PROJECT_ROOT"/src/campaign.example.h "$PROJECT_ROOT"/src/campaign.h
+        cp "$PROJECT_ROOT"/src/config/campaign.example.h "$PROJECT_ROOT"/src/config/campaign.h
         print_msg "$GREEN" "Created default LuminariMUD configuration"
     else
         print_msg "$YELLOW" "campaign.h already exists, skipping..."
     fi
 
     # Setup mud_options.h
-    if [[ ! -f "$PROJECT_ROOT/src/mud_options.h" ]]; then
+    if [[ ! -f "$PROJECT_ROOT/src/config/mud_options.h" ]]; then
         print_msg "$GREEN" "Creating mud_options.h from template..."
-        cp "$PROJECT_ROOT"/src/mud_options.example.h "$PROJECT_ROOT"/src/mud_options.h
+        cp "$PROJECT_ROOT"/src/config/mud_options.example.h "$PROJECT_ROOT"/src/config/mud_options.h
     else
         print_msg "$YELLOW" "mud_options.h already exists, skipping..."
     fi
 
     # Setup vnums.h
-    if [[ ! -f "$PROJECT_ROOT/src/vnums.h" ]]; then
+    if [[ ! -f "$PROJECT_ROOT/src/config/vnums.h" ]]; then
         print_msg "$GREEN" "Creating vnums.h from template..."
-        cp "$PROJECT_ROOT"/src/vnums.example.h "$PROJECT_ROOT"/src/vnums.h
+        cp "$PROJECT_ROOT"/src/config/vnums.example.h "$PROJECT_ROOT"/src/config/vnums.h
     else
         print_msg "$YELLOW" "vnums.h already exists, skipping..."
     fi
@@ -994,7 +1006,7 @@ show_final_instructions() {
     echo "  3. Create your first immortal character"
     echo
     print_msg "$YELLOW" "Important files:"
-    echo "  - Configuration: $PROJECT_ROOT/src/campaign.h, $PROJECT_ROOT/src/mud_options.h"
+    echo "  - Configuration: $PROJECT_ROOT/src/config/campaign.h, $PROJECT_ROOT/src/config/mud_options.h"
     echo "  - Database config: lib/mysql_config"
     echo "  - Logs: log/"
     echo "  - Autorun commands:"

@@ -8,12 +8,12 @@
  ***************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <string.h>
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/db.h"
 #include "wilderness.h"
 #include "resource_depletion.h"
 #include "resource_system.h"

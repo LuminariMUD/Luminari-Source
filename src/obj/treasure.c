@@ -9,16 +9,16 @@
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "handler.h"
-#include "rewards.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
+#include "character/rewards.h"
+#include "core/db.h"
 #include "magic/spells.h"
-#include "constants.h"
+#include "core/constants.h"
 #include "dgscript/dg_scripts.h"
 #include "treasure.h"
 #include "craft/craft.h"
@@ -28,7 +28,7 @@
 #include "quest/staff_events.h"
 #include "character/feats.h"
 #include "craft/crafting_new.h"
-#include "mud_options.h"
+#include "config/mud_options.h"
 
 extern int weighted_object_bonuses[NUM_ITEM_WEARS][NUM_APPLIES];
 

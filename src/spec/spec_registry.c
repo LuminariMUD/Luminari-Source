@@ -4,11 +4,11 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
 
-#include "act.h"
+#include "act/act.h"
 #include "character/backgrounds.h"
 #include "spec/spec_registry.h"
 #include "comms/mail.h"

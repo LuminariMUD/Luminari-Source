@@ -18,7 +18,7 @@ against live in-memory copies; saving writes the applicable flat-file package.
 ## Command Reference
 
 Every editor and listing command below is registered in `cmd_info[]`
-(`src/interpreter.c`). All are `LVL_BUILDER` unless noted.
+(`src/core/interpreter.c`). All are `LVL_BUILDER` unless noted.
 
 ### Editors
 
@@ -68,7 +68,7 @@ rlist 3000 3099    List everything in the vnum range 3000-3099
 lists the zones that builder is assigned to.
 
 Note that `plist` is **not** part of this family - it lists *players* and lives
-in `src/act.wizard.c`.
+in `src/act/act.wizard.c`.
 
 ## OLC Architecture
 
@@ -566,7 +566,7 @@ void medit_disp_stats_menu(struct descriptor_data *d) {
 
 ### Zone Commands
 
-Zone reset commands are stored as `struct reset_com` (`src/db.h`):
+Zone reset commands are stored as `struct reset_com` (`src/core/db.h`):
 
 ```c
 struct reset_com
@@ -585,7 +585,7 @@ struct reset_com
 ```
 
 There are no `ZCMD_*` constants - the command is stored and compared as a bare
-character literal throughout `src/db.c` and `src/olc/zedit.c`. The full command
+character literal throughout `src/core/db.c` and `src/olc/zedit.c`. The full command
 set, argument arities, and file syntax are documented in the
 [Zone File Format Reference](../world_game-data/ZONE_FILE_FORMAT.md).
 

@@ -289,7 +289,7 @@ MSDP is supported by many MUD clients including:
 - [PROTOCOL_SYSTEMS.md](PROTOCOL_SYSTEMS.md) - Detailed protocol implementation
 - [protocol.h](../../src/net/protocol.h) - MSDP implementation in source code
 - [msdp_json.c](../../src/net/msdp_json.c) - MSDP and JSON conversion
-- [comm.c](../../src/comm.c) - Main MSDP update loop (msdp_update function)
+- [comm.c](../../src/core/comm.c) - Main MSDP update loop (msdp_update function)
 
 ## References
 

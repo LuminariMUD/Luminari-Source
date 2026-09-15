@@ -1,0 +1,12900 @@
+/**
+ * @file utils.c                LuminariMUD
+ * Various utility functions used within the core mud code.
+ *
+ * Part of the core tbaMUD source code distribution, which is a derivative
+ * of, and continuation of, CircleMUD.
+ *
+ * All rights reserved.  See license for complete information.
+ * Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+ * CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
+ */
+
+#include "conf.h"
+#include "sysdep.h"
+#include "structs.h"
+#include "utils.h"
+#include "config/pet_vnums.h"
+#include "db.h"
+#include "comm.h"
+#include "modify.h"
+#include "screen.h"
+#include "magic/spells.h"
+#include "handler.h"
+#include "events/point_update_periodic.h"
+#include "interpreter.h"
+#include "character/class.h"
+#include "character/race.h"
+#include "act/act.h"
+#include "character/abilities.h"
+#include "events/mud_event.h" // for purgemob event
+#include "character/feats.h"
+#include "combat/spec_abilities.h"
+#include "combat/assign_wpn_armor.h"
+#include "combat/projectiles.h"
+#include "wilderness/wilderness.h"
+#include "magic/domains_schools.h"
+#include "constants.h"
+#include "dgscript/dg_scripts.h"
+#include "events/domain_event_world.h"
+#include "mudlim.h"
+#include "character/rewards.h"
+#include "craft/alchemy.h"
+#include "character/premadebuilds.h"
+#include "craft/craft.h"
+#include "combat/fight.h"
+#include "quest/missions.h"
+#include "magic/psionics.h"
+#include "character/evolutions.h"
+#include "character/backgrounds.h"
+#include "character/char_descs.h"
+#include "obj/treasure.h"
+#include "character/perks.h"
+#include "help.h"
+#include <time.h>
+
+#ifdef CIRCLE_WINDOWS
+#include <io.h>
+#endif
+
+/* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
+
+/* Functions of a general utility nature
+   Functions directly related to utils.h needs
+ */
+
+/* MSDP GUI Wrappers */
+void gui_combat_wrap_open(struct char_data *ch)
+{
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE))
+  { /* GUI Mode wrap open: combat */
+    // send_to_char(ch, "<combat_message>\r\n");
+  }
+}
+
+void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_obj)
+{
+  if (!ch)
+    return;
+  if (IN_ROOM(ch) == NOWHERE)
+    return;
+  if (IS_NPC(ch))
+    return;
+
+  /* we accept NULL victim */
+
+  int to_sleeping = 0;
+  struct char_data *to = world[IN_ROOM(ch)].people;
+
+  for (; to; to = to->next_in_room)
+  {
+    if (!SENDOK(to) || (to == ch))
+      continue;
+    if (to == vict_obj) /* ch == victim? */
+      continue;
+    if (!PRF_FLAGGED(to, PRF_GUI_MODE))
+      continue;
+    // perform_act("<combat_message>\r\n", ch, NULL, vict_obj, to, FALSE);
+  }
+}
+
+void gui_combat_wrap_close(struct char_data *ch)
+{
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE))
+  { /* GUI Mode wrap close: combat */
+    // send_to_char(ch, "</combat_message>\r\n");
+  }
+}
+
+void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_obj)
+{
+  if (!ch)
+    return;
+  if (IN_ROOM(ch) == NOWHERE)
+    return;
+  if (IS_NPC(ch))
+    return;
+
+  /* we accept NULL victim */
+
+  int to_sleeping = 0;
+  struct char_data *to = world[IN_ROOM(ch)].people;
+
+  for (; to; to = to->next_in_room)
+  {
+    if (to == ch)
+      continue;
+    if (!SENDOK(to))
+      continue;
+    if (to == vict_obj) /* ch == victim? */
+      continue;
+    if (!PRF_FLAGGED(to, PRF_GUI_MODE))
+      continue;
+    // perform_act("</combat_message>\r\n", ch, NULL, vict_obj, to, FALSE);
+  }
+}
+
+void gui_room_desc_wrap_open(struct char_data *ch)
+{
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE))
+  { /* GUI Mode wrap open: room description */
+    send_to_char(ch, "<room_desc>");
+  }
+}
+
+void gui_room_desc_wrap_close(struct char_data *ch)
+{
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE))
+  { /* GUI Mode wrap close: room description */
+    send_to_char(ch, "</room_desc>");
+  }
+}
+
+static bool necromancer_spellcasting_class_matches_type(int class, int cast_type)
+{
+  switch (cast_type)
+  {
+  case CASTING_TYPE_ARCANE:
+    return class == CLASS_WIZARD || class == CLASS_SORCERER || class == CLASS_BARD ||
+           class == CLASS_SUMMONER;
+  case CASTING_TYPE_DIVINE:
+    return class == CLASS_CLERIC || class == CLASS_DRUID || class == CLASS_RANGER ||
+           class == CLASS_PALADIN || class == CLASS_INQUISITOR;
+  default:
+    return false;
+  }
+}
+
+int get_necromancer_progression_class(struct char_data *ch, int cast_type)
+{
+  int preferred_class;
+  int selected_class = CLASS_UNDEFINED;
+  int class;
+
+  if (ch == NULL || IS_NPC(ch))
+    return CLASS_UNDEFINED;
+
+  preferred_class =
+      cast_type == CASTING_TYPE_ARCANE ? GET_PREFERRED_ARCANE(ch) : GET_PREFERRED_DIVINE(ch);
+  if (necromancer_spellcasting_class_matches_type(preferred_class, cast_type) &&
+      CLASS_LEVEL(ch, preferred_class) > 0)
+    return preferred_class;
+
+  for (class = 0; class < NUM_CLASSES; class ++)
+  {
+    if (!necromancer_spellcasting_class_matches_type(class, cast_type) ||
+        CLASS_LEVEL(ch, class) <= 0)
+      continue;
+    if (selected_class != CLASS_UNDEFINED)
+      return CLASS_UNDEFINED;
+    selected_class = class;
+  }
+
+  return selected_class;
+}
+
+int get_necromancer_progression_level(struct char_data *ch)
+{
+  int casting_class;
+
+  if (ch == NULL)
+    return 0;
+  if (IS_NPC(ch))
+    return GET_LEVEL(ch);
+
+  casting_class = get_necromancer_progression_class(ch, NECROMANCER_CAST_TYPE(ch));
+  if (casting_class == CLASS_UNDEFINED)
+    return CLASS_LEVEL(ch, CLASS_NECROMANCER);
+
+  return CLASS_LEVEL(ch, casting_class) + BONUS_CASTER_LEVEL(ch, casting_class);
+}
+
+/* can this CH select the option to change their 'known' spells
+ in the study system? */
+bool can_study_known_spells(struct char_data *ch)
+{
+  int necromancer_progression_class = CLASS_UNDEFINED;
+
+  if (ch == NULL || LEVELUP(ch) == NULL)
+    return false;
+
+  if (LEVELUP(ch)->class == CLASS_NECROMANCER)
+    necromancer_progression_class =
+        get_necromancer_progression_class(ch, LEVELUP(ch)->necromancer_bonus_levels);
+
+  /* sorcerer*/
+  if (LEVELUP(ch)->class == CLASS_SORCERER ||
+      ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
+        LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
+        LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_THORN ||
+        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+       GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER) ||
+      (LEVELUP(ch)->class == CLASS_NECROMANCER && necromancer_progression_class == CLASS_SORCERER))
+    return TRUE;
+
+  /* bard */
+  if (LEVELUP(ch)->class == CLASS_BARD ||
+      ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
+        LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
+        LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_THORN ||
+        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+       GET_PREFERRED_ARCANE(ch) == CLASS_BARD) ||
+      (LEVELUP(ch)->class == CLASS_NECROMANCER && necromancer_progression_class == CLASS_BARD))
+    return TRUE;
+
+  /* summoner */
+  if (LEVELUP(ch)->class == CLASS_SUMMONER ||
+      ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
+        LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
+        LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_THORN ||
+        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+       GET_PREFERRED_ARCANE(ch) == CLASS_SUMMONER) ||
+      (LEVELUP(ch)->class == CLASS_NECROMANCER && necromancer_progression_class == CLASS_SUMMONER))
+    return TRUE;
+
+  /* inquisitor */
+  if (LEVELUP(ch)->class == CLASS_INQUISITOR ||
+      ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
+        LEVELUP(ch)->class == CLASS_KNIGHT_OF_SOLAMNIA ||
+        LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_SKULL) &&
+       GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR) ||
+      (LEVELUP(ch)->class == CLASS_NECROMANCER &&
+       necromancer_progression_class == CLASS_INQUISITOR))
+    return TRUE;
+
+  /* warlock */
+  if (LEVELUP(ch)->class == CLASS_WARLOCK)
+    return TRUE;
+
+  /* nope! */
+  return FALSE;
+}
+
+/* can this CH select the option to change their 'known' psionic powers in the study system? */
+bool can_study_known_psionics(struct char_data *ch)
+{
+  if (LEVELUP(ch)->class == CLASS_PSIONICIST)
+    return TRUE;
+
+  /* nope! */
+  return FALSE;
+}
+
+/* ch, given class we're computing bonus spells for, figure out
+ if one of our other classes (probably just prestige, example is
+ arcane archer) is adding bonus caster levels */
+static bool necromancer_advances_spellcasting_class(struct char_data *ch, int class)
+{
+  if (ch == NULL || IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_NECROMANCER) <= 0)
+    return false;
+  return class == get_necromancer_progression_class(ch, NECROMANCER_CAST_TYPE(ch));
+}
+
+int compute_bonus_caster_level(struct char_data *ch, int class)
+{
+  int bonus_levels = 0;
+
+  switch (class)
+  {
+  case CLASS_WIZARD:
+  case CLASS_SORCERER:
+  case CLASS_BARD:
+  case CLASS_SUMMONER:
+    bonus_levels +=
+        CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4 + CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) +
+        CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) + ((1 + CLASS_LEVEL(ch, CLASS_SPELLSWORD)) / 2) +
+        CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN);
+    if (necromancer_advances_spellcasting_class(ch, class))
+      bonus_levels += CLASS_LEVEL(ch, CLASS_NECROMANCER);
+    break;
+  case CLASS_CLERIC:
+  case CLASS_DRUID:
+  case CLASS_RANGER:
+  case CLASS_PALADIN:
+  case CLASS_INQUISITOR:
+    bonus_levels += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
+    bonus_levels += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
+    bonus_levels += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA);
+    bonus_levels += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL);
+    if (necromancer_advances_spellcasting_class(ch, class))
+      bonus_levels += CLASS_LEVEL(ch, CLASS_NECROMANCER);
+    break;
+  default:
+    break;
+  }
+
+  return bonus_levels;
+}
+
+int compute_arcane_level(struct char_data *ch)
+{
+  int arcane_level = 0;
+
+  if (IS_NPC(ch)) /* npc is simple for now */
+    return (GET_LEVEL(ch));
+
+  arcane_level += CLASS_LEVEL(ch, CLASS_WIZARD);
+  arcane_level += CLASS_LEVEL(ch, CLASS_SORCERER);
+  arcane_level += CLASS_LEVEL(ch, CLASS_BARD);
+  arcane_level += CLASS_LEVEL(ch, CLASS_SUMMONER);
+  arcane_level += CLASS_LEVEL(ch, CLASS_WARLOCK);
+  arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW);
+  arcane_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN);
+  arcane_level += CLASS_LEVEL(ch, CLASS_SHADOW_DANCER);
+  if (NECROMANCER_CAST_TYPE(ch) == 1)
+    arcane_level += CLASS_LEVEL(ch, CLASS_NECROMANCER);
+  arcane_level += CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT);
+  arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4;
+  arcane_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) / 2;
+  arcane_level += compute_arcana_golem_level(ch) - (SPELLBATTLE(ch) / 2);
+  arcane_level += (CLASS_LEVEL(ch, CLASS_SPELLSWORD) + 1) / 2;
+
+  return arcane_level;
+}
+
+int compute_divine_level(struct char_data *ch)
+{
+  int divine_level = 0;
+
+  if (IS_NPC(ch)) /* npc is simple for now */
+    return (GET_LEVEL(ch));
+
+  divine_level += CLASS_LEVEL(ch, CLASS_CLERIC);
+  divine_level += CLASS_LEVEL(ch, CLASS_DRUID);
+  divine_level += CLASS_LEVEL(ch, CLASS_INQUISITOR);
+  divine_level += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
+  /* Knight of Solamnia - divine spellcasting starts at level 6 */
+  divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA) - 5);
+  if (NECROMANCER_CAST_TYPE(ch) == 2)
+    divine_level += CLASS_LEVEL(ch, CLASS_NECROMANCER);
+  divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_PALADIN) - 3);
+  divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_BLACKGUARD) - 3);
+  divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_RANGER) - 3);
+  divine_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) / 2;
+  divine_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL);
+  divine_level += compute_arcana_golem_level(ch) - (SPELLBATTLE(ch) / 2);
+
+  return divine_level;
+}
+
+int compute_channel_energy_level(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+
+  int level = 0;
+
+  level += CLASS_LEVEL(ch, CLASS_CLERIC);
+  level += CLASS_LEVEL(ch, CLASS_INQUISITOR);
+  level += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
+  /* Knight of Solamnia - channel energy starts at level 6 */
+  level += MAX(0, CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA) - 5);
+  level += MAX(0, CLASS_LEVEL(ch, CLASS_PALADIN) - 4);
+  level += MAX(0, CLASS_LEVEL(ch, CLASS_BLACKGUARD) - 4);
+  level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) / 2;
+
+  return level;
+}
+
+/* check to see if CH has a weapon attached to a combat feat
+this use to be a nice(?) compact macro, but circumstances forced expansion */
+bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon)
+{
+  bool using_comp = FALSE;
+  bool has_comp_feat = FALSE;
+
+  if (cfeat == -1)
+    return false;
+
+  /* had to add special test to weapon combat feats because of the way
+     I set up composite bows with various strength modifiers -zusuk */
+  switch (weapon)
+  {
+  case WEAPON_TYPE_COMPOSITE_LONGBOW:
+  case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
+  case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
+  case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
+  case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
+    using_comp = TRUE;
+    break;
+  default:
+    break; /* most cases */
+  }
+  if (IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat], WEAPON_TYPE_COMPOSITE_LONGBOW) ||
+      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat], WEAPON_TYPE_COMPOSITE_LONGBOW_2) ||
+      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat], WEAPON_TYPE_COMPOSITE_LONGBOW_3) ||
+      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat], WEAPON_TYPE_COMPOSITE_LONGBOW_4) ||
+      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat], WEAPON_TYPE_COMPOSITE_LONGBOW_5))
+  {
+    has_comp_feat = TRUE;
+  }
+
+  if (using_comp && has_comp_feat)
+    return TRUE; /* any comp longbow feat, any comp longbow used */
+
+  /* reset variables */
+  has_comp_feat = FALSE;
+  using_comp = FALSE;
+
+  switch (weapon)
+  {
+  case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+  case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+  case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+  case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+  case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
+    using_comp = TRUE;
+    break;
+  default:
+    break; /* most cases */
+  }
+  if (IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat], WEAPON_TYPE_COMPOSITE_SHORTBOW) ||
+      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat], WEAPON_TYPE_COMPOSITE_SHORTBOW_2) ||
+      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat], WEAPON_TYPE_COMPOSITE_SHORTBOW_3) ||
+      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat], WEAPON_TYPE_COMPOSITE_SHORTBOW_4) ||
+      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat], WEAPON_TYPE_COMPOSITE_SHORTBOW_5))
+  {
+    has_comp_feat = TRUE;
+  }
+
+  if (using_comp && has_comp_feat)
+    return TRUE; /* any comp bow feat, any comp bow used */
+
+  /*debug*/
+  // send_to_char(ch, "feat: %d, weapon: %d\r\n", cfeat, weapon);
+
+  /* normal test now */
+  if ((IS_SET_AR((ch)->char_specials.saved.combat_feats[(cfeat)], (weapon))))
+    return TRUE;
+
+  /* nope, nothing! */
+  return FALSE;
+}
+
+int compute_dexterity_bonus(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+  int dexterity_bonus = (GET_DEX(ch) - 10) / 2;
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
+    dexterity_bonus -= 2;
+  if (AFF_FLAGGED(ch, AFF_PINNED))
+    dexterity_bonus = -5;
+  dexterity_bonus -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
+
+  return (MIN(compute_gear_max_dex(ch), dexterity_bonus));
+}
+
+int compute_strength_bonus(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+  int bonus = (GET_STR(ch) - 10) / 2;
+  bonus -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
+
+  return bonus;
+}
+
+int compute_constitution_bonus(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+  int bonus = (GET_CON(ch) - 10) / 2;
+  bonus -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
+
+  return bonus;
+}
+
+int compute_intelligence_bonus(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+  int bonus = (GET_INT(ch) - 10) / 2;
+  bonus -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
+
+  return bonus;
+}
+
+int compute_wisdom_bonus(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+  int bonus = (GET_WIS(ch) - 10) / 2;
+  bonus -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
+
+  return bonus;
+}
+
+int compute_charisma_bonus(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+  int bonus = (GET_CHA(ch) - 10) / 2;
+  bonus -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
+
+  return bonus;
+}
+
+int stats_cost_chart[11] = {/* cost for total points */
+                            /*0  1  2  3  4  5  6  7  8   9   10 */
+                            0, 1, 2, 3, 4, 5, 6, 8, 10, 13, 16};
+
+int comp_base_dex(struct char_data *ch __attribute__((unused)))
+{
+  int base_dex = BASE_STAT;
+  /*
+  switch (GET_RACE(ch)) {
+    case RACE_ELF: base_dex += 2;
+      break;
+    case RACE_DROW: base_dex += 2;
+      break;
+    case RACE_HALFLING: base_dex += 2;
+      break;
+    case RACE_HALF_TROLL: base_dex += 2;
+      break;
+    case RACE_TRELUX: base_dex += 8;
+      break;
+  }
+  */
+  return base_dex;
+}
+
+int comp_dex_cost(struct char_data *ch, int number)
+{
+  int base_dex = comp_base_dex(ch), current_dex = GET_REAL_DEX(ch) + number;
+  return stats_cost_chart[current_dex - base_dex];
+}
+
+int comp_base_str(struct char_data *ch __attribute__((unused)))
+{
+  int base_str = BASE_STAT;
+  /*
+  switch (GET_RACE(ch)) {
+    case RACE_HALFLING: base_str -= 2;
+      break;
+    case RACE_GNOME: base_str -= 2;
+      break;
+    case RACE_HALF_ORC:
+    case RACE_HALF_TROLL: base_str += 2;
+      break;
+    case RACE_CRYSTAL_DWARF: base_str += 2;
+      break;
+    case RACE_TRELUX: base_str += 2;
+      break;
+    case RACE_ARCANA_GOLEM: base_str -= 2;
+      break;
+  }
+  */
+  return base_str;
+}
+
+int comp_str_cost(struct char_data *ch, int number)
+{
+  int base_str = comp_base_str(ch), current_str = GET_REAL_STR(ch) + number;
+  return stats_cost_chart[current_str - base_str];
+}
+
+int comp_base_con(struct char_data *ch __attribute__((unused)))
+{
+  int base_con = BASE_STAT;
+  /*
+  switch (GET_RACE(ch)) {
+    case RACE_DROW: base_con -= 2;
+      break;
+    case RACE_ELF: base_con -= 2;
+      break;
+    case RACE_DWARF: base_con += 2;
+      break;
+    case RACE_GNOME: base_con += 2;
+      break;
+    case RACE_HALF_TROLL: base_con += 2;
+      break;
+    case RACE_CRYSTAL_DWARF: base_con += 8;
+      break;
+    case RACE_TRELUX: base_con += 4;
+      break;
+    case RACE_ARCANA_GOLEM: base_con -= 2;
+      break;
+  }
+  */
+  return base_con;
+}
+
+int comp_con_cost(struct char_data *ch, int number)
+{
+  int base_con = comp_base_con(ch), current_con = GET_REAL_CON(ch) + number;
+  return stats_cost_chart[current_con - base_con];
+}
+
+int comp_base_inte(struct char_data *ch __attribute__((unused)))
+{
+  int base_inte = BASE_STAT;
+  /*
+  switch (GET_RACE(ch)) {
+    case RACE_HALF_ORC: base_inte -= 2;
+      break;
+    case RACE_HALF_TROLL: base_inte -= 4;
+      break;
+    case RACE_ARCANA_GOLEM: base_inte += 2;
+      break;
+    case RACE_DROW: base_inte += 2;
+      break;
+  }
+  */
+  return base_inte;
+}
+
+int comp_inte_cost(struct char_data *ch, int number)
+{
+  int base_inte = comp_base_inte(ch), current_inte = GET_REAL_INT(ch) + number;
+  return stats_cost_chart[current_inte - base_inte];
+}
+
+int comp_base_wis(struct char_data *ch __attribute__((unused)))
+{
+  int base_wis = BASE_STAT;
+  /*
+  switch (GET_RACE(ch)) {
+    case RACE_HALF_TROLL: base_wis -= 4;
+      break;
+    case RACE_CRYSTAL_DWARF: base_wis += 2;
+      break;
+    case RACE_ARCANA_GOLEM: base_wis += 2;
+      break;
+    case RACE_DROW: base_wis += 2;
+      break;
+  }
+  */
+  return base_wis;
+}
+
+int comp_wis_cost(struct char_data *ch, int number)
+{
+  int base_wis = comp_base_wis(ch), current_wis = GET_REAL_WIS(ch) + number;
+  return stats_cost_chart[current_wis - base_wis];
+}
+
+int comp_base_cha(struct char_data *ch __attribute__((unused)))
+{
+  int base_cha = BASE_STAT;
+  /*
+  switch (GET_RACE(ch)) {
+    case RACE_DWARF:
+    case RACE_HALF_ORC: base_cha -= 2;
+      break;
+    case RACE_DROW: base_cha += 2;
+      break;
+    case RACE_HALF_TROLL: base_cha -= 4;
+      break;
+    case RACE_CRYSTAL_DWARF: base_cha += 2;
+      break;
+    case RACE_ARCANA_GOLEM: base_cha += 2;
+      break;
+  }
+  */
+  return base_cha;
+}
+
+int comp_cha_cost(struct char_data *ch, int number)
+{
+  int base_cha = comp_base_cha(ch), current_cha = GET_REAL_CHA(ch) + number;
+  return stats_cost_chart[current_cha - base_cha];
+}
+
+int comp_total_stat_points(struct char_data *ch)
+{
+  return (comp_cha_cost(ch, 0) + comp_wis_cost(ch, 0) + comp_inte_cost(ch, 0) +
+          comp_str_cost(ch, 0) + comp_dex_cost(ch, 0) + comp_con_cost(ch, 0));
+}
+
+int stats_point_left(struct char_data *ch)
+{
+  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
+    return 0;
+  return (TOTAL_STAT_POINTS(ch) - comp_total_stat_points(ch));
+}
+
+/* unused */
+int spell_level_ch(struct char_data *ch, int spell)
+{
+  int domain = 0, domain_spell = 0, this_spell = -1, i = 0;
+
+  if (CLASS_LEVEL(ch, CLASS_CLERIC) || CLASS_LEVEL(ch, CLASS_INQUISITOR))
+  {
+    for (domain = 0; domain < NUM_DOMAINS; domain++)
+    {
+      if (GET_1ST_DOMAIN(ch) == domain || GET_2ND_DOMAIN(ch) == domain)
+      {
+        /* we have this domain, check if spell is granted */
+
+        for (domain_spell = 0; domain_spell < MAX_DOMAIN_SPELLS; domain_spell++)
+        {
+          this_spell = domain_list[domain].domain_spells[domain_spell];
+          if (this_spell == spell)
+          {
+            return ((domain_spell + 1) * 2 -
+                    1); /* returning level that corresponds to circle (i) */
+          }
+        }
+      }
+    }
+  }
+  else
+  { /* not cleric */
+  }
+
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    if (spell_info[spell].min_level[i] < LVL_IMMORT)
+    {
+      return (spell_info[spell].min_level[i]);
+    }
+  }
+
+  return (LVL_IMPL + 1);
+}
+
+int compute_level_domain_spell_is_granted(int domain, int spell)
+{
+  int i = 0, this_spell = -1;
+
+  for (i = 0; i < MAX_DOMAIN_SPELLS; i++)
+  {
+    this_spell = domain_list[domain].domain_spells[i];
+    if (this_spell == spell)
+    {
+      return ((i + 1) * 2 - 1); /* returning level that corresponds to circle (i) */
+    }
+  }
+
+  /* failed */
+  return (LVL_IMPL + 1);
+}
+
+/* check if the player's size should be different than that stored in-file */
+int compute_current_size(struct char_data *ch)
+{
+  int size = SIZE_UNDEFINED;
+  if (!ch)
+    return size;
+  int racenum = GET_DISGUISE_RACE(ch);
+
+  if (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && racenum)
+  { // wildshaped
+    size = race_list[racenum].size;
+    if (affected_by_spell(ch, SPELL_ENLARGE_PERSON))
+      size++;
+    if (affected_by_spell(ch, SPELL_SHRINK_PERSON))
+      size--;
+  }
+  else
+  {
+    size = (ch)->points.size;
+  }
+
+  if (size < SIZE_FINE)
+    size = SIZE_FINE;
+  if (size > SIZE_COLOSSAL)
+    size = SIZE_COLOSSAL;
+
+  return size;
+}
+
+/* Take a room and direction and give the resulting room vnum, made by zusuk
+ * for ornir's wilderness, returns "NOWHERE" on failure */
+room_vnum get_direction_vnum(room_rnum room_origin, int direction)
+{
+  room_rnum exit_rnum = NOWHERE;
+  room_vnum exit_vnum = NOWHERE;
+  int x_coordinate = -1, y_coordinate = -1;
+
+  /* exit values */
+  if (!VALID_ROOM_RNUM(room_origin))
+    return NOWHERE;
+  if (direction >= NUM_OF_INGAME_DIRS || direction < 0)
+    return NOWHERE;
+
+  /* is there even an exit this way? */
+  if (W_EXIT(room_origin, direction))
+  {
+    exit_rnum = W_EXIT(room_origin, direction)->to_room;
+  }
+  else
+  {
+    return NOWHERE;
+  }
+  exit_vnum = GET_ROOM_VNUM(exit_rnum);
+
+  /* handle wilderness, if the room exists we have to fix the vnum */
+  if (exit_vnum == 1000000)
+  {
+    x_coordinate = world[room_origin].coords[0];
+    y_coordinate = world[room_origin].coords[1];
+    switch (direction)
+    {
+    case NORTH:
+      y_coordinate++;
+      break;
+    case SOUTH:
+      y_coordinate--;
+      break;
+    case EAST:
+      x_coordinate++;
+      break;
+    case WEST:
+      x_coordinate--;
+      break;
+    default:
+      log("SYSERR: Wilderness utility failure.");
+      // Bad direction for wilderness travel (up/down)
+      return NOWHERE;
+    }
+    exit_rnum = find_room_by_coordinates(x_coordinate, y_coordinate);
+    if (exit_rnum == NOWHERE)
+    {
+      exit_rnum = find_available_wilderness_room();
+      if (exit_rnum == NOWHERE)
+      {
+        log("SYSERR: Wilderness utility failure.");
+        return NOWHERE;
+      }
+      /* Must set the coords, etc in the exit room. */
+      assign_wilderness_room(exit_rnum, x_coordinate, y_coordinate);
+    }
+    exit_vnum = GET_ROOM_VNUM(exit_rnum);
+    /* what should we do if it's a wilderness room? */
+  }
+  else
+  { /* should be a normal room */
+    /* exit_vnum already has the correct value */
+  }
+
+  return exit_vnum;
+}
+
+/* this function in conjuction with the AFF_GROUP flag will cause mobs who
+   load in the same room to group up */
+void set_mob_grouping(struct char_data *ch)
+{
+  struct char_data *tch = NULL, *tch_next = NULL;
+
+  for (tch = world[ch->in_room].people; tch; tch = tch_next)
+  {
+    tch_next = tch->next_in_room;
+    if (IS_NPC(tch) && IS_NPC(ch) && AFF_FLAGGED(ch, AFF_GROUP) && tch != ch &&
+        AFF_FLAGGED(tch, AFF_GROUP) && !tch->master)
+    {
+      if (!GROUP(tch))
+        create_group(tch);
+      add_follower(ch, tch);
+      if (!GROUP(ch))
+        join_group(ch, GROUP(tch));
+      return;
+    }
+  }
+}
+
+/* identifies if room is outdoors or not (as opposed to room num)
+ used by:  ROOM_OUTSIDE() macro */
+bool is_room_outdoors(room_rnum room_number)
+{
+  if (room_number == NOWHERE)
+  {
+    log("is_room_outdoors() found NOWHERE");
+    return FALSE;
+  }
+
+  if (ROOM_FLAGGED(room_number, ROOM_INDOORS))
+    return FALSE;
+
+  switch (SECT(room_number))
+  {
+  case SECT_INSIDE:
+  case SECT_INSIDE_ROOM:
+  case SECT_OCEAN:
+  case SECT_UD_WILD:
+  case SECT_UD_CITY:
+  case SECT_UD_INSIDE:
+  case SECT_UD_WATER:
+  case SECT_UD_NOSWIM:
+  case SECT_UD_NOGROUND:
+  case SECT_LAVA:
+  case SECT_UNDERWATER:
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+bool is_in_water(struct char_data *ch)
+{
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  switch (world[IN_ROOM(ch)].sector_type)
+  {
+  case SECT_BEACH:
+  case SECT_OCEAN:
+  case SECT_RIVER:
+  case SECT_SEAPORT:
+  case SECT_UD_NOSWIM:
+  case SECT_UD_WATER:
+  case SECT_WATER_NOSWIM:
+  case SECT_WATER_SWIM:
+  case SECT_UNDERWATER:
+    return true;
+  }
+  return false;
+}
+
+bool is_in_wilderness(struct char_data *ch)
+{
+  if (!OUTDOORS(ch))
+    return false;
+
+  switch (world[IN_ROOM(ch)].sector_type)
+  {
+  case SECT_BEACH:
+  case SECT_DESERT:
+  case SECT_FIELD:
+  case SECT_FOREST:
+  case SECT_HIGH_MOUNTAIN:
+  case SECT_HILLS:
+  case SECT_JUNGLE:
+  case SECT_MARSHLAND:
+  case SECT_MOUNTAIN:
+  case SECT_TAIGA:
+  case SECT_TUNDRA:
+    return true;
+  }
+  return false;
+}
+
+/* identifies if CH is outdoors or not (as opposed to room num)
+ used by:  OUTSIDE() macro */
+bool is_outdoors(struct char_data *ch)
+{
+  if (!ch)
+  {
+    log("is_outdoors() receive NULL ch");
+    return FALSE;
+  }
+
+  return (is_room_outdoors(IN_ROOM(ch)));
+}
+
+/* will check if ch should suffer from ultra-blindness */
+bool ultra_blind(struct char_data *ch, room_rnum room_number)
+{
+  if (!AFF_FLAGGED(ch, AFF_ULTRAVISION))
+    return FALSE;
+
+  if (world[room_number].globe)
+    return FALSE;
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_INDOORS))
+    return FALSE;
+
+  if (AFF_FLAGGED(ch, AFF_DARKVISION))
+    return FALSE;
+
+  if (IS_SET_AR(ROOM_FLAGS(room_number), ROOM_FOG) && GET_LEVEL(ch) < LVL_IMMORT)
+    return FALSE;
+
+  switch (SECT(room_number))
+  {
+  case SECT_INSIDE:
+  case SECT_INSIDE_ROOM:
+  case SECT_FOREST:
+  case SECT_MARSHLAND:
+  case SECT_UNDERWATER:
+  case SECT_UD_WILD:
+  case SECT_UD_CITY:
+  case SECT_UD_INSIDE:
+  case SECT_UD_WATER:
+  case SECT_UD_NOSWIM:
+  case SECT_UD_NOGROUND:
+  case SECT_LAVA:
+    return FALSE;
+  default:
+    break;
+  }
+
+  if (weather_info.sunlight == SUN_LIGHT)
+    return TRUE;
+
+  return FALSE;
+}
+
+/** Calculate the number of objects in the given obj.
+ * @param obj - The object to check for contents. */
+int num_obj_in_obj(struct obj_data *obj)
+{
+  int i = 0;
+
+  for (; obj; obj = obj->next_content)
+    i++;
+
+  return i;
+}
+
+/* Ils: color code counter */
+
+/* homeland-port - don't think it even works in our codebase */
+int color_count(char *bufptr)
+{
+  int count = 0;
+  char *temp = bufptr;
+
+  while ((temp = strchr(temp, '@')) != NULL)
+  {
+    if (*(temp + 1) == '@')
+    {
+      count++; /* adjust count 1 char for every && */
+      temp++;  /* point to char after 2nd && */
+    }
+    else
+    {
+      count += 2; /* adjust count by 3 for every color change */
+      temp++;     /* point to char after color codes */
+    }
+    if (*temp == '\0')
+      break;
+  }
+
+  return count;
+}
+
+/* determines if you can crit this target based on attacker
+     added attacker so we can account for powerful beings that can critical hit through anything potentially -zusuk */
+int is_immune_to_crits(struct char_data *attacker, struct char_data *target)
+{
+  int powerful_being = 0;
+
+  /* new code to help really powerful beings overcome checks here */
+  if (IS_POWERFUL_BEING(attacker))
+  {
+    /* base 20% chance of overcoming defense */
+    powerful_being = 20;
+
+    /* every level above 30 gives another 10% */
+    powerful_being += (GET_LEVEL(attacker) - (LVL_IMMORT - 1)) * 10;
+
+    if (rand_number(1, 100) < powerful_being)
+      return FALSE; /* immune to this crit this pass! */
+  }
+
+  /* now to normal conditions for critical immunity */
+
+  /* undead immune to crits, not vital organs */
+  if (IS_UNDEAD(target))
+    return TRUE;
+
+  if (affected_by_spell(target, PSIONIC_SHADOW_BODY))
+    return TRUE;
+  if (affected_by_spell(target, PSIONIC_BODY_OF_IRON))
+    return TRUE;
+
+  if (HAS_FEAT(target, FEAT_ESSENCE_OF_UNDEATH))
+    return true;
+
+  /* Blackguard: Unholy Fortification - immune to crits from good attackers */
+  if (!IS_NPC(target) && has_blackguard_unholy_fortification(target))
+  {
+    if (attacker && IS_GOOD(attacker))
+      return TRUE;
+  }
+
+  /* preserve organs as 25% of stopping crits */
+  if (!IS_NPC(target) && (KNOWS_DISCOVERY(target, ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1))
+    return TRUE; /* avoided this crit! */
+
+  if (affected_by_spell(target, SPELL_SHIELD_OF_FORTIFICATION) && dice(1, 4) == 1)
+    return TRUE; /* avoided this crit! */
+
+  if (affected_by_spell(target, PSIONIC_BODY_OF_IRON))
+    return TRUE; /* avoided this crit! */
+  if (affected_by_spell(target, PSIONIC_SHADOW_BODY))
+    return TRUE; /* avoided this crit! */
+
+  /* not immune to crits! */
+  return FALSE;
+}
+
+/* Source-specific flags precede broad summon VNUMs; each pet is counted once. */
+enum follower_category
+{
+  FOLLOWER_GENERAL,
+  FOLLOWER_SUMMON,
+  FOLLOWER_GENIE,
+  FOLLOWER_SHAMBLER,
+  FOLLOWER_WARG,     /* Duris racial innate: one summoned mount */
+  FOLLOWER_ORC_HORDE /* Duris racial innate: two to four orcs as one unit */
+};
+
+static const struct
+{
+  int flag;
+  mob_vnum vnum;
+  const char *name;
+} follower_rules[] = {
+    {-1, NOBODY, "General"},
+    {-1, NOBODY, "Summon"},
+    {MOB_GENIEKIND, NOBODY, "Genie"},
+    {-1, NOBODY, "Shambler group"},
+    {-1, PET_RACIAL_WARG, "Warg"},
+    {-1, PET_RACIAL_ORC_WARRIOR, "Orc horde"},
+    {MOB_C_O_T_N, NOBODY, "Children of the night"},
+    {MOB_VAMP_SPWN, NOBODY, "Vampire spawn"},
+    {MOB_DRAGON_KNIGHT, NOBODY, "Dragon knight"},
+    {MOB_MUMMY_DUST, NOBODY, "Mummy dust"},
+    {MOB_SHADOW, NOBODY, "Shadow"},
+    {MOB_PLANAR_ALLY, NOBODY, "Planar ally"},
+    {-1, PET_MISLEAD_DECOY, "Illusory decoy"},
+    {MOB_C_ANIMAL, NOBODY, "Animal companion"},
+    {MOB_C_FAMILIAR, NOBODY, "Familiar"},
+    {MOB_C_MOUNT, NOBODY, "Bonded mount"},
+    {MOB_C_DRAGON, NOBODY, "Dragon mount"},
+    {MOB_EIDOLON, NOBODY, "Eidolon"},
+    {MOB_ROL_LYCANTHROPE_SUMMON, NOBODY, "Lycanthrope"},
+    {MOB_ROL_TOTEM_SPIRIT, NOBODY, "Totem spirit"},
+    {MOB_GOLEM, NOBODY, "Golem"},
+    {MOB_MERCENARY, NOBODY, "Mercenary"},
+    {MOB_ANIMATED_DEAD, NOBODY, "Animated dead"},
+    {MOB_ELEMENTAL, NOBODY, "Elemental"},
+    /* Existing artifact exceptions retain their individual prototype limits. */
+    {-1, 101225, "Spirit eagle"},
+    {-1, 132131, "Large spirit eagle"},
+    {-1, 11389, "Fullstaff's horn"},
+    {-1, 132199, "Black stone figurine"},
+};
+
+#define FOLLOWER_RULE_COUNT (sizeof(follower_rules) / sizeof(follower_rules[0]))
+
+struct follower_count_data
+{
+  int categories[FOLLOWER_RULE_COUNT];
+  int total;
+  int matching_flag;
+  int matching_vnum;
+  int general_limit;
+  int general_used;
+};
+
+static bool isGenieKind(int vnum)
+{
+  switch (vnum)
+  {
+  case MOB_DJINNI_KIND:
+  case MOB_EFREETI_KIND:
+  case MOB_MARID_KIND:
+  case MOB_SHAITAN_KIND:
+    return true;
+  }
+  return false;
+}
+
+static mob_vnum follower_vnum(struct char_data *pet)
+{
+  if (pet == NULL || mob_index == NULL || !IS_MOB(pet))
+    return NOBODY;
+  return GET_MOB_VNUM(pet);
+}
+
+static size_t follower_category(struct char_data *pet, mob_vnum vnum)
+{
+  size_t i;
+  int source_flag = summoned_follower_flag(pet->pet_source_spell);
+
+  if (pet->pet_source_spell == SPELL_SHAMBLER ||
+      (pet->pet_source_spell == 0 && is_shambler_summon(vnum)))
+    return FOLLOWER_SHAMBLER;
+  if (source_flag >= 0)
+    for (i = FOLLOWER_GENIE; i < FOLLOWER_RULE_COUNT; i++)
+      if (follower_rules[i].flag == source_flag)
+        return i;
+  for (i = FOLLOWER_GENIE; i < FOLLOWER_RULE_COUNT; i++)
+    if ((follower_rules[i].flag >= 0 && MOB_FLAGGED(pet, follower_rules[i].flag)) ||
+        (vnum != NOBODY && follower_rules[i].vnum == vnum))
+      return i;
+  if (isGenieKind(vnum))
+    return FOLLOWER_GENIE;
+  return isSummonMob(vnum) ? FOLLOWER_SUMMON : FOLLOWER_GENERAL;
+}
+
+/* Lesser forms trade strength for numbers; other pet categories still count heads. */
+static int follower_control_cost(size_t category, mob_vnum vnum)
+{
+  if (follower_rules[category].flag != MOB_ANIMATED_DEAD)
+    return 1;
+  switch (vnum)
+  {
+  case PET_LICH:
+  case MOB_GIANT_SKELETON:
+  case MOB_MUMMY:
+  case MOB_SPECTRE:
+  case MOB_BANSHEE:
+  case MOB_WIGHT:
+    return 2;
+  default:
+    return 1;
+  }
+}
+
+static bool is_controlled_follower(struct char_data *owner, struct char_data *pet)
+{
+  return pet != NULL && IS_PET(pet) && pet->master == owner && !MOB_FLAGGED(pet, MOB_NOTDEADYET);
+}
+
+/* The first ordinary summon has its own slot; the rest use general slots. */
+static void follower_recount_general(struct follower_count_data *counts)
+{
+  counts->general_used =
+      counts->categories[FOLLOWER_GENERAL] + MAX(0, counts->categories[FOLLOWER_SUMMON] - 1);
+}
+
+static void count_followers(struct char_data *ch, int flag, mob_vnum vnum,
+                            struct follower_count_data *counts)
+{
+  struct follow_type *link;
+  struct char_data *pet;
+  mob_vnum pet_vnum;
+  size_t category;
+
+  memset(counts, 0, sizeof(*counts));
+  if (ch == NULL)
+    return;
+  counts->general_limit = 1 + MAX(0, GET_CHA_BONUS(ch));
+  for (link = ch->followers; link != NULL; link = link->next)
+  {
+    pet = link->follower;
+    if (!is_controlled_follower(ch, pet))
+      continue;
+    pet_vnum = follower_vnum(pet);
+    category = follower_category(pet, pet_vnum);
+    counts->categories[category] += follower_control_cost(category, pet_vnum);
+    counts->total++;
+    if (flag >= 0 && flag < NUM_MOB_FLAGS && MOB_FLAGGED(pet, flag))
+      counts->matching_flag++;
+    if (vnum != NOBODY && pet_vnum == vnum)
+      counts->matching_vnum++;
+  }
+  follower_recount_general(counts);
+}
+
+static int follower_category_limit(struct char_data *ch, size_t category)
+{
+  if (category == FOLLOWER_GENERAL)
+    return 1 + MAX(0, GET_CHA_BONUS(ch));
+  if (category == FOLLOWER_SUMMON)
+    return IS_SUMMONER(ch) ? 2 : 1;
+  if (category == FOLLOWER_ORC_HORDE)
+    return 4;
+  if (follower_rules[category].flag == MOB_ANIMATED_DEAD)
+    return CLASS_LEVEL(ch, CLASS_NECROMANCER) > 0 ? 4 : 2;
+  return 1;
+}
+
+static bool follower_category_available(struct char_data *ch, size_t category,
+                                        const struct follower_count_data *counts)
+{
+  if (counts->categories[category] >= follower_category_limit(ch, category))
+    return false;
+  if (category == FOLLOWER_GENERAL ||
+      (category == FOLLOWER_SUMMON && counts->categories[FOLLOWER_SUMMON] > 0))
+    return counts->general_used < counts->general_limit;
+  return true;
+}
+
+bool can_add_follower_by_flag(struct char_data *ch, int flag)
+{
+  struct follower_count_data counts;
+  size_t i;
+
+  if (ch == NULL || flag < 0 || flag >= NUM_MOB_FLAGS)
+    return false;
+  count_followers(ch, flag, NOBODY, &counts);
+  for (i = FOLLOWER_GENIE; i < FOLLOWER_RULE_COUNT; i++)
+    if (follower_rules[i].flag == flag)
+      return follower_category_available(ch, i, &counts);
+  /* Preserve the generic flag query for native callers outside the special table. */
+  return counts.matching_flag < 1;
+}
+
+/* The one admission calculation for live and staged pets.  An admitted pet is
+ * added to the counts so later decisions in the same pass see it. */
+static bool follower_admit(struct char_data *ch, struct char_data *pet,
+                           struct follower_count_data *counts)
+{
+  mob_vnum vnum = follower_vnum(pet);
+  size_t category = follower_category(pet, vnum);
+  int cost = follower_control_cost(category, vnum);
+
+  if (!follower_category_available(ch, category, counts) ||
+      counts->categories[category] + cost > follower_category_limit(ch, category))
+    return false;
+  counts->categories[category] += cost;
+  counts->total++;
+  follower_recount_general(counts);
+  return true;
+}
+
+/* Names the category and usage that refused a pet, for players and logs. */
+static void follower_denial_reason(struct char_data *ch, struct char_data *pet,
+                                   const struct follower_count_data *counts, char *reason,
+                                   size_t size)
+{
+  size_t category = follower_category(pet, follower_vnum(pet));
+
+  if (category == FOLLOWER_GENERAL ||
+      (category == FOLLOWER_SUMMON &&
+       counts->categories[FOLLOWER_SUMMON] < follower_category_limit(ch, FOLLOWER_SUMMON)))
+    snprintf(reason, size, "%s: general slots %d/%d used", follower_rules[category].name,
+             counts->general_used, counts->general_limit);
+  else
+    snprintf(reason, size, "%s: %d/%d used", follower_rules[category].name,
+             counts->categories[category], follower_category_limit(ch, category));
+}
+
+/* Admission for one existing or staged mobile against the owner's live followers. */
+bool can_add_follower_mobile(struct char_data *ch, struct char_data *pet)
+{
+  struct follower_count_data counts;
+
+  if (ch == NULL || pet == NULL || !IS_NPC(pet))
+    return false;
+  count_followers(ch, -1, NOBODY, &counts);
+  return follower_admit(ch, pet, &counts);
+}
+
+/* Decide, before anything is published, which staged pets the owner can control
+ * alongside the followers already present.  Admission is first-fit in array
+ * order, so the caller's ordering is the priority and the result is
+ * deterministic.  A rejected entry gets a denial reason when a buffer of
+ * count * reason_size bytes is supplied. */
+int select_restorable_followers(struct char_data *ch, struct char_data **pets, int count,
+                                bool *admitted, char *reasons, size_t reason_size)
+{
+  struct follower_count_data counts;
+  int i, selected = 0;
+
+  if (ch == NULL || pets == NULL || admitted == NULL || count < 0)
+    return 0;
+  count_followers(ch, -1, NOBODY, &counts);
+  for (i = 0; i < count; i++)
+  {
+    admitted[i] = pets[i] != NULL && IS_NPC(pets[i]) && follower_admit(ch, pets[i], &counts);
+    if (admitted[i])
+      selected++;
+    else if (reasons != NULL && reason_size > 0)
+    {
+      if (pets[i] != NULL && IS_NPC(pets[i]))
+        follower_denial_reason(ch, pets[i], &counts, reasons + (size_t)i * reason_size,
+                               reason_size);
+      else
+        snprintf(reasons + (size_t)i * reason_size, reason_size, "not a controllable follower");
+    }
+  }
+  return selected;
+}
+
+bool can_add_follower(struct char_data *ch, int mob_vnum_id)
+{
+  mob_rnum rnum;
+
+  if (ch == NULL || mob_proto == NULL || mob_index == NULL || top_of_mobt == (mob_rnum)NOBODY)
+    return false;
+  rnum = real_mobile(mob_vnum_id);
+  if (rnum == NOBODY)
+    return false;
+  return can_add_follower_mobile(ch, &mob_proto[rnum]);
+}
+
+int summoned_follower_flag(int spell)
+{
+  switch (spell)
+  {
+  case SPELL_PLANAR_ALLY:
+    return MOB_PLANAR_ALLY;
+  case SPELL_ELEMENTAL_SWARM:
+  case SPELL_SUMMON_CREATURE_7:
+  case SPELL_SUMMON_CREATURE_8:
+  case SPELL_SUMMON_CREATURE_9:
+  case SPELL_SUMMON_NATURES_ALLY_7:
+  case SPELL_SUMMON_NATURES_ALLY_8:
+  case SPELL_SUMMON_NATURES_ALLY_9:
+    return MOB_ELEMENTAL;
+  case SPELL_ANIMATE_DEAD:
+  case SPELL_GREATER_ANIMATION:
+  case WARLOCK_THE_DEAD_WALK:
+    return MOB_ANIMATED_DEAD;
+  case SPELL_MUMMY_DUST:
+    return MOB_MUMMY_DUST;
+  case SPELL_DRAGON_KNIGHT:
+    return MOB_DRAGON_KNIGHT;
+  case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
+    return MOB_C_O_T_N;
+  case ABILITY_CREATE_VAMPIRE_SPAWN:
+    return MOB_VAMP_SPWN;
+  case SPELL_DJINNI_KIND:
+  case SPELL_EFREETI_KIND:
+  case SPELL_MARID_KIND:
+  case SPELL_SHAITAN_KIND:
+    return MOB_GENIEKIND;
+  default:
+    return -1;
+  }
+}
+
+bool can_add_summoned_followers(struct char_data *ch, int mob_vnum_id, int spell, int count)
+{
+  struct follower_count_data counts;
+  int flag, maximum;
+  size_t category;
+
+  if (ch == NULL || mob_proto == NULL || mob_index == NULL || top_of_mobt == NOBODY ||
+      real_mobile(mob_vnum_id) == NOBODY)
+    return false;
+  flag = summoned_follower_flag(spell);
+  maximum = spell == SPELL_ELEMENTAL_SWARM  ? 8
+            : spell == SPELL_SHAMBLER       ? 6
+            : spell == ABILITY_SUMMON_HORDE ? 4 /* Duris racial innate: 2 to 4 orcs */
+                                            : 1;
+  if (count < 1 || count > maximum)
+    return false;
+  if (spell == SPELL_SHAMBLER)
+  {
+    count_followers(ch, -1, NOBODY, &counts);
+    return follower_category_available(ch, FOLLOWER_SHAMBLER, &counts);
+  }
+  if (spell == ABILITY_SUMMON_HORDE)
+  { /* the whole horde must fit, not just its first orc */
+    count_followers(ch, -1, NOBODY, &counts);
+    return counts.categories[FOLLOWER_ORC_HORDE] + count <=
+           follower_category_limit(ch, FOLLOWER_ORC_HORDE);
+  }
+  if (flag == MOB_ANIMATED_DEAD)
+  {
+    count_followers(ch, -1, NOBODY, &counts);
+    for (category = FOLLOWER_GENIE; category < FOLLOWER_RULE_COUNT; category++)
+      if (follower_rules[category].flag == flag)
+        return counts.categories[category] + follower_control_cost(category, mob_vnum_id) <=
+               follower_category_limit(ch, category);
+    return false;
+  }
+  if (flag >= 0)
+    return can_add_follower_by_flag(ch, flag);
+  return can_add_follower(ch, mob_vnum_id);
+}
+
+/* Native count queries and PETS display use the same accounting as admission. */
+int check_npc_followers(struct char_data *ch, int mode, int variable)
+{
+  struct follower_count_data counts;
+  struct follow_type *link;
+  struct char_data *pet;
+  const char *location;
+  char identity[40];
+  char lifetime[64];
+  room_rnum room;
+  int number = 0, spare;
+  size_t category;
+
+  if (ch == NULL)
+    return 0;
+  count_followers(ch, mode == NPC_MODE_FLAG ? variable : -1,
+                  mode == NPC_MODE_SPECIFIC ? (mob_vnum)variable : NOBODY, &counts);
+  spare = MAX(0, counts.general_limit - counts.general_used);
+  switch (mode)
+  {
+  case NPC_MODE_FLAG:
+    return counts.matching_flag;
+  case NPC_MODE_SPECIFIC:
+    return counts.matching_vnum;
+  case NPC_MODE_SPARE:
+    return spare;
+  case NPC_MODE_DISPLAY:
+    text_line(ch, "\tYPets Charmees NPC Followers\tn", 80, '-', '-');
+    for (link = ch->followers; link != NULL; link = link->next)
+    {
+      pet = link->follower;
+      if (!is_controlled_follower(ch, pet))
+        continue;
+      room = IN_ROOM(pet);
+      location =
+          world != NULL && room != NOWHERE && room <= top_of_world ? world[room].name : "Away";
+      identity[0] = '\0';
+      if (pet->pet_data_id > 0)
+        snprintf(identity, sizeof(identity), " [#%ld]", pet->pet_data_id);
+      pet_lifetime_status(pet, lifetime, sizeof(lifetime));
+      send_to_char(ch, "\tC%-2d\tw) %s - %s - %s [%s]%s - %s\tn\r\n", ++number,
+                   GET_NAME(pet) != NULL ? GET_NAME(pet) : "Unnamed pet",
+                   location != NULL ? location : "Away",
+                   follower_rules[follower_category(pet, follower_vnum(pet))].name,
+                   pet_behavior_name(pet->pet_behavior), identity, lifetime);
+    }
+    draw_line(ch, 80, '-', '-');
+    send_to_char(ch, "Durable pets and timed control are saved with you; control time pauses "
+                     "while you are offline.\r\nTimed summons keep a real-time deadline and are "
+                     "gone if it passes while you are away.\r\nOrdinary spell summons last only "
+                     "for this session and are never saved.\r\n");
+    send_to_char(ch,
+                 "\tC%d pets. General slots: %d/%d used, %d available. "
+                 "Ordinary summons: %d/%d.\tn\r\n"
+                 "The first ordinary summon has its own slot; additional ones use general "
+                 "slots. Other categories have separate limits.\r\n",
+                 counts.total, counts.general_used, counts.general_limit, spare,
+                 counts.categories[FOLLOWER_SUMMON], follower_category_limit(ch, FOLLOWER_SUMMON));
+    for (category = FOLLOWER_GENIE; category < FOLLOWER_RULE_COUNT; category++)
+      if (follower_rules[category].flag == MOB_ANIMATED_DEAD)
+        send_to_char(ch,
+                     "Animated-undead control: %d/%d points. "
+                     "Lesser forms cost 1; elite forms cost 2.\r\n",
+                     counts.categories[category], follower_category_limit(ch, category));
+    break;
+  }
+  return counts.total;
+}
+
+/* Stable IDs select only the caller's visible NPC in this room. Commands still
+ * enforce their own charm, orderability, combat, and equipment restrictions. */
+struct char_data *get_pet_command_target(struct char_data *owner, char *target)
+{
+  struct char_data *pet;
+  const char *digit;
+  char *end;
+  long int pet_id;
+
+  if (!owner || !target || !*target || !world || !VALID_ROOM_RNUM(IN_ROOM(owner)))
+    return NULL;
+  if (*target != '#')
+    return get_char_room_vis(owner, target, NULL);
+  if (!target[1])
+    return NULL;
+  for (digit = target + 1; *digit; digit++)
+    if (*digit < '0' || *digit > '9')
+      return NULL;
+  errno = 0;
+  pet_id = strtol(target + 1, &end, 10);
+  if (errno == ERANGE || *end || pet_id <= 0)
+    return NULL;
+  for (pet = world[IN_ROOM(owner)].people; pet; pet = pet->next_in_room)
+    if (IS_NPC(pet) && pet->master == owner && pet->pet_data_id == pet_id &&
+        IN_ROOM(pet) == IN_ROOM(owner) && !MOB_FLAGGED(pet, MOB_NOTDEADYET) && CAN_SEE(owner, pet))
+      return pet;
+  return NULL;
+}
+
+bool is_illusory_pet(struct char_data *pet)
+{
+  return pet != NULL && IS_NPC(pet) &&
+         (pet->pet_source_spell == SPELL_MISLEAD || follower_vnum(pet) == PET_MISLEAD_DECOY);
+}
+
+/* Illusory decoys exist only for their event lifetime; a record without a
+ * valid deadline is expired rather than durable. */
+bool pet_lifetime_requires_deadline(struct char_data *pet)
+{
+  return is_illusory_pet(pet);
+}
+
+/* Real-time epoch when the follower's ePURGEMOB event fires; zero without one. */
+long long pet_lifetime_deadline(struct char_data *pet)
+{
+  struct mud_event_data *event;
+  long remaining;
+
+  event = pet != NULL ? char_has_mud_event(pet, ePURGEMOB) : NULL;
+  if (!mud_event_is_live(event))
+    return 0;
+  remaining = mud_event_remaining(event);
+  if (remaining < 0)
+    remaining = 0;
+  return (long long)time(NULL) + (remaining + PASSES_PER_SEC - 1) / PASSES_PER_SEC;
+}
+
+/* Kept families are class features, crafted, hired, or permanent creations.
+ * They persist even when a spell created them; any other spell summon lasts
+ * only for the owner's session. */
+static bool pet_is_kept_family(struct char_data *pet)
+{
+  static const int kept_flags[] = {
+      MOB_C_ANIMAL,        MOB_C_FAMILIAR,    MOB_C_MOUNT,
+      MOB_C_DRAGON,        MOB_EIDOLON,       MOB_GOLEM,
+      MOB_MERCENARY,       MOB_ANIMATED_DEAD, MOB_ROL_LYCANTHROPE_SUMMON,
+      MOB_ROL_TOTEM_SPIRIT};
+  size_t i;
+
+  for (i = 0; i < sizeof(kept_flags) / sizeof(kept_flags[0]); i++)
+    if (MOB_FLAGGED(pet, kept_flags[i]))
+      return true;
+  return false;
+}
+
+enum pet_lifetime_kind pet_lifetime_kind(struct char_data *pet)
+{
+  struct affected_type *af;
+
+  if (pet == NULL || !IS_NPC(pet))
+    return PET_LIFETIME_DURABLE;
+  if (pet_lifetime_requires_deadline(pet) || pet_lifetime_deadline(pet) > 0)
+    return PET_LIFETIME_DEADLINE;
+  for (af = pet->affected; af != NULL; af = af->next)
+    if (IS_SET_AR(af->bitvector, AFF_CHARM) && af->duration >= 0)
+      return PET_LIFETIME_CONTROL;
+  if (pet->pet_source_spell != 0 && !pet_is_kept_family(pet))
+    return PET_LIFETIME_SESSION;
+  return PET_LIFETIME_DURABLE;
+}
+
+bool pet_lifetime_persists(struct char_data *pet)
+{
+  return pet_lifetime_kind(pet) != PET_LIFETIME_SESSION;
+}
+
+bool pet_keeper_accepts(struct char_data *pet)
+{
+  enum pet_lifetime_kind kind = pet_lifetime_kind(pet);
+
+  return kind == PET_LIFETIME_DURABLE || kind == PET_LIFETIME_CONTROL;
+}
+
+void pet_lifetime_status(struct char_data *pet, char *buffer, size_t size)
+{
+  long long remaining;
+
+  switch (pet_lifetime_kind(pet))
+  {
+  case PET_LIFETIME_CONTROL:
+    snprintf(buffer, size, "timed control, pauses offline");
+    break;
+  case PET_LIFETIME_DEADLINE:
+    remaining = pet_lifetime_deadline(pet) - (long long)time(NULL);
+    if (remaining <= 0)
+      snprintf(buffer, size, "expiring");
+    else if (remaining >= 60)
+      snprintf(buffer, size, "expires in %lldm %llds, real time", remaining / 60, remaining % 60);
+    else
+      snprintf(buffer, size, "expires in %llds, real time", remaining);
+    break;
+  case PET_LIFETIME_SESSION:
+    snprintf(buffer, size, "this session only, not saved");
+    break;
+  case PET_LIFETIME_DURABLE:
+  default:
+    snprintf(buffer, size, "durable");
+    break;
+  }
+}
+
+const char *pet_behavior_name(int behavior)
+{
+  static const char *names[] = {"follow", "wait", "passive", "assist", "guard"};
+
+  return behavior >= 0 && behavior < NUM_PET_BEHAVIORS ? names[behavior] : "unknown";
+}
+
+bool corpse_can_be_animated(struct obj_data *corpse)
+{
+  return corpse != NULL && IS_CORPSE(corpse) && GET_OBJ_VAL(corpse, 4) == 0 &&
+         !CORPSE_ANIMATION_BLOCKED(corpse) &&
+         (corpse->name == NULL || !isname("pcorpse", corpse->name));
+}
+
+bool place_pet_follower(struct char_data *owner, struct char_data *pet)
+{
+  struct domain_entity_handle owner_handle, pet_handle;
+
+  if (pet == NULL || !IS_NPC(pet) || IN_ROOM(pet) != NOWHERE || pet->master != NULL)
+    return false;
+  if (owner == NULL || !VALID_ROOM_RNUM(IN_ROOM(owner)))
+  {
+    extract_char(pet);
+    return false;
+  }
+  owner_handle = domain_event_character_handle(owner);
+  pet_handle = domain_event_character_handle(pet);
+  if (!domain_entity_handle_is_valid(owner_handle) || !domain_entity_handle_is_valid(pet_handle) ||
+      !attach_follower(pet, owner))
+  {
+    extract_char(pet);
+    return false;
+  }
+  SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+  pet->char_specials.is_charmie = true;
+  X_LOC(pet) = world[IN_ROOM(owner)].coords[0];
+  Y_LOC(pet) = world[IN_ROOM(owner)].coords[1];
+  char_to_room(pet, IN_ROOM(owner));
+  owner = domain_event_world_resolve_character(owner_handle);
+  pet = domain_event_world_resolve_character(pet_handle);
+  if (owner != NULL && pet != NULL && pet->master == owner && !MOB_FLAGGED(pet, MOB_NOTDEADYET) &&
+      IN_ROOM(pet) == IN_ROOM(owner))
+    return true;
+  if (pet != NULL)
+    extract_char(pet);
+  return false;
+}
+
+void finish_pet_summon(struct char_data *owner, struct char_data *pet, bool run_load_trigger,
+                       bool group_if_leader)
+{
+  struct domain_entity_handle owner_handle, pet_handle;
+
+  if (owner == NULL || pet == NULL || pet->master != owner)
+    return;
+  owner_handle = domain_event_character_handle(owner);
+  pet_handle = domain_event_character_handle(pet);
+  if (run_load_trigger)
+    load_mtrigger(pet);
+  owner = domain_event_world_resolve_character(owner_handle);
+  pet = domain_event_world_resolve_character(pet_handle);
+  if (owner == NULL)
+    return;
+  if (pet != NULL && !MOB_FLAGGED(pet, MOB_NOTDEADYET) && pet->master == owner && !GROUP(pet) &&
+      GROUP(owner) &&
+      ((group_if_leader && GROUP_LEADER(GROUP(owner)) == owner) ||
+       (!IS_NPC(owner) && PRF_FLAGGED(owner, PRF_AUTO_GROUP))))
+    join_group(pet, GROUP(owner));
+  owner = domain_event_world_resolve_character(owner_handle);
+  if (owner != NULL && !IS_NPC(owner) && !save_char_pets(owner))
+    send_to_char(owner, "Your pet state could not be saved. Try 'save' again later.\r\n");
+  pet = domain_event_world_resolve_character(pet_handle);
+  if (owner != NULL && pet != NULL && !MOB_FLAGGED(pet, MOB_NOTDEADYET) && pet->master == owner)
+    act("$n answers $N's call.", FALSE, pet, NULL, owner, TO_ROOM);
+}
+
+bool pet_follows_automatically(struct char_data *pet)
+{
+  return pet != NULL && (!IS_PET(pet) || pet->pet_behavior != PET_BEHAVIOR_WAIT);
+}
+
+bool pet_assists_automatically(struct char_data *pet, struct char_data *ally)
+{
+  if (pet == NULL)
+    return false;
+  if (!IS_PET(pet))
+    return true;
+  if (pet->pet_behavior == PET_BEHAVIOR_FOLLOW)
+    return true;
+  return pet->pet_behavior == PET_BEHAVIOR_ASSIST && pet->master == ally;
+}
+
+bool pet_guards_owner(struct char_data *pet, struct char_data *owner, struct char_data *attacker)
+{
+  if (pet == NULL || owner == NULL || attacker == NULL || !IS_PET(pet) || pet->master != owner ||
+      pet->pet_behavior != PET_BEHAVIOR_GUARD || MOB_FLAGGED(pet, MOB_NOTDEADYET) ||
+      !MOB_CAN_FIGHT(pet) || IN_ROOM(pet) == NOWHERE || IN_ROOM(pet) != IN_ROOM(owner) ||
+      IN_ROOM(pet) != IN_ROOM(attacker))
+    return false;
+  if (!IS_NPC(owner) && PRF_FLAGGED(owner, PRF_NO_CHARMIE_RESCUE))
+    return false;
+  if (!IS_NPC(owner) && PRF_FLAGGED(owner, PRF_CAREFUL_PET) &&
+      (attacker == owner || attacker->master == owner))
+    return false;
+  return CAN_SEE(pet, attacker) && pvp_ok(pet, attacker, false);
+}
+
+bool char_pets_to_char_loc(struct char_data *ch, bool include_waiting)
+{
+  bool found = false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = character_list; tch; tch = tch->next)
+  {
+    if (tch == ch)
+      continue;
+    if (!IS_NPC(tch))
+      continue;
+    if (!AFF_FLAGGED(tch, AFF_CHARM))
+      continue;
+    if (tch->master != ch)
+      continue;
+    if (!include_waiting && !pet_follows_automatically(tch))
+      continue;
+    if (IN_ROOM(tch) == NOWHERE)
+      continue;
+    if (IN_ROOM(tch) == IN_ROOM(ch))
+      continue;
+
+    /* leave the current room into the ether */
+    act("$n disappears in a flash of light.", FALSE, tch, 0, 0, TO_ROOM);
+    char_from_room(tch);
+
+    /* set coords if necessary */
+    if (IN_ROOM(ch) != NOWHERE && IN_ROOM(tch) != NOWHERE && GET_ROOM_ZONE(IN_ROOM(tch)) != NOWHERE)
+    {
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+      {
+        X_LOC(tch) = world[IN_ROOM(ch)].coords[0];
+        Y_LOC(tch) = world[IN_ROOM(ch)].coords[1];
+      }
+    }
+
+    /* move into the new location! */
+    char_to_room(tch, IN_ROOM(ch));
+    act("$n appears in a flash of light.", FALSE, tch, 0, 0, TO_ROOM);
+
+    found = true;
+  }
+  return found;
+}
+
+/* this will calculate the arcana-golem race bonus caster level */
+int compute_arcana_golem_level(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+
+  if (IS_NPC(ch))
+    return 0;
+
+  if (GET_RACE(ch) != RACE_ARCANA_GOLEM)
+    return 0;
+
+  return ((int)(GET_LEVEL(ch) / 6));
+}
+
+/* function to check if a char (ranger) has given favored enemy (race) */
+bool is_fav_enemy_of(struct char_data *ch, int race)
+{
+  int i = 0;
+
+  for (i = 0; i < MAX_ENEMIES; i++)
+  {
+    if (GET_FAVORED_ENEMY(ch, i) == race)
+      return TRUE;
+  }
+  return FALSE;
+}
+
+/* Check if a character can bleed. Constructs, oozes, undead, plants, and elementals cannot bleed. */
+bool can_bleed(struct char_data *ch)
+{
+  if (!ch)
+    return FALSE;
+
+  /* Constructs don't bleed */
+  if (IS_CONSTRUCT(ch))
+    return FALSE;
+
+  /* Oozes don't bleed */
+  if (IS_OOZE(ch))
+    return FALSE;
+
+  /* Undead don't bleed */
+  if (IS_UNDEAD(ch))
+    return FALSE;
+
+  /* Plants don't bleed */
+  if (IS_PLANT(ch))
+    return FALSE;
+
+  /* Elementals don't bleed */
+  if (IS_ELEMENTAL(ch))
+    return FALSE;
+
+  /* Everything else can bleed */
+  return TRUE;
+}
+
+/* returns a or an based on first character of next word */
+const char *a_or_an(const char *string)
+{
+  switch (tolower(*string))
+  {
+  case 'a':
+  case 'e':
+  case 'i':
+  case 'u':
+  case 'o':
+    return "an";
+  }
+
+  return "a";
+}
+
+/* function for difficulty of passing a sneak-check
+ * ch = listener (challenge), sneaker = sneaker (DC)
+ */
+bool can_hear_sneaking(struct char_data *ch, struct char_data *sneaker)
+{
+  /* free passes */
+  if (!AFF_FLAGGED(sneaker, AFF_SNEAK))
+    return TRUE;
+
+  /* do listen check here */
+  bool can_hear = FALSE;
+  int challenge = d20(ch), dc = (d20(sneaker) + 10);
+
+  // challenger bonuses/penalty (ch)
+  if (!IS_NPC(ch))
+  {
+    challenge += compute_ability(ch, ABILITY_PERCEPTION);
+  }
+  else /* NPC */
+    challenge += GET_LEVEL(ch);
+
+  if (AFF_FLAGGED(ch, AFF_LISTEN))
+    challenge += 10;
+
+  /* sneak bonus/penalties (sneaker) */
+  if (!IS_NPC(sneaker))
+  {
+    dc += compute_ability((struct char_data *)sneaker, ABILITY_STEALTH);
+
+    if (affected_by_spell(sneaker, SPELL_PASS_WITHOUT_TRACE))
+      dc += 20;
+
+    if (IN_NATURE(sneaker) && HAS_FEAT(sneaker, FEAT_TRACKLESS_STEP))
+    {
+      dc += 4;
+    }
+    if (IN_NATURE(sneaker) && HAS_FEAT(sneaker, FEAT_CAMOUFLAGE))
+    {
+      dc += 6;
+    }
+  }
+  else /* NPC */
+  {
+    dc += GET_LEVEL(sneaker);
+  }
+
+  /* size bonus */
+  dc += (GET_SIZE(ch) - GET_SIZE(sneaker)) * 2;
+
+  if (challenge > dc)
+    can_hear = TRUE;
+
+  return (can_hear);
+}
+
+/* function for hide-check
+ * ch = spotter (challenge), vict = hider (DC)
+ */
+bool can_see_hidden(struct char_data *ch, struct char_data *hider)
+{
+  /* free passes */
+  if (!AFF_FLAGGED(hider, AFF_HIDE) || has_true_sight(ch))
+    return TRUE;
+
+  /* do spot check here */
+  bool can_see = FALSE, challenge = d20(ch), dc = (d20(hider) + 10);
+
+  // challenger bonuses/penalty (ch)
+  if (!IS_NPC(ch))
+    challenge += compute_ability(ch, ABILITY_PERCEPTION);
+  else /* NPC */
+    challenge += GET_LEVEL(ch);
+  if (AFF_FLAGGED(ch, AFF_SPOT))
+    challenge += 10;
+
+  // hider bonus/penalties (vict)
+  if (!IS_NPC(hider))
+  {
+    dc += compute_ability((struct char_data *)hider, ABILITY_STEALTH);
+
+    if (IN_NATURE(hider) && HAS_FEAT(hider, FEAT_TRACKLESS_STEP))
+    {
+      dc += 4;
+    }
+    if (IN_NATURE(hider) && HAS_FEAT(hider, FEAT_CAMOUFLAGE))
+    {
+      dc += 6;
+    }
+
+    /* NPC */
+  }
+  else
+  {
+    dc += GET_LEVEL(hider);
+  }
+
+  dc += (GET_SIZE(ch) - GET_SIZE(hider)) * 2; // size bonus
+
+  if (challenge > dc)
+    can_see = TRUE;
+
+  return (can_see);
+}
+
+/* function to calculate a skill roll for given ch */
+int skill_roll(struct char_data *ch, int skillnum)
+{
+  int roll = d20(ch);
+  int guidance = 0;
+
+  if (affected_by_spell(ch, SPELL_GUIDANCE))
+  {
+    guidance = dice(1, 4);
+    send_to_char(ch, "\tG[Guidance +%d]\tn ", guidance);
+    affect_from_char(ch, SPELL_GUIDANCE);
+    roll += guidance;
+  }
+
+  if (skillnum == ABILITY_DIPLOMACY && affected_by_spell(ch, SPELL_HONEYED_TONGUE))
+  {
+    roll = MAX(roll, d20(ch));
+  }
+
+  if (HAS_FEAT(ch, FEAT_ADAPTABILITY) && dice(1, 5) == 1)
+    roll += 3;
+
+  /*if (PRF_FLAGGED(ch, PRF_TAKE_TEN))
+    roll = 10;*/
+
+  roll += compute_ability(ch, skillnum);
+
+  /* Beast Master: Natural Empathy perk - +2 per rank to Animal Handling and Animal Empathy */
+  if (!IS_NPC(ch))
+  {
+    if (skillnum == ABILITY_ANIMAL_HANDLING)
+    {
+      int empathy_bonus = get_natural_empathy_bonus(ch); /* returns 2 * ranks */
+      if (empathy_bonus > 0)
+      {
+        roll += empathy_bonus;
+        send_to_char(ch, "\tG[Natural Empathy +%d]\tn ", empathy_bonus);
+      }
+    }
+  }
+  return roll;
+}
+
+/* function to perform a skill check */
+int skill_check(struct char_data *ch, int skill, int dc)
+{
+  int result = skill_roll(ch, skill);
+
+  if (result == dc) /* woo barely passed! */
+    return 1;
+  else if (result < dc) /*failed*/
+    return 0;
+  else
+    return (result - dc);
+}
+
+/* deprecated code (skill notching) */
+
+/* simple function to increase skills
+   takes character structure and skillnum, based on chance, can
+   increase skill permanently up to cap */
+/* some easy configure values, this is percent chance of a used
+   skill, such as bash increasing per use:  !rand_number(0, this)
+ suggested:  75
+ */
+#define USE 75
+/* some easy configure values, this is percent chance of a skill
+   that is passive, such as dodge increasing per use:
+   !rand_number(0, this)
+   suggested:  (500) */
+#define PASS 500
+/* this define is for crafting skills, they increase much easier
+ suggested:  (20) */
+#define C_SKILL 20
+/* for stricter crafting skill notching (fast crafting) */
+#define C_SKILL_SLOW 100
+
+void increase_skill(struct char_data *ch, int skillnum)
+{
+  int notched = FALSE;
+
+  // if the skill isn't learned or is mastered, don't adjust
+  if (GET_SKILL(ch, skillnum) < 1 || GET_SKILL(ch, skillnum) == 99)
+    return;
+  if (GET_SKILL(ch, skillnum) > 99)
+  {
+    GET_SKILL(ch, skillnum) = 99;
+    return;
+  }
+
+  // We don't want to allow crafting skill improvements if they are
+  // resizing to their racial size, since such resizing has no
+  // gold cost.
+  if (GET_CRAFTING_TYPE(ch) == SCMD_RESIZE)
+  {
+    if (GET_CRAFTING_OBJ(ch) && GET_OBJ_SIZE(GET_CRAFTING_OBJ(ch)) == GET_SIZE(ch))
+      return;
+  }
+
+  int use = rand_number(0, USE);
+  int pass = rand_number(0, PASS);
+  int craft = rand_number(0, C_SKILL);
+  int slow_craft = rand_number(0, C_SKILL_SLOW);
+
+  switch (skillnum)
+  {
+  case SKILL_BACKSTAB:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_BASH:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_MUMMY_DUST:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_KICK:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_WEAPON_SPECIALIST:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_WHIRLWIND:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_RESCUE:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_DRAGON_KNIGHT:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_LUCK_OF_HEROES:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_TRACK:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_QUICK_CHANT:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_AMBIDEXTERITY:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_DIRTY_FIGHTING:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_DODGE:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_IMPROVED_CRITICAL:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_MOBILITY:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_SPRING_ATTACK:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_TOUGHNESS:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_TWO_WEAPON_FIGHT:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_FINESSE:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_ARMOR_SKIN:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_BLINDING_SPEED:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_DAMAGE_REDUC_1:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_DAMAGE_REDUC_2:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_DAMAGE_REDUC_3:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_EPIC_TOUGHNESS:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_OVERWHELMING_CRIT:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_SELF_CONCEAL_1:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_SELF_CONCEAL_2:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_SELF_CONCEAL_3:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_TRIP:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_IMPROVED_WHIRL:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_CLEAVE:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_GREAT_CLEAVE:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_SPELLPENETRATE:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_SPELLPENETRATE_2:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_PROWESS:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_EPIC_PROWESS:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_EPIC_WILDSHAPE:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_EPIC_2_WEAPON:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_SPELLPENETRATE_3:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_SPELL_RESIST_1:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_SPELL_RESIST_2:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_SPELL_RESIST_3:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_SPELL_RESIST_4:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_SPELL_RESIST_5:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_INITIATIVE:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_EPIC_CRIT:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_IMPROVED_BASH:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_IMPROVED_TRIP:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_POWER_ATTACK:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_EXPERTISE:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_GREATER_RUIN:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_HELLBALL:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_EPIC_MAGE_ARMOR:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_EPIC_WARDING:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_CRIPPLING_CRITICAL:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_RAGE:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_DEFENSIVE_STANCE:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_PROF_MINIMAL:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_PROF_BASIC:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_PROF_ADVANCED:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_PROF_MASTER:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_PROF_EXOTIC:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_PROF_LIGHT_A:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_PROF_MEDIUM_A:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_PROF_HEAVY_A:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_PROF_SHIELDS:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_PROF_T_SHIELDS:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_MURMUR:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_PROPAGANDA:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_LOBBY:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_STUNNING_FIST:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_POWERFUL_BLOW:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_SURPRISE_ACCURACY:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_COME_AND_GET_ME:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_FEINT:
+    if (!use)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+
+    /* crafting skills */
+  case SKILL_MINING:
+    if (!craft)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_HUNTING:
+    if (!craft)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_FORESTING:
+    if (!craft)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_KNITTING:
+    if (!craft)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_CHEMISTRY:
+    if (!craft)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_ARMOR_SMITHING:
+    if (!craft)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_WEAPON_SMITHING:
+    if (!craft)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_JEWELRY_MAKING:
+    if (!craft)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_LEATHER_WORKING:
+    if (!craft)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_FAST_CRAFTER:
+    if (!slow_craft)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_BONE_ARMOR:
+    if (!craft)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_ELVEN_CRAFTING:
+    if (!craft)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_MASTERWORK_CRAFTING:
+    if (!craft)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_DRACONIC_CRAFTING:
+    if (!craft)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_DWARVEN_CRAFTING:
+    if (!craft)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+    /* end crafting */
+
+  case SKILL_LIGHTNING_REFLEXES:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_GREAT_FORTITUDE:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_IRON_WILL:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_EPIC_REFLEXES:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_EPIC_FORTITUDE:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_EPIC_WILL:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  case SKILL_SHIELD_SPECIALIST:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    break;
+  default:
+    if (!pass)
+    {
+      notched = TRUE;
+      GET_SKILL(ch, skillnum)
+      ++;
+    }
+    return;
+    ;
+  }
+
+  if (notched)
+    send_to_char(ch,
+                 "\tMYou feel your skill in \tC%s\tM improve! Your skill at "
+                 "\tC%s\tM is now %d!\tn",
+                 spell_info[skillnum].name, spell_info[skillnum].name, GET_SKILL(ch, skillnum));
+  return;
+}
+#undef USE
+#undef PASS
+#undef C_SKILL
+
+/** A portable random number function.
+ * @param from The lower bounds of the random number.
+ * @param to The upper bounds of the random number.
+ * @retval int The resulting randomly generated number. */
+int rand_number(int from, int to)
+{
+  /* error checking in case people call this incorrectly */
+  if (from > to)
+  {
+    int tmp = from;
+    from = to;
+    to = tmp;
+    log("SYSERR: rand_number() should be called with lowest, then highest. (%d, %d), not (%d, %d).",
+        from, to, to, from);
+  }
+
+  /* This should always be of the form: ((float)(to - from + 1) * rand() /
+   * (float)(RAND_MAX + from) + from); If you are using rand() due to historical
+   * non-randomness of the lower bits in older implementations.  We always use
+   * circle_random() though, which shouldn't have that problem. Mean and
+   * standard deviation of both are identical (within the realm of statistical
+   * identity) if the rand() implementation is non-broken. */
+  return (int)(((circle_random() % (to - from + 1)) + from));
+}
+
+/** floating-point version of the random number function above.
+ * @param from The lower bounds of the random number.
+ * @param to The upper bounds of the random number.
+ * @retval int The resulting randomly generated number. */
+double rand_float(double from, double to)
+{
+  double ret;
+  /* error checking in case people call this incorrectly */
+  if (from > to)
+  {
+    double tmp = from;
+    from = to;
+    to = tmp;
+    log("SYSERR: rand_float() should be called with lowest, then highest. (%f, %f), not (%f, %f).",
+        from, to, to, from);
+  }
+
+  /* This should always be of the form: ((float)(to - from + 1) * rand() /
+   * (float)(RAND_MAX + from) + from); If you are using rand() due to historical
+   * non-randomness of the lower bits in older implementations.  We always use
+   * circle_random() though, which shouldn't have that problem. Mean and
+   * standard deviation of both are identical (within the realm of statistical
+   * identity) if the rand() implementation is non-broken. */
+  // need to fix this line below , prolly the math.h portion
+  // ret = fmod( ((float)(circle_random())), (to - from)) ;
+  ret = 1.0;
+  return (ret + from);
+}
+
+/** Simulates a single dice roll from one to many of a certain sized die.
+ * @param num The number of dice to roll.
+ * @param size The number of sides each die has, and hence the number range
+ * of the die.
+ * @retval int The sum of all the dice rolled. A random number. */
+int dice(int num, int size)
+{
+  int sum = 0;
+
+  if (size <= 0 || num <= 0)
+    return (0);
+
+  while (num-- > 0)
+    sum += rand_number(1, size);
+
+  return (sum);
+}
+
+/** Return the smaller number. Original note: Be wary of sign issues with this.
+ * @param a The first number.
+ * @param b The second number.
+ * @retval int The smaller of the two, a or b. */
+int MIN(int a, int b)
+{
+  return (a < b ? a : b);
+}
+
+double FLOATMIN(double a, double b)
+{
+  return (a < b ? a : b);
+}
+
+/** Return the larger number. Original note: Be wary of sign issues with this.
+ * @param a The first number.
+ * @param b The second number.
+ * @retval int The larger of the two, a or b. */
+int MAX(int a, int b)
+{
+  return (a > b ? a : b);
+}
+
+double FLOATMAX(double a, double b)
+{
+  return (a > b ? a : b);
+}
+
+/** Used to capitalize a string. Will not change any mud specific color codes.
+ * @param txt The string to capitalize.
+ * @retval char* Pointer to the capitalized string. */
+char *CAP(char *txt)
+{
+  char *p = txt;
+
+  /* Skip all preceeding color codes and ANSI codes */
+  while ((*p == '\t' && *(p + 1)) || (*p == '\x1B' && *(p + 1) == '['))
+  {
+    if (*p == '\t')
+      p += 2; /* Skip \t sign and color letter/number */
+    else
+    {
+      p += 2; /* Skip the CSI section of the ANSI code */
+      while (*p && !isalpha(*p))
+        p++; /* Skip until a 'letter' is found */
+      if (*p)
+        p++; /* Skip the letter */
+    }
+  }
+
+  if (*p)
+    *p = UPPER(*p);
+  return (txt);
+}
+
+/** Used to uncapitalize a string. Will not change any mud specific color codes.
+ * @parUam txt The string to uncapitalize.
+ * @retUval char* Pointer to the uncapitalized string. */
+char *UNCAP(char *txt)
+{
+  char *p = txt;
+
+  /* Skip all preceeding color codes and ANSI codes */
+  while ((*p == '\t' && *(p + 1)) || (*p == '\x1B' && *(p + 1) == '['))
+  {
+    if (*p == '\t')
+      p += 2; /* Skip \t sign and color letter/number */
+    else
+    {
+      p += 2; /* Skip the CSI section of the ANSI code */
+      while (*p && !isalpha(*p))
+        p++; /* Skip until a 'letter' is found */
+      if (*p)
+        p++; /* Skip the letter */
+    }
+  }
+
+  if (*p)
+    *p = LOWER(*p);
+  return (txt);
+}
+
+#if !defined(HAVE_STRLCAT)
+/*
+Returns total length of the string that would have been created.
+*/
+size_t strlcat(char *buf, const char *src, size_t bufsz)
+{
+  size_t buf_len = strlen(buf);
+  size_t src_len = strlen(src);
+  size_t rtn = buf_len + src_len;
+
+  if (buf_len < (bufsz - 1))
+  {
+    if (src_len >= (bufsz - buf_len))
+    {
+      src_len = bufsz - buf_len - 1;
+    }
+    memcpy(buf + buf_len, src, src_len);
+    buf[buf_len + src_len] = '\0';
+  }
+
+  return rtn;
+}
+#endif
+
+/*
+ * Appends formatted text at a tracked buffer offset and returns the new,
+ * saturated offset.  Unlike adding snprintf()'s return value directly, the
+ * returned offset never advances past the last writable byte after truncation.
+ */
+int snprintf_append(char *buffer, size_t buffer_size, int offset, const char *format, ...)
+{
+  va_list args;
+  size_t position;
+  size_t available;
+  int written;
+
+  if (!buffer || buffer_size == 0 || !format)
+    return 0;
+
+  position = offset > 0 ? (size_t)offset : 0;
+  if (position >= buffer_size)
+  {
+    buffer[buffer_size - 1] = '\0';
+    return (int)(buffer_size - 1);
+  }
+
+  available = buffer_size - position;
+  va_start(args, format);
+  written = vsnprintf(buffer + position, available, format, args);
+  va_end(args);
+
+  if (written < 0)
+    return (int)position;
+  if ((size_t)written >= available)
+    return (int)(buffer_size - 1);
+
+  return (int)(position + (size_t)written);
+}
+
+#if !defined(HAVE_STRLCPY)
+
+/** A 'strlcpy' function in the same fashion as 'strdup' below. This copies up
+ * to totalsize - 1 bytes from the source string, placing them and a trailing
+ * NUL into the destination string. Returns the total length of the string it
+ * tried to copy, not including the trailing NUL.  So a '>= totalsize' test
+ * says it was truncated. (Note that you may have _expected_ truncation
+ * because you only wanted a few characters from the source string.) Portable
+ * function, in case your system does not have strlcpy. */
+size_t strlcpy(char *dest, const char *source, size_t totalsize)
+{
+  strncpy(dest, source, totalsize - 1); /* strncpy: OK (we must assume 'totalsize' is correct) */
+  dest[totalsize - 1] = '\0';
+  return strlen(source);
+}
+#endif
+
+#if !defined(HAVE_STRDUP)
+
+/** Create a duplicate of a string function. Portable. */
+char *strdup(const char *source)
+{
+  char *new_z;
+
+  CREATE(new_z, char, strlen(source) + 1);
+  return (strcpy(new_z, source)); /* strcpy: OK */
+}
+#endif
+
+/** Strips "\r\n" from just the end of a string. Will not remove internal
+ * "\r\n" values to the string.
+ * @post Replaces any "\r\n" values at the end of the string with null.
+ * @param txt The writable string to prune. */
+void prune_crlf(char *txt)
+{
+  size_t length;
+
+  if (txt == NULL || *txt == '\0')
+    return;
+
+  length = strlen(txt);
+  while (length > 0 && (txt[length - 1] == '\n' || txt[length - 1] == '\r'))
+    txt[--length] = '\0';
+}
+
+#ifndef str_cmp
+
+/** a portable, case-insensitive version of strcmp(). Returns: 0 if equal, > 0
+ * if arg1 > arg2, or < 0 if arg1 < arg2. Scan until strings are found
+ * different or we reach the end of both. */
+int str_cmp(const char *arg1, const char *arg2)
+{
+  int chk, i;
+
+  if (arg1 == NULL || arg2 == NULL)
+  {
+    log("SYSERR: str_cmp() passed a NULL pointer, %p or %p.", arg1, arg2);
+    return (0);
+  }
+
+  for (i = 0; arg1[i] || arg2[i]; i++)
+    if ((chk = LOWER(arg1[i]) - LOWER(arg2[i])) != 0)
+      return (chk); /* not equal */
+
+  return (0);
+}
+#endif
+
+#ifndef strn_cmp
+
+/** a portable, case-insensitive version of strncmp(). Returns: 0 if equal, > 0
+ * if arg1 > arg2, or < 0 if arg1 < arg2. Scan until strings are found
+ * different, the end of both, or n is reached. */
+int strn_cmp(const char *arg1, const char *arg2, int n)
+{
+  int chk, i;
+
+  if (arg1 == NULL || arg2 == NULL)
+  {
+    log("SYSERR: strn_cmp() passed a NULL pointer, %p or %p.", arg1, arg2);
+    return (0);
+  }
+
+  for (i = 0; (arg1[i] || arg2[i]) && (n > 0); i++, n--)
+    if ((chk = LOWER(arg1[i]) - LOWER(arg2[i])) != 0)
+      return (chk); /* not equal */
+
+  return (0);
+}
+#endif
+
+/** New variable argument log() function; logs messages to disk.
+ * Works the same as the old for previously written code but is very nice
+ * if new code wishes to implment printf style log messages without the need
+ * to make prior sprintf calls.
+ * @param format The message to log. Standard printf formatting and variable
+ * arguments are allowed.
+ * @param args The comma delimited, variable substitutions to make in str. */
+void basic_mud_vlog(const char *format, va_list args)
+{
+  time_t ct = time(0);
+  char timestr[32];
+
+  if (logfile == NULL)
+  {
+    puts("SYSERR: Using log() before stream was initialized!");
+    return;
+  }
+
+  if (format == NULL)
+    format = "SYSERR: log() received a NULL format.";
+
+  format_time_string(ct, "%b %d %H:%M:%S %Y", timestr, sizeof(timestr));
+  fprintf(logfile, "%-20.20s :: ", timestr);
+
+  vfprintf(logfile, format, args);
+  fputc('\n', logfile);
+  fflush(logfile);
+}
+
+/** Log messages directly to syslog on disk, no display to in game immortals.
+ * Supports variable string modification arguments, a la printf. Most likely
+ * any calls to plain old log() have been redirected, via macro, to this
+ * function.
+ * @param format The message to log. Standard printf formatting and variable
+ * arguments are allowed.
+ * @param ... The comma delimited, variable substitutions to make in str. */
+void basic_mud_log(const char *format, ...)
+{
+  va_list args;
+
+  va_start(args, format);
+  basic_mud_vlog(format, args);
+  va_end(args);
+}
+
+/** Essentially the touch command. Create an empty file or update the modified
+ * time of a file.
+ * @param path The filepath to "touch." This filepath is relative to the /lib
+ * directory relative to the root of the mud distribution.
+ * @retval int 0 on a success, -1 on a failure; standard system call exit
+ * values. */
+int touch(const char *path)
+{
+  FILE *fl;
+
+  if (!(fl = fopen_restricted(path, "a")))
+  {
+    log("SYSERR: %s: %s", path, strerror(errno));
+    return (-1);
+  }
+  else
+  {
+    fclose(fl);
+    return (0);
+  }
+}
+
+/** Log mud messages to a file & to online imm's syslogs.
+ * @param type The minimum syslog level that needs be set to see this message.
+ * OFF, BRF, NRM and CMP are the values from lowest to highest. Using mudlog
+ * with type = OFF should be avoided as every imm will see the message even
+ * if they have syslog turned off.
+ * @param level Minimum character level needed to see this message.
+ * @param file TRUE log this to the syslog file, FALSE do not log this to disk.
+ * @param str The message to log. Standard printf formatting and variable
+ * arguments are allowed.
+ * @param ... The comma delimited, variable substitutions to make in str. */
+void mudlog(int type, int level, int file, const char *str, ...)
+{
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  struct descriptor_data *i;
+  va_list args;
+
+  if (str == NULL)
+    return; /* eh, oh well. */
+
+  if (file)
+  {
+    va_start(args, str);
+    basic_mud_vlog(str, args);
+    va_end(args);
+  }
+
+  if (level < 0)
+    return;
+
+  strcpy(buf, "[ "); /* strcpy: OK */
+  va_start(args, str);
+  vsnprintf(buf + 2, sizeof(buf) - 6, str, args);
+  va_end(args);
+  strlcat(buf, " ]\tn\r\n", sizeof(buf)); /* strcat: OK */
+
+  for (i = descriptor_list; i; i = i->next)
+  {
+    if (STATE(i) != CON_PLAYING || IS_NPC(i->character)) /* switch */
+      continue;
+    if (GET_LEVEL(i->character) < level)
+      continue;
+    if (PLR_FLAGGED(i->character, PLR_WRITING))
+      continue;
+    if (type > (PRF_FLAGGED(i->character, PRF_LOG1) ? 1 : 0) +
+                   (PRF_FLAGGED(i->character, PRF_LOG2) ? 2 : 0))
+      continue;
+
+    send_to_char(i->character, "%s%s%s", CCNRM(i->character, C_NRM), buf,
+                 CCNRM(i->character, C_NRM));
+  }
+}
+
+/** Take a bitvector and return a human readable
+ * description of which bits are set in it.
+ * @pre The final element in the names array must contain a one character
+ * string consisting of a single newline character "\n". Caller of function is
+ * responsible for creating the memory buffer for the result string.
+ * @param[in] bitvector The bitvector to test for set bits.
+ * @param[in] names An array of human readable strings describing each possible
+ * bit. The final element in this array must be a string made of a single
+ * newline character (eg "\n").
+ * If you don't have a 'const' array for the names param, cast it as such.
+ * @param[out] result Holds the names of the set bits in bitvector. The bit
+ * names will be delimited by a single space.
+ * Caller of sprintbit is responsible for creating the buffer for result.
+ * Will be set to "NOBITS" if no bits are set in bitvector (ie bitvector = 0).
+ * @param[in] reslen The length of the available memory in the result buffer.
+ * Ideally, results will be large enough to hold the description of every bit
+ * that could possibly be set in bitvector.
+ * @retval size_t The length of the string copied into result. */
+size_t sprintbit(bitvector_t bitvector, const char *names[], char *result, size_t reslen)
+{
+  size_t len = 0;
+  int nlen;
+  long nr;
+
+  *result = '\0';
+
+  for (nr = 0; bitvector && len < reslen; bitvector >>= 1)
+  {
+    if (IS_SET(bitvector, 1))
+    {
+      nlen =
+          snprintf(result + len, reslen - len, "%s ", *names[nr] != '\n' ? names[nr] : "UNDEFINED");
+      if (len + nlen >= reslen || nlen < 0)
+        break;
+      len += nlen;
+    }
+
+    if (*names[nr] != '\n')
+      nr++;
+  }
+
+  if (!*result)
+    len = strlcpy(result, "None ", reslen);
+
+  return (len);
+}
+
+/** Return the human readable name of a defined type.
+ * @pre The final element in the names array must contain a one character
+ * string consisting of a single newline character "\n". Caller of function is
+ * responsible for creating the memory buffer for the result string.
+ * @param[in] type The type number to be translated.
+ * @param[in] names An array of human readable strings describing each possible
+ * bit. The final element in this array must be a string made of a single
+ * newline character (eg "\n").
+ * @param[out] result Holds the translated name of the type.
+ * Caller of sprintbit is responsible for creating the buffer for result.
+ * Will be set to "UNDEFINED" if the type is greater than the number of names
+ * available.
+ * @param[in] reslen The length of the available memory in the result buffer.
+ * @retval size_t The length of the string copied into result. */
+size_t sprinttype(int type, const char *names[], char *result, size_t reslen)
+{
+  int nr = 0;
+
+  while (type && *names[nr] != '\n')
+  {
+    type--;
+    nr++;
+  }
+
+  return strlcpy(result, *names[nr] != '\n' ? names[nr] : "UNDEFINED", reslen);
+}
+
+/** Take a bitarray and return a human readable description of which bits are
+ * set in it.
+ * @pre The final element in the names array must contain a one character
+ * string consisting of a single newline character "\n". Caller of function is
+ * responsible for creating the memory buffer for the result string large enough
+ * to hold all possible bit translations. There is no error checking for
+ * possible array overflow for result.
+ * @param[in] bitvector The bitarray in which to test for set bits.
+ * @param[in] names An array of human readable strings describing each possible
+ * bit. The final element in this array must be a string made of a single
+ * newline character (eg "\n").
+ * If you don't have a 'const' array for the names param, cast it as such.
+ * @param[in] maxar The number of 'bytes' in the bitarray. This number will
+ * usually be pre-defined for the particular bitarray you are using.
+ * @param[out] result Holds the names of the set bits in bitarray. The bit
+ * names are delimited by a single space. Ideally, results will be large enough
+ * to hold the description of every bit that could possibly be set in bitvector.
+ * Will be set to "NOBITS" if no bits are set in bitarray (ie all bits in the
+ * bitarray are equal to 0).
+ */
+void sprintbitarray(int bitvector[], const char *names[], int maxar, char *result)
+{
+  int nr, teller, found = FALSE, count = 0;
+
+  *result = '\0';
+
+  for (teller = 0; teller < maxar && !found; teller++)
+  {
+    for (nr = 0; nr < 32 && !found; nr++)
+    {
+      if (IS_SET_AR(bitvector, (teller * 32) + nr))
+      {
+        if (*names[(teller * 32) + nr] != '\n')
+        {
+          if (*names[(teller * 32) + nr] != '\0')
+          {
+            strcat(result, names[(teller * 32) + nr]);
+            strcat(result, " ");
+            count++;
+            if (count >= 8)
+            {
+              strcat(result, "\r\n");
+              count = 0;
+            }
+          }
+        }
+        else
+        {
+          strcat(result, "UNDEFINED ");
+        }
+      }
+      if (*names[(teller * 32) + nr] == '\n')
+        found = TRUE;
+    }
+  }
+
+  if (!*result)
+    strcpy(result, "None ");
+}
+
+/** Calculate the REAL time passed between two time invervals.
+ * @param t2 The later time.
+ * @param t1 The earlier time.
+ * @retval time_info_data The real hours, days, months and years passed between t2 and t1. */
+struct time_info_data *real_time_passed(time_t t2, time_t t1)
+{
+  long secs;
+  static struct time_info_data now;
+
+  secs = t2 - t1;
+
+  now.hours = (int)((secs / SECS_PER_REAL_HOUR) % 24); /* 0..23 hours */
+  secs -= SECS_PER_REAL_HOUR * now.hours;
+
+  now.day = (int)((secs / SECS_PER_REAL_DAY) % 35); /* 0..34 days  */
+  secs -= SECS_PER_REAL_DAY * now.day;
+
+  now.month = (int)((secs / (SECS_PER_REAL_YEAR / 12)) % 12); /* 0..11 months */
+  secs -= (SECS_PER_REAL_YEAR / 12) * now.month;
+
+  now.year = (sh_int)((secs / SECS_PER_REAL_YEAR));
+  secs -= SECS_PER_REAL_YEAR * now.year;
+
+  return (&now);
+}
+
+/** Calculate the MUD time passed between two time invervals.
+ * @param t2 The later time.
+ * @param t1 The earlier time.
+ * @retval time_info_data A pointer to the mud hours, days, months and years
+ * that have passed between the two time intervals. DO NOT FREE the structure
+ * pointed to by the return value. */
+struct time_info_data *mud_time_passed(time_t t2, time_t t1)
+{
+  long secs;
+  static struct time_info_data now;
+
+  secs = t2 - t1;
+
+  now.hours = (int)((secs / SECS_PER_MUD_HOUR) % 24); /* 0..23 hours */
+  secs -= SECS_PER_MUD_HOUR * now.hours;
+
+  now.day = (int)((secs / SECS_PER_MUD_DAY) % 35); /* 0..34 days  */
+  secs -= SECS_PER_MUD_DAY * now.day;
+
+  now.month = (int)((secs / SECS_PER_MUD_MONTH) % 17); /* 0..16 months */
+  secs -= SECS_PER_MUD_MONTH * now.month;
+
+  now.year = (sh_int)((secs / SECS_PER_MUD_YEAR)); /* 0..XX? years */
+
+  return (&now);
+}
+
+/** Translate the current mud time to real seconds (in type time_t).
+ * @param now The current mud time to translate into a real time unit.
+ * @retval time_t The real time that would have had to have passed
+ * to represent the mud time represented by the now parameter. */
+time_t mud_time_to_secs(struct time_info_data *now)
+{
+  time_t when = 0;
+
+  when += now->year * SECS_PER_MUD_YEAR;
+  when += now->month * SECS_PER_MUD_MONTH;
+  when += now->day * SECS_PER_MUD_DAY;
+  when += now->hours * SECS_PER_MUD_HOUR;
+  return (time(NULL) - when);
+}
+
+/** Calculate a player's MUD age.
+ * @todo The minimum starting age of 17 is hardcoded in this function. Recommend
+ * changing the minimum age to a property (variable) external to this function.
+ * @param ch A valid player character.
+ * @retval time_info_data A pointer to the mud age in years of the player
+ * character. DO NOT FREE the structure pointed to by the return value. */
+struct time_info_data *age(struct char_data *ch)
+{
+  static struct time_info_data player_age;
+  struct affected_type *af;
+  int age_modifier;
+
+  player_age = *mud_time_passed(time(0), ch->player.time.birth);
+
+  player_age.year += 17; /* All players start at 17 */
+  age_modifier = 0;
+  for (af = ch->affected; af; af = af->next)
+    if (af->location == APPLY_AGE)
+      age_modifier += af->modifier;
+  player_age.year = (sh_int)MAX(17, player_age.year + age_modifier);
+
+  return (&player_age);
+}
+
+/** Check if making ch follow victim will create an illegal follow loop. In
+ * essence, this prevents someone from following a character in a group that
+ * is already being lead by the character.
+ * @param ch The character trying to follow.
+ * @param victim The character being followed.
+ * @retval bool TRUE if ch is already leading someone in victims group, FALSE
+ * if it is okay for ch to follow victim. */
+bool circle_follow(struct char_data *ch, struct char_data *victim)
+{
+  struct char_data *k;
+
+  for (k = victim; k; k = k->master)
+  {
+    if (k == ch)
+      return (TRUE);
+  }
+
+  return (FALSE);
+}
+
+/* had to create this to get the "meat" out of stop_follower() for application
+   in other scenarios */
+void stop_follower_engine(struct char_data *ch)
+{
+  struct follow_type *k = NULL;
+  struct follow_type *j = NULL;
+
+  if (ch->master->followers->follower == ch)
+  { /* Head of follower-list? */
+    k = ch->master->followers;
+    ch->master->followers = k->next;
+    free(k);
+  }
+  else
+  { /* locate follower who is not head of list */
+    for (k = ch->master->followers; k->next->follower != ch; k = k->next)
+      ;
+
+    j = k->next;
+    k->next = j->next;
+    free(j);
+  }
+}
+
+/** Call on a character (NPC or PC) to stop them from following someone and
+ * to break any charm affect.
+ * @todo Make the messages returned from the broken charm affect more
+ * understandable.
+ * @pre ch MUST be following someone, else core dump.
+ * @post The charm affect (AFF_CHARM) will be removed from the character and
+ * the character will stop following the "master" they were following.
+ * @param ch The character (NPC or PC) to stop from following.
+ * */
+void stop_follower(struct char_data *ch)
+{
+  /* Makes sure this function is not called when it shouldn't be called. */
+  if (ch->master == NULL)
+  {
+    core_dump();
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+  {
+    act("You realize that you do not need to serve $N anymore!", FALSE, ch, 0, ch->master, TO_CHAR);
+    act("$n is no longer serving you!", FALSE, ch, 0, ch->master, TO_VICT);
+
+    /* hope i got everything - zusuk */
+    if (affected_by_spell(ch, SPELL_CHARM))
+      affect_from_char(ch, SPELL_CHARM);
+    if (affected_by_spell(ch, SPELL_CHARM_ANIMAL))
+      affect_from_char(ch, SPELL_CHARM_ANIMAL);
+    if (affected_by_spell(ch, SPELL_CHARM_MONSTER))
+      affect_from_char(ch, SPELL_CHARM_MONSTER);
+    if (affected_by_spell(ch, SPELL_DOMINATE_PERSON))
+      affect_from_char(ch, SPELL_DOMINATE_PERSON);
+    if (affected_by_spell(ch, SPELL_MASS_DOMINATION))
+      affect_from_char(ch, SPELL_MASS_DOMINATION);
+    if (affected_by_spell(ch, SPELL_CONTROL_PLANTS))
+      affect_from_char(ch, SPELL_CONTROL_PLANTS);
+
+    if (GROUP(ch))
+    {
+      leave_group(ch);
+    }
+  }
+  else
+  {
+    if (ch->master)
+    {
+      act("You stop following $N.", FALSE, ch, 0, ch->master, TO_CHAR);
+      act("$n stops following $N.", TRUE, ch, 0, ch->master, TO_NOTVICT);
+      if (CAN_SEE(ch->master, ch))
+        act("$n stops following you.", TRUE, ch, 0, ch->master, TO_VICT);
+    }
+  }
+
+  stop_follower_engine(ch); /* moved this out to function above -zusuk */
+
+  ch->master = NULL;
+  REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_CHARM);
+
+  /* for cleanup -zusuk */
+  if (IS_NPC(ch) && (MOB_FLAGGED(ch, MOB_C_ANIMAL) || MOB_FLAGGED(ch, MOB_C_FAMILIAR) ||
+                     MOB_FLAGGED(ch, MOB_C_MOUNT) || MOB_FLAGGED(ch, MOB_ELEMENTAL) ||
+                     MOB_FLAGGED(ch, MOB_ANIMATED_DEAD)))
+    attach_mud_event(new_mud_event(ePURGEMOB, ch, NULL), (12 * PASSES_PER_SEC));
+}
+
+/** Finds the number of follows that are following, and charmed by, the
+ * character (PC or NPC).
+ * @param ch The character to check for charmed followers.
+ * @retval int The number of followers that are also charmed by the character.
+ */
+int num_followers_charmed(struct char_data *ch)
+{
+  struct follow_type *lackey;
+  int total = 0;
+
+  for (lackey = ch->followers; lackey; lackey = lackey->next)
+    if (AFF_FLAGGED(lackey->follower, AFF_CHARM) && lackey->follower->master == ch)
+      total++;
+
+  return (total);
+}
+
+/** Called when a character that follows/is followed dies. If the character
+ * is the leader of a group, it stops everyone in the group from following
+ * them. Despite the title, this function does not actually perform the kill on
+ * the character passed in as the argument.
+ * @param ch The character (NPC or PC) to stop from following.
+ * */
+void die_follower(struct char_data *ch)
+{
+  struct follow_type *j, *k;
+
+  if (ch->master)
+    stop_follower(ch);
+
+  for (k = ch->followers; k; k = j)
+  {
+    j = k->next;
+    stop_follower(k->follower);
+  }
+}
+
+/** Adds a new follower to a leader (following).
+ * @todo Maybe make circle_follow an inherent part of this function?
+ * @pre Make sure to call circle_follow first. ch may also not already
+ * be following anyone, otherwise core dump.
+ * @param ch The character to follow.
+ * @param leader The character to be followed. */
+/* Link before publishing a staged group. This primitive does not run callbacks. */
+bool attach_follower(struct char_data *ch, struct char_data *leader)
+{
+  struct follow_type *k;
+
+  if (ch == NULL || leader == NULL || ch == leader || ch->master != NULL)
+    return false;
+  k = calloc(1, sizeof(*k));
+  if (k == NULL)
+    return false;
+  ch->master = leader;
+  k->follower = ch;
+  k->next = leader->followers;
+  leader->followers = k;
+  return true;
+}
+
+void add_follower(struct char_data *ch, struct char_data *leader)
+{
+  if (ch->master)
+  {
+    core_dump();
+    return;
+  }
+
+  if (!attach_follower(ch, leader))
+  {
+    log("SYSERR: Unable to attach follower");
+    /* Preserve the native void API's former CREATE() allocation-failure contract. */
+    abort();
+  }
+
+  act("You now follow $N.", FALSE, ch, 0, leader, TO_CHAR);
+  if (CAN_SEE(leader, ch))
+    act("$n starts following you.", TRUE, ch, 0, leader, TO_VICT);
+  act("$n starts to follow $N.", TRUE, ch, 0, leader, TO_NOTVICT);
+
+  if (!IS_NPC(leader) && PRF_FLAGGED(leader, PRF_AUTO_GROUP) && GROUP(leader) && !GROUP(ch))
+    join_group(ch, GROUP(leader));
+}
+
+/** Reads the next non-blank line off of the input stream. Empty lines are
+ * skipped. Lines which begin with '*' are considered to be comments and are
+ * skipped.
+ * @pre Caller must allocate memory for buf.
+ * @post If a there is a line to be read, the newline character is removed from
+ * the file line ending and the string is returned. Else a null string is
+ * returned in buf.
+ * @param[in] fl The file to be read from.
+ * @param[out] buf The next non-blank line read from the file. Buffer given must
+ * be at least READ_SIZE (512) characters large.
+ * @retval int The number of lines advanced in the file. */
+int get_line(FILE *fl, char *buf)
+{
+  char temp[READ_SIZE];
+  int lines = 0;
+  int sl;
+
+  do
+  {
+    if (!fgets(temp, READ_SIZE, fl))
+      return (0);
+    lines++;
+  } while (*temp == '*' || *temp == '\n' || *temp == '\r');
+
+  /* Last line of file doesn't always have a \n, but it should. */
+  sl = (int)strlen(temp);
+  while (sl > 0 && (temp[sl - 1] == '\n' || temp[sl - 1] == '\r'))
+    temp[--sl] = '\0';
+
+  strlcpy(buf, temp, READ_SIZE);
+  return (lines);
+}
+
+/** Create the full path, relative to the library path, of the player type
+ * file to open.
+ * @todo Make the return type bool.
+ * @pre Caller is responsible for allocating memory buffer for the created
+ * file name.
+ * @post The potential file path to open is created. This function does not
+ * actually open any file descriptors.
+ * @param[out] filename Buffer to store the full path of the file to open.
+ * @param[in] fbufsize The maximum size of filename, and the maximum size
+ * of the path that can be written to it.
+ * @param[in] mode What type of files can be created. Currently, recognized
+ * modes are CRASH_FILE, ETEXT_FILE, SCRIPT_VARS_FILE and PLR_FILE.
+ * @param[in] orig_name The player name to create the filepath (of type mode)
+ * for.
+ * @retval int 0 if filename cannot be created, 1 if it can. */
+int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_name)
+{
+  const char *prefix, *middle, *suffix;
+  const char *input;
+  char name[MAX_FILEPATH];
+  size_t name_len;
+
+  if (orig_name == NULL || *orig_name == '\0' || filename == NULL)
+  {
+    log("SYSERR: NULL pointer or empty string passed to get_filename(), %p or %p.", orig_name,
+        filename);
+    return (0);
+  }
+
+  /* Build the sanitised name as we validate, so everything downstream reads
+     from a buffer composed only of characters that passed the whitelist rather
+     than from orig_name itself. Functionally this is the same whitelist as
+     before (alphanumerics, '_' and '-', so no separator or '..' can appear),
+     but the sanitised value is now the one that reaches the path, which is
+     both easier to audit and what static analysis can actually follow.
+     Over-long names are rejected rather than silently truncated: truncation
+     could map two distinct players onto one file. */
+  name_len = 0;
+  for (input = orig_name; *input; input++)
+  {
+    unsigned char component = (unsigned char)*input;
+
+    if (!isalnum(component) && component != '_' && component != '-')
+    {
+      log("SYSERR: Invalid character in player filename component.");
+      return (0);
+    }
+    if (name_len + 1 >= sizeof(name))
+    {
+      log("SYSERR: Player filename component '%s' exceeds %zu characters.", orig_name,
+          sizeof(name) - 1);
+      return (0);
+    }
+    name[name_len++] = (char)LOWER(component);
+  }
+  name[name_len] = '\0';
+
+  switch (mode)
+  {
+  case CRASH_FILE:
+    prefix = LIB_PLROBJS;
+    suffix = SUF_OBJS;
+    break;
+  case ETEXT_FILE:
+    prefix = LIB_PLRTEXT;
+    suffix = SUF_TEXT;
+    break;
+  case SCRIPT_VARS_FILE:
+    prefix = LIB_PLRVARS;
+    suffix = SUF_MEM;
+    break;
+  case PLR_FILE:
+    prefix = LIB_PLRFILES;
+    suffix = SUF_PLR;
+    break;
+  default:
+    return (0);
+  }
+
+  switch (*name)
+  {
+  case 'a':
+  case 'b':
+  case 'c':
+  case 'd':
+  case 'e':
+    middle = "A-E";
+    break;
+  case 'f':
+  case 'g':
+  case 'h':
+  case 'i':
+  case 'j':
+    middle = "F-J";
+    break;
+  case 'k':
+  case 'l':
+  case 'm':
+  case 'n':
+  case 'o':
+    middle = "K-O";
+    break;
+  case 'p':
+  case 'q':
+  case 'r':
+  case 's':
+  case 't':
+    middle = "P-T";
+    break;
+  case 'u':
+  case 'v':
+  case 'w':
+  case 'x':
+  case 'y':
+  case 'z':
+    middle = "U-Z";
+    break;
+  default:
+    middle = "ZZZ";
+    break;
+  }
+
+  snprintf(filename, fbufsize, "%s%s" SLASH "%s.%s", prefix, middle, name, suffix);
+  return (1);
+}
+
+bool is_safe_path_component(const char *name)
+{
+  const unsigned char *current;
+
+  if (!name || !*name || !strcmp(name, ".") || !strcmp(name, "..") || strstr(name, ".."))
+    return FALSE;
+
+  for (current = (const unsigned char *)name; *current; current++)
+    if (!isalnum(*current) && *current != '.' && *current != '_' && *current != '-')
+      return FALSE;
+
+  return TRUE;
+}
+
+/* Validate a library-relative path without allowing traversal or platform-specific separators. */
+bool is_safe_relative_path(const char *path)
+{
+  const unsigned char *component;
+  const unsigned char *current;
+  size_t component_length;
+
+  if (!path || !*path || *path == '/' || *path == '\\' || strlen(path) >= MAX_FILEPATH)
+    return FALSE;
+
+  component = (const unsigned char *)path;
+  for (current = component;; current++)
+  {
+    if (*current == '\0' || *current == '/')
+    {
+      component_length = (size_t)(current - component);
+      if (component_length == 0 || (component_length == 1 && component[0] == '.') ||
+          (component_length == 2 && component[0] == '.' && component[1] == '.'))
+        return FALSE;
+
+      if (*current == '\0')
+        return TRUE;
+
+      component = current + 1;
+      continue;
+    }
+
+    if (*current == '\\' ||
+        (!isalnum(*current) && *current != '.' && *current != '_' && *current != '-'))
+      return FALSE;
+  }
+}
+
+/** Calculate the number of player characters (PCs) in the room. Any NPC (mob)
+ * is not returned in the count.
+ * @param room The room to check for PCs. */
+int num_pc_in_room(struct room_data *room)
+{
+  int i = 0;
+  struct char_data *ch;
+
+  for (ch = room->people; ch != NULL; ch = ch->next_in_room)
+    if (!IS_NPC(ch))
+      i++;
+
+  return (i);
+}
+
+/** This function (derived from basic fork() abort() idea by Erwin S Andreasen)
+ * causes your MUD to dump core (assuming you can) but continue running. The
+ * core dump will allow post-mortem debugging that is less severe than assert();
+ * Don't call this directly as core_dump_unix() but as simply 'core_dump()' so
+ * that it will be excluded from systems not supporting them. You still want to
+ * call abort() or exit(1) for non-recoverable errors, of course. Wonder if
+ * flushing streams includes sockets?
+ * @param who The file in which this call was made.
+ * @param line The line at which this call was made. */
+void core_dump_real(const char *who, int line)
+{
+  log("SYSERR: Assertion failed at %s:%d!", who, line);
+
+#if 1 /* By default, let's not litter. */
+#if defined(CIRCLE_UNIX)
+  /* These would be duplicated otherwise...make very sure. */
+  fflush(stdout);
+  fflush(stderr);
+  fflush(logfile);
+  /* Everything, just in case, for the systems that support it. */
+  fflush(NULL);
+
+  /* Kill the child so the debugger or script doesn't think the MUD crashed.
+   * The 'autorun' script would otherwise run it again. */
+  if (fork() == 0)
+    abort();
+#endif
+#endif
+}
+
+/** Count the number bytes taken up by color codes in a string that will be
+ * empty space once the color codes are converted and made non-printable.
+ * @param string The string in which to check for color codes.
+ * @retval int the number of color codes found. */
+int count_color_chars(const char *string)
+{
+  int i, len;
+  int num = 0;
+
+  if (!string || !*string)
+    return 0;
+
+  len = (int)strlen(string);
+  for (i = 0; i < len; i++)
+  {
+    while (string[i] == '\t')
+    {
+      if (string[i + 1] == '\t')
+        num++;
+      else
+        num += 2;
+      i += 2;
+    }
+  }
+  return num;
+}
+
+/* Not the prettiest thing I've ever written but it does the task which
+ * is counting all characters in a string which are not part of the
+ * protocol system. This is with the exception of detailed MXP codes. */
+int count_non_protocol_chars(const char *str)
+{
+  int count = 0;
+  const char *string = str;
+
+  if (string == NULL)
+    return 0;
+
+  while (*string)
+  {
+    if (*string == '\r' || *string == '\n')
+    {
+      string++;
+      continue;
+    }
+    if (*string == '@' || *string == '\t')
+    {
+      string++;
+      if (!*string)
+        break;
+      if (*string != '[' && *string != '<' && *string != '>' && *string != '(' && *string != ')')
+        string++;
+      else if (*string == '[')
+      {
+        while (*string && *string != ']')
+          string++;
+        if (*string == ']')
+          string++;
+      }
+      else
+        string++;
+      continue;
+    }
+    count++;
+    string++;
+  }
+
+  return count;
+}
+
+/* simple test to check if the given ch has infravision */
+bool char_has_infra(struct char_data *ch)
+{
+  if (AFF_FLAGGED(ch, AFF_INFRAVISION))
+    return TRUE;
+
+  if (HAS_FEAT(ch, FEAT_INFRAVISION))
+    return TRUE;
+
+  if (GET_RACE(ch) == RACE_ELF)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_DWARF)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_CRYSTAL_DWARF)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_H_ELF)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_HALFLING)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_GNOME)
+    return TRUE;
+
+  return FALSE;
+}
+
+/* simple test to check if the given ch has ultra (perfect dark vision) */
+bool char_has_ultra(struct char_data *ch)
+{
+  if (AFF_FLAGGED(ch, AFF_ULTRAVISION))
+    return TRUE;
+
+  if (AFF_FLAGGED(ch, AFF_DARKVISION))
+    return TRUE;
+
+  if (HAS_FEAT(ch, FEAT_ULTRAVISION))
+    return TRUE;
+
+  if (char_has_infra(ch))
+    return TRUE;
+
+  /* Perfect Predator: true sight in favored terrain */
+  if (!IS_NPC(ch) && has_inquisitor_perfect_predator(ch) && is_inquisitor_in_favored_terrain(ch))
+    return TRUE;
+
+  /* Keen Senses rank 4: darkvision and see through magical darkness */
+  if (!IS_NPC(ch) && get_inquisitor_keen_senses_rank(ch) >= 4)
+    return TRUE;
+
+  if (GET_RACE(ch) == RACE_HALF_TROLL)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_H_ORC)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_DROW)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_HALF_DROW)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_DUERGAR)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_TRELUX)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_LICH)
+    return TRUE;
+  if (GET_RACE(ch) == RACE_VAMPIRE)
+    return TRUE;
+
+  return FALSE;
+}
+
+bool has_true_sight(struct char_data *ch)
+{
+  if (!ch)
+    return FALSE;
+
+  if (AFF_FLAGGED(ch, AFF_TRUE_SIGHT))
+    return TRUE;
+
+  if (HAS_FEAT(ch, FEAT_TRUE_SIGHT))
+    return TRUE;
+
+  /* Perfect Predator: true sight in favored terrain */
+  if (!IS_NPC(ch) && has_inquisitor_perfect_predator(ch) && is_inquisitor_in_favored_terrain(ch))
+    return TRUE;
+
+  return FALSE;
+}
+
+/* test to see if a given room is "daylit", useful for dayblind races, etc
+ rules detailed in code comments -zusuk */
+bool room_is_daylit(room_rnum room)
+{
+  if (!VALID_ROOM_RNUM(room))
+  {
+    log("room_is_daylit: Invalid room rnum %" PRI_IDX ". (0-%" PRI_IDX ")", room, top_of_world);
+    return (FALSE);
+  }
+
+  if (ROOM_AFFECTED(room, RAFF_LIGHT))
+    return (TRUE);
+
+  /* disqualifiers */
+  /* sectors */
+  if (SECT(room) == SECT_INSIDE)
+    return (FALSE);
+  if (SECT(room) == SECT_INSIDE_ROOM)
+    return (FALSE);
+  if (SECT(room) == SECT_UNDERWATER)
+    return (FALSE);
+  if (SECT(room) == SECT_PLANES)
+    return (FALSE);
+  if (SECT(room) == SECT_UD_WILD)
+    return (FALSE);
+  if (SECT(room) == SECT_UD_CITY)
+    return (FALSE);
+  if (SECT(room) == SECT_UD_INSIDE)
+    return (FALSE);
+  if (SECT(room) == SECT_UD_WATER)
+    return (FALSE);
+  if (SECT(room) == SECT_UD_NOSWIM)
+    return (FALSE);
+  if (SECT(room) == SECT_UD_NOGROUND)
+    return (FALSE);
+  if (SECT(room) == SECT_CAVE)
+    return (FALSE);
+  /* room flags */
+  if (ROOM_FLAGGED(room, ROOM_DARK))
+    return (FALSE);
+  if (ROOM_FLAGGED(room, ROOM_MAGICDARK))
+    return (FALSE);
+  /* room affections */
+  if (ROOM_AFFECTED(room, RAFF_DARKNESS))
+    return (FALSE);
+  /* time/weather system */
+  if (weather_info.sunlight == SUN_SET || weather_info.sunlight == SUN_DARK)
+    return (FALSE);
+
+  /* room is not indoors, room is not 'dark', room is not affected by darkness
+     it is NOT sun-set and NOT sun-dark */
+  return (TRUE);
+}
+
+/** Tests to see if a room is dark. Rules (unless overridden by ROOM_DARK):
+ * Inside and City rooms are always lit. Outside rooms are dark at sunset and
+ * night.
+ * @param room The real room to test for.
+ * @retval int FALSE if the room is lit, TRUE if the room is dark. */
+bool room_is_dark(room_rnum room)
+{
+  struct char_data *tch = NULL;
+  struct obj_data *obj = NULL;
+  int wear;
+
+  if (!VALID_ROOM_RNUM(room))
+  {
+    log("room_is_dark: Invalid room rnum %" PRI_IDX ". (0-%" PRI_IDX ")", room, top_of_world);
+    return (FALSE);
+  }
+
+  if (SECT(room) == SECT_INSIDE || SECT(room) == SECT_INSIDE_ROOM || SECT(room) == SECT_CITY)
+    return (FALSE);
+
+  if (ROOM_FLAGGED(room, ROOM_MAGICLIGHT))
+    return (FALSE);
+
+  if (ROOM_AFFECTED(room, RAFF_LIGHT))
+    return (FALSE);
+
+  for (tch = world[room].people; tch; tch = tch->next_in_room)
+  {
+    // persons blinded by blinding ray emit light like a sunrod
+    if (affected_by_spell(tch, SPELL_BLINDING_RAY))
+      return (FALSE);
+    if (HAS_FEAT(tch, FEAT_AURA_OF_LIGHT))
+      return FALSE;
+  }
+
+  /* magic-dark flag will over-ride lights */
+  if (ROOM_FLAGGED(room, ROOM_MAGICDARK))
+    return (TRUE);
+
+  for (tch = world[room].people; tch; tch = tch->next_in_room)
+  {
+    // persons impaled by a holy javelin emit light like a torch, which will not penetrate magical darkness
+    if (char_has_mud_event(tch, eHOLYJAVELIN))
+      return (FALSE);
+  }
+
+  if (world[room].light)
+    return (FALSE);
+
+  /* Magical item light follows direct room, inventory, and equipment placement.
+   * This includes the source-forced light on converted RoL ships. Like other
+   * item light, it does not override magical darkness or escape containers. */
+  for (obj = world[room].contents; obj; obj = obj->next_content)
+    if (OBJ_FLAGGED(obj, ITEM_MAGLIGHT))
+      return (FALSE);
+  for (tch = world[room].people; tch; tch = tch->next_in_room)
+  {
+    for (obj = tch->carrying; obj; obj = obj->next_content)
+      if (OBJ_FLAGGED(obj, ITEM_MAGLIGHT))
+        return (FALSE);
+    for (wear = 0; wear < NUM_WEARS; wear++)
+    {
+      obj = GET_EQ(tch, wear);
+      if (obj && OBJ_FLAGGED(obj, ITEM_MAGLIGHT))
+        return (FALSE);
+    }
+  }
+
+  if (ROOM_FLAGGED(room, ROOM_DARK))
+    return (TRUE);
+
+  if (weather_info.sunlight == SUN_SET || weather_info.sunlight == SUN_DARK)
+    return (TRUE);
+
+  if (ROOM_AFFECTED(room, RAFF_DARKNESS))
+    return (TRUE);
+
+  /* sectors dark by nature */
+  if (SECT(room) == SECT_UNDERWATER)
+    return (TRUE);
+  if (SECT(room) == SECT_UD_WILD)
+    return (TRUE);
+  if (SECT(room) == SECT_UD_CITY)
+    return (TRUE);
+  if (SECT(room) == SECT_UD_INSIDE)
+    return (TRUE);
+  if (SECT(room) == SECT_UD_WATER)
+    return (TRUE);
+  if (SECT(room) == SECT_UD_NOSWIM)
+    return (TRUE);
+  if (SECT(room) == SECT_UD_NOGROUND)
+    return (TRUE);
+  if (SECT(room) == SECT_CAVE)
+    return (TRUE);
+  /* end sectors */
+
+  return (FALSE);
+}
+
+// returns true if there are sunlight conditions in specified room,
+// mainly used to check for vampire abilities and weaknesses
+bool is_room_in_sunlight(room_rnum room)
+{
+  if (room == NOWHERE)
+    return false;
+  if (!ROOM_OUTDOORS(room))
+    return false;
+  if (weather_info.sunlight != SUN_LIGHT || weather_info.sky != SKY_CLOUDLESS)
+    return false;
+  if (ROOM_FLAGGED(room, ROOM_DARK) && ROOM_FLAGGED(room, ROOM_MAGICDARK))
+    return false;
+  if (ROOM_FLAGGED(room, ROOM_FOG))
+    return false;
+  if (ROOM_AFFECTED(room, RAFF_DARKNESS) || ROOM_AFFECTED(room, RAFF_ACID_FOG) ||
+      ROOM_AFFECTED(room, RAFF_BILLOWING) || ROOM_AFFECTED(room, RAFF_OBSCURING_MIST) ||
+      ROOM_AFFECTED(room, RAFF_FOG))
+    return false;
+  /* sectors dark by nature */
+  if (SECT(room) == SECT_UNDERWATER)
+    return false;
+  if (SECT(room) == SECT_UD_WILD)
+    return false;
+  if (SECT(room) == SECT_UD_CITY)
+    return false;
+  if (SECT(room) == SECT_UD_INSIDE)
+    return false;
+  if (SECT(room) == SECT_UD_WATER)
+    return false;
+  if (SECT(room) == SECT_UD_NOSWIM)
+    return false;
+  if (SECT(room) == SECT_UD_NOGROUND)
+    return false;
+  if (SECT(room) == SECT_CAVE)
+    return false;
+
+  return true;
+}
+
+/** Calculates the Levenshtein distance between two strings. Currently used
+ * by the mud to make suggestions to the player when commands are mistyped.
+ * This function is most useful when an index of possible choices are available
+ * and the results of this function are constrained and used to help narrow
+ * down the possible choices. For more information about Levenshtein distance,
+ * recommend doing an internet or wikipedia search.
+ * @param s1 The input string.
+ * @param s2 The string to be compared to.
+ * @retval int The Levenshtein distance between s1 and s2. */
+int levenshtein_distance(const char *s1, const char *s2)
+{
+  int **d, i, j;
+  int s1_len = (int)strlen(s1), s2_len = (int)strlen(s2);
+
+  CREATE(d, int *, s1_len + 1);
+
+  for (i = 0; i <= s1_len; i++)
+  {
+    CREATE(d[i], int, s2_len + 1);
+    d[i][0] = i;
+  }
+
+  for (j = 0; j <= s2_len; j++)
+    d[0][j] = j;
+  for (i = 1; i <= s1_len; i++)
+    for (j = 1; j <= s2_len; j++)
+      d[i][j] = MIN(d[i - 1][j] + 1,
+                    MIN(d[i][j - 1] + 1, d[i - 1][j - 1] + ((s1[i - 1] == s2[j - 1]) ? 0 : 1)));
+
+  i = d[s1_len][s2_len];
+
+  for (j = 0; j <= s1_len; j++)
+    free(d[j]);
+  free(d);
+
+  return i;
+}
+
+/** Removes a character from a piece of furniture. Unlike some of the other
+ * _from_ functions, this does not place the character into NOWHERE.
+ * @post ch is unattached from the furniture object.
+ * @param ch The character to remove from the furniture object.
+ */
+void char_from_furniture(struct char_data *ch)
+{
+  struct obj_data *furniture;
+  struct char_data *tempch;
+
+  if (!SITTING(ch))
+    return;
+
+  if (!(furniture = SITTING(ch)))
+  {
+    log("SYSERR: No furniture for char in char_from_furniture.");
+    SITTING(ch) = NULL;
+    NEXT_SITTING(ch) = NULL;
+    return;
+  }
+
+  if (!(tempch = OBJ_SAT_IN_BY(furniture)))
+  {
+    log("SYSERR: Char from furniture, but no furniture!");
+    SITTING(ch) = NULL;
+    NEXT_SITTING(ch) = NULL;
+    GET_OBJ_VAL(furniture, 1) = 0;
+    return;
+  }
+
+  if (tempch == ch)
+  {
+    if (!NEXT_SITTING(ch))
+    {
+      OBJ_SAT_IN_BY(furniture) = NULL;
+    }
+    else
+    {
+      OBJ_SAT_IN_BY(furniture) = NEXT_SITTING(ch);
+    }
+  }
+  else
+  {
+    for (tempch = OBJ_SAT_IN_BY(furniture); tempch; tempch = NEXT_SITTING(tempch))
+    {
+      if (NEXT_SITTING(tempch) == ch)
+      {
+        NEXT_SITTING(tempch) = NEXT_SITTING(ch);
+      }
+    }
+  }
+  GET_OBJ_VAL(furniture, 1) -= 1;
+  SITTING(ch) = NULL;
+  NEXT_SITTING(ch) = NULL;
+
+  if (GET_OBJ_VAL(furniture, 1) < 1)
+  {
+    OBJ_SAT_IN_BY(furniture) = NULL;
+    GET_OBJ_VAL(furniture, 1) = 0;
+  }
+
+  return;
+}
+
+void char_from_buff_targets(struct char_data *ch)
+{
+  struct char_data *tch;
+  bool registered_players = point_update_events_enabled();
+
+  /* Player membership includes link-dead characters and avoids visiting every NPC
+   * for each extraction. Before registry startup, retain the full-list behavior. */
+  for (tch = registered_players ? point_update_character_first() : character_list; tch;
+       tch = registered_players ? tch->point_update_next : tch->next)
+  {
+    if (!IS_NPC(tch) && GET_BUFF_TARGET(tch) == ch)
+      GET_BUFF_TARGET(tch) = NULL;
+  }
+}
+
+/* column_list
+   The list is output in a fixed format, and only the number of columns can be adjusted
+   This function will output the list to the player
+   Vars:
+     ch          - the player
+     num_cols    - the desired number of columns
+     list        - a pointer to a list of strings
+     list_length - So we can work with lists that don't end with /n
+     show_nums   - when set to TRUE, it will show a number before the list entry.
+ */
+void column_list(struct char_data *ch, int num_cols, const char *const *list, int list_length,
+                 bool show_nums)
+{
+  size_t max_len = 0;
+  size_t buffer_size;
+  size_t used = 0;
+  int num_per_col, col_width, r, c, i, offset = 0, temp_len;
+  int prefix_width;
+  int screen_width;
+  char *buf;
+
+  if (ch == NULL || ch->desc == NULL || list == NULL || list_length <= 0)
+    return;
+
+  /* Work out the longest list item */
+  for (i = 0; i < list_length; i++)
+    if (list[i] != NULL && max_len < strlen(list[i]))
+      max_len = strlen(list[i]);
+
+  screen_width = IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch);
+  screen_width = MAX(screen_width, 1);
+  prefix_width = show_nums ? 4 : 0;
+  if (show_nums)
+  {
+    for (i = list_length; i >= 100; i /= 10)
+      prefix_width++;
+  }
+
+  /* auto columns case */
+  if (num_cols == 0)
+  {
+    num_cols = screen_width / ((int)max_len + prefix_width + 1);
+  }
+
+  /* Ensure that the number of columns is in the range 1-10 */
+  num_cols = MIN(MAX(num_cols, 1), 10);
+
+  /* Reserve a literal space between columns. Reduce a caller-requested
+   * column count when its longest value would otherwise touch or overlap the
+   * next value. A single value may exceed the user's screen width, but it is
+   * never truncated. */
+  do
+  {
+    col_width = (screen_width - (num_cols - 1)) / num_cols - prefix_width;
+    if (num_cols == 1 || (col_width >= 0 && (size_t)col_width >= max_len))
+      break;
+    num_cols--;
+  } while (num_cols > 0);
+
+  if (num_cols == 1)
+    col_width = MAX(screen_width - prefix_width, (int)max_len);
+
+  /* Calculate how many list items there should be per column */
+  num_per_col = (list_length / num_cols) + ((list_length % num_cols) ? 1 : 0);
+
+  if ((size_t)num_per_col >
+      (SIZE_MAX - 1) / ((size_t)num_cols * (prefix_width + (size_t)col_width + 1) + 2))
+  {
+    log("SYSERR: column_list output size overflow for %s", GET_NAME(ch));
+    return;
+  }
+
+  buffer_size =
+      (size_t)num_per_col * ((size_t)num_cols * (prefix_width + (size_t)col_width + 1) + 2) + 1;
+  CREATE(buf, char, buffer_size);
+
+  /* Fill 'buf' with the columnised list */
+  for (r = 0; r < num_per_col; r++)
+  {
+    for (c = 0; c < num_cols; c++)
+    {
+      offset = (c * num_per_col) + r;
+      if (offset < list_length && list[offset] != NULL)
+      {
+        if (show_nums)
+          temp_len = snprintf(buf + used, buffer_size - used, "%2d) %-*s", offset + 1, col_width,
+                              list[offset]);
+        else
+          temp_len = snprintf(buf + used, buffer_size - used, "%-*s", col_width, list[offset]);
+        if (temp_len < 0 || (size_t)temp_len >= buffer_size - used)
+        {
+          log("SYSERR: column_list formatting overflow for %s", GET_NAME(ch));
+          free(buf);
+          return;
+        }
+        used += (size_t)temp_len;
+
+        if (c + 1 < num_cols && ((c + 1) * num_per_col) + r < list_length)
+          buf[used++] = ' ';
+      }
+    }
+    buf[used++] = '\r';
+    buf[used++] = '\n';
+    buf[used] = '\0';
+  }
+
+  /* Send the list to the player */
+  page_string(ch->desc, buf, TRUE);
+  free(buf);
+}
+
+/* column_list_applies
+   Outputs an apply list in columns and highlights applies appropriate for the object.
+   Vars:
+     ch          - the player
+     obj         - the object used to determine highlighted applies
+     num_cols    - the desired number of columns
+     list        - a pointer to a list of strings
+     list_length - So we can work with lists that don't end with /n
+     show_nums   - when set to TRUE, it will show a number before the list entry.
+ */
+void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_cols,
+                         const char **list, int list_length, bool show_nums)
+{
+  size_t max_len = 0;
+  int num_per_col, col_width, r, c, i, offset = 0, temp_len;
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char entry[MAX_STRING_LENGTH] = {'\0'};
+  bool highlight = false;
+  bool overflow = false;
+
+  if (!ch || !obj || !list || list_length <= 0)
+    return;
+
+  /* Column selection must use the actual longest entry or narrow columns will wrap. */
+  for (i = 0; i < list_length; i++)
+    if (list[i] && max_len < strlen(list[i]))
+      max_len = strlen(list[i]);
+
+  /* auto columns case */
+  if (num_cols == 0)
+  {
+    num_cols = (IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch)) / ((int)max_len + (show_nums ? 5 : 1));
+  }
+
+  /* Ensure that the number of columns is in the range 1-10 */
+  num_cols = MIN(MAX(num_cols, 1), 10);
+
+  /* Calculate the width of each column */
+  if (IS_NPC(ch))
+    col_width = 80 / num_cols;
+  else
+    col_width = (GET_SCREEN_WIDTH(ch)) / num_cols;
+
+  if (show_nums)
+    col_width -= 4;
+
+  if (col_width < 0 || (size_t)col_width < max_len)
+    log("Warning: columns too narrow for correct output to %s in column_list_applies (utils.c)",
+        GET_NAME(ch));
+
+  /* Calculate how many list items there should be per column */
+  num_per_col = (list_length / num_cols) + ((list_length % num_cols) ? 1 : 0);
+
+  /* Fill 'buf' with the columnised list */
+  for (r = 0; r < num_per_col && !overflow; r++)
+  {
+    for (c = 0; c < num_cols; c++)
+    {
+      offset = (c * num_per_col) + r;
+      if (offset < list_length)
+      {
+        highlight = highlight_apply_by_obj(obj, offset);
+
+        if (show_nums)
+          temp_len = snprintf(entry, sizeof(entry), "%s%2d) %-*s\tn", highlight ? "\tC" : "",
+                              offset + 1, col_width, list[offset]);
+        else
+          temp_len = snprintf(entry, sizeof(entry), "%s%-*s\tn", highlight ? "\tC" : "", col_width,
+                              list[offset]);
+        if (temp_len < 0 || (size_t)temp_len >= sizeof(entry) ||
+            strlcat(buf, entry, sizeof(buf)) >= sizeof(buf))
+        {
+          overflow = true;
+          break;
+        }
+      }
+    }
+    if (!overflow && strlcat(buf, "\r\n", sizeof(buf)) >= sizeof(buf))
+      overflow = true;
+  }
+
+  if (overflow)
+    snprintf((buf + MAX_STRING_LENGTH) - 22, 22, "\r\n*** OVERFLOW ***\r\n");
+
+  /* Send the list to the player */
+  page_string(ch->desc, buf, TRUE);
+}
+
+/**
+ * Search through a string array of flags for a particular flag.
+ * @param flag_list An array of flag name strings. The final element must
+ * be a string made up of a single newline.
+ * @param flag_name The name to search in flag_list.
+ * @retval int Returns the element number in flag_list of flag_name or
+ * NOFLAG (-1) if no match.
+ */
+int get_flag_by_name(const char *flag_list[], char *flag_name)
+{
+  int i = 0;
+  for (; flag_list[i] && *flag_list[i] && strcmp(flag_list[i], "\n") != 0; i++)
+    if (!strcmp(flag_list[i], flag_name))
+      return (i);
+  return (NOFLAG);
+}
+
+/**
+ * Reads a certain number of lines from the begining of a file, like performing
+ * a 'head'.
+ * @pre Expects an already open file and the user to supply enough memory
+ * in the output buffer to hold the lines read from the file. Assumes the
+ * file is a text file. Expects buf to be nulled out if the entire buf is
+ * to be used, otherwise, appends file information beyond the first null
+ * character. lines_to_read is assumed to be a positive number.
+ * @post Rewinds the file pointer to the beginning of the file. If buf is
+ * too small to handle the requested output, **OVERFLOW** is appended to the
+ * buffer.
+ * @param[in] file A pointer to an already successfully opened file.
+ * @param[out] buf Buffer to hold the data read from the file. Will not
+ * overwrite preexisting information in a non-null string.
+ * @param[in] bufsize The total size of the buffer.
+ * @param[in] lines_to_read The number of lines to be read from the front of
+ * the file.
+ * @retval int The number of lines actually read from the file. Can be used
+ * the compare with the number of lines requested to be read to determine if the
+ * entire file was read. If lines_to_read is <= 0, no processing occurs
+ * and lines_to_read is returned.
+ */
+int file_head(FILE *file, char *buf, size_t bufsize, int lines_to_read)
+{
+  /* Local variables */
+  int lines_read = 0;                            /* The number of lines read so far. */
+  char line[READ_SIZE];                          /* Retrieval buffer for file. */
+  size_t buflen;                                 /* Amount of previous existing data in buffer. */
+  int readstatus = 1;                            /* Are we at the end of the file? */
+  int n = 0;                                     /* Return value from snprintf. */
+  const char *overflow = "\r\n**OVERFLOW**\r\n"; /* Appended if overflow. */
+
+  /* Quick check for bad arguments. */
+  if (lines_to_read <= 0)
+  {
+    return lines_to_read;
+  }
+
+  /* Initialize local variables not already initialized. */
+  buflen = strlen(buf);
+
+  /* Read from the front of the file. */
+  rewind(file);
+
+  while ((lines_read < lines_to_read) && (readstatus > 0) && (buflen < bufsize))
+  {
+    /* Don't use get_line to set lines_read because get_line will return
+     * the number of comments skipped during reading. */
+    readstatus = get_line(file, line);
+
+    if (readstatus > 0)
+    {
+      n = snprintf(buf + buflen, bufsize - buflen, "%s\r\n", line);
+      buflen += n;
+      lines_read++;
+    }
+  }
+
+  /* Check to see if we had a potential buffer overflow. */
+  if (buflen >= bufsize)
+  {
+    /* We should never see this case, but... */
+    if ((strlen(overflow) + 1) >= bufsize)
+    {
+      core_dump();
+      snprintf(buf, bufsize, "%s", overflow);
+    }
+    else
+    {
+      /* Append the overflow statement to the buffer. */
+      snprintf(buf + buflen - strlen(overflow) - 1, strlen(overflow) + 1, "%s", overflow);
+    }
+  }
+
+  rewind(file);
+
+  /* Return the number of lines. */
+  return lines_read;
+}
+
+/**
+ * Reads a certain number of lines from the end of the file, like performing
+ * a 'tail'.
+ * @pre Expects an already open file and the user to supply enough memory
+ * in the output buffer to hold the lines read from the file. Assumes the
+ * file is a text file. Expects buf to be nulled out if the entire buf is
+ * to be used, otherwise, appends file information beyond the first null
+ * character in buf. lines_to_read is assumed to be a positive number.
+ * @post Rewinds the file pointer to the beginning of the file. If buf is
+ * too small to handle the requested output, **OVERFLOW** is appended to the
+ * buffer.
+ * @param[in] file A pointer to an already successfully opened file.
+ * @param[out] buf Buffer to hold the data read from the file. Will not
+ * overwrite preexisting information in a non-null string.
+ * @param[in] bufsize The total size of the buffer.
+ * @param[in] lines_to_read The number of lines to be read from the back of
+ * the file.
+ * @retval int The number of lines actually read from the file. Can be used
+ * the compare with the number of lines requested to be read to determine if the
+ * entire file was read. If lines_to_read is <= 0, no processing occurs
+ * and lines_to_read is returned.
+ */
+int file_tail(FILE *file, char *buf, size_t bufsize, int lines_to_read)
+{
+  /* Local variables */
+  int lines_read = 0;                            /* The number of lines read so far. */
+  int total_lines = 0;                           /* The total number of lines in the file. */
+  char c;                                        /* Used to fast forward the file. */
+  char line[READ_SIZE];                          /* Retrieval buffer for file. */
+  size_t buflen;                                 /* Amount of previous existing data in buffer. */
+  int readstatus = 1;                            /* Are we at the end of the file? */
+  int n = 0;                                     /* Return value from snprintf. */
+  const char *overflow = "\r\n**OVERFLOW**\r\n"; /* Appended if overflow. */
+
+  /* Quick check for bad arguments. */
+  if (lines_to_read <= 0)
+  {
+    return lines_to_read;
+  }
+
+  /* Initialize local variables not already initialized. */
+  buflen = strlen(buf);
+  total_lines = file_numlines(file); /* Side effect: file is rewound. */
+
+  /* Fast forward to the location we should start reading from */
+  while (((lines_to_read + lines_read) < total_lines))
+  {
+    do
+    {
+      c = (char)fgetc(file);
+    } while (c != '\n');
+
+    lines_read++;
+  }
+
+  /* We reuse the lines_read counter. */
+  lines_read = 0;
+
+  /** From here on, we perform just like file_head */
+  while ((lines_read < lines_to_read) && (readstatus > 0) && (buflen < bufsize))
+  {
+    /* Don't use get_line to set lines_read because get_line will return
+     * the number of comments skipped during reading. */
+    readstatus = get_line(file, line);
+
+    if (readstatus > 0)
+    {
+      n = snprintf(buf + buflen, bufsize - buflen, "%s\r\n", line);
+      buflen += n;
+      lines_read++;
+    }
+  }
+
+  /* Check to see if we had a potential buffer overflow. */
+  if (buflen >= bufsize)
+  {
+    /* We should never see this case, but... */
+    if ((strlen(overflow) + 1) >= bufsize)
+    {
+      core_dump();
+      snprintf(buf, bufsize, "%s", overflow);
+    }
+    else
+    {
+      /* Append the overflow statement to the buffer. */
+      snprintf(buf + buflen - strlen(overflow) - 1, strlen(overflow) + 1, "%s", overflow);
+    }
+  }
+
+  rewind(file);
+
+  /* Return the number of lines read. */
+  return lines_read;
+}
+
+/** Returns the byte size of a file. We assume size_t to be a large enough type
+ * to handle all of the file sizes in the mud, and so do not make SIZE_MAX
+ * checks.
+ * @pre file parameter must already be opened.
+ * @post file will be rewound.
+ * @param file The file to determine the size of.
+ * @retval size_t The byte size of the file (we assume no errors will be
+ * encountered in this function).
+ */
+size_t file_sizeof(FILE *file)
+{
+  size_t numbytes = 0;
+
+  rewind(file);
+
+  /* It would be so much easier to do a byte count if an fseek SEEK_END and
+   * ftell pair of calls was portable for text files, but all information
+   * I've found says that getting a file size from ftell for text files is
+   * not portable. Oh well, this method should be extremely fast for the
+   * relatively small filesizes in the mud, and portable, too. */
+  while (!feof(file))
+  {
+    fgetc(file);
+    numbytes++;
+  }
+
+  rewind(file);
+
+  return numbytes;
+}
+
+/** Returns the number of newlines '\n' in a file, which we equate to number of
+ * lines. We assume the int type more than adequate to count the number of lines
+ * and do not make checks for overrunning INT_MAX.
+ * @pre file parameter must already be opened.
+ * @post file will be rewound.
+ * @param file The file to determine the size of.
+ * @retval size_t The byte size of the file (we assume no errors will be
+ * encountered in this function).
+ */
+int file_numlines(FILE *file)
+{
+  int numlines = 0;
+  char c;
+
+  rewind(file);
+
+  while (!feof(file))
+  {
+    c = (char)fgetc(file);
+    if (c == '\n')
+    {
+      numlines++;
+    }
+  }
+
+  rewind(file);
+
+  return numlines;
+}
+
+/** A string converter designed to deal with the fixed-width IDXTYPE.
+ * Relies on strtoumax so the full unsigned range is checked before conversion.
+ * @pre Assumes that NOWHERE, NOTHING, NOBODY, NOFLAG, etc are all equal.
+ * @param str_to_conv A string of characters to attempt to convert to an
+ * IDXTYPE number.
+ * @retval IDXTYPE A valid index number, or NOWHERE if not valid.
+ */
+IDXTYPE atoidx(const char *str_to_conv)
+{
+  char *end;
+  uintmax_t result;
+
+  /* Check for errors */
+  errno = 0;
+
+  if (str_to_conv == NULL || *str_to_conv == '\0' || *str_to_conv == '-')
+    return NOWHERE;
+
+  result = strtoumax(str_to_conv, &end, 10);
+
+  if (errno || end == str_to_conv || *end != '\0' || result >= IDXTYPE_MAX)
+    return NOWHERE; /* All of the NO* settings should be the same */
+  else
+    return (IDXTYPE)result;
+}
+
+void sprintindex(IDXTYPE index, char *result, size_t result_size)
+{
+  if (result == NULL || result_size == 0)
+    return;
+
+  if (index == NOWHERE)
+    strlcpy(result, "NONE", result_size);
+  else
+    snprintf(result, result_size, "%" PRI_IDX, index);
+}
+
+static void strfrmt_append(char **cursor, size_t *remaining, const char *text, size_t text_length)
+{
+  size_t copy_length;
+
+  if (!cursor || !remaining || !text || *remaining == 0)
+    return;
+
+  copy_length = text_length;
+  if (copy_length >= *remaining)
+    copy_length = *remaining - 1;
+
+  if (copy_length > 0)
+  {
+    memcpy(*cursor, text, copy_length);
+    *cursor += copy_length;
+    *remaining -= copy_length;
+  }
+  **cursor = '\0';
+}
+
+static void strfrmt_append_char(char **cursor, size_t *remaining, char value)
+{
+  strfrmt_append(cursor, remaining, &value, 1);
+}
+
+static void strfrmt_emit_line(char *line, size_t line_size, char **line_cursor,
+                              size_t *line_remaining, size_t *line_length, size_t width, int hpad,
+                              int reset_color, char **output_cursor, size_t *output_remaining,
+                              size_t *line_count)
+{
+  while (hpad && *line_length < width && *line_remaining > 1)
+  {
+    strfrmt_append_char(line_cursor, line_remaining, ' ');
+    (*line_length)++;
+  }
+
+  if (reset_color)
+    strfrmt_append(line_cursor, line_remaining, "\tn", 2);
+  strfrmt_append(line_cursor, line_remaining, "\r\n", 2);
+  strfrmt_append(output_cursor, output_remaining, line, strlen(line));
+
+  line[0] = '\0';
+  *line_cursor = line;
+  *line_remaining = line_size;
+  *line_length = 0;
+  (*line_count)++;
+}
+
+/*
+   strfrmt (String Format) function
+   Used by automap/map system
+   Re-formats a string to fit within a particular size box.
+   Recognises @ color codes, and if a line ends in one color, the
+   next line will start with the same color.
+   Ends every line with \tn to prevent color bleeds.
+ */
+char *strfrmt(const char *str, int w, int h, int justify __attribute__((unused)), int hpad,
+              int vpad)
+{
+  static char ret[MAX_STRING_LENGTH] = {'\0'};
+  char line[MAX_INPUT_LENGTH] = {'\0'};
+  const char *sp;
+  const char *wp;
+  char *lp;
+  char *rp;
+  size_t line_remaining;
+  size_t output_remaining;
+  size_t width;
+  size_t target_lines;
+  size_t word_length;
+  size_t line_length;
+  size_t line_count;
+  size_t separator_length;
+  char last_color;
+  bool new_line_started;
+
+  ret[0] = '\0';
+  if (!str)
+    return ret;
+
+  width = w > 0 ? (size_t)w : 0;
+  if (width > sizeof(line) - 6)
+    width = sizeof(line) - 6;
+  target_lines = h > 0 ? (size_t)h : 0;
+
+  sp = str;
+  wp = NULL;
+  lp = line;
+  rp = ret;
+  line_remaining = sizeof(line);
+  output_remaining = sizeof(ret);
+  word_length = 0;
+  line_length = 0;
+  line_count = 0;
+  last_color = 'n';
+  new_line_started = FALSE;
+
+  /* Normalize spaces and newlines. Split into lines, converting \\ into CRLF. */
+  while (*sp)
+  {
+    while (*sp && isspace_ignoretabs((unsigned char)*sp))
+      sp++;
+
+    wp = sp;
+    word_length = 0;
+    while (*sp)
+    {
+      char mxp_code;
+
+      if (isspace_ignoretabs((unsigned char)*sp))
+        break;
+      if (*sp == '\\' && sp[1] == '\\')
+      {
+        if (sp != wp)
+          break;
+
+        sp += 2;
+        while (*sp && isspace_ignoretabs((unsigned char)*sp))
+          sp++;
+        wp = sp;
+        strfrmt_emit_line(line, sizeof(line), &lp, &line_remaining, &line_length, width, hpad,
+                          FALSE, &rp, &output_remaining, &line_count);
+      }
+      else if (*sp == '`' || *sp == '$' || *sp == '#')
+      {
+        if (sp[1])
+        {
+          if (sp[1] == *sp)
+            word_length++;
+          sp += 2;
+        }
+        else
+        {
+          word_length++;
+          sp++;
+        }
+      }
+      else if (*sp == '\t' && sp[1])
+      {
+        mxp_code = sp[1] == '[' ? ']' : sp[1] == '<' ? '>' : '\0';
+        if (!mxp_code)
+          last_color = sp[1];
+
+        sp += 2;
+        if (mxp_code)
+        {
+          while (*sp && *sp != mxp_code)
+            sp++;
+        }
+      }
+      else
+      {
+        word_length++;
+        sp++;
+      }
+    }
+
+    separator_length = lp == line ? 0 : 1;
+    if (line_length + word_length + separator_length > width)
+    {
+      strfrmt_emit_line(line, sizeof(line), &lp, &line_remaining, &line_length, width, hpad, TRUE,
+                        &rp, &output_remaining, &line_count);
+      if (last_color != 'n')
+      {
+        strfrmt_append_char(&lp, &line_remaining, '\t');
+        strfrmt_append_char(&lp, &line_remaining, last_color);
+        new_line_started = TRUE;
+      }
+    }
+
+    if (lp != line && !new_line_started)
+    {
+      strfrmt_append_char(&lp, &line_remaining, ' ');
+      line_length++;
+    }
+    new_line_started = FALSE;
+    line_length += word_length;
+    strfrmt_append(&lp, &line_remaining, wp, (size_t)(sp - wp));
+  }
+
+  if (lp != line)
+  {
+    strfrmt_emit_line(line, sizeof(line), &lp, &line_remaining, &line_length, width, hpad, FALSE,
+                      &rp, &output_remaining, &line_count);
+  }
+
+  if (vpad)
+  {
+    while (line_count < target_lines && output_remaining > 2)
+    {
+      line_length = 0;
+      while (hpad && line_length < width && output_remaining > 2)
+      {
+        strfrmt_append_char(&rp, &output_remaining, ' ');
+        line_length++;
+      }
+      strfrmt_append(&rp, &output_remaining, "\r\n", 2);
+      line_count++;
+    }
+  }
+
+  return ret;
+}
+
+/**
+   Takes two long strings (multiple lines) and joins them side-by-side.
+   Used by the automap/map system
+   @param str1 The string to be displayed on the left.
+   @param str2 The string to be displayed on the right.
+   @param joiner ???.
+   @retval char * Pointer to the output to be displayed?
+ */
+const char *strpaste(const char *str1, const char *str2, const char *joiner)
+{
+  static char ret[MAX_STRING_LENGTH + 1];
+  const char *sp1 = str1 ? str1 : "";
+  const char *sp2 = str2 ? str2 : "";
+  const char *separator = joiner ? joiner : "";
+  char *rp = ret;
+  size_t joiner_length = strlen(separator);
+  size_t used;
+
+  while ((rp - ret) < MAX_STRING_LENGTH && (*sp1 || *sp2))
+  {
+    /* Copy line from str1 */
+    while ((rp - ret) < MAX_STRING_LENGTH && *sp1 && !ISNEWL(*sp1))
+      *rp++ = *sp1++;
+    /* Eat the newline */
+    if (*sp1)
+    {
+      if (sp1[1] && sp1[1] != sp1[0] && ISNEWL(sp1[1]))
+        sp1++;
+      sp1++;
+    }
+
+    /* Add the joiner */
+    used = (size_t)(rp - ret);
+    if (joiner_length >= MAX_STRING_LENGTH - used)
+      break;
+    memcpy(rp, separator, joiner_length);
+    rp += joiner_length;
+
+    /* Copy line from str2 */
+    while ((rp - ret) < MAX_STRING_LENGTH && *sp2 && !ISNEWL(*sp2))
+      *rp++ = *sp2++;
+    /* Eat the newline */
+    if (*sp2)
+    {
+      if (sp2[1] && sp2[1] != sp2[0] && ISNEWL(sp2[1]))
+        sp2++;
+      sp2++;
+    }
+
+    /* Add the newline */
+    used = (size_t)(rp - ret);
+    if (used + 2 >= MAX_STRING_LENGTH)
+      break;
+    *rp++ = '\r';
+    *rp++ = '\n';
+  }
+  /* Close off the string */
+  *rp = '\0';
+  return ret;
+}
+
+/* with given name, returns character structure if found */
+struct char_data *is_playing(char *vict_name)
+{
+  struct descriptor_data *i, *next_i;
+  char name_copy[MAX_NAME_LENGTH + 1];
+
+  /* We need to CAP the name, so make a copy otherwise original is damaged */
+  snprintf(name_copy, MAX_NAME_LENGTH + 1, "%s", vict_name);
+
+  for (i = descriptor_list; i; i = next_i)
+  {
+    next_i = i->next;
+    if (i->connected == CON_PLAYING && !strcmp(i->character->player.name, CAP(name_copy)))
+      return i->character;
+  }
+  return NULL;
+}
+
+/* for displaying large numbers with commas */
+char *add_commas(long num)
+{
+  int i, j = 0, len;
+  int negative = (num < 0);
+  char num_string[MAX_INPUT_LENGTH] = {'\0'};
+  static char comma_strings[8][MAX_INPUT_LENGTH];
+  static size_t next_string;
+  char *comma_string;
+
+  comma_string = comma_strings[next_string];
+  next_string = (next_string + 1) % (sizeof(comma_strings) / sizeof(comma_strings[0]));
+
+  snprintf(num_string, sizeof(num_string), "%ld", num);
+  len = (int)strlen(num_string);
+
+  for (i = 0; num_string[i]; i++)
+  {
+    if ((len - i) % 3 == 0 && i && i - negative)
+      comma_string[j++] = ',';
+    comma_string[j++] = num_string[i];
+  }
+  comma_string[j] = '\0';
+
+  return comma_string;
+}
+
+/* Create a blank affect struct */
+void new_affect(struct affected_type *af)
+{
+  int i;
+  af->spell = 0;
+  af->duration = 0;
+  af->modifier = 0;
+  af->location = APPLY_NONE;
+  af->bonus_type = BONUS_TYPE_ENHANCEMENT;
+  af->source_id = 0;
+  af->specific = 0;
+  af->next = NULL; /* CRITICAL: Must initialize next pointer to prevent heap corruption */
+
+  for (i = 0; i < AF_ARRAY_MAX; i++)
+  {
+    af->bitvector[i] = 0;
+    af->bitvector2[i] = 0;
+  }
+}
+
+/* Free an affect struct */
+void free_affect(struct affected_type *af)
+{
+  // struct damage_reduction_type *dr;
+  if (af == NULL)
+    return;
+  free(af);
+}
+
+/* Handy function to get class ID number by name (abbreviations allowed) */
+int get_class_by_name(char *classname)
+{
+  int i;
+
+  for (i = 0; i < NUM_CLASSES; i++)
+    if (is_abbrev(classname, CLSLIST_NAME(i)))
+      return (i);
+
+  return (-1);
+}
+
+/* Handy function to get race ID number by name (abbreviations allowed) */
+int get_race_by_name(char *racename)
+{
+  int i;
+
+  for (i = 0; i < NUM_EXTENDED_RACES; i++)
+    if (race_is_creation_eligible(i) && is_abbrev(racename, race_list[i].type))
+      return (i);
+
+  return (-1);
+}
+
+/* Handy function to get subrace ID number by name (abbreviations allowed) */
+int get_subrace_by_name(char *racename)
+{
+  int i;
+
+  for (i = 0; i < NUM_SUB_RACES; i++)
+    if (is_abbrev(racename, npc_subrace_types[i]))
+      return (i);
+
+  return (-1);
+}
+
+/* parse tabs function */
+char *convert_from_tabs(const char *string)
+{
+  static char buf[MAX_STRING_LENGTH * 8];
+
+  strlcpy(buf, string, sizeof(buf));
+  parse_tab(buf);
+  return (buf);
+}
+
+/* this function takes old-system alignment and converts it to new */
+int convert_alignment(int align)
+{
+  if (align >= 800)
+    return LAWFUL_GOOD;
+  if (align >= 575 && align < 800)
+    return NEUTRAL_GOOD;
+  if (align >= 350 && align < 575)
+    return CHAOTIC_GOOD;
+  if (align >= 125 && align < 350)
+    return LAWFUL_NEUTRAL;
+  if (align < 125 && align > -125)
+    return TRUE_NEUTRAL;
+  if (align <= -125 && align > -350)
+    return CHAOTIC_NEUTRAL;
+  if (align <= -350 && align > -575)
+    return LAWFUL_EVIL;
+  if (align <= -575 && align > -800)
+    return NEUTRAL_EVIL;
+  if (align <= -800)
+    return CHAOTIC_EVIL;
+
+  /* shouldn't get here */
+  return TRUE_NEUTRAL;
+}
+
+void set_alignment(struct char_data *ch, int alignment)
+{
+  switch (alignment)
+  {
+  case LAWFUL_GOOD:
+    GET_ALIGNMENT(ch) = 900;
+    break;
+  case NEUTRAL_GOOD:
+    GET_ALIGNMENT(ch) = 690;
+    break;
+  case CHAOTIC_GOOD:
+    GET_ALIGNMENT(ch) = 460;
+    break;
+  case LAWFUL_NEUTRAL:
+    GET_ALIGNMENT(ch) = 235;
+    break;
+  case TRUE_NEUTRAL:
+    GET_ALIGNMENT(ch) = 0;
+    break;
+  case CHAOTIC_NEUTRAL:
+    GET_ALIGNMENT(ch) = -235;
+    break;
+  case LAWFUL_EVIL:
+    GET_ALIGNMENT(ch) = -460;
+    break;
+  case NEUTRAL_EVIL:
+    GET_ALIGNMENT(ch) = -690;
+    break;
+  case CHAOTIC_EVIL:
+    GET_ALIGNMENT(ch) = -900;
+    break;
+  default:
+    break;
+  }
+}
+/* return colored two-letter string referring to alignment */
+
+/* also have in constants.c
+ * const char *alignment_names[] = {
+ */
+const char *get_align_by_num_cnd(int align)
+{
+  if (align >= 800)
+    return "\tWLG\tn";
+  if (align >= 575 && align < 800)
+    return "\tWNG\tn";
+  if (align >= 350 && align < 575)
+    return "\tWCG\tn";
+  if (align >= 125 && align < 350)
+    return "\tcLN\tn";
+  if (align < 125 && align > -125)
+    return "\tcTN\tn";
+  if (align <= -125 && align > -350)
+    return "\tcCN\tn";
+  if (align <= -350 && align > -575)
+    return "\tDLE\tn";
+  if (align <= -575 && align > -800)
+    return "\tDNE\tn";
+  if (align <= -800)
+    return "\tDCE\tn";
+
+  return "??";
+}
+
+/* return colored full string referring to alignment */
+
+/* also have in constants.c
+ * const char *alignment_names[] = {
+ */
+const char *get_align_by_num(int align)
+{
+  if (align >= 800)
+    return "\tYLawful \tWGood\tn";
+  if (align >= 575 && align < 800)
+    return "\tcNeutral \tWGood\tn";
+  if (align >= 350 && align < 575)
+    return "\tRChaotic \tWGood\tn";
+  if (align >= 125 && align < 350)
+    return "\tYLawful \tcNeutral\tn";
+  if (align < 125 && align > -125)
+    return "\tcTrue Neutral\tn";
+  if (align <= -125 && align > -350)
+    return "\tRChaotic \tcNeutral\tn";
+  if (align <= -350 && align > -575)
+    return "\tYLawful \tDEvil\tn";
+  if (align <= -575 && align > -800)
+    return "\tcNeutral \tDEvil\tn";
+  if (align <= -800)
+    return "\tRChaotic \tDEvil\tn";
+
+  return "Unknown";
+}
+/* Feats */
+int get_feat_value(const struct char_data *ch, int featnum)
+{
+  struct obj_data *obj;
+  struct char_data *mob = NULL;
+  int i = 0, j = 0;
+  int featval = 0;
+
+  if ((featnum <= FEAT_UNDEFINED) || (featnum >= FEAT_LAST_FEAT))
+  {
+    log("SYSERR: %s called get_feat_value with invalid featnum: %d", GET_NAME(ch), featnum);
+    return 0;
+  }
+
+  /* Check for the feat. */
+  if (IS_NPC(ch))
+    featval = MOB_HAS_FEAT(ch, featnum);
+  else if (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch))
+    featval = MOB_HAS_FEAT(ch, featnum);
+  else
+  {
+    /* check if we got this feat equipped */
+    for (j = 0; j < NUM_WEARS; j++)
+    {
+      if ((obj = GET_EQ(ch, j)) == NULL)
+        continue;
+      for (i = 0; i < MAX_OBJ_AFFECT; i++)
+      {
+        if (obj->affected[i].location == APPLY_FEAT && obj->affected[i].modifier == featnum)
+        {
+          featval++;
+          break; /* capped at +1, sorry folks */
+        }
+      }
+    }
+    featval += HAS_REAL_FEAT(ch, featnum);
+    if ((mob = get_mob_follower(ch, MOB_EIDOLON)))
+    {
+      if (HAS_EVOLUTION(mob, EVOLUTION_RIDER_BOND) && featnum == FEAT_MOUNTED_COMBAT)
+        featval++;
+    }
+  }
+
+  return featval;
+}
+
+/* Four-arm capability (FEAT_FOUR_ARMS).  Grant sources, each tested on its
+ * own: mob feats for NPCs and for a PC in a wild shape with a disguise race,
+ * the PC's own feat, and APPLY_FEAT gear in ordinary slots.  An item worn in
+ * one of the four-arm slots may benefit from the arms but can never sustain
+ * them, so restoration does not depend on record order and no equipment
+ * supports itself. */
+bool has_four_arms(const struct char_data *ch)
+{
+  struct obj_data *obj;
+  int i, j;
+
+  if (ch == NULL)
+    return false;
+
+  if (IS_NPC(ch) || (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)))
+    return MOB_HAS_FEAT(ch, FEAT_FOUR_ARMS) > 0;
+
+  if (HAS_REAL_FEAT(ch, FEAT_FOUR_ARMS) > 0)
+    return true;
+
+  for (j = 0; j < NUM_WEARS; j++)
+  {
+    if (is_four_arm_wear_slot(j) || (obj = GET_EQ(ch, j)) == NULL)
+      continue;
+    for (i = 0; i < MAX_OBJ_AFFECT; i++)
+      if (obj->affected[i].location == APPLY_FEAT && obj->affected[i].modifier == FEAT_FOUR_ARMS)
+        return true;
+  }
+
+  return false;
+}
+
+/* The seven positions that exist only with four arms. */
+bool is_four_arm_wear_slot(int pos)
+{
+  switch (pos)
+  {
+  case WEAR_WIELD_3:
+  case WEAR_WIELD_4:
+  case WEAR_WIELD_2H_2:
+  case WEAR_ARMS_2:
+  case WEAR_HANDS_2:
+  case WEAR_WRIST_R2:
+  case WEAR_WRIST_L2:
+    return true;
+  default:
+    return false;
+  }
+}
+
+/* The second weapon pair: the three storage positions of the lower arms. */
+bool is_second_pair_wield_slot(int pos)
+{
+  return pos == WEAR_WIELD_3 || pos == WEAR_WIELD_4 || pos == WEAR_WIELD_2H_2;
+}
+
+/* The ordinary position that a four-arm slot doubles.  Base anatomy rules for
+ * that position (race tables, forms) carry over to the doubled slot. */
+int four_arm_slot_base(int pos)
+{
+  switch (pos)
+  {
+  case WEAR_WIELD_3:
+    return WEAR_WIELD_1;
+  case WEAR_WIELD_4:
+    return WEAR_WIELD_OFFHAND;
+  case WEAR_WIELD_2H_2:
+    return WEAR_WIELD_2H;
+  case WEAR_ARMS_2:
+    return WEAR_ARMS;
+  case WEAR_HANDS_2:
+    return WEAR_HANDS;
+  case WEAR_WRIST_R2:
+    return WEAR_WRIST_R;
+  case WEAR_WRIST_L2:
+    return WEAR_WRIST_L;
+  default:
+    return pos;
+  }
+}
+
+/* The second pair takes melee weapons only: no launchers and no ranged
+ * fire-weapons, so the one-launcher policy and its hand cost stay on the
+ * first pair.  Shared by the wear command and equip_char(). */
+bool second_pair_rejects_object(const struct obj_data *obj, int pos)
+{
+  if (obj == NULL || !is_second_pair_wield_slot(pos))
+    return false;
+  if (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON)
+    return true;
+  return is_launcher_weapon(obj);
+}
+
+int find_armor_type(int specType)
+{
+  switch (specType)
+  {
+  case SPEC_ARMOR_TYPE_PADDED:
+  case SPEC_ARMOR_TYPE_LEATHER:
+  case SPEC_ARMOR_TYPE_STUDDED_LEATHER:
+  case SPEC_ARMOR_TYPE_LIGHT_CHAIN:
+    return ARMOR_TYPE_LIGHT;
+
+  case SPEC_ARMOR_TYPE_HIDE:
+  case SPEC_ARMOR_TYPE_SCALE:
+  case SPEC_ARMOR_TYPE_CHAINMAIL:
+  case SPEC_ARMOR_TYPE_PIECEMEAL:
+    return ARMOR_TYPE_MEDIUM;
+
+  case SPEC_ARMOR_TYPE_SPLINT:
+  case SPEC_ARMOR_TYPE_BANDED:
+  case SPEC_ARMOR_TYPE_HALF_PLATE:
+  case SPEC_ARMOR_TYPE_FULL_PLATE:
+    return ARMOR_TYPE_HEAVY;
+
+  case SPEC_ARMOR_TYPE_BUCKLER:
+  case SPEC_ARMOR_TYPE_SMALL_SHIELD:
+  case SPEC_ARMOR_TYPE_LARGE_SHIELD:
+  case SPEC_ARMOR_TYPE_TOWER_SHIELD:
+    return ARMOR_TYPE_SHIELD;
+  }
+  return ARMOR_TYPE_LIGHT;
+}
+
+/* Utilities for managing daily use abilities for players. */
+
+int get_daily_uses(struct char_data *ch, int featnum)
+{
+  int daily_uses = 0;
+
+  switch (featnum)
+  {
+  case FEAT_QUICK_CHANT:
+  case FEAT_QUICK_MIND:
+    daily_uses = 2;
+    break;
+  case FEAT_TOUCH_OF_UNDEATH:
+    if (CLASS_LEVEL(ch, CLASS_NECROMANCER) >= 10)
+      daily_uses = 3;
+    else if (CLASS_LEVEL(ch, CLASS_NECROMANCER) >= 8)
+      daily_uses = 2;
+    else
+      daily_uses = 1;
+    break;
+  case FEAT_STRENGTH_OF_HONOR:
+    daily_uses = CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA);
+    break;
+  case FEAT_COSMIC_UNDERSTANDING:
+    daily_uses = 3;
+    break;
+  case FEAT_DRAGOON_POINTS:
+    daily_uses =
+        CLASS_LEVEL(ch, CLASS_DRAGONRIDER) * ((GET_DRAGON_BOND_TYPE(ch) == DRAGON_BOND_MAGE) + 1);
+    break;
+  case FEAT_CROWN_OF_KNIGHTHOOD:
+    daily_uses = 1;
+    break;
+  case FEAT_SOUL_OF_KNIGHTHOOD:
+    daily_uses = 1;
+    break;
+  case FEAT_RALLYING_CRY:
+    daily_uses = 3;
+    break;
+  case FEAT_CALM:
+    daily_uses = MAX(1, 1 + GET_CHA_BONUS(ch));
+    break;
+  case FEAT_INSPIRE_COURAGE:
+    daily_uses = 1 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE);
+    break;
+  case FEAT_WISDOM_OF_THE_MEASURE:
+    daily_uses = 2;
+    break;
+  case FEAT_FINAL_STAND:
+    daily_uses = 1;
+    break;
+  case FEAT_KNIGHTHOODS_FLOWER:
+    daily_uses = 1;
+    break;
+  case FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT:
+    daily_uses = 1;
+    break;
+  case FEAT_VAMPIRE_BLOOD_DRAIN:
+    daily_uses = 2 + (GET_LEVEL(ch) / 3);
+    break;
+  case FEAT_STONES_ENDURANCE:
+    daily_uses += 2 + GET_LEVEL(ch) / 6;
+    break;
+  case FEAT_VAMPIRE_ENERGY_DRAIN:
+    daily_uses = 1 + (GET_LEVEL(ch) / 3);
+    break;
+  case FEAT_STUNNING_FIST:
+    daily_uses += CLASS_LEVEL(ch, CLASS_MONK) + (GET_LEVEL(ch) - CLASS_LEVEL(ch, CLASS_MONK)) / 4;
+    daily_uses += get_monk_stunning_fist_bonus_uses(ch);
+    /* Elemental Attunement III adds 1 ki point per rank */
+    if (!IS_NPC(ch))
+      daily_uses += get_monk_elemental_attunement_iii_rank(ch);
+    break;
+  case FEAT_LAYHANDS:
+    daily_uses += CLASS_LEVEL(ch, CLASS_PALADIN) / 2 + GET_CHA_BONUS(ch);
+    /* Paladin Sacred Defender perk: Extra Lay on Hands */
+    if (!IS_NPC(ch))
+      daily_uses += get_paladin_extra_lay_on_hands(ch);
+    break;
+  case FEAT_JUDGEMENT:
+    daily_uses += ((CLASS_LEVEL(ch, CLASS_INQUISITOR) - 1) / 3) + 1;
+    break;
+  case FEAT_TRUE_JUDGEMENT:
+    daily_uses += CLASS_LEVEL(ch, CLASS_INQUISITOR) / 5;
+    break;
+  case FEAT_BANE:
+    daily_uses += 2 + CLASS_LEVEL(ch, CLASS_INQUISITOR) / 5;
+    break;
+  case FEAT_TOUCH_OF_CORRUPTION:
+    daily_uses += CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 2 + GET_CHA_BONUS(ch);
+    break;
+  case FEAT_TURN_UNDEAD:
+  case FEAT_CHANNEL_ENERGY:
+    daily_uses += 3 + GET_CHA_BONUS(ch) + HAS_FEAT(ch, FEAT_EXTRA_TURNING) * 2;
+    break;
+  case FEAT_BARDIC_MUSIC:
+    daily_uses += CLASS_LEVEL(ch, CLASS_BARD);
+    break;
+  case FEAT_REMOVE_DISEASE:
+    daily_uses += HAS_FEAT(ch, FEAT_REMOVE_DISEASE);
+    break;
+  case FEAT_CHANNEL_SPELL:
+    daily_uses += 2 + HAS_FEAT(ch, FEAT_CHANNEL_SPELL);
+    break;
+  case FEAT_PSIONIC_FOCUS:
+    daily_uses +=
+        (CLASS_LEVEL(ch, CLASS_PSIONICIST) >= 1) ? 1 + (CLASS_LEVEL(ch, CLASS_PSIONICIST) / 10) : 0;
+    break;
+  case FEAT_DOUBLE_MANIFEST:
+    daily_uses = 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PSIONICIST) - 14) / 5);
+    break;
+  case FEAT_LICH_TOUCH:
+    daily_uses = 3 + GET_INT_BONUS(ch);
+    break;
+  case FEAT_LICH_FEAR:
+    daily_uses = 3;
+    break;
+  case FEAT_SLA_INVIS:
+  case FEAT_SLA_STRENGTH:
+  case FEAT_SLA_ENLARGE:
+  case FEAT_CRYSTAL_FIST:
+  case FEAT_INSECTBEING:
+  case FEAT_CRYSTAL_BODY:
+  case FEAT_SLA_FAERIE_FIRE:
+  case FEAT_SLA_LEVITATE:
+  case FEAT_SLA_DARKNESS:
+  case FEAT_AASIMAR_HEALING_HANDS:
+  case FEAT_AASIMAR_LIGHT_BEARER:
+  case FEAT_MASTER_OF_THE_MIND:
+    daily_uses = 3;
+    break;
+  /* Duris racial innates */
+  case FEAT_SLA_FARSEE:
+  case FEAT_SLA_LIGHTNING_BOLT:
+  case FEAT_SLA_PSIONIC_BLAST:
+  case FEAT_SLA_SCARE:
+  case FEAT_SLA_FIREBALL:
+  case FEAT_SLA_FROST_BREATH:
+  case FEAT_SLA_WEB:
+    daily_uses = 3;
+    break;
+  case FEAT_SLA_STONESKIN:
+  case FEAT_SLA_FIRE_SHIELD:
+  case FEAT_SLA_FIRE_STORM:
+  case FEAT_SLA_SHADOW_JUMP:
+  case FEAT_SLA_PLANE_SHIFT:
+  case FEAT_HASTE:
+  case FEAT_SLA_MASS_DISPEL:
+  case FEAT_RACIAL_FLURRY:
+  case FEAT_SUMMON_WARG:
+  case FEAT_SUMMON_HORDE:
+    daily_uses = 1;
+    break;
+  case FEAT_SHADOW_ILLUSION:
+    daily_uses += CLASS_LEVEL(ch, CLASS_SHADOWDANCER) / 2;
+    break;
+  case FEAT_SHADOW_CALL:
+  case FEAT_SHADOW_JUMP:
+    daily_uses += MAX(0, (CLASS_LEVEL(ch, CLASS_SHADOWDANCER) - 2) / 2);
+    break;
+  case FEAT_SHADOW_POWER:
+    daily_uses += MAX(0, (CLASS_LEVEL(ch, CLASS_SHADOWDANCER) - 6) / 2);
+    break;
+  case FEAT_BATTLE_RAGE: /*fallthrough*/
+  case FEAT_MASS_INVIS:  /*fallthrough*/
+  case FEAT_COPYCAT:     /*fallthrough*/
+  case FEAT_DESTRUCTIVE_AURA:
+    daily_uses = GET_WIS_BONUS(ch);
+    break;
+  case FEAT_AURA_OF_PROTECTION: /*fallthrough*/
+  case FEAT_BLESSED_TOUCH:      /*fallthrough*/
+  case FEAT_EYE_OF_KNOWLEDGE:   /*fallthrough*/
+  case FEAT_HEALING_TOUCH:      /*fallthrough*/
+  case FEAT_GOOD_TOUCH:         /*fallthrough*/
+  case FEAT_FIRE_BOLT:          /* fallthrough */
+  case FEAT_ICICLE:             /* fallthrough */
+  case FEAT_ACID_DART:          /* fallthrough */
+  case FEAT_CURSE_TOUCH:        /* fallthrough */
+  case FEAT_DESTRUCTIVE_SMITE:  /* fallthrough */
+  case FEAT_EVIL_TOUCH:         /*fallthrough*/
+  case FEAT_LIGHTNING_ARC:
+    daily_uses = 3 + GET_WIS_BONUS(ch);
+    break;
+  case FEAT_SEEKER_ARROW:
+  case FEAT_IMBUE_ARROW:
+    daily_uses += HAS_FEAT(ch, featnum) * 2;
+    break;
+  case FEAT_INVISIBLE_ROGUE:
+    daily_uses += 1 + HAS_FEAT(ch, featnum) + GET_INT_BONUS(ch);
+    break;
+  case FEAT_IMPROMPTU_SNEAK_ATTACK:
+    daily_uses += 1 + HAS_FEAT(ch, featnum);
+    break;
+  case FEAT_SMITE_EVIL:
+  case FEAT_SMITE_GOOD:
+    daily_uses += HAS_FEAT(ch, featnum);
+    daily_uses += has_perk(ch, PERK_CLERIC_SMITE_EVIL_1);
+    daily_uses += has_perk(ch, PERK_CLERIC_SMITE_EVIL_2);
+    /* Knight of the Chalice perks */
+    daily_uses += get_perk_rank(ch, PERK_PALADIN_EXTRA_SMITE_1, CLASS_PALADIN);
+    daily_uses += get_perk_rank(ch, PERK_PALADIN_EXTRA_SMITE_2, CLASS_PALADIN);
+    break;
+  case FEAT_RAGE:             /*fallthrough*/
+  case FEAT_SACRED_FLAMES:    /*fallthrough*/
+  case FEAT_INNER_FIRE:       /*fallthrough*/
+  case FEAT_DEFENSIVE_STANCE: /*fallthrough*/
+  case FEAT_QUIVERING_PALM:   /*fallthrough*/
+  case FEAT_ARROW_OF_DEATH:   /*fallthrough*/
+  case FEAT_SWARM_OF_ARROWS:  /*fallthrough*/
+  case FEAT_WILD_SHAPE:       /*fallthrough*/
+  case FEAT_ANIMATE_DEAD:     /*fallthrough*/
+  case FEAT_VANISH:           /*fallthrough*/
+    daily_uses += HAS_FEAT(ch, featnum);
+    break;
+  case FEAT_DRACONIC_HERITAGE_BREATHWEAPON:
+    if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9)
+      daily_uses++;
+    if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 17)
+      daily_uses++;
+    if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20)
+      daily_uses++;
+    break;
+  case FEAT_PIXIE_DUST:
+    daily_uses = GET_REAL_CHA(ch) + 4;
+    break;
+  case FEAT_EFREETI_MAGIC:
+    daily_uses = 10;
+    break;
+  case FEAT_DRAGON_MAGIC:
+    daily_uses = 10;
+    break;
+  case FEAT_TABAXI_CATS_CLAWS:
+    daily_uses += MAX(1, GET_LEVEL(ch) / 3);
+    break;
+  case FEAT_DRACONIC_HERITAGE_CLAWS:
+    daily_uses += 3 + GET_CHA_BONUS(ch);
+    break;
+  case FEAT_DRAGONBORN_BREATH:
+    daily_uses = 3;
+    break;
+  case FEAT_MUTAGEN:
+    daily_uses = 1;
+    break;
+  case FEAT_TINKER:
+    daily_uses = 1;
+    break;
+  case FEAT_PSYCHOKINETIC:
+    daily_uses = 1;
+    break;
+  case FEAT_METAMAGIC_ADEPT:
+    daily_uses = 1;
+    break;
+  case FEAT_CURING_TOUCH:
+    if (KNOWS_DISCOVERY(ch, ALC_DISC_HEALING_TOUCH))
+      daily_uses += CLASS_LEVEL(ch, CLASS_ALCHEMIST);
+    else if (KNOWS_DISCOVERY(ch, ALC_DISC_SPONTANEOUS_HEALING))
+      daily_uses += CLASS_LEVEL(ch, CLASS_ALCHEMIST) / 2;
+    else
+      daily_uses = -1;
+    break;
+  }
+
+  return daily_uses;
+}
+
+/* Function to create an event, based on the mud_event passed in, that will either:
+ * 1.) Create a new event with the proper sVariables
+ * 2.) Update an existing event with a new sVariable value
+ *
+ * Returns the current number of uses on cooldown. */
+int start_daily_use_cooldown(struct char_data *ch, int featnum)
+{
+  struct mud_event_data *pMudEvent = NULL;
+  int uses = 0, daily_uses = 0;
+  char buf[MAX_STRING_LENGTH];
+  event_id iId = 0;
+
+  /* Transform the feat number to the event id for that ability. */
+  if ((iId = feat_list[featnum].event) == eNULL)
+  {
+    log("SYSERR: in start_daily_use_cooldown, no cooldown event defined for %s!",
+        feat_list[featnum].name);
+    return (0);
+  }
+
+  if ((daily_uses = get_daily_uses(ch, featnum)) < 1)
+  {
+    /* ch has no uses of this ability at all!  Error! */
+    log("SYSERR: in start_daily_use_cooldown, cooldown initiated for invalid ability (featnum: "
+        "%d)!",
+        featnum);
+    return (0);
+  }
+
+  if ((pMudEvent = char_has_mud_event(ch, iId)))
+  {
+    /* Player is on cooldown for this ability - just update the event. */
+    /* The number of uses is stored in the pMudEvent->sVariables field. */
+    if (pMudEvent->sVariables == NULL)
+    {
+      /* This is odd - This field should always be populated for daily-use abilities,
+       * maybe some legacy code or bad id. */
+      log("SYSERR: 2 sVariables field is NULL for daily-use-cooldown-event: %u", iId);
+    }
+    else
+    {
+      if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
+      {
+        log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %u",
+            iId);
+        uses = 0;
+      }
+      free(pMudEvent->sVariables);
+    }
+    uses++;
+
+    if (uses > daily_uses)
+      log("SYSERR: Daily uses exceeed maximum for %s, feat %s", GET_NAME(ch),
+          feat_list[featnum].name);
+
+    snprintf(buf, sizeof(buf), "uses:%d", uses);
+    pMudEvent->sVariables = strdup(buf);
+  }
+  else
+  {
+    /* No event - so attach one. */
+    uses = 1;
+    attach_mud_event(new_mud_event(iId, ch, "uses:1"), (SECS_PER_MUD_DAY / daily_uses) RL_SEC);
+  }
+
+  return uses;
+}
+
+/* Function to return the number of daily uses remaining for a particular ability.
+ * Returns the number of daily uses available or -1 if the feat is not a daily-use feat. */
+int daily_uses_remaining(struct char_data *ch, int featnum)
+{
+  struct mud_event_data *pMudEvent = NULL;
+  int uses = 0;
+  int uses_per_day = 0;
+  event_id iId = 0;
+
+  if ((iId = feat_list[featnum].event) == eNULL)
+    return -1;
+
+  if ((pMudEvent = char_has_mud_event(ch, iId)))
+  {
+    if (pMudEvent->sVariables == NULL)
+    {
+      /* This is odd - This field should always be populated for daily-use abilities,
+       * maybe some legacy code or bad id. */
+      log("SYSERR: 3 sVariables field is NULL for daily-use-cooldown-event: %u", iId);
+    }
+    else
+    {
+      if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
+      {
+        log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %u",
+            iId);
+        uses = 0;
+      }
+    }
+  }
+
+  uses_per_day = get_daily_uses(ch, featnum);
+
+  return uses_per_day - uses;
+}
+
+/* Function to create an event, based on the mud_event passed in, that will either:
+ * 1.) Create a new event with the proper sVariables
+ * 2.) Update an existing event with a new sVariable value
+ *
+ * Returns the current number of uses on cooldown. */
+int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab)
+{
+  struct mud_event_data *pMudEvent = NULL;
+  int uses = 0, daily_uses = 0;
+  char buf[128];
+  event_id iId = 0;
+
+  /* Transform the feat number to the event id for that ability. */
+  if ((iId = special_ability_info[specab].event) == eNULL)
+  {
+    log("SYSERR: in start_daily_use_cooldown, no cooldown event defined for %s!",
+        special_ability_info[specab].name);
+    return (0);
+  }
+
+  if ((daily_uses = special_ability_info[specab].daily_uses) < 1)
+  {
+    /* ch has no uses of this ability at all!  Error! */
+    log("SYSERR: in start_daily_use_cooldown, cooldown initiated for invalid ability (specab: %d)!",
+        specab);
+    return (0);
+  }
+
+  if ((pMudEvent = obj_has_mud_event(obj, iId)))
+  {
+    /* Player is on cooldown for this ability - just update the event. */
+    /* The number of uses is stored in the pMudEvent->sVariables field. */
+    if (pMudEvent->sVariables == NULL)
+    {
+      /* This is odd - This field should always be populated for daily-use abilities,
+       * maybe some legacy code or bad id. */
+      log("SYSERR: 4 sVariables field is NULL for daily-use-cooldown-event: %u", iId);
+    }
+    else
+    {
+      if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
+      {
+        log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %u",
+            iId);
+        uses = 0;
+      }
+      free(pMudEvent->sVariables);
+    }
+    uses++;
+
+    if (uses > daily_uses)
+      log("SYSERR: Daily uses exceeed maximum for %s, specab %s", obj->name,
+          special_ability_info[specab].name);
+
+    snprintf(buf, sizeof(buf), "uses:%d", uses);
+    pMudEvent->sVariables = strdup(buf);
+  }
+  else
+  {
+    /* No event - so attach one. */
+    uses = 1;
+    attach_mud_event(new_mud_event(iId, obj, "uses:1"), (SECS_PER_MUD_DAY / daily_uses) RL_SEC);
+  }
+
+  return uses;
+}
+
+/* Function to return the number of daily uses remaining for a particular armor special ability.
+ * Returns the number of daily uses available or -1 if the object does not have that special ability. */
+int daily_item_specab_uses_remaining(struct obj_data *obj, int specab)
+{
+  struct mud_event_data *pMudEvent = NULL;
+  int uses = 0;
+  int uses_per_day = 0;
+  event_id iId = 0;
+
+  if ((iId = special_ability_info[specab].event) == eNULL)
+    return -1;
+
+  if ((pMudEvent = obj_has_mud_event(obj, iId)))
+  {
+    if (pMudEvent->sVariables == NULL)
+    {
+      /* This is odd - This field should always be populated for daily-use abilities,
+       * maybe some legacy code or bad id. */
+      log("SYSERR: 5 sVariables field is NULL for daily-use-cooldown-event: %u", iId);
+    }
+    else
+    {
+      if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
+      {
+        log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %u",
+            iId);
+        uses = 0;
+      }
+    }
+  }
+
+  uses_per_day = special_ability_info[specab].daily_uses;
+
+  return uses_per_day - uses;
+}
+
+/* line_string()
+ * Generate and return a string, alternating between first and second for length characters.
+ */
+char *line_string(int length, char first, char second)
+{
+  static char buf[MAX_STRING_LENGTH] = {'\0'}; /* Note - static! */
+  int i = 0;
+  while (i < length)
+    if ((i % 2) == 0)
+      buf[i++] = first;
+    else
+      buf[i++] = second;
+
+  buf[i++] = '\r';
+  buf[i++] = '\n';
+  buf[i] = '\0'; /* String terminator */
+
+  return buf;
+}
+
+void draw_line(struct char_data *ch, int length, char first, char second)
+{
+  send_to_char(ch, "%s", line_string(length, first, second));
+}
+
+/*  text_line_string()
+ *  Generate and return a string, as above, with text centered.
+ */
+const char *text_line_string(const char *text, int length, char first, char second)
+{
+  int text_length, text_print_length, pre_length;
+  int i = 0, j = 0;
+  static char buf[MAX_STRING_LENGTH] = {'\0'}; /* Note - static! */
+
+  text_length = (int)strlen(text);
+  text_print_length = count_non_protocol_chars(text);
+
+  pre_length = (length - (text_print_length)) / 2; /* (length - (text length + '[  ]'))/2 */
+  //  pre_length = (length - (text_length + 4))/2; /* (length - (text length + '[  ]'))/2 */
+  //  pre_length = 2;
+
+  while (i < pre_length)
+  {
+    if ((i % 2) == 0)
+      buf[i] = first;
+    else
+      buf[i] = second;
+    i++;
+  }
+  //  buf[i++] = '[';
+  //  buf[i++] = ' ';
+
+  while (j < text_length)
+    buf[i++] = text[j++];
+
+  //  buf[i++] = ' ';
+  //  buf[i++] = ']';
+
+  while (i < length + (text_length - text_print_length)) /* Have to include the non printables */
+    if ((i % 2) == 0)
+      buf[i++] = first;
+    else
+      buf[i++] = second;
+  buf[i++] = '\r';
+  buf[i++] = '\n';
+  buf[i] = '\0'; /* Terminate the string. */
+
+  return buf;
+}
+
+void text_line(struct char_data *ch, const char *text, int length, char first, char second)
+{
+  send_to_char(ch, "%s", text_line_string(text, length, first, second));
+}
+
+/* Time formatting helpers */
+bool format_time_string(time_t when, const char *format, char *buf, size_t size)
+{
+  struct tm tm_info;
+
+  if (!buf || size == 0)
+    return FALSE;
+
+  *buf = '\0';
+  if (!format || !localtime_r(&when, &tm_info) || strftime(buf, size, format, &tm_info) == 0)
+  {
+    strlcpy(buf, "Unknown", size);
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+const char *format_time_ymd_hms(time_t when)
+{
+  static char buf[20]; /* YYYY-MM-DD HH:MM:SS -> 19 + NUL */
+
+  format_time_string(when, "%Y-%m-%d %H:%M:%S", buf, sizeof(buf));
+  return buf;
+}
+
+/* Directory creation helper */
+#ifdef _WIN32
+#include <direct.h>
+#define MKDIR(path) _mkdir(path)
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
+#define MKDIR(path) mkdir(path, 0775)
+#endif
+
+bool ensure_dir_exists(const char *path)
+{
+  if (path == NULL || *path == '\0')
+    return false;
+
+  /* Work on a mutable copy */
+  char tmp[MAX_INPUT_LENGTH];
+  strlcpy(tmp, path, sizeof(tmp));
+
+  size_t len = strlen(tmp);
+  if (len == 0)
+    return false;
+
+  /* Remove trailing slash to avoid creating empty segment */
+  if (tmp[len - 1] == '/' || tmp[len - 1] == '\\')
+    tmp[len - 1] = '\0';
+
+  char *p = tmp;
+  /* For absolute paths starting with '/', skip initial slash */
+  if (*p == '/')
+    p++;
+
+  for (; *p; ++p)
+  {
+    if (*p == '/' || *p == '\\')
+    {
+      *p = '\0';
+      if (strlen(tmp) > 0)
+      {
+        if (MKDIR(tmp) != 0)
+        {
+          /* Ignore if already exists */
+          /* On POSIX, EEXIST; on Windows, errno also set */
+        }
+      }
+      *p = '/';
+    }
+  }
+  /* Create full path */
+  if (MKDIR(tmp) != 0)
+  {
+    /* Ignore if already exists */
+  }
+  return true;
+}
+
+/** Flushes, synchronizes, closes, and atomically installs a temporary file.
+ * The temporary file is intentionally preserved if any stage fails so an
+ * operator can inspect or recover it. The destination is never removed before
+ * replacement, so a failed replacement leaves the previous file intact.
+ *
+ * @param stream Open stream associated with temporary_path. This function
+ * always closes a non-NULL stream before returning.
+ * @param temporary_path Path to the completed temporary file.
+ * @param destination_path Live path to replace.
+ * @retval true Every buffered byte was written and the replacement succeeded.
+ * @retval false Validation, write, synchronization, close, or replacement
+ * failed. A SYSERR identifying the stage and both paths is logged. */
+bool finish_file_save(FILE *stream, const char *temporary_path, const char *destination_path)
+{
+  const char *stage = "validate arguments";
+  int saved_errno = EINVAL;
+  bool failed = false;
+
+  if (stream == NULL || temporary_path == NULL || *temporary_path == '\0' ||
+      destination_path == NULL || *destination_path == '\0')
+  {
+    if (stream != NULL)
+      fclose(stream);
+    log("SYSERR: Durable file replacement failed during %s (%s -> %s): %s", stage,
+        temporary_path ? temporary_path : "(null)", destination_path ? destination_path : "(null)",
+        strerror(saved_errno));
+    errno = saved_errno;
+    return false;
+  }
+
+  stage = "write temporary file";
+  if (ferror(stream))
+  {
+    failed = true;
+    saved_errno = errno ? errno : EIO;
+  }
+  if (fflush(stream) != 0 && !failed)
+  {
+    failed = true;
+    saved_errno = errno ? errno : EIO;
+  }
+
+  if (!failed)
+  {
+    stage = "synchronize temporary file";
+#ifdef CIRCLE_WINDOWS
+    if (_commit(_fileno(stream)) != 0)
+#else
+    if (fsync(fileno(stream)) != 0)
+#endif
+    {
+      failed = true;
+      saved_errno = errno ? errno : EIO;
+    }
+  }
+
+  if (fclose(stream) != 0 && !failed)
+  {
+    stage = "close temporary file";
+    failed = true;
+    saved_errno = errno ? errno : EIO;
+  }
+
+  if (failed)
+  {
+    log("SYSERR: Durable file replacement failed during %s (%s -> %s): %s", stage, temporary_path,
+        destination_path, strerror(saved_errno));
+    errno = saved_errno;
+    return false;
+  }
+
+  stage = "replace destination";
+#ifdef CIRCLE_WINDOWS
+  if (!MoveFileExA(temporary_path, destination_path,
+                   MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
+  {
+    log("SYSERR: Durable file replacement failed during %s (%s -> %s): Windows error %lu", stage,
+        temporary_path, destination_path, (unsigned long)GetLastError());
+    return false;
+  }
+#else
+  if (rename(temporary_path, destination_path) != 0)
+  {
+    saved_errno = errno ? errno : EIO;
+    log("SYSERR: Durable file replacement failed during %s (%s -> %s): %s", stage, temporary_path,
+        destination_path, strerror(saved_errno));
+    errno = saved_errno;
+    return false;
+  }
+#endif
+
+  return true;
+}
+
+/* Name:   calculate_cp
+ * Author: Ornir
+ * Param:  Object to calculate cp for
+ * Return: cp value for the given object. */
+int calculate_cp(struct obj_data *obj)
+{
+  int current_cp = 0;
+  struct obj_special_ability *specab;
+
+  if (!obj)
+    return 0;
+
+  switch (GET_OBJ_TYPE(obj))
+  {
+  case ITEM_WEAPON: /* obj is a weapon, use the cp calc for weapons. */
+    current_cp += GET_ENHANCEMENT_BONUS(obj) * GET_ENHANCEMENT_BONUS(obj) * 2000;
+
+    for (specab = obj->special_abilities; specab != NULL; specab = specab->next)
+    {
+      current_cp += (special_ability_info[specab->ability].cost *
+                     special_ability_info[specab->ability].cost * 2000);
+    }
+
+    break;
+  default: /* No idea what this is. */
+    break;
+  }
+
+  (void)current_cp;
+  return 0;
+}
+
+bool is_incorporeal(struct char_data *ch)
+{
+  if (AFF_FLAGGED(ch, AFF_IMMATERIAL) || HAS_SUBRACE(ch, SUBRACE_INCORPOREAL))
+    return true;
+
+  // not the most elegant... but we can fix later if we want.
+  return is_immaterial(ch);
+}
+
+bool paralysis_immunity(struct char_data *ch)
+{
+  if (!ch)
+    return FALSE;
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOPARALYZE))
+    return TRUE;
+  if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS))
+    return TRUE;
+  if (HAS_FEAT(ch, FEAT_PARALYSIS_IMMUNITY))
+    return TRUE;
+  if (HAS_FEAT(ch, FEAT_ONE_OF_US))
+    return TRUE;
+  if (HAS_FEAT(ch, FEAT_ESSENCE_OF_UNDEATH))
+    return TRUE;
+  if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
+    return TRUE;
+  if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE) &&
+      get_evolution_appearance_save_bonus(ch) == 100)
+    return TRUE;
+
+
+  return FALSE;
+}
+
+bool sleep_immunity(struct char_data *ch)
+{
+  if (!ch)
+    return FALSE;
+  if (char_has_object_flag(ch, ITEM_ROL_NO_SLEEP))
+    return TRUE;
+  if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS))
+    return TRUE;
+  if (HAS_FEAT(ch, FEAT_SLEEP_ENCHANTMENT_IMMUNITY))
+    return TRUE;
+  if (HAS_FEAT(ch, FEAT_ONE_OF_US))
+    return TRUE;
+  if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE) &&
+      get_evolution_appearance_save_bonus(ch) == 100)
+    return TRUE;
+
+  return FALSE;
+}
+
+bool char_has_worn_object_flag(struct char_data *ch, int flag)
+{
+  int i;
+
+  if (!ch || flag < 0 || flag >= NUM_ITEM_FLAGS)
+    return false;
+
+  for (i = 0; i < NUM_WEARS; i++)
+    if (GET_EQ(ch, i) && OBJ_FLAGGED(GET_EQ(ch, i), flag))
+      return true;
+
+  return false;
+}
+
+bool char_has_object_flag(struct char_data *ch, int flag)
+{
+  struct obj_data *obj;
+
+  if (char_has_worn_object_flag(ch, flag))
+    return true;
+  if (!ch || flag < 0 || flag >= NUM_ITEM_FLAGS)
+    return false;
+
+  for (obj = ch->carrying; obj; obj = obj->next_content)
+    if (OBJ_FLAGGED(obj, flag))
+      return true;
+
+  return false;
+}
+
+sbyte is_immune_death_magic(struct char_data *ch, struct char_data *victim, sbyte display)
+{
+  if (AFF_FLAGGED(victim, AFF_DEATH_WARD))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s appears to be immune to death magic!\r\n", GET_NAME(victim));
+      send_to_char(victim, "You are protected from death magic by your death ward!\r\n");
+    }
+    return TRUE;
+  }
+  if (HAS_REAL_FEAT(victim, FEAT_ESSENCE_OF_UNDEATH))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s appears to be immune to death magic!\r\n", GET_NAME(victim));
+      send_to_char(victim, "You are protected from death magic by your undead essence!\r\n");
+    }
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display)
+{
+  /* Beast Master: Alpha Bond companion immunity */
+  if (IS_NPC(victim) && victim->master && !IS_NPC(victim->master) &&
+      MOB_FLAGGED(victim, MOB_C_ANIMAL) && ranger_companion_immune_fear(victim->master))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your Alpha Bond protects you from fear!\r\n");
+    }
+    return TRUE;
+  }
+
+  if (HAS_FEAT(victim, FEAT_KENDER_FEARLESSNESS))
+    return true;
+
+  if (HAS_FEAT(victim, FEAT_UNBREAKABLE_WILL))
+    return true;
+
+  if (HAS_FEAT(victim, FEAT_KNIGHTLY_COURAGE))
+    return true;
+
+  /* Stalwart perk grants fear immunity */
+  if (!IS_NPC(victim) && has_perk(victim, PERK_FIGHTER_STALWART))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your stalwart resolve protects you!\r\n");
+    }
+    return TRUE;
+  }
+
+  if (affected_by_aura_of_cowardice(victim))
+  {
+    return FALSE;
+  }
+
+  if (affected_by_spell(victim, SPELL_LITANY_OF_DEFENSE))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your litany of defense protects you!\r\n");
+    }
+    return TRUE;
+  }
+
+  if (!IS_NPC(victim) && has_aura_of_courage(victim))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your divine courage protects you!\r\n");
+    }
+    return TRUE;
+  }
+  if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_RP_FEARLESS_RAGE) &&
+      affected_by_spell(victim, SKILL_RAGE))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your fearless rage protects you!\r\n");
+    }
+    return TRUE;
+  }
+  if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_FEARLESS_DEFENSE) &&
+      affected_by_spell(victim, SKILL_DEFENSIVE_STANCE))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your fearless defense protects you!\r\n");
+    }
+    return TRUE;
+  }
+
+  if (AFF_FLAGGED(victim, AFF_BRAVERY))
+  {
+    if (display)
+    {
+      send_to_char(victim, "Your bravery overcomes the fear!\r\n");
+      act("$n \tWovercomes the \tDfear\tW with bravery!\tn\tn", TRUE, ch, 0, 0, TO_CHAR);
+    }
+    return TRUE;
+  }
+
+  if (affected_by_spell(victim, SPELL_GREATER_HEROISM))
+  {
+    if (display)
+    {
+      send_to_char(victim, "Your heroism overcomes the fear!\r\n");
+      act("$n \tWovercomes the \tDfear\tW with heroism!\tn\tn", TRUE, ch, 0, 0, TO_CHAR);
+    }
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, sbyte display)
+{
+  /* Beast Master: Primal Avatar companion immunity */
+  if (IS_NPC(victim) && victim->master && !IS_NPC(victim->master) &&
+      MOB_FLAGGED(victim, MOB_C_ANIMAL) && ranger_companion_immune_mind(victim->master))
+  {
+    if (display)
+    {
+      send_to_char(ch,
+                   "%s is a Primal Beast and immune to mind affecting spells and abilities!\r\n",
+                   GET_NAME(victim));
+      send_to_char(victim,
+                   "You are a Primal Beast and thus are immune to %s's mind-affecting spells and "
+                   "abilities!\r\n",
+                   GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
+  if ((IS_UNDEAD(victim) || HAS_FEAT(victim, FEAT_ONE_OF_US)) &&
+      !HAS_FEAT(ch, FEAT_UNDEAD_BLOODLINE_ARCANA))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s is undead and thus immune to mind affecting spells and abilities!\r\n",
+                   GET_NAME(victim));
+      send_to_char(
+          victim,
+          "You are undead and thus are immune to %s's mind-affecting spells and abilities!\r\n",
+          GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
+  if (IS_CONSTRUCT(victim))
+  {
+    if (display)
+    {
+      send_to_char(ch,
+                   "%s is a construct and thus immune to mind affecting spells and abilities!\r\n",
+                   GET_NAME(victim));
+      send_to_char(victim,
+                   "You are a construct and thus are immune to %s's mind-affecting spells and "
+                   "abilities!\r\n",
+                   GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
+  /* Explicit immunity for crafted golems even if race data is missing */
+  if (IS_GOLEM(victim))
+  {
+    if (display)
+    {
+      send_to_char(ch,
+                   "%s is a golem construct and immune to mind affecting spells and abilities!\r\n",
+                   GET_NAME(victim));
+      send_to_char(victim, "Your golem nature shrugs off %s's mind-affecting magic.\r\n",
+                   GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
+  if (IS_OOZE(victim))
+  {
+    if (display)
+    {
+      send_to_char(
+          ch,
+          "%s is of racial type 'ooze' and thus immune to mind affecting spells and abilities!\r\n",
+          GET_NAME(victim));
+      send_to_char(victim,
+                   "You are of racial type 'ooze' and thus are immune to %s's mind-affecting "
+                   "spells and abilities!\r\n",
+                   GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
+  if (AFF_FLAGGED(victim, AFF_MIND_BLANK))
+  {
+    if (display)
+    {
+      send_to_char(ch, "Mind blank protects %s!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Mind blank protects you from %s!\r\n", GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
+  if (affected_by_spell(victim, PSIONIC_THOUGHT_SHIELD))
+  {
+    int resist = get_char_affect_modifier(victim, PSIONIC_THOUGHT_SHIELD, APPLY_SPECIAL) +
+                 get_power_resist_mod(victim);
+    int penetrate = d20(ch) + GET_PSIONIC_LEVEL(ch) + get_power_penetrate_mod(ch);
+    if (resist > penetrate)
+    {
+      if (display)
+      {
+        send_to_char(ch, "Thought shield protects %s!\r\n", GET_NAME(victim));
+        send_to_char(victim, "Thought shield protects you from %s!\r\n", GET_NAME(ch));
+      }
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+sbyte is_immune_charm(struct char_data *ch, struct char_data *victim, sbyte display)
+{
+  if (AFF_FLAGGED(victim, AFF_MIND_BLANK))
+  {
+    if (display)
+    {
+      send_to_char(ch, "Mind blank protects %s!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Mind blank protects you from %s!\r\n", GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
+  if (affected_by_spell(victim, SPELL_HOLY_AURA))
+  {
+    if (display)
+    {
+      send_to_char(ch, "Holy Aura protects %s!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Holy Aura protects you from %s!\r\n", GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
+  if (affected_by_spell(victim, AFFECT_KNIGHTHOODS_FLOWER))
+  {
+    if (display)
+    {
+      send_to_char(ch, "Knighthood's Flower protects %s!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Knighthood's Flower protects you from %s!\r\n", GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
+  if (HAS_FEAT(victim, FEAT_SLEEP_ENCHANTMENT_IMMUNITY))
+    return TRUE;
+  return FALSE;
+}
+
+bool has_aura_of_courage(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (HAS_FEAT(ch, FEAT_AURA_OF_COURAGE))
+    return true;
+
+  struct char_data *tch = NULL;
+
+  bool has_aura = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (HAS_FEAT(tch, FEAT_AURA_OF_COURAGE))
+      {
+        has_aura = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return has_aura;
+}
+
+bool has_aura_of_terror(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (HAS_FEAT(ch, FEAT_AURA_OF_TERROR))
+    return true;
+
+  struct char_data *tch = NULL;
+
+  bool has_aura = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (HAS_FEAT(tch, FEAT_AURA_OF_TERROR))
+      {
+        has_aura = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return has_aura;
+}
+
+int leadership_exp_multiplier(struct char_data *ch)
+{
+  int exp_mult = 100;
+  if (!ch)
+    return exp_mult;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return exp_mult;
+
+  if (!GROUP(ch) && HAS_FEAT(ch, FEAT_LEADERSHIP))
+  {
+    exp_mult = 100 + ((HAS_FEAT(ch, FEAT_LEADERSHIP) + 1) * 5);
+    return exp_mult;
+  }
+
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (GROUP(ch) != GROUP(tch))
+      continue;
+    if (HAS_FEAT(tch, FEAT_LEADERSHIP))
+    {
+      exp_mult = MAX(exp_mult, 100 + ((HAS_FEAT(tch, FEAT_LEADERSHIP) + 1) * 5));
+    }
+  }
+
+  return exp_mult;
+}
+
+bool has_fortune_of_many_bonus(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  struct char_data *tch = NULL;
+  int num_members = 0;
+  bool has_fortune = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      num_members++;
+      if (HAS_FEAT(tch, FEAT_FORTUNE_OF_THE_MANY))
+      {
+        has_fortune = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return (has_fortune && (num_members > 1));
+}
+
+bool has_authoritative_bonus(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  struct char_data *tch = NULL;
+  int num_members = 0;
+  bool has_authority = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      num_members++;
+      if (HAS_FEAT(tch, FEAT_AUTHORITATIVE))
+      {
+        has_authority = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return (has_authority && (num_members > 1));
+}
+
+bool has_bite_attack(struct char_data *ch)
+{
+  if (HAS_FEAT(ch, FEAT_DRACONIAN_BITE))
+    return true;
+
+  return false;
+}
+
+void perform_draconian_death_throes(struct char_data *ch)
+{
+  if (!IS_NPC(ch))
+  {
+    if (!IS_DRACONIAN(ch))
+      return;
+
+    switch (GET_RACE(ch))
+    {
+    case LEGACY_RACE_BAAZ_DRACONIAN:
+      call_magic(ch, 0, 0, ABILITY_BAAZ_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
+      return;
+    case LEGACY_RACE_KAPAK_DRACONIAN:
+      call_magic(ch, 0, 0, ABILITY_KAPAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
+      return;
+    case LEGACY_RACE_BOZAK_DRACONIAN:
+      call_magic(ch, 0, 0, ABILITY_BOZAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
+      return;
+    }
+  }
+  else
+  {
+    if (HAS_FEAT(ch, FEAT_BAAZ_DEATH_THROES))
+    {
+      call_magic(ch, 0, 0, ABILITY_BAAZ_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
+      return;
+    }
+    if (HAS_FEAT(ch, FEAT_KAPAK_DEATH_THROES))
+    {
+      call_magic(ch, 0, 0, ABILITY_KAPAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
+      return;
+    }
+    if (HAS_FEAT(ch, FEAT_BOZAK_DEATH_THROES))
+    {
+      call_magic(ch, 0, 0, ABILITY_BOZAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
+      return;
+    }
+  }
+}
+
+bool is_grouped_with_dragon(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  struct char_data *tch = NULL;
+
+  bool is_dragon = false;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (IS_DRAGON(tch) || IS_DRACONIAN(tch))
+      {
+        is_dragon = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return is_dragon;
+}
+
+bool has_aura_of_good(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_GOOD || GET_SUBRACE(ch, 1) == SUBRACE_GOOD ||
+                     GET_SUBRACE(ch, 2) == SUBRACE_GOOD))
+    return true;
+
+  if (HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
+    return true;
+
+  struct char_data *tch = NULL;
+
+  bool has_aura = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (HAS_FEAT(tch, FEAT_AURA_OF_GOOD))
+      {
+        has_aura = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return has_aura;
+}
+
+bool has_one_thought(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (IS_NPC(ch))
+    return false;
+
+  if (HAS_FEAT(ch, FEAT_ONE_THOUGHT))
+    return true;
+
+  struct char_data *tch = NULL;
+
+  bool has_one_thought = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (HAS_FEAT(tch, FEAT_ONE_THOUGHT))
+      {
+        has_one_thought = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return has_one_thought;
+}
+
+bool is_grouped_in_room(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  struct char_data *tch = NULL;
+  bool grouped = false;
+  int num = 0;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+
+      num++;
+      grouped = true;
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return (num >= 2 && grouped);
+}
+
+bool has_aura_of_evil(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_EVIL || GET_SUBRACE(ch, 1) == SUBRACE_EVIL ||
+                     GET_SUBRACE(ch, 2) == SUBRACE_EVIL))
+    return true;
+
+  if (HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
+    return true;
+
+  struct char_data *tch = NULL;
+
+  bool has_aura = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (HAS_FEAT(tch, FEAT_AURA_OF_EVIL))
+      {
+        has_aura = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return has_aura;
+}
+
+bool can_speak_language(struct char_data *ch, int language)
+{
+  if (!ch)
+    return false;
+  if (language < LANG_COMMON || language >= NUM_LANGUAGES)
+    return false;
+
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    return true;
+  if (language == LANG_COMMON)
+    return true;
+  if (language == (race_list[GET_REAL_RACE(ch)].racial_language - SKILL_LANG_LOW))
+    return true;
+  if (ch->player_specials->saved.languages_known[language])
+    return true;
+  if (language == LANG_DRUIDIC && CLASS_LEVEL(ch, CLASS_DRUID))
+    return true;
+  if (language == LANG_THIEVES_CANT &&
+      (CLASS_LEVEL(ch, CLASS_ROGUE) || HAS_FEAT(ch, FEAT_BG_CRIMINAL)))
+    return true;
+  if (language == get_region_language(GET_REGION(ch)))
+    return true;
+
+  return false;
+}
+
+bool can_understand_language(struct char_data *ch, int language)
+{
+  if (ch == NULL)
+    return false;
+
+  return can_speak_language(ch, language) || affected_by_spell(ch, SPELL_COMPREHEND_LANGUAGES);
+}
+
+bool group_member_affected_by_spell(struct char_data *ch, int spellnum)
+{
+  if (!ch)
+    return false;
+
+  if (affected_by_spell(ch, spellnum))
+    return true;
+
+  struct char_data *tch = NULL;
+
+  bool has_aura = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (affected_by_spell(tch, spellnum))
+      {
+        has_aura = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return has_aura;
+}
+
+bool affected_by_aura_of_sin(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+  if (!IS_EVIL(ch))
+    return false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (ch == tch)
+      return false;
+    if (GROUP(ch) != GROUP(tch))
+      return false;
+    if (HAS_FEAT(tch, FEAT_AURA_OF_SIN))
+      return true;
+  }
+
+  return true;
+}
+
+bool affected_by_aura_of_faith(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+  if (!IS_GOOD(ch))
+    return false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (ch == tch)
+      return false;
+    if (GROUP(ch) != GROUP(tch))
+      return false;
+    if (HAS_FEAT(tch, FEAT_AURA_OF_FAITH))
+      return true;
+  }
+
+  return true;
+}
+
+bool affected_by_aura_of_righteousness(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (ch == tch)
+      return false;
+    if (GROUP(ch) != GROUP(tch))
+      return false;
+    if (HAS_FEAT(tch, FEAT_AURA_OF_RIGHTEOUSNESS))
+      return true;
+  }
+
+  return true;
+}
+
+bool affected_by_aura_of_cowardice(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (ch == tch)
+      return false;
+    if (GROUP(ch) == GROUP(tch))
+      return false;
+    if (!pvp_ok_single(ch, false))
+      return false;
+    if (HAS_FEAT(tch, FEAT_AURA_OF_COWARDICE))
+      return true;
+  }
+
+  return true;
+}
+
+bool affected_by_aura_of_depravity(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (ch == tch)
+      return false;
+    if (GROUP(ch) == GROUP(tch))
+      return false;
+    if (!pvp_ok_single(ch, false))
+      return false;
+    if (HAS_FEAT(tch, FEAT_AURA_OF_DEPRAVITY))
+      return true;
+  }
+
+  return true;
+}
+
+bool affected_by_aura_of_despair(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (ch == tch)
+      return false;
+    if (GROUP(ch) == GROUP(tch))
+      return false;
+    if (!pvp_ok_single(ch, false))
+      return false;
+    if (HAS_FEAT(tch, FEAT_AURA_OF_DESPAIR))
+      return true;
+  }
+
+  return true;
+}
+
+bool is_fear_spell(int spellnum)
+{
+  switch (spellnum)
+  {
+  case SPELL_DOOM:
+    return true;
+  }
+  return false;
+}
+
+void remove_fear_affects(struct char_data *ch, sbyte display __attribute__((unused)))
+{
+  // aura of cowardice nullifies any fear immunity
+  if (affected_by_aura_of_cowardice(ch))
+    return;
+
+  /* fear -> skill-courage*/
+  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN)) &&
+      (!IS_NPC(ch) && has_aura_of_courage(ch)))
+  {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SHAKEN);
+    send_to_char(ch, "Your divine courage overcomes the fear!\r\n");
+    act("$n \tWovercomes the \tDfear\tW with courage!\tn\tn", TRUE, ch, 0, 0, TO_ROOM);
+    return;
+  }
+
+  /* fearless rage */
+  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN)) && !IS_NPC(ch) &&
+      HAS_FEAT(ch, FEAT_RP_FEARLESS_RAGE) && affected_by_spell(ch, SKILL_RAGE))
+  {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SHAKEN);
+    send_to_char(ch, "Your fearless rage overcomes the fear!\r\n");
+    act("$n \tWis bolstered by $s fearless rage and overcomes $s \tDfear!\tn\tn", TRUE, ch, 0, 0,
+        TO_ROOM);
+    return;
+  }
+
+  /* fearless defense */
+  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN)) && !IS_NPC(ch) &&
+      HAS_FEAT(ch, FEAT_FEARLESS_DEFENSE) && affected_by_spell(ch, SKILL_DEFENSIVE_STANCE))
+  {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SHAKEN);
+    send_to_char(ch, "Your fearless defense overcomes the fear!\r\n");
+    act("$n \tWis bolstered by $s fearless defense and overcomes $s \tDfear!\tn\tn", TRUE, ch, 0, 0,
+        TO_ROOM);
+    return;
+  }
+
+  /* fear -> spell-bravery */
+  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN)) && AFF_FLAGGED(ch, AFF_BRAVERY))
+  {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SHAKEN);
+    send_to_char(ch, "Your bravery overcomes the fear!\r\n");
+    act("$n \tWovercomes the \tDfear\tW with bravery!\tn\tn", TRUE, ch, 0, 0, TO_ROOM);
+    return;
+  }
+}
+
+int get_poison_save_mod(struct char_data *ch, struct char_data *victim)
+{
+  int bonus = 0;
+
+  if (HAS_FEAT(victim, FEAT_POISON_RESIST)) // poison resist feat
+    bonus += 4;
+  if (GET_RACE(victim) == RACE_DWARF || // dwarf dwarven poison resist
+      GET_RACE(victim) == RACE_DUERGAR || GET_RACE(victim) == RACE_CRYSTAL_DWARF)
+    bonus += 2;
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+    bonus -= 4;
+  if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE) ||
+      HAS_EVOLUTION(victim, EVOLUTION_CELESTIAL_APPEARANCE))
+    bonus += get_evolution_appearance_save_bonus(victim);
+
+  bonus += HAS_FEAT(ch, FEAT_POISON_SAVE_BONUS);
+
+  return bonus;
+}
+
+// will return TRUE if the poison is resisted, otherwise will return false
+// includes the saving throw against poison.
+bool check_poison_resist(struct char_data *ch, struct char_data *victim, int casttype, int level)
+{
+  if (!can_poison(victim))
+    return true;
+
+  if (HAS_FEAT(victim, FEAT_POISON_IMMUNITY) || HAS_FEAT(victim, FEAT_SOUL_OF_THE_FEY))
+    return TRUE;
+
+  int bonus = 0;
+
+  if (casttype != CAST_INNATE && casttype != CAST_DEVICE && mag_resistance(ch, victim, 0))
+    return TRUE;
+
+  bonus += get_poison_save_mod(ch, victim);
+
+  if (savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level, ENCHANTMENT))
+  {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int is_player_grouped(struct char_data *target, struct char_data *group)
+{
+  struct char_data *k = NULL;
+  struct follow_type *f = NULL;
+
+  if (!target || !group)
+    return FALSE;
+
+  if (group == target)
+    return TRUE;
+
+  if (!(target->group && group->group && target->group == group->group))
+    return FALSE;
+
+  if (group == target->master || target == group->master)
+    return TRUE;
+
+  if (group->master)
+    k = group->master;
+  else
+    k = group;
+
+  for (f = k->followers; f; f = f->next)
+  {
+    if (f->follower == target)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Check if two characters are effectively grouped together.
+ *
+ * For players and their pets/charmed mobs, uses standard GROUP() checks.
+ * For mobs, also considers mobs following other mobs in the same room as grouped.
+ *
+ * This is useful for mob AI decisions about group-oriented spells/abilities.
+ *
+ * @param ch First character
+ * @param target Second character to check against
+ * @return TRUE if effectively grouped, FALSE otherwise
+ */
+bool are_grouped(struct char_data *ch, struct char_data *target)
+{
+  if (!ch || !target)
+    return FALSE;
+
+  if (ch == target)
+    return TRUE;
+
+  /* Standard group check - works for players and their pets/charmies */
+  if (GROUP(ch) && GROUP(target) && GROUP(ch) == GROUP(target))
+    return TRUE;
+
+  /* For mobs: Check if they're following each other in the same room */
+  if (IS_NPC(ch) && IS_NPC(target) && IN_ROOM(ch) == IN_ROOM(target))
+  {
+    /* Check if target is following ch */
+    if (target->master == ch)
+      return TRUE;
+
+    /* Check if ch is following target */
+    if (ch->master == target)
+      return TRUE;
+
+    /* Check if both are following the same leader */
+    if (ch->master && target->master && ch->master == target->master)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+bool can_fly(struct char_data *ch)
+{
+  if (!ch)
+    return FALSE;
+
+  if (HAS_FEAT(ch, FEAT_WINGS))
+    return TRUE;
+
+  if (HAS_FEAT(ch, FEAT_FAE_FLIGHT))
+    return TRUE;
+
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_WINGS))
+    return TRUE;
+
+  if (affected_by_spell(ch, SKILL_DRHRT_WINGS))
+    return TRUE;
+
+  if (affected_by_spell(ch, SPELL_FLY))
+    return TRUE;
+
+  struct obj_data *obj = NULL;
+  int i = 0;
+
+  /* Non-wearable flying items in inventory will do it. */
+  for (obj = ch->carrying; obj; obj = obj->next_content)
+    if (OBJAFF_FLAGGED(obj, AFF_FLYING) && (find_eq_pos(ch, obj, NULL) < 0))
+      return (1);
+
+  /* Any equipped objects with AFF_FLYING will do it too. */
+  for (i = 0; i < NUM_WEARS; i++)
+    if (GET_EQ(ch, i) && OBJAFF_FLAGGED(GET_EQ(ch, i), AFF_FLYING))
+      return (1);
+
+  return FALSE;
+}
+
+bool is_flying(struct char_data *ch)
+{
+  if (!ch)
+    return FALSE;
+
+  if (AFF_FLAGGED(ch, AFF_FLYING))
+    return TRUE;
+
+  if (RIDING(ch))
+  {
+    if (AFF_FLAGGED(RIDING(ch), AFF_FLYING))
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+void do_study_spell_help(struct char_data *ch, int spellnum)
+{
+  char buf[MEDIUM_STRING] = {'\0'};
+
+  switch (spellnum)
+  {
+  case SPELL_STRENGTH:
+  case SPELL_SLOW:
+  case SPELL_WISDOM:
+  case SPELL_CHARISMA:
+  case SPELL_TELEPORT:
+    snprintf(buf, sizeof(buf), "spell %s", spell_info[spellnum].name);
+    do_help(ch, buf, 0, 0);
+    break;
+
+  case SPELL_NON_DETECTION:
+    snprintf(buf, sizeof(buf), "non detection");
+    do_help(ch, buf, 0, 0);
+    break;
+
+  case SPELL_IRRESISTIBLE_DANCE:
+    snprintf(buf, sizeof(buf), "irrisistable dance");
+    do_help(ch, buf, 0, 0);
+    break;
+
+  case SPELL_IRONSKIN:
+    snprintf(buf, sizeof(buf), "ironskin");
+    do_help(ch, buf, 0, 0);
+    break;
+
+  default:
+    do_help(ch, spell_info[spellnum].name, 0, 0);
+    break;
+  }
+}
+
+static bool pvp_controlling_player(struct char_data *ch, struct char_data **player)
+{
+  struct char_data *controller;
+  int depth;
+
+  if (ch == NULL || player == NULL)
+    return FALSE;
+
+  *player = NULL;
+  controller = ch;
+  for (depth = 0; controller != NULL && IS_NPC(controller) && controller->master != NULL; depth++)
+  {
+    if (depth >= 20 || controller->master == controller)
+      return FALSE;
+    controller = controller->master;
+  }
+
+  if (controller != NULL && !IS_NPC(controller))
+    *player = controller;
+
+  return TRUE;
+}
+
+bool pvp_ok(struct char_data *ch, struct char_data *target, bool display)
+{
+  struct char_data *attacker;
+  struct char_data *defender;
+
+  if (ch == NULL || target == NULL)
+    return FALSE;
+  if (ch == target)
+    return TRUE;
+
+  if (!pvp_controlling_player(ch, &attacker) || !pvp_controlling_player(target, &defender))
+    return FALSE;
+
+  /* Ordinary monsters have no player behind their actions or their losses. */
+  if (attacker == NULL || defender == NULL || attacker == defender)
+    return TRUE;
+
+  /* Both physical participants must be in an arena for the arena exception. */
+  if (IS_PVP_ARENA(IN_ROOM(ch)) && IS_PVP_ARENA(IN_ROOM(target)))
+    return TRUE;
+
+  if (!CONFIG_PK_ALLOWED)
+  {
+    if (display)
+      send_to_char(attacker, "Player killing is not allowed on this MUD.\r\n");
+    return FALSE;
+  }
+
+  if (!PRF_FLAGGED(attacker, PRF_PVP))
+  {
+    if (display)
+      send_to_char(attacker,
+                   "You must enable PVP (type 'pvp') before attacking another player.\r\n");
+    return FALSE;
+  }
+  if (!PRF_FLAGGED(defender, PRF_PVP))
+  {
+    if (display)
+      send_to_char(attacker, "Your target does not have PVP enabled and cannot be attacked.\r\n");
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+bool pvp_ok_single(struct char_data *ch, bool display)
+{
+  struct char_data *controller;
+
+  if (ch == NULL)
+    return FALSE;
+
+  if (!pvp_controlling_player(ch, &controller))
+    return FALSE;
+  if (controller == NULL)
+    return TRUE;
+
+  if (IS_PVP_ARENA(IN_ROOM(ch)))
+    return TRUE;
+
+  if (CONFIG_PK_ALLOWED && PRF_FLAGGED(controller, PRF_PVP))
+    return TRUE;
+
+  if (display)
+    send_to_char(
+        controller,
+        "That would be a PvP action, but player killing or your PVP flag is disabled.\r\n");
+
+  return FALSE;
+}
+
+bool is_pc_idnum_in_room(struct char_data *ch, long int idnum)
+{
+  if (!ch)
+    return false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (tch == ch)
+      continue;
+    if (IS_NPC(tch))
+      continue;
+    if (GET_IDNUM(tch) == idnum)
+      return true;
+  }
+  return false;
+}
+
+int find_ability_num_by_name(char *name)
+{
+  char skOne[MEDIUM_STRING] = {'\0'};
+  int i = 0, j = 0;
+
+  for (i = 0; (size_t)i < strlen(name); i++)
+    name[i] = (char)tolower(name[i]);
+
+  for (j = START_GENERAL_ABILITIES; j < NUM_ABILITIES; j++)
+  {
+    snprintf(skOne, sizeof(skOne), "%s", ability_names[j]);
+    for (i = 0; (size_t)i < strlen(skOne); i++)
+      skOne[i] = (char)tolower(skOne[i]);
+    if (!strcmp(name, skOne))
+      return j;
+  }
+  return 0;
+}
+
+bool using_monk_gloves(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (!GET_EQ(ch, WEAR_HANDS))
+    return false;
+
+  if (!GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0))
+    return false;
+
+  return true;
+}
+
+bool is_monk_weapon(struct obj_data *obj)
+{
+  if (!obj)
+    return false;
+
+  switch (GET_OBJ_VAL(obj, 0))
+  {
+  case WEAPON_TYPE_UNARMED:
+  case WEAPON_TYPE_QUARTERSTAFF:
+  case WEAPON_TYPE_KAMA:
+  case WEAPON_TYPE_NUNCHAKU:
+  case WEAPON_TYPE_SAI:
+  case WEAPON_TYPE_SIANGHAM:
+  case WEAPON_TYPE_SHURIKEN:
+  case WEAPON_TYPE_DAGGER:
+  case WEAPON_TYPE_CLUB:
+  case WEAPON_TYPE_HAND_AXE:
+  case WEAPON_TYPE_SHORTSPEAR:
+  case WEAPON_TYPE_SPEAR:
+  case WEAPON_TYPE_SHORT_SWORD:
+    return true;
+  }
+  return false;
+}
+
+int get_max_party_level_same_room(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+
+  struct char_data *master = NULL, *tch = NULL;
+  struct follow_type *f = NULL;
+  int level = 0;
+
+  if (ch->master)
+    master = ch->master;
+  else
+    master = ch;
+
+  level = GET_LEVEL(master);
+
+  for (f = master->followers; f; f = f->next)
+  {
+    tch = f->follower;
+    if (!tch)
+      continue;
+    if (IS_NPC(tch))
+      continue;
+    if (IN_ROOM(tch) != IN_ROOM(master))
+      continue;
+    if (GET_LEVEL(tch) > level)
+      level = GET_LEVEL(tch);
+  }
+
+  return level;
+}
+
+int get_avg_party_level_same_room(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+
+  struct char_data *master = NULL, *tch = NULL;
+  struct follow_type *f = NULL;
+  int level = 0, size = 1;
+
+  if (ch->master)
+    master = ch->master;
+  else
+    master = ch;
+
+  level = GET_LEVEL(master);
+
+  for (f = master->followers; f; f = f->next)
+  {
+    tch = f->follower;
+    if (!tch)
+      continue;
+    if (IN_ROOM(tch) != IN_ROOM(master))
+      continue;
+    level += GET_LEVEL(tch);
+    size++;
+  }
+
+  return (level / size);
+}
+
+int get_party_size_same_room(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return 0;
+
+  struct char_data *master = NULL, *tch = NULL;
+  struct follow_type *f = NULL;
+  int size = 1;
+
+  if (ch->master)
+    master = ch->master;
+  else
+    master = ch;
+
+  for (f = master->followers; f; f = f->next)
+  {
+    tch = f->follower;
+    if (!tch)
+      continue;
+    if (IN_ROOM(tch) != IN_ROOM(master))
+      continue;
+    size++;
+  }
+
+  return size;
+}
+
+int combat_skill_roll(struct char_data *ch, int skillnum)
+{
+  int roll = skill_roll(ch, skillnum);
+
+  if (roll >= 75)
+  {
+    return 8;
+  }
+  else if (roll >= 65)
+  {
+    return 7;
+  }
+  else if (roll >= 55)
+  {
+    return 6;
+  }
+  else if (roll >= 45)
+  {
+    return 5;
+  }
+  else if (roll >= 35)
+  {
+    return 4;
+  }
+  else if (roll >= 25)
+  {
+    return 3;
+  }
+  else if (roll >= 20)
+  {
+    return 2;
+  }
+  else if (roll >= 15)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
+
+bool can_flee_speed(struct char_data *ch)
+{
+  if (!ch || IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  int ch_speed = get_speed(ch, false);
+  int mob_speed = 0;
+
+  if (HAS_REAL_FEAT(ch, FEAT_NIMBLE_ESCAPE))
+    return true;
+
+  if (HAS_FEAT(ch, FEAT_COWARDLY))
+    return true;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (MOB_FLAGGED(tch, MOB_ENCOUNTER))
+    {
+      if (CAN_SEE(tch, ch))
+        mob_speed = MAX(mob_speed, get_speed(tch, false));
+    }
+  }
+
+  if (ch_speed <= mob_speed)
+    return false;
+  return true;
+}
+
+int d20(struct char_data *ch)
+{
+  if (!ch)
+    return dice(1, 20);
+
+  int roll = dice(1, 20);
+  int roll2 = 0;
+  int high = 0;
+
+  // critical failure always returns a roll of one
+  if (roll == 1)
+    return 1;
+
+  // critical success will always rerturn 20
+  if (roll == 20)
+    return 20;
+
+  if (roll <= 5 && HAS_REAL_FEAT(ch, FEAT_FORTUNE_OF_THE_MANY))
+  {
+    if (dice(1, 10) == 1)
+    {
+      roll2 = dice(1, 20);
+      if (roll != roll2)
+      {
+        roll = high = MAX(roll, roll2);
+        // send_to_char(ch, "\tY[Fortune of the Many Reroll! %d to %d]\tn\r\n", MIN(roll2, roll), high);
+      }
+    }
+  }
+
+  if (dice(1, 100) <= 10 && get_lucky_weapon_bonus(ch))
+  {
+    roll += MAX(1, get_lucky_weapon_bonus(ch) / 2);
+    send_combat_roll_info(ch, "\tY[Lucky Weapon Bonus! +%d]\tn\r\n",
+                          MAX(1, get_lucky_weapon_bonus(ch) / 2));
+  }
+
+  if (ch && !IS_NPC(ch) && ch->player_specials && ch->player_specials->cosmic_awareness)
+  {
+    roll += GET_PSIONIC_LEVEL(ch);
+    ch->player_specials->cosmic_awareness = false;
+    send_to_char(ch, "\tY[Cosmic Awareness Bonus! +%d]\tn\r\n", GET_PSIONIC_LEVEL(ch));
+  }
+
+  if (ch && affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) &&
+      HAS_FEAT(ch, FEAT_PERPETUAL_FORESIGHT))
+    if (dice(1, 10) == 1)
+    {
+      roll += GET_INT_BONUS(ch);
+      send_to_char(ch, "\tY[Perpetual Foresight Bonus! +%d]\tn\r\n", GET_INT_BONUS(ch));
+    }
+
+  if (affected_by_spell(ch, AFFECT_FORETELL))
+  {
+    if (GET_FORETELL_USES(ch) > 0)
+    {
+      GET_FORETELL_USES(ch)--;
+      roll += 5;
+      if (GET_FORETELL_USES(ch) == 0)
+      {
+        affect_from_char(ch, AFFECT_FORETELL);
+      }
+    }
+  }
+
+  // a roll should always be between 1 and 20.
+  roll = MIN(20, roll);
+  roll = MAX(1, roll);
+
+  return roll;
+}
+
+const char *get_wearoff(int abilnum)
+{
+  /* Validate bounds before accessing spell_info array to prevent crashes */
+  if (abilnum < 0 || abilnum >= TOP_SPELL_DEFINE)
+    return NULL;
+
+  if (spell_info[abilnum].schoolOfMagic != NOSCHOOL)
+    return (const char *)spell_info[abilnum].wear_off_msg;
+
+  if (spell_info[abilnum].schoolOfMagic == ACTIVE_SKILL)
+    return (const char *)spell_info[abilnum].wear_off_msg;
+
+  return (const char *)spell_info[abilnum].wear_off_msg;
+}
+
+int damage_type_to_resistance_type(int type)
+{
+  switch (type)
+  {
+  case DAM_FIRE:
+    return APPLY_RES_FIRE;
+  case DAM_COLD:
+    return APPLY_RES_COLD;
+  case DAM_AIR:
+    return APPLY_RES_AIR;
+  case DAM_EARTH:
+    return APPLY_RES_EARTH;
+  case DAM_ACID:
+    return APPLY_RES_ACID;
+  case DAM_HOLY:
+    return APPLY_RES_HOLY;
+  case DAM_ELECTRIC:
+    return APPLY_RES_ELECTRIC;
+  case DAM_UNHOLY:
+    return APPLY_RES_UNHOLY;
+  case DAM_SLICE:
+    return APPLY_RES_SLICE;
+  case DAM_PUNCTURE:
+    return APPLY_RES_PUNCTURE;
+  case DAM_FORCE:
+    return APPLY_RES_FORCE;
+  case DAM_SOUND:
+    return APPLY_RES_SOUND;
+  case DAM_POISON:
+    return APPLY_RES_POISON;
+  case DAM_DISEASE:
+    return APPLY_RES_DISEASE;
+  case DAM_NEGATIVE:
+    return APPLY_RES_NEGATIVE;
+  case DAM_ILLUSION:
+    return APPLY_RES_ILLUSION;
+  case DAM_MENTAL:
+    return APPLY_RES_MENTAL;
+  case DAM_LIGHT:
+    return APPLY_RES_LIGHT;
+  case DAM_ENERGY:
+    return APPLY_RES_ENERGY;
+  case DAM_WATER:
+    return APPLY_RES_WATER;
+  }
+  return APPLY_NONE;
+}
+
+int get_power_penetrate_mod(struct char_data *ch)
+{
+  int bonus = 0;
+
+  // insert challenge bonuses here (ch)
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_POWER_PENETRATION))
+    bonus += 2;
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_GREATER_POWER_PENETRATION))
+    bonus += 3;
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_MIGHTY_POWER_PENETRATION))
+    bonus += 3;
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_POWER_PENETRATION))
+    bonus += 6;
+
+  if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) &&
+      HAS_FEAT(ch, FEAT_BREACH_POWER_RESISTANCE))
+    bonus += MAX(0, GET_INT_BONUS(ch));
+
+  /* Psionic Disruptor perks - penetration bonus to overcome power resistance */
+  if (!IS_NPC(ch))
+    bonus += get_psionic_telepathy_penetration_bonus(ch);
+
+  return bonus;
+}
+
+int get_power_resist_mod(struct char_data *ch)
+{
+  int bonus = 0;
+
+  if (affected_by_spell(ch, PSIONIC_POWER_RESISTANCE))
+    bonus += get_char_affect_modifier(ch, PSIONIC_POWER_RESISTANCE, APPLY_POWER_RES);
+  if (affected_by_spell(ch, PSIONIC_TOWER_OF_IRON_WILL))
+    bonus = MAX(bonus, get_char_affect_modifier(ch, PSIONIC_TOWER_OF_IRON_WILL, APPLY_POWER_RES));
+
+  return bonus;
+}
+
+// TRUE = resisted
+// FALSE = Failed to resist
+// modifier applies to victim, higher the better (for the victim)
+bool power_resistance(struct char_data *ch, struct char_data *victim, int modifier)
+{
+  int resist = get_power_resist_mod(victim);
+  int penetrate = d20(ch) + GET_PSIONIC_LEVEL(ch) + get_power_penetrate_mod(ch) + modifier;
+
+  return (penetrate < resist);
+}
+
+/** returns true if the spell is a psionic power, or false if
+ *  it is a spell or spell-like affect */
+bool is_spellnum_psionic(int spellnum)
+{
+  if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+    return true;
+
+  return false;
+}
+
+void absorb_energy_conversion(struct char_data *ch, int dam_type, int dam)
+{
+  switch (dam_type)
+  {
+  case DAM_FIRE:
+  case DAM_COLD:
+  case DAM_ACID:
+  case DAM_SOUND:
+  case DAM_ELECTRIC:
+    if (!IS_NPC(ch) && affected_by_spell(ch, PSIONIC_ENERGY_CONVERSION) && dam >= 2 &&
+        ch->player_specials->energy_conversion[dam_type] < GET_PSIONIC_LEVEL(ch))
+    {
+      dam /= 2;
+      if ((dam + ch->player_specials->energy_conversion[dam_type]) > GET_PSIONIC_LEVEL(ch))
+        dam = GET_PSIONIC_LEVEL(ch) - ch->player_specials->energy_conversion[dam_type];
+      ch->player_specials->energy_conversion[dam_type] += dam;
+      send_to_char(ch, "\tY[Energy Conversion Absorb %s! +%d]\tn\r\n", damtypes[dam_type], dam / 2);
+    }
+    break;
+  }
+}
+
+// returns true if the target doesn't have immunity to blindness
+bool can_blind(struct char_data *ch)
+{
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOBLIND))
+    return false;
+  if (HAS_FEAT(ch, FEAT_EYELESS)) /* nothing to blind */
+    return false;
+  if (affected_by_spell(ch, PSIONIC_OAK_BODY))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    return false;
+
+  return true;
+}
+
+// returns true if the target doesn't have immunity to deafness
+bool can_deafen(struct char_data *ch)
+{
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NODEAF))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_OAK_BODY))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    return false;
+
+  return true;
+}
+
+// returns true if the target doesn't have immunity to disease
+bool can_disease(struct char_data *ch)
+{
+  if (affected_by_spell(ch, PSIONIC_OAK_BODY))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_SHADOW_BODY))
+    return false;
+  if (HAS_REAL_FEAT(ch, FEAT_TOUGH_AS_BONE))
+    return false;
+  if (HAS_FEAT(ch, FEAT_DIVINE_HEALTH))
+    return false;
+  if (HAS_FEAT(ch, FEAT_DIAMOND_BODY))
+    return false;
+  if (HAS_FEAT(ch, FEAT_PLAGUE_BRINGER))
+    return false;
+  if (HAS_FEAT(ch, FEAT_DRACONIAN_DISEASE_IMMUNITY))
+    return false;
+  if (IS_CONSTRUCT(ch))
+    return false;
+  /* Undead-looking outsider eidolons earn immunity at level 12. */
+  if (IS_UNDEAD(ch) && !(IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OUTSIDER &&
+                         HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE)))
+    return false;
+  if ((HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE) ||
+       HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE)) &&
+      get_evolution_appearance_save_bonus(ch) == 100)
+    return false;
+
+  return true;
+}
+
+// returns true if the vict can be pushed or false if they are somehow immune
+// also attempts a combat maneuver check at the end
+bool push_attempt(struct char_data *ch, struct char_data *vict, bool display)
+{
+  if (!vict)
+    return false;
+
+  if (!IS_NPC(vict))
+  {
+    if (!PRF_FLAGGED(vict, PRF_PVP))
+    {
+      if (display)
+        send_to_char(ch, "Your subject has their pvp flag turned off.\r\n");
+      return false;
+    }
+    if (!PRF_FLAGGED(ch, PRF_PVP))
+    {
+      if (display)
+        send_to_char(ch, "You have your pvp flag turned off.\r\n");
+      return false;
+    }
+  }
+
+  if (IS_NPC(vict))
+  {
+    // we want nobash and nokill mobs at the top, to refuse
+    // being pushed because we don't want people to charm
+    // powerful mobs and push them out of the room to get
+    // around having to kill them.  This attempts to
+    // preserve builder intentions for zones they've created.
+    if (MOB_FLAGGED(vict, MOB_NOBASH))
+    {
+      if (display)
+        send_to_char(ch, "That mob can't be pushed.\r\n");
+      return false;
+    }
+    if (MOB_FLAGGED(vict, MOB_NOKILL))
+    {
+      if (display)
+        send_to_char(ch, "That mob can't be pushed.\r\n");
+      return false;
+    }
+    if (vict->master && AFF_FLAGGED(vict, AFF_CHARM))
+    {
+      if (vict->master == ch)
+        return true;
+      else
+      {
+        if (display)
+          send_to_char(ch, "That mob can't be pushed.\r\n");
+        return false;
+      }
+    }
+    if (MOB_FLAGGED(vict, MOB_SENTINEL))
+    {
+      if (display)
+        send_to_char(ch, "That mob can't be pushed.\r\n");
+      return false;
+    }
+    if (MOB_FLAGGED(vict, MOB_NOGRAPPLE))
+    {
+      if (display)
+        send_to_char(ch, "That mob can't be pushed.\r\n");
+      return false;
+    }
+  }
+
+  if (AFF_FLAGGED(vict, AFF_FREE_MOVEMENT) || GET_LEVEL(vict) >= LVL_IMMORT)
+  {
+    if (display)
+      send_to_char(ch, "They cannot be pushed.\r\n");
+    return false;
+  }
+
+  if (AFF_FLAGGED(vict, AFF_PROTECT_EVIL) && IS_EVIL(ch) &&
+      savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+  {
+    if (display)
+      send_to_char(ch, "A protective field repels you.\r\n");
+    return false;
+  }
+
+  if (AFF_FLAGGED(vict, AFF_PROTECT_GOOD) && IS_GOOD(ch) &&
+      savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+  {
+    if (display)
+      send_to_char(ch, "A protective field repels you.\r\n");
+    return false;
+  }
+
+  if (AFF_FLAGGED(vict, AFF_STUN))
+    return true;
+  if (AFF_FLAGGED(vict, AFF_DAZED))
+    return true;
+  if (AFF_FLAGGED(vict, AFF_PARALYZED))
+    return true;
+
+  int cmb_bonus = 0;
+
+  if (AFF_FLAGGED(vict, AFF_SLOW))
+    cmb_bonus += 4;
+  if (AFF_FLAGGED(ch, AFF_SLOW))
+    cmb_bonus -= 4;
+  if (AFF_FLAGGED(vict, AFF_HASTE))
+    cmb_bonus += 2;
+  if (AFF_FLAGGED(ch, AFF_HASTE))
+    cmb_bonus += 2;
+
+  if (!combat_maneuver_check(ch, vict, 0, cmb_bonus))
+    return false;
+
+  return true;
+}
+
+// returns true if they have blindsense, which allows
+// seeing in the dark and if blinded.
+bool has_blindsense(struct char_data *ch)
+{
+  if (HAS_FEAT(ch, FEAT_BLINDSENSE))
+    return true;
+  if (HAS_EVOLUTION(ch, EVOLUTION_BLINDSIGHT))
+    return true;
+
+  return false;
+}
+
+/* ---- Duris racial innates ----
+ * see docs/systems/GAME_MECHANICS_SYSTEMS.md */
+
+/* anything worn about the body shelters from the sun, unless wind or a
+ * grapple has torn it open; the vampire cloak counts through is_covered() */
+static bool sun_cover_protects(struct char_data *ch)
+{
+  if (is_covered(ch))
+    return true;
+  if (AFF_FLAGGED(ch, AFF_WIND_WALL) || AFF_FLAGGED(ch, AFF_GRAPPLED))
+    return false;
+  return GET_EQ(ch, WEAR_ABOUT) != NULL;
+}
+
+/* sun vulnerability: exposed to direct sunlight with nothing sheltering the
+ * character.  Forest and marshland shelter; so does a covering cloak, and
+ * is_room_in_sunlight() already treats magical darkness as no sun. */
+bool suffers_sun_vulnerability(struct char_data *ch)
+{
+  if (!ch || IN_ROOM(ch) == NOWHERE)
+    return false;
+  if (!IN_SUNLIGHT(ch) || sun_cover_protects(ch))
+    return false;
+  if (SECT(IN_ROOM(ch)) == SECT_FOREST || SECT(IN_ROOM(ch)) == SECT_MARSHLAND)
+    return false;
+  return HAS_FEAT(ch, FEAT_SUN_VULNERABILITY) != 0;
+}
+
+/* dayblind: the character cannot see while in direct sunlight, unless it
+ * has no eyes to dazzle or is covered. */
+bool is_dayblinded(struct char_data *ch)
+{
+  if (!ch || IN_ROOM(ch) == NOWHERE)
+    return false;
+  if (!IN_SUNLIGHT(ch) || sun_cover_protects(ch))
+    return false;
+  if (!HAS_FEAT(ch, FEAT_DAYBLIND) || HAS_FEAT(ch, FEAT_EYELESS))
+    return false;
+  return true;
+}
+
+/* the one vision gate: blinded (without blindsense or an eyeless body) or
+ * dayblinded.  Used by the CAN_SEE macro family. */
+bool char_is_blinded(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+  if (AFF_FLAGGED(ch, AFF_BLIND) && !has_blindsense(ch) && !HAS_FEAT(ch, FEAT_EYELESS))
+    return true;
+  return is_dayblinded(ch);
+}
+
+/* members of ch's group standing in ch's room, ch included; with feat set,
+ * only the members holding that feat are counted */
+int count_grouped_in_room(struct char_data *ch, int feat)
+{
+  struct char_data *tch = NULL;
+  struct iterator_data iterator;
+  int count = 0;
+
+  if (!ch || !GROUP(ch) || !GROUP(ch)->members || !GROUP(ch)->members->iSize)
+    return 0;
+
+  for (tch = (struct char_data *)merge_iterator(&iterator, GROUP(ch)->members); tch;
+       tch = next_in_list(&iterator))
+  {
+    if (IN_ROOM(tch) != IN_ROOM(ch))
+      continue;
+    if (feat && !HAS_FEAT(tch, feat))
+      continue;
+    count++;
+  }
+  remove_iterator(&iterator);
+
+  return count;
+}
+
+/* warcaller's fury: +1 damage per grouped member here, self included, max +5 */
+int racial_warcallers_fury_bonus(struct char_data *ch)
+{
+  if (!ch || !HAS_FEAT(ch, FEAT_WARCALLERS_FURY))
+    return 0;
+  return MIN(5, count_grouped_in_room(ch, 0));
+}
+
+/* rrakkma: other grouped characters here who also hold the feat, max 5 */
+int racial_rrakkma_allies(struct char_data *ch)
+{
+  if (!ch || !HAS_FEAT(ch, FEAT_RRAKKMA))
+    return 0;
+  return MIN(5, MAX(0, count_grouped_in_room(ch, FEAT_RRAKKMA) - 1));
+}
+
+/* quick thinking: percent chance to reroll a failed will save */
+int racial_quick_thinking_chance(struct char_data *vict, int save_type)
+{
+  if (!vict || save_type != SAVING_WILL || !HAS_FEAT(vict, FEAT_QUICK_THINKING))
+    return 0;
+  return 15;
+}
+
+/* undead fealty: undead at least ten levels below the character leave it alone */
+bool undead_fealty_protects(struct char_data *mob, struct char_data *vict)
+{
+  if (!mob || !vict || !IS_UNDEAD(mob))
+    return false;
+  if (!HAS_FEAT(vict, FEAT_UNDEAD_FEALTY))
+    return false;
+  return GET_LEVEL(mob) + 10 <= GET_LEVEL(vict);
+}
+
+/* calming: an aggressor within five levels may lose interest (the caller rolls) */
+bool calming_applies(struct char_data *mob, struct char_data *vict)
+{
+  int gap;
+
+  if (!mob || !vict || !HAS_FEAT(vict, FEAT_CALMING))
+    return false;
+  gap = GET_LEVEL(mob) - GET_LEVEL(vict);
+  return gap >= -5 && gap <= 5;
+}
+
+// returns true if the target doesn't have immunity to poison
+bool can_poison(struct char_data *ch)
+{
+  if (affected_by_spell(ch, PSIONIC_OAK_BODY))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_SHADOW_BODY))
+    return false;
+  if (HAS_FEAT(ch, FEAT_DIVINE_HEALTH))
+    return false;
+  if (HAS_REAL_FEAT(ch, FEAT_ESSENCE_OF_UNDEATH))
+    return false;
+  if (HAS_FEAT(ch, FEAT_DIAMOND_BODY))
+    return false;
+  if (IS_CONSTRUCT(ch))
+    return false;
+  /* Undead-looking outsider eidolons earn immunity at level 12. */
+  if (IS_UNDEAD(ch) && !(IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OUTSIDER &&
+                         HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE)))
+    return false;
+  if ((HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE) ||
+       HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE)) &&
+      get_evolution_appearance_save_bonus(ch) == 100)
+    return false;
+
+  return true;
+}
+
+// returns true if the target doesn't have immunity to stun
+bool can_stun(struct char_data *ch)
+{
+  if (ch == NULL)
+    return false;
+
+  if (affected_by_spell(ch, PSIONIC_OAK_BODY))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    return false;
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOPARALYZE))
+    return false;
+  if (HAS_REAL_FEAT(ch, FEAT_TOUGH_AS_BONE))
+    return false;
+  if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE) &&
+      get_evolution_appearance_save_bonus(ch) == 100)
+    return false;
+
+  return true;
+}
+
+// returns true if the target doesn't have immunity to paralysis
+bool can_paralyze(struct char_data *ch)
+{
+  return !paralysis_immunity(ch);
+}
+
+// returns true if the target doesn't have immunity to confusion
+bool can_confuse(struct char_data *ch)
+{
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOCONFUSE))
+    return false;
+
+  return true;
+}
+
+// returns true if under the effect of psionic body forms such as oak body, shadow body, body of iron
+bool has_psionic_body_form_active(struct char_data *ch)
+{
+  if (affected_by_spell(ch, PSIONIC_OAK_BODY))
+    return true;
+  if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    return true;
+  if (affected_by_spell(ch, PSIONIC_SHADOW_BODY))
+    return true;
+
+  return false;
+}
+
+bool can_spell_be_revoked(int spellnum)
+{
+  switch (spellnum)
+  {
+  // spells
+  case SPELL_DJINNI_KIND:
+  case SPELL_EFREETI_KIND:
+  case SPELL_MARID_KIND:
+  case SPELL_SHAITAN_KIND:
+  case SPELL_WIND_WALL:
+  case SPELL_GASEOUS_FORM:
+  case SPELL_AIR_WALK:
+  case SPELL_SHIELD_OF_FAITH:
+  case SPELL_BLESS:
+  case SPELL_DETECT_ALIGN:
+  case SPELL_DETECT_INVIS:
+  case SPELL_DETECT_MAGIC:
+  case SPELL_DETECT_POISON:
+  case SPELL_INVISIBLE:
+  case SPELL_PROT_FROM_EVIL:
+  case SPELL_SANCTUARY:
+  case SPELL_STRENGTH:
+  case SPELL_SENSE_LIFE:
+  case SPELL_GROUP_SHIELD_OF_FAITH:
+  case SPELL_INFRAVISION:
+  case SPELL_WATERWALK:
+  case SPELL_FLY:
+  case SPELL_BLUR:
+  case SPELL_MIRROR_IMAGE:
+  case SPELL_STONESKIN:
+  case SPELL_ENDURANCE:
+  case SPELL_EPIC_MAGE_ARMOR:
+  case SPELL_EPIC_WARDING:
+  case SPELL_PROT_FROM_GOOD:
+  case SPELL_POLYMORPH:
+  case SPELL_ENDURE_ELEMENTS:
+  case SPELL_EXPEDITIOUS_RETREAT:
+  case SPELL_IRON_GUTS:
+  case SPELL_MAGE_ARMOR:
+  case SPELL_SHIELD:
+  case SPELL_TRUE_STRIKE:
+  case SPELL_FALSE_LIFE:
+  case SPELL_GRACE:
+  case SPELL_RESIST_ENERGY:
+  case SPELL_WATER_BREATHE:
+  case SPELL_HEROISM:
+  case SPELL_NON_DETECTION:
+  case SPELL_HASTE:
+  case SPELL_CIRCLE_A_EVIL:
+  case SPELL_CIRCLE_A_GOOD:
+  case SPELL_CUNNING:
+  case SPELL_WISDOM:
+  case SPELL_CHARISMA:
+  case SPELL_FIRE_SHIELD:
+  case SPELL_COLD_SHIELD:
+  case SPELL_GREATER_INVIS:
+  case SPELL_MINOR_GLOBE:
+  case SPELL_ENLARGE_PERSON:
+  case SPELL_SHRINK_PERSON:
+  case SPELL_FSHIELD_DAM:
+  case SPELL_CSHIELD_DAM:
+  case SPELL_ASHIELD_DAM:
+  case SPELL_ACID_SHEATH:
+  case SPELL_INTERPOSING_HAND:
+  case SPELL_TRANSFORMATION:
+  case SPELL_MASS_HASTE:
+  case SPELL_GREATER_HEROISM:
+  case SPELL_ANTI_MAGIC_FIELD:
+  case SPELL_GREATER_MIRROR_IMAGE:
+  case SPELL_TRUE_SEEING:
+  case SPELL_GLOBE_OF_INVULN:
+  case SPELL_MASS_FLY:
+  case SPELL_MASS_INVISIBILITY:
+  case SPELL_REPULSION:
+  case SPELL_MASS_CHARM_MONSTER:
+  case SPELL_DISPLACEMENT:
+  case SPELL_PROTECT_FROM_SPELLS:
+  case SPELL_SPELL_MANTLE:
+  case SPELL_MASS_WISDOM:
+  case SPELL_MASS_CHARISMA:
+  case SPELL_REFUGE:
+  case SPELL_SPELL_TURNING:
+  case SPELL_MIND_BLANK:
+  case SPELL_IRONSKIN:
+  case SPELL_MASS_CUNNING:
+  case SPELL_SHADOW_SHIELD:
+  case SPELL_GREATER_SPELL_MANTLE:
+  case SPELL_MASS_ENHANCE:
+  case SPELL_HOLY_SWORD:
+  case SPELL_AID:
+  case SPELL_BRAVERY:
+  case SPELL_REGENERATION:
+  case SPELL_FREE_MOVEMENT:
+  case SPELL_STRENGTHEN_BONE:
+  case SPELL_PRAYER:
+  case SPELL_WORD_OF_FAITH:
+  case SPELL_SALVATION:
+  case SPELL_SPRING_OF_LIFE:
+  case SPELL_DEATH_SHIELD:
+  case SPELL_AIR_WALKER:
+  case SPELL_JUMP:
+  case SPELL_MAGIC_FANG:
+  case SPELL_BARKSKIN:
+  case SPELL_FLAME_BLADE:
+  case SPELL_GREATER_MAGIC_FANG:
+  case SPELL_DEATH_WARD:
+  case SPELL_MASS_ENDURANCE:
+  case SPELL_MASS_STRENGTH:
+  case SPELL_MASS_GRACE:
+  case SPELL_SPELL_RESISTANCE:
+  case SPELL_SPELLSTAFF:
+  case SPELL_SHAPECHANGE:
+  case SPELL_BLADE_BARRIER:
+  case SPELL_BATTLETIDE:
+  case SPELL_LEVITATE:
+  case SPELL_CONTINUAL_LIGHT:
+  case SPELL_ELEMENTAL_RESISTANCE:
+  case SPELL_PRESERVE:
+  case SPELL_ESHIELD_DAM:
+  case SPELL_MASS_FALSE_LIFE:
+  case SPELL_SHADOW_WALK:
+  case SPELL_INCORPOREAL_FORM:
+  case SPELL_HEAL_MOUNT:
+  case SPELL_RESISTANCE:
+  case SPELL_LESSER_RESTORATION:
+  case SPELL_HEDGING_WEAPONS:
+  case SPELL_HONEYED_TONGUE:
+  case SPELL_SHIELD_OF_FORTIFICATION:
+  case SPELL_STUNNING_BARRIER:
+  case SPELL_SUN_METAL:
+  case SPELL_TACTICAL_ACUMEN:
+  case SPELL_VEIL_OF_POSITIVE_ENERGY:
+  case SPELL_BESTOW_WEAPON_PROFICIENCY:
+  case SPELL_SPIRITUAL_WEAPON:
+  case SPELL_DANCING_WEAPON:
+  case SPELL_WEAPON_OF_AWE:
+  case SPELL_MAGIC_VESTMENT:
+  case SPELL_GREATER_MAGIC_WEAPON:
+  case SPELL_WEAPON_OF_IMPACT:
+  case SPELL_KEEN_EDGE:
+  case SPELL_PROTECTION_FROM_ENERGY:
+  case SPELL_DIVINE_POWER:
+  case SPELL_MINOR_ILLUSION:
+  case SPELL_WARDING_WEAPON:
+  case SPELL_GIRD_ALLIES:
+  case SPELL_PROTECTION_FROM_ARROWS:
+  case SPELL_HUMAN_POTENTIAL:
+  case SPELL_SPIDER_CLIMB:
+  case SPELL_RAGE:
+  case SPELL_CAUSTIC_BLOOD:
+  case SPELL_HOLY_AURA:
+
+  // psionic powers
+  case PSIONIC_BROKER:
+  case PSIONIC_CALL_TO_MIND:
+  case PSIONIC_CATFALL:
+  case PSIONIC_FORCE_SCREEN:
+  case PSIONIC_FORTIFY:
+  case PSIONIC_INERTIAL_ARMOR:
+  case PSIONIC_INEVITABLE_STRIKE:
+  case PSIONIC_DEFENSIVE_PRECOGNITION:
+  case PSIONIC_OFFENSIVE_PRECOGNITION:
+  case PSIONIC_OFFENSIVE_PRESCIENCE:
+  case PSIONIC_VIGOR:
+  case PSIONIC_BIOFEEDBACK:
+  case PSIONIC_BODY_EQUILIBRIUM:
+  case PSIONIC_CONCEALING_AMORPHA:
+  case PSIONIC_DETECT_HOSTILE_INTENT:
+  case PSIONIC_ELFSIGHT:
+  case PSIONIC_ENERGY_ADAPTATION_SPECIFIED:
+  case PSIONIC_PSYCHIC_BODYGUARD:
+  case PSIONIC_SHARE_PAIN:
+  case PSIONIC_THOUGHT_SHIELD:
+  case PSIONIC_BODY_ADJUSTMENT:
+  case PSIONIC_ENDORPHIN_SURGE:
+  case PSIONIC_ENERGY_RETORT:
+  case PSIONIC_HEIGHTENED_VISION:
+  case PSIONIC_MENTAL_BARRIER:
+  case PSIONIC_MIND_TRAP:
+  case PSIONIC_SHARPENED_EDGE:
+  case PSIONIC_UBIQUITUS_VISION:
+  case PSIONIC_EMPATHIC_FEEDBACK:
+  case PSIONIC_ENERGY_ADAPTATION:
+  case PSIONIC_INTELLECT_FORTRESS:
+  case PSIONIC_SLIP_THE_BONDS:
+  case PSIONIC_ADAPT_BODY:
+  case PSIONIC_PIERCE_VEIL:
+  case PSIONIC_POWER_RESISTANCE:
+  case PSIONIC_TOWER_OF_IRON_WILL:
+  case PSIONIC_REMOTE_VIEW_TRAP:
+  case PSIONIC_SUSTAINED_FLIGHT:
+  case PSIONIC_BARRED_MIND:
+  case PSIONIC_COSMIC_AWARENESS:
+  case PSIONIC_ENERGY_CONVERSION:
+  case PSIONIC_EVADE_BURST:
+  case PSIONIC_OAK_BODY:
+  case PSIONIC_BODY_OF_IRON:
+  case PSIONIC_SHADOW_BODY:
+  case PSIONIC_TIMELESS_BODY:
+  case PSIONIC_BARRED_MIND_PERSONAL:
+  case PSIONIC_TRUE_METABOLISM:
+  case PSIONIC_ASSIMILATE:
+  case PSIONIC_CONCUSSIVE_ONSLAUGHT:
+
+  // Other
+  case RACIAL_ABILITY_CRYSTAL_BODY:
+  case RACIAL_ABILITY_CRYSTAL_FIST:
+  case RACIAL_ABILITY_INSECTBEING:
+  case AFFECT_FOOD:
+  case AFFECT_DRINK:
+  case ABILITY_STRENGTH_OF_HONOR:
+  case ABILITY_CROWN_OF_KNIGHTHOOD:
+  case AFFECT_HOLY_AURA_RETRIBUTION:
+  case AFFECT_RALLYING_CRY:
+  case AFFECT_INSPIRE_COURAGE:
+  case AFFECT_FINAL_STAND:
+  case AFFECT_KNIGHTHOODS_FLOWER:
+  case AFFECT_INSPIRE_GREATNESS:
+
+    return true;
+  }
+  return false;
+}
+
+// returns true if no damage to be applied
+// returns false if damage should proceed normally
+bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim, int element,
+                                 int dam)
+{
+  if (HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) && element == DAM_FIRE)
+  {
+    GET_HIT(victim) += dam;
+    if (GET_HIT(victim) > GET_MAX_HIT(victim))
+      GET_HIT(victim) = GET_MAX_HIT(victim);
+    act("The spell heals you instead!", TRUE, ch, 0, victim, TO_VICT);
+    act("The spell heals $N instead!", TRUE, ch, 0, victim, TO_ROOM);
+    return true;
+  }
+  if (HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) && element == DAM_ELECTRIC)
+  {
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = SPELL_SLOW;
+    af.duration = 3;
+    SET_BIT_AR(af.bitvector, AFF_SLOW);
+    affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+    act("The spell deals no damage, but slows you instead!", TRUE, ch, 0, victim, TO_CHAR);
+    act("The spell deals no damage, but slows $N instead!", TRUE, ch, 0, victim, TO_ROOM);
+    return true;
+  }
+  return false;
+}
+
+bool process_wood_golem_immunity(struct char_data *ch, struct char_data *victim, int element,
+                                 int dam)
+{
+  if (HAS_FEAT(victim, FEAT_WOOD_GOLEM_IMMUNITY) && element == DAM_COLD)
+  {
+    dam /= 3;
+    GET_HIT(victim) += dam;
+    if (GET_HIT(victim) > GET_MAX_HIT(victim))
+      GET_HIT(victim) = GET_MAX_HIT(victim);
+    act("The spell heals you instead!", TRUE, ch, 0, victim, TO_VICT);
+    act("The spell heals $N instead!", TRUE, ch, 0, victim, TO_ROOM);
+    return true;
+  }
+
+  return false;
+}
+
+int smite_evil_target_type(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+
+  if (!IS_EVIL(ch))
+    return 1;
+
+  if (IS_DRAGON(ch) || IS_OUTSIDER(ch) || IS_UNDEAD(ch))
+    return 3;
+
+  return 2;
+}
+
+int smite_good_target_type(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+
+  if (!IS_GOOD(ch))
+    return 1;
+
+  if (IS_DRAGON(ch) || IS_OUTSIDER(ch) || CLASS_LEVEL(ch, CLASS_CLERIC) > 0 ||
+      CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
+    return 3;
+
+  return 2;
+}
+
+/** This will run every 6 seconds as well as whenever a new affect is added or removed
+ *  from a character, such as receiving or losing a spell affect, wearing or removing
+ *  a piece of gear, etc. This should only ever be used upon players, not NPCs.
+ */
+void calculate_max_hp(struct char_data *ch, bool display)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc)
+    return;
+
+  int i = 0, j = 0;
+  int max_hp = 20; // start point
+  int racial_hp_bonus = 0;
+  int racial_starting_hp_bonus = 0;
+  int max_value[NUM_BONUS_TYPES];
+  int max_val_spell[NUM_BONUS_TYPES];
+  int max_val_worn_slot[NUM_BONUS_TYPES];
+  struct obj_data *obj = NULL;
+  struct affected_type *aff = NULL;
+  char affect_buf[2400], gear_buf[2400], temp_buf[512];
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    max_value[i] = 0;
+    max_val_spell[i] = -1;
+    max_val_worn_slot[i] = -1;
+  }
+  snprintf(affect_buf, sizeof(affect_buf), "\tn");
+  snprintf(gear_buf, sizeof(gear_buf), "\tn");
+
+  // base amount
+  if (display)
+    send_to_char(ch, "%-40s = +20\r\n", "Base Amount");
+
+  // classes
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    max_hp += CLASS_LEVEL(ch, i) * class_list[i].hit_dice;
+    if (display && CLASS_LEVEL(ch, i) > 0)
+    {
+      snprintf(temp_buf, sizeof(temp_buf), "%d levels in %s", CLASS_LEVEL(ch, i),
+               class_list[i].name);
+      send_to_char(ch, "%-40s = +%d\r\n", temp_buf, CLASS_LEVEL(ch, i) * class_list[i].hit_dice);
+    }
+  }
+
+  // con
+  max_hp += GET_LEVEL(ch) * GET_CON_BONUS(ch);
+  if (display && GET_CON_BONUS(ch) != 0)
+  {
+    send_to_char(ch, "%-40s = %s%d\r\n", "Constitution bonus", GET_CON_BONUS(ch) > 0 ? "+" : "",
+                 GET_CON_BONUS(ch) * GET_LEVEL(ch));
+  }
+
+  // We'll do spells then gear.  We want to make sure that bonus
+  // types don't stack
+
+  // spells
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->location == APPLY_HIT)
+    {
+      // some bonus types always stack, so we'll just add this right on now
+      if (BONUS_TYPE_STACKS(aff->bonus_type))
+      {
+        max_hp += aff->modifier;
+        if (display)
+        {
+          char line_buf[1024];
+          snprintf(temp_buf, sizeof(temp_buf), "Affect '%s'", spell_info[aff->spell].name);
+          snprintf(line_buf, sizeof(line_buf), "%-40s = %s%d\r\n", temp_buf,
+                   aff->modifier > 0 ? "+" : "", aff->modifier);
+          strlcat(affect_buf, line_buf, sizeof(affect_buf));
+        }
+      }
+      // penalties and debuffs are always applied
+      else if (aff->modifier < 0)
+      {
+        max_hp -= aff->modifier;
+        if (display)
+        {
+          char line_buf[1024];
+          snprintf(temp_buf, sizeof(temp_buf), "Affect '%s'", spell_info[aff->spell].name);
+          snprintf(line_buf, sizeof(line_buf), "%-40s = %d\r\n", temp_buf, aff->modifier);
+          strlcat(affect_buf, line_buf, sizeof(affect_buf));
+        }
+      }
+      // we only want the maximum per bonus type
+      else if (aff->modifier > max_value[aff->bonus_type])
+      {
+        max_value[aff->bonus_type] = aff->modifier;
+        max_val_spell[aff->bonus_type] = aff->spell;
+        max_val_worn_slot[aff->bonus_type] = -1;
+      }
+    }
+  }
+
+  // gear
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (!(obj = GET_EQ(ch, i)))
+      continue;
+    for (j = 0; j < MAX_OBJ_AFFECT; j++)
+    {
+      if (obj->affected[j].location == APPLY_HIT)
+      {
+        // some bonus types always stack, so we'll just add this right on now
+        if (BONUS_TYPE_STACKS(obj->affected[j].bonus_type))
+        {
+          max_hp += obj->affected[j].modifier;
+          if (display)
+          {
+            char line_buf[1024];
+            snprintf(temp_buf, sizeof(temp_buf), "Worn Item '%s'", obj->short_description);
+            snprintf(line_buf, sizeof(line_buf), "%-40s = %s%d\r\n", temp_buf,
+                     obj->affected[j].modifier > 0 ? "+" : "", obj->affected[j].modifier);
+            strlcat(gear_buf, line_buf, sizeof(gear_buf));
+          }
+        }
+        // penalties and debuffs are always applied
+        else if (obj->affected[j].modifier < 0)
+        {
+          max_hp -= obj->affected[j].modifier;
+          if (display)
+          {
+            char line_buf[1024];
+            snprintf(temp_buf, sizeof(temp_buf), "Worn Item '%s'", obj->short_description);
+            snprintf(line_buf, sizeof(line_buf), "%-40s = %s%d\r\n", temp_buf,
+                     obj->affected[j].modifier > 0 ? "+" : "", obj->affected[j].modifier);
+            strlcat(gear_buf, line_buf, sizeof(gear_buf));
+          }
+        }
+        // we only want the maximum per bonus type
+        else if (obj->affected[j].modifier > max_value[obj->affected[j].bonus_type])
+        {
+          max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
+          max_val_spell[obj->affected[j].bonus_type] = -1;
+          max_val_worn_slot[obj->affected[j].bonus_type] = i;
+        }
+      }
+    }
+  }
+
+  // now let's add up all of the highest per bonus type from spells and gear
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    if (BONUS_TYPE_STACKS(i))
+      continue;
+    max_hp += max_value[i];
+    if (display)
+    {
+      if (max_val_spell[i] != -1)
+      {
+        char line_buf[1024];
+        snprintf(temp_buf, sizeof(temp_buf), "Affect '%s'", spell_info[max_val_spell[i]].name);
+        snprintf(line_buf, sizeof(line_buf), "%-40s = %s%d\r\n", temp_buf,
+                 max_value[i] > 0 ? "+" : "", max_value[i]);
+        strlcat(affect_buf, line_buf, sizeof(affect_buf));
+      }
+      else if (max_val_worn_slot[i] != -1)
+      {
+        for (j = 0; j < MAX_OBJ_AFFECT; j++)
+        {
+          if (GET_EQ(ch, max_val_worn_slot[i])->affected[j].location == APPLY_HIT)
+          {
+            char line_buf[1024];
+            snprintf(temp_buf, sizeof(temp_buf), "Worn Item '%s'",
+                     GET_EQ(ch, max_val_worn_slot[i])->short_description);
+            snprintf(line_buf, sizeof(line_buf), "%-40s = %s%d\r\n", temp_buf,
+                     GET_EQ(ch, max_val_worn_slot[i])->affected[j].modifier > 0 ? "+" : "",
+                     GET_EQ(ch, max_val_worn_slot[i])->affected[j].modifier);
+            strlcat(gear_buf, line_buf, sizeof(gear_buf));
+          }
+        }
+      }
+    }
+  }
+  if (display)
+  {
+    send_to_char(ch, "%s", affect_buf);
+    send_to_char(ch, "%s", gear_buf);
+  }
+
+  // feats
+  if (HAS_FEAT(ch, FEAT_TOUGHNESS))
+  {
+    max_hp += GET_LEVEL(ch) * HAS_FEAT(ch, FEAT_TOUGHNESS);
+    if (display)
+      send_to_char(ch, "%-40s = +%d\r\n", "Feat 'Toughness'",
+                   GET_LEVEL(ch) * HAS_FEAT(ch, FEAT_TOUGHNESS));
+  }
+  if (HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS))
+  {
+    max_hp += 30 * HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS);
+    if (display)
+      send_to_char(ch, "%-40s = +%d\r\n", "Feat 'Epic Toughness'",
+                   30 * HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS));
+  }
+
+  /* Race */
+  racial_starting_hp_bonus = race_starting_hp_bonus(GET_REAL_RACE(ch));
+  racial_hp_bonus = GET_LEVEL(ch) * race_hp_bonus_per_level(GET_REAL_RACE(ch));
+  max_hp += racial_starting_hp_bonus + racial_hp_bonus;
+  if (display && racial_starting_hp_bonus > 0)
+    send_to_char(ch, "%-40s = +%d\r\n", "Racial Starting Hit Point Bonus",
+                 racial_starting_hp_bonus);
+  if (display && racial_hp_bonus > 0)
+    send_to_char(ch, "%-40s = +%d\r\n", "Racial Hit Point Bonus", racial_hp_bonus);
+
+  // perks
+  int perk_hp_bonus = get_perk_hp_bonus(ch);
+  if (perk_hp_bonus != 0)
+  {
+    max_hp += perk_hp_bonus;
+    if (display)
+      send_to_char(ch, "%-40s = %s%d\r\n", "Perk Hit Point Bonus", perk_hp_bonus > 0 ? "+" : "",
+                   perk_hp_bonus);
+  }
+
+  // misc
+  max_hp += CONFIG_EXTRA_PLAYER_HP_PER_LEVEL * GET_LEVEL(ch);
+  if (display && CONFIG_EXTRA_PLAYER_HP_PER_LEVEL > 0)
+    send_to_char(ch, "%-40s = +%d\r\n", "Game Setting 'Extra HP Gains'",
+                 GET_LEVEL(ch) * CONFIG_EXTRA_PLAYER_HP_PER_LEVEL);
+
+  // bard anthem of fortitude hp bonus (percentage)
+  int anthem_fortitude_hp_bonus_pct = get_bard_anthem_fortitude_hp_bonus(ch);
+  if (anthem_fortitude_hp_bonus_pct > 0)
+  {
+    int anthem_hp_increase = (max_hp * anthem_fortitude_hp_bonus_pct) / 100;
+    max_hp += anthem_hp_increase;
+    if (display)
+      send_to_char(ch, "%-40s = +%d (%d%%)\r\n", "Anthem of Fortitude", anthem_hp_increase,
+                   anthem_fortitude_hp_bonus_pct);
+  }
+
+  // Clamp to minimum 1 HP
+  if (max_hp < 1)
+  {
+    max_hp = 1;
+    if (display)
+      send_to_char(ch, "\r\n\tR%-40s = %d (clamped to minimum)\tn\r\n",
+                   "Adjusted Maximum Hit Points", max_hp);
+  }
+
+  if (display)
+  {
+    for (i = 0; i < 80; i++)
+      send_to_char(ch, "-");
+
+    send_to_char(ch, "\r\n\tY%-40s = %d\tn\r\n", "Final Maximum Hit Points", max_hp);
+  }
+
+  GET_REAL_MAX_HIT(ch) = GET_MAX_HIT(ch) = max_hp;
+}
+
+void dismiss_all_followers(struct char_data *ch)
+{
+  if (!ch || ch->master || IS_NPC(ch))
+    return;
+
+  struct follow_type *k = NULL;
+
+  for (k = ch->followers; k; k = k->next)
+    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM))
+    {
+      k->follower->char_specials.is_charmie = true;
+      extract_char(k->follower);
+    }
+}
+
+void remove_any_spell_with_aff_flag(struct char_data *ch, struct char_data *vict, int aff_flag,
+                                    bool display)
+{
+  if (!ch || !vict)
+    return;
+
+  if (aff_flag == AFF_DONTUSE)
+    return;
+
+  struct affected_type *af = NULL, *next_af = NULL;
+
+  int spell = 0;
+
+  for (af = vict->affected; af; af = next_af)
+  {
+    next_af = af->next;
+
+    if (IS_SET_AR(af->bitvector, aff_flag))
+    {
+      spell = af->spell;
+      if (spell < 1 || spell >= TOP_SPELLS_POWERS_SKILLS_BOMBS)
+        continue;
+      if (display)
+      {
+        send_to_char(vict, "Affect '%s' has been healed!\r\n", spell_info[spell].name);
+        send_to_char(ch, "%s's Affect '%s' has been healed!\r\n", GET_NAME(vict),
+                     spell_info[spell].name);
+      }
+      affect_from_char(vict, af->spell);
+    }
+  }
+}
+
+char *randstring(int length)
+{
+  if (length < 1 || length > 255)
+    return NULL;
+
+  char buf[256];
+  char char_list[64];
+  int i = 0;
+
+  snprintf(char_list, sizeof(char_list), "abcdefghijklmnopqrstuvwxyz01234567890");
+
+  for (i = 0; i < length; i++)
+    buf[i] = char_list[dice(1, 38) - 1];
+
+  buf[length] = '\0';
+  return strdup(buf);
+}
+
+bool is_paladin_mount(struct char_data *ch, struct char_data *victim)
+{
+  if (!victim)
+    return false;
+  if (!IS_NPC(victim))
+    return false;
+  if (!AFF_FLAGGED(victim, AFF_CHARM))
+    return false;
+  if (victim->master != ch)
+    return false;
+
+  switch (GET_MOB_VNUM(victim))
+  {
+  case MOB_PALADIN_MOUNT:
+  case MOB_PALADIN_MOUNT_SMALL:
+  case MOB_EPIC_PALADIN_MOUNT:
+  case MOB_EPIC_PALADIN_MOUNT_SMALL:
+    return true;
+  }
+  return false;
+}
+
+// determines if vict is a valid mark target for various
+// assassin feat functionality
+bool is_marked_target(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict)
+    return false;
+
+  if (HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
+    return true;
+
+  if (!HAS_FEAT(ch, FEAT_DEATH_ATTACK))
+    return false;
+
+  if (GET_MARK(ch) == vict && GET_MARK_ROUNDS(ch) >= 3)
+    return true;
+
+  return false;
+}
+
+// applies any special affects an assassin has when performing a backstab on
+// a marked target
+void apply_assassin_backstab_bonuses(struct char_data *ch, struct char_data *vict)
+{
+  if (is_marked_target(ch, vict))
+  {
+    if (HAS_FEAT(ch, FEAT_TRUE_DEATH))
+    {
+      GET_MARK_HIT_BONUS(ch) += 2;
+      GET_MARK_DAM_BONUS(ch) += 10;
+    }
+    if (HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
+    {
+      GET_MARK_HIT_BONUS(ch) += 3;
+      GET_MARK_DAM_BONUS(ch) += 10;
+    }
+    if (HAS_FEAT(ch, FEAT_QUIET_DEATH) && !affected_by_spell(ch, SPELL_GREATER_INVIS) &&
+        !affected_by_spell(ch, SPELL_INVISIBLE))
+    {
+      act("You fade from view as you perform your death attack.", FALSE, ch, 0, 0, TO_CHAR);
+      act("$n fades into invisibility as $e performs a death attack.", TRUE, ch, 0, 0, TO_ROOM);
+
+      struct affected_type invis_effect;
+
+      new_affect(&invis_effect);
+      invis_effect.spell = SPELL_GREATER_INVIS;
+      invis_effect.duration = 3;
+      SET_BIT_AR(invis_effect.bitvector, AFF_INVISIBLE);
+      affect_join(ch, &invis_effect, TRUE, FALSE, FALSE, FALSE);
+    }
+  }
+}
+
+// This will return the saving throw bonus for evolutions like
+// undead appearance, celestial appearance and fiendish appearance.
+int get_evolution_appearance_save_bonus(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+
+  // at level 12, they're immune
+  if (GET_CALL_EIDOLON_LEVEL(ch) >= 12)
+    return 100;
+  if (GET_CALL_EIDOLON_LEVEL(ch) >= 7)
+    return +4;
+
+  return +2;
+}
+
+void remove_locked_door_flags(room_rnum room, int door)
+{
+  REMOVE_BIT(EXITN(room, door)->exit_info, EX_LOCKED);
+  REMOVE_BIT(EXITN(room, door)->exit_info, EX_LOCKED_EASY);
+  REMOVE_BIT(EXITN(room, door)->exit_info, EX_LOCKED_MEDIUM);
+  REMOVE_BIT(EXITN(room, door)->exit_info, EX_LOCKED_HARD);
+}
+
+bool is_door_locked(room_rnum room, int door)
+{
+  if (room == NOWHERE)
+    return false;
+
+  if (door < NORTH || door > NUM_OF_DIRS)
+    return false;
+
+  if (IS_SET(EXITN(room, door)->exit_info, EX_LOCKED) ||
+      IS_SET(EXITN(room, door)->exit_info, EX_LOCKED_EASY) ||
+      IS_SET(EXITN(room, door)->exit_info, EX_LOCKED_MEDIUM) ||
+      IS_SET(EXITN(room, door)->exit_info, EX_LOCKED_HARD))
+    return true;
+
+  return false;
+}
+
+int get_judgement_bonus(struct char_data *ch, int type)
+{
+  if (!HAS_REAL_FEAT(ch, FEAT_JUDGEMENT))
+    return 0;
+
+  int bonus = 1;
+  int level = CLASS_LEVEL(ch, CLASS_INQUISITOR);
+  if (HAS_REAL_FEAT(ch, FEAT_SLAYER) && type == GET_SLAYER_JUDGEMENT(ch))
+    level += 5;
+
+  switch (type)
+  {
+  case INQ_JUDGEMENT_DESTRUCTION:
+  case INQ_JUDGEMENT_HEALING:
+  case INQ_JUDGEMENT_PIERCING:
+  case INQ_JUDGEMENT_RESISTANCE:
+    bonus += level / 3;
+    break;
+
+  case INQ_JUDGEMENT_JUSTICE:
+  case INQ_JUDGEMENT_PROTECTION:
+  case INQ_JUDGEMENT_PURITY:
+  case INQ_JUDGEMENT_RESILIENCY:
+    bonus += level / 5;
+    break;
+  }
+
+  bonus += HAS_REAL_FEAT(ch, FEAT_PERFECT_JUDGEMENT);
+
+  /* Inquisitor Empowered Judgment perk: +1 per rank to all judgment bonuses */
+  bonus += get_inquisitor_empowered_judgment_bonus(ch);
+
+  /* Inquisitor Greater Judgment perk: Doubles bonus for selected judgment type */
+  if (!IS_NPC(ch) && has_inquisitor_greater_judgment(ch))
+  {
+    /* Greater Judgment can be configured - for now, check if player has stored selection */
+    int selected_judgment = ch->player_specials->inq_greater_judgment_type;
+    if (selected_judgment == type && selected_judgment > 0)
+      bonus *= 2;
+  }
+
+  if (type == INQ_JUDGEMENT_RESISTANCE)
+    bonus *= 4;
+
+  return bonus;
+}
+
+int judgement_bonus_type(struct char_data *ch)
+{
+  if (IS_EVIL(ch))
+    return BONUS_TYPE_PROFANE;
+  else
+    return BONUS_TYPE_SACRED;
+}
+
+bool is_judgement_possible(struct char_data *ch, struct char_data *t, int type)
+{
+  if (!ch || !t)
+    return false;
+
+  if (!HAS_REAL_FEAT(ch, FEAT_JUDGEMENT))
+    return false;
+
+  if (GET_JUDGEMENT_TARGET(ch) != t)
+    return false;
+  if (!IS_JUDGEMENT_ACTIVE(ch, type))
+    return false;
+
+  return true;
+}
+
+// Returns 0 if no other group members have the teamwork feat
+// or if the character doesn't either.
+// Otherwise returns the number of people in the group who have the feat.
+int has_teamwork_feat(struct char_data *ch, int featnum)
+{
+  if (!ch)
+    return 0;
+  if (!GROUP(ch))
+    return 0;
+
+  if (!HAS_REAL_FEAT(ch, featnum))
+    return false;
+
+  struct char_data *k = NULL;
+  int num_with_feat = 0;
+
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+
+  while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
+  {
+    if (IN_ROOM(k) != IN_ROOM(ch))
+      continue;
+    if (HAS_REAL_FEAT(k, featnum) || HAS_REAL_FEAT(ch, FEAT_SOLO_TACTICS))
+    {
+      num_with_feat++;
+    }
+  }
+
+  if (num_with_feat > 0)
+    return (num_with_feat + 1); // we include ch here as well
+
+  return 0;
+}
+
+// This function will return the total bonus number, which works either as
+// a return of TRUE or for the bonus number for feats like shield wall.
+// If no party members who have the featnum have a shield, it returns FALSE.
+int teamwork_using_shield(struct char_data *ch, int featnum)
+{
+  struct char_data *k = NULL;
+  struct obj_data *shield = NULL;
+  int bonus = 0;
+
+  if (!ch)
+    return 0;
+  if (!GROUP(ch))
+    return 0;
+
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+
+  while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
+  {
+    if (IN_ROOM(k) != IN_ROOM(ch))
+      continue;
+    if (HAS_REAL_FEAT(k, featnum) || HAS_REAL_FEAT(ch, FEAT_SOLO_TACTICS))
+    {
+      if ((shield = GET_EQ(k, WEAR_SHIELD)) && IS_SHIELD(GET_OBJ_VAL(shield, 1)))
+      {
+        if (GET_OBJ_VAL(shield, 1) == SPEC_ARMOR_TYPE_SMALL_SHIELD ||
+            GET_OBJ_VAL(shield, 1) == SPEC_ARMOR_TYPE_BUCKLER)
+          bonus++;
+        else
+          bonus += 2;
+      }
+    }
+  }
+
+  return bonus;
+}
+
+int num_fighting(struct char_data *ch)
+{
+  struct char_data *k = NULL, *tch = NULL;
+  int count = 0;
+
+  if (!ch)
+    return 0;
+  if (!GROUP(ch))
+    return 0;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (tch == FIGHTING(ch) || ch == FIGHTING(tch))
+    {
+      count++;
+    }
+    else
+    {
+      /* Beginner's Note: Reset simple_list iterator before use to prevent
+       * cross-contamination from previous iterations. Without this reset,
+       * if simple_list was used elsewhere and not completed, it would
+       * continue from where it left off instead of starting fresh. */
+      simple_list(NULL);
+
+      while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
+        if (tch == FIGHTING(k) || k == FIGHTING(tch))
+          count++;
+    }
+  }
+  return count;
+}
+
+int teamwork_best_stealth(struct char_data *ch, int featnum)
+{
+  if (!HAS_REAL_FEAT(ch, featnum))
+    return false;
+
+  if (!ch)
+    return 0;
+  if (!GROUP(ch))
+    return 0;
+
+  struct char_data *k = NULL;
+  int stealth = compute_ability_full(ch, ABILITY_STEALTH, TRUE);
+
+  simple_list(NULL);
+  while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
+  {
+    if (IN_ROOM(k) != IN_ROOM(ch))
+      continue;
+    if (HAS_REAL_FEAT(k, featnum) || HAS_REAL_FEAT(ch, FEAT_SOLO_TACTICS))
+    {
+      stealth = MAX(stealth, compute_ability_full(k, ABILITY_STEALTH, TRUE));
+    }
+  }
+
+  return stealth;
+}
+
+int teamwork_best_d20(struct char_data *ch, int featnum)
+{
+  if (!HAS_REAL_FEAT(ch, featnum))
+    return false;
+
+  if (!ch)
+    return 0;
+  if (!GROUP(ch))
+    return 0;
+
+  struct char_data *k = NULL;
+  int d20roll = d20(ch);
+
+  simple_list(NULL);
+  while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
+  {
+    if (IN_ROOM(k) != IN_ROOM(ch))
+      continue;
+    if (HAS_REAL_FEAT(k, featnum) || HAS_REAL_FEAT(ch, FEAT_SOLO_TACTICS))
+    {
+      d20roll = MAX(d20roll, d20(ch));
+    }
+  }
+
+  return d20roll;
+}
+
+int count_teamwork_feats_available(struct char_data *ch)
+{
+  int i = 0;
+  int known = 0;
+  int available = HAS_REAL_FEAT(ch, FEAT_TEAMWORK);
+
+  if (!ch)
+    return 0;
+
+  for (i = 1; i < FEAT_LAST_FEAT; i++)
+  {
+    if (feat_list[i].feat_type == FEAT_TYPE_TEAMWORK && HAS_REAL_FEAT(ch, i))
+      known++;
+  }
+
+  return (available - known);
+}
+
+bool can_silence(struct char_data *ch __attribute__((unused)))
+{
+  return true;
+}
+
+int get_default_spell_weapon(struct char_data *ch)
+{
+  if (!ch)
+    return WEAPON_TYPE_UNARMED;
+
+  if (IS_EVIL(ch))
+    return WEAPON_TYPE_FLAIL;
+  else if (IS_GOOD(ch))
+    return WEAPON_TYPE_WARHAMMER;
+  else if (IS_LAWFUL(ch))
+    return WEAPON_TYPE_LONG_SWORD;
+  else if (IS_CHAOTIC(ch))
+    return WEAPON_TYPE_BATTLE_AXE;
+
+  return WEAPON_TYPE_HEAVY_MACE;
+}
+
+bool is_caster_class(int class)
+{
+  switch (class)
+  {
+  case CLASS_WIZARD:
+  case CLASS_CLERIC:
+  case CLASS_PALADIN:
+  case CLASS_RANGER:
+  case CLASS_BARD:
+  case CLASS_DRUID:
+  case CLASS_ALCHEMIST:
+  case CLASS_INQUISITOR:
+  case CLASS_BLACKGUARD:
+  case CLASS_SORCERER:
+  case CLASS_SUMMONER:
+    return true;
+  }
+  return false;
+}
+
+int count_spellcasting_classes(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+
+  int num = 0, i = 0;
+
+  for (i = 0; i < NUM_CLASSES; i++)
+    if (is_caster_class(i) && CLASS_LEVEL(ch, i) > 0)
+      num++;
+
+  return num;
+}
+
+int get_spellcasting_class(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+
+  int i = 0;
+
+  for (i = 0; i < NUM_CLASSES; i++)
+    if (is_caster_class(i) && CLASS_LEVEL(ch, i) > 0)
+      return i;
+
+  return -1;
+}
+
+// will return true if the sector type offers opportunity for cover
+static bool can_room_sector_give_cover(int type)
+{
+  switch (type)
+  {
+  case SECT_CITY:          // people, crates, etc.
+  case SECT_FOREST:        // trees and shrubs
+  case SECT_HIGH_MOUNTAIN: // boulders, snow drifts
+  case SECT_JUNGLE:        // trees, brush
+  case SECT_MARSHLAND:     // trees
+  case SECT_MOUNTAIN:      // boulders
+    return true;
+  }
+  return false;
+}
+
+// will return true if the character has cover
+static bool has_cover(struct char_data *ch, struct char_data *t)
+{
+  if (!ch || !t)
+    return false;
+
+  if (FIGHTING(t) == ch)
+    return false;
+
+  room_rnum room = IN_ROOM(ch);
+  if (room != NOWHERE && can_room_sector_give_cover(world[room].sector_type))
+    return true;
+
+  return false;
+}
+
+// will return true if the conditions allow for the use of the
+// one with shadow feat.
+bool can_one_with_shadows(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (!HAS_REAL_FEAT(ch, FEAT_ONE_WITH_SHADOW))
+    return false;
+
+  if (compute_concealment(ch, NULL) > 0)
+    return true;
+
+  if (has_cover(ch, FIGHTING(ch)))
+    return true;
+
+  if (!ch->group)
+    return false;
+
+  struct char_data *k = NULL;
+  int num = 0;
+  simple_list(NULL);
+  while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
+  {
+    if (IN_ROOM(k) != IN_ROOM(ch))
+      continue;
+    if (k == ch)
+      continue;
+    num++;
+  }
+  if (num > 0)
+    return true;
+
+  return false;
+}
+
+// This will check if there is a creature in the room, aside from the 'ch'
+// which is both larger than ch and not targetting ch in battle.
+bool can_naturally_stealthy(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+  if (!HAS_REAL_FEAT(ch, FEAT_NATURALLY_STEALTHY))
+    return false;
+
+  struct char_data *t = NULL;
+  int num = 0;
+
+  for (t = world[IN_ROOM(ch)].people; t; t = t->next_in_room)
+  {
+    if (t == ch)
+      continue;
+    if (FIGHTING(t) == ch)
+      continue;
+    if (GET_SIZE(t) <= GET_SIZE(ch))
+      continue;
+    num++;
+  }
+
+  if (num > 0)
+    return true;
+
+  return false;
+}
+
+// returns true if the damage type is to be displayed on certain
+// lists, like the resistancesd command.
+bool display_dam_type(int dam_type)
+{
+  switch (dam_type)
+  {
+  case DAM_CHAOS:
+  /* case DAM_SUNLIGHT:
+  case DAM_MOVING_WATER: */
+  case DAM_CELESTIAL_POISON:
+  case DAM_BLEEDING:
+  case DAM_TEMPORAL:
+    return false;
+  }
+  return true;
+}
+
+bool is_swimming(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  switch (world[IN_ROOM(ch)].sector_type)
+  {
+  case SECT_OCEAN:
+  case SECT_UD_WATER:
+  case SECT_UNDERWATER:
+  case SECT_WATER_SWIM:
+    /* case SECT_RIVER: */
+    return true;
+  }
+  return false;
+}
+
+bool is_ghost(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  /* if (HAS_TEMPLATE(ch, TEMPLATE_GHOST))
+    return true; */
+
+  return false;
+}
+
+void clear_group_marks(struct char_data *ch, struct char_data *victim)
+{
+  if (!ch || !victim || IN_ROOM(ch) == NOWHERE || IN_ROOM(victim) == NOWHERE)
+    return;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (!is_player_grouped(tch, ch))
+      continue;
+    if (GET_MARK(tch) == victim)
+    {
+      GET_MARK(tch) = NULL;
+      GET_MARK_ROUNDS(tch) = 0;
+      if (GET_STUDIED_TARGET(tch) == victim)
+        GET_STUDIED_TARGET(tch) = NULL;
+    }
+  }
+}
+
+bool is_poison_spell(int spell)
+{
+  switch (spell)
+  {
+  case POISON_TYPE_SCORPION_WEAK:
+  case POISON_TYPE_SCORPION_NORMAL:
+  case POISON_TYPE_SCORPION_STRONG:
+  case POISON_TYPE_SNAKE_WEAK:
+  case POISON_TYPE_SNAKE_NORMAL:
+  case POISON_TYPE_SNAKE_STRONG:
+  case POISON_TYPE_SPIDER_WEAK:
+  case POISON_TYPE_SPIDER_NORMAL:
+  case POISON_TYPE_SPIDER_STRONG:
+  case POISON_TYPE_CENTIPEDE_WEAK:
+  case POISON_TYPE_CENTIPEDE_NORMAL:
+  case POISON_TYPE_CENTIPEDE_STRONG:
+  case POISON_TYPE_WASP_WEAK:
+  case POISON_TYPE_WASP_NORMAL:
+  case POISON_TYPE_WASP_STRONG:
+  case POISON_TYPE_FUNGAL_WEAK:
+  case POISON_TYPE_FUNGAL_NORMAL:
+  case POISON_TYPE_FUNGAL_STRONG:
+  case POISON_TYPE_DROW_WEAK:
+  case POISON_TYPE_DROW_NORMAL:
+  case POISON_TYPE_DROW_STRONG:
+  case POISON_TYPE_WYVERN:
+  case POISON_TYPE_PURPLE_WORM:
+  case POISON_TYPE_COCKATRICE:
+  case POISON_TYPE_KAPAK:
+  case SPELL_POISON:
+  case WEAPON_POISON_BLACK_ADDER_VENOM:
+  case SPELL_POISON_BREATHE:
+    return true;
+  }
+  return false;
+}
+
+bool is_spell_restoreable(int spell)
+{
+  switch (spell)
+  {
+  case SPELL_BLINDNESS:
+  case SPELL_POISON:
+  case SPELL_DEAFNESS:
+  case SPELL_SLOW:
+  case SPELL_ENLARGE_PERSON:
+  case SPELL_SHRINK_PERSON:
+  case SPELL_POWER_WORD_BLIND:
+  case SPELL_POWER_WORD_STUN:
+  case SPELL_POWER_WORD_SILENCE:
+  case SPELL_CONTAGION:
+  case SPELL_BALEFUL_POLYMORPH:
+  case SPELL_CONFUSION:
+  case SPELL_SILENCE:
+  case SPELL_POISON_BREATHE:
+  case SPELL_FEAR:
+  case AFFECT_LEVEL_DRAIN:
+    /* case SKILL_AFFECT_WILDSHAPE:
+    case SKILL_AFFECT_RAGE:
+    case SPELL_AFFECT_PRAYER_DEBUFF: */
+    return true;
+  }
+  if (is_poison_spell(spell))
+    return true;
+  return false;
+}
+
+bool is_spell_or_spell_like(int type)
+{
+  if (type > SPELL_RESERVED_DBC && type < NUM_SPELLS)
+    return true;
+  if (type > PSIONIC_POWER_START && type < PSIONIC_POWER_END)
+    return true;
+
+  switch (type)
+  {
+  case SPELL_AFFECT_MIND_TRAP_NAUSEA:
+  case PSIONIC_ABILITY_PSIONIC_FOCUS:
+  case PSIONIC_ABILITY_DOUBLE_MANIFESTATION:
+  case SPELL_DRAGONBORN_ANCESTRY_BREATH:
+  case PALADIN_MERCY_INJURED_FAST_HEALING:
+  case BLACKGUARD_TOUCH_OF_CORRUPTION:
+  case BLACKGUARD_CRUELTY_AFFECTS:
+  case ABILITY_CHANNEL_POSITIVE_ENERGY:
+  case ABILITY_CHANNEL_NEGATIVE_ENERGY:
+  case SPELL_AFFECT_STUNNING_BARRIER:
+  case AFFECT_ENTANGLING_FLAMES:
+  case SPELL_EFFECT_DAZZLED:
+  case SPELL_AFFECT_DEATH_ATTACK:
+  case RACIAL_LICH_TOUCH:
+  case RACIAL_LICH_FEAR:
+  case RACIAL_LICH_REJUV:
+  case ABILITY_AFFECT_TRUE_JUDGEMENT:
+  case SPELL_AFFECT_WEAPON_OF_AWE:
+  case RACIAL_ABILITY_SKELETON_DR:
+  case RACIAL_ABILITY_ZOMBIE_DR:
+  case RACIAL_ABILITY_PRIMORDIAL_DR:
+  case ABILITY_SCORE_DAMAGE:
+  case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
+  case AFFECT_LEVEL_DRAIN:
+  case ABILITY_CREATE_VAMPIRE_SPAWN:
+  case ABILITY_BLOOD_DRAIN:
+    return true;
+  }
+
+  return false;
+}
+
+bool can_dam_be_resisted(int type)
+{
+  switch (type)
+  {
+  case DAM_SUNLIGHT:
+  case DAM_MOVING_WATER:
+  case DAM_BLOOD_DRAIN:
+  case DAM_BLEEDING:
+    return false;
+  }
+
+  return true;
+}
+
+void set_vampire_spawn_feats(struct char_data *mob)
+{
+  if (!mob || !IS_NPC(mob))
+    return;
+
+  SET_FEAT(mob, FEAT_ALERTNESS, 1);
+  SET_FEAT(mob, FEAT_COMBAT_REFLEXES, 1);
+  SET_FEAT(mob, FEAT_DODGE, 1);
+  SET_FEAT(mob, FEAT_IMPROVED_INITIATIVE, 1);
+  SET_FEAT(mob, FEAT_LIGHTNING_REFLEXES, 1);
+  SET_FEAT(mob, FEAT_TOUGHNESS, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_NATURAL_ARMOR, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_DAMAGE_REDUCTION, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_ENERGY_RESISTANCE, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_FAST_HEALING, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_WEAKNESSES, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_BLOOD_DRAIN, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_ENERGY_DRAIN, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_CHANGE_SHAPE, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_GASEOUS_FORM, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_SPIDER_CLIMB, 1);
+}
+
+// returns true if the character is wearing a non-container
+// object on his about worn slot.  Also, if the person is
+// grappling or affected by a wind_wall affect, it will
+// return false.
+bool is_covered(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  // wind will blow off any covering they have.
+  if (AFF_FLAGGED(ch, AFF_WIND_WALL))
+    return false;
+
+  // if grappling, they cannot keep their cloak covering them
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+    return false;
+
+  // They must be wearing a vampire cloak on the about location
+  // to resist sunlight affects
+  struct obj_data *cloak = GET_EQ(ch, WEAR_ABOUT);
+
+  if (!cloak || GET_OBJ_VNUM(cloak) != VAMPIRE_CLOAK_OBJ_VNUM)
+    return false;
+
+  return true;
+}
+
+const char *apply_types_lowercase(int apply_type)
+{
+  static char apply_text[100];
+  int i = 0;
+
+  if (apply_type >= NUM_APPLIES || apply_type < 0)
+    return NULL;
+
+  snprintf(apply_text, sizeof(apply_text), "%s", apply_types[apply_type]);
+
+  for (i = 0; (size_t)i < strlen(apply_text); i++)
+  {
+    apply_text[i] = (char)tolower(apply_text[i]);
+    if (apply_text[i] == '-')
+      apply_text[i] = ' ';
+  }
+
+  return apply_text;
+}
+
+bool valid_vampire_cloak_apply(int type)
+{
+  switch (type)
+  {
+  case APPLY_STR:
+  case APPLY_DEX:
+  case APPLY_CON:
+  case APPLY_INT:
+  case APPLY_WIS:
+  case APPLY_CHA:
+  case APPLY_SAVING_REFL:
+  case APPLY_SAVING_FORT:
+  case APPLY_SAVING_WILL:
+  case APPLY_AC_NEW:
+  case APPLY_DAMROLL:
+  case APPLY_DR:
+  case APPLY_HIT:
+  case APPLY_HITROLL:
+  case APPLY_HP_REGEN:
+  case APPLY_MOVE:
+  case APPLY_MV_REGEN:
+  case APPLY_PSP:
+  case APPLY_PSP_REGEN:
+  case APPLY_RES_FIRE:
+  case APPLY_RES_COLD:
+  case APPLY_RES_AIR:
+  case APPLY_RES_EARTH:
+  case APPLY_RES_ACID:
+  case APPLY_RES_HOLY:
+  case APPLY_RES_ELECTRIC:
+  case APPLY_RES_UNHOLY:
+  case APPLY_RES_SLICE:
+  case APPLY_RES_PUNCTURE:
+  case APPLY_RES_FORCE:
+  case APPLY_RES_SOUND:
+  case APPLY_RES_POISON:
+  case APPLY_RES_DISEASE:
+  case APPLY_RES_NEGATIVE:
+  case APPLY_RES_ILLUSION:
+  case APPLY_RES_MENTAL:
+  case APPLY_RES_LIGHT:
+  case APPLY_RES_ENERGY:
+  case APPLY_RES_WATER:
+    return true;
+  }
+  return false;
+}
+
+int get_vampire_cloak_bonus(int level, int type)
+{
+  int amount = (level / 15) + 1;
+
+  switch (type)
+  {
+  case APPLY_STR:
+  case APPLY_DEX:
+  case APPLY_CON:
+  case APPLY_INT:
+  case APPLY_WIS:
+  case APPLY_CHA:
+  case APPLY_SAVING_REFL:
+  case APPLY_SAVING_FORT:
+  case APPLY_SAVING_WILL:
+    return amount * 2;
+
+  case APPLY_AC_NEW:
+  case APPLY_DR:
+  case APPLY_HP_REGEN:
+  case APPLY_MV_REGEN:
+  case APPLY_PSP_REGEN:
+    return amount;
+
+  case APPLY_DAMROLL:
+  case APPLY_HITROLL:
+    return amount + 1;
+
+  case APPLY_HIT:
+  case APPLY_MOVE:
+  case APPLY_PSP:
+    return amount * 20;
+
+  case APPLY_RES_FIRE:
+  case APPLY_RES_COLD:
+  case APPLY_RES_AIR:
+  case APPLY_RES_EARTH:
+  case APPLY_RES_ACID:
+  case APPLY_RES_HOLY:
+  case APPLY_RES_ELECTRIC:
+  case APPLY_RES_UNHOLY:
+  case APPLY_RES_SLICE:
+  case APPLY_RES_PUNCTURE:
+  case APPLY_RES_FORCE:
+  case APPLY_RES_SOUND:
+  case APPLY_RES_POISON:
+  case APPLY_RES_DISEASE:
+  case APPLY_RES_NEGATIVE:
+  case APPLY_RES_ILLUSION:
+  case APPLY_RES_MENTAL:
+  case APPLY_RES_LIGHT:
+  case APPLY_RES_ENERGY:
+  case APPLY_RES_WATER:
+    return amount * 10;
+  }
+  return 0;
+}
+
+void clear_misc_cooldowns(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+
+  GET_SETCLOAK_TIMER(ch) = 0;
+  PIXIE_DUST_TIMER(ch) = 0;
+  EFREETI_MAGIC_TIMER(ch) = 0;
+  DRAGON_MAGIC_TIMER(ch) = 0;
+  LAUGHING_TOUCH_TIMER(ch) = 0;
+  FLEETING_GLANCE_TIMER(ch) = 0;
+  FEY_SHADOW_WALK_TIMER(ch) = 0;
+  GRAVE_TOUCH_TIMER(ch) = 0;
+  GRASP_OF_THE_DEAD_TIMER(ch) = 0;
+  INCORPOREAL_FORM_TIMER(ch) = 0;
+  GET_MISSION_COOLDOWN(ch) = 0;
+  GET_FORAGE_COOLDOWN(ch) = 0;
+  GET_SCROUNGE_COOLDOWN(ch) = 0;
+}
+
+bool can_mastermind_power(struct char_data *ch, int spellnum)
+{
+  if (!ch)
+    return false;
+
+  if (spellnum < PSIONIC_POWER_START || spellnum > PSIONIC_POWER_END)
+    return false;
+
+  // We want to exclude some spell groups.
+  if ((IS_SET(spell_info[spellnum].routines, MAG_ALTER_OBJS)) ||
+      (IS_SET(spell_info[spellnum].routines, MAG_GROUPS)) ||
+      (IS_SET(spell_info[spellnum].routines, MAG_MASSES)) ||
+      (IS_SET(spell_info[spellnum].routines, MAG_AREAS)) ||
+      (IS_SET(spell_info[spellnum].routines, MAG_SUMMONS)) ||
+      (IS_SET(spell_info[spellnum].routines, MAG_CREATIONS)) ||
+      (IS_SET(spell_info[spellnum].routines, MAG_ROOM)))
+    return false;
+
+  // // Self only spells we will also skip
+  // if (IS_SET(spell_info[spellnum].targets, TAR_SELF_ONLY))
+  //   return false;
+
+  // There are some powers we may want to exclude
+  // empty right now -- remove this comment if we add any --
+  switch (spellnum)
+  {
+  default:
+    break;
+  }
+
+  if (!affected_by_spell(ch, PSIONIC_ABILITY_MASTERMIND))
+    return false;
+
+  return true;
+}
+
+bool has_epic_power(struct char_data *ch, int powernum)
+{
+  if (powernum < PSIONIC_POWER_START || powernum > PSIONIC_POWER_END)
+    return false;
+
+  if (!psionic_powers[powernum].is_epic)
+    return false;
+
+  switch (powernum)
+  {
+  case PSIONIC_IMPALE_MIND:
+    if (HAS_FEAT(ch, FEAT_PSI_POWER_IMPALE_MIND))
+      return true;
+    else
+      return false;
+  case PSIONIC_RAZOR_STORM:
+    if (HAS_FEAT(ch, FEAT_PSI_POWER_RAZOR_STORM))
+      return true;
+    else
+      return false;
+  case PSIONIC_PSYCHOKINETIC_THRASHING:
+    if (HAS_FEAT(ch, FEAT_PSI_POWER_PSYCHOKINETIC_THRASHING))
+      return true;
+    else
+      return false;
+  case PSIONIC_EPIC_PSIONIC_WARD:
+    if (HAS_FEAT(ch, FEAT_PSI_POWER_EPIC_PSIONIC_WARD))
+      return true;
+    else
+      return false;
+  }
+
+  return false;
+}
+
+void manifest_mastermind_power(struct char_data *ch)
+{
+  struct char_data *tch = NULL;
+  char buf[200];
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return;
+
+  if (can_mastermind_power(ch, CASTING_SPELLNUM(ch)))
+  {
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+    {
+      if (spell_info[CASTING_SPELLNUM(ch)].violent)
+      {
+        if (!aoeOK(ch, tch, CASTING_SPELLNUM(ch)))
+        {
+          continue;
+        }
+        if (ch == tch)
+        {
+          snprintf(buf, sizeof(buf), "Your mastermind ability manifests '%s' on You.",
+                   spell_info[CASTING_SPELLNUM(ch)].name);
+          act(buf, FALSE, ch, 0, tch, TO_CHAR);
+          snprintf(buf, sizeof(buf), "$n's mastermind ability manifests '%s' on $N.",
+                   spell_info[CASTING_SPELLNUM(ch)].name);
+          act(buf, FALSE, ch, 0, tch, TO_ROOM);
+        }
+        else
+        {
+          snprintf(buf, sizeof(buf), "Your mastermind ability manifests '%s' on $N.",
+                   spell_info[CASTING_SPELLNUM(ch)].name);
+          act(buf, FALSE, ch, 0, tch, TO_CHAR);
+          snprintf(buf, sizeof(buf), "$n's mastermind ability manifests '%s' on You.",
+                   spell_info[CASTING_SPELLNUM(ch)].name);
+          act(buf, FALSE, ch, 0, tch, TO_VICT);
+          snprintf(buf, sizeof(buf), "$n's mastermind ability manifests '%s' on $N.",
+                   spell_info[CASTING_SPELLNUM(ch)].name);
+          act(buf, FALSE, ch, 0, tch, TO_NOTVICT);
+        }
+        call_magic(ch, tch, 0, CASTING_SPELLNUM(ch), 0, GET_PSIONIC_LEVEL(ch), CAST_SPELL);
+      }
+      else
+      {
+        if (aoeOK(ch, tch, CASTING_SPELLNUM(ch)))
+          continue;
+
+        call_magic(ch, tch, 0, CASTING_SPELLNUM(ch), 0, GET_PSIONIC_LEVEL(ch), CAST_SPELL);
+      }
+    }
+  }
+}
+
+bool can_blood_drain_target(struct char_data *ch, struct char_data *vict)
+{
+  if (!IS_LIVING(vict))
+  {
+    send_to_char(ch, "This can only be used on the living.\r\n");
+    return false;
+  }
+
+  if (IS_OOZE(vict))
+  {
+    send_to_char(ch, "This cannot be used on oozes.\r\n");
+    return false;
+  }
+
+  if (IS_ELEMENTAL(vict))
+  {
+    send_to_char(ch, "This cannot be used on oozes.\r\n");
+    return false;
+  }
+
+  if (IS_GOOD(ch))
+  {
+    if (!IS_EVIL(vict) && IS_SENTIENT(vict))
+    {
+      send_to_char(
+          ch,
+          "Good aligned vampires can only feed on evil creatures or non-sentient creatures.\r\n");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+int vampire_last_feeding_adjustment(struct char_data *ch)
+{
+  if (IS_VAMPIRE(ch))
+  {
+    if (TIME_SINCE_LAST_FEEDING(ch) <= 50)
+    {
+      return 2;
+    }
+    else if (TIME_SINCE_LAST_FEEDING(ch) >= 150)
+    {
+      return -2;
+    }
+  }
+  return 0;
+}
+
+bool is_immaterial(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (affected_by_spell(ch, SPELL_GASEOUS_FORM))
+    return true;
+
+  if (AFF_FLAGGED(ch, AFF_IMMATERIAL))
+    return true;
+
+  return false;
+}
+
+// returns true if the spell should NOT be listed in spell lists
+bool do_not_list_spell(int spellnum)
+{
+  switch (spellnum)
+  {
+  case SPELL_LUSKAN_RECALL:
+  case SPELL_TRIBOAR_RECALL:
+  case SPELL_MIRABAR_RECALL:
+  case SPELL_SILVERYMOON_RECALL:
+  case SPELL_PALANTHAS_RECALL:
+  case SPELL_SOLACE_RECALL:
+  case SPELL_SANCTION_RECALL:
+    return true;
+  }
+
+  if (spellnum > 0 && spellnum <= TOP_SPELL_DEFINE && spell_info[spellnum].no_player)
+    return true;
+
+  return false;
+}
+
+// returns 0 if neither spell or psionic power
+// returns 1 if psionic power
+// returns 2 if spell
+// returns 3 if warlock power
+int is_spell_or_power(int spellnum)
+{
+  if (spellnum <= 0 || spellnum >= NUM_SPELLS)
+  {
+    if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+    {
+      return 1;
+    }
+    else if (spellnum >= WARLOCK_POWER_START && spellnum <= WARLOCK_POWER_END)
+    {
+      return 3;
+    }
+    else
+    {
+      return 0;
+    }
+  }
+  return 2;
+}
+
+int get_number_of_spellcasting_classes(struct char_data *ch)
+{
+  int i = 0;
+  int num_classes = 0;
+
+  for (i = 0; i < NUM_CLASSES; i++)
+    if (CLASS_LEVEL(ch, i) > 0)
+      if (IS_SPELLCASTER_CLASS(i))
+        num_classes++;
+
+  return num_classes;
+}
+
+int get_first_spellcasting_classes(struct char_data *ch)
+{
+  int i = 0;
+
+  for (i = 0; i < NUM_CLASSES; i++)
+    if (CLASS_LEVEL(ch, i) > 0)
+      if (IS_SPELLCASTER_CLASS(i))
+        return i;
+
+  return i;
+}
+
+int warlock_spell_type(int spellnum)
+{
+  switch (spellnum)
+  {
+  case WARLOCK_ELDRITCH_SPEAR:
+  case WARLOCK_HIDEOUS_BLOW:
+  case WARLOCK_ELDRITCH_CHAIN:
+  case WARLOCK_ELDRITCH_CONE:
+  case WARLOCK_ELDRITCH_DOOM:
+    return WARLOCK_POWER_SHAPE;
+
+  case WARLOCK_DRAINING_BLAST:
+  case WARLOCK_FRIGHTFUL_BLAST:
+  case WARLOCK_BESHADOWED_BLAST:
+  case WARLOCK_BRIMSTONE_BLAST:
+  case WARLOCK_HELLRIME_BLAST:
+  case WARLOCK_BEWITCHING_BLAST:
+  case WARLOCK_NOXIOUS_BLAST:
+  case WARLOCK_VITRIOLIC_BLAST:
+  case WARLOCK_BINDING_BLAST:
+  case WARLOCK_UTTERDARK_BLAST:
+    return WARLOCK_POWER_ESSENCE;
+
+  case WARLOCK_BEGUILING_INFLUENCE:
+  case WARLOCK_DARK_ONES_OWN_LUCK:
+  case WARLOCK_DARKNESS:
+  case WARLOCK_DEVILS_SIGHT:
+  case WARLOCK_ENTROPIC_WARDING:
+  case WARLOCK_LEAPS_AND_BOUNDS:
+  case WARLOCK_OTHERWORLDLY_WHISPERS:
+  case WARLOCK_SEE_THE_UNSEEN:
+  case WARLOCK_CHARM:
+  case WARLOCK_CURSE_OF_DESPAIR:
+  case WARLOCK_DREAD_SEIZURE:
+  case WARLOCK_FLEE_THE_SCENE:
+  case WARLOCK_THE_DEAD_WALK:
+  case WARLOCK_VORACIOUS_DISPELLING:
+  case WARLOCK_WALK_UNSEEN:
+  case WARLOCK_CHILLING_TENTACLES:
+  case WARLOCK_DEVOUR_MAGIC:
+  case WARLOCK_TENACIOUS_PLAGUE:
+  case WARLOCK_WALL_OF_PERILOUS_FLAME:
+  case WARLOCK_DARK_FORESIGHT:
+  case WARLOCK_RETRIBUTIVE_INVISIBILITY:
+    return WARLOCK_POWER_SPELL;
+
+  // not implemented yet
+  case WARLOCK_WORD_OF_CHANGING:
+  default:
+    return WARLOCK_POWER_NONE;
+  }
+  return WARLOCK_POWER_NONE;
+}
+
+void set_x_y_coords(int start, int *x, int *y, int *room)
+{
+  *x = MIN(159, MAX(0, ((start - 600161) % 160)));
+  *y = MIN(159, MAX(0, ((start - 600161) / 160)));
+
+  *room = 600161 + (160 * *y) + *x;
+}
+
+// This function will return true if the character can be affected by the
+// daze affect, or false if it cannot.
+bool can_daze(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (GET_NODAZE_COOLDOWN(ch) > 0)
+    return false;
+
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOPARALYZE))
+    return false;
+
+  if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
+    return false;
+
+  return true;
+}
+
+
+// This function simply checks to see if there's a random treasure chest in the room or not.
+bool is_random_chest_in_room(room_rnum rrnum)
+{
+  if (rrnum == NOWHERE)
+    return false;
+
+  struct obj_data *obj = NULL;
+  bool found = false;
+
+  for (obj = world[rrnum].contents; obj; obj = obj->next_content)
+  {
+    if (GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST && GET_OBJ_VAL(obj, 2) == 1)
+    {
+      found = true;
+      break;
+    }
+  }
+
+  return found;
+}
+
+int number_of_chests_per_zone(int num_zone_rooms)
+{
+  return (num_zone_rooms / NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST);
+}
+
+bool can_place_random_chest_in_room(room_rnum rrnum, int num_zone_rooms, int num_chests)
+{
+  if (rrnum == NOWHERE)
+    return false;
+
+  zone_rnum zone = GET_ROOM_ZONE(rrnum);
+
+  if (num_zone_rooms <= 0)
+    return false;
+
+  // rooms flagged can only load a chest if there isn't any there already
+  if (ROOM_FLAGGED(rrnum, ROOM_RANDOM_CHEST))
+  {
+    if (is_random_chest_in_room(rrnum))
+      return false;
+    return true;
+  }
+
+  if (ZONE_FLAGGED(zone, ZONE_RANDOM_CHESTS))
+  {
+    if (number_of_chests_per_zone(num_zone_rooms) < num_chests)
+      return false;
+    return true;
+  }
+
+  //mudlog(NRM, 34, FALSE, "ZReset B: %d %s %d %s", zone_table[zone].number, zone_table[zone].name, world[rrnum].number, world[rrnum].name);
+
+  return false;
+}
+
+// This function will return a 'grade' of gear based on the level entered.
+// For example, a return value of 1 is a mundane item, which is masterwork
+// or normal.  A 2 is a minor magic item, generally +1. A 6 is a superior
+// item generally level 26 or higher. These grades are mainly used for treasure
+// chest objects.
+int get_random_chest_item_level(int level)
+{
+  if (level <= 5)
+  {
+    switch (dice(1, 5))
+    {
+    case 1:
+      return 1;
+    case 5:
+      return 3;
+    default:
+      return 2;
+    }
+  }
+  else if (level <= 10)
+  {
+    switch (dice(1, 10))
+    {
+    case 1:
+      return 1;
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+      return 3;
+    default:
+      return 2;
+    }
+  }
+  else if (level <= 15)
+  {
+    switch (dice(1, 10))
+    {
+    case 1:
+      return 2;
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+      return 4;
+    default:
+      return 3;
+    }
+  }
+  else if (level <= 20)
+  {
+    switch (dice(1, 10))
+    {
+    case 1:
+      return 3;
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+      return 5;
+    default:
+      return 4;
+    }
+  }
+  else if (level <= 25)
+  {
+    switch (dice(1, 10))
+    {
+    case 1:
+      return 4;
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+      return 6;
+    default:
+      return 5;
+    }
+  }
+  else
+  {
+    switch (dice(1, 10))
+    {
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+      return 5;
+    default:
+      return 6;
+    }
+  }
+
+  return 2;
+}
+
+// This will return a random kind of chest type. Types 2 through 7 are weapons, armor, consumables, trinkets, gold and crystals.
+// anything else is 1, which is generic and has a chance to drop anything based on the normal coded treasure tables.
+int get_chest_contents_type(void)
+{
+  int type = dice(1, 15);
+
+  if (type > 1 && type <= 7)
+    return type;
+
+  return 1;
+}
+
+// This function will return a chest dc based on the level provided
+// There is a 75% chance to return a 0, meaning the queried affect
+// is inactive on this chest.  Example: Used to get a pick lock dc
+// If the chest level is 10, there's a 75% chance to return 0 which
+// means the chest is not locked, otherwise it will return a dc of 15.
+int get_random_chest_dc(int level)
+{
+  if (level <= 0)
+    return 0;
+
+  // 75 % chance it won't be hidden at all
+  if (dice(1, 4) > 1)
+    return 0;
+
+  if (level <= 5)
+    return 10;
+  else if (level <= 10)
+    return 15;
+  else if (level <= 15)
+    return 20;
+  else if (level <= 20)
+    return 25;
+  else if (level <= 25)
+    return 30;
+  else if (level <= 30)
+    return 35;
+
+  return 40;
+}
+
+// This function will place a random treasure chest in the room
+// level will determine level of items dropped
+// search dc will be the desired search dc, 0 if you don't want it hidden or -1 if you want a random chance for a search dc based on chest level
+// pick dc will be the desired pick lock dc, 0 if you don't want it locked or -1 if you want a random chance for a pick dc based on chest level
+// trap chance is the percentage chance that the chest will be trapped. If it is the trap type will always be triggered by open container with a trap type based on chest level
+void place_random_chest(room_rnum rrnum, int level, int search_dc, int pick_dc, int trap_chance)
+{
+  if (rrnum == NOWHERE)
+    return;
+
+  struct obj_data *obj = read_object(RANDOM_TREASURE_CHEST_VNUM, VIRTUAL);
+
+  if (obj == NULL)
+    return;
+
+  // determines the level of items dropped
+  GET_OBJ_VAL(obj, 0) = get_random_chest_item_level(level);
+  // determines the type of object dropped
+  GET_OBJ_VAL(obj, 1) = get_chest_contents_type();
+  // we set this to 1 to tag it as a random treasure chest, meaning it can only be looted once
+  // with no cooldown and is extracted immediately after being looted.
+  GET_OBJ_VAL(obj, 2) = 1;
+  // This is the search dc.  If above zero it will cannot be interacted with unless located with search command
+  GET_OBJ_VAL(obj, 3) = (search_dc == -1) ? get_random_chest_dc(level) : search_dc;
+  // This is the pick lock dc.  If above zero it will cannot be looted unless unlocked with the picklock command.
+  GET_OBJ_VAL(obj, 4) = (pick_dc == -1) ? get_random_chest_dc(level) : pick_dc;
+  // We're going to see if there should be an associated trap
+  // This is currently not implemented
+  if (dice(1, 100) <= trap_chance)
+    GET_OBJ_VAL(obj, 5) = 0;
+
+  obj_to_room(obj, rrnum);
+}
+
+bool has_reach(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    wielded = GET_EQ(ch, WEAR_WIELD_2H);
+
+  if (wielded)
+    if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].weaponFlags, WEAPON_FLAG_REACH))
+      return true;
+
+  if (HAS_EVOLUTION(ch, EVOLUTION_REACH))
+    return true;
+
+  return false;
+}
+
+// This will return the desired mob follower or NULL if not found.
+// mob_type refers to the mob flag normally associated with the call
+// command.
+struct char_data *get_mob_follower(const struct char_data *ch, int mob_type)
+{
+  struct follow_type *k = NULL, *next = NULL;
+
+  for (k = ch->followers; k; k = next)
+  {
+    next = k->next;
+    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
+        MOB_FLAGGED(k->follower, mob_type))
+    {
+      return k->follower;
+    }
+  }
+
+  return NULL;
+}
+
+void AoEDamageRoom(struct char_data *ch, int dam, int spellnum, int dam_type)
+{
+  if (!ch)
+    return;
+
+  struct char_data *victim = NULL;
+
+  for (victim = world[IN_ROOM(ch)].people; victim; victim = victim->next_in_room)
+  {
+    if (aoeOK(ch, victim, spellnum))
+    {
+      damage(ch, victim, dam, spellnum, dam_type, FALSE);
+    }
+  }
+}
+
+bool can_act(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (AFF_FLAGGED(ch, AFF_PINNED))
+    return false;
+
+  if (AFF_FLAGGED(ch, AFF_STUN))
+    return false;
+
+  if (AFF_FLAGGED(ch, AFF_PARALYZED))
+    return false;
+
+  if (AFF_FLAGGED(ch, AFF_DAZED))
+    return false;
+
+  if (!AWAKE(ch))
+    return false;
+
+  return true;
+}
+
+bool show_combat_roll(struct char_data *ch)
+{
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
+    return true;
+  if (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master && !IS_NPC(ch->master) &&
+      PRF_FLAGGED(ch->master, PRF_CHARMIE_COMBATROLL) && IN_ROOM(ch) == IN_ROOM(ch->master) &&
+      AWAKE(ch->master) && CAN_SEE(ch->master, ch))
+    return true;
+  return false;
+}
+
+void send_combat_roll_info(struct char_data *ch, const char *messg, ...)
+{
+  if (!ch)
+    return;
+
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
+  {
+    if (ch->desc && messg && *messg)
+    {
+      va_list args;
+
+      va_start(args, messg);
+      vwrite_to_output(ch->desc, messg, args);
+      va_end(args);
+    }
+  }
+  if (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master && !IS_NPC(ch->master) &&
+      PRF_FLAGGED(ch->master, PRF_CHARMIE_COMBATROLL) && IN_ROOM(ch) == IN_ROOM(ch->master) &&
+      AWAKE(ch->master) && CAN_SEE(ch->master, ch))
+  {
+    if (ch->master->desc && messg && *messg)
+    {
+      va_list args;
+
+      va_start(args, messg);
+      vwrite_to_output(ch->master->desc, messg, args);
+      va_end(args);
+    }
+  }
+}
+
+int can_carry_weight_limit(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+
+  int strength = GET_CARRY_STRENGTH(ch);
+  int limit = 0;
+
+  if (strength <= 1)
+    limit = 5;
+  else
+  {
+    switch (strength)
+    {
+    case 2:
+      limit = 13;
+      break;
+    case 3:
+      limit = 20;
+      break;
+    case 4:
+      limit = 26;
+      break;
+    case 5:
+      limit = 33;
+      break;
+    case 6:
+      limit = 40;
+      break;
+    case 7:
+      limit = 46;
+      break;
+    case 8:
+      limit = 53;
+      break;
+    case 9:
+      limit = 60;
+      break;
+    case 10:
+      limit = 66;
+      break;
+    case 11:
+      limit = 76;
+      break;
+    case 12:
+      limit = 86;
+      break;
+    case 13:
+      limit = 100;
+      break;
+    case 14:
+      limit = 116;
+      break;
+    case 15:
+      limit = 133;
+      break;
+    case 16:
+      limit = 153;
+      break;
+    case 17:
+      limit = 173;
+      break;
+    case 18:
+      limit = 200;
+      break;
+    case 19:
+      limit = 233;
+      break;
+    case 20:
+      limit = 266;
+      break;
+    case 21:
+      limit = 306;
+      break;
+    case 22:
+      limit = 346;
+      break;
+    case 23:
+      limit = 400;
+      break;
+    case 24:
+      limit = 466;
+      break;
+    case 25:
+      limit = 533;
+      break;
+    case 26:
+      limit = 613;
+      break;
+    case 27:
+      limit = 693;
+      break;
+    case 28:
+      limit = 800;
+      break;
+    case 29:
+      limit = 933;
+      break;
+    // 30+
+    default:
+      limit = 1000 + MAX(0, (strength - 30)) * 200;
+      break;
+    }
+  }
+
+  // the above tables use the pathfinder value for a medium load.
+  // level 30+ we've customized so things don't get too insane.
+  // here we'll multiply by 1.5 to get their max load.
+  // if at some point in the future we want to fully implement
+  // the encumbrance system with light/medium/heavy loads we can
+  // add a mode variable to the function and multiply the above values
+  // accordingly. x0.5 for light x1.5 for heavy. For now all limits
+  // are heavy, so x1.5
+  limit = (int)(limit * 1.5);
+
+  switch (GET_SIZE(ch))
+  {
+  case SIZE_FINE:
+    limit = (int)(limit * 0.125);
+    break;
+  case SIZE_DIMINUTIVE:
+    limit = (int)(limit * 0.25);
+    break;
+  case SIZE_TINY:
+    limit = (int)(limit * 0.5);
+    break;
+  case SIZE_SMALL:
+    limit = (int)(limit * 0.75);
+    break;
+  case SIZE_LARGE:
+    limit = (int)(limit * 2);
+    break;
+  case SIZE_HUGE:
+    limit = (int)(limit * 4);
+    break;
+  case SIZE_GARGANTUAN:
+    limit = (int)(limit * 8);
+    break;
+  case SIZE_COLOSSAL:
+    limit = (int)(limit * 16);
+    break;
+  }
+
+  limit += MAX(0, get_char_affect_modifier(ch, SPELL_UNSEEN_SERVANT, APPLY_SPECIAL));
+  limit = MIN(25000, limit);
+
+  return MAX(1, limit);
+}
+
+bool is_valid_ability_number(int num)
+{
+  switch (num)
+  {
+  case ABILITY_ACROBATICS:
+  case ABILITY_STEALTH:
+  case ABILITY_PERCEPTION:
+  case ABILITY_MEDICINE:
+  case ABILITY_INTIMIDATE:
+  case ABILITY_CONCENTRATION:
+  case ABILITY_SPELLCRAFT:
+  case ABILITY_APPRAISE:
+  case ABILITY_DISCIPLINE:
+  case ABILITY_TOTAL_DEFENSE:
+  case ABILITY_ARCANA:
+  case ABILITY_RIDE:
+  case ABILITY_SLEIGHT_OF_HAND:
+  case ABILITY_DECEPTION:
+  case ABILITY_PERSUASION:
+  case ABILITY_DISABLE_DEVICE:
+  case ABILITY_DISGUISE:
+  case ABILITY_HANDLE_ANIMAL:
+  case ABILITY_INSIGHT:
+  case ABILITY_SURVIVAL:
+  case ABILITY_USE_MAGIC_DEVICE:
+  case ABILITY_LINGUISTICS:
+  case ABILITY_PERFORM:
+  case ABILITY_HISTORY:
+  case ABILITY_RELIGION:
+    return true;
+  }
+  return false;
+}
+
+struct obj_data *get_char_bag(struct char_data *ch, int bagnum)
+{
+  if (bagnum < 1 || bagnum > MAX_BAGS)
+    return NULL;
+
+  switch (bagnum)
+  {
+  case 1:
+    return ch->bags->bag1;
+  case 2:
+    return ch->bags->bag2;
+  case 3:
+    return ch->bags->bag3;
+  case 4:
+    return ch->bags->bag4;
+  case 5:
+    return ch->bags->bag5;
+  case 6:
+    return ch->bags->bag6;
+  case 7:
+    return ch->bags->bag7;
+  case 8:
+    return ch->bags->bag8;
+  case 9:
+    return ch->bags->bag9;
+  case 10:
+    return ch->bags->bag10;
+  }
+
+  log("Error in get_char_bag returning NULL");
+
+  return NULL;
+}
+
+bool is_spellcasting_class(int class_name)
+{
+  switch (class_name)
+  {
+  case CLASS_WIZARD:
+  case CLASS_CLERIC:
+  case CLASS_DRUID:
+  case CLASS_SORCERER:
+  case CLASS_PALADIN:
+  case CLASS_RANGER:
+  case CLASS_BARD:
+  case CLASS_ALCHEMIST:
+  case CLASS_BLACKGUARD:
+  case CLASS_INQUISITOR:
+  case CLASS_SUMMONER:
+    return true;
+  }
+  return false;
+}
+
+int countlines(char *filename)
+{
+  // count the number of lines in the file called filename
+  FILE *fp = fopen(filename, "r");
+  int ch = 0;
+  int lines = 0;
+
+  if (fp == NULL)
+    return 0;
+
+  lines++;
+  while ((ch = fgetc(fp)) != EOF)
+  {
+    if (ch == '\n')
+      lines++;
+  }
+  fclose(fp);
+  return lines;
+}
+
+bool is_crafting_kit(struct obj_data *kit)
+{
+  if (!kit)
+    return false;
+  if (GET_OBJ_TYPE(kit) != ITEM_CONTAINER)
+    return false;
+  if (!strncmp(kit->name, "corpse ", 7))
+    return false;
+  obj_rnum rnum = GET_OBJ_RNUM(kit);
+  if (rnum != NOTHING && obj_index[rnum].func != crafting_kit)
+    return false;
+  return true;
+}
+
+int get_apply_type_gear_mod(struct char_data *ch, int apply)
+{
+  int i = 0, j = 0, full_bonus = 0;
+  int bonuses[NUM_BONUS_TYPES];
+  struct obj_data *obj;
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+    bonuses[i] = 0;
+
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if ((obj = GET_EQ(ch, i)))
+    {
+      for (j = 0; j < 6; j++)
+      {
+        if (obj->affected[j].location == apply)
+        {
+          if (BONUS_TYPE_STACKS(obj->affected[j].bonus_type))
+          {
+            bonuses[obj->affected[j].bonus_type] += obj->affected[j].modifier;
+          }
+          else if (obj->affected[j].modifier > bonuses[obj->affected[j].bonus_type])
+          {
+            bonuses[obj->affected[j].bonus_type] = obj->affected[j].modifier;
+          }
+        }
+      }
+    }
+  }
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+    full_bonus += bonuses[i];
+
+  return full_bonus;
+}
+
+int get_fast_healing_amount(struct char_data *ch)
+{
+  int hp = 0;
+
+  /* Constructed golems do not benefit from fast healing or food/drink regen */
+  if (IS_GOLEM(ch))
+    return 0;
+
+  if (affected_by_spell(ch, SPELL_GREATER_PLANAR_HEALING))
+    hp += 4;
+  else if (affected_by_spell(ch, SPELL_PLANAR_HEALING))
+    hp += 1;
+
+  if (affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE))
+    hp += 2;
+
+  /* Nature's Wrath: check for APPLY_FAST_HEALING affects */
+  struct affected_type *af;
+  for (af = ch->affected; af; af = af->next)
+  {
+    if (af->location == APPLY_FAST_HEALING)
+    {
+      hp += af->modifier;
+    }
+  }
+
+  if (affected_by_spell(ch, EIDOLON_MERGE_FORMS_EFFECT))
+    hp += get_char_affect_modifier(ch, EIDOLON_MERGE_FORMS_EFFECT, APPLY_FAST_HEALING);
+
+  hp += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_FAST_HEALING);
+  hp += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_FAST_HEALING);
+
+  hp += HAS_EVOLUTION(ch, EVOLUTION_FAST_HEALING) * 2;
+
+  hp += get_apply_type_gear_mod(ch, APPLY_FAST_HEALING);
+
+  /* Blackguard: Necrotic Regeneration - fast healing 2 when below 50% HP */
+  if (!IS_NPC(ch))
+    hp += get_blackguard_necrotic_regeneration(ch);
+
+  return hp;
+}
+
+int get_hp_regen_amount(struct char_data *ch)
+{
+  int hp = 0;
+
+  if (IS_GOLEM(ch))
+    return 0;
+
+  hp += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_HP_REGEN);
+  hp += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_HP_REGEN);
+  hp += get_apply_type_gear_mod(ch, APPLY_HP_REGEN);
+  hp += get_monk_hp_regen_bonus(ch);
+
+  return hp;
+}
+
+int get_psp_regen_amount(struct char_data *ch)
+{
+  int psp = 0;
+
+  if (IS_GOLEM(ch))
+    return 0;
+
+  psp += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_PSP_REGEN);
+  psp += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_PSP_REGEN);
+  psp += get_apply_type_gear_mod(ch, APPLY_PSP_REGEN);
+  psp += MAX(0, GET_INT_BONUS(ch));
+
+  return psp;
+}
+
+int get_mv_regen_amount(struct char_data *ch)
+{
+  int mv = 0;
+
+  if (IS_GOLEM(ch))
+    return 0;
+
+  mv += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_MV_REGEN);
+  mv += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_MV_REGEN);
+  mv += get_apply_type_gear_mod(ch, APPLY_MV_REGEN);
+
+  return mv;
+}
+
+int get_bonus_from_liquid_type(int liquid)
+{
+  switch (liquid)
+  {
+  case LIQ_BEER:
+    return APPLY_DEX;
+  case LIQ_WINE:
+    return APPLY_INT;
+  case LIQ_ALE:
+    return APPLY_STR;
+  case LIQ_DARKALE:
+    return APPLY_CON;
+  case LIQ_WHISKY:
+    return APPLY_HITROLL;
+  case LIQ_LEMONADE:
+    return APPLY_MV_REGEN;
+  case LIQ_FIREBRT:
+    return APPLY_DAMROLL;
+  case LIQ_LOCALSPC:
+    return APPLY_PSP_REGEN;
+  case LIQ_SLIME:
+    return APPLY_NONE;
+  case LIQ_MILK:
+    return APPLY_CHA;
+  case LIQ_TEA:
+    return APPLY_WIS;
+  case LIQ_COFFE:
+    return APPLY_INT;
+  case LIQ_BLOOD:
+    return APPLY_NONE;
+  case LIQ_SALTWATER:
+    return APPLY_NONE;
+  case LIQ_CLEARWATER:
+    return APPLY_HIT;
+  case LIQ_JUICE:
+    return APPLY_DEX;
+  case LIQ_NECTAR:
+    return APPLY_STR;
+  case LIQ_AMBROSIA:
+    return APPLY_WIS;
+  case LIQ_SILVWINE:
+    return APPLY_INT;
+  case LIQ_ELVBLOSS:
+    return APPLY_CHA;
+  case LIQ_HEALREME:
+    return APPLY_FAST_HEALING;
+  case LIQ_TARBEAN:
+    return APPLY_CHA;
+  default:
+    return APPLY_HP_REGEN;
+  }
+  return APPLY_HP_REGEN;
+}
+
+bool is_road_room(room_rnum room, int type)
+{
+  zone_rnum zone;
+
+  if (room == NOWHERE)
+    return false;
+
+  // log("R: %d, Z: %d, T: %d\n", room, GET_ROOM_ZONE(room), type);
+
+  zone = GET_ROOM_ZONE(room);
+  if (zone == NOWHERE)
+    return false;
+
+  if (ZONE_FLAGGED(zone, ZONE_MISSIONS) && type == 1)
+    return true;
+  else if (ZONE_FLAGGED(zone, ZONE_HUNTS) && type == 2)
+    return true;
+  else if (ZONE_FLAGGED(zone, ZONE_RANDOM_ENCOUNTERS) && type == 3)
+    return true;
+  else if (!ZONE_FLAGGED(zone, ZONE_OPEN))
+    return false;
+  else if (world[room].sector_type == SECT_ROAD_EW)
+    return true;
+  else if (world[room].sector_type == SECT_ROAD_INT)
+    return true;
+  else if (world[room].sector_type == SECT_ROAD_NS)
+    return true;
+  return false;
+}
+
+// This function is the same as the dice() function except any rolls below min will be rerolled
+int min_dice(int num, int size, int min)
+{
+  if (num <= 0 || size <= 0)
+    return 0;
+
+  if (min <= 0)
+    return dice(num, size);
+
+  int i = 0;
+  int amount = 0;
+  int temp = 0;
+
+  for (i = 0; i < num; i++)
+  {
+    temp = dice(1, size);
+    while (temp < min)
+      temp = dice(1, size);
+    amount += temp;
+  }
+
+  return amount;
+}
+
+bool is_wearing_metal(struct char_data *ch)
+{
+  struct obj_data *obj;
+  int i;
+
+  if (!ch)
+    return false;
+
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    obj = GET_EQ(ch, i);
+    if (!obj)
+      continue;
+    if (IS_CONDUCTIVE_METAL(GET_OBJ_MATERIAL(obj)))
+      return true;
+  }
+  return false;
+}
+
+bool can_npc_command(struct char_data *ch)
+{
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+bool is_riding_dragon_mount(struct char_data *ch)
+{
+  struct char_data *mount;
+
+  if (ch == NULL || IS_NPC(ch) || IN_ROOM(ch) == NOWHERE)
+    return false;
+  mount = RIDING(ch);
+  return is_dragon_rider_mount(mount) && mount->master == ch && AFF_FLAGGED(mount, AFF_CHARM) &&
+         RIDDEN_BY(mount) == ch && IN_ROOM(mount) == IN_ROOM(ch) && GET_HIT(mount) > 0 &&
+         !MOB_FLAGGED(mount, MOB_NOTDEADYET);
+}
+
+bool is_dragon_rider_mount(struct char_data *ch)
+{
+  return ch != NULL && IS_NPC(ch) && MOB_FLAGGED(ch, MOB_C_DRAGON);
+}
+
+int get_encumbrance_mod(struct char_data *ch)
+{
+  int mod[NUM_BONUS_TYPES];
+  int penalty[NUM_BONUS_TYPES];
+  int i = 0, j = 0, final = 0;
+  struct affected_type *aff = NULL;
+  struct obj_data *obj = NULL;
+
+  // initialize array
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    mod[i] = 0;
+    penalty[i] = 0;
+  }
+
+  // get from affects
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->location == APPLY_ENCUMBRANCE)
+    {
+      if (aff->modifier > 0)
+        mod[aff->bonus_type] = MAX(mod[aff->bonus_type], aff->modifier);
+      else
+        penalty[aff->bonus_type] = MIN(penalty[aff->bonus_type], aff->modifier);
+    }
+  }
+
+  // get from gear
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if ((obj = GET_EQ(ch, i)) != NULL)
+    {
+      for (j = 0; j < 6; j++)
+      {
+        if (obj->affected[j].location == APPLY_ENCUMBRANCE)
+        {
+          if (obj->affected[j].modifier > 0)
+            mod[obj->affected[j].bonus_type] =
+                MAX(mod[obj->affected[j].bonus_type], obj->affected[j].modifier);
+          else
+            penalty[obj->affected[j].bonus_type] =
+                MIN(penalty[obj->affected[j].bonus_type], obj->affected[j].modifier);
+        }
+      }
+    }
+  }
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    final += mod[i] + penalty[i];
+  }
+
+  return final;
+}
+
+bool ok_call_mob_vnum(int mob_num)
+{
+  if (mob_num >= 1 && mob_num <= 99)
+    return true;
+
+  if (mob_num == 60289)
+    return true;
+
+  if (mob_num == MOB_NUM_EIDOLON)
+    return true;
+
+  if (mob_num >= PET_DRAGON_MOUNT_FIRST && mob_num <= PET_DRAGON_MOUNT_LAST)
+    return true;
+
+  if (mob_num >= 40400 && mob_num <= 40410)
+    return true;
+
+  if (mob_num == MOB_BLACKGUARD_MOUNT || mob_num == MOB_ADV_BLACKGUARD_MOUNT ||
+      mob_num == MOB_EPIC_BLACKGUARD_MOUNT)
+    return true;
+
+  return false;
+}
+
+bool is_selectable_region(int region)
+{
+  switch (region)
+  {
+  }
+  return true;
+}
+
+bool is_in_hometown(struct char_data *ch)
+{
+  if (!ch || IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  if (zone_table[world[IN_ROOM(ch)].zone].city == CITY_NONE)
+    return false;
+
+  if (GET_HOMETOWN(ch) == CITY_NONE)
+    return false;
+
+  if (zone_table[world[IN_ROOM(ch)].zone].city == GET_HOMETOWN(ch))
+    return true;
+
+  return false;
+}
+
+bool is_crafting_skill(int skillnum)
+{
+  if (skillnum >= START_CRAFT_ABILITIES && skillnum <= END_CRAFT_ABILITIES)
+    return true;
+
+  return (spell_info[skillnum].schoolOfMagic == CRAFTING_SKILL);
+}
+
+int get_knowledge_skill_from_creature_type(int race_type)
+{
+  switch (race_type)
+  {
+  case RACE_TYPE_HUMANOID:
+  case RACE_TYPE_ANIMAL:
+  case RACE_TYPE_GIANT:
+  case RACE_TYPE_FEY:
+  case RACE_TYPE_MONSTROUS_HUMANOID:
+  case RACE_TYPE_OOZE:
+  case RACE_TYPE_PLANT:
+  case RACE_TYPE_VERMIN:
+    return ABILITY_NATURE;
+
+  case RACE_TYPE_UNDEAD:
+  case RACE_TYPE_OUTSIDER:
+  case RACE_TYPE_LYCANTHROPE:
+    return ABILITY_RELIGION;
+
+  case RACE_TYPE_DRAGON:
+  case RACE_TYPE_ABERRATION:
+  case RACE_TYPE_CONSTRUCT:
+  case RACE_TYPE_ELEMENTAL:
+  case RACE_TYPE_MAGICAL_BEAST:
+    return ABILITY_ARCANA;
+  }
+  return ABILITY_NATURE;
+}
+
+bool has_sage_mob_bonus(struct char_data *ch)
+{
+  struct char_data *tch, *mob;
+  bool result = false;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (!IS_NPC(tch) && HAS_FEAT(tch, FEAT_BG_SAGE) && GET_SAGE_MOB_VNUM(tch) > 0)
+    {
+      if (GROUP(tch) == GROUP(ch) || tch == ch)
+      {
+        for (mob = world[IN_ROOM(ch)].people; mob; mob = mob->next_in_room)
+        {
+          if (!IS_NPC(mob))
+            continue;
+          if (GET_MOB_VNUM(mob) == (mob_vnum)GET_SAGE_MOB_VNUM(tch))
+          {
+            result = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+  return result;
+}
+
+bool is_grouped_with_soldier(struct char_data *ch)
+{
+  struct char_data *tch;
+
+  if (!ch)
+    return false;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  if (IS_NPC(ch))
+    return false;
+
+  if (!HAS_FEAT(ch, FEAT_BG_SOLDIER))
+    return false;
+  if (GROUP(ch) == NULL)
+    return false;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (ch == tch)
+      continue;
+    if (GROUP(tch) != GROUP(ch))
+      continue;
+    return true;
+  }
+  return false;
+}
+
+bool is_retainer_in_room(struct char_data *ch)
+{
+  struct char_data *tch;
+
+  if (!ch)
+    return false;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  if (IS_NPC(ch))
+    return false;
+
+  if (!HAS_FEAT(ch, FEAT_BG_SQUIRE))
+    return false;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (!IS_NPC(tch))
+      continue;
+    if (tch->master != ch)
+      continue;
+    if (!MOB_FLAGGED(tch, MOB_RETAINER))
+      continue;
+    return true;
+  }
+  return false;
+}
+
+struct char_data *get_retainer_from_room(struct char_data *ch)
+{
+  struct char_data *tch;
+
+  if (!ch)
+    return NULL;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return NULL;
+
+  if (IS_NPC(ch))
+    return NULL;
+
+  if (!HAS_FEAT(ch, FEAT_BG_SQUIRE))
+    return NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (!IS_NPC(tch))
+      continue;
+    if (tch->master != ch)
+      continue;
+    if (!MOB_FLAGGED(tch, MOB_RETAINER))
+      continue;
+    return tch;
+  }
+  return NULL;
+}
+
+int get_smite_evil_level(struct char_data *ch)
+{
+  int smite_level = 0;
+
+  smite_level += CLASS_LEVEL(ch, CLASS_PALADIN);
+  smite_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA);
+
+  return smite_level;
+}
+
+int get_smite_good_level(struct char_data *ch)
+{
+  int smite_level = 0;
+
+  smite_level += CLASS_LEVEL(ch, CLASS_BLACKGUARD);
+  smite_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL);
+
+  return smite_level;
+}
+
+/* Returns the mob stat category for a given class */
+int get_mob_stat_category(int ch_class)
+{
+  switch (ch_class)
+  {
+  /* Warrior category */
+  case CLASS_WARRIOR:
+  case CLASS_MONK:
+  case CLASS_BERSERKER:
+  case CLASS_SORCERER:
+  case CLASS_PALADIN:
+  case CLASS_RANGER:
+  case CLASS_BARD:
+  case CLASS_WEAPON_MASTER:
+  case CLASS_STALWART_DEFENDER:
+  case CLASS_DUELIST:
+  case CLASS_SPELLSWORD:
+  case CLASS_BLACKGUARD:
+  case CLASS_KNIGHT_OF_SOLAMNIA:
+  case CLASS_KNIGHT_OF_THE_LILY:
+  case CLASS_DRAGONRIDER:
+    return MOB_STAT_CATEGORY_WARRIOR;
+
+  /* Arcane Caster category */
+  case CLASS_WIZARD:
+  case CLASS_ARCANE_ARCHER:
+  case CLASS_MYSTIC_THEURGE:
+  case CLASS_ELDRITCH_KNIGHT:
+  case CLASS_PSIONICIST:
+  case CLASS_SUMMONER:
+  case CLASS_WARLOCK:
+  case CLASS_NECROMANCER:
+  case CLASS_KNIGHT_OF_THE_THORN:
+  case CLASS_ARTIFICER:
+    return MOB_STAT_CATEGORY_ARCANE;
+
+  /* Divine Caster category */
+  case CLASS_CLERIC:
+  case CLASS_DRUID:
+  case CLASS_SHIFTER:
+  case CLASS_SACRED_FIST:
+  case CLASS_INQUISITOR:
+  case CLASS_KNIGHT_OF_THE_SKULL:
+    return MOB_STAT_CATEGORY_DIVINE;
+
+  /* Rogue category */
+  case CLASS_ROGUE:
+  case CLASS_ALCHEMIST:
+  case CLASS_ARCANE_SHADOW:
+  case CLASS_SHADOW_DANCER:
+  case CLASS_ASSASSIN:
+    return MOB_STAT_CATEGORY_ROGUE;
+
+  /* Default to warrior for undefined classes */
+  default:
+    return MOB_STAT_CATEGORY_WARRIOR;
+  }
+}
+
+/* Apply mob stat category modifiers based on class */
+void apply_mob_stat_modifiers(struct char_data *mob)
+{
+  int category;
+  struct mob_stat_category *stats;
+
+  if (!mob || !IS_NPC(mob))
+    return;
+
+  /* Skip if mob has custom stats flag */
+  if (MOB_FLAGGED(mob, MOB_CUSTOM_MOB_STATS))
+    return;
+
+  /* Get the category based on mob's class */
+  category = get_mob_stat_category(GET_CLASS(mob));
+
+  /* Get the appropriate stat modifier struct */
+  switch (category)
+  {
+  case MOB_STAT_CATEGORY_WARRIOR:
+    stats = &config_info.mob_stats.warriors;
+    break;
+  case MOB_STAT_CATEGORY_ARCANE:
+    stats = &config_info.mob_stats.arcane_casters;
+    break;
+  case MOB_STAT_CATEGORY_DIVINE:
+    stats = &config_info.mob_stats.divine_casters;
+    break;
+  case MOB_STAT_CATEGORY_ROGUE:
+    stats = &config_info.mob_stats.rogues;
+    break;
+  default:
+    return; /* No modifiers */
+  }
+
+  /* Apply hit points modifier */
+  if (stats->hit_points != 100)
+  {
+    GET_MAX_HIT(mob) = (GET_MAX_HIT(mob) * stats->hit_points) / 100;
+    GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob);
+    GET_HIT(mob) = GET_MAX_HIT(mob);
+  }
+
+  /* Apply armor class modifier (lower AC is better, so we adjust accordingly) */
+  if (stats->armor_class != 100)
+  {
+    /* AC bonus: higher percentage = better AC (lower number) */
+    int current_ac = GET_AC(mob);
+    int ac_adjustment = (current_ac * (100 - stats->armor_class)) / 100;
+    mob->points.armor = current_ac - ac_adjustment;
+  }
+
+  /* Apply attack bonus modifier */
+  if (stats->attack_bonus != 100)
+  {
+    mob->points.hitroll = (mob->points.hitroll * stats->attack_bonus) / 100;
+  }
+
+  /* Apply damage bonus modifier */
+  if (stats->damage_bonus != 100)
+  {
+    mob->points.damroll = (mob->points.damroll * stats->damage_bonus) / 100;
+  }
+
+  /* Apply saving throw modifier (lower is better for saves) */
+  if (stats->saving_throws != 100)
+  {
+    int i;
+    for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
+    {
+      /* Lower percentage = better saves (lower number) */
+      int save_adjustment = (GET_SAVE(mob, i) * (100 - stats->saving_throws)) / 100;
+      mob->points.apply_saving_throw[i] -= save_adjustment;
+    }
+  }
+
+  /* Apply ability scores modifier */
+  if (stats->ability_scores != 100)
+  {
+    mob->real_abils.str = (mob->real_abils.str * stats->ability_scores) / 100;
+    mob->real_abils.con = (mob->real_abils.con * stats->ability_scores) / 100;
+    mob->real_abils.dex = (mob->real_abils.dex * stats->ability_scores) / 100;
+    mob->real_abils.intel = (mob->real_abils.intel * stats->ability_scores) / 100;
+    mob->real_abils.wis = (mob->real_abils.wis * stats->ability_scores) / 100;
+    mob->real_abils.cha = (mob->real_abils.cha * stats->ability_scores) / 100;
+
+    /* Cap ability scores at reasonable values */
+    mob->real_abils.str = MIN(50, MAX(1, mob->real_abils.str));
+    mob->real_abils.con = MIN(50, MAX(1, mob->real_abils.con));
+    mob->real_abils.dex = MIN(50, MAX(1, mob->real_abils.dex));
+    mob->real_abils.intel = MIN(50, MAX(1, mob->real_abils.intel));
+    mob->real_abils.wis = MIN(50, MAX(1, mob->real_abils.wis));
+    mob->real_abils.cha = MIN(50, MAX(1, mob->real_abils.cha));
+  }
+
+  /* Apply gold modifier */
+  if (stats->gold != 100)
+  {
+    award_set_points(mob, AWARD_GOLD, (GET_GOLD(mob) * stats->gold) / 100);
+  }
+}
+
+bool has_dr_affect(struct char_data *ch, int spell)
+{
+  if (!ch)
+    return false;
+
+  struct damage_reduction_type *dr;
+  for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+  {
+    if (dr->spell == spell)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool is_high_hp_mob(struct char_data *mob)
+{
+  if (!mob)
+    return false;
+  if (!IS_NPC(mob))
+    return false;
+
+  int hp = GET_MAX_HIT(mob);
+  int level = GET_LEVEL(mob);
+  int high_hp = (level * level) + (level * 10) * 2;
+
+  if (hp >= high_hp)
+    return true;
+
+  return false;
+}
+
+bool has_overwhelming_critical_prereqs(struct char_data *ch, struct obj_data *wielded)
+{
+  if (!ch)
+    return false;
+
+  // barehanded
+  if (wielded == NULL)
+  {
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), WEAPON_FAMILY_MONK))
+      return false;
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_FAMILY_MONK))
+      return false;
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_OVERWHELMING_CRITICAL), WEAPON_FAMILY_MONK))
+      return false;
+  }
+  else
+  {
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL),
+                         weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily))
+      return false;
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+                         weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily))
+      return false;
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_OVERWHELMING_CRITICAL),
+                         weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily))
+      return false;
+  }
+  return true;
+}
+
+bool has_devastating_critical_prereqs(struct char_data *ch, struct obj_data *wielded)
+{
+  if (!has_overwhelming_critical_prereqs(ch, wielded))
+    return false;
+
+  if (wielded == NULL)
+  {
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_DEVASTATING_CRITICAL), WEAPON_FAMILY_MONK))
+      return false;
+  }
+  else
+  {
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_DEVASTATING_CRITICAL),
+                         weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily))
+      return false;
+  }
+
+  return true;
+}
+
+bool is_valid_apply_location_and_circle(int apply, int circle)
+{
+  switch (apply)
+  {
+  case APPLY_SPELL_CIRCLE_1:
+    if (circle == 1)
+      return true;
+    else
+      return false;
+  case APPLY_SPELL_CIRCLE_2:
+    if (circle == 2)
+      return true;
+    else
+      return false;
+  case APPLY_SPELL_CIRCLE_3:
+    if (circle == 3)
+      return true;
+    else
+      return false;
+  case APPLY_SPELL_CIRCLE_4:
+    if (circle == 4)
+      return true;
+    else
+      return false;
+  case APPLY_SPELL_CIRCLE_5:
+    if (circle == 5)
+      return true;
+    else
+      return false;
+  case APPLY_SPELL_CIRCLE_6:
+    if (circle == 6)
+      return true;
+    else
+      return false;
+  case APPLY_SPELL_CIRCLE_7:
+    if (circle == 7)
+      return true;
+    else
+      return false;
+  case APPLY_SPELL_CIRCLE_8:
+    if (circle == 8)
+      return true;
+    else
+      return false;
+  case APPLY_SPELL_CIRCLE_9:
+    if (circle == 9)
+      return true;
+    else
+      return false;
+  }
+  return false;
+}
+
+int get_bonus_spells_by_circle_and_class(struct char_data *ch, int ch_class, int circle)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc)
+    return 0;
+
+  int i = 0, j = 0;
+  int bonus_circles = 0;
+  int max_value[NUM_BONUS_TYPES];
+  struct obj_data *obj = NULL;
+  struct affected_type *aff = NULL;
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    max_value[i] = 0;
+  }
+
+  // We'll do spells then gear.  We want to make sure that bonus
+  // types don't stack
+
+  // spells
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (is_valid_apply_location_and_circle(aff->location, circle) && aff->specific == ch_class)
+    {
+      // some bonus types always stack, so we'll just add this right on now
+      if (BONUS_TYPE_STACKS(aff->bonus_type))
+      {
+        bonus_circles += aff->modifier;
+      }
+      // penalties and debuffs are always applied
+      else if (aff->modifier < 0)
+      {
+        bonus_circles -= aff->modifier;
+      }
+      // we only want the maximum per bonus type
+      else if (aff->modifier > max_value[aff->bonus_type])
+      {
+        max_value[aff->bonus_type] = aff->modifier;
+      }
+    }
+  }
+
+  // gear
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (!(obj = GET_EQ(ch, i)))
+      continue;
+    for (j = 0; j < MAX_OBJ_AFFECT; j++)
+    {
+      if (is_valid_apply_location_and_circle(obj->affected[j].location, circle) &&
+          obj->affected[j].specific == ch_class)
+      {
+        // some bonus types always stack, so we'll just add this right on now
+        if (BONUS_TYPE_STACKS(obj->affected[j].bonus_type))
+        {
+          bonus_circles += obj->affected[j].modifier;
+        }
+        // penalties and debuffs are always applied
+        else if (obj->affected[j].modifier < 0)
+        {
+          bonus_circles -= obj->affected[j].modifier;
+        }
+        // we only want the maximum per bonus type
+        else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
+        {
+          max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
+        }
+      }
+    }
+  }
+
+  // now let's add up all of the highest per bonus type from spells and gear
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    if (BONUS_TYPE_STACKS(i))
+      continue;
+    bonus_circles += max_value[i];
+  }
+
+  return bonus_circles;
+}
+
+int get_spell_potency_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc)
+    return 100;
+
+  int i = 0, j = 0;
+  int potency_bonus = 100;
+  int max_value[NUM_BONUS_TYPES];
+  struct obj_data *obj = NULL;
+  struct affected_type *aff = NULL;
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    max_value[i] = 0;
+  }
+
+  // We'll do spells then gear.  We want to make sure that bonus
+  // types don't stack
+
+  // spells
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->location == APPLY_SPELL_POTENCY)
+    {
+      // some bonus types always stack, so we'll just add this right on now
+      if (BONUS_TYPE_STACKS(aff->bonus_type))
+      {
+        potency_bonus += aff->modifier;
+      }
+      // penalties and debuffs are always applied
+      else if (aff->modifier < 0)
+      {
+        potency_bonus -= aff->modifier;
+      }
+      // we only want the maximum per bonus type
+      else if (aff->modifier > max_value[aff->bonus_type])
+      {
+        max_value[aff->bonus_type] = aff->modifier;
+      }
+    }
+  }
+
+  // gear
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (!(obj = GET_EQ(ch, i)))
+      continue;
+    for (j = 0; j < MAX_OBJ_AFFECT; j++)
+    {
+      if (obj->affected[j].location == APPLY_SPELL_POTENCY)
+      {
+        // some bonus types always stack, so we'll just add this right on now
+        if (BONUS_TYPE_STACKS(obj->affected[j].bonus_type))
+        {
+          potency_bonus += obj->affected[j].modifier;
+        }
+        // penalties and debuffs are always applied
+        else if (obj->affected[j].modifier < 0)
+        {
+          potency_bonus -= obj->affected[j].modifier;
+        }
+        // we only want the maximum per bonus type
+        else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
+        {
+          max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
+        }
+      }
+    }
+  }
+
+  // now let's add up all of the highest per bonus type from spells and gear
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    if (BONUS_TYPE_STACKS(i))
+      continue;
+    potency_bonus += max_value[i];
+  }
+
+  return potency_bonus;
+}
+
+int get_spell_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc)
+    return 0;
+
+  int i = 0, j = 0;
+  int dc_bonus = 0;
+  int max_value[NUM_BONUS_TYPES];
+  struct obj_data *obj = NULL;
+  struct affected_type *aff = NULL;
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    max_value[i] = 0;
+  }
+
+  // We'll do spells then gear.  We want to make sure that bonus
+  // types don't stack
+
+  // spells
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->location == APPLY_SPELL_DC)
+    {
+      // some bonus types always stack, so we'll just add this right on now
+      if (BONUS_TYPE_STACKS(aff->bonus_type))
+      {
+        dc_bonus += aff->modifier;
+      }
+      // penalties and debuffs are always applied
+      else if (aff->modifier < 0)
+      {
+        dc_bonus -= aff->modifier;
+      }
+      // we only want the maximum per bonus type
+      else if (aff->modifier > max_value[aff->bonus_type])
+      {
+        max_value[aff->bonus_type] = aff->modifier;
+      }
+    }
+  }
+
+  // gear
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (!(obj = GET_EQ(ch, i)))
+      continue;
+    for (j = 0; j < MAX_OBJ_AFFECT; j++)
+    {
+      if (obj->affected[j].location == APPLY_SPELL_DC)
+      {
+        // some bonus types always stack, so we'll just add this right on now
+        if (BONUS_TYPE_STACKS(obj->affected[j].bonus_type))
+        {
+          dc_bonus += obj->affected[j].modifier;
+        }
+        // penalties and debuffs are always applied
+        else if (obj->affected[j].modifier < 0)
+        {
+          dc_bonus -= obj->affected[j].modifier;
+        }
+        // we only want the maximum per bonus type
+        else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
+        {
+          max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
+        }
+      }
+    }
+  }
+
+  // now let's add up all of the highest per bonus type from spells and gear
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    if (BONUS_TYPE_STACKS(i))
+      continue;
+    dc_bonus += max_value[i];
+  }
+
+  /* Paladin Spell Focus perk bonus */
+  if (CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
+  {
+    int spell_focus_bonus = get_paladin_spell_focus_bonus(ch);
+    if (spell_focus_bonus > 0)
+      dc_bonus += spell_focus_bonus;
+  }
+
+  /* Alchemist Infusion I perk bonus */
+  if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) > 0)
+  {
+    int infusion_bonus = get_alchemist_infusion_dc_bonus(ch);
+    if (infusion_bonus > 0)
+      dc_bonus += infusion_bonus;
+  }
+
+  /* Holy Avenger: +2 DC to next spell after destroying undead */
+  if (affected_by_spell(ch, SKILL_HOLY_AVENGER))
+    dc_bonus += 2;
+
+  return dc_bonus;
+}
+
+int get_spell_penetration_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc)
+    return 0;
+
+  int i = 0, j = 0;
+  int penetration_bonus = 0;
+  int max_value[NUM_BONUS_TYPES];
+  struct obj_data *obj = NULL;
+  struct affected_type *aff = NULL;
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    max_value[i] = 0;
+  }
+
+  // We'll do spells then gear.  We want to make sure that bonus
+  // types don't stack
+
+  // spells
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->location == APPLY_SPELL_PENETRATION)
+    {
+      // some bonus types always stack, so we'll just add this right on now
+      if (BONUS_TYPE_STACKS(aff->bonus_type))
+      {
+        penetration_bonus += aff->modifier;
+      }
+      // penalties and debuffs are always applied
+      else if (aff->modifier < 0)
+      {
+        penetration_bonus -= aff->modifier;
+      }
+      // we only want the maximum per bonus type
+      else if (aff->modifier > max_value[aff->bonus_type])
+      {
+        max_value[aff->bonus_type] = aff->modifier;
+      }
+    }
+  }
+
+  // gear
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (!(obj = GET_EQ(ch, i)))
+      continue;
+    for (j = 0; j < MAX_OBJ_AFFECT; j++)
+    {
+      if (obj->affected[j].location == APPLY_SPELL_PENETRATION)
+      {
+        // some bonus types always stack, so we'll just add this right on now
+        if (BONUS_TYPE_STACKS(obj->affected[j].bonus_type))
+        {
+          penetration_bonus += obj->affected[j].modifier;
+        }
+        // penalties and debuffs are always applied
+        else if (obj->affected[j].modifier < 0)
+        {
+          penetration_bonus -= obj->affected[j].modifier;
+        }
+        // we only want the maximum per bonus type
+        else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
+        {
+          max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
+        }
+      }
+    }
+  }
+
+  // now let's add up all of the highest per bonus type from spells and gear
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    if (BONUS_TYPE_STACKS(i))
+      continue;
+    penetration_bonus += max_value[i];
+  }
+
+  /* Add wizard spell penetration bonus for arcane casters with Evoker perks */
+  if (!IS_NPC(ch))
+  {
+    int casting_class = GET_CASTING_CLASS(ch);
+    /* Check if casting class is arcane: wizard, sorcerer, summoner, bard, warlock */
+    if (casting_class == CLASS_WIZARD || casting_class == CLASS_SORCERER ||
+        casting_class == CLASS_SUMMONER || casting_class == CLASS_BARD ||
+        casting_class == CLASS_WARLOCK)
+    {
+      penetration_bonus += get_wizard_spell_penetration_bonus(ch);
+    }
+  }
+
+  return penetration_bonus;
+}
+
+int get_spell_duration_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc)
+    return 100;
+
+  int i = 0, j = 0;
+  int duration_bonus = 100;
+  int max_value[NUM_BONUS_TYPES];
+  struct obj_data *obj = NULL;
+  struct affected_type *aff = NULL;
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    max_value[i] = 0;
+  }
+
+  // We'll do spells then gear.  We want to make sure that bonus
+  // types don't stack
+
+  // spells
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->location == APPLY_SPELL_DURATION)
+    {
+      // some bonus types always stack, so we'll just add this right on now
+      if (BONUS_TYPE_STACKS(aff->bonus_type))
+      {
+        duration_bonus += aff->modifier;
+      }
+      // penalties and debuffs are always applied
+      else if (aff->modifier < 0)
+      {
+        duration_bonus -= aff->modifier;
+      }
+      // we only want the maximum per bonus type
+      else if (aff->modifier > max_value[aff->bonus_type])
+      {
+        max_value[aff->bonus_type] = aff->modifier;
+      }
+    }
+  }
+
+  // gear
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (!(obj = GET_EQ(ch, i)))
+      continue;
+    for (j = 0; j < MAX_OBJ_AFFECT; j++)
+    {
+      if (obj->affected[j].location == APPLY_SPELL_DURATION)
+      {
+        // some bonus types always stack, so we'll just add this right on now
+        if (BONUS_TYPE_STACKS(obj->affected[j].bonus_type))
+        {
+          duration_bonus += obj->affected[j].modifier;
+        }
+        // penalties and debuffs are always applied
+        else if (obj->affected[j].modifier < 0)
+        {
+          duration_bonus -= obj->affected[j].modifier;
+        }
+        // we only want the maximum per bonus type
+        else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
+        {
+          max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
+        }
+      }
+    }
+  }
+
+  // now let's add up all of the highest per bonus type from spells and gear
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    if (BONUS_TYPE_STACKS(i))
+      continue;
+    duration_bonus += max_value[i];
+  }
+
+  return MAX(100, duration_bonus);
+}
+
+int get_random_spellcaster_class(void)
+{
+  int chclass = -1;
+  do
+  {
+    chclass = rand_number(0, NUM_CLASSES);
+  } while (!IS_SPELLCASTER_CLASS(chclass));
+
+  return chclass;
+}
+
+int determine_random_spell_circle_bonus(void)
+{
+  int which = dice(1, 100);
+
+  if (which <= 20)
+    return APPLY_SPELL_CIRCLE_1;
+  else if (which <= 35)
+    return APPLY_SPELL_CIRCLE_2;
+  else if (which <= 50)
+    return APPLY_SPELL_CIRCLE_3;
+  else if (which <= 65)
+    return APPLY_SPELL_CIRCLE_4;
+  else if (which <= 75)
+    return APPLY_SPELL_CIRCLE_5;
+  else if (which <= 85)
+    return APPLY_SPELL_CIRCLE_6;
+  else if (which <= 90)
+    return APPLY_SPELL_CIRCLE_7;
+  else if (which <= 95)
+    return APPLY_SPELL_CIRCLE_8;
+  else
+    return APPLY_SPELL_CIRCLE_9;
+
+  return APPLY_SPELL_CIRCLE_1;
+}
+
+// need to add crafting skills once new crafting system is in -- gicker
+int get_random_skill(void)
+{
+  return dice(1, END_GENERAL_ABILITIES);
+}
+
+// checks to see if target is in the list of ch's known people
+bool in_intro_list(struct char_data *ch, struct char_data *target)
+{
+  /* Deprecated - use knows_character() from introduce.c instead */
+  /* This wrapper is kept for backwards compatibility */
+  return knows_character(ch, target);
+}
+
+// checks to see if ch knows target's real name
+bool has_intro(struct char_data *ch, struct char_data *target)
+{
+  if (!ch || !target)
+    return FALSE;
+
+  if (CONFIG_USE_INTRO_SYSTEM == FALSE)
+    return TRUE;
+
+  if (ch == target)
+    return TRUE;
+
+  if (GET_LEVEL(ch) >= LVL_IMMORT || GET_LEVEL(target) >= LVL_IMMORT)
+    return TRUE;
+
+  /* Use the new introduction system's knows_character function */
+  if (knows_character(ch, target))
+    return TRUE;
+
+  return FALSE;
+}
+
+char *which_desc(struct char_data *ch __attribute__((unused)), struct char_data *target)
+{
+  if (!target)
+    return strdup("error");
+
+  if (IS_NPC(target))
+    return GET_SHORT(target);
+
+  if (IS_MORPHED(target))
+    return current_morphed_desc(target);
+
+  if (IS_WILDSHAPED(target))
+    return current_wildshape_desc(target);
+
+  if (GET_DISGUISE_RACE(target))
+    return current_disguise_desc(target);
+
+  return current_short_desc(target);
+}
+
+// checks the spell or skill num to see if it should hide damage
+// messages from persons other than the recipient of the spell/skill's affect
+bool hide_damage_message(int snum)
+{
+  switch (snum)
+  {
+  case SPELL_POISON:
+    return true;
+  }
+  return false;
+}
+
+bool is_valid_apply(int apply)
+{
+  switch (apply)
+  {
+  case APPLY_NONE:
+  case APPLY_CLASS:
+  case APPLY_LEVEL:
+  case APPLY_AGE:
+  case APPLY_CHAR_WEIGHT:
+  case APPLY_CHAR_HEIGHT:
+  case APPLY_GOLD:
+  case APPLY_EXP:
+  case APPLY_AC:
+  case APPLY_SAVING_POISON:
+  case APPLY_SAVING_DEATH:
+  case APPLY_SIZE:
+  case APPLY_DR:
+  case APPLY_SPECIAL:
+  case APPLY_ELDRITCH_SHAPE:
+  case APPLY_ELDRITCH_ESSENCE:
+    return false;
+  }
+
+  return true;
+}
+
+int max_bonus_modifier(int location, int bonus_type)
+{
+  int max_modifier = 0;
+
+  switch (location)
+  {
+  case APPLY_STR:
+  case APPLY_DEX:
+  case APPLY_INT:
+  case APPLY_WIS:
+  case APPLY_CON:
+  case APPLY_CHA:
+    max_modifier = 9;
+    break;
+
+  case APPLY_PSP:
+    max_modifier = 100;
+    break;
+
+  case APPLY_HIT:
+    max_modifier = 100;
+    break;
+
+  case APPLY_MOVE:
+    max_modifier = 1000;
+    break;
+
+  case APPLY_HITROLL:
+  case APPLY_DAMROLL:
+    max_modifier = 6;
+    break;
+
+  case APPLY_SAVING_FORT:
+  case APPLY_SAVING_REFL:
+  case APPLY_SAVING_WILL:
+    max_modifier = 6;
+    break;
+
+  case APPLY_AC_NEW:
+    max_modifier = 9;
+    break;
+
+  case APPLY_RES_FIRE:
+  case APPLY_RES_COLD:
+  case APPLY_RES_AIR:
+  case APPLY_RES_EARTH:
+  case APPLY_RES_ACID:
+  case APPLY_RES_HOLY:
+  case APPLY_RES_ELECTRIC:
+  case APPLY_RES_UNHOLY:
+  case APPLY_RES_SLICE:
+  case APPLY_RES_PUNCTURE:
+  case APPLY_RES_FORCE:
+  case APPLY_RES_SOUND:
+  case APPLY_RES_POISON:
+  case APPLY_RES_DISEASE:
+  case APPLY_RES_NEGATIVE:
+  case APPLY_RES_ILLUSION:
+  case APPLY_RES_MENTAL:
+  case APPLY_RES_LIGHT:
+  case APPLY_RES_ENERGY:
+  case APPLY_RES_WATER:
+    max_modifier = 30;
+    break;
+
+  case APPLY_FEAT:
+    max_modifier = 1;
+    break;
+
+  case APPLY_SKILL:
+    max_modifier = 6;
+    break;
+
+  case APPLY_POWER_RES:
+  case APPLY_SPELL_RES:
+    max_modifier = 20;
+    break;
+
+  case APPLY_HP_REGEN:
+  case APPLY_PSP_REGEN:
+    max_modifier = 6;
+    break;
+
+  case APPLY_MV_REGEN:
+    max_modifier = 60;
+    break;
+
+  case APPLY_ENCUMBRANCE:
+    max_modifier = 6;
+    break;
+
+  case APPLY_FAST_HEALING:
+    max_modifier = 3;
+    break;
+
+  case APPLY_INITIATIVE:
+    max_modifier = 6;
+    break;
+
+  case APPLY_SPELL_CIRCLE_1:
+  case APPLY_SPELL_CIRCLE_2:
+  case APPLY_SPELL_CIRCLE_3:
+  case APPLY_SPELL_CIRCLE_4:
+  case APPLY_SPELL_CIRCLE_5:
+  case APPLY_SPELL_CIRCLE_6:
+  case APPLY_SPELL_CIRCLE_7:
+  case APPLY_SPELL_CIRCLE_8:
+  case APPLY_SPELL_CIRCLE_9:
+    max_modifier = 3;
+    break;
+
+  case APPLY_SPELL_POTENCY:
+  case APPLY_SPELL_DURATION:
+    max_modifier = 30;
+    break;
+
+  case APPLY_SPELL_DC:
+    max_modifier = 3;
+    break;
+
+  case APPLY_SPELL_PENETRATION:
+    max_modifier = 3;
+    break;
+  }
+
+  if (bonus_type == BONUS_TYPE_UNIVERSAL)
+    max_modifier /= 3;
+
+  return MAX(1, max_modifier);
+}
+
+bool is_exit_hidden(struct char_data *ch, int dir)
+{
+  if (dir < 0 || dir >= NUM_OF_DIRS)
+    return false;
+
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    return false;
+
+  if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN))
+    return true;
+  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN_EASY))
+    return true;
+  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN_MEDIUM))
+    return true;
+  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN_HARD))
+    return true;
+
+  return false;
+}
+
+bool is_exit_locked(struct char_data *ch, int dir)
+{
+  if (dir < 0 || dir >= NUM_OF_DIRS)
+    return false;
+
+  if (EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED))
+    return true;
+  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED_EASY))
+    return true;
+  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED_MEDIUM))
+    return true;
+  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED_HARD))
+    return true;
+
+  return false;
+}
+
+bool is_weapon_wielded_two_handed(struct obj_data *obj, struct char_data *ch)
+{
+  int wsize, csize;
+
+  if (!obj || !ch)
+    return false;
+
+  if (GET_OBJ_TYPE(obj) != ITEM_WEAPON)
+    return false;
+
+  if (OBJ_FLAGGED(obj, ITEM_ROL_TWO_HANDED))
+    return true;
+
+  wsize = GET_OBJ_SIZE(obj);
+  csize = GET_SIZE(ch);
+
+  /* four arms: the lower arms' two-hand position, or a lone one-hander there
+   * with a spare hand; never decided by the other pair's weapons */
+  if (obj->worn_on == WEAR_WIELD_2H_2)
+    return true;
+  if (obj->worn_on == WEAR_WIELD_3 || obj->worn_on == WEAR_WIELD_4)
+    return wsize >= csize && obj->worn_on == WEAR_WIELD_3 && GET_EQ(ch, WEAR_WIELD_4) == NULL &&
+           hands_available(ch) > 0;
+
+  if (wsize >= csize)
+  {
+    if (GET_EQ(ch, WEAR_HOLD_1))
+      return false;
+    if (GET_EQ(ch, WEAR_HOLD_2))
+      return false;
+    if (GET_EQ(ch, WEAR_WIELD_OFFHAND))
+      return false;
+    if (GET_EQ(ch, WEAR_SHIELD))
+      return false;
+  }
+  else
+    return false;
+
+  return true;
+}
+
+bool is_valid_skill(int snum)
+{
+  switch (snum)
+  {
+  case ABILITY_ACROBATICS:
+  case ABILITY_APPRAISE:
+  case ABILITY_ARCANA:
+  case ABILITY_ATHLETICS:
+  case ABILITY_BOARDING:
+  case ABILITY_CONCENTRATION:
+  case ABILITY_DECEPTION:
+  case ABILITY_DISABLE_DEVICE:
+  case ABILITY_DISCIPLINE:
+  case ABILITY_DISGUISE:
+  case ABILITY_HANDLE_ANIMAL:
+  case ABILITY_HISTORY:
+  case ABILITY_INSIGHT:
+  case ABILITY_INTIMIDATE:
+  case ABILITY_LINGUISTICS:
+  case ABILITY_MEDICINE:
+  case ABILITY_NATURE:
+  case ABILITY_PERCEPTION:
+  case ABILITY_PERFORM:
+  case ABILITY_PERSUASION:
+  case ABILITY_RELIGION:
+  case ABILITY_RIDE:
+  case ABILITY_SLEIGHT_OF_HAND:
+  case ABILITY_SPELLCRAFT:
+  case ABILITY_STEALTH:
+  case ABILITY_TOTAL_DEFENSE:
+  case ABILITY_USE_MAGIC_DEVICE:
+    return true;
+  }
+  return false;
+}
+
+/* Function to get crafting tool description */
+const char *get_crafting_tool_desc(struct obj_data *obj)
+{
+  static char buf[256];
+
+  if (!obj || GET_OBJ_TYPE(obj) != ITEM_CRAFTING_TOOL)
+    return "";
+
+  int tool_skill = GET_OBJ_VAL(obj, 0);
+  int tool_bonus = GET_OBJ_VAL(obj, 1);
+
+  if (tool_skill >= START_CRAFT_ABILITIES && tool_skill <= END_HARVEST_ABILITIES && tool_bonus > 0)
+  {
+    snprintf(buf, sizeof(buf), "Provides +%d bonus to %s", tool_bonus, ability_names[tool_skill]);
+    return buf;
+  }
+
+  return "Invalid crafting tool";
+}
+
+/* Returns true if the character has their animal companion present as a follower. */
+bool has_active_companion(struct char_data *ch)
+{
+  mob_vnum companion_vnum = GET_ANIMAL_COMPANION(ch);
+  struct follow_type *k;
+  if (companion_vnum <= 0)
+    return FALSE;
+  for (k = ch->followers; k; k = k->next)
+  {
+    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
+        GET_MOB_VNUM(k->follower) == companion_vnum)
+      return TRUE;
+  }
+  return FALSE;
+}
+
+/* Returns a pointer to the animal companion mob if present, else NULL. */
+struct char_data *get_animal_companion_mob(struct char_data *ch)
+{
+  mob_vnum companion_vnum = GET_ANIMAL_COMPANION(ch);
+  struct follow_type *k;
+  if (companion_vnum <= 0)
+    return NULL;
+  for (k = ch->followers; k; k = k->next)
+  {
+    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
+        GET_MOB_VNUM(k->follower) == companion_vnum)
+      return k->follower;
+  }
+  return NULL;
+}
+
+/* Helper for Beast Master: Natural Empathy skill bonus */
+int get_natural_empathy_bonus(struct char_data *ch)
+{
+  int ranks = get_perk_rank(ch, PERK_RANGER_NATURAL_EMPATHY_I, CLASS_RANGER);
+  return ranks * 2;
+}
+
+bool valid_luminari_race(int race)
+{
+  if (race < 0 || race >= NUM_EXTENDED_RACES)
+    return false;
+
+  /* The quest-only races sit inside a reserved legacy number range. */
+  if (race == RACE_LICH || race == RACE_VAMPIRE)
+    return true;
+
+  if (race >= LEGACY_RACE_START && race <= LEGACY_RACE_END)
+    return false;
+
+  return true;
+}
+
+bool rol_race_is_good(int race)
+{
+  switch (race)
+  {
+  case RACE_HUMAN:
+  case RACE_ELF:
+  case RACE_HIGH_ELF:
+  case RACE_WOOD_ELF:
+  case RACE_DWARF:
+  case RACE_GOLD_DWARF:
+  case RACE_GOLIATH:
+  case RACE_GNOME:
+  case RACE_FOREST_GNOME:
+  case RACE_HALFLING:
+  case RACE_STOUT_HALFLING:
+  case RACE_H_ELF:
+    return true;
+  default:
+    return false;
+  }
+}
+
+bool rol_race_is_evil(int race)
+{
+  switch (race)
+  {
+  case RACE_DROW:
+  case RACE_DUERGAR:
+  case RACE_HALF_OGRE:
+  case RACE_HALF_TROLL:
+  case RACE_H_ORC:
+  case RACE_LICH:
+    return true;
+  default:
+    return false;
+  }
+}
+
+int get_account_experience(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc || !ch->desc->account)
+    return 0;
+
+  return ch->desc->account->experience;
+}
+
+int sector_type_to_terrain_type(int sector)
+{
+  switch (sector)
+  {
+  case SECT_INSIDE:
+  case SECT_CITY:
+  case SECT_UD_CITY:
+  case SECT_UD_INSIDE:
+  case SECT_INSIDE_ROOM:
+    return TERRAIN_TYPE_URBAN;
+
+  case SECT_FIELD:
+  case SECT_TUNDRA:
+    return TERRAIN_TYPE_PLAINS;
+
+  case SECT_FOREST:
+  case SECT_JUNGLE:
+  case SECT_TAIGA:
+    return TERRAIN_TYPE_FOREST;
+
+  case SECT_HILLS:
+  case SECT_MOUNTAIN:
+  case SECT_HIGH_MOUNTAIN:
+    return TERRAIN_TYPE_MOUNTAINS;
+
+  case SECT_WATER_SWIM:
+  case SECT_WATER_NOSWIM:
+  case SECT_UNDERWATER:
+  case SECT_OCEAN:
+  case SECT_UD_WATER:
+  case SECT_UD_NOSWIM:
+  case SECT_RIVER:
+    return TERRAIN_TYPE_WATER;
+
+  case SECT_DESERT:
+  case SECT_BEACH:
+    return TERRAIN_TYPE_DESERT;
+
+  case SECT_MARSHLAND:
+    return TERRAIN_TYPE_SWAMP;
+
+  case SECT_UD_WILD:
+  case SECT_CAVE:
+    return TERRAIN_TYPE_CAVERNS;
+  }
+  return TERRAIN_TYPE_NONE;
+}
+
+/* EoF */

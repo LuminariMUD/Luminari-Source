@@ -34,7 +34,7 @@ field()
   awk -F= -v key="$2" '$1 == key {print substr($0, index($0, "=") + 1); exit}' <<< "$1"
 }
 
-# The helper mirrors src/constants.c: the marker section exists only when the
+# The helper mirrors src/core/constants.c: the marker section exists only when the
 # profile's LUMINARI_PRODUCTION_PROFILE definition reaches the compile line.
 cat > "$test_root/helper.c" <<'HELPER'
 #include <stdio.h>

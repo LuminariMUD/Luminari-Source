@@ -11,17 +11,17 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <stdarg.h>
-#include "structs.h"
-#include "utils.h"
-#include "db.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/db.h"
 #include "wilderness.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "region_hints.h"
 #include "resource_descriptions.h"
 #include "narrative_weaver.h"

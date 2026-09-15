@@ -1,14 +1,23 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl Version: Keep in sync with src/constants.c, src/structs.h, CMakeLists.txt
+dnl Version: Keep in sync with src/core/constants.c, src/core/structs.h, CMakeLists.txt
 AC_INIT([LuminariMUD],[2.5063-beta],[bugs@luminarimud.com])
-AC_CONFIG_SRCDIR([src/act.comm.c])
+AC_CONFIG_SRCDIR([src/act/act.comm.c])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_SUBST(MYFLAGS)
 AC_SUBST(NETLIB)
 AC_SUBST(CRYPTLIB)
 AC_SUBST(CSTD_CFLAGS)
 
-AC_CONFIG_HEADERS([src/conf.h:conf.h.in])
+AC_CONFIG_HEADERS([conf.h])
+
+dnl The local configuration headers live in src/config/.  One still directly
+dnl under src/ means this checkout has not moved them, and a script that copies
+dnl the examples would build with the defaults instead.
+for luminari_local_header in campaign mud_options vnums; do
+  if test -e "$srcdir/src/$luminari_local_header.h"; then
+    AC_MSG_ERROR([src/$luminari_local_header.h must move to src/config/; run: mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/])
+  fi
+done
 
 dnl Unknown configure options are fatal by default.  The production profile was
 dnl once requested through an option configure.ac never defined, and the build

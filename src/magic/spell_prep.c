@@ -50,15 +50,15 @@
 
 /** START header files **/
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "interpreter.h"
-#include "db.h"
-#include "comm.h"
-#include "handler.h"
-#include "constants.h"
-#include "mud_event.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/interpreter.h"
+#include "core/db.h"
+#include "core/comm.h"
+#include "core/handler.h"
+#include "core/constants.h"
+#include "events/mud_event.h"
 #include "spells.h"
 #include "character/class.h"
 #include "character/abilities.h"
@@ -66,7 +66,7 @@
 #include "domains_schools.h"
 #include "character/perks.h"   /* For divine metamagic reduction */
 #include "moon_bonus_spells.h" /* For moon-based bonus spell slots */
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include <limits.h> /* For INT_MAX overflow checks */
 #include "moon_bonus_spells.h"
 /** END header files **/

@@ -9,23 +9,23 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "handler.h"
-#include "db.h"
-#include "interpreter.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/handler.h"
+#include "core/db.h"
+#include "core/interpreter.h"
 #include "house.h"
-#include "constants.h"
-#include "modify.h"
-#include "mysql.h"
-#include "clan.h"
-#include "act.h"                 /* for perform_save() */
+#include "core/constants.h"
+#include "core/modify.h"
+#include "database/mysql.h"
+#include "clan/clan.h"
+#include "act/act.h"             /* for perform_save() */
 #include "dgscript/dg_scripts.h" /* for load_otriggers() */
 #include "olc/genzon.h"          /* for real_zone_by_thing() */
-#include "perfmon.h"
-#include "point_update_periodic.h"
+#include "core/perfmon.h"
+#include "events/point_update_periodic.h"
 
 #define MAX_BAG_ROWS 5
 

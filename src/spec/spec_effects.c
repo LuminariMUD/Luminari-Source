@@ -4,11 +4,11 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
-#include "handler.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/handler.h"
 #include "spec/spec_effects.h"
 
 #include <limits.h>

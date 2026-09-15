@@ -20,7 +20,7 @@
 #define LINEBUF_SIZE 128
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>

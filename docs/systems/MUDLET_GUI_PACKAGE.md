@@ -95,10 +95,10 @@ The delivery paths are gated by an administrator-controlled flag.
 
 | Aspect | Location |
 | --- | --- |
-| Macro | `CONFIG_AUTO_DL_MUDLET_PACKAGE` in `src/utils.h` |
+| Macro | `CONFIG_AUTO_DL_MUDLET_PACKAGE` in `src/core/utils.h` |
 | Storage field | `auto_dl_mudlet_package` in `struct config_data` |
-| Default | `0` (`No`) in `init_config()` in `src/db.c` |
-| Options | `auto_dl_mudlet_package_options[] = {"No", "Yes"}` in `src/constants.c` |
+| Default | `0` (`No`) in `init_config()` in `src/core/db.c` |
+| Options | `auto_dl_mudlet_package_options[] = {"No", "Yes"}` in `src/core/constants.c` |
 | Config tag | `auto_dl_mudlet_package = 0` or `1` in `lib/etc/config` |
 
 `load_config()` reads the tag. If it is absent, the default remains `0`.

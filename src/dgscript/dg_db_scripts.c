@@ -13,16 +13,16 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
 #include "dg_scripts.h"
-#include "utils.h"
-#include "db.h"
-#include "handler.h"
+#include "core/utils.h"
+#include "core/db.h"
+#include "core/handler.h"
 #include "dg_event.h"
-#include "comm.h"
-#include "constants.h"
-#include "interpreter.h" /* For half_chop */
+#include "core/comm.h"
+#include "core/constants.h"
+#include "core/interpreter.h" /* For half_chop */
 
 /* local functions */
 static void trig_data_init(trig_data *this_data);

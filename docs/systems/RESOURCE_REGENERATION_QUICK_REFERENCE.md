@@ -107,7 +107,7 @@ show depletion <zone> <x> <y> - Show detailed depletion data
 
 - **Core Logic**: `src/wilderness/resource_depletion.c`
 - **Modifiers**: `src/wilderness/resource_system.c`  
-- **Integration**: `src/handler.c`
+- **Integration**: `src/core/handler.c`
 - **Database**: Run `db_init_system wilderness`
 
 ## Performance Tips

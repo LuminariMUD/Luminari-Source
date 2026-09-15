@@ -18,15 +18,15 @@
 */
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/db.h"
 #include "dg_event.h"
-#include "constants.h"
-#include "comm.h" /* For access to the game pulse */
-#include "event_runtime.h"
-#include "perfmon.h"
+#include "core/constants.h"
+#include "core/comm.h" /* For access to the game pulse */
+#include "events/event_runtime.h"
+#include "core/perfmon.h"
 #include <limits.h> /* For LONG_MAX used in overflow checks */
 
 

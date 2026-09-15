@@ -2307,6 +2307,7 @@ class RolTransformTests(unittest.TestCase):
             *shlex.split(os.environ.get("CPPFLAGS", "")),
             "-E",
             "-P",
+            f"-I{self.root}",
             f"-I{self.root / 'src'}",
             str(self.root / "src/magic/spell_parser.c"),
         ],
@@ -2503,7 +2504,7 @@ class RolTransformTests(unittest.TestCase):
     import re
 
     self._require_reference_paths("EXAMPLE/RealmsOfLuminari/src/structs.h")
-    target = (self.root / "src/structs.h").read_text(encoding="utf-8", errors="ignore")
+    target = (self.root / "src/core/structs.h").read_text(encoding="utf-8", errors="ignore")
     target_wear = {
         name: int(value)
         for name, value in re.findall(r"#define (WEAR_\w+) (\d+)", target)

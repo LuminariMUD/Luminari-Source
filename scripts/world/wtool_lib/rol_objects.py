@@ -904,8 +904,8 @@ OBJECT_SOURCE_ONLY_WEAR_FLAGS = frozenset({25, 27})
 # Source apply 17 is RoL's "ARMOR", stated on the descending-AC scale where a
 # negative modifier is protection. The target's live armour-class apply is
 # APPLY_AC_NEW: ascending, and multiplied by ten by affect_modify
-# (src/handler.c). Target APPLY_AC (17) is deprecated -- is_valid_apply()
-# rejects it (src/utils.c) and it reaches armour class only as a tenth-scale
+# (src/core/handler.c). Target APPLY_AC (17) is deprecated -- is_valid_apply()
+# rejects it (src/core/utils.c) and it reaches armour class only as a tenth-scale
 # remainder -- so armour applies are retargeted rather than passed through.
 TARGET_APPLY_AC_NEW = 27
 
@@ -1002,9 +1002,9 @@ TARGET_WEAR_WIELD = 13
 # Target object proficiency, the 'G' block. set_weapon_object() does not touch
 # it, but leaving every converted weapon on ITEM_PROF_NONE throws away the one
 # piece of weapon-training data weapon_list[] carries. The target's ladder is
-# ITEM_PROF_MINIMAL/BASIC/ADVANCED/MASTER/EXOTIC (src/structs.h:4460), so the
+# ITEM_PROF_MINIMAL/BASIC/ADVANCED/MASTER/EXOTIC (src/core/structs.h:4460), so the
 # D20 simple/martial/exotic tiers land on its first, second, and last rungs.
-# invalid_prof() is commented out at every call site (src/handler.c:2490,
+# invalid_prof() is commented out at every call site (src/core/handler.c:2490,
 # src/obj/objsave.c:801), so this is descriptive today rather than restrictive.
 TARGET_ITEM_PROF_NONE = 0
 
@@ -1395,7 +1395,7 @@ def _object_values(
     values[2] = -1
   if source_type == SOURCE_ITEM_TYPE_QUIVER and values[3]:
     # The source quiver kind has been consumed by the item-type decision. The
-    # target slot is the corpse flag (IS_CORPSE, src/utils.h:1983).
+    # target slot is the corpse flag (IS_CORPSE, src/core/utils.h:1983).
     diagnostics.append(
         f"zeroed source quiver kind {values[3]}; the target slot is the corpse flag"
     )
@@ -1425,7 +1425,7 @@ def _object_target_type(
     # bitmask so damage reduction never bypasses, and matches no weapon family.
     return TARGET_ITEM_WEAPON, infer_weapon_type(record), None
   if source_type == SOURCE_ITEM_TYPE_FIREWEAPON:
-    # The target's own ITEM_FIREWEAPON is deprecated (src/structs.h:4348) and
+    # The target's own ITEM_FIREWEAPON is deprecated (src/core/structs.h:4348) and
     # cannot fire: is_using_ranged_weapon() tests the wielded object's
     # weapon_list[] flags and never looks at item type.
     diagnostics.append(
@@ -1925,7 +1925,7 @@ def emit_object(
   if proficiency is not None:
     # G/H/I, in the order oedit_save_to_disk() writes them (src/olc/genobj.c).
     # The 'I' block is required even when the table size is SIZE_MEDIUM: the
-    # loader rewrites a missing or zero size to SIZE_MEDIUM (src/db.c:4112),
+    # loader rewrites a missing or zero size to SIZE_MEDIUM (src/core/db.c:4112),
     # which would silently resize every converted weapon that is not medium.
     lines.extend(["G\n", f"{proficiency}\n", "H\n", f"{material}\n", "I\n", f"{size}\n"])
   if special_proc is not None:

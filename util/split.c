@@ -25,7 +25,7 @@
 #define MAGIC_CHAR '='
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
 /**
  * Main function for the split utility

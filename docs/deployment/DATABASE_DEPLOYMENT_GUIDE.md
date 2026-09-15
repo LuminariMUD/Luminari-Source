@@ -65,7 +65,7 @@ recovery; do not drop production copies without a reviewed backup migration.
 - From MariaDB run sanity queries such as `SHOW TABLES LIKE 'resource_%';` and `SELECT COUNT(*) FROM resource_types;`
 
 ### 3. Enable in Code
-Make sure your `src/campaign.h` includes:
+Make sure your `src/config/campaign.h` includes:
 ```c
 #define ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS
 ```

@@ -36,16 +36,22 @@ compiler passes the required C23 keyword probe.
 
 ## Includes and Interfaces
 
-- Preserve the common include order: `conf.h`, `sysdep.h`, `structs.h`, then `utils.h`.
-- Headers at `src/` are included by bare name. Headers in a feature directory are path-qualified
-  outside that directory, such as `#include "spec/spec_registry.h"`.
+- Preserve the common include order: `conf.h`, `core/sysdep.h`, `core/structs.h`, then
+  `core/utils.h`.
+- A header is included by bare name from its own directory and path-qualified everywhere else,
+  such as `#include "spec/spec_registry.h"`. The generated `conf.h` and `build_identity.h` live
+  in the build root and are included by bare name; the include roots are the build root and
+  `src/`.
 - Do not add per-directory include flags to hide cross-subsystem dependencies.
 - Keep public APIs narrow. Place private declarations in an internal header rather than exporting
   them solely to support a file split.
 
 ## Files and Ownership
 
-- `src/` uses one flat level of feature directories; do not introduce second-level nesting.
+- Every `.c` and `.h` file lives in exactly one directory directly under `src/`: nothing at the
+  top of `src/` (`scripts/ci/check_build_parity.py` enforces this) and no second-level nesting.
+- A new directory needs a name a newcomer would guess; catch-all names such as `util/` or `misc/`
+  are not allowed.
 - File membership follows primary responsibility, not every subsystem a function touches.
 - Keep cohesive feature or zone content together when it shares state, sequencing, VNUMs, and
   private helpers.
@@ -103,17 +109,20 @@ ownership evidence in the
 
 ## Local Configuration and Credentials
 
-- Never modify `src/campaign.h`, `src/mud_options.h`, or `src/vnums.h`; edit the matching
-  `.example.h` template only when a shared template change is required.
+- Never modify `src/config/campaign.h`, `src/config/mud_options.h`, or `src/config/vnums.h`;
+  edit the matching `.example.h` template only when a shared template change is required.
 - Never modify credential-bearing `lib/.env` or `lib/mysql_config` without explicit permission;
   edit `lib/.env_example` or `lib/mysql_config_example` instead.
 - Copy an example only on a fresh clone when the real local file does not exist. Never overwrite a
   configured local file.
+- A checkout whose local headers are still directly under `src/` moves them once with
+  `mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/`; configure,
+  CMake, `deploy.sh`, and `setup.sh` stop until then. The owner runs it.
 - Never expose credentials in logs, test output, documentation, commits, or diagnostics.
 
 ## Database Layer
 
-- MariaDB/MySQL is required. Access it through the established `src/mysql.c` integration and C
+- MariaDB/MySQL is required. Access it through the established `src/database/mysql.c` integration and C
   client dependency.
 - Keep connection details in the existing local credential files and environment, never in source.
 - Escape or parameterize untrusted data according to existing database helpers; never concatenate
@@ -191,7 +200,7 @@ ownership evidence in the
 | Development startup | Syntax-check boot | `./bin/luminari -c -d lib` |
 | Observability | Autorun structured crash capture | `scripts/autorun/autorun.sh`, `log/last_error_*.json` |
 | Git hooks | pre-commit | `.pre-commit-config.yaml` |
-| Database | MariaDB/MySQL C client | `src/mysql.c`, `sql/`, `lib/mysql_config` |
+| Database | MariaDB/MySQL C client | `src/database/mysql.c`, `sql/`, `lib/mysql_config` |
 
 Autorun writes abnormal-exit context atomically as mode `0600` JSON under the existing ignored
 `log/` runtime directory. The record includes immutable release identity and exact core/backtrace

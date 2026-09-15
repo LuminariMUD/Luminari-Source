@@ -680,7 +680,7 @@ The runner:
   `vessel_messages_throttled` count, proving the installed production tick
   suppressed repeated player-facing messages. The complete `vessel_tick`
   maximum must be no more than 25,000 microseconds. The parser regression
-  derives the production profiler names from `src/comm.c` and compares them
+  derives the production profiler names from `src/core/comm.c` and compares them
   with the runner contract, so adding or removing a sampled heartbeat section
   cannot silently invalidate the row count.
 - Validates the complete ten-field `vessel_tick` CSV row before applying the

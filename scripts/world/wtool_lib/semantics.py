@@ -458,7 +458,7 @@ def _validate_room_level_ranges(
 
 # DG script commands that can put a player inside an arbitrary room, mapped to
 # the zero-based argument positions that carry a room vnum. Traced from the
-# command tables in src/interpreter.c and src/dgscript/dg_{obj,wld}cmd.c. The
+# command tables in src/core/interpreter.c and src/dgscript/dg_{obj,wld}cmd.c. The
 # %name% forms are the portable spellings that find_replacement() in
 # src/dgscript/dg_variables.c rewrites to the attach-type-specific command.
 _SCRIPT_ROOM_ARGUMENTS = {

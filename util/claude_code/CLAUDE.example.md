@@ -14,13 +14,13 @@ lib/.env
 
 ## Configuration Files (Not in Git)
 **CRITICAL: NEVER EVER touch, overwrite, copy over, or modify ANY *.h configuration files. These contain custom configurations and MUST NOT be touched.**
-src/campaign.h
-src/mud_options.h
-src/vnums.h
+src/config/campaign.h
+src/config/mud_options.h
+src/config/vnums.h
 **Examples files yes could be editted if necessary:**
-src/campaign.example.h
-src/mud_options.example.h
-src/vnums.example.h
+src/config/campaign.example.h
+src/config/mud_options.example.h
+src/config/vnums.example.h
 
 ## Sensitive Configuration Files (not in Git)
 **CRITICAL: You can read, but otherwise:  NEVER EVER touch, overwrite, copy over, or modify ANY of these files. These contain passwords, keys, and other sensitive information.**
@@ -94,7 +94,7 @@ LuminariMUD is a sophisticated text-based multiplayer online role-playing game (
 
 ### Game Identity
 This repository builds and supports LuminariMUD only. Local compile-time feature
-settings live in `src/campaign.h`.
+settings live in `src/config/campaign.h`.
 
 ## Architecture Overview
 

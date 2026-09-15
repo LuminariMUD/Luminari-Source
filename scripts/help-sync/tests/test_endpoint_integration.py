@@ -116,7 +116,7 @@ SCHEMA_STATEMENTS = (
 
 
 def embedded_help_migrations():
-    source = (REPOSITORY_ROOT / "src" / "db_init.c").read_text(encoding="utf-8")
+    source = (REPOSITORY_ROOT / "src" / "database" / "db_init.c").read_text(encoding="utf-8")
     pattern = re.compile(
         r"apply_migration\(\s*(20260824\d+),\s*\"(?:\\.|[^\"])*\",\s*"
         r"((?:\"(?:\\.|[^\"])*\"\s*)+)\)"

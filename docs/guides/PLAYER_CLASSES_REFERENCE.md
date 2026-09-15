@@ -1,10 +1,10 @@
 # Player Classes Reference
 
 Status: source-backed reference, verified 2026-09-11 against `src/character/class.c`,
-`src/structs.h`, `src/account.c`, `src/act.other.c`, `src/interpreter.c`,
-`src/net/onboarding.c`, `src/magic/spell_prep.c`, `src/utils.c`, `src/utils.h`,
-`src/handler.c`, `src/character/perks.c`, `src/character/premadebuilds.c`, and
-`src/constants.c`.
+`src/core/structs.h`, `src/player/account.c`, `src/act/act.other.c`, `src/core/interpreter.c`,
+`src/net/onboarding.c`, `src/magic/spell_prep.c`, `src/core/utils.c`, `src/core/utils.h`,
+`src/core/handler.c`, `src/character/perks.c`, `src/character/premadebuilds.c`, and
+`src/core/constants.c`.
 
 This document is the reference center for playable (player-character) classes. It
 lists every class a player can hold, how it is acquired, its unlock cost, its
@@ -37,16 +37,16 @@ Source of truth for every table below:
 
 | Data | Where it is defined |
 |------|---------------------|
-| Class IDs and synonyms | `src/structs.h` (`CLASS_*` defines, `NUM_CLASSES`, `NUM_CASTERS`) |
+| Class IDs and synonyms | `src/core/structs.h` (`CLASS_*` defines, `NUM_CLASSES`, `NUM_CASTERS`) |
 | Registry entries | `load_class_list()` in `src/character/class.c` via `classo()`, `assign_class_saves()`, `assign_class_abils()`, `assign_class_titles()`, `feat_assignment()`, `spell_assignment()`, and `class_prereq_*()` |
 | Creation alignment rule | `valid_align_by_class()` in `src/character/class.c`; `valid_class_race_alignment()` in `src/character/race.c` |
-| `gain` and respec eligibility | `class_is_available()` and `meets_class_prerequisite()` in `src/character/class.c`; `do_gain()` and `do_respec()` in `src/act.other.c` |
-| Creation filters | `nanny()` `CON_QCLASS` in `src/interpreter.c`; `web_onboarding_class_selectable()` region in `src/net/onboarding.c` |
-| Unlock and cost | `has_unlocked_class()` and `do_accexp()` in `src/account.c` |
+| `gain` and respec eligibility | `class_is_available()` and `meets_class_prerequisite()` in `src/character/class.c`; `do_gain()` and `do_respec()` in `src/act/act.other.c` |
+| Creation filters | `nanny()` `CON_QCLASS` in `src/core/interpreter.c`; `web_onboarding_class_selectable()` region in `src/net/onboarding.c` |
+| Unlock and cost | `has_unlocked_class()` and `do_accexp()` in `src/player/account.c` |
 | Per-level gains | `advance_level()` in `src/character/class.c` |
-| Stat and hit/dam caps | `compute_char_cap()` in `src/handler.c` |
+| Stat and hit/dam caps | `compute_char_cap()` in `src/core/handler.c` |
 | Perk routing | `class_to_perk_class()` and `check_stage_advancement()` in `src/character/perks.c` |
-| Caster levels and circles | `compute_arcane_level()`, `compute_divine_level()`, `compute_bonus_caster_level()` in `src/utils.c`; `get_class_highest_circle()` and `compute_slots_by_circle()` in `src/magic/spell_prep.c`; slot and known tables in `src/constants.c` |
+| Caster levels and circles | `compute_arcane_level()`, `compute_divine_level()`, `compute_bonus_caster_level()` in `src/core/utils.c`; `get_class_highest_circle()` and `compute_slots_by_circle()` in `src/magic/spell_prep.c`; slot and known tables in `src/core/constants.c` |
 | Feat text | `feato()` calls in `assign_feats()` in `src/character/feats.c` |
 | Spell, power, and invocation text | `spello()`, `spellabilo()` in `src/magic/spell_parser.c`; `psiono()` in `src/magic/psionics.c` |
 | Premade builds | `advance_premade_build()` in `src/character/premadebuilds.c` |
@@ -1657,7 +1657,7 @@ not assume otherwise. None of them is a documented design decision.
   as the global cap); **Artificer** caps at 20.
 - **`parse_class_long()`** has a commented-out early `assassin` match but a live
   one later, so `assassin` still parses.
-- **`IS_SPELLCASTER_CLASS()`** in `src/utils.h` lists 12 base classes and omits
+- **`IS_SPELLCASTER_CLASS()`** in `src/core/utils.h` lists 12 base classes and omits
   Psionicist and Artificer; `IS_CASTER()` omits Warlock, Psionicist, Artificer,
   Shadowdancer, and Knight of the Howling Moon. Code that uses these macros
   treats those classes as non-casters.

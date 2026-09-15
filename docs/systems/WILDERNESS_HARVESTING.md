@@ -97,8 +97,8 @@ mote count.
 
 The authored object prototypes are in
 [data/harvest-tools/harvest-tools.obj](../../data/harvest-tools/harvest-tools.obj).
-VNUM definitions live in `src/harvest_vnums.h`, which is included by the example
-VNUM configuration. Existing customized `src/vnums.h` files need no edits.
+VNUM definitions live in `src/config/harvest_vnums.h`, which is included by the example
+VNUM configuration. Existing customized `src/config/vnums.h` files need no edits.
 
 | VNUM | Name | Minimum quality | Cost |
 | --- | --- | --- | --- |

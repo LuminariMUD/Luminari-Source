@@ -21,7 +21,7 @@ D&D 3.5 mechanics on the tbaMUD/CircleMUD foundation. The supported server is
 written in GNU C23 and requires MariaDB or MySQL at runtime.
 
 Current source version: `2.5063-beta` (tbaMUD 3.64), declared in
-[configure.ac](configure.ac) and [src/constants.c](src/constants.c).
+[configure.ac](configure.ac) and [src/core/constants.c](src/core/constants.c).
 
 The game combines character classes, races, feats, spells, and d20 combat with
 quests, crafting, wilderness exploration, and vessels. Builders create content
@@ -81,8 +81,8 @@ Production uses game port 4100 through `luminari.service`. Deployment also
 supports noninteractive and managed-service modes; inspect the options with
 `./scripts/deployment/deploy.sh --help`.
 
-Local headers and credentials are untracked: preserve existing `src/campaign.h`,
-`src/mud_options.h`, `src/vnums.h`, `lib/mysql_config`, and `lib/.env`.
+Local headers and credentials are untracked: preserve existing `src/config/campaign.h`,
+`src/config/mud_options.h`, `src/config/vnums.h`, `lib/mysql_config`, and `lib/.env`.
 Development tooling that checks the environment requires `APP_ENV=development`
 in `lib/.env`; the tracked [environment example](lib/.env_example) defaults to
 production and must be adapted for a local checkout. Ollama, InterMUD-3, and

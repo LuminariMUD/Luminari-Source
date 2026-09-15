@@ -9,6 +9,9 @@ SUBDIRS = util
 # The production profile lives in CFLAGS/LDFLAGS (configure appends it after
 # the user's flags) rather than here, where user CFLAGS would override it.
 AM_CFLAGS = @CSTD_CFLAGS@ @MYFLAGS@ @LIBEVENT_CFLAGS@
+# Source includes resolve from src/. The generated conf.h and build_identity.h
+# sit in the build root, which Automake's DEFAULT_INCLUDES already provides.
+AM_CPPFLAGS = -I$(top_srcdir)/src
 # The versioned installer and the copyover identity line key on the ELF build
 # ID.  Distribution compilers emit one by default; a toolchain built from
 # source (the official gcc container images) does not, so ask for it.
@@ -20,11 +23,11 @@ bin_PROGRAMS = luminari
 
 # Source files for the main program
 luminari_SOURCES = \
-	src/pet_vnums.h \
-	src/account.c \
-	src/act.comm.c \
-	src/act.comm.do_spec_comm.c \
-	src/act.informative.c \
+	src/config/pet_vnums.h \
+	src/player/account.c \
+	src/act/act.comm.c \
+	src/act/act.comm.do_spec_comm.c \
+	src/act/act.informative.c \
 	src/obj/act.item.c \
 	src/movement/movement.c \
 	src/movement/movement_validation.c \
@@ -37,21 +40,21 @@ luminari_SOURCES = \
 	src/movement/movement_tracks.c \
 	src/movement/movement_events.c \
 	src/combat/act.offensive.c \
-	src/act.other.c \
-	src/ready_action.c \
-	src/tactical_effects.c \
-	src/tactical_effects.h \
-	src/act.social.c \
-	src/act.wizard.c \
-	src/actionqueues.c \
-	src/actions.c \
+	src/act/act.other.c \
+	src/events/ready_action.c \
+	src/combat/tactical_effects.c \
+	src/combat/tactical_effects.h \
+	src/act/act.social.c \
+	src/act/act.wizard.c \
+	src/events/actionqueues.c \
+	src/events/actions.c \
 	src/olc/aedit.c \
-	src/ai_cache.c \
-	src/ai_events.c \
-	src/ai_security.c \
-	src/ai_service.c \
+	src/ai/ai_cache.c \
+	src/ai/ai_events.c \
+	src/ai/ai_security.c \
+	src/ai/ai_service.c \
 	src/craft/alchemy.c \
-	src/asciimap.c \
+	src/movement/asciimap.c \
 	src/combat/assign_wpn_armor.c \
 	src/combat/projectiles.c \
 	src/combat/projectiles.h \
@@ -60,36 +63,36 @@ luminari_SOURCES = \
 	src/character/guild_services.c \
 	src/character/character_creation.c \
 	src/character/character_creation_content.c \
-	src/ban.c \
-	src/bardic_performance.c \
+	src/player/ban.c \
+	src/character/bardic_performance.c \
 	src/comms/boards.c \
 	src/olc/bedit.c \
 	src/comms/mysql_boards.c \
-	src/bsd-snprintf.c \
+	src/core/bsd-snprintf.c \
 	src/craft/brew.c \
 	src/olc/cedit.c \
-	src/char_descs.c \
-	src/clan.c \
-	src/clan_services.c \
-	src/clan_economy.c \
+	src/character/char_descs.c \
+	src/clan/clan.c \
+	src/clan/clan_services.c \
+	src/clan/clan_economy.c \
 	src/olc/clan_edit.c \
-	src/clan_transactions.c \
+	src/clan/clan_transactions.c \
 	src/character/class.c \
 	src/combat/combat_modes.c \
-	src/comm.c \
-	src/config.c \
-	src/constants.c \
-	src/copyover_diagnostic.c \
+	src/core/comm.c \
+	src/config/config.c \
+	src/core/constants.c \
+	src/core/copyover_diagnostic.c \
 	src/craft/craft.c \
 	src/craft/crafting_molds.c \
 	src/craft/crafting_new.c \
 	src/craft/crafting_recipes.c \
 	src/craft/crafts.c \
-	src/db.c \
-	src/db_init.c \
-	src/db_init_data.c \
-	src/db_startup_init.c \
-	src/db_admin_commands.c \
+	src/core/db.c \
+	src/database/db_init.c \
+	src/database/db_init_data.c \
+	src/database/db_startup_init.c \
+	src/database/db_admin_commands.c \
 	src/character/deities.c \
 	src/wilderness/desc_engine.c \
 	src/dgscript/dg_comm.c \
@@ -107,9 +110,9 @@ luminari_SOURCES = \
 	src/dgscript/dg_wldcmd.c \
 	src/magic/domain_powers.c \
 	src/magic/domains_schools.c \
-	src/dotenv.c \
-	src/elf_build_id.c \
-	src/elf_build_id.h \
+	src/config/dotenv.c \
+	src/core/elf_build_id.c \
+	src/core/elf_build_id.h \
 	src/combat/encounters.c \
 	src/combat/combat_encounters.c \
 	src/combat/combat_encounters.h \
@@ -132,21 +135,21 @@ luminari_SOURCES = \
 	src/olc/genshp.c \
 	src/olc/genwld.c \
 	src/olc/genzon.c \
-	src/game_scheduler.c \
-	src/game_scheduler.h \
-	src/event_runtime.c \
-	src/event_runtime.h \
-	src/event_handle.h \
-	src/active_world.c \
-	src/active_world.h \
-	src/activity_manager.c \
-	src/activity_manager.h \
-	src/affected_owners.c \
-	src/affected_owners.h \
-	src/character_periodic.c \
-	src/character_periodic.h \
-	src/point_update_periodic.c \
-	src/point_update_periodic.h \
+	src/events/game_scheduler.c \
+	src/events/game_scheduler.h \
+	src/events/event_runtime.c \
+	src/events/event_runtime.h \
+	src/events/event_handle.h \
+	src/events/active_world.c \
+	src/events/active_world.h \
+	src/events/activity_manager.c \
+	src/events/activity_manager.h \
+	src/events/affected_owners.c \
+	src/events/affected_owners.h \
+	src/events/character_periodic.c \
+	src/events/character_periodic.h \
+	src/events/point_update_periodic.c \
+	src/events/point_update_periodic.h \
 	src/vessels/vessel_periodic.c \
 	src/vessels/vessel_periodic.h \
 	src/quest/staff_event_agenda.c \
@@ -157,28 +160,28 @@ luminari_SOURCES = \
 	src/magic/buff_sequence.h \
 	src/vessels/transport_jobs.c \
 	src/vessels/transport_jobs.h \
-	src/periodic_owners.c \
-	src/periodic_owners.h \
-	src/domain_events.c \
-	src/domain_events.h \
-	src/domain_event_types.c \
-	src/domain_event_world.c \
-	src/domain_event_world.h \
-	src/domain_event_types.h \
-	src/domain_event_runtime.c \
-	src/domain_object_transfer.c \
-	src/domain_object_transfer.h \
-	src/domain_event_runtime.h \
-	src/event_debug.c \
-	src/event_debug.h \
-	src/reactor.c \
-	src/reactor.h \
-	src/graph.c \
+	src/events/periodic_owners.c \
+	src/events/periodic_owners.h \
+	src/events/domain_events.c \
+	src/events/domain_events.h \
+	src/events/domain_event_types.c \
+	src/events/domain_event_world.c \
+	src/events/domain_event_world.h \
+	src/events/domain_event_types.h \
+	src/events/domain_event_runtime.c \
+	src/events/domain_object_transfer.c \
+	src/events/domain_object_transfer.h \
+	src/events/domain_event_runtime.h \
+	src/events/event_debug.c \
+	src/events/event_debug.h \
+	src/net/reactor.c \
+	src/net/reactor.h \
+	src/movement/graph.c \
 	src/combat/grapple.c \
-	src/handler.c \
+	src/core/handler.c \
 	src/olc/hedit.c \
-	src/help.c \
-	src/helpers.c \
+	src/core/help.c \
+	src/core/helpers.c \
 	src/olc/hlqedit.c \
 	src/quest/hlquest.c \
 	src/obj/house.c \
@@ -186,11 +189,11 @@ luminari_SOURCES = \
 	src/quest/hunts.c \
 	src/comms/ibt.c \
 	src/olc/improved-edit.c \
-	src/interpreter.c \
-	src/introduce.c \
+	src/core/interpreter.c \
+	src/character/introduce.c \
 	src/wilderness/kdtree.c \
-	src/limits.c \
-	src/lists.c \
+	src/core/limits.c \
+	src/core/lists.c \
 	src/magic/magic.c \
 	src/comms/mail.c \
 	src/olc/medit.c \
@@ -208,12 +211,12 @@ luminari_SOURCES = \
 	src/mob/mob_spells.c \
 	src/mob/mob_spellslots.c \
 	src/mob/mob_known_spells.c \
-	src/modify.c \
+	src/core/modify.c \
 	src/magic/moon_bonus_spells.c \
 	src/olc/msgedit.c \
-	src/mud_event.c \
-	src/mud_event_list.c \
-	src/mysql.c \
+	src/events/mud_event.c \
+	src/events/mud_event_list.c \
+	src/database/mysql.c \
 	src/comms/new_mail.c \
 	src/olc/oasis.c \
 	src/olc/oasis_copy.c \
@@ -222,12 +225,12 @@ luminari_SOURCES = \
 	src/obj/objsave.c \
 	src/obj/player_shop.c \
 	src/olc/oedit.c \
-	src/password.c \
-	src/perfmon.c \
+	src/player/password.c \
+	src/core/perfmon.c \
 	src/wilderness/perlin.c \
-	src/player_rename.c \
-	src/player_rename.h \
-	src/players.c \
+	src/player/player_rename.c \
+	src/player/player_rename.h \
+	src/player/players.c \
 	src/olc/prefedit.c \
 	src/character/premadebuilds.c \
 	src/net/msdp_json.c \
@@ -252,20 +255,20 @@ luminari_SOURCES = \
 	src/quest/quest.c \
 	src/quest/quest_services.c \
 	src/character/race.c \
-	src/random.c \
-	src/random_names.c \
-	src/rank.c \
-	src/rewards.c \
-	src/rol_feats.c \
+	src/core/random.c \
+	src/mob/random_names.c \
+	src/player/rank.c \
+	src/character/rewards.c \
+	src/character/rol_feats.c \
 	src/olc/redit.c \
 	src/wilderness/resource_system.c \
 	src/wilderness/harvest.c \
 	src/wilderness/harvest.h \
-	src/harvest_vnums.h \
+	src/config/harvest_vnums.h \
 	src/wilderness/resource_depletion.c \
 	src/wilderness/resource_descriptions.c \
 	src/wilderness/resource_regeneration.c \
-	src/roleplay.c \
+	src/character/roleplay.c \
 	src/vessels/routing.c \
 	src/olc/sedit.c \
 	src/olc/spec_menu.c \
@@ -355,7 +358,7 @@ luminari_SOURCES = \
 	src/combat/traps_new.c \
 	src/obj/treasure.c \
 	src/obj/treasure_const.c \
-	src/utils.c \
+	src/core/utils.c \
 	src/vessels/vehicles.c \
 	src/vessels/vehicles_commands.c \
 	src/vessels/vehicles_transport.c \
@@ -385,11 +388,11 @@ luminari_SOURCES = \
 	src/vessels/vessels_trade.c \
 	src/vessels/vessels_upgrades.c \
 	src/vessels/vessels_autopilot.c \
-	src/weather.c \
+	src/core/weather.c \
 	src/wilderness/wilderness.c \
 	src/wilderness/wilderness_kb.c \
 	src/olc/zedit.c \
-	src/zmalloc.c
+	src/core/zmalloc.c
 
 # Libraries to link
 luminari_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ @LIBEVENT_LIBS@ -lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread -ljson-c
@@ -399,7 +402,7 @@ luminari_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ @LIBEVENT_LIBS@ -lcrypt -lgd -lm -lm
 check_PROGRAMS = cutest bsd_snprintf_fallback_test
 TESTS = bsd_snprintf_fallback_test
 
-bsd_snprintf_fallback_test_SOURCES = src/bsd-snprintf.c
+bsd_snprintf_fallback_test_SOURCES = src/core/bsd-snprintf.c
 bsd_snprintf_fallback_test_CPPFLAGS = $(AM_CPPFLAGS) -DBROKEN_SNPRINTF -DTEST_SNPRINTF
 bsd_snprintf_fallback_test_LDADD = -lm
 
@@ -583,7 +586,7 @@ build_identity.h: FORCE_BUILD_IDENTITY scripts/deployment/generate_build_identit
 
 # Direct parallel targets such as `make -j cutest` do not receive Automake's
 # BUILT_SOURCES ordering.  Both variants of constants.o include this header.
-src/constants.$(OBJEXT) src/cutest-constants.$(OBJEXT): build_identity.h
+src/core/constants.$(OBJEXT) src/core/cutest-constants.$(OBJEXT): build_identity.h
 
 # GCC's analyzer needs more than 30 GiB for load_class_list, which registers
 # every class in one function, so class.c is compiled without it.
@@ -604,7 +607,7 @@ install-exec-hook:
 	rm -f $(bin_PROGRAMS)
 
 # Ensure constants.c is rebuilt when other sources change
-src/constants.c: $(filter-out src/constants.c,$(luminari_SOURCES))
+src/core/constants.c: $(filter-out src/core/constants.c,$(luminari_SOURCES))
 	touch $@
 
 # Standalone Python world-data tooling. Keep this list synchronized with
@@ -1228,6 +1231,6 @@ scrub: clean
 	rm -f core core.* vgcore.*
 	rm -f lib/core lib/core.* lib/vgcore.*
 	rm -f *~ *.swp *.swo
-	rm -f src/*~ src/*.swp src/*.swo
+	rm -f src/*/*~ src/*/*.swp src/*/*.swo
 	rm -f *.tmp *.temp
 	rm -f test_*.out test_*.log
