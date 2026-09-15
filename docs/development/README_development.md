@@ -120,13 +120,14 @@ world-tool, sanitizer, Valgrind, and subsystem commands.
 
 - `src/core/comm.c`, `src/core/interpreter.c`, `src/core/db.c`, `src/core/handler.c`, and
   `src/core/utils.c` form the server core.
-- Feature directories under `src/` are one level deep. Put a file where its
-  primary responsibility belongs; do not introduce second-level source trees.
+- Every source file lives in one directory directly under `src/`; nothing sits
+  at the top of `src/`, and there are no second-level source trees. Put a file
+  where its primary responsibility belongs.
 - Spells and skills share the number space and live under `src/magic/`.
 - Combat behavior lives under `src/combat/`; movement commands live under
   `src/movement/`; OLC lives under `src/olc/`.
-- Headers inside a feature directory use path-qualified includes from outside
-  that directory.
+- A header is included by bare name inside its directory and path-qualified
+  from everywhere else.
 - Every source addition or removal updates both `Makefile.am` and
   `CMakeLists.txt`.
 
@@ -143,6 +144,13 @@ test -e lib/mysql_config || install -m 600 lib/mysql_config_example lib/mysql_co
 
 Never overwrite or commit those local files. Edit the example only when the
 shared template contract changes.
+
+A checkout from before the headers moved to `src/config/` moves them once;
+configure, CMake, `deploy.sh`, and `setup.sh` stop until it does:
+
+```bash
+mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/
+```
 
 ## Code and Documentation Style
 

@@ -95,6 +95,14 @@ Edit local configuration without committing it. Never overwrite an existing
 [deployment guide](../deployment/DEPLOYMENT_GUIDE.md) and
 [database initialization guide](DATABASE_INITIALIZATION_GUIDE.md).
 
+A checkout created before the local headers moved to `src/config/` moves them
+once. Until it does, configure, CMake, `deploy.sh`, and `setup.sh` stop and
+print this command:
+
+```bash
+mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/
+```
+
 World and text data must exist under `lib/`. Use the deployment script for a
 fresh minimal world rather than assembling the required indexes manually.
 

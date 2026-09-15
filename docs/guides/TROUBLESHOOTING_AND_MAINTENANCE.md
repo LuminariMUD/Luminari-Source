@@ -44,6 +44,16 @@ test -e src/config/vnums.h || cp src/config/vnums.example.h src/config/vnums.h
 
 Never overwrite or commit those local headers.
 
+### Local Headers Still Under `src/`
+
+Configure or CMake stops with a message that a local header must move to
+`src/config/`. Move the customized headers once; never copy the examples over
+them:
+
+```bash
+mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/
+```
+
 ### Clean Rebuild and Test
 
 ```bash

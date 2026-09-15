@@ -230,9 +230,16 @@ The following real files are local and protected:
 - `src/config/campaign.h`, `src/config/mud_options.h`, and `src/config/vnums.h`
 - `lib/mysql_config` and `lib/.env`
 
-Their tracked examples are `src/*.example.h`, `lib/mysql_config_example`, and
-`lib/.env_example`. Copy an example only on a fresh clone when the real file is
-absent. Never commit credentials or replace an existing local configuration.
+Their tracked examples are `src/config/*.example.h`, `lib/mysql_config_example`,
+and `lib/.env_example`. Copy an example only on a fresh clone when the real file
+is absent. Never commit credentials or replace an existing local configuration.
+
+A checkout from before the headers moved to `src/config/`, production included,
+moves them once before building the first release that contains the move:
+
+```bash
+mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/
+```
 
 For manual database creation and schema initialization, use the
 [database initialization guide](../guides/DATABASE_INITIALIZATION_GUIDE.md).

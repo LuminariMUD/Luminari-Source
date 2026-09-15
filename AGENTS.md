@@ -9,6 +9,8 @@ never print or modify credentials.
 
 - NEVER post Claude-Session links!  NEVER attribute AI (Claude or anybody else) in commits or anywhere else.
 - NEVER modify `src/config/campaign.h`, `src/config/mud_options.h`, `src/config/vnums.h` - they are local, customized configuration (gitignored). Edit the `.example.h` templates instead if a template changei h is needed. Only copy `.example.h` -> `.h` on a fresh clone where the real headers do not exist yet.
+- Configure, CMake, `deploy.sh`, and `setup.sh` stop while a local header is still directly under
+  `src/`. The owner moves them once (`mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/`); agents do not move them.
 - `lib/mysql_config` and `lib/.env` contain credentials: you may read them, never modify them without permission. Edit `lib/mysql_config_example` / `lib/.env.example` instead.
 - When adding or removing a source file, update BOTH `Makefile.am` and `CMakeLists.txt`, then
   run `python3 scripts/ci/check_build_parity.py` (CI blocks on drift).
@@ -102,11 +104,11 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 ## Architecture
 
 ### Core flow
-- `comm.c` - main select()-based game loop, networking, heartbeat scheduling.
-- `interpreter.c` - command parsing. All commands are registered in the `cmd_info[]` table (`src/core/interpreter.c:119`), declared with `ACMD_DECL()` in `interpreter.h`, implemented as `ACMD(do_xxx)` mostly in `act.*.c` files (act.informative.c, act.wizard.c, plus `obj/act.item.c` and `combat/act.offensive.c`). There is no act.movement.c - movement commands live in `src/movement/`.
-- `structs.h` - the central data model (`char_data`, `obj_data`, `room_data`, descriptors). `utils.h` - the macro layer (`GET_LEVEL()`, `IS_NPC()`, `CREATE()`, `GET_SKILL()`, ...). Nearly every .c file includes `conf.h`, `sysdep.h`, `structs.h`, `utils.h` in that order.
-- `db.c` - boots the world from flat files in `lib/world/` (`.zon`, `.wld`, `.mob`, `.obj`, `.shp`, `.trg`) into in-memory arrays. `mysql.c` - MariaDB layer for player/account persistence and many subsystems.
-- `handler.c` - object/character manipulation primitives (equip, extract, move).
+- `core/comm.c` - main select()-based game loop, networking, heartbeat scheduling.
+- `core/interpreter.c` - command parsing. All commands are registered in the `cmd_info[]` table (`src/core/interpreter.c:119`), declared with `ACMD_DECL()` in `core/interpreter.h`, implemented as `ACMD(do_xxx)` mostly in `act/act.*.c` files (`act/act.informative.c`, `act/act.wizard.c`, plus `obj/act.item.c` and `combat/act.offensive.c`). There is no act.movement.c - movement commands live in `src/movement/`.
+- `core/structs.h` - the central data model (`char_data`, `obj_data`, `room_data`, descriptors). `core/utils.h` - the macro layer (`GET_LEVEL()`, `IS_NPC()`, `CREATE()`, `GET_SKILL()`, ...). Nearly every .c file includes `conf.h`, `core/sysdep.h`, `core/structs.h`, `core/utils.h` in that order.
+- `core/db.c` - boots the world from flat files in `lib/world/` (`.zon`, `.wld`, `.mob`, `.obj`, `.shp`, `.trg`) into in-memory arrays. `database/mysql.c` - MariaDB layer for player/account persistence and many subsystems.
+- `core/handler.c` - object/character manipulation primitives (equip, extract, move).
 
 ### Build identity
 LuminariMUD is the only supported game identity in this repository.
@@ -114,37 +116,49 @@ LuminariMUD is the only supported game identity in this repository.
 ### Game mechanics
 - Spells and skills share ONE number space: skills are "skill-spells" starting at `START_SKILLS` (2000) in `magic/spells.h`. There is no skills.c - spell/skill logic lives in `src/magic/`: `spells.c`, `magic.c`, `spell_parser.c` (registration via `spello()` calls in `mag_assign_spells()`), and `spell_prep.c` (the preparation system).
 - Feats: constants in `character/feats.h`, registered via `feato()` calls inside `assign_feats()` in `character/feats.c` (populates `feat_list[NUM_FEATS]`), logic wired into the relevant system files (`combat/fight.c`, etc.). `character/evolutions.c` is part of this system, not combat.
-- Combat: `src/combat/fight.c`. Classes: `character/class.c`. Races: `character/race.c`. D20 rolls and checks: look in `utils.c`/`act.*` - do not assume an ability_check.c exists.
+- Combat: `src/combat/fight.c`. Classes: `character/class.c`. Races: `character/race.c`. D20 rolls and checks: look in `core/utils.c`/`act/` - do not assume an ability_check.c exists.
 
 ### Scripting and building
 - DG Scripts: `src/dgscript/dg_*.c` - trigger-based scripting attached to mobs/objects/rooms; script data lives in `lib/world/trg/`.
 - OLC (online creation): `src/olc/` - `genolc.c`, `gen*.c`, `*edit.c`, and the `oasis*` framework. In-game world editing that writes the flat world files.
 
 ### Source layout
-`src/` uses ONE flat level of feature directories.
+Every `.c` and `.h` file lives in exactly one directory directly under `src/`. Nothing sits at the
+top of `src/`, and nothing is nested a second level deep; `scripts/ci/check_build_parity.py` fails
+on a source file directly under `src/`.
 
 | Directory | Holds |
 |-----------|-------|
+| `src/core/` | server kernel and base layer: `structs.h`, `sysdep.h`, `bool.h`, `utils`, `handler`, `interpreter`, `comm`, `db` (flat-file world loader), `constants`, `limits`, `weather`, `modify`, `lists`, `helpers`, `random`, `zmalloc`, `bsd-snprintf`, `help`, `perfmon`, `copyover_diagnostic`, `elf_build_id` |
+| `src/events/` | `game_scheduler`, `event_runtime`, `event_debug`, `mud_event*`, `domain_event*`, `domain_object_transfer`, periodic and affect owners, `active_world`, `actions`, `actionqueues`, `activity_manager`, `ready_action` |
+| `src/config/` | `config`, `dotenv`, `pet_vnums.h`, `harvest_vnums.h`, the `*.example.h` templates, and the local `campaign.h`, `mud_options.h`, `vnums.h` |
+| `src/database/` | MariaDB layer: `mysql`, `db_init*`, `db_startup_init`, `db_admin_commands` |
+| `src/player/` | `account`, `password`, `players`, `player_rename`, `pfdefaults.h`, `ban`, `rank` |
+| `src/act/` | `act.h` and the `act.comm*`, `act.informative`, `act.other`, `act.social`, `act.wizard` command families |
+| `src/ai/` | `ai_service`, `ai_cache`, `ai_events`, `ai_security` |
+| `src/clan/` | `clan*` (`olc/clan_edit.c` stays in `olc/`) |
 | `src/olc/` | online creation: `*edit.c`, `gen*.c`, `oasis*`, `improved-edit.c` |
 | `src/wilderness/` | `resource_*`, `wilderness*`, `perlin`, `kdtree`, `spatial_*`, `region_hints`, `terrain_bridge`, `desc_engine`, `narrative_weaver` |
 | `src/vessels/` | `vessels_*`, `vehicles*`, `transport*`, `routing` |
 | `src/magic/` | `magic.c`, `spells*`, `spell_parser`, `spell_prep`, `spellbook_scroll`, `casting_visuals`, `metamagic_science`, `domain_powers`, `domains_schools`, `moon_bonus_spells`, `psionics` |
-| `src/mob/` | `mob_*` |
-| `src/movement/` | `movement*` |
+| `src/mob/` | `mob_*`, `random_names` |
+| `src/movement/` | `movement*`, `graph` (room-graph pathfinding), `asciimap` |
 | `src/dgscript/` | `dg_*` |
-| `src/character/` | `class`, `race`, `feats`, `perks`, `talents`, `evolutions`, `backgrounds`, `deities`, `templates`, `premadebuilds`, `character_creation*`, `study.c` |
-| `src/combat/` | `fight`, `act.offensive.c`, `assign_wpn_armor`, `encounters`, `spec_abilities`, `grapple`, `combat_modes`, `traps*` |
+| `src/spec/` | special procedures: `spec_registry`, `spec_dispatch`, `spec_binding`, `spec_assign*`, `spec_zone_*`, `spec_rol_*` |
+| `src/character/` | `class`, `race`, `feats`, `perks`, `talents`, `evolutions`, `backgrounds`, `deities`, `templates`, `premadebuilds`, `character_creation*`, `study.c`, `bardic_performance`, `char_descs`, `introduce`, `roleplay`, `rol_feats`, `rewards` |
+| `src/combat/` | `fight`, `act.offensive.c`, `assign_wpn_armor`, `encounters`, `spec_abilities`, `grapple`, `combat_modes`, `traps*`, `tactical_effects` |
 | `src/quest/` | `quest`, `hlquest`, `missions`, `hunts`, `staff_events` |
 | `src/comms/` | `mail`, `new_mail`, `boards`, `mysql_boards`, `ibt` |
 | `src/craft/` | `craft*`, `crafting*`, `brew`, `alchemy` |
-| `src/net/` | `protocol`, `discord_bridge`, `i3_*` (intermud3), `onboarding` |
+| `src/net/` | `protocol`, `discord_bridge`, `i3_*` (intermud3), `onboarding`, `reactor` (I/O driver), `telnet.h` |
 | `src/obj/` | `act.item.c`, `item.h`, `objsave`, `treasure*`, `spec_artifacts`, `shop`, `trade`, `house` |
 
-Do not nest a second level in src/ . The genuine MUD-server core belongs at top level.
-Membership is by "what is this file's primary job", not by what it touches. Headers resolve from a namespace rooted at `src/`, so a header still in
-`src/` is includable by bare name from any depth. A header inside a feature directory must be path-qualified from outside it (`#include "vessels/vessels.h"`),
-while files within that same directory include it bare. Do not add per-directory `-I` flags to avoid the qualification - the explicit path is what makes
-cross-subsystem coupling visible.
+Membership is by "what is this file's primary job", not by what it touches. A new directory needs a
+name a newcomer would guess; catch-alls such as `util/` or `misc/` are not allowed. A header is
+included by bare name from its own directory and path-qualified from everywhere else
+(`#include "vessels/vessels.h"`). The include roots are exactly the build root, which holds the
+generated `conf.h` and `build_identity.h`, and `src/`. Do not add per-directory `-I` flags to avoid
+the qualification - the explicit path is what makes cross-subsystem coupling visible.
 
 When installed, the configured pre-commit hook may reformat changed source or run checks. Inspect
 any resulting diff and rerun affected checks before committing; do not assume hooks are installed.
@@ -152,8 +166,8 @@ Historical paths in `docs/previous_changelogs/` are
 deliberately left stale - they record the tree as it was.
 
 ### Misc
-- `perfmon.c` - performance monitoring (plain C; older docs mentioning perfmon.cpp/C++11 are obsolete).
-- VNUMs: use the defines in `vnums.h`; never hardcode virtual numbers.
+- `core/perfmon.c` - performance monitoring (plain C; older docs mentioning perfmon.cpp/C++11 are obsolete).
+- VNUMs: use the defines in `config/vnums.h`; never hardcode virtual numbers.
 - Help files: `lib/text/help/`.
 
 ## Conventions

@@ -22,7 +22,7 @@ Every source file lives in one directory directly under `src/`. No behavior chan
 | 8 | `events/` | done |
 | 9 | `core/` | done |
 | 10 | `config/`, local-header guard, regression guard | committed, verified in a replica; checkouts move their headers |
-| 11 | rules text and remaining prose | todo |
+| 11 | rules text and remaining prose | committed |
 
 To resume: `git log --oneline origin/master..arch-n-worktree` lists the landed batches, one
 commit each. Follow [Per-batch steps](#per-batch-steps) for the next row and update this

@@ -230,7 +230,12 @@ CMake Error: campaign.h not found!
 ```
 
 Copy the three `.example.h` templates as shown in the quick start. Never
-overwrite an existing local header.
+overwrite an existing local header. If configuration instead stops because a
+local header must move to `src/config/`, move the existing headers:
+
+```bash
+mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/
+```
 
 ### Source style
 
