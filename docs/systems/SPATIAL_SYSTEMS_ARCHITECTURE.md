@@ -76,7 +76,7 @@ and remains active behind the native domain-event boundary. See
 
 **Key Features:**
 - Squared distance attenuation for realistic perspective
-- Close-range clarity preservation (distance <= 5 units)
+- Close-range clarity preservation (`distance <= 5` units)
 - Base visibility range: 1500 units
 - Progressive intensity degradation
 
@@ -93,9 +93,9 @@ if (distance > 5.0f) {
 
 **Terrain Effects:**
 - **Mountains**: Complete sight blocking (intensity = 0.0)
-- **Hills**: Significant reduction (intensity *= 0.4)
-- **Forests**: Moderate blocking (intensity *= 0.7)
-- **Water**: Minimal effect (intensity *= 0.95)
+- **Hills**: Significant reduction (`intensity *= 0.4`)
+- **Forests**: Moderate blocking (`intensity *= 0.7`)
+- **Water**: Minimal effect (`intensity *= 0.95`)
 - **Urban/Roads**: No blocking
 - **Indoor**: Complete blocking unless same room
 
@@ -109,15 +109,15 @@ if (distance > 5.0f) {
 
 **Weather Effects:**
 - **Clear**: No modification
-- **Fog**: Significant reduction (intensity *= 0.3)
-- **Rain**: Moderate reduction (intensity *= 0.8)
-- **Storm**: Severe reduction (intensity *= 0.5)
+- **Fog**: Significant reduction (`intensity *= 0.3`)
+- **Rain**: Moderate reduction (`intensity *= 0.8`)
+- **Storm**: Severe reduction (`intensity *= 0.5`)
 
 **Lighting Conditions:**
 - **Daylight**: Full visibility
-- **Twilight**: Moderate reduction (intensity *= 0.7)
-- **Night**: Significant reduction (intensity *= 0.4)
-- **Darkness**: Severe reduction (intensity *= 0.2)
+- **Twilight**: Moderate reduction (`intensity *= 0.7`)
+- **Night**: Significant reduction (`intensity *= 0.4`)
+- **Darkness**: Severe reduction (`intensity *= 0.2`)
 
 ### Visual Message Types
 Based on final calculated intensity:
@@ -168,11 +168,11 @@ if (frequency == AUDIO_FREQ_HIGH) {
 **Purpose**: Model sound blocking and transmission through terrain
 
 **Terrain Acoustic Properties:**
-- **Mountains**: Significant blocking (intensity *= 0.2)
-- **Hills**: Moderate blocking (intensity *= 0.6)
-- **Forests**: Sound dampening (intensity *= 0.8)
-- **Water**: Sound carrying (intensity *= 1.1)
-- **Urban**: Echo effects (intensity *= 0.9)
+- **Mountains**: Significant blocking (`intensity *= 0.2`)
+- **Hills**: Moderate blocking (`intensity *= 0.6`)
+- **Forests**: Sound dampening (`intensity *= 0.8`)
+- **Water**: Sound carrying (`intensity *= 1.1`)
+- **Urban**: Echo effects (`intensity *= 0.9`)
 
 ### Weather/Terrain Audio Modifier Strategy
 **Purpose**: Environmental effects on sound transmission
@@ -180,8 +180,8 @@ if (frequency == AUDIO_FREQ_HIGH) {
 **Weather Acoustic Effects:**
 - **Clear**: Optimal transmission
 - **Wind**: Direction-dependent effects
-- **Rain**: Sound dampening (intensity *= 0.7)
-- **Fog**: Slight dampening (intensity *= 0.9)
+- **Rain**: Sound dampening (`intensity *= 0.7`)
+- **Fog**: Slight dampening (`intensity *= 0.9`)
 
 ### Audio Message Types
 Based on final calculated intensity with natural directional language:

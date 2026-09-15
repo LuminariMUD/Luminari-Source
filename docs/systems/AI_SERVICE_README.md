@@ -367,7 +367,7 @@ honest statement of what is and is not protected.
 - Time-based expiration (1 hour TTL)
 - 5000 entries maximum
 - Stores both OpenAI and Ollama responses
-- Key format: "npc_<vnum>_<input>"
+- Key format: `npc_<vnum>_<input>`
 - O(n) lookup (could be optimized with hash table)
 - Two-phase cleanup: expired entries first, then oldest
 

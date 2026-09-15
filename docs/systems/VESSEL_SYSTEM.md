@@ -928,7 +928,7 @@ quartermaster) at three tiers (green/able/veteran). Bonuses are mirrored
 into the legacy `sailcrew`/`guncrew` fields so movement, gunnery, and
 repair consume them without special cases. Wages accrue on the vessel tick
 (`vessel_crew_wage_tick()`); three unpaid paydays and a crew member walks.
-Crew rows live in `ship_crew_roster` with npc_vnum <= -100.
+Crew rows live in `ship_crew_roster` with `npc_vnum <= -100`.
 
 Upgrades, wear, insurance (`src/vessels/vessels_upgrades.c`): four one-time refits
 (plating, rigging, hold, reinforcement) raise hull ceilings at install

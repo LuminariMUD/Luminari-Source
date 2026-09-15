@@ -475,7 +475,7 @@ Your spell is completely inert!
 |------|-------------|
 | `src/magic/spell_parser.c` | Core casting system, say_spell(), event_casting() |
 | `src/core/structs.h` | Casting data structures (char_special_data) |
-| `src/core/utils.h` | CASTING_* macros |
+| `src/core/utils.h` | `CASTING_*` macros |
 | `src/magic/spells.h` | Metamagic defines, cast type defines |
 | `src/movement/movement_position.c` | Position change interrupt |
 | `src/core/interpreter.c` | Command blocking during cast |

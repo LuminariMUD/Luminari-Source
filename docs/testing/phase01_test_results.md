@@ -16,7 +16,7 @@ Phase 01 testing completed successfully with all 84 unit tests passing, zero mem
 | Unit Tests | 84/84 pass | 84/84 pass | PASS |
 | Memory Leaks | 0 | 0 | PASS |
 | Stress Test (100) | Stable | Stable | PASS |
-| Memory/Vessel | <1024 bytes | 1016 bytes | PASS |
+| Memory/Vessel | `<1024 bytes` | 1016 bytes | PASS |
 
 ---
 
@@ -26,12 +26,12 @@ Phase 01 testing completed successfully with all 84 unit tests passing, zero mem
 
 | Test Binary | Tests | Result | Duration |
 |-------------|-------|--------|----------|
-| autopilot_tests | 14 | PASS | <1s |
-| autopilot_pathfinding_tests | 30 | PASS | <1s |
-| test_waypoint_cache | 11 | PASS | <1s |
-| npc_pilot_tests | 12 | PASS | <1s |
-| schedule_tests | 17 | PASS | <1s |
-| **Total** | **84** | **PASS** | **<5s** |
+| autopilot_tests | 14 | PASS | `<1s` |
+| autopilot_pathfinding_tests | 30 | PASS | `<1s` |
+| test_waypoint_cache | 11 | PASS | `<1s` |
+| npc_pilot_tests | 12 | PASS | `<1s` |
+| schedule_tests | 17 | PASS | `<1s` |
+| **Total** | **84** | **PASS** | **`<5s`** |
 
 ### Detailed Test Coverage
 
@@ -114,7 +114,7 @@ A suppression file (cutest.supp) was created to filter known CuTest framework le
 ### Test Parameters
 - Vessel counts: 100, 250, 500
 - Operations per vessel: 100
-- Memory target: <1024 bytes per vessel
+- Memory target: `<1024 bytes` per vessel
 
 ### Results
 
@@ -125,7 +125,7 @@ A suppression file (cutest.supp) was created to filter known CuTest framework le
 | 500 | 496.1 KB | 1016 bytes | 0.19 ms | 0.16 ms | PASS |
 
 ### Key Metrics
-- **Memory efficiency**: 1016 bytes/vessel (target: <1024)
+- **Memory efficiency**: 1016 bytes/vessel (target: `<1024`)
 - **Creation rate**: ~2,600 vessels/second
 - **Operation rate**: 300+ million ops/second
 - **Zero failures**: All operations completed successfully
@@ -175,7 +175,7 @@ ERROR SUMMARY: 0 errors from 0 contexts
 |------|-------------|--------|
 | All tests pass | 84/84 | PASS |
 | Zero memory leaks | 0 bytes lost | PASS |
-| Memory target | <1KB/vessel | PASS (1016 bytes) |
+| Memory target | `<1KB/vessel` | PASS (1016 bytes) |
 | Stress test | 100+ vessels | PASS (tested to 500) |
 | ASCII encoding | All files | PASS |
 | LF line endings | All files | PASS |

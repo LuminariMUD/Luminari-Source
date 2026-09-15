@@ -188,9 +188,9 @@ reference for mobile behavior flags</p>
 <h1 id="mobile-mob-flags-documentation">Mobile (MOB) Flags
 Documentation</h1>
 <p>This document provides comprehensive information about all mobile
-flags (MOB_*) used in LuminariMUD. Mobile flags control NPC behaviors,
-abilities, restrictions, and special mechanics throughout the game
-world.</p>
+flags (<code>MOB_*</code>) used in LuminariMUD. Mobile flags control NPC
+behaviors, abilities, restrictions, and special mechanics throughout the
+game world.</p>
 <h2 id="table-of-contents">Table of Contents</h2>
 <ul>
 <li><a href="#overview">Overview</a></li>
@@ -1822,8 +1822,8 @@ No longer functional - Reserved for future use - Do not use</p>
 </ul></li>
 <li><strong>Boss Monster:</strong>
 <ul>
-<li>MOB_NOCHARM + MOB_NOSUMMON + MOB_MEMORY + relevant MOB_ABIL_*
-flags</li>
+<li>MOB_NOCHARM + MOB_NOSUMMON + MOB_MEMORY + relevant
+<code>MOB_ABIL_*</code> flags</li>
 <li>Immune to cheap tactics, dangerous abilities</li>
 </ul></li>
 <li><strong>Ambient NPC:</strong>
@@ -1834,8 +1834,8 @@ flags</li>
 </ol>
 <p><strong>Flag Conflicts:</strong> - MOB_AGGRESSIVE conflicts with
 MOB_HELPER (removed automatically) - MOB_AGGRESSIVE requires alignment
-aggro flags to have effect - Multiple MOB_BLOCK_* direction flags work
-together</p>
+aggro flags to have effect - Multiple <code>MOB_BLOCK_*</code> direction
+flags work together</p>
 <h3 id="for-developers">For Developers</h3>
 <p><strong>Checking Flags:</strong></p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>MOB_FLAGGED<span class="op">(</span>mob<span class="op">,</span> MOB_AGGRESSIVE<span class="op">))</span> <span class="op">{</span></span>

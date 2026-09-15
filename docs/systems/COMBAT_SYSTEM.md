@@ -332,7 +332,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 3. **Damage Reduction**: Apply damage_handling() for resistances
 4. **Apply Damage**: Subtract from hit points
 5. **Update Status**: Call update_pos() for condition changes
-6. **Death Handling**: Process death if HP <= 0
+6. **Death Handling**: Process death if `HP <= 0`
 
 **Special Cases:**
 - Self-damage (TYPE_SUFFERING)

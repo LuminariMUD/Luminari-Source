@@ -1474,7 +1474,7 @@ From `src/wilderness/spatial_core.h`:
 
 **Regions/Paths Missing:** Check MySQL spatial data, test `ST_Within()` queries
 
-**Performance:** Monitor room pool usage (<80%), rebuild KD-Tree if slow
+**Performance:** Monitor room pool usage (`<80%`), rebuild KD-Tree if slow
 
 **Map Misalignment:** Fixed 2025 - ASCII-only symbols now (Y,^,~,=)
 
@@ -1553,7 +1553,7 @@ startup logs, typed publisher/subscriber boundary, and source-linked tests.
 
 ### Maintenance
 
-**Monitor:** Room pool <80%, KD-Tree <1ms, DB queries <100ms
+**Monitor:** Room pool `<80%`, KD-Tree `<1ms`, DB queries `<100ms`
 **Tasks:** Rebuild KD-Tree, clean orphaned rooms, optimize DB indexes
 
 ---

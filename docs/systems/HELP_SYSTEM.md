@@ -535,7 +535,7 @@ helpgen import <mode>
 **Required modes (no default - must explicitly choose):**
 - **preview** - Dry run showing what would be imported without making changes
 - **skip** - Only import new entries, skip any that already exist
-- **merge** - Intelligently merge duplicate keywords with suffixes (_2, _3)
+- **merge** - Intelligently merge duplicate keywords with suffixes (`_2`, `_3`)
 - **force** - Overwrite existing entries completely
 
 #### Import Modes
@@ -561,7 +561,7 @@ helpgen import <mode>
 
 ##### Merge Mode (Recommended for duplicates)
 - Detects entries with duplicate keywords
-- Creates new entries with numeric suffixes (_2, _3, etc.)
+- Creates new entries with numeric suffixes (`_2`, `_3`, etc.)
 - Preserves both original and imported content
 - Example: "help" becomes "help_2" if "help" already exists
 - Maintains all keywords pointing to new suffixed tags

@@ -179,7 +179,7 @@ telnet localhost 4100
    - System should gracefully handle regions without narrative data
 
 3. **Performance Indicators:**
-   - Description generation should be fast (<100ms)
+   - Description generation should be fast (`<100ms`)
    - No memory leaks during extended gameplay
    - Database queries should be efficient
 

@@ -701,7 +701,7 @@ The engine expects the following fields to be present when importing. Both legac
   - name: string
   - ethos: one of ETHOS_LAWFUL, ETHOS_NEUTRAL, ETHOS_CHAOTIC
   - alignment: one of ALIGNMENT_GOOD, ALIGNMENT_NEUTRAL, ALIGNMENT_EVIL
-  - pantheon: DEITY_PANTHEON_* constant
+  - pantheon: `DEITY_PANTHEON_*` constant
   - alias: string (comma-separated aliases/titles)
   - portfolio: string (areas of influence)
   - symbol: string (holy symbol description)
@@ -710,8 +710,8 @@ The engine expects the following fields to be present when importing. Both legac
   - description: string (lore/description)
 
 - Optional legacy mechanics (Old System via [add_deity()](../../src/character/deities.c#L101)):
-  - domains: up to six DOMAIN_* constants
-  - favored_weapon: WEAPON_TYPE_* constant
+  - domains: up to six `DOMAIN_*` constants
+  - favored_weapon: `WEAPON_TYPE_*` constant
   - portfolio: string
   - description: string
 
@@ -719,12 +719,12 @@ Luminari entries below provide Suggested Domains (for mechanics) and Favored Wea
 
 ### 2) Enumeration and Constant Mappings
 
-- Ethos text -> ETHOS_*:
+- Ethos text -> `ETHOS_*`:
   - Lawful -> ETHOS_LAWFUL
   - Neutral -> ETHOS_NEUTRAL
   - Chaotic -> ETHOS_CHAOTIC
 
-- Alignment text -> ALIGNMENT_*:
+- Alignment text -> `ALIGNMENT_*`:
   - Good -> ALIGNMENT_GOOD
   - Neutral -> ALIGNMENT_NEUTRAL
   - Evil -> ALIGNMENT_EVIL
@@ -739,7 +739,7 @@ Luminari entries below provide Suggested Domains (for mechanics) and Favored Wea
   - Under-Shadow (Dark Courts) -> DEITY_PANTHEON_LUMINARI_DARK_COURTS
   - Elemental Primarchs -> DEITY_PANTHEON_LUMINARI_PRIMARCHS
 
-- Weapon text -> WEAPON_TYPE_* (importers may use the following normalization):
+- Weapon text -> `WEAPON_TYPE_*` (importers may use the following normalization):
   - Warhammer -> WEAPON_TYPE_WARHAMMER
   - Greatsword -> WEAPON_TYPE_GREAT_SWORD
   - Longsword -> WEAPON_TYPE_LONG_SWORD
@@ -759,8 +759,8 @@ Luminari entries below provide Suggested Domains (for mechanics) and Favored Wea
   - Composite longbow -> WEAPON_TYPE_COMPOSITE_LONGBOW
   - Shortbow -> WEAPON_TYPE_SHORTBOW (if present; else map to COMPOSITE_LONGBOW)
 
-- Domain tags (map to DOMAIN_*):
-  - All tags shown in each deity's "Suggested Domains" map to DOMAIN_* constants.
+- Domain tags (map to `DOMAIN_*`):
+  - All tags shown in each deity's "Suggested Domains" map to `DOMAIN_*` constants.
   - Existing in codebase (examples seen in [src/character/deities.c](../../src/character/deities.c#L1)): DOMAIN_WAR, DOMAIN_MAGIC, DOMAIN_SPELL, DOMAIN_KNOWLEDGE, DOMAIN_PLANT, DOMAIN_TRAVEL, DOMAIN_PROTECTION, DOMAIN_STRENGTH, DOMAIN_GOOD, DOMAIN_CHAOS, DOMAIN_LAW, DOMAIN_HEALING, DOMAIN_SUN, DOMAIN_WATER, DOMAIN_OCEAN, DOMAIN_STORM, DOMAIN_ANIMAL, DOMAIN_DEATH, DOMAIN_FATE, DOMAIN_EARTH, DOMAIN_FIRE, DOMAIN_TIME, DOMAIN_RUNE, DOMAIN_TRICKERY, DOMAIN_LUCK, DOMAIN_RENEWAL, DOMAIN_MOON, DOMAIN_CAVERN, DOMAIN_METAL, DOMAIN_TRADE, DOMAIN_RETRIBUTION, DOMAIN_HATRED, DOMAIN_CHARM, DOMAIN_MOBILITY
   - New specialized domains referenced here (add if not present):
     - DOMAIN_PORTAL
@@ -1068,9 +1068,9 @@ Note: Suggested Domains, Holy Symbol, Favored Weapon, Portfolio, Ethos/Alignment
 
 ## Importer Notes
 
-- Use the "Suggested Domains" already present under each deity's entry to populate up to six DOMAIN_* values for [add_deity()](../../src/character/deities.c#L101) if you also want to support mechanical domains at import time. Otherwise, prefer [add_deity_new()](../../src/character/deities.c#L156) with the extended roleplay fields.
+- Use the "Suggested Domains" already present under each deity's entry to populate up to six `DOMAIN_*` values for [add_deity()](../../src/character/deities.c#L101) if you also want to support mechanical domains at import time. Otherwise, prefer [add_deity_new()](../../src/character/deities.c#L156) with the extended roleplay fields.
 
-- Favored Weapon lines in each deity entry are descriptive; apply the "Weapon text -> WEAPON_TYPE_*" normalization above to produce the exact engine constant.
+- Favored Weapon lines in each deity entry are descriptive; apply the "Weapon text -> `WEAPON_TYPE_*`" normalization above to produce the exact engine constant.
 
 - Where a field is missing in the body text, use the explicit completion values in "Import Field Completion". If a field is still missing, apply the derivation rules in section 4.
 

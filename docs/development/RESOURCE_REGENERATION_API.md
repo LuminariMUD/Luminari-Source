@@ -1,3 +1,4 @@
+```c
 /* *************************************************************************
  *   File: resource_regeneration_api.md                Part of LuminariMUD *
  *  Usage: Developer API reference for resource regeneration system       *
@@ -6,6 +7,7 @@
  * API documentation for integrating with the resource regeneration       *
  * system from other game components.                                      *
  ***************************************************************************/
+```
 
 # Resource Regeneration API Reference
 

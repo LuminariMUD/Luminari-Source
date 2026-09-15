@@ -160,7 +160,7 @@ struct claim_data {
 
 The clan system uses a sophisticated privilege system with 21 different permissions:
 
-### Standard Privileges (CP_* constants)
+### Standard Privileges (`CP_*` constants)
 - **CP_AWARD** (0): Award clan points to members
 - **CP_BALANCE** (1): Check clan bank balance
 - **CP_CLAIM** (2): Claim zones for the clan

@@ -33,7 +33,7 @@ Measure both select and libevent. After five minutes of warmup, collect:
 - Scheduler deadline lateness: p99 at most one native tick; maximum at most ten
   ticks during steady state. Record lateness magnitude and the number of
   callbacks, not only an aggregate late-callback count.
-- Local command round-trip latency: p95 <= 150 ms, p99 <= 300 ms, maximum <= 1 s
+- Local command round-trip latency: `p95 <= 150 ms`, `p99 <= 300 ms`, maximum `<= 1 s`
   for the bounded workload. Time from sending a complete command to its matched
   response/prompt with a monotonic clock; do not mix asynchronous output or
   authentication into command samples. Record every timeout separately.

@@ -109,8 +109,8 @@ Build logs: /tmp/luminari-acceptance-build.log,
 /tmp/luminari-acceptance-tests.log, /tmp/luminari-acceptance-merge.log,
 /tmp/luminari-acceptance-merge-ctest.log, and
 /tmp/luminari-acceptance-merge-cutest-retry.log.
-Valgrind evidence is /tmp/luminari-acceptance-merge-valgrind-final-tests.log
-and /tmp/luminari-acceptance-merge-valgrind-final.*.log.
+Valgrind evidence is `/tmp/luminari-acceptance-merge-valgrind-final-tests.log`
+and `/tmp/luminari-acceptance-merge-valgrind-final.*.log`.
 
 ## Pre-Retirement Performance
 
@@ -218,8 +218,8 @@ state assignments still require a wakeup API and a dormant-owner regression.
   Log: /tmp/luminari-acceptance-native-final-merge-tests3.log.
 - Valgrind passed all 1,081 tests. All 33 process logs reported zero errors,
   zero definite leaks, and zero indirect leaks, without suppressions.
-  Logs: /tmp/luminari-acceptance-native-final-valgrind-tests.log and
-  /tmp/luminari-acceptance-native-final-valgrind.*.log.
+  Logs: `/tmp/luminari-acceptance-native-final-valgrind-tests.log` and
+  `/tmp/luminari-acceptance-native-final-valgrind.*.log`.
 - Pinned clang-format 18.1.8 and `git diff --check` passed. The removed-file
   list must be excluded when invoking the formatter; deleted headers cannot
   be formatted. No failing test was disabled to obtain these results.

@@ -215,7 +215,7 @@ The Inquisitor is a relentless agent of divine will, blending divine spellcastin
    - Form mental connections with your allies. This gives all party members +1 to attacks and armor class when fighting with allies in the same room.
 
 3. **Aura Reading**
-   - *1 rank, 4 points
+   - *1 rank, 4 points*
    You can cast sense life and detect alignment once per day.  
 
 4. **Perfect Recall**

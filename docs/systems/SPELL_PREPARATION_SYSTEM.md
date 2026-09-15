@@ -602,11 +602,11 @@ current = tmp;
 4. **Help entry**: In help files
 
 ### **To Add a New Caster Class**
-1. **Constants**: Add CLASS_* constant
+1. **Constants**: Add `CLASS_*` constant
 2. **Tables**: Add to slot tables in constants.c
-3. **Commands**: Add SCMD_* and command in interpreter.c
+3. **Commands**: Add `SCMD_*` and command in interpreter.c
 4. **Switch statements**: Update all class switches in spell_prep.c
-5. **Prep factor**: Add *_PREP_TIME_FACTOR
+5. **Prep factor**: Add `*_PREP_TIME_FACTOR`
 
 ### **To Modify Preparation Mechanics**
 1. **Timing**: Adjust in `compute_spells_prep_time()`
@@ -616,7 +616,7 @@ current = tmp;
 
 ### **To Change Balance/Timing**
 1. **Base times**: BASE_PREP_TIME, PREP_TIME_INTERVALS
-2. **Class factors**: *_PREP_TIME_FACTOR defines
+2. **Class factors**: `*_PREP_TIME_FACTOR` defines
 3. **Ability impact**: In prep time calculation
 4. **Feat bonuses**: In respective functions
 

@@ -1,6 +1,6 @@
 # Mobile (MOB) Flags Documentation
 
-This document provides comprehensive information about all mobile flags (MOB_*) used in LuminariMUD. Mobile flags control NPC behaviors, abilities, restrictions, and special mechanics throughout the game world.
+This document provides comprehensive information about all mobile flags (`MOB_*`) used in LuminariMUD. Mobile flags control NPC behaviors, abilities, restrictions, and special mechanics throughout the game world.
 
 ## Table of Contents
 - [Overview](#overview)
@@ -979,7 +979,7 @@ running automatic statistics.
    - Works with other mobs, remembers threats
 
 5. **Boss Monster:**
-   - MOB_NOCHARM + MOB_NOSUMMON + MOB_MEMORY + relevant MOB_ABIL_* flags
+   - MOB_NOCHARM + MOB_NOSUMMON + MOB_MEMORY + relevant `MOB_ABIL_*` flags
    - Immune to cheap tactics, dangerous abilities
 
 6. **Ambient NPC:**
@@ -989,7 +989,7 @@ running automatic statistics.
 **Flag Conflicts:**
 - MOB_AGGRESSIVE conflicts with MOB_HELPER (removed automatically)
 - MOB_AGGRESSIVE requires alignment aggro flags to have effect
-- Multiple MOB_BLOCK_* direction flags work together
+- Multiple `MOB_BLOCK_*` direction flags work together
 
 ### For Developers
 

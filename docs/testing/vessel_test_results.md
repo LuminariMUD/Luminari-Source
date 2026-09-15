@@ -108,16 +108,16 @@ The test suite covers the following critical vessel system components:
 | Metric | Target | Result |
 |--------|--------|--------|
 | Max concurrent vessels | 500 | PASS |
-| Memory per vessel | <1024 bytes | 1016 bytes |
+| Memory per vessel | `<1024 bytes` | 1016 bytes |
 | Stability at scale | No failures | PASS |
 
 ### Test Level Results
 
 | Level | Memory (Total) | Per-Vessel | Create Time | Operations/sec | Status |
 |-------|---------------|------------|-------------|----------------|--------|
-| 100 vessels | 99.2 KB | 1016 B | <1ms | 263M | PASS |
-| 250 vessels | 248.0 KB | 1016 B | <1ms | 308M | PASS |
-| 500 vessels | 496.1 KB | 1016 B | <1ms | 301M | PASS |
+| 100 vessels | 99.2 KB | 1016 B | `<1ms` | 263M | PASS |
+| 250 vessels | 248.0 KB | 1016 B | `<1ms` | 308M | PASS |
+| 500 vessels | 496.1 KB | 1016 B | `<1ms` | 301M | PASS |
 
 ### Key Findings
 
