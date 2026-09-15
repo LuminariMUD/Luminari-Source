@@ -315,7 +315,12 @@ The `config/` include count covers the three local headers' includers.
 3. Review rewrites in documents about RoL, Duris, and the other `EXAMPLE/` codebases,
    which share file names such as `db.c` and `comm.c`.
 4. `python3 scripts/ci/check_build_parity.py`.
-5. `make -j$(nproc)` with no warnings, `make -j$(nproc) test`, then `make install`.
+5. `make check-world-docs` (not part of `make test`), `make -j$(nproc)` with no warnings,
+   `make -j$(nproc) test`, then `make install`. When a batch rewrites
+   `docs/world_game-data/ROOM_FLAGS.md`, `MOB_FLAGS.md`, or `OEDIT_GUIDE.md`, run
+   `scripts/development/generate-web-guides.sh` so the generated `docs/web/guides/` pages
+   match; batch 6 missed this and needed a follow-up commit. Check exit status directly,
+   not through a pipe.
 6. For batches 0, 9, and 10, also run an out-of-tree CMake build and `ctest`.
 7. `pre-commit run --files <changed files>`. `.clang-format` sets `SortIncludes: Never`, so
    include order cannot change; accept trailing-comment realignment on lengthened lines.

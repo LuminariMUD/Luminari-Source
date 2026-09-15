@@ -528,9 +528,9 @@ summoner - Scales with character level</p>
 <p><strong>Effect:</strong> Mobile can be mounted and ridden. - Players
 can use &#x2018;mount&#x2019; command on this NPC - Not necessarily a summoned mount -
 Used for horses, griffons, etc.</p>
-<p><strong>Code References:</strong> - <code>src/act/act.other.c</code> -
-Mount command checks (<code>do_mount()</code>, <code>do_tame()</code>) -
-<code>src/movement/movement_cost.c</code> - Movement cost adjustments
+<p><strong>Code References:</strong> - <code>src/act/act.other.c</code>
+- Mount command checks (<code>do_mount()</code>, <code>do_tame()</code>)
+- <code>src/movement/movement_cost.c</code> - Movement cost adjustments
 (<code>get_speed()</code>) - <code>src/character/evolutions.c</code> -
 Eidolon mountable flag (<code>assign_eidolon_evolutions()</code>)</p>
 <h3 id="mob_elemental-index-29">MOB_ELEMENTAL (Index: 29)</h3>
@@ -789,8 +789,8 @@ gatekeepers and chokepoint guardians that must not be circumvented</p>
 Used for follower tracking, so a player&#x2019;s golem is distinguished from
 ordinary charmed followers - Enables the golem repair and destroy
 commands to find it - Changes corpse handling on death</p>
-<p><strong>Code References:</strong> - <code>src/act/act.other.c</code> -
-Golem commands (<code>do_destroygolem()</code>,
+<p><strong>Code References:</strong> - <code>src/act/act.other.c</code>
+- Golem commands (<code>do_destroygolem()</code>,
 <code>do_golemrepair()</code>) - <code>src/craft/crafting_new.c</code> -
 Golem crafting and repair (<code>has_golem_follower()</code>,
 <code>craft_golem_complete()</code>, <code>can_repair_golem()</code>) -
@@ -868,8 +868,9 @@ unless reproducing converted RoL behavior</p>
 Movement, archery, and race aggression - <code>src/combat/fight.c</code>
 - Delayed hunter activation -
 <code>src/spec/spec_rol_conversion.c</code> - Automatic demon, devil,
-and umber-hulk behavior - <code>src/act/act.other.c</code> - Caught-theft
-response - <code>src/utils.h</code> - Class-role queries</p>
+and umber-hulk behavior - <code>src/act/act.other.c</code> -
+Caught-theft response - <code>src/utils.h</code> - Class-role
+queries</p>
 <h3 id="mob_buff_outside_combat-index-96">MOB_BUFF_OUTSIDE_COMBAT
 (Index: 96)</h3>
 <p><strong>Effect:</strong> UNUSED - Kept for backward compatibility. -

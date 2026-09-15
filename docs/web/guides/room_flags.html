@@ -496,9 +496,9 @@ darkness effects</p>
 <p><strong>Code References:</strong> - <code>src/utils.c</code> -
 Darkness calculations (<code>room_is_daylit()</code>,
 <code>room_is_dark()</code>, <code>is_room_in_sunlight()</code>) -
-<code>src/act/act.informative.c</code> - Display and description handling
-(<code>look_at_room_number()</code>, <code>look_at_room()</code>,
-<code>do_scan()</code>)</p>
+<code>src/act/act.informative.c</code> - Display and description
+handling (<code>look_at_room_number()</code>,
+<code>look_at_room()</code>, <code>do_scan()</code>)</p>
 <h3 id="room_magiclight-index-23">ROOM_MAGICLIGHT (Index: 23)</h3>
 <p><strong>Effect:</strong> Creates magical light that prevents the room
 from being dark. - Overrides normal darkness conditions - Cannot be
@@ -542,8 +542,8 @@ House management (<code>find_house()</code>,
 <code>hcontrol_build_house()</code>,
 <code>hcontrol_destroy_house()</code>) - <code>src/handler.c</code> -
 Crash save integration (<code>obj_to_room()</code>,
-<code>obj_from_room()</code>) - <code>src/act/act.wizard.c</code> - Teleport
-restrictions and admin tools (<code>find_target_room()</code>,
+<code>obj_from_room()</code>) - <code>src/act/act.wizard.c</code> -
+Teleport restrictions and admin tools (<code>find_target_room()</code>,
 <code>do_switch()</code>, <code>do_zcheck()</code>)</p>
 <h3 id="room_house_crash-index-12">ROOM_HOUSE_CRASH (Index: 12)</h3>
 <p><strong>Effect:</strong> Marks that items in this house room should
@@ -634,8 +634,8 @@ conversion</p>
 <p><strong>Effect:</strong> Marks room as being edited in the Online
 Level Creator (OLC). - Used by building/editing system - Prevents
 certain cleanup operations - Temporary flag during world editing</p>
-<p><strong>Code References:</strong> - <code>src/act/act.wizard.c</code> -
-Administrative cleanup avoidance (<code>do_zcheck()</code>)</p>
+<p><strong>Code References:</strong> - <code>src/act/act.wizard.c</code>
+- Administrative cleanup avoidance (<code>do_zcheck()</code>)</p>
 <h3 id="room_bfs_mark-index-15">ROOM_BFS_MARK (Index: 15)</h3>
 <p><strong>Effect:</strong> Temporary flag used by pathfinding
 algorithms. - Marks rooms as visited during Breadth-First Search -
