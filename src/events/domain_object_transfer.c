@@ -1,8 +1,8 @@
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include "domain_object_transfer.h"
-#include "utils.h"
-#include "db.h"
+#include "core/utils.h"
+#include "core/db.h"
 #include "domain_event_runtime.h"
 #include "domain_event_world.h"
 

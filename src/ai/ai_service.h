@@ -32,8 +32,8 @@
 #ifndef AI_SERVICE_H
 #define AI_SERVICE_H
 
-#include "structs.h"
-#include "utils.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "events/domain_events.h"
 
 /* bool is provided by stdbool.h (via bool.h or directly) or C23+ */

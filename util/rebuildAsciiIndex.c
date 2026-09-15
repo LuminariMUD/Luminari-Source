@@ -12,7 +12,7 @@
 ************************************************************************* */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <stdio.h>
 #include <dirent.h>
 #include <sys/stat.h>

@@ -4,18 +4,18 @@
 ***********************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
 #include "magic/spells.h"
-#include "handler.h"
+#include "core/handler.h"
 #include "rewards.h"
-#include "db.h"
-#include "constants.h"
-#include "interpreter.h"
+#include "core/db.h"
+#include "core/constants.h"
+#include "core/interpreter.h"
 #include "dgscript/dg_scripts.h"
-#include "modify.h"
+#include "core/modify.h"
 #include "feats.h"
 #include "class.h"
 #include "events/mud_event.h"
@@ -23,7 +23,7 @@
 #include "magic/domains_schools.h"
 #include "magic/spell_prep.h"
 #include "talents.h"
-#include "helpers.h" /* for two_arguments prototype */
+#include "core/helpers.h" /* for two_arguments prototype */
 
 struct talent_info talent_list[TALENT_MAX];
 

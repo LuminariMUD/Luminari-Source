@@ -45,7 +45,7 @@ class RolPhase8Tests(unittest.TestCase):
         "scripts/world/rol_source_race_registry.json",
         "scripts/world/wtool_constants.json",
         "scripts/world/wtool_lib/objects.py",
-        "src/structs.h",
+        "src/core/structs.h",
         "src/combat/assign_wpn_armor.c",
         "src/combat/assign_wpn_armor.h",
         "src/magic/magic.c",

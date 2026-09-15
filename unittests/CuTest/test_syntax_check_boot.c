@@ -1,17 +1,17 @@
 #include "CuTest.h"
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
-#include "../../src/utils.h"
-#include "../../src/comm.h"
-#include "../../src/db.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/utils.h"
+#include "../../src/core/comm.h"
+#include "../../src/core/db.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/events/event_debug.h"
 #include "../../src/events/event_runtime.h"
 #include "../../src/events/mud_event.h"
-#include "../../src/mudlim.h"
-#include "../../src/perfmon.h"
+#include "../../src/core/mudlim.h"
+#include "../../src/core/perfmon.h"
 
 #include <limits.h>
 #include <stdio.h>

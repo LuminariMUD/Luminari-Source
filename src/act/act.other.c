@@ -13,21 +13,21 @@
 #define __ACT_OTHER_C__
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
 #include "magic/buff_sequence.h"
 #include "movement/door_state.h"
-#include "utils.h"
+#include "core/utils.h"
 #include "pet_vnums.h"
-#include "comm.h"
-#include "interpreter.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
 #include "net/protocol.h"
-#include "handler.h"
-#include "db.h"
+#include "core/handler.h"
+#include "core/db.h"
 #include "magic/spells.h"
-#include "screen.h"
+#include "core/screen.h"
 #include "obj/house.h"
-#include "constants.h"
+#include "core/constants.h"
 #ifdef fiendish_boons
 #undef fiendish_boons
 #endif
@@ -43,13 +43,13 @@
 #include "comms/mail.h" /* for has_mail() */
 #include "obj/shop.h"
 #include "quest/quest.h"
-#include "modify.h"
+#include "core/modify.h"
 #include "character/race.h"
 #include "clan/clan.h"
 #include "events/mud_event.h"
 #include "craft/craft.h"
 #include "obj/treasure.h"
-#include "mudlim.h"
+#include "core/mudlim.h"
 #include "character/rewards.h"
 #include "combat/spec_abilities.h"
 #include "events/actions.h"
@@ -68,7 +68,7 @@
 #include "character/deities.h"
 #include "character/evolutions.h"
 #include "combat/traps.h" /* For trap system functions */
-#include "constants.h"
+#include "core/constants.h"
 #include "craft/crafting_new.h" /* For golem repair functions */
 #include "olc/genolc.h"
 #include "events/point_update_periodic.h"

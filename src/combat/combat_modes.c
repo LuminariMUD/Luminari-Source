@@ -12,14 +12,14 @@
  *                                                                         *
  ***************************************************************************/
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "character/feats.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "handler.h"
-#include "db.h" /* For dummy_mob */
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
+#include "core/db.h" /* For dummy_mob */
 #include "magic/spells.h"
 #include "character/class.h" /* For BAB() */
 #include "events/mud_event.h"

@@ -6,15 +6,15 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
+#include "core/structs.h"
 #include "movement/door_state.h"
-#include "utils.h"
+#include "core/utils.h"
 #include "act/act.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "db.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/db.h"
 #include "spec_zone_mad_drow.h"
 
 /*****************/

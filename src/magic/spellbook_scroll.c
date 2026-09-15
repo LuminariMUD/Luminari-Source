@@ -11,19 +11,19 @@
  neatly organize in spells.h */
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "interpreter.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/interpreter.h"
 #include "spells.h"
 #include "spellbook_scroll.h"
-#include "db.h"
-#include "comm.h"
+#include "core/db.h"
+#include "core/comm.h"
 #include "events/mud_event.h"
 #include "events/actions.h"
-#include "constants.h"
+#include "core/constants.h"
 #include "act/act.h"
-#include "handler.h" // for obj_from_char()
+#include "core/handler.h" // for obj_from_char()
 #include "character/rewards.h"
 #include "character/abilities.h"
 #include "spell_prep.h"

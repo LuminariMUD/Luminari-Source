@@ -428,7 +428,7 @@ def _documented_commands(text: str, spec: CommandSectionSpec) -> tuple[list[tupl
 
 
 def _command_findings(repo_root: Path, texts: dict[str, str]) -> list[Finding]:
-  source = repo_root / "src/interpreter.c"
+  source = repo_root / "src/core/interpreter.c"
   if not source.is_file():
     raise DocumentationError(f"command registry is inaccessible: {source}")
   command_source = source.read_text(encoding="utf-8", errors="surrogateescape")

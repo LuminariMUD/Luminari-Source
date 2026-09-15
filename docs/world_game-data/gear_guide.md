@@ -195,7 +195,7 @@ Reference: http://www.d20pfsrd.com/gamemastering/other-rules/piecemeal-armor
 
 ### Object Values (VAL fields)
 
-For armor, verified against `src/olc/oedit.c` and `src/utils.h`:
+For armor, verified against `src/olc/oedit.c` and `src/core/utils.h`:
 
 - `value[0]`: Armor Class apply. Filled in by `set_armor_object()` when you
   choose the subtype; not set directly.

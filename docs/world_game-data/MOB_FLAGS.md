@@ -18,7 +18,7 @@ This document provides comprehensive information about all mobile flags (MOB_*) 
 
 ## Overview
 
-Mobile flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `MOB_FLAGGED()` macro. There are currently **126 mobile flags** (indices 0-125, `NUM_MOB_FLAGS`) that control everything from basic AI behavior to special monster abilities.
+Mobile flags are bitflags defined in `src/core/structs.h` and are checked throughout the codebase using the `MOB_FLAGGED()` macro. There are currently **126 mobile flags** (indices 0-125, `NUM_MOB_FLAGS`) that control everything from basic AI behavior to special monster abilities.
 
 **Usage Pattern:**
 ```c
@@ -29,7 +29,7 @@ if (MOB_FLAGGED(mob, MOB_FLAGNAME)) {
 
 ### Warning: not every `MOB_*` define is a flag
 
-`src/structs.h` and its neighbours contain many constants beginning with `MOB_`
+`src/core/structs.h` and its neighbours contain many constants beginning with `MOB_`
 that are **not** action-flag bit numbers. They are mobile vnums and summon
 identifiers that happen to share the prefix:
 
@@ -44,7 +44,7 @@ tell - but the ranges also **collide**. `MOB_BLOCK_E` is bit 46 and
 `MOB_DIRE_SPIDER` is vnum 46; nothing in the name distinguishes them.
 
 If you are grepping for `MOB_` to enumerate flags, do not. The authoritative
-list of action flags is the `action_bits[]` table in `src/constants.c`, whose
+list of action flags is the `action_bits[]` table in `src/core/constants.c`, whose
 index *is* the bit number, terminated by a `"\n"` entry. Anything not in that
 table is not an action flag, whatever it is called.
 
@@ -70,7 +70,7 @@ table is not an action flag, whatever it is called.
 **Code References:**
 - `src/mob/mob_act.c` - Prevents random movement (owner-local mobile agenda)
 - `src/mob/mob_act.c` - Position management for sentinels (owner-local mobile agenda)
-- `src/utils.c` - Drag restrictions (`push_attempt()`)
+- `src/core/utils.c` - Drag restrictions (`push_attempt()`)
 
 ### MOB_SCAVENGER (Index: 2)
 **Effect:** Mobile picks up items from the ground.
@@ -130,8 +130,8 @@ table is not an action flag, whatever it is called.
 
 **Code References:**
 - `src/mob/mob_act.c` - Aggression trigger (owner-local mobile agenda)
-- `src/limits.c` - Set during rage/charm effects (`proc_d20_round_one()`)
-- `src/db.c` - Boot-time validation with alignment aggro flags (`parse_mobile()`)
+- `src/core/limits.c` - Set during rage/charm effects (`proc_d20_round_one()`)
+- `src/core/db.c` - Boot-time validation with alignment aggro flags (`parse_mobile()`)
 
 ### MOB_AGGR_EVIL (Index: 8)
 **Effect:** Mobile attacks evil-aligned characters on sight.
@@ -328,7 +328,7 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 
 **Code References:**
 - `src/mob/mob_act.c` - Helper behavior logic (owner-local mobile agenda)
-- `src/limits.c` - Removed when mob becomes aggressive (`proc_d20_round_one()`)
+- `src/core/limits.c` - Removed when mob becomes aggressive (`proc_d20_round_one()`)
 
 ### MOB_GUARD (Index: 31)
 **Effect:** Mobile protects citizens and assists them in combat.
@@ -692,7 +692,7 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - Set it whenever you have deliberately hand-tuned a mob's abilities and do not want them overwritten
 
 **Code References:**
-- `src/utils.c` - Stat application (`apply_mob_stat_modifiers()`)
+- `src/core/utils.c` - Stat application (`apply_mob_stat_modifiers()`)
 
 ### Encounter Tier (separate scalar field)
 
@@ -713,7 +713,7 @@ tier result. The established level-31-to-34 base behavior always remains active.
 **Code References:**
 - `src/mob/mob_autoroll.c` - Post-base saved-stat Tier bonuses
 - `src/olc/medit.c` - Builder selection and tier-aware autoroll
-- `src/db.c` and `src/olc/genmob.c` - `Tier:` loading and saving
+- `src/core/db.c` and `src/olc/genmob.c` - `Tier:` loading and saving
 
 ### Spell resistance (separate scalar field)
 
@@ -724,7 +724,7 @@ Autoroll can replace it from the selected race profile, so set identity before
 running automatic statistics.
 
 **Code References:**
-- `src/db.c` - `SpellRes:` loading
+- `src/core/db.c` - `SpellRes:` loading
 - `src/olc/genmob.c` - `SpellRes:` saving
 - `src/olc/medit.c` - display, edit, and autoroll ownership
 
@@ -746,7 +746,7 @@ running automatic statistics.
 **Code References:**
 - `src/act/act.other.c` - Golem commands (`do_destroygolem()`, `do_golemrepair()`)
 - `src/craft/crafting_new.c` - Golem crafting and repair (`has_golem_follower()`, `craft_golem_complete()`, `can_repair_golem()`)
-- `src/utils.c` - Follower tracking (`can_add_follower()`)
+- `src/core/utils.c` - Follower tracking (`can_add_follower()`)
 - `src/combat/fight.c` - Corpse generation (`make_corpse()`)
 
 ### MOB_NOTELEPORT (Index: 104)
@@ -809,7 +809,7 @@ running automatic statistics.
 - `src/combat/fight.c` - Delayed hunter activation
 - `src/spec/spec_rol_conversion.c` - Automatic demon, devil, and umber-hulk behavior
 - `src/act/act.other.c` - Caught-theft response
-- `src/utils.h` - Class-role queries
+- `src/core/utils.h` - Class-role queries
 
 ### MOB_BUFF_OUTSIDE_COMBAT (Index: 96)
 **Effect:** UNUSED - Kept for backward compatibility.
@@ -1025,7 +1025,7 @@ REMOVE_BIT_AR(MOB_FLAGS(mob), MOB_AGGRESSIVE);
 ## Code References
 
 **Primary Files:**
-- `src/structs.h` - Flag definitions (the `MOB_*` define block ending at `MOB_NOTELEPORT`)
+- `src/core/structs.h` - Flag definitions (the `MOB_*` define block ending at `MOB_NOTELEPORT`)
 - `src/mob/mob_act.c` - Mobile AI and behavior
 - `src/combat/fight.c` - Combat interactions
 - `src/movement/movement.c` - Movement and blocking

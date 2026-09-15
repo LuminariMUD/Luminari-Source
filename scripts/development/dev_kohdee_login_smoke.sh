@@ -94,7 +94,7 @@ if [[ $# -gt 0 ]]; then
             command = toupper(line)
           }
           /CMD_FEATURE_VESSEL/ { print command }
-        ' "$repo_root/src/interpreter.c"
+        ' "$repo_root/src/core/interpreter.c"
 
         # Recovery commands intentionally remain usable while the vessel
         # feature gate is off, so they do not carry CMD_FEATURE_VESSEL.
@@ -104,7 +104,7 @@ if [[ $# -gt 0 ]]; then
       } | sort -u
     )
     ((${#vessel_help_keywords[@]} > 0)) ||
-      fail "could not derive vessel commands from src/interpreter.c"
+      fail "could not derive vessel commands from src/core/interpreter.c"
     set -- "${vessel_help_keywords[@]}"
   elif [[ "$mode" == "vessel-builder-check" ]]; then
     [[ $# -eq 0 ]] || fail "--vessel-builder-check does not accept additional arguments"

@@ -27,7 +27,7 @@
       <nav class="dg-breadcrumb" aria-label="Breadcrumb"><a href="../index.html">Docs</a><span>/</span><a href="index.html">DG Scripts</a><span>/</span><span>Architecture</span></nav>
       <h1>Runtime architecture</h1>
       <p class="dg-article__lede">DG Scripts sits between game event hooks and three owner-specific command interpreters. Prototypes are reusable definitions; live owners carry runnable instances and mutable state.</p>
-      <div class="dg-provenance"><strong>Primary headers</strong><span><code>src/dgscript/dg_scripts.h</code> defines runtime state. <code>src/structs.h</code> embeds prototype and live script pointers in game entities.</span></div>
+      <div class="dg-provenance"><strong>Primary headers</strong><span><code>src/dgscript/dg_scripts.h</code> defines runtime state. <code>src/core/structs.h</code> embeds prototype and live script pointers in game entities.</span></div>
 
       <section class="dg-article-section" id="model">
         <h2>Data model</h2>
@@ -131,12 +131,12 @@
           <li><code>src/dgscript/dg_scripts.c</code><span>Driver, control flow, state commands, UIDs, stats, attach/detach, and waits.</span></li>
           <li><code>src/dgscript/dg_variables.c</code><span>Substitution, entity fields, text fields, special values, and pseudo-commands.</span></li>
           <li><code>src/dgscript/dg_misc.c</code><span><code>dg_cast</code> and <code>dg_affect</code>.</span></li>
-          <li><code>src/dgscript/dg_mobcmd.c</code><span>Mobile DG command implementations; table registration is in <code>src/interpreter.c</code>.</span></li>
+          <li><code>src/dgscript/dg_mobcmd.c</code><span>Mobile DG command implementations; table registration is in <code>src/core/interpreter.c</code>.</span></li>
           <li><code>src/dgscript/dg_objcmd.c</code><span>Object command implementations and table.</span></li>
           <li><code>src/dgscript/dg_wldcmd.c</code><span>Room command implementations and table.</span></li>
           <li><code>src/dgscript/dg_olc.c</code><span>TRIGEDIT, disk save, and shared attachment menu.</span></li>
           <li><code>src/dgscript/dg_event.c</code><span>Event integration used by trigger waits.</span></li>
-          <li><code>src/constants.c</code><span>Builder-facing mobile, object, and room trigger type names.</span></li>
+          <li><code>src/core/constants.c</code><span>Builder-facing mobile, object, and room trigger type names.</span></li>
         </ul>
       </section>
 

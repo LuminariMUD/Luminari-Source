@@ -9,22 +9,22 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <stdint.h>
 #include <time.h>
-#include "structs.h"
+#include "core/structs.h"
 #include "vessels/transport_jobs.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "handler.h"
-#include "db.h"
-#include "mudlim.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
+#include "core/db.h"
+#include "core/mudlim.h"
 #include "character/rewards.h"
 #include "magic/spells.h"
-#include "screen.h"
+#include "core/screen.h"
 #include "player/pfdefaults.h"
-#include "constants.h"
+#include "core/constants.h"
 #include "dgscript/dg_scripts.h"
 #include "events/mud_event.h"
 #include "comms/mail.h" /**< For the has_mail function */
@@ -35,7 +35,7 @@
 #include "mob/mob_spellslots.h"
 #include "combat/fight.h"
 #include "combat/combat_encounters.h"
-#include "modify.h"
+#include "core/modify.h"
 #include "movement/asciimap.h"
 #include "clan/clan.h"
 #include "craft/craft.h" // auto crafting quest
@@ -61,7 +61,7 @@
 #include "magic/spell_prep.h"
 #include "comms/boards.h"
 #include "comms/mysql_boards.h" /* MySQL board system */
-#include "perfmon.h"
+#include "core/perfmon.h"
 #include "vessels/routing.h"
 #include "character/perks.h"
 #include "magic/moon_bonus_spells.h"

@@ -1,11 +1,11 @@
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 #include "event_runtime.h"
-#include "perfmon.h"
+#include "core/perfmon.h"
 
 static struct game_scheduler *runtime_scheduler;
 static struct event_runtime_type_profile

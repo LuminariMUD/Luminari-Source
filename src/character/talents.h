@@ -11,8 +11,8 @@
 #ifndef _TALENTS_H_
 #define _TALENTS_H_
 
-#include "sysdep.h"
-#include "structs.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
 
 /* Forward declaration */
 struct char_data;

@@ -10,21 +10,21 @@
 #define __CLAN_C__
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <time.h>
 
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
-#include "interpreter.h"
-#include "handler.h"
-#include "screen.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/db.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
+#include "core/screen.h"
 #include "olc/improved-edit.h"
 #include "magic/spells.h" /* find skill, etc */
 #include "clan.h"
 #include "clan_benefits.h"
-#include "mudlim.h"
+#include "core/mudlim.h"
 #include "character/rewards.h"
 #include "olc/oasis.h" /* for can_edit_zone */
 #include "clan_transactions.h"

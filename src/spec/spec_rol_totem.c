@@ -4,19 +4,19 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
+#include "core/structs.h"
+#include "core/utils.h"
 
 #include "act/act.h"
-#include "comm.h"
-#include "db.h"
+#include "core/comm.h"
+#include "core/db.h"
 #include "events/domain_event_world.h"
 #include "dgscript/dg_scripts.h"
-#include "handler.h"
+#include "core/handler.h"
 #include "character/rewards.h"
-#include "interpreter.h"
+#include "core/interpreter.h"
 #include "olc/oasis.h"
 #include "spec_rol_totem.h"
 

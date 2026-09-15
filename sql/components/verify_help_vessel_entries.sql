@@ -1,7 +1,7 @@
 -- Read-only verification for help_vessel_entries.sql.
 --
 -- The command-keyword list mirrors the vessel, vehicle, unified transport,
--- autopilot, and staff recovery registrations in src/interpreter.c.
+-- autopilot, and staff recovery registrations in src/core/interpreter.c.
 
 SELECT
   'entry_count' AS check_name,

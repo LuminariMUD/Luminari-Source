@@ -3,7 +3,7 @@
 
 #include "domain_events.h"
 #include "domain_event_types.h"
-#include "structs.h"
+#include "core/structs.h"
 
 /* Caller-owned synchronous operation. Always finish in reverse begin order.
  * Nested relocation of the same character folds into the outer final outcome.

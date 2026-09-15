@@ -10,23 +10,23 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <stdint.h>
 #include <time.h>
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
-#include "handler.h"
-#include "interpreter.h"
-#include "constants.h"
-#include "screen.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/db.h"
+#include "core/handler.h"
+#include "core/interpreter.h"
+#include "core/constants.h"
+#include "core/screen.h"
 #include "act/act.h"
-#include "utils.h"
+#include "core/utils.h"
 #include "ibt.h"
 #include "olc/oasis.h"
 #include "olc/improved-edit.h"
-#include "modify.h"
+#include "core/modify.h"
 
 IBT_DATA *first_bug = NULL;
 IBT_DATA *last_bug = NULL;

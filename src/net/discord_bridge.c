@@ -8,16 +8,16 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "handler.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
+#include "core/db.h"
 #include "discord_bridge.h"
 #include "act/act.h"
-#include "screen.h"
+#include "core/screen.h"
 
 #include <sys/socket.h>
 #include <netinet/in.h>

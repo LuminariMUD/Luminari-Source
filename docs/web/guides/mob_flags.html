@@ -211,19 +211,19 @@ Flags</a></li>
 </ul>
 <hr />
 <h2 id="overview">Overview</h2>
-<p>Mobile flags are bitflags defined in <code>src/structs.h</code> and
-are checked throughout the codebase using the <code>MOB_FLAGGED()</code>
-macro. There are currently <strong>126 mobile flags</strong> (indices
-0-125, <code>NUM_MOB_FLAGS</code>) that control everything from basic AI
-behavior to special monster abilities.</p>
+<p>Mobile flags are bitflags defined in <code>src/core/structs.h</code>
+and are checked throughout the codebase using the
+<code>MOB_FLAGGED()</code> macro. There are currently <strong>126 mobile
+flags</strong> (indices 0-125, <code>NUM_MOB_FLAGS</code>) that control
+everything from basic AI behavior to special monster abilities.</p>
 <p><strong>Usage Pattern:</strong></p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>MOB_FLAGGED<span class="op">(</span>mob<span class="op">,</span> MOB_FLAGNAME<span class="op">))</span> <span class="op">{</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Flag is set, apply behavior/restriction</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <h3 id="warning-not-every-mob_-define-is-a-flag">Warning: not every
 <code>MOB_*</code> define is a flag</h3>
-<p><code>src/structs.h</code> and its neighbours contain many constants
-beginning with <code>MOB_</code> that are <strong>not</strong>
+<p><code>src/core/structs.h</code> and its neighbours contain many
+constants beginning with <code>MOB_</code> that are <strong>not</strong>
 action-flag bit numbers. They are mobile vnums and summon identifiers
 that happen to share the prefix:</p>
 <table>
@@ -258,9 +258,9 @@ reliable tell - but the ranges also <strong>collide</strong>.
 vnum 46; nothing in the name distinguishes them.</p>
 <p>If you are grepping for <code>MOB_</code> to enumerate flags, do not.
 The authoritative list of action flags is the <code>action_bits[]</code>
-table in <code>src/constants.c</code>, whose index <em>is</em> the bit
-number, terminated by a <code>"\n"</code> entry. Anything not in that
-table is not an action flag, whatever it is called.</p>
+table in <code>src/core/constants.c</code>, whose index <em>is</em> the
+bit number, terminated by a <code>"\n"</code> entry. Anything not in
+that table is not an action flag, whatever it is called.</p>
 <hr />
 <h2 id="basic-behavior-flags">Basic Behavior Flags</h2>
 <h3 id="mob_spec-index-0">MOB_SPEC (Index: 0)</h3>
@@ -279,7 +279,7 @@ stationary guards, shopkeepers, and landmark NPCs</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
 Prevents random movement (owner-local mobile agenda) -
 <code>src/mob/mob_act.c</code> - Position management for sentinels
-(owner-local mobile agenda) - <code>src/utils.c</code> - Drag
+(owner-local mobile agenda) - <code>src/core/utils.c</code> - Drag
 restrictions (<code>push_attempt()</code>)</p>
 <h3 id="mob_scavenger-index-2">MOB_SCAVENGER (Index: 2)</h3>
 <p><strong>Effect:</strong> Mobile picks up items from the ground. -
@@ -325,9 +325,10 @@ characters. - Attacks everyone who enters the room - Conflicts with
 MOB_HELPER flag - Used for hostile monsters and aggressive creatures</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
 Aggression trigger (owner-local mobile agenda) -
-<code>src/limits.c</code> - Set during rage/charm effects
-(<code>proc_d20_round_one()</code>) - <code>src/db.c</code> - Boot-time
-validation with alignment aggro flags (<code>parse_mobile()</code>)</p>
+<code>src/core/limits.c</code> - Set during rage/charm effects
+(<code>proc_d20_round_one()</code>) - <code>src/core/db.c</code> -
+Boot-time validation with alignment aggro flags
+(<code>parse_mobile()</code>)</p>
 <h3 id="mob_aggr_evil-index-8">MOB_AGGR_EVIL (Index: 8)</h3>
 <p><strong>Effect:</strong> Mobile attacks evil-aligned characters on
 sight. - Only attacks players/NPCs with evil alignment - Requires
@@ -472,7 +473,7 @@ players. - Jumps into combat to help fellow NPCs - Conflicts with
 MOB_AGGRESSIVE flag - Used for pack tactics and coordinated defense</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
 Helper behavior logic (owner-local mobile agenda) -
-<code>src/limits.c</code> - Removed when mob becomes aggressive
+<code>src/core/limits.c</code> - Removed when mob becomes aggressive
 (<code>proc_d20_round_one()</code>)</p>
 <h3 id="mob_guard-index-31">MOB_GUARD (Index: 31)</h3>
 <p><strong>Effect:</strong> Mobile protects citizens and assists them in
@@ -738,8 +739,8 @@ this flag, a mobile&#x2019;s stats are derived from its level and category at
 load - With it, the values a builder set in <code>medit</code> are
 applied verbatim - Set it whenever you have deliberately hand-tuned a
 mob&#x2019;s abilities and do not want them overwritten</p>
-<p><strong>Code References:</strong> - <code>src/utils.c</code> - Stat
-application (<code>apply_mob_stat_modifiers()</code>)</p>
+<p><strong>Code References:</strong> - <code>src/core/utils.c</code> -
+Stat application (<code>apply_mob_stat_modifiers()</code>)</p>
 <h3 id="encounter-tier-separate-scalar-field">Encounter Tier (separate
 scalar field)</h3>
 <p>Encounter tier is sometimes called the mob tier flag, but it is not
@@ -760,8 +761,8 @@ base behavior always remains active.</p>
 <p><strong>Code References:</strong> -
 <code>src/mob/mob_autoroll.c</code> - Post-base saved-stat Tier bonuses
 - <code>src/olc/medit.c</code> - Builder selection and tier-aware
-autoroll - <code>src/db.c</code> and <code>src/olc/genmob.c</code> -
-<code>Tier:</code> loading and saving</p>
+autoroll - <code>src/core/db.c</code> and <code>src/olc/genmob.c</code>
+- <code>Tier:</code> loading and saving</p>
 <h3 id="spell-resistance-separate-scalar-field">Spell resistance
 (separate scalar field)</h3>
 <p>Enhanced mobile files persist base spell resistance as
@@ -770,7 +771,7 @@ in its advanced statistics menu. Loading clamps the field to that range,
 and OLC save writes a nonzero base value back to disk. Autoroll can
 replace it from the selected race profile, so set identity before
 running automatic statistics.</p>
-<p><strong>Code References:</strong> - <code>src/db.c</code> -
+<p><strong>Code References:</strong> - <code>src/core/db.c</code> -
 <code>SpellRes:</code> loading - <code>src/olc/genmob.c</code> -
 <code>SpellRes:</code> saving - <code>src/olc/medit.c</code> - display,
 edit, and autoroll ownership</p>
@@ -794,7 +795,7 @@ commands to find it - Changes corpse handling on death</p>
 <code>do_golemrepair()</code>) - <code>src/craft/crafting_new.c</code> -
 Golem crafting and repair (<code>has_golem_follower()</code>,
 <code>craft_golem_complete()</code>, <code>can_repair_golem()</code>) -
-<code>src/utils.c</code> - Follower tracking
+<code>src/core/utils.c</code> - Follower tracking
 (<code>can_add_follower()</code>) - <code>src/combat/fight.c</code> -
 Corpse generation (<code>make_corpse()</code>)</p>
 <h3 id="mob_noteleport-index-104">MOB_NOTELEPORT (Index: 104)</h3>
@@ -869,7 +870,7 @@ Movement, archery, and race aggression - <code>src/combat/fight.c</code>
 - Delayed hunter activation -
 <code>src/spec/spec_rol_conversion.c</code> - Automatic demon, devil,
 and umber-hulk behavior - <code>src/act/act.other.c</code> -
-Caught-theft response - <code>src/utils.h</code> - Class-role
+Caught-theft response - <code>src/core/utils.h</code> - Class-role
 queries</p>
 <h3 id="mob_buff_outside_combat-index-96">MOB_BUFF_OUTSIDE_COMBAT
 (Index: 96)</h3>
@@ -1854,8 +1855,8 @@ together</p>
 MOB_BUFF_OUTSIDE_COMBAT (deprecated)</p>
 <hr />
 <h2 id="code-references">Code References</h2>
-<p><strong>Primary Files:</strong> - <code>src/structs.h</code> - Flag
-definitions (the <code>MOB_*</code> define block ending at
+<p><strong>Primary Files:</strong> - <code>src/core/structs.h</code> -
+Flag definitions (the <code>MOB_*</code> define block ending at
 <code>MOB_NOTELEPORT</code>) - <code>src/mob/mob_act.c</code> - Mobile
 AI and behavior - <code>src/combat/fight.c</code> - Combat interactions
 - <code>src/movement/movement.c</code> - Movement and blocking -

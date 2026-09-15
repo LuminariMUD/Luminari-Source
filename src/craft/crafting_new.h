@@ -4,9 +4,9 @@
 #include "pet_vnums.h"
 
 #include <stdbool.h>
-#include <time.h>    // For time_t type
-#include "structs.h" // For struct definitions
-#include "utils.h"   // For ACMD_DECL and SPECIAL_DECL macros
+#include <time.h>         // For time_t type
+#include "core/structs.h" // For struct definitions
+#include "core/utils.h"   // For ACMD_DECL and SPECIAL_DECL macros
 
 // materials used for the new crafting system
 #define CRAFT_MAT_NONE 0

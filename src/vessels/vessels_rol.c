@@ -6,19 +6,19 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "movement/graph.h"
 
 #include "act/act.h"
-#include "comm.h"
-#include "constants.h"
-#include "db.h"
+#include "core/comm.h"
+#include "core/constants.h"
+#include "core/db.h"
 #include "events/event_runtime.h"
-#include "handler.h"
-#include "interpreter.h"
+#include "core/handler.h"
+#include "core/interpreter.h"
 #include "vessel_periodic.h"
 #include "vessels_rol.h"
 

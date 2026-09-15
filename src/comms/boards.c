@@ -31,17 +31,17 @@
  *     similar fashion. */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <time.h>
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/db.h"
 #include "boards.h"
-#include "interpreter.h"
-#include "handler.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
 #include "olc/improved-edit.h"
-#include "modify.h"
+#include "core/modify.h"
 
 /* Board appearance order. */
 #define NEWEST_AT_TOP FALSE

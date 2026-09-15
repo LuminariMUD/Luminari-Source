@@ -3,11 +3,11 @@
 #include "CuTest.h"
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
-#include "../../src/utils.h"
-#include "../../src/db.h"
-#include "../../src/mudlim.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/utils.h"
+#include "../../src/core/db.h"
+#include "../../src/core/mudlim.h"
 
 /* A saved pet belongs to the pfile identity, not to the reusable owner name.
  * Both halves of the binding must be reported so a recycled ID cannot adopt an

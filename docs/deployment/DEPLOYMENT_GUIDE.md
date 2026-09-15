@@ -127,7 +127,7 @@ prints the enabled set and warns for each unsupported item. On architectures
 without `-fcf-protection` that item is reported as unsupported and left out.
 
 The profile also defines `LUMINARI_PRODUCTION_PROFILE`, which makes
-`src/constants.c` embed a marker in a `.luminari.profile` ELF section. That
+`src/core/constants.c` embed a marker in a `.luminari.profile` ELF section. That
 marker is what lets the verifier below distinguish the repository profile from
 a distribution whose compiler defaults happen to include the same hardening.
 

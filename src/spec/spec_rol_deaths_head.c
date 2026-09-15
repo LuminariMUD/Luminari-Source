@@ -4,18 +4,18 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "combat/fight.h"
 #include "magic/spells.h"
 
 #include "act/act.h"
-#include "comm.h"
-#include "db.h"
+#include "core/comm.h"
+#include "core/db.h"
 #include "dgscript/dg_scripts.h"
-#include "handler.h"
+#include "core/handler.h"
 #include "events/mud_event.h"
 #include "spec/spec_dispatch.h"
 #include "spec/spec_rol_deaths_head.h"

@@ -1,8 +1,8 @@
 #include "CuTest.h"
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
 #include "../../src/events/game_scheduler.h"
 
 #include <inttypes.h>

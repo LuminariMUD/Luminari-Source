@@ -2,7 +2,7 @@
 --
 -- The help system is database-first. This script is the reviewable,
 -- repeatable deployment source for the I3 overview and every command
--- registered in src/interpreter.c. It is safe to rerun: existing entries are
+-- registered in src/core/interpreter.c. It is safe to rerun: existing entries are
 -- updated and existing keyword mappings are preserved.
 --
 -- Player topics are level 0. I3ADMIN matches LVL_IMMORT (31).

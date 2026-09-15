@@ -118,8 +118,8 @@ world-tool, sanitizer, Valgrind, and subsystem commands.
 
 ## Source Map
 
-- `src/comm.c`, `src/interpreter.c`, `src/db.c`, `src/handler.c`, and
-  `src/utils.c` form the server core.
+- `src/core/comm.c`, `src/core/interpreter.c`, `src/core/db.c`, `src/core/handler.c`, and
+  `src/core/utils.c` form the server core.
 - Feature directories under `src/` are one level deep. Put a file where its
   primary responsibility belongs; do not introduce second-level source trees.
 - Spells and skills share the number space and live under `src/magic/`.

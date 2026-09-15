@@ -204,7 +204,7 @@ aider --no-git --read .aider.mud.context.md --read .aider.mud.prompts.md \
 > /add lib/world/wld/30.wld lib/world/mob/30.mob lib/world/obj/30.obj lib/world/zon/30.zon
 
 # Read source files for context (read-only)
-> /read src/act/act.wizard.c src/structs.h
+> /read src/act/act.wizard.c src/core/structs.h
 
 # Example requests:
 > Create a new tavern room after room 3050 with a bartender NPC

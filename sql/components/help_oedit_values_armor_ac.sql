@@ -1,7 +1,7 @@
 -- Correct the ARMOR section of the oedit-values help entry.
 --
 -- The old text described a per-slot multiplier (Body X3, Head and Legs X2)
--- that the code has never applied: apply_ac() in src/handler.c uses a factor
+-- that the code has never applied: apply_ac() in src/core/handler.c uses a factor
 -- of 1. It also left the scale of value 0 unstated. Armor class from value 0
 -- is now gated to the five real armor slots, matching the slots that carry
 -- armor check penalty, spell failure, and the max-dex cap.

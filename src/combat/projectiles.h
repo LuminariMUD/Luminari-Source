@@ -6,7 +6,7 @@
 #ifndef PROJECTILES_H
 #define PROJECTILES_H
 
-#include "structs.h"
+#include "core/structs.h"
 
 enum projectile_source
 {

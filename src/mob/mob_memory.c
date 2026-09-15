@@ -10,12 +10,12 @@
 
 #include "conf.h"
 #include "events/active_world.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "db.h"
-#include "comm.h"
-#include "handler.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/db.h"
+#include "core/comm.h"
+#include "core/handler.h"
 #include "obj/shop.h"
 #include "mob_memory.h"
 

@@ -7,19 +7,19 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
 
 /* Workaround for class.h using NUM_ABILITIES instead of MAX_ABILITIES */
 #ifndef NUM_ABILITIES
 #define NUM_ABILITIES MAX_ABILITIES
 #endif
 
-#include "utils.h"
+#include "core/utils.h"
 #include "combat/tactical_effects.h"
-#include "comm.h"
-#include "db.h"
-#include "handler.h"
+#include "core/comm.h"
+#include "core/db.h"
+#include "core/handler.h"
 #include "class.h"
 #include "perks.h"
 #include "combat/assign_wpn_armor.h"
@@ -38,8 +38,8 @@
 #include "act/act.h"
 #include "combat/fight.h"
 
-#include "interpreter.h"
-#include "constants.h"
+#include "core/interpreter.h"
+#include "core/constants.h"
 #include "perks.h"
 #include "events/mud_event.h"
 

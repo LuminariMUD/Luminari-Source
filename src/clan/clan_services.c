@@ -6,15 +6,15 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "db.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/db.h"
 #include "act/act.h"
-#include "mudlim.h"
+#include "core/mudlim.h"
 #include "character/rewards.h"
 #include "magic/spells.h"
 #include "clan_services.h"

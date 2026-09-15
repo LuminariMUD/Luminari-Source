@@ -12,7 +12,7 @@ This document explains how the game handles client capability auto-detection (co
 ### Connection-time client auto-detection (no character yet)
 When a socket connects, the server starts the protocol capability negotiation flow. This determines what the client supports and populates per-descriptor protocol variables (not PRFs):
 
-```2449:2463:src/comm.c
+```2449:2463:src/core/comm.c
   descriptor_list = newd;
 
   if (CONFIG_PROTOCOL_NEGOTIATION)
@@ -53,7 +53,7 @@ The negotiation includes TTYPE, NAWS (window size), CHARSET (UTF-8), MSDP, GMCP,
 
 The "protocols detected" screen shown to the user is produced by the event handler:
 
-```2254:2288:src/interpreter.c
+```2254:2288:src/core/interpreter.c
 /* protocol handling event */
 EVENTFUNC(get_protocols)
 {
@@ -98,7 +98,7 @@ Save-time PRF writing:
 
 During enter-game flow, PRFs are respected and very few are changed (notably, `PRF_BUILDWALK` is removed as a safety measure):
 
-```4145:4149:src/interpreter.c
+```4145:4149:src/core/interpreter.c
       d->has_prompt = 0;
       /* We've updated to 3.1 - some bits might be set wrongly: */
       REMOVE_BIT_AR(PRF_FLAGS(d->character), PRF_BUILDWALK);
@@ -107,7 +107,7 @@ During enter-game flow, PRFs are respected and very few are changed (notably, `P
 ### New-character one-time defaults
 During character creation (not on every login), the code sets helpful defaults and, if the client supports colors, enables color PRFs initially:
 
-```6472:6492:src/db.c
+```6472:6492:src/core/db.c
   /* Set Beginning Toggles Here */
   SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTOEXIT);
   if (ch->desc)
@@ -125,7 +125,7 @@ During character creation (not on every login), the code sets helpful defaults a
 
 Additionally, brand-new players may be prompted to enable "recommended preference flags," which batch-enable many useful PRFs once:
 
-```3814:3838:src/interpreter.c
+```3814:3838:src/core/interpreter.c
     if (!strcmp(arg, "yes") || !strcmp(arg, "YES"))
     {
       write_to_output(d, "Confirmed, adding all recommended preference flags.\r\n");
@@ -226,13 +226,13 @@ This is enforced in the color helpers, which check PRF flags before using protoc
 - **Login cleanup**: `PRF_BUILDWALK` is cleared on login for safety.
 
 ### Files involved
-- `src/comm.c`: new connection handling; starts negotiation; shows greetings.
-- `src/interpreter.c`: account/character selection, enter-game flow, recommended PRF prompt, protocol info event.
-- `src/db.c`: `init_char()` one-time PRF defaults for new characters; `reset_char()`.
+- `src/core/comm.c`: new connection handling; starts negotiation; shows greetings.
+- `src/core/interpreter.c`: account/character selection, enter-game flow, recommended PRF prompt, protocol info event.
+- `src/core/db.c`: `init_char()` one-time PRF defaults for new characters; `reset_char()`.
 - `src/player/players.c`: load/save of PRFs and persisted protocol fields (`Pref`, `UTF8`, `XTrm`, `GMCP`).
 - `src/net/protocol.c` / `src/net/protocol.h`: negotiation logic; capability variables; color helpers.
 - `src/olc/prefedit.c`: player preference editor; applies PRFs and saves; exposes protocol toggles.
-- `src/utils.h`: PRF macros.
+- `src/core/utils.h`: PRF macros.
 - `src/events/mud_event.h`: `ePROTOCOLS` event definition.
 - `src/player/pfdefaults.h`: default bitmasks (e.g., `PFDEF_PREFFLAGS`).
 

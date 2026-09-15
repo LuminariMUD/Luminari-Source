@@ -47,7 +47,7 @@ struct ready_action;
  * LUMINARIMUD_VERSION() in utils.h.
  * It is read as Major/Minor/Patchlevel - MMmmPP (hex values)
  * Current: 0x03071C = 3.7.28 (corresponds to display version 2.5063-beta)
- * See also: src/constants.c (luminari_version string) */
+ * See also: src/core/constants.c (luminari_version string) */
 #define _LUMINARIMUD 0x03071C
 
 /** If you want equipment to be automatically equipped to the same place

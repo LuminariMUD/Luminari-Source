@@ -1,12 +1,12 @@
 #include "CuTest.h"
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
-#include "../../src/utils.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/utils.h"
 
-#include "../../src/db.h"
-#include "../../src/interpreter.h"
+#include "../../src/core/db.h"
+#include "../../src/core/interpreter.h"
 #include "../../src/character/guild_services.h"
 #include "../../src/comms/mail.h"
 #include "../../src/obj/shop.h"
@@ -618,7 +618,7 @@ void TestSpecAssignmentModulesExposeNarrowBoundaries(CuTest *tc)
            spec_effective_read_source(assignment_sources[3], &rooms) &&
            spec_effective_read_source("src/spec/spec_assign.h", &assignment_header) &&
            spec_effective_read_source("src/spec/spec_registry.h", &registry_header) &&
-           spec_effective_read_source("src/db.c", &database) &&
+           spec_effective_read_source("src/core/db.c", &database) &&
            spec_effective_read_source("Makefile.am", &automake) &&
            spec_effective_read_source("CMakeLists.txt", &cmake);
 
@@ -679,7 +679,7 @@ void TestSpecEffectiveBindingReportFollowsNoSpecialsAssignmentGate(CuTest *tc)
   bool ordered;
 
   source = NULL;
-  loaded = spec_effective_read_source("src/db.c", &source);
+  loaded = spec_effective_read_source("src/core/db.c", &source);
   assignment = loaded ? strstr(source, "assign_mobiles();") : NULL;
   guard_end_and_report =
       loaded ? strstr(source, "assign_the_quests();\n  }\n\n  report_effective_spec_bindings();")

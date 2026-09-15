@@ -1,8 +1,8 @@
 #include "act.h"                /* for SCMD_WHISPER */
-#include "comm.h"               /* for send_to_char */
-#include "handler.h"            /* for get_char_vis */
+#include "core/comm.h"          /* for send_to_char */
+#include "core/handler.h"       /* for get_char_vis */
 #include "quest/hlquest.h"      /* for quest_ask */
-#include "utils.h"              /* for ACMD */
+#include "core/utils.h"         /* for ACMD */
 #include "ai/ai_service.h"      /* for ai_npc_dialogue_async */
 #include "obj/spec_artifacts.h" /* for artifact_whisper_trigger */
 

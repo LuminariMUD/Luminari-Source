@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-# Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
+# Version: Keep in sync with src/core/constants.c, src/core/structs.h, configure.ac
 project(LuminariMUD VERSION 2.5063 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
@@ -386,7 +386,7 @@ set(SRC_C_FILES
     src/olc/bedit.c
     src/comms/boards.c
     src/craft/brew.c
-    src/bsd-snprintf.c
+    src/core/bsd-snprintf.c
     src/olc/cedit.c
     src/character/char_descs.c
     src/clan/clan.c
@@ -396,16 +396,16 @@ set(SRC_C_FILES
     src/clan/clan_transactions.c
     src/character/class.c
     src/combat/combat_modes.c
-    src/comm.c
+    src/core/comm.c
     src/config.c
-    src/constants.c
-    src/copyover_diagnostic.c
+    src/core/constants.c
+    src/core/copyover_diagnostic.c
     src/craft/craft.c
     src/craft/crafting_molds.c
     src/craft/crafting_new.c
     src/craft/crafting_recipes.c
     src/craft/crafts.c
-    src/db.c
+    src/core/db.c
     src/database/db_init.c
     src/database/db_init_data.c
     src/database/db_startup_init.c
@@ -428,7 +428,7 @@ set(SRC_C_FILES
     src/magic/domain_powers.c
     src/magic/domains_schools.c
     src/dotenv.c
-    src/elf_build_id.c
+    src/core/elf_build_id.c
     src/combat/encounters.c
     src/combat/combat_encounters.c
     src/combat/combat_damage.c
@@ -492,10 +492,10 @@ set(SRC_C_FILES
     src/net/reactor.h
     src/movement/graph.c
     src/combat/grapple.c
-    src/handler.c
+    src/core/handler.c
     src/olc/hedit.c
-    src/help.c
-    src/helpers.c
+    src/core/help.c
+    src/core/helpers.c
     src/olc/hlqedit.c
     src/quest/hlquest.c
     src/obj/house.c
@@ -503,11 +503,11 @@ set(SRC_C_FILES
     src/quest/hunts.c
     src/comms/ibt.c
     src/olc/improved-edit.c
-    src/interpreter.c
+    src/core/interpreter.c
     src/character/introduce.c
     src/wilderness/kdtree.c
-    src/limits.c
-    src/lists.c
+    src/core/limits.c
+    src/core/lists.c
     src/magic/magic.c
     src/comms/mail.c
     src/olc/medit.c
@@ -525,7 +525,7 @@ set(SRC_C_FILES
     src/mob/mob_known_spells.c
     src/mob/mob_spells.c
     src/mob/mob_spellslots.c
-    src/modify.c
+    src/core/modify.c
     src/magic/moon_bonus_spells.c
     src/olc/msgedit.c
     src/events/mud_event.c
@@ -541,7 +541,7 @@ set(SRC_C_FILES
     src/obj/player_shop.c
     src/olc/oedit.c
     src/player/password.c
-    src/perfmon.c
+    src/core/perfmon.c
     src/character/perks.c
     src/wilderness/perlin.c
     src/player/player_rename.c
@@ -557,7 +557,7 @@ set(SRC_C_FILES
     src/quest/quest_services.c
     src/character/rol_feats.c
     src/character/race.c
-    src/random.c
+    src/core/random.c
     src/mob/random_names.c
     src/player/rank.c
     src/character/rewards.c
@@ -661,7 +661,7 @@ set(SRC_C_FILES
     src/combat/traps_new.c
     src/obj/treasure.c
     src/obj/treasure_const.c
-    src/utils.c
+    src/core/utils.c
     src/vessels/vehicles.c
     src/vessels/vehicles_commands.c
     src/vessels/vehicles_transport.c
@@ -690,11 +690,11 @@ set(SRC_C_FILES
     src/vessels/vessels_piracy.c
     src/vessels/vessels_trade.c
     src/vessels/vessels_upgrades.c
-    src/weather.c
+    src/core/weather.c
     src/wilderness/wilderness.c
     src/wilderness/wilderness_kb.c
     src/olc/zedit.c
-    src/zmalloc.c
+    src/core/zmalloc.c
     src/movement/movement.c
     src/movement/movement_validation.c
     src/movement/movement_cost.c
@@ -720,7 +720,7 @@ set(SRC_C_FILES
     src/net/i3_commands.c
     src/net/i3_utils.c
     src/pet_vnums.h
-    src/elf_build_id.h
+    src/core/elf_build_id.h
     src/player/player_rename.h
     src/combat/tactical_effects.h
 )
@@ -1131,7 +1131,7 @@ set(PROTOCOL_FOCUSED_TEST_SOURCES
 if (BUILD_TESTS)
     enable_testing()
 
-    add_executable(bsd_snprintf_fallback_test src/bsd-snprintf.c)
+    add_executable(bsd_snprintf_fallback_test src/core/bsd-snprintf.c)
     target_compile_definitions(bsd_snprintf_fallback_test PRIVATE
         BROKEN_SNPRINTF
         TEST_SNPRINTF)

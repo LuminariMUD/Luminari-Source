@@ -215,7 +215,7 @@ if [[ "$production" == 1 ]]; then
   # bloated executable.  Assertions stay enabled (no NDEBUG): a MUD that stops
   # with a core file is preferable to one that keeps running on corrupt state.
   #
-  # LUMINARI_PRODUCTION_PROFILE makes src/constants.c embed a marker section
+  # LUMINARI_PRODUCTION_PROFILE makes src/core/constants.c embed a marker section
   # that verify_hardened_binary.sh requires, so a binary built from default
   # toolchain flags fails verification even on a distribution whose defaults
   # already happen to include every hardening property below.

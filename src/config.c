@@ -11,10 +11,10 @@
 #define __CONFIG_C__
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "interpreter.h" /* alias_data definition for structs.h */
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/interpreter.h" /* alias_data definition for structs.h */
 #include "config.h"
 #include "movement/asciimap.h"
 

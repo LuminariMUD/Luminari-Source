@@ -396,7 +396,7 @@ luminari-zone 30
 > /add lib/world/trg/100.trg lib/world/shp/100.shp
 
 # Read source for reference (read-only)
-> /read src/structs.h src/spells.h src/class.c
+> /read src/core/structs.h src/spells.h src/class.c
 
 # Example editing requests:
 > Create a new tavern in room 10050 called "The Wandering Dragon"
@@ -653,7 +653,7 @@ backup-world
 ## Support Resources
 
 - **CLAUDE.md**: Project-specific AI instructions at `/mnt/c/Projects/Luminari-Source/CLAUDE.md`
-- **Source Reference**: `src/structs.h` for flags and types
+- **Source Reference**: `src/core/structs.h` for flags and types
 - **Spell List**: `src/spells.h` for spell numbers
 - **Class Info**: `src/class.c` for class definitions
 - **Race Info**: `src/race.c` for race definitions

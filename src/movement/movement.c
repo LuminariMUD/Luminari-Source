@@ -9,17 +9,17 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
 #include "movement/door_state.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "handler.h"
-#include "db.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
+#include "core/db.h"
 #include "magic/spells.h"
 #include "obj/house.h"
-#include "constants.h"
+#include "core/constants.h"
 #include "dgscript/dg_scripts.h"
 #include "act/act.h"
 #include "character/abilities.h"
@@ -27,7 +27,7 @@
 #include "olc/oasis.h" /* for buildwalk */
 #include "events/mud_event.h"
 #include "quest/hlquest.h"
-#include "mudlim.h"
+#include "core/mudlim.h"
 #include "character/rewards.h"
 #include "wilderness/wilderness.h" /* Wilderness! */
 #include "combat/traps.h"          /* doorbash */

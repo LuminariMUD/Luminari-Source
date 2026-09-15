@@ -13,7 +13,7 @@ extern "C"
 #endif
 /*********************************************************/
 /* includes */
-#include "utils.h" /* for the ACMD macro */
+#include "core/utils.h" /* for the ACMD macro */
 
 /* functions, etc */
 extern const char *spells[];

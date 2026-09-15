@@ -28,10 +28,10 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
 #include "ai_service.h"
 #include <pthread.h>
 

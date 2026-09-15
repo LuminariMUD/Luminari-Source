@@ -6,11 +6,11 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "magic/spells.h"
-#include "constants.h"
+#include "core/constants.h"
 #include "mob_known_spells.h"
 #include "events/active_world.h"
 

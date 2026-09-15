@@ -14,10 +14,10 @@
 ************************************************************************* */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "player/password.h"
 
 #include <crypt.h>

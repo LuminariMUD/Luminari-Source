@@ -191,8 +191,8 @@ def compare_inventory(label: str, source: list[str], documented: list[str], erro
 
 def check_inventories(errors: list[str]) -> None:
     js = read_ascii_lf(REFERENCE, errors)
-    constants = (ROOT / "src" / "constants.c").read_text(encoding="utf-8")
-    interpreter = (ROOT / "src" / "interpreter.c").read_text(encoding="utf-8")
+    constants = (ROOT / "src" / "core" / "constants.c").read_text(encoding="utf-8")
+    interpreter = (ROOT / "src" / "core" / "interpreter.c").read_text(encoding="utf-8")
     objcmd = (ROOT / "src" / "dgscript" / "dg_objcmd.c").read_text(encoding="utf-8")
     wldcmd = (ROOT / "src" / "dgscript" / "dg_wldcmd.c").read_text(encoding="utf-8")
 

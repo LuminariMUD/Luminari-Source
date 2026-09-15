@@ -7,7 +7,7 @@
 
 #include "act/act.h"
 #include "domain_events.h"
-#include "structs.h"
+#include "core/structs.h"
 
 enum primary_activity_type
 {

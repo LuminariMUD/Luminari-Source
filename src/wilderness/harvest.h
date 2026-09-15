@@ -1,7 +1,7 @@
 #ifndef LUMINARI_WILDERNESS_HARVEST_H
 #define LUMINARI_WILDERNESS_HARVEST_H
 
-#include "structs.h"
+#include "core/structs.h"
 
 bool wilderness_harvest_crafting_enabled(void);
 bool wilderness_harvest_available(struct char_data *ch, int category, bool verbose);

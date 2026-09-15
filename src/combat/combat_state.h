@@ -1,7 +1,7 @@
 #ifndef COMBAT_STATE_H
 #define COMBAT_STATE_H
 
-#include "structs.h"
+#include "core/structs.h"
 #include "events/domain_events.h"
 
 /* Number of characters currently fighting this victim. */

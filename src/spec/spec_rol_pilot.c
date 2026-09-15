@@ -8,19 +8,19 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
+#include "core/structs.h"
+#include "core/utils.h"
 
 #include "act/act.h"
 #include "character/evolutions.h"
-#include "comm.h"
+#include "core/comm.h"
 #include "combat/fight.h"
-#include "handler.h"
-#include "interpreter.h"
+#include "core/handler.h"
+#include "core/interpreter.h"
 #include "magic/spells.h"
-#include "mudlim.h"
+#include "core/mudlim.h"
 #include "spec/spec_combat.h"
 #include "spec/spec_context.h"
 #include "spec/spec_rol_pilot.h"

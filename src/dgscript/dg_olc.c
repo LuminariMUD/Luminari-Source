@@ -8,19 +8,19 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/db.h"
 #include "olc/genolc.h"
-#include "interpreter.h"
+#include "core/interpreter.h"
 #include "olc/oasis.h"
 #include "dg_olc.h"
 #include "dg_event.h"
-#include "olc/genzon.h" /* for real_zone_by_thing */
-#include "constants.h"  /* for the *trig_types */
-#include "modify.h"     /* for smash_tilde */
+#include "olc/genzon.h"     /* for real_zone_by_thing */
+#include "core/constants.h" /* for the *trig_types */
+#include "core/modify.h"    /* for smash_tilde */
 
 /* local functions */
 static void trigedit_disp_menu(struct descriptor_data *d);

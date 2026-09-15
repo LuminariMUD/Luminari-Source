@@ -7,12 +7,12 @@
  ***************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "interpreter.h"
-#include "db.h"
-#include "comm.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/interpreter.h"
+#include "core/db.h"
+#include "core/comm.h"
 #include "wilderness.h"
 #include "resource_system.h"
 #include "resource_depletion.h"

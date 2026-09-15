@@ -5,16 +5,16 @@
  ************************************************************************* */
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "comm.h"
-#include "utils.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/comm.h"
+#include "core/utils.h"
+#include "core/db.h"
 #include "comms/boards.h"
-#include "handler.h"
+#include "core/handler.h"
 #include "oasis.h"
-#include "interpreter.h"
-#include "constants.h"
+#include "core/interpreter.h"
+#include "core/constants.h"
 #include "quest/hlquest.h"
 #include "magic/spells.h"
 #include "character/class.h"
@@ -22,7 +22,7 @@
 #include "genolc.h"
 #include "genmob.h"
 #include "improved-edit.h"
-#include "modify.h"
+#include "core/modify.h"
 
 /*---------------------------------------------*/
 /*. Function prototypes / Globals / Externals. */

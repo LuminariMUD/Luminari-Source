@@ -304,7 +304,7 @@ STAFF_EVENT_TIME = 480; // ~4.8 hours
 ### Game Loop Integration
 
 Called from the mud-hour global point-update phase in
-[`limits.c`](../../src/limits.c):
+[`limits.c`](../../src/core/limits.c):
 
 ```c
 // Regular maintenance - every tick

@@ -4,19 +4,19 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
+#include "core/structs.h"
+#include "core/utils.h"
 
 #include "act/act.h"
 #include "combat/fight.h"
 #include "combat/combat_state.h"
-#include "comm.h"
-#include "db.h"
+#include "core/comm.h"
+#include "core/db.h"
 #include "dgscript/dg_scripts.h"
-#include "handler.h"
-#include "interpreter.h"
+#include "core/handler.h"
+#include "core/interpreter.h"
 #include "magic/domains_schools.h"
 #include "magic/spell_prep.h"
 #include "magic/spells.h"

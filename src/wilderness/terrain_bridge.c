@@ -11,13 +11,13 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
 #include "terrain_bridge.h"
 #include "wilderness.h"
-#include "modify.h" /* For strip_colors() */
+#include "core/modify.h" /* For strip_colors() */
 #include "database/mysql.h"
 #include <sys/socket.h>
 #include <netinet/in.h>

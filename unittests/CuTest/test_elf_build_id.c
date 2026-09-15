@@ -8,8 +8,8 @@
 #include "CuTest.h"
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/elf_build_id.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/elf_build_id.h"
 
 #include <stdlib.h>
 #include <string.h>

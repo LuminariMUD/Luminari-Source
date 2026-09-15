@@ -15,10 +15,10 @@
 #include <string.h>
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
-#include "../../src/utils.h"
-#include "../../src/comm.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/utils.h"
+#include "../../src/core/comm.h"
 #include "../../src/net/protocol.h"
 #include "../../src/net/onboarding.h"
 

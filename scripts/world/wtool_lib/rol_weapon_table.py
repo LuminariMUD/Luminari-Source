@@ -10,7 +10,7 @@ There is no runtime bridge between the C server and these scripts, so the table
 is parsed statically from the ``setweapon()`` calls in
 ``src/combat/assign_wpn_armor.c``. The argument order is fixed by the function
 signature in that same file, and every symbolic argument resolves against the
-``#define`` block in ``src/structs.h``. ``rol_mob_calculator.py`` is the
+``#define`` block in ``src/core/structs.h``. ``rol_mob_calculator.py`` is the
 precedent for treating the C side as the authority this way.
 
 ``test_rol_weapon_mapping.py`` fails when the parse stops covering every
@@ -84,7 +84,7 @@ def target_defines(root: Path | None = None) -> dict[str, int]:
   """Harvest every integer ``#define`` the weapon table can reference."""
 
   base = root or default_repo_root()
-  header = (base / "src/structs.h").read_text(encoding="utf-8", errors="ignore")
+  header = (base / "src/core/structs.h").read_text(encoding="utf-8", errors="ignore")
   defines: dict[str, int] = {}
   for name, body in _DEFINE.findall(header):
     value = _evaluate(body.strip(), defines)

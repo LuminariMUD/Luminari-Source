@@ -103,7 +103,7 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 
 ### Core flow
 - `comm.c` - main select()-based game loop, networking, heartbeat scheduling.
-- `interpreter.c` - command parsing. All commands are registered in the `cmd_info[]` table (`src/interpreter.c:119`), declared with `ACMD_DECL()` in `interpreter.h`, implemented as `ACMD(do_xxx)` mostly in `act.*.c` files (act.informative.c, act.wizard.c, plus `obj/act.item.c` and `combat/act.offensive.c`). There is no act.movement.c - movement commands live in `src/movement/`.
+- `interpreter.c` - command parsing. All commands are registered in the `cmd_info[]` table (`src/core/interpreter.c:119`), declared with `ACMD_DECL()` in `interpreter.h`, implemented as `ACMD(do_xxx)` mostly in `act.*.c` files (act.informative.c, act.wizard.c, plus `obj/act.item.c` and `combat/act.offensive.c`). There is no act.movement.c - movement commands live in `src/movement/`.
 - `structs.h` - the central data model (`char_data`, `obj_data`, `room_data`, descriptors). `utils.h` - the macro layer (`GET_LEVEL()`, `IS_NPC()`, `CREATE()`, `GET_SKILL()`, ...). Nearly every .c file includes `conf.h`, `sysdep.h`, `structs.h`, `utils.h` in that order.
 - `db.c` - boots the world from flat files in `lib/world/` (`.zon`, `.wld`, `.mob`, `.obj`, `.shp`, `.trg`) into in-memory arrays. `mysql.c` - MariaDB layer for player/account persistence and many subsystems.
 - `handler.c` - object/character manipulation primitives (equip, extract, move).

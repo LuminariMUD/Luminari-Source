@@ -403,7 +403,7 @@ Plane, and Snake Pit publish distinct owner APIs while deliberately sharing
 Menzoberranzan movement and Narbondel state live in `src/spec/spec_zone_menzoberranzan.c`. All
 twenty-five post-TTF packages have dedicated owner APIs, and the final four retire the last compiled
 callbacks from `src/spec_procs.c`.
-The shared `is_wearing()` equipment predicate now lives in `src/handler.c` beside equip and unequip
+The shared `is_wearing()` equipment predicate now lives in `src/core/handler.c` beside equip and unequip
 operations; its legacy same-VNUM semantics are unchanged.
 After a residual dormant-code audit, `src/spec_procs.c` was removed from both build manifests;
 Phase 07 then removed the top-level assignment source and declaration umbrella. All cross-module
@@ -479,7 +479,7 @@ approved consumer with complete ordering, lifetime, OLC, and persistence coverag
 
 ## Performance Monitoring
 
-The server's single-threaded game loop targets ten pulses per second. `src/perfmon.c` records
+The server's single-threaded game loop targets ten pulses per second. `src/core/perfmon.c` records
 outer-loop utilization, named profiling sections, event-queue activity, pending-character
 extraction, and missed-pulse recovery. The data is available through automatic high-water log
 reports and the implementor-only `perfmon` command.

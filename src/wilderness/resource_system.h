@@ -9,7 +9,7 @@
 #ifndef _RESOURCE_SYSTEM_H_
 #define _RESOURCE_SYSTEM_H_
 
-#include "structs.h"
+#include "core/structs.h"
 
 /* Maximum number of resource types supported */
 #define MAX_RESOURCE_TYPES 16

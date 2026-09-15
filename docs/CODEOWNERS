@@ -10,11 +10,11 @@
 * @LuminariMUD/core-team
 
 # Core Systems
-src/comm.c             @LuminariMUD/core-team
-src/db.c               @LuminariMUD/core-team
-src/interpreter.c      @LuminariMUD/core-team
-src/handler.c          @LuminariMUD/core-team
-src/utils.c            @LuminariMUD/core-team
+src/core/comm.c             @LuminariMUD/core-team
+src/core/db.c               @LuminariMUD/core-team
+src/core/interpreter.c      @LuminariMUD/core-team
+src/core/handler.c          @LuminariMUD/core-team
+src/core/utils.c            @LuminariMUD/core-team
 
 # Combat System
 src/combat/            @LuminariMUD/combat-team

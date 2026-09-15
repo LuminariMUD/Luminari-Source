@@ -13,8 +13,8 @@
 #define REGION_HINTS_H
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
 
 /* Hint Categories */
 #define HINT_ATMOSPHERE 0

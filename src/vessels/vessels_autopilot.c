@@ -11,7 +11,7 @@
  * to avoid conflict between math.h's log() function and the log() macro
  * defined in utils.h. The sequence below ensures correct include order. */
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <inttypes.h>
 #include <math.h>
 #include "vessels.h"

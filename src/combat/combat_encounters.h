@@ -2,7 +2,7 @@
 #define COMBAT_COMBAT_ENCOUNTERS_H
 
 #include "events/domain_events.h"
-#include "structs.h"
+#include "core/structs.h"
 
 enum combat_encounter_departure_reason
 {

@@ -155,7 +155,7 @@ available work and report the burn-in as incomplete with its exact coverage gap.
    when no listener exists. Invoke it only after autorun is healthy and the ports match;
    its fallback is not the burn-in startup path.
 4. Randomize a selection of safe inspection commands across player and staff systems. Trace
-   registrations and handlers in `src/interpreter.c` and the owning subsystem first. Candidates
+   registrations and handlers in `src/core/interpreter.c` and the owning subsystem first. Candidates
    include `score`, `inventory`, `equipment`, `time`, `weather`, `who`, `activity`, `show stats`,
    `eventdebug`, and read-only `perfmon` output. Record exact arguments and verify sensible
    responses; helper success alone does not prove command correctness. Normal

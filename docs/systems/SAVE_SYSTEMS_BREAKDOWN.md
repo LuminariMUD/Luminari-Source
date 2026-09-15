@@ -162,7 +162,7 @@ jointly crash-atomic; pet data is not treated as critical, and no cross-store
 reconciliation is attempted.
 
 Before copyover closes sockets or writes its handoff file, `save_player_pets()`
-in `src/limits.c` snapshots players in the world, including linkdead owners.
+in `src/core/limits.c` snapshots players in the world, including linkdead owners.
 A failed snapshot cancels copyover and leaves live pets and equipment available
 for retry. NPCs and roomless menu characters are skipped. An incomplete pet
 restore prevents snapshot replacement. Unchanged successful snapshots retain
@@ -231,7 +231,7 @@ roomless copy and retain the stored record and inventory. Login decodes every
 active row before publishing any of them: one undecodable row keeps the whole
 roster unpublished and retained. The staged roster is then ordered
 keeper-eligible first, then timed, oldest `pet_data_id` first, and
-`select_restorable_followers()` in `src/utils.c` admits it first-fit against the
+`select_restorable_followers()` in `src/core/utils.c` admits it first-fit against the
 same category accounting used by live admission. Rejected keeper-eligible rows
 are moved to `PET_STATE_STORED` in one transaction before anything is published,
 so the next active snapshot cannot drop them; a rejected timed follower is spent
@@ -258,7 +258,7 @@ is restored before considering legacy owner-description defaults. Malformed
 records remain saved for recovery; `pets restore` offers a bounded retry and skips already published pet IDs.
 
 Follower persistence follows an explicit policy (`pet_lifetime_kind()` in
-`src/utils.c`). Durable followers persist until dismissed, killed, or stored.
+`src/core/utils.c`). Durable followers persist until dismissed, killed, or stored.
 Timed control is carried by the saved charm affect; its remaining duration
 pauses while stored or offline. Deadline followers are those with a live
 `ePURGEMOB` event, plus illusory decoys, which never persist without one. The

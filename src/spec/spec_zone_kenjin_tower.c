@@ -6,15 +6,15 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
-#include "utils.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "movement/door_state.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "handler.h"
-#include "db.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
+#include "core/db.h"
 #include "magic/spells.h"
 #include "act/act.h"
 #include "spec_zone_kenjin_tower.h"

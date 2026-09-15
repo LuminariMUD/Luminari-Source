@@ -3,9 +3,9 @@
 #include <stdint.h>
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "protocol.h"
 #include "msdp_json.h"
 

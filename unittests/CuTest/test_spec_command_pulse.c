@@ -1,13 +1,13 @@
 #include "CuTest.h"
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
-#include "../../src/utils.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/utils.h"
 
-#include "../../src/comm.h"
-#include "../../src/db.h"
-#include "../../src/interpreter.h"
+#include "../../src/core/comm.h"
+#include "../../src/core/db.h"
+#include "../../src/core/interpreter.h"
 #include "../../src/mob/mob_act.h"
 #include "../../src/olc/oasis.h"
 #include "../../src/olc/genwld.h"
@@ -909,7 +909,7 @@ void Test_spec_native_services_and_movement_admission_are_present(CuTest *tc)
 {
   char *source = NULL;
 
-  CuAssertTrue(tc, spec_pulse_read_source("src/comm.c", &source));
+  CuAssertTrue(tc, spec_pulse_read_source("src/core/comm.c", &source));
   CuAssertPtrNotNull(tc, strstr(source, "moving_room_events_bootstrap()"));
   CuAssertPtrNotNull(tc, strstr(source, "rol_avernus_process_garden_activity();"));
   CuAssertPtrEquals(tc, NULL, strstr(source, "mobile_activity_run_legacy_"));
@@ -921,7 +921,7 @@ void Test_spec_native_services_and_movement_admission_are_present(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(source, "character_periodic_sync(ch);"));
   free(source);
   source = NULL;
-  CuAssertTrue(tc, spec_pulse_read_source("src/handler.c", &source));
+  CuAssertTrue(tc, spec_pulse_read_source("src/core/handler.c", &source));
   CuAssertPtrNotNull(tc, strstr(source, "domain_relocation_placed("));
   free(source);
 }
@@ -936,10 +936,10 @@ void Test_spec_vessel_owners_have_native_lifecycle_hooks(CuTest *tc)
   char *combat_source = NULL;
   bool sources_loaded;
 
-  sources_loaded = spec_pulse_read_source("src/comm.c", &comm_source) &&
+  sources_loaded = spec_pulse_read_source("src/core/comm.c", &comm_source) &&
                    spec_pulse_read_source("src/vessels/vessel_periodic.c", &periodic_source) &&
                    spec_pulse_read_source("src/vessels/vessels_rol.c", &rol_source) &&
-                   spec_pulse_read_source("src/handler.c", &handler_source) &&
+                   spec_pulse_read_source("src/core/handler.c", &handler_source) &&
                    spec_pulse_read_source("src/vessels/vessels_edit.c", &edit_source) &&
                    spec_pulse_read_source("src/vessels/vessels_combat.c", &combat_source);
   if (sources_loaded)

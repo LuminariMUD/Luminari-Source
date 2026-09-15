@@ -1651,10 +1651,10 @@ and the trigger was removed.
 | File | Purpose |
 |------|---------|
 | `src/wilderness/wilderness.c` | Coordinate system and room allocation |
-| `src/weather.c` | Weather integration via `get_weather()` |
+| `src/core/weather.c` | Weather integration via `get_weather()` |
 | `src/vessels/vessels_legacy.c` | Boarding special procedure (`greyhawk_ship_object`), establishes critical linkages |
-| `src/interpreter.c` | Command registration |
-| `src/db.c` | Boot sequence integration |
+| `src/core/interpreter.c` | Command registration |
+| `src/core/db.c` | Boot sequence integration |
 | `src/dgscript/dg_scripts.c/h` | Trigger integration for interior movement |
 | `src/database/mysql.c` | Persistence layer (required) |
 

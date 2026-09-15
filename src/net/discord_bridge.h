@@ -10,8 +10,8 @@
 #ifndef _DISCORD_BRIDGE_H_
 #define _DISCORD_BRIDGE_H_
 
-#include "structs.h"
-#include "comm.h"
+#include "core/structs.h"
+#include "core/comm.h"
 
 /* Configuration constants */
 #define DISCORD_BRIDGE_PORT 8181

@@ -10,15 +10,15 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <limits.h>
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
-#include "interpreter.h" /* save_account */
-#include "screen.h"
-#include "mudlim.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/db.h"
+#include "core/interpreter.h" /* save_account */
+#include "core/screen.h"
+#include "core/mudlim.h"
 #include "rewards.h"
 #include "magic/spells.h"
 #include "character/class.h"

@@ -7,8 +7,8 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
 #include "mud_event.h"
 #include "craft/brew.h"
 

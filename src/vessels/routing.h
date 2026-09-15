@@ -6,8 +6,8 @@
 #ifndef _ROUTING_H_ /* Begin header file protection */
 #define _ROUTING_H_
 
-#include "structs.h"
-#include "utils.h"
+#include "core/structs.h"
+#include "core/utils.h"
 
 /* Functions in routing.c. */
 const char *get_transport_zone_entrance_name(int locale, int type);

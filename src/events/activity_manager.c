@@ -1,17 +1,17 @@
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
 #include "activity_manager.h"
 
 #include "actions.h"
-#include "comm.h"
-#include "db.h"
+#include "core/comm.h"
+#include "core/db.h"
 #include "dgscript/dg_event.h"
 #include "domain_event_types.h"
 #include "domain_event_world.h"
 #include "event_runtime.h"
-#include "interpreter.h"
-#include "utils.h"
+#include "core/interpreter.h"
+#include "core/utils.h"
 
 #define ACTIVITY_NAME_SIZE 64U
 

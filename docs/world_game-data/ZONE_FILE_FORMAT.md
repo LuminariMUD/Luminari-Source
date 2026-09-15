@@ -1,7 +1,7 @@
 # Zone File (`.zon`) Format Reference
 
 Zone files live in `lib/world/zon/` and are read by `load_zones()` in
-`src/db.c`. A zone file defines one zone: its vnum range, its reset behavior,
+`src/core/db.c`. A zone file defines one zone: its vnum range, its reset behavior,
 and the list of reset commands that populate it with mobiles and objects.
 
 Everything below is derived from `load_zones()` and `reset_zone()`. Where the

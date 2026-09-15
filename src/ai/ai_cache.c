@@ -28,11 +28,11 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <time.h>
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
 #include "ai_service.h"
 
 /* External reference to global AI state

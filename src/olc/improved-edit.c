@@ -4,15 +4,15 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "db.h"
-#include "comm.h"
-#include "interpreter.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/db.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
 #include "improved-edit.h"
 #include "dgscript/dg_scripts.h"
-#include "modify.h"
+#include "core/modify.h"
 #include "dgscript/dg_olc.h"
 
 void send_editor_help(struct descriptor_data *d)

@@ -4,11 +4,11 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/db.h"
 #include "ai_service.h"
 #include "events/domain_event_runtime.h"
 #include "events/domain_event_world.h"

@@ -120,7 +120,7 @@ See
 [`show_account_menu()`](../../src/player/account.c#L1108) iterates the names loaded from
 `player_data`, then calls `load_char()` for each name. Selecting a menu entry
 also calls `load_char()` with the account's stored name in
-[`interpreter.c`](../../src/interpreter.c#L2761).
+[`interpreter.c`](../../src/core/interpreter.c#L2761).
 
 After the partial rename, these paths asked for `Bartof` while only
 `hartof.plr` existed.
@@ -141,7 +141,7 @@ See [`save_char()`](../../src/player/players.c#L2148). A character loaded by
 silently removes `Acct:` even though `GET_ACCOUNT_NAME(ch)` was loaded.
 
 That omission also breaks the account auto-relink path in
-[`interpreter.c`](../../src/interpreter.c#L2862), which intentionally uses the
+[`interpreter.c`](../../src/core/interpreter.c#L2862), which intentionally uses the
 player-file account name when restoring an unlinked character.
 
 ### 4. Object persistence is keyed by character name

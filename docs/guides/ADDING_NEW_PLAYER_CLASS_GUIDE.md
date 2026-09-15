@@ -95,7 +95,7 @@ Use `-uu` for ignored deployment data. Raw numeric matches are candidates; confi
 format before treating them as class IDs.
 
 ```bash
-rg -n '^#define (CLASS_|NUM_CLASSES|MAX_CLASSES|NUM_CASTERS)' src/structs.h
+rg -n '^#define (CLASS_|NUM_CLASSES|MAX_CLASSES|NUM_CASTERS)' src/core/structs.h
 rg -n '\b(NUM_CLASSES|MAX_CLASSES|NUM_CASTERS)\b' src unittests \
   Makefile.am CMakeLists.txt
 rg -uu -n '^(Clas|PreB|PCAr|PCDi):[[:space:]]+(36|37|38)$' lib/plrfiles
@@ -122,7 +122,7 @@ Never expose database credentials or player-identifying audit results.
 
 When appending a class:
 
-1. Add the new `CLASS_*` value in `src/structs.h` without shifting existing values.
+1. Add the new `CLASS_*` value in `src/core/structs.h` without shifting existing values.
 2. Raise both `NUM_CLASSES` and `MAX_CLASSES`; the code uses both for class-keyed arrays and loops.
 3. Inspect every bound use and fixed-size initializer.
 4. Add range checks before indexing class tables from persisted or user-supplied numbers.
@@ -142,8 +142,8 @@ Update the exact numeric position in each applicable location:
 
 | Location | Required change |
 |----------|-----------------|
-| `src/structs.h` | Permanent `CLASS_*` ID and class bounds |
-| `src/constants.c` | Names, description, preparation, and consign entries |
+| `src/core/structs.h` | Permanent `CLASS_*` ID and class bounds |
+| `src/core/constants.c` | Names, description, preparation, and consign entries |
 | `src/character/class.c` | Complete `load_class_list()` registration |
 | `src/net/onboarding.c` | Media key or intentional fallback |
 | `src/magic/casting_visuals.c` | Casting style for a caster or explicit `NULL` for a noncaster |
@@ -213,11 +213,11 @@ rewards must not be granted there without a persisted guard. For every new resou
 cooldown, companion, or event, cover its complete lifecycle: defaults, gain, use, rest/death,
 respec/reset, event cancellation, save/load, and old-pfile defaults.
 
-If the class adds commands, register the declaration, `cmd_info[]` entry in `src/interpreter.c`,
+If the class adds commands, register the declaration, `cmd_info[]` entry in `src/core/interpreter.c`,
 implementation, permissions, help, and behavior tests. Audit guilds, trainers, class predicates,
 combat/equipment branches, score presentation, and the nearest reference-class content hits.
 
-New feat IDs are permanent values in `src/structs.h`; register them with `feato()` in
+New feat IDs are permanent values in `src/core/structs.h`; register them with `feato()` in
 `src/character/feats.c`. Spells and skill-spells share the number space in
 `src/magic/spells.h`; register them in `mag_assign_spells()` and implement them in the owning
 subsystem. Never recycle released IDs.
@@ -316,7 +316,7 @@ For a caster, trace all of the following rather than stopping at `spell_assignme
 - study choices and preferred caster selection in `src/character/study.c`;
 - casting attribute, DC, resource checks, extraction/consumption, metamagic, and rest recovery in
   `src/magic/spell_parser.c` and `src/magic/spell_prep.c`;
-- caster membership helpers and macros in `src/utils.c` and `src/utils.h`;
+- caster membership helpers and macros in `src/core/utils.c` and `src/core/utils.h`;
 - caster-level and prestige-parent advancement, including `PCAr`/`PCDi` persistence;
 - casting visuals, staff test-character setup, premade choices, crafting/items, and NPC behavior;
   and

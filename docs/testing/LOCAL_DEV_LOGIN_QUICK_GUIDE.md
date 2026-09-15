@@ -1479,7 +1479,7 @@ For the exhaustive vessel release check, use the single-command form:
 ```
 
 It derives every command carrying `CMD_FEATURE_VESSEL` directly from
-`src/interpreter.c`, adds the intentionally ungated boarding and staff recovery
+`src/core/interpreter.c`, adds the intentionally ungated boarding and staff recovery
 commands, and verifies the resulting set in one Kohdee login. The current
 source derives 81 keywords. On August 2, 2026 the first sweep correctly found
 that the development database had not yet received the tracked `SHIPTALK`

@@ -9,25 +9,25 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "string.h"
-#include "comm.h"
+#include "core/comm.h"
 #include "spells.h"
-#include "handler.h"
-#include "db.h"
-#include "constants.h"
+#include "core/handler.h"
+#include "core/db.h"
+#include "core/constants.h"
 #include "character/perks.h"
-#include "interpreter.h"
+#include "core/interpreter.h"
 #include "dgscript/dg_scripts.h"
 #include "act/act.h"
 #include "combat/fight.h"
 #include "events/mud_event.h"
-#include "obj/house.h" /* for house_can_enter() */
-#include "screen.h"    /* for QNRM, etc */
+#include "obj/house.h"   /* for house_can_enter() */
+#include "core/screen.h" /* for QNRM, etc */
 #include "craft/craft.h"
-#include "mudlim.h"
+#include "core/mudlim.h"
 #include "character/rewards.h"
 #include "obj/item.h"
 #include "obj/treasure.h"

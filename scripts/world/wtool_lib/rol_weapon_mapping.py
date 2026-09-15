@@ -4,7 +4,7 @@ Realms of Luminari stores no weapon identity. A source weapon carries a proc
 hook in ``value[0]``, damage dice in ``value[1]``/``value[2]``, and a verb index
 in ``value[3]``; nothing in the record names the weapon. Luminari drives every
 weapon off ``value[0]``, an index into ``weapon_list[]`` (``WEAPON_TYPE_*`` 1..80
-in ``src/structs.h``, populated by ``load_weapons()`` in
+in ``src/core/structs.h``, populated by ``load_weapons()`` in
 ``src/combat/assign_wpn_armor.c``). Passing the source ``value[0]`` through lands
 converted weapons on ``WEAPON_TYPE_UNDEFINED``, which disables criticals, leaves
 the damage-type bitmask empty so damage reduction never bypasses, and matches no
@@ -37,7 +37,7 @@ from pathlib import Path
 import re
 from typing import Any, Callable, Iterable
 
-# Mirrors the WEAPON_TYPE_* block in src/structs.h. test_rol_weapon_mapping.py
+# Mirrors the WEAPON_TYPE_* block in src/core/structs.h. test_rol_weapon_mapping.py
 # reparses that header and fails if the two drift apart.
 WEAPON_TYPE_NAMES: dict[int, str] = {
     0: "WEAPON_TYPE_UNDEFINED",
@@ -182,7 +182,7 @@ AMMO_PAIRED_WEAPON_TYPES = frozenset({
     "WEAPON_TYPE_BLOWGUN",
 })
 
-# Mirrors the AMMO_TYPE_* block in src/structs.h.
+# Mirrors the AMMO_TYPE_* block in src/core/structs.h.
 AMMO_TYPE_NAMES: dict[int, str] = {
     0: "AMMO_TYPE_UNDEFINED",
     1: "AMMO_TYPE_ARROW",
@@ -560,7 +560,7 @@ _RULES: list[tuple[str, Callable[[str], bool], int | _Resolver]] = [
 
 # Tier 3. Weight and damage are deliberately absent: the source weights in this
 # corpus are frequently non-physical, and read_object() clamps ndice at 2 and
-# sdice at 12 (src/olc/oasis.h, src/db.c) so pre-clamp damage does not survive
+# sdice at 12 (src/olc/oasis.h, src/core/db.c) so pre-clamp damage does not survive
 # into the target anyway. Handedness is the only mechanical signal worth
 # branching on.
 _FALLBACK: list[tuple[str, frozenset[int], str, str]] = [

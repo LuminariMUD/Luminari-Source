@@ -24,11 +24,11 @@ retired_sources=("$project_root"/src/pubsub/*.[ch])
 (( ${#retired_sources[@]} == 0 )) || fail "src/pubsub still contains source files"
 
 runtime_files=(
-  "$project_root/src/comm.c"
-  "$project_root/src/db.c"
+  "$project_root/src/core/comm.c"
+  "$project_root/src/core/db.c"
   "$project_root/src/database/db_init.c"
   "$project_root/src/database/db_startup_init.c"
-  "$project_root/src/interpreter.c"
+  "$project_root/src/core/interpreter.c"
   "$project_root/src/player/player_rename.c"
 )
 
@@ -38,7 +38,7 @@ for symbol in pubsub_init pubsub_process_message_queue pubsub_db_create_tables \
 done
 
 for command in '"pubsub"' '"pubsubtopic"' '"pubsubqueue"' '"subscribe"' '"topics"'; do
-  assert_absent "$command" "$project_root/src/interpreter.c"
+  assert_absent "$command" "$project_root/src/core/interpreter.c"
 done
 
 assert_absent "src/pubsub/" "$project_root/Makefile.am" "$project_root/CMakeLists.txt"

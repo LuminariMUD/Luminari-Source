@@ -2,7 +2,7 @@
 #define __TERRAIN_BRIDGE_H__
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
 #define TERRAIN_API_DEFAULT_PORT 8182
 

@@ -6,19 +6,19 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <math.h>
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "db.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/db.h"
 #include "obj/shop.h"
 #include "genolc.h"
 #include "genshp.h"
 #include "genzon.h"
 #include "oasis.h"
-#include "constants.h"
+#include "core/constants.h"
 #include "obj/shop.h"
 
 /* local functions */

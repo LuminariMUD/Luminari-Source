@@ -19,7 +19,7 @@
 #ifndef _ACT_H_
 #define _ACT_H_
 
-#include "utils.h" /* for the ACMD macro */
+#include "core/utils.h" /* for the ACMD macro */
 #include "movement/movement.h"
 
 #define CAN_CMD 0

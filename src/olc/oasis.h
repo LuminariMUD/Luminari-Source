@@ -12,8 +12,8 @@
 #ifndef _OASIS_H_
 #define _OASIS_H_
 
-#include "utils.h" /* for ACMD macro */
-#include "help.h"  /* for help_entry_list */
+#include "core/utils.h" /* for ACMD macro */
+#include "core/help.h"  /* for help_entry_list */
 #include "mob/mob_autoroll.h"
 
 #define _OASISOLC 0x206 /* 2.0.6 */

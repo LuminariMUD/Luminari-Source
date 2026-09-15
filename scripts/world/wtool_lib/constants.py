@@ -32,61 +32,61 @@ class TableSpec:
   end_symbol: str
   prefix: str
   count_symbol: str
-  table_file: str = "src/constants.c"
+  table_file: str = "src/core/constants.c"
   value_kind: str = "index"
   serialized_chunks: int | None = None
   has_sentinel: bool = True
 
 
 TABLE_SPECS = (
-    TableSpec("directions", "dirs", "src/structs.h", "NORTH", "NUM_OF_DIRS", "", "NUM_OF_DIRS"),
+    TableSpec("directions", "dirs", "src/core/structs.h", "NORTH", "NUM_OF_DIRS", "", "NUM_OF_DIRS"),
     TableSpec(
-        "room", "room_bits", "src/structs.h", "ROOM_DARK", "NUM_ROOM_FLAGS", "ROOM_", "NUM_ROOM_FLAGS"
+        "room", "room_bits", "src/core/structs.h", "ROOM_DARK", "NUM_ROOM_FLAGS", "ROOM_", "NUM_ROOM_FLAGS"
     ),
     TableSpec(
-        "zone", "zone_bits", "src/structs.h", "ZONE_CLOSED", "NUM_ZONE_FLAGS", "ZONE_", "NUM_ZONE_FLAGS"
+        "zone", "zone_bits", "src/core/structs.h", "ZONE_CLOSED", "NUM_ZONE_FLAGS", "ZONE_", "NUM_ZONE_FLAGS"
     ),
     TableSpec(
         "sectors",
         "sector_types",
-        "src/structs.h",
+        "src/core/structs.h",
         "SECT_INSIDE",
         "NUM_ROOM_SECTORS",
         "SECT_",
         "NUM_ROOM_SECTORS",
     ),
     TableSpec(
-        "positions", "position_types", "src/structs.h", "POS_DEAD", "NUM_POSITIONS", "POS_", "NUM_POSITIONS"
+        "positions", "position_types", "src/core/structs.h", "POS_DEAD", "NUM_POSITIONS", "POS_", "NUM_POSITIONS"
     ),
     TableSpec(
-        "mob", "action_bits", "src/structs.h", "MOB_SPEC", "NUM_MOB_FLAGS", "MOB_", "NUM_MOB_FLAGS"
+        "mob", "action_bits", "src/core/structs.h", "MOB_SPEC", "NUM_MOB_FLAGS", "MOB_", "NUM_MOB_FLAGS"
     ),
     TableSpec(
-        "affect", "affected_bits", "src/structs.h", "AFF_DONTUSE", "NUM_AFF_FLAGS", "AFF_", "NUM_AFF_FLAGS"
+        "affect", "affected_bits", "src/core/structs.h", "AFF_DONTUSE", "NUM_AFF_FLAGS", "AFF_", "NUM_AFF_FLAGS"
     ),
     TableSpec(
         "affect2",
         "affected2_bits",
-        "src/structs.h",
+        "src/core/structs.h",
         "AFF2_DONTUSE",
         "NUM_AFF2_FLAGS",
         "AFF2_",
         "NUM_AFF2_FLAGS",
     ),
     TableSpec(
-        "item-types", "item_types", "src/structs.h", "ITEM_LIGHT", "NUM_ITEM_TYPES", "ITEM_", "NUM_ITEM_TYPES"
+        "item-types", "item_types", "src/core/structs.h", "ITEM_LIGHT", "NUM_ITEM_TYPES", "ITEM_", "NUM_ITEM_TYPES"
     ),
     TableSpec(
         "obj-wear",
         "wear_bits",
-        "src/structs.h",
+        "src/core/structs.h",
         "ITEM_WEAR_TAKE",
         "NUM_ITEM_WEARS",
         "ITEM_WEAR_",
         "NUM_ITEM_WEARS",
     ),
     TableSpec(
-        "obj-extra", "extra_bits", "src/structs.h", "ITEM_GLOW", "NUM_ITEM_FLAGS", "ITEM_", "NUM_ITEM_FLAGS"
+        "obj-extra", "extra_bits", "src/core/structs.h", "ITEM_GLOW", "NUM_ITEM_FLAGS", "ITEM_", "NUM_ITEM_FLAGS"
     ),
     TableSpec(
         "quest-types",
@@ -128,42 +128,42 @@ LIMIT_SPECS = {
     "MAX_CONTAINER_SIZE": "src/olc/oasis.h",
     "MAX_NUMBER_OF_ACTIVATED_SPELL_USES": "src/magic/spells.h",
     "MAX_PEOPLE": "src/olc/oasis.h",
-    "READ_SIZE": "src/utils.h",
-    "MAX_STRING_LENGTH": "src/structs.h",
-    "MAX_PATH": "src/structs.h",
-    "MAX_FILEPATH": "src/structs.h",
-    "MAX_OBJ_AFFECT": "src/structs.h",
-    "MAX_WEAPON_SPELLS": "src/structs.h",
-    "MAX_MOVING_ROOMS": "src/structs.h",
-    "NUM_WEARS": "src/structs.h",
+    "READ_SIZE": "src/core/utils.h",
+    "MAX_STRING_LENGTH": "src/core/structs.h",
+    "MAX_PATH": "src/core/structs.h",
+    "MAX_FILEPATH": "src/core/structs.h",
+    "MAX_OBJ_AFFECT": "src/core/structs.h",
+    "MAX_WEAPON_SPELLS": "src/core/structs.h",
+    "MAX_MOVING_ROOMS": "src/core/structs.h",
+    "NUM_WEARS": "src/core/structs.h",
     "MAX_SHOP_OBJ": "src/obj/shop.h",
     "MAX_SPELLS": "src/magic/spells.h",
     "MAX_PROD": "src/obj/shop.h",
     "MAX_TRADE": "src/obj/shop.h",
-    "NUM_ATTACK_TYPES": "src/structs.h",
-    "NUM_CLASSES": "src/structs.h",
-    "NUM_CONT_FLAGS": "src/structs.h",
-    "NUM_FEATS": "src/structs.h",
-    "NUM_GENDERS": "src/structs.h",
-    "NUM_LIQ_TYPES": "src/structs.h",
-    "NUM_PORTAL_TYPES": "src/structs.h",
-    "NUM_RACE_TYPES": "src/structs.h",
-    "NUM_SIZES": "src/structs.h",
+    "NUM_ATTACK_TYPES": "src/core/structs.h",
+    "NUM_CLASSES": "src/core/structs.h",
+    "NUM_CONT_FLAGS": "src/core/structs.h",
+    "NUM_FEATS": "src/core/structs.h",
+    "NUM_GENDERS": "src/core/structs.h",
+    "NUM_LIQ_TYPES": "src/core/structs.h",
+    "NUM_PORTAL_TYPES": "src/core/structs.h",
+    "NUM_RACE_TYPES": "src/core/structs.h",
+    "NUM_SIZES": "src/core/structs.h",
     "NUM_SPELLS": "src/magic/spells.h",
     "NUM_SPECABS": "src/combat/spec_abilities.h",
-    "NUM_SUB_RACES": "src/structs.h",
-    "NUM_TRAP_SPECIAL_EFFECTS": "src/structs.h",
-    "NUM_TRAP_TRIGGERS": "src/structs.h",
-    "PORTAL_CHECKFLAGS": "src/structs.h",
-    "PORTAL_CLANHALL": "src/structs.h",
-    "PORTAL_NORMAL": "src/structs.h",
-    "PORTAL_RANDOM": "src/structs.h",
-    "RQ_MAXSIZE": "src/db.h",
-    "SPELLBOOK_SIZE": "src/structs.h",
-    "LVL_IMPL": "src/structs.h",
+    "NUM_SUB_RACES": "src/core/structs.h",
+    "NUM_TRAP_SPECIAL_EFFECTS": "src/core/structs.h",
+    "NUM_TRAP_TRIGGERS": "src/core/structs.h",
+    "PORTAL_CHECKFLAGS": "src/core/structs.h",
+    "PORTAL_CLANHALL": "src/core/structs.h",
+    "PORTAL_NORMAL": "src/core/structs.h",
+    "PORTAL_RANDOM": "src/core/structs.h",
+    "RQ_MAXSIZE": "src/core/db.h",
+    "SPELLBOOK_SIZE": "src/core/structs.h",
+    "LVL_IMPL": "src/core/structs.h",
     "ITEM_SPECAB_HORN_OF_SUMMONING": "src/combat/spec_abilities.h",
     "ITEM_SPECAB_ITEM_SUMMON": "src/combat/spec_abilities.h",
-    "MAX_GOLD": "src/structs.h",
+    "MAX_GOLD": "src/core/structs.h",
     "MAX_QUEST_DESC": "src/quest/quest.h",
     "MAX_QUEST_MSG": "src/quest/quest.h",
     "MAX_QUEST_NAME": "src/quest/quest.h",
@@ -174,9 +174,9 @@ LIMIT_SPECS = {
     "NUM_DOMAIN_PHENOMENON_KINDS": "src/events/domain_event_types.h",
     "NUM_CHURCHES": "src/character/class.h",
     "NUM_MISSION_DIFFICULTIES": "src/quest/missions.h",
-    "RACE_LICH": "src/structs.h",
-    "RACE_UNDEFINED": "src/structs.h",
-    "RACE_VAMPIRE": "src/structs.h",
+    "RACE_LICH": "src/core/structs.h",
+    "RACE_UNDEFINED": "src/core/structs.h",
+    "RACE_VAMPIRE": "src/core/structs.h",
     "SPELL_RESERVED_DBC": "src/magic/spells.h",
     "TOP_SKILL_DEFINE": "src/magic/spells.h",
 }
@@ -190,10 +190,10 @@ TRIGGER_SPECS = (
 
 
 SYMBOL_SPECS = (
-    ("classes", "src/structs.h", "CLASS_WIZARD", "NUM_CLASSES", "CLASS_"),
-    ("race-types", "src/structs.h", "RACE_TYPE_UNKNOWN", "NUM_RACE_TYPES", "RACE_TYPE_"),
-    ("subraces", "src/structs.h", "SUBRACE_UNKNOWN", "NUM_SUB_RACES", "SUBRACE_"),
-    ("sizes", "src/structs.h", "SIZE_RESERVED", "NUM_SIZES", "SIZE_"),
+    ("classes", "src/core/structs.h", "CLASS_WIZARD", "NUM_CLASSES", "CLASS_"),
+    ("race-types", "src/core/structs.h", "RACE_TYPE_UNKNOWN", "NUM_RACE_TYPES", "RACE_TYPE_"),
+    ("subraces", "src/core/structs.h", "SUBRACE_UNKNOWN", "NUM_SUB_RACES", "SUBRACE_"),
+    ("sizes", "src/core/structs.h", "SIZE_RESERVED", "NUM_SIZES", "SIZE_"),
 )
 
 
@@ -579,7 +579,7 @@ def _extract_limit(repo_root: Path, symbol: str, source_path: str) -> int:
 
 def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
   root = (repo_root or default_repo_root()).resolve()
-  constants_text = (root / "src/constants.c").read_text(encoding="utf-8")
+  constants_text = (root / "src/core/constants.c").read_text(encoding="utf-8")
   tables: dict[str, Any] = {}
   symbol_groups: dict[str, Any] = {}
   direction_values: dict[str, int] = {}
@@ -696,7 +696,7 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
     raise ExtractionError("rev_dir contains an out-of-range direction")
   for entry, reverse in zip(direction_entries, reverse_directions, strict=True):
     entry["reverse_index"] = reverse
-  tables["directions"]["reverse_source"] = "src/constants.c:rev_dir"
+  tables["directions"]["reverse_source"] = "src/core/constants.c:rev_dir"
 
   wear_source = (root / "src/obj/act.item.c").read_text(encoding="utf-8")
   wear_match = re.search(r"int\s+wear_bitvectors\[\]\s*=\s*\{(.*?)\};", wear_source, re.DOTALL)
@@ -706,7 +706,7 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
   equipment_names = _extract_array(constants_text, "equipment_types")
   if equipment_names and equipment_names[-1] == "\n":
     equipment_names.pop()
-  num_wears = _extract_limit(root, "NUM_WEARS", "src/structs.h")
+  num_wears = _extract_limit(root, "NUM_WEARS", "src/core/structs.h")
   if len(wear_macros) != num_wears or len(equipment_names) != num_wears:
     raise ExtractionError(
         "wear_bitvectors/equipment_types do not match NUM_WEARS: "
@@ -717,7 +717,7 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
   }
   tables["wear-slots"] = {
       "source_table": "src/obj/act.item.c:perform_wear.wear_bitvectors",
-      "source_names": "src/constants.c:equipment_types",
+      "source_names": "src/core/constants.c:equipment_types",
       "entries": [
           {
               "index": index,
@@ -755,7 +755,7 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
           }
       )
     tables[key] = {
-        "source_table": f"src/constants.c:{table_name}",
+        "source_table": f"src/core/constants.c:{table_name}",
         "source_defines": f"src/dgscript/dg_scripts.h:{start_symbol}",
         "entries": entries,
     }
@@ -768,16 +768,16 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
       for symbol, source_path in sorted(LIMIT_SPECS.items())
   }
   limits["NUM_CITIES"] = {
-      "value": _extract_limit(root, "NUM_CITIES", "src/structs.h"),
-      "source": "src/structs.h:NUM_CITIES",
+      "value": _extract_limit(root, "NUM_CITIES", "src/core/structs.h"),
+      "source": "src/core/structs.h:NUM_CITIES",
   }
   limits["NUM_FACTIONS"] = {
-      "value": _extract_limit(root, "NUM_FACTIONS", "src/structs.h"),
-      "source": "src/structs.h:NUM_FACTIONS",
+      "value": _extract_limit(root, "NUM_FACTIONS", "src/core/structs.h"),
+      "source": "src/core/structs.h:NUM_FACTIONS",
   }
   limits["NUM_REGIONS"] = {
-      "value": _extract_limit(root, "NUM_REGIONS", "src/structs.h"),
-      "source": "src/structs.h:NUM_REGIONS",
+      "value": _extract_limit(root, "NUM_REGIONS", "src/core/structs.h"),
+      "source": "src/core/structs.h:NUM_REGIONS",
   }
   return {
       "schema_version": MANIFEST_SCHEMA_VERSION,

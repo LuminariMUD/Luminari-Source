@@ -12,7 +12,7 @@
 #ifndef _HOUSE_H_
 #define _HOUSE_H_
 
-#include "persistence.h"
+#include "core/persistence.h"
 
 /* NOTE: learned the hard way, changing (one or both) of these will destroy the houses in the
          game apparently -Zusuk */

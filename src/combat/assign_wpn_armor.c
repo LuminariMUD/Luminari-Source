@@ -5,11 +5,11 @@
  *****************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "comm.h"
-#include "utils.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/comm.h"
+#include "core/utils.h"
+#include "core/db.h"
 #include "events/mud_event.h"
 #include "events/actions.h"
 #include "events/actionqueues.h"
@@ -17,11 +17,11 @@
 #include "projectiles.h"
 #include "craft/craft.h"
 #include "character/feats.h"
-#include "constants.h"
-#include "modify.h"
+#include "core/constants.h"
+#include "core/modify.h"
 #include "magic/domains_schools.h"
 #include "spec_abilities.h"
-#include "handler.h"
+#include "core/handler.h"
 #include "magic/spells.h"
 
 /* global */

@@ -14,11 +14,11 @@
 #include <sys/stat.h>
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
-#include "../../src/utils.h"
-#include "../../src/db.h"
-#include "../../src/handler.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/utils.h"
+#include "../../src/core/db.h"
+#include "../../src/core/handler.h"
 #include "../../src/magic/spells.h"
 #include "../../src/obj/spec_artifacts.h"
 #include "../../src/spec/spec_registry.h"

@@ -4,19 +4,19 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
-#include "structs.h"
+#include "core/structs.h"
 #include "movement/door_state.h"
-#include "utils.h"
+#include "core/utils.h"
 
 #include "act/act.h"
-#include "comm.h"
-#include "constants.h"
-#include "db.h"
-#include "handler.h"
-#include "helpers.h"
-#include "interpreter.h"
+#include "core/comm.h"
+#include "core/constants.h"
+#include "core/db.h"
+#include "core/handler.h"
+#include "core/helpers.h"
+#include "core/interpreter.h"
 #include "movement/movement.h"
 #include "spec_dispatch.h"
 #include "spec_rol_conversion.h"

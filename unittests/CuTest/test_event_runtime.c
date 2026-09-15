@@ -1,12 +1,12 @@
 #include "CuTest.h"
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
-#include "../../src/comm.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/comm.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/events/event_runtime.h"
-#include "../../src/perfmon.h"
+#include "../../src/core/perfmon.h"
 
 #include <stdlib.h>
 #include <string.h>

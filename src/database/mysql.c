@@ -7,18 +7,18 @@
 */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <stdint.h>
 #include <limits.h>
 #include <stdatomic.h>
 #include <math.h>
-#include "structs.h"
-#include "utils.h"
-#include "db.h"
-#include "comm.h"
-#include "modify.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/db.h"
+#include "core/comm.h"
+#include "core/modify.h"
 #include "mysql.h"
-#include "perfmon.h"
+#include "core/perfmon.h"
 
 #include "wilderness/wilderness.h"
 #include "events/mud_event.h"

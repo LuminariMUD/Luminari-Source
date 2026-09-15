@@ -39,20 +39,20 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/db.h"
 #include "dgscript/dg_event.h"
 #include "event_runtime.h"
-#include "constants.h"
-#include "comm.h" /* For access to the game pulse */
+#include "core/constants.h"
+#include "core/comm.h" /* For access to the game pulse */
 #include "domain_event_runtime.h"
 #include "domain_event_world.h"
 #include "active_world.h"
-#include "lists.h"
+#include "core/lists.h"
 #include "mud_event.h"
-#include "handler.h"
+#include "core/handler.h"
 #include "wilderness/wilderness.h"
 #include "quest/quest.h"
 #include "database/mysql.h"

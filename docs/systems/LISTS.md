@@ -1,6 +1,6 @@
 # Generic Lists System
 
-The generic list implementation lives in `src/lists.c` and `src/lists.h`. It is a doubly linked
+The generic list implementation lives in `src/core/lists.c` and `src/core/lists.h`. It is a doubly linked
 list of caller-owned opaque pointers (`void *`) for groups, event ownership, craft requirements,
 temporary target collections, and other small in-game collections.
 

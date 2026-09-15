@@ -1101,7 +1101,7 @@ def _capability_classification(kind: str, token: str) -> tuple[str, str, str]:
   if kind == "qst":
     return "A", "owned quest-to-HLQ adapter", "src/quest/hlquest.c"
   if kind == "zon" and token in {"F", "X", "T"}:
-    return "A", "owned extended-reset adapter", "src/db.c"
+    return "A", "owned extended-reset adapter", "src/core/db.c"
   if kind == "shp" and token not in {"SHOP", "ROOM", "PO", "BT", "PROFIT", "HOURS"}:
     return "A", "owned extended-shop adapter", "src/obj/shop.c"
   if kind in {"wld", "mob", "obj", "zon", "shp"}:

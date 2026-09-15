@@ -1,9 +1,9 @@
 # Player Races Reference
 
 Status: source-backed reference, verified 2026-09-11 against `src/character/race.c`,
-`src/player/account.c`, `src/structs.h`, `src/quest/quest.c`, `src/quest/hlquest.c`,
-`src/spec/spec_rol_conversion.c`, `src/character/feats.c`, `src/constants.c`,
-`src/combat/fight.c`, and `src/limits.c`.
+`src/player/account.c`, `src/core/structs.h`, `src/quest/quest.c`, `src/quest/hlquest.c`,
+`src/spec/spec_rol_conversion.c`, `src/character/feats.c`, `src/core/constants.c`,
+`src/combat/fight.c`, and `src/core/limits.c`.
 
 This document is the reference center for playable (player-character) races. It
 lists every race a player can hold, its ability modifiers, size, alignment
@@ -30,7 +30,7 @@ Source of truth for every table below:
 
 | Data | Where it is defined |
 |------|---------------------|
-| Race IDs and synonyms | `src/structs.h` (`RACE_*` defines, `NUM_EXTENDED_RACES`) |
+| Race IDs and synonyms | `src/core/structs.h` (`RACE_*` defines, `NUM_EXTENDED_RACES`) |
 | Registry entries | `assign_races()` in `src/character/race.c` via `add_race()`, `set_race_abilities()`, `set_race_alignments()`, `set_race_attack_types()`, `set_race_wear_restriction()`, `feat_race_assignment()`, and `race_list[].racial_language` |
 | Unlock and availability | `is_locked_race()`, `has_unlocked_race()`, `locked_race_cost()`, `do_accexp()` in `src/player/account.c`; `race_is_creation_eligible()`, `race_is_selectable_for_creation()` in `src/character/race.c` |
 | Feat text | `feato()` calls in `assign_feats()` in `src/character/feats.c` |
@@ -68,7 +68,7 @@ enforced: the check in `src/character/class.c` is commented out and marked
 "disabled!".
 
 Racial ability modifiers come only from the registry (`set_race_abilities()`).
-The older per-race switches in `comp_base_str()` and friends in `src/utils.c`
+The older per-race switches in `comp_base_str()` and friends in `src/core/utils.c`
 are commented out and inactive.
 
 ## Playable races at a glance
@@ -331,7 +331,7 @@ computes these numbers. It exists so that new races land in a consistent
 place and existing races can be measured against the same yardstick. The
 mechanical facts it rests on (ability modifiers, feat effects, size modifiers)
 are traced from `src/character/race.c`, `src/character/feats.c`,
-`src/constants.c`, `src/combat/fight.c`, and `src/limits.c`.
+`src/core/constants.c`, `src/combat/fight.c`, and `src/core/limits.c`.
 
 ### Why a point budget
 

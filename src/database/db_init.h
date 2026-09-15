@@ -12,10 +12,10 @@
 #define DB_INIT_H
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/db.h"
 
 #define PET_PERSISTENCE_SCHEMA_VERSION 2026091007
 #define HELP_SYNC_SCHEMA_VERSION 2026082408

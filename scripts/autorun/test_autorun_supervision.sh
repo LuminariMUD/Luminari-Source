@@ -66,7 +66,7 @@ test_planned_reboot_exit()
   local shell_exit
 
   c_exit=$(awk '$1 == "#define" && $2 == "MUD_EXIT_REBOOT" {print $3}' \
-    "$project_root/src/comm.h")
+    "$project_root/src/core/comm.h")
   shell_exit=$(awk -F= '$1 == "readonly MUD_EXIT_REBOOT" {print $2}' \
     "$project_root/scripts/autorun/autorun.sh")
   [[ -n "$c_exit" ]] && [[ "$c_exit" == "$shell_exit" ]] ||

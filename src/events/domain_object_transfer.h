@@ -1,7 +1,7 @@
 #ifndef DOMAIN_OBJECT_TRANSFER_H
 #define DOMAIN_OBJECT_TRANSFER_H
 
-#include "structs.h"
+#include "core/structs.h"
 
 struct domain_transfer_context
 {

@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl Version: Keep in sync with src/constants.c, src/structs.h, CMakeLists.txt
+dnl Version: Keep in sync with src/core/constants.c, src/core/structs.h, CMakeLists.txt
 AC_INIT([LuminariMUD],[2.5063-beta],[bugs@luminarimud.com])
 AC_CONFIG_SRCDIR([src/act/act.comm.c])
 AM_INIT_AUTOMAKE([foreign subdir-objects])

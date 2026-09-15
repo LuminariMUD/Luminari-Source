@@ -8,15 +8,15 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
 #include "wilderness_crafting_bridge.h"
 #include "resource_system.h"
 #include "craft/crafting_new.h"
 #include "campaign.h"
-#include "utils.h"
-#include "comm.h"
-#include "constants.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/constants.h"
 
 /**
  * Convert wilderness material category to crafting material group

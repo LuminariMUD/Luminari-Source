@@ -19,7 +19,7 @@ This document provides comprehensive information about all room flags (ROOM_*) u
 
 ## Overview
 
-Room flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `ROOM_FLAGGED()` macro. There are currently 48 room flags (indices 0-47) that control everything from movement restrictions to magical effects.
+Room flags are bitflags defined in `src/core/structs.h` and are checked throughout the codebase using the `ROOM_FLAGGED()` macro. There are currently 48 room flags (indices 0-47) that control everything from movement restrictions to magical effects.
 
 **Usage Pattern:**
 ```c
@@ -182,8 +182,8 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Added for converted Realms of Luminari rooms whose arena identity is flag-based
 
 **Code References:**
-- `src/utils.h` - Arena-room classification (`IS_ARENA()`, `IN_ARENA()`)
-- `src/utils.c` - Arena bypass for PvP eligibility (`pvp_ok()`, `pvp_ok_single()`)
+- `src/core/utils.h` - Arena-room classification (`IS_ARENA()`, `IN_ARENA()`)
+- `src/core/utils.c` - Arena bypass for PvP eligibility (`pvp_ok()`, `pvp_ok_single()`)
 - `src/combat/fight.c` - Arena combat and death handling
 
 ### ROOM_DEATH (Index: 1)
@@ -225,7 +225,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for buildings, caves, and sheltered areas
 
 **Code References:**
-- `src/utils.c` - Weather and outdoor checks (`is_room_outdoors()`, `ultra_blind()`)
+- `src/core/utils.c` - Weather and outdoor checks (`is_room_outdoors()`, `ultra_blind()`)
 - `src/movement/movement.c` - Outdoor transition detection (`do_leave()`)
 - `src/vessels/vessels_rooms.c` - Vehicle room templates (`load_ship_room_templates_from_db()`, `create_ship_room()`, `room_has_outside_view()`)
 
@@ -236,7 +236,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for healing sanctuaries and rest areas
 
 **Code References:**
-- `src/limits.c` - HP regeneration doubling (`regen_hps()`)
+- `src/core/limits.c` - HP regeneration doubling (`regen_hps()`)
 - `src/magic/spell_prep.c` - Spell preparation bonus (`compute_spells_prep_time()`)
 
 ### ROOM_NO_PRECIP (Index: 42)
@@ -246,7 +246,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used by converted Realms of Luminari `NO_PRECIP` rooms
 
 **Code References:**
-- `src/weather.c` - Weather-message filtering (`sect_no_weather()`)
+- `src/core/weather.c` - Weather-message filtering (`sect_no_weather()`)
 
 ### ROOM_PSP_REGEN (Index: 45)
 **Effect:** Doubles the net PSP gained during each non-combat regeneration tick.
@@ -255,7 +255,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used by converted Realms of Luminari `PSPREGEN` rooms
 
 **Code References:**
-- `src/limits.c` - PSP tick acceleration (`regen_psp()`)
+- `src/core/limits.c` - PSP tick acceleration (`regen_psp()`)
 
 ### ROOM_ROL_HOME_RESET (Index: 46)
 **Effect:** Updates an NPC's remembered home room after it successfully walks out of the marked room.
@@ -284,7 +284,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for cursed areas and unholy ground
 
 **Code References:**
-- `src/limits.c` - Regeneration blocking (`regen_hps()`)
+- `src/core/limits.c` - Regeneration blocking (`regen_hps()`)
 
 ---
 
@@ -298,7 +298,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Stacks with ROOM_MAGICDARK for absolute darkness
 
 **Code References:**
-- `src/utils.c` - Darkness calculations (`room_is_daylit()`, `room_is_dark()`, `is_room_in_sunlight()`)
+- `src/core/utils.c` - Darkness calculations (`room_is_daylit()`, `room_is_dark()`, `is_room_in_sunlight()`)
 - `src/wilderness/desc_engine.c` - Dynamic description generation (`gen_room_description()`)
 - `src/magic/magic.c` - Darkness spell interaction (`mag_room()`)
 - `src/events/mud_event.c` - Temporary darkness removal (`event_countdown()`)
@@ -311,7 +311,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for shadow magic zones and deep darkness effects
 
 **Code References:**
-- `src/utils.c` - Darkness calculations (`room_is_daylit()`, `room_is_dark()`, `is_room_in_sunlight()`)
+- `src/core/utils.c` - Darkness calculations (`room_is_daylit()`, `room_is_dark()`, `is_room_in_sunlight()`)
 - `src/act/act.informative.c` - Display and description handling (`look_at_room_number()`, `look_at_room()`, `do_scan()`)
 
 ### ROOM_MAGICLIGHT (Index: 23)
@@ -321,7 +321,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for magically illuminated areas
 
 **Code References:**
-- `src/utils.c` - Light calculation override (`room_is_dark()`)
+- `src/core/utils.c` - Light calculation override (`room_is_dark()`)
 
 ### ROOM_FOG (Index: 27)
 **Effect:** Creates fog that obscures vision and limits visibility.
@@ -335,7 +335,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - `src/act/act.informative.c` - Vision restrictions (`look_at_room_number()`, `look_at_room()`, `look_in_direction()`)
 - `src/movement/asciimap.c` - Automap limitation (`do_map()`)
 - `src/magic/spells.c` - Gust of wind removes fog (`perform_dispel()`)
-- `src/utils.c` - Weather and vision checks (`ultra_blind()`, `is_room_in_sunlight()`)
+- `src/core/utils.c` - Weather and vision checks (`ultra_blind()`, `is_room_in_sunlight()`)
 
 ### ROOM_NOTRACK (Index: 6)
 **Effect:** Prevents tracking abilities from working through this room.
@@ -362,7 +362,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 
 **Code References:**
 - `src/obj/house.c` - House management (`find_house()`, `hcontrol_build_house()`, `hcontrol_destroy_house()`)
-- `src/handler.c` - Crash save integration (`obj_to_room()`, `obj_from_room()`)
+- `src/core/handler.c` - Crash save integration (`obj_to_room()`, `obj_from_room()`)
 - `src/act/act.wizard.c` - Teleport restrictions and admin tools (`find_target_room()`, `do_switch()`, `do_zcheck()`)
 
 ### ROOM_HOUSE_CRASH (Index: 12)
@@ -374,7 +374,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 
 **Code References:**
 - `src/obj/house.c` - Save operations (`hcontrol_destroy_house()`, `hcontrol_pay_house()`)
-- `src/handler.c` - Auto-flagging on item changes (`obj_to_room()`, `obj_from_room()`)
+- `src/core/handler.c` - Auto-flagging on item changes (`obj_to_room()`, `obj_from_room()`)
 - `src/olc/hsedit.c` - House editor cleanup (`hsedit_delete_house()`)
 
 ### ROOM_ATRIUM (Index: 13)
@@ -511,7 +511,7 @@ code, so do not expect to find it there.
 
 **Code References:**
 - `src/combat/traps_new.c` - Forced trap generation (`auto_generate_object_trap()`, `auto_generate_zone_traps()`)
-- `src/db.c` - Zone loading trap setup (`reset_zone()`)
+- `src/core/db.c` - Zone loading trap setup (`reset_zone()`)
 
 ### ROOM_RANDOM_CHEST (Index: 37)
 **Effect:** Marks room as eligible for random treasure chest spawning.
@@ -656,11 +656,11 @@ code, so do not expect to find it there.
 ## Code References
 
 **Primary Files:**
-- `src/structs.h` - Flag definitions (the `ROOM_*` define block ending at `ROOM_ROL_ASTRAL`)
+- `src/core/structs.h` - Flag definitions (the `ROOM_*` define block ending at `ROOM_ROL_ASTRAL`)
 - `src/movement/movement.c` - Movement restriction checks
 - `src/magic/spell_parser.c` - Magic restriction checks
 - `src/combat/fight.c` - Combat restriction checks
-- `src/utils.c` - Light and vision calculations
+- `src/core/utils.c` - Light and vision calculations
 - `src/act/act.informative.c` - Room description handling
 - `src/obj/house.c` - House system integration
 - `src/vessels/vessels_rooms.c` - Vehicle system integration

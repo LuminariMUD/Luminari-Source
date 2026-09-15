@@ -2,7 +2,7 @@
  "comment": [
   "Curated weapon-type overrides for Realms of Luminari source objects whose",
   "text is evocative but names no standard weapon. Keys are source object",
-  "vnums; weapon_type names a WEAPON_TYPE_* constant from src/structs.h.",
+  "vnums; weapon_type names a WEAPON_TYPE_* constant from src/core/structs.h.",
   "Loaded by wtool_lib/rol_weapon_mapping.py as inference tier 1, ahead of the",
   "keyword rules and the mechanical fallback matrix.",
   "Builder placeholders (the 7073-7098 quest-weapon templates, the noshow",

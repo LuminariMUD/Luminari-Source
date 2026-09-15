@@ -21,7 +21,7 @@
 
 > ### Adding help content: read this first
 >
-> The help system runs in **dual mode** (`load_help()` in `src/db.c`), and the file half has a
+> The help system runs in **dual mode** (`load_help()` in `src/core/db.c`), and the file half has a
 > trap that silently swallows new content.
 >
 > **The file loader does not scan `lib/text/help/`.** It reads
@@ -243,7 +243,7 @@ CREATE TABLE help_related_topics (
 
 ### Key Data Structures
 
-#### help_entry_list (src/help.h)
+#### help_entry_list (src/core/help.h)
 ```c
 struct help_entry_list {
     char *tag;           // Unique identifier
@@ -256,7 +256,7 @@ struct help_entry_list {
 };
 ```
 
-#### help_cache_entry (src/help.c)
+#### help_cache_entry (src/core/help.c)
 ```c
 struct help_cache_entry {
     char *argument;      // Search term
@@ -273,7 +273,7 @@ struct help_cache_entry {
 
 ### help - Main Help Command
 **Usage:** `help [topic]`
-- **Location:** src/help.c:1233 (do_help)
+- **Location:** src/core/help.c:1233 (do_help)
 - **Access:** All players (POS_DEAD)
 - **Features:**
   - No arguments: Shows default help screen
@@ -284,7 +284,7 @@ struct help_cache_entry {
 
 ### helpsearch - Full-text Search
 **Usage:** `helpsearch <search term>`
-- **Location:** src/help.c:1647 (do_helpsearch)
+- **Location:** src/core/help.c:1647 (do_helpsearch)
 - **Access:** All players (POS_DEAD)
 - **Features:**
   - Searches within help content (not just keywords)
@@ -347,7 +347,7 @@ struct help_cache_entry {
 ### Algorithm Details
 
 #### Primary Search (search_help)
-**Location:** src/help.c:161
+**Location:** src/core/help.c:161
 ```c
 1. Check cache for recent queries
 2. Normalize search term (lowercase, trim)
@@ -359,14 +359,14 @@ struct help_cache_entry {
 ```
 
 #### Soundex Fuzzy Search
-**Location:** src/help.c:550
+**Location:** src/core/help.c:550
 - Uses MySQL SOUNDEX() function
 - Finds phonetically similar keywords
 - Suggests alternatives for typos
 - Example: "comand" suggests "command"
 
 #### Full-text Search
-**Location:** src/help.c:search_help_fulltext
+**Location:** src/core/help.c:search_help_fulltext
 - Searches within help content
 - Case-insensitive LIKE queries
 - Returns all matching entries
@@ -384,7 +384,7 @@ struct help_cache_entry {
 ### Cache Operations
 
 #### Cache Lookup (get_cached_help)
-**Location:** src/help.c
+**Location:** src/core/help.c
 1. Iterate through cache entries
 2. Match on argument AND level
 3. Check timestamp validity
@@ -477,7 +477,7 @@ struct help_handler {
 12. **Soundex Handler** - Fuzzy search suggestions
 
 ### Handler Registration
-**Location:** src/help.c (init_help_handlers)
+**Location:** src/core/help.c (init_help_handlers)
 ```c
 void init_help_handlers(void) {
     register_help_handler("database", handle_database_help);
@@ -773,7 +773,7 @@ tar -xzf help_files.tar.gz -C /
 ### Debug Mode
 Enable help system debugging:
 ```c
-#define HELP_DEBUG 1  // In src/help.c
+#define HELP_DEBUG 1  // In src/core/help.c
 ```
 
 Debug output includes:
@@ -819,27 +819,27 @@ Debug output includes:
 # File System Reference
 
 ## Core Implementation Files
-- **`src/help.c`** (1296 lines) - Main help system implementation, search functions, display logic
-- **`src/help.h`** (89 lines) - Help system data structures and function declarations
+- **`src/core/help.c`** (1296 lines) - Main help system implementation, search functions, display logic
+- **`src/core/help.h`** (89 lines) - Help system data structures and function declarations
 - **`src/olc/hedit.c`** (1847 lines) - OLC help editor implementation, database operations
 - **`src/olc/hedit.h`** (31 lines) - Help editor declarations and command definitions
 
 ## Database Integration
-- **`src/db.c`** - Contains `load_help()` function for file-based loading, help_table management
-- **`src/db.h`** - Defines `help_index_element` structure, declares help_table global
+- **`src/core/db.c`** - Contains `load_help()` function for file-based loading, help_table management
+- **`src/core/db.h`** - Defines `help_index_element` structure, declares help_table global
 - **`src/database/mysql.c`** - MySQL connection handling, escape functions used by help system
 - **`src/database/db_init.c`** - Database table creation and initialization
 
 ## Command Integration
-- **`src/interpreter.c`** - Registers help commands (help, hedit, helpcheck, hindex, helpgen)
+- **`src/core/interpreter.c`** - Registers help commands (help, hedit, helpcheck, hindex, helpgen)
 - **`src/act/act.h`** - Command declarations
-- **`src/comm.c`** - Uses help_table for initial help display
+- **`src/core/comm.c`** - Uses help_table for initial help display
 
 ## OLC Framework
 - **`src/olc/oasis.h`** - OLC data structures used by hedit
 - **`src/olc/oasis.c`** - OLC framework functions
 - **`src/olc/genolc.c`** - Generic OLC functions
-- **`src/modify.c`** - String editing functions for help text
+- **`src/core/modify.c`** - String editing functions for help text
 
 ## Data Files
 - **`lib/text/help/help.hlp`** (799,709 bytes) - Legacy help file database
@@ -862,7 +862,7 @@ Debug output includes:
 
 ## Appendix A: Configuration Constants
 
-### Cache Settings (src/help.c)
+### Cache Settings (src/core/help.c)
 ```c
 #define HELP_CACHE_SIZE     50    // Maximum cached entries
 #define HELP_CACHE_TIMEOUT  300   // Cache TTL in seconds
@@ -952,9 +952,9 @@ Usage: score
 **Note:** Tables are created programmatically in db_init.c
 
 ## Supporting Systems
-- **`src/utils.c/h`** - Utility functions (string handling, memory management)
-- **`src/structs.h`** - Core data structures
+- **`src/core/utils.c/h`** - Utility functions (string handling, memory management)
+- **`src/core/structs.h`** - Core data structures
 - **`conf.h`** - Generated platform configuration (build root)
-- **`src/sysdep.h`** - System dependencies
+- **`src/core/sysdep.h`** - System dependencies
 
 ---

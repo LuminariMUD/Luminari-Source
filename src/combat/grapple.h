@@ -72,7 +72,7 @@
 #ifndef GRAPPLE_H
 #define GRAPPLE_H
 
-#include "utils.h" /* for the ACMD macro */
+#include "core/utils.h" /* for the ACMD macro */
 
 #ifdef __cplusplus
 extern "C"

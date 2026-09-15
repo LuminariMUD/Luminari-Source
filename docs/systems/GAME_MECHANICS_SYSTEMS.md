@@ -391,8 +391,8 @@ but are assigned to no race are inert until a race grants them.
 
 Active racial abilities share one table-driven handler: `racial_sla_table[]`
 and `do_racial_sla` in `src/act/act.other.c`, with one `cmd_info[]` row per verb
-whose subcommand indexes the table (`SCMD_RSLA_*` in `src/interpreter.h`).
-Daily uses are `get_daily_uses()` cases in `src/utils.c` backed by persisted
+whose subcommand indexes the table (`SCMD_RSLA_*` in `src/core/interpreter.h`).
+Daily uses are `get_daily_uses()` cases in `src/core/utils.c` backed by persisted
 cooldown events in `src/events/mud_event.h` and `src/events/mud_event_list.c`. The handler
 spends the action and the daily use only when the ability commits: a
 `call_magic()` fizzle returns early, a teleport must move the caster, a summon
@@ -430,7 +430,7 @@ melee attack at full base attack bonus per rank, after the ranged routines so
 launchers and thrown weapons never gain it. It brings no equipment slots.
 
 The Duris Thri-Kreen four-arm mechanic is `FEAT_FOUR_ARMS`, tested through
-`has_four_arms()` in `src/utils.c` (never a race constant). Grant sources
+`has_four_arms()` in `src/core/utils.c` (never a race constant). Grant sources
 are mob feats for NPCs and disguised wild shapes, the character's own feat,
 and `APPLY_FEAT` items worn in ordinary slots; an item in one of the seven
 four-arm slots cannot sustain the arms. The slots are appended after the
@@ -812,9 +812,9 @@ flows are covered in `unittests/CuTest/test_gameplay_e2e.c`, and kill experience
 
 ### Award Types
 
-The `AWARD_*` constants share their order with `award_types[]` in `src/constants.c`, which the
+The `AWARD_*` constants share their order with `award_types[]` in `src/core/constants.c`, which the
 staff `award` command lists and parses. `MAX_QUEST_POINTS` and `MAX_ACCOUNT_EXPERIENCE` live in
-`src/structs.h` beside `MAX_GOLD` and `MAX_BANK`; the pool limits are the ranges of their fields.
+`src/core/structs.h` beside `MAX_GOLD` and `MAX_BANK`; the pool limits are the ranges of their fields.
 
 | Constant | Balance | Limit | Applies to |
 |----------|---------|-------|------------|
@@ -907,7 +907,7 @@ gold, bank, quest points, and experience through `award_set_points()`. `set acce
 
 Only record construction writes experience, gold, bank gold, quest points, and account
 experience directly: player-file defaults and parsing in `src/player/players.c`, world parsing and
-first-player setup in `src/db.c`, and account loading and descriptor sync in `src/player/account.c`. The
+first-player setup in `src/core/db.c`, and account loading and descriptor sync in `src/player/account.c`. The
 following command lists direct writes of those balances, including macro arguments with one
 nested call; any file it prints bypasses the API:
 

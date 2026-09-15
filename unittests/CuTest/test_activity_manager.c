@@ -1,17 +1,17 @@
 #include "CuTest.h"
 
 #include "conf.h"
-#include "../../src/sysdep.h"
-#include "../../src/structs.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
 #include "../../src/events/activity_manager.h"
 #include "../../src/events/actions.h"
-#include "../../src/comm.h"
-#include "../../src/db.h"
+#include "../../src/core/comm.h"
+#include "../../src/core/db.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/events/domain_event_types.h"
 #include "../../src/events/domain_event_world.h"
 #include "../../src/events/event_runtime.h"
-#include "../../src/interpreter.h"
+#include "../../src/core/interpreter.h"
 #include "../../src/events/mud_event.h"
 #include "../../src/net/protocol.h"
 
@@ -19,7 +19,7 @@
 #include "../../src/magic/spell_prep.h"
 #include "../../src/magic/domains_schools.h"
 #include "../../src/character/class.h"
-#include "../../src/handler.h"
+#include "../../src/core/handler.h"
 
 #include <string.h>
 

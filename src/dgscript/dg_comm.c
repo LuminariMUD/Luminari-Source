@@ -13,14 +13,14 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
 #include "dg_scripts.h"
-#include "utils.h"
-#include "comm.h"
-#include "handler.h"
-#include "db.h"
-#include "constants.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/handler.h"
+#include "core/db.h"
+#include "core/constants.h"
 
 /* local functions */
 static void sub_write_to_char(char_data *ch, char *tokens[], void *otokens[], char type[]);

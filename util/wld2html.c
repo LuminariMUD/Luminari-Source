@@ -7,7 +7,7 @@
  ************************************************************************ */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <stdbool.h>
 #include <stdint.h>
 

@@ -9,20 +9,20 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
 #include "vessels/transport_jobs.h"
-#include "utils.h"
+#include "core/utils.h"
 #include "combat/tactical_effects.h"
-#include "db.h"
+#include "core/db.h"
 #include "database/db_init.h"
-#include "handler.h"
+#include "core/handler.h"
 #include "events/domain_event_world.h"
 #include "combat/fight.h"
 #include "pfdefaults.h"
 #include "dgscript/dg_scripts.h"
-#include "comm.h"
-#include "interpreter.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
 #include "database/mysql.h"
 #include "olc/genolc.h"          /* for strip_cr */
 #include "config.h"              /* for pclean_criteria[] */
@@ -31,7 +31,7 @@
 #include "magic/spells.h"
 #include "clan/clan.h"
 #include "events/mud_event.h"
-#include "mudlim.h"
+#include "core/mudlim.h"
 #include "craft/craft.h" // crafting (auto craft quest inits)
 #include "magic/spell_prep.h"
 #include "craft/alchemy.h"
@@ -48,7 +48,7 @@
 #include "character/character_creation.h"
 #include "vessels/vessels.h"
 #include "character/bardic_performance.h"
-#include "perfmon.h"
+#include "core/perfmon.h"
 #include <inttypes.h>
 #include <stdint.h>
 #include <sys/time.h>

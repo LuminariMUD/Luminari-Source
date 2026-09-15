@@ -55,7 +55,7 @@ Script sub-targets of `make test` and `make test-all`, run one at a time on the 
 | the other 15 targets | under 1.3 s each | |
 
 Boot profile (14 gdb samples during "Loading mobs"): 13 samples in `affect_total` /
-`calculate_best_mod`, called from `interpret_espec` (`src/db.c:3423`). Every espec keyword
+`calculate_best_mod`, called from `interpret_espec` (`src/core/db.c:3423`). Every espec keyword
 line ends with `affect_total(mob_proto + i)`; `parse_simple_mob` calls it once more per mob.
 
 GitHub, one push (24 jobs, wall about 17 min):
@@ -99,7 +99,7 @@ land as one PR. Phases 5 and 6 touch the workflows and are a second PR.
 
 ### Phase 1: compute mob totals once per prototype (server)
 
-Change `src/db.c`: remove the `affect_total(mob_proto + i)` at the end of `interpret_espec`
+Change `src/core/db.c`: remove the `affect_total(mob_proto + i)` at the end of `interpret_espec`
 and the one at the end of `parse_simple_mob`; call it once at the end of `parse_mobile`,
 after the S/E section and before the trigger loop. Result: 27,092 calls instead of about
 424,000. Full-world syntax boot drops from 31 s to 4.5 s, the host `cutest` from 33 s to
@@ -277,7 +277,7 @@ the host numbers were measured with the changes applied in this worktree and the
    shows no gap over 1 s except the disposable `mariadbd` start.
 4. `CUTEST_FILTER=Test_mob_autoroll ./cutest` runs only those tests; a deliberately slow
    test appears in the slow list.
-5. `touch src/structs.h && make -n cutest | grep -c ' -c '` schedules about 330 compiles.
+5. `touch src/core/structs.h && make -n cutest | grep -c ' -c '` schedules about 330 compiles.
 6. Every remaining job green on GitHub; the merged libevent job log shows the clean-tree,
    dist, select-driver cutest, and startup-smoke steps with their success markers.
 7. Full local matrix once on the final commit, timed.
@@ -315,7 +315,7 @@ The runtime enabled diagonal exits to match the existing development world.
 - `CUTEST_FILTER=Test_mob_autoroll ./cutest` passed exactly four tests. The runner regression
   checks unset, empty, matching, and unmatched filters and reports a deliberately slow
   failing test after its summary.
-- `make -n -W src/structs.h cutest` scheduled 390 affected compiles, confirming that header
+- `make -n -W src/core/structs.h cutest` scheduled 390 affected compiles, confirming that header
   dependency tracking is active without changing the header's contents or timestamp.
 - A cold-build compiler lock reproduced concurrent calculator compilation (exit 2).
   Making the calculator a shared prerequisite of `check` and world tools eliminated

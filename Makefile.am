@@ -68,7 +68,7 @@ luminari_SOURCES = \
 	src/comms/boards.c \
 	src/olc/bedit.c \
 	src/comms/mysql_boards.c \
-	src/bsd-snprintf.c \
+	src/core/bsd-snprintf.c \
 	src/craft/brew.c \
 	src/olc/cedit.c \
 	src/character/char_descs.c \
@@ -79,16 +79,16 @@ luminari_SOURCES = \
 	src/clan/clan_transactions.c \
 	src/character/class.c \
 	src/combat/combat_modes.c \
-	src/comm.c \
+	src/core/comm.c \
 	src/config.c \
-	src/constants.c \
-	src/copyover_diagnostic.c \
+	src/core/constants.c \
+	src/core/copyover_diagnostic.c \
 	src/craft/craft.c \
 	src/craft/crafting_molds.c \
 	src/craft/crafting_new.c \
 	src/craft/crafting_recipes.c \
 	src/craft/crafts.c \
-	src/db.c \
+	src/core/db.c \
 	src/database/db_init.c \
 	src/database/db_init_data.c \
 	src/database/db_startup_init.c \
@@ -111,8 +111,8 @@ luminari_SOURCES = \
 	src/magic/domain_powers.c \
 	src/magic/domains_schools.c \
 	src/dotenv.c \
-	src/elf_build_id.c \
-	src/elf_build_id.h \
+	src/core/elf_build_id.c \
+	src/core/elf_build_id.h \
 	src/combat/encounters.c \
 	src/combat/combat_encounters.c \
 	src/combat/combat_encounters.h \
@@ -178,10 +178,10 @@ luminari_SOURCES = \
 	src/net/reactor.h \
 	src/movement/graph.c \
 	src/combat/grapple.c \
-	src/handler.c \
+	src/core/handler.c \
 	src/olc/hedit.c \
-	src/help.c \
-	src/helpers.c \
+	src/core/help.c \
+	src/core/helpers.c \
 	src/olc/hlqedit.c \
 	src/quest/hlquest.c \
 	src/obj/house.c \
@@ -189,11 +189,11 @@ luminari_SOURCES = \
 	src/quest/hunts.c \
 	src/comms/ibt.c \
 	src/olc/improved-edit.c \
-	src/interpreter.c \
+	src/core/interpreter.c \
 	src/character/introduce.c \
 	src/wilderness/kdtree.c \
-	src/limits.c \
-	src/lists.c \
+	src/core/limits.c \
+	src/core/lists.c \
 	src/magic/magic.c \
 	src/comms/mail.c \
 	src/olc/medit.c \
@@ -211,7 +211,7 @@ luminari_SOURCES = \
 	src/mob/mob_spells.c \
 	src/mob/mob_spellslots.c \
 	src/mob/mob_known_spells.c \
-	src/modify.c \
+	src/core/modify.c \
 	src/magic/moon_bonus_spells.c \
 	src/olc/msgedit.c \
 	src/events/mud_event.c \
@@ -226,7 +226,7 @@ luminari_SOURCES = \
 	src/obj/player_shop.c \
 	src/olc/oedit.c \
 	src/player/password.c \
-	src/perfmon.c \
+	src/core/perfmon.c \
 	src/wilderness/perlin.c \
 	src/player/player_rename.c \
 	src/player/player_rename.h \
@@ -255,7 +255,7 @@ luminari_SOURCES = \
 	src/quest/quest.c \
 	src/quest/quest_services.c \
 	src/character/race.c \
-	src/random.c \
+	src/core/random.c \
 	src/mob/random_names.c \
 	src/player/rank.c \
 	src/character/rewards.c \
@@ -358,7 +358,7 @@ luminari_SOURCES = \
 	src/combat/traps_new.c \
 	src/obj/treasure.c \
 	src/obj/treasure_const.c \
-	src/utils.c \
+	src/core/utils.c \
 	src/vessels/vehicles.c \
 	src/vessels/vehicles_commands.c \
 	src/vessels/vehicles_transport.c \
@@ -388,11 +388,11 @@ luminari_SOURCES = \
 	src/vessels/vessels_trade.c \
 	src/vessels/vessels_upgrades.c \
 	src/vessels/vessels_autopilot.c \
-	src/weather.c \
+	src/core/weather.c \
 	src/wilderness/wilderness.c \
 	src/wilderness/wilderness_kb.c \
 	src/olc/zedit.c \
-	src/zmalloc.c
+	src/core/zmalloc.c
 
 # Libraries to link
 luminari_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ @LIBEVENT_LIBS@ -lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread -ljson-c
@@ -402,7 +402,7 @@ luminari_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ @LIBEVENT_LIBS@ -lcrypt -lgd -lm -lm
 check_PROGRAMS = cutest bsd_snprintf_fallback_test
 TESTS = bsd_snprintf_fallback_test
 
-bsd_snprintf_fallback_test_SOURCES = src/bsd-snprintf.c
+bsd_snprintf_fallback_test_SOURCES = src/core/bsd-snprintf.c
 bsd_snprintf_fallback_test_CPPFLAGS = $(AM_CPPFLAGS) -DBROKEN_SNPRINTF -DTEST_SNPRINTF
 bsd_snprintf_fallback_test_LDADD = -lm
 
@@ -586,7 +586,7 @@ build_identity.h: FORCE_BUILD_IDENTITY scripts/deployment/generate_build_identit
 
 # Direct parallel targets such as `make -j cutest` do not receive Automake's
 # BUILT_SOURCES ordering.  Both variants of constants.o include this header.
-src/constants.$(OBJEXT) src/cutest-constants.$(OBJEXT): build_identity.h
+src/core/constants.$(OBJEXT) src/core/cutest-constants.$(OBJEXT): build_identity.h
 
 # GCC's analyzer needs more than 30 GiB for load_class_list, which registers
 # every class in one function, so class.c is compiled without it.
@@ -607,7 +607,7 @@ install-exec-hook:
 	rm -f $(bin_PROGRAMS)
 
 # Ensure constants.c is rebuilt when other sources change
-src/constants.c: $(filter-out src/constants.c,$(luminari_SOURCES))
+src/core/constants.c: $(filter-out src/core/constants.c,$(luminari_SOURCES))
 	touch $@
 
 # Standalone Python world-data tooling. Keep this list synchronized with
@@ -1231,6 +1231,6 @@ scrub: clean
 	rm -f core core.* vgcore.*
 	rm -f lib/core lib/core.* lib/vgcore.*
 	rm -f *~ *.swp *.swo
-	rm -f src/*~ src/*.swp src/*.swo
+	rm -f src/*/*~ src/*/*.swp src/*/*.swo
 	rm -f *.tmp *.temp
 	rm -f test_*.out test_*.log

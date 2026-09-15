@@ -129,10 +129,10 @@ aider
 ### Working with Specific Files
 ```bash
 # Start aider with specific files
-aider src/main.c src/utils.c
+aider src/main.c src/core/utils.c
 
 # Or add files after starting
-> /add src/*.c
+> /add src/*/*.c
 > /add README.md
 ```
 

@@ -2,7 +2,7 @@
 #define COMBAT_DEATH_H
 
 #include "events/domain_events.h"
-#include "structs.h"
+#include "core/structs.h"
 
 /* Why a character died, recorded on the death event for listeners that need
  * to tell combat kills from script, attrition, and staff-driven deaths. */

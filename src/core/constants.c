@@ -35,7 +35,7 @@
 
 /** Current LuminariMUD version - CANONICAL SOURCE for display version string.
  * Version is also defined in:
- *   - src/structs.h (_LUMINARIMUD macro for code compatibility)
+ *   - src/core/structs.h (_LUMINARIMUD macro for code compatibility)
  *   - configure.ac (AC_INIT for autotools build)
  *   - CMakeLists.txt (project VERSION for CMake build)
  *   - README.md (documentation)

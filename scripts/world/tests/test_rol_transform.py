@@ -2504,7 +2504,7 @@ class RolTransformTests(unittest.TestCase):
     import re
 
     self._require_reference_paths("EXAMPLE/RealmsOfLuminari/src/structs.h")
-    target = (self.root / "src/structs.h").read_text(encoding="utf-8", errors="ignore")
+    target = (self.root / "src/core/structs.h").read_text(encoding="utf-8", errors="ignore")
     target_wear = {
         name: int(value)
         for name, value in re.findall(r"#define (WEAR_\w+) (\d+)", target)

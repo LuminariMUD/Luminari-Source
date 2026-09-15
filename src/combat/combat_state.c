@@ -1,7 +1,7 @@
 #include "combat/combat_state.h"
 
 #include "combat/fight.h"
-#include "db.h"
+#include "core/db.h"
 #include "events/domain_event_world.h"
 
 /* Count the characters currently fighting this victim.

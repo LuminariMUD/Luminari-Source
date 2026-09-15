@@ -2,7 +2,7 @@
 #define DOMAIN_EVENT_WORLD_H
 
 #include "domain_events.h"
-#include "structs.h"
+#include "core/structs.h"
 
 enum domain_event_status domain_event_world_register_resolvers(struct domain_event_bus *bus);
 void domain_event_world_shutdown(void);

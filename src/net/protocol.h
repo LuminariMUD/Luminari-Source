@@ -69,7 +69,7 @@
 
 /* for ssize_t and friends */
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 
 typedef struct descriptor_data descriptor_t;
 

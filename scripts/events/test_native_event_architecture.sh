@@ -108,7 +108,7 @@ semantic_types=(
   'combat.encounter.round|src/combat/combat_encounters.c'
   'ai.response.delivery|src/ai/ai_events.c'
   'ai.request.retry|src/ai/ai_events.c'
-  'service.persistence_batch|src/comm.c'
+  'service.persistence_batch|src/core/comm.c'
 )
 for registration in "${semantic_types[@]}"; do
   name=${registration%%|*}
@@ -123,7 +123,7 @@ grep -Fq 'for (id = ePROTOCOLS; id < eMUD_EVENT_COUNT; id++)' \
   "$project_root/src/events/mud_event.c" ||
   fail "MUD event registration no longer covers the complete usable ID range"
 
-grep -Fq 'event_runtime_seal_types()' "$project_root/src/comm.c" ||
+grep -Fq 'event_runtime_seal_types()' "$project_root/src/core/comm.c" ||
   fail "boot no longer seals the immutable semantic type registry"
 
 # Immortal diagnostics must support direct entity ownership and script-only

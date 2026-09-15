@@ -9,19 +9,19 @@
  */
 
 #include "conf.h"
-#include "sysdep.h"
+#include "core/sysdep.h"
 #include <time.h>
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
-#include "handler.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/db.h"
+#include "core/handler.h"
 #include "character/rewards.h"
-#include "interpreter.h"
+#include "core/interpreter.h"
 #include "clan.h"
 #include "clan_economy.h"
 #include "obj/shop.h"
-#include "constants.h"
+#include "core/constants.h"
 
 /* External variables */
 

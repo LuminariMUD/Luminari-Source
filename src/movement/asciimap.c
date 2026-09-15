@@ -9,22 +9,22 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "interpreter.h"
-#include "handler.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/comm.h"
+#include "core/interpreter.h"
+#include "core/handler.h"
+#include "core/db.h"
 #include "magic/spells.h"
 #include "obj/house.h"
 #include "obj/shop.h"
-#include "constants.h"
+#include "core/constants.h"
 #include "dgscript/dg_scripts.h"
 #include "asciimap.h"
 #include "wilderness/wilderness.h"
 #include "net/protocol.h"
-#include "modify.h" /* strip_colors */
+#include "core/modify.h" /* strip_colors */
 
 /******************************************************************************
  * Begin Local (File Scope) Defines and Global Variables

@@ -1,16 +1,16 @@
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "combat/tactical_effects.h"
-#include "comm.h"
-#include "db.h"
+#include "core/comm.h"
+#include "core/db.h"
 #include "dotenv.h"
-#include "handler.h"
+#include "core/handler.h"
 #include "affected_owners.h"
 #include "event_runtime.h"
 #include "magic/spells.h"
-#include "mudlim.h"
+#include "core/mudlim.h"
 
 #define AFFECTED_CHARACTER_MAX_OWNERS 32768U
 #define AFFECTED_ROOM_MAX_OWNERS 16384U

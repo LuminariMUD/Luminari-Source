@@ -6,10 +6,10 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "db.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/db.h"
 #include "obj/shop.h"
 #include "genolc.h"
 #include "genshp.h"

@@ -2,7 +2,7 @@
 #define TRANSPORT_JOBS_H
 
 #include "events/domain_events.h"
-#include "structs.h"
+#include "core/structs.h"
 
 enum domain_event_status transport_jobs_init(struct domain_event_bus *bus);
 void transport_jobs_shutdown(void);

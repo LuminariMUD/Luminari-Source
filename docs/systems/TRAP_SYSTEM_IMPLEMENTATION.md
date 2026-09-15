@@ -233,7 +233,7 @@ TRAP: Auto-generated 5 traps in zone 123
 ## Files Modified/Created
 
 ### Modified
-1. `src/structs.h` - Added trap constants, struct trap_data, updated room_data and obj_data
+1. `src/core/structs.h` - Added trap constants, struct trap_data, updated room_data and obj_data
 2. `src/combat/traps.h` - Complete rewrite with new function prototypes and data structures
 
 ### Created
@@ -242,7 +242,7 @@ TRAP: Auto-generated 5 traps in zone 123
 ### To Be Modified
 1. `src/olc/oedit.c` - Needs trap editing support
 2. `src/olc/redit.c` - Needs trap editing support
-3. `src/db.c` - Needs zone reset integration
+3. `src/core/db.c` - Needs zone reset integration
 4. `src/movement/movement.c` - Needs trap trigger checks
 5. `src/obj/act.item.c` - Needs trap trigger checks for containers/doors
 
