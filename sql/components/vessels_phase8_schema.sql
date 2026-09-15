@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS vessel_encounters (
   warn_message VARCHAR(255) NOT NULL DEFAULT '',
   arrive_message VARCHAR(255) NOT NULL DEFAULT '',
   INDEX idx_region (region_vnum)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 -- Example rows (commented out: substitute your own REGION_ENCOUNTER vnums
 -- and mob vnums before enabling).

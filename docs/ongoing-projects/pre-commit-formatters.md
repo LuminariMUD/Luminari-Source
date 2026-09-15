@@ -25,8 +25,8 @@ was verified before its commit.
 | --- | --- | --- | --- |
 | 1 Python | done | Format Python with ruff | 121 files, +39,840/-38,472; AST identical 121/121; all 542 world-tool tests pass before and after; `wtool.py constants sync --check` passes |
 | 2 Shell | done | Format shell scripts with shfmt | 64 files, +4,209/-4,461; AST identical 63/64, the other being the planned glob rewrite; `bash -n` passes for all 73 regular scripts; the 8 symlinks and the scripts' exec bits intact; pubsub retirement, rename static, and background help checks pass |
-| 3 SQL | next | | |
-| Markdown prep | | | |
+| 3 SQL | done | Format SQL with sqlfluff and keep new SQL under it | 106 files, +4,038/-2,755; token streams identical 106/106; no frozen file changed; the policy self-test rejects 10 bypasses and each of the six bypass trials fails the check; the hook trials behave as planned; the master schema and all 61 applied components load into MariaDB 10.11 as in `integration.yml`; rename static (through `make`), background help, and pubsub retirement checks pass |
+| Markdown prep | next | | |
 | 4 Markdown | | | |
 | 5 prettier | | | |
 | 6 CMake | | | |
@@ -51,7 +51,7 @@ Notes for whoever resumes:
 - Found during implementation, a sixth SQL bypass: a top-level `exclude` or
   `files` pattern in `.pre-commit-config.yaml` applies to every hook. With
   `exclude: ^sql/new\.sql$` the sqlfluff hook reports "(no files to check)" and
-  exits 0. Step 3 closes it in the policy check (see SQL enforcement).
+  exits 0. Step 3 closed it in the policy check (see SQL enforcement).
 
 ## Verdict
 
@@ -184,12 +184,14 @@ Costs:
   tree: a new SQL file that does not parse fails the hook (exit 1), a
   `-- noqa` comment does not change that, and an unformatted new file is
   rewritten and stops the commit.
-- Probing sqlfluff 4.3.0 found five ways around the hook that it does not stop
-  on its own: an entry added to `.sqlfluffignore`; an inline
+- Probing sqlfluff 4.3.0 and pre-commit found six ways around the hook that it
+  does not stop on its own: an entry added to `.sqlfluffignore`; an inline
   `-- sqlfluff:exclude_rules:...` comment, which sqlfluff honours even with
   `disable_noqa`; a nested `.sqlfluff` in a subdirectory; loosened settings in
-  the root `.sqlfluff`; and an `exclude` added to the hook.
-- `scripts/ci/check_sql_format_policy.py` closes all five. It fails when:
+  the root `.sqlfluff`; an `exclude` added to the hook; and a top-level `files`
+  or `exclude` pattern in `.pre-commit-config.yaml`, which pre-commit applies
+  to every hook (found during implementation).
+- `scripts/ci/check_sql_format_policy.py` closes all six. It fails when:
   - `.sqlfluffignore` has an entry, including any pattern, that is not one of
     the 18 frozen paths written into the script (entries may be removed);
   - a `.sqlfluff` or `.sqlfluffignore` is tracked anywhere but the root, or
@@ -199,14 +201,19 @@ Costs:
   - the sqlfluff hook in `.pre-commit-config.yaml` is missing, duplicated, or
     differs from `id: sqlfluff-fix`, `name: sqlfluff format`,
     `entry: sqlfluff format --processes 0 --disable-progress-bar` (for example
-    by gaining `exclude`, `files`, `types`, or `args`).
-- `--self-test` builds a compliant tree plus 8 mutated copies and requires
+    by gaining `exclude`, `files`, `types`, or `args`);
+  - a tracked `.sql` file outside the frozen list does not match the top-level
+    `files` pattern of `.pre-commit-config.yaml`, or matches its top-level
+    `exclude` pattern.
+- `--self-test` builds a compliant tree plus 10 mutated copies and requires
   every mutation to be rejected. The check runs as the always-run
   `sql-format-policy` pre-commit hook and as its own step in `quality.yml`, so
   deleting the hook entry does not remove the CI check. Growing the exemption
   list means editing the script itself, which a reviewer cannot miss.
-- Dry-run trials on the formatted tree: each of the five bypasses made the
-  check exit 1 with a message naming the file.
+- Trials on the formatted tree, in a scratch clone: each of the six bypasses
+  made the check exit 1 with a message naming the file. With a top-level
+  pattern the sqlfluff hook itself skipped the new file and exited 0, which is
+  why the check needs that rule.
 - What remains outside the repository: `git commit --no-verify` on one
   machine, and `master` has no branch protection or ruleset, so a failing Code
   Quality run does not block a push or a merge (see Decisions to confirm).

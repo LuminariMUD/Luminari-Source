@@ -305,8 +305,8 @@ is not present in the SpecProc menu. Shops, quests, pet shops, and boards have
 additional setup requirements beyond choosing a callback.
 
 See also: SPECBIND, OLC, MEDIT, OEDIT, REDIT, TRIGEDIT, PETSHOP, BOARDS', 31, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 -- Retire the two stale file-imported entries from keyword search. The help
 -- query displays only its first database match, so duplicate mappings would
@@ -327,6 +327,10 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPECI
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPEC_PROC');
 /* Retain the historical article under an unambiguous archive keyword. */
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
-SELECT tag, 'LEGACY-SPECIAL-PROCEDURES' FROM help_entries WHERE tag = 'specials';
+SELECT
+  tag,
+  'LEGACY-SPECIAL-PROCEDURES'
+FROM help_entries
+WHERE tag = 'specials';
 
 COMMIT;

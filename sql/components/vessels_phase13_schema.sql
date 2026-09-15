@@ -12,4 +12,4 @@ CREATE TABLE IF NOT EXISTS vessel_region_law (
   authority VARCHAR(63) NOT NULL DEFAULT '',
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_vessel_region_law_priority (priority)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

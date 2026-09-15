@@ -24,8 +24,8 @@ remains available.
 
 See also: MAP, GUI-MAP, WILDERNESS, SCREEN-READER
 ', 0, 0)
-ON DUPLICATE KEY UPDATE entry=VALUES(entry), min_level=VALUES(min_level),
-                        auto_generated=VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
 ('automapping', 'AUTOMAPPING'),
@@ -52,12 +52,13 @@ functions using the mapper.
 
 See also:  AUTOMAPPING
 ', 0, 0)
-ON DUPLICATE KEY UPDATE entry=VALUES(entry), min_level=VALUES(min_level),
-                        auto_generated=VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 -- Reclaim aliases from earlier imports or the previous migration's map tag.
 DELETE FROM help_keywords
-WHERE UPPER(keyword) IN ('GUI-MAP', 'MAP', 'MAPPER', 'MAPPING')
+WHERE
+  UPPER(keyword) IN ('GUI-MAP', 'MAP', 'MAPPER', 'MAPPING')
   AND help_tag <> 'gui-map';
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES

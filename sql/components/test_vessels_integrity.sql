@@ -27,23 +27,30 @@ VALUES (99999, 99998, 100001, 200001, 'standard', 100, 100);
 SELECT 'Test 4: Docking record inserted' as Status;
 
 -- Test 5: Update ship interior (test ON UPDATE timestamp)
-UPDATE ship_interiors SET num_rooms = 6 WHERE ship_id = 99999;
+UPDATE ship_interiors SET num_rooms = 6
+WHERE ship_id = 99999;
 
 SELECT 'Test 5: Ship interior updated' as Status;
 
 -- Test 6: Verify cascade delete
-SELECT COUNT(*) as cargo_before FROM ship_cargo_manifest WHERE ship_id = 99999;
-SELECT COUNT(*) as crew_before FROM ship_crew_roster WHERE ship_id = 99999;
+SELECT COUNT(*) as cargo_before FROM ship_cargo_manifest
+WHERE ship_id = 99999;
+SELECT COUNT(*) as crew_before FROM ship_crew_roster
+WHERE ship_id = 99999;
 
-DELETE FROM ship_interiors WHERE ship_id = 99999;
+DELETE FROM ship_interiors
+WHERE ship_id = 99999;
 
-SELECT COUNT(*) as cargo_after FROM ship_cargo_manifest WHERE ship_id = 99999;
-SELECT COUNT(*) as crew_after FROM ship_crew_roster WHERE ship_id = 99999;
+SELECT COUNT(*) as cargo_after FROM ship_cargo_manifest
+WHERE ship_id = 99999;
+SELECT COUNT(*) as crew_after FROM ship_crew_roster
+WHERE ship_id = 99999;
 
 SELECT 'Test 6: CASCADE DELETE verified (should show 1,1,0,0)' as Status;
 
 -- Test 7: Clean up docking record
-DELETE FROM ship_docking WHERE ship1_id = 99999 OR ship2_id = 99999;
+DELETE FROM ship_docking
+WHERE ship1_id = 99999 OR ship2_id = 99999;
 
 SELECT 'Test 7: Cleanup complete' as Status;
 
@@ -53,9 +60,21 @@ SELECT 'Test 8: Stored procedure executed' as Status;
 
 -- Final verification - ensure no test data remains
 SELECT
-    (SELECT COUNT(*) FROM ship_interiors WHERE ship_id = 99999) as ship_remains,
-    (SELECT COUNT(*) FROM ship_cargo_manifest WHERE ship_id = 99999) as cargo_remains,
-    (SELECT COUNT(*) FROM ship_crew_roster WHERE ship_id = 99999) as crew_remains,
-    (SELECT COUNT(*) FROM ship_docking WHERE ship1_id = 99999 OR ship2_id = 99999) as dock_remains;
+  (
+    SELECT COUNT(*) FROM ship_interiors
+    WHERE ship_id = 99999
+  ) as ship_remains,
+  (
+    SELECT COUNT(*) FROM ship_cargo_manifest
+    WHERE ship_id = 99999
+  ) as cargo_remains,
+  (
+    SELECT COUNT(*) FROM ship_crew_roster
+    WHERE ship_id = 99999
+  ) as crew_remains,
+  (
+    SELECT COUNT(*) FROM ship_docking
+    WHERE ship1_id = 99999 OR ship2_id = 99999
+  ) as dock_remains;
 
 SELECT 'All tests complete - database should be clean (all zeros above)' as Final_Status;

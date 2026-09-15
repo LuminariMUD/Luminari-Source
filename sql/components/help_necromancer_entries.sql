@@ -52,8 +52,8 @@ Core commands:
 
 See also: UNDEAD-COHORT, ANIMATE-DEAD, GREATER-ANIMATION, BONE-ARMOR,
 TOUCH-OF-UNDEATH, TOUGH-AS-BONE, ESSENCE-OF-UNDEATH', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('class-necromancer', 'CLASS-NECROMANCER');
@@ -101,8 +101,8 @@ persistence system; heed any warning that asks you to save again.
 
 See also: CLASS-NECROMANCER, SUMMON-UNDEAD, GREATER-ANIMATION,
 TOUCH-OF-UNDEATH, ANIMATEDEAD', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('animate-dead', 'ANIMATE-DEAD');
@@ -157,8 +157,8 @@ persistence system; heed any warning that asks you to save again.
 
 See also: CLASS-NECROMANCER, SUMMON-GREATER-UNDEAD, ANIMATE-DEAD,
 TOUCH-OF-UNDEATH', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('greater-animation', 'GREATER-ANIMATION');
@@ -199,8 +199,8 @@ Animation follower gains increased attributes. Failed or rejected summons do not
 consume that one-shot empowerment.
 
 See also: CLASS-NECROMANCER, ANIMATE-DEAD, GREATER-ANIMATION', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('touch-of-undeath', 'TOUCH-OF-UNDEATH');
@@ -240,8 +240,8 @@ Example:
   bonearmor a bone breastplate
 
 See also: CLASS-NECROMANCER, CRAFTING-KIT, SPELL-FAILURE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('bone-armor', 'BONE-ARMOR');
@@ -269,8 +269,8 @@ Use dismiss <cohort> to release it and reduce a longer remaining cooldown to
 about one minute. The normal pet persistence system saves the active cohort.
 
 See also: CLASS-NECROMANCER, STUDY, EVOLUTIONS, DISMISS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('undead-cohort', 'UNDEAD-COHORT');
@@ -288,8 +288,8 @@ stun events, including combat abilities, traps, spells, poisons, and weapon
 effects that use the shared status paths.
 
 See also: CLASS-NECROMANCER, ESSENCE-OF-UNDEATH', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('tough-as-bone', 'TOUGH-AS-BONE');
@@ -306,8 +306,8 @@ This feat does not change the character race to undead and does not by itself
 grant every trait of an undead mobile.
 
 See also: CLASS-NECROMANCER, TOUGH-AS-BONE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('essence-of-undeath', 'ESSENCE-OF-UNDEATH');
@@ -358,8 +358,8 @@ it does not create a separate roster. To cast the corpse spell instead, use
 cast ''animate dead'' <corpse>.
 
 See also: ANIMATE-DEAD, CLASS-NECROMANCER, PETS, DISMISS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
 WHERE help_tag = 'animatedead' AND LOWER(keyword) IN ('animate', 'animate-dead');
@@ -397,8 +397,8 @@ and any loot still in the corpse transfers to it. The raising preference
 never grants extra control capacity or an extra daily-use pool.
 
 See also: ANIMATE-DEAD, ANIMATEDEAD, CLASS-NECROMANCER, PETS, SWIFT-ACTION', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('autoraise', 'AUTORAISE');
 
 COMMIT;

@@ -6,7 +6,8 @@ SELECT
   3 AS expected,
   IF(COUNT(*) = 3, 'PASS', 'FAIL') AS result
 FROM help_entries
-WHERE tag IN ('THROWN-WEAPONS', 'RANGED-WEAPONS', 'COLLECT')
+WHERE
+  tag IN ('THROWN-WEAPONS', 'RANGED-WEAPONS', 'COLLECT')
   AND min_level = 0
   AND auto_generated = FALSE
   AND CHAR_LENGTH(TRIM(entry)) > 0;
@@ -46,24 +47,69 @@ SELECT
   IF(COUNT(*) = 15, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
-  SELECT 'THROWN-WEAPONS' AS tag, 'equipped ammo pouch, top-level inventory' AS required_text
-  UNION ALL SELECT 'THROWN-WEAPONS', 'wielded anchor itself'
-  UNION ALL SELECT 'THROWN-WEAPONS', 'Throwing special ability'
-  UNION ALL SELECT 'THROWN-WEAPONS', 'Returning alone does not'
-  UNION ALL SELECT 'THROWN-WEAPONS', 'Manyshot remains launcher-only'
-  UNION ALL SELECT 'THROWN-WEAPONS', 'Snatch Arrows'
-  UNION ALL SELECT 'RANGED-WEAPONS', 'bow, crossbow, sling, or blowgun'
-  UNION ALL SELECT 'RANGED-WEAPONS', 'first compatible missile'
-  UNION ALL SELECT 'RANGED-WEAPONS', 'number of objects, not a weight'
-  UNION ALL SELECT 'RANGED-WEAPONS', 'dart used as a weapon is thrown with THROW'
-  UNION ALL SELECT 'RANGED-WEAPONS', 'blowgun'
-  UNION ALL SELECT 'COLLECT', 'current room and corpses'
-  UNION ALL SELECT 'COLLECT', 'never collects projectiles belonging'
-  UNION ALL SELECT 'COLLECT', 'falls back to'
-  UNION ALL SELECT 'COLLECT', 'Launcher ammunition still requires'
+  SELECT
+    'THROWN-WEAPONS' AS tag,
+    'equipped ammo pouch, top-level inventory' AS required_text
+  UNION ALL
+  SELECT
+    'THROWN-WEAPONS',
+    'wielded anchor itself'
+  UNION ALL
+  SELECT
+    'THROWN-WEAPONS',
+    'Throwing special ability'
+  UNION ALL
+  SELECT
+    'THROWN-WEAPONS',
+    'Returning alone does not'
+  UNION ALL
+  SELECT
+    'THROWN-WEAPONS',
+    'Manyshot remains launcher-only'
+  UNION ALL
+  SELECT
+    'THROWN-WEAPONS',
+    'Snatch Arrows'
+  UNION ALL
+  SELECT
+    'RANGED-WEAPONS',
+    'bow, crossbow, sling, or blowgun'
+  UNION ALL
+  SELECT
+    'RANGED-WEAPONS',
+    'first compatible missile'
+  UNION ALL
+  SELECT
+    'RANGED-WEAPONS',
+    'number of objects, not a weight'
+  UNION ALL
+  SELECT
+    'RANGED-WEAPONS',
+    'dart used as a weapon is thrown with THROW'
+  UNION ALL
+  SELECT
+    'RANGED-WEAPONS',
+    'blowgun'
+  UNION ALL
+  SELECT
+    'COLLECT',
+    'current room and corpses'
+  UNION ALL
+  SELECT
+    'COLLECT',
+    'never collects projectiles belonging'
+  UNION ALL
+  SELECT
+    'COLLECT',
+    'falls back to'
+  UNION ALL
+  SELECT
+    'COLLECT',
+    'Launcher ammunition still requires'
 ) AS expected_content
-  ON h.tag = expected_content.tag
-  AND INSTR(h.entry, expected_content.required_text) > 0;
+  ON
+    h.tag = expected_content.tag
+    AND INSTR(h.entry, expected_content.required_text) > 0;
 
 SELECT
   'thrown_help_keyword_conflicts' AS check_name,
@@ -75,7 +121,7 @@ WHERE
   (UPPER(keyword) IN (
     'RETURNING', 'THROW', 'THROWING', 'THROWN', 'THROWN-WEAPON', 'THROWN-WEAPONS'
   )
-    AND help_tag <> 'THROWN-WEAPONS')
+  AND help_tag <> 'THROWN-WEAPONS')
   OR
   (UPPER(keyword) IN (
     'AMMO', 'AMMUNITION', 'ARCHERY', 'BOWS', 'FIRE', 'FIRE-WEAPONS',
@@ -85,9 +131,13 @@ WHERE
   OR (UPPER(keyword) = 'BLAST' AND help_tag <> 'eldritch-blast');
 
 -- BLAST is a warlock command, not a synonym for the FIRE launcher command.
-SELECT 'blast_command_content' AS check_name, COUNT(*) AS actual, 1 AS expected,
+SELECT
+  'blast_command_content' AS check_name,
+  COUNT(*) AS actual,
+  1 AS expected,
   IF(COUNT(*) = 1, 'PASS', 'FAIL') AS result
 FROM help_entries
-WHERE tag = 'eldritch-blast' AND min_level = 0
+WHERE
+  tag = 'eldritch-blast' AND min_level = 0
   AND LOWER(entry) LIKE '%blast (target)%'
   AND LOWER(entry) LIKE '%warlock%';

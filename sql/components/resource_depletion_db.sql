@@ -3,45 +3,45 @@
 
 -- Table to track resource depletion by coordinates (not room_vnum for wilderness)
 CREATE TABLE IF NOT EXISTS resource_depletion (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    zone_vnum INT NOT NULL,
-    x_coord INT NOT NULL,
-    y_coord INT NOT NULL,
-    resource_type TINYINT NOT NULL,
-    depletion_level FLOAT NOT NULL DEFAULT 1.0,
-    last_harvest TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    total_harvested INT DEFAULT 0,
-    regeneration_rate FLOAT DEFAULT 0.01,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_location (zone_vnum, x_coord, y_coord),
-    INDEX idx_resource (resource_type),
-    UNIQUE KEY unique_location_resource (zone_vnum, x_coord, y_coord, resource_type)
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  zone_vnum INT NOT NULL,
+  x_coord INT NOT NULL,
+  y_coord INT NOT NULL,
+  resource_type TINYINT NOT NULL,
+  depletion_level FLOAT NOT NULL DEFAULT 1.0,
+  last_harvest TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  total_harvested INT DEFAULT 0,
+  regeneration_rate FLOAT DEFAULT 0.01,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_location (zone_vnum, x_coord, y_coord),
+  INDEX idx_resource (resource_type),
+  UNIQUE KEY unique_location_resource (zone_vnum, x_coord, y_coord, resource_type)
 );
 
 -- Table to track player conservation scores (per player, not per resource)
 CREATE TABLE IF NOT EXISTS player_conservation (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    player_id BIGINT NOT NULL,
-    conservation_score FLOAT NOT NULL DEFAULT 0.5,
-    total_harvests INT DEFAULT 0,
-    sustainable_harvests INT DEFAULT 0,
-    unsustainable_harvests INT DEFAULT 0,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_player (player_id)
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  player_id BIGINT NOT NULL,
+  conservation_score FLOAT NOT NULL DEFAULT 0.5,
+  total_harvests INT DEFAULT 0,
+  sustainable_harvests INT DEFAULT 0,
+  unsustainable_harvests INT DEFAULT 0,
+  last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_player (player_id)
 );
 
 -- Table to track global resource statistics
 CREATE TABLE IF NOT EXISTS resource_statistics (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    resource_type TINYINT NOT NULL,
-    total_locations INT DEFAULT 0,
-    total_harvested_global BIGINT DEFAULT 0,
-    total_depleted_locations INT DEFAULT 0,
-    average_depletion_level FLOAT DEFAULT 1.0,
-    peak_depletion_level FLOAT DEFAULT 1.0,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_resource (resource_type)
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  resource_type TINYINT NOT NULL,
+  total_locations INT DEFAULT 0,
+  total_harvested_global BIGINT DEFAULT 0,
+  total_depleted_locations INT DEFAULT 0,
+  average_depletion_level FLOAT DEFAULT 1.0,
+  peak_depletion_level FLOAT DEFAULT 1.0,
+  last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_resource (resource_type)
 );
 
 -- Insert default resource statistics with proper depletion rates
@@ -60,16 +60,16 @@ INSERT IGNORE INTO resource_statistics (resource_type, average_depletion_level, 
 -- Resource regeneration events log
 -- Tracks when and how resources regenerate at coordinate locations
 CREATE TABLE IF NOT EXISTS resource_regeneration_log (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    zone_vnum INT NOT NULL,
-    x_coord INT NOT NULL,
-    y_coord INT NOT NULL,
-    resource_type INT NOT NULL,
-    old_depletion_level FLOAT NOT NULL,
-    new_depletion_level FLOAT NOT NULL,
-    regeneration_amount FLOAT NOT NULL,
-    regeneration_type ENUM('natural', 'seasonal', 'magical', 'admin') DEFAULT 'natural',
-    regeneration_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_location_regen (zone_vnum, x_coord, y_coord),
-    INDEX idx_time_regen (regeneration_time)
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  zone_vnum INT NOT NULL,
+  x_coord INT NOT NULL,
+  y_coord INT NOT NULL,
+  resource_type INT NOT NULL,
+  old_depletion_level FLOAT NOT NULL,
+  new_depletion_level FLOAT NOT NULL,
+  regeneration_amount FLOAT NOT NULL,
+  regeneration_type ENUM('natural', 'seasonal', 'magical', 'admin') DEFAULT 'natural',
+  regeneration_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_location_regen (zone_vnum, x_coord, y_coord),
+  INDEX idx_time_regen (regeneration_time)
 );

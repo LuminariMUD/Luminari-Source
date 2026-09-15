@@ -24,5 +24,6 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- Verify cleanup
 SELECT CONCAT('Rollback complete. Remaining ship_ tables: ', COUNT(*)) as Status
 FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = DATABASE()
-AND TABLE_NAME LIKE 'ship_%';
+WHERE
+  TABLE_SCHEMA = DATABASE()
+  AND TABLE_NAME LIKE 'ship_%';

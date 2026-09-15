@@ -21,11 +21,11 @@ CREATE TABLE IF NOT EXISTS ship_schedules (
 
   /* Foreign key to routes table */
   CONSTRAINT fk_schedule_route FOREIGN KEY (route_id)
-    REFERENCES ship_routes(route_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  REFERENCES ship_routes (route_id) ON DELETE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 /* Index for efficient schedule lookups during tick processing */
-CREATE INDEX idx_schedule_enabled ON ship_schedules(enabled, next_departure);
+CREATE INDEX idx_schedule_enabled ON ship_schedules (enabled, next_departure);
 
 /* ========================================================================= */
 /* End of ship_schedules table definition                                    */

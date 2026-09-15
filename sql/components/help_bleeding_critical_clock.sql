@@ -19,7 +19,7 @@ saving does not restart the clock. A character remaining in the world after
 losing its connection continues to bleed normally.
 
 See also: FEATS, CRITICAL, COMBAT, INITIATIVE
-', 0, 0) ON DUPLICATE KEY UPDATE entry=VALUES(entry), min_level=VALUES(min_level), auto_generated=VALUES(auto_generated);
+', 0, 0) ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('BLEEDING-CRITICAL', 'BLEEDING-CRITICAL');
 
 COMMIT;

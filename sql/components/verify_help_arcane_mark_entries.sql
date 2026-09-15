@@ -27,8 +27,9 @@ SELECT
   0 AS expected,
   IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
 FROM help_keywords
-WHERE (keyword IN ('ARCANEMARK', 'ARCANE-MARK-SIGNATURE') AND help_tag <> 'ARCANEMARK')
-   OR (keyword IN ('ARCANE-MARK', 'SPELL-ARCANE-MARK') AND help_tag <> 'ARCANE-MARK');
+WHERE
+  (keyword IN ('ARCANEMARK', 'ARCANE-MARK-SIGNATURE') AND help_tag <> 'ARCANEMARK')
+  OR (keyword IN ('ARCANE-MARK', 'SPELL-ARCANE-MARK') AND help_tag <> 'ARCANE-MARK');
 
 SELECT
   'arcane_mark_content' AS check_name,
@@ -37,17 +38,52 @@ SELECT
   IF(COUNT(*) = 12, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
-  SELECT 'ARCANEMARK' AS tag, 'does not target or change an object' AS required_text
-  UNION ALL SELECT 'ARCANEMARK', 'up to 250 characters'
-  UNION ALL SELECT 'ARCANEMARK', 'ARCANEMARK CLEAR'
-  UNION ALL SELECT 'ARCANEMARK', 'cast ''arcane mark'' <object>'
-  UNION ALL SELECT 'ARCANEMARK', 'The target must be in your inventory'
-  UNION ALL SELECT 'ARCANE-MARK', 'wizards, sorcerers, and summoners'
-  UNION ALL SELECT 'ARCANE-MARK', 'already has a mark'
-  UNION ALL SELECT 'ARCANE-MARK', 'LOOK <object> or EXAMINE <object>'
-  UNION ALL SELECT 'ARCANE-MARK', 'survives normal player inventory save and load'
-  UNION ALL SELECT 'ARCANE-MARK', 'They grant no'
-  UNION ALL SELECT 'ARCANE-MARK', 'STAT PLAYER'
-  UNION ALL SELECT 'ARCANE-MARK', 'STAT OBJECT'
+  SELECT
+    'ARCANEMARK' AS tag,
+    'does not target or change an object' AS required_text
+  UNION ALL
+  SELECT
+    'ARCANEMARK',
+    'up to 250 characters'
+  UNION ALL
+  SELECT
+    'ARCANEMARK',
+    'ARCANEMARK CLEAR'
+  UNION ALL
+  SELECT
+    'ARCANEMARK',
+    'cast ''arcane mark'' <object>'
+  UNION ALL
+  SELECT
+    'ARCANEMARK',
+    'The target must be in your inventory'
+  UNION ALL
+  SELECT
+    'ARCANE-MARK',
+    'wizards, sorcerers, and summoners'
+  UNION ALL
+  SELECT
+    'ARCANE-MARK',
+    'already has a mark'
+  UNION ALL
+  SELECT
+    'ARCANE-MARK',
+    'LOOK <object> or EXAMINE <object>'
+  UNION ALL
+  SELECT
+    'ARCANE-MARK',
+    'survives normal player inventory save and load'
+  UNION ALL
+  SELECT
+    'ARCANE-MARK',
+    'They grant no'
+  UNION ALL
+  SELECT
+    'ARCANE-MARK',
+    'STAT PLAYER'
+  UNION ALL
+  SELECT
+    'ARCANE-MARK',
+    'STAT OBJECT'
 ) AS expected_content ON h.tag = expected_content.tag
 WHERE INSTR(h.entry, expected_content.required_text) > 0;

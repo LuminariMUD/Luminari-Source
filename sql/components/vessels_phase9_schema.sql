@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS ship_waypoints (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_waypoint_name (name),
   INDEX idx_waypoint_coords (x, y, z)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS ship_routes (
   route_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS ship_routes (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_route_name (name),
   INDEX idx_route_active (active)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS ship_route_waypoints (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -33,12 +33,12 @@ CREATE TABLE IF NOT EXISTS ship_route_waypoints (
   waypoint_id INT NOT NULL,
   sequence_num INT NOT NULL,
   CONSTRAINT fk_ship_route_waypoint_route
-    FOREIGN KEY (route_id) REFERENCES ship_routes(route_id) ON DELETE CASCADE,
+  FOREIGN KEY (route_id) REFERENCES ship_routes (route_id) ON DELETE CASCADE,
   CONSTRAINT fk_ship_route_waypoint_waypoint
-    FOREIGN KEY (waypoint_id) REFERENCES ship_waypoints(waypoint_id) ON DELETE CASCADE,
+  FOREIGN KEY (waypoint_id) REFERENCES ship_waypoints (waypoint_id) ON DELETE CASCADE,
   UNIQUE KEY route_sequence (route_id, sequence_num),
   INDEX idx_route_waypoint (route_id, waypoint_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS ship_runtime_state (
   ship_id INT NOT NULL PRIMARY KEY,
@@ -98,8 +98,8 @@ CREATE TABLE IF NOT EXISTS ship_runtime_state (
   last_update BIGINT NOT NULL DEFAULT 0,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_ship_runtime_interior
-    FOREIGN KEY (ship_id) REFERENCES ship_interiors(ship_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  FOREIGN KEY (ship_id) REFERENCES ship_interiors (ship_id) ON DELETE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS ship_schedules (
   schedule_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -111,4 +111,4 @@ CREATE TABLE IF NOT EXISTS ship_schedules (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uk_ship_schedule (ship_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
