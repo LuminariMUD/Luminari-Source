@@ -27,8 +27,8 @@ After configuring the signature, apply it with:
 The target must be in your inventory.
 
 See also: ARCANE-MARK, CAST, LOOK, EXAMINE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('ARCANE-MARK', 'Arcane Mark
@@ -53,15 +53,17 @@ Staff diagnostics show a character''s configured signature in STAT PLAYER and
 STAT FILE, and an object''s applied mark in STAT OBJECT.
 
 See also: ARCANEMARK, CAST, LOOK, EXAMINE, STAT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
-WHERE help_tag = 'ARCANEMARK'
+WHERE
+  help_tag = 'ARCANEMARK'
   AND keyword NOT IN ('ARCANEMARK', 'ARCANE-MARK-SIGNATURE');
 
 DELETE FROM help_keywords
-WHERE help_tag = 'ARCANE-MARK'
+WHERE
+  help_tag = 'ARCANE-MARK'
   AND keyword NOT IN ('ARCANE-MARK', 'SPELL-ARCANE-MARK');
 
 DELETE FROM help_keywords

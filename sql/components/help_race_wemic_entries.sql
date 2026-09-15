@@ -25,16 +25,16 @@ traditional leg or foot gear, including pants and boots. Their ankle equipment
 slots remain available.
 
 See also: ACCEXP, RACE, RACE-HALF-OGRE, RACE-YUAN-TI', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
 WHERE UPPER(keyword) IN ('WEMIC', 'RACE-WEMIC', 'BARBARIAN', 'RACE-BARBARIAN');
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
-  ('RACE-WEMIC', 'WEMIC'),
-  ('RACE-WEMIC', 'RACE-WEMIC'),
-  ('RACE-WEMIC', 'BARBARIAN'),
-  ('RACE-WEMIC', 'RACE-BARBARIAN');
+('RACE-WEMIC', 'WEMIC'),
+('RACE-WEMIC', 'RACE-WEMIC'),
+('RACE-WEMIC', 'BARBARIAN'),
+('RACE-WEMIC', 'RACE-BARBARIAN');
 
 COMMIT;

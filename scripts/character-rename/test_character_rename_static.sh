@@ -103,7 +103,7 @@ assert_contains "$project_root/CMakeLists.txt" "src/player/player_rename.c"
 
 for table in player_mail player_mail_deleted player_mail_read; do
   assert_contains "$project_root/sql/components/character_rename_transactional_schema.sql" \
-    "ALTER TABLE $table ENGINE=InnoDB"
+    "ALTER TABLE $table ENGINE = InnoDB"
 done
 
 implementation_files=(

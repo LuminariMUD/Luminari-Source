@@ -28,9 +28,20 @@ SELECT
   IF(COUNT(*) = 4, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
-  SELECT 'DETECT-TRAP' AS tag, 'detecttrap <object>' AS required_text
-  UNION ALL SELECT 'DETECT-TRAP', 'directional movement'
-  UNION ALL SELECT 'DISABLE-TRAP', 'disabletrap <object>'
-  UNION ALL SELECT 'DISABLE-TRAP', 'remaining charges to zero'
+  SELECT
+    'DETECT-TRAP' AS tag,
+    'detecttrap <object>' AS required_text
+  UNION ALL
+  SELECT
+    'DETECT-TRAP',
+    'directional movement'
+  UNION ALL
+  SELECT
+    'DISABLE-TRAP',
+    'disabletrap <object>'
+  UNION ALL
+  SELECT
+    'DISABLE-TRAP',
+    'remaining charges to zero'
 ) AS expected_content ON h.tag = expected_content.tag
 WHERE INSTR(h.entry, expected_content.required_text) > 0;

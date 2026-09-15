@@ -25,6 +25,15 @@ repos:
     hooks:
       - id: shfmt
 
+  # SQL: layout-only `sqlfluff format`; the upstream hook's `fix` would apply
+  # every lint rule. scripts/ci/check_sql_format_policy.py pins this hook.
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 4.3.0
+    hooks:
+      - id: sqlfluff-fix
+        name: sqlfluff format
+        entry: sqlfluff format --processes 0 --disable-progress-bar
+
   # General file hygiene
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
@@ -58,6 +67,14 @@ repos:
         entry: python3 scripts/ci/check_source_hygiene.py
         language: system
         pass_filenames: true
+      # Every future SQL file stays under the sqlfluff hook.
+      - id: sql-format-policy
+        name: SQL format policy
+        entry: python scripts/ci/check_sql_format_policy.py
+        language: python
+        additional_dependencies: [pyyaml==6.0.2]
+        pass_filenames: false
+        always_run: true
       # Build verification (pre-push only)
       - id: check-build
         name: Verify build compiles

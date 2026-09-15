@@ -7,14 +7,14 @@
 -- ============================================================================
 
 INSERT INTO region_data (
-    vnum, zone_vnum, name, region_type, region_props, region_reset_data,
-    region_description, description_style, description_length,
-    has_historical_context, has_resource_info, has_wildlife_info,
-    has_geological_info, has_cultural_info, description_quality_score,
-    is_approved, ai_agent_source
+  vnum, zone_vnum, name, region_type, region_props, region_reset_data,
+  region_description, description_style, description_length,
+  has_historical_context, has_resource_info, has_wildlife_info,
+  has_geological_info, has_cultural_info, description_quality_score,
+  is_approved, ai_agent_source
 ) VALUES (
-    1000004, 10000, 'The Mosswood', 1, 0, '',
-    'THE MOSSWOOD COMPREHENSIVE DESCRIPTION
+  1000004, 10000, 'The Mosswood', 1, 0, '',
+  'THE MOSSWOOD COMPREHENSIVE DESCRIPTION
 
 OVERVIEW:
 The Mosswood is an ancient, mystical forest characterized by towering moss-draped trees and an otherworldly atmosphere. Spanning roughly 8 square miles, this primeval woodland feels untouched by time, where thick carpets of emerald moss coat every surface and create an almost supernatural silence. The forest canopy filters sunlight into ethereal green-tinted beams that dance through perpetual mist.
@@ -69,35 +69,35 @@ CULTURAL & MYSTICAL ELEMENTS:
 - Sacred groves where moss glows more brightly
 - Legends of travelers who became lost in time among the moss
 - Whispered stories of healing springs hidden in the deepest parts',
-    'mysterious', 'extensive',
-    TRUE, TRUE, TRUE, TRUE, TRUE, 4.75,
-    TRUE, 'sample_data_generator'
+  'mysterious', 'extensive',
+  TRUE, TRUE, TRUE, TRUE, TRUE, 4.75,
+  TRUE, 'sample_data_generator'
 ) ON DUPLICATE KEY UPDATE
-    region_description = VALUES(region_description),
-    description_version = description_version + 1,
-    last_description_update = CURRENT_TIMESTAMP,
-    ai_agent_source = VALUES(ai_agent_source);
+region_description = VALUES (region_description),
+description_version = description_version + 1,
+last_description_update = CURRENT_TIMESTAMP,
+ai_agent_source = VALUES (ai_agent_source);
 
 -- ============================================================================
 -- PART 2: Insert region profile
 -- ============================================================================
 
 INSERT INTO region_profiles (
-    region_vnum, overall_theme, dominant_mood, key_characteristics,
-    description_style, complexity_level, agent_id
+  region_vnum, overall_theme, dominant_mood, key_characteristics,
+  description_style, complexity_level, agent_id
 ) VALUES (
-    1000004,
-    'An ancient, moss-covered mystical forest where silence reigns and bioluminescent moss creates an otherworldly atmosphere. The Mosswood represents primeval nature untouched by civilization, where every surface is draped in thick emerald moss that muffles sound and filters light into ethereal green hues.',
-    'mystical_tranquility',
-    '{"atmosphere": ["ethereal", "timeless", "sacred", "peaceful"], "weather_effects": ["mist_enhancement", "sound_dampening", "humidity_dependent"], "primary_features": ["moss-covered_everything", "supernatural_silence", "green_filtered_light", "ancient_trees"], "mystical_elements": ["glowing_moss", "lost_time_legends", "druidic_circles", "moss_spirits"], "wildlife_behavior": ["unusually_quiet", "adapted_to_moss", "elusive_movement"]}',
-    'mysterious',
-    5,
-    'sample_data_generator'
+  1000004,
+  'An ancient, moss-covered mystical forest where silence reigns and bioluminescent moss creates an otherworldly atmosphere. The Mosswood represents primeval nature untouched by civilization, where every surface is draped in thick emerald moss that muffles sound and filters light into ethereal green hues.',
+  'mystical_tranquility',
+  '{"atmosphere": ["ethereal", "timeless", "sacred", "peaceful"], "weather_effects": ["mist_enhancement", "sound_dampening", "humidity_dependent"], "primary_features": ["moss-covered_everything", "supernatural_silence", "green_filtered_light", "ancient_trees"], "mystical_elements": ["glowing_moss", "lost_time_legends", "druidic_circles", "moss_spirits"], "wildlife_behavior": ["unusually_quiet", "adapted_to_moss", "elusive_movement"]}',
+  'mysterious',
+  5,
+  'sample_data_generator'
 ) ON DUPLICATE KEY UPDATE
-    overall_theme = VALUES(overall_theme),
-    dominant_mood = VALUES(dominant_mood),
-    key_characteristics = VALUES(key_characteristics),
-    updated_at = CURRENT_TIMESTAMP;
+overall_theme = VALUES (overall_theme),
+dominant_mood = VALUES (dominant_mood),
+key_characteristics = VALUES (key_characteristics),
+updated_at = CURRENT_TIMESTAMP;
 
 -- ============================================================================
 -- PART 3: Insert region hints (19 total)
@@ -154,15 +154,17 @@ INSERT INTO region_hints (region_vnum, hint_category, hint_text, priority, seaso
 -- ============================================================================
 
 SELECT 'Mosswood region (1000004) sample data inserted successfully!' as status;
-SELECT COUNT(*) as hint_count FROM region_hints WHERE region_vnum = 1000004;
-SELECT COUNT(*) as profile_count FROM region_profiles WHERE region_vnum = 1000004;
+SELECT COUNT(*) as hint_count FROM region_hints
+WHERE region_vnum = 1000004;
+SELECT COUNT(*) as profile_count FROM region_profiles
+WHERE region_vnum = 1000004;
 SELECT
-    vnum,
-    name,
-    description_style,
-    description_length,
-    description_quality_score,
-    is_approved,
-    ai_agent_source
+  vnum,
+  name,
+  description_style,
+  description_length,
+  description_quality_score,
+  is_approved,
+  ai_agent_source
 FROM region_data
 WHERE vnum = 1000004;

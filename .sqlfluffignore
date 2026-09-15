@@ -1,0 +1,20 @@
+# Legacy SQL the sqlfluff MariaDB dialect cannot parse. Frozen: new entries
+# fail scripts/ci/check_sql_format_policy.py.
+lib/pubsub_v3_schema.sql
+sql/components/ai_region_hints_schema.sql
+sql/components/ai_service_migration.sql
+sql/components/dynamic_descriptions_deployment.sql
+sql/components/help_gdb_binary_path.sql
+sql/components/help_race_yuan_ti_entries.sql
+sql/components/help_rol_feat_entries.sql
+sql/components/help_rol_player_kits.sql
+sql/components/help_system_indexes.sql
+sql/components/help_vessel_entries.sql
+sql/components/narrative_weaver_installation.sql
+sql/components/pubsub_v3_schema.sql
+sql/components/verify_help_rol_feat_entries.sql
+sql/components/verify_help_rol_player_kits.sql
+sql/components/verify_help_specproc_entries.sql
+sql/components/verify_help_vessel_entries.sql
+sql/components/vessels_phase2_schema.sql
+sql/master_schema.sql

@@ -6,7 +6,8 @@ SELECT
   5 AS expected,
   IF(COUNT(*) = 5, 'PASS', 'FAIL') AS result
 FROM help_entries
-WHERE tag IN ('action-queue', 'autoblast', 'consumables', 'spellrecall', 'forum')
+WHERE
+  tag IN ('action-queue', 'autoblast', 'consumables', 'spellrecall', 'forum')
   AND min_level = 0
   AND auto_generated = FALSE
   AND CHAR_LENGTH(TRIM(entry)) > 0;
@@ -37,19 +38,49 @@ SELECT
   IF(COUNT(*) = 10, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
-  SELECT 'action-queue' AS tag, 'non-mutating availability check' AS required_text
-  UNION ALL SELECT 'action-queue', 'holds at most 10 commands'
-  UNION ALL SELECT 'action-queue', 'do not drain between turns'
-  UNION ALL SELECT 'autoblast', 'enabled or disabled'
-  UNION ALL SELECT 'consumables', 'USESTOREDCONSUMABLES enables or disables'
-  UNION ALL SELECT 'spellrecall', 'once per real-world day'
-  UNION ALL SELECT 'spellrecall', 'randomly selected spell currently being prepared'
-  UNION ALL SELECT 'spellrecall', 'not consumed when there is nothing'
-  UNION ALL SELECT 'forum', 'https://luminarimud.com/'
-  UNION ALL SELECT 'forum', 'ornir@luminarimud.com'
+  SELECT
+    'action-queue' AS tag,
+    'non-mutating availability check' AS required_text
+  UNION ALL
+  SELECT
+    'action-queue',
+    'holds at most 10 commands'
+  UNION ALL
+  SELECT
+    'action-queue',
+    'do not drain between turns'
+  UNION ALL
+  SELECT
+    'autoblast',
+    'enabled or disabled'
+  UNION ALL
+  SELECT
+    'consumables',
+    'USESTOREDCONSUMABLES enables or disables'
+  UNION ALL
+  SELECT
+    'spellrecall',
+    'once per real-world day'
+  UNION ALL
+  SELECT
+    'spellrecall',
+    'randomly selected spell currently being prepared'
+  UNION ALL
+  SELECT
+    'spellrecall',
+    'not consumed when there is nothing'
+  UNION ALL
+  SELECT
+    'forum',
+    'https://luminarimud.com/'
+  UNION ALL
+  SELECT
+    'forum',
+    'ornir@luminarimud.com'
 ) AS required_content
-  ON h.tag = required_content.tag
-  AND INSTR(h.entry, required_content.required_text) > 0;
+  ON
+    h.tag = required_content.tag
+    AND INSTR(h.entry, required_content.required_text) > 0;
 
 SELECT
   'obsolete_help_content' AS check_name,
@@ -57,7 +88,8 @@ SELECT
   0 AS expected,
   IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
 FROM help_entries
-WHERE tag IN ('action-queue', 'autoblast', 'consumables', 'spellrecall', 'forum')
+WHERE
+  tag IN ('action-queue', 'autoblast', 'consumables', 'spellrecall', 'forum')
   AND (
     LOWER(entry) LIKE '%live.com%'
     OR LOWER(entry) LIKE '%future work%'

@@ -16,7 +16,7 @@ ADD COLUMN has_resource_info BOOLEAN DEFAULT FALSE COMMENT 'Contains resource av
 ADD COLUMN has_wildlife_info BOOLEAN DEFAULT FALSE COMMENT 'Contains wildlife descriptions',
 ADD COLUMN has_geological_info BOOLEAN DEFAULT FALSE COMMENT 'Contains geological details',
 ADD COLUMN has_cultural_info BOOLEAN DEFAULT FALSE COMMENT 'Contains cultural/mystical elements',
-ADD COLUMN description_quality_score DECIMAL(3,2) DEFAULT NULL COMMENT 'Quality rating 0.00-5.00',
+ADD COLUMN description_quality_score DECIMAL(3, 2) DEFAULT NULL COMMENT 'Quality rating 0.00-5.00',
 ADD COLUMN requires_review BOOLEAN DEFAULT FALSE COMMENT 'Flagged for human review',
 ADD COLUMN is_approved BOOLEAN DEFAULT FALSE COMMENT 'Approved by staff';
 
@@ -29,14 +29,14 @@ CREATE INDEX idx_region_style_length ON region_data (description_style, descript
 
 -- Sample comprehensive description for The Mosswood region
 INSERT INTO region_data (
-    vnum, zone_vnum, name, region_type, region_props, region_reset_data,
-    region_description, description_style, description_length,
-    has_historical_context, has_resource_info, has_wildlife_info,
-    has_geological_info, has_cultural_info, description_quality_score,
-    is_approved, ai_agent_source
+  vnum, zone_vnum, name, region_type, region_props, region_reset_data,
+  region_description, description_style, description_length,
+  has_historical_context, has_resource_info, has_wildlife_info,
+  has_geological_info, has_cultural_info, description_quality_score,
+  is_approved, ai_agent_source
 ) VALUES (
-    1000004, 100, 'The Mosswood', 1, 0, 'standard_reset',
-    'THE MOSSWOOD COMPREHENSIVE DESCRIPTION
+  1000004, 100, 'The Mosswood', 1, 0, 'standard_reset',
+  'THE MOSSWOOD COMPREHENSIVE DESCRIPTION
 
 OVERVIEW:
 An ancient mystical forest spanning approximately 8 square miles, dominated by towering evergreens whose trunks are completely shrouded in thick, luminescent moss. The forest maintains an otherworldly atmosphere where bioluminescent patches create shifting patterns of ethereal green light throughout the woodland.
@@ -106,11 +106,11 @@ ACCESS POINTS:
 - Hidden passage through southern wetlands known to locals
 - Northern approach through grassland clearings
 - Western border marked by transition from ordinary to luminescent forest',
-    'mysterious', 'extensive',
-    TRUE, TRUE, TRUE, TRUE, TRUE, 4.2,
-    TRUE, 'github-copilot-region-architect'
+  'mysterious', 'extensive',
+  TRUE, TRUE, TRUE, TRUE, TRUE, 4.2,
+  TRUE, 'github-copilot-region-architect'
 ) ON DUPLICATE KEY UPDATE
-    region_description = VALUES(region_description),
-    description_version = description_version + 1,
-    last_description_update = CURRENT_TIMESTAMP,
-    ai_agent_source = VALUES(ai_agent_source);
+region_description = VALUES (region_description),
+description_version = description_version + 1,
+last_description_update = CURRENT_TIMESTAMP,
+ai_agent_source = VALUES (ai_agent_source);

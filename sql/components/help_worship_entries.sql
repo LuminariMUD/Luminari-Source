@@ -15,8 +15,8 @@ altar still has power, worshipping there grants a limited blessing and draws
 your alignment slightly toward evil.
 
 See also: ALIGNMENT, DEITIES, SIT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
 WHERE help_tag = 'WORSHIP' AND keyword <> 'WORSHIP';

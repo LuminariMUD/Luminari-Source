@@ -24,11 +24,12 @@ commands do not drain between turns. QUEUE displays pending actions, and QUEUE
 CLEAR removes all pending actions.
 
 See also: ACTIONS, ATTACK-QUEUE, COMBAT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
-WHERE UPPER(keyword) IN ('ACTION-QUEUE', 'QUEUE')
+WHERE
+  UPPER(keyword) IN ('ACTION-QUEUE', 'QUEUE')
   AND help_tag <> 'action-queue';
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('action-queue', 'ACTION-QUEUE');
@@ -45,8 +46,8 @@ AUTOBLAST toggles automatic eldritch blasts in place of normal attacks. The
 command reports whether automatic blasting is now enabled or disabled.
 
 See also: ELDRITCH-BLAST, WARLOCK', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
 WHERE UPPER(keyword) = 'AUTOBLAST' AND help_tag <> 'autoblast';
@@ -69,8 +70,8 @@ are stored automatically. Potions, scrolls, wands, and magical staves can be
 stored and then used by spell name instead of by inventory object name.
 
 See also: AUTOSTORE, STORE, UNSTORE, USE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('consumables', 'CONSUMABLES');
@@ -92,11 +93,12 @@ selected spell slot. Spell Recall is not consumed when there is nothing to
 recover.
 
 See also: PREPARATION, PERKS, SPELLS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
-WHERE UPPER(keyword) IN ('SPELLRECALL', 'SPELL-RECALL')
+WHERE
+  UPPER(keyword) IN ('SPELLRECALL', 'SPELL-RECALL')
   AND help_tag <> 'spellrecall';
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('spellrecall', 'SPELLRECALL');
@@ -111,8 +113,8 @@ links and project information.
 
 For help in game, send game mail to Ornir. For email contact, write to
 ornir@luminarimud.com.', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('forum', 'FORUM');

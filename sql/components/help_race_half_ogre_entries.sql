@@ -21,18 +21,19 @@ and two stacking ranks of Armor Skin. Half-ogres gain two additional hit
 points per level.
 
 See also: ACCEXP, RACE, RACE-WEMIC, RACE-MYCONID', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
-WHERE UPPER(keyword) IN
+WHERE
+  UPPER(keyword) IN
   ('HALF-OGRE', 'HALF-OGRE-RACE', 'RACE-HALF-OGRE', 'OGRE', 'RACE-OGRE');
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
-  ('RACE-HALF-OGRE', 'HALF-OGRE'),
-  ('RACE-HALF-OGRE', 'HALF-OGRE-RACE'),
-  ('RACE-HALF-OGRE', 'RACE-HALF-OGRE'),
-  ('RACE-HALF-OGRE', 'OGRE'),
-  ('RACE-HALF-OGRE', 'RACE-OGRE');
+('RACE-HALF-OGRE', 'HALF-OGRE'),
+('RACE-HALF-OGRE', 'HALF-OGRE-RACE'),
+('RACE-HALF-OGRE', 'RACE-HALF-OGRE'),
+('RACE-HALF-OGRE', 'OGRE'),
+('RACE-HALF-OGRE', 'RACE-OGRE');
 
 COMMIT;

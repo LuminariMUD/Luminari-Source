@@ -37,8 +37,8 @@ Immortals can use I3ADMIN to inspect and manage the connection.
 
 See also: I3MUDLIST, I3CHANNELS, I3CHAT, I3TELL, I3WHO, I3FINGER,
 I3LOCATE, I3CONFIG, I3ADMIN', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INTERMUD3', 'I3');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INTERMUD3', 'I3-COMMANDS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INTERMUD3', 'INTERMUD');
@@ -63,8 +63,8 @@ Use I3MUDLIST to find exact MUD names. Use I3LOCATE if you know the player
 name but not the MUD.
 
 See also: INTERMUD3, I3MUDLIST, I3LOCATE, I3CHAT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3TELL', 'I3-TELL');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3TELL', 'I3TELL');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3TELL', 'INTERMUD-TELL');
@@ -87,8 +87,8 @@ enabled. A local echo confirms that the message was queued. Incoming
 messages on subscribed channels are shown to all online players.
 
 See also: INTERMUD3, I3CHANNELS, I3CONFIG, I3TELL', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3CHAT', 'I3-CHAT');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3CHAT', 'I3CHAT');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3CHAT', 'INTERMUD-CHAT');
@@ -109,8 +109,8 @@ Use I3MUDLIST to find the exact remote MUD name. I3 who queries must also
 be enabled in I3CONFIG.
 
 See also: INTERMUD3, I3MUDLIST, I3FINGER, I3LOCATE, I3CONFIG', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3WHO', 'I3-WHO');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3WHO', 'I3WHO');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3WHO', 'INTERMUD-WHO');
@@ -132,8 +132,8 @@ The request is asynchronous, and you must still be online when the reply
 arrives. I3 who queries must be enabled in I3CONFIG.
 
 See also: INTERMUD3, I3WHO, I3LOCATE, I3MUDLIST, I3CONFIG', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3FINGER', 'I3-FINGER');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3FINGER', 'I3FINGER');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3FINGER', 'INTERMUD-FINGER');
@@ -155,8 +155,8 @@ arrives. A player who is hidden, offline, or on a MUD without locate
 support may not be found. I3 who queries must be enabled in I3CONFIG.
 
 See also: INTERMUD3, I3FINGER, I3WHO, I3TELL, I3CONFIG', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3LOCATE', 'I3-LOCATE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3LOCATE', 'I3LOCATE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3LOCATE', 'INTERMUD-LOCATE');
@@ -175,8 +175,8 @@ more than one hour old, this command also queues a refresh for a later
 display. The current output is still the cached list.
 
 See also: INTERMUD3, I3WHO, I3FINGER, I3TELL, I3CHANNELS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3MUDLIST', 'I3-MUDLIST');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3MUDLIST', 'I3MUDLIST');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3MUDLIST', 'INTERMUD-MUDLIST');
@@ -201,8 +201,8 @@ Use I3CHAT to speak on a subscribed channel. Channel traffic must be
 enabled in I3CONFIG.
 
 See also: INTERMUD3, I3CHAT, I3CONFIG, I3MUDLIST', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3CHANNELS', 'I3-CHANNELS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3CHANNELS', 'I3CHANNELS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3CHANNELS', 'INTERMUD-CHANNELS');
@@ -228,8 +228,8 @@ saved I3 configuration. Immortals can inspect or save that configuration
 with I3ADMIN.
 
 See also: INTERMUD3, I3TELL, I3CHAT, I3WHO, I3ADMIN', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3CONFIG', 'I3-CONFIG');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3CONFIG', 'I3CONFIG');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3CONFIG', 'INTERMUD-CONFIG');
@@ -259,8 +259,8 @@ RELOAD changes connection details, use RECONNECT to establish a session
 with the new settings.
 
 See also: INTERMUD3, I3CONFIG, I3MUDLIST, I3CHANNELS', 31, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3ADMIN', 'I3-ADMIN');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3ADMIN', 'I3ADMIN');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('I3ADMIN', 'INTERMUD-ADMIN');

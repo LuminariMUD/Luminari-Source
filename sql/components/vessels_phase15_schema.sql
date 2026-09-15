@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS vessel_hunter_encounters (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_vessel_hunter_enabled (enabled)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS vessel_bounty_hunts (
   target_player VARCHAR(63) NOT NULL PRIMARY KEY,
@@ -38,4 +38,4 @@ CREATE TABLE IF NOT EXISTS vessel_bounty_hunts (
   UNIQUE KEY uk_vessel_bounty_hunter_ship (hunter_ship_id),
   INDEX idx_vessel_bounty_hunt_due (status, next_eligible_at),
   INDEX idx_vessel_bounty_hunt_encounter (encounter_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

@@ -25,8 +25,8 @@ VALUES ('MOB-TRIGGERS', ' 1) Global      \tRHELP TRIGEDIT-MOB-GLOBAL\tn
 19) UNUSED
 20) Time        \tRHELP TRIGEDIT-MOB-TIME\tn
 21) Damage      \tRHELP TRIGEDIT-MOB-DAMAGE\tn', 31, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
 WHERE help_tag = 'MOB-TRIGGERS' AND keyword NOT IN ('MOB-TRIGGERS');
@@ -69,15 +69,17 @@ Variables:
 The minimal-world training dummy and trigger 1 provide a working example.
 
 See also: MOB-TRIGGERS, TRIGEDIT, RETURN, WAIT', 31, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
-WHERE help_tag = 'TRIGEDIT-MOB-DAMAGE'
+WHERE
+  help_tag = 'TRIGEDIT-MOB-DAMAGE'
   AND keyword NOT IN ('TRIGEDIT-MOB-DAMAGE', 'MOB-DAMAGE-TRIGGER', 'MTRIG-DAMAGE');
 
 DELETE FROM help_keywords
-WHERE keyword IN ('TRIGEDIT-MOB-DAMAGE', 'MOB-DAMAGE-TRIGGER', 'MTRIG-DAMAGE')
+WHERE
+  keyword IN ('TRIGEDIT-MOB-DAMAGE', 'MOB-DAMAGE-TRIGGER', 'MTRIG-DAMAGE')
   AND help_tag <> 'TRIGEDIT-MOB-DAMAGE';
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword)

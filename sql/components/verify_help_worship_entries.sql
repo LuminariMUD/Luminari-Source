@@ -24,7 +24,9 @@ SELECT
 FROM help_entries AS h
 JOIN (
   SELECT 'Usage:' AS required_text
-  UNION ALL SELECT 'Spiderhaunt altar of Cyric'
-  UNION ALL SELECT 'alignment slightly toward evil'
+  UNION ALL
+  SELECT 'Spiderhaunt altar of Cyric'
+  UNION ALL
+  SELECT 'alignment slightly toward evil'
 ) AS expected_content ON INSTR(h.entry, expected_content.required_text) > 0
 WHERE h.tag = 'WORSHIP';

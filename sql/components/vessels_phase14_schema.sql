@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS vessel_npc_merchants (
   UNIQUE KEY uk_vessel_merchant_active_ship (active_ship_id),
   INDEX idx_vessel_merchant_last_attacker (last_attacker_name),
   INDEX idx_vessel_merchant_due (enabled, next_respawn_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS vessel_merchant_consequences (
   consequence_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -54,4 +54,4 @@ CREATE TABLE IF NOT EXISTS vessel_merchant_consequences (
   UNIQUE KEY uk_vessel_merchant_consequence_dedupe (dedupe_key),
   INDEX idx_vessel_merchant_consequence_player (player_name, status),
   INDEX idx_vessel_merchant_consequence_merchant (merchant_id, generation)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

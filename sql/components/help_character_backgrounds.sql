@@ -13,7 +13,7 @@ Temple Service: When a grouped Acolyte is present at a city temple, members
 of that group can receive the temple\'s listed blessings free of charge.
 
 See also: BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('ACOLYTE', 'ACOLYTE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -26,7 +26,7 @@ eligible non-player character can earn coins and occasionally an item. A
 failed con provokes the target.
 
 See also: SWINDLE, BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('CHARLATAN', 'CHARLATAN');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -38,7 +38,7 @@ Criminal Contact: Gain the RELAY command, understand and speak Thieves\'
 Cant, and receive access to shops marked for the black market.
 
 See also: RELAY, FORGEAS, BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('CRIMINAL-SPY', 'CRIMINAL');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('CRIMINAL-SPY', 'CRIMINAL-SPY');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('CRIMINAL-SPY', 'CRIMINAL/SPY');
@@ -54,7 +54,7 @@ for an eligible non-player character can earn a tip, occasionally produce
 an item, and temporarily improve Persuasion, Deception, and Perform.
 
 See also: ENTERTAIN, BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('ENTERTAINER', 'ENTERTAINER');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -67,7 +67,7 @@ hometown, shop purchases cost exactly 10 percent less and shop sales pay
 exactly 10 percent more, subject to each shop\'s normal limits.
 
 See also: TRIBUTE, HOMETOWN, BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FOLK-HERO', 'FOLK HERO');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FOLK-HERO', 'FOLK-HERO');
 
@@ -80,7 +80,7 @@ Arena Renown: Gain +1 to attack and damage while you belong to a clan and
 fight in an area allied with that clan.
 
 See also: BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('GLADIATOR', 'GLADIATOR');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -91,7 +91,7 @@ Skill bonuses: +2 Sense Motive and +2 Diplomacy.
 Guild Membership: Gain +1 to every crafting skill.
 
 See also: CRAFTING, BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('TRADER', 'TRADER');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -104,7 +104,7 @@ present, gain +1 damage and 5 percent more experience. The bonuses stop
 when another party member is present.
 
 See also: BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('HERMIT', 'HERMIT');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -116,7 +116,7 @@ Hired Retainer: Gain the RETAINER command. Your retainer can be called to
 carry and sell items or to deliver a message to an eligible player.
 
 See also: RETAINER, BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SQUIRE', 'SQUIRE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -129,7 +129,7 @@ your hometown, shop purchases cost exactly 10 percent less and shop sales
 pay exactly 10 percent more, subject to each shop\'s normal limits.
 
 See also: HOMETOWN, BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('NOBLE', 'NOBLE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -142,7 +142,7 @@ hit points. The hit-point increase is applied once even if the Background
 is selected after the character has gained levels.
 
 See also: FORAGE, BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('OUTLANDER', 'OUTLANDER');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -155,7 +155,7 @@ against an eligible non-player character can earn coins and occasionally
 an item.
 
 See also: EXTORT, BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('PIRATE', 'PIRATE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -168,7 +168,7 @@ LORE to identify a creature, your party gains +1 to hit and damage against
 that researched creature while the effect applies.
 
 See also: LORE, BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SAGE', 'SAGE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -181,7 +181,7 @@ Gain +1 to hit, damage, and armor class in or near water, and +5 to the
 Fishing crafting skill.
 
 See also: SAILING, FISHING, BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SAILOR', 'SAILOR');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -194,7 +194,7 @@ grouped companion is present in the room. The companion does not need the
 Soldier Background.
 
 See also: GROUP, BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SOLDIER', 'SOLDIER');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -206,7 +206,7 @@ Streetwise Survivor: Gain +1 competence armor class while in your
 character\'s hometown.
 
 See also: HOMETOWN, BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('URCHIN', 'URCHIN');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -220,7 +220,7 @@ Success awards coins and has a small chance to award an item. Failure
 reveals the con and causes the target to attack you.
 
 See also: CHARLATAN', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SWINDLE', 'SWINDLE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -235,7 +235,7 @@ temporarily grant +3 morale to Persuasion, Deception, and Perform. Failure
 leaves the target unimpressed but does not make it attack.
 
 See also: ENTERTAINER', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('ENTERTAIN', 'ENTERTAIN');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -250,7 +250,7 @@ Success awards coins and has a small chance to award an item. Failure means
 the request is denied.
 
 See also: FOLK-HERO, HOMETOWN', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('TRIBUTE', 'TRIBUTE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -264,7 +264,7 @@ Success awards coins and has a small chance to award an item. Failure means
 the target refuses the demand.
 
 See also: PIRATE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('EXTORT', 'EXTORT');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -278,7 +278,7 @@ The note is signed with your name unless FORGEAS has prepared a different
 signature. A prepared signature is consumed by the delivery.
 
 See also: CRIMINAL-SPY, FORGEAS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('RELAY', 'RELAY');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -291,7 +291,7 @@ consumed when used. Player characters only; the signature is limited to 50
 visible characters.
 
 See also: RELAY, CRIMINAL-SPY', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FORGEAS', 'FORGEAS');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -304,7 +304,7 @@ nothing and starts a cooldown before you can try again.
 Characters with the Outlander Background gain +5 on this check.
 
 See also: OUTLANDER, NATURE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FORAGE', 'FORAGE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -323,7 +323,7 @@ use MAIL. Delivery is limited by the recipient\'s location and faction
 requirements. The retainer departs after delivering the note.
 
 See also: SQUIRE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('RETAINER', 'RETAINER');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -334,5 +334,5 @@ must have a hometown, and the named character, mobile, or room must also be
 inside that hometown. This is not an Urchin Background benefit.
 
 See also: HOMETOWN, URCHIN', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHORTCUT', 'SHORTCUT');

@@ -35,8 +35,8 @@ performances are visual and do not require the recipient to hear them.
 
 See also: INSTRUMENT, PERFORMANCE-DIFFICULTY, PERFORMANCE-EFFECTIVENESS,
 PERFORMANCE-STUTTER, PERFORMANCE-VERSE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('PERFORM', 'PERFORM');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('PERFORM', 'PERFORMANCE');
@@ -71,8 +71,8 @@ and cannot reduce you below 1. If the cost cannot be paid, the subtype and actio
 state do not change.
 
 See also: PERFORM, CRAFT, SUMMON-INSTRUMENT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INSTRUMENT', 'INSTRUMENT');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INSTRUMENT', 'INSTRUMENTS');

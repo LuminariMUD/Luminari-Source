@@ -7,4 +7,4 @@ CREATE TABLE IF NOT EXISTS ship_room_template_triggers (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (room_type, vessel_type, trigger_vnum),
   INDEX idx_ship_room_trigger_vnum (trigger_vnum)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

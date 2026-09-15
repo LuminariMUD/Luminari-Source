@@ -2,4 +2,4 @@
 -- Existing schedules remain active but stop collecting passenger fares.
 
 ALTER TABLE ship_schedules
-  DROP COLUMN IF EXISTS passenger_fare;
+DROP COLUMN IF EXISTS passenger_fare;

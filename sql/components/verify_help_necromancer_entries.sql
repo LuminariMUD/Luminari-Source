@@ -71,43 +71,136 @@ SELECT
   'content_contracts' AS check_name,
   SUM(INSTR(LOWER(h.entry), LOWER(expected_content.required_text)) > 0) AS actual,
   30 AS expected,
-  IF(SUM(INSTR(LOWER(h.entry), LOWER(expected_content.required_text)) > 0) = 30,
-     'PASS', 'FAIL') AS result,
+  IF(
+    SUM(INSTR(LOWER(h.entry), LOWER(expected_content.required_text)) > 0) = 30,
+    'PASS', 'FAIL'
+  ) AS result,
   GROUP_CONCAT(
-    IF(INSTR(LOWER(h.entry), LOWER(expected_content.required_text)) > 0,
-       NULL, CONCAT(expected_content.tag, ': ', expected_content.required_text))
+    IF(
+      INSTR(LOWER(h.entry), LOWER(expected_content.required_text)) > 0,
+      NULL, CONCAT(expected_content.tag, ': ', expected_content.required_text)
+    )
     ORDER BY expected_content.tag SEPARATOR '; '
   ) AS missing_contracts
 FROM (
-  SELECT 'class-necromancer' AS tag, '5,000 account points' AS required_text
-  UNION ALL SELECT 'class-necromancer', 'four plus Intelligence'
-  UNION ALL SELECT 'class-necromancer', '8  Medium Armor'
-  UNION ALL SELECT 'animate-dead', '10 percent summon failure chance'
-  UNION ALL SELECT 'animate-dead', 'control capacity is 2 points, or 4'
-  UNION ALL SELECT 'animate-dead', 'prepared spell or spontaneous spell slot'
-  UNION ALL SELECT 'greater-animation', '10 percent summon failure chance'
-  UNION ALL SELECT 'greater-animation', 'final follower level also scales'
-  UNION ALL SELECT 'greater-animation', 'corpse contents remain on the ground'
-  UNION ALL SELECT 'touch-of-undeath', 'whether the touch attack hits or misses'
-  UNION ALL SELECT 'touch-of-undeath', 'selected preferred spellcasting class'
-  UNION ALL SELECT 'touch-of-undeath', '1d4+1 rounds'
-  UNION ALL SELECT 'bone-armor', 'exactly one armor piece or shield'
-  UNION ALL SELECT 'bone-armor', 'one third of the item'
-  UNION ALL SELECT 'bone-armor', 'when at least one relevant'
-  UNION ALL SELECT 'undead-cohort', 'combined Summoner and Necromancer'
-  UNION ALL SELECT 'undead-cohort', 'granted for free'
-  UNION ALL SELECT 'tough-as-bone', 'disease and stun'
-  UNION ALL SELECT 'essence-of-undeath', 'physical ability drain'
-  UNION ALL SELECT 'animatedead', 'separate daily class ability'
-  UNION ALL SELECT 'animatedead', 'does not target or consume'
-  UNION ALL SELECT 'animatedead', 'Necromancer level 2 grants one rank'
-  UNION ALL SELECT 'animatedead', 'no natural expiry'
-  UNION ALL SELECT 'animatedead', 'level-10 skeletal mage'
-  UNION ALL SELECT 'animatedead', 'level-25 lich'
-  UNION ALL SELECT 'animatedead', 'does not refund'
-  UNION ALL SELECT 'autoraise', 'off by default'
-  UNION ALL SELECT 'autoraise', 'one available swift action'
-  UNION ALL SELECT 'autoraise', 'exact corpse'
-  UNION ALL SELECT 'autoraise', 'extra control capacity'
+  SELECT
+    'class-necromancer' AS tag,
+    '5,000 account points' AS required_text
+  UNION ALL
+  SELECT
+    'class-necromancer',
+    'four plus Intelligence'
+  UNION ALL
+  SELECT
+    'class-necromancer',
+    '8  Medium Armor'
+  UNION ALL
+  SELECT
+    'animate-dead',
+    '10 percent summon failure chance'
+  UNION ALL
+  SELECT
+    'animate-dead',
+    'control capacity is 2 points, or 4'
+  UNION ALL
+  SELECT
+    'animate-dead',
+    'prepared spell or spontaneous spell slot'
+  UNION ALL
+  SELECT
+    'greater-animation',
+    '10 percent summon failure chance'
+  UNION ALL
+  SELECT
+    'greater-animation',
+    'final follower level also scales'
+  UNION ALL
+  SELECT
+    'greater-animation',
+    'corpse contents remain on the ground'
+  UNION ALL
+  SELECT
+    'touch-of-undeath',
+    'whether the touch attack hits or misses'
+  UNION ALL
+  SELECT
+    'touch-of-undeath',
+    'selected preferred spellcasting class'
+  UNION ALL
+  SELECT
+    'touch-of-undeath',
+    '1d4+1 rounds'
+  UNION ALL
+  SELECT
+    'bone-armor',
+    'exactly one armor piece or shield'
+  UNION ALL
+  SELECT
+    'bone-armor',
+    'one third of the item'
+  UNION ALL
+  SELECT
+    'bone-armor',
+    'when at least one relevant'
+  UNION ALL
+  SELECT
+    'undead-cohort',
+    'combined Summoner and Necromancer'
+  UNION ALL
+  SELECT
+    'undead-cohort',
+    'granted for free'
+  UNION ALL
+  SELECT
+    'tough-as-bone',
+    'disease and stun'
+  UNION ALL
+  SELECT
+    'essence-of-undeath',
+    'physical ability drain'
+  UNION ALL
+  SELECT
+    'animatedead',
+    'separate daily class ability'
+  UNION ALL
+  SELECT
+    'animatedead',
+    'does not target or consume'
+  UNION ALL
+  SELECT
+    'animatedead',
+    'Necromancer level 2 grants one rank'
+  UNION ALL
+  SELECT
+    'animatedead',
+    'no natural expiry'
+  UNION ALL
+  SELECT
+    'animatedead',
+    'level-10 skeletal mage'
+  UNION ALL
+  SELECT
+    'animatedead',
+    'level-25 lich'
+  UNION ALL
+  SELECT
+    'animatedead',
+    'does not refund'
+  UNION ALL
+  SELECT
+    'autoraise',
+    'off by default'
+  UNION ALL
+  SELECT
+    'autoraise',
+    'one available swift action'
+  UNION ALL
+  SELECT
+    'autoraise',
+    'exact corpse'
+  UNION ALL
+  SELECT
+    'autoraise',
+    'extra control capacity'
 ) AS expected_content
 LEFT JOIN help_entries AS h ON h.tag = expected_content.tag;

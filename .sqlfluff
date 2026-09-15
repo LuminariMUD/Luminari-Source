@@ -1,0 +1,14 @@
+[sqlfluff]
+dialect = mariadb
+templater = raw
+# Inline noqa comments cannot suppress formatting or parse errors.
+disable_noqa = True
+large_file_skip_byte_limit = 0
+max_line_length = 100
+# Layout only: capitalisation rules rename case-sensitive table identifiers,
+# LT05 (line length) cannot always be fixed automatically, and end-of-file-fixer
+# owns final newlines (LT12 flips empty files between 0 and 1 byte).
+exclude_rules = LT05, LT12, CP01, CP02, CP03, CP04, CP05
+
+[sqlfluff:indentation]
+tab_space_size = 2

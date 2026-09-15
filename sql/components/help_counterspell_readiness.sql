@@ -83,7 +83,7 @@ Examples:
   ready say Hold the doorway! on door open north
 
 See also: COMBAT, INITIATIVE, CONCENTRATION, CASTING-TIME
-', 0, 0) ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level), auto_generated = VALUES(auto_generated);
+', 0, 0) ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('READIED-ACTION', 'READIED-ACTION');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('READIED-ACTION', 'READY');
