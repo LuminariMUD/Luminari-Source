@@ -8,7 +8,7 @@ name: Toolchain analysis
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 3 * * 1'
+    - cron: "0 3 * * 1"
 
 permissions:
   contents: read
@@ -25,12 +25,12 @@ jobs:
         include:
           - compiler: gcc-16
             cc: gcc
-            min_version: '16.2'
+            min_version: "16.2"
             container: gcc:16.2
           - compiler: clang-22
             cc: clang-22
-            min_version: '22.1.8'
-            container: ''
+            min_version: "22.1.8"
+            container: ""
     steps:
       - name: Install container prerequisites
         if: matrix.container != ''
@@ -89,12 +89,12 @@ jobs:
         include:
           - compiler: gcc-16
             cc: gcc
-            min_version: '16.2'
+            min_version: "16.2"
             container: gcc:16.2
           - compiler: clang-22
             cc: clang-22
-            min_version: '22.1.8'
-            container: ''
+            min_version: "22.1.8"
+            container: ""
     steps:
       - name: Install container prerequisites
         if: matrix.container != ''

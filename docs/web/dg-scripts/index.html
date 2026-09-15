@@ -1,56 +1,78 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DG Scripts | LuminariMUD Builder Guide</title>
-  <meta name="description" content="A code-backed guide to DG Script triggers, variables, commands, TRIGEDIT, and live LuminariMUD examples.">
-  <link rel="stylesheet" href="../assets/css/dg-scripts.css">
-  <script defer src="../assets/js/dg-reference.js"></script>
-  <script defer src="../assets/js/dg-docs.js"></script>
-</head>
-<body class="dg-docs">
-  <a class="dg-skip-link" href="#main-content">Skip to content</a>
-  <header class="dg-site-header">
-    <div class="dg-site-header__inner">
-      <a class="dg-brand" href="index.html" aria-label="DG Scripts home">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M4 4h10v10H4zM18 4h10v10H18zM4 18h10v10H4zM18 18h10v10H18z"/><path fill="#ef4454" d="M9 9h14v14H9z"/></svg>
-        DG <span class="dg-brand__mud">Scripts</span>
-      </a>
-      <button class="dg-nav-toggle" type="button" aria-expanded="false" aria-controls="dg-primary-nav" aria-label="Toggle guide navigation">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"/></svg>
-      </button>
-      <nav class="dg-nav" id="dg-primary-nav" aria-label="DG Scripts guide">
-        <a href="getting-started.html" data-active="true">Start</a>
-        <a href="trigger-types.html">Triggers</a>
-        <a href="commands.html">Commands</a>
-        <a href="variables.html">Variables</a>
-        <a href="trigedit.html">TRIGEDIT</a>
-        <a href="dollhouse.html">Examples</a>
-      </nav>
-    </div>
-  </header>
-
-  <main id="main-content">
-    <section class="dg-container dg-hero">
-      <div class="dg-hero__copy">
-        <h1>DG Scripts</h1>
-        <p class="dg-hero__statement">Build worlds that respond.</p>
-        <p class="dg-hero__intro">A code-backed guide to triggers, variables, commands, and TRIGEDIT in LuminariMUD.</p>
-        <div class="dg-actions">
-          <a class="dg-button" href="getting-started.html">Write your first trigger</a>
-          <a class="dg-button dg-button--secondary" href="dollhouse.html">Explore the Dollhouse</a>
-        </div>
-        <div class="dg-pulse" aria-hidden="true">
-          <span class="dg-pulse__room"></span><span class="dg-pulse__line"></span><span class="dg-pulse__room"></span>
-        </div>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DG Scripts | LuminariMUD Builder Guide</title>
+    <meta
+      name="description"
+      content="A code-backed guide to DG Script triggers, variables, commands, TRIGEDIT, and live LuminariMUD examples."
+    />
+    <link rel="stylesheet" href="../assets/css/dg-scripts.css" />
+    <script defer src="../assets/js/dg-reference.js"></script>
+    <script defer src="../assets/js/dg-docs.js"></script>
+  </head>
+  <body class="dg-docs">
+    <a class="dg-skip-link" href="#main-content">Skip to content</a>
+    <header class="dg-site-header">
+      <div class="dg-site-header__inner">
+        <a class="dg-brand" href="index.html" aria-label="DG Scripts home">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M4 4h10v10H4zM18 4h10v10H18zM4 18h10v10H4zM18 18h10v10H18z"
+            />
+            <path fill="#ef4454" d="M9 9h14v14H9z" />
+          </svg>
+          DG <span class="dg-brand__mud">Scripts</span>
+        </a>
+        <button
+          class="dg-nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="dg-primary-nav"
+          aria-label="Toggle guide navigation"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2" d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <nav class="dg-nav" id="dg-primary-nav" aria-label="DG Scripts guide">
+          <a href="getting-started.html" data-active="true">Start</a>
+          <a href="trigger-types.html">Triggers</a>
+          <a href="commands.html">Commands</a>
+          <a href="variables.html">Variables</a>
+          <a href="trigedit.html">TRIGEDIT</a>
+          <a href="dollhouse.html">Examples</a>
+        </nav>
       </div>
-      <div class="dg-code">
-        <div class="dg-code__bar">
-          <span class="dg-code__source">Trigger 11800 / mobile greet / The Dollhouse</span>
-          <button class="dg-copy" type="button">Copy</button>
+    </header>
+
+    <main id="main-content">
+      <section class="dg-container dg-hero">
+        <div class="dg-hero__copy">
+          <h1>DG Scripts</h1>
+          <p class="dg-hero__statement">Build worlds that respond.</p>
+          <p class="dg-hero__intro">
+            A code-backed guide to triggers, variables, commands, and TRIGEDIT in LuminariMUD.
+          </p>
+          <div class="dg-actions">
+            <a class="dg-button" href="getting-started.html">Write your first trigger</a>
+            <a class="dg-button dg-button--secondary" href="dollhouse.html"
+              >Explore the Dollhouse</a
+            >
+          </div>
+          <div class="dg-pulse" aria-hidden="true">
+            <span class="dg-pulse__room"></span><span class="dg-pulse__line"></span
+            ><span class="dg-pulse__room"></span>
+          </div>
         </div>
-        <pre><code>set gender one
+        <div class="dg-code">
+          <div class="dg-code__bar">
+            <span class="dg-code__source">Trigger 11800 / mobile greet / The Dollhouse</span>
+            <button class="dg-copy" type="button">Copy</button>
+          </div>
+          <pre><code>set gender one
 if %actor.sex% == male
 set gender lad
 elseif %actor.sex% == female
@@ -66,66 +88,102 @@ wait 2 s
 say I hope you find what you are looking for.
 wait 2 s
 emote smiles strangely at you as she turns back to her work.</code></pre>
-      </div>
-    </section>
-
-    <section class="dg-section dg-section--muted">
-      <div class="dg-container">
-        <h2>From event to behavior</h2>
-        <p class="dg-section__intro">A DG Script is a trigger prototype attached to a mobile, object, or room. The runtime supplies event variables; your command list decides what happens next.</p>
-        <ol class="dg-step-rail">
-          <li class="dg-step">
-            <span class="dg-step__number">1</span>
-            <h3>Choose an owner</h3>
-            <p>Put the behavior on the mobile, object, or room that owns the event.</p>
-            <a href="getting-started.html#owner">Owner rules</a>
-          </li>
-          <li class="dg-step">
-            <span class="dg-step__number">2</span>
-            <h3>Choose an event</h3>
-            <p>Command, greet, speech, load, timer, combat, and time events expose different data.</p>
-            <a href="trigger-types.html">Trigger matrix</a>
-          </li>
-          <li class="dg-step">
-            <span class="dg-step__number">3</span>
-            <h3>Set arguments</h3>
-            <p>The Numeric Arg may mean chance, hour, threshold, or an object location mask.</p>
-            <a href="trigger-types.html#numeric-arg">Argument semantics</a>
-          </li>
-          <li class="dg-step">
-            <span class="dg-step__number">4</span>
-            <h3>Write behavior</h3>
-            <p>Combine variables, control flow, waits, and commands from the owner's interpreter.</p>
-            <a href="commands.html">Command reference</a>
-          </li>
-          <li class="dg-step">
-            <span class="dg-step__number">5</span>
-            <h3>Attach and prove</h3>
-            <p>Attach through OLC, load a fresh instance, exercise both branches, and inspect state.</p>
-            <a href="testing.html">Testing workflow</a>
-          </li>
-        </ol>
-      </div>
-    </section>
-
-    <section class="dg-section">
-      <div class="dg-container dg-anatomy">
-        <div>
-          <h2>Five parts, one trigger</h2>
-          <p>TRIGEDIT stores the prototype as five essential decisions. The event hook and owner type determine which variables and commands are safe to use.</p>
-          <ul class="dg-anatomy-list">
-            <li><span class="dg-anatomy-key">A</span><span><b>Name</b><small>A searchable builder-facing description.</small></span></li>
-            <li><span class="dg-anatomy-key">B</span><span><b>Intended owner</b><small>Mobile, object, or room.</small></span></li>
-            <li><span class="dg-anatomy-key">C</span><span><b>Trigger types</b><small>One or more event flags for that owner.</small></span></li>
-            <li><span class="dg-anatomy-key">D</span><span><b>Numeric Arg and Arguments</b><small>Event-specific configuration, not generic parameters.</small></span></li>
-            <li><span class="dg-anatomy-key">E</span><span><b>Commands</b><small>The script body run by <code>script_driver()</code>.</small></span></li>
-          </ul>
         </div>
-        <div class="dg-code">
-          <div class="dg-code__bar">
-            <span class="dg-code__source">How trigger 11868 maps into TRIGEDIT</span>
+      </section>
+
+      <section class="dg-section dg-section--muted">
+        <div class="dg-container">
+          <h2>From event to behavior</h2>
+          <p class="dg-section__intro">
+            A DG Script is a trigger prototype attached to a mobile, object, or room. The runtime
+            supplies event variables; your command list decides what happens next.
+          </p>
+          <ol class="dg-step-rail">
+            <li class="dg-step">
+              <span class="dg-step__number">1</span>
+              <h3>Choose an owner</h3>
+              <p>Put the behavior on the mobile, object, or room that owns the event.</p>
+              <a href="getting-started.html#owner">Owner rules</a>
+            </li>
+            <li class="dg-step">
+              <span class="dg-step__number">2</span>
+              <h3>Choose an event</h3>
+              <p>
+                Command, greet, speech, load, timer, combat, and time events expose different data.
+              </p>
+              <a href="trigger-types.html">Trigger matrix</a>
+            </li>
+            <li class="dg-step">
+              <span class="dg-step__number">3</span>
+              <h3>Set arguments</h3>
+              <p>The Numeric Arg may mean chance, hour, threshold, or an object location mask.</p>
+              <a href="trigger-types.html#numeric-arg">Argument semantics</a>
+            </li>
+            <li class="dg-step">
+              <span class="dg-step__number">4</span>
+              <h3>Write behavior</h3>
+              <p>
+                Combine variables, control flow, waits, and commands from the owner's interpreter.
+              </p>
+              <a href="commands.html">Command reference</a>
+            </li>
+            <li class="dg-step">
+              <span class="dg-step__number">5</span>
+              <h3>Attach and prove</h3>
+              <p>
+                Attach through OLC, load a fresh instance, exercise both branches, and inspect
+                state.
+              </p>
+              <a href="testing.html">Testing workflow</a>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="dg-section">
+        <div class="dg-container dg-anatomy">
+          <div>
+            <h2>Five parts, one trigger</h2>
+            <p>
+              TRIGEDIT stores the prototype as five essential decisions. The event hook and owner
+              type determine which variables and commands are safe to use.
+            </p>
+            <ul class="dg-anatomy-list">
+              <li>
+                <span class="dg-anatomy-key">A</span
+                ><span><b>Name</b><small>A searchable builder-facing description.</small></span>
+              </li>
+              <li>
+                <span class="dg-anatomy-key">B</span
+                ><span><b>Intended owner</b><small>Mobile, object, or room.</small></span>
+              </li>
+              <li>
+                <span class="dg-anatomy-key">C</span
+                ><span
+                  ><b>Trigger types</b><small>One or more event flags for that owner.</small></span
+                >
+              </li>
+              <li>
+                <span class="dg-anatomy-key">D</span
+                ><span
+                  ><b>Numeric Arg and Arguments</b
+                  ><small>Event-specific configuration, not generic parameters.</small></span
+                >
+              </li>
+              <li>
+                <span class="dg-anatomy-key">E</span
+                ><span
+                  ><b>Commands</b
+                  ><small>The script body run by <code>script_driver()</code>.</small></span
+                >
+              </li>
+            </ul>
           </div>
-          <pre><code>A  (70) Hiding girl beckons
+          <div class="dg-code">
+            <div class="dg-code__bar">
+              <span class="dg-code__source">How trigger 11868 maps into TRIGEDIT</span>
+            </div>
+            <pre><code>A  (70) Hiding girl beckons
 B  Intended for: Rooms
 C  Trigger type: Enter
 D  Numeric Arg: 100
@@ -134,94 +192,191 @@ E  if %direction% == west
      wait 1 s
      %send% %actor% You hear a shuffling sound from under the bed.
    end</code></pre>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="dg-section dg-section--muted">
+      <section class="dg-section dg-section--muted">
+        <div class="dg-container">
+          <h2>The complete builder shelf</h2>
+          <p class="dg-section__intro">
+            Use the tutorial when you are learning the execution model, then keep the reference
+            pages open beside TRIGEDIT.
+          </p>
+          <div class="dg-reference-grid">
+            <div class="dg-reference-group">
+              <h3>Triggers</h3>
+              <ul>
+                <li>20 mobile types</li>
+                <li>14 object types</li>
+                <li>12 room types</li>
+              </ul>
+              <a href="trigger-types.html">Compare events</a>
+            </div>
+            <div class="dg-reference-group">
+              <h3>Commands</h3>
+              <ul>
+                <li>Control and state</li>
+                <li>Mobile, object, room</li>
+                <li>Owner-neutral aliases</li>
+              </ul>
+              <a href="commands.html">Browse commands</a>
+            </div>
+            <div class="dg-reference-group">
+              <h3>Variables</h3>
+              <ul>
+                <li>Local and global state</li>
+                <li>Entity field catalogs</li>
+                <li>Text and special fields</li>
+              </ul>
+              <a href="variables.html">Resolve values</a>
+            </div>
+            <div class="dg-reference-group">
+              <h3>Build</h3>
+              <ul>
+                <li>TRIGEDIT menu</li>
+                <li>Attach and detach</li>
+                <li>Zone permissions</li>
+              </ul>
+              <a href="trigedit.html">Open the editor</a>
+            </div>
+            <div class="dg-reference-group">
+              <h3>Operate</h3>
+              <ul>
+                <li>Staff command syntax</li>
+                <li>Runtime inspection</li>
+                <li>Static validation</li>
+              </ul>
+              <a href="staff-commands.html">Run staff tools</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="dg-section dg-section--deep">
+        <div class="dg-container dg-case-band">
+          <div>
+            <h2>The Dollhouse, opened</h2>
+            <p class="dg-section__intro">
+              Zone 118 is a production-scale case study: room transitions, staged dialogue,
+              persistent quest state, object timers, indirect variables, and cooperating owners.
+            </p>
+            <dl class="dg-zone-ledger">
+              <div>
+                <dt>VNUM range</dt>
+                <dd>11800-11899</dd>
+              </div>
+              <div>
+                <dt>Trigger prototypes</dt>
+                <dd>95 in <code>lib/world/trg/118.trg</code></dd>
+              </div>
+              <div>
+                <dt>Zone lifespan</dt>
+                <dd>8 minutes</dd>
+              </div>
+              <div>
+                <dt>Player level range</dt>
+                <dd>5-10</dd>
+              </div>
+            </dl>
+            <div class="dg-actions">
+              <a class="dg-button" href="dollhouse.html">Read the case study</a>
+            </div>
+          </div>
+          <div
+            class="dg-map"
+            aria-label="Abstract room map showing a Dollhouse scripted transition"
+          >
+            <span class="dg-map__room">11802<br />shop</span>
+            <span class="dg-map__room">11804<br />threshold</span>
+            <span class="dg-map__room dg-map__room--active">11822<br />arrival</span>
+            <span class="dg-map__room">11870<br />bedroom</span>
+            <span class="dg-map__room dg-map__room--active">11871<br />under bed</span>
+            <span class="dg-map__room">11896<br />focus</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="dg-section">
+        <div class="dg-container">
+          <h2>Accuracy is part of the workflow</h2>
+          <p class="dg-section__intro">
+            This guide distinguishes source-defined behavior from builder convention and links each
+            reference area to the implementation that governs it.
+          </p>
+          <div class="dg-check-grid">
+            <div class="dg-check">
+              <h3>Trace the event hook</h3>
+              <p>Know exactly when a trigger fires and which values the hook injects.</p>
+            </div>
+            <div class="dg-check">
+              <h3>Use real UIDs</h3>
+              <p>Take them from event variables or <code>makeuid</code>; never invent them.</p>
+            </div>
+            <div class="dg-check">
+              <h3>Cache before movement</h3>
+              <p>Save <code>next_in_room</code> before teleporting while iterating characters.</p>
+            </div>
+            <div class="dg-check">
+              <h3>Test fresh instances</h3>
+              <p>
+                TRIGEDIT refreshes matching trigger nodes, but attachment sets, aggregate flags, and
+                owner-global state are not rebuilt with the owner.
+              </p>
+            </div>
+            <div class="dg-check">
+              <h3>Validate world files</h3>
+              <p>Use <code>wtool</code> to catch malformed records and broken references.</p>
+            </div>
+            <div class="dg-check">
+              <h3>Inspect both state layers</h3>
+              <p>
+                Local variables die with a run; owner globals and remote player state can persist.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="dg-site-footer">
       <div class="dg-container">
-        <h2>The complete builder shelf</h2>
-        <p class="dg-section__intro">Use the tutorial when you are learning the execution model, then keep the reference pages open beside TRIGEDIT.</p>
-        <div class="dg-reference-grid">
-          <div class="dg-reference-group">
-            <h3>Triggers</h3>
-            <ul><li>20 mobile types</li><li>14 object types</li><li>12 room types</li></ul>
-            <a href="trigger-types.html">Compare events</a>
+        <div class="dg-footer-grid">
+          <div>
+            <h2>DG Scripts</h2>
+            <p class="dg-footer-note">
+              Builder documentation traced to the LuminariMUD C runtime, OLC, and live world data.
+            </p>
           </div>
-          <div class="dg-reference-group">
-            <h3>Commands</h3>
-            <ul><li>Control and state</li><li>Mobile, object, room</li><li>Owner-neutral aliases</li></ul>
-            <a href="commands.html">Browse commands</a>
+          <div>
+            <h3>Learn</h3>
+            <ul>
+              <li><a href="getting-started.html">Getting started</a></li>
+              <li><a href="trigedit.html">TRIGEDIT</a></li>
+              <li><a href="dollhouse.html">Dollhouse examples</a></li>
+            </ul>
           </div>
-          <div class="dg-reference-group">
-            <h3>Variables</h3>
-            <ul><li>Local and global state</li><li>Entity field catalogs</li><li>Text and special fields</li></ul>
-            <a href="variables.html">Resolve values</a>
+          <div>
+            <h3>Reference</h3>
+            <ul>
+              <li><a href="trigger-types.html">Trigger types</a></li>
+              <li><a href="commands.html">Commands</a></li>
+              <li><a href="variables.html">Variables</a></li>
+            </ul>
           </div>
-          <div class="dg-reference-group">
-            <h3>Build</h3>
-            <ul><li>TRIGEDIT menu</li><li>Attach and detach</li><li>Zone permissions</li></ul>
-            <a href="trigedit.html">Open the editor</a>
-          </div>
-          <div class="dg-reference-group">
+          <div>
             <h3>Operate</h3>
-            <ul><li>Staff command syntax</li><li>Runtime inspection</li><li>Static validation</li></ul>
-            <a href="staff-commands.html">Run staff tools</a>
+            <ul>
+              <li><a href="staff-commands.html">Staff commands</a></li>
+              <li><a href="testing.html">Testing</a></li>
+              <li><a href="architecture.html">Architecture</a></li>
+            </ul>
           </div>
         </div>
-      </div>
-    </section>
-
-    <section class="dg-section dg-section--deep">
-      <div class="dg-container dg-case-band">
-        <div>
-          <h2>The Dollhouse, opened</h2>
-          <p class="dg-section__intro">Zone 118 is a production-scale case study: room transitions, staged dialogue, persistent quest state, object timers, indirect variables, and cooperating owners.</p>
-          <dl class="dg-zone-ledger">
-            <div><dt>VNUM range</dt><dd>11800-11899</dd></div>
-            <div><dt>Trigger prototypes</dt><dd>95 in <code>lib/world/trg/118.trg</code></dd></div>
-            <div><dt>Zone lifespan</dt><dd>8 minutes</dd></div>
-            <div><dt>Player level range</dt><dd>5-10</dd></div>
-          </dl>
-          <div class="dg-actions"><a class="dg-button" href="dollhouse.html">Read the case study</a></div>
-        </div>
-        <div class="dg-map" aria-label="Abstract room map showing a Dollhouse scripted transition">
-          <span class="dg-map__room">11802<br>shop</span>
-          <span class="dg-map__room">11804<br>threshold</span>
-          <span class="dg-map__room dg-map__room--active">11822<br>arrival</span>
-          <span class="dg-map__room">11870<br>bedroom</span>
-          <span class="dg-map__room dg-map__room--active">11871<br>under bed</span>
-          <span class="dg-map__room">11896<br>focus</span>
+        <div class="dg-footer-bottom">
+          LuminariMUD builder guide. Source paths and behavior reflect this repository.
         </div>
       </div>
-    </section>
-
-    <section class="dg-section">
-      <div class="dg-container">
-        <h2>Accuracy is part of the workflow</h2>
-        <p class="dg-section__intro">This guide distinguishes source-defined behavior from builder convention and links each reference area to the implementation that governs it.</p>
-        <div class="dg-check-grid">
-          <div class="dg-check"><h3>Trace the event hook</h3><p>Know exactly when a trigger fires and which values the hook injects.</p></div>
-          <div class="dg-check"><h3>Use real UIDs</h3><p>Take them from event variables or <code>makeuid</code>; never invent them.</p></div>
-          <div class="dg-check"><h3>Cache before movement</h3><p>Save <code>next_in_room</code> before teleporting while iterating characters.</p></div>
-          <div class="dg-check"><h3>Test fresh instances</h3><p>TRIGEDIT refreshes matching trigger nodes, but attachment sets, aggregate flags, and owner-global state are not rebuilt with the owner.</p></div>
-          <div class="dg-check"><h3>Validate world files</h3><p>Use <code>wtool</code> to catch malformed records and broken references.</p></div>
-          <div class="dg-check"><h3>Inspect both state layers</h3><p>Local variables die with a run; owner globals and remote player state can persist.</p></div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="dg-site-footer">
-    <div class="dg-container">
-      <div class="dg-footer-grid">
-        <div><h2>DG Scripts</h2><p class="dg-footer-note">Builder documentation traced to the LuminariMUD C runtime, OLC, and live world data.</p></div>
-        <div><h3>Learn</h3><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigedit.html">TRIGEDIT</a></li><li><a href="dollhouse.html">Dollhouse examples</a></li></ul></div>
-        <div><h3>Reference</h3><ul><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html">Variables</a></li></ul></div>
-        <div><h3>Operate</h3><ul><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li><li><a href="architecture.html">Architecture</a></li></ul></div>
-      </div>
-      <div class="dg-footer-bottom">LuminariMUD builder guide. Source paths and behavior reflect this repository.</div>
-    </div>
-  </footer>
-</body>
+    </footer>
+  </body>
 </html>

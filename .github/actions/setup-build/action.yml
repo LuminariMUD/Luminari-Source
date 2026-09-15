@@ -3,7 +3,7 @@ description: Install build dependencies, prepare config headers, and cache compi
 inputs:
   packages:
     description: Additional job dependencies
-    default: ''
+    default: ""
   cache-variant:
     description: Compiler and build profile used by this job
     default: default

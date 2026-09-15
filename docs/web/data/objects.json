@@ -9,8 +9,36 @@
       "materials": ["Steel", "Iron", "Mithril", "Adamantine", "Wood", "Leather", "Glass", "Paper"],
       "zones": ["Sanctus", "Mudschool", "Newbie Zone", "Dragon's Lair", "Elven Forest"],
       "perm_affects": ["Fire-Resistance", "Cold-Resistance", "Haste"],
-      "wear_slots": ["Wield", "Body", "Head", "Hands", "Legs", "Feet", "Finger", "Neck", "Hold", "Light", "About-Body"],
-      "bonus_locations": ["Hitroll", "Damroll", "Armor-Class", "Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma", "Max-HP", "Save-Fortitude", "Save-Reflex", "Save-Will", "Resist-Fire", "Resist-Cold"],
+      "wear_slots": [
+        "Wield",
+        "Body",
+        "Head",
+        "Hands",
+        "Legs",
+        "Feet",
+        "Finger",
+        "Neck",
+        "Hold",
+        "Light",
+        "About-Body"
+      ],
+      "bonus_locations": [
+        "Hitroll",
+        "Damroll",
+        "Armor-Class",
+        "Strength",
+        "Dexterity",
+        "Constitution",
+        "Intelligence",
+        "Wisdom",
+        "Charisma",
+        "Max-HP",
+        "Save-Fortitude",
+        "Save-Reflex",
+        "Save-Will",
+        "Resist-Fire",
+        "Resist-Cold"
+      ],
       "bonus_types": ["enhancement", "morale", "resistance", "deflection", "natural armor"],
       "bonus_specifics": [],
       "weapon_groups": ["Heavy-Blade", "Light-Blade", "Axe", "Hammer", "Polearm", "Ranged", "Monk"]
@@ -54,7 +82,12 @@
       "weapon_special_ability": "",
       "wear_slots": ["Body"],
       "bonuses": [
-        {"bonus_location": "Armor-Class", "bonus_type": "armor", "bonus_specific": "", "bonus_modifier": 8}
+        {
+          "bonus_location": "Armor-Class",
+          "bonus_type": "armor",
+          "bonus_specific": "",
+          "bonus_modifier": 8
+        }
       ],
       "obj_flags": [],
       "perm_affects": []
@@ -76,8 +109,18 @@
       "weapon_special_ability": "",
       "wear_slots": ["Wield"],
       "bonuses": [
-        {"bonus_location": "Hitroll", "bonus_type": "enhancement", "bonus_specific": "", "bonus_modifier": 1},
-        {"bonus_location": "Damroll", "bonus_type": "enhancement", "bonus_specific": "", "bonus_modifier": 1}
+        {
+          "bonus_location": "Hitroll",
+          "bonus_type": "enhancement",
+          "bonus_specific": "",
+          "bonus_modifier": 1
+        },
+        {
+          "bonus_location": "Damroll",
+          "bonus_type": "enhancement",
+          "bonus_specific": "",
+          "bonus_modifier": 1
+        }
       ],
       "obj_flags": ["Magic"],
       "perm_affects": []
@@ -99,7 +142,12 @@
       "weapon_special_ability": "",
       "wear_slots": ["Body"],
       "bonuses": [
-        {"bonus_location": "Armor-Class", "bonus_type": "enhancement", "bonus_specific": "", "bonus_modifier": 2}
+        {
+          "bonus_location": "Armor-Class",
+          "bonus_type": "enhancement",
+          "bonus_specific": "",
+          "bonus_modifier": 2
+        }
       ],
       "obj_flags": ["Magic"],
       "perm_affects": []
@@ -121,9 +169,24 @@
       "weapon_special_ability": "flaming",
       "wear_slots": ["Wield"],
       "bonuses": [
-        {"bonus_location": "Hitroll", "bonus_type": "enhancement", "bonus_specific": "", "bonus_modifier": 3},
-        {"bonus_location": "Damroll", "bonus_type": "enhancement", "bonus_specific": "", "bonus_modifier": 3},
-        {"bonus_location": "Resist-Fire", "bonus_type": "resistance", "bonus_specific": "", "bonus_modifier": 10}
+        {
+          "bonus_location": "Hitroll",
+          "bonus_type": "enhancement",
+          "bonus_specific": "",
+          "bonus_modifier": 3
+        },
+        {
+          "bonus_location": "Damroll",
+          "bonus_type": "enhancement",
+          "bonus_specific": "",
+          "bonus_modifier": 3
+        },
+        {
+          "bonus_location": "Resist-Fire",
+          "bonus_type": "resistance",
+          "bonus_specific": "",
+          "bonus_modifier": 10
+        }
       ],
       "obj_flags": ["Magic", "Glow"],
       "perm_affects": ["Fire-Resistance"]
@@ -145,9 +208,24 @@
       "weapon_special_ability": "",
       "wear_slots": ["Body"],
       "bonuses": [
-        {"bonus_location": "Armor-Class", "bonus_type": "enhancement", "bonus_specific": "", "bonus_modifier": 4},
-        {"bonus_location": "Resist-Fire", "bonus_type": "resistance", "bonus_specific": "", "bonus_modifier": 20},
-        {"bonus_location": "Strength", "bonus_type": "enhancement", "bonus_specific": "", "bonus_modifier": 2}
+        {
+          "bonus_location": "Armor-Class",
+          "bonus_type": "enhancement",
+          "bonus_specific": "",
+          "bonus_modifier": 4
+        },
+        {
+          "bonus_location": "Resist-Fire",
+          "bonus_type": "resistance",
+          "bonus_specific": "",
+          "bonus_modifier": 20
+        },
+        {
+          "bonus_location": "Strength",
+          "bonus_type": "enhancement",
+          "bonus_specific": "",
+          "bonus_modifier": 2
+        }
       ],
       "obj_flags": ["Magic", "Glow"],
       "perm_affects": ["Fire-Resistance"]
@@ -169,10 +247,30 @@
       "weapon_special_ability": "spell-storing",
       "wear_slots": ["Wield", "Hold"],
       "bonuses": [
-        {"bonus_location": "Hitroll", "bonus_type": "enhancement", "bonus_specific": "", "bonus_modifier": 2},
-        {"bonus_location": "Damroll", "bonus_type": "enhancement", "bonus_specific": "", "bonus_modifier": 2},
-        {"bonus_location": "Intelligence", "bonus_type": "enhancement", "bonus_specific": "", "bonus_modifier": 2},
-        {"bonus_location": "Wisdom", "bonus_type": "enhancement", "bonus_specific": "", "bonus_modifier": 2}
+        {
+          "bonus_location": "Hitroll",
+          "bonus_type": "enhancement",
+          "bonus_specific": "",
+          "bonus_modifier": 2
+        },
+        {
+          "bonus_location": "Damroll",
+          "bonus_type": "enhancement",
+          "bonus_specific": "",
+          "bonus_modifier": 2
+        },
+        {
+          "bonus_location": "Intelligence",
+          "bonus_type": "enhancement",
+          "bonus_specific": "",
+          "bonus_modifier": 2
+        },
+        {
+          "bonus_location": "Wisdom",
+          "bonus_type": "enhancement",
+          "bonus_specific": "",
+          "bonus_modifier": 2
+        }
       ],
       "obj_flags": ["Magic", "Glow"],
       "perm_affects": []
@@ -274,8 +372,18 @@
       "weapon_special_ability": "",
       "wear_slots": ["Head"],
       "bonuses": [
-        {"bonus_location": "Wisdom", "bonus_type": "enhancement", "bonus_specific": "", "bonus_modifier": 2},
-        {"bonus_location": "Save-Will", "bonus_type": "resistance", "bonus_specific": "", "bonus_modifier": 1}
+        {
+          "bonus_location": "Wisdom",
+          "bonus_type": "enhancement",
+          "bonus_specific": "",
+          "bonus_modifier": 2
+        },
+        {
+          "bonus_location": "Save-Will",
+          "bonus_type": "resistance",
+          "bonus_specific": "",
+          "bonus_modifier": 1
+        }
       ],
       "obj_flags": ["Magic"],
       "perm_affects": []
@@ -297,8 +405,18 @@
       "weapon_special_ability": "",
       "wear_slots": ["Hands"],
       "bonuses": [
-        {"bonus_location": "Strength", "bonus_type": "enhancement", "bonus_specific": "", "bonus_modifier": 4},
-        {"bonus_location": "Damroll", "bonus_type": "enhancement", "bonus_specific": "", "bonus_modifier": 2}
+        {
+          "bonus_location": "Strength",
+          "bonus_type": "enhancement",
+          "bonus_specific": "",
+          "bonus_modifier": 4
+        },
+        {
+          "bonus_location": "Damroll",
+          "bonus_type": "enhancement",
+          "bonus_specific": "",
+          "bonus_modifier": 2
+        }
       ],
       "obj_flags": ["Magic"],
       "perm_affects": []
@@ -320,8 +438,18 @@
       "weapon_special_ability": "haste",
       "wear_slots": ["Feet"],
       "bonuses": [
-        {"bonus_location": "Dexterity", "bonus_type": "enhancement", "bonus_specific": "", "bonus_modifier": 2},
-        {"bonus_location": "Armor-Class", "bonus_type": "deflection", "bonus_specific": "", "bonus_modifier": 1}
+        {
+          "bonus_location": "Dexterity",
+          "bonus_type": "enhancement",
+          "bonus_specific": "",
+          "bonus_modifier": 2
+        },
+        {
+          "bonus_location": "Armor-Class",
+          "bonus_type": "deflection",
+          "bonus_specific": "",
+          "bonus_modifier": 1
+        }
       ],
       "obj_flags": ["Magic"],
       "perm_affects": ["Haste"]
@@ -343,7 +471,12 @@
       "weapon_special_ability": "",
       "wear_slots": ["Neck"],
       "bonuses": [
-        {"bonus_location": "Armor-Class", "bonus_type": "natural armor", "bonus_specific": "", "bonus_modifier": 1}
+        {
+          "bonus_location": "Armor-Class",
+          "bonus_type": "natural armor",
+          "bonus_specific": "",
+          "bonus_modifier": 1
+        }
       ],
       "obj_flags": ["Magic"],
       "perm_affects": []

@@ -46,6 +46,14 @@ repos:
           - mdformat-simple-breaks==0.1.0
         exclude: ^(docs/previous_changelogs/|lib/WILD_KB\.md$)
 
+  # YAML, JSON, HTML, CSS, and JavaScript; generated and sealed files are in
+  # .prettierignore.
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: v3.9.6
+    hooks:
+      - id: prettier
+        types_or: [yaml, json, html, css, javascript]
+
   # General file hygiene
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

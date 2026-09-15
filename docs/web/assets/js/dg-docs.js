@@ -23,16 +23,34 @@
         return;
       }
 
-      body.innerHTML = rows.map(function (row) {
-        var search = [row.name, row.narg, row.args, row.variables, row.behavior].join(" ").toLowerCase();
-        return "<tr class=\"dg-reference-row\" data-search=\"" + escapeHtml(search) + "\">" +
-          "<td><code>" + escapeHtml(row.name) + "</code></td>" +
-          "<td>" + escapeHtml(row.narg) + "</td>" +
-          "<td>" + escapeHtml(row.args) + "</td>" +
-          "<td>" + escapeHtml(row.variables) + "</td>" +
-          "<td>" + escapeHtml(row.behavior) + "</td>" +
-          "</tr>";
-      }).join("");
+      body.innerHTML = rows
+        .map(function (row) {
+          var search = [row.name, row.narg, row.args, row.variables, row.behavior]
+            .join(" ")
+            .toLowerCase();
+          return (
+            '<tr class="dg-reference-row" data-search="' +
+            escapeHtml(search) +
+            '">' +
+            "<td><code>" +
+            escapeHtml(row.name) +
+            "</code></td>" +
+            "<td>" +
+            escapeHtml(row.narg) +
+            "</td>" +
+            "<td>" +
+            escapeHtml(row.args) +
+            "</td>" +
+            "<td>" +
+            escapeHtml(row.variables) +
+            "</td>" +
+            "<td>" +
+            escapeHtml(row.behavior) +
+            "</td>" +
+            "</tr>"
+          );
+        })
+        .join("");
     });
   }
 
@@ -45,14 +63,26 @@
         return;
       }
 
-      body.innerHTML = rows.map(function (row) {
-        var search = [row.name, row.purpose, row.syntax].join(" ").toLowerCase();
-        return "<tr class=\"dg-reference-row\" data-search=\"" + escapeHtml(search) + "\">" +
-          "<td><code>" + escapeHtml(row.name) + "</code></td>" +
-          "<td><code>" + escapeHtml(row.syntax) + "</code></td>" +
-          "<td>" + escapeHtml(row.purpose) + "</td>" +
-          "</tr>";
-      }).join("");
+      body.innerHTML = rows
+        .map(function (row) {
+          var search = [row.name, row.purpose, row.syntax].join(" ").toLowerCase();
+          return (
+            '<tr class="dg-reference-row" data-search="' +
+            escapeHtml(search) +
+            '">' +
+            "<td><code>" +
+            escapeHtml(row.name) +
+            "</code></td>" +
+            "<td><code>" +
+            escapeHtml(row.syntax) +
+            "</code></td>" +
+            "<td>" +
+            escapeHtml(row.purpose) +
+            "</td>" +
+            "</tr>"
+          );
+        })
+        .join("");
     });
   }
 
@@ -65,10 +95,17 @@
         return;
       }
 
-      cloud.innerHTML = values.map(function (value) {
-        return "<span class=\"dg-field\" data-search=\"" + escapeHtml(value.toLowerCase()) +
-          "\"><code>" + escapeHtml(value) + "</code></span>";
-      }).join("");
+      cloud.innerHTML = values
+        .map(function (value) {
+          return (
+            '<span class="dg-field" data-search="' +
+            escapeHtml(value.toLowerCase()) +
+            '"><code>' +
+            escapeHtml(value) +
+            "</code></span>"
+          );
+        })
+        .join("");
     });
 
     document.querySelectorAll("[data-dg-field-cloud]").forEach(function (cloud) {
@@ -79,10 +116,17 @@
         return;
       }
 
-      cloud.innerHTML = values.map(function (value) {
-        return "<span class=\"dg-field\" data-search=\"" + escapeHtml(value.toLowerCase()) +
-          "\"><code>" + escapeHtml(value) + "</code></span>";
-      }).join("");
+      cloud.innerHTML = values
+        .map(function (value) {
+          return (
+            '<span class="dg-field" data-search="' +
+            escapeHtml(value.toLowerCase()) +
+            '"><code>' +
+            escapeHtml(value) +
+            "</code></span>"
+          );
+        })
+        .join("");
     });
   }
 
@@ -171,14 +215,17 @@
           return;
         }
 
-        navigator.clipboard.writeText(pre.textContent.replace(/\n$/, "")).then(function () {
-          button.textContent = "Copied";
-          window.setTimeout(function () {
-            button.textContent = original;
-          }, 1400);
-        }).catch(function () {
-          button.textContent = "Select code";
-        });
+        navigator.clipboard
+          .writeText(pre.textContent.replace(/\n$/, ""))
+          .then(function () {
+            button.textContent = "Copied";
+            window.setTimeout(function () {
+              button.textContent = original;
+            }, 1400);
+          })
+          .catch(function () {
+            button.textContent = "Select code";
+          });
       });
     });
   }
@@ -200,26 +247,36 @@
       return;
     }
 
-    sections = links.map(function (link) {
-      return document.querySelector(link.getAttribute("href"));
-    }).filter(Boolean);
+    sections = links
+      .map(function (link) {
+        return document.querySelector(link.getAttribute("href"));
+      })
+      .filter(Boolean);
 
-    observer = new IntersectionObserver(function (entries) {
-      var visible = entries.filter(function (entry) {
-        return entry.isIntersecting;
-      }).sort(function (a, b) {
-        return a.boundingClientRect.top - b.boundingClientRect.top;
-      });
+    observer = new IntersectionObserver(
+      function (entries) {
+        var visible = entries
+          .filter(function (entry) {
+            return entry.isIntersecting;
+          })
+          .sort(function (a, b) {
+            return a.boundingClientRect.top - b.boundingClientRect.top;
+          });
 
-      if (visible.length) {
-        links.forEach(function (link) {
-          link.toggleAttribute("aria-current", link.getAttribute("href") === "#" + visible[0].target.id);
-          if (link.hasAttribute("aria-current")) {
-            link.setAttribute("aria-current", "location");
-          }
-        });
-      }
-    }, { rootMargin: "-18% 0px -72% 0px" });
+        if (visible.length) {
+          links.forEach(function (link) {
+            link.toggleAttribute(
+              "aria-current",
+              link.getAttribute("href") === "#" + visible[0].target.id,
+            );
+            if (link.hasAttribute("aria-current")) {
+              link.setAttribute("aria-current", "location");
+            }
+          });
+        }
+      },
+      { rootMargin: "-18% 0px -72% 0px" },
+    );
 
     sections.forEach(function (section) {
       observer.observe(section);
@@ -236,4 +293,4 @@
     initializeResponsiveSidebar();
     initializeTableOfContents();
   });
-}());
+})();

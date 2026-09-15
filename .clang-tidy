@@ -17,4 +17,4 @@ Checks: >
 #   bugprone-use-after-move,
 #   bugprone-infinite-loop,
 #   performance-move-const-arg
-HeaderFilterRegex: 'src/.*'
+HeaderFilterRegex: "src/.*"
