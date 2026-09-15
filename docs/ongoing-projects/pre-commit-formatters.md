@@ -32,8 +32,8 @@ was verified before its commit.
 | 6 CMake | done | Format CMake with gersemi | 2 files, +487/-301; `gersemi --safe` passes and matches the hook's output; `check_build_parity.py` passes, its parser returns identical sources for the old and new `CMakeLists.txt`, and the old pattern no longer finds `cutest` in the new file; a plain configure and the `ci-gcc` preset each generate identical compile commands (343 and 747), targets (1,054 and 1,273), and test commands (29) from both files; the `ci-gcc` preset builds `luminari` and `cutest` |
 | 7 PHP | done | Format PHP with php-cs-fixer | 7 files, +278/-250; `php -l` clean and compiled opcodes identical in 7 of 7 (PHP 8.3 image); `.php-cs-fixer.dist.php` lints clean; a second run finds nothing; with an empty cache the wrapper downloads the phar and verifies its sha256, and a download that does not match fails with exit 1 without replacing the cached phar; all 9 files of the step byte-identical to the dry run |
 | 8 PowerShell | done | Format PowerShell with PSScriptAnalyzer | 5 scripts, +18/-18, and the settings file, formatted by its own hook; parser tokens identical in 5 of 5 (case-insensitive outside strings and comments); a second run changes nothing; LF endings, final newlines, no byte-order marks; with an empty cache the wrapper saves PSScriptAnalyzer 1.25.0 and gives the same output; all 7 files of the step byte-identical to the dry run |
-| 9 CI, image, docs | next |  |  |
-| 10 after merge |  |  |  |
+| 9 CI, image, docs | done | Run every format hook in CI and document the formatters | `quality.yml` runs on every push and pull request to `master`, prints `php --version` and `pwsh --version`, runs `pre-commit run --all-files --show-diff-on-failure`, then the policy check with and without `--self-test`; on the host those commands pass twice with no changes; the rebuilt local CI image has PHP 8.3.6, PowerShell 7.6.6, and `LUMINARI_FORMATTER_CACHE` for uid 1000; `AGENTS.md`, `CONTRIBUTING.md`, `SETUP_AND_BUILD_GUIDE.md` (new Formatting section), and `TESTING_GUIDE.md` updated; hygiene, `wtool.py docs --check`, and all 542 world-tool tests pass; container matrix: see the note below |
+| 10 after merge | pending |  | rebase-merge, then one commit adds `.git-blame-ignore-revs` and deletes this plan |
 
 Notes for whoever resumes:
 
@@ -70,6 +70,16 @@ Notes for whoever resumes:
   The ROL converter hashes its JSON inputs (`_CODE_EVIDENCE_PATHS` in
   `rol_phase8.py`) only to compare them within one run, so reformatting them
   breaks nothing.
+- The local CI Dockerfile installs PHP and PowerShell in one layer after the
+  LLVM layer, instead of adding `php8.3-cli` to the first apt list, so both
+  formatter runtimes sit under one comment and the base layers stay cached.
+- This plan is deleted in Step 10, not Step 9: rebase-merging gives the
+  formatter commits new SHAs, so `.git-blame-ignore-revs` can only list them
+  after the merge, and this document is the reference until then. Its lasting
+  content is already in the setup guide's Formatting section.
+- Final verification so far: `pre-commit run --all-files` passed twice on the
+  final tree on the host with no changes. The local CI container matrix runs
+  on the Step 9 commit; its result is recorded here when it finishes.
 
 ## Verdict
 
@@ -717,8 +727,9 @@ directory, not committed:
 
 ### Step 9: CI, local CI image, and documentation
 
-Supporting changes 6 to 8. Then delete this plan: its lasting content is in
-the setup guide, as `docs/ongoing-projects/README.md` asks.
+Supporting changes 6 to 8. The plan itself is deleted in Step 10, once
+`.git-blame-ignore-revs` can list the merged commits; its lasting content is
+in the setup guide, as `docs/ongoing-projects/README.md` asks.
 
 ### Step 10: after merge
 

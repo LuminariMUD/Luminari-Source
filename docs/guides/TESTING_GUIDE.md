@@ -796,7 +796,8 @@ The runner exports committed HEAD, executes the actual build/integration/format/
 workflow shell commands in separate containers, and keeps the local world and credentials
 outside those containers. Each database job gets its own disposable MariaDB. Every game
 smoke test uses port 4100 inside its container; no host port is published. The image includes
-the workflow dependencies and pre-commit hooks. A shared compiler cache defaults to
+the workflow dependencies, the pre-commit hooks, and the PHP and PowerShell runtimes their
+formatters need. A shared compiler cache defaults to
 `~/.cache/luminari-ci/ccache`; `--cache` overrides it. Jobs use a stable `/workspace` path.
 
 `--job NAME` selects one name from `--list`. `--results DIR` retains per-job logs, coverage
