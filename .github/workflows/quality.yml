@@ -3,18 +3,8 @@ name: Code Quality
 on:
   push:
     branches: [master, main]
-    paths:
-      - "src/**"
-      - ".clang-format"
-      - ".clang-tidy"
-      - ".github/workflows/quality.yml"
   pull_request:
     branches: [master, main]
-    paths:
-      - "src/**"
-      - ".clang-format"
-      - ".clang-tidy"
-      - ".github/workflows/quality.yml"
 
 jobs:
   format-check:
@@ -32,16 +22,29 @@ jobs:
       - name: Install pre-commit
         run: pip install pre-commit
 
-      # Runs the clang-format pinned in .pre-commit-config.yaml (v18.1.8) over
-      # every tracked C/C++ file, honouring that file's exclude list. Using the
-      # hook rather than the distro clang-format keeps CI, the local pre-commit
-      # hook, and developers on one version: an unpinned `apt-get install
-      # clang-format` silently changes formatting rules whenever the runner
-      # image moves, and the previous `head -50` sample checked an arbitrary
-      # subset of src/ that shifted with the directory listing.
+      # The php-cs-fixer and PSScriptAnalyzer hooks run the runner image's php
+      # and pwsh. Printing both first makes an image change that drops either
+      # one fail here instead of inside a hook.
+      - name: Show formatter runtimes
+        run: |
+          php --version
+          pwsh --version
+
+      # Runs every hook pinned in .pre-commit-config.yaml over every tracked
+      # file: the formatters for each file type, the hygiene hooks, and the SQL
+      # format policy. Versions come from that file, so CI, the local hook, and
+      # developers format identically; an unpinned distro formatter would
+      # change the rules whenever the runner image moves.
       - name: Check formatting
         run: |
-          pre-commit run clang-format --all-files --show-diff-on-failure || {
-            echo "::error::Formatting issues found. Run 'pre-commit run clang-format --all-files' locally."
+          pre-commit run --all-files --show-diff-on-failure || {
+            echo "::error::Formatting issues found. Run 'pre-commit run --all-files' locally and commit the result."
             exit 1
           }
+
+      # The policy also runs as a pre-commit hook; this step keeps it in CI even
+      # if that hook entry is removed.
+      - name: Check the SQL format policy
+        run: |
+          python3 scripts/ci/check_sql_format_policy.py --self-test
+          python3 scripts/ci/check_sql_format_policy.py

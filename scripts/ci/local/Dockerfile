@@ -11,8 +11,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends gnupg lsb-relea
     software-properties-common && \
     wget -qO /tmp/llvm.sh https://apt.llvm.org/llvm.sh && bash /tmp/llvm.sh 22 && \
     rm -f /tmp/llvm.sh && rm -rf /var/lib/apt/lists/*
+# PHP and PowerShell for the php-cs-fixer and PSScriptAnalyzer format hooks.
+RUN wget -qO /tmp/packages-microsoft-prod.deb \
+    https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb && \
+    dpkg -i /tmp/packages-microsoft-prod.deb && rm /tmp/packages-microsoft-prod.deb && \
+    apt-get update && apt-get install -y --no-install-recommends php8.3-cli powershell && \
+    rm -rf /var/lib/apt/lists/*
 RUN python3 -m venv /opt/ci-python
-ENV PATH=/usr/lib/ccache:/opt/ci-python/bin:$PATH PRE_COMMIT_HOME=/opt/pre-commit
+# The format hook wrappers download their tools into a cache that uid 1000 can write.
+ENV PATH=/usr/lib/ccache:/opt/ci-python/bin:$PATH PRE_COMMIT_HOME=/opt/pre-commit \
+    LUMINARI_FORMATTER_CACHE=/tmp/luminari-formatters
 COPY scripts/help-sync/requirements.txt /tmp/help-requirements.txt
 RUN pip install 'gcovr==8.6' pre-commit PyYAML -r /tmp/help-requirements.txt
 COPY .pre-commit-config.yaml /tmp/hooks/.pre-commit-config.yaml

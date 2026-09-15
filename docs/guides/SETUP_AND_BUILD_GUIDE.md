@@ -265,9 +265,9 @@ non-zero when any is found:
 
 Exceptions to the ASCII rule live in `ASCII_EXCEPTIONS` inside the script with
 the reason each one exists. The list is empty: legal text under `docs/legal/`
-and every current document are already ASCII. HTML under `docs/` is generated
-web output that declares its own charset, so it is held to the UTF-8 and LF
-rules only. Non-ASCII in C sources is limited to deliberate in-game glyphs
+and every current document are already ASCII. HTML under `docs/` declares its
+own charset, so it is held to the UTF-8 and LF rules only; of it, only the
+pandoc builder guides and the spell pages are generated. Non-ASCII in C sources is limited to deliberate in-game glyphs
 (map symbols, box borders) and is outside the documentation rule.
 
 Run the checks locally:
@@ -284,3 +284,135 @@ install, and clean leave `git status` empty and that `make dist` produces a
 tarball that passes the same scan. `.editorconfig` and `.gitattributes` carry
 the matching editor and Git settings (UTF-8, LF, 2-space C indentation, text
 world files, binary media).
+
+## Formatting
+
+Every hand-maintained text file type has one pinned formatter. The pre-commit
+hooks in `.pre-commit-config.yaml` run them on staged files, and the Code Quality
+workflow (`.github/workflows/quality.yml`) runs every hook over every tracked
+file. Install the hooks once per clone with `pre-commit install`.
+
+| Files | Formatter | Hook id | Settings |
+| -- | -- | -- | -- |
+| C and C headers | clang-format 18.1.8 | `clang-format` | `.clang-format` |
+| Python | ruff 0.16.7 | `ruff-format` | `ruff.toml`: 100 columns, 4-space indentation |
+| Shell | shfmt 3.14.1 | `shfmt` | `.editorconfig`: 2-space indentation, indented `case` branches |
+| SQL | sqlfluff 4.3.0, layout rules only | `sqlfluff-fix` | `.sqlfluff`, `.sqlfluffignore` |
+| Markdown | mdformat 1.0.0 with the gfm, frontmatter, and simple-breaks plugins | `mdformat` | `.mdformat.toml`: prose is never re-wrapped |
+| YAML, JSON, HTML, CSS, JavaScript | prettier 3.9.6 | `prettier` | `.editorconfig` width, `.prettierignore` |
+| CMake | gersemi 0.29.1 | `gersemi` | `.gersemirc` |
+| PHP | php-cs-fixer 3.95.25, PER Coding Style 3.0 | `php-cs-fixer` | `.php-cs-fixer.dist.php` |
+| PowerShell | PSScriptAnalyzer 1.25.0 `Invoke-Formatter` | `powershell-format` | `PSScriptAnalyzerSettings.psd1` |
+
+Makefiles, Dockerfiles, and TOML have no formatter; `.editorconfig` and the
+hygiene hooks cover their whitespace.
+
+Format every file of one type through its hook, never by running the tool
+directly: `pre-commit run <hook-id> --all-files`. The hook applies the
+repository's exclusions and skips tracked symlinks, which shfmt would otherwise
+replace with copies.
+
+### Formatter runtimes
+
+The hooks install their own tool environments on first use, except two that need
+a runtime on `PATH`. Only commits that stage those file types, and
+`pre-commit run --all-files`, need them:
+
+- `php-cs-fixer` needs PHP 8.3: `sudo apt-get install -y php8.3-cli`.
+- `powershell-format` needs PowerShell 7 from Microsoft's package repository:
+
+```bash
+wget -q https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb && rm packages-microsoft-prod.deb
+sudo apt-get update && sudo apt-get install -y powershell
+```
+
+`scripts/development/format_php.sh` downloads the pinned php-cs-fixer phar once
+and verifies its sha256, and `scripts/development/format_powershell.ps1` saves
+PSScriptAnalyzer once. Both keep them in
+`${LUMINARI_FORMATTER_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/luminari-formatters}`.
+GitHub's Ubuntu 24.04 runner has both runtimes, and the local CI image installs
+them.
+
+### Files that are never formatted
+
+- `docs/previous_changelogs/`: dated historical records (the mdformat hook
+  excludes them).
+- `lib/WILD_KB.md`: written by the wilderness knowledge-base command (the
+  mdformat hook excludes it).
+- Listed in `.prettierignore`: the architecture maps and their sources, sealed
+  by the sha256 receipts in
+  [`docs/architecture-maps/README.md`](../architecture-maps/README.md); the
+  conversion run records under `lib/rol-conversion/runs/`; the pandoc builder
+  guides under `docs/web/guides/` and their template,
+  `docs/web/assets/pandoc-template.html`, which
+  `scripts/development/generate-web-guides.sh --check` compares; the spell pages
+  written by `util/generate_spell_html.sh` and
+  `util/generate_spell_html_detailed.py`; and
+  `scripts/world/wtool_constants.json`, which
+  `wtool.py constants sync --check` compares.
+- Listed in `.sqlfluffignore`: 18 legacy SQL files that the MariaDB dialect
+  cannot parse (see below).
+- `src/olc/genolc.c` and `src/core/utils.h`, excluded from clang-format in
+  `.pre-commit-config.yaml`.
+- World files, `lib/text/help/help.hlp`, and the legal archive have no
+  formatter: they are written by OLC, hedit, or tools, or kept byte-identical.
+
+### SQL format rules
+
+sqlfluff applies its layout rules only. The capitalisation rules would rename
+case-sensitive table identifiers, LT05 (line length) cannot always be fixed
+automatically, and `end-of-file-fixer` owns final newlines. `disable_noqa = True`
+keeps an inline `-- noqa` from hiding a parse error or a formatting change.
+
+New SQL cannot opt out of the formatter. `.sqlfluffignore` lists the legacy
+files that do not parse; the list may shrink but never grow.
+`scripts/ci/check_sql_format_policy.py` runs as the always-run
+`sql-format-policy` hook and as its own Code Quality step. It fails on a
+`.sqlfluffignore` entry outside the frozen list, sqlfluff configuration anywhere
+but the repository root, changed `.sqlfluff` settings, an inline `sqlfluff:`
+comment in a SQL file, a missing or narrowed sqlfluff hook, and a top-level
+`files` or `exclude` pattern in `.pre-commit-config.yaml` that keeps a SQL file
+from the hooks. `--self-test` proves each case is rejected.
+
+Write new SQL in forms the MariaDB dialect parses:
+
+| Does not parse | Write instead |
+| -- | -- |
+| `DELIMITER` blocks for procedures, functions, and compound triggers | create the routine from C in `src/database/db_init.c` (see [DATABASE_INITIALIZATION_SYSTEM.md](../systems/DATABASE_INITIALIZATION_SYSTEM.md)); a single-statement `CREATE TRIGGER ... FOR EACH ROW SET ...;` parses |
+| `CREATE VIEW IF NOT EXISTS` | `CREATE OR REPLACE VIEW` |
+| `WHERE BINARY tag = 'x'`, `ON BINARY a = b` | `CAST(tag AS BINARY) = 'x'` |
+| `SHOW INDEX FROM t` | a query on `information_schema.statistics` |
+| `SOURCE other.sql` | apply each file separately |
+| `DEFAULT (expression)` | a literal default, or set the value where rows are written |
+
+`ADD COLUMN IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`,
+`ON DUPLICATE KEY UPDATE`, `PREPARE` and `EXECUTE`, `CREATE EVENT IF NOT EXISTS`,
+`DROP PROCEDURE IF EXISTS`, `COLLATE utf8mb4_bin`, and table options such as
+`ENGINE=InnoDB DEFAULT CHARSET=utf8mb4` parse as written.
+
+sqlfluff prints `FAIL` with an LT02 note for the multi-table `UPDATE ... JOIN`
+in `sql/components/vessels_harbor_sandbox.sql`. The hook still exits 0: the note
+is lint output, not a formatting failure.
+
+### Builder guide pages
+
+pandoc renders `docs/web/guides/*.html` from
+`docs/world_game-data/OEDIT_GUIDE.md`, `MOB_FLAGS.md`, and `ROOM_FLAGS.md`. After
+editing one of those sources, let the mdformat hook format it first, then run
+`scripts/development/generate-web-guides.sh`: pandoc reads the formatted
+Markdown, and `wtool.py docs --check` fails until the pages are regenerated.
+
+### Upgrading a formatter
+
+`pre-commit autoupdate` bumps the `rev` pins. Bump the mdformat plugin versions
+in `additional_dependencies` and the PyYAML pin by hand, php-cs-fixer by changing
+the version and sha256 in `scripts/development/format_php.sh`, and
+PSScriptAnalyzer by changing the version in
+`scripts/development/format_powershell.ps1`. Then run
+`pre-commit run --all-files`, commit the result as a formatting-only commit, and
+list that commit in `.git-blame-ignore-revs`. After a sqlfluff upgrade, also run
+sqlfluff on the `.sqlfluffignore` entries and remove any that now parse from both
+`.sqlfluffignore` and the frozen list in `check_sql_format_policy.py`. Rebuild the
+local CI image after any hook change, as [TESTING_GUIDE.md](TESTING_GUIDE.md)
+describes.

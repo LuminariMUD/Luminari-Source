@@ -198,6 +198,15 @@ deliberately left stale - they record the tree as it was.
 
 - 2-space indent, Allman braces, 100-column limit, right-aligned pointers; `.clang-format` is provided.
 
+- Formatting is enforced by the pre-commit hooks in `.pre-commit-config.yaml` (`pre-commit install`
+  once per clone): clang-format (C), ruff (Python), shfmt (shell), sqlfluff (SQL), mdformat
+  (Markdown), prettier (YAML, JSON, HTML, CSS, JavaScript), gersemi (CMake), php-cs-fixer (PHP), and
+  PSScriptAnalyzer (PowerShell). Bulk-format with `pre-commit run <hook-id> --all-files`, never by
+  invoking a formatter directly. Committing PHP or PowerShell needs `php` and `pwsh` on `PATH`.
+
+- New SQL must pass the sqlfluff hook. Never add `.sqlfluffignore` entries, inline `sqlfluff:`
+  comments, or other sqlfluff configuration; `scripts/ci/check_sql_format_policy.py` rejects them.
+
 - Treat files over ~1,000 non-generated LOC as a review prompt, not a violation.
   -- Exclude comments, generated code, tables, URLs, and unavoidable literals from these guidelines.
 
