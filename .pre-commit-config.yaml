@@ -9,7 +9,6 @@ repos:
       - id: clang-format
         types_or: [c, c++]
         args: [--style=file]
-        exclude: ^src/(olc/genolc\.c|core/utils\.h)$
 
   # Python: ruff's formatter. The upstream hook also accepts Markdown, whose
   # embedded code blocks belong to mdformat, so it is limited to Python.

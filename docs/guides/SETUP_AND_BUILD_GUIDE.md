@@ -356,8 +356,6 @@ them.
   `wtool.py constants sync --check` compares.
 - Listed in `.sqlfluffignore`: 18 legacy SQL files that the MariaDB dialect
   cannot parse (see below).
-- `src/olc/genolc.c` and `src/core/utils.h`, excluded from clang-format in
-  `.pre-commit-config.yaml`.
 - World files, `lib/text/help/help.hlp`, and the legal archive have no
   formatter: they are written by OLC, hedit, or tools, or kept byte-identical.
 
