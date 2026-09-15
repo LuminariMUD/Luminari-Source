@@ -131,7 +131,9 @@ struct command_info *complete_cmd_info;
 /*
  * Most legacy command rows omit the trailing feature_flags field and rely on
  * aggregate zero-initialization. Keep that table readable while explicitly
- * suppressing the corresponding diagnostic for this initializer only.
+ * suppressing the corresponding diagnostic for this initializer only. Scope:
+ * cmd_info, to the matching pop. Owner: the command table. Expires when every
+ * row sets feature_flags.
  */
 #if defined(__GNUC__)
 #pragma GCC diagnostic push

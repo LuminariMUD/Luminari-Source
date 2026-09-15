@@ -117,6 +117,10 @@ struct artifact_template
  * a depth of commitment instead. */
 #define ART_CLASS_GATE 10
 
+/* The rows below are laid out by hand, one artifact per paragraph, so the
+ * fields line up for review; the formatter would rewrap each of them. Scope:
+ * to the matching clang-format on. Owner: the artifact table. Expires when the
+ * table no longer needs a hand-made layout. */
 /* clang-format off */
 static const struct artifact_template artifact_templates[] = {
     /* vnum, ability, desc, cd, cost, binding,

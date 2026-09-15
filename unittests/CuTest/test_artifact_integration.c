@@ -533,6 +533,10 @@ struct artint_passive_case
  * zero effect, NULL ability, or NOTHING hand procedure is a deliberate none.
  * Confirmed gaps stay explicit until their individual audit item changes the
  * production behavior and this row together. */
+/* One identity case per row, laid out by hand so the expected values line up
+ * for review; the formatter would rewrap them. Scope: to the matching
+ * clang-format on. Owner: this table. Expires when the table no longer needs a
+ * hand-made layout. */
 /* clang-format off */
 static const struct artint_identity_case artint_identity_cases[ARTINT_OBJ_COUNT] = {
     {ART_VNUM_TRORXEK, NULL, 12, ART_SIG_NONE, ART_VNUM_TRORXEK, 0,

@@ -116,6 +116,27 @@ make test-all
 See [TESTING_GUIDE.md](../guides/TESTING_GUIDE.md) for the complete suite, schema,
 world-tool, sanitizer, Valgrind, and subsystem commands.
 
+## Static Analysis
+
+CI fails on a new clang-tidy or GCC analyzer finding, on a header outside its
+baseline that does not compile on its own, and on a CodeQL database that lacks a
+production source. Reproduce the pull-request clang-tidy job exactly, or run the
+checks directly:
+
+```bash
+python3 scripts/ci/local/run.py --job quality-clang-tidy
+python3 -m venv .venv
+.venv/bin/python -m pip install -r scripts/ci/clang-tidy-requirements.txt
+cmake --preset analysis
+.venv/bin/python scripts/ci/check_clang_tidy.py --build-dir build/analysis \
+  --clang-tidy .venv/bin/clang-tidy --base "$(git merge-base origin/master HEAD)"
+make test-header-self-containment
+```
+
+[Static Analysis](../guides/SETUP_AND_BUILD_GUIDE.md#static-analysis) in the setup
+guide covers whole-tree runs, baseline updates, the GCC analyzer and CodeQL
+checks, and suppressions.
+
 ## Source Map
 
 - `src/core/comm.c`, `src/core/interpreter.c`, `src/core/db.c`, `src/core/handler.c`, and

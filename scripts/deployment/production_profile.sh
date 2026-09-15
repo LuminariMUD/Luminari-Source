@@ -169,7 +169,8 @@ fi
 # emits a driver note (-Wgcc-install-dir-libstdcxx) on every invocation,
 # which -Werror turns into a failure of every compile and every strict probe
 # below.  It concerns the C++ standard library search path and is irrelevant
-# to this C code base, so it is silenced only where it actually fires.
+# to this C code base, so it is silenced only where it actually fires, and it
+# lapses by itself on a host where Clang does not emit the note.
 warning_cflags=()
 if grep -q 'Wgcc-install-dir-libstdcxx' "$work_dir/probe.log"; then
   base_cflags="$base_cflags -Wno-gcc-install-dir-libstdcxx"
@@ -282,6 +283,10 @@ if [[ -n "$pgo_use" ]]; then
   if [[ "$is_clang" == 1 ]]; then
     pgo_flags=("-fprofile-use=$pgo_use")
   else
+    # -Wno-missing-profile: code added since the training run has no profile
+    # data and builds without its guidance, which GCC reports for every such
+    # function or file. Scope: --pgo-use builds. Owner: this profile. Expires:
+    # never; refresh the profile to guide new code.
     pgo_flags=("-fprofile-use=$pgo_use" -fprofile-correction -Wno-missing-profile)
   fi
   try_build "$trivial_source" 0 -O2 "${cflags[@]}" "${pgo_flags[@]}" "${ldflags[@]}" \
@@ -308,7 +313,8 @@ probe_warning() {
 # tiers were introduced, so -Werror is safe.  A new baseline flag must first
 # be proven clean by the migration budget reaching zero for that class.  In C,
 # -Wconversion also enables -Wsign-conversion, so it is switched off here and
-# back on in the analysis tier, whose flags come later.
+# back on in the analysis tier, whose flags come later. It returns to the
+# baseline once the analysis tier reports no sign conversion on GCC or Clang.
 baseline_common=(-Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpointer-arith
   -Wformat-security -Wvla -Wredundant-decls -Wnested-externs -Wmissing-prototypes
   -Wjump-misses-init -Wshadow -Wdouble-promotion -Wfloat-equal -Wfloat-conversion
