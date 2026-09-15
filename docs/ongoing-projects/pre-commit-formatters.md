@@ -79,7 +79,12 @@ Notes for whoever resumes:
   content is already in the setup guide's Formatting section.
 - Final verification so far: `pre-commit run --all-files` passed twice on the
   final tree on the host with no changes. The local CI container matrix runs
-  on the Step 9 commit; its result is recorded here when it finishes.
+  on the final commit; its result is recorded here when it finishes.
+- The first container run of the quality job failed: `format_php.sh` had been
+  committed as 100644. `core.fileMode` is false here, so `git add` ignores
+  the exec bit of a new file, and the hook passed on this host only because
+  the file on disk was executable. A follow-up commit sets 100755 with
+  `git update-index --chmod=+x`; check new scripts with `git ls-files -s`.
 
 ## Verdict
 
