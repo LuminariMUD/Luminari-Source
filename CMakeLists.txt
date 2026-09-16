@@ -1252,6 +1252,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_gameplay_e2e.c
     unittests/CuTest/test_password.c
     unittests/CuTest/test_rewards_production.c
+    unittests/CuTest/test_craft_training.c
 )
 
 # The focused protocol harnesses are built by unittests/CuTest/Makefile.

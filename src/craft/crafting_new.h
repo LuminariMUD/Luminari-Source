@@ -269,6 +269,7 @@ void sort_materials(void);
 int harvesting_skill_by_material(int material);
 int crafting_skill_type(int skill);
 int craft_skill_level_exp(struct char_data *ch, int level);
+int craft_skill_rank_for_exp(struct char_data *ch, int exp);
 int get_proficient_talent_bonus(struct char_data *ch, int skill);
 int get_efficient_talent_bonus(struct char_data *ch, int skill);
 void gain_craft_exp(struct char_data *ch, int exp, int abil, bool verbose);

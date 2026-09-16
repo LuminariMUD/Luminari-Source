@@ -2830,11 +2830,12 @@ static void init_start_char(struct char_data *ch)
   CNDNSD(ch) = NULL;
 
   /* reset skills/abilities */
-  /* we don't want players to lose their hard-earned crafting skills */
+  /* we don't want players to lose their hard-earned crafting skills; craft and harvest ranks
+   * follow the general abilities and keep the experience that earned them */
   for (i = START_SKILLS; i < NUM_SKILLS; i++)
     if (spell_info[i].schoolOfMagic != CRAFTING_SKILL)
       SET_SKILL(ch, i, 0);
-  for (i = 1; i <= NUM_ABILITIES; i++)
+  for (i = START_GENERAL_ABILITIES; i <= END_GENERAL_ABILITIES; i++)
     SET_ABILITY(ch, i, 0);
   for (i = 1; i < FEAT_LAST_FEAT; i++)
     SET_FEAT(ch, i, 0);

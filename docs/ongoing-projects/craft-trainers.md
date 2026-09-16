@@ -4,9 +4,32 @@ Tracking issue: #196. Branch: `feat/196-craft-trainers`. Written 2026-09-16 from
 `master` at `9c5a0223f89ceda8b15a7bb97c2110f64188f50e`; line numbers refer to that revision.
 World-data facts come from the development world copy, which git does not track.
 
-Status: plan only, nothing implemented. On 2026-09-16 the owner accepted every decision at the end
-as final, so no open question blocks implementation. Placing the trainer in the production world
-stays with the owner's world-data release (step 5).
+Status: in progress. On 2026-09-16 the owner accepted every decision at the end as final, so no
+open question blocks implementation. Placing the trainer in the production world stays with the
+owner's world-data release (step 5).
+
+## Progress
+
+Update this list with every commit, so a new session can resume from it.
+
+- [x] Step 1: craft experience and ranks, plus the talent storage fix from Finding 12.
+- [ ] Step 2: contract rules and record.
+- [ ] Step 3: SpecProc and command.
+- [ ] Step 4: lock, settlement, recall, and menu row.
+- [ ] Step 5: placement.
+- [ ] Step 6: help and documentation.
+- [ ] Step 7: verification.
+
+Working notes for this worktree (`../Luminari-Source-issue-196`):
+
+- `lib/.env` has `APP_ENV=development`; world data and the `lib/world/*/index` files are already
+  copied, so the full suite boots the world.
+- Build with `make -j16 luminari cutest` (about 40 seconds after a `structs.h` change). Run the suite
+  the way `make run-cutest` does:
+  `CUTEST_FILTER= LUMINARI_TEST_ROOT="$PWD" LUMINARI_TEST_SPEC_WORLD_ROOT="$PWD/unittests/CuTest/fixtures/spec_world_inventory" ./cutest`
+  (1,511 tests after step 1, about 5 seconds). Use `CUTEST_FILTER=Test_craft_` for this feature.
+- The pre-push hook runs `make`; run `make install` afterwards so no root-level `luminari` binary
+  is left behind.
 
 ## Outcome
 
@@ -100,6 +123,19 @@ The issue's description of the code checks out, including the brewing bypass
     SpecProcs (`:6992`), and a standing-position command refuses fighting positions. The trainer
     adds only `primary_activity_snapshot()` (`src/events/activity_manager.h:184`) and an explicit
     `FIGHTING()` check.
+
+12. **Harvest talents could not hold a rank.** Found while implementing step 1. Talent ids run to
+    94 (`TALENT_MAX` 95, `src/character/talents.h`), but `talent_ranks` held 64 slots
+    (`src/core/structs.h:6747`), `GET_TALENT_RANK()` and `SET_TALENT()` ignored ids above 63, and
+    `Tlrk` saved and loaded 64 entries. `learn_talent()` still charged points and gold and wrote
+    past the array for ids 64 to 94: every mining, hunting, forestry, and gathering talent and the
+    mote synergy talents. Those talents never applied, the insightful bonus that decision 3
+    extends to training grants could not reach the four harvest tracks, and staff `talent set`
+    reported success while changing nothing. `talents.h` also defined an unused `MAX_TALENTS`
+    (256). Rank storage now has `MAX_TALENTS` (128) slots defined in `structs.h`, `talents.c`
+    asserts that `TALENT_MAX` fits, and `Tlrk` writes one entry per talent id (at most 385
+    characters, inside the 512-byte `READ_SIZE` line) and reads up to 128, so older 64-entry saves
+    still load. Points and gold already spent on these talents before the fix are not refunded.
 
 ## Design
 
@@ -228,6 +264,27 @@ Each step builds and passes the full suite. Step 1 can ship on its own; steps 2 
 because a trainer without the lock and settlement would take fees and never pay out.
 
 ### Step 1: craft experience and ranks (prerequisite)
+
+Done. As built:
+
+- `craft_skill_rank_for_exp(ch, exp)` in `src/craft/crafting_new.c`, declared in
+  `crafting_new.h`.
+- Brewing's `craft_skill_to_ability()` is gone: its only real mapping was brewing to alchemy, and
+  `do_brew()` now reads `ABILITY_CRAFT_ALCHEMY` directly. The failure branches keep no experience
+  message of their own, because `gain_craft_exp()` prints the amount.
+- `reset_training_points()` (`src/character/study.c`) also clears abilities 1 to 51, but nothing
+  calls it (its only call is commented out), so it was left alone.
+- The talent storage fix from Finding 12.
+- `unittests/CuTest/test_craft_training.c` holds six tests, and each of the five behavior tests was
+  checked to fail against the old code: `Test_craft_rank_for_exp_counts_cumulative_thresholds`,
+  `Test_craft_gain_crossing_three_thresholds_raises_every_rank`,
+  `Test_craft_brewing_failures_raise_alchemy_with_insight` (seeds `circle_srandom()` so both the
+  natural-1 and the ordinary failure branch run), `Test_craft_respec_keeps_craft_and_harvest_ranks`
+  (through the real `do_start()`), `Test_craft_load_restores_rank_its_experience_earned`, and
+  `Test_craft_harvest_talent_ranks_apply_and_persist`. The file has an isolated player-directory
+  helper (`craft_player_files_enter()` and `craft_player_files_leave()`) for later steps.
+
+Plan as written:
 
 - `craft_skill_rank_for_exp()` beside `craft_skill_level_exp()` (`src/craft/crafting_new.c:6497`):
   the highest rank whose cumulative requirement is met, capped at `UCHAR_MAX` because
@@ -373,6 +430,8 @@ Added, each for a traced failure:
   the required multi-rank gain pays duplicate talent points at once, and the one-rank bound fails
   for respecced characters.
 - The copyover check (Finding 5), a real same-pass path into play.
+- Talent rank storage for every talent id (Finding 12). Without it decision 3 fails for the four
+  harvest tracks, and `learn_talent()` keeps charging for talents that write out of bounds.
 - `Crash_rentsave()` when rent is not free (Finding 3). Otherwise a site that charges rent leaves the
   trainee's belongings on the floor of the trainer's room.
 
