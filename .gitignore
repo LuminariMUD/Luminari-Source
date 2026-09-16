@@ -88,7 +88,6 @@ bin/*
 # Also ignore utility executables if they're built in util/
 util/asciipasswd
 util/autowiz
-util/plrtoascii
 util/rebuildAsciiIndex
 util/rebuildMailIndex
 util/rol_mob_calculator
@@ -469,6 +468,9 @@ unittests/CuTest/vessel_stress_test
 unittests/CuTest/protocol_parser_tests
 unittests/CuTest/protocol_parser_fuzz
 unittests/CuTest/protocol_parser_bench
+unittests/CuTest/binary_formats_tests
+unittests/CuTest/binary_formats_fuzz
+unittests/CuTest/build/
 ascii_map.txt
 FRMUD-HEX-Aunauroch.jpg
 plan.md

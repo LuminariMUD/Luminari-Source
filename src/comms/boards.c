@@ -42,6 +42,7 @@
 #include "core/handler.h"
 #include "olc/improved-edit.h"
 #include "core/modify.h"
+#include "core/binary_formats.h"
 
 /* Board appearance order. */
 #define NEWEST_AT_TOP FALSE
@@ -62,7 +63,6 @@ static struct board_msginfo msg_index[NUM_OF_BOARDS][MAX_BOARD_MESSAGES];
 static int find_slot(void);
 static int find_board(struct obj_data *board);
 static void init_boards(void);
-static void board_reset_board(int board_type);
 static void board_clear_board(int board_type);
 
 static int find_slot(void)
@@ -443,6 +443,10 @@ int board_remove_msg(int board_type, struct char_data *ch, char *arg,
     MSG_SLOTNUM(board_type, ind) = MSG_SLOTNUM(board_type, ind + 1);
     MSG_LEVEL(board_type, ind) = MSG_LEVEL(board_type, ind + 1);
   }
+  /* The vacated last entry still names the moved post; board_clear_board()
+   * would free that post twice. */
+  memset(&(msg_index[board_type][ind]), 0, sizeof(struct board_msginfo));
+  msg_index[board_type][ind].slot_num = -1;
   num_of_msgs[board_type]--;
 
   send_to_char(ch, "Message removed.\r\n");
@@ -455,121 +459,92 @@ int board_remove_msg(int board_type, struct char_data *ch, char *arg,
 
 void board_save_board(int board_type)
 {
-  FILE *fl;
-  int i;
-  char *tmp1, *tmp2 = NULL;
-
-  if (!num_of_msgs[board_type])
-  {
-    remove(FILENAME(board_type));
-    return;
-  }
-  if (!(fl = fopen_restricted(FILENAME(board_type), "wb")))
-  {
-    perror("SYSERR: Error writing board");
-    return;
-  }
-  fwrite(&(num_of_msgs[board_type]), sizeof(int), 1, fl);
+  struct board_file_message messages[MAX_BOARD_MESSAGES];
+  enum binary_format_status status;
+  unsigned char *data = NULL;
+  size_t size = 0;
+  int i, slot;
 
   for (i = 0; i < num_of_msgs[board_type]; i++)
   {
-    if ((tmp1 = MSG_HEADING(board_type, i)) != NULL)
-      msg_index[board_type][i].heading_len = (int)(strlen(tmp1) + 1);
-    else
-      msg_index[board_type][i].heading_len = 0;
-
-    if (MSG_SLOTNUM(board_type, i) < 0 || MSG_SLOTNUM(board_type, i) >= INDEX_SIZE ||
-        (!(tmp2 = msg_storage[MSG_SLOTNUM(board_type, i)])))
-      msg_index[board_type][i].message_len = 0;
-    else
-      msg_index[board_type][i].message_len = (int)(strlen(tmp2) + 1);
-
-    fwrite(&(msg_index[board_type][i]), sizeof(struct board_msginfo), 1, fl);
-    if (tmp1)
-      fwrite(tmp1, sizeof(char), msg_index[board_type][i].heading_len, fl);
-    if (tmp2)
-      fwrite(tmp2, sizeof(char), msg_index[board_type][i].message_len, fl);
+    slot = MSG_SLOTNUM(board_type, i);
+    messages[i].level = MSG_LEVEL(board_type, i);
+    messages[i].heading = MSG_HEADING(board_type, i);
+    messages[i].message = slot >= 0 && slot < INDEX_SIZE ? msg_storage[slot] : NULL;
   }
 
-  fclose(fl);
+  status = board_file_encode(messages, (size_t)num_of_msgs[board_type], &data, &size);
+  if (status != BINARY_FORMAT_OK)
+  {
+    log("SYSERR: Unable to encode board %d: %s.", board_type, binary_format_status_name(status));
+    return;
+  }
+  if (!replace_durable_file(FILENAME(board_type), BOARD_FILE_MAGIC,
+                            board_file_max_size(MAX_BOARD_MESSAGES), data, size))
+    log("SYSERR: Unable to save board %d to %s.", board_type, FILENAME(board_type));
+  free(data);
 }
 
+/* Loads a board file all or nothing. A file that cannot be loaded is moved
+ * aside, never deleted, so a later save cannot destroy it. */
 void board_load_board(int board_type)
 {
-  FILE *fl;
-  int i, len1, len2;
-  char *tmp1, *tmp2;
+  struct board_file_message *messages = NULL;
+  enum binary_format_status status;
+  unsigned char *data = NULL;
+  size_t size = 0, count = 0, i;
+  int version = BINARY_FORMAT_LEGACY, slot;
+  size_t free_slots = 0;
 
-  if (!(fl = fopen(FILENAME(board_type), "rb")))
+  switch (read_durable_file(FILENAME(board_type), board_file_max_size(MAX_BOARD_MESSAGES), &data,
+                            &size))
   {
-    if (errno != ENOENT)
-      perror("SYSERR: Error reading board");
+  case DURABLE_FILE_ABSENT:
     return;
-  }
-  if (fread(&(num_of_msgs[board_type]), sizeof(int), 1, fl) != 1)
-  {
-    fclose(fl);
+  case DURABLE_FILE_UNREADABLE:
+    quarantine_durable_file(FILENAME(board_type));
     return;
-  }
-  if (num_of_msgs[board_type] < 1 || num_of_msgs[board_type] > MAX_BOARD_MESSAGES)
-  {
-    log("SYSERR: Board file %d corrupt.  Resetting.", board_type);
-    fclose(fl);
-    board_reset_board(board_type);
-    return;
-  }
-  for (i = 0; i < num_of_msgs[board_type]; i++)
-  {
-    if (fread(&(msg_index[board_type][i]), sizeof(struct board_msginfo), 1, fl) != 1)
-    {
-      log("SYSERR: Board file %d corrupt. Failed to read message index.", board_type);
-      fclose(fl);
-      board_reset_board(board_type);
-      return;
-    }
-    if ((len1 = msg_index[board_type][i].heading_len) <= 0)
-    {
-      log("SYSERR: Board file %d corrupt!  Resetting.", board_type);
-      fclose(fl);
-      board_reset_board(board_type);
-      return;
-    }
-    CREATE(tmp1, char, len1);
-    if (fread(tmp1, sizeof(char), len1, fl) != (size_t)len1)
-    {
-      log("SYSERR: Board file %d corrupt. Failed to read message heading.", board_type);
-      free(tmp1);
-      fclose(fl);
-      board_reset_board(board_type);
-      return;
-    }
-    MSG_HEADING(board_type, i) = tmp1;
-
-    if ((MSG_SLOTNUM(board_type, i) = find_slot()) == -1)
-    {
-      log("SYSERR: Out of slots booting board %d!  Resetting...", board_type);
-      fclose(fl);
-      board_reset_board(board_type);
-      return;
-    }
-    if ((len2 = msg_index[board_type][i].message_len) > 0)
-    {
-      CREATE(tmp2, char, len2);
-      if (fread(tmp2, sizeof(char), len2, fl) != (size_t)len2)
-      {
-        log("SYSERR: Board file %d corrupt. Failed to read message content.", board_type);
-        free(tmp2);
-        fclose(fl);
-        board_reset_board(board_type);
-        return;
-      }
-      msg_storage[MSG_SLOTNUM(board_type, i)] = tmp2;
-    }
-    else
-      msg_storage[MSG_SLOTNUM(board_type, i)] = NULL;
+  case DURABLE_FILE_READ:
+    break;
   }
 
-  fclose(fl);
+  status = board_file_decode(data, size, MAX_BOARD_MESSAGES, &messages, &count, &version);
+  free(data);
+  if (status != BINARY_FORMAT_OK)
+  {
+    log("SYSERR: Rejected board file %s: %s.", FILENAME(board_type),
+        binary_format_status_name(status));
+    quarantine_durable_file(FILENAME(board_type));
+    return;
+  }
+
+  for (slot = 0; slot < INDEX_SIZE; slot++)
+    if (!msg_storage_taken[slot])
+      free_slots++;
+  if (free_slots < count)
+  {
+    log("SYSERR: Out of message slots loading board %d.", board_type);
+    board_file_free(messages, count);
+    quarantine_durable_file(FILENAME(board_type));
+    return;
+  }
+
+  /* The board now owns the decoded strings. */
+  for (i = 0; i < count; i++)
+  {
+    slot = find_slot();
+    msg_index[board_type][i].slot_num = slot;
+    msg_index[board_type][i].heading = messages[i].heading;
+    msg_index[board_type][i].level = messages[i].level;
+    msg_storage[slot] = messages[i].message;
+  }
+  num_of_msgs[board_type] = (int)count;
+  free(messages);
+
+  if (version == BINARY_FORMAT_LEGACY && size > 0)
+    log("Board file %s uses the legacy native layout; its next save upgrades it and keeps a "
+        "backup.",
+        FILENAME(board_type));
 }
 
 /* When shutting down, clear all boards. */
@@ -599,11 +574,4 @@ void board_clear_board(int board_type)
     msg_index[board_type][i].slot_num = -1;
   }
   num_of_msgs[board_type] = 0;
-}
-
-/* Destroy the on-disk and in-memory board. */
-static void board_reset_board(int board_type)
-{
-  board_clear_board(board_type);
-  remove(FILENAME(board_type));
 }

@@ -4405,8 +4405,6 @@ void close_socket(struct descriptor_data *d)
       d->backstr = NULL;
     }
 
-    add_llog_entry(d->character, LAST_DISCONNECT);
-
     if (IS_PLAYING(d) || STATE(d) == CON_DISCONNECT)
     {
       struct char_data *link_challenged = d->original ? d->original : d->character;

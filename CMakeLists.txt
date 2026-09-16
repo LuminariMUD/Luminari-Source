@@ -484,6 +484,7 @@ set(SRC_C_FILES
     src/character/character_creation_content.c
     src/player/ban.c
     src/character/bardic_performance.c
+    src/core/binary_formats.c
     src/olc/bedit.c
     src/comms/boards.c
     src/craft/brew.c
@@ -853,7 +854,6 @@ if(BUILD_UTILS)
     # Utilities from util/ directory
     add_executable(autowiz util/autowiz.c)
     add_executable(asciipasswd util/asciipasswd.c)
-    add_executable(plrtoascii util/plrtoascii.c)
     add_executable(rebuildAsciiIndex util/rebuildAsciiIndex.c)
     add_executable(rebuildMailIndex util/rebuildMailIndex.c)
     add_executable(
@@ -870,7 +870,6 @@ if(BUILD_UTILS)
     set(LUMINARI_UTIL_TARGETS
         autowiz
         asciipasswd
-        plrtoascii
         rebuildAsciiIndex
         rebuildMailIndex
         rol_mob_calculator
@@ -1254,12 +1253,16 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_password.c
     unittests/CuTest/test_rewards_production.c
     unittests/CuTest/test_craft_training.c
+    unittests/CuTest/test_binary_formats.c
+    unittests/CuTest/test_binary_file_persistence.c
 )
 
-# The focused protocol harnesses are built by unittests/CuTest/Makefile.
+# The focused protocol and binary format harnesses are built by
+# unittests/CuTest/Makefile; test_binary_formats.c also runs in cutest.
 set(PROTOCOL_FOCUSED_TEST_SOURCES
     unittests/CuTest/test_protocol_parser.c
     unittests/CuTest/fuzz_protocol_parser.c
+    unittests/CuTest/fuzz_binary_formats.c
 )
 
 if(BUILD_TESTS)
@@ -1342,6 +1345,14 @@ if(BUILD_TESTS)
         COMMAND Python3::Interpreter scripts/ci/check_sql_interpolation.py
     )
     add_test(
+        NAME native-struct-io-self-test
+        COMMAND Python3::Interpreter scripts/ci/check_native_struct_io.py --self-test
+    )
+    add_test(
+        NAME native-struct-io
+        COMMAND Python3::Interpreter scripts/ci/check_native_struct_io.py
+    )
+    add_test(
         NAME clang-tidy-gate-self-test
         COMMAND Python3::Interpreter scripts/ci/check_clang_tidy.py --self-test
     )
@@ -1369,6 +1380,8 @@ if(BUILD_TESTS)
         warning-budget-self-test
         sql-interpolation-self-test
         sql-interpolation
+        native-struct-io-self-test
+        native-struct-io
         clang-tidy-gate-self-test
         baseline-ratchet-self-test
         header-self-containment
@@ -1594,16 +1607,7 @@ install(
 )
 if(BUILD_UTILS)
     install(
-        TARGETS
-            autowiz
-            asciipasswd
-            plrtoascii
-            rebuildAsciiIndex
-            rebuildMailIndex
-            shopconv
-            sign
-            split
-            wld2html
+        TARGETS autowiz asciipasswd rebuildAsciiIndex rebuildMailIndex shopconv sign split wld2html
         DESTINATION ${INSTALL_BIN_OUTPUT_DIR}
     )
 endif()

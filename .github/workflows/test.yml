@@ -610,6 +610,21 @@ jobs:
       - name: Run bounded protocol parser fuzzing
         run: make -C unittests/CuTest protocol-fuzz FUZZ_SECONDS=15
 
+      - name: Run bounded binary file format fuzzing
+        run: make -C unittests/CuTest binary-formats-fuzz FUZZ_SECONDS=15
+
+  # The durable binary file golden fixtures must decode and encode identically
+  # on every supported architecture; x86-64 runs them inside the suites above.
+  binary-formats-aarch64:
+    name: Binary file formats (AArch64)
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Run the golden fixture harness
+        run: make -C unittests/CuTest binary-formats
+
   memory-check:
     name: Memory check
     runs-on: ubuntu-latest

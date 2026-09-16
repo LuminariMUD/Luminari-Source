@@ -7,7 +7,6 @@ bindir = $(top_builddir)/bin
 bin_PROGRAMS = \
 	asciipasswd \
 	autowiz \
-	plrtoascii \
 	rebuildAsciiIndex \
 	rebuildMailIndex \
 	rol_mob_calculator \
@@ -22,7 +21,6 @@ AM_CFLAGS = -I../src @CSTD_CFLAGS@ @MYFLAGS@
 # Source files for each utility
 asciipasswd_SOURCES = asciipasswd.c
 autowiz_SOURCES = autowiz.c
-plrtoascii_SOURCES = plrtoascii.c
 rebuildAsciiIndex_SOURCES = rebuildAsciiIndex.c
 rebuildMailIndex_SOURCES = rebuildMailIndex.c
 rol_mob_calculator_SOURCES = rol_mob_calculator.c ../src/mob/mob_autoroll.c \
