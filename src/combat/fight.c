@@ -15305,7 +15305,7 @@ int valid_fight_cond(struct char_data *ch, bool strict)
 #define PHASE_2 2
 #define PHASE_3 3
 
-static bool attack_number_runs_in_phase(int attack_number, int phase);
+static bool attack_number_runs_in_phase(int attack_number, int phase, int attack_type);
 
 /* Four arms: one second-pair attack candidate.  It takes the next ordinal
  * (consumed whether or not its mirror roll succeeds, so later attacks never
@@ -15330,7 +15330,8 @@ static void second_pair_candidate(struct char_data *ch, int mode, int phase, int
                                                         : MODE_DISPLAY_OFFHAND,
                        FALSE, attack_type, 0);
   }
-  else if (mode == NORMAL_ATTACK_ROUTINE && attack_number_runs_in_phase(*ordinal, phase) &&
+  else if (mode == NORMAL_ATTACK_ROUTINE &&
+           attack_number_runs_in_phase(*ordinal, phase, attack_type) &&
            valid_fight_cond(ch, FALSE) && rand_number(1, 100) <= chance)
   {
     hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, attack_type);
@@ -15401,21 +15402,25 @@ static int perform_second_pair_attacks(struct char_data *ch, int mode, int phase
   return expected / 100;
 }
 
-/* Report whether a 1-based attack number belongs to the given attack phase.
- * PHASE_0 runs the whole routine at once; otherwise attacks round-robin across
- * phases 1..3, so attack N runs in phase ((N - 1) % 3) + 1. */
-static bool attack_number_runs_in_phase(int attack_number, int phase)
+/* Original bonus offhand attacks use the historical 1..15 clauses: ordinals
+ * 3/6/9/12/15 run in phase 1, alongside 1/4/7/10/13. Four Arms' later-added
+ * third/fourth hands retain round-robin allocation without that ordinal cap.
+ * PHASE_0 includes every candidate for whole-routine callers. */
+static bool attack_number_runs_in_phase(int attack_number, int phase, int attack_type)
 {
   if (phase == PHASE_0)
     return true;
-  return attack_number > 0 && phase >= PHASE_1 && phase <= PHASE_3 &&
-         ((attack_number - 1) % 3) + 1 == phase;
+  if (attack_number < 1 || phase < PHASE_1 || phase > PHASE_3)
+    return false;
+  if (attack_type == ATTACK_TYPE_OFFHAND)
+    return attack_number <= 15 && phase == (attack_number % 3 == 2 ? PHASE_2 : PHASE_1);
+  return ((attack_number - 1) % 3) + 1 == phase;
 }
 
 /* Run a character's attack routine for one attack phase.
  * mode selects the normal routine or one of the display modes; phase is
- * PHASE_0 for the whole round at once, or 1..3 for the round-robin split
- * decided by attack_number_runs_in_phase(). Returns the number of attacks
+ * PHASE_0 for the whole round at once, or 1..3 for the historical split with
+ * Four Arms' later-added lower-hand candidates. Returns the number of attacks
  * performed, or in display mode the number that would be. */
 int perform_attacks(struct char_data *ch, int mode, int phase)
 {
@@ -16236,7 +16241,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
         if (valid_fight_cond(ch, FALSE))
-          if (attack_number_runs_in_phase(numAttacks, phase))
+          if (attack_number_runs_in_phase(numAttacks, phase, ATTACK_TYPE_OFFHAND))
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY,
                 ATTACK_TYPE_OFFHAND);
       }
@@ -16257,7 +16262,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
         if (valid_fight_cond(ch, FALSE))
-          if (attack_number_runs_in_phase(numAttacks, phase))
+          if (attack_number_runs_in_phase(numAttacks, phase, ATTACK_TYPE_OFFHAND))
 
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, GREAT_TWO_PNLY,
                 ATTACK_TYPE_OFFHAND);
@@ -16280,7 +16285,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       {
         if (valid_fight_cond(ch, FALSE))
-          if (attack_number_runs_in_phase(numAttacks, phase))
+          if (attack_number_runs_in_phase(numAttacks, phase, ATTACK_TYPE_OFFHAND))
           {
             send_to_char(ch, "\tG[Wilderness Warrior TWF!]\tn\r\n");
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY,
@@ -16304,7 +16309,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       {
         if (valid_fight_cond(ch, FALSE))
-          if (attack_number_runs_in_phase(numAttacks, phase))
+          if (attack_number_runs_in_phase(numAttacks, phase, ATTACK_TYPE_OFFHAND))
           {
             send_to_char(ch, "\tG[Greater WW TWF!]\tn\r\n");
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY,
@@ -16327,7 +16332,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
         if (valid_fight_cond(ch, FALSE))
-          if (attack_number_runs_in_phase(numAttacks, phase))
+          if (attack_number_runs_in_phase(numAttacks, phase, ATTACK_TYPE_OFFHAND))
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, EPIC_TWO_PNLTY,
                 ATTACK_TYPE_OFFHAND);
       }
@@ -16350,9 +16355,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   return numAttacks;
 }
 #ifdef LUMINARI_CUTEST
-bool test_attack_number_runs_in_phase(int attack_number, int phase)
+bool test_attack_number_runs_in_phase(int attack_number, int phase, int attack_type)
 {
-  return attack_number_runs_in_phase(attack_number, phase);
+  return attack_number_runs_in_phase(attack_number, phase, attack_type);
 }
 #endif
 #undef ATTACK_CAP

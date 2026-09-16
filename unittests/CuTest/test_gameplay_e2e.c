@@ -715,6 +715,8 @@ struct restoration_attack_trace
   struct char_data *actor;
   unsigned int attempts;
   unsigned int while_casting;
+  int kinds[128];
+  unsigned long pulses[128];
 };
 
 static void restoration_capture_attack(const struct domain_event_context *context, void *data)
@@ -724,6 +726,11 @@ static void restoration_capture_attack(const struct domain_event_context *contex
 
   if (domain_event_world_resolve_character(event->attacker) != trace->actor)
     return;
+  if (trace->attempts < 128U)
+  {
+    trace->kinds[trace->attempts] = event->attack_kind;
+    trace->pulses[trace->attempts] = pulse;
+  }
   trace->attempts++;
   if (IS_CASTING(trace->actor))
     trace->while_casting++;
@@ -6684,6 +6691,206 @@ static struct obj_data *attack_test_object(const char *name, int type, int subty
   GET_OBJ_VAL(object, 0) = subtype;
   GET_OBJ_BOUND_ID(object) = NOBODY;
   return object;
+}
+
+/* P/O are the original hands; T/F are Four Arms' lower hands. Each | separates
+ * the actual two-second phase deadlines. Expectations come from the pinned
+ * historical clauses, including the unusual bonus-offhand phase-1 allocation. */
+static void verify_restored_melee_phases(CuTest *tc, int level, bool hasted, bool four_arms,
+                                         bool staggered, int spent_action, const char *expected)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct char_data *saved_characters = character_list;
+  struct restoration_attack_trace trace = {0};
+  struct domain_event_subscription_config observer = {0};
+  struct domain_event_subscription_handle subscription;
+  unsigned long saved_pulse = pulse, start = 27000U;
+  unsigned int index, cursor = 0;
+  int tick, phase, slot, bab;
+  bool joined, deadlines = true, actions;
+  char actual[132] = {0};
+
+  begin_gameplay_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  pulse = start;
+  event_init();
+  if (class_list[CLASS_WARRIOR].name == NULL)
+    load_class_list();
+  load_weapons();
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.player.name = CuMutableString("dualwielder");
+  f.actor.player.title = CuMutableString("");
+  f.actor.next = &f.victim;
+  character_list = &f.actor;
+  f.rooms[0].light = 1;
+  GET_LEVEL(&f.actor) = level;
+  GET_CLASS(&f.actor) = CLASS_WARRIOR;
+  CLASS_LEVEL((&f.actor), CLASS_WARRIOR) = level;
+  f.actor.real_abils.str = f.actor.aff_abils.str = 18;
+  f.actor.real_abils.dex = f.actor.aff_abils.dex = 18;
+  f.actor.real_abils.con = f.actor.aff_abils.con = 18;
+  SET_FEAT(&f.actor, FEAT_TWO_WEAPON_FIGHTING, 1);
+  SET_FEAT(&f.actor, FEAT_IMPROVED_TWO_WEAPON_FIGHTING, 1);
+  SET_FEAT(&f.actor, FEAT_GREATER_TWO_WEAPON_FIGHTING, 1);
+  SET_FEAT(&f.actor, FEAT_PERFECT_TWO_WEAPON_FIGHTING, 1);
+  if (four_arms)
+    SET_FEAT(&f.actor, FEAT_FOUR_ARMS, 1);
+  equip_char(&f.actor, attack_test_object("first dagger", ITEM_WEAPON, WEAPON_TYPE_DAGGER),
+             WEAR_WIELD_1);
+  equip_char(&f.actor, attack_test_object("second dagger", ITEM_WEAPON, WEAPON_TYPE_DAGGER),
+             WEAR_WIELD_OFFHAND);
+  if (four_arms)
+  {
+    equip_char(&f.actor, attack_test_object("third dagger", ITEM_WEAPON, WEAPON_TYPE_DAGGER),
+               WEAR_WIELD_3);
+    equip_char(&f.actor, attack_test_object("fourth dagger", ITEM_WEAPON, WEAPON_TYPE_DAGGER),
+               WEAR_WIELD_4);
+  }
+  if (hasted)
+    SET_BIT_AR(AFF_FLAGS(&f.actor), AFF_HASTE);
+  if (staggered)
+    SET_BIT_AR(AFF_FLAGS(&f.actor), AFF_STAGGERED);
+  GET_HIT(&f.actor) = GET_MAX_HIT(&f.actor) = 100000;
+  GET_HIT(&f.victim) = GET_MAX_HIT(&f.victim) = 100000;
+  GET_HITROLL(&f.actor) = 100;
+  GET_HITROLL(&f.victim) = -100;
+  GET_ATTACK_QUEUE(&f.actor) = create_attack_queue();
+  GET_ATTACK_QUEUE(&f.victim) = create_attack_queue();
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &f.actor;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  f.actor.desc = &descriptor;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  trace.actor = &f.actor;
+  observer.type = DOMAIN_EVENT_ATTACK_COMMITTED;
+  observer.topic = (struct domain_event_topic){DOMAIN_EVENT_TOPIC_SUBJECT,
+                                               domain_event_character_handle(&f.victim)};
+  observer.owner = domain_event_character_handle(&f.actor);
+  observer.identity = "test.restoration.melee.phases";
+  observer.handler = restoration_capture_attack;
+  observer.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &observer, &subscription));
+  FIGHTING(&f.actor) = &f.victim;
+  FIGHTING(&f.victim) = &f.actor;
+  joined = combat_encounter_join(&f.actor, &f.victim, 2 RL_SEC);
+  joined = combat_encounter_join(&f.victim, &f.actor, 4 RL_SEC) && joined;
+  if (spent_action >= 0)
+    start_action_cooldown(&f.actor, (action_type)spent_action, 8 RL_SEC);
+  bab = NUM_ATTACKS_BAB(&f.actor);
+  circle_srandom(1234);
+  for (tick = 0; tick <= 6 * PASSES_PER_SEC; tick++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  actions = is_action_available(&f.actor, atSTANDARD, false) == (spent_action != atSTANDARD) &&
+            is_action_available(&f.actor, atMOVE, false) == (spent_action != atMOVE) &&
+            is_action_available(&f.actor, atSWIFT, false);
+  for (index = 0; index < trace.attempts && index < 128U; index++)
+    if (trace.pulses[index] != start + (2 RL_SEC) && trace.pulses[index] != start + (4 RL_SEC) &&
+        trace.pulses[index] != start + (6 RL_SEC))
+      deadlines = false;
+  for (phase = 1; phase <= 3; phase++)
+  {
+    if (phase > 1)
+      actual[cursor++] = '|';
+    for (index = 0; index < trace.attempts && index < 128U; index++)
+    {
+      if (trace.pulses[index] != start + phase * (2 RL_SEC))
+        continue;
+      switch (trace.kinds[index])
+      {
+      case ATTACK_TYPE_PRIMARY:
+        actual[cursor++] = 'P';
+        break;
+      case ATTACK_TYPE_OFFHAND:
+        actual[cursor++] = 'O';
+        break;
+      case ATTACK_TYPE_THIRD:
+        actual[cursor++] = 'T';
+        break;
+      case ATTACK_TYPE_FOURTH:
+        actual[cursor++] = 'F';
+        break;
+      default:
+        actual[cursor++] = '?';
+        break;
+      }
+    }
+  }
+
+  stop_fighting(&f.actor);
+  stop_fighting(&f.victim);
+  for (slot = 0; slot < NUM_WEARS; slot++)
+    if (GET_EQ(&f.actor, slot) != NULL)
+      extract_obj(unequip_char(&f.actor, slot));
+  domain_event_runtime_shutdown();
+  event_free_all();
+  free_attack_queue(GET_ATTACK_QUEUE(&f.actor));
+  free_attack_queue(GET_ATTACK_QUEUE(&f.victim));
+  if (f.actor.events != NULL)
+    free_list(f.actor.events);
+  if (f.victim.events != NULL)
+    free_list(f.victim.events);
+  ProtocolDestroy(descriptor.pProtocol);
+  if (descriptor.large_outbuf != NULL)
+  {
+    free(descriptor.large_outbuf->text);
+    free(descriptor.large_outbuf);
+  }
+  f.actor.desc = NULL;
+  character_list = saved_characters;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+
+  CuAssertTrue(tc, joined);
+  CuAssertIntEquals(tc, level, bab);
+  CuAssertTrue(tc, deadlines);
+  CuAssertTrue(tc, actions);
+  CuAssertTrue(tc, trace.attempts < 128U);
+  CuAssertStrEquals(tc, expected, actual);
+}
+
+void Test_combat_restoration_melee_low_bab_offhand_order(CuTest *tc)
+{
+  verify_restored_melee_phases(tc, 1, false, false, false, -1, "POO|OO|");
+}
+
+void Test_combat_restoration_melee_high_bab_offhand_order(CuTest *tc)
+{
+  verify_restored_melee_phases(tc, 16, false, false, false, -1, "PPOO|OPO|P");
+}
+
+void Test_combat_restoration_melee_haste_order(CuTest *tc)
+{
+  verify_restored_melee_phases(tc, 16, true, false, false, -1, "PPOO|OPO|PP");
+}
+
+void Test_combat_restoration_melee_four_arms_keeps_lower_hand_phases(CuTest *tc)
+{
+  verify_restored_melee_phases(tc, 16, false, true, false, -1, "PPOOFTF|OPOTF|PTTF");
+}
+
+void Test_combat_restoration_melee_staggered_keeps_all_phases(CuTest *tc)
+{
+  verify_restored_melee_phases(tc, 16, false, false, true, -1, "PPOO|OPO|P");
+}
+
+void Test_combat_restoration_melee_spent_move_suppresses_later_phases(CuTest *tc)
+{
+  verify_restored_melee_phases(tc, 16, false, false, false, atMOVE, "PPOO||");
+}
+
+void Test_combat_restoration_melee_spent_standard_suppresses_all_phases(CuTest *tc)
+{
+  verify_restored_melee_phases(tc, 16, false, false, false, atSTANDARD, "||");
 }
 
 static void verify_committed_attack_boundary(CuTest *tc, int scenario)
