@@ -13962,9 +13962,10 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
     if (affected_by_spell(victim, SPELL_HOSTILE_JUXTAPOSITION))
     {
       send_to_char(victim, "Your hostile juxtaposition defense is triggered.\r\n");
-      affect_from_char(victim, SPELL_HOSTILE_JUXTAPOSITION);
       damage(victim, ch, dam, SPELL_HOSTILE_JUXTAPOSITION, dam_type, attack_type);
       dam = 0;
+      if (domain_event_world_resolve_character(victim_handle) == victim)
+        affect_from_char(victim, SPELL_HOSTILE_JUXTAPOSITION);
     }
     else if (affected_by_spell(victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION))
     {
@@ -13976,6 +13977,11 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
       dam = 0;
     }
   }
+
+  /* Reflections may invalidate melee participants as well as projectile ones. */
+  if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room) &&
+      attack_context_invalidated)
+    *attack_context_invalidated = TRUE;
 
   return dam;
 }

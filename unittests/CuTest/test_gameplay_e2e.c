@@ -2272,24 +2272,69 @@ void Test_combat_restoration_damage_melee_uses_same_reaction_bound(CuTest *tc)
 }
 
 
-/* Exercise the real spell affect and hit paths: greater must retain its approved
- * activation fix and consume three charges. Reflection follows the original
- * damage; the fourth attack deals its ordinary damage without retaliation. */
-void Test_combat_restoration_greater_juxtaposition_reflects_three_hits(CuTest *tc)
+struct restoration_juxtaposition_trace
+{
+  struct char_data *actor;
+  struct char_data *bearer;
+  int spell;
+  int mutation;
+  int reflections;
+  bool present_during_reflection;
+};
+
+static void restoration_observe_juxtaposition(const struct domain_event_context *context,
+                                              void *data)
+{
+  struct restoration_juxtaposition_trace *trace = data;
+  const struct domain_character_damaged *event = context->payload;
+
+  if (domain_event_world_resolve_character(event->target) != trace->actor)
+    return;
+  trace->reflections++;
+  trace->present_during_reflection = affected_by_spell(trace->bearer, trace->spell);
+  if (trace->mutation == 1)
+    domain_event_world_forget_character(trace->bearer);
+  else if (trace->mutation == 2)
+    domain_event_world_forget_character(trace->actor);
+  else if (trace->mutation == 3)
+  {
+    char_from_room(trace->bearer);
+    char_to_room(trace->bearer, 1);
+  }
+  else if (trace->mutation == 4)
+  {
+    char_from_room(trace->actor);
+    char_to_room(trace->actor, 1);
+  }
+  else if (trace->mutation == 5)
+    SET_BIT_AR(MOB_FLAGS(trace->bearer), MOB_NOTDEADYET);
+  else if (trace->mutation == 6)
+    SET_BIT_AR(MOB_FLAGS(trace->actor), MOB_NOTDEADYET);
+}
+
+/* Real spell affects and weapon hits must preserve ordinary post-reflection
+ * removal and Greater's approved three-charge behavior. Invalidating a
+ * participant during reflection must prevent the hit's later stun rider. */
+static void verify_restored_juxtaposition(CuTest *tc, int spell, int mutation)
 {
   struct gameplay_fixture f;
   struct char_data *saved_characters = character_list;
+  struct restoration_juxtaposition_trace trace = {0};
+  struct domain_event_subscription_config observer = {0};
+  struct domain_event_subscription_handle subscription;
   int charges[4], actor_loss[4], victim_loss[4], results[4];
-  int i, actor_before, victim_before, initial_charges;
+  int i, actor_before, victim_before, initial_charges, remaining_reflections;
+  int expected_reflections = spell == SPELL_HOSTILE_JUXTAPOSITION ? 1 : 3;
+  int hits = mutation == 0 ? expected_reflections + 1 : 1;
   char observation[200];
-  bool expired;
+  bool expired, stun_pending, bearer_stale;
+  struct domain_entity_handle bearer_handle;
 
   begin_gameplay_fixture(&f);
   domain_event_runtime_shutdown();
   event_free_all();
   event_init();
-  if (spell_info[SPELL_GREATER_HOSTILE_JUXTAPOSITION].name == NULL ||
-      spell_info[SPELL_GREATER_HOSTILE_JUXTAPOSITION].name == unused_spellname)
+  if (spell_info[spell].name == NULL || spell_info[spell].name == unused_spellname)
     mag_assign_spells();
   f.actor.next = &f.victim;
   character_list = &f.actor;
@@ -2297,10 +2342,21 @@ void Test_combat_restoration_greater_juxtaposition_reflects_three_hits(CuTest *t
   GET_ATTACK_QUEUE(&f.actor) = create_attack_queue();
   GET_ATTACK_QUEUE(&f.victim) = create_attack_queue();
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
-  mag_affects(20, &f.victim, &f.victim, NULL, SPELL_GREATER_HOSTILE_JUXTAPOSITION, SAVING_WILL,
-              CAST_SPELL, 0);
-  initial_charges =
-      get_char_affect_modifier(&f.victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION, APPLY_SPECIAL);
+  mag_affects(20, &f.victim, &f.victim, NULL, spell, SAVING_WILL, CAST_SPELL, 0);
+  initial_charges = get_char_affect_modifier(&f.victim, spell, APPLY_SPECIAL);
+  bearer_handle = domain_event_character_handle(&f.victim);
+  trace.actor = &f.actor;
+  trace.bearer = &f.victim;
+  trace.spell = spell;
+  trace.mutation = mutation;
+  observer.type = DOMAIN_EVENT_CHARACTER_DAMAGED;
+  observer.topic.role = DOMAIN_EVENT_TOPIC_ANY;
+  observer.owner = bearer_handle;
+  observer.identity = "test.restoration.juxtaposition";
+  observer.handler = restoration_observe_juxtaposition;
+  observer.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &observer, &subscription));
   GET_HIT(&f.actor) = GET_MAX_HIT(&f.actor) = 100000;
   GET_HIT(&f.victim) = GET_MAX_HIT(&f.victim) = 100000;
   GET_HITROLL(&f.actor) = 100;
@@ -2308,18 +2364,22 @@ void Test_combat_restoration_greater_juxtaposition_reflects_three_hits(CuTest *t
   GET_DAMSIZEDICE(&f.actor) = 6;
   FIGHTING(&f.actor) = &f.victim;
   FIGHTING(&f.victim) = &f.actor;
-  for (i = 0; i < 4; i++)
+  for (i = 0; i < hits; i++)
   {
     actor_before = GET_HIT(&f.actor);
     victim_before = GET_HIT(&f.victim);
+    SET_BIT_AR(AFF_FLAGS(&f.actor), AFF_NEXTATTACK_STUN);
     circle_srandom(1234);
     results[i] = hit(&f.actor, &f.victim, TYPE_UNDEFINED, DAM_BLUDGEON, 0, ATTACK_TYPE_PRIMARY);
-    charges[i] =
-        get_char_affect_modifier(&f.victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION, APPLY_SPECIAL);
+    charges[i] = get_char_affect_modifier(&f.victim, spell, APPLY_SPECIAL);
     actor_loss[i] = actor_before - GET_HIT(&f.actor);
     victim_loss[i] = victim_before - GET_HIT(&f.victim);
   }
-  expired = !affected_by_spell(&f.victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION);
+  expired = !affected_by_spell(&f.victim, spell);
+  stun_pending = AFF_FLAGGED(&f.actor, AFF_NEXTATTACK_STUN);
+  bearer_stale = domain_event_world_resolve_character(bearer_handle) == NULL;
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_NOTDEADYET);
+  REMOVE_BIT_AR(MOB_FLAGS(&f.victim), MOB_NOTDEADYET);
   stop_fighting(&f.actor);
   stop_fighting(&f.victim);
   domain_event_runtime_shutdown();
@@ -2333,10 +2393,14 @@ void Test_combat_restoration_greater_juxtaposition_reflects_three_hits(CuTest *t
   character_list = saved_characters;
   end_gameplay_fixture(&f);
 
-  CuAssertIntEquals(tc, 3, initial_charges);
-  for (i = 0; i < 3; i++)
+  if (spell == SPELL_GREATER_HOSTILE_JUXTAPOSITION)
+    CuAssertIntEquals(tc, 3, initial_charges);
+  remaining_reflections = mutation == 0 ? expected_reflections : 1;
+  CuAssertIntEquals(tc, remaining_reflections, trace.reflections);
+  for (i = 0; i < remaining_reflections; i++)
   {
-    CuAssertIntEquals(tc, 2 - i, charges[i]);
+    if (spell == SPELL_GREATER_HOSTILE_JUXTAPOSITION)
+      CuAssertIntEquals(tc, 2 - i, charges[i]);
     snprintf(observation, sizeof(observation),
              "hit %d: charges=%d actor loss=%d victim loss=%d result=%d", i + 1, charges[i],
              actor_loss[i], victim_loss[i], results[i]);
@@ -2346,10 +2410,75 @@ void Test_combat_restoration_greater_juxtaposition_reflects_three_hits(CuTest *t
     CuAssertIntEquals(tc, victim_loss[i] * 3 / 4, actor_loss[i]);
     CuAssertIntEquals(tc, 0, results[i]);
   }
-  CuAssertTrue(tc, expired);
-  CuAssertIntEquals(tc, 0, actor_loss[3]);
-  CuAssertTrue(tc, victim_loss[3] > 0);
-  CuAssertTrue(tc, results[3] > 0);
+  CuAssertTrue(tc, stun_pending == (mutation != 0));
+  CuAssertTrue(tc, bearer_stale == (mutation == 1));
+  if (spell == SPELL_HOSTILE_JUXTAPOSITION)
+  {
+    CuAssertTrue(tc, trace.present_during_reflection);
+    CuAssertTrue(tc, expired == (mutation != 1));
+  }
+  if (mutation == 0)
+  {
+    CuAssertTrue(tc, expired);
+    CuAssertIntEquals(tc, 0, actor_loss[expected_reflections]);
+    CuAssertTrue(tc, victim_loss[expected_reflections] > 0);
+    CuAssertTrue(tc, results[expected_reflections] > 0);
+  }
+}
+
+void Test_combat_restoration_greater_juxtaposition_reflects_three_hits(CuTest *tc)
+{
+  verify_restored_juxtaposition(tc, SPELL_GREATER_HOSTILE_JUXTAPOSITION, 0);
+}
+
+void Test_combat_restoration_ordinary_juxtaposition_expires_after_reflection(CuTest *tc)
+{
+  verify_restored_juxtaposition(tc, SPELL_HOSTILE_JUXTAPOSITION, 0);
+}
+
+void Test_combat_restoration_ordinary_juxtaposition_forgotten_bearer(CuTest *tc)
+{
+  verify_restored_juxtaposition(tc, SPELL_HOSTILE_JUXTAPOSITION, 1);
+}
+
+void Test_combat_restoration_ordinary_juxtaposition_forgotten_attacker(CuTest *tc)
+{
+  verify_restored_juxtaposition(tc, SPELL_HOSTILE_JUXTAPOSITION, 2);
+}
+
+void Test_combat_restoration_ordinary_juxtaposition_relocated_bearer(CuTest *tc)
+{
+  verify_restored_juxtaposition(tc, SPELL_HOSTILE_JUXTAPOSITION, 3);
+}
+
+void Test_combat_restoration_ordinary_juxtaposition_relocated_attacker(CuTest *tc)
+{
+  verify_restored_juxtaposition(tc, SPELL_HOSTILE_JUXTAPOSITION, 4);
+}
+
+void Test_combat_restoration_ordinary_juxtaposition_pending_bearer_extraction(CuTest *tc)
+{
+  verify_restored_juxtaposition(tc, SPELL_HOSTILE_JUXTAPOSITION, 5);
+}
+
+void Test_combat_restoration_ordinary_juxtaposition_pending_attacker_extraction(CuTest *tc)
+{
+  verify_restored_juxtaposition(tc, SPELL_HOSTILE_JUXTAPOSITION, 6);
+}
+
+void Test_combat_restoration_greater_juxtaposition_forgotten_bearer(CuTest *tc)
+{
+  verify_restored_juxtaposition(tc, SPELL_GREATER_HOSTILE_JUXTAPOSITION, 1);
+}
+
+void Test_combat_restoration_greater_juxtaposition_relocated_attacker(CuTest *tc)
+{
+  verify_restored_juxtaposition(tc, SPELL_GREATER_HOSTILE_JUXTAPOSITION, 4);
+}
+
+void Test_combat_restoration_greater_juxtaposition_pending_attacker_extraction(CuTest *tc)
+{
+  verify_restored_juxtaposition(tc, SPELL_GREATER_HOSTILE_JUXTAPOSITION, 6);
 }
 
 void Test_gameplay_e2e_staff_all_feats_melee_rotation_executes(CuTest *tc)

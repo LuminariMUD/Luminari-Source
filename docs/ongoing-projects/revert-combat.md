@@ -345,6 +345,7 @@ Specific conflicts already found must have named tests and dispositions:
 | Test-only rollback paths | Three drivers exist today: semantic rounds, the encounter compatibility phases (`run_compatibility_phase()` and `COMBAT_ENCOUNTER_PHASE_DELAY`), and the per-character `event_combat_round` MUD event, which only runs when `encounter_mode` is false under CuTest. Cancel sites for `eCOMBAT_ROUND` remain in `src/act/act.other.c`, `src/magic/spells.c`, and `src/act/act.wizard.c`. End with one production driver, and decide explicitly whether the legacy callback, the test selectors, and `Test_combat_encounter_rollback_selector_keeps_legacy_path_exclusive` are deleted or kept as test seams. |
 | Deferred reactions | The refactor yielded `COMBAT_DAMAGE_QUEUED` / legacy zero for nested damage, then drained later. The section 9 damage checkpoint restores synchronous completion through a shared 64-reaction budget and captured handles; weapon/projectile damage now uses the same owner. Wider caller and terminal-outcome audits remain open. Queue-only FIFO tests cannot establish gameplay parity. |
 | Life Shield and Greater Hostile Juxtaposition | Life Shield's zero-damage activation and post-reflection charge update are restored in the section 9 damage checkpoint. Retain its self/source-spell recursion guards and safe handle checks. The user approved Greater Hostile Juxtaposition's working activation on 2026-09-16 as an explicit exception to historical non-activation. Retain safe spell-affect lookup. The section 9 spell-exception checkpoint verifies three-charge consumption, post-hit reflection and expiry through real spell-affect and weapon-hit paths. |
+| Ordinary Hostile Juxtaposition | Restore affect removal after reflected damage completes. Keep the bearer generation check before removal and stop later hit effects if either participant becomes invalid. The section 9 ordinary-juxtaposition checkpoint proves reflection-time affect presence, one-hit expiry and callback continuation through real spell/hit paths. Greater keeps its approved working behavior. |
 | Divine Sacrifice and killer-less death | Keep valid lifetime checks and typed causes/outcomes. Explicitly document the change from ignored/unresolved deaths to correctly finalized deaths, including transferred lethal damage. Do not recreate a crash or leave dead entities active to imitate a faulty old path. Such retained outcomes must be visible in the parity disposition. |
 | Death notification ordering | Trace the final integrated `raw_kill_with_cause()`, which publishes through `domain_event_runtime_character_died_with_cause()`, and its actual `DOMAIN_EVENT_CHARACTER_DIED` subscribers: `combat_encounters.c` (priority 20), `activity_manager.c` (priority 100), `ready_action.c`, and `magic/buff_sequence.c`. Intermediate refactor commits changed ordering again; do not implement from an isolated commit or PR description. Preserve coherent, exactly-once cleanup and verify listener-visible state. |
 
@@ -839,8 +840,9 @@ Next implementation boundaries:
    Preserve native handles, notifications, active-world reconsideration, periodic
    timer sync, common rewards, and presentation. Greater Hostile Juxtaposition
    activation is now user-approved and tested in the spell-exception checkpoint.
-   Audit ordinary juxtaposition removal/continuation ordering separately; its
-   baseline branch was reachable.
+   Ordinary juxtaposition removal and continuation are restored in the later
+   reflection checkpoint. Next trace and test the identified damage-shield and
+   Divine Sacrifice callback boundaries, then actual death/reward ordering.
 3. Expand remaining acceptance scenarios, especially casting resource/lifecycle
    boundaries, phase-sensitive effects/attack counts, NPCs, client output and
    callback-time lifecycle transitions. General and attack queue coverage is
@@ -1164,3 +1166,78 @@ allocation, terminal-outcome, NPC, lifecycle, live/load, client-output, current
 system-documentation and two-store help requirements remain open. No live MUD,
 database/help edit, production action or push was performed. This goal turn made
 progress and encountered no blocking condition.
+
+#### Ordinary juxtaposition and reflection continuation checkpoint
+
+The previous goal turn made progress in `1478a31c3`: attack-queue behavior and
+maneuver continuation. The worktree was clean and `APP_ENV=development` was
+rechecked before this work. Greater Hostile Juxtaposition remains the approved
+working-spell exception; its three-charge activation must survive this change.
+
+Baseline tracing found ordinary Hostile Juxtaposition removed its affect after
+reflected damage returned. Current code removes it before reflection. The melee
+caller also continues into later hit effects if a reflection callback invalidates
+either participant: its post-call invalidation helper only covers projectiles.
+
+Ablation: extend the existing real spell/hit fixture and use the generation
+handles and invalidation result already owned by `handle_successful_attack()`.
+Restore ordinary affect-removal order, keep safe removal if the bearer still
+resolves, and stop the hit's later work after invalidation. No new reaction
+owner, test entry point, timer or alternate damage path is needed. Prove valid
+ordinary and Greater reflection and callback invalidation through damage facts.
+
+Ten new regressions failed against the previous code: one ordinary spell-order
+case and nine invalidation cases (six ordinary, three Greater). They now pass
+with the existing Greater three-hit control. The shared fixture applies the
+real spell and performs real weapon hits, asserting positive original damage,
+the unchanged NPC reflected-spell multiplier, zero reflected-hit return and
+normal damage without reflection once the affect expires. The ordinary affect
+is present while its reflected packet publishes and is removed afterward.
+
+During reflection, forgetting either participant, relocating either participant,
+or marking either pending extraction prevents the later stun rider from consuming
+`AFF_NEXTATTACK_STUN`. The same valid-hit control consumes that flag. A forgotten
+bearer is not touched or re-registered to remove its affect; a relocated live
+bearer still consumes the ordinary affect. Greater retains its existing charge
+update and safe affect lookup. The production change reuses the caller's existing
+invalidation result so projectile cleanup still has one exit path.
+
+Follow-up tracing identified two concrete remaining continuation boundaries:
+
+- The earlier `damage_shield_check()` guard in `handle_successful_attack()`
+  returns zero for invalid participants without setting the caller's invalidation
+  result. Inside `damage_shield_check()`, multiple shield effects can also follow
+  a callback through raw pointers. Extend real-hit invalidation coverage there.
+- Divine Sacrifice subtracts the defender's HP, publishes a damage fact, then
+  calls `update_pos()`, attaches its cooldown and may finalize death through
+  raw pointers. Capture/revalidate the defender, original target and attacker
+  around those callbacks while preserving the completed transfer. Prove valid
+  nonlethal and lethal transfers and notification/reward outcomes. An earlier
+  helper-only defender-selection test does not establish these properties.
+
+For the death audit, current `raw_kill_with_cause()` publishes death before
+stopping fights, clearing events/affects, running death triggers and creating
+the corpse or respawning. Real PC death calls `make_pc_corpse()` before respawn;
+the arena branch does not. The publisher itself has no deduplication. Inspect
+the actual callers and subscribers before deciding whether exactly-once cleanup
+is established; no death-order completion claim is made at this checkpoint.
+
+Validation:
+
+- `CUTEST_FILTER=juxtaposition ./cutest`: all 11 pass; all ten new cases failed
+  before the production repair.
+- `CUTEST_FILTER=combat_restoration valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./cutest`:
+  all 57 pass, zero errors and zero definitely/indirectly/possibly lost bytes.
+  The same 785,159 bytes of initialized test/runtime tables remain reachable.
+- `make -j8 test`: all 1,562 CuTests and required repository gates pass without
+  compiler warnings. Nine opt-in help-sync MariaDB cases remain gated; help
+  synchronization is unchanged by this checkpoint.
+- `make install`: succeeds and removes the root `luminari` artifact.
+- Changed-file pre-commit hooks pass; the task-owned diff was reviewed.
+- Logs: `/tmp/revert-combat-juxtaposition-{before,after,build,valgrind,full-test,install,hooks}.log`.
+
+This goal turn made progress without a blocker. The remaining requirements in
+sections 4-7 are still open, including the concrete continuation findings above,
+death/rewards, casting, effects/attack allocation, NPCs, lifecycle, live/load,
+client output, current system docs and two-store help. No live MUD, database/help
+edit, production action or push was performed.
