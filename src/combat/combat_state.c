@@ -37,26 +37,28 @@ void combat_state_stop_attackers(struct char_data *victim)
   }
 }
 
-/* Report whether an attack may continue after a callback ran.
- * Both handles must still resolve, both participants must remain in the room
- * the attack started in, alive, and not already queued for extraction. */
+/* A participant must still resolve, remain in its original room and be alive,
+ * without pending extraction. Spell participants may start in different rooms. */
+bool combat_state_character_context_valid(struct domain_entity_handle character_handle,
+                                          room_rnum expected_room)
+{
+  struct char_data *ch = domain_event_world_resolve_character(character_handle);
+
+  if (ch == NULL || expected_room == NOWHERE)
+    return false;
+  if (IN_ROOM(ch) != expected_room || GET_POS(ch) <= POS_DEAD)
+    return false;
+  if ((IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOTDEADYET)) ||
+      (!IS_NPC(ch) && PLR_FLAGGED(ch, PLR_NOTDEADYET)))
+    return false;
+  return true;
+}
+
+/* An attack also requires both participants to remain in the same room. */
 bool combat_state_attack_context_valid(struct domain_entity_handle attacker_handle,
                                        struct domain_entity_handle victim_handle,
                                        room_rnum expected_room)
 {
-  struct char_data *attacker = domain_event_world_resolve_character(attacker_handle);
-  struct char_data *victim = domain_event_world_resolve_character(victim_handle);
-
-  if (attacker == NULL || victim == NULL || expected_room == NOWHERE)
-    return false;
-  if (IN_ROOM(attacker) != expected_room || IN_ROOM(victim) != expected_room)
-    return false;
-  if (GET_POS(attacker) <= POS_DEAD || GET_POS(victim) <= POS_DEAD)
-    return false;
-  if ((IS_NPC(attacker) && MOB_FLAGGED(attacker, MOB_NOTDEADYET)) ||
-      (!IS_NPC(attacker) && PLR_FLAGGED(attacker, PLR_NOTDEADYET)) ||
-      (IS_NPC(victim) && MOB_FLAGGED(victim, MOB_NOTDEADYET)) ||
-      (!IS_NPC(victim) && PLR_FLAGGED(victim, PLR_NOTDEADYET)))
-    return false;
-  return true;
+  return combat_state_character_context_valid(attacker_handle, expected_room) &&
+         combat_state_character_context_valid(victim_handle, expected_room);
 }

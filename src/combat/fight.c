@@ -13955,7 +13955,11 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
   // damage inflicting shields, like fire shield
   damage_shield_check(ch, victim, attack_type, dam, dam_type);
   if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
+  {
+    if (attack_context_invalidated)
+      *attack_context_invalidated = TRUE;
     return 0;
+  }
 
   if (dam > 0)
   {
@@ -14037,11 +14041,17 @@ bool test_can_process_projectile_weapon_abilities(struct char_data *ch, struct o
 int damage_shield_check(struct char_data *ch, struct char_data *victim, int attack_type, int dam,
                         int dam_type)
 {
+  struct domain_entity_handle attacker_handle = domain_event_character_handle(ch);
+  struct domain_entity_handle victim_handle = domain_event_character_handle(victim);
+  room_rnum combat_room = ch != NULL ? IN_ROOM(ch) : NOWHERE;
   int return_val = 0;
   int energy = 0;
   int save_type = 0;
   int power_resist_bonus = 0;
   int dam_bonus = 0;
+
+  if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
+    return 0;
 
   if (!is_ranged_weapon_attack(attack_type))
   {
@@ -14062,12 +14072,17 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim, int atta
       return_val = damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
     }
 
+    if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
+      return return_val;
+
     if (dam && victim && GET_HIT(victim) >= -1 &&
         (dam_type == DAM_SLICE || dam_type == DAM_PUNCTURE) &&
         affected_by_spell(victim, SPELL_CAUSTIC_BLOOD))
     { // caustic blood
       return_val = call_magic(victim, ch, NULL, AFFECT_CAUSTIC_BLOOD_DAMAGE, 0,
                               CASTER_LEVEL(victim), CAST_SPELL);
+      if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
+        return return_val;
     }
 
     if (dam && victim && GET_HIT(victim) >= -1 &&
@@ -14080,6 +14095,8 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim, int atta
                 victim, ch,
                 dice(4, get_char_affect_modifier(victim, PSIONIC_EMPATHIC_FEEDBACK, APPLY_SPECIAL)),
                 PSIONIC_EMPATHIC_FEEDBACK, DAM_MENTAL, attack_type);
+      if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
+        return return_val;
     }
     if (dam && affected_by_spell(victim, PSIONIC_ENERGY_RETORT) &&
         !victim->char_specials.energy_retort_used)

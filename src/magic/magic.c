@@ -44,6 +44,7 @@
 #include "events/domain_event_runtime.h"
 #include "events/domain_event_types.h"
 #include "events/domain_event_world.h"
+#include "combat/combat_state.h"
 #include "wilderness/wilderness.h"
 #include "character/perks.h"
 #include "character/bardic_performance.h"
@@ -1738,6 +1739,8 @@ static int mag_damage_scaled(int level, struct char_data *ch, struct char_data *
       mag_resist_bonus = 0, dc_mod = 0, crescendo_sonic_dam = 0, result, hit_before = 0;
   bool apply_crescendo;
   char desc[200];
+  struct domain_entity_handle caster_handle, victim_handle;
+  room_rnum caster_room, victim_room;
 
   if (victim == NULL || ch == NULL)
     return (0);
@@ -4241,7 +4244,14 @@ static int mag_damage_scaled(int level, struct char_data *ch, struct char_data *
     }
 
     hit_before = GET_HIT(victim);
+    caster_handle = domain_event_character_handle(ch);
+    victim_handle = domain_event_character_handle(victim);
+    caster_room = IN_ROOM(ch);
+    victim_room = IN_ROOM(victim);
     result = damage(ch, victim, dam, spellnum, element, FALSE);
+    if (!combat_state_character_context_valid(caster_handle, caster_room) ||
+        !combat_state_character_context_valid(victim_handle, victim_room))
+      return result;
 
     if (spellnum == SPELL_LAVA_BURST && result != -1 &&
         lava_burst_should_ignite(result, hit_before, GET_HIT(victim),
