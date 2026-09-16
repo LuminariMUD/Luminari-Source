@@ -4941,11 +4941,21 @@ const char *crafting_motes[] = {"",           "air mote", "dark mote",  "earth m
                                 "fire mote",  "ice mote", "light mote", "lightning mote",
                                 "water mote", ""};
 
-const char *crafting_methods[] = {"",         "crafting", "surveying",           "harvesting",
-                                  "refining", "resizing", "doing a supplyorder", "\n"};
+const char *crafting_methods[] = {"",
+                                  "crafting",
+                                  "surveying",
+                                  "harvesting",
+                                  "refining",
+                                  "resizing",
+                                  "doing a supplyorder",
+                                  "checking equipment",
+                                  "constructing a golem",
+                                  "\n"};
+CHECK_TABLE_SIZE(crafting_methods, NUM_CRAFTING_METHODS + 1);
 
-const char *crafting_methods_short[] = {"",       "craft",  "survey",      "harvest",
-                                        "refine", "resize", "supplyorder", "\n"};
+const char *crafting_methods_short[] = {"",       "craft",       "survey",    "harvest", "refine",
+                                        "resize", "supplyorder", "equipment", "golem",   "\n"};
+CHECK_TABLE_SIZE(crafting_methods_short, NUM_CRAFTING_METHODS + 1);
 
 const char *bag_system_options[] = {"Use container objects", "Use virtual bags", "\n"};
 
