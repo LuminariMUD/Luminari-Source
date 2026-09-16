@@ -18,6 +18,7 @@
 #include "events/character_periodic.h"
 #include "movement/graph.h"
 #include "spec/spec_dispatch.h"
+#include "mob/mob_act.h"
 #include "spec/spec_rol_conversion.h"
 #include "core/comm.h"
 #include "core/handler.h"
@@ -16865,6 +16866,7 @@ void perform_violence(struct char_data *ch, int phase)
 {
   struct char_data *tch = NULL, *charmee;
   struct list_data *room_list = NULL;
+  bool spec_handled = false;
 
   /* Reset combat data */
   GET_TOTAL_AOO(ch) = 0;
@@ -17358,12 +17360,18 @@ void perform_violence(struct char_data *ch, int phase)
       GET_HIT(ch) > 0)
   {
     PERF_PROF_ENTER_SAMPLED(combat_specials, "combat.specials");
-    spec_gateway_mobile_combat_turn(ch);
+    spec_handled = spec_gateway_mobile_combat_turn(ch);
     PERF_PROF_EXIT(combat_specials);
   }
 
   if (IS_NPC(ch) && !MOB_FLAGGED(ch, MOB_NOTDEADYET) && GET_HIT(ch) > 0)
     rol_automatic_race_combat_turn(ch);
+
+  /* Historical race/class/spell behavior ran once per six-second mobile pulse
+   * unless the special procedure had already acted; keep it to one rotation. */
+  if ((phase == 0 || phase == 1) && !spec_handled && IS_NPC(ch) &&
+      !MOB_FLAGGED(ch, MOB_NOTDEADYET) && GET_HIT(ch) > 0)
+    npc_combat_behave(ch);
 
   // the mighty awesome fear code
   if (AFF_FLAGGED(ch, AFF_FEAR) && !rand_number(0, 2))
