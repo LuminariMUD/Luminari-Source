@@ -33,6 +33,7 @@
 #include "../../src/combat/fight.h"
 #include "../../src/combat/combat_damage.h"
 #include "../../src/combat/combat_reactions.h"
+#include "../../src/combat/projectiles.h"
 #include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/olc/genwld.h"
 #include "../../src/olc/oasis.h"
@@ -1376,6 +1377,409 @@ void Test_combat_restoration_queued_kicks_each_replace_one_hit(CuTest *tc)
   /* hit() returns -1 for a queued action, before its normal attack routine. */
   CuAssertIntEquals(tc, -1, first_result);
   CuAssertIntEquals(tc, -1, second_result);
+}
+
+
+struct restoration_maneuver_trace
+{
+  struct char_data *actor;
+  struct char_data *victim;
+  int mutation;
+  int packets;
+  int victim_packets;
+  int actor_packets;
+};
+
+static void restoration_observe_maneuver(const struct domain_event_context *context, void *data)
+{
+  struct restoration_maneuver_trace *trace = data;
+  const struct domain_character_damaged *event = context->payload;
+  struct char_data *target = domain_event_world_resolve_character(event->target);
+
+  trace->packets++;
+  if (target == trace->actor)
+    trace->actor_packets++;
+  if (target != trace->victim)
+    return;
+  trace->victim_packets++;
+  if (trace->mutation == 1)
+    domain_event_world_forget_character(trace->victim);
+  else if (trace->mutation == 2)
+  {
+    char_from_room(trace->victim);
+    char_to_room(trace->victim, 1);
+  }
+  else if (trace->mutation == 3)
+    SET_BIT_AR(MOB_FLAGS(trace->victim), MOB_NOTDEADYET);
+  else if (trace->mutation == 4)
+  {
+    char_from_room(trace->actor);
+    char_to_room(trace->actor, 1);
+  }
+}
+
+static void begin_restoration_maneuvers(CuTest *tc, struct restoration_command_fixture *f,
+                                        struct restoration_maneuver_trace *trace)
+{
+  struct char_data *ch;
+  struct domain_event_subscription_config observer = {0};
+  struct domain_event_subscription_handle subscription;
+
+  begin_restoration_command_fixture(tc, f, LUMINARI_IO_DRIVER_LIBEVENT);
+  ch = &f->game.actor;
+  ch->real_abils.str = ch->aff_abils.str = 40;
+  ch->real_abils.dex = ch->aff_abils.dex = 40;
+  GET_HITROLL(ch) = 100;
+  GET_HIT(ch) = GET_MAX_HIT(ch) = 10000;
+  GET_HIT(&f->game.victim) = GET_MAX_HIT(&f->game.victim) = 10000;
+  GET_ATTACK_QUEUE(&f->game.victim) = create_attack_queue();
+  SET_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE, 1);
+  FIGHTING(ch) = &f->game.victim;
+  memset(trace, 0, sizeof(*trace));
+  trace->actor = ch;
+  trace->victim = &f->game.victim;
+  observer.type = DOMAIN_EVENT_CHARACTER_DAMAGED;
+  observer.topic.role = DOMAIN_EVENT_TOPIC_ANY;
+  observer.owner = domain_event_character_handle(ch);
+  observer.identity = "test.restoration.maneuvers";
+  observer.handler = restoration_observe_maneuver;
+  observer.handler_context = trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &observer, &subscription));
+}
+
+static void end_restoration_maneuvers(struct restoration_command_fixture *f)
+{
+  free_attack_queue(GET_ATTACK_QUEUE(&f->game.victim));
+  GET_ATTACK_QUEUE(&f->game.victim) = NULL;
+  end_restoration_command_fixture(f);
+}
+
+void Test_combat_restoration_attack_queue_mixed_maneuvers_replace_hits(CuTest *tc)
+{
+  struct restoration_command_fixture f;
+  struct restoration_maneuver_trace trace;
+  struct char_data *ch;
+  char kick[] = "kick ally";
+  char headbutt[] = "headbutt ally";
+  int first, second, remaining, next_kind;
+  bool actions;
+
+  begin_restoration_maneuvers(tc, &f, &trace);
+  ch = &f.game.actor;
+  command_interpreter(ch, kick);
+  command_interpreter(ch, headbutt);
+  circle_srandom(1234);
+  first = hit(ch, &f.game.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  remaining = pending_attacks(ch);
+  next_kind = peek_attack(GET_ATTACK_QUEUE(ch))->attack_type;
+  circle_srandom(1234);
+  second = hit(ch, &f.game.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  actions = is_action_available(ch, atSTANDARD, false) && is_action_available(ch, atMOVE, false) &&
+            is_action_available(ch, atSWIFT, false);
+  CuAssertIntEquals(tc, 0, pending_attacks(ch));
+  end_restoration_maneuvers(&f);
+
+  CuAssertIntEquals(tc, -1, first);
+  CuAssertIntEquals(tc, -1, second);
+  CuAssertIntEquals(tc, 1, remaining);
+  CuAssertIntEquals(tc, AA_HEADBUTT, next_kind);
+  CuAssertIntEquals(tc, 2, trace.packets);
+  CuAssertIntEquals(tc, 2, trace.victim_packets);
+  CuAssertTrue(tc, actions);
+}
+
+void Test_combat_restoration_attack_queue_admission_list_clear_and_recheck(CuTest *tc)
+{
+  struct restoration_command_fixture f;
+  struct restoration_maneuver_trace trace;
+  struct char_data *ch;
+  char kick[] = "kick";
+  char headbutt[] = "headbutt";
+  char heal[] = "layonhands self";
+  char list[] = "attackqueue";
+  char clear[] = "attackqueue clear";
+  bool rejected, queued_idle, listed, independent, rechecked;
+  const char *first, *second;
+
+  begin_restoration_maneuvers(tc, &f, &trace);
+  ch = &f.game.actor;
+  FIGHTING(ch) = NULL;
+  SET_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE, 0);
+  command_interpreter(ch, headbutt);
+  rejected = pending_attacks(ch) == 0;
+  command_interpreter(ch, kick);
+  queued_idle = pending_attacks(ch) == 1 && FIGHTING(ch) == NULL && trace.packets == 0;
+  SET_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE, 1);
+  command_interpreter(ch, headbutt);
+  start_action_cooldown(ch, atSTANDARD, 3);
+  command_interpreter(ch, heal);
+  command_interpreter(ch, list);
+  first = strstr(f.descriptor.output, "1) kick");
+  second = strstr(f.descriptor.output, "2) headbutt");
+  listed = first != NULL && second != NULL && first < second;
+  command_interpreter(ch, clear);
+  independent = pending_attacks(ch) == 0 && pending_actions(ch) == 1;
+  command_interpreter(ch, headbutt);
+  SET_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE, 0);
+  FIGHTING(ch) = &f.game.victim;
+  (void)hit(ch, &f.game.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  rechecked = pending_attacks(ch) == 0 && trace.packets == 0 &&
+              strstr(f.descriptor.output, "You have no idea how.") != NULL;
+  end_restoration_maneuvers(&f);
+
+  CuAssertTrue(tc, rejected);
+  CuAssertTrue(tc, queued_idle);
+  CuAssertTrue(tc, listed);
+  CuAssertTrue(tc, independent);
+  CuAssertTrue(tc, rechecked);
+}
+
+void Test_combat_restoration_attack_queue_explicit_target_opens_combat(CuTest *tc)
+{
+  struct restoration_command_fixture f;
+  struct restoration_maneuver_trace trace;
+  char command[] = "kick ally";
+  bool opened, consumed;
+
+  begin_restoration_maneuvers(tc, &f, &trace);
+  FIGHTING(&f.game.actor) = NULL;
+  GET_POS(&f.game.victim) = POS_SLEEPING;
+  circle_srandom(1234);
+  command_interpreter(&f.game.actor, command);
+  opened = FIGHTING(&f.game.actor) == &f.game.victim;
+  consumed = pending_attacks(&f.game.actor) == 0;
+  end_restoration_maneuvers(&f);
+
+  CuAssertTrue(tc, opened);
+  CuAssertTrue(tc, consumed);
+  CuAssertIntEquals(tc, 1, trace.packets);
+  CuAssertIntEquals(tc, 1, trace.victim_packets);
+}
+
+static void verify_restoration_maneuver_invalidation(CuTest *tc, bool headbutt, int mutation)
+{
+  struct restoration_command_fixture f;
+  struct restoration_maneuver_trace trace;
+  char command[MAX_INPUT_LENGTH];
+  int returned, queued;
+
+  begin_restoration_maneuvers(tc, &f, &trace);
+  trace.mutation = mutation;
+  SET_BIT_AR(AFF_FLAGS(&f.game.victim), AFF_FSHIELD);
+  snprintf(command, sizeof(command), "%s ally", headbutt ? "headbutt" : "kick");
+  command_interpreter(&f.game.actor, command);
+  circle_srandom(1234);
+  returned =
+      hit(&f.game.actor, &f.game.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  queued = pending_attacks(&f.game.actor);
+  end_restoration_maneuvers(&f);
+
+  CuAssertIntEquals(tc, -1, returned);
+  CuAssertIntEquals(tc, 0, queued);
+  CuAssertIntEquals(tc, 1, trace.victim_packets);
+  CuAssertIntEquals(tc, mutation == 0 ? 1 : 0, trace.actor_packets);
+  CuAssertIntEquals(tc, mutation == 0 ? 2 : 1, trace.packets);
+}
+
+void Test_combat_restoration_attack_queue_kick_keeps_live_retaliation(CuTest *tc)
+{
+  verify_restoration_maneuver_invalidation(tc, false, 0);
+}
+
+void Test_combat_restoration_attack_queue_kick_stops_after_target_forgotten(CuTest *tc)
+{
+  verify_restoration_maneuver_invalidation(tc, false, 1);
+}
+
+void Test_combat_restoration_attack_queue_kick_stops_after_target_moves(CuTest *tc)
+{
+  verify_restoration_maneuver_invalidation(tc, false, 2);
+}
+
+void Test_combat_restoration_attack_queue_headbutt_keeps_live_retaliation(CuTest *tc)
+{
+  verify_restoration_maneuver_invalidation(tc, true, 0);
+}
+
+void Test_combat_restoration_attack_queue_headbutt_stops_after_target_forgotten(CuTest *tc)
+{
+  verify_restoration_maneuver_invalidation(tc, true, 1);
+}
+
+void Test_combat_restoration_attack_queue_headbutt_stops_after_target_moves(CuTest *tc)
+{
+  verify_restoration_maneuver_invalidation(tc, true, 2);
+}
+
+void Test_combat_restoration_attack_queue_kick_stops_after_target_pending_extraction(CuTest *tc)
+{
+  verify_restoration_maneuver_invalidation(tc, false, 3);
+}
+
+void Test_combat_restoration_attack_queue_headbutt_stops_after_target_pending_extraction(CuTest *tc)
+{
+  verify_restoration_maneuver_invalidation(tc, true, 3);
+}
+
+
+void Test_combat_restoration_attack_queue_kick_stops_after_attacker_moves(CuTest *tc)
+{
+  verify_restoration_maneuver_invalidation(tc, false, 4);
+}
+
+void Test_combat_restoration_attack_queue_headbutt_stops_after_attacker_moves(CuTest *tc)
+{
+  verify_restoration_maneuver_invalidation(tc, true, 4);
+}
+
+/* Raw attack arguments are resolved at execution, including the historical
+ * fallback to the current opponent when an explicit name has left the room. */
+static void verify_restoration_attack_target(CuTest *tc, int mode)
+{
+  struct restoration_command_fixture f;
+  struct restoration_maneuver_trace trace;
+  struct char_data other;
+  char command[] = "kick ally";
+  int returned, remaining, target_hp, other_hp;
+  bool no_followup;
+
+  begin_restoration_maneuvers(tc, &f, &trace);
+  initialize_test_npc(&other, "alternate", 0);
+  other.player.name = CuMutableString("alternate");
+  GET_HIT(&other) = GET_MAX_HIT(&other) = 10000;
+  GET_ATTACK_QUEUE(&other) = create_attack_queue();
+  f.game.victim.next = &other;
+  f.game.victim.next_in_room = &other;
+  FIGHTING(&f.game.actor) = &other;
+  command_interpreter(&f.game.actor, command);
+  if (mode == 1 || mode == 2)
+  {
+    char_from_room(&f.game.victim);
+    char_to_room(&f.game.victim, 1);
+  }
+  if (mode == 2)
+    FIGHTING(&f.game.actor) = NULL;
+  if (mode == 3)
+  {
+    GET_POS(&f.game.victim) = POS_DEAD;
+    SET_BIT_AR(MOB_FLAGS(&f.game.victim), MOB_NOTDEADYET);
+  }
+  circle_srandom(1234);
+  returned = hit(&f.game.actor, &other, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  remaining = pending_attacks(&f.game.actor);
+  target_hp = GET_HIT(&f.game.victim);
+  other_hp = GET_HIT(&other);
+  no_followup = f.game.victim.char_specials.recently_kicked == 0 &&
+                char_has_mud_event(&f.game.victim, eMOVEACTION) == NULL;
+  stop_fighting(&other);
+  while (other.affected != NULL)
+    affect_remove_no_total(&other, other.affected);
+  end_restoration_maneuvers(&f);
+  if (other.events != NULL)
+    free_list(other.events);
+  free_attack_queue(GET_ATTACK_QUEUE(&other));
+
+  CuAssertIntEquals(tc, -1, returned);
+  CuAssertIntEquals(tc, 0, remaining);
+  CuAssertIntEquals(tc, mode < 2 ? 1 : 0, trace.packets);
+  CuAssertTrue(tc, mode == 0 ? target_hp < 10000 : target_hp == 10000);
+  CuAssertTrue(tc, mode == 1 ? other_hp < 10000 : other_hp == 10000);
+  if (mode == 3)
+    CuAssertTrue(tc, no_followup);
+}
+
+void Test_combat_restoration_attack_queue_explicit_target_overrides_opponent(CuTest *tc)
+{
+  verify_restoration_attack_target(tc, 0);
+}
+
+void Test_combat_restoration_attack_queue_departed_target_uses_current_opponent(CuTest *tc)
+{
+  verify_restoration_attack_target(tc, 1);
+}
+
+void Test_combat_restoration_attack_queue_departed_target_without_opponent(CuTest *tc)
+{
+  verify_restoration_attack_target(tc, 2);
+}
+
+void Test_combat_restoration_attack_queue_dead_target_has_no_followup(CuTest *tc)
+{
+  verify_restoration_attack_target(tc, 3);
+}
+
+static void verify_restoration_attack_boundary(CuTest *tc, int mode)
+{
+  struct restoration_command_fixture f;
+  struct restoration_maneuver_trace trace;
+  struct obj_data bow, pouch, arrow;
+  struct char_data *ch;
+  char command[] = "kick ally";
+  int returned, remaining, opportunities;
+  bool ammo_preserved = true;
+
+  begin_restoration_maneuvers(tc, &f, &trace);
+  ch = &f.game.actor;
+  if (mode == 0)
+  {
+    clear_object(&bow);
+    clear_object(&pouch);
+    clear_object(&arrow);
+    GET_OBJ_TYPE(&bow) = ITEM_WEAPON;
+    GET_OBJ_VAL(&bow, 0) = WEAPON_TYPE_LONG_BOW;
+    GET_OBJ_TYPE(&pouch) = ITEM_AMMO_POUCH;
+    GET_OBJ_VAL(&pouch, 0) = 10;
+    GET_OBJ_TYPE(&arrow) = ITEM_MISSILE;
+    GET_OBJ_VAL(&arrow, 0) = AMMO_TYPE_ARROW;
+    bow.name = bow.short_description = CuMutableString("bow");
+    GET_EQ(ch, WEAR_WIELD_2H) = &bow;
+    GET_EQ(ch, WEAR_AMMO_POUCH) = &pouch;
+    bow.worn_by = ch;
+    bow.worn_on = WEAR_WIELD_2H;
+    pouch.contains = &arrow;
+    arrow.in_obj = &pouch;
+    load_weapons();
+    CuAssertPtrEquals(tc, &arrow, find_compatible_launcher_ammo(ch, &bow));
+  }
+  command_interpreter(ch, command);
+  circle_srandom(1234);
+  if (mode == 0)
+    returned = hit(ch, &f.game.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_RANGED);
+  else if (mode == 1)
+    returned = attack_of_opportunity(ch, &f.game.victim, 0);
+  else
+    returned = combat_readied_attack(ch, &f.game.victim);
+  remaining = pending_attacks(ch);
+  opportunities = GET_TOTAL_AOO(ch);
+  if (mode == 0)
+  {
+    ammo_preserved = pouch.contains == &arrow && arrow.in_obj == &pouch;
+    GET_EQ(ch, WEAR_WIELD_2H) = GET_EQ(ch, WEAR_AMMO_POUCH) = NULL;
+  }
+  end_restoration_maneuvers(&f);
+
+  CuAssertIntEquals(tc, mode == 2 ? 1 : 0, remaining);
+  CuAssertIntEquals(tc, mode == 1 ? 1 : 0, opportunities);
+  CuAssertTrue(tc, mode == 2 ? returned > 0 : returned == -1);
+  CuAssertIntEquals(tc, 1, trace.packets);
+  CuAssertIntEquals(tc, 1, trace.victim_packets);
+  CuAssertTrue(tc, ammo_preserved);
+}
+
+void Test_combat_restoration_attack_queue_replaces_ranged_hit_without_using_ammo(CuTest *tc)
+{
+  verify_restoration_attack_boundary(tc, 0);
+}
+
+void Test_combat_restoration_attack_queue_replaces_opportunity_attack(CuTest *tc)
+{
+  verify_restoration_attack_boundary(tc, 1);
+}
+
+void Test_combat_restoration_attack_queue_is_preserved_by_readied_attack(CuTest *tc)
+{
+  verify_restoration_attack_boundary(tc, 2);
 }
 
 void Test_gameplay_e2e_npc_audience_requires_player_in_same_room(CuTest *tc)
