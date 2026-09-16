@@ -24,6 +24,10 @@ These systems use file-based storage exclusively for persistence.
   - Quest and achievement data
   - Character flags and temporary effects
   - DG Script variables
+  - Craft and harvest ranks (`Ablt`), their experience (`AbXP`), talent points (`Tlpt`), and talent
+    ranks (`Tlrk`, one entry per talent id; files saved before issue 196 hold 64 entries)
+  - A paid craft training contract, written only while one exists:
+    `CrTr: <ability> <experience> <end epoch>`. Loading logs and ignores a malformed line.
 
 **Example Structure:**
 

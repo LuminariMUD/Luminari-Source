@@ -46,6 +46,10 @@ A moving room cannot also have a named room SpecProc. Both features own the
 same callback slot, so redit refuses that selection and zone saving or boot
 rejects a room containing both forms of data.
 
+Craft Trainer is mobile-owned and needs no MOB_SPEC. Players beside an awake
+trainer that can see them use APPRENTICE to list, quote, and start paid craft
+or harvest training; see HELP APPRENTICE.
+
 Converted RoL-Demon, RoL-Devil, and RoL-Umberhulk mobile flags are not
 additional authored SpecProcs. Independent compatibility hooks run their
 source race behavior beside the one persistent mobile SpecProc slot. These

@@ -31,8 +31,8 @@ callback slot or event-gateway dispatch rules.
 - Enter a number to choose a SpecProc; enter `0` to clear.
 - The current selection is shown in the menu. Save as usual to apply.
 
-Numbers are specific to the filtered editor view. The current views contain 54 mobile definitions,
-34 object definitions, and 17 room definitions in canonical registry order. The saved world record
+Numbers are specific to the filtered editor view. The current views contain 62 mobile definitions,
+41 object definitions, and 20 room definitions in canonical registry order. The saved world record
 uses the procedure name, not the displayed number.
 
 Prerequisites describe runtime scheduling; selecting a procedure does not set them automatically:
@@ -41,6 +41,11 @@ Prerequisites describe runtime scheduling; selecting a procedure does not set th
 - `ITEM_AUTOPROC` enables automatic object activity that requires it.
 - `carried`, `equipped`, and `combat` state describe where an event can run.
 - `prerequisites: none` means that event has no registry-level flag or placement requirement.
+
+`Craft Trainer` is mobile-owned, binds only through the world file, and needs no `MOB_SPEC`. Players
+beside an awake trainer that can see them use `apprentice` to list, quote, and start paid craft or
+harvest training (`HELP APPRENTICE`). `data/craft-trainers` holds a complete trainer record for the
+Sanctus III crafting district.
 
 Converted RoL demon, devil, and umber-hulk prototypes are a deliberate exception to the
 single-SpecProc scheduling model. The converter writes `RoL-Demon`, `RoL-Devil`, or
