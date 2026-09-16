@@ -14,4 +14,9 @@ struct domain_entity_handle domain_event_room_handle(room_rnum room);
 struct domain_entity_handle domain_event_character_handle(struct char_data *ch);
 struct domain_entity_handle domain_event_object_handle(struct obj_data *obj);
 
+#ifdef LUMINARI_CUTEST
+/** The registry bucket an entity address falls in, so a test can make two collide. */
+size_t domain_event_world_registry_bucket_for_test(uint64_t runtime_id);
+#endif
+
 #endif /* DOMAIN_EVENT_WORLD_H */

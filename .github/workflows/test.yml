@@ -855,10 +855,17 @@ jobs:
       - name: Prepare isolated test runtime
         run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
 
+      # The world registries and the domain-event bus hash entity addresses, so
+      # which collision paths run depends on where objects land. Without address
+      # randomization, and with the environment padded to one size (it sits at
+      # the top of the stack), a rerun of this commit lays out memory the same
+      # way and measures the same totals.
       - name: Run production-linked tests against MariaDB
         run: |
           make -j"$(nproc)" cutest
-          ./cutest
+          padding=$((65536 - $(env | wc -c)))
+          COVERAGE_ENV_PADDING=$(head -c "$padding" /dev/zero | tr '\0' x) \
+            setarch "$(uname -m)" --addr-no-randomize ./cutest
 
       - name: Run covered protocol parser harness
         run: |

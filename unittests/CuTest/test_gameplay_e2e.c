@@ -12891,6 +12891,47 @@ void Test_environment_cache_observes_edits_replacements_and_path_changes(CuTest 
   }
 }
 
+/** @brief Each file identity field alone must mark a cached environment file as changed.
+ * Which field first differs after an edit depends on file clock ticks, so the scenarios above
+ * cannot choose it; checking each field here keeps coverage the same on every run. */
+void Test_environment_cache_detects_a_change_in_each_identity_field(CuTest *tc)
+{
+  struct stat cached = {0};
+  struct stat current;
+
+  cached.st_dev = 1;
+  cached.st_ino = 2;
+  cached.st_size = 44;
+  cached.st_mtim.tv_sec = 100;
+  cached.st_mtim.tv_nsec = 3;
+  cached.st_ctim.tv_sec = 100;
+  cached.st_ctim.tv_nsec = 5;
+
+  current = cached;
+  CuAssertTrue(tc, dotenv_same_file_for_test(&current, &cached));
+  current = cached;
+  current.st_dev = 9;
+  CuAssertTrue(tc, !dotenv_same_file_for_test(&current, &cached));
+  current = cached;
+  current.st_ino = 9;
+  CuAssertTrue(tc, !dotenv_same_file_for_test(&current, &cached));
+  current = cached;
+  current.st_size = 45;
+  CuAssertTrue(tc, !dotenv_same_file_for_test(&current, &cached));
+  current = cached;
+  current.st_mtim.tv_sec = 101;
+  CuAssertTrue(tc, !dotenv_same_file_for_test(&current, &cached));
+  current = cached;
+  current.st_mtim.tv_nsec = 4;
+  CuAssertTrue(tc, !dotenv_same_file_for_test(&current, &cached));
+  current = cached;
+  current.st_ctim.tv_sec = 101;
+  CuAssertTrue(tc, !dotenv_same_file_for_test(&current, &cached));
+  current = cached;
+  current.st_ctim.tv_nsec = 6;
+  CuAssertTrue(tc, !dotenv_same_file_for_test(&current, &cached));
+}
+
 void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves_rollback(
     CuTest *tc)
 {

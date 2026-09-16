@@ -28,6 +28,13 @@ static size_t registry_bucket(uint64_t runtime_id)
   return (size_t)runtime_id & (DOMAIN_WORLD_REGISTRY_BUCKETS - 1U);
 }
 
+#ifdef LUMINARI_CUTEST
+size_t domain_event_world_registry_bucket_for_test(uint64_t runtime_id)
+{
+  return registry_bucket(runtime_id);
+}
+#endif
+
 static bool registry_register(struct domain_world_registry_entry **registry, uint64_t runtime_id,
                               uint64_t generation, void *entity)
 {

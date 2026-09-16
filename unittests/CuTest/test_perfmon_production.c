@@ -303,6 +303,47 @@ void Test_perfmon_reports_bounded_game_loop_telemetry(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, strstr(report, "slow event callback,"));
 }
 
+/* Reports order event profiles by total time, then calls, then scheduled count,
+ * then identity, so equal measurements still print in one order. Other tests
+ * tie only when their measured callback times happen to match; these tie on
+ * purpose. */
+void Test_perfmon_event_profiles_break_ties_in_a_stable_order(CuTest *tc)
+{
+  struct PERF_event_profile_snapshot profiles[8];
+  char order[4][PERF_EVENT_IDENTITY_SIZE];
+  size_t count;
+  size_t index;
+  int most_calls;
+  int fewest_scheduled;
+  int first_name;
+  int second_name;
+
+  PERF_reset();
+  most_calls = PERF_register_event_callback("tie most calls");
+  fewest_scheduled = PERF_register_event_callback("tie fewest scheduled");
+  second_name = PERF_register_event_callback("tie second name");
+  first_name = PERF_register_event_callback("tie first name");
+  PERF_note_event_callback(most_calls, 20000, 0);
+  PERF_note_event_callback(most_calls, 20000, 0);
+  PERF_note_event_callback(fewest_scheduled, 40000, 0);
+  PERF_note_event_callback(second_name, 40000, 0);
+  PERF_note_event_scheduled(second_name, 1);
+  PERF_note_event_callback(first_name, 40000, 0);
+  PERF_note_event_scheduled(first_name, 1);
+
+  memset(profiles, 0, sizeof(profiles));
+  count = PERF_get_event_profiles(profiles, 8U);
+  for (index = 0; index < 4U; index++)
+    strlcpy(order[index], profiles[index].identity, sizeof(order[index]));
+  PERF_reset();
+
+  CuAssertTrue(tc, count >= 4U);
+  CuAssertStrEquals(tc, "tie most calls", order[0]);
+  CuAssertStrEquals(tc, "tie first name", order[1]);
+  CuAssertStrEquals(tc, "tie second name", order[2]);
+  CuAssertStrEquals(tc, "tie fewest scheduled", order[3]);
+}
+
 void Test_perfmon_slow_pulse_correlates_schedule_sql_events_and_sections(CuTest *tc)
 {
   static struct PERF_prof_sect *section = NULL;

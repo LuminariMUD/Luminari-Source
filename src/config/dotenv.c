@@ -55,6 +55,13 @@ static bool same_env_file(const struct stat *first, const struct stat *second)
          first->st_ctim.tv_nsec == second->st_ctim.tv_nsec;
 }
 
+#ifdef LUMINARI_CUTEST
+bool dotenv_same_file_for_test(const struct stat *first, const struct stat *second)
+{
+  return same_env_file(first, second);
+}
+#endif
+
 /** @brief Parse one assignment with the existing whitespace, quoting, and length rules. */
 static bool parse_env_assignment(char *line, struct env_entry *entry)
 {

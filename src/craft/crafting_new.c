@@ -8661,6 +8661,19 @@ static bool supply_contract_is_orderable(const struct supply_contract *contract)
          contract->variant >= 0 && contract->variant < NUM_CRAFT_VARIANTS;
 }
 
+/* The instant the supply-order calendar rules read: offers stay stable for an
+ * hour, and event contracts appear on Sundays. The production-linked tests pin
+ * it, so the offers they generate do not change with the hour or weekday of the
+ * run (issue #92). */
+static time_t supply_order_calendar_now(void)
+{
+#ifdef LUMINARI_CUTEST
+  return (time_t)1767787200; /* Wednesday 2026-01-07 12:00:00 UTC */
+#else
+  return time(NULL);
+#endif
+}
+
 // Refresh available supply order slots
 void refresh_supply_slots(struct char_data *ch)
 {
@@ -8703,7 +8716,7 @@ void refresh_supply_slots(struct char_data *ch)
 
   // Create stable seed based on player ID and refresh time
   int player_seed = (int)GET_IDNUM(ch);
-  int base_seed = (player_seed * 997 + (int)(now / 3600)) % 10000;
+  int base_seed = (player_seed * 997 + (int)(supply_order_calendar_now() / 3600)) % 10000;
 
   for (i = 0; i < 5; i++)
   {
@@ -9317,7 +9330,7 @@ void update_contract_expiration(struct char_data *ch, int contract_type)
 int get_event_contract_availability(void)
 {
   // Simple time-based event system - events every 7 days
-  time_t now = time(0);
+  time_t now = supply_order_calendar_now();
   struct tm local;
 
   if (!localtime_r(&now, &local))

@@ -604,6 +604,67 @@ void TestDomainWorldHandlesResolveWithoutPopulationScans(CuTest *tc)
   object_list = saved_objects;
 }
 
+/* Objects whose addresses share a registry bucket keep separate handles: each
+ * resolves to itself, and forgetting either leaves the other. Other tests
+ * collide only when the address layout happens to put two entities in one
+ * bucket, so this test runs the collision paths on every run. */
+void TestDomainWorldRegistryKeepsCollidingEntitiesDistinct(CuTest *tc)
+{
+  struct obj_data *objects[4096];
+  struct domain_entity_handle older_handle;
+  struct domain_entity_handle newer_handle;
+  struct obj_data *older = NULL;
+  struct obj_data *newer = NULL;
+  int count = 0;
+  int i;
+  bool registered = false;
+  bool both_resolve = false;
+  bool older_forgotten = false;
+  bool newer_kept = false;
+  bool newer_forgotten = false;
+
+  domain_event_world_shutdown();
+  while (newer == NULL && count < (int)(sizeof(objects) / sizeof(objects[0])))
+  {
+    objects[count] = calloc(1, sizeof(struct obj_data));
+    if (objects[count] == NULL)
+      break;
+    for (i = 0; i < count && newer == NULL; i++)
+      if (domain_event_world_registry_bucket_for_test((uint64_t)(uintptr_t)objects[i]) ==
+          domain_event_world_registry_bucket_for_test((uint64_t)(uintptr_t)objects[count]))
+      {
+        older = objects[i];
+        newer = objects[count];
+      }
+    count++;
+  }
+
+  if (newer != NULL)
+  {
+    older_handle = domain_event_object_handle(older);
+    newer_handle = domain_event_object_handle(newer);
+    registered =
+        domain_entity_handle_is_valid(older_handle) && domain_entity_handle_is_valid(newer_handle);
+    both_resolve = domain_event_world_resolve_object(older_handle) == older &&
+                   domain_event_world_resolve_object(newer_handle) == newer;
+    domain_event_world_forget_object(older);
+    older_forgotten = domain_event_world_resolve_object(older_handle) == NULL;
+    newer_kept = domain_event_world_resolve_object(newer_handle) == newer;
+    domain_event_world_forget_object(newer);
+    newer_forgotten = domain_event_world_resolve_object(newer_handle) == NULL;
+  }
+  for (i = 0; i < count; i++)
+    free(objects[i]);
+  domain_event_world_shutdown();
+
+  CuAssertTrue(tc, newer != NULL);
+  CuAssertTrue(tc, registered);
+  CuAssertTrue(tc, both_resolve);
+  CuAssertTrue(tc, older_forgotten);
+  CuAssertTrue(tc, newer_kept);
+  CuAssertTrue(tc, newer_forgotten);
+}
+
 void TestDomainEventSlowHandlerDiagnostics(CuTest *tc)
 {
   struct test_clock clock = {100U};
