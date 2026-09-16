@@ -660,9 +660,15 @@ void Test_craft_commands_leave_a_supply_order_alone(CuTest *tc)
 {
   struct craft_project_fixture f;
   struct char_data *ch = &f.ch;
-  bool show_refused, reset_refused, held;
+  struct primary_activity_snapshot snapshot;
+  enum domain_event_status runtime;
+  int mote;
+  bool show_refused, check_refused, reset_refused, score_shown, golem_set, golem_refused, held;
 
   craft_project_begin(&f);
+  event_free_all();
+  event_init();
+  runtime = domain_event_runtime_init();
   craft_project_hold_supply_order(ch);
   GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][0] = CRAFT_MAT_STEEL;
   GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] = 6;
@@ -671,13 +677,46 @@ void Test_craft_commands_leave_a_supply_order_alone(CuTest *tc)
   show_refused = craft_project_output_has(&f, "working on a supply order") &&
                  !craft_project_output_has(&f, "Current Craft Project");
   craft_project_reset_output(&f);
+  newcraft_create(ch, "check");
+  check_refused = craft_project_output_has(&f, "working on a supply order") &&
+                  !craft_project_output_has(&f, "ready to begin");
+  craft_project_reset_output(&f);
   newcraft_create(ch, "reset");
   reset_refused = craft_project_output_has(&f, "working on a supply order");
+
+  /* Skill scores and the golem project do not use the project record. */
+  craft_project_reset_output(&f);
+  newcraft_create(ch, "score");
+  score_shown = craft_project_output_has(&f, "SKILL") &&
+                !craft_project_output_has(&f, "working on a supply order");
+  newcraft_create(ch, "golem type wood");
+  golem_set = GET_CRAFT(ch).golem_type == GOLEM_TYPE_WOOD;
+
+  /* Starting golem work would record its method over the order's. */
+  SET_FEAT(ch, FEAT_CONSTRUCT_WOOD_GOLEM, 1);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_MAPLE_WOOD) = 100;
+  GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE) = 100;
+  for (mote = 1; mote < NUM_CRAFT_MOTES; mote++)
+    GET_CRAFT_MOTES(ch, mote) = 100;
+  craft_project_reset_output(&f);
+  newcraft_create(ch, "golem start");
+  golem_refused = craft_project_output_has(&f, "working on a supply order") &&
+                  !primary_activity_snapshot(ch, &snapshot);
+  primary_activity_cancel(ch, PRIMARY_ACTIVITY_END_COMMAND, false);
+  SET_FEAT(ch, FEAT_CONSTRUCT_WOOD_GOLEM, 0);
   held = player_has_supply_order(ch) && GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] == 6;
+
+  domain_event_runtime_shutdown();
+  event_free_all();
   craft_project_end(&f);
 
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, runtime);
   CuAssertTrue(tc, show_refused);
+  CuAssertTrue(tc, check_refused);
   CuAssertTrue(tc, reset_refused);
+  CuAssertTrue(tc, score_shown);
+  CuAssertTrue(tc, golem_set);
+  CuAssertTrue(tc, golem_refused);
   CuAssertTrue(tc, held);
 }
 
