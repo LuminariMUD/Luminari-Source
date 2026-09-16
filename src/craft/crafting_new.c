@@ -3372,7 +3372,7 @@ bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int sk
     return FALSE;
   }
 
-  // critical failure. The whole project is lost, as a success would consume it.
+  /* critical failure. The whole project is lost, as a success would consume it. */
   if (roll == 1)
   {
     send_to_char(ch,
@@ -3998,7 +3998,7 @@ static void create_craft_project_item(struct char_data *ch)
   skill = GET_CRAFT(ch).skill_type;
   dc = GET_CRAFT(ch).dc + get_craft_level_adjust_dc_change(GET_CRAFT(ch).level_adjust);
 
-  // skill check to determine success or failure
+  /* skill check to determine success or failure */
   if (!create_craft_skill_check(ch, obj, skill, "craft", CREATE_BASE_EXP / 2, dc))
   {
     extract_obj(obj);
@@ -7941,7 +7941,7 @@ static int select_stable_craft_recipe(int seed)
   int type = 0;
   int choice = 0;
 
-  // Use seed to select type consistently: weapons, armor and misc only
+  /* Use seed to select type consistently: weapons, armor and misc only */
   type = craft_recipe_by_type((seed % CRAFT_TYPE_MISC) + 1);
 
   // Use seed to select recipe within that type
@@ -10077,7 +10077,7 @@ bool begin_golem_craft(struct char_data *ch)
           return false;
         }
 
-        // Use the selected wood type; the requirements stored below keep it for completion
+        /* Use the selected wood type; the requirements stored below keep it for completion */
         material_types[i] = found_wood_type;
       }
       else
