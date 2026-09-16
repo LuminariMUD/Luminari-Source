@@ -324,6 +324,9 @@ void Test_zedit_skipped_dependency_preserves_later_commands(CuTest *tc)
 
   CuAssertIntEquals(tc, 2, saved_count);
   CuAssertIntEquals(tc, 'O', target_zone.cmd[0].command);
+  /* The call replaced the one-element fixture list through zone_table. The
+   * analyzer does not always track that, and on some runs reports cmd[1]. */
+  /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- the list was replaced */
   CuAssertIntEquals(tc, 'R', target_zone.cmd[1].command);
   CuAssertTrue(tc, strstr(descriptor.output, "not saved") != NULL);
 
