@@ -35,6 +35,8 @@
 #include "character/evolutions.h"
 #include "magic/psionics.h"
 #include "mob_act.h"
+#include "mob_class.h"
+#include "mob_race.h"
 #include "mob_spellslots.h"
 #include "mob_known_spells.h"
 #include "mob_spells.h"
@@ -92,6 +94,40 @@ static bool mobile_resource_recovery_blocked(const struct char_data *ch)
 static bool mobile_has_resource_recovery_work(const struct char_data *ch)
 {
   return mob_spell_slots_need_recovery(ch) || known_spell_slots_need_recovery(ch);
+}
+
+/* Race and class behavior for a fighting NPC: one decision per six-second
+ * attack rotation, as the pre-refactor mobile heartbeat made it. Special
+ * procedures that handled the combat turn take precedence; see perform_violence(). */
+void npc_combat_behave(struct char_data *ch)
+{
+  if (ch == NULL || !IS_NPC(ch) || IN_ROOM(ch) == NOWHERE || FIGHTING(ch) == NULL)
+    return;
+  if (MOB_FLAGGED(ch, MOB_NOTDEADYET) || MOB_FLAGGED(ch, MOB_NO_AI) ||
+      GET_LEVEL(ch) <= NEWBIE_LEVEL)
+    return;
+  if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) || AFF_FLAGGED(ch, AFF_DAZED) ||
+      char_has_mud_event(ch, eSTUNNED) || AFF_FLAGGED(ch, AFF_NAUSEATED))
+    return;
+  if (!AWAKE(ch) || IS_CASTING(ch))
+    return;
+
+  if (dice(1, 4) == 1)
+    npc_racial_behave(ch);
+  else if (dice(1, 4) == 2)
+    npc_ability_behave(ch);
+  else if (dice(1, 4) == 3 && mob_knows_assigned_spells(ch))
+    npc_assigned_spells(ch);
+  else if (IS_NPC_CASTER(ch) || mob_has_known_spells(ch))
+  {
+    /* Wizard and sorcerer mobs use the specialized combat AI. */
+    if (GET_CLASS(ch) == CLASS_WIZARD || GET_CLASS(ch) == CLASS_SORCERER)
+      wizard_combat_ai(ch);
+    else
+      npc_offensive_spells(ch);
+  }
+  else
+    npc_class_behave(ch);
 }
 
 mobile_work_mask mobile_activity_room_reaction_reasons(const struct char_data *ch)

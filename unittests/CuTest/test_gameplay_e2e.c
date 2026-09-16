@@ -8353,6 +8353,98 @@ void Test_combat_restoration_melee_spent_standard_suppresses_all_phases(CuTest *
   verify_restored_melee_phases(tc, 16, false, false, false, atSTANDARD, "||");
 }
 
+/* Run a PC against an NPC wizard for six attack rotations and return the first
+ * pulse at which the NPC visibly used its class behavior (started a timed cast
+ * or damaged the PC, whose melee it cannot hit). Zero means it never did. */
+static unsigned long first_npc_combat_behavior_pulse(CuTest *tc, int npc_level)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct char_data *saved_characters = character_list;
+  unsigned long saved_pulse = pulse, start = 31000U, observed = 0U;
+  int tick;
+  bool joined;
+
+  begin_gameplay_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  pulse = start;
+  event_init();
+  if (class_list[CLASS_WARRIOR].name == NULL)
+    load_class_list();
+  if (spell_info[SPELL_MAGE_ARMOR].name == NULL ||
+      spell_info[SPELL_MAGE_ARMOR].name == unused_spellname)
+    mag_assign_spells();
+  if (spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_WIZARD] >= LVL_IMMORT)
+    init_spell_levels();
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.player.name = CuMutableString("spelltarget");
+  f.actor.player.title = CuMutableString("");
+  f.actor.next = &f.victim;
+  character_list = &f.actor;
+  f.rooms[0].light = 1;
+  GET_LEVEL(&f.actor) = 10;
+  GET_CLASS(&f.actor) = CLASS_WARRIOR;
+  CLASS_LEVEL((&f.actor), CLASS_WARRIOR) = 10;
+  GET_LEVEL(&f.victim) = npc_level;
+  GET_CLASS(&f.victim) = CLASS_WIZARD;
+  /* Below a quarter of max hit points the wizard never tries to call a familiar. */
+  GET_HIT(&f.actor) = GET_MAX_HIT(&f.actor) = 100000;
+  GET_MAX_HIT(&f.victim) = 100000;
+  GET_HIT(&f.victim) = 20000;
+  GET_HITROLL(&f.actor) = -100;
+  GET_HITROLL(&f.victim) = -100;
+  GET_ATTACK_QUEUE(&f.actor) = create_attack_queue();
+  GET_ATTACK_QUEUE(&f.victim) = create_attack_queue();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  FIGHTING(&f.actor) = &f.victim;
+  FIGHTING(&f.victim) = &f.actor;
+  joined = combat_encounter_join(&f.actor, &f.victim, 2 RL_SEC);
+  joined = combat_encounter_join(&f.victim, &f.actor, 4 RL_SEC) && joined;
+  circle_srandom(4321);
+  for (tick = 0; tick <= 40 * PASSES_PER_SEC; tick++)
+  {
+    pulse++;
+    event_test_advance();
+    if (observed == 0U && (IS_CASTING(&f.victim) || GET_HIT(&f.actor) < 100000))
+      observed = pulse;
+  }
+
+  stop_fighting(&f.actor);
+  stop_fighting(&f.victim);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  free_attack_queue(GET_ATTACK_QUEUE(&f.actor));
+  free_attack_queue(GET_ATTACK_QUEUE(&f.victim));
+  if (f.actor.events != NULL)
+    free_list(f.actor.events);
+  if (f.victim.events != NULL)
+    free_list(f.victim.events);
+  character_list = saved_characters;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+
+  CuAssertTrue(tc, joined);
+  return observed == 0U ? 0U : observed - start;
+}
+
+void Test_combat_restoration_npc_wizard_acts_once_per_rotation(CuTest *tc)
+{
+  unsigned long observed = first_npc_combat_behavior_pulse(tc, 10);
+
+  /* The NPC's phase 1 falls four seconds after joining and every six after. */
+  CuAssertTrue(tc, observed != 0U);
+  CuAssertIntEquals(tc, (int)observed,
+                    (int)(4 RL_SEC) + (int)(6 RL_SEC) * (int)(((int)observed - (int)(4 RL_SEC)) /
+                                                              (int)(6 RL_SEC)));
+}
+
+void Test_combat_restoration_npc_below_newbie_level_only_melees(CuTest *tc)
+{
+  CuAssertIntEquals(tc, 0, (int)first_npc_combat_behavior_pulse(tc, NEWBIE_LEVEL));
+}
+
 static void verify_committed_attack_boundary(CuTest *tc, int scenario)
 {
   struct gameplay_fixture f;
