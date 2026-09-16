@@ -50,9 +50,69 @@ extern FILE *logfile;
         if (filter == NULL || strstr(#test, filter) != NULL) \
             SUITE_ADD_TEST(suite, test); \
     } while (0)
-
-
 '
+
+# The production-linked suite seeds every random source its tests reach. Quoted
+# here-documents keep C character literals intact.
+cat <<'EOF'
+
+#ifdef LUMINARI_CUTEST
+#include <errno.h>
+#include <stdint.h>
+
+void circle_srandom(unsigned long initial_seed);
+
+/* Without LUMINARI_TEST_SEED every run uses this seed, so reruns match. */
+static unsigned long cutest_run_seed = 1UL;
+
+/* Before each test, seed the game generator (src/core/random.c) and the C
+ * library generator from the run seed and the test name.  A test therefore
+ * draws the same values in the full suite and in a filtered replay. */
+static void cutest_seed_test(CuTest *tc)
+{
+    uint64_t hash = UINT64_C(14695981039346656037);
+    uint64_t run_seed = (uint64_t)cutest_run_seed;
+    unsigned long test_seed;
+    const char *name;
+    int shift;
+
+    for (shift = 0; shift < 64; shift += 8)
+    {
+        hash ^= (run_seed >> shift) & UINT64_C(0xff);
+        hash *= UINT64_C(1099511628211);
+    }
+    for (name = tc->name; *name != '\0'; name++)
+    {
+        hash ^= (uint64_t)(unsigned char)*name;
+        hash *= UINT64_C(1099511628211);
+    }
+    /* The game generator needs a seed in 1..2147483646. */
+    test_seed = (unsigned long)(1U + hash % UINT64_C(2147483646));
+    circle_srandom(test_seed);
+    srand((unsigned int)test_seed);
+}
+
+static int cutest_read_seed(void)
+{
+    const char *text = getenv("LUMINARI_TEST_SEED");
+    char *end;
+    unsigned long value;
+
+    if (text == NULL || *text == '\0')
+        return 1;
+    errno = 0;
+    value = strtoul(text, &end, 10);
+    if (*text < '0' || *text > '9' || errno != 0 || *end != '\0')
+    {
+        fprintf(stderr, "LUMINARI_TEST_SEED must be a decimal integer, not \"%s\"\n", text);
+        return 0;
+    }
+    cutest_run_seed = value;
+    return 1;
+}
+#endif
+
+EOF
 
 cat $FILES | grep '^void Test' |
   sed -e 's/(.*$//' \
@@ -70,6 +130,15 @@ static int RunAllTests(void)
     const char *filter = getenv("CUTEST_FILTER");
     int registered = 0;
 
+#ifdef LUMINARI_CUTEST
+    if (!cutest_read_seed())
+    {
+        CuStringDelete(output);
+        CuSuiteDelete(suite);
+        return 1;
+    }
+    CuTestSetUp = cutest_seed_test;
+#endif
 '
 cat $FILES | grep '^void Test' |
   sed -e 's/^void //' \
@@ -88,11 +157,21 @@ echo \
     }
     if (filter != NULL && *filter != '\0')
         printf("CUTEST_FILTER=%s: %d of %d tests selected\n", filter, suite->count, registered);
+#ifdef LUMINARI_CUTEST
+    printf("LUMINARI_TEST_SEED=%lu\n", cutest_run_seed);
+#endif
+    /* Forked test children must not inherit and repeat buffered lines. */
+    fflush(stdout);
     CuSuiteRun(suite);
     CuSuiteSummary(suite, output);
     CuSuiteDetails(suite, output);
     printf("%s\n", output->buffer);
     fail_count = suite->failCount;
+#ifdef LUMINARI_CUTEST
+    if (fail_count > 0)
+        printf("Replay a failure with LUMINARI_TEST_SEED=%lu CUTEST_FILTER=<test> ./cutest\n",
+               cutest_run_seed);
+#endif
     CuStringDelete(output);
     CuSuiteDelete(suite);
     return fail_count;

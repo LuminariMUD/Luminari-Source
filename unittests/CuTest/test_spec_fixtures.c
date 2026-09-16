@@ -1,3 +1,5 @@
+#include "CuTest.h"
+
 #include "conf.h"
 #include "../../src/core/sysdep.h"
 #include "../../src/core/structs.h"
@@ -317,9 +319,9 @@ bool spec_test_run_isolated_with_path(spec_test_isolated_scenario scenario, char
     if (!result.success && result.error[0] == '\0')
       spec_test_set_error(result.error, sizeof(result.error), "isolated scenario failed");
     if (!spec_test_write_all(result_pipe[1], &result, sizeof(result)))
-      _exit(2);
+      CuTestChildExit(2);
     close(result_pipe[1]);
-    _exit(result.success ? EXIT_SUCCESS : EXIT_FAILURE);
+    CuTestChildExit(result.success ? EXIT_SUCCESS : EXIT_FAILURE);
   }
 
   close(result_pipe[1]);
@@ -1407,10 +1409,10 @@ bool spec_test_fixture_expect_room_load_rejection(struct spec_test_fixture *fixt
 
     record = spec_test_open_record(record_text, NULL, 0);
     if (record == NULL)
-      _exit(99);
+      CuTestChildExit(99);
     parse_room(record, SPEC_TEST_ROOM_VNUM, "moving-room conflict fixture");
     fclose(record);
-    _exit(0);
+    CuTestChildExit(0);
   }
 
   do

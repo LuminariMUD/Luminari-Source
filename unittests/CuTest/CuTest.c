@@ -5,6 +5,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "CuTest.h"
 
@@ -158,11 +159,25 @@ void CuTestDelete(CuTest *t)
   free(t);
 }
 
+void (*CuTestSetUp)(CuTest *tc) = NULL;
+
+/* libgcov's writer, present only in a coverage build. */
+extern void __gcov_dump(void) __attribute__((weak));
+
+void CuTestChildExit(int status)
+{
+  if (__gcov_dump != NULL)
+    __gcov_dump();
+  _exit(status);
+}
+
 void CuTestRun(CuTest *tc)
 {
   jmp_buf buf;
   struct timespec start = {0}, end = {0};
 
+  if (CuTestSetUp != NULL)
+    CuTestSetUp(tc);
   clock_gettime(CLOCK_MONOTONIC, &start);
   tc->jumpBuf = &buf;
   if (setjmp(buf) == 0)

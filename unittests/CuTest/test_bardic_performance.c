@@ -325,7 +325,6 @@ void Test_bardic_instrument_breakability_uses_documented_scale(CuTest *tc)
   circle_srandom(1);
   CuAssertTrue(tc, bardic_instrument_breaks(INSTRUMENT_BREAKABILITY_SCALE));
   CuAssertTrue(tc, bardic_instrument_breaks(INSTRUMENT_BREAKABILITY_SCALE + 1));
-  circle_srandom((unsigned long)time(NULL));
 }
 
 void Test_bardic_instrument_values_apply_exact_verse_modifiers(CuTest *tc)
@@ -582,7 +581,6 @@ void Test_bardic_performance_recognizes_dedicated_slot_in_both_song_slots(CuTest
   CuAssertTrue(tc, strstr(fixture.descriptor.output, "without an instrument") != NULL);
 
   GET_EQ(&fixture.bard, WEAR_INSTRUMENT) = NULL;
-  circle_srandom((unsigned long)time(NULL));
   end_bardic_fixture(&fixture);
 }
 
@@ -1084,7 +1082,6 @@ void Test_bardic_offensive_performances_use_their_documented_saves(CuTest *tc)
                                         PERFORM_AOE_GROUP));
   CuAssertPtrEquals(tc, NULL, target.affected);
 
-  circle_srandom((unsigned long)time(NULL));
   clear_char_event_list(&target);
   end_bardic_fixture(&fixture);
 }
@@ -1603,7 +1600,6 @@ void Test_crescendo_scopes_damage_and_dc_to_exactly_one_whole_bard_cast(CuTest *
   first_target.next_in_room = NULL;
   clear_char_event_list(&first_target);
   clear_char_event_list(&second_target);
-  circle_srandom((unsigned long)time(NULL));
   end_bardic_fixture(&fixture);
 }
 
@@ -1844,7 +1840,6 @@ void Test_symphonic_resonance_obeys_success_save_pk_and_resource_contracts(CuTes
   npc_target.next_in_room = NULL;
   clear_char_event_list(&npc_target);
   clear_char_event_list(&pc_target);
-  circle_srandom((unsigned long)time(NULL));
   end_bardic_fixture(&fixture);
 }
 
@@ -1967,7 +1962,6 @@ void Test_warbeat_buffs_only_allies_and_opens_combat_once(CuTest *tc)
   clear_char_event_list(&member);
   clear_char_event_list(&bystander);
   clear_char_event_list(&enemy);
-  circle_srandom((unsigned long)time(NULL));
   end_bardic_fixture(&fixture);
 }
 
@@ -2032,7 +2026,6 @@ void Test_frostbite_cadence_and_steel_use_standard_defender_paths(CuTest *tc)
   clear_test_affects(&target);
   fixture.bard.next_in_room = NULL;
   clear_char_event_list(&target);
-  circle_srandom((unsigned long)time(NULL));
   end_bardic_fixture(&fixture);
 }
 
@@ -2094,6 +2087,5 @@ void Test_winters_war_march_hits_each_foe_once_with_fortitude_and_cold_resistanc
   failed_target.next_in_room = NULL;
   clear_char_event_list(&failed_target);
   clear_char_event_list(&saved_target);
-  circle_srandom((unsigned long)time(NULL));
   end_bardic_fixture(&fixture);
 }

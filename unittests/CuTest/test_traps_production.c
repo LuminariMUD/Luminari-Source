@@ -52,7 +52,6 @@ void Test_traps_light_step_does_not_roll_without_a_trap(CuTest *tc)
 
   world = saved_world;
   top_of_world = saved_top_of_world;
-  circle_srandom((unsigned long)time(NULL));
 
   CuAssertTrue(tc, !triggered);
   CuAssertIntEquals(tc, expected_roll, actual_roll);
@@ -95,7 +94,6 @@ void Test_traps_light_step_rolls_for_an_active_leave_trap(CuTest *tc)
 
   world = saved_world;
   top_of_world = saved_top_of_world;
-  circle_srandom((unsigned long)time(NULL));
 
   CuAssertTrue(tc, avoidance_roll <= 75);
   CuAssertTrue(tc, !triggered);

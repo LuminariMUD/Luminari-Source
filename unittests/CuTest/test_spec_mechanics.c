@@ -3208,7 +3208,6 @@ void Test_spec_rol_trahern_combat_profiles_preserve_quake_toss_and_engorge(CuTes
     char_from_room(&fixture.target);
     char_to_room(&fixture.target, 0);
   }
-  circle_srandom((unsigned long)time(NULL));
   spec_mechanics_end(&fixture);
 
   CuAssertIntEquals(tc, TRUE, result);
@@ -3391,7 +3390,6 @@ void Test_spec_rol_paralysis_hit_profiles_preserve_gaze_and_venom_tails(CuTest *
     CuAssertTrue(tc, affect->duration <= 12);
     CuAssertTrue(tc, AFF_FLAGGED(&fixture.target, AFF_PARALYZED));
   }
-  circle_srandom((unsigned long)time(NULL));
   spec_mechanics_end(&fixture);
 }
 
@@ -3645,7 +3643,6 @@ void Test_spec_rol_planar_control_and_vrock_dance_profiles(CuTest *tc)
                        deadline_start + SECS_PER_MUD_HOUR);
   CuAssertTrue(tc, fixture.actor.mob_specials.rol_planar_captive_kill_at <=
                        time(NULL) + 4 * SECS_PER_MUD_HOUR);
-  circle_srandom((unsigned long)time(NULL));
 
   context.event = SPEC_EVENT_COMMAND;
   context.actor = &fixture.target;

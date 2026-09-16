@@ -811,8 +811,6 @@ void Test_supply_order_requests_start_fresh_with_orderable_recipes(CuTest *tc)
 
   craft_project_begin(&f);
   craft_project_add_quartermaster(&f);
-  /* Requests draw random recipes until one matches; an unseeded generator repeats one value. */
-  circle_srandom(1);
   for (i = 0; i < 40; i++)
   {
     GET_NSUPPLY_NUM_MADE(ch) = 5;
@@ -827,7 +825,6 @@ void Test_supply_order_requests_start_fresh_with_orderable_recipes(CuTest *tc)
     reset_supply_order(ch);
     craft_project_reset_output(&f);
   }
-  circle_srandom((unsigned long)time(NULL));
   craft_project_end(&f);
 
   CuAssertIntEquals(tc, 40, requested);
@@ -1047,8 +1044,6 @@ void Test_golem_work_that_ends_leaves_supply_orders_available(CuTest *tc)
   event_free_all();
   event_init();
   runtime = domain_event_runtime_init();
-  /* Requests draw random recipes until one matches; an unseeded generator repeats one value. */
-  circle_srandom(1);
   SET_FEAT(ch, FEAT_CONSTRUCT_WOOD_GOLEM, 1);
   GET_CRAFT_MAT(ch, CRAFT_MAT_MAPLE_WOOD) = 100;
   GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE) = 100;
@@ -1082,7 +1077,6 @@ void Test_golem_work_that_ends_leaves_supply_orders_available(CuTest *tc)
   top_of_mobt = saved_top_of_mobt;
 
   SET_FEAT(ch, FEAT_CONSTRUCT_WOOD_GOLEM, 0);
-  circle_srandom((unsigned long)time(NULL));
   domain_event_runtime_shutdown();
   event_free_all();
   craft_project_end(&f);

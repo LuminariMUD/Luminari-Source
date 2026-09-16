@@ -251,6 +251,8 @@ void Test_board_save_killed_mid_write_keeps_the_previous_file(CuTest *tc)
     rlimit_value.rlim_cur = rlimit_value.rlim_max = limit;
     setrlimit(RLIMIT_FSIZE, &rlimit_value);
     board_save_board(0); /* SIGXFSZ ends the process inside this call */
+    /* Not CuTestChildExit: the file size limit would stop the coverage writer
+     * with the same signal and hide a save that finished. */
     _exit(0);
   }
   CuAssertIntEquals(tc, child, waitpid(child, &status, 0));

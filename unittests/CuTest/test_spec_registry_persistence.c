@@ -417,7 +417,7 @@ static bool spec_test_aborting_scenario(const char *sandbox, char *error, size_t
   if (fixture == NULL)
     return false;
 
-  _exit(3);
+  CuTestChildExit(3);
 }
 
 void Test_spec_registry_current_name_inventory(CuTest *tc)

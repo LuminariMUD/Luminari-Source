@@ -76,7 +76,6 @@ void Test_mob_tier_world_boss_matches_hand_statted_reference_boss(CuTest *tc)
   CuAssertIntEquals(tc, 16, GET_HITROLL(&mob));
   CuAssertIntEquals(tc, 15, GET_DAMROLL(&mob));
   CuAssertIntEquals(tc, 490, mob.points.armor);
-  circle_srandom((unsigned long)time(NULL));
 }
 
 void Test_mob_tier_autostat_bonus_is_additive_and_saved_field_only(CuTest *tc)
@@ -153,7 +152,6 @@ void Test_autoroll_mob_standard_restores_level_34_base(CuTest *tc)
   CuAssertIntEquals(tc, 440, mob.points.armor);
   CuAssertIntEquals(tc, 106700, (int)GET_EXP(&mob));
   CuAssertIntEquals(tc, 540, GET_GOLD(&mob));
-  circle_srandom((unsigned long)time(NULL));
 }
 
 void Test_autoroll_mob_unspecified_matches_standard_base(CuTest *tc)
@@ -177,7 +175,6 @@ void Test_autoroll_mob_unspecified_matches_standard_base(CuTest *tc)
   CuAssertIntEquals(tc, (int)GET_EXP(&standard), (int)GET_EXP(&unspecified));
   CuAssertIntEquals(tc, GET_GOLD(&standard), GET_GOLD(&unspecified));
   CuAssertIntEquals(tc, MOB_TIER_UNSPECIFIED, GET_MOB_TIER(&unspecified));
-  circle_srandom((unsigned long)time(NULL));
 }
 
 void Test_autoroll_mob_tier_adds_to_complete_level_34_base(CuTest *tc)
@@ -194,7 +191,6 @@ void Test_autoroll_mob_tier_adds_to_complete_level_34_base(CuTest *tc)
   CuAssertIntEquals(tc, 450, mob.points.armor);
   CuAssertIntEquals(tc, 106700, (int)GET_EXP(&mob));
   CuAssertIntEquals(tc, 540, GET_GOLD(&mob));
-  circle_srandom((unsigned long)time(NULL));
 }
 
 void Test_changing_tier_after_autostat_does_not_change_stats(CuTest *tc)
@@ -219,7 +215,6 @@ void Test_changing_tier_after_autostat_does_not_change_stats(CuTest *tc)
   CuAssertIntEquals(tc, hitroll, GET_HITROLL(&mob));
   CuAssertIntEquals(tc, damage_bonus, GET_DAMROLL(&mob));
   CuAssertIntEquals(tc, armor_class, mob.points.armor);
-  circle_srandom((unsigned long)time(NULL));
 }
 
 void Test_rerunning_autostat_after_tier_change_applies_new_bonus_once(CuTest *tc)
@@ -242,7 +237,6 @@ void Test_rerunning_autostat_after_tier_change_applies_new_bonus_once(CuTest *tc
   circle_srandom(12345);
   autoroll_mob(&mob, false, false);
   CuAssertIntEquals(tc, 810, GET_MOVE(&mob));
-  circle_srandom((unsigned long)time(NULL));
 }
 
 void Test_autoroll_mob_preserves_base_owned_side_effects(CuTest *tc)

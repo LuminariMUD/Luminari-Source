@@ -1,10 +1,12 @@
 /* Coherent noise function over 1, 2 or 3 dimensions                 LuminariMUD */
 /* (copyright Ken Perlin) */
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
-#include <time.h>
+
+#include "conf.h"
+#include "core/sysdep.h"
+#include "core/structs.h"
+#include "core/utils.h"
 #include "perlin.h"
 
 static int p[MAX_GENERATED_NOISE][B + B + 2];
@@ -193,8 +195,10 @@ void init_perlin(int idx, int seed)
       g3[idx][B + i][j] = g3[idx][i][j];
   }
 
-  /* Reset the seed to something random in case we need it for other purposes. */
-  srand((unsigned int)time(0));
+  /* Reseed from the game generator so the table seed does not stay in place:
+   * the server seeds that generator from the clock before booting, and the
+   * test runner seeds it for each test. */
+  srand((unsigned int)circle_random());
 }
 
 /* --- My harmonic summing functions - PDB --------------------------*/

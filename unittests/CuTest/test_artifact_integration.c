@@ -1766,6 +1766,10 @@ static const struct artint_proc_case artint_signature_cases[] = {
 #define ARTINT_SIGNATURE_COUNT                                                                     \
   ((int)(sizeof(artint_signature_cases) / sizeof(artint_signature_cases[0])))
 
+/* Turns a shape gets to act.  The weighted shape does nothing on 30 percent of
+ * its rolls by design, so one turn would make the result depend on the seed. */
+#define ARTINT_SIGNATURE_TURNS 20
+
 void Test_artifact_integration_every_signature_shape_is_wired(CuTest *tc)
 {
   struct artint_fixture fixture;
@@ -1860,7 +1864,7 @@ void Test_artifact_integration_signature_procs_run_without_a_roll(CuTest *tc)
   struct artint_fixture fixture;
   struct obj_data obj;
   struct artifact_data *art = NULL;
-  int i = 0, fired = 0;
+  int i = 0, turn = 0, fired = 0;
 
   if (!artint_begin(&fixture))
   {
@@ -1899,16 +1903,23 @@ void Test_artifact_integration_signature_procs_run_without_a_roll(CuTest *tc)
     FIGHTING(&fixture.victim) = &fixture.actor;
     artifact_stack_clear(&fixture.actor, ART_STACK_COMBAT_SURGE);
 
-    artint_clear_output(&fixture);
-    artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
-
     /* Every shape either says something, moves the victim, heals the bearer,
-     * or raises a stack group.  A shape that did nothing at all is broken. */
-    if (fixture.descriptor.output[0] != '\0' || GET_POS(&fixture.victim) != POS_STANDING ||
-        GET_HIT(&fixture.actor) != GET_MAX_HIT(&fixture.actor) / 2 ||
-        GET_HIT(&fixture.victim) != GET_MAX_HIT(&fixture.victim) ||
-        artifact_stack_active(&fixture.actor, ART_STACK_COMBAT_SURGE))
-      fired++;
+     * or raises a stack group.  A shape that does none of them in all of its
+     * turns is broken. */
+    for (turn = 0; turn < ARTINT_SIGNATURE_TURNS; turn++)
+    {
+      art->last_proc = 0; /* a turn that did nothing still stamped the cooldown */
+      artint_clear_output(&fixture);
+      artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+      if (fixture.descriptor.output[0] != '\0' || GET_POS(&fixture.victim) != POS_STANDING ||
+          GET_HIT(&fixture.actor) != GET_MAX_HIT(&fixture.actor) / 2 ||
+          GET_HIT(&fixture.victim) != GET_MAX_HIT(&fixture.victim) ||
+          artifact_stack_active(&fixture.actor, ART_STACK_COMBAT_SURGE))
+      {
+        fired++;
+        break;
+      }
+    }
 
     GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
     obj.worn_by = NULL;
