@@ -10,9 +10,9 @@ WHERE
   tag = 'combat'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND INSTR(entry, 'One encounter round lasts 6 seconds') > 0
-  AND INSTR(entry, 'highest initiative to lowest') > 0
-  AND INSTR(entry, 'One valid queued command is attempted first') > 0
+  AND INSTR(entry, 'three 2-second') > 0
+  AND INSTR(entry, 'the two sides alternate') > 0
+  AND INSTR(entry, 'do not spend your standard or move action') > 0
   AND INSTR(entry, 'full attack rotation') > 0;
 
 SELECT
@@ -46,7 +46,7 @@ WHERE
   AND min_level = 0
   AND auto_generated = FALSE
   AND INSTR(entry, 'initiative') > 0
-  AND INSTR(entry, 'scheduled turn order') > 0
+  AND INSTR(entry, 'upcoming') > 0
   AND INSTR(entry, 'highlighted in green') > 0;
 
 SELECT
