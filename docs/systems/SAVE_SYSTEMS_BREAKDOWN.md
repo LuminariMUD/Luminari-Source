@@ -103,9 +103,12 @@ prove cross-version compatibility.
 
 #### 4. House/Rent System
 
-- **Location**: `lib/house/`
-- **Format**: Custom rent file format
-- **Functions**: `House_save()`, `House_crashsave()` in `house.c`
+- **Location**: `lib/house/` (contents), `lib/etc/hcontrol` (house control data)
+- **Format**: Text object records; the control file uses the portable binary format in
+  [BINARY_FILE_FORMATS.md](BINARY_FILE_FORMATS.md), as do the legacy bulletin boards in
+  `lib/etc/board.*`
+- **Functions**: `House_save()`, `House_crashsave()`, `House_save_control()`, `House_boot()` in
+  `house.c`
 - **Contains**:
   - House contents and objects
   - Rent costs and timeouts

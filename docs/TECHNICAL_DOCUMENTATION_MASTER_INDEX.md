@@ -61,6 +61,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 - **[DATABASE_INTEGRATION.md](systems/DATABASE_INTEGRATION.md)** - MySQL integration and schema
 - **[SAVE_SYSTEMS_BREAKDOWN.md](systems/SAVE_SYSTEMS_BREAKDOWN.md)** - Save file formats and persistence
+- **[BINARY_FILE_FORMATS.md](systems/BINARY_FILE_FORMATS.md)** - Portable board and house control file formats, legacy readers, upgrade and rollback, and version policy
 - **[HELP_SYSTEM.md](systems/HELP_SYSTEM.md)** - Database-first help content, SQL migration, verification, and legacy import/export workflow
 
 ### Communication & Protocols

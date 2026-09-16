@@ -636,6 +636,16 @@ repository. It sets ASan and UBSan to halt on the first finding:
 make -C unittests/CuTest protocol-fuzz FUZZ_SECONDS=15
 ```
 
+The durable binary file decoders have their own bounded fuzz target, whose hex
+seeds are decoded into a temporary directory the same way, and a golden-fixture
+harness that needs no configured build, which CI also runs on AArch64. See
+[BINARY_FILE_FORMATS.md](../systems/BINARY_FILE_FORMATS.md#verification):
+
+```sh
+make -C unittests/CuTest binary-formats-fuzz FUZZ_SECONDS=15
+make -C unittests/CuTest binary-formats
+```
+
 The equivalent Valgrind command is:
 
 ```sh
