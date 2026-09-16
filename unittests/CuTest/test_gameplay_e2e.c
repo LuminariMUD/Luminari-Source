@@ -7121,7 +7121,10 @@ void Test_gameplay_supply_refresh_is_lazy_and_preserves_existing_offers(CuTest *
   GET_CRAFT((&ch)).supply_slots_last_refresh = now - 3601;
   for (i = 0; i < 5; i++)
   {
+    /* A refresh replaces offers without a recipe variant, so these name one. */
     GET_CRAFT((&ch)).supply_slot_active[i] = true;
+    GET_CRAFT((&ch)).supply_slots[i].recipe = CRAFT_RECIPE_WEAPON_LONG_SWORD;
+    GET_CRAFT((&ch)).supply_slots[i].variant = 0;
     GET_CRAFT((&ch)).supply_slots[i].quantity = 10 + i;
   }
   /* No descriptor and no global pulse are required to refresh aged offers. */

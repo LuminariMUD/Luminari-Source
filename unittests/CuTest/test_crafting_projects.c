@@ -851,7 +851,7 @@ void Test_supply_order_offers_always_have_a_variant(CuTest *tc)
   struct craft_project_fixture f;
   struct char_data *ch = &f.ch;
   int id, slot, offers = 0, orderable = 0;
-  bool stale_refused;
+  bool stale_refused, stale_replaced;
 
   craft_project_begin(&f);
   for (id = 1; id <= 40; id++)
@@ -886,11 +886,20 @@ void Test_supply_order_offers_always_have_a_variant(CuTest *tc)
   craft_project_add_quartermaster(&f);
   newcraft_supplyorder(ch, "select 1");
   stale_refused = craft_project_output_has(&f, "not available") && !player_has_supply_order(ch);
+
+  /* The next refresh replaces that offer, so the same number selects a new one. */
+  GET_CRAFT(ch).supply_slots_last_refresh = time(NULL) - 3600;
+  newcraft_supplyorder(ch, "select 1");
+  stale_replaced = player_has_supply_order(ch) && GET_CRAFT(ch).craft_variant >= 0 &&
+                   GET_CRAFT(ch).crafting_recipe != CRAFT_RECIPE_INSTRUMENT_LYRE;
+  reset_supply_order(ch);
+  cleanup_supply_slots(ch);
   craft_project_end(&f);
 
   CuAssertIntEquals(tc, 200, offers);
   CuAssertIntEquals(tc, offers, orderable);
   CuAssertTrue(tc, stale_refused);
+  CuAssertTrue(tc, stale_replaced);
 }
 
 void Test_golem_construction_keeps_the_chosen_wood(CuTest *tc)
