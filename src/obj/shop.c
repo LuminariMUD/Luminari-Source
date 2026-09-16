@@ -1764,8 +1764,8 @@ void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
       for (count = 0; count < temp; count++)
         SHOP_PRODUCT(top_shop, count) = BUY_TYPE(list[count]);
 
-      read_line(shop_f, "%f", &SHOP_BUYPROFIT(top_shop));
-      read_line(shop_f, "%f", &SHOP_SELLPROFIT(top_shop));
+      read_line(shop_f, "%lf", &SHOP_BUYPROFIT(top_shop));
+      read_line(shop_f, "%lf", &SHOP_SELLPROFIT(top_shop));
 
       temp = read_type_list(shop_f, list, new_format, MAX_TRADE);
       CREATE(shop_index[top_shop].type, struct shop_buy_data, temp);
