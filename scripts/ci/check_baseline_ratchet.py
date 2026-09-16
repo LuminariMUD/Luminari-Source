@@ -14,6 +14,10 @@ the formatted-SQL baseline. Files renamed by the change are followed, so moving
 a source and renaming its baseline entries in the same commit is not a
 regression.
 
+Coverage floors ratchet the other way: every floor in the coverage policy
+(repository, critical subsystem, and mutation score) may only rise, and none
+may be removed. No producer change excuses a lower floor.
+
 The same source can legitimately produce more findings only when what produces
 them changes: the tool pin, its configuration, the warning flags, or the
 detector. A baseline may therefore grow in a change that modifies one of its
@@ -27,6 +31,7 @@ Usage:
 
 import argparse
 import fnmatch
+import json
 import re
 import subprocess
 import sys
@@ -96,6 +101,31 @@ BASELINES = (
     ),
     ("scripts/ci/warning_budget_*.txt", parse_trailing_count, WARNING_PRODUCERS),
 )
+
+COVERAGE_POLICY = "scripts/ci/coverage_policy.json"
+
+
+def parse_coverage_floors(text):
+    """Every floor in the coverage policy, keyed by where it sits."""
+    policy = json.loads(text)
+    floors = {}
+    for kind, value in policy["repository"].items():
+        floors[("repository", kind)] = float(value)
+    for name, subsystem in policy["subsystems"].items():
+        for kind, value in subsystem["floor"].items():
+            floors[("subsystem", name, kind)] = float(value)
+    for source, entry in policy["mutation"].items():
+        floors[("mutation", source, "score")] = float(entry["score"])
+    return floors
+
+
+def lowered_floors(before, now):
+    """Floors that fell or disappeared, as (key, now or None, before)."""
+    return [
+        (key, now.get(key), was)
+        for key, was in sorted(before.items())
+        if key not in now or now[key] < was
+    ]
 
 
 def git(*arguments):
@@ -183,6 +213,25 @@ def check(base):
             continue
         for key, has, was in grown:
             problems.append(f"{path}: {' '.join(key)} is {has}, was {was} at {base}")
+    result = git("show", f"{base}:{COVERAGE_POLICY}")
+    if result.returncode != 0:
+        print(f"{COVERAGE_POLICY}: new in this change; nothing to compare")
+    else:
+        try:
+            lowered = lowered_floors(
+                parse_coverage_floors(result.stdout),
+                parse_coverage_floors((REPO_ROOT / COVERAGE_POLICY).read_text(encoding="utf-8")),
+            )
+        except (ValueError, KeyError, TypeError, AttributeError) as problem:
+            problems.append(f"{COVERAGE_POLICY}: cannot be parsed: {problem}")
+            lowered = []
+        checked += 1
+        for key, has, was in lowered:
+            state = "was removed" if has is None else f"is {has:.2f}"
+            problems.append(
+                f"{COVERAGE_POLICY}: {' '.join(key)} floor {state}, was {was:.2f} at {base}; "
+                "coverage floors only rise"
+            )
     print(f"{checked} baselines compared with {base}")
     if not problems:
         if allowed:
@@ -190,12 +239,13 @@ def check(base):
         else:
             print("no baseline grew")
         return 0
-    print("a baseline may only shrink:", file=sys.stderr)
+    print("a baseline may only shrink and a coverage floor may only rise:", file=sys.stderr)
     for line in problems:
         print(f"  {line}", file=sys.stderr)
     print(
         "fix the new findings instead of recording them; a baseline grows only in a change "
-        "to what produces its findings, listed in BASELINES in this script",
+        "to what produces its findings, listed in BASELINES in this script; restore lost "
+        "coverage with tests instead of lowering a floor",
         file=sys.stderr,
     )
     return 1
@@ -236,6 +286,31 @@ def self_test():
     assert follow_renames({("src/a.c",): 2, ("src/b.c",): 1}, {"src/a.c": "src/b.c"}) == {
         ("src/b.c",): 3
     }
+
+    policy = (
+        '{"repository": {"lines": 29.23, "branches": 18.88},'
+        ' "subsystems": {"auth": {"sources": [], "floor": {"lines": 50.0, "branches": 40.0}}},'
+        ' "mutation": {"src/a.c": {"score": 70.0}}}'
+    )
+    floors = parse_coverage_floors(policy)
+    assert floors == {
+        ("repository", "lines"): 29.23,
+        ("repository", "branches"): 18.88,
+        ("subsystem", "auth", "lines"): 50.0,
+        ("subsystem", "auth", "branches"): 40.0,
+        ("mutation", "src/a.c", "score"): 70.0,
+    }, floors
+    raised = dict(floors)
+    raised[("repository", "lines")] = 29.5
+    assert lowered_floors(floors, raised) == []
+    raised_and_lowered = dict(raised)
+    raised_and_lowered[("subsystem", "auth", "branches")] = 39.99
+    del raised_and_lowered[("mutation", "src/a.c", "score")]
+    assert lowered_floors(floors, raised_and_lowered) == [
+        (("mutation", "src/a.c", "score"), None, 70.0),
+        (("subsystem", "auth", "branches"), 39.99, 40.0),
+    ], lowered_floors(floors, raised_and_lowered)
+    parse_coverage_floors((REPO_ROOT / COVERAGE_POLICY).read_text(encoding="utf-8"))
 
     tracked = {path: (parser, producers) for path, parser, producers in baseline_paths()}
     assert "scripts/ci/clang_tidy_baseline.txt" in tracked, tracked

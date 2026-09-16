@@ -1,0 +1,123 @@
+{
+  "repository": { "lines": 31.36, "branches": 19.98 },
+  "subsystems": {
+    "authentication": {
+      "sources": ["src/player/account.c", "src/player/password.c"],
+      "owner": "unittests/CuTest/test_password.c",
+      "tests": [
+        "Test_password_hash_uses_current_scheme_with_random_salt",
+        "Test_password_verify_accepts_legacy_crypt_records",
+        "Test_password_verify_rejects_empty_or_malformed_input",
+        "Test_password_rejects_plaintext_over_policy_length",
+        "Test_password_needs_rehash_on_parameter_change",
+        "Test_password_output_bounds_and_secure_zero",
+        "Test_account_character_removal_commits_or_rolls_back_the_link",
+        "Test_race_equivalence_account_unlock_database_round_trip",
+        "Test_account_tier_binds_hostile_values_in_every_sql_mode"
+      ],
+      "floor": { "lines": 63.82, "branches": 51.17 }
+    },
+    "command_parsing": {
+      "sources": ["src/core/helpers.c", "src/core/interpreter.c"],
+      "owner": "unittests/CuTest/test.interpreter.c",
+      "tests": [
+        "Test_command_dispatch_lookup",
+        "Test_command_dispatch_numeric_and_reserved_parsing",
+        "Test_three_arguments",
+        "Test_one_argument",
+        "Test_half_chop",
+        "Test_any_one_arg",
+        "Test_alias_expansion_substitutes_arguments_and_queues_ahead_of_input",
+        "Test_one_word_and_argument_splitting_stop_at_the_terminator"
+      ],
+      "floor": { "lines": 26.39, "branches": 26.03 }
+    },
+    "sql": {
+      "sources": ["src/database/mysql.c"],
+      "owner": "unittests/CuTest/test_database_persistence.c",
+      "tests": [
+        "Test_database_production_prepared_statement_round_trip",
+        "Test_database_production_invalid_prepared_statement_inputs",
+        "Test_account_tier_binds_hostile_values_in_every_sql_mode",
+        "Test_object_saves_bind_player_house_and_serialized_text",
+        "Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failure"
+      ],
+      "floor": { "lines": 43.1, "branches": 35.15 }
+    },
+    "world_dg_config_parsers": {
+      "sources": ["src/config/dotenv.c", "src/core/db.c", "src/dgscript/dg_scripts.c"],
+      "owner": "unittests/CuTest/test_world_loading_production.c",
+      "tests": [
+        "Test_syntax_check_encounter_world_boots_and_cleans_up_once",
+        "Test_gameplay_e2e_actual_minimal_world_parse",
+        "Test_world_loading_production_zone_header_forms_and_diagnostics",
+        "Test_world_loading_production_unsupported_zone_reset_reports_line",
+        "Test_world_loading_production_exit_diagnostics",
+        "Test_gameplay_e2e_dg_trigger_parse_and_execute",
+        "Test_dg_production_empty_expression_operands_are_safe",
+        "Test_dg_production_overlong_condition_names_the_trigger",
+        "Test_environment_cache_observes_edits_replacements_and_path_changes",
+        "Test_environment_cache_detects_a_change_in_each_identity_field"
+      ],
+      "floor": { "lines": 36.87, "branches": 28.81 }
+    },
+    "persistence": {
+      "sources": ["src/core/binary_formats.c", "src/obj/objsave.c", "src/player/players.c"],
+      "owner": "unittests/CuTest/test_binary_formats.c",
+      "tests": [
+        "Test_board_file_reads_the_legacy_x86_64_layout",
+        "Test_board_file_rejects_every_damaged_current_file",
+        "Test_house_file_rejects_damaged_and_malformed_files",
+        "Test_binary_format_damaged_magic_is_not_read_as_a_legacy_file",
+        "Test_board_legacy_file_upgrades_once_and_keeps_a_backup",
+        "Test_gameplay_e2e_player_file_round_trip",
+        "Test_crash_save_single_and_incremental",
+        "Test_durable_event_parser_rejects_unsupported_headers"
+      ],
+      "floor": { "lines": 61.37, "branches": 43.43 }
+    },
+    "networking": {
+      "sources": ["src/core/comm.c", "src/net/protocol.c", "src/net/reactor.c"],
+      "owner": "unittests/CuTest/test_reactor.c",
+      "tests": [
+        "Test_reactor_drivers_have_equivalent_readiness_and_cadence",
+        "Test_reactor_shutdown_preserves_terminating_signal_handlers",
+        "Test_graceful_descriptor_close_drains_queued_output_with_deadline",
+        "Test_process_input_reports_plain_text_truncation",
+        "Test_partial_output_writes_preserve_buffer_accounting",
+        "Test_descriptor_lifecycle_accepts_serves_and_closes_a_connection"
+      ],
+      "floor": { "lines": 44.75, "branches": 27.89 }
+    },
+    "olc": {
+      "sources": ["src/dgscript/dg_olc.c", "src/olc/gen*.c"],
+      "owner": "unittests/CuTest/test_world_loading_production.c",
+      "tests": [
+        "Test_olc_zone_and_shop_files_round_trip_through_the_loaders",
+        "TestSpecBindingAliasAndOverrideRoundTrip",
+        "TestSpecBindingExplicitSelectionRoundTrip",
+        "Test_zedit_skipped_dependency_preserves_later_commands",
+        "Test_redit_prunes_only_unused_exit_shells",
+        "Test_delete_mobile_queues_prototype_and_changed_zone_files"
+      ],
+      "floor": { "lines": 29.74, "branches": 26.43 }
+    },
+    "threaded_services": {
+      "sources": ["src/ai/ai_events.c", "src/ai/ai_service.c", "src/net/i3_client.c"],
+      "owner": "unittests/CuTest/test_i3_client_production.c",
+      "tests": [
+        "Test_ai_shutdown_interrupts_worker_backoff",
+        "Test_service_owned_ai_retries_dispatch_on_native_runtime",
+        "Test_i3_event_queue_signals_idle_main_loop",
+        "Test_i3_reconnect_backoff_is_bounded",
+        "Test_i3_client_thread_hands_off_both_ways_and_joins_on_shutdown"
+      ],
+      "floor": { "lines": 41.61, "branches": 27.91 }
+    }
+  },
+  "mutation": {
+    "src/core/binary_formats.c": { "score": 71.91 },
+    "src/net/protocol.c": { "score": 32.07 },
+    "src/player/password.c": { "score": 88.63 }
+  }
+}

@@ -1393,6 +1393,14 @@ if(BUILD_TESTS)
         COMMAND Python3::Interpreter scripts/ci/check_baseline_ratchet.py --self-test
     )
     add_test(
+        NAME coverage-policy-self-test
+        COMMAND Python3::Interpreter scripts/ci/check_coverage.py --self-test
+    )
+    add_test(
+        NAME mutation-test-self-test
+        COMMAND Python3::Interpreter scripts/ci/mutation_test.py --self-test
+    )
+    add_test(
         NAME header-self-containment
         COMMAND
             Python3::Interpreter scripts/ci/check_header_self_containment.py --cc
@@ -1416,6 +1424,8 @@ if(BUILD_TESTS)
         native-struct-io
         clang-tidy-gate-self-test
         baseline-ratchet-self-test
+        coverage-policy-self-test
+        mutation-test-self-test
         header-self-containment
         help-sync
         background-help-entries
