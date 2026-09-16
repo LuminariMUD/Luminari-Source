@@ -14,7 +14,7 @@ Source inspection: fix/open-issue-repairs at d13732245, 2026-09-06.
 - `magic/magic.c:affect_update_character_one` decrements positive duration and
   removes an affect on a subsequent callback when duration is already zero.
   Thus duration 1 is not currently an exact one-round expiry contract.
-- `combat/combat_encounters.c:run_semantic_round` expires readiness before
+- `combat/combat_encounters.c:begin_semantic_round` expires readiness before
   incrementing the participant turn and restoring actions. It supplies the
   authoritative actor turn boundary. Participant counters are encounter-local;
   they cannot identify an effect across departure and re-entry by themselves.
