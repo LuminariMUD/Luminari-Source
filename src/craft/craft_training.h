@@ -32,4 +32,8 @@ int craft_training_fee(int rank);
  * return true; write an empty string and return false when ch has no contract. */
 bool craft_training_status(const struct char_data *ch, time_t now, char *buffer, size_t size);
 
+/** The Craft Trainer special procedure: the apprentice command lists, quotes, and starts
+ * contracts. */
+int craft_trainer(struct char_data *ch, void *me, int cmd, const char *argument);
+
 #endif /* LUMINARI_CRAFT_CRAFT_TRAINING_H */

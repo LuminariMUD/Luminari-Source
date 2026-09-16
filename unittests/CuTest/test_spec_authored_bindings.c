@@ -288,7 +288,7 @@ static bool spec_binding_olc_lifecycle_scenario(const char *sandbox, char *error
       "Missing Room Procedure",
   };
   static const char *const selections[SPEC_TEST_OWNER_COUNT] = {
-      "14",
+      "15",
       "5",
       "6",
   };

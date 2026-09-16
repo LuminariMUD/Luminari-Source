@@ -14,7 +14,7 @@ Update this list with every commit, so a new session can resume from it.
 
 - [x] Step 1: craft experience and ranks, plus the talent storage fix from Finding 12.
 - [x] Step 2: contract rules and record.
-- [ ] Step 3: SpecProc and command.
+- [x] Step 3: SpecProc and command.
 - [ ] Step 4: lock, settlement, recall, and menu row.
 - [ ] Step 5: placement.
 - [ ] Step 6: help and documentation.
@@ -27,7 +27,17 @@ Working notes for this worktree (`../Luminari-Source-issue-196`):
 - Build with `make -j16 luminari cutest` (about 40 seconds after a `structs.h` change). Run the suite
   the way `make run-cutest` does:
   `CUTEST_FILTER= LUMINARI_TEST_ROOT="$PWD" LUMINARI_TEST_SPEC_WORLD_ROOT="$PWD/unittests/CuTest/fixtures/spec_world_inventory" ./cutest`
-  (1,516 tests after step 2, about 5 seconds). Use `CUTEST_FILTER=Test_craft_` for this feature.
+  (1,520 tests after step 3, about 5 seconds). Use `CUTEST_FILTER=Test_craft_` for this feature.
+- Database-backed tests (`Test_craft_trainer_saves_belongings_once`, and step 4's menu row) skip
+  unless `LUMINARI_TEST_MYSQL_ENABLE=1`. Never point them at the development database. Use the
+  CI service settings in a disposable container on 127.0.0.2:3306, because the syntax-boot child
+  reads a `mysql_config` without a port and 127.0.0.1:3306 is the system MariaDB:
+  `docker run -d --name luminari-issue196-testdb -e MARIADB_ROOT_PASSWORD=test_root_password -e MARIADB_DATABASE=luminari_test -e MARIADB_USER=luminari_test -e MARIADB_PASSWORD=test_password -p 127.0.0.2:3306:3306 mariadb:10.11`,
+  export `LUMINARI_TEST_MYSQL_ENABLE=1`, `_HOST=127.0.0.2`, `_PORT=3306`, `_USER=luminari_test`,
+  `_PASSWORD=test_password`, and `_DATABASE=luminari_test`, run
+  `scripts/ci/prepare_test_runtime.sh .ci-runtime/lib`, and add
+  `LUMINARI_TEST_DATA_DIR="$PWD/.ci-runtime/lib" LUMINARI_TEST_CONFIG_FILE=.ci-runtime/lib/etc/config`
+  to the suite command. The config path must stay relative.
 - The pre-push hook runs `make`; run `make install` afterwards so no root-level `luminari` binary
   is left behind.
 
@@ -116,7 +126,13 @@ The issue's description of the code checks out, including the brewing bypass
     and the table ending at `:485`), `test_spec_registry_persistence.c` (`:550`),
     `test_spec_owner_aware_olc.c` (mobile names from `:28`), and
     `scripts/world/tests/test_constants.py` (`:211`). `docs/guides/OLC_SpecProcs.md` still says 54
-    mobile, 34 object, and 17 room entries; the tests list 61, 41, and 20.
+    mobile, 34 object, and 17 room entries; the tests list 61, 41, and 20. Step 3 found more: the
+    legacy handler count in `test_spec_typed_handlers.c`, and mobile editor selection numbers past
+    Buy Weapons in `test_spec_authored_bindings.c`, `test_spec_binding_round_trip.c`,
+    `test_spec_registry_persistence.c` (`medit`), and `test_spec_owner_aware_olc.c`. The registry
+    itself keeps a definition index enum and a compatibility name table beside the definitions
+    (`src/spec/spec_registry.c`), and a static assertion ties the enum to the definitions. Nothing
+    persists these indexes: world files store names.
 
 11. **Most admission rules already exist.** Legacy craft and brew events block other commands
     (`src/core/interpreter.c:6883`), `primary_activity_command_admit()` (`:6921`) runs before
@@ -347,6 +363,28 @@ Plan as written:
   times 1.25 stays below the next rank's requirement; the fee rises with rank.
 
 ### Step 3: SpecProc and command
+
+Done. As built:
+
+- `craft_trainer()` is declared in `craft_training.h` like the other legacy handlers
+  (`src/obj/vendor.h`), with world binding only, and sits after Buy Weapons in the definitions,
+  the index enum, and the compatibility names. Mobile editor numbers past Buy Weapons shifted by
+  one, so the tests from Finding 10 changed accordingly.
+- `apprentice` mirrors `rent`: `do_not_here`, standing, level 1.
+- Skill matching tries the trainable tracks first, then the other craft and harvest names (not the
+  unused slot 47), so `apprentice bowmaking` explains that the skill cannot be trained here.
+- Quote and confirm apply the same admission checks, so a quote is only shown when a confirm would
+  succeed. A failed contract save refunds and clears the record before anything else happens.
+- Tests: `Test_craft_trainer_lists_and_quotes_without_changes` (also checks the command away from a
+  trainer), `Test_craft_trainer_refusals_leave_gold_and_contract_alone` (the activity case starts a
+  real primary activity whose capabilities do not conflict with `apprentice`, so only the
+  trainer's own check can refuse), `Test_craft_trainer_confirm_takes_fee_and_leaves_play` (runs
+  `extract_pending_chars()` and reloads the file for the contract, gold, and load room), and the
+  database-backed `Test_craft_trainer_saves_belongings_once`. With `OBJSAVE_DB`, belongings go to
+  the `player_save_objs` table, so that test shadows it with a temporary table and counts one row
+  with rent free and one without; dropping the rent save or making it unconditional each fails it.
+
+Plan as written:
 
 - The registry entry, the command entry, `SPECIAL(craft_trainer)`, and the list updates from
   Finding 10.

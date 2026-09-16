@@ -7,7 +7,10 @@
 #include "../../src/core/sysdep.h"
 #include "../../src/core/structs.h"
 #include "../../src/core/utils.h"
+#include "../../src/core/comm.h"
 #include "../../src/core/db.h"
+#include "../../src/core/handler.h"
+#include "../../src/core/interpreter.h"
 #include "../../src/character/class.h"
 #include "../../src/character/feats.h"
 #include "../../src/character/race.h"
@@ -15,7 +18,15 @@
 #include "../../src/craft/brew.h"
 #include "../../src/craft/craft_training.h"
 #include "../../src/craft/crafting_new.h"
+#include "../../src/database/mysql.h"
+#include "../../src/dgscript/dg_event.h"
+#include "../../src/events/activity_manager.h"
+#include "../../src/events/domain_event_types.h"
+#include "../../src/events/domain_event_world.h"
+#include "../../src/events/domain_events.h"
 #include "../../src/events/mud_event.h"
+#include "../../src/net/protocol.h"
+#include "../../src/spec/spec_registry.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -82,9 +93,13 @@ static int craft_player_files_leave(struct craft_player_files *files)
 
   if (get_filename(filename, sizeof(filename), PLR_FILE, files->name))
     unlink(filename);
+  if (get_filename(filename, sizeof(filename), CRASH_FILE, files->name))
+    unlink(filename);
   unlink("plrfiles/index");
   rmdir("plrfiles/U-Z");
   rmdir("plrfiles");
+  rmdir("plrobjs/U-Z");
+  rmdir("plrobjs");
   player_table = files->saved_table;
   top_of_p_table = files->saved_top;
   result = chdir(files->directory);
@@ -487,4 +502,461 @@ void Test_craft_training_status_counts_down_to_finished(CuTest *tc)
   GET_CRAFT(ch).training_end = now;
   craft_training_status(ch, now, status, sizeof(status));
   CuAssertStrEquals(tc, "training finished", status);
+}
+
+#define CRAFT_TRAINER_TEST_ROOM 373
+
+static char craft_trainer_room_name[] = "A crafting hall";
+static char craft_trainer_room_description[] = "Workbenches line the walls.\r\n";
+static char craft_trainer_keywords[] = "artisan master";
+static char craft_trainer_short[] = "the master artisan";
+
+/** A lit room in zone 3 holding a Craft Trainer and one connected player, who owns an isolated
+ * player file. The real command table dispatches the player's commands. */
+struct craft_trainer_fixture
+{
+  struct craft_player_files files;
+  struct room_data room;
+  struct zone_data zone;
+  struct index_data mobile_index;
+  struct char_data trainer;
+  struct descriptor_data descriptor;
+  struct char_data *player;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  struct zone_data *saved_zone_table;
+  zone_rnum saved_top_of_zone_table;
+  struct index_data *saved_mob_index;
+  mob_rnum saved_top_of_mobt;
+  struct char_data *saved_character_list;
+  bool created_commands;
+};
+
+static void craft_trainer_reset_output(struct descriptor_data *descriptor)
+{
+  if (descriptor->large_outbuf != NULL)
+  {
+    free(descriptor->large_outbuf->text);
+    free(descriptor->large_outbuf);
+    descriptor->large_outbuf = NULL;
+  }
+  descriptor->small_outbuf[0] = '\0';
+  descriptor->output = descriptor->small_outbuf;
+  descriptor->bufptr = 0;
+  descriptor->bufspace = SMALL_BUFSIZE - 1;
+}
+
+static void craft_trainer_begin(CuTest *tc, struct craft_trainer_fixture *fixture, const char *tag,
+                                long id)
+{
+  struct char_data *player;
+  int i;
+
+  memset(fixture, 0, sizeof(*fixture));
+  craft_player_files_enter(tc, &fixture->files, tag, id);
+  fixture->saved_world = world;
+  fixture->saved_top_of_world = top_of_world;
+  fixture->saved_zone_table = zone_table;
+  fixture->saved_top_of_zone_table = top_of_zone_table;
+  fixture->saved_mob_index = mob_index;
+  fixture->saved_top_of_mobt = top_of_mobt;
+  fixture->saved_character_list = character_list;
+
+  fixture->room.number = CRAFT_TRAINER_TEST_ROOM;
+  fixture->room.zone = 0;
+  fixture->room.sector_type = SECT_INSIDE;
+  fixture->room.name = craft_trainer_room_name;
+  fixture->room.description = craft_trainer_room_description;
+  fixture->zone.number = 3;
+  fixture->zone.bot = 300;
+  fixture->zone.top = 399;
+  fixture->zone.min_level = -1;
+  fixture->zone.max_level = LVL_IMPL;
+  fixture->mobile_index.vnum = CRAFT_TRAINER_TEST_ROOM;
+  fixture->mobile_index.func = find_spec_func_by_name("Craft Trainer");
+  world = &fixture->room;
+  top_of_world = 0;
+  zone_table = &fixture->zone;
+  top_of_zone_table = 0;
+  mob_index = &fixture->mobile_index;
+  top_of_mobt = 0;
+
+  clear_char(&fixture->trainer);
+  fixture->trainer.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&fixture->trainer), MOB_ISNPC);
+  fixture->trainer.nr = 0;
+  fixture->trainer.player.name = craft_trainer_keywords;
+  fixture->trainer.player.short_descr = craft_trainer_short;
+  GET_LEVEL(&fixture->trainer) = 30;
+  IN_ROOM(&fixture->trainer) = 0;
+
+  player = new_char();
+  fixture->player = player;
+  player->player.name = strdup(fixture->files.name);
+  GET_PFILEPOS(player) = 0;
+  GET_IDNUM(player) = id;
+  GET_LEVEL(player) = 10;
+  GET_CLASS(player) = CLASS_WARRIOR;
+  IN_ROOM(player) = 0;
+  GET_POS(player) = POS_STANDING;
+  for (i = 0; i < MAX_CURRENT_QUESTS; i++)
+  {
+    GET_QUEST(player, i) = NOTHING;
+    GET_QUEST_TIME(player, i) = -1;
+  }
+  SET_ABILITY(player, ABILITY_CRAFT_ALCHEMY, 4);
+  GET_CRAFT_SKILL_EXP(player, ABILITY_CRAFT_ALCHEMY) = craft_skill_level_exp(NULL, 4);
+  GET_GOLD(player) = 10000;
+
+  fixture->descriptor.character = player;
+  player->desc = &fixture->descriptor;
+  STATE(&fixture->descriptor) = CON_PLAYING;
+  craft_trainer_reset_output(&fixture->descriptor);
+  fixture->descriptor.pProtocol = ProtocolCreate();
+
+  fixture->room.people = player;
+  player->next_in_room = &fixture->trainer;
+  character_list = player;
+  player->next = &fixture->trainer;
+
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    fixture->created_commands = true;
+  }
+}
+
+/** Run one command and keep what the player saw. */
+static void craft_trainer_command(struct craft_trainer_fixture *fixture, const char *command,
+                                  char *seen, size_t size)
+{
+  char line[MAX_INPUT_LENGTH];
+
+  craft_trainer_reset_output(&fixture->descriptor);
+  snprintf(line, sizeof(line), "%s", command);
+  command_interpreter(fixture->player, line);
+  snprintf(seen, size, "%s", fixture->descriptor.output);
+}
+
+static int craft_trainer_end(struct craft_trainer_fixture *fixture)
+{
+  fixture->room.people = NULL;
+  fixture->trainer.next_in_room = NULL;
+  fixture->trainer.next = NULL;
+  if (fixture->player != NULL)
+  {
+    fixture->player->next_in_room = NULL;
+    fixture->player->next = NULL;
+    fixture->player->desc = NULL;
+    free_char(fixture->player);
+  }
+  craft_trainer_reset_output(&fixture->descriptor);
+  ProtocolDestroy(fixture->descriptor.pProtocol);
+  if (fixture->created_commands)
+    free_command_list();
+  world = fixture->saved_world;
+  top_of_world = fixture->saved_top_of_world;
+  zone_table = fixture->saved_zone_table;
+  top_of_zone_table = fixture->saved_top_of_zone_table;
+  mob_index = fixture->saved_mob_index;
+  top_of_mobt = fixture->saved_top_of_mobt;
+  character_list = fixture->saved_character_list;
+  return craft_player_files_leave(&fixture->files);
+}
+
+void Test_craft_trainer_lists_and_quotes_without_changes(CuTest *tc)
+{
+  struct craft_trainer_fixture fixture;
+  char listing[MAX_STRING_LENGTH], quote[MAX_STRING_LENGTH], away[MAX_STRING_LENGTH];
+  char saved_line[MAX_INPUT_LENGTH];
+  int gold, ability, saved_lines, extracted;
+
+  craft_trainer_begin(tc, &fixture, "crlist", 4305);
+  craft_trainer_command(&fixture, "apprentice", listing, sizeof(listing));
+  craft_trainer_command(&fixture, "appr alch", quote, sizeof(quote));
+  gold = GET_GOLD(fixture.player);
+  ability = GET_CRAFT(fixture.player).training_ability;
+  extracted = PLR_FLAGGED(fixture.player, PLR_NOTDEADYET);
+  saved_lines = craft_training_saved_lines(fixture.files.name, saved_line, sizeof(saved_line));
+  /* Away from a trainer the command is not available. */
+  mob_index[0].func = NULL;
+  craft_trainer_command(&fixture, "apprentice", away, sizeof(away));
+  CuAssertIntEquals(tc, 0, craft_trainer_end(&fixture));
+
+  CuAssertPtrNotNull(tc, strstr(listing, "alchemy"));
+  CuAssertPtrNotNull(tc, strstr(listing, "mining"));
+  CuAssertPtrEquals(tc, NULL, strstr(listing, "bowmaking"));
+  CuAssertPtrNotNull(tc, strstr(listing, "2500"));
+  CuAssertPtrNotNull(tc, strstr(quote, "costs 2500 gold coins"));
+  CuAssertPtrNotNull(tc, strstr(quote, "followers are dismissed"));
+  CuAssertPtrNotNull(tc, strstr(quote, "apprentice alchemy confirm"));
+  CuAssertIntEquals(tc, 10000, gold);
+  CuAssertIntEquals(tc, 0, ability);
+  CuAssertTrue(tc, !extracted);
+  CuAssertIntEquals(tc, -1, saved_lines);
+  CuAssertPtrNotNull(tc, strstr(away, "Sorry, but you cannot do that here!"));
+}
+
+static void craft_trainer_activity_ended(struct char_data *actor,
+                                         enum primary_activity_end_reason reason, void *context)
+{
+  (void)actor;
+  (void)reason;
+  (void)context;
+}
+
+/* The apprentice command conflicts with no activity capability, so only the trainer's own check
+ * stands between a running activity and the contract. */
+static bool craft_trainer_refuses_during_activity(CuTest *tc, struct craft_trainer_fixture *fixture,
+                                                  char *seen, size_t size)
+{
+  struct primary_activity_definition definition;
+  struct domain_event_bus *bus;
+  enum domain_event_status status;
+  unsigned long saved_pulse = pulse;
+  bool started;
+
+  primary_activity_manager_shutdown();
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 4000U;
+  event_init();
+  bus = domain_event_bus_create(NULL, &status);
+  CuAssertPtrNotNull(tc, bus);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_register_foundation_types(bus));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_world_register_resolvers(bus));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, primary_activity_manager_init(bus));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
+
+  memset(&definition, 0, sizeof(definition));
+  definition.type = PRIMARY_ACTIVITY_TEST;
+  definition.display_name = "testing an activity";
+  definition.capabilities = PRIMARY_ACTIVITY_CAP_MOVEMENT;
+  definition.progress_model = PRIMARY_ACTIVITY_PROGRESS_PROGRESSIVE;
+  definition.progress_owner = PRIMARY_ACTIVITY_PROGRESS_CHARACTER;
+  definition.total_steps = 2U;
+  definition.step_interval = 10L;
+  definition.movement_response = PRIMARY_ACTIVITY_RESPONSE_REJECT;
+  definition.damage_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.combat_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.target_loss_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.command_response = PRIMARY_ACTIVITY_RESPONSE_REJECT;
+  definition.ended = craft_trainer_activity_ended;
+  started = primary_activity_start(fixture->player,
+                                   domain_event_character_handle(&fixture->trainer), &definition);
+  craft_trainer_command(fixture, "apprentice alchemy confirm", seen, size);
+  (void)primary_activity_cancel(fixture->player, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false);
+  primary_activity_manager_shutdown();
+  domain_event_bus_destroy(bus);
+  event_free_all();
+  pulse = saved_pulse;
+  return started;
+}
+
+void Test_craft_trainer_refusals_leave_gold_and_contract_alone(CuTest *tc)
+{
+  struct craft_trainer_fixture fixture;
+  char ineligible[MAX_STRING_LENGTH], ceiling[MAX_STRING_LENGTH], poor[MAX_STRING_LENGTH];
+  char fighting[MAX_STRING_LENGTH], busy[MAX_STRING_LENGTH], asleep[MAX_STRING_LENGTH];
+  int gold, ability, extracted;
+  bool activity_started;
+
+  craft_trainer_begin(tc, &fixture, "crnope", 4306);
+  craft_trainer_command(&fixture, "apprentice bowmaking confirm", ineligible, sizeof(ineligible));
+
+  SET_ABILITY(fixture.player, ABILITY_HARVEST_MINING, CRAFT_TRAINING_RANK_CEILING);
+  craft_trainer_command(&fixture, "apprentice mining confirm", ceiling, sizeof(ceiling));
+
+  GET_GOLD(fixture.player) = 2499;
+  craft_trainer_command(&fixture, "apprentice alchemy confirm", poor, sizeof(poor));
+  GET_GOLD(fixture.player) = 10000;
+
+  FIGHTING(fixture.player) = &fixture.trainer;
+  craft_trainer_command(&fixture, "apprentice alchemy confirm", fighting, sizeof(fighting));
+  FIGHTING(fixture.player) = NULL;
+
+  activity_started = craft_trainer_refuses_during_activity(tc, &fixture, busy, sizeof(busy));
+
+  GET_POS(&fixture.trainer) = POS_SLEEPING;
+  craft_trainer_command(&fixture, "apprentice alchemy confirm", asleep, sizeof(asleep));
+
+  gold = GET_GOLD(fixture.player);
+  ability = GET_CRAFT(fixture.player).training_ability;
+  extracted = PLR_FLAGGED(fixture.player, PLR_NOTDEADYET);
+  CuAssertIntEquals(tc, 0, craft_trainer_end(&fixture));
+
+  CuAssertPtrNotNull(tc, strstr(ineligible, "bowmaking skill cannot be trained here"));
+  CuAssertPtrNotNull(tc, strstr(ceiling, "only below rank 20"));
+  CuAssertPtrNotNull(tc, strstr(poor, "costs 2500 gold coins, and you carry 2499"));
+  CuAssertPtrNotNull(tc, strstr(fighting, "fighting for your life"));
+  CuAssertTrue(tc, activity_started);
+  CuAssertPtrNotNull(tc, strstr(busy, "cannot leave to train while testing an activity"));
+  CuAssertPtrNotNull(tc, strstr(asleep, "is unable to talk to you"));
+  CuAssertIntEquals(tc, 10000, gold);
+  CuAssertIntEquals(tc, 0, ability);
+  CuAssertTrue(tc, !extracted);
+}
+
+void Test_craft_trainer_confirm_takes_fee_and_leaves_play(CuTest *tc)
+{
+  struct craft_trainer_fixture fixture;
+  struct char_data *loaded = new_char();
+  char seen[MAX_STRING_LENGTH], saved_line[MAX_INPUT_LENGTH];
+  time_t before, after;
+  int gold, marked, state, saved_lines, result, ability, experience, loaded_gold;
+  room_vnum load_room;
+  time_t end;
+
+  craft_trainer_begin(tc, &fixture, "crgo", 4307);
+  before = time(0);
+  craft_trainer_command(&fixture, "apprentice alchemy confirm", seen, sizeof(seen));
+  after = time(0);
+  gold = GET_GOLD(fixture.player);
+  marked = PLR_FLAGGED(fixture.player, PLR_NOTDEADYET);
+  /* The game loop finishes the extraction later in the same pass. */
+  extract_pending_chars();
+  state = STATE(&fixture.descriptor);
+  saved_lines = craft_training_saved_lines(fixture.files.name, saved_line, sizeof(saved_line));
+  result = load_char(fixture.files.name, loaded);
+  ability = GET_CRAFT(loaded).training_ability;
+  experience = GET_CRAFT(loaded).training_exp;
+  end = GET_CRAFT(loaded).training_end;
+  load_room = GET_LOADROOM(loaded);
+  loaded_gold = GET_GOLD(loaded);
+  free_char(loaded);
+  CuAssertIntEquals(tc, 0, craft_trainer_end(&fixture));
+
+  CuAssertPtrNotNull(tc, strstr(seen, "leads you away to train"));
+  CuAssertIntEquals(tc, 7500, gold);
+  CuAssertTrue(tc, marked);
+  CuAssertIntEquals(tc, CON_MENU, state);
+  CuAssertIntEquals(tc, 1, saved_lines);
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, ABILITY_CRAFT_ALCHEMY, ability);
+  CuAssertIntEquals(tc, 2500, experience);
+  CuAssertTrue(tc,
+               end >= before + CRAFT_TRAINING_DURATION && end <= after + CRAFT_TRAINING_DURATION);
+  CuAssertIntEquals(tc, CRAFT_TRAINER_TEST_ROOM, (int)load_room);
+  CuAssertIntEquals(tc, 7500, loaded_gold);
+}
+
+static char craft_chisel_keywords[] = "chisel fine";
+static char craft_chisel_short[] = "a fine chisel";
+static char craft_chisel_long[] = "A fine chisel lies here.";
+
+/** Connect to the explicitly configured test database, as test_database_persistence.c does. */
+static MYSQL *craft_training_open_test_database(void)
+{
+  const char *host = getenv("LUMINARI_TEST_MYSQL_HOST");
+  const char *user = getenv("LUMINARI_TEST_MYSQL_USER");
+  const char *password = getenv("LUMINARI_TEST_MYSQL_PASSWORD");
+  const char *database = getenv("LUMINARI_TEST_MYSQL_DATABASE");
+  const char *port_text = getenv("LUMINARI_TEST_MYSQL_PORT");
+  MYSQL *connection;
+
+  if (host == NULL || user == NULL || password == NULL || database == NULL)
+    return NULL;
+  connection = mysql_init(NULL);
+  if (connection == NULL)
+    return NULL;
+  if (mysql_real_connect(connection, host, user, password, database,
+                         port_text != NULL ? (unsigned int)strtoul(port_text, NULL, 10) : 3306U,
+                         NULL, 0) == NULL)
+  {
+    mysql_close(connection);
+    return NULL;
+  }
+  return connection;
+}
+
+/** Start a contract while carrying a chisel, with rent free or not, and count the chisel's rows
+ * in a shadowed object store. */
+static void craft_trainer_belongings(CuTest *tc, bool free_rent, int *rows, bool *left_behind)
+{
+  struct craft_trainer_fixture fixture;
+  struct obj_data prototype;
+  struct index_data object_index;
+  struct obj_data *saved_proto = obj_proto;
+  struct index_data *saved_index = obj_index;
+  obj_rnum saved_top_of_objt = top_of_objt;
+  MYSQL *saved_conn = conn;
+  MYSQL *connection;
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  bool saved_available = mysql_available;
+  int saved_free_rent = CONFIG_FREE_RENT;
+  char seen[MAX_STRING_LENGTH], query[256];
+  bool tables;
+
+  connection = craft_training_open_test_database();
+  CuAssertPtrNotNull(tc, connection);
+  tables = mysql_query(connection, "CREATE TEMPORARY TABLE player_save_objs (idnum INT "
+                                   "AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), "
+                                   "serialized_obj TEXT)") == 0;
+
+  craft_trainer_begin(tc, &fixture, free_rent ? "crfree" : "crrent", 4308);
+  CuAssertIntEquals(tc, 0, mkdir("plrobjs", 0700));
+  CuAssertIntEquals(tc, 0, mkdir("plrobjs/U-Z", 0700));
+  clear_object(&prototype);
+  prototype.item_number = 0;
+  prototype.name = craft_chisel_keywords;
+  prototype.short_description = craft_chisel_short;
+  prototype.description = craft_chisel_long;
+  GET_OBJ_TYPE(&prototype) = ITEM_OTHER;
+  memset(&object_index, 0, sizeof(object_index));
+  object_index.vnum = CRAFT_TRAINER_TEST_ROOM;
+  obj_proto = &prototype;
+  obj_index = &object_index;
+  top_of_objt = 0;
+  obj_to_char(read_object(0, REAL), fixture.player);
+
+  conn = connection;
+  mysql_available = true;
+  CONFIG_FREE_RENT = free_rent;
+  craft_trainer_command(&fixture, "apprentice alchemy confirm", seen, sizeof(seen));
+  extract_pending_chars();
+  CONFIG_FREE_RENT = saved_free_rent;
+  mysql_available = saved_available;
+  conn = saved_conn;
+
+  *rows = -1;
+  snprintf(query, sizeof(query), "SELECT COUNT(*) FROM player_save_objs WHERE name = '%s'",
+           fixture.files.name);
+  if (tables && mysql_query(connection, query) == 0 &&
+      (result = mysql_store_result(connection)) != NULL)
+  {
+    if ((row = mysql_fetch_row(result)) != NULL && row[0] != NULL)
+      *rows = atoi(row[0]);
+    mysql_free_result(result);
+  }
+  *left_behind = fixture.room.contents != NULL || fixture.player->carrying != NULL;
+  while (fixture.room.contents != NULL)
+    extract_obj(fixture.room.contents);
+  while (fixture.player->carrying != NULL)
+    extract_obj(fixture.player->carrying);
+  mysql_close(connection);
+  obj_proto = saved_proto;
+  obj_index = saved_index;
+  top_of_objt = saved_top_of_objt;
+  CuAssertIntEquals(tc, 0, craft_trainer_end(&fixture));
+}
+
+/* With free rent the quit saves belongings and without it the trainer does: either way they
+ * reach the object store exactly once and nothing is left on the floor. */
+void Test_craft_trainer_saves_belongings_once(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  int free_rows, rent_rows;
+  bool free_left, rent_left;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+    return;
+
+  craft_trainer_belongings(tc, TRUE, &free_rows, &free_left);
+  craft_trainer_belongings(tc, FALSE, &rent_rows, &rent_left);
+
+  CuAssertIntEquals(tc, 1, free_rows);
+  CuAssertTrue(tc, !free_left);
+  CuAssertIntEquals(tc, 1, rent_rows);
+  CuAssertTrue(tc, !rent_left);
 }

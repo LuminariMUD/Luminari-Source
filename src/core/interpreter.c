@@ -397,6 +397,7 @@ cpp_extern const struct command_info cmd_info[] = {
      {0, 0},
      NULL},
     {"applies", "applies", POS_RECLINING, do_craftbonuses, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"apprentice", "appr", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"apotheosis",
      "apoth",
      POS_STANDING,

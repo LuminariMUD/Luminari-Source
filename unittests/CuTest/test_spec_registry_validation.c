@@ -11,6 +11,7 @@
 #include "../../src/character/vampire_cloak.h"
 #include "../../src/comms/mail.h"
 #include "../../src/craft/craft.h"
+#include "../../src/craft/craft_training.h"
 #include "../../src/craft/crafting_new.h"
 #include "../../src/magic/spellbook_scroll.h"
 #include "../../src/obj/objsave.h"
@@ -186,8 +187,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 120, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 99, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 121, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 100, (int)spec_registry_legacy_count());
   CuAssertIntEquals(tc, 21, (int)spec_registry_typed_count());
 
   alias_count = 0;
@@ -233,6 +234,8 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
        SPEC_BINDING_SOURCE_WORLD | SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT},
       {"Buy Weapons", buyweapons, SPEC_OWNER_MOBILE, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD | SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT},
+      {"Craft Trainer", craft_trainer, SPEC_OWNER_MOBILE, SPEC_EVENT_COMMAND,
+       SPEC_BINDING_SOURCE_WORLD},
       {"Crafting Kit", crafting_kit, SPEC_OWNER_OBJECT,
        SPEC_EVENT_COMMAND | SPEC_EVENT_ITEM_IDENTIFY,
        SPEC_BINDING_SOURCE_WORLD | SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT},
