@@ -22,6 +22,8 @@ struct combat_reaction_damage
 };
 
 /* Bounded FIFO of reactive damage owned by the outermost damage call.
+ * The synchronous damage caller dequeues its packet before executing it, so
+ * nested continuations share this budget without waiting behind their parent.
  * count is live occupancy and falls as packets drain; scheduled is the
  * lifetime total enqueued and never falls, so it -- not count -- is what bounds
  * a self-feeding reaction chain (A reflects onto B, B reflects back onto A).

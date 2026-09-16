@@ -343,8 +343,8 @@ Specific conflicts already found must have named tests and dispositions:
 | Staggered and move-less attack collapse | `67ae730bc` added a clause to `perform_attacks()`: in phase 0, a staggered combatant or one without a move action is collapsed to the phase 1 portion. The baseline only coupled staggered costs inside `start_action_cooldown()`, and a staggered combatant with a move action still attacked in every phase. Once phases return, the normal routine has no phase 0 caller; remove the clause or classify the residual difference, and assert staggered attack order. |
 | Cowering and Perfect Tempo cadence | Baseline: `proc_d20_round()` in `src/limits.c`, called from the heartbeat every `PULSE_VIOLENCE`. Current: duplicated at the top of `combat_run_semantic_round()`, while `proc_d20_round_one()` in `src/core/limits.c` skips managed fighters. `src/events/character_periodic.c` already schedules `proc_d20_round_one()` on that cadence, so restore the single six-second owner and delete the duplicate. Do not run either check per phase. |
 | Test-only rollback paths | Three drivers exist today: semantic rounds, the encounter compatibility phases (`run_compatibility_phase()` and `COMBAT_ENCOUNTER_PHASE_DELAY`), and the per-character `event_combat_round` MUD event, which only runs when `encounter_mode` is false under CuTest. Cancel sites for `eCOMBAT_ROUND` remain in `src/act/act.other.c`, `src/magic/spells.c`, and `src/act/act.wizard.c`. End with one production driver, and decide explicitly whether the legacy callback, the test selectors, and `Test_combat_encounter_rollback_selector_keeps_legacy_path_exclusive` are deleted or kept as test seams. |
-| Deferred reactions | Nested damage now yields `COMBAT_DAMAGE_QUEUED` / legacy zero and drains later. Trace callers that depend on immediate HP, death, relocation, or return values. Restore required observable continuation ordering within bounded, handle-validated processing; do not restore recursive unbounded `damage()` calls. Queue-only FIFO tests cannot establish gameplay parity. |
-| Life Shield and Greater Hostile Juxtaposition | Keep recursion guards and safe spell-affect lookup. Separately classify corrected activation/charge behavior and reflect timing against the baseline; do not treat every behavior change in a safety patch as invisible. |
+| Deferred reactions | The refactor yielded `COMBAT_DAMAGE_QUEUED` / legacy zero for nested damage, then drained later. The section 9 damage checkpoint restores synchronous completion through a shared 64-reaction budget and captured handles; weapon/projectile damage now uses the same owner. Wider caller and terminal-outcome audits remain open. Queue-only FIFO tests cannot establish gameplay parity. |
+| Life Shield and Greater Hostile Juxtaposition | Life Shield's zero-damage activation and post-reflection charge update are restored in the section 9 damage checkpoint. Retain its self/source-spell recursion guards and safe handle checks. Greater Hostile Juxtaposition's corrected activation is still an unresolved finite deviation; retain safe spell-affect lookup while resolving activation separately. |
 | Divine Sacrifice and killer-less death | Keep valid lifetime checks and typed causes/outcomes. Explicitly document the change from ignored/unresolved deaths to correctly finalized deaths, including transferred lethal damage. Do not recreate a crash or leave dead entities active to imitate a faulty old path. Such retained outcomes must be visible in the parity disposition. |
 | Death notification ordering | Trace the final integrated `raw_kill_with_cause()`, which publishes through `domain_event_runtime_character_died_with_cause()`, and its actual `DOMAIN_EVENT_CHARACTER_DIED` subscribers: `combat_encounters.c` (priority 20), `activity_manager.c` (priority 100), `ready_action.c`, and `magic/buff_sequence.c`. Intermediate refactor commits changed ordering again; do not implement from an isolated commit or PR description. Preserve coherent, exactly-once cleanup and verify listener-visible state. |
 
@@ -834,11 +834,11 @@ Next implementation boundaries:
    offhand allocation recorded below. Expand ordered attack coverage to the
    remaining ranged/reload/thrown, natural/evolution, flurry, vital-strike and
    reactive paths, including bonuses, resource use and target changes.
-2. Audit bounded damage/reaction continuation ordering and terminal outcomes.
+2. Finish the damage/reaction caller and terminal-outcome audit beyond the
+   bounded synchronous completion and Life Shield checkpoint below.
    Preserve native handles, notifications, active-world reconsideration, periodic
    timer sync, common rewards, and presentation. Classify Greater Hostile
-   Juxtaposition activation separately from safe affect lookup, and Life Shield's
-   positive-damage gate separately from recursion protection. The baseline
+   Juxtaposition activation separately from safe affect lookup. The baseline
    greater-shield branch was unreachable; any corrected activation is an explicit
    finite gameplay exception requiring resolution under section 4.
 3. Expand remaining acceptance scenarios, especially native command-loop queue
@@ -923,3 +923,92 @@ Focused evidence:
 - No live MUD run, help/database edit, or push has occurred. The full restoration
   remains open under sections 4-7; this checkpoint closes only offhand timing
   and supplies the stated attack-order evidence.
+
+#### Damage continuation checkpoint
+
+Previous goal turn: progress, committed as `cd4371ac3` with all 1,520 tests
+passing. The worktree was clean and `APP_ENV=development` was rechecked.
+
+New trace: `combat_damage_apply()` defers nested damage until the outer packet
+finishes, but melee/projectile calls enter `damage_with_projectile()` directly.
+Energy Retort and Life Shield consequently have different continuation ordering
+depending on the entry point. Their post-reaction handle/room checks run before
+queued reactions have happened. The result constructor also accesses the original
+raw pointers after draining callbacks that can invalidate their handles.
+
+Ablation: reuse the existing queue's monotonic 64-reaction budget and handle
+validation; complete each admitted nested packet before returning to its caller.
+The outermost packet remains the sole budget owner, so depth and total reaction
+work are bounded even when shields feed each other. Route projectile packets
+through the same owner while retaining their weapon/projectile context. Capture
+result handles before callbacks. This avoids converting every existing C caller
+into a new continuation framework or duplicating the damage algorithm. Prove
+actual reflection order, the retained bound and invalidated-handle behavior.
+Restore Life Shield's zero-damage activation separately from its recursion guard.
+Greater Hostile Juxtaposition, lethal transfer/death ordering and other section 4
+damage dispositions remain open until their own traced evidence resolves them.
+
+Implemented boundaries:
+
+- `damage_with_projectile()` now enters the same reaction owner as direct
+  `combat_damage_apply()`. Its existing body is `resolve_damage_with_projectile()`;
+  weapon and projectile context still reach mitigation and presentation.
+- Nested calls admit/dequeue their own packet, finish it and return its actual
+  result before the parent resumes. They share the outermost queue's monotonic
+  budget: at most 64 admitted reactions and 65 simultaneous damage frames.
+  This is bounded C nesting, not a return to unbounded recursive damage. The
+  queue's independent FIFO/stale-handle tests and capacity remain intact. The
+  typed queued-result constructor remains available, but normal damage no longer
+  returns a placeholder zero merely because it is nested.
+- Direct and melee Energy Retort chains now stop at the same bound. Previously
+  a melee packet bypassed the owner and could cause 65 reactions plus itself.
+- Typed results use handles captured before callbacks. Completing a result no
+  longer dereferences or re-registers a source whose handle was invalidated
+  during a reaction. Positive-damage publication also revalidates both handles
+  before continuing the packet.
+- Life Shield again activates on zero damage and updates its charge after the
+  reflected packet, as the pinned baseline does. Its source-spell guard prevents
+  two undead shield bearers from reflecting Life Shield back and forth. The
+  original charge formula is unchanged: with charge 100 and incoming damage 20,
+  the reflected packet sees charge 100, then the charge becomes 10. A zero-damage
+  hit consumes the victim's shield without consuming the attacker's shield.
+- After reflection, charge adjustment proceeds only if the shield bearer still
+  resolves. The existing room/death/handle check then stops the original packet's
+  continuation if the attacker moved, died or was invalidated. This retains
+  safety where blindly continuing with old raw pointers would be undefined.
+
+The six new `Test_combat_restoration_damage_` regressions reuse the real damage
+entry points, committed damage facts and playing-descriptor output:
+
+| Test suffix | Evidence |
+| -- | -- |
+| `life_shield_precedes_outer_continuation` | Reflection happens before the original damage announcement and charge adjustment. Both undead actors carry Life Shield; only the defender's shield is charged. |
+| `relocation_stops_outer_continuation` | A reflection callback moves the attacker; the original packet stops before its damage announcement. |
+| `result_keeps_invalidated_source_handle` | Invalidating the attacker during reflection stops the continuation and leaves the result's original source handle stale, without registering a replacement generation. |
+| `zero_hit_consumes_life_shield` | Neither actor loses HP; the defender's shield is consumed and the attacker's is retained. |
+| `retort_chain_keeps_lifetime_bound` | Mutually reflecting mortal psionicists apply exactly 65 damage packets including the original, then refuse the next reaction. Consent and positive HP are supplied explicitly. |
+| `melee_uses_same_reaction_bound` | A real `hit()` observes the same 65-packet bound rather than the former 66-packet bypass. |
+
+Before implementation, the direct-retort bound control passed and five cases
+failed: reflection observed charge 10 rather than 100, zero damage left Life
+Shield intact, and the melee chain applied 66 packets. The earlier assertion
+order also reproduced the delayed original-message ordering. The temporary
+retort fixture initially omitted PC names/consent; that fixture setup was fixed
+before recording the red evidence in `/tmp/revert-combat-damage-before.log`.
+
+All six pass after implementation, including the strengthened fixture with Life
+Shield on both undead participants. Final `make -j"$(nproc)" test` passes all
+1,526 CuTests and required static/native/demand-driven checks without compiler
+warnings. Nine opt-in help-sync database cases remain skipped by their existing
+environment gate. `make install` passes and removes the root server artifact.
+The final focused Valgrind run passes with zero errors and zero definitely,
+indirectly or possibly lost bytes (3,757 bytes reachable). Changed-file hooks
+pass after formatting. Relevant logs:
+`/tmp/revert-combat-damage-after.log`, `/tmp/revert-combat-damage-valgrind.log`,
+`/tmp/revert-combat-damage-full-test.log`, `/tmp/revert-combat-damage-install.log`
+and `/tmp/revert-combat-damage-hooks.log`.
+
+No live MUD, database/help edit or push was performed. These checks establish
+the stated continuation, Life Shield and shared-bound contracts; they do not
+close the remaining terminal/reward/notification, greater-juxtaposition, queue,
+effect, NPC, documentation/help or live-play acceptance work in sections 4-7.

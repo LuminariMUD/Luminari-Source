@@ -22,10 +22,23 @@ struct combat_damage_result combat_damage_result_from_legacy(struct char_data *s
                                                              struct char_data *target,
                                                              int requested, int legacy_result)
 {
-  struct combat_damage_result result = combat_damage_result_base(source, target, requested);
+  return combat_damage_result_from_handles(domain_event_character_handle(source),
+                                           domain_event_character_handle(target), requested,
+                                           legacy_result);
+}
 
+struct combat_damage_result combat_damage_result_from_handles(struct domain_entity_handle source,
+                                                              struct domain_entity_handle target,
+                                                              int requested, int legacy_result)
+{
+  struct combat_damage_result result = {0};
+
+  result.source = source;
+  result.target = target;
+  result.requested = requested;
   result.legacy_result = legacy_result;
-  if (source == NULL || target == NULL || requested < 0)
+  if (!domain_entity_handle_is_valid(source) || !domain_entity_handle_is_valid(target) ||
+      requested < 0)
     result.status = COMBAT_DAMAGE_REJECTED;
   else if (legacy_result < 0)
     result.status = COMBAT_DAMAGE_TARGET_DIED;

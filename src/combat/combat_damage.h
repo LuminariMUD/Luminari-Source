@@ -35,11 +35,16 @@ struct combat_damage_result
 struct combat_damage_result combat_damage_result_from_legacy(struct char_data *source,
                                                              struct char_data *target,
                                                              int requested, int legacy_result);
+/* Complete a result using identities captured before callbacks. These may no
+ * longer resolve; completing a result must never register the raw pointers again. */
+struct combat_damage_result combat_damage_result_from_handles(struct domain_entity_handle source,
+                                                              struct domain_entity_handle target,
+                                                              int requested, int legacy_result);
 struct combat_damage_result combat_damage_result_queued(struct char_data *source,
                                                         struct char_data *target, int requested);
 struct combat_damage_result combat_damage_result_rejected(struct char_data *source,
                                                           struct char_data *target, int requested);
-/* Apply damage, draining any reactive damage it provokes on a bounded queue. */
+/* Apply damage and its bounded reactions before the caller continues. */
 struct combat_damage_result combat_damage_apply(struct char_data *source, struct char_data *target,
                                                 int amount, int ability, int damage_type,
                                                 int attack_type);

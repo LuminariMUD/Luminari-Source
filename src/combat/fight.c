@@ -5430,7 +5430,7 @@ static struct char_data *find_divine_sacrifice_defender(struct char_data *victim
 static bool life_shield_can_reflect(struct char_data *attacker, struct char_data *victim,
                                     int damage, int source)
 {
-  return attacker != NULL && victim != NULL && attacker != victim && damage > 0 &&
+  return attacker != NULL && victim != NULL && attacker != victim && damage >= 0 &&
          source != SPELL_LIFE_SHIELD && IS_UNDEAD(attacker) &&
          affected_by_spell(victim, SPELL_LIFE_SHIELD);
 }
@@ -5523,9 +5523,10 @@ struct affected_type *test_find_spell_affect(struct char_data *ch, int spell)
    -item
    -etc */
 /* if it's a spell, the spellnum will be carried through the w_type variable */
-static int damage_with_projectile(struct char_data *ch, struct char_data *victim, int dam,
-                                  int w_type, int dam_type, int attack_type,
-                                  struct obj_data *attack_weapon, struct obj_data *projectile)
+static int resolve_damage_with_projectile(struct char_data *ch, struct char_data *victim, int dam,
+                                          int w_type, int dam_type, int attack_type,
+                                          struct obj_data *attack_weapon,
+                                          struct obj_data *projectile)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
@@ -5845,7 +5846,15 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
 
   GET_HIT(victim) -= dam;
   if (dam > 0)
+  {
+    struct domain_entity_handle source_handle = domain_event_character_handle(ch);
+    struct domain_entity_handle target_handle = domain_event_character_handle(victim);
+
     (void)domain_event_runtime_character_damaged(victim, ch, dam, dam_type);
+    if (domain_event_world_resolve_character(source_handle) != ch ||
+        domain_event_world_resolve_character(target_handle) != victim)
+      return dam;
+  }
 
   activate_rol_delayed_hunter(victim, dam);
 
@@ -5953,6 +5962,9 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
       threshold = dam / 2;
     }
     lifedam = dam / 2;
+    damage(victim, ch, lifedam, SPELL_LIFE_SHIELD, DAM_HOLY, FALSE);
+    if (domain_event_world_resolve_character(victim_handle) != victim)
+      return dam;
     for (inner_af = victim->affected; inner_af; inner_af = inner_af->next)
     {
       if (inner_af->spell == SPELL_LIFE_SHIELD && inner_af->location == APPLY_SPECIAL)
@@ -5969,7 +5981,6 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
     {
       affect_from_char(victim, SPELL_LIFE_SHIELD);
     }
-    damage(victim, ch, lifedam, SPELL_LIFE_SHIELD, DAM_HOLY, FALSE);
     if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
       return dam;
   }
@@ -6218,15 +6229,20 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
   return (dam);
 }
 
-/* Apply damage and drain any reactive damage it provokes.
- * The outermost call owns a bounded FIFO queue; damage raised by reactive
- * defenses while that queue is active is scheduled onto it and reported as
- * queued, so reaction chains stay iterative and bounded instead of recursive. */
-struct combat_damage_result combat_damage_apply(struct char_data *ch, struct char_data *victim,
-                                                int dam, int w_type, int dam_type, int attack_type)
+/* Complete each reactive packet before its parent resumes, as the historical
+ * callers require. All descendants share the outermost queue's monotonic
+ * admission count: at most 64 reactions, hence at most 65 damage frames. No
+ * nested caller may start a fresh budget. Preserve projectile context through
+ * this boundary instead of letting weapon hits bypass reaction admission. */
+static struct combat_damage_result
+combat_damage_apply_with_projectile(struct char_data *ch, struct char_data *victim, int dam,
+                                    int w_type, int dam_type, int attack_type,
+                                    struct obj_data *attack_weapon, struct obj_data *projectile)
 {
   struct combat_reaction_queue reactions;
   struct combat_reaction_damage reaction;
+  struct domain_entity_handle source_handle = domain_event_character_handle(ch);
+  struct domain_entity_handle target_handle = domain_event_character_handle(victim);
   struct char_data *source;
   struct char_data *target;
   enum combat_reaction_dequeue_status status;
@@ -6249,22 +6265,37 @@ struct combat_damage_result combat_damage_apply(struct char_data *ch, struct cha
             dam);
       return combat_damage_result_rejected(ch, victim, dam);
     }
-    return combat_damage_result_queued(ch, victim, dam);
+    status = combat_reaction_dequeue_damage(active_damage_reactions, &reaction, &source, &target);
+    if (status != COMBAT_REACTION_DEQUEUE_READY)
+      return combat_damage_result_rejected(ch, victim, dam);
+    result = resolve_damage_with_projectile(source, target, reaction.amount, reaction.ability,
+                                            reaction.damage_type, reaction.attack_type,
+                                            attack_weapon, projectile);
+    return combat_damage_result_from_handles(source_handle, target_handle, dam, result);
   }
 
   combat_reaction_queue_init(&reactions);
   active_damage_reactions = &reactions;
-  result = damage_with_projectile(ch, victim, dam, w_type, dam_type, attack_type, NULL, NULL);
-  while ((status = combat_reaction_dequeue_damage(&reactions, &reaction, &source, &target)) !=
-         COMBAT_REACTION_DEQUEUE_EMPTY)
-  {
-    if (status == COMBAT_REACTION_DEQUEUE_STALE)
-      continue;
-    (void)damage_with_projectile(source, target, reaction.amount, reaction.ability,
-                                 reaction.damage_type, reaction.attack_type, NULL, NULL);
-  }
+  result = resolve_damage_with_projectile(ch, victim, dam, w_type, dam_type, attack_type,
+                                          attack_weapon, projectile);
   active_damage_reactions = NULL;
-  return combat_damage_result_from_legacy(ch, victim, dam, result);
+  return combat_damage_result_from_handles(source_handle, target_handle, dam, result);
+}
+
+static int damage_with_projectile(struct char_data *ch, struct char_data *victim, int dam,
+                                  int w_type, int dam_type, int attack_type,
+                                  struct obj_data *attack_weapon, struct obj_data *projectile)
+{
+  return combat_damage_apply_with_projectile(ch, victim, dam, w_type, dam_type, attack_type,
+                                             attack_weapon, projectile)
+      .legacy_result;
+}
+
+struct combat_damage_result combat_damage_apply(struct char_data *ch, struct char_data *victim,
+                                                int dam, int w_type, int dam_type, int attack_type)
+{
+  return combat_damage_apply_with_projectile(ch, victim, dam, w_type, dam_type, attack_type, NULL,
+                                             NULL);
 }
 
 /* Existing raw-damage callers retain their own mitigation and death policy. */
@@ -6292,8 +6323,8 @@ void combat_apply_raw_damage(struct char_data *victim, struct char_data *source,
 
 /* Legacy damage() entry point kept for existing call sites.
  * Applies damage through combat_damage_apply and returns only the legacy int:
- * negative if the victim died, zero for no effect (including damage deferred
- * onto an active reaction queue), otherwise the amount applied. */
+ * negative if the victim died, zero for no effect or rejected reaction work,
+ * otherwise the amount applied. Reactions finish before this call returns. */
 int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, int dam_type,
            int attack_type)
 {

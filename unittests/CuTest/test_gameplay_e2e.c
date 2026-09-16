@@ -31,6 +31,8 @@
 #include "../../src/core/comm.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/combat/fight.h"
+#include "../../src/combat/combat_damage.h"
+#include "../../src/combat/combat_reactions.h"
 #include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/olc/genwld.h"
 #include "../../src/olc/oasis.h"
@@ -1300,6 +1302,234 @@ void Test_gameplay_e2e_combat_applies_real_damage(CuTest *tc)
   CuAssertTrue(tc, damage_result > 0);
   CuAssertTrue(tc, remaining_hit_points < 100);
   CuAssertTrue(tc, remaining_hit_points > 0);
+}
+
+struct restoration_damage_trace
+{
+  struct char_data *actor;
+  struct descriptor_data *victim_descriptor;
+  unsigned int packets;
+  unsigned int reflected;
+  int shield_charge_at_reflection;
+  bool outer_message_before_reflection;
+  int mutation;
+};
+
+static void restoration_observe_damage(const struct domain_event_context *context, void *data)
+{
+  struct restoration_damage_trace *trace = data;
+  const struct domain_character_damaged *event = context->payload;
+
+  trace->packets++;
+  if (domain_event_world_resolve_character(event->target) != trace->actor)
+    return;
+  trace->reflected++;
+  trace->shield_charge_at_reflection = get_char_affect_modifier(trace->victim_descriptor->character,
+                                                                SPELL_LIFE_SHIELD, APPLY_SPECIAL);
+  if (strstr(trace->victim_descriptor->output, "You wince in pain!") != NULL)
+    trace->outer_message_before_reflection = true;
+  if (trace->mutation == 1)
+  {
+    char_from_room(trace->actor);
+    char_to_room(trace->actor, 1);
+  }
+  else if (trace->mutation == 2)
+    domain_event_world_forget_character(trace->actor);
+}
+
+/* A real reflected packet must finish before the original packet's messages
+ * and continuation checks. Both entry points share one lifetime reaction cap. */
+static void verify_restored_damage_continuation(CuTest *tc, int mutation, bool zero,
+                                                bool retort_chain, bool weapon_hit)
+{
+  struct gameplay_fixture f;
+  struct player_special_data actor_specials = {0}, victim_specials = {0};
+  struct char_perk_data actor_perk = {0}, victim_perk = {0};
+  struct descriptor_data descriptor = {0};
+  struct char_data *saved_characters = character_list;
+  struct affected_type shield = {0};
+  struct restoration_damage_trace trace = {0};
+  struct domain_event_subscription_config observer = {0};
+  struct domain_event_subscription_handle subscription;
+  struct combat_damage_result result = {0};
+  struct domain_entity_handle attacker;
+  int saved_pk = CONFIG_PK_ALLOWED, actor_hp, victim_hp, remaining, source_remaining, returned;
+  bool retained, source_stale, source_preserved, outer_message;
+
+  begin_gameplay_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  event_init();
+  f.actor.next = &f.victim;
+  character_list = &f.actor;
+  f.rooms[0].light = 1;
+  f.rooms[1].light = 1;
+  GET_ATTACK_QUEUE(&f.actor) = create_attack_queue();
+  GET_ATTACK_QUEUE(&f.victim) = create_attack_queue();
+  if (retort_chain)
+  {
+    REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+    REMOVE_BIT_AR(MOB_FLAGS(&f.victim), MOB_ISNPC);
+    f.actor.player_specials = &actor_specials;
+    f.victim.player_specials = &victim_specials;
+    f.actor.player.name = CuMutableString("retorting attacker");
+    f.victim.player.name = CuMutableString("retorting defender");
+    f.actor.player.title = f.victim.player.title = CuMutableString("");
+    actor_perk.perk_id = victim_perk.perk_id = PERK_PSIONICIST_ENERGY_RETORT_PERK;
+    actor_specials.saved.perks = &actor_perk;
+    victim_specials.saved.perks = &victim_perk;
+    CONFIG_PK_ALLOWED = true;
+    SET_BIT_AR(PRF_FLAGS(&f.actor), PRF_PVP);
+    SET_BIT_AR(PRF_FLAGS(&f.victim), PRF_PVP);
+    new_affect(&shield);
+    shield.spell = PSIONIC_FORCE_SCREEN;
+    shield.duration = 10;
+    affect_to_char(&f.actor, &shield);
+    affect_to_char(&f.victim, &shield);
+  }
+  else
+  {
+    GET_REAL_RACE(&f.actor) = RACE_TYPE_UNDEAD;
+    GET_REAL_RACE(&f.victim) = RACE_TYPE_UNDEAD;
+    new_affect(&shield);
+    shield.spell = SPELL_LIFE_SHIELD;
+    shield.location = APPLY_SPECIAL;
+    shield.modifier = 100;
+    shield.duration = 10;
+    affect_to_char(&f.actor, &shield);
+    affect_to_char(&f.victim, &shield);
+  }
+  GET_HIT(&f.actor) = GET_MAX_HIT(&f.actor) = 100000;
+  GET_HIT(&f.victim) = GET_MAX_HIT(&f.victim) = 100000;
+  GET_HITROLL(&f.actor) = 100;
+  GET_HITROLL(&f.victim) = -100;
+  GET_DAMROLL(&f.actor) = 20;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &f.victim;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  f.victim.desc = &descriptor;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  attacker = domain_event_character_handle(&f.actor);
+  trace.actor = &f.actor;
+  trace.victim_descriptor = &descriptor;
+  trace.mutation = mutation;
+  observer.type = DOMAIN_EVENT_CHARACTER_DAMAGED;
+  observer.topic.role = DOMAIN_EVENT_TOPIC_ANY;
+  observer.owner = domain_event_character_handle(&f.victim);
+  observer.identity = "test.restoration.damage.order";
+  observer.handler = restoration_observe_damage;
+  observer.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &observer, &subscription));
+  FIGHTING(&f.actor) = &f.victim;
+  FIGHTING(&f.victim) = &f.actor;
+  circle_srandom(1234);
+  if (weapon_hit)
+    returned = hit(&f.actor, &f.victim, TYPE_UNDEFINED, DAM_BLUDGEON, 0, ATTACK_TYPE_PRIMARY);
+  else
+  {
+    result = combat_damage_apply(&f.actor, &f.victim, zero ? 0 : 20, TYPE_UNDEFINED, DAM_BLUDGEON,
+                                 ATTACK_TYPE_PRIMARY);
+    returned = result.legacy_result;
+  }
+  actor_hp = GET_HIT(&f.actor);
+  victim_hp = GET_HIT(&f.victim);
+  retained = affected_by_spell(&f.victim, SPELL_LIFE_SHIELD);
+  remaining = get_char_affect_modifier(&f.victim, SPELL_LIFE_SHIELD, APPLY_SPECIAL);
+  source_remaining = get_char_affect_modifier(&f.actor, SPELL_LIFE_SHIELD, APPLY_SPECIAL);
+  source_preserved = result.source.runtime_id == attacker.runtime_id &&
+                     result.source.generation == attacker.generation;
+  source_stale = domain_event_world_resolve_character(result.source) == NULL;
+  outer_message = strstr(descriptor.output, "You wince in pain!") != NULL;
+
+  stop_fighting(&f.actor);
+  stop_fighting(&f.victim);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  free_attack_queue(GET_ATTACK_QUEUE(&f.actor));
+  free_attack_queue(GET_ATTACK_QUEUE(&f.victim));
+  if (f.actor.events != NULL)
+    free_list(f.actor.events);
+  if (f.victim.events != NULL)
+    free_list(f.victim.events);
+  ProtocolDestroy(descriptor.pProtocol);
+  if (descriptor.large_outbuf != NULL)
+  {
+    free(descriptor.large_outbuf->text);
+    free(descriptor.large_outbuf);
+  }
+  f.victim.desc = NULL;
+  character_list = saved_characters;
+  CONFIG_PK_ALLOWED = saved_pk;
+  end_gameplay_fixture(&f);
+
+  if (retort_chain)
+  {
+    CuAssertTrue(tc, returned > 0);
+    CuAssertIntEquals(tc, COMBAT_REACTION_CAPACITY + 1, (int)trace.packets);
+    CuAssertTrue(tc, actor_hp < 100000 && victim_hp < 100000);
+  }
+  else if (zero)
+  {
+    CuAssertIntEquals(tc, 0, returned);
+    CuAssertIntEquals(tc, 100000, actor_hp);
+    CuAssertIntEquals(tc, 100000, victim_hp);
+    CuAssertTrue(tc, !retained);
+    CuAssertIntEquals(tc, 100, source_remaining);
+    CuAssertIntEquals(tc, 0, (int)trace.packets);
+  }
+  else
+  {
+    CuAssertIntEquals(tc, 20, returned);
+    CuAssertIntEquals(tc, 99990, actor_hp);
+    CuAssertIntEquals(tc, 99980, victim_hp);
+    CuAssertIntEquals(tc, 1, (int)trace.reflected);
+    CuAssertIntEquals(tc, 2, (int)trace.packets);
+    CuAssertTrue(tc, retained);
+    CuAssertIntEquals(tc, 10, remaining);
+    CuAssertIntEquals(tc, 100, source_remaining);
+    CuAssertIntEquals(tc, 100, trace.shield_charge_at_reflection);
+    CuAssertTrue(tc, !trace.outer_message_before_reflection);
+    CuAssertTrue(tc, outer_message == (mutation == 0));
+  }
+  if (!weapon_hit)
+  {
+    CuAssertTrue(tc, source_preserved);
+    CuAssertTrue(tc, source_stale == (mutation == 2));
+    CuAssertIntEquals(tc, zero ? COMBAT_DAMAGE_NO_EFFECT : COMBAT_DAMAGE_APPLIED, result.status);
+  }
+}
+
+void Test_combat_restoration_damage_life_shield_precedes_outer_continuation(CuTest *tc)
+{
+  verify_restored_damage_continuation(tc, 0, false, false, false);
+}
+
+void Test_combat_restoration_damage_relocation_stops_outer_continuation(CuTest *tc)
+{
+  verify_restored_damage_continuation(tc, 1, false, false, false);
+}
+
+void Test_combat_restoration_damage_result_keeps_invalidated_source_handle(CuTest *tc)
+{
+  verify_restored_damage_continuation(tc, 2, false, false, false);
+}
+
+void Test_combat_restoration_damage_zero_hit_consumes_life_shield(CuTest *tc)
+{
+  verify_restored_damage_continuation(tc, 0, true, false, false);
+}
+
+void Test_combat_restoration_damage_retort_chain_keeps_lifetime_bound(CuTest *tc)
+{
+  verify_restored_damage_continuation(tc, 0, false, true, false);
+}
+
+void Test_combat_restoration_damage_melee_uses_same_reaction_bound(CuTest *tc)
+{
+  verify_restored_damage_continuation(tc, 0, false, true, true);
 }
 
 void Test_gameplay_e2e_staff_all_feats_melee_rotation_executes(CuTest *tc)
