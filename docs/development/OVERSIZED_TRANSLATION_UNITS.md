@@ -212,12 +212,42 @@ Writing those up also turned over a larger defect the tests themselves cannot ca
 tracked in [#195](https://github.com/LuminariMUD/Luminari-Source/issues/195), and it needs fixing
 before the barbarian perks above can be given a category.
 
+## Defects review found in the moved combat code
+
+Once `combat_messages.h` became the contract callers read instead of `fight.c`, review of PR #193
+found five places where the code moved verbatim did not do what that header said, or had
+preconditions nothing stated. All five predate this wave. Unlike the perk content above they are
+code defects, and they were fixed in the same PR, in a commit separate from the pure move so that
+the move stays mechanically verifiable.
+
+- **Object leak.** `skill_message_with_projectile()` loaded a stand-in claw object for every Trelux
+  combat message and never extracted it. Each one stayed in `object_list` and in the
+  `obj_index[].number` count for the life of the boot. Every path out now goes through one exit
+  that extracts it.
+- **Unbounded attack-type index.** `dam_message()` indexes `attack_hit_text[]` by `w_type` with no
+  bound. The only guard was the `IS_WEAPON()` check at its one caller, and that macro was private
+  to `fight.c`. It now lives in `structs.h`, `dam_message()` refuses an out-of-range type with a
+  `SYSERR`, and `replace_string()` bounds both copy loops against its buffer.
+- **Silent killing blow.** The header said `dam_message()` always produces output, but it renders
+  nothing for a dead victim. `damage_with_projectile()` fell back to it for a killing blow with no
+  authored message, so that blow went undescribed with nothing logged. The header now says so, and
+  that path logs a `SYSERR` naming the attack type. Every weapon type has a message block today,
+  so this is a guard, not a visible change.
+- **Armour check on non-armour.** The glance-off-armour miss indexed `armor_list[]` with `value[1]`
+  of whatever was worn on the body. It now uses the guarded `GET_ARMOR_TYPE_PROF()`. This is the
+  one fix players can see: four crests that mobs in zone 20202 wear on the body, and Graye's Staff
+  (#31020), are wands or staves whose charge count happened to select an armour row. Misses against
+  their wearers could read "glances off" the crest; they now get the ordinary miss line.
+- **Test fixture teardown.** `test_combat_messages.c` asserted before tearing its fixture down, and
+  CuTest `longjmp()`s out of a failed assertion. A single failure would have left `world` pointing
+  into a dead stack frame for every later test. Each test now tears down before it asserts.
+
 ## Where the tests live
 
 | Module | Tests |
 | -- | -- |
 | `perk_definitions.c` | `unittests/CuTest/test_perk_definitions.c` - table completeness, prerequisite resolution, string ownership across re-init, sentinel handling for unclaimed slots |
-| `combat_messages.c` | `unittests/CuTest/test_combat_messages.c` - the fallback protocol between `skill_message()` and `dam_message()`, weapon token substitution, damage-fraction tiering |
+| `combat_messages.c` | `unittests/CuTest/test_combat_messages.c` - the fallback protocol between `skill_message()` and `dam_message()`, weapon token substitution, damage-fraction tiering, the attack-type bound, silence for a dead victim, and release of the Trelux stand-in object |
 | `act.wizard.set.c` | `unittests/CuTest/test_wizard_set.c` - field resolution, sentinel termination, the hardcoded `SET_NAME_FIELD` index, and the staff level gate on every row |
 
 `unittests/CuTest/test_spec_combat_secondary.c` reads combat source by region to assert that
