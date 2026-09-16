@@ -3610,6 +3610,19 @@ int craft_material_to_obj_material(int craftmat)
   return MATERIAL_UNDEFINED;
 }
 
+/* The crafting material a material object is stored as. Unstored bundles record it in value 1,
+ * since several hide grades share one object material; other material objects convert their
+ * object material. */
+int craft_material_from_object(struct obj_data *obj)
+{
+  int craft_material = GET_OBJ_VAL(obj, 1);
+
+  if (craft_material <= CRAFT_MAT_NONE || craft_material >= NUM_CRAFT_MATS ||
+      craft_material_to_obj_material(craft_material) != GET_OBJ_MATERIAL(obj))
+    craft_material = obj_material_to_craft_material(GET_OBJ_MATERIAL(obj));
+  return craft_material;
+}
+
 struct obj_data *setup_craft_weapon(struct char_data *ch, int w_type)
 {
   struct obj_data *obj;
@@ -6074,13 +6087,7 @@ ACMD(do_list_craft_materials)
 
     /* Get quantity from object (VAL 0) */
     quantity = MAX(1, GET_OBJ_VAL(obj, 0));
-
-    /* Unstored bundles record their crafting material in value 1, since several hide grades share
-     * one object material; other material objects convert their object material. */
-    craft_material = GET_OBJ_VAL(obj, 1);
-    if (craft_material <= CRAFT_MAT_NONE || craft_material >= NUM_CRAFT_MATS ||
-        craft_material_to_obj_material(craft_material) != GET_OBJ_MATERIAL(obj))
-      craft_material = obj_material_to_craft_material(GET_OBJ_MATERIAL(obj));
+    craft_material = craft_material_from_object(obj);
 
     if (craft_material == CRAFT_MAT_NONE)
     {

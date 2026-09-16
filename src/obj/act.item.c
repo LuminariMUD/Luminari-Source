@@ -2282,6 +2282,7 @@ static void get_check_money(struct char_data *ch, struct obj_data *obj)
  * Works similarly to get_check_money() for gold coins.
  * ITEM_MATERIAL objects have:
  *   GET_OBJ_VAL(obj, 0) = quantity/bundle size
+ *   GET_OBJ_VAL(obj, 1) = crafting material, on bundles from craftmaterials unstore
  *   GET_OBJ_MATERIAL(obj) = material type
  * Only active when USE_NEW_CRAFTING_SYSTEM is defined.
  */
@@ -2294,8 +2295,8 @@ static void get_check_craft_material(struct char_data *ch, struct obj_data *obj)
     return;
 
   quantity = MAX(1, GET_OBJ_VAL(obj, 0));
-  /* Storage is indexed by crafting material, not by object material. */
-  material_type = obj_material_to_craft_material(GET_OBJ_MATERIAL(obj));
+  /* The same lookup as craftmaterials store, so a bundle keeps its hide grade. */
+  material_type = craft_material_from_object(obj);
 
   if (material_type == CRAFT_MAT_NONE)
     return;
