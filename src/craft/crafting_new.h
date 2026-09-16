@@ -287,6 +287,7 @@ bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int sk
                               const char *method, int exp, int dc);
 int get_craft_material_final_level_adjustment(struct char_data *ch);
 int craft_material_to_obj_material(int craftmat);
+int craft_material_from_object(struct obj_data *obj);
 void show_refine_noargs(struct char_data *ch);
 bool is_refine_ready(struct char_data *ch, bool verbose);
 void craft_refine_complete(struct char_data *ch);
