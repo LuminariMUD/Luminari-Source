@@ -2703,3 +2703,158 @@ void Test_account_tier_binds_hostile_values_in_every_sql_mode(CuTest *tc)
   CuAssert(tc, no_backslash_failure != NULL ? no_backslash_failure : "NO_BACKSLASH_ESCAPES",
            no_backslash_failure == NULL);
 }
+
+static bool account_names_include(const struct account_data *account, const char *name)
+{
+  int slot;
+
+  for (slot = 0; slot < MAX_CHARS_PER_ACCOUNT; slot++)
+    if (account->character_names[slot] != NULL && !str_cmp(account->character_names[slot], name))
+      return true;
+  return false;
+}
+
+static int account_link_count(MYSQL *connection, int account_id)
+{
+  char query[128];
+
+  snprintf(query, sizeof(query), "SELECT COUNT(*) FROM player_data WHERE account_id = %d",
+           account_id);
+  return query_single_int(connection, query, -1);
+}
+
+/* Deleting a character unlinks it from its account in a transaction that the
+ * deletion flow in character_creation.c either rolls back or commits. A commit
+ * must also refresh every other connected view of the account, or a later save
+ * from that view would link the deleted character again. */
+void Test_account_character_removal_commits_or_rolls_back_the_link(CuTest *tc)
+{
+  const char *queries[] = {
+      "CREATE TEMPORARY TABLE account_data ("
+      "id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(64) NOT NULL, "
+      "password VARCHAR(255) NOT NULL, experience INT NOT NULL, email VARCHAR(255) NULL, "
+      "quit_survey_completed BOOLEAN NOT NULL) ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE player_data (name VARCHAR(30) NOT NULL PRIMARY KEY, "
+      "account_id INT DEFAULT NULL, last_online DATETIME DEFAULT NULL) ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE unlocked_races (account_id INT NOT NULL, race_id INT NOT NULL, "
+      "UNIQUE KEY unique_account_race (account_id, race_id)) ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE unlocked_classes (account_id INT NOT NULL, class_id INT NOT NULL, "
+      "UNIQUE KEY unique_account_class (account_id, class_id)) ENGINE=InnoDB",
+      NULL};
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct descriptor_data *saved_descriptors;
+  struct descriptor_data viewer;
+  struct account_data account;
+  struct account_data other_view;
+  struct char_data first;
+  struct char_data second;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  bool saved_available;
+  bool schema_created = true;
+  bool account_saved = false;
+  bool linked = false;
+  bool view_had_first = false;
+  bool refused_incomplete = false;
+  bool rolled_back_stage = false;
+  bool committed = false;
+  bool view_has_first = true;
+  bool view_has_second = false;
+  bool refused_null_commit = false;
+  int after_link = -1;
+  int after_rollback = -1;
+  int after_commit = -1;
+  int query_index;
+  int slot;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  saved_descriptors = descriptor_list;
+  conn = connection;
+  mysql_available = true;
+  memset(&viewer, 0, sizeof(viewer));
+  memset(&account, 0, sizeof(account));
+  memset(&other_view, 0, sizeof(other_view));
+  memset(&first, 0, sizeof(first));
+  memset(&second, 0, sizeof(second));
+  first.player.name = CuMutableString("Removalfirst");
+  second.player.name = CuMutableString("Removalsecond");
+  /* A second connection logged in to the same account, at its menu. */
+  STATE(&viewer) = CON_ACCOUNT_MENU;
+  viewer.account = &other_view;
+  descriptor_list = &viewer;
+
+  for (query_index = 0; queries[query_index] != NULL; query_index++)
+    if (mysql_query(connection, queries[query_index]))
+    {
+      schema_created = false;
+      break;
+    }
+
+  if (schema_created)
+  {
+    account.name = CuMutableString("RemovalAccount");
+    strlcpy(account.password, "test-password", sizeof(account.password));
+    account_saved = save_account_checked(&account) && account.id > 0;
+  }
+  if (account_saved)
+  {
+    linked = link_character_to_account_checked(&first, &account) &&
+             link_character_to_account_checked(&second, &account);
+    after_link = account_link_count(connection, account.id);
+    other_view.id = account.id;
+    load_account_characters(&other_view);
+    view_had_first = account_names_include(&other_view, "Removalfirst");
+
+    refused_incomplete = !begin_account_character_removal(NULL, &account) &&
+                         !begin_account_character_removal(&first, NULL);
+    rolled_back_stage = begin_account_character_removal(&first, &account);
+    rollback_account_character_removal();
+    after_rollback = account_link_count(connection, account.id);
+
+    committed = begin_account_character_removal(&first, &account) &&
+                commit_account_character_removal(&account);
+    after_commit = account_link_count(connection, account.id);
+    view_has_first = account_names_include(&other_view, "Removalfirst");
+    view_has_second = account_names_include(&other_view, "Removalsecond");
+    refused_null_commit = !commit_account_character_removal(NULL);
+  }
+
+  /* Restore the globals before any assertion can longjmp out of this test. */
+  for (slot = 0; slot < MAX_CHARS_PER_ACCOUNT; slot++)
+  {
+    free(account.character_names[slot]);
+    free(other_view.character_names[slot]);
+  }
+  descriptor_list = saved_descriptors;
+  mysql_close(connection);
+  conn = saved_conn;
+  mysql_available = saved_available;
+
+  CuAssertTrue(tc, schema_created);
+  CuAssertTrue(tc, account_saved);
+  CuAssertTrue(tc, linked);
+  CuAssertIntEquals(tc, 2, after_link);
+  CuAssertTrue(tc, view_had_first);
+  CuAssertTrue(tc, refused_incomplete);
+  CuAssertTrue(tc, rolled_back_stage);
+  CuAssertIntEquals(tc, 2, after_rollback);
+  CuAssertTrue(tc, committed);
+  CuAssertIntEquals(tc, 1, after_commit);
+  CuAssertTrue(tc, !view_has_first);
+  CuAssertTrue(tc, view_has_second);
+  CuAssertTrue(tc, refused_null_commit);
+}

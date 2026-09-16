@@ -121,3 +121,40 @@ void Test_password_needs_rehash_on_parameter_change(CuTest *tc)
   CuAssertTrue(tc, password_verify("secret", cheaper));
   CuAssertTrue(tc, password_needs_rehash(cheaper));
 }
+
+/* The output buffer bounds and the wipe helper, where a fault would store a
+ * truncated hash, write through a null buffer, or leave password material in
+ * memory (scripts/ci/mutation_test.py found these unasserted). */
+void Test_password_output_bounds_and_secure_zero(CuTest *tc)
+{
+  char hash[MAX_PWD_HASH_LENGTH + 1];
+  char exact[MAX_PWD_HASH_LENGTH + 1];
+  unsigned char secret[16];
+  size_t length;
+  size_t i;
+  bool wiped;
+
+  CuAssertTrue(tc, !password_hash("secret", NULL, sizeof(hash)));
+  CuAssertTrue(tc, !password_hash("secret", hash, 0));
+
+  /* A hash needs its length plus the terminator; one byte less is refused. */
+  CuAssertTrue(tc, password_hash("secret", hash, sizeof(hash)));
+  length = strlen(hash);
+  strlcpy(exact, "untouched", sizeof(exact));
+  CuAssertTrue(tc, !password_hash("secret", exact, length));
+  CuAssertStrEquals(tc, "untouched", exact);
+  CuAssertTrue(tc, password_hash("secret", exact, length + 1));
+  CuAssertIntEquals(tc, (int)length, (int)strlen(exact));
+  CuAssertTrue(tc, password_verify("secret", exact));
+
+  memset(secret, 0xA5, sizeof(secret));
+  password_secure_zero(secret, sizeof(secret));
+  wiped = true;
+  for (i = 0; i < sizeof(secret); i++)
+    wiped = wiped && secret[i] == 0;
+  CuAssertTrue(tc, wiped);
+  memset(secret, 0xA5, sizeof(secret));
+  password_secure_zero(secret, 0);
+  CuAssertIntEquals(tc, 0xA5, secret[0]);
+  password_secure_zero(NULL, sizeof(secret));
+}

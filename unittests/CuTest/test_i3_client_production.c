@@ -10,10 +10,16 @@
 #include "../../src/net/i3_client.h"
 
 #include <json-c/json.h>
+#include <arpa/inet.h>
 #include <fcntl.h>
+#include <limits.h>
+#include <netinet/in.h>
+#include <poll.h>
 #include <pthread.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -569,4 +575,140 @@ void Test_i3_presence_snapshot_uses_playing_descriptors(CuTest *tc)
 
   i3_test_cleanup();
   descriptor_list = saved_descriptor_list;
+}
+
+static bool i3_thread_test_readable(int fd, int timeout_ms)
+{
+  struct pollfd waiting;
+
+  waiting.fd = fd;
+  waiting.events = POLLIN;
+  waiting.revents = 0;
+  return fd >= 0 && poll(&waiting, 1, timeout_ms) == 1;
+}
+
+/* Reads from the gateway side until text arrives, the peer closes, or 5 s pass. */
+static bool i3_thread_test_gateway_receives(int gateway, const char *text, char *buffer,
+                                            size_t size)
+{
+  size_t used = 0;
+  ssize_t bytes;
+
+  buffer[0] = '\0';
+  while (used + 1 < size && i3_thread_test_readable(gateway, 5000))
+  {
+    bytes = recv(gateway, buffer + used, size - used - 1, 0);
+    if (bytes <= 0)
+      return false;
+    used += (size_t)bytes;
+    buffer[used] = '\0';
+    if (strstr(buffer, text) != NULL)
+      return true;
+  }
+  return false;
+}
+
+/* The client thread against a local gateway: i3_initialize starts it and it
+ * connects; a tell queued by the game thread is sent by the client thread; a
+ * notification from the gateway reaches the game thread's event queue and wakes
+ * its event descriptor; and i3_shutdown stops and joins the thread, frees the
+ * client, and closes the connection. */
+void Test_i3_client_thread_hands_off_both_ways_and_joins_on_shutdown(CuTest *tc)
+{
+  static const char notification[] =
+      "{\"jsonrpc\":\"2.0\",\"method\":\"tell_received\",\"params\":{\"from_user\":"
+      "\"Gateway\",\"from_mud\":\"RemoteMUD\",\"to_user\":\"Tester\",\"message\":\"handoff\"}}\n";
+  char sandbox[] = "/tmp/luminari-i3-thread.XXXXXX";
+  char original_cwd[PATH_MAX];
+  char config_path[sizeof(sandbox) + 16];
+  char received[4096];
+  struct sockaddr_in address;
+  socklen_t address_length = sizeof(address);
+  i3_event_t *event;
+  FILE *config;
+  int listener = -1;
+  int gateway = -1;
+  int started = -1;
+  bool prepared = false;
+  bool connected = false;
+  bool queued = false;
+  bool tell_sent = false;
+  bool event_signalled = false;
+  bool event_delivered = false;
+  bool client_freed = false;
+  bool gateway_saw_close = false;
+
+  memset(&address, 0, sizeof(address));
+  address.sin_family = AF_INET;
+  address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+  if (getcwd(original_cwd, sizeof(original_cwd)) != NULL && mkdtemp(sandbox) != NULL)
+  {
+    listener = socket(AF_INET, SOCK_STREAM, 0);
+    snprintf(config_path, sizeof(config_path), "%s/i3_config", sandbox);
+    if (listener >= 0 && bind(listener, (struct sockaddr *)&address, sizeof(address)) == 0 &&
+        listen(listener, 1) == 0 &&
+        getsockname(listener, (struct sockaddr *)&address, &address_length) == 0)
+    {
+      config = fopen(config_path, "w");
+      if (config != NULL)
+      {
+        fprintf(config, "gateway_host 127.0.0.1\ngateway_port %d\nauto_reconnect 0\n",
+                (int)ntohs(address.sin_port));
+        prepared = fclose(config) == 0;
+      }
+    }
+  }
+
+  /* i3_initialize reads i3_config from the working directory before it starts
+   * the thread, so the directory is restored as soon as it returns. */
+  if (prepared && chdir(sandbox) == 0)
+  {
+    started = i3_initialize();
+    if (chdir(original_cwd) != 0)
+      started = -1;
+  }
+  if (started == 0 && i3_client != NULL && i3_thread_test_readable(listener, 5000))
+  {
+    gateway = accept(listener, NULL, NULL);
+    connected = gateway >= 0;
+  }
+  if (connected)
+  {
+    /* The order fixes which loop paths run however the threads are scheduled.
+     * The pass that reads the notification found no command queued. The tell
+     * is queued only after the event arrives, and the pass that sends it then
+     * waits out its poll with no input while i3_shutdown waits to join. */
+    if (send(gateway, notification, sizeof(notification) - 1, 0) ==
+        (ssize_t)(sizeof(notification) - 1))
+      event_signalled = i3_thread_test_readable(i3_get_event_fd(), 5000);
+    event = event_signalled ? i3_pop_event() : NULL;
+    event_delivered = event != NULL && strcmp(event->from_user, "Gateway") == 0 &&
+                      strcmp(event->message, "handoff") == 0;
+    if (event != NULL)
+      i3_free_event(event);
+    queued = i3_send_tell("Tester", "RemoteMUD", "Friend", "hello") == 0;
+    tell_sent = queued && i3_thread_test_gateway_receives(gateway, "\"method\":\"tell\"", received,
+                                                          sizeof(received));
+  }
+  if (i3_client != NULL)
+    i3_shutdown();
+  client_freed = i3_client == NULL;
+  gateway_saw_close = connected && i3_thread_test_readable(gateway, 5000) &&
+                      recv(gateway, received, sizeof(received), 0) == 0;
+
+  if (gateway >= 0)
+    close(gateway);
+  if (listener >= 0)
+    close(listener);
+  unlink(config_path);
+  rmdir(sandbox);
+
+  CuAssertTrue(tc, prepared);
+  CuAssertIntEquals(tc, 0, started);
+  CuAssertTrue(tc, connected);
+  CuAssertTrue(tc, tell_sent);
+  CuAssertTrue(tc, event_signalled);
+  CuAssertTrue(tc, event_delivered);
+  CuAssertTrue(tc, client_freed);
+  CuAssertTrue(tc, gateway_saw_close);
 }

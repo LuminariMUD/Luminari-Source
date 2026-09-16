@@ -4330,6 +4330,16 @@ void flush_queues_for_test(struct descriptor_data *d)
 {
   flush_queues(d);
 }
+
+int new_descriptor_for_test(int listener)
+{
+  return new_descriptor(listener);
+}
+
+int process_output_for_test(struct descriptor_data *t)
+{
+  return process_output(t);
+}
 #endif
 
 /* Perform substitution for the '^..^' csh-esque syntax orig is the orig string,
