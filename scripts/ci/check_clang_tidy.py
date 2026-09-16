@@ -17,6 +17,14 @@ check that appears in a file for the first time, fails. A lower count is
 reported; record it with --update, which analyzes the whole tree. Without a
 baseline file, --update records every finding as the first baseline.
 
+A count cannot see one finding swapped for another in the same file, so every
+bugprone-unsafe-functions call, including the unbounded string functions the
+configuration adds to it, is held by call text as well, in
+scripts/ci/clang_tidy_unsafe_sites.txt. A call
+the list does not hold fails even when the file's count is unchanged. Editing
+a recorded call changes its text too, so --update re-records the list whenever
+no count grew; it never accepts a higher count.
+
 With --base REF only the translation units affected by ``git diff REF`` are
 analyzed: changed sources, and every source that includes a changed header.
 Counts for a source are compared when it was analyzed; counts for a header
@@ -53,8 +61,16 @@ sys.path.insert(0, str(SCRIPT_DIR))
 from check_build_parity import MAKE_REFERENCE, expand, parse_makefile_am  # noqa: E402
 
 BASELINE_PATH = SCRIPT_DIR / "clang_tidy_baseline.txt"
+SITES_PATH = SCRIPT_DIR / "clang_tidy_unsafe_sites.txt"
 REQUIREMENTS_PATH = SCRIPT_DIR / "clang-tidy-requirements.txt"
 CONFIG_PATH = REPO_ROOT / ".clang-tidy"
+
+# The check whose sites are held by call text, not only by count: the sprintf,
+# vsprintf, strcpy, and strcat entries .clang-tidy adds, and the check's own
+# defaults such as rewind.
+SITE_TRACKED_CHECK = "bugprone-unsafe-functions"
+# A call spanning more lines than this is recorded from what fits.
+SITE_TEXT_LINES = 20
 
 # cutest compiles every production source a second time with LUMINARI_CUTEST;
 # the server's command is the one analyzed.
@@ -69,6 +85,7 @@ FULL_RUN_PATHS = {
     "scripts/ci/check_clang_tidy.py",
     "scripts/ci/clang-tidy-requirements.txt",
     "scripts/ci/clang_tidy_baseline.txt",
+    "scripts/ci/clang_tidy_unsafe_sites.txt",
     "scripts/deployment/production_profile.sh",
 }
 FULL_RUN_PREFIXES = ("cmake/",)
@@ -233,10 +250,13 @@ def source_files():
         return sorted(found)
 
 
-def suppression_problems(files, known_checks):
-    """Report NOLINT comments that do not name real checks or give a reason.
+def suppression_problems(files, enabled):
+    """Report NOLINT comments that do not name enabled checks or give a reason.
 
-    files yields (path, text) pairs.
+    files yields (path, text) pairs. A name outside enabled is either not a
+    check at all or one .clang-tidy disables; either way the comment silences
+    nothing, which is what retired the clang-analyzer-valist.Uninitialized
+    comments this gate replaced.
     """
     problems = []
     for path, text in files:
@@ -252,8 +272,10 @@ def suppression_problems(files, known_checks):
                 for name in checks:
                     if not name or "*" in name:
                         problems.append(f"{where}: {kind} must name each check exactly: '{name}'")
-                    elif not name.startswith("clang-diagnostic-") and name not in known_checks:
-                        problems.append(f"{where}: {kind} names {name}, which is not a check")
+                    elif not name.startswith("clang-diagnostic-") and name not in enabled:
+                        problems.append(
+                            f"{where}: {kind} names {name}, which .clang-tidy does not enable"
+                        )
                 if kind != "NOLINTEND" and not SUPPRESSION_REASON.match(form.group("rest")):
                     problems.append(
                         f"{where}: {kind}({form.group('checks')}) needs a reason after ' -- '"
@@ -308,6 +330,73 @@ def compare(counts, baseline, complete):
     return failures, improvements
 
 
+def call_text(path, line, column):
+    """The call at line:column with its arguments, whitespace collapsed.
+
+    A site keeps its identity across a reformat and across edits elsewhere in
+    the file, so the text runs from the callee to its matching parenthesis and
+    every run of whitespace, including a line break, becomes one space.
+    """
+    try:
+        source = (REPO_ROOT / path).read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return ""
+    if not 1 <= line <= len(source):
+        return ""
+    text = "\n".join(source[line - 1 : line - 1 + SITE_TEXT_LINES])
+    index = start = column - 1
+    depth = 0
+    quote = ""
+    while index < len(text):
+        character = text[index]
+        if quote:
+            if character == "\\":
+                index += 2
+                continue
+            if character == quote:
+                quote = ""
+        elif character in "\"'":
+            quote = character
+        elif character == "(":
+            depth += 1
+        elif character == ")":
+            depth -= 1
+            if depth == 0:
+                index += 1
+                break
+        index += 1
+    collapsed = " ".join(text[start:index].split())
+    return collapsed.encode("ascii", "replace").decode("ascii")
+
+
+def read_sites():
+    """{(path, call): count} from the recorded unsafe-call sites."""
+    sites = {}
+    if not SITES_PATH.exists():
+        return sites
+    for raw in SITES_PATH.read_text(encoding="ascii").splitlines():
+        raw = raw.strip()
+        if raw and not raw.startswith("#"):
+            path, count, call = raw.split(None, 2)
+            sites[(path, call)] = int(count)
+    return sites
+
+
+def write_sites(counts, version):
+    with SITES_PATH.open("w", encoding="ascii", newline="\n") as handle:
+        handle.write(
+            f"# Every {SITE_TRACKED_CHECK} call clang-tidy {version} reports, as\n"
+            "# 'file count call' (issue #89 ratchet). The per-file counts in\n"
+            "# clang_tidy_baseline.txt cannot see one of these swapped for another, so the\n"
+            "# call text is recorded too. A call that is not listed fails the check.\n"
+            "# Record an edit to a listed call with --update, which never raises a count:\n"
+            "#   scripts/ci/check_clang_tidy.py --build-dir build/analysis --update\n"
+        )
+        for (path, call), count in sorted(counts.items()):
+            if count:
+                handle.write(f"{path} {count} {call}\n")
+
+
 def read_baseline():
     baseline = {}
     if not BASELINE_PATH.exists():
@@ -355,9 +444,14 @@ def tool_version(binary):
     return match.group(1) if match else output.strip()
 
 
-def known_checks(binary):
+def enabled_checks(binary):
+    """The checks the tracked configuration turns on, which is what a NOLINT may name.
+
+    --checks='*' would list every check the binary has, so a suppression could
+    name one this configuration disables and silence nothing.
+    """
     output = subprocess.run(
-        [binary, "--list-checks", "--checks=*"],
+        [binary, "--list-checks", f"--config-file={CONFIG_PATH}"],
         capture_output=True,
         text=True,
         check=True,
@@ -395,7 +489,7 @@ def run(args):
         raise EnvironmentProblem(problem)
 
     coverage = coverage_problems(database, build_dir, (REPO_ROOT / "Makefile.am").read_text())
-    checks = known_checks(args.clang_tidy)
+    checks = enabled_checks(args.clang_tidy)
     suppressions = suppression_problems(
         ((path, (REPO_ROOT / path).read_text(errors="replace")) for path in source_files()),
         checks,
@@ -462,9 +556,15 @@ def run(args):
     seconds = time.monotonic() - start
 
     counts = Counter((path, check) for path, _, _, check in sites)
+    site_counts = Counter(
+        (path, call_text(path, line, column))
+        for path, line, column, check in sites
+        if check == SITE_TRACKED_CHECK
+    )
     first_baseline = args.update and not BASELINE_PATH.exists()
     baseline = read_baseline()
     failures, improvements = compare(counts, baseline, complete)
+    site_failures, site_improvements = compare(site_counts, read_sites(), complete)
 
     report_dir = Path(args.report_dir or build_dir / "clang-tidy-report")
     report_dir.mkdir(parents=True, exist_ok=True)
@@ -496,6 +596,10 @@ def run(args):
         "improvements": [
             {"file": path, "check": check, "count": now, "baseline": allowed}
             for (path, check), now, allowed in improvements
+        ],
+        "unsafe_call_failures": [
+            {"file": path, "call": call, "count": now, "baseline": allowed}
+            for (path, call), now, allowed in site_failures
         ],
     }
     (report_dir / "clang-tidy-report.json").write_text(json.dumps(report, indent=2) + "\n")
@@ -536,16 +640,35 @@ def run(args):
         print(
             "record the lower counts with: scripts/ci/check_clang_tidy.py --build-dir BUILD --update"
         )
+    # A site list failure does not block --update: editing a recorded call
+    # changes its text without adding a call, and the counts above are what
+    # --update refuses to raise.
+    blocked = status
+    if site_failures and not first_baseline:
+        print(f"{SITE_TRACKED_CHECK} calls that are not recorded:", file=sys.stderr)
+        for (path, call), now, allowed in site_failures:
+            print(f"{path}: {call} ({now} of them, recorded {allowed})", file=sys.stderr)
+        print(
+            f"bind the call, or record an edit to a listed one with --update; "
+            f"{SITES_PATH.relative_to(REPO_ROOT)} holds every recorded call",
+            file=sys.stderr,
+        )
+        status = 1
+    for (path, call), now, allowed in site_improvements:
+        print(f"improved: {path}: {call} ({now} of them, recorded {allowed})")
 
     if args.update:
-        if status:
+        if blocked:
             print(
                 "refusing to update the baseline until the problems above are fixed",
                 file=sys.stderr,
             )
             return 1
         write_baseline(counts, version)
-        print(f"wrote {BASELINE_PATH.relative_to(REPO_ROOT)}")
+        write_sites(site_counts, version)
+        print(
+            f"wrote {BASELINE_PATH.relative_to(REPO_ROOT)} and {SITES_PATH.relative_to(REPO_ROOT)}"
+        )
         return 0
     if status == 0:
         print("clang-tidy baseline respected")
@@ -588,25 +711,52 @@ def self_test():
     failures, _ = compare(counts, baseline, lambda path: True)
     assert (("src/a.h", "c2"), 1, 0) in failures, failures
 
-    known = {"bugprone-branch-clone", "clang-analyzer-security.VAList"}
+    # clang-analyzer-security.VAList exists in the binary but .clang-tidy
+    # disables it, so it is not in the enabled set and may not be named.
+    enabled = {"bugprone-branch-clone"}
     text = "\n".join(
         [
-            "/* NOLINTNEXTLINE(clang-analyzer-security.VAList) -- va_start initializes it. */",
+            "/* NOLINTNEXTLINE(bugprone-branch-clone) -- the arms differ by a constant. */",
             "x = 1; // NOLINT",
             "/* NOLINTNEXTLINE(bugprone-branch-clone) */",
             "/* NOLINTBEGIN(*) -- everything */",
             "/* NOLINTEND(bugprone-branch-clone) */",
             "/* NOLINT(clang-analyzer-valist.Uninitialized) -- renamed check */",
+            "/* NOLINT(clang-analyzer-security.VAList) -- disabled in .clang-tidy */",
             "y = 2; /* NOLINT(clang-diagnostic-unused-variable) -- compiler warning */",
         ]
     )
-    problems = suppression_problems([("src/a.c", text)], known)
+    problems = suppression_problems([("src/a.c", text)], enabled)
     assert problems == [
         "src/a.c:2: NOLINT must name the checks it silences",
         "src/a.c:3: NOLINTNEXTLINE(bugprone-branch-clone) needs a reason after ' -- '",
         "src/a.c:4: NOLINTBEGIN must name each check exactly: '*'",
-        "src/a.c:6: NOLINT names clang-analyzer-valist.Uninitialized, which is not a check",
+        "src/a.c:6: NOLINT names clang-analyzer-valist.Uninitialized, "
+        "which .clang-tidy does not enable",
+        "src/a.c:7: NOLINT names clang-analyzer-security.VAList, which .clang-tidy does not enable",
     ], problems
+
+    probe = REPO_ROOT / "src" / "olc" / "improved-edit.c"
+    text = probe.read_text(encoding="utf-8", errors="replace").splitlines()
+    line = next(
+        number for number, source in enumerate(text, 1) if "snprintf(buf + length" in source
+    )
+    column = text[line - 1].index("snprintf") + 1
+    # The call wraps onto the next line; the recorded text is one line either way.
+    assert call_text("src/olc/improved-edit.c", line, column) == (
+        'snprintf(buf + length, sizeof(buf) - length, "\\r\\n%u line%sshown.\\r\\n", total_len, '
+        '(total_len != 1) ? "s " : " ")'
+    ), call_text("src/olc/improved-edit.c", line, column)
+    assert call_text("src/olc/improved-edit.c", len(text) + 10, 1) == ""
+    assert call_text("src/does/not/exist.c", 1, 1) == ""
+
+    sites = Counter({("src/a.c", 'sprintf(b, "%s", n)'): 2, ("src/a.c", "strcpy(a, b)"): 1})
+    recorded = {("src/a.c", 'sprintf(b, "%s", n)'): 2, ("src/a.c", "strcat(a, b)"): 1}
+    # One recorded call swapped for another leaves the file's count unchanged.
+    assert sum(sites.values()) == sum(recorded.values())
+    failures, improvements = compare(sites, recorded, lambda path: True)
+    assert failures == [(("src/a.c", "strcpy(a, b)"), 1, 0)], failures
+    assert improvements == [(("src/a.c", "strcat(a, b)"), 0, 1)], improvements
 
     database = [
         {

@@ -494,6 +494,15 @@ files, the pin, the baseline, the check itself, or the production profile
 analyzes the whole tree. Pull requests and pushes run with `--base HEAD^1`; the
 weekly and manual runs analyze everything.
 
+A count cannot see one finding swapped for another in the same file: replacing
+one `sprintf` with `snprintf` and adding a new `sprintf` elsewhere in that file
+keeps its count. Every `bugprone-unsafe-functions` site is therefore also
+recorded by its call text, from the callee to the matching parenthesis with
+whitespace collapsed, in `scripts/ci/clang_tidy_unsafe_sites.txt`. A call the
+list does not hold fails even when the count is unchanged. Editing a recorded
+call changes its text as well, so `--update` re-records the list whenever no
+count grew; it still refuses a higher count.
+
 Each run writes the complete clang-tidy output (`clang-tidy.log`) and a JSON
 report (`clang-tidy-report.json`: tool version, mode, analyzed units, every
 finding, and the failures) to `--report-dir`, by default
@@ -518,13 +527,13 @@ cmake --preset analysis   # add -DCMAKE_C_COMPILER=clang-18 where there is no cl
 Fix a new finding. For a false positive, put
 `/* NOLINTNEXTLINE(check-name) -- reason */` on the line above it. The check
 fails a suppression that does not name its checks, uses a wildcard, names a
-check the pinned release does not have, or gives no reason after `--`. A check
-that is wrong for the whole code base is disabled in `.clang-tidy` instead, with
-its scope, reason, owner, and expiry. `--update` refuses to raise a count; when
-a file moves, rename its baseline entries in the same change. To adopt a new
-clang-tidy release, change the pin, delete the baseline, run `--update` to record
-the release's first baseline, and review that diff like any other change in
-findings.
+check `.clang-tidy` does not enable (which would silence nothing), or gives no
+reason after `--`. A check that is wrong for the whole code base is disabled in
+`.clang-tidy` instead, with its scope, reason, owner, and expiry. `--update`
+refuses to raise a count; when a file moves, rename its entries in both baseline
+files in the same change. To adopt a new clang-tidy release, change the pin,
+delete both files, run `--update` to record the release's first baseline, and
+review that diff like any other change in findings.
 
 ### GCC static analyzer
 
