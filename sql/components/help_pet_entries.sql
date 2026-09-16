@@ -290,7 +290,7 @@ unavailable or your golem allowance is full. An otherwise valid failed ritual
 consumes its authored materials and motes. Crafted golem corpses cannot be
 animated, including after control is lost.
 
-See also: CRAFT, PETS, DISMISS', 0, FALSE)
+See also: CRAFTING, NEWCRAFT, BONE-GOLEM, PETS, DISMISS', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
 auto_generated = VALUES (auto_generated);
 DELETE FROM help_keywords

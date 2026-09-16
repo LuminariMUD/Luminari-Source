@@ -113,6 +113,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[SPATIAL_SYSTEMS_ARCHITECTURE.md](systems/SPATIAL_SYSTEMS_ARCHITECTURE.md)** - Spatial visual and audio systems with triple strategy pattern
 - **[RESOURCE_SYSTEM_TECHNICAL.md](systems/RESOURCE_SYSTEM_TECHNICAL.md)** - Wilderness resource system with flexible region effects
 - [Wilderness category harvesting](systems/WILDERNESS_HARVESTING.md) - Issue #145: full-round rewards, quality tools, and configuration.
+- **[CRAFT_ACTIVITY_LIFECYCLE.md](systems/CRAFT_ACTIVITY_LIFECYCLE.md)** - Materials-and-motes activity ownership, interruption, persistence, and reconstruction
 - **[RESOURCE_REGENERATION_SYSTEM.md](systems/RESOURCE_REGENERATION_SYSTEM.md)** - Resource regeneration with seasonal and weather effects
 - **[RESOURCE_REGENERATION_QUICK_REFERENCE.md](systems/RESOURCE_REGENERATION_QUICK_REFERENCE.md)** - Quick reference for resource regeneration system
 - **[DYNAMIC_RESOURCE_DESCRIPTIONS_PLAN.md](systems/DYNAMIC_RESOURCE_DESCRIPTIONS_PLAN.md)** - Dynamic environment descriptions based on resource state
@@ -207,7 +208,8 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Equipment & Items
 
-- **[CRAFTING_SYSTEM_NOTES.md](world_game-data/CRAFTING_SYSTEM_NOTES.md)** - Crafting system design notes (partial; verify against `src/craft/`)
+- **[CRAFTING_SYSTEM_NOTES.md](world_game-data/CRAFTING_SYSTEM_NOTES.md)** - Current crafting
+  modes, recipe/material model, activities, persistence, and resource acquisition
 - **[gear_guide.md](world_game-data/gear_guide.md)** - Combined gear stat distribution (equipment balance, loot generation, stats by wear location)
 
 ---

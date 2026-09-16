@@ -1541,51 +1541,46 @@ currently defined but not actively implemented in codebase</td>
 <td>106</td>
 <td>Crafting-Smelter</td>
 <td>ITEM_CRAFTING_SMELTER</td>
-<td>Marks object as smelter station for metalworking crafts (bronze,
-steel, brass, alchemical silver, cold iron); required for metal
-refinement recipes</td>
+<td>Marks an object for the currently unreachable materials-and-motes
+refinement path; no registered player command reaches that handler</td>
 </tr>
 <tr class="even">
 <td>107</td>
 <td>Crafting-Loom</td>
 <td>ITEM_CRAFTING_LOOM</td>
-<td>Marks object as loom station for tailoring; required for textile
-crafting recipes (satin, linen production)</td>
+<td>Tailoring station (see station note below); its satin and linen
+refining recipes are unreachable, like row 106</td>
 </tr>
 <tr class="odd">
 <td>108</td>
 <td>Crafting-Forge</td>
 <td>ITEM_CRAFTING_FORGE</td>
-<td>Marks object as forge station for smithing; required for
-armorsmithing, metalworking, and weaponsmithing crafts</td>
+<td>Armorsmithing, metalworking, and weaponsmithing station (see station
+note below)</td>
 </tr>
 <tr class="even">
 <td>109</td>
 <td>Crafting-Alchemy-Lab</td>
 <td>ITEM_CRAFTING_ALCHEMY_LAB</td>
-<td>Marks object as alchemy laboratory; required for alchemy craft
-recipes</td>
+<td>Alchemy station (see station note below)</td>
 </tr>
 <tr class="odd">
 <td>110</td>
 <td>Crafting-Jewelcrafting-Station</td>
 <td>ITEM_CRAFTING_JEWELCRAFTING_STATION</td>
-<td>Marks object as jewelcrafting workstation; required for
-jewelcrafting recipes</td>
+<td>Jewelcrafting station (see station note below)</td>
 </tr>
 <tr class="even">
 <td>111</td>
 <td>Crafting-Tannery</td>
 <td>ITEM_CRAFTING_TANNERY</td>
-<td>Marks object as tannery station for leatherworking; required for
-leather crafting recipes</td>
+<td>Leatherworking station (see station note below)</td>
 </tr>
 <tr class="odd">
 <td>112</td>
 <td>Crafting-Carpentry-Table</td>
 <td>ITEM_CRAFTING_CARPENTRY_TABLE</td>
-<td>Marks object as carpentry workstation; required for
-woodworking/carpentry crafts</td>
+<td>Woodworking station (see station note below)</td>
 </tr>
 <tr class="even">
 <td>113</td>
@@ -1606,8 +1601,9 @@ rather than gold</td>
 <td>115</td>
 <td>Can-Be-Reforged</td>
 <td>ITEM_REFORGEABLE</td>
-<td>Item is eligible for the reforging path, which rerolls or upgrades
-its stats through the crafting system</td>
+<td>Required for standalone mode-2 <code>reforge</code> on an inventory
+weapon or armor; it changes subtype and checks any station mapped from
+the item&#x2019;s material</td>
 </tr>
 <tr class="odd">
 <td>116</td>
@@ -1678,6 +1674,16 @@ it</td>
 </table>
 <p><strong>Total: 125 flags (bits 0-124,
 <code>NUM_ITEM_FLAGS</code>)</strong></p>
+<p><strong>Station timing:</strong> For player-command-reachable work,
+supply-order start and timer rechecks use the contract recipe&#x2019;s mapped
+skill. Equipment start and timer rechecks use the project&#x2019;s current
+stored skill; standalone <code>reforge</code> uses the item&#x2019;s material.
+Skill 0 requires no station, but <code>show</code> (also
+<code>display</code>, <code>review</code>, and <code>information</code>)
+can initialize a station-requiring skill before the first attempt.
+Completion can also leave a skill on a failed project. Station
+enforcement is state-dependent, not simply first attempt versus retry. A
+station flag does not make unreachable refining available.</p>
 <p><strong>Note:</strong> These flags are defined in
 <code>src/core/structs.h</code> as the <code>ITEM_*</code> define block
 ending at <code>ITEM_ROL_WHOLE_HEAD</code>, and their display names in
@@ -2004,7 +2010,8 @@ breakability.</td>
 <td>47</td>
 <td>Blueprint</td>
 <td>ITEM_BLUEPRINT</td>
-<td>NewCraft recipe; value 0 is the craft ID.</td>
+<td>Older catalog/blueprint crafting recipe; value 0 is the
+<code>craft_data</code> catalog ID used by <code>crafting</code>.</td>
 </tr>
 <tr class="odd">
 <td>48</td>
@@ -2082,12 +2089,6 @@ the item can be picked up at all. Nearly every object needs it. An item
 with wear flags but without <code>(Takeable)</code> can be equipped only
 by staff loading it directly.</p>
 <table>
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-</colgroup>
 <thead>
 <tr class="header">
 <th>Bit</th>
@@ -2226,79 +2227,79 @@ by staff loading it directly.</p>
 <tr class="even">
 <td>21</td>
 <td>22</td>
-<td>Shoulders (unused; reserved)</td>
+<td>Shoulders</td>
 <td>ITEM_WEAR_SHOULDERS</td>
 </tr>
 <tr class="odd">
 <td>22</td>
 <td>23</td>
-<td>Ankle (unused; reserved)</td>
+<td>Ankle</td>
 <td>ITEM_WEAR_ANKLE</td>
 </tr>
 <tr class="even">
 <td>23</td>
 <td>24</td>
-<td>Sheath (unused; reserved)</td>
+<td>Sheath</td>
 <td>ITEM_WEAR_SHEATH</td>
 </tr>
 <tr class="odd">
 <td>24</td>
 <td>25</td>
-<td>Gathering-Tool (unused; reserved)</td>
+<td>Gathering-Tool</td>
 <td>ITEM_WEAR_CRAFT_SICKLE</td>
 </tr>
 <tr class="even">
 <td>25</td>
 <td>26</td>
-<td>Forestry-Tool (unused; reserved)</td>
+<td>Forestry-Tool</td>
 <td>ITEM_WEAR_CRAFT_AXE</td>
 </tr>
 <tr class="odd">
 <td>26</td>
 <td>27</td>
-<td>Hunting-Tool (unused; reserved)</td>
+<td>Hunting-Tool</td>
 <td>ITEM_WEAR_CRAFT_KNIFE</td>
 </tr>
 <tr class="even">
 <td>27</td>
 <td>28</td>
-<td>Mining-Tool (unused; reserved)</td>
+<td>Mining-Tool</td>
 <td>ITEM_WEAR_CRAFT_PICKAXE</td>
 </tr>
 <tr class="odd">
 <td>28</td>
 <td>29</td>
-<td>Alchemy-Tool (unused; reserved)</td>
+<td>Alchemy-Tool</td>
 <td>ITEM_WEAR_CRAFT_ALCHEMY</td>
 </tr>
 <tr class="even">
 <td>29</td>
 <td>30</td>
-<td>Armorsmithing-Tool (unused; reserved)</td>
+<td>Armorsmithing-Tool</td>
 <td>ITEM_WEAR_CRAFT_ARMOR_HAMMER</td>
 </tr>
 <tr class="odd">
 <td>30</td>
 <td>31</td>
-<td>Jewelcrafting-Tool (unused; reserved)</td>
+<td>Jewelcrafting-Tool</td>
 <td>ITEM_WEAR_CRAFT_JEWEL_PLIERS</td>
 </tr>
 <tr class="even">
 <td>31</td>
 <td>32</td>
-<td>Tailoring-Tool (unused; reserved)</td>
+<td>Tailoring-Tool</td>
 <td>ITEM_WEAR_CRAFT_NEEDLE</td>
 </tr>
 <tr class="odd">
 <td>32</td>
 <td>33</td>
-<td>Weaponsmithing-Tool (unused; reserved)</td>
+<td>Weaponsmithing-Tool</td>
 <td>ITEM_WEAR_CRAFT_WEAPON_HAMMER</td>
 </tr>
 <tr class="even">
 <td>33</td>
 <td>34</td>
-<td>On-Back (unused; reserved)</td>
+<td>On-Back</td>
 <td>ITEM_WEAR_ON_BACK</td>
 </tr>
 <tr class="odd">
@@ -2311,10 +2312,13 @@ by staff loading it directly.</p>
 </table>
 <p><strong>Total: 35 wear bits (0-34,
 <code>NUM_ITEM_WEARS</code>)</strong></p>
-<p>Bits 21-33 are implemented as reserved compatibility positions but
-are currently unused: no active object prototype can occupy them. Do not
-assign these flags unless the corresponding equipment position is
-deliberately reactivated and supplied with supported game content.</p>
+<p>Bits 21-33 map to active equipment positions in
+<code>find_eq_pos()</code>. The nine crafting/harvesting tool positions
+at bits 24-32 are separate from normal combat equipment positions.
+Ordinary equipment-crafting admission checks occupancy of only the
+alchemy, armorsmithing, jewelcrafting, tailoring, and weaponsmithing
+positions; it does not validate the occupying object&#x2019;s type or
+values.</p>
 <p>Bit 34 is the active Yuan-Ti tail slot. On a non-ring object,
 <code>ITEM_WEAR_TAIL</code> marks dedicated tail gear: the runtime
 rejects that object in every other slot, even if another wear bit is
@@ -2323,11 +2327,25 @@ also set. Do not add the tail bit to ordinary rings.
 every such ring can already be worn on either a finger or a Yuan-Ti
 tail. If imported data contains both finger and tail bits, the ring rule
 wins and the object remains finger-or-tail gear.</p>
-<p>The nine reserved crafting-tool positions (bits 24-32) are separate
-from normal combat equipment positions and are hidden from the regular
-<code>equipment</code> display. They were designed to pair with
-<code>ITEM_CRAFTING_TOOL</code> objects, but no active prototypes of
-that type currently exist.</p>
+<p>The <code>craft tools|equipment|gear</code> display uses a different
+rule: it scans all equipped positions for an
+<code>ITEM_CRAFTING_TOOL</code> whose value 0 names the ability. Its
+value 1 bonus is applied only by <code>compute_ability()</code>, which
+feeds skill listings; no crafting, golem, harvesting, or brewing roll
+reads it. The display omits woodworking and may therefore disagree with
+admission. The only grant path in tracked source is compile-time:
+<code>NOOB_CRAFTING_TAILORING</code>,
+<code>NOOB_CRAFTING_ALCHEMY</code>,
+<code>NOOB_CRAFTING_ARMORSMITHING</code>,
+<code>NOOB_CRAFTING_WEAPONSMITHING</code>, and
+<code>NOOB_CRAFTING_JEWELCRAFTING</code> in the deployment&#x2019;s local vnums
+header make <code>newbieEquipment()</code> equip those prototypes
+directly into the admission slots. The definitions are commented out in
+the tracked <code>src/config/vnums.example.h</code> template. The
+routine runs for a level-0 character entering the game and on staff
+demotion to level 1; ordinary existing characters receive nothing
+automatically. Check the local header, those prototypes, and deployed
+world data before promising tool availability.</p>
 <h2 id="object-value-reference">Object Value Reference</h2>
 <p>Every object carries 16 integer value slots. What they mean is
 decided entirely by the item type - there is no shared meaning across

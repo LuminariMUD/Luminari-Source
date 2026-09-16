@@ -1,9 +1,15 @@
 # Wilderness-Crafting Integration Testing Guide
 
-**Document Version:** 1.0\
-**Date:** August 10, 2025\
-**System Status:** [OK] Phase 4.5 Enhanced Integration Implemented\
-**Testing Priority:** HIGH - New Integration System
+> **Historical/deprecated:** This guide describes an inactive enhanced-integration
+> design and must not be used for current acceptance testing. Use
+> [Wilderness Harvesting](../systems/WILDERNESS_HARVESTING.md) for the compiled
+> `harvest`, `gather`, and `mine` behavior and
+> [Craft Activity Lifecycle](../systems/CRAFT_ACTIVITY_LIFECYCLE.md) for timing.
+
+**Document Version:** 1.0
+**Date:** August 10, 2025
+**System Status:** Historical Phase 4.5 design; not the current implementation
+**Testing Priority:** Archive only
 
 ---
 
