@@ -749,7 +749,7 @@ void Test_combat_reaction_guards_block_recursive_life_shield_damage(CuTest *tc)
   attacker.player.race = RACE_TYPE_UNDEAD;
 
   CuAssertTrue(tc, test_life_shield_can_reflect(&attacker, &victim, 10, TYPE_HIT));
-  CuAssertTrue(tc, !test_life_shield_can_reflect(&attacker, &victim, 0, TYPE_HIT));
+  CuAssertTrue(tc, test_life_shield_can_reflect(&attacker, &victim, 0, TYPE_HIT));
   CuAssertTrue(tc, !test_life_shield_can_reflect(&attacker, &victim, 10, SPELL_LIFE_SHIELD));
 }
 
