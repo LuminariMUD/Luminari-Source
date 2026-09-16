@@ -88,6 +88,8 @@ const char *binary_format_status_name(enum binary_format_status status)
     return "truncated";
   case BINARY_FORMAT_TRAILING_DATA:
     return "unexpected trailing data";
+  case BINARY_FORMAT_BAD_MAGIC:
+    return "wrong magic bytes";
   case BINARY_FORMAT_UNSUPPORTED_VERSION:
     return "unsupported format version";
   case BINARY_FORMAT_BAD_BYTE_ORDER:
@@ -303,14 +305,17 @@ static enum binary_format_status finish_envelope(struct byte_writer *writer, con
   return BINARY_FORMAT_OK;
 }
 
-/** Validates the envelope of a file whose magic already matched. */
+/** Validates the envelope of a current file. */
 static enum binary_format_status open_envelope(const unsigned char *data, size_t size,
-                                               uint16_t version, struct byte_reader *payload)
+                                               const char *magic, uint16_t version,
+                                               struct byte_reader *payload)
 {
   uint32_t payload_size;
 
   if (size < BINARY_FORMAT_HEADER_SIZE)
     return BINARY_FORMAT_TRUNCATED;
+  if (memcmp(data, magic, BINARY_FORMAT_MAGIC_SIZE) != 0)
+    return BINARY_FORMAT_BAD_MAGIC;
   if (load_u16(data + 6) != BINARY_FORMAT_BYTE_ORDER_MARK)
     return BINARY_FORMAT_BAD_BYTE_ORDER;
   if (load_u16(data + 4) != version)
@@ -328,9 +333,15 @@ static enum binary_format_status open_envelope(const unsigned char *data, size_t
   return BINARY_FORMAT_OK;
 }
 
-static bool has_magic(const unsigned char *data, size_t size, const char *magic)
+/** A current file has its magic or, when that is damaged, the byte-order mark,
+ * so a damaged current file is rejected rather than read as a legacy layout.
+ * In a legacy file, offset 6 holds the high half of the first board slot
+ * number or house atrium vnum, which real files keep far below 0xFEFF0000. */
+static bool is_current_file(const unsigned char *data, size_t size, const char *magic)
 {
-  return size >= BINARY_FORMAT_MAGIC_SIZE && memcmp(data, magic, BINARY_FORMAT_MAGIC_SIZE) == 0;
+  if (size >= BINARY_FORMAT_MAGIC_SIZE && memcmp(data, magic, BINARY_FORMAT_MAGIC_SIZE) == 0)
+    return true;
+  return size >= BINARY_FORMAT_HEADER_SIZE && load_u16(data + 6) == BINARY_FORMAT_BYTE_ORDER_MARK;
 }
 
 /** Multiplies with saturation so a limit computation cannot wrap. */
@@ -455,7 +466,7 @@ enum binary_format_status board_file_decode(const unsigned char *data, size_t si
 
   *messages = NULL;
   *count = 0;
-  legacy = !has_magic(data, size, BOARD_FILE_MAGIC);
+  legacy = !is_current_file(data, size, BOARD_FILE_MAGIC);
   if (legacy)
   {
     /* The legacy loader treated an empty file as an empty board. */
@@ -467,7 +478,7 @@ enum binary_format_status board_file_decode(const unsigned char *data, size_t si
   }
   else
   {
-    status = open_envelope(data, size, BOARD_FILE_VERSION, &reader);
+    status = open_envelope(data, size, BOARD_FILE_MAGIC, BOARD_FILE_VERSION, &reader);
     if (status != BINARY_FORMAT_OK)
       return status;
   }
@@ -558,7 +569,7 @@ enum binary_format_status house_file_decode(const unsigned char *data, size_t si
 
   *records = NULL;
   *count = 0;
-  legacy = !has_magic(data, size, HOUSE_FILE_MAGIC);
+  legacy = !is_current_file(data, size, HOUSE_FILE_MAGIC);
   if (legacy)
   {
     /* A partial record is what an interrupted legacy write leaves. */
@@ -570,7 +581,7 @@ enum binary_format_status house_file_decode(const unsigned char *data, size_t si
   }
   else
   {
-    status = open_envelope(data, size, HOUSE_FILE_VERSION, &reader);
+    status = open_envelope(data, size, HOUSE_FILE_MAGIC, HOUSE_FILE_VERSION, &reader);
     if (status != BINARY_FORMAT_OK)
       return status;
     bytes = take(&reader, 4);

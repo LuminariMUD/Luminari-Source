@@ -51,12 +51,19 @@ envelope followed by the payload:
 A string is a u32 size followed by that many bytes. The size counts the terminating NUL, which must
 be the last byte and the only NUL; size 0 means the string is absent (NULL).
 
-A decoder rejects, in this order: a file that does not start with the magic (it is then read as the
-legacy layout), a wrong byte-order mark, a version it does not know, a payload size that does not
-match the file size, a checksum mismatch, a count or size over its limit, a count the remaining bytes
-cannot hold (checked before allocating), a malformed string, and any bytes left after the last
-record. It decodes into new memory and hands it over only when the whole file is valid, so a
-rejected file changes nothing. An empty file is a legacy file with no records.
+A file is in the current format when it starts with the magic or has the byte-order mark at offset
+6; any other file is read as the legacy layout. The byte-order mark keeps a current file whose magic
+is damaged from being read as legacy data: a house control file whose size is a whole number of
+legacy records could otherwise decode, and the boot save would replace it. In a legacy file, offset 6
+holds the high half of the first board slot number or house atrium vnum, which real files keep far
+below 0xFEFF0000.
+
+A decoder rejects a current file for, in this order: a wrong magic, a wrong byte-order mark, a
+version it does not know, a payload size that does not match the file size, a checksum mismatch, a
+count or size over its limit, a count the remaining bytes cannot hold (checked before allocating), a
+malformed string, and any bytes left after the last record. It decodes into new memory and hands it
+over only when the whole file is valid, so a rejected file changes nothing. An empty file is a legacy
+file with no records.
 
 The formats have a fixed schema per version, so a field cannot be duplicated or unknown; the version
 number is the only feature identifier.
@@ -115,7 +122,7 @@ A save encodes the data, writes it to `<file>.tmp`, flushes, fsyncs, closes, and
 temporary file over the live one (`finish_file_save()`). A crash or a failed write leaves the live
 file untouched; the next save overwrites the stale temporary file.
 
-When the file being replaced is not in the current format, the save first copies it to
+When the file being replaced does not start with its format's magic, the save first copies it to
 `<file>.legacy-<crc32>`, where the suffix is the CRC-32 of its contents in hex. Because the name
 follows the contents, repeating the copy rewrites the same bytes, so repeated saves leave one backup.
 If the backup cannot be written, the save is refused and the live file is kept.
