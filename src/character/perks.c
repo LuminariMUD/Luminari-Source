@@ -10,11 +10,6 @@
 #include "core/sysdep.h"
 #include "core/structs.h"
 
-/* Workaround for class.h using NUM_ABILITIES instead of MAX_ABILITIES */
-#ifndef NUM_ABILITIES
-#define NUM_ABILITIES MAX_ABILITIES
-#endif
-
 #include "core/utils.h"
 #include "combat/tactical_effects.h"
 #include "core/comm.h"
@@ -25,9 +20,6 @@
 #include "combat/assign_wpn_armor.h"
 #include "combat/combat_encounters.h"
 #include "combat/projectiles.h"
-
-/* Undefine NUM_ABILITIES before including spells.h to avoid redefinition warning */
-#undef NUM_ABILITIES
 
 #include "magic/spells.h"
 #include "magic/psionics.h"
