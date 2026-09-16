@@ -8,6 +8,9 @@
 size_t combat_state_count_attackers(const struct char_data *victim);
 /* Stop every character currently fighting this victim. */
 void combat_state_stop_attackers(struct char_data *victim);
+/* Whether a participant still resolves, is alive and remains in its original room. */
+bool combat_state_character_context_valid(struct domain_entity_handle character,
+                                          room_rnum expected_room);
 /* Whether an in-progress attack may continue after a callback ran: both
  * participants must still resolve, be alive, and remain in expected_room. */
 bool combat_state_attack_context_valid(struct domain_entity_handle attacker,

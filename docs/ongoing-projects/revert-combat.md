@@ -346,6 +346,7 @@ Specific conflicts already found must have named tests and dispositions:
 | Deferred reactions | The refactor yielded `COMBAT_DAMAGE_QUEUED` / legacy zero for nested damage, then drained later. The section 9 damage checkpoint restores synchronous completion through a shared 64-reaction budget and captured handles; weapon/projectile damage now uses the same owner. Wider caller and terminal-outcome audits remain open. Queue-only FIFO tests cannot establish gameplay parity. |
 | Life Shield and Greater Hostile Juxtaposition | Life Shield's zero-damage activation and post-reflection charge update are restored in the section 9 damage checkpoint. Retain its self/source-spell recursion guards and safe handle checks. The user approved Greater Hostile Juxtaposition's working activation on 2026-09-16 as an explicit exception to historical non-activation. Retain safe spell-affect lookup. The section 9 spell-exception checkpoint verifies three-charge consumption, post-hit reflection and expiry through real spell-affect and weapon-hit paths. |
 | Ordinary Hostile Juxtaposition | Restore affect removal after reflected damage completes. Keep the bearer generation check before removal and stop later hit effects if either participant becomes invalid. The section 9 ordinary-juxtaposition checkpoint proves reflection-time affect presence, one-hit expiry and callback continuation through real spell/hit paths. Greater keeps its approved working behavior. |
+| Stacked damage shields and spell continuation | Preserve the baseline elemental/caustic/empathic/retort order and valid spell riders. The section 9 shield checkpoint adds callback lifetime/room checks between shield effects, after the main spell-damage packet and before subsequent spell routines. Real local and remote spell controls preserve range behavior. Later/earlier extra packets, multi-target traversal and cast-trigger callbacks remain part of the wider magic audit. |
 | Divine Sacrifice and killer-less death | Keep valid lifetime checks and typed causes/outcomes. Explicitly document the change from ignored/unresolved deaths to correctly finalized deaths, including transferred lethal damage. Do not recreate a crash or leave dead entities active to imitate a faulty old path. Such retained outcomes must be visible in the parity disposition. |
 | Death notification ordering | Trace the final integrated `raw_kill_with_cause()`, which publishes through `domain_event_runtime_character_died_with_cause()`, and its actual `DOMAIN_EVENT_CHARACTER_DIED` subscribers: `combat_encounters.c` (priority 20), `activity_manager.c` (priority 100), `ready_action.c`, and `magic/buff_sequence.c`. Intermediate refactor commits changed ordering again; do not implement from an isolated commit or PR description. Preserve coherent, exactly-once cleanup and verify listener-visible state. |
 
@@ -841,7 +842,8 @@ Next implementation boundaries:
    timer sync, common rewards, and presentation. Greater Hostile Juxtaposition
    activation is now user-approved and tested in the spell-exception checkpoint.
    Ordinary juxtaposition removal and continuation are restored in the later
-   reflection checkpoint. Next trace and test the identified damage-shield and
+   reflection checkpoint. Stacked damage-shield continuation is covered in the
+   later shield checkpoint, including the caustic spell path. Next trace and test
    Divine Sacrifice callback boundaries, then actual death/reward ordering.
 3. Expand remaining acceptance scenarios, especially casting resource/lifecycle
    boundaries, phase-sensitive effects/attack counts, NPCs, client output and
@@ -1241,3 +1243,87 @@ sections 4-7 are still open, including the concrete continuation findings above,
 death/rewards, casting, effects/attack allocation, NPCs, lifecycle, live/load,
 client output, current system docs and two-store help. No live MUD, database/help
 edit, production action or push was performed.
+
+#### Damage-shield continuation checkpoint
+
+The previous goal turn made progress in `81680681f`: ordinary juxtaposition
+ordering and reflection continuation. The worktree was clean at that revision;
+`APP_ENV=development` was rechecked before this work.
+
+Ablation: preserve the baseline elemental/caustic/empathic/retort sequence and
+reuse existing generation handles and the hit caller's invalidation result.
+Use actual spell affects, melee hits and damage-fact observations to verify
+stacked shields and invalidation between effects. No new reaction queue or
+combat entry point is required. Caustic blood also traverses `call_magic()` and
+`mag_damage_scaled()`; those inner continuation boundaries must be traced rather
+than treating a check after `call_magic()` as proof of the whole spell path.
+
+The first eight invalidation regressions failed while the stacked-shield control
+passed. `damage_shield_check()` now validates participants on entry and after
+elemental, caustic and empathic callbacks. Its hit caller marks the existing
+invalidation result before returning, preventing subsequent melee riders. The
+Energy Retort callback is last in the shield function; the caller performs the
+continuation check. Formulas, saves, ordering and the per-phase retort marker
+are unchanged for valid participants.
+
+Caustic blood exposed the nested spell boundary: six additional cases still
+applied its acid affect after a damage callback forgot, moved or marked either
+participant pending extraction. `call_magic()` now revalidates participants
+after its damage routine before running subsequent routines, and clears the
+transient DC bonus when its caster still resolves. Three Lava Burst cases also
+proved that `mag_damage_scaled()` applied its burning rider after caster/target
+invalidation. That function now checks the original participant handles and
+rooms after its main damage packet, preserving the damage already applied.
+
+Ablation follow-up: factor the existing per-character lifetime/room check out of
+the two-character attack check rather than duplicate it in both magic owners.
+The attack wrapper still requires a shared room. Spells validate each original
+room separately: a real remote Lava Burst control passes, so this repair does
+not impose melee reach on magic. The common check retains pending-extraction
+and dead-position rejection for NPCs and PCs.
+
+Twenty-one new source-linked cases now pass:
+
+- Sixteen shield cases cover valid fire/empathic/retort/juxtaposition ordering,
+  valid caustic/empathic/retort/juxtaposition ordering and the live acid affect;
+  forgetting, moving or pending extraction of either participant during the first
+  fire or caustic response; and invalidation specifically during empathic and
+  retort responses. Invalid chains deal exactly their first retaliatory packet,
+  do not spend a later retort marker, retain unused juxtaposition and do not
+  consume the hit's later stun rider.
+- Five direct spell cases cover valid local and remote Lava Burst, forgotten
+  caster, moved target and pending-extraction player target. All retain the
+  applied HP damage; only valid participants receive burning.
+
+Divine Sacrifice and actual death/reward outcomes remain next. Its damage fact
+is currently published before the defender cooldown is attached, so the next
+tests must include reentrant damage and inspect whether the same defender can
+be selected twice before cooldown admission. Keep committed transfer and death
+completion separate from optional later attack effects: a moved source must not
+undo damage already taken. If the source no longer resolves, do not pass a stale
+pointer to `dam_killed_vict()`; its implementation requires a live killer. The
+typed death entry supports a missing killer and explicit combat cause. Prove
+the desired attribution and cleanup instead of simply abandoning lethal damage.
+
+The remaining magic audit must also cover earlier collision damage,
+later Crescendo/Shard Volley/Shardstorm packets, multi-target/loop traversal and
+DG cast triggers; this main-packet repair does not prove those callbacks safe.
+
+Validation:
+
+- Seventeen new invalidation cases failed before their corresponding production
+  repairs; the four valid local/remote/stacked controls passed throughout.
+- `CUTEST_FILTER=combat_restoration ./cutest`: all 78 cases pass.
+- The same filter under Valgrind (`--leak-check=full --track-origins=yes --error-exitcode=1`)
+  passes with zero errors and zero definitely/indirectly/possibly lost bytes.
+  Initialized test/runtime tables leave the same 785,159 bytes reachable.
+- `make -j8 test`: all 1,583 CuTests and required repository gates pass without
+  compiler warnings. The same nine opt-in help-sync MariaDB cases remain gated.
+- `make install`: succeeds; no root `luminari` artifact remains.
+- Changed-file pre-commit hooks pass after reviewing their formatting and the
+  full production diff.
+- Logs: `/tmp/revert-combat-shields-{before,caustic-before,spell-before,after,build,full-test,install,valgrind,hooks}.log`.
+
+This goal turn made progress with no blocker. The broader requirements in
+sections 4-7 remain open. No live MUD, database/help edit, production action or
+push was performed.

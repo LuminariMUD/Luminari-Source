@@ -2272,26 +2272,33 @@ void Test_combat_restoration_damage_melee_uses_same_reaction_bound(CuTest *tc)
 }
 
 
-struct restoration_juxtaposition_trace
+struct restoration_reflection_trace
 {
   struct char_data *actor;
   struct char_data *bearer;
   int spell;
   int mutation;
   int reflections;
+  int first_damage;
+  int damage_types[8];
   bool present_during_reflection;
 };
 
-static void restoration_observe_juxtaposition(const struct domain_event_context *context,
-                                              void *data)
+static void restoration_observe_reflection(const struct domain_event_context *context, void *data)
 {
-  struct restoration_juxtaposition_trace *trace = data;
+  struct restoration_reflection_trace *trace = data;
   const struct domain_character_damaged *event = context->payload;
 
   if (domain_event_world_resolve_character(event->target) != trace->actor)
     return;
+  if (trace->reflections < 8)
+    trace->damage_types[trace->reflections] = event->damage_type;
   trace->reflections++;
+  if (trace->reflections == 1)
+    trace->first_damage = event->amount;
   trace->present_during_reflection = affected_by_spell(trace->bearer, trace->spell);
+  if (trace->reflections != 1)
+    return;
   if (trace->mutation == 1)
     domain_event_world_forget_character(trace->bearer);
   else if (trace->mutation == 2)
@@ -2307,9 +2314,19 @@ static void restoration_observe_juxtaposition(const struct domain_event_context 
     char_to_room(trace->actor, 1);
   }
   else if (trace->mutation == 5)
-    SET_BIT_AR(MOB_FLAGS(trace->bearer), MOB_NOTDEADYET);
+  {
+    if (IS_NPC(trace->bearer))
+      SET_BIT_AR(MOB_FLAGS(trace->bearer), MOB_NOTDEADYET);
+    else
+      SET_BIT_AR(PLR_FLAGS(trace->bearer), PLR_NOTDEADYET);
+  }
   else if (trace->mutation == 6)
-    SET_BIT_AR(MOB_FLAGS(trace->actor), MOB_NOTDEADYET);
+  {
+    if (IS_NPC(trace->actor))
+      SET_BIT_AR(MOB_FLAGS(trace->actor), MOB_NOTDEADYET);
+    else
+      SET_BIT_AR(PLR_FLAGS(trace->actor), PLR_NOTDEADYET);
+  }
 }
 
 /* Real spell affects and weapon hits must preserve ordinary post-reflection
@@ -2319,7 +2336,7 @@ static void verify_restored_juxtaposition(CuTest *tc, int spell, int mutation)
 {
   struct gameplay_fixture f;
   struct char_data *saved_characters = character_list;
-  struct restoration_juxtaposition_trace trace = {0};
+  struct restoration_reflection_trace trace = {0};
   struct domain_event_subscription_config observer = {0};
   struct domain_event_subscription_handle subscription;
   int charges[4], actor_loss[4], victim_loss[4], results[4];
@@ -2353,7 +2370,7 @@ static void verify_restored_juxtaposition(CuTest *tc, int spell, int mutation)
   observer.topic.role = DOMAIN_EVENT_TOPIC_ANY;
   observer.owner = bearer_handle;
   observer.identity = "test.restoration.juxtaposition";
-  observer.handler = restoration_observe_juxtaposition;
+  observer.handler = restoration_observe_reflection;
   observer.handler_context = &trace;
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     domain_event_subscribe(domain_event_runtime_bus(), &observer, &subscription));
@@ -2479,6 +2496,270 @@ void Test_combat_restoration_greater_juxtaposition_relocated_attacker(CuTest *tc
 void Test_combat_restoration_greater_juxtaposition_pending_attacker_extraction(CuTest *tc)
 {
   verify_restored_juxtaposition(tc, SPELL_GREATER_HOSTILE_JUXTAPOSITION, 6);
+}
+
+static void verify_restored_damage_shields(CuTest *tc, int first_spell, int mutation)
+{
+  struct gameplay_fixture f;
+  struct char_data *saved_characters = character_list;
+  struct restoration_reflection_trace trace = {0};
+  struct domain_event_subscription_config observer = {0};
+  struct domain_event_subscription_handle subscription;
+  struct domain_entity_handle actor_handle, bearer_handle;
+  int actor_loss, victim_loss, returned;
+  bool stun_pending, juxtaposition_present, retort_used, actor_stale, bearer_stale;
+  bool caustic_rider_present;
+
+  begin_gameplay_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  event_init();
+  if (spell_info[SPELL_FIRE_SHIELD].name == NULL ||
+      spell_info[SPELL_FIRE_SHIELD].name == unused_spellname)
+    mag_assign_spells();
+  f.actor.next = &f.victim;
+  character_list = &f.actor;
+  f.rooms[0].light = 1;
+  GET_ATTACK_QUEUE(&f.actor) = create_attack_queue();
+  GET_ATTACK_QUEUE(&f.victim) = create_attack_queue();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  if (first_spell == SPELL_FIRE_SHIELD || first_spell == SPELL_CAUSTIC_BLOOD)
+    mag_affects(20, &f.victim, &f.victim, NULL, first_spell, SAVING_WILL, CAST_SPELL, 0);
+  if (first_spell != PSIONIC_ENERGY_RETORT)
+    mag_affects(20, &f.victim, &f.victim, NULL, PSIONIC_EMPATHIC_FEEDBACK, SAVING_WILL, CAST_SPELL,
+                0);
+  mag_affects(20, &f.victim, &f.victim, NULL, PSIONIC_ENERGY_RETORT, SAVING_WILL, CAST_SPELL, 0);
+  mag_affects(20, &f.victim, &f.victim, NULL, SPELL_HOSTILE_JUXTAPOSITION, SAVING_WILL, CAST_SPELL,
+              0);
+  actor_handle = domain_event_character_handle(&f.actor);
+  bearer_handle = domain_event_character_handle(&f.victim);
+  trace.actor = &f.actor;
+  trace.bearer = &f.victim;
+  trace.spell = first_spell;
+  trace.mutation = mutation;
+  observer.type = DOMAIN_EVENT_CHARACTER_DAMAGED;
+  observer.topic.role = DOMAIN_EVENT_TOPIC_ANY;
+  observer.owner = bearer_handle;
+  observer.identity = "test.restoration.damage-shields";
+  observer.handler = restoration_observe_reflection;
+  observer.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &observer, &subscription));
+  GET_HIT(&f.actor) = GET_MAX_HIT(&f.actor) = 100000;
+  GET_HIT(&f.victim) = GET_MAX_HIT(&f.victim) = 100000;
+  GET_HITROLL(&f.actor) = 100;
+  GET_DAMNODICE(&f.actor) = 10;
+  GET_DAMSIZEDICE(&f.actor) = 6;
+  GET_DC_BONUS(&f.actor) = GET_DC_BONUS(&f.victim) = 100;
+  FIGHTING(&f.actor) = &f.victim;
+  FIGHTING(&f.victim) = &f.actor;
+  SET_BIT_AR(AFF_FLAGS(&f.actor), AFF_NEXTATTACK_STUN);
+  circle_srandom(1234);
+  returned = hit(&f.actor, &f.victim, TYPE_UNDEFINED, DAM_PUNCTURE, 0, ATTACK_TYPE_PRIMARY);
+  actor_loss = 100000 - GET_HIT(&f.actor);
+  victim_loss = 100000 - GET_HIT(&f.victim);
+  stun_pending = AFF_FLAGGED(&f.actor, AFF_NEXTATTACK_STUN);
+  juxtaposition_present = affected_by_spell(&f.victim, SPELL_HOSTILE_JUXTAPOSITION);
+  retort_used = f.victim.char_specials.energy_retort_used;
+  caustic_rider_present = affected_by_spell(&f.actor, AFFECT_CAUSTIC_BLOOD_DAMAGE);
+  actor_stale = domain_event_world_resolve_character(actor_handle) == NULL;
+  bearer_stale = domain_event_world_resolve_character(bearer_handle) == NULL;
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_NOTDEADYET);
+  REMOVE_BIT_AR(MOB_FLAGS(&f.victim), MOB_NOTDEADYET);
+  stop_fighting(&f.actor);
+  stop_fighting(&f.victim);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  free_attack_queue(GET_ATTACK_QUEUE(&f.actor));
+  free_attack_queue(GET_ATTACK_QUEUE(&f.victim));
+  if (f.actor.events != NULL)
+    free_list(f.actor.events);
+  if (f.victim.events != NULL)
+    free_list(f.victim.events);
+  character_list = saved_characters;
+  end_gameplay_fixture(&f);
+
+  CuAssertTrue(tc, victim_loss > 0);
+  CuAssertTrue(tc, trace.first_damage > 0);
+  CuAssertIntEquals(tc, 0, returned);
+  CuAssertTrue(tc, stun_pending == (mutation != 0));
+  CuAssertTrue(tc, juxtaposition_present == (mutation != 0));
+  CuAssertTrue(tc, actor_stale == (mutation == 2));
+  CuAssertTrue(tc, bearer_stale == (mutation == 1));
+  if (mutation != 0)
+  {
+    CuAssertIntEquals(tc, 1, trace.reflections);
+    CuAssertIntEquals(tc, trace.first_damage, actor_loss);
+    CuAssertTrue(tc, retort_used == (first_spell == PSIONIC_ENERGY_RETORT));
+    CuAssertTrue(tc, !caustic_rider_present);
+  }
+  else
+  {
+    CuAssertTrue(tc, retort_used);
+    if (first_spell == SPELL_FIRE_SHIELD || first_spell == SPELL_CAUSTIC_BLOOD)
+    {
+      CuAssertIntEquals(tc, 4, trace.reflections);
+      CuAssertIntEquals(tc, first_spell == SPELL_FIRE_SHIELD ? DAM_FIRE : DAM_ACID,
+                        trace.damage_types[0]);
+      CuAssertIntEquals(tc, DAM_MENTAL, trace.damage_types[1]);
+      CuAssertIntEquals(tc, DAM_ELECTRIC, trace.damage_types[2]);
+      CuAssertIntEquals(tc, DAM_PUNCTURE, trace.damage_types[3]);
+    }
+    if (first_spell == SPELL_CAUSTIC_BLOOD)
+      CuAssertTrue(tc, caustic_rider_present);
+  }
+}
+
+void Test_combat_restoration_shields_preserve_stacked_damage_order(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, SPELL_FIRE_SHIELD, 0);
+}
+
+void Test_combat_restoration_shields_forgotten_bearer_stops_chain(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, SPELL_FIRE_SHIELD, 1);
+}
+
+void Test_combat_restoration_shields_forgotten_attacker_stops_chain(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, SPELL_FIRE_SHIELD, 2);
+}
+
+void Test_combat_restoration_shields_relocated_bearer_stops_chain(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, SPELL_FIRE_SHIELD, 3);
+}
+
+void Test_combat_restoration_shields_relocated_attacker_stops_chain(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, SPELL_FIRE_SHIELD, 4);
+}
+
+void Test_combat_restoration_shields_pending_bearer_stops_chain(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, SPELL_FIRE_SHIELD, 5);
+}
+
+void Test_combat_restoration_shields_pending_attacker_stops_chain(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, SPELL_FIRE_SHIELD, 6);
+}
+
+void Test_combat_restoration_shields_empathic_callback_stops_retort(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, PSIONIC_EMPATHIC_FEEDBACK, 4);
+}
+
+void Test_combat_restoration_shields_retort_callback_stops_hit_riders(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, PSIONIC_ENERGY_RETORT, 4);
+}
+
+void Test_combat_restoration_shields_caustic_preserves_live_rider_and_chain(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, SPELL_CAUSTIC_BLOOD, 0);
+}
+
+void Test_combat_restoration_shields_caustic_forgotten_bearer(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, SPELL_CAUSTIC_BLOOD, 1);
+}
+
+void Test_combat_restoration_shields_caustic_forgotten_attacker(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, SPELL_CAUSTIC_BLOOD, 2);
+}
+
+void Test_combat_restoration_shields_caustic_relocated_bearer(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, SPELL_CAUSTIC_BLOOD, 3);
+}
+
+void Test_combat_restoration_shields_caustic_relocated_attacker(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, SPELL_CAUSTIC_BLOOD, 4);
+}
+
+void Test_combat_restoration_shields_caustic_pending_bearer(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, SPELL_CAUSTIC_BLOOD, 5);
+}
+
+void Test_combat_restoration_shields_caustic_pending_attacker(CuTest *tc)
+{
+  verify_restored_damage_shields(tc, SPELL_CAUSTIC_BLOOD, 6);
+}
+
+static void verify_restored_spell_damage_continuation(CuTest *tc, int mutation, bool remote)
+{
+  struct restoration_command_fixture f;
+  struct restoration_reflection_trace trace = {0};
+  struct domain_event_subscription_config observer = {0};
+  struct domain_event_subscription_handle subscription;
+  int returned, remaining_hp;
+  bool burning;
+
+  begin_restoration_command_fixture(tc, &f, LUMINARI_IO_DRIVER_LIBEVENT);
+  if (spell_info[SPELL_LAVA_BURST].name == NULL ||
+      spell_info[SPELL_LAVA_BURST].name == unused_spellname)
+    mag_assign_spells();
+  trace.actor = &f.game.actor;
+  trace.bearer = &f.game.victim;
+  trace.spell = SPELL_LAVA_BURST;
+  trace.mutation = mutation;
+  observer.type = DOMAIN_EVENT_CHARACTER_DAMAGED;
+  observer.topic.role = DOMAIN_EVENT_TOPIC_ANY;
+  observer.owner = domain_event_character_handle(&f.game.victim);
+  observer.identity = "test.restoration.spell-damage";
+  observer.handler = restoration_observe_reflection;
+  observer.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &observer, &subscription));
+  GET_HIT(&f.game.actor) = GET_MAX_HIT(&f.game.actor) = 100000;
+  GET_HIT(&f.game.victim) = GET_MAX_HIT(&f.game.victim) = 100000;
+  if (remote)
+  {
+    char_from_room(&f.game.actor);
+    char_to_room(&f.game.actor, 1);
+  }
+  circle_srandom(1234);
+  returned = mag_damage(20, &f.game.victim, &f.game.actor, NULL, SPELL_LAVA_BURST, 0, SAVING_REFL,
+                        CAST_SPELL);
+  remaining_hp = GET_HIT(&f.game.actor);
+  burning = AFF_FLAGGED(&f.game.actor, AFF_ON_FIRE);
+  REMOVE_BIT_AR(MOB_FLAGS(&f.game.victim), MOB_NOTDEADYET);
+  REMOVE_BIT_AR(PLR_FLAGS(&f.game.actor), PLR_NOTDEADYET);
+  end_restoration_command_fixture(&f);
+
+  CuAssertTrue(tc, returned > 0);
+  CuAssertIntEquals(tc, 100000 - returned, remaining_hp);
+  CuAssertIntEquals(tc, 1, trace.reflections);
+  CuAssertTrue(tc, burning == (mutation == 0));
+}
+
+void Test_combat_restoration_spell_damage_preserves_live_lava_rider(CuTest *tc)
+{
+  verify_restored_spell_damage_continuation(tc, 0, false);
+}
+
+void Test_combat_restoration_spell_damage_preserves_remote_lava_rider(CuTest *tc)
+{
+  verify_restored_spell_damage_continuation(tc, 0, true);
+}
+
+void Test_combat_restoration_spell_damage_forgotten_caster_stops_lava_rider(CuTest *tc)
+{
+  verify_restored_spell_damage_continuation(tc, 1, false);
+}
+
+void Test_combat_restoration_spell_damage_relocated_target_stops_lava_rider(CuTest *tc)
+{
+  verify_restored_spell_damage_continuation(tc, 4, false);
+}
+
+void Test_combat_restoration_spell_damage_pending_target_stops_lava_rider(CuTest *tc)
+{
+  verify_restored_spell_damage_continuation(tc, 6, false);
 }
 
 void Test_gameplay_e2e_staff_all_feats_melee_rotation_executes(CuTest *tc)
