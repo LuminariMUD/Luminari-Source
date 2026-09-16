@@ -100,8 +100,7 @@ int combat_readied_attack(struct char_data *ch, struct char_data *victim);
 void perform_violence(struct char_data *ch, int phase);
 void bloodlust_round_check(struct char_data *ch);
 bool bloodlust_holds_the_fight(struct char_data *ch);
-bool combat_run_compatibility_phase(struct char_data *ch, unsigned int phase);
-bool combat_run_semantic_round(struct char_data *ch, bool was_hit);
+bool combat_run_phase(struct char_data *ch, unsigned int phase);
 void raw_kill(struct char_data *ch, struct char_data *killer);
 bool set_fighting(struct char_data *ch, struct char_data *victim);
 /* The weapon that answers for one attack slot, or NULL when that slot is
@@ -166,7 +165,7 @@ void test_apply_group_sacred_vengeance(struct char_data *victim);
 bool test_life_shield_can_reflect(struct char_data *attacker, struct char_data *victim, int damage,
                                   int source);
 struct affected_type *test_find_spell_affect(struct char_data *ch, int spell);
-bool test_attack_number_runs_in_phase(int attack_number, int phase);
+bool test_attack_number_runs_in_phase(int attack_number, int phase, int attack_type);
 #endif
 
 /* Global variables */

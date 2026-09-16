@@ -311,29 +311,29 @@ int spec_gateway_mobile_activity(struct char_data *mob, spec_legacy_handler hand
   return (spec_dispatch(&context, handler) != 0);
 }
 
-void spec_gateway_mobile_combat_turn(struct char_data *mob)
+bool spec_gateway_mobile_combat_turn(struct char_data *mob)
 {
   struct spec_event_context context;
   const struct spec_definition *definition;
   spec_legacy_handler handler = NULL;
 
   if (mob == NULL)
-    return;
+    return false;
 
   handler = GET_MOB_SPEC(mob);
   if (handler == NULL)
-    return;
+    return false;
 
   definition = spec_registry_find_by_handler(handler);
   if (definition != NULL && definition->typed_handler != NULL &&
       !spec_definition_supports_event(definition, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_COMBAT_TURN))
-    return;
+    return false;
 
   spec_context_init(&context, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_COMBAT_TURN, mob, mob, 0,
                     spec_empty_argument);
   context.target = FIGHTING(mob);
 
-  (void)spec_dispatch(&context, handler);
+  return spec_dispatch(&context, handler) != 0;
 }
 
 spec_invalidate_mask spec_gateway_mobile_hit(struct char_data *mob, struct char_data *target,

@@ -1,7 +1,7 @@
--- Semantic encounter-round player help.
+-- Combat phase and initiative player help.
 --
 -- The database help system is authoritative. This migration is safe to run
--- repeatedly and replaces the combat entry with the current round rules.
+-- repeatedly and replaces the combat entries with the current phase rules.
 
 START TRANSACTION;
 
@@ -19,23 +19,25 @@ Combat may also be initiated via a CM, trip for example : trip <name>.  This
 command will initiate combat with a trip CM.
 
 Combat Rounds:
-One encounter round lasts 6 seconds. Everyone whose turn is ready acts from
-highest initiative to lowest. Ties use Dexterity and then a stable final order.
-Someone joining a fight becomes eligible on the encounter''s next round; joining
-or merging fights never grants an extra early turn.
+A full round of attacks takes 6 seconds and is split into three 2-second
+phases. Your attacks are spread across those phases, so a combatant with
+several attacks swings more than once per round. When a fight starts, the
+side with the better initiative gets its first phase 2 seconds later and the
+other side 4 seconds later, so the two sides alternate. Joining or merging
+fights keeps each combatant''s own timing.
 
 You can check the number of attacks you have in your rotation by using the ATTACKS
 command.  The number of attacks available is directly based on your Base Attack
 Bonus (BAB), which increases based on your class and level.
 
 Actions in Combat:
-Your reaction allowance refreshes before initiative begins each round. At the
-start of your turn, due standard, move, and swift actions recover.
-One valid queued command is attempted first.
-Any actions it spends are unavailable to your automatic attack. If both your
-standard and move actions remain, you perform your full attack rotation. With
-only a standard action, you perform the first attack portion. With no standard
-action, you make no automatic attack. See ''help ACTIONS'' and ''help ACTION-QUEUE''.
+Your automatic attacks do not spend your standard or move action. Commands,
+combat maneuvers, spells, and readied actions do, for exactly as long as each
+one takes, and you get them back at that moment whether or not you are in
+combat. Without a standard action you make no automatic attacks; without a
+move action you make only the first portion of your full attack rotation.
+Your attacks of opportunity refresh every phase. See ''help ACTIONS'' and
+''help ACTION-QUEUE''.
 
 Combat Modes:
 There are a number of combat modes available that change the way you fight.
@@ -80,12 +82,14 @@ VALUES ('initiative-order', 'INITIATIVE
 Usage:
   initiative
 
-Initiative determines combat turn order. It is rolled as 1d20 plus Dexterity
-and other bonuses when a combatant enters an encounter.
+Initiative determines who strikes first. It is rolled as 1d20 plus Dexterity
+and other bonuses when combat starts and when a combatant joins a fight. The
+winner of the opening roll strikes first. A combatant whose roll matches or
+beats its opponent''s gets its first attack phase 2 seconds later, otherwise 4.
 
-Use INITIATIVE while fighting to see the current encounter round, the time
-until the next round, and visible combatants in their scheduled turn order.
-Your own name is highlighted in green when color is enabled.
+Use INITIATIVE while fighting to see each visible combatant''s roll, upcoming
+attack phase, and the seconds until it. Your own name is highlighted in green
+when color is enabled.
 
 See also: COMBAT, ACTIONS', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),

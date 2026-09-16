@@ -5667,6 +5667,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define MAX_SKILLS 4000                 /**< Max number of skills */
 #define MAX_SPELLS 2000                 /**< Max number of spells */
 #define MAX_ABILITIES 200               /**< Max number of abilities */
+#define MAX_TALENTS 128                 /**< Talent rank slots; TALENT_MAX must not exceed it */
 #define MAX_AFFECT 32                   /**< Max number of player affections */
 #define MAX_OBJ_AFFECT 6                /**< Max object affects */
 #define MAX_HELP_KEYWORDS 256           /**< Max length of help keyword string */
@@ -5936,6 +5937,11 @@ struct crafting_data_info
   time_t supply_slot_cooldowns[5];  // Individual cooldowns for each slot (when taken/abandoned)
   time_t supply_slots_last_refresh; // When slots were last refreshed
   time_t supply_slots_next_refresh; // When next refresh is available
+
+  // paid craft training contract (craft/craft_training.c); ability 0 means none
+  int training_ability; // craft or harvest ability being trained
+  int training_exp;     // experience granted when the contract settles
+  time_t training_end;  // wall-clock time the character may return
 
   // surveying;
   int survey_rooms;
@@ -6743,8 +6749,7 @@ struct player_special_data_saved
   /* Talent system (crafting / harvesting) */
   int talent_points; /* Unspent crafting talent points */
   /* New rank-based talent storage; index by talent id. 0 = not learned. */
-  /* Using 64 as a stable upper bound; must be >= TALENT_MAX from talents.h */
-  ubyte talent_ranks[64];
+  ubyte talent_ranks[MAX_TALENTS];
   /* Legacy bitset kept for backwards-compat load. No longer used by game logic. */
   unsigned int talents_bits[2]; /* [DEPRECATED] Bitset for up to 64 talents */
 
@@ -8280,7 +8285,7 @@ extern struct race_data race_list[];
 #define TALENT_ACCESS_MACROS
 /* Rank access; bounds-safe: talents are 1..TALENT_MAX-1. */
 #define GET_TALENT_RANK(ch, talent)                                                                \
-  (((ch) && (ch)->player_specials && (talent) > 0 && (talent) < 64)                                \
+  (((ch) && (ch)->player_specials && (talent) > 0 && (talent) < MAX_TALENTS)                       \
        ? (ch)->player_specials->saved.talent_ranks[(talent)]                                       \
        : 0)
 
@@ -8291,7 +8296,7 @@ extern struct race_data race_list[];
 #define SET_TALENT(ch, talent)                                                                     \
   do                                                                                               \
   {                                                                                                \
-    if ((ch) && (talent) > 0 && (talent) < 64 && GET_TALENT_RANK((ch), (talent)) == 0)             \
+    if ((ch) && (talent) > 0 && (talent) < MAX_TALENTS && GET_TALENT_RANK((ch), (talent)) == 0)    \
       (ch)->player_specials->saved.talent_ranks[(talent)] = 1;                                     \
   } while (0)
 

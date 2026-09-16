@@ -623,10 +623,9 @@ action can enter the action queue only after a non-mutating availability check
 validates their current arguments. Commands without a safe advance check are
 not queued; retry those commands after the required action becomes available.
 
-The queue is first-in, first-out and holds at most 10 commands. During combat,
-one queued command is considered at the start of each six-second turn. If the
-first command still lacks its required action, it remains at the front. Queued
-commands do not drain between turns. QUEUE displays pending actions, and QUEUE
+The queue is first-in, first-out and holds at most 10 commands. The first
+command runs as soon as its required action is available, in or out of combat;
+until then it stays at the front. QUEUE displays pending actions, and QUEUE
 CLEAR removes all pending actions.
 
 See also: ACTIONS, ATTACK-QUEUE, COMBAT
@@ -1486,6 +1485,41 @@ Appraise, like charisma will help you get the best prices
 for items in shops both in purchasing and selling.
 
 See also:  BUY SELL CHARISMA SHOP
+#0
+APPRENTICE CRAFT-TRAINER CRAFT-TRAINING
+
+Usage: apprentice
+       apprentice <skill>
+       apprentice <skill> confirm
+
+A craft trainer teaches a crafting or harvesting skill while you spend a day
+away from the world. Stand beside a trainer, such as the master artisan in the
+Sanctus crafting district, and type APPRENTICE to see each skill it teaches,
+your rank, the experience a contract grants, and the fee. APPRENTICE <skill>
+quotes the terms and changes nothing; add CONFIRM to begin.
+
+Trainers teach alchemy, armorsmithing, jewelcrafting, leatherworking,
+metalworking, tailoring, weaponsmithing, woodworking, forestry, gathering,
+hunting, and mining, and only below rank 20. A contract grants half of the
+experience your next rank requires, plus any insightful talent bonus, and never
+raises the skill by more than one rank. The fee rises with your rank and comes
+from the gold you carry: 100 gold at rank 0, 2500 at rank 4, 10000 at rank 9,
+and 40000 at rank 19.
+
+You cannot start a contract while fighting, while busy with another activity,
+or while another contract is open. Starting one works like QUIT: your belongings
+are saved, your followers are dismissed, and timed quests end.
+
+The character then stays out of play for 24 hours of real time. The account
+menu shows the time left, and the character cannot enter the game before the
+contract ends. The first time you select it afterwards, it receives the
+experience and returns beside the trainer.
+
+To end a contract early, type RECALL <number> at the account menu to review it,
+then RECALL <number> CONFIRM. The character returns without the experience, and
+the fee is not refunded.
+
+See also: CRAFT-SCORE, CRAFTING, HARVEST, QUIT
 #0
 ARCANA-GOLEM RACE-ARCANA-GOLEM
 
@@ -7075,23 +7109,25 @@ Combat may also be initiated via a CM, trip for example : trip <name>.  This
 command will initiate combat with a trip CM.
 
 Combat Rounds:
-One encounter round lasts 6 seconds. Everyone whose turn is ready acts from
-highest initiative to lowest. Ties use Dexterity and then a stable final order.
-Someone joining a fight becomes eligible on the encounter's next round; joining
-or merging fights never grants an extra early turn.
+A full round of attacks takes 6 seconds and is split into three 2-second
+phases. Your attacks are spread across those phases, so a combatant with
+several attacks swings more than once per round. When a fight starts, the
+side with the better initiative gets its first phase 2 seconds later and the
+other side 4 seconds later, so the two sides alternate. Joining or merging
+fights keeps each combatant's own timing.
 
 You can check the number of attacks you have in your rotation by using the ATTACKS
 command.  The number of attacks available is directly based on your Base Attack
 Bonus (BAB), which increases based on your class and level.
 
 Actions in Combat:
-Your reaction allowance refreshes before initiative begins each round. At the
-start of your turn, due standard, move, and swift actions recover.
-One valid queued command is attempted first.
-Any actions it spends are unavailable to your automatic attack. If both your
-standard and move actions remain, you perform your full attack rotation. With
-only a standard action, you perform the first attack portion. With no standard
-action, you make no automatic attack. See 'help ACTIONS' and 'help ACTION-QUEUE'.
+Your automatic attacks do not spend your standard or move action. Commands,
+combat maneuvers, spells, and readied actions do, for exactly as long as each
+one takes, and you get them back at that moment whether or not you are in
+combat. Without a standard action you make no automatic attacks; without a
+move action you make only the first portion of your full attack rotation.
+Your attacks of opportunity refresh every phase. See 'help ACTIONS' and
+'help ACTION-QUEUE'.
 
 Combat Modes:
 There are a number of combat modes available that change the way you fight.
@@ -8089,6 +8125,8 @@ Usage: craft score
 
 This command will display your crafting and harvesting skills, their rank, experience, and
 experience required for the next rank.
+
+See also: APPRENTICE
 #0
 CRAFT-SHOW
 
@@ -17873,12 +17911,14 @@ INITIATIVE
 Usage:
   initiative
 
-Initiative determines combat turn order. It is rolled as 1d20 plus Dexterity
-and other bonuses when a combatant enters an encounter.
+Initiative determines who strikes first. It is rolled as 1d20 plus Dexterity
+and other bonuses when combat starts and when a combatant joins a fight. The
+winner of the opening roll strikes first. A combatant whose roll matches or
+beats its opponent's gets its first attack phase 2 seconds later, otherwise 4.
 
-Use INITIATIVE while fighting to see the current encounter round, the time
-until the next round, and visible combatants in their scheduled turn order.
-Your own name is highlighted in green when color is enabled.
+Use INITIATIVE while fighting to see each visible combatant's roll, upcoming
+attack phase, and the seconds until it. Your own name is highlighted in green
+when color is enabled.
 
 See also: COMBAT, ACTIONS
 #0
@@ -31562,6 +31602,10 @@ secondaries are reconstructed compatibility state.
 A moving room cannot also have a named room SpecProc. Both features own the
 same callback slot, so redit refuses that selection and zone saving or boot
 rejects a room containing both forms of data.
+
+Craft Trainer is mobile-owned and needs no MOB_SPEC. Players beside an awake
+trainer that can see them use APPRENTICE to list, quote, and start paid craft
+or harvest training; see HELP APPRENTICE.
 
 Converted RoL-Demon, RoL-Devil, and RoL-Umberhulk mobile flags are not
 additional authored SpecProcs. Independent compatibility hooks run their

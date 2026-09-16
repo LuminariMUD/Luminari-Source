@@ -44,6 +44,7 @@
 #include "spec/spec_mobile_archetypes.h"
 #include "olc/oasis.h"
 #include "craft/crafting_new.h"
+#include "character/talents.h"
 #include "wilderness/resource_system.h"
 #include "character/character_creation.h"
 #include "vessels/vessels.h"
@@ -506,7 +507,7 @@ int load_char(const char *name, struct char_data *ch)
   struct pending_durable_event *pending_events = NULL;
   struct pending_durable_event *pending_event;
   enum mud_event_restore_status restore_status;
-  int id, i, j, parsed;
+  int id, i, j, parsed, earned_rank;
   int64_t cooldown_saved_at_epoch = 0;
   bool boarding_ability_current = FALSE;
   FILE *fl;
@@ -1140,6 +1141,27 @@ int load_char(const char *name, struct char_data *ch)
           GET_CRAFT(ch).instrument_motes[3] = atoi(line);
         else if (!strcmp(tag, "CrAS"))
           GET_CRAFT(ch).supply_active_slot = atoi(line);
+        else if (!strcmp(tag, "CrTr"))
+        {
+          /* Craft training contract: ability experience end-epoch. A contract already paid for
+           * stays valid for any craft or harvest ability, even one no longer trainable. */
+          char *field_end;
+          long ability, experience, end;
+
+          ability = strtol(line, &field_end, 10);
+          experience = strtol(field_end, &field_end, 10);
+          end = strtol(field_end, &field_end, 10);
+          if (*field_end == '\0' && ability >= START_CRAFT_ABILITIES &&
+              ability <= END_HARVEST_ABILITIES && experience > 0 && experience <= INT_MAX &&
+              end > 0)
+          {
+            GET_CRAFT(ch).training_ability = (int)ability;
+            GET_CRAFT(ch).training_exp = (int)experience;
+            GET_CRAFT(ch).training_end = (time_t)end;
+          }
+          else
+            log("SYSERR: Ignoring malformed craft training contract '%s' in pfile %s", line, name);
+        }
 
         break;
 
@@ -2020,13 +2042,13 @@ int load_char(const char *name, struct char_data *ch)
         }
         else if (!strcmp(tag, "Tlrk"))
         {
-          /* New rank array: pairs of (talent rank) across 64 entries */
-          /* Format: Tlrk: <t0> <t1> ... <t63> (we will actually use indices 1..TALENT_MAX-1) */
+          /* New rank array: one rank per talent id (64 entries in older saves) */
+          /* Format: Tlrk: <t0> <t1> ... (we will actually use indices 1..TALENT_MAX-1) */
           int consumed = 0;
           const char *p = line;
           int val;
           int inner_t;
-          for (inner_t = 0; inner_t < 64; inner_t++)
+          for (inner_t = 0; inner_t < MAX_TALENTS; inner_t++)
           {
             if (sscanf(p, "%d%n", &val, &consumed) == 1)
             {
@@ -2144,6 +2166,16 @@ int load_char(const char *name, struct char_data *ch)
   if (!boarding_ability_current)
   {
     SET_ABILITY(ch, ABILITY_BOARDING, 0);
+  }
+
+  /* Older saves can hold a craft or harvest rank below the one its experience earned: a single
+   * gain used to raise at most one rank, and respec used to clear these ranks. Talent points were
+   * paid when each rank was first reached, so restoring the rank pays none. */
+  for (i = START_CRAFT_ABILITIES; i <= END_HARVEST_ABILITIES; i++)
+  {
+    earned_rank = craft_skill_rank_for_exp(ch, GET_CRAFT_SKILL_EXP(ch, i));
+    if (GET_ABILITY(ch, i) < earned_rank)
+      SET_ABILITY(ch, i, earned_rank);
   }
 
   resetCastingData(ch);
@@ -2839,9 +2871,9 @@ bool save_char_checked(struct char_data *ch, int mode)
 
   if (GET_TALENT_POINTS(ch) != 0)
     BUFFER_WRITE("Tlpt: %d\n", GET_TALENT_POINTS(ch));
-  /* Save rank array (fixed 64 entries) */
+  /* Save rank array (one entry per talent id, which keeps the line within READ_SIZE) */
   BUFFER_WRITE("Tlrk:");
-  for (i = 0; i < 64; i++)
+  for (i = 0; i < TALENT_MAX; i++)
     BUFFER_WRITE(" %d", ch->player_specials->saved.talent_ranks[i]);
   BUFFER_WRITE("\n");
   /* Also write a zeroed legacy bitset for compatibility, or synthesize from ranks */
@@ -3327,6 +3359,10 @@ bool save_char_checked(struct char_data *ch, int mode)
       }
     }
   }
+
+  if (GET_CRAFT(ch).training_ability)
+    BUFFER_WRITE("CrTr: %d %d %ld\n", GET_CRAFT(ch).training_ability, GET_CRAFT(ch).training_exp,
+                 (long)GET_CRAFT(ch).training_end);
 
   BUFFER_WRITE("CrSR: %d\n", GET_CRAFT(ch).survey_rooms);
   BUFFER_WRITE("CrIy: %d\n", GET_CRAFT(ch).instrument_type);

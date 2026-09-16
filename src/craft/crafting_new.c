@@ -5137,6 +5137,7 @@ void gain_craft_exp(struct char_data *ch, int exp, int abil, bool verbose)
   int bonus_percentage = 0;
   int bonus_exp = 0;
   int total_exp = exp;
+  int old_rank = 0, new_rank = 0;
 
   // Validate ability/skill type to prevent array out-of-bounds crashes
   if (abil < 0 || abil > NUM_ABILITIES)
@@ -5172,15 +5173,16 @@ void gain_craft_exp(struct char_data *ch, int exp, int abil, bool verbose)
                    ability_names[abil]);
     }
   }
-  if (GET_CRAFT_SKILL_EXP(ch, abil) >=
-      craft_skill_level_exp(ch, get_craft_skill_value(ch, abil) + 1))
+  /* A large gain can cross several thresholds; every rank it reaches counts. */
+  old_rank = get_craft_skill_value(ch, abil);
+  new_rank = craft_skill_rank_for_exp(ch, GET_CRAFT_SKILL_EXP(ch, abil));
+  if (new_rank > old_rank)
   {
     send_to_char(ch, "\tYYour skill in '%s' has increased from %d to %d!\r\n\tn",
-                 ability_names[abil], get_craft_skill_value(ch, abil),
-                 get_craft_skill_value(ch, abil) + 1);
-    SET_ABILITY(ch, abil, get_craft_skill_value(ch, abil) + 1);
+                 ability_names[abil], old_rank, new_rank);
+    SET_ABILITY(ch, abil, new_rank);
     /* Award 1 crafting talent point per crafting/harvesting skill level up */
-    gain_talent_point(ch, 1);
+    gain_talent_point(ch, new_rank - old_rank);
   }
 }
 
@@ -6500,6 +6502,17 @@ int craft_skill_level_exp(struct char_data *ch, int level)
     return 0;
   else
     return (level * 1000) + craft_skill_level_exp(ch, level - 1);
+}
+
+/* The highest rank whose cumulative requirement exp meets. Ranks are stored in a ubyte, so the
+ * result stops at UCHAR_MAX. */
+int craft_skill_rank_for_exp(struct char_data *ch, int exp)
+{
+  int rank = 0;
+
+  while (rank < UCHAR_MAX && exp >= craft_skill_level_exp(ch, rank + 1))
+    rank++;
+  return rank;
 }
 
 int get_level_adjustment_by_apply_and_modifier(int apply, int mod, int btype)

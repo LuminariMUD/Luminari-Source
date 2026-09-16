@@ -5,6 +5,7 @@
 #include "../../src/core/structs.h"
 #include "../../src/events/activity_manager.h"
 #include "../../src/events/actions.h"
+#include "../../src/combat/combat_encounters.h"
 #include "../../src/core/comm.h"
 #include "../../src/core/db.h"
 #include "../../src/dgscript/dg_event.h"
@@ -22,51 +23,6 @@
 #include "../../src/core/handler.h"
 
 #include <string.h>
-
-static bool activity_source_places_turn_hook_in_semantic_round(void)
-{
-  const char *root = getenv("LUMINARI_TEST_ROOT");
-  char path[PATH_MAX];
-  char line[512];
-  FILE *file;
-  bool compatibility = false;
-  bool semantic = false;
-  bool compatibility_hook = false;
-  bool semantic_hook = false;
-
-  if (root == NULL || *root == '\0')
-    root = ".";
-  if (snprintf(path, sizeof(path), "%s/src/combat/fight.c", root) >= (int)sizeof(path))
-    return false;
-  file = fopen(path, "r");
-  if (file == NULL)
-    return false;
-  while (fgets(line, sizeof(line), file) != NULL)
-  {
-    if (strstr(line, "bool combat_run_compatibility_phase") != NULL)
-    {
-      compatibility = true;
-      semantic = false;
-    }
-    else if (strstr(line, "bool combat_run_semantic_round") != NULL)
-    {
-      compatibility = false;
-      semantic = true;
-    }
-    else if (strstr(line, "EVENTFUNC(event_combat_round)") != NULL)
-    {
-      compatibility = false;
-      semantic = false;
-    }
-    if (strstr(line, "primary_activity_on_semantic_turn(ch);") != NULL)
-    {
-      compatibility_hook = compatibility_hook || compatibility;
-      semantic_hook = semantic_hook || semantic;
-    }
-  }
-  fclose(file);
-  return semantic_hook && !compatibility_hook;
-}
 
 struct activity_test_context
 {
@@ -567,9 +523,64 @@ void Test_activity_status_wraps_for_default_mud_width(CuTest *tc)
   activity_test_end(&fixture);
 }
 
+static bool activity_test_attack_phase(struct char_data *character, unsigned int phase,
+                                       void *context)
+{
+  unsigned int *phases = context;
+
+  (void)character;
+  (void)phase;
+  (*phases)++;
+  return true;
+}
+
 void Test_primary_activity_turn_hook_is_semantic_only(CuTest *tc)
 {
-  CuAssertTrue(tc, activity_source_places_turn_hook_in_semantic_round());
+  struct activity_test_fixture fixture;
+  struct primary_activity_definition definition;
+  unsigned int phases = 0U;
+  unsigned long start, tick;
+
+  activity_test_begin(tc, &fixture);
+  start = pulse;
+  definition = activity_test_definition(&fixture);
+  definition.combat_response = PRIMARY_ACTIVITY_RESPONSE_IGNORE;
+  definition.combat_actions_required = ACTION_NONE;
+  FIGHTING(&fixture.actor) = &fixture.target;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, combat_encounter_runtime_init(NULL));
+  combat_encounter_test_set_phase_callback(activity_test_attack_phase, &phases);
+  CuAssertTrue(tc, combat_encounter_join(&fixture.actor, &fixture.target, ((long)(2 RL_SEC))));
+  CuAssertTrue(tc, activity_test_start(&fixture, &definition));
+  for (tick = start + 1U; tick < start + ((unsigned long)(6 RL_SEC)); tick++)
+  {
+    pulse = tick;
+    event_test_advance();
+  }
+  CuAssertIntEquals(tc, 2, (int)phases);
+  CuAssertIntEquals(tc, 0, (int)fixture.context.progress_calls);
+  pulse++;
+  event_test_advance();
+  CuAssertIntEquals(tc, 3, (int)phases);
+  CuAssertIntEquals(tc, 1, (int)fixture.context.progress_calls);
+  for (tick = pulse + 1U; tick < start + ((unsigned long)(12 RL_SEC)); tick++)
+  {
+    pulse = tick;
+    event_test_advance();
+  }
+  CuAssertIntEquals(tc, 5, (int)phases);
+  CuAssertIntEquals(tc, 1, (int)fixture.context.progress_calls);
+  CuAssertIntEquals(tc, 0, (int)fixture.context.completion_calls);
+  pulse++;
+  event_test_advance();
+  CuAssertIntEquals(tc, 6, (int)phases);
+  CuAssertIntEquals(tc, 1, (int)fixture.context.progress_calls);
+  CuAssertIntEquals(tc, 1, (int)fixture.context.completion_calls);
+  pulse++;
+  event_test_advance();
+  CuAssertIntEquals(tc, 1, (int)fixture.context.completion_calls);
+  FIGHTING(&fixture.actor) = NULL;
+  combat_encounter_runtime_shutdown();
+  activity_test_end(&fixture);
 }
 
 /* Exercise the production cast entry point and native scheduler with real spell data. */

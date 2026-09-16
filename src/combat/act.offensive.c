@@ -27,6 +27,7 @@
 #include "magic/psionics.h"
 #include "act/act.h"
 #include "fight.h"
+#include "combat_state.h"
 #include "events/mud_event.h"
 #include "core/constants.h"
 #include "character/abilities.h"
@@ -2354,6 +2355,9 @@ static bool perform_shieldslam(struct char_data *ch, struct char_data *vict)
 void perform_headbutt(struct char_data *ch, struct char_data *vict)
 {
   struct affected_type af;
+  struct domain_entity_handle attacker = domain_event_character_handle(ch);
+  struct domain_entity_handle target = domain_event_character_handle(vict);
+  room_rnum room = IN_ROOM(ch);
 
   if (vict == ch)
   {
@@ -2397,6 +2401,8 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict)
   {
     damage(ch, vict, dice((HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE) ? 2 : 1), 8), SKILL_HEADBUTT,
            DAM_FORCE, FALSE);
+    if (!combat_state_attack_context_valid(attacker, target, room))
+      return;
 
     if (!rand_number(0, 4))
     {
@@ -10458,6 +10464,9 @@ int perform_dragonbite(struct char_data *ch, struct char_data *vict)
 void perform_kick(struct char_data *ch, struct char_data *vict)
 {
   int discipline_bonus = 0, diceOne = 0, diceTwo = 0;
+  struct domain_entity_handle attacker = domain_event_character_handle(ch);
+  struct domain_entity_handle target = domain_event_character_handle(vict);
+  room_rnum room = IN_ROOM(ch);
 
   if (vict == ch)
   {
@@ -10501,6 +10510,8 @@ void perform_kick(struct char_data *ch, struct char_data *vict)
   if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_KICK, 0) > 0)
   {
     damage(ch, vict, dice(diceOne, diceTwo) + GET_STR_BONUS(ch), SKILL_KICK, DAM_FORCE, FALSE);
+    if (!combat_state_attack_context_valid(attacker, target, room))
+      return;
     if (!savingthrow(ch, vict, SAVING_REFL, GET_STR_BONUS(vict), CAST_INNATE, GET_LEVEL(ch),
                      NOSCHOOL) &&
         rand_number(0, 2))

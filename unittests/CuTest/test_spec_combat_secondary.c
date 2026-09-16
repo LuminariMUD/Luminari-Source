@@ -725,9 +725,10 @@ void Test_spec_mobile_combat_turn_follows_attacks_and_cleave(CuTest *tc)
           ? spec_combat_region_find(&region, "perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);")
           : NULL;
   cleave_call = source_loaded ? spec_combat_region_find(&region, "handle_cleave(ch);") : NULL;
-  callback_call = source_loaded
-                      ? spec_combat_region_find(&region, "spec_gateway_mobile_combat_turn(ch);")
-                      : NULL;
+  callback_call =
+      source_loaded
+          ? spec_combat_region_find(&region, "spec_handled = spec_gateway_mobile_combat_turn(ch);")
+          : NULL;
   order_matches = attack_call != NULL && cleave_call != NULL && callback_call != NULL &&
                   attack_call < cleave_call && cleave_call < callback_call;
   activation_matches =
@@ -736,10 +737,13 @@ void Test_spec_mobile_combat_turn_follows_attacks_and_cleave(CuTest *tc)
           &region, "if (MOB_FLAGGED(ch, MOB_SPEC) && GET_MOB_SPEC(ch) && !MOB_FLAGGED(ch, "
                    "MOB_NOTDEADYET) &&") != NULL &&
       spec_combat_region_find(&region, "GET_HIT(ch) > 0)") != NULL;
-  /* The gateway returns void, so the combat caller still cannot act on a
-   * return value. */
-  return_ignored = source_loaded && spec_combat_region_has_statement(
-                                        &region, "spec_gateway_mobile_combat_turn(ch);");
+  /* The gateway result only decides whether the historical NPC race/class
+   * behavior still runs this rotation; attacks and cleave never depend on it. */
+  return_ignored = source_loaded &&
+                   spec_combat_region_has_statement(
+                       &region, "spec_handled = spec_gateway_mobile_combat_turn(ch);") &&
+                   spec_combat_region_find(&region, "!spec_handled && IS_NPC(ch) &&") != NULL &&
+                   spec_combat_region_find(&region, "npc_combat_behave(ch);") > callback_call;
   no_specials_absent = source_loaded && spec_combat_region_find(&region, "no_specials") == NULL;
   if (source_loaded)
     spec_combat_release_region(&region);

@@ -502,6 +502,7 @@ set(SRC_C_FILES
     src/core/constants.c
     src/core/copyover_diagnostic.c
     src/craft/craft.c
+    src/craft/craft_training.c
     src/craft/crafting_molds.c
     src/craft/crafting_new.c
     src/craft/crafting_recipes.c
@@ -1252,6 +1253,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_gameplay_e2e.c
     unittests/CuTest/test_password.c
     unittests/CuTest/test_rewards_production.c
+    unittests/CuTest/test_craft_training.c
 )
 
 # The focused protocol harnesses are built by unittests/CuTest/Makefile.

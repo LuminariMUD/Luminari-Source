@@ -51,6 +51,7 @@ enum mobile_work_reason
 void mobile_activity_run_scheduled(struct char_data *ch, mobile_work_mask reasons);
 mobile_work_mask mobile_activity_recurring_reasons(struct char_data *ch);
 mobile_work_mask mobile_activity_room_reaction_reasons(const struct char_data *ch);
+void npc_combat_behave(struct char_data *ch);
 mobile_work_mask mobile_activity_combat_reaction_reasons(const struct char_data *ch);
 long mobile_activity_next_wander_delay(void);
 long mobile_activity_next_resource_recovery_delay(const struct char_data *ch);

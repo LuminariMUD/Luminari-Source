@@ -20,6 +20,7 @@
 #include "core/db.h"
 #include "dgscript/dg_scripts.h"
 #include "combat/fight.h" /* for hit() */
+#include "combat/combat_state.h"
 #include "core/constants.h"
 #include "events/mud_event.h"
 #include "character/class.h"
@@ -1005,9 +1006,24 @@ SAVING_WILL here...  */
   /* the rest of the routine handling follows: */
 
   if (IS_SET(SINFO.routines, MAG_DAMAGE))
+  {
+    struct domain_entity_handle caster_handle = domain_event_character_handle(caster);
+    struct domain_entity_handle victim_handle = domain_event_character_handle(cvict);
+    room_rnum caster_room = IN_ROOM(caster);
+    room_rnum victim_room = cvict != NULL ? IN_ROOM(cvict) : NOWHERE;
+
     if (mag_damage(spell_level, caster, cvict, ovict, spellnum, metamagic, savetype, casttype) ==
         -1)
       return (-1); /* Successful and target died, don't cast again. */
+    if (!combat_state_character_context_valid(caster_handle, caster_room) ||
+        (cvict != NULL && !combat_state_character_context_valid(victim_handle, victim_room)))
+    {
+      /* Damage completed, but the remaining routines cannot use stale participants. */
+      if (domain_event_world_resolve_character(caster_handle) == caster)
+        GET_DC_BONUS(caster) = 0;
+      return 1;
+    }
+  }
 
   if (IS_SET(SINFO.routines, MAG_LOOPS))
     mag_loops(spell_level, caster, cvict, ovict, spellnum, metamagic, savetype, casttype);

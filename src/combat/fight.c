@@ -18,6 +18,7 @@
 #include "events/character_periodic.h"
 #include "movement/graph.h"
 #include "spec/spec_dispatch.h"
+#include "mob/mob_act.h"
 #include "spec/spec_rol_conversion.h"
 #include "core/comm.h"
 #include "core/handler.h"
@@ -5430,7 +5431,7 @@ static struct char_data *find_divine_sacrifice_defender(struct char_data *victim
 static bool life_shield_can_reflect(struct char_data *attacker, struct char_data *victim,
                                     int damage, int source)
 {
-  return attacker != NULL && victim != NULL && attacker != victim && damage > 0 &&
+  return attacker != NULL && victim != NULL && attacker != victim && damage >= 0 &&
          source != SPELL_LIFE_SHIELD && IS_UNDEAD(attacker) &&
          affected_by_spell(victim, SPELL_LIFE_SHIELD);
 }
@@ -5523,9 +5524,10 @@ struct affected_type *test_find_spell_affect(struct char_data *ch, int spell)
    -item
    -etc */
 /* if it's a spell, the spellnum will be carried through the w_type variable */
-static int damage_with_projectile(struct char_data *ch, struct char_data *victim, int dam,
-                                  int w_type, int dam_type, int attack_type,
-                                  struct obj_data *attack_weapon, struct obj_data *projectile)
+static int resolve_damage_with_projectile(struct char_data *ch, struct char_data *victim, int dam,
+                                          int w_type, int dam_type, int attack_type,
+                                          struct obj_data *attack_weapon,
+                                          struct obj_data *projectile)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
@@ -5550,20 +5552,12 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
       (affected_by_spell(victim, PSIONIC_FORCE_SCREEN) ||
        affected_by_spell(victim, PSIONIC_INERTIAL_ARMOR)))
   {
-    bool semantic_used = false;
-    bool semantic_managed = combat_encounter_round_flag_query(
-        victim, COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED, &semantic_used);
-
-    if ((semantic_managed && !semantic_used) ||
-        (!semantic_managed && !char_has_mud_event(victim, eDEFLECTIVE_SCREEN_HIT_THIS_ROUND)))
+    if (!char_has_mud_event(victim, eDEFLECTIVE_SCREEN_HIT_THIS_ROUND))
     {
       int dr = get_deflective_screen_first_hit_dr(victim);
       dam = MAX(0, dam - dr);
-      if (semantic_managed)
-        combat_encounter_round_flag_mark(victim, COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED);
-      else
-        attach_mud_event(new_mud_event(eDEFLECTIVE_SCREEN_HIT_THIS_ROUND, victim, NULL),
-                         10 * PASSES_PER_SEC);
+      attach_mud_event(new_mud_event(eDEFLECTIVE_SCREEN_HIT_THIS_ROUND, victim, NULL),
+                       10 * PASSES_PER_SEC);
     }
   }
 
@@ -5853,7 +5847,15 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
 
   GET_HIT(victim) -= dam;
   if (dam > 0)
+  {
+    struct domain_entity_handle source_handle = domain_event_character_handle(ch);
+    struct domain_entity_handle target_handle = domain_event_character_handle(victim);
+
     (void)domain_event_runtime_character_damaged(victim, ch, dam, dam_type);
+    if (domain_event_world_resolve_character(source_handle) != ch ||
+        domain_event_world_resolve_character(target_handle) != victim)
+      return dam;
+  }
 
   activate_rol_delayed_hunter(victim, dam);
 
@@ -5914,8 +5916,7 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
   /* Perfect Tempo perk: Track that this character was hit this round */
   if (dam > 0 && !IS_NPC(victim) && has_bard_perfect_tempo(victim))
   {
-    if (!combat_encounter_round_flag_mark(victim, COMBAT_ENCOUNTER_ROUND_PERFECT_TEMPO_HIT) &&
-        !char_has_mud_event(victim, ePERFECT_TEMPO_HIT_THIS_ROUND))
+    if (!char_has_mud_event(victim, ePERFECT_TEMPO_HIT_THIS_ROUND))
     {
       /* Attach event to track that they were hit this round (lasts 1 round) */
       attach_mud_event(new_mud_event(ePERFECT_TEMPO_HIT_THIS_ROUND, victim, NULL),
@@ -5962,6 +5963,9 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
       threshold = dam / 2;
     }
     lifedam = dam / 2;
+    damage(victim, ch, lifedam, SPELL_LIFE_SHIELD, DAM_HOLY, FALSE);
+    if (domain_event_world_resolve_character(victim_handle) != victim)
+      return dam;
     for (inner_af = victim->affected; inner_af; inner_af = inner_af->next)
     {
       if (inner_af->spell == SPELL_LIFE_SHIELD && inner_af->location == APPLY_SPECIAL)
@@ -5978,7 +5982,6 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
     {
       affect_from_char(victim, SPELL_LIFE_SHIELD);
     }
-    damage(victim, ch, lifedam, SPELL_LIFE_SHIELD, DAM_HOLY, FALSE);
     if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
       return dam;
   }
@@ -6227,15 +6230,20 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
   return (dam);
 }
 
-/* Apply damage and drain any reactive damage it provokes.
- * The outermost call owns a bounded FIFO queue; damage raised by reactive
- * defenses while that queue is active is scheduled onto it and reported as
- * queued, so reaction chains stay iterative and bounded instead of recursive. */
-struct combat_damage_result combat_damage_apply(struct char_data *ch, struct char_data *victim,
-                                                int dam, int w_type, int dam_type, int attack_type)
+/* Complete each reactive packet before its parent resumes, as the historical
+ * callers require. All descendants share the outermost queue's monotonic
+ * admission count: at most 64 reactions, hence at most 65 damage frames. No
+ * nested caller may start a fresh budget. Preserve projectile context through
+ * this boundary instead of letting weapon hits bypass reaction admission. */
+static struct combat_damage_result
+combat_damage_apply_with_projectile(struct char_data *ch, struct char_data *victim, int dam,
+                                    int w_type, int dam_type, int attack_type,
+                                    struct obj_data *attack_weapon, struct obj_data *projectile)
 {
   struct combat_reaction_queue reactions;
   struct combat_reaction_damage reaction;
+  struct domain_entity_handle source_handle = domain_event_character_handle(ch);
+  struct domain_entity_handle target_handle = domain_event_character_handle(victim);
   struct char_data *source;
   struct char_data *target;
   enum combat_reaction_dequeue_status status;
@@ -6258,22 +6266,37 @@ struct combat_damage_result combat_damage_apply(struct char_data *ch, struct cha
             dam);
       return combat_damage_result_rejected(ch, victim, dam);
     }
-    return combat_damage_result_queued(ch, victim, dam);
+    status = combat_reaction_dequeue_damage(active_damage_reactions, &reaction, &source, &target);
+    if (status != COMBAT_REACTION_DEQUEUE_READY)
+      return combat_damage_result_rejected(ch, victim, dam);
+    result = resolve_damage_with_projectile(source, target, reaction.amount, reaction.ability,
+                                            reaction.damage_type, reaction.attack_type,
+                                            attack_weapon, projectile);
+    return combat_damage_result_from_handles(source_handle, target_handle, dam, result);
   }
 
   combat_reaction_queue_init(&reactions);
   active_damage_reactions = &reactions;
-  result = damage_with_projectile(ch, victim, dam, w_type, dam_type, attack_type, NULL, NULL);
-  while ((status = combat_reaction_dequeue_damage(&reactions, &reaction, &source, &target)) !=
-         COMBAT_REACTION_DEQUEUE_EMPTY)
-  {
-    if (status == COMBAT_REACTION_DEQUEUE_STALE)
-      continue;
-    (void)damage_with_projectile(source, target, reaction.amount, reaction.ability,
-                                 reaction.damage_type, reaction.attack_type, NULL, NULL);
-  }
+  result = resolve_damage_with_projectile(ch, victim, dam, w_type, dam_type, attack_type,
+                                          attack_weapon, projectile);
   active_damage_reactions = NULL;
-  return combat_damage_result_from_legacy(ch, victim, dam, result);
+  return combat_damage_result_from_handles(source_handle, target_handle, dam, result);
+}
+
+static int damage_with_projectile(struct char_data *ch, struct char_data *victim, int dam,
+                                  int w_type, int dam_type, int attack_type,
+                                  struct obj_data *attack_weapon, struct obj_data *projectile)
+{
+  return combat_damage_apply_with_projectile(ch, victim, dam, w_type, dam_type, attack_type,
+                                             attack_weapon, projectile)
+      .legacy_result;
+}
+
+struct combat_damage_result combat_damage_apply(struct char_data *ch, struct char_data *victim,
+                                                int dam, int w_type, int dam_type, int attack_type)
+{
+  return combat_damage_apply_with_projectile(ch, victim, dam, w_type, dam_type, attack_type, NULL,
+                                             NULL);
 }
 
 /* Existing raw-damage callers retain their own mitigation and death policy. */
@@ -6301,8 +6324,8 @@ void combat_apply_raw_damage(struct char_data *victim, struct char_data *source,
 
 /* Legacy damage() entry point kept for existing call sites.
  * Applies damage through combat_damage_apply and returns only the legacy int:
- * negative if the victim died, zero for no effect (including damage deferred
- * onto an active reaction queue), otherwise the amount applied. */
+ * negative if the victim died, zero for no effect or rejected reaction work,
+ * otherwise the amount applied. Reactions finish before this call returns. */
 int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, int dam_type,
            int attack_type)
 {
@@ -11798,7 +11821,6 @@ int attack_roll_with_critical(struct char_data *ch,     /* Attacker */
 int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int penalty)
 {
   int max_aoo = 1; /* Base 1 AoO per round */
-  bool reaction_managed;
 
   /* Ghost perk: immune to attacks of opportunity */
   if (!IS_NPC(victim) && has_ghost(victim))
@@ -11821,11 +11843,6 @@ int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int pe
   /* Opportunist perk (Rogue) */
   if (!IS_NPC(ch))
     max_aoo += get_perk_aoo_bonus(ch);
-
-  if (combat_encounter_reaction_try_use(ch, (unsigned int)MAX(0, max_aoo), &reaction_managed))
-    return hit(ch, victim, TYPE_ATTACK_OF_OPPORTUNITY, DAM_RESERVED_DBC, penalty, FALSE);
-  if (reaction_managed)
-    return 0;
 
   if (GET_TOTAL_AOO(ch) < max_aoo)
   {
@@ -13517,8 +13534,7 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
   if (ch != victim && affected_by_spell(victim, SKILL_COME_AND_GET_ME) &&
       affected_by_spell(victim, SKILL_RAGE))
   {
-    if (!combat_encounter_reaction_refund(victim))
-      GET_TOTAL_AOO(victim)--; /* free aoo and will be incremented in the function */
+    GET_TOTAL_AOO(victim)--; /* free aoo and will be incremented in the function */
     attack_of_opportunity(victim, ch, 0);
 
     /* dummy check */
@@ -13940,16 +13956,21 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
   // damage inflicting shields, like fire shield
   damage_shield_check(ch, victim, attack_type, dam, dam_type);
   if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
+  {
+    if (attack_context_invalidated)
+      *attack_context_invalidated = TRUE;
     return 0;
+  }
 
   if (dam > 0)
   {
     if (affected_by_spell(victim, SPELL_HOSTILE_JUXTAPOSITION))
     {
       send_to_char(victim, "Your hostile juxtaposition defense is triggered.\r\n");
-      affect_from_char(victim, SPELL_HOSTILE_JUXTAPOSITION);
       damage(victim, ch, dam, SPELL_HOSTILE_JUXTAPOSITION, dam_type, attack_type);
       dam = 0;
+      if (domain_event_world_resolve_character(victim_handle) == victim)
+        affect_from_char(victim, SPELL_HOSTILE_JUXTAPOSITION);
     }
     else if (affected_by_spell(victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION))
     {
@@ -13961,6 +13982,11 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
       dam = 0;
     }
   }
+
+  /* Reflections may invalidate melee participants as well as projectile ones. */
+  if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room) &&
+      attack_context_invalidated)
+    *attack_context_invalidated = TRUE;
 
   return dam;
 }
@@ -14016,11 +14042,17 @@ bool test_can_process_projectile_weapon_abilities(struct char_data *ch, struct o
 int damage_shield_check(struct char_data *ch, struct char_data *victim, int attack_type, int dam,
                         int dam_type)
 {
+  struct domain_entity_handle attacker_handle = domain_event_character_handle(ch);
+  struct domain_entity_handle victim_handle = domain_event_character_handle(victim);
+  room_rnum combat_room = ch != NULL ? IN_ROOM(ch) : NOWHERE;
   int return_val = 0;
   int energy = 0;
   int save_type = 0;
   int power_resist_bonus = 0;
   int dam_bonus = 0;
+
+  if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
+    return 0;
 
   if (!is_ranged_weapon_attack(attack_type))
   {
@@ -14041,12 +14073,17 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim, int atta
       return_val = damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
     }
 
+    if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
+      return return_val;
+
     if (dam && victim && GET_HIT(victim) >= -1 &&
         (dam_type == DAM_SLICE || dam_type == DAM_PUNCTURE) &&
         affected_by_spell(victim, SPELL_CAUSTIC_BLOOD))
     { // caustic blood
       return_val = call_magic(victim, ch, NULL, AFFECT_CAUSTIC_BLOOD_DAMAGE, 0,
                               CASTER_LEVEL(victim), CAST_SPELL);
+      if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
+        return return_val;
     }
 
     if (dam && victim && GET_HIT(victim) >= -1 &&
@@ -14059,6 +14096,8 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim, int atta
                 victim, ch,
                 dice(4, get_char_affect_modifier(victim, PSIONIC_EMPATHIC_FEEDBACK, APPLY_SPECIAL)),
                 PSIONIC_EMPATHIC_FEEDBACK, DAM_MENTAL, attack_type);
+      if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
+        return return_val;
     }
     if (dam && affected_by_spell(victim, PSIONIC_ENERGY_RETORT) &&
         !victim->char_specials.energy_retort_used)
@@ -14316,6 +14355,7 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
     /* Execute the proper function pointer for that attack action. Notice the painfully bogus
                   parameters.  Needs improvement. */
     ((*attack_actions[attack->attack_type])(ch, attack->argument, -1, -1));
+    free_attack_action(attack);
     /* Currently no way to get a result from these kinds of actions, so return something bogus.
                   Needs improvement. */
     return (HIT_RESULT_ACTION);
@@ -15319,7 +15359,7 @@ int valid_fight_cond(struct char_data *ch, bool strict)
 #define PHASE_2 2
 #define PHASE_3 3
 
-static bool attack_number_runs_in_phase(int attack_number, int phase);
+static bool attack_number_runs_in_phase(int attack_number, int phase, int attack_type);
 
 /* Four arms: one second-pair attack candidate.  It takes the next ordinal
  * (consumed whether or not its mirror roll succeeds, so later attacks never
@@ -15344,7 +15384,8 @@ static void second_pair_candidate(struct char_data *ch, int mode, int phase, int
                                                         : MODE_DISPLAY_OFFHAND,
                        FALSE, attack_type, 0);
   }
-  else if (mode == NORMAL_ATTACK_ROUTINE && attack_number_runs_in_phase(*ordinal, phase) &&
+  else if (mode == NORMAL_ATTACK_ROUTINE &&
+           attack_number_runs_in_phase(*ordinal, phase, attack_type) &&
            valid_fight_cond(ch, FALSE) && rand_number(1, 100) <= chance)
   {
     hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, attack_type);
@@ -15415,21 +15456,25 @@ static int perform_second_pair_attacks(struct char_data *ch, int mode, int phase
   return expected / 100;
 }
 
-/* Report whether a 1-based attack number belongs to the given attack phase.
- * PHASE_0 runs the whole routine at once; otherwise attacks round-robin across
- * phases 1..3, so attack N runs in phase ((N - 1) % 3) + 1. */
-static bool attack_number_runs_in_phase(int attack_number, int phase)
+/* Original bonus offhand attacks use the historical 1..15 clauses: ordinals
+ * 3/6/9/12/15 run in phase 1, alongside 1/4/7/10/13. Four Arms' later-added
+ * third/fourth hands retain round-robin allocation without that ordinal cap.
+ * PHASE_0 includes every candidate for whole-routine callers. */
+static bool attack_number_runs_in_phase(int attack_number, int phase, int attack_type)
 {
   if (phase == PHASE_0)
     return true;
-  return attack_number > 0 && phase >= PHASE_1 && phase <= PHASE_3 &&
-         ((attack_number - 1) % 3) + 1 == phase;
+  if (attack_number < 1 || phase < PHASE_1 || phase > PHASE_3)
+    return false;
+  if (attack_type == ATTACK_TYPE_OFFHAND)
+    return attack_number <= 15 && phase == (attack_number % 3 == 2 ? PHASE_2 : PHASE_1);
+  return ((attack_number - 1) % 3) + 1 == phase;
 }
 
 /* Run a character's attack routine for one attack phase.
  * mode selects the normal routine or one of the display modes; phase is
- * PHASE_0 for the whole round at once, or 1..3 for the round-robin split
- * decided by attack_number_runs_in_phase(). Returns the number of attacks
+ * PHASE_0 for the whole round at once, or 1..3 for the historical split with
+ * Four Arms' later-added lower-hand candidates. Returns the number of attacks
  * performed, or in display mode the number that would be. */
 int perform_attacks(struct char_data *ch, int mode, int phase)
 {
@@ -15458,9 +15503,6 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
    *  attack mode) skip all phases but the first. */
   if ((mode == NORMAL_ATTACK_ROUTINE) && !is_action_available(ch, atSTANDARD, FALSE))
     return (0);
-  else if ((mode == NORMAL_ATTACK_ROUTINE) && phase == PHASE_0 &&
-           (AFF_FLAGGED(ch, AFF_STAGGERED) || !is_action_available(ch, atMOVE, FALSE)))
-    phase = PHASE_1;
   else if ((mode == NORMAL_ATTACK_ROUTINE) && (phase != PHASE_1) &&
            !is_action_available(ch, atMOVE, FALSE))
     return (0);
@@ -16253,7 +16295,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
         if (valid_fight_cond(ch, FALSE))
-          if (attack_number_runs_in_phase(numAttacks, phase))
+          if (attack_number_runs_in_phase(numAttacks, phase, ATTACK_TYPE_OFFHAND))
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY,
                 ATTACK_TYPE_OFFHAND);
       }
@@ -16274,7 +16316,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
         if (valid_fight_cond(ch, FALSE))
-          if (attack_number_runs_in_phase(numAttacks, phase))
+          if (attack_number_runs_in_phase(numAttacks, phase, ATTACK_TYPE_OFFHAND))
 
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, GREAT_TWO_PNLY,
                 ATTACK_TYPE_OFFHAND);
@@ -16297,7 +16339,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       {
         if (valid_fight_cond(ch, FALSE))
-          if (attack_number_runs_in_phase(numAttacks, phase))
+          if (attack_number_runs_in_phase(numAttacks, phase, ATTACK_TYPE_OFFHAND))
           {
             send_to_char(ch, "\tG[Wilderness Warrior TWF!]\tn\r\n");
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY,
@@ -16321,7 +16363,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       {
         if (valid_fight_cond(ch, FALSE))
-          if (attack_number_runs_in_phase(numAttacks, phase))
+          if (attack_number_runs_in_phase(numAttacks, phase, ATTACK_TYPE_OFFHAND))
           {
             send_to_char(ch, "\tG[Greater WW TWF!]\tn\r\n");
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY,
@@ -16344,7 +16386,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
         if (valid_fight_cond(ch, FALSE))
-          if (attack_number_runs_in_phase(numAttacks, phase))
+          if (attack_number_runs_in_phase(numAttacks, phase, ATTACK_TYPE_OFFHAND))
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, EPIC_TWO_PNLTY,
                 ATTACK_TYPE_OFFHAND);
       }
@@ -16367,9 +16409,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   return numAttacks;
 }
 #ifdef LUMINARI_CUTEST
-bool test_attack_number_runs_in_phase(int attack_number, int phase)
+bool test_attack_number_runs_in_phase(int attack_number, int phase, int attack_type)
 {
-  return attack_number_runs_in_phase(attack_number, phase);
+  return attack_number_runs_in_phase(attack_number, phase, attack_type);
 }
 #endif
 #undef ATTACK_CAP
@@ -16511,8 +16553,12 @@ void autoDiagnose(struct char_data *ch)
   }
 }
 
-bool combat_run_compatibility_phase(struct char_data *ch, unsigned int phase)
+bool combat_run_phase(struct char_data *ch, unsigned int phase)
 {
+  struct domain_entity_handle owner;
+  struct combat_encounter_participant *membership;
+  room_rnum room;
+
   /* Safety check: Validate character state before processing combat */
   if (!ch || IN_ROOM(ch) == NOWHERE || GET_POS(ch) <= POS_DEAD)
     return false;
@@ -16535,9 +16581,6 @@ bool combat_run_compatibility_phase(struct char_data *ch, unsigned int phase)
     return false;
   }
 
-  if (FIGHTING(ch) == NULL)
-    return false;
-
   if (GET_POS(FIGHTING(ch)) <= POS_DEAD || GET_POS(ch) <= POS_DEAD)
   {
     stop_fighting(ch);
@@ -16550,6 +16593,9 @@ bool combat_run_compatibility_phase(struct char_data *ch, unsigned int phase)
     return false;
   }
 
+  owner = domain_event_character_handle(ch);
+  membership = ch->combat_encounter_participant;
+  room = IN_ROOM(ch);
   PERF_combat_round_begin(ch);
 
   /* action queue system */
@@ -16558,11 +16604,24 @@ bool combat_run_compatibility_phase(struct char_data *ch, unsigned int phase)
     execute_next_action(ch);
     PERF_PROF_EXIT(combat_action_queue);
   }
+  ch = domain_event_world_resolve_character(owner);
+  if (ch == NULL || ch->combat_encounter_participant != membership || FIGHTING(ch) == NULL ||
+      !combat_state_attack_context_valid(owner, domain_event_character_handle(FIGHTING(ch)), room))
+  {
+    PERF_combat_round_end();
+    return false;
+  }
   /* execute phase */
   {
     PERF_PROF_ENTER_SAMPLED(combat_perform_violence, "combat.perform_violence");
     perform_violence(ch, (int)phase);
     PERF_PROF_EXIT(combat_perform_violence);
+  }
+  ch = domain_event_world_resolve_character(owner);
+  if (ch == NULL || DEAD(ch) || IN_ROOM(ch) != room)
+  {
+    PERF_combat_round_end();
+    return false;
   }
 
   /* Alchemist: Unstable Mutagen backlash (10% chance per round while mutagen active)
@@ -16579,79 +16638,6 @@ bool combat_run_compatibility_phase(struct char_data *ch, unsigned int phase)
         act("$n winces as unstable mutagenic energies lash back.", FALSE, ch, 0, 0, TO_ROOM);
         damage(ch, ch, backlash, TYPE_UNDEFINED, DAM_RESERVED_DBC, FALSE);
       }
-    }
-    PERF_PROF_EXIT(combat_backlash);
-  }
-
-  PERF_combat_round_end();
-  return true;
-}
-
-bool combat_run_semantic_round(struct char_data *ch, bool was_hit)
-{
-  struct affected_type af;
-
-  if (!ch || IN_ROOM(ch) == NOWHERE || GET_POS(ch) <= POS_DEAD)
-    return false;
-  if (!IS_NPC(ch) && PLR_FLAGGED(ch, PLR_NOTDEADYET))
-    return false;
-  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOTDEADYET))
-    return false;
-  if ((!IS_NPC(ch) && ch->desc != NULL && !IS_PLAYING(ch->desc)) || FIGHTING(ch) == NULL)
-  {
-    stop_fighting(ch);
-    return false;
-  }
-  if (GET_POS(FIGHTING(ch)) <= POS_DEAD || IN_ROOM(ch) != IN_ROOM(FIGHTING(ch)))
-  {
-    stop_fighting(ch);
-    return false;
-  }
-
-  PERF_combat_round_begin(ch);
-
-  if (AFF2_FLAGGED(ch, AFF2_COWERING) && rand_number(1, 100) <= 10)
-  {
-    send_to_char(ch, "\tRYou are too afraid to act!\tn\r\n");
-    act("$n cowers in fear, unable to act!", FALSE, ch, 0, 0, TO_ROOM);
-    USE_STANDARD_ACTION(ch);
-    USE_MOVE_ACTION(ch);
-    USE_SWIFT_ACTION(ch);
-  }
-
-  if (!IS_NPC(ch) && has_bard_perfect_tempo(ch) && !is_affected_by_perfect_tempo(ch) && !was_hit)
-  {
-    new_affect(&af);
-    af.spell = AFFECT_BARD_PERFECT_TEMPO;
-    af.duration = 2;
-    af.location = APPLY_HITROLL;
-    af.modifier = 4;
-    affect_to_char(ch, &af);
-    send_to_char(ch,
-                 "\tY[PERFECT TEMPO]\tn You flow perfectly with the combat, ready to strike!\r\n");
-    act("\tY[PERFECT TEMPO]\tn $n flows perfectly with the combat!", FALSE, ch, 0, 0, TO_ROOM);
-  }
-
-  {
-    PERF_PROF_ENTER_SAMPLED(combat_action_queue, "combat.action_queue");
-    primary_activity_on_semantic_turn(ch);
-    execute_next_action(ch);
-    PERF_PROF_EXIT(combat_action_queue);
-  }
-  {
-    PERF_PROF_ENTER_SAMPLED(combat_perform_violence, "combat.perform_violence");
-    perform_violence(ch, 0);
-    PERF_PROF_EXIT(combat_perform_violence);
-  }
-  {
-    PERF_PROF_ENTER_SAMPLED(combat_backlash, "combat.backlash");
-    if (is_alchemist_unstable_mutagen_on(ch) && affected_by_spell(ch, SKILL_MUTAGEN) &&
-        !has_alchemist_perfect_mutagen(ch) && rand_number(1, 100) <= 10)
-    {
-      int backlash = MAX(1, GET_LEVEL(ch));
-      send_to_char(ch, "Your unstable mutagen backlashes, harming you!\r\n");
-      act("$n winces as unstable mutagenic energies lash back.", FALSE, ch, 0, 0, TO_ROOM);
-      damage(ch, ch, backlash, TYPE_UNDEFINED, DAM_RESERVED_DBC, FALSE);
     }
     PERF_PROF_EXIT(combat_backlash);
   }
@@ -16685,7 +16671,7 @@ MUD_EVENT_CALLBACK(event_combat_round)
         parsed_phase >= 1U && parsed_phase <= 3U)
       phase = (unsigned int)parsed_phase;
   }
-  if (!combat_run_compatibility_phase(ch, phase))
+  if (!combat_run_phase(ch, phase))
     return 0;
   next_phase = phase < 3U ? phase + 1U : 1U;
   snprintf(next_phase_text, sizeof(next_phase_text), "%u", next_phase);
@@ -16746,16 +16732,11 @@ static void handle_cleave(struct char_data *ch)
 static void handle_smash_defense(struct char_data *ch)
 {
   struct char_data *vict = FIGHTING(ch);
-  bool semantic_used = false;
-  bool semantic_managed;
 
   /* general dummy checks */
   if (IN_ROOM(ch) == NOWHERE || !vict || IN_ROOM(vict) != IN_ROOM(ch))
     return;
-  semantic_managed = combat_encounter_round_flag_query(
-      ch, COMBAT_ENCOUNTER_ROUND_SMASH_DEFENSE_USED, &semantic_used);
-  if ((semantic_managed && semantic_used) ||
-      (!semantic_managed && char_has_mud_event(ch, eSMASH_DEFENSE)))
+  if (char_has_mud_event(ch, eSMASH_DEFENSE))
     return;
 
   /* some automatic disqualifiers, we will silently return from these */
@@ -16779,10 +16760,7 @@ static void handle_smash_defense(struct char_data *ch)
   send_to_char(ch, "\tW[Smash Defense]\tn");
   perform_knockdown(ch, vict, SKILL_BASH, true, true);
 
-  if (semantic_managed)
-    combat_encounter_round_flag_mark(ch, COMBAT_ENCOUNTER_ROUND_SMASH_DEFENSE_USED);
-  else
-    attach_mud_event(new_mud_event(eSMASH_DEFENSE, ch, NULL), 6 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eSMASH_DEFENSE, ch, NULL), 6 * PASSES_PER_SEC);
 
   return;
 }
@@ -16884,10 +16862,10 @@ void perform_violence(struct char_data *ch, int phase)
 {
   struct char_data *tch = NULL, *charmee;
   struct list_data *room_list = NULL;
+  bool spec_handled = false;
 
   /* Reset combat data */
-  if (!combat_encounter_semantic_manages(ch))
-    GET_TOTAL_AOO(ch) = 0;
+  GET_TOTAL_AOO(ch) = 0;
   HAS_PERFORMED_DEMORALIZING_STRIKE(ch) = FALSE;
   REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
 
@@ -17352,10 +17330,6 @@ void perform_violence(struct char_data *ch, int phase)
 
   else
   {
-    bool had_move_action = is_action_available(ch, atMOVE, FALSE);
-    bool had_standard_action = is_action_available(ch, atSTANDARD, FALSE);
-    bool used_encounter_actions = combat_encounter_semantic_manages(ch);
-
     /* handle smash defense */
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_SMASH_DEFENSE) && PRF_FLAGGED(ch, PRF_SMASH_DEFENSE) &&
         affected_by_spell(ch, SKILL_DEFENSIVE_STANCE))
@@ -17368,15 +17342,6 @@ void perform_violence(struct char_data *ch, int phase)
       PERF_PROF_EXIT(combat_normal_attacks);
     }
 #undef NORMAL_ATTACK_ROUTINE
-
-    /* A killing blow can end encounter membership before its cost is charged. */
-    if (used_encounter_actions && had_standard_action && GET_POS(ch) > POS_DEAD &&
-        !MOB_FLAGGED(ch, MOB_NOTDEADYET))
-    {
-      USE_STANDARD_ACTION(ch);
-      if (had_move_action && !AFF_FLAGGED(ch, AFF_STAGGERED))
-        USE_MOVE_ACTION(ch);
-    }
 
     /* handle cleave - now includes Cleaving Strike perks */
     if ((phase == 0 || phase == 1) &&
@@ -17391,12 +17356,18 @@ void perform_violence(struct char_data *ch, int phase)
       GET_HIT(ch) > 0)
   {
     PERF_PROF_ENTER_SAMPLED(combat_specials, "combat.specials");
-    spec_gateway_mobile_combat_turn(ch);
+    spec_handled = spec_gateway_mobile_combat_turn(ch);
     PERF_PROF_EXIT(combat_specials);
   }
 
   if (IS_NPC(ch) && !MOB_FLAGGED(ch, MOB_NOTDEADYET) && GET_HIT(ch) > 0)
     rol_automatic_race_combat_turn(ch);
+
+  /* Historical race/class/spell behavior ran once per six-second mobile pulse
+   * unless the special procedure had already acted; keep it to one rotation. */
+  if ((phase == 0 || phase == 1) && !spec_handled && IS_NPC(ch) &&
+      !MOB_FLAGGED(ch, MOB_NOTDEADYET) && GET_HIT(ch) > 0)
+    npc_combat_behave(ch);
 
   // the mighty awesome fear code
   if (AFF_FLAGGED(ch, AFF_FEAR) && !rand_number(0, 2))

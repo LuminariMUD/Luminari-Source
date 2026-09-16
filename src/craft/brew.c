@@ -31,30 +31,6 @@
 /* External function declarations */
 extern int spell_school(int spellnum);
 
-/* Map CRAFT_SKILL_* constants to ABILITY_* constants */
-static int craft_skill_to_ability(int craft_skill)
-{
-  switch (craft_skill)
-  {
-  case CRAFT_SKILL_BREWING:
-    return ABILITY_CRAFT_ALCHEMY;
-  case CRAFT_SKILL_WEAPONSMITH:
-    return ABILITY_CRAFT_WEAPONSMITHING;
-  case CRAFT_SKILL_ARMORSMITH:
-    return ABILITY_CRAFT_ARMORSMITHING;
-  case CRAFT_SKILL_JEWELER:
-    return ABILITY_CRAFT_JEWELCRAFTING;
-  case CRAFT_SKILL_CARPENTER:
-    return ABILITY_CRAFT_WOODWORKING;
-  case CRAFT_SKILL_TAILOR:
-    return ABILITY_CRAFT_TAILORING;
-  case CRAFT_SKILL_TINKER:
-    return ABILITY_CRAFT_METALWORKING; /* Closest match */
-  default:
-    return ABILITY_CRAFT_ALCHEMY; /* Default fallback */
-  }
-}
-
 /* Forward declarations */
 
 /* Mud event for brewing completion */
@@ -175,11 +151,7 @@ MUD_EVENT_CALLBACK(event_brewing)
 
     /* Give minimal alchemy experience for critical failure */
     if (brewing_skill < LVL_STAFF)
-    {
-      int exp_gain = highest_circle * 5 + (num_spells - 1) * 2;
-      GET_CRAFT_SKILL_EXP(ch, craft_skill_to_ability(CRAFT_SKILL_BREWING)) += exp_gain;
-      send_to_char(ch, "You gain %d alchemy experience from the failed attempt.\r\n", exp_gain);
-    }
+      gain_craft_exp(ch, highest_circle * 5 + (num_spells - 1) * 2, ABILITY_CRAFT_ALCHEMY, TRUE);
 
     save_char(ch, 0);
     return 0;
@@ -200,11 +172,7 @@ MUD_EVENT_CALLBACK(event_brewing)
 
     /* Give some alchemy experience for regular failure */
     if (brewing_skill < LVL_STAFF)
-    {
-      int exp_gain = MAX(5, highest_circle * 3 / 4);
-      GET_CRAFT_SKILL_EXP(ch, craft_skill_to_ability(CRAFT_SKILL_BREWING)) += exp_gain;
-      send_to_char(ch, "You gain %d alchemy experience from the failed attempt.\r\n", exp_gain);
-    }
+      gain_craft_exp(ch, MAX(5, highest_circle * 3 / 4), ABILITY_CRAFT_ALCHEMY, TRUE);
 
     save_char(ch, 0);
     return 0;
@@ -358,15 +326,9 @@ MUD_EVENT_CALLBACK(event_brewing)
     if (critical_success)
     {
       completion_exp = (completion_exp * 3) / 2; /* 50% bonus experience for critical success */
-      send_to_char(ch, "You gain %d alchemy experience for your masterful technique!\r\n",
-                   completion_exp);
+      send_to_char(ch, "You gain extra alchemy experience for your masterful technique!\r\n");
     }
-    else
-    {
-      send_to_char(ch, "You gain %d alchemy experience for completing the process.\r\n",
-                   completion_exp);
-    }
-    GET_CRAFT_SKILL_EXP(ch, craft_skill_to_ability(CRAFT_SKILL_BREWING)) += completion_exp;
+    gain_craft_exp(ch, completion_exp, ABILITY_CRAFT_ALCHEMY, TRUE);
   }
 
   /* Save character */
@@ -1130,7 +1092,7 @@ ACMD(do_brew)
 
   /* Calculate alchemy skill check DC (for later use in event) */
   dc = 10 + (highest_circle * 2) + (num_spells - 1) * 3; /* +3 DC per additional spell */
-  brewing_skill = get_craft_skill_value(ch, craft_skill_to_ability(CRAFT_SKILL_BREWING));
+  brewing_skill = get_craft_skill_value(ch, ABILITY_CRAFT_ALCHEMY);
 
   /* Materials are available - start alchemy process without consuming them yet */
   send_to_char(ch, "You have the required materials. Starting alchemy process...\r\n");

@@ -18,7 +18,6 @@
 #include "actionqueues.h"
 #include "mud_event.h"
 #include "actions.h"
-#include "combat/combat_encounters.h"
 
 /* Initialize the queue, must be performed on any new queues. */
 static struct queue_type *create_queue()
@@ -101,9 +100,7 @@ void clear_attack_queue(struct queue_type *queue)
       if (attack == NULL)
         break;
 
-      /* Free the memory. */
-      free(attack->argument);
-      free(attack);
+      free_attack_action(attack);
     }
   }
   /* Send a custom MSDP event so clients can manage queue displays. */
@@ -200,6 +197,15 @@ struct attack_action_data *dequeue_attack(struct queue_type *queue)
   return attack;
 }
 
+void free_attack_action(struct attack_action_data *attack)
+{
+  if (attack == NULL)
+    return;
+
+  free(attack->argument);
+  free(attack);
+}
+
 static void *peek(struct queue_type *queue)
 {
   if (queue == NULL)
@@ -238,8 +244,6 @@ void execute_next_action(struct char_data *ch)
     return;
 
   if (!command_actions_available(ch, action->actions_required))
-    return;
-  if (!combat_encounter_intent_claim(ch))
     return;
 
   action = dequeue_action(GET_QUEUE(ch));

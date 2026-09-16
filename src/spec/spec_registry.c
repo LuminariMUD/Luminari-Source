@@ -13,6 +13,7 @@
 #include "spec/spec_registry.h"
 #include "comms/mail.h"
 #include "craft/craft.h"
+#include "craft/craft_training.h"
 #include "craft/crafting_new.h"
 #include "character/guild_services.h"
 #include "character/vampire_cloak.h"
@@ -312,6 +313,22 @@ static const struct spec_definition spec_definitions[] = {
         .category = "Commerce",
         .description = "Sells generated mundane, masterwork, and enchanted weapons.",
         .legacy_handler = buyweapons,
+        .typed_handler = NULL,
+    },
+    {
+        .canonical_name = "Craft Trainer",
+        .display_name = "Craft Trainer",
+        .aliases = NULL,
+        .alias_count = 0,
+        .owner_mask = SPEC_OWNER_MOBILE,
+        .events = command_events,
+        .event_count = SPEC_ARRAY_SIZE(command_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "Crafting",
+        .description = "Takes a fee to train a craft or harvest skill while the player spends a "
+                       "day away from play.",
+        .legacy_handler = craft_trainer,
         .typed_handler = NULL,
     },
     {
@@ -1816,6 +1833,7 @@ enum
   SPEC_DEFINITION_BULK_IDENTIFY,
   SPEC_DEFINITION_BUY_ARMOR,
   SPEC_DEFINITION_BUY_WEAPONS,
+  SPEC_DEFINITION_CRAFT_TRAINER,
   SPEC_DEFINITION_CRAFTING_KIT,
   SPEC_DEFINITION_CRAFTING_QUEST,
   SPEC_DEFINITION_CRYOGENICIST,
@@ -1949,6 +1967,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_BULK_IDENTIFY, -1},
     {SPEC_DEFINITION_BUY_ARMOR, -1},
     {SPEC_DEFINITION_BUY_WEAPONS, -1},
+    {SPEC_DEFINITION_CRAFT_TRAINER, -1},
     {SPEC_DEFINITION_CRAFTING_KIT, -1},
     {SPEC_DEFINITION_CRAFTING_QUEST, -1},
     {SPEC_DEFINITION_CRYOGENICIST, -1},

@@ -43,19 +43,26 @@ if (victim != ch) {
 
 ### 2. Initiative System
 
-The initiative system determines combat order:
+The initiative system determines who strikes first and when each combatant's
+attack phases fall:
 
 ```c
-// Function declaration from fight.h
+// Function declarations from fight.h
+int roll_initiative(struct char_data *ch);
 int get_initiative_modifier(struct char_data *ch);
 ```
 
 **Initiative Features:**
 
 - d20 roll + modifiers (DEX bonus, feats, etc.)
-- Encounter participants retain the rolled initiative for the fight
-- One event resolves every due participant in deterministic initiative order
-- Dexterity and runtime identity resolve exact ties
+- `do_hit()` rolls an opening initiative for both sides; the winner lands the
+  opening strike immediately ("Your opponents superior initiative grants the
+  first strike!")
+- `set_fighting()` rolls and stores each combatant's initiative as they enter
+  the fight. A combatant whose roll meets or beats the opponent's stored roll
+  gets its first attack phase two seconds after joining, otherwise four
+- Participants keep their rolled initiative for the fight; `initiative` shows
+  each combatant's roll, upcoming phase, and seconds until it
 
 **Known Modifiers:**
 
@@ -68,53 +75,64 @@ int get_initiative_modifier(struct char_data *ch);
 ### 3. Combat Round System
 
 Each live fight is a `combat_encounter_data` owner with one scheduled event.
-The event wakes once every six seconds, takes the due participant snapshot, and
-resolves turns by descending initiative, descending current Dexterity, and a
-stable runtime-ID tie-break. A participant admitted during resolution waits
-until the next encounter round. Merging fights preserves each participant's
-not-before deadline and then coalesces everyone onto the surviving clock.
+Every participant carries its own `phase` (1, 2, or 3) and `next_due` deadline.
+The event wakes at the earliest participant deadline, runs
+`combat_run_phase()` for each participant that is due, then advances that
+participant to its next phase two seconds later. A full attack rotation
+therefore spans six seconds in three two-second phases, as it did before the
+event-core refactor; attack ordinals are allocated across the phases by
+`attack_number_runs_in_phase()` in `fight.c`. Merging fights preserves each
+participant's pending deadline and phase. A participant admitted while the
+event is dispatching is activated afterward, keeping its supplied delay.
 
 ```c
-// Abbreviated semantic-turn flow; perform_violence() remains the mechanics core.
-void combat_run_semantic_round(struct char_data *ch, bool was_hit) {
-    // Recover due action budgets and refresh reactions before this call.
-    execute_next_action(ch); // At most one validated FIFO intent.
-
-    // Handle confused/feared states
-    if (AFF_FLAGGED(ch, AFF_CONFUSED)) { /* confusion logic */ }
-    if (AFF_FLAGGED(ch, AFF_FEAR)) { /* fear logic */ }
-
-    // Group auto-assist logic
-    if (GROUP(ch)) { /* auto-assist code */ }
-
-    // Main combat execution
-    if (!IS_CASTING(ch) && !AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE) &&
-        !(AFF_FLAGGED(ch, AFF_GRAPPLED) && /* grapple restrictions */)) {
-        // Execute attack routine
-        perform_attacks(ch, NORMAL_ATTACK_ROUTINE, PHASE_0);
-
-        // Handle cleave attacks
-        if (HAS_FEAT(ch, FEAT_CLEAVE))
-            handle_cleave(ch);
-    }
+// Abbreviated per-phase flow; perform_violence() remains the mechanics core.
+bool combat_run_phase(struct char_data *ch, unsigned int phase) {
+    // Validate the actor, target, room, and position.
+    execute_next_action(ch);          // Dispatch an eligible queued command.
+    // Revalidate the actor and target after the queued command.
+    perform_violence(ch, phase);      // Attacks allocated to this phase.
+    // Unstable Mutagen backlash and other per-phase riders follow.
 }
 ```
 
-**Turn budgets:**
+**Actions during combat:**
 
-- Standard plus move remaining after the queued intent: full attack rotation
-- Standard only, including staggered combatants: first attack portion
-- No standard action: no automatic attack
-- Swift action: independent budget
-- Reactions: refresh once at the shared round boundary, before initiative
+- Ordinary attacks cost nothing. `perform_attacks()` only checks that a
+  standard action is available (and a move action outside phase 1); it does
+  not spend either
+- Commands, special attacks, spells, and readied actions spend actions through
+  `start_action_cooldown()`, which attaches a native action event for the
+  caller's exact duration. Availability, the `[smw]` prompt segment, MSDP, and
+  the recovery notices all come from those events, so a deadline survives
+  entering, leaving, merging, or rejoining a fight unchanged
+- Staggered combatants have standard and move coupled inside
+  `start_action_cooldown()`; a staggered combatant with an unspent move still
+  attacks in every phase
+- Attacks of opportunity reset at each attack phase; Cowering and Perfect
+  Tempo run from the six-second periodic owner in `limits.c`
+- A fighting NPC above `NEWBIE_LEVEL` runs its race/class behavior once per
+  rotation (phase 1) through `npc_combat_behave()` in `mob_act.c`: racial
+  abilities, class abilities, assigned spells, the wizard/sorcerer combat AI,
+  or generic offensive casting. A special procedure that handled the combat
+  turn takes precedence for that rotation
 
-The action queue is bounded to 10 prevalidated FIFO commands. Exactly one head
-intent may dispatch at a semantic turn; the main connection loop does not poll
-or drain it between turns. Durations are rounded up to whole six-second turns.
+**Six-second logical turn:** the encounter also keeps a `next_round_due`
+boundary six seconds apart. At that boundary `begin_semantic_round()` runs the
+retained turn consumers (readied-action expiry, tactical defense clocks, and the
+primary activity hook) and `end_semantic_round()` runs bleeding and room-hazard
+exposure. This logical turn owns effect clocks only; it never generates
+attacks. The tactical-effect and counterspell documents describe it as the
+"semantic turn".
 
-`LUMINARI_COMBAT_ROUNDS=compatibility` is the boot-time gameplay rollback. It
-keeps encounter ownership but runs the former three two-second phases. The
-semantic mode is the default and the two modes never execute together.
+The action queue is bounded to 10 prevalidated FIFO commands. Its head command
+dispatches as soon as it is eligible: at any attack phase through
+`execute_next_action()`, or from the connection loop, which treats buffered
+input and an eligible head as immediately due and leaves an action-blocked head
+dormant until its recovery event. Input is serviced first; editor, pager, and
+menu states suppress queue dispatch. The separate attack queue (`kick`,
+`headbutt`, ...) is dispatched by `resolve_hit()` in place of the next eligible
+ordinary hit.
 
 ## Attack System
 

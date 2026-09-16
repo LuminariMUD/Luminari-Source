@@ -18,6 +18,7 @@ apply help_buff_sequence_entry.sql
 apply help_character_backgrounds.sql
 apply help_command_sweep_entries.sql
 apply help_counterspell_readiness.sql
+apply help_craft_training_entries.sql
 apply help_crafting_entries.sql
 apply help_defensive_casting_clock.sql
 apply help_dg_damage_trigger.sql

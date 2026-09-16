@@ -302,7 +302,7 @@ static bool spec_test_olc_scenario(enum spec_test_owner owner, const char *sandb
   {
   case SPEC_TEST_OWNER_MOBILE:
     owner_name = "medit";
-    valid_selection = "14";
+    valid_selection = "15";
     owner_mask = SPEC_OWNER_MOBILE;
     expected_handler = postmaster;
     break;
@@ -428,6 +428,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "Bulk Identify",
                                                "Buy Armor",
                                                "Buy Weapons",
+                                               "Craft Trainer",
                                                "Crafting Kit",
                                                "Crafting Quest",
                                                "Cryogenicist",
@@ -547,7 +548,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 121, expected_count);
+  CuAssertIntEquals(tc, 122, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)

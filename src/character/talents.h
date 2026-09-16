@@ -20,9 +20,6 @@
 /* Forward declaration */
 struct char_data;
 
-/* Maximum number of defined talents (expand as needed) */
-#define MAX_TALENTS 256
-
 /* Talent indices (add new ones above TALENT_MAX). Keep sequential */
 #define TALENT_NONE 0
 #define TALENT_SCAVENGER 1
