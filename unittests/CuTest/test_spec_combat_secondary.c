@@ -487,9 +487,9 @@ void Test_spec_defense_reactions_preserve_exact_ignored_tokens(CuTest *tc)
   bool no_specials_absent;
 
   source_loaded = spec_combat_load_region(
-      "src/combat/fight.c",
+      "src/combat/combat_messages.c",
       "int skill_message(int dam, struct char_data *ch, struct char_data *vict, int attacktype,",
-      "int compute_energy_absorb(struct char_data *ch, int dam_type)", &region);
+      "#undef TRELUX_CLAWS", &region);
   /* Phase 01 routes every defense reaction through the gateway, which owns the
    * pointer gate. The defender stays the actor and the attacker becomes the
    * typed target; the legacy token is unchanged. */
