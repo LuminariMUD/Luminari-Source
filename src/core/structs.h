@@ -5663,7 +5663,6 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define MAX_ARCANE_MARK_LENGTH 250 /**< Max stored arcane mark signature length */
 #define HOST_LENGTH 40             /**< Max hostname resolution length */
 #define MAX_NOTE_LENGTH 4000       /**< Max length of text on a note obj */
-#define MAX_LAST_ENTRIES 6000      /**< Max log entries?? */
 
 #define MAX_SKILLS 4000                 /**< Max number of skills */
 #define MAX_SPELLS 2000                 /**< Max number of spells */
@@ -5814,8 +5813,7 @@ struct obj_flag_data
   int bound_id;                   /* ID of player this item is bound to */
 };
 
-/** Used in obj_file_elem. DO NOT CHANGE if you are using binary object files
- * and already have a player base and don't want to do a player wipe. */
+/** One apply an object grants to whoever uses it. */
 struct obj_affected_type
 {
   int location;   /**< Which ability to change (APPLY_XXX) */
@@ -6105,24 +6103,6 @@ struct obj_data
   /* PERFMON lifecycle attribution; runtime-only and never serialized. */
   int perf_origin_zone_vnum;
   unsigned char perf_create_reason;
-};
-
-/** Instance info for an object that gets saved to disk.
- * DO NOT CHANGE if you are using binary object files
- * and already have a player base and don't want to do a player wipe. */
-struct obj_file_elem
-{
-  obj_vnum item_number; /**< The prototype, non-unique info for this object. */
-
-#if USE_AUTOEQ
-  sh_int location; /**< If re-equipping objects on load, wear object here */
-#endif
-  int value[NUM_OBJ_VAL_POSITIONS];                  /**< Current object values */
-  int extra_flags[EF_ARRAY_MAX];                     /**< Object extra flags */
-  int weight;                                        /**< Object weight */
-  int timer;                                         /**< Current object timer setting */
-  int bitvector[AF_ARRAY_MAX];                       /**< Object affects */
-  struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< Affects to mobs */
 };
 
 /** Header block for rent files.

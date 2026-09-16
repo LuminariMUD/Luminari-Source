@@ -7569,7 +7569,6 @@ static int perform_dupe_check(struct descriptor_data *d)
   GET_HOST(target) = strdup(d->host);
 
   GET_PREF(target) = pref_temp;
-  add_llog_entry(target, LAST_RECONNECT);
 
   /* Okay, we've found a target.  Connect d to target. */
   free_char(d->character); /* get rid of the old char */
@@ -9707,7 +9706,6 @@ void nanny(struct descriptor_data *d, char *arg)
       write_to_output(d, "\tyA staff-ran event is taking place!\tn\r\n");
       write_to_output(d, "\r\n");
     }
-    add_llog_entry(d->character, LAST_CONNECT);
 
     /* Safety save for new characters before showing menu */
     if (d->character && !PLR_FLAGGED(d->character, PLR_DELETED))
@@ -9978,7 +9976,6 @@ void nanny(struct descriptor_data *d, char *arg)
     {
     case '0':
       //          write_to_output(d, "Goodbye.\r\n");
-      add_llog_entry(d->character, LAST_QUIT);
       //          STATE(d) = CON_CLOSE;
       STATE(d) = CON_ACCOUNT_MENU;
       roleplay_pending_clear(d);

@@ -171,34 +171,9 @@ int generic_find(const char *arg, bitvector_t bitvector, struct char_data *ch,
 
 /* prototypes from mobact.c */
 
-/* For new last command: */
+/* Retired login log, read only by "last all" (see core/binary_formats.h). */
 #define LAST_FILE LIB_ETC "last"
 
-#define LAST_CONNECT 0
-#define LAST_ENTER_GAME 1
-#define LAST_RECONNECT 2
-#define LAST_TAKEOVER 3
-#define LAST_QUIT 4
-#define LAST_IDLEOUT 5
-#define LAST_DISCONNECT 6
-#define LAST_SHUTDOWN 7
-#define LAST_REBOOT 8
-#define LAST_CRASH 9
-#define LAST_PLAYING 10
-
-struct last_entry
-{
-  int close_type;
-  char hostname[MEDIUM_STRING];
-  char username[16];
-  time_t time;
-  time_t close_time;
-  int idnum;
-  int punique;
-};
-
-void add_llog_entry(struct char_data *ch, int type);
-struct last_entry *find_llog_entry(int punique, long idnum);
 bool has_affect_modifier_type(struct char_data *ch, int location);
 void save_chars(void);
 

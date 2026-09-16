@@ -23,13 +23,13 @@
 
 #define BOARD_MAGIC 1048575 /* arbitrary number - see modify.c */
 
+/* In-memory index entry. Board files use the portable format in
+ * core/binary_formats.h, not this structure. */
 struct board_msginfo
 {
-  int slot_num;    /* pos of message in "master index" */
-  char *heading;   /* pointer to message's heading */
-  int level;       /* level of poster */
-  int heading_len; /* size of header (for file write) */
-  int message_len; /* size of message text (for file write) */
+  int slot_num;  /* pos of message in "master index" */
+  char *heading; /* pointer to message's heading */
+  int level;     /* level of poster */
 };
 
 struct board_info_type

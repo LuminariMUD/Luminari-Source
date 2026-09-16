@@ -17,8 +17,9 @@
 
 #include "core/persistence.h"
 
-/* NOTE: learned the hard way, changing (one or both) of these will destroy the houses in the
-         game apparently -Zusuk */
+/* The house control file stores counts, so MAX_HOUSES may change. MAX_GUESTS
+ * must equal HOUSE_FILE_MAX_GUESTS, the guest capacity of the legacy layout;
+ * house.c checks this at compile time. */
 #define MAX_HOUSES 999
 #define MAX_GUESTS 99
 
@@ -27,6 +28,8 @@
 #define HOUSE_CLAN 2 /* Clan crash-save room */
 #define NUM_HOUSE_TYPES 3
 
+/* In-memory house record. The house control file uses the portable format in
+ * core/binary_formats.h, not this structure. */
 struct house_control_rec
 {
   room_vnum vnum;          /* vnum of this house		*/
@@ -40,12 +43,6 @@ struct house_control_rec
   time_t last_payment;     /* date of last house payment   */
   long bitvector;          /* bitvector for the house */
   long builtby;            /* who created this hosue */
-  long spare2;
-  long spare3;
-  long spare4;
-  long spare5;
-  long spare6;
-  long spare7;
 };
 
 /* House can have up to 31 bitvectors - don't go higher */

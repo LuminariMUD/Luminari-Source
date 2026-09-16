@@ -505,6 +505,21 @@ bool is_safe_relative_path(const char *path);
 bool ensure_dir_exists(const char *path);
 /* Durably closes a temporary stream and atomically replaces the live path. */
 bool finish_file_save(FILE *stream, const char *temporary_path, const char *destination_path);
+/* Durable binary files (see core/binary_formats.h). */
+enum durable_file_read
+{
+  DURABLE_FILE_ABSENT,
+  DURABLE_FILE_READ,
+  DURABLE_FILE_UNREADABLE
+};
+/* Reads a whole regular file of at most max_size bytes into a buffer the caller frees. */
+enum durable_file_read read_durable_file(const char *path, size_t max_size, unsigned char **data,
+                                         size_t *size);
+/* Atomically replaces path, first preserving a legacy file that lacks current_magic. */
+bool replace_durable_file(const char *path, const char *current_magic, size_t max_size,
+                          const unsigned char *data, size_t size);
+/* Moves a file the server refused to load aside so no later save overwrites it. */
+void quarantine_durable_file(const char *path);
 
 /* Feats */
 int get_feat_value(const struct char_data *ch, int featnum);
