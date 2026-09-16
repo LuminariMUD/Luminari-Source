@@ -126,10 +126,9 @@ A fremlin injures you with his hit.
 
 ## Combat mechanics restoration plan
 
-Status: planning only, 2026-09-16. The examples above are preserved as supplied.
-No implementation, database update, build, server run, or deployment is part of
-this planning change. Findings below come from source/history inspection; runtime
-reproductions and proposed tests remain implementation work.
+Status: implementation in progress, 2026-09-16. The examples above are preserved
+as supplied. Sections 1-8 retain the reviewed scope and acceptance criteria;
+section 9 records current implementation evidence and the next work.
 
 Plan review, 2026-09-16: every revision, pull-request state, file path, symbol,
 test name, help keyword, and CI job cited below was checked against the
@@ -178,6 +177,7 @@ filter:
 | Last master revision before integration | `668c9d4adb5601466407c65d335493368ea11fd6` | First parent of the actual #85 merge. The inspected combat, actions, queues, interpreter, spell parser, MUD event, and main-loop files are identical to the reference above. |
 | Event-core integration | `3ddc1efd7780edd0f8f7d83f870e800c54d49c81` | #85 merged on 2026-09-05. This is the integration boundary, not the first implementation commit. Its second parent, `34ab01685`, is the #85 review head. |
 | Branch point of this plan | `a71165e20afc49a3461d38df3876fb45df52c6bc` | Starting revision of the `revert-combat` branch, which also exists on `origin` at this commit. |
+| Implementation start | `cff3350f2` | Plan commit rebased onto freshly fetched `origin/master` at `9c5a0223f` on 2026-09-16. Includes the presentation split and subsequent string-safety changes. |
 | Latest master at review time | `b48fa741384b565a665dd16c3eb5aeb7f19a2e4c` | 2026-09-16, thirty commits after the branch point. Includes the #193 merge `886703f1b`, which moved combat presentation out of `src/combat/fight.c` into `src/combat/combat_messages.c`, and the later string-safety commits `805b20496` and `773261f7d`, which touched `src/core/comm.c`, `src/core/interpreter.c`, `src/combat/encounters.c`, and `src/events/ready_action.c`. None of those changes touch combat timing, actions, or queues. Implementation starts by rebasing `revert-combat` onto master and recording the new start revision here. |
 
 The baseline is available as a
@@ -351,7 +351,7 @@ safety guarantees and new features. Any remaining finite mechanics deviation
 requires an explicit resolution before claiming exact parity. This plan does not
 silently approve those deviations.
 
-### 5. Implementation approach after this plan
+### 5. Implementation sequence
 
 #### Step A: Establish behavioral evidence
 
@@ -362,7 +362,7 @@ silently approve those deviations.
 - [ ] Turn the supplied good/bad examples into repeatable scenarios using equivalent
   ordinary player characters and a controlled opponent. Staff action/casting
   exemptions must not mask the bug.
-- [ ] Add failing production-linked regressions for sustained combat followed by
+- [x] Add failing production-linked regressions for sustained combat followed by
   `cast 'mage armor' me`, then `kick`, plus phase timing and elapsed cooldowns.
   Drive `command_interpreter()` and advance the actual native scheduler. Tests
   that call `cast_spell()` directly cannot prove command admission works.
@@ -664,3 +664,106 @@ revision is now the branch point with master's later #193 split recorded, the
 casting-time modes are runtime configuration rather than headers, and the
 `LUMINARI_COMBAT_ROUNDS` selector the combat document describes no longer
 exists.
+
+### 9. Implementation checkpoint
+
+2026-09-16:
+
+- Initial worktree was clean at `90b6ba714`. Rebased the plan commit onto
+  `origin/master` (`9c5a0223f`), producing implementation start `cff3350f2`.
+  No production mechanics have been changed yet.
+- At the user's request, copied the local master checkout's complete `lib/`
+  into this checkout with `rsync -a`, including hidden files and world data.
+  Source and destination are development environments (`APP_ENV=development`).
+  Existing customized configuration headers were preserved; there were no
+  missing configuration source/header files. Compiled object files were excluded.
+  Credentials were neither printed nor committed. This setup is local only;
+  database identity and runtime readiness still need checking before gameplay.
+- Ablation: reuse the connected-player gameplay fixture and native scheduler
+  for the command regression, and existing encounter fixtures for phase and
+  exact-deadline tests. No new test runner or production selector is needed.
+- Added the failing default-runtime regressions below. Complete the source
+  disposition inventory before changing production mechanics. Steps B-E and
+  all completion gates remain open.
+
+Additional source findings and ablation before the queue ownership repair:
+
+- `resolve_hit()` removes an `attack_action_data` from the attack queue and calls
+  its command, but never frees the entry or its duplicated argument. Valgrind
+  reproduced one leaked allocation pair per dispatched kick through the new
+  ordinary-command scenario. Free both after dispatch returns; the queue no
+  longer owns them. This is a lifetime repair with no timing/rules change.
+- The baseline `dg_event.c:queue_enq()` inserts before equal deadlines (`<`,
+  not `<=`), so ties follow reverse scheduling order. The restoration phase
+  regression pins that order. The current encounter comparison's initiative,
+  dexterity, runtime-ID, and FIFO tie sorting is another finite timing
+  difference to restore within the encounter, without replacing the scheduler.
+- Baseline `event_create_named_with_cleanup()` clamps to one future tick, with
+  no six-second callback-join guard. Restore the supplied initial delay for
+  callback joins while retaining deferred membership mutation and handles.
+
+Current regression evidence (production-linked `cutest`, no compatibility
+selection in the new scenarios):
+
+| Test suffix after `Test_combat_restoration_` | Current result and coverage |
+| -- | -- |
+| `default_preserves_individual_phase_deadlines` | Fails: no callback at the supplied two-second deadline. Pins two/four-second offsets, phases 1/2/3, equal-deadline order, and one encounter event. Uses the existing phase observer only for this scheduler boundary test. |
+| `default_keeps_elapsed_action_deadline` | Fails: standard action is still unavailable at its original deadline after entry/exit/reentry. Checks due-minus-one, due, and due-plus-one for a non-round-aligned duration. |
+| `mortal_cast_fixture_without_combat` | Passes: a connected mortal wizard casts mage armor through the interpreter, completes the native activity, and spends the preparation. Positive control for the combat fixture. |
+| `mortal_cast_and_kick_seconds_mode` | Fails at cast admission after 18 seconds of real melee: "You must wait for the required action before trying that command." Subsequent completion/queue assertions remain unproven until the restoration. |
+| `mortal_cast_and_kick_actions_mode` | Same admission failure with `CONFIG_SPELLCASTING_TIME_MODE=0`. |
+| `queued_kicks_each_replace_one_hit` | Passes: two ordinary kick commands enqueue two entries, and two real `hit()` calls each dispatch one replacement. Valgrind reports zero errors and zero lost/possibly-lost bytes after the queue ownership repair. |
+
+The two scenario files reuse existing fixtures and manifests; no source/test
+file was added. `src/combat/fight.c:resolve_hit()` now frees the dequeued attack
+and argument after the command returns. This is the only production change so
+far. The command fixture supplies an actual prepared spell, both actors' attack
+queues, a nonzero arcane preparation setting, and a playing descriptor. Neither
+staff exemptions nor a direct `cast_spell()` call bypass the interpreter.
+
+Commands/evidence available for continuation:
+
+- `make -j"$(nproc)" cutest`: succeeds without compiler warnings.
+- `CUTEST_FILTER=combat_restoration LUMINARI_TEST_ROOT="$PWD" ./cutest`:
+  six selected, two pass and four expected restoration failures. Local output:
+  `/tmp/revert-combat-regressions.log`.
+- `CUTEST_FILTER=combat_restoration_queued_kicks valgrind --leak-check=full --track-origins=yes --error-exitcode=99 ./cutest`: passes. Local memory report:
+  `/tmp/revert-combat-kick-valgrind.log`.
+- The preliminary memory run of the intentionally failing scenarios also
+  reported CuTest failure-message allocations. Do not count that red run as a
+  passing lifetime gate. Repeat the full focused lifetime set after mechanics
+  pass; do not suppress the failures or remove the regressions.
+- `make -j"$(nproc)" test`: 1,511 CuTests run, 1,507 pass, and only the four
+  new restoration regressions fail. The make target consequently returns 2;
+  this is an intentionally red evidence checkpoint, not release validation.
+  Native architecture and the other prerequisite checks passed. Local output:
+  `/tmp/revert-combat-full-test.log`. No new compiler warnings were emitted.
+- `make install`: passes after that full run; the root `luminari` artifact is
+  removed and the local installed server includes the queue ownership fix.
+  The MUD has not been started for this work, and help stores are unchanged.
+- All applicable changed-file pre-commit hooks pass after formatting the new
+  test code. No build manifests changed. No push or production action has been
+  performed.
+
+Next implementation boundaries:
+
+1. Finish the disposition inventory in section 4. In addition to the known
+   conflicts, preserve native handle checks, damage notifications, active-world
+   reconsideration, periodic timer sync, common rewards, and the presentation
+   split. Classify Greater Hostile Juxtaposition activation separately from
+   safe affect lookup, and Life Shield's positive-damage gate separately from
+   its recursion guard. The baseline greater-shield branch was unreachable;
+   preserving its corrected activation is an observable exception, not merely
+   a memory-safety repair.
+2. Restore phase scheduling plus elapsed action events together. The existing
+   encounter `next_round_due` and turn serial consumers must keep a distinct
+   six-second logical clock: readied expiry, primary activities, Defensive
+   Casting, Bleeding Critical, and room hazards cannot be called on every
+   two-second attack phase. `combat_encounter_get_turn()` currently reports
+   participant `next_due`; decouple that snapshot when `next_due` becomes an
+   attack-phase deadline.
+3. Restore native queue servicing in both `comm.c` sites and remove the intent
+   restriction. Finish attack allocation/side-effect parity, then expand the
+   acceptance coverage, both local help stores, documentation, and gameplay
+   validation. The four red tests are the immediate targets, not the entire
+   completion definition.
