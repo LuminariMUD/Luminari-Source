@@ -4418,12 +4418,25 @@ void set_crafting_enhancement(struct char_data *ch, const char *arg2)
   send_to_char(ch, "You set your project's enhancement bonus to %d.\r\n", amount);
 }
 
+/* A held supply order occupies the project record, where its item type is an object type, so the
+ * project commands can neither read nor change it, and starting other work would drop the order. */
+static bool craft_project_holds_supply_order(struct char_data *ch)
+{
+  if (!player_has_supply_order(ch))
+    return FALSE;
+  send_to_char(ch, "You are working on a supply order. Use the supplyorder command, or type "
+                   "'supplyorder abandon' to give it up.\r\n");
+  return TRUE;
+}
+
 /* Running craft work owns its project: until the work ends or is cancelled, the project can be
  * read but not changed, or the finished item would keep what was refunded. */
 static bool craft_project_is_busy(struct char_data *ch)
 {
   struct primary_activity_snapshot snapshot;
 
+  if (craft_project_holds_supply_order(ch))
+    return TRUE;
   if (!primary_activity_snapshot(ch, &snapshot) || snapshot.type != PRIMARY_ACTIVITY_CRAFT)
     return FALSE;
   send_to_char(ch, "You cannot change your project while you are working on it. Type 'activity "
@@ -4442,13 +4455,6 @@ void newcraft_create(struct char_data *ch, const char *argument)
     send_to_char(ch, "%s", NEWCRAFT_CREATE_NOARG1);
     return;
   }
-  /* A held supply order occupies the project record (its item type is an object type). */
-  else if (player_has_supply_order(ch))
-  {
-    send_to_char(ch, "You are working on a supply order. Use the supplyorder command, or type "
-                     "'supplyorder abandon' to give it up.\r\n");
-    return;
-  }
   else if (is_abbrev(arg1, "golem"))
   {
     if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)
@@ -4461,7 +4467,8 @@ void newcraft_create(struct char_data *ch, const char *argument)
   }
   else if (is_abbrev(arg1, "check"))
   {
-    check_current_craft(ch, TRUE);
+    if (!craft_project_holds_supply_order(ch))
+      check_current_craft(ch, TRUE);
     return;
   }
   else if (is_abbrev(arg1, "create"))
@@ -4573,7 +4580,8 @@ void newcraft_create(struct char_data *ch, const char *argument)
   else if (is_abbrev(arg1, "display") || is_abbrev(arg1, "show") || is_abbrev(arg1, "review") ||
            is_abbrev(arg1, "information"))
   {
-    show_current_craft(ch);
+    if (!craft_project_holds_supply_order(ch))
+      show_current_craft(ch);
   }
   else if (is_abbrev(arg1, "reset"))
   {
@@ -10003,6 +10011,9 @@ bool begin_golem_craft(struct char_data *ch)
   int mote_types[NUM_CRAFT_MOTES] = {0}, mote_amounts[NUM_CRAFT_MOTES] = {0};
   int num_mats = 0, num_motes = 0;
   int seconds = 0;
+
+  if (craft_project_holds_supply_order(ch))
+    return false;
 
   if (GET_CRAFT(ch).golem_type == GOLEM_TYPE_NONE)
   {

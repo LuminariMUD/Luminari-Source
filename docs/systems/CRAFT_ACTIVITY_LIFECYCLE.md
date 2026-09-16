@@ -30,9 +30,12 @@ an entry script rolls back, or a reachable surveying command.
 
 While craft work runs, `craft` subcommands that change the project are refused
 (show, check and score still work), and completion makes an item only if the
-project still passes `craft check`. The recipe variant's skill decides the
-project's tool, station, talents, roll and experience; check, start, timer
-rechecks and completion all use that skill's station. Equipment readiness and
+project still passes `craft check`. While a supply order is held, the
+subcommands that read or change the project are refused and golem construction
+cannot start; `craft score` and the other golem commands still work. The recipe
+variant's skill decides the project's tool, station, talents, roll and
+experience; check, start, timer rechecks and completion all use that skill's
+station. Equipment readiness and
 admission check tool-slot occupancy (woodworking needs no tool); the timer does
 not recheck the tool, but completion does. Category harvesting has no tool
 requirement or tool recheck; a carried or worn harvest-tool prototype only
