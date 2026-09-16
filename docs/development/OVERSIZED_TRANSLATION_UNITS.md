@@ -212,6 +212,21 @@ Writing those up also turned over a larger defect the tests themselves cannot ca
 tracked in [#195](https://github.com/LuminariMUD/Luminari-Source/issues/195), and it needs fixing
 before the barbarian perks above can be given a category.
 
+All eight were fixed together afterwards, and the ratchets became strict assertions. Tracing the
+fixes corrected two of the descriptions above:
+
+- `can_purchase_perk()` skips a prerequisite it cannot resolve, so Extended Spell III could be
+  bought with no prerequisite at all, not never.
+- `list_perks_for_class()` stopped at the same mid-enum bound as the name lookup, so the paladin,
+  bard, alchemist, psionicist, blackguard and inquisitor trees were missing from `perk` entirely.
+  The table, the lookup and the loop now share `NUM_PERK_CATEGORIES`, and a static assertion
+  checks the table's length.
+
+The design sheets in `docs/systems/perks/` settled the content choices. Extended Spell II is defined
+as `WIZARD_PERKS.md` describes it, and each cleric tier 3 perk requires its tier 2 prerequisite at
+that perk's maximum rank. The barbarian perks are back in `PERK_CATEGORY_BERSERKER`, where they sat
+until commit `4617c772a` rolled `perks.c` back to an older copy.
+
 ## Defects review found in the moved combat code
 
 Once `combat_messages.h` became the contract callers read instead of `fight.c`, review of PR #193

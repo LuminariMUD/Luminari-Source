@@ -3187,6 +3187,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define PERK_CATEGORY_HUNTERS_ARSENAL 43
 #define PERK_CATEGORY_INVESTIGATION_PERCEPTION 44
 #define PERK_CATEGORY_ADAPTABLE_TACTICS 45
+#define NUM_PERK_CATEGORIES 46
 
 
 /* Perk IDs - organized by class */

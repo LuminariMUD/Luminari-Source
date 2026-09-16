@@ -13,20 +13,15 @@
 #include "../../src/core/structs.h"
 #include "../../src/core/utils.h"
 #include "../../src/core/interpreter.h"
+#include "../../src/core/db.h"
+#include "../../src/net/protocol.h"
 
 #include "../../src/character/class.h"
 #include "../../src/character/perks.h"
 #include "../../src/character/perk_definitions.h"
 
+#include <stdio.h>
 #include <string.h>
-
-/* Defects that predate this test. Both are content gaps in the perk tables
- * rather than structural problems, and correcting either changes what players
- * can see or buy. The tests below allow at most this many so the tables
- * cannot get worse, and get better freely. */
-#define KNOWN_UNCATEGORISED_PERKS 3
-#define KNOWN_DANGLING_PREREQUISITES 1
-#define KNOWN_UNREACHABLE_PREREQUISITE_RANKS 3
 
 /* A slot that init_perks() reset and no definition function claimed. */
 static bool perk_is_untouched(int id)
@@ -38,7 +33,6 @@ void Test_perk_definitions_fill_every_defined_slot_completely(CuTest *tc)
 {
   int id;
   int defined = 0;
-  int uncategorised = 0;
 
   init_perks();
 
@@ -66,30 +60,22 @@ void Test_perk_definitions_fill_every_defined_slot_completely(CuTest *tc)
     CuAssertTrue(tc, perk_list[id].associated_class >= 0);
     CuAssertTrue(tc, perk_list[id].associated_class < NUM_CLASSES);
 
-    if (perk_list[id].perk_category <= PERK_CATEGORY_UNDEFINED)
-      uncategorised++;
+    /* The perk list prints a perk under its tree's header, and only for
+     * categories below NUM_PERK_CATEGORIES. An uncategorised perk is listed
+     * under no tree at all. */
+    CuAssertTrue(tc, perk_list[id].perk_category > PERK_CATEGORY_UNDEFINED);
+    CuAssertTrue(tc, perk_list[id].perk_category < NUM_PERK_CATEGORIES);
   }
 
   /* Guard against a future edit that silently stops calling a whole tree. */
   CuAssertTrue(tc, defined > 0);
   CuAssertIntEquals(tc, defined, count_defined_perks());
-
-  /* A perk with no category never appears under any tree, so players cannot
-   * find it. Three barbarian perks predate this test and are left alone here
-   * because correcting them changes what the perk trees show, which is a
-   * content decision rather than a structural one:
-   *   PERK_BARBARIAN_RAGE_ENHANCEMENT, PERK_BARBARIAN_EXTENDED_RAGE_1,
-   *   PERK_BARBARIAN_TOUGHNESS.
-   * This is a ratchet: fixing them is fine, adding a fourth is not. */
-  CuAssertTrue(tc, uncategorised <= KNOWN_UNCATEGORISED_PERKS);
 }
 
 void Test_perk_definitions_prerequisites_resolve(CuTest *tc)
 {
   int id;
   int prereq;
-  int dangling = 0;
-  int unreachable = 0;
 
   init_perks();
 
@@ -111,34 +97,16 @@ void Test_perk_definitions_prerequisites_resolve(CuTest *tc)
     /* Self-reference would make the perk require itself. */
     CuAssertTrue(tc, prereq != id);
 
-    if (perk_is_untouched(prereq))
-    {
-      /* Pointing at a perk no tree defines makes this one permanently
-       * unbuyable. PERK_WIZARD_EXTENDED_SPELL_3 requires
-       * PERK_WIZARD_EXTENDED_SPELL_2, which has an id but no definition.
-       * Supplying that perk is a content decision, so it is recorded here
-       * rather than changed. Ratchet: fixing it is fine, adding another is
-       * not. */
-      dangling++;
-      continue;
-    }
+    /* can_purchase_perk() skips a prerequisite that get_perk_by_id() cannot
+     * resolve, so pointing at a slot no tree defines lets the perk be bought
+     * with no prerequisite at all. */
+    CuAssertTrue(tc, !perk_is_untouched(prereq));
 
+    /* Requiring more ranks than the prerequisite can reach makes the perk
+     * impossible to buy. */
     CuAssertTrue(tc, perk_list[id].prerequisite_rank >= 0);
-
-    if (perk_list[id].prerequisite_rank > perk_list[prereq].max_rank)
-    {
-      /* Requiring more ranks than the prerequisite can reach is the same bug
-       * with a subtler symptom: the perk resolves but can never be bought.
-       * Three cleric capstones ask for rank 5 of a prerequisite capped at 2
-       * or 3: PERK_CLERIC_DOMAIN_FOCUS_3, PERK_CLERIC_DIVINE_SPELL_POWER_3
-       * and PERK_CLERIC_GREATER_TURNING. Choosing the intended rank is a
-       * content decision, so it is recorded rather than changed. */
-      unreachable++;
-    }
+    CuAssertTrue(tc, perk_list[id].prerequisite_rank <= perk_list[prereq].max_rank);
   }
-
-  CuAssertTrue(tc, dangling <= KNOWN_DANGLING_PREREQUISITES);
-  CuAssertTrue(tc, unreachable <= KNOWN_UNREACHABLE_PREREQUISITE_RANKS);
 }
 
 void Test_perk_definitions_own_their_strings_across_reinit(CuTest *tc)
@@ -203,4 +171,100 @@ void Test_perk_definitions_leave_unclaimed_slots_on_the_sentinel(CuTest *tc)
 
   /* NUM_PERKS is a generous upper bound, so unclaimed slots are expected. */
   CuAssertTrue(tc, untouched > 0);
+}
+
+void Test_perk_definitions_name_every_category(CuTest *tc)
+{
+  /* perks.c checks at compile time that the table holds one name per
+   * category plus the terminator. The lookup has to stop at the same bound:
+   * the last category resolves, and the first id past it reads neither the
+   * terminator nor beyond the table. */
+  CuAssertStrEquals(tc, "\n", perk_category_names[NUM_PERK_CATEGORIES]);
+  CuAssertStrEquals(tc, "Adaptable Tactics",
+                    get_perk_category_name(PERK_CATEGORY_ADAPTABLE_TACTICS));
+  CuAssertStrEquals(tc, "Unknown Category", get_perk_category_name(NUM_PERK_CATEGORIES));
+
+  /* The first name missing from the table shifted every name after it, so
+   * the monk tree was listed as the ranger's Hunter tree. */
+  CuAssertStrEquals(tc, "Way of the Four Elements",
+                    get_perk_category_name(PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS));
+}
+
+static void perk_list_reset_output(struct descriptor_data *descriptor)
+{
+  if (descriptor->large_outbuf != NULL)
+  {
+    free(descriptor->large_outbuf->text);
+    free(descriptor->large_outbuf);
+    descriptor->large_outbuf = NULL;
+  }
+  descriptor->small_outbuf[0] = '\0';
+  descriptor->output = descriptor->small_outbuf;
+  descriptor->bufptr = 0;
+  descriptor->bufspace = SMALL_BUFSIZE - 1;
+}
+
+void Test_perk_definitions_list_every_perk_under_its_tree(CuTest *tc)
+{
+  struct char_data *ch;
+  struct descriptor_data descriptor;
+  int saved_perk_system = CONFIG_PERK_SYSTEM;
+  char expected[MAX_INPUT_LENGTH];
+  int class_id;
+  int id;
+  int listed = 0;
+  int first_unlisted = 0;
+  int first_without_header = 0;
+
+  init_perks();
+  CONFIG_PERK_SYSTEM = 1;
+
+  /* A player with no colour preference, so the list arrives as plain text. */
+  ch = new_char();
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.character = ch;
+  descriptor.pProtocol = ProtocolCreate();
+  STATE(&descriptor) = CON_PLAYING;
+  ch->desc = &descriptor;
+
+  for (class_id = 0; class_id < NUM_CLASSES; class_id++)
+  {
+    /* With levels in a single class, a bare "perk" lists that class. */
+    memset(ch->player_specials->saved.class_level, 0,
+           sizeof(ch->player_specials->saved.class_level));
+    CLASS_LEVEL(ch, class_id) = 1;
+    perk_list_reset_output(&descriptor);
+    do_perk(ch, "", 0, 0);
+
+    for (id = 1; id < NUM_PERKS; id++)
+    {
+      if (perk_is_untouched(id) || perk_list[id].associated_class != class_id)
+        continue;
+
+      /* Names print in a fixed-width column that cuts long ones short. */
+      snprintf(expected, sizeof(expected), "%.30s", perk_list[id].name);
+      if (strstr(descriptor.output, expected) != NULL)
+        listed++;
+      else if (first_unlisted == 0)
+        first_unlisted = id;
+
+      /* Each tree opens with its name centred in a rule of dashes. The colour
+       * reset after the name survives even for a player without colour. */
+      snprintf(expected, sizeof(expected), "-%s",
+               get_perk_category_name(perk_list[id].perk_category));
+      if (strstr(descriptor.output, expected) == NULL && first_without_header == 0)
+        first_without_header = id;
+    }
+  }
+
+  ch->desc = NULL;
+  perk_list_reset_output(&descriptor);
+  ProtocolDestroy(descriptor.pProtocol);
+  free_char(ch);
+  CONFIG_PERK_SYSTEM = saved_perk_system;
+
+  /* On failure these name the first perk id the list left out. */
+  CuAssertIntEquals(tc, 0, first_unlisted);
+  CuAssertIntEquals(tc, 0, first_without_header);
+  CuAssertIntEquals(tc, count_defined_perks(), listed);
 }
