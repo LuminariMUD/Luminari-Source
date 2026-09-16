@@ -1096,10 +1096,8 @@ static int restring(char *argument, struct obj_data *kit, struct char_data *ch)
   /* Cycle through contents */
   /* restring requires just one item be inside the kit */
   for (obj = kit->contains; obj != NULL; obj = obj->next_content)
-  {
     num_objs++;
-    break;
-  }
+  obj = kit->contains;
 
   if (num_objs > 1)
   {
@@ -1243,10 +1241,8 @@ static int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
   /* Cycle through contents */
   /* redesc requires just one item be inside the kit */
   for (obj = kit->contains; obj != NULL; obj = obj->next_content)
-  {
     num_objs++;
-    break;
-  }
+  obj = kit->contains;
 
   if (num_objs > 1)
   {
@@ -1462,10 +1458,8 @@ static int resize(char *argument, struct obj_data *kit, struct char_data *ch)
   /* Cycle through contents */
   /* resize requires just one item be inside the kit */
   for (obj = kit->contains; obj != NULL; obj = obj->next_content)
-  {
     num_objs++;
-    break;
-  }
+  obj = kit->contains;
 
   if (num_objs > 1)
   {
@@ -1730,10 +1724,8 @@ static int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
   /* Cycle through contents */
   /* resize requires just one item be inside the kit */
   for (obj = kit->contains; obj != NULL; obj = obj->next_content)
-  {
     num_objs++;
-    break;
-  }
+  obj = kit->contains;
 
   if (num_objs > 1)
   {
@@ -1772,9 +1764,9 @@ static int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
   switch (GET_OBJ_TYPE(obj))
   {
   case ITEM_WEAPON:
-    for (i = 0; i < NUM_WEAPON_TYPES; i++)
+    for (i = 1; i < NUM_WEAPON_TYPES; i++)
     {
-      if (is_abbrev(weapon_list[i].name, argument))
+      if (is_abbrev(argument, weapon_list[i].name))
         break;
     }
     if (i >= NUM_WEAPON_TYPES)
@@ -1793,11 +1785,11 @@ static int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
   case ITEM_ARMOR:
     if (IS_SHIELD(GET_OBJ_VAL(obj, 1)))
     {
-      for (i = 0; i < NUM_SPEC_ARMOR_TYPES; i++)
+      for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
       {
         if (!IS_SHIELD(i))
           continue;
-        if (is_abbrev(armor_list[i].name, argument))
+        if (is_abbrev(argument, armor_list[i].name))
           break;
       }
       if (i >= NUM_SPEC_ARMOR_TYPES)
@@ -1815,7 +1807,7 @@ static int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
     }
     else
     {
-      for (i = 0; i < NUM_SPEC_ARMOR_TYPES; i++)
+      for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
       {
         if (IS_SHIELD(i))
           continue;
@@ -1835,7 +1827,7 @@ static int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
         {
           continue;
         }
-        if (is_abbrev(armor_list[i].name, argument))
+        if (is_abbrev(argument, armor_list[i].name))
           break;
       }
       if (i >= NUM_SPEC_ARMOR_TYPES)

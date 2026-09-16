@@ -1,6 +1,6 @@
 /* Production-linked tests for the materials-and-motes crafting system (crafting_system 2): its boot
  * tables, the equipment project a player builds with the craft command, supply orders, golem
- * construction and material storage. */
+ * construction, material storage, and reforging with the reforge command or a crafting kit. */
 
 #include "CuTest.h"
 
@@ -8,6 +8,7 @@
 #include "../../src/core/sysdep.h"
 #include "../../src/core/structs.h"
 #include "../../src/core/utils.h"
+#include "../../src/act/act.h"
 #include "../../src/character/feats.h"
 #include "../../src/character/talents.h"
 #include "../../src/combat/assign_wpn_armor.h"
@@ -17,14 +18,17 @@
 #include "../../src/core/db.h"
 #include "../../src/core/handler.h"
 #include "../../src/core/interpreter.h"
+#include "../../src/craft/craft.h"
 #include "../../src/craft/crafting_new.h"
 #include "../../src/craft/crafting_recipes.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/events/activity_manager.h"
 #include "../../src/events/domain_event_runtime.h"
 #include "../../src/events/domain_event_world.h"
+#include "../../src/events/mud_event.h"
 #include "../../src/magic/spells.h"
 #include "../../src/net/protocol.h"
+#include "../../src/obj/treasure.h"
 
 #include <string.h>
 
@@ -219,6 +223,21 @@ static void craft_project_hold_supply_order(struct char_data *ch)
   GET_CRAFT(ch).craft_variant = 0;
   GET_CRAFT(ch).supply_num_required = 3;
   GET_CRAFT(ch).skill_type = CRAFT_SKILL_WEAPONSMITH;
+}
+
+/** A reforgeable, free steel dagger built from the fixture's weapon prototype. */
+static struct obj_data *craft_project_reforgeable_dagger(void)
+{
+  struct obj_data *obj = read_object(WEAPON_PROTO, VIRTUAL);
+
+  if (obj == NULL)
+    return NULL;
+  GET_OBJ_TYPE(obj) = ITEM_WEAPON;
+  set_weapon_object(obj, WEAPON_TYPE_DAGGER);
+  GET_OBJ_MATERIAL(obj) = MATERIAL_STEEL;
+  GET_OBJ_COST(obj) = 0;
+  SET_OBJ_FLAG(obj, ITEM_REFORGEABLE);
+  return obj;
 }
 
 static int craft_project_live_objects(void)
@@ -858,4 +877,93 @@ void Test_craft_material_bundles_keep_their_hide_grade(CuTest *tc)
   CuAssertIntEquals(tc, 3, high_after_unstore);
   CuAssertIntEquals(tc, 8, high_after_store);
   CuAssertIntEquals(tc, 0, low_after_store);
+}
+
+void Test_reforge_matches_abbreviations_and_numbered_bows(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct obj_data *weapon;
+  enum domain_event_status runtime;
+  int abbreviated = -1, numbered = -1;
+
+  craft_project_begin(&f);
+  event_free_all();
+  event_init();
+  runtime = domain_event_runtime_init();
+  if ((weapon = craft_project_reforgeable_dagger()) != NULL)
+  {
+    obj_to_char(weapon, ch);
+    do_reforge_new(ch, "weapon khop", 0, 0);
+    abbreviated = GET_OBJ_VAL(weapon, 0);
+    clear_char_event_list(ch);
+    GET_CRAFTING_OBJ(ch) = NULL;
+    do_reforge_new(ch, "weapon composite long bow (2)", 0, 0);
+    numbered = GET_OBJ_VAL(weapon, 0);
+    clear_char_event_list(ch);
+    GET_CRAFTING_OBJ(ch) = NULL;
+  }
+  domain_event_runtime_shutdown();
+  event_free_all();
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, runtime);
+  CuAssertIntEquals(tc, WEAPON_TYPE_KHOPESH, abbreviated);
+  CuAssertIntEquals(tc, WEAPON_TYPE_COMPOSITE_LONGBOW_2, numbered);
+}
+
+void Test_crafting_kit_reforge_needs_exactly_one_item(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct obj_data *kit, *first, *second;
+  enum domain_event_status runtime;
+  char argument[MAX_INPUT_LENGTH];
+  bool created_commands = false, refused = false;
+  int reforge_cmd, reforged = -1;
+
+  craft_project_begin(&f);
+  event_free_all();
+  event_init();
+  runtime = domain_event_runtime_init();
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_commands = true;
+  }
+  reforge_cmd = find_command("reforge");
+  kit = read_object(WEAPON_PROTO, VIRTUAL);
+  first = craft_project_reforgeable_dagger();
+  second = craft_project_reforgeable_dagger();
+  if (kit != NULL && first != NULL && second != NULL)
+  {
+    GET_OBJ_TYPE(kit) = ITEM_CONTAINER;
+    obj_to_char(kit, ch);
+    obj_to_obj(first, kit);
+    obj_to_obj(second, kit);
+    snprintf(argument, sizeof(argument), "khop");
+    crafting_kit(ch, kit, reforge_cmd, argument);
+    refused = craft_project_output_has(&f, "Only one item should be inside the kit") &&
+              GET_OBJ_VAL(first, 0) == WEAPON_TYPE_DAGGER &&
+              GET_OBJ_VAL(second, 0) == WEAPON_TYPE_DAGGER;
+
+    /* With one item left, the abbreviation selects the khopesh. */
+    obj_from_obj(second);
+    extract_obj(second);
+    snprintf(argument, sizeof(argument), "khop");
+    crafting_kit(ch, kit, reforge_cmd, argument);
+    reforged = GET_OBJ_VAL(first, 0);
+    clear_char_event_list(ch);
+    GET_CRAFTING_OBJ(ch) = NULL;
+  }
+  if (created_commands)
+    free_command_list();
+  domain_event_runtime_shutdown();
+  event_free_all();
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, runtime);
+  CuAssertTrue(tc, reforge_cmd >= 0);
+  CuAssertTrue(tc, refused);
+  CuAssertIntEquals(tc, WEAPON_TYPE_KHOPESH, reforged);
 }

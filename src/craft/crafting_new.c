@@ -11023,9 +11023,9 @@ static void impl_do_reforge_new_(struct char_data *ch, char *argument,
   {
   case ITEM_WEAPON:
     /* Search for matching weapon type */
-    for (weapon_index = 0; weapon_index < NUM_WEAPON_TYPES; weapon_index++)
+    for (weapon_index = 1; weapon_index < NUM_WEAPON_TYPES; weapon_index++)
     {
-      if (is_abbrev(weapon_list[weapon_index].name, target_arg))
+      if (is_abbrev(target_arg, weapon_list[weapon_index].name))
         break;
     }
     if (weapon_index >= NUM_WEAPON_TYPES)
@@ -11045,11 +11045,11 @@ static void impl_do_reforge_new_(struct char_data *ch, char *argument,
     if (IS_SHIELD(GET_OBJ_VAL(obj, 1)))
     {
       /* Reforging a shield */
-      for (armor_index = 0; armor_index < NUM_SPEC_ARMOR_TYPES; armor_index++)
+      for (armor_index = 1; armor_index < NUM_SPEC_ARMOR_TYPES; armor_index++)
       {
         if (!IS_SHIELD(armor_index))
           continue;
-        if (is_abbrev(armor_list[armor_index].name, target_arg))
+        if (is_abbrev(target_arg, armor_list[armor_index].name))
           break;
       }
       if (armor_index >= NUM_SPEC_ARMOR_TYPES)
@@ -11067,7 +11067,7 @@ static void impl_do_reforge_new_(struct char_data *ch, char *argument,
     else
     {
       /* Reforging non-shield armor - must match wear slot */
-      for (armor_index = 0; armor_index < NUM_SPEC_ARMOR_TYPES; armor_index++)
+      for (armor_index = 1; armor_index < NUM_SPEC_ARMOR_TYPES; armor_index++)
       {
         if (IS_SHIELD(armor_index))
           continue;
@@ -11082,7 +11082,7 @@ static void impl_do_reforge_new_(struct char_data *ch, char *argument,
         else if (CAN_WEAR(obj, ITEM_WEAR_LEGS) && armor_list[armor_index].wear != ITEM_WEAR_LEGS)
           continue;
 
-        if (is_abbrev(armor_list[armor_index].name, target_arg))
+        if (is_abbrev(target_arg, armor_list[armor_index].name))
           break;
       }
       if (armor_index >= NUM_SPEC_ARMOR_TYPES)
