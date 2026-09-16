@@ -21,6 +21,8 @@
 #ifndef LUMINARI_SPEC_ASSIGN_TABLE_H
 #define LUMINARI_SPEC_ASSIGN_TABLE_H
 
+#include "core/structs.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 

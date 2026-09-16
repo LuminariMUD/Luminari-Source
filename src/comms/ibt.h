@@ -9,6 +9,9 @@
 *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
 **************************************************************************/
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 typedef struct ibt_data IBT_DATA;
 
 #define MAX_IBT_LENGTH 2048

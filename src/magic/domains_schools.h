@@ -7,6 +7,9 @@
 #ifndef DOMAINS_SCHOOLS_H
 #define DOMAINS_SCHOOLS_H
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 #ifdef __cplusplus
 extern "C"
 {

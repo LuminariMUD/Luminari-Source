@@ -12,6 +12,9 @@
 #ifndef _SPEC_ARTIFACTS_H_
 #define _SPEC_ARTIFACTS_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 /* --------------------------------------------------------------------------
  * VNUM allocation - zone 1699, range 169900-169999.
  *

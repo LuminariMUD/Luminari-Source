@@ -8,6 +8,9 @@
 #ifndef __BEDIT_H__
 #define __BEDIT_H__
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 /* Function prototypes */
 void bedit_parse(struct descriptor_data *d, char *arg);
 ACMD_DECL(do_bedit);

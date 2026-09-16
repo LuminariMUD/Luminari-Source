@@ -45,6 +45,8 @@
 #ifndef _BSD_SNPRINTF_H_
 #define _BSD_SNPRINTF_H_
 
+#include "core/structs.h"
+
 #ifndef HAVE_SNPRINTF
 int snprintf(char *str, size_t count, const char *fmt, ...);
 #endif /* !HAVE_SNPRINTF */

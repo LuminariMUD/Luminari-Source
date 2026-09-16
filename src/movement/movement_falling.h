@@ -11,6 +11,8 @@
 #ifndef MOVEMENT_FALLING_H
 #define MOVEMENT_FALLING_H
 
+#include "core/structs.h"
+
 /* Include for MUD_EVENT_CALLBACK macro */
 #include "events/mud_event_callback.h"
 

@@ -11,6 +11,8 @@
 #ifndef WEB_CLIENT_ONBOARDING_H
 #define WEB_CLIENT_ONBOARDING_H
 
+#include "core/structs.h"
+
 struct descriptor_data;
 enum roleplay_commit_result;
 

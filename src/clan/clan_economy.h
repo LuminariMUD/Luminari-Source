@@ -5,6 +5,9 @@
 #ifndef _CLAN_ECONOMY_H_
 #define _CLAN_ECONOMY_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 /* Function prototypes */
 int apply_clan_shop_discount(int price, struct char_data *ch, int shop_nr);
 void collect_clan_transaction_tax(struct char_data *ch, int amount, int transaction_type);

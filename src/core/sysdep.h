@@ -12,6 +12,8 @@
 #ifndef _SYSDEP_H_
 #define _SYSDEP_H_
 
+#include "conf.h"
+
 /* If you are porting tbaMUD to a new (untested) platform and you find that
  * POSIX-standard non-blocking I/O does *not* work, you can define the constant
  * below to work around the problem.  Not having non-blocking I/O can cause the

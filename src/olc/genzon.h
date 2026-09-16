@@ -12,6 +12,9 @@
 #ifndef _GENZON_H_
 #define _GENZON_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, const char **error);
 void remove_room_zone_commands(zone_rnum zone, room_rnum room_num);
 int save_zone(zone_rnum zone_num);

@@ -9,6 +9,9 @@
 #ifndef _RACE_H_
 #define _RACE_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 /* defines */
 // this is for shapechange/wildshape, define for array max
 #define NUM_SHAPE_TYPES 5

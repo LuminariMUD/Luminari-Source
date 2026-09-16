@@ -9,6 +9,8 @@
 #ifndef RESOURCE_DEPLETION_H
 #define RESOURCE_DEPLETION_H
 
+#include "core/structs.h"
+
 /* ===== FUNCTION PROTOTYPES ===== */
 
 /* Database initialization */

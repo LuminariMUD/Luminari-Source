@@ -14,6 +14,8 @@
 #ifndef _GRAPH_H_
 #define _GRAPH_H_
 
+#include "core/structs.h"
+
 /* commands */
 //ACMD(do_track);
 

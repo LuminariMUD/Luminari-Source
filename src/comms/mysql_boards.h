@@ -11,6 +11,9 @@
 #ifndef __MYSQL_BOARDS_H__
 #define __MYSQL_BOARDS_H__
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 #include "mariadb/mysql.h"
 
 /* Board System Constants */

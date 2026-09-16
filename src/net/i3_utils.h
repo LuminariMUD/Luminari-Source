@@ -6,6 +6,8 @@
 #ifndef _I3_UTILS_H_
 #define _I3_UTILS_H_
 
+#include "core/structs.h"
+
 /* Basic validation functions */
 int i3_validate_username(const char *username);
 int i3_validate_mudname(const char *mudname);

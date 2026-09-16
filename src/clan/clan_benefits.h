@@ -7,6 +7,8 @@
 #ifndef _CLAN_BENEFITS_H_
 #define _CLAN_BENEFITS_H_
 
+#include "core/structs.h"
+
 /* Zone control benefit types */
 #define ZONE_BENEFIT_NONE 0
 #define ZONE_BENEFIT_REGEN_HP (1 << 0)     /* Increased HP regeneration */

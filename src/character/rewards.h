@@ -6,6 +6,8 @@
 #ifndef REWARDS_H
 #define REWARDS_H
 
+#include "core/structs.h"
+
 #ifdef __cplusplus
 extern "C"
 {

@@ -1,3 +1,5 @@
+#include "core/structs.h"
+
 
 #define ENCOUNTER_CLASS_NONE 0
 #define ENCOUNTER_CLASS_COMBAT 1

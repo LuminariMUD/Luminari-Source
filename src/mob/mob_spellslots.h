@@ -8,6 +8,8 @@
 #ifndef _MOB_SPELLSLOTS_H_
 #define _MOB_SPELLSLOTS_H_
 
+#include "core/structs.h"
+
 /* Function prototypes */
 
 /* Calculate the spell circle for a given spell and class */

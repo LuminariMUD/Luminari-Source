@@ -8,6 +8,8 @@
 #ifndef _MOB_KNOWN_SPELLS_H_
 #define _MOB_KNOWN_SPELLS_H_
 
+#include "core/structs.h"
+
 /* Function prototypes */
 
 /* Initialize known spell slots for a mob (max 2 per known spell) */

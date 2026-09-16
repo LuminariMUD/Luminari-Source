@@ -2,6 +2,8 @@
  * Premade build code for LuminariMUD by Gicker aka Steve Squires
  */
 
+#include "core/structs.h"
+
 void give_premade_skill(struct char_data *ch, bool verbose, int skill, int amount);
 void increase_skills(struct char_data *ch, int chclass, bool verbose, int level);
 void give_premade_feat(struct char_data *ch, bool verbose, int feat, int subfeat);

@@ -11,6 +11,8 @@
 #ifndef MOVEMENT_VALIDATION_H
 #define MOVEMENT_VALIDATION_H
 
+#include "core/structs.h"
+
 /* Function declarations for movement validation */
 int has_boat(struct char_data *ch, room_rnum going_to);
 int has_flight(struct char_data *ch);

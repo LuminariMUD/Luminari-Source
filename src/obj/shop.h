@@ -12,6 +12,8 @@
 #ifndef _SHOP_H_
 #define _SHOP_H_
 
+#include "core/structs.h"
+
 /* Public function prototypes */
 SPECIAL_DECL(shop_keeper);
 void boot_the_shops(FILE *shop_f, char *filename, int rec_count);

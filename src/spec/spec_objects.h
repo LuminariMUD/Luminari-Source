@@ -6,6 +6,8 @@
 #ifndef LUMINARI_SPEC_OBJECTS_H
 #define LUMINARI_SPEC_OBJECTS_H
 
+#include "core/structs.h"
+
 struct char_data;
 struct obj_data;
 

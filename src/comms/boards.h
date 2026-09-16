@@ -13,6 +13,8 @@
 #ifndef _BOARDS_H_
 #define _BOARDS_H_
 
+#include "core/structs.h"
+
 #define NUM_OF_BOARDS 2         /* change if needed! */
 #define MAX_BOARD_MESSAGES 300  /* arbitrary -- change if needed */
 #define MAX_MESSAGE_LENGTH 9192 /* arbitrary -- change if needed */

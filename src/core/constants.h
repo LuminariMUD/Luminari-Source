@@ -20,6 +20,8 @@ extern "C"
 #ifndef _CONSTANTS_H_
 #define _CONSTANTS_H_
 
+#include "core/structs.h"
+
 /* under construction -zusuk
 extern const char *npc_race_short[];
 extern const char *race_family_abbrevs[];

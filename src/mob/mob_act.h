@@ -11,6 +11,8 @@
 #ifndef _MOB_ACT_H_
 #define _MOB_ACT_H_
 
+#include "core/structs.h"
+
 #include <stdint.h>
 
 /* Include all mob module headers */

@@ -5,6 +5,8 @@
 #ifndef _D20SW_CHAR_DESCS_HPP_
 #define _D20SW_CHAR_DESCS_HPP_
 
+#include "core/structs.h"
+
 // Feature types that can be chosen from
 
 #define FEATURE_TYPE_UNDEFINED 0

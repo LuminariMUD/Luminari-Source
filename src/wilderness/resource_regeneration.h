@@ -9,6 +9,8 @@
 #ifndef RESOURCE_REGENERATION_H
 #define RESOURCE_REGENERATION_H
 
+#include "core/structs.h"
+
 /* ===== REGENERATION SYSTEM FUNCTIONS ===== */
 
 /* System control */

@@ -11,6 +11,9 @@
 #ifndef _QUEST_H_
 #define _QUEST_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 #include "events/domain_event_types.h"
 
 /* Aquest related defines ********************************************* */

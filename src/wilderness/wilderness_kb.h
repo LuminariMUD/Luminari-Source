@@ -9,6 +9,8 @@
 #ifndef _WILDERNESS_KB_H_
 #define _WILDERNESS_KB_H_
 
+#include "core/structs.h"
+
 /* Debug mode toggle - uncomment to enable comprehensive debugging */
 #define DEBUG_WILD_KB 1
 

@@ -13,6 +13,8 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
+#include "core/structs.h"
+
 #ifndef __CONFIG_C__
 /* Global variable declarations, all settable by cedit */
 extern int pk_allowed;

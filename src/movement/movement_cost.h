@@ -11,6 +11,8 @@
 #ifndef MOVEMENT_COST_H
 #define MOVEMENT_COST_H
 
+#include "core/structs.h"
+
 /* Function declarations for movement cost/speed */
 int get_speed(struct char_data *ch, sbyte to_display);
 

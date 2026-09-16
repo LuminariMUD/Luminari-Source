@@ -8,6 +8,9 @@
 /
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 struct craft_data
 {
   int craft_id;

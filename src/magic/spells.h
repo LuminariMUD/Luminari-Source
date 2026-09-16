@@ -12,6 +12,9 @@
 #ifndef _SPELLS_H_
 #define _SPELLS_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 /* summon fail message */
 #define SUMMON_FAIL "You failed.\r\n"
 
