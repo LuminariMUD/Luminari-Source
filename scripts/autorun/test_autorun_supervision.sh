@@ -148,12 +148,29 @@ wait_for_pattern() {
   fail "timed out waiting for '$pattern' in ${file#"$test_root"/}"
 }
 
+# A process that has exited but has not been reaped yet still answers kill -0.
+# Orphans are normally reparented to an init that reaps them at once, but a
+# container whose PID 1 never reaps (GitHub runs container jobs as docker exec
+# under `tail -f /dev/null`) keeps them as zombies forever, so procfs decides.
+process_has_exited() {
+  local pid=$1
+  local stat_line
+  local state
+
+  kill -0 "$pid" 2>/dev/null || return 0
+  stat_line=$(cat "/proc/$pid/stat" 2>/dev/null) || return 0
+  # The comm field is parenthesized and may contain spaces; state follows it.
+  state=${stat_line#*') '}
+  state=${state%% *}
+  [[ "$state" == Z ]]
+}
+
 wait_for_pid_exit() {
   local attempt
   local pid=$1
 
   for ((attempt = 0; attempt < 100; attempt++)); do
-    if ! kill -0 "$pid" 2>/dev/null; then
+    if process_has_exited "$pid"; then
       return 0
     fi
     sleep 0.1
