@@ -461,6 +461,7 @@ set(SRC_C_FILES
     src/combat/tactical_effects.c
     src/act/act.social.c
     src/act/act.wizard.c
+    src/act/act.wizard.set.c
     src/events/actionqueues.c
     src/events/actions.c
     src/olc/aedit.c
@@ -528,6 +529,7 @@ set(SRC_C_FILES
     src/core/elf_build_id.c
     src/combat/encounters.c
     src/combat/combat_encounters.c
+    src/combat/combat_messages.c
     src/combat/combat_damage.c
     src/combat/combat_damage.h
     src/combat/combat_death.h
@@ -639,6 +641,7 @@ set(SRC_C_FILES
     src/olc/oedit.c
     src/player/password.c
     src/core/perfmon.c
+    src/character/perk_definitions.c
     src/character/perks.c
     src/wilderness/perlin.c
     src/player/player_rename.c
@@ -1195,6 +1198,9 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_transport_production.c
     unittests/CuTest/test_traps_production.c
     unittests/CuTest/test_combat_production.c
+    unittests/CuTest/test_combat_messages.c
+    unittests/CuTest/test_perk_definitions.c
+    unittests/CuTest/test_wizard_set.c
     unittests/CuTest/test_combat_encounters.c
     unittests/CuTest/test_activity_manager.c
     unittests/CuTest/test_thrown_weapons.c

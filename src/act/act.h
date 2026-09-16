@@ -1122,6 +1122,10 @@ ACMD_DECL(do_set);
 #ifdef LUMINARI_CUTEST
 int perform_set_class_level_for_test(struct char_data *ch, struct char_data *vict,
                                      const char *field, int level);
+/* set_fields[] lookups, for tests that pin the table's parsing invariants. */
+int find_set_field_for_test(const char *field);
+int set_field_min_level_for_test(int mode);
+int set_field_count_for_test(void);
 int test_is_rogue_weapon_proficient(int weapon);
 #endif
 ACMD_DECL(do_show);

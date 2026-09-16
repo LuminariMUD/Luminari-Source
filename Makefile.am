@@ -46,6 +46,7 @@ luminari_SOURCES = \
 	src/combat/tactical_effects.h \
 	src/act/act.social.c \
 	src/act/act.wizard.c \
+	src/act/act.wizard.set.c \
 	src/events/actionqueues.c \
 	src/events/actions.c \
 	src/olc/aedit.c \
@@ -115,6 +116,7 @@ luminari_SOURCES = \
 	src/core/elf_build_id.h \
 	src/combat/encounters.c \
 	src/combat/combat_encounters.c \
+	src/combat/combat_messages.c \
 	src/combat/combat_encounters.h \
 	src/combat/combat_damage.c \
 	src/combat/combat_damage.h \
@@ -127,6 +129,7 @@ luminari_SOURCES = \
 	src/character/feats.c \
 	src/character/talents.c \
 	src/character/perks.c \
+	src/character/perk_definitions.c \
 	src/combat/fight.c \
 	src/olc/genmob.c \
 	src/olc/genobj.c \
@@ -431,6 +434,9 @@ cutest_SOURCES = \
 	unittests/CuTest/test_transport_production.c \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
+	unittests/CuTest/test_combat_messages.c \
+	unittests/CuTest/test_perk_definitions.c \
+	unittests/CuTest/test_wizard_set.c \
 	unittests/CuTest/test_combat_encounters.c \
 	unittests/CuTest/test_activity_manager.c \
 	unittests/CuTest/test_thrown_weapons.c \
@@ -510,6 +516,9 @@ cutest_test_files = \
 	unittests/CuTest/test_transport_production.c \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
+	unittests/CuTest/test_combat_messages.c \
+	unittests/CuTest/test_perk_definitions.c \
+	unittests/CuTest/test_wizard_set.c \
 	unittests/CuTest/test_combat_encounters.c \
 	unittests/CuTest/test_activity_manager.c \
 	unittests/CuTest/test_thrown_weapons.c \

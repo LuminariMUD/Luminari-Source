@@ -102,8 +102,9 @@ bool combat_run_compatibility_phase(struct char_data *ch, unsigned int phase);
 bool combat_run_semantic_round(struct char_data *ch, bool was_hit);
 void raw_kill(struct char_data *ch, struct char_data *killer);
 bool set_fighting(struct char_data *ch, struct char_data *victim);
-int skill_message(int dam, struct char_data *ch, struct char_data *vict, int attacktype,
-                  int attack_type);
+/* The weapon that answers for one attack slot, or NULL when that slot is
+ * empty. Borrowed: the wielder keeps ownership. */
+struct obj_data *get_wielded(struct char_data *ch, int attack_type);
 void stop_fighting(struct char_data *ch);
 bool is_tanking(struct char_data *ch);
 void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo);
