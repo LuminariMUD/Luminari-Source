@@ -6,6 +6,7 @@
 #include "../../src/core/utils.h"
 #include "../../src/core/comm.h"
 #include "../../src/core/db.h"
+#include "../../src/craft/crafting_recipes.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/events/event_debug.h"
 #include "../../src/events/event_runtime.h"
@@ -502,6 +503,9 @@ void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)
       _exit(22);
     if (event_test_free_all_call_count() != 1)
       _exit(23);
+    /* The materials-and-motes crafting system reads the recipe table filled at boot. */
+    if (crafting_recipes[CRAFT_RECIPE_WEAPON_LONG_SWORD].object_type != ITEM_WEAPON)
+      _exit(24);
     _exit(EXIT_SUCCESS);
   }
 
