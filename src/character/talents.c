@@ -27,6 +27,8 @@
 
 struct talent_info talent_list[TALENT_MAX];
 
+_Static_assert(TALENT_MAX <= MAX_TALENTS, "talent ranks must have a slot for every talent");
+
 /* Category names for display */
 const char *talent_category_names[NUM_TALENT_CATEGORIES] = {
     "General",   "Woodworking",   "Tailoring",      "Alchemy",    "Armorsmithing", "Weaponsmithing",
@@ -1270,8 +1272,7 @@ ACMD(do_talento)
     return;
   }
 
-  if (talent_num > 0 && talent_num < 64)
-    vict->player_specials->saved.talent_ranks[talent_num] = (ubyte)value;
+  vict->player_specials->saved.talent_ranks[talent_num] = (ubyte)value;
 
   send_to_char(ch, "%s's talent '%s' set to rank %d.\r\n", GET_NAME(vict),
                talent_list[talent_num].name, value);
