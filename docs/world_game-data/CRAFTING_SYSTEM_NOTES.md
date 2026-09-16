@@ -16,9 +16,15 @@ world-object prototypes used by a deployed server.
 | `1` | `CRAFTING_SYSTEM_KITS` | Run the normal `practice` handler. |
 | `2` | `CRAFTING_SYSTEM_MOTES` | Open the materials-and-motes project editor or score. |
 
-The compiled default is `0`. Operators can set `crafting_system = N` in the
-runtime `lib/etc/config` file or through `cedit`. That file is ignored by Git,
-so source control does not prove which value production uses. `lib/etc/crafts`
+The compiled default is `0`. Operators can set `crafting_system = 0|1|2` in the
+active configuration file (normally `lib/etc/config`), which is read at startup
+(reboot or copyover).
+In `cedit`, choose `E` (Extra Game Play Options), then `B`, and enter the menu
+number, which is the stored value plus one: `1` none, `2` kits, `3` motes.
+Confirming the editor save applies the choice in memory. It also writes to
+disk when `CONFIG_AUTO_SAVE` is enabled; otherwise use `cedit save` to persist
+it for the next startup. The file is ignored by Git, so source
+control does not prove which value production uses. `lib/etc/crafts`
 is also ignored and absent from a fresh clone, so the repository does not ship
 any records for the older `crafting` catalog.
 
@@ -31,9 +37,9 @@ subsystem and disabling all others:
 | `newcraft` | Opens the materials-and-motes project editor in every mode. |
 | `craft golem`, `newcraft golem` | Refuse unless mode `2` is selected. |
 | `destroygolem`, `golemrepair`, bone-golem animation | Refuse unless mode `2` is selected. |
-| Standalone `reforge` | Refuses unless mode `2` is selected; a carried crafting kit can intercept its own kit workflow. |
+| Standalone `reforge` | Refuses unless mode `2` is selected; a carried, worn, or in-room crafting kit intercepts the command even when empty. |
 | `crafting` | Opens the older catalog/blueprint system in every mode. |
-| Crafting-kit commands | A carried kit's special procedure handles them without consulting the selector. |
+| Crafting-kit commands | A carried, worn, or in-room kit's special procedure intercepts them without consulting the selector; actual kit work requires a carried kit. |
 | `supplyorder`, `craftmaterials`, `motes`, `salvage`, `harvest`, `survey`, `gather`, `mine` | Registered without a crafting-mode check. |
 
 Consequently, names such as "kits mode" and "motes mode" describe the routing
@@ -67,7 +73,8 @@ with `craftedit`.
 ### Crafting-kit object workflow
 
 `SPECIAL(crafting_kit)` in `src/craft/craft.c` intercepts commands when a
-carried crafting-kit object is present. The registered and handled commands
+crafting-kit object is carried, worn, or in the room, even if empty. Actual
+kit work requires the kit to be carried. The registered and handled commands
 include:
 
 | Command | Kit workflow |
@@ -81,8 +88,24 @@ include:
 
 The special procedure contains a `convert` branch, but the `convert` command is
 not registered, so players cannot reach that branch through normal command
-dispatch. Kit work uses the separate `eCRAFTING` event. Molds are created by a
-mob special procedure in `src/craft/crafting_molds.c`.
+dispatch. Kit work uses the separate `eCRAFTING` event.
+`src/craft/crafting_molds.c` defines a mold-vendor special, but nothing assigns
+or registers it. It is not a reachable mold source. Molds can instead come
+from world objects and starting gear (`NOOB_CRAFT_MOLD` in
+`src/character/class.c`); the starting-gear path requires `USE_CONTAINER_OBJECTS`
+and a loadable prototype. Source alone does not establish deployed availability.
+
+Standalone `reforge <item name> <new type>` requires mode `2`, an inventory
+weapon or armor flagged `ITEM_REFORGEABLE`, and any station mapped from the
+item's material (for example, a forge for steel; unmapped materials require no
+station). It preserves descriptions,
+replacing only a builder-set `restring_identifier` with the new subtype name.
+The kit form, `reforge <new type>`, instead uses the first item in a carried
+kit and renames the result "a reforged <type>". A worn or in-room kit still
+intercepts the command but refuses to perform the work. Remove kits from all
+three locations to reach standalone reforging. Both forms charge half the
+item's value and preserve its material when the new subtype uses the same
+material family.
 
 ## Materials-and-motes equipment projects
 
@@ -127,15 +150,15 @@ in every mode.
 | `itemtype` / `type` | Select weapon, armor, miscellaneous, or instrument type. Jewelry is under `misc`. Although the parser also accepts `golem`, that value is a dead end; use the separate `golem` subcommand. |
 | `specifictype` | Select the concrete weapon, armor piece, instrument, or wear slot. |
 | `variant` | Select recipe variant and material/tool rules. |
-| `materials` | Allocate or return required project materials. |
+| `materials` | Allocate or return required project materials, one group per `materials add <material>` command; repeat for every required group shown by `show`. |
 | `enhancement`, `motes` | Configure and fund magical enhancement. |
-| `bonuses` | Configure up to six object affects and mote costs. A bug treats variant index `0` as unset, so bonuses fail on the first variant of every recipe and on all 60 recipes that have no other variant. |
+| `bonuses` | Configure up to six object affects, then fund each with `motes add <slot>`. A bug treats variant index `0` as unset, so bonuses fail on the first variant of every recipe and on all 60 recipes that have no other variant. |
 | `instrument` | Configure instrument quality, effectiveness, and breakability. |
 | `keywords`, `shortdesc`, `roomdesc`, `extradesc` | Configure descriptions; the first three are required after allocating the primary material. They must contain the exact variant phrase and selected primary-material description. Keywords reject dashes; maximum lengths are 100, 100, and 120 characters respectively. |
 | `leveladjust` | Adjust requested output level within the implemented rules. |
-| `show` / `display` / `review` / `information` | Display the current project. |
+| `show` / `display` / `review` / `information` | Display the current project. Object setup can also update its stored skill, DC, and output level; this is not a read-only preview. |
 | `check` | Report whether the project can be admitted. |
-| `reset [part]` | Refund/reset all or `motes`, `materials`, `enhancement`, `instrument`, `bonuses`, `descriptions`, `refine`, or `resize`. Resetting `materials` also clears keywords, short description, room description, and extra description. |
+| `reset [part]` | No part, or an unrecognized part, runs the full equipment-project reset and its refund routines. Recognized parts (and their abbreviations): `motes`, `materials`, `enhancement`, `instrument`, `bonuses`, `descriptions`, `refine`, `resize`. `motes` also deletes bonus definitions; `materials` also clears all descriptions; `descriptions` also returns and clears recorded material allocations, so re-add the primary material before setting descriptions again. |
 | `start` / `begin` | Admit a valid equipment project to timed work. |
 | `score` | Display crafting and harvesting skill progress. |
 | `equipment` / `tools` / `gear` | Display equipped support gear through the main create-command route. |
@@ -153,10 +176,15 @@ Material golems use `craft golem` or `newcraft golem` with
 `type|size|show|reset|start` (and the `display`/`begin` aliases). Wood, stone,
 and iron construction respectively require Construct Wood Golem, Construct
 Stone Golem, or Construct Iron Golem. Accepted work runs as a timed craft and
-finishes with an Arcana check; a failed roll consumes the reserved resources.
-Prototype and follower-capacity failures retain them. The immediate
-`golem animate <corpse>` path creates a bone golem and requires Construct Wood
-Golem or Summon Greater Undead. See `GOLEM-MAINTENANCE` and `BONE-GOLEM`.
+finishes with an Arcana check. Starting only checks balances; nothing is
+reserved. Completion rechecks the recipe amounts; if any are short, nothing
+is spent and the golem project is discarded. A wood golem start accepts any
+single wood type, but completion requires the full amount in ash wood. A failed
+roll consumes the recipe amounts; prototype and follower-capacity failures
+spend nothing. The immediate `craft golem animate <corpse>` or
+`newcraft golem animate <corpse>` path creates a bone golem and requires
+Construct Wood Golem or Summon Greater Undead. See `GOLEM-MAINTENANCE` and
+`BONE-GOLEM`.
 
 ### Tool admission and current availability limits
 
@@ -188,34 +216,44 @@ deployment grants, so operators must inspect deployed world data.
 
 ### Station sequencing and completion
 
-Normal recipe selection does not set `skill_type`. On the first `start`, the
-station check therefore receives skill `0` and requires no station. The
-in-activity recheck sees the same value. Completion constructs the temporary
-object and sets the final ability and DC. If that roll is an ordinary failure,
-the project remains and retains the completion ability; a retry then requires
-that ability's station, such as a forge for weapons or armor. This asymmetric
-first-attempt/retry behavior is a current implementation defect, not reliable
-pre-start station enforcement.
+Type, subtype, and variant selection alone do not set `skill_type`. However,
+`show` can initialize it through object setup before the first `start` when
+the required prototype can be loaded. Its `display`, `review`, and `information`
+aliases do the same. Equipment start and timer rechecks use the current stored
+skill for station requirements. A still-zero skill requires no station;
+a preview-initialized skill can require one on the first attempt. Completion
+sets the final ability and DC, which an ordinary failure retains. A later
+preview can recompute the stored skill again, so station behavior depends on
+command order and current state, not simply first attempt versus retry.
 
-An ordinary item starts with 60 seconds before speed modifiers. A normally
-initialized first attempt has skill `0`, so rapid-crafting talents do not
-shorten it. An ordinary failure retains the completion skill, allowing the
-rapid-talent reduction on a retry. At completion, the base DC is recomputed as
+An ordinary item starts with 60 seconds before speed modifiers. Rapid-crafting
+talents use the stored skill at `start`; skill `0` gives no reduction, but
+preview or completion can populate it. At completion, the base DC is recomputed as
 `10 + object level - level_adjust`, then the level-adjustment modifier is
 applied. The roll adds the proficient-talent bonus and, where applicable, +5
 from Craft Wondrous Item or Craft Magical Arms and Armor.
 
 - If the maximum possible check cannot reach the DC, completion rejects it.
-- A natural 1 critically fails and loses reserved materials and motes.
+- A natural 1 critically fails and clears the project's material and mote allocations.
 - A natural 20 succeeds and marks the result masterwork.
 - An ordinary failure grants crafting experience and keeps the project.
-- Success creates the object, may return efficient-crafting savings, and clears
-  the project. An eligible object with enhancement or affects then receives
+- Success creates the object, awards pending efficient-talent savings, and
+  clears the project. Efficiency uses the stored skill at allocation time,
+  when each material group is added; skill `0` gives no efficient-talent chance.
+  Preview or completion can populate the skill, but does not retroactively
+  reroll existing allocations. Pending savings are not serialized and are
+  lost when the character is reloaded from its saved file. An eligible object
+  with enhancement or affects receives
   chainable 5-percent critical-success rolls; each successful link increases at
   least one enhancement or bonus.
 
-`craft reset` or `newcraft reset` is the explicit refund path for an equipment
-project.
+`craft reset` (mode `2`) or `newcraft reset` refunds an equipment project's
+allocations. In contrast, the general `supplyorder reset`, `abandon`, and
+`cancel` handlers clear the shared project fields and discard allocated
+materials without refund, even when no supply order exists. `supplyorder select`
+can replace an unstarted equipment project's recipe/type fields
+without returning its old allocations. Use `newcraft reset` before switching
+an equipment project to a supply order.
 
 ## Implemented but unreachable materials-and-motes handlers
 
@@ -245,19 +283,31 @@ golem work in mode `2`, and the general `supplyorder` contract path. The dormant
 handlers still matter to save compatibility and source maintenance but must not
 be advertised as commands.
 
-### Two supply-order systems
+### Supply-order systems and interception
 
-`supplyorder` has two independent implementations. In room 370, the
+`supplyorder` has three handlers across two systems. In room 370, the
 `crafting_quest` room special intercepts it for the older
 `supplyorder new|complete|quit` quest, which is fulfilled with materials in a
 carried crafting kit and repeated `autocraft` commands.
 
-Outside that interception, the materials-and-motes contract parser accepts
+A mobile bound to the builder-visible "New Supply Orders" special intercepts
+`supplyorder` in its room. It accepts `request`, `info|show`, `start`,
+`material`, `complete`, and `reset`; `list`, `select`, and `cooldown` print
+usage there, and `abandon` does nothing. Tracked source does not bind this
+special, but builders can assign it.
+
+Outside those interceptions, the materials-and-motes contract parser accepts
 `list|available`, `select|choose <n>`, `request`, `show|status`, `start|begin`,
 `material(s)`, `complete|finish`, `reset`, `abandon|cancel`, and
 `cooldown(s)|timers`. Listing, selecting, requesting, and completing require a
 quartermaster in the room. Starting requires the station mapped from the
 contract recipe skill, and timed work rechecks that station.
+`list|available` shows artisan points and request advice, not offers or offer
+numbers. `select|choose <n>` can accept a generated offer, but no command
+displays the offers first. Selecting or running `cooldown` refreshes eligible
+empty offer slots; `list` and `show` do not. Material allocation uses
+`supplyorder material add <material>` or `supplyorder material remove`
+(`materials` is also accepted). See the shared-project reset warning above.
 
 ## Timed activity lifecycle
 
@@ -267,9 +317,12 @@ harvesting uses `PRIMARY_ACTIVITY_HARVEST`. The older `crafting` catalog instead
 uses `eCRAFT`, and crafting-kit work uses `eCRAFTING`.
 
 Craft activities require hands and attention. Committed movement, combat,
-damage, invalid targets, or a failed recheck can end work. Category harvesting
-also rechecks its harvesting tool. Ordinary equipment creation checks a tool at
-admission but does not recheck that tool during the timer.
+damage, invalid targets, or a failed recheck can end work. Ordinary equipment
+readiness and admission check only tool-slot occupancy, not the tool's type
+or values; the timer does not recheck it. Category harvesting never requires a tool; a
+harvest-tool prototype carried or worn only raises the quality floor when the
+round completes. The tool recheck belongs to the unreachable node-harvest
+adapter, not these reachable timed paths.
 
 `activity` shows current work and supports `cancel`, `pause`, and `resume` when
 the activity's capabilities permit them. Offline time does not advance a saved
@@ -286,14 +339,15 @@ saved activity countdown.
 
 ### Separate character stores
 
-The project system keeps ordinary crafting materials in `GET_CRAFT_MAT()` and
-motes in `GET_CRAFT_MOTES()`. Allocating a resource moves it from an on-hand
-balance into the current project.
+The project system keeps ordinary crafting material balances in `GET_CRAFT_MAT()`
+and mote balances in `GET_CRAFT_MOTES()`, separately from project fields.
 
 `craftmaterials` (alias `craftmat`) lists material and elemental-mote balances.
 `craftmaterials store <item>` deposits a physical `ITEM_MATERIAL` object, and
 `craftmaterials unstore <quantity> <material>` recreates a physical bundle from
-the balance. The runtime usage strings incorrectly call this command
+the balance. Unstoring medium-, high-, or pristine-grade hide creates generic
+leather; storing that bundle again credits low-grade hide, losing the higher
+grade. The runtime usage strings incorrectly call this command
 `materials`. The meaning of the separate `materials` command is compile-time selected:
 with the shipped `USE_VARIABLE_QUALITY_MATERIALS` template it displays
 wilderness material storage and accepts optional `details`; under
@@ -378,7 +432,7 @@ copyover. Their normal activity rechecks still apply.
 | `materials` and `survey` commands | `src/act/act.informative.c` |
 | `salvage` | `src/obj/act.item.c` |
 | Potions, bombs, and scrolls | `src/craft/brew.c`, `src/craft/alchemy.c`, `src/magic/spellbook_scroll.c` |
-| Mold mob special | `src/craft/crafting_molds.c`, `src/spec/spec_assign_mobiles.c` |
+| Unbound mold-vendor special; starting mold | `src/craft/crafting_molds.c`; `src/character/class.c` (`NOOB_CRAFT_MOLD`) |
 | Uncompiled designs | `src/wilderness/wilderness_crafting_bridge.c`, `src/craft/enhanced_crafting_recipes.h` |
 | Player help mirror | `lib/text/help/help.hlp`, `sql/components/help_crafting_entries.sql` |
 | Core crafting/harvest tests | `unittests/CuTest/test_gameplay_e2e.c` |

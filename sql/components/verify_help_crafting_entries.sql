@@ -10,7 +10,7 @@ WHERE
   tag = 'crafting'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = 'ad414367af727262c87de5ec190695621572ec0f9ab276eef1d3818c6d1b9c6a';
+  AND SHA2(entry, 256) = '8ccdce5fc3a27ad52267cbe9784726faea22041bc3db3aa0282c22308690dd78';
 
 SELECT
   'crafting_keyword_set' AS check_name,
@@ -58,7 +58,7 @@ WHERE
   tag = 'craft-materials'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = '927a61358b7b50bcdaf219de7e1410a027d626f40b09c20479c2377ee14087c3';
+  AND SHA2(entry, 256) = '6bbfb14f6589488887b15023a9fffbbd036f4b502b294fba3e8d196dbccbfa3d';
 
 SELECT
   'craft_materials_keyword_set' AS check_name,
@@ -82,7 +82,7 @@ WHERE
   tag = 'crafting-recipes-materials'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = 'cb051e75382866731412fba1112ab58fa52dc9468bc55a055059aea619f358e3';
+  AND SHA2(entry, 256) = '32ab00c48af5419ef4242ae52d9acb9a576d170ef19c859c07143a2aaf50048d';
 
 SELECT
   'crafting_recipes_materials_keyword_set' AS check_name,
@@ -130,7 +130,7 @@ WHERE
   tag = 'vessels-and-advanced-crafting'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = '52c5f535ff2a4c6daa5795e7aea53c25ebd2dcc2bfbf4996b471884b4443df31';
+  AND SHA2(entry, 256) = '6c973e1751d436a27a791aee17fc346493a064871bce297e50c0c32f7c28a250';
 
 SELECT
   'vessels_and_advanced_crafting_keyword_set' AS check_name,
@@ -154,7 +154,7 @@ WHERE
   tag = 'newcraft'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = '877d6ef3fd548b4f3b0f9088d64bfdbd9b226214810e18e7a630b6ae5a677aaf';
+  AND SHA2(entry, 256) = '0d33f345c64b1f29f9f9199ac44876e320cadfec8e1f8fe6b9bccf5e0b1266f3';
 
 SELECT
   'newcraft_keyword_set' AS check_name,
@@ -202,7 +202,7 @@ WHERE
   tag = 'craft-show'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = '591015a5ce6c4cd1ed94880910dbe77aba54d8173270a5829b63eee3dd7948b4';
+  AND SHA2(entry, 256) = 'ecf41d758347241bcaa06c309d62058f7bb83673833bd37d5237bed7c6dc5a9f';
 
 SELECT
   'craft_show_keyword_set' AS check_name,
@@ -226,7 +226,7 @@ WHERE
   tag = 'craft-bonuses'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = '546dd4eb0c50f30060ceb25fd54e34fab61da830a2074a4e9082043770fe33fa';
+  AND SHA2(entry, 256) = '2e43af97020d88bbf276931c0b742f9fc210890b1b2dfbf9da7fc573ed471f22';
 
 SELECT
   'craft_bonuses_keyword_set' AS check_name,
@@ -322,7 +322,7 @@ WHERE
   tag = 'supplyorder'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = 'a1f1f44d50bceb8208973837ed5f89c668d390a40f7f3536deb24960222d79be';
+  AND SHA2(entry, 256) = '16d5831fbc972da71584a9f6d84a263d9d6efe5285f0303bea9bfff7a14d757d';
 
 SELECT
   'supplyorder_keyword_set' AS check_name,
@@ -346,7 +346,7 @@ WHERE
   tag = 'restring'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = '597e8ea0ab175ef084e380f29c99e000c2b53e55955d0cb51e7b8f5822aaba52';
+  AND SHA2(entry, 256) = 'e935fe683ed407ca6ceb9daa33850d3ee5c63e214e76b341f153a344c6364339';
 
 SELECT
   'restring_keyword_set' AS check_name,
@@ -370,7 +370,7 @@ WHERE
   tag = 'reforge'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = '028fd7ff35a033a101f8c2101a2225365e4c5ccc239ddfa790153d70dd3e948d';
+  AND SHA2(entry, 256) = 'c599150eaf7587066d91f5ce94c23cf19bc10f8e46185d6e377ebc7e4669002e';
 
 SELECT
   'reforge_keyword_set' AS check_name,

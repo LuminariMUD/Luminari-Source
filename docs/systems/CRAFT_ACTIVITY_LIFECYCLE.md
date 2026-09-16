@@ -22,18 +22,21 @@ object and cannot silently finish on a replacement with the same prototype.
 
 Work requires hands and attention. Informational and unrelated commands follow
 the activity manager's capability rules. Committed relocation, combat, damage,
-invalid targets or a failed station/tool recheck cancel work. The synthetic
+invalid targets or a failed recheck cancel work. The synthetic
 owned-craft test uses the unreachable survey adapter and proves that a
 provisional move rolled back by an entry script does not cancel that adapter;
-it is not coverage of a reachable surveying command. Project material
-reservations remain with the project; existing reset/refund and completion
-routines retain responsibility for their accounting.
+it is not coverage of a reachable surveying command.
 
-Normal equipment selection does not initialize its completion skill. A first
-start and its activity recheck therefore require no station; after an ordinary
-completion failure stores the skill, a retry requires that skill's station.
-Equipment tools are checked at admission but are not rechecked during the
-timer. Category harvesting does recheck its harvest tool.
+Equipment type/subtype/variant selection alone does not initialize the stored
+skill. SHOW and its aliases can populate it through object setup before the
+first start. Start and timer rechecks use the current stored skill's station;
+skill 0 requires none. Completion also sets a skill which an ordinary failure
+retains, but a later preview can recompute it. Equipment readiness and admission
+check tool-slot occupancy, but the tool is not rechecked during the
+timer. Category harvesting has no tool requirement or tool recheck; a carried
+or worn harvest-tool prototype only raises the quality floor at completion.
+Only the unreachable node-harvest adapter rechecks
+`has_proper_harvesting_tool_equipped()`.
 
 Offline time does not advance crafting. Loss of the descriptor retires the
 active timer while preserving CrDu, the saved number of seconds remaining.
@@ -48,8 +51,9 @@ finished/cancelled projects receive no craft timer. If native admission fails,
 no work is completed and the project state is retained.
 
 Supply offers have a different policy: their existing timestamps measure wall
-clock time, including offline time. Listing available offers or asking for
-supply timing refreshes eligible empty slots lazily. Active offers and slot
+clock time, including offline time. Selecting an offer or asking for supply
+timing (`supplyorder cooldown`) refreshes eligible empty slots lazily;
+`list` and `show` do not. Active offers and slot
 cooldowns retain their existing rules. No per-player refresh timer is needed.
 The earlier inventory's claim of online-only refresh accounting was incorrect.
 

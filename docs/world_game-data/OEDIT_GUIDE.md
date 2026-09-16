@@ -377,15 +377,15 @@ menu uses the same offset. Below is the complete list:
 | 104 | Can-Only-Equip-One | ITEM_ONLY_EQUIP_ONE | Restricts player to equipping only one instance simultaneously; currently defined but not actively implemented in equipment checks |
 | 105 | Can-Only-Possess-One | ITEM_ONLY_POSSES_ONE | Restricts player to possessing only one instance at a time; currently defined but not actively implemented in codebase |
 | 106 | Crafting-Smelter | ITEM_CRAFTING_SMELTER | Marks an object for the currently unreachable materials-and-motes refinement path; no registered player command reaches that handler |
-| 107 | Crafting-Loom | ITEM_CRAFTING_LOOM | Marks object as loom station for tailoring; required for textile crafting recipes (satin, linen production) |
-| 108 | Crafting-Forge | ITEM_CRAFTING_FORGE | Marks object as forge station for smithing; required for armorsmithing, metalworking, and weaponsmithing crafts |
-| 109 | Crafting-Alchemy-Lab | ITEM_CRAFTING_ALCHEMY_LAB | Marks object as alchemy laboratory; required for alchemy craft recipes |
-| 110 | Crafting-Jewelcrafting-Station | ITEM_CRAFTING_JEWELCRAFTING_STATION | Marks object as jewelcrafting workstation; required for jewelcrafting recipes |
-| 111 | Crafting-Tannery | ITEM_CRAFTING_TANNERY | Marks object as tannery station for leatherworking; required for leather crafting recipes |
-| 112 | Crafting-Carpentry-Table | ITEM_CRAFTING_CARPENTRY_TABLE | Marks object as carpentry workstation; required for woodworking/carpentry crafts |
+| 107 | Crafting-Loom | ITEM_CRAFTING_LOOM | Tailoring station (see station note below); its satin and linen refining recipes are unreachable, like row 106 |
+| 108 | Crafting-Forge | ITEM_CRAFTING_FORGE | Armorsmithing, metalworking, and weaponsmithing station (see station note below) |
+| 109 | Crafting-Alchemy-Lab | ITEM_CRAFTING_ALCHEMY_LAB | Alchemy station (see station note below) |
+| 110 | Crafting-Jewelcrafting-Station | ITEM_CRAFTING_JEWELCRAFTING_STATION | Jewelcrafting station (see station note below) |
+| 111 | Crafting-Tannery | ITEM_CRAFTING_TANNERY | Leatherworking station (see station note below) |
+| 112 | Crafting-Carpentry-Table | ITEM_CRAFTING_CARPENTRY_TABLE | Woodworking station (see station note below) |
 | 113 | Trapped | ITEM_TRAPPED | Indicates object has trap mechanism attached via trap system; used to mark trapped chests/doors for comprehensive trap system (not currently actively used for runtime trap behavior) |
 | 114 | Costs-Account-Experience | ITEM_ACCOUNT_EXP | Purchasing or acquiring the item is paid for in account experience rather than gold |
-| 115 | Can-Be-Reforged | ITEM_REFORGEABLE | Item is eligible for the reforging path, which rerolls or upgrades its stats through the crafting system |
+| 115 | Can-Be-Reforged | ITEM_REFORGEABLE | Required for standalone mode-2 `reforge` on an inventory weapon or armor; it changes subtype and checks any station mapped from the item's material |
 | 116 | RoL-Anti-Good-Race | ITEM_ROL_ANTI_GOOD_RACE | RoL compatibility restriction; prevents mortal members of the source good-race family from equipping the item or reciting it as a scroll |
 | 117 | RoL-No-Identify | ITEM_ROL_NO_IDENTIFY | RoL compatibility restriction; blocks identify, mass identify, lore, and greater lore for mortals |
 | 118 | RoL-No-Summon | ITEM_ROL_NO_SUMMON | RoL compatibility protection; prevents the wearer from being moved by summon and group summon |
@@ -397,6 +397,15 @@ menu uses the same offset. Below is the complete list:
 | 124 | RoL-Whole-Head | ITEM_ROL_WHOLE_HEAD | RoL compatibility equipment rule; head gear also occupies the conceptual face and eye coverage, so face and eye gear cannot overlap it |
 
 **Total: 125 flags (bits 0-124, `NUM_ITEM_FLAGS`)**
+
+**Station timing:** For player-command-reachable work, supply-order start and
+timer rechecks use the contract recipe's mapped skill. Equipment start and
+timer rechecks use the project's current stored skill; standalone `reforge`
+uses the item's material. Skill 0 requires no station, but `show` (also
+`display`, `review`, and `information`) can initialize a station-requiring
+skill before the first attempt. Completion can also leave a skill on a failed
+project. Station enforcement is state-dependent, not simply first attempt
+versus retry. A station flag does not make unreachable refining available.
 
 **Note:** These flags are defined in `src/core/structs.h` as the `ITEM_*` define block
 ending at `ITEM_ROL_WHOLE_HEAD`, and their display names in the `extra_bits[]`

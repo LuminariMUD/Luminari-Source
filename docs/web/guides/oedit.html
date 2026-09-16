@@ -1548,43 +1548,39 @@ refinement path; no registered player command reaches that handler</td>
 <td>107</td>
 <td>Crafting-Loom</td>
 <td>ITEM_CRAFTING_LOOM</td>
-<td>Marks object as loom station for tailoring; required for textile
-crafting recipes (satin, linen production)</td>
+<td>Tailoring station (see station note below); its satin and linen
+refining recipes are unreachable, like row 106</td>
 </tr>
 <tr class="odd">
 <td>108</td>
 <td>Crafting-Forge</td>
 <td>ITEM_CRAFTING_FORGE</td>
-<td>Marks object as forge station for smithing; required for
-armorsmithing, metalworking, and weaponsmithing crafts</td>
+<td>Armorsmithing, metalworking, and weaponsmithing station (see station
+note below)</td>
 </tr>
 <tr class="even">
 <td>109</td>
 <td>Crafting-Alchemy-Lab</td>
 <td>ITEM_CRAFTING_ALCHEMY_LAB</td>
-<td>Marks object as alchemy laboratory; required for alchemy craft
-recipes</td>
+<td>Alchemy station (see station note below)</td>
 </tr>
 <tr class="odd">
 <td>110</td>
 <td>Crafting-Jewelcrafting-Station</td>
 <td>ITEM_CRAFTING_JEWELCRAFTING_STATION</td>
-<td>Marks object as jewelcrafting workstation; required for
-jewelcrafting recipes</td>
+<td>Jewelcrafting station (see station note below)</td>
 </tr>
 <tr class="even">
 <td>111</td>
 <td>Crafting-Tannery</td>
 <td>ITEM_CRAFTING_TANNERY</td>
-<td>Marks object as tannery station for leatherworking; required for
-leather crafting recipes</td>
+<td>Leatherworking station (see station note below)</td>
 </tr>
 <tr class="odd">
 <td>112</td>
 <td>Crafting-Carpentry-Table</td>
 <td>ITEM_CRAFTING_CARPENTRY_TABLE</td>
-<td>Marks object as carpentry workstation; required for
-woodworking/carpentry crafts</td>
+<td>Woodworking station (see station note below)</td>
 </tr>
 <tr class="even">
 <td>113</td>
@@ -1605,8 +1601,9 @@ rather than gold</td>
 <td>115</td>
 <td>Can-Be-Reforged</td>
 <td>ITEM_REFORGEABLE</td>
-<td>Item is eligible for the reforging path, which rerolls or upgrades
-its stats through the crafting system</td>
+<td>Required for standalone mode-2 <code>reforge</code> on an inventory
+weapon or armor; it changes subtype and checks any station mapped from
+the item&#x2019;s material</td>
 </tr>
 <tr class="odd">
 <td>116</td>
@@ -1677,6 +1674,16 @@ it</td>
 </table>
 <p><strong>Total: 125 flags (bits 0-124,
 <code>NUM_ITEM_FLAGS</code>)</strong></p>
+<p><strong>Station timing:</strong> For player-command-reachable work,
+supply-order start and timer rechecks use the contract recipe&#x2019;s mapped
+skill. Equipment start and timer rechecks use the project&#x2019;s current
+stored skill; standalone <code>reforge</code> uses the item&#x2019;s material.
+Skill 0 requires no station, but <code>show</code> (also
+<code>display</code>, <code>review</code>, and <code>information</code>)
+can initialize a station-requiring skill before the first attempt.
+Completion can also leave a skill on a failed project. Station
+enforcement is state-dependent, not simply first attempt versus retry. A
+station flag does not make unreachable refining available.</p>
 <p><strong>Note:</strong> These flags are defined in
 <code>src/core/structs.h</code> as the <code>ITEM_*</code> define block
 ending at <code>ITEM_ROL_WHOLE_HEAD</code>, and their display names in
