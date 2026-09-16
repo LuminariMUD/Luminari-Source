@@ -824,21 +824,21 @@ static void set_crafting_itemtype(struct char_data *ch, char *arg2)
   GET_CRAFT(ch).craft_variant = -1; // Initialize variant to "not set"
 }
 
-static bool is_valid_craft_weapon(int weapon)
+/* craft specifictype offers a type only when a recipe variant builds it. */
+static bool craft_specific_type_has_recipe(int item_type, int specific)
 {
-  switch (weapon)
+  int recipe, variant;
+
+  for (recipe = CRAFT_RECIPE_NONE + 1; recipe < NUM_CRAFTING_RECIPES; recipe++)
   {
-  case WEAPON_TYPE_COMPOSITE_LONGBOW:
-  case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
-  case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
-  case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
-  case WEAPON_TYPE_COMPOSITE_SHORTBOW:
-  case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
-  case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
-  case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
-    return FALSE;
+    if (crafting_recipes[recipe].object_type != craft_recipe_by_type(item_type) ||
+        crafting_recipes[recipe].practical_type != specific)
+      continue;
+    for (variant = 0; variant < NUM_CRAFT_VARIANTS; variant++)
+      if (crafting_recipes[recipe].materials[0][variant][0] != 0)
+        return TRUE;
   }
-  return TRUE;
+  return FALSE;
 }
 
 static void craft_show_weapon_types(struct char_data *ch)
@@ -847,7 +847,7 @@ static void craft_show_weapon_types(struct char_data *ch)
 
   for (i = 1; i < NUM_WEAPON_TYPES; i++)
   {
-    if (!is_valid_craft_weapon(i))
+    if (!craft_specific_type_has_recipe(CRAFT_TYPE_WEAPON, i))
       continue;
     send_to_char(ch, "%-25s ", weapon_list[i].name);
     if ((count % 3) == 0)
@@ -871,7 +871,8 @@ static void set_craft_weapon_type(struct char_data *ch, char *arg2)
 
   for (i = 1; i < NUM_WEAPON_TYPES; i++)
   {
-    if (is_valid_craft_weapon(i) && is_abbrev(arg2, weapon_list[i].name))
+    if (is_abbrev(arg2, weapon_list[i].name) &&
+        craft_specific_type_has_recipe(CRAFT_TYPE_WEAPON, i))
       break;
   }
 
@@ -888,15 +889,17 @@ static void set_craft_weapon_type(struct char_data *ch, char *arg2)
 
 static void craft_show_armor_types(struct char_data *ch)
 {
-  int i = 0;
+  int i = 0, count = 0;
 
   for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
   {
+    if (!craft_specific_type_has_recipe(CRAFT_TYPE_ARMOR, i))
+      continue;
     send_to_char(ch, "%-25s ", armor_list[i].name);
-    if ((i % 3) == 0)
+    if ((++count % 3) == 0)
       send_to_char(ch, "\r\n");
   }
-  if ((i % 3) != 0)
+  if ((count % 3) != 0)
     send_to_char(ch, "\r\n");
 }
 
@@ -913,7 +916,7 @@ static void set_craft_armor_type(struct char_data *ch, char *arg2)
 
   for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
   {
-    if (is_abbrev(arg2, armor_list[i].name))
+    if (is_abbrev(arg2, armor_list[i].name) && craft_specific_type_has_recipe(CRAFT_TYPE_ARMOR, i))
       break;
   }
 
