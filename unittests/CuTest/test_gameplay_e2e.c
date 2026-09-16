@@ -710,6 +710,232 @@ static void end_gameplay_fixture(struct gameplay_fixture *fixture)
   top_of_mobt = fixture->saved_top_of_mobt;
 }
 
+/* Reach casting through a mortal's command gate after real scheduled melee. */
+static void verify_combat_restoration_commands(CuTest *tc, int mode, bool fighting)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct char_data *saved_characters = character_list;
+  struct primary_activity_snapshot cast;
+  struct combat_encounter_stats stats;
+  unsigned long saved_pulse = pulse;
+  int saved_mode = CONFIG_SPELLCASTING_TIME_MODE;
+  int saved_arcane_prep = CONFIG_ARCANE_PREP_TIME;
+  int saved_min_level;
+  int tick, remaining, hp_before, hp_after;
+  bool created_commands = complete_cmd_info == NULL;
+  bool entered, actions, admitted, completed, prepared, queued, consumed, continued;
+  bool suppressed = true;
+  char kill_command[] = "kill opponent";
+  char cast_command[] = "cast 'mage armor' me";
+  char kick_command[] = "kick";
+  char admission_output[MAX_STRING_LENGTH];
+
+  begin_gameplay_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  pulse = 21000U;
+  event_init();
+  if (created_commands)
+    create_command_list();
+  if (spell_info[SPELL_MAGE_ARMOR].name == NULL ||
+      spell_info[SPELL_MAGE_ARMOR].name == unused_spellname)
+    mag_assign_spells();
+  saved_min_level = spell_info[SPELL_MAGE_ARMOR].min_level[CLASS_WIZARD];
+  spell_info[SPELL_MAGE_ARMOR].min_level[CLASS_WIZARD] = 1;
+  CONFIG_SPELLCASTING_TIME_MODE = (ubyte)mode;
+  CONFIG_ARCANE_PREP_TIME = 1;
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.player.name = CuMutableString("phasecaster");
+  f.actor.player.title = CuMutableString("");
+  f.victim.player.name = CuMutableString("opponent");
+  f.actor.next = &f.victim;
+  character_list = &f.actor;
+  f.rooms[0].light = 1;
+  GET_CLASS(&f.actor) = CLASS_WIZARD;
+  CLASS_LEVEL((&f.actor), CLASS_WIZARD) = 10;
+  f.actor.real_abils.intel = f.actor.aff_abils.intel = 18;
+  f.actor.real_abils.con = f.actor.aff_abils.con = 18;
+  GET_SKILL(&f.actor, SPELL_MAGE_ARMOR) = 99;
+  GET_ABILITY(&f.actor, ABILITY_CONCENTRATION) = 99;
+  GET_HIT(&f.actor) = GET_MAX_HIT(&f.actor) = 100000;
+  GET_HIT(&f.victim) = GET_MAX_HIT(&f.victim) = 100000;
+  GET_HITROLL(&f.actor) = 100;
+  GET_HITROLL(&f.victim) = -100;
+  GET_ATTACK_QUEUE(&f.actor) = create_attack_queue();
+  GET_ATTACK_QUEUE(&f.victim) = create_attack_queue();
+  for (tick = 0; tick < MAX_CURRENT_QUESTS; tick++)
+    GET_QUEST(&f.actor, tick) = NOTHING;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &f.actor;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  f.actor.desc = &descriptor;
+  collection_add(&f.actor, CLASS_WIZARD, SPELL_MAGE_ARMOR, 0, 0, 0);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  circle_srandom(1234);
+  if (fighting)
+    command_interpreter(&f.actor, kill_command);
+  entered = !fighting || FIGHTING(&f.actor) == &f.victim;
+  for (tick = 0; tick < 18 * PASSES_PER_SEC; tick++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  combat_encounter_get_stats(&stats);
+  actions = is_action_available(&f.actor, atSTANDARD, false) &&
+            is_action_available(&f.actor, atMOVE, false) &&
+            is_action_available(&f.actor, atSWIFT, false);
+  command_interpreter(&f.actor, cast_command);
+  admitted = IS_CASTING(&f.actor) && primary_activity_snapshot(&f.actor, &cast);
+  snprintf(admission_output, sizeof(admission_output), "%s", descriptor.output);
+  remaining = admitted ? CASTING_TIME(&f.actor) : 0;
+  hp_before = GET_HIT(&f.victim);
+  for (tick = 0; tick < 12 * PASSES_PER_SEC; tick++)
+  {
+    bool was_casting = IS_CASTING(&f.actor);
+
+    hp_after = GET_HIT(&f.victim);
+    pulse++;
+    event_test_advance();
+    if (was_casting && IS_CASTING(&f.actor) && GET_HIT(&f.victim) != hp_after)
+      suppressed = false;
+  }
+  completed = !IS_CASTING(&f.actor) && affected_by_spell(&f.actor, SPELL_MAGE_ARMOR);
+  prepared = is_spell_in_collection(&f.actor, CLASS_WIZARD, SPELL_MAGE_ARMOR, 0);
+  command_interpreter(&f.actor, kick_command);
+  queued = pending_attacks(&f.actor) == 1;
+  for (tick = 0; tick < 12 * PASSES_PER_SEC; tick++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  consumed = pending_attacks(&f.actor) == 0;
+  continued = FIGHTING(&f.actor) == &f.victim && GET_HIT(&f.victim) < hp_before;
+
+  stop_fighting(&f.actor);
+  stop_fighting(&f.victim);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  clear_collection_by_class(&f.actor, CLASS_WIZARD);
+  clear_prep_queue_by_class(&f.actor, CLASS_WIZARD);
+  free_attack_queue(GET_ATTACK_QUEUE(&f.actor));
+  GET_ATTACK_QUEUE(&f.actor) = NULL;
+  free_attack_queue(GET_ATTACK_QUEUE(&f.victim));
+  GET_ATTACK_QUEUE(&f.victim) = NULL;
+  if (f.actor.events != NULL)
+    free_list(f.actor.events);
+  if (f.victim.events != NULL)
+    free_list(f.victim.events);
+  ProtocolDestroy(descriptor.pProtocol);
+  if (descriptor.large_outbuf != NULL)
+  {
+    free(descriptor.large_outbuf->text);
+    free(descriptor.large_outbuf);
+  }
+  f.actor.desc = NULL;
+  if (created_commands)
+    free_command_list();
+  spell_info[SPELL_MAGE_ARMOR].min_level[CLASS_WIZARD] = saved_min_level;
+  CONFIG_SPELLCASTING_TIME_MODE = (ubyte)saved_mode;
+  CONFIG_ARCANE_PREP_TIME = saved_arcane_prep;
+  character_list = saved_characters;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+
+  CuAssertTrue(tc, entered);
+  CuAssert(tc, admission_output, admitted);
+  CuAssertTrue(tc, actions);
+  CuAssertTrue(tc, remaining > 0);
+  CuAssertIntEquals(tc, PASSES_PER_SEC, (int)cast.next_step_pulses);
+  CuAssertTrue(tc, completed);
+  CuAssertTrue(tc, !prepared);
+  CuAssertTrue(tc, suppressed);
+  if (fighting)
+  {
+    CuAssertTrue(tc, stats.encounter_callbacks >= 3U);
+    CuAssertTrue(tc, queued);
+    CuAssertTrue(tc, consumed);
+    CuAssertTrue(tc, continued);
+  }
+}
+
+void Test_combat_restoration_mortal_cast_fixture_without_combat(CuTest *tc)
+{
+  verify_combat_restoration_commands(tc, 1, false);
+}
+
+void Test_combat_restoration_mortal_cast_and_kick_seconds_mode(CuTest *tc)
+{
+  verify_combat_restoration_commands(tc, 1, true);
+}
+
+void Test_combat_restoration_mortal_cast_and_kick_actions_mode(CuTest *tc)
+{
+  verify_combat_restoration_commands(tc, 0, true);
+}
+
+void Test_combat_restoration_queued_kicks_each_replace_one_hit(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  unsigned long saved_pulse = pulse;
+  bool created_commands = complete_cmd_info == NULL;
+  char first_command[] = "kick";
+  char second_command[] = "kick";
+  int queued, after_first, after_second, first_result, second_result;
+
+  begin_gameplay_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  event_init();
+  if (created_commands)
+    create_command_list();
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.player.name = CuMutableString("kicker");
+  GET_ATTACK_QUEUE(&f.actor) = create_attack_queue();
+  GET_ATTACK_QUEUE(&f.victim) = create_attack_queue();
+  GET_HIT(&f.victim) = GET_MAX_HIT(&f.victim) = 100000;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  FIGHTING(&f.actor) = &f.victim;
+  command_interpreter(&f.actor, first_command);
+  command_interpreter(&f.actor, second_command);
+  queued = pending_attacks(&f.actor);
+  circle_srandom(1234);
+  first_result = hit(&f.actor, &f.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  after_first = pending_attacks(&f.actor);
+  second_result =
+      hit(&f.actor, &f.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  after_second = pending_attacks(&f.actor);
+
+  stop_fighting(&f.actor);
+  stop_fighting(&f.victim);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  free_attack_queue(GET_ATTACK_QUEUE(&f.actor));
+  free_attack_queue(GET_ATTACK_QUEUE(&f.victim));
+  GET_ATTACK_QUEUE(&f.actor) = GET_ATTACK_QUEUE(&f.victim) = NULL;
+  if (f.actor.events != NULL)
+    free_list(f.actor.events);
+  if (f.victim.events != NULL)
+    free_list(f.victim.events);
+  if (created_commands)
+    free_command_list();
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+
+  CuAssertIntEquals(tc, 2, queued);
+  CuAssertIntEquals(tc, 1, after_first);
+  CuAssertIntEquals(tc, 0, after_second);
+  /* hit() returns -1 for a queued action, before its normal attack routine. */
+  CuAssertIntEquals(tc, -1, first_result);
+  CuAssertIntEquals(tc, -1, second_result);
+}
+
 void Test_gameplay_e2e_npc_audience_requires_player_in_same_room(CuTest *tc)
 {
   struct gameplay_fixture fixture;

@@ -14316,6 +14316,8 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
     /* Execute the proper function pointer for that attack action. Notice the painfully bogus
                   parameters.  Needs improvement. */
     ((*attack_actions[attack->attack_type])(ch, attack->argument, -1, -1));
+    free(attack->argument);
+    free(attack);
     /* Currently no way to get a result from these kinds of actions, so return something bogus.
                   Needs improvement. */
     return (HIT_RESULT_ACTION);

@@ -192,6 +192,121 @@ static void encounter_test_enqueue(struct char_data *character, const char *comm
   enqueue_action(GET_QUEUE(character), action);
 }
 
+/* The production selection must honor each actor's opening delay, then 1/2/3 phases. */
+void Test_combat_restoration_default_preserves_individual_phase_deadlines(CuTest *tc)
+{
+  struct char_data first, second;
+  struct encounter_test_trace trace = {0};
+  struct combat_encounter_stats stats;
+  unsigned long saved_pulse = pulse;
+  const unsigned long start = 19000U;
+  size_t before, at, after;
+  unsigned int tick;
+
+  encounter_test_character(&first, "early fighter");
+  encounter_test_character(&second, "late fighter");
+  combat_encounter_runtime_shutdown();
+  event_free_all();
+  pulse = start;
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, combat_encounter_runtime_init(NULL));
+  combat_encounter_test_set_phase_callback(encounter_test_record_phase, &trace);
+  FIGHTING(&first) = &second;
+  FIGHTING(&second) = &first;
+  combat_encounter_join(&first, &second, 2 RL_SEC);
+  combat_encounter_join(&second, &first, 4 RL_SEC);
+  pulse = start + (2 RL_SEC) - 1U;
+  event_test_advance();
+  before = trace.count;
+  pulse++;
+  event_test_advance();
+  at = trace.count;
+  pulse++;
+  event_test_advance();
+  after = trace.count;
+  for (tick = 1U; tick <= (unsigned int)(6 RL_SEC) - 1U; tick++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  combat_encounter_get_stats(&stats);
+  encounter_test_leave(&first, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
+  encounter_test_leave(&second, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
+  encounter_test_end(saved_pulse);
+
+  CuAssertIntEquals(tc, 0, (int)before);
+  CuAssertIntEquals(tc, 1, (int)at);
+  CuAssertIntEquals(tc, 1, (int)after);
+  CuAssertIntEquals(tc, 7, (int)trace.count);
+  CuAssertPtrEquals(tc, &first, trace.characters[0]);
+  CuAssertIntEquals(tc, 1, (int)trace.phases[0]);
+  /* Baseline queue_enq inserts before equal deadlines: newest scheduling wins ties. */
+  CuAssertPtrEquals(tc, &first, trace.characters[1]);
+  CuAssertIntEquals(tc, 2, (int)trace.phases[1]);
+  CuAssertPtrEquals(tc, &second, trace.characters[2]);
+  CuAssertIntEquals(tc, 1, (int)trace.phases[2]);
+  CuAssertPtrEquals(tc, &second, trace.characters[3]);
+  CuAssertIntEquals(tc, 2, (int)trace.phases[3]);
+  CuAssertPtrEquals(tc, &first, trace.characters[4]);
+  CuAssertIntEquals(tc, 3, (int)trace.phases[4]);
+  CuAssertPtrEquals(tc, &first, trace.characters[5]);
+  CuAssertIntEquals(tc, 1, (int)trace.phases[5]);
+  CuAssertPtrEquals(tc, &second, trace.characters[6]);
+  CuAssertIntEquals(tc, 3, (int)trace.phases[6]);
+  CuAssertIntEquals(tc, 1, (int)stats.scheduled_events);
+}
+
+/* An off-grid action deadline must survive joining, leaving and joining again. */
+void Test_combat_restoration_default_keeps_elapsed_action_deadline(CuTest *tc)
+{
+  struct char_data actor, target;
+  struct encounter_test_trace trace = {0};
+  unsigned long saved_pulse = pulse;
+  const unsigned long start = 20000U;
+  const unsigned long duration = (7 RL_SEC) + 3U;
+  bool before, at, after;
+
+  encounter_test_character(&actor, "cooldown fighter");
+  encounter_test_character(&target, "cooldown opponent");
+  combat_encounter_runtime_shutdown();
+  event_free_all();
+  pulse = start;
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, combat_encounter_runtime_init(NULL));
+  combat_encounter_test_set_phase_callback(encounter_test_record_phase, &trace);
+  start_action_cooldown(&actor, atSTANDARD, (int)duration);
+  pulse += 1 RL_SEC;
+  FIGHTING(&actor) = &target;
+  combat_encounter_join(&actor, &target, 2 RL_SEC);
+  pulse += 1 RL_SEC;
+  encounter_test_leave(&actor, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
+  encounter_test_leave(&target, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
+  pulse += 1 RL_SEC;
+  FIGHTING(&actor) = &target;
+  combat_encounter_join(&actor, &target, 2 RL_SEC);
+  while (pulse < start + duration - 1U)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  before = is_action_available(&actor, atSTANDARD, false);
+  pulse++;
+  event_test_advance();
+  at = is_action_available(&actor, atSTANDARD, false);
+  pulse++;
+  event_test_advance();
+  after = is_action_available(&actor, atSTANDARD, false);
+  encounter_test_leave(&actor, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
+  encounter_test_leave(&target, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
+  encounter_test_end(saved_pulse);
+  if (actor.events != NULL)
+    free_list(actor.events);
+
+  CuAssertTrue(tc, !before);
+  CuAssertTrue(tc, at);
+  CuAssertTrue(tc, after);
+}
+
 void Test_combat_encounter_uses_one_event_and_preserves_compatibility_cadence(CuTest *tc)
 {
   struct char_data first;
