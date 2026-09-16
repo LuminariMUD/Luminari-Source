@@ -63,12 +63,22 @@ const char *perk_category_names[] = {
     "Perfect Self",               /* 14 - PERK_CATEGORY_PERFECT_SELF */
     "Way of the Open Hand",       /* 15 - PERK_CATEGORY_WAY_OF_THE_OPEN_HAND */
     "Way of the Shadow",          /* 16 - PERK_CATEGORY_WAY_OF_THE_SHADOW */
-    "Hunter",                     /* 17 - PERK_CATEGORY_HUNTER */
-    "Beast Master",               /* 18 - PERK_CATEGORY_BEAST_MASTER */
-    "Wilderness Warrior",         /* 19 - PERK_CATEGORY_WILDERNESS_WARRIOR */
-    "Berserker",                  /* 19 - PERK_CATEGORY_BERSERKER */
-    "Totem Warrior",              /* 20 - PERK_CATEGORY_TOTEM_WARRIOR */
-    "Primal Champion",            /* 21 - PERK_CATEGORY_PRIMAL_CHAMPION */
+    "Way of the Four Elements",   /* 17 - PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS */
+    "Hunter",                     /* 18 - PERK_CATEGORY_HUNTER */
+    "Beast Master",               /* 19 - PERK_CATEGORY_BEAST_MASTER */
+    "Wilderness Warrior",         /* 20 - PERK_CATEGORY_WILDERNESS_WARRIOR */
+    "Nature's Warrior",           /* 21 - PERK_CATEGORY_NATURES_WARRIOR */
+    "Season's Herald",            /* 22 - PERK_CATEGORY_SEASONS_HERALD */
+    "Nature's Protector",         /* 23 - PERK_CATEGORY_NATURES_PROTECTOR */
+    "Berserker",                  /* 24 - PERK_CATEGORY_BERSERKER */
+    "Totem Warrior",              /* 25 - PERK_CATEGORY_TOTEM_WARRIOR */
+    "Primal Champion",            /* 26 - PERK_CATEGORY_PRIMAL_CHAMPION */
+    "Knight of the Chalice",      /* 27 - PERK_CATEGORY_KNIGHT_OF_THE_CHALICE */
+    "Sacred Defender",            /* 28 - PERK_CATEGORY_SACRED_DEFENDER */
+    "Divine Champion",            /* 29 - PERK_CATEGORY_DIVINE_CHAMPION */
+    "Spellsinger",                /* 30 - PERK_CATEGORY_SPELLSINGER */
+    "Warchanter",                 /* 31 - PERK_CATEGORY_WARCHANTER */
+    "Swashbuckler",               /* 32 - PERK_CATEGORY_SWASHBUCKLER */
     "Mutagenist",                 /* 33 - PERK_CATEGORY_MUTAGENIST */
     "Bomb Craftsman",             /* 34 - PERK_CATEGORY_BOMB_CRAFTSMAN */
     "Extract Master",             /* 35 - PERK_CATEGORY_EXTRACT_MASTER */
@@ -84,6 +94,9 @@ const char *perk_category_names[] = {
     "Adaptable Tactics",          /* 45 - PERK_CATEGORY_ADAPTABLE_TACTICS */
     "\n"                          /* Terminator */
 };
+_Static_assert(sizeof(perk_category_names) / sizeof(perk_category_names[0]) ==
+                   NUM_PERK_CATEGORIES + 1,
+               "perk_category_names[] needs one name per PERK_CATEGORY_* plus the terminator");
 
 void destroy_perks(void)
 {
@@ -4071,7 +4084,7 @@ const char *get_perk_description(int perk_id)
 const char *get_perk_category_name(int perk_category)
 {
   /* Bounds check */
-  if (perk_category < 0 || perk_category > PERK_CATEGORY_PRIMAL_CHAMPION)
+  if (perk_category < 0 || perk_category >= NUM_PERK_CATEGORIES)
     return "Unknown Category";
 
   return perk_category_names[perk_category];
@@ -8642,7 +8655,7 @@ static void list_perks_for_class(struct char_data *ch, int class_id)
   send_to_char(ch, "\tW* = Available to purchase\tn\r\n\r\n");
 
   /* Loop through each possible category and display perks for that category */
-  for (category = 0; category <= PERK_CATEGORY_PRIMAL_CHAMPION; category++)
+  for (category = 0; category < NUM_PERK_CATEGORIES; category++)
   {
     /* Build list of perks in this category for this class */
     category_count = 0;
