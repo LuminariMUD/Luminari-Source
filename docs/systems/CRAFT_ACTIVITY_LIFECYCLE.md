@@ -28,28 +28,27 @@ relocation cancels it and clears the saved remainder. The other proves that it
 pauses offline and resumes through the helper. No craft test covers a move that
 an entry script rolls back, or a reachable surveying command.
 
-Equipment type/subtype/variant selection alone does not initialize the stored
-skill. SHOW and its aliases can populate it through object setup before the
-first start. Start and timer rechecks use the current stored skill's station;
-skill 0 requires none. Completion also sets a skill which an ordinary failure
-retains, but a later preview can recompute it. Equipment readiness and admission
-check tool-slot occupancy, but the tool is not rechecked during the
-timer. Category harvesting has no tool requirement or tool recheck; a carried
-or worn harvest-tool prototype only raises the quality floor at completion.
-Only the unreachable node-harvest adapter rechecks
-`has_proper_harvesting_tool_equipped()`.
+While craft work runs, `craft` subcommands that change the project are refused
+(show, check and score still work), and completion makes an item only if the
+project still passes `craft check`. The recipe variant's skill decides the
+project's tool, station, talents, roll and experience; check, start, timer
+rechecks and completion all use that skill's station. Equipment readiness and
+admission check tool-slot occupancy (woodworking needs no tool); the timer does
+not recheck the tool, but completion does. Category harvesting has no tool
+requirement or tool recheck; a carried or worn harvest-tool prototype only
+raises the quality floor at completion. Only the unreachable node-harvest
+adapter rechecks `has_proper_harvesting_tool_equipped()`.
 
 Offline time does not advance crafting. Loss of the descriptor retires the
 active timer while preserving CrDu, the saved number of seconds remaining.
 Production login, reconnect and copyover paths call `resume_craft_activity()`,
 which attempts to reconstruct an owner from the saved method and positive
 duration. Ordinary creation and supply-order work then use their normal
-rechecks. Golem type, size and selected concrete material are not persisted, so
-automatic golem resume reaches completion without required state, refuses the
-result and retains materials. Load-time resize handling refunds its resources
-and clears its method and duration before reconstruction. Idle players and
-finished/cancelled projects receive no craft timer. If native admission fails,
-no work is completed and the project state is retained.
+rechecks. Golem construction also saves its type, size and chosen wood
+(`CrGo`), so resumed golem work can finish. Load-time resize handling refunds
+its resources and clears its method and duration before reconstruction. Idle
+players and finished/cancelled projects receive no craft timer. If native
+admission fails, no work is completed and the project state is retained.
 
 Supply offers have a different policy: their existing timestamps measure wall
 clock time, including offline time. Selecting an offer or asking for supply
