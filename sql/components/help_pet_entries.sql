@@ -34,20 +34,34 @@ Examples:
   > order followers stand
 
 See also: CHARM, CHARMEE, DISMISS, SWIFT-ACTION', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('ORDER', 'ORDER');
 
 -- Update established topics through their keywords, preserving their tags and aliases.
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
-SELECT h.tag, aliases.keyword
+SELECT
+  h.tag,
+  aliases.keyword
 FROM help_entries AS h
-JOIN (SELECT 'CHARMEE' AS keyword UNION ALL SELECT 'CHARMEES'
-      UNION ALL SELECT 'CHARMIE' UNION ALL SELECT 'CHARMIES'
-      UNION ALL SELECT 'FOLLOWERS') AS aliases
-WHERE h.tag = 'charmee'
-  AND NOT EXISTS (SELECT 1 FROM help_keywords AS k WHERE k.keyword = aliases.keyword);
+JOIN (
+  SELECT 'CHARMEE' AS keyword
+  UNION ALL
+  SELECT 'CHARMEES'
+  UNION ALL
+  SELECT 'CHARMIE'
+  UNION ALL
+  SELECT 'CHARMIES'
+  UNION ALL
+  SELECT 'FOLLOWERS'
+) AS aliases
+WHERE
+  h.tag = 'charmee'
+  AND NOT EXISTS (
+    SELECT 1 FROM help_keywords AS k
+    WHERE k.keyword = aliases.keyword
+  );
 
 UPDATE help_entries AS h
 JOIN help_keywords AS k ON k.help_tag = h.tag
@@ -169,8 +183,8 @@ its remaining call cooldown to at most 59 seconds. You cannot dismiss pets
 while charmed or dismiss someone else''s followers.
 
 See also: ORDER, CHARMEE, CALL-COMPANION, PETS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('DISMISS', 'DISMISS');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -208,10 +222,11 @@ prepares its equipment and saves its return before bringing it into the room.
 If preparation or that save fails, the keeper retains the stored follower.
 
 See also: PETS, ORDER, DISMISS, CHARMEE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 -- The stable command owns this keyword; the hired-pet article keeps its others.
-DELETE FROM help_keywords WHERE keyword = 'STABLE' AND help_tag <> 'STABLE';
+DELETE FROM help_keywords
+WHERE keyword = 'STABLE' AND help_tag <> 'STABLE';
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('STABLE', 'STABLE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('STABLE', 'STABLES');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('STABLE', 'STABLE-MASTER');
@@ -238,8 +253,8 @@ or one that is in the room.
 The servant fades when the spell ends. Anything it fetched stays with you.
 
 See also: UNSEEN SERVANT, PETS, CHARMEE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SERVANT', 'SERVANT');
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('golem-maintenance', 'GOLEM MAINTENANCE
@@ -276,14 +291,14 @@ consumes its authored materials and motes. Crafted golem corpses cannot be
 animated, including after control is lost.
 
 See also: CRAFT, PETS, DISMISS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 DELETE FROM help_keywords
 WHERE UPPER(keyword) IN ('GOLEM-MAINTENANCE', 'GOLEMREPAIR', 'DESTROYGOLEM');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
-  ('golem-maintenance', 'GOLEM-MAINTENANCE'),
-  ('golem-maintenance', 'GOLEMREPAIR'),
-  ('golem-maintenance', 'DESTROYGOLEM');
+('golem-maintenance', 'GOLEM-MAINTENANCE'),
+('golem-maintenance', 'GOLEMREPAIR'),
+('golem-maintenance', 'DESTROYGOLEM');
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('bone-golem', 'BONE GOLEM
 
@@ -316,8 +331,8 @@ DESTROYGOLEM recovers 20 bone once, with no corpse or mote refund. Repair and
 dismantling use the same control and lifecycle rules as material golems.
 
 See also: GOLEM-MAINTENANCE, PETS, ANIMATE-DEAD, CLASS-NECROMANCER', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('bone-golem', 'BONE-GOLEM');
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('summon-creature-vii', '	D-----------------------------------------------------------------	n
@@ -340,7 +355,7 @@ See the CHARMEE help file for important info.
 
 Choose air, earth, fire, or water: cast ''summon creature vii'' water.
 Omit the choice for a random element. See SUMMON-CHOICES for details.', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), auto_generated = FALSE;
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), auto_generated = FALSE;
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('summon-creature-viii', '	D-----------------------------------------------------------------	n
 	D>Usage:           	W cast ''summon creature viii'' 	n
@@ -362,7 +377,7 @@ Note:  See CHARMEE help file for important info.
 
 Choose air, earth, fire, or water: cast ''summon creature viii'' water.
 Omit the choice for a random element. See SUMMON-CHOICES for details.', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), auto_generated = FALSE;
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), auto_generated = FALSE;
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('summon-creature-ix', '	D-----------------------------------------------------------------	n
 	D>Usage:           	W cast ''summon creature ix'' 	n
@@ -384,7 +399,7 @@ Note:  See CHARMEE help file for important info.
 
 Choose air, earth, fire, or water: cast ''summon creature ix'' water.
 Omit the choice for a random element. See SUMMON-CHOICES for details.', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), auto_generated = FALSE;
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), auto_generated = FALSE;
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('natures-ally-vii', '	D-----------------------------------------------------------------	n
 	D>Usage:           	W cast ''natures ally vii''  	n
@@ -406,7 +421,7 @@ See also: SPELLS CHARMEE
 
 Choose air, earth, fire, or water: cast ''natures ally vii'' water.
 Omit the choice for a random element. See SUMMON-CHOICES for details.', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), auto_generated = FALSE;
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), auto_generated = FALSE;
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('natures-ally-viii', '	D-----------------------------------------------------------------	n
 	D>Usage:           	W cast ''natures ally viii''  	n
@@ -428,7 +443,7 @@ See also: SPELLS CHARMEE
 
 Choose air, earth, fire, or water: cast ''natures ally viii'' water.
 Omit the choice for a random element. See SUMMON-CHOICES for details.', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), auto_generated = FALSE;
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), auto_generated = FALSE;
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('natures-ally-ix', '	D-----------------------------------------------------------------	n
 	D>Usage:           	W cast ''natures ally ix''  	n
@@ -450,7 +465,7 @@ See also: SPELLS CHARMEE
 
 Choose air, earth, fire, or water: cast ''natures ally ix'' water.
 Omit the choice for a random element. See SUMMON-CHOICES for details.', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), auto_generated = FALSE;
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), auto_generated = FALSE;
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('elemental-swarm', 'Usage: cast ''elemental swarm'' [air|earth|fire|water]
 
@@ -473,7 +488,7 @@ Use PETS to find their IDs and dismiss #<id> for each member. Named and ID
 commands require visibility; air elementals can require detect invisibility.
 
 See also: SUMMON-CHOICES, PETS, ORDER, DISMISS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), auto_generated = FALSE;
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), auto_generated = FALSE;
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('summon-choices', 'SUMMON CHOICES
 
@@ -525,7 +540,7 @@ roster, ORDER to command a controlled pet, and DISMISS to release it after
 retrieving its equipment.
 
 See also: GENIEKIND, ELEMENTAL-SWARM, SHAMBLER, CHARMEE, PETS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), auto_generated = FALSE;
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), auto_generated = FALSE;
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('summon-choices', 'SUMMON-CHOICES');
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('planar-ally', 'PLANAR ALLY
@@ -559,7 +574,7 @@ Examples:
   order healer cast ''cure critic'' <name>
 
 See also: PETS, ORDER, DISMISS, SUMMON-CHOICES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), auto_generated = FALSE;
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), auto_generated = FALSE;
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('planar-ally', 'PLANAR-ALLY');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -584,7 +599,7 @@ allowance. Its live expiry does not depend on the caster''s shadow effect.
 Death leaves no reusable body; ordinary pet cleanup handles dismissal.
 
 See also: ILLUSION, PASS-WITHOUT-TRACE, TRACK, PETS, DISMISS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), auto_generated = FALSE;
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), auto_generated = FALSE;
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('mount', 'Usage: mount <creature>
@@ -609,7 +624,7 @@ the rider. Legendary Rider adds one attempt. Attempts reset each round rather
 than accumulating, and a separated mount cannot supply mounted defenses.
 
 See also: RIDE, TAME, BUCK, DISMOUNT, CHARMEE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), auto_generated = FALSE;
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), auto_generated = FALSE;
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('dragon-mount', 'Usage: call dragon
@@ -635,7 +650,7 @@ United We Stand applies its native bonuses to both rider and dragon while
 that riding bond is valid. Riding a different creature does not create a bond.
 
 See also: STUDY, MOUNT, DISMOUNT, PETS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), auto_generated = FALSE;
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), auto_generated = FALSE;
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('call', 'Usage: call <companion|familiar|mount|dragon|shadow|eidolon|cohort>
@@ -655,7 +670,7 @@ requires you to dismiss your followers first; a rejected respec leaves their
 state intact. Retrieve equipment before dismissing a pet.
 
 See also: STUDY, PETS, DISMISS, DRAGON-MOUNT, MOUNT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), auto_generated = FALSE;
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), auto_generated = FALSE;
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('call', 'CALL');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -687,7 +702,7 @@ carried and worn gear before DISMISS. Expiry and death use ordinary pet gear
 handling; do not depend on a volatile summon to safeguard your possessions.
 
 See also: USE, PETS, ORDER, DISMISS, CHARM', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), auto_generated = FALSE;
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), auto_generated = FALSE;
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('CALL-LYCANTHROPE', 'MOONCALL');
 

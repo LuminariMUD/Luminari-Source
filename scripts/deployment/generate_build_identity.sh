@@ -7,8 +7,7 @@ repository_root=${2:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}
 output_dir=$(dirname "$output_file")
 output_tmp=
 
-cleanup()
-{
+cleanup() {
   if [[ -n "$output_tmp" ]] && [[ -f "$output_tmp" ]]; then
     rm -f -- "$output_tmp"
   fi
@@ -22,7 +21,7 @@ fi
 
 git_dirty=0
 if [[ "$git_commit" != unknown ]] &&
-   [[ -n $(git -C "$repository_root" status --porcelain --untracked-files=normal 2>/dev/null) ]]; then
+  [[ -n $(git -C "$repository_root" status --porcelain --untracked-files=normal 2>/dev/null) ]]; then
   git_dirty=1
 fi
 
@@ -36,7 +35,7 @@ output_tmp=$(mktemp "${output_file}.tmp.XXXXXX")
   printf '#define LUMINARI_BUILD_GIT_DIRTY %s\n' "$git_dirty"
   printf '\n'
   printf '%s\n' '#endif /* LUMINARI_BUILD_IDENTITY_H */'
-} > "$output_tmp"
+} >"$output_tmp"
 
 if [[ -f "$output_file" ]] && cmp -s "$output_tmp" "$output_file"; then
   rm -f -- "$output_tmp"

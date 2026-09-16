@@ -641,7 +641,7 @@ WCMD(do_wrolroomflag)
     wld_log(room, "wrolroomflag usage: <room> <magic-darkness> <on|off>");
     return;
   }
-  if (str_cmp(flag, "magic-darkness") && str_cmp(flag, "magical-darkness"))
+  if (str_cmp(flag, "magic-darkness") != 0 && str_cmp(flag, "magical-darkness"))
   {
     wld_log(room, "wrolroomflag rejected unsupported flag '%s'", flag);
     return;
@@ -674,7 +674,7 @@ WCMD(do_wroldamage)
 
   argument = two_arguments_u(argument, selector, count_argument);
   one_argument(argument, size_argument, sizeof(size_argument));
-  if (str_cmp(selector, "all-pcs") || !is_number(count_argument) || !is_number(size_argument))
+  if (str_cmp(selector, "all-pcs") != 0 || !is_number(count_argument) || !is_number(size_argument))
   {
     wld_log(room, "wroldamage usage: all-pcs <dice-count> <dice-size>");
     return;

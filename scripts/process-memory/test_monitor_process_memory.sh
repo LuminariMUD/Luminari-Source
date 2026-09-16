@@ -9,15 +9,13 @@ script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 monitor="${script_dir}/monitor_process_memory.sh"
 sampler="${script_dir}/sample_process_memory_details.sh"
 
-fail()
-{
+fail() {
   printf 'test_monitor_process_memory: %s\n' "$*" >&2
   exit 1
 }
 
 # Wait for a complete sample from the expected process, not just a TSV header.
-wait_for_sample()
-{
+wait_for_sample() {
   local file=$1
   local pid=$2
   local attempt
@@ -34,8 +32,7 @@ wait_for_sample()
 
 # A backgrounded child reports the shell as its executable until its exec
 # finishes, and the monitor only adopts processes running from the bin tree.
-wait_for_exec()
-{
+wait_for_exec() {
   local pid=$1
   local exe=$2
   local attempt
@@ -57,8 +54,7 @@ auto_daemon_pid=""
 target_one=""
 target_two=""
 
-cleanup()
-{
+cleanup() {
   if [[ -n "$auto_daemon_pid" ]]; then
     kill "$auto_daemon_pid" 2>/dev/null || true
   fi
@@ -79,49 +75,49 @@ grep -Fq "report" "$test_root/help.txt" || fail "help text did not list report"
 
 # Test 2: Live sample command against current process
 live_sample=$("$monitor" sample --pid "$$" --label live_test)
-field_count=$(awk -F '\t' '{ print NF }' <<< "$live_sample")
+field_count=$(awk -F '\t' '{ print NF }' <<<"$live_sample")
 [[ "$field_count" == 13 ]] || fail "live sample does not contain 13 fields: $live_sample"
 [[ "$live_sample" == *$'\tlive_test\t'* ]] || fail "live sample did not retain label"
 
 # Test 3: Validate generated sample with sample_process_memory_details.sh --validate
 tsv_file="$test_root/samples.tsv"
-"$sampler" --header > "$tsv_file"
-printf '%s\n' "$live_sample" >> "$tsv_file"
+"$sampler" --header >"$tsv_file"
+printf '%s\n' "$live_sample" >>"$tsv_file"
 "$sampler" --validate "$tsv_file" || fail "generated sample was rejected by sampler validation"
 
 # Test 4: Report generation on a stable series fixture
 stable_fixture="$test_root/stable.tsv"
-"$sampler" --header > "$stable_fixture"
-printf '1000\tinit\t1234\t200000\t100000\t80000\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >> "$stable_fixture"
-printf '1300\tmid\t1234\t200000\t100100\t80050\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >> "$stable_fixture"
-printf '1600\tend\t1234\t200000\t100150\t80080\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >> "$stable_fixture"
+"$sampler" --header >"$stable_fixture"
+printf '1000\tinit\t1234\t200000\t100000\t80000\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >>"$stable_fixture"
+printf '1300\tmid\t1234\t200000\t100100\t80050\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >>"$stable_fixture"
+printf '1600\tend\t1234\t200000\t100150\t80080\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >>"$stable_fixture"
 
 stable_report="$test_root/stable_report.txt"
-"$monitor" report --input "$stable_fixture" > "$stable_report"
+"$monitor" report --input "$stable_fixture" >"$stable_report"
 grep -Fq "LUMINARI MUD PROCESS MEMORY ANALYSIS" "$stable_report" || fail "report header missing"
 grep -Fq "HEALTHY / STABLE" "$stable_report" || fail "stable fixture not assessed as HEALTHY / STABLE"
 grep -Fq "Sample Count:             3 samples" "$stable_report" || fail "sample count incorrect in report"
 
 # Test 5: Report generation on a high-growth leak fixture
 leak_fixture="$test_root/leak.tsv"
-"$sampler" --header > "$leak_fixture"
-printf '1000\tinit\t1234\t200000\t100000\t80000\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >> "$leak_fixture"
-printf '1300\tmid\t1234\t600000\t500000\t450000\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >> "$leak_fixture"
-printf '1600\tend\t1234\t1000000\t900000\t850000\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >> "$leak_fixture"
+"$sampler" --header >"$leak_fixture"
+printf '1000\tinit\t1234\t200000\t100000\t80000\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >>"$leak_fixture"
+printf '1300\tmid\t1234\t600000\t500000\t450000\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >>"$leak_fixture"
+printf '1600\tend\t1234\t1000000\t900000\t850000\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >>"$leak_fixture"
 
 leak_report="$test_root/leak_report.txt"
-"$monitor" report --input "$leak_fixture" > "$leak_report"
+"$monitor" report --input "$leak_fixture" >"$leak_report"
 grep -Fq "CRITICAL" "$leak_report" || fail "leak fixture not assessed as CRITICAL"
 grep -Fq "Memory leak likely" "$leak_report" || fail "leak warning missing"
 
 # Test 6: Report with copyover transition (PID change)
 copyover_fixture="$test_root/copyover.tsv"
-"$sampler" --header > "$copyover_fixture"
-printf '1000\tinit\t1234\t200000\t100000\t80000\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >> "$copyover_fixture"
-printf '1300\tpost_copyover\t5678\t200000\t100050\t80020\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >> "$copyover_fixture"
+"$sampler" --header >"$copyover_fixture"
+printf '1000\tinit\t1234\t200000\t100000\t80000\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >>"$copyover_fixture"
+printf '1300\tpost_copyover\t5678\t200000\t100050\t80020\t20000\t0\t90000\t0\t50000\t45000\t40000\n' >>"$copyover_fixture"
 
 copyover_report="$test_root/copyover_report.txt"
-"$monitor" report --input "$copyover_fixture" > "$copyover_report"
+"$monitor" report --input "$copyover_fixture" >"$copyover_report"
 grep -Fq "1234 -> 5678" "$copyover_report" || fail "copyover PID transition not reported"
 grep -Fq "Copyover Transitions: 1" "$copyover_report" || fail "copyover count not reported"
 
@@ -132,7 +128,7 @@ output_tsv="$env_root/log/process-memory-timeseries.tsv"
 
 LUMINARI_PROJECT_ROOT="$env_root" "$monitor" start --interval 1 --output "$output_tsv" --pid "$$"
 status_out=$(LUMINARI_PROJECT_ROOT="$env_root" "$monitor" status)
-grep -Fq "Status: RUNNING" <<< "$status_out" || fail "status did not report RUNNING"
+grep -Fq "Status: RUNNING" <<<"$status_out" || fail "status did not report RUNNING"
 
 # Allow daemon to collect at least one sample
 wait_for_sample "$output_tsv" "$$"
@@ -140,7 +136,7 @@ wait_for_sample "$output_tsv" "$$"
 
 LUMINARI_PROJECT_ROOT="$env_root" "$monitor" stop
 status_stopped=$(LUMINARI_PROJECT_ROOT="$env_root" "$monitor" status)
-grep -Fq "Status: STOPPED" <<< "$status_stopped" || fail "status did not report STOPPED after stop"
+grep -Fq "Status: STOPPED" <<<"$status_stopped" || fail "status did not report STOPPED after stop"
 
 # Test 8: Discovery follows .mud.pid across a replacement process
 auto_root="$test_root/auto-sandbox"
@@ -157,16 +153,16 @@ target_one=$!
 target_two=$!
 wait_for_exec "$target_one" "$(readlink -f -- "$auto_release/luminari")"
 wait_for_exec "$target_two" "$(readlink -f -- "$auto_release/luminari")"
-printf '%s\n' "$target_one" > "$auto_root/.mud.pid"
+printf '%s\n' "$target_one" >"$auto_root/.mud.pid"
 
 LUMINARI_PROJECT_ROOT="$auto_root" \
   "$monitor" start --interval 1 --output "$auto_output"
-IFS= read -r auto_daemon_pid < "$auto_root/.memory-monitor.pid"
-daemon_cmdline=$(tr '\0' ' ' < "/proc/$auto_daemon_pid/cmdline")
+IFS= read -r auto_daemon_pid <"$auto_root/.memory-monitor.pid"
+daemon_cmdline=$(tr '\0' ' ' <"/proc/$auto_daemon_pid/cmdline")
 [[ "$daemon_cmdline" != *" --pid "* ]] || fail "auto-discovered start pinned daemon PID"
 
 wait_for_sample "$auto_output" "$target_one"
-printf '%s\n' "$target_two" > "$auto_root/.mud.pid"
+printf '%s\n' "$target_two" >"$auto_root/.mud.pid"
 kill "$target_one"
 wait "$target_one" 2>/dev/null || true
 target_one=""
@@ -181,9 +177,9 @@ auto_daemon_pid=""
 # Test 9: A PID outside this checkout's bin tree is never adopted
 sleep 30 &
 foreign_pid=$!
-printf '%s\n' "$foreign_pid" > "$auto_root/.mud.pid"
+printf '%s\n' "$foreign_pid" >"$auto_root/.mud.pid"
 if LUMINARI_PROJECT_ROOT="$auto_root" "$monitor" start --interval 1 \
-     --output "$auto_output" > "$test_root/foreign.log" 2>&1; then
+  --output "$auto_output" >"$test_root/foreign.log" 2>&1; then
   LUMINARI_PROJECT_ROOT="$auto_root" "$monitor" stop >/dev/null 2>&1 || true
   kill "$foreign_pid" 2>/dev/null || true
   fail "monitor adopted a PID that does not belong to this checkout"

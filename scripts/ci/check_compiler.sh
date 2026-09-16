@@ -17,23 +17,33 @@ cc=
 family=
 min_version=
 
-usage()
-{
+usage() {
   echo 'usage: check_compiler.sh --cc COMPILER [--family gcc|clang] [--min-version X[.Y[.Z]]]' >&2
   exit 2
 }
 
-fail()
-{
+fail() {
   printf 'compiler check: %s\n' "$*" >&2
   exit 1
 }
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --cc) [[ $# -ge 2 ]] || usage; cc=$2; shift 2 ;;
-    --family) [[ $# -ge 2 ]] || usage; family=$2; shift 2 ;;
-    --min-version) [[ $# -ge 2 ]] || usage; min_version=$2; shift 2 ;;
+    --cc)
+      [[ $# -ge 2 ]] || usage
+      cc=$2
+      shift 2
+      ;;
+    --family)
+      [[ $# -ge 2 ]] || usage
+      family=$2
+      shift 2
+      ;;
+    --min-version)
+      [[ $# -ge 2 ]] || usage
+      min_version=$2
+      shift 2
+      ;;
     *) usage ;;
   esac
 done
@@ -45,15 +55,14 @@ case $family in gcc | clang) ;; *) usage ;; esac
 
 macros=$("$cc" -dM -E - </dev/null 2>/dev/null) || fail "$cc cannot run the preprocessor"
 
-macro_value()
-{
-  sed -n "s/^#define $1 //p" <<< "$macros" | head -n 1
+macro_value() {
+  sed -n "s/^#define $1 //p" <<<"$macros" | head -n 1
 }
 
-if grep -q '^#define __clang__ ' <<< "$macros"; then
+if grep -q '^#define __clang__ ' <<<"$macros"; then
   actual_family=clang
   version="$(macro_value __clang_major__).$(macro_value __clang_minor__).$(macro_value __clang_patchlevel__)"
-elif grep -q '^#define __GNUC__ ' <<< "$macros"; then
+elif grep -q '^#define __GNUC__ ' <<<"$macros"; then
   actual_family=gcc
   version="$(macro_value __GNUC__).$(macro_value __GNUC_MINOR__).$(macro_value __GNUC_PATCHLEVEL__)"
 else

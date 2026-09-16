@@ -777,7 +777,7 @@ static void ParseMxpResponse(descriptor_t *apDescriptor, char *apResponse)
     }
   }
 
-  if (pProtocol->pMXPVersion != NULL && strcmp(pProtocol->pMXPVersion, "Unknown"))
+  if (pProtocol->pMXPVersion != NULL && strcmp(pProtocol->pMXPVersion, "Unknown") != 0)
   {
     int Written;
 
@@ -2951,7 +2951,7 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
        * free to remove the second strcmp ;)
        */
       if (pProtocol->pLastTTYPE == NULL ||
-          (strcmp(pProtocol->pLastTTYPE, pClientName) &&
+          (strcmp(pProtocol->pLastTTYPE, pClientName) != 0 &&
            strcmp(pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString, pClientName)))
       {
         char RequestTTYPE[] = {(char)IAC, (char)SB, TELOPT_TTYPE, SEND, (char)IAC, (char)SE, '\0'};
@@ -3373,9 +3373,9 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
             if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 <
                 sizeof(MSDPCommands))
             {
-              strcat(MSDPCommands, " ");
+              strlcat(MSDPCommands, " ", sizeof(MSDPCommands));
               /* Add the variable to the list */
-              strcat(MSDPCommands, VariableNameTable[i].pName);
+              strlcat(MSDPCommands, VariableNameTable[i].pName, sizeof(MSDPCommands));
             }
             else
             {
@@ -3402,9 +3402,9 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
               if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 <
                   sizeof(MSDPCommands))
               {
-                strcat(MSDPCommands, " ");
+                strlcat(MSDPCommands, " ", sizeof(MSDPCommands));
                 /* Add the variable to the list */
-                strcat(MSDPCommands, VariableNameTable[i].pName);
+                strlcat(MSDPCommands, VariableNameTable[i].pName, sizeof(MSDPCommands));
               }
               else
               {
@@ -3416,7 +3416,7 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
             {
               if (strlen(VariableNameTable[i].pName) + 1 < sizeof(MSDPCommands))
               {
-                strcat(MSDPCommands, VariableNameTable[i].pName);
+                strlcat(MSDPCommands, VariableNameTable[i].pName, sizeof(MSDPCommands));
               }
               else
               {
@@ -3444,9 +3444,9 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
               if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 <
                   sizeof(MSDPCommands))
               {
-                strcat(MSDPCommands, " ");
+                strlcat(MSDPCommands, " ", sizeof(MSDPCommands));
                 /* Add the variable to the list */
-                strcat(MSDPCommands, VariableNameTable[i].pName);
+                strlcat(MSDPCommands, VariableNameTable[i].pName, sizeof(MSDPCommands));
               }
               else
               {
@@ -3458,7 +3458,7 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
             {
               if (strlen(VariableNameTable[i].pName) + 1 < sizeof(MSDPCommands))
               {
-                strcat(MSDPCommands, VariableNameTable[i].pName);
+                strlcat(MSDPCommands, VariableNameTable[i].pName, sizeof(MSDPCommands));
               }
               else
               {
@@ -3486,9 +3486,9 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
               if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 <
                   sizeof(MSDPCommands))
               {
-                strcat(MSDPCommands, " ");
+                strlcat(MSDPCommands, " ", sizeof(MSDPCommands));
                 /* Add the variable to the list */
-                strcat(MSDPCommands, VariableNameTable[i].pName);
+                strlcat(MSDPCommands, VariableNameTable[i].pName, sizeof(MSDPCommands));
               }
               else
               {
@@ -3500,7 +3500,7 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
             {
               if (strlen(VariableNameTable[i].pName) + 1 < sizeof(MSDPCommands))
               {
-                strcat(MSDPCommands, VariableNameTable[i].pName);
+                strlcat(MSDPCommands, VariableNameTable[i].pName, sizeof(MSDPCommands));
               }
               else
               {
@@ -3955,6 +3955,13 @@ protocol_error_t ProtocolTestAppendMSSPPair(char *apBuffer, size_t aBufferSize, 
 /* Macro for readability, but you can remove it if you don't like it */
 #define FUNCTION_CALL(f) "", f
 
+/*
+ * Every row of the MSSP table below gives a variable name and either a static
+ * value or a FUNCTION_CALL pair, leaving the remaining MSSP_t member to
+ * aggregate zero-initialization; -Wmissing-field-initializers reports each such
+ * row. Scope: SendMSSP, to the matching pop. Owner: the MSSP table. Expires
+ * when every row initializes every member.
+ */
 #if defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"

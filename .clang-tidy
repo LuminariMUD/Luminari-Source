@@ -1,3 +1,41 @@
+# Checks and options for scripts/ci/check_clang_tidy.py, which runs the
+# clang-tidy release pinned in scripts/ci/clang-tidy-requirements.txt. Findings
+# are warnings here: CI fails when a file gains findings of a check beyond
+# scripts/ci/clang_tidy_baseline.txt. See "Static Analysis" in
+# docs/guides/SETUP_AND_BUILD_GUIDE.md.
+#
+# Each disabled check records its scope, reason, owner, and expiry. Silence a
+# single false positive inline instead: /* NOLINTNEXTLINE(check) -- reason */.
+#
+# -bugprone-macro-parentheses
+#   Scope: all sources. Reason: accessor and allocation macros such as
+#   CREATE(result, type, number) take type names and member designators, which
+#   cannot be parenthesized. Owner: the macro layer in src/core/utils.h.
+#   Expires: when those macros become functions.
+# -bugprone-reserved-identifier
+#   Scope: all sources. Reason: inherited include guards and file markers use
+#   reserved names (_SYSDEP_H_, __GENOLC_C__). Owner: the headers that define
+#   them. Expires: when those names are renamed.
+# -bugprone-easily-swappable-parameters
+#   Scope: all sources. Reason: game functions take adjacent parameters of one
+#   type by design (character and victim, vnum and rnum), so nearly every
+#   function would be a finding. Owner: this configuration. Expires: never.
+# -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
+#   Scope: all sources. Reason: it recommends the C11 Annex K *_s functions,
+#   which glibc does not provide, and reports every memcpy, memset, and
+#   snprintf. Replaced by the bugprone-unsafe-functions entries in CheckOptions,
+#   which report only unbounded functions. Owner: this configuration.
+#   Expires: when a supported C library provides Annex K.
+# -clang-analyzer-security.insecureAPI.strcpy
+#   Scope: all sources. Reason: bugprone-unsafe-functions reports strcpy and
+#   strcat, and also sprintf and vsprintf, which this check misses; enabling
+#   both would count each call twice. Owner: this configuration. Expires: never.
+# -clang-analyzer-security.VAList
+#   Scope: all sources. Reason: clang-tidy 22.1.8 does not model C23's va_start
+#   (__builtin_c23_va_start) and reports every va_list as uninitialized; the
+#   same function checked as gnu17 is clean. Owner: whoever bumps the
+#   clang-tidy pin. Expires: when the pinned release no longer reports the
+#   reproducer in the setup guide.
 Checks: >
   -*,
   clang-analyzer-*,
@@ -8,13 +46,9 @@ Checks: >
   -bugprone-reserved-identifier,
   -bugprone-easily-swappable-parameters,
   -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
-  -clang-analyzer-security.insecureAPI.strcpy
-# Start with critical errors only, uncomment for stricter checking:
-# WarningsAsErrors: '*'
-# WarningsAsErrors: >
-#   clang-analyzer-core.*,
-#   clang-analyzer-unix.*,
-#   bugprone-use-after-move,
-#   bugprone-infinite-loop,
-#   performance-move-const-arg
-HeaderFilterRegex: 'src/.*'
+  -clang-analyzer-security.insecureAPI.strcpy,
+  -clang-analyzer-security.VAList
+CheckOptions:
+  # Unbounded string functions; snprintf and its relatives are the bounded forms.
+  bugprone-unsafe-functions.CustomFunctions: "^::sprintf$,snprintf,is unbounded;^::vsprintf$,vsnprintf,is unbounded;^::strcpy$,snprintf or strlcpy,is unbounded;^::strcat$,snprintf or strlcat,is unbounded"
+HeaderFilterRegex: "src/.*"

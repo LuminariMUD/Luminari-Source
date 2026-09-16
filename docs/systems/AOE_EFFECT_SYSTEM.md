@@ -227,40 +227,52 @@ The following abilities have been refactored to use `aoe_effect()`:
 
 ### act.offensive.c
 
-1. **Arrow Swarm** (`do_arrowswarm`)
-   - Ranged AoE attack with ammo checks
+01. **Arrow Swarm** (`do_arrowswarm`)
 
-2. **Frightful Presence** (`do_frightful`)
-   - Complex fear AoE with group aura modifiers and saves
+    - Ranged AoE attack with ammo checks
 
-3. **Tailspikes** (`do_tailspikes`)
-   - Simple damage AoE with no custom data
+02. **Frightful Presence** (`do_frightful`)
 
-4. **Dragon Fear** (`perform_dragonfear`)
-   - Status effect AoE with saves, immunities, and flee effect
+    - Complex fear AoE with group aura modifiers and saves
 
-5. **Fear Aura** (`perform_fear_aura`)
-   - Status effect AoE similar to dragonfear
+03. **Tailspikes** (`do_tailspikes`)
 
-6. **Dragon Breath** (`do_breathe`)
-   - Complex damage AoE with iron golem immunity check
+    - Simple damage AoE with no custom data
 
-7. **Dragonborn Breath Weapon** (`do_dragonborn_breath_weapon`)
-   - Damage AoE with custom level and damage type
+04. **Dragon Fear** (`perform_dragonfear`)
 
-8. **Sorcerer Draconic Breath** (`do_sorcerer_breath_weapon`)
-   - Draconic bloodline breath weapon with damage scaling
+    - Status effect AoE with saves, immunities, and flee effect
 
-9. **Tailsweep** (`perform_tailsweep`)
-   - Complex knockdown AoE with stability boots check and hit chance
+05. **Fear Aura** (`perform_fear_aura`)
+
+    - Status effect AoE similar to dragonfear
+
+06. **Dragon Breath** (`do_breathe`)
+
+    - Complex damage AoE with iron golem immunity check
+
+07. **Dragonborn Breath Weapon** (`do_dragonborn_breath_weapon`)
+
+    - Damage AoE with custom level and damage type
+
+08. **Sorcerer Draconic Breath** (`do_sorcerer_breath_weapon`)
+
+    - Draconic bloodline breath weapon with damage scaling
+
+09. **Tailsweep** (`perform_tailsweep`)
+
+    - Complex knockdown AoE with stability boots check and hit chance
 
 10. **Whirlwind Attack** (`do_whirlwind`)
+
     - Melee AoE with limited attack count
 
 11. **Hit All** (`do_hitall`)
+
     - NPC melee AoE with lag calculation
 
 12. **Lich Fear** (`perform_lich_fear`)
+
     - Racial lich fear ability with status effect
 
 ### fight.c
@@ -286,6 +298,7 @@ The following abilities have been refactored to use `aoe_effect()`:
 To migrate existing AoE code to use `aoe_effect()`:
 
 1. **Identify the AoE loop pattern**:
+
    ```c
    for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
    {

@@ -43,15 +43,14 @@ command -v gdb >/dev/null 2>&1 || {
 }
 
 test_root=$(mktemp -d "${TMPDIR:-/tmp}/luminari-core-capture.XXXXXX")
-cleanup()
-{
+cleanup() {
   if [[ -d "$test_root" ]] && [[ $(basename "$test_root") == luminari-core-capture.* ]]; then
     rm -rf -- "$test_root"
   fi
 }
 trap cleanup EXIT
 
-cat > "$test_root/core_probe.c" <<'EOF'
+cat >"$test_root/core_probe.c" <<'EOF'
 #include <stdlib.h>
 
 int main(void)
@@ -68,7 +67,7 @@ fi
   cd "$test_root" || exit 1
   ulimit -c unlimited || exit 1
   exec ./core-probe
-) > "$test_root/probe.log" 2>&1 &
+) >"$test_root/probe.log" 2>&1 &
 probe_pid=$!
 wait "$probe_pid"
 probe_status=$?
@@ -109,7 +108,7 @@ else
 fi
 
 if ! gdb "$test_root/core-probe" "$core_file" -batch \
-  -ex 'thread apply all bt full' > "$test_root/backtrace.txt" 2>&1; then
+  -ex 'thread apply all bt full' >"$test_root/backtrace.txt" 2>&1; then
   printf 'SELF_TEST=FAIL: GDB could not read the captured core\n' >&2
   exit 1
 fi

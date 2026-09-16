@@ -10,14 +10,15 @@
 -- Mirrors the same correction made to lib/text/help/help.hlp.
 
 UPDATE help_entries
-SET entry = REPLACE(
-      entry,
-'   value 0: AC-apply of the armor.  Note that the effective change to AC is
+SET
+  entry = REPLACE(
+    entry,
+    '   value 0: AC-apply of the armor.  Note that the effective change to AC is
 this value times a multiplier based on where the armor is worn (Body X3,
 Head and Legs X2). Positive values enhance AC; negative values hurt AC
 (cursed armor for example).
 ',
-'   value 0: AC-apply of the armor, stated in tenths of an armor-class point,
+    '   value 0: AC-apply of the armor, stated in tenths of an armor-class point,
 so a value of 50 is 5.0 AC. Positive values enhance AC; negative values hurt
 AC (cursed armor for example).
    value 0 only grants armor class when the piece is worn on one of the five
@@ -26,5 +27,6 @@ ignored, because value 0 means something different for every other item type.
 To give armor class to any other slot, use an APPLY_AC_NEW affection instead
 of value 0. The same five slots are the ones that carry armor check penalty,
 arcane spell failure, and the max-dex cap.
-')
+'
+  )
 WHERE tag = 'oedit-values';

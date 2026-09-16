@@ -1,6 +1,8 @@
 #ifndef PLAYER_RENAME_H
 #define PLAYER_RENAME_H
 
+#include "core/structs.h"
+
 #include <stddef.h>
 
 struct char_data;

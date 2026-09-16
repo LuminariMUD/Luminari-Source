@@ -12,6 +12,8 @@
 #ifndef _GENWLD_H_
 #define _GENWLD_H_
 
+#include "core/structs.h"
+
 room_rnum add_room(struct room_data *);
 room_rnum add_runtime_room(struct room_data *);
 int delete_room(room_rnum);

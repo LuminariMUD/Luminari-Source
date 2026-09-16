@@ -5,6 +5,8 @@
 #ifndef _CLAN_TRANSACTIONS_H_
 #define _CLAN_TRANSACTIONS_H_
 
+#include "core/structs.h"
+
 /* Forward declaration */
 struct clan_transaction;
 

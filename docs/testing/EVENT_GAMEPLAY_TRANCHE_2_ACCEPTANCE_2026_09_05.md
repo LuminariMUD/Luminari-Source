@@ -8,7 +8,7 @@ Scope and migration rationale:
 ## Results
 
 | Check | Result |
-| --- | --- |
+| -- | -- |
 | Autotools `make -j8 test` | PASS: 1,108 production-linked CuTests, including 13 new tests, plus architecture and tooling targets |
 | `make install` | PASS; installed server and no root-level `luminari` artifact |
 | Compiler diagnostics | No compiler warnings or errors in the final Autotools build |

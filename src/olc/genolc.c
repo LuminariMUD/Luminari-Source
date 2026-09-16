@@ -25,7 +25,7 @@
 #include "dgscript/dg_olc.h"
 #include "core/constants.h"
 #include "core/interpreter.h"
-#include "act/act.h"    /* for the space_to_minus function */
+#include "act/act.h"     /* for the space_to_minus function */
 #include "core/modify.h" /* for smash_tilde */
 #include "quest/quest.h"
 #include "craft/craft.h" // get_obj_material
@@ -102,25 +102,31 @@ static int worldmap_zone_height(zone_rnum zrnum);
 static void worldmap_html_write_escaped(FILE *out, const char *text);
 static void worldmap_html_write_span(FILE *out, int sector);
 static void worldmap_html_write_marker(FILE *out, const struct worldmap_marker_data *marker);
-static void worldmap_init_export_buffers(int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
-                                         int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH]);
-static void worldmap_html_write_document(FILE *out, const char *subtitle,
-                                         int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
-                                         int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
-                                         const struct worldmap_marker_data *markers, int marker_count, int map_width,
-                                         int map_height);
-static int worldmap_add_marker(struct worldmap_marker_data *markers,
-                               int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
-                               int *marker_count, int x, int y, int sector, const char *title);
-static void worldmap_collect_zone_grid(const struct worldmap_zone_export_data *zone,
-                                       int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
-                                       int *max_x, int *max_y);
-static void worldmap_collect_zone_markers(const struct worldmap_zone_export_data *zone,
-                                          int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
-                                          int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
-                                          struct worldmap_marker_data *markers, int *marker_count);
-static int export_worldmap_html(zone_rnum zrnum, const char *output_file, char *saved_path, size_t saved_path_size);
-static int export_full_worldmap_html(const char *output_file, char *saved_path, size_t saved_path_size);
+static void worldmap_init_export_buffers(
+    int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
+    int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH]);
+static void worldmap_html_write_document(
+    FILE *out, const char *subtitle,
+    int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
+    int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
+    const struct worldmap_marker_data *markers, int marker_count, int map_width, int map_height);
+static int
+worldmap_add_marker(struct worldmap_marker_data *markers,
+                    int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
+                    int *marker_count, int x, int y, int sector, const char *title);
+static void
+worldmap_collect_zone_grid(const struct worldmap_zone_export_data *zone,
+                           int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
+                           int *max_x, int *max_y);
+static void worldmap_collect_zone_markers(
+    const struct worldmap_zone_export_data *zone,
+    int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
+    int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
+    struct worldmap_marker_data *markers, int *marker_count);
+static int export_worldmap_html(zone_rnum zrnum, const char *output_file, char *saved_path,
+                                size_t saved_path_size);
+static int export_full_worldmap_html(const char *output_file, char *saved_path,
+                                     size_t saved_path_size);
 
 int genolc_checkstring(struct descriptor_data *d __attribute__((unused)), char *arg)
 {
@@ -214,20 +220,23 @@ static void worldmap_html_write_escaped(FILE *out, const char *text)
 
 static void worldmap_html_write_span(FILE *out, int sector)
 {
-  fprintf(out, "<span class=\"worldmap-cell\" style=\"color: %s;\">%s</span>", ascii_webmap_colors[sector],
-          sector_map_letters[sector]);
+  fprintf(out, "<span class=\"worldmap-cell\" style=\"color: %s;\">%s</span>",
+          ascii_webmap_colors[sector], sector_map_letters[sector]);
 }
 
 static void worldmap_html_write_marker(FILE *out, const struct worldmap_marker_data *marker)
 {
-  fprintf(out, "<a class=\"worldmap-cell\" id=\"%d\" href=\"#\" style=\"color: red; text-decoration: none;\" title=\"",
+  fprintf(out,
+          "<a class=\"worldmap-cell\" id=\"%d\" href=\"#\" style=\"color: red; text-decoration: "
+          "none;\" title=\"",
           marker->id);
   worldmap_html_write_escaped(out, marker->title);
   fprintf(out, "\">%s</a>", sector_map_letters[marker->sector]);
 }
 
-static void worldmap_init_export_buffers(int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
-                                         int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH])
+static void worldmap_init_export_buffers(
+    int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
+    int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH])
 {
   int x;
   int y;
@@ -242,69 +251,70 @@ static void worldmap_init_export_buffers(int sector_grid[WORLDMAP_EXPORT_MAX_HEI
   }
 }
 
-static void worldmap_html_write_document(FILE *out, const char *subtitle,
-                                         int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
-                                         int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
-                                         const struct worldmap_marker_data *markers, int marker_count, int map_width,
-                                         int map_height)
+static void worldmap_html_write_document(
+    FILE *out, const char *subtitle,
+    int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
+    int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
+    const struct worldmap_marker_data *markers, int marker_count, int map_width, int map_height)
 {
   int i;
   int x;
   int y;
 
-  fprintf(out,
-          "<html>\n"
-          "<head>\n"
-          "<title>LuminariMUD World Map</title>\n"
-          "<script src=\"https://code.jquery.com/jquery-3.6.0.slim.min.js\" integrity=\"sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=\" crossorigin=\"anonymous\"></script>\n"
-          "<style>\n"
-          "  body {\n"
-          "    font-family: Courier New;\n"
-          "    background-color: black;\n"
-          "    color: white;\n"
-          "  }\n"
-          "  h1, h2, h3 {\n"
-          "    color: white;\n"
-          "  }\n"
-          "  .worldmap-grid {\n"
-          "    display: inline-block;\n"
-          "    font-family: Courier New, monospace;\n"
-          "    line-height: 1;\n"
-          "    white-space: nowrap;\n"
-          "  }\n"
-          "  .worldmap-cell {\n"
-          "    display: inline-block;\n"
-          "    width: 1ch;\n"
-          "    min-width: 1ch;\n"
-          "    text-align: center;\n"
-          "    white-space: nowrap;\n"
-          "  }\n"
-          ".blinking{\n"
-          "    animation:blinkingText 1.2s infinite;\n"
-          "}\n"
-          "@keyframes blinkingText{\n"
-          "    0%%{ color: red; }\n"
-          "    49%%{ color: red; }\n"
-          "    60%%{ color: transparent; }\n"
-          "    99%%{ color: transparent; }\n"
-          "    100%%{ color: red; }\n"
-          "}\n"
-          "</style>\n"
-          "<script>\n"
-          "$(document).ready(function(){\n"
-          "  $('#selZone').change(function(){\n"
-          "    $('a').each(function(){\n"
-          "      $(this).attr('class', '');\n"
-          "    });\n"
-          "    $('#'+$(this).val()).attr('class', 'blinking');\n"
-          "    $('#'+$(this).val()).focus();\n"
-          "  });\n"
-          "});\n"
-          "</script>\n"
-          "</head>\n"
-          "<body>\n"
-          "  <h1>LuminariMUD World Map</h1>\n"
-          "  <h2>");
+  fprintf(out, "<html>\n"
+               "<head>\n"
+               "<title>LuminariMUD World Map</title>\n"
+               "<script src=\"https://code.jquery.com/jquery-3.6.0.slim.min.js\" "
+               "integrity=\"sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=\" "
+               "crossorigin=\"anonymous\"></script>\n"
+               "<style>\n"
+               "  body {\n"
+               "    font-family: Courier New;\n"
+               "    background-color: black;\n"
+               "    color: white;\n"
+               "  }\n"
+               "  h1, h2, h3 {\n"
+               "    color: white;\n"
+               "  }\n"
+               "  .worldmap-grid {\n"
+               "    display: inline-block;\n"
+               "    font-family: Courier New, monospace;\n"
+               "    line-height: 1;\n"
+               "    white-space: nowrap;\n"
+               "  }\n"
+               "  .worldmap-cell {\n"
+               "    display: inline-block;\n"
+               "    width: 1ch;\n"
+               "    min-width: 1ch;\n"
+               "    text-align: center;\n"
+               "    white-space: nowrap;\n"
+               "  }\n"
+               ".blinking{\n"
+               "    animation:blinkingText 1.2s infinite;\n"
+               "}\n"
+               "@keyframes blinkingText{\n"
+               "    0%%{ color: red; }\n"
+               "    49%%{ color: red; }\n"
+               "    60%%{ color: transparent; }\n"
+               "    99%%{ color: transparent; }\n"
+               "    100%%{ color: red; }\n"
+               "}\n"
+               "</style>\n"
+               "<script>\n"
+               "$(document).ready(function(){\n"
+               "  $('#selZone').change(function(){\n"
+               "    $('a').each(function(){\n"
+               "      $(this).attr('class', '');\n"
+               "    });\n"
+               "    $('#'+$(this).val()).attr('class', 'blinking');\n"
+               "    $('#'+$(this).val()).focus();\n"
+               "  });\n"
+               "});\n"
+               "</script>\n"
+               "</head>\n"
+               "<body>\n"
+               "  <h1>LuminariMUD World Map</h1>\n"
+               "  <h2>");
   worldmap_html_write_escaped(out, subtitle ? subtitle : "Connected Wilderness Zones");
   fprintf(out, "</h2>\n");
   fprintf(out,
@@ -325,17 +335,41 @@ static void worldmap_html_write_document(FILE *out, const char *subtitle,
           "</div>\n"
           "<h3>Map Legend</h3>"
           "<table style='text-align: left; width: 80%%;'>"
-          "<tr><td width='20%%'><span style=\"color: grey;\">C</span>&nbsp;&nbsp;City</td><td width='20%%'><span style=\"color: lightgreen;\">,</span>&nbsp;&nbsp;Field</td></tr>"
-          "<tr><td width='20%%'><span style=\"color: green;\">Y</span>&nbsp;&nbsp;Forest</td><td width='20%%'><span style=\"color: brown;\">^</span>&nbsp;&nbsp;Hills</td><td width='20%%'><span style=\"color: darkred;\">m</span>&nbsp;&nbsp;Low Mountains</td><td width='20%%'><span style=\"color: blue;\">~</span>&nbsp;&nbsp;Water (Swim)</td></tr>"
-          "<tr><td width='20%%'><span style=\"color: blue;\">=</span>&nbsp;&nbsp;Water (No Swim)</td><td width='20%%'><span style=\"color: red;\">X</span>&nbsp;&nbsp;Zone Entrance</td><td width='20%%'><span style=\"color: #FFC300;\">|</span>&nbsp;&nbsp;Road North-South</td><td width='20%%'><span style=\"color: #FFC300;\">-</span>&nbsp;&nbsp;Road East-West</td></tr>"
-          "<tr><td width='20%%'><span style=\"color: #FFC300;\">+</span>&nbsp;&nbsp;Road Intersection</td><td width='20%%'><span style=\"color: yellow;\">.</span>&nbsp;&nbsp;Desert</td><td width='20%%'><span style=\"color: blue;\">o</span>&nbsp;&nbsp;Ocean</td><td width='20%%'><span style=\"color: violet;\">`</span>&nbsp;&nbsp;Marshland</td></tr>"
-          "<tr><td width='20%%'><span style=\"color: crimson;\">M</span>&nbsp;&nbsp;High Mountains</td><td width='20%%'><span style=\"color: crimson;\">]</span>&nbsp;&nbsp;Lava</td><td width='20%%'><span style=\"color: #FFC300;\">|</span>&nbsp;&nbsp;Dirt Road North-South</td><td width='20%%'><span style=\"color: #FFC300;\">-</span>&nbsp;&nbsp;Dirt Road East-West</td></tr>"
-          "<tr><td width='20%%'><span style=\"color: #FFC300;\">+</span>&nbsp;&nbsp;Dirt Road Intersection</td><td width='20%%'><span style=\"color: lightgreen;\">&amp;</span>&nbsp;&nbsp;Jungle</td><td width='20%%'><span style=\"color: lightgrey;\">.</span>&nbsp;&nbsp;Tundra</td><td width='20%%'><span style=\"color: olive;\">A</span>&nbsp;&nbsp;Taiga</td></tr>"
-          "<tr><td width='20%%'><span style=\"color: orange;\">:</span>&nbsp;&nbsp;Beach</td><td width='20%%'><span style=\"color: red;\">*</span>&nbsp;&nbsp;Sea Port</td><td width='20%%'><span style=\"color: cyan;\">~</span>&nbsp;&nbsp;River</td></tr>"
+          "<tr><td width='20%%'><span style=\"color: grey;\">C</span>&nbsp;&nbsp;City</td><td "
+          "width='20%%'><span style=\"color: lightgreen;\">,</span>&nbsp;&nbsp;Field</td></tr>"
+          "<tr><td width='20%%'><span style=\"color: green;\">Y</span>&nbsp;&nbsp;Forest</td><td "
+          "width='20%%'><span style=\"color: brown;\">^</span>&nbsp;&nbsp;Hills</td><td "
+          "width='20%%'><span style=\"color: darkred;\">m</span>&nbsp;&nbsp;Low Mountains</td><td "
+          "width='20%%'><span style=\"color: blue;\">~</span>&nbsp;&nbsp;Water (Swim)</td></tr>"
+          "<tr><td width='20%%'><span style=\"color: blue;\">=</span>&nbsp;&nbsp;Water (No "
+          "Swim)</td><td width='20%%'><span style=\"color: red;\">X</span>&nbsp;&nbsp;Zone "
+          "Entrance</td><td width='20%%'><span style=\"color: #FFC300;\">|</span>&nbsp;&nbsp;Road "
+          "North-South</td><td width='20%%'><span style=\"color: "
+          "#FFC300;\">-</span>&nbsp;&nbsp;Road East-West</td></tr>"
+          "<tr><td width='20%%'><span style=\"color: #FFC300;\">+</span>&nbsp;&nbsp;Road "
+          "Intersection</td><td width='20%%'><span style=\"color: "
+          "yellow;\">.</span>&nbsp;&nbsp;Desert</td><td width='20%%'><span style=\"color: "
+          "blue;\">o</span>&nbsp;&nbsp;Ocean</td><td width='20%%'><span style=\"color: "
+          "violet;\">`</span>&nbsp;&nbsp;Marshland</td></tr>"
+          "<tr><td width='20%%'><span style=\"color: crimson;\">M</span>&nbsp;&nbsp;High "
+          "Mountains</td><td width='20%%'><span style=\"color: "
+          "crimson;\">]</span>&nbsp;&nbsp;Lava</td><td width='20%%'><span style=\"color: "
+          "#FFC300;\">|</span>&nbsp;&nbsp;Dirt Road North-South</td><td width='20%%'><span "
+          "style=\"color: #FFC300;\">-</span>&nbsp;&nbsp;Dirt Road East-West</td></tr>"
+          "<tr><td width='20%%'><span style=\"color: #FFC300;\">+</span>&nbsp;&nbsp;Dirt Road "
+          "Intersection</td><td width='20%%'><span style=\"color: "
+          "lightgreen;\">&amp;</span>&nbsp;&nbsp;Jungle</td><td width='20%%'><span style=\"color: "
+          "lightgrey;\">.</span>&nbsp;&nbsp;Tundra</td><td width='20%%'><span style=\"color: "
+          "olive;\">A</span>&nbsp;&nbsp;Taiga</td></tr>"
+          "<tr><td width='20%%'><span style=\"color: orange;\">:</span>&nbsp;&nbsp;Beach</td><td "
+          "width='20%%'><span style=\"color: red;\">*</span>&nbsp;&nbsp;Sea Port</td><td "
+          "width='20%%'><span style=\"color: cyan;\">~</span>&nbsp;&nbsp;River</td></tr>"
           "</table><br />");
 
   if (marker_count > 0)
-    fputs("If you're using a mouse, hover over the red zone entrance markers to see the location name.<br /><br />", out);
+    fputs("If you're using a mouse, hover over the red zone entrance markers to see the location "
+          "name.<br /><br />",
+          out);
 
   fputs("<div class=\"worldmap-grid\">", out);
 
@@ -362,9 +396,10 @@ static void worldmap_html_write_document(FILE *out, const char *subtitle,
   fputs("</div>\n</body>\n</html>\n", out);
 }
 
-static int worldmap_add_marker(struct worldmap_marker_data *markers,
-                               int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
-                               int *marker_count, int x, int y, int sector, const char *title)
+static int
+worldmap_add_marker(struct worldmap_marker_data *markers,
+                    int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
+                    int *marker_count, int x, int y, int sector, const char *title)
 {
   int idx;
 
@@ -375,7 +410,8 @@ static int worldmap_add_marker(struct worldmap_marker_data *markers,
   if (idx >= 0)
   {
     markers[idx].sector = sector;
-    snprintf(markers[idx].title, sizeof(markers[idx].title), "%s", (title && *title) ? title : "Unknown marker");
+    snprintf(markers[idx].title, sizeof(markers[idx].title), "%s",
+             (title && *title) ? title : "Unknown marker");
     return TRUE;
   }
 
@@ -387,15 +423,17 @@ static int worldmap_add_marker(struct worldmap_marker_data *markers,
   markers[idx].x = x;
   markers[idx].y = y;
   markers[idx].sector = sector;
-  snprintf(markers[idx].title, sizeof(markers[idx].title), "%s", (title && *title) ? title : "Unknown marker");
+  snprintf(markers[idx].title, sizeof(markers[idx].title), "%s",
+           (title && *title) ? title : "Unknown marker");
   marker_lookup[y][x] = idx;
   (*marker_count)++;
   return TRUE;
 }
 
-static void worldmap_collect_zone_grid(const struct worldmap_zone_export_data *zone,
-                                       int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
-                                       int *max_x, int *max_y)
+static void
+worldmap_collect_zone_grid(const struct worldmap_zone_export_data *zone,
+                           int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
+                           int *max_x, int *max_y)
 {
   room_vnum i;
   int x;
@@ -415,7 +453,8 @@ static void worldmap_collect_zone_grid(const struct worldmap_zone_export_data *z
 
     map_x = x + zone->x_offset;
     map_y = y + zone->y_offset;
-    if (map_x < 0 || map_x >= WORLDMAP_EXPORT_MAX_WIDTH || map_y < 0 || map_y >= WORLDMAP_EXPORT_MAX_HEIGHT)
+    if (map_x < 0 || map_x >= WORLDMAP_EXPORT_MAX_WIDTH || map_y < 0 ||
+        map_y >= WORLDMAP_EXPORT_MAX_HEIGHT)
       continue;
 
     sector_grid[map_y][map_x] = world[rnum].sector_type;
@@ -424,10 +463,11 @@ static void worldmap_collect_zone_grid(const struct worldmap_zone_export_data *z
   }
 }
 
-static void worldmap_collect_zone_markers(const struct worldmap_zone_export_data *zone,
-                                          int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
-                                          int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
-                                          struct worldmap_marker_data *markers, int *marker_count)
+static void worldmap_collect_zone_markers(
+    const struct worldmap_zone_export_data *zone,
+    int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
+    int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
+    struct worldmap_marker_data *markers, int *marker_count)
 {
   room_vnum rvnum;
   int i;
@@ -451,9 +491,10 @@ static void worldmap_collect_zone_markers(const struct worldmap_zone_export_data
 
       map_x = x + zone->x_offset;
       map_y = y + zone->y_offset;
-      if (!worldmap_add_marker(markers, marker_lookup, marker_count, map_x, map_y, sector_grid[map_y][map_x],
-                               asciimap_points[i][0]))
-        mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: export_worldmap_html: marker table full for zone %" PRI_IDX, zone->zvnum);
+      if (!worldmap_add_marker(markers, marker_lookup, marker_count, map_x, map_y,
+                               sector_grid[map_y][map_x], asciimap_points[i][0]))
+        mudlog(BRF, LVL_STAFF, TRUE,
+               "SYSERR: export_worldmap_html: marker table full for zone %" PRI_IDX, zone->zvnum);
     }
     return;
   }
@@ -478,12 +519,15 @@ static void worldmap_collect_zone_markers(const struct worldmap_zone_export_data
     map_y = y + zone->y_offset;
     snprintf(title_buf, sizeof(title_buf), "%s (%d)",
              world[rnum].name ? world[rnum].name : "Unknown Room", (int)rvnum);
-    if (!worldmap_add_marker(markers, marker_lookup, marker_count, map_x, map_y, world[rnum].sector_type, title_buf))
-      mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: export_worldmap_html: marker table full for zone %" PRI_IDX, zone->zvnum);
+    if (!worldmap_add_marker(markers, marker_lookup, marker_count, map_x, map_y,
+                             world[rnum].sector_type, title_buf))
+      mudlog(BRF, LVL_STAFF, TRUE,
+             "SYSERR: export_worldmap_html: marker table full for zone %" PRI_IDX, zone->zvnum);
   }
 }
 
-static int export_worldmap_html(zone_rnum zrnum, const char *output_file, char *saved_path, size_t saved_path_size)
+static int export_worldmap_html(zone_rnum zrnum, const char *output_file, char *saved_path,
+                                size_t saved_path_size)
 {
   FILE *out;
   int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH];
@@ -516,13 +560,14 @@ static int export_worldmap_html(zone_rnum zrnum, const char *output_file, char *
   }
 
   snprintf(subtitle, sizeof(subtitle), "%s (%" PRI_IDX ")", zone_table[zrnum].name, zvnum);
-  worldmap_html_write_document(out, subtitle, sector_grid, marker_lookup, markers, marker_count, WORLDMAP_ZONE_WIDTH,
-                               max_y + 1);
+  worldmap_html_write_document(out, subtitle, sector_grid, marker_lookup, markers, marker_count,
+                               WORLDMAP_ZONE_WIDTH, max_y + 1);
   fclose(out);
   return TRUE;
 }
 
-static int export_full_worldmap_html(const char *output_file, char *saved_path, size_t saved_path_size)
+static int export_full_worldmap_html(const char *output_file, char *saved_path,
+                                     size_t saved_path_size)
 {
   static const zone_vnum full_map_zone_vnums[4] = {6000, 7000, 8000, 9000};
   struct worldmap_zone_export_data zones[4];
@@ -589,8 +634,9 @@ static int export_full_worldmap_html(const char *output_file, char *saved_path, 
     return FALSE;
   }
 
-  worldmap_html_write_document(out, "Connected Wilderness Zones (6000, 7000, 8000, 9000)", sector_grid,
-                               marker_lookup, markers, marker_count, WORLDMAP_ZONE_WIDTH * 2, map_height);
+  worldmap_html_write_document(out, "Connected Wilderness Zones (6000, 7000, 8000, 9000)",
+                               sector_grid, marker_lookup, markers, marker_count,
+                               WORLDMAP_ZONE_WIDTH * 2, map_height);
   fclose(out);
   return TRUE;
 }
@@ -739,8 +785,9 @@ int add_to_save_list(zone_vnum zone, int type)
   {
     if (zone != AEDIT_PERMISSION && zone != HEDIT_PERMISSION)
     {
-      log("SYSERR: add_to_save_list: Invalid zone number passed. (%" PRI_IDX " => %" PRI_IDX ", 0-%" PRI_IDX ")", zone, rznum,
-          top_of_zone_table);
+      log("SYSERR: add_to_save_list: Invalid zone number passed. (%" PRI_IDX " => %" PRI_IDX
+          ", 0-%" PRI_IDX ")",
+          zone, rznum, top_of_zone_table);
       return FALSE;
     }
   }
@@ -792,7 +839,8 @@ ACMD(do_show_save_list)
     for (item = save_list; item; item = item->next)
     {
       if (item->type != SL_CFG)
-        send_to_char(ch, " - %s data for zone %" PRI_IDX ".\r\n", save_types[item->type].message, item->zone);
+        send_to_char(ch, " - %s data for zone %" PRI_IDX ".\r\n", save_types[item->type].message,
+                     item->zone);
       else
         send_to_char(ch, " - Game configuration data.\r\n");
     }
@@ -1197,7 +1245,8 @@ static int export_info_file(zone_rnum zrnum)
         if (R_EXIT(room, j)->to_room == NOWHERE || world[R_EXIT(room, j)->to_room].zone == zrnum)
           continue;
 
-        fprintf(info_file, "      Room QQ%02" PRI_IDX " : Exit to the %s\n", room->number % 100, dirs[j]);
+        fprintf(info_file, "      Room QQ%02" PRI_IDX " : Exit to the %s\n", room->number % 100,
+                dirs[j]);
       }
     }
     zone_exits = 0;
@@ -1426,15 +1475,15 @@ static int export_save_zone(zone_rnum zrnum)
     switch (ZCMD(zrnum, subcmd).command)
     {
     case 'M':
-      fprintf(zone_file, "M %d QQ%02" PRI_IDX " %d QQ%02" PRI_IDX " \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
-              mob_index[ZCMD(zrnum, subcmd).arg1].vnum % 100, ZCMD(zrnum, subcmd).arg2,
-              world[ZCMD(zrnum, subcmd).arg3].number % 100,
+      fprintf(zone_file, "M %d QQ%02" PRI_IDX " %d QQ%02" PRI_IDX " \t(%s)\n",
+              ZCMD(zrnum, subcmd).if_flag, mob_index[ZCMD(zrnum, subcmd).arg1].vnum % 100,
+              ZCMD(zrnum, subcmd).arg2, world[ZCMD(zrnum, subcmd).arg3].number % 100,
               mob_proto[ZCMD(zrnum, subcmd).arg1].player.short_descr);
       break;
     case 'O':
-      fprintf(zone_file, "O %d QQ%02" PRI_IDX " %d QQ%02" PRI_IDX " \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
-              obj_index[ZCMD(zrnum, subcmd).arg1].vnum % 100, ZCMD(zrnum, subcmd).arg2,
-              world[ZCMD(zrnum, subcmd).arg3].number % 100,
+      fprintf(zone_file, "O %d QQ%02" PRI_IDX " %d QQ%02" PRI_IDX " \t(%s)\n",
+              ZCMD(zrnum, subcmd).if_flag, obj_index[ZCMD(zrnum, subcmd).arg1].vnum % 100,
+              ZCMD(zrnum, subcmd).arg2, world[ZCMD(zrnum, subcmd).arg3].number % 100,
               obj_proto[ZCMD(zrnum, subcmd).arg1].short_description);
       break;
     case 'G':
@@ -1448,9 +1497,9 @@ static int export_save_zone(zone_rnum zrnum)
               ZCMD(zrnum, subcmd).arg3, obj_proto[ZCMD(zrnum, subcmd).arg1].short_description);
       break;
     case 'P':
-      fprintf(zone_file, "P %d QQ%02" PRI_IDX " %d QQ%02" PRI_IDX " \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
-              obj_index[ZCMD(zrnum, subcmd).arg1].vnum % 100, ZCMD(zrnum, subcmd).arg2,
-              obj_index[ZCMD(zrnum, subcmd).arg3].vnum % 100,
+      fprintf(zone_file, "P %d QQ%02" PRI_IDX " %d QQ%02" PRI_IDX " \t(%s)\n",
+              ZCMD(zrnum, subcmd).if_flag, obj_index[ZCMD(zrnum, subcmd).arg1].vnum % 100,
+              ZCMD(zrnum, subcmd).arg2, obj_index[ZCMD(zrnum, subcmd).arg3].vnum % 100,
               obj_proto[ZCMD(zrnum, subcmd).arg1].short_description);
       break;
     case 'D':
@@ -1459,14 +1508,16 @@ static int export_save_zone(zone_rnum zrnum)
               ZCMD(zrnum, subcmd).arg3, world[ZCMD(zrnum, subcmd).arg1].name);
       break;
     case 'R':
-      fprintf(zone_file, "R %d QQ%02" PRI_IDX " QQ%02" PRI_IDX " %d \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
-              world[ZCMD(zrnum, subcmd).arg1].number % 100,
+      fprintf(zone_file, "R %d QQ%02" PRI_IDX " QQ%02" PRI_IDX " %d \t(%s)\n",
+              ZCMD(zrnum, subcmd).if_flag, world[ZCMD(zrnum, subcmd).arg1].number % 100,
               obj_index[ZCMD(zrnum, subcmd).arg2].vnum % 100,
               ZCMD(zrnum, subcmd).arg4 ? ZCMD(zrnum, subcmd).arg3 : -1,
               obj_proto[ZCMD(zrnum, subcmd).arg2].short_description);
       break;
     case 'F':
-      fprintf(zone_file, "F %d QQ%02" PRI_IDX " QQ%02" PRI_IDX " QQ%02" PRI_IDX " %d \t(RoL follow/group/mount)\n",
+      fprintf(zone_file,
+              "F %d QQ%02" PRI_IDX " QQ%02" PRI_IDX " QQ%02" PRI_IDX
+              " %d \t(RoL follow/group/mount)\n",
               ZCMD(zrnum, subcmd).if_flag, world[ZCMD(zrnum, subcmd).arg1].number % 100,
               mob_index[ZCMD(zrnum, subcmd).arg2].vnum % 100,
               mob_index[ZCMD(zrnum, subcmd).arg3].vnum % 100, ZCMD(zrnum, subcmd).arg4);
@@ -1493,8 +1544,9 @@ static int export_save_zone(zone_rnum zrnum)
               ZCMD(zrnum, subcmd).arg3, ZCMD(zrnum, subcmd).arg4);
       break;
     case 'T':
-      fprintf(zone_file, "T %d %d QQ%02" PRI_IDX " QQ%02" PRI_IDX " \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
-              ZCMD(zrnum, subcmd).arg1, trig_index[ZCMD(zrnum, subcmd).arg2]->vnum % 100,
+      fprintf(zone_file, "T %d %d QQ%02" PRI_IDX " QQ%02" PRI_IDX " \t(%s)\n",
+              ZCMD(zrnum, subcmd).if_flag, ZCMD(zrnum, subcmd).arg1,
+              trig_index[ZCMD(zrnum, subcmd).arg2]->vnum % 100,
               world[ZCMD(zrnum, subcmd).arg3].number % 100,
               GET_TRIG_NAME(trig_index[ZCMD(zrnum, subcmd).arg2]->proto));
       break;
@@ -1709,8 +1761,7 @@ static int export_save_rooms(zone_rnum zrnum)
             *buf1 = '\0';
 
           /* Now write the exit to the file. */
-          if (R_EXIT(room, j)->to_room == NOWHERE ||
-              R_EXIT(room, j)->to_room > top_of_world ||
+          if (R_EXIT(room, j)->to_room == NOWHERE || R_EXIT(room, j)->to_room > top_of_world ||
               world[R_EXIT(room, j)->to_room].zone == zrnum)
             fprintf(room_file,
                     "D%d\n"
@@ -1719,12 +1770,10 @@ static int export_save_rooms(zone_rnum zrnum)
                     "%d %s%02d %s%02d\n",
                     j, buf, buf1, dflag, R_EXIT(room, j)->key == NOTHING ? "" : "QQ",
                     R_EXIT(room, j)->key == NOTHING ? -1 : (int)(R_EXIT(room, j)->key % 100),
-                    R_EXIT(room, j)->to_room == NOWHERE ||
-                            R_EXIT(room, j)->to_room > top_of_world
+                    R_EXIT(room, j)->to_room == NOWHERE || R_EXIT(room, j)->to_room > top_of_world
                         ? ""
                         : "QQ",
-                    R_EXIT(room, j)->to_room != NOWHERE &&
-                            R_EXIT(room, j)->to_room <= top_of_world
+                    R_EXIT(room, j)->to_room != NOWHERE && R_EXIT(room, j)->to_room <= top_of_world
                         ? (int)(world[R_EXIT(room, j)->to_room].number % 100)
                         : -1);
           else

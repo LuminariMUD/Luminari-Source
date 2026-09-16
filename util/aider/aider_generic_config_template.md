@@ -1,4 +1,5 @@
 # Aider Default Configuration for MUD World Editing
+
 *You MUST make sure it is accurate for YOUR MUD!*
 
 ## Step 1: Create MUD-Specific Configuration
@@ -186,6 +187,7 @@ EOF
 ## Step 5: Working with World Files
 
 ### Start Aider WITHOUT Git
+
 ```bash
 # Navigate to MUD directory
 cd ~/MUD-DIR
@@ -199,6 +201,7 @@ aider --no-git --read .aider.mud.context.md --read .aider.mud.prompts.md \
 ```
 
 ### Common World Editing Commands
+
 ```bash
 # Add entire zone for editing
 > /add lib/world/wld/30.wld lib/world/mob/30.mob lib/world/obj/30.obj lib/world/zon/30.zon
@@ -217,6 +220,7 @@ aider --no-git --read .aider.mud.context.md --read .aider.mud.prompts.md \
 ## Step 6: Backup and Testing Workflow
 
 ### ALWAYS Backup Before Editing
+
 ```bash
 # Create backup directory with date
 mkdir -p lib/world/backups/$(date +%Y%m%d)
@@ -231,6 +235,7 @@ tar -czf lib/world/backups/world-$(date +%Y%m%d-%H%M).tar.gz lib/world/
 ```
 
 ### Safe Editing Workflow
+
 ```bash
 # 1. Backup the zone
 ./backup-zone.sh 30
@@ -252,6 +257,7 @@ cp lib/world/backups/$(date +%Y%m%d)/30.wld.bak lib/world/wld/30.wld
 ```
 
 ## Step 7: Useful Aliases for World Building
+
 ```bash
 # Add to ~/.bashrc for quick access
 echo '
@@ -271,6 +277,7 @@ alias backup-world="tar -czf lib/world/backups/world-\$(date +%Y%m%d-%H%M).tar.g
 ## Step 8: Zone File Templates
 
 ### Create templates for Aider to reference
+
 ```bash
 mkdir -p lib/world/templates
 
@@ -296,6 +303,7 @@ EOF
 ## Common MUD World Editing Patterns
 
 ### Adding a New Area
+
 ```
 > I need to create a new level 25-30 undead themed zone (zone 125).
 > Start with 5 connected rooms forming a haunted crypt entrance.
@@ -303,6 +311,7 @@ EOF
 ```
 
 ### Creating NPCs
+
 ```
 > Create a level 28 skeleton warrior (vnum 12501) with appropriate stats.
 > Give it equipment: rusty sword and battered shield.
@@ -310,6 +319,7 @@ EOF
 ```
 
 ### Building Shops
+
 ```
 > Create a potion shop in room 12510.
 > The shopkeeper should be a mysterious alchemist.
@@ -317,6 +327,7 @@ EOF
 ```
 
 ### Quest Items
+
 ```
 > Design a quest line item: "The Amulet of Shadows"
 > It should be a neck item with +2 INT, +10 mana, and a dark aura.
@@ -324,6 +335,7 @@ EOF
 ```
 
 ## Testing Changes
+
 ```bash
 # 1. Make backup FIRST
 backup-zone 125
@@ -352,6 +364,7 @@ telnet localhost 4001
 ## Important Reminders
 
 ### DO's:
+
 - [OK] ALWAYS backup before editing
 - [OK] Use --no-git flag for world files
 - [OK] Test on development port first
@@ -360,6 +373,7 @@ telnet localhost 4001
 - [OK] Follow existing format patterns exactly
 
 ### DON'Ts:
+
 - [NO] NEVER commit world files to git
 - [NO] Never change existing vnums
 - [NO] Don't break file format standards
@@ -371,6 +385,7 @@ telnet localhost 4001
 ## Quick Reference for File Formats
 
 ### Room File (.wld)
+
 ```
 #VNUM
 Name~
@@ -383,6 +398,7 @@ S
 ```
 
 ### Mobile File (.mob)
+
 ```
 #VNUM
 keywords~
@@ -394,6 +410,7 @@ detailed_description
 ```
 
 ### Object File (.obj)
+
 ```
 #VNUM  
 keywords~
@@ -404,6 +421,7 @@ action_description~
 ```
 
 ## Emergency Recovery
+
 ```bash
 # If you mess up a file badly:
 # 1. Check today's backup
@@ -417,4 +435,5 @@ tar -xzf /backup/world-backup-lastnight.tar.gz lib/world/wld/30.wld
 ```
 
 ---
+
 *Remember: World files are LIVE DATA. They're not in git. Always backup before editing. Changes take effect on reboot/copyover. Use --no-git flag with aider!*

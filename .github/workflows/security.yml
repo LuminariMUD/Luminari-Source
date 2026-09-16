@@ -4,18 +4,18 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'src/**'
-      - '.github/workflows/security.yml'
-      - '.gitleaks.toml'
+      - "src/**"
+      - ".github/workflows/security.yml"
+      - ".gitleaks.toml"
   pull_request:
     branches: [master, main]
     paths:
-      - 'src/**'
-      - '.github/workflows/security.yml'
-      - '.gitleaks.toml'
+      - "src/**"
+      - ".github/workflows/security.yml"
+      - ".gitleaks.toml"
   schedule:
     # Run bi-weekly on 1st and 15th
-    - cron: '0 0 1,15 * *'
+    - cron: "0 0 1,15 * *"
 
 permissions:
   contents: read
@@ -81,9 +81,18 @@ jobs:
         run: make -j"$(nproc)"
 
       - name: Perform CodeQL Analysis
+        id: analyze
         uses: github/codeql-action/analyze@v4.38.0
         with:
           category: "/language:c-cpp"
+
+      # A production source the traced build never compiled would be missing
+      # from every CodeQL result without an error; the database's source
+      # archive proves each one was extracted.
+      - name: Check that CodeQL extracted every production source
+        env:
+          DB_LOCATIONS: ${{ steps.analyze.outputs.db-locations }}
+        run: python3 scripts/ci/check_codeql_coverage.py --db-locations "$DB_LOCATIONS"
 
   dependency-review:
     name: Dependency Review

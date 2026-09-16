@@ -24,7 +24,7 @@ combat. Rough ground such as desert, marsh, mountains and the deep underdark
 raises the difficulty, as does rain or a lightning storm.
 
 See also: FEAT INFO ESTABLISH CAMP, SURVEY, HARVEST, WILDERNESS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level), auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('CAMP', 'CAMP');
 
@@ -58,7 +58,7 @@ with an option that can be toggled in the ''prefedit'' screen.
 
 It is also possible to avoid encounters using your stealth skill, as long as ''sneak''
 is enabled, and you have set encounters to ''avoid'' in the prefedit screen.', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level), auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('ENCOUNTERS', 'ENCOUNTERS');
 
@@ -86,7 +86,7 @@ Gain immunity to poison, +3 damage reduction, animals won''t aggro you
 and can cast shadow walk once per day at sorcerer level 20. (HELP SOUL OF THE FEY)
 
 See Also: SORCERER', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level), auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('BLOODLINE-FEY', 'BLOODLINE-FEY');
 
@@ -117,7 +117,7 @@ hometown, shop purchases cost exactly 10 percent less and shop sales pay
 exactly 10 percent more, subject to each shop''s normal limits.
 
 See also: TRIBUTE, HOMETOWN, BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level), auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FLY-NEEDED', 'FLY-NEEDED');
 
@@ -133,7 +133,7 @@ existing skill ranks and bonuses are unchanged. There is no separate Survival
 skill to train. Establish Camp requires three ranks in Nature.
 
 See also: CAMP, TRACK, LORE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level), auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('NATURE-SKILL', 'NATURE-SKILL');
 
@@ -154,7 +154,7 @@ hit points. The hit-point increase is applied once even if the Background
 is selected after the character has gained levels.
 
 See also: FORAGE, BACKGROUND-ARCHTYPES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level), auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('OUTLANDER', 'OUTLANDER');
 
@@ -195,7 +195,7 @@ who rely on society''s structures or rules to maintain power.
 	n
 	YSee also:	n RACES
 	n', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level), auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('GOLIATH', 'GOLIATH');
 
@@ -205,7 +205,7 @@ INSERT INTO help_entries (tag, entry, min_level, auto_generated) VALUES ('SURVIV
 the same trained ranks. Use HELP NATURE-SKILL for its current description.
 
 See also: NATURE-SKILL, CAMP, TRACK', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level), auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SURVIVAL', 'SURVIVAL');
 

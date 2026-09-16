@@ -1,15 +1,16 @@
 # Staff Event System Documentation
 
 ## Table of Contents
-1. [System Overview](#system-overview)
-2. [Architecture](#architecture)
-3. [Event Management](#event-management)
-4. [Current Events](#current-events)
-5. [Adding New Events](#adding-new-events)
-6. [Configuration](#configuration)
-7. [Integration Points](#integration-points)
-8. [API Reference](#api-reference)
-9. [Staff Commands](#staff-commands)
+
+01. [System Overview](#system-overview)
+02. [Architecture](#architecture)
+03. [Event Management](#event-management)
+04. [Current Events](#current-events)
+05. [Adding New Events](#adding-new-events)
+06. [Configuration](#configuration)
+07. [Integration Points](#integration-points)
+08. [API Reference](#api-reference)
+09. [Staff Commands](#staff-commands)
 10. [Technical Implementation](#technical-implementation)
 
 ---
@@ -19,6 +20,7 @@
 The **Staff Event System** allows administrators to run special, time-limited events in LuminariMUD. Created by Zusuk in April 2020, this system provides automated event management with start/end mechanics, world announcements, special rewards, and environment modifications.
 
 ### Key Features
+
 - **Automated Management**: Events run with minimal staff intervention
 - **World Announcements**: Automatic start/end notifications to all players
 - **Special Rewards**: Custom drop systems and event-specific prizes
@@ -27,6 +29,7 @@ The **Staff Event System** allows administrators to run special, time-limited ev
 - **Player Integration**: Special combat mechanics during events
 
 ### Files
+
 - **Main Implementation**: [`staff_events.c`](../../src/quest/staff_events.c)
 - **Header Definitions**: [`staff_events.h`](../../src/quest/staff_events.h)
 - **Documentation**: This file
@@ -132,23 +135,27 @@ sequenceDiagram
 **Overview**: A wilderness hunting event where players track down special jackalopes for rewards.
 
 **Mechanics**:
+
 - **Duration**: ~24 hours (1200 ticks)
 - **Location**: Hardbuckler Region wilderness
 - **Coordinates**: X(597-703), Y(-63 to 185)
 - **Mob Types**: 3 difficulty tiers with level restrictions
 
 **Jackalope Types**:
-- **Easy Jackalope** (vnum 11391): Level <=10 players
-- **Medium Jackalope** (vnum 11392): Level <=20 players  
+
+- **Easy Jackalope** (vnum 11391): Level `<=10` players
+- **Medium Jackalope** (vnum 11392): Level `<=20` players
 - **Hard Jackalope** (vnum 11393): All levels
 
 **Rewards**:
+
 - **Jackalope Hide** (vnum 11366): Standard drop from kills
 - **Pristine Horn** (vnum 11368): 5% rare drop
 - **Hunting Horn** (vnum 11365): Grand prize for winner
 - **Great Hunt Ribbon** (vnum 11369): Participation prize
 
 **Special Features**:
+
 - Automatic respawning maintains 300 of each type
 - Level-restricted drops prevent farming
 - NPC Fullstaff (vnum 11449) provides quest context
@@ -159,20 +166,23 @@ sequenceDiagram
 **Overview**: High-stakes raid event focusing on The Prisoner boss encounter.
 
 **Mechanics**:
-- **Duration**: ~24 hours (1200 ticks)  
+
+- **Duration**: ~24 hours (1200 ticks)
 - **Location**: Garden of Avernus (via portal)
 - **Portal**: Manifests at Mosswood Elder (room 145202)
 - **Special Rules**: No XP penalty on death
 
 **Features**:
+
 - **Portal Management**: Auto-creates/removes portal (vnum 132399)
 - **Atmospheric Effects**: Random world messages every ~16 ticks
 - **Enhanced Rewards**: Maximized treasure drops from The Prisoner
 - **Raid Prevention**: Cannot restart if prisoner killed this boot
 
 **Atmospheric Messages** (7 variants):
+
 1. Green haze and power flares
-2. Booms and echoes  
+2. Booms and echoes
 3. Outer plane emanations
 4. Ground shaking
 5. Mental energy blasts
@@ -227,6 +237,7 @@ Add to `staff_events_list` array in [`staff_events.c`](../../src/quest/staff_eve
 Add cases to relevant functions:
 
 **Start Logic** (`start_staff_event`):
+
 ```c
 case YOUR_NEW_EVENT:
     // Custom initialization
@@ -235,6 +246,7 @@ case YOUR_NEW_EVENT:
 ```
 
 **Tick Logic** (`staff_event_tick`):
+
 ```c
 case YOUR_NEW_EVENT:
     // Ongoing maintenance
@@ -243,6 +255,7 @@ case YOUR_NEW_EVENT:
 ```
 
 **End Logic** (`end_staff_event`):
+
 ```c
 case YOUR_NEW_EVENT:
     // Cleanup
@@ -251,6 +264,7 @@ case YOUR_NEW_EVENT:
 ```
 
 **Reward Logic** (`check_event_drops`):
+
 ```c
 case YOUR_NEW_EVENT:
     // Handle special drops
@@ -260,7 +274,7 @@ case YOUR_NEW_EVENT:
 ### Step 4: Testing
 
 1. Compile and test basic start/stop functionality
-2. Verify tick maintenance works correctly  
+2. Verify tick maintenance works correctly
 3. Test reward system integration
 4. Validate cleanup on event end
 5. Test edge cases (crashes, reboots during event)
@@ -311,7 +325,7 @@ Called from the mud-hour global point-update phase in
 staff_event_tick();
 ```
 
-### Combat System Integration  
+### Combat System Integration
 
 Called from [`fight.c`](../../src/combat/fight.c) when mobs die:
 
@@ -347,45 +361,54 @@ Events can integrate with player file variables:
 ### Core Functions
 
 #### `int start_staff_event(int event_num)`
-**Purpose**: Initialize and start a staff event  
-**Parameters**: `event_num` - Event index (0-based)  
-**Returns**: `NUM_STAFF_EVENTS` on success, `event_num` on failure  
+
+**Purpose**: Initialize and start a staff event\
+**Parameters**: `event_num` - Event index (0-based)\
+**Returns**: `NUM_STAFF_EVENTS` on success, `event_num` on failure\
 **Side Effects**: Sets global state, announces to world, initializes event content
 
-#### `void end_staff_event(int event_num)`  
-**Purpose**: End an active staff event and cleanup  
-**Parameters**: `event_num` - Event index to end  
+#### `void end_staff_event(int event_num)`
+
+**Purpose**: End an active staff event and cleanup\
+**Parameters**: `event_num` - Event index to end\
 **Side Effects**: Cleans up content, announces to world, resets global state
 
 #### `void staff_event_info(struct char_data *ch, int event_num)`
-**Purpose**: Display detailed information about an event  
-**Parameters**: `ch` - Character to send info to, `event_num` - Event index  
+
+**Purpose**: Display detailed information about an event\
+**Parameters**: `ch` - Character to send info to, `event_num` - Event index\
 **Access**: Players see basic info, staff see additional details
 
 #### `void list_staff_events(struct char_data *ch)`
-**Purpose**: List all available events with indices  
+
+**Purpose**: List all available events with indices\
 **Parameters**: `ch` - Character to send list to
 
 #### `void staff_event_tick()`
-**Purpose**: Regular maintenance function called each game tick  
+
+**Purpose**: Regular maintenance function called each game tick\
 **Side Effects**: Handles respawning, environment effects, auto-end conditions
 
 ### Utility Functions
 
 #### `void check_event_drops(struct char_data *killer, struct char_data *victim)`
-**Purpose**: Handle special drops when event mobs are killed  
+
+**Purpose**: Handle special drops when event mobs are killed\
 **Integration**: Called from combat system
 
 #### `void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord)`
-**Purpose**: Load a mobile at wilderness coordinates  
+
+**Purpose**: Load a mobile at wilderness coordinates\
 **Parameters**: Mobile vnum and target coordinates
 
 #### `int mob_ingame_count(int mobile_vnum)`
-**Purpose**: Count instances of a mobile in the game  
+
+**Purpose**: Count instances of a mobile in the game\
 **Returns**: Number of mobs found
 
 #### `void mob_ingame_purge(int mobile_vnum)`
-**Purpose**: Remove all instances of a mobile from the game  
+
+**Purpose**: Remove all instances of a mobile from the game\
 **Use**: Event cleanup
 
 ---
@@ -397,42 +420,52 @@ Events can integrate with player file variables:
 **Syntax**: `staffevents [action] [event_number]`
 
 **Player Access** (No arguments):
+
 - Shows info about currently active event
 - Message if no event active
 
 **Staff Access**:
 
 #### List Events
+
 ```
 staffevents
 ```
+
 Shows all available events with indices.
 
-#### Start Event  
+#### Start Event
+
 ```
 staffevents start 0
 ```
+
 Starts Jackalope Hunt event. Validates:
+
 - No event currently active
-- No cleanup delay active  
+- No cleanup delay active
 - Event-specific conditions
 
 #### End Event
+
 ```
 staffevents end 0  
 ```
+
 Immediately ends the specified event.
 
 #### Event Information
+
 ```
 staffevents info 1
 ```
+
 Shows detailed information about The Prisoner event.
 
 ### Command Validation
 
 - **Permission**: `LVL_STAFF` required for management
-- **Event Numbers**: Must be 0 <= event_num < `NUM_STAFF_EVENTS`
+- **Event Numbers**: Must be `0 <= event_num < NUM_STAFF_EVENTS`
 - **State Checking**: Prevents starting during active events or cleanup delays
 - **Event Conditions**: Some events have specific start requirements
 
@@ -443,6 +476,7 @@ Shows detailed information about The Prisoner event.
 ### Data Structures
 
 #### Event Data Array
+
 ```c
 const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
     {/* Event data */}
@@ -450,32 +484,37 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
 ```
 
 **Fields**:
+
 - `EVENT_TITLE`: Display name
-- `EVENT_BEGIN`: Start announcement  
+- `EVENT_BEGIN`: Start announcement
 - `EVENT_END`: End announcement
 - `EVENT_DETAIL`: Detailed description
 - `EVENT_SUMMARY`: Conclusion message
 
 #### Global State Variables
+
 Stored in `game_info` structure:
+
 - `staff_event_num`: Current event (-1 if none)
-- `staff_event_time`: Remaining ticks  
+- `staff_event_time`: Remaining ticks
 - `staff_event_delay`: Cleanup delay counter
 
 ### Memory Management
 
-**Static Data**: Event definitions are compile-time constants  
-**Dynamic Objects**: Mobs and objects created via standard MUD functions  
+**Static Data**: Event definitions are compile-time constants\
+**Dynamic Objects**: Mobs and objects created via standard MUD functions\
 **Cleanup**: Automatic extraction on event end
 
 ### Performance Considerations
 
 **Tick Function**: Called every game pulse (~0.1 seconds)
+
 - Lightweight operations only
 - Conditional execution based on event type
 - Random chance gates for expensive operations
 
 **Mob Management**:
+
 - Efficient counting via character list traversal
 - Batch operations for spawning
 - Cleanup purges all instances
@@ -483,11 +522,13 @@ Stored in `game_info` structure:
 ### Error Handling
 
 **Validation**:
+
 - Array bounds checking on event numbers
 - NULL pointer checks for characters and objects
 - Room validation for wilderness loading
 
 **Graceful Degradation**:
+
 - Missing objects logged but don't crash
 - Invalid coordinates fall back to available rooms
 - Event continues if individual operations fail
@@ -495,6 +536,7 @@ Stored in `game_info` structure:
 ### Thread Safety
 
 **Single-Threaded**: LuminariMUD uses single-threaded architecture
+
 - No concurrency concerns
 - Simple state management
 - Predictable execution order
@@ -504,16 +546,19 @@ Stored in `game_info` structure:
 ## Security Considerations
 
 ### Permission Checks
+
 - Staff-level access required for event management
 - Player commands limited to information display
 - Input validation on all parameters
 
-### Resource Management  
+### Resource Management
+
 - Mob count limits prevent spawn flooding
 - Event duration limits prevent permanent events
 - Cleanup delay prevents rapid restart abuse
 
 ### Data Integrity
+
 - Bounds checking on all array access
 - Validation of vnums before object creation
 - Safe cleanup that handles missing objects
@@ -525,21 +570,25 @@ Stored in `game_info` structure:
 ### Common Issues
 
 **Event Won't Start**:
+
 1. Check if another event is active: `staffevents`
-2. Verify cleanup delay: Look for "delay of X ticks" message  
+2. Verify cleanup delay: Look for "delay of X ticks" message
 3. Event-specific conditions (e.g., prisoner already killed)
 
 **Mobs Not Spawning**:
+
 1. Check wilderness system functionality
 2. Verify mob vnums exist in database
 3. Check coordinate boundaries are valid
 
 **Drops Not Working**:
+
 1. Verify `check_event_drops()` is called from combat
 2. Check object vnums exist
 3. Validate level restrictions for jackalope drops
 
 **Event Won't End**:
+
 1. Manually end with `staffevents end [num]`
 2. Check for infinite loops in tick function
 3. Verify STAFF_EVENT_TIME is decrementing
@@ -547,15 +596,18 @@ Stored in `game_info` structure:
 ### Debug Information
 
 **Current State**:
+
 ```
 staffevents info [num]
 ```
 
 **Log Messages**:
+
 - Object creation failures logged to SYSERR
 - Check mudlog for error messages
 
 **Code Inspection**:
+
 - Review tick function for event-specific logic
 - Verify array bounds and null checks
 - Check integration points in combat/limits
@@ -568,7 +620,7 @@ staffevents info [num]
 
 1. **Dynamic Event System**: Load events from files instead of hardcoded arrays
 2. **Scheduling System**: Automatic event scheduling based on calendar
-3. **Player Tracking**: Individual participation metrics and rewards  
+3. **Player Tracking**: Individual participation metrics and rewards
 4. **Event Chains**: Sequential events with dependencies
 5. **Configuration Files**: Runtime-configurable parameters
 6. **Event Templates**: Easier creation of similar event types
@@ -577,7 +629,7 @@ staffevents info [num]
 ### Architectural Considerations
 
 - **Database Integration**: Store event history and player participation
-- **Scripting Support**: DG Script integration for complex behaviors  
+- **Scripting Support**: DG Script integration for complex behaviors
 - **Web Interface**: External event management via web portal
 - **API Extensions**: Support for external event triggers
 - **Modular Design**: Plugin-style event loading system

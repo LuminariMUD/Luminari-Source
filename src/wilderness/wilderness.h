@@ -5,6 +5,8 @@
 #ifndef _WILDERNESS_H_
 #define _WILDERNESS_H_
 
+#include "core/structs.h"
+
 #define X_COORD 0
 #define Y_COORD 1
 

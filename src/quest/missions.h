@@ -1,6 +1,9 @@
 #ifndef _D20SW_MISSIONS_HPP_
 #define _D20SW_MISSIONS_HPP_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 // defines
 #define MISSION_LVL 0
 #define MISSION_REBELS 1

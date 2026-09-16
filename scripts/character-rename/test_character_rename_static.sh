@@ -6,14 +6,12 @@ project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 rename_source="$project_root/src/player/player_rename.c"
 wizard_source="$project_root/src/act/act.wizard.c"
 
-fail()
-{
+fail() {
   echo "character rename static test: $*" >&2
   exit 1
 }
 
-assert_contains()
-{
+assert_contains() {
   local file=$1
   local pattern=$2
 
@@ -21,8 +19,7 @@ assert_contains()
     fail "missing '$pattern' in ${file#"$project_root"/}"
 }
 
-assert_not_contains()
-{
+assert_not_contains() {
   local file=$1
   local pattern=$2
 
@@ -106,7 +103,7 @@ assert_contains "$project_root/CMakeLists.txt" "src/player/player_rename.c"
 
 for table in player_mail player_mail_deleted player_mail_read; do
   assert_contains "$project_root/sql/components/character_rename_transactional_schema.sql" \
-    "ALTER TABLE $table ENGINE=InnoDB"
+    "ALTER TABLE $table ENGINE = InnoDB"
 done
 
 implementation_files=(

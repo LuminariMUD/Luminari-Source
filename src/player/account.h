@@ -11,6 +11,8 @@
 #ifndef ACCOUNT_H
 #define ACCOUNT_H
 
+#include "core/structs.h"
+
 #ifdef __cplusplus
 extern "C"
 {

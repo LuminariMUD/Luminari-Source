@@ -3301,12 +3301,12 @@ char *load_comprehensive_region_description(int region_vnum_id)
   char query[MAX_STRING_LENGTH];
   char *description = NULL;
 
-  sprintf(query,
-          "SELECT region_description, description_style, description_length, "
-          "has_historical_context, has_resource_info, has_wildlife_info, "
-          "has_geological_info, has_cultural_info, is_approved "
-          "FROM region_data WHERE vnum = %d AND region_description IS NOT NULL",
-          region_vnum_id);
+  snprintf(query, sizeof(query),
+           "SELECT region_description, description_style, description_length, "
+           "has_historical_context, has_resource_info, has_wildlife_info, "
+           "has_geological_info, has_cultural_info, is_approved "
+           "FROM region_data WHERE vnum = %d AND region_description IS NOT NULL",
+           region_vnum_id);
 
   if (!mysql_pool)
   {

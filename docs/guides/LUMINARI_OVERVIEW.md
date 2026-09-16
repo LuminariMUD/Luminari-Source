@@ -3,9 +3,10 @@
 *A comprehensive guide to one of the most feature-rich text-based RPGs in existence*
 
 ---
----
+
 ---
 
+---
 
 ## What is a MUD?
 
@@ -30,6 +31,7 @@ When CircleMUD development stagnated, **The Builder Academy** took over in 2006,
 **LuminariMUD** stands on the shoulders of these giants, built on the tbaMUD foundation but transformed into something entirely its own - a living world with authentic Pathfinder and D&D 3.5 mechanics, an original pantheon of over 40 deities, and a rich mythology that spans eons.
 
 ---
+
 ---
 
 ## The Story of LuminariMUD
@@ -40,7 +42,7 @@ The seeds of LuminariMUD were planted around **1999** when a two kid developers 
 
 Like many passion projects, LuminariMUD faced the realities of life. Both developers had military service, careers, and families demanding their attention. The project was "shelved" multiple times over the years - sometimes for months, sometimes longer. During these dormant periods, the dream of Lumia never truly died. The developers would return when life permitted, adding features, fixing bugs, keeping the flame alive.
 
-Throughout this era, the team played countless other MUDs - **Realms of Aurealis**, **Toril**, **Sojourn**, **Duris**, **Basternae**, **Homeland**, and **GreyhawkMUD** among them. Each experience shaped their vision of what LuminariMUD could become. The tactical depth of these games, combined with their love of tabletop D&D campaigns (especially **Dragonlance** and **Forgotten Realms**), crystallized into an ambitious goal: bring authentic Pathfinder/D&D 3.5 mechanics to the MUD format.]
+Throughout this era, the team played countless other MUDs - **Outcast MUD** **Realms of Aurealis**, **Toril**, **Sojourn**, **Sep 2026**, **Basternae**, **Homeland**, and **GreyhawkMUD** among them. Each experience shaped their vision of what LuminariMUD could become. The tactical depth of these games, combined with their love of tabletop D&D campaigns (especially **Dragonlance** and **Forgotten Realms**), crystallized into an ambitious goal: bring authentic Pathfinder/D&D 3.5 mechanics to the MUD format.
 
 ---
 
@@ -54,9 +56,9 @@ On **June 19, 2012**, the [LuminariMUD.com](https://luminarimud.com) website wen
 
 **June 30, 2012** marked the official "Development has started" announcement - the rebirth of LuminariMUD.
 
-James McLaughlin (Ornir) and Zusuk first started talking.  At the time Ornir was developing a MUD as well.
+James McLaughlin (Ornir) and Zusuk first started talking. At the time Ornir was developing a MUD as well.
 
-Stephen Squires (Gicker) and Zusuk first started talking.  At the time Gicker was developing MUDs as well.
+Stephen Squires (Gicker) and Zusuk first started talking. At the time Gicker was developing MUDs as well.
 
 ---
 
@@ -65,18 +67,21 @@ Stephen Squires (Gicker) and Zusuk first started talking.  At the time Gicker wa
 The summer of 2012 was intense. Weekly development updates chronicled the transformation:
 
 **July 2012**:
+
 - **Bakarus** joined the team, bringing world map concepts
 - **Vatiken** contributed critical bug fixes
 - NPC races and classes frameworks emerged
 - The stats system was rewritten to reflect true D&D 3.5 rules
 
 **August 2012**:
+
 - The Druid class was created
 - 19 new spells were added in a single update
 - The spell system was converted from game-hour ticks to combat rounds
 - The saving throw system was restructured
 
 **September 2012**:
+
 - The clan system was implemented
 - Server migration to luminarimud.com completed
 
@@ -104,6 +109,7 @@ Special acknowledgment went to **Fizban** from **ParagonMUD**, who provided inva
 **Jamie McLaughlin** stepped up as lead developer during this critical growth phase. The team expanded to include **Sam Carman** and the lead builder known as **Taure**, who contributed entire zones from her previous MUD work.
 
 The codebase drew inspiration from multiple sources:
+
 - The **CWG (CircleMUD with Goodies)** project provided patches and ideas
 - **Gicker** and the **d20MUD** project contributed D20 mechanics expertise
 - **Bioware's Neverwinter Nights** influenced help files and game feel
@@ -130,6 +136,7 @@ Development never stopped. The changelog tells the story of continuous improveme
 **2022**: Major gameplay enhancements - spell stacking mechanics, sea ports and sailing, mercenary hiring, condensed combat messages
 
 **2025**:
+
 - In progress **Intermud3 integration** - connecting LuminariMUD to the broader MUD network
 - **Vessel system** with multi-room ship interiors
 - **Narrative Weaver AI** experiments with dynamic NPC dialogue
@@ -159,6 +166,7 @@ The credits file says it best:
 After all these years, that hope has become reality.
 
 ---
+
 ---
 
 ## The World of Lumia
@@ -188,6 +196,7 @@ Now, only **Sarene** remains - the last Luminari guardian, watching the prison a
 You are one of those heroes.
 
 ---
+
 ---
 
 ## The Loom of Aether
@@ -195,6 +204,7 @@ You are one of those heroes.
 At the heart of Lumia's cosmology lies the **Loom of Aether** - a metaphysical weave of vows, memories, and elemental currents that binds reality together. This isn't just philosophy; it's tangible magic.
 
 The Loom is woven from three primordial forces:
+
 - **Memory** - the past that shapes us
 - **Will** - the present that drives us
 - **Possibility** - the future that beckons
@@ -204,6 +214,7 @@ When clerics cast divine magic, they literally weave threads from the Loom. When
 This means something remarkable: in Lumia, your word has literal, cosmic weight. Promises matter. Oaths have power. And betrayal carries consequences that echo through the fabric of existence.
 
 ---
+
 ---
 
 ## The Luminari Pantheon
@@ -215,7 +226,7 @@ LuminariMUD features an **original pantheon of over 40 deities**, each with dist
 These are the fundamental divine forces that shape all of existence:
 
 | Deity | Domain | Alignment |
-|-------|--------|-----------|
+| -- | -- | -- |
 | **Aethyra, Lady of the Loom** | Magic, oaths, hidden patterns | Neutral Good |
 | **Kordran, Hammer of Dawn** | War, duty, righteous battle | Lawful Good |
 | **Seraphine the Dawnstar** | Sun, renewal, redemption | Neutral Good |
@@ -238,6 +249,7 @@ These are the fundamental divine forces that shape all of existence:
 ### Racial Pantheons
 
 Beyond the Core Fourteen, each race has their own divine patrons:
+
 - **Dwarven gods** of forge, stone, and honor
 - **Elven gods** of nature, artistry, and starlight
 - **Halfling gods** of hearth, luck, and community
@@ -245,6 +257,7 @@ Beyond the Core Fourteen, each race has their own divine patrons:
 - **Elemental Primarchs** - ancient beings of fire, ice, nature, and shadow
 
 ---
+
 ---
 
 ## The Sacred Orders of Knights
@@ -254,28 +267,34 @@ Perhaps the most distinctive feature of Lumia is its **six sacred knight orders*
 ### The Orders of Light
 
 **Knights of the Crimson Loom** (Entry Order)
+
 - Patron deities: Kordran and Aethyra
 - These knights weave spoken oaths into reality. When they make a promise, visible crimson threads bind them to their word. They enforce divine contracts and can detect broken promises.
 
 **Knights of the Sundered Dawn** (Advanced Order)
+
 - Patron deities: Seraphine and Nyxara
 - Through a soul-splitting ritual, these knights exist simultaneously in light and shadow. Half blessed by dawn, half touched by darkness, they walk the line between revelation and secrecy.
 
 **Knights of the Ember Throne** (Master Order)
+
 - Patron deities: Pyrion, Calystral, and Borhild
 - The pinnacle of knightly achievement. These warrior-artists channel divine fire through creative expression, inspiring others while wielding devastating power.
 
 ### The Orders of Shadow
 
 **Knights of the Howling Moon**
+
 - Patron deities: Zorren and Selithiel
 - Embracing primal nature, these warriors strike from shadows using fear itself as a weapon. They maintain order through controlled savagery.
 
 **Knights of the Shattered Mirror**
+
 - Patron deities: Vespera and Thalos
 - Masters of paradox who see multiple realities through fragmented perception. They blend arcane magic with martial prowess, using deception and divination in equal measure.
 
 **Knights of the Pale Throne**
+
 - Patron deities: Nethris, Glacius, and Orith
 - Death-priests who have seen beyond the veil. They channel negative divine energy as arbiters of death's justice.
 
@@ -284,6 +303,7 @@ Perhaps the most distinctive feature of Lumia is its **six sacred knight orders*
 Whispered legends speak of the **Knights of the Void Crown** - an order that fell centuries ago when they delved too deep into forbidden knowledge. Remnants exist only as cautionary tales... and corrupted artifacts that ambitious souls sometimes seek.
 
 ---
+
 ---
 
 ## Character Creation: Forge Your Legend
@@ -299,6 +319,7 @@ LuminariMUD offers an impressive variety of races, from the familiar to the exot
 **Exotic Races**: Dragonborn, Tiefling, Aasimar, Tabaxi, Goliath, Shade
 
 **Unique to Lumia**:
+
 - **Crystal Dwarf** - Descendants of dwarves transformed by arcanite radiation, with crystalline skin and the ability to morph their bodies
 - **Trelux** - Insectoid beings with unique abilities
 - **Arcana Golem** - Remnants of the Last War, constructs infused with mortal souls
@@ -315,12 +336,14 @@ From stalwart warriors to reality-bending spellcasters:
 **Prestige Classes** (19): Including Assassin, Blackguard, Shadow Dancer, Mystic Theurge, Eldritch Knight, Psionicist, Summoner, Warlock, Necromancer, and more
 
 Each class offers:
+
 - Unique feat trees and abilities
 - Specialized equipment options
 - Distinct playstyles and party roles
 - Epic-level progression for truly legendary characters
 
 ---
+
 ---
 
 ## The Magic System
@@ -330,18 +353,21 @@ Each class offers:
 LuminariMUD implements authentic Pathfinder/D&D 3.5 magic with two distinct casting philosophies:
 
 **Preparation-Based Casting** (Wizards, Clerics, Druids)
+
 - Study spellbooks or pray for divine guidance
 - Queue spells for real-time preparation
 - Strategic planning before adventuring
 - Versatility through careful spell selection
 
 **Spontaneous Casting** (Sorcerers, Bards, Warlocks)
+
 - Know spells permanently
 - Cast any known spell with available slots
 - Flexibility in the heat of battle
 - Raw magical talent over academic study
 
 **Psionic Powers** (Psionicists)
+
 - Mind over matter
 - Unique power point system
 - Mental disciplines and psychic abilities
@@ -349,6 +375,7 @@ LuminariMUD implements authentic Pathfinder/D&D 3.5 magic with two distinct cast
 ### Metamagic
 
 Enhance your spells with metamagic feats:
+
 - **Extend** - Double duration
 - **Empower** - Increase effect by 50%
 - **Maximize** - Maximum possible effect
@@ -356,6 +383,7 @@ Enhance your spells with metamagic feats:
 - **Silent/Still** - Cast without speaking or moving
 
 ---
+
 ---
 
 ## Combat: Where Legends Are Forged
@@ -382,12 +410,14 @@ Combat in LuminariMUD follows true Pathfinder/D&D 3.5 rules:
 ### The Summoner's Eidolon
 
 Summoners bond with an **Eidolon** - a customizable otherworldly companion with:
+
 - 12+ evolution types (claws, wings, tentacles, and more)
 - Independent combat actions
 - Stat progression tied to summoner level
 - Unique tactical opportunities
 
 ---
+
 ---
 
 ## Crafting: Create Your Legacy
@@ -419,11 +449,13 @@ From common steel to legendary substances:
 Enhance your equipment with crystals for bonuses from +1 to +6, with 30 levels of crystal progression. Combined with critical craft rolls and magical essence infusion, truly legendary items await the dedicated artisan.
 
 ---
+
 ---
 
 ## The Quest System
 
 Story-driven progression quests that unfold across the world:
+
 - Multi-stage narratives with meaningful choices
 - Prerequisite chains for epic storylines
 - Rewards including experience, treasure, and exclusive unlocks
@@ -438,8 +470,8 @@ Story-driven progression quests that unfold across the world:
 - **Faction missions** advancing your standing with organizations
 
 ---
----
 
+---
 
 ## World Building: Shape Reality
 
@@ -457,6 +489,7 @@ LuminariMUD empowers builders with comprehensive in-game tools:
 ### DG Scripts: Breathing Life into the World
 
 The powerful DG scripting system allows:
+
 - NPCs that react to player actions
 - Objects with complex behaviors
 - Rooms that change based on conditions
@@ -466,12 +499,14 @@ The powerful DG scripting system allows:
 ### The Procedural Wilderness
 
 Beyond handcrafted zones, LuminariMUD features procedurally generated wilderness using **Perlin noise algorithms**:
+
 - Dynamic terrain generation
 - Resource nodes for crafting materials
 - Seasonal and weather-based variation
 - Encounter regions with random events
 
 ---
+
 ---
 
 ## Community Features
@@ -479,6 +514,7 @@ Beyond handcrafted zones, LuminariMUD features procedurally generated wilderness
 ### Discord Integration
 
 Real-time bridge between the game and Discord:
+
 - In-game chat relayed to Discord channels
 - Stay connected even when not playing
 - Community building across platforms
@@ -486,6 +522,7 @@ Real-time bridge between the game and Discord:
 ### Intermud3 Network (under construction)
 
 Connect with the broader MUD community:
+
 - Cross-MUD communication with 100+ connected games
 - Inter-MUD tells between players on different servers
 - Multi-MUD channels for wider conversations
@@ -494,6 +531,7 @@ Connect with the broader MUD community:
 ### Clan System
 
 Form organizations with fellow players:
+
 - Clan ranks and hierarchies
 - Shared treasury and resources
 - Clan-wide benefits and bonuses
@@ -502,12 +540,14 @@ Form organizations with fellow players:
 ### Player Housing
 
 Own a piece of Lumia:
+
 - Personal house with customizable interior
 - Storage and vault systems
 - Crafting stations for convenience
 - A home to return to between adventures
 
 ---
+
 ---
 
 ## Unique Systems
@@ -515,6 +555,7 @@ Own a piece of Lumia:
 ### The Narrative Weaver AI
 
 LuminariMUD experiments with **AI-enhanced storytelling**:
+
 - Dynamic NPC dialogue generation
 - Region-aware environmental storytelling
 - Conversational NPCs that respond to context
@@ -523,6 +564,7 @@ LuminariMUD experiments with **AI-enhanced storytelling**:
 ### Account-Based Progression
 
 Your account grows alongside your characters:
+
 - Account experience unlocks new races and classes
 - Multiple characters per account
 - Shared progression across the roster
@@ -531,12 +573,14 @@ Your account grows alongside your characters:
 ### Vehicles and Transport
 
 From sailing ships to magical conveyances:
+
 - Multi-room vessel interiors
 - Ship-to-ship combat
 - Docking and boarding mechanics
 - Travel across the vast world
 
 ---
+
 ---
 
 ## Why Text-Based Gaming?
@@ -564,6 +608,7 @@ Play from any device with a terminal. No powerful hardware required. No massive 
 When you play LuminariMUD, you're participating in a tradition that stretches back to 1978 - the very origins of online gaming. You're walking in the footsteps of millions of players who came before, and leaving your own mark for those who follow.
 
 ---
+
 ---
 
 ## Getting Started
@@ -582,6 +627,7 @@ The world of Lumia awaits. The Prisoner stirs in its ancient prison. The Darklin
 Will you be one of them?
 
 ---
+
 ---
 
 ## Technical Information
@@ -595,6 +641,7 @@ Will you be one of them?
 **Version**: LuminariMUD 2.4839
 
 ---
+
 ---
 
 ## Credits and Community
@@ -604,10 +651,12 @@ LuminariMUD is a labor of love built by dedicated developers and maintained by a
 ### The Forgers of Lumia
 
 **Early LuminariMUD** (~1999-2012):
+
 - Brian Williams (Nashak) - Lead
 - Max Gibson / Mosheh Ben Avraham (Zusuk)
 
 **LuminariMUD Forgers (Up to 1.0)**:
+
 - Mosheh Ben Avraham (Lead)
 - Brian Williams
 - Stephen Squires
@@ -615,6 +664,7 @@ LuminariMUD is a labor of love built by dedicated developers and maintained by a
 - Jamie McLaughlin
 
 **LuminariMUD Forgers (1.0 to 2.0)**:
+
 - Jamie McLaughlin (Lead)
 - Brian Williams
 - Mosheh Ben Avraham
@@ -622,21 +672,25 @@ LuminariMUD is a labor of love built by dedicated developers and maintained by a
 - Taure (anonymous) - brought zones from her previous MUD
 
 **LuminariMUD Forgers (2.0 Phase 1)**:
+
 - Jamie McLaughlin (Lead)
 - Mosheh Ben Avraham
 
 **LuminariMUD Forgers (2.0 Phase 2)**:
+
 - Jamie McLaughlin (Co-Lead)
 - Stephen Squires (Co-Lead)
 - Mosheh Ben Avraham
 
 **LuminariMUD Forgers (2.0 Phase 3)**:
+
 - Jamie McLaughlin
 - Stephen Squires (Lead)
 - Mosheh Ben Avraham
 
 **Current Active Team**:
-- Visit our Discord!  https://discord.gg/Me3Tuu4
+
+- Visit our Discord! https://discord.gg/Me3Tuu4
 
 > **Community Notice**: LuminariMUD is community-owned and operated. The code is open to the public; the world is not.
 
@@ -664,6 +718,7 @@ LuminariMUD is a labor of love built by dedicated developers and maintained by a
 ## Further Reading
 
 ### MUD History Sources
+
 - [MUD1 - Wikipedia](https://en.wikipedia.org/wiki/MUD1)
 - [Multi-user Dungeon - Wikipedia](https://en.wikipedia.org/wiki/Multi-user_dungeon)
 - [DikuMUD - Wikipedia](https://en.wikipedia.org/wiki/DikuMUD)

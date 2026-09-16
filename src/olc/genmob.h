@@ -12,6 +12,8 @@
 #ifndef _GENMOB_H_
 #define _GENMOB_H_
 
+#include "core/structs.h"
+
 int delete_mobile(mob_rnum);
 int copy_mobile(struct char_data *to, struct char_data *from);
 mob_rnum add_mobile(struct char_data *, mob_vnum);

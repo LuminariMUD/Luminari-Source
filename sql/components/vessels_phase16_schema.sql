@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS vessel_showcase_events (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_vessel_showcase_status (status, event_type),
   INDEX idx_vessel_showcase_staff (staff_idnum)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS vessel_event_participants (
   event_id BIGINT UNSIGNED NOT NULL,
@@ -36,8 +36,8 @@ CREATE TABLE IF NOT EXISTS vessel_event_participants (
   PRIMARY KEY (event_id, ship_id),
   INDEX idx_vessel_event_player (player_idnum, event_id),
   CONSTRAINT fk_vessel_event_participant_event FOREIGN KEY (event_id)
-    REFERENCES vessel_showcase_events(event_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  REFERENCES vessel_showcase_events (event_id) ON DELETE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS vessel_event_leaderboards (
   event_type VARCHAR(16) NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS vessel_event_leaderboards (
   PRIMARY KEY (event_type, player_idnum),
   INDEX idx_vessel_event_rank (event_type, wins, points),
   INDEX idx_vessel_event_player_rank (player_idnum)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS vessel_event_runtimes (
   ship_id INT NOT NULL PRIMARY KEY,
@@ -61,5 +61,5 @@ CREATE TABLE IF NOT EXISTS vessel_event_runtimes (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_vessel_event_runtime_event (event_id),
   CONSTRAINT fk_vessel_event_runtime_event FOREIGN KEY (event_id)
-    REFERENCES vessel_showcase_events(event_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  REFERENCES vessel_showcase_events (event_id) ON DELETE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

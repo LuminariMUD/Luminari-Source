@@ -21,19 +21,22 @@ innate Levitation, three stacking ranks of Armor Skin, Vital, and Hardy.
 Half-illithids gain four additional hit points per level.
 
 See also: ACCEXP, LEVITATE, PSIONICIST, RACE, RACE-YUAN-TI', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
-WHERE UPPER(keyword) IN
-  ('HALF-ILLITHID', 'HALF-ILLITHID-RACE', 'RACE-HALF-ILLITHID', 'ILLITHID',
-   'RACE-ILLITHID');
+WHERE
+  UPPER(keyword) IN
+  (
+    'HALF-ILLITHID', 'HALF-ILLITHID-RACE', 'RACE-HALF-ILLITHID', 'ILLITHID',
+    'RACE-ILLITHID'
+  );
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
-  ('RACE-HALF-ILLITHID', 'HALF-ILLITHID'),
-  ('RACE-HALF-ILLITHID', 'HALF-ILLITHID-RACE'),
-  ('RACE-HALF-ILLITHID', 'RACE-HALF-ILLITHID'),
-  ('RACE-HALF-ILLITHID', 'ILLITHID'),
-  ('RACE-HALF-ILLITHID', 'RACE-ILLITHID');
+('RACE-HALF-ILLITHID', 'HALF-ILLITHID'),
+('RACE-HALF-ILLITHID', 'HALF-ILLITHID-RACE'),
+('RACE-HALF-ILLITHID', 'RACE-HALF-ILLITHID'),
+('RACE-HALF-ILLITHID', 'ILLITHID'),
+('RACE-HALF-ILLITHID', 'RACE-ILLITHID');
 
 COMMIT;

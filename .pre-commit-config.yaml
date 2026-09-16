@@ -9,7 +9,55 @@ repos:
       - id: clang-format
         types_or: [c, c++]
         args: [--style=file]
-        exclude: ^src/(olc/genolc\.c|core/utils\.h)$
+
+  # Python: ruff's formatter. The upstream hook also accepts Markdown, whose
+  # embedded code blocks belong to mdformat, so it is limited to Python.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.7
+    hooks:
+      - id: ruff-format
+        types_or: [python]
+
+  # Shell: shfmt takes its settings from .editorconfig.
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.14.1-1
+    hooks:
+      - id: shfmt
+
+  # SQL: layout-only `sqlfluff format`; the upstream hook's `fix` would apply
+  # every lint rule. scripts/ci/check_sql_format_policy.py pins this hook.
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 4.3.0
+    hooks:
+      - id: sqlfluff-fix
+        name: sqlfluff format
+        entry: sqlfluff format --processes 0 --disable-progress-bar
+
+  # Markdown: dated changelogs stay byte-identical historical records, and
+  # lib/WILD_KB.md is written by the wilderness knowledge-base command.
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 1.0.0
+    hooks:
+      - id: mdformat
+        additional_dependencies:
+          - mdformat-gfm==1.0.0
+          - mdformat-frontmatter==2.1.2
+          - mdformat-simple-breaks==0.1.0
+        exclude: ^(docs/previous_changelogs/|lib/WILD_KB\.md$)
+
+  # YAML, JSON, HTML, CSS, and JavaScript; generated and sealed files are in
+  # .prettierignore.
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: v3.9.6
+    hooks:
+      - id: prettier
+        types_or: [yaml, json, html, css, javascript]
+
+  # CMake
+  - repo: https://github.com/BlankSpruce/gersemi-pre-commit
+    rev: 0.29.1
+    hooks:
+      - id: gersemi
 
   # General file hygiene
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -44,6 +92,29 @@ repos:
         entry: python3 scripts/ci/check_source_hygiene.py
         language: system
         pass_filenames: true
+      # PHP: pinned php-cs-fixer with .php-cs-fixer.dist.php; needs php on PATH.
+      - id: php-cs-fixer
+        name: php-cs-fixer
+        entry: scripts/development/format_php.sh
+        language: system
+        types: [php]
+        require_serial: true
+      # PowerShell: PSScriptAnalyzer formatter with PSScriptAnalyzerSettings.psd1;
+      # needs pwsh on PATH.
+      - id: powershell-format
+        name: PSScriptAnalyzer format
+        entry: pwsh -NoProfile -NonInteractive -File scripts/development/format_powershell.ps1
+        language: system
+        types: [powershell]
+        require_serial: true
+      # Every future SQL file stays under the sqlfluff hook.
+      - id: sql-format-policy
+        name: SQL format policy
+        entry: python scripts/ci/check_sql_format_policy.py
+        language: python
+        additional_dependencies: [pyyaml==6.0.2]
+        pass_filenames: false
+        always_run: true
       # Build verification (pre-push only)
       - id: check-build
         name: Verify build compiles

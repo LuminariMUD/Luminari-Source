@@ -19,6 +19,9 @@
 #ifndef _MODIFY_H_
 #define _MODIFY_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 /* Public functions */
 void show_string(struct descriptor_data *d, const char *input);
 void smash_tilde(char *str);

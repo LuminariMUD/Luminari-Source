@@ -507,7 +507,8 @@ static struct greyhawk_ship_data *refit_command_ship(struct char_data *ch)
     return NULL;
   }
 
-  if (ship->owner[0] == '\0' || (str_cmp(ship->owner, GET_NAME(ch)) && GET_LEVEL(ch) < LVL_IMMORT))
+  if (ship->owner[0] == '\0' ||
+      (str_cmp(ship->owner, GET_NAME(ch)) != 0 && GET_LEVEL(ch) < LVL_IMMORT))
   {
     send_to_char(ch, "Only the owner may arrange a refit.\r\n");
     return NULL;

@@ -552,7 +552,8 @@ ACMDU(do_skillset)
     send_to_char(ch, "Skill must be enclosed in: ''\r\n");
     return;
   }
-  strcpy(helpbuf, (argument + 1)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
+  strlcpy(helpbuf, (argument + 1),
+          sizeof(helpbuf)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
   helpbuf[qend - 1] = '\0';
   if ((skill = find_skill_num(helpbuf)) <= 0)
   {
@@ -661,7 +662,8 @@ ACMDU(do_abilityset)
     send_to_char(ch, "Ability must be enclosed in: ''\r\n");
     return;
   }
-  strcpy(helpbuf, (argument + 1)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
+  strlcpy(helpbuf, (argument + 1),
+          sizeof(helpbuf)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
   helpbuf[qend - 1] = '\0';
   if ((skill = find_ability_num(helpbuf)) <= 0)
   {
@@ -749,7 +751,8 @@ ACMDU(do_featset)
     return;
   }
 
-  strcpy(helpbuf, (argument + 1)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
+  strlcpy(helpbuf, (argument + 1),
+          sizeof(helpbuf)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
 
   helpbuf[qend - 1] = '\0';
 
@@ -1107,7 +1110,7 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
 
           last_id = (int)mysql_insert_id(conn);
 
-          if (last_id > 0 && strcmp(row[0], GET_NAME(ch)))
+          if (last_id > 0 && strcmp(row[0], GET_NAME(ch)) != 0)
           {
             char *escaped_name_del = mysql_escape_string_alloc(conn, GET_NAME(ch));
             if (!escaped_name_del)

@@ -24,7 +24,7 @@ Movement by you or the selected target, target loss, interrupted casting,
 disconnect or restart stops the sequence. Your saved buff list remains intact.
 Use buff perform again when ready. Buff cancel stops further spells; a spell
 already being cast retains the normal casting and interruption rules.', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry=VALUES(entry), min_level=VALUES(min_level), auto_generated=VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('AUTO-BUFF', 'AUTO-BUFF');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('AUTO-BUFF', 'AUTOBUFF');

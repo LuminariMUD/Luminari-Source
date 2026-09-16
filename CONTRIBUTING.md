@@ -39,7 +39,9 @@ preserve established compatibility unless the change explicitly migrates it.
 1. Reproduce or trace the current behavior.
 2. Make the smallest cohesive change and add production-linked coverage when
    real game structures or behavior are involved.
-3. Format only the files you changed with the repository `.clang-format`.
+3. Install the hooks once with `pre-commit install`; on each commit they format the staged
+   files. Committing PHP or PowerShell also needs `php` (8.3) and `pwsh` (PowerShell 7) on
+   `PATH`; see [Formatting](docs/guides/SETUP_AND_BUILD_GUIDE.md#formatting).
 4. Run the appropriate focused checks, then the root gate.
 5. Review the diff for credentials, protected paths, generated artifacts, and
    documentation drift.
@@ -105,13 +107,13 @@ authorize a uniform license claim for this repository.
 - [ ] The change is scoped and its current behavior was traced.
 - [ ] New or changed behavior has appropriate tests.
 - [ ] `make test` and `make install` pass, or the pull request explains the
-      exact reproducible blocker.
+  exact reproducible blocker.
 - [ ] Both build manifests agree when source membership changed.
 - [ ] Relevant docs, help SQL, and changelog entries are current.
 - [ ] New third-party material has complete provenance and preserves all
-      required notices.
+  required notices.
 - [ ] No credential, protected local configuration, root `luminari`, or temporary
-      validation artifact is included.
+  validation artifact is included.
 - [ ] The pull request explains any migration, rollout, or rollback step.
 
 Project conduct is governed by [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and

@@ -33,14 +33,7 @@ warning debt, and feature detection that strict flags cannot influence.
 - One flag list in `scripts/deployment/production_profile.sh`, probed per
   compiler and consumed by both `configure.ac` (`--enable-warning-tier`) and
   `CMakeLists.txt` (`LUMINARI_WARNING_TIER`). `DEVELOPER_MODE` is gone.
-- Baseline tier: `-Wall -Wextra -Wstrict-prototypes -Wold-style-definition
-  -Wpointer-arith -Wformat-security -Wvla -Wredundant-decls -Wnested-externs
-  -Wmissing-prototypes -Wjump-misses-init -Wshadow -Wdouble-promotion
-  -Wfloat-equal -Wfloat-conversion -Wwrite-strings -Wcast-qual -Wundef -Walloca
-  -Wimplicit-fallthrough -Wconversion -Wno-sign-conversion`, plus GCC's `-Wtrampolines -Walloc-size
-  -Wbidi-chars=any -Wcalloc-transposed-args -Wflex-array-member-not-at-end
-  -Wunterminated-string-initialization -Wcast-align=strict -Wduplicated-cond
-  -Wduplicated-branches -Wlogical-op -Wformat-signedness` and Clang's
+- Baseline tier: `-Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpointer-arith -Wformat-security -Wvla -Wredundant-decls -Wnested-externs -Wmissing-prototypes -Wjump-misses-init -Wshadow -Wdouble-promotion -Wfloat-equal -Wfloat-conversion -Wwrite-strings -Wcast-qual -Wundef -Walloca -Wimplicit-fallthrough -Wconversion -Wno-sign-conversion`, plus GCC's `-Wtrampolines -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-args -Wflex-array-member-not-at-end -Wunterminated-string-initialization -Wcast-align=strict -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wformat-signedness` and Clang's
   `-Wcast-align`. Every common flag after `-Wvla`, the last five GCC flags, and
   the Clang flag were promoted from the migration tier by steps 2.3 to 3.5.
   Clang 18 does not know `-Wjump-misses-init`, so the probe drops it there.
@@ -55,8 +48,8 @@ warning debt, and feature detection that strict flags cannot influence.
 - Analysis tier: GCC `-fanalyzer` and Clang's opinionated extras, plus
   `-Wswitch-enum` and `-Wformat-nonliteral` (moved out of the budget by step
   3.5), `-Wsign-conversion` (step 4), and an ISO C23 `-Wpedantic` extension
-  report, in the weekly, non-blocking
-  `.github/workflows/toolchain-analysis.yml`. GCC's analyzer skips
+  report, in the weekly `.github/workflows/toolchain-analysis.yml`, where only
+  the GCC analyzer classes are budgeted (issue #89). GCC's analyzer skips
   `src/character/class.c` (see the notes on the local analyzer run).
 
 ### Feature detection
@@ -104,7 +97,7 @@ warning debt, and feature detection that strict flags cannot influence.
 ## Budget snapshot
 
 | Compiler | At the start | Now (value conversion pass) |
-|----------|--------------|----------------------|
+| -- | -- | -- |
 | GCC 16.2 | 11363 sites, 24 classes | 0 sites, 0 classes |
 | Clang 22.1.8 | 22878 sites, 23 classes | 0 sites, 0 classes |
 
@@ -120,7 +113,7 @@ budget files exactly; with ccache a full budget build takes about two minutes
 per compiler.
 
 | Step | Change | GCC 16.2 | Clang 22.1.8 |
-|------|--------|----------|--------------|
+| -- | -- | -- | -- |
 | start | committed budgets | 11363 | 22878 |
 | 0 | `--list` and `--by-token`; `-Wswitch-default` dropped | 10706 | 22221 |
 | 1.1 | `IS_SET_AR` casts the element before the mask | 10706 | 10578 |
@@ -259,7 +252,7 @@ Notes from step 1.3 (first pass):
   experience is capped at `EXP_MAX` (2100000000), gold and clan treasure at
   `MAX_BANK` (2140000000), both below `INT_MAX`.
 - The object editor's `max_val` was `long` although its largest value is
-  400000000.
+  400000000\.
 
 Notes from step 1.3 (second pass):
 
@@ -412,9 +405,9 @@ Notes from step 3.4:
   qualifiers only. Weapon type names point at their literals instead of heap
   copies of them. Zone export builds its `tar` arguments in local buffers
   because `execvp` takes `char *const[]`.
-- The pre-commit hook pins clang-format 18.1.8 and never formats
-  `src/olc/genolc.c` or `src/core/utils.h`; format with that binary and leave
-  those two files alone, or the hook and a local clang-format disagree.
+- The pre-commit hook pins clang-format 18.1.8; format with that binary, or the
+  hook and a local clang-format disagree. The hook no longer skips
+  `src/olc/genolc.c` and `src/core/utils.h` (issue #89).
 - `-Wwrite-strings` and `-Wcast-qual` moved to the baseline tier after clean
   baseline builds with GCC 13 and Clang 18.
 
@@ -627,7 +620,7 @@ Notes from the local CI run and the analyzer triage:
    way instead of rewriting the host; confirm the next `master` run of Build &
    Test passes.
 2. Done: `toolchain-analysis.yml` ran by hand on `master` after the merge (run
-   34894872217) and passed. The GCC 16.2 analysis build took 5 minutes 46
+   34894872217\) and passed. The GCC 16.2 analysis build took 5 minutes 46
    seconds, 6.5 minutes for the whole job against its 120-minute timeout, and
    reported the same 1713 distinct warning sites in 11 classes as the local
    runner-shaped build. The Clang 22 analysis build took about a minute, and
@@ -660,7 +653,7 @@ migration list to the baseline list in `production_profile.sh`.
 ### Where the sites actually are
 
 | Lever | Sites it clears | Evidence |
-|-------|-----------------|----------|
+| -- | -- | -- |
 | `IS_SET_AR` in `src/core/utils.h` | about 11000 Clang `sign-conversion` | the `&` of an `int` array element with the `unsigned` `Q_BIT` mask converts the element; `IS_NPC` alone is 3084 sites, `GET_NAME` 1248, `AFF_FLAGGED` 939, the `*_FLAGGED` family and every colour macro (they expand to `PRF_FLAGGED`) the rest |
 | `sh_int` and `byte` fields in `struct affected_type` and friends | about 1450 GCC `conversion`, about 1000 Clang `implicit-int-conversion` | 975 sites are `int` to `sh_int`, 281 `int` to `byte`, 195 `int` to `sbyte`; `src/magic/magic.c` alone has 509 |
 | generated test prototypes | 1485 of 2123 `missing-prototypes` | every `Test*` function in `unittests/CuTest/` |
@@ -748,7 +741,7 @@ not for every `int` index to become `size_t`.
 ### Expected trajectory
 
 | After | GCC 16.2 expected | GCC actual | Clang 22.1.8 expected | Clang actual |
-|-------|-------------------|------------|-----------------------|--------------|
+| -- | -- | -- | -- | -- |
 | start | 11363 | 11363 | 22878 | 22878 |
 | steps 1.1, 1.2 | about 9500 | 8010 | about 8500 | 7955 |
 | step 2 | about 5800 | 5188 | about 5300 | 6675 |
@@ -757,7 +750,6 @@ not for every `int` index to become `size_t`.
 
 The steps landed as separate commits on the `strict-c23-toolchain` branch,
 each with its lowered budget files, rather than as separate pull requests.
-
 
 When items 1 and 2 are confirmed, this document's enduring content is already
 in the setup, CMake, and testing guides; file items 3 and 4 as issues and

@@ -62,11 +62,12 @@ trigger an AOO from your opponents.  See ''help COMBAT-MANEUVERS'' for more
 information.
 
 See Also: COMBAT-MANEUVERS, ATTACK-QUEUE, ACTION-QUEUE, ACTIONS, COMBAT-MODES, AOO', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
-WHERE UPPER(keyword) IN ('COMBAT', 'COMBAT-PHASE', 'COMBAT-ROUNDS', 'FIGHTING')
+WHERE
+  UPPER(keyword) IN ('COMBAT', 'COMBAT-PHASE', 'COMBAT-ROUNDS', 'FIGHTING')
   AND help_tag <> 'combat';
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('combat', 'COMBAT');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('combat', 'COMBAT-PHASE');
@@ -87,11 +88,12 @@ until the next round, and visible combatants in their scheduled turn order.
 Your own name is highlighted in green when color is enabled.
 
 See also: COMBAT, ACTIONS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
-WHERE UPPER(keyword) IN ('INITIATIVE', 'INITIATIVE-ORDER')
+WHERE
+  UPPER(keyword) IN ('INITIATIVE', 'INITIATIVE-ORDER')
   AND help_tag <> 'initiative-order';
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('initiative-order', 'INITIATIVE');
@@ -148,11 +150,12 @@ Examples:
   ready say Hold the doorway! on door open north
 
 See also: COMBAT, INITIATIVE, CONCENTRATION, CASTING-TIME', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
-WHERE UPPER(keyword) IN ('READY', 'READIED-ACTION')
+WHERE
+  UPPER(keyword) IN ('READY', 'READIED-ACTION')
   AND help_tag <> 'ready-action';
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('ready-action', 'READY');

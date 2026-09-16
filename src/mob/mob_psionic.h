@@ -11,6 +11,8 @@
 #ifndef _MOB_PSIONIC_H_
 #define _MOB_PSIONIC_H_
 
+#include "core/structs.h"
+
 /* Function prototypes for mob psionic behaviors */
 
 /* handle psionic powerup behaviors for NPCs */

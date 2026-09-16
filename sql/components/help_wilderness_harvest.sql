@@ -36,10 +36,13 @@ category harvests use the earlier immediate wilderness-material storage.
 
 See also: CRAFTING, HARVEST-TOOLS, ACTIVITY
 ', 0, 0)
-ON DUPLICATE KEY UPDATE entry=VALUES(entry), min_level=VALUES(min_level),
-                        auto_generated=VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
-DELETE FROM help_keywords WHERE UPPER(keyword) IN ('HARVEST', 'WILDERNESS-HARVEST', 'GATHER', 'MINE')
+DELETE FROM
+  help_keywords
+WHERE
+  UPPER(keyword) IN ('HARVEST', 'WILDERNESS-HARVEST', 'GATHER', 'MINE')
   AND help_tag <> 'harvest';
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
@@ -71,10 +74,13 @@ node systems retain their own tool rules.
 
 See also: HARVEST, CRAFTING
 ', 0, 0)
-ON DUPLICATE KEY UPDATE entry=VALUES(entry), min_level=VALUES(min_level),
-                        auto_generated=VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
-DELETE FROM help_keywords WHERE UPPER(keyword) IN ('HARVEST-TOOLS')
+DELETE FROM
+  help_keywords
+WHERE
+  UPPER(keyword) IN ('HARVEST-TOOLS')
   AND help_tag <> 'harvest-tools';
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES

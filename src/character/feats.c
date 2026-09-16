@@ -5985,7 +5985,7 @@ void assign_feats(void)
         "Your humanoid torso rises from a powerful four-legged leonine body. This anatomy "
         "prevents you from wearing equipment in the legs and feet slots.");
 
-  /* Duris racial innates converted to feats.  None of these are assigned to a race here;
+  /* Sep 2026 racial innates converted to feats.  None of these are assigned to a race here;
    * see docs/systems/GAME_MECHANICS_SYSTEMS.md */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* passive defence and resistance */
@@ -6321,7 +6321,7 @@ void assign_feats(void)
   dailyfeat(FEAT_SLA_LEVITATE, eSLA_LEVITATE);
   dailyfeat(FEAT_SLA_DARKNESS, eSLA_DARKNESS);
   dailyfeat(FEAT_SLA_FAERIE_FIRE, eSLA_FAERIE_FIRE);
-  /* Duris racial innates */
+  /* Sep 2026 racial innates */
   dailyfeat(FEAT_SLA_FARSEE, eSLA_FARSEE);
   dailyfeat(FEAT_SLA_STONESKIN, eSLA_STONESKIN);
   dailyfeat(FEAT_SLA_LIGHTNING_BOLT, eSLA_LIGHTNING_BOLT);

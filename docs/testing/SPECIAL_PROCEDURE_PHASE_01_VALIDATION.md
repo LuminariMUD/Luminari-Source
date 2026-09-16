@@ -35,7 +35,7 @@ typed-handler conversion, or composition.
 ## Gateway Inventory and Flow Contracts
 
 | Event | Gateway | Caller | Stop Contract |
-|-------|---------|--------|---------------|
+| -- | -- | -- | -- |
 | Command (room) | `spec_gateway_command_room` | `special()` in `src/core/interpreter.c` | Consume the command, stop later owner traversal |
 | Command (object) | `spec_gateway_command_object` | `special()` | Same |
 | Command (mobile) | `spec_gateway_command_mobile` | `special()` | Same |
@@ -70,7 +70,7 @@ Preserved exactly:
 Data the gateways now capture at the call site, which a handler-side wrapper could not reconstruct:
 
 | Payload | Gateways | Source |
-|---------|----------|--------|
+| -- | -- | -- |
 | Actual target | weapon hit, defense reaction, combat maneuver, mount charge | The caller's own victim/attacker pointer rather than ambient `FIGHTING()` inference at the handler |
 | Reaction and maneuver identity | defense reaction, combat maneuver | The existing token, now also carried as typed event identity |
 | Moving-room state and destination | moving room | `struct moving_room_data *` and the destination virtual number |
@@ -96,7 +96,7 @@ mobile traversal in `special()` also caches `next_in_room`.
 ## Test Ownership
 
 | Test Source | Tests | Contract Owner |
-|-------------|------:|----------------|
+| -- | -: | -- |
 | `unittests/CuTest/test_spec_dispatch.c` | 12 | Gateway translation exactness, gateway-local flow, null-safety, automatic-activity fallback, moving-room nulls, secondary forwarding, and both successor-caching corrections. |
 | `unittests/CuTest/test_spec_command_pulse.c` | 13 | Unchanged Phase 00 characterization: traversal order, stop rules, `no_specials`, pulse scheduling. Passes without modification. |
 | `unittests/CuTest/test_spec_combat_secondary.c` | 14 | Combat and secondary characterization. Four source-shape assertions were updated to the gateway call shape; every runtime assertion is unchanged. |

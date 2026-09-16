@@ -23,8 +23,8 @@ Object detection reports the result immediately. It does not create a persistent
 detection marker; this preserves the source object-trap contract.
 
 See also: DISABLETRAP, PERCEPTION, PICKLOCK', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('DETECT-TRAP', 'DETECT-TRAP');
@@ -48,8 +48,8 @@ remaining charges to zero and that state persists with the object. A failure by
 five or more can trigger the trap immediately.
 
 See also: DETECTTRAP, DISABLE-DEVICE, PICKLOCK', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('DISABLE-TRAP', 'DISABLE-TRAP');

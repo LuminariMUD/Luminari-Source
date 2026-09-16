@@ -930,7 +930,7 @@ ACMD(do_abundantstep)
       buf[i] = 0;  /* placing a '0' in that last spot in this mini buf */
 
       for (i = 1; complete_cmd_info[i].command_pointer == do_move &&
-                  strcmp(complete_cmd_info[i].sort_as, buf);
+                  strcmp(complete_cmd_info[i].sort_as, buf) != 0;
            i++)
         ; /* looking for a move command that matches our buf */
 
@@ -6200,7 +6200,7 @@ ACMD(do_darkness)
     start_daily_use_cooldown(ch, FEAT_SLA_DARKNESS);
 }
 
-/* Duris racial innates: one table-driven handler for the spell-like abilities.
+/* Sep 2026 racial innates: one table-driven handler for the spell-like abilities.
  * Each verb is its own cmd_info[] row whose subcmd indexes racial_sla_table[]
  * (SCMD_RSLA_* in interpreter.h).  Every row casts its spell with call_magic()
  * at character level and spends one daily use of its feat. */
@@ -6319,7 +6319,7 @@ static int racial_sla_mass_dispel(struct char_data *ch, int spellnum, bool *stri
   return targets;
 }
 
-/* racial spell-like abilities (Duris innates), see racial_sla_table[] */
+/* racial spell-like abilities (Sep 2026 innates), see racial_sla_table[] */
 ACMD(do_racial_sla)
 {
   const struct racial_sla_info *sla = racial_sla_lookup(subcmd);
@@ -6490,7 +6490,7 @@ ACMD(do_racial_sla)
     start_daily_use_cooldown(ch, sla->feat);
 }
 
-/* racial flurry (Duris racial innate), the 'onslaught' command: one extra attack
+/* racial flurry (Sep 2026 racial innate), the 'onslaught' command: one extra attack
  * per round for four rounds, as a short haste affect that does not stack with
  * real haste.  'flurry' itself is shadowed by the monk flurryofblows row. */
 ACMD(do_racial_flurry)
@@ -7088,7 +7088,7 @@ ACMD(do_steal)
     percent = 100;
   }
 
-  if (str_cmp(obj_name, "coins") && str_cmp(obj_name, "gold"))
+  if (str_cmp(obj_name, "coins") != 0 && str_cmp(obj_name, "gold"))
   {
     if (!(obj = get_obj_in_list_vis(ch, obj_name, NULL, vict->carrying)))
     {
@@ -7492,7 +7492,7 @@ ACMDU(do_title)
     send_to_char(ch, "Sorry, titles can't be longer than %d characters.\r\n", MAX_TITLE_LENGTH);
   else if (!strstr(argument, GET_NAME(ch)) && CONFIG_USE_INTRO_SYSTEM)
     send_to_char(ch, "Your title must contain your name in it.\r\n");
-  else if (strlen(argument) < 10 && strcmp(argument, GET_NAME(ch)))
+  else if (strlen(argument) < 10 && strcmp(argument, GET_NAME(ch)) != 0)
     send_to_char(ch, "Your title must be at least 10 characters long.\r\n");
   else
   {
@@ -8804,7 +8804,7 @@ ACMD(do_screenreader)
                  PRF_FLAGGED(ch, PRF_SCREEN_READER) ? "on" : "off");
     return;
   }
-  if (str_cmp(argument, "on") && str_cmp(argument, "off"))
+  if (str_cmp(argument, "on") != 0 && str_cmp(argument, "off"))
   {
     send_to_char(ch, "Usage: screenreader on | off | status\r\n");
     return;
@@ -8850,7 +8850,7 @@ ACMD(do_sound)
                    "Sound test sent. If silent, check your client sound pack; see help sound.\r\n");
     return;
   }
-  if (str_cmp(argument, "on") && str_cmp(argument, "off"))
+  if (str_cmp(argument, "on") != 0 && str_cmp(argument, "off"))
   {
     send_to_char(ch, "Usage: sound on | off | status | test\r\n");
     return;
@@ -10615,12 +10615,14 @@ ACMD(do_dice)
 
   result = dice(rolls, size);
 
-  sprintf(Gbuf1, "You roll a %d sided dice %d times, the total result is: \tB%d\tn\r\n", size,
-          rolls, result);
+  snprintf(Gbuf1, sizeof(Gbuf1),
+           "You roll a %d sided dice %d times, the total result is: \tB%d\tn\r\n", size, rolls,
+           result);
   send_to_char(ch, "%s", Gbuf1);
 
-  sprintf(Gbuf1, "A %d sided dice is rolled by %s %d times, the total result is: \tB%d\tn\r\n",
-          size, GET_NAME(ch), rolls, result);
+  snprintf(Gbuf1, sizeof(Gbuf1),
+           "A %d sided dice is rolled by %s %d times, the total result is: \tB%d\tn\r\n", size,
+           GET_NAME(ch), rolls, result);
   send_to_room(ch->in_room, "%s", Gbuf1);
 
   return;
@@ -13130,7 +13132,7 @@ ACMDU(do_device)
           {
             if (spell_list_len < 195)
             {
-              strcat(spell_list, ", ");
+              strlcat(spell_list, ", ", sizeof(spell_list));
               spell_list_len += 2;
             }
           }
@@ -13161,7 +13163,7 @@ ACMDU(do_device)
         char circle_ind[32] = {'\0'};
         if (inv->num_spells > 0)
         {
-          strcat(circle_ind, "[");
+          strlcat(circle_ind, "[", sizeof(circle_ind));
           for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++)
           {
             int lvl = inv->spell_levels[j];
@@ -14005,7 +14007,7 @@ MUD_EVENT_CALLBACK(event_device_creation)
   /* The invention data is stored in sVariables as a formatted string:
    * "spell1,spell2,spell3|num_spells|duration|reliability" */
   char invention_data[MAX_STRING_LENGTH];
-  strcpy(invention_data, pMudEvent->sVariables);
+  strlcpy(invention_data, pMudEvent->sVariables, sizeof(invention_data));
 
   char *spells_part = strtok(invention_data, "|");
   char *num_spells_str = strtok(NULL, "|");

@@ -6,7 +6,8 @@ SELECT
   1 AS expected,
   IF(COUNT(*) = 1, 'PASS', 'FAIL') AS result
 FROM help_entries
-WHERE tag = 'combat'
+WHERE
+  tag = 'combat'
   AND min_level = 0
   AND auto_generated = FALSE
   AND INSTR(entry, 'One encounter round lasts 6 seconds') > 0
@@ -20,7 +21,8 @@ SELECT
   4 AS expected,
   IF(COUNT(*) = 4, 'PASS', 'FAIL') AS result
 FROM help_keywords
-WHERE help_tag = 'combat'
+WHERE
+  help_tag = 'combat'
   AND UPPER(keyword) IN ('COMBAT', 'COMBAT-PHASE', 'COMBAT-ROUNDS', 'FIGHTING');
 
 SELECT
@@ -29,7 +31,8 @@ SELECT
   0 AS expected,
   IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
 FROM help_keywords
-WHERE UPPER(keyword) IN ('COMBAT', 'COMBAT-PHASE', 'COMBAT-ROUNDS', 'FIGHTING')
+WHERE
+  UPPER(keyword) IN ('COMBAT', 'COMBAT-PHASE', 'COMBAT-ROUNDS', 'FIGHTING')
   AND help_tag <> 'combat';
 
 SELECT
@@ -38,7 +41,8 @@ SELECT
   1 AS expected,
   IF(COUNT(*) = 1, 'PASS', 'FAIL') AS result
 FROM help_entries
-WHERE tag = 'initiative-order'
+WHERE
+  tag = 'initiative-order'
   AND min_level = 0
   AND auto_generated = FALSE
   AND INSTR(entry, 'initiative') > 0
@@ -51,7 +55,8 @@ SELECT
   2 AS expected,
   IF(COUNT(*) = 2, 'PASS', 'FAIL') AS result
 FROM help_keywords
-WHERE help_tag = 'initiative-order'
+WHERE
+  help_tag = 'initiative-order'
   AND UPPER(keyword) IN ('INITIATIVE', 'INITIATIVE-ORDER');
 
 SELECT
@@ -60,7 +65,8 @@ SELECT
   0 AS expected,
   IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
 FROM help_keywords
-WHERE UPPER(keyword) IN ('INITIATIVE', 'INITIATIVE-ORDER')
+WHERE
+  UPPER(keyword) IN ('INITIATIVE', 'INITIATIVE-ORDER')
   AND help_tag <> 'initiative-order';
 
 SELECT
@@ -69,7 +75,8 @@ SELECT
   1 AS expected,
   IF(COUNT(*) = 1, 'PASS', 'FAIL') AS result
 FROM help_entries
-WHERE tag = 'ready-action'
+WHERE
+  tag = 'ready-action'
   AND min_level = 0
   AND auto_generated = FALSE
   AND INSTR(entry, 'ready <command> on entry [target]') > 0
@@ -86,7 +93,8 @@ SELECT
   2 AS expected,
   IF(COUNT(*) = 2, 'PASS', 'FAIL') AS result
 FROM help_keywords
-WHERE help_tag = 'ready-action'
+WHERE
+  help_tag = 'ready-action'
   AND UPPER(keyword) IN ('READY', 'READIED-ACTION');
 
 SELECT
@@ -95,5 +103,6 @@ SELECT
   0 AS expected,
   IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
 FROM help_keywords
-WHERE UPPER(keyword) IN ('READY', 'READIED-ACTION')
+WHERE
+  UPPER(keyword) IN ('READY', 'READIED-ACTION')
   AND help_tag <> 'ready-action';

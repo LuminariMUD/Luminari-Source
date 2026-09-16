@@ -16,7 +16,7 @@ not native MSDP receives the same logical values in the case-sensitive `MSDP` GM
 ### General Server and Character Information
 
 | Variable | Type | Description |
-|----------|------|-------------|
+| -- | -- | -- |
 | `CHARACTER_NAME` | String | Player character name |
 | `SERVER_ID` | String | Unique server identifier |
 | `SERVER_TIME` | Number | Current server timestamp |
@@ -25,7 +25,7 @@ not native MSDP receives the same logical values in the case-sensitive `MSDP` GM
 ### Character Statistics and Progression
 
 | Variable | Type | Description |
-|----------|------|-------------|
+| -- | -- | -- |
 | `AFFECTS` | Table | `AFFECTED_BY` and `SPELL_LIKE_AFFECTS` arrays |
 | `INVENTORY` | Array | Character inventory items |
 | `ALIGNMENT` | String | Character alignment text, such as Lawful Good or Neutral Evil |
@@ -52,7 +52,7 @@ not native MSDP receives the same logical values in the case-sensitive `MSDP` GM
 ### Combat and Character Modifiers
 
 | Variable | Type | Description |
-|----------|------|-------------|
+| -- | -- | -- |
 | `ATTACK_BONUS` | Number | Attack bonus modifier |
 | `DAMAGE_BONUS` | Number | Damage bonus modifier. Reserved in the table, but live emission is deferred until a side-effect-free calculation is available |
 | `AC` | Number | Armor class |
@@ -60,7 +60,7 @@ not native MSDP receives the same logical values in the case-sensitive `MSDP` GM
 ### Ability Scores (Current)
 
 | Variable | Type | Description |
-|----------|------|-------------|
+| -- | -- | -- |
 | `STR` | Number | Current strength score |
 | `INT` | Number | Current intelligence score |
 | `WIS` | Number | Current wisdom score |
@@ -71,7 +71,7 @@ not native MSDP receives the same logical values in the case-sensitive `MSDP` GM
 ### Ability Scores (Permanent)
 
 | Variable | Type | Description |
-|----------|------|-------------|
+| -- | -- | -- |
 | `STR_PERM` | Number | Permanent strength score |
 | `INT_PERM` | Number | Permanent intelligence score |
 | `WIS_PERM` | Number | Permanent wisdom score |
@@ -82,7 +82,7 @@ not native MSDP receives the same logical values in the case-sensitive `MSDP` GM
 ### Action Economy
 
 | Variable | Type | Description |
-|----------|------|-------------|
+| -- | -- | -- |
 | `ACTIONS` | Table | Available actions data (structured data) |
 | `STANDARD_ACTION` | Boolean | Standard action available (1 = yes, 0 = no) |
 | `MOVE_ACTION` | Boolean | Move action available (1 = yes, 0 = no) |
@@ -91,14 +91,14 @@ not native MSDP receives the same logical values in the case-sensitive `MSDP` GM
 ### Group and Position
 
 | Variable | Type | Description |
-|----------|------|-------------|
+| -- | -- | -- |
 | `GROUP` | Array | Group members data |
 | `POSITION` | String | Current position (standing, sitting, fighting, etc.) |
 
 ### Real-Time Combat Information
 
 | Variable | Type | Description |
-|----------|------|-------------|
+| -- | -- | -- |
 | `OPPONENT_HEALTH` | Number | Current opponent's hit points (as percentage) |
 | `OPPONENT_HEALTH_MAX` | Number | Current opponent's maximum hit points (usually 100) |
 | `OPPONENT_LEVEL` | Number | Current opponent's level |
@@ -110,7 +110,7 @@ not native MSDP receives the same logical values in the case-sensitive `MSDP` GM
 ### World and Environment Information
 
 | Variable | Type | Description |
-|----------|------|-------------|
+| -- | -- | -- |
 | `ROOM` | Table | Complete room information (structured data) |
 | `AREA_NAME` | String | Current area/zone name |
 | `ROOM_EXITS` | Table | Available exits from current room |
@@ -140,7 +140,7 @@ Each room table contains:
 ### Client Configuration and Capabilities
 
 | Variable | Type | Description |
-|----------|------|-------------|
+| -- | -- | -- |
 | `CLIENT_ID` | String | Client software name (configurable by client) |
 | `CLIENT_VERSION` | String | Client version string (configurable by client) |
 | `PLUGIN_ID` | String | Plugin/script identification (configurable by client) |
@@ -157,7 +157,7 @@ These variables are used by compatible GUI clients to display buttons and gauges
 #### Buttons
 
 | Variable | Description |
-|----------|-------------|
+| -- | -- |
 | `BUTTON_1` | GUI button 1 definition (typically Help) |
 | `BUTTON_2` | GUI button 2 definition (typically Look) |
 | `BUTTON_3` | GUI button 3 definition (typically Score) |
@@ -167,7 +167,7 @@ These variables are used by compatible GUI clients to display buttons and gauges
 #### Gauges
 
 | Variable | Description |
-|----------|-------------|
+| -- | -- |
 | `GAUGE_1` | GUI gauge 1 definition (Health - red) |
 | `GAUGE_2` | GUI gauge 2 definition (PSP - blue) |
 | `GAUGE_3` | GUI gauge 3 definition (Movement - green) |
@@ -177,24 +177,31 @@ These variables are used by compatible GUI clients to display buttons and gauges
 ## Data Types
 
 ### String
+
 Client-facing text without LuminariMUD's internal tab-color directives. Examples: character
 name, room name, and class name. Scalar content cannot contain NUL, Telnet IAC, or the six
 reserved MSDP marker bytes.
 
 ### Number
+
 Integer values. Examples: hit points, experience, ability scores.
 
 ### Boolean
+
 Integer values representing true (1) or false (0).
 
 ### Array
+
 A list of values. Example format:
+
 ```
 GROUP "Alice" "Bob" "Charlie"
 ```
 
 ### Table
+
 Structured key-value pairs. Example format:
+
 ```
 ROOM "NAME" "Temple Square" "EXITS" "N" "E" "S" "W" "VNUM" "3001"
 ```

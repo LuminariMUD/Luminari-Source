@@ -70,258 +70,252 @@ def _parse_obj(
     basename: str,
     corpus: RolSourceCorpus,
 ) -> list[RolRecord]:
-  records: list[RolRecord] = []
-  corpus.file_versions[("obj", "legacy")] += 1
-  for start, end, vnum in _segments(source):
-    position = start + 1
-    position, peek = _next_content(source.lines, position, end)
-    if peek is not None and peek.raw.strip().startswith(b"$"):
-      corpus.file_terminators[("obj", "sentinel")] += 1
-      continue
-    record = _new_record(source, basename, "obj", start, end, vnum)
-    position = start + 1
-    strings: list[str | None] = []
-    strings_ok = True
-    for _ in range(3):
-      position, value, ok = _read_tilde(source.lines, position, end)
-      strings.append(value)
-      strings_ok = strings_ok and ok
-    _, action_probe = _next_content(source.lines, position, end)
-    if (
-        action_probe is not None
-        and _numeric_line(action_probe)
-        and len(_integers(action_probe)) >= 3
-    ):
-      strings.append("")
-      _diagnostic(
-          corpus,
-          "ROLOBJ005",
-          "warning",
-          "source object omits its action description; synthesized an empty field",
-          action_probe,
-          "obj",
-          vnum,
-      )
-    else:
-      position, value, ok = _read_tilde(source.lines, position, end)
-      strings.append(value)
-      strings_ok = strings_ok and ok
-    record.identity = strings[1]
-    record.values["strings"] = {
-        "aliases": strings[0],
-        "short_description": strings[1],
-        "description": strings[2],
-        "action_description": strings[3],
-    }
-
-    while position < end:
-      next_position, extension = _next_content(source.lines, position, end)
-      if extension is None or extension.raw.strip() != b"E":
-        break
-      position = next_position
-      position, keyword, first_ok = _read_tilde(source.lines, position, end)
-      position, description, second_ok = _read_tilde(source.lines, position, end)
-      record.directives.append(
-          {
-              "token": "E",
-              "line": extension.number,
-              "keyword": keyword,
-              "description": description,
-          }
-      )
-      if not first_ok or not second_ok:
-        record.directives[-1]["source_disposition"] = "EXCLUDE"
-      _diagnostic(
-          corpus,
-          "ROLOBJ006",
-          "warning",
-          "moved a pre-header extra description after the canonical object base rows",
-          extension,
-          "obj",
-          vnum,
-      )
-
-    rows: list[SourceLine] = []
-    missing_economy = False
-    for token in ("FLAGS", "VALUES", "ECONOMY"):
-      row_position = position
-      position, line = _next_content(source.lines, position, end)
-      if line is None:
-        _exclude_record(
-            corpus,
-            record,
-            "ROLOBJ001",
-            f"source object lacks its {token.lower()} row",
-            source.lines[start],
-        )
-        break
-      if token == "ECONOMY" and line.raw.strip().split()[0] in {b"E", b"A", b"T"}:
-        # Failed source fscanf calls leave the extension marker unread. Keep
-        # the absent economy empty for the existing emitter defaults.
-        position = row_position
-        missing_economy = True
-        _diagnostic(
-            corpus,
-            "ROLOBJ007",
-            "warning",
-            "incomplete source object economy row; preserved the following extension",
-            line,
-            "obj",
-            vnum,
-        )
-      rows.append(line)
-      record.directives.append({
-          "token": token,
-          "line": line.number,
-          "field_count": 0 if missing_economy else len(_integers(line)),
-      })
-    if not strings_ok:
-      _exclude_record(
-          corpus,
-          record,
-          "ROLOBJ002",
-          "source object string block is incomplete",
-          source.lines[start],
-      )
-    affect_words = 0
-    if len(rows) == 3:
-      flags = _integers(rows[0])
-      values = _integers(rows[1])
-      economy = [] if missing_economy else _integers(rows[2])
-      # The three economy fields and the two affect-flag words that follow are
-      # each read with their own fscanf(" %d "), so they are whitespace
-      # delimited rather than line bound. A record that puts an affect word on
-      # the economy line is legal source, and reading the row as five economy
-      # fields both loses the affects and pushes a bitmask into the target's
-      # object level.
-      trailing = economy[SOURCE_ECONOMY_FIELDS:SOURCE_ECONOMY_FIELDS + SOURCE_AFFECT_WORDS]
-      economy = economy[:SOURCE_ECONOMY_FIELDS]
-      if trailing:
-        record.directives.append(
-            {
-                "token": "AFFECT_FLAGS",
-                "line": rows[2].number,
-                "field_count": len(trailing),
-                "word_offset": 0,
-                "arguments": trailing,
-            }
-        )
-        affect_words = len(trailing)
-      record.values.update(
-          {
-              "item_type": flags[0] if flags else None,
-              "flags": flags,
-              "values": values,
-              "economy": economy,
-          }
-      )
-      item_type = flags[0] if flags else None
-      if item_type == 15 and len(values) >= 3:
-        _reference(record, "object", values[2], "container_key", rows[1])
-      elif item_type == 25 and values:
-        _reference(record, "room", values[0], "teleport_destination", rows[1])
-      elif item_type == 27 and len(values) >= 2:
-        _reference(record, "mobile", values[1], "summoned_mobile", rows[1])
-      elif item_type == 29 and len(values) >= 2:
-        _reference(record, "room", values[1], "switch_room", rows[1])
-
-    saw_extension = False
-    while position < end:
-      position, line = _next_content(source.lines, position, end)
-      if line is None:
-        break
-      stripped = line.raw.strip()
-      token = stripped[:1].decode("ascii", errors="replace")
-      if stripped.startswith(b"$"):
-        corpus.file_terminators[("obj", "present")] += 1
-        break
-      if token == "E":
-        saw_extension = True
-        position, keyword, first_ok = _read_tilde(source.lines, position, end)
-        position, description, second_ok = _read_tilde(
-            source.lines, position, end
-        )
-        record.directives.append(
-            {
-                "token": "E",
-                "line": line.number,
-                "keyword": keyword,
-                "description": description,
-            }
-        )
-        if not first_ok or not second_ok:
-          record.directives[-1]["source_disposition"] = "EXCLUDE"
-          _diagnostic(
-              corpus,
-              "ROLOBJ003",
-              "warning",
-              "source object extra-description is incomplete; exclude the extension",
-              line,
-              "obj",
-              vnum,
-          )
-      elif token == "A":
-        saw_extension = True
-        values = _integers(line)
-        position, values, _ = _collect_numeric_lines(
-            source.lines, position, end, values, 2
-        )
-        record.directives.append({"token": "A", "line": line.number, "arguments": values})
-      elif token == "T":
-        saw_extension = True
-        values = _integers(line)
-        position, values, _ = _collect_numeric_lines(
-            source.lines, position, end, values, 6
-        )
-        record.directives.append({"token": "T", "line": line.number, "arguments": values})
-      elif re.fullmatch(br"[+-]?\d+(?:\s+[+-]?\d+)*", stripped):
-        values = _integers(line)
-        if not saw_extension and affect_words < SOURCE_AFFECT_WORDS:
-          # Word 1 carries source affect bits 1..32 and word 2 bits 33..64, in
-          # the order they are read, however the file lays them out across
-          # lines. The offset travels with the row so a consumer never has to
-          # infer it from the row's own position.
-          taken = values[: SOURCE_AFFECT_WORDS - affect_words]
-          record.directives.append(
-              {
-                  "token": "AFFECT_FLAGS",
-                  "line": line.number,
-                  "field_count": len(taken),
-                  "word_offset": affect_words,
-                  "arguments": taken,
-              }
-          )
-          affect_words += len(taken)
+    records: list[RolRecord] = []
+    corpus.file_versions[("obj", "legacy")] += 1
+    for start, end, vnum in _segments(source):
+        position = start + 1
+        position, peek = _next_content(source.lines, position, end)
+        if peek is not None and peek.raw.strip().startswith(b"$"):
+            corpus.file_terminators[("obj", "sentinel")] += 1
+            continue
+        record = _new_record(source, basename, "obj", start, end, vnum)
+        position = start + 1
+        strings: list[str | None] = []
+        strings_ok = True
+        for _ in range(3):
+            position, value, ok = _read_tilde(source.lines, position, end)
+            strings.append(value)
+            strings_ok = strings_ok and ok
+        _, action_probe = _next_content(source.lines, position, end)
+        if (
+            action_probe is not None
+            and _numeric_line(action_probe)
+            and len(_integers(action_probe)) >= 3
+        ):
+            strings.append("")
+            _diagnostic(
+                corpus,
+                "ROLOBJ005",
+                "warning",
+                "source object omits its action description; synthesized an empty field",
+                action_probe,
+                "obj",
+                vnum,
+            )
         else:
-          saw_extension = True
-          record.directives.append(
-              {"token": "IGNORED_SOURCE_CONTENT", "line": line.number}
-          )
-          _diagnostic(
-              corpus,
-              "ROLOBJ004",
-              "warning",
-              "source object loader ignores numeric content after extensions",
-              line,
-              "obj",
-              vnum,
-          )
-      else:
-        saw_extension = True
-        record.directives.append(
-            {"token": "IGNORED_SOURCE_CONTENT", "line": line.number}
-        )
-        _diagnostic(
-            corpus,
-            "ROLOBJ004",
-            "warning",
-            "source object loader ignores unrecognized trailing content",
-            line,
-            "obj",
-            vnum,
-        )
-    records.append(record)
-  return records
+            position, value, ok = _read_tilde(source.lines, position, end)
+            strings.append(value)
+            strings_ok = strings_ok and ok
+        record.identity = strings[1]
+        record.values["strings"] = {
+            "aliases": strings[0],
+            "short_description": strings[1],
+            "description": strings[2],
+            "action_description": strings[3],
+        }
+
+        while position < end:
+            next_position, extension = _next_content(source.lines, position, end)
+            if extension is None or extension.raw.strip() != b"E":
+                break
+            position = next_position
+            position, keyword, first_ok = _read_tilde(source.lines, position, end)
+            position, description, second_ok = _read_tilde(source.lines, position, end)
+            record.directives.append(
+                {
+                    "token": "E",
+                    "line": extension.number,
+                    "keyword": keyword,
+                    "description": description,
+                }
+            )
+            if not first_ok or not second_ok:
+                record.directives[-1]["source_disposition"] = "EXCLUDE"
+            _diagnostic(
+                corpus,
+                "ROLOBJ006",
+                "warning",
+                "moved a pre-header extra description after the canonical object base rows",
+                extension,
+                "obj",
+                vnum,
+            )
+
+        rows: list[SourceLine] = []
+        missing_economy = False
+        for token in ("FLAGS", "VALUES", "ECONOMY"):
+            row_position = position
+            position, line = _next_content(source.lines, position, end)
+            if line is None:
+                _exclude_record(
+                    corpus,
+                    record,
+                    "ROLOBJ001",
+                    f"source object lacks its {token.lower()} row",
+                    source.lines[start],
+                )
+                break
+            if token == "ECONOMY" and line.raw.strip().split()[0] in {b"E", b"A", b"T"}:
+                # Failed source fscanf calls leave the extension marker unread. Keep
+                # the absent economy empty for the existing emitter defaults.
+                position = row_position
+                missing_economy = True
+                _diagnostic(
+                    corpus,
+                    "ROLOBJ007",
+                    "warning",
+                    "incomplete source object economy row; preserved the following extension",
+                    line,
+                    "obj",
+                    vnum,
+                )
+            rows.append(line)
+            record.directives.append(
+                {
+                    "token": token,
+                    "line": line.number,
+                    "field_count": 0 if missing_economy else len(_integers(line)),
+                }
+            )
+        if not strings_ok:
+            _exclude_record(
+                corpus,
+                record,
+                "ROLOBJ002",
+                "source object string block is incomplete",
+                source.lines[start],
+            )
+        affect_words = 0
+        if len(rows) == 3:
+            flags = _integers(rows[0])
+            values = _integers(rows[1])
+            economy = [] if missing_economy else _integers(rows[2])
+            # The three economy fields and the two affect-flag words that follow are
+            # each read with their own fscanf(" %d "), so they are whitespace
+            # delimited rather than line bound. A record that puts an affect word on
+            # the economy line is legal source, and reading the row as five economy
+            # fields both loses the affects and pushes a bitmask into the target's
+            # object level.
+            trailing = economy[SOURCE_ECONOMY_FIELDS : SOURCE_ECONOMY_FIELDS + SOURCE_AFFECT_WORDS]
+            economy = economy[:SOURCE_ECONOMY_FIELDS]
+            if trailing:
+                record.directives.append(
+                    {
+                        "token": "AFFECT_FLAGS",
+                        "line": rows[2].number,
+                        "field_count": len(trailing),
+                        "word_offset": 0,
+                        "arguments": trailing,
+                    }
+                )
+                affect_words = len(trailing)
+            record.values.update(
+                {
+                    "item_type": flags[0] if flags else None,
+                    "flags": flags,
+                    "values": values,
+                    "economy": economy,
+                }
+            )
+            item_type = flags[0] if flags else None
+            if item_type == 15 and len(values) >= 3:
+                _reference(record, "object", values[2], "container_key", rows[1])
+            elif item_type == 25 and values:
+                _reference(record, "room", values[0], "teleport_destination", rows[1])
+            elif item_type == 27 and len(values) >= 2:
+                _reference(record, "mobile", values[1], "summoned_mobile", rows[1])
+            elif item_type == 29 and len(values) >= 2:
+                _reference(record, "room", values[1], "switch_room", rows[1])
+
+        saw_extension = False
+        while position < end:
+            position, line = _next_content(source.lines, position, end)
+            if line is None:
+                break
+            stripped = line.raw.strip()
+            token = stripped[:1].decode("ascii", errors="replace")
+            if stripped.startswith(b"$"):
+                corpus.file_terminators[("obj", "present")] += 1
+                break
+            if token == "E":
+                saw_extension = True
+                position, keyword, first_ok = _read_tilde(source.lines, position, end)
+                position, description, second_ok = _read_tilde(source.lines, position, end)
+                record.directives.append(
+                    {
+                        "token": "E",
+                        "line": line.number,
+                        "keyword": keyword,
+                        "description": description,
+                    }
+                )
+                if not first_ok or not second_ok:
+                    record.directives[-1]["source_disposition"] = "EXCLUDE"
+                    _diagnostic(
+                        corpus,
+                        "ROLOBJ003",
+                        "warning",
+                        "source object extra-description is incomplete; exclude the extension",
+                        line,
+                        "obj",
+                        vnum,
+                    )
+            elif token == "A":
+                saw_extension = True
+                values = _integers(line)
+                position, values, _ = _collect_numeric_lines(source.lines, position, end, values, 2)
+                record.directives.append({"token": "A", "line": line.number, "arguments": values})
+            elif token == "T":
+                saw_extension = True
+                values = _integers(line)
+                position, values, _ = _collect_numeric_lines(source.lines, position, end, values, 6)
+                record.directives.append({"token": "T", "line": line.number, "arguments": values})
+            elif re.fullmatch(rb"[+-]?\d+(?:\s+[+-]?\d+)*", stripped):
+                values = _integers(line)
+                if not saw_extension and affect_words < SOURCE_AFFECT_WORDS:
+                    # Word 1 carries source affect bits 1..32 and word 2 bits 33..64, in
+                    # the order they are read, however the file lays them out across
+                    # lines. The offset travels with the row so a consumer never has to
+                    # infer it from the row's own position.
+                    taken = values[: SOURCE_AFFECT_WORDS - affect_words]
+                    record.directives.append(
+                        {
+                            "token": "AFFECT_FLAGS",
+                            "line": line.number,
+                            "field_count": len(taken),
+                            "word_offset": affect_words,
+                            "arguments": taken,
+                        }
+                    )
+                    affect_words += len(taken)
+                else:
+                    saw_extension = True
+                    record.directives.append(
+                        {"token": "IGNORED_SOURCE_CONTENT", "line": line.number}
+                    )
+                    _diagnostic(
+                        corpus,
+                        "ROLOBJ004",
+                        "warning",
+                        "source object loader ignores numeric content after extensions",
+                        line,
+                        "obj",
+                        vnum,
+                    )
+            else:
+                saw_extension = True
+                record.directives.append({"token": "IGNORED_SOURCE_CONTENT", "line": line.number})
+                _diagnostic(
+                    corpus,
+                    "ROLOBJ004",
+                    "warning",
+                    "source object loader ignores unrecognized trailing content",
+                    line,
+                    "obj",
+                    vnum,
+                )
+        records.append(record)
+    return records
 
 
 _TARGET_MAGIC_ITEM_TYPES = frozenset({2, 3, 4, 10})
@@ -356,12 +350,12 @@ _SOURCE_INSTRUMENT_MAXIMUM_LEVEL = 45
 
 
 SOURCE_INSTRUMENT_SUBTYPE_MAP = {
-    184: 1, # FLUTE
-    185: 0, # LYRE
-    186: 5, # MANDOLIN
-    187: 4, # HARP
-    188: 3, # DRUMS -> DRUM
-    189: 2, # HORN
+    184: 1,  # FLUTE
+    185: 0,  # LYRE
+    186: 5,  # MANDOLIN
+    187: 4,  # HARP
+    188: 3,  # DRUMS -> DRUM
+    189: 2,  # HORN
 }
 
 
@@ -388,11 +382,11 @@ _TARGET_INSTRUMENT_NAME_MAP = {
 
 _SOURCE_LIQUID_MAP = {
     23: 2,  # champagne -> wine
-    24: 16, # Pepsi -> juice
-    25: 13, # unholy water -> blood
+    24: 16,  # Pepsi -> juice
+    25: 13,  # unholy water -> blood
     26: 2,  # sake -> wine
-    27: 21, # curative liquid -> herbal remedy
-    28: 10, # eggnog -> milk
+    27: 21,  # curative liquid -> herbal remedy
+    28: 10,  # eggnog -> milk
 }
 
 
@@ -791,7 +785,7 @@ OBJECT_TYPE_MAP = {
     38: 12,
     39: 42,
     40: 12,
-    8388672: 12, # malformed object 34864 shifted its extra flags into item type
+    8388672: 12,  # malformed object 34864 shifted its extra flags into item type
 }
 
 
@@ -980,17 +974,17 @@ OBJECT_APPLY_DEFAULT_BONUS_TYPE = 23
 # through. Source 0 and anything above 11 is rejected by the source runtime as
 # well; those fall back to the target's "hit" verb.
 SOURCE_WEAPON_MESSAGE_MAP = {
-    1: 2,   # Whip -> whip
-    2: 2,   # Whip -> whip
-    3: 3,   # Slash -> slash
-    4: 6,   # Crush -> crush
-    5: 6,   # Crush -> crush
-    6: 6,   # Crush -> crush
-    7: 5,   # Bludgeon -> bludgeon
-    8: 8,   # Claw -> claw
-    9: 8,   # Claw -> claw
+    1: 2,  # Whip -> whip
+    2: 2,  # Whip -> whip
+    3: 3,  # Slash -> slash
+    4: 6,  # Crush -> crush
+    5: 6,  # Crush -> crush
+    6: 6,  # Crush -> crush
+    7: 5,  # Bludgeon -> bludgeon
+    8: 8,  # Claw -> claw
+    9: 8,  # Claw -> claw
     10: 4,  # Bite -> bite
-    11: 11, # Pierce -> pierce
+    11: 11,  # Pierce -> pierce
 }
 
 
@@ -1043,41 +1037,41 @@ TARGET_MAX_ENHANCEMENT_BONUS = 10
 def classify_source_tail_objects(
     records: Iterable[RolRecord],
 ) -> tuple[frozenset[int], frozenset[int]]:
-  """Return source VNUMs for dedicated tail gear and tail-capable rings."""
+    """Return source VNUMs for dedicated tail gear and tail-capable rings."""
 
-  dedicated: set[int] = set()
-  rings: set[int] = set()
-  for record in records:
-    if record.kind != "obj":
-      continue
-    source_flags = record.values.get("flags", [])
-    wear_mask = source_flags[2] if len(source_flags) > 2 else 0
-    source_wear = _source_mask_bits(wear_mask, 0)
-    if SOURCE_WEAR_TAIL not in source_wear:
-      continue
-    if SOURCE_WEAR_FINGER in source_wear:
-      rings.add(record.vnum)
-    else:
-      dedicated.add(record.vnum)
-  return frozenset(dedicated), frozenset(rings)
+    dedicated: set[int] = set()
+    rings: set[int] = set()
+    for record in records:
+        if record.kind != "obj":
+            continue
+        source_flags = record.values.get("flags", [])
+        wear_mask = source_flags[2] if len(source_flags) > 2 else 0
+        source_wear = _source_mask_bits(wear_mask, 0)
+        if SOURCE_WEAR_TAIL not in source_wear:
+            continue
+        if SOURCE_WEAR_FINGER in source_wear:
+            rings.add(record.vnum)
+        else:
+            dedicated.add(record.vnum)
+    return frozenset(dedicated), frozenset(rings)
 
 
 def _convert_armor_apply_modifier(modifier: int) -> int:
-  """Restate a source ARMOR apply as a target APPLY_AC_NEW modifier.
+    """Restate a source ARMOR apply as a target APPLY_AC_NEW modifier.
 
-  The source scale is descending and ten times the target scale, so the sign is
-  inverted and the magnitude is divided by ten. Any non-zero source modifier
-  keeps at least one point of effect in its converted direction, because the
-  source author expressed a deliberate armour-class change.
-  """
-  if not modifier:
-    return 0
-  magnitude = max(1, abs(modifier) // 10)
-  return -magnitude if modifier > 0 else magnitude
+    The source scale is descending and ten times the target scale, so the sign is
+    inverted and the magnitude is divided by ten. Any non-zero source modifier
+    keeps at least one point of effect in its converted direction, because the
+    source author expressed a deliberate armour-class change.
+    """
+    if not modifier:
+        return 0
+    magnitude = max(1, abs(modifier) // 10)
+    return -magnitude if modifier > 0 else magnitude
 
 
 def _unmapped(source_bits: set[int], mapping: dict[int, int]) -> list[int]:
-  return sorted(source_bits - mapping.keys())
+    return sorted(source_bits - mapping.keys())
 
 
 def _object_trap_values(
@@ -1085,159 +1079,148 @@ def _object_trap_values(
     values: list[int],
     diagnostics: list[str],
 ) -> tuple[int, int, int, int, int, int] | None:
-  """Validate and normalize the source object's optional six-field trap payload."""
+    """Validate and normalize the source object's optional six-field trap payload."""
 
-  valid_rows: list[tuple[dict[str, object], list[int]]] = []
-  for directive in _directive_rows(record, "T"):
-    arguments = [int(value) for value in directive.get("arguments", [])]
-    if len(arguments) != 6:
-      diagnostics.append(
-          "excluded inactive/malformed source object trap at source line "
-          f"{directive['line']} ({len(arguments)} of 6 fields)"
-      )
-      continue
-    valid_rows.append((directive, arguments))
+    valid_rows: list[tuple[dict[str, object], list[int]]] = []
+    for directive in _directive_rows(record, "T"):
+        arguments = [int(value) for value in directive.get("arguments", [])]
+        if len(arguments) != 6:
+            diagnostics.append(
+                "excluded inactive/malformed source object trap at source line "
+                f"{directive['line']} ({len(arguments)} of 6 fields)"
+            )
+            continue
+        valid_rows.append((directive, arguments))
 
-  if not valid_rows:
-    return None
-  if len(valid_rows) > 1:
-    lines = [int(directive["line"]) for directive, _ in valid_rows]
-    raise ValueError(f"source object has multiple active trap rows at lines {lines}")
-  if any(values[ROL_OBJECT_TRAP_VALUE_OFFSET:ROL_OBJECT_TRAP_VALUE_OFFSET + 6]):
-    raise ValueError("source object trap conflicts with occupied target values 10..15")
+    if not valid_rows:
+        return None
+    if len(valid_rows) > 1:
+        lines = [int(directive["line"]) for directive, _ in valid_rows]
+        raise ValueError(f"source object has multiple active trap rows at lines {lines}")
+    if any(values[ROL_OBJECT_TRAP_VALUE_OFFSET : ROL_OBJECT_TRAP_VALUE_OFFSET + 6]):
+        raise ValueError("source object trap conflicts with occupied target values 10..15")
 
-  directive, arguments = valid_rows[0]
-  effect, damage_type, charges, level, dice_count, dice_size = arguments
-  if effect <= 0 or effect & ~ROL_OBJECT_TRAP_EFFECT_MASK:
-    raise ValueError(
-        f"source object trap at line {directive['line']} has invalid effect mask {effect}"
-    )
-  if damage_type not in ROL_OBJECT_TRAP_DAMAGE_TYPES:
-    raise ValueError(
-        f"source object trap at line {directive['line']} has invalid damage type {damage_type}"
-    )
-  if charges < -1:
+    directive, arguments = valid_rows[0]
+    effect, damage_type, charges, level, dice_count, dice_size = arguments
+    if effect <= 0 or effect & ~ROL_OBJECT_TRAP_EFFECT_MASK:
+        raise ValueError(
+            f"source object trap at line {directive['line']} has invalid effect mask {effect}"
+        )
+    if damage_type not in ROL_OBJECT_TRAP_DAMAGE_TYPES:
+        raise ValueError(
+            f"source object trap at line {directive['line']} has invalid damage type {damage_type}"
+        )
+    if charges < -1:
+        diagnostics.append(
+            f"normalized source object trap charges {charges} to unlimited (-1) at source line "
+            f"{directive['line']}"
+        )
+        charges = -1
+    if charges > 32767:
+        raise ValueError(
+            f"source object trap at line {directive['line']} has out-of-range charges {charges}"
+        )
+    if level < 0:
+        raise ValueError(
+            f"source object trap at line {directive['line']} has negative level {level}"
+        )
+    if level > 100:
+        diagnostics.append(
+            f"capped source object trap level {level} at 100 at source line {directive['line']}"
+        )
+        level = 100
+    if dice_count < 0 or dice_size < 0 or dice_count > 32767 or dice_size > 32767:
+        raise ValueError(
+            f"source object trap at line {directive['line']} has invalid dice "
+            f"{dice_count}d{dice_size}"
+        )
+    if bool(dice_count) != bool(dice_size):
+        diagnostics.append(
+            f"normalized incomplete source object trap dice {dice_count}d{dice_size} to the "
+            f"level-derived default at source line {directive['line']}"
+        )
+        dice_count = 0
+        dice_size = 0
+
     diagnostics.append(
-        f"normalized source object trap charges {charges} to unlimited (-1) at source line "
-        f"{directive['line']}"
+        f"converted source object trap at line {directive['line']} into ITEM_TRAPPED values 10..15"
     )
-    charges = -1
-  if charges > 32767:
-    raise ValueError(
-        f"source object trap at line {directive['line']} has out-of-range charges {charges}"
+    return effect, damage_type, charges, level, dice_count, dice_size
+
+
+def _instrument_subtype(record: RolRecord, source_subtype: int, diagnostics: list[str]) -> int:
+    target_subtype = SOURCE_INSTRUMENT_SUBTYPE_MAP.get(source_subtype)
+    if target_subtype is not None:
+        diagnostics.append(
+            f"mapped source instrument subtype {source_subtype} to target subtype "
+            f"{target_subtype} ({_TARGET_INSTRUMENT_SUBTYPE_NAMES[target_subtype]})"
+        )
+        return target_subtype
+
+    strings = record.values.get("strings", {})
+    identity = normalize_identity(
+        " ".join(
+            str(strings.get(key) or "") for key in ("aliases", "short_description", "description")
+        )
     )
-  if level < 0:
-    raise ValueError(
-        f"source object trap at line {directive['line']} has negative level {level}"
-    )
-  if level > 100:
+    words = set(identity.split())
+    for name, inferred_subtype in _TARGET_INSTRUMENT_NAME_MAP.items():
+        if name not in words:
+            continue
+        diagnostics.append(
+            f"inferred target instrument subtype {inferred_subtype} "
+            f"({_TARGET_INSTRUMENT_SUBTYPE_NAMES[inferred_subtype]}) from source object "
+            f"identity for unsupported source subtype {source_subtype}"
+        )
+        return inferred_subtype
+
     diagnostics.append(
-        f"capped source object trap level {level} at 100 at source line {directive['line']}"
+        f"defaulted unsupported source instrument subtype {source_subtype} to target "
+        "subtype 0 (Lyre); source object identity has no recognized instrument name"
     )
-    level = 100
-  if dice_count < 0 or dice_size < 0 or dice_count > 32767 or dice_size > 32767:
-    raise ValueError(
-        f"source object trap at line {directive['line']} has invalid dice "
-        f"{dice_count}d{dice_size}"
+    return 0
+
+
+def _instrument_values(record: RolRecord, values: list[int], diagnostics: list[str]) -> list[int]:
+    """Translate the active RoL NEW_BARD value contract to target instruments."""
+
+    source_subtype, source_quality, source_effectiveness, source_minimum_level = values[:4]
+    target_subtype = _instrument_subtype(record, source_subtype, diagnostics)
+    target_quality = max(0, min(source_quality, _TARGET_INSTRUMENT_MAX_DIFFICULTY_REDUCTION))
+    target_effectiveness = max(0, min(source_effectiveness, _TARGET_INSTRUMENT_MAX_EFFECTIVENESS))
+    bounded_source_level = max(1, min(source_minimum_level, _SOURCE_INSTRUMENT_MAXIMUM_LEVEL))
+    target_breakability = _TARGET_INSTRUMENT_DEFAULT_BREAKABILITY - (
+        bounded_source_level
+        * _TARGET_INSTRUMENT_DEFAULT_BREAKABILITY
+        // _SOURCE_INSTRUMENT_MAXIMUM_LEVEL
     )
-  if bool(dice_count) != bool(dice_size):
+
+    if target_quality != source_quality:
+        diagnostics.append(
+            f"bounded source instrument quality {source_quality} to target difficulty "
+            f"maximum {_TARGET_INSTRUMENT_MAX_DIFFICULTY_REDUCTION}"
+        )
+    if target_effectiveness != source_effectiveness:
+        diagnostics.append(
+            f"bounded source instrument effectiveness {source_effectiveness} to "
+            f"target maximum {_TARGET_INSTRUMENT_MAX_EFFECTIVENESS}"
+        )
+    if bounded_source_level != source_minimum_level:
+        diagnostics.append(
+            f"bounded source instrument minimum-use level {source_minimum_level} to "
+            f"{bounded_source_level}"
+        )
     diagnostics.append(
-        f"normalized incomplete source object trap dice {dice_count}d{dice_size} to the "
-        f"level-derived default at source line {directive['line']}"
+        f"mapped source instrument minimum-use level {bounded_source_level} to target "
+        f"breakability {target_breakability}"
     )
-    dice_count = 0
-    dice_size = 0
 
-  diagnostics.append(
-      f"converted source object trap at line {directive['line']} into ITEM_TRAPPED values 10..15"
-  )
-  return effect, damage_type, charges, level, dice_count, dice_size
-
-
-def _instrument_subtype(
-    record: RolRecord, source_subtype: int, diagnostics: list[str]
-) -> int:
-  target_subtype = SOURCE_INSTRUMENT_SUBTYPE_MAP.get(source_subtype)
-  if target_subtype is not None:
-    diagnostics.append(
-        f"mapped source instrument subtype {source_subtype} to target subtype "
-        f"{target_subtype} ({_TARGET_INSTRUMENT_SUBTYPE_NAMES[target_subtype]})"
-    )
-    return target_subtype
-
-  strings = record.values.get("strings", {})
-  identity = normalize_identity(
-      " ".join(
-          str(strings.get(key) or "")
-          for key in ("aliases", "short_description", "description")
-      )
-  )
-  words = set(identity.split())
-  for name, inferred_subtype in _TARGET_INSTRUMENT_NAME_MAP.items():
-    if name not in words:
-      continue
-    diagnostics.append(
-        f"inferred target instrument subtype {inferred_subtype} "
-        f"({_TARGET_INSTRUMENT_SUBTYPE_NAMES[inferred_subtype]}) from source object "
-        f"identity for unsupported source subtype {source_subtype}"
-    )
-    return inferred_subtype
-
-  diagnostics.append(
-      f"defaulted unsupported source instrument subtype {source_subtype} to target "
-      "subtype 0 (Lyre); source object identity has no recognized instrument name"
-  )
-  return 0
-
-
-def _instrument_values(
-    record: RolRecord, values: list[int], diagnostics: list[str]
-) -> list[int]:
-  """Translate the active RoL NEW_BARD value contract to target instruments."""
-
-  source_subtype, source_quality, source_effectiveness, source_minimum_level = values[:4]
-  target_subtype = _instrument_subtype(record, source_subtype, diagnostics)
-  target_quality = max(
-      0, min(source_quality, _TARGET_INSTRUMENT_MAX_DIFFICULTY_REDUCTION)
-  )
-  target_effectiveness = max(
-      0, min(source_effectiveness, _TARGET_INSTRUMENT_MAX_EFFECTIVENESS)
-  )
-  bounded_source_level = max(
-      1, min(source_minimum_level, _SOURCE_INSTRUMENT_MAXIMUM_LEVEL)
-  )
-  target_breakability = _TARGET_INSTRUMENT_DEFAULT_BREAKABILITY - (
-      bounded_source_level
-      * _TARGET_INSTRUMENT_DEFAULT_BREAKABILITY
-      // _SOURCE_INSTRUMENT_MAXIMUM_LEVEL
-  )
-
-  if target_quality != source_quality:
-    diagnostics.append(
-        f"bounded source instrument quality {source_quality} to target difficulty "
-        f"maximum {_TARGET_INSTRUMENT_MAX_DIFFICULTY_REDUCTION}"
-    )
-  if target_effectiveness != source_effectiveness:
-    diagnostics.append(
-        f"bounded source instrument effectiveness {source_effectiveness} to "
-        f"target maximum {_TARGET_INSTRUMENT_MAX_EFFECTIVENESS}"
-    )
-  if bounded_source_level != source_minimum_level:
-    diagnostics.append(
-        f"bounded source instrument minimum-use level {source_minimum_level} to "
-        f"{bounded_source_level}"
-    )
-  diagnostics.append(
-      f"mapped source instrument minimum-use level {bounded_source_level} to target "
-      f"breakability {target_breakability}"
-  )
-
-  return [
-      target_subtype,
-      target_quality,
-      target_effectiveness,
-      target_breakability,
-  ] + values[4:]
+    return [
+        target_subtype,
+        target_quality,
+        target_effectiveness,
+        target_breakability,
+    ] + values[4:]
 
 
 def _object_values(
@@ -1247,160 +1230,160 @@ def _object_values(
     resolve: IdentityResolver,
     diagnostics: list[str],
 ) -> list[int]:
-  values = list(record.values.get("values", []))
-  values = (values + [0] * 16)[:16]
-  if source_type == SOURCE_ITEM_TYPE_INSTRUMENT:
-    values = _instrument_values(record, values, diagnostics)
-  if source_type == SOURCE_ITEM_TYPE_SPELLBOOK:
-    language, class_id, total_pages, used_pages = values[:4]
-    if any((language, class_id, total_pages, used_pages)):
-      diagnostics.append(
-          "omitted source-only spellbook bookkeeping "
-          f"language {language}, class {class_id}, total pages {total_pages}, "
-          f"used pages {used_pages}; no authored spells; approved metadata loss"
-      )
-    values[:4] = [0, 0, 0, 0]
-  if source_type == SOURCE_ITEM_TYPE_WORN:
-    # The source runtime names only warmth and prestige for ITEM_WORN. Its
-    # value[0] is never read, while the target treats a nonzero value[0] on
-    # hand-worn gear as a monk-glove enhancement. Clear the source-inert slot
-    # so a malformed/future record cannot acquire that unrelated mechanic.
-    if values[0]:
-      diagnostics.append(
-          f"omitted source-inert worn value[0] {values[0]}; the target slot is "
-          "a monk-glove enhancement"
-      )
-    values[0] = 0
-    for slot, name in ((1, "warmth"), (2, "prestige")):
-      if values[slot]:
+    values = list(record.values.get("values", []))
+    values = (values + [0] * 16)[:16]
+    if source_type == SOURCE_ITEM_TYPE_INSTRUMENT:
+        values = _instrument_values(record, values, diagnostics)
+    if source_type == SOURCE_ITEM_TYPE_SPELLBOOK:
+        language, class_id, total_pages, used_pages = values[:4]
+        if any((language, class_id, total_pages, used_pages)):
+            diagnostics.append(
+                "omitted source-only spellbook bookkeeping "
+                f"language {language}, class {class_id}, total pages {total_pages}, "
+                f"used pages {used_pages}; no authored spells; approved metadata loss"
+            )
+        values[:4] = [0, 0, 0, 0]
+    if source_type == SOURCE_ITEM_TYPE_WORN:
+        # The source runtime names only warmth and prestige for ITEM_WORN. Its
+        # value[0] is never read, while the target treats a nonzero value[0] on
+        # hand-worn gear as a monk-glove enhancement. Clear the source-inert slot
+        # so a malformed/future record cannot acquire that unrelated mechanic.
+        if values[0]:
+            diagnostics.append(
+                f"omitted source-inert worn value[0] {values[0]}; the target slot is "
+                "a monk-glove enhancement"
+            )
+        values[0] = 0
+        for slot, name in ((1, "warmth"), (2, "prestige")):
+            if values[slot]:
+                diagnostics.append(
+                    f"omitted source-only worn {name} {values[slot]}; approved metadata loss"
+                )
+            values[slot] = 0
+        source_values = (list(record.values.get("values", [])) + [0] * 4)[:4]
+        equipment_rating = source_values[1] * source_values[2]
+        if equipment_rating:
+            diagnostics.append(
+                f"omitted source NPC equipment-ranking product {equipment_rating} "
+                "from worn warmth times prestige; source RateObject scales this product "
+                "by character class; not player prestige or cold resistance; approved "
+                "metadata loss"
+            )
+    if target_type in {17, 23} and not 0 <= values[2] <= _TARGET_MAX_LIQUID:
+        source_liquid = values[2]
+        values[2] = _SOURCE_LIQUID_MAP.get(source_liquid, 0)
         diagnostics.append(
-            f"omitted source-only worn {name} {values[slot]}; approved metadata loss"
+            f"mapped unsupported source liquid {source_liquid} to target liquid {values[2]}"
         )
-      values[slot] = 0
-    source_values = (list(record.values.get("values", [])) + [0] * 4)[:4]
-    equipment_rating = source_values[1] * source_values[2]
-    if equipment_rating:
-      diagnostics.append(
-          f"omitted source NPC equipment-ranking product {equipment_rating} "
-          "from worn warmth times prestige; source RateObject scales this product "
-          "by character class; not player prestige or cold resistance; approved "
-          "metadata loss"
-      )
-  if target_type in {17, 23} and not 0 <= values[2] <= _TARGET_MAX_LIQUID:
-    source_liquid = values[2]
-    values[2] = _SOURCE_LIQUID_MAP.get(source_liquid, 0)
-    diagnostics.append(
-        f"mapped unsupported source liquid {source_liquid} to target liquid {values[2]}"
-    )
-  if target_type in _TARGET_MAGIC_ITEM_TYPES and values[0] > _TARGET_MAX_OBJECT_SPELL_LEVEL:
-    diagnostics.append(
-        f"capped source magic-item spell level {values[0]} at target maximum "
-        f"{_TARGET_MAX_OBJECT_SPELL_LEVEL}"
-    )
-    values[0] = _TARGET_MAX_OBJECT_SPELL_LEVEL
-  if source_type in {2, 10}:
-    spell_slots = (1, 2, 3)
-  elif source_type in {3, 4}:
-    spell_slots = (3,)
-  else:
-    spell_slots = ()
-  for slot in spell_slots:
-    source_spell = values[slot]
-    if source_spell <= 0:
-      continue
-    non_castable_name = _NON_CASTABLE_SOURCE_SPELLS.get(source_spell)
-    if non_castable_name is not None:
-      raise ValueError(
-          f"non-castable source spell ID {source_spell} ({non_castable_name}) "
-          f"in magic-item slot {slot} for source object {record.vnum}"
-      )
-    mapped = _SOURCE_SPELL_MAP.get(source_spell)
-    if mapped is None:
-      raise ValueError(
-          f"unmapped positive source spell {source_spell} in magic-item slot {slot} "
-          f"for source object {record.vnum}"
-      )
-    spell_name, target_spell = mapped
-    if target_spell <= 0:
-      raise ValueError(
-          f"invalid non-positive target spell {target_spell} for source spell "
-          f"{source_spell} ({spell_name})"
-      )
-    values[slot] = target_spell
-    diagnostics.append(
-        f"mapped source spell {source_spell} ({spell_name}) to target spell "
-        f"{target_spell} in magic-item slot {slot}"
-    )
-  if source_type in {5, SOURCE_ITEM_TYPE_FIREWEAPON}:
-    source_message = values[3]
-    target_message = SOURCE_WEAPON_MESSAGE_MAP.get(source_message)
-    if target_message is None:
-      values[3] = 0
-      diagnostics.append(
-          f"replaced out-of-range source weapon damage message {source_message} "
-          "with the target default"
-      )
-    elif target_message != source_message:
-      values[3] = target_message
-      diagnostics.append(
-          f"mapped source weapon damage message {source_message} to target "
-          f"message {target_message}"
-      )
-  if target_type in {3, 4} and values[2] > values[1]:
-    source_maximum = values[1]
-    values[1] = values[2]
-    diagnostics.append(
-        f"raised source wand/staff maximum charges {source_maximum} to current "
-        f"charges {values[2]} for the target runtime"
-    )
-  if source_type in {15, SOURCE_ITEM_TYPE_QUIVER} and values[2] > 0:
-    # Source quivers carry the container value layout, key vnum included, and
-    # convert to an ammo pouch or a container -- both of which read value[2] as
-    # a key vnum in the target.
-    source_key = values[2]
-    try:
-      values[2] = resolve("obj", source_key)
-    except (KeyError, ValueError) as error:
-      values[2] = -1
-      diagnostics.append(f"removed unresolved container key {source_key}: {error}")
-  elif source_type == 25:
-    source_destination = values[0]
-    try:
-      destination = resolve("wld", source_destination) if source_destination > 0 else 0
-    except (KeyError, ValueError) as error:
-      destination = 0
-      diagnostics.append(
-          f"disabled portal with unresolved room {source_destination}: {error}"
-      )
-    values = [0, destination, destination, 0] + [0] * 12
-  elif source_type == 27 and values[1] > 0:
-    source_mobile = values[1]
-    try:
-      values[1] = resolve("mob", source_mobile)
-    except (KeyError, ValueError) as error:
-      values[1] = 0
-      diagnostics.append(
-          f"disabled summon reference to unresolved mobile {source_mobile}: {error}"
-      )
-  elif source_type == 29 and values[1] > 0:
-    source_destination = values[1]
-    try:
-      values[1] = resolve("wld", source_destination)
-    except (KeyError, ValueError) as error:
-      values[1] = 0
-      diagnostics.append(
-          f"disabled vehicle destination to unresolved room {source_destination}: {error}"
-      )
-  if target_type in {TARGET_ITEM_CONTAINER, TARGET_ITEM_AMMO_POUCH} and values[2] == 65535:
-    values[2] = -1
-  if source_type == SOURCE_ITEM_TYPE_QUIVER and values[3]:
-    # The source quiver kind has been consumed by the item-type decision. The
-    # target slot is the corpse flag (IS_CORPSE, src/core/utils.h:1983).
-    diagnostics.append(
-        f"zeroed source quiver kind {values[3]}; the target slot is the corpse flag"
-    )
-    values[3] = 0
-  return values
+    if target_type in _TARGET_MAGIC_ITEM_TYPES and values[0] > _TARGET_MAX_OBJECT_SPELL_LEVEL:
+        diagnostics.append(
+            f"capped source magic-item spell level {values[0]} at target maximum "
+            f"{_TARGET_MAX_OBJECT_SPELL_LEVEL}"
+        )
+        values[0] = _TARGET_MAX_OBJECT_SPELL_LEVEL
+    if source_type in {2, 10}:
+        spell_slots = (1, 2, 3)
+    elif source_type in {3, 4}:
+        spell_slots = (3,)
+    else:
+        spell_slots = ()
+    for slot in spell_slots:
+        source_spell = values[slot]
+        if source_spell <= 0:
+            continue
+        non_castable_name = _NON_CASTABLE_SOURCE_SPELLS.get(source_spell)
+        if non_castable_name is not None:
+            raise ValueError(
+                f"non-castable source spell ID {source_spell} ({non_castable_name}) "
+                f"in magic-item slot {slot} for source object {record.vnum}"
+            )
+        mapped = _SOURCE_SPELL_MAP.get(source_spell)
+        if mapped is None:
+            raise ValueError(
+                f"unmapped positive source spell {source_spell} in magic-item slot {slot} "
+                f"for source object {record.vnum}"
+            )
+        spell_name, target_spell = mapped
+        if target_spell <= 0:
+            raise ValueError(
+                f"invalid non-positive target spell {target_spell} for source spell "
+                f"{source_spell} ({spell_name})"
+            )
+        values[slot] = target_spell
+        diagnostics.append(
+            f"mapped source spell {source_spell} ({spell_name}) to target spell "
+            f"{target_spell} in magic-item slot {slot}"
+        )
+    if source_type in {5, SOURCE_ITEM_TYPE_FIREWEAPON}:
+        source_message = values[3]
+        target_message = SOURCE_WEAPON_MESSAGE_MAP.get(source_message)
+        if target_message is None:
+            values[3] = 0
+            diagnostics.append(
+                f"replaced out-of-range source weapon damage message {source_message} "
+                "with the target default"
+            )
+        elif target_message != source_message:
+            values[3] = target_message
+            diagnostics.append(
+                f"mapped source weapon damage message {source_message} to target "
+                f"message {target_message}"
+            )
+    if target_type in {3, 4} and values[2] > values[1]:
+        source_maximum = values[1]
+        values[1] = values[2]
+        diagnostics.append(
+            f"raised source wand/staff maximum charges {source_maximum} to current "
+            f"charges {values[2]} for the target runtime"
+        )
+    if source_type in {15, SOURCE_ITEM_TYPE_QUIVER} and values[2] > 0:
+        # Source quivers carry the container value layout, key vnum included, and
+        # convert to an ammo pouch or a container -- both of which read value[2] as
+        # a key vnum in the target.
+        source_key = values[2]
+        try:
+            values[2] = resolve("obj", source_key)
+        except (KeyError, ValueError) as error:
+            values[2] = -1
+            diagnostics.append(f"removed unresolved container key {source_key}: {error}")
+    elif source_type == 25:
+        source_destination = values[0]
+        try:
+            destination = resolve("wld", source_destination) if source_destination > 0 else 0
+        except (KeyError, ValueError) as error:
+            destination = 0
+            diagnostics.append(
+                f"disabled portal with unresolved room {source_destination}: {error}"
+            )
+        values = [0, destination, destination, 0] + [0] * 12
+    elif source_type == 27 and values[1] > 0:
+        source_mobile = values[1]
+        try:
+            values[1] = resolve("mob", source_mobile)
+        except (KeyError, ValueError) as error:
+            values[1] = 0
+            diagnostics.append(
+                f"disabled summon reference to unresolved mobile {source_mobile}: {error}"
+            )
+    elif source_type == 29 and values[1] > 0:
+        source_destination = values[1]
+        try:
+            values[1] = resolve("wld", source_destination)
+        except (KeyError, ValueError) as error:
+            values[1] = 0
+            diagnostics.append(
+                f"disabled vehicle destination to unresolved room {source_destination}: {error}"
+            )
+    if target_type in {TARGET_ITEM_CONTAINER, TARGET_ITEM_AMMO_POUCH} and values[2] == 65535:
+        values[2] = -1
+    if source_type == SOURCE_ITEM_TYPE_QUIVER and values[3]:
+        # The source quiver kind has been consumed by the item-type decision. The
+        # target slot is the corpse flag (IS_CORPSE, src/core/utils.h:1983).
+        diagnostics.append(
+            f"zeroed source quiver kind {values[3]}; the target slot is the corpse flag"
+        )
+        values[3] = 0
+    return values
 
 
 def _object_target_type(
@@ -1408,95 +1391,95 @@ def _object_target_type(
     source_type: int,
     diagnostics: list[str],
 ) -> tuple[int, WeaponInference | None, Any]:
-  """Resolve the target item type, and any weapon identity it depends on.
+    """Resolve the target item type, and any weapon identity it depends on.
 
-  Most source types resolve straight through ``OBJECT_TYPE_MAP``. Three do not,
-  because the target type depends on the record rather than only on its source
-  type: source weapons and ranged weapons both become ``ITEM_WEAPON``, source
-  ammunition becomes either ``ITEM_MISSILE`` or, when it is physically thrown,
-  ``ITEM_WEAPON``. Both source quiver kinds use the target ammo-pouch contract.
-  """
+    Most source types resolve straight through ``OBJECT_TYPE_MAP``. Three do not,
+    because the target type depends on the record rather than only on its source
+    type: source weapons and ranged weapons both become ``ITEM_WEAPON``, source
+    ammunition becomes either ``ITEM_MISSILE`` or, when it is physically thrown,
+    ``ITEM_WEAPON``. Both source quiver kinds use the target ammo-pouch contract.
+    """
 
-  values = (list(record.values.get("values", [])) + [0] * 8)[:8]
-  if source_type == SOURCE_ITEM_TYPE_WEAPON:
-    # Source value[0] is a proc hook, target value[0] is an index into
-    # weapon_list[]. Passing it through lands every converted weapon on
-    # WEAPON_TYPE_UNDEFINED, which disables criticals, empties the damage-type
-    # bitmask so damage reduction never bypasses, and matches no weapon family.
-    return TARGET_ITEM_WEAPON, infer_weapon_type(record), None
-  if source_type == SOURCE_ITEM_TYPE_FIREWEAPON:
-    # The target's own ITEM_FIREWEAPON is deprecated (src/core/structs.h:4348) and
-    # cannot fire: is_using_ranged_weapon() tests the wielded object's
-    # weapon_list[] flags and never looks at item type.
-    diagnostics.append(
-        "retyped source ITEM_FIREWEAPON to ITEM_WEAPON; the target's own "
-        "ITEM_FIREWEAPON is deprecated and never fires"
-    )
-    return TARGET_ITEM_WEAPON, infer_ranged_weapon_type(record), None
-  if source_type == SOURCE_ITEM_TYPE_MISSILE:
-    inference = infer_ammunition(record)
-    if inference.item_type == TARGET_ITEM_WEAPON:
-      return (
-          TARGET_ITEM_WEAPON,
-          WeaponInference(
-              inference.weapon_type, inference.name, inference.tier, inference.rule
-          ),
-          inference,
-      )
-    return TARGET_ITEM_MISSILE, None, inference
-  if source_type == SOURCE_ITEM_TYPE_QUIVER and values[3] == SOURCE_QUIVER_THROWING:
-    # A throwing quiver now shares the ammo-pouch contract with missiles.
-    diagnostics.append(
-        "retained source throwing quiver as ITEM_AMMO_POUCH for throwable weapons"
-    )
-    return TARGET_ITEM_AMMO_POUCH, None, None
-  target_type = OBJECT_TYPE_MAP.get(source_type, 12)
-  if source_type not in OBJECT_TYPE_MAP:
-    diagnostics.append(f"unknown source item type {source_type}; used ITEM_OTHER")
-  return target_type, None, None
+    values = (list(record.values.get("values", [])) + [0] * 8)[:8]
+    if source_type == SOURCE_ITEM_TYPE_WEAPON:
+        # Source value[0] is a proc hook, target value[0] is an index into
+        # weapon_list[]. Passing it through lands every converted weapon on
+        # WEAPON_TYPE_UNDEFINED, which disables criticals, empties the damage-type
+        # bitmask so damage reduction never bypasses, and matches no weapon family.
+        return TARGET_ITEM_WEAPON, infer_weapon_type(record), None
+    if source_type == SOURCE_ITEM_TYPE_FIREWEAPON:
+        # The target's own ITEM_FIREWEAPON is deprecated (src/core/structs.h:4348) and
+        # cannot fire: is_using_ranged_weapon() tests the wielded object's
+        # weapon_list[] flags and never looks at item type.
+        diagnostics.append(
+            "retyped source ITEM_FIREWEAPON to ITEM_WEAPON; the target's own "
+            "ITEM_FIREWEAPON is deprecated and never fires"
+        )
+        return TARGET_ITEM_WEAPON, infer_ranged_weapon_type(record), None
+    if source_type == SOURCE_ITEM_TYPE_MISSILE:
+        inference = infer_ammunition(record)
+        if inference.item_type == TARGET_ITEM_WEAPON:
+            return (
+                TARGET_ITEM_WEAPON,
+                WeaponInference(
+                    inference.weapon_type, inference.name, inference.tier, inference.rule
+                ),
+                inference,
+            )
+        return TARGET_ITEM_MISSILE, None, inference
+    if source_type == SOURCE_ITEM_TYPE_QUIVER and values[3] == SOURCE_QUIVER_THROWING:
+        # A throwing quiver now shares the ammo-pouch contract with missiles.
+        diagnostics.append(
+            "retained source throwing quiver as ITEM_AMMO_POUCH for throwable weapons"
+        )
+        return TARGET_ITEM_AMMO_POUCH, None, None
+    target_type = OBJECT_TYPE_MAP.get(source_type, 12)
+    if source_type not in OBJECT_TYPE_MAP:
+        diagnostics.append(f"unknown source item type {source_type}; used ITEM_OTHER")
+    return target_type, None, None
 
 
 def _object_enhancement_bonus(
     record: RolRecord,
     diagnostics: list[str],
 ) -> int:
-  """Restate the source hitroll/damroll applies as the native enhancement bonus.
+    """Restate the source hitroll/damroll applies as the native enhancement bonus.
 
-  RoL has no enhancement-bonus concept and expresses a ``+N`` weapon as
-  ``APPLY_HITROLL`` and ``APPLY_DAMROLL`` affects. The target reads
-  ``GET_ENHANCEMENT_BONUS()`` into both to-hit and damage already
-  (``src/combat/fight.c:7135`` and ``:10500``), so the caller drops the source
-  applies after this restatement; emitting both would grant the bonus twice.
-  """
+    RoL has no enhancement-bonus concept and expresses a ``+N`` weapon as
+    ``APPLY_HITROLL`` and ``APPLY_DAMROLL`` affects. The target reads
+    ``GET_ENHANCEMENT_BONUS()`` into both to-hit and damage already
+    (``src/combat/fight.c:7135`` and ``:10500``), so the caller drops the source
+    applies after this restatement; emitting both would grant the bonus twice.
+    """
 
-  hitroll = 0
-  damroll = 0
-  for directive in record.directives:
-    if directive["token"] != "A":
-      continue
-    arguments = directive.get("arguments", [])
-    if len(arguments) < 2:
-      continue
-    if arguments[0] == SOURCE_APPLY_HITROLL:
-      hitroll += arguments[1]
-    elif arguments[0] == SOURCE_APPLY_DAMROLL:
-      damroll += arguments[1]
-  if not hitroll and not damroll:
-    return 0
-  # A record stating only one of the two averages against zero, which is the
-  # intended reading of a half-stated bonus.
-  average = (hitroll + damroll) // 2
-  bonus = min(TARGET_MAX_ENHANCEMENT_BONUS, max(TARGET_MIN_ENHANCEMENT_BONUS, average))
-  diagnostics.append(
-      f"restated source hitroll {hitroll} and damroll {damroll} as enhancement "
-      f"bonus {bonus} and dropped the source applies"
-  )
-  if bonus != average:
+    hitroll = 0
+    damroll = 0
+    for directive in record.directives:
+        if directive["token"] != "A":
+            continue
+        arguments = directive.get("arguments", [])
+        if len(arguments) < 2:
+            continue
+        if arguments[0] == SOURCE_APPLY_HITROLL:
+            hitroll += arguments[1]
+        elif arguments[0] == SOURCE_APPLY_DAMROLL:
+            damroll += arguments[1]
+    if not hitroll and not damroll:
+        return 0
+    # A record stating only one of the two averages against zero, which is the
+    # intended reading of a half-stated bonus.
+    average = (hitroll + damroll) // 2
+    bonus = min(TARGET_MAX_ENHANCEMENT_BONUS, max(TARGET_MIN_ENHANCEMENT_BONUS, average))
     diagnostics.append(
-        f"clamped enhancement bonus {average} to {bonus} for the target range "
-        f"{TARGET_MIN_ENHANCEMENT_BONUS}..{TARGET_MAX_ENHANCEMENT_BONUS}"
+        f"restated source hitroll {hitroll} and damroll {damroll} as enhancement "
+        f"bonus {bonus} and dropped the source applies"
     )
-  return bonus
+    if bonus != average:
+        diagnostics.append(
+            f"clamped enhancement bonus {average} to {bonus} for the target range "
+            f"{TARGET_MIN_ENHANCEMENT_BONUS}..{TARGET_MAX_ENHANCEMENT_BONUS}"
+        )
+    return bonus
 
 
 def _apply_weapon_object(
@@ -1508,70 +1491,69 @@ def _apply_weapon_object(
     diagnostics: list[str],
     carries_attack_message: bool = True,
 ) -> tuple[int, int, int]:
-  """Replicate set_weapon_object() (src/obj/treasure.c:2562) at emit time.
+    """Replicate set_weapon_object() (src/obj/treasure.c:2562) at emit time.
 
-  A converted weapon has to come out mechanically identical to one an immortal
-  builds in OLC by picking a weapon type, so dice, cost, weight, material,
-  size, and the wear word are all derived from ``weapon_list[]`` rather than
-  carried over. Returns the proficiency, material, and size for the ``G``,
-  ``H``, and ``I`` blocks.
-  """
+    A converted weapon has to come out mechanically identical to one an immortal
+    builds in OLC by picking a weapon type, so dice, cost, weight, material,
+    size, and the wear word are all derived from ``weapon_list[]`` rather than
+    carried over. Returns the proficiency, material, and size for the ``G``,
+    ``H``, and ``I`` blocks.
+    """
 
-  entry = weapon_table()[inference.weapon_type]
-  values[0] = inference.weapon_type
-  if [values[1], values[2]] != [entry.num_dice, entry.dice_size]:
-    diagnostics.append(
-        f"replaced source damage dice {values[1]}d{values[2]} with the "
-        f"{entry.name} table dice {entry.num_dice}d{entry.dice_size}"
-    )
-  values[1] = entry.num_dice
-  values[2] = entry.dice_size
-  if not carries_attack_message:
-    # A record retyped out of ITEM_MISSILE has a source missile type in this
-    # slot, not a damage message. The target reads value[3] as an index into
-    # attack_hit_text[] (src/combat/fight.c:11922), so the source value would
-    # name an unrelated verb.
-    if values[3]:
-      diagnostics.append(
-          f"zeroed source missile type {values[3]}; the target slot is the "
-          "weapon attack message"
-      )
-    values[3] = 0
-  values[4] = enhancement
-  # value[5] is the target's loaded-ammo counter, read by weapon_is_loaded()
-  # (src/combat/assign_wpn_armor.c:549). The source slot in that position is a
-  # rate of fire, which would silently pre-load a converted crossbow.
-  if values[5]:
-    diagnostics.append(
-        f"zeroed source rate of fire {values[5]}; the target slot is the "
-        "loaded-ammo counter"
-    )
-  for slot in range(5, len(values)):
-    values[slot] = 0
-  source_weight, source_cost = economy[0], economy[1]
-  economy[0] = entry.weight
-  economy[1] = entry.cost + 1
-  if [source_weight, source_cost] != [economy[0], economy[1]]:
-    diagnostics.append(
-        f"replaced source weight {source_weight} and cost {source_cost} with the "
-        f"{entry.name} table weight {economy[0]} and cost {economy[1]}"
-    )
-  dropped = sorted(target_wear - {TARGET_WEAR_TAKE, TARGET_WEAR_WIELD})
-  if dropped:
-    diagnostics.append(
-        f"cleared object wear flags {dropped}; a weapon carries only TAKE and WIELD"
-    )
-  target_wear.clear()
-  target_wear.update({TARGET_WEAR_TAKE, TARGET_WEAR_WIELD})
-  if entry.weapon_flags & WEAPON_FLAG_EXOTIC:
-    proficiency = TARGET_ITEM_PROF_EXOTIC
-  elif entry.weapon_flags & WEAPON_FLAG_MARTIAL:
-    proficiency = TARGET_ITEM_PROF_BASIC
-  elif entry.weapon_flags & WEAPON_FLAG_SIMPLE:
-    proficiency = TARGET_ITEM_PROF_MINIMAL
-  else:
-    proficiency = TARGET_ITEM_PROF_NONE
-  return proficiency, entry.material, entry.size
+    entry = weapon_table()[inference.weapon_type]
+    values[0] = inference.weapon_type
+    if [values[1], values[2]] != [entry.num_dice, entry.dice_size]:
+        diagnostics.append(
+            f"replaced source damage dice {values[1]}d{values[2]} with the "
+            f"{entry.name} table dice {entry.num_dice}d{entry.dice_size}"
+        )
+    values[1] = entry.num_dice
+    values[2] = entry.dice_size
+    if not carries_attack_message:
+        # A record retyped out of ITEM_MISSILE has a source missile type in this
+        # slot, not a damage message. The target reads value[3] as an index into
+        # attack_hit_text[] (src/combat/fight.c:11922), so the source value would
+        # name an unrelated verb.
+        if values[3]:
+            diagnostics.append(
+                f"zeroed source missile type {values[3]}; the target slot is the "
+                "weapon attack message"
+            )
+        values[3] = 0
+    values[4] = enhancement
+    # value[5] is the target's loaded-ammo counter, read by weapon_is_loaded()
+    # (src/combat/assign_wpn_armor.c:549). The source slot in that position is a
+    # rate of fire, which would silently pre-load a converted crossbow.
+    if values[5]:
+        diagnostics.append(
+            f"zeroed source rate of fire {values[5]}; the target slot is the loaded-ammo counter"
+        )
+    for slot in range(5, len(values)):
+        values[slot] = 0
+    source_weight, source_cost = economy[0], economy[1]
+    economy[0] = entry.weight
+    economy[1] = entry.cost + 1
+    if [source_weight, source_cost] != [economy[0], economy[1]]:
+        diagnostics.append(
+            f"replaced source weight {source_weight} and cost {source_cost} with the "
+            f"{entry.name} table weight {economy[0]} and cost {economy[1]}"
+        )
+    dropped = sorted(target_wear - {TARGET_WEAR_TAKE, TARGET_WEAR_WIELD})
+    if dropped:
+        diagnostics.append(
+            f"cleared object wear flags {dropped}; a weapon carries only TAKE and WIELD"
+        )
+    target_wear.clear()
+    target_wear.update({TARGET_WEAR_TAKE, TARGET_WEAR_WIELD})
+    if entry.weapon_flags & WEAPON_FLAG_EXOTIC:
+        proficiency = TARGET_ITEM_PROF_EXOTIC
+    elif entry.weapon_flags & WEAPON_FLAG_MARTIAL:
+        proficiency = TARGET_ITEM_PROF_BASIC
+    elif entry.weapon_flags & WEAPON_FLAG_SIMPLE:
+        proficiency = TARGET_ITEM_PROF_MINIMAL
+    else:
+        proficiency = TARGET_ITEM_PROF_NONE
+    return proficiency, entry.material, entry.size
 
 
 def _apply_missile_object(
@@ -1581,33 +1563,32 @@ def _apply_missile_object(
     enhancement: int,
     diagnostics: list[str],
 ) -> None:
-  """Apply the target ITEM_MISSILE value layout to a converted source missile.
+    """Apply the target ITEM_MISSILE value layout to a converted source missile.
 
-  Two of these slots mean something entirely different from the source slot
-  sitting in them, so passing them through is a live defect rather than
-  lossiness.
-  """
+    Two of these slots mean something entirely different from the source slot
+    sitting in them, so passing them through is a live defect rather than
+    lossiness.
+    """
 
-  source_values = (list(record.values.get("values", [])) + [0] * 4)[:4]
-  values[0] = inference.ammo_type
-  # value[1] is the target's imbued spell number: imbued_arrow()
-  # (src/combat/fight.c:12057) casts it through call_magic() on every shot. The
-  # source slot in that position is a damage die.
-  if values[1]:
+    source_values = (list(record.values.get("values", [])) + [0] * 4)[:4]
+    values[0] = inference.ammo_type
+    # value[1] is the target's imbued spell number: imbued_arrow()
+    # (src/combat/fight.c:12057) casts it through call_magic() on every shot. The
+    # source slot in that position is a damage die.
+    if values[1]:
+        diagnostics.append(
+            f"zeroed source dice size {values[1]}; the target slot is the imbued spell number"
+        )
+    values[1] = 0
+    values[2] = missile_break_probability(source_values[2])
     diagnostics.append(
-        f"zeroed source dice size {values[1]}; the target slot is the imbued "
-        "spell number"
+        f"restated source missile durability {source_values[2]} as target break "
+        f"probability {values[2]} percent"
     )
-  values[1] = 0
-  values[2] = missile_break_probability(source_values[2])
-  diagnostics.append(
-      f"restated source missile durability {source_values[2]} as target break "
-      f"probability {values[2]} percent"
-  )
-  values[3] = 0
-  values[4] = enhancement
-  for slot in range(5, len(values)):
-    values[slot] = 0
+    values[3] = 0
+    values[4] = enhancement
+    for slot in range(5, len(values)):
+        values[slot] = 0
 
 
 def emit_object(
@@ -1619,316 +1600,311 @@ def emit_object(
     required_extra_bits: tuple[int, ...] = (),
     required_value_references: tuple[tuple[int, str], ...] = (),
 ) -> TransformResult:
-  """Emit one modern target object record."""
+    """Emit one modern target object record."""
 
-  diagnostics: list[str] = []
-  strings = record.values.get("strings", {})
-  aliases = str(strings.get("aliases") or "").strip()
-  if not aliases:
-    aliases = f"converted object {destination_vnum}"
-    diagnostics.append("synthesized missing object aliases for target runtime safety")
-  short_description = str(strings.get("short_description") or "").strip()
-  if not short_description:
-    short_description = aliases
-    diagnostics.append("synthesized missing object short description for target runtime safety")
-  description = str(strings.get("description") or "").strip()
-  if not description:
-    description = f"{short_description} is here."
-    diagnostics.append("synthesized missing object room description for target runtime safety")
-  string_values = {
-      "aliases": aliases,
-      "short_description": short_description,
-      "description": description,
-      "action_description": strings.get("action_description"),
-  }
-  lines = [f"#{destination_vnum}\n"]
-  for key in ("aliases", "short_description", "description", "action_description"):
-    value, text_diagnostics = _tilde(string_values.get(key))
-    diagnostics.extend(text_diagnostics)
-    lines.append(value)
+    diagnostics: list[str] = []
+    strings = record.values.get("strings", {})
+    aliases = str(strings.get("aliases") or "").strip()
+    if not aliases:
+        aliases = f"converted object {destination_vnum}"
+        diagnostics.append("synthesized missing object aliases for target runtime safety")
+    short_description = str(strings.get("short_description") or "").strip()
+    if not short_description:
+        short_description = aliases
+        diagnostics.append("synthesized missing object short description for target runtime safety")
+    description = str(strings.get("description") or "").strip()
+    if not description:
+        description = f"{short_description} is here."
+        diagnostics.append("synthesized missing object room description for target runtime safety")
+    string_values = {
+        "aliases": aliases,
+        "short_description": short_description,
+        "description": description,
+        "action_description": strings.get("action_description"),
+    }
+    lines = [f"#{destination_vnum}\n"]
+    for key in ("aliases", "short_description", "description", "action_description"):
+        value, text_diagnostics = _tilde(string_values.get(key))
+        diagnostics.extend(text_diagnostics)
+        lines.append(value)
 
-  source_type = int(record.values.get("item_type") or 0)
-  target_type, weapon_inference, ammo_inference = _object_target_type(
-      record, source_type, diagnostics
-  )
-  source_flags = record.values.get("flags", [])
-  extra_mask = source_flags[1] if len(source_flags) > 1 else 0
-  wear_mask = source_flags[2] if len(source_flags) > 2 else 0
-  source_extra = _source_mask_bits(extra_mask, 0)
-  if source_type == SOURCE_ITEM_TYPE_SHIP:
-    # The source read_object() force-lights ships even without an authored flag.
-    source_extra.add(SOURCE_EXTRA_LIT)
-  source_wear = _source_mask_bits(wear_mask, 0)
-  target_extra = _mapped_bits(source_extra, OBJECT_EXTRA_MAP) | set(required_extra_bits)
-  target_wear = _mapped_bits(source_wear, OBJECT_WEAR_MAP)
-  if SOURCE_WEAR_TAIL in source_wear:
-    if SOURCE_WEAR_FINGER in source_wear:
-      target_wear.discard(TARGET_WEAR_TAIL)
-      diagnostics.append(
-          "normalized source tail ring to a target ring; runtime ring handling "
-          "provides tail eligibility"
-      )
-    else:
-      normalized_tail_wear = {TARGET_WEAR_TAIL}
-      if SOURCE_WEAR_TAKE in source_wear:
-        normalized_tail_wear.add(TARGET_WEAR_TAKE)
-      removed_wear = sorted(target_wear - normalized_tail_wear)
-      target_wear = normalized_tail_wear
-      diagnostics.append(
-          "normalized source non-ring tail item to dedicated target tail gear"
-      )
-      if removed_wear:
-        diagnostics.append(
-            "normalized conflicting target wear flags out of dedicated tail gear: "
-            f"{removed_wear}"
-        )
-  missing_extra = [
-      flag
-      for flag in _unmapped(source_extra, OBJECT_EXTRA_MAP)
-      if flag not in OBJECT_SOURCE_ONLY_FLAGS
-  ]
-  missing_wear = sorted(
-      source_wear - OBJECT_WEAR_MAP.keys() - OBJECT_SOURCE_ONLY_WEAR_FLAGS
-  )
-  if missing_extra:
-    diagnostics.append(f"object extra flags without direct equivalents: {missing_extra}")
-  if source_extra & OBJECT_SOURCE_ONLY_FLAGS:
-    diagnostics.append("omitted source-inert object DARK flag")
-  if missing_wear:
-    diagnostics.append(f"object wear flags without direct equivalents: {missing_wear}")
-  if source_wear & OBJECT_SOURCE_ONLY_WEAR_FLAGS:
-    diagnostics.append(
-        "omitted malformed source object wear flags: "
-        f"{sorted(source_wear & OBJECT_SOURCE_ONLY_WEAR_FLAGS)}"
+    source_type = int(record.values.get("item_type") or 0)
+    target_type, weapon_inference, ammo_inference = _object_target_type(
+        record, source_type, diagnostics
     )
+    source_flags = record.values.get("flags", [])
+    extra_mask = source_flags[1] if len(source_flags) > 1 else 0
+    wear_mask = source_flags[2] if len(source_flags) > 2 else 0
+    source_extra = _source_mask_bits(extra_mask, 0)
+    if source_type == SOURCE_ITEM_TYPE_SHIP:
+        # The source read_object() force-lights ships even without an authored flag.
+        source_extra.add(SOURCE_EXTRA_LIT)
+    source_wear = _source_mask_bits(wear_mask, 0)
+    target_extra = _mapped_bits(source_extra, OBJECT_EXTRA_MAP) | set(required_extra_bits)
+    target_wear = _mapped_bits(source_wear, OBJECT_WEAR_MAP)
+    if SOURCE_WEAR_TAIL in source_wear:
+        if SOURCE_WEAR_FINGER in source_wear:
+            target_wear.discard(TARGET_WEAR_TAIL)
+            diagnostics.append(
+                "normalized source tail ring to a target ring; runtime ring handling "
+                "provides tail eligibility"
+            )
+        else:
+            normalized_tail_wear = {TARGET_WEAR_TAIL}
+            if SOURCE_WEAR_TAKE in source_wear:
+                normalized_tail_wear.add(TARGET_WEAR_TAKE)
+            removed_wear = sorted(target_wear - normalized_tail_wear)
+            target_wear = normalized_tail_wear
+            diagnostics.append("normalized source non-ring tail item to dedicated target tail gear")
+            if removed_wear:
+                diagnostics.append(
+                    "normalized conflicting target wear flags out of dedicated tail gear: "
+                    f"{removed_wear}"
+                )
+    missing_extra = [
+        flag
+        for flag in _unmapped(source_extra, OBJECT_EXTRA_MAP)
+        if flag not in OBJECT_SOURCE_ONLY_FLAGS
+    ]
+    missing_wear = sorted(source_wear - OBJECT_WEAR_MAP.keys() - OBJECT_SOURCE_ONLY_WEAR_FLAGS)
+    if missing_extra:
+        diagnostics.append(f"object extra flags without direct equivalents: {missing_extra}")
+    if source_extra & OBJECT_SOURCE_ONLY_FLAGS:
+        diagnostics.append("omitted source-inert object DARK flag")
+    if missing_wear:
+        diagnostics.append(f"object wear flags without direct equivalents: {missing_wear}")
+    if source_wear & OBJECT_SOURCE_ONLY_WEAR_FLAGS:
+        diagnostics.append(
+            "omitted malformed source object wear flags: "
+            f"{sorted(source_wear & OBJECT_SOURCE_ONLY_WEAR_FLAGS)}"
+        )
 
-  source_affects: set[int] = set()
-  for directive in record.directives:
-    if directive["token"] != "AFFECT_FLAGS":
-      continue
-    offset = int(directive.get("word_offset", 0))
-    for ordinal, mask in enumerate(directive.get("arguments", [])):
-      source_affects.update(_source_mask_bits(mask, (offset + ordinal) * 32 + 1))
-  if source_affects & OBJECT_SOURCE_ONLY_AFFECTS:
-    diagnostics.append(
-        "omitted source-inert object affects the source loader clears at load: "
-        f"{sorted(source_affects & OBJECT_SOURCE_ONLY_AFFECTS)}"
-    )
-    source_affects -= OBJECT_SOURCE_ONLY_AFFECTS
-  target_affects = _mapped_bits(source_affects, MOB_AFFECT_MAP)
-  target_affects2 = _mapped_bits(source_affects, MOB_AFFECT2_MAP)
-  missing_affects = sorted(
-      source_affects
-      - MOB_AFFECT_MAP.keys()
-      - MOB_AFFECT2_MAP.keys()
-      - MOB_SOURCE_ONLY_AFFECTS
-  )
-  if missing_affects:
-    diagnostics.append(f"object affect flags without persistent equivalents: {missing_affects}")
-  if source_affects & MOB_SOURCE_ONLY_AFFECTS:
-    diagnostics.append(
-        "omitted source transient/inert object affects: "
-        f"{sorted(source_affects & MOB_SOURCE_ONLY_AFFECTS)}"
-    )
-  values = _object_values(record, source_type, target_type, resolve, diagnostics)
-  if source_type == SOURCE_ITEM_TYPE_WEAPON and values[0]:
-    if special_proc is None:
-      diagnostics.append(
-          f"omitted source-only weapon unbound procedure state {values[0]}; "
-          "approved metadata loss"
-      )
-    else:
-      diagnostics.append(
-          f"consumed source weapon procedure state {values[0]} through assigned "
-          f"special-procedure owner {special_proc}"
-      )
-  if source_type == SOURCE_ITEM_TYPE_WORN and values[3]:
-    if special_proc is None:
-      diagnostics.append(
-          f"omitted source-only worn unbound procedure state {values[3]}; "
-          "approved metadata loss"
-      )
-      values[3] = 0
-    else:
-      diagnostics.append(
-          f"consumed source worn procedure state {values[3]} through assigned "
-          f"special-procedure owner {special_proc}"
-      )
-  worn_protection = 0
-  if source_type == 9:
-    armor = infer_armor(record)
-    if armor.disposition == "worn":
-      target_type = 11  # ITEM_WORN: value 0 must not also contribute armor AC.
-      # Value 0 is positive protection, unlike the descending source ARMOR apply.
-      worn_protection = _convert_armor_apply_modifier(-values[0])
-      diagnostics.append(
-          f"converted source nonstandard armor protection {values[0]} to ITEM_WORN "
-          f"APPLY_AC_NEW {worn_protection} with universal bonus type "
-          f"{OBJECT_APPLY_DEFAULT_BONUS_TYPE}; retained normalized wear flags"
-      )
-      values[0] = 0
-    else:
-      diagnostics.append(armor.diagnostic)
-      if armor.disposition == "standard":
-        normalized_wear = {armor.slot} | (target_wear & {TARGET_WEAR_TAKE})
-        if target_wear != normalized_wear:
-          diagnostics.append(
-              f"normalized reviewed mixed armor wear flags {sorted(target_wear)} "
-              f"to {sorted(normalized_wear)}"
-          )
-        target_wear = normalized_wear
-    for slot, name in ((1, "warmth"), (2, "prestige")):
-      if values[slot]:
+    source_affects: set[int] = set()
+    for directive in record.directives:
+        if directive["token"] != "AFFECT_FLAGS":
+            continue
+        offset = int(directive.get("word_offset", 0))
+        for ordinal, mask in enumerate(directive.get("arguments", [])):
+            source_affects.update(_source_mask_bits(mask, (offset + ordinal) * 32 + 1))
+    if source_affects & OBJECT_SOURCE_ONLY_AFFECTS:
         diagnostics.append(
-            f"omitted source-only armor {name} {values[slot]}; approved metadata loss"
+            "omitted source-inert object affects the source loader clears at load: "
+            f"{sorted(source_affects & OBJECT_SOURCE_ONLY_AFFECTS)}"
         )
-      values[slot] = 0
-    # Tail armor deliberately has no family; its existing AC exception does
-    # not participate in body penalties. No ordinary slot index is invented.
-    values[1] = armor.armor_index
-    # Assigned adapters own their state (e.g. the tattered cloak's recharge
-    # counter). An unbound ProcVal is not a spell or ability to synthesize.
-    if special_proc is None:
-      if values[3]:
+        source_affects -= OBJECT_SOURCE_ONLY_AFFECTS
+    target_affects = _mapped_bits(source_affects, MOB_AFFECT_MAP)
+    target_affects2 = _mapped_bits(source_affects, MOB_AFFECT2_MAP)
+    missing_affects = sorted(
+        source_affects - MOB_AFFECT_MAP.keys() - MOB_AFFECT2_MAP.keys() - MOB_SOURCE_ONLY_AFFECTS
+    )
+    if missing_affects:
+        diagnostics.append(f"object affect flags without persistent equivalents: {missing_affects}")
+    if source_affects & MOB_SOURCE_ONLY_AFFECTS:
         diagnostics.append(
-            f"omitted source-only armor unbound procedure state {values[3]}; "
-            "approved metadata loss"
+            "omitted source transient/inert object affects: "
+            f"{sorted(source_affects & MOB_SOURCE_ONLY_AFFECTS)}"
         )
-      values[3] = 0
-  for slot, target_kind in required_value_references:
-    source_value = values[slot]
-    if source_value <= 0:
-      continue
-    try:
-      values[slot] = resolve(target_kind, source_value)
-    except (KeyError, ValueError) as error:
-      values[slot] = 0
-      diagnostics.append(
-          f"disabled special-procedure reference {target_kind} {source_value} "
-          f"in object value slot {slot}: {error}"
-      )
-  economy = list(record.values.get("economy", []))
-  # RoL prototypes have no object-level field. Keep every converted prototype
-  # at the approved target minimum; type-specific caster levels stay in values.
-  economy_defaults = [0, 1, 0, TARGET_CONVERTED_OBJECT_LEVEL, 1]
-  economy = economy[:5] + economy_defaults[len(economy[:5]):]
-  proficiency = material = size = None
-  enhancement = 0
-  if target_type in {TARGET_ITEM_WEAPON, TARGET_ITEM_MISSILE}:
-    enhancement = _object_enhancement_bonus(record, diagnostics)
-  if weapon_inference is not None:
-    if any(slot == 0 for slot, _ in required_value_references):
-      diagnostics.append(
-          "replaced a special-procedure reference in object value slot 0 with "
-          "the inferred weapon type"
-      )
-    diagnostics.append(weapon_inference.diagnostic)
-    proficiency, material, size = _apply_weapon_object(
-        values,
-        economy,
-        target_wear,
-        weapon_inference,
-        enhancement,
-        diagnostics,
-        carries_attack_message=source_type != SOURCE_ITEM_TYPE_MISSILE,
+    values = _object_values(record, source_type, target_type, resolve, diagnostics)
+    if source_type == SOURCE_ITEM_TYPE_WEAPON and values[0]:
+        if special_proc is None:
+            diagnostics.append(
+                f"omitted source-only weapon unbound procedure state {values[0]}; "
+                "approved metadata loss"
+            )
+        else:
+            diagnostics.append(
+                f"consumed source weapon procedure state {values[0]} through assigned "
+                f"special-procedure owner {special_proc}"
+            )
+    if source_type == SOURCE_ITEM_TYPE_WORN and values[3]:
+        if special_proc is None:
+            diagnostics.append(
+                f"omitted source-only worn unbound procedure state {values[3]}; "
+                "approved metadata loss"
+            )
+            values[3] = 0
+        else:
+            diagnostics.append(
+                f"consumed source worn procedure state {values[3]} through assigned "
+                f"special-procedure owner {special_proc}"
+            )
+    worn_protection = 0
+    if source_type == 9:
+        armor = infer_armor(record)
+        if armor.disposition == "worn":
+            target_type = 11  # ITEM_WORN: value 0 must not also contribute armor AC.
+            # Value 0 is positive protection, unlike the descending source ARMOR apply.
+            worn_protection = _convert_armor_apply_modifier(-values[0])
+            diagnostics.append(
+                f"converted source nonstandard armor protection {values[0]} to ITEM_WORN "
+                f"APPLY_AC_NEW {worn_protection} with universal bonus type "
+                f"{OBJECT_APPLY_DEFAULT_BONUS_TYPE}; retained normalized wear flags"
+            )
+            values[0] = 0
+        else:
+            diagnostics.append(armor.diagnostic)
+            if armor.disposition == "standard":
+                normalized_wear = {armor.slot} | (target_wear & {TARGET_WEAR_TAKE})
+                if target_wear != normalized_wear:
+                    diagnostics.append(
+                        f"normalized reviewed mixed armor wear flags {sorted(target_wear)} "
+                        f"to {sorted(normalized_wear)}"
+                    )
+                target_wear = normalized_wear
+        for slot, name in ((1, "warmth"), (2, "prestige")):
+            if values[slot]:
+                diagnostics.append(
+                    f"omitted source-only armor {name} {values[slot]}; approved metadata loss"
+                )
+            values[slot] = 0
+        # Tail armor deliberately has no family; its existing AC exception does
+        # not participate in body penalties. No ordinary slot index is invented.
+        values[1] = armor.armor_index
+        # Assigned adapters own their state (e.g. the tattered cloak's recharge
+        # counter). An unbound ProcVal is not a spell or ability to synthesize.
+        if special_proc is None:
+            if values[3]:
+                diagnostics.append(
+                    f"omitted source-only armor unbound procedure state {values[3]}; "
+                    "approved metadata loss"
+                )
+            values[3] = 0
+    for slot, target_kind in required_value_references:
+        source_value = values[slot]
+        if source_value <= 0:
+            continue
+        try:
+            values[slot] = resolve(target_kind, source_value)
+        except (KeyError, ValueError) as error:
+            values[slot] = 0
+            diagnostics.append(
+                f"disabled special-procedure reference {target_kind} {source_value} "
+                f"in object value slot {slot}: {error}"
+            )
+    economy = list(record.values.get("economy", []))
+    # RoL prototypes have no object-level field. Keep every converted prototype
+    # at the approved target minimum; type-specific caster levels stay in values.
+    economy_defaults = [0, 1, 0, TARGET_CONVERTED_OBJECT_LEVEL, 1]
+    economy = economy[:5] + economy_defaults[len(economy[:5]) :]
+    proficiency = material = size = None
+    enhancement = 0
+    if target_type in {TARGET_ITEM_WEAPON, TARGET_ITEM_MISSILE}:
+        enhancement = _object_enhancement_bonus(record, diagnostics)
+    if weapon_inference is not None:
+        if any(slot == 0 for slot, _ in required_value_references):
+            diagnostics.append(
+                "replaced a special-procedure reference in object value slot 0 with "
+                "the inferred weapon type"
+            )
+        diagnostics.append(weapon_inference.diagnostic)
+        proficiency, material, size = _apply_weapon_object(
+            values,
+            economy,
+            target_wear,
+            weapon_inference,
+            enhancement,
+            diagnostics,
+            carries_attack_message=source_type != SOURCE_ITEM_TYPE_MISSILE,
+        )
+    elif target_type == TARGET_ITEM_MISSILE and ammo_inference is not None:
+        diagnostics.append(ammo_inference.diagnostic)
+        _apply_missile_object(record, values, ammo_inference, enhancement, diagnostics)
+    trap_values = _object_trap_values(record, values, diagnostics)
+    if trap_values is not None:
+        target_extra.add(ROL_OBJECT_TRAP_EXTRA_BIT)
+        values[ROL_OBJECT_TRAP_VALUE_OFFSET : ROL_OBJECT_TRAP_VALUE_OFFSET + 6] = trap_values
+    lines.append(
+        f"{target_type} {_encoded(target_extra)} {_encoded(target_wear)} "
+        f"{_encoded(target_affects)} {_encoded(target_affects2)}\n"
     )
-  elif target_type == TARGET_ITEM_MISSILE and ammo_inference is not None:
-    diagnostics.append(ammo_inference.diagnostic)
-    _apply_missile_object(record, values, ammo_inference, enhancement, diagnostics)
-  trap_values = _object_trap_values(record, values, diagnostics)
-  if trap_values is not None:
-    target_extra.add(ROL_OBJECT_TRAP_EXTRA_BIT)
-    values[ROL_OBJECT_TRAP_VALUE_OFFSET:ROL_OBJECT_TRAP_VALUE_OFFSET + 6] = trap_values
-  lines.append(
-      f"{target_type} {_encoded(target_extra)} {_encoded(target_wear)} "
-      f"{_encoded(target_affects)} {_encoded(target_affects2)}\n"
-  )
-  lines.append(" ".join(str(value) for value in values) + "\n")
-  if source_type == 17 and economy[0] > 0:
-    # Source drink containers store weight in quarter pounds and the source
-    # loader divides by four at load. The target reader applies no such
-    # division, so scale the stored weight here instead.
-    source_weight = economy[0]
-    economy[0] = source_weight // 4
-    diagnostics.append(
-        f"converted source drink-container weight {source_weight} from quarter "
-        f"pounds to {economy[0]}"
-    )
-  economy[0] = max(0, economy[0])
-  economy[2] = max(0, economy[2])
-  if economy[3] <= 0:
-    economy[3] = 1
-  if target_type in {17, 23} and 0 in target_wear and economy[0] < values[1]:
-    economy[0] = values[1] + 5
-  lines.append(" ".join(str(value) for value in economy) + "\n")
+    lines.append(" ".join(str(value) for value in values) + "\n")
+    if source_type == 17 and economy[0] > 0:
+        # Source drink containers store weight in quarter pounds and the source
+        # loader divides by four at load. The target reader applies no such
+        # division, so scale the stored weight here instead.
+        source_weight = economy[0]
+        economy[0] = source_weight // 4
+        diagnostics.append(
+            f"converted source drink-container weight {source_weight} from quarter "
+            f"pounds to {economy[0]}"
+        )
+    economy[0] = max(0, economy[0])
+    economy[2] = max(0, economy[2])
+    if economy[3] <= 0:
+        economy[3] = 1
+    if target_type in {17, 23} and 0 in target_wear and economy[0] < values[1]:
+        economy[0] = values[1] + 5
+    lines.append(" ".join(str(value) for value in economy) + "\n")
 
-  for directive in record.directives:
-    token = directive["token"]
-    if token == "E" and directive.get("source_disposition") != "EXCLUDE":
-      keyword, text_diagnostics = _tilde(directive.get("keyword"))
-      diagnostics.extend(text_diagnostics)
-      extra, text_diagnostics = _tilde(directive.get("description"))
-      diagnostics.extend(text_diagnostics)
-      lines.extend(["E\n", keyword, extra])
-    elif token == "A":
-      arguments = directive.get("arguments", [])
-      if len(arguments) < 2:
-        diagnostics.append(f"excluded incomplete object affect at source line {directive['line']}")
-        continue
-      source_location = arguments[0]
-      if (
-          target_type in {TARGET_ITEM_WEAPON, TARGET_ITEM_MISSILE}
-          and source_location in {SOURCE_APPLY_HITROLL, SOURCE_APPLY_DAMROLL}
-      ):
-        # Restated as the native enhancement bonus in value[4]; emitting both
-        # would grant the bonus twice.
-        continue
-      if source_location in OBJECT_SOURCE_ONLY_APPLIES:
-        diagnostics.append(
-            f"omitted source-only object apply {source_location} at source line "
-            f"{directive['line']}"
+    for directive in record.directives:
+        token = directive["token"]
+        if token == "E" and directive.get("source_disposition") != "EXCLUDE":
+            keyword, text_diagnostics = _tilde(directive.get("keyword"))
+            diagnostics.extend(text_diagnostics)
+            extra, text_diagnostics = _tilde(directive.get("description"))
+            diagnostics.extend(text_diagnostics)
+            lines.extend(["E\n", keyword, extra])
+        elif token == "A":
+            arguments = directive.get("arguments", [])
+            if len(arguments) < 2:
+                diagnostics.append(
+                    f"excluded incomplete object affect at source line {directive['line']}"
+                )
+                continue
+            source_location = arguments[0]
+            if target_type in {TARGET_ITEM_WEAPON, TARGET_ITEM_MISSILE} and source_location in {
+                SOURCE_APPLY_HITROLL,
+                SOURCE_APPLY_DAMROLL,
+            }:
+                # Restated as the native enhancement bonus in value[4]; emitting both
+                # would grant the bonus twice.
+                continue
+            if source_location in OBJECT_SOURCE_ONLY_APPLIES:
+                diagnostics.append(
+                    f"omitted source-only object apply {source_location} at source line "
+                    f"{directive['line']}"
+                )
+                continue
+            location = APPLY_MAP.get(source_location)
+            if location is None or location == 0 and arguments[0] != 0:
+                diagnostics.append(
+                    f"excluded unsupported object apply {source_location} at source line {directive['line']}"
+                )
+                continue
+            modifier = arguments[1]
+            if source_location == SOURCE_ARMOR_APPLY:
+                converted = _convert_armor_apply_modifier(modifier)
+                if converted != modifier:
+                    diagnostics.append(
+                        f"restated source armor apply {modifier} as APPLY_AC_NEW {converted} at "
+                        f"source line {directive['line']}"
+                    )
+                modifier = converted
+            elif source_location in SOURCE_SAVING_THROW_APPLIES:
+                converted = -modifier
+                if converted != modifier:
+                    diagnostics.append(
+                        f"inverted source saving-throw apply {source_location} modifier "
+                        f"{modifier} to {converted} at source line {directive['line']}"
+                    )
+                modifier = converted
+            lines.extend(["A\n", f"{location} {modifier} {OBJECT_APPLY_DEFAULT_BONUS_TYPE} 0\n"])
+    if worn_protection:
+        # Source applies are independent authored effects, and remain above. The
+        # universal bonus type stacks with them and with other worn protection.
+        lines.extend(
+            [
+                "A\n",
+                f"{TARGET_APPLY_AC_NEW} {worn_protection} {OBJECT_APPLY_DEFAULT_BONUS_TYPE} 0\n",
+            ]
         )
-        continue
-      location = APPLY_MAP.get(source_location)
-      if location is None or location == 0 and arguments[0] != 0:
-        diagnostics.append(
-            f"excluded unsupported object apply {source_location} at source line {directive['line']}"
-        )
-        continue
-      modifier = arguments[1]
-      if source_location == SOURCE_ARMOR_APPLY:
-        converted = _convert_armor_apply_modifier(modifier)
-        if converted != modifier:
-          diagnostics.append(
-              f"restated source armor apply {modifier} as APPLY_AC_NEW {converted} at "
-              f"source line {directive['line']}"
-          )
-        modifier = converted
-      elif source_location in SOURCE_SAVING_THROW_APPLIES:
-        converted = -modifier
-        if converted != modifier:
-          diagnostics.append(
-              f"inverted source saving-throw apply {source_location} modifier "
-              f"{modifier} to {converted} at source line {directive['line']}"
-          )
-        modifier = converted
-      lines.extend(
-          ["A\n", f"{location} {modifier} {OBJECT_APPLY_DEFAULT_BONUS_TYPE} 0\n"]
-      )
-  if worn_protection:
-    # Source applies are independent authored effects, and remain above. The
-    # universal bonus type stacks with them and with other worn protection.
-    lines.extend([
-        "A\n",
-        f"{TARGET_APPLY_AC_NEW} {worn_protection} {OBJECT_APPLY_DEFAULT_BONUS_TYPE} 0\n",
-    ])
-  if proficiency is not None:
-    # G/H/I, in the order oedit_save_to_disk() writes them (src/olc/genobj.c).
-    # The 'I' block is required even when the table size is SIZE_MEDIUM: the
-    # loader rewrites a missing or zero size to SIZE_MEDIUM (src/core/db.c:4112),
-    # which would silently resize every converted weapon that is not medium.
-    lines.extend(["G\n", f"{proficiency}\n", "H\n", f"{material}\n", "I\n", f"{size}\n"])
-  if special_proc is not None:
-    lines.extend(["Z\n", f"{special_proc}\n"])
-  lines.extend(f"T {trigger_vnum}\n" for trigger_vnum in attachments)
-  return TransformResult("".join(lines), diagnostics)
+    if proficiency is not None:
+        # G/H/I, in the order oedit_save_to_disk() writes them (src/olc/genobj.c).
+        # The 'I' block is required even when the table size is SIZE_MEDIUM: the
+        # loader rewrites a missing or zero size to SIZE_MEDIUM (src/core/db.c:4112),
+        # which would silently resize every converted weapon that is not medium.
+        lines.extend(["G\n", f"{proficiency}\n", "H\n", f"{material}\n", "I\n", f"{size}\n"])
+    if special_proc is not None:
+        lines.extend(["Z\n", f"{special_proc}\n"])
+    lines.extend(f"T {trigger_vnum}\n" for trigger_vnum in attachments)
+    return TransformResult("".join(lines), diagnostics)

@@ -36,49 +36,50 @@ def get_db_connection():
     Or create a mysql.php file in docs/TODO/objectdb/ directory.
     """
     config = {
-        'host': os.environ.get('DB_HOST', 'localhost'),
-        'user': os.environ.get('DB_USER', ''),
-        'password': os.environ.get('DB_PASSWORD', ''),
-        'database': os.environ.get('DB_NAME', ''),
-        'charset': 'utf8mb4',
-        'cursorclass': pymysql.cursors.DictCursor
+        "host": os.environ.get("DB_HOST", "localhost"),
+        "user": os.environ.get("DB_USER", ""),
+        "password": os.environ.get("DB_PASSWORD", ""),
+        "database": os.environ.get("DB_NAME", ""),
+        "charset": "utf8mb4",
+        "cursorclass": pymysql.cursors.DictCursor,
     }
 
     # Try to read from lib/mysql_config first (LuminariMUD standard location)
-    if not config['user'] or not config['password']:
-        mysql_config_path = Path(__file__).parent.parent / 'lib/mysql_config'
+    if not config["user"] or not config["password"]:
+        mysql_config_path = Path(__file__).parent.parent / "lib/mysql_config"
         if mysql_config_path.exists():
             try:
-                with open(mysql_config_path, 'r') as f:
+                with open(mysql_config_path, "r") as f:
                     for line in f:
                         line = line.strip()
-                        if line.startswith('#') or not line:
+                        if line.startswith("#") or not line:
                             continue
-                        if '=' in line:
-                            key, value = line.split('=', 1)
+                        if "=" in line:
+                            key, value = line.split("=", 1)
                             key = key.strip()
                             value = value.strip()
 
-                            if key == 'mysql_host':
-                                config['host'] = value
-                            elif key == 'mysql_username':
-                                config['user'] = value
-                            elif key == 'mysql_password':
-                                config['password'] = value
-                            elif key == 'mysql_database':
-                                config['database'] = value
+                            if key == "mysql_host":
+                                config["host"] = value
+                            elif key == "mysql_username":
+                                config["user"] = value
+                            elif key == "mysql_password":
+                                config["password"] = value
+                            elif key == "mysql_database":
+                                config["database"] = value
 
                 print(f"✓ Loaded credentials from {mysql_config_path}")
             except Exception as e:
                 print(f"Warning: Could not read mysql_config: {e}")
 
     # Try to read from mysql.php if still not set (fallback for web tools)
-    if not config['user'] or not config['password']:
-        mysql_php_path = Path(__file__).parent.parent / 'docs/TODO/objectdb/mysql.php'
+    if not config["user"] or not config["password"]:
+        mysql_php_path = Path(__file__).parent.parent / "docs/TODO/objectdb/mysql.php"
         if mysql_php_path.exists():
             try:
                 import re
-                with open(mysql_php_path, 'r') as f:
+
+                with open(mysql_php_path, "r") as f:
                     content = f.read()
 
                 # Extract credentials using regex
@@ -88,22 +89,23 @@ def get_db_connection():
                 database_match = re.search(r'\$database\s*=\s*["\']([^"\']+)["\']', content)
 
                 if servername_match:
-                    config['host'] = servername_match.group(1)
+                    config["host"] = servername_match.group(1)
                 if username_match:
-                    config['user'] = username_match.group(1)
+                    config["user"] = username_match.group(1)
                 if password_match:
-                    config['password'] = password_match.group(1)
+                    config["password"] = password_match.group(1)
                 if database_match:
-                    config['database'] = database_match.group(1)
+                    config["database"] = database_match.group(1)
 
                 print(f"✓ Loaded credentials from {mysql_php_path}")
             except Exception as e:
                 print(f"Warning: Could not read mysql.php: {e}")
 
     # Prompt for password if still not set
-    if not config['password']:
+    if not config["password"]:
         import getpass
-        config['password'] = getpass.getpass(
+
+        config["password"] = getpass.getpass(
             f"Enter password for {config['user']}@{config['host']}: "
         )
 
@@ -120,11 +122,19 @@ def export_object_database(output_file):
         with conn.cursor() as cursor:
             # Define zones to skip (from PHP code)
             skip_zones = [
-                'Code Items (DO NOT EDIT)', '<*> Builder Academy Zone',
-                'Airship / Carriage Rooms', 'Clan Halls (Chem)',
-                'PLAYER PORT RESTRINGS', 'PP Equipment', 'PP only',
-                'PP standard eq for newbies', 'PP Unique Zone Only',
-                'QUESTS, PP ONLY', 'Uniques Zone', 'Unused Zone', 'Zone 166'
+                "Code Items (DO NOT EDIT)",
+                "<*> Builder Academy Zone",
+                "Airship / Carriage Rooms",
+                "Clan Halls (Chem)",
+                "PLAYER PORT RESTRINGS",
+                "PP Equipment",
+                "PP only",
+                "PP standard eq for newbies",
+                "PP Unique Zone Only",
+                "QUESTS, PP ONLY",
+                "Uniques Zone",
+                "Unused Zone",
+                "Zone 166",
             ]
 
             skip_zones_sql = "', '".join(skip_zones)
@@ -145,48 +155,63 @@ def export_object_database(output_file):
             print("Fetching related data (wear slots, bonuses, flags, affects)...")
 
             for item in items:
-                idnum = item['idnum']
+                idnum = item["idnum"]
 
                 # Skip mold items
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT * FROM object_database_obj_flags
                     WHERE object_idnum = %s AND obj_flag = 'Mold'
-                """, (idnum,))
+                """,
+                    (idnum,),
+                )
                 if cursor.fetchone():
                     continue
 
                 # Get wear slots
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT worn_slot FROM object_database_wear_slots
                     WHERE object_idnum = %s
                     ORDER BY worn_slot ASC
-                """, (idnum,))
-                item['wear_slots'] = [row['worn_slot'] for row in cursor.fetchall()]
+                """,
+                    (idnum,),
+                )
+                item["wear_slots"] = [row["worn_slot"] for row in cursor.fetchall()]
 
                 # Get bonuses
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT bonus_location, bonus_type, bonus_specific, bonus_modifier
                     FROM object_database_bonuses
                     WHERE object_idnum = %s
                     ORDER BY bonus_location ASC
-                """, (idnum,))
-                item['bonuses'] = cursor.fetchall()
+                """,
+                    (idnum,),
+                )
+                item["bonuses"] = cursor.fetchall()
 
                 # Get obj flags
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT obj_flag FROM object_database_obj_flags
                     WHERE object_idnum = %s
                     ORDER BY obj_flag ASC
-                """, (idnum,))
-                item['obj_flags'] = [row['obj_flag'] for row in cursor.fetchall()]
+                """,
+                    (idnum,),
+                )
+                item["obj_flags"] = [row["obj_flag"] for row in cursor.fetchall()]
 
                 # Get permanent affects
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT perm_affect FROM object_database_perm_affects
                     WHERE object_idnum = %s
                     ORDER BY perm_affect ASC
-                """, (idnum,))
-                item['perm_affects'] = [row['perm_affect'] for row in cursor.fetchall()]
+                """,
+                    (idnum,),
+                )
+                item["perm_affects"] = [row["perm_affect"] for row in cursor.fetchall()]
 
             # Get unique values for filters
             print("Building filter metadata...")
@@ -197,7 +222,7 @@ def export_object_database(output_file):
                 GROUP BY object_type
                 ORDER BY object_type ASC
             """)
-            object_types = [row['object_type'] for row in cursor.fetchall()]
+            object_types = [row["object_type"] for row in cursor.fetchall()]
 
             cursor.execute("""
                 SELECT material FROM object_database_items
@@ -205,7 +230,7 @@ def export_object_database(output_file):
                 GROUP BY material
                 ORDER BY material ASC
             """)
-            materials = [row['material'] for row in cursor.fetchall()]
+            materials = [row["material"] for row in cursor.fetchall()]
 
             cursor.execute("""
                 SELECT zone_name FROM object_database_items
@@ -213,35 +238,35 @@ def export_object_database(output_file):
                 GROUP BY zone_name
                 ORDER BY zone_name ASC
             """)
-            zones = [row['zone_name'] for row in cursor.fetchall()]
+            zones = [row["zone_name"] for row in cursor.fetchall()]
 
             cursor.execute("""
                 SELECT perm_affect FROM object_database_perm_affects
                 GROUP BY perm_affect
                 ORDER BY perm_affect ASC
             """)
-            perm_affects = [row['perm_affect'] for row in cursor.fetchall()]
+            perm_affects = [row["perm_affect"] for row in cursor.fetchall()]
 
             cursor.execute("""
                 SELECT worn_slot FROM object_database_wear_slots
                 GROUP BY worn_slot
                 ORDER BY worn_slot ASC
             """)
-            wear_slots = [row['worn_slot'] for row in cursor.fetchall()]
+            wear_slots = [row["worn_slot"] for row in cursor.fetchall()]
 
             cursor.execute("""
                 SELECT bonus_location FROM object_database_bonuses
                 GROUP BY bonus_location
                 ORDER BY bonus_location ASC
             """)
-            bonus_locations = [row['bonus_location'] for row in cursor.fetchall()]
+            bonus_locations = [row["bonus_location"] for row in cursor.fetchall()]
 
             cursor.execute("""
                 SELECT bonus_type FROM object_database_bonuses
                 GROUP BY bonus_type
                 ORDER BY bonus_type ASC
             """)
-            bonus_types = [row['bonus_type'] for row in cursor.fetchall()]
+            bonus_types = [row["bonus_type"] for row in cursor.fetchall()]
 
             cursor.execute("""
                 SELECT bonus_specific FROM object_database_bonuses
@@ -249,30 +274,36 @@ def export_object_database(output_file):
                 GROUP BY bonus_specific
                 ORDER BY bonus_specific ASC
             """)
-            bonus_specifics = [row['bonus_specific'] for row in cursor.fetchall()]
+            bonus_specifics = [row["bonus_specific"] for row in cursor.fetchall()]
 
             # Prepare final data structure
             data = {
-                'metadata': {
-                    'generated': str(Path(__file__).resolve()),
-                    'source': 'LuminariMUD Object Database',
-                    'total_objects': len(items),
-                    'filters': {
-                        'object_types': object_types,
-                        'materials': materials,
-                        'zones': zones,
-                        'perm_affects': perm_affects,
-                        'wear_slots': wear_slots,
-                        'bonus_locations': bonus_locations,
-                        'bonus_types': bonus_types,
-                        'bonus_specifics': bonus_specifics,
-                        'weapon_groups': [
-                            'Axe', 'Double-Weapon', 'Hammer', 'Heavy-Blade',
-                            'Light-Blade', 'Monk', 'Polearm', 'Ranged'
-                        ]
-                    }
+                "metadata": {
+                    "generated": str(Path(__file__).resolve()),
+                    "source": "LuminariMUD Object Database",
+                    "total_objects": len(items),
+                    "filters": {
+                        "object_types": object_types,
+                        "materials": materials,
+                        "zones": zones,
+                        "perm_affects": perm_affects,
+                        "wear_slots": wear_slots,
+                        "bonus_locations": bonus_locations,
+                        "bonus_types": bonus_types,
+                        "bonus_specifics": bonus_specifics,
+                        "weapon_groups": [
+                            "Axe",
+                            "Double-Weapon",
+                            "Hammer",
+                            "Heavy-Blade",
+                            "Light-Blade",
+                            "Monk",
+                            "Polearm",
+                            "Ranged",
+                        ],
+                    },
                 },
-                'objects': items
+                "objects": items,
             }
 
             # Write to JSON file
@@ -280,7 +311,7 @@ def export_object_database(output_file):
             output_path = Path(output_file)
             output_path.parent.mkdir(parents=True, exist_ok=True)
 
-            with open(output_file, 'w', encoding='utf-8') as f:
+            with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2, default=str)
 
             print(f"✓ Successfully exported {len(items)} objects to {output_file}")
@@ -295,7 +326,7 @@ def main():
 
     # Default output location
     script_dir = Path(__file__).parent
-    default_output = script_dir / '../docs/web/data/objects.json'
+    default_output = script_dir / "../docs/web/data/objects.json"
 
     # Get output file from command line or use default
     output_file = sys.argv[1] if len(sys.argv) > 1 else str(default_output)
@@ -307,5 +338,5 @@ def main():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

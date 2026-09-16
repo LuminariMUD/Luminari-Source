@@ -6,14 +6,14 @@ project root from their own location where they need repository files.
 ## Subject directories
 
 | Directory | Purpose |
-|-----------|---------|
+| -- | -- |
 | `autorun/` | Server supervisor, watchdog, and supervision regression test |
 | `ci/` | CI helpers: isolated test runtime setup and the source-hygiene gate |
 | `character-rename/` | Static and MariaDB-backed character rename tests |
 | `copyover/` | Copyover monitoring and diagnostics |
 | `debugging/` | GDB and Valgrind helpers |
 | `deployment/` | Deployment, setup, and binary installation |
-| `development/` | Local test-character and login helpers |
+| `development/` | Local test-character and login helpers, and source metrics |
 | `mariadb/` | Local MariaDB startup and sudoers setup |
 | `operations/` | HTTP readiness probe and its regression test |
 | `permissions/` | Permission inspection and repair |

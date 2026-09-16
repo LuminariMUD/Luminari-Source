@@ -5,7 +5,7 @@
 > [Phase 07 validation matrix](SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md) for current ownership.
 
 Status: Complete
-Last updated: 2026-08-07  
+Last updated: 2026-08-07\
 Baseline: Phase 02 completion commit `9acda0ec`
 
 ## Purpose
@@ -63,7 +63,7 @@ both the `luminari` and `cutest` targets.
 Run from the repository root on 2026-08-07:
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | `make -j$(nproc)` | PASS with `-Wall -Wextra` |
 | `make test` | PASS |
 | direct `./cutest` confirmation | PASS, 574 tests |
@@ -108,7 +108,7 @@ or call site changes.
 ### Checkpoint 2 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | `make -j$(nproc)` | PASS with `-Wall -Wextra` |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -140,7 +140,7 @@ lines and from the Phase 03 baseline of 12,212 lines by 7,867 lines.
 ### Checkpoint 3 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
@@ -176,7 +176,7 @@ lines and from the Phase 03 baseline of 12,212 lines by 8,192 lines.
 ### Checkpoint 4 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
@@ -215,7 +215,7 @@ lines and from the Phase 03 baseline of 12,212 lines by 9,197 lines.
 ### Checkpoint 5 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
@@ -253,7 +253,7 @@ lines and from the Phase 03 baseline of 12,212 lines by 10,252 lines.
 ### Checkpoint 6 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -291,7 +291,7 @@ The new cohesive implementation is 851 lines, below the 1,000-line review prompt
 ### Checkpoint 7 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -328,7 +328,7 @@ are 158 and 124 lines respectively.
 ### Checkpoint 8 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -371,7 +371,7 @@ from its Phase 03 baseline. The new Prisoner and Celestial Leviathan implementat
 ### Checkpoint 9 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -407,7 +407,7 @@ lines and by 2,594 lines from the Phase 03 baseline. The new cohesive implementa
 ### Checkpoint 10 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -451,7 +451,7 @@ baseline.
 ### Checkpoint 11 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -489,7 +489,7 @@ baseline.
 ### Checkpoint 12 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -526,7 +526,7 @@ command, authored-data, or behavior contract changed.
 ### Checkpoint 13 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -555,7 +555,7 @@ because no command, authored-data, or behavior contract changed.
 ### Checkpoint 14 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -584,7 +584,7 @@ because no command, authored-data, or behavior contract changed.
 ### Checkpoint 15 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -616,7 +616,7 @@ contract changed.
 ### Checkpoint 16 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -646,7 +646,7 @@ player or builder helpfile changed because no command, authored-data, or behavio
 ### Checkpoint 17 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -678,7 +678,7 @@ no command, authored-data, or behavior contract changed.
 ### Checkpoint 18 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -708,7 +708,7 @@ command, authored-data, or behavior contract changed.
 ### Checkpoint 19 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -739,7 +739,7 @@ command, authored-data, or behavior contract changed.
 ### Checkpoint 20 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -769,7 +769,7 @@ because no command, authored-data, or behavior contract changed.
 ### Checkpoint 21 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -800,7 +800,7 @@ contract changed.
 ### Checkpoint 22 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -830,7 +830,7 @@ helpfile changed because no command, authored-data, or behavior contract changed
 ### Checkpoint 23 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -862,7 +862,7 @@ behavior contract changed.
 ### Checkpoint 24 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -895,7 +895,7 @@ changed.
 ### Checkpoint 25 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -924,7 +924,7 @@ command, authored-data, or behavior contract changed.
 ### Checkpoint 26 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -940,7 +940,7 @@ command, authored-data, or behavior contract changed.
 Checkpoint 27 moves the `shar_heart` object callback and `shar_statue` mobile callback from
 `src/spec_procs.c` to `src/spec/spec_zone_orc_ruins.c`, with declarations published through
 `src/spec/spec_zone_orc_ruins.h`. Their direct assignments remain object VNUM 106229 and mobile VNUM
-106231. Neither callback has a registry definition or authored world binding. The assignment source
+106231\. Neither callback has a registry definition or authored world binding. The assignment source
 includes the owner header directly, while `src/spec_procs.h` retains the owner include as a
 compatibility surface.
 
@@ -953,7 +953,7 @@ player or builder helpfile changed because no command, authored-data, or behavio
 ### Checkpoint 27 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -982,7 +982,7 @@ player or builder helpfile changed because no command, authored-data, or behavio
 ### Checkpoint 28 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -1003,7 +1003,7 @@ checkpoint:
 - `bandit_guard` moves to `src/spec/spec_zone_bandit_castle.c` and remains assigned to mobile VNUM
   143304; and
 - `secomber_guard` moves to `src/spec/spec_zone_secomber.c` and remains assigned to mobile VNUM
-  125064.
+  125064\.
 
 Each owner publishes a dedicated header. None of the callbacks has a registry definition or
 authored world binding. `src/spec_assign.c` includes each owner header directly, while
@@ -1020,7 +1020,7 @@ behavior contract changed.
 ### Checkpoint 29 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -1042,7 +1042,7 @@ Checkpoint 30 moves six callbacks across four independent zone owners in one bat
 - `mereshaman` and `willowisp` move together to `src/spec/spec_zone_mere_of_dead_men.c` and remain
   assigned to mobile VNUMs 126717, 126707, and 126715; and
 - `battlemaze_guard` moves to `src/spec/spec_zone_battlemaze.c` and remains assigned to mobile VNUM
-  135603.
+  135603\.
 
 Each owner publishes a dedicated header. None of the callbacks has a registry definition or
 authored world binding. `src/spec_assign.c` includes each owner header directly, while
@@ -1059,7 +1059,7 @@ command, authored-data, or behavior contract changed.
 ### Checkpoint 30 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
@@ -1103,7 +1103,7 @@ build manifests. The deletion is source-controlled and recoverable through Git.
 ### Checkpoint 31 verification
 
 | Gate | Result |
-|------|--------|
+| -- | -- |
 | warning-clean Autotools production build after legacy-source retirement | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
 | `make install` | PASS; `bin/luminari` installed and root `luminari` removed |

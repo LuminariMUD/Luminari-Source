@@ -8,6 +8,8 @@
 #ifndef _MYSQL_H
 #define _MYSQL_H
 
+#include "core/structs.h"
+
 #include <mariadb/mysql.h> /* System headerfile for MariaDB/MySQL. */
 #include <pthread.h>
 #include <stdint.h>

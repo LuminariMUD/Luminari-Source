@@ -522,7 +522,7 @@ static int same_obj(struct obj_data *obj1, struct obj_data *obj2)
   if (GET_OBJ_COST(obj1) != GET_OBJ_COST(obj2))
     return (FALSE);
 
-  if (strcmp(obj1->short_description, obj2->short_description))
+  if (strcmp(obj1->short_description, obj2->short_description) != 0)
     return FALSE;
 
   for (aindex = 0; aindex < MAX_OBJ_AFFECT; aindex++)

@@ -11,6 +11,8 @@
 #ifndef _MOB_MEMORY_H_
 #define _MOB_MEMORY_H_
 
+#include "core/structs.h"
+
 /* Function prototypes for mob memory management */
 
 /* checks if vict is in memory of ch */

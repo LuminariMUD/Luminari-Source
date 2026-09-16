@@ -74,7 +74,7 @@ Never overwrite an existing local configuration with its example template.
 ## Common Commands
 
 | Command | Purpose |
-|---------|---------|
+| -- | -- |
 | `make clean && make -j"$(nproc)"` | Rebuild the configured Autotools tree |
 | `make test` | Run production-linked CuTest and registered shell regressions |
 | `make install` | Activate the tested immutable release as `bin/luminari` |
@@ -115,6 +115,29 @@ make test-all
 
 See [TESTING_GUIDE.md](../guides/TESTING_GUIDE.md) for the complete suite, schema,
 world-tool, sanitizer, Valgrind, and subsystem commands.
+
+## Static Analysis
+
+CI fails on a new clang-tidy or GCC analyzer finding, including an unsafe string
+call swapped in for one already recorded, on a header outside its baseline that
+does not compile on its own, on a CodeQL database that lacks a production source,
+and on a change that raises any of these baselines. Reproduce the pull-request
+clang-tidy job exactly, or run the checks directly:
+
+```bash
+python3 scripts/ci/local/run.py --job quality-clang-tidy
+python3 -m venv .venv
+.venv/bin/python -m pip install -r scripts/ci/clang-tidy-requirements.txt
+cmake --preset analysis
+.venv/bin/python scripts/ci/check_clang_tidy.py --build-dir build/analysis \
+  --clang-tidy .venv/bin/clang-tidy --base "$(git merge-base origin/master HEAD)"
+make test-header-self-containment
+python3 scripts/ci/check_baseline_ratchet.py --base "$(git merge-base origin/master HEAD)"
+```
+
+[Static Analysis](../guides/SETUP_AND_BUILD_GUIDE.md#static-analysis) in the setup
+guide covers whole-tree runs, baseline updates, the GCC analyzer and CodeQL
+checks, and suppressions.
 
 ## Source Map
 

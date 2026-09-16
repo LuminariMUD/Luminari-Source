@@ -1,14 +1,18 @@
 # SKORE System Documentation
 
 ## Overview
+
 Enhanced character display system with visual formatting, color coding, and customization options.
 
 ## SKORE Command
+
 **Usage:** `skore [section]`
+
 - Base command shows full character information
 - Detailed section views: `skore combat`, `skore magic`, `skore stats`
 
 **Features:**
+
 - Progress bars with health-based colors (green>yellow>orange>red)
 - Class-themed colors and borders
 - Race symbols
@@ -31,9 +35,11 @@ The SKORE system includes six color themes to suit different preferences and acc
 6. **Colorblind** - Carefully selected colors avoiding red-green combinations
 
 ## SCORECONFIG Command
+
 **Usage:** `scoreconfig [option] [value]`
 
 **Options:**
+
 - `width <80|120|160>` - Display width
 - `theme <enhanced|classic|minimal|highcontrast|dark|colorblind>` - Color theme
 - `density <full|compact|minimal>` - Information shown
@@ -77,11 +83,13 @@ The magic section now includes active spell effects with visual duration indicat
 ## Test Plan Summary
 
 ### 1. Basic Functionality
+
 - Verify `skore` displays all 8 sections correctly
 - Test section views: `skore combat/magic/stats`
 - Confirm classic fallback: `scoreconfig classic on`
 
 ### 2. Configuration Tests
+
 - Width: Test 80/120/160 character layouts
 - Themes: Test enhanced/classic/minimal/highcontrast/dark/colorblind colors
 - Density: Test full/compact/minimal information
@@ -89,49 +97,59 @@ The magic section now includes active spell effects with visual duration indicat
 - Reset: Verify `scoreconfig reset` restores defaults
 
 ### 3. Character Tests
+
 - Classes: Warrior, Wizard, Cleric, Rogue, Multiclass
 - Levels: 1, 10, 20, Immortal
 - Races: All available races with symbols
 
 ### 4. Equipment Tests
+
 - Display: Verify equipment section shows correct items
 - Counter: Test equipped item count accuracy
 
 ### 5. Progress Bars
+
 - Health bars: Test color transitions (green->yellow->orange->red)
 - Experience bar: Verify XP progress display
 
 ### 6. Error Handling
+
 - Invalid inputs: Test bad scoreconfig values
 - NPC usage: Verify NPCs can't use scoreconfig
 
 ### 7. Performance
-- Speed: Target <10ms render time
+
+- Speed: Target `<10ms` render time
 - Memory: No leaks (valgrind test)
 
 ### 8. Client Compatibility
+
 - Test clients: telnet, MUSHclient, Mudlet, TinTin++
 - Verify ASCII rendering and color support
 
 ## Test Requirements
 
 ### Test Characters
+
 - L1 Human Warrior, L10 Elf Wizard, L20 Dwarf Cleric
 - Multiclass, Immortal, Psionic characters
 
 ### Manual Tasks Required
+
 1. Add help entries via `hedit skore` and `hedit scoreconfig`
 2. Run valgrind memory tests
 3. Test client compatibility
-4. Performance profiling (<10ms target)
+4. Performance profiling (`<10ms` target)
 
 ### Known Limitations
+
 - No equipment durability (not in codebase)
 - Preferences use binary saves (not MySQL)
 
 ## Testing Scripts
 
 ### Valgrind Test (test_skore_valgrind.sh)
+
 ```bash
 #!/bin/bash
 # Memory leak testing for SKORE system
@@ -141,6 +159,7 @@ valgrind --leak-check=full --show-leak-kinds=all \
 ```
 
 ### Performance Test (test_skore_performance.sh)
+
 ```bash
 #!/bin/bash
 # Performance testing - 100 iterations, target <10ms
@@ -150,12 +169,14 @@ time for i in {1..100}; do echo "skore" | ../bin/luminari; done
 ## Client Testing Guide
 
 ### Test Clients
+
 1. **Telnet**: Basic ASCII/ANSI support
 2. **MUSHclient**: Windows, full color support
 3. **Mudlet**: Cross-platform, UTF-8 encoding
 4. **TinTin++**: Unix/Linux, script compatibility
 
 ### Quick Test Sequence
+
 ```bash
 skore
 skore combat/magic/stats
@@ -171,12 +192,14 @@ scoreconfig reset
 ## Testing Checklist
 
 ### Setup
+
 1. Compile: `make clean && make`
 2. Add help entries: `hedit skore` and `hedit scoreconfig`
 
 ### Critical Tests
+
 1. **Memory**: `valgrind --leak-check=full ../bin/luminari`
-2. **Performance**: 100x execution <10ms each
+2. **Performance**: 100x execution `<10ms` each
 3. **Functionality**: All skore variants display correctly
 4. **Configuration**: All scoreconfig options work and persist
 5. **Characters**: Test various classes/levels/races
@@ -184,8 +207,9 @@ scoreconfig reset
 7. **Edge Cases**: NPCs, empty equipment, critical health
 
 ### Success Criteria
+
 - No crashes/leaks
-- <10ms performance
+- `<10ms` performance
 - Settings persist
 - Client compatibility
 - Help entries work

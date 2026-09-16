@@ -124,8 +124,7 @@ def embedded_help_migrations():
     migrations = []
     for version, literals in pattern.findall(source):
         sql = "".join(
-            ast.literal_eval(literal)
-            for literal in re.findall(r'\"(?:\\.|[^\"])*\"', literals)
+            ast.literal_eval(literal) for literal in re.findall(r"\"(?:\\.|[^\"])*\"", literals)
         )
         migrations.append((int(version), sql))
     return sorted(migrations)
@@ -211,9 +210,7 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
         cls.root = temporary_root / "endpoint"
         help_directory = cls.root / "lib" / "text" / "help"
         help_directory.mkdir(parents=True)
-        (cls.root / "lib" / ".env").write_text(
-            "APP_ENV=development\n", encoding="ascii"
-        )
+        (cls.root / "lib" / ".env").write_text("APP_ENV=development\n", encoding="ascii")
         mysql_config = (
             f"mysql_host={cls.server_config.host}\n"
             f"mysql_port={cls.server_config.port}\n"
@@ -265,9 +262,7 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
                 "INSERT INTO help_keywords (help_tag, keyword) VALUES "
                 "('alpha', 'ALPHA'), ('ghost', 'ORPHAN')"
             )
-            cursor.execute(
-                "INSERT INTO help_search_history (search_term) VALUES ('keep-me')"
-            )
+            cursor.execute("INSERT INTO help_search_history (search_term) VALUES ('keep-me')")
             cursor.execute(
                 "INSERT INTO unrelated_sentinel (id, value_text) VALUES (1, 'untouched')"
             )
@@ -334,9 +329,7 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
         production_root = self.root.parent / ("production-" + uuid.uuid4().hex[:12])
         production_help = production_root / "lib" / "text" / "help"
         production_help.mkdir(parents=True)
-        (production_root / "lib" / ".env").write_text(
-            "APP_ENV=production\n", encoding="ascii"
-        )
+        (production_root / "lib" / ".env").write_text("APP_ENV=production\n", encoding="ascii")
         production_mysql = (
             f"mysql_host={self.server_config.host}\n"
             f"mysql_port={self.server_config.port}\n"
@@ -351,9 +344,7 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
         production_config = DatabaseConfig.from_root(production_root)
 
         with self.server_connection.cursor() as cursor:
-            cursor.execute(
-                f"CREATE DATABASE `{production_database}` CHARACTER SET utf8mb4"
-            )
+            cursor.execute(f"CREATE DATABASE `{production_database}` CHARACTER SET utf8mb4")
         try:
             production_connection = production_config.connect(autocommit=True)
             with production_connection.cursor() as cursor:
@@ -370,12 +361,9 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
                     "INSERT INTO help_keywords (help_tag, keyword) VALUES "
                     "('alpha', 'ALPHA'), ('beta', 'BETA')"
                 )
+                cursor.execute("INSERT INTO help_search_history (search_term) VALUES ('keep-me')")
                 cursor.execute(
-                    "INSERT INTO help_search_history (search_term) VALUES ('keep-me')"
-                )
-                cursor.execute(
-                    "INSERT INTO unrelated_sentinel (id, value_text) "
-                    "VALUES (1, 'untouched')"
+                    "INSERT INTO unrelated_sentinel (id, value_text) VALUES (1, 'untouched')"
                 )
             production_connection.close()
 
@@ -399,15 +387,12 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
             )
             (production_help / "help.hlp").write_bytes(render_help_hlp(baseline))
             write_common_baseline(self.root, baseline, baseline.content_hash)
-            write_common_baseline(
-                production_root, baseline, baseline.content_hash
-            )
+            write_common_baseline(production_root, baseline, baseline.content_hash)
 
             development_connection = self.config.connect(autocommit=True)
             with development_connection.cursor() as cursor:
                 cursor.execute(
-                    "UPDATE help_entries SET entry='Alpha autonomous.\\n' "
-                    "WHERE tag='alpha'"
+                    "UPDATE help_entries SET entry='Alpha autonomous.\\n' WHERE tag='alpha'"
                 )
             development_connection.close()
 
@@ -483,7 +468,9 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
         verification = verify_endpoint(self.root, "development", candidate)
         self.assertEqual(verification["catalog_hash"], candidate.content_hash)
         self.assertEqual(self.scalar("SELECT COUNT(*) FROM help_search_history"), 1)
-        self.assertEqual(self.scalar("SELECT value_text FROM unrelated_sentinel WHERE id=1"), "untouched")
+        self.assertEqual(
+            self.scalar("SELECT value_text FROM unrelated_sentinel WHERE id=1"), "untouched"
+        )
         second = apply_plan_to_endpoint(self.root, "development", plan)
         self.assertEqual(second["status"], "verified-no-op")
         rolled_back = rollback_endpoint(
@@ -496,9 +483,7 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
             normalize_integrity_repairs(restored.integrity_repairs),
             normalize_integrity_repairs(before.integrity_repairs),
         )
-        self.assertEqual(
-            (self.root / "lib" / "text" / "help" / "help.hlp").read_bytes(), b"$~\n"
-        )
+        self.assertEqual((self.root / "lib" / "text" / "help" / "help.hlp").read_bytes(), b"$~\n")
 
     def test_stale_plan_is_refused_after_database_edit(self):
         plan, _ = self.build_plan(self.changed_candidate)
@@ -548,9 +533,7 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
         with mock.patch("endpoint.atomic_write", side_effect=fail_first_help_file):
             with self.assertRaises(ApplyFailure) as context:
                 apply_plan_to_endpoint(self.root, "development", plan)
-        self.assertEqual(
-            context.exception.details["automatic_rollback"]["status"], "rolled-back"
-        )
+        self.assertEqual(context.exception.details["automatic_rollback"]["status"], "rolled-back")
         restored = take_snapshot(self.root, "development")
         self.assertEqual(restored.catalog.content_hash, before.catalog.content_hash)
 
@@ -561,13 +544,13 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
             with self.assertRaises(EndpointError):
                 apply_plan_to_endpoint(self.root, "development", plan)
         finally:
-            (self.root / "lib" / ".env").write_text(
-                "APP_ENV=development\n", encoding="ascii"
-            )
+            (self.root / "lib" / ".env").write_text("APP_ENV=development\n", encoding="ascii")
 
     def test_embedded_migrations_upgrade_legacy_schema_despite_low_id_collision(self):
         migrations = embedded_help_migrations()
-        self.assertEqual([version for version, _ in migrations], list(range(2026082401, 2026082409)))
+        self.assertEqual(
+            [version for version, _ in migrations], list(range(2026082401, 2026082409))
+        )
         connection = self.config.connect(autocommit=True)
         with connection.cursor() as cursor:
             for table in (
@@ -622,9 +605,7 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
     def test_map_shop_migration_updates_imported_entry_and_reclaims_aliases(self):
         entries = {
             entry.keywords[0].lower(): entry
-            for entry in parse_help_hlp(
-                (REPOSITORY_ROOT / "lib/text/help/help.hlp").read_bytes()
-            )
+            for entry in parse_help_hlp((REPOSITORY_ROOT / "lib/text/help/help.hlp").read_bytes())
             if entry.keywords[0].lower() in ("automapping", "gui-map")
         }
         self.assertEqual(set(entries), {"automapping", "gui-map"})
@@ -657,9 +638,18 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
                             )
                         for _ in range(2):
                             subprocess.run(
-                                [client, "--no-defaults", "--protocol=tcp", "--host=127.0.0.1",
-                                 f"--port={self.config.port}", "--user=root", self.database_name],
-                                input=migration, capture_output=True, check=True,
+                                [
+                                    client,
+                                    "--no-defaults",
+                                    "--protocol=tcp",
+                                    "--host=127.0.0.1",
+                                    f"--port={self.config.port}",
+                                    "--user=root",
+                                    self.database_name,
+                                ],
+                                input=migration,
+                                capture_output=True,
+                                check=True,
                             )
                             for tag, entry in entries.items():
                                 cursor.execute(
@@ -669,7 +659,8 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
                                 for keyword in entry.keywords:
                                     cursor.execute(
                                         "SELECT help_tag FROM help_keywords "
-                                        "WHERE LOWER(keyword)=LOWER(%s)", (keyword,)
+                                        "WHERE LOWER(keyword)=LOWER(%s)",
+                                        (keyword,),
                                     )
                                     self.assertEqual(cursor.fetchall(), ((tag,),))
                             # Match search_help's prefix lookup and first-result selection.
@@ -678,15 +669,20 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
                                     "SELECT he.tag, he.entry FROM help_entries he "
                                     "JOIN help_keywords hk ON he.tag=hk.help_tag "
                                     "WHERE LOWER(hk.keyword) LIKE LOWER(%s) AND he.min_level<=0 "
-                                    "ORDER BY LENGTH(hk.keyword) ASC LIMIT 1", (keyword + "%",)
+                                    "ORDER BY LENGTH(hk.keyword) ASC LIMIT 1",
+                                    (keyword + "%",),
                                 )
                                 self.assertEqual(
                                     cursor.fetchone(), ("gui-map", entries["gui-map"].body)
                                 )
                         cursor.execute("SELECT entry FROM help_entries WHERE tag='map'")
-                        self.assertEqual(cursor.fetchall(), (("Keep body",),) if previously_applied else ())
+                        self.assertEqual(
+                            cursor.fetchall(), (("Keep body",),) if previously_applied else ()
+                        )
                         if previously_applied:
-                            cursor.execute("SELECT help_tag FROM help_keywords WHERE keyword='UNRELATED'")
+                            cursor.execute(
+                                "SELECT help_tag FROM help_keywords WHERE keyword='UNRELATED'"
+                            )
                             self.assertEqual(cursor.fetchone(), ("map",))
         finally:
             connection.close()

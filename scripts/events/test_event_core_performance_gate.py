@@ -13,7 +13,9 @@ GATE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(GATE)
 
 
-def fixture_snapshots(cleanup_live: tuple[int, int, int] = (21, 19, 24)) -> dict[str, dict[str, int]]:
+def fixture_snapshots(
+    cleanup_live: tuple[int, int, int] = (21, 19, 24),
+) -> dict[str, dict[str, int]]:
     snapshots: dict[str, dict[str, int]] = {}
     for index, cleanup in enumerate(cleanup_live, start=1):
         baseline = 20
@@ -29,7 +31,9 @@ class DgFixtureAnalysisTests(unittest.TestCase):
 
         self.assertTrue(result["passed"])
         self.assertEqual(result["missing_fields"], [])
-        self.assertEqual([segment["active_delta"] for segment in result["segments"]], [100, 100, 100])
+        self.assertEqual(
+            [segment["active_delta"] for segment in result["segments"]], [100, 100, 100]
+        )
 
     def test_retained_fixture_waits_fail_cleanup(self) -> None:
         result = GATE.dg_fixture_analysis(fixture_snapshots((21, 35, 24)))

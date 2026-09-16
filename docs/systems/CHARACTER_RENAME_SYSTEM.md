@@ -240,18 +240,18 @@ Problems:
 
 The rename must report success only if all applicable invariants are true:
 
-1. The immutable player-file/index ID (`GET_IDNUM`) is unchanged.
-2. The account ID is unchanged.
-3. The new name is valid and unused, using case-insensitive collision checks
-   consistent with login and the database collation.
-4. `player_table`, `player_data`, the `.plr` filename, and the `Name:` value in
-   the `.plr` file all identify the new name.
-5. The `.plr` file retains the correct `Acct:` value.
-6. All current ownership/state rows use the new name.
-7. No old-name ownership/state rows remain in any supported active table.
-8. Object, pet, sheath, and eidolon payloads and immutable IDs are unchanged;
-   only their name-based lookup keys move.
-9. Auxiliary files are available at paths derived from the new name.
+01. The immutable player-file/index ID (`GET_IDNUM`) is unchanged.
+02. The account ID is unchanged.
+03. The new name is valid and unused, using case-insensitive collision checks
+    consistent with login and the database collation.
+04. `player_table`, `player_data`, the `.plr` filename, and the `Name:` value in
+    the `.plr` file all identify the new name.
+05. The `.plr` file retains the correct `Acct:` value.
+06. All current ownership/state rows use the new name.
+07. No old-name ownership/state rows remain in any supported active table.
+08. Object, pet, sheath, and eidolon payloads and immutable IDs are unchanged;
+    only their name-based lookup keys move.
+09. Auxiliary files are available at paths derived from the new name.
 10. Introduction-list references follow the configured feature policy.
 11. Existing descriptors and other live name caches no longer retain an
     authoritative old-name key.
@@ -354,7 +354,7 @@ Prepared statements would be preferable if introduced consistently.
 Use `get_filename()` for each supported mode:
 
 | Mode | Data | Required behavior |
-| --- | --- | --- |
+| -- | -- | -- |
 | `PLR_FILE` | Main ASCII player file | Source required; rename and rewrite identity |
 | `CRASH_FILE` | Legacy/fallback inventory | Rename if present |
 | `SCRIPT_VARS_FILE` | Player DG script variables | Rename if present |
@@ -421,7 +421,7 @@ sufficient.
 The active/core rename map is:
 
 | Table | Character-name column | Notes |
-| --- | --- | --- |
+| -- | -- | -- |
 | `player_data` | `name` | Canonical account-menu and object-header row; exactly one row must change |
 | `player_save_objs` | `name` | Inventory/equipment DB rows |
 | `player_save_objs_sheathed` | `owner_name` | Sheathed object rows |
@@ -443,7 +443,7 @@ The active/core rename map is:
 The production schema also contained these legacy/reporting objects:
 
 | Table | Candidate column | Expected decision |
-| --- | --- | --- |
+| -- | -- | -- |
 | `player_data2` | `name` | It had zero rows and no current source reference on 2026-07-23. Treat it as obsolete unless a deployment owner proves it is a live mirror; remove it in a separate migration or include it explicitly if reactivated. |
 | `level_30_characters` | `name` | It is a view over `player_data`, not a writable table. Do not update it; verify that it reflects the new name after `player_data` changes. |
 
@@ -503,7 +503,7 @@ The rename is a key migration, not a resave. Capture these preconditions and
 compare them after the rename and again after restart/copyover:
 
 | Store | Values that may change | Values that must not change |
-| --- | --- | --- |
+| -- | -- | -- |
 | `player_data` | `name` | row identity, `account_id`, and `obj_save_header` bytes |
 | `player_save_objs` | `name` | row count, `idnum`, `creation_date`, and `serialized_obj` bytes |
 | `player_save_objs_sheathed` | `owner_name` | row count, row ID, `sheath_obj_id`, `sheathed_position`, and `serialized_obj` bytes |
@@ -625,19 +625,19 @@ This change needs a direct regression test:
 MySQL and the filesystem cannot share one atomic transaction. Implement
 explicit compensation:
 
-1. Complete all validation and collision checks.
-2. Start the SQL transaction and lock the canonical player row.
-3. Create recoverable same-filesystem snapshots/staging files for the target
-   player file, player index, and every introduction-bearing player file in
-   the selected plan.
-4. Rename/stage auxiliary files with `rename()`, recording each successful
-   operation.
-5. Apply SQL updates without committing.
-6. Update the in-memory victim and player-index entry.
-7. Save the new target player file, player index, and any parsed introduction
-   updates with checked, atomic writers.
-8. Verify pre-commit postconditions that are visible in the transaction.
-9. Commit SQL.
+01. Complete all validation and collision checks.
+02. Start the SQL transaction and lock the canonical player row.
+03. Create recoverable same-filesystem snapshots/staging files for the target
+    player file, player index, and every introduction-bearing player file in
+    the selected plan.
+04. Rename/stage auxiliary files with `rename()`, recording each successful
+    operation.
+05. Apply SQL updates without committing.
+06. Update the in-memory victim and player-index entry.
+07. Save the new target player file, player index, and any parsed introduction
+    updates with checked, atomic writers.
+08. Verify pre-commit postconditions that are visible in the transaction.
+09. Commit SQL.
 10. Refresh caches and remove temporary rollback snapshots.
 
 If a failure occurs before commit:
@@ -718,22 +718,22 @@ Write one structured staff log entry containing:
 
 ## Suggested implementation sequence
 
-1. Reconcile the checked-in schema with deployment and migrate the three
-   active mail tables from MyISAM to InnoDB.
-2. Fix `save_char()` so descriptorless saves preserve `GET_ACCOUNT_NAME()`.
-3. Add checked/atomic player-file and player-index writers.
-4. Add file-path planning and `rename()`/rollback helpers for all four file
-   modes.
-5. Add a database rename helper with one transaction and the explicit rename
-   map.
-6. Implement the introduction-list ID migration or checked fan-out described
-   in section F.
-7. Add cache and generated-live-name refresh helpers.
-8. Implement `rename_player_everywhere()`.
-9. Reduce `change_player_name()` to permissions/UX plus a call to the service.
+01. Reconcile the checked-in schema with deployment and migrate the three
+    active mail tables from MyISAM to InnoDB.
+02. Fix `save_char()` so descriptorless saves preserve `GET_ACCOUNT_NAME()`.
+03. Add checked/atomic player-file and player-index writers.
+04. Add file-path planning and `rename()`/rollback helpers for all four file
+    modes.
+05. Add a database rename helper with one transaction and the explicit rename
+    map.
+06. Implement the introduction-list ID migration or checked fan-out described
+    in section F.
+07. Add cache and generated-live-name refresh helpers.
+08. Implement `rename_player_everywhere()`.
+09. Reduce `change_player_name()` to permissions/UX plus a call to the service.
 10. Add automated unit and integration coverage.
 11. Run the manual end-to-end scenario in a disposable dev database and data
-   directory.
+    directory.
 12. Test a restart/copyover before considering the fix complete.
 
 ## Automated test plan

@@ -7,6 +7,9 @@
 #ifndef HLQUEST_H
 #define HLQUEST_H
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 void quest_open_door(room_rnum room, int door);
 
 #ifndef __QUEST_CODE_H

@@ -10,6 +10,8 @@
 #ifndef _IMPROVED_EDIT_H_
 #define _IMPROVED_EDIT_H_
 
+#include "core/structs.h"
+
 /* This is here to allow different code for the basic and improved editor. If
  * you do not wish to use the improved editor, put #if 0 below, otherwise you
  * should leave the setting at #if 1. */

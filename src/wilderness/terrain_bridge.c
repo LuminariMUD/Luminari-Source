@@ -214,12 +214,12 @@ char *process_terrain_http_request(const char *http_request, bool database_healt
   *status_code = 400;
   *head_only = false;
   if (!http_request || sscanf(http_request, "%15s %255s %15s", method, path, version) != 3 ||
-      (strcmp(version, "HTTP/1.0") && strcmp(version, "HTTP/1.1")))
+      (strcmp(version, "HTTP/1.0") != 0 && strcmp(version, "HTTP/1.1")))
     return strdup("{\"service\":\"luminari-mud\",\"status\":\"bad_request\"}");
 
   if (!strcmp(method, "HEAD"))
     *head_only = true;
-  else if (strcmp(method, "GET"))
+  else if (strcmp(method, "GET") != 0)
   {
     *status_code = 405;
     return strdup("{\"service\":\"luminari-mud\",\"status\":\"method_not_allowed\"}");

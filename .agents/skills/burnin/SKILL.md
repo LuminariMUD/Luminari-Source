@@ -127,6 +127,7 @@ available work and report the burn-in as incomplete with its exact coverage gap.
    Autorun copies and renames `syslog` during rotation; a new file can contain old messages.
    Check the timestamps inside those messages against the observation boundary before treating
    them as new diagnostics.
+
 2. Start the installed normal release through autorun, using the verified development port:
 
    ```bash
@@ -141,6 +142,7 @@ available work and report the burn-in as incomplete with its exact coverage gap.
    must report both the MUD and required MariaDB as healthy. Verify that autorun survives the
    launching terminal/tool session. Local Ollama, I3, and Discord connectivity is not required
    unless those integrations are the task's subject.
+
 3. Inspect `scripts/development/dev_kohdee_login_smoke.sh` for the current account-menu,
    command-capture, and complete character/account logout sequence.
    It reads `GAME_MASTER_ACCOUNT` and `GAME_MASTER_ACCOUNT_PASSWORD`, supports `DEV_MUD_ACCOUNT`,
@@ -154,6 +156,7 @@ available work and report the burn-in as incomplete with its exact coverage gap.
    authorized. It reads the port from `lib/etc/config` and can start a separate user service
    when no listener exists. Invoke it only after autorun is healthy and the ports match;
    its fallback is not the burn-in startup path.
+
 4. Randomize a selection of safe inspection commands across player and staff systems. Trace
    registrations and handlers in `src/core/interpreter.c` and the owning subsystem first. Candidates
    include `score`, `inventory`, `equipment`, `time`, `weather`, `who`, `activity`, `show stats`,
@@ -161,10 +164,12 @@ available work and report the burn-in as incomplete with its exact coverage gap.
    responses; helper success alone does not prove command correctness. Normal
    login/logout persistence is expected. Avoid combat, travel, spawning, administration, or
    changing characters, world state, and configuration during this inspection smoke test.
+
 5. If repairs affect scheduling, persistence cadence, copyover, or the game loop, follow
    `docs/testing/EVENT_DRIVEN_CORE_ACCEPTANCE.md` for the additional runtime acceptance, including
    a real descriptor-survival copyover where required. This is a separate targeted gate, not
    permission to invoke the helper's mutating vessel scenarios in an ordinary smoke test.
+
 6. Monitor through at least 60 seconds after clean logout, longer when a changed timer needs it.
    Recheck readiness, listener ownership, release identity, and supervisor stability. Investigate
    new crashes, persistence errors, restarts, and unexpected output. If a fix is needed, stop

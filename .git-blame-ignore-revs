@@ -1,0 +1,23 @@
+# Commits that only reformat files. GitHub's blame view skips them; to skip them
+# in local git blame too, run once per clone:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Format Python with ruff
+62f0731efafd4c7558b052b7b2c5e7dc61c81147
+# Format shell scripts with shfmt
+d7de01f1c4d7d96ac205de1838f83df3c64c5e5e
+# Format SQL with sqlfluff and keep new SQL under it
+9de1c57201971dc5677f1491bfe606cfa32030d4
+# Format Markdown with mdformat
+a378cc4829e6b0c1baf577432a6090413828d19f
+# Format YAML, JSON, HTML, CSS, and JavaScript with prettier
+07b4085e3460ec20e046402b41d1458c57fae8ea
+# Format CMake with gersemi
+f5100300b316d383b43a1ccb0ef60cecd7807d37
+# Format PHP with php-cs-fixer
+c10929557f141e9446563e89004d45019a861e9c
+# Format PowerShell with PSScriptAnalyzer
+124f8687c138e05327dc054b0d64faef9af71597
+
+# Format genolc.c and drop the clang-format exclusions
+c60f670beb313fe641324f3e6b1efc06a42b1429

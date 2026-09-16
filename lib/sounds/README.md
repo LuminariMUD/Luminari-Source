@@ -6,7 +6,7 @@ media. No attribution is required. The existing ElevenLabs onboarding catalog is
 not used: it does not establish redistribution rights for this sound pack.
 
 | Filename | Meaning | Duration |
-| --- | --- | --- |
+| -- | -- | -- |
 | `luminari-test.wav` | Three ascending notes for `sound test` | 0.60 seconds |
 | `luminari-door-open.wav` | Two ascending notes for successful door opening | 0.28 seconds |
 

@@ -47,6 +47,7 @@
 #include "craft/craft.h"
 #include "assign_wpn_armor.h"
 #include "projectiles.h"
+#include "combat_messages.h"
 #include "character/perks.h"
 #include "character/perks.h"
 #include "grapple.h"
@@ -145,15 +146,9 @@ int test_get_bard_warbeat_opening_attacks(void)
 #endif
 
 /* local file scope utility functions */
-struct obj_data *get_wielded(struct char_data *ch, int attack_type);
 static struct obj_data *pair_two_hander(struct char_data *ch, int attack_type);
 static bool spare_hand_for_attack(struct char_data *ch, int attack_type);
 static void perform_group_gain(struct char_data *ch, int base, struct char_data *victim);
-static void dam_message(int dam, struct char_data *ch, struct char_data *victim, int w_type,
-                        int attack_type, struct obj_data *projectile);
-static int skill_message_with_projectile(int dam, struct char_data *ch, struct char_data *vict,
-                                         int attacktype, int attack_mode,
-                                         struct obj_data *projectile);
 static int compute_attack_bonus_full_with_weapon(struct char_data *ch, struct char_data *victim,
                                                  int attack_type, bool display,
                                                  struct obj_data *wielded,
@@ -164,11 +159,6 @@ static void group_gain(struct char_data *ch, struct char_data *victim);
 static void solo_gain(struct char_data *ch, struct char_data *victim);
 static int award_kill_experience(struct char_data *ch, int exp, int mode);
 static int cap_combat_damage(struct char_data *ch, int dam, int w_type);
-/** @todo refactor this function name */
-static char *replace_string(const char *str, const char *weapon_singular,
-                            const char *weapon_plural);
-
-#define IS_WEAPON(type) (((type) >= TOP_ATTACK_TYPES) && ((type) < BOT_WEAPON_TYPES))
 
 /************ utility functions *********************/
 
@@ -1376,7 +1366,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
       bonuses[BONUS_TYPE_SIZE] += 4;
     }
   }
-  /* rrakkma (Duris racial innate): +1 per other grouped ally here with the feat */
+  /* rrakkma (Sep 2026 racial innate): +1 per other grouped ally here with the feat */
   bonuses[BONUS_TYPE_RACIAL] += racial_rrakkma_allies(ch);
   if (bonuses[BONUS_TYPE_SIZE] < 0)
     ac_penalty -= bonuses[BONUS_TYPE_SIZE];
@@ -3102,675 +3092,6 @@ int test_cap_combat_damage(struct char_data *ch, int dam, int w_type)
 }
 #endif
 
-/* this function replaces the #w or #W with an appropriate weapon
-   constant dependent on plural or not */
-static char *replace_string(const char *str, const char *weapon_singular, const char *weapon_plural)
-{
-  static char buf[MEDIUM_STRING] = {'\0'};
-  char *cp = buf;
-
-  for (; *str; str++)
-  {
-    if (*str == '#')
-    {
-      switch (*(++str))
-      {
-      case 'W':
-        for (; *weapon_plural; *(cp++) = *(weapon_plural++))
-          ;
-        break;
-      case 'w':
-        for (; *weapon_singular; *(cp++) = *(weapon_singular++))
-          ;
-        break;
-      default:
-        *(cp++) = '#';
-        break;
-      }
-    }
-    else
-      *(cp++) = *str;
-
-    *cp = 0;
-  } /* For */
-
-  return (buf);
-}
-
-/* message for doing damage with a weapon */
-static void dam_message(int dam, struct char_data *ch, struct char_data *victim, int w_type,
-                        int attack_type, struct obj_data *projectile)
-{
-  int msgnum = -1, hp = 0, pct = 0;
-  const char *ranged_to_room;
-  const char *ranged_to_char;
-  const char *ranged_to_victim;
-
-  hp = GET_HIT(victim);
-  if (GET_HIT(victim) < 1)
-    hp = 1;
-
-  pct = 100 * dam / hp;
-
-  if (dam && pct <= 0)
-    pct = 1;
-
-  if (affected_by_spell(ch, SKILL_DRHRT_CLAWS))
-    w_type = TYPE_CLAW;
-
-  static struct dam_weapon_type
-  {
-    const char *to_room;
-    const char *to_char;
-    const char *to_victim;
-  } dam_weapons[] = {
-      /* use #w for singular (i.e. "slash") and #W for plural (i.e. "slashes") */
-      {"\tn$n tries to #w \tn$N, but misses.\tn", /* 0: 0     */
-       "You try to #w \tn$N, but miss.\tn", "\tn$n tries to #w you, but misses.\tn"},
-      {"\tn$n \tYbarely grazes \tn$N \tYas $e #W $M.\tn", /* 1: dam <= 2% */
-       "\tMYou barely graze \tn$N \tMas you #w $M.\tn",
-       "\tn$n \tRbarely grazes you as $e #W you.\tn"},
-      {"\tn$n \tYnicks \tn$N \tYas $e #W $M.\tn", /* 2: dam <= 4% */
-       "\tMYou nick \tn$N \tMas you #w $M.\tn", "\tn$n \tRnicks you as $e #W you.\tn"},
-      {"\tn$n \tYbarely #W \tn$N\tY.\tn", /* 3: dam <= 6%  */
-       "\tMYou barely #w \tn$N\tM.\tn", "\tn$n \tRbarely #W you.\tn"},
-      {"\tn$n \tY#W \tn$N\tY.\tn", /* 4: dam <= 8%  */
-       "\tMYou #w \tn$N\tM.\tn", "\tn$n \tR#W you.\tn"},
-      {"\tn$n \tY#W \tn$N \tYhard.\tn", /* 5: dam <= 11% */
-       "\tMYou #w \tn$N \tMhard.\tn", "\tn$n \tR#W you hard.\tn"},
-      {"\tn$n \tY#W \tn$N \tYvery hard.\tn", /* 6: dam <= 14%  */
-       "\tMYou #w \tn$N \tMvery hard.\tn", "\tn$n \tR#W you very hard.\tn"},
-      {"\tn$n \tY#W \tn$N \tYextremely hard.\tn", /* 7: dam <= 18%  */
-       "\tMYou #w \tn$N \tMextremely hard.\tn", "\tn$n \tR#W you extremely hard.\tn"},
-      {"\tn$n \tYinjures \tn$N \tYwith $s #w.\tn", /* 8: dam <= 22%  */
-       "\tMYou injure \tn$N \tMwith your #w.\tn", "\tn$n \tRinjures you with $s #w.\tn"},
-      {"\tn$n \tYwounds \tn$N \tYwith $s #w.\tn", /* 9: dam <= 27% */
-       "\tMYou wound \tn$N \tMwith your #w.\tn", "\tn$n \tRwounds you with $s #w.\tn"},
-      {"\tn$n \tYinjures \tn$N \tYharshly with $s #w.\tn", /* 10: dam <= 32%  */
-       "\tMYou injure \tn$N \tMharshly with your #w.\tn",
-       "\tn$n \tRinjures you harshly with $s #w.\tn"},
-      {"\tn$n \tYseverely wounds \tn$N \tYwith $s #w.\tn", /* 11: dam <= 40% */
-       "\tMYou severely wound \tn$N \tMwith your #w.\tn",
-       "\tn$n \tRseverely wounds you with $s #w.\tn"},
-      {"\tn$n \tYinflicts grave damage on \tn$N\tY with $s #w.\tn", /* 12: dam <= 50% */
-       "\tMYou inflict grave damage on \tn$N \tMwith your #w.\tn",
-       "\tn$n \tRinflicts grave damage on you with $s #w.\tn"},
-      {"\tn$n \tYnearly kills \tn$N\tY with $s deadly #w!!\tn", /* (13): > 51   */
-       "\tMYou nearly kill \tn$N \tMwith your deadly #w!!\tn",
-       "\tn$n \tRnearly kills you with $s deadly #w!!\tn"}};
-
-  static struct dam_ranged_weapon_type
-  {
-    const char *to_room;
-    const char *to_char;
-    const char *to_victim;
-  } dam_ranged[] = {
-      {"*WHOOSH* $n fires $p at $N but misses!", /* 0: 0     */
-       "\ty*WHOOSH*\ty you fire \tn$p\ty at \tn$N \tybut \tYmiss!\tn",
-       "*WHOOSH* $n fires $p at you but misses!"},
-      {"*THWISH* $n fires $p at $N grazing $M.", /* 1: dam <= 2% */
-       "\t[f500]*THWISH*\tn \t[f030]you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]grazing $M.\tn",
-       "]*THWISH* $n fires $p at you grazing you."},
-      {"*THWISH* $n fires $p at $N nicking $M.", /* 2: dam <= 4% */
-       "\t[f500]*THWISH*\tn \t[f030]you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]nicking $M.\tn",
-       "*THWISH* $n fires $p at you nicking you."},
-      {"*THWISH* $n fires $p at $N *THUNK* barely damaging $M.", /* 3: dam <= 6%  */
-       "\t[f500]*THWISH*\tn \t[f030]you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THUNK* barely "
-       "damaging $M.\tn",
-       "*THWISH* $n fires $p at you *THUNK* barely damaging you."},
-      {"*THWISH* $n fires $p at $N *THUNK* damaging $M.", /* 4: dam <= 8%  */
-       "\t[f500]*THWISH*\tn \t[f030]you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THUNK* damaging "
-       "$M.",
-       "*THWISH* $n fires $p at you *THUNK* damaging you."},
-      {"*THWISH* $n fires $p at $N *THUNK* damaging $M moderately!", /* 5: dam <= 11% */
-       "\t[f500]*THWISH*\tn \t[f030]you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THUNK* damaging "
-       "$M moderately!\tn",
-       "*THWISH* $n fires $p at you *THUNK* damaging you moderately!"},
-      {"*THWISH* $n fires $p at $N *THUNK* damaging $M badly!", /* 6: dam <= 14%  */
-       "\t[f500]*THWISH*\tn \t[f030]you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THUNK* damaging "
-       "$M badly!\tn",
-       "*THWISH* $n fires $p at you *THUNK* damaging you badly!"},
-      {"*THWISH* $n fires $p at $N *THUNK* injuring $M harshly!", /* 7: dam <= 18%  */
-       "\t[f500]*THWISH*\tn \t[f030]you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THUNK* injuring "
-       "$M harshly!\tn",
-       "*THWISH* $n fires $p at you *THUNK* injuring you harshly!"},
-      {"*THWISH* $n fires $p at $N *THWAK* severely injuring $M!", /* 8: dam <= 22%  */
-       "\t[f500]*THWISH*\tn \t[f030]you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THWAK* severely "
-       "injuring $M!\tn",
-       "*THWISH* $n fires $p at you *THWAK* severely injuring you!"},
-      {"*THWISH* $n fires $p at $N *THWAK* causing serious wounds to $M!", /* 9: dam <= 27% */
-       "\t[f500]*THWISH*\tn \t[f030]you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THWAK* causing "
-       "serious wounds to $M!\tn",
-       "*THWISH* $n fires $p at you *THWAK* causing serious wounds to you!"},
-      {"*THFFFT* $n fires $p at $N *THWAK* damaging $M gravely!", /* 10: dam <= 32%  */
-       "\t[f500]*THFFFT*\tn \t[f030]you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THWAK* damaging "
-       "$M gravely!\tn",
-       "*THFFFT* $n fires $p at you *THWAK* damaging you gravely!"},
-      {"*THFFFT* $n fires $p at $N *THWAK* severely wounding $M!", /* 11: dam <= 40% */
-       "\t[f500]*THFFFT*\tn \t[f030]you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THWAK* severely "
-       "wounding $M!\tn",
-       "*THFFFT* $n fires $p at you *THWAK* severely wounding you!"},
-      {"*THFFFT* $n fires $p at $N *THWAK* lethally wounding $M!", /* 12: dam <= 50% */
-       "\t[f500]*THFFFT*\tn \t[f030]you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THWAK* lethally "
-       "wounding $M!\tn",
-       "*THFFFT* $n fires $p at you *THWAK* lethally wounding you!"},
-      {"*THFFFT* $n fires $p at $N *THWAK* nearly killing $M!", /* (13): > 51   */
-       "\t[f500]*THFFFT*\tn \t[f030]you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THWAK* nearly "
-       "killing $M!\tn",
-       "*THFFFT* $n fires $p at you *THWAK* nearly killing you!"}};
-
-  w_type -= TYPE_HIT; /* Change to base of table with text */
-
-  if (pct == 0)
-    msgnum = 0;
-  else if (pct <= 2)
-    msgnum = 1;
-  else if (pct <= 4)
-    msgnum = 2;
-  else if (pct <= 6)
-    msgnum = 3;
-  else if (pct <= 8)
-    msgnum = 4;
-  else if (pct <= 11)
-    msgnum = 5;
-  else if (pct <= 14)
-    msgnum = 6;
-  else if (pct <= 18)
-    msgnum = 7;
-  else if (pct <= 22)
-    msgnum = 8;
-  else if (pct <= 27)
-    msgnum = 9;
-  else if (pct <= 32)
-    msgnum = 10;
-  else if (pct <= 40)
-    msgnum = 11;
-  else if (pct <= 50)
-    msgnum = 12;
-  else
-    msgnum = 13;
-
-  /* ranged, not dead */
-  if (is_ranged_weapon_attack(attack_type) && projectile && GET_POS(victim) > POS_DEAD)
-  {
-    ranged_to_room = dam_ranged[msgnum].to_room;
-    ranged_to_char = dam_ranged[msgnum].to_char;
-    ranged_to_victim = dam_ranged[msgnum].to_victim;
-    if (is_thrown_attack(attack_type))
-    {
-      if (msgnum == 0)
-      {
-        ranged_to_room = "$n throws $p at $N but misses!";
-        ranged_to_char = "You throw $p at $N but miss!";
-        ranged_to_victim = "$n throws $p at you but misses!";
-      }
-      else
-      {
-        ranged_to_room = "$n throws $p at $N and strikes $M!";
-        ranged_to_char = "You throw $p at $N and strike $M!";
-        ranged_to_victim = "$n throws $p at you and strikes you!";
-      }
-    }
-
-    /* damage message to room */
-    /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
-         for condensed combat mode handling -zusuk */
-    act(ranged_to_room, ACT_CONDENSE_VALUE, ch, projectile, victim, TO_NOTVICT);
-
-    /* damage message to damager */
-    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
-    {
-      CNDNSD(ch)->num_times_attacking++;
-      CNDNSD(ch)->num_times_hit_targets_ranged++;
-    }
-    else
-    {
-      act(ranged_to_char, FALSE, ch, projectile, victim, TO_CHAR);
-      send_to_char(ch, CCNRM(ch, C_CMP));
-    }
-
-    /* damage message to damagee */
-    if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED) && CNDNSD(victim))
-    {
-      CNDNSD(victim)->num_times_others_attack_you++;
-      CNDNSD(victim)->num_times_hit_by_others_ranged++;
-    }
-    else
-    {
-      send_to_char(victim, CCRED(victim, C_CMP));
-      act(ranged_to_victim, FALSE, ch, projectile, victim, TO_VICT | TO_SLEEP);
-      send_to_char(victim, CCNRM(victim, C_CMP));
-    }
-  }
-
-  /* non ranged, not dead */
-  else if (GET_POS(victim) > POS_DEAD)
-  {
-    char *buf = NULL;
-
-    /* damage message to observers (to room) */
-    buf = replace_string(dam_weapons[msgnum].to_room, attack_hit_text[w_type].singular,
-                         attack_hit_text[w_type].plural);
-    GUI_CMBT_NOTVICT_OPEN(ch, victim);
-    /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
-         for condensed combat mode handling -zusuk */
-    act(buf, ACT_CONDENSE_VALUE, ch, NULL, victim, TO_NOTVICT);
-    GUI_CMBT_NOTVICT_CLOSE(ch, victim);
-
-    /* damage message to damager (to_ch) */
-    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
-    {
-      CNDNSD(ch)->num_times_attacking++;
-      CNDNSD(ch)->num_times_hit_targets_melee++;
-    }
-    else
-    {
-      buf = replace_string(dam_weapons[msgnum].to_char, attack_hit_text[w_type].singular,
-                           attack_hit_text[w_type].plural);
-      GUI_CMBT_OPEN(ch);
-      act(buf, FALSE, ch, NULL, victim, TO_CHAR);
-      send_to_char(ch, CCNRM(ch, C_CMP));
-      GUI_CMBT_CLOSE(ch);
-    }
-
-    /* damage message to damagee (to_vict) */
-    if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED) && CNDNSD(victim))
-    {
-      CNDNSD(victim)->num_times_others_attack_you++;
-      CNDNSD(victim)->num_times_hit_by_others_melee++;
-    }
-    else
-    {
-      buf = replace_string(dam_weapons[msgnum].to_victim, attack_hit_text[w_type].singular,
-                           attack_hit_text[w_type].plural);
-      GUI_CMBT_OPEN(victim);
-      act(buf, FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP);
-      send_to_char(victim, CCNRM(victim, C_CMP));
-      GUI_CMBT_CLOSE(victim);
-    }
-  }
-  else
-  {
-  }
-}
-
-/*  message for doing damage with a spell or skill. Also used for weapon
- *  damage on miss and death blows. */
-/* took out attacking-staff-messages -zusuk*/
-/* this is so trelux's natural attack reflects an actual object */
-#define TRELUX_CLAWS 800
-
-int skill_message(int dam, struct char_data *ch, struct char_data *vict, int attacktype,
-                  int dualing)
-{
-  return skill_message_with_projectile(dam, ch, vict, attacktype, dualing, NULL);
-}
-
-static int skill_message_with_projectile(int dam, struct char_data *ch, struct char_data *vict,
-                                         int attacktype, int dualing, struct obj_data *projectile)
-{
-  int i, j, nr, return_value = SKILL_MESSAGE_MISS_FAIL;
-  struct message_type *msg;
-  struct obj_data *opponent_weapon = GET_EQ(vict, WEAR_WIELD_1);
-  struct obj_data *weap = GET_EQ(ch, WEAR_WIELD_1);
-  struct obj_data *shield = NULL;
-  bool is_ranged = FALSE;
-
-  if (DEBUGMODE)
-  {
-    send_to_char(
-        ch,
-        "Debug - We are in skill_message(), dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n",
-        dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
-    send_to_char(
-        vict,
-        "Debug - We are in skill_message(), dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n",
-        dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
-  }
-
-  /* attacker weapon */
-  if (is_second_pair_attack(dualing))
-    weap = get_wielded(ch, dualing); /* four arms: the lower-arm weapon */
-  else if (GET_EQ(ch, WEAR_WIELD_2H))
-    weap = GET_EQ(ch, WEAR_WIELD_2H);
-  else if (dualing == 1)
-    weap = GET_EQ(ch, WEAR_WIELD_OFFHAND);
-
-  /* special handling for Trelux */
-  if (GET_RACE(ch) == RACE_TRELUX)
-  {
-    weap = read_object(TRELUX_CLAWS, VIRTUAL);
-    attacktype = TYPE_CLAW;
-  }
-
-  if (affected_by_spell(ch, SKILL_DRHRT_CLAWS))
-    attacktype = TYPE_CLAW;
-
-  /* ranged weapon - general check and we want the missile to serve as our weapon */
-  if (projectile && is_ranged_weapon_attack(dualing))
-  {
-    is_ranged = TRUE;
-    weap = projectile;
-  }
-
-  /* defender weapon for parry message */
-  if (!opponent_weapon)
-  {
-    opponent_weapon = GET_EQ(vict, WEAR_WIELD_2H);
-  }
-
-  if (!opponent_weapon)
-  { /* maybe no weapon in main hand, but offhand has one */
-    opponent_weapon = GET_EQ(vict, WEAR_WIELD_OFFHAND);
-  }
-
-  if (GET_EQ(vict, WEAR_WIELD_1) && GET_EQ(vict, WEAR_WIELD_OFFHAND))
-  {
-    if (rand_number(0, 1))
-      opponent_weapon = GET_EQ(vict, WEAR_WIELD_1);
-    else
-      opponent_weapon = GET_EQ(vict, WEAR_WIELD_OFFHAND);
-  }
-
-  /* These attacks use a shield as a weapon. */
-  if ((attacktype == SKILL_SHIELD_PUNCH) || (attacktype == SKILL_SHIELD_CHARGE) ||
-      (attacktype == SKILL_SHIELD_SLAM))
-    weap = GET_EQ(ch, WEAR_SHIELD);
-
-  for (i = 0; i < MAX_MESSAGES; i++)
-  {
-    /* first search through our messages trying to match the attacktype */
-    if (fight_messages[i].a_type == attacktype)
-    {
-      /* might have several messages for that attacktype, pick a random one */
-      nr = dice(1, fight_messages[i].number_of_attacks);
-      /* increment the messages until we get to that selected message */
-      for (j = 1, msg = fight_messages[i].msg; (j < nr) && msg; j++)
-        msg = msg->next;
-      /* we now have a message! */
-
-      /* old location of staff-messages */
-
-      /* we did some damage or deathblow */
-      if (dam != 0)
-      {
-        if (GET_POS(vict) == POS_DEAD)
-        {
-          /* death messages */
-
-          /* Don't send redundant color codes for TYPE_SUFFERING & other types
-           * of damage without attacker_msg. */
-
-          if (is_ranged)
-          {
-            /* ranged attack death blow */
-            if (is_thrown_attack(dualing))
-            {
-              act("$n throws $p at $N, and $E \tRcollapses\tn to the ground!", FALSE, ch, weap,
-                  vict, TO_NOTVICT);
-              act("You throw $p at $N, and $E \tRcollapses\tn to the ground!", FALSE, ch, weap,
-                  vict, TO_CHAR);
-              act("$n throws $p at you, and you \tRcollapse\tn to the ground!", FALSE, ch, weap,
-                  vict, TO_VICT | TO_SLEEP);
-            }
-            else
-            {
-              act("* THWISH * $n fires $p at $N * THUNK * $E \tRcollapses\tn to the ground!", FALSE,
-                  ch, weap, vict, TO_NOTVICT);
-              act("* THWISH * you fire $p at $N * THUNK * $E \tRcollapses\tn to the ground!", FALSE,
-                  ch, weap, vict, TO_CHAR);
-              act("* THWISH * $n fires $p at you * THUNK * you \tRcollapse\tn to the ground!",
-                  FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
-            }
-
-            return SKILL_MESSAGE_DEATH_BLOW; /* no reason to stay here */
-          }
-          else
-          {
-            /* NOT ranged death blow */
-            if (msg->die_msg.attacker_msg)
-            {
-              send_to_char(ch, CCYEL(ch, C_CMP));
-              act(msg->die_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
-              send_to_char(ch, CCNRM(ch, C_CMP));
-            }
-
-            send_to_char(vict, CCRED(vict, C_CMP));
-            act(msg->die_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
-            send_to_char(vict, CCNRM(vict, C_CMP));
-
-            act(msg->die_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
-
-            return SKILL_MESSAGE_DEATH_BLOW;
-          }
-        }
-        else
-        {
-          /* we did some damage, but not dead */
-
-          if (msg->hit_msg.attacker_msg && ch != vict)
-          {
-            if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
-            {
-              CNDNSD(ch)->num_times_attacking++;
-              CNDNSD(ch)->num_times_hit_targets++;
-            }
-            else
-            {
-              send_to_char(ch, CCYEL(ch, C_CMP));
-              act(msg->hit_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
-              send_to_char(ch, CCNRM(ch, C_CMP));
-            }
-          }
-
-          if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
-          {
-            CNDNSD(vict)->num_times_others_attack_you++;
-            CNDNSD(vict)->num_times_hit_by_others++;
-          }
-          else
-          {
-            send_to_char(vict, CCRED(vict, C_CMP));
-            act(msg->hit_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
-            send_to_char(vict, CCNRM(vict, C_CMP));
-          }
-
-          /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
-               for condensed combat mode handling -zusuk */
-          act(msg->hit_msg.room_msg, ACT_CONDENSE_VALUE, ch, weap, vict, TO_NOTVICT);
-
-          return SKILL_MESSAGE_GENERIC_HIT;
-        } /* end 'did some damage but not dead' section */
-
-      } /* end if-check for situation where we did some damage */
-      else if (ch != vict)
-      {
-        /* dam == 0, we did not do any damage! */
-
-        if (DEBUGMODE)
-        {
-          send_to_char(ch,
-                       "Debug - We are in skill_message() - ZERO DAMAGE, dam %d, ch %s, vict %s, "
-                       "attacktype %d, dualing %d\r\n",
-                       dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
-          send_to_char(vict,
-                       "Debug - We are in skill_message() - ZERO DAMAGE, dam %d, ch %s, vict %s, "
-                       "attacktype %d, dualing %d\r\n",
-                       dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
-        }
-
-        /* do we have armor that can stop a blow? */
-        struct obj_data *armor = GET_EQ(vict, WEAR_BODY);
-        int armor_val = -1;
-        if (armor)
-          armor_val = GET_OBJ_VAL(armor, 1); /* armor type */
-
-        /* insert more colorful defensive messages here */
-
-        /* shield block */
-        if ((shield = GET_EQ(vict, WEAR_SHIELD)) && !rand_number(0, 3))
-        {
-          return_value = SKILL_MESSAGE_MISS_SHIELDBLOCK;
-
-          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
-          {
-            CNDNSD(ch)->num_times_attacking++;
-          }
-          else
-          {
-            send_to_char(ch, CCYEL(ch, C_CMP));
-            act("$N blocks your attack with $p!", FALSE, ch, shield, vict, TO_CHAR);
-            send_to_char(ch, CCNRM(ch, C_CMP));
-          }
-
-          if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
-          {
-            CNDNSD(vict)->num_times_others_attack_you++;
-            CNDNSD(vict)->num_times_shieldblock++;
-          }
-          else
-          {
-            send_to_char(vict, CCRED(vict, C_CMP));
-            act("You block $n's attack with $p!", FALSE, ch, shield, vict, TO_VICT | TO_SLEEP);
-            send_to_char(vict, CCNRM(vict, C_CMP));
-          }
-
-          /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
-               for condensed combat mode handling -zusuk */
-          act("$N blocks $n's attack with $p!", ACT_CONDENSE_VALUE, ch, shield, vict, TO_NOTVICT);
-
-          /* fire any shieldblock specs we might have */
-          spec_gateway_defense_reaction(vict, shield, ch, "shieldblock");
-
-          /* parry */
-        }
-        else if (opponent_weapon && !rand_number(0, 2))
-        {
-          return_value = SKILL_MESSAGE_MISS_PARRY;
-
-          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
-          {
-            CNDNSD(ch)->num_times_attacking++;
-          }
-          else
-          {
-            send_to_char(ch, CCYEL(ch, C_CMP));
-            act("$N parries your attack with $p!", FALSE, ch, opponent_weapon, vict, TO_CHAR);
-            send_to_char(ch, CCNRM(ch, C_CMP));
-          }
-
-          if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
-          {
-            CNDNSD(vict)->num_times_others_attack_you++;
-            CNDNSD(vict)->num_times_parry++;
-          }
-          else
-          {
-            send_to_char(vict, CCRED(vict, C_CMP));
-            act("You parry $n's attack with $p!", FALSE, ch, opponent_weapon, vict,
-                TO_VICT | TO_SLEEP);
-            send_to_char(vict, CCNRM(vict, C_CMP));
-          }
-
-          /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
-               for condensed combat mode handling -zusuk */
-          act("$N parries $n's attack with $p!", ACT_CONDENSE_VALUE, ch, opponent_weapon, vict,
-              TO_NOTVICT);
-
-          /* fire any parry specs we might have */
-          spec_gateway_defense_reaction(vict, opponent_weapon, ch, "parry");
-
-          /* glance off armor */
-        }
-        else if (armor && armor_list[armor_val].armorType > ARMOR_TYPE_NONE && !rand_number(0, 2))
-        {
-          return_value = SKILL_MESSAGE_MISS_GLANCE;
-
-          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
-          {
-            CNDNSD(ch)->num_times_attacking++;
-          }
-          else
-          {
-            send_to_char(ch, CCYEL(ch, C_CMP));
-            act("Your attack glances off $p, protecting $N!", FALSE, ch, armor, vict, TO_CHAR);
-            send_to_char(ch, CCNRM(ch, C_CMP));
-          }
-
-          if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
-          {
-            CNDNSD(vict)->num_times_others_attack_you++;
-            CNDNSD(vict)->num_times_glance++;
-          }
-          else
-          {
-            send_to_char(vict, CCRED(vict, C_CMP));
-            act("$n's attack glances off $p!", FALSE, ch, armor, vict, TO_VICT | TO_SLEEP);
-            send_to_char(vict, CCNRM(vict, C_CMP));
-          }
-
-          /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
-               for condensed combat mode handling -zusuk */
-          act("$n's attack glances off $p, protecting $N!", ACT_CONDENSE_VALUE, ch, armor, vict,
-              TO_NOTVICT);
-
-          /* fire any glance specs we might have */
-          spec_gateway_defense_reaction(vict, armor, ch, "glance");
-        }
-        else
-        {
-          /* we fell through to generic miss message from file */
-
-          return_value = SKILL_MESSAGE_MISS_GENERIC;
-
-          /* default to miss messages in-file */
-          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
-          {
-            CNDNSD(ch)->num_times_attacking++;
-          }
-          else
-          {
-            if (msg->miss_msg.attacker_msg)
-            {
-              send_to_char(ch, CCYEL(ch, C_CMP));
-              act(msg->miss_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
-              send_to_char(ch, CCNRM(ch, C_CMP));
-            }
-          }
-
-          if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
-          {
-            CNDNSD(vict)->num_times_others_attack_you++;
-            CNDNSD(vict)->num_times_dodge++;
-          }
-          else
-          {
-            send_to_char(vict, CCRED(vict, C_CMP));
-            act(msg->miss_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
-            send_to_char(vict, CCNRM(vict, C_CMP));
-          }
-
-          /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
-               for condensed combat mode handling -zusuk */
-          act(msg->miss_msg.room_msg, ACT_CONDENSE_VALUE, ch, weap, vict, TO_NOTVICT);
-
-          /* fire any dodge specs we might have, right now its only on weapons */
-          if (opponent_weapon)
-          {
-            spec_gateway_defense_reaction(vict, opponent_weapon, ch, "dodge");
-          }
-        }
-      } /* this ends our check for a scenario where no damage is inflicted */
-
-      return (return_value);
-    } /* attacktype check */
-  } /* for loop for damage messages */
-
-  return (return_value); /* did not find a message to use? */
-}
-
-#undef TRELUX_CLAWS
-
 // this is just like damage reduction, except applies to certain type
 
 int compute_energy_absorb(struct char_data *ch, int dam_type)
@@ -3993,7 +3314,7 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
 
 // can return negative values, which indicates vulnerability (this is percent)
 // dam_ defines are in spells.h
-/* ---- Duris racial innates ----
+/* ---- Sep 2026 racial innates ----
  * see docs/systems/GAME_MECHANICS_SYSTEMS.md */
 
 /* weapon-family mastery: +1 attack and damage per 8 levels, max +3, while the
@@ -4139,7 +3460,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
     }
   }
 
-  /* Duris racial innates */
+  /* Sep 2026 racial innates */
   if (HAS_FEAT(ch, FEAT_MAGIC_VULNERABILITY) && is_spell_or_spell_like(w_type))
     damtype_reduction -= 10;
   if (HAS_FEAT(ch, FEAT_MAGICAL_REDUCTION) && (dam_type == DAM_FORCE || dam_type == DAM_ENERGY))
@@ -5226,7 +4547,7 @@ static int damage_handling_with_weapon(struct char_data *ch, struct char_data *v
     if (dam_type == DAM_POISON && !can_poison(victim))
       return 0;
 
-    /* spell absorb (Duris racial innate): swallow a damaging spell whole */
+    /* spell absorb (Sep 2026 racial innate): swallow a damaging spell whole */
     if (is_spell && rand_number(1, 100) <= racial_spell_absorb_chance(victim))
     {
       act("\tWYou absorb the magic of $n's spell harmlessly!\tn", FALSE, ch, 0, victim, TO_VICT);
@@ -6754,8 +6075,19 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
         }
         else if (!skill_message_with_projectile(dam, ch, victim, w_type, attack_type, projectile))
         {
-          /* no skill_message? try dam_message */
-          dam_message(dam, ch, victim, w_type, attack_type, projectile);
+          if (GET_POS(victim) == POS_DEAD)
+          {
+            /* dam_message() renders nothing for a dead victim, so there is no
+               fallback left. The "is dead!" notice below still fires, but the
+               killing blow itself goes undescribed: lib/misc/messages has no
+               block for this attack type. */
+            log("SYSERR: damage: no death message for attack type %d", w_type);
+          }
+          else
+          {
+            /* no skill_message? try dam_message */
+            dam_message(dam, ch, victim, w_type, attack_type, projectile);
+          }
         }
 
         /* landed a normal weapon attack hit */
@@ -7033,11 +6365,11 @@ static int compute_damage_bonus_with_projectile(struct char_data *ch, struct cha
   if (wielded && is_using_light_weapon(ch, wielded) && OBJ_FLAGGED(wielded, ITEM_AGILE))
   {
     str_bonus = MAX(get_agile_weapon_dex_bonus(ch), GET_STR_BONUS(ch));
-    sprintf(strength, "Dexterity (Agile Weapon)");
+    snprintf(strength, sizeof(strength), "Dexterity (Agile Weapon)");
   }
   else
   {
-    sprintf(strength, "Strength");
+    snprintf(strength, sizeof(strength), "Strength");
   }
 
   /* damroll (should be mostly just gear, spell affections) */
@@ -7126,7 +6458,7 @@ static int compute_damage_bonus_with_projectile(struct char_data *ch, struct cha
       send_to_char(ch, "Bloodhunt: \tR1\tn\r\n");
   }
 
-  /* Duris racial innates: hatred, weapon-family mastery, warcaller's fury */
+  /* Sep 2026 racial innates: hatred, weapon-family mastery, warcaller's fury */
   if (ch && vict && HAS_FEAT(ch, FEAT_HATRED) && IS_EVIL(vict))
   {
     dambonus += 2;
@@ -11327,7 +10659,7 @@ static int compute_attack_bonus_full_with_weapon(
       send_to_char(ch, " 1: %-50s\r\n", "Bloodhunt");
   }
 
-  /* Duris racial innates: hatred and weapon-family mastery */
+  /* Sep 2026 racial innates: hatred and weapon-family mastery */
   if (ch && victim && HAS_FEAT(ch, FEAT_HATRED) && IS_EVIL(victim))
   {
     bonuses[BONUS_TYPE_MORALE] += 1;
@@ -14479,7 +13811,7 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
     hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
   }
 
-  /* Battle Frenzy (Duris racial innate): 5% chance per melee hit on a humanoid */
+  /* Battle Frenzy (Sep 2026 racial innate): 5% chance per melee hit on a humanoid */
   if (!victim_is_dead && battle_frenzy_applies(ch, victim, attack_type) && dice(1, 100) <= 5)
   {
     send_to_char(ch, "\tW[BATTLE FRENZY!]\tn\r\n");

@@ -3,6 +3,7 @@
 This directory contains the maintained automated tests for the server.
 
 1. Production-linked CuTest suite
+
    - Location: `unittests/CuTest`
    - Framework: CuTest (`CuTest.c`, `CuTest.h`)
    - Aggregated runner: `cutest`
@@ -10,6 +11,7 @@ This directory contains the maintained automated tests for the server.
    - The executable links the same production objects as the game server.
 
 2. Focused protocol parser harness
+
    - Location: `unittests/CuTest/test_protocol_parser.c`
    - Runner: `unittests/CuTest/protocol_parser_tests`
    - This is intentionally source-linked because it exercises parser inputs
@@ -31,6 +33,7 @@ make test-all
 ```
 
 This will:
+
 1. Build and run the production-linked CuTest suite.
 2. Build and run the focused protocol parser harness.
 3. Run the character-rename static and temporary-MariaDB schema tests.

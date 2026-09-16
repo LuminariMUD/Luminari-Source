@@ -20,11 +20,16 @@ Usage:
   check_warning_budget.py --compiler LABEL --log build.log --report   # print counts only
   check_warning_budget.py --compiler LABEL --log build.log --list CLASS      # sites by file
   check_warning_budget.py --compiler LABEL --log build.log --by-token CLASS  # sites by identifier
+  check_warning_budget.py --compiler LABEL --classes REGEX --log build.log  # matching classes only
   check_warning_budget.py --self-test
 
 A log without warnings passes only while the budget file lists no classes and
 the log shows compilation: a clean migration build. While classes remain, an
 empty log is a build that did not use the migration tier.
+
+--classes restricts every mode to the classes whose name matches REGEX. The
+scheduled analysis job budgets GCC's -Wanalyzer-* classes that way, under the
+label gcc-16-analyzer, while the rest of the analysis tier stays informational.
 """
 
 import argparse
@@ -76,6 +81,18 @@ def count_warnings(lines):
     return counts, errors
 
 
+def class_option(classes):
+    return f" --classes '{classes}'" if classes else ""
+
+
+def select_classes(seen, classes):
+    """Keep the (site, class) pairs whose class matches the regex, or all of them."""
+    if not classes:
+        return seen
+    pattern = re.compile(classes)
+    return {(site, cls) for site, cls in seen if pattern.search(cls)}
+
+
 def list_sites(seen, cls, by_token):
     """Print one class's sites grouped by file, or by the identifier at the column."""
     groups = {}
@@ -94,7 +111,7 @@ def list_sites(seen, cls, by_token):
             except OSError:
                 # An unreadable file keeps source empty; the key falls back to "?" below.
                 pass
-            fragment = source[int(col) - 1:]
+            fragment = source[int(col) - 1 :]
             match = re.match(r"[A-Za-z_][A-Za-z_0-9]*", fragment)
             key = match.group(0) if match else fragment[:12].strip() or "?"
         else:
@@ -121,11 +138,17 @@ def read_baseline(path):
     return counts
 
 
-def write_baseline(path, compiler, counts):
+def write_baseline(path, compiler, counts, classes=None):
     with open(path, "w", encoding="ascii", newline="\n") as handle:
-        handle.write(f"# Migration-tier warning budget for {compiler}.\n")
+        if classes:
+            handle.write(f"# Warning budget for {compiler}: classes matching {classes}.\n")
+        else:
+            handle.write(f"# Migration-tier warning budget for {compiler}.\n")
         handle.write("# Distinct warning sites per class; may only shrink. Regenerate with\n")
-        handle.write(f"# scripts/ci/check_warning_budget.py --compiler {compiler} --log LOG --update\n")
+        handle.write(
+            f"# scripts/ci/check_warning_budget.py --compiler {compiler}{class_option(classes)}"
+            " --log LOG --update\n"
+        )
         for cls in sorted(counts):
             handle.write(f"{cls} {counts[cls]}\n")
 
@@ -135,7 +158,7 @@ def empty_log_problem(total, baseline, built):
     if total:
         return None
     if baseline:
-        return "no warnings found; the log was not produced with the migration tier"
+        return "no matching warnings found; the log was not built with the tier this budget expects"
     if not built:
         return "no warnings and no compilation in the log; it is not a build log"
     return None
@@ -173,7 +196,9 @@ collect2: error: ld returned 1 exit status
     counts, errors = count_warnings(log)
     assert counts == {"conversion": 1, "missing-prototypes": 1, "format=": 1}, counts
     assert errors == 4, errors
-    failures, improvements = compare(counts, {"conversion": 1, "missing-prototypes": 2, "format=": 1})
+    failures, improvements = compare(
+        counts, {"conversion": 1, "missing-prototypes": 2, "format=": 1}
+    )
     assert failures == [], failures
     assert improvements == ["-Wmissing-prototypes: 1 is below budget 2"], improvements
     failures, _ = compare(counts, {"conversion": 0, "missing-prototypes": 1})
@@ -187,6 +212,11 @@ collect2: error: ld returned 1 exit status
     assert empty_log_problem(2, {"conversion": 3}, True) is None
     assert any(BUILD_PATTERN.search(line) for line in log)
     assert BUILD_PATTERN.search("  CC       src/luminari-comm.o")
+    analyzer = select_classes(
+        {("/src/a.c:1:1", "analyzer-malloc-leak"), ("/src/a.c:2:1", "sign-conversion")},
+        "^analyzer-",
+    )
+    assert analyzer == {("/src/a.c:1:1", "analyzer-malloc-leak")}, analyzer
     print("check_warning_budget self-test passed")
 
 
@@ -197,8 +227,16 @@ def main():
     parser.add_argument("--update", action="store_true", help="lower the baseline; refuses growth")
     parser.add_argument("--report", action="store_true", help="print counts without comparing")
     parser.add_argument("--list", metavar="CLASS", help="print one class's sites grouped by file")
-    parser.add_argument("--by-token", metavar="CLASS",
-                        help="print one class's sites grouped by the identifier at the column")
+    parser.add_argument(
+        "--by-token",
+        metavar="CLASS",
+        help="print one class's sites grouped by the identifier at the column",
+    )
+    parser.add_argument(
+        "--classes",
+        metavar="REGEX",
+        help="count only the warning classes matching REGEX, for example '^analyzer-'",
+    )
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
@@ -210,6 +248,7 @@ def main():
     with open(args.log, encoding="utf-8", errors="replace") as handle:
         lines = handle.readlines()
     seen, errors = collect_sites(lines)
+    seen = select_classes(seen, args.classes)
     built = any(BUILD_PATTERN.search(line) for line in lines)
     if args.list or args.by_token:
         list_sites(seen, args.list or args.by_token, bool(args.by_token))
@@ -218,13 +257,17 @@ def main():
     for _site, cls in seen:
         counts[cls] = counts.get(cls, 0) + 1
     total = sum(counts.values())
-    print(f"{args.compiler}: {total} distinct warning sites in {len(counts)} classes, {errors} errors")
+    print(
+        f"{args.compiler}: {total} distinct warning sites in {len(counts)} classes, {errors} errors"
+    )
     for cls in sorted(counts, key=lambda name: (-counts[name], name)):
         print(f"  {counts[cls]:7d}  -W{cls}")
     if args.report:
         return 0
     if errors:
-        print("the build log contains compiler errors; the count is not trustworthy", file=sys.stderr)
+        print(
+            "the build log contains compiler errors; the count is not trustworthy", file=sys.stderr
+        )
         return 1
     path = baseline_path(args.compiler)
     baseline = read_baseline(path)
@@ -239,16 +282,22 @@ def main():
             for line in failures:
                 print("  " + line, file=sys.stderr)
             return 1
-        write_baseline(path, args.compiler, counts)
+        write_baseline(path, args.compiler, counts, args.classes)
         print(f"wrote {os.path.relpath(path, REPO_ROOT)}")
         return 0
     if not os.path.exists(path):
-        print(f"no baseline at {os.path.relpath(path, REPO_ROOT)}; create it with --update", file=sys.stderr)
+        print(
+            f"no baseline at {os.path.relpath(path, REPO_ROOT)}; create it with --update",
+            file=sys.stderr,
+        )
         return 1
     for line in improvements:
         print("improved: " + line)
     if improvements:
-        print(f"lower the budget with: scripts/ci/check_warning_budget.py --compiler {args.compiler} --log LOG --update")
+        print(
+            f"lower the budget with: scripts/ci/check_warning_budget.py --compiler {args.compiler}"
+            f"{class_option(args.classes)} --log LOG --update"
+        )
     if failures:
         print("warning budget exceeded:", file=sys.stderr)
         for line in failures:

@@ -8,6 +8,9 @@
 #ifndef LUMINARI_MAGIC_SPELL_LISTS_H
 #define LUMINARI_MAGIC_SPELL_LISTS_H
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 #include "magic/spells.h"
 
 struct char_data;

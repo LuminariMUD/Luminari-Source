@@ -29,14 +29,12 @@ restart_new_pid=
 
 mkdir -p "$run_dir"
 
-fail()
-{
+fail() {
   printf 'vessel hunter in-game check: %s\n' "$*" >&2
   exit 1
 }
 
-config_value()
-{
+config_value() {
   local config_file=$1
   local requested_key=$2
 
@@ -67,8 +65,7 @@ config_value()
   ' "$config_file"
 }
 
-database_query()
-{
+database_query() {
   local query=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -76,8 +73,7 @@ database_query()
     "$database_name" --execute="$query"
 }
 
-database_execute()
-{
+database_execute() {
   local query=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -85,8 +81,7 @@ database_execute()
     "$database_name" --execute="$query"
 }
 
-database_apply_file()
-{
+database_apply_file() {
   local sql_file=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -94,8 +89,7 @@ database_apply_file()
     "$database_name" <"$sql_file"
 }
 
-snapshot_table_row()
-{
+snapshot_table_row() {
   local table_name=$1
   local where_clause=$2
   local output_file=$3
@@ -107,13 +101,11 @@ snapshot_table_row()
     --where="$where_clause" "$database_name" "$table_name" >"$output_file"
 }
 
-port_is_listening()
-{
+port_is_listening() {
   ss -H -ltn "sport = :$mud_port" 2>/dev/null | grep -q .
 }
 
-active_vessel_workload()
-{
+active_vessel_workload() {
   systemctl --user list-units --type=service --state=active \
     --no-legend --plain 2>/dev/null |
     awk '
@@ -125,13 +117,12 @@ active_vessel_workload()
     '
 }
 
-wait_for_server()
-{
+wait_for_server() {
   local attempt
 
   for ((attempt = 0; attempt < 600; attempt++)); do
     if systemctl --user is-active --quiet "$server_unit" &&
-       port_is_listening; then
+      port_is_listening; then
       return 0
     fi
     sleep 0.1
@@ -139,8 +130,7 @@ wait_for_server()
   return 1
 }
 
-running_binary_sha256()
-{
+running_binary_sha256() {
   local server_pid
 
   server_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
@@ -148,8 +138,7 @@ running_binary_sha256()
   sha256sum "/proc/$server_pid/exe" | awk '{ print $1 }'
 }
 
-start_current_server()
-{
+start_current_server() {
   local working_directory
   local running_sha256
 
@@ -189,8 +178,7 @@ start_current_server()
     fail "the running MUD does not match the installed candidate"
 }
 
-restart_current_server()
-{
+restart_current_server() {
   local running_sha256
 
   restart_old_pid=$(
@@ -208,15 +196,14 @@ restart_current_server()
     systemctl --user show --property=MainPID --value "$server_unit"
   )
   [[ "$restart_new_pid" =~ ^[1-9][0-9]*$ &&
-     "$restart_new_pid" != "$restart_old_pid" ]] ||
+    "$restart_new_pid" != "$restart_old_pid" ]] ||
     fail "the persistence check did not launch a new MUD process"
   running_sha256=$(running_binary_sha256)
   [[ "$running_sha256" == "$candidate_sha256" ]] ||
     fail "the persistence restart launched a different executable"
 }
 
-hunter_state()
-{
+hunter_state() {
   database_query "
     SELECT CONCAT(
              hunt.hunter_ship_id, '|',
@@ -247,8 +234,7 @@ hunter_state()
        AND hunt.status = 'active';"
 }
 
-run_kohdee_commands()
-{
+run_kohdee_commands() {
   local output_file=$1
 
   shift
@@ -257,8 +243,7 @@ run_kohdee_commands()
     >"$output_file" 2>&1
 }
 
-restore_baseline_rows()
-{
+restore_baseline_rows() {
   database_execute "
     DELETE FROM vessel_bounty_hunts
      WHERE target_player = '$target_player';
@@ -273,8 +258,7 @@ restore_baseline_rows()
   fi
 }
 
-cleanup_test_state()
-{
+cleanup_test_state() {
   local current_hunter_slot
   local hunter_identity_count
   local target_identity_count
@@ -297,7 +281,7 @@ cleanup_test_state()
       FROM vessel_bounty_hunts
      WHERE target_player = '$target_player';")
   if [[ "$current_hunter_slot" =~ ^[2-9][0-9]*$ &&
-        "$current_hunter_slot" -le 500 ]]; then
+    "$current_hunter_slot" -le 500 ]]; then
     hunter_identity_count=$(database_query "
       SELECT COUNT(*)
         FROM vessel_bounty_hunts AS hunt
@@ -314,8 +298,8 @@ cleanup_test_state()
   fi
 
   if [[ "$target_slot" =~ ^[2-9][0-9]*$ &&
-        "$target_slot" -le 500 &&
-        "$target_prototype_id" =~ ^[1-9][0-9]*$ ]]; then
+    "$target_slot" -le 500 &&
+    "$target_prototype_id" =~ ^[1-9][0-9]*$ ]]; then
     target_identity_count=$(database_query "
       SELECT COUNT(*)
         FROM ship_runtime_state AS runtime
@@ -357,8 +341,7 @@ cleanup_test_state()
   cleanup_needed=false
 }
 
-finish()
-{
+finish() {
   local exit_status=$?
   local cleanup_status=0
   local elapsed_seconds
@@ -373,7 +356,7 @@ finish()
 
   elapsed_seconds=$(($(date +%s) - started_epoch))
   if [[ "$exit_status" == 0 && "$cleanup_status" == 0 &&
-        "$acceptance_complete" == true ]]; then
+    "$acceptance_complete" == true ]]; then
     printf 'PASS elapsed=%s target=%s restart=%s->%s cleanup=restored\n' \
       "$elapsed_seconds" "$target_player" "$restart_old_pid" \
       "$restart_new_pid" >"$run_dir/result"
@@ -426,7 +409,7 @@ app_environment=$(config_value "$repo_root/lib/.env" APP_ENV)
 
 configured_character=$(config_value "$repo_root/lib/.env" DEV_MUD_CHARACTER)
 [[ -z "$configured_character" ||
-   "${configured_character,,}" == "${target_player,,}" ]] ||
+  "${configured_character,,}" == "${target_player,,}" ]] ||
   fail "DEV_MUD_CHARACTER must be Kohdee for this acceptance check"
 
 active_workload_unit=$(active_vessel_workload)
@@ -593,16 +576,16 @@ IFS='|' read -r hunter_slot hunter_generation hunter_target_slot \
   hunter_name_hex hunter_last_attacker hunter_prototype_id hunter_class \
   hunter_pilot_count hunter_unowned <<<"$initial_hunter_state"
 [[ "$hunter_slot" =~ ^[2-9][0-9]*$ && "$hunter_slot" -le 500 &&
-   "$hunter_slot" != "$target_slot" ]] ||
+  "$hunter_slot" != "$target_slot" ]] ||
   fail "the active lifecycle has an invalid hunter fleet slot"
 [[ "$hunter_generation" == 1 &&
-   "$hunter_target_slot" == "$target_slot" &&
-   -n "$hunter_name_hex" &&
-   "$hunter_last_attacker" == "$target_slot" &&
-   "$hunter_prototype_id" =~ ^[1-9][0-9]*$ &&
-   "$hunter_class" == 3 &&
-   "$hunter_pilot_count" == 1 &&
-   "$hunter_unowned" == 1 ]] ||
+  "$hunter_target_slot" == "$target_slot" &&
+  -n "$hunter_name_hex" &&
+  "$hunter_last_attacker" == "$target_slot" &&
+  "$hunter_prototype_id" =~ ^[1-9][0-9]*$ &&
+  "$hunter_class" == 3 &&
+  "$hunter_pilot_count" == 1 &&
+  "$hunter_unowned" == 1 ]] ||
   fail "the hunter hull, pilot, target, or lifecycle identity is incomplete"
 
 restart_current_server

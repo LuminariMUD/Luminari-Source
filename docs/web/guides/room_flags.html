@@ -187,8 +187,9 @@ reference for room behavior flags</p>
         <div class="doc-content">
 <h1 id="room-flags-documentation">Room Flags Documentation</h1>
 <p>This document provides comprehensive information about all room flags
-(ROOM_*) used in LuminariMUD. Room flags control various mechanics,
-restrictions, and behaviors of rooms throughout the game world.</p>
+(<code>ROOM_*</code>) used in LuminariMUD. Room flags control various
+mechanics, restrictions, and behaviors of rooms throughout the game
+world.</p>
 <h2 id="table-of-contents">Table of Contents</h2>
 <ul>
 <li><a href="#overview">Overview</a></li>
@@ -222,405 +223,627 @@ magical effects.</p>
 Restrictions</h2>
 <h3 id="room_tunnel-index-8">ROOM_TUNNEL (Index: 8)</h3>
 <p><strong>Effect:</strong> Limits the number of characters that can be
-in the room simultaneously. - Maximum occupants determined by
-<code>CONFIG_TUNNEL_SIZE</code> - Prevents mounted characters from
-entering - Blocks formations and grouped movement when full - Used for
-narrow passages, tunnels, and chokepoints</p>
-<p><strong>Code References:</strong> -
-<code>src/movement/movement.c</code> - Blocks mounted entry
-(<code>do_simple_move()</code>) - <code>src/movement/movement.c</code> -
-Enforces occupancy limit (<code>do_simple_move()</code>) -
-<code>src/wilderness/desc_engine.c</code> - Dynamic room descriptions
-(<code>gen_room_description()</code>)</p>
+in the room simultaneously.</p>
+<ul>
+<li>Maximum occupants determined by <code>CONFIG_TUNNEL_SIZE</code></li>
+<li>Prevents mounted characters from entering</li>
+<li>Blocks formations and grouped movement when full</li>
+<li>Used for narrow passages, tunnels, and chokepoints</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/movement/movement.c</code> - Blocks mounted entry
+(<code>do_simple_move()</code>)</li>
+<li><code>src/movement/movement.c</code> - Enforces occupancy limit
+(<code>do_simple_move()</code>)</li>
+<li><code>src/wilderness/desc_engine.c</code> - Dynamic room
+descriptions (<code>gen_room_description()</code>)</li>
+</ul>
 <h3 id="room_singlefile-index-20">ROOM_SINGLEFILE (Index: 20)</h3>
 <p><strong>Effect:</strong> Forces characters to move through the room
-one at a time in combat situations. - Prevents backstab and other
-flanking abilities - Limits positioning-based combat mechanics - Used
-for narrow corridors and single-file passages</p>
-<p><strong>Code References:</strong> -
-<code>src/movement/movement.c</code> - Movement restrictions
-(<code>do_simple_move()</code>) - <code>src/combat/fight.c</code> -
-Combat positioning checks (<code>guard_check()</code>,
-<code>compute_hit_damage()</code>, <code>hit()</code>) - 20+ additional
-checks across combat and spell systems</p>
+one at a time in combat situations.</p>
+<ul>
+<li>Prevents backstab and other flanking abilities</li>
+<li>Limits positioning-based combat mechanics</li>
+<li>Used for narrow corridors and single-file passages</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/movement/movement.c</code> - Movement restrictions
+(<code>do_simple_move()</code>)</li>
+<li><code>src/combat/fight.c</code> - Combat positioning checks
+(<code>guard_check()</code>, <code>compute_hit_damage()</code>,
+<code>hit()</code>)</li>
+<li>20+ additional checks across combat and spell systems</li>
+</ul>
 <h3 id="room_fly_needed-index-18">ROOM_FLY_NEEDED (Index: 18)</h3>
 <p><strong>Effect:</strong> Characters must be flying to remain in the
-room; non-flying characters fall. - Triggers falling mechanics for
-grounded characters - Objects without support also fall - Used for
-aerial rooms, cliff edges, and suspended platforms</p>
-<p><strong>Code References:</strong> -
-<code>src/movement/movement_falling.c</code> - Character falling check
+room; non-flying characters fall.</p>
+<ul>
+<li>Triggers falling mechanics for grounded characters</li>
+<li>Objects without support also fall</li>
+<li>Used for aerial rooms, cliff edges, and suspended platforms</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/movement/movement_falling.c</code> - Character falling
+check (<code>obj_should_fall()</code>, <code>char_should_fall()</code>,
+<code>event_falling()</code>)</li>
+<li><code>src/movement/movement_falling.c</code> - Object falling check
 (<code>obj_should_fall()</code>, <code>char_should_fall()</code>,
-<code>event_falling()</code>) -
-<code>src/movement/movement_falling.c</code> - Object falling check
-(<code>obj_should_fall()</code>, <code>char_should_fall()</code>,
-<code>event_falling()</code>) - <code>src/craft/craft.c</code> -
-Crafting system checks (<code>reset_harvesting_rooms()</code>)</p>
+<code>event_falling()</code>)</li>
+<li><code>src/craft/craft.c</code> - Crafting system checks
+(<code>reset_harvesting_rooms()</code>)</li>
+</ul>
 <h3 id="room_climb_needed-index-32">ROOM_CLIMB_NEEDED (Index: 32)</h3>
-<p><strong>Effect:</strong> Requires a skill check to enter the room. -
-Difficulty based on zone minimum level - Used for cliffs, mountains, and
-vertical obstacles</p>
-<p><strong>Code References:</strong> -
-<code>src/movement/movement.c</code> - Entry skill check
-(<code>do_simple_move()</code>) - <code>src/craft/craft.c</code> -
-Crafting restrictions (<code>reset_harvesting_rooms()</code>)</p>
+<p><strong>Effect:</strong> Requires a skill check to enter the
+room.</p>
+<ul>
+<li>Difficulty based on zone minimum level</li>
+<li>Used for cliffs, mountains, and vertical obstacles</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/movement/movement.c</code> - Entry skill check
+(<code>do_simple_move()</code>)</li>
+<li><code>src/craft/craft.c</code> - Crafting restrictions
+(<code>reset_harvesting_rooms()</code>)</li>
+</ul>
 <h3 id="room_nofly-index-26">ROOM_NOFLY (Index: 26)</h3>
 <p><strong>Effect:</strong> Prevents flying creatures from entering the
-room. - Forces grounded movement - Used in low-ceiling areas and
-confined spaces</p>
-<p><strong>Code References:</strong> -
-<code>src/movement/movement.c</code> - Entry restriction check
-(<code>do_simple_move()</code>)</p>
+room.</p>
+<ul>
+<li>Forces grounded movement</li>
+<li>Used in low-ceiling areas and confined spaces</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/movement/movement.c</code> - Entry restriction check
+(<code>do_simple_move()</code>)</li>
+</ul>
 <h3 id="room_private-index-9">ROOM_PRIVATE (Index: 9)</h3>
-<p><strong>Effect:</strong> Limits room to 2 occupants maximum. -
-Additional occupants cannot enter or teleport in - Staff can override
-this restriction - Used for private meeting rooms and intimate
-spaces</p>
-<p><strong>Code References:</strong> -
-<code>src/movement/movement.c</code> - Entry restriction
-(<code>do_enter()</code>) - <code>src/act/act.wizard.c</code> - Teleport
-restrictions (<code>find_target_room()</code>) -
-<code>src/magic/spells.c</code> - Spell targeting restrictions
-(<code>valid_mortal_tele_dest()</code>) - <code>src/obj/house.c</code> -
-House management integration (<code>find_house()</code>,
-<code>hcontrol_build_house()</code>,
-<code>hcontrol_destroy_house()</code>)</p>
+<p><strong>Effect:</strong> Limits room to 2 occupants maximum.</p>
+<ul>
+<li>Additional occupants cannot enter or teleport in</li>
+<li>Staff can override this restriction</li>
+<li>Used for private meeting rooms and intimate spaces</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/movement/movement.c</code> - Entry restriction
+(<code>do_enter()</code>)</li>
+<li><code>src/act/act.wizard.c</code> - Teleport restrictions
+(<code>find_target_room()</code>)</li>
+<li><code>src/magic/spells.c</code> - Spell targeting restrictions
+(<code>valid_mortal_tele_dest()</code>)</li>
+<li><code>src/obj/house.c</code> - House management integration
+(<code>find_house()</code>, <code>hcontrol_build_house()</code>,
+<code>hcontrol_destroy_house()</code>)</li>
+</ul>
 <h3 id="room_nomob-index-2">ROOM_NOMOB (Index: 2)</h3>
-<p><strong>Effect:</strong> NPCs will not wander into this room. -
-Checked by the mobile movement routine, so a mob will not choose this
-room as a destination - Does <strong>not</strong> prevent a mobile from
-being placed here by a zone reset, a summon, or a staff
-<code>transfer</code> - Use it to keep wandering mobiles out of shops,
-guild rooms, and quest areas without having to make the exits
-impassable</p>
-<p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
-Wandering destination check (owner-local mobile agenda)</p>
+<p><strong>Effect:</strong> NPCs will not wander into this room.</p>
+<ul>
+<li>Checked by the mobile movement routine, so a mob will not choose
+this room as a destination</li>
+<li>Does <strong>not</strong> prevent a mobile from being placed here by
+a zone reset, a summon, or a staff <code>transfer</code></li>
+<li>Use it to keep wandering mobiles out of shops, guild rooms, and
+quest areas without having to make the exits impassable</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/mob/mob_act.c</code> - Wandering destination check
+(owner-local mobile agenda)</li>
+</ul>
 <h3 id="room_staffroom-index-10">ROOM_STAFFROOM (Index: 10)</h3>
-<p><strong>Effect:</strong> Only staff (LVL_STAFF+) can enter this room.
-- Hard block on entry for non-staff - Used for immortal areas and staff
-lounges</p>
-<p><strong>Code References:</strong> -
-<code>src/movement/movement.c</code> - Level check on entry
-(<code>do_simple_move()</code>, <code>do_enter()</code>)</p>
+<p><strong>Effect:</strong> Only staff (LVL_STAFF+) can enter this
+room.</p>
+<ul>
+<li>Hard block on entry for non-staff</li>
+<li>Used for immortal areas and staff lounges</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/movement/movement.c</code> - Level check on entry
+(<code>do_simple_move()</code>, <code>do_enter()</code>)</li>
+</ul>
 <hr />
 <h2 id="magic-restrictions">Magic Restrictions</h2>
 <h3 id="room_nomagic-index-7">ROOM_NOMAGIC (Index: 7)</h3>
 <p><strong>Effect:</strong> Completely prevents all magic from
-functioning in the room. - Blocks spell casting by caster or victim in
-the room - Exception: Weapon poison (CAST_WEAPON_POISON) still works -
-Affects both offensive and beneficial magic - Strongest magic
-restriction available</p>
-<p><strong>Code References:</strong> -
-<code>src/magic/spell_parser.c</code> - Spell casting prevention
-(<code>call_magic()</code>, <code>do_gen_cast()</code>) -
-<code>src/combat/fight.c</code> - Combat magic checks
-(<code>weapon_spells()</code>, <code>idle_weapon_spells()</code>) -
-<code>src/magic/magic.c</code> - General magic check
-(<code>mag_room()</code>)</p>
+functioning in the room.</p>
+<ul>
+<li>Blocks spell casting by caster or victim in the room</li>
+<li>Exception: Weapon poison (CAST_WEAPON_POISON) still works</li>
+<li>Affects both offensive and beneficial magic</li>
+<li>Strongest magic restriction available</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/magic/spell_parser.c</code> - Spell casting prevention
+(<code>call_magic()</code>, <code>do_gen_cast()</code>)</li>
+<li><code>src/combat/fight.c</code> - Combat magic checks
+(<code>weapon_spells()</code>, <code>idle_weapon_spells()</code>)</li>
+<li><code>src/magic/magic.c</code> - General magic check
+(<code>mag_room()</code>)</li>
+</ul>
 <h3 id="room_noteleport-index-21">ROOM_NOTELEPORT (Index: 21)</h3>
 <p><strong>Effect:</strong> Prevents teleportation into or out of the
-room. - Blocks dimension door, teleport, and similar spells - Blocks
-both incoming and outgoing teleportation - Used for secured areas and
-restricted zones</p>
-<p><strong>Code References:</strong> - <code>src/magic/spells.c</code> -
-Teleport destination check (<code>valid_mortal_tele_dest()</code>,
-<code>spell_recall()</code>, <code>spell_luskan_recall()</code>) -
-<code>src/magic/spells.c</code> - Multiple recall/teleport spell checks
+room.</p>
+<ul>
+<li>Blocks dimension door, teleport, and similar spells</li>
+<li>Blocks both incoming and outgoing teleportation</li>
+<li>Used for secured areas and restricted zones</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/magic/spells.c</code> - Teleport destination check
 (<code>valid_mortal_tele_dest()</code>, <code>spell_recall()</code>,
-<code>spell_luskan_recall()</code>) - <code>src/act/act.other.c</code> -
-Recall and portal restrictions (<code>do_abundantstep()</code>,
-<code>do_shadowstep()</code>)</p>
+<code>spell_luskan_recall()</code>)</li>
+<li><code>src/magic/spells.c</code> - Multiple recall/teleport spell
+checks (<code>valid_mortal_tele_dest()</code>,
+<code>spell_recall()</code>, <code>spell_luskan_recall()</code>)</li>
+<li><code>src/act/act.other.c</code> - Recall and portal restrictions
+(<code>do_abundantstep()</code>, <code>do_shadowstep()</code>)</li>
+</ul>
 <h3 id="room_nosummon-index-24">ROOM_NOSUMMON (Index: 24)</h3>
 <p><strong>Effect:</strong> Prevents summoning spells from targeting
-this room. - Blocks summoning creatures to or from the room - Used for
-protected sanctuaries and anti-summoning zones</p>
-<p><strong>Code References:</strong> - <code>src/magic/spells.c</code> -
-Summon spell checks (<code>spell_summon()</code>)</p>
+this room.</p>
+<ul>
+<li>Blocks summoning creatures to or from the room</li>
+<li>Used for protected sanctuaries and anti-summoning zones</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/magic/spells.c</code> - Summon spell checks
+(<code>spell_summon()</code>)</li>
+</ul>
 <h3 id="room_norecall-index-19">ROOM_NORECALL (Index: 19)</h3>
-<p><strong>Effect:</strong> Prevents recall/return spells from working.
-- Blocks escape via recall magic - Used in dungeons and combat zones
-where escape should be prevented</p>
-<p><strong>Code References:</strong> - <code>src/magic/spells.c</code> -
-Multiple recall spell checks (8 matches) (<code>spell_recall()</code>,
+<p><strong>Effect:</strong> Prevents recall/return spells from
+working.</p>
+<ul>
+<li>Blocks escape via recall magic</li>
+<li>Used in dungeons and combat zones where escape should be
+prevented</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/magic/spells.c</code> - Multiple recall spell checks (8
+matches) (<code>spell_recall()</code>,
 <code>spell_luskan_recall()</code>,
-<code>spell_triboar_recall()</code>)</p>
+<code>spell_triboar_recall()</code>)</li>
+</ul>
 <hr />
 <h2 id="combat-pvp-restrictions">Combat &amp; PvP Restrictions</h2>
 <h3 id="room_peaceful-index-4">ROOM_PEACEFUL (Index: 4)</h3>
 <p><strong>Effect:</strong> Prevents all forms of combat and aggressive
-actions. - Blocks physical attacks (hit, backstab, etc.) - Blocks
-offensive spells and abilities - Prevents grappling and combat maneuvers
-- Blocks domain powers and offensive class abilities - Used in safe
-zones, towns, and newbie areas</p>
-<p><strong>Code References:</strong> - <code>src/combat/fight.c</code> -
-Combat initiation blocks (<code>check_killer()</code>,
-<code>damage()</code>, <code>hit()</code>) -
-<code>src/magic/spells.c</code> - Offensive spell blocks
+actions.</p>
+<ul>
+<li>Blocks physical attacks (hit, backstab, etc.)</li>
+<li>Blocks offensive spells and abilities</li>
+<li>Prevents grappling and combat maneuvers</li>
+<li>Blocks domain powers and offensive class abilities</li>
+<li>Used in safe zones, towns, and newbie areas</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/combat/fight.c</code> - Combat initiation blocks
+(<code>check_killer()</code>, <code>damage()</code>,
+<code>hit()</code>)</li>
+<li><code>src/magic/spells.c</code> - Offensive spell blocks
 (<code>event_acid_arrow()</code>, <code>event_aqueous_orb()</code>,
-<code>event_implode()</code>) - <code>src/combat/grapple.c</code> -
-Grappling prevention (<code>do_grapple()</code>) -
-<code>src/magic/domain_powers.c</code> - Domain power checks
+<code>event_implode()</code>)</li>
+<li><code>src/combat/grapple.c</code> - Grappling prevention
+(<code>do_grapple()</code>)</li>
+<li><code>src/magic/domain_powers.c</code> - Domain power checks
 (<code>do_eviltouch()</code>, <code>do_lightningarc()</code>,
-<code>do_aciddart()</code>) - <code>src/magic/spell_parser.c</code> -
-Spell casting restrictions (<code>call_magic()</code>,
-<code>do_gen_cast()</code>)</p>
+<code>do_aciddart()</code>)</li>
+<li><code>src/magic/spell_parser.c</code> - Spell casting restrictions
+(<code>call_magic()</code>, <code>do_gen_cast()</code>)</li>
+</ul>
 <h3 id="room_arena-index-43">ROOM_ARENA (Index: 43)</h3>
 <p><strong>Effect:</strong> Applies arena combat, PvP, and death
-handling to a room regardless of its VNUM. - Allows PvP actions under
-the same rules as the legacy arena VNUM range - Uses arena-specific
-death handling instead of ordinary character death - Added for converted
-Realms of Luminari rooms whose arena identity is flag-based</p>
-<p><strong>Code References:</strong> - <code>src/core/utils.h</code> -
-Arena-room classification (<code>IS_ARENA()</code>,
-<code>IN_ARENA()</code>) - <code>src/core/utils.c</code> - Arena bypass
-for PvP eligibility (<code>pvp_ok()</code>,
-<code>pvp_ok_single()</code>) - <code>src/combat/fight.c</code> - Arena
-combat and death handling</p>
+handling to a room regardless of its VNUM.</p>
+<ul>
+<li>Allows PvP actions under the same rules as the legacy arena VNUM
+range</li>
+<li>Uses arena-specific death handling instead of ordinary character
+death</li>
+<li>Added for converted Realms of Luminari rooms whose arena identity is
+flag-based</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/core/utils.h</code> - Arena-room classification
+(<code>IS_ARENA()</code>, <code>IN_ARENA()</code>)</li>
+<li><code>src/core/utils.c</code> - Arena bypass for PvP eligibility
+(<code>pvp_ok()</code>, <code>pvp_ok_single()</code>)</li>
+<li><code>src/combat/fight.c</code> - Arena combat and death
+handling</li>
+</ul>
 <h3 id="room_death-index-1">ROOM_DEATH (Index: 1)</h3>
 <p><strong>Effect:</strong> Kills characters or deals severe damage when
-entering/remaining in room. - Used for death traps and hazardous zones -
-NPCs avoid entering death rooms - Teleportation into death rooms is
-blocked - Staff can bypass with appropriate level</p>
-<p><strong>Code References:</strong> -
-<code>src/act/act.informative.c</code> - Display warnings
-(<code>look_at_room_number()</code>, <code>look_at_room()</code>) -
-<code>src/movement/movement.c</code> - Entry damage/death
-(<code>do_enter()</code>) - <code>src/mob/mob_act.c</code> - NPC
-avoidance (owner-local mobile agenda) - <code>src/magic/spells.c</code>
-- Teleport blocking (<code>valid_mortal_tele_dest()</code>) -
-<code>src/act/act.other.c</code> - Additional teleport checks
-(<code>do_shadowstep()</code>)</p>
+entering/remaining in room.</p>
+<ul>
+<li>Used for death traps and hazardous zones</li>
+<li>NPCs avoid entering death rooms</li>
+<li>Teleportation into death rooms is blocked</li>
+<li>Staff can bypass with appropriate level</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/act/act.informative.c</code> - Display warnings
+(<code>look_at_room_number()</code>, <code>look_at_room()</code>)</li>
+<li><code>src/movement/movement.c</code> - Entry damage/death
+(<code>do_enter()</code>)</li>
+<li><code>src/mob/mob_act.c</code> - NPC avoidance (owner-local mobile
+agenda)</li>
+<li><code>src/magic/spells.c</code> - Teleport blocking
+(<code>valid_mortal_tele_dest()</code>)</li>
+<li><code>src/act/act.other.c</code> - Additional teleport checks
+(<code>do_shadowstep()</code>)</li>
+</ul>
 <h3 id="room_soundproof-index-5">ROOM_SOUNDPROOF (Index: 5)</h3>
 <p><strong>Effect:</strong> Blocks sound-based abilities and prevents
-communication. - Blocks tells, shouts, and speech-based communication -
-Prevents bardic performances from functioning - Blocks sound-based
-spells (exception for psionics) - Staff can override (LVL_STAFF+)</p>
-<p><strong>Code References:</strong> - <code>src/act/act.comm.c</code> -
-Communication blocking (<code>is_tell_ok()</code>,
-<code>do_gen_comm()</code>) -
-<code>src/character/bardic_performance.c</code> - Bardic performance
-prevention (<code>can_perform()</code>) -
-<code>src/magic/spell_parser.c</code> - Spell casting restriction
-(psionics exempt) (<code>say_spell()</code>, <code>cast_spell()</code>)
-- <code>src/act/act.social.c</code> - Social action blocking
-(<code>do_gmote()</code>)</p>
+communication.</p>
+<ul>
+<li>Blocks tells, shouts, and speech-based communication</li>
+<li>Prevents bardic performances from functioning</li>
+<li>Blocks sound-based spells (exception for psionics)</li>
+<li>Staff can override (LVL_STAFF+)</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/act/act.comm.c</code> - Communication blocking
+(<code>is_tell_ok()</code>, <code>do_gen_comm()</code>)</li>
+<li><code>src/character/bardic_performance.c</code> - Bardic performance
+prevention (<code>can_perform()</code>)</li>
+<li><code>src/magic/spell_parser.c</code> - Spell casting restriction
+(psionics exempt) (<code>say_spell()</code>,
+<code>cast_spell()</code>)</li>
+<li><code>src/act/act.social.c</code> - Social action blocking
+(<code>do_gmote()</code>)</li>
+</ul>
 <hr />
 <h2 id="environmental-effects">Environmental Effects</h2>
 <h3 id="room_indoors-index-3">ROOM_INDOORS (Index: 3)</h3>
 <p><strong>Effect:</strong> Marks room as indoors for various game
-mechanics. - Affects weather exposure - Influences light calculations
-(indoor rooms don&#x2019;t go dark at night) - Affects outdoor-only abilities
-and effects - Used for buildings, caves, and sheltered areas</p>
-<p><strong>Code References:</strong> - <code>src/core/utils.c</code> -
-Weather and outdoor checks (<code>is_room_outdoors()</code>,
-<code>ultra_blind()</code>) - <code>src/movement/movement.c</code> -
-Outdoor transition detection (<code>do_leave()</code>) -
-<code>src/vessels/vessels_rooms.c</code> - Vehicle room templates
+mechanics.</p>
+<ul>
+<li>Affects weather exposure</li>
+<li>Influences light calculations (indoor rooms don&#x2019;t go dark at
+night)</li>
+<li>Affects outdoor-only abilities and effects</li>
+<li>Used for buildings, caves, and sheltered areas</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/core/utils.c</code> - Weather and outdoor checks
+(<code>is_room_outdoors()</code>, <code>ultra_blind()</code>)</li>
+<li><code>src/movement/movement.c</code> - Outdoor transition detection
+(<code>do_leave()</code>)</li>
+<li><code>src/vessels/vessels_rooms.c</code> - Vehicle room templates
 (<code>load_ship_room_templates_from_db()</code>,
 <code>create_ship_room()</code>,
-<code>room_has_outside_view()</code>)</p>
+<code>room_has_outside_view()</code>)</li>
+</ul>
 <h3 id="room_regen-index-17">ROOM_REGEN (Index: 17)</h3>
 <p><strong>Effect:</strong> Doubles natural regeneration rates for HP,
-mana, and movement. - Minimum regen of 2 before doubling (2 becomes 4,
-etc.) - Stacks with other regen bonuses - Used for healing sanctuaries
-and rest areas</p>
-<p><strong>Code References:</strong> - <code>src/core/limits.c</code> -
-HP regeneration doubling (<code>regen_hps()</code>) -
-<code>src/magic/spell_prep.c</code> - Spell preparation bonus
-(<code>compute_spells_prep_time()</code>)</p>
+mana, and movement.</p>
+<ul>
+<li>Minimum regen of 2 before doubling (2 becomes 4, etc.)</li>
+<li>Stacks with other regen bonuses</li>
+<li>Used for healing sanctuaries and rest areas</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/core/limits.c</code> - HP regeneration doubling
+(<code>regen_hps()</code>)</li>
+<li><code>src/magic/spell_prep.c</code> - Spell preparation bonus
+(<code>compute_spells_prep_time()</code>)</li>
+</ul>
 <h3 id="room_no_precip-index-42">ROOM_NO_PRECIP (Index: 42)</h3>
 <p><strong>Effect:</strong> Suppresses ordinary weather and
-precipitation messages while leaving the room outdoors. - Does not make
-the room indoors - Does not suppress sunrise, sunset, or other
-outdoor-only mechanics - Used by converted Realms of Luminari
-<code>NO_PRECIP</code> rooms</p>
-<p><strong>Code References:</strong> - <code>src/core/weather.c</code> -
-Weather-message filtering (<code>sect_no_weather()</code>)</p>
+precipitation messages while leaving the room outdoors.</p>
+<ul>
+<li>Does not make the room indoors</li>
+<li>Does not suppress sunrise, sunset, or other outdoor-only
+mechanics</li>
+<li>Used by converted Realms of Luminari <code>NO_PRECIP</code>
+rooms</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/core/weather.c</code> - Weather-message filtering
+(<code>sect_no_weather()</code>)</li>
+</ul>
 <h3 id="room_psp_regen-index-45">ROOM_PSP_REGEN (Index: 45)</h3>
 <p><strong>Effect:</strong> Doubles the net PSP gained during each
-non-combat regeneration tick. - Applies after the normal PSP, feat,
-position, and psionic-level bonuses - Caps the resulting PSP at the
-character&#x2019;s maximum - Used by converted Realms of Luminari
-<code>PSPREGEN</code> rooms</p>
-<p><strong>Code References:</strong> - <code>src/core/limits.c</code> -
-PSP tick acceleration (<code>regen_psp()</code>)</p>
+non-combat regeneration tick.</p>
+<ul>
+<li>Applies after the normal PSP, feat, position, and psionic-level
+bonuses</li>
+<li>Caps the resulting PSP at the character&#x2019;s maximum</li>
+<li>Used by converted Realms of Luminari <code>PSPREGEN</code>
+rooms</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/core/limits.c</code> - PSP tick acceleration
+(<code>regen_psp()</code>)</li>
+</ul>
 <h3 id="room_rol_home_reset-index-46">ROOM_ROL_HOME_RESET (Index:
 46)</h3>
 <p><strong>Effect:</strong> Updates an NPC&#x2019;s remembered home room after
-it successfully walks out of the marked room. - Preserves converted RoL
-<code>home_reset</code> behavior without occupying the room&#x2019;s
-special-procedure slot - Applies only to NPCs and only after successful
-movement - Failed or trigger-rejected movement does not retarget the
-NPC&#x2019;s home</p>
-<p><strong>Code References:</strong> -
-<code>src/movement/movement.c</code> - Successful-movement integration
-(<code>do_simple_move()</code>) -
-<code>src/spec/spec_rol_conversion.c</code> - RoL home update
-(<code>rol_update_mobile_home_after_move()</code>)</p>
+it successfully walks out of the marked room.</p>
+<ul>
+<li>Preserves converted RoL <code>home_reset</code> behavior without
+occupying the room&#x2019;s special-procedure slot</li>
+<li>Applies only to NPCs and only after successful movement</li>
+<li>Failed or trigger-rejected movement does not retarget the NPC&#x2019;s
+home</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/movement/movement.c</code> - Successful-movement
+integration (<code>do_simple_move()</code>)</li>
+<li><code>src/spec/spec_rol_conversion.c</code> - RoL home update
+(<code>rol_update_mobile_home_after_move()</code>)</li>
+</ul>
 <h3 id="room_rol_astral-index-47">ROOM_ROL_ASTRAL (Index: 47)</h3>
 <p><strong>Effect:</strong> Persists that a converted RoL room used the
-source Astral Plane sector. - Preserves room-level Astral identity after
-the source sector maps to the target&#x2019;s generic Planes sector - Lets
-Astral-sensitive converted procedures distinguish mixed-sector source
-zones exactly - Is set automatically by the RoL converter; builders
-should not set it outside imported RoL content</p>
-<p><strong>Code References:</strong> -
-<code>scripts/world/wtool_lib/rol_transform.py</code> - Source-sector
-conversion metadata - <code>src/spec/spec_rol_conversion.c</code> -
-Astral-forged weapon bonus selection</p>
+source Astral Plane sector.</p>
+<ul>
+<li>Preserves room-level Astral identity after the source sector maps to
+the target&#x2019;s generic Planes sector</li>
+<li>Lets Astral-sensitive converted procedures distinguish mixed-sector
+source zones exactly</li>
+<li>Is set automatically by the RoL converter; builders should not set
+it outside imported RoL content</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>scripts/world/wtool_lib/rol_transform.py</code> -
+Source-sector conversion metadata</li>
+<li><code>src/spec/spec_rol_conversion.c</code> - Astral-forged weapon
+bonus selection</li>
+</ul>
 <h3 id="room_noheal-index-25">ROOM_NOHEAL (Index: 25)</h3>
-<p><strong>Effect:</strong> Prevents natural healing and regeneration. -
-Blocks HP regeneration tick - Similar to Blackmantle spell effect - Used
-for cursed areas and unholy ground</p>
-<p><strong>Code References:</strong> - <code>src/core/limits.c</code> -
-Regeneration blocking (<code>regen_hps()</code>)</p>
+<p><strong>Effect:</strong> Prevents natural healing and
+regeneration.</p>
+<ul>
+<li>Blocks HP regeneration tick</li>
+<li>Similar to Blackmantle spell effect</li>
+<li>Used for cursed areas and unholy ground</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/core/limits.c</code> - Regeneration blocking
+(<code>regen_hps()</code>)</li>
+</ul>
 <hr />
 <h2 id="vision-perception">Vision &amp; Perception</h2>
 <h3 id="room_dark-index-0">ROOM_DARK (Index: 0)</h3>
 <p><strong>Effect:</strong> Forces the room to be dark regardless of
-other conditions. - Overrides normal light calculations - Can be
-temporarily removed/added by darkness/light spells - Requires light
-source or darkvision to see - Stacks with ROOM_MAGICDARK for absolute
-darkness</p>
-<p><strong>Code References:</strong> - <code>src/core/utils.c</code> -
-Darkness calculations (<code>room_is_daylit()</code>,
-<code>room_is_dark()</code>, <code>is_room_in_sunlight()</code>) -
-<code>src/wilderness/desc_engine.c</code> - Dynamic description
-generation (<code>gen_room_description()</code>) -
-<code>src/magic/magic.c</code> - Darkness spell interaction
-(<code>mag_room()</code>) - <code>src/events/mud_event.c</code> -
-Temporary darkness removal (<code>event_countdown()</code>)</p>
+other conditions.</p>
+<ul>
+<li>Overrides normal light calculations</li>
+<li>Can be temporarily removed/added by darkness/light spells</li>
+<li>Requires light source or darkvision to see</li>
+<li>Stacks with ROOM_MAGICDARK for absolute darkness</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/core/utils.c</code> - Darkness calculations
+(<code>room_is_daylit()</code>, <code>room_is_dark()</code>,
+<code>is_room_in_sunlight()</code>)</li>
+<li><code>src/wilderness/desc_engine.c</code> - Dynamic description
+generation (<code>gen_room_description()</code>)</li>
+<li><code>src/magic/magic.c</code> - Darkness spell interaction
+(<code>mag_room()</code>)</li>
+<li><code>src/events/mud_event.c</code> - Temporary darkness removal
+(<code>event_countdown()</code>)</li>
+</ul>
 <h3 id="room_magicdark-index-22">ROOM_MAGICDARK (Index: 22)</h3>
 <p><strong>Effect:</strong> Creates magical darkness that penetrates
-normal light sources. - Overrides mundane light sources - Only defeated
-by magical light or certain abilities - When combined with ROOM_DARK,
-creates absolute darkness - Used for shadow magic zones and deep
-darkness effects</p>
-<p><strong>Code References:</strong> - <code>src/core/utils.c</code> -
-Darkness calculations (<code>room_is_daylit()</code>,
-<code>room_is_dark()</code>, <code>is_room_in_sunlight()</code>) -
-<code>src/act/act.informative.c</code> - Display and description
+normal light sources.</p>
+<ul>
+<li>Overrides mundane light sources</li>
+<li>Only defeated by magical light or certain abilities</li>
+<li>When combined with ROOM_DARK, creates absolute darkness</li>
+<li>Used for shadow magic zones and deep darkness effects</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/core/utils.c</code> - Darkness calculations
+(<code>room_is_daylit()</code>, <code>room_is_dark()</code>,
+<code>is_room_in_sunlight()</code>)</li>
+<li><code>src/act/act.informative.c</code> - Display and description
 handling (<code>look_at_room_number()</code>,
-<code>look_at_room()</code>, <code>do_scan()</code>)</p>
+<code>look_at_room()</code>, <code>do_scan()</code>)</li>
+</ul>
 <h3 id="room_magiclight-index-23">ROOM_MAGICLIGHT (Index: 23)</h3>
 <p><strong>Effect:</strong> Creates magical light that prevents the room
-from being dark. - Overrides normal darkness conditions - Cannot be
-defeated by normal darkness - Used for magically illuminated areas</p>
-<p><strong>Code References:</strong> - <code>src/core/utils.c</code> -
-Light calculation override (<code>room_is_dark()</code>)</p>
+from being dark.</p>
+<ul>
+<li>Overrides normal darkness conditions</li>
+<li>Cannot be defeated by normal darkness</li>
+<li>Used for magically illuminated areas</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/core/utils.c</code> - Light calculation override
+(<code>room_is_dark()</code>)</li>
+</ul>
 <h3 id="room_fog-index-27">ROOM_FOG (Index: 27)</h3>
 <p><strong>Effect:</strong> Creates fog that obscures vision and limits
-visibility. - Hides room descriptions and contents from mortal
-characters - Limits automap functionality - Reduces scan range and
-visibility - Staff (LVL_IMMORT+) can see through fog - Can be removed by
-gust of wind spell</p>
-<p><strong>Code References:</strong> -
-<code>src/act/act.informative.c</code> - Vision restrictions
+visibility.</p>
+<ul>
+<li>Hides room descriptions and contents from mortal characters</li>
+<li>Limits automap functionality</li>
+<li>Reduces scan range and visibility</li>
+<li>Staff (LVL_IMMORT+) can see through fog</li>
+<li>Can be removed by gust of wind spell</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/act/act.informative.c</code> - Vision restrictions
 (<code>look_at_room_number()</code>, <code>look_at_room()</code>,
-<code>look_in_direction()</code>) - <code>src/movement/asciimap.c</code>
-- Automap limitation (<code>do_map()</code>) -
-<code>src/magic/spells.c</code> - Gust of wind removes fog
-(<code>perform_dispel()</code>) - <code>src/core/utils.c</code> -
-Weather and vision checks (<code>ultra_blind()</code>,
-<code>is_room_in_sunlight()</code>)</p>
+<code>look_in_direction()</code>)</li>
+<li><code>src/movement/asciimap.c</code> - Automap limitation
+(<code>do_map()</code>)</li>
+<li><code>src/magic/spells.c</code> - Gust of wind removes fog
+(<code>perform_dispel()</code>)</li>
+<li><code>src/core/utils.c</code> - Weather and vision checks
+(<code>ultra_blind()</code>, <code>is_room_in_sunlight()</code>)</li>
+</ul>
 <h3 id="room_notrack-index-6">ROOM_NOTRACK (Index: 6)</h3>
 <p><strong>Effect:</strong> Prevents tracking abilities from working
-through this room. - Blocks track skill usage - Breaks pathfinding
-algorithms - NPCs won&#x2019;t track players through these rooms - Used for
-anti-tracking zones and rivers</p>
-<p><strong>Code References:</strong> -
-<code>src/movement/movement_tracks.c</code> - Track skill blocking
-(<code>should_create_tracks()</code>) -
-<code>src/movement/graph.c</code> - Pathfinding restriction -
-<code>src/mob/mob_act.c</code> - NPC tracking limitation (owner-local
-mobile agenda)</p>
+through this room.</p>
+<ul>
+<li>Blocks track skill usage</li>
+<li>Breaks pathfinding algorithms</li>
+<li>NPCs won&#x2019;t track players through these rooms</li>
+<li>Used for anti-tracking zones and rivers</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/movement/movement_tracks.c</code> - Track skill blocking
+(<code>should_create_tracks()</code>)</li>
+<li><code>src/movement/graph.c</code> - Pathfinding restriction</li>
+<li><code>src/mob/mob_act.c</code> - NPC tracking limitation
+(owner-local mobile agenda)</li>
+</ul>
 <hr />
 <h2 id="special-room-types">Special Room Types</h2>
 <h3 id="room_house-index-11">ROOM_HOUSE (Index: 11)</h3>
-<p><strong>Effect:</strong> Marks room as part of a player house. -
-Integrates with house ownership system - Restricts entry to house owners
-and guests - Enables house crash-save functionality - Used with
-ROOM_HOUSE_CRASH for persistence</p>
-<p><strong>Code References:</strong> - <code>src/obj/house.c</code> -
-House management (<code>find_house()</code>,
-<code>hcontrol_build_house()</code>,
-<code>hcontrol_destroy_house()</code>) - <code>src/core/handler.c</code>
-- Crash save integration (<code>obj_to_room()</code>,
-<code>obj_from_room()</code>) - <code>src/act/act.wizard.c</code> -
-Teleport restrictions and admin tools (<code>find_target_room()</code>,
-<code>do_switch()</code>, <code>do_zcheck()</code>)</p>
+<p><strong>Effect:</strong> Marks room as part of a player house.</p>
+<ul>
+<li>Integrates with house ownership system</li>
+<li>Restricts entry to house owners and guests</li>
+<li>Enables house crash-save functionality</li>
+<li>Used with ROOM_HOUSE_CRASH for persistence</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/obj/house.c</code> - House management
+(<code>find_house()</code>, <code>hcontrol_build_house()</code>,
+<code>hcontrol_destroy_house()</code>)</li>
+<li><code>src/core/handler.c</code> - Crash save integration
+(<code>obj_to_room()</code>, <code>obj_from_room()</code>)</li>
+<li><code>src/act/act.wizard.c</code> - Teleport restrictions and admin
+tools (<code>find_target_room()</code>, <code>do_switch()</code>,
+<code>do_zcheck()</code>)</li>
+</ul>
 <h3 id="room_house_crash-index-12">ROOM_HOUSE_CRASH (Index: 12)</h3>
 <p><strong>Effect:</strong> Marks that items in this house room should
-be saved. - Auto-set when items are modified in house rooms - Triggers
-house save-to-disk operations - Cleared after successful save - Used for
-house persistence system</p>
-<p><strong>Code References:</strong> - <code>src/obj/house.c</code> -
-Save operations (<code>hcontrol_destroy_house()</code>,
-<code>hcontrol_pay_house()</code>) - <code>src/core/handler.c</code> -
-Auto-flagging on item changes (<code>obj_to_room()</code>,
-<code>obj_from_room()</code>) - <code>src/olc/hsedit.c</code> - House
-editor cleanup (<code>hsedit_delete_house()</code>)</p>
+be saved.</p>
+<ul>
+<li>Auto-set when items are modified in house rooms</li>
+<li>Triggers house save-to-disk operations</li>
+<li>Cleared after successful save</li>
+<li>Used for house persistence system</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/obj/house.c</code> - Save operations
+(<code>hcontrol_destroy_house()</code>,
+<code>hcontrol_pay_house()</code>)</li>
+<li><code>src/core/handler.c</code> - Auto-flagging on item changes
+(<code>obj_to_room()</code>, <code>obj_from_room()</code>)</li>
+<li><code>src/olc/hsedit.c</code> - House editor cleanup
+(<code>hsedit_delete_house()</code>)</li>
+</ul>
 <h3 id="room_atrium-index-13">ROOM_ATRIUM (Index: 13)</h3>
-<p><strong>Effect:</strong> Marks room as a house atrium (entry point).
-- Entry point for player houses - Special restrictions on entering
-houses apply - Managed by house system automatically</p>
-<p><strong>Code References:</strong> - <code>src/obj/house.c</code> -
-House system integration (<code>find_house()</code>,
-<code>hcontrol_build_house()</code>,
-<code>hcontrol_destroy_house()</code>) -
-<code>src/movement/movement.c</code> - Entry point detection
-(<code>do_simple_move()</code>) - <code>src/olc/hsedit.c</code> - House
-editor management (<code>hsedit_save_internally()</code>,
-<code>hsedit_delete_house()</code>)</p>
+<p><strong>Effect:</strong> Marks room as a house atrium (entry
+point).</p>
+<ul>
+<li>Entry point for player houses</li>
+<li>Special restrictions on entering houses apply</li>
+<li>Managed by house system automatically</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/obj/house.c</code> - House system integration
+(<code>find_house()</code>, <code>hcontrol_build_house()</code>,
+<code>hcontrol_destroy_house()</code>)</li>
+<li><code>src/movement/movement.c</code> - Entry point detection
+(<code>do_simple_move()</code>)</li>
+<li><code>src/olc/hsedit.c</code> - House editor management
+(<code>hsedit_save_internally()</code>,
+<code>hsedit_delete_house()</code>)</li>
+</ul>
 <h3 id="room_worldmap-index-16">ROOM_WORLDMAP (Index: 16)</h3>
 <p><strong>Effect:</strong> Marks room as part of the
-overworld/wilderness map system. - Enables special worldmap automap
-display - Used for wilderness travel system - Affects routing and
-navigation commands</p>
-<p><strong>Code References:</strong> -
-<code>src/act/act.informative.c</code> - Automap checks
-(<code>do_survey()</code>) - <code>src/movement/asciimap.c</code> - Map
-rendering (<code>show_worldmap()</code>) -
-<code>src/vessels/routing.c</code> - Navigation system
-(<code>start_flight_to_destination_luminari()</code>) -
-<code>src/act/act.wizard.c</code> - Administrative flag setting
-(<code>do_setworldsect()</code>)</p>
+overworld/wilderness map system.</p>
+<ul>
+<li>Enables special worldmap automap display</li>
+<li>Used for wilderness travel system</li>
+<li>Affects routing and navigation commands</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/act/act.informative.c</code> - Automap checks
+(<code>do_survey()</code>)</li>
+<li><code>src/movement/asciimap.c</code> - Map rendering
+(<code>show_worldmap()</code>)</li>
+<li><code>src/vessels/routing.c</code> - Navigation system
+(<code>start_flight_to_destination_luminari()</code>)</li>
+<li><code>src/act/act.wizard.c</code> - Administrative flag setting
+(<code>do_setworldsect()</code>)</li>
+</ul>
 <h3 id="room_vehicle-index-40">ROOM_VEHICLE (Index: 40)</h3>
-<p><strong>Effect:</strong> Marks room as part of a vehicle or vessel. -
-Allows vehicle movement through this room - Used for ship interiors,
-wagons, etc. - Required for directional vehicle navigation - Integrates
-with vessel system</p>
-<p><strong>Code References:</strong> -
-<code>src/vessels/vessels_rooms.c</code> - <code>room_templates[]</code>
-sets <code>ROOM_VEHICLE</code> on every
+<p><strong>Effect:</strong> Marks room as part of a vehicle or
+vessel.</p>
+<ul>
+<li>Allows vehicle movement through this room</li>
+<li>Used for ship interiors, wagons, etc.</li>
+<li>Required for directional vehicle navigation</li>
+<li>Integrates with vessel system</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/vessels/vessels_rooms.c</code> -
+<code>room_templates[]</code> sets <code>ROOM_VEHICLE</code> on every
 (<code>load_ship_room_templates_from_db()</code>,
 <code>create_ship_room()</code>) built-in ship room template;
 <code>load_ship_room_templates_from_db()</code> uses the same pair as
-the fallback when a database row omits the flags column -
-<code>src/vessels/vessels_rooms.c</code> -
+the fallback when a database row omits the flags column</li>
+<li><code>src/vessels/vessels_rooms.c</code> -
 <code>create_ship_room()</code> copies the flag onto the
 (<code>load_ship_room_templates_from_db()</code>,
-<code>create_ship_room()</code>) generated room</p>
+<code>create_ship_room()</code>) generated room</li>
+</ul>
 <p>Note: the flag is set by the vessel room generator and read by the
 vessel system as a whole. It is not consulted directly by the docking or
 movement code, so do not expect to find it there.</p>
 <h3 id="room_harvest_node-index-38">ROOM_HARVEST_NODE (Index: 38)</h3>
 <p><strong>Effect:</strong> Marks room as a resource harvesting
-location. - Enables gathering/harvesting of materials - Integrates with
-crafting system - Used for mining nodes, herb gardens, etc.</p>
-<p><strong>Code References:</strong> -
-<code>src/craft/crafting_new.c</code> - Harvest node detection
-(<code>will_room_have_harvest_materials()</code>)</p>
+location.</p>
+<ul>
+<li>Enables gathering/harvesting of materials</li>
+<li>Integrates with crafting system</li>
+<li>Used for mining nodes, herb gardens, etc.</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/craft/crafting_new.c</code> - Harvest node detection
+(<code>will_room_have_harvest_materials()</code>)</li>
+</ul>
 <h3 id="room_player_shop-index-35">ROOM_PLAYER_SHOP (Index: 35)</h3>
-<p><strong>Effect:</strong> Marks room as a player-run shop. - Enables
-player merchant functionality - Integrates with player economy
-system</p>
+<p><strong>Effect:</strong> Marks room as a player-run shop.</p>
+<ul>
+<li>Enables player merchant functionality</li>
+<li>Integrates with player economy system</li>
+</ul>
 <p><strong>Note:</strong> Limited code references suggest this may be
 partially implemented or planned feature.</p>
 <h3 id="room_road-index-39">ROOM_ROAD (Index: 39)</h3>
-<p><strong>Effect:</strong> Marks room as a road or path. - May affect
-travel speed or mount usage - Used for road networks and travel
-routes</p>
+<p><strong>Effect:</strong> Marks room as a road or path.</p>
+<ul>
+<li>May affect travel speed or mount usage</li>
+<li>Used for road networks and travel routes</li>
+</ul>
 <p><strong>Note:</strong> No direct code references found; likely used
 by zone builders for thematic purposes or planned features.</p>
 <hr />
@@ -628,87 +851,133 @@ by zone builders for thematic purposes or planned features.</p>
 Flags</h2>
 <h3 id="room_rol_jail-index-44">ROOM_ROL_JAIL (Index: 44)</h3>
 <p><strong>Effect:</strong> Persists the jail identity of a converted
-Realms of Luminari room. - Reserved for the RoL conversion and its
-justice/special-procedure adapters - Does not create a generic jail
-mechanic by itself - Builders should not set this flag outside imported
-RoL content</p>
-<p><strong>Code References:</strong> -
-<code>scripts/world/wtool_lib/rol_transform.py</code> - RoL room-flag
-conversion</p>
+Realms of Luminari room.</p>
+<ul>
+<li>Reserved for the RoL conversion and its justice/special-procedure
+adapters</li>
+<li>Does not create a generic jail mechanic by itself</li>
+<li>Builders should not set this flag outside imported RoL content</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>scripts/world/wtool_lib/rol_transform.py</code> - RoL
+room-flag conversion</li>
+</ul>
 <h3 id="room_olc-index-14">ROOM_OLC (Index: 14)</h3>
 <p><strong>Effect:</strong> Marks room as being edited in the Online
-Level Creator (OLC). - Used by building/editing system - Prevents
-certain cleanup operations - Temporary flag during world editing</p>
-<p><strong>Code References:</strong> - <code>src/act/act.wizard.c</code>
-- Administrative cleanup avoidance (<code>do_zcheck()</code>)</p>
+Level Creator (OLC).</p>
+<ul>
+<li>Used by building/editing system</li>
+<li>Prevents certain cleanup operations</li>
+<li>Temporary flag during world editing</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/act/act.wizard.c</code> - Administrative cleanup avoidance
+(<code>do_zcheck()</code>)</li>
+</ul>
 <h3 id="room_bfs_mark-index-15">ROOM_BFS_MARK (Index: 15)</h3>
 <p><strong>Effect:</strong> Temporary flag used by pathfinding
-algorithms. - Marks rooms as visited during Breadth-First Search -
-Automatically cleared after pathfinding completes - Should never be
-permanently set on rooms - Internal system flag</p>
-<p><strong>Code References:</strong> - <code>src/movement/graph.c</code>
-- Pathfinding algorithm - <code>src/act/act.wizard.c</code> - Cleanup
-detection (<code>do_zcheck()</code>)</p>
+algorithms.</p>
+<ul>
+<li>Marks rooms as visited during Breadth-First Search</li>
+<li>Automatically cleared after pathfinding completes</li>
+<li>Should never be permanently set on rooms</li>
+<li>Internal system flag</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/movement/graph.c</code> - Pathfinding algorithm</li>
+<li><code>src/act/act.wizard.c</code> - Cleanup detection
+(<code>do_zcheck()</code>)</li>
+</ul>
 <hr />
 <h2 id="size-restrictions">Size Restrictions</h2>
 <h3 id="room_size_tiny-index-30">ROOM_SIZE_TINY (Index: 30)</h3>
-<p><strong>Effect:</strong> Marks room as extremely small. - May
-restrict large creatures from entering - Used for mouse holes, small
-tunnels, etc.</p>
+<p><strong>Effect:</strong> Marks room as extremely small.</p>
+<ul>
+<li>May restrict large creatures from entering</li>
+<li>Used for mouse holes, small tunnels, etc.</li>
+</ul>
 <p><strong>Note:</strong> Limited code references suggest this is
 primarily a builder/thematic flag.</p>
 <h3 id="room_size_diminutive-index-31">ROOM_SIZE_DIMINUTIVE (Index:
 31)</h3>
-<p><strong>Effect:</strong> Marks room as very small. - May restrict
-entry based on creature size - Used for pixie homes, tiny passages,
-etc.</p>
+<p><strong>Effect:</strong> Marks room as very small.</p>
+<ul>
+<li>May restrict entry based on creature size</li>
+<li>Used for pixie homes, tiny passages, etc.</li>
+</ul>
 <p><strong>Note:</strong> Limited code references suggest this is
 primarily a builder/thematic flag.</p>
 <h3 id="room_airy-index-28">ROOM_AIRY (Index: 28)</h3>
-<p><strong>Effect:</strong> Marks room as having an airy, open quality.
-- May affect wind-based spells or effects - Thematic flag for open,
-breezy areas</p>
+<p><strong>Effect:</strong> Marks room as having an airy, open
+quality.</p>
+<ul>
+<li>May affect wind-based spells or effects</li>
+<li>Thematic flag for open, breezy areas</li>
+</ul>
 <p><strong>Note:</strong> No direct code references found; likely
 thematic or planned feature.</p>
 <hr />
 <h2 id="zone-features">Zone Features</h2>
 <h3 id="room_random_trap-index-36">ROOM_RANDOM_TRAP (Index: 36)</h3>
 <p><strong>Effect:</strong> Forces a random trap to always generate in
-this room. - Overrides normal trap generation probability - Guarantees
-trap presence on zone reset - Used for specific trap encounters</p>
-<p><strong>Code References:</strong> -
-<code>src/combat/traps_new.c</code> - Forced trap generation
+this room.</p>
+<ul>
+<li>Overrides normal trap generation probability</li>
+<li>Guarantees trap presence on zone reset</li>
+<li>Used for specific trap encounters</li>
+</ul>
+<p><strong>Code References:</strong></p>
+<ul>
+<li><code>src/combat/traps_new.c</code> - Forced trap generation
 (<code>auto_generate_object_trap()</code>,
-<code>auto_generate_zone_traps()</code>) - <code>src/core/db.c</code> -
-Zone loading trap setup (<code>reset_zone()</code>)</p>
+<code>auto_generate_zone_traps()</code>)</li>
+<li><code>src/core/db.c</code> - Zone loading trap setup
+(<code>reset_zone()</code>)</li>
+</ul>
 <h3 id="room_random_chest-index-37">ROOM_RANDOM_CHEST (Index: 37)</h3>
 <p><strong>Effect:</strong> Marks room as eligible for random treasure
-chest spawning. - Integrates with random treasure system - Used for
-treasure hunt mechanics</p>
+chest spawning.</p>
+<ul>
+<li>Integrates with random treasure system</li>
+<li>Used for treasure hunt mechanics</li>
+</ul>
 <p><strong>Note:</strong> Limited code references suggest this may be a
 planned or partially implemented feature.</p>
 <h3 id="room_hastrap-index-33">ROOM_HASTRAP (Index: 33)</h3>
-<p><strong>Effect:</strong> Indicates the room contains a trap. - May be
-set by trap generation system - Used for trap detection and
-disarmament</p>
+<p><strong>Effect:</strong> Indicates the room contains a trap.</p>
+<ul>
+<li>May be set by trap generation system</li>
+<li>Used for trap detection and disarmament</li>
+</ul>
 <p><strong>Note:</strong> Limited code references suggest integration
 with trap system.</p>
 <h3 id="room_gendesc-index-34">ROOM_GENDESC (Index: 34)</h3>
 <p><strong>Effect:</strong> Indicates room description should be
-generated dynamically. - Used with procedural generation systems -
-Allows for dynamic room descriptions</p>
+generated dynamically.</p>
+<ul>
+<li>Used with procedural generation systems</li>
+<li>Allows for dynamic room descriptions</li>
+</ul>
 <p><strong>Note:</strong> Limited code references suggest this is a
 specialized builder flag.</p>
 <h3 id="room_occupied-index-29">ROOM_OCCUPIED (Index: 29)</h3>
-<p><strong>Effect:</strong> Marks room as occupied or reserved. -
-Purpose unclear from code analysis - May relate to instance or phasing
-systems</p>
+<p><strong>Effect:</strong> Marks room as occupied or reserved.</p>
+<ul>
+<li>Purpose unclear from code analysis</li>
+<li>May relate to instance or phasing systems</li>
+</ul>
 <p><strong>Note:</strong> No direct code references found; may be
 planned feature.</p>
 <h3 id="room_dockable-index-41">ROOM_DOCKABLE (Index: 41)</h3>
 <p><strong>Effect:</strong> Marks room as a valid docking location for
-vessels. - Intended for ship docking mechanics - Part of vessel
-system</p>
+vessels.</p>
+<ul>
+<li>Intended for ship docking mechanics</li>
+<li>Part of vessel system</li>
+</ul>
 <p><strong>Note:</strong> No code references found; likely planned
 feature for vessel system expansion.</p>
 <hr />
@@ -716,11 +985,11 @@ feature for vessel system expansion.</p>
 <h3 id="quick-reference-table">Quick Reference Table</h3>
 <table>
 <colgroup>
-<col style="width: 11%" />
-<col style="width: 17%" />
-<col style="width: 29%" />
-<col style="width: 25%" />
-<col style="width: 16%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -840,7 +1109,7 @@ feature for vessel system expansion.</p>
 <tr class="even">
 <td>15</td>
 <td>ROOM_BFS_MARK</td>
-<td>*</td>
+<td><code>*</code></td>
 <td>Pathfinding temp</td>
 <td>System</td>
 </tr>
@@ -1074,14 +1343,14 @@ feature for vessel system expansion.</p>
 <h2 id="usage-guidelines">Usage Guidelines</h2>
 <h3 id="for-builders">For Builders</h3>
 <ol type="1">
-<li><strong>Stacking Flags</strong>: Many flags can be combined for
-compound effects
+<li><p><strong>Stacking Flags</strong>: Many flags can be combined for
+compound effects</p>
 <ul>
 <li>ROOM_DARK + ROOM_MAGICDARK = absolute darkness</li>
 <li>ROOM_PEACEFUL + ROOM_NOMAGIC = complete safe zone</li>
 <li>ROOM_INDOORS + ROOM_REGEN = safe indoor rest area</li>
 </ul></li>
-<li><strong>Common Combinations</strong>:
+<li><p><strong>Common Combinations</strong>:</p>
 <ul>
 <li>Safe Town: ROOM_PEACEFUL + ROOM_INDOORS</li>
 <li>Death Trap: ROOM_DEATH + ROOM_NOTELEPORT + ROOM_NORECALL</li>
@@ -1089,7 +1358,7 @@ compound effects
 <li>Challenging Dungeon: ROOM_DARK + ROOM_NORECALL +
 ROOM_NOTELEPORT</li>
 </ul></li>
-<li><strong>Flags to Avoid Setting Manually</strong>:
+<li><p><strong>Flags to Avoid Setting Manually</strong>:</p>
 <ul>
 <li>ROOM_BFS_MARK (system temporary flag)</li>
 <li>ROOM_HOUSE_CRASH (auto-set by house system)</li>
@@ -1114,24 +1383,38 @@ combat. Consider adding ROOM_NORECALL for dungeons where escape should
 be limited.</p>
 <p><strong>Darkness</strong>: Use ROOM_DARK for natural darkness,
 ROOM_MAGICDARK for magical darkness that resists light sources.</p>
-<p><strong>Movement Restrictions</strong>: - ROOM_TUNNEL limits total
-occupants - ROOM_SINGLEFILE limits combat positioning - ROOM_PRIVATE
-limits to 2 people</p>
-<p><strong>Magic Control</strong>: - ROOM_NOMAGIC = complete magic
-shutdown - ROOM_NOTELEPORT = prevents teleportation only - ROOM_NOSUMMON
-= prevents summoning only - ROOM_NORECALL = prevents recall only</p>
+<p><strong>Movement Restrictions</strong>:</p>
+<ul>
+<li>ROOM_TUNNEL limits total occupants</li>
+<li>ROOM_SINGLEFILE limits combat positioning</li>
+<li>ROOM_PRIVATE limits to 2 people</li>
+</ul>
+<p><strong>Magic Control</strong>:</p>
+<ul>
+<li>ROOM_NOMAGIC = complete magic shutdown</li>
+<li>ROOM_NOTELEPORT = prevents teleportation only</li>
+<li>ROOM_NOSUMMON = prevents summoning only</li>
+<li>ROOM_NORECALL = prevents recall only</li>
+</ul>
 <hr />
 <h2 id="code-references">Code References</h2>
-<p><strong>Primary Files:</strong> - <code>src/core/structs.h</code> -
-Flag definitions (the <code>ROOM_*</code> define block ending at
-<code>ROOM_ROL_ASTRAL</code>) - <code>src/movement/movement.c</code> -
-Movement restriction checks - <code>src/magic/spell_parser.c</code> -
-Magic restriction checks - <code>src/combat/fight.c</code> - Combat
-restriction checks - <code>src/core/utils.c</code> - Light and vision
-calculations - <code>src/act/act.informative.c</code> - Room description
-handling - <code>src/obj/house.c</code> - House system integration -
-<code>src/vessels/vessels_rooms.c</code> - Vehicle system
-integration</p>
+<p><strong>Primary Files:</strong></p>
+<ul>
+<li><code>src/core/structs.h</code> - Flag definitions (the
+<code>ROOM_*</code> define block ending at
+<code>ROOM_ROL_ASTRAL</code>)</li>
+<li><code>src/movement/movement.c</code> - Movement restriction
+checks</li>
+<li><code>src/magic/spell_parser.c</code> - Magic restriction
+checks</li>
+<li><code>src/combat/fight.c</code> - Combat restriction checks</li>
+<li><code>src/core/utils.c</code> - Light and vision calculations</li>
+<li><code>src/act/act.informative.c</code> - Room description
+handling</li>
+<li><code>src/obj/house.c</code> - House system integration</li>
+<li><code>src/vessels/vessels_rooms.c</code> - Vehicle system
+integration</li>
+</ul>
 <p><strong>Checking Flags:</strong></p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Standard check</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>ROOM_FLAGGED<span class="op">(</span>room_rnum<span class="op">,</span> ROOM_PEACEFUL<span class="op">))</span> <span class="op">{</span></span>

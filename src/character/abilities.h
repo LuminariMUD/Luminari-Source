@@ -13,7 +13,7 @@
 struct char_data;
 
 int compute_ability(struct char_data *ch, int ability_num);
-/* Duris racial innates: terrain stealth and forest sight bonuses */
+/* Sep 2026 racial innates: terrain stealth and forest sight bonuses */
 int racial_terrain_ability_bonus(struct char_data *ch, int ability_num);
 int compute_ability_full(struct char_data *ch, int ability_num, bool recursive);
 

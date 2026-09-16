@@ -12,6 +12,9 @@
 #ifndef _HOUSE_H_
 #define _HOUSE_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 #include "core/persistence.h"
 
 /* NOTE: learned the hard way, changing (one or both) of these will destroy the houses in the

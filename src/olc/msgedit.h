@@ -21,6 +21,8 @@
  **/
 
 /* Externals */
+#include "core/structs.h"
+
 void load_messages(void);
 void free_messages(void);
 void save_messages_to_disk(void);

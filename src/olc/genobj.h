@@ -12,6 +12,8 @@
 #ifndef _GENOBJ_H_
 #define _GENOBJ_H_
 
+#include "core/structs.h"
+
 void free_object_strings_proto(struct obj_data *obj);
 void free_object_strings(struct obj_data *obj);
 void free_object_string(const struct obj_data *obj, char *str);

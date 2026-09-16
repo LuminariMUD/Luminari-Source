@@ -1,8 +1,9 @@
 # Mobile (MOB) Flags Documentation
 
-This document provides comprehensive information about all mobile flags (MOB_*) used in LuminariMUD. Mobile flags control NPC behaviors, abilities, restrictions, and special mechanics throughout the game world.
+This document provides comprehensive information about all mobile flags (`MOB_*`) used in LuminariMUD. Mobile flags control NPC behaviors, abilities, restrictions, and special mechanics throughout the game world.
 
 ## Table of Contents
+
 - [Overview](#overview)
 - [Basic Behavior Flags](#basic-behavior-flags)
 - [Aggression & Alignment Flags](#aggression--alignment-flags)
@@ -21,6 +22,7 @@ This document provides comprehensive information about all mobile flags (MOB_*) 
 Mobile flags are bitflags defined in `src/core/structs.h` and are checked throughout the codebase using the `MOB_FLAGGED()` macro. There are currently **126 mobile flags** (indices 0-125, `NUM_MOB_FLAGS`) that control everything from basic AI behavior to special monster abilities.
 
 **Usage Pattern:**
+
 ```c
 if (MOB_FLAGGED(mob, MOB_FLAGNAME)) {
     // Flag is set, apply behavior/restriction
@@ -34,7 +36,7 @@ that are **not** action-flag bit numbers. They are mobile vnums and summon
 identifiers that happen to share the prefix:
 
 | Example | Value | What it actually is |
-|---------|-------|---------------------|
+| -- | -- | -- |
 | `MOB_GHOST_WOLF` | 801 | A mobile vnum |
 | `MOB_DIRE_RAT` | 9400 | A mobile vnum |
 | `MOB_MOUNT_SPELL` | 101320 | A summon identifier |
@@ -53,7 +55,9 @@ table is not an action flag, whatever it is called.
 ## Basic Behavior Flags
 
 ### MOB_SPEC (Index: 0)
+
 **Effect:** Indicates the mobile has a special procedure (spec-proc) attached.
+
 - Special procedures provide custom scripted behaviors
 - Executed during mobile activity updates
 - Used for quest NPCs, shopkeepers, trainers, etc.
@@ -61,19 +65,24 @@ table is not an action flag, whatever it is called.
 **Code References:** `src/spec/spec_assign_mobiles.c`, `src/spec/`, feature-owned procedure modules
 
 ### MOB_SENTINEL (Index: 1)
+
 **Effect:** Mobile will not move from its current location.
+
 - Prevents wandering and random movement
 - Mobile stays in its spawn location
 - Can still be dragged/summoned by magic
 - Used for stationary guards, shopkeepers, and landmark NPCs
 
 **Code References:**
+
 - `src/mob/mob_act.c` - Prevents random movement (owner-local mobile agenda)
 - `src/mob/mob_act.c` - Position management for sentinels (owner-local mobile agenda)
 - `src/core/utils.c` - Drag restrictions (`push_attempt()`)
 
 ### MOB_SCAVENGER (Index: 2)
+
 **Effect:** Mobile picks up items from the ground.
+
 - Randomly collects objects in the same room
 - 1 in 10 chance per update cycle
 - Used for goblin looters, pack rats, etc.
@@ -81,39 +90,51 @@ table is not an action flag, whatever it is called.
 **Code References:** `mob_act.c:162`
 
 ### MOB_AWARE (Index: 4)
+
 **Effect:** Mobile cannot be backstabbed or surprise attacked.
+
 - Prevents backstab attacks from rogues
 - Blocks sneak attacks and similar abilities
 - Used for alert guards, paranoid NPCs, creatures with special senses
 
 **Code References:**
+
 - `src/combat/act.offensive.c` - Backstab prevention (`do_backstab()`, `do_circle()`)
 - `src/combat/act.offensive.c` - Sneak attack prevention (`do_backstab()`, `do_circle()`)
 
 ### MOB_WIMPY (Index: 7)
+
 **Effect:** Mobile flees when severely injured.
+
 - Automatically flees when HP drops below threshold
 - Used for cowardly creatures and civilians
 - Behavior similar to player wimpy setting
 
 **Code References:**
+
 - `src/combat/fight.c` - Flee trigger check (`damage()`)
 - `src/mob/mob_act.c` - Wimpy behavior handling (owner-local mobile agenda)
 
 ### MOB_SENTIENT (Index: 19)
+
 **Effect:** Marks mobile as sentient/intelligent.
+
 - Used for intelligent creatures and humanoids
 - May affect certain spell interactions
 - Thematic flag for creature classification
 
 ### MOB_LISTEN (Index: 34)
+
 **Effect:** Mobile enters room if it hears fighting nearby.
+
 - Responds to combat sounds in adjacent rooms
 - Used for reinforcement mechanics
 - Guards and aggressive creatures use this
 
 ### MOB_LIT (Index: 35)
+
 **Effect:** Mobile emits light.
+
 - Acts as a light source in dark rooms
 - Creatures made of fire, glowing undead, etc.
 - Affects visibility calculations
@@ -123,30 +144,39 @@ table is not an action flag, whatever it is called.
 ## Aggression & Alignment Flags
 
 ### MOB_AGGRESSIVE (Index: 5)
+
 **Effect:** Mobile automatically attacks all nearby characters.
+
 - Attacks everyone who enters the room
 - Conflicts with MOB_HELPER flag
 - Used for hostile monsters and aggressive creatures
 
 **Code References:**
+
 - `src/mob/mob_act.c` - Aggression trigger (owner-local mobile agenda)
 - `src/core/limits.c` - Set during rage/charm effects (`proc_d20_round_one()`)
 - `src/core/db.c` - Boot-time validation with alignment aggro flags (`parse_mobile()`)
 
 ### MOB_AGGR_EVIL (Index: 8)
+
 **Effect:** Mobile attacks evil-aligned characters on sight.
+
 - Only attacks players/NPCs with evil alignment
 - Requires MOB_AGGRESSIVE to also be set
 - Used for paladins, good-aligned guards
 
 ### MOB_AGGR_GOOD (Index: 9)
+
 **Effect:** Mobile attacks good-aligned characters on sight.
+
 - Only attacks players/NPCs with good alignment
 - Requires MOB_AGGRESSIVE to also be set
 - Used for demons, evil priests, undead
 
 ### MOB_AGGR_NEUTRAL (Index: 10)
+
 **Effect:** Mobile attacks neutral-aligned characters on sight.
+
 - Only attacks players/NPCs with neutral alignment
 - Requires MOB_AGGRESSIVE to also be set
 - Used for extremist NPCs
@@ -156,69 +186,92 @@ table is not an action flag, whatever it is called.
 ## Immunity & Restriction Flags
 
 ### MOB_NOCHARM (Index: 13)
+
 **Effect:** Mobile cannot be charmed or mind-controlled.
+
 - Blocks charm person, dominate, and similar spells
 - Used for strong-willed creatures, undead, constructs
 - Essential for boss monsters
 
 **Code References:**
+
 - `src/magic/spells.c` - Charm spell blocking (`effect_charm()`)
 - `src/combat/spec_abilities.c` - Ability-based charm blocking (`process_weapon_abilities()`, `process_item_abilities()`)
 
 ### MOB_NOSUMMON (Index: 14)
+
 **Effect:** Mobile cannot be summoned or teleported.
+
 - Prevents summon monster spells from bringing this mob
 - Blocks gate and similar effects
 - Used for bosses and unique creatures
 
 ### MOB_NOSLEEP (Index: 15)
+
 **Effect:** Mobile cannot be put to sleep.
+
 - Blocks sleep spells and effects
 - Used for elves, undead, constructs
 - Essential for creatures that don't sleep
 
 ### MOB_NOBASH (Index: 16)
+
 **Effect:** Mobile cannot be bashed or knocked down.
+
 - Prevents shield bash and similar attacks
 - Used for trees, huge creatures, incorporeal beings
 - Affects tactical combat options
 
 ### MOB_NOBLIND (Index: 17)
+
 **Effect:** Mobile cannot be blinded.
+
 - Blocks blindness spells and effects
 - Used for creatures with special vision (tremorsense, blindsight)
 - Oozes, creatures without eyes
 
 ### MOB_NOKILL (Index: 18)
+
 **Effect:** Mobile cannot be attacked by players.
+
 - Complete immunity to player attacks
 - Used for quest NPCs, essential storyline characters
 - Can still be damaged by environmental effects
 
 ### MOB_NODEAF (Index: 22)
+
 **Effect:** Mobile cannot be deafened.
+
 - Blocks deafness effects
 - Used for creatures without hearing or magical entities
 
 ### MOB_NOGRAPPLE (Index: 25)
+
 **Effect:** Mobile cannot be grappled or grabbed.
+
 - Prevents grapple combat maneuvers
 - Used for incorporeal creatures, very large/small creatures
 - Affects melee combat tactics
 
 ### MOB_NOCONFUSE (Index: 62)
+
 **Effect:** Mobile cannot be confused.
+
 - Blocks confusion spells and effects
 - Used for mindless creatures, high-intelligence beings
 
 ### MOB_NOPARALYZE (Index: 97)
+
 **Effect:** Mobile cannot be paralyzed.
+
 - Blocks hold person, paralysis, and similar effects
 - Used for creatures immune to paralysis
 - Essential for certain creature types
 
 ### MOB_NOSTEAL (Index: 37)
+
 **Effect:** Mobile cannot be stolen from.
+
 - Prevents pickpocket attempts
 - Used for important NPCs, alert guards
 - Protects quest items
@@ -228,13 +281,17 @@ table is not an action flag, whatever it is called.
 ## Movement & Blocking Flags
 
 ### MOB_STAY_ZONE (Index: 6)
+
 **Effect:** Mobile will not wander outside its home zone.
+
 - Restricts random movement to current zone
 - Prevents mobs from wandering into neighboring zones
 - Used for zone-specific creatures
 
 ### MOB_BLOCK_N through MOB_BLOCK_D (Index: 45-54)
+
 **Effect:** Mobile physically blocks movement in specific directions.
+
 - **MOB_BLOCK_N** (45) - Blocks north
 - **MOB_BLOCK_E** (46) - Blocks east
 - **MOB_BLOCK_S** (47) - Blocks south
@@ -251,54 +308,70 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 **Code References:** `movement.c:622-640`
 
 ### MOB_BLOCK_CLASS (Index: 55)
+
 **Effect:** When blocking, allows characters of same class to pass.
+
 - Exempts characters with matching class from directional blocks
 - Used for class-specific guardians
 
 **Code References:** `movement.c:645`
 
 ### MOB_BLOCK_RACE (Index: 56)
+
 **Effect:** When blocking, allows characters of same race to pass.
+
 - Exempts characters with matching race from directional blocks
 - Used for racial guardians and city gates
 
 **Code References:** `movement.c:643`
 
 ### MOB_BLOCK_LEVEL (Index: 57)
+
 **Effect:** When blocking, allows lower-level characters to pass.
+
 - Characters above mob's level are blocked
 - Used for level-gated areas
 
 **Code References:** `movement.c:649`
 
 ### MOB_BLOCK_ALIGN (Index: 58)
+
 **Effect:** When blocking, allows characters of same alignment to pass.
+
 - Checks good/evil/neutral alignment match
 - Used for alignment-restricted areas
 
 **Code References:** `movement.c:651-655`
 
 ### MOB_BLOCK_ETHOS (Index: 59)
+
 **Effect:** When blocking, allows characters of same ethos to pass.
+
 - Checks lawful/neutral/chaotic ethos match
 - Used for ethos-restricted areas
 
 ### MOB_BLOCK_EVIL (Index: 90)
+
 **Effect:** Specifically blocks evil-aligned characters.
+
 - Good and neutral characters can pass
 - Used for holy sanctuaries
 
 **Code References:** `movement.c:657`
 
 ### MOB_BLOCK_NEUTRAL (Index: 91)
+
 **Effect:** Specifically blocks neutral-aligned characters.
+
 - Good and evil characters can pass
 - Used for extreme-alignment areas
 
 **Code References:** `movement.c:659`
 
 ### MOB_BLOCK_GOOD (Index: 92)
+
 **Effect:** Specifically blocks good-aligned characters.
+
 - Neutral and evil characters can pass
 - Used for unholy temples
 
@@ -309,59 +382,76 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 ## Combat Helper Flags
 
 ### MOB_MEMORY (Index: 11)
+
 **Effect:** Mobile remembers characters who attack it.
+
 - Tracks attackers even after combat ends
 - Will attack remembered enemies on sight
 - Memory persists until mob dies or memory is cleared
 - Used for intelligent creatures and guards
 
 **Code References:**
+
 - `src/mob/mob_memory.c` - Memory system check (`is_in_memory()`)
 - `src/combat/fight.c` - Adding to memory (`dam_killed_vict()`, `damage()`, `hit()`)
 - `src/movement/graph.c` - Pathfinding to remembered enemies (`hunt_victim()`)
 
 ### MOB_HELPER (Index: 12)
+
 **Effect:** Mobile assists other NPCs fighting against players.
+
 - Jumps into combat to help fellow NPCs
 - Conflicts with MOB_AGGRESSIVE flag
 - Used for pack tactics and coordinated defense
 
 **Code References:**
+
 - `src/mob/mob_act.c` - Helper behavior logic (owner-local mobile agenda)
 - `src/core/limits.c` - Removed when mob becomes aggressive (`proc_d20_round_one()`)
 
 ### MOB_GUARD (Index: 31)
+
 **Effect:** Mobile protects citizens and assists them in combat.
+
 - Specifically protects NPCs with MOB_CITIZEN flag
 - More selective than MOB_HELPER
 - Used for city guards and protectors
 
 **Code References:**
+
 - `src/mob/mob_act.c` - Guard protection logic (owner-local mobile agenda)
 - `src/quest/missions.c` - Mission guard assignment (`create_mission_mobs()`)
 
 ### MOB_CITIZEN (Index: 32)
+
 **Effect:** Mobile is protected by guards.
+
 - Guards will defend this NPC
 - Used for shopkeepers, quest NPCs, civilians
 - Creates natural guard/citizen relationships
 
 **Code References:**
+
 - `src/mob/mob_act.c` - Protection checks (owner-local mobile agenda)
 - `src/quest/missions.c` - Citizen designation (`create_mission_mobs()`)
 
 ### MOB_HUNTER (Index: 33)
+
 **Effect:** Mobile actively tracks down and hunts enemies.
+
 - Aggressively pursues targets across multiple rooms
 - Combines with MOB_MEMORY for persistent pursuit
 - Used for predators and assassins
 
 **Code References:**
+
 - `src/mob/mob_act.c` - Hunter behavior trigger (owner-local mobile agenda)
 - `src/combat/fight.c` - Hunt initiation (`damage()`)
 
 ### MOB_MOB_ASSIST (Index: 61)
+
 **Effect:** Mobile will assist other mobs in its group/following.
+
 - Enables mob-to-mob cooperation
 - Used for coordinated monster groups
 - Affects tactical combat
@@ -369,7 +459,9 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 **Code References:** `mob_act.c:303` - Assistance logic
 
 ### MOB_HUNTS_TARGET (Index: 63)
+
 **Effect:** Mobile hunts specific target(s).
+
 - More focused than general hunter behavior
 - Used for assassination missions and bounty hunters
 
@@ -378,107 +470,142 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 ## Companion & Summoned Creature Flags
 
 ### MOB_C_ANIMAL (Index: 26)
+
 **Effect:** Mobile is a ranger's animal companion.
+
 - Summoned via animal companion abilities
 - Follows companion mechanics
 - Scales with ranger level
 
 ### MOB_C_FAMILIAR (Index: 27)
+
 **Effect:** Mobile is a wizard's/sorcerer's familiar.
+
 - Summoned via find familiar spell
 - Shares senses with master
 - Provides bonuses to caster
 
 ### MOB_C_MOUNT (Index: 28)
+
 **Effect:** Mobile is a summoned/companion mount.
+
 - Summoned via paladin abilities or mount spells
 - Can be ridden by summoner
 - Scales with character level
 
 ### MOB_MOUNTABLE (Index: 21)
+
 **Effect:** Mobile can be mounted and ridden.
+
 - Players can use 'mount' command on this NPC
 - Not necessarily a summoned mount
 - Used for horses, griffons, etc.
 
 **Code References:**
+
 - `src/act/act.other.c` - Mount command checks (`do_mount()`, `do_tame()`)
 - `src/movement/movement_cost.c` - Movement cost adjustments (`get_speed()`)
 - `src/character/evolutions.c` - Eidolon mountable flag (`assign_eidolon_evolutions()`)
 
 ### MOB_ELEMENTAL (Index: 29)
+
 **Effect:** Mobile is an elemental creature.
+
 - Summoned via summon elemental spells
 - Subject to elemental rules and dismissal
 - Fire, water, earth, air elementals
 
 ### MOB_ANIMATED_DEAD (Index: 30)
+
 **Effect:** Mobile is animated undead.
+
 - Created via animate dead spell
 - Subject to turn undead and control undead
 - Skeletons, zombies, etc.
 
 ### MOB_PLANAR_ALLY (Index: 36)
+
 **Effect:** Mobile is a summoned planar ally.
+
 - Summoned via planar ally spells
 - Currently unused/planned feature
 - Angels, demons, celestials
 
 ### MOB_MERCENARY (Index: 41)
+
 **Effect:** Mobile is a hired mercenary.
+
 - Purchased companion, not magically summoned
 - Only one per person allowed
 - Costs gold to maintain
 
 ### MOB_SHADOW (Index: 43)
+
 **Effect:** Mobile is a shadowdancer's shadow companion.
+
 - Summoned via shadowdancer abilities
 - Special shadow-based powers
 - Scales with shadowdancer level
 
 ### MOB_C_O_T_N (Index: 85)
+
 **Effect:** Mobile is a Children of the Night vampire companion.
+
 - Summoned via vampire abilities
 - Wolves, rats, bats
 - Vampire-specific summoning
 
 ### MOB_VAMP_SPWN (Index: 86)
+
 **Effect:** Mobile is a vampire spawn.
+
 - Created by vampires
 - Lesser undead servant
 - Vampire-specific creation
 
 ### MOB_DRAGON_KNIGHT (Index: 87)
+
 **Effect:** Mobile is a dragon knight's mount.
+
 - Special draconic mount
 - Dragon-themed abilities
 - Class-specific companion
 
 ### MOB_MUMMY_DUST (Index: 88)
+
 **Effect:** Mobile created via mummy dust spell.
+
 - Temporary undead servant
 - Spell-specific summoning
 
 ### MOB_EIDOLON (Index: 89)
+
 **Effect:** Mobile is a summoner's eidolon.
+
 - Powerful customizable companion
 - Summoner class feature
 - Highly customizable with evolutions
 
 ### MOB_GENIEKIND (Index: 93)
+
 **Effect:** Mobile is a genie or genie-type creature.
+
 - Djinn, efreet, marid, dao
 - Subject to genie-specific rules
 - Elemental outsiders
 
 ### MOB_C_DRAGON (Index: 94)
+
 **Effect:** Mobile is a companion dragon.
+
 - Dragon companion for specific classes
 - Scales with character
 - Powerful draconic ally
 
 ### MOB_RETAINER (Index: 95)
+
 **Effect:** Mobile is a leadership retainer/cohort.
+
 - Gained via leadership feats
 - Follows cohort/follower rules
 - Permanent companion
@@ -488,114 +615,156 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 ## Special Ability Flags
 
 ### MOB_ABIL_GRAPPLE (Index: 64)
+
 **Effect:** Mobile can perform grapple attacks.
+
 - Special grapple combat maneuver
 - Used by tentacled creatures, wrestlers
 
 ### MOB_ABIL_PETRIFY (Index: 65)
+
 **Effect:** Mobile can petrify enemies.
+
 - Turn targets to stone
 - Used by medusas, basilisks, cockatrices
 
 ### MOB_ABIL_TAIL_SPIKES (Index: 66)
+
 **Effect:** Mobile can fire tail spikes.
+
 - Ranged spike attack
 - Used by manticores, similar creatures
 
 ### MOB_ABIL_LEVEL_DRAIN (Index: 67)
+
 **Effect:** Mobile can drain character levels.
+
 - Energy drain attacks
 - Used by wights, wraiths, vampires
 
 ### MOB_ABIL_CHARM (Index: 68)
+
 **Effect:** Mobile can charm enemies.
+
 - Mind control special attack
 - Used by vampires, nymphs, succubi
 
 ### MOB_ABIL_BLINK (Index: 69)
+
 **Effect:** Mobile can blink (short-range teleport).
+
 - Random teleportation in combat
 - Hard to hit in melee
 - Used by blink dogs, phase spiders
 
 ### MOB_ABIL_ENGULF (Index: 70)
+
 **Effect:** Mobile can engulf enemies.
+
 - Swallow or surround attack
 - Used by oozes, gelatinous cubes
 
 ### MOB_ABIL_CAUSE_FEAR (Index: 71)
+
 **Effect:** Mobile can cause fear in enemies.
+
 - Fear aura or special attack
 - Used by dragons, demons, undead
 
 ### MOB_ABIL_CORRUPTION (Index: 72)
+
 **Effect:** Mobile has corruption touch/attack.
+
 - Disease or corruption effect
 - Used by diseased creatures, demons
 
 **Code References:** `fight.c:11963` - Corruption attack trigger
 
 ### MOB_ABIL_SWALLOW (Index: 73)
+
 **Effect:** Mobile can swallow enemies whole.
+
 - Internal damage while swallowed
 - Used by large creatures, purple worms
 
 ### MOB_ABIL_FLIGHT (Index: 74)
+
 **Effect:** Mobile can fly.
+
 - Airborne movement
 - Ignores ground-based obstacles
 - Used by dragons, birds, flying creatures
 
 ### MOB_ABIL_POISON (Index: 75)
+
 **Effect:** Mobile has poisonous attacks.
+
 - Applies poison on successful hits
 - Used by snakes, spiders, venomous creatures
 
 **Code References:** `fight.c:11956` - Poison attack trigger
 
 ### MOB_ABIL_REGENERATION (Index: 76)
+
 **Effect:** Mobile regenerates HP quickly.
+
 - Enhanced natural healing
 - Used by trolls, hydras, regenerating creatures
 
 ### MOB_ABIL_PARALYZE (Index: 77)
+
 **Effect:** Mobile can paralyze enemies.
+
 - Paralysis special attack
 - Used by carrion crawlers, ghouls
 
 ### MOB_ABIL_FIRE_BREATH (Index: 78)
+
 **Effect:** Mobile can breathe fire.
+
 - Fire breath weapon attack
 - Used by red dragons, salamanders
 
 ### MOB_ABIL_LIGHTNING_BREATH (Index: 79)
+
 **Effect:** Mobile can breathe lightning.
+
 - Lightning breath weapon attack
 - Used by blue dragons, storm elementals
 
 ### MOB_ABIL_POISON_BREATH (Index: 80)
+
 **Effect:** Mobile can breathe poison gas.
+
 - Poison breath weapon attack
 - Used by green dragons
 
 ### MOB_ABIL_ACID_BREATH (Index: 81)
+
 **Effect:** Mobile can breathe acid.
+
 - Acid breath weapon attack
 - Used by black dragons
 
 ### MOB_ABIL_FROST_BREATH (Index: 82)
+
 **Effect:** Mobile can breathe frost/cold.
+
 - Cold breath weapon attack
 - Used by white dragons, frost giants
 
 ### MOB_ABIL_MAGIC_IMMUNITY (Index: 83)
+
 **Effect:** Mobile is immune to magic.
+
 - Spells have no effect
 - Used for golems, antimagic creatures
 - Extremely powerful defensive ability
 
 ### MOB_ABIL_INVISIBILITY (Index: 84)
+
 **Effect:** Mobile is naturally invisible.
+
 - Permanently invisible
 - Can still be detected by special senses
 - Used by invisible stalkers, certain fey
@@ -605,7 +774,9 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 ## System & Internal Flags
 
 ### MOB_ISNPC (Index: 3)
+
 **Effect:** Read-only flag automatically set on all NPCs.
+
 - Distinguishes NPCs from player characters
 - System flag - never manually set
 - Used throughout codebase for NPC checks
@@ -613,7 +784,9 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 **Important:** This is a system flag that should never be manually toggled.
 
 ### MOB_NOTDEADYET (Index: 20)
+
 **Effect:** Read-only flag indicating mobile is being extracted.
+
 - Set during mob removal from game
 - Prevents double-extraction bugs
 - System flag for cleanup process
@@ -621,77 +794,102 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 **Important:** This is a system flag that should never be manually toggled.
 
 ### MOB_NOFIGHT (Index: 23)
+
 **Effect:** Mobile will not engage in combat.
+
 - Passive creatures that won't fight back
 - Used for ambient NPCs, decorative creatures
 - Different from MOB_NOKILL (which prevents being attacked)
 
 ### MOB_NOCLASS (Index: 24)
+
 **Effect:** Mobile has no character class.
+
 - Used for monsters without PC-style classes
 - Affects certain class-specific interactions
 
 ### MOB_INFO_KILL (Index: 38)
+
 **Effect:** Broadcasts message to entire game when killed.
+
 - Global notification of death
 - Used for world bosses, unique enemies
 - Creates server-wide event
 
 ### MOB_INFO_KILL_PLR (Index: 60)
+
 **Effect:** Broadcasts message when this mob kills a player.
+
 - Global notification when player dies to this mob
 - Used for particularly dangerous enemies
 - Creates server-wide death announcement
 
 ### MOB_CUSTOM_GOLD (Index: 39)
+
 **Effect:** Mobile uses custom gold drop amounts.
+
 - Overrides standard treasure calculation
 - Used for specific treasure amounts
 - Quest rewards, unique drops
 
 ### MOB_NO_AI (Index: 40)
+
 **Effect:** Disables AI routines for this mobile.
+
 - Prevents standard AI behavior
 - Used for special scripted NPCs
 - Manual control only
 
 ### MOB_AI_ENABLED (Index: 98)
+
 **Effect:** Mobile uses advanced AI for responses.
+
 - Enhanced decision-making
 - More intelligent behavior patterns
 - Used for challenging enemies
 
 ### MOB_ENCOUNTER (Index: 42)
+
 **Effect:** Mobile is part of wilderness random encounter system.
+
 - Spawns in random encounters
 - Used for wandering monsters
 - Integrates with encounter tables
 
 ### MOB_IS_OBJ (Index: 44)
+
 **Effect:** Mobile represents an object (quest board, etc.).
+
 - Special case: mob used as interactive object
 - Used for bulletin boards, unique interfaces
 - Non-standard usage
 
 ### MOB_QUARTERMASTER (Index: 99)
+
 **Effect:** Mobile can accept and complete supply orders.
+
 - Special NPC for supply management
 - Mission/quest system integration
 - Resource gathering quests
 
 ### MOB_UNLIMITED_SPELL_SLOTS (Index: 100)
+
 **Effect:** Mobile has unlimited spell slots.
+
 - Bypasses normal spell slot system
 - Can cast spells without running out
 - Used for powerful casters, bosses
 
 ### MOB_CUSTOM_MOB_STATS (Index: 101)
+
 **Effect:** The mobile uses the stat modifiers written on its prototype instead of the defaults for its category.
+
 - Without this flag, a mobile's stats are derived from its level and category at load
 - With it, the values a builder set in `medit` are applied verbatim
 - Set it whenever you have deliberately hand-tuned a mob's abilities and do not want them overwritten
 
 **Code References:**
+
 - `src/core/utils.c` - Stat application (`apply_mob_stat_modifiers()`)
 
 ### Encounter Tier (separate scalar field)
@@ -711,6 +909,7 @@ does not change existing statistics; rerun autoroll to calculate and save the ne
 tier result. The established level-31-to-34 base behavior always remains active.
 
 **Code References:**
+
 - `src/mob/mob_autoroll.c` - Post-base saved-stat Tier bonuses
 - `src/olc/medit.c` - Builder selection and tier-aware autoroll
 - `src/core/db.c` and `src/olc/genmob.c` - `Tier:` loading and saving
@@ -718,49 +917,61 @@ tier result. The established level-31-to-34 base behavior always remains active.
 ### Spell resistance (separate scalar field)
 
 Enhanced mobile files persist base spell resistance as `SpellRes:` from 0 through
-100. MEDIT exposes the same value in its advanced statistics menu. Loading clamps
+100\. MEDIT exposes the same value in its advanced statistics menu. Loading clamps
 the field to that range, and OLC save writes a nonzero base value back to disk.
 Autoroll can replace it from the selected race profile, so set identity before
 running automatic statistics.
 
 **Code References:**
+
 - `src/core/db.c` - `SpellRes:` loading
 - `src/olc/genmob.c` - `SpellRes:` saving
 - `src/olc/medit.c` - display, edit, and autoroll ownership
 
 ### MOB_NO_BLOCK_BYPASS (Index: 102)
+
 **Effect:** Prevents the Ghost perk and similar abilities from slipping past this mobile's blocking.
+
 - Blocking mobiles normally have bypass routes available to certain classes and perks
 - This flag closes them, making the block absolute
 - Intended for gatekeepers and chokepoint guardians that must not be circumvented
 
 **Code References:**
+
 - `src/movement/movement.c` - Block bypass check (`do_simple_move()`)
 
 ### MOB_GOLEM (Index: 103)
+
 **Effect:** Marks the mobile as a constructed golem.
+
 - Used for follower tracking, so a player's golem is distinguished from ordinary charmed followers
 - Enables the golem repair and destroy commands to find it
 - Changes corpse handling on death
 
 **Code References:**
+
 - `src/act/act.other.c` - Golem commands (`do_destroygolem()`, `do_golemrepair()`)
 - `src/craft/crafting_new.c` - Golem crafting and repair (`has_golem_follower()`, `craft_golem_complete()`, `can_repair_golem()`)
 - `src/core/utils.c` - Follower tracking (`can_add_follower()`)
 - `src/combat/fight.c` - Corpse generation (`make_corpse()`)
 
 ### MOB_NOTELEPORT (Index: 104)
+
 **Effect:** The mobile cannot be teleported.
+
 - Blocks teleport spells that would move this mobile
 - Also respected by the creation spells when placing summoned creatures
 - Use for mobiles whose location is load-bearing: shopkeepers, quest targets, and anything a zone reset assumes stays put
 
 **Code References:**
+
 - `src/magic/spells.c` - Teleport target check (`spell_teleport()`)
 - `src/magic/magic.c` - Creation placement (`mag_creations()`)
 
 ### RoL compatibility flags (Indices: 105-127)
+
 **Effect:** Preserve shared Realms of Luminari mobile behaviors during deterministic conversion.
+
 - `MOB_ROL_NICE_THIEF` allows stealing but suppresses automatic retaliation when caught
 - `MOB_ROL_STAY_SECTOR` restricts random wandering to the mobile's current sector
 - `MOB_ROL_DELAY_HUNTER` becomes `MOB_HUNTER` after the mobile falls below 90 percent HP
@@ -805,6 +1016,7 @@ running automatic statistics.
   and classes for new content unless reproducing converted RoL behavior
 
 **Code References:**
+
 - `src/mob/mob_act.c` - Movement, archery, and race aggression
 - `src/combat/fight.c` - Delayed hunter activation
 - `src/spec/spec_rol_conversion.c` - Automatic demon, devil, and umber-hulk behavior
@@ -812,7 +1024,9 @@ running automatic statistics.
 - `src/core/utils.h` - Class-role queries
 
 ### MOB_BUFF_OUTSIDE_COMBAT (Index: 96)
+
 **Effect:** UNUSED - Kept for backward compatibility.
+
 - No longer functional
 - Reserved for future use
 - Do not use
@@ -824,7 +1038,7 @@ running automatic statistics.
 ### Quick Reference Table
 
 | Index | Flag Name | OLC Display Name | Category | Primary Purpose |
-|-------|-----------|------------------|----------|----------------|
+| -- | -- | -- | -- | -- |
 | 0 | MOB_SPEC | <spec> | System | Has special procedure |
 | 1 | MOB_SENTINEL | Sentinel | Behavior | Won't move |
 | 2 | MOB_SCAVENGER | Scavenger | Behavior | Picks up items |
@@ -963,37 +1177,45 @@ running automatic statistics.
 **Common Mob Archetypes:**
 
 1. **City Guard:**
+
    - MOB_SENTINEL + MOB_GUARD + MOB_MEMORY
    - Protects citizens, doesn't wander, remembers criminals
 
 2. **Aggressive Monster:**
+
    - MOB_AGGRESSIVE + MOB_MEMORY + MOB_HUNTER
    - Attacks on sight, pursues, remembers enemies
 
 3. **Alignment Guardian:**
+
    - MOB_SENTINEL + MOB_AGGRESSIVE + MOB_AGGR_EVIL (or GOOD/NEUTRAL)
    - Stationary guardian that attacks specific alignments
 
 4. **Pack Hunter:**
+
    - MOB_HELPER + MOB_MEMORY + MOB_MOB_ASSIST
    - Works with other mobs, remembers threats
 
 5. **Boss Monster:**
-   - MOB_NOCHARM + MOB_NOSUMMON + MOB_MEMORY + relevant MOB_ABIL_* flags
+
+   - MOB_NOCHARM + MOB_NOSUMMON + MOB_MEMORY + relevant `MOB_ABIL_*` flags
    - Immune to cheap tactics, dangerous abilities
 
 6. **Ambient NPC:**
+
    - MOB_SENTINEL + MOB_NOKILL + MOB_NOFIGHT
    - Decorative NPC that can't fight and can't be attacked
 
 **Flag Conflicts:**
+
 - MOB_AGGRESSIVE conflicts with MOB_HELPER (removed automatically)
 - MOB_AGGRESSIVE requires alignment aggro flags to have effect
-- Multiple MOB_BLOCK_* direction flags work together
+- Multiple `MOB_BLOCK_*` direction flags work together
 
 ### For Developers
 
 **Checking Flags:**
+
 ```c
 if (MOB_FLAGGED(mob, MOB_AGGRESSIVE)) {
     // Mob is aggressive
@@ -1006,16 +1228,19 @@ if (MOB_FLAGGED(mob, MOB_GUARD) && MOB_FLAGGED(mob, MOB_MEMORY)) {
 ```
 
 **Setting Flags:**
+
 ```c
 SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
 ```
 
 **Removing Flags:**
+
 ```c
 REMOVE_BIT_AR(MOB_FLAGS(mob), MOB_AGGRESSIVE);
 ```
 
 **System Flags to Never Modify:**
+
 - MOB_ISNPC (automatically set)
 - MOB_NOTDEADYET (extraction system)
 - MOB_BUFF_OUTSIDE_COMBAT (deprecated)
@@ -1025,6 +1250,7 @@ REMOVE_BIT_AR(MOB_FLAGS(mob), MOB_AGGRESSIVE);
 ## Code References
 
 **Primary Files:**
+
 - `src/core/structs.h` - Flag definitions (the `MOB_*` define block ending at `MOB_NOTELEPORT`)
 - `src/mob/mob_act.c` - Mobile AI and behavior
 - `src/combat/fight.c` - Combat interactions
@@ -1045,6 +1271,6 @@ REMOVE_BIT_AR(MOB_FLAGS(mob), MOB_AGGRESSIVE);
 
 ---
 
-**Last Updated:** November 6, 2024  
-**Version:** 1.0  
+**Last Updated:** November 6, 2024\
+**Version:** 1.0\
 **Maintainer:** LuminariMUD Development Team

@@ -1258,7 +1258,7 @@ static int rol_avernus_rod_command(struct spec_event_context *context, struct ch
     }
     return FALSE;
   }
-  if (context->argument == NULL || str_cmp(context->argument, "Kri'ik"))
+  if (context->argument == NULL || str_cmp(context->argument, "Kri'ik") != 0)
     return FALSE;
 
   kriik = read_mobile(ROL_AVERNUS_KRIIK_VNUM, VIRTUAL);
@@ -1348,7 +1348,7 @@ static int rol_avernus_dagger_object_command(struct spec_event_context *context,
       context->argument == NULL ||
       (!rol_avernus_command_is(context->command, "say") &&
        !rol_avernus_command_is(context->command, "'")) ||
-      str_cmp(context->argument, "darkness to light"))
+      str_cmp(context->argument, "darkness to light") != 0)
     return FALSE;
   act("Light spills from $p and envelops the room.", FALSE, ch, obj, NULL, TO_ROOM);
   act("Light spills from $p and bathes the room.", FALSE, ch, obj, NULL, TO_CHAR);

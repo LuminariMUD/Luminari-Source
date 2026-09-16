@@ -11,6 +11,8 @@
 #ifndef _MOVEMENT_EVENTS_H_
 #define _MOVEMENT_EVENTS_H_
 
+#include "core/structs.h"
+
 /* Function prototypes for post-movement event processing */
 
 /**

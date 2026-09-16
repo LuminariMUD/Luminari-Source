@@ -8,6 +8,9 @@
 #ifndef _ROL_FEATS_H_
 #define _ROL_FEATS_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 /* shadow: covert tailing */
 void stop_shadowing(struct char_data *ch, bool notify);
 void clear_shadow_links(struct char_data *ch);

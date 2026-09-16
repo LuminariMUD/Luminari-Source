@@ -8,6 +8,7 @@ Version: 1.9
 This master index provides a comprehensive guide to all technical documentation for LuminariMUD. Documents are organized by category and purpose to help developers, builders, and administrators quickly find the information they need.
 
 ### Quick Links
+
 - [Setup & Getting Started](#setup--getting-started)
 - [Architecture & Core Systems](#architecture--core-systems)
 - [Game Systems](#game-systems)
@@ -21,6 +22,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ## Setup & Getting Started
 
 ### Essential First Steps
+
 - **[README.md](../README.md)** - Project overview, quick start, and essential information
 - **[Developer onboarding](development/README_development.md#onboarding)** - Fresh-clone developer checklist
 - **[SETUP_AND_BUILD_GUIDE.md](guides/SETUP_AND_BUILD_GUIDE.md)** - Verified Autotools and CMake setup and build paths
@@ -32,6 +34,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)** - Community guidelines and expectations
 
 ### Configuration & Installation
+
 - **[CMAKE_BUILD_GUIDE.md](development/CMAKE_BUILD_GUIDE.md)** - Alternative build system using CMake
 - **[IMPORT_DB.md](guides/IMPORT_DB.md)** - Database import procedures
 - **[VESSEL_SCHEMA_DEPLOYMENT.md](deployment/VESSEL_SCHEMA_DEPLOYMENT.md)** - Vessel schema deployment, verification, and rollback procedure
@@ -41,6 +44,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ## Architecture & Core Systems
 
 ### System Architecture
+
 - **[ARCHITECTURE.md](systems/ARCHITECTURE.md)** - Verified system overview, component boundaries, and data flow
 - **[Architecture Atlas](architecture-maps/index.html)** - Interactive, source-verified maps of the runtime, event core and its pre-refactor delta, command, boot, copyover, connection, event, save/reload, and change-to-merge flows ([method and receipts](architecture-maps/README.md))
 - **[CORE_SERVER_ARCHITECTURE.md](systems/CORE_SERVER_ARCHITECTURE.md)** - Game loop, networking, and core engine
@@ -54,11 +58,13 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[COMMAND_SYSTEM_AND_INTERPRETER.md](systems/COMMAND_SYSTEM_AND_INTERPRETER.md)** - Command parsing and execution
 
 ### Database & Persistence
+
 - **[DATABASE_INTEGRATION.md](systems/DATABASE_INTEGRATION.md)** - MySQL integration and schema
 - **[SAVE_SYSTEMS_BREAKDOWN.md](systems/SAVE_SYSTEMS_BREAKDOWN.md)** - Save file formats and persistence
 - **[HELP_SYSTEM.md](systems/HELP_SYSTEM.md)** - Database-first help content, SQL migration, verification, and legacy import/export workflow
 
 ### Communication & Protocols
+
 - **[Operational API Contracts](api/README_api.md)** - Loopback readiness and liveness HTTP contract
 - **[PROTOCOL_SYSTEMS.md](systems/PROTOCOL_SYSTEMS.md)** - Telnet, MSDP, GMCP, and client protocols
 - **[MSDP_VARIABLES.md](systems/MSDP_VARIABLES.md)** - Canonical variable types, payloads, wire encodings, and update behavior
@@ -82,6 +88,7 @@ This master index provides a comprehensive guide to all technical documentation 
   authoritative release-gate state
 
 ### Core Mechanics
+
 - **[GAME_MECHANICS_SYSTEMS.md](systems/GAME_MECHANICS_SYSTEMS.md)** - Overview of all game systems
 - **[BARD_PERKS.md](systems/perks/BARD_PERKS.md)** - Base performance contract and Bard perk trees
 - **[COMBAT_SYSTEM.md](systems/COMBAT_SYSTEM.md)** - Combat mechanics and formulas
@@ -89,6 +96,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[PLAYER_MANAGEMENT_SYSTEM.md](systems/PLAYER_MANAGEMENT_SYSTEM.md)** - Character and account management
 
 ### Advanced Systems
+
 - **[ARTIFACT_SYSTEM.md](systems/ARTIFACT_SYSTEM.md)** - Unique artifact
   registry, ownership, binding, progression, powers, persistence, deployment,
   and staff operations
@@ -110,11 +118,13 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[AI_SERVICE_README.md](systems/AI_SERVICE_README.md)** - AI service integration
 
 ### Building & Scripting
+
 - **[OLC_ONLINE_CREATION_SYSTEM.md](systems/OLC_ONLINE_CREATION_SYSTEM.md)** - Online building tools
 - **[SCRIPTING_SYSTEM_DG.md](systems/SCRIPTING_SYSTEM_DG.md)** - DG Scripts documentation
 - **[DG Scripts Web Guide](web/dg-scripts/index.html)** - Source-backed builder path, complete trigger and command references, TRIGEDIT, testing, architecture, and public Dollhouse examples
 
 ### Utility Systems
+
 - **[UTILITY_SYSTEMS.md](systems/UTILITY_SYSTEMS.md)** - Helper systems and utilities
 
 ---
@@ -122,6 +132,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ## Development Guides
 
 ### Core Development
+
 - **[Development guide](development/README_development.md)** - Current daily commands, build gates, and source map
 - **[DEVELOPER_GUIDE_AND_API.md](guides/DEVELOPER_GUIDE_AND_API.md)** - Comprehensive developer reference
 - **[PLAYER_RACES_REFERENCE.md](guides/PLAYER_RACES_REFERENCE.md)** - Playable race
@@ -160,10 +171,12 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[PROTOCOL_PARSER_HARNESS.md](testing/PROTOCOL_PARSER_HARNESS.md)** - Focused protocol safety and framing regression matrix
 
 ### Performance & Optimization
+
 - **[PERFORMANCE_OPTIMIZATIONS.md](development/PERFORMANCE_OPTIMIZATIONS.md)** - Performance tuning guide
 - **[affect_update_optimization.md](development/affect_update_optimization.md)** - Specific optimization case study
 
 ### Troubleshooting
+
 - **[TROUBLESHOOTING_AND_MAINTENANCE.md](guides/TROUBLESHOOTING_AND_MAINTENANCE.md)** - Common issues and solutions
 
 ---
@@ -171,6 +184,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ## Building & Content Creation
 
 ### Building Guides
+
 - **[Builder Quickstart](world_game-data/BUILDER_QUICKSTART.md)** - One zone from empty to bootable; start here
 - **[Builder's Manual](world_game-data/builder_manual.md)** - Overview of building tools and processes
 - **[OLC SpecProc Editing](guides/OLC_SpecProcs.md)** - Owner-aware selection, authored persistence, `specbind` diagnostics, and moving-room safety
@@ -180,6 +194,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[ultimate-mud-writing-guide.md](guides/ultimate-mud-writing-guide.md)** - Writing compelling MUD content
 
 ### World File Formats
+
 - **[Zone File Format](world_game-data/ZONE_FILE_FORMAT.md)** - `.zon` header fields, reset commands, and parser gotchas
 - **[Shop File Format](world_game-data/SHOP_FILE_FORMAT.md)** - `.shp` field-by-field reference
 - **[Quest File Format](world_game-data/QUEST_FILE_FORMAT.md)** - `.qst` grammar, source-backed types and flags, rewards, references, and chain rules
@@ -190,6 +205,7 @@ This master index provides a comprehensive guide to all technical documentation 
   including converter-owned RoL compatibility flags
 
 ### Equipment & Items
+
 - **[CRAFTING_SYSTEM_NOTES.md](world_game-data/CRAFTING_SYSTEM_NOTES.md)** - Current crafting
   modes, recipe/material model, activities, persistence, and resource acquisition
 - **[gear_guide.md](world_game-data/gear_guide.md)** - Combined gear stat distribution (equipment balance, loot generation, stats by wear location)
@@ -199,14 +215,17 @@ This master index provides a comprehensive guide to all technical documentation 
 ## Administration & Operations
 
 ### Admin Tools
+
 - **[Incident response](runbooks/incident-response.md)** - Source-backed diagnosis, containment, and recovery
 - **[Admin README](admin/README_admin.md)** - Legacy administration overview
 - **[FAQ.md](admin/FAQ.md)** - Legacy gameplay/administration FAQ; current operator commands are linked at its top
 
 ### Utilities
+
 - **[Utilities README](utilities/README_utilities.md)** - External utility programs
 
 ### Legal & Licensing
+
 - **[LICENSE](../LICENSE)** - Project licensing information
 - **[Legal README](legal/README_legal.md)** - Legal considerations
 
@@ -215,6 +234,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ## Project Management
 
 ### Planning & Tracking
+
 - **[docs-audit.md](docs-audit.md)** - Phase 00 transition and vessel documentation audit ledger
 - **[CONSIDERATIONS.md](development/CONSIDERATIONS.md)** - Durable special-procedure and vessel maintenance lessons
 - **[CONVENTIONS.md](development/CONVENTIONS.md)** - Canonical engineering, build, test, documentation, and operational conventions
@@ -232,6 +252,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[GitHub issues](https://github.com/LuminariMUD/Luminari-Source/issues)** - Active implementation work and reviewed player proposals
 
 ### Historical Records
+
 - **[Previous Changelogs](previous_changelogs/)** - Historical development records
 
 ---
@@ -241,6 +262,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ### By Audience
 
 #### For New Developers
+
 1. [Project overview](../README.md)
 2. [Developer onboarding](development/README_development.md#onboarding)
 3. [Setup and build](guides/SETUP_AND_BUILD_GUIDE.md)
@@ -249,6 +271,7 @@ This master index provides a comprehensive guide to all technical documentation 
 6. [Contributing](../CONTRIBUTING.md)
 
 #### For System Administrators
+
 1. [Deployment and CI/CD](deployment/DEPLOYMENT_GUIDE.md)
 2. [Environment boundaries](deployment/environments.md)
 3. [Incident response](runbooks/incident-response.md)
@@ -256,6 +279,7 @@ This master index provides a comprehensive guide to all technical documentation 
 5. [Troubleshooting](guides/TROUBLESHOOTING_AND_MAINTENANCE.md)
 
 #### For Content Builders
+
 1. OLC_ONLINE_CREATION_SYSTEM.md
 2. SCRIPTING_SYSTEM_DG.md
 3. ultimate-mud-writing-guide.md
@@ -263,6 +287,7 @@ This master index provides a comprehensive guide to all technical documentation 
 5. world/STARTER_AREA.md
 
 #### For Core Contributors
+
 1. DEVELOPER_GUIDE_AND_API.md
 2. PERFORMANCE_OPTIMIZATIONS.md
 3. TESTING_GUIDE.md
@@ -271,24 +296,28 @@ This master index provides a comprehensive guide to all technical documentation 
 ### By Technical Depth
 
 #### Introductory (Beginner)
+
 - README.md
 - FAQ.md
 - CODE_OF_CONDUCT.md
 - ultimate-mud-writing-guide.md
 
 #### Intermediate
+
 - DEPLOYMENT_GUIDE.md
 - OLC_ONLINE_CREATION_SYSTEM.md
 - GAME_MECHANICS_SYSTEMS.md
 - Building guides
 
 #### Advanced
+
 - [Architecture](systems/ARCHITECTURE.md)
 - CORE_SERVER_ARCHITECTURE.md
 - DEVELOPER_GUIDE_AND_API.md
 - PERFORMANCE_OPTIMIZATIONS.md
 
 #### Reference
+
 - DATABASE_INTEGRATION.md
 - SCRIPTING_SYSTEM_DG.md
 - COMMAND_SYSTEM_AND_INTERPRETER.md
@@ -299,12 +328,14 @@ This master index provides a comprehensive guide to all technical documentation 
 ## Finding Information
 
 ### Quick Search Tips
+
 1. **By Feature**: Look in `systems/` directory
 2. **By Task**: Check `guides/` directory
 3. **By Problem**: See TROUBLESHOOTING_AND_MAINTENANCE.md
 4. **By Code**: Refer to DEVELOPER_GUIDE_AND_API.md
 
 ### Document Naming Convention
+
 - `README.md` - Root repository overview only
 - `README_<directory>.md` - Subdirectory overview documents
 - `*_SYSTEM.md` - System documentation
@@ -320,6 +351,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - `ongoing-projects/` - Temporary working notes; emptied when their content is consolidated into permanent documentation or GitHub issues
 
 ### Documentation Standards
+
 - All docs use Markdown format
 - Code examples follow GNU C23 and the established source style
 - Internal links use relative paths
@@ -338,6 +370,7 @@ health/deployment surface. Older subsystem documents remain independently
 maintained and must be retraced before behavioral edits.
 
 ### Contributing to Documentation
+
 1. Follow markdown best practices
 2. Include code examples where relevant
 3. Keep technical accuracy paramount

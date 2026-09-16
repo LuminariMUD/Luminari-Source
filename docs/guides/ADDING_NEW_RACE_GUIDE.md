@@ -62,7 +62,7 @@ Record these decisions before editing code. They determine which downstream
 systems must change.
 
 | Decision | Required detail |
-|----------|-----------------|
+| -- | -- |
 | Identity | Canonical `RACE_*` constant and permanent numeric ID |
 | Names | Parser token, display name, colored name, four-character abbreviation |
 | Classification | Existing `RACE_TYPE_*` family and `SIZE_*` value |
@@ -205,7 +205,7 @@ As of this guide's verification date, `src/core/structs.h` has these boundaries:
 - Extended NPC/form IDs begin at 60. Myconid promotes its existing conceptual
   identity at ID 114 to a creation-selectable PC race without renumbering it.
 - Wemic, Half-Illithid, and Yuan-Ti are creation-selectable IDs 149 through
-  151. `NUM_EXTENDED_RACES` is therefore 152, the registry array bound, while
+  151\. `NUM_EXTENDED_RACES` is therefore 152, the registry array bound, while
   `NUM_CREATION_RACES` is the independent count 33.
 - `char_player_data.race` is a signed `sh_int`, so the full current registry is
   representable. Player-file and account-unlock storage remain numeric.
@@ -262,7 +262,7 @@ If the ID or any race bound changes, inspect every search result, not just the
 following common consumers:
 
 | Source | Why it matters |
-|--------|----------------|
+| -- | -- |
 | `src/core/interpreter.c` | Terminal creation menus, direct validation, and race help dispatch |
 | `src/core/db.c` | `init_char()` applies the shared creation-eligibility policy |
 | `src/player/account.c` | Account-XP listing and purchase apply the shared sparse policy |
@@ -853,7 +853,7 @@ common runtime matrix against a development database:
 6. Quit, reconnect, and verify the numeric race, statistics, feats, language,
    choices, and size are unchanged.
 7. Inspect the character through account, score, staff-stat, MSDP/web, and I3
-    surfaces that are enabled in the development environment.
+   surfaces that are enabled in the development environment.
 
 For a creation-selectable race:
 
@@ -909,7 +909,7 @@ renumber, reuse, or erase the ID.
 ## Source map
 
 | Area | Authority |
-|------|-----------|
+| -- | -- |
 | Concrete race IDs and bounds | `src/core/structs.h` |
 | Runtime race structure | `struct race_data` in `src/core/structs.h` |
 | Registry and parser | `src/character/race.c`, `assign_races()`, `parse_race_long()` |
@@ -947,31 +947,31 @@ renumber, reuse, or erase the ID.
 - [ ] Runtime storage can represent the selected ID.
 - [ ] `assign_races()` registers every field explicitly.
 - [ ] Tier label, displayed adjustment, unlock gate, and XP multiplier were
-      reviewed as independent behavior.
+  reviewed as independent behavior.
 - [ ] Parser aliases and exact player help are wired.
 - [ ] A selectable race uses the same tested eligibility policy for terminal
-      and web creation.
+  and web creation.
 - [ ] A standard unlock purchase and reload work, or the selectable race is
-      intentionally free.
+  intentionally free.
 - [ ] A selectable race has at least one class/alignment combination that can
-      finish creation.
+  finish creation.
 - [ ] A transformation-only race is denied by account purchase, both creation
-      catalogs, direct submission, and forged unlocks.
+  catalogs, direct submission, and forged unlocks.
 - [ ] A transformation-only race has one approved conversion owner with
-      no-consumption preflight, repeat protection, and a save after final state.
+  no-consumption preflight, repeat protection, and a save after final state.
 - [ ] Stats, size, language, feats, and special mechanics are tested.
 - [ ] Duplicate racial feat assignments produce the intended rank.
 - [ ] XP and per-level behavior are implemented and survive derived-stat
-      recomputation rather than merely being displayed.
+  recomputation rather than merely being displayed.
 - [ ] Family predicates and appearance gates match the design.
 - [ ] Web media and catalog wire-budget tests pass for a selectable race; a
-      transformation-only race has no creation media/catalog entry.
+  transformation-only race has no creation media/catalog entry.
 - [ ] Existing-character web media behavior is defined for a
-      transformation-only race without weakening its creation hard lock.
+  transformation-only race without weakening its creation hard lock.
 - [ ] Database help migration and verifier are complete.
 - [ ] Matching `lib/text/help/help.hlp` content is complete.
 - [ ] Player and applicable account save/reload tests pass, including final
-      post-conversion state.
+  post-conversion state.
 - [ ] `make test` and `make install` pass.
 - [ ] Applicable local creation or conversion smoke tests pass.
 - [ ] Deployment and post-persistence rollback plans preserve the numeric ID.

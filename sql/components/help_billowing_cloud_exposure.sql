@@ -18,7 +18,7 @@ another save. Each cloud source tracks exposure separately, and an expired or
 removed cloud cannot cause a later exposure.
 
 See also: SPELLS, COMBAT, ACTIONS
-', 0, 0) ON DUPLICATE KEY UPDATE entry=VALUES(entry), min_level=VALUES(min_level), auto_generated=VALUES(auto_generated);
+', 0, 0) ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('BILLOWING-CLOUD', 'BILLOWING-CLOUD');
 
 COMMIT;

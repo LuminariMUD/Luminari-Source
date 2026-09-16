@@ -1,7 +1,7 @@
 -- Native staff-event timing and restart policy.
 START TRANSACTION;
 
-INSERT INTO help_entries (tag,entry,min_level,auto_generated) VALUES ('STAFF-EVENT', 'Staff-run events are world-wide quests combining automation and staff participation.
+INSERT INTO help_entries (tag, entry, min_level, auto_generated) VALUES ('STAFF-EVENT', 'Staff-run events are world-wide quests combining automation and staff participation.
 
 Usage: staffevent
        staffevent info <index>
@@ -20,10 +20,10 @@ Ending a different index does not end the current event.
 
 Active events are not restored after a reboot or copyover. Staff can start a
 new event after the initial three-mud-hour startup delay. Player participation
-and rewards already recorded by their existing systems are unchanged.',0,FALSE)
-ON DUPLICATE KEY UPDATE entry=VALUES(entry),min_level=VALUES(min_level),auto_generated=VALUES(auto_generated);
-INSERT IGNORE INTO help_keywords (help_tag,keyword) VALUES ('STAFF-EVENT', 'STAFF-EVENT');
-INSERT IGNORE INTO help_keywords (help_tag,keyword) VALUES ('STAFF-EVENT', 'STAFFEVENT');
-INSERT IGNORE INTO help_keywords (help_tag,keyword) VALUES ('STAFF-EVENT', 'STAFF_EVENT');
+and rewards already recorded by their existing systems are unchanged.', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('STAFF-EVENT', 'STAFF-EVENT');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('STAFF-EVENT', 'STAFFEVENT');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('STAFF-EVENT', 'STAFF_EVENT');
 
 COMMIT;

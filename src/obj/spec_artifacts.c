@@ -117,6 +117,10 @@ struct artifact_template
  * a depth of commitment instead. */
 #define ART_CLASS_GATE 10
 
+/* The rows below are laid out by hand, one artifact per paragraph, so the
+ * fields line up for review; the formatter would rewrap each of them. Scope:
+ * to the matching clang-format on. Owner: the artifact table. Expires when the
+ * table no longer needs a hand-made layout. */
 /* clang-format off */
 static const struct artifact_template artifact_templates[] = {
     /* vnum, ability, desc, cd, cost, binding,
@@ -2540,7 +2544,7 @@ int artifact_can_use(struct char_data *ch, struct obj_data *obj, int silent)
 
   case ARTIFACT_BIND_ON_PICKUP:
   case ARTIFACT_BIND_ON_EQUIP:
-    if (art->owner && str_cmp(art->owner, GET_NAME(ch)))
+    if (art->owner && str_cmp(art->owner, GET_NAME(ch)) != 0)
     {
       if (!silent)
         send_to_char(ch, "%s is bound to %s and will not answer to you.\r\n", GET_OBJ_SHORT(obj),
@@ -2550,8 +2554,8 @@ int artifact_can_use(struct char_data *ch, struct obj_data *obj, int silent)
     break;
 
   case ARTIFACT_BIND_ON_ACCOUNT:
-    if (art->account && str_cmp(art->account, ARTIFACT_OWNER_NONE) &&
-        (!GET_ACCOUNT_NAME(ch) || str_cmp(art->account, GET_ACCOUNT_NAME(ch))))
+    if (art->account && str_cmp(art->account, ARTIFACT_OWNER_NONE) != 0 &&
+        (!GET_ACCOUNT_NAME(ch) || str_cmp(art->account, GET_ACCOUNT_NAME(ch)) != 0))
     {
       if (!silent)
         send_to_char(ch, "%s is bound to another's account.\r\n", GET_OBJ_SHORT(obj));
@@ -5454,7 +5458,7 @@ static void artifact_show_bearer(struct char_data *ch, struct artifact_data *art
   }
 
   if (art->first_claimed_at > 0 && art->first_owner &&
-      str_cmp(art->first_owner, ARTIFACT_OWNER_NONE))
+      str_cmp(art->first_owner, ARTIFACT_OWNER_NONE) != 0)
   {
     send_to_char(ch, "    First bearer: \tW%s\tn\r\n", art->first_owner);
     return;
@@ -6363,7 +6367,7 @@ ACMD(do_testartifact)
 
     send_to_char(ch, "\tYRecovering artifact %d.\tn\r\n", vnum);
     send_to_char(ch, "  Overriding ownership by \tW%s\tn", art->owner ? art->owner : "someone");
-    if (art->account && str_cmp(art->account, ARTIFACT_OWNER_NONE))
+    if (art->account && str_cmp(art->account, ARTIFACT_OWNER_NONE) != 0)
       send_to_char(ch, " (account %s)", art->account);
     send_to_char(ch, ".\r\n");
     send_to_char(ch, "  Clearing binding and the persisted-instance flag.\r\n");

@@ -1,11 +1,13 @@
 # LuminariMUD Movement System
 
 ## Overview
+
 The movement system handles all character and object locomotion through the game world, including walking, climbing, swimming, flying, and falling. It's built as a modular system with nine components handling different aspects of movement.
 
 ## Architecture
 
 ### Module Structure
+
 ```
 movement.c                  Core movement logic and commands (main module)
 |-- movement_validation.c   Movement capability checks  
@@ -21,7 +23,7 @@ movement.c                  Core movement logic and commands (main module)
 ### Core Files
 
 | Module | Purpose | Key Functions |
-|--------|---------|---------------|
+| -- | -- | -- |
 | **movement.c** | Main movement execution | `do_simple_move()`, `perform_move()`, `do_enter()` |
 | **movement_validation.c** | Terrain/ability checks | `has_boat()`, `has_flight()`, `can_climb()` |
 | **movement_cost.c** | Movement point calculation | `get_speed()`, `calculate_movement_cost()` |
@@ -35,6 +37,7 @@ movement.c                  Core movement logic and commands (main module)
 ## Movement Flow
 
 ### Standard Movement Process
+
 ```
 1. Command Input (n/s/e/w/etc)
    v
@@ -63,7 +66,7 @@ movement.c                  Core movement logic and commands (main module)
 ### Terrain Requirements
 
 | Terrain Type | Requirement | Check Function |
-|--------------|-------------|----------------|
+| -- | -- | -- |
 | Water (No Swim) | Boat or flight | `has_boat()` |
 | Water (Swim) | Swimming skill check | `has_boat()` |
 | Flying/Air | Flight capability | `has_flight()` |
@@ -72,6 +75,7 @@ movement.c                  Core movement logic and commands (main module)
 | Ocean | Ship (players blocked) | Hard check |
 
 ### Movement Restrictions
+
 - **Room Flags**: TUNNEL, STAFFROOM, NOFLY, SIZE restrictions
 - **Zone Flags**: CLOSED, NOIMMORT
 - **Character State**: Paralyzed, grappled, entangled, sleeping
@@ -80,13 +84,16 @@ movement.c                  Core movement logic and commands (main module)
 ## Movement Cost System
 
 ### Speed Calculation
+
 Base speed is 30 feet, modified by:
+
 - **Race**: Dwarves/Halflings (25), Fae flight (60)
 - **Spells**: Haste (+30), Shadow Walk (400), Slow (/2)
 - **Class**: Monk bonus (+10-60), Fast Movement (+10)
 - **Conditions**: Blind (/2), Entangled (/2)
 
 ### Movement Point Cost
+
 ```c
 base_cost = (movement_loss[from_sector] + movement_loss[to_sector]) / 2
 cost *= 10  // New system multiplier
@@ -107,8 +114,9 @@ cost = MAX(5, cost)  // or 1 with shadow walk
 ```
 
 ### Sector Movement Costs
+
 | Sector | Base Cost | Description |
-|--------|-----------|-------------|
+| -- | -- | -- |
 | Inside/City | 1 | Normal indoor/urban |
 | Field | 2 | Open terrain |
 | Forest | 3 | Light woods |
@@ -123,22 +131,28 @@ cost = MAX(5, cost)  // or 1 with shadow walk
 ## Special Systems
 
 ### Door System
+
 Handles both room exits and container objects with lock levels:
+
 - **Lock Levels**: Easy (DC 15), Medium (DC 20), Hard (DC 25), Pickproof
 - **Key Types**: Standard, Evaporating (vnums 1300-1399), Extract-on-use
 - **Operations**: Open, close, lock, unlock, pick
 - **Autodoor**: Automatic door opening with PRF_AUTODOOR
 
 ### Falling System
+
 Event-driven system for gravity effects:
+
 - **Triggers**: No flight in FLY_NEEDED rooms, failed climbing
 - **Damage**: 1d6 per 10 feet + 20 base
 - **Mitigation**: Slow Fall, Safefall, Feather Fall, Draconian wings
 
 ### Position System
+
 Nine position states affecting movement:
+
 | Position | Can Move | Special Effects |
-|----------|----------|-----------------|
+| -- | -- | -- |
 | Dead | No | Character is dead |
 | Mortally Wounded | No | Dying |
 | Incapacitated | No | Helpless |
@@ -151,12 +165,15 @@ Nine position states affecting movement:
 | Standing | Yes | Normal state |
 
 ### Track System
+
 Creates persistent movement trails (disabled in DL/FR campaigns):
+
 - Stores: Name, race, direction, timestamp
 - Pruning: Automatic cleanup after threshold
 - Creation: Only for non-immortals without nohassle
 
 ### Mount System
+
 - Mount speed overrides rider speed
 - Ride skill checks to avoid being thrown
 - Movement points deducted from rider (mounts exempt)
@@ -165,29 +182,34 @@ Creates persistent movement trails (disabled in DL/FR campaigns):
 ## Commands
 
 ### Basic Movement
+
 - **n/s/e/w/u/d**: Cardinal directions
 - **ne/nw/se/sw**: Diagonal directions (if enabled)
 
 ### Special Movement
-- **enter** [portal/door]: Enter portals or buildings
+
+- **enter** \[portal/door\]: Enter portals or buildings
 - **leave**: Exit to outdoors
-- **follow** [target]: Follow another character
-- **flee** [direction]: Escape combat
+- **follow** \[target\]: Follow another character
+- **flee** \[direction\]: Escape combat
 
 ### Position Changes
+
 - **stand**: Stand up (uses move action)
-- **sit** [furniture]: Sit down
+- **sit** \[furniture\]: Sit down
 - **rest**: Rest position
 - **sleep**: Go to sleep
-- **wake** [target]: Wake up
+- **wake** \[target\]: Wake up
 - **recline**: Lie prone
 
 ### Door Commands
-- **open/close** [door/direction]: Door operations
-- **lock/unlock** [door/direction]: Lock operations
-- **pick** [door/direction]: Pick locks (Disable Device)
+
+- **open/close** \[door/direction\]: Door operations
+- **lock/unlock** \[door/direction\]: Lock operations
+- **pick** \[door/direction\]: Pick locks (Disable Device)
 
 ### Special Commands
+
 - **pullswitch/push**: Activate switches
 - **transposition**: Swap places with eidolon
 - **unstuck**: Teleport to start room (cost: XP/gold)
@@ -196,12 +218,14 @@ Creates persistent movement trails (disabled in DL/FR campaigns):
 ## Movement Events
 
 ### Pre-Movement
+
 - Special procedure checks
 - Leave triggers (mob/room/object)
 - Combat checks (attacks of opportunity)
 - Wall checks (Wall of Force, etc.)
 
 ### Post-Movement
+
 - Entry triggers and memory
 - Room damage (spike growth/stones)
 - Trap checks (TRAP_TYPE_ENTER_ROOM)
@@ -212,14 +236,16 @@ Creates persistent movement trails (disabled in DL/FR campaigns):
 ## Integration Points
 
 ### Combat System
+
 - Attacks of opportunity on standing
 - No Retreat feat (free AoO on flee)
 - Position modifiers to AC
 - Movement restrictions while fighting
 
 ### Skill System
+
 | Skill | Usage |
-|-------|-------|
+| -- | -- |
 | Athletics | Swimming, climbing |
 | Acrobatics | Fall damage reduction, blind movement |
 | Ride | Mount control |
@@ -228,6 +254,7 @@ Creates persistent movement trails (disabled in DL/FR campaigns):
 | Sleight of Hand | Treasure chest picking |
 
 ### Spell Integration
+
 - **Movement Enhancement**: Fly, Spider Climb, Water Walk, Shadow Walk
 - **Movement Prevention**: Web, Entangle, Grapple
 - **Position Effects**: Sleep, Paralysis
@@ -236,6 +263,7 @@ Creates persistent movement trails (disabled in DL/FR campaigns):
 ## Configuration
 
 ### Key Constants
+
 ```c
 #define NUM_OF_DIRS 10        // Total directions
 #define CONFIG_TUNNEL_SIZE 2  // Max PCs in tunnel room
@@ -249,6 +277,7 @@ Luminari build.
 ## API Reference
 
 ### Core Functions
+
 ```c
 // Main movement execution
 int do_simple_move(ch, dir, need_specials_check)
@@ -276,18 +305,21 @@ int ok_pick(ch, keynum, pickproof, scmd, door)
 ## Developer Notes
 
 ### Adding New Movement Types
+
 1. Define new sector type in `structs.h`
 2. Add movement cost to `movement_loss[]` array
 3. Create validation function in `movement_validation.c`
 4. Add checks to `do_simple_move()`
 
 ### Common Issues
+
 - Mounts don't use movement points (intentional)
 - Wilderness movement creates rooms dynamically
 - Single-file rooms use special linked list manipulation
 - Falling events must check for teleportation
 
 ### Performance Considerations
+
 - Cache `get_speed()` results when used multiple times
 - Batch follower movements
 - Use bitwise operations for flag checks

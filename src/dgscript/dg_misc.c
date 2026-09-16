@@ -101,7 +101,8 @@ void do_dg_cast(void *go, struct script_data *sc __attribute__((unused)), trig_d
   /* Find the target */
   if (t != NULL)
   {
-    one_argument_u(strcpy(buf2, t), t);
+    strlcpy(buf2, t, sizeof(buf2));
+    one_argument_u(buf2, t);
     skip_spaces(&t);
   }
   if (IS_SET(SINFO.targets, TAR_IGNORE))
@@ -207,7 +208,7 @@ void do_dg_affect(void *go __attribute__((unused)), struct script_data *sc __att
 
   /* find the property -- first search apply_types */
   i = 0;
-  while (str_cmp(apply_types[i], "\n"))
+  while (str_cmp(apply_types[i], "\n") != 0)
   {
     if (!str_cmp(apply_types[i], property))
     {
@@ -220,7 +221,7 @@ void do_dg_affect(void *go __attribute__((unused)), struct script_data *sc __att
   if (!type)
   { /* search affect_types now */
     i = 0;
-    while (str_cmp(affected_bits[i], "\n"))
+    while (str_cmp(affected_bits[i], "\n") != 0)
     {
       if (!str_cmp(affected_bits[i], property))
       {

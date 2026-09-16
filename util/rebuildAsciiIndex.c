@@ -90,13 +90,13 @@ char *parsename(char *filename)
   static char copy[1024];
   char *extension;
 
-  strcpy(copy, filename);
+  strlcpy(copy, filename, sizeof(copy));
   extension = strchr(copy, '.');
   if (extension == NULL)
   {
     return NULL;
   }
-  if (strcmp(".plr", extension))
+  if (strcmp(".plr", extension) != 0)
   {
     return NULL;
   }

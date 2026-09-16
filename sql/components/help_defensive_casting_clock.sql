@@ -14,7 +14,7 @@ keeps its live clock. Casting again refreshes the bonus.
 This perk is separate from the Concentration check used to cast defensively.
 
 See also: PERKS, DEFENSIVE-CASTING, COMBAT, INITIATIVE
-', 0, 0) ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level), auto_generated = VALUES(auto_generated);
+', 0, 0) ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('DEFENSIVE-CASTING-PERK', 'DEFENSIVE-CASTING-PERK');
 
 COMMIT;

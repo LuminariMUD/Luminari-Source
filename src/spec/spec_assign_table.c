@@ -21,7 +21,6 @@ spec_assign_table_set_error(char *error, size_t error_size, const char *format, 
     return;
 
   va_start(arguments, format);
-  /* NOLINTNEXTLINE(clang-analyzer-valist.Uninitialized) -- va_start initializes arguments. */
   vsnprintf(error, error_size, format, arguments);
   va_end(arguments);
 }

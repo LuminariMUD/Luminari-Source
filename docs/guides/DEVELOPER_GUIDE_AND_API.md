@@ -54,7 +54,7 @@ The legacy callback shape is shared, but its payload and result are caller-speci
 these contracts until an individually tested migration changes one:
 
 | Invocation | Legacy signal | Caller interpretation |
-|------------|---------------|-----------------------|
+| -- | -- | -- |
 | Command | Command number and argument | Nonzero consumes the command. |
 | Mobile activity | `cmd == 0`, empty argument | Nonzero skips remaining default AI for that mobile. |
 | Mobile combat turn | `cmd == 0`, empty argument | Return ignored. |

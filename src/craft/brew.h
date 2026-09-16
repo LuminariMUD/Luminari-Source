@@ -8,6 +8,7 @@
 
 #include "core/structs.h"
 #include "core/utils.h"
+#include "events/mud_event.h"
 
 /* Function prototypes */
 int get_mote_type_for_school(int school);

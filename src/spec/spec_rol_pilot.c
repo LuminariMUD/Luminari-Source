@@ -29,7 +29,7 @@
 static bool rol_identify(struct char_data *ch, int cmd, const char *argument,
                          const char *description)
 {
-  if (ch == NULL || cmd != 0 || argument == NULL || str_cmp(argument, "identify"))
+  if (ch == NULL || cmd != 0 || argument == NULL || str_cmp(argument, "identify") != 0)
     return false;
 
   send_to_char(ch, "%s\r\n", description);
@@ -568,7 +568,7 @@ int rol_thorn_shield(struct char_data *ch, void *me, int cmd, const char *argume
 
   if (rol_identify(ch, cmd, argument, "Defense proc: thorns damage an attacker on shield block."))
     return TRUE;
-  if (cmd != 0 || argument == NULL || str_cmp(argument, "shieldblock") ||
+  if (cmd != 0 || argument == NULL || str_cmp(argument, "shieldblock") != 0 ||
       !rol_worn_combat_object(ch, obj, &victim) || rand_number(0, 1) != 0)
     return FALSE;
 

@@ -293,25 +293,25 @@ database migration or recovery.
 
 The completed conversion remains accepted only while all of these conditions hold:
 
-1. Every active source zone has one evidence-backed normalized identity at the source
-   zone VNUM plus 20000.
-2. Every active, non-excluded room, mobile, and object is at its typed source VNUM plus
-   2000000; distinct source identities remain distinct.
-3. `mytheast` remains zone 20817 with entities 2081700-2081899.
-4. Existing Luminari Trail 1507, Hulburg 1591, Jotunheim 1960, and artifacts
-   169901-169910 remain byte-preserved while the similarly named RoL packages use
-   independent reserved identities.
-5. No RoL action, including a source-internal `MERGE`, targets an existing Luminari
-   record.
-6. Every typed cross-zone, key, quest, shop, reset, portal, SOC, DG, mobile, and object
-   edge either resolves inside the RoL namespace or has an explicit source-invalid
-   disposition; cross-world typed references are zero.
-7. RoL compatibility markers occur only on reserved-namespace owners, and every
-   hard-coded seven-digit identity in the RoL mechanics modules is in 2000000-2999999.
-8. Preserved target and OLC content changes only through an explicit, evidence-backed
-   record action; the final import patches zero preserved Luminari records.
-9. The read-only persistence gate proves that every RoL VNUM currently stored by the
-   development game resolves to exactly one candidate definition.
+01. Every active source zone has one evidence-backed normalized identity at the source
+    zone VNUM plus 20000.
+02. Every active, non-excluded room, mobile, and object is at its typed source VNUM plus
+    2000000; distinct source identities remain distinct.
+03. `mytheast` remains zone 20817 with entities 2081700-2081899.
+04. Existing Luminari Trail 1507, Hulburg 1591, Jotunheim 1960, and artifacts
+    169901-169910 remain byte-preserved while the similarly named RoL packages use
+    independent reserved identities.
+05. No RoL action, including a source-internal `MERGE`, targets an existing Luminari
+    record.
+06. Every typed cross-zone, key, quest, shop, reset, portal, SOC, DG, mobile, and object
+    edge either resolves inside the RoL namespace or has an explicit source-invalid
+    disposition; cross-world typed references are zero.
+07. RoL compatibility markers occur only on reserved-namespace owners, and every
+    hard-coded seven-digit identity in the RoL mechanics modules is in 2000000-2999999.
+08. Preserved target and OLC content changes only through an explicit, evidence-backed
+    record action; the final import patches zero preserved Luminari records.
+09. The read-only persistence gate proves that every RoL VNUM currently stored by the
+    development game resolves to exactly one candidate definition.
 10. The assembled world adds no normalized baseline finding, and touched records have
     no unresolved finding.
 11. Syntax and local-development-database boots, reset and walkthrough evidence, focused tests,
@@ -765,21 +765,26 @@ binary with select, verifies the installed server's real-port startup, health en
 and graceful shutdown through autorun, then checks clean-tree and source-distribution
 hygiene. Both I/O drivers retain the complete behavioral suite.
 
-The strict GCC/Clang CMake jobs still fail on warnings; `toolchain-analysis.yml` runs the
-analysis warning tier and the ISO C23 extension report on a weekly schedule without blocking
-anything. All five production-profile server
+The strict GCC/Clang CMake jobs still fail on warnings. `quality.yml` runs every pinned
+formatter hook and the clang-tidy baseline, which analyzes the translation units a pull request
+changes and the whole tree weekly, after refusing a change that raises any static-analysis
+baseline. `toolchain-analysis.yml` runs the analysis warning tier and the
+ISO C23 extension report weekly; only its GCC analyzer classes are budgeted. `make test` and CTest
+check that every header outside its baseline compiles on its own, and the CodeQL job fails when
+its database lacks a production source; see
+[Static Analysis](SETUP_AND_BUILD_GUIDE.md#static-analysis). All five production-profile server
 builds retain binary hardening verification; hardened tests run with Autotools/GCC 14 and
 CMake/Clang. Each build system has an independent clean-archive job. Sanitizers, protocol
 fuzzing, Valgrind, coverage floors, CodeQL, world tools, parity, formatting, source hygiene,
-database migrations, and world validation remain. The duplicate warnings build and the
-clang-tidy job that ignored all findings have been removed.
+database migrations, and world validation remain.
 
 `.github/actions/setup-build` supplies dependencies, missing example headers, and compiler
 caching by job, compiler/profile, build configuration, and commit. Cache restoration never
 replaces running a check.
 
 For the local matrix, install Docker and Python's PyYAML, then build the dependency image
-once (rebuild when its Dockerfile, help-sync requirements, or pre-commit configuration changes):
+once (rebuild when its Dockerfile, help-sync requirements, clang-tidy pin, or pre-commit
+configuration changes):
 
 ```sh
 docker build -t luminari-ci:local-fast -f scripts/ci/local/Dockerfile .
@@ -796,11 +801,14 @@ The runner exports committed HEAD, executes the actual build/integration/format/
 workflow shell commands in separate containers, and keeps the local world and credentials
 outside those containers. Each database job gets its own disposable MariaDB. Every game
 smoke test uses port 4100 inside its container; no host port is published. The image includes
-the workflow dependencies and pre-commit hooks. A shared compiler cache defaults to
+the workflow dependencies, the pre-commit hooks, and the PHP and PowerShell runtimes their
+formatters need. A shared compiler cache defaults to
 `~/.cache/luminari-ci/ccache`; `--cache` overrides it. Jobs use a stable `/workspace` path.
 
 `--job NAME` selects one name from `--list`. `--results DIR` retains per-job logs, coverage
-artifacts, and a timed `summary.json`; failures produce a nonzero exit. Run the complete
+artifacts, and a timed `summary.json`; failures produce a nonzero exit. Each snapshot's parent
+commit is the merge base with `--base` (default `origin/master`), so a job that diffs against
+`HEAD^1`, such as the clang-tidy baseline, sees the branch's changes as it does on GitHub. Run the complete
 matrix on the final commit after iterating with the host suite. GitHub action downloads,
 cache/upload services, CodeQL, and dependency review are verified on GitHub rather than
 emulated locally. Unsupported workflow expressions or actions fail explicitly.

@@ -56,16 +56,16 @@ no seed, and each create request normally returns two stochastic variants.
 The meaning of `prompt` changes with the mode. Select the mode before writing
 any content:
 
-| Goal                                 | Required mode fields                                                                |
-| ------------------------------------ | ----------------------------------------------------------------------------------- |
-| Supply exact lyrics                  | `custom_mode: true`, `prompt: "...lyrics..."`                                       |
-| Describe a song and let AI write it  | `custom_mode: false`, `gpt_description_prompt: "...description..."`                 |
-| Use `prompt` as an auto-lyrics brief | `custom_mode: true`, `auto_lyrics: true`, `prompt: "...song description..."`        |
-| Generate an instrumental             | Usually description mode plus `make_instrumental: true`                             |
-| Extend a platform clip               | `task_type: "extend_music"`, `continue_clip_id`, `continue_at`, and one prompt mode |
-| Cover a platform clip                | `task_type: "cover_music"`, `continue_clip_id`, and one prompt mode                 |
-| Use a persona                        | `task_type: "persona_music"`, `persona_id`, and one prompt mode                     |
-| Join an extension to its source      | `task_type: "concat_music"`, `continue_clip_id`                                     |
+| Goal | Required mode fields |
+| -- | -- |
+| Supply exact lyrics | `custom_mode: true`, `prompt: "...lyrics..."` |
+| Describe a song and let AI write it | `custom_mode: false`, `gpt_description_prompt: "...description..."` |
+| Use `prompt` as an auto-lyrics brief | `custom_mode: true`, `auto_lyrics: true`, `prompt: "...song description..."` |
+| Generate an instrumental | Usually description mode plus `make_instrumental: true` |
+| Extend a platform clip | `task_type: "extend_music"`, `continue_clip_id`, `continue_at`, and one prompt mode |
+| Cover a platform clip | `task_type: "cover_music"`, `continue_clip_id`, and one prompt mode |
+| Use a persona | `task_type: "persona_music"`, `persona_id`, and one prompt mode |
+| Join an extension to its source | `task_type: "concat_music"`, `continue_clip_id` |
 
 The safest create request always sends an explicit `task_type`, even though
 omitting it live-defaulted to `create_music`. Explicit intent is easier to
@@ -74,14 +74,14 @@ validate, audit, and migrate.
 Concepts sometimes presented as separate music-prompt categories map to the API
 like this:
 
-| Creative concept                        | MusicAPI.ai field                                                        |
-| --------------------------------------- | ------------------------------------------------------------------------ |
-| Genre, mood, instruments, vocal style   | `tags`                                                                   |
-| Tempo feel, era, texture, production    | `tags`, with important arrangement context in the active prompt field    |
-| Subject, story, setting, audience, use  | `gpt_description_prompt`, auto-lyrics `prompt`, or the lyrics themselves |
-| Exact words and section order           | Ordinary custom-mode `prompt`                                            |
-| Unwanted styles, instruments, or vocals | `negative_tags`                                                          |
-| Track name                              | `title`                                                                  |
+| Creative concept | MusicAPI.ai field |
+| -- | -- |
+| Genre, mood, instruments, vocal style | `tags` |
+| Tempo feel, era, texture, production | `tags`, with important arrangement context in the active prompt field |
+| Subject, story, setting, audience, use | `gpt_description_prompt`, auto-lyrics `prompt`, or the lyrics themselves |
+| Exact words and section order | Ordinary custom-mode `prompt` |
+| Unwanted styles, instruments, or vocals | `negative_tags` |
+| Track name | `title` |
 
 ## Endpoint, cost, and asynchronous result
 
@@ -113,46 +113,46 @@ cover every one.
 
 ### Operation and mode fields
 
-| Field          | Type    | Required or default                                           | Meaning and cautions                                                                            |
-| -------------- | ------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `task_type`    | string  | Defaults to `create_music`; live-validated                    | Selects create, edit, source, or utility behavior. Prefer sending it explicitly.                |
-| `custom_mode`  | boolean | Conditional; required for prompt-bearing generation           | `true` selects custom lyrics, unless `auto_lyrics` changes `prompt` into a description.         |
-| `mv`           | string  | Required except for `concat_music`                            | Sonic model version. Validate against the current endpoint enum, not an old guide or UI label.  |
+| Field | Type | Required or default | Meaning and cautions |
+| -- | -- | -- | -- |
+| `task_type` | string | Defaults to `create_music`; live-validated | Selects create, edit, source, or utility behavior. Prefer sending it explicitly. |
+| `custom_mode` | boolean | Conditional; required for prompt-bearing generation | `true` selects custom lyrics, unless `auto_lyrics` changes `prompt` into a description. |
+| `mv` | string | Required except for `concat_music` | Sonic model version. Validate against the current endpoint enum, not an old guide or UI label. |
 | `use_suno_cdn` | boolean | Documented as optional, but the schema also marks it required | Chooses a requested delivery host only. Live behavior did not honor the documented distinction. |
 
 ### Creative-content fields
 
-| Field                    | Type    | Documented range or limit                   | Meaning                                                                                                  |
-| ------------------------ | ------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `prompt`                 | string  | 3,000 characters on v3.5/v4; 5,000 on v4.5+ | Exact lyrics in custom mode; a song description when `auto_lyrics: true`; lyrics for `add_vocals`.       |
-| `gpt_description_prompt` | string  | 400 characters                              | Natural-language song brief when `custom_mode: false`.                                                   |
-| `title`                  | string  | 80 characters                               | Caller-supplied track title. Behavior differs when the provider is allowed to generate metadata.         |
-| `tags`                   | string  | 200 characters on v3.5/v4; 1,000 on v4.5+   | Style conditioning: genre, mood, instruments, vocal character, tempo feel, era, and production texture.  |
-| `negative_tags`          | string  | No current maximum is published             | Comma-separated styles or elements to avoid. It is conditioning, not a hard filter.                      |
-| `make_instrumental`      | boolean | Optional                                    | Requests a vocal-free result. Run waveform classification; metadata alone cannot prove that no voice is audible. |
-| `auto_lyrics`            | boolean | Optional; requires `custom_mode: true`      | Makes `prompt` a brief from which AI generates lyrics and, when omitted, title and tags.                 |
-| `vocal_gender`           | string  | `f` or `m`                                  | Vocal-gender request for supported models. No neutral or additional enum is documented.                  |
-| `style_weight`           | number  | 0 through 1                                 | Higher values request stronger adherence to `tags`. Provider default is not documented.                  |
-| `weirdness_constraint`   | number  | 0 through 1                                 | Higher values request more unusual or experimental output. Provider default is not documented.           |
+| Field | Type | Documented range or limit | Meaning |
+| -- | -- | -- | -- |
+| `prompt` | string | 3,000 characters on v3.5/v4; 5,000 on v4.5+ | Exact lyrics in custom mode; a song description when `auto_lyrics: true`; lyrics for `add_vocals`. |
+| `gpt_description_prompt` | string | 400 characters | Natural-language song brief when `custom_mode: false`. |
+| `title` | string | 80 characters | Caller-supplied track title. Behavior differs when the provider is allowed to generate metadata. |
+| `tags` | string | 200 characters on v3.5/v4; 1,000 on v4.5+ | Style conditioning: genre, mood, instruments, vocal character, tempo feel, era, and production texture. |
+| `negative_tags` | string | No current maximum is published | Comma-separated styles or elements to avoid. It is conditioning, not a hard filter. |
+| `make_instrumental` | boolean | Optional | Requests a vocal-free result. Run waveform classification; metadata alone cannot prove that no voice is audible. |
+| `auto_lyrics` | boolean | Optional; requires `custom_mode: true` | Makes `prompt` a brief from which AI generates lyrics and, when omitted, title and tags. |
+| `vocal_gender` | string | `f` or `m` | Vocal-gender request for supported models. No neutral or additional enum is documented. |
+| `style_weight` | number | 0 through 1 | Higher values request stronger adherence to `tags`. Provider default is not documented. |
+| `weirdness_constraint` | number | 0 through 1 | Higher values request more unusual or experimental output. Provider default is not documented. |
 
 ### Source and edit fields
 
-| Field                  | Type   | Applies to                                  | Meaning and cautions                                                                                    |
-| ---------------------- | ------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `continue_clip_id`     | string | Extend, cover, concat, remaster, add tasks  | Source clip. Use the task type appropriate to a generated clip versus uploaded audio.                   |
-| `continue_at`          | number | Extend                                      | Source timestamp in seconds where extension begins. Validate it against the actual source duration.     |
-| `persona_id`           | string | `persona_music`                             | Persona created by the persona endpoint. Use only voices and source audio for which use is authorized.  |
-| `audio_weight`         | number | Cover; also mentioned for add tasks/uploads | 0-1 source influence or blend. Current official descriptions disagree on exactly which tasks accept it. |
-| `variation_category`   | string | `remaster` with `sonic-v5`                  | `subtle`, `normal`, or `high`. The current page does not promise this for `sonic-v5-5`.                 |
-| `overpainting_start_s` | number | `add_instrumental`, `add_vocals`            | Optional start of the affected time range in seconds. Locally require a nonnegative value.              |
-| `overpainting_end_s`   | number | `add_instrumental`, `add_vocals`            | Optional end of the affected range. Locally require it to exceed the nonnegative start.                 |
+| Field | Type | Applies to | Meaning and cautions |
+| -- | -- | -- | -- |
+| `continue_clip_id` | string | Extend, cover, concat, remaster, add tasks | Source clip. Use the task type appropriate to a generated clip versus uploaded audio. |
+| `continue_at` | number | Extend | Source timestamp in seconds where extension begins. Validate it against the actual source duration. |
+| `persona_id` | string | `persona_music` | Persona created by the persona endpoint. Use only voices and source audio for which use is authorized. |
+| `audio_weight` | number | Cover; also mentioned for add tasks/uploads | 0-1 source influence or blend. Current official descriptions disagree on exactly which tasks accept it. |
+| `variation_category` | string | `remaster` with `sonic-v5` | `subtle`, `normal`, or `high`. The current page does not promise this for `sonic-v5-5`. |
+| `overpainting_start_s` | number | `add_instrumental`, `add_vocals` | Optional start of the affected time range in seconds. Locally require a nonnegative value. |
+| `overpainting_end_s` | number | `add_instrumental`, `add_vocals` | Optional end of the affected range. Locally require it to exceed the nonnegative start. |
 
 ### Delivery fields
 
-| Field            | Type   | Requirement | Meaning and cautions                                                                                |
-| ---------------- | ------ | ----------- | --------------------------------------------------------------------------------------------------- |
-| `webhook_url`    | string | Optional    | HTTPS callback for task events. The receiver must handle retries, duplicates, and terminal failure. |
-| `webhook_secret` | string | Optional    | HMAC secret used to verify callbacks. It is a credential and must never be logged or committed.     |
+| Field | Type | Requirement | Meaning and cautions |
+| -- | -- | -- | -- |
+| `webhook_url` | string | Optional | HTTPS callback for task events. The receiver must handle retries, duplicates, and terminal failure. |
+| `webhook_secret` | string | Optional | HMAC secret used to verify callbacks. It is a credential and must never be logged or committed. |
 
 There are no Sonic-create fields named `audience`, `subject`, `mood`, `genre`,
 `bpm`, `key`, `duration`, `seed`, `lyrics_strength`, or `audio_influence`.
@@ -166,18 +166,18 @@ Current official pages do not expose one perfectly consistent task-type enum.
 The endpoint schema lists eight values; the Sonic instructions separately list
 two uploaded-audio variants.
 
-| `task_type`           | Purpose                                       | Required core fields                                   | Current evidence                                              |
-| --------------------- | --------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------- |
-| `create_music`        | Create a new song                             | `custom_mode`, `mv`, and the matching prompt field     | Endpoint schema and live-validated                            |
-| `extend_music`        | Extend a platform-generated clip              | `continue_clip_id`, `continue_at`, `custom_mode`, `mv` | Endpoint schema                                               |
-| `cover_music`         | Re-style a platform-generated clip            | `continue_clip_id`, `custom_mode`, `mv`                | Endpoint schema                                               |
-| `concat_music`        | Join an extension to its source               | `continue_clip_id`                                     | Endpoint schema; 2 credits                                    |
-| `persona_music`       | Generate with an existing persona             | `persona_id`, `custom_mode`, `mv`                      | Endpoint schema                                               |
-| `remaster`            | Upgrade or vary an existing clip              | `continue_clip_id`, `mv`                               | Endpoint schema; variation enum only documented for v5        |
-| `add_instrumental`    | Add accompaniment to uploaded audio           | `continue_clip_id`, `mv`                               | Endpoint schema; official narrative says uploaded clips only  |
-| `add_vocals`          | Add generated vocals to uploaded instrumental | `continue_clip_id`, `mv`, `prompt`                     | Endpoint schema; official narrative says uploaded clips only  |
-| `extend_upload_music` | Extend an uploaded clip                       | `continue_clip_id`, `continue_at`, `custom_mode`, `mv` | Sonic instructions, but absent from the current endpoint enum |
-| `cover_upload_music`  | Cover an uploaded clip                        | `continue_clip_id`, `custom_mode`, `mv`                | Sonic instructions, but absent from the current endpoint enum |
+| `task_type` | Purpose | Required core fields | Current evidence |
+| -- | -- | -- | -- |
+| `create_music` | Create a new song | `custom_mode`, `mv`, and the matching prompt field | Endpoint schema and live-validated |
+| `extend_music` | Extend a platform-generated clip | `continue_clip_id`, `continue_at`, `custom_mode`, `mv` | Endpoint schema |
+| `cover_music` | Re-style a platform-generated clip | `continue_clip_id`, `custom_mode`, `mv` | Endpoint schema |
+| `concat_music` | Join an extension to its source | `continue_clip_id` | Endpoint schema; 2 credits |
+| `persona_music` | Generate with an existing persona | `persona_id`, `custom_mode`, `mv` | Endpoint schema |
+| `remaster` | Upgrade or vary an existing clip | `continue_clip_id`, `mv` | Endpoint schema; variation enum only documented for v5 |
+| `add_instrumental` | Add accompaniment to uploaded audio | `continue_clip_id`, `mv` | Endpoint schema; official narrative says uploaded clips only |
+| `add_vocals` | Add generated vocals to uploaded instrumental | `continue_clip_id`, `mv`, `prompt` | Endpoint schema; official narrative says uploaded clips only |
+| `extend_upload_music` | Extend an uploaded clip | `continue_clip_id`, `continue_at`, `custom_mode`, `mv` | Sonic instructions, but absent from the current endpoint enum |
+| `cover_upload_music` | Cover an uploaded clip | `continue_clip_id`, `custom_mode`, `mv` | Sonic instructions, but absent from the current endpoint enum |
 
 For new uploaded-audio integrations, prefer the separately documented
 `/api/v1/sonic/upload-extend` or `/api/v1/sonic/upload-cover` endpoint. They
@@ -187,15 +187,15 @@ have permission to transform.
 
 ## Model versions and effective limits
 
-| Model             | `prompt` maximum | `tags` maximum | `vocal_gender` status                                       |
-| ----------------- | ---------------: | -------------: | ----------------------------------------------------------- |
-| `sonic-v3-5`      |            3,000 |            200 | Not documented                                              |
-| `sonic-v4`        |            3,000 |            200 | Not documented                                              |
-| `sonic-v4-5`      |            5,000 |          1,000 | Documented                                                  |
-| `sonic-v4-5-plus` |            5,000 |          1,000 | Documented                                                  |
-| `sonic-v5`        |            5,000 |          1,000 | Documented                                                  |
-| `sonic-v5-5`      |            5,000 |          1,000 | Documented in instructions; request acceptance live-tested  |
-| `sonic-v4-5-all`  |              N/A |            N/A | Do not use: listed on one page but live-rejected as invalid |
+| Model | `prompt` maximum | `tags` maximum | `vocal_gender` status |
+| -- | -: | -: | -- |
+| `sonic-v3-5` | 3,000 | 200 | Not documented |
+| `sonic-v4` | 3,000 | 200 | Not documented |
+| `sonic-v4-5` | 5,000 | 1,000 | Documented |
+| `sonic-v4-5-plus` | 5,000 | 1,000 | Documented |
+| `sonic-v5` | 5,000 | 1,000 | Documented |
+| `sonic-v5-5` | 5,000 | 1,000 | Documented in instructions; request acceptance live-tested |
+| `sonic-v4-5-all` | N/A | N/A | Do not use: listed on one page but live-rejected as invalid |
 
 The v5.5 tag limit is omitted from one current documentation table, but a live
 1,001-character v5.5 tag string was rejected with a 1,000-character limit
@@ -385,15 +385,15 @@ not destroy provenance.
 `tags` is one string, not an array. The official guide describes
 comma-separated values and recognizes these dimensions:
 
-| Dimension           | Examples                                                       |
-| ------------------- | -------------------------------------------------------------- |
-| Genre or hybrid     | `neo-soul`, `ambient jazz`, `synthwave`, `orchestral folk`     |
-| Mood                | `uplifting`, `melancholic`, `dreamy`, `aggressive`, `peaceful` |
-| Instruments         | `felt piano`, `electric guitar`, `saxophone`, `analog synth`   |
-| Vocal character     | `female vocal`, `falsetto`, `harmonies`, `spoken word`         |
-| Tempo feel          | `slow`, `mid-tempo`, `fast`, `downtempo`, `upbeat`             |
-| Era or production   | `80s`, `vintage`, `modern`, `futuristic`, `cinematic`, `lo-fi` |
-| Texture or movement | `brushed drums`, `wide chorus`, `dry verses`, `gradual build`  |
+| Dimension | Examples |
+| -- | -- |
+| Genre or hybrid | `neo-soul`, `ambient jazz`, `synthwave`, `orchestral folk` |
+| Mood | `uplifting`, `melancholic`, `dreamy`, `aggressive`, `peaceful` |
+| Instruments | `felt piano`, `electric guitar`, `saxophone`, `analog synth` |
+| Vocal character | `female vocal`, `falsetto`, `harmonies`, `spoken word` |
+| Tempo feel | `slow`, `mid-tempo`, `fast`, `downtempo`, `upbeat` |
+| Era or production | `80s`, `vintage`, `modern`, `futuristic`, `cinematic`, `lo-fi` |
+| Texture or movement | `brushed drums`, `wide chorus`, `dry verses`, `gradual build` |
 
 A controlled tag string usually names one primary genre, one compatible
 secondary influence, mood, key instrumentation, vocal character, tempo feel,
@@ -440,11 +440,11 @@ echoed exactly in both terminal clip records.
 The provider does not publish defaults or a quantitative mapping from either
 number to musical outcomes. These are heuristic starting regions, not defaults:
 
-| Goal                       | `style_weight` | `weirdness_constraint` |
-| -------------------------- | -------------: | ---------------------: |
-| Tight, conservative brief  |       0.75-0.9 |                0.1-0.3 |
-| Balanced exploration       |       0.55-0.8 |               0.25-0.5 |
-| Deliberately unusual takes |       0.35-0.7 |                0.6-0.9 |
+| Goal | `style_weight` | `weirdness_constraint` |
+| -- | -: | -: |
+| Tight, conservative brief | 0.75-0.9 | 0.1-0.3 |
+| Balanced exploration | 0.55-0.8 | 0.25-0.5 |
+| Deliberately unusual takes | 0.35-0.7 | 0.6-0.9 |
 
 To compare them responsibly:
 
@@ -558,21 +558,21 @@ from every result.
 
 Each terminal clip currently exposes these fields:
 
-| Field                    | Handling                                                                                       |
-| ------------------------ | ---------------------------------------------------------------------------------------------- |
-| `clip_id`                | Stable provider reference for follow-up operations; do not derive meaning from it.             |
-| `state`                  | Accept `succeeded` or `failed` as terminal; wait while other variants remain nonterminal.      |
-| `title`                  | Compare with the submitted title and retain both when provenance matters.                      |
-| `tags`                   | May echo caller tags or contain provider-generated prose in auto-lyrics mode.                  |
-| `lyrics`                 | Exact custom lyrics, generated lyrics, or bracket-only instrumental metadata.                  |
-| `negative_tags`          | Live responses echoed the submitted value; absence or echo does not prove acoustic compliance. |
-| `style_weight`           | Live responses echoed valid submitted values.                                                  |
-| `weirdness_constraint`   | Live responses echoed valid submitted values.                                                  |
-| `gpt_description_prompt` | `null` in the live custom and auto-lyrics tasks.                                               |
-| `mv`                     | Record the returned model and compare it with the request.                                     |
-| `duration`               | Live v5.5 responses used decimal strings; parse and validate rather than assuming a number.    |
-| `audio_url`, `image_url` | Untrusted remote URLs; validate scheme, host policy, redirects, MIME, size, and bytes.         |
-| `video_url`              | `null` in all live tests; do not require video for audio success.                              |
+| Field | Handling |
+| -- | -- |
+| `clip_id` | Stable provider reference for follow-up operations; do not derive meaning from it. |
+| `state` | Accept `succeeded` or `failed` as terminal; wait while other variants remain nonterminal. |
+| `title` | Compare with the submitted title and retain both when provenance matters. |
+| `tags` | May echo caller tags or contain provider-generated prose in auto-lyrics mode. |
+| `lyrics` | Exact custom lyrics, generated lyrics, or bracket-only instrumental metadata. |
+| `negative_tags` | Live responses echoed the submitted value; absence or echo does not prove acoustic compliance. |
+| `style_weight` | Live responses echoed valid submitted values. |
+| `weirdness_constraint` | Live responses echoed valid submitted values. |
+| `gpt_description_prompt` | `null` in the live custom and auto-lyrics tasks. |
+| `mv` | Record the returned model and compare it with the request. |
+| `duration` | Live v5.5 responses used decimal strings; parse and validate rather than assuming a number. |
+| `audio_url`, `image_url` | Untrusted remote URLs; validate scheme, host policy, redirects, MIME, size, and bytes. |
+| `video_url` | `null` in all live tests; do not require video for audio success. |
 
 Do not declare a two-variant create task complete when only one clip has
 succeeded. The final auto-lyrics test spent several minutes in `not_ready`, then
@@ -586,16 +586,16 @@ succeeded. Poll the accepted task instead of resubmitting.
 Eight requests were intentionally invalid. All returned HTTP 400, no `task_id`,
 and an observed total credit delta of zero:
 
-| Probe                                  | Live result                                                |
-| -------------------------------------- | ---------------------------------------------------------- |
-| 81-character `title`                   | Rejected for title length                                  |
-| 401-character `gpt_description_prompt` | Rejected for description length                            |
-| 5,001-character v5.5 `prompt`          | Rejected with a 5,000-character model limit                |
-| 1,001-character v5.5 `tags`            | Rejected with a 1,000-character model limit                |
-| `style_weight: 1.01`                   | Rejected; must be between 0 and 1                          |
-| `weirdness_constraint: -0.01`          | Rejected; must be between 0 and 1                          |
-| String `use_suno_cdn: "false"`         | Rejected; must be boolean                                  |
-| `mv: "sonic-v4-5-all"`                 | Rejected as invalid; accepted list ended with `sonic-v5-5` |
+| Probe | Live result |
+| -- | -- |
+| 81-character `title` | Rejected for title length |
+| 401-character `gpt_description_prompt` | Rejected for description length |
+| 5,001-character v5.5 `prompt` | Rejected with a 5,000-character model limit |
+| 1,001-character v5.5 `tags` | Rejected with a 1,000-character model limit |
+| `style_weight: 1.01` | Rejected; must be between 0 and 1 |
+| `weirdness_constraint: -0.01` | Rejected; must be between 0 and 1 |
+| String `use_suno_cdn: "false"` | Rejected; must be boolean |
+| `mv: "sonic-v4-5-all"` | Rejected as invalid; accepted list ended with `sonic-v5-5` |
 
 These probes verify rejection just beyond the documented maxima. They did not
 submit exact-boundary values, so the official inclusive maxima remain the
@@ -607,16 +607,16 @@ Three paid create tasks produced six succeeded v5.5 clips. The documented and
 observed total debit was 45 credits, below the authorized 1,000-credit research
 ceiling. No fourth research task was submitted.
 
-| Test                                       | Key observed result                                                                                              |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| Custom lyrics with omitted `task_type`     | Defaulted to create; exact title, tags, negative tags, weights, lyrics, and section tags returned for both clips |
-| Auto lyrics with supplied title and tags   | Generated lyrics but preserved the supplied title and tags for both clips                                        |
-| Auto lyrics with title and tags omitted    | Generated a title, detailed tags, and six-section lyrics shared by both clips                                    |
-| `use_suno_cdn: false`, `true`, and omitted | All observed final audio URLs used `cdn1.suno.ai`                                                                |
-| Valid v5.5 style and weirdness controls    | Echoed exactly in terminal clip data                                                                             |
-| v5.5 `vocal_gender` requests               | Accepted, but audible compliance was not evaluated                                                               |
-| Submit response                            | `message` plus `task_id`; no `code`                                                                              |
-| Terminal duration                          | Decimal string on all six clips                                                                                  |
+| Test | Key observed result |
+| -- | -- |
+| Custom lyrics with omitted `task_type` | Defaulted to create; exact title, tags, negative tags, weights, lyrics, and section tags returned for both clips |
+| Auto lyrics with supplied title and tags | Generated lyrics but preserved the supplied title and tags for both clips |
+| Auto lyrics with title and tags omitted | Generated a title, detailed tags, and six-section lyrics shared by both clips |
+| `use_suno_cdn: false`, `true`, and omitted | All observed final audio URLs used `cdn1.suno.ai` |
+| Valid v5.5 style and weirdness controls | Echoed exactly in terminal clip data |
+| v5.5 `vocal_gender` requests | Accepted, but audible compliance was not evaluated |
+| Submit response | `message` plus `task_id`; no `code` |
+| Terminal duration | Decimal string on all six clips |
 
 The experiment did not download or acoustically score these six research
 outputs.
@@ -686,15 +686,15 @@ and more than one batch per setting.
 These endpoints have their own schemas. Their unique variables must not be sent
 to `/sonic/create` unless that endpoint also documents them:
 
-| Endpoint                        | Unique or additional variables                                                                  |
-| ------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `/api/v1/sonic/upload-extend`   | `url`, `continue_at`, `auto_concat`, plus mode, prompt, metadata, weights, and webhook fields   |
-| `/api/v1/sonic/upload-cover`    | `url`, `audio_weight`, plus mode, prompt, metadata, weights, and webhook fields                 |
-| `/api/v1/sonic/sample`          | `url` or `sample_clip_id`, `chop_sample_start_s`, `chop_sample_end_s`, and generation fields    |
-| `/api/v1/sonic/replace-section` | `clip_id`, `infill_start_s`, `infill_end_s`, original `prompt`, and `infill_lyrics`             |
-| `/api/v1/sonic/persona`         | `name`, `clip_id`, `describe`, `styles`, optional `vox_audio_id`, and matching vocal time range |
-| `/api/v1/sonic/upsample-tags`   | `tags`; returns an expanded `upsampled_tags` string and costs credits                           |
-| Lyrics generation endpoint      | `description`; returns candidate titles and lyrics                                              |
+| Endpoint | Unique or additional variables |
+| -- | -- |
+| `/api/v1/sonic/upload-extend` | `url`, `continue_at`, `auto_concat`, plus mode, prompt, metadata, weights, and webhook fields |
+| `/api/v1/sonic/upload-cover` | `url`, `audio_weight`, plus mode, prompt, metadata, weights, and webhook fields |
+| `/api/v1/sonic/sample` | `url` or `sample_clip_id`, `chop_sample_start_s`, `chop_sample_end_s`, and generation fields |
+| `/api/v1/sonic/replace-section` | `clip_id`, `infill_start_s`, `infill_end_s`, original `prompt`, and `infill_lyrics` |
+| `/api/v1/sonic/persona` | `name`, `clip_id`, `describe`, `styles`, optional `vox_audio_id`, and matching vocal time range |
+| `/api/v1/sonic/upsample-tags` | `tags`; returns an expanded `upsampled_tags` string and costs credits |
+| Lyrics generation endpoint | `description`; returns candidate titles and lyrics |
 
 The official navigation and some endpoint exports currently contain naming or
 schema mismatches. Read the target endpoint's current OpenAPI export immediately
@@ -703,22 +703,22 @@ before integrating it; do not copy variables from a neighboring endpoint.
 ## Preflight checklist
 
 - [ ] The endpoint, model, task type, cost, and output count were rechecked in
-      current official documentation.
+  current official documentation.
 - [ ] The request uses exactly one prompt mode and the correct conditional
-      fields.
+  fields.
 - [ ] `title`, `prompt`, `gpt_description_prompt`, and `tags` fit the selected
-      model limits.
+  model limits.
 - [ ] Numeric controls are finite numbers from 0 through 1 where required.
 - [ ] Source clip, time range, uploaded-audio ownership, persona consent, and
-      task-type compatibility are verified.
+  task-type compatibility are verified.
 - [ ] Artist names, copyrighted lyrics, producer tags, personal data, and
-      unauthorized source material are absent.
+  unauthorized source material are absent.
 - [ ] The maximum paid task count and credit ceiling are explicit.
 - [ ] An accepted `task_id` is persisted before polling or webhook handling.
 - [ ] Webhook secrets and API credentials remain outside request logs and
-      committed files.
+  committed files.
 - [ ] Both returned variants will be scored by the autonomous acceptance suite;
-      no metadata field is treated as acoustic or rights evidence.
+  no metadata field is treated as acoustic or rights evidence.
 
 ## Source interpretation notes
 

@@ -6,18 +6,18 @@ ALTER TABLE resource_depletion ADD COLUMN cascade_effects TEXT DEFAULT NULL;
 
 -- Table to define relationships between resources
 CREATE TABLE resource_relationships (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    source_resource INT NOT NULL COMMENT 'Resource being harvested',
-    target_resource INT NOT NULL COMMENT 'Resource being affected',
-    effect_type ENUM('depletion', 'enhancement', 'threshold') NOT NULL COMMENT 'Type of effect',
-    effect_magnitude DECIMAL(5,3) NOT NULL COMMENT 'Strength of effect (-1.0 to +1.0)',
-    threshold_min DECIMAL(4,3) DEFAULT NULL COMMENT 'Minimum threshold for effect',
-    threshold_max DECIMAL(4,3) DEFAULT NULL COMMENT 'Maximum threshold for effect',
-    description VARCHAR(255) COMMENT 'Human readable description',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_source_resource (source_resource),
-    INDEX idx_target_resource (target_resource),
-    UNIQUE KEY unique_relationship (source_resource, target_resource, effect_type)
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  source_resource INT NOT NULL COMMENT 'Resource being harvested',
+  target_resource INT NOT NULL COMMENT 'Resource being affected',
+  effect_type ENUM('depletion', 'enhancement', 'threshold') NOT NULL COMMENT 'Type of effect',
+  effect_magnitude DECIMAL(5, 3) NOT NULL COMMENT 'Strength of effect (-1.0 to +1.0)',
+  threshold_min DECIMAL(4, 3) DEFAULT NULL COMMENT 'Minimum threshold for effect',
+  threshold_max DECIMAL(4, 3) DEFAULT NULL COMMENT 'Maximum threshold for effect',
+  description VARCHAR(255) COMMENT 'Human readable description',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_source_resource (source_resource),
+  INDEX idx_target_resource (target_resource),
+  UNIQUE KEY unique_relationship (source_resource, target_resource, effect_type)
 );
 
 -- Insert core ecological relationships
@@ -73,68 +73,69 @@ INSERT INTO resource_relationships
 
 -- Table for tracking ecosystem health states
 CREATE TABLE ecosystem_health (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    zone_vnum INT NOT NULL,
-    x_coord INT NOT NULL,
-    y_coord INT NOT NULL,
-    health_state ENUM('pristine', 'healthy', 'stressed', 'degraded', 'collapsed') NOT NULL,
-    health_score DECIMAL(4,3) NOT NULL COMMENT 'Overall health score 0.0-1.0',
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_location (zone_vnum, x_coord, y_coord),
-    INDEX idx_health_state (health_state),
-    INDEX idx_health_score (health_score)
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  zone_vnum INT NOT NULL,
+  x_coord INT NOT NULL,
+  y_coord INT NOT NULL,
+  health_state ENUM('pristine', 'healthy', 'stressed', 'degraded', 'collapsed') NOT NULL,
+  health_score DECIMAL(4, 3) NOT NULL COMMENT 'Overall health score 0.0-1.0',
+  last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_location (zone_vnum, x_coord, y_coord),
+  INDEX idx_health_state (health_state),
+  INDEX idx_health_score (health_score)
 );
 
 -- Table for tracking player conservation impact
 CREATE TABLE player_conservation (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    player_id INT NOT NULL,
-    zone_vnum INT NOT NULL,
-    x_coord INT NOT NULL,
-    y_coord INT NOT NULL,
-    conservation_score DECIMAL(4,3) DEFAULT 0.5 COMMENT 'Player conservation score 0.0-1.0',
-    total_harvests INT DEFAULT 0,
-    sustainable_harvests INT DEFAULT 0,
-    ecosystem_damage DECIMAL(6,3) DEFAULT 0.0 COMMENT 'Cumulative ecosystem damage caused',
-    last_harvest TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_player_location (player_id, zone_vnum, x_coord, y_coord),
-    INDEX idx_conservation_score (conservation_score)
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  player_id INT NOT NULL,
+  zone_vnum INT NOT NULL,
+  x_coord INT NOT NULL,
+  y_coord INT NOT NULL,
+  conservation_score DECIMAL(4, 3) DEFAULT 0.5 COMMENT 'Player conservation score 0.0-1.0',
+  total_harvests INT DEFAULT 0,
+  sustainable_harvests INT DEFAULT 0,
+  ecosystem_damage DECIMAL(6, 3) DEFAULT 0.0 COMMENT 'Cumulative ecosystem damage caused',
+  last_harvest TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_player_location (player_id, zone_vnum, x_coord, y_coord),
+  INDEX idx_conservation_score (conservation_score)
 );
 
 -- Table for storing cascade effect history (for debugging and analysis)
 CREATE TABLE cascade_effects_log (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    zone_vnum INT NOT NULL,
-    x_coord INT NOT NULL,
-    y_coord INT NOT NULL,
-    source_resource INT NOT NULL,
-    target_resource INT NOT NULL,
-    effect_magnitude DECIMAL(5,3) NOT NULL,
-    player_id INT DEFAULT NULL,
-    logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_location_time (zone_vnum, x_coord, y_coord, logged_at),
-    INDEX idx_resources (source_resource, target_resource)
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  zone_vnum INT NOT NULL,
+  x_coord INT NOT NULL,
+  y_coord INT NOT NULL,
+  source_resource INT NOT NULL,
+  target_resource INT NOT NULL,
+  effect_magnitude DECIMAL(5, 3) NOT NULL,
+  player_id INT DEFAULT NULL,
+  logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_location_time (zone_vnum, x_coord, y_coord, logged_at),
+  INDEX idx_resources (source_resource, target_resource)
 );
 
 -- View for easy ecosystem analysis
 CREATE VIEW ecosystem_analysis AS
 SELECT
-    eh.zone_vnum,
-    eh.x_coord,
-    eh.y_coord,
-    eh.health_state,
-    eh.health_score,
-    COUNT(rd.resource_type) as tracked_resources,
-    AVG(rd.depletion_level) as avg_depletion,
-    MIN(rd.depletion_level) as min_depletion,
-    MAX(rd.depletion_level) as max_depletion,
-    eh.last_updated
+  eh.zone_vnum,
+  eh.x_coord,
+  eh.y_coord,
+  eh.health_state,
+  eh.health_score,
+  COUNT(rd.resource_type) as tracked_resources,
+  AVG(rd.depletion_level) as avg_depletion,
+  MIN(rd.depletion_level) as min_depletion,
+  MAX(rd.depletion_level) as max_depletion,
+  eh.last_updated
 FROM ecosystem_health eh
-LEFT JOIN resource_depletion rd ON
-    eh.zone_vnum = rd.zone_vnum AND
-    eh.x_coord = rd.x_coord AND
-    eh.y_coord = rd.y_coord
+LEFT JOIN resource_depletion rd
+  ON
+    eh.zone_vnum = rd.zone_vnum
+    AND eh.x_coord = rd.x_coord
+    AND eh.y_coord = rd.y_coord
 GROUP BY eh.zone_vnum, eh.x_coord, eh.y_coord, eh.health_state, eh.health_score, eh.last_updated;
 
 COMMIT;

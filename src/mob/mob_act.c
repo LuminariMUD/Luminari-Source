@@ -372,7 +372,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
           {
             continue;
           }
-          /* Duris racial innates: undead fealty and calming */
+          /* Sep 2026 racial innates: undead fealty and calming */
           if (undead_fealty_protects(ch, vict))
             continue;
           if (calming_applies(ch, vict) && rand_number(0, 1))

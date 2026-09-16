@@ -9,6 +9,7 @@
 ## The Problem (Historical)
 
 The `setup.sh` script had broken logic for copying world files:
+
 1. Tried to copy non-existent `index.zon`, `index.wld`, etc. files from `lib/world/minimal/`
 2. These files don't exist - only `0.zon`, `0.wld`, `0.mob` exist
 3. No `.obj` file exists in minimal, causing server crash
@@ -17,6 +18,7 @@ The `setup.sh` script had broken logic for copying world files:
 ## The Fix
 
 Updated `setup.sh` to:
+
 1. **Check for actual files** that exist (`0.zon`, not `index.zon`)
 2. **Create proper index files** with format:
    ```
@@ -43,6 +45,7 @@ fi
 ## Minimal Object File Creation
 
 Since no `.obj` file exists in minimal, the script now creates one:
+
 ```bash
 cat > lib/world/obj/0.obj << 'EOF'
 #1
@@ -60,6 +63,7 @@ EOF
 ## Deployment Should Now Work
 
 From fresh clone:
+
 ```bash
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source

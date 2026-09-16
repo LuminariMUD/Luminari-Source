@@ -6,6 +6,9 @@
 #ifndef ASSIGN_WPN_ARMOR_H
 #define ASSIGN_WPN_ARMOR_H
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 struct weapon_table
 {
   const char *name;

@@ -1,7 +1,7 @@
 # Narrative Weaver - Next Development Steps
 
-**Date**: August 23, 2025  
-**Current Status**: Implementation 95% complete, integration verification needed  
+**Date**: August 23, 2025\
+**Current Status**: Implementation 95% complete, integration verification needed\
 **Priority**: High - System ready for production use
 
 ---
@@ -23,6 +23,7 @@ grep -r "enhance_wilderness_description\|generate_enhanced_wilderness_descriptio
 ```
 
 **Expected Issues:**
+
 - Function may not be hooked into wilderness description generation
 - May need to add call in `desc_engine.c` or wilderness system
 - Database connection in game environment may need verification
@@ -39,6 +40,7 @@ Test the system with existing data:
 ```
 
 **Test Checklist:**
+
 - [ ] Narrative weaver activates in wilderness areas
 - [ ] Hints are loaded from database correctly
 - [ ] Environmental context (weather/time) affects hint selection
@@ -62,6 +64,7 @@ ACMD(do_narrative_debug);    // Toggle debug output
 ## **SYSTEM CAPABILITIES VERIFIED**
 
 ### **Advanced Features Already Implemented:**
+
 - [OK] **Hash table caching** (256 buckets, TTL management)
 - [OK] **Contextual filtering** (weather + time + season + resource health)
 - [OK] **Regional mood weighting** (mystical regions boost mystical hints 80%)
@@ -71,6 +74,7 @@ ACMD(do_narrative_debug);    // Toggle debug output
 - [OK] **Quality score integration** (prefer high-quality approved hints)
 
 ### **Content Ready for Testing:**
+
 - [OK] **Region 1000004 (The Mosswood)**: 19 hints with full metadata
 - [OK] **Database schema**: All tables created and populated
 - [OK] **Sample data**: Production-quality content for comprehensive testing
@@ -80,21 +84,25 @@ ACMD(do_narrative_debug);    // Toggle debug output
 ## **DEVELOPMENT ROADMAP**
 
 ### **Week 1: Integration & Verification**
+
 - **Day 1**: Verify integration, add debug logging
 - **Day 2**: Test with Mosswood region, fix any issues
 - **Day 3**: Add admin commands, performance monitoring
 - **Day 4-5**: Documentation of verified features
 
 ### **Week 2: Content Expansion Planning**
+
 - **Day 1-2**: Analyze Mosswood content as template
 - **Day 3-4**: Design content creation workflow
 - **Day 5**: Create content standards and guidelines
 
 ### **Week 3: First New Region**
+
 - **Day 1-3**: Create complete hint set for desert/mountain region
 - **Day 4-5**: Test multi-region boundaries and performance
 
 ### **Week 4+: Scale and Polish**
+
 - Additional regions (3-5 total)
 - Builder tools and management interface
 - Performance optimization with larger datasets
@@ -104,12 +112,14 @@ ACMD(do_narrative_debug);    // Toggle debug output
 ## **SUCCESS METRICS**
 
 ### **Phase 1 Success (End of Week 1):**
+
 - [ ] Players see enhanced descriptions in wilderness areas
-- [ ] Admin can monitor narrative weaver status and performance  
+- [ ] Admin can monitor narrative weaver status and performance
 - [ ] System handles Mosswood region without errors or memory leaks
 - [ ] Cache shows >70% hit rate for repeated location visits
 
 ### **Phase 2 Success (End of Week 3):**
+
 - [ ] 2-3 regions have complete, tested hint sets
 - [ ] Multi-region boundary transitions work smoothly
 - [ ] Performance remains stable with expanded content
@@ -120,7 +130,7 @@ ACMD(do_narrative_debug);    // Toggle debug output
 ## **CRITICAL PATH DEPENDENCIES**
 
 1. **Integration Verification** -> All other work depends on this
-2. **Database Connectivity** -> Must work in game environment  
+2. **Database Connectivity** -> Must work in game environment
 3. **Performance Validation** -> Required before content expansion
 4. **Admin Interface** -> Needed for content management
 
@@ -129,18 +139,21 @@ ACMD(do_narrative_debug);    // Toggle debug output
 ## **TECHNICAL CHECKLIST**
 
 ### **Integration Points to Verify:**
+
 - [ ] `desc_engine.c` calls narrative weaver functions
 - [ ] Wilderness description generation includes enhanced content
 - [ ] Database connections work in game environment (not just MySQL CLI)
 - [ ] Environmental context passed correctly from game systems
 
 ### **Performance Points to Monitor:**
+
 - [ ] Memory usage with hint caching (check for leaks)
 - [ ] Database query frequency and timing
 - [ ] Cache hit/miss ratios and effectiveness
 - [ ] Description generation time impact
 
 ### **Content Verification:**
+
 - [ ] All 19 Mosswood hints load correctly
 - [ ] JSON metadata parsed and applied
 - [ ] Quality scores influence hint selection

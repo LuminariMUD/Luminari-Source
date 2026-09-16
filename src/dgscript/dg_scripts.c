@@ -1940,7 +1940,11 @@ static void eval_expr(char *line, char *result, void *go, struct script_data *sc
 
   else if (*line == '(')
   {
-    p = strcpy(expr, line);
+    /* A condition longer than expr evaluates as whatever the cut left behind,
+     * so the builder is told which trigger to shorten. */
+    if (strlcpy(expr, line, sizeof(expr)) >= sizeof(expr))
+      script_log("Trigger: %s, VNum %" PRI_IDX ". condition is too long: '%s'", GET_TRIG_NAME(trig),
+                 GET_TRIG_VNUM(trig), line);
     p = matching_paren(expr);
     *p = '\0';
     eval_expr(expr + 1, result, go, sc, trig, type);
@@ -2109,7 +2113,7 @@ static struct cmdlist_element *find_else_end(trig_data *trig, struct cmdlist_ele
   /* rryan: if we got here, it's the last line, if its not an end, log it. */
   for (p = c->cmd; *p && isspace(*p); p++)
     ; /* skip spaces */
-  if (strn_cmp("end", p, 3))
+  if (strn_cmp("end", p, 3) != 0)
     script_log("Trigger VNum %" PRI_IDX " has 'if' without 'end'. (error 5)", GET_TRIG_VNUM(trig));
   return c;
 }

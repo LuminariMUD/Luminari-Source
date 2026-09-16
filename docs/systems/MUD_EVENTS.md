@@ -41,7 +41,7 @@ extract entities. Shutdown invalidates all remaining runtime handles.
 Existing semantic owners include:
 
 | Type | Implementation |
-| --- | --- |
+| -- | -- |
 | `combat.encounter.round` | `combat/combat_encounters.c` |
 | `activity.primary.step` | `activity_manager.c` |
 | `mobile.autonomous.agenda` | `active_world.c` |

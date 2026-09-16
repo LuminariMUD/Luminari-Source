@@ -25,14 +25,12 @@ derelict_y=330
 
 mkdir -p "$work_dir"
 
-fail()
-{
+fail() {
   printf 'vessel derelict provisioner: %s\n' "$*" >&2
   exit 1
 }
 
-config_value()
-{
+config_value() {
   local config_file=$1
   local requested_key=$2
 
@@ -63,8 +61,7 @@ config_value()
   ' "$config_file"
 }
 
-database_scalar()
-{
+database_scalar() {
   local query=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -72,8 +69,7 @@ database_scalar()
     "$database_name" --execute="$query"
 }
 
-database_execute()
-{
+database_execute() {
   local query=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -81,8 +77,7 @@ database_execute()
     "$database_name" --execute="$query"
 }
 
-apply_database_file()
-{
+apply_database_file() {
   local sql_file=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -90,13 +85,11 @@ apply_database_file()
     "$database_name" <"$sql_file"
 }
 
-port_is_listening()
-{
+port_is_listening() {
   ss -H -ltn "sport = :$mud_port" 2>/dev/null | grep -q .
 }
 
-stop_development_mud()
-{
+stop_development_mud() {
   local attempt
 
   if systemctl --user is-active --quiet "$server_unit"; then
@@ -109,16 +102,14 @@ stop_development_mud()
   fail "development port $mud_port remained active"
 }
 
-start_development_mud()
-{
+start_development_mud() {
   local output_file=$1
 
   "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" >"$output_file" 2>&1
   restart_needed=false
 }
 
-recover_server()
-{
+recover_server() {
   local exit_status=$?
 
   trap - EXIT
@@ -131,8 +122,7 @@ recover_server()
 }
 trap recover_server EXIT
 
-ensure_index_entry()
-{
+ensure_index_entry() {
   local index_file=$1
   local entry=$2
   local updated_file="$work_dir/index.updated"
@@ -173,8 +163,7 @@ ensure_index_entry()
   mv "$updated_file" "$index_file"
 }
 
-record_title()
-{
+record_title() {
   local world_file=$1
   local vnum=$2
 
@@ -188,8 +177,7 @@ record_title()
   ' "$world_file"
 }
 
-assert_world_record_identity()
-{
+assert_world_record_identity() {
   local kind=$1
   local vnum=$2
   local expected_title=$3
@@ -216,8 +204,7 @@ assert_world_record_identity()
   ((found_count <= 1)) || fail "$kind VNUM $vnum is duplicated"
 }
 
-assert_base_hull_exists()
-{
+assert_base_hull_exists() {
   local candidate
   local found_count=0
 
@@ -231,8 +218,7 @@ assert_base_hull_exists()
     fail "expected exactly one live base hull object VNUM 70002"
 }
 
-merge_missing_records()
-{
+merge_missing_records() {
   local package_file=$1
   local live_file=$2
   local additions_file="$work_dir/records.add"
@@ -306,8 +292,7 @@ merge_missing_records()
   mv "$merged_file" "$live_file"
 }
 
-remove_package_records()
-{
+remove_package_records() {
   local package_file=$1
   local live_file=$2
   local stripped_file="$work_dir/records.stripped"
@@ -336,8 +321,7 @@ remove_package_records()
   mv "$stripped_file" "$live_file"
 }
 
-provision_world_file()
-{
+provision_world_file() {
   local kind=$1
   local destination_dir="$repo_root/lib/world/$kind"
   local package_file="$package_dir/700.$kind"
@@ -353,16 +337,14 @@ provision_world_file()
   ensure_index_entry "$destination_dir/index" "700.$kind"
 }
 
-zone_range()
-{
+zone_range() {
   local zone_file=$1
 
   awk '$1 ~ /^[0-9]+$/ && $2 ~ /^[0-9]+$/ { print $1, $2; exit }' \
     "$zone_file"
 }
 
-ensure_vessel_zone_range()
-{
+ensure_vessel_zone_range() {
   local destination_dir="$repo_root/lib/world/zon"
   local live_file="$destination_dir/700.zon"
   local updated_file="$work_dir/700.zon.updated"
@@ -456,8 +438,7 @@ done
 if systemctl --user is-active --quiet "$server_unit"; then
   server_pid=$(systemctl --user show -p MainPID --value "$server_unit")
   [[ "$server_pid" =~ ^[1-9][0-9]*$ ]] || fail "development service has no PID"
-  [[ $(readlink -f "/proc/$server_pid/exe") == \
-     $(readlink -f "$repo_root/bin/luminari") ]] ||
+  [[ $(readlink -f "/proc/$server_pid/exe") == $(readlink -f "$repo_root/bin/luminari") ]] ||
     fail "the running development service uses a different executable"
 elif port_is_listening; then
   fail "a manually started process owns development port $mud_port"

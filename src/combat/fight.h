@@ -13,6 +13,8 @@
 #ifndef _FIGHT_H_
 #define _FIGHT_H_
 
+#include "core/structs.h"
+
 /* Structures and defines */
 #define MODE_ARMOR_CLASS_NORMAL 0
 #define MODE_ARMOR_CLASS_COMBAT_MANEUVER_DEFENSE 1
@@ -58,7 +60,7 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim, int atta
 void idle_weapon_spells(struct char_data *ch);
 int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_data *attacker,
                               int w_type);
-/* Duris racial innates, see docs/systems/GAME_MECHANICS_SYSTEMS.md */
+/* Sep 2026 racial innates, see docs/systems/GAME_MECHANICS_SYSTEMS.md */
 int racial_weapon_mastery_bonus(struct char_data *ch, struct obj_data *wielded);
 int racial_spell_absorb_chance(struct char_data *victim);
 int racial_sacrilegious_power_reduction(struct char_data *ch);
@@ -102,8 +104,9 @@ bool combat_run_compatibility_phase(struct char_data *ch, unsigned int phase);
 bool combat_run_semantic_round(struct char_data *ch, bool was_hit);
 void raw_kill(struct char_data *ch, struct char_data *killer);
 bool set_fighting(struct char_data *ch, struct char_data *victim);
-int skill_message(int dam, struct char_data *ch, struct char_data *vict, int attacktype,
-                  int attack_type);
+/* The weapon that answers for one attack slot, or NULL when that slot is
+ * empty. Borrowed: the wielder keeps ownership. */
+struct obj_data *get_wielded(struct char_data *ch, int attack_type);
 void stop_fighting(struct char_data *ch);
 bool is_tanking(struct char_data *ch);
 void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo);

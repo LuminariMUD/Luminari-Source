@@ -106,7 +106,7 @@ These names are protocol control variables and must not be exposed as
 user-remappable HUD settings.
 
 | Variable | Direction | Purpose |
-| --- | --- | --- |
+| -- | -- | -- |
 | `LUMINARI_ONBOARDING_VERSION` | Client to source | Legacy capability; v1 sends `1` |
 | `LUMINARI_ONBOARDING_VERSIONS` | Client to source | Ordered supported-version list such as `2,1` |
 | `LUMINARI_ONBOARDING` | Source to client | Bounded structured state document |
@@ -163,7 +163,7 @@ sending truncated JSON.
 Every state contains:
 
 | Field | Meaning |
-| --- | --- |
+| -- | -- |
 | `version` | Negotiated protocol version |
 | `flowId` | Connection-local descriptor/login identifier |
 | `revision` | Increasing state revision |
@@ -255,7 +255,7 @@ characters, and the field-specific byte limit before committing.
 Frozen source bounds are:
 
 | Bound | Value |
-| --- | ---: |
+| -- | -: |
 | State payload | 15,000 bytes |
 | Raw editor chunk | 6,144 bytes |
 | Base64 chunk | 8,192 bytes |
@@ -407,7 +407,7 @@ evidence must use the generic fallback rather than block onboarding.
 ## Compatibility and Recovery
 
 | Client | Source | Result |
-| --- | --- | --- |
+| -- | -- | -- |
 | Current web gateway | Current source | Full structured core and role-play flow |
 | Current web gateway | Older v1-only source | Core UI; terminal RP fallback |
 | Current web gateway | Older or unrelated MUD | Classic terminal |
@@ -488,17 +488,17 @@ behavior. Never use live account or character data as fixtures.
 
 When changing this protocol:
 
-1. Trace the real `nanny()` transition and domain handler.
-2. Keep the MUD authoritative; do not recreate rules in presentation code.
-3. Add or update the screen mapping and state-exact source tests.
-4. Use stable IDs and explicit media keys, never transformed display labels.
-5. Keep state payloads below 15,000 bytes and private content out of them.
-6. Preserve flow/revision checks and fail-to-terminal behavior.
-7. Use checked persistence and rollback before exposing a durable-success
-   result.
-8. Keep passwords and profile content out of logs and ordinary command input.
-9. Update the paired gateway contract and bump the protocol version for an
-   incompatible change.
+01. Trace the real `nanny()` transition and domain handler.
+02. Keep the MUD authoritative; do not recreate rules in presentation code.
+03. Add or update the screen mapping and state-exact source tests.
+04. Use stable IDs and explicit media keys, never transformed display labels.
+05. Keep state payloads below 15,000 bytes and private content out of them.
+06. Preserve flow/revision checks and fail-to-terminal behavior.
+07. Use checked persistence and rollback before exposing a durable-success
+    result.
+08. Keep passwords and profile content out of logs and ordinary command input.
+09. Update the paired gateway contract and bump the protocol version for an
+    incompatible change.
 10. Test old client/new source, new client/old source, v2-to-v1 downgrade,
     classic Telnet, disconnect, and character/account switching.
 
@@ -525,7 +525,7 @@ If a new `.c` file is added, update both `Makefile.am` and `CMakeLists.txt`.
 ## Key Files
 
 | File | Responsibility |
-| --- | --- |
+| -- | -- |
 | `src/net/onboarding.h` | Versions, bounds, variables, errors, and public API |
 | `src/net/onboarding.c` | Screens, catalogs, emission, transfers, and cleanup |
 | `src/core/comm.c` | Per-pulse emission and descriptor lifecycle |

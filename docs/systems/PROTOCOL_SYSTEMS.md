@@ -16,6 +16,7 @@ functions are implemented.
 ## Supported Protocols
 
 ### 1. MSDP (Mud Server Data Protocol) - TELOPT 69
+
 **Primary data exchange protocol for real-time game state information**
 
 - **Purpose**: Provides structured data about character stats, world state, and game information
@@ -24,6 +25,7 @@ functions are implemented.
 - **Variables**: 200+ predefined variables covering all game aspects
 
 ### 2. GMCP (Generic Mud Communication Protocol) - TELOPT 201
+
 **Standards-compliant MSDP fallback and optional Mudlet package path**
 
 - **Purpose**: Structured data exchange using UTF-8 JSON
@@ -85,6 +87,7 @@ the [MSDP-over-GMCP reference](https://mudstandards.org/gmcp/msdp/) for the wire
 mapping.
 
 ### 3. MSSP (MUD Server Status Protocol) - TELOPT 70
+
 **Server advertisement and discovery protocol**
 
 - **Purpose**: Provides MUD listing services with server information
@@ -92,6 +95,7 @@ mapping.
 - **Updates**: Player count updated once per second
 
 ### 4. MXP (MUD eXtension Protocol) - TELOPT 91
+
 **Enhanced markup and interaction protocol**
 
 - **Purpose**: Clickable links, formatted text, GUI elements
@@ -99,6 +103,7 @@ mapping.
 - **Features**: Hyperlinks, colors, fonts, popup menus
 
 ### 5. MSP (MUD Sound Protocol) - TELOPT 90
+
 **Multimedia sound support**
 
 - **Purpose**: Trigger sound effects and music
@@ -106,6 +111,7 @@ mapping.
 - **Fallback**: Graceful degradation for non-supporting clients
 
 ### 6. TTYPE (Terminal Type) - TELOPT 24
+
 **Client identification and capabilities**
 
 - **Purpose**: Identify client software and version
@@ -113,6 +119,7 @@ mapping.
 - **Detection**: Automatic client capability detection
 
 ### 7. NAWS (Negotiate About Window Size) - TELOPT 31
+
 **Screen size negotiation**
 
 - **Purpose**: Determine client window dimensions
@@ -120,6 +127,7 @@ mapping.
 - **Dynamic**: Updates when client window resized
 
 ### 8. CHARSET - TELOPT 42
+
 **Character encoding negotiation**
 
 - **Purpose**: UTF-8 and character set support
@@ -127,6 +135,7 @@ mapping.
 - **Fallback**: ASCII compatibility maintained
 
 ### 9. MCCP (Mud Client Compression Protocol) - TELOPT 86
+
 **Data compression support** *(Framework present, not implemented)*
 
 - **Purpose**: Reduce bandwidth usage via zlib compression
@@ -162,7 +171,7 @@ the pre-game `nanny()` states over MSDP. This is separate from ordinary
 Reserved variables are:
 
 | Variable | Purpose |
-| --- | --- |
+| -- | -- |
 | `LUMINARI_ONBOARDING_VERSION` | V1 capability advertisement |
 | `LUMINARI_ONBOARDING_VERSIONS` | Highest-mutual-version negotiation |
 | `LUMINARI_ONBOARDING` | Bounded source-to-client state |
@@ -183,6 +192,7 @@ bounds, security model, activation, fallback, and test requirements.
 ## MSDP Variable Categories
 
 ### General Server Information
+
 ```
 CHARACTER_NAME    - Player character name
 TITLE             - Player title, empty when unavailable
@@ -192,6 +202,7 @@ SNIPPET_VERSION   - Protocol snippet version (8)
 ```
 
 ### Character Statistics
+
 ```
 HEALTH / HEALTH_MAX       - Hit points (current/max)
 PSP / PSP_MAX            - Psionic points (current/max)  
@@ -206,6 +217,7 @@ FORTITUDE / REFLEX / WILLPOWER - Saving throw modifiers
 ```
 
 ### Ability Scores
+
 ```
 STR / STR_PERM          - Strength (current/permanent)
 INT / INT_PERM          - Intelligence (current/permanent)
@@ -216,6 +228,7 @@ CHA / CHA_PERM          - Charisma (current/permanent)
 ```
 
 ### Combat Information
+
 ```
 ATTACK_BONUS            - Attack bonus modifier
 DAMAGE_BONUS            - Damage bonus modifier (reserved; live emission deferred)
@@ -227,6 +240,7 @@ TANK_NAME / TANK_HEALTH / TANK_HEALTH_MAX - Group tank info
 ```
 
 ### Character Details
+
 ```
 RACE                    - Character race
 CLASS                   - Character class
@@ -237,6 +251,7 @@ GROUP                   - Group members (array)
 ```
 
 ### World Information
+
 ```
 ROOM_NAME               - Current room name
 ROOM_VNUM               - Current room virtual number
@@ -256,6 +271,7 @@ text `ALIGNMENT` are the supported contract for the current web client work.
 produce side effects, and structured quest data is not defined yet.
 
 ### Action Economy (D&D/Pathfinder)
+
 ```
 ACTIONS                 - Available actions (table)
 STANDARD_ACTION         - Standard action available (boolean)
@@ -264,6 +280,7 @@ SWIFT_ACTION           - Swift action available (boolean)
 ```
 
 ### Client Configuration
+
 ```
 CLIENT_ID              - Client software identification
 CLIENT_VERSION         - Client version number
@@ -276,6 +293,7 @@ MXP                   - MXP support (boolean)
 ```
 
 ### GUI Elements
+
 ```
 BUTTON_1 through BUTTON_5   - GUI button definitions
 GAUGE_1 through GAUGE_5     - GUI gauge/progress bar definitions
@@ -284,6 +302,7 @@ GAUGE_1 through GAUGE_5     - GUI gauge/progress bar definitions
 ## Implementation Architecture
 
 #### Protocol Structure (protocol.h)
+
 ```c
 typedef struct {
     int WriteOOB;                        // Used internally to indicate OOB data
@@ -312,6 +331,7 @@ typedef struct {
 ```
 
 #### Variable Management
+
 ```c
 typedef struct {
     bool_t bReport;           // Client wants this variable reported
@@ -337,6 +357,7 @@ typedef struct {
 ### Integration Points
 
 #### Game Loop Integration (comm.c)
+
 The protocol system is integrated into the main game loop via the `msdp_update()` function, called every pulse:
 
 ```c
@@ -367,6 +388,7 @@ static void msdp_update(void) {
 ```
 
 #### Character Data Updates
+
 Real-time updates are triggered by specific game events:
 
 - **Health/Stats**: Updated every pulse via `msdp_update()`
@@ -379,6 +401,7 @@ Real-time updates are triggered by specific game events:
 - **Actions**: Updated via `update_msdp_actions()` when action economy changes
 
 #### Specialized Update Functions
+
 ```c
 void update_msdp_room(struct char_data *ch);        // Room/world data
 void update_msdp_affects(struct char_data *ch);     // Active spell effects
@@ -390,9 +413,11 @@ void update_msdp_inventory(struct char_data *ch);   // Inventory items
 ## Color System
 
 ### Standard Color Codes
+
 LuminariMUD uses tab (`\t`) as the color escape character:
 
 #### Basic Colors
+
 ```
 \tn - Normal (no color)
 \tr - Dark red       \tR - Light red
@@ -406,6 +431,7 @@ LuminariMUD uses tab (`\t`) as the color escape character:
 ```
 
 #### Extended Colors
+
 ```
 \ta - Dark azure     \tA - Light azure
 \tj - Dark jade      \tJ - Light jade
@@ -417,6 +443,7 @@ LuminariMUD uses tab (`\t`) as the color escape character:
 ```
 
 #### Special Formatting
+
 ```
 \t_ - Underlined     \t+ - Bold
 \t- - Blinking       \t= - Reverse
@@ -424,12 +451,14 @@ LuminariMUD uses tab (`\t`) as the color escape character:
 ```
 
 #### RGB Colors
+
 ```
 \t[F500] - Red foreground (RGB: 5,0,0)
 \t[B023] - Dark cyan background (RGB: 0,2,3)
 ```
 
 #### Unicode Support
+
 ```
 \t[U9973/B] - Boat symbol (Unicode 9973, fallback 'B')
 \t[U9814/C] - Castle symbol (Unicode 9814, fallback 'C')
@@ -438,6 +467,7 @@ LuminariMUD uses tab (`\t`) as the color escape character:
 ## Client Integration Examples
 
 ### Basic MSDP Usage
+
 ```
 MSDP REPORT HEALTH
 MSDP REPORT HEALTH_MAX
@@ -445,6 +475,7 @@ MSDP REPORT MOVEMENT
 ```
 
 ### GMCP Equivalent
+
 ```json
 Core.Hello { "client": "MudletClient", "version": "4.15" }
 Char.Items.List { "location": "inv" }
@@ -452,6 +483,7 @@ Char.StatusVars { "hp": 150, "maxhp": 200 }
 ```
 
 ### GUI Configuration
+
 ```
 BUTTON_1: [SEND]Help[/SEND]help[END]
 GAUGE_1: [NAME]Health[COLOR]red[VAR]HEALTH[MAX]HEALTH_MAX[END]
@@ -460,16 +492,19 @@ GAUGE_1: [NAME]Health[COLOR]red[VAR]HEALTH[MAX]HEALTH_MAX[END]
 ## Performance Considerations
 
 ### Update Frequency
+
 - **MSDP Variables**: Updated every 0.1 seconds (game pulse)
 - **Dirty Flag System**: Only changed variables are transmitted
 - **Batch Updates**: All variables sent in single MSDP packet
 
 ### Memory Management
+
 - **Variable Storage**: Pre-allocated arrays for all variables
 - **String Caching**: Duplicate strings avoided
 - **Protocol Cleanup**: Proper memory deallocation on disconnect
 
 ### Network Optimization
+
 - **Compression Ready**: MCCP framework for future implementation
 - **Efficient Encoding**: Binary MSDP format reduces bandwidth
 - **Smart Updates**: Only dirty variables transmitted
@@ -477,11 +512,13 @@ GAUGE_1: [NAME]Health[COLOR]red[VAR]HEALTH[MAX]HEALTH_MAX[END]
 ## Configuration Options
 
 #### MUD Name (protocol.h)
+
 ```c
 #define MUD_NAME "LuminariMUD"
 ```
 
 #### Protocol Settings (protocol.h)
+
 ```c
 #define SNIPPET_VERSION 8                           // Protocol version
 #define COLOUR_ON_BY_DEFAULT true                   // Default color state
@@ -495,6 +532,7 @@ GAUGE_1: [NAME]Health[COLOR]red[VAR]HEALTH[MAX]HEALTH_MAX[END]
 > [MUDLET_GUI_PACKAGE.md](MUDLET_GUI_PACKAGE.md).
 
 #### Compile-Time Options (commented out by default)
+
 ```c
 /* #define USING_MCCP */         // Enable compression support
 /* #define EXTENDED_COLOUR */    // Enable RGB color codes  
@@ -503,6 +541,7 @@ GAUGE_1: [NAME]Health[COLOR]red[VAR]HEALTH[MAX]HEALTH_MAX[END]
 ```
 
 #### Buffer Sizes
+
 ```c
 #define MAX_PROTOCOL_BUFFER (12 * 1024)  // Same as MAX_RAW_INPUT_LENGTH
 #define MAX_VARIABLE_LENGTH 16384
@@ -514,11 +553,13 @@ GAUGE_1: [NAME]Health[COLOR]red[VAR]HEALTH[MAX]HEALTH_MAX[END]
 ## Security Features
 
 ### MXP Security
+
 - **Secure Line Mode**: Prevents client command injection
 - **Bounded Tags**: Outbound tags longer than `MAX_MXP_TAG_LENGTH` are rejected
 - **Escape Sequences**: Proper escape sequence handling
 
 ### Input Validation
+
 - **Persistent Telnet State**: Split IAC negotiation and subnegotiation frames
   are retained across socket reads
 - **Buffer Limits**: Oversized command text is truncated; oversized Telnet,
@@ -535,6 +576,7 @@ GAUGE_1: [NAME]Health[COLOR]red[VAR]HEALTH[MAX]HEALTH_MAX[END]
 ### Common Issues
 
 #### Protocol Negotiation Failures
+
 ```c
 // Check negotiation status
 if (!descriptor->pProtocol->bMSDP) {
@@ -543,6 +585,7 @@ if (!descriptor->pProtocol->bMSDP) {
 ```
 
 #### Variable Update Problems
+
 ```c
 // Force variable update
 MSDPSetNumber(descriptor, eMSDP_HEALTH, GET_HIT(ch));
@@ -569,6 +612,7 @@ the affect batch API. Stopping a client from reporting `AFFECTS` can isolate
 that producer, but it is not a repair for partial server output.
 
 #### Client Compatibility
+
 ```c
 // Detect client capabilities
 if (descriptor->pProtocol->b256Support == eYES) {
@@ -579,6 +623,7 @@ if (descriptor->pProtocol->b256Support == eYES) {
 ```
 
 ### Logging
+
 ```c
 // Protocol debugging
 log("Protocol: MSDP %s, GMCP %s, MXP %s",
@@ -592,6 +637,7 @@ log("Protocol: MSDP %s, GMCP %s, MXP %s",
 ### Core Functions
 
 #### Protocol Lifecycle
+
 ```c
 protocol_t *ProtocolCreate(void);                    // Create protocol structure
 void ProtocolDestroy(protocol_t *protocol);         // Clean up protocol data
@@ -600,12 +646,14 @@ protocol_error_t ProtocolNoEcho(descriptor_t *descriptor, bool_t on);
 ```
 
 #### Input/Output Processing
+
 ```c
 ssize_t ProtocolInput(descriptor_t *d, char *data, int size, char *out);
 const char *ProtocolOutput(descriptor_t *d, const char *data, int *length);
 ```
 
 #### MSDP Variable Management
+
 ```c
 protocol_error_t MSDPUpdate(descriptor_t *descriptor);
 protocol_error_t MSDPFlush(descriptor_t *descriptor, variable_t var);
@@ -616,6 +664,7 @@ protocol_error_t MSDPSetTable(descriptor_t *d, variable_t var, const char *val);
 ```
 
 #### Direct Protocol Communication
+
 ```c
 protocol_error_t MSDPSend(descriptor_t *descriptor, variable_t var);
 protocol_error_t MSDPSendPair(descriptor_t *d, const char *var, const char *val);
@@ -623,33 +672,39 @@ protocol_error_t MSDPSendList(descriptor_t *d, const char *var, const char *val)
 ```
 
 #### MSSP Functions
+
 ```c
 void MSSPSetPlayers(int player_count);  // Update player count for MSSP
 ```
 
 #### MXP Functions
+
 ```c
 const char *MXPCreateTag(descriptor_t *d, const char *tag);  // Create MXP tag
 protocol_error_t MXPSendTag(descriptor_t *descriptor, const char *tag);
 ```
 
 #### Sound Functions
+
 ```c
 protocol_error_t SoundSend(descriptor_t *descriptor, const char *trigger);
 ```
 
 #### Color Functions
+
 ```c
 const char *ColourRGB(descriptor_t *d, const char *rgb);  // Convert RGB to escape codes
 ```
 
 #### Unicode Functions
+
 ```c
 char *UnicodeGet(int unicode_value);                          // Get UTF-8 sequence
 protocol_error_t UnicodeAdd(char **string, int unicode_value);
 ```
 
 #### Copyover Support
+
 ```c
 const char *CopyoverGet(descriptor_t *descriptor);           // Get protocol state
 protocol_error_t CopyoverSet(descriptor_t *descriptor, const char *data);
@@ -664,6 +719,7 @@ disconnect.
 ### Usage Patterns
 
 #### Basic Variable Updates
+
 ```c
 // In character update functions
 MSDPSetNumber(ch->desc, eMSDP_HEALTH, GET_HIT(ch));
@@ -675,6 +731,7 @@ MSDPUpdate(ch->desc);
 ```
 
 #### Combat Information
+
 ```c
 // During combat rounds
 if (FIGHTING(ch)) {
@@ -685,6 +742,7 @@ if (FIGHTING(ch)) {
 ```
 
 #### Group Information
+
 ```c
 // Group member list as MSDP array
 snprintf(msdp_buffer, sizeof(msdp_buffer), "%c%s%c%s%c%s",
@@ -695,6 +753,7 @@ MSDPSetArray(ch->desc, eMSDP_GROUP, msdp_buffer);
 ```
 
 #### Room Information Table
+
 ```c
 // Room data as MSDP table
 snprintf(msdp_buffer, sizeof(msdp_buffer), "%cVNUM%c%d%cNAME%c%s%cEXITS%c%s",
@@ -707,6 +766,7 @@ MSDPSetTable(ch->desc, eMSDP_ROOM, msdp_buffer);
 ## Integration with Game Systems
 
 ### Character Sheet Integration
+
 The protocol system automatically provides character sheet data to compatible clients:
 
 - **Statistics**: All ability scores (STR, INT, WIS, DEX, CON, CHA)
@@ -716,6 +776,7 @@ The protocol system automatically provides character sheet data to compatible cl
 - **Status**: Current position, active affects
 
 ### Combat System Integration
+
 Real-time combat information is transmitted during battles:
 
 - **Opponent Data**: Health, level, name of current opponent
@@ -724,6 +785,7 @@ Real-time combat information is transmitted during battles:
 - **Combat Status**: Current combat position and state
 
 ### World System Integration
+
 Location and environment data is continuously updated:
 
 - **Room Information**: Name, description, virtual number
@@ -733,6 +795,7 @@ Location and environment data is continuously updated:
 - **Sector Data**: Terrain and environment type
 
 ### Inventory System Integration
+
 Item and equipment information is transmitted on changes:
 
 - **Inventory Lists**: Complete inventory as MSDP array
@@ -743,6 +806,7 @@ Item and equipment information is transmitted on changes:
 ## Current Implementation Status
 
 ### Fully Implemented Features
+
 - **MSDP**: Complete variable system with real-time updates
 - **MSDP over GMCP**: Strict JSON conversion and command handling for GMCP-only clients
 - **MSSP**: Server status reporting with player count updates
@@ -752,6 +816,7 @@ Item and equipment information is transmitted on changes:
 - **Color System**: Tab-based color codes with RGB support framework
 
 ### Framework Present (Not Implemented)
+
 - **MCCP**: Compression negotiation works, but CompressStart()/CompressEnd() are stubbed
 - **GMCP web modules**: Source helper paths exist, but Luminari Web module
   schemas, proxy parsing, client mapping, and fixtures are not defined
@@ -761,18 +826,21 @@ Item and equipment information is transmitted on changes:
 ## Performance Characteristics
 
 ### Update Frequency
+
 - **MSDP Variables**: Updated every 0.1 seconds (game pulse)
 - **MSSP Player Count**: Updated every pulse
 - **Event-Driven Updates**: Immediate updates for inventory, affects, groups, room changes
 - **Dirty Flag System**: Only changed variables transmitted
 
 ### Memory Management
+
 - **Per-Descriptor Buffers**: Each connection has separate protocol buffers
 - **Variable Storage**: Zero-initialized MSDP structures and bounded strings
 - **String Handling**: Proper allocation/deallocation with NULL checks
 - **Cleanup**: Protocol structures properly freed on disconnect
 
 ### Network Optimization
+
 - **Atomic Updates**: Dirty variables are sent as independent all-or-nothing protocol frames
 - **Wire Formats**: Native binary MSDP or a strict JSON MSDP package over GMCP
 - **Smart Updates**: Only reports variables client has requested
@@ -781,6 +849,7 @@ Item and equipment information is transmitted on changes:
 ## Implementation Notes
 
 ### Key Differences from Standard Snippet
+
 1. **Campaign Support**: MUD name changes based on compile-time campaign flags
 2. **Specialized Updates**: Dedicated functions for different data types (affects, actions, inventory)
 3. **D&D Integration**: Action economy variables (STANDARD_ACTION, MOVE_ACTION, SWIFT_ACTION)
@@ -788,27 +857,32 @@ Item and equipment information is transmitted on changes:
 5. **Memory Safety**: Enhanced error checking and per-descriptor buffers
 
 ### Integration with Game Systems
+
 - **Combat System**: Real-time opponent and tank information
-- **Spell System**: Automatic affect updates when spells applied/removed  
+- **Spell System**: Automatic affect updates when spells applied/removed
 - **Action Economy**: D&D-style action tracking with GUI integration
 - **Group System**: Dynamic group member updates
 - **Inventory System**: Real-time item change notifications
 - **World System**: Room information with minimap support
 
 ### GUI Elements
+
 The system includes predefined GUI configurations for compatible clients:
+
 - **5 Buttons**: Help, Look, Score, Equipment, Inventory
 - **5 Gauges**: Health (red), PSP (blue), Movement (green), Experience (yellow), Opponent Health (dark red)
 
 ## Troubleshooting
 
 ### Common Issues
+
 1. **No Protocol Response**: Check if client supports MSDP/GMCP
 2. **Missing Variables**: Verify client has sent REPORT commands
 3. **Memory Leaks**: Ensure proper cleanup in update functions
 4. **Color Problems**: Verify scalar producers strip internal tab-color markup before storage
 
 ### Debug Commands
+
 ```c
 // Log protocol negotiation status
 log("Protocol: MSDP %s, GMCP %s, MXP %s",

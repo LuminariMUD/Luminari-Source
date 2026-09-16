@@ -34,8 +34,8 @@ unless it was destroyed or successfully caught with Snatch Arrows. Use COLLECT
 to recover other thrown weapons from the room or corpses.
 
 See also: AMMO, COLLECT, FIRE, QUIVERS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('RANGED-WEAPONS', 'Ammunition, Launchers, and Quivers
@@ -62,8 +62,8 @@ COLLECT recovers owner-tagged missiles and thrown weapons from the room and
 corpses.
 
 See also: COLLECT, COMBAT, RELOAD, THROW, THROWN-WEAPONS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('COLLECT', 'Collect Projectiles
@@ -81,8 +81,8 @@ top-level inventory when the pouch is absent, incompatible, or full and you
 can carry it. Launcher ammunition still requires a usable ammo pouch.
 
 See also: AMMO, AUTOCOLLECT, FIRE, QUIVERS, THROW, THROWN-WEAPONS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
 WHERE UPPER(keyword) IN (
@@ -92,28 +92,32 @@ WHERE UPPER(keyword) IN (
 );
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
-  ('THROWN-WEAPONS', 'RETURNING'),
-  ('THROWN-WEAPONS', 'THROW'),
-  ('THROWN-WEAPONS', 'THROWING'),
-  ('THROWN-WEAPONS', 'THROWN'),
-  ('THROWN-WEAPONS', 'THROWN-WEAPON'),
-  ('THROWN-WEAPONS', 'THROWN-WEAPONS'),
-  ('RANGED-WEAPONS', 'AMMO'),
-  ('RANGED-WEAPONS', 'AMMUNITION'),
-  ('RANGED-WEAPONS', 'ARCHERY'),
-  ('eldritch-blast', 'BLAST'),
-  ('RANGED-WEAPONS', 'BOWS'),
-  ('RANGED-WEAPONS', 'FIRE'),
-  ('RANGED-WEAPONS', 'FIRE-WEAPONS'),
-  ('RANGED-WEAPONS', 'MISSILES'),
-  ('RANGED-WEAPONS', 'QUIVER'),
-  ('RANGED-WEAPONS', 'QUIVERS'),
-  ('RANGED-WEAPONS', 'RANGED-WEAPONS'),
-  ('RANGED-WEAPONS', 'SHOOT'),
-  ('COLLECT', 'COLLECT');
+('THROWN-WEAPONS', 'RETURNING'),
+('THROWN-WEAPONS', 'THROW'),
+('THROWN-WEAPONS', 'THROWING'),
+('THROWN-WEAPONS', 'THROWN'),
+('THROWN-WEAPONS', 'THROWN-WEAPON'),
+('THROWN-WEAPONS', 'THROWN-WEAPONS'),
+('RANGED-WEAPONS', 'AMMO'),
+('RANGED-WEAPONS', 'AMMUNITION'),
+('RANGED-WEAPONS', 'ARCHERY'),
+('eldritch-blast', 'BLAST'),
+('RANGED-WEAPONS', 'BOWS'),
+('RANGED-WEAPONS', 'FIRE'),
+('RANGED-WEAPONS', 'FIRE-WEAPONS'),
+('RANGED-WEAPONS', 'MISSILES'),
+('RANGED-WEAPONS', 'QUIVER'),
+('RANGED-WEAPONS', 'QUIVERS'),
+('RANGED-WEAPONS', 'RANGED-WEAPONS'),
+('RANGED-WEAPONS', 'SHOOT'),
+('COLLECT', 'COLLECT');
 
 /* Preserve the superseded ammunition article without competing command keywords. */
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
-SELECT tag, 'LEGACY-RANGED-WEAPONS' FROM help_entries WHERE tag = 'blast';
+SELECT
+  tag,
+  'LEGACY-RANGED-WEAPONS'
+FROM help_entries
+WHERE tag = 'blast';
 
 COMMIT;

@@ -10,6 +10,8 @@
 #ifndef _I3_CLIENT_H_
 #define _I3_CLIENT_H_
 
+#include "core/structs.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

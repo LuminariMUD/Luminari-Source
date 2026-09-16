@@ -1185,33 +1185,43 @@ void show_conservation_impact(struct char_data *ch)
   /* Determine score description */
   if (conservation_score >= 90.0)
   {
-    strcpy(score_desc, "\tGExcellent\tn");
-    strcpy(impact_desc, "Your sustainable harvesting practices have had a \tGpositive impact\tn on "
-                        "the local ecosystem.");
+    strlcpy(score_desc, "\tGExcellent\tn", sizeof(score_desc));
+    strlcpy(impact_desc,
+            "Your sustainable harvesting practices have had a \tGpositive impact\tn on "
+            "the local ecosystem.",
+            sizeof(impact_desc));
   }
   else if (conservation_score >= 75.0)
   {
-    strcpy(score_desc, "\tYGood\tn");
-    strcpy(impact_desc, "Your harvesting practices are \tYgenerally sustainable\tn with minor "
-                        "environmental impact.");
+    strlcpy(score_desc, "\tYGood\tn", sizeof(score_desc));
+    strlcpy(impact_desc,
+            "Your harvesting practices are \tYgenerally sustainable\tn with minor "
+            "environmental impact.",
+            sizeof(impact_desc));
   }
   else if (conservation_score >= 50.0)
   {
-    strcpy(score_desc, "\tyFair\tn");
-    strcpy(impact_desc, "Your harvesting practices show \tymoderate environmental impact\tn. "
-                        "Consider more sustainable methods.");
+    strlcpy(score_desc, "\tyFair\tn", sizeof(score_desc));
+    strlcpy(impact_desc,
+            "Your harvesting practices show \tymoderate environmental impact\tn. "
+            "Consider more sustainable methods.",
+            sizeof(impact_desc));
   }
   else if (conservation_score >= 25.0)
   {
-    strcpy(score_desc, "\tOPoor\tn");
-    strcpy(impact_desc, "Your harvesting practices have caused \tOnotable environmental damage\tn. "
-                        "Immediate conservation efforts needed.");
+    strlcpy(score_desc, "\tOPoor\tn", sizeof(score_desc));
+    strlcpy(impact_desc,
+            "Your harvesting practices have caused \tOnotable environmental damage\tn. "
+            "Immediate conservation efforts needed.",
+            sizeof(impact_desc));
   }
   else
   {
-    strcpy(score_desc, "\tRVery Poor\tn");
-    strcpy(impact_desc, "Your harvesting practices have caused \tRsignificant environmental "
-                        "damage\tn. Critical conservation action required.");
+    strlcpy(score_desc, "\tRVery Poor\tn", sizeof(score_desc));
+    strlcpy(impact_desc,
+            "Your harvesting practices have caused \tRsignificant environmental "
+            "damage\tn. Critical conservation action required.",
+            sizeof(impact_desc));
   }
 
   send_to_char(ch, "\tc=== Conservation Impact Report ===\tn\r\n");

@@ -95,7 +95,7 @@ def iter_calls(text):
             elif char == ")":
                 depth -= 1
             index += 1
-        yield match.start(), text[match.start():index]
+        yield match.start(), text[match.start() : index]
 
 
 def call_format_string(call_text):
@@ -156,24 +156,43 @@ def count_sites_in_text(text):
 
 SELF_TEST_CASES = [
     # (description, source, expected count)
-    ("plain formatted select",
-     'snprintf(q, sizeof(q), "SELECT a FROM t WHERE b = %d", b);', 1),
-    ("placeholders only are not data",
-     'snprintf(q, sizeof(q), "SELECT a FROM t WHERE b = ?");', 0),
-    ("block comment does not hide a site",
-     '/* SELECT %s */ snprintf(q, sizeof(q), "DELETE FROM t WHERE k = \'%s\'", k);', 1),
-    ("line comment site is not counted",
-     '// snprintf(q, sizeof(q), "SELECT a FROM t WHERE b = %d", b);\nint x;', 0),
-    ("line comment sequence inside a literal is kept",
-     'snprintf(q, sizeof(q), "SELECT a FROM t WHERE b = %d -- // note", b);', 1),
-    ("block comment sequence inside a literal is kept",
-     'snprintf(q, sizeof(q), "/* hint */ SELECT a FROM t WHERE b = %d", b);', 1),
-    ("comment opener inside a character literal",
-     "char c = '/'; char d = '*'; snprintf(q, sizeof(q), \"UPDATE t SET a = %d\", a);", 1),
-    ("escaped quote inside a literal",
-     'snprintf(q, sizeof(q), "INSERT INTO t (a) VALUES (\'%s\') /* \\" */", a);', 1),
-    ("non-sql format text",
-     'snprintf(buf, sizeof(buf), "You set %s down from where it came.", name);', 0),
+    ("plain formatted select", 'snprintf(q, sizeof(q), "SELECT a FROM t WHERE b = %d", b);', 1),
+    ("placeholders only are not data", 'snprintf(q, sizeof(q), "SELECT a FROM t WHERE b = ?");', 0),
+    (
+        "block comment does not hide a site",
+        "/* SELECT %s */ snprintf(q, sizeof(q), \"DELETE FROM t WHERE k = '%s'\", k);",
+        1,
+    ),
+    (
+        "line comment site is not counted",
+        '// snprintf(q, sizeof(q), "SELECT a FROM t WHERE b = %d", b);\nint x;',
+        0,
+    ),
+    (
+        "line comment sequence inside a literal is kept",
+        'snprintf(q, sizeof(q), "SELECT a FROM t WHERE b = %d -- // note", b);',
+        1,
+    ),
+    (
+        "block comment sequence inside a literal is kept",
+        'snprintf(q, sizeof(q), "/* hint */ SELECT a FROM t WHERE b = %d", b);',
+        1,
+    ),
+    (
+        "comment opener inside a character literal",
+        "char c = '/'; char d = '*'; snprintf(q, sizeof(q), \"UPDATE t SET a = %d\", a);",
+        1,
+    ),
+    (
+        "escaped quote inside a literal",
+        'snprintf(q, sizeof(q), "INSERT INTO t (a) VALUES (\'%s\') /* \\" */", a);',
+        1,
+    ),
+    (
+        "non-sql format text",
+        'snprintf(buf, sizeof(buf), "You set %s down from where it came.", name);',
+        0,
+    ),
 ]
 
 
@@ -183,8 +202,10 @@ def self_test():
         actual = count_sites_in_text(source)
         if actual != expected:
             failures += 1
-            print("self-test FAILED: %s (expected %d, got %d)" % (description, expected, actual),
-                  file=sys.stderr)
+            print(
+                "self-test FAILED: %s (expected %d, got %d)" % (description, expected, actual),
+                file=sys.stderr,
+            )
     if failures:
         return 1
     print("sql interpolation self-test: %d cases passed" % len(SELF_TEST_CASES))
@@ -203,13 +224,20 @@ def main(argv):
         return 0
     if "--update" in argv:
         baseline = read_baseline()
-        grown = [(path, baseline.get(path, 0), len(lines)) for path, lines in sorted(sites.items())
-                 if len(lines) > baseline.get(path, 0)]
+        grown = [
+            (path, baseline.get(path, 0), len(lines))
+            for path, lines in sorted(sites.items())
+            if len(lines) > baseline.get(path, 0)
+        ]
         if baseline and grown:
-            print("Refusing to record baseline growth; migrate or justify these sites first:",
-                  file=sys.stderr)
+            print(
+                "Refusing to record baseline growth; migrate or justify these sites first:",
+                file=sys.stderr,
+            )
             for path, allowed, now in grown:
-                print("  %s: %d site(s), baseline allows %d" % (path, now, allowed), file=sys.stderr)
+                print(
+                    "  %s: %d site(s), baseline allows %d" % (path, now, allowed), file=sys.stderr
+                )
             return 1
         write_baseline(sites)
         print("baseline written: %d files, %d sites" % (len(sites), sum(map(len, sites.values()))))
@@ -222,15 +250,24 @@ def main(argv):
         if len(lines) > allowed:
             failures.append((path, allowed, lines))
     if failures:
-        print("New formatted SQL with data values detected. Bind values with prepared", file=sys.stderr)
+        print(
+            "New formatted SQL with data values detected. Bind values with prepared",
+            file=sys.stderr,
+        )
         print("statements (see docs/systems/DATABASE_INTEGRATION.md) instead.", file=sys.stderr)
         for path, allowed, lines in failures:
-            print("  %s: %d site(s), baseline allows %d; lines %s"
-                  % (path, len(lines), allowed, ",".join(map(str, lines))), file=sys.stderr)
+            print(
+                "  %s: %d site(s), baseline allows %d; lines %s"
+                % (path, len(lines), allowed, ",".join(map(str, lines))),
+                file=sys.stderr,
+            )
         return 1
 
-    shrunk = [(path, count, len(sites.get(path, []))) for path, count in sorted(baseline.items())
-              if len(sites.get(path, [])) < count]
+    shrunk = [
+        (path, count, len(sites.get(path, [])))
+        for path, count in sorted(baseline.items())
+        if len(sites.get(path, [])) < count
+    ]
     total = sum(len(lines) for lines in sites.values())
     print("sql interpolation check: %d formatted SQL sites, within baseline" % total)
     for path, count, now in shrunk:

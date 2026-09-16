@@ -31,7 +31,7 @@ function luminari-aider {
   try {
     $venv = Join-Path $repoRoot 'aider-env/Scripts/Activate.ps1'
     if (Test-Path -LiteralPath $venv) { . $venv }
-    $readArgs = @('--no-git','--read','.aider.luminari.context.md','--read','.aider.luminari.prompts.md')
+    $readArgs = @('--no-git', '--read', '.aider.luminari.context.md', '--read', '.aider.luminari.prompts.md')
     if ($Paths) { aider @readArgs @Paths } else { aider @readArgs }
   } finally { Pop-Location }
 }

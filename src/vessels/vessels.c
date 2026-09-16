@@ -1203,14 +1203,15 @@ bool vessel_hull_is_managed(const struct obj_data *obj)
 void greyhawk_getstatus(int slot, int rnum)
 {
   if (world[rnum].ship->slot[slot].timer > 0)
-    sprintf(greyhawk_status, "&+R%-6d", world[rnum].ship->slot[slot].timer);
+    snprintf(greyhawk_status, sizeof(greyhawk_status), "&+R%-6d",
+             world[rnum].ship->slot[slot].timer);
   else if (world[rnum].ship->slot[slot].timer == 0)
-    strcpy(greyhawk_status, "Ready");
+    strlcpy(greyhawk_status, "Ready", sizeof(greyhawk_status));
   else if (world[rnum].ship->slot[slot].timer < 0)
-    strcpy(greyhawk_status, "&+L***   ");
+    strlcpy(greyhawk_status, "&+L***   ", sizeof(greyhawk_status));
 
   if (world[rnum].ship->slot[slot].desc[0] == '\0')
-    strcpy(greyhawk_status, "");
+    strlcpy(greyhawk_status, "", sizeof(greyhawk_status));
 }
 
 /**
@@ -1223,24 +1224,24 @@ void greyhawk_getposition(int slot, int rnum)
   switch (world[rnum].ship->slot[slot].position)
   {
   case GREYHAWK_FORE:
-    strcpy(greyhawk_position, "Forward");
+    strlcpy(greyhawk_position, "Forward", sizeof(greyhawk_position));
     break;
   case GREYHAWK_REAR:
-    strcpy(greyhawk_position, "Rear");
+    strlcpy(greyhawk_position, "Rear", sizeof(greyhawk_position));
     break;
   case GREYHAWK_PORT:
-    strcpy(greyhawk_position, "Port");
+    strlcpy(greyhawk_position, "Port", sizeof(greyhawk_position));
     break;
   case GREYHAWK_STARBOARD:
-    strcpy(greyhawk_position, "Starboard");
+    strlcpy(greyhawk_position, "Starboard", sizeof(greyhawk_position));
     break;
   default:
-    strcpy(greyhawk_position, "ERROR");
+    strlcpy(greyhawk_position, "ERROR", sizeof(greyhawk_position));
     break;
   }
 
   if (world[rnum].ship->slot[slot].desc[0] == '\0')
-    strcpy(greyhawk_position, "");
+    strlcpy(greyhawk_position, "", sizeof(greyhawk_position));
 }
 
 /**
@@ -1252,7 +1253,7 @@ void greyhawk_dispweapon(int slot, int rnum)
 {
   if (world[rnum].ship->slot[slot].type != 1)
   {
-    strcpy(greyhawk_weapon, " ");
+    strlcpy(greyhawk_weapon, " ", sizeof(greyhawk_weapon));
   }
   else
   {
@@ -1878,7 +1879,7 @@ int get_vessel_position_speed_modifier(enum vessel_class vessel_type, int sector
   return modifier;
 }
 
-/* seadog (Duris racial innate): one extra tile per move while at the helm */
+/* seadog (Sep 2026 racial innate): one extra tile per move while at the helm */
 int vessel_pilot_speed_bonus(struct char_data *ch)
 {
   if (ch == NULL || !HAS_FEAT(ch, FEAT_SEADOG))

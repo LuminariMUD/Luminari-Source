@@ -3,6 +3,9 @@
 #ifndef LUMINARI_ROLEPLAY_H
 #define LUMINARI_ROLEPLAY_H
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 struct char_data;
 struct descriptor_data;
 

@@ -7,27 +7,45 @@ never print or modify credentials.
 
 - The MUD game port is 4100 only, including local development. Do not start or configure a different game port based on historical notes or handoff summaries. Use `MUD_PORT=4100 ./scripts/autorun/autorun.sh`. DO NOT HESITATE TO USE THS PORT FREELY FOR DEVELOPMENT AND TESTING!
 
-- NEVER post Claude-Session links!  NEVER attribute AI (Claude or anybody else) in commits or anywhere else.
+- NEVER post Claude-Session links! NEVER attribute AI (Claude or anybody else) in commits or anywhere else.
+
 - NEVER modify `src/config/campaign.h`, `src/config/mud_options.h`, `src/config/vnums.h` - they are local, customized configuration (gitignored). Edit the `.example.h` templates instead if a template changei h is needed. Only copy `.example.h` -> `.h` on a fresh clone where the real headers do not exist yet.
+
 - Configure, CMake, `deploy.sh`, and `setup.sh` stop while a local header is still directly under
   `src/`. The owner moves them once (`mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/`); agents do not move them.
+
 - `lib/mysql_config` and `lib/.env` contain credentials: you may read them, never modify them without permission. Edit `lib/mysql_config_example` / `lib/.env.example` instead.
+
 - When adding or removing a source file, update BOTH `Makefile.am` and `CMakeLists.txt`, then
   run `python3 scripts/ci/check_build_parity.py` (CI blocks on drift).
+
+- NEVER put stored procedures, stored functions, or multi-statement triggers (anything that needs a
+  `DELIMITER` block) in `.sql` files: every new SQL file must parse with sqlfluff, the SQL formatter,
+  and sqlfluff cannot parse `DELIMITER` blocks. Create them from C in `src/database/db_init.c`, which
+  already does this (`create_vessel_procedures()`, `create_database_procedures()`).
+
 - All documentation must be valid ASCII, UTF-8, LF line endings.
+
 - Always trace code; never assume naming conventions.
+
 - After planning a task and before implementation, read and apply
   [ablation](.agents/skills/ablation/SKILL.md). Briefly record what can be removed or
   simplified, update the plan, then proceed. Keep this check brief for small tasks.
+
 - Helpfiles have to be updated in two places: the database and `lib/text/help/help.hlp`
+
 - For an explicit request to synchronize help end to end, use the help-sync skill's bounded sync
   workflow without pausing for duplicate confirmation; deletions, renames, and conflicts still
   require explicit review.
+
 - When adding or updating features and relevant, make sure to update documentation and helpfiles
+
 - Before local mutation or running the MUD, read only `APP_ENV` from `lib/.env` without printing
   credentials. Do not edit production code or create branches/worktrees in a production checkout.
   Production help-content changes follow the help-sync skill and the user's explicit scope.
+
 - For running the MUD on local/dev, don't use `luminari.service`, use `autorun.sh`
+
 - It is NOT expected on local/dev for Ollama, I3 and Discord services to work (unless we are specifically working on those features)
 
 ## Project Overview
@@ -104,6 +122,7 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 ## Architecture
 
 ### Core flow
+
 - `core/comm.c` - main select()-based game loop, networking, heartbeat scheduling.
 - `core/interpreter.c` - command parsing. All commands are registered in the `cmd_info[]` table (`src/core/interpreter.c:119`), declared with `ACMD_DECL()` in `core/interpreter.h`, implemented as `ACMD(do_xxx)` mostly in `act/act.*.c` files (`act/act.informative.c`, `act/act.wizard.c`, plus `obj/act.item.c` and `combat/act.offensive.c`). There is no act.movement.c - movement commands live in `src/movement/`.
 - `core/structs.h` - the central data model (`char_data`, `obj_data`, `room_data`, descriptors). `core/utils.h` - the macro layer (`GET_LEVEL()`, `IS_NPC()`, `CREATE()`, `GET_SKILL()`, ...). Nearly every .c file includes `conf.h`, `core/sysdep.h`, `core/structs.h`, `core/utils.h` in that order.
@@ -111,24 +130,28 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 - `core/handler.c` - object/character manipulation primitives (equip, extract, move).
 
 ### Build identity
+
 LuminariMUD is the only supported game identity in this repository.
 
 ### Game mechanics
+
 - Spells and skills share ONE number space: skills are "skill-spells" starting at `START_SKILLS` (2000) in `magic/spells.h`. There is no skills.c - spell/skill logic lives in `src/magic/`: `spells.c`, `magic.c`, `spell_parser.c` (registration via `spello()` calls in `mag_assign_spells()`), and `spell_prep.c` (the preparation system).
 - Feats: constants in `character/feats.h`, registered via `feato()` calls inside `assign_feats()` in `character/feats.c` (populates `feat_list[NUM_FEATS]`), logic wired into the relevant system files (`combat/fight.c`, etc.). `character/evolutions.c` is part of this system, not combat.
 - Combat: `src/combat/fight.c`. Classes: `character/class.c`. Races: `character/race.c`. D20 rolls and checks: look in `core/utils.c`/`act/` - do not assume an ability_check.c exists.
 
 ### Scripting and building
+
 - DG Scripts: `src/dgscript/dg_*.c` - trigger-based scripting attached to mobs/objects/rooms; script data lives in `lib/world/trg/`.
 - OLC (online creation): `src/olc/` - `genolc.c`, `gen*.c`, `*edit.c`, and the `oasis*` framework. In-game world editing that writes the flat world files.
 
 ### Source layout
+
 Every `.c` and `.h` file lives in exactly one directory directly under `src/`. Nothing sits at the
 top of `src/`, and nothing is nested a second level deep; `scripts/ci/check_build_parity.py` fails
 on a source file directly under `src/`.
 
 | Directory | Holds |
-|-----------|-------|
+| -- | -- |
 | `src/core/` | server kernel and base layer: `structs.h`, `sysdep.h`, `bool.h`, `utils`, `handler`, `interpreter`, `comm`, `db` (flat-file world loader), `constants`, `limits`, `weather`, `modify`, `lists`, `helpers`, `random`, `zmalloc`, `bsd-snprintf`, `help`, `perfmon`, `copyover_diagnostic`, `elf_build_id` |
 | `src/events/` | `game_scheduler`, `event_runtime`, `event_debug`, `mud_event*`, `domain_event*`, `domain_object_transfer`, periodic and affect owners, `active_world`, `actions`, `actionqueues`, `activity_manager`, `ready_action` |
 | `src/config/` | `config`, `dotenv`, `pet_vnums.h`, `harvest_vnums.h`, the `*.example.h` templates, and the local `campaign.h`, `mud_options.h`, `vnums.h` |
@@ -166,6 +189,7 @@ Historical paths in `docs/previous_changelogs/` are
 deliberately left stale - they record the tree as it was.
 
 ### Misc
+
 - `core/perfmon.c` - performance monitoring (plain C; older docs mentioning perfmon.cpp/C++11 are obsolete).
 - VNUMs: use the defines in `config/vnums.h`; never hardcode virtual numbers.
 - Help files: `lib/text/help/`.
@@ -173,11 +197,23 @@ deliberately left stale - they record the tree as it was.
 ## Conventions
 
 - 2-space indent, Allman braces, 100-column limit, right-aligned pointers; `.clang-format` is provided.
+
+- Formatting is enforced by the pre-commit hooks in `.pre-commit-config.yaml` (`pre-commit install`
+  once per clone): clang-format (C), ruff (Python), shfmt (shell), sqlfluff (SQL), mdformat
+  (Markdown), prettier (YAML, JSON, HTML, CSS, JavaScript), gersemi (CMake), php-cs-fixer (PHP), and
+  PSScriptAnalyzer (PowerShell). Bulk-format with `pre-commit run <hook-id> --all-files`, never by
+  invoking a formatter directly. Committing PHP or PowerShell needs `php` and `pwsh` on `PATH`.
+
+- New SQL must pass the sqlfluff hook. Never add `.sqlfluffignore` entries, inline `sqlfluff:`
+  comments, or other sqlfluff configuration; `scripts/ci/check_sql_format_policy.py` rejects them.
+
 - Treat files over ~1,000 non-generated LOC as a review prompt, not a violation.
   -- Exclude comments, generated code, tables, URLs, and unavoidable literals from these guidelines.
 
 - `lower_snake_case` functions/variables, `UPPER_SNAKE_CASE` macros/constants, structs named `*_data`.
+
 - Safe string functions (`snprintf`, never `sprintf`); NULL-check before dereference; `log("SYSERR: ...")` for errors.
+
 - Fix all compiler warnings (`-Wall -Wextra`).
 
 ## Documentation Map

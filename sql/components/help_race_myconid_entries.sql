@@ -21,15 +21,15 @@ immunity, paralysis immunity, and four stacking ranks of Armor Skin. Myconids
 count as plants and gain four additional hit points per level.
 
 See also: ACCEXP, RACE, RACE-HALF-OGRE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
 WHERE UPPER(keyword) IN ('MYCONID', 'MYCANOID', 'RACE-MYCONID');
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
-  ('RACE-MYCONID', 'MYCONID'),
-  ('RACE-MYCONID', 'MYCANOID'),
-  ('RACE-MYCONID', 'RACE-MYCONID');
+('RACE-MYCONID', 'MYCONID'),
+('RACE-MYCONID', 'MYCANOID'),
+('RACE-MYCONID', 'RACE-MYCONID');
 
 COMMIT;

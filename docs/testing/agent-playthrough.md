@@ -36,15 +36,15 @@ and Telnet negotiation bytes.
 At the account-name prompt, entering a name that does not exist starts account creation.
 The observed sequence was:
 
-1. Enter `Pathcheck` as the account name.
-2. Confirm with `y`.
-3. Enter and retype a password.
-4. At the account menu, enter `c` to create a character.
-5. Enter `Rellanor` and confirm with `y`.
-6. Choose `m` for sex.
-7. Choose `human`, read the race information, and confirm with `y`.
-8. Choose `warrior`, read the class information, and confirm with `y`.
-9. Choose `premade`.
+01. Enter `Pathcheck` as the account name.
+02. Confirm with `y`.
+03. Enter and retype a password.
+04. At the account menu, enter `c` to create a character.
+05. Enter `Rellanor` and confirm with `y`.
+06. Choose `m` for sex.
+07. Choose `human`, read the race information, and confirm with `y`.
+08. Choose `warrior`, read the class information, and confirm with `y`.
+09. Choose `premade`.
 10. Choose `4` for true neutral.
 11. Answer `y` to enable the recommended preference flags.
 12. Choose `1` to enter as a non-role-player.

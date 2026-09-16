@@ -23,12 +23,12 @@ Every editor and listing command below is registered in `cmd_info[]`
 ### Editors
 
 | Command | Edits | Notes |
-|---------|-------|-------|
+| -- | -- | -- |
 | `redit` | Rooms | Also `dig` to create and link a room in one step |
 | `oedit` | Objects | See the [OEDIT Guide](../world_game-data/OEDIT_GUIDE.md) |
-| `medit` | Mobiles | |
-| `zedit` | Zones and reset commands | |
-| `sedit` | Shops | |
+| `medit` | Mobiles |  |
+| `zedit` | Zones and reset commands |  |
+| `sedit` | Shops |  |
 | `trigedit` | DG Script triggers | See [SCRIPTING_SYSTEM_DG.md](SCRIPTING_SYSTEM_DG.md) |
 | `qedit` | Numbered quests | Uses a quest VNUM; see the [QST format](../world_game-data/QUEST_FILE_FORMAT.md) |
 | `hlqedit` | High-level quests | Uses an existing host mobile VNUM; see the [HLQ format](../world_game-data/HLQUEST_FILE_FORMAT.md) |
@@ -43,7 +43,7 @@ These are how you discover which vnums are already in use before creating
 anything. Skipping this step is the most common cause of vnum collisions.
 
 | Command | Lists |
-|---------|-------|
+| -- | -- |
 | `rlist` | Rooms |
 | `mlist` | Mobiles |
 | `olist` | Objects |
@@ -75,6 +75,7 @@ in `src/act/act.wizard.c`.
 ### Core Components
 
 #### 1. OLC States (`olc_state_t`)
+
 ```c
 typedef enum {
   CON_PLAYING = 0,
@@ -93,6 +94,7 @@ typedef enum {
 ```
 
 #### 2. OLC Data Structure
+
 ```c
 struct olc_data {
   int mode;                    // Current editing mode
@@ -213,6 +215,7 @@ runtime order shown by `wtool`.
 ## Room Editor (REDIT)
 
 ### Basic Room Editing
+
 ```c
 // Enter room editing mode
 ACMD(do_redit) {
@@ -253,6 +256,7 @@ ACMD(do_redit) {
 ```
 
 ### Room Editing Menu
+
 ```c
 void redit_disp_menu(struct descriptor_data *d) {
   struct room_data *room = OLC_ROOM(d);
@@ -303,6 +307,7 @@ void redit_disp_menu(struct descriptor_data *d) {
 ```
 
 ### Exit Editing
+
 ```c
 void redit_disp_exit_menu(struct descriptor_data *d) {
   struct room_direction_data *exit = OLC_EXIT(d);
@@ -331,6 +336,7 @@ void redit_disp_exit_menu(struct descriptor_data *d) {
 ## Object Editor (OEDIT)
 
 ### Object Creation and Editing
+
 ```c
 ACMD(do_oedit) {
   obj_vnum vnum;
@@ -374,6 +380,7 @@ ACMD(do_oedit) {
 ```
 
 ### Object Properties Menu
+
 ```c
 void oedit_disp_menu(struct descriptor_data *d) {
   struct obj_data *obj = OLC_OBJ(d);
@@ -431,6 +438,7 @@ void oedit_disp_menu(struct descriptor_data *d) {
 ```
 
 ### Object Values Editing
+
 ```c
 void oedit_disp_val1_menu(struct descriptor_data *d) {
   struct obj_data *obj = OLC_OBJ(d);
@@ -468,6 +476,7 @@ void oedit_disp_val1_menu(struct descriptor_data *d) {
 ## Mobile Editor (MEDIT)
 
 ### Mobile Creation
+
 ```c
 ACMD(do_medit) {
   mob_vnum vnum;
@@ -511,6 +520,7 @@ ACMD(do_medit) {
 ```
 
 ### Mobile Stats Menu
+
 ```c
 void medit_disp_stats_menu(struct descriptor_data *d) {
   struct char_data *mob = OLC_MOB(d);
@@ -590,7 +600,7 @@ set, argument arities, and file syntax are documented in the
 [Zone File Format Reference](../world_game-data/ZONE_FILE_FORMAT.md).
 
 | Char | Meaning |
-|------|---------|
+| -- | -- |
 | `M` | Load a mobile into a room |
 | `O` | Load an object into a room |
 | `P` | Put an object into another object |
@@ -606,6 +616,7 @@ set, argument arities, and file syntax are documented in the
 | `*` | Comment line |
 
 ### Zone Reset Menu
+
 ```c
 void zedit_disp_menu(struct descriptor_data *d) {
   struct zone_data *zone = OLC_ZONE(d);
@@ -653,6 +664,7 @@ void zedit_disp_menu(struct descriptor_data *d) {
 ## Script Editor (TRIGEDIT)
 
 ### Trigger Editing
+
 ```c
 void trigedit_disp_menu(struct descriptor_data *d) {
   struct trig_data *trig = OLC_TRIG(d);
@@ -686,6 +698,7 @@ void trigedit_disp_menu(struct descriptor_data *d) {
 ## Permission System
 
 ### Builder Permissions
+
 ```c
 bool can_edit_zone(struct char_data *ch, zone_vnum zone_num) {
   struct zone_data *zone;
@@ -723,6 +736,7 @@ bool can_edit_zone(struct char_data *ch, zone_vnum zone_num) {
 ```
 
 ### OLC Security
+
 ```c
 bool olc_security_check(struct char_data *ch, int vnum) {
   zone_vnum zone = vnum / 100;
@@ -753,6 +767,7 @@ bool olc_security_check(struct char_data *ch, int vnum) {
 ## OLC Utilities
 
 ### Save Functions
+
 ```c
 void olc_save_to_disk(struct descriptor_data *d) {
   switch (STATE(d)) {
@@ -781,6 +796,7 @@ void olc_save_to_disk(struct descriptor_data *d) {
 ```
 
 ### Validation Functions
+
 ```c
 bool validate_room_data(struct room_data *room) {
   // Check required fields
@@ -836,6 +852,7 @@ bool validate_object_data(struct obj_data *obj) {
 ## Advanced OLC Features
 
 ### Copy and Paste
+
 ```c
 ACMD(do_copy) {
   char from_arg[MAX_INPUT_LENGTH], to_arg[MAX_INPUT_LENGTH];
@@ -874,6 +891,7 @@ ACMD(do_copy) {
 ```
 
 ### Batch Operations
+
 ```c
 ACMD(do_massroomset) {
   char field_arg[MAX_INPUT_LENGTH], value_arg[MAX_INPUT_LENGTH];

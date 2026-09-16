@@ -12,14 +12,12 @@ link_tmp=
 # The only executable basename this installer creates or activates.
 exe_name=luminari
 
-fail()
-{
+fail() {
   printf 'versioned binary install: %s\n' "$*" >&2
   exit 1
 }
 
-cleanup()
-{
+cleanup() {
   if [[ -n "$link_tmp" ]] && [[ -L "$link_tmp" ]]; then
     rm -f -- "$link_tmp"
   fi
@@ -46,17 +44,16 @@ candidate_sha256=$(sha256sum "$candidate" | awk '{print $1}')
 if ! build_info=$("$candidate" --build-info 2>/dev/null); then
   fail "candidate does not provide --build-info"
 fi
-version=$(awk -F= '$1 == "VERSION" {print substr($0, index($0, "=") + 1); exit}' <<< "$build_info")
-git_commit=$(awk -F= '$1 == "GIT_COMMIT" {print $2; exit}' <<< "$build_info")
-git_dirty=$(awk -F= '$1 == "GIT_DIRTY" {print $2; exit}' <<< "$build_info")
+version=$(awk -F= '$1 == "VERSION" {print substr($0, index($0, "=") + 1); exit}' <<<"$build_info")
+git_commit=$(awk -F= '$1 == "GIT_COMMIT" {print $2; exit}' <<<"$build_info")
+git_dirty=$(awk -F= '$1 == "GIT_DIRTY" {print $2; exit}' <<<"$build_info")
 [[ -n "$version" ]] || fail "candidate build information has no version"
 [[ "$git_commit" == unknown || "$git_commit" =~ ^[0-9a-f]{40}$ ]] ||
   fail "candidate build information has an invalid Git commit"
 [[ "$git_dirty" == 0 || "$git_dirty" == 1 ]] ||
   fail "candidate build information has an invalid dirty flag"
 
-write_manifest()
-{
+write_manifest() {
   local manifest=$1
   local manifest_build_id=$2
   local manifest_commit=$3
@@ -71,14 +68,13 @@ write_manifest()
     printf 'GIT_DIRTY=%s\n' "$manifest_dirty"
     printf 'ELF_BUILD_ID=%s\n' "$manifest_build_id"
     printf 'SHA256=%s\n' "$manifest_sha256"
-  } > "$manifest"
+  } >"$manifest"
 }
 
 # Create the immutable release for this build ID, or validate the one that is
 # already published.  A release always holds luminari, luminari.debug, and a
 # manifest whose build ID and SHA-256 match the executable.
-create_release()
-{
+create_release() {
   local source_binary=$1
   local source_build_id=$2
   local source_commit=$3
@@ -110,7 +106,7 @@ create_release()
       fail "release debug symbols are not a regular file: $release_dir/$exe_name.debug"
     [[ -f "$release_dir/manifest" && ! -L "$release_dir/manifest" ]] ||
       fail "release manifest is not a regular file: $release_dir/manifest"
-    manifest_line_count=$(wc -l < "$release_dir/manifest")
+    manifest_line_count=$(wc -l <"$release_dir/manifest")
     [[ "$manifest_line_count" -eq 6 ]] ||
       fail "release manifest has the wrong shape: $release_dir/manifest"
     grep -Fxq "FORMAT=1" "$release_dir/manifest" ||
@@ -146,8 +142,7 @@ create_release()
 # The canonical alias must be absent or a symbolic link.  Anything else is a
 # hand-managed path this installer will not silently replace.  Checked before
 # anything is mutated so a refusal leaves the installation untouched.
-validate_alias_path()
-{
+validate_alias_path() {
   local alias_path=$1
   local label=$2
 
@@ -156,8 +151,7 @@ validate_alias_path()
   fail "$label is not a symbolic link; remove it and reinstall"
 }
 
-publish_symlink()
-{
+publish_symlink() {
   local alias_path=$1
   local target=$2
 

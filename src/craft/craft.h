@@ -8,6 +8,9 @@
 #ifndef CRAFT_H
 #define CRAFT_H
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 //DEFINES//
 /* number of mats needed to complete a supply order */
 #define SUPPLYORDER_MATS 3

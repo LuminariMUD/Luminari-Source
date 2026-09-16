@@ -50,7 +50,7 @@ Wilderness qualities and crafting grades are separate concepts; the selected
 materials have at least the corresponding grade, so a tool floor survives payout.
 
 | Category | Poor (1) | Common (2) | Uncommon (3) | Rare (4) | Legendary (5) |
-| --- | --- | --- | --- | --- | --- |
+| -- | -- | -- | -- | -- | -- |
 | vegetation | hemp | flax | wool | silk | satin |
 | minerals | tin | bronze | iron | steel | mithril |
 | wood | ash | maple | mahagony | valenwood | ironwood |
@@ -67,7 +67,7 @@ This avoids awarding unusable wilderness storage entries or turning water into
 an unrelated metal.
 
 | Category | Crafting mote |
-| --- | --- |
+| -- | -- |
 | water (all subtypes) | water |
 | herbs (all subtypes) | light |
 | stone and clay (all subtypes) | earth |
@@ -101,7 +101,7 @@ VNUM definitions live in `src/config/harvest_vnums.h`, which is included by the 
 VNUM configuration. Existing customized `src/config/vnums.h` files need no edits.
 
 | VNUM | Name | Minimum quality | Cost |
-| --- | --- | --- | --- |
+| -- | -- | -- | -- |
 | 1251 | poor harvest tool | Poor | 50 |
 | 1252 | common harvest tool | Common | 500 |
 | 1253 | uncommon harvest tool | Uncommon | 2500 |

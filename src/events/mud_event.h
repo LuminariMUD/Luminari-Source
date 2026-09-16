@@ -13,6 +13,8 @@
 #ifndef _MUD_EVENT_H_
 #define _MUD_EVENT_H_
 
+#include "core/structs.h"
+
 #include "event_runtime.h"
 #include "mud_event_callback.h"
 
@@ -307,24 +309,24 @@ typedef enum
   eROL_CALM,                    /* Calm feat daily use cooldown */
   eROL_CALL_LYCANTHROPE_CHARM,  /* Converted call-lycanthrope charm check */
   eROL_TAZRIKS_FRENZIED_HOUND,  /* Converted Tazrik's hound recurring strike */
-  eSLA_FARSEE,                  /* Duris racial innate: farsee daily uses */
-  eSLA_STONESKIN,               /* Duris racial innate: stoneskin daily uses */
-  eSLA_LIGHTNING_BOLT,          /* Duris racial innate: throwlightning daily uses */
-  eSLA_FIRE_SHIELD,             /* Duris racial innate: fireshield daily uses */
-  eSLA_FIRE_STORM,              /* Duris racial innate: firestorm daily uses */
-  eSLA_SHADOW_JUMP,             /* Duris racial innate: shadowdoor daily uses */
-  eSLA_PLANE_SHIFT,             /* Duris racial innate: planeshift daily uses */
-  eSLA_PSIONIC_BLAST,           /* Duris racial innate: mindblast daily uses */
-  eSLA_SCARE,                   /* Duris racial innate: roar daily uses */
-  eSLA_HASTE,                   /* Duris racial innate: battlehaste daily uses */
-  eSLA_FIREBALL,                /* Duris racial innate: fireball daily uses */
-  eSLA_MASS_DISPEL,             /* Duris racial innate: massdispel daily uses */
-  eSLA_FROST_BREATH,            /* Duris racial innate: frostbreath daily uses */
-  eSLA_WEB,                     /* Duris racial innate: webwrap daily uses */
-  eSUMMON_WARG,                 /* Duris racial innate: summonwarg daily uses */
-  eSUMMON_HORDE,                /* Duris racial innate: summonhorde daily uses */
-  eSTAMPEDE,                    /* Duris racial innate: stampede short cooldown */
-  eRACIAL_FLURRY,               /* Duris racial innate: flurry daily uses */
+  eSLA_FARSEE,                  /* Sep 2026 racial innate: farsee daily uses */
+  eSLA_STONESKIN,               /* Sep 2026 racial innate: stoneskin daily uses */
+  eSLA_LIGHTNING_BOLT,          /* Sep 2026 racial innate: throwlightning daily uses */
+  eSLA_FIRE_SHIELD,             /* Sep 2026 racial innate: fireshield daily uses */
+  eSLA_FIRE_STORM,              /* Sep 2026 racial innate: firestorm daily uses */
+  eSLA_SHADOW_JUMP,             /* Sep 2026 racial innate: shadowdoor daily uses */
+  eSLA_PLANE_SHIFT,             /* Sep 2026 racial innate: planeshift daily uses */
+  eSLA_PSIONIC_BLAST,           /* Sep 2026 racial innate: mindblast daily uses */
+  eSLA_SCARE,                   /* Sep 2026 racial innate: roar daily uses */
+  eSLA_HASTE,                   /* Sep 2026 racial innate: battlehaste daily uses */
+  eSLA_FIREBALL,                /* Sep 2026 racial innate: fireball daily uses */
+  eSLA_MASS_DISPEL,             /* Sep 2026 racial innate: massdispel daily uses */
+  eSLA_FROST_BREATH,            /* Sep 2026 racial innate: frostbreath daily uses */
+  eSLA_WEB,                     /* Sep 2026 racial innate: webwrap daily uses */
+  eSUMMON_WARG,                 /* Sep 2026 racial innate: summonwarg daily uses */
+  eSUMMON_HORDE,                /* Sep 2026 racial innate: summonhorde daily uses */
+  eSTAMPEDE,                    /* Sep 2026 racial innate: stampede short cooldown */
+  eRACIAL_FLURRY,               /* Sep 2026 racial innate: flurry daily uses */
   eMUD_EVENT_COUNT
 } event_id;
 

@@ -15,12 +15,13 @@ set(LUMINARI_CROSS_TRIPLE aarch64-linux-gnu)
 set(CMAKE_C_COMPILER ${LUMINARI_CROSS_TRIPLE}-gcc)
 
 set(LUMINARI_SYSROOT "" CACHE PATH "Sysroot holding the aarch64 development packages")
-if (LUMINARI_SYSROOT)
+if(LUMINARI_SYSROOT)
     set(CMAKE_SYSROOT ${LUMINARI_SYSROOT})
     set(CMAKE_FIND_ROOT_PATH ${LUMINARI_SYSROOT})
     set(ENV{PKG_CONFIG_SYSROOT_DIR} ${LUMINARI_SYSROOT})
     set(ENV{PKG_CONFIG_LIBDIR}
-        "${LUMINARI_SYSROOT}/usr/lib/${LUMINARI_CROSS_TRIPLE}/pkgconfig:${LUMINARI_SYSROOT}/usr/share/pkgconfig")
+        "${LUMINARI_SYSROOT}/usr/lib/${LUMINARI_CROSS_TRIPLE}/pkgconfig:${LUMINARI_SYSROOT}/usr/share/pkgconfig"
+    )
 endif()
 
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)

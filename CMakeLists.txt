@@ -11,8 +11,11 @@ set(CMAKE_C_EXTENSIONS ON)
 # Every option is documented in docs/development/CMAKE_BUILD_GUIDE.md.
 option(BUILD_UTILS "Build the util/ helper programs" ON)
 option(BUILD_TESTS "Build production-linked unit tests and register CTest entries" OFF)
-set(LUMINARI_WARNING_TIER "baseline" CACHE STRING
-    "Warning tier: baseline (clean everywhere), migration (budgeted), analysis (scheduled)")
+set(LUMINARI_WARNING_TIER
+    "baseline"
+    CACHE STRING
+    "Warning tier: baseline (clean everywhere), migration (budgeted), analysis (scheduled)"
+)
 set_property(CACHE LUMINARI_WARNING_TIER PROPERTY STRINGS baseline migration analysis)
 option(MEMORY_DEBUG "Compile with the in-tree MEMORY_DEBUG allocation tracing" OFF)
 option(DMALLOC "Link against the dmalloc debugging allocator" OFF)
@@ -20,8 +23,11 @@ option(STATIC_ANALYSIS "Run clang-tidy on every compiled source" OFF)
 option(LUMINARI_WERROR "Treat baseline-tier warnings as errors" OFF)
 option(LUMINARI_COVERAGE "Instrument all targets for gcov/gcovr line and branch coverage" OFF)
 option(LUMINARI_HARDENING "Apply hardened Release flags (fortify, stack protector, PIE, RELRO)" OFF)
-set(LUMINARI_SANITIZERS "" CACHE STRING
-    "Comma-separated -fsanitize= list applied to every target (for example address,undefined)")
+set(LUMINARI_SANITIZERS
+    ""
+    CACHE STRING
+    "Comma-separated -fsanitize= list applied to every target (for example address,undefined)"
+)
 
 include(CheckFunctionExists)
 include(CheckIncludeFile)
@@ -46,8 +52,9 @@ check_c_source_compiles(
        static_assert(sizeof(bool) > 0);
        return value && ptr == nullptr ? 0 : 1;
      }"
-    LUMINARI_HAVE_C23_KEYWORDS)
-if (NOT LUMINARI_HAVE_C23_KEYWORDS)
+    LUMINARI_HAVE_C23_KEYWORDS
+)
+if(NOT LUMINARI_HAVE_C23_KEYWORDS)
     message(FATAL_ERROR "The C compiler does not provide the required GNU C23 language support")
 endif()
 
@@ -59,12 +66,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
 
 set(BUILD_IDENTITY_HEADER ${CMAKE_CURRENT_BINARY_DIR}/build_identity.h)
 execute_process(
-    COMMAND bash
-            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/generate_build_identity.sh
-            ${BUILD_IDENTITY_HEADER}
-            ${CMAKE_CURRENT_SOURCE_DIR}
-    RESULT_VARIABLE BUILD_IDENTITY_RESULT)
-if (NOT BUILD_IDENTITY_RESULT EQUAL 0)
+    COMMAND
+        bash ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/generate_build_identity.sh
+        ${BUILD_IDENTITY_HEADER} ${CMAKE_CURRENT_SOURCE_DIR}
+    RESULT_VARIABLE BUILD_IDENTITY_RESULT
+)
+if(NOT BUILD_IDENTITY_RESULT EQUAL 0)
     message(FATAL_ERROR "Failed to generate build identity")
 endif()
 
@@ -72,31 +79,32 @@ execute_process(
     COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR} rev-parse --git-path HEAD
     OUTPUT_VARIABLE GIT_HEAD_PATH
     OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_QUIET)
+    ERROR_QUIET
+)
 execute_process(
     COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR} symbolic-ref -q HEAD
     OUTPUT_VARIABLE GIT_HEAD_REFERENCE
     OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_QUIET)
-if (GIT_HEAD_PATH)
-    if (NOT IS_ABSOLUTE ${GIT_HEAD_PATH})
+    ERROR_QUIET
+)
+if(GIT_HEAD_PATH)
+    if(NOT IS_ABSOLUTE ${GIT_HEAD_PATH})
         set(GIT_HEAD_PATH ${CMAKE_CURRENT_SOURCE_DIR}/${GIT_HEAD_PATH})
     endif()
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${GIT_HEAD_PATH})
 endif()
-if (GIT_HEAD_REFERENCE)
+if(GIT_HEAD_REFERENCE)
     execute_process(
         COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR} rev-parse --git-path ${GIT_HEAD_REFERENCE}
         OUTPUT_VARIABLE GIT_HEAD_REFERENCE_PATH
         OUTPUT_STRIP_TRAILING_WHITESPACE
-        ERROR_QUIET)
-    if (GIT_HEAD_REFERENCE_PATH)
-        if (NOT IS_ABSOLUTE ${GIT_HEAD_REFERENCE_PATH})
-            set(GIT_HEAD_REFERENCE_PATH
-                ${CMAKE_CURRENT_SOURCE_DIR}/${GIT_HEAD_REFERENCE_PATH})
+        ERROR_QUIET
+    )
+    if(GIT_HEAD_REFERENCE_PATH)
+        if(NOT IS_ABSOLUTE ${GIT_HEAD_REFERENCE_PATH})
+            set(GIT_HEAD_REFERENCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/${GIT_HEAD_REFERENCE_PATH})
         endif()
-        set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-                     ${GIT_HEAD_REFERENCE_PATH})
+        set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${GIT_HEAD_REFERENCE_PATH})
     endif()
 endif()
 
@@ -104,22 +112,33 @@ endif()
 # src/ means this checkout has not moved them, and a script that copies the
 # examples would build with the defaults instead.
 foreach(LUMINARI_LOCAL_HEADER campaign mud_options vnums)
-    if (EXISTS ${CMAKE_SOURCE_DIR}/src/${LUMINARI_LOCAL_HEADER}.h)
-        message(FATAL_ERROR
+    if(EXISTS ${CMAKE_SOURCE_DIR}/src/${LUMINARI_LOCAL_HEADER}.h)
+        message(
+            FATAL_ERROR
             "src/${LUMINARI_LOCAL_HEADER}.h must move to src/config/; run: "
-            "mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/")
+            "mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/"
+        )
     endif()
 endforeach()
 
 # Check for required configuration headers
-if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/config/campaign.h)
-    message(FATAL_ERROR "campaign.h not found! Copy src/config/campaign.example.h to src/config/campaign.h and configure it.")
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/src/config/campaign.h)
+    message(
+        FATAL_ERROR
+        "campaign.h not found! Copy src/config/campaign.example.h to src/config/campaign.h and configure it."
+    )
 endif()
-if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/config/mud_options.h)
-    message(FATAL_ERROR "mud_options.h not found! Copy src/config/mud_options.example.h to src/config/mud_options.h and configure it.")
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/src/config/mud_options.h)
+    message(
+        FATAL_ERROR
+        "mud_options.h not found! Copy src/config/mud_options.example.h to src/config/mud_options.h and configure it."
+    )
 endif()
-if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/config/vnums.h)
-    message(FATAL_ERROR "vnums.h not found! Copy src/config/vnums.example.h to src/config/vnums.h and configure it.")
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/src/config/vnums.h)
+    message(
+        FATAL_ERROR
+        "vnums.h not found! Copy src/config/vnums.example.h to src/config/vnums.h and configure it."
+    )
 endif()
 
 # ========== Dependencies ==========
@@ -135,7 +154,7 @@ pkg_check_modules(LIBEVENT REQUIRED IMPORTED_TARGET libevent_core>=2.1.12)
 pkg_check_modules(JSONC REQUIRED IMPORTED_TARGET json-c>=0.13)
 pkg_check_modules(GD REQUIRED IMPORTED_TARGET gdlib>=2.2)
 pkg_check_modules(MARIADB IMPORTED_TARGET libmariadb>=3.1)
-if (MARIADB_FOUND)
+if(MARIADB_FOUND)
     set(LUMINARI_MYSQL_TARGET PkgConfig::MARIADB)
 else()
     pkg_check_modules(MYSQLCLIENT REQUIRED IMPORTED_TARGET mysqlclient>=3.1)
@@ -144,30 +163,59 @@ endif()
 find_library(CRYPT_LIBRARY crypt REQUIRED)
 
 add_library(luminari_deps INTERFACE)
-target_link_libraries(luminari_deps INTERFACE
-    ${LUMINARI_MYSQL_TARGET}
-    PkgConfig::GD
-    PkgConfig::JSONC
-    PkgConfig::LIBEVENT
-    CURL::libcurl
-    OpenSSL::SSL
-    OpenSSL::Crypto
-    Threads::Threads
-    ${CRYPT_LIBRARY}
-    m)
-if (DMALLOC)
+target_link_libraries(
+    luminari_deps
+    INTERFACE
+        ${LUMINARI_MYSQL_TARGET}
+        PkgConfig::GD
+        PkgConfig::JSONC
+        PkgConfig::LIBEVENT
+        CURL::libcurl
+        OpenSSL::SSL
+        OpenSSL::Crypto
+        Threads::Threads
+        ${CRYPT_LIBRARY}
+        m
+)
+if(DMALLOC)
     find_library(DMALLOC_LIBRARY dmalloc REQUIRED)
     target_link_libraries(luminari_deps INTERFACE ${DMALLOC_LIBRARY})
 endif()
 
 # ========== Platform feature checks (mirror configure.ac) ==========
-foreach(HEADER
-        fcntl.h sys/fcntl.h errno.h net/errno.h string.h strings.h
-        limits.h sys/time.h sys/select.h sys/types.h unistd.h
-        memory.h crypt.h assert.h arpa/telnet.h arpa/inet.h
-        sys/stat.h sys/socket.h sys/resource.h netinet/in.h netdb.h
-        signal.h sys/uio.h mcheck.h sys/wait.h time.h
-        stdio.h stdlib.h inttypes.h stdint.h)
+foreach(
+    HEADER
+    fcntl.h
+    sys/fcntl.h
+    errno.h
+    net/errno.h
+    string.h
+    strings.h
+    limits.h
+    sys/time.h
+    sys/select.h
+    sys/types.h
+    unistd.h
+    memory.h
+    crypt.h
+    assert.h
+    arpa/telnet.h
+    arpa/inet.h
+    sys/stat.h
+    sys/socket.h
+    sys/resource.h
+    netinet/in.h
+    netdb.h
+    signal.h
+    sys/uio.h
+    mcheck.h
+    sys/wait.h
+    time.h
+    stdio.h
+    stdlib.h
+    inttypes.h
+    stdint.h
+)
     string(TOUPPER "${HEADER}" _upper_name)
     string(REGEX REPLACE "[./]" "_" _upper_name "${_upper_name}")
     check_include_file("${HEADER}" HAVE_${_upper_name})
@@ -179,88 +227,104 @@ endforeach()
 # against the same GNU C23 dialect flag the build uses and reports anything the
 # toolchain rejects.  LTO and PGO are explicit, measured profiles and never
 # default.
-option(LUMINARI_PRODUCTION
-       "Build the optimized and hardened production profile (-O2 -g plus feature-detected hardening)"
-       OFF)
+option(
+    LUMINARI_PRODUCTION
+    "Build the optimized and hardened production profile (-O2 -g plus feature-detected hardening)"
+    OFF
+)
 option(LUMINARI_LTO "Add link-time optimization to the build (explicit, measured profile)" OFF)
-set(LUMINARI_PGO_GENERATE "" CACHE PATH
-    "Instrument the build to write profile data into this directory")
-set(LUMINARI_PGO_USE "" CACHE PATH
-    "Optimize using previously collected profile data at this path")
+set(LUMINARI_PGO_GENERATE
+    ""
+    CACHE PATH
+    "Instrument the build to write profile data into this directory"
+)
+set(LUMINARI_PGO_USE "" CACHE PATH "Optimize using previously collected profile data at this path")
 
-if (NOT LUMINARI_WARNING_TIER MATCHES "^(baseline|migration|analysis)$")
+if(NOT LUMINARI_WARNING_TIER MATCHES "^(baseline|migration|analysis)$")
     message(FATAL_ERROR "Unknown LUMINARI_WARNING_TIER '${LUMINARI_WARNING_TIER}'")
 endif()
-if (LUMINARI_WERROR AND NOT LUMINARI_WARNING_TIER STREQUAL "baseline")
-    message(FATAL_ERROR
+if(LUMINARI_WERROR AND NOT LUMINARI_WARNING_TIER STREQUAL "baseline")
+    message(
+        FATAL_ERROR
         "LUMINARI_WERROR applies to the baseline tier only; the ${LUMINARI_WARNING_TIER} "
-        "tier is tracked by scripts/ci/check_warning_budget.py")
+        "tier is tracked by scripts/ci/check_warning_budget.py"
+    )
 endif()
 
 # The warning tier is always requested, so the profile script runs on every
 # configure and both build systems print the same probed flag list.
 set(PRODUCTION_PROFILE_ARGS --warnings ${LUMINARI_WARNING_TIER})
-if (LUMINARI_PRODUCTION)
-    if (CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE STREQUAL "None")
-        message(FATAL_ERROR
+if(LUMINARI_PRODUCTION)
+    if(CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE STREQUAL "None")
+        message(
+            FATAL_ERROR
             "LUMINARI_PRODUCTION owns the optimization and debug-symbol policy; "
-            "leave CMAKE_BUILD_TYPE unset instead of '${CMAKE_BUILD_TYPE}'")
+            "leave CMAKE_BUILD_TYPE unset instead of '${CMAKE_BUILD_TYPE}'"
+        )
     endif()
     list(APPEND PRODUCTION_PROFILE_ARGS --production)
 endif()
-if (LUMINARI_LTO)
+if(LUMINARI_LTO)
     list(APPEND PRODUCTION_PROFILE_ARGS --lto)
 endif()
-if (LUMINARI_PGO_GENERATE)
+if(LUMINARI_PGO_GENERATE)
     list(APPEND PRODUCTION_PROFILE_ARGS --pgo-generate ${LUMINARI_PGO_GENERATE})
 endif()
-if (LUMINARI_PGO_USE)
+if(LUMINARI_PGO_USE)
     list(APPEND PRODUCTION_PROFILE_ARGS --pgo-use ${LUMINARI_PGO_USE})
 endif()
 
 set(PRODUCTION_SUPPORTED "")
 execute_process(
-    COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/production_profile.sh
-            --cc ${CMAKE_C_COMPILER}
-            --cflags "${CMAKE_C23_EXTENSION_COMPILE_OPTION}"
-            ${PRODUCTION_PROFILE_ARGS}
+    COMMAND
+        bash ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/production_profile.sh --cc
+        ${CMAKE_C_COMPILER} --cflags "${CMAKE_C23_EXTENSION_COMPILE_OPTION}"
+        ${PRODUCTION_PROFILE_ARGS}
     OUTPUT_VARIABLE PRODUCTION_PROFILE_OUTPUT
     ERROR_VARIABLE PRODUCTION_PROFILE_ERROR
-    RESULT_VARIABLE PRODUCTION_PROFILE_RESULT)
-if (NOT PRODUCTION_PROFILE_RESULT EQUAL 0)
+    RESULT_VARIABLE PRODUCTION_PROFILE_RESULT
+)
+if(NOT PRODUCTION_PROFILE_RESULT EQUAL 0)
     message(FATAL_ERROR "Build profile failed: ${PRODUCTION_PROFILE_ERROR}")
 endif()
-foreach (key CFLAGS LDFLAGS SUPPORTED UNSUPPORTED)
+foreach(key CFLAGS LDFLAGS SUPPORTED UNSUPPORTED)
     string(REGEX MATCH "PRODUCTION_${key}=([^\n]*)" _ "${PRODUCTION_PROFILE_OUTPUT}")
     set(PRODUCTION_${key} "${CMAKE_MATCH_1}")
 endforeach()
-foreach (key CFLAGS UNSUPPORTED)
+foreach(key CFLAGS UNSUPPORTED)
     string(REGEX MATCH "WARNING_${key}=([^\n]*)" _ "${PRODUCTION_PROFILE_OUTPUT}")
     set(LUMINARI_WARNING_${key} "${CMAKE_MATCH_1}")
 endforeach()
 separate_arguments(LUMINARI_WARNING_CFLAGS_LIST UNIX_COMMAND "${LUMINARI_WARNING_CFLAGS}")
-if (LUMINARI_WERROR)
+if(LUMINARI_WERROR)
     list(APPEND LUMINARI_WARNING_CFLAGS_LIST -Werror)
 endif()
-message(STATUS "Warning tier ${LUMINARI_WARNING_TIER} for ${CMAKE_C_COMPILER}: "
-               "${LUMINARI_WARNING_CFLAGS_LIST}")
-if (LUMINARI_WARNING_UNSUPPORTED)
-    message(WARNING
+message(
+    STATUS
+    "Warning tier ${LUMINARI_WARNING_TIER} for ${CMAKE_C_COMPILER}: "
+    "${LUMINARI_WARNING_CFLAGS_LIST}"
+)
+if(LUMINARI_WARNING_UNSUPPORTED)
+    message(
+        WARNING
         "Warning flags not supported by ${CMAKE_C_COMPILER} and left out: "
-        "${LUMINARI_WARNING_UNSUPPORTED}")
+        "${LUMINARI_WARNING_UNSUPPORTED}"
+    )
 endif()
-if (PRODUCTION_CFLAGS OR PRODUCTION_LDFLAGS)
+if(PRODUCTION_CFLAGS OR PRODUCTION_LDFLAGS)
     # PRODUCTION_CFLAGS joins CMAKE_C_FLAGS after the feature probes below.
     string(APPEND CMAKE_EXE_LINKER_FLAGS " ${PRODUCTION_LDFLAGS}")
     message(STATUS "Production profile flags: ${PRODUCTION_CFLAGS} ${PRODUCTION_LDFLAGS}")
 endif()
-if (PRODUCTION_UNSUPPORTED)
-    message(WARNING
+if(PRODUCTION_UNSUPPORTED)
+    message(
+        WARNING
         "Hardening features not supported by ${CMAKE_C_COMPILER} and left out: "
-        "${PRODUCTION_UNSUPPORTED}")
+        "${PRODUCTION_UNSUPPORTED}"
+    )
 endif()
 
-if (HAVE_STDLIB_H AND HAVE_STDIO_H AND HAVE_STRING_H)
+if(HAVE_STDLIB_H AND HAVE_STDIO_H AND HAVE_STRING_H)
     set(STDC_HEADERS 1)
 endif()
 
@@ -272,17 +336,35 @@ set(CMAKE_REQUIRED_LIBRARIES PkgConfig::JSONC)
 check_function_exists(json_object_new_object HAVE_JSON_C)
 unset(CMAKE_REQUIRED_LIBRARIES)
 
-foreach(FUNC gettimeofday select snprintf strcasecmp strdup strerror
-        stricmp strlcat strlcpy strncasecmp strnicmp strstr vsnprintf vprintf
-        inet_addr inet_aton gethostbyaddr socket)
+foreach(
+    FUNC
+    gettimeofday
+    select
+    snprintf
+    strcasecmp
+    strdup
+    strerror
+    stricmp
+    strlcat
+    strlcpy
+    strncasecmp
+    strnicmp
+    strstr
+    vsnprintf
+    vprintf
+    inet_addr
+    inet_aton
+    gethostbyaddr
+    socket
+)
     string(TOUPPER "${FUNC}" _upper_name)
     check_function_exists(${FUNC} HAVE_${_upper_name})
 endforeach()
-if (NOT HAVE_GETHOSTBYADDR)
+if(NOT HAVE_GETHOSTBYADDR)
     find_library(NSL_LIBRARY nsl REQUIRED)
     target_link_libraries(luminari_deps INTERFACE ${NSL_LIBRARY})
 endif()
-if (NOT HAVE_SOCKET)
+if(NOT HAVE_SOCKET)
     find_library(SOCKET_LIBRARY socket REQUIRED)
     target_link_libraries(luminari_deps INTERFACE ${SOCKET_LIBRARY})
 endif()
@@ -294,22 +376,22 @@ check_type_size("ssize_t" HAVE_SSIZE_T)
 set(CMAKE_EXTRA_INCLUDE_FILES "sys/socket.h")
 check_type_size("socklen_t" HAVE_SOCKLEN_T)
 unset(CMAKE_EXTRA_INCLUDE_FILES)
-if (NOT HAVE_PID_T)
+if(NOT HAVE_PID_T)
     set(pid_t int)
 endif()
-if (NOT HAVE_SIZE_T)
+if(NOT HAVE_SIZE_T)
     set(size_t "unsigned int")
 endif()
-if (NOT HAVE_SSIZE_T)
+if(NOT HAVE_SSIZE_T)
     set(ssize_t int)
 endif()
-if (NOT HAVE_SOCKLEN_T)
+if(NOT HAVE_SOCKLEN_T)
     set(socklen_t int)
 endif()
-if (HAVE_NETINET_IN_H)
+if(HAVE_NETINET_IN_H)
     check_struct_has_member("struct in_addr" s_addr netinet/in.h HAVE_STRUCT_IN_ADDR)
 endif()
-if (UNIX)
+if(UNIX)
     set(CIRCLE_UNIX 1)
 endif()
 
@@ -325,40 +407,47 @@ set(CMAKE_C_FLAGS "${LUMINARI_USER_C_FLAGS} ${PRODUCTION_CFLAGS}")
 # Every compiled target links this interface library instead of relying on
 # directory-wide include paths or global CMAKE_C_FLAGS edits.
 add_library(luminari_build INTERFACE)
-target_include_directories(luminari_build INTERFACE
-    ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_include_directories(
+    luminari_build
+    INTERFACE ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 
 # Warning flags come from the shared, probed tier list above.
 target_compile_options(luminari_build INTERFACE ${LUMINARI_WARNING_CFLAGS_LIST})
 # GCC's analyzer needs more than 30 GiB for load_class_list, which registers
-# every class in one function, so class.c is compiled without it.
-if ("-fanalyzer" IN_LIST LUMINARI_WARNING_CFLAGS_LIST)
+# every class in one function, so class.c is compiled without it. Owner: class
+# registration in src/character/class.c. Expires when load_class_list is split
+# into functions the analyzer finishes within a CI runner's memory; remove the
+# matching exclusion in Makefile.am at the same time.
+if("-fanalyzer" IN_LIST LUMINARI_WARNING_CFLAGS_LIST)
     set_source_files_properties(src/character/class.c PROPERTIES COMPILE_OPTIONS -fno-analyzer)
 endif()
 # The versioned installer and the copyover identity line key on the ELF build
 # ID.  Distribution compilers emit one by default; a toolchain built from
 # source (the official gcc container images) does not, so ask for it.
 target_link_options(luminari_build INTERFACE -Wl,--build-id)
-target_compile_definitions(luminari_build INTERFACE
-    $<$<BOOL:${MEMORY_DEBUG}>:MEMORY_DEBUG>
-    $<$<BOOL:${DMALLOC}>:DMALLOC>)
-if (LUMINARI_SANITIZERS)
-    target_compile_options(luminari_build INTERFACE
-        -fsanitize=${LUMINARI_SANITIZERS} -fno-omit-frame-pointer)
+target_compile_definitions(
+    luminari_build
+    INTERFACE $<$<BOOL:${MEMORY_DEBUG}>:MEMORY_DEBUG> $<$<BOOL:${DMALLOC}>:DMALLOC>
+)
+if(LUMINARI_SANITIZERS)
+    target_compile_options(
+        luminari_build
+        INTERFACE -fsanitize=${LUMINARI_SANITIZERS} -fno-omit-frame-pointer
+    )
     target_link_options(luminari_build INTERFACE -fsanitize=${LUMINARI_SANITIZERS})
 endif()
-if (LUMINARI_COVERAGE)
+if(LUMINARI_COVERAGE)
     target_compile_options(luminari_build INTERFACE --coverage)
     target_link_options(luminari_build INTERFACE --coverage)
 endif()
-if (LUMINARI_HARDENING)
-    target_compile_definitions(luminari_build INTERFACE
-        $<$<NOT:$<CONFIG:Debug>>:_FORTIFY_SOURCE=3>)
-    target_compile_options(luminari_build INTERFACE
-        -fstack-protector-strong -fstack-clash-protection -fPIE)
-    target_link_options(luminari_build INTERFACE
-        -pie -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack)
+if(LUMINARI_HARDENING)
+    target_compile_definitions(luminari_build INTERFACE $<$<NOT:$<CONFIG:Debug>>:_FORTIFY_SOURCE=3>)
+    target_compile_options(
+        luminari_build
+        INTERFACE -fstack-protector-strong -fstack-clash-protection -fPIE
+    )
+    target_link_options(luminari_build INTERFACE -pie -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack)
 endif()
 
 # ========== Source files ==========
@@ -375,6 +464,7 @@ set(SRC_C_FILES
     src/combat/tactical_effects.c
     src/act/act.social.c
     src/act/act.wizard.c
+    src/act/act.wizard.set.c
     src/events/actionqueues.c
     src/events/actions.c
     src/olc/aedit.c
@@ -442,6 +532,7 @@ set(SRC_C_FILES
     src/core/elf_build_id.c
     src/combat/encounters.c
     src/combat/combat_encounters.c
+    src/combat/combat_messages.c
     src/combat/combat_damage.c
     src/combat/combat_damage.h
     src/combat/combat_death.h
@@ -553,6 +644,7 @@ set(SRC_C_FILES
     src/olc/oedit.c
     src/player/password.c
     src/core/perfmon.c
+    src/character/perk_definitions.c
     src/character/perks.c
     src/wilderness/perlin.c
     src/player/player_rename.c
@@ -741,38 +833,55 @@ set_source_files_properties(${BUILD_IDENTITY_HEADER} PROPERTIES GENERATED TRUE)
 
 # ========== Build main executable FIRST ==========
 add_executable(luminari ${SRC_FILES})
-add_custom_target(refresh_build_identity ALL
-    COMMAND bash
-            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/generate_build_identity.sh
-            ${BUILD_IDENTITY_HEADER}
-            ${CMAKE_CURRENT_SOURCE_DIR}
+add_custom_target(
+    refresh_build_identity
+    ALL
+    COMMAND
+        bash ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/generate_build_identity.sh
+        ${BUILD_IDENTITY_HEADER} ${CMAKE_CURRENT_SOURCE_DIR}
     BYPRODUCTS ${BUILD_IDENTITY_HEADER}
-    COMMENT "Refreshing embedded Git build identity")
+    COMMENT "Refreshing embedded Git build identity"
+)
 add_dependencies(luminari refresh_build_identity)
 
 target_link_libraries(luminari PRIVATE luminari_build luminari_deps)
 
 # ========== Build utilities AFTER main executable ==========
 # Build utilities by default (can be disabled with -DBUILD_UTILS=OFF)
-if (BUILD_UTILS)
+if(BUILD_UTILS)
     # Utilities from util/ directory
     add_executable(autowiz util/autowiz.c)
     add_executable(asciipasswd util/asciipasswd.c)
     add_executable(plrtoascii util/plrtoascii.c)
     add_executable(rebuildAsciiIndex util/rebuildAsciiIndex.c)
     add_executable(rebuildMailIndex util/rebuildMailIndex.c)
-    add_executable(rol_mob_calculator util/rol_mob_calculator.c
-                                      src/mob/mob_autoroll.c
-                                      src/mob/mob_autoroll_profile.c)
+    add_executable(
+        rol_mob_calculator
+        util/rol_mob_calculator.c
+        src/mob/mob_autoroll.c
+        src/mob/mob_autoroll_profile.c
+    )
     add_executable(shopconv util/shopconv.c)
     add_executable(sign util/sign.c)
     add_executable(split util/split.c)
     add_executable(wld2html util/wld2html.c)
 
-    set(LUMINARI_UTIL_TARGETS autowiz asciipasswd plrtoascii rebuildAsciiIndex
-        rebuildMailIndex rol_mob_calculator shopconv sign split wld2html)
-    set_target_properties(${LUMINARI_UTIL_TARGETS}
-                          PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
+    set(LUMINARI_UTIL_TARGETS
+        autowiz
+        asciipasswd
+        plrtoascii
+        rebuildAsciiIndex
+        rebuildMailIndex
+        rol_mob_calculator
+        shopconv
+        sign
+        split
+        wld2html
+    )
+    set_target_properties(
+        ${LUMINARI_UTIL_TARGETS}
+        PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR}
+    )
     foreach(UTIL_TARGET ${LUMINARI_UTIL_TARGETS})
         target_link_libraries(${UTIL_TARGET} PRIVATE luminari_build)
     endforeach()
@@ -968,7 +1077,8 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/fixtures/phase2/contracts/hlq/canonical.hlq
     scripts/world/tests/fixtures/phase2/contracts/lookup/existing-six.json
     scripts/world/tests/fixtures/phase2/contracts/qst/canonical.qst
-    scripts/world/tests/fixtures/phase2/contracts/qst/legacy.qst)
+    scripts/world/tests/fixtures/phase2/contracts/qst/legacy.qst
+)
 
 # Keep this list synchronized with world_tool_support_files in Makefile.am.
 set(WORLD_TOOL_SUPPORT_FILES
@@ -998,33 +1108,37 @@ set(WORLD_TOOL_SUPPORT_FILES
     docs/world_game-data/ZONE_FILE_FORMAT.md
     docs/world_game-data/builder_manual.md
     docs/world_game-data/gear_guide.md
-    docs/world_game-data/wilderness_system.md)
+    docs/world_game-data/wilderness_system.md
+)
 
-add_custom_target(check-world-docs
+add_custom_target(
+    check-world-docs
     COMMAND Python3::Interpreter scripts/world/wtool.py constants sync --check
     COMMAND Python3::Interpreter scripts/world/wtool.py docs --check
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     SOURCES ${WORLD_TOOL_SOURCES} ${WORLD_TOOL_SUPPORT_FILES}
-    COMMENT "Checking world-data constants and documentation")
+    COMMENT "Checking world-data constants and documentation"
+)
 
 set(WORLD_TOOL_CALCULATOR_ENV)
-if (TARGET rol_mob_calculator)
-    set(WORLD_TOOL_CALCULATOR_ENV
-        "ROL_MOB_CALCULATOR=$<TARGET_FILE:rol_mob_calculator>")
+if(TARGET rol_mob_calculator)
+    set(WORLD_TOOL_CALCULATOR_ENV "ROL_MOB_CALCULATOR=$<TARGET_FILE:rol_mob_calculator>")
 endif()
 
-add_custom_target(test-world-tools
-    COMMAND ${CMAKE_COMMAND} -E env ${WORLD_TOOL_CALCULATOR_ENV}
-            ${Python3_EXECUTABLE} -m unittest discover
-            -s scripts/world/tests -t scripts/world -v
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/lib/world/validate-zone.sh 100
-            --world-root
-            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/world/tests/fixtures/phase2/complete
+add_custom_target(
+    test-world-tools
+    COMMAND
+        ${CMAKE_COMMAND} -E env ${WORLD_TOOL_CALCULATOR_ENV} ${Python3_EXECUTABLE} -m unittest
+        discover -s scripts/world/tests -t scripts/world -v
+    COMMAND
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/world/validate-zone.sh 100 --world-root
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/world/tests/fixtures/phase2/complete
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     SOURCES ${WORLD_TOOL_SOURCES} ${WORLD_TOOL_SUPPORT_FILES}
-    COMMENT "Running standalone world-data tool tests")
+    COMMENT "Running standalone world-data tool tests"
+)
 add_dependencies(test-world-tools check-world-docs)
-if (TARGET rol_mob_calculator)
+if(TARGET rol_mob_calculator)
     add_dependencies(test-world-tools rol_mob_calculator)
 endif()
 
@@ -1039,22 +1153,26 @@ set(HELP_SYNC_SOURCES
     scripts/help-sync/tests/test_endpoint.py
     scripts/help-sync/tests/test_endpoint_integration.py
     sql/components/help_sync_schema.sql
-    sql/components/verify_help_sync_schema.sql)
+    sql/components/verify_help_sync_schema.sql
+)
 
-add_custom_target(test-help-sync
-    COMMAND ${Python3_EXECUTABLE} -m unittest discover
-            -s scripts/help-sync/tests -p test_*.py -v
+add_custom_target(
+    test-help-sync
+    COMMAND ${Python3_EXECUTABLE} -m unittest discover -s scripts/help-sync/tests -p test_*.py -v
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     SOURCES ${HELP_SYNC_SOURCES}
-    COMMENT "Running help synchronization unit tests")
+    COMMENT "Running help synchronization unit tests"
+)
 
-add_custom_target(test-help-sync-integration
-    COMMAND ${CMAKE_COMMAND} -E env LUMINARI_HELP_SYNC_INTEGRATION=1
-            ${Python3_EXECUTABLE} -m unittest
-            scripts/help-sync/tests/test_endpoint_integration.py -v
+add_custom_target(
+    test-help-sync-integration
+    COMMAND
+        ${CMAKE_COMMAND} -E env LUMINARI_HELP_SYNC_INTEGRATION=1 ${Python3_EXECUTABLE} -m unittest
+        scripts/help-sync/tests/test_endpoint_integration.py -v
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     SOURCES ${HELP_SYNC_SOURCES}
-    COMMENT "Running isolated MariaDB help synchronization tests")
+    COMMENT "Running isolated MariaDB help synchronization tests"
+)
 
 # ========== Build unit tests AFTER main executable ==========
 # The focused protocol parser harness remains available under unittests/CuTest.
@@ -1083,6 +1201,9 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_transport_production.c
     unittests/CuTest/test_traps_production.c
     unittests/CuTest/test_combat_production.c
+    unittests/CuTest/test_combat_messages.c
+    unittests/CuTest/test_perk_definitions.c
+    unittests/CuTest/test_wizard_set.c
     unittests/CuTest/test_combat_encounters.c
     unittests/CuTest/test_activity_manager.c
     unittests/CuTest/test_thrown_weapons.c
@@ -1139,30 +1260,29 @@ set(PROTOCOL_FOCUSED_TEST_SOURCES
     unittests/CuTest/fuzz_protocol_parser.c
 )
 
-if (BUILD_TESTS)
+if(BUILD_TESTS)
     enable_testing()
 
     add_executable(bsd_snprintf_fallback_test src/core/bsd-snprintf.c)
-    target_compile_definitions(bsd_snprintf_fallback_test PRIVATE
-        BROKEN_SNPRINTF
-        TEST_SNPRINTF)
+    target_compile_definitions(bsd_snprintf_fallback_test PRIVATE BROKEN_SNPRINTF TEST_SNPRINTF)
     target_link_libraries(bsd_snprintf_fallback_test PRIVATE luminari_build m)
     add_test(NAME bsd-snprintf-fallback COMMAND bsd_snprintf_fallback_test)
 
-    set(CUTEST_GENERATOR
-        ${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest/make-tests.sh)
-    set(CUTEST_ALL_TESTS_SOURCE
-        ${CMAKE_CURRENT_BINARY_DIR}/AllTests.c)
-    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-        ${CUTEST_GENERATOR}
-        ${CUTEST_TEST_SOURCES})
+    set(CUTEST_GENERATOR ${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest/make-tests.sh)
+    set(CUTEST_ALL_TESTS_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/AllTests.c)
+    set_property(
+        DIRECTORY
+        APPEND
+        PROPERTY CMAKE_CONFIGURE_DEPENDS ${CUTEST_GENERATOR} ${CUTEST_TEST_SOURCES}
+    )
 
     execute_process(
         COMMAND ${CUTEST_GENERATOR} ${CUTEST_TEST_SOURCES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         OUTPUT_FILE ${CUTEST_ALL_TESTS_SOURCE}
-        RESULT_VARIABLE CUTEST_GENERATOR_RESULT)
-    if (NOT CUTEST_GENERATOR_RESULT EQUAL 0)
+        RESULT_VARIABLE CUTEST_GENERATOR_RESULT
+    )
+    if(NOT CUTEST_GENERATOR_RESULT EQUAL 0)
         message(FATAL_ERROR "Failed to generate the CuTest test registry")
     endif()
 
@@ -1174,179 +1294,256 @@ if (BUILD_TESTS)
         COMMAND ${CUTEST_GENERATOR} --prototypes ${CUTEST_TEST_SOURCES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         OUTPUT_FILE ${CUTEST_GENERATED_INCLUDE_DIR}/test_prototypes.h
-        RESULT_VARIABLE CUTEST_GENERATOR_RESULT)
-    if (NOT CUTEST_GENERATOR_RESULT EQUAL 0)
+        RESULT_VARIABLE CUTEST_GENERATOR_RESULT
+    )
+    if(NOT CUTEST_GENERATOR_RESULT EQUAL 0)
         message(FATAL_ERROR "Failed to generate the CuTest test prototypes")
     endif()
 
-    add_executable(cutest
+    add_executable(
+        cutest
         unittests/CuTest/CuTest.c
         ${CUTEST_TEST_SOURCES}
         ${CUTEST_ALL_TESTS_SOURCE}
-        ${SRC_FILES})
+        ${SRC_FILES}
+    )
     add_dependencies(cutest refresh_build_identity)
-    set_target_properties(cutest PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    target_include_directories(cutest PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest
-        ${CUTEST_GENERATED_INCLUDE_DIR})
+    set_target_properties(cutest PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    target_include_directories(
+        cutest
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest ${CUTEST_GENERATED_INCLUDE_DIR}
+    )
     target_compile_definitions(cutest PRIVATE LUMINARI_CUTEST)
     target_link_libraries(cutest PRIVATE luminari_build luminari_deps)
 
-    add_test(NAME build-parity
-        COMMAND Python3::Interpreter scripts/ci/check_build_parity.py)
-    add_test(NAME cutest-runner
-        COMMAND ${CMAKE_COMMAND} -E env "CC=${CMAKE_C_COMPILER}"
-            ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/ci/test_cutest_runner.py)
-    add_test(NAME clean-archive-runtime
-        COMMAND Python3::Interpreter scripts/ci/test_clean_archive.py -v)
-    add_test(NAME warning-budget-self-test
-        COMMAND Python3::Interpreter scripts/ci/check_warning_budget.py --self-test)
-    add_test(NAME sql-interpolation-self-test
-        COMMAND Python3::Interpreter scripts/ci/check_sql_interpolation.py --self-test)
-    add_test(NAME sql-interpolation
-        COMMAND Python3::Interpreter scripts/ci/check_sql_interpolation.py)
-    add_test(NAME help-sync
-        COMMAND Python3::Interpreter -m unittest discover
-                -s scripts/help-sync/tests -p test_*.py -v)
-    add_test(NAME background-help-entries
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_background_help_entries.sh)
+    add_test(NAME build-parity COMMAND Python3::Interpreter scripts/ci/check_build_parity.py)
+    add_test(
+        NAME cutest-runner
+        COMMAND
+            ${CMAKE_COMMAND} -E env "CC=${CMAKE_C_COMPILER}" ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/ci/test_cutest_runner.py
+    )
+    add_test(
+        NAME clean-archive-runtime
+        COMMAND Python3::Interpreter scripts/ci/test_clean_archive.py -v
+    )
+    add_test(
+        NAME warning-budget-self-test
+        COMMAND Python3::Interpreter scripts/ci/check_warning_budget.py --self-test
+    )
+    add_test(
+        NAME sql-interpolation-self-test
+        COMMAND Python3::Interpreter scripts/ci/check_sql_interpolation.py --self-test
+    )
+    add_test(
+        NAME sql-interpolation
+        COMMAND Python3::Interpreter scripts/ci/check_sql_interpolation.py
+    )
+    add_test(
+        NAME clang-tidy-gate-self-test
+        COMMAND Python3::Interpreter scripts/ci/check_clang_tidy.py --self-test
+    )
+    add_test(
+        NAME baseline-ratchet-self-test
+        COMMAND Python3::Interpreter scripts/ci/check_baseline_ratchet.py --self-test
+    )
+    add_test(
+        NAME header-self-containment
+        COMMAND
+            Python3::Interpreter scripts/ci/check_header_self_containment.py --cc
+            ${CMAKE_C_COMPILER} --build-root ${CMAKE_CURRENT_BINARY_DIR}
+    )
+    add_test(
+        NAME help-sync
+        COMMAND Python3::Interpreter -m unittest discover -s scripts/help-sync/tests -p test_*.py -v
+    )
+    add_test(
+        NAME background-help-entries
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_background_help_entries.sh
+    )
     set_tests_properties(
         build-parity
         clean-archive-runtime
         warning-budget-self-test
         sql-interpolation-self-test
         sql-interpolation
+        clang-tidy-gate-self-test
+        baseline-ratchet-self-test
+        header-self-containment
         help-sync
         background-help-entries
-        PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
 
     add_test(NAME production-cutest COMMAND cutest)
-    set_tests_properties(production-cutest PROPERTIES
-        ENVIRONMENT
-            "CUTEST_FILTER=;LUMINARI_TEST_ROOT=${CMAKE_CURRENT_SOURCE_DIR};LUMINARI_TEST_SPEC_WORLD_ROOT=${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest/fixtures/spec_world_inventory"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    set_tests_properties(
+        production-cutest
+        PROPERTIES
+            ENVIRONMENT
+                "CUTEST_FILTER=;LUMINARI_TEST_ROOT=${CMAKE_CURRENT_SOURCE_DIR};LUMINARI_TEST_SPEC_WORLD_ROOT=${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest/fixtures/spec_world_inventory"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
 
-    add_test(NAME demand-driven-event-architecture
-        COMMAND bash
-            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_demand_driven_architecture.sh)
-    add_test(NAME event-core-performance-gate
-        COMMAND Python3::Interpreter -m unittest
-            scripts/events/test_event_core_performance_gate.py -v)
-    add_test(NAME legacy-event-admission
-        COMMAND bash
-            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_legacy_event_admission.sh)
-    add_test(NAME native-event-architecture
-        COMMAND bash
-            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_native_event_architecture.sh)
-    add_test(NAME event-pubsub-retirement
-        COMMAND bash
-            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_pubsub_retirement.sh)
+    add_test(
+        NAME demand-driven-event-architecture
+        COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_demand_driven_architecture.sh
+    )
+    add_test(
+        NAME event-core-performance-gate
+        COMMAND
+            Python3::Interpreter -m unittest scripts/events/test_event_core_performance_gate.py -v
+    )
+    add_test(
+        NAME legacy-event-admission
+        COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_legacy_event_admission.sh
+    )
+    add_test(
+        NAME native-event-architecture
+        COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_native_event_architecture.sh
+    )
+    add_test(
+        NAME event-pubsub-retirement
+        COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_pubsub_retirement.sh
+    )
     set_tests_properties(
         demand-driven-event-architecture
         event-core-performance-gate
         legacy-event-admission
         native-event-architecture
         event-pubsub-retirement
-        PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
     # These scripts preprocess game sources; point them at the generated conf.h.
     set_tests_properties(
         demand-driven-event-architecture
         native-event-architecture
-        PROPERTIES ENVIRONMENT
-            "CC=${CMAKE_C_COMPILER};CPPFLAGS=-I${CMAKE_CURRENT_BINARY_DIR}")
+        PROPERTIES ENVIRONMENT "CC=${CMAKE_C_COMPILER};CPPFLAGS=-I${CMAKE_CURRENT_BINARY_DIR}"
+    )
 
-    add_test(NAME world-tools
-        COMMAND Python3::Interpreter -m unittest discover
-                -s scripts/world/tests -t scripts/world -v)
-    add_test(NAME world-tool-constants
-        COMMAND Python3::Interpreter scripts/world/wtool.py constants sync --check)
-    add_test(NAME world-tool-docs
-        COMMAND Python3::Interpreter scripts/world/wtool.py docs --check)
-    add_test(NAME world-tool-wrapper
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/lib/world/validate-zone.sh 100
-                --world-root
-                ${CMAKE_CURRENT_SOURCE_DIR}/scripts/world/tests/fixtures/phase2/complete)
+    add_test(
+        NAME world-tools
+        COMMAND Python3::Interpreter -m unittest discover -s scripts/world/tests -t scripts/world -v
+    )
+    add_test(
+        NAME world-tool-constants
+        COMMAND Python3::Interpreter scripts/world/wtool.py constants sync --check
+    )
+    add_test(NAME world-tool-docs COMMAND Python3::Interpreter scripts/world/wtool.py docs --check)
+    add_test(
+        NAME world-tool-wrapper
+        COMMAND
+            ${CMAKE_CURRENT_SOURCE_DIR}/lib/world/validate-zone.sh 100 --world-root
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/world/tests/fixtures/phase2/complete
+    )
     set_tests_properties(
         world-tools
         world-tool-constants
         world-tool-docs
         world-tool-wrapper
-        PROPERTIES
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
     # The world tests preprocess game sources; point them at the generated conf.h.
     set(WORLD_TOOLS_TEST_ENV "CPPFLAGS=-I${CMAKE_CURRENT_BINARY_DIR}")
-    if (TARGET rol_mob_calculator)
-        list(APPEND WORLD_TOOLS_TEST_ENV
-            "ROL_MOB_CALCULATOR=$<TARGET_FILE:rol_mob_calculator>")
+    if(TARGET rol_mob_calculator)
+        list(APPEND WORLD_TOOLS_TEST_ENV "ROL_MOB_CALCULATOR=$<TARGET_FILE:rol_mob_calculator>")
     endif()
     set_tests_properties(world-tools PROPERTIES ENVIRONMENT "${WORLD_TOOLS_TEST_ENV}")
 
-    add_test(NAME autorun-supervision
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/autorun/test_autorun_supervision.sh)
-    set_tests_properties(autorun-supervision PROPERTIES
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    add_test(NAME versioned-binary-install
-        COMMAND
-            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_versioned_binary_install.sh)
-    set_tests_properties(versioned-binary-install PROPERTIES
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    add_test(NAME binary-name-static
-        COMMAND bash
-            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_binary_name_static.sh)
-    set_tests_properties(binary-name-static PROPERTIES
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    add_test(NAME production-profile
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_production_profile.sh)
-    set_tests_properties(production-profile PROPERTIES
-        ENVIRONMENT "CC=${CMAKE_C_COMPILER}"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    add_test(
+        NAME autorun-supervision
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/autorun/test_autorun_supervision.sh
+    )
+    set_tests_properties(
+        autorun-supervision
+        PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    add_test(
+        NAME versioned-binary-install
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_versioned_binary_install.sh
+    )
+    set_tests_properties(
+        versioned-binary-install
+        PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    add_test(
+        NAME binary-name-static
+        COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_binary_name_static.sh
+    )
+    set_tests_properties(
+        binary-name-static
+        PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    add_test(
+        NAME production-profile
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_production_profile.sh
+    )
+    set_tests_properties(
+        production-profile
+        PROPERTIES
+            ENVIRONMENT "CC=${CMAKE_C_COMPILER}"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
 
-    add_test(NAME healthcheck
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/operations/test_healthcheck.sh)
-    set_tests_properties(healthcheck PROPERTIES
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    add_test(
+        NAME healthcheck
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/operations/test_healthcheck.sh
+    )
+    set_tests_properties(healthcheck PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-    add_test(NAME vessel-memory-analyzer
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/vessels/test_vessel_memory_analyzer.sh)
-    add_test(NAME vessel-process-memory-details
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/process-memory/test_process_memory_details.sh)
-    add_test(NAME process-memory-monitor
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/process-memory/test_monitor_process_memory.sh)
-    add_test(NAME vessel-ferry-soak-preflight
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/vessels/test_vessel_ferry_soak_preflight.sh)
-    add_test(NAME vessel-scale-benchmark-parsers
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/vessels/test_vessel_scale_benchmark_parsers.sh)
+    add_test(
+        NAME vessel-memory-analyzer
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/vessels/test_vessel_memory_analyzer.sh
+    )
+    add_test(
+        NAME vessel-process-memory-details
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/process-memory/test_process_memory_details.sh
+    )
+    add_test(
+        NAME process-memory-monitor
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/process-memory/test_monitor_process_memory.sh
+    )
+    add_test(
+        NAME vessel-ferry-soak-preflight
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/vessels/test_vessel_ferry_soak_preflight.sh
+    )
+    add_test(
+        NAME vessel-scale-benchmark-parsers
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/vessels/test_vessel_scale_benchmark_parsers.sh
+    )
     set_tests_properties(
         vessel-memory-analyzer
         vessel-process-memory-details
         process-memory-monitor
         vessel-ferry-soak-preflight
         vessel-scale-benchmark-parsers
-        PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
 endif()
 
-add_custom_target(test-autorun-supervision
+add_custom_target(
+    test-autorun-supervision
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/autorun/test_autorun_supervision.sh
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running autorun supervision regression tests"
 )
 
-add_custom_target(test-process-memory
+add_custom_target(
+    test-process-memory
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/process-memory/test_process_memory_details.sh
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/process-memory/test_monitor_process_memory.sh
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running process memory regression tests"
 )
 
-add_custom_target(test-versioned-binary-install
-    COMMAND
-        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_versioned_binary_install.sh
+add_custom_target(
+    test-versioned-binary-install
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_versioned_binary_install.sh
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running versioned binary installation regression test"
 )
 
-add_custom_target(test-healthcheck
+add_custom_target(
+    test-healthcheck
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/operations/test_healthcheck.sh
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running healthcheck regression tests"
@@ -1356,9 +1553,9 @@ add_custom_target(test-healthcheck
 # Opt-in so normal builds are reproducible regardless of whether clang-tidy is
 # installed. The analyzer is attached to each executable target rather than
 # set through the directory-wide CMAKE_C_CLANG_TIDY variable.
-if (STATIC_ANALYSIS)
+if(STATIC_ANALYSIS)
     find_program(CLANG_TIDY_EXE NAMES clang-tidy)
-    if (NOT CLANG_TIDY_EXE)
+    if(NOT CLANG_TIDY_EXE)
         message(FATAL_ERROR "STATIC_ANALYSIS requested but clang-tidy not found")
     endif()
     message(STATUS "clang-tidy enabled: ${CLANG_TIDY_EXE}")
@@ -1366,15 +1563,16 @@ if (STATIC_ANALYSIS)
     get_directory_property(LUMINARI_ALL_TARGETS BUILDSYSTEM_TARGETS)
     foreach(ANALYZED_TARGET IN LISTS LUMINARI_ALL_TARGETS)
         get_target_property(ANALYZED_TYPE ${ANALYZED_TARGET} TYPE)
-        if (ANALYZED_TYPE STREQUAL "EXECUTABLE")
-            set_target_properties(${ANALYZED_TARGET} PROPERTIES
-                C_CLANG_TIDY "${CLANG_TIDY_EXE}")
+        if(ANALYZED_TYPE STREQUAL "EXECUTABLE")
+            set_target_properties(${ANALYZED_TARGET} PROPERTIES C_CLANG_TIDY "${CLANG_TIDY_EXE}")
         endif()
     endforeach()
 endif()
 
 # ========== Installation ==========
-install(CODE "
+install(
+    CODE
+        "
     execute_process(
         COMMAND
             \"${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/install_versioned_binary.sh\"
@@ -1390,11 +1588,22 @@ install(CODE "
     if (NOT artifact_provision_result EQUAL 0)
         message(FATAL_ERROR \"Artifact world data provisioning failed\")
     endif()
-")
-if (BUILD_UTILS)
-    install(TARGETS autowiz asciipasswd plrtoascii rebuildAsciiIndex
-                    rebuildMailIndex shopconv sign split wld2html
-            DESTINATION ${INSTALL_BIN_OUTPUT_DIR})
+"
+)
+if(BUILD_UTILS)
+    install(
+        TARGETS
+            autowiz
+            asciipasswd
+            plrtoascii
+            rebuildAsciiIndex
+            rebuildMailIndex
+            shopconv
+            sign
+            split
+            wld2html
+        DESTINATION ${INSTALL_BIN_OUTPUT_DIR}
+    )
 endif()
 
 # ========== Summary ==========
@@ -1419,10 +1628,12 @@ message(STATUS "  Binary Output: ${BIN_OUTPUT_DIR}")
 message(STATUS "========================================")
 
 # Optional sound-pack source and distribution files; no runtime generation required.
-add_custom_target(msp_sound_assets SOURCES
-    scripts/development/generate_msp_sounds.py
-    lib/sounds/README.md
-    lib/sounds/luminari-test.wav
-    lib/sounds/luminari-door-open.wav
-    sql/components/help_screen_reader_msp.sql
+add_custom_target(
+    msp_sound_assets
+    SOURCES
+        scripts/development/generate_msp_sounds.py
+        lib/sounds/README.md
+        lib/sounds/luminari-test.wav
+        lib/sounds/luminari-door-open.wav
+        sql/components/help_screen_reader_msp.sql
 )

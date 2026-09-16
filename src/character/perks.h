@@ -6,6 +6,9 @@
 #ifndef _PERKS_H_
 #define _PERKS_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 #include "events/mud_event.h"
 
 /* External declarations */
@@ -18,21 +21,6 @@ void init_perks(void);
 void destroy_perks(void);
 int count_defined_perks(void);
 int class_to_perk_class(int class_type, int which_perk);
-
-/* Perk definition functions */
-void define_fighter_perks(void);
-void define_wizard_perks(void);
-void define_cleric_perks(void);
-void define_rogue_perks(void);
-void define_ranger_perks(void);
-void define_barbarian_perks(void);
-void define_monk_perks(void);
-void define_druid_perks(void);
-void define_paladin_perks(void);
-void define_alchemist_perks(void);
-void define_psionicist_perks(void);
-void define_blackguard_perks(void);
-void define_inquisitor_perks(void);
 
 /* Inquisitor helper functions - Judgment & Spellcasting Tree Tier 1 */
 int get_inquisitor_empowered_judgment_bonus(struct char_data *ch);

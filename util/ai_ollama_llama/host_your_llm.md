@@ -3,17 +3,20 @@
 ## Quick Start for LuminariMUD
 
 This guide installs Ollama with Llama 3.2 to provide AI-powered NPCs in LuminariMUD. The integration provides:
+
 - **Always-on AI**: NPCs respond intelligently even when OpenAI is disabled
 - **Fast responses**: 0.5-1 second response times with local processing
 - **Zero cost**: Runs on your server hardware, no API fees
 - **128K context window**: Supports future conversation history features
 
 After installation, NPCs with the `MOB_AI_ENABLED` flag will automatically use Ollama when:
+
 1. OpenAI is disabled (`ai disable` command)
 2. OpenAI fails or times out (automatic fallback)
 3. Testing with `./test_ollama` utility
 
 ## System Requirements
+
 - **OS**: Ubuntu 20.04+ (or compatible Linux distribution)
 - **RAM**: Minimum 4GB (8GB recommended)
 - **Storage**: 10GB free space
@@ -23,6 +26,7 @@ After installation, NPCs with the `MOB_AI_ENABLED` flag will automatically use O
 ## Installation Steps
 
 ### Step 1: Install Ollama (as root)
+
 ```bash
 # Switch to root user
 sudo su -
@@ -39,12 +43,14 @@ exit
 ```
 
 **What this does:**
+
 - Installs Ollama to `/usr/local/bin/ollama`
 - Creates `ollama` system user and group
 - Sets up systemd service
 - Starts Ollama service on port 11434
 
 ### Step 2: Configure User Permissions
+
 ```bash
 # Add your MUD user to the ollama group (replace 'luminari' with your username)
 sudo usermod -a -G ollama luminari
@@ -57,6 +63,7 @@ groups luminari
 **Note:** You may need to log out and back in for group changes to take effect.
 
 ### Step 3: Setup Model Storage Directory (as MUD user)
+
 ```bash
 # Switch to your MUD user
 su - luminari
@@ -76,6 +83,7 @@ echo $OLLAMA_MODELS
 ```
 
 ### Step 4: Download Llama 3.2 Model
+
 ```bash
 # Pull the Llama 3.2 1B model (optimized for roleplay)
 ollama pull llama3.2:1b
@@ -91,6 +99,7 @@ ollama run llama3.2:1b "You are a goblin guard. Say something threatening:"
 ```
 
 ### Step 5: Test API Endpoint
+
 ```bash
 # Test basic API call (using jq for JSON formatting if available, or just view raw)
 curl -s http://localhost:11434/api/generate -d '{
@@ -118,6 +127,7 @@ curl -s http://localhost:11434/api/generate -d '{
 ```
 
 ### Step 6: Test LuminariMUD Integration
+
 ```bash
 # Compile the standalone test program from our codebase
 cd /path/to/luminari-source
@@ -175,6 +185,7 @@ chmod +x ~/test_luminari_npcs.sh
 ```
 
 ### Step 7: (Optional) Configure as Custom Service
+
 If you need custom service configuration:
 
 ```bash
@@ -183,6 +194,7 @@ sudo nano /etc/systemd/system/ollama-mud.service
 ```
 
 Add this content:
+
 ```ini
 [Unit]
 Description=Ollama for MUD NPCs
@@ -207,6 +219,7 @@ WantedBy=multi-user.target
 ```
 
 Activate the service:
+
 ```bash
 # Reload systemd configurations
 sudo systemctl daemon-reload
@@ -224,6 +237,7 @@ sudo systemctl status ollama-mud
 ## LuminariMUD Integration Examples
 
 ### Testing from Within the Game
+
 ```bash
 # As an admin character in-game:
 
@@ -247,6 +261,7 @@ tail -f syslog | grep "AI \["
 ```
 
 ### C Integration Example (Simplified from LuminariMUD)
+
 ```c
 /* From ai_service.c - Ollama request function */
 static char *make_ollama_request(const char *prompt) {
@@ -319,6 +334,7 @@ void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const ch
 ## LuminariMUD NPC Prompt Templates
 
 ### Standard LuminariMUD Format
+
 ```
 You are an NPC in a fantasy RPG game. You are [NPC description]. [Situation]. Respond in character briefly:
 ```
@@ -326,26 +342,31 @@ You are an NPC in a fantasy RPG game. You are [NPC description]. [Situation]. Re
 ### Specific NPC Examples
 
 **Desert NPCs (Sanctus)**
+
 ```
 You are an NPC in a fantasy RPG game. You are a janni bladesman guarding the desert oasis. A traveler approaches. Respond in character briefly:
 ```
 
 **Underdark NPCs**
+
 ```
 You are an NPC in a fantasy RPG game. You are a drow merchant in the underdark city. Someone asks about your wares. Respond in character briefly:
 ```
 
 **City Guards**
+
 ```
 You are an NPC in a fantasy RPG game. You are a Palanthas city guard at the north gate. Someone approaches at night. Respond in character briefly:
 ```
 
 **Temple NPCs**
+
 ```
 You are an NPC in a fantasy RPG game. You are a priest of Paladine in the temple. A wounded adventurer seeks healing. Respond in character briefly:
 ```
 
 **Thieves Guild**
+
 ```
 You are an NPC in a fantasy RPG game. You are a fence in the thieves guild. Someone wants to sell stolen goods. Respond in character briefly:
 ```
@@ -353,6 +374,7 @@ You are an NPC in a fantasy RPG game. You are a fence in the thieves guild. Some
 ## Performance Optimization Settings
 
 ### LuminariMUD Default (Balanced)
+
 ```json
 {
   "num_predict": 100,     // Standard NPC response length
@@ -363,6 +385,7 @@ You are an NPC in a fantasy RPG game. You are a fence in the thieves guild. Some
 ```
 
 ### Fast Combat Responses
+
 ```json
 {
   "num_predict": 30,      // Short combat taunts
@@ -373,6 +396,7 @@ You are an NPC in a fantasy RPG game. You are a fence in the thieves guild. Some
 ```
 
 ### Detailed Quest/Lore NPCs
+
 ```json
 {
   "num_predict": 150,     // Longer explanations
@@ -383,6 +407,7 @@ You are an NPC in a fantasy RPG game. You are a fence in the thieves guild. Some
 ```
 
 ### Merchant/Shop NPCs
+
 ```json
 {
   "num_predict": 80,      // Item descriptions
@@ -418,6 +443,7 @@ ollama show MODEL_NAME            # Show model details
 ## Troubleshooting Guide
 
 ### Issue: "Command not found"
+
 ```bash
 # Add to PATH
 export PATH=$PATH:/usr/local/bin
@@ -426,6 +452,7 @@ source ~/.bashrc
 ```
 
 ### Issue: "Permission denied"
+
 ```bash
 # Ensure user is in ollama group
 sudo usermod -a -G ollama $USER
@@ -433,6 +460,7 @@ sudo usermod -a -G ollama $USER
 ```
 
 ### Issue: "Connection refused" on API calls
+
 ```bash
 # Check if service is running
 sudo systemctl status ollama
@@ -445,6 +473,7 @@ netstat -tlnp | grep 11434
 ```
 
 ### Issue: Slow responses
+
 ```bash
 # Check CPU usage
 htop
@@ -460,11 +489,13 @@ sudo systemctl restart ollama
 ```
 
 ### Issue: Model gives "helpful AI" responses instead of roleplay
+
 - Wrong model (some models are over-safety-trained)
 - Solution: Use llama3.2:1b or tinyllama models
 - Add to prompts: "Stay in character" or "Respond ONLY as the character"
 
 ### Issue: High memory usage
+
 ```bash
 # Check memory usage
 free -h
@@ -492,23 +523,27 @@ free -h
 ## Useful Model Alternatives
 
 ### For Faster Responses
+
 ```bash
 ollama pull tinyllama        # 1.1B, optimized for speed
 ```
 
 ### For Better Quality
+
 ```bash
 ollama pull llama3.2:3b      # 3B parameters, better responses
 ollama pull mistral:7b-instruct-q4_K_M  # 7B, excellent roleplay
 ```
 
 ### For Specific Use Cases
+
 ```bash
 ollama pull dolphin-phi:2.7b # Less censored, good for fantasy
 ollama pull gemma:2b         # Google's model, good reasoning
 ```
 
 ## Complete Installation Time
+
 - Ollama installation: ~1 minute
 - Model download: 2-5 minutes (depending on connection)
 - Configuration: ~2 minutes
@@ -516,6 +551,7 @@ ollama pull gemma:2b         # Google's model, good reasoning
 - **Total: ~10 minutes**
 
 ## Quick Verification Script
+
 ```bash
 #!/bin/bash
 # Save as verify_setup.sh
@@ -562,12 +598,14 @@ echo "=== Verification Complete ==="
 ## LuminariMUD-Specific Notes
 
 ### Integration Points
+
 - **Primary code**: `src/ai/ai_service.c` - Contains Ollama integration
 - **Configuration**: `src/ai/ai_service.h` - Model and endpoint settings
 - **Test utility**: `test_ollama_ai.c` - Standalone testing tool
 - **Documentation**: `docs/systems/AI_SERVICE_README.md` - Complete AI system docs
 
 ### In-Game Usage
+
 ```
 # Admin commands
 ai                  # Show AI service status
@@ -581,6 +619,7 @@ say hi             # NPCs in room may respond if AI-enabled
 ```
 
 ### Monitoring
+
 ```bash
 # Watch AI responses in real-time
 tail -f syslog | grep "AI \["

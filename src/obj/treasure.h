@@ -11,6 +11,9 @@
 #ifndef TREASURE_H
 #define TREASURE_H
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 /* defines */
 
 /* rare grade */

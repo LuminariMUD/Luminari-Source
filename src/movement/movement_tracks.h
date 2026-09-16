@@ -12,6 +12,8 @@
 #ifndef _MOVEMENT_TRACKS_H_
 #define _MOVEMENT_TRACKS_H_
 
+#include "core/structs.h"
+
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>

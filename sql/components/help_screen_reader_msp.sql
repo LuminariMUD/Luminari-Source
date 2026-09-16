@@ -29,7 +29,7 @@ Sound is separate and off by default. See help sound for optional audio.
 Report remaining accessibility gaps with bug or idea.
 
 See also: SOUND, PROMPT, TOGGLE, SURVEY
-', 0, 0) ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level), auto_generated = VALUES(auto_generated);
+', 0, 0) ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SCREEN-READER', 'SCREEN-READER');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SCREEN-READER', 'SCREENREADER');
 INSERT INTO help_entries (tag, entry, min_level, auto_generated) VALUES ('SOUND', 'Optional sound
@@ -57,7 +57,7 @@ played it. Missing files never prevent play; sound is supplementary to text.
 PREFEDIT Sound changes the same saved preference, not client capabilities.
 
 See also: SCREEN-READER, PREFEDIT
-', 0, 0) ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level), auto_generated = VALUES(auto_generated);
+', 0, 0) ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SOUND', 'SOUND');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SOUND', 'MSP');
 

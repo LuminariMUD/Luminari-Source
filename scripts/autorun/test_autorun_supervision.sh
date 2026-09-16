@@ -8,18 +8,16 @@ test_root=$(mktemp -d "${TMPDIR:-/tmp}/luminari-autorun-test.XXXXXX")
 # These fake MUD executables never open sockets. Keep their port probes isolated
 # so the real development MUD can continue listening on its required port 4100.
 mkdir -p "$test_root/socket-probe"
-printf '#!/usr/bin/env bash\nexit 0\n' > "$test_root/socket-probe/ss"
+printf '#!/usr/bin/env bash\nexit 0\n' >"$test_root/socket-probe/ss"
 chmod +x "$test_root/socket-probe/ss"
 export PATH="$test_root/socket-probe:$PATH"
 
-fail()
-{
+fail() {
   echo "autorun supervision test: $*" >&2
   exit 1
 }
 
-terminate_tree()
-{
+terminate_tree() {
   local child
   local pid=$1
 
@@ -30,8 +28,7 @@ terminate_tree()
   kill -KILL "$pid" 2>/dev/null || true
 }
 
-test_compatibility_links()
-{
+test_compatibility_links() {
   [[ -L "$project_root/autorun.sh" ]] ||
     fail "project-root autorun compatibility link is missing"
   [[ -L "$project_root/autorun-watchdog.sh" ]] ||
@@ -42,25 +39,19 @@ test_compatibility_links()
     fail "setup compatibility link is missing"
   [[ -L "$project_root/scripts/move_bin.sh" ]] ||
     fail "binary deployment compatibility link is missing"
-  [[ "$(readlink "$project_root/autorun.sh")" == \
-      "scripts/autorun/autorun.sh" ]] ||
+  [[ "$(readlink "$project_root/autorun.sh")" == "scripts/autorun/autorun.sh" ]] ||
     fail "project-root autorun compatibility link has the wrong target"
-  [[ "$(readlink "$project_root/autorun-watchdog.sh")" == \
-      "scripts/autorun/autorun-watchdog.sh" ]] ||
+  [[ "$(readlink "$project_root/autorun-watchdog.sh")" == "scripts/autorun/autorun-watchdog.sh" ]] ||
     fail "project-root watchdog compatibility link has the wrong target"
-  [[ "$(readlink "$project_root/scripts/deploy.sh")" == \
-      "deployment/deploy.sh" ]] ||
+  [[ "$(readlink "$project_root/scripts/deploy.sh")" == "deployment/deploy.sh" ]] ||
     fail "deployment compatibility link has the wrong target"
-  [[ "$(readlink "$project_root/scripts/setup.sh")" == \
-      "deployment/setup.sh" ]] ||
+  [[ "$(readlink "$project_root/scripts/setup.sh")" == "deployment/setup.sh" ]] ||
     fail "setup compatibility link has the wrong target"
-  [[ "$(readlink "$project_root/scripts/move_bin.sh")" == \
-      "deployment/move_bin.sh" ]] ||
+  [[ "$(readlink "$project_root/scripts/move_bin.sh")" == "deployment/move_bin.sh" ]] ||
     fail "binary deployment compatibility link has the wrong target"
 }
 
-test_planned_reboot_exit()
-{
+test_planned_reboot_exit() {
   local c_exit
   local planned_dir="$test_root/planned-reboot"
   local shell_exit
@@ -76,7 +67,7 @@ test_planned_reboot_exit()
     "$planned_dir/log" "$planned_dir/dumps"
   cp "$project_root/scripts/autorun/autorun.sh" "$planned_dir/autorun.sh"
 
-  cat > "$planned_dir/bin/test-release/luminari" <<'EOF'
+  cat >"$planned_dir/bin/test-release/luminari" <<'EOF'
 #!/usr/bin/env bash
 set -u
 script_dir=$(pwd)
@@ -94,7 +85,7 @@ EOF
   (
     cd "$planned_dir"
     AUTORUN_FASTBOOT_DELAY=0 MUD_PORT=4100 ./autorun.sh foreground
-  ) > "$planned_dir/launcher.log" 2>&1
+  ) >"$planned_dir/launcher.log" 2>&1
 
   grep -Fq "MUD requested a planned reboot" "$planned_dir/launcher.log" ||
     fail "planned reboot was not recognized"
@@ -108,8 +99,7 @@ EOF
   fi
 }
 
-cleanup()
-{
+cleanup() {
   local pid
 
   set +e
@@ -131,8 +121,7 @@ cleanup()
 }
 trap cleanup EXIT
 
-wait_for_file()
-{
+wait_for_file() {
   local attempt
   local file=$1
 
@@ -144,8 +133,7 @@ wait_for_file()
   fail "timed out waiting for ${file#"$test_root"/}"
 }
 
-wait_for_pattern()
-{
+wait_for_pattern() {
   local attempt
   local file=$1
   local pattern=$2
@@ -160,13 +148,29 @@ wait_for_pattern()
   fail "timed out waiting for '$pattern' in ${file#"$test_root"/}"
 }
 
-wait_for_pid_exit()
-{
+# A process that has exited but has not been reaped yet still answers kill -0.
+# Orphans are normally reparented to an init that reaps them at once, but a
+# container whose PID 1 never reaps (GitHub runs container jobs as docker exec
+# under `tail -f /dev/null`) keeps them as zombies forever, so procfs decides.
+process_has_exited() {
+  local pid=$1
+  local stat_line
+  local state
+
+  kill -0 "$pid" 2>/dev/null || return 0
+  stat_line=$(cat "/proc/$pid/stat" 2>/dev/null) || return 0
+  # The comm field is parenthesized and may contain spaces; state follows it.
+  state=${stat_line#*') '}
+  state=${state%% *}
+  [[ "$state" == Z ]]
+}
+
+wait_for_pid_exit() {
   local attempt
   local pid=$1
 
   for ((attempt = 0; attempt < 100; attempt++)); do
-    if ! kill -0 "$pid" 2>/dev/null; then
+    if process_has_exited "$pid"; then
       return 0
     fi
     sleep 0.1
@@ -175,8 +179,7 @@ wait_for_pid_exit()
   fail "process $pid did not exit"
 }
 
-wait_for_lock_release()
-{
+wait_for_lock_release() {
   local attempt
   local lock_file=$1
 
@@ -190,8 +193,7 @@ wait_for_lock_release()
   fail "lock was not released"
 }
 
-test_autorun_startup_and_locking()
-{
+test_autorun_startup_and_locking() {
   local fake_mud_pid
   local current_update
   local daemon_dir="$test_root/daemon"
@@ -217,7 +219,7 @@ test_autorun_startup_and_locking()
     "$daemon_dir/lib" "$daemon_dir/log" "$daemon_dir/dumps" "$unrelated_dir"
   cp "$project_root/scripts/autorun/autorun.sh" "$daemon_dir/autorun.sh"
 
-  cat > "$daemon_dir/bin/test-release-one/luminari" <<'EOF'
+  cat >"$daemon_dir/bin/test-release-one/luminari" <<'EOF'
 #!/usr/bin/env bash
 set -u
 script_dir=$(pwd)
@@ -231,12 +233,12 @@ EOF
     "$daemon_dir/bin/test-release-two/luminari"
   ln -s "test-release-one/luminari" "$daemon_dir/bin/luminari"
 
-  cat > "$daemon_dir/fake-bin/gdb" <<'EOF'
+  cat >"$daemon_dir/fake-bin/gdb" <<'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$@" > "$(pwd)/.gdb-args"
 EOF
 
-  cat > "$daemon_dir/autorun-watchdog.sh" <<'EOF'
+  cat >"$daemon_dir/autorun-watchdog.sh" <<'EOF'
 #!/usr/bin/env bash
 set -u
 script_dir=$(cd "$(dirname "$0")" && pwd)
@@ -255,7 +257,7 @@ EOF
     "$daemon_dir/bin/test-release-two/luminari" \
     "$daemon_dir/fake-bin/gdb" "$daemon_dir/autorun-watchdog.sh"
 
-  cat > "$unrelated_dir/autorun.sh" <<'EOF'
+  cat >"$unrelated_dir/autorun.sh" <<'EOF'
 #!/usr/bin/env bash
 trap 'exit 0' INT TERM
 while true; do
@@ -271,7 +273,7 @@ EOF
     cd "$daemon_dir"
     PATH="$daemon_dir/fake-bin:$PATH" \
       AUTORUN_STATE_INTERVAL=0.2 MUD_PORT="$port" ./autorun.sh
-  ) > "$daemon_dir/launcher.log" 2>&1
+  ) >"$daemon_dir/launcher.log" 2>&1
 
   wait_for_file "$daemon_dir/.watchdog-saw-state"
   [[ ! -e "$daemon_dir/.watchdog-missing-state" ]] ||
@@ -319,7 +321,7 @@ EOF
   (
     cd "$daemon_dir"
     MUD_PORT="$port" ./autorun.sh
-  ) > "$daemon_dir/second-launcher.log" 2>&1
+  ) >"$daemon_dir/second-launcher.log" 2>&1
   second_status=$?
   set -e
 
@@ -338,7 +340,7 @@ EOF
   (
     cd "$daemon_dir"
     MUD_PORT="$port" ./autorun.sh status
-  ) > "$daemon_dir/status.log" 2>&1
+  ) >"$daemon_dir/status.log" 2>&1
   grep -Fq \
     "Active Executable: $daemon_dir/bin/test-release-one/luminari" \
     "$daemon_dir/status.log" ||
@@ -357,15 +359,14 @@ EOF
   (
     cd "$daemon_dir"
     MUD_PORT="$port" ./autorun.sh stop
-  ) > "$daemon_dir/stop.log" 2>&1
+  ) >"$daemon_dir/stop.log" 2>&1
   grep -Fq "Using verified supervisor child for legacy MUD shutdown" \
     "$daemon_dir/stop.log" ||
     fail "legacy supervisor shutdown did not use the verified child fallback"
   wait_for_pid_exit "$state_pid"
   wait_for_lock_release "$daemon_dir/.autorun.lock"
   wait_for_file "$daemon_dir/.gdb-args"
-  [[ "$(sed -n '1p' "$daemon_dir/.gdb-args")" == \
-      "$daemon_dir/bin/test-release-one/luminari" ]] ||
+  [[ "$(sed -n '1p' "$daemon_dir/.gdb-args")" == "$daemon_dir/bin/test-release-one/luminari" ]] ||
     fail "core analysis did not use the exact active release"
   identity_dump=$(find "$daemon_dir/dumps" -maxdepth 1 \
     -type f -name 'identity.core.*' -print -quit)
@@ -416,12 +417,12 @@ PY
   [[ "$inode_before" == "$inode_after" ]] ||
     fail "autorun lock file was unlinked during cleanup"
 
-  printf '%s\n' "$unrelated_pid" > "$daemon_dir/.autorun.lock.pid"
-  printf '%s\n' "$unrelated_pid" > "$daemon_dir/.mud.pid"
+  printf '%s\n' "$unrelated_pid" >"$daemon_dir/.autorun.lock.pid"
+  printf '%s\n' "$unrelated_pid" >"$daemon_dir/.mud.pid"
   (
     cd "$daemon_dir"
     MUD_PORT="$port" ./autorun.sh stop
-  ) > "$daemon_dir/mismatched-stop.log" 2>&1
+  ) >"$daemon_dir/mismatched-stop.log" 2>&1
   kill -0 "$unrelated_pid" 2>/dev/null ||
     fail "stop command signaled a PID whose command did not match"
   grep -Fq "Refusing to signal autorun supervisor PID $unrelated_pid" \
@@ -435,8 +436,7 @@ PY
   wait "$unrelated_pid" 2>/dev/null || true
 }
 
-test_watchdog_startup_grace()
-{
+test_watchdog_startup_grace() {
   local grace_dir="$test_root/grace"
   local watchdog_pid
 
@@ -444,7 +444,7 @@ test_watchdog_startup_grace()
   cp "$project_root/scripts/autorun/autorun-watchdog.sh" \
     "$grace_dir/autorun-watchdog.sh"
 
-  cat > "$grace_dir/autorun.sh" <<'EOF'
+  cat >"$grace_dir/autorun.sh" <<'EOF'
 #!/usr/bin/env bash
 touch "$(dirname "$0")/.autorun-started"
 exit 1
@@ -454,7 +454,7 @@ EOF
   (
     cd "$grace_dir"
     WATCHDOG_STARTUP_GRACE_PERIOD=2 ./autorun-watchdog.sh loop
-  ) > "$grace_dir/loop.log" 2>&1 &
+  ) >"$grace_dir/loop.log" 2>&1 &
   watchdog_pid=$!
 
   wait_for_pattern "$grace_dir/log/watchdog.log" "startup grace period"
@@ -464,12 +464,11 @@ EOF
   (
     cd "$grace_dir"
     ./autorun-watchdog.sh stop
-  ) > "$grace_dir/stop.log" 2>&1
+  ) >"$grace_dir/stop.log" 2>&1
   wait "$watchdog_pid" 2>/dev/null || true
 }
 
-test_watchdog_transient_killscript()
-{
+test_watchdog_transient_killscript() {
   local guard_dir="$test_root/killscript-guard"
   local now
   local supervisor_pid
@@ -479,7 +478,7 @@ test_watchdog_transient_killscript()
   cp "$project_root/scripts/autorun/autorun-watchdog.sh" \
     "$guard_dir/autorun-watchdog.sh"
 
-  cat > "$guard_dir/autorun.sh" <<'EOF'
+  cat >"$guard_dir/autorun.sh" <<'EOF'
 #!/usr/bin/env bash
 if [[ "${1:-}" == "foreground" ]]; then
   trap 'exit 0' INT TERM
@@ -495,7 +494,7 @@ EOF
   "$guard_dir/autorun.sh" foreground &
   supervisor_pid=$!
   now=$(date +%s)
-  cat > "$guard_dir/.autorun.state" <<EOF
+  cat >"$guard_dir/.autorun.state" <<EOF
 PID=$supervisor_pid
 START_TIME=$now
 LAST_UPDATE=$now
@@ -511,7 +510,7 @@ EOF
       WATCHDOG_STARTUP_GRACE_PERIOD=0 \
       WATCHDOG_STATE_STALE_THRESHOLD=30 \
       ./autorun-watchdog.sh loop
-  ) > "$guard_dir/loop.log" 2>&1 &
+  ) >"$guard_dir/loop.log" 2>&1 &
   watchdog_pid=$!
 
   wait_for_pattern "$guard_dir/log/watchdog.log" \
@@ -539,8 +538,7 @@ EOF
     fail "watchdog restarted autorun despite an intentional killscript"
 }
 
-test_watchdog_pid_verification()
-{
+test_watchdog_pid_verification() {
   local mismatch_dir="$test_root/watchdog-mismatch"
   local unrelated_pid
 
@@ -548,7 +546,7 @@ test_watchdog_pid_verification()
   cp "$project_root/scripts/autorun/autorun-watchdog.sh" \
     "$mismatch_dir/autorun-watchdog.sh"
 
-  cat > "$mismatch_dir/unrelated.sh" <<'EOF'
+  cat >"$mismatch_dir/unrelated.sh" <<'EOF'
 #!/usr/bin/env bash
 trap 'exit 0' INT TERM
 while true; do
@@ -558,12 +556,12 @@ EOF
   chmod +x "$mismatch_dir/unrelated.sh"
   "$mismatch_dir/unrelated.sh" &
   unrelated_pid=$!
-  printf '%s\n' "$unrelated_pid" > "$mismatch_dir/.watchdog.pid"
+  printf '%s\n' "$unrelated_pid" >"$mismatch_dir/.watchdog.pid"
 
   (
     cd "$mismatch_dir"
     ./autorun-watchdog.sh stop
-  ) > "$mismatch_dir/stop.log" 2>&1
+  ) >"$mismatch_dir/stop.log" 2>&1
 
   kill -0 "$unrelated_pid" 2>/dev/null ||
     fail "watchdog stop signaled a PID whose command did not match"
@@ -574,8 +572,7 @@ EOF
   wait "$unrelated_pid" 2>/dev/null || true
 }
 
-test_watchdog_stale_verified_supervisor()
-{
+test_watchdog_stale_verified_supervisor() {
   local stale_dir="$test_root/stale-supervisor"
   local supervisor_pid
   local watchdog_pid
@@ -584,7 +581,7 @@ test_watchdog_stale_verified_supervisor()
   cp "$project_root/scripts/autorun/autorun-watchdog.sh" \
     "$stale_dir/autorun-watchdog.sh"
 
-  cat > "$stale_dir/autorun.sh" <<'EOF'
+  cat >"$stale_dir/autorun.sh" <<'EOF'
 #!/usr/bin/env bash
 if [[ "${1:-}" == "foreground" ]]; then
   trap 'exit 0' INT TERM
@@ -599,7 +596,7 @@ EOF
   "$stale_dir/autorun.sh" foreground &
   supervisor_pid=$!
 
-  cat > "$stale_dir/.autorun.state" <<EOF
+  cat >"$stale_dir/.autorun.state" <<EOF
 PID=$supervisor_pid
 START_TIME=1
 LAST_UPDATE=1
@@ -614,7 +611,7 @@ EOF
       WATCHDOG_STARTUP_GRACE_PERIOD=0 \
       WATCHDOG_STATE_STALE_THRESHOLD=1 \
       ./autorun-watchdog.sh loop
-  ) > "$stale_dir/loop.log" 2>&1 &
+  ) >"$stale_dir/loop.log" 2>&1 &
   watchdog_pid=$!
 
   wait_for_pattern "$stale_dir/log/watchdog.log" \
@@ -628,8 +625,7 @@ EOF
   wait "$supervisor_pid" 2>/dev/null || true
 }
 
-test_watchdog_daemon_recovery()
-{
+test_watchdog_daemon_recovery() {
   local recovered_pid
   local recovery_dir="$test_root/recovery"
   local watchdog_pid
@@ -638,7 +634,7 @@ test_watchdog_daemon_recovery()
   cp "$project_root/scripts/autorun/autorun-watchdog.sh" \
     "$recovery_dir/autorun-watchdog.sh"
 
-  cat > "$recovery_dir/autorun.sh" <<'EOF'
+  cat >"$recovery_dir/autorun.sh" <<'EOF'
 #!/usr/bin/env bash
 set -u
 script_dir=$(cd "$(dirname "$0")" && pwd)
@@ -673,7 +669,7 @@ EOF
       WATCHDOG_STARTUP_GRACE_PERIOD=0 \
       WATCHDOG_STATE_STALE_THRESHOLD=30 \
       ./autorun-watchdog.sh loop
-  ) > "$recovery_dir/loop.log" 2>&1 &
+  ) >"$recovery_dir/loop.log" 2>&1 &
   watchdog_pid=$!
 
   wait_for_pattern "$recovery_dir/log/watchdog.log" "Autorun restarted successfully"
@@ -689,8 +685,7 @@ EOF
 # A copyover replaces the MUD image without autorun forking again. The
 # supervisor must follow /proc/<pid>/exe instead of trusting its launch-time
 # record, or crash analysis would later select the pre-copyover executable.
-test_copyover_identity_refresh()
-{
+test_copyover_identity_refresh() {
   local copyover_dir="$test_root/copyover"
   local mud_pid
   local port
@@ -701,7 +696,7 @@ test_copyover_identity_refresh()
 
   # Compiled fixtures: /proc/<pid>/exe reports the interpreter for a script,
   # so only a real executable can stand in for a copyover here.
-  cat > "$copyover_dir/mud-old.c" <<'EOF'
+  cat >"$copyover_dir/mud-old.c" <<'EOF'
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -724,7 +719,7 @@ int main(void)
   }
 }
 EOF
-  cat > "$copyover_dir/mud-new.c" <<'EOF'
+  cat >"$copyover_dir/mud-new.c" <<'EOF'
 #include <stdio.h>
 #include <unistd.h>
 
@@ -750,7 +745,7 @@ EOF
   (
     cd "$copyover_dir"
     AUTORUN_STATE_INTERVAL=0.2 MUD_PORT="$port" ./autorun.sh
-  ) > "$copyover_dir/launcher.log" 2>&1
+  ) >"$copyover_dir/launcher.log" 2>&1
 
   wait_for_file "$copyover_dir/.mud-fake.pid"
   wait_for_file "$copyover_dir/.mud.identity"
@@ -776,11 +771,10 @@ EOF
   (
     cd "$copyover_dir"
     MUD_PORT="$port" ./autorun.sh stop
-  ) > "$copyover_dir/stop.log" 2>&1 || true
+  ) >"$copyover_dir/stop.log" 2>&1 || true
 }
 
-test_systemd_unit_installation()
-{
+test_systemd_unit_installation() {
   local deploy_dir="$test_root/deploy"
   local fake_bin="$deploy_dir/fake-bin"
   local installed_unit="$deploy_dir/installed/luminari.service"
@@ -802,7 +796,7 @@ test_systemd_unit_installation()
   cp /bin/true "$deploy_dir/bin/releases/test-build/luminari"
   ln -s "releases/test-build/luminari" "$deploy_dir/bin/luminari"
 
-  cat > "$fake_bin/sudo" <<'EOF'
+  cat >"$fake_bin/sudo" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 if [[ "$1" == "install" ]]; then
@@ -812,7 +806,7 @@ fi
 exec "$@"
 EOF
 
-cat > "$fake_bin/systemctl" <<'EOF'
+  cat >"$fake_bin/systemctl" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 printf '%s\n' "$*" >> "$FAKE_SYSTEMCTL_LOG"
@@ -854,7 +848,7 @@ EOF
     FAKE_SYSTEMD_UNIT="$installed_unit" \
     FAKE_SYSTEMCTL_LOG="$deploy_dir/systemctl.log" \
     "$deploy_dir/scripts/deployment/deploy.sh" --install-systemd --restart-service \
-    > "$deploy_dir/install.log" 2>&1
+    >"$deploy_dir/install.log" 2>&1
 
   [[ -f "$installed_unit" ]] ||
     fail "systemd installer did not install a unit"
@@ -885,11 +879,11 @@ EOF
     "$deploy_dir/install.log" ||
     fail "systemd installer did not verify the active MUD release"
 
-  : > "$deploy_dir/.autorun.lock"
+  : >"$deploy_dir/.autorun.lock"
   (
     local guard_status
 
-    exec 9> "$deploy_dir/.autorun.lock"
+    exec 9>"$deploy_dir/.autorun.lock"
     flock -n 9
     set +e
     PATH="$fake_bin:$PATH" \
@@ -899,7 +893,7 @@ EOF
       FAKE_SYSTEMD_UNIT="$installed_unit" \
       FAKE_SYSTEMCTL_LOG="$deploy_dir/guard-systemctl.log" \
       "$deploy_dir/scripts/deployment/deploy.sh" --install-systemd --restart-service \
-      > "$deploy_dir/guard.log" 2>&1
+      >"$deploy_dir/guard.log" 2>&1
     guard_status=$?
     set -e
 
@@ -915,20 +909,19 @@ EOF
 
   if command -v systemd-analyze >/dev/null 2>&1; then
     systemd-analyze verify "$installed_unit" \
-      > "$deploy_dir/systemd-analyze.log" 2>&1 ||
+      >"$deploy_dir/systemd-analyze.log" 2>&1 ||
       fail "installed systemd unit failed systemd-analyze verification"
   fi
 }
 
-test_world_initialization_verifies_indexes()
-{
+test_world_initialization_verifies_indexes() {
   local deploy_functions="$test_root/deploy-world-functions.sh"
   local fixture="$test_root/deploy-world"
   local world_type
 
   mkdir -p "$fixture/lib/world/minimal"
   sed -n '/^world_indexes_ready()/,/^}/p; /^initialize_world_data()/,/^}/p' \
-    "$project_root/scripts/deployment/deploy.sh" > "$deploy_functions"
+    "$project_root/scripts/deployment/deploy.sh" >"$deploy_functions"
 
   for world_type in zon wld mob obj shp trg qst; do
     touch "$fixture/lib/world/minimal/index.$world_type"
@@ -966,20 +959,19 @@ test_world_initialization_verifies_indexes()
 }
 
 # Existing config must be preserved while unsupported game ports block deployment.
-test_deployment_requires_supported_game_port()
-{
+test_deployment_requires_supported_game_port() {
   local deploy_functions="$test_root/deploy-text-functions.sh"
   local fixture="$test_root/deploy-text"
   local setting
 
   mkdir -p "$fixture/lib/etc"
   sed -n '/^create_text_files()/,/^}/p' \
-    "$project_root/scripts/deployment/deploy.sh" > "$deploy_functions"
+    "$project_root/scripts/deployment/deploy.sh" >"$deploy_functions"
 
   for setting in 'DFLT_PORT = 4101' 'dflt_port=4101' 'DFLT_PORT = 4200' \
     $'DFLT_PORT = 4100\nDFLT_PORT = 4101'; do
     printf '# Existing local configuration\n%s\nmax_playing = 17\n' "$setting" \
-      > "$fixture/lib/etc/config"
+      >"$fixture/lib/etc/config"
     cp "$fixture/lib/etc/config" "$fixture/config-before"
     if (
       PROJECT_ROOT="$fixture"
@@ -987,7 +979,7 @@ test_deployment_requires_supported_game_port()
       print_msg() { echo "$2"; }
       source "$deploy_functions"
       create_text_files
-    ) > "$fixture/rejected.log"; then
+    ) >"$fixture/rejected.log"; then
       fail "deployment accepted an unsupported game port"
     fi
     cmp -s "$fixture/config-before" "$fixture/lib/etc/config" ||
@@ -997,7 +989,7 @@ test_deployment_requires_supported_game_port()
   done
 
   for setting in 'DFLT_PORT = 4100' 'dflt_port=4100 # game port' 'max_playing = 17'; do
-    printf '%s\n' "$setting" > "$fixture/lib/etc/config"
+    printf '%s\n' "$setting" >"$fixture/lib/etc/config"
     cp "$fixture/lib/etc/config" "$fixture/config-before"
     (
       PROJECT_ROOT="$fixture"

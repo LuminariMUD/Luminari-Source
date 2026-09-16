@@ -1,4 +1,6 @@
 /* psionic power types */
+#include "core/structs.h"
+
 #define PSIONIC_POWER_TYPE_NONE 0
 #define CLAIRSENTIENCE 1
 #define METACREATIVITY 2

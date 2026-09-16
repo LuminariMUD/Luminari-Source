@@ -11,6 +11,8 @@
 #ifndef _MOVEMENT_MESSAGES_H_
 #define _MOVEMENT_MESSAGES_H_
 
+#include "core/structs.h"
+
 /* Function prototypes for movement message display */
 
 /**

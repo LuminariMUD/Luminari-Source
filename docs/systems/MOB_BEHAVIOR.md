@@ -1,15 +1,16 @@
 # LuminariMUD Mobile Behavior System Documentation
 
 ## Table of Contents
-1. [Overview](#overview)
-2. [System Architecture](#system-architecture)
-3. [Module Organization](#module-organization)
-4. [Agenda Execution](#agenda-execution)
-5. [Combat Behaviors](#combat-behaviors)
-6. [Non-Combat Behaviors](#non-combat-behaviors)
-7. [Memory System](#memory-system)
-8. [Spell and Psionic Systems](#spell-and-psionic-systems)
-9. [Utility Functions](#utility-functions)
+
+01. [Overview](#overview)
+02. [System Architecture](#system-architecture)
+03. [Module Organization](#module-organization)
+04. [Agenda Execution](#agenda-execution)
+05. [Combat Behaviors](#combat-behaviors)
+06. [Non-Combat Behaviors](#non-combat-behaviors)
+07. [Memory System](#memory-system)
+08. [Spell and Psionic Systems](#spell-and-psionic-systems)
+09. [Utility Functions](#utility-functions)
 10. [Mob Flags](#mob-flags)
 11. [Builder Guidelines](#builder-guidelines)
 12. [Examples](#examples)
@@ -19,6 +20,7 @@
 The LuminariMUD mobile behavior system is a sophisticated AI framework that controls how non-player characters (NPCs/mobs) act and react in the game world. The system is modular, extensible, and provides rich behavioral patterns including combat tactics, spellcasting, movement patterns, and social interactions.
 
 ### Key Features
+
 - **Modular Architecture**: Behaviors are organized into logical modules (combat, spells, race, class, etc.)
 - **Class-Specific AI**: Each character class has unique combat behaviors and tactics
 - **Companion Calling**: NPCs can summon class-appropriate companions (familiars, mounts, etc.)
@@ -60,6 +62,7 @@ The system is divided into several specialized modules:
 ### Core Modules
 
 #### mob_act.c/h - Behavior Execution
+
 - **Purpose**: Execute requested autonomous responsibilities for one NPC
 - **Key Function**: `mobile_activity_run_scheduled()` - called by the NPC's due agenda
 - **Responsibilities**:
@@ -68,6 +71,7 @@ The system is divided into several specialized modules:
   - Manage aggression and helper behaviors
 
 #### active_world.c/h - Agenda Ownership
+
 - **Purpose**: Derive, schedule, wake, and retire one concrete agenda per active NPC
 - **Responsibilities**:
   - Store explicit work reasons and their nearest deadlines
@@ -76,6 +80,7 @@ The system is divided into several specialized modules:
   - Cancel all owner work safely during extraction or transformation
 
 #### mob_utils.c/h - Utility Functions
+
 - **Purpose**: Common utility functions used across modules
 - **Key Functions**:
   - `npc_find_target()` - Intelligent target selection
@@ -87,6 +92,7 @@ The system is divided into several specialized modules:
   - `can_continue()` - Check if mob can perform actions
 
 #### mob_class.c/h - Class Behaviors
+
 - **Purpose**: Class-specific combat behaviors
 - **Supported Classes**:
   - **Warrior**: Bash, shield punch, rescue tactics
@@ -99,6 +105,7 @@ The system is divided into several specialized modules:
   - **Bard**: Performance, trip, dirt kick
 
 #### mob_race.c/h - Racial Behaviors
+
 - **Purpose**: Race-specific special abilities
 - **Supported Races**:
   - **Dragons**: Breath weapon, tail sweep, frightful presence
@@ -106,6 +113,7 @@ The system is divided into several specialized modules:
   - **Other races**: Extensible framework for additional abilities
 
 #### mob_spells.c/h - Spell Casting
+
 - **Purpose**: NPC spellcasting AI
 - **Features**:
   - Companion calling for caster classes:
@@ -120,6 +128,7 @@ The system is divided into several specialized modules:
   - Class-appropriate spell restrictions
 
 #### mob_psionic.c/h - Psionic Powers
+
 - **Purpose**: Psionic power manifestation for psionicist NPCs
 - **Features**:
   - Defensive power buffing
@@ -128,6 +137,7 @@ The system is divided into several specialized modules:
   - Valid power filtering
 
 #### mob_memory.c/h - Memory System
+
 - **Purpose**: Allow mobs to remember and seek revenge
 - **Functions**:
   - `remember()` - Add player to memory
@@ -144,12 +154,14 @@ does not walk the character population or create a recurring class scheduler.
 ### Execution Flow
 
 1. **Pre-checks**
+
    - Skip extracted mobs (MOB_NOTDEADYET flag)
    - Skip players
    - Skip mobs with MOB_NO_AI flag
    - Skip stunned/paralyzed/dazed mobs
 
 2. **Reason-gated recurring work**
+
    - `SPEC_ACTIVITY` invokes the assigned special procedure; a consumed action
      ends this NPC's current agenda callback
    - `RESOURCE_RECOVERY`, `ECHO`, and `SCAVENGE` run only their named work
@@ -157,16 +169,19 @@ does not walk the character population or create a recurring class scheduler.
    - `POSTURE` returns an eligible sentinel to its default position
 
 3. **Reason-gated room reactions**
+
    - `ROOM_REACTION` enables player-aware spellup, aggression, memory revenge,
      and adjacent-room ranged attacks
    - `COMBAT_REACTION` enables helper, guard, group-assist, and listen behavior
    - One-shot lifecycle notifications add these reasons when room state changes
 
 4. **Legacy rollback behavior**
+
    - `MOBILE_WORK_LEGACY_ALL` retains the former population-cycle combat and
      chance-driven behavior while the rollback path remains supported
 
 5. **Agenda retirement**
+
    - The owner recomputes its remaining reasons after the callback and retires
      when no recurring or reaction work remains
 
@@ -177,6 +192,7 @@ does not walk the character population or create a recurring class scheduler.
 Each class has unique combat behaviors that reflect their role:
 
 #### Warriors
+
 ```c
 - Rescue allies/master (priority)
 - Switch opponents (33% chance)
@@ -184,6 +200,7 @@ Each class has unique combat behaviors that reflect their role:
 ```
 
 #### Rogues
+
 ```c
 - Sneak attack scaling with level
 - Trip attempt (50% chance)
@@ -192,6 +209,7 @@ Each class has unique combat behaviors that reflect their role:
 ```
 
 #### Monks
+
 ```c
 - Switch opponents (33% chance)
 - Stunning fist (16.7% chance)
@@ -200,6 +218,7 @@ Each class has unique combat behaviors that reflect their role:
 ```
 
 #### Paladins/Blackguards
+
 ```c
 - Call mount (if appropriate)
 - Mount their mount if not already mounted
@@ -211,6 +230,7 @@ Each class has unique combat behaviors that reflect their role:
 ```
 
 #### Dragonriders
+
 ```c
 - Call dragon mount (if appropriate)
 - Mount their dragon if not already mounted
@@ -221,6 +241,7 @@ Each class has unique combat behaviors that reflect their role:
 ```
 
 #### Rangers
+
 ```c
 - Call animal companion (if appropriate)
 - Rescue allies/master (priority)
@@ -243,6 +264,7 @@ The spell selection system uses intelligent prioritization:
 ### Target Selection
 
 The `npc_find_target()` function builds a target list based on:
+
 - Mobs in memory (revenge targets)
 - Current hunting target
 - Attackers (those fighting the mob)
@@ -253,7 +275,9 @@ The `npc_find_target()` function builds a target list based on:
 ### Movement Patterns
 
 #### Path Following
+
 Mobs with defined paths follow waypoints:
+
 ```c
 - Check PATH_SIZE for remaining waypoints
 - Honor PATH_DELAY between movements
@@ -262,18 +286,22 @@ Mobs with defined paths follow waypoints:
 ```
 
 #### Random Movement
+
 - 50% chance to move if not sentinel
 - Select random valid direction
 - Respect zone boundaries (MOB_STAY_ZONE)
 - Avoid death rooms and no-mob rooms
 
 #### Hunting
+
 - MOB_HUNTER flag enables victim tracking
 - Uses pathfinding to pursue target
 - Can hunt across zones if not restricted
 
 ### Scavenging
+
 Mobs with MOB_SCAVENGER flag:
+
 - 10% chance per tick to check for items
 - Pick up most valuable item in room
 - Automatically equip if possible
@@ -281,12 +309,14 @@ Mobs with MOB_SCAVENGER flag:
 ### Aggression System
 
 Aggression triggers based on flags:
+
 - **MOB_AGGRESSIVE**: Attack anyone
 - **MOB_AGGR_EVIL**: Attack evil characters
 - **MOB_AGGR_GOOD**: Attack good characters
 - **MOB_AGGR_NEUTRAL**: Attack neutral characters
 
 Special checks:
+
 - Animals won't attack characters with FEAT_SOUL_OF_THE_FEY
 - Undead won't attack characters with FEAT_ONE_OF_US
 - Encounter mobs only attack appropriate level targets
@@ -294,11 +324,13 @@ Special checks:
 ### Helper/Guard Behaviors
 
 **Helper Mobs** (MOB_HELPER):
+
 - Assist any NPC being attacked by players
 - Won't help animals
 - Jump into combat to aid allies
 
 **Guard Mobs** (MOB_GUARD):
+
 - Only help citizens (MOB_CITIZEN flag)
 - Protect mission-specific allies
 - More selective than regular helpers
@@ -308,12 +340,14 @@ Special checks:
 The memory system allows mobs to remember and seek revenge:
 
 ### How Memory Works
+
 1. **Adding Memory**: When a player harms a mob with MOB_MEMORY flag
 2. **Storage**: Player ID stored in linked list
 3. **Recognition**: Check each room occupant against memory
 4. **Revenge**: Attack remembered players on sight
 
 ### Memory Restrictions
+
 - Only works on players (not other NPCs)
 - Respects PRF_NOHASSLE flag
 - Cleared on mob death/extraction
@@ -326,16 +360,19 @@ The memory system allows mobs to remember and seek revenge:
 The spellup system provides intelligent buffing:
 
 1. **Companion Calling** (Priority for casters)
+
    - Check if companion already exists
    - 10% chance out of combat, 50% in combat
    - Class-appropriate companion types
 
 2. **Buff Saturation Prevention**
+
    - Count existing buffs
    - 75% skip chance if 5+ buffs active
    - Prevents over-buffing
 
 3. **Priority System**
+
    ```c
    Priority buffs (always try first):
    - SPELL_STONESKIN
@@ -347,11 +384,13 @@ The spellup system provides intelligent buffing:
    ```
 
 4. **Summoning** (restricted to level 30+ mobs)
+
    - Animate dead from corpses (25% chance)
    - Summon elementals (10% chance)
    - Creates group if needed
 
 5. **Healing**
+
    - Prioritize low health allies
    - Use group heal if available
    - Fall back to single-target heals
@@ -366,6 +405,7 @@ The spellup system provides intelligent buffing:
 ### Psionic Powers
 
 Similar to spells but using power points:
+
 - Defensive powers for buffing
 - Offensive powers for combat
 - Valid power filtering based on level
@@ -374,7 +414,9 @@ Similar to spells but using power points:
 ## Utility Functions
 
 ### can_continue()
+
 Checks if mob can perform actions:
+
 - Not in combat with invalid target
 - No wait state
 - Position > sitting
@@ -383,7 +425,9 @@ Checks if mob can perform actions:
 - Target not nearly dead
 
 ### npc_find_target()
+
 Intelligent target selection:
+
 - Creates target list from room
 - Includes memory targets
 - Includes current attackers
@@ -391,7 +435,9 @@ Intelligent target selection:
 - Sets num_targets for AoE decisions
 
 ### npc_switch_opponents()
+
 Tactical target switching:
+
 - Visibility check
 - Position check
 - Single-file room handling
@@ -399,14 +445,18 @@ Tactical target switching:
 - Initiates attack on new target
 
 ### npc_rescue()
+
 Rescue priority system:
+
 1. Rescue master (if charmed)
 2. Rescue group members
 3. Health threshold checks
 4. Use perform_rescue()
 
 ### npc_should_call_companion()
+
 Companion calling decision logic:
+
 - Checks if companion already exists
 - Verifies class compatibility
 - Considers combat state (50% in combat, 10% out)
@@ -418,6 +468,7 @@ Companion calling decision logic:
 Key flags affecting behavior:
 
 ### Combat Flags
+
 - **MOB_AGGRESSIVE**: Attack players on sight
 - **MOB_AGGR_EVIL/GOOD/NEUTRAL**: Selective aggression
 - **MOB_WIMPY**: Only attack sleeping targets
@@ -425,11 +476,13 @@ Key flags affecting behavior:
 - **MOB_HUNTER**: Track and pursue targets
 
 ### Movement Flags
+
 - **MOB_SENTINEL**: Don't move from spawn room
 - **MOB_STAY_ZONE**: Don't leave zone
 - **MOB_LISTEN**: Move toward nearby fights
 
 ### Behavior Flags
+
 - **MOB_SCAVENGER**: Pick up valuable items
 - **MOB_HELPER**: Assist other NPCs
 - **MOB_GUARD**: Protect citizens
@@ -439,6 +492,7 @@ Key flags affecting behavior:
 - **MOB_BUFF_OUTSIDE_COMBAT**: Buff when not fighting (Campaign DL)
 
 ### Special Flags
+
 - **MOB_NOKILL**: Protected, won't remember targets
 - **MOB_ENCOUNTER**: Level-restricted aggression
 - **MOB_C_MOUNT**: Can serve as mount
@@ -449,6 +503,7 @@ Key flags affecting behavior:
 ### Creating Effective Mobs
 
 #### 1. Choose Appropriate Class
+
 - Match class to intended role
 - Warriors for tanks
 - Rogues for damage dealers
@@ -456,6 +511,7 @@ Key flags affecting behavior:
 - Paladins/Clerics for healing
 
 #### 2. Set Proper Flags
+
 ```
 Aggressive guard example:
 - MOB_AGGRESSIVE
@@ -475,11 +531,13 @@ Patrol guard:
 ```
 
 #### 3. Level Considerations
+
 - Mobs below NEWBIE_LEVEL have limited AI
 - Level affects spell selection
 - Higher level = more sophisticated tactics
 
 #### 4. Avoid Common Pitfalls
+
 - Don't set MOB_SPEC without assigning spec proc
 - Don't make shopkeepers aggressive
 - Be careful with MOB_MEMORY on frequently killed mobs
@@ -488,6 +546,7 @@ Patrol guard:
 ### Assigning Spells
 
 Mobs can know specific spells via `spells_known` array:
+
 ```c
 // In mob setup code:
 MOB_KNOWS_SPELL(mob, SPELL_FIREBALL) = 1;
@@ -499,6 +558,7 @@ This gives more control than relying on class defaults.
 ## Examples
 
 ### Example 1: City Guard
+
 ```
 Class: WARRIOR
 Level: 25
@@ -512,6 +572,7 @@ Behavior:
 ```
 
 ### Example 2: Dragon Boss
+
 ```
 Race: RACE_TYPE_DRAGON
 Class: SORCERER
@@ -526,6 +587,7 @@ Behavior:
 ```
 
 ### Example 3: Patrol Route
+
 ```c
 // Setting up a patrol path:
 PATH_SIZE(mob) = 4;
@@ -539,6 +601,7 @@ GET_PATH(mob, 3) = 3002;
 ```
 
 ### Example 4: Smart Caster
+
 ```
 Class: WIZARD
 Level: 30
@@ -554,6 +617,7 @@ Behavior:
 ```
 
 ### Example 5: Mounted Paladin
+
 ```
 Class: PALADIN
 Level: 20
@@ -568,6 +632,7 @@ Behavior:
 ```
 
 ### Example 6: Summoner with Eidolon
+
 ```
 Class: SUMMONER
 Level: 25
@@ -581,6 +646,7 @@ Behavior:
 ```
 
 ### Example 7: Dragon Rider
+
 ```
 Class: DRAGONRIDER
 Level: 30
@@ -597,6 +663,7 @@ Behavior:
 ## Performance Considerations
 
 ### Optimization Tips
+
 1. **Limit Active AI**: Use MOB_NO_AI for decoration mobs
 2. **Zone Restrictions**: Use MOB_STAY_ZONE to limit pathfinding
 3. **Sentinel Mobs**: Reduce movement calculations
@@ -604,6 +671,7 @@ Behavior:
 5. **Memory Management**: Clear memory regularly for long-lived mobs
 
 ### System Limits
+
 - MAX_LOOPS (40): Maximum spell selection attempts
 - RESCUE_LOOP (20): Maximum rescue target searches
 - Spell arrays: Fixed sizes for spell lists
@@ -614,24 +682,28 @@ Behavior:
 ### Common Issues and Solutions
 
 #### Mob Not Attacking
+
 - Check aggression flags
 - Verify level restrictions
 - Ensure mob can see target
 - Check position (must be > sitting)
 
 #### Spell Not Cast
+
 - Verify mob level meets spell requirements
 - Check class spell availability
 - Ensure not in cooldown/wait state
 - Verify target is valid
 
 #### Path Not Working
+
 - Verify room vnums are correct
 - Check PATH_SIZE is set
 - Ensure rooms are accessible
 - Verify no NOMOB flags on rooms
 
 #### Memory Not Working
+
 - Confirm MOB_MEMORY flag is set
 - Check target is player (not NPC)
 - Verify mob can see target

@@ -31,7 +31,7 @@ The vessel system testing and validation session has been completed successfully
 ### Test Summary
 
 | Metric | Value |
-|--------|-------|
+| -- | -- |
 | Total Tests | 91 |
 | Passed | 91 |
 | Failed | 0 |
@@ -40,7 +40,7 @@ The vessel system testing and validation session has been completed successfully
 ### Test Suite Breakdown
 
 | Suite | Tests | Status |
-|-------|-------|--------|
+| -- | -- | -- |
 | Main vessel tests | 7 | PASS |
 | Coordinate system tests | 18 | PASS |
 | Vessel type tests | 18 | PASS |
@@ -53,30 +53,35 @@ The vessel system testing and validation session has been completed successfully
 The test suite covers the following critical vessel system components:
 
 **Coordinate System (test_vessel_coords.c)**
+
 - X/Y boundary validation (-1024 to +1024)
 - Z coordinate validation (depth/altitude limits)
 - Distance calculations
 - Heading normalization
 
 **Vessel Types (test_vessel_types.c)**
+
 - All 8 vessel class capabilities
 - Terrain traversal permissions (ocean, air, underwater)
 - Hull weight derivation
 - Room count consistency
 
 **Room Generation (test_vessel_rooms.c)**
+
 - VNUM calculation and allocation
 - Room creation and linking
 - Collision detection
 - Interior room detection
 
 **Movement (test_vessel_movement.c)**
+
 - Direction validation
 - Exit finding
 - Blocked passage detection
 - Multi-room path traversal
 
 **Persistence (test_vessel_persistence.c)**
+
 - Serialization/deserialization
 - Round-trip data integrity
 - Data validation
@@ -88,7 +93,7 @@ The test suite covers the following critical vessel system components:
 ### Results
 
 | Metric | Value |
-|--------|-------|
+| -- | -- |
 | Heap allocations | 192 |
 | Heap frees | 192 |
 | Bytes in use at exit | 0 |
@@ -106,18 +111,18 @@ The test suite covers the following critical vessel system components:
 ### Performance Targets
 
 | Metric | Target | Result |
-|--------|--------|--------|
+| -- | -- | -- |
 | Max concurrent vessels | 500 | PASS |
-| Memory per vessel | <1024 bytes | 1016 bytes |
+| Memory per vessel | `<1024 bytes` | 1016 bytes |
 | Stability at scale | No failures | PASS |
 
 ### Test Level Results
 
 | Level | Memory (Total) | Per-Vessel | Create Time | Operations/sec | Status |
-|-------|---------------|------------|-------------|----------------|--------|
-| 100 vessels | 99.2 KB | 1016 B | <1ms | 263M | PASS |
-| 250 vessels | 248.0 KB | 1016 B | <1ms | 308M | PASS |
-| 500 vessels | 496.1 KB | 1016 B | <1ms | 301M | PASS |
+| -- | -- | -- | -- | -- | -- |
+| 100 vessels | 99.2 KB | 1016 B | `<1ms` | 263M | PASS |
+| 250 vessels | 248.0 KB | 1016 B | `<1ms` | 308M | PASS |
+| 500 vessels | 496.1 KB | 1016 B | `<1ms` | 301M | PASS |
 
 ### Key Findings
 
@@ -131,7 +136,7 @@ The test suite covers the following critical vessel system components:
 ## Test Files Created
 
 | File | Purpose | Lines |
-|------|---------|-------|
+| -- | -- | -- |
 | `test_vessels.c` | Main test suite with fixtures and mocks | ~600 |
 | `test_vessel_coords.c` | Coordinate system tests | ~400 |
 | `test_vessel_types.c` | Vessel type validation tests | ~530 |
@@ -212,6 +217,7 @@ The vessel system is ready for Phase 01 implementation.
 ## Appendix: Test Execution Output
 
 ### Unit Tests
+
 ```
 ========================================
 LuminariMUD Vessel System Unit Tests
@@ -243,6 +249,7 @@ Test Results Summary:
 ```
 
 ### Stress Tests
+
 ```
 ========================================
 LuminariMUD Vessel System Stress Tests

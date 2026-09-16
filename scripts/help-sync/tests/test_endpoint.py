@@ -95,9 +95,7 @@ class EndpointUnitTests(unittest.TestCase):
         with (
             mock.patch("help_sync.require_development"),
             mock.patch("help_sync.create_plan", return_value=plan),
-            mock.patch(
-                "help_sync.save_plan", return_value=Path("/state/plan.json")
-            ),
+            mock.patch("help_sync.save_plan", return_value=Path("/state/plan.json")),
             mock.patch(
                 "help_sync.apply_development_plan",
                 return_value={"status": "verified"},
@@ -148,9 +146,7 @@ class EndpointUnitTests(unittest.TestCase):
         with (
             mock.patch("help_sync.require_development"),
             mock.patch("help_sync.create_plan", return_value=plan),
-            mock.patch(
-                "help_sync.save_plan", return_value=Path("/state/plan.json")
-            ),
+            mock.patch("help_sync.save_plan", return_value=Path("/state/plan.json")),
             mock.patch("help_sync.apply_development_plan") as apply_development,
         ):
             with self.assertRaisesRegex(EndpointError, "refuses deletions"):
@@ -196,9 +192,7 @@ class EndpointUnitTests(unittest.TestCase):
         self.assertFalse(report["converged"])
         self.assertTrue(report["common_baseline_advanced"])
         remote.write_baseline.assert_called_once_with(catalog, plan["plan_id"])
-        write_baseline.assert_called_once_with(
-            Path("/unused"), catalog, plan["plan_id"]
-        )
+        write_baseline.assert_called_once_with(Path("/unused"), catalog, plan["plan_id"])
 
     @mock.patch("help_sync.write_common_baseline")
     @mock.patch("help_sync.verify_endpoint")
@@ -239,17 +233,11 @@ class EndpointUnitTests(unittest.TestCase):
         }
         run.return_value = mock.Mock(
             returncode=0,
-            stdout=(
-                b"HELP_SYNC_JSON_BEGIN\n"
-                b'{"status":"ok"}\n'
-                b"HELP_SYNC_JSON_END\n"
-            ),
+            stdout=(b'HELP_SYNC_JSON_BEGIN\n{"status":"ok"}\nHELP_SYNC_JSON_END\n'),
             stderr=b"",
         )
 
-        result = RemoteEndpoint(Path("/unused")).call(
-            "verify", payload={"candidate": "value"}
-        )
+        result = RemoteEndpoint(Path("/unused")).call("verify", payload={"candidate": "value"})
 
         self.assertEqual(result, {"status": "ok"})
         arguments = run.call_args.args[0]
@@ -276,9 +264,7 @@ class EndpointUnitTests(unittest.TestCase):
         self.assertEqual(
             repairs,
             {
-                "orphan_keywords": [
-                    {"help_tag": "ghost", "keyword": "OLD", "count": 3}
-                ],
+                "orphan_keywords": [{"help_tag": "ghost", "keyword": "OLD", "count": 3}],
                 "missing_keyword_tags": ["beta"],
             },
         )
@@ -392,9 +378,7 @@ class EndpointUnitTests(unittest.TestCase):
             repair_integrity=True,
         )
         self.assertTrue(repaired["sealed"])
-        self.assertEqual(
-            Catalog.from_dict(repaired["candidate"]).entries[0].keywords, ("ALPHA",)
-        )
+        self.assertEqual(Catalog.from_dict(repaired["candidate"]).entries[0].keywords, ("ALPHA",))
 
     def test_plan_refuses_integrity_issue_without_supported_repair(self):
         catalog = Catalog((entry(),))

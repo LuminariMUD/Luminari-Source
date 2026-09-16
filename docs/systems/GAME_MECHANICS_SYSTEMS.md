@@ -9,6 +9,7 @@ LuminariMUD implements a comprehensive Pathfinder/D&D 3.5-based game mechanics s
 ### Race System
 
 #### Core Races
+
 ```c
 // Race definitions in race.c
 struct race_data {
@@ -34,6 +35,7 @@ race_list[RACE_HUMAN] = {
 ```
 
 #### Racial Abilities Implementation
+
 ```c
 // Apply racial bonuses during character creation
 void apply_racial_bonuses(struct char_data *ch) {
@@ -64,6 +66,7 @@ void apply_racial_bonuses(struct char_data *ch) {
 ### Class System
 
 #### Class Structure
+
 ```c
 struct class_data {
   char *name;                    // Class name
@@ -98,6 +101,7 @@ class_list[CLASS_FIGHTER] = {
 ```
 
 #### Level Advancement
+
 ```c
 void advance_level(struct char_data *ch) {
   int class = GET_CLASS(ch);
@@ -146,6 +150,7 @@ void advance_level(struct char_data *ch) {
 ## Skill System
 
 ### Skill Structure
+
 ```c
 struct skill_data {
   char *name;                    // Skill name
@@ -174,6 +179,7 @@ skill_list[SKILL_SPELLCRAFT] = {
 ```
 
 ### Skill Checks
+
 ```c
 int skill_check(struct char_data *ch, int skill, int difficulty) {
   int roll, total, ranks, ability_mod, misc_mod = 0;
@@ -212,6 +218,7 @@ int skill_check(struct char_data *ch, int skill, int difficulty) {
 ```
 
 ### Skill Training
+
 ```c
 ACMD(do_practice) {
   struct char_data *trainer = NULL;
@@ -269,6 +276,7 @@ ACMD(do_practice) {
 ## Feat System
 
 ### Feat Structure
+
 ```c
 struct feat_data {
   char *name;                    // Feat name
@@ -303,6 +311,7 @@ feat_list[FEAT_WEAPON_FOCUS] = {
 ```
 
 ### Feat Prerequisites
+
 ```c
 bool meets_feat_prereqs(struct char_data *ch, int feat) {
   switch (feat) {
@@ -336,6 +345,7 @@ bool meets_feat_prereqs(struct char_data *ch, int feat) {
 ```
 
 ### Feat Effects
+
 ```c
 // Apply feat bonuses during combat
 int apply_feat_bonuses(struct char_data *ch, int bonus_type) {
@@ -382,7 +392,7 @@ int apply_feat_bonuses(struct char_data *ch, int bonus_type) {
 ### Racial Innate Feats and Spell-Like Abilities
 
 Race-level abilities are feats, not race checks. Every racial innate (including
-the Duris-derived set added in 2026) is registered with `feato()` as
+the other-derived set added in 2026) is registered with `feato()` as
 `in_game = TRUE`, `can_learn = FALSE`, `FEAT_TYPE_INNATE_ABILITY`, and the
 mechanic that consumes it tests `HAS_FEAT()`; `GET_RACE()` is never the gate.
 Races receive innates through `feat_race_assignment(race, feat, level, stacks)`
@@ -429,7 +439,7 @@ it; spell DCs are left to the existing focus feats.
 melee attack at full base attack bonus per rank, after the ranged routines so
 launchers and thrown weapons never gain it. It brings no equipment slots.
 
-The Duris Thri-Kreen four-arm mechanic is `FEAT_FOUR_ARMS`, tested through
+The Thri-Kreen four-arm mechanic is `FEAT_FOUR_ARMS`, tested through
 `has_four_arms()` in `src/core/utils.c` (never a race constant). Grant sources
 are mob feats for NPCs and disguised wild shapes, the character's own feat,
 and `APPLY_FEAT` items worn in ordinary slots; an item in one of the seven
@@ -469,14 +479,15 @@ mode. The design record is `docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md`.
 
 When `NUM_FEATS` moves, regenerate `scripts/world/wtool_constants.json` with
 `python3 scripts/world/wtool.py constants sync --write`. Player-facing text
-lives in both `lib/text/help/help.hlp` and the help database; the Duris set is
-tracked as `sql/components/help_duris_racial_innate_entries.sql`, and race
+lives in both `lib/text/help/help.hlp` and the help database; the other set is
+tracked as `sql/components/help_other_racial_innate_entries.sql`, and race
 point pricing is in `docs/guides/PLAYER_RACES_REFERENCE.md`. Production-linked
 coverage is `unittests/CuTest/test_racial_innate_feats.c`.
 
 ## Spell System
 
 ### Spell Structure
+
 ```c
 struct spell_info_type {
   byte min_level[NUM_CLASSES];   // Minimum level for each class
@@ -515,6 +526,7 @@ spell_info[SPELL_MAGIC_MISSILE] = {
 ```
 
 ### Spell Preparation System
+
 ```c
 // Prepare spells (for prepared casters like wizards)
 ACMD(do_prepare) {
@@ -560,6 +572,7 @@ ACMD(do_prepare) {
 ```
 
 ### Spell Effects
+
 ```c
 // Magic missile spell implementation
 ASPELL(spell_magic_missile) {
@@ -592,6 +605,7 @@ ASPELL(spell_magic_missile) {
 ## Combat Mechanics
 
 ### Attack Resolution
+
 ```c
 int perform_attack(struct char_data *ch, struct char_data *victim,
                    struct obj_data *weapon, int attack_number) {
@@ -648,6 +662,7 @@ int perform_attack(struct char_data *ch, struct char_data *victim,
 ```
 
 ### Damage Calculation
+
 ```c
 int calculate_damage(struct char_data *ch, struct char_data *victim,
                      struct obj_data *weapon) {
@@ -694,6 +709,7 @@ int calculate_damage(struct char_data *ch, struct char_data *victim,
 ```
 
 ### Armor Class Calculation
+
 ```c
 int calculate_ac(struct char_data *ch) {
   int ac = 10; // Base AC
@@ -737,6 +753,7 @@ int calculate_ac(struct char_data *ch) {
 ## Saving Throws
 
 ### Save Calculation
+
 ```c
 int calculate_save(struct char_data *ch, int save_type) {
   int base_save = 0, ability_mod = 0, total;
@@ -778,6 +795,7 @@ int calculate_save(struct char_data *ch, int save_type) {
 ```
 
 ### Save Execution
+
 ```c
 bool make_saving_throw(struct char_data *ch, int save_type, int difficulty) {
   int roll, save_bonus, total;
@@ -817,7 +835,7 @@ staff `award` command lists and parses. `MAX_QUEST_POINTS` and `MAX_ACCOUNT_EXPE
 `src/core/structs.h` beside `MAX_GOLD` and `MAX_BANK`; the pool limits are the ranges of their fields.
 
 | Constant | Balance | Limit | Applies to |
-|----------|---------|-------|------------|
+| -- | -- | -- | -- |
 | `AWARD_EXPERIENCE` | `GET_EXP()` | `LONG_MAX` | Any character |
 | `AWARD_QUEST_POINTS` | `GET_QUESTPOINTS()` | `MAX_QUEST_POINTS` (100,000,000) | Players |
 | `AWARD_ACCOUNT_EXPERIENCE` | Account `experience` | `MAX_ACCOUNT_EXPERIENCE` (100,000,000) | Players with a connected account |
@@ -882,8 +900,7 @@ Every function follows the same contract:
 A limit never destroys value that moves between balances or pays for something. Every flow that
 takes something in return for a credit checks the destination first:
 
-- `give`, bank `deposit` and `withdraw`, `cexchange`, `split`, shop `sell`, `salvage`, `retainer
-  sell`, trade-master sales, `clan withdraw`, and freight contract delivery refuse a credit that
+- `give`, bank `deposit` and `withdraw`, `cexchange`, `split`, shop `sell`, `salvage`, `retainer sell`, trade-master sales, `clan withdraw`, and freight contract delivery refuse a credit that
   `award_capacity()` says will not fit, before anything is taken.
 - `steal` and thieving NPCs take only what the thief can carry. Coins handed to a monster or a
   master stay with the source, or fall to the floor, when they do not fit.

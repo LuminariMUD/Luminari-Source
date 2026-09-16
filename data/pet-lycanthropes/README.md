@@ -21,7 +21,7 @@ The ordinary wand check also preserves charges on failure. Once admitted, the
 native spell owns acquisition, control, 30-second expiry/control checks, and
 potential hostility. See CALL-LYCANTHROPE/MOONCALL help for player rules.
 
-## Duris racial innate summons
+## Racial innate summons
 
 The same zone 195 mob file also carries the two prototypes loaded by the
 `summonwarg` and `summonhorde` racial innate feats: the snarling warg (19502,

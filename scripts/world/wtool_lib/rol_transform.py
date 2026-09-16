@@ -1,6 +1,5 @@
 """Stable semantic-transform exports; implementations belong to each format."""
 
-
 from .rol_conversion_types import IdentityResolver, TransformResult
 from .rol_mobiles import (
     MOB_ACTION_EXPANSIONS,

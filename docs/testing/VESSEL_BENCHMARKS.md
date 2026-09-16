@@ -13,7 +13,7 @@ remaining real-player balance, human beta, and staged rollout gates.
 ## Evidence Summary
 
 | Measure | Result | Status |
-|---|---:|---|
+| -- | -: | -- |
 | Configured fleet-array entries | 501 | Slot 0 is reserved; active maximum is 500 |
 | Base `greyhawk_ship_data` size | 5,104 bytes | Within 5 KiB budget |
 | Base storage for 501 array entries | 2,557,104 bytes (about 2.44 MiB) | Within about 3 MB budget |
@@ -62,7 +62,7 @@ microbenchmarks do not satisfy this target.
 The current measured `sizeof(struct greyhawk_ship_data)` is 5,104 bytes.
 
 | Component | Approximate bytes |
-|---|---:|
+| -- | -: |
 | Ten ship slots and description arrays | 2,680 |
 | Connection data | 640 |
 | Sail-crew and gun-crew data | 518 |
@@ -80,7 +80,7 @@ in this measurement. Older measurements of 4,928 bytes and the still older
 ### Fleet Projection
 
 | Ships | Base bytes | Approximate size |
-|---:|---:|---:|
+| -: | -: | -: |
 | 100 | 510,400 | 498.4 KiB |
 | 250 | 1,276,000 | 1.22 MiB |
 | 500 | 2,552,000 | 2.43 MiB |
@@ -100,7 +100,7 @@ budget.
 ### Supporting Structure Sizes
 
 | Structure | Size |
-|---|---:|
+| -- | -: |
 | `greyhawk_ship_data` | 5,104 bytes |
 | `vehicle_data` | 152 bytes |
 | Autopilot state | 72 bytes |
@@ -118,7 +118,7 @@ The original navigation foundation produced the following approximate movement
 tick timings in 2025:
 
 | Active ships | Approximate movement tick |
-|---:|---:|
+| -: | -: |
 | 10 | Less than 1 ms |
 | 100 | About 2 ms |
 | 500 | About 10 ms |
@@ -296,8 +296,7 @@ window. It passed harbor, 500-slot construction, economy, Z, reconstruction,
 reciprocal combat, and raw MSDP, then measured for the requested 1,800 seconds
 with one process and all 500 vessels. Terminal validation stopped on a real
 premeasurement buffer invariant: the reconstruction login inherited Kohdee's
-post-spawn harbor location, rendered hundreds of hulls before `shiplist
-summary`, and recorded `**OVERFLOW**`. Both game-side checkpoints therefore
+post-spawn harbor location, rendered hundreds of hulls before `shiplist summary`, and recorded `**OVERFLOW**`. Both game-side checkpoints therefore
 reported one overflow. The spawn session must save Kohdee in quiet room 1204
 before the workload restart.
 
@@ -305,7 +304,7 @@ The preserved `perfmon csv` nevertheless contains the complete diagnostic
 distribution:
 
 | Section | Calls | Median usec | p95 usec | p99 usec | Maximum usec |
-|---|---:|---:|---:|---:|---:|
+| -- | -: | -: | -: | -: | -: |
 | `vessel_tick` | 3,676 | 764.50 | 130,928.50 | 166,398.50 | 1,027,228 |
 | `vessel_autopilot` | 3,676 | 670.50 | 129,214.75 | 165,059.25 | 213,780 |
 | `vessel_crew_wages` | 3,676 | 15.00 | 23.00 | 44.00 | 1,014,543 |
@@ -358,7 +357,7 @@ expected.
 The complete seventh profile is diagnostic evidence, not a pass:
 
 | Section | Calls | Median usec | p95 usec | p99 usec | Maximum usec |
-|---|---:|---:|---:|---:|---:|
+| -- | -: | -: | -: | -: | -: |
 | `vessel_tick` | 3,665 | 802.00 | 131,989.20 | 176,272.80 | 355,394 |
 | `vessel_autopilot` | 3,665 | 626.00 | 130,774.00 | 170,540.04 | 218,707 |
 | `vessel_crew_wages` | 3,665 | 16.00 | 9,146.80 | 12,005.16 | 353,062 |
@@ -413,7 +412,7 @@ harness, route fixture, merchant deferral, containment, and payroll repairs.
 The complete eighth profile remains diagnostic evidence, not a pass:
 
 | Section | Calls | Median usec | p95 usec | p99 usec | Maximum usec |
-|---|---:|---:|---:|---:|---:|
+| -- | -: | -: | -: | -: | -: |
 | `vessel_tick` | 1,217 | 659.00 | 66,429.00 | 86,597.80 | 103,801 |
 | `vessel_autopilot` | 1,217 | 554.00 | 66,286.60 | 86,469.16 | 103,711 |
 | `vessel_crew_wages` | 1,217 | 18.00 | 31.00 | 46.00 | 112 |
@@ -493,7 +492,7 @@ request and 630-second measured wall window on source `1df8d204` and the same
 installed hash. The complete production profile is:
 
 | Section | Calls | Median usec | p95 usec | p99 usec | Maximum usec |
-|---|---:|---:|---:|---:|---:|
+| -- | -: | -: | -: | -: | -: |
 | `vessel_tick` | 1,221 | 577.00 | 1,524.00 | 2,011.60 | 2,915 |
 | `vessel_autopilot` | 1,221 | 476.00 | 1,416.00 | 1,875.60 | 2,785 |
 | `vessel_combat` | 1,221 | 47.00 | 82.00 | 134.80 | 252 |
@@ -522,7 +521,7 @@ seconds with 500 vessels across all eight classes. It recorded 3,655 complete
 ticks:
 
 | Section | Calls | Median usec | p95 usec | p99 usec | Maximum usec |
-|---|---:|---:|---:|---:|---:|
+| -- | -: | -: | -: | -: | -: |
 | `vessel_tick` | 3,655 | 599.00 | 4,079.00 | 5,169.06 | 10,520 |
 | `vessel_autopilot` | 3,655 | 461.00 | 1,730.30 | 2,193.38 | 3,022 |
 | `vessel_hunters` | 3,655 | 7.00 | 13.00 | 21.00 | 152 |
@@ -730,7 +729,7 @@ The preceding 246-test candidate passed Memcheck with zero errors and zero
 definite, indirect, or possible loss. Its 301,630 still-reachable bytes belong
 to process-lifetime spell, command, DG, and profiler registries and are not
 presented as a long-horizon leak verdict; Memcheck must be repeated for Phase
-15.
+15\.
 `make install` completed for the current local candidate and removed its
 root-level `luminari`. Isolated provisioner fixtures also passed
 the idempotent zone-extension and overlap-rejection paths. Deterministic shell

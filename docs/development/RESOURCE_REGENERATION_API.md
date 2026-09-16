@@ -1,3 +1,4 @@
+```c
 /* *************************************************************************
  *   File: resource_regeneration_api.md                Part of LuminariMUD *
  *  Usage: Developer API reference for resource regeneration system       *
@@ -6,6 +7,7 @@
  * API documentation for integrating with the resource regeneration       *
  * system from other game components.                                      *
  ***************************************************************************/
+```
 
 # Resource Regeneration API Reference
 
@@ -22,12 +24,15 @@ This document provides API-level documentation for developers working with the r
 Returns the base regeneration rate per hour for a resource type.
 
 **Parameters:**
+
 - `resource_type` - Integer constant (RESOURCE_VEGETATION, RESOURCE_HERBS, etc.)
 
 **Returns:**
+
 - `float` - Base regeneration rate (0.0-1.0, representing percentage per hour)
 
 **Example:**
+
 ```c
 float herb_rate = get_resource_regeneration_rate(RESOURCE_HERBS);
 // Returns: 0.08 (8% per hour)
@@ -40,13 +45,16 @@ float herb_rate = get_resource_regeneration_rate(RESOURCE_HERBS);
 Returns regeneration rate with seasonal and weather modifiers applied.
 
 **Parameters:**
+
 - `resource_type` - Resource type constant
 - `x`, `y` - Wilderness coordinates for weather calculation
 
 **Returns:**
+
 - `float` - Modified regeneration rate with all modifiers applied
 
 **Example:**
+
 ```c
 float modified_rate = get_modified_regeneration_rate(RESOURCE_HERBS, 100, 200);
 // Returns: 0.144 (18% per hour in spring with rain)
@@ -61,14 +69,17 @@ float modified_rate = get_modified_regeneration_rate(RESOURCE_HERBS, 100, 200);
 Calculates total regeneration based on elapsed time since last harvest.
 
 **Parameters:**
+
 - `resource_type` - Resource type constant
 - `last_harvest_time` - Unix timestamp of last harvest/interaction
 - `x`, `y` - Coordinates for weather/seasonal modifiers
 
 **Returns:**
+
 - `float` - Total regeneration amount (0.0-1.0), capped at 1.0
 
 **Example:**
+
 ```c
 time_t last_time = time(NULL) - (3600 * 6); // 6 hours ago
 float regen = calculate_regeneration_amount(RESOURCE_HERBS, last_time, 100, 200);
@@ -84,18 +95,22 @@ float regen = calculate_regeneration_amount(RESOURCE_HERBS, last_time, 100, 200)
 Applies regeneration for a specific resource at a room location.
 
 **Parameters:**
+
 - `room` - Room number (must be wilderness room with coordinates)
 - `resource_type` - Resource type to regenerate
 
 **Returns:**
+
 - `void` - Updates database directly
 
 **Side Effects:**
+
 - Queries database for current depletion data
 - Calculates and applies regeneration
 - Updates database with new depletion level and timestamp
 
 **Example:**
+
 ```c
 // Regenerate herbs when player enters room
 apply_lazy_regeneration(ch->in_room, RESOURCE_HERBS);
@@ -112,15 +127,19 @@ apply_lazy_regeneration(ch->in_room, RESOURCE_HERBS);
 Returns seasonal multiplier based on current game month.
 
 **Parameters:**
+
 - `resource_type` - Resource type constant
 
 **Returns:**
+
 - `float` - Seasonal modifier (0.3-1.8 range)
 
 **Global Dependencies:**
+
 - Uses `time_info.month` global variable
 
 **Example:**
+
 ```c
 float seasonal = get_seasonal_modifier(RESOURCE_VEGETATION);
 // Spring: returns 1.8, Winter: returns 0.3
@@ -128,20 +147,23 @@ float seasonal = get_seasonal_modifier(RESOURCE_VEGETATION);
 
 ---
 
-### Weather Modifiers  
+### Weather Modifiers
 
 #### `float get_weather_modifier(int resource_type, int weather_value)`
 
 Returns weather multiplier based on current weather conditions.
 
 **Parameters:**
-- `resource_type` - Resource type constant  
+
+- `resource_type` - Resource type constant
 - `weather_value` - Weather value from `get_weather(x, y)`
 
 **Returns:**
+
 - `float` - Weather modifier (0.5-2.0 range)
 
 **Example:**
+
 ```c
 int weather = get_weather(x, y);
 float weather_mod = get_weather_modifier(RESOURCE_WATER, weather);
@@ -338,6 +360,7 @@ float test_get_weather_modifier(int resource_type, int forced_weather) {
 ## Thread Safety
 
 The system is designed for single-threaded MUD architecture:
+
 - No locks required within MUD process
 - MySQL handles concurrent access to database
 - Safe wrappers handle connection state
@@ -359,6 +382,6 @@ float get_magical_modifier(room_rnum room, int resource_type);
 
 ---
 
-*Last Updated: August 11, 2025*  
-*API Version: 1.0*  
+*Last Updated: August 11, 2025*\
+*API Version: 1.0*\
 *Compatible with: LuminariMUD Phase 6*

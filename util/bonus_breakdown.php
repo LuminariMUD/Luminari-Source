@@ -139,7 +139,7 @@ try {
 $allowed_slots = [
     "Finger", "Neck", "Body", "Head", "Legs", "Feet", "Hands", "Arms", "Shield",
     "About-Body", "Waist", "Wrist", "Wield", "Hold", "Face", "Ammo-Pouch",
-    "Ears", "Eyes", "Badge", "Instrument", "Shoulders", "Ankle"
+    "Ears", "Eyes", "Badge", "Instrument", "Shoulders", "Ankle",
 ];
 
 // Read and validate the wear-slot parameter from the query string
@@ -225,7 +225,7 @@ $bonus_types = [
     "Spell-Potency",    // Spell damage/effect modifier
     "Spell-DC",         // Spell difficulty class modifier
     "Spell-Duration",   // Spell duration modifier
-    "Spell-Penetration" // Spell resistance penetration
+    "Spell-Penetration", // Spell resistance penetration
 ];
 
 /* ===========================================================================
@@ -246,7 +246,7 @@ for ($min = 1; $min <= 30; $min += 5) {
     $buckets[] = [
         'min'   => $min,        // Minimum level in this bucket
         'max'   => $max,        // Maximum level in this bucket
-        'label' => "{$min}-{$max}"  // Display label for the bucket
+        'label' => "{$min}-{$max}",  // Display label for the bucket
     ];
 }
 
@@ -305,7 +305,7 @@ if ($cached_data !== false) {
  *
  * Security: Uses prepared statements to prevent SQL injection
  */
-$sql = "
+    $sql = "
   SELECT
     b.bonus_location AS bonus,
     FLOOR((i.minimum_level - 1) / 5) AS bucket_idx,
@@ -320,61 +320,61 @@ $sql = "
   GROUP BY b.bonus_location, bucket_idx
 ";
 
-// Prepare and execute the query with the wear slot parameter
-try {
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':slot' => $slot]);
-} catch (PDOException $e) {
-    error_log("Database query failed in bonus_breakdown.php: " . $e->getMessage());
-    http_response_code(500);
-    die("Database query error. Please contact administrator.");
-}
-
-/**
- * Process query results and populate the data matrix
- *
- * For each row returned:
- * - Extract the bonus type, bucket index, and count
- * - Update the corresponding cell in our matrix
- * - Update the running total for that bonus type
- *
- * Note: We only update if the bonus exists in our predefined list
- * to avoid issues with unexpected database values
- */
-try {
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $bonus = $row['bonus'] ?? '';
-        $idx = (int)($row['bucket_idx'] ?? 0);
-        $count = (int)($row['cnt'] ?? 0);
-
-        // Security: Validate bonus type against our whitelist
-        if (!in_array($bonus, $bonus_types, true)) {
-            error_log("Unexpected bonus type in database: " . $bonus);
-            continue;
-        }
-
-        // Security: Validate bucket index is within expected range
-        if ($idx < 0 || $idx >= count($buckets)) {
-            error_log("Invalid bucket index: " . $idx);
-            continue;
-        }
-
-        // Validate that this bonus type exists in our configuration
-        if (isset($matrix[$bonus][$idx])) {
-            $matrix[$bonus][$idx] = $count;
-            $row_totals[$bonus] += $count;
-        }
+    // Prepare and execute the query with the wear slot parameter
+    try {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':slot' => $slot]);
+    } catch (PDOException $e) {
+        error_log("Database query failed in bonus_breakdown.php: " . $e->getMessage());
+        http_response_code(500);
+        die("Database query error. Please contact administrator.");
     }
-} catch (PDOException $e) {
-    error_log("Error processing query results: " . $e->getMessage());
-    http_response_code(500);
-    die("Data processing error. Please contact administrator.");
-}
+
+    /**
+     * Process query results and populate the data matrix
+     *
+     * For each row returned:
+     * - Extract the bonus type, bucket index, and count
+     * - Update the corresponding cell in our matrix
+     * - Update the running total for that bonus type
+     *
+     * Note: We only update if the bonus exists in our predefined list
+     * to avoid issues with unexpected database values
+     */
+    try {
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $bonus = $row['bonus'] ?? '';
+            $idx = (int) ($row['bucket_idx'] ?? 0);
+            $count = (int) ($row['cnt'] ?? 0);
+
+            // Security: Validate bonus type against our whitelist
+            if (!in_array($bonus, $bonus_types, true)) {
+                error_log("Unexpected bonus type in database: " . $bonus);
+                continue;
+            }
+
+            // Security: Validate bucket index is within expected range
+            if ($idx < 0 || $idx >= count($buckets)) {
+                error_log("Invalid bucket index: " . $idx);
+                continue;
+            }
+
+            // Validate that this bonus type exists in our configuration
+            if (isset($matrix[$bonus][$idx])) {
+                $matrix[$bonus][$idx] = $count;
+                $row_totals[$bonus] += $count;
+            }
+        }
+    } catch (PDOException $e) {
+        error_log("Error processing query results: " . $e->getMessage());
+        http_response_code(500);
+        die("Data processing error. Please contact administrator.");
+    }
 
     // Cache the results for future requests (cache for 30 minutes)
     CacheManager::set($cache_key, [
         'matrix' => $matrix,
-        'row_totals' => $row_totals
+        'row_totals' => $row_totals,
     ], 1800);
 }
 

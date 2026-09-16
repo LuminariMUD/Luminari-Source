@@ -6,6 +6,9 @@
  ************************************************************************ */
 
 /* defines */
+#include "core/structs.h"
+#include "core/utils.h"
+
 #define TRAVEL_CARRIAGE 1
 #define TRAVEL_SAILING 2
 #define TRAVEL_OVERLAND_FLIGHT 3

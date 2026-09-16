@@ -13,6 +13,8 @@
 #ifndef _COMM_H_
 #define _COMM_H_
 
+#include "core/structs.h"
+
 /* Define RETSIGTYPE if not already defined */
 #ifndef RETSIGTYPE
 #define RETSIGTYPE void

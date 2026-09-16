@@ -9,7 +9,9 @@ The LuminariMUD command system provides a flexible, extensible framework for pro
 ### Core Components
 
 #### 1. Command Interpreter (`interpreter.c`)
+
 The main command processing engine that:
+
 - Parses player input into commands and arguments
 - Validates command permissions and prerequisites
 - Dispatches commands to appropriate handler functions
@@ -17,7 +19,9 @@ The main command processing engine that:
 - Handles special cases like social commands and emotes
 
 #### 2. Command Table (`cmd_info[]`)
+
 A comprehensive table defining all available commands:
+
 ```c
 struct command_info cmd_info[] = {
   { "RESERVED", 0, 0, 0, 0 },  // Reserved entry
@@ -43,6 +47,7 @@ struct command_info cmd_info[] = {
 ```
 
 #### 3. Command Structure
+
 ```c
 struct command_info {
   const char *command;     // Command name
@@ -56,6 +61,7 @@ struct command_info {
 ## Command Processing Flow
 
 ### 1. Input Reception
+
 ```c
 void game_loop(int local_port) {
   // Main game loop processes input from all connected players
@@ -70,6 +76,7 @@ void game_loop(int local_port) {
 ```
 
 ### 2. Command Parsing
+
 ```c
 void command_interpreter(struct char_data *ch, char *argument) {
   int cmd, length;
@@ -106,6 +113,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
 ```
 
 ### 3. Command Validation
+
 ```c
 bool perform_command(struct char_data *ch, int cmd, char *argument) {
   // Check if character can use commands
@@ -158,6 +166,7 @@ bool perform_command(struct char_data *ch, int cmd, char *argument) {
 ## Command Implementation Patterns
 
 ### Standard Command Function Signature
+
 ```c
 // All command functions follow this pattern
 ACMD(do_command_name) {
@@ -207,6 +216,7 @@ ACMD(do_look) {
 ```
 
 ### Movement Commands
+
 ```c
 ACMD(do_move) {
   // subcmd contains direction (SCMD_NORTH, SCMD_EAST, etc.)
@@ -263,6 +273,7 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check) {
 ```
 
 ### Communication Commands
+
 ```c
 ACMD(do_say) {
   skip_spaces(&argument);
@@ -311,6 +322,7 @@ ACMD(do_tell) {
 ## Advanced Command Features
 
 ### Command Aliases and Abbreviations
+
 ```c
 int find_command(const char *command) {
   int cmd, length;
@@ -336,6 +348,7 @@ int find_command(const char *command) {
 ```
 
 ### Social Commands System
+
 ```c
 // Social commands are defined in a separate table
 struct social_messg {
@@ -419,6 +432,7 @@ ACMD(do_action) {
 ```
 
 ### Command Queuing and Delays
+
 ```c
 // Some commands have delays or queues
 ACMD(do_cast) {
@@ -494,6 +508,7 @@ ACMD(do_cast) {
 ## Command Security and Validation
 
 ### Permission Checking
+
 ```c
 bool has_command_permission(struct char_data *ch, int cmd) {
   // Check basic level requirement
@@ -516,6 +531,7 @@ bool has_command_permission(struct char_data *ch, int cmd) {
 ```
 
 ### Input Sanitization
+
 ```c
 void sanitize_input(char *input) {
   char *src, *dest;
@@ -541,6 +557,7 @@ void sanitize_input(char *input) {
 ## Performance Considerations
 
 ### Command Lookup Optimization
+
 ```c
 // Hash table for faster command lookup
 #define COMMAND_HASH_SIZE 256
@@ -579,6 +596,7 @@ int find_command_fast(const char *command) {
 ```
 
 ### Command Frequency Analysis
+
 ```c
 // Track command usage for optimization
 struct command_stats {

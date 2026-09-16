@@ -8,6 +8,9 @@
 #ifndef HELP_H
 #define HELP_H
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 #define HELP_SYNC_DB_LOCK_NAME "luminari_help_sync_write"
 #define HELP_SYNC_LOCK_FILE "text/help/.help_sync.lock"
 #define HELP_SYNC_RELOAD_REQUEST_FILE "text/help/.help_sync.reload.request"

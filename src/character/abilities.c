@@ -40,7 +40,7 @@
 #include "character/perks.h"
 
 
-/* Duris racial innates: +6 stealth in the sector set of a held terrain stealth
+/* Sep 2026 racial innates: +6 stealth in the sector set of a held terrain stealth
  * feat (best one wins, they do not stack) and +4 perception in forests.
  * see docs/systems/GAME_MECHANICS_SYSTEMS.md */
 int racial_terrain_ability_bonus(struct char_data *ch, int ability_num)

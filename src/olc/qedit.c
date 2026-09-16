@@ -468,10 +468,10 @@ static void qedit_disp_menu(struct descriptor_data *d)
       "\tg Q\tn) Quit\r\n"
       "Enter Choice : ",
       quest->vnum, quest->name, quest->desc,
-      quest->info && (str_cmp(quest->info, "undefined")) ? quest->info : "Nothing\r\n",
-      quest->done && (str_cmp(quest->done, "undefined")) ? quest->done : "Nothing\r\n",
-      quest->quit && (str_cmp(quest->quit, "undefined")) ? quest->quit : "Nothing\r\n", quest_flags,
-      quest->type == AQ_UNDEFINED ? "undefined" : quest_types[quest->type],
+      quest->info && (str_cmp(quest->info, "undefined") != 0) ? quest->info : "Nothing\r\n",
+      quest->done && (str_cmp(quest->done, "undefined") != 0) ? quest->done : "Nothing\r\n",
+      quest->quit && (str_cmp(quest->quit, "undefined") != 0) ? quest->quit : "Nothing\r\n",
+      quest_flags, quest->type == AQ_UNDEFINED ? "undefined" : quest_types[quest->type],
       (quest->type == AQ_OBJ_RETURN || quest->type == AQ_GIVE_GOLD) ? buf2 : "",
       quest->qm == NOBODY ? -1 : (int)quest->qm,
       real_mobile(quest->qm) == NOBODY ? "Invalid Mob"

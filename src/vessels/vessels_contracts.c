@@ -578,7 +578,7 @@ ACMD(do_contractdeliver)
     return;
   }
 
-  if (status != CONTRACT_STATUS_TAKEN || str_cmp(taken_by, GET_NAME(ch)))
+  if (status != CONTRACT_STATUS_TAKEN || str_cmp(taken_by, GET_NAME(ch)) != 0)
   {
     send_to_char(ch, "That contract is not yours to deliver.\r\n");
     return;
@@ -664,7 +664,7 @@ ACMD(do_contractabandon)
     return;
   }
 
-  if (status != CONTRACT_STATUS_TAKEN || str_cmp(taken_by, GET_NAME(ch)))
+  if (status != CONTRACT_STATUS_TAKEN || str_cmp(taken_by, GET_NAME(ch)) != 0)
   {
     send_to_char(ch, "That contract is not yours.\r\n");
     return;

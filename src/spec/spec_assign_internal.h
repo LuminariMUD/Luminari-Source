@@ -6,6 +6,8 @@
 #ifndef LUMINARI_SPEC_ASSIGN_INTERNAL_H
 #define LUMINARI_SPEC_ASSIGN_INTERNAL_H
 
+#include "core/structs.h"
+
 #include "spec_registry.h"
 
 void spec_assign_mobile(mob_vnum mob, spec_legacy_handler handler, const char *symbol,

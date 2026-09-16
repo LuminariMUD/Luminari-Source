@@ -3,6 +3,9 @@
 
 /* alchemical discoveries */
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 #define ALC_DISC_NONE 0
 #define ALC_DISC_ACID_BOMBS 1
 #define ALC_DISC_BLINDING_BOMBS 2

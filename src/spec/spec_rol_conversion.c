@@ -4049,7 +4049,7 @@ int rol_lich_rite(struct char_data *ch, void *me, int cmd, const char *argument)
     return FALSE;
 
   skip_spaces_c(&argument);
-  if (strcmp(argument, "immortality"))
+  if (strcmp(argument, "immortality") != 0)
     return FALSE;
 
   status = rol_lich_rite_requirements(ch, keeper, &first_offering, &second_offering);
@@ -6129,7 +6129,7 @@ int rol_item_blocker(struct char_data *ch, void *me, int cmd, const char *argume
       break;
   if (attempted_direction > DOWN)
   {
-    if (strcmp(command, "unlock"))
+    if (strcmp(command, "unlock") != 0)
       return FALSE;
     attempted_direction = rol_item_blocker_unlock_direction(ch, argument);
   }
@@ -7932,7 +7932,7 @@ static int rol_weapon_moonblade_command(struct char_data *ch, struct obj_data *o
   if (cmd <= 0 || argument == NULL || (!CMD_IS("say") && !CMD_IS("'")))
     return FALSE;
   skip_spaces_c(&argument);
-  if (str_cmp(argument, "labelas"))
+  if (str_cmp(argument, "labelas") != 0)
     return FALSE;
   if (spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID)
     return FALSE;
@@ -7962,7 +7962,7 @@ static int rol_weapon_elemental_command(struct char_data *ch, struct obj_data *o
   if (cmd <= 0 || argument == NULL || (!CMD_IS("say") && !CMD_IS("'")))
     return FALSE;
   skip_spaces_c(&argument);
-  if (str_cmp(argument, "summon prismatic helper"))
+  if (str_cmp(argument, "summon prismatic helper") != 0)
     return FALSE;
   if (spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID)
     return FALSE;
@@ -8007,7 +8007,7 @@ static int rol_weapon_necromancer_command(struct char_data *ch, struct obj_data 
   if (cmd <= 0 || argument == NULL || (!CMD_IS("say") && !CMD_IS("'")))
     return FALSE;
   skip_spaces_c(&argument);
-  if (strn_cmp(argument, phrase, (int)strlen(phrase)))
+  if (strn_cmp(argument, phrase, (int)strlen(phrase)) != 0)
     return FALSE;
   argument += strlen(phrase);
   skip_spaces_c(&argument);
@@ -8675,7 +8675,7 @@ static int rol_weapon_oblivion_command(struct spec_event_context *context, struc
   if (argument == NULL || (!IS_NECROMANCER(ch) && !IS_LICH(ch)) || victim == NULL)
     return FALSE;
   skip_spaces_c(&argument);
-  if (str_cmp(argument, "die"))
+  if (str_cmp(argument, "die") != 0)
     return FALSE;
   if (IS_UNDEAD(victim) || GET_LEVEL(victim) < 8 || GET_HIT(victim) * 25 >= GET_MAX_HIT(victim))
   {

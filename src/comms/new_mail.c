@@ -267,7 +267,7 @@ ACMD(do_new_mail)
             }
        */
 
-      if (!found && (strcmp(arg5, "All") || GET_LEVEL(ch) < LVL_IMPL))
+      if (!found && (strcmp(arg5, "All") != 0 || GET_LEVEL(ch) < LVL_IMPL))
       {
         send_to_char(ch, "That character doesn't exist in our mail database.\r\n");
         return;

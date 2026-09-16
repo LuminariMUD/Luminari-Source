@@ -3492,7 +3492,7 @@ size_t PERF_prof_repr_top(char *out_buf, size_t n, const char *metric_name, size
     metric = PERF_TOP_MAX;
   else if (metric_name != NULL && !strcasecmp(metric_name, "p99"))
     metric = PERF_TOP_P99;
-  else if (metric_name != NULL && strcasecmp(metric_name, "total"))
+  else if (metric_name != NULL && strcasecmp(metric_name, "total") != 0)
     return bounded_format_length(
         snprintf(out_buf, n, "Unknown top metric '%s'; use total, max, or p99.\n\r", metric_name),
         n);

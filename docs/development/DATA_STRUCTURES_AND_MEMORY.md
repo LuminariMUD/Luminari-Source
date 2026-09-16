@@ -56,6 +56,7 @@ struct char_data {
 ```
 
 **Key Relationships:**
+
 - **Room Occupancy:** `next_in_room` creates linked list of characters in same room
 - **Global List:** `next` links all characters in the game
 - **Equipment:** Array of worn items plus inventory list
@@ -102,6 +103,7 @@ struct room_data {
 ```
 
 **Key Features:**
+
 - **Directional Exits:** Array of pointers to exit data
 - **Contents Lists:** Separate lists for objects and characters
 - **Coordinate System:** Support for wilderness positioning
@@ -154,11 +156,13 @@ struct obj_data {
 ```
 
 **Container System:**
+
 - **Nested Containers:** Objects can contain other objects
 - **Linked Lists:** `contains` and `next_content` manage container contents
 - **Location Tracking:** Objects know their container or room location
 
 **Room Object Identity and Ordering:**
+
 - `obj_to_room()` prepends objects to `room->contents`. This newest-first order
   is a gameplay contract: first-match commands and post-kill autoloot must find
   the corpse or drop just created instead of an older object with the same
@@ -214,6 +218,7 @@ struct descriptor_data {
 ```
 
 **Connection States:**
+
 - `CON_PLAYING` - Normal gameplay
 - `CON_GET_NAME` - Getting player name
 - `CON_PASSWORD` - Password verification
@@ -253,17 +258,20 @@ struct zone_data {
 ### 1. Allocation Strategies
 
 **Static Arrays:**
+
 - World data uses pre-allocated arrays sized at boot time
 - `struct room_data *world` - All rooms
 - `struct char_data *mob_proto` - NPC prototypes
 - `struct obj_data *obj_proto` - Object prototypes
 
 **Dynamic Allocation:**
+
 - Player characters allocated on login
 - Temporary objects created as needed
 - String data allocated dynamically
 
 **Memory Pools:**
+
 - Buffer pools for common operations
 - Reduces malloc/free overhead
 - Configurable pool sizes
@@ -271,6 +279,7 @@ struct zone_data {
 ### 2. Linked List Management
 
 **Character Lists:**
+
 ```c
 // Global character list
 extern struct char_data *character_list;
@@ -284,6 +293,7 @@ character->next_fighting = next_combatant;
 ```
 
 **Object Lists:**
+
 ```c
 // Global object list
 extern struct obj_data *object_list;
@@ -298,6 +308,7 @@ object->next = next_object;
 ```
 
 **Descriptor Lists:**
+
 ```c
 // Active connections
 extern struct descriptor_data *descriptor_list;
@@ -307,12 +318,14 @@ descriptor->next = next_descriptor;
 ### 3. Reference Management
 
 **Pointer Relationships:**
+
 - Characters point to their room: `ch->in_room`
 - Rooms maintain character lists: `room->people`
 - Objects track their location: `obj->in_room` or `obj->carried_by`
 - Descriptors link to characters: `desc->character`
 
 **Cleanup Procedures:**
+
 - `extract_char()` - Remove character and update all references
 - `extract_obj()` - Remove object and update containers/carriers
 - `close_socket()` - Clean up descriptor and associated data
@@ -320,6 +333,7 @@ descriptor->next = next_descriptor;
 ### 4. Memory Debugging
 
 **Debug Mode:**
+
 ```c
 #ifdef MEMORY_DEBUG
 #include "zmalloc.h"
@@ -327,12 +341,14 @@ descriptor->next = next_descriptor;
 ```
 
 **Features:**
+
 - Memory leak detection
 - Allocation tracking
 - Corruption detection
 - Usage statistics
 
 **Debug Functions:**
+
 - `zmalloc()` - Tracked malloc
 - `zfree()` - Tracked free
 - `zmalloc_init()` - Initialize tracking
@@ -341,11 +357,13 @@ descriptor->next = next_descriptor;
 ### 5. String Management
 
 **Dynamic Strings:**
+
 - All text data allocated dynamically
 - Reference counting for shared strings
 - Automatic cleanup on object destruction
 
 **String Pools:**
+
 - Common strings shared between objects
 - Reduces memory fragmentation
 - Improves cache performance
@@ -361,11 +379,13 @@ Character <--> Room <--> Object
 ```
 
 **Character in Room:**
+
 - `character->in_room` points to room
 - `room->people` lists all characters
 - `character->next_in_room` links room occupants
 
 **Object Locations:**
+
 - In room: `object->in_room` set, `room->contents` lists objects
 - Carried: `object->carried_by` set, `character->carrying` lists objects
 - Worn: `object->worn_by` set, `character->equipment[]` array
@@ -380,6 +400,7 @@ Descriptor <--> Character <--> Account
 ```
 
 **Connection Flow:**
+
 1. Socket accepts connection -> `descriptor_data` created
 2. Login process -> `char_data` loaded/created
 3. `descriptor->character` and `character->desc` linked
@@ -394,6 +415,7 @@ Room/Char/Obj -> Events -> Actions
 ```
 
 **Script Attachment:**
+
 - All major structures can have scripts attached
 - `proto_script` for default triggers
 - `script` for active script instances
@@ -404,6 +426,7 @@ Room/Char/Obj -> Events -> Actions
 ### 1. Cache Efficiency
 
 **Data Locality:**
+
 - Related data structures stored together
 - Linked lists maintain spatial locality where possible
 - Hot data paths optimized for cache performance
@@ -411,11 +434,13 @@ Room/Char/Obj -> Events -> Actions
 ### 2. Search Optimization
 
 **Hash Tables:**
+
 - Character lookup by name/ID
 - Object lookup by virtual number
 - Room lookup by virtual number
 
 **Indexing:**
+
 - Pre-computed indices for world data
 - Binary search for sorted arrays
 - Efficient iteration patterns
@@ -423,12 +448,14 @@ Room/Char/Obj -> Events -> Actions
 ### 3. Memory Usage
 
 **Typical Memory Footprint:**
+
 - Base world data: 50-200MB
 - Active players: 1-5MB per player
 - Dynamic objects: Variable based on activity
 - Script data: 10-50MB depending on complexity
 
 **Optimization Strategies:**
+
 - Lazy loading of non-essential data
 - Compression of text data
 - Efficient data structure packing

@@ -1,4 +1,4 @@
-/* Tests for the Duris racial innates converted to feats.  See
+/* Tests for the Sep 2026 racial innates converted to feats.  See
  * docs/systems/GAME_MECHANICS_SYSTEMS.md */
 
 #include "CuTest.h"
@@ -201,7 +201,7 @@ static void innate_fixture_sunlit_field(struct innate_fixture *fixture)
 }
 
 /* Every converted innate is registered as an in-game, unlearnable innate ability. */
-void TestDurisInnateFeatsAreRegisteredAsInnates(CuTest *tc)
+void TestSep2026InnateFeatsAreRegisteredAsInnates(CuTest *tc)
 {
   struct innate_fixture fixture;
   int feat;
@@ -614,7 +614,7 @@ void TestEyelessIsImmuneToBlindness(CuTest *tc)
 }
 
 /* The percentage reductions and vulnerabilities apply by damage type. */
-void TestDurisDamageTypeReductions(CuTest *tc)
+void TestSep2026DamageTypeReductions(CuTest *tc)
 {
   struct innate_fixture fixture;
   int base_fire, base_force, base_slash, base_holy;

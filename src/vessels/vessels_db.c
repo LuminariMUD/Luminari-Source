@@ -213,7 +213,7 @@ bool save_ship_interior(struct greyhawk_ship_data *ship)
   }
   else
   {
-    strcpy(escaped_name, "Unnamed Vessel");
+    strlcpy(escaped_name, "Unnamed Vessel", sizeof(escaped_name));
   }
   figurehead = vessel_figurehead(ship);
   paint_scheme = vessel_paint_scheme(ship);

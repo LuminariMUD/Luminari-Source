@@ -1,8 +1,8 @@
 # AI-Generated Region Hints for Dynamic Descriptions - Implementation Plan
 
-**Document Version**: 1.0  
-**Date**: August 18, 2025  
-**Author**: Development Team  
+**Document Version**: 1.0\
+**Date**: August 18, 2025\
+**Author**: Development Team\
 **Status**: Implementation Ready
 
 > **Status note (2026-08-03):** the `src/ai_region_hints.c` / `src/ai_region_hints.h`
@@ -21,6 +21,7 @@ This plan outlines the implementation of an AI-generated region hints system tha
 ## System Architecture
 
 ### Data Flow
+
 ```
 AI Agent -> API -> MySQL Database -> C Code -> Dynamic Descriptions -> Players
 ```
@@ -36,6 +37,7 @@ AI Agent -> API -> MySQL Database -> C Code -> Dynamic Descriptions -> Players
 ### Core Tables
 
 #### `ai_region_hints`
+
 Stores categorized descriptive hints for each region:
 
 - **Categories**: `atmosphere`, `fauna`, `flora`, `geography`, `weather_influence`, `resources`, `landmarks`, `sounds`, `scents`, `seasonal_changes`, `time_of_day`, `mystical`
@@ -44,14 +46,16 @@ Stores categorized descriptive hints for each region:
 - **Usage Tracking**: Integration with analytics system
 
 #### `ai_region_profiles`
+
 Overall personality/theme profiles for regions:
 
 - **Theme Definition**: "Ancient mystical forest with elven influences"
-- **Mood Setting**: "Serene, mysterious, slightly melancholic"  
+- **Mood Setting**: "Serene, mysterious, slightly melancholic"
 - **Style Controls**: `poetic`, `practical`, `mysterious`, `dramatic`, `pastoral`
 - **Complexity Levels**: 1-5 scale for description detail
 
 #### `ai_hint_usage_log`
+
 Analytics tracking for hint effectiveness:
 
 - **Usage Patterns**: Which hints are selected when
@@ -76,12 +80,14 @@ INSERT INTO ai_region_hints (region_vnum, hint_category, hint_text, priority, we
 ### Core Components
 
 #### `ai_region_hints.h/c`
+
 - **Hint Loading**: Efficient database queries with caching
 - **Condition Filtering**: Weather, time, season, resource-based selection
 - **Weight Calculation**: JSON parsing for conditional weights
 - **Description Integration**: Natural language combination with base descriptions
 
 #### Modified `desc_engine.c`
+
 - **AI-First Approach**: Try AI-enhanced descriptions before falling back to resource-aware or standard descriptions
 - **Seamless Integration**: Transparent fallback chain ensures reliability
 - **Performance Optimized**: Minimal additional overhead for non-AI regions
@@ -110,6 +116,7 @@ if (ai_desc) {
 ### Input Data for AI Agents
 
 Your AI agents will receive through your API:
+
 - **Region Geometry**: Polygon coordinates and spatial relationships
 - **Terrain Types**: Forest, plains, mountains, etc.
 - **Existing Resources**: What materials/wildlife are available
@@ -121,25 +128,30 @@ Your AI agents will receive through your API:
 AI agents should generate hints in these categories:
 
 #### **Atmospheric Descriptions**
+
 - Overall feel and mood of the region
 - Lighting and visual atmosphere
 - General landscape character
 
 #### **Natural Elements**
+
 - **Flora**: Specific plants, trees, ground cover
 - **Fauna**: Wildlife, birds, insects, animal signs
 - **Geography**: Rock formations, water features, elevation changes
 
 #### **Sensory Details**
+
 - **Sounds**: Wind, water, wildlife, rustling
 - **Scents**: Flowers, earth, vegetation, air quality
 
 #### **Dynamic Elements**
+
 - **Weather Variations**: How different weather affects the area
 - **Seasonal Changes**: Spring growth, autumn colors, winter dormancy
 - **Time Transitions**: Dawn, day, dusk, night variations
 
 #### **Resource Integration**
+
 - **Resource-Aware Hints**: Descriptions that change based on resource depletion
 - **Ecological Relationships**: How different resources interact visually
 
@@ -157,37 +169,43 @@ AI agents should generate hints in these categories:
 ## Implementation Phases
 
 ### Phase 1: Database Foundation [OK]
+
 - [x] Create database schema (`ai_region_hints_schema.sql`)
 - [x] Add sample data for testing
 - [x] Create performance optimization views
 
 ### Phase 2: Core C Integration [OK]
+
 - [x] Implement hint loading and management (`ai_region_hints.c`)
 - [x] Add condition filtering and weight calculation
 - [x] Integrate with existing description engine
 - [x] Add analytics and usage tracking
 
 ### Phase 3: AI Agent Integration
+
 - [ ] Extend your MCP server API to accept region hint data
 - [ ] Create AI agent prompts for hint generation
 - [ ] Implement batch region processing
 - [ ] Add validation and quality control
 
 ### Phase 4: Advanced Features
+
 - [ ] JSON weight parsing for complex conditionals
 - [ ] Resource-level integration with depletion system
 - [ ] Player preference tracking
 - [ ] Description template system
 
 ### Phase 5: Analytics and Optimization
+
 - [ ] Hint effectiveness tracking
-- [ ] Usage pattern analysis  
+- [ ] Usage pattern analysis
 - [ ] AI feedback loop for hint improvement
 - [ ] Performance optimization
 
 ## Configuration Options
 
 ### Compilation Flags
+
 ```c
 #define ENABLE_AI_REGION_HINTS 1        // Enable the entire system
 #define AI_HINTS_MAX_PER_DESCRIPTION 3  // Limit hints per description
@@ -195,6 +213,7 @@ AI agents should generate hints in these categories:
 ```
 
 ### Runtime Configuration
+
 - **Per-Campaign**: Enable only for Luminari initially
 - **Per-Region**: Individual regions can opt-in/out
 - **Per-Player**: Optional player preferences (future)
@@ -203,18 +222,21 @@ AI agents should generate hints in these categories:
 ## Benefits
 
 ### For Players
+
 - **Rich Descriptions**: More immersive and varied environmental descriptions
 - **Dynamic Content**: Descriptions that change based on conditions and interactions
 - **Consistent Quality**: AI-generated content maintains high descriptive standards
 - **Contextual Relevance**: Descriptions that feel appropriate to the specific location
 
 ### For Developers
+
 - **Scalable Content**: AI can generate descriptions for hundreds of regions
 - **Consistent Style**: Maintains narrative voice across all AI-generated content
 - **Data-Driven**: Analytics provide feedback for continuous improvement
 - **Extensible**: Framework supports future enhancement categories
 
 ### For AI Agents
+
 - **Creative Freedom**: Agents can develop unique regional personalities
 - **Context Awareness**: Access to spatial, temporal, and resource data
 - **Feedback Loop**: Usage analytics help improve future generations
@@ -223,24 +245,29 @@ AI agents should generate hints in these categories:
 ## Example Output
 
 ### Before (Standard System)
+
 > "You are standing in a forest. Tall trees surround you on all sides."
 
 ### After (AI-Enhanced System)
+
 > "You are standing within the heart of Whispering Wood. Ancient oak trees tower overhead, their gnarled branches creating a natural cathedral of green. Thick carpets of moss cover fallen logs, and delicate wildflowers bloom in dappled clearings. The gentle rustle of leaves mingles with distant bird calls and the soft trickle of hidden streams."
 
 ## Technical Considerations
 
 ### Performance
+
 - **Caching**: Region hints cached for 5 minutes to reduce database load
 - **Lazy Loading**: Hints loaded only when needed for wilderness rooms
 - **Efficient Queries**: Optimized database indexes for spatial and categorical lookups
 
 ### Error Handling
+
 - **Graceful Fallback**: System falls back through AI -> Resource -> Standard descriptions
 - **Database Resilience**: Continues functioning if hint database is unavailable
 - **Validation**: Input validation prevents malformed hints from breaking descriptions
 
 ### Maintenance
+
 - **Analytics Dashboard**: Track hint usage and effectiveness
 - **Quality Control**: Flag problematic or overused hints
 - **Version Control**: Track hint changes and agent contributions

@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS help_entries (
   INDEX idx_min_level (min_level),
   INDEX idx_auto_generated (auto_generated),
   FULLTEXT KEY idx_help_entries_fulltext (entry)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS help_keywords (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -29,17 +29,17 @@ CREATE TABLE IF NOT EXISTS help_keywords (
   INDEX idx_help_keywords_composite (help_tag, keyword),
   UNIQUE KEY unique_tag_keyword (help_tag, keyword),
   CONSTRAINT fk_help_keywords_entry
-    FOREIGN KEY (help_tag) REFERENCES help_entries(tag) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  FOREIGN KEY (help_tag) REFERENCES help_entries (tag) ON DELETE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS help_related_topics (
   source_tag VARCHAR(50) NOT NULL,
   related_tag VARCHAR(50) NOT NULL,
-  relevance_score DECIMAL(12,6) NOT NULL DEFAULT 1.0,
+  relevance_score DECIMAL(12, 6) NOT NULL DEFAULT 1.0,
   PRIMARY KEY (source_tag, related_tag),
   INDEX idx_source (source_tag),
   INDEX idx_related (related_tag)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS help_versions (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS help_versions (
   sync_plan_id VARCHAR(80) DEFAULT NULL,
   INDEX idx_tag_date (tag, change_date),
   INDEX idx_sync_plan_id (sync_plan_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE IF NOT EXISTS help_search_history (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -68,4 +68,4 @@ CREATE TABLE IF NOT EXISTS help_search_history (
   search_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_search_term (search_term),
   INDEX idx_search_date (search_date)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

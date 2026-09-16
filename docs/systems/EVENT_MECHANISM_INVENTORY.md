@@ -8,7 +8,7 @@ contract. Remaining owner migrations are tracked in [#105](https://github.com/Lu
 ## Timing ownership and retained dispatch
 
 | Mechanism and source | Owner, cadence and callers | Disposition and rationale |
-| --- | --- | --- |
+| -- | -- | -- |
 | `game_scheduler.c`, `event_runtime.c` | One process runtime; main-loop deadline service | Sole gameplay scheduler. Hierarchical wheel, owner handles and bounded dispatch. |
 | `mud_event.c` | Per-character/object/room/world native types admitted by `NEW_EVENT` and related semantic APIs | Retain semantic API; no second queue. Cooldowns use native ownership; timed casting uses the activity manager. |
 | `periodic_owners.c`, `character_periodic.c`, `affected_owners.c`, `point_update_periodic.c`, `vessel_periodic.c` | Registered active owners, native typed cadences | Retain. Cadence does not itself imply a legacy scheduler. |
@@ -43,7 +43,7 @@ retargeting, including a replacement with identical flags. No-op flag writes
 are silent. Bootstrap initialization is silent.
 
 | Writer family | Publication/invalidation boundary | Evidence |
-| --- | --- | --- |
+| -- | -- | -- |
 | `movement/movement_doors.c` | `do_gen_door` finishes after traps, DG vetoes, compound autokey operations, messages and costs. Containers do not enter the door contract. | Command success/failure/no-op, NPC close, container and DG veto tests. |
 | `act.other.c` | Successful lockpick and hidden-door search capture before mutation and finish after command work. | Shared mutation tests; source trace preserves single-side lockpick/search semantics. |
 | `movement/movement.c:do_pullswitch` | Captured verified pair; final flags published after messages. Reverse destination is validated against the switch's target room. | Shared pair/asymmetry tests and writer review. Commented-out doorbash is not compiled. |

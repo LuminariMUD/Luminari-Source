@@ -21,14 +21,12 @@ frontier_cleanup_authorized=false
 umask 077
 mkdir -p "$run_dir"
 
-fail()
-{
+fail() {
   printf 'vessel frontier provisioner: %s\n' "$*" >&2
   exit 1
 }
 
-config_value()
-{
+config_value() {
   local config_file=$1
   local requested_key=$2
 
@@ -59,8 +57,7 @@ config_value()
   ' "$config_file"
 }
 
-newer_binary_input()
-{
+newer_binary_input() {
   local input_root=$1
   local binary_path=$2
   local candidate
@@ -68,7 +65,7 @@ newer_binary_input()
   [[ -e "$binary_path" ]] || return 2
   for candidate in Makefile Makefile.am CMakeLists.txt configure.ac config.h; do
     if [[ -f "$input_root/$candidate" &&
-          "$input_root/$candidate" -nt "$binary_path" ]]; then
+      "$input_root/$candidate" -nt "$binary_path" ]]; then
       printf '%s\n' "$input_root/$candidate"
       return 0
     fi
@@ -77,8 +74,7 @@ newer_binary_input()
     -newer "$binary_path" -print -quit
 }
 
-database_scalar()
-{
+database_scalar() {
   local query=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -86,8 +82,7 @@ database_scalar()
     "$database_name" --execute="$query"
 }
 
-frontier_runtime_slots()
-{
+frontier_runtime_slots() {
   database_scalar "
     SELECT COALESCE(GROUP_CONCAT(runtime.ship_id ORDER BY runtime.ship_id
                                 SEPARATOR ','), '')
@@ -101,8 +96,7 @@ frontier_runtime_slots()
        'Sablebranch Grand Freighter', 'Liminal Wayfarer');"
 }
 
-apply_database_file()
-{
+apply_database_file() {
   local sql_file=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -110,13 +104,11 @@ apply_database_file()
     "$database_name" <"$sql_file"
 }
 
-port_is_listening()
-{
+port_is_listening() {
   ss -H -ltn "sport = :$mud_port" 2>/dev/null | grep -q .
 }
 
-stop_development_mud()
-{
+stop_development_mud() {
   local attempt
 
   if systemctl --user is-active --quiet "$server_unit"; then
@@ -129,16 +121,14 @@ stop_development_mud()
   fail "development port $mud_port remained active"
 }
 
-start_development_mud()
-{
+start_development_mud() {
   local output_file=$1
 
   "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" >"$output_file" 2>&1
   restart_needed=false
 }
 
-active_vessel_workload()
-{
+active_vessel_workload() {
   systemctl --user list-units --type=service --state=active \
     --no-legend --plain 2>/dev/null |
     awk '
@@ -150,8 +140,7 @@ active_vessel_workload()
     '
 }
 
-recover_server()
-{
+recover_server() {
   local exit_status=$?
   local cleanup_status=0
   local remaining_slots
@@ -417,8 +406,8 @@ grep -Fqx 'Room: 1204' "$repo_root/lib/plrfiles/K-O/kohdee.plr" ||
   fail "Kohdee did not return to room 1204 after piloting the frontier vessels"
 
 if [[ -f "$server_log" ]] &&
-   grep -E 'SYSERR:.*(710010[1-4]|Starfall|Aetherwind|Shardspire|Sablebranch|Liminal)' \
-     "$server_log" >"$run_dir/04-related-syserr.log"; then
+  grep -E 'SYSERR:.*(710010[1-4]|Starfall|Aetherwind|Shardspire|Sablebranch|Liminal)' \
+    "$server_log" >"$run_dir/04-related-syserr.log"; then
   fail "the server logged a frontier-content SYSERR"
 fi
 

@@ -58,7 +58,7 @@
 
 /***** start file body *****/
 
-/* doorbash (Duris racial innate): force one closed exit open on both sides,
+/* doorbash (Sep 2026 racial innate): force one closed exit open on both sides,
  * breaking the lock.  Split out so the effect can be checked without the roll. */
 void doorbash_open_exit(struct char_data *ch, int door)
 {
@@ -1875,7 +1875,7 @@ ACMDU(do_unstuck)
     send_to_char(ch, ".\r\n");
     return;
   }
-  if (strcmp(argument, ch->player_specials->unstuck))
+  if (strcmp(argument, ch->player_specials->unstuck) != 0)
   {
     send_to_char(
         ch,

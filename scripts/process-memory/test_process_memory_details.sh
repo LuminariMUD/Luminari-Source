@@ -5,14 +5,12 @@ set -euo pipefail
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 sampler="$script_dir/sample_process_memory_details.sh"
 
-fail()
-{
+fail() {
   printf 'process memory detail sampler test: %s\n' "$*" >&2
   exit 1
 }
 
-expect_validation_failure()
-{
+expect_validation_failure() {
   local input_file=$1
   local expected_error=$2
 

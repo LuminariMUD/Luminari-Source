@@ -3,18 +3,13 @@ name: Code Quality
 on:
   push:
     branches: [master, main]
-    paths:
-      - 'src/**'
-      - '.clang-format'
-      - '.clang-tidy'
-      - '.github/workflows/quality.yml'
   pull_request:
     branches: [master, main]
-    paths:
-      - 'src/**'
-      - '.clang-format'
-      - '.clang-tidy'
-      - '.github/workflows/quality.yml'
+  # The weekly and manual runs analyze the whole tree with clang-tidy; pull
+  # requests and pushes analyze only what changed.
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
 
 jobs:
   format-check:
@@ -27,21 +22,99 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
       - name: Install pre-commit
         run: pip install pre-commit
 
-      # Runs the clang-format pinned in .pre-commit-config.yaml (v18.1.8) over
-      # every tracked C/C++ file, honouring that file's exclude list. Using the
-      # hook rather than the distro clang-format keeps CI, the local pre-commit
-      # hook, and developers on one version: an unpinned `apt-get install
-      # clang-format` silently changes formatting rules whenever the runner
-      # image moves, and the previous `head -50` sample checked an arbitrary
-      # subset of src/ that shifted with the directory listing.
+      # The php-cs-fixer and PSScriptAnalyzer hooks run the runner image's php
+      # and pwsh. Printing both first makes an image change that drops either
+      # one fail here instead of inside a hook.
+      - name: Show formatter runtimes
+        run: |
+          php --version
+          pwsh --version
+
+      # Runs every hook pinned in .pre-commit-config.yaml over every tracked
+      # file: the formatters for each file type, the hygiene hooks, and the SQL
+      # format policy. Versions come from that file, so CI, the local hook, and
+      # developers format identically; an unpinned distro formatter would
+      # change the rules whenever the runner image moves.
       - name: Check formatting
         run: |
-          pre-commit run clang-format --all-files --show-diff-on-failure || {
-            echo "::error::Formatting issues found. Run 'pre-commit run clang-format --all-files' locally."
+          pre-commit run --all-files --show-diff-on-failure || {
+            echo "::error::Formatting issues found. Run 'pre-commit run --all-files' locally and commit the result."
             exit 1
           }
+
+      # The policy also runs as a pre-commit hook; this step keeps it in CI even
+      # if that hook entry is removed.
+      - name: Check the SQL format policy
+        run: |
+          python3 scripts/ci/check_sql_format_policy.py --self-test
+          python3 scripts/ci/check_sql_format_policy.py
+
+  clang-tidy:
+    name: clang-tidy baseline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # HEAD^1 is the diff base: the target branch for a pull request's
+          # merge commit, the previous tip for a push.
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      # Every ratchet reads the baseline committed beside it, so a change that
+      # raised one would pass them all. This compares each with the diff base
+      # first; the weekly and manual runs have no base to compare with.
+      - name: Check that no baseline grew
+        run: |
+          case "${GITHUB_EVENT_NAME:-}" in
+            schedule | workflow_dispatch) echo "no diff base on a ${GITHUB_EVENT_NAME} run" ;;
+            *)
+              if git rev-parse -q --verify 'HEAD^1' >/dev/null; then
+                python3 scripts/ci/check_baseline_ratchet.py --base 'HEAD^1'
+              else
+                echo "no parent commit to compare with"
+              fi
+              ;;
+          esac
+
+      - name: Set up build
+        uses: ./.github/actions/setup-build
+        with:
+          cache-variant: clang-tidy
+
+      - name: Install clang-tidy
+        run: python3 -m pip install -r scripts/ci/clang-tidy-requirements.txt
+
+      - name: Export the compilation database
+        run: cmake --preset analysis
+
+      # The log shows every finding above the baseline in full; the artifact
+      # holds the complete output and a JSON report of every finding.
+      - name: Compare clang-tidy findings with the baseline
+        run: |
+          args=(--build-dir build/analysis --report-dir clang-tidy-report)
+          case "${GITHUB_EVENT_NAME:-}" in
+            schedule | workflow_dispatch) ;;
+            *)
+              if git rev-parse -q --verify 'HEAD^1' >/dev/null; then
+                args+=(--base 'HEAD^1')
+              fi
+              ;;
+          esac
+          python3 scripts/ci/check_clang_tidy.py "${args[@]}"
+
+      - name: Upload the clang-tidy report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: clang-tidy-report
+          path: clang-tidy-report/

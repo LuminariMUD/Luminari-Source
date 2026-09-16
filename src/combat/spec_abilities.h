@@ -22,6 +22,8 @@
 #ifndef _SPEC_ABILITIES_H_
 #define _SPEC_ABILITIES_H_
 
+#include "core/structs.h"
+
 #define HAS_SPECIAL_ABILITIES(obj) (obj->special_abilities == NULL ? FALSE : TRUE)
 
 /* Activation methods */

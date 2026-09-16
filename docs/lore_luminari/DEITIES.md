@@ -3,6 +3,7 @@
 This document defines an original, setting-specific pantheon for the Luminari world. It is inspired by classic fantasy portfolios (war, sea, luck, craft, fate, etc.) while remaining fully original in naming, lore, and relationships.
 
 Guidance for implementers:
+
 - Suggested Domains list references existing domain tags in the codebase (e.g., `DOMAIN_WAR`, `DOMAIN_MAGIC`, `DOMAIN_TRAVEL`). Adjust during integration as needed.
 - Ethos uses Lawful/Neutral/Chaotic; Alignment uses Good/Neutral/Evil.
 - Favored Weapons are descriptive to support different weapon tables.
@@ -13,13 +14,17 @@ Guidance for implementers:
 The gods are bound to the Loom of Aether, a metaphysical weave of vows, memories, and elemental currents. Each deity embodies a cadence of the Loom. Clerics channel a thread by devotion, oath, and ritual. When gods clash, the Loom shudders as omens, eclipses, red tides, singing stones, and dream-storms.
 
 ### The Three Forces of Creation
+
 The Loom itself is woven from three primordial forces:
+
 - **Memory**: The past that shapes, represented by Aethyra, Nethris, and Kaelthir
 - **Will**: The present that acts, represented by Kordran, Thalos, and Erix
 - **Possibility**: The future that beckons, represented by Lumerion, Vespera, and Seraphine
 
 ### Divine Resonances
+
 Certain deities share "harmonic threads" in the Loom:
+
 - **The Light and Shadow Dyad**: Seraphine and Nyxara are two faces of the same cosmic truth
 - **The Forge Trinity**: Borhild, Pyrion, and Erix represent creation through craft
 - **The Death Quartet**: Nethris, Glacius, Umbros, and Yurga govern different aspects of endings
@@ -40,6 +45,7 @@ Certain deities share "harmonic threads" in the Loom:
 ## Core Deities
 
 ### Aethyra, Lady of the Loom
+
 - **Portfolio**: Magic, oaths, hidden patterns, memory, the Weave itself
 - **Ethos / Alignment**: Neutral / Good
 - **Suggested Domains**: `DOMAIN_MAGIC`, `DOMAIN_KNOWLEDGE`, `DOMAIN_RUNE`, `DOMAIN_PROTECTION`, `DOMAIN_SPELL`
@@ -55,6 +61,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Relationships**: Warily counsels Nyxara on the balance between secrets and knowledge; trusts Thalos in matters of law and record-keeping; often at cross-purposes with Vespera's chaotic magic; works closely with Kaelthir on preserving ancient lore.
 
 ### Kordran, Hammer of Dawn
+
 - **Portfolio**: War, duty, resolve, banners, righteous battle, military honor
 - **Ethos / Alignment**: Lawful / Good
 - **Suggested Domains**: `DOMAIN_WAR`, `DOMAIN_PROTECTION`, `DOMAIN_STRENGTH`, `DOMAIN_LAW`, `DOMAIN_GOOD`
@@ -70,6 +77,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Relationships**: Mutual respect with Orith for steadfast endurance; friendly rivalry with Zorren over tactics vs. instinct; implacably opposed to Yurga's plague-spreading; works with Seraphine to protect farming communities.
 
 ### Seraphine the Dawnstar
+
 - **Portfolio**: Sun, renewal, harvest, redemption, agriculture, second chances
 - **Ethos / Alignment**: Neutral / Good
 - **Suggested Domains**: `DOMAIN_SUN`, `DOMAIN_RENEWAL`, `DOMAIN_HEALING`, `DOMAIN_GOOD`, `DOMAIN_PLANT`
@@ -85,6 +93,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Relationships**: Sister-rival to Nyxara (light vs. shadow, but both necessary); patron-friend of Myrr in healing work; allied with Willow in agricultural matters; opposed to Draven's patient corruption.
 
 ### Nyxara of the Veil
+
 - **Portfolio**: Night, secrets, thresholds, lost names, hidden knowledge, necessary darkness
 - **Ethos / Alignment**: Neutral / Evil
 - **Suggested Domains**: `DOMAIN_DARKNESS`, `DOMAIN_KNOWLEDGE`, `DOMAIN_TRICKERY`, `DOMAIN_CAVERN`, `DOMAIN_PORTAL`
@@ -100,6 +109,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Relationships**: Sister-shadow to Seraphine (they were once one deity, split during the First Dawn); cordial with Vespera over shared trickery; wary alliance with Zhaerin on forbidden knowledge; plots to subvert Aethyra's oaths while secretly preserving the most important ones.
 
 ### Thalos, the Scales Unblinking
+
 - **Portfolio**: Judgment, law, scholarship, cities
 - **Ethos / Alignment**: Lawful / Neutral
 - **Suggested Domains**: `DOMAIN_LAW`, `DOMAIN_KNOWLEDGE`, `DOMAIN_PROTECTION`, `DOMAIN_PLANNING`
@@ -114,6 +124,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Relationships**: Disputes Kordran's crusades; respects Erix's contracts; opposes Sharguk's lawless cabals.
 
 ### Vaelith, Whispering Tide
+
 - **Portfolio**: Sea, storms, currents, horizons
 - **Ethos / Alignment**: Chaotic / Neutral
 - **Suggested Domains**: `DOMAIN_OCEAN`, `DOMAIN_STORM`, `DOMAIN_TRAVEL`, `DOMAIN_PROTECTION`
@@ -128,6 +139,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Relationships**: Allies of Aelor; quarrels with Thalassa over shipwreck tithe.
 
 ### Myrr, the Quiet Brook
+
 - **Portfolio**: Peace, healing, sanctuaries, small kindnesses
 - **Ethos / Alignment**: Neutral / Good
 - **Suggested Domains**: `DOMAIN_HEALING`, `DOMAIN_WATER`, `DOMAIN_PROTECTION`, `DOMAIN_FAMILY`
@@ -142,6 +154,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Relationships**: Cherished by Seraphine; hunted by Yurga's cults in time of plague.
 
 ### Zorren, Lord of the Wild Hunt
+
 - **Portfolio**: Beasts, moonlit pursuit, primal triumph, freedom, the hunter's bond
 - **Ethos / Alignment**: Chaotic / Neutral
 - **Suggested Domains**: `DOMAIN_ANIMAL`, `DOMAIN_MOON`, `DOMAIN_STRENGTH`, `DOMAIN_TRAVEL`, `DOMAIN_LIBERATION`
@@ -158,6 +171,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Relationships**: Friendly rivalry with Kordran over tactics vs instinct; protective of Viridara's sacred groves; honors Verdania as the source of all prey; despises Ghorak's wasteful destruction; shares moon-mysteries with Selithiel.
 
 ### Lumerion, the Lantern-Bearer
+
 - **Portfolio**: Luck, travel, wayfinding, small chances
 - **Ethos / Alignment**: Chaotic / Good
 - **Suggested Domains**: `DOMAIN_LUCK`, `DOMAIN_TRAVEL`, `DOMAIN_PROTECTION`, `DOMAIN_GOOD`
@@ -172,6 +186,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Relationships**: Companion to Pella; needled by Brandoc's pranks; despised by Sharguk.
 
 ### Erix the Coinwright
+
 - **Portfolio**: Trade, craft, cities, contracts
 - **Ethos / Alignment**: Lawful / Neutral
 - **Suggested Domains**: `DOMAIN_TRADE`, `DOMAIN_CRAFT`, `DOMAIN_METAL`, `DOMAIN_PLANNING`
@@ -186,6 +201,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Relationships**: Respects Thalos; distrusts Vespera's guilds; partnered with Borhild on great works.
 
 ### Vespera of the Many Masks
+
 - **Portfolio**: Trickery, performance, subterfuge, reinvention, revolution through mockery
 - **Ethos / Alignment**: Chaotic / Neutral
 - **Suggested Domains**: `DOMAIN_TRICKERY`, `DOMAIN_CHARM`, `DOMAIN_LUCK`, `DOMAIN_PORTAL`, `DOMAIN_ILLUSION`
@@ -202,6 +218,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Relationships**: Flirts with Nyxara over shared deceptions; sabotages Sharguk's terror with ridicule; rescued by Lumerion in many tales; teaches Calystral that art can be rebellion; despises Thalos's rigid order.
 
 ### Nethris, the Gravewarden
+
 - **Portfolio**: Death, fate, proper rites, thresholds of endings
 - **Ethos / Alignment**: Lawful / Neutral
 - **Suggested Domains**: `DOMAIN_DEATH`, `DOMAIN_FATE`, `DOMAIN_PROTECTION`, `DOMAIN_TRAVEL`
@@ -216,6 +233,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Relationships**: Cold courtesy with Myrr; hunts Yurga's blasphemies; often invoked by Thalos.
 
 ### Calystral, the Flameheart
+
 - **Portfolio**: Love, art, passion, creative fire
 - **Ethos / Alignment**: Chaotic / Good
 - **Suggested Domains**: `DOMAIN_CHARM`, `DOMAIN_GOOD`, `DOMAIN_FIRE`, `DOMAIN_MOBILITY`
@@ -230,6 +248,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Relationships**: Patron to Lirael; scorns Velara's assassins who kill for art.
 
 ### Orith, the Stonefather
+
 - **Portfolio**: Earth, mountains, patience, endurance
 - **Ethos / Alignment**: Neutral / Good
 - **Suggested Domains**: `DOMAIN_EARTH`, `DOMAIN_PROTECTION`, `DOMAIN_STRENGTH`, `DOMAIN_CAVERN`
@@ -248,6 +267,7 @@ Certain deities share "harmonic threads" in the Loom:
 ## Dwarven Hearth and Forge
 
 ### Borhild Emberforge
+
 - **Portfolio**: Forgecraft, innovation, consecrated labor
 - **Ethos / Alignment**: Lawful / Good
 - **Suggested Domains**: `DOMAIN_CRAFT`, `DOMAIN_METAL`, `DOMAIN_FIRE`, `DOMAIN_PROTECTION`
@@ -256,6 +276,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Notes**: Joint patron of great projects with Erix.
 
 ### Skarn Graniteward
+
 - **Portfolio**: Guardianship, vigilance, bulwarks
 - **Ethos / Alignment**: Lawful / Neutral
 - **Suggested Domains**: `DOMAIN_PROTECTION`, `DOMAIN_WAR`, `DOMAIN_LAW`, `DOMAIN_STRENGTH`
@@ -263,6 +284,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Tenets**: Be the wall; keep watches true; an open gate is an invitation.
 
 ### Maela Rubyvein
+
 - **Portfolio**: Hearth, family, healing elixirs
 - **Ethos / Alignment**: Neutral / Good
 - **Suggested Domains**: `DOMAIN_FAMILY`, `DOMAIN_HEALING`, `DOMAIN_WATER`, `DOMAIN_GOOD`
@@ -270,6 +292,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Tenets**: Raise children brave and kind; the table binds houses as mortar binds stone.
 
 ### Duerak Deepdelve
+
 - **Portfolio**: Subterranean lore, hidden veins, secrecy in craft
 - **Ethos / Alignment**: Neutral / Neutral
 - **Suggested Domains**: `DOMAIN_CAVERN`, `DOMAIN_KNOWLEDGE`, `DOMAIN_RUNE`, `DOMAIN_PROTECTION`
@@ -277,6 +300,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Tenets**: Knowledge hoarded dulls; knowledge shared sharpens.
 
 ### Vangar Battlebraid
+
 - **Portfolio**: War-fury, heroism, oaths of steel
 - **Ethos / Alignment**: Chaotic / Good
 - **Suggested Domains**: `DOMAIN_WAR`, `DOMAIN_STRENGTH`, `DOMAIN_CHAOS`, `DOMAIN_RETRIBUTION`
@@ -288,6 +312,7 @@ Certain deities share "harmonic threads" in the Loom:
 ## Elven Courts of Bough and Star
 
 ### Selithiel Moonbough
+
 - **Portfolio**: Moon, dreams, passage, mysticism
 - **Ethos / Alignment**: Chaotic / Good
 - **Suggested Domains**: `DOMAIN_MOON`, `DOMAIN_ILLUSION`, `DOMAIN_TRAVEL`, `DOMAIN_GOOD`
@@ -295,6 +320,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Tenets**: Walk softly between worlds; dreams remember what we forget.
 
 ### Aerion Swiftwind
+
 - **Portfolio**: Air, migratory paths, messengers
 - **Ethos / Alignment**: Chaotic / Neutral
 - **Suggested Domains**: `DOMAIN_AIR`, `DOMAIN_TRAVEL`, `DOMAIN_PROTECTION`, `DOMAIN_LUCK`
@@ -302,6 +328,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Tenets**: Bear tidings true; a lie on the wind becomes a storm.
 
 ### Viridara Thornsong
+
 - **Portfolio**: Forests, growth, wild harmonies
 - **Ethos / Alignment**: Neutral / Good
 - **Suggested Domains**: `DOMAIN_PLANT`, `DOMAIN_ANIMAL`, `DOMAIN_RENEWAL`, `DOMAIN_PROTECTION`
@@ -309,6 +336,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Tenets**: Prune to heal; root to endure; seed to return.
 
 ### Lirael Dawnsong
+
 - **Portfolio**: Beauty, art, poetry, grace in motion
 - **Ethos / Alignment**: Chaotic / Good
 - **Suggested Domains**: `DOMAIN_CHARM`, `DOMAIN_KNOWLEDGE`, `DOMAIN_GOOD`, `DOMAIN_MOBILITY`
@@ -316,6 +344,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Tenets**: Art is mercy; talent is duty; share both.
 
 ### Kaelthir Starwarden
+
 - **Portfolio**: Ancient knowledge, time, prophecy
 - **Ethos / Alignment**: Neutral / Neutral
 - **Suggested Domains**: `DOMAIN_KNOWLEDGE`, `DOMAIN_TIME`, `DOMAIN_RUNE`, `DOMAIN_FATE`
@@ -327,6 +356,7 @@ Certain deities share "harmonic threads" in the Loom:
 ## Halfling Hearth-Tide
 
 ### Pella of the Warm Hearth
+
 - **Portfolio**: Home, hospitality, safe roads
 - **Ethos / Alignment**: Lawful / Good
 - **Suggested Domains**: `DOMAIN_FAMILY`, `DOMAIN_PROTECTION`, `DOMAIN_TRAVEL`, `DOMAIN_GOOD`
@@ -334,6 +364,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Tenets**: Leave a light in your window; no guest goes hungry.
 
 ### Brandoc Quickstep
+
 - **Portfolio**: Luck, wit, audacious larceny (with rules)
 - **Ethos / Alignment**: Chaotic / Neutral
 - **Suggested Domains**: `DOMAIN_LUCK`, `DOMAIN_TRICKERY`, `DOMAIN_TRAVEL`, `DOMAIN_PORTAL`
@@ -341,6 +372,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Tenets**: Steal from greed, not need; never from the table that fed you.
 
 ### Willow Merryleaf
+
 - **Portfolio**: Gardens, song, festivals
 - **Ethos / Alignment**: Neutral / Good
 - **Suggested Domains**: `DOMAIN_PLANT`, `DOMAIN_GOOD`, `DOMAIN_WATER`, `DOMAIN_RENEWAL`
@@ -352,6 +384,7 @@ Certain deities share "harmonic threads" in the Loom:
 ## Orcish Ash-Legion
 
 ### Ghorak the Ash-Eyed
+
 - **Portfolio**: Conquest, strength, survival
 - **Ethos / Alignment**: Chaotic / Evil
 - **Suggested Domains**: `DOMAIN_STRENGTH`, `DOMAIN_WAR`, `DOMAIN_DESTRUCTION`, `DOMAIN_HATRED`
@@ -359,6 +392,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Tenets**: Take the strong ground; crush weak chains; honor the unbroken.
 
 ### Luthra Bloodmother
+
 - **Portfolio**: Caves, fertility, endurance of kin
 - **Ethos / Alignment**: Neutral / Evil
 - **Suggested Domains**: `DOMAIN_CAVERN`, `DOMAIN_FAMILY`, `DOMAIN_HEALING`, `DOMAIN_EARTH`
@@ -366,6 +400,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Tenets**: Blood remembers; hide the young; keep fire alive.
 
 ### Sharguk Nightfang
+
 - **Portfolio**: Night raids, silence, terror-craft
 - **Ethos / Alignment**: Chaotic / Evil
 - **Suggested Domains**: `DOMAIN_DARKNESS`, `DOMAIN_TRICKERY`, `DOMAIN_TRAVEL`, `DOMAIN_RETRIBUTION`
@@ -373,6 +408,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Tenets**: Fear is a spear thrown before battle; leave none to warn.
 
 ### Yurga of the Pale Hand
+
 - **Portfolio**: Disease, rot, despair
 - **Ethos / Alignment**: Neutral / Evil
 - **Suggested Domains**: `DOMAIN_DEATH`, `DOMAIN_SUFFERING`, `DOMAIN_DESTRUCTION`, `DOMAIN_EVIL`
@@ -384,6 +420,7 @@ Certain deities share "harmonic threads" in the Loom:
 ## Seafolk and Sky
 
 ### Thalassa Stormqueen
+
 - **Portfolio**: Tempests, shipwreck tithe, deep truths
 - **Ethos / Alignment**: Chaotic / Neutral
 - **Suggested Domains**: `DOMAIN_STORM`, `DOMAIN_OCEAN`, `DOMAIN_DESTRUCTION`, `DOMAIN_FATE`
@@ -392,6 +429,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Note**: Demands a "tenth sail" offering from major fleets - often opposed by Vaelith's clergy.
 
 ### Aelor Keelwarden
+
 - **Portfolio**: Sailors, fair winds, charts
 - **Ethos / Alignment**: Neutral / Good
 - **Suggested Domains**: `DOMAIN_TRAVEL`, `DOMAIN_PROTECTION`, `DOMAIN_OCEAN`, `DOMAIN_LUCK`
@@ -403,6 +441,7 @@ Certain deities share "harmonic threads" in the Loom:
 ## Under-Shadow: The Dark Courts
 
 ### Velara, the Obsidian Rose
+
 - **Portfolio**: Silent courts, assassination-as-politic, ambition veiled
 - **Ethos / Alignment**: Lawful / Evil
 - **Suggested Domains**: `DOMAIN_LAW`, `DOMAIN_TRICKERY`, `DOMAIN_DARKNESS`, `DOMAIN_RETRIBUTION`
@@ -410,6 +449,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Tenets**: Power is a contract written in blood; elegance is the blade you never show.
 
 ### Zhaerin Nightglass
+
 - **Portfolio**: Shadow-magic, memory theft, forbidden tomes
 - **Ethos / Alignment**: Neutral / Evil
 - **Suggested Domains**: `DOMAIN_ILLUSION`, `DOMAIN_DARKNESS`, `DOMAIN_MAGIC`, `DOMAIN_KNOWLEDGE`
@@ -417,6 +457,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Tenets**: Knowledge kept is power doubled; erase what can erase you.
 
 ### Draven Coil
+
 - **Portfolio**: Poisons, subversion, patient ruin
 - **Ethos / Alignment**: Chaotic / Evil
 - **Suggested Domains**: `DOMAIN_DESTRUCTION`, `DOMAIN_TRICKERY`, `DOMAIN_EVIL`, `DOMAIN_SUFFERING`
@@ -428,6 +469,7 @@ Certain deities share "harmonic threads" in the Loom:
 ## Divine Artifacts and Relics
 
 ### Major Artifacts (One per deity, lost to time)
+
 - **Aethyra's Spindle**: Can reweave a broken oath or restore a lost memory
 - **Kordran's Sunhammer**: Never misses a righteous strike, burns undead to ash
 - **Seraphine's Seeds**: Seven golden seeds that can restore dead lands to life
@@ -436,6 +478,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Nethris's Key**: Opens the door between life and death
 
 ### Minor Relics (Clergy can quest for these)
+
 - **Threads of the Loom**: Single strands that grant one-time divine intervention
 - **Waystone Lanterns**: Never extinguish, always point toward safety (Lumerion)
 - **Mercy Cups**: Water within heals any poison or disease (Myrr)
@@ -446,21 +489,25 @@ Certain deities share "harmonic threads" in the Loom:
 ## Clerical Practice and Roleplay Hooks
 
 ### Daily Observances
+
 - **Petitioning the Loom**: Clerics frame daily petitions as "knotting" a thread - naming a need, a virtue, and a memory offered.
 - **The Five Prayers**: Dawn (gratitude), Noon (dedication), Dusk (reflection), Midnight (vigil), and Crisis (immediate need)
 - **Sacred Gestures**: Each deity has a unique hand-sign for silent identification between clergy
 
 ### Clergy Organization
+
 - **Vestments**: Color and material vary by deity; common threads and sigils across sects signal shared oaths to the Loom to avoid inter-clerical duels.
 - **Ranks**: Initiate, Acolyte, Priest/Priestess, High Priest/Priestess, Chosen (rare, directly touched by deity)
 - **Temples**: Range from grand cathedrals (Thalos, Kordran) to hidden shrines (Nyxara, Vespera) to natural groves (Viridara, Zorren)
 
 ### Miracles and Omens
+
 - **Major Signs**: Threads hum audibly during major miracles; the sky reflects the deity's nature (golden for Seraphine, starless for Nyxara)
 - **Minor Omens**: Lanterns that won't extinguish (Lumerion), cups that never spill (Myrr), chalk lines that refuse to be crossed (Thalos), flowers blooming out of season (Seraphine), shadows moving against light (Nyxara)
 - **Divine Displeasure**: Holy symbols tarnish, prayers feel hollow, divine magic weakens
 
 ### Sect Schisms and Variants
+
 - **Kordran's Banner-Menders**: Refuse siege warfare, focus on defending innocents
 - **Nyxara's Lamplighters**: Protect secrets of the persecuted rather than extort
 - **Seraphine's Dusk Walkers**: Believe redemption must be earned through trials
@@ -468,6 +515,7 @@ Certain deities share "harmonic threads" in the Loom:
 - **Myrr's Silent Hands**: Take vows of silence, communicate only through healing
 
 ### Sacred Sites and Pilgrimage
+
 - **Major Knots of the Loom**: Crossroads (Lumerion), cavern springs (Myrr), mountain echoes (Orith), moonlit clearings (Zorren), seaside cliffs (Vaelith)
 - **The Great Convergence**: Once per century, all clergy gather at the First Temple where the Loom was discovered
 - **Personal Pilgrimages**: Each cleric must visit three sacred sites during their lifetime
@@ -477,23 +525,27 @@ Certain deities share "harmonic threads" in the Loom:
 ## Divine Conflicts and Alliances
 
 ### The Great Schisms
+
 - **The Dawn Sundering**: When Seraphine and Nyxara split from their original unified form, creating day and night
 - **The Forge War**: Borhild and Pyrion's contest over who truly masters creation through fire
 - **The Silent Accord**: Nethris and Myrr's agreement that death and healing must coexist
 
 ### Active Divine Conflicts
+
 - **The Harvest Dispute**: Seraphine vs. Draven - corruption of croplands vs. blessed harvests
 - **The Sea Divided**: Vaelith, Thalassa, and Aelor compete for dominion over different aspects of the ocean
 - **The Memory Wars**: Aethyra vs. Zhaerin - preserving vs. stealing memories
 - **The Wild Boundaries**: Zorren vs. Ghorak - freedom of the wild vs. conquest of nature
 
 ### Divine Alliances
+
 - **The Makers' Compact**: Borhild, Erix, and Pyrion share forge-knowledge
 - **The Mercy Circle**: Myrr, Seraphine, and Pella protect the innocent
 - **The Shadow Pact**: Nyxara, Umbros, and Vespera trade in secrets
 - **The Natural Order**: Viridara, Verdania, Orith, and Zorren maintain the wilderness
 
 ### Prophesied Events
+
 - **The Thread's End**: When the Loom will unravel unless all deities unite
 - **The Second Dawn**: Seraphine and Nyxara's prophesied reunification
 - **The Final Hunt**: Zorren's last chase that will determine the fate of all wild things
@@ -502,6 +554,7 @@ Certain deities share "harmonic threads" in the Loom:
 ## Divine Heralds and Servitors
 
 ### Celestial Heralds (Core Deities)
+
 - **Aethyra**: The Memory Sphinx - A crystalline sphinx that speaks in riddles of past and future
 - **Kordran**: The Dawn Champion - An armored solar with a hammer of pure sunlight
 - **Seraphine**: The Golden Phoenix - Resurrects the fallen and brings hope
@@ -513,12 +566,14 @@ Certain deities share "harmonic threads" in the Loom:
 - **Lumerion**: The Waylight Archon - A cheerful entity that helps lost travelers
 
 ### Elemental Heralds (Primarchs)
+
 - **Pyrion**: The Ember Titan - A giant of living flame and molten metal
 - **Glacius**: The Frost Wyrm - An ancient ice dragon that speaks in whispers
 - **Verdania**: The World Tree Avatar - A walking tree that seeds new forests
 - **Umbros**: The Void Walker - An absence of form that consumes light
 
 ### Divine Servants (Lesser beings that serve the gods)
+
 - **Thread Weavers**: Aethyra's servants who maintain the Loom
 - **Banner Bearers**: Kordran's warrior angels
 - **Dawn Maidens**: Seraphine's healing spirits
@@ -533,6 +588,7 @@ Certain deities share "harmonic threads" in the Loom:
 These ancient deities represent the raw elemental forces that shaped the world before the Loom was woven. They are distant and alien, rarely worshipped directly, but their influence permeates all elemental magic.
 
 ### Pyrion, the First Flame
+
 - **Portfolio**: Primal fire, creation through destruction, forge-heat, passion
 - **Ethos / Alignment**: Chaotic / Neutral
 - **Suggested Domains**: `DOMAIN_FIRE`, `DOMAIN_DESTRUCTION`, `DOMAIN_RENEWAL`, `DOMAIN_CRAFT`
@@ -543,6 +599,7 @@ These ancient deities represent the raw elemental forces that shaped the world b
 - **Relationships**: Respects Borhild's mastery of forge-craft; opposed to Glacius in eternal balance; allied with Sirrion in creative fire.
 
 ### Glacius, the Eternal Winter
+
 - **Portfolio**: Primal ice, preservation, patience, inevitable endings
 - **Ethos / Alignment**: Lawful / Neutral
 - **Suggested Domains**: `DOMAIN_WATER`, `DOMAIN_TIME`, `DOMAIN_PROTECTION`, `DOMAIN_DEATH`
@@ -553,6 +610,7 @@ These ancient deities represent the raw elemental forces that shaped the world b
 - **Relationships**: Eternal opposition to Pyrion; works with Nethris on matters of endings; respects Kaelthir's preservation of time.
 
 ### Verdania, the Growing Green
+
 - **Portfolio**: Primal nature, growth, the wild hunt, untamed life
 - **Ethos / Alignment**: Neutral / Neutral
 - **Suggested Domains**: `DOMAIN_PLANT`, `DOMAIN_ANIMAL`, `DOMAIN_RENEWAL`, `DOMAIN_CHAOS`
@@ -563,6 +621,7 @@ These ancient deities represent the raw elemental forces that shaped the world b
 - **Relationships**: Patron of Viridara's forests; works with Zorren in matters of the hunt; opposed to Umbros's stagnation.
 
 ### Umbros, the Deep Dark
+
 - **Portfolio**: Primal darkness, the void between stars, rest, the unknown
 - **Ethos / Alignment**: Neutral / Evil
 - **Suggested Domains**: `DOMAIN_DARKNESS`, `DOMAIN_VOID`, `DOMAIN_KNOWLEDGE`, `DOMAIN_CAVERN`
@@ -577,16 +636,19 @@ These ancient deities represent the raw elemental forces that shaped the world b
 ## Implementation Notes (Designers/Builders)
 
 ### Domain Integration
+
 - Map "Suggested Domains" to your domain constants in `src/character/deities.c` when adding data; adjust pantheons as needed.
 - The enhanced pantheon now includes additional domains like `DOMAIN_PORTAL`, `DOMAIN_VOID`, and `DOMAIN_SPELL` for richer mechanical variety.
 - Consider adding new domain constants for unique portfolios (e.g., `DOMAIN_MEMORY`, `DOMAIN_OATHS`, `DOMAIN_REDEMPTION`).
 
 ### Weapon and Combat Integration
+
 - For favored weapons, align with available `WEAPON_TYPE_*` categories.
 - Enhanced descriptions provide both mechanical and thematic justification for weapon choices.
 - Consider special weapon properties for divine champions (e.g., Kordran's hammers deal extra damage to undead).
 
 ### Deity-Specific Features
+
 - Deity-specific feats/boons: Use minor passive perks that reinforce tenets:
   - Orith devotees get advantage vs. forced movement and bonus to endurance
   - Lumerion grants small luck rerolls on travel checks and navigation
@@ -595,6 +657,7 @@ These ancient deities represent the raw elemental forces that shaped the world b
   - Seraphine worshippers get enhanced healing and redemption-based abilities
 
 ### Divine Blessings (Rewards for Exceptional Service)
+
 - **Aethyra's Clarity**: Perfect memory recall for 24 hours
 - **Kordran's Valor**: Immunity to fear and +2 attack bonus for one battle
 - **Seraphine's Grace**: Next healing spell maximized and affects all allies nearby
@@ -604,6 +667,7 @@ These ancient deities represent the raw elemental forces that shaped the world b
 - **Zorren's Hunt**: Track any creature perfectly for 24 hours
 
 ### Divine Curses (Punishments for Transgression)
+
 - **Aethyra's Confusion**: Cannot remember anything beyond the last hour
 - **Kordran's Cowardice**: Flee from any combat situation
 - **Seraphine's Withering**: All food tastes of ash, healing reduced by half
@@ -613,6 +677,7 @@ These ancient deities represent the raw elemental forces that shaped the world b
 - **Vespera's Truth**: Cannot lie or disguise yourself
 
 ### World Integration
+
 - OLC hooks: Add shrines as world "Knots" with micro-ritual interactions:
   - Light a lantern (Lumerion), bind a thread (Aethyra), inscribe a rune (Thalos)
   - Pour a libation (Myrr), offer a secret (Nyxara), plant a seed (Seraphine)
@@ -621,6 +686,7 @@ These ancient deities represent the raw elemental forces that shaped the world b
 - Consider seasonal festivals that bring multiple deities' followers together
 
 ### Roleplay and Faction Systems
+
 - Enhanced relationships provide clear faction dynamics for political intrigue
 - Opposing deities create natural conflict sources (Seraphine vs. Nyxara, Pyrion vs. Glacius)
 - Allied deities offer cooperation opportunities (Kordran + Orith, Aethyra + Kaelthir)
@@ -629,6 +695,7 @@ These ancient deities represent the raw elemental forces that shaped the world b
 ### Pantheon Balance Analysis
 
 **Alignment Distribution (Enhanced):**
+
 - **Lawful Good**: Kordran, Borhild, Skarn, Maela, Gorm Gulthyn, Pella, Arvoreen
 - **Neutral Good**: Aethyra, Seraphine, Myrr, Orith, Selithiel, Viridara, Lirael, Willow
 - **Chaotic Good**: Lumerion, Calystral, Vangar, Aerion
@@ -650,6 +717,7 @@ These ancient deities represent the raw elemental forces that shaped the world b
 ## Changelog (Enhanced Version 2.0)
 
 ### Major Improvements
+
 - **Expanded Portfolios**: All core deities now have richer, more detailed areas of influence
 - **Enhanced Domains**: Added `DOMAIN_PORTAL`, `DOMAIN_SPELL`, `DOMAIN_VOID`, `DOMAIN_ILLUSION`, `DOMAIN_LIBERATION` and other specialized domains
 - **Deeper Relationships**: More complex inter-deity relationships that create roleplay opportunities
@@ -662,6 +730,7 @@ These ancient deities represent the raw elemental forces that shaped the world b
 - **Blessings & Curses**: Mechanical rewards and punishments for deity interaction
 
 ### Minor Enhancements
+
 - More detailed holy symbols and favored weapon justifications
 - Expanded worshipper categories for broader appeal
 - Additional holy days and rituals for each deity
@@ -672,6 +741,7 @@ These ancient deities represent the raw elemental forces that shaped the world b
 - Daily observances and prayer schedules
 
 ### Implementation Ready
+
 - All domains map to existing or easily-added game constants
 - Weapon choices align with standard weapon categories
 - Relationships create natural faction dynamics
@@ -680,12 +750,12 @@ These ancient deities represent the raw elemental forces that shaped the world b
 - Artifacts provide tangible goals for high-level play
 - Blessings and curses offer immediate mechanical consequences
 
-
-
 ---
+
 ## Import Schema and Mapping to Code
 
 This section makes the Luminari Pantheon import-ready by explicitly covering every field used by the deity engine. It provides:
+
 - A schema that maps this document's fields to the engine API in [add_deity()](../../src/character/deities.c#L101) and [add_deity_new()](../../src/character/deities.c#L156)
 - Enumeration/constant mappings (ethos, alignment, domains, weapons, pantheons)
 - Defaults/derivation rules for any still-missing values
@@ -698,10 +768,11 @@ Reference for engine loading entry point: [assign_deities()](../../src/character
 The engine expects the following fields to be present when importing. Both legacy and new systems are supported; Luminari uses the new system.
 
 - Required (New System via [add_deity_new()](../../src/character/deities.c#L156)):
+
   - name: string
   - ethos: one of ETHOS_LAWFUL, ETHOS_NEUTRAL, ETHOS_CHAOTIC
   - alignment: one of ALIGNMENT_GOOD, ALIGNMENT_NEUTRAL, ALIGNMENT_EVIL
-  - pantheon: DEITY_PANTHEON_* constant
+  - pantheon: `DEITY_PANTHEON_*` constant
   - alias: string (comma-separated aliases/titles)
   - portfolio: string (areas of influence)
   - symbol: string (holy symbol description)
@@ -710,8 +781,9 @@ The engine expects the following fields to be present when importing. Both legac
   - description: string (lore/description)
 
 - Optional legacy mechanics (Old System via [add_deity()](../../src/character/deities.c#L101)):
-  - domains: up to six DOMAIN_* constants
-  - favored_weapon: WEAPON_TYPE_* constant
+
+  - domains: up to six `DOMAIN_*` constants
+  - favored_weapon: `WEAPON_TYPE_*` constant
   - portfolio: string
   - description: string
 
@@ -719,17 +791,20 @@ Luminari entries below provide Suggested Domains (for mechanics) and Favored Wea
 
 ### 2) Enumeration and Constant Mappings
 
-- Ethos text -> ETHOS_*:
+- Ethos text -> `ETHOS_*`:
+
   - Lawful -> ETHOS_LAWFUL
   - Neutral -> ETHOS_NEUTRAL
   - Chaotic -> ETHOS_CHAOTIC
 
-- Alignment text -> ALIGNMENT_*:
+- Alignment text -> `ALIGNMENT_*`:
+
   - Good -> ALIGNMENT_GOOD
   - Neutral -> ALIGNMENT_NEUTRAL
   - Evil -> ALIGNMENT_EVIL
 
 - Pantheon mapping (proposed for Luminari; add these constants alongside existing ones):
+
   - LUMINARI Core -> DEITY_PANTHEON_LUMINARI_CORE
   - Dwarven Hearth and Forge -> DEITY_PANTHEON_LUMINARI_DWARVEN
   - Elven Courts of Bough and Star -> DEITY_PANTHEON_LUMINARI_ELVEN
@@ -739,7 +814,8 @@ Luminari entries below provide Suggested Domains (for mechanics) and Favored Wea
   - Under-Shadow (Dark Courts) -> DEITY_PANTHEON_LUMINARI_DARK_COURTS
   - Elemental Primarchs -> DEITY_PANTHEON_LUMINARI_PRIMARCHS
 
-- Weapon text -> WEAPON_TYPE_* (importers may use the following normalization):
+- Weapon text -> `WEAPON_TYPE_*` (importers may use the following normalization):
+
   - Warhammer -> WEAPON_TYPE_WARHAMMER
   - Greatsword -> WEAPON_TYPE_GREAT_SWORD
   - Longsword -> WEAPON_TYPE_LONG_SWORD
@@ -759,20 +835,23 @@ Luminari entries below provide Suggested Domains (for mechanics) and Favored Wea
   - Composite longbow -> WEAPON_TYPE_COMPOSITE_LONGBOW
   - Shortbow -> WEAPON_TYPE_SHORTBOW (if present; else map to COMPOSITE_LONGBOW)
 
-- Domain tags (map to DOMAIN_*):
-  - All tags shown in each deity's "Suggested Domains" map to DOMAIN_* constants.
+- Domain tags (map to `DOMAIN_*`):
+
+  - All tags shown in each deity's "Suggested Domains" map to `DOMAIN_*` constants.
   - Existing in codebase (examples seen in [src/character/deities.c](../../src/character/deities.c#L1)): DOMAIN_WAR, DOMAIN_MAGIC, DOMAIN_SPELL, DOMAIN_KNOWLEDGE, DOMAIN_PLANT, DOMAIN_TRAVEL, DOMAIN_PROTECTION, DOMAIN_STRENGTH, DOMAIN_GOOD, DOMAIN_CHAOS, DOMAIN_LAW, DOMAIN_HEALING, DOMAIN_SUN, DOMAIN_WATER, DOMAIN_OCEAN, DOMAIN_STORM, DOMAIN_ANIMAL, DOMAIN_DEATH, DOMAIN_FATE, DOMAIN_EARTH, DOMAIN_FIRE, DOMAIN_TIME, DOMAIN_RUNE, DOMAIN_TRICKERY, DOMAIN_LUCK, DOMAIN_RENEWAL, DOMAIN_MOON, DOMAIN_CAVERN, DOMAIN_METAL, DOMAIN_TRADE, DOMAIN_RETRIBUTION, DOMAIN_HATRED, DOMAIN_CHARM, DOMAIN_MOBILITY
   - New specialized domains referenced here (add if not present):
     - DOMAIN_PORTAL
     - DOMAIN_VOID
 
 If a domain is not yet defined in code, importer may either:
+
 - Defer/import with DOMAIN_UNDEFINED placeholder, or
 - Gate import until domain constant is added.
 
 ### 3) Worshipper Alignments Formatting
 
 Use comma-separated D&D alignments exactly in this form, e.g.:
+
 - "Lawful Good, Neutral Good, Chaotic Good"
 - "Lawful Neutral, True Neutral, Chaotic Neutral"
 - "Lawful Evil, Neutral Evil, Chaotic Evil"
@@ -784,6 +863,7 @@ Use comma-separated D&D alignments exactly in this form, e.g.:
 If any particular field is omitted in a deity block, importers MUST apply these rules so that [add_deity_new()](../../src/character/deities.c#L156) can still be called with complete data:
 
 - pantheon: derive from section:
+
   - "Core Deities" -> DEITY_PANTHEON_LUMINARI_CORE
   - "Dwarven Hearth and Forge" -> DEITY_PANTHEON_LUMINARI_DWARVEN
   - "Elven Courts of Bough and Star" -> DEITY_PANTHEON_LUMINARI_ELVEN
@@ -796,11 +876,13 @@ If any particular field is omitted in a deity block, importers MUST apply these 
 - alias: if missing, use epithets/subtitles shown in the deity header line (e.g., "Lady of the Loom", "Hammer of Dawn") comma-separated.
 
 - follower_names (demonym): if missing, derive by:
+
   - If name ends with vowel, add "-n(s)" (e.g., "Aelor" -> "Aeloran(s)")
   - Else add "-ite(s)" (e.g., "Kordran" -> "Kordranite(s)")
   - Overridden by the explicit demonyms in the table below.
 
 - worshipper_alignments default matrix (override when explicitly provided below):
+
   - LG deity -> "Lawful Good, Neutral Good, Lawful Neutral"
   - NG deity -> "Lawful Good, Neutral Good, Chaotic Good, True Neutral, Lawful Neutral, Chaotic Neutral" (Any Non-Evil)
   - CG deity -> "Lawful Good, Neutral Good, Chaotic Good, True Neutral, Chaotic Neutral"
@@ -812,253 +894,302 @@ If any particular field is omitted in a deity block, importers MUST apply these 
   - CE deity -> "Lawful Evil, Neutral Evil, Chaotic Evil"
 
 ### 5) Import Field Completion (Aliases, Worshipper Alignments, Follower Names, Pantheon)
+
 The following table provides explicit values for the fields most often missing (alias, worshipper_alignments, follower_names, pantheon). These override any derivation defaults above.
 
 Note: Suggested Domains, Holy Symbol, Favored Weapon, Portfolio, Ethos/Alignment, Rites, Relationships, and extended lore are already defined in the sections above for each deity.
 
 #### Core Deities
+
 - Aethyra, Lady of the Loom
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_CORE
   - Aliases: "Lady of the Loom", "Spindle of Seven", "Keeper of Oaths"
   - Worshipper Alignments: Lawful Good, Neutral Good, Chaotic Good, Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Aethyran(s)
 
 - Kordran, Hammer of Dawn
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_CORE
   - Aliases: "Hammer of Dawn", "Shield of Banners", "The Lineholder"
   - Worshipper Alignments: Lawful Good, Neutral Good, Lawful Neutral
   - Follower Names: Kordranite(s)
 
 - Seraphine the Dawnstar
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_CORE
   - Aliases: "The Dawnstar", "Harvest Redeemer", "Lady Emberfast"
   - Worshipper Alignments: Lawful Good, Neutral Good, Chaotic Good, Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Seraphite(s)
 
 - Nyxara of the Veil
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_CORE
   - Aliases: "Mistress of the Veil", "Keeper of Lost Names", "Black Oath"
   - Worshipper Alignments: Lawful Evil, Neutral Evil, Chaotic Evil, Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Nyxaran(s)
 
 - Thalos, the Scales Unblinking
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_CORE
   - Aliases: "The Scales Unblinking", "Letters of Law", "Grey Ink"
   - Worshipper Alignments: Lawful Good, Lawful Neutral, Lawful Evil, True Neutral
   - Follower Names: Thalan(s)
 
 - Vaelith, Whispering Tide
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_CORE
   - Aliases: "Whispering Tide", "Keeper of Horizons", "Spiral-Wake"
   - Worshipper Alignments: Chaotic Good, Chaotic Neutral, Chaotic Evil, True Neutral
   - Follower Names: Vaelithan(s)
 
 - Myrr, the Quiet Brook
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_CORE
   - Aliases: "The Quiet Brook", "Hand of Water", "Wayhouse Keeper"
   - Worshipper Alignments: Lawful Good, Neutral Good, Chaotic Good, Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Myrran(s)
 
 - Zorren, Lord of the Wild Hunt
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_CORE
   - Aliases: "Lord of the Wild Hunt", "White Antler", "Last-Track"
   - Worshipper Alignments: Chaotic Good, Chaotic Neutral, Chaotic Evil, True Neutral
   - Follower Names: Zorrenite(s)
 
 - Lumerion, the Lantern-Bearer
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_CORE
   - Aliases: "The Lantern-Bearer", "Keeper of Crossroads", "Coin-Wick"
   - Worshipper Alignments: Lawful Good, Neutral Good, Chaotic Good, Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Lumerionite(s)
 
 - Erix the Coinwright
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_CORE
   - Aliases: "The Coinwright", "Charter-Hand", "Founder's Seal"
   - Worshipper Alignments: Lawful Good, Lawful Neutral, Lawful Evil, True Neutral
   - Follower Names: Erixian(s)
 
 - Vespera of the Many Masks
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_CORE
   - Aliases: "The Many Masks", "Low King's Jester", "Second Name"
   - Worshipper Alignments: Chaotic Good, Chaotic Neutral, Chaotic Evil, True Neutral
   - Follower Names: Vesperan(s)
 
 - Nethris, the Gravewarden
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_CORE
   - Aliases: "The Gravewarden", "Keeper of Keys", "Ledger's End"
   - Worshipper Alignments: Lawful Good, Lawful Neutral, Lawful Evil, True Neutral
   - Follower Names: Nethrisian(s)
 
 - Calystral, the Flameheart
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_CORE
   - Aliases: "The Flameheart", "Lamp of Muses", "Twinned Breath"
   - Worshipper Alignments: Lawful Good, Neutral Good, Chaotic Good, True Neutral, Chaotic Neutral
   - Follower Names: Calystran(s)
 
 - Orith, the Stonefather
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_CORE
   - Aliases: "The Stonefather", "Echokeep", "Mountain Rune"
   - Worshipper Alignments: Lawful Good, Neutral Good, Chaotic Good, Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Orithian(s)
 
 #### Dwarven Hearth and Forge
+
 - Borhild Emberforge
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_DWARVEN
   - Aliases: "Emberforge", "Anvil-Saint", "Master of Consecrated Labor"
   - Worshipper Alignments: Lawful Good, Neutral Good, Lawful Neutral
   - Follower Names: Borhildan(s)
 
 - Skarn Graniteward
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_DWARVEN
   - Aliases: "Graniteward", "Tower-Shield", "Keeper of Watches"
   - Worshipper Alignments: Lawful Good, Lawful Neutral, Lawful Evil, True Neutral
   - Follower Names: Skarnite(s)
 
 - Maela Rubyvein
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_DWARVEN
   - Aliases: "Rubyvein", "Cup-Matriarch", "Hearthmother"
   - Worshipper Alignments: Lawful Good, Neutral Good, Chaotic Good, Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Maelan(s)
 
 - Duerak Deepdelve
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_DWARVEN
   - Aliases: "Deepdelve", "Lantern-and-Pick", "Rune Keeper"
   - Worshipper Alignments: Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Dueraki(s)
 
 - Vangar Battlebraid
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_DWARVEN
   - Aliases: "Battlebraid", "Oath of Steel", "Braided Knot"
   - Worshipper Alignments: Chaotic Good, Chaotic Neutral, Neutral Good
   - Follower Names: Vangari(s)
 
 #### Elven Courts of Bough and Star
+
 - Selithiel Moonbough
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_ELVEN
   - Aliases: "Moonbough", "Dream-Walker", "Mistress of Passage"
   - Worshipper Alignments: Lawful Good, Neutral Good, Chaotic Good, True Neutral, Chaotic Neutral
   - Follower Names: Selithian(s)
 
 - Aerion Swiftwind
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_ELVEN
   - Aliases: "Swiftwind", "Feather-Spiral", "Messenger's Oath"
   - Worshipper Alignments: Chaotic Good, Chaotic Neutral, Chaotic Evil, True Neutral
   - Follower Names: Aerionite(s)
 
 - Viridara Thornsong
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_ELVEN
   - Aliases: "Thornsongs", "Greenwarden", "Oak-Heart"
   - Worshipper Alignments: Lawful Good, Neutral Good, Chaotic Good, Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Viridaran(s)
 
 - Lirael Dawnsong
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_ELVEN
   - Aliases: "Dawnsong", "Golden Lyre", "Grace in Motion"
   - Worshipper Alignments: Lawful Good, Neutral Good, Chaotic Good, True Neutral, Chaotic Neutral
   - Follower Names: Liraelite(s)
 
 - Kaelthir Starwarden
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_ELVEN
   - Aliases: "Starwarden", "Seven-Pointed", "Keeper of Old Names"
   - Worshipper Alignments: Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Kaelthiri(s)
 
 #### Halfling Hearth-Tide
+
 - Pella of the Warm Hearth
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_HALFLING
   - Aliases: "Warm Hearth", "Kettle-and-Key", "Keeper of Roads"
   - Worshipper Alignments: Lawful Good, Neutral Good, Lawful Neutral
   - Follower Names: Pellan(s)
 
 - Brandoc Quickstep
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_HALFLING
   - Aliases: "Quickstep", "Double-Sixes", "Door-Dancer"
   - Worshipper Alignments: Chaotic Good, Chaotic Neutral, Chaotic Evil, True Neutral
   - Follower Names: Brandocan(s)
 
 - Willow Merryleaf
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_HALFLING
   - Aliases: "Merryleaf", "Garlanded Flute", "Harvest Joy"
   - Worshipper Alignments: Lawful Good, Neutral Good, Chaotic Good, Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Willowfolk
 
 #### Orcish Ash-Legion
+
 - Ghorak the Ash-Eyed
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_ORCISH
   - Aliases: "The Ash-Eyed", "Breaker of Chains", "Strong Ground"
   - Worshipper Alignments: Lawful Evil, Neutral Evil, Chaotic Evil
   - Follower Names: Ghoraki(s)
 
 - Luthra Bloodmother
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_ORCISH
   - Aliases: "Bloodmother", "Red Hand", "Fire-Keeper"
   - Worshipper Alignments: Lawful Evil, Neutral Evil, Chaotic Evil, Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Luthran(s)
 
 - Sharguk Nightfang
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_ORCISH
   - Aliases: "Nightfang", "Black Fang", "First Terror"
   - Worshipper Alignments: Lawful Evil, Neutral Evil, Chaotic Evil
   - Follower Names: Sharguki(s)
 
 - Yurga of the Pale Hand
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_ORCISH
   - Aliases: "The Pale Hand", "Rot-Bringer", "Despair-Whisper"
   - Worshipper Alignments: Lawful Evil, Neutral Evil, Chaotic Evil, Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Yurgan(s)
 
 #### Seafolk and Sky
+
 - Thalassa Stormqueen
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_SEAFOLK
   - Aliases: "Stormqueen", "Crowned Wave", "Tenth Sail"
   - Worshipper Alignments: Chaotic Good, Chaotic Neutral, Chaotic Evil, True Neutral
   - Follower Names: Thalassan(s)
 
 - Aelor Keelwarden
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_SEAFOLK
   - Aliases: "Keelwarden", "Compass Rose", "Star-Swear"
   - Worshipper Alignments: Lawful Good, Neutral Good, Chaotic Good, Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Aeloran(s)
 
 #### Under-Shadow: The Dark Courts
+
 - Velara, the Obsidian Rose
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_DARK_COURTS
   - Aliases: "The Obsidian Rose", "Silent Court", "Blood Contract"
   - Worshipper Alignments: Lawful Neutral, Lawful Evil, Neutral Evil
   - Follower Names: Velaran(s)
 
 - Zhaerin Nightglass
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_DARK_COURTS
   - Aliases: "Nightglass", "Mirror of Unmemory", "Forbidden Tome"
   - Worshipper Alignments: Lawful Evil, Neutral Evil, Chaotic Evil, Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Zhaerinite(s)
 
 - Draven Coil
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_DARK_COURTS
   - Aliases: "Coil", "Chalice-Viper", "Patient Ruin"
   - Worshipper Alignments: Lawful Evil, Neutral Evil, Chaotic Evil
   - Follower Names: Dravenite(s)
 
 #### Elemental Primarchs
+
 - Pyrion, the First Flame
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_PRIMARCHS
   - Aliases: "The First Flame", "Forge-Heart", "White Spiral"
   - Worshipper Alignments: Chaotic Good, Chaotic Neutral, Chaotic Evil, True Neutral
   - Follower Names: Pyrionite(s)
 
 - Glacius, the Eternal Winter
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_PRIMARCHS
   - Aliases: "The Eternal Winter", "Perfect Snow", "Still End"
   - Worshipper Alignments: Lawful Good, Lawful Neutral, Lawful Evil, True Neutral
   - Follower Names: Glacian(s)
 
 - Verdania, the Growing Green
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_PRIMARCHS
   - Aliases: "The Growing Green", "Spiral Tree", "Untamed Life"
   - Worshipper Alignments: Lawful Neutral, True Neutral, Chaotic Neutral
   - Follower Names: Verdanian(s)
 
 - Umbros, the Deep Dark
+
   - Pantheon: DEITY_PANTHEON_LUMINARI_PRIMARCHS
   - Aliases: "The Deep Dark", "Void-Between", "Stillness"
   - Worshipper Alignments: Lawful Evil, Neutral Evil, Chaotic Evil, Lawful Neutral, True Neutral, Chaotic Neutral
@@ -1068,13 +1199,14 @@ Note: Suggested Domains, Holy Symbol, Favored Weapon, Portfolio, Ethos/Alignment
 
 ## Importer Notes
 
-- Use the "Suggested Domains" already present under each deity's entry to populate up to six DOMAIN_* values for [add_deity()](../../src/character/deities.c#L101) if you also want to support mechanical domains at import time. Otherwise, prefer [add_deity_new()](../../src/character/deities.c#L156) with the extended roleplay fields.
+- Use the "Suggested Domains" already present under each deity's entry to populate up to six `DOMAIN_*` values for [add_deity()](../../src/character/deities.c#L101) if you also want to support mechanical domains at import time. Otherwise, prefer [add_deity_new()](../../src/character/deities.c#L156) with the extended roleplay fields.
 
-- Favored Weapon lines in each deity entry are descriptive; apply the "Weapon text -> WEAPON_TYPE_*" normalization above to produce the exact engine constant.
+- Favored Weapon lines in each deity entry are descriptive; apply the "Weapon text -> `WEAPON_TYPE_*`" normalization above to produce the exact engine constant.
 
 - Where a field is missing in the body text, use the explicit completion values in "Import Field Completion". If a field is still missing, apply the derivation rules in section 4.
 
 - New constants needed (add in headers before import if absent):
+
   - Pantheons: DEITY_PANTHEON_LUMINARI_CORE, DEITY_PANTHEON_LUMINARI_DWARVEN, DEITY_PANTHEON_LUMINARI_ELVEN, DEITY_PANTHEON_LUMINARI_HALFLING, DEITY_PANTHEON_LUMINARI_ORCISH, DEITY_PANTHEON_LUMINARI_SEAFOLK, DEITY_PANTHEON_LUMINARI_DARK_COURTS, DEITY_PANTHEON_LUMINARI_PRIMARCHS
   - Domains: DOMAIN_PORTAL, DOMAIN_VOID (optional; fallback to DOMAIN_UNDEFINED if deferred)
 

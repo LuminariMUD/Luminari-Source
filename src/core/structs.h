@@ -5414,6 +5414,9 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define NUM_ATTACK_TYPES 24
 #define BOT_WEAPON_TYPES (TYPE_HIT + NUM_ATTACK_TYPES)
 #define TOP_ATTACK_TYPES TYPE_HIT
+/* True for one of the NUM_ATTACK_TYPES weapon types above: the precondition for
+   indexing a table by (type - TYPE_HIT), such as attack_hit_text[]. */
+#define IS_WEAPON(type) (((type) >= TOP_ATTACK_TYPES) && ((type) < BOT_WEAPON_TYPES))
 #define TYPE_UNDEFINED_WTYPE 0
 /* not hard coded, but up to 2350?  check spells.h!! */
 

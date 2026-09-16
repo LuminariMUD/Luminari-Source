@@ -161,9 +161,7 @@ class DatabaseConfig:
 
     def connect(self, *, autocommit: bool = False):
         if pymysql is None:
-            raise EndpointError(
-                "PyMySQL is required; install scripts/help-sync/requirements.txt"
-            )
+            raise EndpointError("PyMySQL is required; install scripts/help-sync/requirements.txt")
         return pymysql.connect(
             host=self.host,
             user=self.username,
@@ -185,19 +183,12 @@ class SchemaInfo:
     def write_ready(self) -> bool:
         return (
             REQUIRED_ENTRY_COLUMNS.issubset(self.tables.get("help_entries", frozenset()))
-            and REQUIRED_KEYWORD_COLUMNS.issubset(
-                self.tables.get("help_keywords", frozenset())
-            )
+            and REQUIRED_KEYWORD_COLUMNS.issubset(self.tables.get("help_keywords", frozenset()))
             and REQUIRED_RELATED_COLUMNS.issubset(
                 self.tables.get("help_related_topics", frozenset())
             )
-            and REQUIRED_VERSION_COLUMNS.issubset(
-                self.tables.get("help_versions", frozenset())
-            )
-            and all(
-                self.engines.get(table, "").upper() == "INNODB"
-                for table in TRANSACTION_TABLES
-            )
+            and REQUIRED_VERSION_COLUMNS.issubset(self.tables.get("help_versions", frozenset()))
+            and all(self.engines.get(table, "").upper() == "INNODB" for table in TRANSACTION_TABLES)
         )
 
     @property
@@ -251,9 +242,7 @@ class EndpointSnapshot:
             "catalog": self.catalog.to_dict(),
             "manifest": dict(self.manifest),
             "schema": {
-                "tables": {
-                    table: sorted(columns) for table, columns in self.schema.tables.items()
-                },
+                "tables": {table: sorted(columns) for table, columns in self.schema.tables.items()},
                 "engines": dict(self.schema.engines),
                 "write_ready": self.schema.write_ready,
                 "missing_requirements": self.schema.missing_requirements,
@@ -327,12 +316,8 @@ def _entry_select(schema: SchemaInfo, *, for_update: bool) -> str:
         raise EndpointError("help_entries lacks the minimum readable columns")
     selections = ["tag", "entry", "min_level"]
     selections.append("max_level" if "max_level" in columns else f"{DEFAULT_MAX_LEVEL} max_level")
-    selections.append(
-        "category" if "category" in columns else f"'{DEFAULT_CATEGORY}' category"
-    )
-    selections.append(
-        "auto_generated" if "auto_generated" in columns else "FALSE auto_generated"
-    )
+    selections.append("category" if "category" in columns else f"'{DEFAULT_CATEGORY}' category")
+    selections.append("auto_generated" if "auto_generated" in columns else "FALSE auto_generated")
     selections.append(
         "alternate_keywords" if "alternate_keywords" in columns else "NULL alternate_keywords"
     )
@@ -432,9 +417,7 @@ def read_database_catalog(
                 aliases=normalize_aliases(row.get("alternate_keywords")),
                 min_level=int(row.get("min_level") or 0),
                 max_level=int(
-                    row.get("max_level")
-                    if row.get("max_level") is not None
-                    else DEFAULT_MAX_LEVEL
+                    row.get("max_level") if row.get("max_level") is not None else DEFAULT_MAX_LEVEL
                 ),
                 category=str(row.get("category") or DEFAULT_CATEGORY),
                 auto_generated=bool(row.get("auto_generated") or False),
@@ -613,9 +596,7 @@ def take_snapshot(root: Path, expected_environment: str | None = None) -> Endpoi
     )
 
 
-def verify_endpoint(
-    root: Path, expected_environment: str, candidate: Catalog
-) -> dict[str, Any]:
+def verify_endpoint(root: Path, expected_environment: str, candidate: Catalog) -> dict[str, Any]:
     snapshot = take_snapshot(root, expected_environment)
     failures: list[str] = []
     if not snapshot.schema.write_ready:
@@ -668,11 +649,11 @@ def verify_endpoint(
                         ).body
                         == entry.body
                     )
-                    lookup_checks.append(
-                        {"tag": entry.tag, "keyword": keyword, "passed": passed}
-                    )
+                    lookup_checks.append({"tag": entry.tag, "keyword": keyword, "passed": passed})
                     if not passed:
-                        failures.append(f"representative database help lookup failed for {entry.tag}")
+                        failures.append(
+                            f"representative database help lookup failed for {entry.tag}"
+                        )
         finally:
             connection.close()
 
@@ -811,7 +792,9 @@ def request_runtime_reload(
         raise EndpointError("runtime reload token must be a catalog SHA-256")
     if not _process_is_running(root):
         if require_running:
-            raise EndpointError("the production MUD is not running; runtime reload cannot be proven")
+            raise EndpointError(
+                "the production MUD is not running; runtime reload cannot be proven"
+            )
         return "not-running; next boot will load the new projection"
 
     help_directory = root / "lib" / "text" / "help"
@@ -835,7 +818,9 @@ def request_runtime_reload(
             return "runtime cache and fallback table reloaded"
         if acknowledgment and acknowledgment != expected_ack:
             request_path.unlink(missing_ok=True)
-            raise EndpointError(f"runtime returned an invalid reload acknowledgment: {acknowledgment}")
+            raise EndpointError(
+                f"runtime returned an invalid reload acknowledgment: {acknowledgment}"
+            )
         time.sleep(0.1)
     request_path.unlink(missing_ok=True)
     raise EndpointError("timed out waiting for the MUD to acknowledge help reload")
@@ -945,9 +930,7 @@ def apply_delta_to_database(
             cursor.execute("DELETE FROM help_keywords WHERE LOWER(help_tag)=LOWER(%s)", (tag,))
 
         for change in delta.get("deletions", ()):
-            cursor.execute(
-                "DELETE FROM help_entries WHERE LOWER(tag)=LOWER(%s)", (change["tag"],)
-            )
+            cursor.execute("DELETE FROM help_entries WHERE LOWER(tag)=LOWER(%s)", (change["tag"],))
             if cursor.rowcount != 1:
                 raise StalePlanError(
                     f"delete precondition affected {cursor.rowcount} rows for {change['tag']!r}"
@@ -1006,14 +989,7 @@ def _run_directory(root: Path, environment: str, plan_id: str) -> tuple[str, Pat
         + f"-{plan_id[:12]}-{uuid.uuid4().hex[:8]}"
     )
     directory = (
-        root
-        / "lib"
-        / "text"
-        / "help"
-        / STATE_DIRECTORY_NAME
-        / "runs"
-        / run_id
-        / environment
+        root / "lib" / "text" / "help" / STATE_DIRECTORY_NAME / "runs" / run_id / environment
     )
     directory.mkdir(parents=True, exist_ok=False)
     return run_id, directory
@@ -1070,9 +1046,7 @@ def validate_backup(
     integrity_bytes = (directory / "integrity.json").read_bytes()
     if sha256_bytes(integrity_bytes) != manifest["integrity_file_hash"]:
         raise EndpointError("backup integrity-state checksum mismatch")
-    integrity_repairs = normalize_integrity_repairs(
-        json.loads(integrity_bytes.decode("utf-8"))
-    )
+    integrity_repairs = normalize_integrity_repairs(json.loads(integrity_bytes.decode("utf-8")))
     file_bytes: bytes | None = None
     if manifest["help_file_present"]:
         file_bytes = (directory / "help.hlp").read_bytes()
@@ -1117,9 +1091,7 @@ def _restore_after_failure(
             reload_timeout,
             require_running=environment_name(root) == "production",
         )
-        observed = read_database_catalog(
-            connection, config.database, begin_transaction=True
-        )
+        observed = read_database_catalog(connection, config.database, begin_transaction=True)
         connection.commit()
         if observed.catalog.content_hash != backup_catalog.content_hash:
             raise EndpointError("automatic rollback database verification failed")
@@ -1160,9 +1132,7 @@ def apply_plan_to_endpoint(
         raise EndpointError(
             f"refusing {expected_environment} apply against {observed_environment} endpoint"
         )
-    delta_key = (
-        "development_delta" if expected_environment == "development" else "production_delta"
-    )
+    delta_key = "development_delta" if expected_environment == "development" else "production_delta"
     expected_hash_key = (
         "development_hash" if expected_environment == "development" else "production_hash"
     )
@@ -1206,17 +1176,14 @@ def apply_plan_to_endpoint(
         candidate_file_hash = sha256_bytes(rendered)
         observed_file_hash = help_file_hash(help_file)
         state_key = (
-            "development_state"
-            if observed_environment == "development"
-            else "production_state"
+            "development_state" if observed_environment == "development" else "production_state"
         )
         planned_file_hash = dict(plan.get(state_key, {})).get("file_hash")
         if observed_file_hash not in {planned_file_hash, candidate_file_hash}:
             raise StalePlanError("help.hlp changed after planning; create a new plan")
         current_projection = render_help_hlp(current)
         current_layer_matches = (
-            observed_file_hash is not None
-            and help_file.read_bytes() == current_projection
+            observed_file_hash is not None and help_file.read_bytes() == current_projection
         )
         if not current_layer_matches and not bool(plan.get("repair_layers")):
             raise StalePlanError(
@@ -1318,9 +1285,7 @@ def apply_plan_to_endpoint(
             require_running=observed_environment == "production",
         )
 
-        verified_data = read_database_catalog(
-            connection, config.database, begin_transaction=True
-        )
+        verified_data = read_database_catalog(connection, config.database, begin_transaction=True)
         connection.commit()
         if verified_data.integrity_issues:
             raise EndpointError(
@@ -1459,9 +1424,7 @@ def rollback_endpoint(
             reload_timeout,
             require_running=observed_environment == "production",
         )
-        verified = read_database_catalog(
-            connection, config.database, begin_transaction=True
-        )
+        verified = read_database_catalog(connection, config.database, begin_transaction=True)
         connection.commit()
         if verified.catalog.content_hash != backup_catalog.content_hash:
             raise EndpointError("rollback database verification failed")

@@ -350,7 +350,7 @@ static int rename_find_player_index(struct rename_context *ctx)
   {
     if (player_table[i].id == GET_IDNUM(ctx->victim))
     {
-      if (!player_table[i].name || strcasecmp(player_table[i].name, ctx->old_display_name))
+      if (!player_table[i].name || strcasecmp(player_table[i].name, ctx->old_display_name) != 0)
       {
         rename_set_failure(ctx, PLAYER_RENAME_POSTCONDITION_FAILED,
                            "verifying player index identity");
@@ -1111,7 +1111,7 @@ static int rename_file_matches_snapshot(const char *path, const char *snapshot)
     current_count = fread(current_buffer, 1, sizeof(current_buffer), current);
     saved_count = fread(saved_buffer, 1, sizeof(saved_buffer), saved);
     if (current_count != saved_count ||
-        (current_count > 0 && memcmp(current_buffer, saved_buffer, current_count)))
+        (current_count > 0 && memcmp(current_buffer, saved_buffer, current_count) != 0))
       goto cleanup;
   } while (current_count > 0);
 
@@ -1447,7 +1447,8 @@ static int rename_activate_db_key(struct rename_context *ctx, struct rename_db_k
     return TRUE;
   }
 
-  if (!row[0] || strcasecmp(row[0], "BASE TABLE") || !row[1] || strcasecmp(row[1], "InnoDB"))
+  if (!row[0] || strcasecmp(row[0], "BASE TABLE") != 0 || !row[1] ||
+      strcasecmp(row[1], "InnoDB") != 0)
   {
     log("SYSERR: Character rename requires transactional InnoDB table %s", key->table);
     mysql_free_result(result);
@@ -1537,7 +1538,7 @@ static int rename_revalidate_db_keys(struct rename_context *ctx)
     if (!rename_activate_db_key(ctx, &current))
       return FALSE;
     if (current.active != ctx->keys[i].active ||
-        strcmp(current.preserve_assignments, ctx->keys[i].preserve_assignments))
+        strcmp(current.preserve_assignments, ctx->keys[i].preserve_assignments) != 0)
     {
       rename_set_failure(ctx, PLAYER_RENAME_DATABASE_ERROR, "checking rename schema stability");
       return FALSE;
@@ -1570,7 +1571,7 @@ static int rename_activate_level_30_view(struct rename_context *ctx)
     mysql_free_result(result);
     return TRUE;
   }
-  if (!row[0] || strcasecmp(row[0], "VIEW"))
+  if (!row[0] || strcasecmp(row[0], "VIEW") != 0)
   {
     mysql_free_result(result);
     rename_set_failure(ctx, PLAYER_RENAME_DATABASE_ERROR, "verifying level-30 character view type");
@@ -1869,7 +1870,7 @@ static int rename_capture_payloads(struct rename_context *ctx, const char *escap
     if (verify_snapshot)
     {
       if (row_count != ctx->keys[i].payload_rows ||
-          memcmp(digest, ctx->keys[i].payload_digest, sizeof(digest)))
+          memcmp(digest, ctx->keys[i].payload_digest, sizeof(digest)) != 0)
       {
         rename_set_failure(ctx, PLAYER_RENAME_POSTCONDITION_FAILED,
                            "verifying preserved database payload");
@@ -1916,7 +1917,7 @@ static int rename_lock_canonical_player(struct rename_context *ctx)
   }
   row = mysql_fetch_row(result);
   if (!row || !row[0] || strlen(row[0]) > MAX_NAME_LENGTH ||
-      strcasecmp(row[0], ctx->old_display_name) || !row[3] || !row[4] ||
+      strcasecmp(row[0], ctx->old_display_name) != 0 || !row[3] || !row[4] ||
       (ctx->database_player_id_present && !row[1]))
   {
     mysql_free_result(result);
@@ -1970,7 +1971,7 @@ static int rename_lock_canonical_player(struct rename_context *ctx)
     }
     if (ctx->victim->desc && ctx->victim->desc->account &&
         (!ctx->victim->desc->account->name ||
-         strcmp(ctx->victim->desc->account->name, ctx->account_name)))
+         strcmp(ctx->victim->desc->account->name, ctx->account_name) != 0))
     {
       rename_set_failure(ctx, PLAYER_RENAME_POSTCONDITION_FAILED, "verifying live account name");
       return FALSE;
@@ -2109,11 +2110,11 @@ static int rename_verify_canonical_player(struct rename_context *ctx, const char
 
   rows = mysql_num_rows(result);
   row = rows == 1 ? mysql_fetch_row(result) : NULL;
-  if (!row || !row[0] || strcmp(row[0], expected_name) || !row[3] || !row[4] ||
+  if (!row || !row[0] || strcmp(row[0], expected_name) != 0 || !row[3] || !row[4] ||
       (ctx->database_player_id_present &&
        (!row[1] || strtoull(row[1], NULL, 10) != ctx->database_player_id)) ||
       (atoi(row[3]) != 0) != ctx->object_header_is_null ||
-      strcmp(row[4], ctx->object_header_hash) ||
+      strcmp(row[4], ctx->object_header_hash) != 0 ||
       (ctx->report->account_linked ? (!row[2] || atoi(row[2]) != ctx->report->account_id)
                                    : row[2] != NULL))
   {
@@ -2430,7 +2431,7 @@ static int rename_verify_files(struct rename_context *ctx)
     if (i > 0 &&
         (!ctx->files[i].digest_ready ||
          !rename_digest_regular_file(ctx->files[i].new_path, &ctx->files[i].source_stat, digest) ||
-         memcmp(digest, ctx->files[i].source_digest, sizeof(digest))))
+         memcmp(digest, ctx->files[i].source_digest, sizeof(digest)) != 0))
       return FALSE;
   }
 
@@ -2517,7 +2518,7 @@ static int rename_verify_file_rollback(struct rename_context *ctx)
     else if (!ctx->files[i].digest_ready ||
              !rename_digest_regular_file(ctx->files[i].old_path, &ctx->files[i].source_stat,
                                          digest) ||
-             memcmp(digest, ctx->files[i].source_digest, sizeof(digest)))
+             memcmp(digest, ctx->files[i].source_digest, sizeof(digest)) != 0)
       return FALSE;
   }
 

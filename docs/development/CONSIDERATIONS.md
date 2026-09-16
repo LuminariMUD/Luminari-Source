@@ -138,7 +138,7 @@ Durable behavior and evidence live in the
 ### Phase 00 Resolutions
 
 | Item | Resolution |
-|------|------------|
+| -- | -- |
 | Unsafe sentinel registry | Replaced with 28 immutable, boot-validated definitions and bounds-safe typed accessors. |
 | Unfiltered OLC procedure selection | Medit, oedit, and redit show only owner-compatible, builder-visible world bindings. |
 | Authored identity reconstructed from callbacks | Owned authored records and authored-first writers preserve aliases, unknown names, and explicit clears. |
@@ -195,7 +195,7 @@ for the product contract and authoritative release-gate state.
 ### Resource Budgets
 
 | Resource | Current measurement or limit |
-|---|---:|
+| -- | -: |
 | Base `greyhawk_ship_data` | 5,104 bytes |
 | Maximum fleet | 500 ships |
 | Base maximum-fleet storage | About 2.43 MiB |
@@ -211,25 +211,25 @@ bounded runtime-allocation evidence as `REPORT_ONLY`; see
 
 ### Practices That Endure
 
-1. Trace both legacy world-file and builder-spawn paths before declaring a
-   behavior fixed. Similar names and fields do not prove shared identity.
-2. Prefer data-driven hulls, room templates, routes, markets, encounters, and
-   balance values so builders can create content without recompiling.
-3. Keep the root CuTest suite production-linked. Standalone source mirrors age
-   into false evidence and must not be recreated.
-4. Treat automated tests, manual world tests, live performance, soak, and
-   recovery as different forms of evidence; none substitutes for all the
-   others.
-5. Auto-create current tables for fresh databases, but retain explicit migration,
-   verification, and rollback components for controlled deployments.
-6. Use the unified transport boundary where vessel and vehicle behavior truly
-   overlaps; keep class-specific navigation and interior behavior explicit.
-7. Allocate optional route, automation, and encounter state only when needed.
-8. Preserve the repository's GNU C23 style: block comments, declarations at the
-   top of blocks, no variable-length arrays, two-space Allman formatting, and
-   no mechanical restyling of legacy code.
-9. Use named configuration and VNUM definitions. Never embed environment-specific
-   VNUMs or edit local configuration headers as part of a general change.
+01. Trace both legacy world-file and builder-spawn paths before declaring a
+    behavior fixed. Similar names and fields do not prove shared identity.
+02. Prefer data-driven hulls, room templates, routes, markets, encounters, and
+    balance values so builders can create content without recompiling.
+03. Keep the root CuTest suite production-linked. Standalone source mirrors age
+    into false evidence and must not be recreated.
+04. Treat automated tests, manual world tests, live performance, soak, and
+    recovery as different forms of evidence; none substitutes for all the
+    others.
+05. Auto-create current tables for fresh databases, but retain explicit migration,
+    verification, and rollback components for controlled deployments.
+06. Use the unified transport boundary where vessel and vehicle behavior truly
+    overlaps; keep class-specific navigation and interior behavior explicit.
+07. Allocate optional route, automation, and encounter state only when needed.
+08. Preserve the repository's GNU C23 style: block comments, declarations at the
+    top of blocks, no variable-length arrays, two-space Allman formatting, and
+    no mechanical restyling of legacy code.
+09. Use named configuration and VNUM definitions. Never embed environment-specific
+    VNUMs or edit local configuration headers as part of a general change.
 10. Validate every pointer and array boundary and use bounded string functions.
 
 ### Implemented Capability Baseline

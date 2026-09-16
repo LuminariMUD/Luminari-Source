@@ -1,4 +1,4 @@
--- Help entries for the Duris racial innates converted to feats.
+-- Help entries for the new set of racial innates converted to feats.
 --
 -- One entry per feat; active feats carry their command verb as an extra
 -- keyword where it does not collide with an existing spell entry.
@@ -17,8 +17,8 @@ forest or a marsh all shelter you, as does a cloak that covers you
 completely.
 
 See also: FEAT INFO SUN VULNERABILITY, DAYBLIND', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SUN-VULNERABILITY', 'SUN-VULNERABILITY');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -32,8 +32,8 @@ normally, and a creature with no eyes to dazzle (see EYELESS) is never
 dayblinded.
 
 See also: FEAT INFO DAYBLIND, SUN-VULNERABILITY, EYELESS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('DAYBLIND', 'DAYBLIND');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -45,8 +45,8 @@ You take 10 percent more damage from any spell or spell-like attack. Weapon
 blows are unaffected.
 
 See also: FEAT INFO MAGIC VULNERABILITY', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('MAGIC-VULNERABILITY', 'MAGIC-VULNERABILITY');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -58,8 +58,8 @@ Raw magic slides off you. You take 20 percent less force and energy damage.
 Other damage types are unaffected.
 
 See also: FEAT INFO MAGICAL REDUCTION', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('MAGICAL-REDUCTION', 'MAGICAL-REDUCTION');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -71,8 +71,8 @@ Your hide turns aside blows. You take 15 percent less slashing, piercing and
 bludgeoning damage. Elemental and magical damage is unaffected.
 
 See also: FEAT INFO THICK HIDE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('THICK-HIDE', 'THICK-HIDE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -85,8 +85,8 @@ from level 20, 50 percent less from level 25 and 75 percent less from level
 30.
 
 See also: FEAT INFO SACRILEGIOUS POWER', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SACRILEGIOUS-POWER', 'SACRILEGIOUS-POWER');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -99,8 +99,8 @@ level, in percent, that you absorb the magic and take no damage at all.
 Everyone in the room sees it happen.
 
 See also: FEAT INFO SPELL ABSORB', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SPELL-ABSORB', 'SPELL-ABSORB');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -113,8 +113,8 @@ you, and you keep perceiving your surroundings while others would be
 blinded. This does not let you see in the dark.
 
 See also: FEAT INFO EYELESS, DAYBLIND', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('EYELESS', 'EYELESS');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -127,8 +127,8 @@ there is a 15 percent chance that you roll it again. Fortitude and reflex
 saves are unaffected.
 
 See also: FEAT INFO QUICK THINKING', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('QUICK-THINKING', 'QUICK-THINKING');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -141,8 +141,8 @@ resting costs you no armor class and no attack roll penalty. Being stunned
 or asleep still does.
 
 See also: FEAT INFO GROUNDFIGHTING', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('GROUNDFIGHTING', 'GROUNDFIGHTING');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -155,8 +155,8 @@ automatically fails against you unless the attacker is larger than you. You
 cannot ride a mount; your own legs carry you.
 
 See also: FEAT INFO QUADRUPED BODY, FEAT INFO LEONINE FRAME, WEMIC', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('QUADRUPED-BODY', 'QUADRUPED-BODY');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -168,8 +168,8 @@ You breathe water as easily as air. You never drown underwater and water
 that would smother others does not harm you.
 
 See also: FEAT INFO WATER BREATHING', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('WATER-BREATHING', 'WATER-BREATHING');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -182,8 +182,8 @@ at least ten levels below you will not attack you unprovoked. Attack it and
 it fights back as usual.
 
 See also: FEAT INFO UNDEAD FEALTY', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('UNDEAD-FEALTY', 'UNDEAD-FEALTY');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -195,8 +195,8 @@ While the weapon you attack with is an axe you gain +1 to attack and damage
 rolls for every 8 character levels, to a maximum of +3 at level 24.
 
 See also: FEAT INFO AXE MASTERY', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('AXE-MASTERY', 'AXE-MASTERY');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -208,8 +208,8 @@ While the weapon you attack with is a hammer you gain +1 to attack and
 damage rolls for every 8 character levels, to a maximum of +3 at level 24.
 
 See also: FEAT INFO HAMMER MASTERY', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('HAMMER-MASTERY', 'HAMMER-MASTERY');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -221,8 +221,8 @@ While the weapon you attack with is a long sword you gain +1 to attack and
 damage rolls for every 8 character levels, to a maximum of +3 at level 24.
 
 See also: FEAT INFO LONGSWORD MASTERY', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('LONGSWORD-MASTERY', 'LONGSWORD-MASTERY');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -234,8 +234,8 @@ While the weapon you attack with is a great sword you gain +1 to attack and
 damage rolls for every 8 character levels, to a maximum of +3 at level 24.
 
 See also: FEAT INFO GREATSWORD MASTERY', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('GREATSWORD-MASTERY', 'GREATSWORD-MASTERY');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -247,8 +247,8 @@ An old hatred drives your blows. Against evil-aligned opponents you gain +1
 to attack rolls and +2 to damage.
 
 See also: FEAT INFO HATRED', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('HATRED', 'HATRED');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -260,8 +260,8 @@ Each successful melee hit against a humanoid has a 5 percent chance to whip
 you into a frenzy, granting one extra attack on the spot.
 
 See also: FEAT INFO BATTLE FRENZY', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('BATTLE-FRENZY', 'BATTLE-FRENZY');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -274,8 +274,8 @@ your group standing in your room, yourself included, to a maximum of +5.
 Alone and ungrouped you gain nothing.
 
 See also: FEAT INFO WARCALLER''S FURY', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('WARCALLERS-FURY', 'WARCALLERS-FURY');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -288,8 +288,8 @@ your room who also has this feat, up to five, you gain +1 armor class and +2
 on saving throws.
 
 See also: FEAT INFO RRAKKMA', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('RRAKKMA', 'RRAKKMA');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -302,8 +302,8 @@ sector outside the underdark. Terrain stealth bonuses do not stack with one
 another.
 
 See also: FEAT INFO OUTDOOR STEALTH, SWAMP-STEALTH, UNDERDARK-STEALTH', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('OUTDOOR-STEALTH', 'OUTDOOR-STEALTH');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -315,8 +315,8 @@ You are at home in the mire. You gain +6 to stealth checks in marshland.
 Terrain stealth bonuses do not stack with one another.
 
 See also: FEAT INFO SWAMP STEALTH, OUTDOOR-STEALTH, UNDERDARK-STEALTH', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SWAMP-STEALTH', 'SWAMP-STEALTH');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -328,8 +328,8 @@ The deep places hide you. You gain +6 to stealth checks in any underdark
 sector. Terrain stealth bonuses do not stack with one another.
 
 See also: FEAT INFO UNDERDARK STEALTH, OUTDOOR-STEALTH, SWAMP-STEALTH', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('UNDERDARK-STEALTH', 'UNDERDARK-STEALTH');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -341,8 +341,8 @@ Your eyes were made for the woods. You gain +4 to perception checks in
 forest sectors.
 
 See also: FEAT INFO FOREST SIGHT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FOREST-SIGHT', 'FOREST-SIGHT');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -354,8 +354,8 @@ Born to the waves, you coax more out of any vessel you pilot: every move you
 steer carries the ship one extra map tile.
 
 See also: FEAT INFO SEADOG, VESSELS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SEADOG', 'SEADOG');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -367,8 +367,8 @@ You read the rock. When harvesting minerals, stone or crystal you gather as
 if your mining skill were 4 higher.
 
 See also: FEAT INFO MINER, HARVEST', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('MINER', 'MINER');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -380,8 +380,8 @@ You haggle by instinct. Shopkeepers treat you as if you had 10 more points
 of charisma when they set the price you pay and the price they offer you.
 
 See also: FEAT INFO BARTER', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('BARTER', 'BARTER');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -394,8 +394,8 @@ five levels of you ignores you half the time it would otherwise attack
 unprovoked.
 
 See also: FEAT INFO CALMING', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('CALMING', 'CALMING');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -410,8 +410,8 @@ farsee spell, cast at your character level on yourself. This is a spell-like
 ability and needs no components. Type help farsee for the spell itself.
 
 See also: FEAT INFO INNATE FARSEE, FARSEE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-FARSEE', 'INNATE-FARSEE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -426,8 +426,8 @@ character level on yourself. It is refused while you are already
 stoneskinned. Type help stoneskin for the spell itself.
 
 See also: FEAT INFO INNATE STONESKIN, STONESKIN', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-STONESKIN', 'INNATE-STONESKIN');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -442,8 +442,8 @@ current opponent if you name none), as the lightning bolt spell cast at your
 character level.
 
 See also: FEAT INFO INNATE LIGHTNING BOLT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-LIGHTNING-BOLT', 'INNATE-LIGHTNING-BOLT');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-LIGHTNING-BOLT', 'THROWLIGHTNING');
 
@@ -459,8 +459,8 @@ character level on yourself. It is refused while you already carry a fire
 shield.
 
 See also: FEAT INFO INNATE FIRE SHIELD', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-FIRE-SHIELD', 'INNATE-FIRE-SHIELD');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-FIRE-SHIELD', 'FIRESHIELD');
 
@@ -475,8 +475,8 @@ You call a fire storm down on the room, striking everyone who is not with
 you, as the fire storm spell cast at your character level.
 
 See also: FEAT INFO INNATE FIRE STORM', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-FIRE-STORM', 'INNATE-FIRE-STORM');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-FIRE-STORM', 'FIRESTORM');
 
@@ -492,8 +492,8 @@ the shadow jump spell cast at your character level. Rooms and planes that
 refuse teleportation refuse this too.
 
 See also: FEAT INFO INNATE SHADOW JUMP', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-SHADOW-JUMP', 'INNATE-SHADOW-JUMP');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-SHADOW-JUMP', 'SHADOWDOOR');
 
@@ -509,8 +509,8 @@ character level. Prime is only reachable from another plane. Type help
 planeshift for the spell itself.
 
 See also: FEAT INFO INNATE PLANE SHIFT, PLANESHIFT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-PLANE-SHIFT', 'INNATE-PLANE-SHIFT');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -525,8 +525,8 @@ at your character level. The power strikes every hostile in the room; you
 need an opponent present to use it.
 
 See also: FEAT INFO INNATE PSIONIC BLAST', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-PSIONIC-BLAST', 'INNATE-PSIONIC-BLAST');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-PSIONIC-BLAST', 'MINDBLAST');
 
@@ -541,8 +541,8 @@ You let out a roar that terrifies one opponent in the room (your current
 opponent if you name none), as the scare spell cast at your character level.
 
 See also: FEAT INFO INNATE SCARE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-SCARE', 'INNATE-SCARE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-SCARE', 'ROAR');
 
@@ -557,8 +557,8 @@ You work yourself into a hasted battle fury, as the haste spell cast at your
 character level on yourself. It is refused while you are already hasted.
 
 See also: FEAT INFO INNATE HASTE, HASTE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-HASTE', 'INNATE-HASTE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-HASTE', 'BATTLEHASTE');
 
@@ -574,8 +574,8 @@ if you name none), as the fireball spell cast at your character level. Type
 help fireball for the spell itself.
 
 See also: FEAT INFO INNATE FIREBALL, FIREBALL', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-FIREBALL', 'INNATE-FIREBALL');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -589,8 +589,8 @@ You strip magic from everyone else in the room, friend and foe alike, as the
 dispel magic spell cast at your character level on each of them.
 
 See also: FEAT INFO INNATE MASS DISPEL', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-MASS-DISPEL', 'INNATE-MASS-DISPEL');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-MASS-DISPEL', 'MASSDISPEL');
 
@@ -606,8 +606,8 @@ opponent if you name none), as the cone of cold spell cast at your character
 level.
 
 See also: FEAT INFO INNATE FROST BREATH', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-FROST-BREATH', 'INNATE-FROST-BREATH');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-FROST-BREATH', 'FROSTBREATH');
 
@@ -622,8 +622,8 @@ You bind one opponent in the room in webbing, as the web spell cast at your
 character level. The target may be at most one size larger than you.
 
 See also: FEAT INFO INNATE WEB', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-WEB', 'INNATE-WEB');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('INNATE-WEB', 'WEBWRAP');
 
@@ -638,8 +638,8 @@ successful bodyslam sends the victim sprawling; a failed one leaves you
 stunned for several rounds. It costs a standard and a move action.
 
 See also: FEAT INFO BODYSLAM, BASH', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('BODYSLAM', 'BODYSLAM');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -654,8 +654,8 @@ broken; fail and it holds, and you take 1d6 damage. Pickproof doors cannot
 be forced.
 
 See also: FEAT INFO DOORBASH, OPEN, UNLOCK', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('DOORBASH', 'DOORBASH');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -671,8 +671,8 @@ charge only starts with someone on the ground to run over. Usable once
 every three rounds, never in a single-file room, and only while fighting.
 
 See also: FEAT INFO STAMPEDE, BASH', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('STAMPEDE', 'STAMPEDE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -687,8 +687,8 @@ rounds. It does not stack with haste and is refused while you are hasted or
 already in a flurry. This is not the monk''s flurry of blows.
 
 See also: FEAT INFO RACIAL FLURRY, HASTE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('RACIAL-FLURRY', 'RACIAL-FLURRY');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('RACIAL-FLURRY', 'ONSLAUGHT');
 
@@ -703,8 +703,8 @@ Outdoors, you call a warg out of the wilds. It follows you as a charmed
 companion at two thirds of your level and can be ridden (see MOUNT).
 
 See also: FEAT INFO SUMMON WARG, MOUNT, PETS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SUMMON-WARG', 'SUMMON-WARG');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SUMMON-WARG', 'SUMMONWARG');
 
@@ -719,8 +719,8 @@ You call two to four orc warriors to your side. They follow you as charmed
 companions at half your level and drift away after about fifteen minutes.
 
 See also: FEAT INFO SUMMON HORDE, PETS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SUMMON-HORDE', 'SUMMON-HORDE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SUMMON-HORDE', 'SUMMONHORDE');
 
@@ -735,8 +735,8 @@ completes at once. Quickened spells are already instant. Slow casting cancels
 this feat rank for rank.
 
 See also: FEAT INFO FAST CASTING, SLOW-CASTING, QUICKEN-SPELL', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FAST-CASTING', 'FAST-CASTING');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -749,8 +749,8 @@ more per rank of this feat. Quickened and other instant casts are not delayed.
 Fast casting cancels this feat rank for rank.
 
 See also: FEAT INFO SLOW CASTING, FAST-CASTING, QUICKEN-SPELL', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SLOW-CASTING', 'SLOW-CASTING');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -770,8 +770,8 @@ blow lands stuns the victim for one round unless they pass a Fortitude save
 (DC 10 + your level). Creatures that cannot be stunned shrug it off.
 
 See also: CHARGE, FEAT INFO BULL CHARGE, BLOODLUST', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('BULL-CHARGE', 'BULL-CHARGE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('BULL-CHARGE', 'BULLCHARGE');
 
@@ -787,8 +787,8 @@ are all refused. It lets go the first round that finds you at half hit
 points or more, or a few rounds after the fight ends.
 
 See also: FEAT INFO BLOODLUST, BULL-CHARGE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('BLOODLUST', 'BLOODLUST');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -802,8 +802,8 @@ to that swing. It brings no additional equipment slots and does nothing
 with ranged or thrown attacks.
 
 See also: FEAT INFO EXTRA ARMS, ATTACKS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('EXTRA-ARMS', 'EXTRA-ARMS');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -839,7 +839,7 @@ An item that grants four arms must be worn in an ordinary slot.  Gear in the
 extra slots cannot itself be what keeps the arms.
 
 See also: FEAT INFO FOUR ARMS, WIELD, WEAR, EXTRA-ARMS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FOUR-ARMS', 'FOUR-ARMS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FOUR-ARMS', 'FOURARMS');

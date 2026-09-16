@@ -13,7 +13,7 @@ and declaration style.
 ## Prerequisites
 
 | Dependency | Minimum | Ubuntu package |
-|------------|---------|----------------|
+| -- | -- | -- |
 | CMake | 3.21 | `cmake` |
 | GCC or Clang with GNU C23 | GCC 13 / Clang 16 | `gcc` or `clang` |
 | pkg-config | any | `pkg-config` |
@@ -58,16 +58,18 @@ build-ID release and activates `bin/luminari`.
 
 ## Presets
 
-`CMakePresets.json` defines the supported configurations. Each configure
-preset has matching `--build` and (where tests apply) `ctest` presets and
-writes to `build/<preset>`.
+`CMakePresets.json` defines the supported configurations. Every configure
+preset writes to `build/<preset>`; each one except `analysis`, which only
+exports a compilation database, has a matching `--build` preset and, where tests
+apply, a `ctest` preset.
 
 | Preset | Purpose |
-|--------|---------|
+| -- | -- |
 | `dev` | Debug build with tests and utilities, system compiler |
 | `dev-clang` | The same with `clang` |
 | `ci-gcc` | RelWithDebInfo, baseline warning tier with `-Werror`, blocking in CI (Debug and Release, GCC 13 and 16.2) |
 | `ci-clang` | The same with `clang` (Clang 18 and 22.1.8), blocking in CI |
+| `analysis` | RelWithDebInfo with `clang`, tests and utilities; exports `compile_commands.json` for `scripts/ci/check_clang_tidy.py` without building |
 | `sanitizers` | Debug with `-fsanitize=address,undefined` |
 | `coverage` | Debug with `--coverage` for gcov/gcovr |
 | `release-hardened` | Release with fortify, stack protector, PIE, RELRO, no tests |
@@ -98,13 +100,13 @@ All options are declared in `CMakeLists.txt` and printed in the configuration
 summary.
 
 | Option | Default | Effect |
-|--------|---------|--------|
+| -- | -- | -- |
 | `BUILD_UTILS` | `ON` | Build the `util/` helper programs |
 | `BUILD_TESTS` | `OFF` | Build `cutest` and register the CTest entries |
 | `LUMINARI_WARNING_TIER` | `baseline` | `baseline`, `migration`, or `analysis`; see the compiler policy in the [setup and build guide](../guides/SETUP_AND_BUILD_GUIDE.md#compiler-policy-and-warning-tiers) |
 | `MEMORY_DEBUG` | `OFF` | Define `MEMORY_DEBUG` for the in-tree allocation tracing |
 | `DMALLOC` | `OFF` | Define `DMALLOC` and link the dmalloc allocator (required when set) |
-| `STATIC_ANALYSIS` | `OFF` | Run clang-tidy on every compiled source and export compile commands |
+| `STATIC_ANALYSIS` | `OFF` | Run clang-tidy on every compiled source and export compile commands; CI compares findings with a baseline instead (see [Static Analysis](../guides/SETUP_AND_BUILD_GUIDE.md#static-analysis)) |
 | `LUMINARI_WERROR` | `OFF` | Add `-Werror`; accepted only with the `baseline` tier |
 | `LUMINARI_COVERAGE` | `OFF` | Add `--coverage` to compile and link |
 | `LUMINARI_HARDENING` | `OFF` | Add `_FORTIFY_SOURCE=3`, `-fstack-protector-strong`, `-fstack-clash-protection`, PIE, RELRO, and `-z now` |
@@ -212,8 +214,8 @@ cmake --build build/dev --target clean
 ## IDE Integration
 
 Any IDE that reads `CMakePresets.json` (VS Code with the CMake Tools
-extension, CLion) lists the presets above directly. Enable
-`CMAKE_EXPORT_COMPILE_COMMANDS` or the `STATIC_ANALYSIS` option for clangd.
+extension, CLion) lists the presets above directly. For clangd, configure the
+`analysis` preset or enable `CMAKE_EXPORT_COMPILE_COMMANDS`.
 
 ## Troubleshooting
 

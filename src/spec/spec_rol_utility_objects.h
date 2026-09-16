@@ -6,6 +6,8 @@
 #ifndef LUMINARI_SPEC_ROL_UTILITY_OBJECTS_H
 #define LUMINARI_SPEC_ROL_UTILITY_OBJECTS_H
 
+#include "core/structs.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 

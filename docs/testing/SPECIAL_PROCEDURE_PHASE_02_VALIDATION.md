@@ -50,7 +50,7 @@ not runtime counts, because only the Luminari preprocessor branch is a supported
 Only the two converted Luminari rows have both prerequisites required by the PRD:
 
 | Owner/VNUM | Definition | Eligibility Evidence |
-|------------|------------|----------------------|
+| -- | -- | -- |
 | Object `NOOB_CRAFTING_KIT` | `Crafting Kit` | Symbolic VNUM exists in the configuration template and local development header; registry metadata permits object legacy assignment. |
 | Object `VAMPIRE_CLOAK_OBJ_VNUM` | `Vampire Cloak` | Symbolic VNUM is owned by `src/magic/spells.h`; registry metadata permits object legacy assignment. |
 

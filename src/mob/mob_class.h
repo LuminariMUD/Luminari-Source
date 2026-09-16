@@ -11,6 +11,8 @@
 #ifndef _MOB_CLASS_H_
 #define _MOB_CLASS_H_
 
+#include "core/structs.h"
+
 /* Function prototypes for mob class behaviors */
 
 /* main class behavior dispatcher */

@@ -1,3 +1,5 @@
+#include "core/structs.h"
+
 #define HUNT_TYPE_NONE 0
 #define HUNT_TYPE_BASILISK 1
 #define HUNT_TYPE_MANTICORE 2

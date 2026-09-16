@@ -1,3 +1,6 @@
+#include "core/structs.h"
+#include "core/utils.h"
+
 
 #define BACKGROUND_NONE 0
 #define BACKGROUND_ACOLYTE 1

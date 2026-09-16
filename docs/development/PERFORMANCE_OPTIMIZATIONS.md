@@ -30,6 +30,7 @@ character list, object list, or room array before restarting the script.
 **Problem**: The `affect_update()` function was consuming 30% CPU constantly due to inefficient processing.
 
 **Root Causes**:
+
 1. Unnecessary MSDP Updates for NPCs
 2. No protocol checking for native MSDP or its GMCP fallback
 3. Heavy string operations for all characters
@@ -38,6 +39,7 @@ character list, object list, or room array before restarting the script.
 **Solutions Implemented**:
 
 #### 1. Skip MSDP Updates for NPCs (magic.c)
+
 ```c
 /* Skip MSDP updates for NPCs - they don't have descriptors */
 if (!IS_NPC(i))
@@ -45,6 +47,7 @@ if (!IS_NPC(i))
 ```
 
 #### 2. Early Exit Checks (handler.c)
+
 ```c
 /* Early exit if no character, no descriptor, or character is an NPC */
 if (!ch || !ch->desc || IS_NPC(ch))
@@ -57,6 +60,7 @@ if (!ch->desc->pProtocol ||
 ```
 
 #### 3. Skip NPCs Without Affects
+
 ```c
 /* Skip characters with no affects for better performance */
 if (!i->affected && IS_NPC(i))
@@ -64,6 +68,7 @@ if (!i->affected && IS_NPC(i))
 ```
 
 **Performance Impact**:
+
 - **NPCs**: 100% reduction in MSDP processing overhead
 - **Players without MSDP or its GMCP fallback**: 100% reduction in string operations
 - **Overall**: 80-90% reduction in CPU usage from affect_update()
@@ -71,6 +76,7 @@ if (!i->affected && IS_NPC(i))
 ### Performance Monitoring
 
 #### Logging System
+
 ```c
 /* Log performance metrics every 100 updates (10 minutes) */
 if (update_count % 100 == 0) {
@@ -80,6 +86,7 @@ if (update_count % 100 == 0) {
 ```
 
 #### Performance Tools
+
 - Built-in performance monitoring system
 - Real-time profiling capabilities
 - Memory usage tracking
@@ -87,12 +94,14 @@ if (update_count % 100 == 0) {
 ## Memory Management Optimizations
 
 ### Valgrind Integration
+
 - Comprehensive memory leak detection
 - Use-after-free detection
 - Buffer overflow protection
 - Regular memory audits
 
 ### Memory Debugging
+
 ```bash
 # Run with full memory checking
 valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ../bin/luminari
@@ -101,6 +110,7 @@ valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ../bin/lumi
 ## Future Optimization Targets
 
 ### Planned Improvements
+
 1. **MSDP String Caching**: Cache MSDP strings and rebuild only when affects change
 2. **Staggered Updates**: Distribute affect_update frequency across multiple pulses
 3. **Efficient String Building**: Replace multiple strlcat() with single sprintf()
@@ -108,6 +118,7 @@ valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ../bin/lumi
 5. **Memory Pool Expansion**: Extend memory pooling to more object types
 
 ### Performance Monitoring Enhancements
+
 1. **Real-time Metrics**: Web-based performance dashboard
 2. **Automated Alerts**: CPU/memory threshold notifications
 3. **Historical Tracking**: Long-term performance trend analysis
@@ -115,12 +126,14 @@ valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ../bin/lumi
 ## Testing and Validation
 
 ### Performance Testing Protocol
+
 1. **Baseline Measurement**: Record CPU usage before changes
 2. **Load Testing**: Test with varying player counts
 3. **Memory Profiling**: Monitor memory usage patterns
 4. **Regression Testing**: Ensure functionality remains intact
 
 ### Monitoring Commands
+
 ```bash
 # Check server performance
 top -p $(pgrep luminari)
@@ -135,6 +148,7 @@ gprof ../bin/luminari gmon.out > profile.txt
 ## Best Practices
 
 ### Development Guidelines
+
 1. **Profile Before Optimizing**: Measure actual bottlenecks
 2. **Optimize Hot Paths**: Focus on frequently called functions
 3. **Memory Efficiency**: Minimize allocations in game loops
@@ -142,6 +156,7 @@ gprof ../bin/luminari gmon.out > profile.txt
 5. **Batch Operations**: Group similar operations together
 
 ### Code Review Checklist
+
 - [ ] Function called in game loop?
 - [ ] Early exit conditions present?
 - [ ] Memory allocations minimized?
@@ -151,12 +166,14 @@ gprof ../bin/luminari gmon.out > profile.txt
 ## Performance Metrics
 
 ### Target Benchmarks
+
 - **CPU Usage**: < 10% during normal operation
 - **Memory Usage**: < 100MB for typical server
 - **Response Time**: < 50ms for player commands
 - **Affect Updates**: < 1% CPU usage
 
 ### Monitoring Schedule
+
 - **Daily**: Check CPU and memory usage
 - **Weekly**: Review performance logs
 - **Monthly**: Full performance audit
@@ -164,5 +181,5 @@ gprof ../bin/luminari gmon.out > profile.txt
 
 ---
 
-*Last Updated: January 25, 2025*  
+*Last Updated: January 25, 2025*\
 *Next Review: April 25, 2025*

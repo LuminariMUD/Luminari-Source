@@ -19,26 +19,31 @@ What is the change that we are proposing and/or doing?
 What becomes easier or more difficult to do because of this change?
 
 ### Positive
+
 - [Benefit 1]
 - [Benefit 2]
 
 ### Negative
+
 - [Drawback 1]
 - [Drawback 2]
 
 ### Risks
+
 - [Risk 1]
 - [Risk 2]
 
 ## Alternatives Considered
 
 ### Option 1: [Name]
+
 **Description:** [Brief description]
 **Pros:** [Benefits]
 **Cons:** [Drawbacks]
 **Why not chosen:** [Reason]
 
 ### Option 2: [Name]
+
 **Description:** [Brief description]
 **Pros:** [Benefits]
 **Cons:** [Drawbacks]

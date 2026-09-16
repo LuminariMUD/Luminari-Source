@@ -9,14 +9,12 @@ current_pointer="$state_root/current"
 server_unit="luminari-dev-login-smoke.service"
 server_log="${TMPDIR:-/tmp}/luminari-dev-login-smoke.log"
 
-fail()
-{
+fail() {
   printf 'vessel ferry soak: %s\n' "$*" >&2
   exit 1
 }
 
-usage()
-{
+usage() {
   cat >&2 <<'USAGE'
 Usage:
   ./scripts/vessels/run_vessel_ferry_soak.sh start [duration [database_interval [live_interval]]]
@@ -28,8 +26,7 @@ USAGE
   exit 1
 }
 
-require_integer()
-{
+require_integer() {
   local name=$1
   local value=$2
   local minimum=$3
@@ -38,8 +35,7 @@ require_integer()
   ((value >= minimum)) || fail "$name must be at least $minimum seconds"
 }
 
-metadata_value()
-{
+metadata_value() {
   local metadata_file=$1
   local requested_key=$2
 
@@ -51,8 +47,7 @@ metadata_value()
   ' "$metadata_file"
 }
 
-config_value()
-{
+config_value() {
   local config_file=$1
   local requested_key=$2
 
@@ -83,8 +78,7 @@ config_value()
   ' "$config_file"
 }
 
-ensure_local_mud_available()
-{
+ensure_local_mud_available() {
   local unit_name=$1
   local log_path=$2
   local login_helper=$3
@@ -116,8 +110,7 @@ ensure_local_mud_available()
   return 0
 }
 
-start_run()
-{
+start_run() {
   local duration=${1:-86400}
   local database_interval=${2:-60}
   local live_interval=${3:-3600}
@@ -153,7 +146,7 @@ start_run()
     if [[ -r "$existing_metadata" ]]; then
       existing_unit=$(metadata_value "$existing_metadata" unit)
       if [[ -n "$existing_unit" ]] &&
-         systemctl --user is-active --quiet "$existing_unit"; then
+        systemctl --user is-active --quiet "$existing_unit"; then
         fail "a ferry soak is already active: $existing_unit"
       fi
       existing_status=""
@@ -207,8 +200,7 @@ start_run()
   printf 'Requested duration: %s seconds\n' "$duration"
 }
 
-show_status()
-{
+show_status() {
   local run_dir
   local metadata_file
   local unit_name
@@ -243,8 +235,7 @@ show_status()
   fi
 }
 
-run_monitor()
-{
+run_monitor() {
   local run_dir=$1
   local duration=$2
   local database_interval=$3
@@ -322,8 +313,7 @@ run_monitor()
   final_rss=0
   persistence_verified=false
 
-  fail_run()
-  {
+  fail_run() {
     local failed_epoch
 
     failure_reason=$*
@@ -338,13 +328,11 @@ run_monitor()
     exit 1
   }
 
-  write_status()
-  {
+  write_status() {
     printf '%s\n' "$*" >"$run_dir/status"
   }
 
-  database_query()
-  {
+  database_query() {
     local query=$1
 
     MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -352,13 +340,11 @@ run_monitor()
       "$database_name" --execute="$query"
   }
 
-  binary_sha256()
-  {
+  binary_sha256() {
     sha256sum "$1" | awk '{print $1}'
   }
 
-  close_keepalive()
-  {
+  close_keepalive() {
     if [[ -n "$keepalive_fd" ]]; then
       exec {keepalive_fd}>&- || true
       keepalive_fd=""
@@ -366,8 +352,7 @@ run_monitor()
     return 0
   }
 
-  read_keepalive_until()
-  {
+  read_keepalive_until() {
     local first_pattern=$1
     local second_pattern=${2:-}
     local character
@@ -383,7 +368,7 @@ run_monitor()
         return 0
       fi
       if [[ -n "$second_pattern" &&
-            "$keepalive_reply" == *"$second_pattern"* ]]; then
+        "$keepalive_reply" == *"$second_pattern"* ]]; then
         return 0
       fi
       if ((${#keepalive_reply} > 2048)); then
@@ -393,8 +378,7 @@ run_monitor()
     return 1
   }
 
-  try_open_keepalive()
-  {
+  try_open_keepalive() {
     local account_name
 
     keepalive_open_error=""
@@ -428,16 +412,14 @@ run_monitor()
     return 0
   }
 
-  open_keepalive()
-  {
+  open_keepalive() {
     if ! try_open_keepalive; then
       fail_run "$keepalive_open_error"
     fi
     keepalive_log_offset=$(stat -c %s "$server_log")
   }
 
-  verify_keepalive()
-  {
+  verify_keepalive() {
     local current_binary_fingerprint
     local current_log_size
     local current_mud_pid
@@ -457,8 +439,8 @@ run_monitor()
 
     recovery_log="$run_dir/keepalive-recovery-$((copyover_recoveries + 1)).log"
     copyover_detected=false
-    detection_deadline=$(( $(date +%s) + 15 ))
-    while (( $(date +%s) < detection_deadline )); do
+    detection_deadline=$(($(date +%s) + 15))
+    while (($(date +%s) < detection_deadline)); do
       current_mud_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
       [[ "$current_mud_pid" == "$initial_mud_pid" ]] ||
         fail_run "MUD PID changed after the game-loop keepalive disconnected"
@@ -479,8 +461,8 @@ run_monitor()
 
     close_keepalive
     recovered=false
-    recovery_deadline=$(( $(date +%s) + 180 ))
-    while (( $(date +%s) < recovery_deadline )); do
+    recovery_deadline=$(($(date +%s) + 180))
+    while (($(date +%s) < recovery_deadline)); do
       current_mud_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
       [[ "$current_mud_pid" == "$initial_mud_pid" ]] ||
         fail_run "MUD PID changed while recovering from copyover: $initial_mud_pid -> $current_mud_pid"
@@ -488,7 +470,7 @@ run_monitor()
       [[ "$current_binary_fingerprint" == "$initial_binary_fingerprint" ]] ||
         fail_run "the installed MUD executable changed during copyover"
       if ss -H -ltn "sport = :$mud_port" 2>/dev/null | grep -q . &&
-         try_open_keepalive; then
+        try_open_keepalive; then
         recovered=true
         break
       fi
@@ -504,8 +486,7 @@ run_monitor()
     printf 'Recovered game-loop keepalive after copyover %s.\n' "$copyover_recoveries"
   }
 
-  resume_after_failure()
-  {
+  resume_after_failure() {
     if [[ "$ferry_paused" != true || ! "$ferry_slot" =~ ^[0-9]+$ ]]; then
       return
     fi
@@ -519,8 +500,7 @@ run_monitor()
     ferry_paused=false
   }
 
-  finish_run()
-  {
+  finish_run() {
     local exit_code=${1:-$?}
     local finished_epoch
     local unique_positions
@@ -566,8 +546,7 @@ run_monitor()
   trap 'failure_reason="monitor received SIGTERM"; finish_run 143; exit 143' TERM
   trap 'failure_reason="monitor received SIGINT"; finish_run 130; exit 130' INT
 
-  run_live_sample()
-  {
+  run_live_sample() {
     local label=$1
     local expected_state=$2
     local capture_memory=${3:-true}
@@ -654,7 +633,7 @@ run_monitor()
     completion_counter=$(sed -nE 's/^Route Completions: ([0-9]+)$/\1/p' \
       "$output_file" | tail -n 1)
     [[ "$movement_counter" =~ ^[0-9]+$ && "$arrival_counter" =~ ^[0-9]+$ &&
-       "$completion_counter" =~ ^[0-9]+$ ]] ||
+      "$completion_counter" =~ ^[0-9]+$ ]] ||
       fail_run "could not read autopilot progress counters during $label"
     if [[ "$expected_state" == active ]]; then
       if [[ -z "$last_movement_counter" ]]; then
@@ -663,9 +642,9 @@ run_monitor()
         last_completion_counter=$completion_counter
       else
         if ((copyover_recoveries > last_live_copyover_recoveries)) &&
-           ((movement_counter <= last_movement_counter ||
-             arrival_counter <= last_arrival_counter ||
-             completion_counter <= last_completion_counter)); then
+          ((movement_counter <= last_movement_counter || \
+          arrival_counter <= last_arrival_counter || \
+          completion_counter <= last_completion_counter)); then
           ((movement_counter > 0)) ||
             fail_run "autopilot movement did not advance after copyover"
           ((arrival_counter > 0)) ||
@@ -760,9 +739,9 @@ run_monitor()
       's/^[[:space:]]*([0-9]+) buf switches[[:space:]]+([0-9]+) overflows$/\1 \2/p' \
       "$output_file" | tail -n 1)
     [[ "$mobiles" =~ ^[0-9]+$ && "$objects" =~ ^[0-9]+$ &&
-       "$rooms" =~ ^[0-9]+$ && "$world_lists" =~ ^[0-9]+$ &&
-       "$movement_trails" =~ ^[0-9]+$ &&
-       "$buffer_row" =~ ^[0-9]+[[:space:]]+[0-9]+$ ]] ||
+      "$rooms" =~ ^[0-9]+$ && "$world_lists" =~ ^[0-9]+$ &&
+      "$movement_trails" =~ ^[0-9]+$ &&
+      "$buffer_row" =~ ^[0-9]+[[:space:]]+[0-9]+$ ]] ||
       fail_run "could not read live world allocation statistics during $label"
     read -r buffer_switches buffer_overflows <<<"$buffer_row"
     ((buffer_overflows == 0)) ||
@@ -801,8 +780,7 @@ run_monitor()
     live_samples=$((live_samples + 1))
   }
 
-  sample_database()
-  {
+  sample_database() {
     local row
     local verdict
     local detail
@@ -888,8 +866,7 @@ run_monitor()
     database_samples=$((database_samples + 1))
   }
 
-  sample_process()
-  {
+  sample_process() {
     local current_pid
     local process_row
     local rss
@@ -924,8 +901,7 @@ run_monitor()
     process_samples=$((process_samples + 1))
   }
 
-  sample_server_log()
-  {
+  sample_server_log() {
     local current_size
     local byte_count
     local chunk_file="$run_dir/server-log-chunk"
@@ -955,8 +931,7 @@ run_monitor()
     fi
   }
 
-  verify_persistence_restart()
-  {
+  verify_persistence_restart() {
     local pause_output="$run_dir/pre-restart-pause.log"
     local post_output
     local resume_output="$run_dir/post-restart-resume.log"
@@ -1015,9 +990,9 @@ run_monitor()
     for ((attempt = 0; attempt < 600; attempt++)); do
       final_mud_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
       if systemctl --user is-active --quiet "$server_unit" &&
-         [[ "$final_mud_pid" =~ ^[1-9][0-9]*$ ]] &&
-         [[ "$final_mud_pid" != "$initial_mud_pid" ]] &&
-         ss -H -ltn "sport = :$mud_port" 2>/dev/null | grep -q .; then
+        [[ "$final_mud_pid" =~ ^[1-9][0-9]*$ ]] &&
+        [[ "$final_mud_pid" != "$initial_mud_pid" ]] &&
+        ss -H -ltn "sport = :$mud_port" 2>/dev/null | grep -q .; then
         ready=true
         break
       fi
@@ -1113,7 +1088,7 @@ run_monitor()
     fail_run "could not record the source commit"
   # Verify the listener by PID and executable, not by process name.
   port_listener=$(ss -H -ltnp "sport = :$mud_port" 2>/dev/null || true)
-  port_listener_pid=$(sed -n 's/.*pid=\([0-9]\{1,\}\).*/\1/p' <<< "$port_listener" |
+  port_listener_pid=$(sed -n 's/.*pid=\([0-9]\{1,\}\).*/\1/p' <<<"$port_listener" |
     head -n 1)
   [[ "$port_listener_pid" == "$initial_mud_pid" ]] ||
     fail_run "the development port is not owned by the active MUD process"

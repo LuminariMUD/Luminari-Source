@@ -1,0 +1,4 @@
+# Headers under src/ that do not compile on their own yet (issue #89).
+# The list may only shrink: every other header must compile alone. After
+# fixing headers, drop the ones that pass with every supported compiler:
+#   scripts/ci/check_header_self_containment.py --build-root BUILD --cc gcc --cc clang --update

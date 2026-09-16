@@ -1,4 +1,4 @@
-Param(
+param(
   [Parameter(Mandatory = $true)][string]$Zone
 )
 
@@ -8,7 +8,7 @@ Write-Host "Validating zone $Zone..."
 $repoRoot = Split-Path -Parent $PSScriptRoot
 
 # Check file exists
-$exts = 'wld','mob','obj','zon'
+$exts = 'wld', 'mob', 'obj', 'zon'
 foreach ($ext in $exts) {
   $path = Join-Path $repoRoot ("lib/world/{0}/{1}.{0}" -f $ext, $Zone)
   if (-not (Test-Path -LiteralPath $path)) {
@@ -18,7 +18,7 @@ foreach ($ext in $exts) {
 
 # Check for syntax
 $mudExe = Join-Path $repoRoot 'bin/luminari.exe'
-$mudSh  = Join-Path $repoRoot 'bin/luminari'
+$mudSh = Join-Path $repoRoot 'bin/luminari'
 if (Test-Path -LiteralPath $mudExe) {
   & $mudExe -c -q 2>&1 | Select-String -Pattern 'error|warning' -AllMatches -CaseSensitive:$false | Where-Object { $_.Line -match $Zone }
 } elseif (Test-Path -LiteralPath $mudSh) {
