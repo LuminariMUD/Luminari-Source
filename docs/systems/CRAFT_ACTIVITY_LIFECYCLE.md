@@ -35,12 +35,12 @@ subcommands that read or change the project are refused and golem construction
 cannot start; `craft score` and the other golem commands still work. The recipe
 variant's skill decides the project's tool, station, talents, roll and
 experience; check, start, timer rechecks and completion all use that skill's
-station. Equipment readiness and
-admission check tool-slot occupancy (woodworking needs no tool); the timer does
-not recheck the tool, but completion does. Category harvesting has no tool
-requirement or tool recheck; a carried or worn harvest-tool prototype only
-raises the quality floor at completion. Only the unreachable node-harvest
-adapter rechecks `has_proper_harvesting_tool_equipped()`.
+station. Equipment readiness and admission check tool-slot occupancy
+(woodworking needs no tool); the timer does not recheck the tool, but
+completion does. Category harvesting has no tool requirement or tool recheck; a
+carried or worn harvest-tool prototype only raises the quality floor at
+completion. Only the unreachable node-harvest adapter rechecks
+`has_proper_harvesting_tool_equipped()`.
 
 Offline time does not advance crafting. Loss of the descriptor retires the
 active timer while preserving CrDu, the saved number of seconds remaining.
@@ -75,6 +75,10 @@ Validation includes generic native scheduling without descriptor-list
 membership, offline suspension/resume through a directly called helper,
 cancellation after scripted relocation, and lazy refresh preserving existing
 offers. Existing activity-manager tests cover single-primary admission,
-capability checks, cancellation and owner lifecycle. No direct test covers the
-reachable equipment admission/tool/station/roll path or the timed create,
-material-golem and supply-order lifecycles through their production commands.
+capability checks, cancellation and owner lifecycle.
+`unittests/CuTest/test_crafting_projects.c` starts equipment work through the
+`craft start` handler and golem work through `begin_golem_craft()`, covers the
+edit lock while work runs and the supply-order and golem work rules, and calls
+the create and golem completion routines directly. No test lets a crafting
+timer run to completion, so the timed create, material-golem and supply-order
+lifecycles are not covered end to end.

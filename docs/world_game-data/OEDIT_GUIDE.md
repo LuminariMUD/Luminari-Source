@@ -399,13 +399,11 @@ menu uses the same offset. Below is the complete list:
 **Total: 125 flags (bits 0-124, `NUM_ITEM_FLAGS`)**
 
 **Station timing:** For player-command-reachable work, supply-order start and
-timer rechecks use the contract recipe's mapped skill. Equipment start and
-timer rechecks use the project's current stored skill; standalone `reforge`
-uses the item's material. Skill 0 requires no station, but `show` (also
-`display`, `review`, and `information`) can initialize a station-requiring
-skill before the first attempt. Completion can also leave a skill on a failed
-project. Station enforcement is state-dependent, not simply first attempt
-versus retry. A station flag does not make unreachable refining available.
+timer rechecks use the contract recipe's mapped skill. An equipment project's
+`check`, `start`, timer rechecks, and completion use the skill of its recipe
+variant, so the required station does not depend on command order. Standalone
+`reforge` uses the item's material. A station flag does not make unreachable
+refining available.
 
 **Note:** These flags are defined in `src/core/structs.h` as the `ITEM_*` define block
 ending at `ITEM_ROL_WHOLE_HEAD`, and their display names in the `extra_bits[]`
@@ -545,6 +543,7 @@ crafting/harvesting tool positions at bits 24-32 are separate from normal combat
 equipment positions. Ordinary equipment-crafting admission checks occupancy of
 only the alchemy, armorsmithing, jewelcrafting, tailoring, and weaponsmithing
 positions; it does not validate the occupying object's type or values.
+Woodworking has no tool position and needs no tool.
 
 Bit 34 is the active Yuan-Ti tail slot. On a non-ring object, `ITEM_WEAR_TAIL`
 marks dedicated tail gear: the runtime rejects that object in every other
@@ -558,7 +557,8 @@ The `craft tools|equipment|gear` display uses a different rule: it scans all
 equipped positions for an `ITEM_CRAFTING_TOOL` whose value 0 names the ability.
 Its value 1 bonus is applied only by `compute_ability()`, which feeds skill
 listings; no crafting, golem, harvesting, or brewing roll reads it. The display
-omits woodworking and may therefore disagree with admission. The only grant
+omits woodworking, which needs no tool, and may disagree with admission for the
+other abilities. The only grant
 path in tracked source is compile-time: `NOOB_CRAFTING_TAILORING`,
 `NOOB_CRAFTING_ALCHEMY`, `NOOB_CRAFTING_ARMORSMITHING`,
 `NOOB_CRAFTING_WEAPONSMITHING`, and `NOOB_CRAFTING_JEWELCRAFTING` in the
