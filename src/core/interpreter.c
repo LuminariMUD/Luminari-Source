@@ -7288,7 +7288,9 @@ char *one_word(char *argument, char *first_arg)
       *(first_arg++) = LOWER(*argument);
       argument++;
     }
-    argument++;
+    /* An unterminated quote ends at the terminator, not past it. */
+    if (*argument == '\"')
+      argument++;
   }
   else
   {

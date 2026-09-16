@@ -5,6 +5,7 @@
 #include "../../src/core/utils.h"
 #include "../../src/core/structs.h"
 #include "../../src/core/interpreter.h"
+#include "../../src/core/comm.h"
 #include "../../src/act/act.h"
 #include "../../src/craft/craft.h"
 #include "../../src/magic/spells.h"
@@ -371,4 +372,176 @@ void Test_activity_command_metadata_keeps_status_and_communication_responsive(Cu
 
   if (created_command_list)
     free_command_list();
+}
+
+static void free_input_queue(struct txt_q *queue)
+{
+  struct txt_block *block;
+
+  while ((block = queue->head) != NULL)
+  {
+    queue->head = block->next;
+    free(block->text);
+    free(block);
+  }
+  queue->tail = NULL;
+}
+
+/* Alias expansion sits between raw input and the command table. A simple alias
+ * replaces the line; a complex one substitutes $1..$9 and $*, splits commands at
+ * ';', doubles '$' for act(), and queues the commands ahead of pending input; an
+ * expansion beyond the raw input limit is refused and queues nothing. */
+void Test_alias_expansion_substitutes_arguments_and_queues_ahead_of_input(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct alias_data simple;
+  struct alias_data complex;
+  struct alias_data oversized;
+  struct txt_block *block;
+  char line[MAX_INPUT_LENGTH];
+  char oversized_replacement[81];
+  int simple_result;
+  int complex_result;
+  int plain_result;
+  int oversized_result = -1;
+  int count = 0;
+  int i;
+  bool simple_replaced;
+  bool plain_unchanged;
+  bool queued_in_order;
+  bool refused = false;
+  bool queue_kept = false;
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&specials, 0, sizeof(specials));
+  memset(&descriptor, 0, sizeof(descriptor));
+  oversized_replacement[0] = '\0';
+  ch.player_specials = &specials;
+  ch.player.name = CuMutableString("alias test character");
+  ch.desc = &descriptor;
+  descriptor.character = &ch;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  if (descriptor.pProtocol == NULL)
+  {
+    CuFail(tc, "ProtocolCreate failed");
+    return;
+  }
+
+  for (i = 0; i < 40; i++)
+    strlcat(oversized_replacement, "$*", sizeof(oversized_replacement));
+  simple.alias = CuMutableString("gg");
+  simple.replacement = CuMutableString("get all corpse");
+  simple.type = ALIAS_SIMPLE;
+  simple.next = &complex;
+  complex.alias = CuMutableString("ks");
+  complex.replacement = CuMutableString("kill $1;say $* $$");
+  complex.type = ALIAS_COMPLEX;
+  complex.next = &oversized;
+  oversized.alias = CuMutableString("big");
+  oversized.replacement = oversized_replacement;
+  oversized.type = ALIAS_COMPLEX;
+  oversized.next = NULL;
+  specials.aliases = &simple;
+
+  strlcpy(line, "gg these words are ignored", sizeof(line));
+  simple_result = perform_alias(&descriptor, line, sizeof(line));
+  simple_replaced = strcmp(line, "get all corpse") == 0;
+
+  strlcpy(line, "look ks", sizeof(line));
+  plain_result = perform_alias(&descriptor, line, sizeof(line));
+  plain_unchanged = strcmp(line, "look ks") == 0;
+
+  write_to_q("look", &descriptor.input, 0);
+  strlcpy(line, "ks orc  now", sizeof(line));
+  complex_result = perform_alias(&descriptor, line, sizeof(line));
+  for (block = descriptor.input.head; block != NULL; block = block->next)
+    count++;
+  queued_in_order = count == 3 && !strcmp(descriptor.input.head->text, "kill orc") &&
+                    !strcmp(descriptor.input.head->next->text, "say orc  now $$") &&
+                    !strcmp(descriptor.input.head->next->next->text, "look");
+
+  if (queued_in_order)
+  {
+    /* 400 bytes of arguments substituted 40 times exceeds MAX_RAW_INPUT_LENGTH. */
+    block = descriptor.input.head;
+    memset(line, 'x', 400);
+    memcpy(line, "big ", 4);
+    line[400] = '\0';
+    oversized_result = perform_alias(&descriptor, line, sizeof(line));
+    refused = strstr(descriptor.output, "Alias expansion too long.") != NULL;
+    queue_kept = descriptor.input.head == block;
+  }
+
+  free_input_queue(&descriptor.input);
+  if (descriptor.large_outbuf != NULL)
+  {
+    free(descriptor.large_outbuf->text);
+    free(descriptor.large_outbuf);
+  }
+  ch.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+
+  CuAssertIntEquals(tc, 0, simple_result);
+  CuAssertTrue(tc, simple_replaced);
+  CuAssertIntEquals(tc, 0, plain_result);
+  CuAssertTrue(tc, plain_unchanged);
+  CuAssertIntEquals(tc, 1, complex_result);
+  CuAssertIntEquals(tc, 3, count);
+  CuAssertTrue(tc, queued_in_order);
+  CuAssertIntEquals(tc, 1, oversized_result);
+  CuAssertTrue(tc, refused);
+  CuAssertTrue(tc, queue_kept);
+}
+
+/* one_word reads a quoted or bare word; an unterminated quote must stop at the
+ * terminator instead of stepping past it (help keyword lines and DG skillset
+ * arguments call it on text from data files). */
+void Test_one_word_and_argument_splitting_stop_at_the_terminator(CuTest *tc)
+{
+  char quoted[] = "  \"Magic Missile\" rest";
+  char bare[] = "WORD next";
+  char unterminated[] = "\"open quote";
+  char empty[] = "";
+  char word[MAX_INPUT_LENGTH];
+  char first[8], second[8], third[8], fourth[8], fifth[4];
+  const char *rest;
+  char *end;
+
+  end = one_word(quoted, word);
+  CuAssertStrEquals(tc, "magic missile", word);
+  CuAssertStrEquals(tc, " rest", end);
+
+  end = one_word(bare, word);
+  CuAssertStrEquals(tc, "word", word);
+  CuAssertStrEquals(tc, " next", end);
+
+  end = one_word(unterminated, word);
+  CuAssertStrEquals(tc, "open quote", word);
+  CuAssertPtrEquals(tc, unterminated + strlen(unterminated), end);
+
+  end = one_word(empty, word);
+  CuAssertStrEquals(tc, "", word);
+  CuAssertPtrEquals(tc, empty, end);
+
+  rest = four_arguments("One two THREE four five", first, sizeof(first), second, sizeof(second),
+                        third, sizeof(third), fourth, sizeof(fourth));
+  CuAssertStrEquals(tc, "one", first);
+  CuAssertStrEquals(tc, "two", second);
+  CuAssertStrEquals(tc, "three", third);
+  CuAssertStrEquals(tc, "four", fourth);
+  CuAssertStrEquals(tc, " five", rest);
+
+  /* Missing words leave empty arguments, and a long word is cut to its buffer. */
+  rest = five_arguments("alpha overlong", first, sizeof(first), second, sizeof(second), third,
+                        sizeof(third), fourth, sizeof(fourth), fifth, sizeof(fifth));
+  CuAssertStrEquals(tc, "alpha", first);
+  CuAssertStrEquals(tc, "overlon", second);
+  CuAssertStrEquals(tc, "", third);
+  CuAssertStrEquals(tc, "", fourth);
+  CuAssertStrEquals(tc, "", fifth);
+  CuAssertStrEquals(tc, "", rest);
 }
