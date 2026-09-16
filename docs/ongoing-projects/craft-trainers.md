@@ -4,8 +4,9 @@ Tracking issue: #196. Branch: `feat/196-craft-trainers`. Written 2026-09-16 from
 `master` at `9c5a0223f89ceda8b15a7bb97c2110f64188f50e`; line numbers refer to that revision.
 World-data facts come from the development world copy, which git does not track.
 
-Status: plan only, nothing implemented. Every owner decision at the end has a default, so work
-can start now. Only fee calibration against production data needs the owner's authorization.
+Status: plan only, nothing implemented. On 2026-09-16 the owner accepted every decision at the end
+as final, so no open question blocks implementation. Placing the trainer in the production world
+stays with the owner's world-data release (step 5).
 
 ## Outcome
 
@@ -72,8 +73,8 @@ The issue's description of the code checks out, including the brewing bypass
 
 07. **Gold lives only in player files.** `Gold:` and `Bank:` are player-file tags
     (`src/player/players.c:2930`); `player_data` has no gold column (`sql/master_schema.sql:31`).
-    Calibrating fees against production means a read-only pass over production player files, not a
-    SQL query.
+    Any later retuning against production data means a read-only pass over production player
+    files, not a SQL query.
 
 08. **World content is not in git.** `lib/world/{mob,wld,zon,...}` are gitignored and edited per
     site through OLC; authored additions ship as `data/<bundle>/` records with install instructions
@@ -104,9 +105,10 @@ The issue's description of the code checks out, including the brewing bypass
 
 ### Tunables
 
-All constants live in `src/craft/craft_training.h`; none is a runtime setting.
+All constants live in `src/craft/craft_training.h`; none is a runtime setting. These values are
+final (decision 1).
 
-| Tunable | Default | Reason |
+| Tunable | Value | Reason |
 | -- | -- | -- |
 | Duration | 24 hours of wall-clock time | Issue proposal |
 | Grant | Half of the next rank's requirement: 500 x (rank + 1) | A meaningful share of one rank |
@@ -123,7 +125,7 @@ All constants live in `src/craft/craft_training.h`; none is a runtime setting.
 | 14 | 15,000 | 7,500 | 9,375 | 22,500 | 3.0 |
 | 19 | 20,000 | 10,000 | 12,500 | 40,000 | 4.0 |
 
-What these defaults guarantee:
+What these values guarantee:
 
 - **At most one rank per contract.** The largest grant, with the maximum insightful bonus, is 62.5
   percent of the next rank's requirement. Experience starts below the next threshold, and the gap
@@ -184,9 +186,10 @@ What these defaults guarantee:
 - `CON_MENU` option 1 (`src/core/interpreter.c:9980`): the first statement refuses while
   `training_ability` is set and tells the player to return to the account menu with 0. This also
   covers the forced description path.
-- `copyover_recover()` (`src/core/comm.c`, between the load at `:686` and `enter_player_game()` at
-  `:714`): a recovered character with a contract gets a one-line explanation and `close_socket()`.
-  Only the same-pass window of Finding 5 reaches it.
+- `copyover_recover()` (`src/core/comm.c`): a new `else if` between the lost-character branch and
+  the entry branch (`:709`) writes a one-line explanation with `write_to_descriptor()`, as the
+  lost-character branch does (`:706`), and calls `close_socket()`, so `enter_player_game()` (`:714`)
+  never runs. Only the same-pass window of Finding 5 reaches it.
 - Neither check settles or saves.
 
 ### Settlement
@@ -291,10 +294,15 @@ because a trainer without the lock and settlement would take fees and never pay 
     ranked), raises the rank by at most one, and clears the record in the reloaded file; freeing,
     reloading, and selecting again grants nothing;
   - recall clears the record in the file and leaves experience and gold unchanged;
-  - copyover: drive `copyover_recover()` with a `socketpair()` and a temporary copyover file if
-    practical; otherwise assert in source order, in the style of
-    `Test_copyover_executes_the_installed_release` (`unittests/CuTest/test_copyover_timer.c:11`),
-    that the contract check precedes `enter_player_game()`;
+  - copyover, through the real `copyover_recover()`: in the isolated player directory, save a
+    contracted character, open a `socketpair()`, and write `copyover.dat` with a boot time, one
+    line in the writer's format (`<fd> <pref> <name> <host> 80/24`, `src/act/act.wizard.c:5752`),
+    and `-1`. After the call, the peer socket holds the explanation and not "Copyover recovery
+    complete", the character never joined `character_list`, `descriptor_list` is unchanged, and
+    `copyover.dat` is gone. Save and restore `boot_time`. Write the file exactly: a missing file or
+    an unreadable first line makes `copyover_recover()` exit the process (`src/core/comm.c:616`,
+    `:629`). The refusal path never reaches `enter_player_game()`, so the test needs no world or
+    database;
   - the account menu row through the existing `LUMINARI_TEST_MYSQL_*` harness
     (`unittests/CuTest/test_database_persistence.c:85`) with a temporary `player_data` table,
     because `show_account_menu()` queries it.
@@ -371,23 +379,25 @@ Added, each for a traced failure:
 Kept from the issue: a named SpecProc instead of a mob flag, a wall-clock end time settled lazily,
 no timers or scans, one contract per character, and the out-of-scope list.
 
-## Owner decisions
+## Decisions
 
-Implementation uses each default until the owner says otherwise.
+The owner accepted these defaults as final on 2026-09-16.
 
-1. **Tunables** (duration, grant share, ceiling, fee). Default: the table above. Calibration needs
-   percentiles of `Gold:`, `Bank:`, and craft ranks from production player files (Finding 7),
-   collected read-only with the owner's authorization.
-2. **Cooldown or weekly cap.** Default: none; the ceiling bounds an always-training alt.
-3. **Insightful bonus on trainer experience.** Default: applies.
-4. **Web lobby.** Default: no protocol change; the lock applies, and status and recall reach web
-   players through the terminal output and the classic terminal. Alternative: a
-   `trainingSecondsLeft` card field with the paired gateway change.
-5. **Placement.** Default: one trainer in Sanctus room 373. Ashenport's Fenton's Workshop
-   (room 103484) is a natural second site; tiers and specialties stay out of scope.
-6. **Talent points when restoring lagging ranks on load.** Default: none. A character whose rank
-   lags only because one gain crossed two thresholds loses the one talent point its next gain would
-   have paid; the alternative pays respecced characters again for ranks they were already paid for.
+1. **Tunables:** the table under Design (24 hours, half of the next rank's requirement, contracts
+   only below rank 20, a fee of 100 x (rank + 1)^2 gold). They are constants in one header, so
+   retuning later changes one file.
+2. **Cooldown or weekly cap:** none. The rank ceiling bounds an always-training alt.
+3. **Insightful bonus on trainer experience:** applies.
+4. **Web lobby:** no protocol change. The lock still holds for web players, but the structured lobby
+   cannot say why: selecting a training character just redraws the lobby, and the time left and
+   the recall command appear only in the classic terminal, which the player has to open. Showing
+   them in the lobby would take a `trainingSecondsLeft` card field and the paired gateway change.
+5. **Placement:** one trainer, in Sanctus room 373. Trainer tiers and specialties stay out of
+   scope.
+6. **Talent points when restoring lagging ranks on load:** none. A character whose rank lags only
+   because one gain crossed two thresholds loses the one talent point its next gain would have
+   paid; paying instead would reward respecced characters again for ranks they were already paid
+   for.
 
 ## Out of scope
 
