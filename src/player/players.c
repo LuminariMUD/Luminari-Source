@@ -937,7 +937,7 @@ int load_char(const char *name, struct char_data *ch)
           if (GET_ARCANE_MARK(ch))
             free(GET_ARCANE_MARK(ch));
           GET_ARCANE_MARK(ch) = NULL;
-          if (*line && strcmp(line, "(null)") && strcmp(line, "null"))
+          if (*line && strcmp(line, "(null)") != 0 && strcmp(line, "null") != 0)
             GET_ARCANE_MARK(ch) = strdup(line);
         }
         break;
@@ -2427,7 +2427,7 @@ bool save_char_checked(struct char_data *ch, int mode)
     {
       if (!GET_HOST(ch))
         GET_HOST(ch) = strdup(ch->desc->host);
-      else if (GET_HOST(ch) && strcmp(GET_HOST(ch), ch->desc->host))
+      else if (GET_HOST(ch) && strcmp(GET_HOST(ch), ch->desc->host) != 0)
       {
         free(GET_HOST(ch));
         GET_HOST(ch) = strdup(ch->desc->host);

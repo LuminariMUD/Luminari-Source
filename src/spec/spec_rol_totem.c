@@ -348,7 +348,7 @@ int rol_totem_restorer(struct char_data *ch, void *me, int cmd, const char *argu
     return FALSE;
 
   skip_spaces_c(&argument);
-  if (str_cmp(argument, "spiritworld"))
+  if (str_cmp(argument, "spiritworld") != 0)
     return FALSE;
 
   if (IS_NPC(ch) || ch->player_specials == NULL || CLASS_LEVEL(ch, CLASS_CLERIC) <= 0)

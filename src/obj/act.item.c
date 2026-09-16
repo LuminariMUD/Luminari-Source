@@ -8032,7 +8032,7 @@ ACMDU(do_outfit)
                    GET_OUTFIT_CONFIRM(ch));
       return;
     }
-    if (strcmp(arg2, GET_OUTFIT_CONFIRM(ch)))
+    if (strcmp(arg2, GET_OUTFIT_CONFIRM(ch)) != 0)
     {
       send_to_char(ch,
                    "The confirmation code does not match.  You typed %s and it should be %s\r\n",
@@ -9018,7 +9018,7 @@ ACMD(do_downgrade)
     ch->player_specials->downgrade_confirm = NULL;
     return;
   }
-  else if (strcmp(arg3, ch->player_specials->downgrade_confirm))
+  else if (strcmp(arg3, ch->player_specials->downgrade_confirm) != 0)
   {
     send_to_char(ch, "To proceed with this downgrade type: downgrade %s %d %s\r\n", arg, level,
                  ch->player_specials->downgrade_confirm);

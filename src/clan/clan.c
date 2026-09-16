@@ -2654,7 +2654,7 @@ ACMDU(do_clanleave)
                  ch->player_specials->clan_leave_code);
     return;
   }
-  else if (strcmp(ch->player_specials->clan_leave_code, argument))
+  else if (strcmp(ch->player_specials->clan_leave_code, argument) != 0)
   {
     send_to_char(ch, "You must type clan leave %s to leave your clan.\r\n",
                  ch->player_specials->clan_leave_code);

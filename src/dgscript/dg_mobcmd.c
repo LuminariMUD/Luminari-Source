@@ -409,7 +409,7 @@ ACMD(do_mrolzoneecho)
   want_indoors = !str_cmp(filter, "indoors");
   want_outdoors = !str_cmp(filter, "outdoors");
 
-  if ((!want_indoors && !want_outdoors && str_cmp(filter, "all")) || !*room_number || !*msg)
+  if ((!want_indoors && !want_outdoors && str_cmp(filter, "all") != 0) || !*room_number || !*msg)
   {
     mob_log(ch, "mrolzoneecho usage: <all|indoors|outdoors> <room-vnum> <message>");
     return;

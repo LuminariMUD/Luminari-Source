@@ -200,7 +200,7 @@ static struct char_data *vessel_hunter_online_owner_aboard(const struct greyhawk
   for (character = character_list; character != NULL; character = character->next)
   {
     if (IS_NPC(character) || character->desc == NULL || GET_NAME(character) == NULL ||
-        str_cmp(GET_NAME(character), target->owner) || IN_ROOM(character) == NOWHERE)
+        str_cmp(GET_NAME(character), target->owner) != 0 || IN_ROOM(character) == NOWHERE)
     {
       continue;
     }

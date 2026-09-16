@@ -3582,7 +3582,7 @@ struct char_data *get_player_vis(struct char_data *ch, char *name, int *number, 
       continue;
     if (inroom == FIND_CHAR_ROOM && IN_ROOM(i) != IN_ROOM(ch))
       continue;
-    if (str_cmp(i->player.name, name)) /* If not same, continue */
+    if (str_cmp(i->player.name, name) != 0) /* If not same, continue */
       continue;
     if (!CAN_SEE(ch, i))
       continue;

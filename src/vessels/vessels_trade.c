@@ -320,7 +320,7 @@ ACMD(do_dockfees)
     send_to_char(ch, "Use 'dockfees pay' to settle the balance before departure.\r\n");
     return;
   }
-  if (str_cmp(arg, "pay"))
+  if (str_cmp(arg, "pay") != 0)
   {
     send_to_char(ch, "Usage: dockfees [pay]\r\n");
     return;

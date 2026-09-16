@@ -7673,7 +7673,7 @@ ACMD(do_who)
 
     if (CAN_SEE(ch, tch) && IS_PLAYING(d))
     {
-      if (*name_search && str_cmp(GET_NAME(tch), name_search) &&
+      if (*name_search && str_cmp(GET_NAME(tch), name_search) != 0 &&
           !strstr(GET_TITLE(tch), name_search))
         continue;
       if (!CAN_SEE(ch, tch) || GET_LEVEL(tch) < low || GET_LEVEL(tch) > high)
@@ -7736,7 +7736,7 @@ ACMD(do_who)
         continue;
       if (!IS_PLAYING(d))
         continue;
-      if (*name_search && str_cmp(GET_NAME(tch), name_search) &&
+      if (*name_search && str_cmp(GET_NAME(tch), name_search) != 0 &&
           !strstr(GET_TITLE(tch), name_search))
         continue;
       if (!CAN_SEE(ch, tch) || GET_LEVEL(tch) < low || GET_LEVEL(tch) > high)
@@ -8019,7 +8019,7 @@ ACMD(do_users)
 
       if (*host_search && !strstr(d->host, host_search))
         continue;
-      if (*name_search && str_cmp(GET_NAME(tch), name_search))
+      if (*name_search && str_cmp(GET_NAME(tch), name_search) != 0)
         continue;
       if (!CAN_SEE(ch, tch) || GET_LEVEL(tch) < low || GET_LEVEL(tch) > high)
         continue;

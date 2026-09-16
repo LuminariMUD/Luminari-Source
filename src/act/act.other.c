@@ -930,7 +930,7 @@ ACMD(do_abundantstep)
       buf[i] = 0;  /* placing a '0' in that last spot in this mini buf */
 
       for (i = 1; complete_cmd_info[i].command_pointer == do_move &&
-                  strcmp(complete_cmd_info[i].sort_as, buf);
+                  strcmp(complete_cmd_info[i].sort_as, buf) != 0;
            i++)
         ; /* looking for a move command that matches our buf */
 
@@ -7088,7 +7088,7 @@ ACMD(do_steal)
     percent = 100;
   }
 
-  if (str_cmp(obj_name, "coins") && str_cmp(obj_name, "gold"))
+  if (str_cmp(obj_name, "coins") != 0 && str_cmp(obj_name, "gold"))
   {
     if (!(obj = get_obj_in_list_vis(ch, obj_name, NULL, vict->carrying)))
     {
@@ -7492,7 +7492,7 @@ ACMDU(do_title)
     send_to_char(ch, "Sorry, titles can't be longer than %d characters.\r\n", MAX_TITLE_LENGTH);
   else if (!strstr(argument, GET_NAME(ch)) && CONFIG_USE_INTRO_SYSTEM)
     send_to_char(ch, "Your title must contain your name in it.\r\n");
-  else if (strlen(argument) < 10 && strcmp(argument, GET_NAME(ch)))
+  else if (strlen(argument) < 10 && strcmp(argument, GET_NAME(ch)) != 0)
     send_to_char(ch, "Your title must be at least 10 characters long.\r\n");
   else
   {
@@ -8804,7 +8804,7 @@ ACMD(do_screenreader)
                  PRF_FLAGGED(ch, PRF_SCREEN_READER) ? "on" : "off");
     return;
   }
-  if (str_cmp(argument, "on") && str_cmp(argument, "off"))
+  if (str_cmp(argument, "on") != 0 && str_cmp(argument, "off"))
   {
     send_to_char(ch, "Usage: screenreader on | off | status\r\n");
     return;
@@ -8850,7 +8850,7 @@ ACMD(do_sound)
                    "Sound test sent. If silent, check your client sound pack; see help sound.\r\n");
     return;
   }
-  if (str_cmp(argument, "on") && str_cmp(argument, "off"))
+  if (str_cmp(argument, "on") != 0 && str_cmp(argument, "off"))
   {
     send_to_char(ch, "Usage: sound on | off | status | test\r\n");
     return;

@@ -3661,7 +3661,7 @@ static int rol_monster_calimshan_pasha_command(struct spec_event_context *contex
   char target_name[MAX_INPUT_LENGTH];
 
   if (actor == NULL || context->argument == NULL ||
-      str_cmp(complete_cmd_info[context->command].command, "give"))
+      str_cmp(complete_cmd_info[context->command].command, "give") != 0)
     return FALSE;
   two_arguments(context->argument, object_name, sizeof(object_name), target_name,
                 sizeof(target_name));
@@ -3707,7 +3707,7 @@ static int rol_monster_hyssk_slave_command(struct spec_event_context *context,
   char name[MAX_INPUT_LENGTH];
 
   if (actor == NULL || context->argument == NULL ||
-      str_cmp(complete_cmd_info[context->command].command, "enter") || !AWAKE(taker) ||
+      str_cmp(complete_cmd_info[context->command].command, "enter") != 0 || !AWAKE(taker) ||
       !CAN_SEE(taker, actor))
     return FALSE;
   one_argument(context->argument, name, sizeof(name));
@@ -4076,7 +4076,8 @@ static int rol_monster_paid_follower(struct spec_event_context *context, struct 
 
   actor = context->actor;
   if (actor == NULL || IS_NPC(actor) || context->command <= 0 || context->argument == NULL ||
-      complete_cmd_info == NULL || str_cmp(complete_cmd_info[context->command].command, "give"))
+      complete_cmd_info == NULL ||
+      str_cmp(complete_cmd_info[context->command].command, "give") != 0)
     return FALSE;
   before_gold = GET_GOLD(seller);
   do_give(actor, context->argument, context->command, 0);

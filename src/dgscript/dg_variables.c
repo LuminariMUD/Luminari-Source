@@ -48,7 +48,7 @@ void add_var(struct trig_var_data **var_list, const char *name, const char *valu
     return;
   }
 
-  for (vd = *var_list; vd && str_cmp(vd->name, name); vd = vd->next)
+  for (vd = *var_list; vd && str_cmp(vd->name, name) != 0; vd = vd->next)
     ;
 
   if (vd && (!vd->context || vd->context == id))

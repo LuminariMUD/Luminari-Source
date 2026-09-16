@@ -2109,7 +2109,7 @@ static struct cmdlist_element *find_else_end(trig_data *trig, struct cmdlist_ele
   /* rryan: if we got here, it's the last line, if its not an end, log it. */
   for (p = c->cmd; *p && isspace(*p); p++)
     ; /* skip spaces */
-  if (strn_cmp("end", p, 3))
+  if (strn_cmp("end", p, 3) != 0)
     script_log("Trigger VNum %" PRI_IDX " has 'if' without 'end'. (error 5)", GET_TRIG_VNUM(trig));
   return c;
 }

@@ -820,7 +820,7 @@ ACMD(do_ready)
     tail = one_argument(tail, extra, sizeof(extra));
     while (isspace((unsigned char)*tail))
       tail++;
-    if (*ally_name == '\0' || strcasecmp(extra, "attacked") || *tail != '\0')
+    if (*ally_name == '\0' || strcasecmp(extra, "attacked") != 0 || *tail != '\0')
     {
       send_to_char(ch, "Usage: ready attack on ally <ally> attacked\r\n");
       return;
@@ -877,10 +877,10 @@ ACMD(do_ready)
   /* Only explicit noncombat commands retain command readiness. Arbitrary
    * aliases, spells and special attacks cannot bypass action reservation. */
   if (!attack && !counterspell &&
-      (on_casting || (strcasecmp(first_word, "say") && strcasecmp(first_word, "emote") &&
-                      strcasecmp(first_word, "look") && strcasecmp(first_word, "rest") &&
-                      strcasecmp(first_word, "stand") && strcasecmp(first_word, "sit") &&
-                      strcasecmp(first_word, "open") && strcasecmp(first_word, "close"))))
+      (on_casting || (strcasecmp(first_word, "say") != 0 && strcasecmp(first_word, "emote") &&
+                      strcasecmp(first_word, "look") != 0 && strcasecmp(first_word, "rest") != 0 &&
+                      strcasecmp(first_word, "stand") != 0 && strcasecmp(first_word, "sit") != 0 &&
+                      strcasecmp(first_word, "open") != 0 && strcasecmp(first_word, "close") != 0)))
   {
     free(action->command);
     free(action->target);
@@ -911,7 +911,7 @@ ACMD(do_ready)
     {
       /* Entry targets may not yet exist locally. Bind the matching entrant's
        * stable handle at the event, never look up the name at execution. */
-      if (action->target != NULL && strcasecmp(action->target, attack_name))
+      if (action->target != NULL && strcasecmp(action->target, attack_name) != 0)
         goto invalid_attack;
       free(action->target);
       action->target = trimmed_copy(attack_name, strlen(attack_name), READY_TARGET_MAX);
