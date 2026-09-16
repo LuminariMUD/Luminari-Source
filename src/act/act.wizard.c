@@ -606,7 +606,7 @@ ACMD(do_trans)
   one_argument(argument, buf, sizeof(buf));
   if (!*buf)
     send_to_char(ch, "Whom do you wish to transfer?\r\n");
-  else if (str_cmp("all", buf))
+  else if (str_cmp("all", buf) != 0)
   {
     if (!(victim = get_char_vis(ch, buf, NULL, FIND_CHAR_WORLD)))
       send_to_char(ch, "%s", CONFIG_NOPERSON);
@@ -3160,7 +3160,7 @@ ACMD(do_force)
 
   if (!*arg || !*to_force)
     send_to_char(ch, "Whom do you wish to force do what?\r\n");
-  else if ((GET_LEVEL(ch) < LVL_GRSTAFF) || (str_cmp("all", arg) && str_cmp("room", arg)))
+  else if ((GET_LEVEL(ch) < LVL_GRSTAFF) || (str_cmp("all", arg) != 0 && str_cmp("room", arg)))
   {
     if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_WORLD)))
       send_to_char(ch, "%s", CONFIG_NOPERSON);
@@ -5049,7 +5049,7 @@ ACMD(do_zcheck)
                               "- Room description is too short. (%4.4d of min. %d characters).\r\n",
                               (int)strlen(world[i].description), MIN_ROOM_DESC_LENGTH);
 
-      if (strncmp(world[i].description, "   ", 3) && (found = 1))
+      if (strncmp(world[i].description, "   ", 3) != 0 && (found = 1))
         len = (size_t)snprintf_append(
             buf, sizeof(buf), (int)len,
             "- Room description not formatted with indent (/fi in the editor).\r\n");
@@ -6696,7 +6696,7 @@ ACMD(do_changelog)
   fprintf(new, "%s\n", buf);
   fprintf(new, "  %s\n", argument);
 
-  if (strcmp(buf, last_buf))
+  if (strcmp(buf, last_buf) != 0)
     fprintf(new, "%s\n", line);
 
   while (get_line(fl, line))
@@ -6798,7 +6798,7 @@ ACMD(do_plist)
 
     time_away = *real_time_passed(time(0), player_table[i].last);
 
-    if (*name_search && str_cmp(name_search, player_table[i].name))
+    if (*name_search && str_cmp(name_search, player_table[i].name) != 0)
       continue;
 
     if (time_away.day > high_day || time_away.day < low_day)

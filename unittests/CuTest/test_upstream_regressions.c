@@ -884,7 +884,7 @@ void Test_roomtransfer_command_is_implementor_only(CuTest *tc)
 
   for (command = cmd_info; *command->command != '\n'; command++)
   {
-    if (str_cmp(command->command, "roomtransfer"))
+    if (str_cmp(command->command, "roomtransfer") != 0)
       continue;
 
     found = true;

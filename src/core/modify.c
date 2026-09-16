@@ -1110,7 +1110,7 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
 
           last_id = (int)mysql_insert_id(conn);
 
-          if (last_id > 0 && strcmp(row[0], GET_NAME(ch)))
+          if (last_id > 0 && strcmp(row[0], GET_NAME(ch)) != 0)
           {
             char *escaped_name_del = mysql_escape_string_alloc(conn, GET_NAME(ch));
             if (!escaped_name_del)

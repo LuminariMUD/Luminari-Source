@@ -1307,7 +1307,7 @@ ACMD(do_vmerchant)
     vessel_merchant_list(ch);
     return;
   }
-  if (str_cmp(action, "sink"))
+  if (str_cmp(action, "sink") != 0)
   {
     send_to_char(ch, "Usage: vmerchant [list|sync|sink <id> confirm]\r\n");
     return;
@@ -1315,7 +1315,7 @@ ACMD(do_vmerchant)
 
   parsed_id = strtol(id_arg, &end, 10);
   if (!*id_arg || *end != '\0' || parsed_id <= 0 || parsed_id > INT_MAX ||
-      str_cmp(confirmation, "confirm"))
+      str_cmp(confirmation, "confirm") != 0)
   {
     send_to_char(ch, "This destroys the active merchant hull and cargo. "
                      "Use: vmerchant sink <id> confirm\r\n");

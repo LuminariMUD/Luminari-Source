@@ -361,9 +361,9 @@ int process_weapon_abilities(
     if (IS_SET(specab->activation_method, actmtd))
     { /* Match! */
       if (actmtd == ACTMTD_COMMAND_WORD)
-      {                                            /* check the command word */
-        if (strcmp(specab->command_word, cmdword)) /* No Match */
-          continue;                                /* Skip this ability, no match. */
+      {                                                 /* check the command word */
+        if (strcmp(specab->command_word, cmdword) != 0) /* No Match */
+          continue;                                     /* Skip this ability, no match. */
       }
       if (special_ability_info[specab->ability].special_ability_proc == NULL)
       {
@@ -723,9 +723,9 @@ int process_armor_abilities(
         if (IS_SET(specab->activation_method, actmtd))
         { /* Match! */
           if (actmtd == ACTMTD_COMMAND_WORD)
-          {                                            /* check the command word */
-            if (strcmp(specab->command_word, cmdword)) /* No Match */
-              continue;                                /* Skip this ability, no match. */
+          {                                                 /* check the command word */
+            if (strcmp(specab->command_word, cmdword) != 0) /* No Match */
+              continue;                                     /* Skip this ability, no match. */
           }
           if (special_ability_info[specab->ability].special_ability_proc == NULL)
           {
@@ -764,9 +764,9 @@ int process_item_abilities(
     if (IS_SET(specab->activation_method, actmtd))
     { /* Match! */
       if (actmtd == ACTMTD_COMMAND_WORD)
-      {                                            /* check the command word */
-        if (strcmp(specab->command_word, cmdword)) /* No Match */
-          continue;                                /* Skip this ability, no match. */
+      {                                                 /* check the command word */
+        if (strcmp(specab->command_word, cmdword) != 0) /* No Match */
+          continue;                                     /* Skip this ability, no match. */
       }
       if (special_ability_info[specab->ability].special_ability_proc == NULL)
       {

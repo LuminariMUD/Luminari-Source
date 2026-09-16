@@ -1875,7 +1875,7 @@ ACMDU(do_unstuck)
     send_to_char(ch, ".\r\n");
     return;
   }
-  if (strcmp(argument, ch->player_specials->unstuck))
+  if (strcmp(argument, ch->player_specials->unstuck) != 0)
   {
     send_to_char(
         ch,

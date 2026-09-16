@@ -861,7 +861,7 @@ ACMD(do_eventdebug)
   {
     struct ready_action_latency stats;
 
-    if (*arg1 != '\0' && strcasecmp(arg1, "reset"))
+    if (*arg1 != '\0' && strcasecmp(arg1, "reset") != 0)
     {
       send_to_char(ch, "Usage: eventdebug ready [reset]\r\n");
       return;

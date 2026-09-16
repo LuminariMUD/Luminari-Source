@@ -519,7 +519,7 @@ int remove_var(struct trig_var_data **var_list, const char *name)
 {
   struct trig_var_data *i, *j;
 
-  for (j = NULL, i = *var_list; i && str_cmp(name, i->name); j = i, i = i->next)
+  for (j = NULL, i = *var_list; i && str_cmp(name, i->name) != 0; j = i, i = i->next)
     ;
 
   if (i)

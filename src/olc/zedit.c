@@ -129,7 +129,7 @@ ACMD(do_oasis_zedit)
     }
     else if (GET_LEVEL(ch) >= (LVL_IMPL - 1))
     {
-      if (str_cmp("new", buf1) || !stop || !*stop)
+      if (str_cmp("new", buf1) != 0 || !stop || !*stop)
         send_to_char(ch, "Format: zedit new <zone number> <bottom-room> "
                          "<upper-room>\r\n");
       else

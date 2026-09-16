@@ -1436,9 +1436,9 @@ static bool begin_editor_transfer(struct descriptor_data *d, json_object *root, 
                              &total_bytes) ||
       !json_required_integer(root, "chunkCount", 0, WEB_ONBOARDING_EDITOR_MAX_CHUNKS,
                              &chunk_count) ||
-      action == NULL || strcmp(action, "save-text") || phase == NULL || strcmp(phase, "begin") ||
-      !editor_id_is_valid(flow_id) || !editor_id_is_valid(field_id) ||
-      !editor_id_is_valid(transfer_id) || !digest_is_valid(digest))
+      action == NULL || strcmp(action, "save-text") != 0 || phase == NULL ||
+      strcmp(phase, "begin") != 0 || !editor_id_is_valid(flow_id) ||
+      !editor_id_is_valid(field_id) || !editor_id_is_valid(transfer_id) || !digest_is_valid(digest))
     return FALSE;
 
   (void)version;
@@ -1455,7 +1455,7 @@ static bool begin_editor_transfer(struct descriptor_data *d, json_object *root, 
     return TRUE;
   }
 
-  if (strcmp(flow_id, expected_flow_id) || revision != d->web_onboarding_revision)
+  if (strcmp(flow_id, expected_flow_id) != 0 || revision != d->web_onboarding_revision)
   {
     reject_editor_transfer(d, WEB_ONBOARDING_ERROR_EDITOR_STALE);
     return TRUE;
@@ -1540,7 +1540,7 @@ static bool accept_editor_chunk(struct descriptor_data *d, json_object *root, in
   phase = json_required_string(root, "phase", 16);
   transfer_id = json_required_string(root, "transferId", WEB_ONBOARDING_EDITOR_MAX_ID_BYTES);
   data = json_required_string(root, "data", WEB_ONBOARDING_EDITOR_MAX_BASE64_BYTES);
-  if (phase == NULL || strcmp(phase, "chunk") || !editor_id_is_valid(transfer_id) ||
+  if (phase == NULL || strcmp(phase, "chunk") != 0 || !editor_id_is_valid(transfer_id) ||
       !json_required_integer(root, "index", 0, WEB_ONBOARDING_EDITOR_MAX_CHUNKS - 1, &index) ||
       data == NULL)
     return FALSE;
@@ -1554,7 +1554,7 @@ static bool accept_editor_chunk(struct descriptor_data *d, json_object *root, in
   transfer = &session->inbound;
 
   if (transfer_is_expired(transfer, now_ms) || !transfer_lifecycle_is_current(d, transfer) ||
-      strcmp(transfer_id, transfer->transfer_id))
+      strcmp(transfer_id, transfer->transfer_id) != 0)
   {
     reject_editor_transfer(d, transfer_is_expired(transfer, now_ms)
                                   ? WEB_ONBOARDING_ERROR_EDITOR_INVALID_TRANSFER
@@ -1603,7 +1603,7 @@ static bool commit_editor_transfer(struct descriptor_data *d, json_object *root,
 
   phase = json_required_string(root, "phase", 16);
   transfer_id = json_required_string(root, "transferId", WEB_ONBOARDING_EDITOR_MAX_ID_BYTES);
-  if (phase == NULL || strcmp(phase, "commit") || !editor_id_is_valid(transfer_id))
+  if (phase == NULL || strcmp(phase, "commit") != 0 || !editor_id_is_valid(transfer_id))
     return FALSE;
 
   session = d->web_onboarding_session;
@@ -1615,7 +1615,7 @@ static bool commit_editor_transfer(struct descriptor_data *d, json_object *root,
   transfer = &session->inbound;
 
   if (transfer_is_expired(transfer, now_ms) || !transfer_lifecycle_is_current(d, transfer) ||
-      strcmp(transfer_id, transfer->transfer_id))
+      strcmp(transfer_id, transfer->transfer_id) != 0)
   {
     reject_editor_transfer(d, transfer_is_expired(transfer, now_ms)
                                   ? WEB_ONBOARDING_ERROR_EDITOR_INVALID_TRANSFER
@@ -1686,7 +1686,7 @@ static bool cancel_editor(struct descriptor_data *d, json_object *root)
   if (!json_required_integer(root, "v", WEB_ONBOARDING_PROTOCOL_VERSION_MAX,
                              WEB_ONBOARDING_PROTOCOL_VERSION_MAX, &version) ||
       !json_required_integer(root, "revision", 0, 1000000, &revision) || action == NULL ||
-      strcmp(action, "cancel-editor") || phase == NULL || strcmp(phase, "cancel") ||
+      strcmp(action, "cancel-editor") != 0 || phase == NULL || strcmp(phase, "cancel") != 0 ||
       !editor_id_is_valid(flow_id) || !editor_id_is_valid(field_id))
     return FALSE;
 
@@ -1694,8 +1694,8 @@ static bool cancel_editor(struct descriptor_data *d, json_object *root)
   field = roleplay_text_field_from_id(field_id);
   onboarding_flow_id(d, expected_flow_id, sizeof(expected_flow_id));
   if (field == ROLEPLAY_TEXT_FIELD_INVALID ||
-      field != roleplay_text_field_from_state(d->connected) || strcmp(flow_id, expected_flow_id) ||
-      revision != d->web_onboarding_revision)
+      field != roleplay_text_field_from_state(d->connected) ||
+      strcmp(flow_id, expected_flow_id) != 0 || revision != d->web_onboarding_revision)
   {
     reject_editor_transfer(d, WEB_ONBOARDING_ERROR_EDITOR_STALE);
     return TRUE;
@@ -1725,7 +1725,7 @@ static bool handle_workflow_action(struct descriptor_data *d, json_object *root)
   int64_t version = 0;
   int64_t revision = 0;
 
-  if (action == NULL || (strcmp(action, "back") && strcmp(action, "restart-character")))
+  if (action == NULL || (strcmp(action, "back") != 0 && strcmp(action, "restart-character")))
     return FALSE;
 
   if (!json_object_has_exact_keys(root, keys, sizeof(keys) / sizeof(keys[0])))
@@ -1746,7 +1746,7 @@ static bool handle_workflow_action(struct descriptor_data *d, json_object *root)
   (void)version;
 
   onboarding_flow_id(d, expected_flow_id, sizeof(expected_flow_id));
-  if (strcmp(flow_id, expected_flow_id) || revision != d->web_onboarding_revision)
+  if (strcmp(flow_id, expected_flow_id) != 0 || revision != d->web_onboarding_revision)
   {
     web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_WORKFLOW_STALE);
     return TRUE;
@@ -3830,7 +3830,7 @@ static bool prepare_outbound_transfer(struct descriptor_data *d,
   unsigned int content_revision = 0;
 
   clear_outbound_transfer(d);
-  if (d == NULL || screen == NULL || strcmp(screen->input_kind, "multiline") ||
+  if (d == NULL || screen == NULL || strcmp(screen->input_kind, "multiline") != 0 ||
       !web_onboarding_v2_enabled(d) || d->character == NULL)
     return TRUE;
 
@@ -3919,7 +3919,7 @@ static void build_editor_metadata(struct json_writer *w, struct descriptor_data 
   const char *value = NULL;
   unsigned int content_revision = 0;
 
-  if (screen == NULL || strcmp(screen->input_kind, "multiline") || d->character == NULL)
+  if (screen == NULL || strcmp(screen->input_kind, "multiline") != 0 || d->character == NULL)
     return;
 
   field = roleplay_text_field_from_state(screen->state);

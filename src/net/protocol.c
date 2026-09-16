@@ -777,7 +777,7 @@ static void ParseMxpResponse(descriptor_t *apDescriptor, char *apResponse)
     }
   }
 
-  if (pProtocol->pMXPVersion != NULL && strcmp(pProtocol->pMXPVersion, "Unknown"))
+  if (pProtocol->pMXPVersion != NULL && strcmp(pProtocol->pMXPVersion, "Unknown") != 0)
   {
     int Written;
 
@@ -2951,7 +2951,7 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
        * free to remove the second strcmp ;)
        */
       if (pProtocol->pLastTTYPE == NULL ||
-          (strcmp(pProtocol->pLastTTYPE, pClientName) &&
+          (strcmp(pProtocol->pLastTTYPE, pClientName) != 0 &&
            strcmp(pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString, pClientName)))
       {
         char RequestTTYPE[] = {(char)IAC, (char)SB, TELOPT_TTYPE, SEND, (char)IAC, (char)SE, '\0'};

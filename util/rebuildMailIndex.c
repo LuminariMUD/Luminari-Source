@@ -132,7 +132,7 @@ static char *parsefilename(char *filename)
   {
     return NULL;
   }
-  if (strcmp(".ml", extension))
+  if (strcmp(".ml", extension) != 0)
   {
     return NULL;
   }

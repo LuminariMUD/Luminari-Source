@@ -452,7 +452,7 @@ static int rol_utility_qogek_staff(struct spec_event_context *context, struct ch
     GET_OBJ_VAL(obj, 0)--;
     return TRUE;
   }
-  if (strcmp(command, "animate") || *target == '\0')
+  if (strcmp(command, "animate") != 0 || *target == '\0')
     return FALSE;
   if (!IS_NECROMANCER(ch) || GET_OBJ_VAL(obj, 1) <= 0)
   {
@@ -863,7 +863,7 @@ static int rol_utility_magius_staff(struct spec_event_context *context, struct c
     act("As $n murmurs to $p, the crystal atop it flares to life.", FALSE, ch, obj, NULL, TO_ROOM);
     return TRUE;
   }
-  if (strcmp(argument, "dulak"))
+  if (strcmp(argument, "dulak") != 0)
     return FALSE;
   if (!OBJ_FLAGGED(obj, ITEM_GLOW))
   {
@@ -1061,7 +1061,7 @@ static int rol_utility_smoke_shield(struct spec_event_context *context, struct c
     return TRUE;
   }
   if (context->event != SPEC_EVENT_DEFENSE_REACTION || context->argument == NULL ||
-      strcmp(context->argument, "shieldblock") || rand_number(0, 9) != 0)
+      strcmp(context->argument, "shieldblock") != 0 || rand_number(0, 9) != 0)
     return FALSE;
 
   act("Your $p discharges a violent arc of electricity into $N!", FALSE, ch, obj, victim, TO_CHAR);

@@ -847,7 +847,7 @@ ACMD(do_shipchristen)
     return;
   }
 
-  if (str_cmp(ship->owner, GET_NAME(ch)) && GET_LEVEL(ch) < LVL_IMMORT)
+  if (str_cmp(ship->owner, GET_NAME(ch)) != 0 && GET_LEVEL(ch) < LVL_IMMORT)
   {
     send_to_char(ch, "Only the owner may christen this vessel.\r\n");
     return;
@@ -902,7 +902,7 @@ ACMD(do_shipcustomize)
     return;
   }
 
-  if (str_cmp(ship->owner, GET_NAME(ch)) && GET_LEVEL(ch) < LVL_IMMORT)
+  if (str_cmp(ship->owner, GET_NAME(ch)) != 0 && GET_LEVEL(ch) < LVL_IMMORT)
   {
     send_to_char(ch, "Only the owner may customize this vessel.\r\n");
     return;

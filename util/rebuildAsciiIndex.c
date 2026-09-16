@@ -96,7 +96,7 @@ char *parsename(char *filename)
   {
     return NULL;
   }
-  if (strcmp(".plr", extension))
+  if (strcmp(".plr", extension) != 0)
   {
     return NULL;
   }

@@ -15,7 +15,6 @@ src/act/act.informative.c bugprone-implicit-widening-of-multiplication-result 2
 src/act/act.informative.c bugprone-multi-level-implicit-pointer-conversion 3
 src/act/act.informative.c bugprone-narrowing-conversions 6
 src/act/act.informative.c bugprone-signed-char-misuse 4
-src/act/act.informative.c bugprone-suspicious-string-compare 3
 src/act/act.informative.c bugprone-switch-missing-default-case 18
 src/act/act.informative.c bugprone-unchecked-string-to-number-conversion 17
 src/act/act.informative.c bugprone-unsafe-functions 4
@@ -28,7 +27,7 @@ src/act/act.other.c bugprone-implicit-widening-of-multiplication-result 19
 src/act/act.other.c bugprone-multiple-statement-macro 1
 src/act/act.other.c bugprone-narrowing-conversions 4
 src/act/act.other.c bugprone-signed-char-misuse 4
-src/act/act.other.c bugprone-suspicious-string-compare 5
+src/act/act.other.c bugprone-suspicious-string-compare 3
 src/act/act.other.c bugprone-switch-missing-default-case 19
 src/act/act.other.c bugprone-unchecked-string-to-number-conversion 39
 src/act/act.other.c bugprone-unsafe-functions 1
@@ -44,7 +43,7 @@ src/act/act.wizard.c bugprone-implicit-widening-of-multiplication-result 12
 src/act/act.wizard.c bugprone-multi-level-implicit-pointer-conversion 1
 src/act/act.wizard.c bugprone-narrowing-conversions 21
 src/act/act.wizard.c bugprone-signed-char-misuse 1
-src/act/act.wizard.c bugprone-suspicious-string-compare 5
+src/act/act.wizard.c bugprone-suspicious-string-compare 1
 src/act/act.wizard.c bugprone-switch-missing-default-case 5
 src/act/act.wizard.c bugprone-unchecked-string-to-number-conversion 93
 src/act/act.wizard.c bugprone-unsafe-functions 2
@@ -130,7 +129,6 @@ src/character/vampire_cloak.c clang-analyzer-deadcode.DeadStores 1
 src/clan/clan.c bugprone-assignment-in-if-condition 75
 src/clan/clan.c bugprone-branch-clone 1
 src/clan/clan.c bugprone-narrowing-conversions 5
-src/clan/clan.c bugprone-suspicious-string-compare 1
 src/clan/clan.c bugprone-unchecked-string-to-number-conversion 17
 src/clan/clan.c bugprone-unsafe-functions 1
 src/clan/clan.c clang-analyzer-core.NullDereference 1
@@ -179,7 +177,6 @@ src/combat/projectiles.c bugprone-switch-missing-default-case 3
 src/combat/spec_abilities.c bugprone-assignment-in-if-condition 2
 src/combat/spec_abilities.c bugprone-branch-clone 6
 src/combat/spec_abilities.c bugprone-narrowing-conversions 2
-src/combat/spec_abilities.c bugprone-suspicious-string-compare 3
 src/combat/spec_abilities.c bugprone-switch-missing-default-case 1
 src/combat/spec_abilities.c clang-analyzer-core.uninitialized.Assign 1
 src/combat/spec_abilities.h clang-analyzer-optin.performance.Padding 1
@@ -207,7 +204,6 @@ src/comms/mysql_boards.c clang-analyzer-deadcode.DeadStores 1
 src/comms/mysql_boards.c clang-analyzer-optin.portability.UnixAPI 1
 src/comms/mysql_boards.c clang-analyzer-security.ArrayBound 1
 src/comms/new_mail.c bugprone-assignment-in-if-condition 9
-src/comms/new_mail.c bugprone-suspicious-string-compare 1
 src/comms/new_mail.c bugprone-unchecked-string-to-number-conversion 4
 src/comms/new_mail.c clang-analyzer-deadcode.DeadStores 7
 src/comms/new_mail.c clang-analyzer-optin.portability.UnixAPI 1
@@ -246,7 +242,6 @@ src/core/handler.c bugprone-assignment-in-if-condition 15
 src/core/handler.c bugprone-branch-clone 3
 src/core/handler.c bugprone-narrowing-conversions 1
 src/core/handler.c bugprone-signed-char-misuse 1
-src/core/handler.c bugprone-suspicious-string-compare 1
 src/core/handler.c bugprone-switch-missing-default-case 1
 src/core/handler.c bugprone-unchecked-string-to-number-conversion 3
 src/core/handler.c clang-analyzer-core.NullDereference 1
@@ -277,7 +272,6 @@ src/core/lists.c bugprone-assignment-in-if-condition 3
 src/core/modify.c bugprone-assignment-in-if-condition 12
 src/core/modify.c bugprone-branch-clone 1
 src/core/modify.c bugprone-multi-level-implicit-pointer-conversion 3
-src/core/modify.c bugprone-suspicious-string-compare 1
 src/core/modify.c bugprone-switch-missing-default-case 1
 src/core/modify.c bugprone-unchecked-string-to-number-conversion 4
 src/core/modify.c bugprone-unsafe-functions 8
@@ -287,7 +281,6 @@ src/core/perfmon.c bugprone-branch-clone 1
 src/core/perfmon.c bugprone-implicit-widening-of-multiplication-result 25
 src/core/perfmon.c bugprone-integer-division 9
 src/core/perfmon.c bugprone-misplaced-widening-cast 2
-src/core/perfmon.c bugprone-suspicious-string-compare 1
 src/core/perfmon.c clang-analyzer-deadcode.DeadStores 4
 src/core/perfmon.c clang-analyzer-unix.Errno 1
 src/core/structs.h clang-analyzer-optin.performance.Padding 11
@@ -362,15 +355,12 @@ src/dgscript/dg_db_scripts.c clang-analyzer-deadcode.DeadStores 3
 src/dgscript/dg_handler.c bugprone-assignment-in-if-condition 2
 src/dgscript/dg_handler.c bugprone-branch-clone 2
 src/dgscript/dg_handler.c bugprone-signed-char-misuse 4
-src/dgscript/dg_handler.c bugprone-suspicious-string-compare 1
 src/dgscript/dg_handler.c bugprone-switch-missing-default-case 2
 src/dgscript/dg_misc.c bugprone-assignment-in-if-condition 2
 src/dgscript/dg_misc.c bugprone-branch-clone 2
-src/dgscript/dg_misc.c bugprone-suspicious-string-compare 2
 src/dgscript/dg_misc.c bugprone-unchecked-string-to-number-conversion 2
 src/dgscript/dg_misc.c clang-analyzer-deadcode.DeadStores 1
 src/dgscript/dg_mobcmd.c bugprone-assignment-in-if-condition 45
-src/dgscript/dg_mobcmd.c bugprone-suspicious-string-compare 1
 src/dgscript/dg_mobcmd.c bugprone-switch-missing-default-case 1
 src/dgscript/dg_mobcmd.c bugprone-unchecked-string-to-number-conversion 22
 src/dgscript/dg_mobcmd.c bugprone-unsafe-functions 3
@@ -390,7 +380,6 @@ src/dgscript/dg_scripts.c bugprone-branch-clone 4
 src/dgscript/dg_scripts.c bugprone-implicit-widening-of-multiplication-result 4
 src/dgscript/dg_scripts.c bugprone-multi-level-implicit-pointer-conversion 1
 src/dgscript/dg_scripts.c bugprone-narrowing-conversions 4
-src/dgscript/dg_scripts.c bugprone-suspicious-string-compare 1
 src/dgscript/dg_scripts.c bugprone-switch-missing-default-case 7
 src/dgscript/dg_scripts.c bugprone-unchecked-string-to-number-conversion 62
 src/dgscript/dg_scripts.c bugprone-unsafe-functions 23
@@ -404,13 +393,12 @@ src/dgscript/dg_triggers.c clang-analyzer-core.NonNullParamChecker 1
 src/dgscript/dg_variables.c bugprone-assignment-in-if-condition 18
 src/dgscript/dg_variables.c bugprone-branch-clone 4
 src/dgscript/dg_variables.c bugprone-inc-dec-in-conditions 1
-src/dgscript/dg_variables.c bugprone-suspicious-string-compare 1
 src/dgscript/dg_variables.c bugprone-switch-missing-default-case 6
 src/dgscript/dg_variables.c bugprone-unchecked-string-to-number-conversion 70
 src/dgscript/dg_variables.c bugprone-unsafe-functions 42
 src/dgscript/dg_variables.c clang-analyzer-core.NullDereference 7
 src/dgscript/dg_wldcmd.c bugprone-assignment-in-if-condition 20
-src/dgscript/dg_wldcmd.c bugprone-suspicious-string-compare 2
+src/dgscript/dg_wldcmd.c bugprone-suspicious-string-compare 1
 src/dgscript/dg_wldcmd.c bugprone-switch-missing-default-case 1
 src/dgscript/dg_wldcmd.c bugprone-unchecked-string-to-number-conversion 13
 src/dgscript/dg_wldcmd.c bugprone-unsafe-functions 3
@@ -429,7 +417,6 @@ src/events/domain_events.c bugprone-multi-level-implicit-pointer-conversion 15
 src/events/domain_events.h clang-analyzer-optin.performance.Padding 3
 src/events/event_debug.c bugprone-assignment-in-if-condition 3
 src/events/event_debug.c bugprone-branch-clone 1
-src/events/event_debug.c bugprone-suspicious-string-compare 1
 src/events/event_runtime.c bugprone-assignment-in-if-condition 2
 src/events/game_scheduler.c bugprone-branch-clone 1
 src/events/game_scheduler.c bugprone-multi-level-implicit-pointer-conversion 15
@@ -444,7 +431,7 @@ src/events/periodic_owners.c bugprone-implicit-widening-of-multiplication-result
 src/events/periodic_owners.c bugprone-signed-char-misuse 3
 src/events/periodic_owners.c bugprone-switch-missing-default-case 1
 src/events/ready_action.c bugprone-implicit-widening-of-multiplication-result 1
-src/events/ready_action.c bugprone-suspicious-string-compare 9
+src/events/ready_action.c bugprone-suspicious-string-compare 1
 src/magic/domain_powers.c bugprone-assignment-in-if-condition 25
 src/magic/domain_powers.c clang-analyzer-deadcode.DeadStores 1
 src/magic/magic.c bugprone-assignment-in-if-condition 17
@@ -517,7 +504,6 @@ src/movement/graph.c clang-analyzer-security.ArrayBound 1
 src/movement/movement.c bugprone-assignment-in-if-condition 7
 src/movement/movement.c bugprone-branch-clone 4
 src/movement/movement.c bugprone-narrowing-conversions 2
-src/movement/movement.c bugprone-suspicious-string-compare 1
 src/movement/movement.c bugprone-switch-missing-default-case 1
 src/movement/movement_cost.c bugprone-branch-clone 3
 src/movement/movement_cost.c bugprone-switch-missing-default-case 1
@@ -547,20 +533,19 @@ src/net/onboarding.c bugprone-assignment-in-if-condition 5
 src/net/onboarding.c bugprone-implicit-widening-of-multiplication-result 1
 src/net/onboarding.c bugprone-inc-dec-in-conditions 4
 src/net/onboarding.c bugprone-narrowing-conversions 1
-src/net/onboarding.c bugprone-suspicious-string-compare 14
+src/net/onboarding.c bugprone-suspicious-string-compare 1
 src/net/onboarding.c bugprone-unchecked-string-to-number-conversion 1
 src/net/onboarding.c clang-analyzer-deadcode.DeadStores 1
 src/net/protocol.c bugprone-implicit-widening-of-multiplication-result 9
 src/net/protocol.c bugprone-inc-dec-in-conditions 1
 src/net/protocol.c bugprone-multi-level-implicit-pointer-conversion 1
 src/net/protocol.c bugprone-signed-char-misuse 1
-src/net/protocol.c bugprone-suspicious-string-compare 2
+src/net/protocol.c bugprone-suspicious-string-compare 1
 src/net/protocol.c bugprone-unchecked-string-to-number-conversion 2
 src/net/protocol.h clang-analyzer-optin.performance.Padding 1
 src/obj/act.item.c bugprone-assignment-in-if-condition 75
 src/obj/act.item.c bugprone-branch-clone 5
 src/obj/act.item.c bugprone-narrowing-conversions 1
-src/obj/act.item.c bugprone-suspicious-string-compare 2
 src/obj/act.item.c bugprone-switch-missing-default-case 23
 src/obj/act.item.c bugprone-unchecked-string-to-number-conversion 11
 src/obj/act.item.c bugprone-unsafe-functions 1
@@ -587,7 +572,6 @@ src/obj/player_shop.c bugprone-unchecked-string-to-number-conversion 1
 src/obj/player_shop.c clang-analyzer-deadcode.DeadStores 1
 src/obj/shop.c bugprone-assignment-in-if-condition 21
 src/obj/shop.c bugprone-narrowing-conversions 4
-src/obj/shop.c bugprone-suspicious-string-compare 1
 src/obj/shop.c bugprone-unchecked-string-to-number-conversion 7
 src/obj/shop.c bugprone-unsafe-functions 4
 src/obj/shop.c clang-analyzer-core.NullDereference 3
@@ -596,7 +580,6 @@ src/obj/shop.c clang-analyzer-deadcode.DeadStores 1
 src/obj/spec_artifacts.c bugprone-assignment-in-if-condition 50
 src/obj/spec_artifacts.c bugprone-branch-clone 1
 src/obj/spec_artifacts.c bugprone-narrowing-conversions 1
-src/obj/spec_artifacts.c bugprone-suspicious-string-compare 5
 src/obj/spec_artifacts.c bugprone-unchecked-string-to-number-conversion 15
 src/obj/spec_artifacts.c clang-analyzer-core.DivideZero 1
 src/obj/spec_artifacts.c clang-analyzer-deadcode.DeadStores 1
@@ -662,7 +645,6 @@ src/olc/hedit.c bugprone-implicit-widening-of-multiplication-result 2
 src/olc/hedit.c bugprone-misplaced-widening-cast 1
 src/olc/hedit.c bugprone-multi-level-implicit-pointer-conversion 6
 src/olc/hedit.c bugprone-suspicious-realloc-usage 20
-src/olc/hedit.c bugprone-suspicious-string-compare 3
 src/olc/hedit.c bugprone-switch-missing-default-case 1
 src/olc/hedit.c bugprone-unchecked-string-to-number-conversion 5
 src/olc/hedit.c bugprone-unsafe-functions 1
@@ -716,7 +698,6 @@ src/olc/prefedit.c bugprone-implicit-widening-of-multiplication-result 1
 src/olc/prefedit.c bugprone-unchecked-string-to-number-conversion 6
 src/olc/qedit.c bugprone-assignment-in-if-condition 14
 src/olc/qedit.c bugprone-narrowing-conversions 3
-src/olc/qedit.c bugprone-suspicious-string-compare 3
 src/olc/qedit.c bugprone-switch-missing-default-case 1
 src/olc/qedit.c bugprone-unchecked-string-to-number-conversion 12
 src/olc/redit.c bugprone-assignment-in-if-condition 12
@@ -733,7 +714,6 @@ src/olc/tedit.c clang-analyzer-optin.performance.Padding 1
 src/olc/zedit.c bugprone-assignment-in-if-condition 13
 src/olc/zedit.c bugprone-branch-clone 2
 src/olc/zedit.c bugprone-narrowing-conversions 13
-src/olc/zedit.c bugprone-suspicious-string-compare 1
 src/olc/zedit.c bugprone-switch-missing-default-case 1
 src/olc/zedit.c bugprone-unchecked-string-to-number-conversion 42
 src/olc/zedit.c bugprone-unsafe-functions 4
@@ -746,7 +726,6 @@ src/player/ban.c bugprone-unchecked-string-to-number-conversion 1
 src/player/ban.c clang-analyzer-unix.Stream 1
 src/player/player_rename.c bugprone-assignment-in-if-condition 24
 src/player/player_rename.c bugprone-branch-clone 2
-src/player/player_rename.c bugprone-suspicious-string-compare 13
 src/player/player_rename.c bugprone-unchecked-string-to-number-conversion 13
 src/player/player_rename.c clang-analyzer-core.NonNullParamChecker 1
 src/player/player_rename.c clang-analyzer-unix.Errno 1
@@ -758,7 +737,6 @@ src/player/players.c bugprone-multi-level-implicit-pointer-conversion 1
 src/player/players.c bugprone-narrowing-conversions 1
 src/player/players.c bugprone-signed-char-misuse 2
 src/player/players.c bugprone-suspicious-realloc-usage 3
-src/player/players.c bugprone-suspicious-string-compare 3
 src/player/players.c bugprone-switch-missing-default-case 1
 src/player/players.c bugprone-unchecked-string-to-number-conversion 376
 src/player/players.c bugprone-unsafe-functions 1
@@ -807,18 +785,15 @@ src/spec/spec_objects.c bugprone-narrowing-conversions 1
 src/spec/spec_objects.c clang-analyzer-core.uninitialized.Assign 1
 src/spec/spec_objects.c clang-analyzer-deadcode.DeadStores 1
 src/spec/spec_rol_avernus.c bugprone-assignment-in-if-condition 12
-src/spec/spec_rol_avernus.c bugprone-suspicious-string-compare 2
 src/spec/spec_rol_combat.c bugprone-assignment-in-if-condition 14
 src/spec/spec_rol_combat.c bugprone-implicit-widening-of-multiplication-result 11
 src/spec/spec_rol_combat.c bugprone-narrowing-conversions 2
-src/spec/spec_rol_combat.c bugprone-suspicious-string-compare 3
 src/spec/spec_rol_combat.c clang-analyzer-core.NullDereference 3
 src/spec/spec_rol_conversion.c bugprone-assignment-in-if-condition 36
 src/spec/spec_rol_conversion.c bugprone-branch-clone 1
 src/spec/spec_rol_conversion.c bugprone-implicit-widening-of-multiplication-result 16
 src/spec/spec_rol_conversion.c bugprone-inc-dec-in-conditions 1
 src/spec/spec_rol_conversion.c bugprone-narrowing-conversions 4
-src/spec/spec_rol_conversion.c bugprone-suspicious-string-compare 6
 src/spec/spec_rol_conversion.c bugprone-switch-missing-default-case 1
 src/spec/spec_rol_conversion.c clang-analyzer-core.CallAndMessage 1
 src/spec/spec_rol_conversion.c clang-analyzer-core.UndefinedBinaryOperatorResult 1
@@ -830,7 +805,6 @@ src/spec/spec_rol_drow.c bugprone-assignment-in-if-condition 4
 src/spec/spec_rol_drow.c bugprone-implicit-widening-of-multiplication-result 1
 src/spec/spec_rol_lavatubes.c bugprone-assignment-in-if-condition 2
 src/spec/spec_rol_pilot.c bugprone-assignment-in-if-condition 2
-src/spec/spec_rol_pilot.c bugprone-suspicious-string-compare 2
 src/spec/spec_rol_residual_mobile.c bugprone-assignment-in-if-condition 6
 src/spec/spec_rol_residual_mobile.c bugprone-branch-clone 1
 src/spec/spec_rol_tarrasque.c bugprone-assignment-in-if-condition 7
@@ -838,10 +812,8 @@ src/spec/spec_rol_tarrasque.c bugprone-implicit-widening-of-multiplication-resul
 src/spec/spec_rol_tarrasque.c bugprone-narrowing-conversions 1
 src/spec/spec_rol_totem.c bugprone-assignment-in-if-condition 3
 src/spec/spec_rol_totem.c bugprone-implicit-widening-of-multiplication-result 1
-src/spec/spec_rol_totem.c bugprone-suspicious-string-compare 1
 src/spec/spec_rol_utility_objects.c bugprone-assignment-in-if-condition 3
 src/spec/spec_rol_utility_objects.c bugprone-implicit-widening-of-multiplication-result 6
-src/spec/spec_rol_utility_objects.c bugprone-suspicious-string-compare 3
 src/spec/spec_zone_abyss.c bugprone-assignment-in-if-condition 6
 src/spec/spec_zone_abyssal_vortex.c bugprone-narrowing-conversions 1
 src/spec/spec_zone_air_plane.c bugprone-switch-missing-default-case 2
@@ -891,9 +863,7 @@ src/vessels/vessels_autopilot.c clang-analyzer-core.CallAndMessage 1
 src/vessels/vessels_balance.c bugprone-unchecked-string-to-number-conversion 1
 src/vessels/vessels_combat.c bugprone-unchecked-string-to-number-conversion 1
 src/vessels/vessels_contracts.c bugprone-narrowing-conversions 1
-src/vessels/vessels_contracts.c bugprone-suspicious-string-compare 2
 src/vessels/vessels_contracts.c bugprone-unchecked-string-to-number-conversion 14
-src/vessels/vessels_crew.c bugprone-suspicious-string-compare 1
 src/vessels/vessels_crew.c bugprone-unchecked-string-to-number-conversion 2
 src/vessels/vessels_db.c bugprone-assignment-in-if-condition 4
 src/vessels/vessels_db.c bugprone-narrowing-conversions 2
@@ -901,22 +871,18 @@ src/vessels/vessels_db.c bugprone-unchecked-string-to-number-conversion 83
 src/vessels/vessels_docking.c bugprone-assignment-in-if-condition 2
 src/vessels/vessels_docking.c bugprone-narrowing-conversions 2
 src/vessels/vessels_edit.c bugprone-narrowing-conversions 1
-src/vessels/vessels_edit.c bugprone-suspicious-string-compare 2
 src/vessels/vessels_edit.c bugprone-unchecked-string-to-number-conversion 23
 src/vessels/vessels_events.c bugprone-unchecked-string-to-number-conversion 5
 src/vessels/vessels_hazards.c bugprone-implicit-widening-of-multiplication-result 4
 src/vessels/vessels_hazards.c bugprone-unchecked-string-to-number-conversion 16
 src/vessels/vessels_hunters.c bugprone-misplaced-widening-cast 3
-src/vessels/vessels_hunters.c bugprone-suspicious-string-compare 1
 src/vessels/vessels_hunters.c bugprone-unchecked-string-to-number-conversion 23
 src/vessels/vessels_hunters.c clang-analyzer-deadcode.DeadStores 1
 src/vessels/vessels_lookout.c clang-analyzer-security.ArrayBound 1
 src/vessels/vessels_merchants.c bugprone-misplaced-widening-cast 2
-src/vessels/vessels_merchants.c bugprone-suspicious-string-compare 2
 src/vessels/vessels_merchants.c bugprone-unchecked-string-to-number-conversion 33
 src/vessels/vessels_moving_rooms.c bugprone-assignment-in-if-condition 6
 src/vessels/vessels_moving_rooms.c bugprone-unchecked-string-to-number-conversion 2
-src/vessels/vessels_ownership.c bugprone-suspicious-string-compare 1
 src/vessels/vessels_piracy.c bugprone-assignment-in-if-condition 1
 src/vessels/vessels_piracy.c bugprone-narrowing-conversions 2
 src/vessels/vessels_piracy.c bugprone-unchecked-string-to-number-conversion 6
@@ -929,10 +895,8 @@ src/vessels/vessels_rooms.c bugprone-unchecked-string-to-number-conversion 4
 src/vessels/vessels_rooms.c clang-analyzer-optin.performance.Padding 1
 src/vessels/vessels_tactical.c bugprone-implicit-widening-of-multiplication-result 1
 src/vessels/vessels_trade.c bugprone-narrowing-conversions 3
-src/vessels/vessels_trade.c bugprone-suspicious-string-compare 1
 src/vessels/vessels_trade.c bugprone-unchecked-string-to-number-conversion 7
 src/vessels/vessels_trade.c clang-analyzer-deadcode.DeadStores 1
-src/vessels/vessels_upgrades.c bugprone-suspicious-string-compare 1
 src/vessels/vessels_upgrades.c bugprone-unchecked-string-to-number-conversion 5
 src/wilderness/desc_engine.c bugprone-assignment-in-if-condition 1
 src/wilderness/harvest.c bugprone-assignment-in-if-condition 1
@@ -977,7 +941,7 @@ src/wilderness/spatial_visual.c bugprone-narrowing-conversions 3
 src/wilderness/spatial_visual.c bugprone-switch-missing-default-case 2
 src/wilderness/terrain_bridge.c bugprone-assignment-in-if-condition 3
 src/wilderness/terrain_bridge.c bugprone-narrowing-conversions 8
-src/wilderness/terrain_bridge.c bugprone-suspicious-string-compare 2
+src/wilderness/terrain_bridge.c bugprone-suspicious-string-compare 1
 src/wilderness/wilderness.c bugprone-assignment-in-if-condition 5
 src/wilderness/wilderness.c bugprone-branch-clone 5
 src/wilderness/wilderness.c bugprone-implicit-widening-of-multiplication-result 4
@@ -1002,7 +966,6 @@ unittests/CuTest/test_ai_secrets.c bugprone-assignment-in-if-condition 1
 unittests/CuTest/test_ai_secrets.c bugprone-unsafe-functions 1
 unittests/CuTest/test_ai_secrets.c clang-analyzer-unix.Errno 1
 unittests/CuTest/test_artifact_integration.c bugprone-assignment-in-if-condition 1
-unittests/CuTest/test_artifact_integration.c bugprone-suspicious-string-compare 1
 unittests/CuTest/test_artifact_integration.c clang-analyzer-core.NonNullParamChecker 1
 unittests/CuTest/test_artifact_integration.c clang-analyzer-core.NullDereference 7
 unittests/CuTest/test_artifact_integration.c clang-analyzer-optin.performance.Padding 1
@@ -1113,7 +1076,6 @@ unittests/CuTest/test_unassigned_spells.c bugprone-switch-missing-default-case 1
 unittests/CuTest/test_upstream_regressions.c bugprone-assignment-in-if-condition 1
 unittests/CuTest/test_upstream_regressions.c bugprone-implicit-widening-of-multiplication-result 6
 unittests/CuTest/test_upstream_regressions.c bugprone-multi-level-implicit-pointer-conversion 4
-unittests/CuTest/test_upstream_regressions.c bugprone-suspicious-string-compare 1
 unittests/CuTest/test_upstream_regressions.c bugprone-unsafe-functions 1
 unittests/CuTest/test_upstream_regressions.c clang-analyzer-core.NonNullParamChecker 14
 unittests/CuTest/test_upstream_regressions.c clang-analyzer-core.NullDereference 1
@@ -1138,13 +1100,11 @@ util/plrtoascii.c bugprone-assignment-in-if-condition 3
 util/plrtoascii.c bugprone-unsafe-functions 1
 util/plrtoascii.c clang-analyzer-deadcode.DeadStores 1
 util/rebuildAsciiIndex.c bugprone-assignment-in-if-condition 2
-util/rebuildAsciiIndex.c bugprone-suspicious-string-compare 1
 util/rebuildAsciiIndex.c bugprone-unchecked-string-to-number-conversion 4
 util/rebuildAsciiIndex.c bugprone-unsafe-functions 1
 util/rebuildAsciiIndex.c clang-analyzer-unix.Errno 1
 util/rebuildAsciiIndex.c clang-analyzer-unix.StdCLibraryFunctions 1
 util/rebuildMailIndex.c bugprone-assignment-in-if-condition 5
-util/rebuildMailIndex.c bugprone-suspicious-string-compare 1
 util/rebuildMailIndex.c bugprone-unchecked-string-to-number-conversion 6
 util/rebuildMailIndex.c bugprone-unsafe-functions 1
 util/rebuildMailIndex.c clang-analyzer-deadcode.DeadStores 1

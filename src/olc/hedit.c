@@ -2191,7 +2191,7 @@ static bool helpgen_request_mutates(const char *argument)
   if (!str_cmp(arg1, "clean") || !str_cmp(arg1, "repair"))
     return *arg2 && !str_cmp(arg2, "force");
   if (!str_cmp(arg1, "import") || !str_cmp(arg1, "export"))
-    return *arg2 && str_cmp(arg2, "preview");
+    return *arg2 && str_cmp(arg2, "preview") != 0;
   return TRUE;
 }
 
@@ -3554,7 +3554,7 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode)
   APPEND_TO_BUF("Reading help.hlp file from: %s\r\n", filename);
 
   /* Start transaction for non-preview modes */
-  if (str_cmp(mode, "preview"))
+  if (str_cmp(mode, "preview") != 0)
   {
     if (mysql_query(conn, "START TRANSACTION") != 0)
     {
@@ -3610,7 +3610,7 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode)
   fclose(fp);
 
   /* Commit or rollback transaction */
-  if (str_cmp(mode, "preview"))
+  if (str_cmp(mode, "preview") != 0)
   {
     if (errors > 0)
     {

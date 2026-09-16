@@ -747,7 +747,7 @@ void Test_artifact_integration_every_artifact_has_an_explicit_identity_contract(
 
     if (failure[0] == '\0' &&
         ((expected->ability_name == NULL) != (actual.ability_name == NULL) ||
-         (expected->ability_name && strcmp(expected->ability_name, actual.ability_name))))
+         (expected->ability_name && strcmp(expected->ability_name, actual.ability_name) != 0)))
       snprintf(failure, sizeof(failure), "artifact %d active ability: expected %s, got %s",
                expected->vnum, expected->ability_name ? expected->ability_name : "none",
                actual.ability_name ? actual.ability_name : "none");
