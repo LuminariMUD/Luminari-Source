@@ -134,7 +134,7 @@ unsigned char *binary_format_fixture(enum binary_format_fixture fixture, size_t 
   *size = source->size;
   bytes = calloc(source->size + 1, 1);
   if (bytes == NULL)
-    return NULL;
+    abort();
   for (index = 0; index < source->run_count; index++)
     memcpy(bytes + source->runs[index].offset, source->runs[index].bytes,
            source->runs[index].length);
@@ -144,6 +144,19 @@ unsigned char *binary_format_fixture(enum binary_format_fixture fixture, size_t 
 static const char first_heading[] = "Tue Nov 07 2017 (Tester)     :: First post";
 static const char first_message[] = "Line one.\r\nLine two.\r\n";
 static const char second_heading[] = "Wed Jan 17 2018 (Other)      :: No body";
+
+/* Room for any fixture plus one appended byte; field edits happen in place. */
+#define EDIT_BUFFER_SIZE 4096
+
+/* Test buffers: running out of memory ends the run rather than a test. */
+static unsigned char *allocate_bytes(size_t size)
+{
+  unsigned char *bytes = malloc(size);
+
+  if (bytes == NULL)
+    abort();
+  return bytes;
+}
 
 static void store_u32(unsigned char *bytes, uint32_t value)
 {
@@ -156,7 +169,11 @@ static void store_u32(unsigned char *bytes, uint32_t value)
 /* Rewrites the payload size and checksum so only the edited field is wrong. */
 static void reseal(unsigned char *file, size_t size)
 {
-  uint32_t payload_size = (uint32_t)(size - BINARY_FORMAT_HEADER_SIZE);
+  uint32_t payload_size;
+
+  if (size < BINARY_FORMAT_HEADER_SIZE)
+    abort();
+  payload_size = (uint32_t)(size - BINARY_FORMAT_HEADER_SIZE);
 
   store_u32(file + 8, payload_size);
   store_u32(file + 12, binary_format_crc32(file + BINARY_FORMAT_HEADER_SIZE, payload_size));
@@ -240,7 +257,6 @@ void Test_board_file_reads_the_legacy_x86_64_layout(CuTest *tc)
   int version = -1;
 
   file = binary_format_fixture(FIXTURE_LEGACY_BOARD_FILE, &size);
-  CuAssertPtrNotNull(tc, file);
   CuAssertIntEquals(tc, BINARY_FORMAT_OK,
                     board_file_decode(file, size, 300, &messages, &count, &version));
   CuAssertIntEquals(tc, BINARY_FORMAT_LEGACY, version);
@@ -267,7 +283,6 @@ void Test_board_file_writes_the_golden_current_format(CuTest *tc)
 
   legacy = binary_format_fixture(FIXTURE_LEGACY_BOARD_FILE, &legacy_size);
   golden = binary_format_fixture(FIXTURE_CURRENT_BOARD_FILE, &golden_size);
-  CuAssertTrue(tc, legacy != NULL && golden != NULL);
   CuAssertIntEquals(tc, BINARY_FORMAT_OK,
                     board_file_decode(legacy, legacy_size, 300, &messages, &count, &version));
   CuAssertIntEquals(tc, BINARY_FORMAT_OK,
@@ -295,8 +310,7 @@ void Test_board_file_rejects_every_damaged_current_file(CuTest *tc)
   int bit, version;
 
   golden = binary_format_fixture(FIXTURE_CURRENT_BOARD_FILE, &size);
-  damaged = malloc(size);
-  CuAssertTrue(tc, golden != NULL && damaged != NULL);
+  damaged = allocate_bytes(size);
 
   /* An empty file is an empty legacy board; every longer prefix is torn. */
   for (length = 1; length < size; length++)
@@ -322,12 +336,13 @@ void Test_board_file_rejects_every_damaged_current_file(CuTest *tc)
 
 void Test_board_file_rejects_malformed_legacy_files(CuTest *tc)
 {
-  unsigned char *legacy, *edited;
+  unsigned char edited[EDIT_BUFFER_SIZE];
+  unsigned char *legacy;
   size_t size, length, count;
 
   legacy = binary_format_fixture(FIXTURE_LEGACY_BOARD_FILE, &size);
-  edited = malloc(size + 1);
-  CuAssertTrue(tc, legacy != NULL && edited != NULL);
+  if (size >= sizeof(edited))
+    abort();
 
   /* An empty file was an empty board; every other prefix is torn. */
   CuAssertIntEquals(tc, BINARY_FORMAT_OK, decode_board(legacy, 0, 300, &count));
@@ -365,18 +380,18 @@ void Test_board_file_rejects_malformed_legacy_files(CuTest *tc)
   memcpy(edited, legacy, size);
   edited[size] = 0;
   CuAssertIntEquals(tc, BINARY_FORMAT_TRAILING_DATA, decode_board(edited, size + 1, 300, &count));
-  free(edited);
   free(legacy);
 }
 
 void Test_board_file_rejects_out_of_range_current_fields(CuTest *tc)
 {
-  unsigned char *golden, *edited;
+  unsigned char edited[EDIT_BUFFER_SIZE];
+  unsigned char *golden;
   size_t size, count;
 
   golden = binary_format_fixture(FIXTURE_CURRENT_BOARD_FILE, &size);
-  edited = malloc(size + 1);
-  CuAssertTrue(tc, golden != NULL && edited != NULL);
+  if (size >= sizeof(edited))
+    abort();
 
   CuAssertIntEquals(tc, BINARY_FORMAT_LIMIT_EXCEEDED, decode_board(golden, size, 1, &count));
 
@@ -416,7 +431,6 @@ void Test_board_file_rejects_out_of_range_current_fields(CuTest *tc)
   edited[size] = 0;
   reseal(edited, size + 1);
   CuAssertIntEquals(tc, BINARY_FORMAT_TRAILING_DATA, decode_board(edited, size + 1, 300, &count));
-  free(edited);
   free(golden);
 }
 
@@ -428,7 +442,6 @@ void Test_house_file_reads_the_legacy_x86_64_layout(CuTest *tc)
   int version = -1;
 
   file = binary_format_fixture(FIXTURE_LEGACY_HOUSE_FILE, &size);
-  CuAssertPtrNotNull(tc, file);
   CuAssertIntEquals(tc, BINARY_FORMAT_OK,
                     house_file_decode(file, size, 999, &records, &count, &version));
   CuAssertIntEquals(tc, BINARY_FORMAT_LEGACY, version);
@@ -446,7 +459,6 @@ void Test_house_file_writes_the_golden_current_format(CuTest *tc)
 
   legacy = binary_format_fixture(FIXTURE_LEGACY_HOUSE_FILE, &legacy_size);
   golden = binary_format_fixture(FIXTURE_CURRENT_HOUSE_FILE, &golden_size);
-  CuAssertTrue(tc, legacy != NULL && golden != NULL);
   CuAssertIntEquals(tc, BINARY_FORMAT_OK,
                     house_file_decode(legacy, legacy_size, 999, &records, &count, &version));
   CuAssertIntEquals(tc, BINARY_FORMAT_OK,
@@ -468,15 +480,16 @@ void Test_house_file_writes_the_golden_current_format(CuTest *tc)
 void Test_house_file_rejects_damaged_and_malformed_files(CuTest *tc)
 {
   static struct house_file_record untouched;
+  unsigned char edited[EDIT_BUFFER_SIZE];
   struct house_file_record *records;
-  unsigned char *legacy, *golden, *edited;
+  unsigned char *legacy, *golden;
   size_t legacy_size, size, length, position, count;
   int bit, version;
 
   legacy = binary_format_fixture(FIXTURE_LEGACY_HOUSE_FILE, &legacy_size);
   golden = binary_format_fixture(FIXTURE_CURRENT_HOUSE_FILE, &size);
-  edited = malloc(legacy_size + 1);
-  CuAssertTrue(tc, legacy != NULL && golden != NULL && edited != NULL);
+  if (legacy_size >= sizeof(edited) || size >= sizeof(edited))
+    abort();
 
   /* A partial legacy record is what an interrupted legacy write left. */
   for (length = 1; length < legacy_size; length++)
@@ -521,7 +534,6 @@ void Test_house_file_rejects_damaged_and_malformed_files(CuTest *tc)
   edited[size] = 0;
   reseal(edited, size + 1);
   CuAssertIntEquals(tc, BINARY_FORMAT_TRAILING_DATA, decode_house(edited, size + 1, 999, &count));
-  free(edited);
   free(golden);
   free(legacy);
 }
@@ -533,7 +545,6 @@ void Test_last_log_reads_the_legacy_x86_64_layout(CuTest *tc)
   size_t size;
 
   file = binary_format_fixture(FIXTURE_LEGACY_LAST_LOG, &size);
-  CuAssertPtrNotNull(tc, file);
   CuAssertIntEquals(tc, 2 * LAST_LOG_RECORD_SIZE, (int)size);
 
   last_log_decode_record(file, &entry);
@@ -562,8 +573,7 @@ void Test_binary_format_encoders_refuse_what_decoders_reject(CuTest *tc)
   size_t size = 0;
   char *heading;
 
-  heading = malloc(BOARD_FILE_MAX_HEADING_SIZE + 1);
-  CuAssertPtrNotNull(tc, heading);
+  heading = (char *)allocate_bytes(BOARD_FILE_MAX_HEADING_SIZE + 1);
   memset(heading, 'a', BOARD_FILE_MAX_HEADING_SIZE);
   heading[BOARD_FILE_MAX_HEADING_SIZE] = '\0';
   message.heading = heading;

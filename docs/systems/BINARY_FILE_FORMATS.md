@@ -116,12 +116,12 @@ temporary file over the live one (`finish_file_save()`). A crash or a failed wri
 file untouched; the next save overwrites the stale temporary file.
 
 When the file being replaced is not in the current format, the save first copies it to
-`<file>.legacy-<crc32>`, where the suffix is the CRC-32 of its contents in hex. An existing backup of
-the same contents is kept as is, so repeated saves make one backup. If the backup cannot be written,
-the save is refused and the live file is kept.
+`<file>.legacy-<crc32>`, where the suffix is the CRC-32 of its contents in hex. Because the name
+follows the contents, repeating the copy rewrites the same bytes, so repeated saves leave one backup.
+If the backup cannot be written, the save is refused and the live file is kept.
 
 When a file cannot be read or decoded, the server logs a SYSERR naming the reason and renames the
-file to `<file>.rejected-<unix time>`, so no later save can overwrite it. The board, or the house
+file to `<file>.rejected-<unix time>-<process id>`, so no later save can overwrite it. The board, or the house
 list, starts empty. `House_boot()` does not save after a rejection, so no empty control file replaces
 the rejected one until a house changes. A file written by a newer server (an unknown version) is
 rejected the same way. To recover, fix or replace the rejected file, move it back, and reboot.
