@@ -770,7 +770,7 @@ static void begin_restoration_command_fixture(CuTest *tc, struct restoration_com
   f->descriptor.character = ch;
   f->descriptor.pProtocol = ProtocolCreate();
   f->descriptor.connected = CON_PLAYING;
-  f->descriptor.history = calloc(HISTORY_SIZE, sizeof(*f->descriptor.history));
+  f->descriptor.history = (char **)calloc(HISTORY_SIZE, sizeof(*f->descriptor.history));
   ch->desc = &f->descriptor;
   CuAssertIntEquals(tc, 0, socketpair(AF_UNIX, SOCK_STREAM, 0, f->sockets));
   f->descriptor.descriptor = f->sockets[0];
@@ -805,7 +805,7 @@ static void end_restoration_command_fixture(struct restoration_command_fixture *
   }
   for (i = 0; i < HISTORY_SIZE; i++)
     free(f->descriptor.history[i]);
-  free(f->descriptor.history);
+  free((void *)f->descriptor.history);
   ProtocolDestroy(f->descriptor.pProtocol);
   if (f->descriptor.large_outbuf != NULL)
   {
@@ -853,7 +853,7 @@ static void verify_restoration_queue_wakeup(CuTest *tc, enum luminari_io_driver 
   begin_restoration_command_fixture(tc, &f, driver);
   ch = &f.game.actor;
   FIGHTING(ch) = &f.game.victim;
-  CuAssertTrue(tc, combat_encounter_join(ch, &f.game.victim, 2 RL_SEC));
+  CuAssertTrue(tc, combat_encounter_join(ch, &f.game.victim, ((long)(2 RL_SEC))));
   start_action_cooldown(ch, atSTANDARD, 3);
   command_interpreter(ch, self_command);
   command_interpreter(ch, ally_command);
@@ -1276,13 +1276,13 @@ void Test_combat_restoration_opportunity_cap_resets_each_phase(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   FIGHTING(&f.actor) = &f.victim;
   FIGHTING(&f.victim) = &f.actor;
-  combat_encounter_join(&f.actor, &f.victim, 2 RL_SEC);
-  combat_encounter_join(&f.victim, &f.actor, 4 RL_SEC);
+  combat_encounter_join(&f.actor, &f.victim, ((long)(2 RL_SEC)));
+  combat_encounter_join(&f.victim, &f.actor, ((long)(4 RL_SEC)));
   attack_of_opportunity(&f.actor, &f.victim, 0);
   first = GET_TOTAL_AOO((&f.actor));
   attack_of_opportunity(&f.actor, &f.victim, 0);
   blocked = GET_TOTAL_AOO((&f.actor));
-  pulse = start + (2 RL_SEC) - 1U;
+  pulse = start + ((unsigned long)(2 RL_SEC)) - 1U;
   event_test_advance();
   before = GET_TOTAL_AOO((&f.actor));
   pulse++;
@@ -1292,7 +1292,7 @@ void Test_combat_restoration_opportunity_cap_resets_each_phase(CuTest *tc)
   pulse++;
   event_test_advance();
   after = GET_TOTAL_AOO((&f.actor));
-  pulse = start + (4 RL_SEC);
+  pulse = start + ((unsigned long)(4 RL_SEC));
   event_test_advance();
   MOB_SET_FEAT(&f.actor, FEAT_COMBAT_REFLEXES, 1);
   f.actor.real_abils.dex = f.actor.aff_abils.dex = 18;
@@ -8239,8 +8239,8 @@ static void verify_restored_melee_phases(CuTest *tc, int level, bool hasted, boo
                     domain_event_subscribe(domain_event_runtime_bus(), &observer, &subscription));
   FIGHTING(&f.actor) = &f.victim;
   FIGHTING(&f.victim) = &f.actor;
-  joined = combat_encounter_join(&f.actor, &f.victim, 2 RL_SEC);
-  joined = combat_encounter_join(&f.victim, &f.actor, 4 RL_SEC) && joined;
+  joined = combat_encounter_join(&f.actor, &f.victim, ((long)(2 RL_SEC)));
+  joined = combat_encounter_join(&f.victim, &f.actor, ((long)(4 RL_SEC))) && joined;
   if (spent_action >= 0)
     start_action_cooldown(&f.actor, (action_type)spent_action, 8 RL_SEC);
   bab = NUM_ATTACKS_BAB(&f.actor);
@@ -8254,8 +8254,9 @@ static void verify_restored_melee_phases(CuTest *tc, int level, bool hasted, boo
             is_action_available(&f.actor, atMOVE, false) == (spent_action != atMOVE) &&
             is_action_available(&f.actor, atSWIFT, false);
   for (index = 0; index < trace.attempts && index < 128U; index++)
-    if (trace.pulses[index] != start + (2 RL_SEC) && trace.pulses[index] != start + (4 RL_SEC) &&
-        trace.pulses[index] != start + (6 RL_SEC))
+    if (trace.pulses[index] != start + ((unsigned long)(2 RL_SEC)) &&
+        trace.pulses[index] != start + ((unsigned long)(4 RL_SEC)) &&
+        trace.pulses[index] != start + ((unsigned long)(6 RL_SEC)))
       deadlines = false;
   for (phase = 1; phase <= 3; phase++)
   {
@@ -8263,7 +8264,7 @@ static void verify_restored_melee_phases(CuTest *tc, int level, bool hasted, boo
       actual[cursor++] = '|';
     for (index = 0; index < trace.attempts && index < 128U; index++)
     {
-      if (trace.pulses[index] != start + phase * (2 RL_SEC))
+      if (trace.pulses[index] != start + phase * ((unsigned long)(2 RL_SEC)))
         continue;
       switch (trace.kinds[index])
       {
@@ -8400,8 +8401,8 @@ static unsigned long first_npc_combat_behavior_pulse(CuTest *tc, int npc_level)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   FIGHTING(&f.actor) = &f.victim;
   FIGHTING(&f.victim) = &f.actor;
-  joined = combat_encounter_join(&f.actor, &f.victim, 2 RL_SEC);
-  joined = combat_encounter_join(&f.victim, &f.actor, 4 RL_SEC) && joined;
+  joined = combat_encounter_join(&f.actor, &f.victim, ((long)(2 RL_SEC)));
+  joined = combat_encounter_join(&f.victim, &f.actor, ((long)(4 RL_SEC))) && joined;
   circle_srandom(4321);
   for (tick = 0; tick <= 40 * PASSES_PER_SEC; tick++)
   {
@@ -8961,8 +8962,8 @@ static void verify_tactical_defense_clock(CuTest *tc, int scenario)
   {
     FIGHTING(&f.actor) = &f.victim;
     FIGHTING(&f.victim) = &f.actor;
-    CuAssertTrue(tc, combat_encounter_join(&f.actor, &f.victim, 2 RL_SEC));
-    CuAssertTrue(tc, combat_encounter_join(&f.victim, &f.actor, 2 RL_SEC));
+    CuAssertTrue(tc, combat_encounter_join(&f.actor, &f.victim, ((long)(2 RL_SEC))));
+    CuAssertTrue(tc, combat_encounter_join(&f.victim, &f.actor, ((long)(2 RL_SEC))));
   }
   CuAssertTrue(tc, tactical_defense_start(&f.actor));
   CuAssertIntEquals(tc, 4, get_defensive_casting_ac_bonus(&f.actor));
@@ -8970,19 +8971,19 @@ static void verify_tactical_defense_clock(CuTest *tc, int scenario)
   CuAssertTrue(tc, has_defensive_casting_active(&f.actor));
   if (scenario == 1)
   {
-    for (tick = 0U; tick < (3 RL_SEC); tick++)
+    for (tick = 0U; tick < ((unsigned long)(3 RL_SEC)); tick++)
     {
       pulse++;
       event_test_advance();
     }
   }
   else
-    pulse += 3 RL_SEC;
+    pulse += ((unsigned long)(3 RL_SEC));
   CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
   if (scenario == 0)
   {
     tactical_defense_pause(&f.actor);
-    pulse += 40 RL_SEC;
+    pulse += ((unsigned long)(40 RL_SEC));
     CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
     tactical_defense_resume(&f.actor);
   }
@@ -8997,15 +8998,15 @@ static void verify_tactical_defense_clock(CuTest *tc, int scenario)
     {
       FIGHTING(&f.actor) = &f.victim;
       FIGHTING(&f.victim) = &f.actor;
-      CuAssertTrue(tc, combat_encounter_join(&f.actor, &f.victim, 2 RL_SEC));
-      CuAssertTrue(tc, combat_encounter_join(&f.victim, &f.actor, 2 RL_SEC));
+      CuAssertTrue(tc, combat_encounter_join(&f.actor, &f.victim, ((long)(2 RL_SEC))));
+      CuAssertTrue(tc, combat_encounter_join(&f.victim, &f.actor, ((long)(2 RL_SEC))));
       CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
     }
   }
   else if (scenario == 4)
   {
     CuAssertTrue(tc, tactical_defense_start(&f.actor));
-    pulse += 3 RL_SEC;
+    pulse += ((unsigned long)(3 RL_SEC));
     event_test_advance();
     CuAssertTrue(tc, has_defensive_casting_active(&f.actor));
     CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
@@ -9014,14 +9015,14 @@ static void verify_tactical_defense_clock(CuTest *tc, int scenario)
   {
     FIGHTING(&f.actor) = &f.victim;
     FIGHTING(&f.victim) = &f.actor;
-    CuAssertTrue(tc, combat_encounter_join(&f.actor, &f.victim, 2 RL_SEC));
-    CuAssertTrue(tc, combat_encounter_join(&f.victim, &f.actor, 2 RL_SEC));
+    CuAssertTrue(tc, combat_encounter_join(&f.actor, &f.victim, ((long)(2 RL_SEC))));
+    CuAssertTrue(tc, combat_encounter_join(&f.victim, &f.actor, ((long)(2 RL_SEC))));
     CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
   }
   else if (scenario == 7)
   {
     combat_encounter_runtime_shutdown();
-    pulse += 40 RL_SEC;
+    pulse += ((unsigned long)(40 RL_SEC));
     CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
     tactical_defense_resume(&f.actor);
   }
@@ -9299,7 +9300,7 @@ static void verify_bleeding_clock(CuTest *tc, int scenario)
     CuAssertTrue(tc, combat_encounter_join(&f.actor, &f.victim, 1));
     CuAssertTrue(tc, combat_encounter_join(&f.victim, &f.actor, 1));
   }
-  pulse += 3 RL_SEC;
+  pulse += ((unsigned long)(3 RL_SEC));
   if (scenario == 6)
   {
     af.duration = 1;
@@ -9317,13 +9318,13 @@ static void verify_bleeding_clock(CuTest *tc, int scenario)
   if (scenario == 5)
   {
     affected_registry_detach(&f.actor);
-    pulse += 40 RL_SEC;
+    pulse += ((unsigned long)(40 RL_SEC));
     event_test_advance();
     CuAssertIntEquals(tc, 0, trace.count);
     CuAssertIntEquals(tc, 3 RL_SEC, tactical_bleeding_remaining(&f.actor));
     affected_registry_attach(&f.actor);
   }
-  pulse += 3 RL_SEC;
+  pulse += ((unsigned long)(3 RL_SEC));
   event_test_advance();
   if (scenario == 9)
   {
@@ -9336,7 +9337,7 @@ static void verify_bleeding_clock(CuTest *tc, int scenario)
   CuAssertIntEquals(tc, scenario == 6 ? 12 : 5, trace.last_amount);
   if (scenario == 1)
     CuAssertIntEquals(tc, 0, trace.count_before_action);
-  pulse += 6 RL_SEC;
+  pulse += ((unsigned long)(6 RL_SEC));
   event_test_advance();
   CuAssertIntEquals(tc, scenario == 3 || scenario == 6 ? 1 : 2, trace.count);
   if (scenario == 4)
@@ -9498,7 +9499,7 @@ static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
     char_from_room(&fixture.actor);
     char_to_room_cause(&fixture.actor, 1, &fixture.victim, DOMAIN_RELOCATION_FORCED, NORTH);
     CuAssertIntEquals(tc, 1, trace.count);
-    pulse += 6 RL_SEC;
+    pulse += ((unsigned long)(6 RL_SEC));
     event_test_advance();
     CuAssertIntEquals(tc, 2, trace.count);
     CuAssertTrue(tc, !is_action_available(&fixture.actor, atMOVE, false));
@@ -9526,7 +9527,7 @@ static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
     combat_encounter_leave(&fixture.actor, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
     combat_encounter_leave(&fixture.victim, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
     FIGHTING(&fixture.actor) = FIGHTING(&fixture.victim) = NULL;
-    pulse += 6 RL_SEC;
+    pulse += ((unsigned long)(6 RL_SEC));
     event_test_advance();
     CuAssertIntEquals(tc, 3, trace.count);
   }
@@ -9535,13 +9536,13 @@ static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
     rem_room_aff(source);
     source = NULL;
     CuAssertIntEquals(tc, 0, (int)tactical_room_hazard_exposures());
-    pulse += 6 RL_SEC;
+    pulse += ((unsigned long)(6 RL_SEC));
     event_test_advance();
     CuAssertIntEquals(tc, 1, trace.count);
   }
   else if (scenario == 4)
   {
-    pulse += 6 RL_SEC;
+    pulse += ((unsigned long)(6 RL_SEC));
     event_test_advance();
     CuAssertIntEquals(tc, 1, trace.count);
     CuAssertPtrEquals(tc, NULL, raff_list);
@@ -9571,7 +9572,7 @@ static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
     event_init();
     CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
     CuAssertIntEquals(tc, 2, (int)tactical_room_hazard_exposures());
-    pulse += 6 RL_SEC;
+    pulse += ((unsigned long)(6 RL_SEC));
     event_test_advance();
     CuAssertIntEquals(tc, 2, trace.count);
     FIGHTING(&fixture.actor) = FIGHTING(&fixture.victim) = NULL;
