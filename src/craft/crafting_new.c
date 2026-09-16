@@ -7480,7 +7480,7 @@ void newcraft_supplyorder(struct char_data *ch, const char *argument)
     return;
   }
 
-  if (is_abbrev(arg1, "show") || is_abbrev(arg1, "status"))
+  if (is_abbrev(arg1, "show") || is_abbrev(arg1, "status") || is_abbrev(arg1, "info"))
   {
     show_supply_order(ch);
     return;
@@ -8334,6 +8334,8 @@ void reset_supply_order(struct char_data *ch)
 
 /**
  * @brief Handles the special behavior for new supply orders.
+ *
+ * The mobile runs the supplyorder command itself, so every subcommand works in its room.
  */
 SPECIAL(new_supply_orders)
 {
@@ -8342,53 +8344,7 @@ SPECIAL(new_supply_orders)
     return 0;
   }
 
-  char arg1[200], arg2[200], arg3[200];
-
-  three_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
-
-  /**
-     * Handle different commands related to crafting supply orders.
-     *
-     * @param arg1 The command argument.
-     * @param ch The character executing the command.
-     * @return 1 if the command was handled successfully, 0 otherwise.
-     */
-  if (!*arg1)
-  {
-    send_to_char(ch, "%s", SUPPLY_ORDER_NOARG1);
-    return 1;
-  }
-
-  if (is_abbrev(arg1, "request"))
-  {
-    request_new_supply_order(ch);
-  }
-  else if (is_abbrev(arg1, "info") || is_abbrev(arg1, "show"))
-  {
-    show_supply_order(ch);
-  }
-  else if (is_abbrev(arg1, "start"))
-  {
-    start_supply_order(ch);
-  }
-  else if (is_abbrev(arg1, "material"))
-  {
-    set_supply_order_materials(ch, arg2, arg3);
-  }
-  else if (is_abbrev(arg1, "complete"))
-  {
-    complete_supply_order(ch);
-  }
-  else if (is_abbrev(arg1, "reset") || is_abbrev(arg1, "abandon"))
-  {
-    abandon_supply_order(ch);
-  }
-  else
-  {
-    send_to_char(ch, "%s", SUPPLY_ORDER_NOARG1);
-    return 1;
-  }
-
+  do_newcraft(ch, argument, cmd, SCMD_NEWCRAFT_SUPPLYORDER);
   return 1;
 }
 
