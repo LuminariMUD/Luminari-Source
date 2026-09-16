@@ -365,6 +365,10 @@ def main():
                 "/workspace",
                 "--tmpfs",
                 f"/workspace:exec,mode=0755,uid={os.getuid()},gid={os.getgid()}",
+                # The Coverage job turns off address randomization with setarch,
+                # which Docker's default seccomp profile refuses.
+                "--security-opt",
+                "seccomp=unconfined",
                 "-v",
                 f"{source}:/input/source.tar:ro",
                 *(["-v", f"{Path(directory, 'base.tar')}:/input/base.tar:ro"] if base else []),

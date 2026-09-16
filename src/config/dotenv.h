@@ -16,4 +16,9 @@ char *get_env_value(const char *key);
 int get_env_int(const char *key, int default_value);
 bool get_env_bool(const char *key, bool default_value);
 
+#ifdef LUMINARI_CUTEST
+struct stat;
+bool dotenv_same_file_for_test(const struct stat *first, const struct stat *second);
+#endif
+
 #endif /* DOTENV_H */
