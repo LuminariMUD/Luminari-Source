@@ -38,27 +38,30 @@ static char *replace_string(const char *str, const char *weapon_singular, const 
 {
   static char buf[MEDIUM_STRING] = {'\0'};
   char *cp = buf;
+  const char *const end = buf + sizeof(buf) - 1; /* keep a byte for the terminator */
 
   for (; *str; str++)
   {
-    if (*str == '#')
+    /* a trailing '#' is literal text; consuming it would step past the end */
+    if (*str == '#' && *(str + 1) != '\0')
     {
       switch (*(++str))
       {
       case 'W':
-        for (; *weapon_plural; *(cp++) = *(weapon_plural++))
+        for (; *weapon_plural && cp < end; *(cp++) = *(weapon_plural++))
           ;
         break;
       case 'w':
-        for (; *weapon_singular; *(cp++) = *(weapon_singular++))
+        for (; *weapon_singular && cp < end; *(cp++) = *(weapon_singular++))
           ;
         break;
       default:
-        *(cp++) = '#';
+        if (cp < end)
+          *(cp++) = '#';
         break;
       }
     }
-    else
+    else if (cp < end)
       *(cp++) = *str;
 
     *cp = 0;
@@ -75,6 +78,16 @@ void dam_message(int dam, struct char_data *ch, struct char_data *victim, int w_
   const char *ranged_to_room;
   const char *ranged_to_char;
   const char *ranged_to_victim;
+
+  /* The text below indexes attack_hit_text[] by w_type - TYPE_HIT, and that
+     table has exactly NUM_ATTACK_TYPES entries. Refuse anything else here
+     rather than trust every caller to have checked IS_WEAPON() first. */
+  if (!IS_WEAPON(w_type))
+  {
+    log("SYSERR: dam_message: w_type %d outside the weapon range [%d, %d)", w_type,
+        TOP_ATTACK_TYPES, BOT_WEAPON_TYPES);
+    return;
+  }
 
   hp = GET_HIT(victim);
   if (GET_HIT(victim) < 1)
@@ -321,6 +334,9 @@ void dam_message(int dam, struct char_data *ch, struct char_data *victim, int w_
   }
   else
   {
+    /* Victim is at POS_DEAD: nothing is rendered. dam_weapons[] has no death
+       text; a killing blow's line comes from the skill-message path and the
+       death notice from damage_with_projectile(). See combat_messages.h. */
   }
 }
 
@@ -344,6 +360,8 @@ int skill_message_with_projectile(int dam, struct char_data *ch, struct char_dat
   struct obj_data *opponent_weapon = GET_EQ(vict, WEAR_WIELD_1);
   struct obj_data *weap = GET_EQ(ch, WEAR_WIELD_1);
   struct obj_data *shield = NULL;
+  /* Tracked separately from weap, which the ranged and shield paths overwrite. */
+  struct obj_data *trelux_claws = NULL;
   bool is_ranged = FALSE;
 
   if (DEBUGMODE)
@@ -366,10 +384,13 @@ int skill_message_with_projectile(int dam, struct char_data *ch, struct char_dat
   else if (dualing == 1)
     weap = GET_EQ(ch, WEAR_WIELD_OFFHAND);
 
-  /* special handling for Trelux */
+  /* special handling for Trelux: a stand-in object gives act() a $p to name
+     their natural attack. It is never handed to anyone and is extracted at the
+     single exit below. */
   if (GET_RACE(ch) == RACE_TRELUX)
   {
-    weap = read_object(TRELUX_CLAWS, VIRTUAL);
+    trelux_claws = read_object(TRELUX_CLAWS, VIRTUAL);
+    weap = trelux_claws;
     attacktype = TYPE_CLAW;
   }
 
@@ -453,7 +474,8 @@ int skill_message_with_projectile(int dam, struct char_data *ch, struct char_dat
                   FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
             }
 
-            return SKILL_MESSAGE_DEATH_BLOW; /* no reason to stay here */
+            return_value = SKILL_MESSAGE_DEATH_BLOW; /* no reason to stay here */
+            goto release_claws;
           }
           else
           {
@@ -471,7 +493,8 @@ int skill_message_with_projectile(int dam, struct char_data *ch, struct char_dat
 
             act(msg->die_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
 
-            return SKILL_MESSAGE_DEATH_BLOW;
+            return_value = SKILL_MESSAGE_DEATH_BLOW;
+            goto release_claws;
           }
         }
         else
@@ -509,7 +532,8 @@ int skill_message_with_projectile(int dam, struct char_data *ch, struct char_dat
                for condensed combat mode handling -zusuk */
           act(msg->hit_msg.room_msg, ACT_CONDENSE_VALUE, ch, weap, vict, TO_NOTVICT);
 
-          return SKILL_MESSAGE_GENERIC_HIT;
+          return_value = SKILL_MESSAGE_GENERIC_HIT;
+          goto release_claws;
         } /* end 'did some damage but not dead' section */
 
       } /* end if-check for situation where we did some damage */
@@ -531,9 +555,6 @@ int skill_message_with_projectile(int dam, struct char_data *ch, struct char_dat
 
         /* do we have armor that can stop a blow? */
         struct obj_data *armor = GET_EQ(vict, WEAR_BODY);
-        int armor_val = -1;
-        if (armor)
-          armor_val = GET_OBJ_VAL(armor, 1); /* armor type */
 
         /* insert more colorful defensive messages here */
 
@@ -612,7 +633,9 @@ int skill_message_with_projectile(int dam, struct char_data *ch, struct char_dat
 
           /* glance off armor */
         }
-        else if (armor && armor_list[armor_val].armorType > ARMOR_TYPE_NONE && !rand_number(0, 2))
+        /* value[1] is only an armor_list[] index on an ITEM_ARMOR, but any item
+           type can carry the BODY wear flag; GET_ARMOR_TYPE_PROF() checks. */
+        else if (armor && GET_ARMOR_TYPE_PROF(armor) > ARMOR_TYPE_NONE && !rand_number(0, 2))
         {
           return_value = SKILL_MESSAGE_MISS_GLANCE;
 
@@ -692,11 +715,17 @@ int skill_message_with_projectile(int dam, struct char_data *ch, struct char_dat
         }
       } /* this ends our check for a scenario where no damage is inflicted */
 
-      return (return_value);
+      goto release_claws;
     } /* attacktype check */
   } /* for loop for damage messages */
 
-  return (return_value); /* did not find a message to use? */
+  /* did not find a message to use? */
+
+release_claws:
+  if (trelux_claws != NULL)
+    extract_obj(trelux_claws);
+
+  return (return_value);
 }
 
 #undef TRELUX_CLAWS

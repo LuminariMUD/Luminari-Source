@@ -62,8 +62,17 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict, int att
                   int attack_mode);
 
 /* Generic weapon damage text, scaled by the fraction of the victim's health
- * removed. This is the fallback used when no skill message matches, and it
- * always produces output. projectile may be NULL. */
+ * removed. This is the fallback used when no skill message matches.
+ *
+ * w_type must satisfy IS_WEAPON() (structs.h): it indexes attack_hit_text[],
+ * so any other value is rejected with a SYSERR and renders nothing.
+ *
+ * Renders nothing when the victim is at POS_DEAD. dam_weapons[] has no death
+ * text: a killing blow's line comes from skill_message_with_projectile() and
+ * the death notice from damage_with_projectile() in fight.c. A killing blow
+ * with no authored message therefore has no fallback here.
+ *
+ * projectile may be NULL. */
 void dam_message(int dam, struct char_data *ch, struct char_data *victim, int w_type,
                  int attack_type, struct obj_data *projectile);
 

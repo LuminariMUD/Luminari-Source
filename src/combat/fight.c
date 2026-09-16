@@ -160,8 +160,6 @@ static void solo_gain(struct char_data *ch, struct char_data *victim);
 static int award_kill_experience(struct char_data *ch, int exp, int mode);
 static int cap_combat_damage(struct char_data *ch, int dam, int w_type);
 
-#define IS_WEAPON(type) (((type) >= TOP_ATTACK_TYPES) && ((type) < BOT_WEAPON_TYPES))
-
 /************ utility functions *********************/
 
 /* function to create/initialize/reset the condensed combat mode */
@@ -6077,8 +6075,19 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
         }
         else if (!skill_message_with_projectile(dam, ch, victim, w_type, attack_type, projectile))
         {
-          /* no skill_message? try dam_message */
-          dam_message(dam, ch, victim, w_type, attack_type, projectile);
+          if (GET_POS(victim) == POS_DEAD)
+          {
+            /* dam_message() renders nothing for a dead victim, so there is no
+               fallback left. The "is dead!" notice below still fires, but the
+               killing blow itself goes undescribed: lib/misc/messages has no
+               block for this attack type. */
+            log("SYSERR: damage: no death message for attack type %d", w_type);
+          }
+          else
+          {
+            /* no skill_message? try dam_message */
+            dam_message(dam, ch, victim, w_type, attack_type, projectile);
+          }
         }
 
         /* landed a normal weapon attack hit */
