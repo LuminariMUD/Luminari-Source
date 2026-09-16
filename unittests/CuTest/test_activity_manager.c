@@ -549,9 +549,9 @@ void Test_primary_activity_turn_hook_is_semantic_only(CuTest *tc)
   FIGHTING(&fixture.actor) = &fixture.target;
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, combat_encounter_runtime_init(NULL));
   combat_encounter_test_set_phase_callback(activity_test_attack_phase, &phases);
-  CuAssertTrue(tc, combat_encounter_join(&fixture.actor, &fixture.target, 2 RL_SEC));
+  CuAssertTrue(tc, combat_encounter_join(&fixture.actor, &fixture.target, ((long)(2 RL_SEC))));
   CuAssertTrue(tc, activity_test_start(&fixture, &definition));
-  for (tick = start + 1U; tick < start + (6 RL_SEC); tick++)
+  for (tick = start + 1U; tick < start + ((unsigned long)(6 RL_SEC)); tick++)
   {
     pulse = tick;
     event_test_advance();
@@ -562,7 +562,7 @@ void Test_primary_activity_turn_hook_is_semantic_only(CuTest *tc)
   event_test_advance();
   CuAssertIntEquals(tc, 3, (int)phases);
   CuAssertIntEquals(tc, 1, (int)fixture.context.progress_calls);
-  for (tick = pulse + 1U; tick < start + (12 RL_SEC); tick++)
+  for (tick = pulse + 1U; tick < start + ((unsigned long)(12 RL_SEC)); tick++)
   {
     pulse = tick;
     event_test_advance();

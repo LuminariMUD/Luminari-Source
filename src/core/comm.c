@@ -1207,7 +1207,7 @@ static void comm_process_descriptor_commands(struct descriptor_data *d)
        */
       web_onboarding_mark_dirty(d);
     }
-    else
+    else if (d->character != NULL)
     {                                                /* else: we're playing normally. */
       if (aliased)                                   /* To prevent recursive aliases. */
         d->has_prompt = TRUE;                        /* To get newline before next cmd output. */

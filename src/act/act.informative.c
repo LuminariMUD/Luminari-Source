@@ -2077,7 +2077,7 @@ ACMD(do_initiative)
     name_width = MAX(1, screen_width - 27 - (int)strlen(suffix));
     append_where_output(&output, "%2zu. %4d  %5u  %8.1f  %s%.*s%s%s\r\n", index + 1U,
                         entries[index].initiative, entries[index].phase,
-                        (double)entries[index].pulses_until_phase / (double)PASSES_PER_SEC,
+                        (double)entries[index].pulses_until_phase * (double)OPT_USEC / 1000000.0,
                         entries[index].character == ch ? CCGRN(ch, C_SPR) : "", name_width, name,
                         entries[index].character == ch ? CCNRM(ch, C_SPR) : "", suffix);
   }
