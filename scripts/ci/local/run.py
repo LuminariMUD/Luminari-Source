@@ -110,7 +110,9 @@ def container_job():
         subprocess.run(["tar", "-xf", "/input/base.tar"], check=True)
         subprocess.run(["git", "add", "-f", "."], check=True)
         subprocess.run([*git, "commit", "-qm", f"Local CI base {job['base']}"], check=True)
-        for entry in Path(".").iterdir():
+        # The listing is materialized first: removing entries while iterating a
+        # directory can skip some, which would leave base files in the snapshot.
+        for entry in list(Path(".").iterdir()):
             if entry.name == ".git":
                 continue
             if entry.is_dir() and not entry.is_symlink():
