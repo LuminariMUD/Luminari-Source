@@ -6,6 +6,8 @@
 #ifndef _METAMAGIC_SCIENCE_H_
 #define _METAMAGIC_SCIENCE_H_
 
+#include "core/structs.h"
+
 /* Function prototypes */
 
 /* Parse metamagic arguments for consumable items

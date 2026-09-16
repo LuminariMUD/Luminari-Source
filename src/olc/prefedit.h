@@ -10,6 +10,9 @@
 **************************************************************************/
 
 /* Toggle structure held for OLC purposes */
+#include "core/structs.h"
+#include "core/utils.h"
+
 struct prefs_data
 {
   struct char_data *ch;         /* Pointer to char being edited   */

@@ -11,6 +11,9 @@
 #ifndef MOVEMENT_DOORS_H
 #define MOVEMENT_DOORS_H
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 /* Door macros - moved from movement.c */
 #define DOOR_IS_OPENABLE(ch, obj, door)                                                            \
   ((obj) ? (((GET_OBJ_TYPE(obj) == ITEM_CONTAINER) || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH) &&     \

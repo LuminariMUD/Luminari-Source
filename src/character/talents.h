@@ -11,6 +11,9 @@
 #ifndef _TALENTS_H_
 #define _TALENTS_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 #include "core/sysdep.h"
 #include "core/structs.h"
 

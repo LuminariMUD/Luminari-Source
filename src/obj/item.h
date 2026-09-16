@@ -7,6 +7,8 @@
 #ifndef ITEM_H
 #define ITEM_H
 
+#include "core/structs.h"
+
 #ifdef __cplusplus
 extern "C"
 {

@@ -11,6 +11,8 @@
 #ifndef _MOB_SPELLS_H_
 #define _MOB_SPELLS_H_
 
+#include "core/structs.h"
+
 /* Defines for spell arrays */
 #define OFFENSIVE_SPELLS 60
 #define OFFENSIVE_AOE_SPELLS 16

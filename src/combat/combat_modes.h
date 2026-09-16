@@ -15,6 +15,9 @@
 #ifndef _COMBAT_MODES_H_
 #define _COMBAT_MODES_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 /* our cap for combat modes */
 #define MODE_CAP 5
 

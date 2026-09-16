@@ -13,6 +13,8 @@
 #ifndef _MUD_EVENT_H_
 #define _MUD_EVENT_H_
 
+#include "core/structs.h"
+
 #include "event_runtime.h"
 #include "mud_event_callback.h"
 

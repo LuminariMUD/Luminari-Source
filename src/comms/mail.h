@@ -13,6 +13,8 @@
 #ifndef _MAIL_H_
 #define _MAIL_H_
 
+#include "core/structs.h"
+
 /* You can modify the following constants to fit your own MUD.  */
 
 /* minimum level a player must be to send mail	*/

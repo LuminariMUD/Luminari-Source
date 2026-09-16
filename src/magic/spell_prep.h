@@ -56,6 +56,9 @@
 
 #pragma once
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 #ifdef __cplusplus
 extern "C"
 {

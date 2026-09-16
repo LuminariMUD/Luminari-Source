@@ -9,6 +9,9 @@
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 /* adjusted to return number of NEW mail and added 'silent' mode -zusuk */
+#include "core/structs.h"
+#include "core/utils.h"
+
 int new_mail_alert(struct char_data *ch, bool silent);
 bool new_mail_send_system(const char *receiver, const char *subject, const char *message);
 

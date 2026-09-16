@@ -2,6 +2,9 @@
 #ifndef _EVOLUTIONS_H_
 #define _EVOLUTIONS_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 #define EVOLUTION_REQ_TYPE_NONE 0 // default, means no requirements
 #define EVOLUTION_REQ_TYPE_ALL 1  // requires all of the evolutions listed
 #define EVOLUTION_REQ_TYPE_ANY 2  // requires any of the evolutions listed

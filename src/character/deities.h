@@ -16,6 +16,8 @@
  */
 
 /* Universal deity constant - represents no deity worship */
+#include "core/structs.h"
+
 #define DEITY_NONE 0
 
 /* ============================================================================

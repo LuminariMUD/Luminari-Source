@@ -8,6 +8,9 @@
 #ifndef LUMINARI_CHARACTER_SKILL_LISTS_H
 #define LUMINARI_CHARACTER_SKILL_LISTS_H
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 #include "magic/spells.h"
 
 struct char_data;

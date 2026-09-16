@@ -11,6 +11,9 @@
 #ifndef ASCIIMAP_H_
 #define ASCIIMAP_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 /* Map options (settable in cedit) */
 #define MAP_OFF 0
 #define MAP_ON 1

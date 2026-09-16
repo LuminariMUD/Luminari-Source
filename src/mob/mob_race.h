@@ -11,6 +11,8 @@
 #ifndef _MOB_RACE_H_
 #define _MOB_RACE_H_
 
+#include "core/structs.h"
+
 /* Function prototypes for mob racial behaviors */
 
 /* handle racial-specific behaviors for NPCs */

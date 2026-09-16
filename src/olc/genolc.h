@@ -12,6 +12,9 @@
 #ifndef _GENOLC_H_
 #define _GENOLC_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 #define STRING_TERMINATOR '~'
 #define CONFIG_GENOLC_MOBPROG 0
 

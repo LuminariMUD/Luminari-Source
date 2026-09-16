@@ -8,6 +8,8 @@
 #ifndef _NARRATIVE_WEAVER_H_
 #define _NARRATIVE_WEAVER_H_
 
+#include "core/structs.h"
+
 /* Structure for holding narrative components */
 struct narrative_components
 {

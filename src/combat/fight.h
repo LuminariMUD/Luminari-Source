@@ -13,6 +13,8 @@
 #ifndef _FIGHT_H_
 #define _FIGHT_H_
 
+#include "core/structs.h"
+
 /* Structures and defines */
 #define MODE_ARMOR_CLASS_NORMAL 0
 #define MODE_ARMOR_CLASS_COMBAT_MANEUVER_DEFENSE 1

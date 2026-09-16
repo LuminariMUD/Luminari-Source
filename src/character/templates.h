@@ -1,3 +1,6 @@
+#include "core/structs.h"
+#include "core/utils.h"
+#include "core/interpreter.h"
 
 
 // defines
@@ -27,8 +30,8 @@ void set_template(struct char_data *ch, int template_type);
 void show_level_history(struct char_data *ch, int level);
 long get_level_id_by_level_num(int level_num, const char *chname);
 void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, const char *chname);
-void display_levelinfo_feats(char_data *ch, int feat_num, int subfeat);
-void display_levelinfo_ability_scores(char_data *ch, int ability_score);
+void display_levelinfo_feats(struct char_data *ch, int feat_num, int subfeat);
+void display_levelinfo_ability_scores(struct char_data *ch, int ability_score);
 void erase_levelup_info(struct char_data *ch);
 void levelinfo_search(struct char_data *ch, int type, char *searchString);
 

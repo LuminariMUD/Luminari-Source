@@ -16,6 +16,8 @@
 #ifndef CASTING_VISUALS_H
 #define CASTING_VISUALS_H
 
+#include "core/structs.h"
+
 #ifdef __cplusplus
 extern "C"
 {

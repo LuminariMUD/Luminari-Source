@@ -6,6 +6,8 @@
 #ifndef LUMINARI_VESSELS_LEGACY_H
 #define LUMINARI_VESSELS_LEGACY_H
 
+#include "core/structs.h"
+
 struct char_data;
 
 int alandor_ferry(struct char_data *ch, void *me, int cmd, const char *argument);

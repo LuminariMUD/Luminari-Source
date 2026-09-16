@@ -5,6 +5,9 @@
 #ifndef _ACTIONQUEUES_H_
 #define _ACTIONQUEUES_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 #define MAX_QUEUE_SIZE 10
 
 #define SCMD_ACTION_QUEUE 0

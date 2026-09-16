@@ -9,6 +9,9 @@
 #ifndef _FEATS_H_
 #define _FEATS_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 /* Below is the structure for a feat */
 struct feat_info
 {

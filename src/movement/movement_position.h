@@ -11,6 +11,9 @@
 #ifndef MOVEMENT_POSITION_H
 #define MOVEMENT_POSITION_H
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 /* Function declarations for position changes */
 bool can_stand(struct char_data *ch);
 int change_position(struct char_data *ch, int new_position);

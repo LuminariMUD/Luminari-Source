@@ -11,6 +11,9 @@
 #ifndef MOVEMENT_H
 #define MOVEMENT_H
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 /* Include sub-module headers */
 #include "movement_validation.h"
 #include "movement_cost.h"

@@ -6,6 +6,9 @@
 #ifndef _PERKS_H_
 #define _PERKS_H_
 
+#include "core/structs.h"
+#include "core/utils.h"
+
 #include "events/mud_event.h"
 
 /* External declarations */

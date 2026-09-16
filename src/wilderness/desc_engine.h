@@ -8,6 +8,8 @@
 #ifndef DESC_ENGINE_H
 #define DESC_ENGINE_H
 
+#include "core/structs.h"
+
 char *gen_room_description(struct char_data *ch, room_rnum room);
 
 #endif /* DESC_ENGINE_H */

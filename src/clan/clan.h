@@ -6,6 +6,9 @@ Clan Header File
 */
 
 /* Standard clan privs */
+#include "core/structs.h"
+#include "core/utils.h"
+
 #define CP_NONE -2 /**< RESERVED! - Special case for 'no players'     */
 #define CP_ALL -1  /**< RESERVED! - Special case for 'all players'    */
 #define CP_AWARD 0 /**< Clan Priv: Award clan points to a clan member */
