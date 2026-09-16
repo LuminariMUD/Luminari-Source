@@ -6322,7 +6322,7 @@ ACMD(do_list_craft_materials)
   text_line(ch, "HARD METALS", 80, '-', '-');
   send_to_char(ch, "\tn");
 
-  for (i = 2; i < NUM_CRAFT_MATS; i++)
+  for (i = 1; i < NUM_CRAFT_MATS; i++)
   {
     mat = materials_sort_info[i];
     if (craft_group_by_material(mat) != CRAFT_GROUP_HARD_METALS)
@@ -6341,7 +6341,7 @@ ACMD(do_list_craft_materials)
   text_line(ch, "SOFT METALS", 80, '-', '-');
   send_to_char(ch, "\tn");
 
-  for (i = 2; i < NUM_CRAFT_MATS; i++)
+  for (i = 1; i < NUM_CRAFT_MATS; i++)
   {
     mat = materials_sort_info[i];
     if (craft_group_by_material(mat) != CRAFT_GROUP_SOFT_METALS)
@@ -6361,7 +6361,7 @@ ACMD(do_list_craft_materials)
   text_line(ch, "HIDES", 80, '-', '-');
   send_to_char(ch, "\tn");
 
-  for (i = 2; i < NUM_CRAFT_MATS; i++)
+  for (i = 1; i < NUM_CRAFT_MATS; i++)
   {
     mat = materials_sort_info[i];
     if (craft_group_by_material(mat) != CRAFT_GROUP_HIDES)
@@ -6381,7 +6381,7 @@ ACMD(do_list_craft_materials)
   text_line(ch, "WOOD", 80, '-', '-');
   send_to_char(ch, "\tn");
 
-  for (i = 2; i < NUM_CRAFT_MATS; i++)
+  for (i = 1; i < NUM_CRAFT_MATS; i++)
   {
     mat = materials_sort_info[i];
     if (craft_group_by_material(mat) != CRAFT_GROUP_WOOD)
@@ -6400,7 +6400,7 @@ ACMD(do_list_craft_materials)
   text_line(ch, "CLOTH", 80, '-', '-');
   send_to_char(ch, "\tn");
 
-  for (i = 2; i < NUM_CRAFT_MATS; i++)
+  for (i = 1; i < NUM_CRAFT_MATS; i++)
   {
     mat = materials_sort_info[i];
     if (craft_group_by_material(mat) != CRAFT_GROUP_CLOTH)
@@ -6420,7 +6420,7 @@ ACMD(do_list_craft_materials)
   text_line(ch, "STONE", 80, '-', '-');
   send_to_char(ch, "\tn");
 
-  for (i = 2; i < NUM_CRAFT_MATS; i++)
+  for (i = 1; i < NUM_CRAFT_MATS; i++)
   {
     mat = materials_sort_info[i];
     if (craft_group_by_material(mat) != CRAFT_GROUP_STONE)
@@ -6440,7 +6440,7 @@ ACMD(do_list_craft_materials)
   text_line(ch, "REFINING MATERIALS", 80, '-', '-');
   send_to_char(ch, "\tn");
 
-  for (i = 2; i < NUM_CRAFT_MATS; i++)
+  for (i = 1; i < NUM_CRAFT_MATS; i++)
   {
     mat = materials_sort_info[i];
     if (craft_group_by_material(mat) != CRAFT_GROUP_REFINING)
@@ -6493,7 +6493,7 @@ void sort_materials(void)
   for (a = 1; a < NUM_CRAFT_MATS; a++)
     materials_sort_info[a] = a;
 
-  qsort(&materials_sort_info[1], NUM_CRAFT_MATS, sizeof(int), compare_materials);
+  qsort(&materials_sort_info[1], NUM_CRAFT_MATS - 1, sizeof(int), compare_materials);
 }
 
 int craft_skill_level_exp(struct char_data *ch, int level)

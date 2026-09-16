@@ -1255,6 +1255,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_craft_training.c
     unittests/CuTest/test_binary_formats.c
     unittests/CuTest/test_binary_file_persistence.c
+    unittests/CuTest/test_crafting_projects.c
 )
 
 # The focused protocol and binary format harnesses are built by

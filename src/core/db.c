@@ -747,6 +747,12 @@ void boot_world(void)
       reset_harvesting_rooms();
   }
 
+  /* The materials-and-motes crafting system (crafting_system 2) reads these static tables. */
+  log("Populating crafting recipes.");
+  populate_crafting_recipes();
+  log("Sorting crafting materials.");
+  sort_materials();
+
 
   log("Loading quests.");
   index_boot(DB_BOOT_QST);
