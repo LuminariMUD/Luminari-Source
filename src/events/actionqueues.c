@@ -18,7 +18,6 @@
 #include "actionqueues.h"
 #include "mud_event.h"
 #include "actions.h"
-#include "combat/combat_encounters.h"
 
 /* Initialize the queue, must be performed on any new queues. */
 static struct queue_type *create_queue()
@@ -238,8 +237,6 @@ void execute_next_action(struct char_data *ch)
     return;
 
   if (!command_actions_available(ch, action->actions_required))
-    return;
-  if (!combat_encounter_intent_claim(ch))
     return;
 
   action = dequeue_action(GET_QUEUE(ch));

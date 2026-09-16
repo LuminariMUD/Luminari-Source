@@ -2048,7 +2048,6 @@ ACMD(do_initiative)
   struct where_output_buffer output = {NULL, 0, 0, FALSE};
   const char *name;
   const char *suffix;
-  uint64_t seconds_until_round;
   size_t index;
   int name_width;
   int screen_width;
@@ -2068,21 +2067,17 @@ ACMD(do_initiative)
   if (screen_width < 40)
     screen_width = 80;
   screen_width = MIN(screen_width, 120);
-  seconds_until_round =
-      (snapshot.pulses_until_round + (uint64_t)PASSES_PER_SEC - 1U) / (uint64_t)PASSES_PER_SEC;
-  append_where_output(&output, "Initiative - Round %llu\r\n",
-                      (unsigned long long)snapshot.round_number);
-  append_where_output(&output, "Next round in %llu second%s.\r\n\r\n",
-                      (unsigned long long)seconds_until_round,
-                      seconds_until_round == 1U ? "" : "s");
-  append_where_output(&output, " #  Roll  Combatant\r\n");
-  append_where_output(&output, "--  ----  ---------\r\n");
+  append_where_output(&output, "Initiative - Upcoming combat phases\r\n");
+  append_where_output(&output, " #  Roll  Phase  In (sec)  Combatant\r\n");
+  append_where_output(&output, "--  ----  -----  --------  ---------\r\n");
   for (index = 0; index < snapshot.entry_count; index++)
   {
     name = PERS(entries[index].character, ch);
     suffix = entries[index].character == ch ? " (you)" : "";
-    name_width = MAX(1, screen_width - 11 - (int)strlen(suffix));
-    append_where_output(&output, "%2zu. %4d  %s%.*s%s%s\r\n", index + 1U, entries[index].initiative,
+    name_width = MAX(1, screen_width - 27 - (int)strlen(suffix));
+    append_where_output(&output, "%2zu. %4d  %5u  %8.1f  %s%.*s%s%s\r\n", index + 1U,
+                        entries[index].initiative, entries[index].phase,
+                        (double)entries[index].pulses_until_phase / (double)PASSES_PER_SEC,
                         entries[index].character == ch ? CCGRN(ch, C_SPR) : "", name_width, name,
                         entries[index].character == ch ? CCNRM(ch, C_SPR) : "", suffix);
   }
