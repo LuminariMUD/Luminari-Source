@@ -32,16 +32,19 @@ void House_save_control(void);
 
 static bool write_test_file(const char *path, const unsigned char *data, size_t size)
 {
-  FILE *file = fopen(path, "wb");
+  FILE *file;
   bool written;
 
+  if (data == NULL)
+    return false;
+  file = fopen(path, "wb");
   if (file == NULL)
     return false;
   written = fwrite(data, 1, size, file) == size;
   return fclose(file) == 0 && written;
 }
 
-/* Returns the file's bytes (NULL when absent) with one spare byte. */
+/* Returns the file's bytes, or NULL when it is absent or unreadable. */
 static unsigned char *read_test_file(const char *path, size_t *size)
 {
   unsigned char *data;
@@ -141,7 +144,6 @@ void Test_board_legacy_file_upgrades_once_and_keeps_a_backup(CuTest *tc)
 
   legacy = binary_format_fixture(FIXTURE_LEGACY_BOARD_FILE, &legacy_size);
   current = binary_format_fixture(FIXTURE_CURRENT_BOARD_FILE, &current_size);
-  CuAssertTrue(tc, legacy != NULL && current != NULL);
   board_file_fixture_enter(tc, &fixture);
   CuAssertTrue(tc, write_test_file(board_info[0].filename, legacy, legacy_size));
 
@@ -176,7 +178,6 @@ void Test_board_file_that_cannot_be_decoded_is_moved_aside(CuTest *tc)
   int version = -1;
 
   corrupt = binary_format_fixture(FIXTURE_CURRENT_BOARD_FILE, &corrupt_size);
-  CuAssertPtrNotNull(tc, corrupt);
   corrupt[40] ^= 0x01; /* a heading byte: the checksum no longer matches */
   board_file_fixture_enter(tc, &fixture);
   CuAssertTrue(tc, write_test_file(board_info[0].filename, corrupt, corrupt_size));
@@ -226,7 +227,6 @@ void Test_board_save_killed_mid_write_keeps_the_previous_file(CuTest *tc)
   larger_board[2].heading = CuMutableString("Third replacement post");
   larger_board[2].message = NULL;
   current = binary_format_fixture(FIXTURE_CURRENT_BOARD_FILE, &current_size);
-  CuAssertPtrNotNull(tc, current);
   CuAssertIntEquals(tc, BINARY_FORMAT_OK,
                     board_file_encode(larger_board, 3, &replacement, &replacement_size));
   CuAssertTrue(tc, replacement_size > limit && current_size > limit);
@@ -292,7 +292,8 @@ static void temp_lib_fixture_enter(CuTest *tc, struct temp_lib_fixture *fixture)
   CuAssertIntEquals(tc, 0, mkdir("etc", 0700));
 
   fixture->saved_houses = malloc(sizeof(house_control));
-  CuAssertPtrNotNull(tc, fixture->saved_houses);
+  if (fixture->saved_houses == NULL)
+    abort();
   memcpy(fixture->saved_houses, house_control, sizeof(house_control));
   fixture->saved_count = num_of_houses;
   fixture->saved_table = player_table;
@@ -330,7 +331,6 @@ void Test_house_control_file_upgrades_legacy_data_and_saves_the_current_format(C
 
   legacy = binary_format_fixture(FIXTURE_LEGACY_HOUSE_FILE, &legacy_size);
   current = binary_format_fixture(FIXTURE_CURRENT_HOUSE_FILE, &current_size);
-  CuAssertTrue(tc, legacy != NULL && current != NULL);
   temp_lib_fixture_enter(tc, &fixture);
   CuAssertTrue(tc, write_test_file(HCONTROL_FILE, legacy, legacy_size));
 
@@ -388,7 +388,6 @@ void Test_house_boot_moves_an_undecodable_control_file_aside(CuTest *tc)
   char rejected[PATH_MAX];
 
   corrupt = binary_format_fixture(FIXTURE_CURRENT_HOUSE_FILE, &corrupt_size);
-  CuAssertPtrNotNull(tc, corrupt);
   corrupt[30] ^= 0x10; /* a house field: the checksum no longer matches */
   temp_lib_fixture_enter(tc, &fixture);
   CuAssertTrue(tc, write_test_file(HCONTROL_FILE, corrupt, corrupt_size));
@@ -414,7 +413,6 @@ void Test_last_all_lists_the_retired_login_log(CuTest *tc)
   bool listed, unreadable;
 
   log_file = binary_format_fixture(FIXTURE_LEGACY_LAST_LOG, &log_size);
-  CuAssertPtrNotNull(tc, log_file);
   temp_lib_fixture_enter(tc, &fixture);
   CuAssertTrue(tc, write_test_file(LAST_FILE, log_file, log_size));
 

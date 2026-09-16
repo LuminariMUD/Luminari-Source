@@ -599,6 +599,11 @@ enum binary_format_status house_file_decode(const unsigned char *data, size_t si
     if (legacy)
     {
       bytes = take(&reader, LEGACY_HOUSE_RECORD_SIZE);
+      if (!bytes)
+      {
+        status = BINARY_FORMAT_TRUNCATED;
+        break;
+      }
       decode_legacy_house(bytes, &decoded[index]);
       if (decoded[index].num_of_guests < 0 || decoded[index].num_of_guests > HOUSE_FILE_MAX_GUESTS)
         status = BINARY_FORMAT_LIMIT_EXCEEDED;

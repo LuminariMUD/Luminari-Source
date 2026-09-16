@@ -6417,8 +6417,8 @@ enum durable_file_read read_durable_file(const char *path, size_t max_size, unsi
     return DURABLE_FILE_UNREADABLE;
   }
   length = (size_t)status.st_size;
-  CREATE(buffer, unsigned char, length + 1);
-  if (fread(buffer, 1, length, stream) != length || fgetc(stream) != EOF)
+  buffer = malloc(length > 0 ? length : 1);
+  if (!buffer || fread(buffer, 1, length, stream) != length || fgetc(stream) != EOF)
   {
     log("SYSERR: Unable to read %s in full.", path);
     free(buffer);
@@ -6457,9 +6457,9 @@ static bool write_durable_file(const char *path, const unsigned char *data, size
 
 /** Atomically replaces path with data. When path holds a non-empty file that
  * does not start with current_magic, that file is first copied to
- * "<path>.legacy-<crc32>", once per distinct content, so upgrading a legacy
- * file never discards it. The replacement is refused when the current file
- * cannot be read or preserved. */
+ * "<path>.legacy-<crc32>", so upgrading a legacy file never discards it. The
+ * name follows the content, so repeating the copy rewrites the same bytes. The
+ * replacement is refused when the current file cannot be read or preserved. */
 bool replace_durable_file(const char *path, const char *current_magic, size_t max_size,
                           const unsigned char *data, size_t size)
 {
@@ -6482,14 +6482,10 @@ bool replace_durable_file(const char *path, const char *current_magic, size_t ma
     {
       length = snprintf(backup_path, sizeof(backup_path), "%s.legacy-%08" PRIx32, path,
                         binary_format_crc32(existing, existing_size));
-      if (length < 0 || (size_t)length >= sizeof(backup_path))
-        preserved = false;
-      else if (access(backup_path, F_OK) != 0)
-      {
-        preserved = write_durable_file(backup_path, existing, existing_size);
-        if (preserved)
-          log("Preserved the legacy %s as %s before upgrading its format.", path, backup_path);
-      }
+      preserved = length >= 0 && (size_t)length < sizeof(backup_path) &&
+                  write_durable_file(backup_path, existing, existing_size);
+      if (preserved)
+        log("Preserved the legacy %s as %s before upgrading its format.", path, backup_path);
     }
     free(existing);
     break;
@@ -6502,26 +6498,18 @@ bool replace_durable_file(const char *path, const char *current_magic, size_t ma
   return write_durable_file(path, data, size);
 }
 
-/** Renames a file the server refused to load to "<path>.rejected-<time>" (with
- * a counter suffix if needed) so that no later save overwrites it. */
+/** Renames a file the server refused to load to "<path>.rejected-<time>-<pid>"
+ * so that no later save overwrites it. A process loads each file once, so the
+ * name cannot collide with an earlier rejection. */
 void quarantine_durable_file(const char *path)
 {
   char target[PATH_MAX];
-  long stamp = (long)time(0);
-  int attempt, length;
+  int length;
 
-  for (attempt = 0; attempt < 100; attempt++)
+  length =
+      snprintf(target, sizeof(target), "%s.rejected-%ld-%ld", path, (long)time(0), (long)getpid());
+  if (length >= 0 && (size_t)length < sizeof(target) && rename(path, target) == 0)
   {
-    if (attempt == 0)
-      length = snprintf(target, sizeof(target), "%s.rejected-%ld", path, stamp);
-    else
-      length = snprintf(target, sizeof(target), "%s.rejected-%ld-%d", path, stamp, attempt);
-    if (length < 0 || (size_t)length >= sizeof(target))
-      break;
-    if (access(target, F_OK) == 0)
-      continue;
-    if (rename(path, target) != 0)
-      break;
     log("SYSERR: Moved the rejected %s aside to %s; repair it before restoring it.", path, target);
     return;
   }

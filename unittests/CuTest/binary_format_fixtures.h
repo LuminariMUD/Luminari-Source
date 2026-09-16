@@ -18,7 +18,7 @@ enum binary_format_fixture
   FIXTURE_CURRENT_HOUSE_FILE
 };
 
-/* Returns a heap copy of a fixture, with one spare byte, and its size. */
+/* Returns a heap copy of a fixture, with one spare byte, and its size; aborts when out of memory. */
 unsigned char *binary_format_fixture(enum binary_format_fixture fixture, size_t *size);
 
 #endif /* BINARY_FORMAT_FIXTURES_H */
