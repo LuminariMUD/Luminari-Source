@@ -7,6 +7,7 @@
 #include "../../src/core/sysdep.h"
 #include "../../src/core/structs.h"
 #include "../../src/core/utils.h"
+#include "../../src/act/act.h"
 #include "../../src/core/comm.h"
 #include "../../src/core/db.h"
 #include "../../src/core/handler.h"
@@ -959,4 +960,301 @@ void Test_craft_trainer_saves_belongings_once(CuTest *tc)
   CuAssertTrue(tc, !free_left);
   CuAssertIntEquals(tc, 1, rent_rows);
   CuAssertTrue(tc, !rent_left);
+}
+
+void Test_craft_training_main_menu_refuses_entry_while_away(CuTest *tc)
+{
+  struct craft_trainer_fixture fixture;
+  char seen[MAX_STRING_LENGTH], line[] = "1";
+  struct char_data *listed;
+  int state;
+  bool in_play = false;
+
+  craft_trainer_begin(tc, &fixture, "crlock", 4309);
+  craft_trainer_command(&fixture, "apprentice alchemy confirm", seen, sizeof(seen));
+  extract_pending_chars();
+  /* The descriptor now sits at the main menu with the character that just left. */
+  craft_trainer_reset_output(&fixture.descriptor);
+  nanny(&fixture.descriptor, line);
+  snprintf(seen, sizeof(seen), "%s", fixture.descriptor.output);
+  state = STATE(&fixture.descriptor);
+  for (listed = character_list; listed != NULL; listed = listed->next)
+    in_play = in_play || listed == fixture.player;
+  CuAssertIntEquals(tc, 0, craft_trainer_end(&fixture));
+
+  CuAssertIntEquals(tc, CON_MENU, state);
+  CuAssertTrue(tc, !in_play);
+  CuAssertPtrNotNull(tc, strstr(seen, "cannot enter the game from here"));
+  CuAssertPtrNotNull(tc, strstr(seen, "training, 24h 0m left"));
+}
+
+void Test_craft_training_copyover_drops_a_character_leaving_to_train(CuTest *tc)
+{
+  struct craft_trainer_fixture fixture;
+  char seen[MAX_STRING_LENGTH];
+  bool before, leaving;
+
+  craft_trainer_begin(tc, &fixture, "crcopy", 4310);
+  before = copyover_restores_descriptor(&fixture.descriptor);
+  craft_trainer_command(&fixture, "apprentice alchemy confirm", seen, sizeof(seen));
+  /* A copyover later in the same pass runs before the pending extraction. */
+  leaving = copyover_restores_descriptor(&fixture.descriptor);
+  extract_pending_chars();
+  CuAssertIntEquals(tc, 0, craft_trainer_end(&fixture));
+
+  CuAssertTrue(tc, before);
+  CuAssertTrue(tc, !leaving);
+}
+
+/** A connection at the account menu whose account lists one isolated player file. */
+struct craft_account_fixture
+{
+  struct craft_player_files files;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  long id;
+};
+
+static void craft_account_begin(CuTest *tc, struct craft_account_fixture *fixture, const char *tag,
+                                long id)
+{
+  memset(fixture, 0, sizeof(*fixture));
+  craft_player_files_enter(tc, &fixture->files, tag, id);
+  fixture->id = id;
+  fixture->account.character_names[0] = fixture->files.name;
+  fixture->descriptor.account = &fixture->account;
+  STATE(&fixture->descriptor) = CON_ACCOUNT_MENU;
+  craft_trainer_reset_output(&fixture->descriptor);
+  fixture->descriptor.pProtocol = ProtocolCreate();
+}
+
+/** Save the account's character at alchemy rank 4, one point short of rank 5, with 7,500 gold,
+ * the insightful alchemy talent at rank, and a rank-4 contract ending at end. */
+static bool craft_account_save_contract(struct craft_account_fixture *fixture, time_t end,
+                                        int insight)
+{
+  struct char_data *ch = new_char();
+  bool saved;
+
+  ch->player.name = strdup(fixture->files.name);
+  GET_PFILEPOS(ch) = 0;
+  GET_IDNUM(ch) = fixture->id;
+  GET_LEVEL(ch) = 10;
+  GET_GOLD(ch) = 7500;
+  SET_ABILITY(ch, ABILITY_CRAFT_ALCHEMY, 4);
+  GET_CRAFT_SKILL_EXP(ch, ABILITY_CRAFT_ALCHEMY) = craft_skill_level_exp(NULL, 5) - 1;
+  ch->player_specials->saved.talent_ranks[TALENT_INSIGHTFUL_ALCHEMY] = (ubyte)insight;
+  GET_CRAFT(ch).training_ability = ABILITY_CRAFT_ALCHEMY;
+  GET_CRAFT(ch).training_exp = craft_training_grant(4);
+  GET_CRAFT(ch).training_end = end;
+  saved = save_char_checked(ch, 0);
+  free_char(ch);
+  return saved;
+}
+
+/** Type one line at the connection's current menu and keep what it printed. */
+static void craft_account_input(struct craft_account_fixture *fixture, const char *input,
+                                char *seen, size_t size)
+{
+  char line[MAX_INPUT_LENGTH];
+
+  craft_trainer_reset_output(&fixture->descriptor);
+  snprintf(line, sizeof(line), "%s", input);
+  nanny(&fixture->descriptor, line);
+  snprintf(seen, size, "%s", fixture->descriptor.output);
+}
+
+/** What the account's player file holds now. */
+struct craft_account_record
+{
+  int loaded;
+  int ability;
+  int experience;
+  int rank;
+  int talent_points;
+  int gold;
+  int contract_lines;
+};
+
+static void craft_account_read(struct craft_account_fixture *fixture,
+                               struct craft_account_record *record)
+{
+  struct char_data *ch = new_char();
+  char line[MAX_INPUT_LENGTH];
+
+  record->loaded = load_char(fixture->files.name, ch);
+  record->ability = GET_CRAFT(ch).training_ability;
+  record->experience = GET_CRAFT_SKILL_EXP(ch, ABILITY_CRAFT_ALCHEMY);
+  record->rank = GET_ABILITY(ch, ABILITY_CRAFT_ALCHEMY);
+  record->talent_points = GET_TALENT_POINTS(ch);
+  record->gold = GET_GOLD(ch);
+  record->contract_lines = craft_training_saved_lines(fixture->files.name, line, sizeof(line));
+  free_char(ch);
+}
+
+static int craft_account_end(struct craft_account_fixture *fixture)
+{
+  if (fixture->descriptor.character != NULL)
+  {
+    fixture->descriptor.character->desc = NULL;
+    free_char(fixture->descriptor.character);
+    fixture->descriptor.character = NULL;
+  }
+  craft_trainer_reset_output(&fixture->descriptor);
+  ProtocolDestroy(fixture->descriptor.pProtocol);
+  return craft_player_files_leave(&fixture->files);
+}
+
+/** The whole player file, to prove a refusal wrote nothing. */
+static bool craft_account_file_text(struct craft_account_fixture *fixture, char *text, size_t size)
+{
+  char filename[MAX_FILEPATH];
+  FILE *file;
+  size_t length;
+
+  if (!get_filename(filename, sizeof(filename), PLR_FILE, fixture->files.name) ||
+      (file = fopen(filename, "r")) == NULL)
+    return false;
+  length = fread(text, 1, size - 1, file);
+  text[length] = '\0';
+  fclose(file);
+  return length > 0;
+}
+
+void Test_craft_training_selection_waits_for_the_contract_to_end(CuTest *tc)
+{
+  struct craft_account_fixture fixture;
+  struct craft_account_record record;
+  char seen[MAX_STRING_LENGTH], before[MAX_STRING_LENGTH * 4], after[MAX_STRING_LENGTH * 4];
+  bool saved, read_before, read_after;
+  int state;
+
+  craft_account_begin(tc, &fixture, "crwait", 4311);
+  saved = craft_account_save_contract(&fixture, time(0) + 3600, 0);
+  read_before = craft_account_file_text(&fixture, before, sizeof(before));
+  craft_account_input(&fixture, "1", seen, sizeof(seen));
+  state = STATE(&fixture.descriptor);
+  read_after = craft_account_file_text(&fixture, after, sizeof(after));
+  craft_account_read(&fixture, &record);
+  CuAssertIntEquals(tc, 0, craft_account_end(&fixture));
+
+  CuAssertTrue(tc, saved && read_before && read_after);
+  CuAssertIntEquals(tc, CON_ACCOUNT_MENU, state);
+  CuAssertPtrNotNull(tc, strstr(seen, "is away learning alchemy (training, 1h 0m left)"));
+  CuAssertPtrNotNull(tc, strstr(seen, "recall 1 confirm"));
+  CuAssertStrEquals(tc, before, after);
+  CuAssertIntEquals(tc, ABILITY_CRAFT_ALCHEMY, record.ability);
+  CuAssertIntEquals(tc, craft_skill_level_exp(NULL, 5) - 1, record.experience);
+}
+
+void Test_craft_training_selection_grants_a_finished_contract_once(CuTest *tc)
+{
+  struct craft_account_fixture fixture;
+  struct craft_account_record first, second;
+  char seen[MAX_STRING_LENGTH], again[MAX_STRING_LENGTH];
+  int first_state, second_state;
+  bool saved;
+
+  craft_account_begin(tc, &fixture, "crdone", 4312);
+  /* Insight at rank 2 adds 10%: 2,500 + 250 from 14,999 crosses into rank 5 only. */
+  saved = craft_account_save_contract(&fixture, time(0) - 1, 2);
+  craft_account_input(&fixture, "1", seen, sizeof(seen));
+  first_state = STATE(&fixture.descriptor);
+  craft_account_read(&fixture, &first);
+  /* Back at the account menu, the next selection loads the file again and finds no contract. */
+  STATE(&fixture.descriptor) = CON_ACCOUNT_MENU;
+  craft_account_input(&fixture, "1", again, sizeof(again));
+  second_state = STATE(&fixture.descriptor);
+  craft_account_read(&fixture, &second);
+  CuAssertIntEquals(tc, 0, craft_account_end(&fixture));
+
+  CuAssertTrue(tc, saved);
+  CuAssertIntEquals(tc, CON_RMOTD, first_state);
+  CuAssertPtrNotNull(tc, strstr(seen, "returns from training in alchemy"));
+  CuAssertIntEquals(tc, 0, first.loaded);
+  CuAssertIntEquals(tc, 0, first.ability);
+  CuAssertIntEquals(tc, 0, first.contract_lines);
+  CuAssertIntEquals(tc, 14999 + 2750, first.experience);
+  CuAssertIntEquals(tc, 5, first.rank);
+  CuAssertIntEquals(tc, 1, first.talent_points);
+  CuAssertIntEquals(tc, CON_RMOTD, second_state);
+  CuAssertPtrEquals(tc, NULL, strstr(again, "returns from training"));
+  CuAssertIntEquals(tc, first.experience, second.experience);
+  CuAssertIntEquals(tc, 5, second.rank);
+  CuAssertIntEquals(tc, 1, second.talent_points);
+}
+
+void Test_craft_training_recall_ends_contract_without_refund(CuTest *tc)
+{
+  struct craft_account_fixture fixture;
+  struct craft_account_record quoted, recalled;
+  char quote[MAX_STRING_LENGTH], done[MAX_STRING_LENGTH], enter[MAX_STRING_LENGTH];
+  int state;
+  bool saved;
+
+  craft_account_begin(tc, &fixture, "crcall", 4313);
+  saved = craft_account_save_contract(&fixture, time(0) + 3600, 0);
+  craft_account_input(&fixture, "recall 1", quote, sizeof(quote));
+  craft_account_read(&fixture, &quoted);
+  craft_account_input(&fixture, "recall 1 confirm", done, sizeof(done));
+  craft_account_read(&fixture, &recalled);
+  craft_account_input(&fixture, "1", enter, sizeof(enter));
+  state = STATE(&fixture.descriptor);
+  CuAssertIntEquals(tc, 0, craft_account_end(&fixture));
+
+  CuAssertTrue(tc, saved);
+  CuAssertPtrNotNull(tc, strstr(quote, "forfeits the fee and the 2500 experience"));
+  CuAssertIntEquals(tc, ABILITY_CRAFT_ALCHEMY, quoted.ability);
+  CuAssertPtrNotNull(tc, strstr(done, "returns from training early"));
+  CuAssertIntEquals(tc, 0, recalled.ability);
+  CuAssertIntEquals(tc, 0, recalled.contract_lines);
+  CuAssertIntEquals(tc, 7500, recalled.gold);
+  CuAssertIntEquals(tc, craft_skill_level_exp(NULL, 5) - 1, recalled.experience);
+  CuAssertIntEquals(tc, CON_RMOTD, state);
+}
+
+/* show_account_menu() looks each character up in player_data, so the row needs the database. */
+void Test_craft_training_account_menu_shows_time_left(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct craft_account_fixture fixture;
+  MYSQL *saved_conn = conn;
+  MYSQL *connection;
+  bool saved_available = mysql_available;
+  char running[MAX_STRING_LENGTH * 2], finished[MAX_STRING_LENGTH * 2], query[256];
+  bool prepared, saved_running, saved_finished;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+    return;
+  if (race_list[RACE_HUMAN].name == NULL)
+    assign_races();
+  connection = craft_training_open_test_database();
+  CuAssertPtrNotNull(tc, connection);
+
+  craft_account_begin(tc, &fixture, "crrow", 4314);
+  snprintf(query, sizeof(query), "INSERT INTO player_data (name) VALUES ('%s')",
+           fixture.files.name);
+  prepared =
+      mysql_query(connection, "CREATE TEMPORARY TABLE player_data (name VARCHAR(100))") == 0 &&
+      mysql_query(connection, query) == 0;
+  conn = connection;
+  mysql_available = true;
+  /* 13h 19m 30s rounds up to 13h 20m for the next half minute. */
+  saved_running = craft_account_save_contract(&fixture, time(0) + 13 * 3600 + 19 * 60 + 30, 0);
+  craft_trainer_reset_output(&fixture.descriptor);
+  show_account_menu(&fixture.descriptor);
+  snprintf(running, sizeof(running), "%s", fixture.descriptor.output);
+  saved_finished = craft_account_save_contract(&fixture, time(0) - 60, 0);
+  craft_trainer_reset_output(&fixture.descriptor);
+  show_account_menu(&fixture.descriptor);
+  snprintf(finished, sizeof(finished), "%s", fixture.descriptor.output);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+  CuAssertIntEquals(tc, 0, craft_account_end(&fixture));
+
+  CuAssertTrue(tc, prepared && saved_running && saved_finished);
+  CuAssertPtrNotNull(tc, strstr(running, fixture.files.name));
+  CuAssertPtrNotNull(tc, strstr(running, "training, 13h 20m left"));
+  CuAssertPtrNotNull(tc, strstr(finished, "training finished"));
 }

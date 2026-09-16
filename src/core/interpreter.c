@@ -86,6 +86,7 @@
 #include "character/roleplay.h"
 #include "character/character_creation.h"
 #include "craft/crafting_new.h"
+#include "craft/craft_training.h"
 #include "craft/brew.h"
 #include "character/talents.h" /* crafting/harvesting talent system */
 #include "database/mysql.h"
@@ -8083,6 +8084,11 @@ void nanny(struct descriptor_data *d, char *arg)
       write_to_output(d, "Quitting.\r\n");
       STATE(d) = CON_CLOSE;
       return;
+    case 'r':
+    case 'R':
+      /* End a craft training contract early. */
+      craft_training_recall(d, arg);
+      return;
     default:
       if (atoi(arg) < 1 || atoi(arg) > (MAX_CHARS_PER_ACCOUNT))
       {
@@ -8117,6 +8123,10 @@ void nanny(struct descriptor_data *d, char *arg)
                    GET_NAME(d->character), d->host);
             return;
           }
+
+          /* A character away training stays out until its contract ends, then settles here. */
+          if (!craft_training_admit_selection(d, atoi(arg), time(0)))
+            return;
 
           if (AddRecentPlayer(GET_NAME(d->character), d->host, FALSE, FALSE) == FALSE)
           {
@@ -9979,6 +9989,10 @@ void nanny(struct descriptor_data *d, char *arg)
       break;
 
     case '1':
+      /* This copy left play to train; only the account menu settles or recalls a contract. */
+      if (craft_training_refuse_entry(d))
+        break;
+
       /* Check if introduction system is ON and player hasn't set short description */
       if (CONFIG_USE_INTRO_SYSTEM &&
           (GET_PC_DESCRIPTOR_1(d->character) == 0 || GET_PC_ADJECTIVE_1(d->character) == 0))

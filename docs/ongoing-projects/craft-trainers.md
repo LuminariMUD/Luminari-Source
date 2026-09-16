@@ -15,7 +15,7 @@ Update this list with every commit, so a new session can resume from it.
 - [x] Step 1: craft experience and ranks, plus the talent storage fix from Finding 12.
 - [x] Step 2: contract rules and record.
 - [x] Step 3: SpecProc and command.
-- [ ] Step 4: lock, settlement, recall, and menu row.
+- [x] Step 4: lock, settlement, recall, and menu row.
 - [ ] Step 5: placement.
 - [ ] Step 6: help and documentation.
 - [ ] Step 7: verification.
@@ -27,7 +27,7 @@ Working notes for this worktree (`../Luminari-Source-issue-196`):
 - Build with `make -j16 luminari cutest` (about 40 seconds after a `structs.h` change). Run the suite
   the way `make run-cutest` does:
   `CUTEST_FILTER= LUMINARI_TEST_ROOT="$PWD" LUMINARI_TEST_SPEC_WORLD_ROOT="$PWD/unittests/CuTest/fixtures/spec_world_inventory" ./cutest`
-  (1,520 tests after step 3, about 5 seconds). Use `CUTEST_FILTER=Test_craft_` for this feature.
+  (1,526 tests after step 4, about 5 seconds). Use `CUTEST_FILTER=Test_craft_` for this feature.
 - Database-backed tests (`Test_craft_trainer_saves_belongings_once`, and step 4's menu row) skip
   unless `LUMINARI_TEST_MYSQL_ENABLE=1`. Never point them at the development database. Use the
   CI service settings in a disposable container on 127.0.0.2:3306, because the syntax-boot child
@@ -97,7 +97,13 @@ The issue's description of the code checks out, including the brewing bypass
     through `enter_player_game()` (`src/core/comm.c:714`). No other path enters play:
     `perform_dupe_check()` (`src/core/interpreter.c:7452`) only reattaches to a body still in
     `character_list`, which the pending extraction removes in the same pass, and `CON_PASSWORD` and
-    `CON_GET_NAME` never enter play for an existing character.
+    `CON_GET_NAME` never enter play for an existing character. Found in step 4: the writer also
+    calls `Crash_rentsave()` and `save_char()` for every playing descriptor
+    (`src/act/act.wizard.c:5781`). The trainee's belongings were already saved and extracted, so
+    that second save replaces the saved set with an empty one. Timed copyovers fire from the
+    scheduler, which also runs after commands and before the extraction (`src/core/comm.c:1733`).
+    Every character whose extraction is pending has the same exposure today, including a plain
+    `quit` or `rent`: copyover brings it back into play and empties its saved belongings.
 
 06. **Only a fresh load may be saved from the menus.** `CON_RMOTD` already saves a character
     loaded at the account menu (`src/core/interpreter.c:9701`). The post-extraction copy in
@@ -238,11 +244,15 @@ What these values guarantee:
 - `CON_MENU` option 1 (`src/core/interpreter.c:9980`): the first statement refuses while
   `training_ability` is set and tells the player to return to the account menu with 0. This also
   covers the forced description path.
-- `copyover_recover()` (`src/core/comm.c`): a new `else if` between the lost-character branch and
-  the entry branch (`:709`) writes a one-line explanation with `write_to_descriptor()`, as the
-  lost-character branch does (`:706`), and calls `close_socket()`, so `enter_player_game()` (`:714`)
-  never runs. Only the same-pass window of Finding 5 reaches it.
-- Neither check settles or saves.
+- Copyover (changed in step 4): the writer in `perform_do_copyover()` drops a descriptor whose
+  character's extraction is pending, as it drops non-playing descriptors, instead of saving it and
+  listing it in `copyover.dat`. The decision is `copyover_restores_descriptor()`
+  (`src/act/act.wizard.c`). This keeps the trainee out of play and its belongings intact, and fixes
+  the same window for `quit` and `rent`. The plan's check in `copyover_recover()` became
+  unreachable, since a contracted character can no longer reach `copyover.dat`, so it was not
+  added. `close_socket()` saves the character once more (with its contract) and does not touch
+  objects.
+- Neither check settles.
 
 ### Settlement
 
@@ -400,6 +410,34 @@ Plan as written:
 
 ### Step 4: lock, settlement, recall, and menu row
 
+Done. As built:
+
+- `craft_training_admit_selection(d, slot, now)` takes the menu slot for the recall hint. While
+  the contract runs it redisplays the account menu before its message, like the deleted-character
+  refusal. A finished contract prints the return line, grants through `gain_craft_exp()`, clears
+  the record, and saves once. Settlement and recall each write one `mudlog` line.
+- `craft_training_recall(d, arg)` handles the new `R` case: `recall <number>` quotes and
+  `recall <number> confirm` clears and saves a fresh load. It refuses deleted characters.
+- `craft_training_refuse_entry(d)` is the first statement of `CON_MENU` option 1 and includes the
+  status text, for example "training, 24h 0m left".
+- `show_account_menu()` puts the status text in the class column for any character with a
+  contract.
+- The copyover change under Design replaces the planned `copyover_recover()` check.
+- Tests: `Test_craft_training_main_menu_refuses_entry_while_away` (drives the real
+  post-extraction copy from a confirm), `Test_craft_training_copyover_drops_a_character_leaving_to_train`
+  (the writer's decision before the confirm, and in the same-pass window after it),
+  `Test_craft_training_selection_waits_for_the_contract_to_end` (the player file is byte for byte
+  unchanged), `Test_craft_training_selection_grants_a_finished_contract_once` (insight rank 2,
+  rank 4 to 5, one talent point, and a second selection grants nothing),
+  `Test_craft_training_recall_ends_contract_without_refund`, and the database-backed
+  `Test_craft_training_account_menu_shows_time_left`. Removing the settlement call, the record
+  clearing, the pending-extraction condition, or the menu row each fails a test; removing the
+  entry lock crashes the lock test inside `enter_player_game()`.
+- `free_recent_players()` frees the list without resetting its head, so a second call double-frees.
+  The tests leave the recent-player entries in place instead of calling it.
+
+Plan as written:
+
 - The changes described under Design.
 - Tests:
   - `nanny()` in `CON_MENU` with input `1` for a contracted character keeps the state at
@@ -487,7 +525,8 @@ Added, each for a traced failure:
 - Keeping craft ranks through respec and restoring lagging ranks on load (Finding 1). Without them
   the required multi-rank gain pays duplicate talent points at once, and the one-rank bound fails
   for respecced characters.
-- The copyover check (Finding 5), a real same-pass path into play.
+- The copyover check (Finding 5), a real same-pass path into play. Step 4 moved it from recovery
+  to the writer, where it also stops the second belongings save.
 - Talent rank storage for every talent id (Finding 12). Without it decision 3 fails for the four
   harvest tracks, and `learn_talent()` keeps charging for talents that write out of bounds.
 - `Crash_rentsave()` when rent is not free (Finding 3). Otherwise a site that charges rent leaves the
