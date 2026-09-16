@@ -183,10 +183,8 @@ function calculate_range(first_index, last_index,
       (count * sum_x_rss - sum_x * sum_rss) / denominator
     calc_vsz_slope = \
       (count * sum_x_vsz - sum_x * sum_vsz) / denominator
-    calc_rss_slope_percent = calc_rss_mean == 0 ? 0 :
-      (calc_rss_slope / calc_rss_mean) * 100.0
-    calc_vsz_slope_percent = calc_vsz_mean == 0 ? 0 :
-      (calc_vsz_slope / calc_vsz_mean) * 100.0
+    calc_rss_slope_percent = calc_rss_mean == 0 ? 0 : (calc_rss_slope / calc_rss_mean) * 100.0
+    calc_vsz_slope_percent = calc_vsz_mean == 0 ? 0 : (calc_vsz_slope / calc_vsz_mean) * 100.0
   }
 }
 
