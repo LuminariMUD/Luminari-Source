@@ -30,6 +30,9 @@ These systems use file-based storage exclusively for persistence.
     `CrTr: <ability> <experience> <end epoch>`. Loading logs and ignores a malformed line.
   - A selected supply contract's terms, written only while the order has a contract type:
     `CrCT: <contract type> <quality tier>`. Loading ignores out-of-range values.
+  - A golem project, written only while a golem type is set, so construction resumes after login:
+    `CrGo: <golem type> <size> <wood material>` (wood is 0 unless the golem is wooden). Loading
+    ignores out-of-range values.
 
 **Example Structure:**
 

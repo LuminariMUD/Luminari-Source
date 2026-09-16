@@ -1141,6 +1141,21 @@ int load_char(const char *name, struct char_data *ch)
           GET_CRAFT(ch).instrument_motes[3] = atoi(line);
         else if (!strcmp(tag, "CrAS"))
           GET_CRAFT(ch).supply_active_slot = atoi(line);
+        else if (!strcmp(tag, "CrGo"))
+        {
+          /* Golem project: type, size, and the wood a wood golem uses. */
+          int golem_type, golem_size, wood;
+
+          if (sscanf(line, "%d %d %d", &golem_type, &golem_size, &wood) == 3 &&
+              golem_type > GOLEM_TYPE_NONE && golem_type <= GOLEM_TYPE_IRON &&
+              golem_size >= GOLEM_SIZE_SMALL && golem_size < NUM_GOLEM_SIZES &&
+              (wood == CRAFT_MAT_NONE || craft_group_by_material(wood) == CRAFT_GROUP_WOOD))
+          {
+            GET_CRAFT(ch).golem_type = golem_type;
+            GET_CRAFT(ch).golem_size = golem_size;
+            GET_CRAFT(ch).golem_materials[0][0] = wood;
+          }
+        }
         else if (!strcmp(tag, "CrCT"))
         {
           /* Selected supply contract: contract type, quality tier requirement. */
@@ -3359,6 +3374,11 @@ bool save_char_checked(struct char_data *ch, int mode)
 
   BUFFER_WRITE("CrSN: %d\n", GET_CRAFT(ch).supply_num_required);
   BUFFER_WRITE("CrAS: %d\n", GET_CRAFT(ch).supply_active_slot);
+  /* A golem under construction resumes after login; completion recomputes its requirements. */
+  if (GET_CRAFT(ch).golem_type != GOLEM_TYPE_NONE)
+    BUFFER_WRITE("CrGo: %d %d %d\n", GET_CRAFT(ch).golem_type, GET_CRAFT(ch).golem_size,
+                 GET_CRAFT(ch).golem_type == GOLEM_TYPE_WOOD ? GET_CRAFT(ch).golem_materials[0][0]
+                                                             : CRAFT_MAT_NONE);
   if (GET_CRAFT(ch).supply_contract_type != 0)
     BUFFER_WRITE("CrCT: %d %d\n", GET_CRAFT(ch).supply_contract_type,
                  GET_CRAFT(ch).supply_quality_tier_requirement);
