@@ -462,6 +462,52 @@ void Test_craft_supply_contract_terms_survive_save_and_load(CuTest *tc)
   CuAssertIntEquals(tc, 0, cleared_lines);
 }
 
+void Test_craft_golem_project_survives_save_and_load(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *ch = new_char();
+  struct char_data *loaded = new_char();
+  char line[MAX_INPUT_LENGTH], cleared_line[MAX_INPUT_LENGTH], expected[64];
+  int saved, lines, result, golem_type, golem_size, wood, cleared_saved, cleared_lines;
+
+  craft_player_files_enter(tc, &files, "crgol", 4306);
+  ch->player.name = strdup(files.name);
+  GET_PFILEPOS(ch) = 0;
+  GET_IDNUM(ch) = 4306;
+  GET_LEVEL(ch) = 10;
+  GET_CRAFT(ch).golem_type = GOLEM_TYPE_WOOD;
+  GET_CRAFT(ch).golem_size = GOLEM_SIZE_LARGE;
+  GET_CRAFT(ch).golem_materials[0][0] = CRAFT_MAT_MAPLE_WOOD;
+  snprintf(expected, sizeof(expected), "CrGo: %d %d %d\n", GOLEM_TYPE_WOOD, GOLEM_SIZE_LARGE,
+           CRAFT_MAT_MAPLE_WOOD);
+
+  saved = save_char_checked(ch, 0);
+  lines = craft_saved_tag_lines(files.name, "CrGo:", line, sizeof(line));
+  result = load_char(files.name, loaded);
+  golem_type = GET_CRAFT(loaded).golem_type;
+  golem_size = GET_CRAFT(loaded).golem_size;
+  wood = GET_CRAFT(loaded).golem_materials[0][0];
+
+  /* No golem project, no line. */
+  GET_CRAFT(ch).golem_type = GOLEM_TYPE_NONE;
+  cleared_saved = save_char_checked(ch, 0);
+  cleared_lines = craft_saved_tag_lines(files.name, "CrGo:", cleared_line, sizeof(cleared_line));
+
+  free_char(ch);
+  free_char(loaded);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertTrue(tc, saved);
+  CuAssertIntEquals(tc, 1, lines);
+  CuAssertStrEquals(tc, expected, line);
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, GOLEM_TYPE_WOOD, golem_type);
+  CuAssertIntEquals(tc, GOLEM_SIZE_LARGE, golem_size);
+  CuAssertIntEquals(tc, CRAFT_MAT_MAPLE_WOOD, wood);
+  CuAssertTrue(tc, cleared_saved);
+  CuAssertIntEquals(tc, 0, cleared_lines);
+}
+
 void Test_craft_training_ignores_malformed_contracts(CuTest *tc)
 {
   struct craft_player_files files;

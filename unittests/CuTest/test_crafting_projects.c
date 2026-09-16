@@ -1,5 +1,6 @@
 /* Production-linked tests for the materials-and-motes crafting system (crafting_system 2): its boot
- * tables, the equipment project a player builds with the craft command, and supply orders. */
+ * tables, the equipment project a player builds with the craft command, supply orders, golem
+ * construction and material storage. */
 
 #include "CuTest.h"
 
@@ -28,13 +29,13 @@
 #include <string.h>
 
 /** A connected player in a smithy with a forge and a weaponsmith's hammer, plus the weapon
- * prototype that project objects are built from. */
+ * prototype that project objects are built from and the prototype for material bundles. */
 struct craft_project_fixture
 {
   struct room_data room;
   struct zone_data zone;
-  struct index_data object_index;
-  struct obj_data weapon_proto;
+  struct index_data object_index[2];
+  struct obj_data object_proto[2];
   struct obj_data forge;
   struct obj_data hammer;
   struct char_data quartermaster;
@@ -75,6 +76,7 @@ static bool craft_project_output_has(struct craft_project_fixture *f, const char
 static void craft_project_begin(struct craft_project_fixture *f)
 {
   struct char_data *ch = &f->ch;
+  int weapon, bundle;
 
   if (crafting_recipes[CRAFT_RECIPE_WEAPON_LONG_SWORD].object_type != ITEM_WEAPON)
     populate_crafting_recipes();
@@ -103,7 +105,7 @@ static void craft_project_begin(struct craft_project_fixture *f)
 
   f->zone.number = 0;
   f->zone.bot = 0;
-  f->zone.top = WEAPON_PROTO;
+  f->zone.top = MAX(WEAPON_PROTO, ITEM_PROTOTYPE);
   zone_table = &f->zone;
   top_of_zone_table = 0;
 
@@ -113,17 +115,26 @@ static void craft_project_begin(struct craft_project_fixture *f)
   IN_ROOM(&f->forge) = 0;
   clear_object(&f->hammer);
 
-  /* Instances share the prototype strings, which free_obj() leaves alone. */
-  clear_object(&f->weapon_proto);
-  f->weapon_proto.item_number = 0;
-  GET_OBJ_TYPE(&f->weapon_proto) = ITEM_WEAPON;
-  f->weapon_proto.name = CuMutableString("weapon prototype");
-  f->weapon_proto.short_description = CuMutableString("a weapon prototype");
-  f->weapon_proto.description = CuMutableString("A weapon prototype lies here.");
-  f->object_index.vnum = WEAPON_PROTO;
-  obj_proto = &f->weapon_proto;
-  obj_index = &f->object_index;
-  top_of_objt = 0;
+  /* Instances share the prototype strings, which free_obj() leaves alone. The index is sorted
+   * by vnum for real_object(). */
+  weapon = WEAPON_PROTO < ITEM_PROTOTYPE ? 0 : 1;
+  bundle = 1 - weapon;
+  clear_object(&f->object_proto[weapon]);
+  f->object_proto[weapon].item_number = weapon;
+  GET_OBJ_TYPE(&f->object_proto[weapon]) = ITEM_WEAPON;
+  f->object_proto[weapon].name = CuMutableString("weapon prototype");
+  f->object_proto[weapon].short_description = CuMutableString("a weapon prototype");
+  f->object_proto[weapon].description = CuMutableString("A weapon prototype lies here.");
+  f->object_index[weapon].vnum = WEAPON_PROTO;
+  clear_object(&f->object_proto[bundle]);
+  f->object_proto[bundle].item_number = bundle;
+  f->object_proto[bundle].name = CuMutableString("item prototype");
+  f->object_proto[bundle].short_description = CuMutableString("an item prototype");
+  f->object_proto[bundle].description = CuMutableString("An item prototype lies here.");
+  f->object_index[bundle].vnum = ITEM_PROTOTYPE;
+  obj_proto = f->object_proto;
+  obj_index = f->object_index;
+  top_of_objt = 1;
   object_list = NULL;
 
   clear_char(ch);
@@ -346,7 +357,7 @@ void Test_craft_show_and_failed_completion_release_their_objects(CuTest *tc)
   show_current_craft(ch);
   shown = craft_project_output_has(&f, "Project DC");
   after_show = craft_project_live_objects();
-  live_after_show = f.object_index.number;
+  live_after_show = f.object_index[0].number + f.object_index[1].number;
 
   /* A DC no roll reaches fails the check at completion. */
   SET_ABILITY(ch, ABILITY_CRAFT_WEAPONSMITHING, 0);
@@ -355,7 +366,7 @@ void Test_craft_show_and_failed_completion_release_their_objects(CuTest *tc)
   craft_create_complete(ch);
   failed = craft_project_output_has(&f, "don't have the skill") && ch->carrying == NULL;
   after_failure = craft_project_live_objects();
-  live_after_failure = f.object_index.number;
+  live_after_failure = f.object_index[0].number + f.object_index[1].number;
   craft_project_end(&f);
 
   CuAssertTrue(tc, shown);
@@ -788,4 +799,63 @@ void Test_supply_order_offers_always_have_a_variant(CuTest *tc)
   CuAssertIntEquals(tc, 200, offers);
   CuAssertIntEquals(tc, offers, orderable);
   CuAssertTrue(tc, stale_refused);
+}
+
+void Test_golem_construction_keeps_the_chosen_wood(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  enum domain_event_status runtime;
+  int mote;
+  bool started, kept;
+
+  craft_project_begin(&f);
+  event_free_all();
+  event_init();
+  runtime = domain_event_runtime_init();
+  SET_FEAT(ch, FEAT_CONSTRUCT_WOOD_GOLEM, 1);
+  /* Maple is the only wood on hand; ash is the requirement table's placeholder. */
+  GET_CRAFT_MAT(ch, CRAFT_MAT_MAPLE_WOOD) = 100;
+  GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE) = 100;
+  for (mote = 1; mote < NUM_CRAFT_MOTES; mote++)
+    GET_CRAFT_MOTES(ch, mote) = 100;
+  GET_CRAFT(ch).golem_type = GOLEM_TYPE_WOOD;
+  GET_CRAFT(ch).golem_size = GOLEM_SIZE_SMALL;
+
+  started = begin_golem_craft(ch);
+  kept = GET_CRAFT(ch).golem_materials[0][0] == CRAFT_MAT_MAPLE_WOOD;
+  primary_activity_cancel(ch, PRIMARY_ACTIVITY_END_COMMAND, false);
+  SET_FEAT(ch, FEAT_CONSTRUCT_WOOD_GOLEM, 0);
+
+  domain_event_runtime_shutdown();
+  event_free_all();
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, runtime);
+  CuAssertTrue(tc, started);
+  CuAssertTrue(tc, kept);
+}
+
+void Test_craft_material_bundles_keep_their_hide_grade(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  int bundle_value, high_after_unstore, high_after_store, low_after_store;
+
+  craft_project_begin(&f);
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_HIGH_GRADE_HIDE) = 8;
+
+  do_list_craft_materials(ch, "unstore 5 high grade hide", 0, 0);
+  bundle_value = ch->carrying != NULL ? GET_OBJ_VAL(ch->carrying, 1) : -1;
+  high_after_unstore = GET_CRAFT_MAT(ch, CRAFT_MAT_HIGH_GRADE_HIDE);
+  do_list_craft_materials(ch, "store bundle", 0, 0);
+  high_after_store = GET_CRAFT_MAT(ch, CRAFT_MAT_HIGH_GRADE_HIDE);
+  low_after_store = GET_CRAFT_MAT(ch, CRAFT_MAT_LOW_GRADE_HIDE);
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, CRAFT_MAT_HIGH_GRADE_HIDE, bundle_value);
+  CuAssertIntEquals(tc, 3, high_after_unstore);
+  CuAssertIntEquals(tc, 8, high_after_store);
+  CuAssertIntEquals(tc, 0, low_after_store);
 }
