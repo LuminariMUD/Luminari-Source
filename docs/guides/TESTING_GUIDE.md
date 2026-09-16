@@ -33,6 +33,39 @@ exported filter cannot narrow full validation.
 The runner lists each test taking more than one second after the result summary, including
 failed tests and wall time spent in child processes. Timing is diagnostic, not a pass gate.
 
+## Random seeds and replay
+
+Every production-linked run prints its seed as `LUMINARI_TEST_SEED=<n>`. Before each test the
+runner seeds the game generator (`circle_srandom()`) and the C library generator (`srand()`)
+from that seed and the test's name, so a test draws the same values in the full suite and in a
+filtered run. Without `LUMINARI_TEST_SEED` the seed is 1, so every run, including CI, is
+repeatable. The `make test`, `make test-all`, and CTest `production-cutest` entry points clear
+an exported seed as they clear the filter.
+
+A failing run prints the replay command. Replay one test, or the whole suite, with the seed it
+printed:
+
+```sh
+LUMINARI_TEST_SEED=<n> CUTEST_FILTER=<test> ./cutest
+LUMINARI_TEST_SEED=<n> ./cutest
+```
+
+A test that needs particular rolls sets a fixed seed with `circle_srandom(<seed>)`; the runner
+reseeds the next test. Game rules that read the calendar in code the suite reaches, such as the
+hourly supply-order offers and their Sunday event contracts, read one pinned instant in the test
+build. Never reseed from the clock: `scripts/ci/test_cutest_runner.py` fails on
+a `srand`, `srandom`, or `circle_srandom` call that reads `time()` in a test source. A forked
+test child ends with `CuTestChildExit(status)`, which records the child's coverage in a coverage
+build before `_exit`. A test must also run the same code however threads are scheduled and
+clocks tick. Order a thread handoff so that each step waits for an effect of the step before it.
+When only a clock tick reaches a branch, test that branch directly.
+
+`make test-seeds SEEDS="4 5 6"` runs the whole suite once per seed (default `1 2 3`) and names
+every failing seed. The weekly and manual `Extended Tests` workflow
+(`.github/workflows/extended-tests.yml`) runs eight new seeds derived from its run ID and records
+them in the job summary; run it manually with the `seeds` input to replay particular seeds on
+GitHub. Seed stress never affects the Coverage job, which always measures the default seed.
+
 CTest also supports parallel execution: `ctest -j"$(nproc)" --preset dev`.
 Use incremental builds normally; clean after compiler/flag changes or suspect dependency
 files. See the setup guide for ccache and optional `-O0` development builds.
@@ -589,19 +622,85 @@ boot, and database verification.
 
 The GitHub Actions coverage job:
 
-- builds the production-linked suite with gcov instrumentation;
-- runs the MariaDB persistence round trip;
+- builds the production-linked suite with gcov instrumentation and runs it against MariaDB
+  with the default seed, without address randomization, and with its environment padded to one
+  size, so rerunning the job at one commit measures identical totals (the world registries and the
+  domain-event bus hash entity addresses, and address layout decides which collision paths run);
 - runs the covered protocol parser harness;
-- creates Cobertura XML, HTML details, and a JSON summary with gcovr;
-- uploads every report as a GitHub Actions workflow artifact.
+- creates HTML details, Cobertura XML, and a JSON summary with gcovr, measuring only
+  `src/` (test sources, the vendored CuTest harness, and generated files are outside it, and no
+  file under `src/` is excluded);
+- enforces `scripts/ci/coverage_policy.json` with `scripts/ci/check_coverage.py` and saves the
+  result as `coverage-policy.txt`;
+- uploads every report as the `coverage-report` artifact, including when a check fails.
 
-Repeated Luminari measurements with gcovr 8.6 establish fixed floors of 10.50
-percent for lines and 7.16 percent for branches. Exact executed counts vary
-slightly because game tests exercise randomized paths; the floors use the
-lowest observed results rounded down to two decimals. gcovr enforces them
-before the artifact upload, so a lower result fails the job. Whenever the
-stable coverage range increases, update the fixed floors in
-`.github/workflows/test.yml`; the gates only move upward.
+The policy holds three kinds of floor, all percentages measured by this job:
+
+- repository line and branch coverage;
+- line and branch coverage of each critical subsystem below; and
+- changed lines: the executable lines a change adds or modifies in a subsystem's sources must be
+  covered at least as well as that subsystem's line floor. The job compares with `HEAD^1`, the
+  target branch of a pull request's merge commit.
+
+`check_coverage.py` also fails when a report path is not a normalized relative path under
+`src/`, when a subsystem's source pattern matches nothing, or when its owner file or a named test
+does not exist in the production-linked suite. A result above a floor prints the value to record;
+raise the floor in the same change. `scripts/ci/check_baseline_ratchet.py` (Code Quality) refuses
+a change that lowers or removes any floor, so floors only rise. Restore lost coverage with tests.
+
+Check a downloaded report locally with the changed-line comparison:
+
+```sh
+python3 scripts/ci/check_coverage.py --report coverage.xml --base origin/master
+```
+
+### Critical subsystems
+
+Each subsystem in the policy names its sources, an owner (the test source where its new
+regression tests belong), and the tests that cover its named risks:
+
+| Subsystem | Sources | Owner |
+| -- | -- | -- |
+| `authentication` | `src/player/password.c`, `src/player/account.c` | `test_password.c` |
+| `command_parsing` | `src/core/interpreter.c`, `src/core/helpers.c` | `test.interpreter.c` |
+| `sql` | `src/database/mysql.c` | `test_database_persistence.c` |
+| `world_dg_config_parsers` | `src/core/db.c`, `src/dgscript/dg_scripts.c`, `src/config/dotenv.c` | `test_world_loading_production.c` |
+| `persistence` | `src/core/binary_formats.c`, `src/player/players.c`, `src/obj/objsave.c` | `test_binary_formats.c` |
+| `networking` | `src/core/comm.c`, `src/net/reactor.c`, `src/net/protocol.c` | `test_reactor.c` |
+| `olc` | `src/olc/gen*.c`, `src/dgscript/dg_olc.c` | `test_world_loading_production.c` |
+| `threaded_services` | `src/ai/ai_service.c`, `src/ai/ai_events.c`, `src/net/i3_client.c` | `test_i3_client_production.c` |
+
+A new source that belongs to one of these areas is added to its pattern list.
+
+### Mutation testing
+
+`scripts/ci/mutation_test.py` measures how well the tests catch faults in three critical
+modules: `src/core/binary_formats.c` (durable file decoders) with the binary format harness,
+the telnet, MSDP, and GMCP input parsers in `src/net/protocol.c` with the protocol parser
+harness, and `src/player/password.c` with the password tests. For every relational operator,
+logical operator, and boolean return it builds the harness with that one token changed and
+runs it. The score is the share of changed builds the tests reject; a change that leaves the
+object file identical, or does not compile, is not counted. Surviving changes are listed, and
+each module's score is held to its floor in the policy file, which only rises.
+
+```sh
+make test-mutation
+python3 scripts/ci/mutation_test.py --module src/player/password.c
+```
+
+It needs a configured tree and runs in about ten seconds on 16 cores. The `Extended Tests`
+workflow runs it weekly and on demand and uploads `mutation-report.txt`.
+
+### Test profiles
+
+The production-linked suite runs in every build profile CI tests, and each run prints its seed:
+
+- Debug: the CMake `Debug` jobs on GCC 13, Clang 18, GCC 16.2, and Clang 22.1.8;
+- optimized: the CMake `Release` jobs (`-O3`) on the same compilers, and the hardened `-O2`
+  production profile on Autotools with GCC 14 and on CMake with Clang;
+- sanitizers: ASan and UBSan;
+- memory checking: Valgrind;
+- coverage: the job above.
 
 ## Campaign Builds
 
@@ -892,7 +991,8 @@ must not be added to the enforced suite.
 - the production-linked fuzz targets (deterministic replay plus 15 s each) and
   the bounded protocol and binary format fuzzers, with reproducers uploaded;
 - Valgrind on the production-linked suite;
-- MariaDB-backed fixed gcovr floors and coverage-artifact upload;
+- the MariaDB-backed coverage policy (repository, critical-subsystem, and changed-line floors)
+  and coverage-artifact upload;
 - a clean `git status` after the configure, build, test, install, and clean
   cycle, and a source-hygiene scan of the `make dist` tarball.
 
@@ -900,6 +1000,9 @@ must not be added to the enforced suite.
 every push: no tracked build products, valid UTF-8 with LF endings, and ASCII
 documentation. See the Source Tree Hygiene section of
 [SETUP_AND_BUILD_GUIDE.md](SETUP_AND_BUILD_GUIDE.md).
+
+`.github/workflows/extended-tests.yml` runs weekly and on demand: seed stress over eight new
+seeds and mutation testing, as described above.
 
 The behavioral, authoritative, CMake, and coverage jobs also run the
 syntax-check boot against an isolated MariaDB service and tracked minimal
@@ -913,9 +1016,14 @@ workflow triggers this pipeline.
 ## CI job map and local containers
 
 The production-linked job runs `make -j test-all` with libevent, reruns the same CuTest
-binary with select, verifies the installed server's real-port startup, health endpoint,
-and graceful shutdown through autorun, then checks clean-tree and source-distribution
+binary with select, verifies the installed server's real-port startup, health endpoint, a login
+exchange, and graceful shutdown through autorun, then checks clean-tree and source-distribution
 hygiene. Both I/O drivers retain the complete behavioral suite.
+
+The login exchange (`scripts/ci/test_server_startup.sh` with `scripts/ci/smoke_client.py`)
+creates an account over telnet, checks that the isolated test database stores it with a
+current-scheme password hash, then logs in to it after one rejected password, and fails on any
+`SYSERR` in the server log.
 
 The strict GCC/Clang CMake jobs still fail on warnings. `quality.yml` runs every pinned
 formatter hook and the clang-tidy baseline, which analyzes the translation units a pull request
