@@ -829,6 +829,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          # HEAD^1 is the base for changed-line coverage: the target branch for a
+          # pull request's merge commit, the previous tip for a push.
+          fetch-depth: 2
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -873,12 +877,12 @@ jobs:
             PROTOCOL_TEST_CFLAGS='-Wall -Wextra -std=gnu2x -g -O0 --coverage -ffunction-sections -fdata-sections' \
             PROTOCOL_TEST_LDFLAGS='-lm -ljson-c -Wl,--gc-sections --coverage'
 
-      - name: Generate coverage report and enforce baseline
+      # Only src/ is measured. The test sources, the vendored CuTest harness,
+      # and generated files (AllTests.c, build_identity.h, conf.h) are all
+      # outside it, and no file under src/ is excluded; check_coverage.py fails
+      # on any report path that is not a normalized path under src/.
+      - name: Generate coverage reports
         run: |
-          # Measured with the full Luminari CI suite and gcovr 8.6:
-          # Stable floors from repeated CI measurements: 10.50% lines and
-          # 7.16% branches. Counts vary slightly in randomized game tests.
-          # Raise both fixed floors whenever the measured result increases.
           gcovr \
             --root . \
             --filter '^src/' \
@@ -888,11 +892,22 @@ jobs:
             --html-details coverage.html \
             --json-summary coverage-summary.json \
             --json-summary-pretty \
-            --fail-under-line 10.50 \
-            --fail-under-branch 7.16 \
             src unittests/CuTest/build
 
+      # Repository, critical-subsystem, and changed-line floors from
+      # scripts/ci/coverage_policy.json. The suite runs with its default seed, so
+      # a rerun at the same commit measures the same totals.
+      - name: Enforce the coverage policy
+        run: |
+          set -o pipefail
+          args=(--report coverage.xml)
+          if git rev-parse -q --verify 'HEAD^1' >/dev/null; then
+            args+=(--base 'HEAD^1')
+          fi
+          python3 scripts/ci/check_coverage.py "${args[@]}" 2>&1 | tee coverage-policy.txt
+
       - name: Upload coverage artifact
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: coverage-report
@@ -900,5 +915,7 @@ jobs:
             coverage.html
             coverage.*.html
             coverage*.css
+            coverage*.js
             coverage.xml
             coverage-summary.json
+            coverage-policy.txt

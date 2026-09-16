@@ -1138,7 +1138,7 @@ test: run-cutest test-cutest-runner check-build-parity test-clean-archive-runtim
 	test-warning-budget test-background-help-entries test-demand-driven-architecture test-event-admission \
 	test-event-core-performance-gate test-native-event-architecture test-pubsub-retirement \
 	test-vessel-tooling test-header-self-containment test-clang-tidy-gate test-baseline-ratchet \
-	test-native-struct-io
+	test-native-struct-io test-coverage-policy
 
 # Build check programs once before running the suite, alongside the shell gates.
 # An inherited CUTEST_FILTER must not narrow the authoritative run, and an
@@ -1173,7 +1173,7 @@ test-seeds: check
 	test-demand-driven-architecture test-event-admission test-native-event-architecture \
 	test-event-core-performance-gate test-pubsub-retirement \
 	test-vessel-tooling test-header-self-containment test-clang-tidy-gate test-baseline-ratchet \
-	test-native-struct-io test-seeds
+	test-native-struct-io test-coverage-policy test-seeds test-mutation
 
 check-world-docs:
 	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py constants sync --check
@@ -1272,6 +1272,17 @@ test-clang-tidy-gate:
 # The comparison with the diff base runs in Code Quality, which knows the base.
 test-baseline-ratchet:
 	cd "$(abs_top_srcdir)" && python3 scripts/ci/check_baseline_ratchet.py --self-test
+
+# The coverage policy checker's and mutation runner's own tests; the Coverage CI
+# job and the Extended Tests workflow run them against real results (issue #92).
+test-coverage-policy:
+	cd "$(abs_top_srcdir)" && python3 scripts/ci/check_coverage.py --self-test
+	cd "$(abs_top_srcdir)" && python3 scripts/ci/mutation_test.py --self-test
+
+# Mutation scores of the parser and authentication modules against their floors
+# in scripts/ci/coverage_policy.json.
+test-mutation:
+	cd "$(abs_top_srcdir)" && CC="$(CC)" python3 scripts/ci/mutation_test.py
 
 test-process-memory:
 	./scripts/process-memory/test_process_memory_details.sh

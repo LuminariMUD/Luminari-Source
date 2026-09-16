@@ -1,0 +1,118 @@
+name: Extended Tests
+
+# Depth checks that would make every pull request slow: the production-linked
+# suite under many random seeds, and mutation testing of the parser and
+# authentication modules. Pull requests run the suite with its default seed in
+# test.yml. A seed that fails here is replayed with the seeds input or locally
+# with LUMINARI_TEST_SEED=<seed> ./cutest (docs/guides/TESTING_GUIDE.md).
+
+on:
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+    inputs:
+      seeds:
+        description: Seeds to run, separated by spaces; empty picks new seeds
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  seed-stress:
+    name: Seed stress
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: test_root_password
+          MARIADB_DATABASE: luminari_test
+          MARIADB_USER: luminari_test
+          MARIADB_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      LUMINARI_TEST_MYSQL_ENABLE: "1"
+      LUMINARI_TEST_MYSQL_HOST: 127.0.0.1
+      LUMINARI_TEST_MYSQL_USER: luminari_test
+      LUMINARI_TEST_MYSQL_PASSWORD: test_password
+      LUMINARI_TEST_MYSQL_DATABASE: luminari_test
+      LUMINARI_TEST_MYSQL_PORT: "3306"
+      LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
+      LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up build
+        uses: ./.github/actions/setup-build
+        with:
+          packages: mariadb-client pandoc
+          cache-variant: seed-stress
+
+      - name: Verify the compiler
+        run: scripts/ci/check_compiler.sh --cc gcc --min-version 13
+
+      - name: Configure
+        run: |
+          autoreconf -fvi
+          ./configure
+
+      - name: Prepare isolated test runtime
+        run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
+
+      # Scheduled runs derive eight new seeds from the run ID; the log and the
+      # job summary record them.
+      - name: Choose the seeds
+        env:
+          REQUESTED_SEEDS: ${{ github.event.inputs.seeds }}
+        run: |
+          seeds="${REQUESTED_SEEDS:-}"
+          if [[ -z "${seeds// /}" ]]; then
+            seeds=$(for i in 1 2 3 4 5 6 7 8; do printf '%s ' $((GITHUB_RUN_ID * 10 + i)); done)
+          fi
+          if [[ ! "$seeds" =~ ^[0-9\ ]+$ ]]; then
+            echo "::error::seeds must be decimal integers separated by spaces"
+            exit 1
+          fi
+          echo "SEEDS=$seeds" >> "$GITHUB_ENV"
+          echo "Seeds: $seeds" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Run the production-linked suite once per seed
+        run: make -j"$(nproc)" test-seeds SEEDS="$SEEDS"
+
+  mutation:
+    name: Mutation testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up build
+        uses: ./.github/actions/setup-build
+        with:
+          cache-variant: mutation
+
+      - name: Configure
+        run: |
+          autoreconf -fvi
+          ./configure
+
+      - name: Measure mutation scores against their floors
+        run: python3 scripts/ci/mutation_test.py --report mutation-report.txt
+
+      - name: Upload the mutation report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-report
+          path: mutation-report.txt
