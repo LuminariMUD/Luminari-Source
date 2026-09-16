@@ -215,7 +215,7 @@ int craft_trainer(struct char_data *ch, void *me, int cmd, const char *argument)
                  "Leaving works like quit: your followers are dismissed and timed quests end. "
                  "Recalling early from the account menu forfeits the fee and the experience.\r\n"
                  "Type 'apprentice %s confirm' to begin.\r\n",
-                 ability_names[ability], rank, fee, CRAFT_TRAINING_DURATION / 3600,
+                 ability_names[ability], rank, fee, (int)(CRAFT_TRAINING_DURATION / 3600),
                  craft_training_grant(rank), ability_names[ability], ability_names[ability]);
     return TRUE;
   }
@@ -268,11 +268,12 @@ void craft_training_recall(struct descriptor_data *d, const char *argument)
   char word[MAX_INPUT_LENGTH], number[MAX_INPUT_LENGTH], confirm[MAX_INPUT_LENGTH];
   char status[64];
   const char *rest;
-  int slot, player_i, ability;
+  long slot;
+  int player_i, ability;
 
   rest = one_argument(argument, word, sizeof(word));
   two_arguments(rest, number, sizeof(number), confirm, sizeof(confirm));
-  slot = atoi(number);
+  slot = strtol(number, NULL, 10);
   player_i = -1;
   if (is_abbrev(word, "recall") && slot >= 1 && slot <= MAX_CHARS_PER_ACCOUNT &&
       d->account->character_names[slot - 1] != NULL)
@@ -296,7 +297,7 @@ void craft_training_recall(struct descriptor_data *d, const char *argument)
   {
     write_to_output(d,
                     "\r\n%s is away learning %s (%s). Recalling now forfeits the fee and the %d "
-                    "experience.\r\nType 'recall %d confirm' to end the contract.\r\n",
+                    "experience.\r\nType 'recall %ld confirm' to end the contract.\r\n",
                     GET_NAME(ch), ability_names[ability], status, GET_CRAFT(ch).training_exp, slot);
     show_account_menu(d);
     return;
