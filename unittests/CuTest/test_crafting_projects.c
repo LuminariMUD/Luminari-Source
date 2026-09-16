@@ -902,6 +902,44 @@ void Test_supply_order_offers_always_have_a_variant(CuTest *tc)
   CuAssertTrue(tc, stale_replaced);
 }
 
+void Test_supply_order_mobile_runs_every_supplyorder_subcommand(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool created_commands = false, handled = false, materials_reached = false, cancel_reached = false,
+       info_reached = false;
+  int supplyorder_cmd;
+
+  craft_project_begin(&f);
+  craft_project_add_quartermaster(&f);
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_commands = true;
+  }
+  supplyorder_cmd = find_command("supplyorder");
+  if (supplyorder_cmd >= 0)
+  {
+    handled = new_supply_orders(ch, &f.quartermaster, supplyorder_cmd, "materials") != 0;
+    materials_reached = craft_project_output_has(&f, "don't have a supply order.");
+    craft_project_reset_output(&f);
+    (void)new_supply_orders(ch, &f.quartermaster, supplyorder_cmd, "cancel");
+    cancel_reached = craft_project_output_has(&f, "don't have a supply order to abandon");
+    craft_project_reset_output(&f);
+    (void)new_supply_orders(ch, &f.quartermaster, supplyorder_cmd, "info");
+    info_reached = craft_project_output_has(&f, "don't have a supply order in progress");
+  }
+  if (created_commands)
+    free_command_list();
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, supplyorder_cmd >= 0);
+  CuAssertTrue(tc, handled);
+  CuAssertTrue(tc, materials_reached);
+  CuAssertTrue(tc, cancel_reached);
+  CuAssertTrue(tc, info_reached);
+}
+
 void Test_golem_construction_keeps_the_chosen_wood(CuTest *tc)
 {
   struct craft_project_fixture f;
