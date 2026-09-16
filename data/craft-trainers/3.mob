@@ -1,0 +1,27 @@
+#373
+artisan master trainer~
+the master artisan~
+A master artisan stands at a workbench, taking the measure of every visitor.
+~
+   Burn scars and old cuts cover the master artisan's broad hands, and tools from
+every trade hang from a scorched leather apron.  A ledger of apprentices and fees
+lies open on the bench beside a row of half-finished work.  For a fee, the
+artisan will train a craft or harvesting skill while the student spends a day
+away from the world; type 'apprentice' to hear the terms.
+~
+8675338 0 0 0 0 0 0 0 0 E
+15 17 1 1d6+150 1d6+3
+0 0
+9 9 1
+Str: 14
+Dex: 16
+Int: 16
+Wis: 14
+Con: 12
+Cha: 10
+Race: 1
+Class: 3
+Size: 5
+SpecProc: Craft Trainer
+E
+$~
