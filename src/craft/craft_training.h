@@ -14,6 +14,7 @@
 #include <time.h>
 
 struct char_data;
+struct descriptor_data;
 
 /* A contract lasts this many seconds of wall-clock time. */
 #define CRAFT_TRAINING_DURATION (24 * 60 * 60)
@@ -35,5 +36,16 @@ bool craft_training_status(const struct char_data *ch, time_t now, char *buffer,
 /** The Craft Trainer special procedure: the apprentice command lists, quotes, and starts
  * contracts. */
 int craft_trainer(struct char_data *ch, void *me, int cmd, const char *argument);
+
+/** Settle the contract of the character just selected from account menu slot. While the contract
+ * runs, explain it, redisplay the menu, and return false. A finished contract grants its
+ * experience exactly once: the grant and the cleared record reach the player file in one save. */
+bool craft_training_admit_selection(struct descriptor_data *d, int slot, time_t now);
+/** Handle "recall <number> [confirm]" at the account menu, ending a contract early without a
+ * refund or a grant. */
+void craft_training_recall(struct descriptor_data *d, const char *argument);
+/** Refuse the main menu's enter-game choice for a character that left play to train, telling the
+ * player to go back to the account menu. */
+bool craft_training_refuse_entry(struct descriptor_data *d);
 
 #endif /* LUMINARI_CRAFT_CRAFT_TRAINING_H */

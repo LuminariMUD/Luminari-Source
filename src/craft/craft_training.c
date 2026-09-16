@@ -1,6 +1,7 @@
 /**
  * @file craft/craft_training.c
- * Paid craft trainers: contract rules, status text, and the trainer's apprentice command.
+ * Paid craft trainers: contract rules, status text, the trainer's apprentice command, and the
+ * account-menu settlement, recall, and entry lock.
  */
 
 #include "conf.h"
@@ -221,4 +222,111 @@ int craft_trainer(struct char_data *ch, void *me, int cmd, const char *argument)
 
   craft_training_start(ch, trainer, ability, rank);
   return TRUE;
+}
+
+bool craft_training_admit_selection(struct descriptor_data *d, int slot, time_t now)
+{
+  struct char_data *ch = d->character;
+  char status[64];
+  int ability, experience;
+
+  if (ch == NULL || !craft_training_status(ch, now, status, sizeof(status)))
+    return true;
+
+  ability = GET_CRAFT(ch).training_ability;
+  if (GET_CRAFT(ch).training_end > now)
+  {
+    show_account_menu(d);
+    write_to_output(d,
+                    "%s is away learning %s (%s).\r\n"
+                    "To end the contract early, forfeiting the fee and the experience, type: "
+                    "recall %d confirm\r\n",
+                    GET_NAME(ch), ability_names[ability], status, slot);
+    return false;
+  }
+
+  experience = GET_CRAFT(ch).training_exp;
+  GET_CRAFT(ch).training_ability = 0;
+  GET_CRAFT(ch).training_exp = 0;
+  GET_CRAFT(ch).training_end = 0;
+  write_to_output(d, "%s returns from training in %s.\r\n", GET_NAME(ch), ability_names[ability]);
+  gain_craft_exp(ch, experience, ability, TRUE);
+  /* On failure the grant stays in memory for the save at the message of the day; if nothing is
+   * saved, the file still holds the unsettled contract and grants it next time instead. */
+  if (!save_char_checked(ch, 0))
+    log("SYSERR: craft training: could not save %s after settling a contract.", GET_NAME(ch));
+  mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE,
+         "%s finished craft training: %d %s experience.", GET_NAME(ch), experience,
+         ability_names[ability]);
+  return true;
+}
+
+void craft_training_recall(struct descriptor_data *d, const char *argument)
+{
+  struct char_data *ch = d->character;
+  char word[MAX_INPUT_LENGTH], number[MAX_INPUT_LENGTH], confirm[MAX_INPUT_LENGTH];
+  char status[64];
+  const char *rest;
+  int slot, player_i, ability;
+
+  rest = one_argument(argument, word, sizeof(word));
+  two_arguments(rest, number, sizeof(number), confirm, sizeof(confirm));
+  slot = atoi(number);
+  player_i = -1;
+  if (is_abbrev(word, "recall") && slot >= 1 && slot <= MAX_CHARS_PER_ACCOUNT &&
+      d->account->character_names[slot - 1] != NULL)
+    player_i = load_char(d->account->character_names[slot - 1], ch);
+  if (player_i < 0 || PLR_FLAGGED(ch, PLR_DELETED))
+  {
+    show_account_menu(d);
+    write_to_output(d, "To end a training contract early, type: recall <number>\r\n");
+    return;
+  }
+  GET_PFILEPOS(ch) = player_i;
+
+  if (!craft_training_status(ch, time(0), status, sizeof(status)))
+  {
+    show_account_menu(d);
+    write_to_output(d, "%s is not away training.\r\n", GET_NAME(ch));
+    return;
+  }
+  ability = GET_CRAFT(ch).training_ability;
+  if (strcmp(confirm, "confirm") != 0)
+  {
+    show_account_menu(d);
+    write_to_output(d,
+                    "%s is away learning %s (%s). Recalling now forfeits the fee and the %d "
+                    "experience.\r\nType 'recall %d confirm' to end the contract.\r\n",
+                    GET_NAME(ch), ability_names[ability], status, GET_CRAFT(ch).training_exp, slot);
+    return;
+  }
+
+  GET_CRAFT(ch).training_ability = 0;
+  GET_CRAFT(ch).training_exp = 0;
+  GET_CRAFT(ch).training_end = 0;
+  if (!save_char_checked(ch, 0))
+  {
+    log("SYSERR: craft training: could not save %s after a recall.", GET_NAME(ch));
+    show_account_menu(d);
+    write_to_output(d, "The contract could not be ended. Please try again.\r\n");
+    return;
+  }
+  mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE,
+         "%s recalled early from craft training in %s.", GET_NAME(ch), ability_names[ability]);
+  show_account_menu(d);
+  write_to_output(d, "%s returns from training early. The fee and the experience are forfeit.\r\n",
+                  GET_NAME(ch));
+}
+
+bool craft_training_refuse_entry(struct descriptor_data *d)
+{
+  char status[64];
+
+  if (d->character == NULL || !craft_training_status(d->character, time(0), status, sizeof(status)))
+    return false;
+  write_to_output(d,
+                  "\r\n%s is away (%s) and cannot enter the game from here. Enter 0 to return to "
+                  "the account menu.\r\n",
+                  GET_NAME(d->character), status);
+  return true;
 }

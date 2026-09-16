@@ -5440,6 +5440,15 @@ static bool validate_copyover_environment(const char *copyover_executable)
   return TRUE;
 }
 
+/* Copyover restores playing characters. One whose extraction is pending has already quit, rented,
+ * or left to train, and that path saved it: restoring it would undo the leaving, and saving its
+ * belongings again would replace the saved set with an empty one. */
+bool copyover_restores_descriptor(const struct descriptor_data *d)
+{
+  return d->character != NULL && d->connected <= CON_PLAYING &&
+         !PLR_FLAGGED(d->character, PLR_NOTDEADYET);
+}
+
 static void perform_do_copyover()
 {
   FILE *fp;
@@ -5611,8 +5620,8 @@ static void perform_do_copyover()
     /* We delete from the list , so need to save this */
     d_next = d->next;
 
-    /* Handle non-playing descriptors */
-    if (!d->character || d->connected > CON_PLAYING)
+    /* Handle non-playing descriptors and characters already leaving play */
+    if (!copyover_restores_descriptor(d))
     {
       /* Log why we're dropping this descriptor */
       if (!d->character)
@@ -5621,7 +5630,7 @@ static void perform_do_copyover()
       }
       else
       {
-        COPYOVER_DEBUG("copyover: Dropping descriptor %d for %s (state=%d, not playing)",
+        COPYOVER_DEBUG("copyover: Dropping descriptor %d for %s (state=%d, not restored)",
                        d->descriptor, GET_NAME(d->character), d->connected);
       }
 

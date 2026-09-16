@@ -68,6 +68,7 @@
 #include "character/class.h"
 #include "character/race.h"
 #include "act/act.h"
+#include "craft/craft_training.h"
 #include "account.h"
 #include "vessels/routing.h"
 #include "core/perfmon.h"
@@ -1313,7 +1314,12 @@ void show_account_menu(struct descriptor_data *d)
               write_to_output(d, " %3d \tC|\tn %4s \tC|\tn", GET_LEVEL(tch),
                               race_list[GET_REAL_RACE(tch)].abbrev_color);
 
-              if (GET_LEVEL(tch) >= LVL_IMMORT)
+              if (craft_training_status(tch, time(0), buf, sizeof(buf)))
+              {
+                /* Away training: the class column shows the time left instead */
+                write_to_output(d, " %-36s", buf);
+              }
+              else if (GET_LEVEL(tch) >= LVL_IMMORT)
               {
                 /* Staff */
                 write_to_output(d, " %-36s", admin_level_names[(GET_LEVEL(tch) - LVL_IMMORT)]);

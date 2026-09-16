@@ -1257,6 +1257,7 @@ ACMDCHECK(can_true_judgement);
 bool char_has_any_item_activation_ability_cooldowns(struct char_data *ch);
 ACMD_DECL(do_homelands);
 const char *get_copyover_state_string(void);
+bool copyover_restores_descriptor(const struct descriptor_data *d);
 ACMD_DECL(do_detectmagic);
 bool has_piercing_weapon(struct char_data *ch, int wield);
 #endif /* _ACT_H_ */
