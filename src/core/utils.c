@@ -3342,7 +3342,7 @@ void mudlog(int type, int level, int file, const char *str, ...)
   if (level < 0)
     return;
 
-  strcpy(buf, "[ "); /* strcpy: OK */
+  strlcpy(buf, "[ ", sizeof(buf)); /* strcpy: OK */
   va_start(args, str);
   vsnprintf(buf + 2, sizeof(buf) - 6, str, args);
   va_end(args);

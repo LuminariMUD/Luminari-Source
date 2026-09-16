@@ -382,11 +382,11 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
     {
       temp = *s;
       *s = '\0';
-      strcat(buf, t);
+      strlcat(buf, t, sizeof(buf));
       *s = temp;
     }
     else
-      strcat(buf, t);
+      strlcat(buf, t, sizeof(buf));
     /* This is kind of annoying...but some people like it. */
     sprintf(buf + strlen(buf), "\r\n%u line%sshown.\r\n", total_len, (total_len != 1) ? "s " : " ");
     page_string(d, buf, TRUE);
@@ -449,8 +449,8 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
         *s = '\0';
         char num_buf[16];
         snprintf(num_buf, sizeof(num_buf), "%4d: ", (i - 1));
-        strcat(buf, num_buf);
-        strcat(buf, t);
+        strlcat(buf, num_buf, sizeof(buf));
+        strlcat(buf, t, sizeof(buf));
         *s = temp;
         t = s;
       }
@@ -458,11 +458,11 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
     {
       temp = *s;
       *s = '\0';
-      strcat(buf, t);
+      strlcat(buf, t, sizeof(buf));
       *s = temp;
     }
     else if (t)
-      strcat(buf, t);
+      strlcat(buf, t, sizeof(buf));
 
     page_string(d, buf, TRUE);
     break;
@@ -475,7 +475,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
       return;
     }
     line_low = atoi(buf);
-    strcat(buf2, "\r\n");
+    strlcat(buf2, "\r\n", sizeof(buf2));
 
     i = 1;
     *buf = '\0';
@@ -531,7 +531,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
       return;
     }
     line_low = atoi(buf);
-    strcat(buf2, "\r\n");
+    strlcat(buf2, "\r\n", sizeof(buf2));
 
     i = 1;
     *buf = '\0';
@@ -563,11 +563,11 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
         temp = *s;
         *s = '\0';
         /* Put the first 'good' half of the text into storage. */
-        strcat(buf, *d->str);
+        strlcat(buf, *d->str, sizeof(buf));
         *s = temp;
       }
       /* Put the new 'good' line into place. */
-      strcat(buf, buf2);
+      strlcat(buf, buf2, sizeof(buf));
       if ((s = strchr(s, '\n')) != NULL)
       {
         /* This means that we are at the END of the line, we want out of there,
@@ -575,7 +575,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
          * we want edited. */
         s++;
         /* Now put the last 'good' half of buffer into storage. */
-        strcat(buf, s);
+        strlcat(buf, s, sizeof(buf));
       }
       /* Check for buffer overflow. */
       if (strlen(buf) > d->max_str)

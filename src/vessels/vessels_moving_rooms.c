@@ -39,11 +39,11 @@ void setup_moving_room(FILE *fl, int rroom, int vroom, char *line)
     return;
   }
 
-  strcpy(errStr, "");
-  strcpy(lineIn, "");
-  strcpy(msg1, "");
-  strcpy(msg2, "");
-  strcpy(msg3, "");
+  strlcpy(errStr, "", sizeof(errStr));
+  strlcpy(lineIn, "", sizeof(lineIn));
+  strlcpy(msg1, "", sizeof(msg1));
+  strlcpy(msg2, "", sizeof(msg2));
+  strlcpy(msg3, "", sizeof(msg3));
 
   for (j = 0; j < MAX_MOVING_ROOMS; j++)
   {
@@ -253,8 +253,9 @@ int unlinkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMda
     /*  check if old conn room dir is clean...  */
     if (world[real_room(ONMdata->oldRoom)].dir_option[ONMdata->oldDir] == NULL)
     {
-      sprintf(errStr, "SPEC(move_room): [%d] old conn room %" PRI_IDX " dir %d not set...",
-              (int)ONMdata->moveRoom, ONMdata->oldRoom, ONMdata->oldDir);
+      snprintf(errStr, sizeof(errStr),
+               "SPEC(move_room): [%d] old conn room %" PRI_IDX " dir %d not set...",
+               (int)ONMdata->moveRoom, ONMdata->oldRoom, ONMdata->oldDir);
       log("%s", errStr);
       return 0;
     }
@@ -282,8 +283,9 @@ int unlinkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMda
     world[real_room(ONMdata->oldRoom)].dir_option[ONMdata->oldDir] = NULL;
 
     /* log("SPEC(move): all is Ok after unlinking the old room..."); */
-    sprintf(errStr, "SPEC(moving_rooms): [%d] unlinked %" PRI_IDX "  FROM  %" PRI_IDX,
-            (int)ONMdata->moveRoom, ONMdata->oldRoom, theRoom->destination);
+    snprintf(errStr, sizeof(errStr),
+             "SPEC(moving_rooms): [%d] unlinked %" PRI_IDX "  FROM  %" PRI_IDX,
+             (int)ONMdata->moveRoom, ONMdata->oldRoom, theRoom->destination);
     /* mudlog(errStr, CMP, LVL_QUEST, TRUE); */
   }
 
@@ -308,12 +310,12 @@ int linkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata
       log("SPEC(move_room): moving room hasn't unset last connecting room...");
 
       rdd = world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir];
-      sprintf(errStr,
-              "SPEC(move): [%d] rdd - desc:%s:  key:%s:  ei:%d:  key:%" PRI_IDX ":  to:%" PRI_IDX
-              ":",
-              (int)ONMdata->moveRoom,
-              (rdd->general_description == NULL) ? "" : rdd->general_description,
-              (rdd->keyword == NULL) ? "" : rdd->keyword, rdd->exit_info, rdd->key, rdd->to_room);
+      snprintf(errStr, sizeof(errStr),
+               "SPEC(move): [%d] rdd - desc:%s:  key:%s:  ei:%d:  key:%" PRI_IDX ":  to:%" PRI_IDX
+               ":",
+               (int)ONMdata->moveRoom,
+               (rdd->general_description == NULL) ? "" : rdd->general_description,
+               (rdd->keyword == NULL) ? "" : rdd->keyword, rdd->exit_info, rdd->key, rdd->to_room);
       log("%s", errStr);
 
       door_state_finish(&operation);
@@ -326,17 +328,17 @@ int linkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata
     /*  check if conn room dir is clean...  */
     if (world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir] != NULL)
     {
-      sprintf(errStr, "SPEC(move_room): [%d] conn room has dir %d set...", (int)ONMdata->moveRoom,
-              ONMdata->nextDir);
+      snprintf(errStr, sizeof(errStr), "SPEC(move_room): [%d] conn room has dir %d set...",
+               (int)ONMdata->moveRoom, ONMdata->nextDir);
       log("%s", errStr);
 
       rdd = world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir];
-      sprintf(errStr,
-              "SPEC(move): [%d] rdd - desc:%s:  key:%s:  ei:%d:  key:%" PRI_IDX ":  to:%" PRI_IDX
-              ":",
-              (int)ONMdata->moveRoom,
-              (rdd->general_description == NULL) ? "" : rdd->general_description,
-              (rdd->keyword == NULL) ? "" : rdd->keyword, rdd->exit_info, rdd->key, rdd->to_room);
+      snprintf(errStr, sizeof(errStr),
+               "SPEC(move): [%d] rdd - desc:%s:  key:%s:  ei:%d:  key:%" PRI_IDX ":  to:%" PRI_IDX
+               ":",
+               (int)ONMdata->moveRoom,
+               (rdd->general_description == NULL) ? "" : rdd->general_description,
+               (rdd->keyword == NULL) ? "" : rdd->keyword, rdd->exit_info, rdd->key, rdd->to_room);
       log("%s", errStr);
 
 /*  pdh 5/3/01 - don't return - instead remove the offending exit
@@ -417,9 +419,10 @@ return 0;
     }
 
     /* log("SPEC(move): all complete: linked the new room"); */
-    sprintf(errStr,
-            "SPEC(moving_rooms): [%d] unlinked %" PRI_IDX " and linked %" PRI_IDX "  TO  %" PRI_IDX,
-            (int)ONMdata->moveRoom, ONMdata->oldRoom, ONMdata->nextRoom, theRoom->destination);
+    snprintf(errStr, sizeof(errStr),
+             "SPEC(moving_rooms): [%d] unlinked %" PRI_IDX " and linked %" PRI_IDX
+             "  TO  %" PRI_IDX,
+             (int)ONMdata->moveRoom, ONMdata->oldRoom, ONMdata->nextRoom, theRoom->destination);
     /* mudlog(errStr, CMP, LVL_QUEST, TRUE); */
   }
   else

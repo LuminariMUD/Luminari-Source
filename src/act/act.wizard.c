@@ -9858,13 +9858,13 @@ ACMDU(do_setworldsect)
 
   char buf[200];
   char arg[200];
-  sprintf(arg, "%s", argument);
+  snprintf(arg, sizeof(arg), "%s", argument);
   for (j = 0; (size_t)j < strlen(arg); j++)
     arg[j] = (char)tolower(arg[j]);
 
   for (i = 0; i < NUM_ROOM_SECTORS; i++)
   {
-    sprintf(buf, "%s", sector_types[i]);
+    snprintf(buf, sizeof(buf), "%s", sector_types[i]);
     for (j = 0; (size_t)j < strlen(buf); j++)
       buf[j] = (char)tolower(buf[j]);
     if (is_abbrev(arg, buf))
@@ -9910,13 +9910,13 @@ ACMDU(do_setroomsect)
 
   char buf[200];
   char arg[200];
-  sprintf(arg, "%s", argument);
+  snprintf(arg, sizeof(arg), "%s", argument);
   for (j = 0; (size_t)j < strlen(arg); j++)
     arg[j] = (char)tolower(arg[j]);
 
   for (i = 0; i < NUM_ROOM_SECTORS; i++)
   {
-    sprintf(buf, "%s", sector_types[i]);
+    snprintf(buf, sizeof(buf), "%s", sector_types[i]);
     for (j = 0; (size_t)j < strlen(buf); j++)
       buf[j] = (char)tolower(buf[j]);
     if (is_abbrev(arg, buf))
@@ -9967,7 +9967,7 @@ ACMDU(do_setroomflag)
 
   char buf[200];
   char arg[200];
-  sprintf(arg, "%s", argument);
+  snprintf(arg, sizeof(arg), "%s", argument);
   for (j = 0; (size_t)j < strlen(arg); j++)
   {
     arg[j] = (char)tolower(arg[j]);
@@ -9975,7 +9975,7 @@ ACMDU(do_setroomflag)
 
   for (i = 0; i < NUM_ROOM_FLAGS; i++)
   {
-    sprintf(buf, "%s", room_bits[i]);
+    snprintf(buf, sizeof(buf), "%s", room_bits[i]);
     for (j = 0; (size_t)j < strlen(buf); j++)
       buf[j] = (char)tolower(buf[j]);
     if (is_abbrev(arg, buf))
@@ -11930,11 +11930,11 @@ ACMD(do_settestchar)
   for (i = 0; i < num_classes; i++)
   {
     if (i > 0)
-      strcat(buf, ", ");
+      strlcat(buf, ", ", sizeof(buf));
     char level_str[32];
     snprintf(level_str, sizeof(level_str), "%s (L%d)", class_list[class_list_tmp[i]].name,
              class_levels_tmp[i]);
-    strcat(buf, level_str);
+    strlcat(buf, level_str, sizeof(buf));
   }
 
   send_to_char(ch, "\r\n%s\r\n", buf);

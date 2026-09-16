@@ -1388,7 +1388,7 @@ void show_resource_map(struct char_data *ch, int resource_type, int radius)
   for (map_y = -radius; map_y <= radius; map_y++)
   {
     char line_buffer[MAX_STRING_LENGTH] = "";
-    strcat(line_buffer, " "); /* Leading space for each line */
+    strlcat(line_buffer, " ", sizeof(line_buffer)); /* Leading space for each line */
 
     for (map_x = -radius; map_x <= radius; map_x++)
     {
@@ -1398,7 +1398,7 @@ void show_resource_map(struct char_data *ch, int resource_type, int radius)
       /* Check if this is the player's position */
       if (map_x == 0 && map_y == 0)
       {
-        strcat(line_buffer, "\tW@\tn"); /* Player position */
+        strlcat(line_buffer, "\tW@\tn", sizeof(line_buffer)); /* Player position */
       }
       else
       {
@@ -1414,10 +1414,10 @@ void show_resource_map(struct char_data *ch, int resource_type, int radius)
         color = get_resource_color(resource_level);
         char symbol_str[20];
         snprintf(symbol_str, sizeof(symbol_str), "%s%c\tn", color, symbol);
-        strcat(line_buffer, symbol_str);
+        strlcat(line_buffer, symbol_str, sizeof(line_buffer));
       }
     }
-    strcat(line_buffer, "\r\n");
+    strlcat(line_buffer, "\r\n", sizeof(line_buffer));
     send_to_char(ch, "%s", line_buffer); /* Send entire line at once */
   }
 

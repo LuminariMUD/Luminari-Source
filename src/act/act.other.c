@@ -10615,12 +10615,14 @@ ACMD(do_dice)
 
   result = dice(rolls, size);
 
-  sprintf(Gbuf1, "You roll a %d sided dice %d times, the total result is: \tB%d\tn\r\n", size,
-          rolls, result);
+  snprintf(Gbuf1, sizeof(Gbuf1),
+           "You roll a %d sided dice %d times, the total result is: \tB%d\tn\r\n", size, rolls,
+           result);
   send_to_char(ch, "%s", Gbuf1);
 
-  sprintf(Gbuf1, "A %d sided dice is rolled by %s %d times, the total result is: \tB%d\tn\r\n",
-          size, GET_NAME(ch), rolls, result);
+  snprintf(Gbuf1, sizeof(Gbuf1),
+           "A %d sided dice is rolled by %s %d times, the total result is: \tB%d\tn\r\n", size,
+           GET_NAME(ch), rolls, result);
   send_to_room(ch->in_room, "%s", Gbuf1);
 
   return;
@@ -13130,7 +13132,7 @@ ACMDU(do_device)
           {
             if (spell_list_len < 195)
             {
-              strcat(spell_list, ", ");
+              strlcat(spell_list, ", ", sizeof(spell_list));
               spell_list_len += 2;
             }
           }
@@ -13161,7 +13163,7 @@ ACMDU(do_device)
         char circle_ind[32] = {'\0'};
         if (inv->num_spells > 0)
         {
-          strcat(circle_ind, "[");
+          strlcat(circle_ind, "[", sizeof(circle_ind));
           for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++)
           {
             int lvl = inv->spell_levels[j];
@@ -14005,7 +14007,7 @@ MUD_EVENT_CALLBACK(event_device_creation)
   /* The invention data is stored in sVariables as a formatted string:
    * "spell1,spell2,spell3|num_spells|duration|reliability" */
   char invention_data[MAX_STRING_LENGTH];
-  strcpy(invention_data, pMudEvent->sVariables);
+  strlcpy(invention_data, pMudEvent->sVariables, sizeof(invention_data));
 
   char *spells_part = strtok(invention_data, "|");
   char *num_spells_str = strtok(NULL, "|");

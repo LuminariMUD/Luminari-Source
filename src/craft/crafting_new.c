@@ -8929,7 +8929,7 @@ void refresh_supply_slots(struct char_data *ch)
         }
         else
         {
-          strcpy(plural_item, item_name);
+          strlcpy(plural_item, item_name, sizeof(plural_item));
         }
 
         switch (contract->contract_type)

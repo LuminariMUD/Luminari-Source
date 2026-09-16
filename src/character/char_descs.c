@@ -614,7 +614,7 @@ static void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
       snprintf(buf, sizeof(buf), "%d) %-30s ", i, fur_descriptions[i]);
 
       if (i % 2 == 1)
-        strcat(buf, "\r\n");
+        strlcat(buf, "\r\n", sizeof(buf));
 
       SEND_TO_Q(buf, ch->desc);
       i++;
@@ -627,7 +627,7 @@ static void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
       snprintf(buf, sizeof(buf), "%d) %-30s ", i, skin_descriptions[i]);
 
       if (i % 2 == 1)
-        strcat(buf, "\r\n");
+        strlcat(buf, "\r\n", sizeof(buf));
 
       SEND_TO_Q(buf, ch->desc);
       i++;
@@ -640,7 +640,7 @@ static void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
       snprintf(buf, sizeof(buf), "%d) %-30s ", i, horn_descriptions[i]);
 
       if (i % 2 == 1)
-        strcat(buf, "\r\n");
+        strlcat(buf, "\r\n", sizeof(buf));
 
       SEND_TO_Q(buf, ch->desc);
       i++;
@@ -653,7 +653,7 @@ static void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
       snprintf(buf, sizeof(buf), "%d) %-30s ", i, scales_descriptions[i]);
 
       if (i % 2 == 1)
-        strcat(buf, "\r\n");
+        strlcat(buf, "\r\n", sizeof(buf));
 
       SEND_TO_Q(buf, ch->desc);
       i++;
@@ -666,7 +666,7 @@ static void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
       snprintf(buf, sizeof(buf), "%d) %-30s ", i, eye_descriptions[i]);
 
       if (i % 2 == 1)
-        strcat(buf, "\r\n");
+        strlcat(buf, "\r\n", sizeof(buf));
 
       SEND_TO_Q(buf, ch->desc);
       i++;
@@ -679,7 +679,7 @@ static void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
       snprintf(buf, sizeof(buf), "%d) %-30s ", i, nose_descriptions[i]);
 
       if (i % 2 == 1)
-        strcat(buf, "\r\n");
+        strlcat(buf, "\r\n", sizeof(buf));
 
       SEND_TO_Q(buf, ch->desc);
       i++;
@@ -692,7 +692,7 @@ static void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
       snprintf(buf, sizeof(buf), "%d) %-30s n", i, ear_descriptions[i]);
 
       if (i % 2 == 1)
-        strcat(buf, "\r\n");
+        strlcat(buf, "\r\n", sizeof(buf));
 
       SEND_TO_Q(buf, ch->desc);
       i++;
@@ -705,7 +705,7 @@ static void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
       snprintf(buf, sizeof(buf), "%d) %-30s ", i, face_descriptions[i]);
 
       if (i % 2 == 1)
-        strcat(buf, "\r\n");
+        strlcat(buf, "\r\n", sizeof(buf));
 
       SEND_TO_Q(buf, ch->desc);
       i++;
@@ -718,7 +718,7 @@ static void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
       snprintf(buf, sizeof(buf), "%d) %-30s ", i, scar_descriptions[i]);
 
       if (i % 2 == 1)
-        strcat(buf, "\r\n");
+        strlcat(buf, "\r\n", sizeof(buf));
 
       SEND_TO_Q(buf, ch->desc);
       i++;
@@ -731,7 +731,7 @@ static void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
       snprintf(buf, sizeof(buf), "%d) %-30s ", i, hair_descriptions[i]);
 
       if (i % 2 == 1)
-        strcat(buf, "\r\n");
+        strlcat(buf, "\r\n", sizeof(buf));
 
       SEND_TO_Q(buf, ch->desc);
       i++;
@@ -744,7 +744,7 @@ static void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
       snprintf(buf, sizeof(buf), "%d) %-30s ", i, build_descriptions[i]);
 
       if (i % 2 == 1)
-        strcat(buf, "\r\n");
+        strlcat(buf, "\r\n", sizeof(buf));
 
       SEND_TO_Q(buf, ch->desc);
       i++;
@@ -757,7 +757,7 @@ static void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
       snprintf(buf, sizeof(buf), "%d) %-30s ", i, complexion_descriptions[i]);
 
       if (i % 2 == 1)
-        strcat(buf, "\r\n");
+        strlcat(buf, "\r\n", sizeof(buf));
 
       SEND_TO_Q(buf, ch->desc);
       i++;

@@ -185,7 +185,7 @@ static void sort_names(void)
       {
         if (strcmp(a->name, b->name) > 0)
         {
-          strcpy(temp, a->name);
+          strlcpy(temp, a->name, sizeof(temp));
           strcpy(a->name, b->name);
           strcpy(b->name, temp);
         }
@@ -220,11 +220,11 @@ static void write_wizlist(FILE *out, int minlev, int maxlev)
       fputc('~', out);
     fprintf(out, "\n");
 
-    strcpy(buf, "");
+    strlcpy(buf, "", sizeof(buf));
     curr_name = curr_level->names;
     while (curr_name)
     {
-      strcat(buf, curr_name->name);
+      strlcat(buf, curr_name->name, sizeof(buf));
       if (strlen(buf) > LINE_LEN)
       {
         if (curr_level->params->level <= COL_LEVEL)
@@ -236,17 +236,17 @@ static void write_wizlist(FILE *out, int minlev, int maxlev)
             fputc(' ', out);
         }
         fprintf(out, "%s\n", buf);
-        strcpy(buf, "");
+        strlcpy(buf, "", sizeof(buf));
       }
       else
       {
         if (curr_level->params->level <= COL_LEVEL)
         {
           for (j = 1; strlen(curr_name->name) + (size_t)j <= IMM_NSIZE; j++)
-            strcat(buf, " ");
+            strlcat(buf, " ", sizeof(buf));
         }
         if (curr_level->params->level > COL_LEVEL)
-          strcat(buf, "   ");
+          strlcat(buf, "   ", sizeof(buf));
       }
       curr_name = curr_name->next;
     }

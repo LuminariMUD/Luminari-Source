@@ -2247,7 +2247,7 @@ ACMDU(do_helpsearch)
         }
         else
         {
-          strcat(preview, "...");
+          strlcat(preview, "...", sizeof(preview));
         }
       }
 

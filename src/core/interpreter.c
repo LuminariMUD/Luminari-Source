@@ -7099,7 +7099,8 @@ static int perform_complex_alias(struct txt_q *input_q, char *orig, struct alias
   int num_of_tokens = 0, num;
 
   /* First, parse the original string */
-  strcpy(buf2, orig); /* strcpy: OK (orig:MAX_INPUT_LENGTH < buf2:MAX_RAW_INPUT_LENGTH) */
+  strlcpy(buf2, orig,
+          sizeof(buf2)); /* strcpy: OK (orig:MAX_INPUT_LENGTH < buf2:MAX_RAW_INPUT_LENGTH) */
   temp = strtok(buf2, " ");
   while (temp != NULL && num_of_tokens < NUM_TOKENS)
   {

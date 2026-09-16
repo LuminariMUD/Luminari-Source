@@ -1185,118 +1185,118 @@ static char *get_ascii_wilderness_symbol(int sector_type)
   switch (sector_type)
   {
   case SECT_INSIDE:
-    strcpy(ascii_buffer, "\tn.\tn");
+    strlcpy(ascii_buffer, "\tn.\tn", sizeof(ascii_buffer));
     break;
   case SECT_CITY:
-    strcpy(ascii_buffer, "\twC\tn");
+    strlcpy(ascii_buffer, "\twC\tn", sizeof(ascii_buffer));
     break;
   case SECT_FIELD:
-    strcpy(ascii_buffer, "\tg,\tn");
+    strlcpy(ascii_buffer, "\tg,\tn", sizeof(ascii_buffer));
     break;
   case SECT_FOREST:
-    strcpy(ascii_buffer, "\tGY\tn");
+    strlcpy(ascii_buffer, "\tGY\tn", sizeof(ascii_buffer));
     break;
   case SECT_HILLS:
-    strcpy(ascii_buffer, "\tyn\tn");
+    strlcpy(ascii_buffer, "\tyn\tn", sizeof(ascii_buffer));
     break;
   case SECT_MOUNTAIN:
-    strcpy(ascii_buffer, "\tw^\tn");
+    strlcpy(ascii_buffer, "\tw^\tn", sizeof(ascii_buffer));
     break;
   case SECT_WATER_SWIM:
-    strcpy(ascii_buffer, "\tB~\tn");
+    strlcpy(ascii_buffer, "\tB~\tn", sizeof(ascii_buffer));
     break;
   case SECT_WATER_NOSWIM:
-    strcpy(ascii_buffer, "\tb=\tn");
+    strlcpy(ascii_buffer, "\tb=\tn", sizeof(ascii_buffer));
     break;
   case SECT_FLYING:
-    strcpy(ascii_buffer, "\tC^\tn");
+    strlcpy(ascii_buffer, "\tC^\tn", sizeof(ascii_buffer));
     break;
   case SECT_UNDERWATER:
-    strcpy(ascii_buffer, "\tbU\tn");
+    strlcpy(ascii_buffer, "\tbU\tn", sizeof(ascii_buffer));
     break;
   case SECT_ZONE_START:
-    strcpy(ascii_buffer, "\tRX\tn");
+    strlcpy(ascii_buffer, "\tRX\tn", sizeof(ascii_buffer));
     break;
   case SECT_ROAD_NS:
-    strcpy(ascii_buffer, "\tD|\tn");
+    strlcpy(ascii_buffer, "\tD|\tn", sizeof(ascii_buffer));
     break;
   case SECT_ROAD_EW:
-    strcpy(ascii_buffer, "\tD-\tn");
+    strlcpy(ascii_buffer, "\tD-\tn", sizeof(ascii_buffer));
     break;
   case SECT_ROAD_INT:
-    strcpy(ascii_buffer, "\tD+\tn");
+    strlcpy(ascii_buffer, "\tD+\tn", sizeof(ascii_buffer));
     break;
   case SECT_DESERT:
-    strcpy(ascii_buffer, "\tY.\tn");
+    strlcpy(ascii_buffer, "\tY.\tn", sizeof(ascii_buffer));
     break;
   case SECT_OCEAN:
-    strcpy(ascii_buffer, "\tb~\tn");
+    strlcpy(ascii_buffer, "\tb~\tn", sizeof(ascii_buffer));
     break;
   case SECT_MARSHLAND:
-    strcpy(ascii_buffer, "\tM,\tn");
+    strlcpy(ascii_buffer, "\tM,\tn", sizeof(ascii_buffer));
     break;
   case SECT_HIGH_MOUNTAIN:
-    strcpy(ascii_buffer, "\tW^\tn");
+    strlcpy(ascii_buffer, "\tW^\tn", sizeof(ascii_buffer));
     break;
   case SECT_PLANES:
-    strcpy(ascii_buffer, "\tM.\tn");
+    strlcpy(ascii_buffer, "\tM.\tn", sizeof(ascii_buffer));
     break;
   case SECT_UD_WILD:
-    strcpy(ascii_buffer, "\tMY\tn");
+    strlcpy(ascii_buffer, "\tMY\tn", sizeof(ascii_buffer));
     break;
   case SECT_UD_CITY:
-    strcpy(ascii_buffer, "\tmC\tn");
+    strlcpy(ascii_buffer, "\tmC\tn", sizeof(ascii_buffer));
     break;
   case SECT_UD_INSIDE:
-    strcpy(ascii_buffer, "\tm.\tn");
+    strlcpy(ascii_buffer, "\tm.\tn", sizeof(ascii_buffer));
     break;
   case SECT_UD_WATER:
-    strcpy(ascii_buffer, "\tm~\tn");
+    strlcpy(ascii_buffer, "\tm~\tn", sizeof(ascii_buffer));
     break;
   case SECT_UD_NOSWIM:
-    strcpy(ascii_buffer, "\tM=\tn");
+    strlcpy(ascii_buffer, "\tM=\tn", sizeof(ascii_buffer));
     break;
   case SECT_UD_NOGROUND:
-    strcpy(ascii_buffer, "\tm^\tn");
+    strlcpy(ascii_buffer, "\tm^\tn", sizeof(ascii_buffer));
     break;
   case SECT_LAVA:
-    strcpy(ascii_buffer, "\tR.\tn");
+    strlcpy(ascii_buffer, "\tR.\tn", sizeof(ascii_buffer));
     break;
   case SECT_D_ROAD_NS:
-    strcpy(ascii_buffer, "\ty|\tn");
+    strlcpy(ascii_buffer, "\ty|\tn", sizeof(ascii_buffer));
     break;
   case SECT_D_ROAD_EW:
-    strcpy(ascii_buffer, "\ty-\tn");
+    strlcpy(ascii_buffer, "\ty-\tn", sizeof(ascii_buffer));
     break;
   case SECT_D_ROAD_INT:
-    strcpy(ascii_buffer, "\ty+\tn");
+    strlcpy(ascii_buffer, "\ty+\tn", sizeof(ascii_buffer));
     break;
   case SECT_CAVE:
-    strcpy(ascii_buffer, "\tDC\tn");
+    strlcpy(ascii_buffer, "\tDC\tn", sizeof(ascii_buffer));
     break;
   case SECT_JUNGLE:
-    strcpy(ascii_buffer, "\tg&\tn");
+    strlcpy(ascii_buffer, "\tg&\tn", sizeof(ascii_buffer));
     break;
   case SECT_TUNDRA:
-    strcpy(ascii_buffer, "\tW.\tn");
+    strlcpy(ascii_buffer, "\tW.\tn", sizeof(ascii_buffer));
     break;
   case SECT_TAIGA:
-    strcpy(ascii_buffer, "\tgA\tn");
+    strlcpy(ascii_buffer, "\tgA\tn", sizeof(ascii_buffer));
     break;
   case SECT_BEACH:
-    strcpy(ascii_buffer, "\ty:\tn");
+    strlcpy(ascii_buffer, "\ty:\tn", sizeof(ascii_buffer));
     break;
   case SECT_SEAPORT:
-    strcpy(ascii_buffer, "\tRS\tn");
+    strlcpy(ascii_buffer, "\tRS\tn", sizeof(ascii_buffer));
     break;
   case SECT_INSIDE_ROOM:
-    strcpy(ascii_buffer, "\ty*\tn");
+    strlcpy(ascii_buffer, "\ty*\tn", sizeof(ascii_buffer));
     break;
   case SECT_RIVER:
-    strcpy(ascii_buffer, "\tB~\tn");
+    strlcpy(ascii_buffer, "\tB~\tn", sizeof(ascii_buffer));
     break;
   default:
-    strcpy(ascii_buffer, "\tr?\tn");
+    strlcpy(ascii_buffer, "\tr?\tn", sizeof(ascii_buffer));
     break;
   }
 

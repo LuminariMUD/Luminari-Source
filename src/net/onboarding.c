@@ -566,7 +566,7 @@ static void json_string_truncated(struct json_writer *w, const char *value, size
     index = last_space;
 
   scratch[index] = '\0';
-  strcat(scratch, "...");
+  strlcat(scratch, "...", sizeof(scratch));
 
   json_string(w, scratch, max_chars + 4);
 }

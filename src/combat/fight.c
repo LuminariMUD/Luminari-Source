@@ -6365,11 +6365,11 @@ static int compute_damage_bonus_with_projectile(struct char_data *ch, struct cha
   if (wielded && is_using_light_weapon(ch, wielded) && OBJ_FLAGGED(wielded, ITEM_AGILE))
   {
     str_bonus = MAX(get_agile_weapon_dex_bonus(ch), GET_STR_BONUS(ch));
-    sprintf(strength, "Dexterity (Agile Weapon)");
+    snprintf(strength, sizeof(strength), "Dexterity (Agile Weapon)");
   }
   else
   {
-    sprintf(strength, "Strength");
+    snprintf(strength, sizeof(strength), "Strength");
   }
 
   /* damroll (should be mostly just gear, spell affections) */

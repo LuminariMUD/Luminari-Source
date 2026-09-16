@@ -552,7 +552,8 @@ ACMDU(do_skillset)
     send_to_char(ch, "Skill must be enclosed in: ''\r\n");
     return;
   }
-  strcpy(helpbuf, (argument + 1)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
+  strlcpy(helpbuf, (argument + 1),
+          sizeof(helpbuf)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
   helpbuf[qend - 1] = '\0';
   if ((skill = find_skill_num(helpbuf)) <= 0)
   {
@@ -661,7 +662,8 @@ ACMDU(do_abilityset)
     send_to_char(ch, "Ability must be enclosed in: ''\r\n");
     return;
   }
-  strcpy(helpbuf, (argument + 1)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
+  strlcpy(helpbuf, (argument + 1),
+          sizeof(helpbuf)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
   helpbuf[qend - 1] = '\0';
   if ((skill = find_ability_num(helpbuf)) <= 0)
   {
@@ -749,7 +751,8 @@ ACMDU(do_featset)
     return;
   }
 
-  strcpy(helpbuf, (argument + 1)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
+  strlcpy(helpbuf, (argument + 1),
+          sizeof(helpbuf)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
 
   helpbuf[qend - 1] = '\0';
 

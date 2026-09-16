@@ -1032,7 +1032,7 @@ ACMD(do_talents)
   }
 
   /* Copy argument to preserve spaces in talent names */
-  strcpy(buf, argument);
+  strlcpy(buf, argument, sizeof(buf));
   half_chop(buf, arg1, arg2);
 
   if (!*arg1)
