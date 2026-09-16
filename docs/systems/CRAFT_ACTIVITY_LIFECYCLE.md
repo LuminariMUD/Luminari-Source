@@ -50,8 +50,11 @@ duration. Ordinary creation and supply-order work then use their normal
 rechecks. Golem construction also saves its type, size and chosen wood
 (`CrGo`), so resumed golem work can finish. Load-time resize handling refunds
 its resources and clears its method and duration before reconstruction. Idle
-players and finished/cancelled projects receive no craft timer. If native
-admission fails, no work is completed and the project state is retained.
+players and finished/cancelled projects receive no craft timer. Golem
+construction that finishes or is cancelled clears its work method, so it does
+not block supply orders; a cancelled golem project keeps its type and size.
+If native admission fails, no work is completed and the project state is
+retained.
 
 Supply offers have a different policy: their existing timestamps measure wall
 clock time, including offline time. Selecting an offer or asking for supply

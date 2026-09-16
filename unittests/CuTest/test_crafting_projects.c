@@ -928,6 +928,70 @@ void Test_golem_construction_keeps_the_chosen_wood(CuTest *tc)
   CuAssertTrue(tc, kept);
 }
 
+void Test_golem_work_that_ends_leaves_supply_orders_available(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct index_data mob_index_entry;
+  struct index_data *saved_mob_index = mob_index;
+  mob_rnum saved_top_of_mobt = top_of_mobt;
+  enum domain_event_status runtime;
+  int mote;
+  bool started, cancel_cleared, requested_after_cancel, finish_cleared, requested_after_finish;
+
+  craft_project_begin(&f);
+  craft_project_add_quartermaster(&f);
+  event_free_all();
+  event_init();
+  runtime = domain_event_runtime_init();
+  /* Requests draw random recipes until one matches; an unseeded generator repeats one value. */
+  circle_srandom(1);
+  SET_FEAT(ch, FEAT_CONSTRUCT_WOOD_GOLEM, 1);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_MAPLE_WOOD) = 100;
+  GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE) = 100;
+  for (mote = 1; mote < NUM_CRAFT_MOTES; mote++)
+    GET_CRAFT_MOTES(ch, mote) = 100;
+  GET_CRAFT(ch).golem_type = GOLEM_TYPE_WOOD;
+  GET_CRAFT(ch).golem_size = GOLEM_SIZE_SMALL;
+
+  /* Cancelled work keeps the golem project for another start. */
+  started = begin_golem_craft(ch);
+  primary_activity_cancel(ch, PRIMARY_ACTIVITY_END_COMMAND, false);
+  cancel_cleared =
+      GET_CRAFT(ch).crafting_method == 0 && GET_CRAFT(ch).golem_type == GOLEM_TYPE_WOOD;
+  newcraft_supplyorder(ch, "request");
+  requested_after_cancel = player_has_supply_order(ch);
+  reset_supply_order(ch);
+
+  /* Finished work: with no golem prototype loaded, completion ends the project unbuilt. */
+  memset(&mob_index_entry, 0, sizeof(mob_index_entry));
+  mob_index_entry.vnum = 1;
+  mob_index = &mob_index_entry;
+  top_of_mobt = 0;
+  GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_GOLEM;
+  craft_golem_complete(ch);
+  finish_cleared = GET_CRAFT(ch).crafting_method == 0;
+  craft_project_reset_output(&f);
+  newcraft_supplyorder(ch, "request");
+  requested_after_finish = player_has_supply_order(ch);
+  reset_supply_order(ch);
+  mob_index = saved_mob_index;
+  top_of_mobt = saved_top_of_mobt;
+
+  SET_FEAT(ch, FEAT_CONSTRUCT_WOOD_GOLEM, 0);
+  circle_srandom((unsigned long)time(NULL));
+  domain_event_runtime_shutdown();
+  event_free_all();
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, runtime);
+  CuAssertTrue(tc, started);
+  CuAssertTrue(tc, cancel_cleared);
+  CuAssertTrue(tc, requested_after_cancel);
+  CuAssertTrue(tc, finish_cleared);
+  CuAssertTrue(tc, requested_after_finish);
+}
+
 void Test_craft_material_bundles_keep_their_hide_grade(CuTest *tc)
 {
   struct craft_project_fixture f;
