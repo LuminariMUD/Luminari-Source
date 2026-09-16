@@ -1,5 +1,6 @@
-/* Production-linked regressions for craft and harvest ranks, the experience path that paid craft
- * trainers share (issue 196, docs/ongoing-projects/craft-trainers.md). */
+/* Production-linked tests for paid craft trainers (issue 196,
+ * docs/ongoing-projects/craft-trainers.md): craft and harvest ranks, the contract record, the Craft
+ * Trainer procedure, and the account-menu entry lock, settlement, and recall. */
 
 #include "CuTest.h"
 
@@ -1039,7 +1040,7 @@ static void craft_account_begin(CuTest *tc, struct craft_account_fixture *fixtur
 }
 
 /** Save the account's character at alchemy rank 4, one point short of rank 5, with 7,500 gold,
- * the insightful alchemy talent at rank, and a rank-4 contract ending at end. */
+ * the insightful alchemy talent at rank insight, and a rank-4 contract ending at end. */
 static bool craft_account_save_contract(struct craft_account_fixture *fixture, time_t end,
                                         int insight)
 {

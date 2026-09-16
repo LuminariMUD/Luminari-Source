@@ -4,9 +4,12 @@ Tracking issue: #196. Branch: `feat/196-craft-trainers`. Written 2026-09-16 from
 `master` at `9c5a0223f89ceda8b15a7bb97c2110f64188f50e`; line numbers refer to that revision.
 World-data facts come from the development world copy, which git does not track.
 
-Status: in progress. On 2026-09-16 the owner accepted every decision at the end as final, so no
-open question blocks implementation. Placing the trainer in the production world stays with the
-owner's world-data release (step 5).
+Status: implemented and verified on the branch (all seven steps below); no pull request has been
+opened. On 2026-09-16 the owner accepted every decision at the end as final. What remains is outside
+the branch: review and merge, placing the trainer in the production world through the owner's
+world-data release (step 5), and, after the merge, installing `data/craft-trainers` in the main
+checkout's development world, which a server without this code would load with an unknown
+procedure name.
 
 ## Progress
 
@@ -18,7 +21,7 @@ Update this list with every commit, so a new session can resume from it.
 - [x] Step 4: lock, settlement, recall, and menu row.
 - [x] Step 5: placement (development check only; production placement stays with the owner).
 - [x] Step 6: help and documentation.
-- [ ] Step 7: verification.
+- [x] Step 7: verification.
 
 Working notes for this worktree (`../Luminari-Source-issue-196`):
 
@@ -38,6 +41,8 @@ Working notes for this worktree (`../Luminari-Source-issue-196`):
   `scripts/ci/prepare_test_runtime.sh .ci-runtime/lib`, and add
   `LUMINARI_TEST_DATA_DIR="$PWD/.ci-runtime/lib" LUMINARI_TEST_CONFIG_FILE=.ci-runtime/lib/etc/config`
   to the suite command. The config path must stay relative.
+- This worktree's untracked world copy (`lib/world/mob/3.mob` and `lib/world/zon/3.zon`) holds the
+  step 5 trainer; the main checkout's development world does not.
 - The pre-push hook runs `make`; run `make install` afterwards so no root-level `luminari` binary
   is left behind.
 
@@ -551,6 +556,36 @@ Plan as written:
 - `docs/systems/SAVE_SYSTEMS_BREAKDOWN.md`: the `CrTr` tag.
 
 ### Step 7: verification
+
+Done, on commit `cec0ffa89` (later commits change only comments and this document). Results:
+
+- `make -j16 test && make install`: every gate passed, including 1,526 CuTest tests, build parity,
+  header self-containment, help sync, autorun supervision, and the production profile.
+- `python3 scripts/ci/check_build_parity.py`: OK. `make test-world-tools`: 542 tests OK (37
+  skipped). `pre-commit run --files` over every file the branch changes: all hooks pass.
+- The database-backed suite ran against the isolated test container from the working notes rather
+  than the development database the plan named, because other database tests in the suite write
+  beyond temporary tables: 1,526 tests OK.
+- Live checks in the step 5 environment. On the build before the clang-tidy fixes, a contract
+  settled across alchemy rank 4 to 5 with "You gain 1 crafting talent point!", and `Tlpt: 1` and
+  15,000 experience reached the player file. On `cec0ffa89` itself, a rank-5 quote (3,600 gold,
+  3,000 experience), the contract, the main-menu refusal, the account row, and settlement to
+  18,000 experience all worked, and selecting the character again granted nothing.
+- The local clang-tidy gate (`scripts/ci/local/run.py --job quality-clang-tidy --jobs 1 --cpus 16`)
+  first failed on new findings: `atoi()` and `sscanf()` in new code, an `int` multiplication widened
+  to `time_t` in `CRAFT_TRAINING_DURATION`, and, in the tests, assignments in conditions and unguarded
+  fixture writes the analyzer could not prove non-null. Commit "Keep the craft trainer changes
+  inside the clang-tidy baseline" fixed them; the `CrTr` loader now uses `strtol()` and also
+  rejects trailing text. The gate then passed and reported one fewer
+  `clang-analyzer-security.ArrayBound` finding in `src/character/talents.c` (the baseline was not
+  lowered).
+- The full local matrix (`scripts/ci/local/run.py --jobs 4 --cpus 4`, 29 jobs, including
+  sanitizers, the Valgrind memory check, coverage, database migration, and the CMake and compiler
+  matrix) passed except `test-production-profile-cmake-clang`, whose compiler flag probe reported
+  "migration tier dropped baseline flag -Wcast-align" under the matrix's load. The same job passed
+  on the branch alone, and on master alone.
+
+Plan as written:
 
 ```sh
 make -j"$(nproc)" test && make install
