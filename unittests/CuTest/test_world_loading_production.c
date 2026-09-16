@@ -10,8 +10,14 @@
 #include "../../src/core/handler.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/movement/movement_validation.h"
+#include "../../src/obj/shop.h"
+#include "../../src/olc/genshp.h"
+#include "../../src/olc/genzon.h"
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -591,4 +597,215 @@ void Test_world_loading_production_exit_diagnostics(CuTest *tc)
              dirs[direction], direction, 900 + direction);
     CuAssertPtrNotNull(tc, strstr(output, expected));
   }
+}
+
+/* Every file the zone and shop round trip creates inside its sandbox. */
+static const char *const olc_round_trip_files[] = {"world/zon/1.zon",
+                                                   "world/zon/1.new",
+                                                   "world/zon/index",
+                                                   "world/zon/newindex",
+                                                   "world/shp/1.shp",
+                                                   "world/shp/1.new",
+                                                   "world/shp/index",
+                                                   "world/shp/newindex",
+                                                   "world/zon",
+                                                   "world/shp",
+                                                   "world"};
+
+static bool olc_round_trip_write_index(const char *path)
+{
+  FILE *index = fopen(path, "w");
+
+  if (index == NULL)
+    return false;
+  fputs("$\n", index);
+  return fclose(index) == 0;
+}
+
+static bool olc_command_is(const struct reset_com *command, char letter, int if_flag, int arg1,
+                           int arg2, int arg3)
+{
+  return command->command == letter && command->if_flag == if_flag && command->arg1 == arg1 &&
+         command->arg2 == arg2 && command->arg3 == arg3;
+}
+
+/* Runs in a child: builds one zone and one shop in memory, saves both with the
+ * OLC writers, reloads the files with the boot loaders into empty tables, and
+ * returns 0 when every field survived or the number of the first difference. */
+static int olc_round_trip_child(const char *sandbox)
+{
+  static struct room_data rooms[2];
+  static struct index_data mobiles[1];
+  static struct index_data objects[1];
+  static struct char_data mobile_prototypes[1];
+  static struct obj_data object_prototypes[1];
+  static struct zone_data zones[1];
+  static struct reset_com commands[] = {{'M', 0, 0, 1, 0, 100, 0, NULL, NULL},
+                                        {'G', 1, 0, 5, 75, -1, 0, NULL, NULL},
+                                        {'E', 1, 0, 5, WEAR_WIELD_1, 60, 0, NULL, NULL},
+                                        {'O', 0, 0, 2, 1, 40, 0, NULL, NULL},
+                                        {'P', 1, 0, 3, 0, 20, 0, NULL, NULL},
+                                        {'D', 0, 0, 0, 1, -1, 0, NULL, NULL},
+                                        {'R', 0, 1, 0, 50, 1, 0, NULL, NULL},
+                                        {'S', 0, 0, 0, 0, 0, 0, NULL, NULL}};
+  static obj_vnum products[] = {0, NOTHING};
+  static struct shop_buy_data trades[2];
+  static room_vnum shop_rooms[] = {100, NOWHERE};
+  static struct shop_data shops[1];
+  const struct reset_com *loaded;
+  const struct shop_data *shop;
+  FILE *file;
+
+  rooms[0].number = 100;
+  rooms[0].name = CuMutableString("a round trip hall");
+  rooms[1].number = 101;
+  rooms[1].name = CuMutableString("a round trip vault");
+  world = rooms;
+  top_of_world = 1;
+  mobiles[0].vnum = 100;
+  mob_index = mobiles;
+  top_of_mobt = 0;
+  mobile_prototypes[0].player.short_descr = CuMutableString("a round trip keeper");
+  mob_proto = mobile_prototypes;
+  objects[0].vnum = 100;
+  obj_index = objects;
+  top_of_objt = 0;
+  object_prototypes[0].short_description = CuMutableString("a round trip sword");
+  obj_proto = object_prototypes;
+
+  zones[0].number = 1;
+  zones[0].bot = 100;
+  zones[0].top = 199;
+  zones[0].name = CuMutableString("Round Trip");
+  zones[0].builders = CuMutableString("Builder");
+  zones[0].lifespan = 30;
+  zones[0].reset_mode = 2;
+  zones[0].min_level = -1;
+  zones[0].max_level = -1;
+  zones[0].cmd = commands;
+  zone_table = zones;
+  top_of_zone_table = 0;
+
+  trades[0].type = ITEM_WEAPON;
+  trades[0].keywords = CuMutableString("sword");
+  trades[1].type = (int)NOTHING;
+  shops[0].vnum = 100;
+  shops[0].producing = products;
+  shops[0].profit_buy = 1.25;
+  shops[0].profit_sell = 0.75;
+  shops[0].type = trades;
+  shops[0].no_such_item1 = CuMutableString("%s I have none of those.");
+  shops[0].no_such_item2 = CuMutableString("%s You have none of those.");
+  shops[0].do_not_buy = CuMutableString("%s I do not buy that.");
+  shops[0].missing_cash1 = CuMutableString("%s I cannot afford it.");
+  shops[0].missing_cash2 = CuMutableString("%s You cannot afford it.");
+  shops[0].message_buy = CuMutableString("%s That costs %d coins.");
+  shops[0].message_sell = CuMutableString("%s I pay %d coins.");
+  shops[0].temper1 = 1;
+  shops[0].bitvector = 2;
+  shops[0].keeper = 0;
+  shops[0].with_who = 4;
+  shops[0].in_room = shop_rooms;
+  shops[0].open1 = 6;
+  shops[0].close1 = 20;
+  shops[0].open2 = 21;
+  shops[0].close2 = 28;
+  shops[0].rol_cheat_with = 3;
+  shop_index = shops;
+  top_shop = 0;
+
+  if (chdir(sandbox) != 0 || mkdir("world", 0700) != 0 || mkdir("world/zon", 0700) != 0 ||
+      mkdir("world/shp", 0700) != 0 || !olc_round_trip_write_index("world/zon/index") ||
+      !olc_round_trip_write_index("world/shp/index"))
+    return 2;
+  if (!save_zone(0))
+    return 3;
+  if (!save_shops(0))
+    return 4;
+
+  zone_table = calloc(1, sizeof(*zone_table));
+  if (zone_table == NULL)
+    return 5;
+  file = fopen("world/zon/1.zon", "r");
+  if (file == NULL)
+    return 5;
+  test_load_zones(file, CuMutableString("1.zon"));
+  fclose(file);
+  if (zone_table[0].number != 1 || zone_table[0].bot != 100 || zone_table[0].top != 199 ||
+      strcmp(zone_table[0].name, "Round Trip") != 0 ||
+      strcmp(zone_table[0].builders, "Builder") != 0 || zone_table[0].lifespan != 30 ||
+      zone_table[0].reset_mode != 2 || zone_table[0].min_level != -1)
+    return 6;
+  /* The loader keeps virtual numbers until the zone table is renumbered. */
+  loaded = zone_table[0].cmd;
+  if (!olc_command_is(&loaded[0], 'M', 0, 100, 1, 100) || loaded[0].arg4 != 100 ||
+      !olc_command_is(&loaded[1], 'G', 1, 100, 5, 75) ||
+      !olc_command_is(&loaded[2], 'E', 1, 100, 5, WEAR_WIELD_1) || loaded[2].arg4 != 60 ||
+      !olc_command_is(&loaded[3], 'O', 0, 100, 2, 101) || loaded[3].arg4 != 40 ||
+      !olc_command_is(&loaded[4], 'P', 1, 100, 3, 100) || loaded[4].arg4 != 20 ||
+      !olc_command_is(&loaded[5], 'D', 0, 100, 0, 1) ||
+      !olc_command_is(&loaded[6], 'R', 0, 101, 100, 50) || loaded[6].arg4 != 1 ||
+      loaded[7].command != 'S')
+    return 7;
+
+  shop_index = NULL;
+  top_shop = -1;
+  file = fopen("world/shp/1.shp", "r");
+  if (file == NULL)
+    return 8;
+  boot_the_shops(file, CuMutableString("1.shp"), 1);
+  fclose(file);
+  if (top_shop != 0)
+    return 9;
+  shop = &shop_index[0];
+  if (shop->vnum != 100 || shop->producing[0] != 0 || shop->producing[1] != NOTHING ||
+      shop->profit_buy < 1.2499 || shop->profit_buy > 1.2501 || shop->profit_sell < 0.7499 ||
+      shop->profit_sell > 0.7501)
+    return 10;
+  if (shop->type[0].type != ITEM_WEAPON || shop->type[0].keywords == NULL ||
+      strcmp(shop->type[0].keywords, "sword") != 0 || shop->type[1].type != (int)NOTHING)
+    return 11;
+  if (strcmp(shop->no_such_item1, "%s I have none of those.") != 0 ||
+      strcmp(shop->message_buy, "%s That costs %d coins.") != 0 ||
+      strcmp(shop->message_sell, "%s I pay %d coins.") != 0)
+    return 12;
+  if (shop->temper1 != 1 || shop->bitvector != 2 || shop->keeper != 0 || shop->with_who != 4 ||
+      shop->in_room[0] != 100 || shop->in_room[1] != NOWHERE || shop->open1 != 6 ||
+      shop->close1 != 20 || shop->open2 != 21 || shop->close2 != 28 || shop->rol_cheat_with != 3)
+    return 13;
+  return 0;
+}
+
+/** The OLC zone and shop writers produce files the boot loaders read back to
+ * the same zone header, reset commands, and shop definition. */
+void Test_olc_zone_and_shop_files_round_trip_through_the_loaders(CuTest *tc)
+{
+  char sandbox[] = "/tmp/luminari-olc-round-trip.XXXXXX";
+  char path[sizeof(sandbox) + 32];
+  size_t i;
+  pid_t child = -1;
+  int status = -1;
+  bool created;
+
+  created = mkdtemp(sandbox) != NULL;
+  if (created)
+  {
+    child = fork();
+    if (child == 0)
+      CuTestChildExit(olc_round_trip_child(sandbox));
+    if (child > 0 && waitpid(child, &status, 0) != child)
+      status = -1;
+    for (i = 0; i < sizeof(olc_round_trip_files) / sizeof(olc_round_trip_files[0]); i++)
+    {
+      snprintf(path, sizeof(path), "%s/%s", sandbox, olc_round_trip_files[i]);
+      if (unlink(path) != 0)
+        rmdir(path);
+    }
+    rmdir(sandbox);
+  }
+
+  CuAssertTrue(tc, created);
+  CuAssertTrue(tc, child > 0);
+  CuAssertTrue(tc, WIFEXITED(status));
+  CuAssertIntEquals(tc, 0, WEXITSTATUS(status));
 }
