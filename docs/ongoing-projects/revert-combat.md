@@ -395,32 +395,32 @@ comparison run does not justify another game port.
 Primary files: `src/combat/combat_encounters.c`, `src/combat/fight.c`,
 `src/events/actions.c`, and the associated headers only where needed.
 
-- [ ] Adapt the existing encounter participant `phase`, `next_due`, and due-list
+- [x] Adapt the existing encounter participant `phase`, `next_due`, and due-list
   machinery to dispatch phases 1, 2, 3 at the historical per-character offsets.
   The initial delay is already plumbed from `set_fighting()` into
   `combat_encounter_join()`; restore it inside `activate_participant()` rather
   than adding a parameter. Reuse/reconcile `combat_run_compatibility_phase()`
   with the current safe path; do not copy the old event queue or retain two
   production implementations.
-- [ ] Preserve one combat-driver event per active encounter. Wake at the earliest
+- [x] Preserve one combat-driver event per active encounter. Wake at the earliest
   actual participant/required consumer deadline. Encounter merges must retain
   pending attack deadlines and phase identity; joining must neither reset other
   fighters nor give an extra immediate attack. Compare the current six-second
   callback-join guard with the baseline instead of assuming it was historical.
-- [ ] Remove the automatic standard/move spend after ordinary attack generation
+- [x] Remove the automatic standard/move spend after ordinary attack generation
   and the staggered/move-less phase collapse. Retain explicit command, special
   attack, spell, ready-action, and activity costs. A kill ending membership must
   not create a new automatic-attack cooldown on exit.
-- [ ] Use the existing native action events as the authoritative elapsed-time
+- [x] Use the existing native action events as the authoritative elapsed-time
   availability/deadline state. Remove whole-turn rounding and combat-entry/exit
   cancellation/recreation of these deadlines, including the round-flag import of
   `ePERFECT_TEMPO_HIT_THIS_ROUND`, `eDEFLECTIVE_SCREEN_HIT_THIS_ROUND`,
   `eSMASH_DEFENSE`, and `eRELENTLESS_ASSAULT`. If action query APIs remain, make
   them report that same state instead of keeping a second action balance.
-- [ ] Preserve standard-for-move substitution, swift independence, full-round
+- [x] Preserve standard-for-move substitution, swift independence, full-round
   costs, staggered coupling, and each caller's actual duration. Do not infer units
   from command-table numbers or replace all costs with one constant.
-- [ ] Keep queue dispatch and automatic attack checks in their historical order.
+- [x] Keep queue dispatch and automatic attack checks in their historical order.
   Revalidate actors/targets after callbacks that can kill, move, or extract them.
 
 Do not simply set `configured_semantic_rounds()` to false. It is unconditionally
@@ -544,7 +544,7 @@ not a completed fix.
   - `ATTACK-QUEUE`
   - `INITIATIVE INITIATIVE-ORDER`
   - `READIED-ACTION READY COUNTERSPELL`
-- [ ] Update diagnostics and counters where their meaning changes from a full
+- [x] Update diagnostics and counters where their meaning changes from a full
   attack turn to a phase callback. Keep historical acceptance reports under
   `docs/testing/` unchanged; document fresh restoration evidence in this plan or
   the existing test-doc area.
@@ -667,7 +667,88 @@ exists.
 
 ### 9. Implementation checkpoint
 
-2026-09-16:
+#### Phase/deadline implementation verified; full restoration still open
+
+The preceding turn made progress: commit `b5437100f` records the reproducible
+failures, successful controls, and queue lifetime repair. The worktree was clean
+and `APP_ENV=development` was rechecked before this implementation.
+
+Ablation and dispositions for the boundaries being changed now:
+
+| Boundary | Disposition and implementation |
+| -- | -- |
+| Encounter attack scheduling, equal deadlines, callback joins and merges | Restore supplied initial delays, 1/2/3 phases, two-second recurrence, reverse scheduling tie order, and pending phase identity through merges. Retain native event admission, bounded membership, deferred callback mutation and generation validation. |
+| Automatic attack costs and phase-zero collapse | Remove the refactor's standard/move tax and staggered collapse. Explicit actions keep their native elapsed cooldowns and standard-for-move/staggered rules. |
+| Action deadlines and four legacy round flags | Remove the encounter's copied balances/import/export. Keep the existing action/flag MUD timers and their actual durations, including ten-second Perfect Tempo/Deflective Screen markers and six-second Smash Defense/Relentless Assault markers. |
+| AoO and Energy Retort | Restore the existing per-phase reset in `perform_violence()`. Keep feat-dependent caps and bounded reaction processing; remove the extra encounter reaction balance. |
+| Cowering and Perfect Tempo | Restore `proc_d20_round_one()` as the single six-second owner. Delete duplicate checks in the batched attack driver. |
+| Logical turns for retained features | Keep the existing encounter six-second clock. A separate participant `next_turn_due` is necessary because attacks and retained tactical effects now have distinct deadlines, including offset encounter merges. Snapshots must describe that clock, not the next attack phase. |
+| General queue | Remove the per-turn intent gate and both descriptor-loop exclusions; retain action admission, FIFO/preflight and input/wait/editor/pager rules. |
+| Test-only drivers | Keep the per-character callback only as the existing CuTest rollback seam, sharing the same phase routine. The semantic selector controls logical-turn hooks in isolated tests; it must no longer choose a different attack engine. Production has one encounter phase driver and no runtime selector. |
+
+This staged implementation does not resolve the remaining section 4 damage,
+reflection, attack-allocation, and terminal-outcome conflicts. They stay explicit
+open inventory items with the full acceptance requirements intact. No test
+passing in this stage is sufficient to close those items or the project.
+
+2026-09-16 phase/deadline worktree checkpoint:
+
+- Previous goal turn: progress. Copied and checksum-verified the requested local
+  master `lib/` data; all config files were already present. Rechecked this
+  checkout's `APP_ENV=development` before resuming code changes.
+- Reused the encounter due list for the sole production attack driver and removed
+  the batched driver and copied action/reaction/flag balances. Attack deadlines
+  survive joins and merges; logical turns have their own `next_turn_due` snapshot.
+  Turn-end bleeding/hazard callbacks also flush pending membership mutations.
+- Restored native action events, per-phase AoO resets, periodic-owner cowering and
+  Perfect Tempo, elapsed flag markers, and eligible general-queue dispatch. The
+  phase routine revalidates its actor, membership, and target after queued commands.
+- Simplified verification by replacing the activity test's source-text scan with
+  actual scheduler advances. The mortal scenario now observes committed attack
+  facts to establish casting suppression/resumption: HP-only assertions were
+  confounded by the fixture's periodic regeneration.
+- Updated existing encounter tests to pin the historical reverse scheduling order,
+  callback join delay, participant phase offsets, native timers, queue admission,
+  and separate logical clocks, preserving merge/teardown/defense coverage.
+- Added `Test_combat_restoration_opportunity_cap_resets_each_phase`: real AoOs
+  stop at the ordinary cap, reset at the two/four-second scheduled phases, and
+  honor the NPC Combat Reflexes cap. The earlier direct encounter-budget test
+  was replaced by native action-timer coverage, not used as AoO proof.
+- Added `Test_combat_encounter_stale_owner_teardown_never_touches_released_character`.
+  Valgrind first confirmed invalid reads/writes in `free_participant()` after a
+  handle was forgotten and its character freed. Membership cleanup, transfer,
+  shutdown and diagnostics now validate the generation before dereferencing.
+  The same test passes without memory errors after the repair.
+- Defensive Casting and Billowing Cloud tests now advance through actual attack
+  deadlines before the logical turn boundary. Earlier assertions skipped pending
+  phases and assumed a single six-second dispatch; their failed CuTest assertions
+  bypassed fixture cleanup and made a later room-effect test hang. The corrected
+  tests retain expiry-before-action and turn-end exposure checks.
+- `make -j"$(nproc)" test` passes all 1,513 CuTests and required static/native
+  architecture/admission checks. Nine opt-in help-sync database tests are skipped
+  by their existing environment gate; no help-sync implementation changed.
+  `make install` then passes and removes the root `luminari` artifact. No compiler
+  warnings were emitted. Logs: `/tmp/revert-combat-phase-full-test.log` and
+  `/tmp/revert-combat-phase-install.log`.
+- Focused checks pass: seven `combat_restoration`, one `primary_activity_turn_hook`,
+  eleven `gameplay_defensive_casting`, eight `gameplay_billowing_cloud`, and the
+  syntax-check world boot. Valgrind with `--leak-check=full --track-origins=yes --error-exitcode=1` passes the seven restoration scenarios, ten
+  `combat_encounter` scenarios, and the stale-owner regression, with zero errors
+  and zero lost/possibly-lost bytes. Reachable test/runtime globals remain.
+  Logs: `/tmp/revert-combat-phase-valgrind.log`,
+  `/tmp/revert-combat-encounter-valgrind.log`, and
+  `/tmp/revert-combat-stale-{before,after}.log`.
+- `initiative` now reports the actual upcoming phase and remaining seconds for
+  each combatant. `eventdebug` distinguishes phase callbacks from logical turns
+  and retains the event/accounting mismatch diagnostic.
+- This is a coherent scheduling/action checkpoint, not release completion.
+  Full attack-allocation and damage/reaction parity, main-loop wakeup/live gameplay
+  verification with both I/O drivers, the remaining acceptance matrix, current
+  system documentation and both help stores still require work. Changed-file
+  pre-commit checks pass after formatting, and the handoff is ASCII with LF endings. No live MUD or
+  help writes have been performed; no production changes or pushes were made.
+
+Earlier behavioral-evidence checkpoint (2026-09-16):
 
 - Initial worktree was clean at `90b6ba714`. Rebased the plan commit onto
   `origin/master` (`9c5a0223f`), producing implementation start `cff3350f2`.
@@ -702,10 +783,10 @@ Additional source findings and ablation before the queue ownership repair:
   no six-second callback-join guard. Restore the supplied initial delay for
   callback joins while retaining deferred membership mutation and handles.
 
-Current regression evidence (production-linked `cutest`, no compatibility
-selection in the new scenarios):
+Regression evidence at `b5437100f` before the restoration (production-linked
+`cutest`, no compatibility selection in the new scenarios):
 
-| Test suffix after `Test_combat_restoration_` | Current result and coverage |
+| Test suffix after `Test_combat_restoration_` | Result at `b5437100f` and coverage |
 | -- | -- |
 | `default_preserves_individual_phase_deadlines` | Fails: no callback at the supplied two-second deadline. Pins two/four-second offsets, phases 1/2/3, equal-deadline order, and one encounter event. Uses the existing phase observer only for this scheduler boundary test. |
 | `default_keeps_elapsed_action_deadline` | Fails: standard action is still unavailable at its original deadline after entry/exit/reentry. Checks due-minus-one, due, and due-plus-one for a non-round-aligned duration. |
@@ -716,12 +797,12 @@ selection in the new scenarios):
 
 The two scenario files reuse existing fixtures and manifests; no source/test
 file was added. `src/combat/fight.c:resolve_hit()` now frees the dequeued attack
-and argument after the command returns. This is the only production change so
-far. The command fixture supplies an actual prepared spell, both actors' attack
+and argument after the command returns. That was the only production change at
+`b5437100f`. The command fixture supplies an actual prepared spell, both actors' attack
 queues, a nonzero arcane preparation setting, and a playing descriptor. Neither
 staff exemptions nor a direct `cast_spell()` call bypass the interpreter.
 
-Commands/evidence available for continuation:
+Commands/evidence from the earlier red checkpoint:
 
 - `make -j"$(nproc)" cutest`: succeeds without compiler warnings.
 - `CUTEST_FILTER=combat_restoration LUMINARI_TEST_ROOT="$PWD" ./cutest`:
@@ -747,23 +828,24 @@ Commands/evidence available for continuation:
 
 Next implementation boundaries:
 
-1. Finish the disposition inventory in section 4. In addition to the known
-   conflicts, preserve native handle checks, damage notifications, active-world
-   reconsideration, periodic timer sync, common rewards, and the presentation
-   split. Classify Greater Hostile Juxtaposition activation separately from
-   safe affect lookup, and Life Shield's positive-damage gate separately from
-   its recursion guard. The baseline greater-shield branch was unreachable;
-   preserving its corrected activation is an observable exception, not merely
-   a memory-safety repair.
-2. Restore phase scheduling plus elapsed action events together. The existing
-   encounter `next_round_due` and turn serial consumers must keep a distinct
-   six-second logical clock: readied expiry, primary activities, Defensive
-   Casting, Bleeding Critical, and room hazards cannot be called on every
-   two-second attack phase. `combat_encounter_get_turn()` currently reports
-   participant `next_due`; decouple that snapshot when `next_due` becomes an
-   attack-phase deadline.
-3. Restore native queue servicing in both `comm.c` sites and remove the intent
-   restriction. Finish attack allocation/side-effect parity, then expand the
-   acceptance coverage, both local help stores, documentation, and gameplay
-   validation. The four red tests are the immediate targets, not the entire
-   completion definition.
+1. Finish the section 4 parity inventory beyond scheduling. The offhand clauses
+   still use the refactor's phase-3 mapping for ordinals 3/6/9/12/15; baseline puts
+   these existing attacks in phase 1. `attack_number_runs_in_phase()` also serves
+   later Four Arms candidates, which must retain their own current allocation.
+   Trace both callers before restoring only the historical offhand policy.
+2. Audit bounded damage/reaction continuation ordering and terminal outcomes.
+   Preserve native handles, notifications, active-world reconsideration, periodic
+   timer sync, common rewards, and presentation. Classify Greater Hostile
+   Juxtaposition activation separately from safe affect lookup, and Life Shield's
+   positive-damage gate separately from recursion protection. The baseline
+   greater-shield branch was unreachable; any corrected activation is an explicit
+   finite gameplay exception requiring resolution under section 4.
+3. Expand remaining acceptance scenarios, especially native command-loop queue
+   wakeups/input/wait/editor behavior under both I/O drivers, phase-sensitive
+   effects/attack counts, NPCs and callback-time lifecycle transitions. The full
+   suite is green for the current checkpoint, but many scope-specific assertions
+   and live ordinary-player transcripts remain to be added.
+4. Update current system docs, SQL help sources/verifiers, the local database and
+   `lib/text/help/help.hlp` together once the final mechanics are settled. Use the
+   development environment and port 4100 autorun workflow for gameplay evidence.
+   The current help/system documents still describe the replaced budget model.

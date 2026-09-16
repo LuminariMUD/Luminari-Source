@@ -18,7 +18,6 @@
 #include "class.h"
 #include "perks.h"
 #include "combat/assign_wpn_armor.h"
-#include "combat/combat_encounters.h"
 #include "combat/projectiles.h"
 
 #include "magic/spells.h"
@@ -2066,13 +2065,9 @@ bool has_blackguard_relentless_assault(struct char_data *ch)
  */
 bool can_trigger_relentless_assault(struct char_data *ch)
 {
-  bool used;
-
   if (!has_blackguard_relentless_assault(ch))
     return FALSE;
 
-  if (combat_encounter_round_flag_query(ch, COMBAT_ENCOUNTER_ROUND_RELENTLESS_ASSAULT_USED, &used))
-    return !used;
   return (char_has_mud_event(ch, eRELENTLESS_ASSAULT) == NULL);
 }
 
@@ -2093,8 +2088,7 @@ void trigger_relentless_assault(struct char_data *ch)
   /* Grant extra attack (implementation hook needed in combat code) */
   /* TODO: Hook into combat system to grant extra attack */
 
-  if (!combat_encounter_round_flag_mark(ch, COMBAT_ENCOUNTER_ROUND_RELENTLESS_ASSAULT_USED))
-    NEW_EVENT(eRELENTLESS_ASSAULT, ch, NULL, 6 * PASSES_PER_SEC);
+  NEW_EVENT(eRELENTLESS_ASSAULT, ch, NULL, 6 * PASSES_PER_SEC);
 }
 
 /**

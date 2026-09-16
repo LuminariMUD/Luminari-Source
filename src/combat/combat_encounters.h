@@ -17,15 +17,6 @@ enum combat_encounter_departure_reason
   COMBAT_ENCOUNTER_DEPARTURE_COUNT
 };
 
-enum combat_encounter_round_flag
-{
-  COMBAT_ENCOUNTER_ROUND_PERFECT_TEMPO_HIT = 0,
-  COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED,
-  COMBAT_ENCOUNTER_ROUND_SMASH_DEFENSE_USED,
-  COMBAT_ENCOUNTER_ROUND_RELENTLESS_ASSAULT_USED,
-  COMBAT_ENCOUNTER_ROUND_FLAG_COUNT
-};
-
 struct combat_encounter_stats
 {
   bool initialized;
@@ -42,16 +33,12 @@ struct combat_encounter_stats
   uint64_t participants_left;
   uint64_t encounters_merged;
   uint64_t encounter_callbacks;
-  uint64_t compatibility_attempts;
-  uint64_t compatibility_phases;
-  uint64_t compatibility_terminal;
-  uint64_t compatibility_mismatches;
+  uint64_t phase_attempts;
+  uint64_t phases_resolved;
+  uint64_t phase_terminal;
+  uint64_t phase_mismatches;
   uint64_t semantic_rounds_resolved;
   uint64_t semantic_turns_resolved;
-  uint64_t intents_dispatched;
-  uint64_t intent_dispatch_blocks;
-  uint64_t action_budgets_spent;
-  uint64_t reactions_spent;
   uint64_t admission_failures;
   uint64_t stale_encounter_callbacks;
   uint64_t departure_counts[COMBAT_ENCOUNTER_DEPARTURE_COUNT];
@@ -61,6 +48,8 @@ struct combat_encounter_initiative_entry
 {
   struct char_data *character;
   int initiative;
+  unsigned int phase;
+  uint64_t pulses_until_phase;
 };
 
 struct combat_encounter_initiative_snapshot
@@ -72,7 +61,7 @@ struct combat_encounter_initiative_snapshot
   bool semantic_rounds;
 };
 
-/* Pair turn_serial with the character generation when retaining a phase identity.
+/* Pair turn_serial with the character generation when retaining a logical turn identity.
  * During dispatch, pulses_until_next_turn refers to the following turn. */
 struct combat_encounter_turn_snapshot
 {
@@ -100,18 +89,6 @@ bool combat_encounter_get_initiative(const struct char_data *viewer,
                                      struct combat_encounter_initiative_entry *entries,
                                      size_t capacity,
                                      struct combat_encounter_initiative_snapshot *snapshot);
-bool combat_encounter_action_query(struct char_data *character, action_type action,
-                                   bool *available);
-bool combat_encounter_action_consume(struct char_data *character, action_type action, int duration);
-bool combat_encounter_intent_claim(struct char_data *character);
-bool combat_encounter_reaction_try_use(struct char_data *character, unsigned int limit,
-                                       bool *managed);
-bool combat_encounter_reaction_refund(struct char_data *character);
-bool combat_encounter_round_flag_query(struct char_data *character,
-                                       enum combat_encounter_round_flag flag, bool *used);
-bool combat_encounter_round_flag_mark(struct char_data *character,
-                                      enum combat_encounter_round_flag flag);
-
 #ifdef LUMINARI_CUTEST
 typedef bool (*combat_encounter_test_phase_callback)(struct char_data *character,
                                                      unsigned int phase, void *context);

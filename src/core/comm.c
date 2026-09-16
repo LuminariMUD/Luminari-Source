@@ -1476,9 +1476,8 @@ void game_loop(socket_t local_mother_desc)
 
       if (d->character == NULL || GET_WAIT_STATE(d->character) <= 0)
         continue;
-      queued_action = STATE(d) == CON_PLAYING && pending_actions(d->character) &&
-                      !combat_encounter_semantic_manages(d->character) && !d->showstr_count &&
-                      !d->str;
+      queued_action =
+          STATE(d) == CON_PLAYING && pending_actions(d->character) && !d->showstr_count && !d->str;
       if (d->input.head == NULL && !queued_action)
         continue;
       wait_deadline_usec = comm_wait_state_deadline_usec(d->character, runtime_epoch_usec);
@@ -1678,7 +1677,7 @@ void game_loop(socket_t local_mother_desc)
         }
       }
       else if (d->character && STATE(d) == CON_PLAYING && pending_actions(d->character) &&
-               !combat_encounter_semantic_manages(d->character) && !d->showstr_count && !d->str)
+               !d->showstr_count && !d->str)
       {
         d->has_prompt = TRUE;
         execute_next_action(d->character);

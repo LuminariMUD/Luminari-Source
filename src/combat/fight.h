@@ -100,8 +100,7 @@ int combat_readied_attack(struct char_data *ch, struct char_data *victim);
 void perform_violence(struct char_data *ch, int phase);
 void bloodlust_round_check(struct char_data *ch);
 bool bloodlust_holds_the_fight(struct char_data *ch);
-bool combat_run_compatibility_phase(struct char_data *ch, unsigned int phase);
-bool combat_run_semantic_round(struct char_data *ch, bool was_hit);
+bool combat_run_phase(struct char_data *ch, unsigned int phase);
 void raw_kill(struct char_data *ch, struct char_data *killer);
 bool set_fighting(struct char_data *ch, struct char_data *victim);
 /* The weapon that answers for one attack slot, or NULL when that slot is
