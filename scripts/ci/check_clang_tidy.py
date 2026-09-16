@@ -20,10 +20,10 @@ baseline file, --update records every finding as the first baseline.
 A count cannot see one finding swapped for another in the same file, so every
 bugprone-unsafe-functions call, including the unbounded string functions the
 configuration adds to it, is held by call text as well, in
-scripts/ci/clang_tidy_unsafe_sites.txt. A call
-the list does not hold fails even when the file's count is unchanged. Editing
-a recorded call changes its text too, so --update re-records the list whenever
-no count grew; it never accepts a higher count.
+scripts/ci/clang_tidy_unsafe_sites.txt. A call the list does not hold fails
+even when the file's count is unchanged. Editing a recorded call changes its
+text too, so --update re-records the list whenever no count grew; it never
+accepts a higher count.
 
 With --base REF only the translation units affected by ``git diff REF`` are
 analyzed: changed sources, and every source that includes a changed header.
@@ -331,16 +331,22 @@ def compare(counts, baseline, complete):
 
 
 def call_text(path, line, column):
-    """The call at line:column with its arguments, whitespace collapsed.
-
-    A site keeps its identity across a reformat and across edits elsewhere in
-    the file, so the text runs from the callee to its matching parenthesis and
-    every run of whitespace, including a line break, becomes one space.
-    """
+    """The call at line:column of a repository file; see source_call_text."""
     try:
         source = (REPO_ROOT / path).read_text(encoding="utf-8", errors="replace").splitlines()
     except OSError:
         return ""
+    return source_call_text(source, line, column)
+
+
+def source_call_text(source, line, column):
+    """The call at line:column of source lines, with its arguments and whitespace collapsed.
+
+    A site keeps its identity across a reformat and across edits elsewhere in
+    the file, so the text runs from the callee to its matching parenthesis,
+    skipping string and character literals, and every run of whitespace,
+    including a line break, becomes one space.
+    """
     if not 1 <= line <= len(source):
         return ""
     text = "\n".join(source[line - 1 : line - 1 + SITE_TEXT_LINES])
@@ -736,18 +742,19 @@ def self_test():
         "src/a.c:7: NOLINT names clang-analyzer-security.VAList, which .clang-tidy does not enable",
     ], problems
 
-    probe = REPO_ROOT / "src" / "olc" / "improved-edit.c"
-    text = probe.read_text(encoding="utf-8", errors="replace").splitlines()
-    line = next(
-        number for number, source in enumerate(text, 1) if "snprintf(buf + length" in source
-    )
-    column = text[line - 1].index("snprintf") + 1
-    # The call wraps onto the next line; the recorded text is one line either way.
-    assert call_text("src/olc/improved-edit.c", line, column) == (
-        'snprintf(buf + length, sizeof(buf) - length, "\\r\\n%u line%sshown.\\r\\n", total_len, '
-        '(total_len != 1) ? "s " : " ")'
-    ), call_text("src/olc/improved-edit.c", line, column)
-    assert call_text("src/olc/improved-edit.c", len(text) + 10, 1) == ""
+    # A call wrapped over two lines. Its string literal holds an unbalanced
+    # parenthesis right after an escaped quote, and a character literal holds
+    # another; miscounting either literal runs past the call's closing one.
+    source = [
+        r'    sprintf(buf, "\"(%s\" (%d)",',
+        r"            names['(' == c ? 0 : 1]);",
+        "    strcpy(a, b)",
+    ]
+    assert source_call_text(source, 1, 5) == (
+        r"""sprintf(buf, "\"(%s\" (%d)", names['(' == c ? 0 : 1])"""
+    ), source_call_text(source, 1, 5)
+    assert source_call_text(source, 3, 5) == "strcpy(a, b)"
+    assert source_call_text(source, 4, 1) == ""
     assert call_text("src/does/not/exist.c", 1, 1) == ""
 
     sites = Counter({("src/a.c", 'sprintf(b, "%s", n)'): 2, ("src/a.c", "strcpy(a, b)"): 1})
