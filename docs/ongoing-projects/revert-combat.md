@@ -344,7 +344,7 @@ Specific conflicts already found must have named tests and dispositions:
 | Cowering and Perfect Tempo cadence | Baseline: `proc_d20_round()` in `src/limits.c`, called from the heartbeat every `PULSE_VIOLENCE`. Current: duplicated at the top of `combat_run_semantic_round()`, while `proc_d20_round_one()` in `src/core/limits.c` skips managed fighters. `src/events/character_periodic.c` already schedules `proc_d20_round_one()` on that cadence, so restore the single six-second owner and delete the duplicate. Do not run either check per phase. |
 | Test-only rollback paths | Three drivers exist today: semantic rounds, the encounter compatibility phases (`run_compatibility_phase()` and `COMBAT_ENCOUNTER_PHASE_DELAY`), and the per-character `event_combat_round` MUD event, which only runs when `encounter_mode` is false under CuTest. Cancel sites for `eCOMBAT_ROUND` remain in `src/act/act.other.c`, `src/magic/spells.c`, and `src/act/act.wizard.c`. End with one production driver, and decide explicitly whether the legacy callback, the test selectors, and `Test_combat_encounter_rollback_selector_keeps_legacy_path_exclusive` are deleted or kept as test seams. |
 | Deferred reactions | The refactor yielded `COMBAT_DAMAGE_QUEUED` / legacy zero for nested damage, then drained later. The section 9 damage checkpoint restores synchronous completion through a shared 64-reaction budget and captured handles; weapon/projectile damage now uses the same owner. Wider caller and terminal-outcome audits remain open. Queue-only FIFO tests cannot establish gameplay parity. |
-| Life Shield and Greater Hostile Juxtaposition | Life Shield's zero-damage activation and post-reflection charge update are restored in the section 9 damage checkpoint. Retain its self/source-spell recursion guards and safe handle checks. Greater Hostile Juxtaposition's corrected activation is still an unresolved finite deviation; retain safe spell-affect lookup while resolving activation separately. |
+| Life Shield and Greater Hostile Juxtaposition | Life Shield's zero-damage activation and post-reflection charge update are restored in the section 9 damage checkpoint. Retain its self/source-spell recursion guards and safe handle checks. The user approved Greater Hostile Juxtaposition's working activation on 2026-09-16 as an explicit exception to historical non-activation. Retain safe spell-affect lookup. The section 9 spell-exception checkpoint verifies three-charge consumption, post-hit reflection and expiry through real spell-affect and weapon-hit paths. |
 | Divine Sacrifice and killer-less death | Keep valid lifetime checks and typed causes/outcomes. Explicitly document the change from ignored/unresolved deaths to correctly finalized deaths, including transferred lethal damage. Do not recreate a crash or leave dead entities active to imitate a faulty old path. Such retained outcomes must be visible in the parity disposition. |
 | Death notification ordering | Trace the final integrated `raw_kill_with_cause()`, which publishes through `domain_event_runtime_character_died_with_cause()`, and its actual `DOMAIN_EVENT_CHARACTER_DIED` subscribers: `combat_encounters.c` (priority 20), `activity_manager.c` (priority 100), `ready_action.c`, and `magic/buff_sequence.c`. Intermediate refactor commits changed ordering again; do not implement from an isolated commit or PR description. Preserve coherent, exactly-once cleanup and verify listener-visible state. |
 
@@ -441,13 +441,13 @@ Primary files: `src/core/interpreter.c`, `src/core/comm.c`,
 `src/events/activity_manager.c`, `src/magic/spell_parser.c`, and relevant attack
 entry points in `src/combat/act.offensive.c` / `src/combat/fight.c`.
 
-- [ ] Remove the one-general-intent-per-semantic-turn restriction for historical
+- [x] Remove the one-general-intent-per-semantic-turn restriction for historical
   command queue behavior. Let an eligible head command progress at the appropriate
   native dispatch boundary, including between attack phases. Change both
   `comm.c` sites together; they run under both `LUMINARI_IO_DRIVER_SELECT` and
   `LUMINARI_IO_DRIVER_LIBEVENT`. Reuse action recovery and existing
   command-service wakeups; avoid global polling or an idle retry loop.
-- [ ] Preserve FIFO ordering, queue limits, existing non-mutating preflights,
+- [x] Preserve FIFO ordering, queue limits, existing non-mutating preflights,
   unavailable-action messages, input priority, wait-state deadlines, and editor/
   pager restrictions. Validate targets/conditions again when executing delayed
   commands. Do not add cast queueing merely because the transcript contains a cast.
@@ -1012,3 +1012,86 @@ No live MUD, database/help edit or push was performed. These checks establish
 the stated continuation, Life Shield and shared-bound contracts; they do not
 close the remaining terminal/reward/notification, greater-juxtaposition, queue,
 effect, NPC, documentation/help or live-play acceptance work in sections 4-7.
+
+#### Descriptor command wakeup and spell-exception checkpoint
+
+Previous goal turn: progress, committed as `146b7e996` with all 1,526 tests
+passing. The worktree was clean and `APP_ENV=development` was rechecked.
+
+The reactor deadline loop ignored descriptors with no positive wait state, even
+if input was already buffered or their action-queue head was ready. They depended
+on unrelated I/O or scheduler work to reach command dispatch. The existing
+action-recovery timers already supply deadlines for blocked heads.
+
+Ablation: reuse the existing descriptor traversal and native timers. Extract
+the current per-descriptor deadline query and command dispatch so both production
+and source-linked reactor tests use them, then make ready work immediately due
+and action-blocked queues dormant. Keep input priority and wait/editor/pager/menu
+gates. No extra timer, global character scan, mirrored readiness state or new
+test runner is needed. Combat-phase queue dispatch remains a separate historical
+boundary and must not be mistaken for descriptor-loop coverage.
+
+User decision, 2026-09-16: keep Greater Hostile Juxtaposition's working activation
+as a documented exception to the historical unreachable branch. Section 4 now
+records that approval. The spell implementation is unchanged in this checkpoint.
+
+The descriptor deadline query now makes buffered input or an eligible FIFO head
+immediately due, retains exact positive wait-state deadlines, and leaves
+native-action-blocked heads dormant until their existing recovery event. The
+shared readiness predicate also gates descriptor queue dispatch. Input remains
+first; editor, pager and menu states suppress automatic queue dispatch. No queue
+cost, fixed polling interval or once-per-combat-phase restriction was added.
+The existing command body was moved intact into one per-descriptor function,
+including aliases, menu/editor/pager routing and staff command timing.
+
+Five new source-linked scenarios exercise real mortal `layonhands` commands:
+
+- `Test_combat_restoration_queue_wakeup_select` and `_libevent`: blocked
+  admission causes no healing; recovery at three scheduler pulses immediately
+  makes the FIFO eligible without socket input or a combat phase. Both actors
+  are registered in an encounter; its phase-callback count stays zero during
+  both heals. A self heal leaves the standard action available for the next
+  queued ally heal. Two
+  commands arriving in one socket read drain at their input wait deadlines.
+- `Test_combat_restoration_queue_gates_select` and `_libevent`: editor, pager
+  and menu gates hold the queue; wait state delays both input and queue work;
+  buffered `queue clear` takes precedence over a ready heal and consumes no use.
+- `Test_combat_restoration_queue_preflight_limit_and_departed_target`: invalid
+  target, missing feat and unsupported command admission are rejected; the
+  queue remains bounded at `MAX_QUEUE_SIZE`; a target leaving before dispatch
+  causes no action or daily-use expenditure, and the empty queue stays dormant.
+
+The wakeup scenarios failed under both drivers before the deadline correction.
+The test fixture keeps native background work active and measures healing deltas,
+so unrelated normal regeneration cannot masquerade as queued healing.
+
+`Test_combat_restoration_greater_juxtaposition_reflects_three_hits` applies the
+real spell affect, asserts its initial three charges, and performs four real
+weapon hits. Each of the first three spends one charge and damages the attacker;
+the fourth has no reflection. This preserves the existing post-hit location:
+the defender has already taken the original damage before reflection runs.
+The reflected packet still passes through normal mitigation, including the NPC
+spell-damage multiplier. No new damage-prevention behavior is introduced.
+
+Focused validation: all 27 `combat_restoration` cases pass. Valgrind with
+`--leak-check=full --track-origins=yes --error-exitcode=1` passes all six cases
+selected by `combat_restoration_queue` (including the earlier queued-kick case)
+and the greater-juxtaposition case separately: zero errors and zero lost or
+possibly-lost bytes; initialized feat/spell tables remain reachable. Logs:
+`/tmp/revert-combat-queue-{before,focused,valgrind}.log` and
+`/tmp/revert-combat-greater-valgrind.log`.
+
+Final validation: `make -j8 test` passes all 1,532 CuTests and the required
+repository gates without compiler warnings. Nine opt-in help-sync MariaDB cases
+remain skipped behind their unchanged integration gate. `make install` succeeds
+and the root `luminari` binary is absent. Logs:
+`/tmp/revert-combat-queue-{build,full-test,install}.log`. Changed-file hooks pass;
+reviewed their formatting and the full task-owned diff. Steps C's general-queue
+implementation items are checked; its other items and all wider completion
+criteria remain open. This goal turn made progress, with no blocking condition.
+
+These are production-linked component/command scenarios. They do not replace
+live ordinary-player transcripts, both-driver whole-loop/load validation, or
+the remaining combat-phase queue/lifecycle, attack/effect, terminal damage,
+NPC, documentation and two-store help work in sections 4-7. No live MUD,
+database/help changes, production actions or push has occurred.

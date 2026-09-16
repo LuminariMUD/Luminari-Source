@@ -1127,7 +1127,134 @@ static uint64_t comm_wait_state_deadline_usec(const struct char_data *ch,
   return runtime_epoch_usec + deadline_tick * (uint64_t)OPT_USEC;
 }
 
+static bool comm_descriptor_action_ready(struct descriptor_data *d)
+{
+  struct action_data *action;
+
+  if (d == NULL || d->character == NULL || STATE(d) != CON_PLAYING || d->showstr_count || d->str)
+    return false;
+  action = peek_action(GET_QUEUE(d->character));
+  return action != NULL && command_actions_available(d->character, action->actions_required);
+}
+
+static uint64_t comm_descriptor_command_deadline_usec(struct descriptor_data *d,
+                                                      uint64_t runtime_epoch_usec)
+{
+  /* Blocked actions already have native recovery deadlines. Only runnable work
+   * needs a descriptor wakeup, including input buffered before this I/O cycle. */
+  if (d == NULL || (d->input.head == NULL && !comm_descriptor_action_ready(d)))
+    return UINT64_MAX;
+  if (d->character != NULL && GET_WAIT_STATE(d->character) > 0)
+    return comm_wait_state_deadline_usec(d->character, runtime_epoch_usec);
+  return 0;
+}
+
+static void comm_process_descriptor_commands(struct descriptor_data *d)
+{
+  char comm[MAX_INPUT_LENGTH] = {'\0'};
+  char command_name[MAX_INPUT_LENGTH] = {'\0'};
+  char command_player[MAX_NAME_LENGTH + 1] = {'\0'};
+  uint64_t command_start_usec, command_end_usec, command_elapsed_usec;
+  int command_level, aliased = 0;
+
+  if (d == NULL)
+    return;
+
+  if (d->character)
+  {
+    comm_wait_state_advance(d->character, (uint64_t)pulse);
+
+    if (GET_WAIT_STATE(d->character))
+      return;
+  }
+
+  if (get_from_q(&d->input, comm, &aliased))
+  {
+    if (d->character)
+    {
+      /* Reset the idle timer & pull char back from void if necessary */
+      d->character->char_specials.timer = 0;
+      if (STATE(d) == CON_PLAYING && GET_WAS_IN(d->character) != NOWHERE)
+      {
+        if (IN_ROOM(d->character) != NOWHERE)
+          char_from_room(d->character);
+
+        if (ZONE_FLAGGED(GET_ROOM_ZONE(GET_WAS_IN(d->character)), ZONE_WILDERNESS))
+        {
+          X_LOC(d->character) = world[GET_WAS_IN(d->character)].coords[0];
+          Y_LOC(d->character) = world[GET_WAS_IN(d->character)].coords[1];
+        }
+
+        char_to_room(d->character, GET_WAS_IN(d->character));
+
+        GET_WAS_IN(d->character) = NOWHERE;
+        act("$n has returned.", TRUE, d->character, 0, 0, TO_ROOM);
+      }
+      GET_WAIT_STATE(d->character) = 1;
+    }
+    d->has_prompt = FALSE;
+
+    if (d->showstr_count) /* Reading something w/ pager */
+      show_string(d, comm);
+    else if (d->str) /* Writing boards, mail, etc. */
+      string_add(d, comm);
+    else if (STATE(d) != CON_PLAYING) /* In menus, etc. */
+    {
+      nanny(d, comm);
+      /*
+       * Same-state validation, generated examples, and page changes need
+       * a fresh revision just as much as an ordinary state transition.
+       */
+      web_onboarding_mark_dirty(d);
+    }
+    else
+    {                                                /* else: we're playing normally. */
+      if (aliased)                                   /* To prevent recursive aliases. */
+        d->has_prompt = TRUE;                        /* To get newline before next cmd output. */
+      else if (perform_alias(d, comm, sizeof(comm))) /* Run it through aliasing system */
+        get_from_q(&d->input, comm, &aliased);
+
+      command_start_usec = 0;
+      command_level = GET_LEVEL(d->character);
+      if (command_level >= LVL_IMMORT)
+      {
+        any_one_arg(comm, command_name);
+        strlcpy(command_player, GET_NAME(d->character), sizeof(command_player));
+        command_start_usec = PERF_monotonic_usec();
+      }
+      command_interpreter(d->character, comm); /* Send it to interpreter */
+      if (command_start_usec)
+      {
+        command_end_usec = PERF_monotonic_usec();
+        command_elapsed_usec =
+            command_end_usec >= command_start_usec ? command_end_usec - command_start_usec : 0;
+        if (command_elapsed_usec >= STAFF_COMMAND_LATENCY_BUDGET_USEC)
+        {
+          log("PERFMON [COMMAND]: staff command '%s' by %s (level %d) took %llu usec", command_name,
+              command_player, command_level, (unsigned long long)command_elapsed_usec);
+        }
+      }
+    }
+  }
+  else if (comm_descriptor_action_ready(d))
+  {
+    d->has_prompt = TRUE;
+    execute_next_action(d->character);
+  }
+}
+
 #ifdef LUMINARI_CUTEST
+uint64_t comm_descriptor_command_deadline_usec_for_test(struct descriptor_data *d,
+                                                        uint64_t runtime_epoch_usec)
+{
+  return comm_descriptor_command_deadline_usec(d, runtime_epoch_usec);
+}
+
+void comm_process_descriptor_commands_for_test(struct descriptor_data *d)
+{
+  comm_process_descriptor_commands(d);
+}
+
 void comm_wait_state_advance_for_test(struct char_data *ch, uint64_t now_tick)
 {
   comm_wait_state_advance(ch, now_tick);
@@ -1217,14 +1344,10 @@ void game_loop(socket_t local_mother_desc)
 {
   fd_set input_set, output_set, exc_set;
   struct timeval before_sleep, now, timeout, perf_start, process_time;
-  char comm[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d = NULL, *next_d = NULL;
-  int maxdesc = 0, aliased = 0;
+  int maxdesc = 0;
   int i3_event_fd = -1;
   int ai_event_fd = -1;
-  uint64_t command_start_usec = 0;
-  uint64_t command_end_usec = 0;
-  uint64_t command_elapsed_usec = 0;
   uint64_t runtime_epoch_usec = 0;
   uint64_t runtime_tick_value = 0;
   uint64_t previous_runtime_tick_value = 0;
@@ -1239,9 +1362,6 @@ void game_loop(socket_t local_mother_desc)
   struct game_scheduler_budget scheduler_budget;
   struct game_scheduler_dispatch_report scheduler_report;
   enum game_scheduler_status scheduler_status;
-  char command_name[MAX_INPUT_LENGTH] = {'\0'};
-  char command_player[MAX_NAME_LENGTH + 1] = {'\0'};
-  int command_level = 0;
   long int perf_high_water_mark = 0;
   static time_t last_moderate_log_time = 0;
   static time_t last_severe_log_time = 0;
@@ -1472,15 +1592,9 @@ void game_loop(socket_t local_mother_desc)
       wait_timeout_usec = scheduler_timeout_usec;
     for (d = descriptor_list; d; d = d->next)
     {
-      bool queued_action;
-
-      if (d->character == NULL || GET_WAIT_STATE(d->character) <= 0)
+      wait_deadline_usec = comm_descriptor_command_deadline_usec(d, runtime_epoch_usec);
+      if (wait_deadline_usec == UINT64_MAX)
         continue;
-      queued_action =
-          STATE(d) == CON_PLAYING && pending_actions(d->character) && !d->showstr_count && !d->str;
-      if (d->input.head == NULL && !queued_action)
-        continue;
-      wait_deadline_usec = comm_wait_state_deadline_usec(d->character, runtime_epoch_usec);
       if (wait_deadline_usec <= before_sleep_usec)
       {
         wait_timeout_usec = 0;
@@ -1594,94 +1708,11 @@ void game_loop(socket_t local_mother_desc)
     PERF_PROF_EXIT(pr_process_input_);
 
     PERF_PROF_ENTER(pr_process_commands_, "Process Commands");
-    /* Process commands we just read from process_input */
+    /* Process commands we just read from process_input. */
     for (d = descriptor_list; d; d = next_d)
     {
       next_d = d->next;
-
-      if (d->character)
-      {
-        comm_wait_state_advance(d->character, (uint64_t)pulse);
-
-        if (GET_WAIT_STATE(d->character))
-          continue;
-      }
-
-      if (get_from_q(&d->input, comm, &aliased))
-      {
-        if (d->character)
-        {
-          /* Reset the idle timer & pull char back from void if necessary */
-          d->character->char_specials.timer = 0;
-          if (STATE(d) == CON_PLAYING && GET_WAS_IN(d->character) != NOWHERE)
-          {
-            if (IN_ROOM(d->character) != NOWHERE)
-              char_from_room(d->character);
-
-            if (ZONE_FLAGGED(GET_ROOM_ZONE(GET_WAS_IN(d->character)), ZONE_WILDERNESS))
-            {
-              X_LOC(d->character) = world[GET_WAS_IN(d->character)].coords[0];
-              Y_LOC(d->character) = world[GET_WAS_IN(d->character)].coords[1];
-            }
-
-            char_to_room(d->character, GET_WAS_IN(d->character));
-
-            GET_WAS_IN(d->character) = NOWHERE;
-            act("$n has returned.", TRUE, d->character, 0, 0, TO_ROOM);
-          }
-          GET_WAIT_STATE(d->character) = 1;
-        }
-        d->has_prompt = FALSE;
-
-        if (d->showstr_count) /* Reading something w/ pager */
-          show_string(d, comm);
-        else if (d->str) /* Writing boards, mail, etc. */
-          string_add(d, comm);
-        else if (STATE(d) != CON_PLAYING) /* In menus, etc. */
-        {
-          nanny(d, comm);
-          /*
-           * Same-state validation, generated examples, and page changes need
-           * a fresh revision just as much as an ordinary state transition.
-           */
-          web_onboarding_mark_dirty(d);
-        }
-        else
-        {                         /* else: we're playing normally. */
-          if (aliased)            /* To prevent recursive aliases. */
-            d->has_prompt = TRUE; /* To get newline before next cmd output. */
-          else if (perform_alias(d, comm, sizeof(comm))) /* Run it through aliasing system */
-            get_from_q(&d->input, comm, &aliased);
-
-          command_start_usec = 0;
-          command_level = GET_LEVEL(d->character);
-          if (command_level >= LVL_IMMORT)
-          {
-            any_one_arg(comm, command_name);
-            strlcpy(command_player, GET_NAME(d->character), sizeof(command_player));
-            command_start_usec = PERF_monotonic_usec();
-          }
-          command_interpreter(d->character, comm); /* Send it to interpreter */
-          if (command_start_usec)
-          {
-            command_end_usec = PERF_monotonic_usec();
-            command_elapsed_usec =
-                command_end_usec >= command_start_usec ? command_end_usec - command_start_usec : 0;
-            if (command_elapsed_usec >= STAFF_COMMAND_LATENCY_BUDGET_USEC)
-            {
-              log("PERFMON [COMMAND]: staff command '%s' by %s (level %d) took %llu usec",
-                  command_name, command_player, command_level,
-                  (unsigned long long)command_elapsed_usec);
-            }
-          }
-        }
-      }
-      else if (d->character && STATE(d) == CON_PLAYING && pending_actions(d->character) &&
-               !d->showstr_count && !d->str)
-      {
-        d->has_prompt = TRUE;
-        execute_next_action(d->character);
-      }
+      comm_process_descriptor_commands(d);
     }
     PERF_PROF_EXIT(pr_process_commands_);
 
