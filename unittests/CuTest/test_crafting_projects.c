@@ -1,5 +1,5 @@
 /* Production-linked tests for the materials-and-motes crafting system (crafting_system 2): its boot
- * tables and the equipment project a player builds with the craft command. */
+ * tables, the equipment project a player builds with the craft command, and supply orders. */
 
 #include "CuTest.h"
 
@@ -37,6 +37,7 @@ struct craft_project_fixture
   struct obj_data weapon_proto;
   struct obj_data forge;
   struct obj_data hammer;
+  struct char_data quartermaster;
   struct char_data ch;
   struct player_special_data specials;
   struct descriptor_data descriptor;
@@ -142,6 +143,17 @@ static void craft_project_begin(struct craft_project_fixture *f)
   f->ch.desc = &f->descriptor;
 }
 
+/** Put a quartermaster beside the player, for commands that need one. */
+static void craft_project_add_quartermaster(struct craft_project_fixture *f)
+{
+  clear_char(&f->quartermaster);
+  SET_BIT_AR(MOB_FLAGS(&f->quartermaster), MOB_ISNPC);
+  SET_BIT_AR(MOB_FLAGS(&f->quartermaster), MOB_QUARTERMASTER);
+  f->quartermaster.player.short_descr = CuMutableString("the quartermaster");
+  IN_ROOM(&f->quartermaster) = 0;
+  f->ch.next_in_room = &f->quartermaster;
+}
+
 static void craft_project_end(struct craft_project_fixture *f)
 {
   struct char_data *ch = &f->ch;
@@ -156,6 +168,7 @@ static void craft_project_end(struct craft_project_fixture *f)
   craft_project_reset_output(f);
   ProtocolDestroy(f->descriptor.pProtocol);
   ch->desc = NULL;
+  ch->next_in_room = NULL;
   domain_event_world_forget_character(ch);
 
   world = f->saved_world;
@@ -183,6 +196,18 @@ static void craft_project_ready_long_sword(struct char_data *ch)
   GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] = 6;
   GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][0] = CRAFT_MAT_LOW_GRADE_HIDE;
   GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][1] = 1;
+}
+
+/** A held supply order for three long swords (the long sword recipe's first variant). */
+static void craft_project_hold_supply_order(struct char_data *ch)
+{
+  GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_SUPPLYORDER;
+  GET_CRAFT(ch).crafting_recipe = CRAFT_RECIPE_WEAPON_LONG_SWORD;
+  GET_CRAFT(ch).crafting_item_type = ITEM_WEAPON;
+  GET_CRAFT(ch).crafting_specific = WEAPON_TYPE_LONG_SWORD;
+  GET_CRAFT(ch).craft_variant = 0;
+  GET_CRAFT(ch).supply_num_required = 3;
+  GET_CRAFT(ch).skill_type = CRAFT_SKILL_WEAPONSMITH;
 }
 
 static int craft_project_live_objects(void)
@@ -531,4 +556,236 @@ void Test_craft_resize_reset_clears_the_new_size(CuTest *tc)
   craft_project_end(&f);
 
   CuAssertTrue(tc, cleared);
+}
+
+void Test_supply_order_commands_leave_a_craft_project_alone(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool abandon_refused, remove_refused, select_refused, request_refused, intact;
+
+  craft_project_begin(&f);
+  craft_project_add_quartermaster(&f);
+  craft_project_ready_long_sword(ch);
+
+  newcraft_supplyorder(ch, "abandon");
+  abandon_refused = craft_project_output_has(&f, "don't have a supply order to abandon");
+  craft_project_reset_output(&f);
+  newcraft_supplyorder(ch, "material remove");
+  remove_refused = craft_project_output_has(&f, "don't have a supply order");
+  craft_project_reset_output(&f);
+  newcraft_supplyorder(ch, "select 1");
+  select_refused = craft_project_output_has(&f, "craft reset");
+  craft_project_reset_output(&f);
+  newcraft_supplyorder(ch, "request");
+  request_refused = craft_project_output_has(&f, "craft reset");
+  intact = GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_WEAPON &&
+           GET_CRAFT(ch).crafting_method == 0 &&
+           GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] == 6 &&
+           GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL) == 0;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, abandon_refused);
+  CuAssertTrue(tc, remove_refused);
+  CuAssertTrue(tc, select_refused);
+  CuAssertTrue(tc, request_refused);
+  CuAssertTrue(tc, intact);
+}
+
+void Test_craft_commands_leave_a_supply_order_alone(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool show_refused, reset_refused, held;
+
+  craft_project_begin(&f);
+  craft_project_hold_supply_order(ch);
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][0] = CRAFT_MAT_STEEL;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] = 6;
+
+  newcraft_create(ch, "show");
+  show_refused = craft_project_output_has(&f, "working on a supply order") &&
+                 !craft_project_output_has(&f, "Current Craft Project");
+  craft_project_reset_output(&f);
+  newcraft_create(ch, "reset");
+  reset_refused = craft_project_output_has(&f, "working on a supply order");
+  held = player_has_supply_order(ch) && GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] == 6;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, show_refused);
+  CuAssertTrue(tc, reset_refused);
+  CuAssertTrue(tc, held);
+}
+
+void Test_supply_order_abandon_refunds_materials_and_clears_progress(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool refunded, cleared;
+
+  craft_project_begin(&f);
+  craft_project_hold_supply_order(ch);
+  GET_NSUPPLY_NUM_MADE(ch) = 2;
+  GET_CRAFT(ch).supply_contract_type = SUPPLY_CONTRACT_QUALITY;
+  GET_CRAFT(ch).supply_quality_tier_requirement = QUALITY_TIER_SUPERIOR;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][0] = CRAFT_MAT_STEEL;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] = 6;
+
+  newcraft_supplyorder(ch, "abandon");
+  refunded = GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL) == 6 &&
+             GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] == 0;
+  cleared = !player_has_supply_order(ch) && GET_NSUPPLY_NUM_MADE(ch) == 0 &&
+            GET_CRAFT(ch).supply_contract_type == 0 &&
+            GET_CRAFT(ch).supply_quality_tier_requirement == QUALITY_TIER_STANDARD &&
+            craft_project_output_has(&f, "abandoned your supply order");
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, refunded);
+  CuAssertTrue(tc, cleared);
+}
+
+void Test_supply_order_requests_start_fresh_with_orderable_recipes(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  int i, requested = 0, fresh = 0, orderable = 0;
+
+  craft_project_begin(&f);
+  craft_project_add_quartermaster(&f);
+  /* Requests draw random recipes until one matches; an unseeded generator repeats one value. */
+  circle_srandom(1);
+  for (i = 0; i < 40; i++)
+  {
+    GET_NSUPPLY_NUM_MADE(ch) = 5;
+    newcraft_supplyorder(ch, "request");
+    if (player_has_supply_order(ch))
+      requested++;
+    if (GET_NSUPPLY_NUM_MADE(ch) == 0)
+      fresh++;
+    if (GET_CRAFT(ch).craft_variant >= 0 &&
+        crafting_recipes[GET_CRAFT(ch).crafting_recipe].object_type != ITEM_INSTRUMENT)
+      orderable++;
+    reset_supply_order(ch);
+    craft_project_reset_output(&f);
+  }
+  circle_srandom((unsigned long)time(NULL));
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, 40, requested);
+  CuAssertIntEquals(tc, 40, fresh);
+  CuAssertIntEquals(tc, 40, orderable);
+}
+
+void Test_supply_order_completion_needs_the_exact_quantity(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool refused, unpaid;
+
+  craft_project_begin(&f);
+  craft_project_add_quartermaster(&f);
+  craft_project_hold_supply_order(ch);
+  GET_NSUPPLY_NUM_MADE(ch) = 5;
+
+  newcraft_supplyorder(ch, "complete");
+  refused = craft_project_output_has(&f, "does not match") && player_has_supply_order(ch);
+  unpaid = GET_GOLD(ch) == 0 && GET_ARTISAN_EXP(ch) == 0;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, refused);
+  CuAssertTrue(tc, unpaid);
+}
+
+void Test_supply_order_consumes_every_group_or_none(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool consumed, untouched;
+
+  craft_project_begin(&f);
+  craft_project_hold_supply_order(ch);
+  /* Enough hard metal, but no hide. */
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][0] = CRAFT_MAT_STEEL;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] = 6;
+
+  consumed = consume_supply_order_materials(ch);
+  untouched = GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][0] == CRAFT_MAT_STEEL &&
+              GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] == 6;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, !consumed);
+  CuAssertTrue(tc, untouched);
+}
+
+void Test_supply_order_quality_contract_needs_higher_grade_materials(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool tin_refused, iron_added;
+
+  craft_project_begin(&f);
+  craft_project_hold_supply_order(ch);
+  GET_CRAFT(ch).supply_contract_type = SUPPLY_CONTRACT_QUALITY;
+  GET_CRAFT(ch).supply_quality_tier_requirement = QUALITY_TIER_SUPERIOR;
+  GET_CRAFT_MAT(ch, CRAFT_MAT_TIN) = 6;
+  GET_CRAFT_MAT(ch, CRAFT_MAT_IRON) = 6;
+
+  newcraft_supplyorder(ch, "material add tin");
+  tin_refused = craft_project_output_has(&f, "higher grade") &&
+                GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] == 0 &&
+                GET_CRAFT_MAT(ch, CRAFT_MAT_TIN) == 6;
+  newcraft_supplyorder(ch, "material add iron");
+  iron_added = GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][0] == CRAFT_MAT_IRON &&
+               GET_CRAFT_MAT(ch, CRAFT_MAT_IRON) == 0;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, tin_refused);
+  CuAssertTrue(tc, iron_added);
+}
+
+void Test_supply_order_offers_always_have_a_variant(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  int id, slot, offers = 0, orderable = 0;
+  bool stale_refused;
+
+  craft_project_begin(&f);
+  for (id = 1; id <= 40; id++)
+  {
+    GET_IDNUM(ch) = id;
+    memset(GET_CRAFT(ch).supply_slot_active, 0, sizeof(GET_CRAFT(ch).supply_slot_active));
+    memset(GET_CRAFT(ch).supply_slot_cooldowns, 0, sizeof(GET_CRAFT(ch).supply_slot_cooldowns));
+    refresh_supply_slots(ch);
+    for (slot = 0; slot < 5; slot++)
+    {
+      struct supply_contract *offer = &GET_CRAFT(ch).supply_slots[slot];
+
+      if (!GET_CRAFT(ch).supply_slot_active[slot])
+        continue;
+      offers++;
+      if (offer->variant >= 0 && crafting_recipes[offer->recipe].object_type != ITEM_INSTRUMENT)
+        orderable++;
+      free(offer->description);
+      free(offer->requirements);
+      offer->description = offer->requirements = NULL;
+    }
+  }
+
+  /* An offer saved by an older version can still name an instrument without a variant. */
+  memset(GET_CRAFT(ch).supply_slot_active, 0, sizeof(GET_CRAFT(ch).supply_slot_active));
+  GET_CRAFT(ch).supply_slots_last_refresh = time(NULL);
+  GET_CRAFT(ch).supply_slot_active[0] = TRUE;
+  memset(&GET_CRAFT(ch).supply_slots[0], 0, sizeof(GET_CRAFT(ch).supply_slots[0]));
+  GET_CRAFT(ch).supply_slots[0].recipe = CRAFT_RECIPE_INSTRUMENT_LYRE;
+  GET_CRAFT(ch).supply_slots[0].variant = -1;
+  GET_CRAFT(ch).supply_slots[0].quantity = 3;
+  craft_project_add_quartermaster(&f);
+  newcraft_supplyorder(ch, "select 1");
+  stale_refused = craft_project_output_has(&f, "not available") && !player_has_supply_order(ch);
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, 200, offers);
+  CuAssertIntEquals(tc, offers, orderable);
+  CuAssertTrue(tc, stale_refused);
 }

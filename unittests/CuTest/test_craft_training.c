@@ -1,6 +1,7 @@
 /* Production-linked tests for paid craft trainers (issue 196,
  * docs/ongoing-projects/craft-trainers.md): craft and harvest ranks, the contract record, the Craft
- * Trainer procedure, and the account-menu entry lock, settlement, and recall. */
+ * Trainer procedure, and the account-menu entry lock, settlement, and recall. The player-file
+ * crafting records for supply contracts and golem projects are tested here too. */
 
 #include "CuTest.h"
 
@@ -391,6 +392,74 @@ void Test_craft_training_contract_survives_save_and_load(CuTest *tc)
   CuAssertIntEquals(tc, 0, cleared_lines);
   CuAssertIntEquals(tc, 0, clear_result);
   CuAssertIntEquals(tc, 0, cleared_ability);
+}
+
+/** Count the lines in a saved player file that start with a tag, keeping the last one. */
+static int craft_saved_tag_lines(const char *name, const char *tag, char *last, size_t size)
+{
+  char filename[MAX_FILEPATH];
+  char line[MAX_INPUT_LENGTH];
+  FILE *file;
+  int count = 0;
+
+  *last = '\0';
+  if (!get_filename(filename, sizeof(filename), PLR_FILE, name))
+    return -1;
+  file = fopen(filename, "r");
+  if (file == NULL)
+    return -1;
+  while (fgets(line, sizeof(line), file) != NULL)
+    if (!strncmp(line, tag, strlen(tag)))
+    {
+      snprintf(last, size, "%s", line);
+      count++;
+    }
+  fclose(file);
+  return count;
+}
+
+void Test_craft_supply_contract_terms_survive_save_and_load(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *ch = new_char();
+  struct char_data *loaded = new_char();
+  char line[MAX_INPUT_LENGTH], cleared_line[MAX_INPUT_LENGTH], expected[64];
+  int saved, lines, result, contract_type, quality_tier, cleared_saved, cleared_lines;
+
+  craft_player_files_enter(tc, &files, "crcon", 4305);
+  ch->player.name = strdup(files.name);
+  GET_PFILEPOS(ch) = 0;
+  GET_IDNUM(ch) = 4305;
+  GET_LEVEL(ch) = 10;
+  GET_CRAFT(ch).supply_contract_type = SUPPLY_CONTRACT_PRESTIGE;
+  GET_CRAFT(ch).supply_quality_tier_requirement = QUALITY_TIER_EXCEPTIONAL;
+  snprintf(expected, sizeof(expected), "CrCT: %d %d\n", SUPPLY_CONTRACT_PRESTIGE,
+           QUALITY_TIER_EXCEPTIONAL);
+
+  saved = save_char_checked(ch, 0);
+  lines = craft_saved_tag_lines(files.name, "CrCT:", line, sizeof(line));
+  result = load_char(files.name, loaded);
+  contract_type = GET_CRAFT(loaded).supply_contract_type;
+  quality_tier = GET_CRAFT(loaded).supply_quality_tier_requirement;
+
+  /* An order without contract terms writes no line. */
+  GET_CRAFT(ch).supply_contract_type = 0;
+  GET_CRAFT(ch).supply_quality_tier_requirement = QUALITY_TIER_STANDARD;
+  cleared_saved = save_char_checked(ch, 0);
+  cleared_lines = craft_saved_tag_lines(files.name, "CrCT:", cleared_line, sizeof(cleared_line));
+
+  free_char(ch);
+  free_char(loaded);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertTrue(tc, saved);
+  CuAssertIntEquals(tc, 1, lines);
+  CuAssertStrEquals(tc, expected, line);
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, SUPPLY_CONTRACT_PRESTIGE, contract_type);
+  CuAssertIntEquals(tc, QUALITY_TIER_EXCEPTIONAL, quality_tier);
+  CuAssertTrue(tc, cleared_saved);
+  CuAssertIntEquals(tc, 0, cleared_lines);
 }
 
 void Test_craft_training_ignores_malformed_contracts(CuTest *tc)
