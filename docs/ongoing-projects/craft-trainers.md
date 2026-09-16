@@ -476,26 +476,17 @@ Done. As built:
   (`lib/world/mob/3.mob` between 371 and 374, and the reset after Jufus's in
   `lib/world/zon/3.zon`). Zone 3 validates with the same eight warnings as before. The main
   checkout's development world was not changed, and neither was its running server.
-- The development server already held port 4100, so the live check ran in a private network
-  namespace (`unshare -rn --pid --fork --mount-proc`, then `unshare --map-user=1000`): a
-  disposable `mariadbd` on the namespace's own 127.0.0.1:3306 loaded with `sql/master_schema.sql`,
-  a runtime lib (copied `etc` and `misc`, linked `world` and `text`, a minimal `.env`, and a
-  `mysql_config` for that database) bind-mounted over `lib` only inside the namespace, and
-  `MUD_PORT=4100 ./scripts/autorun/autorun.sh foreground`. A player index with one placeholder
-  entry keeps the first new character from becoming an implementor. A small relay script carried
-  telnet lines in and out through a FIFO. The scripts are session scratch files, not part of the
-  branch.
-- Checked live with a new level 1 warrior whose player file was given 20,000 gold, alchemy rank 4
-  (10,000 experience), and load room 373 while offline: the room shows the trainer; `apprentice`
-  lists the 12 tracks; `appr` reaches the trainer and `app` still means `applies`; a quote;
-  `apprentice bowmaking` refuses; confirm takes 2,500 gold, writes `CrTr: 36 2500 <end>`, saves
-  62 belongings to the object file, and leaves the character at the main menu; option 1 refuses;
-  the account row shows "training, 24h 0m left"; selecting the character refuses with the recall
-  syntax; `recall 1`, `recall 1 confirm`, and a bare `recall` answer correctly and the contract
-  is gone with gold and experience unchanged. With the end time moved into the past offline, the
-  row shows "training finished", selection prints the return line and "You've gained 2500
-  experience points in the 'alchemy' skill", the file has no contract and 12,500 alchemy
-  experience, and the character enters room 373 carrying its belongings.
+- The development server already held port 4100, so the live check ran inside
+  `unshare -rn --pid --fork --mount-proc` (then `unshare --map-user=1000`): a disposable `mariadbd`
+  with `sql/master_schema.sql`, a runtime lib bind-mounted over `lib` only inside the namespace,
+  `MUD_PORT=4100 ./scripts/autorun/autorun.sh foreground`, and a FIFO telnet relay. Bind mounts must
+  happen before the nested `unshare`, the database socket path must stay under 108 bytes, and a
+  player index with a placeholder entry keeps the first new character from becoming an implementor.
+- Checked live, with gold, alchemy rank, and load room 373 set in the player file offline: the
+  listing, `appr` and `app`, a quote, a refusal, confirm (fee, `CrTr` line, belongings file, main
+  menu), the main-menu refusal, the account row, the selection refusal, `recall` in all three forms,
+  and, after moving the end time into the past offline, settlement with the character returning
+  to room 373 with its belongings.
 - The live check showed the refusal and recall replies after the "Your choice :" prompt; they
   now print before the redrawn menu (commit "Print training messages above the redrawn account
   menu").
@@ -559,31 +550,21 @@ Plan as written:
 
 Done, on commit `cec0ffa89` (later commits change only comments and this document). Results:
 
-- `make -j16 test && make install`: every gate passed, including 1,526 CuTest tests, build parity,
-  header self-containment, help sync, autorun supervision, and the production profile.
-- `python3 scripts/ci/check_build_parity.py`: OK. `make test-world-tools`: 542 tests OK (37
-  skipped). `pre-commit run --files` over every file the branch changes: all hooks pass.
-- The database-backed suite ran against the isolated test container from the working notes rather
-  than the development database the plan named, because other database tests in the suite write
-  beyond temporary tables: 1,526 tests OK.
-- Live checks in the step 5 environment. On the build before the clang-tidy fixes, a contract
-  settled across alchemy rank 4 to 5 with "You gain 1 crafting talent point!", and `Tlpt: 1` and
-  15,000 experience reached the player file. On `cec0ffa89` itself, a rank-5 quote (3,600 gold,
-  3,000 experience), the contract, the main-menu refusal, the account row, and settlement to
-  18,000 experience all worked, and selecting the character again granted nothing.
-- The local clang-tidy gate (`scripts/ci/local/run.py --job quality-clang-tidy --jobs 1 --cpus 16`)
-  first failed on new findings: `atoi()` and `sscanf()` in new code, an `int` multiplication widened
-  to `time_t` in `CRAFT_TRAINING_DURATION`, and, in the tests, assignments in conditions and unguarded
-  fixture writes the analyzer could not prove non-null. Commit "Keep the craft trainer changes
-  inside the clang-tidy baseline" fixed them; the `CrTr` loader now uses `strtol()` and also
-  rejects trailing text. The gate then passed and reported one fewer
-  `clang-analyzer-security.ArrayBound` finding in `src/character/talents.c` (the baseline was not
-  lowered).
-- The full local matrix (`scripts/ci/local/run.py --jobs 4 --cpus 4`, 29 jobs, including
-  sanitizers, the Valgrind memory check, coverage, database migration, and the CMake and compiler
-  matrix) passed except `test-production-profile-cmake-clang`, whose compiler flag probe reported
-  "migration tier dropped baseline flag -Wcast-align" under the matrix's load. The same job passed
-  on the branch alone, and on master alone.
+- `make -j16 test && make install`, `check_build_parity.py`, `make test-world-tools` (542 tests),
+  and `pre-commit run --files` over every changed file all passed; CuTest ran 1,526 tests.
+- The database-backed suite ran against the isolated test container, not the development database
+  the plan named, because other database tests write beyond temporary tables: 1,526 tests passed.
+- The local clang-tidy gate first rejected new `atoi()` and `sscanf()` calls, an `int`
+  multiplication widened to `time_t`, and test assignments inside conditions; commit "Keep the
+  craft trainer changes inside the clang-tidy baseline" fixed them (the `CrTr` loader now uses
+  `strtol()` and rejects trailing text), and the gate then passed with one fewer `ArrayBound`
+  finding in `talents.c`.
+- The full local matrix (`scripts/ci/local/run.py --jobs 4 --cpus 4`, 29 jobs) passed except
+  `test-production-profile-cmake-clang`, whose flag probe failed under load; that job passed alone
+  on the branch and on master.
+- Live on `cec0ffa89`: a rank-5 contract started, locked the main menu, showed in the account row,
+  settled once to 18,000 experience, and a second selection granted nothing. An earlier build
+  showed a settlement crossing rank 4 to 5 with its talent point.
 
 Plan as written:
 
