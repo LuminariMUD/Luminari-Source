@@ -100,9 +100,7 @@ void clear_attack_queue(struct queue_type *queue)
       if (attack == NULL)
         break;
 
-      /* Free the memory. */
-      free(attack->argument);
-      free(attack);
+      free_attack_action(attack);
     }
   }
   /* Send a custom MSDP event so clients can manage queue displays. */
@@ -197,6 +195,15 @@ struct attack_action_data *dequeue_attack(struct queue_type *queue)
   }
 
   return attack;
+}
+
+void free_attack_action(struct attack_action_data *attack)
+{
+  if (attack == NULL)
+    return;
+
+  free(attack->argument);
+  free(attack);
 }
 
 static void *peek(struct queue_type *queue)

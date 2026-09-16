@@ -14355,8 +14355,7 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
     /* Execute the proper function pointer for that attack action. Notice the painfully bogus
                   parameters.  Needs improvement. */
     ((*attack_actions[attack->attack_type])(ch, attack->argument, -1, -1));
-    free(attack->argument);
-    free(attack);
+    free_attack_action(attack);
     /* Currently no way to get a result from these kinds of actions, so return something bogus.
                   Needs improvement. */
     return (HIT_RESULT_ACTION);
@@ -16581,9 +16580,6 @@ bool combat_run_phase(struct char_data *ch, unsigned int phase)
     stop_fighting(ch);
     return false;
   }
-
-  if (FIGHTING(ch) == NULL)
-    return false;
 
   if (GET_POS(FIGHTING(ch)) <= POS_DEAD || GET_POS(ch) <= POS_DEAD)
   {

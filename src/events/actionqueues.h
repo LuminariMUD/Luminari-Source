@@ -60,6 +60,8 @@ void free_attack_queue(struct queue_type *queue);
 void clear_attack_queue(struct queue_type *queue);
 void enqueue_attack(struct queue_type *queue, struct attack_action_data *attack);
 struct attack_action_data *dequeue_attack(struct queue_type *queue);
+/* Releases an attack action returned by dequeue_attack(). */
+void free_attack_action(struct attack_action_data *attack);
 struct attack_action_data *peek_attack(struct queue_type *queue);
 
 int pending_attacks(struct char_data *ch);

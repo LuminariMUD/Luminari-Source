@@ -119,7 +119,7 @@ int spec_gateway_command_mobile(struct char_data *ch, struct char_data *mob, int
 
 /** STOP skips the remaining default activity for this mobile. */
 int spec_gateway_mobile_activity(struct char_data *mob, spec_legacy_handler handler);
-/** Notification only; the legacy return is discarded by the combat caller. */
+/** Returns true when a special procedure handled the turn, so the caller skips generic NPC AI. */
 bool spec_gateway_mobile_combat_turn(struct char_data *mob);
 /** Notification only; returns pointers invalidated by an on-hit handler. */
 spec_invalidate_mask spec_gateway_mobile_hit(struct char_data *mob, struct char_data *target,
