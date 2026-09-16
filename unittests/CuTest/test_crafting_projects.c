@@ -891,7 +891,8 @@ void Test_reforge_matches_abbreviations_and_numbered_bows(CuTest *tc)
   event_free_all();
   event_init();
   runtime = domain_event_runtime_init();
-  if ((weapon = craft_project_reforgeable_dagger()) != NULL)
+  weapon = craft_project_reforgeable_dagger();
+  if (weapon != NULL)
   {
     obj_to_char(weapon, ch);
     do_reforge_new(ch, "weapon khop", 0, 0);
