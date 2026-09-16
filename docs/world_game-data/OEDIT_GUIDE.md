@@ -556,9 +556,16 @@ finger-or-tail gear.
 
 The `craft tools|equipment|gear` display uses a different rule: it scans all
 equipped positions for an `ITEM_CRAFTING_TOOL` whose value 0 names the ability.
-It omits woodworking and may therefore disagree with admission. Source control
-does not prove whether a deployed world has compatible prototypes; inspect the
-deployment's world data before promising tool availability.
+It omits woodworking and may therefore disagree with admission. The only grant
+path in tracked source is compile-time: `NOOB_CRAFTING_TAILORING`,
+`NOOB_CRAFTING_ALCHEMY`, `NOOB_CRAFTING_ARMORSMITHING`,
+`NOOB_CRAFTING_WEAPONSMITHING`, and `NOOB_CRAFTING_JEWELCRAFTING` in the
+deployment's local vnums header make `newbieEquipment()` equip those prototypes
+directly into the admission slots. The definitions are commented out in the
+tracked `src/config/vnums.example.h` template. The routine runs for a level-0
+character entering the game and on staff demotion to level 1; ordinary existing
+characters receive nothing automatically. Check the local header, those
+prototypes, and deployed world data before promising tool availability.
 
 ## Object Value Reference
 

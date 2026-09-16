@@ -157,7 +157,7 @@ in every mode.
 | `keywords`, `shortdesc`, `roomdesc`, `extradesc` | Configure descriptions; the first three are required after allocating the primary material. They must contain the exact variant phrase and selected primary-material description. Keywords reject dashes; maximum lengths are 100, 100, and 120 characters respectively. |
 | `leveladjust` | Adjust requested output level within the implemented rules. |
 | `show` / `display` / `review` / `information` | Display the current project. Object setup can also update its stored skill, DC, and output level; this is not a read-only preview. |
-| `check` | Report whether the project can be admitted. |
+| `check` | Report readiness: type, subtype, variant, descriptions, allocations, motes, the level cap, and tool-slot occupancy. It does not check the station; `start` enforces that separately. |
 | `reset [part]` | No part, or an unrecognized part, runs the full equipment-project reset and its refund routines. Recognized parts (and their abbreviations): `motes`, `materials`, `enhancement`, `instrument`, `bonuses`, `descriptions`, `refine`, `resize`. `motes` also deletes bonus definitions; `materials` also clears all descriptions; `descriptions` also returns and clears recorded material allocations, so re-add the primary material before setting descriptions again. |
 | `start` / `begin` | Admit a valid equipment project to timed work. |
 | `score` | Display crafting and harvesting skill progress. |
@@ -211,8 +211,16 @@ The reachable `craft tools|equipment|gear` display and crafting-skill bonus use
 a different rule: they scan all equipped slots for an `ITEM_CRAFTING_TOOL`
 whose value 0 matches the ability. The display omits woodworking entirely. It
 can therefore report `None` while an arbitrary object in a dedicated slot still
-passes admission. Tracked source does not establish which prototypes a
-deployment grants, so operators must inspect deployed world data.
+passes admission. Tracked source has one grant path: when the deployment's
+local vnums header defines `NOOB_CRAFTING_TAILORING`,
+`NOOB_CRAFTING_ALCHEMY`, `NOOB_CRAFTING_ARMORSMITHING`,
+`NOOB_CRAFTING_WEAPONSMITHING`, and `NOOB_CRAFTING_JEWELCRAFTING`,
+`newbieEquipment()` equips those prototypes directly into the matching
+admission slots. The definitions are commented out in the tracked
+`src/config/vnums.example.h` template. The routine runs for a level-0 character
+entering the game and on staff demotion to level 1; ordinary existing characters
+receive nothing automatically. Check the local header, the named prototypes,
+and deployed world data before promising tool availability.
 
 ### Station sequencing and completion
 
@@ -234,7 +242,10 @@ applied. The roll adds the proficient-talent bonus and, where applicable, +5
 from Craft Wondrous Item or Craft Magical Arms and Armor.
 
 - If the maximum possible check cannot reach the DC, completion rejects it.
-- A natural 1 critically fails and clears the project's material and mote allocations.
+- A natural 1 critically fails and resets the entire project without refund:
+  allocated materials and motes are lost, and method, item type, subtype,
+  variant, descriptions, enhancement, bonuses, instrument settings, stored
+  skill, DC, and level adjustment are cleared.
 - A natural 20 succeeds and marks the result masterwork.
 - An ordinary failure grants crafting experience and keeps the project.
 - Success creates the object, awards pending efficient-talent savings, and

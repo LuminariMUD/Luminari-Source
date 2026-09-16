@@ -127,8 +127,8 @@ is absent during work, committed once at the native deadline, and remains hidden
 when committed movement cancels the activity. Existing activity-manager coverage
 proves damage/combat responses, target movement/death, owner extraction, logout
 cleanup, timer admission failure, stale callbacks, pause/resume policy, and
-exactly-once completion. Craft coverage proves reservation/progress behavior
-and directly exercises reconstruction through `resume_craft_activity()`.
+exactly-once completion. Craft coverage proves timer progress and directly
+exercises reconstruction through `resume_craft_activity()`.
 Production login, reconnect and copyover paths also call that helper, although
 the test fixture manually seeds the unreachable survey adapter rather than a
 reachable crafting workflow.

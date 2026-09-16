@@ -2330,10 +2330,20 @@ wins and the object remains finger-or-tail gear.</p>
 <p>The <code>craft tools|equipment|gear</code> display uses a different
 rule: it scans all equipped positions for an
 <code>ITEM_CRAFTING_TOOL</code> whose value 0 names the ability. It
-omits woodworking and may therefore disagree with admission. Source
-control does not prove whether a deployed world has compatible
-prototypes; inspect the deployment&#x2019;s world data before promising tool
-availability.</p>
+omits woodworking and may therefore disagree with admission. The only
+grant path in tracked source is compile-time:
+<code>NOOB_CRAFTING_TAILORING</code>,
+<code>NOOB_CRAFTING_ALCHEMY</code>,
+<code>NOOB_CRAFTING_ARMORSMITHING</code>,
+<code>NOOB_CRAFTING_WEAPONSMITHING</code>, and
+<code>NOOB_CRAFTING_JEWELCRAFTING</code> in the deployment&#x2019;s local vnums
+header make <code>newbieEquipment()</code> equip those prototypes
+directly into the admission slots. The definitions are commented out in
+the tracked <code>src/config/vnums.example.h</code> template. The
+routine runs for a level-0 character entering the game and on staff
+demotion to level 1; ordinary existing characters receive nothing
+automatically. Check the local header, those prototypes, and deployed
+world data before promising tool availability.</p>
 <h2 id="object-value-reference">Object Value Reference</h2>
 <p>Every object carries 16 integer value slots. What they mean is
 decided entirely by the item type - there is no shared meaning across

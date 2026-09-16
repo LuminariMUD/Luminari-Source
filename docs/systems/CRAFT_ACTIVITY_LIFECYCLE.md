@@ -22,10 +22,11 @@ object and cannot silently finish on a replacement with the same prototype.
 
 Work requires hands and attention. Informational and unrelated commands follow
 the activity manager's capability rules. Committed relocation, combat, damage,
-invalid targets or a failed recheck cancel work. The synthetic
-owned-craft test uses the unreachable survey adapter and proves that a
-provisional move rolled back by an entry script does not cancel that adapter;
-it is not coverage of a reachable surveying command.
+invalid targets or a failed recheck cancel work. The synthetic owned-craft
+tests seed the unreachable survey adapter. One proves that a committed script
+relocation cancels it and clears the saved remainder. The other proves that it
+pauses offline and resumes through the helper. No craft test covers a move that
+an entry script rolls back, or a reachable surveying command.
 
 Equipment type/subtype/variant selection alone does not initialize the stored
 skill. SHOW and its aliases can populate it through object setup before the
