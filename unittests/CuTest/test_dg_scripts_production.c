@@ -5,6 +5,7 @@
 #include "../../src/core/structs.h"
 #include "../../src/core/utils.h"
 #include "../../src/core/comm.h"
+#include "../../src/core/db.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/dgscript/dg_scripts.h"
 
@@ -360,4 +361,50 @@ void Test_dg_production_empty_expression_operands_are_safe(CuTest *tc)
   CuAssertTrue(tc, found_empty_right);
   CuAssertTrue(tc, found_empty_left);
   free_varlist(trigger.var_list);
+}
+
+/* A condition longer than the expression buffer is cut before it is evaluated,
+ * so the script log has to name the trigger for a builder to shorten it. */
+void Test_dg_production_overlong_condition_names_the_trigger(CuTest *tc)
+{
+  static const char prefix[] = "eval overlong (";
+  struct script_data script = {0};
+  struct trig_data trigger = {0};
+  struct index_data index = {0};
+  struct index_data *index_table[1];
+  struct index_data **saved_index = trig_index;
+  FILE *saved_log = logfile;
+  FILE *capture = tmpfile();
+  char command[sizeof(prefix) + MAX_INPUT_LENGTH + 1];
+  char captured[MAX_STRING_LENGTH];
+  size_t length = 0;
+
+  if (capture == NULL)
+  {
+    CuFail(tc, "could not create the script log capture");
+    return;
+  }
+
+  memcpy(command, prefix, sizeof(prefix) - 1);
+  memset(command + sizeof(prefix) - 1, 'a', MAX_INPUT_LENGTH);
+  command[sizeof(prefix) - 1 + MAX_INPUT_LENGTH] = ')';
+  command[sizeof(prefix) + MAX_INPUT_LENGTH] = '\0';
+
+  trigger.name = CuMutableString("overlong condition regression");
+  index.vnum = 4242;
+  index_table[0] = &index;
+  trig_index = index_table;
+  logfile = capture;
+  process_eval(NULL, &script, &trigger, WLD_TRIGGER, command);
+  logfile = saved_log;
+  trig_index = saved_index;
+
+  if (fseek(capture, 0, SEEK_SET) == 0)
+    length = fread(captured, 1, sizeof(captured) - 1, capture);
+  captured[length] = '\0';
+  fclose(capture);
+  free_varlist(trigger.var_list);
+
+  CuAssertTrue(tc, strstr(captured, "condition is too long") != NULL);
+  CuAssertTrue(tc, strstr(captured, "overlong condition regression, VNum 4242") != NULL);
 }

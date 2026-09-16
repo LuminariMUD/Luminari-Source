@@ -598,6 +598,88 @@ void Test_class_filter_uses_a_reserved_bit_for_unknown_letters(CuTest *tc)
   CuAssertTrue(tc, (known & CLASS_BIT_UNKNOWN) == 0);
 }
 
+/* Runs one improved-editor /e command against text and returns whether the
+ * editor reported the change as refused. */
+static bool improved_edit_refused(struct descriptor_data *descriptor, char **text,
+                                  const char *command)
+{
+  char action[MAX_INPUT_LENGTH];
+
+  strlcpy(action, command, sizeof(action));
+  descriptor->small_outbuf[0] = '\0';
+  descriptor->output = descriptor->small_outbuf;
+  descriptor->bufptr = 0;
+  descriptor->bufspace = SMALL_BUFSIZE - 1;
+  descriptor->str = text;
+  parse_edit_action(PARSE_EDIT, action, descriptor);
+  return strstr(descriptor->output, "exceed buffer maximum size") != NULL;
+}
+
+/* /e rebuilds the text in a buffer exactly as large as new mail's max_str, so
+ * a change that does not fit has to be refused with the text left as it was.
+ * Bounding the rebuild with strlcat once cut such a change and saved it. */
+void Test_improved_editor_refuses_a_change_that_does_not_fit(CuTest *tc)
+{
+  const size_t length = MAX_STRING_LENGTH - 3; /* the most string_add accepts */
+  const size_t middle = length - strlen("a\r\n") - strlen("\r\nb\r\n");
+  struct descriptor_data descriptor;
+  char replacement[201];
+  char first_line[sizeof(replacement) + 2];
+  char last_line[sizeof(replacement) + 2];
+  char *text;
+  char *original;
+  char *small;
+  bool first_line_refused;
+  bool last_line_refused;
+  bool unchanged;
+  bool small_refused;
+  bool small_changed;
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.max_str = MAX_STRING_LENGTH;
+  descriptor.pProtocol = ProtocolCreate();
+  text = malloc(length + 1);
+  small = strdup("a\r\nb\r\n");
+  if (descriptor.pProtocol == NULL || text == NULL || small == NULL)
+  {
+    if (descriptor.pProtocol != NULL)
+      ProtocolDestroy(descriptor.pProtocol);
+    free(text);
+    free(small);
+    CuFail(tc, "could not initialize the editor fixture");
+    return;
+  }
+  /* A short first and last line around one line that fills the buffer. */
+  memcpy(text, "a\r\n", 3);
+  memset(text + 3, 'x', middle);
+  memcpy(text + 3 + middle, "\r\nb\r\n", 5);
+  text[length] = '\0';
+  original = strdup(text);
+  memset(replacement, 'y', sizeof(replacement) - 1);
+  replacement[sizeof(replacement) - 1] = '\0';
+  snprintf(first_line, sizeof(first_line), "1 %s", replacement);
+  snprintf(last_line, sizeof(last_line), "3 %s", replacement);
+
+  /* Line 1 overflows on the text after it, line 3 on the replacement itself. */
+  first_line_refused = improved_edit_refused(&descriptor, &text, first_line);
+  last_line_refused = improved_edit_refused(&descriptor, &text, last_line);
+  unchanged = original != NULL && strcmp(text, original) == 0;
+
+  small_refused = improved_edit_refused(&descriptor, &small, "2 zed");
+  small_changed = strcmp(small, "a\r\nzed\r\n") == 0;
+
+  ProtocolDestroy(descriptor.pProtocol);
+  free(text);
+  free(original);
+  free(small);
+
+  CuAssertTrue(tc, first_line_refused);
+  CuAssertTrue(tc, last_line_refused);
+  CuAssertTrue(tc, unchanged);
+  CuAssertTrue(tc, !small_refused);
+  CuAssertTrue(tc, small_changed);
+}
+
 void Test_process_input_reports_plain_text_truncation(CuTest *tc)
 {
   struct descriptor_data descriptor;
