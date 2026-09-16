@@ -3373,9 +3373,9 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
             if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 <
                 sizeof(MSDPCommands))
             {
-              strcat(MSDPCommands, " ");
+              strlcat(MSDPCommands, " ", sizeof(MSDPCommands));
               /* Add the variable to the list */
-              strcat(MSDPCommands, VariableNameTable[i].pName);
+              strlcat(MSDPCommands, VariableNameTable[i].pName, sizeof(MSDPCommands));
             }
             else
             {
@@ -3402,9 +3402,9 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
               if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 <
                   sizeof(MSDPCommands))
               {
-                strcat(MSDPCommands, " ");
+                strlcat(MSDPCommands, " ", sizeof(MSDPCommands));
                 /* Add the variable to the list */
-                strcat(MSDPCommands, VariableNameTable[i].pName);
+                strlcat(MSDPCommands, VariableNameTable[i].pName, sizeof(MSDPCommands));
               }
               else
               {
@@ -3416,7 +3416,7 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
             {
               if (strlen(VariableNameTable[i].pName) + 1 < sizeof(MSDPCommands))
               {
-                strcat(MSDPCommands, VariableNameTable[i].pName);
+                strlcat(MSDPCommands, VariableNameTable[i].pName, sizeof(MSDPCommands));
               }
               else
               {
@@ -3444,9 +3444,9 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
               if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 <
                   sizeof(MSDPCommands))
               {
-                strcat(MSDPCommands, " ");
+                strlcat(MSDPCommands, " ", sizeof(MSDPCommands));
                 /* Add the variable to the list */
-                strcat(MSDPCommands, VariableNameTable[i].pName);
+                strlcat(MSDPCommands, VariableNameTable[i].pName, sizeof(MSDPCommands));
               }
               else
               {
@@ -3458,7 +3458,7 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
             {
               if (strlen(VariableNameTable[i].pName) + 1 < sizeof(MSDPCommands))
               {
-                strcat(MSDPCommands, VariableNameTable[i].pName);
+                strlcat(MSDPCommands, VariableNameTable[i].pName, sizeof(MSDPCommands));
               }
               else
               {
@@ -3486,9 +3486,9 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
               if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 <
                   sizeof(MSDPCommands))
               {
-                strcat(MSDPCommands, " ");
+                strlcat(MSDPCommands, " ", sizeof(MSDPCommands));
                 /* Add the variable to the list */
-                strcat(MSDPCommands, VariableNameTable[i].pName);
+                strlcat(MSDPCommands, VariableNameTable[i].pName, sizeof(MSDPCommands));
               }
               else
               {
@@ -3500,7 +3500,7 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
             {
               if (strlen(VariableNameTable[i].pName) + 1 < sizeof(MSDPCommands))
               {
-                strcat(MSDPCommands, VariableNameTable[i].pName);
+                strlcat(MSDPCommands, VariableNameTable[i].pName, sizeof(MSDPCommands));
               }
               else
               {

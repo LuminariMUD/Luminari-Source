@@ -63,21 +63,21 @@ int mysql_board_init(void)
   char query[4096];
 
   /* Create boards configuration table */
-  sprintf(query,
-          "CREATE TABLE IF NOT EXISTS mysql_boards ("
-          "board_id INT PRIMARY KEY AUTO_INCREMENT, "
-          "board_name VARCHAR(100) NOT NULL, "
-          "board_type INT NOT NULL DEFAULT 0, "
-          "read_level INT NOT NULL DEFAULT 1, "
-          "write_level INT NOT NULL DEFAULT 1, "
-          "delete_level INT NOT NULL DEFAULT %d, "
-          "obj_vnum INT NOT NULL DEFAULT 0, "
-          "clan_id INT NOT NULL DEFAULT 0, "
-          "clan_rank INT NOT NULL DEFAULT 0, "
-          "active BOOLEAN NOT NULL DEFAULT TRUE, "
-          "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
-          ")",
-          LVL_IMMORT);
+  snprintf(query, sizeof(query),
+           "CREATE TABLE IF NOT EXISTS mysql_boards ("
+           "board_id INT PRIMARY KEY AUTO_INCREMENT, "
+           "board_name VARCHAR(100) NOT NULL, "
+           "board_type INT NOT NULL DEFAULT 0, "
+           "read_level INT NOT NULL DEFAULT 1, "
+           "write_level INT NOT NULL DEFAULT 1, "
+           "delete_level INT NOT NULL DEFAULT %d, "
+           "obj_vnum INT NOT NULL DEFAULT 0, "
+           "clan_id INT NOT NULL DEFAULT 0, "
+           "clan_rank INT NOT NULL DEFAULT 0, "
+           "active BOOLEAN NOT NULL DEFAULT TRUE, "
+           "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+           ")",
+           LVL_IMMORT);
 
   if (!mysql_board_execute_query(query))
   {
@@ -86,28 +86,28 @@ int mysql_board_init(void)
   }
 
   /* Add clan_rank column if it doesn't exist (for upgrading existing databases) */
-  sprintf(query,
-          "ALTER TABLE mysql_boards ADD COLUMN IF NOT EXISTS clan_rank INT NOT NULL DEFAULT 0");
+  snprintf(query, sizeof(query),
+           "ALTER TABLE mysql_boards ADD COLUMN IF NOT EXISTS clan_rank INT NOT NULL DEFAULT 0");
 
   /* This query might fail on some MySQL versions, so we don't check the result */
   mysql_board_execute_query(query);
 
   /* Create posts table */
-  sprintf(query,
-          "CREATE TABLE IF NOT EXISTS mysql_board_posts ("
-          "post_id INT PRIMARY KEY AUTO_INCREMENT, "
-          "board_id INT NOT NULL, "
-          "title VARCHAR(%d) NOT NULL, "
-          "body TEXT NOT NULL, "
-          "author VARCHAR(20) NOT NULL, "
-          "author_id INT NOT NULL, "
-          "author_level INT NOT NULL, "
-          "date_posted TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-          "date_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
-          "deleted BOOLEAN NOT NULL DEFAULT FALSE, "
-          "FOREIGN KEY (board_id) REFERENCES mysql_boards(board_id) ON DELETE CASCADE"
-          ")",
-          MAX_BOARD_TITLE_LENGTH);
+  snprintf(query, sizeof(query),
+           "CREATE TABLE IF NOT EXISTS mysql_board_posts ("
+           "post_id INT PRIMARY KEY AUTO_INCREMENT, "
+           "board_id INT NOT NULL, "
+           "title VARCHAR(%d) NOT NULL, "
+           "body TEXT NOT NULL, "
+           "author VARCHAR(20) NOT NULL, "
+           "author_id INT NOT NULL, "
+           "author_level INT NOT NULL, "
+           "date_posted TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+           "date_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+           "deleted BOOLEAN NOT NULL DEFAULT FALSE, "
+           "FOREIGN KEY (board_id) REFERENCES mysql_boards(board_id) ON DELETE CASCADE"
+           ")",
+           MAX_BOARD_TITLE_LENGTH);
 
   if (!mysql_board_execute_query(query))
   {
@@ -116,16 +116,17 @@ int mysql_board_init(void)
   }
 
   /* Create player board reads tracking table */
-  sprintf(query, "CREATE TABLE IF NOT EXISTS player_board_reads ("
-                 "player_id INT NOT NULL, "
-                 "post_id INT NOT NULL, "
-                 "board_id INT NOT NULL, "
-                 "read_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-                 "PRIMARY KEY (player_id, post_id), "
-                 "INDEX idx_player_board (player_id, board_id), "
-                 "INDEX idx_post (post_id), "
-                 "FOREIGN KEY (post_id) REFERENCES mysql_board_posts(post_id) ON DELETE CASCADE"
-                 ")");
+  snprintf(query, sizeof(query),
+           "CREATE TABLE IF NOT EXISTS player_board_reads ("
+           "player_id INT NOT NULL, "
+           "post_id INT NOT NULL, "
+           "board_id INT NOT NULL, "
+           "read_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+           "PRIMARY KEY (player_id, post_id), "
+           "INDEX idx_player_board (player_id, board_id), "
+           "INDEX idx_post (post_id), "
+           "FOREIGN KEY (post_id) REFERENCES mysql_board_posts(post_id) ON DELETE CASCADE"
+           ")");
 
   if (!mysql_board_execute_query(query))
   {
@@ -134,14 +135,15 @@ int mysql_board_init(void)
   }
 
   /* Create player board visits tracking table - tracks first visit to a board */
-  sprintf(query, "CREATE TABLE IF NOT EXISTS player_board_visits ("
-                 "player_id INT NOT NULL, "
-                 "board_id INT NOT NULL, "
-                 "first_visit TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-                 "last_visit TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
-                 "PRIMARY KEY (player_id, board_id), "
-                 "INDEX idx_player (player_id)"
-                 ")");
+  snprintf(query, sizeof(query),
+           "CREATE TABLE IF NOT EXISTS player_board_visits ("
+           "player_id INT NOT NULL, "
+           "board_id INT NOT NULL, "
+           "first_visit TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+           "last_visit TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+           "PRIMARY KEY (player_id, board_id), "
+           "INDEX idx_player (player_id)"
+           ")");
 
   if (!mysql_board_execute_query(query))
   {
@@ -182,41 +184,41 @@ void mysql_board_sync_default_boards(void)
                              strlen(default_boards[i].board_name));
 
     /* Use INSERT ... ON DUPLICATE KEY UPDATE to insert or update */
-    sprintf(query,
-            "INSERT INTO mysql_boards "
-            "(board_id, board_name, board_type, read_level, write_level, delete_level, obj_vnum, "
-            "clan_id, clan_rank, active) "
-            "VALUES (%d, '%s', %d, %d, %d, %d, %d, %d, %d, %s) "
-            "ON DUPLICATE KEY UPDATE "
-            "board_name = '%s', "
-            "board_type = %d, "
-            "read_level = %d, "
-            "write_level = %d, "
-            "delete_level = %d, "
-            "obj_vnum = %d, "
-            "clan_id = %d, "
-            "clan_rank = %d, "
-            "active = %s",
-            default_boards[i].board_id, escaped_name, default_boards[i].board_type,
-            default_boards[i].read_level, default_boards[i].write_level,
-            default_boards[i].delete_level, default_boards[i].obj_vnum, default_boards[i].clan_id,
-            default_boards[i].clan_rank, default_boards[i].active ? "TRUE" : "FALSE",
-            /* ON DUPLICATE KEY UPDATE values */
-            escaped_name, default_boards[i].board_type, default_boards[i].read_level,
-            default_boards[i].write_level, default_boards[i].delete_level,
-            default_boards[i].obj_vnum, default_boards[i].clan_id, default_boards[i].clan_rank,
-            default_boards[i].active ? "TRUE" : "FALSE");
+    snprintf(query, sizeof(query),
+             "INSERT INTO mysql_boards "
+             "(board_id, board_name, board_type, read_level, write_level, delete_level, obj_vnum, "
+             "clan_id, clan_rank, active) "
+             "VALUES (%d, '%s', %d, %d, %d, %d, %d, %d, %d, %s) "
+             "ON DUPLICATE KEY UPDATE "
+             "board_name = '%s', "
+             "board_type = %d, "
+             "read_level = %d, "
+             "write_level = %d, "
+             "delete_level = %d, "
+             "obj_vnum = %d, "
+             "clan_id = %d, "
+             "clan_rank = %d, "
+             "active = %s",
+             default_boards[i].board_id, escaped_name, default_boards[i].board_type,
+             default_boards[i].read_level, default_boards[i].write_level,
+             default_boards[i].delete_level, default_boards[i].obj_vnum, default_boards[i].clan_id,
+             default_boards[i].clan_rank, default_boards[i].active ? "TRUE" : "FALSE",
+             /* ON DUPLICATE KEY UPDATE values */
+             escaped_name, default_boards[i].board_type, default_boards[i].read_level,
+             default_boards[i].write_level, default_boards[i].delete_level,
+             default_boards[i].obj_vnum, default_boards[i].clan_id, default_boards[i].clan_rank,
+             default_boards[i].active ? "TRUE" : "FALSE");
 
     if (mysql_query(conn, query))
     {
-      sprintf(buf, "SYSERR: MySQL board system - Failed to sync board %d (%s): %s",
-              default_boards[i].board_id, default_boards[i].board_name, mysql_error(conn));
+      snprintf(buf, sizeof(buf), "SYSERR: MySQL board system - Failed to sync board %d (%s): %s",
+               default_boards[i].board_id, default_boards[i].board_name, mysql_error(conn));
       log("%s", buf);
     }
     else
     {
-      sprintf(buf, "MySQL board system - Synced board %d: %s", default_boards[i].board_id,
-              default_boards[i].board_name);
+      snprintf(buf, sizeof(buf), "MySQL board system - Synced board %d: %s",
+               default_boards[i].board_id, default_boards[i].board_name);
       log("%s", buf);
     }
   }
@@ -232,8 +234,8 @@ void mysql_board_load_configs(void)
   char query[512];
   int i = 0;
 
-  sprintf(
-      query,
+  snprintf(
+      query, sizeof(query),
       "SELECT board_id, board_name, board_type, read_level, write_level, "
       "delete_level, obj_vnum, clan_id, clan_rank, active FROM mysql_boards WHERE active = TRUE");
 
@@ -445,30 +447,31 @@ int mysql_board_create_post(struct char_data *ch, int board_id, char *title, cha
   mysql_real_escape_string(conn, escaped_body, body, strlen(body));
   mysql_real_escape_string(conn, escaped_author, GET_NAME(ch), strlen(GET_NAME(ch)));
 
-  sprintf(query,
-          "INSERT INTO mysql_board_posts "
-          "(board_id, title, body, author, author_id, author_level) "
-          "VALUES (%d, '%s', '%s', '%s', %ld, %d)",
-          board_id, escaped_title, escaped_body, escaped_author, GET_IDNUM(ch), GET_LEVEL(ch));
+  snprintf(query, sizeof(query),
+           "INSERT INTO mysql_board_posts "
+           "(board_id, title, body, author, author_id, author_level) "
+           "VALUES (%d, '%s', '%s', '%s', %ld, %d)",
+           board_id, escaped_title, escaped_body, escaped_author, GET_IDNUM(ch), GET_LEVEL(ch));
 
   /* Execute the insert query */
   if (mysql_query(conn, query))
   {
-    sprintf(buf, "SYSERR: MySQL board system - Insert post failed: %s", mysql_error(conn));
+    snprintf(buf, sizeof(buf), "SYSERR: MySQL board system - Insert post failed: %s",
+             mysql_error(conn));
     log("%s", buf);
     return -1;
   }
 
   /* Get the ID of the newly created post */
-  sprintf(query, "SELECT LAST_INSERT_ID()");
+  snprintf(query, sizeof(query), "SELECT LAST_INSERT_ID()");
   if (!mysql_query(conn, query))
   {
     res = mysql_store_result(conn);
     if (res && (row = mysql_fetch_row(res)))
     {
       post_id = atoi(row[0]);
-      sprintf(buf, "Board post created successfully: ID %d, Board %d, Author %s", post_id, board_id,
-              GET_NAME(ch));
+      snprintf(buf, sizeof(buf), "Board post created successfully: ID %d, Board %d, Author %s",
+               post_id, board_id, GET_NAME(ch));
       log("%s", buf);
     }
     else
@@ -482,7 +485,8 @@ int mysql_board_create_post(struct char_data *ch, int board_id, char *title, cha
   }
   else
   {
-    sprintf(buf, "SYSERR: MySQL board system - LAST_INSERT_ID query failed: %s", mysql_error(conn));
+    snprintf(buf, sizeof(buf), "SYSERR: MySQL board system - LAST_INSERT_ID query failed: %s",
+             mysql_error(conn));
     log("%s", buf);
     post_id = -1;
   }
@@ -500,11 +504,11 @@ struct mysql_board_post *mysql_board_get_post(int board_id, int post_id)
   MYSQL_ROW row;
   struct mysql_board_post *post;
 
-  sprintf(query,
-          "SELECT post_id, board_id, title, body, author, author_id, author_level, "
-          "UNIX_TIMESTAMP(date_posted), UNIX_TIMESTAMP(date_modified), deleted "
-          "FROM mysql_board_posts WHERE board_id = %d AND post_id = %d AND deleted = FALSE",
-          board_id, post_id);
+  snprintf(query, sizeof(query),
+           "SELECT post_id, board_id, title, body, author, author_id, author_level, "
+           "UNIX_TIMESTAMP(date_posted), UNIX_TIMESTAMP(date_modified), deleted "
+           "FROM mysql_board_posts WHERE board_id = %d AND post_id = %d AND deleted = FALSE",
+           board_id, post_id);
 
   result = mysql_board_execute_select(query);
   if (!result)
@@ -590,8 +594,9 @@ void mysql_board_show_list(struct char_data *ch, int board_id, int page)
   i = 1; /* Reset counter for post numbering */
 
   /* Get total count first */
-  sprintf(query, "SELECT COUNT(*) FROM mysql_board_posts WHERE board_id = %d AND deleted = FALSE",
-          board_id);
+  snprintf(query, sizeof(query),
+           "SELECT COUNT(*) FROM mysql_board_posts WHERE board_id = %d AND deleted = FALSE",
+           board_id);
 
   result = mysql_board_execute_select(query);
   if (result)
@@ -617,11 +622,11 @@ void mysql_board_show_list(struct char_data *ch, int board_id, int page)
     }
     else
     {
-      strcpy(board_name_buf, "Unknown Board");
+      strlcpy(board_name_buf, "Unknown Board", sizeof(board_name_buf));
     }
 
-    sprintf(
-        buf,
+    snprintf(
+        buf, sizeof(buf),
         "\r\n\tY+------------------------------------------------------------------------------+"
         "\tn\r\n"
         "\tY|%-78.78s|\tn\r\n"
@@ -636,11 +641,11 @@ void mysql_board_show_list(struct char_data *ch, int board_id, int page)
   }
 
   /* Get posts for this page */
-  sprintf(query,
-          "SELECT post_id, title, author, UNIX_TIMESTAMP(date_posted) "
-          "FROM mysql_board_posts WHERE board_id = %d AND deleted = FALSE "
-          "ORDER BY date_posted DESC LIMIT %d OFFSET %d",
-          board_id, POSTS_PER_PAGE, offset);
+  snprintf(query, sizeof(query),
+           "SELECT post_id, title, author, UNIX_TIMESTAMP(date_posted) "
+           "FROM mysql_board_posts WHERE board_id = %d AND deleted = FALSE "
+           "ORDER BY date_posted DESC LIMIT %d OFFSET %d",
+           board_id, POSTS_PER_PAGE, offset);
 
   result = mysql_board_execute_select(query);
   if (!result)
@@ -661,11 +666,11 @@ void mysql_board_show_list(struct char_data *ch, int board_id, int page)
     }
     else
     {
-      strcpy(board_name_buf, "Unknown Board");
+      strlcpy(board_name_buf, "Unknown Board", sizeof(board_name_buf));
     }
 
-    sprintf(
-        buf,
+    snprintf(
+        buf, sizeof(buf),
         "\r\n\tY+------------------------------------------------------------------------------+"
         "\tn\r\n"
         "\tY|%-78.78s|\tn\r\n"
@@ -690,16 +695,16 @@ void mysql_board_show_list(struct char_data *ch, int board_id, int page)
     {
       if (!mysql_board_has_read_post(ch, post_id_val))
       {
-        strcpy(unread_marker, "\tB*\tn");
+        strlcpy(unread_marker, "\tB*\tn", sizeof(unread_marker));
       }
       else
       {
-        strcpy(unread_marker, " ");
+        strlcpy(unread_marker, " ", sizeof(unread_marker));
       }
     }
     else
     {
-      strcpy(unread_marker, " ");
+      strlcpy(unread_marker, " ", sizeof(unread_marker));
     }
 
     /* Copy and parse @ color codes in title */
@@ -714,9 +719,9 @@ void mysql_board_show_list(struct char_data *ch, int board_id, int page)
 
   {
     char stats_line[80], help_line[80];
-    sprintf(stats_line, "Total Posts: %d    Page: %d of %d", post_count, page,
-            ((post_count - 1) / POSTS_PER_PAGE) + 1);
-    sprintf(help_line, "Type 'board help' for board commands");
+    snprintf(stats_line, sizeof(stats_line), "Total Posts: %d    Page: %d of %d", post_count, page,
+             ((post_count - 1) / POSTS_PER_PAGE) + 1);
+    snprintf(help_line, sizeof(help_line), "Type 'board help' for board commands");
 
     sprintf(
         buf + strlen(buf),
@@ -765,8 +770,8 @@ void mysql_board_show_post(struct char_data *ch, int board_id, int post_id)
     parse_at(post->title);
   }
 
-  sprintf(
-      buf,
+  snprintf(
+      buf, sizeof(buf),
       "\r\n\tC\tW%s\tn\r\n"
       "\tY================================================================================\tn\r\n"
       "\tCPost #%d\tn                                                      \tCBy: %s\tn\r\n"
@@ -794,8 +799,8 @@ void mysql_board_show_help(struct char_data *ch)
 {
   char buf[MAX_STRING_LENGTH];
 
-  sprintf(
-      buf,
+  snprintf(
+      buf, sizeof(buf),
       "\r\n\tC\tWBoard Commands Help\tn\r\n"
       "\tY================================================================================\tn\r\n"
       "\tCread <post#>\tn        - Read a specific post by number\r\n"
@@ -970,8 +975,9 @@ bool mysql_board_delete_post(struct char_data *ch __attribute__((unused)), int b
 {
   char query[256];
 
-  sprintf(query, "UPDATE mysql_board_posts SET deleted = TRUE WHERE board_id = %d AND post_id = %d",
-          board_id, post_id);
+  snprintf(query, sizeof(query),
+           "UPDATE mysql_board_posts SET deleted = TRUE WHERE board_id = %d AND post_id = %d",
+           board_id, post_id);
 
   return mysql_board_execute_query(query);
 }
@@ -1421,9 +1427,9 @@ void mysql_board_start_reply_title(struct descriptor_data *d, int board_id, int 
   }
 
   char prompt_buf[256];
-  sprintf(prompt_buf,
-          "\r\nEnter additional subject text (will be prefixed with \"Re: Post #%d - \"): ",
-          reply_to_post_id);
+  snprintf(prompt_buf, sizeof(prompt_buf),
+           "\r\nEnter additional subject text (will be prefixed with \"Re: Post #%d - \"): ",
+           reply_to_post_id);
   SEND_TO_Q(prompt_buf, d);
   STATE(d) = CON_BOARD_TITLE;
 
@@ -1512,7 +1518,7 @@ void mysql_board_handle_reply_title(struct descriptor_data *d, char *additional_
     else
     {
       /* Last line */
-      strcpy(temp_line, line_start);
+      strlcpy(temp_line, line_start, sizeof(temp_line));
     }
 
     /* Add quoted line */
@@ -1563,14 +1569,15 @@ void mysql_board_finish_post(struct descriptor_data *d, int save)
     if (result > 0)
     {
       char msg_buf[256];
-      sprintf(msg_buf, "Your post has been saved to the board (Post #%d).\r\n", result);
+      snprintf(msg_buf, sizeof(msg_buf), "Your post has been saved to the board (Post #%d).\r\n",
+               result);
       SEND_TO_Q(msg_buf, d);
     }
     else
     {
       char msg_buf[256];
-      sprintf(msg_buf, "Error: Could not save your post to the board (Error code: %d).\r\n",
-              result);
+      snprintf(msg_buf, sizeof(msg_buf),
+               "Error: Could not save your post to the board (Error code: %d).\r\n", result);
       SEND_TO_Q(msg_buf, d);
     }
   }
@@ -1681,7 +1688,7 @@ bool mysql_board_execute_query(char *query)
   }
   else
   {
-    sprintf(buf, "SYSERR: MySQL board system query failed: %s", mysql_error(conn));
+    snprintf(buf, sizeof(buf), "SYSERR: MySQL board system query failed: %s", mysql_error(conn));
     log("%s", buf);
   }
 
@@ -1713,7 +1720,7 @@ MYSQL_RES *mysql_board_execute_select(char *query)
   }
   else
   {
-    sprintf(buf, "SYSERR: MySQL board system SELECT failed: %s", mysql_error(conn));
+    snprintf(buf, sizeof(buf), "SYSERR: MySQL board system SELECT failed: %s", mysql_error(conn));
     log("%s", buf);
   }
 
@@ -1736,10 +1743,10 @@ bool mysql_board_has_read_post(struct char_data *ch, int post_id)
   if (!ch || IS_NPC(ch) || GET_IDNUM(ch) <= 0)
     return false;
 
-  sprintf(query,
-          "SELECT 1 FROM player_board_reads "
-          "WHERE player_id = %ld AND post_id = %d",
-          GET_IDNUM(ch), post_id);
+  snprintf(query, sizeof(query),
+           "SELECT 1 FROM player_board_reads "
+           "WHERE player_id = %ld AND post_id = %d",
+           GET_IDNUM(ch), post_id);
 
   result = mysql_board_execute_select(query);
   if (result)
@@ -1765,11 +1772,11 @@ void mysql_board_mark_post_read(struct char_data *ch, int board_id, int post_id)
     return;
 
   /* Insert or update read record */
-  sprintf(query,
-          "INSERT INTO player_board_reads (player_id, post_id, board_id, read_date) "
-          "VALUES (%ld, %d, %d, NOW()) "
-          "ON DUPLICATE KEY UPDATE read_date = NOW()",
-          GET_IDNUM(ch), post_id, board_id);
+  snprintf(query, sizeof(query),
+           "INSERT INTO player_board_reads (player_id, post_id, board_id, read_date) "
+           "VALUES (%ld, %d, %d, NOW()) "
+           "ON DUPLICATE KEY UPDATE read_date = NOW()",
+           GET_IDNUM(ch), post_id, board_id);
 
   if (!mysql_board_execute_query(query))
   {
@@ -1790,11 +1797,11 @@ void mysql_board_mark_board_visited(struct char_data *ch, int board_id)
     return;
 
   /* Insert or update visit record */
-  sprintf(query,
-          "INSERT INTO player_board_visits (player_id, board_id, first_visit, last_visit) "
-          "VALUES (%ld, %d, NOW(), NOW()) "
-          "ON DUPLICATE KEY UPDATE last_visit = NOW()",
-          GET_IDNUM(ch), board_id);
+  snprintf(query, sizeof(query),
+           "INSERT INTO player_board_visits (player_id, board_id, first_visit, last_visit) "
+           "VALUES (%ld, %d, NOW(), NOW()) "
+           "ON DUPLICATE KEY UPDATE last_visit = NOW()",
+           GET_IDNUM(ch), board_id);
 
   mysql_board_execute_query(query);
 }
@@ -1810,16 +1817,16 @@ void mysql_board_mark_all_read(struct char_data *ch, int board_id)
     return;
 
   /* Insert read records for all posts on this board that haven't been read */
-  sprintf(query,
-          "INSERT INTO player_board_reads (player_id, post_id, board_id, read_date) "
-          "SELECT %ld, post_id, board_id, NOW() "
-          "FROM mysql_board_posts "
-          "WHERE board_id = %d AND deleted = FALSE "
-          "AND post_id NOT IN ("
-          "  SELECT post_id FROM player_board_reads WHERE player_id = %ld"
-          ") "
-          "ON DUPLICATE KEY UPDATE read_date = NOW()",
-          GET_IDNUM(ch), board_id, GET_IDNUM(ch));
+  snprintf(query, sizeof(query),
+           "INSERT INTO player_board_reads (player_id, post_id, board_id, read_date) "
+           "SELECT %ld, post_id, board_id, NOW() "
+           "FROM mysql_board_posts "
+           "WHERE board_id = %d AND deleted = FALSE "
+           "AND post_id NOT IN ("
+           "  SELECT post_id FROM player_board_reads WHERE player_id = %ld"
+           ") "
+           "ON DUPLICATE KEY UPDATE read_date = NOW()",
+           GET_IDNUM(ch), board_id, GET_IDNUM(ch));
 
   if (mysql_board_execute_query(query))
   {
@@ -1883,30 +1890,30 @@ ACMD(do_boardcheck)
     /* For mortals, only show boards they have visited at least once */
     if (GET_LEVEL(ch) >= LVL_IMMORT)
     {
-      sprintf(query,
-              "SELECT COUNT(*) "
-              "FROM mysql_board_posts p "
-              "WHERE p.board_id = %d AND p.deleted = FALSE "
-              "AND p.post_id NOT IN ("
-              "  SELECT post_id FROM player_board_reads WHERE player_id = %ld"
-              ")",
-              board->board_id, GET_IDNUM(ch));
+      snprintf(query, sizeof(query),
+               "SELECT COUNT(*) "
+               "FROM mysql_board_posts p "
+               "WHERE p.board_id = %d AND p.deleted = FALSE "
+               "AND p.post_id NOT IN ("
+               "  SELECT post_id FROM player_board_reads WHERE player_id = %ld"
+               ")",
+               board->board_id, GET_IDNUM(ch));
     }
     else
     {
-      sprintf(query,
-              "SELECT COUNT(*) "
-              "FROM mysql_board_posts p "
-              "WHERE p.board_id = %d AND p.deleted = FALSE "
-              "AND p.post_id NOT IN ("
-              "  SELECT post_id FROM player_board_reads WHERE player_id = %ld"
-              ") "
-              /* Only show boards the player has visited at least once */
-              "AND EXISTS ("
-              "  SELECT 1 FROM player_board_visits "
-              "  WHERE player_id = %ld AND board_id = %d"
-              ")",
-              board->board_id, GET_IDNUM(ch), GET_IDNUM(ch), board->board_id);
+      snprintf(query, sizeof(query),
+               "SELECT COUNT(*) "
+               "FROM mysql_board_posts p "
+               "WHERE p.board_id = %d AND p.deleted = FALSE "
+               "AND p.post_id NOT IN ("
+               "  SELECT post_id FROM player_board_reads WHERE player_id = %ld"
+               ") "
+               /* Only show boards the player has visited at least once */
+               "AND EXISTS ("
+               "  SELECT 1 FROM player_board_visits "
+               "  WHERE player_id = %ld AND board_id = %d"
+               ")",
+               board->board_id, GET_IDNUM(ch), GET_IDNUM(ch), board->board_id);
     }
 
     result = mysql_board_execute_select(query);
@@ -2303,10 +2310,11 @@ ACMD(do_boardfind)
 
   send_to_char(ch, "\tY+---------------------------------------------------------------------------"
                    "-----------------------+\tn\r\n");
-  sprintf(buf,
-          "                                   \tWTotal: \tY%d board%s found\tn                     "
-          "               \r\n",
-          found_count, found_count != 1 ? "s" : "");
+  snprintf(
+      buf, sizeof(buf),
+      "                                   \tWTotal: \tY%d board%s found\tn                     "
+      "               \r\n",
+      found_count, found_count != 1 ? "s" : "");
   send_to_char(ch, "%s", buf);
   send_to_char(ch, "\tY+---------------------------------------------------------------------------"
                    "-----------------------+\tn\r\n");

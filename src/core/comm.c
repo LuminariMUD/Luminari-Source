@@ -2750,8 +2750,8 @@ static const char *make_prompt(struct descriptor_data *d)
       len += count;
   }
   else if (d->str)
-  {                       /* for the modify-str system */
-    strcpy(prompt, "] "); // strcpy: OK (for 'MAX_PROMPT_LENGTH >= 3')
+  {                                        /* for the modify-str system */
+    strlcpy(prompt, "] ", sizeof(prompt)); // strcpy: OK (for 'MAX_PROMPT_LENGTH >= 3')
     len += 3;
   } /* start building a prompt */
 
@@ -4201,8 +4201,8 @@ static int process_input(struct descriptor_data *t)
       write_to_output(t->snoop_by, "%% %s\r\n", tmp);
     failed_subst = 0;
 
-    if (*tmp == '!' && !(*(tmp + 1))) /* Redo last command. */
-      strcpy(tmp, t->last_input);     /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
+    if (*tmp == '!' && !(*(tmp + 1)))           /* Redo last command. */
+      strlcpy(tmp, t->last_input, sizeof(tmp)); /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
     else if (*tmp == '!' && *(tmp + 1))
     {
       char *commandln = (tmp + 1);
@@ -4214,8 +4214,8 @@ static int process_input(struct descriptor_data *t)
       {
         if (t->history[cnt] && is_abbrev(commandln, t->history[cnt]))
         {
-          strcpy(tmp, t->history[cnt]); /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
-          strcpy(t->last_input, tmp);   /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
+          strlcpy(tmp, t->history[cnt], sizeof(tmp)); /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
+          strcpy(t->last_input, tmp);                 /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
           write_to_output(t, "%s\r\n", tmp);
           break;
         }

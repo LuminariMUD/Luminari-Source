@@ -441,32 +441,33 @@ void create_hunt_mob(room_rnum room, int which_hunt)
   // set descriptions
   mob->player.name = strdup(hunt_table[which_hunt].name);
 
-  sprintf(mob_descs, "\tn%s %s", AN(hunt_table[which_hunt].name), hunt_table[which_hunt].name);
+  snprintf(mob_descs, sizeof(mob_descs), "\tn%s %s", AN(hunt_table[which_hunt].name),
+           hunt_table[which_hunt].name);
   for (i = 0; (size_t)i < strlen(mob_descs); i++)
     mob_descs[i] = (char)tolower(mob_descs[i]);
   mob->player.short_descr = strdup(mob_descs);
 
   if (!strcmp(hunt_table[which_hunt].long_description, "Nothing"))
   {
-    sprintf(mob_descs, "\tn%s %s is here.\r\n", AN(hunt_table[which_hunt].name),
-            hunt_table[which_hunt].name);
+    snprintf(mob_descs, sizeof(mob_descs), "\tn%s %s is here.\r\n", AN(hunt_table[which_hunt].name),
+             hunt_table[which_hunt].name);
     mob->player.long_descr = strdup(mob_descs);
   }
   else
   {
-    sprintf(mob_descs, "\tn%s\r\n", hunt_table[which_hunt].long_description);
+    snprintf(mob_descs, sizeof(mob_descs), "\tn%s\r\n", hunt_table[which_hunt].long_description);
     mob->player.long_descr = strdup(mob_descs);
   }
 
   if (!strcmp(hunt_table[which_hunt].description, "Nothing"))
   {
-    sprintf(mob_descs, "\tn%s %s is here before you.\r\n", AN(hunt_table[which_hunt].name),
-            hunt_table[which_hunt].name);
+    snprintf(mob_descs, sizeof(mob_descs), "\tn%s %s is here before you.\r\n",
+             AN(hunt_table[which_hunt].name), hunt_table[which_hunt].name);
     mob->player.description = strdup(mob_descs);
   }
   else
   {
-    sprintf(mob_descs, "\tn%s\r\n", hunt_table[which_hunt].description);
+    snprintf(mob_descs, sizeof(mob_descs), "\tn%s\r\n", hunt_table[which_hunt].description);
     mob->player.description = strdup(mob_descs);
   }
 

@@ -1940,7 +1940,7 @@ static void eval_expr(char *line, char *result, void *go, struct script_data *sc
 
   else if (*line == '(')
   {
-    p = strcpy(expr, line);
+    strlcpy(expr, line, sizeof(expr));
     p = matching_paren(expr);
     *p = '\0';
     eval_expr(expr + 1, result, go, sc, trig, type);

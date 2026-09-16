@@ -126,7 +126,7 @@ static char *parsefilename(char *filename)
   static char copy[1024];
   char *extension;
 
-  strcpy(copy, filename);
+  strlcpy(copy, filename, sizeof(copy));
   extension = strchr(copy, '.');
   if (extension == NULL)
   {

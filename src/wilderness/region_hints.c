@@ -448,22 +448,22 @@ bool hint_matches_conditions(struct region_hint *hint, struct description_contex
     switch (context->weather)
     {
     case 0:
-      strcpy(weather_str, "clear");
+      strlcpy(weather_str, "clear", sizeof(weather_str));
       break;
     case 1:
-      strcpy(weather_str, "cloudy");
+      strlcpy(weather_str, "cloudy", sizeof(weather_str));
       break;
     case 2:
-      strcpy(weather_str, "rainy");
+      strlcpy(weather_str, "rainy", sizeof(weather_str));
       break;
     case 3:
-      strcpy(weather_str, "stormy");
+      strlcpy(weather_str, "stormy", sizeof(weather_str));
       break;
     case 4:
-      strcpy(weather_str, "lightning");
+      strlcpy(weather_str, "lightning", sizeof(weather_str));
       break;
     default:
-      strcpy(weather_str, "clear");
+      strlcpy(weather_str, "clear", sizeof(weather_str));
       break;
     }
 
@@ -590,15 +590,15 @@ void log_hint_usage(int hint_id, room_rnum room, struct char_data *ch,
 
   /* Convert context values to strings */
   if (context->weather < 50)
-    strcpy(weather_str, "clear");
+    strlcpy(weather_str, "clear", sizeof(weather_str));
   else if (context->weather < 100)
-    strcpy(weather_str, "cloudy");
+    strlcpy(weather_str, "cloudy", sizeof(weather_str));
   else if (context->weather < 150)
-    strcpy(weather_str, "rainy");
+    strlcpy(weather_str, "rainy", sizeof(weather_str));
   else if (context->weather < 200)
-    strcpy(weather_str, "stormy");
+    strlcpy(weather_str, "stormy", sizeof(weather_str));
   else
-    strcpy(weather_str, "lightning");
+    strlcpy(weather_str, "lightning", sizeof(weather_str));
 
   snprintf(query, sizeof(query),
            "INSERT INTO hint_usage_log (hint_id, room_vnum, player_id, weather_condition, season, "

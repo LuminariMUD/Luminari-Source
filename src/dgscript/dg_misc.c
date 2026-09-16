@@ -101,7 +101,8 @@ void do_dg_cast(void *go, struct script_data *sc __attribute__((unused)), trig_d
   /* Find the target */
   if (t != NULL)
   {
-    one_argument_u(strcpy(buf2, t), t);
+    strlcpy(buf2, t, sizeof(buf2));
+    one_argument_u(buf2, t);
     skip_spaces(&t);
   }
   if (IS_SET(SINFO.targets, TAR_IGNORE))

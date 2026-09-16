@@ -2985,9 +2985,9 @@ static int export_help_to_hlp(struct char_data *ch, const char *options)
       {
         if (!first_keyword)
         {
-          strcat(keywords_combined, ",");
+          strlcat(keywords_combined, ",", sizeof(keywords_combined));
         }
-        strcat(keywords_combined, keyword_row[0]);
+        strlcat(keywords_combined, keyword_row[0], sizeof(keywords_combined));
         first_keyword = 0;
       }
     }

@@ -1690,29 +1690,29 @@ void check_random_encounter(struct char_data *ch)
         }
         // set descriptions
         mob->player.name = strdup(encounter_table[j].object_name);
-        sprintf(mob_descs, "%s %s", AN(encounter_table[j].object_name),
-                encounter_table[j].object_name);
+        snprintf(mob_descs, sizeof(mob_descs), "%s %s", AN(encounter_table[j].object_name),
+                 encounter_table[j].object_name);
         mob->player.short_descr = strdup(mob_descs);
         if (!strcmp(encounter_table[j].long_description, "Nothing"))
         {
-          sprintf(mob_descs, "%s %s is here.\r\n", AN(encounter_table[j].object_name),
-                  encounter_table[j].object_name);
+          snprintf(mob_descs, sizeof(mob_descs), "%s %s is here.\r\n",
+                   AN(encounter_table[j].object_name), encounter_table[j].object_name);
           mob->player.long_descr = strdup(mob_descs);
         }
         else
         {
-          sprintf(mob_descs, "%s\r\n", encounter_table[j].long_description);
+          snprintf(mob_descs, sizeof(mob_descs), "%s\r\n", encounter_table[j].long_description);
           mob->player.long_descr = strdup(mob_descs);
         }
         if (!strcmp(encounter_table[j].description, "Nothing"))
         {
-          sprintf(mob_descs, "%s %s is here before you.\r\n", AN(encounter_table[j].object_name),
-                  encounter_table[j].object_name);
+          snprintf(mob_descs, sizeof(mob_descs), "%s %s is here before you.\r\n",
+                   AN(encounter_table[j].object_name), encounter_table[j].object_name);
           mob->player.description = strdup(mob_descs);
         }
         else
         {
-          sprintf(mob_descs, "%s\r\n", encounter_table[j].description);
+          snprintf(mob_descs, sizeof(mob_descs), "%s\r\n", encounter_table[j].description);
           mob->player.description = strdup(mob_descs);
         }
         // If we've stealthed successfully, we don't need to add further details

@@ -172,7 +172,7 @@ ACMD(do_blist)
     }
     else
     {
-      strcpy(board_name_buf, "(none)");
+      strlcpy(board_name_buf, "(none)", sizeof(board_name_buf));
     }
 
     snprintf(buf, sizeof(buf), "%-5d %-30.30s %-12.12s %2d %2d %2d %-6d %-5d %-4d %s\r\n",
@@ -282,7 +282,7 @@ void bedit_disp_menu(struct descriptor_data *d)
   }
   else
   {
-    strcpy(board_name_buf, "(none)");
+    strlcpy(board_name_buf, "(none)", sizeof(board_name_buf));
   }
 
   snprintf(buf, sizeof(buf),
@@ -419,33 +419,33 @@ void bedit_save_to_disk(struct descriptor_data *d)
   mysql_real_escape_string(conn, escaped_name, board->board_name, strlen(board->board_name));
 
   /* Use INSERT ... ON DUPLICATE KEY UPDATE to insert or update */
-  sprintf(query,
-          "INSERT INTO mysql_boards "
-          "(board_id, board_name, board_type, read_level, write_level, delete_level, obj_vnum, "
-          "clan_id, clan_rank, active) "
-          "VALUES (%d, '%s', %d, %d, %d, %d, %d, %d, %d, %s) "
-          "ON DUPLICATE KEY UPDATE "
-          "board_name = '%s', "
-          "board_type = %d, "
-          "read_level = %d, "
-          "write_level = %d, "
-          "delete_level = %d, "
-          "obj_vnum = %d, "
-          "clan_id = %d, "
-          "clan_rank = %d, "
-          "active = %s",
-          board->board_id, escaped_name, board->board_type, board->read_level, board->write_level,
-          board->delete_level, board->obj_vnum, board->clan_id, board->clan_rank,
-          board->active ? "TRUE" : "FALSE",
-          /* ON DUPLICATE KEY UPDATE values */
-          escaped_name, board->board_type, board->read_level, board->write_level,
-          board->delete_level, board->obj_vnum, board->clan_id, board->clan_rank,
-          board->active ? "TRUE" : "FALSE");
+  snprintf(query, sizeof(query),
+           "INSERT INTO mysql_boards "
+           "(board_id, board_name, board_type, read_level, write_level, delete_level, obj_vnum, "
+           "clan_id, clan_rank, active) "
+           "VALUES (%d, '%s', %d, %d, %d, %d, %d, %d, %d, %s) "
+           "ON DUPLICATE KEY UPDATE "
+           "board_name = '%s', "
+           "board_type = %d, "
+           "read_level = %d, "
+           "write_level = %d, "
+           "delete_level = %d, "
+           "obj_vnum = %d, "
+           "clan_id = %d, "
+           "clan_rank = %d, "
+           "active = %s",
+           board->board_id, escaped_name, board->board_type, board->read_level, board->write_level,
+           board->delete_level, board->obj_vnum, board->clan_id, board->clan_rank,
+           board->active ? "TRUE" : "FALSE",
+           /* ON DUPLICATE KEY UPDATE values */
+           escaped_name, board->board_type, board->read_level, board->write_level,
+           board->delete_level, board->obj_vnum, board->clan_id, board->clan_rank,
+           board->active ? "TRUE" : "FALSE");
 
   if (mysql_query(conn, query))
   {
-    sprintf(buf, "SYSERR: Board OLC - Failed to save board %d: %s", board->board_id,
-            mysql_error(conn));
+    snprintf(buf, sizeof(buf), "SYSERR: Board OLC - Failed to save board %d: %s", board->board_id,
+             mysql_error(conn));
     log("%s", buf);
     send_to_char(d->character, "Error saving board to database.\r\n");
     return;
@@ -650,7 +650,7 @@ void bedit_parse(struct descriptor_data *d, char *arg)
       int board_id = board->board_id;
       bedit_save_internally(d);
       bedit_save_to_disk(d);
-      sprintf(buf, "OLC: %s edits board %d", GET_NAME(d->character), board_id);
+      snprintf(buf, sizeof(buf), "OLC: %s edits board %d", GET_NAME(d->character), board_id);
       mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "%s", buf);
       send_to_char(d->character, "Board saved.\r\n");
       /* Free board structure memory */

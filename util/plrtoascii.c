@@ -195,7 +195,7 @@ static void convert(char *filename)
     exit(1);
   }
 
-  sprintf(index_name, "%s%s", LIB_PLRFILES, INDEX_FILE);
+  snprintf(index_name, sizeof(index_name), "%s%s", LIB_PLRFILES, INDEX_FILE);
 
   if (!(index_file = fopen_restricted(index_name, "w")))
   {
@@ -506,7 +506,7 @@ int plr_filename(char *orig_name, char *filename)
     return (0);
   }
 
-  strcpy(name, orig_name);
+  strlcpy(name, orig_name, sizeof(name));
   for (ptr = name; *ptr; ptr++)
     *ptr = LOWER(*ptr);
 

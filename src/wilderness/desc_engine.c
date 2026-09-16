@@ -442,8 +442,8 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
                  direction_strings[region_dir]);
       }
     }
-    strcat(buf, weather_buf);
-    strcat(rdesc, buf);
+    strlcat(buf, weather_buf, sizeof(buf));
+    strlcat(rdesc, buf, sizeof(rdesc));
     weather_buf[0] = '\0';
     buf[0] = '\0';
 
@@ -454,8 +454,8 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
   {
     /* No regions nearby...*/
     snprintf(buf, sizeof(buf), "You are %s.\r\n", sector_types_readable[world[room].sector_type]);
-    strcat(buf, weather_buf);
-    strcat(rdesc, buf);
+    strlcat(buf, weather_buf, sizeof(buf));
+    strlcat(rdesc, buf, sizeof(rdesc));
     weather_buf[0] = '\0';
     buf[0] = '\0';
   }

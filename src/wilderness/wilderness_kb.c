@@ -152,7 +152,7 @@ void report_progress(const char *stage, int percent)
       }
     }
 
-    strcpy(last_stage, stage);
+    strlcpy(last_stage, stage, sizeof(last_stage));
     last_percent = percent;
   }
 }
