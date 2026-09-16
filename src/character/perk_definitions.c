@@ -3190,6 +3190,22 @@ void define_wizard_controller_perks(void)
 
   /*** CONTROLLER TREE - TIER 2 PERKS ***/
 
+  /* Extended Spell II */
+  perk = &perk_list[PERK_WIZARD_EXTENDED_SPELL_2];
+  perk->id = PERK_WIZARD_EXTENDED_SPELL_2;
+  perk->name = strdup("Extended Spell II");
+  perk->description = strdup("Additional +3 rounds duration per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_WIZARD_EXTENDED_SPELL_1;
+  perk->prerequisite_rank = 1; /* Must have Extended Spell Enhancement I maxed */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->special_description = strdup("Requires Extended Spell Enhancement I (max). Your spell "
+                                     "durations are extended by an additional 3 rounds per rank.");
+
   /* Greater Spell Focus (Enchantment) I */
   perk = &perk_list[PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_1];
   perk->id = PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_1;
@@ -4983,7 +4999,7 @@ void define_cleric_perks(void)
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_DOMAIN_FOCUS_2;
-  perk->prerequisite_rank = 5; /* Must max Domain Focus II */
+  perk->prerequisite_rank = 2; /* Must max Domain Focus II */
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 2; /* +2 DC for domain spells */
   perk->effect_modifier = 0;
@@ -5000,7 +5016,7 @@ void define_cleric_perks(void)
   perk->cost = 3;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_CLERIC_DIVINE_SPELL_POWER_2;
-  perk->prerequisite_rank = 5; /* Must max Divine Spell Power II */
+  perk->prerequisite_rank = 3; /* Must max Divine Spell Power II */
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 3; /* +3 damage per rank */
   perk->effect_modifier = 0;
@@ -5054,7 +5070,7 @@ void define_cleric_perks(void)
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_2;
-  perk->prerequisite_rank = 5; /* Must max Turn Undead Enhancement II */
+  perk->prerequisite_rank = 2; /* Must max Turn Undead Enhancement II */
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 2; /* +2 HD levels */
   perk->effect_modifier = 0;
@@ -8437,6 +8453,7 @@ void define_barbarian_perks(void)
   perk->name = strdup("Rage Enhancement");
   perk->description = strdup("+1 to Strength and Constitution while raging per rank");
   perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -8452,6 +8469,7 @@ void define_barbarian_perks(void)
   perk->name = strdup("Extended Rage I");
   perk->description = strdup("Rage lasts +2 rounds longer");
   perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -8467,6 +8485,7 @@ void define_barbarian_perks(void)
   perk->name = strdup("Toughness");
   perk->description = strdup("+5 HP per rank");
   perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
