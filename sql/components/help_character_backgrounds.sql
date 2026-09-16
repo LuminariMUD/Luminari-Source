@@ -180,7 +180,7 @@ Ship\'s Passage: Scheduled sailing is free and takes half the usual time.
 Gain +1 to hit, damage, and armor class in or near water, and +5 to the
 Fishing crafting skill.
 
-See also: SAILING, FISHING, BACKGROUND-ARCHTYPES', 0, FALSE)
+See also: SAIL, BACKGROUND-ARCHTYPES', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SAILOR', 'SAILOR');
 

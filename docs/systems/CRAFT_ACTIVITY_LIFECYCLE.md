@@ -22,8 +22,10 @@ object and cannot silently finish on a replacement with the same prototype.
 
 Work requires hands and attention. Informational and unrelated commands follow
 the activity manager's capability rules. Committed relocation, combat, damage,
-invalid targets or a failed station/tool recheck cancel work. A provisional
-move rolled back by an entry script does not cancel surveying. Project material
+invalid targets or a failed station/tool recheck cancel work. The synthetic
+owned-craft test uses the unreachable survey adapter and proves that a
+provisional move rolled back by an entry script does not cancel that adapter;
+it is not coverage of a reachable surveying command. Project material
 reservations remain with the project; existing reset/refund and completion
 routines retain responsibility for their accounting.
 
@@ -35,14 +37,15 @@ timer. Category harvesting does recheck its harvest tool.
 
 Offline time does not advance crafting. Loss of the descriptor retires the
 active timer while preserving CrDu, the saved number of seconds remaining.
-`resume_craft_activity()` can reconstruct an owner from that state, but no
-production login, reconnect, copyover or player-load path calls it. A loaded
-saved timer therefore remains frozen. Golems also omit type, size and selected
-resources from persistence, so manually resumed golem work cannot complete
-correctly. Load-time resize handling refunds its resources and clears its method
-and duration instead of resuming. Idle players and finished/cancelled projects
-receive no craft timer. If native admission fails, no work is completed and the
-project state is retained.
+Production login, reconnect and copyover paths call `resume_craft_activity()`,
+which attempts to reconstruct an owner from the saved method and positive
+duration. Ordinary creation and supply-order work then use their normal
+rechecks. Golem type, size and selected concrete material are not persisted, so
+automatic golem resume reaches completion without required state, refuses the
+result and retains materials. Load-time resize handling refunds its resources
+and clears its method and duration before reconstruction. Idle players and
+finished/cancelled projects receive no craft timer. If native admission fails,
+no work is completed and the project state is retained.
 
 Supply offers have a different policy: their existing timestamps measure wall
 clock time, including offline time. Listing available offers or asking for
@@ -50,7 +53,10 @@ supply timing refreshes eligible empty slots lazily. Active offers and slot
 cooldowns retain their existing rules. No per-player refresh timer is needed.
 The earlier inventory's claim of online-only refresh accounting was incorrect.
 
-Validation includes native scheduling without descriptor-list membership,
-offline suspension and resume, cancellation after scripted relocation, and
-lazy refresh preserving existing offers. Existing activity-manager tests cover
-single-primary admission, capability checks, cancellation and owner lifecycle.
+Validation includes generic native scheduling without descriptor-list
+membership, offline suspension/resume through a directly called helper,
+cancellation after scripted relocation, and lazy refresh preserving existing
+offers. Existing activity-manager tests cover single-primary admission,
+capability checks, cancellation and owner lifecycle. No direct test covers the
+reachable equipment admission/tool/station/roll path or the timed create,
+material-golem and supply-order lifecycles through their production commands.

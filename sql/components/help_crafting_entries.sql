@@ -1,11 +1,13 @@
 -- Keep corrected crafting topics aligned with lib/text/help/help.hlp.
--- Safe to run repeatedly. Every flat-file alias is reassigned explicitly.
+-- Generated from the canonical flat-file entries; safe to run repeatedly.
+-- Alias cleanup is tag-scoped so unrelated topic ownership is preserved.
 START TRANSACTION;
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
-VALUES ('crafting', 'CRAFT and CRAFTSCORE use the crafting mode selected by server configuration:
-mode 0 reports no system, mode 1 opens PRACTICE, and mode 2 opens the
-materials-and-motes project editor. NEWCRAFT opens that editor in every mode.
+VALUES ('crafting', 'CRAFT uses the crafting mode selected by server configuration: mode 0 reports
+no system, mode 1 opens PRACTICE, and mode 2 opens the materials-and-motes
+project editor. CRAFTSCORE uses the same mode split, but mode 2 displays the
+crafting and harvesting score. NEWCRAFT opens the editor in every mode.
 CRAFTING is a separate catalog/blueprint command available in every mode.
 
 MATERIALS-AND-MOTES EQUIPMENT PROJECT
@@ -17,251 +19,139 @@ Use CRAFT in mode 2, or substitute NEWCRAFT in any mode:
   newcraft keywords <words>
   newcraft shortdesc <text>
   newcraft roomdesc <text>
-  newcraft enhancement <amount>       (optional)
-  newcraft motes add <enhancement|bonus slot>  (when needed)
-  newcraft bonuses ...                (optional)
+  newcraft enhancement <amount>                         (optional)
+  newcraft instrument <quality|effectiveness|breakability> <amount>
+  newcraft motes add <enhancement|quality|effectiveness|breakability|slot>
+  newcraft bonuses <slot 1-6> ...                       (optional)
   newcraft show
   newcraft check
   newcraft start
 
-Admission checks the selected recipe, descriptions, project allocations and an
-equipped crafting tool. The current code has no woodworking tool slot, so
-carpenter variants cannot pass this check. Other variants also depend on staff
-providing the appropriate crafting-tool objects. The first attempt does not
-reliably require a room station; after an ordinary failure, a retry requires
-the station for the completion skill.
+Set the variant and allocate the primary material before the three required
+descriptions. Each must contain the exact variant phrase and selected primary-
+material description. Keywords reject dashes. The maximum lengths for keywords,
+shortdesc, and roomdesc are 100, 100, and 120 characters.
 
-CRAFTMATERIALS lists crafting balances. CRAFTMATERIALS STORE <item> deposits a
-physical material object. MOTES lists mote balances. SALVAGE <item> requires
-the Salvage feat or Scavenger talent. Wilderness HARVEST can also award
-balances when that integration is enabled.
+A bug treats recipe variant 0 as unset for BONUSES. Bonuses therefore fail on
+the first variant of every recipe and on recipes with no other variant.
+Instrument quality, effectiveness, and breakability selectors apply only to
+instrument projects.
 
-Crafting is timed work. Moving, combat, damage or losing a required station or
-target can cancel the activity. Harvesting can also stop if its required tool is
-no longer valid. ACTIVITY shows, cancels, pauses or resumes work when supported.
-Offline time does not advance a saved timer, but login/reconnect/copyover does
-not currently reconstruct its activity automatically. Resize work is refunded
-and cleared at load; manually resumed golem work lacks saved selections and
-cannot complete correctly. CRAFT RESET returns equipment-project resources. A
-natural 1 loses reserved materials and motes; an ordinary failure keeps the
-project for another attempt.
+Admission checks the recipe, descriptions, allocations, and occupancy of the
+ability''s dedicated tool slot. It does not validate the occupying object''s type
+or values. Carpenter variants have no accepted slot and cannot pass. CRAFT TOOLS
+uses a different rule: it displays ITEM_CRAFTING_TOOL objects whose value 0
+matches an ability, and it has no woodworking row.
+
+A normally initialized first attempt has skill 0. It requires no room station
+and receives no rapid-talent time reduction. An ordinary failure retains the
+completion skill; a retry then requires that skill''s station and can receive the
+rapid reduction. Eligible successful objects with enhancement or affects get
+chainable 5-percent critical-success rolls.
+
+CRAFTMATERIALS lists material and elemental-mote balances. STORE deposits an
+ITEM_MATERIAL and UNSTORE recreates a physical bundle. MOTES lists mote types
+and shows the bonuses associated with a selected type. When the wilderness
+integration is enabled, HARVEST, GATHER, and MINE use the same timed category
+harvest and can credit those crafting balances.
+
+Crafting is timed work. Moving, combat, damage, or a failed recheck can cancel
+it. Offline time does not advance the saved duration. Login, reconnect, and
+copyover attempt to reconstruct saved create, golem, and supply-order work.
+Resize is refunded and cleared during load. Golem work resumes, but missing
+saved type, size, and concrete material make completion refuse while retaining
+materials. CRAFT RESET returns equipment-project resources.
 
 OTHER CRAFTING PATHS
 CRAFTING lists or starts catalog crafts and carried blueprints. A carried
-CRAFTING-KIT separately handles CREATE, CHECKCRAFT, RESIZE, RESTRING, REDESC,
-AUGMENT, DISENCHANT, BONEARMOR, REFORGE and AUTOCRAFT where registered.
-SUPPLYORDER and mode-2 golem work use additional project paths. BREW creates
-potions and SCRIBE creates scrolls. No player command currently exposes motes
-refining or motes resizing, and no registered command creates wands.
+CRAFTING-KIT separately handles its registered workflows. RESTRING is disabled
+in the default build unless ALLOW_OBJECT_RETSRINGS_BY_PLAYERS is compiled in.
+SUPPLYORDER covers both a room-370 kit/autocraft quest and general quartermaster
+contracts; see its topic for the different syntax and location requirements.
 
-See Also: CRAFT-MATERIALS CRAFTING-MOTES CRAFT-SHOW CRAFT-CHECK HARVEST
-          RESIZE SUPPLYORDER ACTIVITY CRAFTS CREATE CRAFTING-KIT BREW SCRIBE
+Material golems use CRAFT GOLEM or NEWCRAFT GOLEM with
+TYPE|SIZE|SHOW|RESET|START and require mode 2. Bone animation is immediate and
+uses GOLEM ANIMATE <corpse>. No registered command exposes motes refining or
+motes resizing, and no registered command creates wands.
+
+See Also: NEWCRAFT CRAFT-MATERIALS CRAFTING-MOTES CRAFT-SHOW CRAFT-CHECK
+          HARVEST SUPPLYORDER ACTIVITY CRAFTS CREATE CRAFTING-KIT
+          GOLEM-MAINTENANCE BONE-GOLEM SCRIBE
 
 Special thanks to Ellyanor for the original crafting help contribution.', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'CRAFTING' AND help_tag <> 'crafting';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting', 'CRAFTING');
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
-VALUES ('craft-itemtype', 'Usage: craft itemtype <weapon|armor|instrument|misc|golem>
-       newcraft itemtype <weapon|armor|instrument|misc|golem>
+VALUES ('craft-itemtype', 'Usage: craft itemtype <weapon|armor|instrument|misc>
+       newcraft itemtype <weapon|armor|instrument|misc>
 
-This selects the broad project type before most other project settings.
-Jewelry-oriented recipes are miscellaneous subtypes, so use MISC rather than
-JEWELRY. Golem setup is entered with CRAFT GOLEM or NEWCRAFT GOLEM and requires
-materials-and-motes mode.
+This selects the broad type for an ordinary equipment project. Jewelry-oriented
+recipes are miscellaneous subtypes, so use MISC rather than JEWELRY.
 
-See Also: CRAFTING', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+The parser currently also accepts ITEMTYPE GOLEM, but that value cannot select a
+recipe or complete and leaves the project requiring CRAFT RESET. Golem work uses
+the separate CRAFT GOLEM or NEWCRAFT GOLEM workflow.
 
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'CRAFT-ITEMTYPE' AND help_tag <> 'craft-itemtype';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('craft-itemtype', 'CRAFT-ITEMTYPE');
+See Also: CRAFTING GOLEM-MAINTENANCE BONE-GOLEM', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('craft-materials', 'Usage: craft materials <add|remove> <material type>
        newcraft materials <add|remove> <material type>
        craftmaterials
        craftmaterials store <item>
+       craftmaterials unstore <quantity> <material>
 
 CRAFT MATERIALS allocates the exact amount a selected recipe variant needs, or
-returns that allocation. Select item type, specific type and variant first, then
-use CRAFT SHOW to see the required groups and quantities.
+returns that allocation. Select item type, specific type, and variant first,
+then use CRAFT SHOW to see required groups and quantities.
 
-CRAFTMATERIALS lists the separate materials-and-motes crafting balances.
-CRAFTMATERIALS STORE deposits a physical ITEM_MATERIAL object into those
-balances. In the default build, MATERIALS displays wilderness material storage
-instead; its behavior depends on a compile-time option.
+CRAFT RESET MATERIALS refunds and clears project allocations. It also clears
+keywords, shortdesc, roomdesc, and extradesc.
+
+CRAFTMATERIALS lists material and elemental-mote balances. STORE deposits a
+physical ITEM_MATERIAL object; UNSTORE recreates a physical material bundle.
+The runtime usage text incorrectly calls this command MATERIALS.
+
+In the default build, MATERIALS displays separate wilderness material storage;
+its behavior depends on a compile-time option.
 
 See Also: CRAFTING CRAFT-SHOW CRAFTMATERIALS MATERIALS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'CRAFT-MATERIALS' AND help_tag <> 'craft-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('craft-materials', 'CRAFT-MATERIALS');
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
-VALUES ('crafting-recipes-materials', 'Topic: Crafting Materials and Adjacent Skills
+VALUES ('crafting-recipes-materials', 'Topic: Crafting Materials, Tools, and Skills
 
-CRAFT MATERIALS allocates materials to an equipment project. CRAFT TOOLS,
-CRAFT EQUIPMENT and CRAFT GEAR display equipped support gear in mode 2; the
-equivalent NEWCRAFT arguments work in every mode. CRAFTMATERIALS lists the
-project-system balances and CRAFTMATERIALS STORE deposits a physical material
-object.
+CRAFT MATERIALS allocates resources to an equipment project. CRAFTMATERIALS
+lists material and elemental-mote balances; STORE deposits ITEM_MATERIAL objects
+and UNSTORE recreates physical bundles.
 
-MATERIALS shows separate wilderness storage in the default build. HARVEST,
-GATHER, MINE and SCROUNGE are resource paths with their own rules. SALVAGE
-requires the Salvage feat or Scavenger talent.
+CRAFT TOOLS, CRAFT EQUIPMENT, and CRAFT GEAR display equipped
+ITEM_CRAFTING_TOOL objects whose value 0 matches tailoring, alchemy,
+armorsmithing, weaponsmithing, or jewelcrafting. Woodworking has no display row.
+Equipment admission uses a different rule: any object in the matching dedicated
+slot passes, while woodworking has no accepted slot.
 
-BREW creates potions, ALCHEMY covers discoveries and bombs, and SCRIBE creates
-scrolls. The source contains dormant motes refining/convert-style handlers but
-no registered REFINE or CRAFT WAND creation command. A crafting kit contains a
-CONVERT branch, but CONVERT is not registered for player dispatch.
+MATERIALS is separate wilderness storage in the default build. When
+WILDERNESS_HARVEST_CRAFTING is enabled, HARVEST, GATHER, and MINE enter the same
+timed category-harvest path and can credit project-system balances. SALVAGE
+requires Salvage or Scavenger and destroys an eligible carried, takeable,
+non-NOSAC item; nonempty containers and gold-capacity overflow are refused. It
+always pays at least 1 gold (15 percent of item cost), then rolls a
+level/3 + 10 percent mapped-material chance and half that chance for a mapped
+mote from each nonempty affect.
 
-Enhancement and other magical bonuses are funded with motes in an equipment
-project. CRAFTING-SKILLS and tool requirements are summarized by CRAFTING.
+Enhancement and object bonuses are funded with motes. MOTES lists mote types and
+the bonuses associated with a selected type; CRAFTMATERIALS displays balances.
+No registered command currently exposes motes refining or wand creation.
 
-See Also: CRAFTING CRAFT-MATERIALS CRAFTING-MOTES HARVEST ALCHEMY BREW SCRIBE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'ALCHEMICAL-SILVER' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'ALCHEMICAL-SILVER');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'ALCHEMY' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'ALCHEMY');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'BREW-POTION' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'BREW-POTION');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'CHEMISTRY' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'CHEMISTRY');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'CRAFT-TOOLS' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'CRAFT-TOOLS');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'CRAFT-WAND' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'CRAFT-WAND');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'CRAFTING-CONVERT' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'CRAFTING-CONVERT');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'CRAFTING-MATERIAL' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'CRAFTING-MATERIAL');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'CRAFTING-RECIPES-MATERIALS' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'CRAFTING-RECIPES-MATERIALS');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'CRAFTING-SKILLS' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'CRAFTING-SKILLS');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'DISMANTLE' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'DISMANTLE');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'ENCHANTING' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'ENCHANTING');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'ENHANCEMENT' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'ENHANCEMENT');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'ENHANCEMENTS' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'ENHANCEMENTS');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'FAST-CRAFTER' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'FAST-CRAFTER');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'LUMINOUS-THREAD' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'LUMINOUS-THREAD');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'MAGIC-ITEMS' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'MAGIC-ITEMS');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'MATERIALS' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'MATERIALS');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'QUICK-ALCHEMY' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'QUICK-ALCHEMY');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'RESOURCE' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'RESOURCE');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'RESOURCES' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'RESOURCES');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'SCROUNGE' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'SCROUNGE');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'SWIFT-ALCHEMY' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'SWIFT-ALCHEMY');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'TOOLS' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'TOOLS');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'WEAPONTOUCH' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'WEAPONTOUCH');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'WILDERNESS-MAT' AND help_tag <> 'crafting-recipes-materials';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafting-recipes-materials', 'WILDERNESS-MAT');
+See Also: CRAFTING CRAFT-MATERIALS CRAFTING-MOTES HARVEST CRAFT-BONUSES
+          CRAFT-ENHANCEMENT', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('crafts', 'CRAFTING is a separate catalog of special objects and rare blueprint recipes.
@@ -276,35 +166,34 @@ have enough skill. A name starts a listed craft when its object and room
 requirements are met. A carried blueprint identifies a blueprint-only craft.
 
 See Also: CRAFTING-KIT CHECKCRAFT CRAFTING', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'CRAFTS' AND help_tag <> 'crafts';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('crafts', 'CRAFTS');
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('vessels-and-advanced-crafting', 'Topic  : Vessels, Salvaging, and Crafting Progress
-Usage  : sail [speed | heading]
+Usage  : sail [destination]
          shipdisembark
          salvage <item>
          craftscore
-         craftmaterials
-         craftmaterials store <item>
-         splitenchantment <item>
+         craftmaterials [store <item>|unstore <quantity> <material>]
+         splitenchantment
          nocraftprogress
-         mine
+         mine <resource>
 
-NAUTICAL & CRAFTING COMMANDS:
-- sail: controls a captained vessel''s speed and heading.
-- shipdisembark: leaves a docked or anchored vessel.
-- salvage: dismantles eligible equipment; requires Salvage or Scavenger.
-- craftscore: displays crafting and harvesting skill progress according to the
-  configured mode.
-- craftmaterials: lists project-system material balances; STORE deposits a
-  physical material object.
-- splitenchantment: extracts enchantment resources from eligible equipment.
+COMMANDS:
+- sail: at a sailing port, no argument lists destinations with cost, distance,
+  and time; SAIL <destination> pays the fare and starts scheduled travel. The
+  Sailor background waives the fare.
+- shipdisembark: leaves a docked legacy ship; it refuses while not docked.
+- salvage: destroys an eligible carried item for guaranteed gold and possible
+  mapped materials or motes; requires Salvage or Scavenger.
+- craftscore: displays crafting/harvesting progress according to the configured
+  mode.
+- craftmaterials: lists project balances; STORE deposits a material object and
+  UNSTORE recreates a bundle.
+- splitenchantment: with the Wizard Split Enchantment perk and no argument,
+  primes the next enchantment-school spell to affect all enemies in the room;
+  it is subject to a cooldown.
 - nocraftprogress: toggles crafting progress messages.
 - mine: gathers supported wilderness mineral resources.
 
@@ -312,58 +201,270 @@ The source contains a motes refining handler, but no registered REFINE command
 reaches it. REFINE is retained as a search keyword for this limitation, not as
 an available command.
 
-See Also: VESSELS CRAFTING HARVEST ALCHEMY', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
-  auto_generated = VALUES(auto_generated);
+See Also: VESSELS CRAFTING HARVEST', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('newcraft', 'NEWCRAFT opens the materials-and-motes project editor in every configured
+crafting mode. In mode 2, CRAFT opens the same editor.
+
+Ordinary equipment setup:
+  newcraft itemtype <weapon|armor|instrument|misc>
+  newcraft specifictype <type>
+  newcraft variant <variant>
+  newcraft materials add <material>
+  newcraft keywords <words>
+  newcraft shortdesc <text>
+  newcraft roomdesc <text>
+  newcraft enhancement <amount>                         (optional)
+  newcraft instrument <quality|effectiveness|breakability> <amount>
+  newcraft motes add <enhancement|quality|effectiveness|breakability|slot>
+  newcraft bonuses <slot 1-6> <location> <type> <modifier> [specific]
+  newcraft show
+  newcraft check
+  newcraft start
+
+Allocate the primary material before setting descriptions. Keywords, shortdesc,
+and roomdesc must contain the exact variant phrase and selected primary-material
+description. Keywords cannot contain dashes.
+
+A bug rejects BONUSES on variant index 0. Use slots 1 through 6; slot 0 is never
+valid. CRAFT RESET MATERIALS also clears all project descriptions.
+
+Other routes include NEWCRAFT TOOLS, NEWCRAFT SCORE, and, in mode 2 only,
+NEWCRAFT GOLEM <type|size|show|reset|start|animate>.
+
+See Also: CRAFTING CRAFT-ITEMTYPE CRAFT-VARIANT CRAFT-MATERIALS
+          CRAFT-BONUSES CRAFT-SHOW GOLEM-MAINTENANCE BONE-GOLEM', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('convert', 'CONVERT is not registered as a player command in the default command table.
+A carried crafting kit contains an internal convert branch, but unknown commands
+are rejected before that special procedure can handle them. The source also has
+unreachable materials-and-motes conversion/refining handlers.
+
+See Also: CRAFTING CRAFT-MATERIALS', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('craft-show', 'Usage: craft show
+       newcraft show
+
+Displays the current materials-and-motes equipment project, including
+item type, variant, descriptions, materials, bonuses, and related settings.
+
+See Also: CRAFTING NEWCRAFT CRAFT-CHECK', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('craft-bonuses', 'Usage: craft bonuses <slot 1-6> <location> <type> <modifier> [specific]
+       newcraft bonuses <slot 1-6> <location> <type> <modifier> [specific]
+
+Adds one of up to six object affects. Valid slots are 1 through 6. The location
+is an APPLY name; type is normally enhancement or universal, with natural armor
+and deflection also allowed for armor class. SPECIFIC identifies a skill, feat,
+or spell-slot class when that location requires one.
+
+A current bug treats recipe variant index 0 as unset, so this command fails on
+the first variant of every recipe and on recipes with no other variant.
+
+See Also: CRAFTING NEWCRAFT CRAFT-ENHANCEMENT CRAFTING-MOTES', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('craft-enhancement', 'Usage: craft enhancement <modifier>
+       newcraft enhancement <modifier>
+
+For weapons, armor, and shields, this sets a separate enhancement bonus funded
+with motes. Weapons apply it to hit and damage. Armor and shields apply it to
+armor class; body, arms, legs, and head use the average of those four slots.
+This is independent of the six CRAFT BONUSES slots.
+
+See Also: CRAFTING NEWCRAFT CRAFT-BONUSES CRAFTING-MOTES', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('craft-specific-type', 'Usage: craft specifictype <type>
+       newcraft specifictype <type>
+
+Sets the concrete subtype after ITEMTYPE. For weapons it is a weapon type; for
+armor it is an armor piece; for MISC it is a wear slot; and for instruments it
+is the instrument type. Run the command without a value to list choices.
+
+See Also: CRAFTING NEWCRAFT CRAFT-ITEMTYPE CRAFT-VARIANT', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('craft-variant', 'Usage: craft variant <variant name>
+       newcraft variant <variant name>
+
+Sets the recipe variant after item type and specific type. The variant selects
+material groups, quantities, skill/tool rules, and an exact phrase used by the
+description validators.
+
+Allocate the selected primary material before setting keywords, shortdesc, or
+roomdesc. All three must contain both the exact variant phrase and the selected
+primary-material description.
+
+See Also: CRAFTING NEWCRAFT CRAFT-MATERIALS', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('supplyorder', 'SUPPLYORDER names two separate systems.
+
+LEGACY ROOM-370 AUTOCRAFT QUEST
+In the Sanctus supply-order office (room 370), the room special intercepts:
+  supplyorder new
+  supplyorder complete
+  supplyorder quit
+Place the requested material in a carried CRAFTING-KIT and repeat AUTOCRAFT
+until the order is complete.
+
+MATERIALS-AND-MOTES CONTRACTS
+Outside that interception, the general command accepts:
+  supplyorder list|available
+  supplyorder select|choose <number>
+  supplyorder request
+  supplyorder show|status
+  supplyorder start|begin
+  supplyorder material|materials
+  supplyorder complete|finish
+  supplyorder reset
+  supplyorder abandon|cancel
+  supplyorder cooldown|cooldowns|timers
+
+LIST, SELECT, REQUEST, and COMPLETE require a quartermaster in the room. START
+requires the crafting station for the contract recipe skill, and timed work
+rechecks that station.
+
+See Also: CRAFTING CRAFTING-KIT CRAFTMATERIALS', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('restring', 'RESTRING renames an item through a carried crafting kit:
+  restring <new name>
+
+The command is compiled only when ALLOW_OBJECT_RETSRINGS_BY_PLAYERS is enabled.
+That option is disabled in the default example configuration, so RESTRING is not
+registered in the default build. REDESC remains a separate kit workflow.
+
+See Also: CRAFTING CRAFTING-KIT REDESC', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('reforge', 'Standalone usage: reforge <item name> <new type>
+Crafting-kit usage: reforge <new type>
+
+Reforging changes an eligible item from one subtype to another while preserving
+its supported stats and abilities. A carried crafting kit may intercept its kit
+workflow; the standalone command requires materials-and-motes mode. The cost is
+one-half the item''s value in gold.
+
+A compatible material family is retained; otherwise the new subtype''s material
+is used. The result gets a generic description. Renaming it with RESTRING is
+possible only in builds compiled with
+ALLOW_OBJECT_RETSRINGS_BY_PLAYERS, which is disabled in the default example
+configuration.
+
+See Also: CRAFTING CRAFTING-KIT RESTRING', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('craftedit', '	n
+-- Craftedit Menu : [1]             	WID number	n
+1) Craft Name     : <No Name>       	WThe name of this craft	n
+2) Craft Timer    : 0 seconds       	WHow long to create	n
+3) Craft Item     : "None"          	WThe result product (vnum)	n
+4) Craft Self Msg : "You craft $p." 	WMessage for crafting item $p	n
+5) Craft Room Msg : "$n crafts $p." 	WTo-room for crafting item $p	n
+S) Craft Skill    : No Skill (0)    	WSkill required to create this	n
+F) Flags          : None            	WSet flags here, see below	n
+R) Requirements   :                 	WList of req. objs, see below	n
+  None
+X) Delete                           	WThis options will delete this	n
+Q) Quit                             	WThis options will exit	n
+	n
+	WFLAGS:	n
+	c"Needs recipe"	n - does this particular craft require you have the recipe?
+                   a recipe is a object of ''blueprint'' type that refers to
+                   the ID number of this craft
+	c--more flags to come soon!--	n
+	n
+	WREQUIREMENTS:	n
+Here you enter a list of requirements to create the object. Requirements can
+include components to assemble or an in-room component such as a forge. Items
+can be destroyed or preserved depending on failure or success. Requirement
+flags are:
+	c"INROOM"	n - This requirement must be in your room, such as a forge.
+	c"SAVEonFAIL"	n - A failed craft normally loses all components; this flag
+                 preserves this item when the craft fails.
+	c"!REMOVE"	n - Components are normally consumed; this item is not consumed.
+	n
+	WNotes:	n
+	c*There is no VNUM system for this crafting system, only a reference ID.	n
+	c*You can use > show craft <name> to display info on a craft. 	n
+	cThe information varies for recipe (blueprint) and non-recipe crafts.	n
+	c*Typing "crafting" displays the crafts list and color-codes which crafts	n
+	cyou have the goods to create.	n
+	n', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'CRAFTMATERIALS' AND help_tag <> 'vessels-and-advanced-crafting';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('vessels-and-advanced-crafting', 'CRAFTMATERIALS');
+WHERE help_tag IN ('crafting', 'craft-itemtype', 'craft-materials', 'crafting-recipes-materials', 'crafts', 'vessels-and-advanced-crafting', 'newcraft', 'convert', 'craft-show', 'craft-bonuses', 'craft-enhancement', 'craft-specific-type', 'craft-variant', 'supplyorder', 'restring', 'reforge', 'craftedit');
 
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'CRAFTSCORE' AND help_tag <> 'vessels-and-advanced-crafting';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('vessels-and-advanced-crafting', 'CRAFTSCORE');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'DISEMBARK' AND help_tag <> 'vessels-and-advanced-crafting';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('vessels-and-advanced-crafting', 'DISEMBARK');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'NOCRAFTPROGRESS' AND help_tag <> 'vessels-and-advanced-crafting';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('vessels-and-advanced-crafting', 'NOCRAFTPROGRESS');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'REFINE' AND help_tag <> 'vessels-and-advanced-crafting';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('vessels-and-advanced-crafting', 'REFINE');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'SAIL' AND help_tag <> 'vessels-and-advanced-crafting';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('vessels-and-advanced-crafting', 'SAIL');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'SALVAGE' AND help_tag <> 'vessels-and-advanced-crafting';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('vessels-and-advanced-crafting', 'SALVAGE');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'SHIPDISEMBARK' AND help_tag <> 'vessels-and-advanced-crafting';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('vessels-and-advanced-crafting', 'SHIPDISEMBARK');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'SPLITENCHANTMENT' AND help_tag <> 'vessels-and-advanced-crafting';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('vessels-and-advanced-crafting', 'SPLITENCHANTMENT');
-
-DELETE FROM help_keywords
-WHERE UPPER(keyword) = 'VESSELS-AND-ADVANCED-CRAFTING' AND help_tag <> 'vessels-and-advanced-crafting';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('vessels-and-advanced-crafting', 'VESSELS-AND-ADVANCED-CRAFTING');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
+('crafting', 'CRAFTING'),
+('craft-itemtype', 'CRAFT-ITEMTYPE'),
+('craft-materials', 'CRAFT-MATERIALS'),
+('crafting-recipes-materials', 'CRAFTING-RECIPES-MATERIALS'),
+('crafting-recipes-materials', 'CRAFTING-MATERIAL'),
+('crafting-recipes-materials', 'CRAFT-TOOLS'),
+('crafting-recipes-materials', 'TOOLS'),
+('crafting-recipes-materials', 'CRAFTING-SKILLS'),
+('crafting-recipes-materials', 'ENHANCEMENT'),
+('crafting-recipes-materials', 'ENHANCEMENTS'),
+('crafting-recipes-materials', 'MATERIALS'),
+('crafting-recipes-materials', 'RESOURCE'),
+('crafts', 'CRAFTS'),
+('vessels-and-advanced-crafting', 'CRAFTMATERIALS'),
+('vessels-and-advanced-crafting', 'CRAFTSCORE'),
+('vessels-and-advanced-crafting', 'NOCRAFTPROGRESS'),
+('vessels-and-advanced-crafting', 'REFINE'),
+('vessels-and-advanced-crafting', 'SAIL'),
+('vessels-and-advanced-crafting', 'SALVAGE'),
+('vessels-and-advanced-crafting', 'SHIPDISEMBARK'),
+('vessels-and-advanced-crafting', 'SPLITENCHANTMENT'),
+('vessels-and-advanced-crafting', 'VESSELS-AND-ADVANCED-CRAFTING'),
+('newcraft', 'NEWCRAFT'),
+('convert', 'CONVERT'),
+('craft-show', 'CRAFT-SHOW'),
+('craft-bonuses', 'CRAFT-BONUSES'),
+('craft-enhancement', 'CRAFT-ENHANCEMENT'),
+('craft-specific-type', 'CRAFT-SPECIFIC-TYPE'),
+('craft-specific-type', 'CRAFT-SPECIFICTYPE'),
+('craft-variant', 'CRAFT-VARIANT'),
+('supplyorder', 'AUTOCRAFT'),
+('supplyorder', 'AUTOCRAFTING'),
+('supplyorder', 'SUPPLYORDER'),
+('restring', 'RESTRING'),
+('reforge', 'CHANGING-ARMOR-TYPES'),
+('reforge', 'CHANGING-SHIELD-TYPES'),
+('reforge', 'CHANGING-WEAPON-TYPES'),
+('reforge', 'REFORGE'),
+('reforge', 'REFORGING-ITEMS'),
+('craftedit', 'CRAFTEDIT');
 
 COMMIT;

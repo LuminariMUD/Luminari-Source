@@ -376,7 +376,7 @@ menu uses the same offset. Below is the complete list:
 | 103 | Crafted-Item | ITEM_CRAFTED | Marks item as player-crafted; used in display systems to show crafting origin; affects how item descriptions are formatted in examine command |
 | 104 | Can-Only-Equip-One | ITEM_ONLY_EQUIP_ONE | Restricts player to equipping only one instance simultaneously; currently defined but not actively implemented in equipment checks |
 | 105 | Can-Only-Possess-One | ITEM_ONLY_POSSES_ONE | Restricts player to possessing only one instance at a time; currently defined but not actively implemented in codebase |
-| 106 | Crafting-Smelter | ITEM_CRAFTING_SMELTER | Marks object as smelter station for metalworking crafts (bronze, steel, brass, alchemical silver, cold iron); required for metal refinement recipes |
+| 106 | Crafting-Smelter | ITEM_CRAFTING_SMELTER | Marks an object for the currently unreachable materials-and-motes refinement path; no registered player command reaches that handler |
 | 107 | Crafting-Loom | ITEM_CRAFTING_LOOM | Marks object as loom station for tailoring; required for textile crafting recipes (satin, linen production) |
 | 108 | Crafting-Forge | ITEM_CRAFTING_FORGE | Marks object as forge station for smithing; required for armorsmithing, metalworking, and weaponsmithing crafts |
 | 109 | Crafting-Alchemy-Lab | ITEM_CRAFTING_ALCHEMY_LAB | Marks object as alchemy laboratory; required for alchemy craft recipes |
@@ -466,7 +466,7 @@ for what each type stores in its value slots.
 | 44 | Wagon | ITEM_WAGON | Carries resources for trade. |
 | 45 | Resources | ITEM_RESOURCE | Trade goods carried by a wagon. |
 | 46 | Pet | ITEM_PET | Converts into a mobile follower on purchase. |
-| 47 | Blueprint | ITEM_BLUEPRINT | NewCraft recipe; value 0 is the craft ID. |
+| 47 | Blueprint | ITEM_BLUEPRINT | Older catalog/blueprint crafting recipe; value 0 is the `craft_data` catalog ID used by `crafting`. |
 | 48 | Treasure Chest | ITEM_TREASURE_CHEST | Lootable chest used by the `loot` command. |
 | 49 | Hunt Trophy | ITEM_HUNT_TROPHY | Marks a hunt target mob. |
 | 50 | Weapon Oil | ITEM_WEAPON_OIL | Applied to a weapon for a temporary effect. |
@@ -514,27 +514,28 @@ up at all. Nearly every object needs it. An item with wear flags but without
 | 18 | 19 | Eyes | ITEM_WEAR_EYES |
 | 19 | 20 | Badge | ITEM_WEAR_BADGE |
 | 20 | 21 | Instrument | ITEM_WEAR_INSTRUMENT |
-| 21 | 22 | Shoulders (unused; reserved) | ITEM_WEAR_SHOULDERS |
-| 22 | 23 | Ankle (unused; reserved) | ITEM_WEAR_ANKLE |
-| 23 | 24 | Sheath (unused; reserved) | ITEM_WEAR_SHEATH |
-| 24 | 25 | Gathering-Tool (unused; reserved) | ITEM_WEAR_CRAFT_SICKLE |
-| 25 | 26 | Forestry-Tool (unused; reserved) | ITEM_WEAR_CRAFT_AXE |
-| 26 | 27 | Hunting-Tool (unused; reserved) | ITEM_WEAR_CRAFT_KNIFE |
-| 27 | 28 | Mining-Tool (unused; reserved) | ITEM_WEAR_CRAFT_PICKAXE |
-| 28 | 29 | Alchemy-Tool (unused; reserved) | ITEM_WEAR_CRAFT_ALCHEMY |
-| 29 | 30 | Armorsmithing-Tool (unused; reserved) | ITEM_WEAR_CRAFT_ARMOR_HAMMER |
-| 30 | 31 | Jewelcrafting-Tool (unused; reserved) | ITEM_WEAR_CRAFT_JEWEL_PLIERS |
-| 31 | 32 | Tailoring-Tool (unused; reserved) | ITEM_WEAR_CRAFT_NEEDLE |
-| 32 | 33 | Weaponsmithing-Tool (unused; reserved) | ITEM_WEAR_CRAFT_WEAPON_HAMMER |
-| 33 | 34 | On-Back (unused; reserved) | ITEM_WEAR_ON_BACK |
+| 21 | 22 | Shoulders | ITEM_WEAR_SHOULDERS |
+| 22 | 23 | Ankle | ITEM_WEAR_ANKLE |
+| 23 | 24 | Sheath | ITEM_WEAR_SHEATH |
+| 24 | 25 | Gathering-Tool | ITEM_WEAR_CRAFT_SICKLE |
+| 25 | 26 | Forestry-Tool | ITEM_WEAR_CRAFT_AXE |
+| 26 | 27 | Hunting-Tool | ITEM_WEAR_CRAFT_KNIFE |
+| 27 | 28 | Mining-Tool | ITEM_WEAR_CRAFT_PICKAXE |
+| 28 | 29 | Alchemy-Tool | ITEM_WEAR_CRAFT_ALCHEMY |
+| 29 | 30 | Armorsmithing-Tool | ITEM_WEAR_CRAFT_ARMOR_HAMMER |
+| 30 | 31 | Jewelcrafting-Tool | ITEM_WEAR_CRAFT_JEWEL_PLIERS |
+| 31 | 32 | Tailoring-Tool | ITEM_WEAR_CRAFT_NEEDLE |
+| 32 | 33 | Weaponsmithing-Tool | ITEM_WEAR_CRAFT_WEAPON_HAMMER |
+| 33 | 34 | On-Back | ITEM_WEAR_ON_BACK |
 | 34 | 35 | Tail | ITEM_WEAR_TAIL |
 
 **Total: 35 wear bits (0-34, `NUM_ITEM_WEARS`)**
 
-Bits 21-33 are implemented as reserved compatibility positions but are
-currently unused: no active object prototype can occupy them. Do not assign
-these flags unless the corresponding equipment position is deliberately
-reactivated and supplied with supported game content.
+Bits 21-33 map to active equipment positions in `find_eq_pos()`. The nine
+crafting/harvesting tool positions at bits 24-32 are separate from normal combat
+equipment positions. Ordinary equipment-crafting admission checks occupancy of
+only the alchemy, armorsmithing, jewelcrafting, tailoring, and weaponsmithing
+positions; it does not validate the occupying object's type or values.
 
 Bit 34 is the active Yuan-Ti tail slot. On a non-ring object, `ITEM_WEAR_TAIL`
 marks dedicated tail gear: the runtime rejects that object in every other
@@ -544,10 +545,11 @@ ring can already be worn on either a finger or a Yuan-Ti tail. If imported data
 contains both finger and tail bits, the ring rule wins and the object remains
 finger-or-tail gear.
 
-The nine reserved crafting-tool positions (bits 24-32) are separate from
-normal combat equipment positions and are hidden from the regular `equipment`
-display. They were designed to pair with `ITEM_CRAFTING_TOOL` objects, but no
-active prototypes of that type currently exist.
+The `craft tools|equipment|gear` display uses a different rule: it scans all
+equipped positions for an `ITEM_CRAFTING_TOOL` whose value 0 names the ability.
+It omits woodworking and may therefore disagree with admission. Source control
+does not prove whether a deployed world has compatible prototypes; inspect the
+deployment's world data before promising tool availability.
 
 ## Object Value Reference
 

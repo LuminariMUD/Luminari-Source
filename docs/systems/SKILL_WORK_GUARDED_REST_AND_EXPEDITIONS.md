@@ -128,8 +128,10 @@ when committed movement cancels the activity. Existing activity-manager coverage
 proves damage/combat responses, target movement/death, owner extraction, logout
 cleanup, timer admission failure, stale callbacks, pause/resume policy, and
 exactly-once completion. Craft coverage proves reservation/progress behavior
-and directly exercises reconstruction through `resume_craft_activity()`; no
-production logout/login/restart path currently invokes that helper.
+and directly exercises reconstruction through `resume_craft_activity()`.
+Production login, reconnect and copyover paths also call that helper, although
+the test fixture manually seeds the unreachable survey adapter rather than a
+reachable crafting workflow.
 
 Guarded-rest and expedition integration tests must be added with their first
 concrete implementations. Required cases are: interruption before recovery,

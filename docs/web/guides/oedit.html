@@ -221,24 +221,24 @@ follows:</p>
 <col style="width: 50%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th>Line</th>
 <th>Current writer and accepted compatibility forms</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>Type and flags</td>
 <td>Type, four extra-flag words, four wear-flag words, four
 permanent-affect words, and optionally four second-affect words (13 or
 17 fields). Legacy short forms remain readable.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Values</td>
 <td>Sixteen integers, interpreted by item type; legacy four-value
 records are zero-extended.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Economy</td>
 <td>Weight, cost, rent, minimum level, timer. Older three/four-field
 forms are accepted; loaded minimum level is clamped to 1..30.</td>
@@ -254,65 +254,65 @@ it.</p>
 <col style="width: 50%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th>Tag</th>
 <th>Payload</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>A</code></td>
 <td>Apply location, modifier, optional bonus type and specific selector,
 in that order. Older two/three-field forms default missing data. At most
 <code>MAX_OBJ_AFFECT</code> entries (currently 6).</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>B</code></td>
 <td>Spellbook spell number and page count; separate storage from
 applies, at most <code>SPELLBOOK_SIZE</code> entries (currently
 200).</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>C</code></td>
 <td>Special ability, level, activation method, four values, command
 word.</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>E</code></td>
 <td>Tilde-terminated keywords and extra description.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>G</code>, <code>H</code>, <code>I</code></td>
 <td>Proficiency, material and size respectively; undefined size loads as
 medium.</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>J</code></td>
 <td>Mobile recipient VNUM.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>K</code></td>
 <td>Activated spell level, spell number, current uses, maximum uses,
 cooldown.</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>R</code></td>
 <td>Restring identifier on the following line.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>S</code></td>
 <td>Weapon spell number, level, percentage and combat flag; at most
 <code>MAX_WEAPON_SPELLS</code> (currently 3).</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>T</code></td>
 <td>DG attachment in the script serializer&#x2019;s inline syntax.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>Z</code></td>
 <td>Persisted special-procedure name on the following line.</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>P</code></td>
 <td>Historical compatibility marker; ignored by the reader.</td>
 </tr>
@@ -609,7 +609,7 @@ the complete list:</p>
 <col style="width: 25%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th>#</th>
 <th>Flag Name</th>
 <th>Code Constant</th>
@@ -617,49 +617,49 @@ the complete list:</p>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>0</td>
 <td>Glows</td>
 <td>ITEM_GLOW</td>
 <td>Contributes +1 to room light level and allows object visibility in
 darkness, preventing total concealment from invisibility</td>
 </tr>
-<tr class="even">
+<tr>
 <td>1</td>
 <td>Hums</td>
 <td>ITEM_HUM</td>
 <td>Display-only cosmetic flag showing humming sound descriptor when
 examining object; no gameplay mechanics</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>5</td>
 <td>Invisible</td>
 <td>ITEM_INVISIBLE</td>
 <td>Makes item invisible to normal sight; only visible to characters
 with detect invisibility or true sight abilities</td>
 </tr>
-<tr class="even">
+<tr>
 <td>6</td>
 <td>Magical</td>
 <td>ITEM_MAGIC</td>
 <td>Weapons bypass magical damage reduction (DR/magic), allowing harm to
 creatures immune to non-magical weapons; visible under detect magic</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>38</td>
 <td>Floating</td>
 <td>ITEM_FLOAT</td>
 <td>Prevents object from falling when dropped in fly-required rooms;
 floats gracefully in mid-air instead of falling</td>
 </tr>
-<tr class="even">
+<tr>
 <td>39</td>
 <td>Hidden</td>
 <td>ITEM_HIDDEN</td>
 <td>Item requires successful perception check (search command) to
 discover; partially implemented with treasure chest system</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>40</td>
 <td>Magical-Light</td>
 <td>ITEM_MAGLIGHT</td>
@@ -667,21 +667,21 @@ discover; partially implemented with treasure chest system</td>
 improving visibility in dark areas independent of traditional light
 sources</td>
 </tr>
-<tr class="even">
+<tr>
 <td>45</td>
 <td>Flaming</td>
 <td>ITEM_FLAMING</td>
 <td>Toggleable weapon ability dealing 1d6 fire damage on each hit when
 activated; wielder must toggle on/off</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>46</td>
 <td>Frosty</td>
 <td>ITEM_FROST</td>
 <td>Toggleable weapon ability dealing 1d6 cold damage on each hit when
 activated; wielder must toggle on/off</td>
 </tr>
-<tr class="even">
+<tr>
 <td>92</td>
 <td>Shocking Weapon</td>
 <td>ITEM_SHOCK</td>
@@ -699,7 +699,7 @@ when activated; wielder must toggle on/off</td>
 <col style="width: 25%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th>#</th>
 <th>Flag Name</th>
 <th>Code Constant</th>
@@ -707,28 +707,28 @@ when activated; wielder must toggle on/off</td>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>2</td>
 <td>Not-Rentable</td>
 <td>ITEM_NORENT</td>
 <td>Prevents item from being rented at rental facilities; items
 automatically extracted when character attempts to rent</td>
 </tr>
-<tr class="even">
+<tr>
 <td>3</td>
 <td>Not-Donateable</td>
 <td>ITEM_NODONATE</td>
 <td>Prevents donation to donation rooms; if donated, item converts to
 junk and is disposed of</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>4</td>
 <td>Immune-Invis</td>
 <td>ITEM_NOINVIS</td>
 <td>Prevents invisibility spell from being cast on item, protecting it
 from magical concealment effects</td>
 </tr>
-<tr class="even">
+<tr>
 <td>7</td>
 <td>Not-Droppable</td>
 <td>ITEM_NODROP</td>
@@ -736,14 +736,14 @@ from magical concealment effects</td>
 inventory except by staff with NOHASSLE mode; confers flag to containers
 it&#x2019;s placed in</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>16</td>
 <td>Not-Sellable</td>
 <td>ITEM_NOSELL</td>
 <td>Prevents shopkeepers from purchasing item and blocks sell-related
 transactions at vendor shops</td>
 </tr>
-<tr class="even">
+<tr>
 <td>17</td>
 <td>Quest-Item</td>
 <td>ITEM_QUEST</td>
@@ -751,14 +751,14 @@ transactions at vendor shops</td>
 points instead of gold when purchased, displays as &#x201C;qp&#x201D; in shop
 listings</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>41</td>
 <td>No-Locate</td>
 <td>ITEM_NOLOCATE</td>
 <td>Prevents item from being found by locate object and locate creature
 spells (defined but not actively enforced)</td>
 </tr>
-<tr class="even">
+<tr>
 <td>42</td>
 <td>No-Burn</td>
 <td>ITEM_NOBURN</td>
@@ -766,14 +766,14 @@ spells (defined but not actively enforced)</td>
 protects from destructive magical effects (defined but not fully
 implemented)</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>43</td>
 <td>Transient</td>
 <td>ITEM_TRANSIENT</td>
 <td>Item crumbles and fades when dropped; drop dissipation mechanic
 currently defined but not fully implemented</td>
 </tr>
-<tr class="even">
+<tr>
 <td>100</td>
 <td>No-Sacrifice</td>
 <td>ITEM_NOSAC</td>
@@ -792,7 +792,7 @@ prevention messages</td>
 <col style="width: 25%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th>#</th>
 <th>Flag Name</th>
 <th>Code Constant</th>
@@ -800,7 +800,7 @@ prevention messages</td>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>9</td>
 <td>Anti-Good</td>
 <td>ITEM_ANTI_GOOD</td>
@@ -808,7 +808,7 @@ prevention messages</td>
 inventory with message &#x201C;You try to use [item], but fumble it and let go&#x201D;
 (immortals bypass)</td>
 </tr>
-<tr class="even">
+<tr>
 <td>10</td>
 <td>Anti-Evil</td>
 <td>ITEM_ANTI_EVIL</td>
@@ -816,7 +816,7 @@ inventory with message &#x201C;You try to use [item], but fumble it and let go&#
 inventory with message &#x201C;You try to use [item], but fumble it and let go&#x201D;
 (immortals bypass)</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>11</td>
 <td>Anti-Neutral</td>
 <td>ITEM_ANTI_NEUTRAL</td>
@@ -824,7 +824,7 @@ inventory with message &#x201C;You try to use [item], but fumble it and let go&#
 inventory with message &#x201C;You try to use [item], but fumble it and let go&#x201D;
 (immortals bypass)</td>
 </tr>
-<tr class="even">
+<tr>
 <td>60</td>
 <td>Anti-Lawful</td>
 <td>ITEM_ANTI_LAWFUL</td>
@@ -832,7 +832,7 @@ inventory with message &#x201C;You try to use [item], but fumble it and let go&#
 inventory with message &#x201C;You try to use [item], but fumble it and let go&#x201D;
 (immortals bypass)</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>61</td>
 <td>Anti-Chaotic</td>
 <td>ITEM_ANTI_CHAOTIC</td>
@@ -854,7 +854,7 @@ portal entry restrictions.</p>
 <col style="width: 25%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th>#</th>
 <th>Flag Name</th>
 <th>Code Constant</th>
@@ -862,154 +862,154 @@ portal entry restrictions.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>12</td>
 <td>Anti-Wizard</td>
 <td>ITEM_ANTI_WIZARD</td>
 <td>Would prevent Wizards from equipping if enabled; currently only
 blocks portal entry for Wizards</td>
 </tr>
-<tr class="even">
+<tr>
 <td>13</td>
 <td>Anti-Cleric</td>
 <td>ITEM_ANTI_CLERIC</td>
 <td>Would prevent Clerics from equipping if enabled; currently only
 blocks portal entry for Clerics</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>14</td>
 <td>Anti-Rogue</td>
 <td>ITEM_ANTI_ROGUE</td>
 <td>Would prevent Rogues from equipping if enabled; currently only
 blocks portal entry for Rogues</td>
 </tr>
-<tr class="even">
+<tr>
 <td>15</td>
 <td>Anti-Warrior</td>
 <td>ITEM_ANTI_WARRIOR</td>
 <td>Would prevent Warriors from equipping if enabled; currently only
 blocks portal entry for Warriors</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>22</td>
 <td>Anti-Monk</td>
 <td>ITEM_ANTI_MONK</td>
 <td>Would prevent Monks from equipping if enabled; currently only blocks
 portal entry for Monks</td>
 </tr>
-<tr class="even">
+<tr>
 <td>23</td>
 <td>Anti-Druid</td>
 <td>ITEM_ANTI_DRUID</td>
 <td>Would prevent Druids from equipping if enabled; currently only
 blocks portal entry for Druids</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>30</td>
 <td>Anti-Berserker</td>
 <td>ITEM_ANTI_BERSERKER</td>
 <td>Would prevent Berserkers from equipping if enabled; currently only
 blocks portal entry for Berserkers</td>
 </tr>
-<tr class="even">
+<tr>
 <td>32</td>
 <td>Anti-Sorcerer</td>
 <td>ITEM_ANTI_SORCERER</td>
 <td>Would prevent Sorcerers from equipping if enabled; currently only
 blocks portal entry for Sorcerers</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>34</td>
 <td>Anti-Paladin</td>
 <td>ITEM_ANTI_PALADIN</td>
 <td>Would prevent Paladins from equipping if enabled; currently only
 blocks portal entry for Paladins</td>
 </tr>
-<tr class="even">
+<tr>
 <td>35</td>
 <td>Anti-Ranger</td>
 <td>ITEM_ANTI_RANGER</td>
 <td>Would prevent Rangers from equipping if enabled; currently only
 blocks portal entry for Rangers</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>36</td>
 <td>Anti-Bard</td>
 <td>ITEM_ANTI_BARD</td>
 <td>Would prevent Bards from equipping if enabled; currently only blocks
 portal entry for Bards</td>
 </tr>
-<tr class="even">
+<tr>
 <td>48</td>
 <td>Anti-WeaponMaster</td>
 <td>ITEM_ANTI_WEAPONMASTER</td>
 <td>Would prevent Weaponmasters from equipping if enabled; currently
 only blocks portal entry for Weaponmasters</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>83</td>
 <td>Anti-Arcane-Archer</td>
 <td>ITEM_ANTI_ARCANE_ARCHER</td>
 <td>Would prevent Arcane Archers from equipping if enabled; currently
 only blocks portal entry for Arcane Archers</td>
 </tr>
-<tr class="even">
+<tr>
 <td>84</td>
 <td>Anti-Stalwart-Defender</td>
 <td>ITEM_ANTI_STALWART_DEFENDER</td>
 <td>Would prevent Stalwart Defenders from equipping if enabled;
 currently only blocks portal entry for Stalwart Defenders</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>85</td>
 <td>Anti-Shifter</td>
 <td>ITEM_ANTI_SHIFTER</td>
 <td>Would prevent Shifters from equipping if enabled; currently only
 blocks portal entry for Shifters</td>
 </tr>
-<tr class="even">
+<tr>
 <td>86</td>
 <td>Anti-Duelist</td>
 <td>ITEM_ANTI_DUELIST</td>
 <td>Would prevent Duelists from equipping if enabled; currently only
 blocks portal entry for Duelists</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>87</td>
 <td>Anti-Mystic-Theurge</td>
 <td>ITEM_ANTI_MYSTIC_THEURGE</td>
 <td>Would prevent Mystic Theurges from equipping if enabled; currently
 only blocks portal entry for Mystic Theurges</td>
 </tr>
-<tr class="even">
+<tr>
 <td>88</td>
 <td>Anti-Alchemist</td>
 <td>ITEM_ANTI_ALCHEMIST</td>
 <td>Would prevent Alchemists from equipping if enabled; currently only
 blocks portal entry for Alchemists</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>89</td>
 <td>Anti-Arcane-Shadow</td>
 <td>ITEM_ANTI_ARCANE_SHADOW</td>
 <td>Would prevent Arcane Shadows from equipping if enabled; currently
 only blocks portal entry for Arcane Shadows</td>
 </tr>
-<tr class="even">
+<tr>
 <td>90</td>
 <td>Anti-Sacred-Fist</td>
 <td>ITEM_ANTI_SACRED_FIST</td>
 <td>Would prevent Sacred Fists from equipping if enabled; currently only
 blocks portal entry for Sacred Fists</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>91</td>
 <td>Anti-Eldritch-Knight</td>
 <td>ITEM_ANTI_ELDRITCH_KNIGHT</td>
 <td>Would prevent Eldritch Knights from equipping if enabled; currently
 only blocks portal entry for Eldritch Knights</td>
 </tr>
-<tr class="even">
+<tr>
 <td>97</td>
 <td>Anti-Warlock</td>
 <td>ITEM_ANTI_WARLOCK</td>
@@ -1031,7 +1031,7 @@ items.</p>
 <col style="width: 25%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th>#</th>
 <th>Flag Name</th>
 <th>Code Constant</th>
@@ -1039,154 +1039,154 @@ items.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>62</td>
 <td>Wizard-Required</td>
 <td>ITEM_REQ_WIZARD</td>
 <td>Character must have Wizard levels to equip; blocks with message &#x201C;You
 must have levels as a wizard to use [item]&#x201D;</td>
 </tr>
-<tr class="even">
+<tr>
 <td>63</td>
 <td>Cleric-Required</td>
 <td>ITEM_REQ_CLERIC</td>
 <td>Character must have Cleric levels to equip; blocks with message &#x201C;You
 must have levels as a cleric to use [item]&#x201D;</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>64</td>
 <td>Rogue-Required</td>
 <td>ITEM_REQ_ROGUE</td>
 <td>Character must have Rogue levels to equip; blocks with message &#x201C;You
 must have levels as a rogue to use [item]&#x201D;</td>
 </tr>
-<tr class="even">
+<tr>
 <td>65</td>
 <td>Warrior-Required</td>
 <td>ITEM_REQ_WARRIOR</td>
 <td>Character must have Warrior levels to equip; blocks with message
 &#x201C;You must have levels as a warrior to use [item]&#x201D;</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>66</td>
 <td>Monk-Required</td>
 <td>ITEM_REQ_MONK</td>
 <td>Character must have Monk levels to equip; blocks with message &#x201C;You
 must have levels as a monk to use [item]&#x201D;</td>
 </tr>
-<tr class="even">
+<tr>
 <td>67</td>
 <td>Druid-Required</td>
 <td>ITEM_REQ_DRUID</td>
 <td>Character must have Druid levels to equip; blocks with message &#x201C;You
 must have levels as a druid to use [item]&#x201D;</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>68</td>
 <td>Berserker-Required</td>
 <td>ITEM_REQ_BERSERKER</td>
 <td>Character must have Berserker levels to equip; blocks with message
 &#x201C;You must have levels as a berserker to use [item]&#x201D;</td>
 </tr>
-<tr class="even">
+<tr>
 <td>69</td>
 <td>Sorcerer-Required</td>
 <td>ITEM_REQ_SORCERER</td>
 <td>Character must have Sorcerer levels to equip; blocks with message
 &#x201C;You must have levels as a sorcerer to use [item]&#x201D;</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>70</td>
 <td>Paladin-Required</td>
 <td>ITEM_REQ_PALADIN</td>
 <td>Character must have Paladin levels to equip; blocks with message
 &#x201C;You must have levels as a paladin to use [item]&#x201D;</td>
 </tr>
-<tr class="even">
+<tr>
 <td>71</td>
 <td>Ranger-Required</td>
 <td>ITEM_REQ_RANGER</td>
 <td>Character must have Ranger levels to equip; blocks with message &#x201C;You
 must have levels as a ranger to use [item]&#x201D;</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>72</td>
 <td>Bard-Required</td>
 <td>ITEM_REQ_BARD</td>
 <td>Character must have Bard levels to equip; blocks with message &#x201C;You
 must have levels as a bard to use [item]&#x201D;</td>
 </tr>
-<tr class="even">
+<tr>
 <td>73</td>
 <td>Weaponmaster-Required</td>
 <td>ITEM_REQ_WEAPONMASTER</td>
 <td>Character must have Weaponmaster levels to equip; blocks with
 message &#x201C;You must have levels as a weaponmaster to use [item]&#x201D;</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>74</td>
 <td>Arcane-Archer-Required</td>
 <td>ITEM_REQ_ARCANE_ARCHER</td>
 <td>Character must have Arcane Archer levels to equip; blocks with
 message &#x201C;You must have levels as an arcane archer to use [item]&#x201D;</td>
 </tr>
-<tr class="even">
+<tr>
 <td>75</td>
 <td>Stalwart-Defender-Required</td>
 <td>ITEM_REQ_STALWART_DEFENDER</td>
 <td>Character must have Stalwart Defender levels to equip; blocks with
 message &#x201C;You must have levels as a stalwart defender to use [item]&#x201D;</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>76</td>
 <td>Shifter-Required</td>
 <td>ITEM_REQ_SHIFTER</td>
 <td>Character must have Shifter levels to equip; blocks with message
 &#x201C;You must have levels as a shifter to use [item]&#x201D;</td>
 </tr>
-<tr class="even">
+<tr>
 <td>77</td>
 <td>Duelist-Required</td>
 <td>ITEM_REQ_DUELIST</td>
 <td>Character must have Duelist levels to equip; blocks with message
 &#x201C;You must have levels as a duelist to use [item]&#x201D;</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>78</td>
 <td>Mystic-Theurge-Required</td>
 <td>ITEM_REQ_MYSTIC_THEURGE</td>
 <td>Character must have Mystic Theurge levels to equip; blocks with
 message &#x201C;You must have levels as a mystic theurge to use [item]&#x201D;</td>
 </tr>
-<tr class="even">
+<tr>
 <td>79</td>
 <td>Alchemist-Required</td>
 <td>ITEM_REQ_ALCHEMIST</td>
 <td>Character must have Alchemist levels to equip; blocks with message
 &#x201C;You must have levels as an alchemist to use [item]&#x201D;</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>80</td>
 <td>Arcane-Shadow-Required</td>
 <td>ITEM_REQ_ARCANE_SHADOW</td>
 <td>Character must have Arcane Shadow levels to equip; blocks with
 message &#x201C;You must have levels as an arcane shadow to use [item]&#x201D;</td>
 </tr>
-<tr class="even">
+<tr>
 <td>81</td>
 <td>Sacred-Fist-Required</td>
 <td>ITEM_REQ_SACRED_FIST</td>
 <td>Character must have Sacred Fist levels to equip; blocks with message
 &#x201C;You must have levels as a sacred fist to use [item]&#x201D;</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>82</td>
 <td>Eldritch-Knight-Required</td>
 <td>ITEM_REQ_ELDRITCH_KNIGHT</td>
 <td>Character must have Eldritch Knight levels to equip; blocks with
 message &#x201C;You must have levels as an eldritch knight to use [item]&#x201D;</td>
 </tr>
-<tr class="even">
+<tr>
 <td>96</td>
 <td>Warlock-Only</td>
 <td>ITEM_REQ_WARLOCK</td>
@@ -1207,7 +1207,7 @@ may be expanded in future.</p>
 <col style="width: 25%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th>#</th>
 <th>Flag Name</th>
 <th>Code Constant</th>
@@ -1215,112 +1215,112 @@ may be expanded in future.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>18</td>
 <td>Anti-Human</td>
 <td>ITEM_ANTI_HUMAN</td>
 <td>Intended to prevent Humans from using; currently enforced only in
 vessel control systems, not standard equipment</td>
 </tr>
-<tr class="even">
+<tr>
 <td>19</td>
 <td>Anti-Elf</td>
 <td>ITEM_ANTI_ELF</td>
 <td>Intended to prevent Elves from using; currently enforced only in
 vessel control systems, not standard equipment</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>20</td>
 <td>Anti-Dwarf</td>
 <td>ITEM_ANTI_DWARF</td>
 <td>Intended to prevent Dwarves from using; currently enforced only in
 vessel control systems, not standard equipment</td>
 </tr>
-<tr class="even">
+<tr>
 <td>21</td>
 <td>Anti-Half-Troll</td>
 <td>ITEM_ANTI_HALF_TROLL</td>
 <td>Intended to prevent Half-Trolls from using; currently enforced only
 in vessel control systems, not standard equipment</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>25</td>
 <td>Anti-Crystal-Dwarf</td>
 <td>ITEM_ANTI_CRYSTAL_DWARF</td>
 <td>Intended to prevent Crystal Dwarves from using; currently enforced
 only in vessel control systems, not standard equipment</td>
 </tr>
-<tr class="even">
+<tr>
 <td>26</td>
 <td>Anti-Halfling</td>
 <td>ITEM_ANTI_HALFLING</td>
 <td>Intended to prevent Halflings from using; currently enforced only in
 vessel control systems, not standard equipment</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>27</td>
 <td>Anti-Half-Elf</td>
 <td>ITEM_ANTI_H_ELF</td>
 <td>Intended to prevent Half-Elves from using; currently enforced only
 in vessel control systems, not standard equipment</td>
 </tr>
-<tr class="even">
+<tr>
 <td>28</td>
 <td>Anti-Half-Orc</td>
 <td>ITEM_ANTI_H_ORC</td>
 <td>Intended to prevent Half-Orcs from using; currently enforced only in
 vessel control systems, not standard equipment</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>29</td>
 <td>Anti-Gnome</td>
 <td>ITEM_ANTI_GNOME</td>
 <td>Intended to prevent Gnomes from using; currently enforced only in
 vessel control systems, not standard equipment</td>
 </tr>
-<tr class="even">
+<tr>
 <td>31</td>
 <td>Anti-Trelux</td>
 <td>ITEM_ANTI_TRELUX</td>
 <td>Intended to prevent Trelux from using; currently enforced only in
 vessel control systems, not standard equipment</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>37</td>
 <td>Anti-Arcana-Golem</td>
 <td>ITEM_ANTI_ARCANA_GOLEM</td>
 <td>Intended to prevent Arcana Golems from using; currently enforced
 only in vessel control systems, not standard equipment</td>
 </tr>
-<tr class="even">
+<tr>
 <td>49</td>
 <td>Anti-Drow</td>
 <td>ITEM_ANTI_DROW</td>
 <td>Intended to prevent Drow from using; currently enforced only in
 vessel control systems, not standard equipment</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>51</td>
 <td>Anti-Duergar</td>
 <td>ITEM_ANTI_DUERGAR</td>
 <td>Intended to prevent Duergar from using; currently enforced only in
 vessel control systems, not standard equipment</td>
 </tr>
-<tr class="even">
+<tr>
 <td>93</td>
 <td>Anti-Lich</td>
 <td>ITEM_ANTI_LICH</td>
 <td>Intended to prevent Liches from using; currently enforced only in
 vessel control systems, not standard equipment</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>94</td>
 <td>Anti-Vampire</td>
 <td>ITEM_ANTI_VAMPIRE</td>
 <td>Intended to prevent Vampires from using; currently enforced only in
 vessel control systems, not standard equipment</td>
 </tr>
-<tr class="even">
+<tr>
 <td>95</td>
 <td>Vampire-Only</td>
 <td>ITEM_VAMPIRE_ONLY</td>
@@ -1339,7 +1339,7 @@ equipment</td>
 <col style="width: 25%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th>#</th>
 <th>Flag Name</th>
 <th>Code Constant</th>
@@ -1347,7 +1347,7 @@ equipment</td>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>8</td>
 <td>Blessed</td>
 <td>ITEM_BLESS</td>
@@ -1355,7 +1355,7 @@ equipment</td>
 magical senses (detect alignment, aura of good); no direct combat
 bonus</td>
 </tr>
-<tr class="even">
+<tr>
 <td>47</td>
 <td>Ki-Focus</td>
 <td>ITEM_KI_FOCUS</td>
@@ -1363,7 +1363,7 @@ bonus</td>
 Palm, Water Whip, Gong of Summit, Fist of Unbroken Air) as alternative
 to monk-specific weapons; acts as monk weapon substitute</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>50</td>
 <td>Masterwork</td>
 <td>ITEM_MASTERWORK</td>
@@ -1371,7 +1371,7 @@ to monk-specific weapons; acts as monk weapon substitute</td>
 weapon lacks existing magical enhancement (prevents stacking with magic
 bonuses)</td>
 </tr>
-<tr class="even">
+<tr>
 <td>52</td>
 <td>Seeking</td>
 <td>ITEM_SEEKING</td>
@@ -1379,7 +1379,7 @@ bonuses)</td>
 negating 50-100% miss chance from concealment effects; no direct damage
 modification</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>53</td>
 <td>Adaptive</td>
 <td>ITEM_ADAPTIVE</td>
@@ -1387,7 +1387,7 @@ modification</td>
 instead of limited amounts (composite bows normally cap STR bonus); uses
 complete STR bonus for damage</td>
 </tr>
-<tr class="even">
+<tr>
 <td>54</td>
 <td>Agile</td>
 <td>ITEM_AGILE</td>
@@ -1396,7 +1396,7 @@ damage calculation (uses MAX of DEX or STR bonus); prevents 1.5x/3x STR
 multiplier penalties on two-handed or off-hand; damage bonus capped at
 weapon&#x2019;s agile value or DEX bonus (whichever is lower)</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>55</td>
 <td>Corrosive</td>
 <td>ITEM_CORROSIVE</td>
@@ -1404,7 +1404,7 @@ weapon&#x2019;s agile value or DEX bonus (whichever is lower)</td>
 generates &#x201C;magical acid drips&#x201D; visual effect; wielder must
 activate/deactivate</td>
 </tr>
-<tr class="even">
+<tr>
 <td>56</td>
 <td>Disruption</td>
 <td>ITEM_DISRUPTION</td>
@@ -1412,7 +1412,7 @@ activate/deactivate</td>
 2d6 holy damage; on-crit triggers Fortitude save (DC = 10 + level/2),
 failure causes (level/2 + 3)d6 holy damage; no effect on non-undead</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>57</td>
 <td>Defending</td>
 <td>ITEM_DEFENDING</td>
@@ -1420,7 +1420,7 @@ failure causes (level/2 + 3)d6 holy damage; no effect on non-undead</td>
 by 2; multiple defending weapons stack; applies to character&#x2019;s overall
 AC calculation</td>
 </tr>
-<tr class="even">
+<tr>
 <td>58</td>
 <td>Vicious</td>
 <td>ITEM_VICIOUS</td>
@@ -1429,7 +1429,7 @@ damage to target + 1d4 recoil damage to wielder; on-crit: 6d6 damage to
 target; damages both attacker and defender (self-harm penalty);
 generates &#x201C;black smoke whirls&#x201D; visual</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>59</td>
 <td>Vorpal</td>
 <td>ITEM_VORPAL</td>
@@ -1449,7 +1449,7 @@ bypassed by MOB_NOCHARM protection flag</td>
 <col style="width: 25%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th>#</th>
 <th>Flag Name</th>
 <th>Code Constant</th>
@@ -1457,7 +1457,7 @@ bypassed by MOB_NOCHARM protection flag</td>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>24</td>
 <td>Mold</td>
 <td>ITEM_MOLD</td>
@@ -1465,7 +1465,7 @@ bypassed by MOB_NOCHARM protection flag</td>
 mold items cannot be worn and convert into actual crafted items during
 creation process; contains base stats for items to be created</td>
 </tr>
-<tr class="even">
+<tr>
 <td>33</td>
 <td>Decaying</td>
 <td>ITEM_DECAY</td>
@@ -1473,7 +1473,7 @@ creation process; contains base stats for items to be created</td>
 objects fade away when timer reaches zero with fade message to observers
 before extraction</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>44</td>
 <td>Auto-Proc</td>
 <td>ITEM_AUTOPROC</td>
@@ -1482,7 +1482,7 @@ function; allows item special procedures to trigger periodically without
 explicit command; excludes unfinished weapons (weapon type with value
 0)</td>
 </tr>
-<tr class="even">
+<tr>
 <td>98</td>
 <td>Set-Stats-At-Load</td>
 <td>ITEM_SET_STATS_AT_LOAD</td>
@@ -1491,7 +1491,7 @@ and level; calls set_weapon_object() for weapons or set_armor_object()
 for armor; preserves enhancement bonuses and cost values after
 recalculation</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>99</td>
 <td>Extract-After-Use</td>
 <td>ITEM_EXTRACT_AFTER_USE</td>
@@ -1499,7 +1499,7 @@ recalculation</td>
 dust after opening doors; applies to both inventory and equipment
 slots</td>
 </tr>
-<tr class="even">
+<tr>
 <td>101</td>
 <td>Has-Been-Downgraded</td>
 <td>ITEM_DOWNGRADED</td>
@@ -1507,7 +1507,7 @@ slots</td>
 downgrades; once set, downgrade command cannot be used on item
 again</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>102</td>
 <td>Item-Has-Been-Identified</td>
 <td>ITEM_IDENTIFIED</td>
@@ -1515,7 +1515,7 @@ again</td>
 succeed on identified items; can be set through identification spells or
 crafting completion</td>
 </tr>
-<tr class="even">
+<tr>
 <td>103</td>
 <td>Crafted-Item</td>
 <td>ITEM_CRAFTED</td>
@@ -1523,71 +1523,70 @@ crafting completion</td>
 crafting origin; affects how item descriptions are formatted in examine
 command</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>104</td>
 <td>Can-Only-Equip-One</td>
 <td>ITEM_ONLY_EQUIP_ONE</td>
 <td>Restricts player to equipping only one instance simultaneously;
 currently defined but not actively implemented in equipment checks</td>
 </tr>
-<tr class="even">
+<tr>
 <td>105</td>
 <td>Can-Only-Possess-One</td>
 <td>ITEM_ONLY_POSSES_ONE</td>
 <td>Restricts player to possessing only one instance at a time;
 currently defined but not actively implemented in codebase</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>106</td>
 <td>Crafting-Smelter</td>
 <td>ITEM_CRAFTING_SMELTER</td>
-<td>Marks object as smelter station for metalworking crafts (bronze,
-steel, brass, alchemical silver, cold iron); required for metal
-refinement recipes</td>
+<td>Marks an object for the currently unreachable materials-and-motes
+refinement path; no registered player command reaches that handler</td>
 </tr>
-<tr class="even">
+<tr>
 <td>107</td>
 <td>Crafting-Loom</td>
 <td>ITEM_CRAFTING_LOOM</td>
 <td>Marks object as loom station for tailoring; required for textile
 crafting recipes (satin, linen production)</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>108</td>
 <td>Crafting-Forge</td>
 <td>ITEM_CRAFTING_FORGE</td>
 <td>Marks object as forge station for smithing; required for
 armorsmithing, metalworking, and weaponsmithing crafts</td>
 </tr>
-<tr class="even">
+<tr>
 <td>109</td>
 <td>Crafting-Alchemy-Lab</td>
 <td>ITEM_CRAFTING_ALCHEMY_LAB</td>
 <td>Marks object as alchemy laboratory; required for alchemy craft
 recipes</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>110</td>
 <td>Crafting-Jewelcrafting-Station</td>
 <td>ITEM_CRAFTING_JEWELCRAFTING_STATION</td>
 <td>Marks object as jewelcrafting workstation; required for
 jewelcrafting recipes</td>
 </tr>
-<tr class="even">
+<tr>
 <td>111</td>
 <td>Crafting-Tannery</td>
 <td>ITEM_CRAFTING_TANNERY</td>
 <td>Marks object as tannery station for leatherworking; required for
 leather crafting recipes</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>112</td>
 <td>Crafting-Carpentry-Table</td>
 <td>ITEM_CRAFTING_CARPENTRY_TABLE</td>
 <td>Marks object as carpentry workstation; required for
 woodworking/carpentry crafts</td>
 </tr>
-<tr class="even">
+<tr>
 <td>113</td>
 <td>Trapped</td>
 <td>ITEM_TRAPPED</td>
@@ -1595,70 +1594,70 @@ woodworking/carpentry crafts</td>
 to mark trapped chests/doors for comprehensive trap system (not
 currently actively used for runtime trap behavior)</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>114</td>
 <td>Costs-Account-Experience</td>
 <td>ITEM_ACCOUNT_EXP</td>
 <td>Purchasing or acquiring the item is paid for in account experience
 rather than gold</td>
 </tr>
-<tr class="even">
+<tr>
 <td>115</td>
 <td>Can-Be-Reforged</td>
 <td>ITEM_REFORGEABLE</td>
 <td>Item is eligible for the reforging path, which rerolls or upgrades
 its stats through the crafting system</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>116</td>
 <td>RoL-Anti-Good-Race</td>
 <td>ITEM_ROL_ANTI_GOOD_RACE</td>
 <td>RoL compatibility restriction; prevents mortal members of the source
 good-race family from equipping the item or reciting it as a scroll</td>
 </tr>
-<tr class="even">
+<tr>
 <td>117</td>
 <td>RoL-No-Identify</td>
 <td>ITEM_ROL_NO_IDENTIFY</td>
 <td>RoL compatibility restriction; blocks identify, mass identify, lore,
 and greater lore for mortals</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>118</td>
 <td>RoL-No-Summon</td>
 <td>ITEM_ROL_NO_SUMMON</td>
 <td>RoL compatibility protection; prevents the wearer from being moved
 by summon and group summon</td>
 </tr>
-<tr class="even">
+<tr>
 <td>119</td>
 <td>RoL-No-Sleep</td>
 <td>ITEM_ROL_NO_SLEEP</td>
 <td>RoL compatibility protection; prevents sleep effects while the item
 is carried or worn</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>120</td>
 <td>RoL-No-Charm</td>
 <td>ITEM_ROL_NO_CHARM</td>
 <td>RoL compatibility protection; prevents charm effects while the item
 is carried or worn</td>
 </tr>
-<tr class="even">
+<tr>
 <td>121</td>
 <td>RoL-Two-Handed</td>
 <td>ITEM_ROL_TWO_HANDED</td>
 <td>RoL compatibility equipment rule; the item always requires two hands
 regardless of its size</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>122</td>
 <td>RoL-Anti-Evil-Race</td>
 <td>ITEM_ROL_ANTI_EVIL_RACE</td>
 <td>RoL compatibility restriction; prevents mortal members of the source
 evil-race family from equipping the item or reciting it as a scroll</td>
 </tr>
-<tr class="even">
+<tr>
 <td>123</td>
 <td>RoL-Whole-Body</td>
 <td>ITEM_ROL_WHOLE_BODY</td>
@@ -1666,7 +1665,7 @@ evil-race family from equipping the item or reciting it as a scroll</td>
 conceptual arm and leg coverage, so arm and leg gear cannot overlap
 it</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>124</td>
 <td>RoL-Whole-Head</td>
 <td>ITEM_ROL_WHOLE_HEAD</td>
@@ -1705,7 +1704,7 @@ type stores in its value slots.</p>
 <col style="width: 25%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th>#</th>
 <th>Name</th>
 <th>Constant</th>
@@ -1713,354 +1712,355 @@ type stores in its value slots.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>0</td>
 <td>UNDEFINED</td>
 <td>-</td>
 <td>Placeholder. Not a usable type.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>1</td>
 <td>Light</td>
 <td>ITEM_LIGHT</td>
 <td>Light source; burn hours live in value 2.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>2</td>
 <td>Scroll</td>
 <td>ITEM_SCROLL</td>
 <td>Up to three spells, consumed on read.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>3</td>
 <td>Wand</td>
 <td>ITEM_WAND</td>
 <td>Charged, single-target spell device.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>4</td>
 <td>Staff</td>
 <td>ITEM_STAFF</td>
 <td>Charged, area-effect spell device.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>5</td>
 <td>Weapon</td>
 <td>ITEM_WEAPON</td>
 <td>Canonical melee, launcher, or throwable weapon. Type selection
 auto-fills dice and stats.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>6</td>
 <td>Furniture</td>
 <td>ITEM_FURNITURE</td>
 <td>Sittable; value 0 is occupant capacity.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>7</td>
 <td>Ranged-Weapon</td>
 <td>ITEM_FIREWEAPON</td>
 <td>Deprecated legacy type; do not use for new launchers.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>8</td>
 <td>Treasure</td>
 <td>ITEM_TREASURE</td>
 <td>Valuables that are not coins. No values.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>9</td>
 <td>Armor/Shield</td>
 <td>ITEM_ARMOR</td>
 <td>Armor. Subtype selection auto-fills AC, size, material, wear.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>10</td>
 <td>Potion</td>
 <td>ITEM_POTION</td>
 <td>Up to three spells, consumed on quaff.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>11</td>
 <td>Wearable</td>
 <td>ITEM_WORN</td>
 <td>General worn gear with no type-specific behavior.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>12</td>
 <td>Other</td>
 <td>ITEM_OTHER</td>
 <td>Catch-all. No values.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>13</td>
 <td>Trash</td>
 <td>ITEM_TRASH</td>
 <td>Shopkeepers refuse to buy. No values.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>14</td>
 <td>Ammo</td>
 <td>ITEM_MISSILE</td>
 <td>Ammunition for ranged weapons.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>15</td>
 <td>Container</td>
 <td>ITEM_CONTAINER</td>
 <td>Holds objects; capacity, flags, and key vnum in values.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>16</td>
 <td>Note</td>
 <td>ITEM_NOTE</td>
 <td>Writable with a pen. No values.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>17</td>
 <td>Liquid-Cont</td>
 <td>ITEM_DRINKCON</td>
 <td>Drink container.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>18</td>
 <td>Key</td>
 <td>ITEM_KEY</td>
 <td>Opens a matching lock by vnum. No values.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>19</td>
 <td>Food</td>
 <td>ITEM_FOOD</td>
 <td>Edible; value 0 is duration in rounds.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>20</td>
 <td>Money</td>
 <td>ITEM_MONEY</td>
 <td>Coin pile; value 0 is the gold amount.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>21</td>
 <td>Pen</td>
 <td>ITEM_PEN</td>
 <td>Writes on notes. No values.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>22</td>
 <td>Boat</td>
 <td>ITEM_BOAT</td>
 <td>Permits water travel. No values.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>23</td>
 <td>Fountain</td>
 <td>ITEM_FOUNTAIN</td>
 <td>Fixed drink source; same value layout as a drink container.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>24</td>
 <td>Clan-Armor</td>
 <td>ITEM_CLANARMOR</td>
 <td>Armor restricted to a clan; value 1 is the clan vnum.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>25</td>
 <td>Crafting Crystal</td>
 <td>ITEM_CRYSTAL</td>
 <td>Crafting input.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>26</td>
 <td>Essence</td>
 <td>ITEM_ESSENCE</td>
 <td>Crafting input.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>27</td>
 <td>Crafting Material</td>
 <td>ITEM_MATERIAL</td>
 <td>Crafting input.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>28</td>
 <td>Spellbook</td>
 <td>ITEM_SPELLBOOK</td>
 <td>Stores spells; managed from <code>T) Spellbook menu</code>, not
 <code>C</code>.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>29</td>
 <td>Portal</td>
 <td>ITEM_PORTAL</td>
 <td>Destination travel object. Value layout depends on portal mode.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>30</td>
 <td>Plant</td>
 <td>ITEM_PLANT</td>
 <td>Target for the plant-transport spell. No values.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>31</td>
 <td>Trap</td>
 <td>ITEM_TRAP</td>
 <td>Trap object; trigger, target, and effect live in the values.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>32</td>
 <td>Teleport</td>
 <td>ITEM_TELEPORT</td>
 <td>Teleports on command.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>33</td>
 <td>Poison</td>
 <td>ITEM_POISON</td>
 <td>Weapon poison; spell, level, applications, hits per
 application.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>34</td>
 <td>Summon</td>
 <td>ITEM_SUMMON</td>
 <td>Summons a mob on command.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>35</td>
 <td>Switch</td>
 <td>ITEM_SWITCH</td>
 <td>Lever or button that manipulates a door in another room.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>36</td>
 <td>Ammo-Pouch</td>
 <td>ITEM_AMMO_POUCH</td>
 <td>Object-count container for missiles and transferable throwable
 weapons.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>37</td>
 <td>Pick</td>
 <td>ITEM_PICK</td>
 <td>Grants a bonus to lock picking.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>38</td>
 <td>Instrument</td>
 <td>ITEM_INSTRUMENT</td>
 <td>Bard instrument; subtype, difficulty reduction, effectiveness bonus,
 breakability.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>39</td>
 <td>Disguise</td>
 <td>ITEM_DISGUISE</td>
 <td>Kit used by the disguise command.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>40</td>
 <td>Wall</td>
 <td>ITEM_WALL</td>
 <td>Magical wall object, as created by wall spells.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>41</td>
 <td>Bowl</td>
 <td>ITEM_BOWL</td>
 <td>Mixing vessel for recipes.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>42</td>
 <td>Ingredient</td>
 <td>ITEM_INGREDIENT</td>
 <td>Used with a bowl for recipes.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>43</td>
 <td>Blocker</td>
 <td>ITEM_BLOCKER</td>
 <td>Blocks movement in one direction.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>44</td>
 <td>Wagon</td>
 <td>ITEM_WAGON</td>
 <td>Carries resources for trade.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>45</td>
 <td>Resources</td>
 <td>ITEM_RESOURCE</td>
 <td>Trade goods carried by a wagon.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>46</td>
 <td>Pet</td>
 <td>ITEM_PET</td>
 <td>Converts into a mobile follower on purchase.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>47</td>
 <td>Blueprint</td>
 <td>ITEM_BLUEPRINT</td>
-<td>NewCraft recipe; value 0 is the craft ID.</td>
+<td>Older catalog/blueprint crafting recipe; value 0 is the
+<code>craft_data</code> catalog ID used by <code>crafting</code>.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>48</td>
 <td>Treasure Chest</td>
 <td>ITEM_TREASURE_CHEST</td>
 <td>Lootable chest used by the <code>loot</code> command.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>49</td>
 <td>Hunt Trophy</td>
 <td>ITEM_HUNT_TROPHY</td>
 <td>Marks a hunt target mob.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>50</td>
 <td>Weapon Oil</td>
 <td>ITEM_WEAPON_OIL</td>
 <td>Applied to a weapon for a temporary effect.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>51</td>
 <td>Gear Outfit</td>
 <td>ITEM_GEAR_OUTFIT</td>
 <td>Preset gear bundle; expands into a full kit.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>52</td>
 <td>Drink</td>
 <td>ITEM_DRINK</td>
 <td>Newer drink system; replaces drink containers and fountains.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>53</td>
 <td>Vehicle</td>
 <td>ITEM_VEHICLE</td>
 <td>General vehicle object.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>54</td>
 <td>Ship-Object</td>
 <td>ITEM_SHIP_OBJECT</td>
 <td>Outcast-style ship object.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>55</td>
 <td>Vessel</td>
 <td>ITEM_VESSEL</td>
 <td>Unified vessel system object.</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>56</td>
 <td>Greyhawk-Ship</td>
 <td>ITEM_GREYHAWK_SHIP</td>
 <td>Greyhawk ship; value 0 interior room vnum, value 1 ship index.</td>
 </tr>
-<tr class="even">
+<tr>
 <td>57</td>
 <td>Crafting-Tool</td>
 <td>ITEM_CRAFTING_TOOL</td>
@@ -2082,14 +2082,8 @@ the item can be picked up at all. Nearly every object needs it. An item
 with wear flags but without <code>(Takeable)</code> can be equipped only
 by staff loading it directly.</p>
 <table>
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-</colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th>Bit</th>
 <th>Menu #</th>
 <th>Name</th>
@@ -2097,211 +2091,211 @@ by staff loading it directly.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>0</td>
 <td>1</td>
 <td>(Takeable)</td>
 <td>ITEM_WEAR_TAKE</td>
 </tr>
-<tr class="even">
+<tr>
 <td>1</td>
 <td>2</td>
 <td>Finger</td>
 <td>ITEM_WEAR_FINGER</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>2</td>
 <td>3</td>
 <td>Neck</td>
 <td>ITEM_WEAR_NECK</td>
 </tr>
-<tr class="even">
+<tr>
 <td>3</td>
 <td>4</td>
 <td>Body</td>
 <td>ITEM_WEAR_BODY</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>4</td>
 <td>5</td>
 <td>Head</td>
 <td>ITEM_WEAR_HEAD</td>
 </tr>
-<tr class="even">
+<tr>
 <td>5</td>
 <td>6</td>
 <td>Legs</td>
 <td>ITEM_WEAR_LEGS</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>6</td>
 <td>7</td>
 <td>Feet</td>
 <td>ITEM_WEAR_FEET</td>
 </tr>
-<tr class="even">
+<tr>
 <td>7</td>
 <td>8</td>
 <td>Hands</td>
 <td>ITEM_WEAR_HANDS</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>8</td>
 <td>9</td>
 <td>Arms</td>
 <td>ITEM_WEAR_ARMS</td>
 </tr>
-<tr class="even">
+<tr>
 <td>9</td>
 <td>10</td>
 <td>Shield</td>
 <td>ITEM_WEAR_SHIELD</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>10</td>
 <td>11</td>
 <td>About-Body</td>
 <td>ITEM_WEAR_ABOUT</td>
 </tr>
-<tr class="even">
+<tr>
 <td>11</td>
 <td>12</td>
 <td>Waist</td>
 <td>ITEM_WEAR_WAIST</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>12</td>
 <td>13</td>
 <td>Wrist</td>
 <td>ITEM_WEAR_WRIST</td>
 </tr>
-<tr class="even">
+<tr>
 <td>13</td>
 <td>14</td>
 <td>Wield</td>
 <td>ITEM_WEAR_WIELD</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>14</td>
 <td>15</td>
 <td>Hold</td>
 <td>ITEM_WEAR_HOLD</td>
 </tr>
-<tr class="even">
+<tr>
 <td>15</td>
 <td>16</td>
 <td>Face</td>
 <td>ITEM_WEAR_FACE</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>16</td>
 <td>17</td>
 <td>Ammo-Pouch</td>
 <td>ITEM_WEAR_AMMO_POUCH</td>
 </tr>
-<tr class="even">
+<tr>
 <td>17</td>
 <td>18</td>
 <td>Ears</td>
 <td>ITEM_WEAR_EAR</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>18</td>
 <td>19</td>
 <td>Eyes</td>
 <td>ITEM_WEAR_EYES</td>
 </tr>
-<tr class="even">
+<tr>
 <td>19</td>
 <td>20</td>
 <td>Badge</td>
 <td>ITEM_WEAR_BADGE</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>20</td>
 <td>21</td>
 <td>Instrument</td>
 <td>ITEM_WEAR_INSTRUMENT</td>
 </tr>
-<tr class="even">
+<tr>
 <td>21</td>
 <td>22</td>
-<td>Shoulders (unused; reserved)</td>
+<td>Shoulders</td>
 <td>ITEM_WEAR_SHOULDERS</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>22</td>
 <td>23</td>
-<td>Ankle (unused; reserved)</td>
+<td>Ankle</td>
 <td>ITEM_WEAR_ANKLE</td>
 </tr>
-<tr class="even">
+<tr>
 <td>23</td>
 <td>24</td>
-<td>Sheath (unused; reserved)</td>
+<td>Sheath</td>
 <td>ITEM_WEAR_SHEATH</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>24</td>
 <td>25</td>
-<td>Gathering-Tool (unused; reserved)</td>
+<td>Gathering-Tool</td>
 <td>ITEM_WEAR_CRAFT_SICKLE</td>
 </tr>
-<tr class="even">
+<tr>
 <td>25</td>
 <td>26</td>
-<td>Forestry-Tool (unused; reserved)</td>
+<td>Forestry-Tool</td>
 <td>ITEM_WEAR_CRAFT_AXE</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>26</td>
 <td>27</td>
-<td>Hunting-Tool (unused; reserved)</td>
+<td>Hunting-Tool</td>
 <td>ITEM_WEAR_CRAFT_KNIFE</td>
 </tr>
-<tr class="even">
+<tr>
 <td>27</td>
 <td>28</td>
-<td>Mining-Tool (unused; reserved)</td>
+<td>Mining-Tool</td>
 <td>ITEM_WEAR_CRAFT_PICKAXE</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>28</td>
 <td>29</td>
-<td>Alchemy-Tool (unused; reserved)</td>
+<td>Alchemy-Tool</td>
 <td>ITEM_WEAR_CRAFT_ALCHEMY</td>
 </tr>
-<tr class="even">
+<tr>
 <td>29</td>
 <td>30</td>
-<td>Armorsmithing-Tool (unused; reserved)</td>
+<td>Armorsmithing-Tool</td>
 <td>ITEM_WEAR_CRAFT_ARMOR_HAMMER</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>30</td>
 <td>31</td>
-<td>Jewelcrafting-Tool (unused; reserved)</td>
+<td>Jewelcrafting-Tool</td>
 <td>ITEM_WEAR_CRAFT_JEWEL_PLIERS</td>
 </tr>
-<tr class="even">
+<tr>
 <td>31</td>
 <td>32</td>
-<td>Tailoring-Tool (unused; reserved)</td>
+<td>Tailoring-Tool</td>
 <td>ITEM_WEAR_CRAFT_NEEDLE</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>32</td>
 <td>33</td>
-<td>Weaponsmithing-Tool (unused; reserved)</td>
+<td>Weaponsmithing-Tool</td>
 <td>ITEM_WEAR_CRAFT_WEAPON_HAMMER</td>
 </tr>
-<tr class="even">
+<tr>
 <td>33</td>
 <td>34</td>
-<td>On-Back (unused; reserved)</td>
+<td>On-Back</td>
 <td>ITEM_WEAR_ON_BACK</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>34</td>
 <td>35</td>
 <td>Tail</td>
@@ -2311,10 +2305,13 @@ by staff loading it directly.</p>
 </table>
 <p><strong>Total: 35 wear bits (0-34,
 <code>NUM_ITEM_WEARS</code>)</strong></p>
-<p>Bits 21-33 are implemented as reserved compatibility positions but
-are currently unused: no active object prototype can occupy them. Do not
-assign these flags unless the corresponding equipment position is
-deliberately reactivated and supplied with supported game content.</p>
+<p>Bits 21-33 map to active equipment positions in
+<code>find_eq_pos()</code>. The nine crafting/harvesting tool positions
+at bits 24-32 are separate from normal combat equipment positions.
+Ordinary equipment-crafting admission checks occupancy of only the
+alchemy, armorsmithing, jewelcrafting, tailoring, and weaponsmithing
+positions; it does not validate the occupying object&#x2019;s type or
+values.</p>
 <p>Bit 34 is the active Yuan-Ti tail slot. On a non-ring object,
 <code>ITEM_WEAR_TAIL</code> marks dedicated tail gear: the runtime
 rejects that object in every other slot, even if another wear bit is
@@ -2323,11 +2320,13 @@ also set. Do not add the tail bit to ordinary rings.
 every such ring can already be worn on either a finger or a Yuan-Ti
 tail. If imported data contains both finger and tail bits, the ring rule
 wins and the object remains finger-or-tail gear.</p>
-<p>The nine reserved crafting-tool positions (bits 24-32) are separate
-from normal combat equipment positions and are hidden from the regular
-<code>equipment</code> display. They were designed to pair with
-<code>ITEM_CRAFTING_TOOL</code> objects, but no active prototypes of
-that type currently exist.</p>
+<p>The <code>craft tools|equipment|gear</code> display uses a different
+rule: it scans all equipped positions for an
+<code>ITEM_CRAFTING_TOOL</code> whose value 0 names the ability. It
+omits woodworking and may therefore disagree with admission. Source
+control does not prove whether a deployed world has compatible
+prototypes; inspect the deployment&#x2019;s world data before promising tool
+availability.</p>
 <h2 id="object-value-reference">Object Value Reference</h2>
 <p>Every object carries 16 integer value slots. What they mean is
 decided entirely by the item type - there is no shared meaning across
@@ -2369,7 +2368,7 @@ Write all 16 for anything new.</p>
 <col style="width: 16%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th>Type</th>
 <th>value[0]</th>
 <th>value[1]</th>
@@ -2379,7 +2378,7 @@ Write all 16 for anything new.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>Light</td>
 <td>unused</td>
 <td>unused</td>
@@ -2388,7 +2387,7 @@ out)</td>
 <td>-</td>
 <td>-</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Scroll</td>
 <td>Spell level</td>
 <td>Spell 1</td>
@@ -2396,7 +2395,7 @@ out)</td>
 <td>Spell 3</td>
 <td>-</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Potion</td>
 <td>Spell level</td>
 <td>Spell 1</td>
@@ -2404,7 +2403,7 @@ out)</td>
 <td>Spell 3</td>
 <td>-</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Wand</td>
 <td>Spell level</td>
 <td>Max charges</td>
@@ -2412,7 +2411,7 @@ out)</td>
 <td>Spell</td>
 <td>-</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Staff</td>
 <td>Spell level</td>
 <td>Max charges</td>
@@ -2420,7 +2419,7 @@ out)</td>
 <td>Spell</td>
 <td>-</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Weapon</td>
 <td>Weapon type (<code>weapon_list</code>)</td>
 <td>Number of damage dice</td>
@@ -2428,7 +2427,7 @@ out)</td>
 <td>Attack message type</td>
 <td>Enhancement bonus</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Ranged-Weapon</td>
 <td>Weapon type</td>
 <td>Number of damage dice</td>
@@ -2436,7 +2435,7 @@ out)</td>
 <td>-</td>
 <td>Enhancement bonus</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Ammo</td>
 <td>Ammo category</td>
 <td>unused</td>
@@ -2444,7 +2443,7 @@ out)</td>
 <td>-</td>
 <td>Enhancement bonus</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Armor/Shield</td>
 <td>Armor class apply</td>
 <td>Armor subtype (<code>armor_list</code>)</td>
@@ -2452,7 +2451,7 @@ out)</td>
 <td>-</td>
 <td>Enhancement bonus</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Clan-Armor</td>
 <td>Armor class apply</td>
 <td>Clan vnum</td>
@@ -2460,7 +2459,7 @@ out)</td>
 <td>-</td>
 <td>Enhancement bonus</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Container</td>
 <td>Max weight held (<code>-1</code> unlimited)</td>
 <td>Container flags (bitvector)</td>
@@ -2468,7 +2467,7 @@ out)</td>
 <td>-</td>
 <td>-</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Ammo-Pouch</td>
 <td>Max projectile objects (<code>-1</code> unlimited)</td>
 <td>Container flags (bitvector)</td>
@@ -2476,7 +2475,7 @@ out)</td>
 <td>Corpse flag</td>
 <td>-</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Liquid-Cont</td>
 <td>Max drink units (<code>-1</code> unlimited)</td>
 <td>Current drink units</td>
@@ -2484,7 +2483,7 @@ out)</td>
 <td>Spell on drink (<code>0</code> none)</td>
 <td>-</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Fountain</td>
 <td>Max drink units (<code>-1</code> unlimited)</td>
 <td>Current drink units</td>
@@ -2492,7 +2491,7 @@ out)</td>
 <td>Spell on drink (<code>0</code> none)</td>
 <td>-</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Food</td>
 <td>Duration in rounds (6s each)</td>
 <td>-</td>
@@ -2500,7 +2499,7 @@ out)</td>
 <td>-</td>
 <td>-</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Drink</td>
 <td>Duration in rounds (6s each)</td>
 <td>-</td>
@@ -2508,7 +2507,7 @@ out)</td>
 <td>-</td>
 <td>-</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Money</td>
 <td>Number of gold coins</td>
 <td>-</td>
@@ -2516,7 +2515,7 @@ out)</td>
 <td>-</td>
 <td>-</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Furniture</td>
 <td>Number of people it holds</td>
 <td>-</td>
@@ -2524,7 +2523,7 @@ out)</td>
 <td>-</td>
 <td>-</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Portal</td>
 <td>Portal type</td>
 <td>Target room vnum, or low vnum of range</td>
@@ -2532,7 +2531,7 @@ out)</td>
 <td>-</td>
 <td>-</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Trap</td>
 <td>Trap trigger type</td>
 <td>Direction or target object vnum</td>
@@ -2540,7 +2539,7 @@ out)</td>
 <td>-</td>
 <td>-</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Switch</td>
 <td>Activating command (<code>0</code> pull, <code>1</code> push)</td>
 <td>Room vnum to manipulate</td>
@@ -2549,7 +2548,7 @@ out)</td>
 <td>-</td>
 <td>-</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Poison</td>
 <td>Poison spell</td>
 <td>Poison level</td>
@@ -2557,7 +2556,7 @@ out)</td>
 <td>Hits per application</td>
 <td>-</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Instrument</td>
 <td>Instrument subtype</td>
 <td>Difficulty reduction (0-30)</td>
@@ -2566,7 +2565,7 @@ out)</td>
 unbreakable)</td>
 <td>-</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Blueprint</td>
 <td>Craft ID number</td>
 <td>-</td>
@@ -2574,7 +2573,7 @@ unbreakable)</td>
 <td>-</td>
 <td>-</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Treasure Chest</td>
 <td>Loot tier / level</td>
 <td>Loot type</td>
@@ -2582,7 +2581,7 @@ unbreakable)</td>
 <td>Search DC (<code>0</code> not hidden)</td>
 <td>Pick Lock DC (<code>0</code> unlocked)</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Greyhawk-Ship</td>
 <td>Interior room vnum</td>
 <td>Ship index (0-499, unique)</td>
@@ -2590,7 +2589,7 @@ unbreakable)</td>
 <td>-</td>
 <td>-</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Crafting-Tool</td>
 <td>Crafting ability (<code>ABILITY_*</code>)</td>
 <td>Bonus amount</td>
@@ -2598,7 +2597,7 @@ unbreakable)</td>
 <td>Special flags</td>
 <td>-</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Gear Outfit</td>
 <td>Outfit type (<code>1</code> weapon, <code>2</code> armor set)</td>
 <td>Enhancement bonus</td>
@@ -2606,7 +2605,7 @@ unbreakable)</td>
 <td>Body apply type</td>
 <td>Apply modifier amount</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Wearable</td>
 <td>Special worn value (e.g.&#xA0;monk glove enhancement)</td>
 <td>-</td>
