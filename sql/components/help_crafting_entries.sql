@@ -33,42 +33,41 @@ descriptions. Each must contain the exact variant phrase and selected primary-
 material description. Keywords reject dashes. The maximum lengths for keywords,
 shortdesc, and roomdesc are 100, 100, and 120 characters.
 
-A bug treats recipe variant 0 as unset for BONUSES. Bonuses therefore fail on
-the first variant of every recipe and on recipes with no other variant.
 Instrument quality, effectiveness, and breakability selectors apply only to
 instrument projects.
 
-Admission checks the recipe, descriptions, allocations, and occupancy of the
-ability''s dedicated tool slot. It does not validate the occupying object''s type
-or values. Carpenter variants have no accepted slot and cannot pass. CRAFT TOOLS
-uses a different rule: it displays ITEM_CRAFTING_TOOL objects whose value 0
-matches an ability, and it has no woodworking row.
+The recipe variant sets the project''s crafting skill, which decides the tool,
+the crafting station, talents, the roll, and experience. CHECK and START test
+the recipe, descriptions, allocations, the station, and occupancy of the
+skill''s dedicated tool slot; they do not validate the occupying object''s type
+or values. Woodworking has no tool slot and needs no tool. CRAFT TOOLS uses a
+different rule: it displays ITEM_CRAFTING_TOOL objects whose value 0 matches
+an ability, and it has no woodworking row.
 
-Type, subtype, and variant selection alone leave the stored skill unset, but
-SHOW can initialize it through object setup before the first attempt. START
-and timer rechecks use the current stored skill for the station requirement;
-START also uses it for rapid-talent timing. Skill 0 means no station or rapid
-reduction. Completion can retain a skill after failure; another SHOW can
-recompute it. Eligible successful objects with enhancement or affects get
-chainable 5-percent critical-success rolls.
+START also refuses a project whose DC no roll can reach, and rapid talents for
+the project skill shorten the work. Eligible successful objects with enhancement
+or affects get chainable 5-percent critical-success rolls.
 
 CRAFTMATERIALS lists material and elemental-mote balances. STORE deposits an
-ITEM_MATERIAL and UNSTORE recreates a physical bundle. Unstoring medium-, high-,
-or pristine-grade hide makes generic leather; storing it again credits only
-low-grade hide. MOTES lists mote types
-and shows the bonuses associated with a selected type. When the wilderness
-integration is enabled, HARVEST, GATHER, and MINE use the same timed category
-harvest and can credit those crafting balances.
+ITEM_MATERIAL and UNSTORE recreates a physical bundle, which keeps its hide
+grade when stored again. MOTES lists mote types and shows the bonuses
+associated with a selected type. When the wilderness integration is enabled,
+HARVEST, GATHER, and MINE use the same timed category harvest and can credit
+those crafting balances.
 
 Crafting is timed work. Moving, combat, damage, or a failed recheck can cancel
-it. Offline time does not advance the saved duration. Login, reconnect, and
-copyover attempt to reconstruct saved create, golem, and supply-order work.
-Resize is refunded and cleared during load. Golem work resumes, but missing
-saved type, size, and concrete material make completion refuse while retaining
-materials. CRAFT RESET (mode 2) or NEWCRAFT RESET refunds equipment-project
-allocations. The general SUPPLYORDER RESET, ABANDON, and CANCEL discard allocated
-materials without refund, even for an equipment project. Use NEWCRAFT RESET
-before switching projects; SUPPLYORDER SELECT can replace an unstarted one.
+it, and the project cannot change until the work ends or ACTIVITY CANCEL stops
+it. Completion makes an item only if the project still passes CHECK. Offline
+time does not advance the saved duration. Login, reconnect, and copyover
+attempt to reconstruct saved create, golem, and supply-order work. Resize is
+refunded and cleared during load. A golem project saves its type, size, and
+chosen wood, so resumed golem work can finish.
+
+A crafting project and a supply order share one project record, so you hold
+one at a time: SUPPLYORDER REQUEST and SELECT refuse while a project exists,
+and project subcommands refuse while an order is held. CRAFT RESET (mode 2) or
+NEWCRAFT RESET refunds a project''s allocations; SUPPLYORDER RESET, ABANDON, and
+CANCEL give up an order and return the materials no finished item used.
 
 OTHER CRAFTING PATHS
 CRAFTING lists or starts catalog crafts and carried blueprints. A carried
@@ -99,9 +98,8 @@ VALUES ('craft-itemtype', 'Usage: craft itemtype <weapon|armor|instrument|misc>
 This selects the broad type for an ordinary equipment project. Jewelry-oriented
 recipes are miscellaneous subtypes, so use MISC rather than JEWELRY.
 
-The parser currently also accepts ITEMTYPE GOLEM, but that value cannot select a
-recipe or complete and leaves the project requiring NEWCRAFT RESET (CRAFT RESET
-in mode 2). Golem work uses the separate CRAFT GOLEM or NEWCRAFT GOLEM workflow.
+ITEMTYPE does not accept GOLEM. Golem work uses the separate CRAFT GOLEM or
+NEWCRAFT GOLEM workflow.
 
 See Also: CRAFTING GOLEM-MAINTENANCE BONE-GOLEM', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
@@ -127,10 +125,8 @@ project.
 
 CRAFTMATERIALS lists material and elemental-mote balances. STORE deposits a
 physical ITEM_MATERIAL object; UNSTORE recreates a physical material bundle.
-UNSTORE of medium-, high-, or pristine-grade hide creates a generic leather
-bundle. STORE credits any leather as low-grade hide, so unstoring and then
-storing these hides downgrades them.
-The runtime usage text incorrectly calls this command MATERIALS.
+A bundle made by UNSTORE records its crafting material, so storing it again
+keeps a hide''s grade.
 
 In the default build, MATERIALS displays separate wilderness material storage;
 its behavior depends on a compile-time option.
@@ -144,18 +140,16 @@ VALUES ('crafting-recipes-materials', 'Topic: Crafting Materials, Tools, and Ski
 
 NEWCRAFT MATERIALS (CRAFT MATERIALS in mode 2) allocates resources to an
 equipment project. CRAFTMATERIALS lists material and elemental-mote balances;
-STORE deposits ITEM_MATERIAL objects and UNSTORE recreates physical bundles.
-UNSTORE of medium-, high-, or pristine-grade hide creates a generic leather
-bundle. STORE credits any leather as low-grade hide, so unstoring and then
-storing these hides downgrades them.
+STORE deposits ITEM_MATERIAL objects and UNSTORE recreates physical bundles,
+which keep their hide grade when stored again.
 
 NEWCRAFT TOOLS, EQUIPMENT, or GEAR (CRAFT in mode 2) lists equipped
 ITEM_CRAFTING_TOOL objects whose value 0 matches tailoring, armorsmithing,
 weaponsmithing, jewelcrafting, alchemy, forestry, mining, hunting, or
 gathering. Woodworking has no row. A listed bonus does not change crafting,
 golem, harvesting, or brewing rolls. Equipment admission uses a different rule:
-any object in the matching dedicated slot passes, while woodworking has no
-accepted slot.
+any object in the matching dedicated slot passes, and woodworking needs no
+tool.
 
 MATERIALS is separate wilderness storage in the default build. When
 WILDERNESS_HARVEST_CRAFTING is enabled, HARVEST, GATHER, and MINE enter the same
@@ -214,8 +208,7 @@ COMMANDS:
 - craftscore: displays crafting/harvesting progress according to the configured
   mode.
 - craftmaterials: lists project balances; STORE deposits a material object and
-  UNSTORE recreates a bundle. Unstoring medium-, high-, or pristine-grade hide
-  makes generic leather; storing it again credits only low-grade hide.
+  UNSTORE recreates a bundle, which keeps its hide grade when stored again.
 - splitenchantment: with the Wizard Split Enchantment perk and no argument,
   primes the next enchantment-school spell to affect all enemies in the room;
   it is subject to a cooldown.
@@ -255,11 +248,14 @@ Allocate the primary material before setting descriptions. Keywords, shortdesc,
 and roomdesc must contain the exact variant phrase and selected primary-material
 description. Keywords cannot contain dashes.
 
-A bug rejects BONUSES on variant index 0. Use slots 1 through 6; slot 0 is never
-valid. NEWCRAFT RESET MATERIALS also clears all project descriptions;
-RESET DESCRIPTIONS also refunds and clears material allocations, RESET MOTES
-also deletes bonus definitions, and an unrecognized RESET part resets the whole
-project. Re-add the primary material before setting descriptions again.
+BONUSES use slots 1 through 6; slot 0 is never valid. NEWCRAFT RESET MATERIALS
+also clears all project descriptions; RESET DESCRIPTIONS also refunds and
+clears material allocations, RESET MOTES also deletes bonus definitions, and an
+unrecognized RESET part resets the whole project. Re-add the primary material
+before setting descriptions again.
+
+START begins the timed work. Until the work ends or ACTIVITY CANCEL stops it,
+the project cannot change; SHOW, CHECK, and SCORE still work.
 
 Other routes include NEWCRAFT TOOLS, NEWCRAFT SCORE, and, in mode 2 only,
 NEWCRAFT GOLEM <type|size|show|reset|start|animate>.
@@ -285,8 +281,8 @@ VALUES ('craft-show', 'Usage: craft show
 
 Displays the current materials-and-motes equipment project, including
 item type, variant, descriptions, materials, bonuses, and related settings.
-SHOW is not read-only: object setup can update the project''s stored skill,
-DC, and output level, affecting later station and talent checks.
+Once a variant is set, it also shows the required skill, the project DC, and
+the object level.
 
 See Also: CRAFTING NEWCRAFT CRAFT-CHECK', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
@@ -297,8 +293,9 @@ VALUES ('craft-check', 'Usage: craft check
        newcraft check
 
 Reports whether the project passes the type, variant, description, material,
-mote, level-cap, and tool-slot checks, and lists what is missing. It does not
-check the crafting station; START checks that separately.
+mote, level-cap, tool-slot, and crafting-station checks, and lists what is
+missing. START runs the same checks and also refuses a project whose DC no roll
+can reach.
 
 See Also: CRAFTING NEWCRAFT CRAFT-SHOW', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
@@ -312,9 +309,6 @@ Adds one of up to six object affects. Valid slots are 1 through 6. The location
 is an APPLY name; type is normally enhancement or universal, with natural armor
 and deflection also allowed for armor class. SPECIFIC identifies a skill, feat,
 or spell-slot class when that location requires one.
-
-A current bug treats recipe variant index 0 as unset, so this command fails on
-the first variant of every recipe and on recipes with no other variant.
 
 Fund each slot afterwards with CRAFT MOTES ADD <slot> (or NEWCRAFT MOTES ADD
 <slot>). CRAFT CHECK fails until every bonus slot has its motes.
@@ -342,7 +336,8 @@ VALUES ('craft-specific-type', 'Usage: craft specifictype <type>
 
 Sets the concrete subtype after ITEMTYPE. For weapons it is a weapon type; for
 armor it is an armor piece; for MISC it is a wear slot; and for instruments it
-is the instrument type. Run the command without a value to list choices.
+is the instrument type. Run the command without a value to list choices; the
+weapon and armor lists show only the types a recipe can build.
 
 See Also: CRAFTING NEWCRAFT CRAFT-ITEMTYPE CRAFT-VARIANT', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
@@ -353,8 +348,8 @@ VALUES ('craft-variant', 'Usage: craft variant <variant name>
        newcraft variant <variant name>
 
 Sets the recipe variant after item type and specific type. The variant selects
-material groups, quantities, skill/tool rules, and an exact phrase used by the
-description validators.
+material groups, quantities, the crafting skill (and with it the tool and the
+crafting station), and an exact phrase used by the description validators.
 
 Allocate the selected primary material before setting keywords, shortdesc, or
 roomdesc. All three must contain both the exact variant phrase and the selected
@@ -365,7 +360,7 @@ ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
 auto_generated = VALUES (auto_generated);
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
-VALUES ('supplyorder', 'SUPPLYORDER has three handlers across two systems.
+VALUES ('supplyorder', 'SUPPLYORDER has handlers in two systems.
 
 LEGACY ROOM-370 AUTOCRAFT QUEST
 In the Sanctus supply-order office (room 370), the room special intercepts:
@@ -378,41 +373,41 @@ else, in a carried CRAFTING-KIT, then type AUTOCRAFT. Repeat for all five items.
 
 BUILDER-BOUND MOBILE HANDLER
 A mobile with the "New Supply Orders" special intercepts SUPPLYORDER in its
-room. It handles REQUEST, INFO|SHOW, START, MATERIAL, COMPLETE, and RESET.
-LIST, SELECT, and COOLDOWN print usage there; ABANDON does nothing. REQUEST and
-COMPLETE still need a mobile flagged QUARTERMASTER in the room. The tracked
-source does not bind this special, but builders can assign it.
+room and runs the general command below, so every subcommand works there.
+Subcommands that need a quartermaster still need a mobile flagged QUARTERMASTER
+in the room. The tracked source does not bind this special, but builders can
+assign it.
 
 MATERIALS-AND-MOTES GENERAL COMMAND
-Outside those interceptions, the general command accepts:
+Outside the room-370 office, the general command accepts:
   supplyorder list|available          (artisan points only; no offers)
   supplyorder select|choose <number>  (offer numbers are not displayed first)
   supplyorder request
-  supplyorder show|status
+  supplyorder show|status|info
   supplyorder start|begin
   supplyorder material add <material>
   supplyorder material remove         (MATERIALS is also accepted)
   supplyorder complete|finish
-  supplyorder reset
-  supplyorder abandon|cancel
+  supplyorder reset|abandon|cancel
   supplyorder cooldown|cooldowns|timers
 
 LIST, SELECT, REQUEST, and COMPLETE require a quartermaster in the room. START
 requires the crafting station for the contract recipe skill, and timed work
-rechecks that station. SELECT and COOLDOWN refresh eligible empty offer slots;
-LIST and SHOW do not. No command displays the generated offers before SELECT.
+rechecks that station. SELECT and COOLDOWN refresh eligible empty offer slots
+and replace an offer that has no recipe variant; LIST and SHOW do not. No
+command displays the generated offers before SELECT.
 
-A contract whose SHOW lists the same material group twice (vambraces,
-armguards, and the soft-metal mask) cannot finish. Its first item completion
-cancels the order and discards the allocated materials. Reset such a contract
-before adding materials.
+Each item takes its materials only when every group can pay for it, and
+COMPLETE needs exactly the ordered quantity. A quality contract accepts only
+materials graded above its tier, and a selected contract keeps its type and
+tier when you log out.
 
-Supply orders use the same project as NEWCRAFT. REQUEST refuses an existing
-equipment project, but SELECT can replace an unstarted one''s recipe/type fields
-without returning its allocations. RESET, ABANDON, and CANCEL in the general
-command discard every material allocated to the current project, including an
-equipment project, and refund nothing. The mobile handler''s RESET does the
-same. Run NEWCRAFT RESET first to recover equipment-project materials.
+Supply orders share one project record with NEWCRAFT, so you hold one or the
+other. REQUEST and SELECT refuse while a crafting project exists, and project
+subcommands refuse while an order is held; CRAFT SCORE and the golem commands
+still work, but golem construction cannot start. RESET, ABANDON, and CANCEL
+give up the order and return the materials no finished item used. Every new
+order starts with no progress.
 
 See Also: CRAFTING CRAFTING-KIT CRAFTMATERIALS', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
@@ -441,8 +436,9 @@ require no station. It keeps the item''s
 descriptions, replacing only a builder-set restring identifier with the new
 subtype name.
 
-The kit form works in any mode on the first item inside a carried crafting
-kit and renames the result "a reforged <type>".
+The kit form works in any mode on the only item inside a carried crafting kit
+and renames the result "a reforged <type>". Both forms accept an abbreviated
+type name.
 
 Any crafting kit you carry or wear, or that lies in the room, takes over
 REFORGE even when empty. A worn or in-room kit refuses the work; remove kits

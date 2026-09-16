@@ -1676,14 +1676,11 @@ it</td>
 <code>NUM_ITEM_FLAGS</code>)</strong></p>
 <p><strong>Station timing:</strong> For player-command-reachable work,
 supply-order start and timer rechecks use the contract recipe&#x2019;s mapped
-skill. Equipment start and timer rechecks use the project&#x2019;s current
-stored skill; standalone <code>reforge</code> uses the item&#x2019;s material.
-Skill 0 requires no station, but <code>show</code> (also
-<code>display</code>, <code>review</code>, and <code>information</code>)
-can initialize a station-requiring skill before the first attempt.
-Completion can also leave a skill on a failed project. Station
-enforcement is state-dependent, not simply first attempt versus retry. A
-station flag does not make unreachable refining available.</p>
+skill. An equipment project&#x2019;s <code>check</code>, <code>start</code>,
+timer rechecks, and completion use the skill of its recipe variant, so
+the required station does not depend on command order. Standalone
+<code>reforge</code> uses the item&#x2019;s material. A station flag does not
+make unreachable refining available.</p>
 <p><strong>Note:</strong> These flags are defined in
 <code>src/core/structs.h</code> as the <code>ITEM_*</code> define block
 ending at <code>ITEM_ROL_WHOLE_HEAD</code>, and their display names in
@@ -2317,8 +2314,8 @@ by staff loading it directly.</p>
 at bits 24-32 are separate from normal combat equipment positions.
 Ordinary equipment-crafting admission checks occupancy of only the
 alchemy, armorsmithing, jewelcrafting, tailoring, and weaponsmithing
-positions; it does not validate the occupying object&#x2019;s type or
-values.</p>
+positions; it does not validate the occupying object&#x2019;s type or values.
+Woodworking has no tool position and needs no tool.</p>
 <p>Bit 34 is the active Yuan-Ti tail slot. On a non-ring object,
 <code>ITEM_WEAR_TAIL</code> marks dedicated tail gear: the runtime
 rejects that object in every other slot, even if another wear bit is
@@ -2332,9 +2329,9 @@ rule: it scans all equipped positions for an
 <code>ITEM_CRAFTING_TOOL</code> whose value 0 names the ability. Its
 value 1 bonus is applied only by <code>compute_ability()</code>, which
 feeds skill listings; no crafting, golem, harvesting, or brewing roll
-reads it. The display omits woodworking and may therefore disagree with
-admission. The only grant path in tracked source is compile-time:
-<code>NOOB_CRAFTING_TAILORING</code>,
+reads it. The display omits woodworking, which needs no tool, and may
+disagree with admission for the other abilities. The only grant path in
+tracked source is compile-time: <code>NOOB_CRAFTING_TAILORING</code>,
 <code>NOOB_CRAFTING_ALCHEMY</code>,
 <code>NOOB_CRAFTING_ARMORSMITHING</code>,
 <code>NOOB_CRAFTING_WEAPONSMITHING</code>, and
