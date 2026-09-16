@@ -318,8 +318,10 @@ The inventory must extend beyond the rows above:
   Unstable Mutagen, AoOs, Energy Retort, DG fight/hit triggers, and special
   procedures. For example, baseline Unstable Mutagen checks occur in the phase
   callback despite its "per round" comment; Deflective Screen uses a ten-second
-  marker; Warbeat, Deflect Arrows, Smash Defense, and autostand key on phase 1.
-  Avoid silently normalizing these to six-second turns.
+  marker; Warbeat, Deflect Arrows and autostand key on phase 1. Smash Defense
+  instead checks its six-second marker before the normal attack routine in any
+  eligible phase; the old phase-1 marker-cancellation block is commented out in
+  the baseline. Avoid silently normalizing these to six-second turns.
 - Audit `src/core/limits.c`, `src/events/character_periodic.c`,
   `src/events/affected_owners.c`, `src/combat/tactical_effects.c`, and relevant
   magic/perk code for effect duration, bleeding, regeneration during combat,
@@ -337,7 +339,7 @@ Specific conflicts already found must have named tests and dispositions:
 
 | Difference | Required disposition |
 | -- | -- |
-| Offhand phase allocation | The historical offhand clauses put attacks numbered 3, 6, 9, 12, and 15 in phase 1. The new `attack_number_runs_in_phase()` puts them in phase 3, and `Test_compatibility_attack_numbers_map_to_one_phase` asserts the new mapping. This is a finite, observable mechanics change even though it fixes a typo. Baseline timing is the restoration default for existing attacks; retain the helper/safe structure and test the chosen mapping. Preserving the new mapping would be an explicit exception to exact parity. |
+| Offhand phase allocation | Restored in the section 9 offhand checkpoint. The historical bonus-offhand clauses put ordinals 3/6/9/12/15 in phase 1, alongside 1/4/7/10/13; 2/5/8/11/14 remain in phase 2, with no candidates beyond 15. The helper now takes the attack kind so later Four Arms candidates retain their uncapped round-robin mapping. The old helper-only round-robin assertion is replaced by separate hand policies and actual scheduled melee regressions. |
 | Staggered and move-less attack collapse | `67ae730bc` added a clause to `perform_attacks()`: in phase 0, a staggered combatant or one without a move action is collapsed to the phase 1 portion. The baseline only coupled staggered costs inside `start_action_cooldown()`, and a staggered combatant with a move action still attacked in every phase. Once phases return, the normal routine has no phase 0 caller; remove the clause or classify the residual difference, and assert staggered attack order. |
 | Cowering and Perfect Tempo cadence | Baseline: `proc_d20_round()` in `src/limits.c`, called from the heartbeat every `PULSE_VIOLENCE`. Current: duplicated at the top of `combat_run_semantic_round()`, while `proc_d20_round_one()` in `src/core/limits.c` skips managed fighters. `src/events/character_periodic.c` already schedules `proc_d20_round_one()` on that cadence, so restore the single six-second owner and delete the duplicate. Do not run either check per phase. |
 | Test-only rollback paths | Three drivers exist today: semantic rounds, the encounter compatibility phases (`run_compatibility_phase()` and `COMBAT_ENCOUNTER_PHASE_DELAY`), and the per-character `event_combat_round` MUD event, which only runs when `encounter_mode` is false under CuTest. Cancel sites for `eCOMBAT_ROUND` remain in `src/act/act.other.c`, `src/magic/spells.c`, and `src/act/act.wizard.c`. End with one production driver, and decide explicitly whether the legacy callback, the test selectors, and `Test_combat_encounter_rollback_selector_keeps_legacy_path_exclusive` are deleted or kept as test seams. |
@@ -828,11 +830,10 @@ Commands/evidence from the earlier red checkpoint:
 
 Next implementation boundaries:
 
-1. Finish the section 4 parity inventory beyond scheduling. The offhand clauses
-   still use the refactor's phase-3 mapping for ordinals 3/6/9/12/15; baseline puts
-   these existing attacks in phase 1. `attack_number_runs_in_phase()` also serves
-   later Four Arms candidates, which must retain their own current allocation.
-   Trace both callers before restoring only the historical offhand policy.
+1. Finish the section 4 parity inventory beyond scheduling and the restored
+   offhand allocation recorded below. Expand ordered attack coverage to the
+   remaining ranged/reload/thrown, natural/evolution, flurry, vital-strike and
+   reactive paths, including bonuses, resource use and target changes.
 2. Audit bounded damage/reaction continuation ordering and terminal outcomes.
    Preserve native handles, notifications, active-world reconsideration, periodic
    timer sync, common rewards, and presentation. Classify Greater Hostile
@@ -849,3 +850,76 @@ Next implementation boundaries:
    `lib/text/help/help.hlp` together once the final mechanics are settled. Use the
    development environment and port 4100 autorun workflow for gameplay evidence.
    The current help/system documents still describe the replaced budget model.
+
+#### Offhand allocation checkpoint
+
+The previous goal turn made progress: the requested master data copy was
+checksum-verified, including hidden configuration and 5,007 world files. Existing
+local config files were preserved. `APP_ENV=development` was rechecked before
+resuming implementation from the clean `48aa19e2e` checkpoint.
+
+Ablation: extend the existing phase helper with the attack kind, restoring the
+five first-pair bonus-offhand clauses while retaining Four Arms' round-robin
+allocation. Reuse the gameplay fixture, native scheduler and committed-attack
+observer to prove ordered swings at actual deadlines. No new engine, event,
+configuration switch, test file or duplicate attack-generation implementation is
+needed. Other attack generation and damage continuations remain separate open
+inventory items.
+
+Implementation and source dispositions:
+
+| Boundary | Evidence and disposition |
+| -- | -- |
+| Five bonus-offhand clauses in `perform_attacks()` | Restored the pinned baseline's phase-1 allocation and 1..15 ordinal limit through `attack_number_runs_in_phase()`. Applies to Improved, Greater and Perfect Two-Weapon Fighting and both Wilderness Warrior extra-offhand procs. The base offhand swing stays in phase 2. |
+| Four Arms second pair | Retained its later-added round-robin mapping, including fourth-hand ordinal 15 in phase 3 and ordinal 16 in phase 1. `second_pair_candidate()` passes its actual attack kind to the same helper. No mirror chance, bonus, equipment or attack-count change. |
+| Remaining `perform_attacks()` body | Whitespace-insensitive comparison with `fbe9366fb` found only the later Extra Arms melee bonus and Four Arms second-pair additions beyond the offhand change. Keep those required additions. This establishes unchanged allocation code inside this function; it does not establish parity of called hit/damage/resource helpers. |
+| `is_skilled_dualer()` and `valid_fight_cond()` | Same decisions as the baseline; the former's only change is internal linkage. Existing safety and eligibility checks remain. |
+| `perform_violence()` comparison | Remaining changes include later bloodlust racial behavior, mounted cleanup/reset, pet-assist policy and lower-hand grapple checks. Retain the required racial/pet/Four Arms features. Mounted reset behavior still needs a finite-outcome disposition. NPC/cleave phase-0 additions do not change the production phase-1/2/3 path. The Smash Defense marker check moved into its single static callee, preserving the historical six-second guard. Broader side-effect and helper audits remain open. |
+
+New production-linked cases use a connected mortal with controlled weapons,
+feats and BAB, seed the random source, and advance every native tick through
+six seconds plus one tick. The committed-attack observer records hand and pulse;
+no phase callback replaces gameplay. `P/O/T/F` below denote primary, offhand,
+third and fourth hands; `|` separates the two/four/six-second deadlines.
+
+| Suffix after `Test_combat_restoration_melee_` | Expected ordered attacks |
+| -- | -- |
+| `low_bab_offhand_order` | `POO\|OO\|` |
+| `high_bab_offhand_order` | `PPOO\|OPO\|P` |
+| `haste_order` | `PPOO\|OPO\|PP` |
+| `four_arms_keeps_lower_hand_phases` | `PPOOFTF\|OPOTF\|PTTF` |
+| `staggered_keeps_all_phases` | `PPOO\|OPO\|P` |
+| `spent_move_suppresses_later_phases` | `PPOO\|\|` |
+| `spent_standard_suppresses_all_phases` | `\|\|` |
+
+All six attack-producing cases failed against `48aa19e2e`: the affected offhand
+swing occurred in phase 3 or was suppressed there by the spent move action.
+The standard-cooldown negative control already passed. After the restoration,
+all seven pass and all observed attacks occur exactly at their intended phase
+deadline. Action availability matches only the explicit cooldown, including
+the staggered case with no spent action. The fixtures deliberately grant the
+training feats to isolate allocation; they do not test feat prerequisites.
+
+Focused evidence:
+
+- `CUTEST_FILTER=combat_restoration LUMINARI_TEST_ROOT="$PWD" ./cutest`:
+  all 15 pass, including the updated ordinal-policy case and prior cast/kick,
+  deadline and AoO regressions. Logs: `/tmp/revert-combat-offhand-before.log`
+  (six expected failures) and `/tmp/revert-combat-offhand-after.log` (green).
+- `CUTEST_FILTER=FourArms LUMINARI_TEST_ROOT="$PWD" ./cutest`: all 21 pass;
+  `/tmp/revert-combat-offhand-four-arms.log`.
+- `CUTEST_FILTER=combat_restoration_melee LUMINARI_TEST_ROOT="$PWD" valgrind --leak-check=full --track-origins=yes --error-exitcode=99 ./cutest`:
+  all seven pass, zero errors and zero definitely/indirectly/possibly lost bytes.
+  726,224 bytes remain reachable in initialized runtime data.
+  `/tmp/revert-combat-offhand-valgrind.log`.
+- `make -j"$(nproc)" test`: all 1,520 CuTests and required static/native/
+  demand-driven checks pass with no compiler warnings. Nine existing opt-in
+  help-sync MariaDB cases remain skipped by their environment gate; no help-sync
+  code changed. `/tmp/revert-combat-offhand-full-test.log`.
+- `make install`: passes and removes the root `luminari` build artifact;
+  `/tmp/revert-combat-offhand-install.log`.
+- Changed-file pre-commit hooks pass after formatting; the full suite ran on
+  the formatted code. `/tmp/revert-combat-offhand-hooks.log`.
+- No live MUD run, help/database edit, or push has occurred. The full restoration
+  remains open under sections 4-7; this checkpoint closes only offhand timing
+  and supplies the stated attack-order evidence.

@@ -952,18 +952,28 @@ void Test_combat_state_validates_handles_before_reaction_continuation(CuTest *tc
   domain_event_world_forget_character(&attacker);
 }
 
-void Test_compatibility_attack_numbers_map_to_one_phase(CuTest *tc)
+void Test_combat_restoration_offhand_ordinals_preserve_each_hand_policy(CuTest *tc)
 {
+  const int offhand_phases[] = {1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1};
   int attack_number;
   int phase;
 
-  for (attack_number = 1; attack_number <= 15; attack_number++)
+  for (attack_number = 1; attack_number <= 30; attack_number++)
   {
-    CuAssertTrue(tc, test_attack_number_runs_in_phase(attack_number, 0));
+    CuAssertTrue(tc, test_attack_number_runs_in_phase(attack_number, 0, ATTACK_TYPE_OFFHAND));
     for (phase = 1; phase <= 3; phase++)
+    {
+      CuAssertIntEquals(
+          tc, attack_number <= 15 && offhand_phases[attack_number - 1] == phase,
+          test_attack_number_runs_in_phase(attack_number, phase, ATTACK_TYPE_OFFHAND));
       CuAssertIntEquals(tc, ((attack_number - 1) % 3) + 1 == phase,
-                        test_attack_number_runs_in_phase(attack_number, phase));
+                        test_attack_number_runs_in_phase(attack_number, phase, ATTACK_TYPE_THIRD));
+      CuAssertIntEquals(tc, ((attack_number - 1) % 3) + 1 == phase,
+                        test_attack_number_runs_in_phase(attack_number, phase, ATTACK_TYPE_FOURTH));
+    }
   }
-  CuAssertTrue(tc, !test_attack_number_runs_in_phase(0, 1));
-  CuAssertTrue(tc, !test_attack_number_runs_in_phase(1, 4));
+  CuAssertTrue(tc, !test_attack_number_runs_in_phase(0, 1, ATTACK_TYPE_OFFHAND));
+  CuAssertTrue(tc, !test_attack_number_runs_in_phase(1, 4, ATTACK_TYPE_OFFHAND));
+  CuAssertTrue(tc, !test_attack_number_runs_in_phase(0, 1, ATTACK_TYPE_FOURTH));
+  CuAssertTrue(tc, !test_attack_number_runs_in_phase(1, 4, ATTACK_TYPE_FOURTH));
 }
