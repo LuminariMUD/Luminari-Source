@@ -103,8 +103,18 @@ def git(*arguments):
 
 
 def baseline_paths():
-    """The tracked files matching BASELINES, as (path, parser, producers)."""
+    """The files matching BASELINES, as (path, parser, producers).
+
+    Tracked files in a checkout. An exported archive has no Git metadata, and
+    make test runs this self-test there too, so its files come from the tree.
+    """
     tracked = git("ls-files", "--", "scripts/ci").stdout.split()
+    if not tracked:
+        tracked = [
+            path.relative_to(REPO_ROOT).as_posix()
+            for path in (REPO_ROOT / "scripts" / "ci").iterdir()
+            if path.is_file()
+        ]
     found = []
     for pattern, parser, producers in BASELINES:
         for path in sorted(name for name in tracked if fnmatch.fnmatch(name, pattern)):
