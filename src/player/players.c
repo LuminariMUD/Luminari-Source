@@ -1144,29 +1144,36 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "CrGo"))
         {
           /* Golem project: type, size, and the wood a wood golem uses. */
-          int golem_type, golem_size, wood;
+          char *field_end;
+          long golem_type, golem_size, wood;
 
-          if (sscanf(line, "%d %d %d", &golem_type, &golem_size, &wood) == 3 &&
-              golem_type > GOLEM_TYPE_NONE && golem_type <= GOLEM_TYPE_IRON &&
+          golem_type = strtol(line, &field_end, 10);
+          golem_size = strtol(field_end, &field_end, 10);
+          wood = strtol(field_end, &field_end, 10);
+          if (*field_end == '\0' && golem_type > GOLEM_TYPE_NONE && golem_type <= GOLEM_TYPE_IRON &&
               golem_size >= GOLEM_SIZE_SMALL && golem_size < NUM_GOLEM_SIZES &&
-              (wood == CRAFT_MAT_NONE || craft_group_by_material(wood) == CRAFT_GROUP_WOOD))
+              (wood == CRAFT_MAT_NONE ||
+               (wood < NUM_CRAFT_MATS && craft_group_by_material((int)wood) == CRAFT_GROUP_WOOD)))
           {
-            GET_CRAFT(ch).golem_type = golem_type;
-            GET_CRAFT(ch).golem_size = golem_size;
-            GET_CRAFT(ch).golem_materials[0][0] = wood;
+            GET_CRAFT(ch).golem_type = (int)golem_type;
+            GET_CRAFT(ch).golem_size = (int)golem_size;
+            GET_CRAFT(ch).golem_materials[0][0] = (int)wood;
           }
         }
         else if (!strcmp(tag, "CrCT"))
         {
           /* Selected supply contract: contract type, quality tier requirement. */
-          int contract_type, quality_tier;
+          char *field_end;
+          long contract_type, quality_tier;
 
-          if (sscanf(line, "%d %d", &contract_type, &quality_tier) == 2 && contract_type >= 0 &&
+          contract_type = strtol(line, &field_end, 10);
+          quality_tier = strtol(field_end, &field_end, 10);
+          if (*field_end == '\0' && contract_type >= 0 &&
               contract_type < NUM_SUPPLY_CONTRACT_TYPES && quality_tier >= QUALITY_TIER_STANDARD &&
               quality_tier < NUM_QUALITY_TIERS)
           {
-            GET_CRAFT(ch).supply_contract_type = contract_type;
-            GET_CRAFT(ch).supply_quality_tier_requirement = quality_tier;
+            GET_CRAFT(ch).supply_contract_type = (int)contract_type;
+            GET_CRAFT(ch).supply_quality_tier_requirement = (int)quality_tier;
           }
         }
         else if (!strcmp(tag, "CrTr"))
