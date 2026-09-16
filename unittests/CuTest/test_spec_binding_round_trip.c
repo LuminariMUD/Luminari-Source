@@ -294,9 +294,9 @@ static bool spec_round_trip_run_writer(struct spec_test_fixture *fixture,
     if (!result.success && result.error[0] == '\0')
       spec_round_trip_set_error(result.error, sizeof(result.error), "round-trip writer failed");
     if (!spec_round_trip_write_all(result_pipe[1], &result, sizeof(result)))
-      _exit(2);
+      CuTestChildExit(2);
     close(result_pipe[1]);
-    _exit(result.success ? 0 : 1);
+    CuTestChildExit(result.success ? 0 : 1);
   }
 
   close(result_pipe[1]);

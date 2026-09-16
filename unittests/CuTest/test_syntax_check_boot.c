@@ -465,7 +465,7 @@ void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)
 
     close(output_pipe[0]);
     if (dup2(output_pipe[1], STDOUT_FILENO) < 0 || dup2(output_pipe[1], STDERR_FILENO) < 0)
-      _exit(20);
+      CuTestChildExit(20);
     close(output_pipe[1]);
 
     argv[0] = CuMutableString("luminari");
@@ -498,15 +498,15 @@ void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)
     event_test_reset_lifecycle_counts();
     result = luminari_main(config_file != NULL ? 7 : 5, argv);
     if (result != EXIT_SUCCESS)
-      _exit(21);
+      CuTestChildExit(21);
     if (event_test_init_call_count() != 1)
-      _exit(22);
+      CuTestChildExit(22);
     if (event_test_free_all_call_count() != 1)
-      _exit(23);
+      CuTestChildExit(23);
     /* The materials-and-motes crafting system reads the recipe table filled at boot. */
     if (crafting_recipes[CRAFT_RECIPE_WEAPON_LONG_SWORD].object_type != ITEM_WEAPON)
-      _exit(24);
-    _exit(EXIT_SUCCESS);
+      CuTestChildExit(24);
+    CuTestChildExit(EXIT_SUCCESS);
   }
 
   close(output_pipe[1]);

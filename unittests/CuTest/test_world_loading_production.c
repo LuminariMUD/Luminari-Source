@@ -193,16 +193,16 @@ void Test_world_loading_production_global_removal_counts_guarded_and_pending_mob
     if (!test_rol_reset_remove_mobile(NOWHERE, 0, true) || MOB_FLAGGED(guarded, MOB_NOTDEADYET) ||
         MOB_FLAGGED(other, MOB_NOTDEADYET) || !MOB_FLAGGED(first, MOB_NOTDEADYET) ||
         !MOB_FLAGGED(last, MOB_NOTDEADYET) || pending_extractions_count() != initial_pending + 3)
-      _exit(1);
+      CuTestChildExit(1);
     if (!test_rol_reset_remove_mobile(NOWHERE, 0, false) || !MOB_FLAGGED(guarded, MOB_NOTDEADYET) ||
         pending_extractions_count() != initial_pending + 4)
-      _exit(2);
+      CuTestChildExit(2);
     if (!test_rol_reset_remove_mobile(NOWHERE, 0, false) ||
         !test_rol_reset_remove_mobile(NOWHERE, 2, false) ||
         test_rol_reset_remove_mobile(NOWHERE, NOBODY, false) ||
         pending_extractions_count() != initial_pending + 4)
-      _exit(3);
-    _exit(0);
+      CuTestChildExit(3);
+    CuTestChildExit(0);
   }
   CuAssertTrue(tc, waitpid(child, &status, 0) == child);
   CuAssertTrue(tc, WIFEXITED(status));
@@ -385,7 +385,7 @@ void Test_world_loading_production_zone_reset_dispatch_and_whitespace(CuTest *tc
     struct reset_com *commands;
 
     if (input == NULL)
-      _exit(2);
+      CuTestChildExit(2);
     fputs("#100\nBuilder~\nReset parsing~\n10000 10099 30 2\n"
           "   I 1 75\n"
           "\tI\t0 50 -1 -1 -1 (legacy saved form)\n"
@@ -399,20 +399,20 @@ void Test_world_loading_production_zone_reset_dispatch_and_whitespace(CuTest *tc
     rewind(input);
     zone_table = calloc(1, sizeof(*zone_table));
     if (zone_table == NULL)
-      _exit(2);
+      CuTestChildExit(2);
     test_load_zones(input, CuMutableString("reset-fixture.zon"));
     commands = zone_table[0].cmd;
     if (top_of_zone_table != 0 || commands[0].command != 'I' || commands[0].if_flag != 1 ||
         commands[0].arg1 != 75 || commands[0].line != 5 || commands[1].command != 'I' ||
         commands[1].if_flag != 0 || commands[1].arg1 != 50 || commands[1].line != 6)
-      _exit(3);
+      CuTestChildExit(3);
     if (commands[2].command != 'R' || commands[2].arg1 != 10000 || commands[2].arg2 != 10001 ||
         commands[2].arg3 != 100 || commands[2].arg4 != 0 || commands[2].line != 9 ||
         commands[3].if_flag != 1 || commands[3].arg3 != 0 || commands[3].arg4 != 1 ||
         commands[4].arg3 != 100 || commands[4].arg4 != 1 || commands[5].arg3 != 100 ||
         commands[5].arg4 != 0 || commands[6].command != 'S')
-      _exit(4);
-    _exit(0);
+      CuTestChildExit(4);
+    CuTestChildExit(0);
   }
   assert_world_loader_child(tc, child, 0);
 }
@@ -434,13 +434,13 @@ void Test_world_loading_production_zone_header_forms_and_diagnostics(CuTest *tc)
 
     zone_table = calloc(12, sizeof(*zone_table));
     if (zone_table == NULL)
-      _exit(2);
+      CuTestChildExit(2);
     for (count = 4; count <= 15; count++)
     {
       input = tmpfile();
       capture = tmpfile();
       if (input == NULL || capture == NULL)
-        _exit(2);
+        CuTestChildExit(2);
       logfile = capture;
       fputs("#100\nBuilder~\nHeader parsing~\n* comment\n\n", input);
       for (i = 0; i < count; i++)
@@ -455,15 +455,15 @@ void Test_world_loading_production_zone_header_forms_and_diagnostics(CuTest *tc)
           zone->min_level != (used >= 10 ? 3 : -1) || zone->max_level != (used >= 10 ? 20 : -1) ||
           zone->show_weather != (used >= 11 ? 0 : 1) || zone->region != (used == 14 ? 7 : 0) ||
           zone->faction != (used == 14 ? 8 : 0) || zone->city != (used == 14 ? 9 : 0))
-        _exit(count + 10);
+        CuTestChildExit(count + 10);
       for (i = 0; i < ZN_ARRAY_MAX; i++)
         if (zone->zone_flags[i] != (used >= 10 ? values[i + 4] : 0))
-          _exit(count + 30);
+          CuTestChildExit(count + 30);
       rewind(capture);
       length = fread(output, 1, sizeof(output) - 1, capture);
       output[length] = '\0';
       if (used == count && length != 0)
-        _exit(count + 50);
+        CuTestChildExit(count + 50);
       if (used != count)
       {
         snprintf(
@@ -471,12 +471,12 @@ void Test_world_loading_production_zone_header_forms_and_diagnostics(CuTest *tc)
             "ZONE WARNING: Zone #100, header-fixture.zon, line 6: numeric header uses %d fields;",
             used);
         if (strstr(output, expected) == NULL || strstr(output, "ignoring trailing data:") == NULL)
-          _exit(count + 70);
+          CuTestChildExit(count + 70);
       }
       fclose(capture);
       fclose(input);
     }
-    _exit(0);
+    CuTestChildExit(0);
   }
   assert_world_loader_child(tc, child, 0);
 }
@@ -492,18 +492,18 @@ void Test_world_loading_production_zone_without_builder_preserves_first_reset(Cu
     FILE *input = tmpfile();
 
     if (input == NULL)
-      _exit(2);
+      CuTestChildExit(2);
     fputs("#100\nLegacy zone~\n10000 10099 30 2\nI 0 100\nS\n$\n", input);
     rewind(input);
     zone_table = calloc(1, sizeof(*zone_table));
     if (zone_table == NULL)
-      _exit(2);
+      CuTestChildExit(2);
     test_load_zones(input, CuMutableString("legacy-fixture.zon"));
     if (strcmp(zone_table[0].name, "Legacy zone") != 0 ||
         strcmp(zone_table[0].builders, "None.") != 0 || zone_table[0].cmd[0].command != 'I' ||
         zone_table[0].cmd[0].line != 4 || zone_table[0].cmd[1].command != 'S')
-      _exit(3);
-    _exit(0);
+      CuTestChildExit(3);
+    CuTestChildExit(0);
   }
   assert_world_loader_child(tc, child, 0);
 }
@@ -524,7 +524,7 @@ void Test_world_loading_production_unsupported_zone_reset_reports_line(CuTest *t
     FILE *input = tmpfile();
 
     if (input == NULL)
-      _exit(2);
+      CuTestChildExit(2);
     logfile = capture;
     fputs("#100\nBuilder~\nUnsupported reset~\n10000 10099 30 2\n"
           " L 0 10001 50\nS\n$\n",
@@ -532,9 +532,9 @@ void Test_world_loading_production_unsupported_zone_reset_reports_line(CuTest *t
     rewind(input);
     zone_table = calloc(1, sizeof(*zone_table));
     if (zone_table == NULL)
-      _exit(2);
+      CuTestChildExit(2);
     test_load_zones(input, CuMutableString("unsupported-fixture.zon"));
-    _exit(0);
+    CuTestChildExit(0);
   }
   assert_world_loader_child(tc, child, 1);
   rewind(capture);

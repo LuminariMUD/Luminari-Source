@@ -173,7 +173,6 @@ static void craft_brew_failure(struct craft_actor *actor, bool critical, unsigne
   *seed = craft_brewing_seed(ch, critical);
   circle_srandom(*seed);
   event_brewing(&event);
-  circle_srandom((unsigned long)time(NULL));
 }
 
 void Test_craft_brewing_failures_raise_alchemy_with_insight(CuTest *tc)

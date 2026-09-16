@@ -1141,11 +1141,27 @@ test: run-cutest test-cutest-runner check-build-parity test-clean-archive-runtim
 	test-native-struct-io
 
 # Build check programs once before running the suite, alongside the shell gates.
-# An inherited CUTEST_FILTER must not narrow the authoritative run.
+# An inherited CUTEST_FILTER must not narrow the authoritative run, and an
+# inherited LUMINARI_TEST_SEED must not replace its default seed.
 run-cutest: check
-	CUTEST_FILTER= LUMINARI_TEST_ROOT="$(abs_top_srcdir)" \
+	CUTEST_FILTER= LUMINARI_TEST_SEED= LUMINARI_TEST_ROOT="$(abs_top_srcdir)" \
 		LUMINARI_TEST_SPEC_WORLD_ROOT="$(abs_top_srcdir)/unittests/CuTest/fixtures/spec_world_inventory" \
 		./cutest
+
+# Run the whole suite once per seed in SEEDS and name every failing seed;
+# LUMINARI_TEST_SEED=<seed> ./cutest replays one (issue #92).
+SEEDS = 1 2 3
+test-seeds: check
+	@failed=; for seed in $(SEEDS); do \
+		echo "== LUMINARI_TEST_SEED=$$seed"; \
+		CUTEST_FILTER= LUMINARI_TEST_SEED="$$seed" LUMINARI_TEST_ROOT="$(abs_top_srcdir)" \
+			LUMINARI_TEST_SPEC_WORLD_ROOT="$(abs_top_srcdir)/unittests/CuTest/fixtures/spec_world_inventory" \
+			./cutest || failed="$$failed $$seed"; \
+	done; \
+	if test -n "$$failed"; then \
+		echo "Failing seeds:$$failed; replay one with LUMINARI_TEST_SEED=<seed> ./cutest"; \
+		exit 1; \
+	fi
 
 .PHONY: test test-cutest-runner run-cutest test-process-memory check-build-parity \
 	test-clean-archive-runtime distcheck-archive check-world-docs \
@@ -1157,7 +1173,7 @@ run-cutest: check
 	test-demand-driven-architecture test-event-admission test-native-event-architecture \
 	test-event-core-performance-gate test-pubsub-retirement \
 	test-vessel-tooling test-header-self-containment test-clang-tidy-gate test-baseline-ratchet \
-	test-native-struct-io
+	test-native-struct-io test-seeds
 
 check-world-docs:
 	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py constants sync --check

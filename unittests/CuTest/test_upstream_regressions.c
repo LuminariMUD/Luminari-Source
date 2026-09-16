@@ -1581,8 +1581,6 @@ void Test_upstream_random_generator_sequence(CuTest *tc)
   circle_srandom(42);
   CuAssertTrue(tc, circle_random() == first);
   CuAssertTrue(tc, circle_random() == second);
-
-  circle_srandom((unsigned long)time(NULL));
 }
 
 void Test_clan_armor_uses_builder_value_two(CuTest *tc)
@@ -1618,8 +1616,6 @@ void Test_upstream_random_range_and_dice(CuTest *tc)
     value = dice(2, 6);
     CuAssertTrue(tc, value >= 2 && value <= 12);
   }
-
-  circle_srandom((unsigned long)time(NULL));
 }
 
 void Test_upstream_string_comparison_and_pruning(CuTest *tc)

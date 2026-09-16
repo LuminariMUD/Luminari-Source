@@ -3170,7 +3170,6 @@ void Test_gameplay_pet_guard_obeys_rescue_preference_and_owner_boundary(CuTest *
   circle_srandom(rescue_seed);
   elemental_policy = elemental_policy && !wraith_elemental(&pet, NULL, 0, "");
   FIGHTING(&fixture.victim) = NULL;
-  circle_srandom((unsigned long)time(NULL));
   pet.pet_behavior = PET_BEHAVIOR_GUARD;
   SET_BIT_AR(MOB_FLAGS(&pet), MOB_NOTDEADYET);
   pending = !pet_guards_owner(&pet, &fixture.actor, &fixture.victim);

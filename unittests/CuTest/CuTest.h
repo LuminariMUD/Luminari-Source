@@ -61,6 +61,14 @@ CuTest *CuTestNew(const char *name, TestFunction function);
 void CuTestRun(CuTest *tc);
 void CuTestDelete(CuTest *t);
 
+/* When set, CuTestRun calls this before each test. The production-linked
+ * runner uses it to reseed the random generators (see make-tests.sh). */
+extern void (*CuTestSetUp)(CuTest *tc);
+
+/* End a forked test child without running the parent's exit handlers. A
+ * coverage build first records what the child executed. */
+void CuTestChildExit(int status) __attribute__((noreturn));
+
 /* Internal versions of assert functions -- use the public versions */
 void CuFail_Line(CuTest *tc, const char *file, int line, const char *message2, const char *message);
 void CuAssert_Line(CuTest *tc, const char *file, int line, const char *message, int condition);

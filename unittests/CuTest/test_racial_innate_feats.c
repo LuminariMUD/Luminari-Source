@@ -1788,7 +1788,6 @@ void TestBullChargeStunFollowsTheFortitudeSave(CuTest *tc)
   CuAssertTrue(tc, bull_charge_stun(&fixture.ch, &fixture.other));
   CuAssertPtrNotNull(tc, char_has_mud_event(&fixture.other, eSTUNNED));
 
-  circle_srandom((unsigned long)time(NULL));
   end_innate_fixture(&fixture);
 }
 
