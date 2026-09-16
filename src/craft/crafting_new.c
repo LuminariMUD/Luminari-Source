@@ -110,7 +110,7 @@ int materials_sort_info[NUM_CRAFT_MATS];
 
 #define SUPPLY_ORDER_NOARG1                                                                        \
   "Please specify what supply order action you'd like to take.\r\n"                                \
-  "supplyorder list       : List all available supply order contracts.\r\n"                        \
+  "supplyorder list       : Show supply order information and your artisan points.\r\n"            \
   "supplyorder select <id>: Select a specific contract by ID number.\r\n"                          \
   "supplyorder request    : Request a random supply order project.\r\n"                            \
   "supplyorder show       : Show information on current supply order project.\r\n"                 \
@@ -4442,6 +4442,13 @@ void newcraft_create(struct char_data *ch, const char *argument)
     send_to_char(ch, "%s", NEWCRAFT_CREATE_NOARG1);
     return;
   }
+  /* A held supply order occupies the project record (its item type is an object type). */
+  else if (player_has_supply_order(ch))
+  {
+    send_to_char(ch, "You are working on a supply order. Use the supplyorder command, or type "
+                     "'supplyorder abandon' to give it up.\r\n");
+    return;
+  }
   else if (is_abbrev(arg1, "golem"))
   {
     if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)
@@ -6948,6 +6955,14 @@ void complete_supply_order(struct char_data *ch)
     return;
   }
 
+  /* Progress past the order's quantity cannot come from this order. */
+  if (num_supply_order_requisitions_to_go(ch) < 0)
+  {
+    send_to_char(ch, "Your supply order's progress does not match it. Type 'supplyorder abandon' "
+                     "and request a new one.\r\n");
+    return;
+  }
+
   // Calculate rewards
   gold_reward = calculate_supply_order_reward(ch);
   bonus_exp = gold_reward / 2; // Bonus exp is half the gold reward
@@ -6974,7 +6989,6 @@ void complete_supply_order(struct char_data *ch)
 
   // Clear the supply order
   reset_supply_order(ch);
-  GET_NSUPPLY_NUM_MADE(ch) = 0;
 
   send_to_char(ch, "You are now free to request a new supply order.\r\n");
 }
@@ -7002,7 +7016,9 @@ int calculate_supply_order_reward(struct char_data *ch)
   quantity_bonus = GET_CRAFT(ch).supply_num_required * SUPPLY_QUANTITY_BONUS;
 
   // Calculate skill bonus
-  skill_bonus = get_craft_skill_value(ch, GET_CRAFT(ch).skill_type) * SUPPLY_SKILL_BONUS_MULTIPLIER;
+  skill_bonus =
+      get_craft_skill_value(ch, recipe_skill_to_actual_crafting_skill(GET_CRAFT(ch).skill_type)) *
+      SUPPLY_SKILL_BONUS_MULTIPLIER;
 
   total_reward = base_reward + material_bonus + quantity_bonus + skill_bonus;
 
@@ -7035,6 +7051,10 @@ bool consume_supply_order_materials(struct char_data *ch)
     return FALSE;
   }
 
+  /* Take nothing unless every group can pay for the item. */
+  if (!validate_supply_order_materials(ch))
+    return FALSE;
+
   // Consume materials for one item (called each time an item is completed)
   for (i = 0; i < 3; i++)
   {
@@ -7043,13 +7063,6 @@ bool consume_supply_order_materials(struct char_data *ch)
 
     if (mat_type == CRAFT_GROUP_NONE || num_mats == 0)
       continue;
-
-    if (GET_CRAFT(ch).materials[mat_type][1] < num_mats)
-    {
-      send_to_char(ch, "You don't have enough %s materials to complete this item!\r\n",
-                   crafting_material_groups[mat_type]);
-      return FALSE;
-    }
 
     // Consume the materials
     GET_CRAFT(ch).materials[mat_type][1] -= num_mats;
@@ -7347,6 +7360,30 @@ static void newcraft_resize(struct char_data *ch, const char *argument)
   }
 }
 
+/* Crafting projects and supply orders share one project record, so a player holds only one. */
+static bool craft_project_blocks_supply_order(struct char_data *ch)
+{
+  if (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_NONE && GET_CRAFT(ch).crafting_specific == 0 &&
+      GET_CRAFT(ch).craft_variant < 0)
+    return FALSE;
+  send_to_char(ch, "You already have a crafting project in progress. Finish it or type 'craft "
+                   "reset' first.\r\n");
+  return TRUE;
+}
+
+/* supplyorder reset and abandon: give up the held order; its unused materials come back. */
+static void abandon_supply_order(struct char_data *ch)
+{
+  if (!player_has_supply_order(ch))
+  {
+    send_to_char(ch, "You don't have a supply order to abandon.\r\n");
+    return;
+  }
+  reset_supply_order(ch);
+  send_to_char(ch, "You have abandoned your supply order and lost its progress. You can request a "
+                   "new one.\r\n");
+}
+
 void newcraft_supplyorder(struct char_data *ch, const char *argument)
 {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
@@ -7382,8 +7419,7 @@ void newcraft_supplyorder(struct char_data *ch, const char *argument)
 
     if (!*arg2)
     {
-      send_to_char(ch, "Which contract would you like to select? Use 'supplyorder list' to see "
-                       "available contracts.\r\n");
+      send_to_char(ch, "Which contract would you like to select? Give its number.\r\n");
       return;
     }
 
@@ -7408,6 +7444,9 @@ void newcraft_supplyorder(struct char_data *ch, const char *argument)
       return;
     }
 
+    if (craft_project_blocks_supply_order(ch))
+      return;
+
     if (select_contract_by_id(ch, contract_id))
     {
       send_to_char(ch, "Contract successfully selected! Use 'supplyorder show' to see details or "
@@ -7415,8 +7454,7 @@ void newcraft_supplyorder(struct char_data *ch, const char *argument)
     }
     else
     {
-      send_to_char(
-          ch, "Invalid contract selection. Use 'supplyorder list' to see available contracts.\r\n");
+      send_to_char(ch, "That contract is not available.\r\n");
     }
     return;
   }
@@ -7451,17 +7489,9 @@ void newcraft_supplyorder(struct char_data *ch, const char *argument)
     return;
   }
 
-  if (is_abbrev(arg1, "reset"))
+  if (is_abbrev(arg1, "reset") || is_abbrev(arg1, "abandon") || is_abbrev(arg1, "cancel"))
   {
-    reset_supply_order(ch);
-    send_to_char(ch, "Supply order project has been reset.\r\n");
-    return;
-  }
-
-  if (is_abbrev(arg1, "abandon") || is_abbrev(arg1, "cancel"))
-  {
-    reset_supply_order(ch);
-    send_to_char(ch, "Supply order project has been abandoned.\r\n");
+    abandon_supply_order(ch);
     return;
   }
 
@@ -7726,15 +7756,23 @@ void set_supply_order_materials(struct char_data *ch, char *arg, char *arg2)
   int mat_type = 0;
   bool found = FALSE;
 
-  if (num_supply_order_requisitions_to_go(ch) == 0)
+  if (!player_has_supply_order(ch))
+  {
+    send_to_char(ch, "You don't have a supply order.\r\n");
+    return;
+  }
+
+  if (num_supply_order_requisitions_to_go(ch) <= 0)
   {
     send_to_char(ch, "You have already completed your supply order. Go to a supply order "
                      "requisition NPC and type 'supplyorder complete' for your reward.\r\n");
+    return;
   }
 
   if (!*arg)
   {
     send_to_char(ch, "You need to specify whether to add or remove materials.\r\n");
+    return;
   }
 
   if (!is_abbrev(arg, "add") && !is_abbrev(arg, "remove"))
@@ -7806,6 +7844,15 @@ void set_supply_order_materials(struct char_data *ch, char *arg, char *arg2)
       return;
     }
 
+    /* A quality contract takes only materials graded above its tier. */
+    if (GET_CRAFT(ch).supply_quality_tier_requirement > QUALITY_TIER_STANDARD &&
+        material_grade(material) <= GET_CRAFT(ch).supply_quality_tier_requirement)
+    {
+      send_to_char(ch, "This contract requires materials of a higher grade than %s.\r\n",
+                   crafting_materials[material]);
+      return;
+    }
+
     GET_CRAFT(ch).materials[mat_type][0] = material;
     GET_CRAFT(ch).materials[mat_type][1] = num_mats;
     GET_CRAFT_MAT(ch, material) -= num_mats;
@@ -7825,8 +7872,8 @@ int select_random_craft_recipe(void)
   int type = 0;
   int choice = 0;
 
-  // -2 insteadf of -1 for now, as we're not including instruments yet
-  type = craft_recipe_by_type(dice(CRAFT_TYPE_NONE + 1, NUM_CRAFT_TYPES - 2));
+  /* Weapons, armor and misc only: supply orders exclude instruments and golems. */
+  type = craft_recipe_by_type(dice(1, CRAFT_TYPE_MISC));
 
   choice = dice(1, NUM_CRAFTING_RECIPES - 1);
 
@@ -7869,8 +7916,8 @@ static int select_stable_craft_recipe(int seed)
   int type = 0;
   int choice = 0;
 
-  // Use seed to select type consistently
-  type = craft_recipe_by_type((seed % (NUM_CRAFT_TYPES - 2)) + 1);
+  // Use seed to select type consistently: weapons, armor and misc only
+  type = craft_recipe_by_type((seed % CRAFT_TYPE_MISC) + 1);
 
   // Use seed to select recipe within that type
   choice = (seed % (NUM_CRAFTING_RECIPES - 1)) + 1;
@@ -8012,13 +8059,8 @@ void request_new_supply_order(struct char_data *ch)
     return;
   }
 
-  if (GET_CRAFT(ch).crafting_item_type > CRAFT_TYPE_NONE || GET_CRAFT(ch).crafting_specific > 0 ||
-      GET_CRAFT(ch).craft_variant >= 0)
-  {
-    send_to_char(ch, "You already have a supply order going. Type supplyorder show to see the "
-                     "details or supplyorder reset to start over.\r\n");
+  if (craft_project_blocks_supply_order(ch))
     return;
-  }
 
   if ((recipe = select_random_craft_recipe()) <= CRAFT_RECIPE_NONE)
   {
@@ -8044,6 +8086,7 @@ void request_new_supply_order(struct char_data *ch)
     GET_CRAFT(ch).craft_variant = variant;
     GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_SUPPLYORDER;
     GET_CRAFT(ch).supply_num_required = quantity;
+    GET_NSUPPLY_NUM_MADE(ch) = 0;
     GET_CRAFT(ch).skill_type = crafting_recipes[recipe].variant_skill[variant];
     send_to_char(ch, "You've requested a new supply order to make %d %ss.\r\n", quantity,
                  crafting_recipes[recipe].variant_descriptions[variant]);
@@ -8074,7 +8117,7 @@ void start_supply_order(struct char_data *ch)
   {
     send_to_char(ch, "You need to request a supply order first.\r\n");
   }
-  else if (num_supply_order_requisitions_to_go(ch) == 0)
+  else if (num_supply_order_requisitions_to_go(ch) <= 0)
   {
     send_to_char(ch, "You have already completed your supply order. Go to a supply order "
                      "requisition NPC and type 'supplyorder complete' for your reward.\r\n");
@@ -8251,14 +8294,15 @@ void show_supply_order(struct char_data *ch)
 
 void reset_supply_order(struct char_data *ch)
 {
-  int i = 0;
-
   /* Set cooldown for abandoned slot if one was being worked on */
   if (GET_CRAFT(ch).supply_active_slot >= 0 && GET_CRAFT(ch).supply_active_slot < 5)
   {
     GET_CRAFT(ch).supply_slot_cooldowns[GET_CRAFT(ch).supply_active_slot] =
         time(NULL) + 3600; /* 1 hour cooldown */
   }
+
+  /* Materials that no finished item used go back to storage. */
+  remove_supply_order_materials(ch);
 
   GET_CRAFT(ch).crafting_method = 0;
   GET_CRAFT(ch).crafting_item_type = 0;
@@ -8267,13 +8311,9 @@ void reset_supply_order(struct char_data *ch)
   GET_CRAFT(ch).supply_num_required = 0;
   GET_CRAFT(ch).supply_active_slot = -1; /* Reset active slot tracking */
   GET_CRAFT(ch).skill_type = 0;
-  for (i = 0; i < NUM_CRAFT_GROUPS; i++)
-  {
-    GET_CRAFT(ch).materials[i][0] = 0;
-    GET_CRAFT(ch).materials[i][1] = 0;
-  }
-  send_to_char(ch, "You have reset your supply order, have lost all progress, and will need to "
-                   "request a new one.\r\n");
+  GET_CRAFT(ch).supply_contract_type = 0;
+  GET_CRAFT(ch).supply_quality_tier_requirement = QUALITY_TIER_STANDARD;
+  GET_NSUPPLY_NUM_MADE(ch) = 0;
 }
 
 
@@ -8324,12 +8364,9 @@ SPECIAL(new_supply_orders)
   {
     complete_supply_order(ch);
   }
-  else if (is_abbrev(arg1, "reset"))
+  else if (is_abbrev(arg1, "reset") || is_abbrev(arg1, "abandon"))
   {
-    reset_supply_order(ch);
-  }
-  else if (is_abbrev(arg1, "abandon"))
-  {
+    abandon_supply_order(ch);
   }
   else
   {
@@ -8734,7 +8771,7 @@ void refresh_supply_slots(struct char_data *ch)
     if (!unique_found)
     {
       int recipe_id;
-      for (recipe_id = 1; recipe_id <= NUM_CRAFTING_RECIPES && !unique_found; recipe_id++)
+      for (recipe_id = 1; recipe_id < NUM_CRAFTING_RECIPES && !unique_found; recipe_id++)
       {
         bool already_used = FALSE;
         int j;
@@ -8979,6 +9016,14 @@ int select_contract_by_id(struct char_data *ch, int contract_id)
 
   struct supply_contract *contract = &contracts[contract_id - 1];
 
+  /* Saved offers from older versions can name an instrument recipe without a variant. */
+  if (contract->recipe <= CRAFT_RECIPE_NONE || contract->recipe >= NUM_CRAFTING_RECIPES ||
+      contract->variant < 0 || contract->variant >= NUM_CRAFT_VARIANTS)
+  {
+    free_contract_list(contracts, num_contracts);
+    return 0;
+  }
+
   // Find which slot this contract corresponds to and deactivate it
   int slot_found = -1;
   int i;
@@ -9013,6 +9058,7 @@ int select_contract_by_id(struct char_data *ch, int contract_id)
   GET_CRAFT(ch).craft_variant = contract->variant;
   GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_SUPPLYORDER;
   GET_CRAFT(ch).supply_num_required = contract->quantity;
+  GET_NSUPPLY_NUM_MADE(ch) = 0;
   GET_CRAFT(ch).skill_type = crafting_recipes[contract->recipe].variant_skill[contract->variant];
 
   // Store contract type and advanced features
@@ -9049,7 +9095,7 @@ int select_contract_by_id(struct char_data *ch, int contract_id)
   send_to_char(ch, "You've accepted the %s%s\tn contract to %s.\r\n", type_color, type_name,
                contract->description);
   send_to_char(ch, "Reward upon completion: %d experience points.\r\n", contract->reward);
-  send_to_char(ch, "This contract slot will refresh after 1 hour of online time.\r\n");
+  send_to_char(ch, "This contract slot will refresh in 1 hour.\r\n");
 
   if (contract->quality_tier_requirement > QUALITY_TIER_STANDARD)
   {

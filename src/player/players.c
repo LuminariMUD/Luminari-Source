@@ -1141,6 +1141,19 @@ int load_char(const char *name, struct char_data *ch)
           GET_CRAFT(ch).instrument_motes[3] = atoi(line);
         else if (!strcmp(tag, "CrAS"))
           GET_CRAFT(ch).supply_active_slot = atoi(line);
+        else if (!strcmp(tag, "CrCT"))
+        {
+          /* Selected supply contract: contract type, quality tier requirement. */
+          int contract_type, quality_tier;
+
+          if (sscanf(line, "%d %d", &contract_type, &quality_tier) == 2 && contract_type >= 0 &&
+              contract_type < NUM_SUPPLY_CONTRACT_TYPES && quality_tier >= QUALITY_TIER_STANDARD &&
+              quality_tier < NUM_QUALITY_TIERS)
+          {
+            GET_CRAFT(ch).supply_contract_type = contract_type;
+            GET_CRAFT(ch).supply_quality_tier_requirement = quality_tier;
+          }
+        }
         else if (!strcmp(tag, "CrTr"))
         {
           /* Craft training contract: ability experience end-epoch. A contract already paid for
@@ -3346,6 +3359,9 @@ bool save_char_checked(struct char_data *ch, int mode)
 
   BUFFER_WRITE("CrSN: %d\n", GET_CRAFT(ch).supply_num_required);
   BUFFER_WRITE("CrAS: %d\n", GET_CRAFT(ch).supply_active_slot);
+  if (GET_CRAFT(ch).supply_contract_type != 0)
+    BUFFER_WRITE("CrCT: %d %d\n", GET_CRAFT(ch).supply_contract_type,
+                 GET_CRAFT(ch).supply_quality_tier_requirement);
 
   /* Save individual supply slot cooldowns */
   {
