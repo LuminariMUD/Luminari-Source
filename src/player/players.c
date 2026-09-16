@@ -1141,6 +1141,24 @@ int load_char(const char *name, struct char_data *ch)
           GET_CRAFT(ch).instrument_motes[3] = atoi(line);
         else if (!strcmp(tag, "CrAS"))
           GET_CRAFT(ch).supply_active_slot = atoi(line);
+        else if (!strcmp(tag, "CrTr"))
+        {
+          /* Craft training contract: ability experience end-epoch. A contract already paid for
+           * stays valid for any craft or harvest ability, even one no longer trainable. */
+          int ability, experience;
+          long end;
+
+          if (sscanf(line, "%d %d %ld", &ability, &experience, &end) == 3 &&
+              ability >= START_CRAFT_ABILITIES && ability <= END_HARVEST_ABILITIES &&
+              experience > 0 && end > 0)
+          {
+            GET_CRAFT(ch).training_ability = ability;
+            GET_CRAFT(ch).training_exp = experience;
+            GET_CRAFT(ch).training_end = (time_t)end;
+          }
+          else
+            log("SYSERR: Ignoring malformed craft training contract '%s' in pfile %s", line, name);
+        }
 
         break;
 
@@ -3338,6 +3356,10 @@ bool save_char_checked(struct char_data *ch, int mode)
       }
     }
   }
+
+  if (GET_CRAFT(ch).training_ability)
+    BUFFER_WRITE("CrTr: %d %d %ld\n", GET_CRAFT(ch).training_ability, GET_CRAFT(ch).training_exp,
+                 (long)GET_CRAFT(ch).training_end);
 
   BUFFER_WRITE("CrSR: %d\n", GET_CRAFT(ch).survey_rooms);
   BUFFER_WRITE("CrIy: %d\n", GET_CRAFT(ch).instrument_type);

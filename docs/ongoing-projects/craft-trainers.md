@@ -13,7 +13,7 @@ owner's world-data release (step 5).
 Update this list with every commit, so a new session can resume from it.
 
 - [x] Step 1: craft experience and ranks, plus the talent storage fix from Finding 12.
-- [ ] Step 2: contract rules and record.
+- [x] Step 2: contract rules and record.
 - [ ] Step 3: SpecProc and command.
 - [ ] Step 4: lock, settlement, recall, and menu row.
 - [ ] Step 5: placement.
@@ -27,7 +27,7 @@ Working notes for this worktree (`../Luminari-Source-issue-196`):
 - Build with `make -j16 luminari cutest` (about 40 seconds after a `structs.h` change). Run the suite
   the way `make run-cutest` does:
   `CUTEST_FILTER= LUMINARI_TEST_ROOT="$PWD" LUMINARI_TEST_SPEC_WORLD_ROOT="$PWD/unittests/CuTest/fixtures/spec_world_inventory" ./cutest`
-  (1,511 tests after step 1, about 5 seconds). Use `CUTEST_FILTER=Test_craft_` for this feature.
+  (1,516 tests after step 2, about 5 seconds). Use `CUTEST_FILTER=Test_craft_` for this feature.
 - The pre-push hook runs `make`; run `make install` afterwards so no root-level `luminari` binary
   is left behind.
 
@@ -314,6 +314,26 @@ Plan as written:
     `leave_player_fixture()` from `unittests/CuTest/test_gameplay_e2e.c:98`).
 
 ### Step 2: contract rules and record
+
+Done. As built:
+
+- `src/craft/craft_training.h` declares `craft_training_track_eligible()`,
+  `craft_training_grant()`, `craft_training_fee()`, and `craft_training_status()`, with the
+  tunables `CRAFT_TRAINING_DURATION`, `CRAFT_TRAINING_RANK_CEILING`, and `CRAFT_TRAINING_FEE_BASE`.
+  The grant and fee take only the rank. There is no separate seconds-left function: the status
+  formatter is its only consumer, and it rounds minutes up so a running contract never reads
+  "0m left".
+- `training_ability`, `training_exp`, and `training_end` sit after the supply-order timestamps in
+  `struct crafting_data_info`. `CrTr` is written just before `CrSR` in `save_char_checked()` and
+  parsed with the other `Cr` tags in `load_char()`.
+- Tests: `Test_craft_training_contract_survives_save_and_load` (also proves that clearing the
+  record removes the line), `Test_craft_training_ignores_malformed_contracts`,
+  `Test_craft_training_grant_never_crosses_two_ranks` (every trainable track and rank below the
+  ceiling, with every talent at its highest rank, through `gain_craft_exp()`),
+  `Test_craft_training_fee_rises_with_rank` (also checks the 574,000 gold total), and
+  `Test_craft_training_status_counts_down_to_finished`.
+
+Plan as written:
 
 - `src/craft/craft_training.h` (self-contained, tunables as macros) and
   `src/craft/craft_training.c`, added to `Makefile.am` and `CMakeLists.txt`; run
