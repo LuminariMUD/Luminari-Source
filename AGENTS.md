@@ -115,7 +115,8 @@ make valgrind-protocol
 Use `CUTEST_FILTER=<case-sensitive substring> ./cutest` for focused iteration.
 An empty or unset filter runs every test; an unmatched filter fails. `make test`,
 `make test-all`, and CTest ignore an exported filter, so full validation always runs
-every test. Tests taking over one second are listed after the summary.
+every test. Tests taking over one second are listed after the summary. Every run prints
+`LUMINARI_TEST_SEED=<n>`; replay a failure with `LUMINARI_TEST_SEED=<n> CUTEST_FILTER=<test> ./cutest`, and never reseed a generator from the clock in a test.
 
 Other test entry points: `make test-character-rename-static` and `make test-character-rename-schema` (root), plus one-off Makefiles in `unittests/` (e.g. `test_clan.c-Makefile`).
 
