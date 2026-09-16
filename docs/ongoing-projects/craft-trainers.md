@@ -16,7 +16,7 @@ Update this list with every commit, so a new session can resume from it.
 - [x] Step 2: contract rules and record.
 - [x] Step 3: SpecProc and command.
 - [x] Step 4: lock, settlement, recall, and menu row.
-- [ ] Step 5: placement.
+- [x] Step 5: placement (development check only; production placement stays with the owner).
 - [ ] Step 6: help and documentation.
 - [ ] Step 7: verification.
 
@@ -461,6 +461,41 @@ Plan as written:
     because `show_account_menu()` queries it.
 
 ### Step 5: placement
+
+Done. As built:
+
+- `data/craft-trainers/3.mob` uses Sazzy's flag word (mobile 374, 8675338: sentinel, NPC,
+  uncharmable, unsummonable, unkillable, does not fight), level 15, standing, male human. It
+  validates with no findings.
+- The record and the reset were installed only in this worktree's copy of the development world
+  (`lib/world/mob/3.mob` between 371 and 374, and the reset after Jufus's in
+  `lib/world/zon/3.zon`). Zone 3 validates with the same eight warnings as before. The main
+  checkout's development world was not changed, and neither was its running server.
+- The development server already held port 4100, so the live check ran in a private network
+  namespace (`unshare -rn --pid --fork --mount-proc`, then `unshare --map-user=1000`): a
+  disposable `mariadbd` on the namespace's own 127.0.0.1:3306 loaded with `sql/master_schema.sql`,
+  a runtime lib (copied `etc` and `misc`, linked `world` and `text`, a minimal `.env`, and a
+  `mysql_config` for that database) bind-mounted over `lib` only inside the namespace, and
+  `MUD_PORT=4100 ./scripts/autorun/autorun.sh foreground`. A player index with one placeholder
+  entry keeps the first new character from becoming an implementor. A small relay script carried
+  telnet lines in and out through a FIFO. The scripts are session scratch files, not part of the
+  branch.
+- Checked live with a new level 1 warrior whose player file was given 20,000 gold, alchemy rank 4
+  (10,000 experience), and load room 373 while offline: the room shows the trainer; `apprentice`
+  lists the 12 tracks; `appr` reaches the trainer and `app` still means `applies`; a quote;
+  `apprentice bowmaking` refuses; confirm takes 2,500 gold, writes `CrTr: 36 2500 <end>`, saves
+  62 belongings to the object file, and leaves the character at the main menu; option 1 refuses;
+  the account row shows "training, 24h 0m left"; selecting the character refuses with the recall
+  syntax; `recall 1`, `recall 1 confirm`, and a bare `recall` answer correctly and the contract
+  is gone with gold and experience unchanged. With the end time moved into the past offline, the
+  row shows "training finished", selection prints the return line and "You've gained 2500
+  experience points in the 'alchemy' skill", the file has no contract and 12,500 alchemy
+  experience, and the character enters room 373 carrying its belongings.
+- The live check showed the refusal and recall replies after the "Your choice :" prompt; they
+  now print before the redrawn menu (commit "Print training messages above the redrawn account
+  menu").
+
+Plan as written:
 
 - `data/craft-trainers/3.mob`: mob 373, a master artisan with `SpecProc: Craft Trainer` and the
   flags of the district's service NPCs (sentinel, uncharmable, unsummonable, unkillable, does not
