@@ -237,9 +237,10 @@ Progress on 2026-09-16 (this session):
    final source (including the two NPC regressions and the updated spec
    contract test) with no compiler warnings; `make install` succeeded and no
    root `luminari` artifact remains; pre-commit passes on every changed file.
-   Still open: push `revert-combat`, open the PR, run the triggered CI jobs
-   locally, merge, then delete this document per
-   `docs/ongoing-projects/README.md`.
+   Pushed and opened as PR #197
+   (https://github.com/LuminariMUD/Luminari-Source/pull/197). Still open:
+   run the triggered CI jobs locally (`python3 scripts/ci/local/run.py`),
+   merge, then delete this document per `docs/ongoing-projects/README.md`.
 
 ### 5. Ablation
 
