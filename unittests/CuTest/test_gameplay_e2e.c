@@ -61,6 +61,7 @@
 #include "../../src/wilderness/wilderness.h"
 #include "../../src/character/perks.h"
 #include "../../src/net/protocol.h"
+#include "../../src/net/reactor.h"
 #include "../../src/magic/spells.h"
 #include "../../src/magic/domains_schools.h"
 #include "../../src/character/class.h"
@@ -86,6 +87,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
 #include "../../src/craft/crafting_recipes.h"
@@ -710,6 +712,339 @@ static void end_gameplay_fixture(struct gameplay_fixture *fixture)
   top_of_zone_table = fixture->saved_top_of_zone_table;
   mob_index = fixture->saved_mob_index;
   top_of_mobt = fixture->saved_top_of_mobt;
+}
+
+
+struct restoration_command_fixture
+{
+  struct gameplay_fixture game;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct char_data *saved_characters;
+  struct luminari_reactor *reactor;
+  unsigned long saved_pulse;
+  bool created_commands;
+  int sockets[2];
+};
+
+static void begin_restoration_command_fixture(CuTest *tc, struct restoration_command_fixture *f,
+                                              enum luminari_io_driver driver)
+{
+  enum luminari_reactor_status status;
+  struct char_data *ch;
+
+  memset(f, 0, sizeof(*f));
+  begin_gameplay_fixture(&f->game);
+  f->saved_characters = character_list;
+  f->saved_pulse = pulse;
+  f->created_commands = complete_cmd_info == NULL;
+  domain_event_runtime_shutdown();
+  event_free_all();
+  pulse = 25000U;
+  event_init();
+  if (f->created_commands)
+    create_command_list();
+  if (feat_list[FEAT_LAYHANDS].name == NULL)
+    assign_feats();
+  ch = &f->game.actor;
+  REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
+  ch->player_specials = &f->specials;
+  ch->player.name = CuMutableString("queuepaladin");
+  ch->player.title = CuMutableString("");
+  f->game.victim.player.name = CuMutableString("ally");
+  GET_CLASS(ch) = CLASS_PALADIN;
+  CLASS_LEVEL(ch, CLASS_PALADIN) = 10;
+  SET_FEAT(ch, FEAT_LAYHANDS, 1);
+  ch->real_abils.cha = ch->aff_abils.cha = 18;
+  ch->real_abils.con = ch->aff_abils.con = 18;
+  GET_MAX_HIT(ch) = GET_MAX_HIT(&f->game.victim) = 1000;
+  GET_WAS_IN(ch) = NOWHERE;
+  GET_QUEUE(ch) = create_action_queue();
+  GET_ATTACK_QUEUE(ch) = create_attack_queue();
+  ch->next = &f->game.victim;
+  character_list = ch;
+  f->game.rooms[0].light = 1;
+  f->descriptor.output = f->descriptor.small_outbuf;
+  f->descriptor.bufspace = SMALL_BUFSIZE - 1;
+  f->descriptor.character = ch;
+  f->descriptor.pProtocol = ProtocolCreate();
+  f->descriptor.connected = CON_PLAYING;
+  f->descriptor.history = calloc(HISTORY_SIZE, sizeof(*f->descriptor.history));
+  ch->desc = &f->descriptor;
+  CuAssertIntEquals(tc, 0, socketpair(AF_UNIX, SOCK_STREAM, 0, f->sockets));
+  f->descriptor.descriptor = f->sockets[0];
+  f->reactor = luminari_reactor_create(driver, &status);
+  CuAssertPtrNotNull(tc, f->reactor);
+  CuAssertIntEquals(tc, LUMINARI_REACTOR_OK, status);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  comm_wait_state_advance_for_test(ch, pulse);
+}
+
+static void end_restoration_command_fixture(struct restoration_command_fixture *f)
+{
+  struct txt_block *block;
+  int i;
+
+  stop_fighting(&f->game.actor);
+  stop_fighting(&f->game.victim);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  free_action_queue(GET_QUEUE(&f->game.actor));
+  free_attack_queue(GET_ATTACK_QUEUE(&f->game.actor));
+  if (f->game.actor.events != NULL)
+    free_list(f->game.actor.events);
+  if (f->game.victim.events != NULL)
+    free_list(f->game.victim.events);
+  while (f->descriptor.input.head != NULL)
+  {
+    block = f->descriptor.input.head;
+    f->descriptor.input.head = block->next;
+    free(block->text);
+    free(block);
+  }
+  for (i = 0; i < HISTORY_SIZE; i++)
+    free(f->descriptor.history[i]);
+  free(f->descriptor.history);
+  ProtocolDestroy(f->descriptor.pProtocol);
+  if (f->descriptor.large_outbuf != NULL)
+  {
+    free(f->descriptor.large_outbuf->text);
+    free(f->descriptor.large_outbuf);
+  }
+  luminari_reactor_destroy(f->reactor);
+  close(f->sockets[0]);
+  close(f->sockets[1]);
+  if (f->created_commands)
+    free_command_list();
+  f->game.actor.desc = NULL;
+  character_list = f->saved_characters;
+  pulse = f->saved_pulse;
+  end_gameplay_fixture(&f->game);
+}
+
+/* Use real socket parsing; subsequent wakeups must not need another socket byte. */
+static void restoration_receive_commands(CuTest *tc, struct restoration_command_fixture *f,
+                                         const char *commands)
+{
+  CuAssertIntEquals(tc, LUMINARI_REACTOR_OK, luminari_reactor_begin_cycle(f->reactor));
+  CuAssertIntEquals(tc, LUMINARI_REACTOR_OK,
+                    luminari_reactor_watch(f->reactor, f->sockets[0], LUMINARI_REACTOR_READ));
+  CuAssertIntEquals(tc, (int)strlen(commands),
+                    (int)write(f->sockets[1], commands, strlen(commands)));
+  CuAssertIntEquals(tc, LUMINARI_REACTOR_OK, luminari_reactor_wait(f->reactor, 100000));
+  CuAssertTrue(tc, luminari_reactor_ready(f->reactor, f->sockets[0], LUMINARI_REACTOR_READ));
+  CuAssertIntEquals(tc, 1, process_input_for_test(&f->descriptor));
+}
+
+static void verify_restoration_queue_wakeup(CuTest *tc, enum luminari_io_driver driver)
+{
+  struct restoration_command_fixture f;
+  struct char_data *ch;
+  struct combat_encounter_stats stats;
+  uint64_t ready_deadline, next_deadline, wait_deadline;
+  bool admitted, blocked_dormant, before_recovery, first_healed, second_healed;
+  bool input_ready, first_input, second_input, socket_idle;
+  char self_command[] = "layonhands self";
+  char ally_command[] = "layonhands ally";
+  char first_heal_output[MAX_STRING_LENGTH];
+  int tick, actor_before, ally_before;
+
+  begin_restoration_command_fixture(tc, &f, driver);
+  ch = &f.game.actor;
+  FIGHTING(ch) = &f.game.victim;
+  CuAssertTrue(tc, combat_encounter_join(ch, &f.game.victim, 2 RL_SEC));
+  start_action_cooldown(ch, atSTANDARD, 3);
+  command_interpreter(ch, self_command);
+  command_interpreter(ch, ally_command);
+  admitted = pending_actions(ch) == 2 && GET_HIT(ch) == 100 && GET_HIT(&f.game.victim) == 100;
+  GET_WAIT_STATE(ch) = 2;
+  blocked_dormant = comm_descriptor_command_deadline_usec_for_test(&f.descriptor, 0) == UINT64_MAX;
+  GET_WAIT_STATE(ch) = 0;
+  for (tick = 0; tick < 2; tick++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  before_recovery = !is_action_available(ch, atSTANDARD, false) &&
+                    comm_descriptor_command_deadline_usec_for_test(&f.descriptor, 0) == UINT64_MAX;
+  pulse++;
+  event_test_advance();
+  ready_deadline = comm_descriptor_command_deadline_usec_for_test(&f.descriptor, 0);
+  CuAssertIntEquals(tc, LUMINARI_REACTOR_OK, luminari_reactor_begin_cycle(f.reactor));
+  CuAssertIntEquals(tc, LUMINARI_REACTOR_OK,
+                    luminari_reactor_watch(f.reactor, f.sockets[0], LUMINARI_REACTOR_READ));
+  /* Bound the old failure's timeout; a correct ready deadline is immediate. */
+  CuAssertIntEquals(
+      tc, LUMINARI_REACTOR_OK,
+      luminari_reactor_wait(f.reactor, ready_deadline < 10000 ? ready_deadline : 10000));
+  socket_idle = !luminari_reactor_ready(f.reactor, f.sockets[0], LUMINARI_REACTOR_READ);
+  actor_before = GET_HIT(ch);
+  ally_before = GET_HIT(&f.game.victim);
+  comm_process_descriptor_commands_for_test(&f.descriptor);
+  first_healed = pending_actions(ch) == 1 && GET_HIT(ch) > actor_before &&
+                 GET_HIT(&f.game.victim) == ally_before;
+  snprintf(first_heal_output, sizeof(first_heal_output), "FIFO head: count=%d self=%d ally=%d: %s",
+           pending_actions(ch), GET_HIT(ch), GET_HIT(&f.game.victim), f.descriptor.output);
+  next_deadline = comm_descriptor_command_deadline_usec_for_test(&f.descriptor, 0);
+  comm_process_descriptor_commands_for_test(&f.descriptor);
+  second_healed = pending_actions(ch) == 0 && GET_HIT(&f.game.victim) > ally_before &&
+                  !is_action_available(ch, atSTANDARD, false);
+
+  restoration_receive_commands(tc, &f, "queue\nqueue\n");
+  input_ready = comm_descriptor_command_deadline_usec_for_test(&f.descriptor, 0) == 0;
+  comm_process_descriptor_commands_for_test(&f.descriptor);
+  first_input = f.descriptor.input.head != NULL && GET_WAIT_STATE(ch) == 1;
+  wait_deadline = comm_descriptor_command_deadline_usec_for_test(&f.descriptor, 0);
+  pulse++;
+  event_test_advance();
+  comm_process_descriptor_commands_for_test(&f.descriptor);
+  second_input = f.descriptor.input.head == NULL;
+  wait_deadline -= (uint64_t)pulse * OPT_USEC;
+  combat_encounter_get_stats(&stats);
+  end_restoration_command_fixture(&f);
+
+  CuAssert(tc, "real commands must enter FIFO without healing during admission", admitted);
+  CuAssert(tc, "action-blocked head must use native recovery, not wait-state polling",
+           blocked_dormant);
+  CuAssertTrue(tc, before_recovery);
+  CuAssert(tc, "native recovery must immediately wake a ready queue", ready_deadline == 0);
+  CuAssertTrue(tc, socket_idle);
+  CuAssert(tc, first_heal_output, first_healed);
+  CuAssert(tc, "next eligible FIFO head must wake without a combat phase", next_deadline == 0);
+  CuAssertTrue(tc, second_healed);
+  CuAssertTrue(tc, input_ready);
+  CuAssertTrue(tc, first_input);
+  CuAssertTrue(tc, wait_deadline == 0);
+  CuAssertTrue(tc, second_input);
+  CuAssertIntEquals(tc, 2, (int)stats.active_participants);
+  CuAssertIntEquals(tc, 0, (int)stats.encounter_callbacks);
+}
+
+void Test_combat_restoration_queue_wakeup_select(CuTest *tc)
+{
+  verify_restoration_queue_wakeup(tc, LUMINARI_IO_DRIVER_SELECT);
+}
+
+void Test_combat_restoration_queue_wakeup_libevent(CuTest *tc)
+{
+  verify_restoration_queue_wakeup(tc, LUMINARI_IO_DRIVER_LIBEVENT);
+}
+
+static void verify_restoration_queue_gates(CuTest *tc, enum luminari_io_driver driver)
+{
+  struct restoration_command_fixture f;
+  struct char_data *ch;
+  char *editor = NULL;
+  char command[] = "layonhands self";
+  bool editor_blocked, pager_blocked, menu_blocked, wait_blocked, input_priority, cleared;
+  uint64_t deadline;
+  int uses_before;
+
+  begin_restoration_command_fixture(tc, &f, driver);
+  ch = &f.game.actor;
+  uses_before = daily_uses_remaining(ch, FEAT_LAYHANDS);
+  start_action_cooldown(ch, atSTANDARD, 1);
+  command_interpreter(ch, command);
+  pulse++;
+  event_test_advance();
+  f.descriptor.str = &editor;
+  comm_process_descriptor_commands_for_test(&f.descriptor);
+  editor_blocked = pending_actions(ch) == 1 &&
+                   comm_descriptor_command_deadline_usec_for_test(&f.descriptor, 0) == UINT64_MAX;
+  f.descriptor.str = NULL;
+  f.descriptor.showstr_count = 1;
+  comm_process_descriptor_commands_for_test(&f.descriptor);
+  pager_blocked = pending_actions(ch) == 1 &&
+                  comm_descriptor_command_deadline_usec_for_test(&f.descriptor, 0) == UINT64_MAX;
+  f.descriptor.showstr_count = 0;
+  STATE(&f.descriptor) = CON_GET_NAME;
+  comm_process_descriptor_commands_for_test(&f.descriptor);
+  menu_blocked = pending_actions(ch) == 1 &&
+                 comm_descriptor_command_deadline_usec_for_test(&f.descriptor, 0) == UINT64_MAX;
+  STATE(&f.descriptor) = CON_PLAYING;
+  GET_WAIT_STATE(ch) = 2;
+  deadline = comm_descriptor_command_deadline_usec_for_test(&f.descriptor, 0);
+  comm_process_descriptor_commands_for_test(&f.descriptor);
+  wait_blocked = pending_actions(ch) == 1 && deadline == (uint64_t)(pulse + 2) * OPT_USEC;
+  restoration_receive_commands(tc, &f, "queue clear\n");
+  pulse++;
+  event_test_advance();
+  comm_process_descriptor_commands_for_test(&f.descriptor);
+  input_priority = pending_actions(ch) == 1 && f.descriptor.input.head != NULL;
+  pulse++;
+  event_test_advance();
+  comm_process_descriptor_commands_for_test(&f.descriptor);
+  cleared = pending_actions(ch) == 0 && f.descriptor.input.head == NULL &&
+            daily_uses_remaining(ch, FEAT_LAYHANDS) == uses_before;
+  end_restoration_command_fixture(&f);
+
+  CuAssertTrue(tc, editor_blocked);
+  CuAssertTrue(tc, pager_blocked);
+  CuAssertTrue(tc, menu_blocked);
+  CuAssertTrue(tc, wait_blocked);
+  CuAssertTrue(tc, input_priority);
+  CuAssert(tc, "buffered queue clear must run before the eligible queued heal", cleared);
+}
+
+void Test_combat_restoration_queue_gates_select(CuTest *tc)
+{
+  verify_restoration_queue_gates(tc, LUMINARI_IO_DRIVER_SELECT);
+}
+
+void Test_combat_restoration_queue_gates_libevent(CuTest *tc)
+{
+  verify_restoration_queue_gates(tc, LUMINARI_IO_DRIVER_LIBEVENT);
+}
+
+
+void Test_combat_restoration_queue_preflight_limit_and_departed_target(CuTest *tc)
+{
+  struct restoration_command_fixture f;
+  struct char_data *ch;
+  char missing_target[] = "layonhands absent";
+  char self_command[] = "layonhands self";
+  char ally_command[] = "layonhands ally";
+  char unsupported[] = "bandage self";
+  bool bad_target_rejected, missing_feat_rejected, unsupported_rejected;
+  bool bounded, target_gone, no_cost, dormant;
+  int i, uses_before;
+
+  begin_restoration_command_fixture(tc, &f, LUMINARI_IO_DRIVER_LIBEVENT);
+  ch = &f.game.actor;
+  uses_before = daily_uses_remaining(ch, FEAT_LAYHANDS);
+  start_action_cooldown(ch, atSTANDARD, 1);
+  command_interpreter(ch, missing_target);
+  bad_target_rejected = pending_actions(ch) == 0;
+  SET_FEAT(ch, FEAT_LAYHANDS, 0);
+  command_interpreter(ch, self_command);
+  missing_feat_rejected = pending_actions(ch) == 0;
+  SET_FEAT(ch, FEAT_LAYHANDS, 1);
+  command_interpreter(ch, unsupported);
+  unsupported_rejected = pending_actions(ch) == 0;
+  for (i = 0; i < MAX_QUEUE_SIZE + 1; i++)
+    command_interpreter(ch, self_command);
+  bounded = pending_actions(ch) == MAX_QUEUE_SIZE &&
+            strstr(f.descriptor.output, "The action queue is full.") != NULL;
+  clear_action_queue(GET_QUEUE(ch));
+  command_interpreter(ch, ally_command);
+  char_from_room(&f.game.victim);
+  char_to_room(&f.game.victim, 1);
+  pulse++;
+  event_test_advance();
+  comm_process_descriptor_commands_for_test(&f.descriptor);
+  target_gone = pending_actions(ch) == 0 && IN_ROOM(&f.game.victim) == 1;
+  no_cost = is_action_available(ch, atSTANDARD, false) &&
+            daily_uses_remaining(ch, FEAT_LAYHANDS) == uses_before;
+  dormant = comm_descriptor_command_deadline_usec_for_test(&f.descriptor, 0) == UINT64_MAX;
+  end_restoration_command_fixture(&f);
+
+  CuAssertTrue(tc, bad_target_rejected);
+  CuAssertTrue(tc, missing_feat_rejected);
+  CuAssertTrue(tc, unsupported_rejected);
+  CuAssertTrue(tc, bounded);
+  CuAssertTrue(tc, target_gone);
+  CuAssertTrue(tc, no_cost);
+  CuAssertTrue(tc, dormant);
 }
 
 struct restoration_attack_trace
@@ -1530,6 +1865,87 @@ void Test_combat_restoration_damage_retort_chain_keeps_lifetime_bound(CuTest *tc
 void Test_combat_restoration_damage_melee_uses_same_reaction_bound(CuTest *tc)
 {
   verify_restored_damage_continuation(tc, 0, false, true, true);
+}
+
+
+/* Exercise the real spell affect and hit paths: greater must retain its approved
+ * activation fix and consume three charges. Reflection follows the original
+ * damage; the fourth attack deals its ordinary damage without retaliation. */
+void Test_combat_restoration_greater_juxtaposition_reflects_three_hits(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct char_data *saved_characters = character_list;
+  int charges[4], actor_loss[4], victim_loss[4], results[4];
+  int i, actor_before, victim_before, initial_charges;
+  char observation[200];
+  bool expired;
+
+  begin_gameplay_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  event_init();
+  if (spell_info[SPELL_GREATER_HOSTILE_JUXTAPOSITION].name == NULL ||
+      spell_info[SPELL_GREATER_HOSTILE_JUXTAPOSITION].name == unused_spellname)
+    mag_assign_spells();
+  f.actor.next = &f.victim;
+  character_list = &f.actor;
+  f.rooms[0].light = 1;
+  GET_ATTACK_QUEUE(&f.actor) = create_attack_queue();
+  GET_ATTACK_QUEUE(&f.victim) = create_attack_queue();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  mag_affects(20, &f.victim, &f.victim, NULL, SPELL_GREATER_HOSTILE_JUXTAPOSITION, SAVING_WILL,
+              CAST_SPELL, 0);
+  initial_charges =
+      get_char_affect_modifier(&f.victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION, APPLY_SPECIAL);
+  GET_HIT(&f.actor) = GET_MAX_HIT(&f.actor) = 100000;
+  GET_HIT(&f.victim) = GET_MAX_HIT(&f.victim) = 100000;
+  GET_HITROLL(&f.actor) = 100;
+  GET_DAMNODICE(&f.actor) = 10;
+  GET_DAMSIZEDICE(&f.actor) = 6;
+  FIGHTING(&f.actor) = &f.victim;
+  FIGHTING(&f.victim) = &f.actor;
+  for (i = 0; i < 4; i++)
+  {
+    actor_before = GET_HIT(&f.actor);
+    victim_before = GET_HIT(&f.victim);
+    circle_srandom(1234);
+    results[i] = hit(&f.actor, &f.victim, TYPE_UNDEFINED, DAM_BLUDGEON, 0, ATTACK_TYPE_PRIMARY);
+    charges[i] =
+        get_char_affect_modifier(&f.victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION, APPLY_SPECIAL);
+    actor_loss[i] = actor_before - GET_HIT(&f.actor);
+    victim_loss[i] = victim_before - GET_HIT(&f.victim);
+  }
+  expired = !affected_by_spell(&f.victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION);
+  stop_fighting(&f.actor);
+  stop_fighting(&f.victim);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  free_attack_queue(GET_ATTACK_QUEUE(&f.actor));
+  free_attack_queue(GET_ATTACK_QUEUE(&f.victim));
+  if (f.actor.events != NULL)
+    free_list(f.actor.events);
+  if (f.victim.events != NULL)
+    free_list(f.victim.events);
+  character_list = saved_characters;
+  end_gameplay_fixture(&f);
+
+  CuAssertIntEquals(tc, 3, initial_charges);
+  for (i = 0; i < 3; i++)
+  {
+    CuAssertIntEquals(tc, 2 - i, charges[i]);
+    snprintf(observation, sizeof(observation),
+             "hit %d: charges=%d actor loss=%d victim loss=%d result=%d", i + 1, charges[i],
+             actor_loss[i], victim_loss[i], results[i]);
+    CuAssert(tc, observation, actor_loss[i] > 0);
+    CuAssertTrue(tc, victim_loss[i] > 0);
+    /* Reflected damage retains the ordinary NPC spell-damage multiplier. */
+    CuAssertIntEquals(tc, victim_loss[i] * 3 / 4, actor_loss[i]);
+    CuAssertIntEquals(tc, 0, results[i]);
+  }
+  CuAssertTrue(tc, expired);
+  CuAssertIntEquals(tc, 0, actor_loss[3]);
+  CuAssertTrue(tc, victim_loss[3] > 0);
+  CuAssertTrue(tc, results[3] > 0);
 }
 
 void Test_gameplay_e2e_staff_all_feats_melee_rotation_executes(CuTest *tc)
