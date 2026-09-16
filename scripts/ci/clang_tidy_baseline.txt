@@ -665,7 +665,7 @@ src/olc/hsedit.c clang-analyzer-deadcode.DeadStores 1
 src/olc/improved-edit.c bugprone-assignment-in-if-condition 27
 src/olc/improved-edit.c bugprone-switch-missing-default-case 4
 src/olc/improved-edit.c bugprone-unchecked-string-to-number-conversion 6
-src/olc/improved-edit.c bugprone-unsafe-functions 3
+src/olc/improved-edit.c bugprone-unsafe-functions 2
 src/olc/improved-edit.c clang-analyzer-deadcode.DeadStores 3
 src/olc/improved-edit.c clang-analyzer-optin.portability.UnixAPI 1
 src/olc/medit.c bugprone-assignment-in-if-condition 15

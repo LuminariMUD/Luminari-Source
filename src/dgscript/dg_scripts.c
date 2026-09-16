@@ -1940,7 +1940,11 @@ static void eval_expr(char *line, char *result, void *go, struct script_data *sc
 
   else if (*line == '(')
   {
-    strlcpy(expr, line, sizeof(expr));
+    /* A condition longer than expr evaluates as whatever the cut left behind,
+     * so the builder is told which trigger to shorten. */
+    if (strlcpy(expr, line, sizeof(expr)) >= sizeof(expr))
+      script_log("Trigger: %s, VNum %" PRI_IDX ". condition is too long: '%s'", GET_TRIG_NAME(trig),
+                 GET_TRIG_VNUM(trig), line);
     p = matching_paren(expr);
     *p = '\0';
     eval_expr(expr + 1, result, go, sc, trig, type);

@@ -106,6 +106,8 @@ int improved_editor_execute(struct descriptor_data *d, char *str)
 void parse_edit_action(int command, char *string, struct descriptor_data *d)
 {
   int indent = 0, rep_all = 0, flags = 0, replaced, i, line_low = 1, line_high = 999999, j = 0;
+  int truncated = 0;
+  size_t length;
   unsigned int total_len;
   char *s, *t, temp;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -387,8 +389,11 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
     }
     else
       strlcat(buf, t, sizeof(buf));
-    /* This is kind of annoying...but some people like it. */
-    sprintf(buf + strlen(buf), "\r\n%u line%sshown.\r\n", total_len, (total_len != 1) ? "s " : " ");
+    /* This is kind of annoying...but some people like it. The listing can fill
+     * buf, so the trailer is bounded by what is left of it. */
+    length = strlen(buf);
+    snprintf(buf + length, sizeof(buf) - length, "\r\n%u line%sshown.\r\n", total_len,
+             (total_len != 1) ? "s " : " ");
     page_string(d, buf, TRUE);
     break;
   case PARSE_LIST_NUM:
@@ -563,11 +568,11 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
         temp = *s;
         *s = '\0';
         /* Put the first 'good' half of the text into storage. */
-        strlcat(buf, *d->str, sizeof(buf));
+        truncated |= strlcat(buf, *d->str, sizeof(buf)) >= sizeof(buf);
         *s = temp;
       }
       /* Put the new 'good' line into place. */
-      strlcat(buf, buf2, sizeof(buf));
+      truncated |= strlcat(buf, buf2, sizeof(buf)) >= sizeof(buf);
       if ((s = strchr(s, '\n')) != NULL)
       {
         /* This means that we are at the END of the line, we want out of there,
@@ -575,10 +580,12 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
          * we want edited. */
         s++;
         /* Now put the last 'good' half of buffer into storage. */
-        strlcat(buf, s, sizeof(buf));
+        truncated |= strlcat(buf, s, sizeof(buf)) >= sizeof(buf);
       }
-      /* Check for buffer overflow. */
-      if (strlen(buf) > d->max_str)
+      /* Check for buffer overflow. buf is as large as the largest max_str any
+       * editor uses, so a length test alone cannot see the overflow strlcat
+       * turned into truncation; each concatenation reports its own. */
+      if (truncated || strlen(buf) > d->max_str)
       {
         write_to_output(d, "Change causes new length to exceed buffer maximum size, aborted.\r\n");
         return;
