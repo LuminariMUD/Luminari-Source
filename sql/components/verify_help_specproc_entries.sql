@@ -10,7 +10,8 @@ WHERE BINARY tag = 'spec-proc'
   AND min_level = 31
   AND auto_generated = FALSE
   AND INSTR(entry, 'Z) SpecProc') > 0
-  AND INSTR(entry, 'moving room cannot also have a named room SpecProc') > 0;
+  AND INSTR(entry, 'moving room cannot also have a named room SpecProc') > 0
+  AND INSTR(entry, 'Craft Trainer is mobile-owned') > 0;
 
 SELECT
   'content_contract' AS check_name,

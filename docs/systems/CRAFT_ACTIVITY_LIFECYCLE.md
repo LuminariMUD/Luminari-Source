@@ -35,6 +35,12 @@ supply timing refreshes eligible empty slots lazily. Active offers and slot
 cooldowns retain their existing rules. No per-player refresh timer is needed.
 The earlier inventory's claim of online-only refresh accounting was incorrect.
 
+Paid training contracts from a Craft Trainer also measure wall-clock time. A
+contract stores only its end time; nothing runs while the character is away.
+Selecting the character at the account menu after that time grants the
+experience through gain_craft_exp() and clears the contract in one save, so
+there is no timer and no scan. See docs/ongoing-projects/craft-trainers.md.
+
 Validation includes native scheduling without descriptor-list membership,
 offline suspension and resume, cancellation after scripted relocation, and
 lazy refresh preserving existing offers. Existing activity-manager tests cover

@@ -991,6 +991,7 @@ EXTRA_DIST = \
 	sql/components/help_billowing_cloud_exposure.sql \
 	sql/components/help_staff_event_agenda_entry.sql \
 	sql/components/help_command_sweep_entries.sql \
+	sql/components/help_craft_training_entries.sql \
 	sql/components/help_pet_entries.sql \
 	sql/components/help_dg_damage_trigger.sql \
 	sql/components/help_rol_feat_entries.sql \

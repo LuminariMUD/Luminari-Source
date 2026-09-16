@@ -17,7 +17,7 @@ Update this list with every commit, so a new session can resume from it.
 - [x] Step 3: SpecProc and command.
 - [x] Step 4: lock, settlement, recall, and menu row.
 - [x] Step 5: placement (development check only; production placement stays with the owner).
-- [ ] Step 6: help and documentation.
+- [x] Step 6: help and documentation.
 - [ ] Step 7: verification.
 
 Working notes for this worktree (`../Luminari-Source-issue-196`):
@@ -512,6 +512,29 @@ Plan as written:
 - Production placement belongs to the owner's world-data release and is not part of this branch.
 
 ### Step 6: help and documentation
+
+Done. As built:
+
+- `help.hlp` has the `APPRENTICE CRAFT-TRAINER CRAFT-TRAINING` entry after `APPRAISE`,
+  `CRAFT-SCORE` ends with `See also: APPRENTICE`, and the `SPEC` entry has a Craft Trainer
+  paragraph after the moving-room paragraph.
+- `sql/components/help_craft_training_entries.sql` inserts the `apprentice` entry and its three
+  keywords and updates `craft-score` through its keyword. It is classified `apply` in
+  `ci_schema_manifest.txt` and listed in `Makefile.am`. `help_specproc_entries.sql` carries the same
+  paragraph, and `verify_help_specproc_entries.sql` checks for it.
+- Before the change, the development database, the SQL file, and `help.hlp` held the same
+  `spec-proc` text. Both components were applied to the development database (the verify script
+  passes), and the stored `apprentice`, `craft-score`, and `spec-proc` entries match their
+  `help.hlp` bodies exactly. Both also apply to a fresh `master_schema.sql` database in the
+  isolated test container, as the integration workflow does, and apply twice without error.
+  `help.hlp` still parses with `scripts/help-sync/catalog.py`, and `make test-help-sync` passes.
+- In the step 5 live environment, with the components applied to its database,
+  `help craft-trainer` shows the new entry.
+- `docs/guides/OLC_SpecProcs.md` has the Craft Trainer paragraph and the 62, 41, and 20 editor
+  counts. `docs/systems/CRAFT_ACTIVITY_LIFECYCLE.md` describes wall-clock contracts settled at
+  selection. `docs/systems/SAVE_SYSTEMS_BREAKDOWN.md` lists `CrTr` and the `Tlrk` width change.
+
+Plan as written:
 
 - `lib/text/help/help.hlp`: an `APPRENTICE CRAFT-TRAINER CRAFT-TRAINING` entry (commands, rules,
   lock, account-menu recall) and a `See also` from `CRAFT-SCORE`. `HELP RESPEC` already promises
