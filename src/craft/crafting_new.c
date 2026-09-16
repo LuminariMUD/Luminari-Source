@@ -1346,7 +1346,7 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
   {
     slot = atoi(arg2);
 
-    if (slot < 1 || slot > (MAX_OBJ_AFFECT + 1))
+    if (slot < 1 || slot > MAX_OBJ_AFFECT)
     {
       send_to_char(ch, "Please select a bonus slot between 1 and 6.\r\n");
       return;
