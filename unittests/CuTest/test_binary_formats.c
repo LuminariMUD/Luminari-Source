@@ -538,6 +538,44 @@ void Test_house_file_rejects_damaged_and_malformed_files(CuTest *tc)
   free(legacy);
 }
 
+void Test_binary_format_damaged_magic_is_not_read_as_a_legacy_file(CuTest *tc)
+{
+  static struct house_file_record houses[10], untouched;
+  struct house_file_record *records;
+  enum binary_format_status status;
+  unsigned char *file = NULL, *board;
+  size_t size = 0, board_size, position, count;
+  int bit, version;
+
+  board = binary_format_fixture(FIXTURE_CURRENT_BOARD_FILE, &board_size);
+  /* Exactly one legacy record long, with zeros where a legacy reader finds
+   * the guest count: without its magic, only the envelope marks it current. */
+  houses[0].num_of_guests = 39;
+  CuAssertIntEquals(tc, BINARY_FORMAT_OK, house_file_encode(houses, 10, &file, &size));
+  CuAssertIntEquals(tc, 912, (int)size);
+  for (position = 0; position < BINARY_FORMAT_HEADER_SIZE; position++)
+    for (bit = 0; bit < 8; bit++)
+    {
+      file[position] ^= (unsigned char)(1U << bit);
+      records = &untouched;
+      count = 7;
+      status = house_file_decode(file, size, 999, &records, &count, &version);
+      CuAssertTrue(tc, status != BINARY_FORMAT_OK && records == NULL && count == 0);
+      if (position < BINARY_FORMAT_MAGIC_SIZE)
+        CuAssertIntEquals(tc, BINARY_FORMAT_BAD_MAGIC, status);
+      file[position] ^= (unsigned char)(1U << bit);
+    }
+  file[0] = 'X';
+  CuAssertIntEquals(tc, BINARY_FORMAT_BAD_MAGIC, decode_house(file, size, 999, &count));
+  memcpy(file, board, BINARY_FORMAT_MAGIC_SIZE); /* a board file's magic */
+  CuAssertIntEquals(tc, BINARY_FORMAT_BAD_MAGIC, decode_house(file, size, 999, &count));
+  free(file);
+
+  memset(board, 0, BINARY_FORMAT_MAGIC_SIZE);
+  CuAssertIntEquals(tc, BINARY_FORMAT_BAD_MAGIC, decode_board(board, board_size, 300, &count));
+  free(board);
+}
+
 void Test_last_log_reads_the_legacy_x86_64_layout(CuTest *tc)
 {
   struct last_log_record entry;
