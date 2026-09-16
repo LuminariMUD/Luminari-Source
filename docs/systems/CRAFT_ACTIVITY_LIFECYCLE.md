@@ -59,8 +59,10 @@ retained.
 Supply offers have a different policy: their existing timestamps measure wall
 clock time, including offline time. Selecting an offer or asking for supply
 timing (`supplyorder cooldown`) refreshes eligible empty slots lazily;
-`list` and `show` do not. Active offers and slot
-cooldowns retain their existing rules. No per-player refresh timer is needed.
+`list` and `show` do not. Active offers and slot cooldowns retain their
+existing rules, except that a refresh replaces an offer with no recipe variant
+to build, which older versions could save. No per-player refresh timer is
+needed.
 The earlier inventory's claim of online-only refresh accounting was incorrect.
 
 Paid training contracts from a Craft Trainer also measure wall-clock time. A

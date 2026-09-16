@@ -8687,6 +8687,14 @@ void initialize_supply_slots(struct char_data *ch)
   GET_CRAFT(ch).supply_slots_next_refresh = time(NULL); // Can refresh immediately
 }
 
+/* An offer needs a recipe variant to build. Offers saved by older versions can name an instrument
+ * recipe without one. */
+static bool supply_contract_is_orderable(const struct supply_contract *contract)
+{
+  return contract->recipe > CRAFT_RECIPE_NONE && contract->recipe < NUM_CRAFTING_RECIPES &&
+         contract->variant >= 0 && contract->variant < NUM_CRAFT_VARIANTS;
+}
+
 // Refresh available supply order slots
 void refresh_supply_slots(struct char_data *ch)
 {
@@ -8707,6 +8715,12 @@ void refresh_supply_slots(struct char_data *ch)
   {
     available_types[num_available++] = SUPPLY_CONTRACT_EVENT;
   }
+
+  /* An offer that cannot be selected would otherwise hold its slot for good. */
+  for (i = 0; i < 5; i++)
+    if (GET_CRAFT(ch).supply_slot_active[i] &&
+        !supply_contract_is_orderable(&GET_CRAFT(ch).supply_slots[i]))
+      GET_CRAFT(ch).supply_slot_active[i] = FALSE;
 
   // Generate contracts for empty slots only
   int used_recipes[NUM_CRAFTING_RECIPES];
@@ -9031,9 +9045,8 @@ int select_contract_by_id(struct char_data *ch, int contract_id)
 
   struct supply_contract *contract = &contracts[contract_id - 1];
 
-  /* Saved offers from older versions can name an instrument recipe without a variant. */
-  if (contract->recipe <= CRAFT_RECIPE_NONE || contract->recipe >= NUM_CRAFTING_RECIPES ||
-      contract->variant < 0 || contract->variant >= NUM_CRAFT_VARIANTS)
+  /* Refused until the next refresh replaces it. */
+  if (!supply_contract_is_orderable(contract))
   {
     free_contract_list(contracts, num_contracts);
     return 0;
