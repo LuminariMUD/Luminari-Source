@@ -451,7 +451,7 @@ entry points in `src/combat/act.offensive.c` / `src/combat/fight.c`.
   unavailable-action messages, input priority, wait-state deadlines, and editor/
   pager restrictions. Validate targets/conditions again when executing delayed
   commands. Do not add cast queueing merely because the transcript contains a cast.
-- [ ] Keep the attack queue independent. Verify `do_process_attack()` admission,
+- [x] Keep the attack queue independent. Verify `do_process_attack()` admission,
   `hit()` replacement, and the eventual `do_kick()`/other skill execution. Include
   multiple queued attacks, explicit targets, target loss, clear/list commands,
   failed prerequisites, and interactions with ranged and reactive attacks.
@@ -837,13 +837,14 @@ Next implementation boundaries:
 2. Finish the damage/reaction caller and terminal-outcome audit beyond the
    bounded synchronous completion and Life Shield checkpoint below.
    Preserve native handles, notifications, active-world reconsideration, periodic
-   timer sync, common rewards, and presentation. Classify Greater Hostile
-   Juxtaposition activation separately from safe affect lookup. The baseline
-   greater-shield branch was unreachable; any corrected activation is an explicit
-   finite gameplay exception requiring resolution under section 4.
-3. Expand remaining acceptance scenarios, especially native command-loop queue
-   wakeups/input/wait/editor behavior under both I/O drivers, phase-sensitive
-   effects/attack counts, NPCs and callback-time lifecycle transitions. The full
+   timer sync, common rewards, and presentation. Greater Hostile Juxtaposition
+   activation is now user-approved and tested in the spell-exception checkpoint.
+   Audit ordinary juxtaposition removal/continuation ordering separately; its
+   baseline branch was reachable.
+3. Expand remaining acceptance scenarios, especially casting resource/lifecycle
+   boundaries, phase-sensitive effects/attack counts, NPCs, client output and
+   callback-time lifecycle transitions. General and attack queue coverage is
+   recorded in the later checkpoints; whole-loop/load and live evidence remain. The full
    suite is green for the current checkpoint, but many scope-specific assertions
    and live ordinary-player transcripts remain to be added.
 4. Update current system docs, SQL help sources/verifiers, the local database and
@@ -1095,3 +1096,71 @@ live ordinary-player transcripts, both-driver whole-loop/load validation, or
 the remaining combat-phase queue/lifecycle, attack/effect, terminal damage,
 NPC, documentation and two-store help work in sections 4-7. No live MUD,
 database/help changes, production actions or push has occurred.
+
+#### Attack-queue behavior and maneuver continuation checkpoint
+
+The previous goal turn made progress in `e438c1eda`: descriptor queue wakeups,
+source-linked coverage for both I/O drivers, and the approved Greater Hostile
+Juxtaposition exception. The worktree is clean at that revision and
+`APP_ENV=development` was rechecked before this work.
+
+Source comparison against the pinned baseline confirms `do_process_attack()`
+still admits attack entries independently of the general queue. `resolve_hit()`
+dispatches an entry before ordinary hit resolution and projectile preparation;
+opportunity attacks use that entry point, while later readied attacks explicitly
+bypass queue dispatch. Kick and headbutt re-resolve their raw target text and
+fall back to the current same-room opponent when the named target is missing.
+Preserve that baseline targeting policy rather than inventing bound targets.
+
+Ablation: reuse the mortal command fixture, native damage facts, and existing
+projectile fixtures/constructors. Add real-command coverage for mixed maneuvers,
+admission/list/clear, target changes, ranged and reactive replacement. No new
+queue owner, policy, scheduler event or test runner is needed. Trace and test
+post-damage continuation in kick/headbutt: each performed follow-up work through
+raw participant pointers after damage could run lifecycle callbacks. Reuse the
+existing combat-state handle check for any proven invalid continuation.
+
+Four failing production-linked regressions proved the continuation defect:
+a damage-fact callback could forget or relocate the target, but the queued kick
+or headbutt still invoked its fire-shield retaliation. Both functions now capture
+attacker/target handles and their original room, then use
+`combat_state_attack_context_valid()` immediately after damage returns.
+Invalid participants cannot receive the maneuver's later status work or trigger
+retaliation. This is a lifetime/room safety repair, preserving valid damage,
+rolls, queue ordering and costs; no new reaction owner or policy was introduced.
+
+Twenty new `Test_combat_restoration_attack_queue_*` cases establish:
+
+| Boundary | Evidence |
+| -- | -- |
+| Multiple maneuvers and cost | Real interpreter-admitted kick then headbutt consume one entry per `hit()`, in FIFO order, cause exactly two damage facts and leave the actor's standard/move/swift actions available. No ordinary hit is added. |
+| Admission and management | Missing Improved Unarmed Strike rejects headbutt before admission; no-target idle kick waits without starting combat; list preserves command order; attack clear leaves the general queue untouched; losing the feat before dispatch consumes the failed entry without damage. |
+| Opening | Explicit `kick ally` reaches `do_hit()`, wins against a sleeping target, replaces the opening hit and starts the fight with exactly one damage fact. |
+| Target policy | An explicit target overrides the current opponent. If that target leaves, the existing same-room opponent is used; without an opponent, the entry is consumed without damage. An already-dead/pending-extraction target causes no damage or follow-up move cooldown. |
+| Ranged and reactive entry | A queued kick replaces a real equipped launcher's hit and preserves its compatible arrow. An opportunity attack consumes the entry and exactly one AoO slot. The readied-attack entry leaves it pending while performing its own hit. Existing full readied/ally-readiness tests continue to prove their owner dispatch and reservation behavior. |
+| Callback continuation | For both kick and headbutt, forgetting the target or moving either participant prevents later retaliation. Marking the target pending extraction also prevents continuation. Valid same-room fire-shield controls still deal one original and one retaliatory packet. |
+
+These cases observe real commands, hits and damage facts; the invalidation cases
+exercise controlled callback boundaries rather than substituting a combat
+phase recorder. Pending-extraction flags are not proof of corpse/reward/death
+notification behavior, which remains a separate completion requirement.
+
+Validation:
+
+- `CUTEST_FILTER=combat_restoration_attack_queue ./cutest`: all 20 pass;
+  four target-invalidation cases failed before the production repair.
+- `CUTEST_FILTER=combat_restoration valgrind --leak-check=full --track-origins=yes --error-exitcode=1 ./cutest`:
+  all 47 pass, zero errors and zero definitely/indirectly/possibly lost bytes;
+  initialized test/runtime tables remain reachable.
+- `make -j8 test`: all 1,552 CuTests and required repository gates pass without
+  compiler warnings. The same nine opt-in help-sync MariaDB cases remain gated;
+  this checkpoint does not change help synchronization.
+- `make install`: succeeds; no root `luminari` artifact remains.
+- Changed-file pre-commit hooks pass; reviewed their formatting and the final diff.
+- Logs: `/tmp/revert-combat-attack-queue-{before,after,build,valgrind,full-test,install,hooks}.log`.
+
+The attack-queue item in Step C is complete. The broader casting, effect/attack
+allocation, terminal-outcome, NPC, lifecycle, live/load, client-output, current
+system-documentation and two-store help requirements remain open. No live MUD,
+database/help edit, production action or push was performed. This goal turn made
+progress and encountered no blocking condition.
