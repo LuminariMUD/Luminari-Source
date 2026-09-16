@@ -14,11 +14,6 @@
 #include "../../src/core/utils.h"
 #include "../../src/core/interpreter.h"
 
-/* Workaround for class.h using NUM_ABILITIES instead of MAX_ABILITIES */
-#ifndef NUM_ABILITIES
-#define NUM_ABILITIES MAX_ABILITIES
-#endif
-
 #include "../../src/character/class.h"
 #include "../../src/character/perks.h"
 #include "../../src/character/perk_definitions.h"

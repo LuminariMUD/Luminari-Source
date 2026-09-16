@@ -50,11 +50,6 @@
 #include "core/mudlim.h"
 #include "act.h"
 
-/* Workaround for class.h using NUM_ABILITIES instead of MAX_ABILITIES */
-#ifndef NUM_ABILITIES
-#define NUM_ABILITIES MAX_ABILITIES
-#endif
-
 #include "character/class.h"
 #include "character/race.h"
 #include "character/backgrounds.h"
@@ -64,9 +59,6 @@
 #include "character/rewards.h"
 #include "clan/clan.h"
 #include "dgscript/dg_scripts.h"
-/* Undefine NUM_ABILITIES before including spells.h to avoid redefinition warning */
-#undef NUM_ABILITIES
-
 #include "magic/spells.h"
 #include "magic/spell_prep.h"
 #include "magic/domains_schools.h"
