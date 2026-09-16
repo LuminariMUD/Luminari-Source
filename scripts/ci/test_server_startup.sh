@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Real-port boot, health endpoint, a pre-authentication client conversation,
-# and graceful shutdown using the installed server. LUMINARI_STARTUP_TIMEOUT
-# (seconds, default 20) bounds the wait for the port; instrumented builds
-# (sanitizers) boot more slowly and raise it.
+# a login exchange against the isolated test database, and graceful shutdown
+# using the installed server. LUMINARI_STARTUP_TIMEOUT (seconds, default 20)
+# bounds the wait for the port; instrumented builds (sanitizers) boot more
+# slowly and raise it.
 set -euo pipefail
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
@@ -102,6 +103,34 @@ kill -0 "$server_pid" 2>/dev/null || fail 'Server died during the client interac
 if grep -qiE 'Sanitizer|runtime error:' "$server_log" "$sandbox/launcher.log"; then
   fail 'Sanitizer report during the client interaction'
 fi
+
+# Create an account over telnet, then log in to it after one wrong password:
+# the second connection can only succeed if the first saved the account to the
+# isolated database and the server loaded it back.
+if command -v mariadb >/dev/null 2>&1; then
+  database_client=mariadb
+else
+  database_client=mysql
+fi
+account_query() {
+  MYSQL_PWD="${LUMINARI_TEST_MYSQL_PASSWORD:?the isolated test database is required}" \
+    "$database_client" --protocol=tcp --host="$LUMINARI_TEST_MYSQL_HOST" \
+    --port="$LUMINARI_TEST_MYSQL_PORT" --user="$LUMINARI_TEST_MYSQL_USER" \
+    --batch --skip-column-names "$LUMINARI_TEST_MYSQL_DATABASE" -e "$1"
+}
+[[ "$(account_query "SELECT COUNT(*) FROM account_data WHERE name = 'Smoketest'")" == 0 ]] ||
+  fail 'The isolated database already holds the smoke test account'
+python3 "$repo_root/scripts/ci/login_client.py" --port 4100 --timeout 30 --account Smoketest \
+  --password smoke-test-password || fail 'The login exchange failed'
+stored=$(account_query "SELECT CONCAT(name, ' ', password LIKE '\$y\$%') FROM account_data
+  WHERE name = 'Smoketest'")
+[[ "$stored" == 'Smoketest 1' ]] ||
+  fail "The account row is not stored with a current-scheme password hash: $stored"
+grep -q 'Bad PW: Smoketest' "$server_log" || fail 'The server did not log the wrong password'
+if grep -qi SYSERR "$server_log"; then
+  fail 'Unexpected SYSERR found during the login exchange'
+fi
+echo 'Login exchange against the isolated database PASSED'
 
 (cd "$sandbox" && MUD_PORT=4100 ./scripts/autorun/autorun.sh stop) >>"$sandbox/launcher.log" 2>&1
 for _attempt in {1..100}; do
