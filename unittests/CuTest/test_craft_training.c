@@ -13,6 +13,7 @@
 #include "../../src/character/race.h"
 #include "../../src/character/talents.h"
 #include "../../src/craft/brew.h"
+#include "../../src/craft/craft_training.h"
 #include "../../src/craft/crafting_new.h"
 #include "../../src/events/mud_event.h"
 
@@ -292,4 +293,198 @@ void Test_craft_harvest_talent_ranks_apply_and_persist(CuTest *tc)
   CuAssertIntEquals(tc, 0, result);
   CuAssertIntEquals(tc, 1, rank);
   CuAssertIntEquals(tc, 1, mote_rank);
+}
+
+/** Count the CrTr lines in a saved player file and keep the last one. */
+static int craft_training_saved_lines(const char *name, char *last, size_t size)
+{
+  char filename[MAX_FILEPATH];
+  char line[MAX_INPUT_LENGTH];
+  FILE *file;
+  int count = 0;
+
+  *last = '\0';
+  if (!get_filename(filename, sizeof(filename), PLR_FILE, name) ||
+      (file = fopen(filename, "r")) == NULL)
+    return -1;
+  while (fgets(line, sizeof(line), file) != NULL)
+    if (!strncmp(line, "CrTr:", 5))
+    {
+      snprintf(last, size, "%s", line);
+      count++;
+    }
+  fclose(file);
+  return count;
+}
+
+void Test_craft_training_contract_survives_save_and_load(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *ch = new_char();
+  struct char_data *loaded = new_char();
+  struct char_data *cleared = new_char();
+  char contract_line[MAX_INPUT_LENGTH], expected[MAX_INPUT_LENGTH], after_clear[MAX_INPUT_LENGTH];
+  int saved, result, contract_lines, ability, experience, clear_saved, cleared_lines, clear_result;
+  int cleared_ability;
+  long end;
+
+  craft_player_files_enter(tc, &files, "crrec", 4303);
+  ch->player.name = strdup(files.name);
+  GET_PFILEPOS(ch) = 0;
+  GET_IDNUM(ch) = 4303;
+  GET_LEVEL(ch) = 10;
+  GET_CRAFT(ch).training_ability = ABILITY_HARVEST_FORESTRY;
+  GET_CRAFT(ch).training_exp = craft_training_grant(4);
+  GET_CRAFT(ch).training_end = (time_t)1800000000L;
+  snprintf(expected, sizeof(expected), "CrTr: %d 2500 1800000000\n", ABILITY_HARVEST_FORESTRY);
+
+  saved = save_char_checked(ch, 0);
+  contract_lines = craft_training_saved_lines(files.name, contract_line, sizeof(contract_line));
+  result = load_char(files.name, loaded);
+  ability = GET_CRAFT(loaded).training_ability;
+  experience = GET_CRAFT(loaded).training_exp;
+  end = (long)GET_CRAFT(loaded).training_end;
+
+  /* Clearing the record removes the line: settlement and recall rely on it. */
+  GET_PFILEPOS(loaded) = 0;
+  GET_CRAFT(loaded).training_ability = 0;
+  clear_saved = save_char_checked(loaded, 0);
+  cleared_lines = craft_training_saved_lines(files.name, after_clear, sizeof(after_clear));
+  clear_result = load_char(files.name, cleared);
+  cleared_ability = GET_CRAFT(cleared).training_ability;
+
+  free_char(ch);
+  free_char(loaded);
+  free_char(cleared);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertTrue(tc, saved);
+  CuAssertIntEquals(tc, 1, contract_lines);
+  CuAssertStrEquals(tc, expected, contract_line);
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, ABILITY_HARVEST_FORESTRY, ability);
+  CuAssertIntEquals(tc, 2500, experience);
+  CuAssertTrue(tc, end == 1800000000L);
+  CuAssertTrue(tc, clear_saved);
+  CuAssertIntEquals(tc, 0, cleared_lines);
+  CuAssertIntEquals(tc, 0, clear_result);
+  CuAssertIntEquals(tc, 0, cleared_ability);
+}
+
+void Test_craft_training_ignores_malformed_contracts(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *loaded = new_char();
+  char filename[MAX_FILEPATH];
+  FILE *file;
+  int result, ability, experience;
+  time_t end;
+
+  craft_player_files_enter(tc, &files, "crbad", 4304);
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, files.name));
+  file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, file);
+  /* A general skill, a slot past the harvest skills, no experience, no end time, a missing
+   * field, and text. */
+  fprintf(file,
+          "Name: %s\nId  : 4304\nLevl: 7\nCrTr: %d 500 1800000000\nCrTr: %d 500 1800000000\n"
+          "CrTr: %d 0 1800000000\nCrTr: %d 500 0\nCrTr: %d 500\nCrTr: alchemy\n",
+          files.name, ABILITY_PERCEPTION, END_HARVEST_ABILITIES + 1, ABILITY_CRAFT_ALCHEMY,
+          ABILITY_CRAFT_ALCHEMY, ABILITY_CRAFT_ALCHEMY);
+  fclose(file);
+
+  result = load_char(files.name, loaded);
+  ability = GET_CRAFT(loaded).training_ability;
+  experience = GET_CRAFT(loaded).training_exp;
+  end = GET_CRAFT(loaded).training_end;
+  free_char(loaded);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, 0, ability);
+  CuAssertIntEquals(tc, 0, experience);
+  CuAssertTrue(tc, end == 0);
+}
+
+/* With every talent at its highest rank, a grant from just below the next threshold raises the
+ * skill exactly one rank, for every trainable track and every rank below the ceiling. */
+void Test_craft_training_grant_never_crosses_two_ranks(CuTest *tc)
+{
+  struct craft_actor actor;
+  struct char_data *ch = &actor.ch;
+  int ability, rank, talent, tracks = 0, failures = 0;
+
+  if (talent_list[TALENT_INSIGHTFUL_GATHERING].name == NULL)
+    init_talents();
+
+  for (ability = START_CRAFT_ABILITIES; ability <= END_HARVEST_ABILITIES; ability++)
+  {
+    if (!craft_training_track_eligible(ability))
+      continue;
+    tracks++;
+    for (rank = 0; rank < CRAFT_TRAINING_RANK_CEILING; rank++)
+    {
+      craft_actor_init(&actor);
+      for (talent = 1; talent < TALENT_MAX; talent++)
+        actor.specials.saved.talent_ranks[talent] = (ubyte)talent_max_ranks(talent);
+      SET_ABILITY(ch, ability, rank);
+      GET_CRAFT_SKILL_EXP(ch, ability) = craft_skill_level_exp(NULL, rank + 1) - 1;
+      gain_craft_exp(ch, craft_training_grant(rank), ability, FALSE);
+      if (GET_ABILITY(ch, ability) != rank + 1 || GET_TALENT_POINTS(ch) != 1)
+        failures++;
+    }
+  }
+
+  CuAssertIntEquals(tc, 12, tracks);
+  CuAssertIntEquals(tc, 0, failures);
+}
+
+void Test_craft_training_fee_rises_with_rank(CuTest *tc)
+{
+  int rank, total = 0;
+
+  CuAssertIntEquals(tc, 500, craft_training_grant(0));
+  CuAssertIntEquals(tc, 5000, craft_training_grant(9));
+  CuAssertIntEquals(tc, 10000, craft_training_grant(19));
+  CuAssertIntEquals(tc, 100, craft_training_fee(0));
+  CuAssertIntEquals(tc, 10000, craft_training_fee(9));
+  CuAssertIntEquals(tc, 40000, craft_training_fee(19));
+  for (rank = 1; rank < CRAFT_TRAINING_RANK_CEILING; rank++)
+  {
+    /* Both the fee and the gold paid per experience point rise. */
+    CuAssertTrue(tc, craft_training_fee(rank) > craft_training_fee(rank - 1));
+    CuAssertTrue(tc, (long)craft_training_fee(rank) * craft_training_grant(rank - 1) >
+                         (long)craft_training_fee(rank - 1) * craft_training_grant(rank));
+  }
+  /* Two contracts per rank take a skill from 0 to the ceiling without any bonus. */
+  for (rank = 0; rank < CRAFT_TRAINING_RANK_CEILING; rank++)
+    total += 2 * craft_training_fee(rank);
+  CuAssertIntEquals(tc, 574000, total);
+}
+
+void Test_craft_training_status_counts_down_to_finished(CuTest *tc)
+{
+  struct craft_actor actor;
+  struct char_data *ch = &actor.ch;
+  char status[64];
+  time_t now = (time_t)1800000000L;
+
+  craft_actor_init(&actor);
+  CuAssertTrue(tc, !craft_training_status(ch, now, status, sizeof(status)));
+  CuAssertStrEquals(tc, "", status);
+
+  GET_CRAFT(ch).training_ability = ABILITY_CRAFT_TAILORING;
+  GET_CRAFT(ch).training_exp = 500;
+  GET_CRAFT(ch).training_end = now + CRAFT_TRAINING_DURATION;
+  CuAssertTrue(tc, craft_training_status(ch, now, status, sizeof(status)));
+  CuAssertStrEquals(tc, "training, 24h 0m left", status);
+  GET_CRAFT(ch).training_end = now + 13 * 3600 + 19 * 60 + 1;
+  craft_training_status(ch, now, status, sizeof(status));
+  CuAssertStrEquals(tc, "training, 13h 20m left", status);
+  GET_CRAFT(ch).training_end = now + 59;
+  craft_training_status(ch, now, status, sizeof(status));
+  CuAssertStrEquals(tc, "training, 1m left", status);
+  GET_CRAFT(ch).training_end = now;
+  craft_training_status(ch, now, status, sizeof(status));
+  CuAssertStrEquals(tc, "training finished", status);
 }

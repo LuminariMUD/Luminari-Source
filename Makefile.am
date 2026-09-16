@@ -85,6 +85,7 @@ luminari_SOURCES = \
 	src/core/constants.c \
 	src/core/copyover_diagnostic.c \
 	src/craft/craft.c \
+	src/craft/craft_training.c \
 	src/craft/crafting_molds.c \
 	src/craft/crafting_new.c \
 	src/craft/crafting_recipes.c \

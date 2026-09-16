@@ -5938,6 +5938,11 @@ struct crafting_data_info
   time_t supply_slots_last_refresh; // When slots were last refreshed
   time_t supply_slots_next_refresh; // When next refresh is available
 
+  // paid craft training contract (craft/craft_training.c); ability 0 means none
+  int training_ability; // craft or harvest ability being trained
+  int training_exp;     // experience granted when the contract settles
+  time_t training_end;  // wall-clock time the character may return
+
   // surveying;
   int survey_rooms;
 
