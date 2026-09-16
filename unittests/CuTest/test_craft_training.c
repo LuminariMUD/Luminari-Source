@@ -253,12 +253,15 @@ void Test_craft_load_restores_rank_its_experience_earned(CuTest *tc)
   file = fopen(filename, "w");
   CuAssertPtrNotNull(tc, file);
   /* Metalworking lags two ranks behind 6,500 experience; gathering is ahead of its experience. */
-  fprintf(file,
-          "Name: %s\nId  : 4301\nLevl: 7\nTlpt: 2\nAblt:\n%d 1\n%d 4\n0 0\nAbXP:\n%d 6500\n"
-          "%d 10\n0 0\n",
-          files.name, ABILITY_CRAFT_METALWORKING, ABILITY_HARVEST_GATHERING,
-          ABILITY_CRAFT_METALWORKING, ABILITY_HARVEST_GATHERING);
-  fclose(file);
+  if (file != NULL)
+  {
+    fprintf(file,
+            "Name: %s\nId  : 4301\nLevl: 7\nTlpt: 2\nAblt:\n%d 1\n%d 4\n0 0\nAbXP:\n%d 6500\n"
+            "%d 10\n0 0\n",
+            files.name, ABILITY_CRAFT_METALWORKING, ABILITY_HARVEST_GATHERING,
+            ABILITY_CRAFT_METALWORKING, ABILITY_HARVEST_GATHERING);
+    fclose(file);
+  }
 
   result = load_char(files.name, loaded);
   rank = GET_ABILITY(loaded, ABILITY_CRAFT_METALWORKING);
@@ -320,8 +323,10 @@ static int craft_training_saved_lines(const char *name, char *last, size_t size)
   int count = 0;
 
   *last = '\0';
-  if (!get_filename(filename, sizeof(filename), PLR_FILE, name) ||
-      (file = fopen(filename, "r")) == NULL)
+  if (!get_filename(filename, sizeof(filename), PLR_FILE, name))
+    return -1;
+  file = fopen(filename, "r");
+  if (file == NULL)
     return -1;
   while (fgets(line, sizeof(line), file) != NULL)
     if (!strncmp(line, "CrTr:", 5))
@@ -401,13 +406,17 @@ void Test_craft_training_ignores_malformed_contracts(CuTest *tc)
   file = fopen(filename, "w");
   CuAssertPtrNotNull(tc, file);
   /* A general skill, a slot past the harvest skills, no experience, no end time, a missing
-   * field, and text. */
-  fprintf(file,
-          "Name: %s\nId  : 4304\nLevl: 7\nCrTr: %d 500 1800000000\nCrTr: %d 500 1800000000\n"
-          "CrTr: %d 0 1800000000\nCrTr: %d 500 0\nCrTr: %d 500\nCrTr: alchemy\n",
-          files.name, ABILITY_PERCEPTION, END_HARVEST_ABILITIES + 1, ABILITY_CRAFT_ALCHEMY,
-          ABILITY_CRAFT_ALCHEMY, ABILITY_CRAFT_ALCHEMY);
-  fclose(file);
+   * field, trailing text, and text. */
+  if (file != NULL)
+  {
+    fprintf(file,
+            "Name: %s\nId  : 4304\nLevl: 7\nCrTr: %d 500 1800000000\nCrTr: %d 500 1800000000\n"
+            "CrTr: %d 0 1800000000\nCrTr: %d 500 0\nCrTr: %d 500\nCrTr: %d 500 1800000000 x\n"
+            "CrTr: alchemy\n",
+            files.name, ABILITY_PERCEPTION, END_HARVEST_ABILITIES + 1, ABILITY_CRAFT_ALCHEMY,
+            ABILITY_CRAFT_ALCHEMY, ABILITY_CRAFT_ALCHEMY, ABILITY_CRAFT_ALCHEMY);
+    fclose(file);
+  }
 
   result = load_char(files.name, loaded);
   ability = GET_CRAFT(loaded).training_ability;
@@ -494,7 +503,7 @@ void Test_craft_training_status_counts_down_to_finished(CuTest *tc)
   GET_CRAFT(ch).training_end = now + CRAFT_TRAINING_DURATION;
   CuAssertTrue(tc, craft_training_status(ch, now, status, sizeof(status)));
   CuAssertStrEquals(tc, "training, 24h 0m left", status);
-  GET_CRAFT(ch).training_end = now + 13 * 3600 + 19 * 60 + 1;
+  GET_CRAFT(ch).training_end = now + 13L * 3600 + 19L * 60 + 1;
   craft_training_status(ch, now, status, sizeof(status));
   CuAssertStrEquals(tc, "training, 13h 20m left", status);
   GET_CRAFT(ch).training_end = now + 59;
@@ -923,11 +932,12 @@ static void craft_trainer_belongings(CuTest *tc, bool free_rent, int *rows, bool
   *rows = -1;
   snprintf(query, sizeof(query), "SELECT COUNT(*) FROM player_save_objs WHERE name = '%s'",
            fixture.files.name);
-  if (tables && mysql_query(connection, query) == 0 &&
-      (result = mysql_store_result(connection)) != NULL)
+  result = tables && mysql_query(connection, query) == 0 ? mysql_store_result(connection) : NULL;
+  if (result != NULL)
   {
-    if ((row = mysql_fetch_row(result)) != NULL && row[0] != NULL)
-      *rows = atoi(row[0]);
+    row = mysql_fetch_row(result);
+    if (row != NULL && row[0] != NULL)
+      *rows = (int)strtol(row[0], NULL, 10);
     mysql_free_result(result);
   }
   *left_behind = fixture.room.contents != NULL || fixture.player->carrying != NULL;
@@ -1112,8 +1122,10 @@ static bool craft_account_file_text(struct craft_account_fixture *fixture, char 
   FILE *file;
   size_t length;
 
-  if (!get_filename(filename, sizeof(filename), PLR_FILE, fixture->files.name) ||
-      (file = fopen(filename, "r")) == NULL)
+  if (!get_filename(filename, sizeof(filename), PLR_FILE, fixture->files.name))
+    return false;
+  file = fopen(filename, "r");
+  if (file == NULL)
     return false;
   length = fread(text, 1, size - 1, file);
   text[length] = '\0';
@@ -1240,7 +1252,7 @@ void Test_craft_training_account_menu_shows_time_left(CuTest *tc)
   conn = connection;
   mysql_available = true;
   /* 13h 19m 30s rounds up to 13h 20m for the next half minute. */
-  saved_running = craft_account_save_contract(&fixture, time(0) + 13 * 3600 + 19 * 60 + 30, 0);
+  saved_running = craft_account_save_contract(&fixture, time(0) + 13L * 3600 + 19L * 60 + 30, 0);
   craft_trainer_reset_output(&fixture.descriptor);
   show_account_menu(&fixture.descriptor);
   snprintf(running, sizeof(running), "%s", fixture.descriptor.output);

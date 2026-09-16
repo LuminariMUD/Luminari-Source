@@ -8125,7 +8125,7 @@ void nanny(struct descriptor_data *d, char *arg)
           }
 
           /* A character away training stays out until its contract ends, then settles here. */
-          if (!craft_training_admit_selection(d, atoi(arg), time(0)))
+          if (!craft_training_admit_selection(d, (int)strtol(arg, NULL, 10), time(0)))
             return;
 
           if (AddRecentPlayer(GET_NAME(d->character), d->host, FALSE, FALSE) == FALSE)

@@ -1145,15 +1145,18 @@ int load_char(const char *name, struct char_data *ch)
         {
           /* Craft training contract: ability experience end-epoch. A contract already paid for
            * stays valid for any craft or harvest ability, even one no longer trainable. */
-          int ability, experience;
-          long end;
+          char *field_end;
+          long ability, experience, end;
 
-          if (sscanf(line, "%d %d %ld", &ability, &experience, &end) == 3 &&
-              ability >= START_CRAFT_ABILITIES && ability <= END_HARVEST_ABILITIES &&
-              experience > 0 && end > 0)
+          ability = strtol(line, &field_end, 10);
+          experience = strtol(field_end, &field_end, 10);
+          end = strtol(field_end, &field_end, 10);
+          if (*field_end == '\0' && ability >= START_CRAFT_ABILITIES &&
+              ability <= END_HARVEST_ABILITIES && experience > 0 && experience <= INT_MAX &&
+              end > 0)
           {
-            GET_CRAFT(ch).training_ability = ability;
-            GET_CRAFT(ch).training_exp = experience;
+            GET_CRAFT(ch).training_ability = (int)ability;
+            GET_CRAFT(ch).training_exp = (int)experience;
             GET_CRAFT(ch).training_end = (time_t)end;
           }
           else

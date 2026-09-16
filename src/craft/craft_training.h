@@ -17,7 +17,7 @@ struct char_data;
 struct descriptor_data;
 
 /* A contract lasts this many seconds of wall-clock time. */
-#define CRAFT_TRAINING_DURATION (24 * 60 * 60)
+#define CRAFT_TRAINING_DURATION ((time_t)24 * 60 * 60)
 /* A contract starts only below this rank. */
 #define CRAFT_TRAINING_RANK_CEILING 20
 /* The fee is this many gold coins times (rank + 1) squared. */
