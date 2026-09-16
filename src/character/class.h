@@ -13,6 +13,9 @@
 #ifndef _CLASS_H_
 #define _CLASS_H_
 
+#include "core/structs.h"
+#include "magic/spells.h"
+
 #include <limits.h>
 
 /* defines */
