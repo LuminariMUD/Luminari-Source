@@ -169,6 +169,32 @@ static void craft_project_end(struct craft_project_fixture *f)
   CONFIG_CRAFTING_SYSTEM = f->saved_crafting_system;
 }
 
+/** Everything a steel long sword needs except motes: type, variant, descriptions and materials. */
+static void craft_project_ready_long_sword(struct char_data *ch)
+{
+  GET_CRAFT(ch).crafting_item_type = CRAFT_TYPE_WEAPON;
+  GET_CRAFT(ch).crafting_specific = WEAPON_TYPE_LONG_SWORD;
+  GET_CRAFT(ch).crafting_recipe = CRAFT_RECIPE_WEAPON_LONG_SWORD;
+  GET_CRAFT(ch).craft_variant = 0;
+  GET_CRAFT(ch).keywords = strdup("steel long sword");
+  GET_CRAFT(ch).short_description = strdup("a steel long sword");
+  GET_CRAFT(ch).room_description = strdup("A steel long sword lies here.");
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][0] = CRAFT_MAT_STEEL;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] = 6;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][0] = CRAFT_MAT_LOW_GRADE_HIDE;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][1] = 1;
+}
+
+static int craft_project_live_objects(void)
+{
+  struct obj_data *obj;
+  int count = 0;
+
+  for (obj = object_list; obj != NULL; obj = obj->next)
+    count++;
+  return count;
+}
+
 void Test_craft_materials_sort_and_list_every_material_once(CuTest *tc)
 {
   struct craft_project_fixture f;
@@ -207,4 +233,302 @@ void Test_craft_materials_sort_and_list_every_material_once(CuTest *tc)
   CuAssertTrue(tc, complete);
   CuAssertTrue(tc, ordered);
   CuAssertTrue(tc, listed);
+}
+
+void Test_craft_project_cannot_change_while_its_work_runs(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct primary_activity_snapshot snapshot;
+  enum domain_event_status runtime;
+  int motes, element;
+  bool started, refused, kept, shown, stopped, refunded;
+
+  craft_project_begin(&f);
+  event_free_all();
+  event_init();
+  runtime = domain_event_runtime_init();
+  craft_project_ready_long_sword(ch);
+  GET_CRAFT(ch).enhancement = 1;
+  motes = craft_motes_required(0, 0, 0, 1);
+  element = get_enhancement_mote_type(ch, CRAFT_TYPE_WEAPON, WEAPON_TYPE_LONG_SWORD);
+  GET_CRAFT(ch).enhancement_motes_required = motes;
+
+  newcraft_create(ch, "start");
+  started = primary_activity_snapshot(ch, &snapshot) && snapshot.type == PRIMARY_ACTIVITY_CRAFT;
+  craft_project_reset_output(&f);
+  newcraft_create(ch, "reset motes");
+  refused = craft_project_output_has(&f, "cannot change your project");
+  kept = GET_CRAFT(ch).enhancement_motes_required == motes && GET_CRAFT_MOTES(ch, element) == 0;
+  craft_project_reset_output(&f);
+  newcraft_create(ch, "show");
+  shown = craft_project_output_has(&f, "Current Craft Project");
+
+  /* Once the work stops, the same command refunds the motes. */
+  primary_activity_cancel(ch, PRIMARY_ACTIVITY_END_COMMAND, false);
+  stopped = !primary_activity_snapshot(ch, &snapshot);
+  newcraft_create(ch, "reset motes");
+  refunded = GET_CRAFT(ch).enhancement_motes_required == 0 && GET_CRAFT_MOTES(ch, element) == motes;
+
+  domain_event_runtime_shutdown();
+  event_free_all();
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, runtime);
+  CuAssertTrue(tc, started);
+  CuAssertTrue(tc, refused);
+  CuAssertTrue(tc, kept);
+  CuAssertTrue(tc, shown);
+  CuAssertTrue(tc, stopped);
+  CuAssertTrue(tc, refunded);
+}
+
+void Test_craft_completion_makes_nothing_from_an_unpaid_project(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool made, reported, kept;
+  int objects;
+
+  craft_project_begin(&f);
+  craft_project_ready_long_sword(ch);
+  /* The enhancement is set but its motes are gone. */
+  GET_CRAFT(ch).enhancement = 1;
+
+  craft_create_complete(ch);
+  made = ch->carrying != NULL;
+  reported = craft_project_output_has(&f, "no longer complete");
+  kept = GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] == 6;
+  objects = craft_project_live_objects();
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, !made);
+  CuAssertTrue(tc, reported);
+  CuAssertTrue(tc, kept);
+  CuAssertIntEquals(tc, 0, objects);
+}
+
+void Test_craft_show_and_failed_completion_release_their_objects(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  int after_show, live_after_show, after_failure, live_after_failure;
+  bool shown, failed;
+
+  craft_project_begin(&f);
+  craft_project_ready_long_sword(ch);
+
+  show_current_craft(ch);
+  shown = craft_project_output_has(&f, "Project DC");
+  after_show = craft_project_live_objects();
+  live_after_show = f.object_index.number;
+
+  /* A DC no roll reaches fails the check at completion. */
+  SET_ABILITY(ch, ABILITY_CRAFT_WEAPONSMITHING, 0);
+  GET_CRAFT(ch).level_adjust = -10;
+  craft_project_reset_output(&f);
+  craft_create_complete(ch);
+  failed = craft_project_output_has(&f, "don't have the skill") && ch->carrying == NULL;
+  after_failure = craft_project_live_objects();
+  live_after_failure = f.object_index.number;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, shown);
+  CuAssertIntEquals(tc, 0, after_show);
+  CuAssertIntEquals(tc, 0, live_after_show);
+  CuAssertTrue(tc, failed);
+  CuAssertIntEquals(tc, 0, after_failure);
+  CuAssertIntEquals(tc, 0, live_after_failure);
+}
+
+void Test_craft_released_materials_forfeit_efficient_savings(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool metal_cleared, hide_kept, refunded, all_cleared;
+
+  craft_project_begin(&f);
+  craft_project_ready_long_sword(ch);
+  GET_CRAFT(ch).efficient_saved_materials[CRAFT_GROUP_HARD_METALS][0] = CRAFT_MAT_STEEL;
+  GET_CRAFT(ch).efficient_saved_materials[CRAFT_GROUP_HARD_METALS][1] = 3;
+  GET_CRAFT(ch).efficient_saved_materials[CRAFT_GROUP_HIDES][0] = CRAFT_MAT_LOW_GRADE_HIDE;
+  GET_CRAFT(ch).efficient_saved_materials[CRAFT_GROUP_HIDES][1] = 1;
+
+  newcraft_create(ch, "materials remove steel");
+  metal_cleared = GET_CRAFT(ch).efficient_saved_materials[CRAFT_GROUP_HARD_METALS][1] == 0;
+  hide_kept = GET_CRAFT(ch).efficient_saved_materials[CRAFT_GROUP_HIDES][1] == 1;
+  refunded = GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL) == 6;
+  newcraft_create(ch, "reset");
+  all_cleared = GET_CRAFT(ch).efficient_saved_materials[CRAFT_GROUP_HIDES][1] == 0;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, metal_cleared);
+  CuAssertTrue(tc, hide_kept);
+  CuAssertTrue(tc, refunded);
+  CuAssertTrue(tc, all_cleared);
+}
+
+void Test_craft_efficient_talent_uses_the_recipe_skill_from_the_start(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool saved;
+
+  craft_project_begin(&f);
+  GET_CRAFT(ch).crafting_item_type = CRAFT_TYPE_WEAPON;
+  GET_CRAFT(ch).crafting_specific = WEAPON_TYPE_LONG_SWORD;
+  GET_CRAFT(ch).crafting_recipe = CRAFT_RECIPE_WEAPON_LONG_SWORD;
+  GET_CRAFT(ch).craft_variant = 0;
+  GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL) = 6;
+  /* 34 ranks is a 102% chance, and no show has recorded a skill yet. */
+  f.specials.saved.talent_ranks[TALENT_EFFICIENT_WEAPONSMITHING] = 34;
+
+  newcraft_create(ch, "materials add steel");
+  saved = GET_CRAFT(ch).efficient_saved_materials[CRAFT_GROUP_HARD_METALS][0] == CRAFT_MAT_STEEL &&
+          GET_CRAFT(ch).efficient_saved_materials[CRAFT_GROUP_HARD_METALS][1] == 3;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, saved);
+}
+
+void Test_craft_slot_mote_refund_leaves_the_enhancement_motes(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  int enhancement_motes, slot_motes, enhancement_element, slot_element;
+  bool slot_refunded, enhancement_kept;
+
+  craft_project_begin(&f);
+  craft_project_ready_long_sword(ch);
+  GET_CRAFT(ch).enhancement = 1;
+  enhancement_motes = craft_motes_required(0, 0, 0, 1);
+  enhancement_element = get_enhancement_mote_type(ch, CRAFT_TYPE_WEAPON, WEAPON_TYPE_LONG_SWORD);
+  GET_CRAFT(ch).enhancement_motes_required = enhancement_motes;
+  GET_CRAFT(ch).affected[0].location = APPLY_STR;
+  GET_CRAFT(ch).affected[0].modifier = 1;
+  GET_CRAFT(ch).affected[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
+  slot_motes = craft_motes_required(APPLY_STR, 1, BONUS_TYPE_ENHANCEMENT, 0);
+  slot_element = crafting_mote_by_bonus_location(APPLY_STR, 0, BONUS_TYPE_ENHANCEMENT);
+  GET_CRAFT(ch).motes_required[0] = slot_motes;
+
+  newcraft_create(ch, "motes remove 1");
+  slot_refunded =
+      GET_CRAFT(ch).motes_required[0] == 0 && GET_CRAFT_MOTES(ch, slot_element) == slot_motes;
+  enhancement_kept = GET_CRAFT(ch).enhancement_motes_required == enhancement_motes &&
+                     GET_CRAFT_MOTES(ch, enhancement_element) == 0;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, slot_element != enhancement_element);
+  CuAssertTrue(tc, slot_refunded);
+  CuAssertTrue(tc, enhancement_kept);
+}
+
+void Test_craft_start_and_check_report_skill_and_station_first(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct primary_activity_snapshot snapshot;
+  bool refused, idle, station_reported;
+  int objects;
+
+  craft_project_begin(&f);
+  craft_project_ready_long_sword(ch);
+  SET_ABILITY(ch, ABILITY_CRAFT_WEAPONSMITHING, 0);
+  GET_CRAFT(ch).level_adjust = -10;
+
+  newcraft_create(ch, "start");
+  refused = craft_project_output_has(&f, "don't have the skill to craft");
+  idle = GET_CRAFT(ch).craft_duration == 0 && !primary_activity_snapshot(ch, &snapshot);
+  objects = craft_project_live_objects();
+
+  f.room.contents = NULL;
+  craft_project_reset_output(&f);
+  newcraft_create(ch, "check");
+  station_reported = craft_project_output_has(&f, "in a room with a forge") &&
+                     craft_project_output_has(&f, "not yet ready");
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, refused);
+  CuAssertTrue(tc, idle);
+  CuAssertIntEquals(tc, 0, objects);
+  CuAssertTrue(tc, station_reported);
+}
+
+void Test_craft_bonuses_accept_the_first_variant(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool set;
+
+  craft_project_begin(&f);
+  craft_project_ready_long_sword(ch);
+
+  newcraft_create(ch, "bonuses 1 strength enhancement 1");
+  set = GET_CRAFT(ch).affected[0].location == APPLY_STR && GET_CRAFT(ch).affected[0].modifier == 1;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, set);
+}
+
+void Test_craft_types_offer_only_what_recipes_can_build(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  int golem_type, bow;
+  bool woodworking, weaponsmithing_without_hammer;
+
+  craft_project_begin(&f);
+  newcraft_create(ch, "itemtype golem");
+  golem_type = GET_CRAFT(ch).crafting_item_type;
+  newcraft_create(ch, "itemtype weapon");
+  newcraft_create(ch, "specifictype composite long bow");
+  bow = GET_CRAFT(ch).crafting_specific;
+
+  /* Carpentry has no tool slot, so it needs no worn tool. */
+  GET_EQ(ch, WEAR_CRAFT_WEAPON_HAMMER) = NULL;
+  woodworking = is_wearing_tool_for_crafting_ability(ch, ABILITY_CRAFT_WOODWORKING);
+  weaponsmithing_without_hammer =
+      is_wearing_tool_for_crafting_ability(ch, ABILITY_CRAFT_WEAPONSMITHING);
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, CRAFT_TYPE_NONE, golem_type);
+  CuAssertIntEquals(tc, WEAPON_TYPE_COMPOSITE_LONGBOW_5, bow);
+  CuAssertTrue(tc, woodworking);
+  CuAssertTrue(tc, !weaponsmithing_without_hammer);
+}
+
+void Test_craft_busy_message_names_golem_work(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool named;
+
+  craft_project_begin(&f);
+  GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_GOLEM;
+  GET_CRAFT(ch).craft_duration = 5;
+  do_newcraft(ch, "show", 0, SCMD_NEWCRAFT_CREATE);
+  named = craft_project_output_has(&f, "project of type: golem.");
+  GET_CRAFT(ch).crafting_method = 0;
+  GET_CRAFT(ch).craft_duration = 0;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, named);
+}
+
+void Test_craft_resize_reset_clears_the_new_size(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool cleared;
+
+  craft_project_begin(&f);
+  GET_CRAFT(ch).new_size = SIZE_LARGE;
+  GET_CRAFT(ch).resize_mat_type = CRAFT_MAT_STEEL;
+  GET_CRAFT(ch).resize_mat_num = 2;
+  reset_current_craft(ch, CuMutableString("resize"), FALSE, TRUE);
+  cleared = GET_CRAFT(ch).new_size == 0 && GET_CRAFT(ch).resize_mat_type == 0 &&
+            GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL) == 2;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, cleared);
 }

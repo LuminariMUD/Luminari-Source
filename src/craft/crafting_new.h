@@ -258,7 +258,6 @@ void begin_current_craft(struct char_data *ch);
 void craft_create_complete(struct char_data *ch);
 void set_craft_item_descs(struct char_data *ch, struct obj_data *obj);
 void set_craft_item_affects(struct char_data *ch, struct obj_data *obj);
-void create_craft_armor(struct char_data *ch);
 void set_craft_item_flags(struct char_data *ch, struct obj_data *obj);
 void set_crafting_materials(struct char_data *ch, const char *arg2);
 int craft_group_by_material(int material);

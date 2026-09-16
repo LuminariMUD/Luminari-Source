@@ -2294,9 +2294,10 @@ static void get_check_craft_material(struct char_data *ch, struct obj_data *obj)
     return;
 
   quantity = MAX(1, GET_OBJ_VAL(obj, 0));
-  material_type = GET_OBJ_MATERIAL(obj);
+  /* Storage is indexed by crafting material, not by object material. */
+  material_type = obj_material_to_craft_material(GET_OBJ_MATERIAL(obj));
 
-  if (material_type < 0 || material_type >= NUM_MATERIALS)
+  if (material_type == CRAFT_MAT_NONE)
     return;
 
   extract_obj(obj);
@@ -2305,12 +2306,11 @@ static void get_check_craft_material(struct char_data *ch, struct obj_data *obj)
 
   if (!ch->char_specials.post_combat_messages)
   {
-    extern const char *material_name[];
-
     if (quantity == 1)
-      send_to_char(ch, "You collect 1 %s material.\r\n", material_name[material_type]);
+      send_to_char(ch, "You collect 1 %s material.\r\n", crafting_materials[material_type]);
     else
-      send_to_char(ch, "You collect %d %s materials.\r\n", quantity, material_name[material_type]);
+      send_to_char(ch, "You collect %d %s materials.\r\n", quantity,
+                   crafting_materials[material_type]);
   }
 }
 #endif /* USE_NEW_CRAFTING_SYSTEM */
