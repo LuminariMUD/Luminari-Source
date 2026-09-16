@@ -70,6 +70,22 @@ jobs:
         with:
           python-version: "3.12"
 
+      # Every ratchet reads the baseline committed beside it, so a change that
+      # raised one would pass them all. This compares each with the diff base
+      # first; the weekly and manual runs have no base to compare with.
+      - name: Check that no baseline grew
+        run: |
+          case "${GITHUB_EVENT_NAME:-}" in
+            schedule | workflow_dispatch) echo "no diff base on a ${GITHUB_EVENT_NAME} run" ;;
+            *)
+              if git rev-parse -q --verify 'HEAD^1' >/dev/null; then
+                python3 scripts/ci/check_baseline_ratchet.py --base 'HEAD^1'
+              else
+                echo "no parent commit to compare with"
+              fi
+              ;;
+          esac
+
       - name: Set up build
         uses: ./.github/actions/setup-build
         with:

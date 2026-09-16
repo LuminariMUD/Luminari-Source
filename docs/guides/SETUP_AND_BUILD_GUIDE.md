@@ -464,6 +464,23 @@ shrink.
 | Header self-containment | the configured compiler | `make test` and CTest, so every CI job that runs them | `scripts/ci/header_self_containment_baseline.txt`, headers that do not compile alone yet |
 | CodeQL source coverage | CodeQL with the `security-extended` queries | Security | none: every production source must be in the database |
 
+Each gate trusts the baseline committed beside it, so on its own it would pass
+a change that raised its baseline together with the findings. A step before the
+analysis in the Code Quality clang-tidy job closes that:
+`scripts/ci/check_baseline_ratchet.py` reads every baseline above, the
+unsafe-call site list, the migration warning budgets, and
+`scripts/ci/sql_interpolation_baseline.txt` from `HEAD^1` as well, and fails when
+an entry grew, a new entry appeared, or a header joined the list. It follows the
+files the change renames, so moving a source together with its baseline entries
+passes. A baseline may grow only in a change to what produces its findings:
+`.clang-tidy` or the clang-tidy pin, the warning flags or the pinned compilers,
+or the script that checks it (`BASELINES` in the script lists them). The growth
+is still printed for review. Run it against your merge base before pushing:
+
+```bash
+python3 scripts/ci/check_baseline_ratchet.py --base "$(git merge-base origin/master HEAD)"
+```
+
 Findings depend on the configuration headers. CI and every baseline use the
 `src/config/*.example.h` templates, so a checkout with customized local headers
 can report different findings. `python3 scripts/ci/local/run.py --job quality-clang-tidy`
