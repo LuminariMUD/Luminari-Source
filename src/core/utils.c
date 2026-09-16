@@ -51,6 +51,7 @@
 #include "obj/treasure.h"
 #include "character/perks.h"
 #include "help.h"
+#include "binary_formats.h"
 #include <time.h>
 
 #ifdef CIRCLE_WINDOWS
@@ -6383,6 +6384,148 @@ bool finish_file_save(FILE *stream, const char *temporary_path, const char *dest
 #endif
 
   return true;
+}
+
+/** Reads a whole regular file into a buffer the caller frees.
+ * @retval DURABLE_FILE_ABSENT The path does not exist; nothing is allocated.
+ * @retval DURABLE_FILE_READ *data holds *size bytes.
+ * @retval DURABLE_FILE_UNREADABLE The path is not a regular file of at most
+ * max_size bytes, or reading it failed. A SYSERR is logged. */
+enum durable_file_read read_durable_file(const char *path, size_t max_size, unsigned char **data,
+                                         size_t *size)
+{
+  unsigned char *buffer;
+  struct stat status;
+  FILE *stream;
+  size_t length;
+
+  *data = NULL;
+  *size = 0;
+  stream = fopen(path, "rb");
+  if (!stream)
+  {
+    if (errno == ENOENT)
+      return DURABLE_FILE_ABSENT;
+    log("SYSERR: Unable to open %s: %s", path, strerror(errno));
+    return DURABLE_FILE_UNREADABLE;
+  }
+  if (fstat(fileno(stream), &status) != 0 || !S_ISREG(status.st_mode) ||
+      (uintmax_t)status.st_size > max_size)
+  {
+    log("SYSERR: %s is not a regular file of at most %zu bytes.", path, max_size);
+    fclose(stream);
+    return DURABLE_FILE_UNREADABLE;
+  }
+  length = (size_t)status.st_size;
+  CREATE(buffer, unsigned char, length + 1);
+  if (fread(buffer, 1, length, stream) != length || fgetc(stream) != EOF)
+  {
+    log("SYSERR: Unable to read %s in full.", path);
+    free(buffer);
+    fclose(stream);
+    return DURABLE_FILE_UNREADABLE;
+  }
+  fclose(stream);
+  *data = buffer;
+  *size = length;
+  return DURABLE_FILE_READ;
+}
+
+/** Writes bytes to "<path>.tmp" and installs them with finish_file_save(). */
+static bool write_durable_file(const char *path, const unsigned char *data, size_t size)
+{
+  char temporary_path[PATH_MAX];
+  FILE *stream;
+  bool written;
+  int length;
+
+  length = snprintf(temporary_path, sizeof(temporary_path), "%s.tmp", path);
+  if (length < 0 || (size_t)length >= sizeof(temporary_path))
+  {
+    log("SYSERR: Path too long to save durably: %s", path);
+    return false;
+  }
+  stream = fopen_restricted(temporary_path, "wb");
+  if (!stream)
+  {
+    log("SYSERR: Unable to create %s: %s", temporary_path, strerror(errno));
+    return false;
+  }
+  written = size == 0 || fwrite(data, 1, size, stream) == size;
+  return finish_file_save(stream, temporary_path, path) && written;
+}
+
+/** Atomically replaces path with data. When path holds a non-empty file that
+ * does not start with current_magic, that file is first copied to
+ * "<path>.legacy-<crc32>", once per distinct content, so upgrading a legacy
+ * file never discards it. The replacement is refused when the current file
+ * cannot be read or preserved. */
+bool replace_durable_file(const char *path, const char *current_magic, size_t max_size,
+                          const unsigned char *data, size_t size)
+{
+  char backup_path[PATH_MAX];
+  unsigned char *existing;
+  size_t existing_size;
+  bool preserved = true;
+  int length;
+
+  switch (read_durable_file(path, max_size, &existing, &existing_size))
+  {
+  case DURABLE_FILE_ABSENT:
+    break;
+  case DURABLE_FILE_UNREADABLE:
+    log("SYSERR: Not replacing %s: its current contents could not be read to preserve them.", path);
+    return false;
+  case DURABLE_FILE_READ:
+    if (existing_size > 0 && (existing_size < BINARY_FORMAT_MAGIC_SIZE ||
+                              memcmp(existing, current_magic, BINARY_FORMAT_MAGIC_SIZE) != 0))
+    {
+      length = snprintf(backup_path, sizeof(backup_path), "%s.legacy-%08" PRIx32, path,
+                        binary_format_crc32(existing, existing_size));
+      if (length < 0 || (size_t)length >= sizeof(backup_path))
+        preserved = false;
+      else if (access(backup_path, F_OK) != 0)
+      {
+        preserved = write_durable_file(backup_path, existing, existing_size);
+        if (preserved)
+          log("Preserved the legacy %s as %s before upgrading its format.", path, backup_path);
+      }
+    }
+    free(existing);
+    break;
+  }
+  if (!preserved)
+  {
+    log("SYSERR: Not replacing %s: its legacy contents could not be preserved.", path);
+    return false;
+  }
+  return write_durable_file(path, data, size);
+}
+
+/** Renames a file the server refused to load to "<path>.rejected-<time>" (with
+ * a counter suffix if needed) so that no later save overwrites it. */
+void quarantine_durable_file(const char *path)
+{
+  char target[PATH_MAX];
+  long stamp = (long)time(0);
+  int attempt, length;
+
+  for (attempt = 0; attempt < 100; attempt++)
+  {
+    if (attempt == 0)
+      length = snprintf(target, sizeof(target), "%s.rejected-%ld", path, stamp);
+    else
+      length = snprintf(target, sizeof(target), "%s.rejected-%ld-%d", path, stamp, attempt);
+    if (length < 0 || (size_t)length >= sizeof(target))
+      break;
+    if (access(target, F_OK) == 0)
+      continue;
+    if (rename(path, target) != 0)
+      break;
+    log("SYSERR: Moved the rejected %s aside to %s; repair it before restoring it.", path, target);
+    return;
+  }
+  log("SYSERR: Unable to move the rejected %s aside; the next save will replace it.", path);
 }
 
 /* Name:   calculate_cp

@@ -33,6 +33,7 @@
 #include "act.h"
 #include "database/mysql.h"
 #include "core/copyover_diagnostic.h"
+#include "core/binary_formats.h"
 #include "olc/genzon.h" /* for real_zone_by_thing */
 #include "character/class.h"
 #include "olc/genolc.h"
@@ -97,11 +98,9 @@ static void do_stat_scriptvar(struct char_data *ch, struct char_data *k);
 static void do_stat_character(struct char_data *ch, struct char_data *k);
 static void stop_snooping(struct char_data *ch);
 static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int listall);
-// static struct char_data *is_in_game(long idnum);
 static void mob_checkload(struct char_data *ch, mob_vnum mvnum);
 static void obj_checkload(struct char_data *ch, obj_vnum ovnum);
 static void trg_checkload(struct char_data *ch, trig_vnum tvnum);
-static void mod_llog_entry(struct last_entry *llast, int type);
 static int get_max_recent(void);
 static void clear_recent(struct recent_player *this);
 static struct recent_player *create_recent(void);
@@ -2703,255 +2702,48 @@ const char *last_array[11] = {"Connect", "Enter Game", "Reconnect",  "Takeover",
                               "Quit",    "Idleout",    "Disconnect", "Shutdown",
                               "Reboot",  "Crash",      "Playing"};
 
-struct last_entry *find_llog_entry(int punique, long idnum)
-{
-  FILE *fp;
-  struct last_entry mlast;
-  struct last_entry *llast;
-  int size, recs, tmp;
-
-  if (!(fp = fopen(LAST_FILE, "r")))
-  {
-    log("Error opening last_file for reading, will create.");
-    return NULL;
-  }
-  fseek(fp, 0L, SEEK_END);
-  size = (int)ftell(fp);
-
-  /* recs = number of records in the last file */
-  recs = size / sizeof(struct last_entry);
-  /* we'll search last to first, since it's faster than any thing else we can
-   * do (like searching for the last shutdown/etc..) */
-  for (tmp = recs - 1; tmp > 0; tmp--)
-  {
-    fseek(fp, -1 * (sizeof(struct last_entry)), SEEK_CUR);
-    if (fread(&mlast, sizeof(struct last_entry), 1, fp) != 1)
-    {
-      fclose(fp);
-      return NULL;
-    }
-    /*another one to keep that stepback */
-    fseek(fp, -1 * (sizeof(struct last_entry)), SEEK_CUR);
-
-    if (mlast.idnum == idnum && mlast.punique == punique)
-    {
-      /* then we've found a match */
-      CREATE(llast, struct last_entry, 1);
-      memcpy(llast, &mlast, sizeof(struct last_entry));
-      fclose(fp);
-      return llast;
-    }
-    /*not the one we seek. next */
-  }
-  /*not found, no problem, quit */
-  fclose(fp);
-  return NULL;
-}
-
-/* mod_llog_entry assumes that llast is accurate */
-static void mod_llog_entry(struct last_entry *llast, int type)
-{
-  FILE *fp;
-  struct last_entry mlast;
-  int size, recs, tmp;
-
-  if (!(fp = fopen(LAST_FILE, "r+")))
-  {
-    log("Error opening last_file for reading and writing.");
-    return;
-  }
-  fseek(fp, 0L, SEEK_END);
-  size = (int)ftell(fp);
-
-  /* recs = number of records in the last file */
-  recs = size / sizeof(struct last_entry);
-
-  /* We'll search last to first, since it's faster than any thing else we can
-   * do (like searching for the last shutdown/etc..) */
-  for (tmp = recs; tmp > 0; tmp--)
-  {
-    fseek(fp, -1 * (sizeof(struct last_entry)), SEEK_CUR);
-    (void)fread(&mlast, sizeof(struct last_entry), 1, fp);
-    /* Another one to keep that stepback. */
-    fseek(fp, -1 * (sizeof(struct last_entry)), SEEK_CUR);
-
-    if (mlast.idnum == llast->idnum && mlast.punique == llast->punique)
-    {
-      /* Then we've found a match, lets assume quit is inviolate, mainly
-       * because disconnect is called after each of these */
-      if (mlast.close_type != LAST_QUIT && mlast.close_type != LAST_IDLEOUT &&
-          mlast.close_type != LAST_REBOOT && mlast.close_type != LAST_SHUTDOWN)
-      {
-        mlast.close_type = type;
-      }
-      mlast.close_time = time(0);
-      /*write it, and we're done!*/
-      (void)fwrite(&mlast, sizeof(struct last_entry), 1, fp);
-      fclose(fp);
-      return;
-    }
-    /* Not the one we seek, next. */
-  }
-  fclose(fp);
-
-  /* Not found, no problem, quit. */
-  return;
-}
-
-void add_llog_entry(struct char_data *ch, int type)
-{
-  // Gicker - 2022/10/27 - Let's use the previously 'last complete' functionality to see last logins.
-  return;
-
-  FILE *fp;
-  struct last_entry *llast;
-
-  /* so if a char enteres a name, but bad password, otherwise loses link before
-   * he gets a pref assinged, we won't record it */
-  if (GET_PREF(ch) <= 0)
-  {
-    return;
-  }
-
-  /* See if we have a login stored */
-  llast = find_llog_entry((int)GET_PREF(ch), GET_IDNUM(ch));
-
-  /* we didn't - make a new one */
-  if (llast == NULL)
-  { /* no entry found, add ..error if close! */
-    CREATE(llast, struct last_entry, 1);
-    strncpy(llast->username, GET_NAME(ch), 16);
-    strncpy(llast->hostname, GET_HOST(ch), 128);
-    llast->idnum = (int)GET_IDNUM(ch);
-    llast->punique = (int)GET_PREF(ch);
-    llast->time = time(0);
-    llast->close_time = 0;
-    llast->close_type = type;
-
-    if (!(fp = fopen_restricted(LAST_FILE, "a")))
-    {
-      log("error opening last_file for appending");
-      free(llast);
-      return;
-    }
-    (void)fwrite(llast, sizeof(struct last_entry), 1, fp);
-    fclose(fp);
-  }
-  else
-  {
-    /* We've found a login - update it */
-    mod_llog_entry(llast, type);
-  }
-  free(llast);
-}
-
-void clean_llog_entries(void)
-{
-  FILE *ofp, *nfp;
-  struct last_entry mlast;
-  int recs, failed = FALSE;
-
-  if (!(ofp = fopen(LAST_FILE, "r")))
-    return; /* no file, no gripe */
-
-  fseek(ofp, 0L, SEEK_END);
-  recs = (int)(ftell(ofp) / sizeof(struct last_entry));
-  rewind(ofp);
-
-  if (recs < MAX_LAST_ENTRIES)
-  {
-    fclose(ofp);
-    return;
-  }
-
-  if (!(nfp = fopen_restricted("etc/nlast", "w")))
-  {
-    log("Error trying to open new last file.");
-    fclose(ofp);
-    return;
-  }
-
-  /* skip first entries */
-  fseek(ofp, (recs - MAX_LAST_ENTRIES) * (sizeof(struct last_entry)), SEEK_CUR);
-
-  /* copy the rest */
-  while (fread(&mlast, sizeof(struct last_entry), 1, ofp) == 1)
-  {
-    if (fwrite(&mlast, sizeof(struct last_entry), 1, nfp) != 1)
-    {
-      failed = TRUE;
-      break;
-    }
-  }
-  if (ferror(ofp))
-    failed = TRUE;
-  if (fclose(ofp) != 0)
-    failed = TRUE;
-
-  if (failed)
-  {
-    log("SYSERR: Failed to rebuild last log; preserving %s", LAST_FILE);
-    fclose(nfp);
-    return;
-  }
-  if (!finish_file_save(nfp, "etc/nlast", LAST_FILE))
-    return;
-}
-
-/* debugging stuff, if you wanna see the whole file */
+/* Lists the retired login log for "last all". Nothing has written the file
+ * since 2022; each fixed-size record is decoded field by field. */
 static void list_llog_entries(struct char_data *ch)
 {
-  FILE *fp;
-  struct last_entry llast;
+  unsigned char record[LAST_LOG_RECORD_SIZE];
+  struct last_log_record entry;
   char timestr[64];
+  FILE *fp;
+  long size;
 
-  if (!(fp = fopen(LAST_FILE, "r")))
+  if (!(fp = fopen(LAST_FILE, "rb")))
   {
     log("bad things.");
     send_to_char(ch, "Error! - no last log");
     return;
   }
-  send_to_char(ch, "Last log\r\n");
-  if (fread(&llast, sizeof(struct last_entry), 1, fp) != 1)
+  size = fseek(fp, 0L, SEEK_END) == 0 ? ftell(fp) : -1;
+  if (size < 0 || size % LAST_LOG_RECORD_SIZE != 0 || fseek(fp, 0L, SEEK_SET) != 0)
   {
-    log("SYSERR: Failed to read initial entry from last file");
+    log("SYSERR: %s is not a whole number of %d-byte login records.", LAST_FILE,
+        LAST_LOG_RECORD_SIZE);
+    send_to_char(ch, "The last log is unreadable.\r\n");
     fclose(fp);
     return;
   }
 
-  while (!feof(fp))
+  send_to_char(ch, "Last log\r\n");
+  while (fread(record, 1, sizeof(record), fp) == sizeof(record))
   {
-    format_time_string(llast.time, "%a %b %d %Y %H:%M:%S", timestr, sizeof(timestr));
-    send_to_char(ch, "%10s     %d     %s     %s\r\n", llast.username, llast.punique,
-                 llast.close_type >= 0 &&
-                         (size_t)llast.close_type < sizeof(last_array) / sizeof(last_array[0])
-                     ? last_array[llast.close_type]
+    last_log_decode_record(record, &entry);
+    format_time_string((time_t)entry.login_time, "%a %b %d %Y %H:%M:%S", timestr, sizeof(timestr));
+    send_to_char(ch, "%10s     %d     %s     %s\r\n", entry.username, entry.punique,
+                 entry.close_type >= 0 &&
+                         (size_t)entry.close_type < sizeof(last_array) / sizeof(last_array[0])
+                     ? last_array[entry.close_type]
                      : "Unknown",
                  timestr);
-    if (fread(&llast, sizeof(struct last_entry), 1, fp) != 1 && !feof(fp))
-    {
-      log("SYSERR: Failed to read from last file");
-      break;
-    }
   }
+  if (ferror(fp))
+    log("SYSERR: Failed to read from %s", LAST_FILE);
   fclose(fp);
 }
-
-// Gicker - 22/10/27 - Not needed right now as we're not using
-// llog system for the last command anymore.
-// static struct char_data *is_in_game(long idnum)
-// {
-//   struct descriptor_data *i;
-
-//   for (i = descriptor_list; i; i = i->next)
-//   {
-//     if (i->character && GET_IDNUM(i->character) == idnum)
-//     {
-//       return i->character;
-//     }
-//   }
-//   return NULL;
-// }
 
 // will show last 40 logins per character with account name, character name and last login time
 static void show_full_last_command(struct char_data *ch)
@@ -3014,14 +2806,9 @@ ACMDU(do_last)
   struct char_data *vict = NULL;
   const char *class_abbrev;
   const char *race_abbrev;
-  // struct char_data *temp;
   int class_num;
   int race_num;
   int num = 0;
-  // int recs, i;
-  // FILE *fp;
-  // time_t delta;
-  // struct last_entry mlast;
 
   *name = '\0';
 
@@ -3104,47 +2891,6 @@ ACMDU(do_last)
   show_full_last_command(ch);
 
   send_to_char(ch, "\r\nType 'last unique' to see the most recent unique account logins.\r\n\r\n");
-
-  // if (!(fp = fopen(LAST_FILE, "r")))
-  // {
-  //   send_to_char(ch, "No entries found.\r\n");
-  //   return;
-  // }
-  // fseek(fp, 0L, SEEK_END);
-  // recs = ftell(fp) / sizeof(struct last_entry);
-
-  // send_to_char(ch, "Last log\r\n");
-  // while (num > 0 && recs > 0)
-  // {
-  //   fseek(fp, -1 * (sizeof(struct last_entry)), SEEK_CUR);
-  //   i = fread(&mlast, sizeof(struct last_entry), 1, fp);
-  //   fseek(fp, -1 * (sizeof(struct last_entry)), SEEK_CUR);
-  //   if (!*name || (*name && !str_cmp(name, mlast.username)))
-  //   {
-  //     send_to_char(ch, "%10.10s %20.20s %16.16s - ",
-  //                  mlast.username, mlast.hostname, ctime(&mlast.time));
-  //     if ((temp = is_in_game(mlast.idnum)) && mlast.punique == GET_PREF(temp))
-  //     {
-  //       send_to_char(ch, "Still Playing  ");
-  //     }
-  //     else
-  //     {
-  //       send_to_char(ch, "%5.5s ", ctime(&mlast.close_time) + 11);
-  //       delta = mlast.close_time - mlast.time;
-  //       send_to_char(ch, "(%5.5s) ", asctime(gmtime(&delta)) + 11);
-  //       send_to_char(ch, "%s", last_array[mlast.close_type]);
-  //     }
-
-  //     send_to_char(ch, "\r\n");
-  //     num--;
-  //   }
-  //   recs--;
-  // }
-  // fclose(fp);
-  // send_to_char(ch, "\r\n"
-  //                  "Type last complete to see the last 40 logins with account name, character name and login time.\r\n"
-  //              //"Type last unique to see the last 40 logins, only showing the most recent login per account.\r\n"
-  // );
 }
 
 ACMD(do_force)

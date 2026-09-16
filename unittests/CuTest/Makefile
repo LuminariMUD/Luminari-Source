@@ -52,6 +52,14 @@ PROTOCOL_BENCH_SOURCE_OBJ = $(BUILD_DIR)/protocol_bench.o
 MSDP_JSON_BENCH_SOURCE_OBJ = $(BUILD_DIR)/msdp_json_bench.o
 PROTOCOL_BENCH_EXE = protocol_parser_bench
 
+# Durable binary file formats. The harness links only the dependency-free
+# codec, so it needs no configured build and runs on any architecture.
+BINARY_FORMATS_TEST_CFLAGS ?= -Wall -Wextra $(CSTD_FLAG) -g -O1
+BINARY_FORMATS_CODEC = ../../src/core/binary_formats.c
+BINARY_FORMATS_TEST_RUNNER = $(BUILD_DIR)/binary_formats_all_tests.c
+BINARY_FORMATS_TEST_EXE = binary_formats_tests
+BINARY_FORMATS_FUZZ_EXE = binary_formats_fuzz
+
 all: $(PROTOCOL_PARSER_TEST_EXE)
 
 $(BUILD_DIR):
@@ -116,6 +124,18 @@ $(PROTOCOL_BENCH_EXE): $(PROTOCOL_BENCH_OBJ) $(PROTOCOL_BENCH_SOURCE_OBJ) \
 		$(MSDP_JSON_BENCH_SOURCE_OBJ)
 	$(PROTOCOL_BENCH_CC) $(PROTOCOL_BENCH_CFLAGS) -o $@ $^ $(PROTOCOL_BENCH_LDFLAGS)
 
+$(BINARY_FORMATS_TEST_RUNNER): test_binary_formats.c make-tests.sh | $(BUILD_DIR)
+	./make-tests.sh test_binary_formats.c > $@
+
+$(BINARY_FORMATS_TEST_EXE): CuTest.c CuTest.h test_binary_formats.c binary_format_fixtures.h \
+		$(BINARY_FORMATS_CODEC) ../../src/core/binary_formats.h $(BINARY_FORMATS_TEST_RUNNER)
+	$(CC) $(BINARY_FORMATS_TEST_CFLAGS) -DBINARY_FORMATS_FOCUSED_HARNESS -I. -I../../src \
+		CuTest.c test_binary_formats.c $(BINARY_FORMATS_CODEC) $(BINARY_FORMATS_TEST_RUNNER) -o $@
+
+$(BINARY_FORMATS_FUZZ_EXE): fuzz_binary_formats.c $(BINARY_FORMATS_CODEC) \
+		../../src/core/binary_formats.h
+	$(FUZZ_CC) $(FUZZ_CFLAGS) -I../../src fuzz_binary_formats.c $(BINARY_FORMATS_CODEC) -o $@
+
 production:
 	$(MAKE) -C ../.. test
 
@@ -135,6 +155,22 @@ protocol-fuzz: $(PROTOCOL_FUZZ_EXE)
 	./$(PROTOCOL_FUZZ_EXE) -max_total_time=$(FUZZ_SECONDS) -timeout=5 \
 		-print_funcs=0 -verbosity=0 -max_len=16384 "$$fuzz_work"
 
+binary-formats: $(BINARY_FORMATS_TEST_EXE)
+	./$(BINARY_FORMATS_TEST_EXE)
+
+# The seeds are hex text (the tree holds no binary files); decode them first.
+binary-formats-fuzz: $(BINARY_FORMATS_FUZZ_EXE)
+	fuzz_work=$$(mktemp -d /tmp/luminari-binary-formats-fuzz.XXXXXX); \
+	trap 'rm -rf "$$fuzz_work"' EXIT; \
+	python3 -c 'import os, sys; [open(os.path.join(sys.argv[1], os.path.basename(p)[:-4]), "wb").write(bytes.fromhex(open(p).read())) for p in sys.argv[2:]]' \
+		"$$fuzz_work" fuzz_corpus_binary_formats/*.txt; \
+	ASAN_SYMBOLIZER_PATH=$$(command -v llvm-symbolizer 2>/dev/null || \
+		command -v llvm-symbolizer-18 2>/dev/null || true) \
+	ASAN_OPTIONS=halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 \
+	./$(BINARY_FORMATS_FUZZ_EXE) -max_total_time=$(FUZZ_SECONDS) -timeout=5 \
+		-print_funcs=0 -verbosity=0 -max_len=65536 "$$fuzz_work"
+
 protocol-bench-build: $(PROTOCOL_BENCH_EXE)
 
 protocol-bench: $(PROTOCOL_BENCH_EXE)
@@ -152,6 +188,7 @@ valgrind-protocol: $(PROTOCOL_PARSER_TEST_EXE)
 clean:
 	rm -rf $(BUILD_DIR)
 	rm -f $(PROTOCOL_PARSER_TEST_EXE) $(PROTOCOL_FUZZ_EXE) $(PROTOCOL_BENCH_EXE)
+	rm -f $(BINARY_FORMATS_TEST_EXE) $(BINARY_FORMATS_FUZZ_EXE)
 
 rebuild: clean all
 
@@ -163,9 +200,12 @@ help:
 	@echo "  protocol-parser    - Run the focused protocol parser harness"
 	@echo "  protocol-fuzz      - Run bounded ASan/UBSan libFuzzer coverage"
 	@echo "  protocol-bench     - Time the protocol parser (PROTOCOL_BENCH_CFLAGS)"
+	@echo "  binary-formats     - Run the binary file format golden tests (any architecture)"
+	@echo "  binary-formats-fuzz - Run bounded ASan/UBSan libFuzzer on the format decoders"
 	@echo "  test-all           - Run the authoritative root test-all target"
 	@echo "  valgrind-protocol  - Run the protocol harness with Valgrind"
 	@echo "  clean              - Remove standalone build artifacts"
 
 .PHONY: all production protocol-parser protocol-fuzz-build protocol-fuzz \
-	protocol-bench-build protocol-bench test test-all valgrind-protocol clean rebuild help
+	protocol-bench-build protocol-bench binary-formats binary-formats-fuzz test test-all \
+	valgrind-protocol clean rebuild help

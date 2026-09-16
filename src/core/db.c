@@ -1463,9 +1463,6 @@ void boot_db(void)
   log("Initializing spatial audio system.");
   spatial_audio_init();
 
-  log("Cleaning up last log.");
-  clean_llog_entries();
-
 #if 1
   {
     obj_rnum j;

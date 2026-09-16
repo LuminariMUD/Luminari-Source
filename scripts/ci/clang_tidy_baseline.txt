@@ -1106,9 +1106,6 @@ util/autowiz.c bugprone-assignment-in-if-condition 1
 util/autowiz.c bugprone-unchecked-string-to-number-conversion 4
 util/autowiz.c bugprone-unsafe-functions 3
 util/autowiz.c clang-analyzer-unix.Errno 1
-util/plrtoascii.c bugprone-assignment-in-if-condition 3
-util/plrtoascii.c bugprone-unsafe-functions 1
-util/plrtoascii.c clang-analyzer-deadcode.DeadStores 1
 util/rebuildAsciiIndex.c bugprone-assignment-in-if-condition 2
 util/rebuildAsciiIndex.c bugprone-unchecked-string-to-number-conversion 4
 util/rebuildAsciiIndex.c bugprone-unsafe-functions 1
