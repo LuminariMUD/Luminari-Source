@@ -737,8 +737,10 @@ def self_test():
         "src/a.c:2: NOLINT must name the checks it silences",
         "src/a.c:3: NOLINTNEXTLINE(bugprone-branch-clone) needs a reason after ' -- '",
         "src/a.c:4: NOLINTBEGIN must name each check exactly: '*'",
-        "src/a.c:6: NOLINT names clang-analyzer-valist.Uninitialized, "
-        "which .clang-tidy does not enable",
+        (
+            "src/a.c:6: NOLINT names clang-analyzer-valist.Uninitialized, "
+            "which .clang-tidy does not enable"
+        ),
         "src/a.c:7: NOLINT names clang-analyzer-security.VAList, which .clang-tidy does not enable",
     ], problems
 
