@@ -5817,6 +5817,9 @@ static void craft_activity_ended(struct char_data *ch, enum primary_activity_end
   GET_CRAFT(ch).craft_duration = 0;
   if (GET_CRAFT(ch).crafting_method == SCMD_NEWCRAFT_SURVEY)
     ch->player_specials->surveyed_room = false;
+  /* The golem fields keep a cancelled golem project; its method only marked the running work. */
+  else if (GET_CRAFT(ch).crafting_method == SCMD_NEWCRAFT_GOLEM)
+    GET_CRAFT(ch).crafting_method = 0;
 }
 
 static bool start_craft_activity(struct char_data *ch, int method, int seconds)
@@ -10002,6 +10005,9 @@ void reset_current_golem_craft(struct char_data *ch)
   GET_CRAFT(ch).golem_size = GOLEM_SIZE_SMALL;
   memset(GET_CRAFT(ch).golem_materials, 0, sizeof(GET_CRAFT(ch).golem_materials));
   memset(GET_CRAFT(ch).golem_motes_required, 0, sizeof(GET_CRAFT(ch).golem_motes_required));
+  /* Every finished golem project ends here; a stale method would block supply orders. */
+  if (GET_CRAFT(ch).crafting_method == SCMD_NEWCRAFT_GOLEM)
+    GET_CRAFT(ch).crafting_method = 0;
   send_to_char(ch, "Golem crafting project reset.\r\n");
 }
 
