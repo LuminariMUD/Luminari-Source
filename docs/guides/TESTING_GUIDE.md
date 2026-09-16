@@ -767,7 +767,8 @@ hygiene. Both I/O drivers retain the complete behavioral suite.
 
 The strict GCC/Clang CMake jobs still fail on warnings. `quality.yml` runs every pinned
 formatter hook and the clang-tidy baseline, which analyzes the translation units a pull request
-changes and the whole tree weekly. `toolchain-analysis.yml` runs the analysis warning tier and the
+changes and the whole tree weekly, after refusing a change that raises any static-analysis
+baseline. `toolchain-analysis.yml` runs the analysis warning tier and the
 ISO C23 extension report weekly; only its GCC analyzer classes are budgeted. `make test` and CTest
 check that every header outside its baseline compiles on its own, and the CodeQL job fails when
 its database lacks a production source; see

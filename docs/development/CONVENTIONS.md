@@ -155,8 +155,10 @@ ownership evidence in the
 - Use `.clang-format` for formatting and `.clang-tidy` for configured static analysis. Each check
   `.clang-tidy` disables records its scope, reason, owner, and expiry there. New `sprintf`,
   `vsprintf`, `strcpy`, and `strcat` calls are findings; `snprintf` is the accepted form. CI fails
-  when a file gains clang-tidy findings beyond `scripts/ci/clang_tidy_baseline.txt`: fix new
-  findings, or silence a false positive with `/* NOLINTNEXTLINE(check) -- reason */`. See
+  when a file gains clang-tidy findings beyond `scripts/ci/clang_tidy_baseline.txt`, when an unsafe
+  call is not one `scripts/ci/clang_tidy_unsafe_sites.txt` records, and when a change raises any
+  static-analysis baseline: fix new findings, or silence a false positive with
+  `/* NOLINTNEXTLINE(check) -- reason */` naming a check `.clang-tidy` enables. See
   [Static Analysis](../guides/SETUP_AND_BUILD_GUIDE.md#static-analysis).
 - Respect the pre-commit hooks, including include-comment alignment changes. Rebuild and retest
   after formatting modifies source.
@@ -209,7 +211,7 @@ paths without copying configuration or credential values.
 
 | Bundle | Workflow or configuration | Enforced contract |
 | -- | -- | -- |
-| Quality | `.github/workflows/quality.yml` | Every pinned formatter hook and the clang-tidy baseline |
+| Quality | `.github/workflows/quality.yml` | Every pinned formatter hook, the clang-tidy baseline, and baselines that only shrink |
 | Tests | `.github/workflows/test.yml` | Production-linked CuTest, world tools, sanitizers, Valgrind, MariaDB, and coverage |
 | Security | `.github/workflows/security.yml` | Secret scanning, CodeQL with a production-source coverage check, and dependency review |
 | Analysis | `.github/workflows/toolchain-analysis.yml` | Weekly analysis warning tier with the GCC analyzer budget, and the ISO C23 extension report |

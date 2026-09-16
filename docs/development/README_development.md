@@ -118,10 +118,11 @@ world-tool, sanitizer, Valgrind, and subsystem commands.
 
 ## Static Analysis
 
-CI fails on a new clang-tidy or GCC analyzer finding, on a header outside its
-baseline that does not compile on its own, and on a CodeQL database that lacks a
-production source. Reproduce the pull-request clang-tidy job exactly, or run the
-checks directly:
+CI fails on a new clang-tidy or GCC analyzer finding, including an unsafe string
+call swapped in for one already recorded, on a header outside its baseline that
+does not compile on its own, on a CodeQL database that lacks a production source,
+and on a change that raises any of these baselines. Reproduce the pull-request
+clang-tidy job exactly, or run the checks directly:
 
 ```bash
 python3 scripts/ci/local/run.py --job quality-clang-tidy
@@ -131,6 +132,7 @@ cmake --preset analysis
 .venv/bin/python scripts/ci/check_clang_tidy.py --build-dir build/analysis \
   --clang-tidy .venv/bin/clang-tidy --base "$(git merge-base origin/master HEAD)"
 make test-header-self-containment
+python3 scripts/ci/check_baseline_ratchet.py --base "$(git merge-base origin/master HEAD)"
 ```
 
 [Static Analysis](../guides/SETUP_AND_BUILD_GUIDE.md#static-analysis) in the setup
