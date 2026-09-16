@@ -586,6 +586,62 @@ void Test_craft_types_offer_only_what_recipes_can_build(CuTest *tc)
   CuAssertTrue(tc, !weaponsmithing_without_hammer);
 }
 
+void Test_craft_specific_types_offer_the_recipes_that_build_them(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  const char *text;
+  int recipe, misfiled = 0, blowgun, hand_crossbow, hand_recipe, helms = 0;
+  bool heavy_lists_hand;
+
+  craft_project_begin(&f);
+  if (armor_list[SPEC_ARMOR_TYPE_CHAINMAIL_HEAD].name == NULL)
+    load_armor();
+  /* A weapon or armor recipe is listed under the type it builds. */
+  for (recipe = CRAFT_RECIPE_NONE + 1; recipe < NUM_CRAFTING_RECIPES; recipe++)
+    if ((crafting_recipes[recipe].object_type == ITEM_WEAPON ||
+         crafting_recipes[recipe].object_type == ITEM_ARMOR) &&
+        crafting_recipes[recipe].practical_type != crafting_recipes[recipe].object_subtype)
+      misfiled++;
+
+  /* No recipe builds a blowgun. */
+  newcraft_create(ch, "itemtype weapon");
+  newcraft_create(ch, "specifictype blowgun");
+  blowgun = GET_CRAFT(ch).crafting_specific;
+
+  newcraft_create(ch, "reset");
+  newcraft_create(ch, "itemtype weapon");
+  newcraft_create(ch, "specifictype heavy crossbow");
+  craft_project_reset_output(&f);
+  newcraft_create(ch, "variant");
+  heavy_lists_hand = craft_project_output_has(&f, "hand crossbow");
+
+  newcraft_create(ch, "reset");
+  newcraft_create(ch, "itemtype weapon");
+  newcraft_create(ch, "specifictype hand crossbow");
+  hand_crossbow = GET_CRAFT(ch).crafting_specific;
+  newcraft_create(ch, "variant hand crossbow");
+  hand_recipe = GET_CRAFT(ch).crafting_recipe;
+
+  /* The second chainmail helm type has no recipe, so only the light chainmail helm and one
+   * chainmail helm are listed. */
+  newcraft_create(ch, "reset");
+  newcraft_create(ch, "itemtype armor");
+  craft_project_reset_output(&f);
+  newcraft_create(ch, "specifictype");
+  for (text = strstr(f.descriptor.output, "chainmail helm"); text != NULL;
+       text = strstr(text + 1, "chainmail helm"))
+    helms++;
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, 0, misfiled);
+  CuAssertIntEquals(tc, 0, blowgun);
+  CuAssertTrue(tc, !heavy_lists_hand);
+  CuAssertIntEquals(tc, WEAPON_TYPE_HAND_CROSSBOW, hand_crossbow);
+  CuAssertIntEquals(tc, CRAFT_RECIPE_WEAPON_HAND_CROSSBOW, hand_recipe);
+  CuAssertIntEquals(tc, 2, helms);
+}
+
 void Test_craft_busy_message_names_golem_work(CuTest *tc)
 {
   struct craft_project_fixture f;
