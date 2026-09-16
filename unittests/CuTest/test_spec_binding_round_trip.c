@@ -59,7 +59,7 @@ static const spec_legacy_handler spec_round_trip_overrides[SPEC_TEST_OWNER_COUNT
 };
 
 static const char *const spec_round_trip_selections[SPEC_TEST_OWNER_COUNT] = {
-    "14",
+    "15",
     "5",
     "6",
 };

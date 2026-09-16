@@ -31,6 +31,7 @@ static const char *const spec_mobile_names[] = {
     "Bulk Identify",
     "Buy Armor",
     "Buy Weapons",
+    "Craft Trainer",
     "Cryogenicist",
     "Guild Guard",
     "Guild",
@@ -410,7 +411,7 @@ void Test_spec_owner_olc_selection_parser_is_strict_and_bounded(CuTest *tc)
     return;
   CuAssertStrEquals(tc, "Bank", definition->canonical_name);
 
-  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "19", &definition);
+  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "20", &definition);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_DEFINITION, result);
   CuAssertPtrNotNull(tc, definition);
   if (definition == NULL)
@@ -645,14 +646,14 @@ static bool spec_owner_activation_scenario(const char *sandbox, char *error, siz
   if (success)
   {
     success = spec_test_fixture_reset_olc(fixture, SPEC_TEST_OWNER_MOBILE, bank) &&
-              spec_test_fixture_parse_olc(fixture, SPEC_TEST_OWNER_MOBILE, "11") &&
+              spec_test_fixture_parse_olc(fixture, SPEC_TEST_OWNER_MOBILE, "12") &&
               spec_test_fixture_olc_handler(fixture, SPEC_TEST_OWNER_MOBILE) == janitor &&
               !spec_test_fixture_activation_enabled(fixture, SPEC_TEST_OWNER_MOBILE);
   }
   if (success)
   {
     success = spec_test_fixture_reset_olc(fixture, SPEC_TEST_OWNER_MOBILE, bank) &&
-              spec_test_fixture_parse_olc(fixture, SPEC_TEST_OWNER_MOBILE, "15") &&
+              spec_test_fixture_parse_olc(fixture, SPEC_TEST_OWNER_MOBILE, "16") &&
               spec_test_fixture_olc_handler(fixture, SPEC_TEST_OWNER_MOBILE) == practice_dummy &&
               !spec_test_fixture_activation_enabled(fixture, SPEC_TEST_OWNER_MOBILE);
   }
