@@ -478,6 +478,40 @@ void Test_craft_slot_mote_refund_leaves_the_enhancement_motes(CuTest *tc)
   CuAssertTrue(tc, enhancement_kept);
 }
 
+void Test_craft_motes_refuse_a_bonus_slot_past_the_sixth(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  int mote;
+  bool remove_refused, add_refused, motes_kept = true, project_kept;
+
+  craft_project_begin(&f);
+  craft_project_ready_long_sword(ch);
+  /* Two funded bonus slots and an enhancement, the fields that follow the sixth slot. */
+  GET_CRAFT(ch).motes_required[0] = 3;
+  GET_CRAFT(ch).motes_required[1] = 3;
+  GET_CRAFT(ch).enhancement = 8;
+  for (mote = 0; mote < NUM_CRAFT_MOTES; mote++)
+    GET_CRAFT_MOTES(ch, mote) = 100;
+
+  newcraft_create(ch, "motes remove 7");
+  remove_refused = craft_project_output_has(&f, "between 1 and 6");
+  craft_project_reset_output(&f);
+  newcraft_create(ch, "motes add 7");
+  add_refused = craft_project_output_has(&f, "between 1 and 6");
+  for (mote = 0; mote < NUM_CRAFT_MOTES; mote++)
+    if (GET_CRAFT_MOTES(ch, mote) != 100)
+      motes_kept = false;
+  project_kept = GET_CRAFT(ch).enhancement == 8 && GET_CRAFT(ch).motes_required[0] == 3 &&
+                 GET_CRAFT(ch).motes_required[1] == 3;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, remove_refused);
+  CuAssertTrue(tc, add_refused);
+  CuAssertTrue(tc, motes_kept);
+  CuAssertTrue(tc, project_kept);
+}
+
 void Test_craft_start_and_check_report_skill_and_station_first(CuTest *tc)
 {
   struct craft_project_fixture f;
