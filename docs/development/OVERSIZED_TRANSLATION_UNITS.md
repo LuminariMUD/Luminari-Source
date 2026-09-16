@@ -194,7 +194,8 @@ Characterisation tests written against the perk tables found seven pre-existing 
 None were introduced by this wave and none are fixed by it: correcting any of them changes what
 players can see or buy, which is a content decision that belongs in its own change with its own
 review. They are recorded as ratchets in `unittests/CuTest/test_perk_definitions.c`, so the tables
-cannot get worse and can be fixed freely.
+cannot get worse and can be fixed freely, and are tracked in
+[#194](https://github.com/LuminariMUD/Luminari-Source/issues/194).
 
 - **Permanently unbuyable perk.** `PERK_WIZARD_EXTENDED_SPELL_3` requires
   `PERK_WIZARD_EXTENDED_SPELL_2`, which has an id in `structs.h` but is never defined by any tree.
@@ -204,6 +205,12 @@ cannot get worse and can be fixed freely.
 - **Three uncategorised barbarian perks.** `PERK_BARBARIAN_RAGE_ENHANCEMENT`,
   `PERK_BARBARIAN_EXTENDED_RAGE_1` and `PERK_BARBARIAN_TOUGHNESS` never set `perk_category`, so
   they keep `PERK_CATEGORY_UNDEFINED` and appear under no tree.
+
+Writing those up also turned over a larger defect the tests themselves cannot catch:
+`perk_category_names[]` has drifted out of sync with the `PERK_CATEGORY_*` constants, so 320 of the
+562 defined perks display the wrong tree name and roughly 250 render as `Unknown Category`. It is
+tracked in [#195](https://github.com/LuminariMUD/Luminari-Source/issues/195), and it needs fixing
+before the barbarian perks above can be given a category.
 
 ## Where the tests live
 
