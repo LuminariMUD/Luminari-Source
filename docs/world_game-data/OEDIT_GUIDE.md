@@ -556,7 +556,9 @@ finger-or-tail gear.
 
 The `craft tools|equipment|gear` display uses a different rule: it scans all
 equipped positions for an `ITEM_CRAFTING_TOOL` whose value 0 names the ability.
-It omits woodworking and may therefore disagree with admission. The only grant
+Its value 1 bonus is applied only by `compute_ability()`, which feeds skill
+listings; no crafting, golem, harvesting, or brewing roll reads it. The display
+omits woodworking and may therefore disagree with admission. The only grant
 path in tracked source is compile-time: `NOOB_CRAFTING_TAILORING`,
 `NOOB_CRAFTING_ALCHEMY`, `NOOB_CRAFTING_ARMORSMITHING`,
 `NOOB_CRAFTING_WEAPONSMITHING`, and `NOOB_CRAFTING_JEWELCRAFTING` in the

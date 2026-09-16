@@ -2329,9 +2329,11 @@ tail. If imported data contains both finger and tail bits, the ring rule
 wins and the object remains finger-or-tail gear.</p>
 <p>The <code>craft tools|equipment|gear</code> display uses a different
 rule: it scans all equipped positions for an
-<code>ITEM_CRAFTING_TOOL</code> whose value 0 names the ability. It
-omits woodworking and may therefore disagree with admission. The only
-grant path in tracked source is compile-time:
+<code>ITEM_CRAFTING_TOOL</code> whose value 0 names the ability. Its
+value 1 bonus is applied only by <code>compute_ability()</code>, which
+feeds skill listings; no crafting, golem, harvesting, or brewing roll
+reads it. The display omits woodworking and may therefore disagree with
+admission. The only grant path in tracked source is compile-time:
 <code>NOOB_CRAFTING_TAILORING</code>,
 <code>NOOB_CRAFTING_ALCHEMY</code>,
 <code>NOOB_CRAFTING_ARMORSMITHING</code>,

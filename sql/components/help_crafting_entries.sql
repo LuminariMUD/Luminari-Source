@@ -100,8 +100,8 @@ This selects the broad type for an ordinary equipment project. Jewelry-oriented
 recipes are miscellaneous subtypes, so use MISC rather than JEWELRY.
 
 The parser currently also accepts ITEMTYPE GOLEM, but that value cannot select a
-recipe or complete and leaves the project requiring CRAFT RESET. Golem work uses
-the separate CRAFT GOLEM or NEWCRAFT GOLEM workflow.
+recipe or complete and leaves the project requiring NEWCRAFT RESET (CRAFT RESET
+in mode 2). Golem work uses the separate CRAFT GOLEM or NEWCRAFT GOLEM workflow.
 
 See Also: CRAFTING GOLEM-MAINTENANCE BONE-GOLEM', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
@@ -114,15 +114,16 @@ VALUES ('craft-materials', 'Usage: craft materials <add|remove> <material type>
        craftmaterials store <item>
        craftmaterials unstore <quantity> <material>
 
-CRAFT MATERIALS allocates the exact amount a selected recipe variant needs, or
-returns that allocation. Select item type, specific type, and variant first,
-then use CRAFT SHOW to see required groups and quantities. Repeat MATERIALS ADD
-once per required group.
+NEWCRAFT MATERIALS (CRAFT MATERIALS in mode 2) allocates the exact amount a
+selected recipe variant needs, or returns that allocation. Select item type,
+specific type, and variant first, then use NEWCRAFT SHOW to see required groups
+and quantities. Repeat MATERIALS ADD once per required group.
 
-CRAFT RESET MATERIALS refunds and clears project allocations. It also clears
-keywords, shortdesc, roomdesc, and extradesc. CRAFT RESET DESCRIPTIONS likewise
-refunds and clears material allocations; re-add the primary material before
-setting descriptions again. An unrecognized RESET part resets the whole project.
+NEWCRAFT RESET MATERIALS refunds and clears project allocations. It also clears
+keywords, shortdesc, roomdesc, and extradesc. NEWCRAFT RESET DESCRIPTIONS
+likewise refunds and clears material allocations; re-add the primary material
+before setting descriptions again. An unrecognized RESET part resets the whole
+project.
 
 CRAFTMATERIALS lists material and elemental-mote balances. STORE deposits a
 physical ITEM_MATERIAL object; UNSTORE recreates a physical material bundle.
@@ -141,27 +142,30 @@ auto_generated = VALUES (auto_generated);
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('crafting-recipes-materials', 'Topic: Crafting Materials, Tools, and Skills
 
-CRAFT MATERIALS allocates resources to an equipment project. CRAFTMATERIALS
-lists material and elemental-mote balances; STORE deposits ITEM_MATERIAL objects
-and UNSTORE recreates physical bundles.
+NEWCRAFT MATERIALS (CRAFT MATERIALS in mode 2) allocates resources to an
+equipment project. CRAFTMATERIALS lists material and elemental-mote balances;
+STORE deposits ITEM_MATERIAL objects and UNSTORE recreates physical bundles.
 UNSTORE of medium-, high-, or pristine-grade hide creates a generic leather
 bundle. STORE credits any leather as low-grade hide, so unstoring and then
 storing these hides downgrades them.
 
-CRAFT TOOLS, CRAFT EQUIPMENT, and CRAFT GEAR display equipped
-ITEM_CRAFTING_TOOL objects whose value 0 matches tailoring, alchemy,
-armorsmithing, weaponsmithing, or jewelcrafting. Woodworking has no display row.
-Equipment admission uses a different rule: any object in the matching dedicated
-slot passes, while woodworking has no accepted slot.
+NEWCRAFT TOOLS, EQUIPMENT, or GEAR (CRAFT in mode 2) lists equipped
+ITEM_CRAFTING_TOOL objects whose value 0 matches tailoring, armorsmithing,
+weaponsmithing, jewelcrafting, alchemy, forestry, mining, hunting, or
+gathering. Woodworking has no row. A listed bonus does not change crafting,
+golem, harvesting, or brewing rolls. Equipment admission uses a different rule:
+any object in the matching dedicated slot passes, while woodworking has no
+accepted slot.
 
 MATERIALS is separate wilderness storage in the default build. When
 WILDERNESS_HARVEST_CRAFTING is enabled, HARVEST, GATHER, and MINE enter the same
 timed category-harvest path and can credit project-system balances. SALVAGE
 requires Salvage or Scavenger and destroys an eligible carried, takeable,
-non-NOSAC item; nonempty containers and gold-capacity overflow are refused. It
-always pays at least 1 gold (15 percent of item cost), then rolls a
-level/3 + 10 percent mapped-material chance and half that chance for a mapped
-mote from each nonempty affect.
+non-NOSAC item. Only a container that still holds items is refused; a quiver
+or other ammo pouch is destroyed together with its contents. Gold-capacity
+overflow is also refused. It always pays at least 1 gold (15 percent of item
+cost), then rolls a (your level)/3 + 10 percent mapped-material chance and half
+that chance for a mapped mote from each nonempty affect.
 
 Enhancement and object bonuses are funded with motes. MOTES lists mote types and
 the bonuses associated with a selected type; CRAFTMATERIALS displays balances.
@@ -205,7 +209,8 @@ COMMANDS:
   Sailor background waives the fare.
 - shipdisembark: leaves a docked legacy ship; it refuses while not docked.
 - salvage: destroys an eligible carried item for guaranteed gold and possible
-  mapped materials or motes; requires Salvage or Scavenger.
+  mapped materials or motes; requires Salvage or Scavenger. A quiver or other
+  ammo pouch is destroyed together with its contents.
 - craftscore: displays crafting/harvesting progress according to the configured
   mode.
 - craftmaterials: lists project balances; STORE deposits a material object and
@@ -288,6 +293,18 @@ ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
 auto_generated = VALUES (auto_generated);
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('craft-check', 'Usage: craft check
+       newcraft check
+
+Reports whether the project passes the type, variant, description, material,
+mote, level-cap, and tool-slot checks, and lists what is missing. It does not
+check the crafting station; START checks that separately.
+
+See Also: CRAFTING NEWCRAFT CRAFT-SHOW', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('craft-bonuses', 'Usage: craft bonuses <slot 1-6> <location> <type> <modifier> [specific]
        newcraft bonuses <slot 1-6> <location> <type> <modifier> [specific]
 
@@ -352,16 +369,18 @@ VALUES ('supplyorder', 'SUPPLYORDER has three handlers across two systems.
 
 LEGACY ROOM-370 AUTOCRAFT QUEST
 In the Sanctus supply-order office (room 370), the room special intercepts:
-  supplyorder new
+  supplyorder              (shows the current order)
+  supplyorder new          (replaces an unfinished order; its progress is lost)
   supplyorder complete
   supplyorder quit
-Place the requested material in a carried CRAFTING-KIT and repeat AUTOCRAFT
-until the order is complete.
+Put exactly three single-unit objects of the requested material, and nothing
+else, in a carried CRAFTING-KIT, then type AUTOCRAFT. Repeat for all five items.
 
 BUILDER-BOUND MOBILE HANDLER
 A mobile with the "New Supply Orders" special intercepts SUPPLYORDER in its
 room. It handles REQUEST, INFO|SHOW, START, MATERIAL, COMPLETE, and RESET.
-LIST, SELECT, and COOLDOWN print usage there; ABANDON does nothing. The tracked
+LIST, SELECT, and COOLDOWN print usage there; ABANDON does nothing. REQUEST and
+COMPLETE still need a mobile flagged QUARTERMASTER in the room. The tracked
 source does not bind this special, but builders can assign it.
 
 MATERIALS-AND-MOTES GENERAL COMMAND
@@ -382,6 +401,11 @@ LIST, SELECT, REQUEST, and COMPLETE require a quartermaster in the room. START
 requires the crafting station for the contract recipe skill, and timed work
 rechecks that station. SELECT and COOLDOWN refresh eligible empty offer slots;
 LIST and SHOW do not. No command displays the generated offers before SELECT.
+
+A contract whose SHOW lists the same material group twice (vambraces,
+armguards, and the soft-metal mask) cannot finish. Its first item completion
+cancels the order and discards the allocated materials. Reset such a contract
+before adding materials.
 
 Supply orders use the same project as NEWCRAFT. REQUEST refuses an existing
 equipment project, but SELECT can replace an unstarted one''s recipe/type fields
@@ -458,7 +482,8 @@ Here you enter a list of requirements to create the object. Requirements can
 include components to assemble or an in-room component such as a forge. Items
 can be destroyed or preserved depending on failure or success. Requirement
 flags are:
-	c"INROOM"	n - This requirement must be in your room, such as a forge.
+	c"INROOM"	n - This requirement must be in your room. It is consumed like other
+           components; add "!REMOVE" for a permanent station, such as a forge.
 	c"SAVEonFAIL"	n - A failed craft normally loses all components; this flag
                  preserves this item when the craft fails.
 	c"!REMOVE"	n - Components are normally consumed; this item is not consumed.
@@ -474,7 +499,7 @@ ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
 auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
-WHERE help_tag IN ('crafting', 'craft-itemtype', 'craft-materials', 'crafting-recipes-materials', 'crafts', 'vessels-and-advanced-crafting', 'newcraft', 'convert', 'craft-show', 'craft-bonuses', 'craft-enhancement', 'craft-specific-type', 'craft-variant', 'supplyorder', 'restring', 'reforge', 'craftedit');
+WHERE help_tag IN ('crafting', 'craft-itemtype', 'craft-materials', 'crafting-recipes-materials', 'crafts', 'vessels-and-advanced-crafting', 'newcraft', 'convert', 'craft-show', 'craft-check', 'craft-bonuses', 'craft-enhancement', 'craft-specific-type', 'craft-variant', 'supplyorder', 'restring', 'reforge', 'craftedit');
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
 ('crafting', 'CRAFTING'),
@@ -502,6 +527,7 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
 ('newcraft', 'NEWCRAFT'),
 ('convert', 'CONVERT'),
 ('craft-show', 'CRAFT-SHOW'),
+('craft-check', 'CRAFT-CHECK'),
 ('craft-bonuses', 'CRAFT-BONUSES'),
 ('craft-enhancement', 'CRAFT-ENHANCEMENT'),
 ('craft-specific-type', 'CRAFT-SPECIFIC-TYPE'),

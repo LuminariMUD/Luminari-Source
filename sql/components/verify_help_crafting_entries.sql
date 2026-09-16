@@ -34,7 +34,7 @@ WHERE
   tag = 'craft-itemtype'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = '53fc13dc3bcb8260f96ea8af6ff48b4ca7f4caa5df3f0fb5dedae8be2a1ba6d9';
+  AND SHA2(entry, 256) = 'abc7d5bed81526b9f039af720eeddc3a99b648265497468ce3546d73e9ab8ee9';
 
 SELECT
   'craft_itemtype_keyword_set' AS check_name,
@@ -58,7 +58,7 @@ WHERE
   tag = 'craft-materials'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = '6bbfb14f6589488887b15023a9fffbbd036f4b502b294fba3e8d196dbccbfa3d';
+  AND SHA2(entry, 256) = 'c7f843270f502848d04ead7cd1cea3edce25d142cb96b7a1b395cedd63e963c2';
 
 SELECT
   'craft_materials_keyword_set' AS check_name,
@@ -82,7 +82,7 @@ WHERE
   tag = 'crafting-recipes-materials'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = '32ab00c48af5419ef4242ae52d9acb9a576d170ef19c859c07143a2aaf50048d';
+  AND SHA2(entry, 256) = '57db83fa82d3780461356405b7034e7a2be0434a078063fded08b6700933f37c';
 
 SELECT
   'crafting_recipes_materials_keyword_set' AS check_name,
@@ -130,7 +130,7 @@ WHERE
   tag = 'vessels-and-advanced-crafting'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = '6c973e1751d436a27a791aee17fc346493a064871bce297e50c0c32f7c28a250';
+  AND SHA2(entry, 256) = 'a72a1b7482a70ea859ee2fecc9e528c2f8df0f102fa3ec5e3470308355982175';
 
 SELECT
   'vessels_and_advanced_crafting_keyword_set' AS check_name,
@@ -215,6 +215,30 @@ SELECT
   ) AS result
 FROM help_keywords
 WHERE help_tag = 'craft-show';
+
+SELECT
+  'craft_check_entry' AS check_name,
+  COUNT(*) AS actual,
+  1 AS expected,
+  IF(COUNT(*) = 1, 'PASS', 'FAIL') AS result
+FROM help_entries
+WHERE
+  tag = 'craft-check'
+  AND min_level = 0
+  AND auto_generated = FALSE
+  AND SHA2(entry, 256) = '6a12bb615db0927aaa668a517dbc4d637d65ded5600d7791e2ee71c805c672a8';
+
+SELECT
+  'craft_check_keyword_set' AS check_name,
+  COUNT(*) AS actual,
+  1 AS expected,
+  IF(
+    COUNT(*) = 1 AND COUNT(DISTINCT UPPER(keyword)) = 1
+    AND SUM(UPPER(keyword) IN ('CRAFT-CHECK')) = 1,
+    'PASS', 'FAIL'
+  ) AS result
+FROM help_keywords
+WHERE help_tag = 'craft-check';
 
 SELECT
   'craft_bonuses_entry' AS check_name,
@@ -322,7 +346,7 @@ WHERE
   tag = 'supplyorder'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = '16d5831fbc972da71584a9f6d84a263d9d6efe5285f0303bea9bfff7a14d757d';
+  AND SHA2(entry, 256) = 'ea858cdbadf97c8430ff6e21b03bb770768ce1fa32792d09634c9014568494f3';
 
 SELECT
   'supplyorder_keyword_set' AS check_name,
@@ -394,7 +418,7 @@ WHERE
   tag = 'craftedit'
   AND min_level = 0
   AND auto_generated = FALSE
-  AND SHA2(entry, 256) = 'f2dcd45160de9606ac3bf2c27c1325d44448b1f57dcd99a9234d32db5b9f3ddb';
+  AND SHA2(entry, 256) = 'ded1e2156974f474fc576fa1b83c59ab556c33b4685b55159a74147616585c75';
 
 SELECT
   'craftedit_keyword_set' AS check_name,
@@ -407,3 +431,20 @@ SELECT
   ) AS result
 FROM help_keywords
 WHERE help_tag = 'craftedit';
+
+SELECT
+  'crafting_keyword_conflicts' AS check_name,
+  COUNT(*) AS actual,
+  0 AS expected,
+  IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
+FROM help_keywords AS managed
+INNER JOIN help_keywords AS other
+  ON
+    UPPER(other.keyword) = UPPER(managed.keyword)
+    AND LOWER(other.help_tag) <> LOWER(managed.help_tag)
+WHERE LOWER(managed.help_tag) IN (
+  'crafting', 'craft-itemtype', 'craft-materials', 'crafting-recipes-materials',
+  'crafts', 'vessels-and-advanced-crafting', 'newcraft', 'convert', 'craft-show',
+  'craft-check', 'craft-bonuses', 'craft-enhancement', 'craft-specific-type',
+  'craft-variant', 'supplyorder', 'restring', 'reforge', 'craftedit'
+);

@@ -207,11 +207,16 @@ compiled recipe table map to woodworking and therefore fail admission by
 construction. For the other five abilities, admission only tests whether any
 object occupies the dedicated slot; it does not check object type or values.
 
-The reachable `craft tools|equipment|gear` display and crafting-skill bonus use
-a different rule: they scan all equipped slots for an `ITEM_CRAFTING_TOOL`
-whose value 0 matches the ability. The display omits woodworking entirely. It
+The reachable `craft tools|equipment|gear` display uses a different rule. It
+scans all equipped slots for an `ITEM_CRAFTING_TOOL` whose value 0 matches the
+ability, and it lists tailoring, armorsmithing, weaponsmithing, jewelcrafting,
+alchemy, forestry, mining, hunting, and gathering, with no woodworking row. It
 can therefore report `None` while an arbitrary object in a dedicated slot still
-passes admission. Tracked source has one grant path: when the deployment's
+passes admission. A matching tool's value 1 is added only by
+`compute_ability()` for skill listings. Equipment-completion, golem Arcana,
+category-harvest, and brewing rolls read raw `GET_ABILITY()` through
+`get_craft_skill_value()`, so tools do not change their outcomes. Tracked
+source has one grant path: when the deployment's
 local vnums header defines `NOOB_CRAFTING_TAILORING`,
 `NOOB_CRAFTING_ALCHEMY`, `NOOB_CRAFTING_ARMORSMITHING`,
 `NOOB_CRAFTING_WEAPONSMITHING`, and `NOOB_CRAFTING_JEWELCRAFTING`,
@@ -242,7 +247,7 @@ applied. The roll adds the proficient-talent bonus and, where applicable, +5
 from Craft Wondrous Item or Craft Magical Arms and Armor.
 
 - If the maximum possible check cannot reach the DC, completion rejects it.
-- A natural 1 critically fails and resets the entire project without refund:
+- A natural 1 critically fails and resets the project without refund:
   allocated materials and motes are lost, and method, item type, subtype,
   variant, descriptions, enhancement, bonuses, instrument settings, stored
   skill, DC, and level adjustment are cleared.
@@ -305,7 +310,10 @@ A mobile bound to the builder-visible "New Supply Orders" special intercepts
 `supplyorder` in its room. It accepts `request`, `info|show`, `start`,
 `material`, `complete`, and `reset`; `list`, `select`, and `cooldown` print
 usage there, and `abandon` does nothing. Tracked source does not bind this
-special, but builders can assign it.
+special, but builders can assign it. Its `request` and `complete` still require
+an NPC flagged `MOB_QUARTERMASTER` (mob flag 99, "Quartermaster") in the room,
+and its `start` still requires the contract's crafting station, so flag the
+bound mobile or place a quartermaster with it.
 
 Outside those interceptions, the materials-and-motes contract parser accepts
 `list|available`, `select|choose <n>`, `request`, `show|status`, `start|begin`,
@@ -319,6 +327,14 @@ displays the offers first. Selecting or running `cooldown` refreshes eligible
 empty offer slots; `list` and `show` do not. Material allocation uses
 `supplyorder material add <material>` or `supplyorder material remove`
 (`materials` is also accepted). See the shared-project reset warning above.
+
+A contract whose `supplyorder show` lists the same material group twice
+(`vambraces`, `armguards`, and the soft-metal `mask`) cannot finish.
+`material add` allocates only the first listed amount, `start` checks each
+amount separately against that allocation, and completion subtracts them in
+turn. The second subtraction fails, so the order is cancelled and its allocated
+materials are discarded without refund. Reset such a contract before
+allocating materials.
 
 ## Timed activity lifecycle
 
@@ -384,11 +400,13 @@ their earlier behavior. See [Wilderness Harvesting](../systems/WILDERNESS_HARVES
 and [Craft Activity Lifecycle](../systems/CRAFT_ACTIVITY_LIFECYCLE.md).
 
 `salvage <item>` requires `FEAT_SALVAGE` or `TALENT_SCAVENGER`. It accepts a
-carried, takeable, non-`ITEM_NOSAC` item except a nonempty container, subject to
-gold-capacity preflight. Accepted salvage always destroys the item and awards
-at least 1 gold (15 percent of object cost). It independently rolls a
-`level / 3 + 10` percent material chance and half that chance for a mote from
-each nonempty affect, where a recognized material or affect mapping exists.
+carried, takeable, non-`ITEM_NOSAC` item, subject to gold-capacity preflight.
+Only an `ITEM_CONTAINER` that still holds objects is refused; any other holder,
+such as an `ITEM_AMMO_POUCH` quiver, is destroyed together with its contents.
+Accepted salvage always destroys the item and awards at least 1 gold (15 percent
+of object cost). It independently rolls a material chance of the salvager's
+level / 3 + 10 percent, and half that chance for a mote from each nonempty
+affect, where a recognized material or affect mapping exists.
 
 `src/wilderness/wilderness_crafting_bridge.c` and its header are not in either
 build manifest and have no compiled caller. `src/craft/enhanced_crafting_recipes.h`
