@@ -380,7 +380,7 @@ static void fuzz_command_setup(void)
     abort();
   fuzz_command_descriptor->pProtocol = ProtocolCreate();
   /* new_descriptor() gives every connection its own command history. */
-  fuzz_command_descriptor->history = calloc(HISTORY_SIZE, sizeof(char *));
+  fuzz_command_descriptor->history = (char **)calloc(HISTORY_SIZE, sizeof(char *));
   if (fuzz_command_descriptor->history == NULL)
     abort();
   if (complete_cmd_info == NULL)

@@ -71,7 +71,7 @@ void parse_trigger(FILE *trig_f, int nr)
 
   trig->arglist = fread_string(trig_f, errors);
 
-  cmds = s = fread_string(trig_f, errors);
+  cmds = fread_string(trig_f, errors);
 
   /* An empty script reads back as NULL; keep one empty command so the
    * trigger loads and runs as a no-op instead of tokenizing a null string. */
