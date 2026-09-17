@@ -357,6 +357,10 @@ def main():
                 f"{os.getuid()}:{os.getgid()}",
                 "--cpuset-cpus",
                 ",".join(map(str, selected)),
+                # ThreadSanitizer re-executes itself without ASLR when the
+                # kernel's mmap randomization exceeds what its shadow layout
+                # allows; the default seccomp profile refuses that personality().
+                *(["--security-opt", "seccomp=unconfined"] if "thread" in job["name"] else []),
                 "--workdir",
                 "/workspace",
                 "--tmpfs",

@@ -59,14 +59,33 @@ done
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 "$script_dir/check_compiler.sh" --cc "$cc"
 
-if [[ -f "$makefile" ]]; then
-  for variable in CFLAGS LDFLAGS; do
-    value=$(sed -n "s/^$variable = //p" "$makefile" | head -n 1)
-    printf '%s: %s\n' "$variable" "$value"
-    case " $value " in
-      *" -fsanitize=$sanitizers "*) ;;
-      *) fail "$makefile $variable lacks -fsanitize=$sanitizers" ;;
+# Every requested sanitizer must be in the compile flags; every one except
+# fuzzer-no-link (instrumentation only, linked by the libFuzzer driver) must be
+# in the link flags as well.
+flag_has_sanitizer() {
+  local flags=$1 wanted=$2 entry
+  for entry in $flags; do
+    case $entry in
+      -fsanitize=*)
+        case ",${entry#-fsanitize=}," in *",$wanted,"*) return 0 ;; esac
+        ;;
     esac
+  done
+  return 1
+}
+
+if [[ -f "$makefile" ]]; then
+  cflags=$(sed -n 's/^CFLAGS = //p' "$makefile" | head -n 1)
+  ldflags=$(sed -n 's/^LDFLAGS = //p' "$makefile" | head -n 1)
+  printf 'CFLAGS: %s\n' "$cflags"
+  printf 'LDFLAGS: %s\n' "$ldflags"
+  IFS=, read -r -a configured <<<"$sanitizers"
+  for sanitizer in "${configured[@]}"; do
+    flag_has_sanitizer "$cflags" "$sanitizer" ||
+      fail "$makefile CFLAGS lacks -fsanitize=$sanitizer"
+    [[ "$sanitizer" == fuzzer-no-link ]] && continue
+    flag_has_sanitizer "$ldflags" "$sanitizer" ||
+      fail "$makefile LDFLAGS lacks -fsanitize=$sanitizer"
   done
 fi
 

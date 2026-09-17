@@ -63,6 +63,19 @@ class Conversation:
             return
         raise AssertionError(f"{description}: the server sent nothing")
 
+    def settle(self, seconds: float) -> None:
+        """Absorb whatever else the server sends for a moment (the greeting)."""
+        deadline = time.monotonic() + seconds
+        while time.monotonic() < deadline:
+            self.sock.settimeout(max(0.1, deadline - time.monotonic()))
+            try:
+                chunk = self.sock.recv(4096)
+            except socket.timeout:
+                return
+            if not chunk:
+                return
+            self.transcript += chunk
+
     def expect_close(self, description: str) -> None:
         deadline = time.monotonic() + self.timeout
         while time.monotonic() < deadline:
@@ -85,9 +98,13 @@ class Conversation:
 def run(host: str, port: int, timeout: float) -> int:
     conversation = Conversation(host, port, timeout)
     try:
+        # The server first negotiates and detects the client ("Attempting to
+        # Detect Client", then a summary line naming the client), and only
+        # then prints the greeting and reads the account name.
         conversation.expect_any("greeting")
-        # Telnet negotiation replies that the server offers for its protocols.
         conversation.send(bytes([IAC, WONT, TTYPE, IAC, DONT, MSDP, IAC, WILL, NAWS]))
+        conversation.expect(b"Client", "client detection summary")
+        conversation.settle(2.0)
         conversation.send(b"Sanitysmoke\r\n")
         conversation.expect(b"Did I get that right", "new account name")
         conversation.send(b"N\r\n")
