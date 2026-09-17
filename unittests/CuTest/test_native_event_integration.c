@@ -152,6 +152,31 @@ void Test_ai_shutdown_interrupts_worker_backoff(CuTest *tc)
   ai_service_test_reset_worker_state();
 }
 
+/* The provider response decoders behind the fuzz wrappers: the OpenAI-style
+ * body yields its content field with escapes resolved, the Ollama body yields
+ * its response field the same way, and a body without the field yields NULL. */
+void Test_ai_provider_response_decoders_unescape_the_text_field(CuTest *tc)
+{
+  char *decoded;
+
+  decoded = ai_service_test_parse_json_response(
+      "{\"choices\":[{\"message\":{\"role\":\"assistant\",\"content\": "
+      "\"She said \\\"hail\\\".\\nA tab\\tfollows.\"}}]}");
+  CuAssertPtrNotNull(tc, decoded);
+  CuAssertStrEquals(tc, "She said \"hail\".\nA tab\tfollows.", decoded);
+  free(decoded);
+
+  decoded = ai_service_test_parse_ollama_json_response(
+      "{\"model\":\"llama\",\"response\":\"Line one\\r\\nback\\\\slash "
+      "\\\"quoted\\\"\",\"done\":true}");
+  CuAssertPtrNotNull(tc, decoded);
+  CuAssertStrEquals(tc, "Line one\r\nback\\slash \"quoted\"", decoded);
+  free(decoded);
+
+  CuAssertPtrEquals(tc, NULL, ai_service_test_parse_json_response("{\"error\":\"rate limited\"}"));
+  CuAssertPtrEquals(tc, NULL, ai_service_test_parse_ollama_json_response("{\"done\":true}"));
+}
+
 static struct game_event_result diagnostic_handler(const struct game_event_context *context)
 {
   (void)context;

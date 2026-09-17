@@ -107,6 +107,7 @@
       "owner": "unittests/CuTest/test_i3_client_production.c",
       "tests": [
         "Test_ai_shutdown_interrupts_worker_backoff",
+        "Test_ai_provider_response_decoders_unescape_the_text_field",
         "Test_service_owned_ai_retries_dispatch_on_native_runtime",
         "Test_i3_event_queue_signals_idle_main_loop",
         "Test_i3_reconnect_backoff_is_bounded",
