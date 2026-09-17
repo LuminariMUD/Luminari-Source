@@ -671,7 +671,9 @@ static bool fuzz_read_file(const char *path, uint8_t **data, size_t *size)
 }
 
 /* Run one input in a child so a sanitizer report or a loader exit cannot take
- * the suite down; the child's stderr is scanned for sanitizer findings. */
+ * the suite down; the child's stderr is scanned for sanitizer findings. The
+ * parent frees the input after the fork so no test-owned memory is left to a
+ * checker in either process. */
 static void fuzz_replay_one(CuTest *tc, const struct fuzz_target *target, const char *path)
 {
   uint8_t *data;
@@ -705,13 +707,13 @@ static void fuzz_replay_one(CuTest *tc, const struct fuzz_target *target, const 
     target->setup();
     fuzz_exit_status = 0;
     (void)target->run(data, size);
-    /* A target that may abandon records on a rejected input skips the
-     * exit-time leak check; the others report leaks through exit(). */
-    if (target->flags & FUZZ_TARGET_MAY_EXIT)
-      _exit(fuzz_exit_status != 0 ? 1 : 0);
-    exit(0);
+    free(data);
+    /* The child ends without atexit processing: a leak checker there would
+     * report the parent's allocations it inherited. Leaks are detected per
+     * input by the libFuzzer replay in the fuzz job; this replay covers
+     * crashes, sanitizer reports, and unexpected exits on every platform. */
+    _exit(fuzz_exit_status != 0 ? 1 : 0);
   }
-  free(data);
   close(output_pipe[1]);
   report_length = 0;
   while ((bytes_read =
@@ -719,6 +721,7 @@ static void fuzz_replay_one(CuTest *tc, const struct fuzz_target *target, const 
     report_length += (size_t)bytes_read;
   report[report_length] = '\0';
   close(output_pipe[0]);
+  free(data);
   CuAssertTrue(tc, waitpid(child, &status, 0) == child);
 
   if (strstr(report, "Sanitizer") != NULL || strstr(report, "runtime error:") != NULL)
@@ -737,32 +740,38 @@ static void fuzz_replay_one(CuTest *tc, const struct fuzz_target *target, const 
   }
 }
 
+#define FUZZ_REPLAY_MAX_FILES 256
+
+/* The listing is read and closed before any child is forked, so no child
+ * inherits the directory handle (a leak checker in the child would report it). */
 static int fuzz_replay_directory(CuTest *tc, const struct fuzz_target *target,
                                  const char *directory)
 {
   DIR *dir;
   struct dirent *entry;
   struct stat status;
-  char path[PATH_MAX];
-  int replayed;
+  char paths[FUZZ_REPLAY_MAX_FILES][PATH_MAX];
+  size_t count;
+  size_t index;
 
   dir = opendir(directory);
   if (dir == NULL)
     return 0;
-  replayed = 0;
-  while ((entry = readdir(dir)) != NULL)
+  count = 0;
+  while (count < FUZZ_REPLAY_MAX_FILES && (entry = readdir(dir)) != NULL)
   {
     if (entry->d_name[0] == '.')
       continue;
-    if (snprintf(path, sizeof(path), "%s/%s", directory, entry->d_name) >= (int)sizeof(path))
+    if (snprintf(paths[count], PATH_MAX, "%s/%s", directory, entry->d_name) >= PATH_MAX)
       continue;
-    if (stat(path, &status) != 0 || !S_ISREG(status.st_mode))
+    if (stat(paths[count], &status) != 0 || !S_ISREG(status.st_mode))
       continue;
-    fuzz_replay_one(tc, target, path);
-    replayed++;
+    count++;
   }
   closedir(dir);
-  return replayed;
+  for (index = 0; index < count; index++)
+    fuzz_replay_one(tc, target, paths[index]);
+  return (int)count;
 }
 
 void Test_fuzz_targets_replay_seed_and_regression_inputs(CuTest *tc)

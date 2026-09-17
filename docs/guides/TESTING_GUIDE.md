@@ -706,7 +706,9 @@ keeps its reproducer in `unittests/CuTest/fuzz_regressions/<target>/`. Both
 the seeds and the regression inputs are replayed deterministically by
 `Test_fuzz_targets_replay_seed_and_regression_inputs` in the ordinary
 production-linked suite, in a forked child that fails on a signal, an
-unexpected exit status, or a sanitizer report. A finding therefore becomes a
+unexpected exit status, or a sanitizer report (the child ends without an
+exit-time leak check, which would see the parent's memory; per-input leak
+detection is the fuzz job's replay step). A finding therefore becomes a
 permanent test the moment its input is saved under `fuzz_regressions/`, with a
 focused CuTest case added when the fix has a checkable contract (for example
 `Test_world_loading_production_affect_flag_letters_convert_in_flag_width`).
