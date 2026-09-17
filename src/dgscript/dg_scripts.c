@@ -1873,16 +1873,16 @@ static void eval_op(const char *op, char *lhs, char *rhs, char *result,
   /* Script operands are ints, but their product or sum need not fit one;
    * evaluate in a wider type so a script cannot overflow the evaluator. */
   else if (!strcmp("*", op))
-    sprintf(result, "%lld", (long long)atoi(lhs) * atoi(rhs));
+    snprintf(result, MAX_INPUT_LENGTH, "%lld", (long long)atoi(lhs) * atoi(rhs));
 
   else if (!strcmp("/", op))
-    sprintf(result, "%lld", (n = atoi(rhs)) ? ((long long)atoi(lhs) / n) : 0LL);
+    snprintf(result, MAX_INPUT_LENGTH, "%lld", (n = atoi(rhs)) ? ((long long)atoi(lhs) / n) : 0LL);
 
   else if (!strcmp("+", op))
-    sprintf(result, "%lld", (long long)atoi(lhs) + atoi(rhs));
+    snprintf(result, MAX_INPUT_LENGTH, "%lld", (long long)atoi(lhs) + atoi(rhs));
 
   else if (!strcmp("-", op))
-    sprintf(result, "%lld", (long long)atoi(lhs) - atoi(rhs));
+    snprintf(result, MAX_INPUT_LENGTH, "%lld", (long long)atoi(lhs) - atoi(rhs));
 
   else if (!strcmp("!", op))
   {
