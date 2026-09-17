@@ -82,6 +82,18 @@ void Test_dg_production_text_matching_helpers(CuTest *tc)
   CuAssertStrEquals(tc, " remainder", remainder);
 }
 
+void Test_dg_production_matching_quote_stops_at_a_trailing_backslash(CuTest *tc)
+{
+  char trailing[] = "\"\\";
+  char escaped[] = "\"a\\\"b\" rest";
+  char open_ended[] = "\"abc";
+
+  /* A backslash as the last character must not skip the terminator. */
+  CuAssertPtrEquals(tc, trailing + 1, matching_quote(trailing));
+  CuAssertPtrEquals(tc, escaped + 5, matching_quote(escaped));
+  CuAssertPtrEquals(tc, open_ended + 3, matching_quote(open_ended));
+}
+
 void Test_dg_production_variable_lifecycle(CuTest *tc)
 {
   struct trig_var_data *variables;

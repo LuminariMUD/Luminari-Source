@@ -1899,7 +1899,8 @@ char *matching_quote(char *p)
 {
   for (p++; *p && (*p != '"'); p++)
   {
-    if (*p == '\\')
+    /* Skip the escaped character, unless the backslash is the last one. */
+    if (*p == '\\' && *(p + 1))
       p++;
   }
 
