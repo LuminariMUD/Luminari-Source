@@ -76,7 +76,8 @@ void parse_trigger(FILE *trig_f, int nr)
   /* An empty script reads back as NULL; keep one empty command so the
    * trigger loads and runs as a no-op instead of tokenizing a null string. */
   CREATE(trig->cmdlist, struct cmdlist_element, 1);
-  if (cmds == NULL || (s = strtok(s, "\n\r")) == NULL)
+  s = cmds != NULL ? strtok(cmds, "\n\r") : NULL;
+  if (s == NULL)
   {
     log("SYSERR: Trigger #%d has an empty command list.", nr);
     trig->cmdlist->cmd = strdup("");

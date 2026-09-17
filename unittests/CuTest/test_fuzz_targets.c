@@ -309,7 +309,7 @@ static int fuzz_world_run(const uint8_t *data, size_t size)
   mob_proto = calloc(records, sizeof(*mob_proto));
   obj_index = calloc(records, sizeof(*obj_index));
   obj_proto = calloc(records, sizeof(*obj_proto));
-  trig_index = calloc(records, sizeof(*trig_index));
+  trig_index = (struct index_data **)calloc(records, sizeof(*trig_index));
   if (zone_table == NULL || world == NULL || mob_index == NULL || mob_proto == NULL ||
       obj_index == NULL || obj_proto == NULL || trig_index == NULL)
     abort();
@@ -357,7 +357,7 @@ static int fuzz_world_run(const uint8_t *data, size_t size)
   free(mob_proto);
   free(obj_index);
   free(obj_proto);
-  free(trig_index);
+  free((void *)trig_index);
   zone_table = NULL;
   world = NULL;
   mob_index = NULL;
@@ -380,7 +380,9 @@ static void fuzz_command_setup(void)
     abort();
   fuzz_command_descriptor->pProtocol = ProtocolCreate();
   /* new_descriptor() gives every connection its own command history. */
-  CREATE(fuzz_command_descriptor->history, char *, HISTORY_SIZE);
+  fuzz_command_descriptor->history = calloc(HISTORY_SIZE, sizeof(char *));
+  if (fuzz_command_descriptor->history == NULL)
+    abort();
   if (complete_cmd_info == NULL)
     create_command_list();
 }
@@ -640,7 +642,13 @@ static bool fuzz_read_file(const char *path, uint8_t **data, size_t *size)
   fp = fopen(path, "rb");
   if (fp == NULL)
     return false;
-  if (fseek(fp, 0, SEEK_END) != 0 || (length = ftell(fp)) < 0 || fseek(fp, 0, SEEK_SET) != 0)
+  if (fseek(fp, 0, SEEK_END) != 0)
+  {
+    fclose(fp);
+    return false;
+  }
+  length = ftell(fp);
+  if (length < 0 || fseek(fp, 0, SEEK_SET) != 0)
   {
     fclose(fp);
     return false;
@@ -653,7 +661,13 @@ static bool fuzz_read_file(const char *path, uint8_t **data, size_t *size)
   }
   *size = fread(*data, 1, (size_t)length, fp);
   fclose(fp);
-  return *size == (size_t)length;
+  if (*size != (size_t)length)
+  {
+    free(*data);
+    *data = NULL;
+    return false;
+  }
+  return true;
 }
 
 /* Run one input in a child so a sanitizer report or a loader exit cannot take
