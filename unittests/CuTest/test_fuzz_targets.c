@@ -76,12 +76,25 @@ static char *fuzz_cstring(const uint8_t *data, size_t size)
   return copy;
 }
 
-/* A read-only stream over the input, as the loader reads a world file. */
-static FILE *fuzz_stream(const uint8_t *data, size_t size)
+/* A read-only stream over a private copy of the input, as the loader reads a
+ * world file. The copy is released with fuzz_stream_close(). */
+static FILE *fuzz_stream(const uint8_t *data, size_t size, char **copy)
 {
+  *copy = NULL;
   if (size == 0)
     return NULL;
-  return fmemopen((void *)(uintptr_t)data, size, "r");
+  *copy = malloc(size);
+  if (*copy == NULL)
+    return NULL;
+  memcpy(*copy, data, size);
+  return fmemopen(*copy, size, "r");
+}
+
+static void fuzz_stream_close(FILE *stream, char *copy)
+{
+  if (stream != NULL)
+    fclose(stream);
+  free(copy);
 }
 
 static bool fuzz_write_file(const char *path, const uint8_t *data, size_t size)
@@ -279,6 +292,7 @@ static void fuzz_world_setup(void)
 static int fuzz_world_run(const uint8_t *data, size_t size)
 {
   FILE *stream;
+  char *stream_copy;
   size_t records;
   unsigned int kind;
 
@@ -304,7 +318,7 @@ static int fuzz_world_run(const uint8_t *data, size_t size)
   zone_table[0].top = 2000000000;
   world_loader_reset_for_test();
 
-  stream = fuzz_stream(data, size);
+  stream = fuzz_stream(data, size, &stream_copy);
   if (stream != NULL)
   {
     if (setjmp(fuzz_exit_jump) == 0)
@@ -332,8 +346,8 @@ static int fuzz_world_run(const uint8_t *data, size_t size)
       }
     }
     fuzz_exit_active = 0;
-    fclose(stream);
   }
+  fuzz_stream_close(stream, stream_copy);
 
   /* A rejected file ends the boot in production, so the records it left behind
    * are abandoned here as well; the target runs without leak detection. */
