@@ -164,7 +164,8 @@ def mask_non_code(text):
             while end < length and not (text[end] == "\n" and text[end - 1] != "\\"):
                 end += 1
             for position in range(index, end):
-                masked[position] = " "
+                if text[position] != "\n":
+                    masked[position] = " "
             index = end
             continue
         line_start = char == "\n"
@@ -393,6 +394,9 @@ def floor2(value):
 def self_test():
     source = """#include <stdio.h>
 #define LIMIT(a) ((a) < 3)
+#define BOTH(a, b) \\
+  ((a) < (b) && \\
+   (b) < 3)
 /* a < b in a comment */
 static int helper(int a, int b)
 {
@@ -412,29 +416,34 @@ bool other(int a)
 """
     masked = mask_non_code(source)
     assert len(masked) == len(source) and masked.count("\n") == source.count("\n")
-    assert "#include" not in masked and "LIMIT" not in masked and "comment" not in masked
+    assert (
+        "#include" not in masked
+        and "LIMIT" not in masked
+        and "BOTH" not in masked
+        and "comment" not in masked
+    )
     assert '"' not in masked and "'" not in masked
 
     everything = [(m.line, m.original, m.replacement) for m in find_mutants(source)]
     assert everything == [
-        (8, "<", "<="),
-        (8, "&&", "||"),
-        (8, ">=", ">"),
-        (8, "||", "&&"),
-        (8, "==", "!="),
-        (9, "!=", "=="),
-        (10, ">", ">="),
-        (15, "<=", "<"),
-        (16, "true", "false"),
-        (17, "FALSE", "TRUE"),
+        (11, "<", "<="),
+        (11, "&&", "||"),
+        (11, ">=", ">"),
+        (11, "||", "&&"),
+        (11, "==", "!="),
+        (12, "!=", "=="),
+        (13, ">", ">="),
+        (18, "<=", "<"),
+        (19, "true", "false"),
+        (20, "FALSE", "TRUE"),
     ], everything
     only_other = [(m.line, m.original) for m in find_mutants(source, ("other",))]
-    assert only_other == [(15, "<="), (16, "true"), (17, "FALSE")], only_other
+    assert only_other == [(18, "<="), (19, "true"), (20, "FALSE")], only_other
 
     mutant = find_mutants(source, ("other",))[0]
     assert mutant.column == 9, mutant
     assert "if (a < 1)" in apply_mutant(source, mutant)
-    assert mutant.describe("x.c") == "x.c:15:9: '<=' -> '<'"
+    assert mutant.describe("x.c") == "x.c:18:9: '<=' -> '<'"
 
     policy = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
     assert sorted(policy["mutation"]) == sorted(module.source for module in MODULES)

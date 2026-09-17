@@ -768,8 +768,9 @@ still sets `LUMINARI_TEST_SKIP_SYNTAX_BOOT=1`.
 `scripts/ci/smoke_client.py` (a stranger's conversation in front of the
 password prompt: a declined new account name, an invalid name, an over-long
 line, Telnet negotiation, and an empty name that closes the connection), checks
-the health endpoint again, then stops the server and requires a clean exit
-code. Under a sanitizer the server's report goes to its log, the exit code is
+the health endpoint again, runs the login exchange of `scripts/ci/login_client.py`
+against the isolated test database, then stops the server and requires a clean
+exit code. Under a sanitizer the server's report goes to its log, the exit code is
 non-zero, and the job uploads the logs from `LUMINARI_STARTUP_LOG_DIR`.
 
 ### Production-linked fuzz targets
@@ -1020,7 +1021,7 @@ binary with select, verifies the installed server's real-port startup, health en
 exchange, and graceful shutdown through autorun, then checks clean-tree and source-distribution
 hygiene. Both I/O drivers retain the complete behavioral suite.
 
-The login exchange (`scripts/ci/test_server_startup.sh` with `scripts/ci/smoke_client.py`)
+The login exchange (`scripts/ci/test_server_startup.sh` with `scripts/ci/login_client.py`)
 creates an account over telnet, checks that the isolated test database stores it with a
 current-scheme password hash, then logs in to it after one rejected password, and fails on any
 `SYSERR` in the server log.

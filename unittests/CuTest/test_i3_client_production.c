@@ -12,7 +12,6 @@
 #include <json-c/json.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
-#include <limits.h>
 #include <netinet/in.h>
 #include <poll.h>
 #include <pthread.h>
@@ -21,6 +20,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 void i3_test_setup(void)
@@ -612,14 +612,16 @@ static bool i3_thread_test_gateway_receives(int gateway, const char *text, char 
  * connects; a tell queued by the game thread is sent by the client thread; a
  * notification from the gateway reaches the game thread's event queue and wakes
  * its event descriptor; and i3_shutdown stops and joins the thread, frees the
- * client, and closes the connection. */
-void Test_i3_client_thread_hands_off_both_ways_and_joins_on_shutdown(CuTest *tc)
+ * client, and closes the connection. The exchange runs in a forked child,
+ * because i3_initialize reads i3_config from the working directory: the runner's
+ * directory stays untouched whatever happens inside. The child exits with the
+ * number of the first step that failed, or 0. */
+static void i3_thread_test_child(void)
 {
   static const char notification[] =
       "{\"jsonrpc\":\"2.0\",\"method\":\"tell_received\",\"params\":{\"from_user\":"
       "\"Gateway\",\"from_mud\":\"RemoteMUD\",\"to_user\":\"Tester\",\"message\":\"handoff\"}}\n";
   char sandbox[] = "/tmp/luminari-i3-thread.XXXXXX";
-  char original_cwd[PATH_MAX];
   char config_path[sizeof(sandbox) + 16];
   char received[4096];
   struct sockaddr_in address;
@@ -629,6 +631,7 @@ void Test_i3_client_thread_hands_off_both_ways_and_joins_on_shutdown(CuTest *tc)
   int listener = -1;
   int gateway = -1;
   int started = -1;
+  int failed_step = 0;
   bool prepared = false;
   bool connected = false;
   bool queued = false;
@@ -641,7 +644,7 @@ void Test_i3_client_thread_hands_off_both_ways_and_joins_on_shutdown(CuTest *tc)
   memset(&address, 0, sizeof(address));
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-  if (getcwd(original_cwd, sizeof(original_cwd)) != NULL && mkdtemp(sandbox) != NULL)
+  if (mkdtemp(sandbox) != NULL)
   {
     listener = socket(AF_INET, SOCK_STREAM, 0);
     snprintf(config_path, sizeof(config_path), "%s/i3_config", sandbox);
@@ -659,14 +662,8 @@ void Test_i3_client_thread_hands_off_both_ways_and_joins_on_shutdown(CuTest *tc)
     }
   }
 
-  /* i3_initialize reads i3_config from the working directory before it starts
-   * the thread, so the directory is restored as soon as it returns. */
   if (prepared && chdir(sandbox) == 0)
-  {
     started = i3_initialize();
-    if (chdir(original_cwd) != 0)
-      started = -1;
-  }
   if (started == 0 && i3_client != NULL && i3_thread_test_readable(listener, 5000))
   {
     gateway = accept(listener, NULL, NULL);
@@ -700,15 +697,40 @@ void Test_i3_client_thread_hands_off_both_ways_and_joins_on_shutdown(CuTest *tc)
     close(gateway);
   if (listener >= 0)
     close(listener);
-  unlink(config_path);
+  if (prepared)
+    unlink(config_path);
   rmdir(sandbox);
 
-  CuAssertTrue(tc, prepared);
-  CuAssertIntEquals(tc, 0, started);
-  CuAssertTrue(tc, connected);
-  CuAssertTrue(tc, tell_sent);
-  CuAssertTrue(tc, event_signalled);
-  CuAssertTrue(tc, event_delivered);
-  CuAssertTrue(tc, client_freed);
-  CuAssertTrue(tc, gateway_saw_close);
+  if (!prepared)
+    failed_step = 1;
+  else if (started != 0)
+    failed_step = 2;
+  else if (!connected)
+    failed_step = 3;
+  else if (!event_signalled)
+    failed_step = 4;
+  else if (!event_delivered)
+    failed_step = 5;
+  else if (!tell_sent)
+    failed_step = 6;
+  else if (!client_freed)
+    failed_step = 7;
+  else if (!gateway_saw_close)
+    failed_step = 8;
+  CuTestChildExit(failed_step);
+}
+
+void Test_i3_client_thread_hands_off_both_ways_and_joins_on_shutdown(CuTest *tc)
+{
+  pid_t child;
+  int status;
+
+  child = fork();
+  CuAssertTrue(tc, child >= 0);
+  if (child == 0)
+    i3_thread_test_child();
+  CuAssertTrue(tc, waitpid(child, &status, 0) == child);
+  CuAssertTrue(tc, WIFEXITED(status));
+  /* 1 sandbox, 2 i3_initialize, 3 connect, 4 event fd, 5 event, 6 tell, 7 free, 8 close */
+  CuAssertIntEquals(tc, 0, WEXITSTATUS(status));
 }
