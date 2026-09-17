@@ -1,0 +1,14 @@
+B#100
+fuzz mob~
+a fuzz mob~
+A fuzz mob stands here.
+~
+A fuzz mob.
+~
+0 0 0 0 0 0 0 0 0 E
+1 1 1 1d1+1 1d1+1
+1 1
+8 8 1
+MFeat: 10000 1
+E
+$

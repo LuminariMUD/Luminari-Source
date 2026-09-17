@@ -1,0 +1,1 @@
+{"id":"chatcmpl-1","choices":[{"index":0,"message":{"role":"assistant","content":"Greetings, \"traveler\".\nWelcome."},"finish_reason":"stop"}]}

@@ -1,0 +1,1 @@
+{"model":"llama3","response":"The tavern is \"quiet\" tonight.","done":true}

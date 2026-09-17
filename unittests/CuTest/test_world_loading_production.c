@@ -345,6 +345,22 @@ void Test_world_loading_production_rol_whole_armor_conflicts(CuTest *tc)
   CuAssertTrue(tc, rol_object_wear_conflicts(&ch, &face, WEAR_FACE));
 }
 
+/* Fuzz finding: an uppercase affect letter from F on shifted a 32-bit int past
+ * its width. The conversion is done in the flag word's own width, so every
+ * letter maps to its bit and the numeric form is untouched. */
+void Test_world_loading_production_affect_flag_letters_convert_in_flag_width(CuTest *tc)
+{
+  char lower[] = "az";
+  char upper[] = "FZ";
+  char numeric[] = "12";
+
+  CuAssertTrue(tc,
+               test_asciiflag_conv_aff(lower) == (((bitvector_t)1 << 1) | ((bitvector_t)1 << 26)));
+  CuAssertTrue(tc,
+               test_asciiflag_conv_aff(upper) == (((bitvector_t)1 << 32) | ((bitvector_t)1 << 52)));
+  CuAssertTrue(tc, test_asciiflag_conv_aff(numeric) == 12);
+}
+
 /** The production loader exits on malformed input and retains its zone index.
  * Fork fixtures so both behaviors are exercised without contaminating the suite. */
 static void assert_world_loader_child(CuTest *tc, pid_t child, int expected_status)

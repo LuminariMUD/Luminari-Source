@@ -1,0 +1,6 @@
+# development settings
+APP_ENV=development
+MUD_PORT = 4100
+I3_ENABLED="false"
+AI_API_KEY=
+EMPTY_KEY=

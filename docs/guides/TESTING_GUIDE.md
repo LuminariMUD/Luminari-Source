@@ -524,10 +524,9 @@ LUMINARI_TEST_DATA_DIR="$PWD/.ci-runtime/lib"
 LUMINARI_TEST_CONFIG_FILE=.ci-runtime/lib/etc/config
 ```
 
-An ordinary development run continues to boot from `lib/`. ASan and Valgrind
-set `LUMINARI_TEST_SKIP_SYNTAX_BOOT=1` because their production-linked suites
-run inside specialized instrumentation; the behavioral, authoritative,
-coverage, and integration jobs retain the real boot gate.
+An ordinary development run continues to boot from `lib/`. Only Valgrind sets
+`LUMINARI_TEST_SKIP_SYNTAX_BOOT=1`; the behavioral, authoritative, coverage,
+sanitizer, and integration jobs retain the real boot gate.
 
 The named SpecProc inventory test scans the ignored development world by
 default and requires every discovered binding to resolve to a registry entry
@@ -611,42 +610,159 @@ supported Luminari configuration. Retired compile-time campaign variants are
 not supported or tested. The build uses no campaign define, and validation
 must never modify the protected `src/config/campaign.h` configuration header.
 
-## Memory Checking
+## Sanitizers and Fuzzing
 
-CI runs the production-linked suite under ASan and UBSan with leak detection,
-then fuzzes production protocol input, output, and public helper paths with
-libFuzzer. It separately runs the suite under Valgrind. The sanitizer build
-uses:
+Three sanitizer builds of the production-linked suite run on every pull
+request as the `sanitizers` matrix in `.github/workflows/test.yml`, and a
+fourth job fuzzes the runtime trust boundaries. Valgrind runs separately (see
+below). Every job fails on the first unsuppressed finding: `halt_on_error=1`
+is set for ASan, UBSan, and TSan, no suppression file exists, and a finding is
+fixed at its root or the test that exposed it is corrected; a suppression that
+hides a class of report is not accepted.
+
+| Job | Compiler | Flags | Runs |
+| -- | -- | -- | -- |
+| ASan+UBSan (gcc) | GCC 13 (the runner image) | `-fsanitize=address,undefined` | suite with the syntax boot, installed server boot, pre-authentication client interaction, graceful shutdown |
+| ASan+UBSan (clang) | Clang 18 (the runner image) | `-fsanitize=address,undefined` | the same |
+| ThreadSanitizer (clang) | Clang 18 | `-fsanitize=thread` | the same; the AI worker thread, the Intermud3 client thread, logging, and the database handoff are all in the suite |
+| Fuzz the trust boundaries | Clang 18 | `-fsanitize=fuzzer-no-link,address,undefined` | seed and regression replay, then 15 s per production-linked target, then the standalone protocol and binary format fuzzers |
+
+The supported compiler generations are the ones in the
+[compiler policy](SETUP_AND_BUILD_GUIDE.md#compiler-policy-and-warning-tiers);
+the sanitizer jobs use the minimum generation of each family on x86-64 Linux,
+which is the platform the sanitizer runtimes are validated on. Every job runs
+`scripts/ci/check_sanitizer_build.sh`, which prints the compiler identity, the
+configured `CFLAGS` and `LDFLAGS`, and the sanitizer runtime each binary links
+(the `__asan_init`, `__ubsan_handle_*`, `__tsan_init`, or libFuzzer entry
+points, static or through the shared runtime), and fails when any is missing.
+Installing Clang without building with it is therefore a failure, not a green
+run.
+
+### Reproducing a sanitizer job
 
 ```sh
-./configure \
+CC=clang   # or gcc
+autoreconf -fvi
+./configure CC=$CC \
   CFLAGS='-O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer' \
   LDFLAGS='-fsanitize=address,undefined'
-make -j"$(nproc)" cutest
+make -j"$(nproc)" cutest luminari
+scripts/ci/check_sanitizer_build.sh --cc $CC --sanitizers address,undefined \
+  --binary cutest --binary luminari
+scripts/ci/prepare_test_runtime.sh "$PWD/.ci-runtime/lib"   # needs the MariaDB variables
 ASAN_OPTIONS='detect_leaks=1:halt_on_error=1' \
 UBSAN_OPTIONS='print_stacktrace=1:halt_on_error=1' \
+LUMINARI_TEST_DATA_DIR="$PWD/.ci-runtime/lib" LUMINARI_TEST_CONFIG_FILE=.ci-runtime/lib/etc/config \
 LUMINARI_TEST_ROOT="$PWD" ./cutest
+make install
+LUMINARI_STARTUP_TIMEOUT=180 LUMINARI_TEST_DATA_DIR="$PWD/.ci-runtime/lib" \
+  scripts/ci/test_server_startup.sh
 ```
 
-The bounded protocol fuzz target copies its synthetic seed corpus to a
-temporary directory before running, so it never adds generated inputs to the
-repository. It sets ASan and UBSan to halt on the first finding:
+For ThreadSanitizer replace both sanitizer lists with `thread` and export
+`TSAN_OPTIONS='halt_on_error=1:second_deadlock_stack=1'`. The syntax-check
+boot runs inside the instrumented suite in all three jobs; only the Valgrind job
+still sets `LUMINARI_TEST_SKIP_SYNTAX_BOOT=1`.
+
+`scripts/ci/test_server_startup.sh` boots the installed server through
+`autorun.sh` on port 4100, waits for the health endpoint, runs
+`scripts/ci/smoke_client.py` (a stranger's conversation in front of the
+password prompt: a declined new account name, an invalid name, an over-long
+line, Telnet negotiation, and an empty name that closes the connection), checks
+the health endpoint again, then stops the server and requires a clean exit
+code. Under a sanitizer the server's report goes to its log, the exit code is
+non-zero, and the job uploads the logs from `LUMINARI_STARTUP_LOG_DIR`.
+
+### Production-linked fuzz targets
+
+`luminari_fuzz` is a libFuzzer executable that links the cutest objects, so
+each target drives the parser the server compiles; there is no mirror to
+drift. The table lives in `unittests/CuTest/test_fuzz_targets.c` and
+`LUMINARI_FUZZ_TARGET` selects one:
+
+| Target | Boundary | Production entry points |
+| -- | -- | -- |
+| `dotenv` | `lib/.env` | `get_env_value`, `get_env_int`, `get_env_bool` |
+| `config` | `lib/etc/config` | `load_config` (behind the exit guard) |
+| `dg` | DG script expressions and variables | `process_eval`, `var_subst`, `matching_quote` |
+| `world` | world, mobile, object, zone, and trigger files | `discrete_load`, `parse_room`, `parse_mobile`, `parse_object`, `load_zones`, `parse_trigger` (behind the exit guard) |
+| `command` | socket line assembly and command tokenizers | `process_input`, `ProtocolInput`, `half_chop`, `find_command`, `one_argument`, `two_arguments`, `three_arguments`, `reserved_word`, `fill_word`, `delete_doubledollar` |
+| `i3` | Intermud3 gateway framing and JSON-RPC | `i3_process_input`, `i3_parse_response` |
+| `ai` | AI provider responses | `parse_json_response`, `parse_ollama_json_response` |
+| `discord` | Discord bridge inbound JSON | `parse_discord_json` |
+| `onboarding` | web onboarding envelopes and controls | `web_onboarding_handle_action`, `web_onboarding_set_capability`, `web_onboarding_set_version_list`, `web_onboarding_handle_catalog_control` |
+
+The world loader and the configuration reader end the process on a rejected
+file. Those two targets run behind an exit guard: the harness interposes
+`exit()` and returns to the target, and they run with leak detection off
+because the records a rejected file leaves behind are abandoned by the
+production exit as well. Every other target keeps leak detection on. The
+telnet parser and the durable binary formats keep their standalone harnesses
+(`protocol-fuzz`, `binary-formats-fuzz` in `unittests/CuTest/Makefile`).
+
+Seeds live in `unittests/CuTest/fuzz_corpus_game/<target>/`, dictionaries in
+`unittests/CuTest/fuzz_dictionaries/<target>.dict`, and every fixed finding
+keeps its reproducer in `unittests/CuTest/fuzz_regressions/<target>/`. Both
+the seeds and the regression inputs are replayed deterministically by
+`Test_fuzz_targets_replay_seed_and_regression_inputs` in the ordinary
+production-linked suite, in a forked child that fails on a signal, an
+unexpected exit status, or a sanitizer report. A finding therefore becomes a
+permanent test the moment its input is saved under `fuzz_regressions/`, with a
+focused CuTest case added when the fix has a checkable contract (for example
+`Test_world_loading_production_affect_flag_letters_convert_in_flag_width`).
 
 ```sh
-make -C unittests/CuTest protocol-fuzz FUZZ_SECONDS=15
+./configure CC=clang \
+  CFLAGS='-O1 -g -fsanitize=fuzzer-no-link,address,undefined -fno-omit-frame-pointer' \
+  LDFLAGS='-fsanitize=address,undefined'
+make -j"$(nproc)" luminari_fuzz
+scripts/ci/run_fuzz_targets.sh --seconds 0      # replay seeds and regressions
+scripts/ci/run_fuzz_targets.sh --seconds 15     # the pull request smoke
+scripts/ci/run_fuzz_targets.sh --seconds 600 world dg   # a longer local campaign
+LUMINARI_FUZZ_TARGET=world ./luminari_fuzz fuzz-artifacts/world/crash-<sha>   # reproduce
 ```
 
-The durable binary file decoders have their own bounded fuzz target, whose hex
-seeds are decoded into a temporary directory the same way, and a golden-fixture
-harness that needs no configured build, which CI also runs on AArch64. See
-[BINARY_FILE_FORMATS.md](../systems/BINARY_FILE_FORMATS.md#verification):
+`scripts/ci/run_fuzz_targets.sh` copies the seeds to a scratch corpus, runs
+each target with its dictionary and regression directory, writes every
+reproducer and the fuzzer log under `--artifacts` (default `fuzz-artifacts/`),
+minimizes each reproducer with `-minimize_crash=1`, and exits 1 after all
+requested targets have run. The CI job uploads that directory on failure. The
+libFuzzer run uses `-timeout=10` and `-max_len=16384`; the CMake build offers
+the same executable through `-DLUMINARI_FUZZ=ON` with
+`-DLUMINARI_SANITIZERS=fuzzer-no-link,address,undefined`.
 
-```sh
-make -C unittests/CuTest binary-formats-fuzz FUZZ_SECONDS=15
-make -C unittests/CuTest binary-formats
-```
+Pull requests get the deterministic replay and 15 s per target.
+`.github/workflows/fuzz-campaign.yml` runs weekly and on demand
+(`workflow_dispatch` with a per-target duration, default 900 s) with a larger
+input limit and always uploads its artifacts. The campaign that introduced
+these targets found and fixed seven defects: an affect-flag shift past the int
+width, an unbounded mob `Feat`/`MFeat` index, a null short description in the
+object checks, an empty trigger script, a dangling large output buffer after
+the `--` command (a repeatable server hang), an unterminated `%variable` that
+read past the substitution buffer, and integer overflow in script arithmetic.
 
-The equivalent Valgrind command is:
+### MemorySanitizer and OSS-Fuzz
+
+MemorySanitizer is not enabled. It reports any read of uninitialized memory,
+including reads inside uninstrumented libraries, so every dependency must be
+built with MSan: the MariaDB client, json-c, libevent, libcurl, OpenSSL, libgd,
+and libcrypt. None of those ships instrumented on the supported platforms, and
+the false reports from the first uninstrumented call would have to be
+suppressed wholesale, which the policy above forbids. Enabling MSan requires an
+instrumented build of that dependency set; until then its results would be
+unreliable and it is not part of CI.
+
+The production-linked targets are compatible with OSS-Fuzz's build model (a
+libFuzzer entry point per target, seeds, dictionaries, and reproducers), but
+the harness links the whole server against seven shared libraries, so an
+OSS-Fuzz project would need a build script that provides those libraries and
+a target-per-binary split of `luminari_fuzz`. The scheduled campaign covers
+the same ground on the project's own runners.
+
+## Memory Checking
+
+The Valgrind job builds the suite without sanitizers and runs it with
+`LUMINARI_TEST_SKIP_SYNTAX_BOOT=1`:
 
 ```sh
 make -j"$(nproc)" cutest
@@ -664,6 +780,19 @@ The focused protocol harness also has a convenience target:
 ```sh
 make -C unittests/CuTest valgrind-protocol
 ```
+
+The standalone protocol and binary file format fuzzers copy their seed corpora
+to a temporary directory before running (the binary seeds are hex text, decoded
+first) and halt on the first finding:
+
+```sh
+make -C unittests/CuTest protocol-fuzz FUZZ_SECONDS=15
+make -C unittests/CuTest binary-formats-fuzz FUZZ_SECONDS=15
+make -C unittests/CuTest binary-formats
+```
+
+See [BINARY_FILE_FORMATS.md](../systems/BINARY_FILE_FORMATS.md#verification)
+for the golden-fixture harness, which CI also runs on AArch64.
 
 ## Realms of Luminari Release Validation
 
@@ -748,7 +877,11 @@ must not be added to the enforced suite.
   verifying the linked server and test binaries, running the full
   production-linked suite against that artifact, and verifying the installed
   server;
-- ASan, UBSan, and bounded protocol fuzzing;
+- ASan+UBSan on GCC and on Clang and ThreadSanitizer on Clang, each with the
+  syntax boot, the installed server boot, and the pre-authentication client
+  interaction, with the compiler and linked runtimes verified;
+- the production-linked fuzz targets (deterministic replay plus 15 s each) and
+  the bounded protocol and binary format fuzzers, with reproducers uploaded;
 - Valgrind on the production-linked suite;
 - MariaDB-backed fixed gcovr floors and coverage-artifact upload;
 - a clean `git status` after the configure, build, test, install, and clean
@@ -784,9 +917,10 @@ check that every header outside its baseline compiles on its own, and the CodeQL
 its database lacks a production source; see
 [Static Analysis](SETUP_AND_BUILD_GUIDE.md#static-analysis). All five production-profile server
 builds retain binary hardening verification; hardened tests run with Autotools/GCC 14 and
-CMake/Clang. Each build system has an independent clean-archive job. Sanitizers, protocol
-fuzzing, Valgrind, coverage floors, CodeQL, world tools, parity, formatting, source hygiene,
-database migrations, and world validation remain.
+CMake/Clang. Each build system has an independent clean-archive job. The sanitizer matrix,
+the fuzz job, Valgrind, coverage floors, CodeQL, world tools, parity, formatting, source
+hygiene, database migrations, and world validation remain; `fuzz-campaign.yml` runs the
+longer scheduled fuzz campaign.
 
 `.github/actions/setup-build` supplies dependencies, missing example headers, and compiler
 caching by job, compiler/profile, build configuration, and commit. Cache restoration never

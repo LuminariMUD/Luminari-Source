@@ -1,0 +1,19 @@
+dflt_port = 4100
+dflt_dir = lib
+dflt_ip = 127.0.0.1
+logname = log/syslog
+max_playing = 300
+max_filesize = 50000
+pk_allowed = 0
+ok = Okay.
+huh = Huh?!?
+menu =
+Welcome~
+welc_messg =
+Hello.~
+start_messg =
+Start.~
+auto_save = 1
+autosave_time = 5
+donation_room_1 = -1
+experience_multiplier = 1.5

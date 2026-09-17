@@ -1,4 +1,5 @@
 #include "CuTest.h"
+#include "fuzz_targets.h"
 
 #include "conf.h"
 #include "../../src/core/sysdep.h"
@@ -16,7 +17,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static void i3_test_setup(void)
+void i3_test_setup(void)
 {
   pthread_mutex_t *command_mutex;
   pthread_mutex_t *event_mutex;
@@ -59,7 +60,7 @@ static void i3_test_setup(void)
   }
 }
 
-static void i3_test_cleanup(void)
+void i3_test_cleanup(void)
 {
   i3_command_t *command;
   i3_command_t *next_command;

@@ -1,0 +1,4 @@
+{"jsonrpc":"2.0","id":1,"result":{"status":"authenticated","mud_name":"LuminariMUD","session_id":"abc"}}
+{"jsonrpc":"2.0","id":2,"result":{"muds":[{"name":"OtherMUD","host":"192.0.2.10","port":4000,"driver":"Test","services":{"tell":1}}]}}
+{"jsonrpc":"2.0","id":3,"error":{"code":-32600,"message":"bad"}}
+{"jsonrpc":"2.0","method":"who_reply","params":{"mud":"OtherMUD","users":[{"name":"Zed","idle":3,"level":10,"extra":"x"}]}}

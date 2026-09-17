@@ -111,6 +111,7 @@ summary.
 | `LUMINARI_COVERAGE` | `OFF` | Add `--coverage` to compile and link |
 | `LUMINARI_HARDENING` | `OFF` | Add `_FORTIFY_SOURCE=3`, `-fstack-protector-strong`, `-fstack-clash-protection`, PIE, RELRO, and `-z now` |
 | `LUMINARI_SANITIZERS` | empty | Comma-separated `-fsanitize=` list, for example `address,undefined` |
+| `LUMINARI_FUZZ` | `OFF` | Build the production-linked libFuzzer harness `luminari_fuzz` (Clang, with `BUILD_TESTS` and `LUMINARI_SANITIZERS=fuzzer-no-link,address,undefined`) |
 
 Options compose with any preset. The `migration` tier is deliberately not
 enabled by a checked-in preset because `-Wconversion` alone reports thousands

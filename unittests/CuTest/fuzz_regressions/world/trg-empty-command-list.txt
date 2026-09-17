@@ -1,0 +1,6 @@
+E#100
+fuzz trigger~
+2 a 0
+~
+~
+$~

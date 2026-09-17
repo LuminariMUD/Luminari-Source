@@ -2282,6 +2282,18 @@ static void ai_worker_finished(void)
 }
 
 #ifdef LUMINARI_CUTEST
+/* The provider response decoders are the trust boundary between the HTTP
+ * client and the game; the harness reaches them through these wrappers. */
+char *ai_service_test_parse_json_response(const char *json_str)
+{
+  return parse_json_response(json_str);
+}
+
+char *ai_service_test_parse_ollama_json_response(const char *json_str)
+{
+  return parse_ollama_json_response(json_str);
+}
+
 static void *ai_test_waiting_worker(void *unused)
 {
   (void)unused;

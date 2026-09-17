@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# Real-port boot, health endpoint, and graceful shutdown using the installed server.
+# Real-port boot, health endpoint, a pre-authentication client conversation,
+# and graceful shutdown using the installed server. LUMINARI_STARTUP_TIMEOUT
+# (seconds, default 20) bounds the wait for the port; instrumented builds
+# (sanitizers) boot more slowly and raise it.
 set -euo pipefail
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
@@ -8,6 +11,7 @@ sandbox=$(mktemp -d "${TMPDIR:-/tmp}/luminari-startup.XXXXXX")
 export LUMINARI_PROJECT_ROOT="$sandbox"
 export TERRAIN_API_PORT=${TERRAIN_API_PORT:-4182}
 server_log="$sandbox/server.log"
+startup_tenths=$((${LUMINARI_STARTUP_TIMEOUT:-20} * 10))
 server_pid=
 supervisor_pid=
 
@@ -48,6 +52,11 @@ trap cleanup EXIT
 fail() {
   printf '%s\n' "$*" >&2
   tail -n 100 "$server_log" "$sandbox/launcher.log" 2>/dev/null || true
+  # A CI job uploads the full logs from LUMINARI_STARTUP_LOG_DIR on failure.
+  if [[ -n "${LUMINARI_STARTUP_LOG_DIR:-}" ]]; then
+    mkdir -p "$LUMINARI_STARTUP_LOG_DIR"
+    cp -f "$server_log" "$sandbox/launcher.log" "$LUMINARI_STARTUP_LOG_DIR/" 2>/dev/null || true
+  fi
   exit 1
 }
 
@@ -64,7 +73,7 @@ setsid bash -c "
 " >"$sandbox/launcher.log" 2>&1 &
 supervisor_pid=$!
 
-for _attempt in {1..200}; do
+for ((_attempt = 0; _attempt < startup_tenths; _attempt++)); do
   if [[ -s "$sandbox/.mud.pid" ]]; then
     read -r server_pid <"$sandbox/.mud.pid"
     if kill -0 "$server_pid" 2>/dev/null && nc -z 127.0.0.1 4100 2>/dev/null; then
@@ -81,6 +90,17 @@ LUMINARI_HEALTH_URL=http://127.0.0.1:4182/health LUMINARI_HEALTH_TIMEOUT_SECONDS
 [[ -f "$server_log" ]] || fail 'Server log was not created'
 if grep -qi SYSERR "$server_log"; then
   fail 'Unexpected SYSERR found during startup'
+fi
+
+# A client conversation in front of the password prompt, then the health
+# endpoint again: the server must survive what a stranger can send it.
+python3 "$repo_root/scripts/ci/smoke_client.py" --port 4100 --timeout 30 ||
+  fail 'Pre-authentication client interaction failed'
+LUMINARI_HEALTH_URL=http://127.0.0.1:4182/health LUMINARI_HEALTH_TIMEOUT_SECONDS=20 \
+  "$repo_root/scripts/operations/healthcheck.sh" --wait
+kill -0 "$server_pid" 2>/dev/null || fail 'Server died during the client interaction'
+if grep -qiE 'Sanitizer|runtime error:' "$server_log" "$sandbox/launcher.log"; then
+  fail 'Sanitizer report during the client interaction'
 fi
 
 (cd "$sandbox" && MUD_PORT=4100 ./scripts/autorun/autorun.sh stop) >>"$sandbox/launcher.log" 2>&1

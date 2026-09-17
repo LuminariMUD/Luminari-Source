@@ -431,7 +431,9 @@ void setup_dir(FILE *fl, room_rnum room, int dir);
 void index_boot(int mode);
 #ifdef LUMINARI_CUTEST
 void test_load_zones(FILE *fl, char *zonename);
+void world_loader_reset_for_test(void);
 void test_interpret_mobile_espec(const char *keyword, const char *value, int i, int nr);
+bitvector_t test_asciiflag_conv_aff(char *flag);
 bool test_rol_reset_remove_mobile(room_rnum room, mob_rnum mob_num, bool combat_guard);
 #endif
 void discrete_load(FILE *fl, int mode, char *filename);

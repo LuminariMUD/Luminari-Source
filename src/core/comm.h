@@ -61,6 +61,8 @@ protocol_error_t set_msdp_plain_text_for_test(struct descriptor_data *d, variabl
 void comm_test_retain_unsent_output(struct descriptor_data *d, const char *output, int result);
 bool comm_close_due_for_test(struct descriptor_data *d, uint64_t now_usec);
 int process_input_for_test(struct descriptor_data *d);
+int get_from_q_for_test(struct txt_q *queue, char *dest, int *aliased);
+void flush_queues_for_test(struct descriptor_data *d);
 void runtime_services_set_scheduled_for_test(bool scheduled);
 void runtime_services_reset_selection_for_test(void);
 bool runtime_services_init_for_test(void);

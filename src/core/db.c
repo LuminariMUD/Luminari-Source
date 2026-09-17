@@ -2018,6 +2018,40 @@ void index_boot(int mode)
   }
 }
 
+#ifdef LUMINARI_CUTEST
+/* The record parsers keep their next slot in function-local statics because a
+ * boot loads every file once. A harness that feeds one file per call must
+ * restart those slots without re-running the whole boot, so each parser
+ * compares its own generation with this one on entry. */
+static unsigned int world_loader_generation = 0;
+
+void world_loader_reset_for_test(void)
+{
+  world_loader_generation++;
+  top_of_world = 0;
+  top_of_mobt = 0;
+  top_of_objt = 0;
+  top_of_zone_table = 0;
+  top_of_trigt = 0;
+}
+
+#define WORLD_LOADER_RESTART(statement)                                                            \
+  do                                                                                               \
+  {                                                                                                \
+    static unsigned int seen_generation = 0;                                                       \
+    if (seen_generation != world_loader_generation)                                                \
+    {                                                                                              \
+      seen_generation = world_loader_generation;                                                   \
+      statement;                                                                                   \
+    }                                                                                              \
+  } while (0)
+#else
+#define WORLD_LOADER_RESTART(statement)                                                            \
+  do                                                                                               \
+  {                                                                                                \
+  } while (0)
+#endif
+
 void discrete_load(FILE *fl, int mode, char *filename)
 {
   int nr = -1, last = 0;
@@ -2131,9 +2165,9 @@ static bitvector_t asciiflag_conv_aff(char *flag)
   for (p = flag; *p; p++)
   {
     if (islower(*p))
-      flags |= 1 << (*p - 'a' + 1);
+      flags |= (bitvector_t)1 << (*p - 'a' + 1);
     else if (isupper(*p))
-      flags |= 1 << (26 + (*p - 'A' + 1));
+      flags |= (bitvector_t)1 << (26 + (*p - 'A' + 1));
 
     /* Allow the first character to be a minus sign */
     if (!isdigit(*p) && (*p != '-' || p != flag))
@@ -2184,6 +2218,8 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
   struct trap_data *trap = NULL;
   char letter = '\0';
   bool level_range_seen = false;
+
+  WORLD_LOADER_RESTART((room_nr = 0, zone = 0));
 
   /* This really had better fit or there are other problems. */
   snprintf(buf2, sizeof(buf2), "room #%d", virtual_nr);
@@ -3123,7 +3159,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   CASE("MFeat")
   {
-    if (sscanf(value, "%d %d", &num, &num2) != 2)
+    if (sscanf(value, "%d %d", &num, &num2) != 2 || num < 0 || num >= NUM_FEATS)
     {
       log("SYSERR: Mob #%d has invalid MFeat data: %s", nr, value);
       return;
@@ -3323,7 +3359,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   CASE("Feat")
   {
-    if (sscanf(value, "%d %d", &num, &num2) != 2)
+    if (sscanf(value, "%d %d", &num, &num2) != 2 || num < 0 || num >= NUM_FEATS)
     {
       log("SYSERR: Mob #%d has invalid Feat data: %s", nr, value);
       return;
@@ -3440,6 +3476,11 @@ void test_interpret_mobile_espec(const char *keyword, const char *value, int i, 
 {
   interpret_espec(keyword, value, i, nr);
 }
+
+bitvector_t test_asciiflag_conv_aff(char *flag)
+{
+  return asciiflag_conv_aff(flag);
+}
 #endif
 
 #undef CASE
@@ -3494,6 +3535,8 @@ void parse_mobile(FILE *mob_f, int nr)
   char buf2[128] = {'\0'};
   //  char walk[MAX_STRING_LENGTH] = {'\0'};
   //  char *message;
+
+  WORLD_LOADER_RESTART(i = 0);
 
   mob_index[i].vnum = nr;
   mob_index[i].number = 0;
@@ -3689,6 +3732,8 @@ const char *parse_object(FILE *obj_f, int nr)
   char f13[READ_SIZE], f14[READ_SIZE], f15[READ_SIZE], f16[READ_SIZE];
   struct extra_descr_data *new_descr;
   struct obj_special_ability *new_specab;
+
+  WORLD_LOADER_RESTART(i = 0);
 
   obj_index[i].vnum = nr;
   obj_index[i].number = 0;
@@ -4300,6 +4345,7 @@ static void load_zones(FILE *fl, char *zonename)
   int zone_fix = FALSE;
   char t1[80], t2[80];
 
+  WORLD_LOADER_RESTART(zone = 0);
   strlcpy(zname, zonename, sizeof(zname));
 
   /* Skip first 3 lines lest we mistake the zone name for a command. */
@@ -7995,8 +8041,10 @@ static int check_object(struct obj_data *obj)
   int error = FALSE, y;
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
 
-  /* stripping colors for SYSLOG -zusuk */
-  strncpy(buf1, obj->short_description, sizeof(buf1) - 1);
+  /* stripping colors for SYSLOG -zusuk; an empty short description reads back
+   * as NULL, and the diagnostics below must still name the object. */
+  strncpy(buf1, obj->short_description ? obj->short_description : "<no short description>",
+          sizeof(buf1) - 1);
   buf1[sizeof(buf1) - 1] = '\0';
   strip_colors(buf1);
 
@@ -8189,9 +8237,13 @@ static void load_default_config(void)
   CONFIG_IDLE_MAX_LEVEL = idle_max_level;
   CONFIG_DTS_ARE_DUMPS = dts_are_dumps;
   CONFIG_LOAD_INVENTORY = load_into_inventory;
+  free(CONFIG_OK);
   CONFIG_OK = strdup(OK);
+  free(CONFIG_HUH);
   CONFIG_HUH = strdup(HUH);
+  free(CONFIG_NOPERSON);
   CONFIG_NOPERSON = strdup(NOPERSON);
+  free(CONFIG_NOEFFECT);
   CONFIG_NOEFFECT = strdup(NOEFFECT);
   CONFIG_TRACK_T_DOORS = track_through_doors;
   CONFIG_NO_MORT_TO_IMMORT = no_mort_to_immort;
@@ -8228,13 +8280,18 @@ static void load_default_config(void)
   /* Game operation options. */
   CONFIG_DFLT_PORT = DFLT_PORT;
 
+  /* The defaults may be loaded again (a reload, or a harness); release the
+   * strings of the previous call instead of abandoning them. */
+  free(CONFIG_DFLT_IP);
   if (DFLT_IP)
     CONFIG_DFLT_IP = strdup(DFLT_IP);
   else
     CONFIG_DFLT_IP = NULL;
 
+  free(CONFIG_DFLT_DIR);
   CONFIG_DFLT_DIR = strdup(DFLT_DIR);
 
+  free(CONFIG_LOGNAME);
   if (LOGNAME)
     CONFIG_LOGNAME = strdup(LOGNAME);
   else
@@ -8247,8 +8304,11 @@ static void load_default_config(void)
   CONFIG_NS_IS_SLOW = nameserver_is_slow;
   CONFIG_NEW_SOCIALS = use_new_socials;
   CONFIG_OLC_SAVE = auto_save_olc;
+  free(CONFIG_MENU);
   CONFIG_MENU = strdup(MENU);
+  free(CONFIG_WELC_MESSG);
   CONFIG_WELC_MESSG = strdup(WELC_MESSG);
+  free(CONFIG_START_MESSG);
   CONFIG_START_MESSG = strdup(START_MESSG);
   CONFIG_MEDIT_ADVANCED = medit_advanced_stats;
   CONFIG_IBT_AUTOSAVE = ibt_autosave;
@@ -8523,8 +8583,10 @@ void load_config(void)
         CONFIG_MAX_PLAYING = num;
       else if (!str_cmp(tag, "menu"))
       {
-        if (CONFIG_MENU)
-          free(CONFIG_MENU);
+        /* fread_string() ends the boot on a malformed string; never leave the
+         * freed pointer behind for a later default reload to free again. */
+        free(CONFIG_MENU);
+        CONFIG_MENU = NULL;
         strncpy(buf, "Reading menu in load_config()", sizeof(buf));
         CONFIG_MENU = fread_string(fl, buf);
         parse_at(CONFIG_MENU);
@@ -8673,8 +8735,10 @@ void load_config(void)
       else if (!str_cmp(tag, "start_messg"))
       {
         strncpy(buf, "Reading start message in load_config()", sizeof(buf));
-        if (CONFIG_START_MESSG)
-          free(CONFIG_START_MESSG);
+        /* fread_string() ends the boot on a malformed string; never leave the
+         * freed pointer behind for a later default reload to free again. */
+        free(CONFIG_START_MESSG);
+        CONFIG_START_MESSG = NULL;
         CONFIG_START_MESSG = fread_string(fl, buf);
         parse_at(CONFIG_START_MESSG);
       }
@@ -8727,8 +8791,10 @@ void load_config(void)
       if (!str_cmp(tag, "welc_messg"))
       {
         strncpy(buf, "Reading welcome message in load_config()", sizeof(buf));
-        if (CONFIG_WELC_MESSG)
-          free(CONFIG_WELC_MESSG);
+        /* fread_string() ends the boot on a malformed string; never leave the
+         * freed pointer behind for a later default reload to free again. */
+        free(CONFIG_WELC_MESSG);
+        CONFIG_WELC_MESSG = NULL;
         CONFIG_WELC_MESSG = fread_string(fl, buf);
       }
       else if (!str_cmp(tag, "wilderness_system"))

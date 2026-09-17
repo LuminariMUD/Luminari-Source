@@ -1,0 +1,5 @@
+APP_ENV=testing
+LUMINARI_EVENT_BACKEND=scheduler
+QUOTED="value with spaces"
+NOEQUALS
+=nokey

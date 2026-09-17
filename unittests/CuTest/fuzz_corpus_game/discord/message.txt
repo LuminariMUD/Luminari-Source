@@ -1,0 +1,1 @@
+{"channel":"gossip","name":"Bob","message":"hello\nthere \"friend\"","emoted":0}
