@@ -683,6 +683,79 @@ void Test_improved_editor_refuses_a_change_that_does_not_fit(CuTest *tc)
   CuAssertTrue(tc, small_changed);
 }
 
+void Test_cancel_queued_commands_keeps_pending_output(CuTest *tc)
+{
+  struct descriptor_data descriptor;
+  char pending[SMALL_BUFSIZE + 64];
+  int sockets[2];
+  int result;
+  int index;
+  bool large_buffer_used;
+  bool output_kept;
+  bool cancel_reported;
+  bool input_cleared;
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0)
+  {
+    CuFail(tc, "could not create the input socket fixture");
+    return;
+  }
+
+  descriptor.descriptor = sockets[0];
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.history = (char **)calloc(HISTORY_SIZE, sizeof(*descriptor.history));
+  descriptor.pProtocol = ProtocolCreate();
+  if (descriptor.history == NULL || descriptor.pProtocol == NULL)
+  {
+    free((void *)descriptor.history);
+    if (descriptor.pProtocol != NULL)
+      ProtocolDestroy(descriptor.pProtocol);
+    close(sockets[0]);
+    close(sockets[1]);
+    CuFail(tc, "could not initialize the input descriptor fixture");
+    return;
+  }
+
+  /* More pending output than the small buffer holds, so the descriptor is on
+   * a pooled large buffer, then a queued command followed by the cancel. */
+  memset(pending, 'p', sizeof(pending) - 1);
+  pending[sizeof(pending) - 1] = '\0';
+  write_to_output(&descriptor, "%s", pending);
+  large_buffer_used = descriptor.large_outbuf != NULL;
+  write_to_q(CuMutableString("look"), &descriptor.input, 0);
+  if (write(sockets[1], "--\n", 3) != 3)
+  {
+    reset_test_descriptor_output(&descriptor);
+    ProtocolDestroy(descriptor.pProtocol);
+    free((void *)descriptor.history);
+    close(sockets[0]);
+    close(sockets[1]);
+    CuFail(tc, "could not write the input socket fixture");
+    return;
+  }
+
+  result = process_input_for_test(&descriptor);
+  output_kept = strstr(descriptor.output, pending) != NULL;
+  cancel_reported = strstr(descriptor.output, "All queued commands cancelled.") != NULL;
+  input_cleared = descriptor.input.head == NULL && descriptor.input.tail == NULL;
+
+  reset_test_descriptor_output(&descriptor);
+  for (index = 0; index < HISTORY_SIZE; index++)
+    free(descriptor.history[index]);
+  free((void *)descriptor.history);
+  ProtocolDestroy(descriptor.pProtocol);
+  close(sockets[0]);
+  close(sockets[1]);
+
+  CuAssertIntEquals(tc, 1, result);
+  CuAssertTrue(tc, large_buffer_used);
+  CuAssertTrue(tc, output_kept);
+  CuAssertTrue(tc, cancel_reported);
+  CuAssertTrue(tc, input_cleared);
+}
+
 void Test_process_input_reports_plain_text_truncation(CuTest *tc)
 {
   struct descriptor_data descriptor;

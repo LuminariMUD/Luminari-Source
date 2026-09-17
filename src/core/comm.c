@@ -208,6 +208,7 @@ static bool descriptor_close_due(struct descriptor_data *d, uint64_t now_usec);
 static int process_input(struct descriptor_data *t);
 static void timediff(struct timeval *diff, struct timeval *a, struct timeval *b);
 static void flush_queues(struct descriptor_data *d);
+static void flush_input_queue(struct descriptor_data *d);
 static void nonblock(socket_t s);
 static int perform_subst(struct descriptor_data *t, char *orig, char *subst);
 static void record_usage(void);
@@ -3348,16 +3349,21 @@ static void flush_queues(struct descriptor_data *d)
       d->large_outbuf->next = bufpool;
       bufpool = d->large_outbuf;
     }
-    /* The descriptor may live on (the "--" command flushes a playing
-     * connection): switch it back to its own buffer, or its next output would
-     * write into a pooled block and a second flush would link the pool into a
-     * cycle. */
+    /* Leave the descriptor on its own buffer: a later output must not write
+     * into the pooled block, and a second flush must not link the pool into
+     * a cycle. */
     d->large_outbuf = NULL;
     d->output = d->small_outbuf;
     d->bufspace = SMALL_BUFSIZE - 1;
     d->bufptr = 0;
     d->small_outbuf[0] = '\0';
   }
+  flush_input_queue(d);
+}
+
+/* Drop every queued input line; the output queue is untouched. */
+static void flush_input_queue(struct descriptor_data *d)
+{
   while (d->input.head)
   {
     struct txt_block *tmp = d->input.head;
@@ -3365,6 +3371,7 @@ static void flush_queues(struct descriptor_data *d)
     free(tmp->text);
     free(tmp);
   }
+  d->input.tail = NULL;
 }
 
 /* Add a new string to a player's output queue. For outside use. */
@@ -4277,10 +4284,10 @@ static int process_input(struct descriptor_data *t)
         t->history_pos = 0;
     }
 
-    /* The '--' command flushes the queue. */
+    /* The '--' command cancels the queued commands; pending output stays. */
     if ((*tmp == '-') && (*(tmp + 1) == '-') && !(*(tmp + 2)))
     {
-      flush_queues(t); /* Flush the command queue */
+      flush_input_queue(t);
       write_to_output(t, "All queued commands cancelled.\r\n");
       failed_subst = 1; /* Allow the read point to be moved, but don't add to queue */
     }
