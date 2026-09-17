@@ -173,16 +173,46 @@ static void fuzz_config_setup(void)
   CONFIG_CONFFILE = strdup("etc/config");
 }
 
+/* The lowest descriptor a parser would receive next; anything at or above it
+ * after a guarded exit was opened by the parser and abandoned. */
+static int fuzz_next_descriptor(void)
+{
+  int fd;
+
+  fd = open("/dev/null", O_RDONLY);
+  if (fd >= 0)
+    close(fd);
+  return fd;
+}
+
+static void fuzz_close_descriptors_from(int first)
+{
+  int fd;
+
+  if (first < 0)
+    return;
+  for (fd = first; fd < first + 16; fd++)
+    close(fd);
+}
+
 /* load_config() ends the boot on a malformed multi-line string, so this
- * target runs behind the exit guard like the world loader. */
+ * target runs behind the exit guard like the world loader; the file it was
+ * reading is closed here, as the production exit would have closed it. */
 static int fuzz_config_run(const uint8_t *data, size_t size)
 {
+  int next_descriptor;
+
   if (!fuzz_write_file("etc/config", data, size))
     return 0;
+  next_descriptor = fuzz_next_descriptor();
   if (setjmp(fuzz_exit_jump) == 0)
   {
     fuzz_exit_active = 1;
     load_config();
+  }
+  else
+  {
+    fuzz_close_descriptors_from(next_descriptor);
   }
   fuzz_exit_active = 0;
   return 0;
