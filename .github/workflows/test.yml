@@ -589,10 +589,12 @@ jobs:
             cc: gcc
             min_version: "13"
             sanitizers: address,undefined
+            variant: asan-ubsan
           - name: ASan+UBSan (clang)
             cc: clang
             min_version: "18"
             sanitizers: address,undefined
+            variant: asan-ubsan
           # ThreadSanitizer over the same production-linked suite, boot, and
           # client smoke: the AI worker, the Intermud3 client thread, logging,
           # and the database handoff all run here.
@@ -600,6 +602,7 @@ jobs:
             cc: clang
             min_version: "18"
             sanitizers: thread
+            variant: tsan
     services:
       mariadb:
         image: mariadb:10.11
@@ -640,7 +643,7 @@ jobs:
         uses: ./.github/actions/setup-build
         with:
           packages: clang mariadb-client mariadb-server pandoc ripgrep curl netcat-openbsd
-          cache-variant: sanitizers-${{ matrix.cc }}-${{ matrix.sanitizers }}
+          cache-variant: sanitizers-${{ matrix.cc }}-${{ matrix.variant }}
 
       - name: Verify the compiler
         run: scripts/ci/check_compiler.sh --cc ${{ matrix.cc }} --min-version ${{ matrix.min_version }}
@@ -689,7 +692,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: sanitizer-logs-${{ matrix.cc }}-${{ matrix.sanitizers }}
+          name: sanitizer-logs-${{ matrix.cc }}-${{ matrix.variant }}
           path: sanitizer-logs
           if-no-files-found: ignore
 
