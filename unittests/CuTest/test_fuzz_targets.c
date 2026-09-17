@@ -162,59 +162,30 @@ static int fuzz_dotenv_run(const uint8_t *data, size_t size)
 
 /* -------------------------------------------------------------- config target */
 
-static void fuzz_config_setup(void)
+/* load_config_stream() ends the boot on a malformed multi-line string, so it
+ * runs behind the exit guard like the world loader. The guard lives in its own
+ * frame so no local of the caller is live across the longjmp. */
+static void fuzz_config_parse(FILE *stream)
 {
-  fuzz_enter_scratch_directory();
-  if (mkdir("etc", 0700) != 0 && errno != EEXIST)
-  {
-    perror("fuzz config directory");
-    abort();
-  }
-  CONFIG_CONFFILE = strdup("etc/config");
-}
-
-/* The lowest descriptor a parser would receive next; anything at or above it
- * after a guarded exit was opened by the parser and abandoned. */
-static int fuzz_next_descriptor(void)
-{
-  int fd;
-
-  fd = open("/dev/null", O_RDONLY);
-  if (fd >= 0)
-    close(fd);
-  return fd;
-}
-
-static void fuzz_close_descriptors_from(int first)
-{
-  int fd;
-
-  if (first < 0)
-    return;
-  for (fd = first; fd < first + 16; fd++)
-    close(fd);
-}
-
-/* load_config() ends the boot on a malformed multi-line string, so this
- * target runs behind the exit guard like the world loader; the file it was
- * reading is closed here, as the production exit would have closed it. */
-static int fuzz_config_run(const uint8_t *data, size_t size)
-{
-  int next_descriptor;
-
-  if (!fuzz_write_file("etc/config", data, size))
-    return 0;
-  next_descriptor = fuzz_next_descriptor();
   if (setjmp(fuzz_exit_jump) == 0)
   {
     fuzz_exit_active = 1;
-    load_config();
-  }
-  else
-  {
-    fuzz_close_descriptors_from(next_descriptor);
+    load_config_stream(stream);
   }
   fuzz_exit_active = 0;
+}
+
+/* The target owns the stream and closes it after a guarded exit, which in
+ * production would have ended the process with the file open. */
+static int fuzz_config_run(const uint8_t *data, size_t size)
+{
+  FILE *stream;
+  char *stream_copy;
+
+  stream = fuzz_stream(data, size, &stream_copy);
+  if (stream != NULL)
+    fuzz_config_parse(stream);
+  fuzz_stream_close(stream, stream_copy);
   return 0;
 }
 
@@ -296,8 +267,12 @@ static int fuzz_dg_run(const uint8_t *data, size_t size)
 
 /* -------------------------------------------------------------- world target */
 
-/* Records are counted so the loader's index tables can be sized as index_boot()
- * sizes them from the index files. */
+/* An upper bound on the records the loader can index, so its tables can be
+ * sized as index_boot() sizes them from the index files. Every record header
+ * the loader accepts starts with a '#' byte, but not always at a newline: the
+ * readers take at most READ_SIZE - 1 bytes per call, so a longer line without
+ * a newline is split and its tail can become a header. Counting every '#'
+ * covers each of those splits. */
 static size_t fuzz_count_records(const uint8_t *data, size_t size)
 {
   size_t count;
@@ -305,7 +280,7 @@ static size_t fuzz_count_records(const uint8_t *data, size_t size)
 
   count = 0;
   for (index = 0; index < size; index++)
-    if (data[index] == '#' && (index == 0 || data[index - 1] == '\n'))
+    if (data[index] == '#')
       count++;
   return count;
 }
@@ -618,7 +593,7 @@ static void fuzz_setup_none(void)
 static const struct fuzz_target fuzz_targets[] = {
     {"dotenv", "lib/.env assignment parser (src/config/dotenv.c)", fuzz_enter_scratch_directory,
      fuzz_dotenv_run, 0U},
-    {"config", "lib/etc/config game configuration file (load_config)", fuzz_config_setup,
+    {"config", "lib/etc/config game configuration file (load_config)", fuzz_setup_none,
      fuzz_config_run, FUZZ_TARGET_MAY_EXIT},
     {"dg", "DG script expression and variable substitution (eval, %var%)", fuzz_dg_setup,
      fuzz_dg_run, 0U},
