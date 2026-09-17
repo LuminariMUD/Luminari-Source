@@ -690,7 +690,7 @@ static void fuzz_replay_one(CuTest *tc, const struct fuzz_target *target, const 
   size = 0;
   if (!fuzz_read_file(path, &data, &size))
   {
-    snprintf(message, sizeof(message), "cannot read fuzz input %s", path);
+    snprintf(message, sizeof(message), "cannot read fuzz input %.4095s", path);
     CuFail(tc, message);
     return;
   }
@@ -726,14 +726,15 @@ static void fuzz_replay_one(CuTest *tc, const struct fuzz_target *target, const 
 
   if (strstr(report, "Sanitizer") != NULL || strstr(report, "runtime error:") != NULL)
   {
-    snprintf(message, sizeof(message), "sanitizer finding replaying %s:\n%s", path, report);
+    snprintf(message, sizeof(message), "sanitizer finding replaying %.4095s:\n%.8191s", path,
+             report);
     CuFail(tc, message);
     return;
   }
   if (!WIFEXITED(status) || (WEXITSTATUS(status) != 0 &&
                              !((target->flags & FUZZ_TARGET_MAY_EXIT) && WEXITSTATUS(status) == 1)))
   {
-    snprintf(message, sizeof(message), "replaying %s: child %s %d\n%s", path,
+    snprintf(message, sizeof(message), "replaying %.4095s: child %s %d\n%.8191s", path,
              WIFSIGNALED(status) ? "died with signal" : "exited with status",
              WIFSIGNALED(status) ? WTERMSIG(status) : WEXITSTATUS(status), report);
     CuFail(tc, message);
