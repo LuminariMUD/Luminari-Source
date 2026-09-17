@@ -431,6 +431,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_artifact_integration.c \
 	unittests/CuTest/test_player_rename.c \
 	unittests/CuTest/test_ai_secrets.c \
+	unittests/CuTest/test_fuzz_targets.c \
 	unittests/CuTest/test.helpers.c \
 	unittests/CuTest/test.interpreter.c \
 	unittests/CuTest/test_transport_production.c \
@@ -517,6 +518,7 @@ cutest_test_files = \
 	unittests/CuTest/test_artifact_integration.c \
 	unittests/CuTest/test_player_rename.c \
 	unittests/CuTest/test_ai_secrets.c \
+	unittests/CuTest/test_fuzz_targets.c \
 	unittests/CuTest/test.helpers.c \
 	unittests/CuTest/test.interpreter.c \
 	unittests/CuTest/test_transport_production.c \
@@ -590,6 +592,19 @@ unittests/CuTest/test_prototypes.h: $(cutest_test_files) unittests/CuTest/make-t
 # (the sanitizer, coverage, and memory-check jobs) must still wait for the
 # generated prototypes that CuTest.h includes.
 $(cutest_OBJECTS): unittests/CuTest/test_prototypes.h
+
+# Production-linked libFuzzer harness (Clang only). It links the cutest objects
+# instead of compiling the tree a second time, so the parsers it drives are the
+# ones the suite and the server compile. Configure with
+# CFLAGS='-fsanitize=fuzzer-no-link,address,undefined ...' before building it;
+# see docs/guides/TESTING_GUIDE.md.
+EXTRA_PROGRAMS = luminari_fuzz
+fuzz_production_objects = $(filter-out unittests/CuTest/cutest-AllTests.$(OBJEXT),$(cutest_OBJECTS))
+luminari_fuzz_SOURCES = unittests/CuTest/fuzz_game.c
+luminari_fuzz_CFLAGS = $(AM_CFLAGS) -DLUMINARI_CUTEST
+luminari_fuzz_LDFLAGS = $(AM_LDFLAGS) -fsanitize=fuzzer
+luminari_fuzz_LDADD = $(fuzz_production_objects) $(luminari_LDADD)
+luminari_fuzz_DEPENDENCIES = $(fuzz_production_objects)
 
 BUILT_SOURCES = build_identity.h unittests/CuTest/AllTests.c unittests/CuTest/test_prototypes.h
 
@@ -868,6 +883,10 @@ help_sync_sources = \
 # Extra files to distribute
 EXTRA_DIST = \
 	scripts/development/generate_msp_sounds.py \
+	unittests/CuTest/fuzz_targets.h \
+	$(wildcard unittests/CuTest/fuzz_corpus_game/*/*) \
+	$(wildcard unittests/CuTest/fuzz_dictionaries/*.dict) \
+	$(wildcard unittests/CuTest/fuzz_regressions/*/*) \
 	lib/sounds/README.md \
 	lib/sounds/luminari-test.wav \
 	lib/sounds/luminari-door-open.wav \

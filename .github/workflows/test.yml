@@ -575,10 +575,121 @@ jobs:
           scripts/deployment/verify_hardened_binary.sh bin/luminari
 
   sanitizers:
-    name: ASan, UBSan, and protocol fuzzing
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Both supported compiler families build the instrumented suite; the
+          # check_sanitizer_build.sh step proves which one did and that the
+          # runtime is linked, so installing Clang can never leave a GCC build.
+          - name: ASan+UBSan (gcc)
+            cc: gcc
+            min_version: "13"
+            sanitizers: address,undefined
+          - name: ASan+UBSan (clang)
+            cc: clang
+            min_version: "18"
+            sanitizers: address,undefined
+          # ThreadSanitizer over the same production-linked suite, boot, and
+          # client smoke: the AI worker, the Intermud3 client thread, logging,
+          # and the database handoff all run here.
+          - name: ThreadSanitizer (clang)
+            cc: clang
+            min_version: "18"
+            sanitizers: thread
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: test_root_password
+          MARIADB_DATABASE: luminari_test
+          MARIADB_USER: luminari_test
+          MARIADB_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     env:
-      LUMINARI_TEST_SKIP_SYNTAX_BOOT: "1"
+      CC: ${{ matrix.cc }}
+      LUMINARI_TEST_MYSQL_ENABLE: "1"
+      LUMINARI_TEST_MYSQL_HOST: 127.0.0.1
+      LUMINARI_TEST_MYSQL_USER: luminari_test
+      LUMINARI_TEST_MYSQL_PASSWORD: test_password
+      LUMINARI_TEST_MYSQL_DATABASE: luminari_test
+      LUMINARI_TEST_MYSQL_PORT: "3306"
+      LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
+      LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
+      LUMINARI_STARTUP_TIMEOUT: "180"
+      LUMINARI_STARTUP_LOG_DIR: ${{ github.workspace }}/sanitizer-logs
+      TERRAIN_API_PORT: "4182"
+      # Every finding stops the run; no sanitizer is allowed a suppression file.
+      ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+      UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+      TSAN_OPTIONS: halt_on_error=1:second_deadlock_stack=1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up build
+        uses: ./.github/actions/setup-build
+        with:
+          packages: clang mariadb-client mariadb-server pandoc ripgrep curl netcat-openbsd
+          cache-variant: sanitizers-${{ matrix.cc }}-${{ matrix.sanitizers }}
+
+      - name: Verify the compiler
+        run: scripts/ci/check_compiler.sh --cc ${{ matrix.cc }} --min-version ${{ matrix.min_version }}
+
+      - name: Configure sanitizer build
+        run: |
+          autoreconf -fvi
+          ./configure \
+            CFLAGS='-O1 -g -fsanitize=${{ matrix.sanitizers }} -fno-omit-frame-pointer' \
+            LDFLAGS='-fsanitize=${{ matrix.sanitizers }}'
+
+      - name: Build the suite and the server
+        run: make -j"$(nproc)" cutest luminari
+
+      - name: Verify the compiler, flags, and linked sanitizer runtimes
+        run: >-
+          scripts/ci/check_sanitizer_build.sh --cc ${{ matrix.cc }}
+          --sanitizers ${{ matrix.sanitizers }} --binary cutest --binary luminari
+
+      - name: Prepare isolated test runtime
+        run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
+
+      # The syntax-check boot runs here too: the encounter world loads inside
+      # the instrumented process instead of being skipped.
+      - name: Run the production-linked suite with the syntax boot
+        run: LUMINARI_TEST_ROOT="$PWD" ./cutest
+
+      - name: Install the instrumented server
+        run: |
+          make install
+          test -x bin/luminari
+
+      - name: Boot, pre-authentication client interaction, and shutdown
+        run: scripts/ci/test_server_startup.sh
+
+      - name: Upload sanitizer logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sanitizer-logs-${{ matrix.cc }}-${{ matrix.sanitizers }}
+          path: sanitizer-logs
+          if-no-files-found: ignore
+
+  fuzz:
+    name: Fuzz the trust boundaries (libFuzzer, ASan, UBSan)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CC: clang
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -587,31 +698,48 @@ jobs:
         uses: ./.github/actions/setup-build
         with:
           packages: clang
-          cache-variant: sanitizers
+          cache-variant: fuzz-clang
 
       - name: Verify the compiler
-        run: scripts/ci/check_compiler.sh --cc gcc --min-version 13
+        run: scripts/ci/check_compiler.sh --cc clang --min-version 18
 
-      - name: Configure sanitizer build
+      # fuzzer-no-link instruments every production object for coverage
+      # guidance; luminari_fuzz links the cutest objects with libFuzzer's
+      # driver, so the parsers under test are the ones the server compiles.
+      - name: Configure the fuzzing build
         run: |
           autoreconf -fvi
           ./configure \
-            CFLAGS='-O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer' \
+            CFLAGS='-O1 -g -fsanitize=fuzzer-no-link,address,undefined -fno-omit-frame-pointer' \
             LDFLAGS='-fsanitize=address,undefined'
 
-      - name: Run production-linked sanitizer suite
-        env:
-          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
-          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
-        run: |
-          make -j"$(nproc)" cutest
-          LUMINARI_TEST_ROOT="$PWD" ./cutest
+      - name: Build the production-linked fuzz harness
+        run: make -j"$(nproc)" luminari_fuzz
+
+      - name: Verify the linked sanitizer and fuzzer runtimes
+        run: >-
+          scripts/ci/check_sanitizer_build.sh --cc clang
+          --sanitizers fuzzer-no-link,address,undefined --binary luminari_fuzz
+
+      - name: Replay every seed and regression input
+        run: scripts/ci/run_fuzz_targets.sh --seconds 0 --artifacts fuzz-artifacts
+
+      - name: Run each trust-boundary target for 15 seconds
+        run: scripts/ci/run_fuzz_targets.sh --seconds 15 --artifacts fuzz-artifacts
 
       - name: Run bounded protocol parser fuzzing
         run: make -C unittests/CuTest protocol-fuzz FUZZ_SECONDS=15
 
       - name: Run bounded binary file format fuzzing
         run: make -C unittests/CuTest binary-formats-fuzz FUZZ_SECONDS=15
+
+      - name: Upload reproducers and fuzzer logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fuzz-artifacts
+          path: fuzz-artifacts
+          if-no-files-found: ignore
 
   # The durable binary file golden fixtures must decode and encode identically
   # on every supported architecture; x86-64 runs them inside the suites above.

@@ -1,0 +1,10 @@
+eval a %findobj.1(1)%
+eval b %findmob.1(1)%
+eval c %people.1%
+eval d %self.id%
+eval e %global%
+eval f %door% %load% %purge% %send%
+eval g %dead(0)%
+eval h %self.name.trim%
+eval i %a%.mudcommand
+eval j %self.dir(north)%

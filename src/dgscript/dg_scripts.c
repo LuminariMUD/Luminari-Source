@@ -1870,17 +1870,19 @@ static void eval_op(const char *op, char *lhs, char *rhs, char *result,
   else if (!strcmp("/=", op))
     sprintf(result, "%c", str_str(lhs, rhs) ? '1' : '0');
 
+  /* Script operands are ints, but their product or sum need not fit one;
+   * evaluate in a wider type so a script cannot overflow the evaluator. */
   else if (!strcmp("*", op))
-    sprintf(result, "%d", atoi(lhs) * atoi(rhs));
+    sprintf(result, "%lld", (long long)atoi(lhs) * atoi(rhs));
 
   else if (!strcmp("/", op))
-    sprintf(result, "%d", (n = atoi(rhs)) ? (atoi(lhs) / n) : 0);
+    sprintf(result, "%lld", (n = atoi(rhs)) ? ((long long)atoi(lhs) / n) : 0LL);
 
   else if (!strcmp("+", op))
-    sprintf(result, "%d", atoi(lhs) + atoi(rhs));
+    sprintf(result, "%lld", (long long)atoi(lhs) + atoi(rhs));
 
   else if (!strcmp("-", op))
-    sprintf(result, "%d", atoi(lhs) - atoi(rhs));
+    sprintf(result, "%lld", (long long)atoi(lhs) - atoi(rhs));
 
   else if (!strcmp("!", op))
   {

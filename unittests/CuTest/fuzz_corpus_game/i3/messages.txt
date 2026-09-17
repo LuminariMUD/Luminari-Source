@@ -1,0 +1,2 @@
+{"jsonrpc":"2.0","method":"tell_received","params":{"from_user":"Alpha","from_mud":"FirstMUD","to_user":"Tester","message":"one"}}
+{"jsonrpc":"2.0","method":"channel_message","params":{"channel":"intermud","from_user":"Beta","from_mud":"SecondMUD","message":"hi"}}

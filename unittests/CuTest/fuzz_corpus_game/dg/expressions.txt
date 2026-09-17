@@ -1,0 +1,14 @@
+eval sum 1 + 2
+eval cmp %sum% == 3
+eval room %self.vnum%
+eval name %self.name%
+eval rnd %random.char%
+eval str "hello world"
+eval sub %sum%.charat(1)
+eval sub2 (%sum% * 2) / (3 - 1)
+eval cond (%sum% > 1) && (%sum% < 4)
+eval not !%sum%
+eval contains %name%.contains(fuzz)
+%self.people% %self.contents% %self.north%
+%time.hour% %weather% %self.zonenumber%
+"unterminated quote

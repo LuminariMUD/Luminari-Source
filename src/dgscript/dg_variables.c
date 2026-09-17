@@ -2502,7 +2502,10 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig, int type, char
         } /* for (field.. */
       } /* if *p == '.' */
 
-      *(p++) = '\0';
+      /* A variable the line never closes ends at the terminator; stepping past
+       * it would read beyond tmp when the line fills the buffer. */
+      if (*p == '%')
+        *(p++) = '\0';
       *subfield_p = '\0';
 
       if (*subfield)

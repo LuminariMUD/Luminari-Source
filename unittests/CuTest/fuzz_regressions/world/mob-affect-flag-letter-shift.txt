@@ -1,0 +1,12 @@
+B#100
+fuzz mob~
+a fuzz mob~
+A fuzz mob stands here.
+~
+A fuzz mob.
+~
+a FZ 0 S
+1 1 1 1d1+1 1d1+1
+1 1
+8 8 1
+$

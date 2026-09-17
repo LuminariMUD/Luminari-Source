@@ -11,6 +11,11 @@ set(CMAKE_C_EXTENSIONS ON)
 # Every option is documented in docs/development/CMAKE_BUILD_GUIDE.md.
 option(BUILD_UTILS "Build the util/ helper programs" ON)
 option(BUILD_TESTS "Build production-linked unit tests and register CTest entries" OFF)
+option(
+    LUMINARI_FUZZ
+    "Build the production-linked libFuzzer harness (needs BUILD_TESTS and Clang)"
+    OFF
+)
 set(LUMINARI_WARNING_TIER
     "baseline"
     CACHE STRING
@@ -1196,6 +1201,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_artifact_integration.c
     unittests/CuTest/test_player_rename.c
     unittests/CuTest/test_ai_secrets.c
+    unittests/CuTest/test_fuzz_targets.c
     unittests/CuTest/test.helpers.c
     unittests/CuTest/test.interpreter.c
     unittests/CuTest/test_transport_production.c
@@ -1321,6 +1327,31 @@ if(BUILD_TESTS)
     )
     target_compile_definitions(cutest PRIVATE LUMINARI_CUTEST)
     target_link_libraries(cutest PRIVATE luminari_build luminari_deps)
+
+    # Production-linked libFuzzer harness; Clang only. Configure with
+    # LUMINARI_SANITIZERS=fuzzer-no-link,address,undefined so every object
+    # carries the coverage instrumentation, then build target luminari_fuzz.
+    if(LUMINARI_FUZZ)
+        add_executable(
+            luminari_fuzz
+            unittests/CuTest/fuzz_game.c
+            unittests/CuTest/CuTest.c
+            ${CUTEST_TEST_SOURCES}
+            ${SRC_FILES}
+        )
+        add_dependencies(luminari_fuzz refresh_build_identity)
+        set_target_properties(
+            luminari_fuzz
+            PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        )
+        target_include_directories(
+            luminari_fuzz
+            PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest ${CUTEST_GENERATED_INCLUDE_DIR}
+        )
+        target_compile_definitions(luminari_fuzz PRIVATE LUMINARI_CUTEST)
+        target_link_options(luminari_fuzz PRIVATE -fsanitize=fuzzer)
+        target_link_libraries(luminari_fuzz PRIVATE luminari_build luminari_deps)
+    endif()
 
     add_test(NAME build-parity COMMAND Python3::Interpreter scripts/ci/check_build_parity.py)
     add_test(

@@ -1,0 +1,3 @@
+mortal_start_room = 3001
+immort_start_room = 3002
+frozen_start_room = 3000

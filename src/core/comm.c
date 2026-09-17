@@ -3348,6 +3348,15 @@ static void flush_queues(struct descriptor_data *d)
       d->large_outbuf->next = bufpool;
       bufpool = d->large_outbuf;
     }
+    /* The descriptor may live on (the "--" command flushes a playing
+     * connection): switch it back to its own buffer, or its next output would
+     * write into a pooled block and a second flush would link the pool into a
+     * cycle. */
+    d->large_outbuf = NULL;
+    d->output = d->small_outbuf;
+    d->bufspace = SMALL_BUFSIZE - 1;
+    d->bufptr = 0;
+    d->small_outbuf[0] = '\0';
   }
   while (d->input.head)
   {
@@ -4271,8 +4280,8 @@ static int process_input(struct descriptor_data *t)
     /* The '--' command flushes the queue. */
     if ((*tmp == '-') && (*(tmp + 1) == '-') && !(*(tmp + 2)))
     {
+      flush_queues(t); /* Flush the command queue */
       write_to_output(t, "All queued commands cancelled.\r\n");
-      flush_queues(t);  /* Flush the command queue */
       failed_subst = 1; /* Allow the read point to be moved, but don't add to queue */
     }
 
@@ -4303,6 +4312,16 @@ static int process_input(struct descriptor_data *t)
 int process_input_for_test(struct descriptor_data *t)
 {
   return process_input(t);
+}
+
+int get_from_q_for_test(struct txt_q *queue, char *dest, int *aliased)
+{
+  return get_from_q(queue, dest, aliased);
+}
+
+void flush_queues_for_test(struct descriptor_data *d)
+{
+  flush_queues(d);
 }
 #endif
 

@@ -1,0 +1,12 @@
+# .env assignments
+"APP_ENV="
+"MUD_PORT="
+"I3_ENABLED="
+"LUMINARI_EVENT_BACKEND="
+"AI_API_KEY="
+"="
+"\""
+"#"
+"\x0a"
+"true"
+"false"

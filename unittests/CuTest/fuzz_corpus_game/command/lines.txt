@@ -1,0 +1,11 @@
+look
+say hello $world
+get all.corpse
+!
+!sa
+^hello^goodbye^
+--
+north
+
+12 3
+cast 'magic missile' orc

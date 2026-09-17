@@ -290,6 +290,8 @@ int ai_event_test_cleanup_count(void);
 bool ai_service_test_start_waiting_worker(void);
 size_t ai_service_test_active_workers(void);
 void ai_service_test_reset_worker_state(void);
+char *ai_service_test_parse_json_response(const char *json_str);
+char *ai_service_test_parse_ollama_json_response(const char *json_str);
 #endif
 
 /* Async API Functions

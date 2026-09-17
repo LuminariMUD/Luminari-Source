@@ -1,0 +1,2 @@
+menu =
+Menu without a terminator

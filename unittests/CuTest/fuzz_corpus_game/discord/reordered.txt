@@ -1,0 +1,1 @@
+{"emoted":1,"message":"waves","name":"A\u0041","channel":"ooc"}

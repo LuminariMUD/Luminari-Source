@@ -1,0 +1,72 @@
+name: Fuzz Campaign
+
+# Longer libFuzzer campaigns over the production-linked trust-boundary
+# targets. Pull requests get the fast deterministic smoke in test.yml; this
+# schedule spends real time per target and keeps every reproducer.
+on:
+  workflow_dispatch:
+    inputs:
+      seconds:
+        description: Seconds to spend on each target
+        default: "900"
+        type: string
+  schedule:
+    # Weekly, Sunday 03:17 UTC.
+    - cron: "17 3 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  campaign:
+    name: Fuzz every target (${{ github.event.inputs.seconds || '900' }}s each)
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      CC: clang
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up build
+        uses: ./.github/actions/setup-build
+        with:
+          packages: clang
+          cache-variant: fuzz-campaign-clang
+
+      - name: Verify the compiler
+        run: scripts/ci/check_compiler.sh --cc clang --min-version 18
+
+      - name: Configure the fuzzing build
+        run: |
+          autoreconf -fvi
+          ./configure \
+            CFLAGS='-O1 -g -fsanitize=fuzzer-no-link,address,undefined -fno-omit-frame-pointer' \
+            LDFLAGS='-fsanitize=address,undefined'
+
+      - name: Build the production-linked fuzz harness
+        run: make -j"$(nproc)" luminari_fuzz
+
+      - name: Verify the linked sanitizer and fuzzer runtimes
+        run: >-
+          scripts/ci/check_sanitizer_build.sh --cc clang
+          --sanitizers fuzzer-no-link,address,undefined --binary luminari_fuzz
+
+      - name: Run the campaign
+        run: >-
+          scripts/ci/run_fuzz_targets.sh
+          --seconds "${{ github.event.inputs.seconds || '900' }}"
+          --max-len 65536 --artifacts fuzz-artifacts
+
+      - name: Run the standalone protocol and binary format fuzzers
+        run: |
+          make -C unittests/CuTest protocol-fuzz FUZZ_SECONDS=300
+          make -C unittests/CuTest binary-formats-fuzz FUZZ_SECONDS=300
+
+      - name: Upload reproducers and fuzzer logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fuzz-campaign-artifacts
+          path: fuzz-artifacts
+          if-no-files-found: ignore
