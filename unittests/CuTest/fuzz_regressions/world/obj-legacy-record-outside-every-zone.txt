@@ -1,0 +1,9 @@
+C#-5
+fuzz object~
+a fuzz object~
+A fuzz object lies here.~
+~
+7 0 0 0
+0 0 0 0
+1 100 0 10 0
+$

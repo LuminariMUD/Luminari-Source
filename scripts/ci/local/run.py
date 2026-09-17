@@ -84,6 +84,9 @@ def included(condition, matrix):
     # Report uploads run even after a failed step on GitHub; locally they are skipped.
     if condition == "always()":
         return True
+    # A failure-only step (an artifact upload) has nothing to run locally.
+    if condition == "failure()":
+        return False
     match = re.fullmatch(r"matrix\.([\w-]+) (==|!=) '([^']*)'", condition)
     if not match:
         raise ValueError(f"Unsupported local step condition: {condition}")
@@ -259,9 +262,9 @@ def main():
                 continue
             for matrix in expand_matrix(job):
                 label = f"{workflow_name}-{name}" + "".join(
-                    f"-{value}"
+                    f"-{str(value).replace(',', '-')}"
                     for key, value in matrix.items()
-                    if key in ("build", "cc", "compiler", "build_type")
+                    if key in ("build", "cc", "compiler", "build_type", "sanitizers")
                 )
                 env = {
                     key: interpolate(value, matrix)
