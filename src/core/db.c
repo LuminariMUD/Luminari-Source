@@ -2298,7 +2298,10 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
 
     if (bitsavetodisk)
     { /* Maybe the implementor just wants to look at the 128bit files */
-      add_to_save_list(zone_table[real_zone_by_thing(virtual_nr)].number, 3);
+      zone_rnum save_zone = real_zone_by_thing(virtual_nr);
+
+      if (save_zone != NOWHERE)
+        add_to_save_list(zone_table[save_zone].number, 3);
       converting = TRUE;
     }
 
@@ -3626,7 +3629,11 @@ void parse_mobile(FILE *mob_f, int nr)
 
     if (bitsavetodisk)
     {
-      add_to_save_list(zone_table[real_zone_by_thing(nr)].number, 0);
+      zone_rnum save_zone = real_zone_by_thing(nr);
+
+      /* A record outside every zone has no file to schedule for saving. */
+      if (save_zone != NOWHERE)
+        add_to_save_list(zone_table[save_zone].number, 0);
       converting = TRUE;
     }
 
@@ -3817,7 +3824,10 @@ const char *parse_object(FILE *obj_f, int nr)
 
     if (bitsavetodisk)
     {
-      add_to_save_list(zone_table[real_zone_by_thing(nr)].number, 1);
+      zone_rnum save_zone = real_zone_by_thing(nr);
+
+      if (save_zone != NOWHERE)
+        add_to_save_list(zone_table[save_zone].number, 1);
       converting = TRUE;
     }
 
