@@ -736,12 +736,16 @@ the same executable through `-DLUMINARI_FUZZ=ON` with
 Pull requests get the deterministic replay and 15 s per target.
 `.github/workflows/fuzz-campaign.yml` runs weekly and on demand
 (`workflow_dispatch` with a per-target duration, default 900 s) with a larger
-input limit and always uploads its artifacts. The campaign that introduced
-these targets found and fixed seven defects: an affect-flag shift past the int
+input limit and always uploads its artifacts. The campaigns that introduced
+these targets found and fixed ten defects: an affect-flag shift past the int
 width, an unbounded mob `Feat`/`MFeat` index, a null short description in the
 object checks, an empty trigger script, a dangling large output buffer after
 the `--` command (a repeatable server hang), an unterminated `%variable` that
-read past the substitution buffer, and integer overflow in script arithmetic.
+read past the substitution buffer, integer overflow in script arithmetic, a
+leak and double free when the configuration defaults were loaded again, a
+legacy record conversion indexing `zone_table[-1]`, and a room exit direction
+outside `dir_option[]`; the last one came from the fuzz job's first run on
+GitHub, whose uploaded, minimized reproducer became the regression input.
 
 ### MemorySanitizer and OSS-Fuzz
 
