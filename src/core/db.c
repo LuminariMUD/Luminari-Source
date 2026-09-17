@@ -8391,6 +8391,26 @@ static void load_default_config(void)
 void load_config(void)
 {
   FILE *fl;
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+
+  /* The defaults are not loaded yet, so the fallback directory is the built-in
+   * default that they would name. */
+  snprintf(buf, sizeof(buf), "%s/%s", DFLT_DIR, CONFIG_CONFFILE);
+  if (!(fl = fopen(CONFIG_CONFFILE, "r")) && !(fl = fopen(buf, "r")))
+  {
+    load_default_config();
+    snprintf(buf, sizeof(buf), "No %s file, using defaults", CONFIG_CONFFILE);
+    perror(buf);
+    return;
+  }
+
+  load_config_stream(fl);
+  fclose(fl);
+}
+
+/* Load the defaults, then the settings the open stream holds over them. */
+void load_config_stream(FILE *fl)
+{
   char line[MAX_STRING_LENGTH] = {'\0'};
   char tag[MAX_INPUT_LENGTH] = {'\0'};
   int num = 0;
@@ -8398,14 +8418,6 @@ void load_config(void)
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   load_default_config();
-
-  snprintf(buf, sizeof(buf), "%s/%s", CONFIG_DFLT_DIR, CONFIG_CONFFILE);
-  if (!(fl = fopen(CONFIG_CONFFILE, "r")) && !(fl = fopen(buf, "r")))
-  {
-    snprintf(buf, sizeof(buf), "No %s file, using defaults", CONFIG_CONFFILE);
-    perror(buf);
-    return;
-  }
 
   /* Load the game configuration file. */
   while (get_line(fl, line))
@@ -8822,8 +8834,6 @@ void load_config(void)
       break;
     }
   }
-
-  fclose(fl);
 }
 
 /* Centralized character creation - Jamdog - 31st December 2007 */

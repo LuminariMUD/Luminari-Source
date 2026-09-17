@@ -453,6 +453,7 @@ int count_hash_records(FILE *fl);
 bitvector_t asciiflag_conv(const char *flag);
 void renum_world(void);
 void load_config(void);
+void load_config_stream(FILE *fl);
 struct char_data *new_char();
 
 /* global buffering system */
