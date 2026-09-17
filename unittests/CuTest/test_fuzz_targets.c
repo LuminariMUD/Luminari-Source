@@ -45,7 +45,7 @@ volatile sig_atomic_t fuzz_exit_status = 0;
  * runner's, libFuzzer's, a fixture failure) goes through to the C library. */
 void exit(int status)
 {
-  void (*real_exit)(int) __attribute__((noreturn));
+  void (*real_exit)(int);
 
   if (fuzz_exit_active)
   {
@@ -682,7 +682,7 @@ static void fuzz_replay_one(CuTest *tc, const struct fuzz_target *target, const 
   char report[8192];
   ssize_t bytes_read;
   size_t report_length;
-  char message[PATH_MAX + 128];
+  char message[sizeof(report) + PATH_MAX + 128];
 
   data = NULL;
   size = 0;

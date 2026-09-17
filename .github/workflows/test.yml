@@ -645,6 +645,15 @@ jobs:
       - name: Verify the compiler
         run: scripts/ci/check_compiler.sh --cc ${{ matrix.cc }} --min-version ${{ matrix.min_version }}
 
+      # ThreadSanitizer's shadow layout needs at most 28 bits of mmap
+      # randomization; the runner kernel defaults to 32, and TSan then
+      # re-executes itself without ASLR, which a seccomp policy may refuse.
+      - name: Lower ASLR entropy for ThreadSanitizer
+        if: matrix.sanitizers == 'thread'
+        run: |
+          sudo sysctl -w vm.mmap_rnd_bits=28 ||
+            echo "vm.mmap_rnd_bits is not adjustable here; TSan re-executes without ASLR"
+
       - name: Configure sanitizer build
         run: |
           autoreconf -fvi
