@@ -73,6 +73,8 @@ class Session:
                 chunk = self.sock.recv(4096)
             except socket.timeout:
                 continue
+            except OSError as error:
+                raise SystemExit(f"connection reset before {marker!r}: {error}; received:\n{text}")
             if not chunk:
                 raise SystemExit(f"connection closed before {marker!r}; received:\n{text}")
             self.feed(chunk)
@@ -90,6 +92,10 @@ class Session:
                     return
             except socket.timeout:
                 continue
+            except OSError:
+                # A reset closes the connection as surely as an orderly shutdown.
+                self.sock.close()
+                return
         raise SystemExit("the server did not close the connection after Quit")
 
 

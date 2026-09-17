@@ -868,6 +868,7 @@ jobs:
         run: |
           make -j"$(nproc)" cutest
           padding=$((65536 - $(env | wc -c)))
+          [ "$padding" -gt 0 ] || padding=0
           COVERAGE_ENV_PADDING=$(head -c "$padding" /dev/zero | tr '\0' x) \
             setarch "$(uname -m)" --addr-no-randomize ./cutest
 
