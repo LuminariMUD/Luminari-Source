@@ -2543,6 +2543,13 @@ void setup_dir(FILE *fl, room_rnum room, int dir)
 
   snprintf(buf2, sizeof(buf2), "room #%" PRI_IDX ", direction D%d", world[room].number, dir);
 
+  /* The direction indexes dir_option[]; a file may name one the array lacks. */
+  if (dir < 0 || dir >= NUM_OF_DIRS)
+  {
+    log("SYSERR: Format error, %s: direction must be between 0 and %d", buf2, NUM_OF_DIRS - 1);
+    exit(1);
+  }
+
   if (!CONFIG_DIAGONAL_DIRS && IS_DIAGONAL(dir))
   {
     log("Warning: Diagonal direction disabled: %s", buf2);
