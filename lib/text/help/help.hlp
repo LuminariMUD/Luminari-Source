@@ -689,6 +689,25 @@ if stored in a virtual bag.
 If the item is equipped, you can see the uses in the 	Yabilities	n command. You can
 also see this info with the 	Ylore	n command.
 #0
+ACTIVITY PRIMARY-ACTIVITY
+
+Primary Activity
+
+Usage: activity
+       activity cancel
+       activity pause
+       activity resume
+
+Shows your current timed activity, progress, occupied capabilities, traits and
+the clock that will request its next step. Informational and communication
+commands remain available during an activity. Incompatible actions report the
+conflict instead of silently interrupting your work.
+
+Timed casting also appears here. Use activity cancel or abort to stop a cast.
+Casting cannot be paused and continues on its normal clock during combat.
+
+See also: CAMP, ACTIONS, COOLDOWNS, CASTING-TIME
+#0
 %HAS_CLASS% ACTOR.HAS_CLASS HAS-CLASS
 
 This is used in scripts to find the actors class.
@@ -1282,39 +1301,6 @@ persistence system; heed any warning that asks you to save again.
 
 See also: CLASS-NECROMANCER, SUMMON-UNDEAD, GREATER-ANIMATION,
 TOUCH-OF-UNDEATH, ANIMATEDEAD
-#0
-AUTORAISE
-
-AUTOMATIC RAISING
-
-Usage: autoraise
-
-Autoraise is off by default. Necromancers with Summon Undead (level 2) can
-use this command to turn it on or off. Losing the ability prevents raising;
-you can still turn the preference off. Save normally to retain the setting.
-
-When you directly kill an eligible NPC, automatic raising can attempt Animate
-Dead on that kill's exact corpse. Your pets' kills do not trigger it. It never
-searches for an older corpse. Normal autoloot and autogold happen first; if
-autosacrifice removes the corpse, there is no raising attempt.
-
-An attempt uses one available swift action and no prepared or spontaneous
-spell slot. The normal 10 percent animation failure chance still applies;
-failure spends the swift action but leaves the corpse. Busy, incapacitated,
-charmed, or action-exhausted characters do not attempt raising. Holy and
-anti-magic locations also prevent it.
-
-The normal Animate Dead caster-level tier and control costs apply. Full
-capacity or a missing prototype prevents the attempt without spending an
-action. Player corpses, summoned-follower corpses, and artificial minion
-corpses cannot be raised. A consumed corpse cannot be used a second time.
-
-The result is an ordinary owned undead follower: use PETS and ORDER to control
-it and DISMISS to release it. It has the normal permanent animation lifetime,
-and any loot still in the corpse transfers to it. The raising preference
-never grants extra control capacity or an extra daily-use pool.
-
-See also: ANIMATE-DEAD, ANIMATEDEAD, CLASS-NECROMANCER, PETS, SWIFT-ACTION
 #0
 ANIMATEDEAD
 
@@ -2294,6 +2280,32 @@ psionic powers in other situations.
 
 See Also: BUFFING
 #0
+AUTO-BUFF AUTOBUFF BUFF BUFF-SELF BUFFING SELF-BUFFING
+
+Usage: buff add <spell or power>
+       buff remove <spell or power>
+       buff <psp> <power>
+       buff list
+       buff target [name|self]
+       buff perform
+       buff cancel
+
+Create a saved list of spells and psionic powers, then use buff perform to
+cast them in order. Normal knowledge, preparation, resource and action checks
+apply to each cast. Unavailable spells are skipped; preparations are consumed
+by normal casting, once per attempted cast that reaches that stage.
+
+A timed cast finishes before the next spell begins. Casting speed changes
+apply through normal casting. Instant casts retain the sequence's pacing.
+You cannot start a sequence while another primary activity is in progress.
+
+The selected target is captured when the sequence starts. Changing buff target
+sets the target for your next sequence. With no target, you buff yourself.
+Movement by you or the selected target, target loss, interrupted casting,
+disconnect or restart stops the sequence. Your saved buff list remains intact.
+Use buff perform again when ready. Buff cancel stops further spells; a spell
+already being cast retains the normal casting and interruption rules.
+#0
 AUTO-STATTER
 
 The mobile auto-statter (from main menu, option 9, then option 2
@@ -2502,6 +2514,39 @@ called HOMELAND-QUEST-SYSTEM in the help files.
 
 See Also: QUEST, QEDIT, QUEST-FLAG
 #1
+AUTORAISE
+
+AUTOMATIC RAISING
+
+Usage: autoraise
+
+Autoraise is off by default. Necromancers with Summon Undead (level 2) can
+use this command to turn it on or off. Losing the ability prevents raising;
+you can still turn the preference off. Save normally to retain the setting.
+
+When you directly kill an eligible NPC, automatic raising can attempt Animate
+Dead on that kill's exact corpse. Your pets' kills do not trigger it. It never
+searches for an older corpse. Normal autoloot and autogold happen first; if
+autosacrifice removes the corpse, there is no raising attempt.
+
+An attempt uses one available swift action and no prepared or spontaneous
+spell slot. The normal 10 percent animation failure chance still applies;
+failure spends the swift action but leaves the corpse. Busy, incapacitated,
+charmed, or action-exhausted characters do not attempt raising. Holy and
+anti-magic locations also prevent it.
+
+The normal Animate Dead caster-level tier and control costs apply. Full
+capacity or a missing prototype prevents the attempt without spending an
+action. Player corpses, summoned-follower corpses, and artificial minion
+corpses cannot be raised. A consumed corpse cannot be used a second time.
+
+The result is an ordinary owned undead follower: use PETS and ORDER to control
+it and DISMISS to release it. It has the normal permanent animation lifetime,
+and any loot still in the corpse transfers to it. The raising preference
+never grants extra control capacity or an extra daily-use pool.
+
+See also: ANIMATE-DEAD, ANIMATEDEAD, CLASS-NECROMANCER, PETS, SWIFT-ACTION
+#0
 AUTO-RELOAD AUTORELOAD
 
 This command will toggle on/off automatic reloading of ranged weapons.
@@ -3078,6 +3123,18 @@ you into a frenzy, granting one extra attack on the spot.
 
 See also: FEAT INFO BATTLE FRENZY
 #0
+BATTLECHANTER ROL-BATTLECHANTER
+
+Battlechanter
+
+Battlechanter is an approved themed build through the existing Bard class, not
+a separate selectable class. Bard performance, instruments, group support, and
+known-spell casting provide the war-chant role. Minor creation enters the Bard
+list at level 4 and song of travel at level 16. Warrior or Cleric multiclassing
+can add martial or shamanic emphasis but is not required for those spells.
+
+See also: BARD, PERFORM, INSTRUMENT, SONG-OF-TRAVEL, ROL-SPELL-KITS
+#0
 BATTLE-RAGE BATTLERAGE
 
 This ability will allow the Cleric to enter an enraged state, gaining
@@ -3474,353 +3531,7 @@ example:  blank all / forget all / uncommune all / discard all
 
 See also:  MEMORIZATION PRAYER CONCOCT
 #0
-CALMING
-
-Calming
-
-Requires: the calming feat (racial innate)
-
-Something about you soothes hostile creatures. An aggressive creature within
-five levels of you ignores you half the time it would otherwise attack
-unprovoked.
-
-See also: FEAT INFO CALMING
-#0
-DAYBLIND
-
-Dayblind (racial drawback)
-
-Requires: the dayblind feat
-
-Direct sunlight blinds you: while outdoors under a clear daytime sky you
-cannot see. Indoors, under magical darkness, or when covered you see
-normally, and a creature with no eyes to dazzle (see EYELESS) is never
-dayblinded.
-
-See also: FEAT INFO DAYBLIND, SUN-VULNERABILITY, EYELESS
-#0
-DOORBASH
-
-Doorbash
-
-Usage: doorbash <direction>
-Requires: the doorbash feat (racial innate)
-
-You throw yourself at a closed door. Roll a d300 at or below your strength
-plus your level and the door shatters open on both sides with its lock
-broken; fail and it holds, and you take 1d6 damage. Pickproof doors cannot
-be forced.
-
-See also: FEAT INFO DOORBASH, OPEN, UNLOCK
-#0
-EXTRA-ARMS
-
-Extra Arms
-
-Requires: the extra arms feat (racial innate)
-
-Extra limbs join every melee round. Each rank of this innate grants one
-additional melee attack at your full base attack bonus, with no penalty
-to that swing. It brings no additional equipment slots and does nothing
-with ranged or thrown attacks.
-
-See also: FEAT INFO EXTRA ARMS, ATTACKS
-#0
-EYELESS
-
-Eyeless
-
-Requires: the eyeless feat (racial innate)
-
-You have no eyes to blind. Blindness spells and effects cannot take hold of
-you, and you keep perceiving your surroundings while others would be
-blinded. This does not let you see in the dark.
-
-See also: FEAT INFO EYELESS, DAYBLIND
-#0
-FOREST-SIGHT
-
-Forest Sight
-
-Requires: the forest sight feat (racial innate)
-
-Your eyes were made for the woods. You gain +4 to perception checks in
-forest sectors.
-
-See also: FEAT INFO FOREST SIGHT
-#0
-FOUR-ARMS
-
-Four Arms
-
-Requires: the four arms feat (racial innate)
-
-Two more arms.  A second weapon pair lets you wield two more one-handed
-weapons, or a second two-handed weapon, in your lower hands: four
-one-handers, two two-handers, or a two-hander beside a pair of one-handers.
-Each pair holds either its one-handers or its two-hander, never both.  Held
-items and shields draw on the same four hands, so three weapons and a
-shield, or two weapons and two held items, also fit.  The lower hands
-manage melee weapons only: no bows, crossbows or slings there, and the
-usual rule of one ranged weapon and no mixing of ranged and melee still
-counts every hand.
-
-In combat the lower arms mirror the upper ones.  Each swing your upper
-arms are entitled to (the basic attack, the offhand attack when the lower
-pair holds two weapons, haste, and the extra attacks from base attack bonus,
-flurry and two-weapon training) is also attempted by the lower pair with
-its own weapons and its own penalties.  Each such swing lands only some of
-the time: 50 percent, 75 percent with two-weapon fighting and 100 percent
-with improved two-weapon fighting (or the ranger equivalents).  Vital
-strike disables the lower swings.  The ATTACKS command lists them with
-their chance.
-
-You also gain a second set of sleeves and gloves and two more wrist slots.
-Lower sleeves count as armor like the upper ones.  Wear, wield and remove
-work as before; the lower slots take the overflow.
-
-An item that grants four arms must be worn in an ordinary slot.  Gear in the
-extra slots cannot itself be what keeps the arms.
-
-See also: FEAT INFO FOUR ARMS, WIELD, WEAR, EXTRA-ARMS
-#0
-GREATSWORD-MASTERY
-
-Greatsword Mastery
-
-Requires: the greatsword mastery feat (racial innate)
-
-While the weapon you attack with is a great sword you gain +1 to attack and
-damage rolls for every 8 character levels, to a maximum of +3 at level 24.
-
-See also: FEAT INFO GREATSWORD MASTERY
-#0
-GROUNDFIGHTING
-
-Groundfighting
-
-Requires: the groundfighting feat (racial innate)
-
-You fight as well from the ground as on your feet. Being prone, sitting or
-resting costs you no armor class and no attack roll penalty. Being stunned
-or asleep still does.
-
-See also: FEAT INFO GROUNDFIGHTING
-#0
-HAMMER-MASTERY
-
-Hammer Mastery
-
-Requires: the hammer mastery feat (racial innate)
-
-While the weapon you attack with is a hammer you gain +1 to attack and
-damage rolls for every 8 character levels, to a maximum of +3 at level 24.
-
-See also: FEAT INFO HAMMER MASTERY
-#0
-HATRED
-
-Hatred
-
-Requires: the hatred feat (racial innate)
-
-An old hatred drives your blows. Against evil-aligned opponents you gain +1
-to attack rolls and +2 to damage.
-
-See also: FEAT INFO HATRED
-#0
-INNATE-FARSEE
-
-Innate Farsee
-
-Usage: farsee
-Requires: the innate farsee feat (racial innate)
-Uses: 3 per day
-
-You sharpen your sight until it reaches far beyond the horizon, as the
-farsee spell, cast at your character level on yourself. This is a spell-like
-ability and needs no components. Type help farsee for the spell itself.
-
-See also: FEAT INFO INNATE FARSEE, FARSEE
-#0
-INNATE-FIRE-SHIELD FIRESHIELD
-
-Innate Fire Shield
-
-Usage: fireshield
-Requires: the innate fire shield feat (racial innate)
-Uses: 1 per day
-
-You wreathe yourself in flame, as the fire shield spell cast at your
-character level on yourself. It is refused while you already carry a fire
-shield.
-
-See also: FEAT INFO INNATE FIRE SHIELD
-#0
-INNATE-FIRE-STORM FIRESTORM
-
-Innate Fire Storm
-
-Usage: firestorm
-Requires: the innate fire storm feat (racial innate)
-Uses: 1 per day
-
-You call a fire storm down on the room, striking everyone who is not with
-you, as the fire storm spell cast at your character level.
-
-See also: FEAT INFO INNATE FIRE STORM
-#0
-INNATE-FIREBALL
-
-Innate Fireball
-
-Usage: fireball [opponent]
-Requires: the innate fireball feat (racial innate)
-Uses: 3 per day
-
-You hurl a ball of flame at one opponent in the room (your current opponent
-if you name none), as the fireball spell cast at your character level. Type
-help fireball for the spell itself.
-
-See also: FEAT INFO INNATE FIREBALL, FIREBALL
-#0
-INNATE-FROST-BREATH FROSTBREATH
-
-Innate Frost Breath
-
-Usage: frostbreath [opponent]
-Requires: the innate frost breath feat (racial innate)
-Uses: 3 per day
-
-You breathe a cone of cold at one opponent in the room (your current
-opponent if you name none), as the cone of cold spell cast at your character
-level.
-
-See also: FEAT INFO INNATE FROST BREATH
-#0
-INNATE-HASTE BATTLEHASTE
-
-Innate Haste
-
-Usage: battlehaste
-Requires: the innate haste feat (racial innate)
-Uses: 1 per day
-
-You work yourself into a hasted battle fury, as the haste spell cast at your
-character level on yourself. It is refused while you are already hasted.
-
-See also: FEAT INFO INNATE HASTE, HASTE
-#0
-INNATE-LIGHTNING-BOLT THROWLIGHTNING
-
-Innate Lightning Bolt
-
-Usage: throwlightning [opponent]
-Requires: the innate lightning bolt feat (racial innate)
-Uses: 3 per day
-
-While fighting, you hurl a lightning bolt at an opponent in the room (your
-current opponent if you name none), as the lightning bolt spell cast at your
-character level.
-
-See also: FEAT INFO INNATE LIGHTNING BOLT
-#0
-INNATE-MASS-DISPEL MASSDISPEL
-
-Innate Mass Dispel
-
-Usage: massdispel
-Requires: the innate mass dispel feat (racial innate)
-Uses: 1 per day
-
-You strip magic from everyone else in the room, friend and foe alike, as the
-dispel magic spell cast at your character level on each of them.
-
-See also: FEAT INFO INNATE MASS DISPEL
-#0
-INNATE-PLANE-SHIFT
-
-Innate Plane Shift
-
-Usage: planeshift <astral | ethereal | elemental | prime>
-Requires: the innate plane shift feat (racial innate)
-Uses: 1 per day
-
-You cross to the named plane, as the plane shift spell cast at your
-character level. Prime is only reachable from another plane. Type help
-planeshift for the spell itself.
-
-See also: FEAT INFO INNATE PLANE SHIFT, PLANESHIFT
-#0
-INNATE-PSIONIC-BLAST MINDBLAST
-
-Innate Psionic Blast
-
-Usage: mindblast [opponent]
-Requires: the innate psionic blast feat (racial innate)
-Uses: 3 per day
-
-You unleash a stunning psionic blast, as the psionic blast power manifested
-at your character level. The power strikes every hostile in the room; you
-need an opponent present to use it.
-
-See also: FEAT INFO INNATE PSIONIC BLAST
-#0
-INNATE-SCARE ROAR
-
-Innate Scare
-
-Usage: roar [opponent]
-Requires: the innate scare feat (racial innate)
-Uses: 3 per day
-
-You let out a roar that terrifies one opponent in the room (your current
-opponent if you name none), as the scare spell cast at your character level.
-
-See also: FEAT INFO INNATE SCARE
-#0
-INNATE-SHADOW-JUMP SHADOWDOOR
-
-Innate Shadow Jump
-
-Usage: shadowdoor <target>
-Requires: the innate shadow jump feat (racial innate)
-Uses: 1 per day
-
-You step through shadow to the side of a character anywhere in the world, as
-the shadow jump spell cast at your character level. Rooms and planes that
-refuse teleportation refuse this too.
-
-See also: FEAT INFO INNATE SHADOW JUMP
-#0
-INNATE-STONESKIN
-
-Innate Stoneskin
-
-Usage: stoneskin
-Requires: the innate stoneskin feat (racial innate)
-Uses: 1 per day
-
-You harden your skin against blows, as the stoneskin spell cast at your
-character level on yourself. It is refused while you are already
-stoneskinned. Type help stoneskin for the spell itself.
-
-See also: FEAT INFO INNATE STONESKIN, STONESKIN
-#0
-INNATE-WEB WEBWRAP
-
-Innate Web
-
-Usage: webwrap [opponent]
-Requires: the innate web feat (racial innate)
-Uses: 3 per day
-
-You bind one opponent in the room in webbing, as the web spell cast at your
-character level. The target may be at most one size larger than you.
-
-See also: FEAT INFO INNATE WEB
-#0
-LEGACY-RANGED-WEAPONS
+AMMO ARCHERY BLAST BOWS FIRE-WEAPONS LEGACY-RANGED-WEAPONS MISSILES QUIVERS RANGED-WEAPONS SHOOT
 
 Usage:  fire <target> <optionally direction>
        if <target> is group member or pet, you will assist them...
@@ -3851,6 +3562,27 @@ failed to do this and Rumble bashed his head against the wall so many times that
 it became a bloody pulp. At least that is the rumor.
  
 #31
+BLEEDING-CRITICAL
+
+Bleeding Critical adds bleeding damage when a critical hit applies the feat.
+Its 2d6 damage is rolled on application and stored for each later tick. Repeated
+applications add their damage and replace the remaining duration, without
+postponing the pending tick. The initial Fortitude save and duration roll retain
+their existing rules.
+
+In combat, each tick happens at the end of the affected character's next turn,
+after that character's actions. Outside combat, ticks are six seconds apart.
+Each tick applies damage and consumes one remaining round; the final tick ends
+the effect. Curing the effect cancels its future ticks.
+
+An elapsed interval already running when combat begins finishes before the
+clock adopts turn-end timing. Leaving combat preserves the time remaining to
+the next tick. Player saves preserve remaining rounds and the partial interval;
+saving does not restart the clock. A character remaining in the world after
+losing its connection continues to bleed normally.
+
+See also: FEATS, CRITICAL, COMBAT, INITIATIVE
+#0
 BLESS
 
 	D-----------------------------------------------------------------	n
@@ -4013,6 +3745,33 @@ mysterious origin of your sorcerers abilities.
 You will see a list of bloodline options for sorcerer in the STUDY menu.
 
 See also:  <name of bloodline>-BLOODLINE
+#0
+BLOODLINE-FEY FEY-BLOODLINE SORCERER-BLOODLINE-FEY
+
+The capricious nature of the fey runs in your family due to some intermingling of
+fey blood or magic. You are more emotional than most, prone to bouts of joy and rage.
+The fey bloodline offers a great knowledge of nature as well as enhanced abilities in
+traversing or dealing with nature.  It also offers abilities using fey magic.
+
+NEW CLASS SKILL: Nature
+
+BONUS SPELLS: charm person (3rd), hideous laughter (5th), deep slumber (7th),
+poison (9th), feeblemind (11th), true seeing (13th), prismatic spray (15th),
+irresistible dance (17th), polymorph (19th).
+
+CLASS FEATS: dodge, improved initiative, lightning reflexes, mobility, point blank shot,
+precise shot, quicken spell, skill focus
+
+The fey bloodline also gives the following bonus abilities:
++2 to dcs of enchantment spells at sorcerer level 1. (HELP FEY ARCANA)
+Can cause debilitating laughter in a foe at sorcerer level 1. (HELP LAUGHING TOUCH)
+Can travel wilderness faster at sorcerer level 2. (HELP WILDERNESS STRIDE)
+Can go invisible 3 times per day at sorcerer level 9. (HELP FLEETING GLANCE)
+Can roll twice to overcome spell resistence at sorcerer level 15. (HELP FEY MAGIC)
+Gain immunity to poison, +3 damage reduction, animals won't aggro you
+and can cast shadow walk once per day at sorcerer level 20. (HELP SOUL OF THE FEY)
+
+See Also: SORCERER
 #0
 BLOODLUST
 
@@ -4201,6 +3960,40 @@ Example:
   bonearmor a bone breastplate
 
 See also: CLASS-NECROMANCER, CRAFTING-KIT, SPELL-FAILURE
+#0
+BONE-GOLEM
+
+BONE GOLEM
+
+Usage: craft create golem animate <corpse>
+
+Bind an eligible room corpse into a medium bone construct. This requires the
+motes crafting system and either Construct Wood Golem or Summon Greater Undead
+(Necromancer level 9). It uses the ordinary one-golem allowance, shared with
+wood, stone, and iron constructs.
+
+The ritual costs 40 bone and 6 of each of the eight mote types. It takes a
+standard action and a move action, with an Arcana check against DC 25.
+A failed check spends those reagents and actions but leaves the corpse and its
+contents intact. Successful binding consumes the corpse exactly once and moves
+its contents to the golem. Missing prototypes, full capacity, missing resources,
+and ineligible corpses spend nothing.
+
+Player corpses and corpses marked as summoned or artificial minions cannot be
+used. The corpse must be present in the room. You must be able to act, free of
+charm, out of combat, and not casting or performing another activity. Holy and
+antimagic rooms prevent the ritual. There is no additional daily cooldown.
+
+The bone golem is an agile melee construct with damage reduction 3 and native
+construct defenses. It is permanent until death or removal and cannot become
+another animation source. Use PETS, ORDER, and DISMISS normally. It can carry
+and wear equipment; retrieve all gear before dismissal or dismantling.
+
+GOLEMREPAIR uses bone, charging 4 units per started 10 percent of missing HP.
+DESTROYGOLEM recovers 20 bone once, with no corpse or mote refund. Repair and
+dismantling use the same control and lifecycle rules as material golems.
+
+See also: GOLEM-MAINTENANCE, PETS, ANIMATE-DEAD, CLASS-NECROMANCER
 #0
 BONUS BONUS-TYPES
 
@@ -4617,31 +4410,34 @@ define MAX_PROD                     5   /*      with shops before v3.0          
 define MAX_SHOP_OBJ               100   /* "Soft" maximum for list maximums     */
 define MAX_OPER                     4
 #31
-AUTO-BUFF AUTOBUFF BUFF-SELF BUFFING SELF-BUFFING BUFF
+AUTO-BUFF AUTOBUFF BUFF-SELF BUFFING SELF-BUFFING
 
-Usage: buff add <spell or power>
-       buff remove <spell or power>
-       buff <psp> <power>
-       buff list
-       buff target [name|self]
-       buff perform
-       buff cancel
 
-Create a saved list of spells and psionic powers, then use buff perform to
-cast them in order. Normal knowledge, preparation, resource and action checks
-apply to each cast. Unavailable spells are skipped; preparations are consumed
-by normal casting, once per attempted cast that reaches that stage.
-
-A timed cast finishes before the next spell begins. Casting speed changes
-apply through normal casting. Instant casts retain the sequence's pacing.
-You cannot start a sequence while another primary activity is in progress.
-
-The selected target is captured when the sequence starts. Changing buff target
-sets the target for your next sequence. With no target, you buff yourself.
-Movement by you or the selected target, target loss, interrupted casting,
-disconnect or restart stops the sequence. Your saved buff list remains intact.
-Use buff perform again when ready. Buff cancel stops further spells; a spell
-already being cast retains the normal casting and interruption rules.
+Usage: buffself add (spell / power name)
+       buffself remove (spell / power name)
+       buffself (# psp) (spell / power name)
+       buffself list
+       buffself perform
+       buffself cancel
+ 
+This command allows you to create a list of spells and/or psionic
+powers to buff yourself with using just a single command.
+ 
+You set up your buff list using the buff add and buff remove commands.
+Typing buff list will show you what buffs you have in your list
+currently.
+ 
+Typing buff followed by a # and a psionic power name will
+allow you to assign an amount of augment psp to be used with that
+power when buffing.
+ 
+Typing buff perform will start the buffing process, and buff cancel will
+end it prematurely if you desire.
+ 
+Currently the buff system does not check if you have a spell/power
+prepared, nor does it account for the quick chant feat and anything else
+that will speed up spellcasting speed. The spell will simply not work
+when buffing if it it not known/prepared.
 #0
 BUGS IDEAS TYPOS
 
@@ -4793,6 +4589,25 @@ NOTE: Buildwalk does not autosave on exit. You must type SAVEALL. This way if
  
 See also: TOGGLE, SAVEALL, REDIT, OLC, RLIST, DIG
 #31
+BULL-CHARGE BULLCHARGE
+
+Bull Charge
+
+Usage: charge <direction> <target>
+       charge <target>
+Requires: the bull charge feat (racial innate)
+
+Your charge carries the weight of a bull. Naming a direction lets you
+thunder through that exit and slam into a foe in the next room; every
+door, terrain and single-file rule of ordinary movement still applies,
+and a peaceful room refuses the charge before you set off. Only a foe you
+can see counts as a target. Whether you charge across a room or across an
+exit, a charge whose opening
+blow lands stuns the victim for one round unless they pass a Fortitude save
+(DC 10 + your level). Creatures that cannot be stunned shrug it off.
+
+See also: CHARGE, FEAT INFO BULL CHARGE, BLOODLUST
+#0
 BOARDS BULLETIN-BOARDS BULLETINS MESSAGE-BOARDS POSTING
 
 Bulletin boards are the forum of inter-player communication on the MUD.
@@ -4823,25 +4638,6 @@ MUD's code. Ask your friendly implementor if you need to make one.
 
 See also: MAIL, READ, WRITE, SPECIALS
 #1
-BULL-CHARGE BULLCHARGE
-
-Bull Charge
-
-Usage: charge <direction> <target>
-       charge <target>
-Requires: the bull charge feat (racial innate)
-
-Your charge carries the weight of a bull. Naming a direction lets you
-thunder through that exit and slam into a foe in the next room; every
-door, terrain and single-file rule of ordinary movement still applies,
-and a peaceful room refuses the charge before you set off. Only a foe you
-can see counts as a target. Whether you charge across a room or across an
-exit, a charge whose opening
-blow lands stuns the victim for one round unless they pass a Fortitude save
-(DC 10 + your level). Creatures that cannot be stunned shrug it off.
-
-See also: CHARGE, FEAT INFO BULL CHARGE, BLOODLUST
-#0
 BURNING-HANDS
 
 	D-----------------------------------------------------------------	n
@@ -4926,6 +4722,26 @@ Trigedit example that mimics the TIME command: 	RTSTAT 36	n
 
 See also: DATE, TIME
 #1
+CALL
+
+Usage: call <companion|familiar|mount|dragon|shadow|eidolon|cohort>
+
+CALL uses your class abilities to summon a bonded follower. Select a form with
+STUDY when required. New summons use the ability's normal level rules and
+cooldown; unavailable forms do not create a replacement.
+
+If your existing bonded pet is elsewhere, CALL brings that same pet to you.
+It retains its level, statistics, injuries, movement, PSP, identity, equipment,
+and existing cooldown. Repeating CALL does not reroll it or refill resources,
+even if your call level or bonuses have changed. Calling a mounted pet first
+clears its riding relationship; it does not bring another rider along.
+
+CALL will not relocate a creature owned by somebody else. An ordinary respec
+requires you to dismiss your followers first; a rejected respec leaves their
+state intact. Retrieve equipment before dismissing a pet.
+
+See also: STUDY, PETS, DISMISS, DRAGON-MOUNT, MOUNT
+#0
 CALL-ANIMAL-COMPANION CALL-COMPANION CALL-FAMILIAR CALL-MOUNT CALL-PALADIN-MOUNT
 
 	n
@@ -5059,6 +4875,18 @@ effects ignore the chant, and you cannot chant while silenced.
 
 See also: FEAT INFO CALM, PACIFY
 #0
+CALMING
+
+Calming
+
+Requires: the calming feat (racial innate)
+
+Something about you soothes hostile creatures. An aggressive creature within
+five levels of you ignores you half the time it would otherwise attack
+unprovoked.
+
+See also: FEAT INFO CALMING
+#0
 CAMOUFLAGE SPELL-CAMOUFLAGE
 
 Usage: cast 'camouflage'
@@ -5097,25 +4925,6 @@ combat. Rough ground such as desert, marsh, mountains and the deep underdark
 raises the difficulty, as does rain or a lightning storm.
 
 See also: FEAT INFO ESTABLISH CAMP, SURVEY, HARVEST, WILDERNESS
-#0
-ACTIVITY PRIMARY-ACTIVITY
-
-Primary Activity
-
-Usage: activity
-       activity cancel
-       activity pause
-       activity resume
-
-Shows your current timed activity, progress, occupied capabilities, traits and
-the clock that will request its next step. Informational and communication
-commands remain available during an activity. Incompatible actions report the
-conflict instead of silently interrupting your work.
-
-Timed casting also appears here. Use activity cancel or abort to stop a cast.
-Casting cannot be paused and continues on its normal clock during combat.
-
-See also: CAMP, ACTIONS, COOLDOWNS, CASTING-TIME
 #0
 %ACTOR.CANBESEEN% %CANBESEEN% CANBESEEN
 
@@ -8327,7 +8136,7 @@ the bonus, the greater the number of motes are required to enchant the item so.
 You can see which bonuses are associated with which mote type, by using the 	Ymotes	n
 command
 #0
-CRAFTING-RECIPES-MATERIALS CRAFTING-MATERIAL CRAFT-TOOLS TOOLS CRAFTING-SKILLS ENHANCEMENT ENHANCEMENTS MATERIALS RESOURCE
+CRAFT-TOOLS CRAFTING-MATERIAL CRAFTING-RECIPES-MATERIALS CRAFTING-SKILLS ENHANCEMENT ENHANCEMENTS MATERIALS RESOURCE TOOLS
 
 Topic: Crafting Materials, Tools, and Skills
 
@@ -9032,6 +8841,19 @@ Usage: date
 
    Shows the current real time. (Not a social)
 #1
+DAYBLIND
+
+Dayblind (racial drawback)
+
+Requires: the dayblind feat
+
+Direct sunlight blinds you: while outdoors under a clear daytime sky you
+cannot see. Indoors, under magical darkness, or when covered you see
+normally, and a creature with no eyes to dazzle (see EYELESS) is never
+dayblinded.
+
+See also: FEAT INFO DAYBLIND, SUN-VULNERABILITY, EYELESS
+#0
 DAYLIGHT SPELL-DAYLIGHT
 
 	D-----------------------------------------------------------------	n
@@ -9370,6 +9192,22 @@ DEFENSE DEFENSES
 This command will list your current Armor Class and a breakdown of how it is achieved.
 
 Usage: defenses
+#0
+DEFENSIVE-CASTING-PERK
+
+The Wizard Versatile Caster perk grants +4 dodge AC after casting a spell.
+
+When activated in combat, the bonus expires at the start of your next turn,
+before your actions become available. Outside combat it lasts six seconds.
+An interval already running outside combat keeps its remaining time if you
+enter combat. Leaving combat preserves the time left until your next turn;
+it does not grant a fresh six seconds. Saved remaining time resumes when your
+character is loaded again. A character still in the world after a lost connection
+keeps its live clock. Casting again refreshes the bonus.
+
+This perk is separate from the Concentration check used to cast defensively.
+
+See also: PERKS, DEFENSIVE-CASTING, COMBAT, INITIATIVE
 #0
 DEFENSIVE-PRECOGNITION POWER-DEFENSIVE-PRECOGNITION PSIONIC-POWER-DEFENSIVE-PRECOGNITION
 
@@ -10094,6 +9932,22 @@ popularity gains taxation rights on the zone.
 
 See also:  MURMUR PROPAGANDA LOBBY
 #0
+DIRE-RAIDER DIRERAIDER ROL-DIRE-RAIDER
+
+Dire Raider
+
+Dire Raider is an approved Ranger/Warrior build, not a separate selectable
+class. A character with Ranger 4, Warrior 1, and Animal Companion can choose a
+dire wolf through study. The wolf is a normal animal companion for scaling,
+Beast Master bonuses, Boon Companion, following, cooldowns, and dismissal. It
+is also tame, mountable, and one size larger than its rider, up to Colossal.
+
+The themed Ranger spell kit includes command undead and protection from
+animals at level 6, dust devil at 10, and farsee, pass without trace, and
+poltergeist at 15.
+
+See also: RANGER, WARRIOR, ANIMAL-COMPANION, MOUNT, ROL-SPELL-KITS
+#0
 DIRT-KICK DIRTKICK
 
 	c-----------------------------------------------------------------	n
@@ -10307,196 +10161,6 @@ DISINTEGRATION DISINTIGRATION POWER-DISINTEGRATION POWER-DISINTIGRATION
 	n
 	YSee also:	n PSIONICS
 	n
-#0
-LONGSWORD-MASTERY
-
-Longsword Mastery
-
-Requires: the longsword mastery feat (racial innate)
-
-While the weapon you attack with is a long sword you gain +1 to attack and
-damage rolls for every 8 character levels, to a maximum of +3 at level 24.
-
-See also: FEAT INFO LONGSWORD MASTERY
-#0
-MAGIC-VULNERABILITY
-
-Magic Vulnerability (racial drawback)
-
-Requires: the magic vulnerability feat
-
-You take 10 percent more damage from any spell or spell-like attack. Weapon
-blows are unaffected.
-
-See also: FEAT INFO MAGIC VULNERABILITY
-#0
-MAGICAL-REDUCTION
-
-Magical Reduction
-
-Requires: the magical reduction feat (racial innate)
-
-Raw magic slides off you. You take 20 percent less force and energy damage.
-Other damage types are unaffected.
-
-See also: FEAT INFO MAGICAL REDUCTION
-#0
-MINER
-
-Miner
-
-Requires: the miner feat (racial innate)
-
-You read the rock. When harvesting minerals, stone or crystal you gather as
-if your mining skill were 4 higher.
-
-See also: FEAT INFO MINER, HARVEST
-#0
-OUTDOOR-STEALTH
-
-Outdoor Stealth
-
-Requires: the outdoor stealth feat (racial innate)
-
-You blend into open country. You gain +6 to stealth checks in any outdoor
-sector outside the underdark. Terrain stealth bonuses do not stack with one
-another.
-
-See also: FEAT INFO OUTDOOR STEALTH, SWAMP-STEALTH, UNDERDARK-STEALTH
-#0
-QUADRUPED-BODY
-
-Quadruped Body
-
-Requires: the quadruped body feat (racial innate)
-
-Four legs are very hard to topple. Bash, trip and every other knockdown
-automatically fails against you unless the attacker is larger than you. You
-cannot ride a mount; your own legs carry you.
-
-See also: FEAT INFO QUADRUPED BODY, FEAT INFO LEONINE FRAME, WEMIC
-#0
-QUICK-THINKING
-
-Quick Thinking
-
-Requires: the quick thinking feat (racial innate)
-
-Your mind recovers from a shock at once. When you fail a will saving throw
-there is a 15 percent chance that you roll it again. Fortitude and reflex
-saves are unaffected.
-
-See also: FEAT INFO QUICK THINKING
-#0
-RACIAL-FLURRY ONSLAUGHT
-
-Racial Flurry
-
-Usage: onslaught
-Requires: the racial flurry feat (racial innate)
-Uses: 1 per day
-
-You explode into a flurry of blows: one extra attack every round for four
-rounds. It does not stack with haste and is refused while you are hasted or
-already in a flurry. This is not the monk's flurry of blows.
-
-See also: FEAT INFO RACIAL FLURRY, HASTE
-#0
-RRAKKMA
-
-Rrakkma
-
-Requires: the rrakkma feat (racial innate)
-
-You fight best beside your own kind. For each other grouped character in
-your room who also has this feat, up to five, you gain +1 armor class and +2
-on saving throws.
-
-See also: FEAT INFO RRAKKMA
-#0
-SACRILEGIOUS-POWER
-
-Sacrilegious Power
-
-Requires: the sacrilegious power feat (racial innate)
-
-Your profane nature blunts holy power. You take 25 percent less holy damage
-from level 20, 50 percent less from level 25 and 75 percent less from level
-30.
-
-See also: FEAT INFO SACRILEGIOUS POWER
-#0
-SEADOG
-
-Seadog
-
-Requires: the seadog feat (racial innate)
-
-Born to the waves, you coax more out of any vessel you pilot: every move you
-steer carries the ship one extra map tile.
-
-See also: FEAT INFO SEADOG, VESSELS
-#0
-SERVANT UNSEEN-SERVANT-COMMAND
-
-Usage: servant
-       servant get <item>
-       servant put <item> <container>
-
-While the unseen servant spell attends you, the servant handles items on your
-behalf. It is a utility conjuration: it never fights, and it refuses to work
-while you are fighting.
-
-SERVANT alone reports how much more weight the servant can bear for you. That
-allowance is the same one the spell adds to your carrying capacity.
-
-SERVANT GET has the servant fetch an item from the room, even when your hands
-are already full of other items. The item's weight must still fit within your
-extended carrying capacity.
-
-SERVANT PUT has the servant stow one item you carry inside a container you carry
-or one that is in the room.
-
-The servant fades when the spell ends. Anything it fetched stays with you.
-
-See also: UNSEEN SERVANT, PETS, CHARMEE
-#0
-PET-KEEPER STABLE STABLE-MASTER STABLES
-
-Usage: stable
-       stable store <follower>
-       stable reclaim <number>
-
-A pet keeper holds your loyal followers out of play until you want them back.
-Use STABLE alone to list what the keeper holds for you, with the number used to
-reclaim each one.
-
-STABLE STORE hands one charmed follower in your room to the keeper. You may
-use its name or its assigned ID from PETS, such as stable store #123. You cannot
-stable a follower while either of you is fighting, or while it is being ridden.
-The keeper boards only followers that stay with you: durable pets and timed
-control. Timed summons and ordinary spell summons are refused. A stabled
-follower whose time ran out before the policy existed is released when you try
-to reclaim it, freeing its slot. The keeper holds up to 10 followers for you.
-
-When you log in with more saved followers than you can currently control, each
-keeper-eligible follower you cannot control is handed to the keeper instead of
-being lost, and the login message names it with the limit that refused it.
-This can take the keeper past its usual 10; reclaim them once you have room.
-A timed follower that does not fit is spent instead of stored.
-
-STABLE RECLAIM returns a stabled follower by its listed number - the small
-number shown beside it, such as 'stable reclaim 1'. The longer stable ID in the
-listing also works. A reclaimed follower returns with the same
-identity, statistics, effects, and equipment it had when stored. Reclaiming
-obeys your ordinary follower limits, and only the character who stored a
-follower can reclaim it. Renaming your character does not change that.
-
-A stabled follower is kept even when your other followers are saved. Reclaim
-prepares its equipment and saves its return before bringing it into the room.
-If preparation or that save fails, the keeper retains the stored follower.
-
-See also: PETS, ORDER, DISMISS, CHARMEE
 #0
 DISMISS
 
@@ -10881,6 +10545,20 @@ the MUDs donation rooms.
   > donate 500 coins
 
 See also: JUNK, GET
+#0
+DOORBASH
+
+Doorbash
+
+Usage: doorbash <direction>
+Requires: the doorbash feat (racial innate)
+
+You throw yourself at a closed door. Roll a d300 at or below your strength
+plus your level and the door shatters open on both sides with its lock
+broken; fail and it holds, and you take 1d6 damage. Pickproof doors cannot
+be forced.
+
+See also: FEAT INFO DOORBASH, OPEN, UNLOCK
 #0
 DOWNGRADE DOWNGRADING-ITEMS
 
@@ -11883,7 +11561,6 @@ Use PETS to find their IDs and dismiss #<id> for each member. Named and ID
 commands require visibility; air elementals can require detect invisibility.
 
 See also: SUMMON-CHOICES, PETS, ORDER, DISMISS
-
 #0
 ELEMENTAL ELEMENTAL-WATER-EMBODIMENT EMBODIMENT SPELL SPELL-ELEMENTAL-WATER-EMBODIMENT WATER
 
@@ -11905,6 +11582,23 @@ ending either side of the linked effect ends the transformation.
 
 See also: ELEMENTAL-FIRE-EMBODIMENT, ELEMENTAL-EARTH-EMBODIMENT,
 ELEMENTAL-AIR-EMBODIMENT, WATER-BREATHING
+#0
+ELEMENTALIST ROL-ELEMENTALIST
+
+Elementalist
+
+Elementalist is an approved Wizard specialty build, not a separate selectable
+class. Intelligence remains its casting ability. Existing Energy Affinity and
+Focused Element perks express elemental choice. Master of Elements requires
+any two Focused Element perks and unlocks the four embodiment spells.
+
+The core kit grants minor creation at Wizard level 1, air blast at 5, thunder
+lance at 9, earth fog and fire fog at 15, and earthblood at 17. Water
+embodiment is available at 13, air at 15, and earth and fire at 17 once Master
+of Elements is owned.
+
+See also: WIZARD, MASTEROFELEMENTS, ELEMENTAL-WATER-EMBODIMENT,
+ELEMENTAL-AIR-EMBODIMENT, ROL-SPELL-KITS
 #0
 ELF ELVES RACE-ELF RACE-ELVES
 
@@ -12115,19 +11809,18 @@ ENCHANT-WEAPON
 #0
 ENCOUNTERS
 
-
 Usage: encounters (depart|escape|distract|intimidate|diplomacy|bluff|bribe)
- 
-The encounters system allows for random encounters as one travels through the wilderness (ascii 
+
+The encounters system allows for random encounters as one travels through the wilderness (ascii
 worldmap) of Lumia.
- 
+
 Currently we only have combat-oriented encounters, but have plans to add non-combat encounters such
 as vendors, skill-tests, treasure and more.
- 
+
 Combat encounters will be loaded based on party level and terrain type of the room entered. Some
-encounters will be hostile, while others you can ignore altogether if you choose (just use the 
+encounters will be hostile, while others you can ignore altogether if you choose (just use the
 'encounter depart' command).
- 
+
 When an encounter has been found, the player's options are as follows:
 depart     - leave a non-hostile encounter peacefully
 escape     - leave a hostile encounter through various means (HELP ESCAPE)
@@ -12136,7 +11829,7 @@ intimidate - make a sentient hostile mob non-hostile using intimidate skill
 diplomacy  - make a sentient hostile mob non-hostile using diplomacy skill
 bluff      - make a sentient hostile mob non-hostile using bluff skill
 bribe      - make a sentient hostile mob non-hostile by giving them gold
- 
+
 And of course the party can opt to kill the encounter mobs as well.
 
 Characters with the nature skill can increase or reduce the chance for finding an encounter
@@ -13332,6 +13025,19 @@ the target refuses the demand.
 
 See also: PIRATE
 #0
+EXTRA-ARMS
+
+Extra Arms
+
+Requires: the extra arms feat (racial innate)
+
+Extra limbs join every melee round. Each rank of this innate grants one
+additional melee attack at your full base attack bonus, with no penalty
+to that swing. It brings no additional equipment slots and does nothing
+with ranged or thrown attacks.
+
+See also: FEAT INFO EXTRA ARMS, ATTACKS
+#0
 E-DESCRIPTIONS EXTRA-DESCRIPTIONS EXTRA-DESCS REDIT-E-DESCRIPTIONS REDIT-EXTRA-DESCRIPTIONS REDIT-MENU-E-DESCRIPTIONS
 
  
@@ -13402,6 +13108,18 @@ EYEBITE
 	n
 	YSee also:	n SPELLS DISEASE
 	n
+#0
+EYELESS
+
+Eyeless
+
+Requires: the eyeless feat (racial innate)
+
+You have no eyes to blind. Blindness spells and effects cannot take hold of
+you, and you keep perceiving your surroundings while others would be
+blinded. This does not let you see in the dark.
+
+See also: FEAT INFO EYELESS, DAYBLIND
 #0
 EYE-OF-KNOWLEDGE EYEOFKNOWLEDGE
 
@@ -13758,7 +13476,7 @@ fey blood or magic. You are more emotional than most, prone to bouts of joy and 
 The fey bloodline offers a great knowledge of nature as well as enhanced abilities in
 traversing or dealing with nature.  It also offers abilities using fey magic.
  
-NEW CLASS SKILL: Nature
+NEW CLASS SKILL: Survival
 
 BONUS SPELLS: charm person (3rd), hideous laughter (5th), deep slumber (7th),
 poison (9th), feeblemind (11th), true seeing (13th), prismatic spray (15th),
@@ -14294,6 +14012,17 @@ FORCE-SCREEN POWER-FORCE-SCREEN PSIONIC-POWER-FORCE-SCREEN
 	YSee also:	n PSIONICS
 	n
 #0
+FOREST-SIGHT
+
+Forest Sight
+
+Requires: the forest sight feat (racial innate)
+
+Your eyes were made for the woods. You gain +4 to perception checks in
+forest sectors.
+
+See also: FEAT INFO FOREST SIGHT
+#0
 FORESTRY
 
    Forestry is a harvesting skill used to harvest wood.
@@ -14400,6 +14129,41 @@ or thirsty respectively.
 
 See Also: VALUES
 #31
+FOUR-ARMS FOURARMS
+
+Four Arms
+
+Requires: the four arms feat (racial innate)
+
+Two more arms.  A second weapon pair lets you wield two more one-handed
+weapons, or a second two-handed weapon, in your lower hands: four
+one-handers, two two-handers, or a two-hander beside a pair of one-handers.
+Each pair holds either its one-handers or its two-hander, never both.  Held
+items and shields draw on the same four hands, so three weapons and a
+shield, or two weapons and two held items, also fit.  The lower hands
+manage melee weapons only: no bows, crossbows or slings there, and the
+usual rule of one ranged weapon and no mixing of ranged and melee still
+counts every hand.
+
+In combat the lower arms mirror the upper ones.  Each swing your upper
+arms are entitled to (the basic attack, the offhand attack when the lower
+pair holds two weapons, haste, and the extra attacks from base attack bonus,
+flurry and two-weapon training) is also attempted by the lower pair with
+its own weapons and its own penalties.  Each such swing lands only some of
+the time: 50 percent, 75 percent with two-weapon fighting and 100 percent
+with improved two-weapon fighting (or the ranger equivalents).  Vital
+strike disables the lower swings.  The ATTACKS command lists them with
+their chance.
+
+You also gain a second set of sleeves and gloves and two more wrist slots.
+Lower sleeves count as armor like the upper ones.  Wear, wield and remove
+work as before; the lower slots take the overflow.
+
+An item that grants four arms must be worn in an ordinary slot.  Gear in the
+extra slots cannot itself be what keeps the arms.
+
+See also: FEAT INFO FOUR ARMS, WIELD, WEAR, EXTRA-ARMS
+#0
 FREE-GRAPPLE FREEGRAPPLE RELEASE-GRAPPLE RELEASEGRAPPLE
 
 Usage: freegrapple | releasegrapple
@@ -14701,7 +14465,6 @@ Examples:
   order shaitan cast 'stone skin' Yourname
 
 See also: SUMMON-CHOICES, PETS, ORDER, DISMISS
-
 #0
 DELETEPATH GENMAP GENRIVER
 
@@ -14888,6 +14651,83 @@ Usage: gold
 Displays how many gold coins you are carrying.
 
 See also: BALANCE, DEPOSIT, WITHDRAW, MINIMIZE
+#0
+DESTROYGOLEM GOLEM-MAINTENANCE GOLEMREPAIR
+
+GOLEM MAINTENANCE
+
+Usage: golemrepair <golem>
+       destroygolem <golem>
+
+Material recipes create dedicated constructs in small, medium, large, and huge
+sizes. Wood favors accurate attacks and agility; stone gains armor, durability,
+and damage reduction 5; iron gains heavier melee damage and damage reduction 8.
+They retain native construct defenses. Each uses the ordinary one-golem allowance,
+has no natural expiry, and supports ordinary equipment, ORDER, and DISMISS.
+Acquisition still requires the recipe's class feat, materials, motes, crafting
+time, and Arcana check. No additional daily cooldown is added.
+
+These commands require the motes crafting system to be enabled.
+Repair requires your controlled golem to be alive, present, and out of combat.
+You must also be out of combat. A successful Arcana check restores all missing
+hit points; a failed check still consumes the repair materials.
+
+Each started 10 percent of missing health costs 10 percent of the recipe's
+primary material requirement. Even one lost hit point requires materials.
+Wood repairs require enough units of a single wood type. Full-health golems
+need no repair. Golems pending destruction cannot be repaired or dismantled.
+
+Destroygolem recovers half of the original recipe materials and removes the
+golem. Repeating the command cannot recover materials from the same golem.
+Retrieve equipment before dismantling. To release it without material recovery,
+use DISMISS instead.
+
+Crafting completion retains materials and motes if the required creature is
+unavailable or your golem allowance is full. An otherwise valid failed ritual
+consumes its authored materials and motes. Crafted golem corpses cannot be
+animated, including after control is lost.
+
+See also: CRAFTING, NEWCRAFT, BONE-GOLEM, PETS, DISMISS
+#0
+GOLIATH RACE-GOLIATH
+
+	G-----------------------------------------------------------------	n
+	G>Description:	n
+	n
+At the highest mountain peaks far above the slopes where trees
+grow and where the air is thin and the frigid winds howl  dwell the reclusive
+goliaths. Few folk can claim to have seen a goliath, and fewer still can claim
+friendship with them. Goliaths wander a bleak realm of rock, wind, and cold.
+Their bodies look as if they are carved from mountain stone and give them great
+physical power. Their spirits take after the wandering wind, making them nomads
+who wander from peak to peak. Their hearts are infused with the cold regard of
+their frigid realm, leaving each goliath with the responsibility to earn a place
+in the tribe or die trying.For goliaths, competition exists only when it is
+supported by a level playing field. Competition measures talent, dedication, and
+effort. Those factors determine survival in their home territory, not reliance
+on magic items, money, or other elements that can tip the balance one way or the
+other. Goliaths happily rely on such benefits, but they are careful to remember
+that such an advantage can always be lost. A goliath who relies too much on them
+can grow complacent, a recipe for disaster in the mountains.This trait manifests
+most strongly when goliaths interact with other folk. The relationship between
+peasants and nobles puzzles goliaths. If a king lacks the intelligence or
+leadership to lead, then clearly the most talented person in the kingdom should
+take his place. Goliaths rarely keep such opinions to themselves, and mock folk
+who rely on society's structures or rules to maintain power.
+	n
+	G>Racial Abilities:	n
+	n
+	WStone's Endurance	n  - Can reduce damage of the next attack when activated.
+	WNatural Athlete	n    - +2 to swim, climb and nature skills.
+	WMountain Born	n      - 50% cold resistance.
+	WPowerful Build	n     - Can wield large weapons in one hand at -2 to attacks.
+	n
+	G>Ability Adjustments:  	W +2 Str, +1 Con 	n
+	n
+	G>Experience Modifier:  	W None 	n
+	n
+	YSee also:	n RACES
+	n
 #0
 GOODBERRY
 
@@ -15452,10 +15292,33 @@ GREATER-SPELL-RESIST
 	n           MAGIC-RESISTANCE SPELL-PENETRATION
 	n
 #0
+GREATSWORD-MASTERY
+
+Greatsword Mastery
+
+Requires: the greatsword mastery feat (racial innate)
+
+While the weapon you attack with is a great sword you gain +1 to attack and
+damage rolls for every 8 character levels, to a maximum of +3 at level 24.
+
+See also: FEAT INFO GREATSWORD MASTERY
+#0
 GREP
 
 stands for 'global regular expression print' searches for strings in text files
 #31
+GROUNDFIGHTING
+
+Groundfighting
+
+Requires: the groundfighting feat (racial innate)
+
+You fight as well from the ground as on your feet. Being prone, sitting or
+resting costs you no armor class and no attack roll penalty. Being stunned
+or asleep still does.
+
+See also: FEAT INFO GROUNDFIGHTING
+#0
 GROUP GROUPS JOIN PARTIES PARTY
 
 Usage: group 
@@ -15584,6 +15447,28 @@ rescue the person they specify as the person they are guarding.
 	n
 	YSee also:	n  SKILLS RESCUE
 	n
+#0
+GUI-MAP MAP MAPPER MAPPING
+
+Use map or map world for an ASCII map of nearby rooms. Shop locations show
+$ (even when closed), and & marks your current room, including inside a shop.
+You can set the distance with map 6 normal or map 6 world. See AUTOMAPPING
+for the ASCII map and automatic minimap options.
+
+If you are using Luminari's GUI, a mapper will appear on the top right.
+
+To use the mapper:
+start mapping - to begin actively mapping, move slower, check your map accuracy
+stop mapping - to pause active mapping, this will help protect your map during
+     fast movement
+
+The mapper does try to sync actively with the server, BUT due to network latency,
+etc...  it is very possible to manually mess up your map while you are actively
+mapping (start mapping).  You can manually modify your map by clicking, right-
+clicking and dragging elements.  You can also add labels and do various other
+functions using the mapper.
+
+See also:  AUTOMAPPING
 #0
 GUIDANCE
 
@@ -15838,6 +15723,17 @@ HALT-UNDEAD
 	YSee also:	n SPELLS PARALYZED
 	n
 #0
+HAMMER-MASTERY
+
+Hammer Mastery
+
+Requires: the hammer mastery feat (racial innate)
+
+While the weapon you attack with is a hammer you gain +1 to attack and
+damage rolls for every 8 character levels, to a maximum of +3 at level 24.
+
+See also: FEAT INFO HAMMER MASTERY
+#0
 HANDBOOK IMM-HANDBOOK IMMHANDBOOK WIZ-HANDBOOK WIZHANDBOOK
 
 Usage: handbook
@@ -15893,7 +15789,7 @@ This powerful divine spell does heavy holy damage to a single victim.
 See also: SPELLS
 	n
 #0
-HARVEST WILDERNESS-HARVEST GATHER MINE
+GATHER HARVEST MINE WILDERNESS-HARVEST
 
 Usage: harvest <resource category>
        harvest <node name>
@@ -15981,6 +15877,17 @@ character, i.e. non-mobile). Returns 0 if not attached and 1 if attached.
 
 See Also: VARIABLES, CHAR-VAR		 
 #31
+HATRED
+
+Hatred
+
+Requires: the hatred feat (racial innate)
+
+An old hatred drives your blows. Against evil-aligned opponents you gain +1
+to attack rolls and +2 to damage.
+
+See also: FEAT INFO HATRED
+#0
 HCONTROL
 
    Some major misconceptions about houses. You do not set any flags for a
@@ -17905,6 +17812,28 @@ INFRAVISION SPELL-INFRAVISION
 	YSee also:	n DETECT-INVISIBILITY
 	n
 #0
+INITIATIVE
+
+	c-----------------------------------------------------------------	n
+	c>Usage:           	W Automatic 	n
+	c>Prereqs:         	W Dex 13+ 	n
+	c>Duration:        	W N/A 	n
+	c>Target(s):       	W N/A 	n
+	c>Restrictions:    	W N/A 	n
+	c>Cooldown:        	W N/A 	n
+	c>Description:	n
+	n
+	nGeneral:  Initiative determines who gets the first strike in opening combat.
+	nIt is determined by a diceroll of 1d20 + Dexterity + Bonuses VS the same
+	nfor the opponent.
+	n
+	nIf you take the initiative skill, you will get a +8 bonus to your initiative
+	ncheck and if the opponent tries to get a drop on you and you win your check,
+	nyou'll get a bonus attack.
+	n
+	YSee also:	n SKILLS COMBAT
+	n
+#0
 INITIATIVE INITIATIVE-ORDER
 
 INITIATIVE
@@ -17932,6 +17861,197 @@ classified as skills and spells which aren't listed in the PRACTICE
 command.
 
 See also:  PRACTICE
+#0
+INNATE-FARSEE
+
+Innate Farsee
+
+Usage: farsee
+Requires: the innate farsee feat (racial innate)
+Uses: 3 per day
+
+You sharpen your sight until it reaches far beyond the horizon, as the
+farsee spell, cast at your character level on yourself. This is a spell-like
+ability and needs no components. Type help farsee for the spell itself.
+
+See also: FEAT INFO INNATE FARSEE, FARSEE
+#0
+FIRESHIELD INNATE-FIRE-SHIELD
+
+Innate Fire Shield
+
+Usage: fireshield
+Requires: the innate fire shield feat (racial innate)
+Uses: 1 per day
+
+You wreathe yourself in flame, as the fire shield spell cast at your
+character level on yourself. It is refused while you already carry a fire
+shield.
+
+See also: FEAT INFO INNATE FIRE SHIELD
+#0
+FIRESTORM INNATE-FIRE-STORM
+
+Innate Fire Storm
+
+Usage: firestorm
+Requires: the innate fire storm feat (racial innate)
+Uses: 1 per day
+
+You call a fire storm down on the room, striking everyone who is not with
+you, as the fire storm spell cast at your character level.
+
+See also: FEAT INFO INNATE FIRE STORM
+#0
+INNATE-FIREBALL
+
+Innate Fireball
+
+Usage: fireball [opponent]
+Requires: the innate fireball feat (racial innate)
+Uses: 3 per day
+
+You hurl a ball of flame at one opponent in the room (your current opponent
+if you name none), as the fireball spell cast at your character level. Type
+help fireball for the spell itself.
+
+See also: FEAT INFO INNATE FIREBALL, FIREBALL
+#0
+FROSTBREATH INNATE-FROST-BREATH
+
+Innate Frost Breath
+
+Usage: frostbreath [opponent]
+Requires: the innate frost breath feat (racial innate)
+Uses: 3 per day
+
+You breathe a cone of cold at one opponent in the room (your current
+opponent if you name none), as the cone of cold spell cast at your character
+level.
+
+See also: FEAT INFO INNATE FROST BREATH
+#0
+BATTLEHASTE INNATE-HASTE
+
+Innate Haste
+
+Usage: battlehaste
+Requires: the innate haste feat (racial innate)
+Uses: 1 per day
+
+You work yourself into a hasted battle fury, as the haste spell cast at your
+character level on yourself. It is refused while you are already hasted.
+
+See also: FEAT INFO INNATE HASTE, HASTE
+#0
+INNATE-LIGHTNING-BOLT THROWLIGHTNING
+
+Innate Lightning Bolt
+
+Usage: throwlightning [opponent]
+Requires: the innate lightning bolt feat (racial innate)
+Uses: 3 per day
+
+While fighting, you hurl a lightning bolt at an opponent in the room (your
+current opponent if you name none), as the lightning bolt spell cast at your
+character level.
+
+See also: FEAT INFO INNATE LIGHTNING BOLT
+#0
+INNATE-MASS-DISPEL MASSDISPEL
+
+Innate Mass Dispel
+
+Usage: massdispel
+Requires: the innate mass dispel feat (racial innate)
+Uses: 1 per day
+
+You strip magic from everyone else in the room, friend and foe alike, as the
+dispel magic spell cast at your character level on each of them.
+
+See also: FEAT INFO INNATE MASS DISPEL
+#0
+INNATE-PLANE-SHIFT
+
+Innate Plane Shift
+
+Usage: planeshift <astral | ethereal | elemental | prime>
+Requires: the innate plane shift feat (racial innate)
+Uses: 1 per day
+
+You cross to the named plane, as the plane shift spell cast at your
+character level. Prime is only reachable from another plane. Type help
+planeshift for the spell itself.
+
+See also: FEAT INFO INNATE PLANE SHIFT, PLANESHIFT
+#0
+INNATE-PSIONIC-BLAST MINDBLAST
+
+Innate Psionic Blast
+
+Usage: mindblast [opponent]
+Requires: the innate psionic blast feat (racial innate)
+Uses: 3 per day
+
+You unleash a stunning psionic blast, as the psionic blast power manifested
+at your character level. The power strikes every hostile in the room; you
+need an opponent present to use it.
+
+See also: FEAT INFO INNATE PSIONIC BLAST
+#0
+INNATE-SCARE ROAR
+
+Innate Scare
+
+Usage: roar [opponent]
+Requires: the innate scare feat (racial innate)
+Uses: 3 per day
+
+You let out a roar that terrifies one opponent in the room (your current
+opponent if you name none), as the scare spell cast at your character level.
+
+See also: FEAT INFO INNATE SCARE
+#0
+INNATE-SHADOW-JUMP SHADOWDOOR
+
+Innate Shadow Jump
+
+Usage: shadowdoor <target>
+Requires: the innate shadow jump feat (racial innate)
+Uses: 1 per day
+
+You step through shadow to the side of a character anywhere in the world, as
+the shadow jump spell cast at your character level. Rooms and planes that
+refuse teleportation refuse this too.
+
+See also: FEAT INFO INNATE SHADOW JUMP
+#0
+INNATE-STONESKIN
+
+Innate Stoneskin
+
+Usage: stoneskin
+Requires: the innate stoneskin feat (racial innate)
+Uses: 1 per day
+
+You harden your skin against blows, as the stoneskin spell cast at your
+character level on yourself. It is refused while you are already
+stoneskinned. Type help stoneskin for the spell itself.
+
+See also: FEAT INFO INNATE STONESKIN, STONESKIN
+#0
+INNATE-WEB WEBWRAP
+
+Innate Web
+
+Usage: webwrap [opponent]
+Requires: the innate web feat (racial innate)
+Uses: 3 per day
+
+You bind one opponent in the room in webbing, as the web spell cast at your
+character level. The target may be at most one size larger than you.
+
+See also: FEAT INFO INNATE WEB
 #0
 INNS RECEPTIONS
 
@@ -19757,6 +19877,17 @@ experience by typing:
 You can view what is unlocked and account-experience total by typing:
 	raccount	n
 #0
+LONGSWORD-MASTERY
+
+Longsword Mastery
+
+Requires: the longsword mastery feat (racial innate)
+
+While the weapon you attack with is a long sword you gain +1 to attack and
+damage rolls for every 8 character levels, to a maximum of +3 at level 24.
+
+See also: FEAT INFO LONGSWORD MASTERY
+#0
 LOOK LOOK-AROUND VIEW
 
 Usage: look
@@ -19994,6 +20125,28 @@ MAGIC-VESTMENT
 	n
 	YSee also:	n SPELLS
 	n
+#0
+MAGIC-VULNERABILITY
+
+Magic Vulnerability (racial drawback)
+
+Requires: the magic vulnerability feat
+
+You take 10 percent more damage from any spell or spell-like attack. Weapon
+blows are unaffected.
+
+See also: FEAT INFO MAGIC VULNERABILITY
+#0
+MAGICAL-REDUCTION
+
+Magical Reduction
+
+Requires: the magical reduction feat (racial innate)
+
+Raw magic slides off you. You take 20 percent less force and energy damage.
+Other damage types are unaffected.
+
+See also: FEAT INFO MAGICAL REDUCTION
 #0
 MAKEUID UID UNIQUE
 
@@ -21541,6 +21694,17 @@ MIND-TRAP POWER-MIND-TRAP PSIONIC-POWER-MIND-TRAP
 	YSee also:	n PSIONICS
 	n
 #0
+MINER
+
+Miner
+
+Requires: the miner feat (racial innate)
+
+You read the rock. When harvesting minerals, stone or crystal you gather as
+if your mining skill were 4 higher.
+
+See also: FEAT INFO MINER, HARVEST
+#0
 MINIMAL-WEAPON-PROFICIENCY
 
 	c-----------------------------------------------------------------	n
@@ -22078,26 +22242,6 @@ Displays the message of the day.  Contains important information regarding the
 status of the MUD.  You should be sure to read it when you login.  If you miss 
 it at login, just use this command!
 #0
-CALL
-
-Usage: call <companion|familiar|mount|dragon|shadow|eidolon|cohort>
-
-CALL uses your class abilities to summon a bonded follower. Select a form with
-STUDY when required. New summons use the ability's normal level rules and
-cooldown; unavailable forms do not create a replacement.
-
-If your existing bonded pet is elsewhere, CALL brings that same pet to you.
-It retains its level, statistics, injuries, movement, PSP, identity, equipment,
-and existing cooldown. Repeating CALL does not reroll it or refill resources,
-even if your call level or bonuses have changed. Calling a mounted pet first
-clears its riding relationship; it does not bring another rider along.
-
-CALL will not relocate a creature owned by somebody else. An ordinary respec
-requires you to dismiss your followers first; a rejected respec leaves their
-state intact. Retrieve equipment before dismissing a pet.
-
-See also: STUDY, PETS, DISMISS, DRAGON-MOUNT, MOUNT
-#0
 MOUNT
 
 Usage: mount <creature>
@@ -22298,7 +22442,7 @@ Some guidelines:
 If your name does not meet our standards an immortal staff member will
 contact you in game and offer to rename your character.
 #0
-NATURE-SKILL SKILL-NATURE SKILL-SURVIVAL SURVIVAL-SKILL NATURE
+NATURE NATURE-SKILL SKILL-NATURE SKILL-SURVIVAL SURVIVAL-SKILL
 
 Nature
 
@@ -23943,6 +24087,18 @@ Example: 	RTSTAT 82, 11894	n
 
 See also: TIMER, TRIGEDIT-OBJ-TIMER
 #31
+OUTDOOR-STEALTH
+
+Outdoor Stealth
+
+Requires: the outdoor stealth feat (racial innate)
+
+You blend into open country. You gain +6 to stealth checks in any outdoor
+sector outside the underdark. Terrain stealth bonuses do not stack with one
+another.
+
+See also: FEAT INFO OUTDOOR STEALTH, SWAMP-STEALTH, UNDERDARK-STEALTH
+#0
 CRATES OUTFIT OUTFIT-CRATES OUTFITS
 
 Usage: outfit obj (outfit crate obj keyword)
@@ -24621,6 +24777,40 @@ environment or possibly to completely disable player-killing.
 
 If there is any doubt, please refer to our POLICY file and/or ask
 Staff.
+#0
+PLANAR-ALLY
+
+PLANAR ALLY
+
+Usage: cast 'planar ally' [guardian|healer]
+
+Available to Clerics at level 11 and Summoners at level 16 through their normal
+spell access and preparation rules. It uses a prepared spell and normal casting
+time/actions. There is no extra item payment or daily-use cooldown.
+
+Guardian (default): a flying celestial melee ally with strong armor, heavier
+attacks, and damage reduction 5.
+Healer: a flying celestial support ally with cure critic, bless, and remove
+paralysis. Each known spell has two slots; the native mobile recovery system
+restores one random missing slot per minute while out of combat.
+
+Both are level-15 outsiders with native angel defenses. They share a separate
+one-planar-ally allowance: choosing another role does not grant another slot.
+Use PETS to inspect the roster. An unavailable prototype or full allowance
+rejects casting before spending the prepared spell. Once casting begins, normal
+interruption and spell-consumption rules apply, including later world changes.
+
+The ally is permanent until death or removal. It is owned, follows the caster,
+and supports ordinary ORDER commands, equipment, and DISMISS. Retrieve carried
+and worn equipment before dismissal. Summoned provenance prevents its corpse
+from being used for another animation. Usual pet PvP protections apply.
+
+Examples:
+  cast 'planar ally' guardian
+  cast 'planar ally' healer
+  order healer cast 'cure critic' <name>
+
+See also: PETS, ORDER, DISMISS, SUMMON-CHOICES
 #0
 PLANAR-TRAVEL POWER-PLANAR-TRAVEL PSIONIC-POWER-PLANAR-TRAVEL
 
@@ -26200,6 +26390,18 @@ To tell something to everyone on the current Quest.
 
 See also: QUEST
 #0
+QUADRUPED-BODY
+
+Quadruped Body
+
+Requires: the quadruped body feat (racial innate)
+
+Four legs are very hard to topple. Bash, trip and every other knockdown
+automatically fails against you unless the attacker is larger than you. You
+cannot ride a mount; your own legs carry you.
+
+See also: FEAT INFO QUADRUPED BODY, FEAT INFO LEONINE FRAME, WEMIC
+#0
 CLASS-QUALIFICATION QUALIFY
 
 Every class has minimum qualifications to advance in them.
@@ -26351,6 +26553,18 @@ QUICK-CHANT QUICKCHANT
 	n
 	YSee also:	n SKILLS
 	n
+#0
+QUICK-THINKING
+
+Quick Thinking
+
+Requires: the quick thinking feat (racial innate)
+
+Your mind recovers from a shock at once. When you fail a will saving throw
+there is a 15 percent chance that you roll it again. Fortitude and reflex
+saves are unaffected.
+
+See also: FEAT INFO QUICK THINKING
 #0
 LOGOUT QUIT
 
@@ -26650,7 +26864,7 @@ who rely on society's structures or rules to maintain power.
 	G>Racial Abilities:	n
 	n
 	WStone's Endurance	n  - Can reduce damage of the next attack when activated.
-	WNatural Athlete	n    - +2 to swim, climb and nature skills.
+	WNatural Athlete	n    - +2 to swim, climb and survival skills.
 	WMountain Born	n      - 50% cold resistance.
 	WPowerful Build	n     - Can wield large weapons in one hand at -2 to attacks.
 	n
@@ -26691,6 +26905,48 @@ surface-dwelling species.
 	n
 	YSee also:	n RACES
 	n
+#0
+HALF-ILLITHID HALF-ILLITHID-RACE ILLITHID RACE-HALF-ILLITHID RACE-ILLITHID
+
+Half-Illithid
+
+Half-illithids retain a mortal ancestry while bearing an illithid-transformed
+mind and unsettling physical traits. They are the Luminari equivalent of the
+Realms of Luminari Illithid player race, expressed as an actual Half-Illithid.
+
+Tier: Epic (level adjustment 10)
+Unlock: 30,000 account experience
+Progression: 7x normal experience requirements
+Ability modifiers: +4 Int, +4 Wis, +4 Cha
+Size: Medium
+Language: Aberration
+
+Racial feats include ultravision, Quick Mind, Stubborn Mind,
+innate Levitation, three stacking ranks of Armor Skin, Vital, and Hardy.
+Half-illithids gain four additional hit points per level.
+
+See also: ACCEXP, LEVITATE, PSIONICIST, RACE, RACE-YUAN-TI
+#0
+HALF-OGRE HALF-OGRE-RACE OGRE RACE-HALF-OGRE RACE-OGRE
+
+Half-Ogre
+
+Half-ogres are Large giant-blooded people who combine tremendous strength and
+reach with mortal adaptability. They are the Luminari equivalent of the Realms
+of Luminari Ogre player race, expressed as an actual Half-Ogre ancestry.
+
+Tier: Advanced (level adjustment 2)
+Unlock: 1,000 account experience
+Progression: 2x normal experience requirements
+Ability modifiers: +6 Str, +2 Con, -2 Int, -2 Dex, -2 Cha
+Size: Large
+Language: Giant
+
+Racial feats include ultravision, Powerful Build, strong poison resistance,
+and two stacking ranks of Armor Skin. Half-ogres gain two additional hit
+points per level.
+
+See also: ACCEXP, RACE, RACE-WEMIC, RACE-MYCONID
 #0
 HIGH-ELF RACE-HIGH-ELF
 
@@ -26889,6 +27145,27 @@ adventurers or craftsmen among humans.
 	n
 	YSee also:	n RACES
 	n
+#0
+MYCANOID MYCONID RACE-MYCONID
+
+Myconid
+
+Myconids are Large fungal beings whose alien plant biology resists poison,
+paralysis, and sleep. This epic ancestry completes the unfinished Myconid
+player concept from Realms of Luminari.
+
+Tier: Epic (level adjustment 10)
+Unlock: 30,000 account experience
+Progression: 7x normal experience requirements
+Ability modifiers: +8 Str, +6 Con, -2 Int, -2 Wis, -4 Dex, -4 Cha
+Size: Large
+Language: Undercommon
+
+Racial feats include ultravision, Vital, Hardy, poison immunity, sleep
+immunity, paralysis immunity, and four stacking ranks of Armor Skin. Myconids
+count as plants and gain four additional hit points per level.
+
+See also: ACCEXP, RACE, RACE-HALF-OGRE
 #0
 RACE-ROCK-GNOME ROCK-GNOME
 
@@ -27167,6 +27444,31 @@ See also: RACES
 More Info: 'race info vampire' and 'race feats vampire'
 =============================================================================
 #0
+BARBARIAN RACE-BARBARIAN RACE-WEMIC WEMIC
+
+Wemic
+
+Wemics are Large monstrous humanoids with a humanoid torso and a leonine lower
+body. They are the Luminari equivalent of the Realms of Luminari Barbarian
+people, expressed as an actual Wemic ancestry rather than a class.
+
+Tier: Advanced (level adjustment 2)
+Unlock: 1,000 account experience
+Progression: 2x normal experience requirements
+Ability modifiers: +8 Str, +4 Con, -2 Int, +2 Wis, +2 Dex, -2 Cha
+Size: Large
+Language: Common
+
+Racial feats include low-light vision, Natural Athlete, Powerful Build,
+Claws and Bite, Survival Instinct, Hardy, and Leonine Frame. Wemics also gain
+one additional hit point per level.
+
+Leonine Frame represents a Wemic's four-legged lower body. Wemics cannot equip
+traditional leg or foot gear, including pants and boots. Their ankle equipment
+slots remain available.
+
+See also: ACCEXP, RACE, RACE-HALF-OGRE, RACE-YUAN-TI
+#0
 RACE-WILD-ELF RACE-WOOD-ELF WILD-ELF WOOD-ELF
 
 	G>Description:	n
@@ -27205,6 +27507,29 @@ and sun elves, who put a greater value on education.
 	YSee also:	n RACES
 	n
 #0
+RACE-YUAN-TI YUAN-TI YUANTI
+
+Yuan-Ti
+
+Yuan-ti are serpentfolk whose controlled minds, scaled bodies, venom, and
+innate magic make them dangerous adventurers. Pureblooded yuan-ti can pass
+among humanoids, but their reptilian heritage is never entirely hidden.
+
+Tier: Advanced (level adjustment 2)
+Unlock: 1,000 account experience
+Progression: 2x normal experience requirements
+Ability modifiers: +2 Int, +4 Dex, +2 Cha
+Size: Medium
+Language: Draconic
+
+Racial feats include ultravision, Poison Bite, poison immunity, Stubborn Mind,
+and two stacking ranks of Armor Skin. Poison Bite applies when fighting
+bare-handed. Their serpentine anatomy has no face, leg, or foot equipment slots.
+Yuan-ti instead have a tail equipment slot, where they can wear any ring or use
+dedicated tail gear that cannot be worn in another slot.
+
+See also: ACCEXP, POISON, RACE, RACE-HALF-ILLITHID, WEAR
+#0
 RACEFIX
 
 Usage:  racefix
@@ -27214,6 +27539,20 @@ for your race.
 .
 See also:  race list
 .
+#0
+ONSLAUGHT RACIAL-FLURRY
+
+Racial Flurry
+
+Usage: onslaught
+Requires: the racial flurry feat (racial innate)
+Uses: 1 per day
+
+You explode into a flurry of blows: one extra attack every round for four
+rounds. It does not stack with haste and is refused while you are hasted or
+already in a flurry. This is not the monk's flurry of blows.
+
+See also: FEAT INFO RACIAL FLURRY, HASTE
 #0
 RAGE
 
@@ -27480,7 +27819,7 @@ Example:
 
 See also: BOARDS
 #0
-READIED-ACTION READY COUNTERSPELL
+COUNTERSPELL READIED-ACTION READY
 
 Usage: ready attack on ally <ally> attacked
        ready counterspell <target> on casting
@@ -27559,6 +27898,58 @@ shows it. Readied actions do not survive copyover or reboot.
 Examples:
   ready attack on ally companion attacked
   ready counterspell mage on casting
+  ready attack mage on casting
+  ready attack guard on entry
+  ready say Hold the doorway! on door open north
+
+See also: COMBAT, INITIATIVE, CONCENTRATION, CASTING-TIME
+#0
+READIED-ACTION READY READY-ACTION
+
+Usage: ready attack <target> on casting
+       ready attack <target> on entry
+       ready attack <target> on door open <direction>
+       ready <command> on entry [target]
+       ready <command> on door open <direction>
+       ready
+       ready cancel
+
+A readied attack spends your standard action now to prepare one normal melee
+strike. HIT and KILL are accepted in place of ATTACK. It expires when your next
+combat turn begins, or after six seconds outside semantic combat. Cancelling,
+replacing, or losing the opportunity does not refund the action. The strike
+costs no second action and does not execute a queued special attack.
+
+ON CASTING watches the named, visible caster in your room. When they begin a
+timed spell, your attack is queued before that spell can complete. A hit uses
+the normal damage and concentration rules; it does not automatically interrupt
+casting. A miss or successful concentration check lets the spell continue.
+You need only name the caster, and do not need to identify their spell. Instant
+spells cannot trigger this reaction. A cancelled spell cannot redirect a queued
+attack to a replacement spell.
+
+ON ENTRY waits for the named target to arrive. ON DOOR OPEN watches a visible,
+closed door; its attack target must already be visible in your room. Opening
+from either side triggers it, including scripted openings. Unlocking, zone
+resets and builder edits do not. The door does not reveal a target beyond it.
+
+The attack runs at the next native event boundary,
+about one tenth of a second later. You must still be able to act, see and reach
+the target, and use a melee weapon or unarmed attack. Normal defenses and PvP
+restrictions apply.
+
+Command readiness supports SAY, EMOTE, LOOK, REST, STAND, SIT, OPEN and CLOSE.
+These commands run through the normal interpreter and retain their usual costs
+and requirements. Other combat commands and aliases cannot be readied. With no
+entry filter, a noncombat command triggers on the next arrival.
+
+Moving, dying, logging out, or READY CANCEL removes readiness. A bound attack
+target moving, dying or being extracted also cancels it. Replacing or redirecting
+a watched exit cancels it. Closing the door after it triggers cancels pending
+execution even if it reopens. Only one action can be readied at a time. READY
+shows it. Readied actions do not survive copyover or reboot.
+
+Examples:
   ready attack mage on casting
   ready attack guard on entry
   ready say Hold the doorway! on door open north
@@ -28807,6 +29198,68 @@ It translates to a +2 bonus to hide/sneak abilities.
 
 See Also:  ROGUES
 #0
+ROL-MERCENARY
+
+Mercenary
+
+Mercenary is retained as a documented Warrior/Rogue multiclass build, not a
+separate selectable class. Its source class was disabled for character
+creation and had no live spells. Warrior weapons, archery, defense, rescue,
+and offense combine with Rogue stealth, escape, backstab, dual wield, and
+related techniques to cover the surviving role.
+
+See also: WARRIOR, ROGUE, MULTICLASS, DIRE-RAIDER
+#0
+CONTENT-ONLY-SPELLS CONVERTED-SPELL-KITS ROL-SPELL-KITS SPELL-KITS
+
+RoL Player Spell Kits
+
+Converted Realms of Luminari spells use the following class levels. Bard,
+Sorcerer, and other spontaneous classes learn entries through their normal
+known-spell selection. Other listed classes prepare them normally; Wizards
+still require a spellbook or scroll source. No spell in this kit is a domain
+spell.
+
+Bard: level 4 minor creation; level 16 song of travel.
+
+Blackguard: level 6 command undead; level 10 curse item and spectral hand;
+level 12 Tazrik's frenzied hound; level 15 dark wrath and unholy aura.
+
+Cleric: level 3 preserve and slow poison; level 5 command undead; level 11
+curse item and farsee; level 13 soul tempest; level 17 ancestral shield,
+greater realm of protection, and spirit walk.
+
+Druid: level 3 preserve and protection from animals; level 7 create spring and
+dust devil; level 11 suffocate; level 13 cyclone and pass without trace; level
+15 mud to rock and rock to mud; level 17 moonwell.
+
+Ranger: level 6 command undead, create spring, and protection from animals;
+level 10 dust devil; level 12 nature's blessing; level 15 farsee, pass without
+trace, and poltergeist.
+
+Sorcerer: level 1 ventriloquate; level 4 minor creation; level 8 farsee.
+
+Wizard: level 1 minor creation, preserve, shadow bolt, and ventriloquate; level
+3 blackthorns, command undead, and protection from undead; level 5 air blast,
+blink, minute meteors, minor rejuvenation, and soul bind; level 7 command
+horde, embalm, farsee, fumble, and spectral hand; level 9 heal undead, shadow
+burst, shadow magic, stumble, and thunder lance; level 11 age, enervate, nerve
+dance, major rejuvenation, and tranquility; level 13 Beltyn's burning blood,
+camouflage, corpse glamor, water embodiment, ice layer, phantasmal blades,
+protect undead, sequester, shadechill, and shadow flux; level 15 airy water,
+blacklight burst, blackmantle, earth fog, air embodiment, feign death, fire fog,
+mislead, phantom heal, rain of blood, and sun shadow; level 17 constriction,
+death pact, dimension shift, earthblood, earth embodiment, fire embodiment,
+fell frost, ice tomb, lava burst, lich touch, rot, sandblast, and sandstorm.
+
+The four elemental embodiment spells additionally require Master of Elements.
+Comprehend languages, wraithform, unseen servant, needle swarm, snapping teeth,
+agility, and call lycanthrope are content-only: their native handlers remain
+available to converted content, but no player class or domain grants them.
+
+See also: SHAMAN, ELEMENTALIST, BATTLECHANTER, DIRE-RAIDER, ROL-MERCENARY,
+SPELLS, PREPARE, STUDY
+#0
 INTRODUCE ROLEPLAY ROLEPLAY-SHEET ROLEPLAY-SYSTEM RPBACKGROUND RPBONDS RPDESCRIPTION RPFLAWS RPGOALS RPIDEALS RPPERSONALITY RPSET RPSHEET
 
 Topic  : Roleplaying System & Profile Sheets
@@ -28912,6 +29365,18 @@ ROLEPLAY RP
    This command will add a roleplay/rp tag to your title in the who list to show
 that you would like to have roleplay interactions with other players.
 #0
+RRAKKMA
+
+Rrakkma
+
+Requires: the rrakkma feat (racial innate)
+
+You fight best beside your own kind. For each other grouped character in
+your room who also has this feat, up to five, you gain +1 armor class and +2
+on saving throws.
+
+See also: FEAT INFO RRAKKMA
+#0
 SACRED-SPACE SPELL-SACRED-SPACE
 
 	D>Usage:           	W cast 'sacred space'	n
@@ -28932,6 +29397,18 @@ SACRED-SPACE SPELL-SACRED-SPACE
 	n
 	YSee also:	n SPELLS
 	n
+#0
+SACRILEGIOUS-POWER
+
+Sacrilegious Power
+
+Requires: the sacrilegious power feat (racial innate)
+
+Your profane nature blunts holy power. You take 25 percent less holy damage
+from level 20, 50 percent less from level 25 and 75 percent less from level
+30.
+
+See also: FEAT INFO SACRILEGIOUS POWER
 #0
 SAGE
 
@@ -29245,34 +29722,6 @@ Report remaining accessibility gaps with bug or idea.
 
 See also: SOUND, PROMPT, TOGGLE, SURVEY
 #0
-SOUND MSP
-
-Optional sound
-
-Usage: sound on | off | status | test
-
-Sound is off by default. sound on saves your consent to sound effects;
-sound off stops future effects. This setting is independent of screenreader.
-Your client must also negotiate MUD Sound Protocol (MSP). General GMCP or MSDP
-support alone does not enable audio. Reconnecting does not undo your choice.
-
-sound status reports your preference, MSP capability, and whether playback is
-enabled. sound test sends a short test cue only when both settings permit it.
-A successful door opening sends a short cue to the player opening the door;
-normal text feedback is unchanged. Failed opens and container opens do not cue.
-
-Install luminari-test.wav and luminari-door-open.wav from the repository's
-lib/sounds directory into your client's MSP sound directory. The files must
-have those exact names. See lib/sounds/README.md for format and setup details.
-There is no automatic download URL supplied by the server.
-
-If a test is silent, check your client's MSP setting, installed sound files,
-volume/mute, and audio output device. Sending a cue does not prove your client
-played it. Missing files never prevent play; sound is supplementary to text.
-PREFEDIT Sound changes the same saved preference, not client capabilities.
-
-See also: SCREEN-READER, PREFEDIT
-#0
 SCREENWIDTHS SCREEN_WIDTHS
 
 Usage: toggle screenwidth [#]
@@ -29326,6 +29775,17 @@ Usage: stat scriptvar <mobile or pc target>
 This command will list all the scripts and variables associated with selected mobile
 or PC character.  This is helpful for diagnosing issues with scripts and variables
 in association with the DGScripts system for in-game scripting.
+#0
+SEADOG
+
+Seadog
+
+Requires: the seadog feat (racial innate)
+
+Born to the waves, you coax more out of any vessel you pilot: every move you
+steer carries the ship one extra map tile.
+
+See also: FEAT INFO SEADOG, VESSELS
 #0
 SEARCH
 
@@ -29742,6 +30202,30 @@ effects cannot target the subject until the sequester ends.
 
 See also: DIMENSIONAL-ANCHOR, SUMMONING, TELEPORT
 #0
+SERVANT UNSEEN-SERVANT-COMMAND
+
+Usage: servant
+       servant get <item>
+       servant put <item> <container>
+
+While the unseen servant spell attends you, the servant handles items on your
+behalf. It is a utility conjuration: it never fights, and it refuses to work
+while you are fighting.
+
+SERVANT alone reports how much more weight the servant can bear for you. That
+allowance is the same one the spell adds to your carrying capacity.
+
+SERVANT GET has the servant fetch an item from the room, even when your hands
+are already full of other items. The item's weight must still fit within your
+extended carrying capacity.
+
+SERVANT PUT has the servant stow one item you carry inside a container you carry
+or one that is in the room.
+
+The servant fades when the spell ends. Anything it fetched stays with you.
+
+See also: UNSEEN SERVANT, PETS, CHARMEE
+#0
 INVSTART NOWIZLIST SET
 
   
@@ -30069,6 +30553,23 @@ SHADOW-WALK SPELL-SHADOW-WALK
 	YSee also:	n SPELLS
 	n
 #0
+ROL-SHAMAN SHAMAN
+
+Shaman
+
+Shaman is an approved spirit-themed build through the existing Cleric class,
+not a separate selectable class. Wisdom remains its casting ability. Its kit
+grants preserve at Cleric level 3, command undead at 5, farsee at 11, soul
+tempest at 13, and ancestral shield and spirit walk at 17.
+
+Converted RoL Shaman Totem objects provide the existing totem progression. A
+Cleric can bond a totem at any class level; summoning unlocks at Cleric level
+21 and uses Cleric level and Wisdom. The converted procedure retains 21 totem
+identities, one active spirit, source-race restrictions, and three attempts per
+seven MUD days.
+
+See also: CLERIC, ROL-SPELL-KITS, SPECIALS, WISDOM
+#0
 SHAMBLER
 
 Usage: cast 'shambler'
@@ -30094,7 +30595,6 @@ dismissal. Use PETS and dismiss #<id> to release each member of a batch.
 The psionic ectoplasmic shambler is a different power and creature.
 
 See also: SUMMON-CHOICES, PETS, ORDER, DISMISS
-
 #0
 SHAPE-CHANGING SHAPECHANGE
 
@@ -31500,6 +32000,34 @@ a reboot.
 
 See also: ARTIFACT, INVOKE
 #0
+MSP SOUND
+
+Optional sound
+
+Usage: sound on | off | status | test
+
+Sound is off by default. sound on saves your consent to sound effects;
+sound off stops future effects. This setting is independent of screenreader.
+Your client must also negotiate MUD Sound Protocol (MSP). General GMCP or MSDP
+support alone does not enable audio. Reconnecting does not undo your choice.
+
+sound status reports your preference, MSP capability, and whether playback is
+enabled. sound test sends a short test cue only when both settings permit it.
+A successful door opening sends a short cue to the player opening the door;
+normal text feedback is unchanged. Failed opens and container opens do not cue.
+
+Install luminari-test.wav and luminari-door-open.wav from the repository's
+lib/sounds directory into your client's MSP sound directory. The files must
+have those exact names. See lib/sounds/README.md for format and setup details.
+There is no automatic download URL supplied by the server.
+
+If a test is silent, check your client's MSP setting, installed sound files,
+volume/mute, and audio output device. Sending a cue does not prove your client
+played it. Missing files never prevent play; sound is supplementary to text.
+PREFEDIT Sound changes the same saved preference, not client capabilities.
+
+See also: SCREEN-READER, PREFEDIT
+#0
 CODEBASE DOCUMENTATION DOWNLOADS FORUMS FTP GROUPS RESOURCES SOURCES WTFAQ
 
 	n
@@ -31890,7 +32418,7 @@ Colossal, 8
 
 See Also: Size-Class Mob-Size
 #0
-LEGACY-SPECIAL-PROCEDURES
+LEGACY-SPECIAL-PROCEDURES SPEC-PROC SPECIAL-PROCEDURES SPECIALS SPECPROC SPEC_PROC
 
    Special procedures are used to allow certain complex functions to rooms,
 mobs, and objects. They are written by coders and are normally not created
@@ -31975,6 +32503,18 @@ races) have 25.  Movement speed can also be raised or lowered through certain sp
 affects, feats and class abilities.
 
 See Also: HELP MOVEMENT
+#0
+SPELL-ABSORB
+
+Spell Absorb
+
+Requires: the spell absorb feat (racial innate)
+
+When a damaging spell strikes you there is a chance equal to half your
+level, in percent, that you absorb the magic and take no damage at all.
+Everyone in the room sees it happen.
+
+See also: FEAT INFO SPELL ABSORB
 #0
 ANT-HAUL SPELL-ANT-HAUL
 
@@ -32135,18 +32675,6 @@ CAUSTIC-BLOOD SPELL-CAUSTIC-BLOOD
 	n
 	YSee also:	n SPELLS
 	n
-#0
-SPELL-ABSORB
-
-Spell Absorb
-
-Requires: the spell absorb feat (racial innate)
-
-When a damaging spell strikes you there is a chance equal to half your
-level, in percent, that you absorb the magic and take no damage at all.
-Everyone in the room sees it happen.
-
-See also: FEAT INFO SPELL ABSORB
 #0
 SPELL-CHARISMA
 
@@ -33778,7 +34306,44 @@ immediately stabilizes, halting further bleeding and loss of hit points.
 
 See also: CANTRIPS, MEDICINE, CURE-LIGHT
 #0
-; ACCONVERT ANALYZEWORLD BOARDFIND COMTEST DATABASE DB_INIT_SYSTEM EFFECTSADMIN EXPORTMAP EXPORTWORLDMAP FORTEST HELPGEN IEDIT MATERIALADMIN MEDTEST MEMTEST OBJCHECK OBJLIST OLISTAPPLIES PERFMON QUITLOG REDESC REGENADMIN RELOCK REPLACE RESETPASSWORD RESOURCEADMIN ROOMVNUM SAVEEVERYTHING SAVEMOBS SAVEOBJSTODB SETMATERIALS SETROOMDESC SETROOMFLAGS SETROOMNAME SETROOMSECT SETTESTCHAR SETTESTKIT SETTIME SETWEATHER SETWORLDSECT SHOPLIST SHOPSTAT SHOWWEAROFF SHUTDOW SHUTDOWN
+PET-KEEPER STABLE STABLE-MASTER STABLES
+
+Usage: stable
+       stable store <follower>
+       stable reclaim <number>
+
+A pet keeper holds your loyal followers out of play until you want them back.
+Use STABLE alone to list what the keeper holds for you, with the number used to
+reclaim each one.
+
+STABLE STORE hands one charmed follower in your room to the keeper. You may
+use its name or its assigned ID from PETS, such as stable store #123. You cannot
+stable a follower while either of you is fighting, or while it is being ridden.
+The keeper boards only followers that stay with you: durable pets and timed
+control. Timed summons and ordinary spell summons are refused. A stabled
+follower whose time ran out before the policy existed is released when you try
+to reclaim it, freeing its slot. The keeper holds up to 10 followers for you.
+
+When you log in with more saved followers than you can currently control, each
+keeper-eligible follower you cannot control is handed to the keeper instead of
+being lost, and the login message names it with the limit that refused it.
+This can take the keeper past its usual 10; reclaim them once you have room.
+A timed follower that does not fit is spent instead of stored.
+
+STABLE RECLAIM returns a stabled follower by its listed number - the small
+number shown beside it, such as 'stable reclaim 1'. The longer stable ID in the
+listing also works. A reclaimed follower returns with the same
+identity, statistics, effects, and equipment it had when stored. Reclaiming
+obeys your ordinary follower limits, and only the character who stored a
+follower can reclaim it. Renaming your character does not change that.
+
+A stabled follower is kept even when your other followers are saved. Reclaim
+prepares its equipment and saves its return before bringing it into the room.
+If preparation or that save fails, the keeper retains the stored follower.
+
+See also: PETS, ORDER, DISMISS, CHARMEE
+#0
+; ACCONVERT ANALYZEWORLD BOARDFIND COMTEST DATABASE DB_INIT_SYSTEM EFFECTSADMIN EXPORTMAP EXPORTWORLDMAP FORTEST HELPGEN IEDIT MATERIALADMIN MEDTEST MEMTEST OBJCHECK OBJLIST OLISTAPPLIES PERFMON PUBSUBQUEUE PUBSUBTOPIC QUITLOG REDESC REGENADMIN RELOCK REPLACE RESETPASSWORD RESOURCEADMIN ROOMVNUM SAVEEVERYTHING SAVEMOBS SAVEOBJSTODB SETMATERIALS SETROOMDESC SETROOMFLAGS SETROOMNAME SETROOMSECT SETTESTCHAR SETTESTKIT SETTIME SETWEATHER SETWORLDSECT SHOPLIST SHOPSTAT SHOWWEAROFF SHUTDOW SHUTDOWN
 
 Topic  : Staff, Builder, and Administrator Toolset
 Usage  : ; <message>
@@ -33918,6 +34483,29 @@ STAFF TOOLS & WORLD EDITORS:
 
 See also: OLC, WIZLIST, HEDIT, MEDIT, OEDIT, REDIT, ZEDIT
 #31
+STAFF-EVENT STAFFEVENT STAFF_EVENT
+
+Staff-run events are world-wide quests combining automation and staff participation.
+
+Usage: staffevent
+       staffevent info <index>
+       staffevent start <index>
+       staffevent end <index>
+
+Use staffevent without an argument to list the available events and their status.
+Starting and ending events requires staff access. An event must finish its
+cleanup delay before another event can start. An invalid or unavailable event
+is rejected before it is announced or its initial population is spawned.
+
+Event durations and cleanup delays use mud hours (75 real seconds), aligned to
+the shared world hour. The status display reports the actual time remaining.
+An active event ends on expiry, or staff can end it early using its index.
+Ending a different index does not end the current event.
+
+Active events are not restored after a reboot or copyover. Staff can start a
+new event after the initial three-mud-hour startup delay. Player participation
+and rewards already recorded by their existing systems are unchanged.
+#0
 ADMIN GOD-LEVELS IMMORTAL-LEVELS LVL-GOD LVL_GOD STAFF STAFF-HIERARCHY
 
 Topic  : Staff Hierarchy & Immortal Levels
@@ -33945,26 +34533,13 @@ These events, in addition to community building, help us iron out Lore for the R
 #0
 STAFF-EVENT STAFFEVENT STAFF_EVENT
 
-Staff-run events are world-wide quests combining automation and staff participation.
-
-Usage: staffevent
-       staffevent info <index>
-       staffevent start <index>
-       staffevent end <index>
-
-Use staffevent without an argument to list the available events and their status.
-Starting and ending events requires staff access. An event must finish its
-cleanup delay before another event can start. An invalid or unavailable event
-is rejected before it is announced or its initial population is spawned.
-
-Event durations and cleanup delays use mud hours (75 real seconds), aligned to
-the shared world hour. The status display reports the actual time remaining.
-An active event ends on expiry, or staff can end it early using its index.
-Ending a different index does not end the current event.
-
-Active events are not restored after a reboot or copyover. Staff can start a
-new event after the initial three-mud-hour startup delay. Player participation
-and rewards already recorded by their existing systems are unchanged.
+Staff-ran events are world-wide quests that combine some aspects of automation along with staff participation.
+To see details just type: staffevent with no argument.
+Staff:
+Staffevent with no argument to list the implemented staff events
+'Staffevent start <index number>' to start the given event
+'Staffevent end <index number>' to end the event (early)
+'Staffevent info <index number>' to view details about the event
 #0
 STAGGERED
 
@@ -34871,6 +35446,59 @@ Usage: summon
 This command will teleport all of your charmies to your current room
 in case you get separated.
 #0
+SUMMON-CHOICES
+
+SUMMON CHOICES
+
+Optional choices:
+  cast 'summon creature vii' air
+  cast 'natures ally vii' earth
+  cast 'elemental swarm' water
+  cast 'geniekind' marid
+
+Summon Creature VII, VIII, IX and Natures Ally VII, VIII, IX accept air, earth,
+fire, or water. Elemental Swarm accepts the same choices and creates 2d4 of the
+selected elemental, up to eight in one cast. Shambler retains its separate
+three-to-six plant batch. Repeated casts cannot bypass the control limits.
+
+Geniekind accepts djinni, efreeti, marid, or shaitan. Marid supplies healing and
+water utility, djinni wind/lightning, efreeti fire offense, and shaitan stone
+protection. See GENIEKIND for the caster benefits. An unavailable chosen genie
+or a full genie allowance rejects the cast before spending its spell. Admission
+is checked again at completion; rejection preserves existing genie benefits.
+
+Omitting a choice retains the random selection. Unknown choices are rejected
+before casting begins. Your choice belongs to your cast and is discarded when
+it ends or is cancelled; another caster cannot change it.
+
+Native sources: Wizards and Clerics receive Summon Creature VII/VIII/IX at
+levels 13/15/17; Sorcerers at 14/16/18. Druids receive Natures Ally VII/VIII/IX
+at 13/15/17, and Elemental Swarm and Shambler at 17. Summoners with Summon
+Monster can invoke Summon Creature VII/VIII/IX at will from levels 13/15/17.
+Other class or domain routes follow their normal spell lists.
+
+You may control one elemental or one elemental-swarm batch at a time, plus a
+separate shambler batch. Release every member of a batch before calling another.
+A missing chosen prototype or full allowance rejects casting before a prepared
+spell is spent. Once casting begins, normal interruption and failure costs
+apply; admission is checked again at completion if the world has changed.
+The high Summon Creature and Natures Ally spells retain their normal summon
+failure roll. Choices add no separate material payment or daily cooldown.
+
+These elemental and plant pets follow the caster, accept ordinary orders, and
+have no timed summon expiry. Death and dismissal remove them. They use standard
+NPC carrying and equipment rules; recover their gear before dismissal. Air
+elementals can be invisible: a named or ID-selected pet must be visible to you
+for orders or dismissal. Detect invisibility can provide the needed sight.
+
+Choices use the spell's normal class access, preparation or at-will rules,
+action costs, failure chance, pet lifetime, and equipment rules. They do not
+add a daily cooldown or a separate control allowance. Use PETS to inspect the
+roster, ORDER to command a controlled pet, and DISMISS to release it after
+retrieving its equipment.
+
+See also: GENIEKIND, ELEMENTAL-SWARM, SHAMBLER, CHARMEE, PETS
+#0
 SUMMON-CREATURE-I
 
 	D-----------------------------------------------------------------	n
@@ -35060,6 +35688,19 @@ Note:  See CHARMEE help file for important info.
 Choose air, earth, fire, or water: cast 'summon creature viii' water.
 Omit the choice for a random element. See SUMMON-CHOICES for details.
 #0
+SUMMON-HORDE SUMMONHORDE
+
+Summon Horde
+
+Usage: summonhorde
+Requires: the summon horde feat (racial innate)
+Uses: 1 per day
+
+You call two to four orc warriors to your side. They follow you as charmed
+companions at half your level and drift away after about fifteen minutes.
+
+See also: FEAT INFO SUMMON HORDE, PETS
+#0
 COMMUNAL-SUMMON COMMUNAL-SUMMON-MOUNT DISMOUNT MOUNT MOUNTS SUMMON-MOUNT
 
 Spell  : Summon Mount / Communal Summon Mount
@@ -35080,19 +35721,6 @@ MECHANICS:
 
 See also: MOUNT, DISMOUNT, RIDE, PETS, STABLE
 #0
-SUMMON-HORDE SUMMONHORDE
-
-Summon Horde
-
-Usage: summonhorde
-Requires: the summon horde feat (racial innate)
-Uses: 1 per day
-
-You call two to four orc warriors to your side. They follow you as charmed
-companions at half your level and drift away after about fifteen minutes.
-
-See also: FEAT INFO SUMMON HORDE, PETS
-#0
 SUMMON-SWARM
 
 	D-----------------------------------------------------------------	n
@@ -35110,6 +35738,19 @@ This summons a swarm that harms everyone in the area.
 	n
 See also: SPELLS
 	n
+#0
+SUMMON-WARG SUMMONWARG
+
+Summon Warg
+
+Usage: summonwarg
+Requires: the summon warg feat (racial innate)
+Uses: 1 per day
+
+Outdoors, you call a warg out of the wilds. It follows you as a charmed
+companion at two thirds of your level and can be ridden (see MOUNT).
+
+See also: FEAT INFO SUMMON WARG, MOUNT, PETS
 #0
 NOSUMMON SUMMON-PROTECTION SUMMONABLE
 
@@ -35153,19 +35794,6 @@ Target(s): The caster's room
 Sun shadow veils the room in supernatural darkness until the effect expires.
 
 See also: DARKNESS, LIGHT, ROOM SPELLS
-#0
-SUMMON-WARG SUMMONWARG
-
-Summon Warg
-
-Usage: summonwarg
-Requires: the summon warg feat (racial innate)
-Uses: 1 per day
-
-Outdoors, you call a warg out of the wilds. It follows you as a charmed
-companion at two thirds of your level and can be ridden (see MOUNT).
-
-See also: FEAT INFO SUMMON WARG, MOUNT, PETS
 #0
 SUN-VULNERABILITY
 
@@ -35354,6 +35982,17 @@ POWER-SUSTAINED-FLIGHT SUSTAINED-FLIGHT
 	YSee also:	n PSIONICS
 	n
 #0
+SWAMP-STEALTH
+
+Swamp Stealth
+
+Requires: the swamp stealth feat (racial innate)
+
+You are at home in the mire. You gain +6 to stealth checks in marshland.
+Terrain stealth bonuses do not stack with one another.
+
+See also: FEAT INFO SWAMP STEALTH, OUTDOOR-STEALTH, UNDERDARK-STEALTH
+#0
 POWER-SWARM-OF-CRYSTALS PSIONIC-POWER-SWARM-OF-CRYSTALS SWARM-OF-CRYSTALS
 
 	D>Usage:           	W manifest 'swarm of crystals'	n
@@ -35376,17 +36015,6 @@ POWER-SWARM-OF-CRYSTALS PSIONIC-POWER-SWARM-OF-CRYSTALS SWARM-OF-CRYSTALS
 	n
 	YSee also:	n PSIONICS
 	n
-#0
-SWAMP-STEALTH
-
-Swamp Stealth
-
-Requires: the swamp stealth feat (racial innate)
-
-You are at home in the mire. You gain +6 to stealth checks in marshland.
-Terrain stealth bonuses do not stack with one another.
-
-See also: FEAT INFO SWAMP STEALTH, OUTDOOR-STEALTH, UNDERDARK-STEALTH
 #0
 SWEEP SWEEPING-STRIKE SWEEPS SWEEPSTRIKE
 
@@ -35935,6 +36563,17 @@ simple puzzles or descriptions.  This can be done with the help of triggers.
 sci-fi, futuristic, medieval, present day, ancient history, Jurassic, western,
 Chinese dynasty, etc. 
 #31
+THICK-HIDE
+
+Thick Hide
+
+Requires: the thick hide feat (racial innate)
+
+Your hide turns aside blows. You take 15 percent less slashing, piercing and
+bludgeoning damage. Elemental and magical damage is unaffected.
+
+See also: FEAT INFO THICK HIDE
+#0
 POWER-THOUGHT-SHIELD PSIONIC-POWER-THOUGHT-SHIELD THOUGHT-SHIELD
 
 	D>Usage:           	W manifest 'thought shield'	n
@@ -35999,17 +36638,6 @@ Thunder lance drives electrical damage through one target. Its disruptive
 force also shatters lesser globes and energy wards protecting the victim.
 
 See also: ELECTRICITY, GLOBE-OF-INVULNERABILITY, PROTECTION-FROM-ENERGY
-#0
-THICK-HIDE
-
-Thick Hide
-
-Requires: the thick hide feat (racial innate)
-
-Your hide turns aside blows. You take 15 percent less slashing, piercing and
-bludgeoning damage. Elemental and magical damage is unaffected.
-
-See also: FEAT INFO THICK HIDE
 #0
 THUNDERCLAP
 
@@ -36627,7 +37255,9 @@ more challenging experience-chart.  Type 'levels' in-game to view
 	YSee also:	n RACES EPIC-RACES TRELUX-FLY TRELUX-EQ TRELUX-EXOSKELETON TRELUX-PINCERS
 	n
 #0
-TRELUX-EQ
+TRELUX-EQ TRELUX-EQUIPMENT
+
+Trelux Equipment
 
 Trelux anatomy does not support several traditional equipment slots.
 
@@ -36637,6 +37267,8 @@ equipment. Arm, wrist, and ankle equipment slots remain available.
 
 These restrictions apply to ordinary wear commands, saved equipment, and
 equipment placed by game systems.
+
+See also: RACE-TRELUX, TRELUX-PINCERS
 #0
 TRELUX-EXOSKELETON
 
@@ -39153,7 +39785,7 @@ BUG IDEA TYPO                   - Tell us what YOU think!
 WIZHELP COMMANDS SOCIALS        - See what you can do.
 QUIT SAVE                       - If you decide to leave us.
 #0
-APPLIES ARMORLISTFULL AURAREADING AUTOBCHECK AUTOGROUP AUTOPREP AUTOSEARCH AVATAROFELEMENTS AVATAROFWAR BID BLOODDRAIN BOARDCHECK BONUSES BREPLY CAREFULPET CHARMIECOMBATROLL CLANINVEST DAMAGEREDUCTION DEVOTE ENCOUNTERINFO ENTERTAIN FAVOREDENEMIES FAVOREDTERRAIN FLIGHTLIST FORGEAS GLORYSCALL GOALS GRANDDESTINY ICERABBIT INSIDE INSPIRECOURAGE LASTROOM LISTRACES MAXHP MYPERKS NOCHARMIERESCUES NOFOLLOW OSAY OUTSIDE PERFECTADAPTATION PERKS POSTCOMBATBRIEF PUSHSWITCH QUICKCHANT QUICKMIND RELAY SACHP
+APPLIES ARMORLISTFULL AURAREADING AUTOBCHECK AUTOGROUP AUTOPREP AUTOSEARCH AVATAROFELEMENTS AVATAROFWAR BID BLOODDRAIN BOARDCHECK BONUSES BREPLY CAREFULPET CHARMIECOMBATROLL CLANINVEST DAMAGEREDUCTION DEVOTE ENCOUNTERINFO ENTERTAIN FAVOREDENEMIES FAVOREDTERRAIN FLIGHTLIST FORGEAS GLORYSCALL GOALS GRANDDESTINY ICERABBIT INSIDE INSPIRECOURAGE LASTROOM LISTRACES MAXHP MYPERKS NOCHARMIERESCUES NOFOLLOW OSAY OUTSIDE PERFECTADAPTATION PERKS POSTCOMBATBRIEF PUSHSWITCH QUICKCHANT QUICKMIND RELAY SACHP SCORECONFIG
 
 Topic  : General Utility Commands & Companion Toggles
 Usage  : autogroup
@@ -39243,7 +39875,7 @@ KEY TOGGLES & UTILITIES:
 
 See also: TOGGLE, PETS, SCORE, CRAFT, PERKS, BOARDS
 #0
-SCORECONFIG SHORTCUT SICKENINGAURA SKORE SORTFROM SORTTO STAFFEVENTS SUBSCRIBE TRIBUTE TRUESEEING UNFOLLOW UTILITY-AND-PET-TOGGLES WEAPONLIST2 WEARAPPLIES WEARLOCATIONS
+SHORTCUT SICKENINGAURA SKORE SORTFROM SORTTO STAFFEVENTS SUBSCRIBE TRIBUTE TRUESEEING UNFOLLOW UTILITY-AND-PET-TOGGLES WEAPONLIST2 WEARAPPLIES WEARLOCATIONS
 
 Topic  : General Utility Commands & Companion Toggles
 Usage  : autogroup
@@ -40336,6 +40968,18 @@ can be burned away with magical fire.
  
 	YSee also:	n SPELLS
 #0
+WARCALLERS-FURY
+
+Warcaller's Fury
+
+Requires: the warcaller's fury feat (racial innate)
+
+The press of allies drives you on. You gain +1 damage for every member of
+your group standing in your room, yourself included, to a maximum of +5.
+Alone and ungrouped you gain nothing.
+
+See also: FEAT INFO WARCALLER'S FURY
+#0
 SPELL-WARLOCK-CHARM WARLOCK-CHARM
 
 	D>Usage:           	W cast 'warlock charm'	n
@@ -40444,18 +41088,6 @@ each additional level	n
 	n
 	YSee also:	n CLASSES WARRIOR-FEAT-PROGRESSION
 	n
-#0
-WARCALLERS-FURY
-
-Warcaller's Fury
-
-Requires: the warcaller's fury feat (racial innate)
-
-The press of allies drives you on. You gain +1 damage for every member of
-your group standing in your room, yourself included, to a maximum of +5.
-Alone and ungrouped you gain nothing.
-
-See also: FEAT INFO WARCALLER'S FURY
 #0
 WARRIOR-BUILD
 
@@ -40908,7 +41540,7 @@ WEAPONSMITHING
 
 Weaponsmithing is a crafting skill used to create metal weapons.
 #0
-WEAR TAIL-SLOT TAIL-EQUIPMENT
+TAIL-EQUIPMENT TAIL-SLOT WEAR
 
 Usage: wear <item> [location]
 
@@ -42285,434 +42917,4 @@ The 'list' shows all currently unlocked zones.
 
 See also: ZLOCK
 #31
-WEMIC RACE-WEMIC BARBARIAN RACE-BARBARIAN
-
-Wemic
-
-Wemics are Large monstrous humanoids with a humanoid torso and a leonine lower
-body. They are the Luminari equivalent of the Realms of Luminari Barbarian
-people, expressed as an actual Wemic ancestry rather than a class.
-
-Tier: Advanced (level adjustment 2)
-Unlock: 1,000 account experience
-Progression: 2x normal experience requirements
-Ability modifiers: +8 Str, +4 Con, -2 Int, +2 Wis, +2 Dex, -2 Cha
-Size: Large
-Language: Common
-
-Racial feats include low-light vision, Natural Athlete, Powerful Build,
-Claws and Bite, Survival Instinct, Hardy, and Leonine Frame. Wemics also gain
-one additional hit point per level.
-
-Leonine Frame represents a Wemic's four-legged lower body. Wemics cannot equip
-traditional leg or foot gear, including pants and boots. Their ankle equipment
-slots remain available.
-
-See also: ACCEXP, RACE, RACE-HALF-OGRE, RACE-YUAN-TI
-#0
-HALF-OGRE HALF-OGRE-RACE RACE-HALF-OGRE OGRE RACE-OGRE
-
-Half-Ogre
-
-Half-ogres are Large giant-blooded people who combine tremendous strength and
-reach with mortal adaptability. They are the Luminari equivalent of the Realms
-of Luminari Ogre player race, expressed as an actual Half-Ogre ancestry.
-
-Tier: Advanced (level adjustment 2)
-Unlock: 1,000 account experience
-Progression: 2x normal experience requirements
-Ability modifiers: +6 Str, +2 Con, -2 Int, -2 Dex, -2 Cha
-Size: Large
-Language: Giant
-
-Racial feats include ultravision, Powerful Build, strong poison resistance,
-and two stacking ranks of Armor Skin. Half-ogres gain two additional hit
-points per level.
-
-See also: ACCEXP, RACE, RACE-WEMIC, RACE-MYCONID
-#0
-HALF-ILLITHID HALF-ILLITHID-RACE RACE-HALF-ILLITHID ILLITHID RACE-ILLITHID
-
-Half-Illithid
-
-Half-illithids retain a mortal ancestry while bearing an illithid-transformed
-mind and unsettling physical traits. They are the Luminari equivalent of the
-Realms of Luminari Illithid player race, expressed as an actual Half-Illithid.
-
-Tier: Epic (level adjustment 10)
-Unlock: 30,000 account experience
-Progression: 7x normal experience requirements
-Ability modifiers: +4 Int, +4 Wis, +4 Cha
-Size: Medium
-Language: Aberration
-
-Racial feats include ultravision, Quick Mind, Stubborn Mind,
-innate Levitation, three stacking ranks of Armor Skin, Vital, and Hardy.
-Half-illithids gain four additional hit points per level.
-
-See also: ACCEXP, LEVITATE, PSIONICIST, RACE, RACE-YUAN-TI
-#0
-YUAN-TI YUANTI RACE-YUAN-TI
-
-Yuan-Ti
-
-Yuan-ti are serpentfolk whose controlled minds, scaled bodies, venom, and
-innate magic make them dangerous adventurers. Pureblooded yuan-ti can pass
-among humanoids, but their reptilian heritage is never entirely hidden.
-
-Tier: Advanced (level adjustment 2)
-Unlock: 1,000 account experience
-Progression: 2x normal experience requirements
-Ability modifiers: +2 Int, +4 Dex, +2 Cha
-Size: Medium
-Language: Draconic
-
-Racial feats include ultravision, Poison Bite, poison immunity, Stubborn Mind,
-and two stacking ranks of Armor Skin. Poison Bite applies when fighting
-bare-handed. Their serpentine anatomy has no face, leg, or foot equipment slots.
-Yuan-ti instead have a tail equipment slot, where they can wear any ring or use
-dedicated tail gear that cannot be worn in another slot.
-
-See also: ACCEXP, POISON, RACE, RACE-HALF-ILLITHID, WEAR
-#0
-MYCONID MYCANOID RACE-MYCONID
-
-Myconid
-
-Myconids are Large fungal beings whose alien plant biology resists poison,
-paralysis, and sleep. This epic ancestry completes the unfinished Myconid
-player concept from Realms of Luminari.
-
-Tier: Epic (level adjustment 10)
-Unlock: 30,000 account experience
-Progression: 7x normal experience requirements
-Ability modifiers: +8 Str, +6 Con, -2 Int, -2 Wis, -4 Dex, -4 Cha
-Size: Large
-Language: Undercommon
-
-Racial feats include ultravision, Vital, Hardy, poison immunity, sleep
-immunity, paralysis immunity, and four stacking ranks of Armor Skin. Myconids
-count as plants and gain four additional hit points per level.
-
-See also: ACCEXP, RACE, RACE-HALF-OGRE
-#0
-DEFENSIVE-CASTING-PERK
-
-The Wizard Versatile Caster perk grants +4 dodge AC after casting a spell.
-
-When activated in combat, the bonus expires at the start of your next turn,
-before your actions become available. Outside combat it lasts six seconds.
-An interval already running outside combat keeps its remaining time if you
-enter combat. Leaving combat preserves the time left until your next turn;
-it does not grant a fresh six seconds. Saved remaining time resumes when your
-character is loaded again. A character still in the world after a lost connection
-keeps its live clock. Casting again refreshes the bonus.
-
-This perk is separate from the Concentration check used to cast defensively.
-
-See also: PERKS, DEFENSIVE-CASTING, COMBAT, INITIATIVE
-#0
-BLEEDING-CRITICAL
-
-Bleeding Critical adds bleeding damage when a critical hit applies the feat.
-Its 2d6 damage is rolled on application and stored for each later tick. Repeated
-applications add their damage and replace the remaining duration, without
-postponing the pending tick. The initial Fortitude save and duration roll retain
-their existing rules.
-
-In combat, each tick happens at the end of the affected character's next turn,
-after that character's actions. Outside combat, ticks are six seconds apart.
-Each tick applies damage and consumes one remaining round; the final tick ends
-the effect. Curing the effect cancels its future ticks.
-
-An elapsed interval already running when combat begins finishes before the
-clock adopts turn-end timing. Leaving combat preserves the time remaining to
-the next tick. Player saves preserve remaining rounds and the partial interval;
-saving does not restart the clock. A character remaining in the world after
-losing its connection continues to bleed normally.
-
-See also: FEATS, CRITICAL, COMBAT, INITIATIVE
-#0
-BATTLECHANTER ROL-BATTLECHANTER
-
-Battlechanter
-
-Battlechanter is an approved themed build through the existing Bard class, not
-a separate selectable class. Bard performance, instruments, group support, and
-known-spell casting provide the war-chant role. Minor creation enters the Bard
-list at level 4 and song of travel at level 16. Warrior or Cleric multiclassing
-can add martial or shamanic emphasis but is not required for those spells.
-
-See also: BARD, PERFORM, INSTRUMENT, SONG-OF-TRAVEL, ROL-SPELL-KITS
-#0
-DIRE-RAIDER DIRERAIDER ROL-DIRE-RAIDER
-
-Dire Raider
-
-Dire Raider is an approved Ranger/Warrior build, not a separate selectable
-class. A character with Ranger 4, Warrior 1, and Animal Companion can choose a
-dire wolf through study. The wolf is a normal animal companion for scaling,
-Beast Master bonuses, Boon Companion, following, cooldowns, and dismissal. It
-is also tame, mountable, and one size larger than its rider, up to Colossal.
-
-The themed Ranger spell kit includes command undead and protection from
-animals at level 6, dust devil at 10, and farsee, pass without trace, and
-poltergeist at 15.
-
-See also: RANGER, WARRIOR, ANIMAL-COMPANION, MOUNT, ROL-SPELL-KITS
-#0
-ELEMENTALIST ROL-ELEMENTALIST
-
-Elementalist
-
-Elementalist is an approved Wizard specialty build, not a separate selectable
-class. Intelligence remains its casting ability. Existing Energy Affinity and
-Focused Element perks express elemental choice. Master of Elements requires
-any two Focused Element perks and unlocks the four embodiment spells.
-
-The core kit grants minor creation at Wizard level 1, air blast at 5, thunder
-lance at 9, earth fog and fire fog at 15, and earthblood at 17. Water
-embodiment is available at 13, air at 15, and earth and fire at 17 once Master
-of Elements is owned.
-
-See also: WIZARD, MASTEROFELEMENTS, ELEMENTAL-WATER-EMBODIMENT,
-ELEMENTAL-AIR-EMBODIMENT, ROL-SPELL-KITS
-#0
-ROL-MERCENARY
-
-Mercenary
-
-Mercenary is retained as a documented Warrior/Rogue multiclass build, not a
-separate selectable class. Its source class was disabled for character
-creation and had no live spells. Warrior weapons, archery, defense, rescue,
-and offense combine with Rogue stealth, escape, backstab, dual wield, and
-related techniques to cover the surviving role.
-
-See also: WARRIOR, ROGUE, MULTICLASS, DIRE-RAIDER
-#0
-SHAMAN ROL-SHAMAN
-
-Shaman
-
-Shaman is an approved spirit-themed build through the existing Cleric class,
-not a separate selectable class. Wisdom remains its casting ability. Its kit
-grants preserve at Cleric level 3, command undead at 5, farsee at 11, soul
-tempest at 13, and ancestral shield and spirit walk at 17.
-
-Converted RoL Shaman Totem objects provide the existing totem progression. A
-Cleric can bond a totem at any class level; summoning unlocks at Cleric level
-21 and uses Cleric level and Wisdom. The converted procedure retains 21 totem
-identities, one active spirit, source-race restrictions, and three attempts per
-seven MUD days.
-
-See also: CLERIC, ROL-SPELL-KITS, SPECIALS, WISDOM
-#0
-ROL-SPELL-KITS CONVERTED-SPELL-KITS CONTENT-ONLY-SPELLS SPELL-KITS
-
-RoL Player Spell Kits
-
-Converted Realms of Luminari spells use the following class levels. Bard,
-Sorcerer, and other spontaneous classes learn entries through their normal
-known-spell selection. Other listed classes prepare them normally; Wizards
-still require a spellbook or scroll source. No spell in this kit is a domain
-spell.
-
-Bard: level 4 minor creation; level 16 song of travel.
-
-Blackguard: level 6 command undead; level 10 curse item and spectral hand;
-level 12 Tazrik's frenzied hound; level 15 dark wrath and unholy aura.
-
-Cleric: level 3 preserve and slow poison; level 5 command undead; level 11
-curse item and farsee; level 13 soul tempest; level 17 ancestral shield,
-greater realm of protection, and spirit walk.
-
-Druid: level 3 preserve and protection from animals; level 7 create spring and
-dust devil; level 11 suffocate; level 13 cyclone and pass without trace; level
-15 mud to rock and rock to mud; level 17 moonwell.
-
-Ranger: level 6 command undead, create spring, and protection from animals;
-level 10 dust devil; level 12 nature's blessing; level 15 farsee, pass without
-trace, and poltergeist.
-
-Sorcerer: level 1 ventriloquate; level 4 minor creation; level 8 farsee.
-
-Wizard: level 1 minor creation, preserve, shadow bolt, and ventriloquate; level
-3 blackthorns, command undead, and protection from undead; level 5 air blast,
-blink, minute meteors, minor rejuvenation, and soul bind; level 7 command
-horde, embalm, farsee, fumble, and spectral hand; level 9 heal undead, shadow
-burst, shadow magic, stumble, and thunder lance; level 11 age, enervate, nerve
-dance, major rejuvenation, and tranquility; level 13 Beltyn's burning blood,
-camouflage, corpse glamor, water embodiment, ice layer, phantasmal blades,
-protect undead, sequester, shadechill, and shadow flux; level 15 airy water,
-blacklight burst, blackmantle, earth fog, air embodiment, feign death, fire fog,
-mislead, phantom heal, rain of blood, and sun shadow; level 17 constriction,
-death pact, dimension shift, earthblood, earth embodiment, fire embodiment,
-fell frost, ice tomb, lava burst, lich touch, rot, sandblast, and sandstorm.
-
-The four elemental embodiment spells additionally require Master of Elements.
-Comprehend languages, wraithform, unseen servant, needle swarm, snapping teeth,
-agility, and call lycanthrope are content-only: their native handlers remain
-available to converted content, but no player class or domain grants them.
-
-See also: SHAMAN, ELEMENTALIST, BATTLECHANTER, DIRE-RAIDER, ROL-MERCENARY,
-SPELLS, PREPARE, STUDY
-#0
-GOLEM-MAINTENANCE GOLEMREPAIR DESTROYGOLEM
-
-GOLEM MAINTENANCE
-
-Usage: golemrepair <golem>
-       destroygolem <golem>
-
-Material recipes create dedicated constructs in small, medium, large, and huge
-sizes. Wood favors accurate attacks and agility; stone gains armor, durability,
-and damage reduction 5; iron gains heavier melee damage and damage reduction 8.
-They retain native construct defenses. Each uses the ordinary one-golem allowance,
-has no natural expiry, and supports ordinary equipment, ORDER, and DISMISS.
-Acquisition still requires the recipe's class feat, materials, motes, crafting
-time, and Arcana check. No additional daily cooldown is added.
-
-These commands require the motes crafting system to be enabled.
-Repair requires your controlled golem to be alive, present, and out of combat.
-You must also be out of combat. A successful Arcana check restores all missing
-hit points; a failed check still consumes the repair materials.
-
-Each started 10 percent of missing health costs 10 percent of the recipe's
-primary material requirement. Even one lost hit point requires materials.
-Wood repairs require enough units of a single wood type. Full-health golems
-need no repair. Golems pending destruction cannot be repaired or dismantled.
-
-Destroygolem recovers half of the original recipe materials and removes the
-golem. Repeating the command cannot recover materials from the same golem.
-Retrieve equipment before dismantling. To release it without material recovery,
-use DISMISS instead.
-
-Crafting completion retains materials and motes if the required creature is
-unavailable or your golem allowance is full. An otherwise valid failed ritual
-consumes its authored materials and motes. Crafted golem corpses cannot be
-animated, including after control is lost.
-
-See also: CRAFTING, NEWCRAFT, BONE-GOLEM, PETS, DISMISS
-#0
-BONE-GOLEM
-
-BONE GOLEM
-
-Usage: craft create golem animate <corpse>
-
-Bind an eligible room corpse into a medium bone construct. This requires the
-motes crafting system and either Construct Wood Golem or Summon Greater Undead
-(Necromancer level 9). It uses the ordinary one-golem allowance, shared with
-wood, stone, and iron constructs.
-
-The ritual costs 40 bone and 6 of each of the eight mote types. It takes a
-standard action and a move action, with an Arcana check against DC 25.
-A failed check spends those reagents and actions but leaves the corpse and its
-contents intact. Successful binding consumes the corpse exactly once and moves
-its contents to the golem. Missing prototypes, full capacity, missing resources,
-and ineligible corpses spend nothing.
-
-Player corpses and corpses marked as summoned or artificial minions cannot be
-used. The corpse must be present in the room. You must be able to act, free of
-charm, out of combat, and not casting or performing another activity. Holy and
-antimagic rooms prevent the ritual. There is no additional daily cooldown.
-
-The bone golem is an agile melee construct with damage reduction 3 and native
-construct defenses. It is permanent until death or removal and cannot become
-another animation source. Use PETS, ORDER, and DISMISS normally. It can carry
-and wear equipment; retrieve all gear before dismissal or dismantling.
-
-GOLEMREPAIR uses bone, charging 4 units per started 10 percent of missing HP.
-DESTROYGOLEM recovers 20 bone once, with no corpse or mote refund. Repair and
-dismantling use the same control and lifecycle rules as material golems.
-
-See also: GOLEM-MAINTENANCE, PETS, ANIMATE-DEAD, CLASS-NECROMANCER
-#0
-SUMMON-CHOICES
-
-SUMMON CHOICES
-
-Optional choices:
-  cast 'summon creature vii' air
-  cast 'natures ally vii' earth
-  cast 'elemental swarm' water
-  cast 'geniekind' marid
-
-Summon Creature VII, VIII, IX and Natures Ally VII, VIII, IX accept air, earth,
-fire, or water. Elemental Swarm accepts the same choices and creates 2d4 of the
-selected elemental, up to eight in one cast. Shambler retains its separate
-three-to-six plant batch. Repeated casts cannot bypass the control limits.
-
-Geniekind accepts djinni, efreeti, marid, or shaitan. Marid supplies healing and
-water utility, djinni wind/lightning, efreeti fire offense, and shaitan stone
-protection. See GENIEKIND for the caster benefits. An unavailable chosen genie
-or a full genie allowance rejects the cast before spending its spell. Admission
-is checked again at completion; rejection preserves existing genie benefits.
-
-Omitting a choice retains the random selection. Unknown choices are rejected
-before casting begins. Your choice belongs to your cast and is discarded when
-it ends or is cancelled; another caster cannot change it.
-
-Native sources: Wizards and Clerics receive Summon Creature VII/VIII/IX at
-levels 13/15/17; Sorcerers at 14/16/18. Druids receive Natures Ally VII/VIII/IX
-at 13/15/17, and Elemental Swarm and Shambler at 17. Summoners with Summon
-Monster can invoke Summon Creature VII/VIII/IX at will from levels 13/15/17.
-Other class or domain routes follow their normal spell lists.
-
-You may control one elemental or one elemental-swarm batch at a time, plus a
-separate shambler batch. Release every member of a batch before calling another.
-A missing chosen prototype or full allowance rejects casting before a prepared
-spell is spent. Once casting begins, normal interruption and failure costs
-apply; admission is checked again at completion if the world has changed.
-The high Summon Creature and Natures Ally spells retain their normal summon
-failure roll. Choices add no separate material payment or daily cooldown.
-
-These elemental and plant pets follow the caster, accept ordinary orders, and
-have no timed summon expiry. Death and dismissal remove them. They use standard
-NPC carrying and equipment rules; recover their gear before dismissal. Air
-elementals can be invisible: a named or ID-selected pet must be visible to you
-for orders or dismissal. Detect invisibility can provide the needed sight.
-
-Choices use the spell's normal class access, preparation or at-will rules,
-action costs, failure chance, pet lifetime, and equipment rules. They do not
-add a daily cooldown or a separate control allowance. Use PETS to inspect the
-roster, ORDER to command a controlled pet, and DISMISS to release it after
-retrieving its equipment.
-
-See also: GENIEKIND, ELEMENTAL-SWARM, SHAMBLER, CHARMEE, PETS
-#0
-PLANAR-ALLY
-
-PLANAR ALLY
-
-Usage: cast 'planar ally' [guardian|healer]
-
-Available to Clerics at level 11 and Summoners at level 16 through their normal
-spell access and preparation rules. It uses a prepared spell and normal casting
-time/actions. There is no extra item payment or daily-use cooldown.
-
-Guardian (default): a flying celestial melee ally with strong armor, heavier
-attacks, and damage reduction 5.
-Healer: a flying celestial support ally with cure critic, bless, and remove
-paralysis. Each known spell has two slots; the native mobile recovery system
-restores one random missing slot per minute while out of combat.
-
-Both are level-15 outsiders with native angel defenses. They share a separate
-one-planar-ally allowance: choosing another role does not grant another slot.
-Use PETS to inspect the roster. An unavailable prototype or full allowance
-rejects casting before spending the prepared spell. Once casting begins, normal
-interruption and spell-consumption rules apply, including later world changes.
-
-The ally is permanent until death or removal. It is owned, follows the caster,
-and supports ordinary ORDER commands, equipment, and DISMISS. Retrieve carried
-and worn equipment before dismissal. Summoned provenance prevents its corpse
-from being used for another animation. Usual pet PvP protections apply.
-
-Examples:
-  cast 'planar ally' guardian
-  cast 'planar ally' healer
-  order healer cast 'cure critic' <name>
-
-See also: PETS, ORDER, DISMISS, SUMMON-CHOICES
-#0
 $~
