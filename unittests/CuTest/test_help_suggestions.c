@@ -13,7 +13,9 @@ static struct help_keyword_list *make_suggestion(const char *tag, const char *ke
 {
   struct help_keyword_list *node;
 
-  CREATE(node, struct help_keyword_list, 1);
+  node = calloc(1, sizeof(*node));
+  if (node == NULL)
+    return NULL;
   node->tag = strdup(tag);
   node->keyword = strdup(keyword);
   node->next = NULL;
@@ -28,6 +30,8 @@ static struct help_keyword_list *make_suggestions(const char *const *keywords, i
   for (index = 0; index < count; index++)
   {
     node = make_suggestion(keywords[index], keywords[index]);
+    if (node == NULL)
+      break;
     if (tail)
       tail->next = node;
     else
@@ -74,27 +78,30 @@ void Test_help_edit_distance_stops_past_limit(CuTest *tc)
   CuAssertIntEquals(tc, 1, help_keyword_edit_distance(NULL, "logs", 0));
 }
 
+/* The keyword at a list position, or NULL when the list is shorter. */
+static const char *keyword_at(const struct help_keyword_list *list, int index)
+{
+  while (list != NULL && index > 0)
+  {
+    list = list->next;
+    index--;
+  }
+  return list != NULL ? list->keyword : NULL;
+}
+
 void Test_help_merge_suggestions_prefers_primary_and_dedupes(CuTest *tc)
 {
   static const char *const close[] = {"logs", "logins"};
   static const char *const phonetic[] = {"LIQUIDS", "Logs", "lichtouch"};
-  struct help_keyword_list *merged, *node;
+  struct help_keyword_list *merged;
 
   merged = help_merge_suggestions(make_suggestions(close, 2), make_suggestions(phonetic, 3), 10);
 
-  node = merged;
-  CuAssertPtrNotNull(tc, node);
-  CuAssertStrEquals(tc, "logs", node->keyword);
-  node = node->next;
-  CuAssertPtrNotNull(tc, node);
-  CuAssertStrEquals(tc, "logins", node->keyword);
-  node = node->next;
-  CuAssertPtrNotNull(tc, node);
-  CuAssertStrEquals(tc, "LIQUIDS", node->keyword);
-  node = node->next;
-  CuAssertPtrNotNull(tc, node);
-  CuAssertStrEquals(tc, "lichtouch", node->keyword);
-  CuAssertPtrEquals(tc, NULL, node->next);
+  CuAssertStrEquals(tc, "logs", keyword_at(merged, 0));
+  CuAssertStrEquals(tc, "logins", keyword_at(merged, 1));
+  CuAssertStrEquals(tc, "LIQUIDS", keyword_at(merged, 2));
+  CuAssertStrEquals(tc, "lichtouch", keyword_at(merged, 3));
+  CuAssertTrue(tc, keyword_at(merged, 4) == NULL);
   free_suggestions(merged);
 }
 
@@ -108,7 +115,7 @@ void Test_help_merge_suggestions_caps_and_handles_empty_lists(CuTest *tc)
   for (struct help_keyword_list *node = merged; node; node = node->next)
     count++;
   CuAssertIntEquals(tc, 2, count);
-  CuAssertStrEquals(tc, "one", merged->keyword);
+  CuAssertStrEquals(tc, "one", keyword_at(merged, 0));
   free_suggestions(merged);
 
   CuAssertPtrEquals(tc, NULL, help_merge_suggestions(NULL, NULL, 10));

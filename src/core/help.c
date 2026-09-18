@@ -49,6 +49,27 @@ static struct help_cache_entry *help_cache = NULL;
 static int help_cache_count = 0;
 
 /* Forward declarations for cache functions */
+/* Prefix for the lookup queries: every help keyword plus each space-separated token of
+ * help_entries.alternate_keywords, which the help-sync engine already projects onto the
+ * keyword line of help.hlp. Real keywords sort ahead of aliases when both match. */
+#define HELP_LOOKUP_KEYWORDS_SQL                                                                   \
+  "WITH RECURSIVE help_alias_tokens (help_tag, keyword, rest) AS ("                                \
+  "  SELECT tag, SUBSTRING_INDEX(alternate_keywords, ' ', 1), "                                    \
+  "         IF(LOCATE(' ', alternate_keywords) > 0, "                                              \
+  "            SUBSTRING(alternate_keywords, LOCATE(' ', alternate_keywords) + 1), '') "           \
+  "  FROM help_entries "                                                                           \
+  "  WHERE alternate_keywords IS NOT NULL AND alternate_keywords <> '' "                           \
+  "  UNION ALL "                                                                                   \
+  "  SELECT help_tag, SUBSTRING_INDEX(rest, ' ', 1), "                                             \
+  "         IF(LOCATE(' ', rest) > 0, SUBSTRING(rest, LOCATE(' ', rest) + 1), '') "                \
+  "  FROM help_alias_tokens WHERE rest <> '' "                                                     \
+  "), "                                                                                            \
+  "help_lookup_keywords (help_tag, keyword, is_alias) AS ("                                        \
+  "  SELECT help_tag, keyword, 0 FROM help_keywords "                                              \
+  "  UNION ALL "                                                                                   \
+  "  SELECT help_tag, keyword, 1 FROM help_alias_tokens WHERE keyword <> '' "                      \
+  ") "
+
 static struct help_entry_list *get_cached_help(const char *argument, int level);
 static void add_to_help_cache(const char *argument, int level, struct help_entry_list *result);
 static struct help_entry_list *deep_copy_help_list(struct help_entry_list *src);
@@ -387,17 +408,21 @@ struct help_entry_list *search_help(const char *argument, int level)
     log("DEBUG: search_help: Created prepared statement");
 
   /* Prepare the parameterized query - ? placeholders prevent SQL injection
-   * This query finds matching help entries with all their keywords */
-  if (!mysql_stmt_prepare_query(pstmt,
+   * This query finds matching help entries with all their keywords and aliases.
+   * An entry whose token equals the argument exactly sorts before a longer keyword that
+   * merely starts with it, so an exact alias is not hidden behind a keyword prefix. */
+  if (!mysql_stmt_prepare_query(pstmt, HELP_LOOKUP_KEYWORDS_SQL
                                 "SELECT DISTINCT he.tag, he.entry, he.min_level, he.last_updated, "
                                 "GROUP_CONCAT(DISTINCT CONCAT(UCASE(LEFT(hk2.keyword, 1)), "
                                 "LCASE(SUBSTRING(hk2.keyword, 2))) SEPARATOR ', ') "
                                 "FROM help_entries he "
-                                "INNER JOIN help_keywords hk ON he.tag = hk.help_tag "
-                                "LEFT JOIN help_keywords hk2 ON he.tag = hk2.help_tag "
+                                "INNER JOIN help_lookup_keywords hk ON he.tag = hk.help_tag "
+                                "LEFT JOIN help_lookup_keywords hk2 ON he.tag = hk2.help_tag "
                                 "WHERE LOWER(hk.keyword) LIKE LOWER(?) AND he.min_level <= ? "
                                 "GROUP BY he.tag, he.entry, he.min_level, he.last_updated "
-                                "ORDER BY LENGTH(hk.keyword) ASC"))
+                                "ORDER BY MIN(CASE WHEN LOWER(hk.keyword) = LOWER(?) THEN 0 "
+                                "ELSE 1 END) ASC, "
+                                "MIN(hk.is_alias) ASC, MIN(LENGTH(hk.keyword)) ASC"))
   {
     log("SYSERR: Failed to prepare help search query for '%s': %s", argument, mysql_error(conn));
     if (HELP_DEBUG)
@@ -417,7 +442,8 @@ struct help_entry_list *search_help(const char *argument, int level)
 
   /* Bind parameters - completely safe from SQL injection */
   if (!mysql_stmt_bind_param_string(pstmt, 0, search_pattern) ||
-      !mysql_stmt_bind_param_int(pstmt, 1, level))
+      !mysql_stmt_bind_param_int(pstmt, 1, level) ||
+      !mysql_stmt_bind_param_string(pstmt, 2, argument))
   {
     log("SYSERR: Failed to bind parameters for help search '%s' (pattern='%s', level=%d)", argument,
         search_pattern, level);
@@ -851,7 +877,7 @@ static struct help_keyword_list *soundex_search_help_keywords(const char *argume
    * 3. Also includes keywords where search term appears anywhere (for typos)
    * Results are scored by relevance */
   if (!mysql_stmt_prepare_query(
-          pstmt,
+          pstmt, HELP_LOOKUP_KEYWORDS_SQL
           "SELECT DISTINCT hk.help_tag, hk.keyword, "
           "CASE "
           "  WHEN LOWER(hk.keyword) = LOWER(?) THEN 1 " /* Exact match (shouldn't happen but just in case) */
@@ -860,7 +886,7 @@ static struct help_keyword_list *soundex_search_help_keywords(const char *argume
           "  WHEN LOWER(hk.keyword) LIKE LOWER(CONCAT('%%', ?, '%%')) THEN 4 " /* Contains */
           "  ELSE 5 "
           "END as relevance "
-          "FROM help_entries he, help_keywords hk "
+          "FROM help_entries he, help_lookup_keywords hk "
           "WHERE he.tag = hk.help_tag "
           "AND he.min_level <= ? "
           "AND ( "
@@ -1679,7 +1705,7 @@ static struct help_keyword_list *edit_distance_search_help_keywords(const char *
 {
   PREPARED_STMT *pstmt;
   struct help_keyword_list *best[HELP_EDIT_DISTANCE_SUGGESTIONS] = {NULL};
-  int best_distance[HELP_EDIT_DISTANCE_SUGGESTIONS];
+  int best_distance[HELP_EDIT_DISTANCE_SUGGESTIONS] = {0};
   struct help_keyword_list *result = NULL, *tail = NULL, *node;
   const char *tag, *keyword;
   size_t length;
@@ -1698,11 +1724,12 @@ static struct help_keyword_list *edit_distance_search_help_keywords(const char *
     log("SYSERR: Failed to create prepared statement for help edit-distance search");
     return NULL;
   }
-  if (!mysql_stmt_prepare_query(pstmt, "SELECT hk.help_tag, hk.keyword "
-                                       "FROM help_keywords hk "
-                                       "INNER JOIN help_entries he ON he.tag = hk.help_tag "
-                                       "WHERE he.min_level <= ? "
-                                       "AND LENGTH(hk.keyword) BETWEEN ? AND ?") ||
+  if (!mysql_stmt_prepare_query(pstmt, HELP_LOOKUP_KEYWORDS_SQL
+                                "SELECT hk.help_tag, hk.keyword "
+                                "FROM help_lookup_keywords hk "
+                                "INNER JOIN help_entries he ON he.tag = hk.help_tag "
+                                "WHERE he.min_level <= ? "
+                                "AND LENGTH(hk.keyword) BETWEEN ? AND ?") ||
       !mysql_stmt_bind_param_int(pstmt, 0, level) ||
       !mysql_stmt_bind_param_int(pstmt, 1, MAX(1, (int)length - limit)) ||
       !mysql_stmt_bind_param_int(pstmt, 2, (int)length + limit) ||
@@ -1769,6 +1796,15 @@ static struct help_keyword_list *edit_distance_search_help_keywords(const char *
   return result;
 }
 
+/* Suggestions for a missed lookup: closest spellings first, then the phonetic and
+ * substring matches. Keywords and alias tokens are both candidates. */
+struct help_keyword_list *help_lookup_suggestions(const char *argument, int level)
+{
+  return help_merge_suggestions(edit_distance_search_help_keywords(argument, level),
+                                soundex_search_help_keywords(argument, level),
+                                HELP_SUGGESTION_LIMIT);
+}
+
 /**
  * Handler for soundex suggestions - always last in chain.
  * This is the fallback when no exact match is found.
@@ -1796,11 +1832,8 @@ int handle_soundex_suggestions(struct char_data *ch, const char *argument __attr
       log("DEBUG: Partial help was displayed, adding soundex suggestions for '%s'", raw_argument);
   }
 
-  /* Closest spellings first, then the phonetic and substring matches.
-   * Use raw_argument, not the modified argument. */
-  keywords = help_merge_suggestions(edit_distance_search_help_keywords(raw_argument, GET_LEVEL(ch)),
-                                    soundex_search_help_keywords(raw_argument, GET_LEVEL(ch)),
-                                    HELP_SUGGESTION_LIMIT);
+  /* Use raw_argument, not the modified argument. */
+  keywords = help_lookup_suggestions(raw_argument, GET_LEVEL(ch));
   if (keywords != NULL)
   {
     soundex_matches_found = 1;
