@@ -365,6 +365,20 @@ struct help_cache_entry {
 
 ## Search Algorithms
 
+### Lookup Keywords
+
+Every lookup query in `src/core/help.c` (`search_help()` and the two suggestion queries
+behind `help_lookup_suggestions()`) starts with the `HELP_LOOKUP_KEYWORDS_SQL` prefix. It
+unions the `help_keywords` rows with each space-separated token of
+`help_entries.alternate_keywords`, which the help-sync engine already projects onto the
+keyword line of `help.hlp`, so an alias such as `LOGS` on the SYSLOG entry reaches the
+entry in game as well as in the file. A token that equals the typed word sorts before a
+keyword that merely starts with it, so `help logs` shows SYSLOG rather than LOGSEARCH. When
+an alias collides with a keyword that another entry owns, the keyword owner sorts first. The
+displayed keyword line lists aliases too.
+Misfiled aliases from the old flat-file import still route to the entry that carries
+them; clean those up as help data, not in code.
+
 ### Search Priority Order
 
 1. **Exact Match** - Direct tag or keyword match

@@ -56,6 +56,7 @@ struct help_keyword_list *get_help_keywords(const char *tag);
 #define HELP_EDIT_DISTANCE_SUGGESTIONS 5
 #define HELP_SUGGESTION_LIMIT 10
 int help_keyword_edit_distance(const char *left, const char *right, int limit);
+struct help_keyword_list *help_lookup_suggestions(const char *argument, int level);
 struct help_keyword_list *help_merge_suggestions(struct help_keyword_list *primary,
                                                  struct help_keyword_list *secondary,
                                                  int max_count);

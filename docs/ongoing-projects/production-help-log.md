@@ -199,6 +199,7 @@ the log was written: `perk`, `cyclone`, `logs`, `hlqlist`.
   have no `help_keywords` row, so `help logs` (an alias of SYSLOG) and `help ammo` (an
   alias of BLAST) fail in game even though the file lists them. Some of that alias data
   is misfiled (GOSSIP and GRATS sit on the AUCTION entry), so promoting every alias to a
-  lookup keyword needs a review pass first. Decide whether aliases are lookup keywords;
-  then either promote the reviewed ones to `help_keywords` or teach the three queries
-  to match alias tokens.
+  lookup keyword needs a review pass first. Tracked as issue #204. DONE in code: the
+  three queries now match alias tokens through a shared SQL prefix, with a real keyword
+  outranking an alias when both match (`help gossip` lists the CHAT and AUCTALK keyword
+  owners before the AUCTION alias). The misfiled aliases remain a help data cleanup.

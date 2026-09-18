@@ -427,6 +427,7 @@ cutest_SOURCES = \
 	unittests/CuTest/CuTest.c \
 	unittests/CuTest/test_bounds_checking.c \
 	unittests/CuTest/test_help_sync.c \
+	unittests/CuTest/test_help_alias_lookup.c \
 	unittests/CuTest/test_help_suggestions.c \
 	unittests/CuTest/test_artifacts.c \
 	unittests/CuTest/test_artifact_integration.c \
@@ -506,6 +507,7 @@ cutest_test_files = \
 	unittests/CuTest/test_syntax_check_boot.c \
 	unittests/CuTest/test_bounds_checking.c \
 	unittests/CuTest/test_help_sync.c \
+	unittests/CuTest/test_help_alias_lookup.c \
 	unittests/CuTest/test_help_suggestions.c \
 	unittests/CuTest/test_web_onboarding.c \
 	unittests/CuTest/test_race_equivalence.c \
