@@ -116,55 +116,55 @@ the log was written: `perk`, `cyclone`, `logs`, `hlqlist`.
 
 ### Missing topics (feature exists, no help entry)
 
-| Term (hits) | Evidence | Suggested entry |
-| -- | -- | -- |
-| spell slots / spell-slots / spellslots / slots (4) | Only `circles` and `spell-circles` exist | `SPELL-SLOTS` explaining slots per circle, with those keywords |
-| spellstrike (2) | Referenced in `act.other.c` and `spell_parser.c` | `SPELLSTRIKE` |
-| companion-orders (2) | `order` and `orders` exist but do not cover pets | `COMPANION-ORDERS` or expand `ORDER` |
-| spells paladin (2) | `paladin-spells` style keys exist for ranger only | `SPELLS-PALADIN` alias set on the paladin spell list |
-| able-learner | Feat registered in `feats.c` | `ABLE-LEARNER` |
-| self-sufficient / selfsufficient | Feat registered in `feats.c` | `SELF-SUFFICIENT` |
-| jolt | Spell registered in `spell_parser.c` | `JOLT` |
-| ray of frost / ray frost | Spell registered in `spell_parser.c` | `RAY-OF-FROST` |
-| aura of desecr(ation) | Present in `magic.c` and `fight.c` | `AURA-OF-DESECRATION` |
-| msdp | Protocol implemented in `net/protocol.c`; only `gmcp` and `msp` have help | `MSDP` |
-| carry-weight / weight penalty / arcane armor weight penalty | Only `weight` (object field) exists | `ENCUMBRANCE` covering carry weight and arcane armor penalties |
-| mace / longsword / long spear / large spear / direflail | `weapons` and `weapon-types` exist but individual weapons do not resolve | Add the weapon names as keywords of `WEAPON-TYPES` or a per-weapon table |
-| snow-leopard / fairie dragon | Animal companion choices in `study.c` | Companion type list under `ANIMAL-COMPANION` |
-| crafting-stations / smithing | Only `armorsmithing` and `weaponsmithing` exist | `CRAFTING-STATIONS`, and `SMITHING` as an alias |
-| class-shifter | `shifter-wildshape` exists, no class entry | `CLASS-SHIFTER` |
-| ranger-abilities / level-companions | Ranger and companion entries exist but not by these names | Review `RANGER` and `COMPANION` for cross-links |
-| point-buy | No point-buy code found | Confirm the feature; if absent, cover under `STATS` |
-| house-vendor | `vendor` and `player-shop` exist | Cross-link `HOUSE` to `VENDOR` |
-| mrolwalkto / mrwolkto | Command exists, no help | `MROLWALKTO` (staff or mob command) |
-| dominion / reshape / monsters / custom / modification | Strings exist in source for the first two; the rest are vague | Confirm intent before writing |
+| Term (hits) | Evidence | Suggested entry | Status |
+| -- | -- | -- | -- |
+| spell slots / spell-slots / spellslots / slots (4) | Only `circles` and `spell-circles` exist | `SPELL-SLOTS` explaining slots per circle, with those keywords | DONE SPELL-SLOTS |
+| spellstrike (2) | Referenced in `act.other.c` and `spell_parser.c` | `SPELLSTRIKE` | DONE SPELLSTRIKE |
+| companion-orders (2) | `order` and `orders` exist but do not cover pets | `COMPANION-ORDERS` or expand `ORDER` | DONE alias on ORDER |
+| spells paladin (2) | `paladin-spells` style keys exist for ranger only | `SPELLS-PALADIN` alias set on the paladin spell list | DONE alias on PALADIN |
+| able-learner | Feat registered in `feats.c` | `ABLE-LEARNER` | DONE |
+| self-sufficient / selfsufficient | Feat registered in `feats.c` | `SELF-SUFFICIENT` | DONE |
+| jolt | Spell registered in `spell_parser.c` | `JOLT` | DONE |
+| ray of frost / ray frost | Spell registered in `spell_parser.c` | `RAY-OF-FROST` | DONE |
+| aura of desecr(ation) | Present in `magic.c` and `fight.c` | `AURA-OF-DESECRATION` | DONE |
+| msdp | Protocol implemented in `net/protocol.c`; only `gmcp` and `msp` have help | `MSDP` | DONE |
+| carry-weight / weight penalty / arcane armor weight penalty | Only `weight` (object field) exists | `ENCUMBRANCE` covering carry weight and arcane armor penalties | DONE ENCUMBRANCE |
+| mace / longsword / long spear / large spear / direflail | `weapons` and `weapon-types` exist but individual weapons do not resolve | Add the weapon names as keywords of `WEAPON-TYPES` or a per-weapon table | DONE keywords on WEAPONS |
+| snow-leopard / fairie dragon | Animal companion choices in `study.c` | Companion type list under `ANIMAL-COMPANION` | DONE keywords on ANIMAL-COMPANION |
+| crafting-stations / smithing | Only `armorsmithing` and `weaponsmithing` exist | `CRAFTING-STATIONS`, and `SMITHING` as an alias | DONE |
+| class-shifter | `shifter-wildshape` exists, no class entry | `CLASS-SHIFTER` | DONE |
+| ranger-abilities / level-companions | Ranger and companion entries exist but not by these names | Review `RANGER` and `COMPANION` for cross-links | OPEN |
+| point-buy | No point-buy code found | Confirm the feature; if absent, cover under `STATS` | OPEN |
+| house-vendor | `vendor` and `player-shop` exist | Cross-link `HOUSE` to `VENDOR` | OPEN |
+| mrolwalkto / mrwolkto | Command exists, no help | `MROLWALKTO` (staff or mob command) | DONE |
+| dominion / reshape / monsters / custom / modification | Strings exist in source for the first two; the rest are vague | Confirm intent before writing | OPEN |
 
 ### Real alias candidates (topic exists, add a keyword)
 
-| Term | Existing entry |
-| -- | -- |
-| preparation misses (`preperation` x3 is a typo, but `prep` and `prepare` are legitimate) | `PREPARATION` |
-| trainer (3) | `CRAFT-TRAINER` |
-| kit (2) | `CRAFTING-KIT` |
-| supplyoffice | `SUPPLYORDER` (the room is named Supply Office in zone 20945) |
-| background-archetypes | `BACKGROUND-ARCHTYPES` (the existing keyword is itself misspelled; add the correct spelling) |
-| establishcamp | `ESTABLISH-CAMP` |
-| powerword stun | `POWER-WORD-STUN` |
-| fastcrafter | `FAST-CRAFTER` |
-| fast healing 1 | `FAST-HEALING` |
-| shapechanging | `SHAPE-CHANGING` |
-| companions | `COMPANION` |
-| scores | `SCORE` |
-| air elemental | `ELEMENTAL` |
-| enhancement bonus | `ENHANCEMENT` |
-| roomtrans / transroom | `ROOMTRANSFER` |
-| divine-bloodline / divinity-bloodline | `SORCERER-BLOODLINE` (confirm whether a divine bloodline exists) |
-| nature-survival | `SURVIVAL` and `SKILL-SURVIVAL` |
-| wildernessmat | `CRAFT-MATERIALS` |
-| newplayerchat | `NEWBIE` |
-| weapon proficiency - elvves | `WEAPON-PROFICIENCIES` |
-| take from backpack | `GET` |
-| feat eidolon / spell-breath-of-the-dragon | `EIDOLON`, `BREATH-OF-THE-BLACK-DRAGON` |
+| Term | Existing entry | Status |
+| -- | -- | -- |
+| preparation misses (`preperation` x3 is a typo, but `prep` and `prepare` are legitimate) | `PREPARATION` | SKIP (typo) |
+| trainer (3) | `CRAFT-TRAINER` | DONE |
+| kit (2) | `CRAFTING-KIT` | DONE |
+| supplyoffice | `SUPPLYORDER` (the room is named Supply Office in zone 20945) | DONE |
+| background-archetypes | `BACKGROUND-ARCHTYPES` (the existing keyword is itself misspelled; add the correct spelling) | DONE |
+| establishcamp | `ESTABLISH-CAMP` | DONE |
+| powerword stun | `POWER-WORD-STUN` | DONE |
+| fastcrafter | `FAST-CRAFTER` | DONE |
+| fast healing 1 | `FAST-HEALING` | DONE |
+| shapechanging | `SHAPE-CHANGING` | DONE |
+| companions | `COMPANION` | DONE |
+| scores | `SCORE` | DONE |
+| air elemental | `ELEMENTAL` | SKIP |
+| enhancement bonus | `ENHANCEMENT` | DONE |
+| roomtrans / transroom | `ROOMTRANSFER` | DONE |
+| divine-bloodline / divinity-bloodline | `SORCERER-BLOODLINE` (confirm whether a divine bloodline exists) | SKIP (no such bloodline) |
+| nature-survival | `SURVIVAL` and `SKILL-SURVIVAL` | DONE |
+| wildernessmat | `CRAFT-MATERIALS` | DONE |
+| newplayerchat | `NEWBIE` | SKIP (NEWBIE is a welcome page) |
+| weapon proficiency - elvves | `WEAPON-PROFICIENCIES` | SKIP |
+| take from backpack | `GET` | SKIP |
+| feat eidolon / spell-breath-of-the-dragon | `EIDOLON`, `BREATH-OF-THE-BLACK-DRAGON` | PARTIAL (breath alias only) |
 
 ### Pure typos (do not add)
 
