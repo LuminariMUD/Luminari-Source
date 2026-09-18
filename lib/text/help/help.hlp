@@ -328,6 +328,19 @@ This will adjust someone's current ability level.
 
 See also:  SKILLSET
 #31
+ABLE-LEARNER
+
+Feat  : Able Learner
+Type  : General
+Usage : automatic
+
+You pick up new skills quickly. You gain +1 on every skill check.
+
+Rogues receive Able Learner as a class feat at level 12. Other characters may
+select it with a general feat slot.
+
+See also: FEATS, SKILLS, ROGUE
+#0
 ABORT
 
 Usage:  abort
@@ -1226,7 +1239,7 @@ Overlapping quarter-reduction wards do not multiply their protection.
 
 See also: AREA SPELLS, GROUP, NATURES-BLESSING
 #0
-ANIMAL-COMPANION
+ANIMAL-COMPANION FAERIE-DRAGON SNOW-LEOPARD
 
 Usage:  call companion
 
@@ -1472,7 +1485,7 @@ for items in shops both in purchasing and selling.
 
 See also:  BUY SELL CHARISMA SHOP
 #0
-APPRENTICE CRAFT-TRAINER CRAFT-TRAINING
+APPRENTICE CRAFT-TRAINER CRAFT-TRAINING TRAINER TRAINERS
 
 Usage: apprentice
        apprentice <skill>
@@ -1628,7 +1641,7 @@ STAT FILE, and an object's applied mark in STAT OBJECT.
 
 See also: ARCANEMARK, CAST, LOOK, EXAMINE, STAT
 #0
-ARCANE-SPELL-FAILURE SPELL-FAILURE
+ARCANE-ARMOR-WEIGHT-PENALTY ARCANE-SPELL-FAILURE SPELL-FAILURE WEIGHT-PENALTY
 
 
    Most arcane spellcasting classes require unobstructed movement in order to
@@ -2243,6 +2256,19 @@ that spawn in the room.
 See also: SPELLS
 	n
 #0
+AURA-OF-DESECRATION
+
+Perk  : Aura of Desecration (Blackguard)
+Usage : automatic
+
+A blight surrounds you. Enemies in your room, meaning anyone who is not you
+and not grouped with you, receive 25 percent less healing from spells and
+other healing effects, to a minimum of 1 point. The victim sees the reduced
+amount tagged with [Aura of Desecration]. Your own unholy damage is increased
+by 10 percent.
+
+See also: PERKS, UNHOLY-WEAPON, DIVINE-AND-PROFANE-BONDS
+#0
 AURA-OF-JUSTICE AURAOFJUSTICE LAY-HANDS LAYHANDS MERCY PALADIN-MOUNT
 
 Class Ability : Aura of Justice (Paladin)
@@ -2709,7 +2735,7 @@ and we will be contacting your service provider. Just Kidding. LuminariMUD is
 actually very stable. I have never heard of one being hacked except via weak or
 compromised passwords. 
 #0
-BACKGROUND-ARCHTYPES BACKGROUNDS
+ARCHETYPES BACKGROUND-ARCHETYPES BACKGROUND-ARCHTYPES BACKGROUNDS
 
 
 
@@ -4232,7 +4258,7 @@ BREACH POWER-BREACH PSIONIC-POWER-BREACH
 	YSee also:	n PSIONICS
 	n
 #0
-BREATH-OF-THE-BLACK-DRAGON POWER-BREATH-OF-THE-BLACK-DRAGON
+BREATH-OF-THE-BLACK-DRAGON BREATH-OF-THE-DRAGON POWER-BREATH-OF-THE-BLACK-DRAGON SPELL-BREATH-OF-THE-DRAGON
 
 	D>Usage:           	W manifest 'breath of the black dragon'	n
 	D>Accumulative:    	W No 	n
@@ -4901,7 +4927,7 @@ also end camouflage.
 
 See also: HIDE, SNEAK, SPELLS
 #0
-CAMP ESTABLISH-CAMP
+CAMP ESTABLISH-CAMP ESTABLISHCAMP
 
 Establish Camp
 
@@ -6391,6 +6417,28 @@ PRESTIGE CLASSES:
   Mystic Theurge.
 
 See also: CLASSES, STUDY, GAIN, RESPEC
+#0
+CLASS-SHIFTER INFO-SHIFTER SHIFTER
+
+Class : Shifter (prestige)
+Levels: 10
+Hit Die: d8   BAB: medium   Saves: good Fortitude and Reflex, poor Will
+Primary attributes: Wisdom, with Constitution or Dexterity for
+survivability and Strength for combat
+
+A shifter has no form they call their own. Instead they clothe themselves in
+whatever shape is most expedient at the time. While others base their
+identities on their external form, the shifter comes closer to their true
+self through every transformation, because their sense of self rests on
+their soul, the only constant about them.
+
+Shifter levels add to druid levels for wildshape, so a druid who takes the
+class gains access to higher and locked forms. Unlocking the class costs
+5000 account points. Class skills include perception, heal, concentration,
+spellcraft, lore, ride, diplomacy, disguise, handle animal, survival and
+swim.
+
+See also: WILDSHAPE, SHIFTER-WILDSHAPE, FORMS, DRUID, PRESTIGE-CLASSES, ACCEXP
 #0
 CLASS-SUMMONER SUMMONER
 
@@ -7890,7 +7938,7 @@ NEWCRAFT GOLEM workflow.
 
 See Also: CRAFTING GOLEM-MAINTENANCE BONE-GOLEM
 #0
-CRAFT-MATERIALS
+CRAFT-MATERIALS WILDERNESS-MAT WILDERNESS-MATERIALS WILDERNESSMAT
 
 Usage: craft materials <add|remove> <material type>
        newcraft materials <add|remove> <material type>
@@ -8116,7 +8164,7 @@ See Also: NEWCRAFT CRAFT-MATERIALS CRAFTING-MOTES CRAFT-SHOW CRAFT-CHECK
 
 Special thanks to Ellyanor for the original crafting help contribution.
 #0
-CRAFTING-KIT CRAFTINGKIT
+CRAFTING-KIT CRAFTINGKIT KIT
 
 Crafting Kit is an item required to do the crafting commands.  Just
 put the required items in the kit and type in the appropriate command.
@@ -8136,7 +8184,7 @@ the bonus, the greater the number of motes are required to enchant the item so.
 You can see which bonuses are associated with which mote type, by using the 	Ymotes	n
 command
 #0
-CRAFT-TOOLS CRAFTING-MATERIAL CRAFTING-RECIPES-MATERIALS CRAFTING-SKILLS ENHANCEMENT ENHANCEMENTS MATERIALS RESOURCE TOOLS
+CRAFT-TOOLS CRAFTING-MATERIAL CRAFTING-RECIPES-MATERIALS CRAFTING-SKILLS ENHANCEMENT ENHANCEMENT-BONUS ENHANCEMENTS MATERIALS RESOURCE TOOLS
 
 Topic: Crafting Materials, Tools, and Skills
 
@@ -8169,6 +8217,31 @@ No registered command currently exposes motes refining or wand creation.
 
 See Also: CRAFTING CRAFT-MATERIALS CRAFTING-MOTES HARVEST CRAFT-BONUSES
           CRAFT-ENHANCEMENT
+#0
+ALCHEMY-LAB CARPENTRY-TABLE CRAFTING-STATION CRAFTING-STATIONS FORGE LOOM SMITHING TANNERY
+
+Topic : Crafting stations
+Usage : craft in a room containing the right station
+
+Most crafting skills need a station object in the room before a project can
+start. The station is an object with the matching crafting flag, usually a
+permanent fixture in a crafting hall.
+
+  Skill              Station
+  alchemy            an alchemy lab
+  armorsmithing      a forge
+  weaponsmithing     a forge
+  metalworking       a forge
+  jewelcrafting      a jewelcrafting station
+  leatherworking     a tannery
+  tailoring          a loom
+  woodworking        a carpentry table
+
+If you try to craft without the station you are told which one the item
+needs. Some skills need no station at all. You still need the proper tool
+equipped and the materials on hand.
+
+See also: CRAFTING, CRAFT-TOOLS, CRAFT-MATERIALS, CRAFT-TRAINER, SUPPLYORDER
 #0
 CRAFTS
 
@@ -11838,6 +11911,29 @@ with an option that can be toggled in the 'prefedit' screen.
 It is also possible to avoid encounters using your stealth skill, as long as 'sneak'
 is enabled, and you have set encounters to 'avoid' in the prefedit screen.
 #0
+CARRY-WEIGHT CARRYING-CAPACITY ENCUMBRANCE WEIGHT-LIMIT
+
+Topic : Encumbrance and carrying capacity
+Usage : automatic, shown on SCORE as Load
+
+You are limited both in the total weight you can carry and in how many
+separate items you can hold in your inventory.
+
+Weight: the limit comes from your carrying Strength. A score of 10 carries
+about 66 pounds, 15 about 133, 18 about 200, and the limit keeps rising
+with higher scores. Strength bonuses from spells and items count. When a
+pickup, purchase or loot would put you over the limit you cannot take the
+item.
+
+Item count: you can hold 20 items plus half your Dexterity plus half your
+level. Containers and bags let you carry more.
+
+Armor weight also matters to arcane casters, whose spell failure chance
+rises with heavier armor. See ARCANE-SPELL-FAILURE for that penalty and the
+feats that reduce it.
+
+See also: SCORE, INVENTORY, BAGS, GET, ARCANE-SPELL-FAILURE, ARMOR
+#0
 END-GAME ENDGAME EPIC-CONTENT
 
 UNDER CONSTRUCTION
@@ -13293,7 +13389,7 @@ this feat rank for rank.
 
 See also: FEAT INFO FAST CASTING, SLOW-CASTING, QUICKEN-SPELL
 #0
-FAST-HEALER FAST-HEALING FAST-HEALING-2 FASTHEAL FASTHEALING
+FAST-HEALER FAST-HEALING FAST-HEALING-1 FAST-HEALING-2 FAST-HEALING-3 FASTHEAL FASTHEALING
 
 Topic  : Fast Healing
 Usage  : Automatic / Passive
@@ -13376,7 +13472,7 @@ FEATLISTING
 
 This command will print a list of all feats including their corresponding number.
 #0
-CRUEL-MOMENTUM FAST-CRAFTER FEAT-CONJURE-MONSTER FEAT-MENACING FEAT-POWER-ATTACK FEATS IMPROVED-WEAPON-FINESSE INFO-COMBAT-EXPERTISE PERFECT-TEMPO
+CRUEL-MOMENTUM FAST-CRAFTER FASTCRAFTER FEAT-CONJURE-MONSTER FEAT-MENACING FEAT-POWER-ATTACK FEATS IMPROVED-WEAPON-FINESSE INFO-COMBAT-EXPERTISE PERFECT-TEMPO
 
 NOTE: This is the help topic for the 'feats' command, for general 
 information about the Luminari Feat system, please see 'help 
@@ -18538,6 +18634,22 @@ JEWELCRAFTING
    Jewelcrafting is a crafting skill used to create jewelry and other wearables
 made of metal.
 #0
+JOLT SPELL-JOLT
+
+Spell            : Jolt
+Usage            : cast 'jolt' <target>
+Circle           : cantrip (circle 0) for wizards and sorcerers
+School of Magic  : Evocation
+Target           : one creature in the room
+Saving Throw     : Reflex
+Magic Resistance : applies
+Damage Type      : electricity
+
+A spark of electricity leaps to your target for 2d4 damage. The spell gains
+an extra 1d4 at caster level 7, 15, 22 and 30.
+
+See also: SPELLS, RAY-OF-FROST, ACID-SPLASH, FIRE-BOLT
+#0
 JUMP
 
 	D-----------------------------------------------------------------	n
@@ -22304,6 +22416,46 @@ This command will list your current and maximum movement points.
 
 Usage: moves
 #0
+MROLWALKTO
+
+Mob command: mrolwalkto <room vnum>
+
+Moves the mobile one step along the shortest route toward the given room,
+the way the Ruins of Luminari conversion mobs travel. The mob opens a closed
+door and unlocks a locked one on the way, then closes and locks it again
+behind itself after stepping through. Nothing happens when the mob is
+charmed, fighting, already in the target room, or has no route.
+
+Call it from a trigger repeatedly (for example on each random pulse) to walk
+a mob to a destination.
+
+See also: MOB-TRIGGERS, MGOTO, TRIGEDIT, DG-SCRIPTS
+#31
+MSDP
+
+Topic : MSDP (MUD Server Data Protocol)
+Usage : enabled by your client, see 'protocol'
+
+MSDP is a telnet protocol that sends structured game data to clients such as
+Mudlet, so a client can draw health bars, maps and status windows without
+parsing text. Luminari negotiates it automatically when the client asks for
+it. The client then uses the standard MSDP commands LIST, REPORT, UNREPORT,
+SEND and RESET.
+
+Reportable variables include your character, vitals and experience
+(CHARACTER_NAME, LEVEL, RACE, CLASS, HEALTH, HEALTH_MAX, PSP, MOVEMENT,
+EXPERIENCE, EXPERIENCE_TNL, MONEY), saves and combat numbers (FORTITUDE,
+REFLEX, WILLPOWER, ATTACK_BONUS, DAMAGE_BONUS, AC), ability scores, action
+availability (STANDARD_ACTION, MOVE_ACTION, SWIFT_ACTION), combat targets
+(OPPONENT_NAME, OPPONENT_HEALTH, TANK_NAME, TANK_HEALTH), the room
+(ROOM_NAME, ROOM_VNUM, ROOM_EXITS, AREA_NAME, MINIMAP, GRAPHIC_MAP) and
+vessel state (SHIP_NAME, SHIP_HEADING, SHIP_SPEED, SHIP_HULL). Send LIST
+REPORTABLE_VARIABLES from your client for the complete list.
+
+GMCP delivers similar data in a different format; most clients support both.
+
+See also: GMCP, MXP, MSP, UI
+#0
 MSGEDIT
 
 Usage:  msgedit
@@ -24013,7 +24165,7 @@ Examples:
 
 See also: KEYS, ENTER, LEAVE
 #0
-ORDER
+COMPANION-ORDERS ORDER PET-ORDERS
 
 Usage: order <character> <command>
        order followers <command>
@@ -24178,7 +24330,7 @@ Examples:
 
 Do not abuse this command.
 #1
-AURA-OF-JUSTICE CLASS-PALADIN INFO-PALADIN LAY-HANDS PALADIN
+AURA-OF-JUSTICE CLASS-PALADIN INFO-PALADIN LAY-HANDS PALADIN PALADIN-SPELLS SPELLS-PALADIN
 
 	A-----------------------------------------------------------------	n
 	A>Description:	n
@@ -24556,7 +24708,7 @@ if you want to remove it from your prepared spell list.
 See also:  SPELLS PALADIN
 	n
 #0
-ANIMALS BLACK-BEAR BUY-PET BUY-PETS COHORT COMPANION HENCHMEN HIRED-MERCENARY HIRED-MOUNT HIRED-PET HORSE MERCENARIES MERCENARY PET-COMMANDS PETS PONY RETAIN RETAINER WARDOG
+ANIMALS BLACK-BEAR BUY-PET BUY-PETS COHORT COMPANION COMPANIONS HENCHMEN HIRED-MERCENARY HIRED-MOUNT HIRED-PET HORSE MERCENARIES MERCENARY PET-COMMANDS PETS PONY RETAIN RETAINER WARDOG
 
    A few stores within the realm will allow you to buy pets. These pets are
 your obedient servants. As such you will be able to order them to do as you
@@ -25386,7 +25538,7 @@ POWER-WORD-SILENCE
 	YSee also:	n SPELLS
 	n
 #0
-POWER-WORD-STUN
+POWER-WORD-STUN POWERWORD-STUN
 
 	D-----------------------------------------------------------------	n
 	D>Usage:           	W cast 'power word stun' <target> 	n
@@ -27754,6 +27906,22 @@ RAY-OF-ENFEEBLEMENT
 	YSee also:	n SPELLS
 	n
 #0
+RAY-FROST RAY-OF-FROST SPELL-RAY-OF-FROST
+
+Spell            : Ray of Frost
+Usage            : cast 'ray of frost' <target>
+Circle           : cantrip (circle 0) for wizards and sorcerers
+School of Magic  : Evocation
+Target           : one creature in the room
+Saving Throw     : Reflex
+Magic Resistance : applies
+Damage Type      : cold
+
+A ray of freezing air strikes your target for 2d4 cold damage. The spell
+gains an extra 1d4 at caster level 7, 15, 22 and 30.
+
+See also: SPELLS, JOLT, ACID-SPLASH, FIRE-BOLT
+#0
 POWER-RAZOR-STORM POWER-STORM-OF-RAZORS PSIONIC-POWER-RAZOR-STORM PSIONIC-POWER-STORM-OF-RAZORS RAZOR-STORM STORM-OF-RAZORS
 
 	D>Usage:           	W manifest 'razor storm' (target)	n
@@ -29320,7 +29488,7 @@ ROOM-TRIGGERS TRIGEDIT-ROOM-TYPES
 17) Leave        	RHELP TRIGEDIT-ROOM-LEAVE	n       
 18) Door         	RHELP TRIGEDIT-ROOM-DOOR	n       
 #31
-ROOM-TRANSFER ROOMTRANSFER
+ROOM-TRANSFER ROOMTRANS ROOMTRANSFER TRANSROOM
 
 Usage: roomtransfer <source room vnum> <destination room vnum>
 
@@ -29680,7 +29848,7 @@ SCORCHING-RAY
 	YSee also:	n SPELLS
 	n
 #0
-CHARACTER-INFO SCORE
+CHARACTER-INFO SCORE SCORES
 
 Usage: score
 
@@ -30125,6 +30293,17 @@ per day per level of seeker arrow that has been attained.
 The Arcane Archer must also have line of sight to their target.
 
 Usage: seekerarrow <target>
+#0
+SELF-SUFFICIENT SELFSUFFICIENT
+
+Feat  : Self Sufficient
+Type  : General
+Usage : automatic
+
+You know how to get along on your own. You gain +2 on Heal skill checks and
++2 on Survival skill checks.
+
+See also: FEATS, SKILL-HEAL, SURVIVAL
 #0
 SELL
 
@@ -30596,7 +30775,7 @@ The psionic ectoplasmic shambler is a different power and creature.
 
 See also: SUMMON-CHOICES, PETS, ORDER, DISMISS
 #0
-SHAPE-CHANGING SHAPECHANGE
+SHAPE-CHANGING SHAPECHANGE SHAPECHANGING
 
 Usage:  varies
 
@@ -33796,6 +33975,31 @@ SIPHON-MIGHT SIPHONED-MIGHT SPELL-SIPHON-MIGHT SPELL-SIPHONED-MIGHT
 	YSee also:	n SPELLS
 	n
 #0
+SLOTS SLOTS-PER-CIRCLE SPELL-SLOTS SPELLSLOTS
+
+Usage: automatic
+       <your preparation command> with no argument shows your slots
+
+Spell slots are how many spells of each circle a caster can hold ready at one
+time. Every casting class has a slot table that grows with class level, and
+bonus caster levels from prestige classes count toward it.
+
+Each circle then gains bonus slots from the class's casting ability score:
+  Wisdom       - cleric, druid, ranger, inquisitor
+  Charisma     - sorcerer, bard, paladin, blackguard, summoner
+  Intelligence - wizard, alchemist
+A higher score adds slots to more circles, so raising the casting ability is
+the fastest way to gain slots. Feats, perks and some class features add more,
+such as New Arcana for sorcerers and the druid Efficient Caster perk.
+
+You can only fill slots of a circle your class level already unlocks. Use your
+class preparation command (memorize, prayer, commune, chant, meditate,
+compose, adjure) with no argument to see the slots available per circle and
+what currently occupies them. Sorcerous casters spend slots as they cast;
+prepared casters fill them ahead of time.
+
+See also: PREPARATION, SPELL-CIRCLES, SPELLS, MEMORIZATION, SORCEROUS-ENERGY
+#0
 SPELL-SLOW
 
 	D-----------------------------------------------------------------	n
@@ -34091,6 +34295,22 @@ the name of the spell they would like to enchant the staff with.
 Adventurers have thus far determined spellstaff to work with the
 following spells:	n	n
   barkskin, cure light wounds, endurance, strength
+#0
+DIVINE-SPELLSTRIKE SPELLSTRIKE
+
+Perk  : Divine Spellstrike (Inquisitor)
+Usage : automatic, once per day
+
+While fighting, the first inquisitor spell you cast each day is channeled
+into a strike: the spell resolves as a swift action and you immediately
+follow it with a full round of attacks. The perk is spent for the day whether
+or not the attacks land, and it requires that inquisitor is your casting
+class for that spell.
+
+Any caster can still deliver a held touch spell through a touch attack or a
+weapon strike. See TOUCHSPELLS for those rules.
+
+See also: PERKS, CLASS-INQUISITOR, TOUCHSPELLS, SWIFT-ACTION
 #0
 SPIKE-GROWTH
 
@@ -35878,7 +36098,7 @@ so you don't receive the default messages.
 See also: WAITUNTIL, WEATHER
 See:  SPELL-DAYLIGHT for the spell info
 #31
-AUTOCRAFT AUTOCRAFTING SUPPLYORDER
+AUTOCRAFT AUTOCRAFTING SUPPLY-OFFICE SUPPLYOFFICE SUPPLYORDER
 
 SUPPLYORDER has handlers in two systems.
 
@@ -35955,7 +36175,7 @@ SURVEY
 zones that are attached to the wilderness.  This command only works in the
 wilderness and requires vision.
 #0
-SURVIVAL
+NATURE-SURVIVAL SURVIVAL
 
 Survival is the legacy name for Nature. Both names refer to the same skill and
 the same trained ranks. Use HELP NATURE-SKILL for its current description.
@@ -41505,7 +41725,7 @@ This command produces a listing of all weapons and their values both in statisti
 See also: weaponinfo, armorlist
 	n
 #0
-AXES BATTLE-HAMMER DOUBLE-WEAPONS GREATSWORD HAMMERS HEAVY-BLADES LIGHT-BLADES LONGBOW MONK-WEAPONS POLEARMS SHORT-SWORD SHORTBOW SHORTSWORD SIMPLE-WEAPONS SIMPLE-WOODEN-SHORTBOW SWORD SWORDS WEAPON-CLASSES WEAPON-INFO WEAPON-PROFICIENCIES WEAPON-TYPES WEAPONINFO WEAPONPROFICIENCIES WEAPONS WEAPONTYPES WEAPONTYPES-HEAVY-BLADE WOODEN-SHORTBOW
+AXES BATTLE-HAMMER DIRE-FLAIL DIREFLAIL DOUBLE-WEAPONS GREATSWORD HAMMERS HEAVY-BLADES LARGE-SPEAR LIGHT-BLADES LONG-SPEAR LONGBOW LONGSPEAR LONGSWORD MACE MONK-WEAPONS POLEARMS SHORT-SWORD SHORTBOW SHORTSWORD SIMPLE-WEAPONS SIMPLE-WOODEN-SHORTBOW SWORD SWORDS WEAPON-CLASSES WEAPON-INFO WEAPON-PROFICIENCIES WEAPON-TYPES WEAPONINFO WEAPONPROFICIENCIES WEAPONS WEAPONTYPES WEAPONTYPES-HEAVY-BLADE WOODEN-SHORTBOW
 
 Usage : weapontypes (optional weapon type name)
       : weaponproficiencies (optional proficiency name)

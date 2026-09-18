@@ -61,6 +61,8 @@ static void free_help_entry_single(struct help_entry_list *entry);
 static void free_help_keyword_list(struct help_keyword_list *keyword_list);
 static struct help_entry_list *alloc_help_entry(void);
 static struct help_keyword_list *alloc_help_keyword(void);
+static struct help_keyword_list *edit_distance_search_help_keywords(const char *argument,
+                                                                    int level);
 
 /* Debug flag for help system - set to 1 to enable debug logging, 0 to disable
  * This will log detailed information about:
@@ -1586,6 +1588,187 @@ int handle_race_help(struct char_data *ch, const char *argument __attribute__((u
   return 0; /* Not a race */
 }
 
+/* Case-insensitive Levenshtein distance between two keywords. The search
+ * stops early and returns limit + 1 as soon as no alignment can finish
+ * within limit, so callers can reject distant candidates cheaply. */
+int help_keyword_edit_distance(const char *left, const char *right, int limit)
+{
+  int previous[HELP_EDIT_DISTANCE_MAX + 1];
+  int current[HELP_EDIT_DISTANCE_MAX + 1];
+  size_t left_len, right_len, row, col;
+  int row_min, cost, best;
+
+  if (!left || !right || limit < 0)
+    return limit + 1;
+  left_len = strlen(left);
+  right_len = strlen(right);
+  if (left_len > HELP_EDIT_DISTANCE_MAX || right_len > HELP_EDIT_DISTANCE_MAX)
+    return limit + 1;
+  if ((left_len > right_len ? left_len - right_len : right_len - left_len) > (size_t)limit)
+    return limit + 1;
+
+  for (col = 0; col <= right_len; col++)
+    previous[col] = (int)col;
+
+  for (row = 1; row <= left_len; row++)
+  {
+    current[0] = (int)row;
+    row_min = current[0];
+    for (col = 1; col <= right_len; col++)
+    {
+      cost = LOWER(left[row - 1]) == LOWER(right[col - 1]) ? 0 : 1;
+      best = previous[col - 1] + cost;
+      if (previous[col] + 1 < best)
+        best = previous[col] + 1;
+      if (current[col - 1] + 1 < best)
+        best = current[col - 1] + 1;
+      current[col] = best;
+      if (best < row_min)
+        row_min = best;
+    }
+    if (row_min > limit)
+      return limit + 1;
+    memcpy(previous, current, sizeof(int) * (right_len + 1));
+  }
+
+  return previous[right_len] > limit ? limit + 1 : previous[right_len];
+}
+
+/* Concatenate two suggestion lists, primary first, dropping repeated
+ * keywords and anything past max_count. Both input lists are consumed. */
+struct help_keyword_list *help_merge_suggestions(struct help_keyword_list *primary,
+                                                 struct help_keyword_list *secondary, int max_count)
+{
+  struct help_keyword_list *lists[2] = {primary, secondary};
+  struct help_keyword_list *result = NULL, *tail = NULL, *node, *next, *seen;
+  int count = 0, index;
+  bool duplicate;
+
+  for (index = 0; index < 2; index++)
+  {
+    for (node = lists[index]; node; node = next)
+    {
+      next = node->next;
+      node->next = NULL;
+      duplicate = count >= max_count || !node->keyword;
+      for (seen = result; !duplicate && seen; seen = seen->next)
+        if (!str_cmp(seen->keyword, node->keyword))
+          duplicate = TRUE;
+      if (duplicate)
+      {
+        free_help_keyword_list(node);
+        continue;
+      }
+      if (tail)
+        tail->next = node;
+      else
+        result = node;
+      tail = node;
+      count++;
+    }
+  }
+
+  return result;
+}
+
+/* Rank every keyword of similar length by edit distance to the request.
+ * A short request tolerates one substitution; longer ones tolerate one per
+ * four characters. This catches transposed and dropped letters that the
+ * phonetic search misses, such as 'logds' for 'logs'. */
+static struct help_keyword_list *edit_distance_search_help_keywords(const char *argument, int level)
+{
+  PREPARED_STMT *pstmt;
+  struct help_keyword_list *best[HELP_EDIT_DISTANCE_SUGGESTIONS] = {NULL};
+  int best_distance[HELP_EDIT_DISTANCE_SUGGESTIONS];
+  struct help_keyword_list *result = NULL, *tail = NULL, *node;
+  const char *tag, *keyword;
+  size_t length;
+  int limit, distance, slot, shift;
+
+  if (!argument || !*argument || !conn || !MYSQL_PING_CONN(conn))
+    return NULL;
+  length = strlen(argument);
+  if (length > HELP_EDIT_DISTANCE_MAX)
+    return NULL;
+  limit = MAX(1, (int)length / 4);
+
+  pstmt = mysql_stmt_create(conn);
+  if (!pstmt)
+  {
+    log("SYSERR: Failed to create prepared statement for help edit-distance search");
+    return NULL;
+  }
+  if (!mysql_stmt_prepare_query(pstmt, "SELECT hk.help_tag, hk.keyword "
+                                       "FROM help_keywords hk "
+                                       "INNER JOIN help_entries he ON he.tag = hk.help_tag "
+                                       "WHERE he.min_level <= ? "
+                                       "AND LENGTH(hk.keyword) BETWEEN ? AND ?") ||
+      !mysql_stmt_bind_param_int(pstmt, 0, level) ||
+      !mysql_stmt_bind_param_int(pstmt, 1, MAX(1, (int)length - limit)) ||
+      !mysql_stmt_bind_param_int(pstmt, 2, (int)length + limit) ||
+      !mysql_stmt_execute_prepared(pstmt))
+  {
+    log("SYSERR: Failed to run help edit-distance search");
+    mysql_stmt_cleanup(pstmt);
+    return NULL;
+  }
+
+  while (mysql_stmt_fetch_row(pstmt))
+  {
+    tag = mysql_stmt_get_string(pstmt, 0);
+    keyword = mysql_stmt_get_string(pstmt, 1);
+    if (!tag || !keyword)
+      continue;
+    distance = help_keyword_edit_distance(argument, keyword, limit);
+    if (distance > limit)
+      continue;
+    for (slot = 0; slot < HELP_EDIT_DISTANCE_SUGGESTIONS; slot++)
+    {
+      if (best[slot] && !str_cmp(best[slot]->keyword, keyword))
+      {
+        slot = HELP_EDIT_DISTANCE_SUGGESTIONS;
+        break;
+      }
+      if (!best[slot] || distance < best_distance[slot])
+        break;
+    }
+    if (slot >= HELP_EDIT_DISTANCE_SUGGESTIONS)
+      continue;
+    node = alloc_help_keyword();
+    if (!node)
+      continue;
+    node->tag = strdup(tag);
+    node->keyword = strdup(keyword);
+    if (!node->tag || !node->keyword)
+    {
+      free_help_keyword_list(node);
+      continue;
+    }
+    free_help_keyword_list(best[HELP_EDIT_DISTANCE_SUGGESTIONS - 1]);
+    for (shift = HELP_EDIT_DISTANCE_SUGGESTIONS - 1; shift > slot; shift--)
+    {
+      best[shift] = best[shift - 1];
+      best_distance[shift] = best_distance[shift - 1];
+    }
+    best[slot] = node;
+    best_distance[slot] = distance;
+  }
+  mysql_stmt_cleanup(pstmt);
+
+  for (slot = 0; slot < HELP_EDIT_DISTANCE_SUGGESTIONS; slot++)
+  {
+    if (!best[slot])
+      continue;
+    best[slot]->next = NULL;
+    if (tail)
+      tail->next = best[slot];
+    else
+      result = best[slot];
+    tail = best[slot];
+  }
+  return result;
+}
+
 /**
  * Handler for soundex suggestions - always last in chain.
  * This is the fallback when no exact match is found.
@@ -1613,8 +1796,12 @@ int handle_soundex_suggestions(struct char_data *ch, const char *argument __attr
       log("DEBUG: Partial help was displayed, adding soundex suggestions for '%s'", raw_argument);
   }
 
-  /* Try soundex search for suggestions - use raw_argument not modified argument */
-  if ((keywords = soundex_search_help_keywords(raw_argument, GET_LEVEL(ch))) != NULL)
+  /* Closest spellings first, then the phonetic and substring matches.
+   * Use raw_argument, not the modified argument. */
+  keywords = help_merge_suggestions(edit_distance_search_help_keywords(raw_argument, GET_LEVEL(ch)),
+                                    soundex_search_help_keywords(raw_argument, GET_LEVEL(ch)),
+                                    HELP_SUGGESTION_LIMIT);
+  if (keywords != NULL)
   {
     soundex_matches_found = 1;
     if (ctx->partial_help_displayed)

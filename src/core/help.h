@@ -50,6 +50,16 @@ struct help_entry_list *search_help(const char *argument, int level);
 struct help_entry_list *search_help_fulltext(const char *search_term, int level);
 struct help_keyword_list *get_help_keywords(const char *tag);
 
+/* Suggestion ranking for misses: keywords are compared by edit distance and
+ * merged ahead of the phonetic matches. */
+#define HELP_EDIT_DISTANCE_MAX 128
+#define HELP_EDIT_DISTANCE_SUGGESTIONS 5
+#define HELP_SUGGESTION_LIMIT 10
+int help_keyword_edit_distance(const char *left, const char *right, int limit);
+struct help_keyword_list *help_merge_suggestions(struct help_keyword_list *primary,
+                                                 struct help_keyword_list *secondary,
+                                                 int max_count);
+
 /* Used during character creation, does not show all of the header information
  * shown by the do_help function, as players do not have access to the entire
  * help system during character creation. */

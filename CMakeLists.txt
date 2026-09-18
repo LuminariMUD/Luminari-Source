@@ -1197,6 +1197,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_study_pet_menus.c
     unittests/CuTest/test_bounds_checking.c
     unittests/CuTest/test_help_sync.c
+    unittests/CuTest/test_help_suggestions.c
     unittests/CuTest/test_artifacts.c
     unittests/CuTest/test_artifact_integration.c
     unittests/CuTest/test_player_rename.c
