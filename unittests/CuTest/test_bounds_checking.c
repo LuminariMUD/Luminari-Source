@@ -10,6 +10,7 @@
 #include "../../src/core/sysdep.h"
 #include "../../src/core/structs.h"
 #include "../../src/core/utils.h"
+#include "../../src/core/modify.h"
 #include "../../src/act/act.h"
 #include "../../src/magic/spells.h"
 #include "../../src/net/protocol.h"
@@ -150,6 +151,43 @@ void Test_strfrmt_preserves_wrapping_and_color_behavior(CuTest *tc)
                             0, FALSE, FALSE, FALSE));
   CuAssertStrEquals(tc, "first\r\nsecond\r\n",
                     strfrmt("first\\\\second", 20, 0, FALSE, FALSE, FALSE));
+}
+
+/* Fill the bytes after the terminator so that reading past it changes the
+ * result even without a sanitizer. */
+static void strip_colors_padded(char *buf, size_t size, const char *input)
+{
+  memset(buf, 'X', size);
+  buf[size - 1] = '\0';
+  memcpy(buf, input, strlen(input) + 1);
+  strip_colors(buf);
+}
+
+void Test_strip_colors_stops_at_a_trailing_marker(CuTest *tc)
+{
+  char buf[16];
+
+  strip_colors_padded(buf, sizeof(buf), "name@");
+  CuAssertStrEquals(tc, "name", buf);
+
+  strip_colors_padded(buf, sizeof(buf), "name\t");
+  CuAssertStrEquals(tc, "name", buf);
+
+  strip_colors_padded(buf, sizeof(buf), "@");
+  CuAssertStrEquals(tc, "", buf);
+
+  strip_colors_padded(buf, sizeof(buf), "\t");
+  CuAssertStrEquals(tc, "", buf);
+
+  /* Escaped markers and complete codes keep their existing behavior. */
+  strip_colors_padded(buf, sizeof(buf), "a@Rb@@c\tnd\t\te");
+  CuAssertStrEquals(tc, "ab@cd\te", buf);
+
+  strip_colors_padded(buf, sizeof(buf), "@@");
+  CuAssertStrEquals(tc, "@", buf);
+
+  strip_colors_padded(buf, sizeof(buf), "");
+  CuAssertStrEquals(tc, "", buf);
 }
 
 void Test_strpaste_rejects_an_oversized_joiner(CuTest *tc)
