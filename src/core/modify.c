@@ -108,6 +108,9 @@ void strip_colors(char *str)
     {
       if (*(p + 1) != '@')
       {
+        /* A lone marker at the end of the string has no code to skip. */
+        if (*(p + 1) == '\0')
+          break;
         p += 2;
       }
       else
@@ -120,6 +123,8 @@ void strip_colors(char *str)
     {
       if (*(p + 1) != '\t')
       {
+        if (*(p + 1) == '\0')
+          break;
         p += 2;
       }
       else
