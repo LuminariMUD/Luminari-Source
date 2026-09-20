@@ -4,7 +4,7 @@ Tracking issue: #208. Written 2026-09-20 from a trace of `master` at
 `e4897c4b8267f92a00066579664f8ec7ad83dced`; line
 numbers refer to that revision. Branch: `fix/208-summon-general-slots`.
 
-Status: complete (2026-09-20), PR #209 open. All five steps done; transcript in `docs/testing/pet-summon-general-slots-2026-09-20.txt`.
+Status: complete (2026-09-20), PR #209 open. All five steps done; transcript in `docs/testing/pet-summon-general-slots-2026-09-20.txt`. Review follow-up (same day) recorded below.
 
 ## Progress
 
@@ -254,3 +254,24 @@ Both places, per `AGENTS.md`: the development help database and `lib/text/help/h
   separate pools would be a rule change beyond the reported defect.
 - The refusal message from `mag_summons()` is unchanged. It already points at `pets`, and after
   step 3 `pets` gives the real reason.
+
+## Review follow-up (2026-09-20)
+
+The PR #209 review raised four points; all are in the branch.
+
+1. Owner class lookups (`IS_SUMMONER`, Necromancer) went straight to `player_specials`. They now
+   go through `follower_owner_class_level()`, which returns 0 for an NPC owner or a missing
+   `player_specials`, so the mob-caster checks in `src/mob/mob_spells.c` never read player data.
+2. A wild creature charmed in the world that shares its prototype with a summon spell (dire wolf,
+   dire bear, hound, and the rest of `isSummonMob()`) was classified as an ordinary summon and
+   took the dedicated summon slot, in play and on restore. `follower_category()` now treats it
+   as a General follower: only a prototype query (pre-spawn check) or a mobile that records its
+   summoning spell is a summon. This is the same distinction `pet_lifetime_kind()` already made.
+3. `follower_category_limit()` returned 1 for General and Summon after the refactor. It reports
+   the general-slot pool and the dedicated summon slots again, and `count_followers()` reads both
+   from it so there is one source for each number.
+4. The unrelated craft-training notes commit was dropped from the branch.
+
+Tests: `Test_pet_policy_charmed_wild_animal_is_a_general_follower` and
+`Test_pet_policy_npc_owner_uses_base_allowances_without_player_specials`; the existing
+dire-wolf fixtures now record their summoning spell, as live summons do.

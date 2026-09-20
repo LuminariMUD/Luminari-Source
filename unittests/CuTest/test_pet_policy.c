@@ -49,6 +49,9 @@ void Test_pet_admission_uses_existing_categories_without_materialization(CuTest 
     GET_MOB_RNUM(&prototypes[i]) = i;
     GET_MOB_RNUM(&pets[i]) = i;
     pets[i].master = &owner;
+    /* Live ordinary summons record their spell; the category ignores it for
+     * the genie and the retainer. */
+    pets[i].pet_source_spell = SPELL_SUMMON_CREATURE_3;
     links[i].follower = &pets[i];
   }
   mob_proto = prototypes;
@@ -269,6 +272,7 @@ void Test_pet_policy_extra_summons_consume_general_slots(CuTest *tc)
    * the single Charisma 10 general slot: the next summon needs a general slot. */
   begin_pet_policy_fixture(&fixture, 2);
   GET_MOB_RNUM(&fixture.pets[0]) = real_mobile(MOB_DIRE_WOLF);
+  fixture.pets[0].pet_source_spell = SPELL_SUMMON_CREATURE_3;
   shared_full = !can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
                 check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 0;
   GET_CHA(&fixture.owner) = 14;
@@ -276,10 +280,12 @@ void Test_pet_policy_extra_summons_consume_general_slots(CuTest *tc)
                check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 2;
   fixture.links[1].next = &fixture.links[2];
   GET_MOB_RNUM(&fixture.pets[2]) = real_mobile(MOB_DIRE_WOLF);
+  fixture.pets[2].pet_source_spell = SPELL_SUMMON_CREATURE_3;
   extra_room = extra_room && check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 1 &&
                can_add_follower(&fixture.owner, MOB_DIRE_WOLF);
   fixture.links[2].next = &fixture.links[3];
   GET_MOB_RNUM(&fixture.pets[3]) = real_mobile(MOB_DIRE_WOLF);
+  fixture.pets[3].pet_source_spell = SPELL_SUMMON_CREATURE_3;
   pool_full = check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 0 &&
               !can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
               !can_add_follower(&fixture.owner, RETAINER_MOB_VNUM);
@@ -306,14 +312,17 @@ void Test_pet_policy_summoner_has_two_dedicated_summon_slots(CuTest *tc)
           check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 1;
   fixture.owner.followers = &fixture.links[0];
   GET_MOB_RNUM(&fixture.pets[0]) = real_mobile(MOB_DIRE_WOLF);
+  fixture.pets[0].pet_source_spell = SPELL_SUMMON_CREATURE_3;
   second = can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
            check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 1;
   fixture.links[0].next = &fixture.links[1];
   GET_MOB_RNUM(&fixture.pets[1]) = real_mobile(MOB_DIRE_WOLF);
+  fixture.pets[1].pet_source_spell = SPELL_SUMMON_CREATURE_3;
   third = can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
           check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 1;
   fixture.links[1].next = &fixture.links[2];
   GET_MOB_RNUM(&fixture.pets[2]) = real_mobile(MOB_DIRE_WOLF);
+  fixture.pets[2].pet_source_spell = SPELL_SUMMON_CREATURE_3;
   fourth = check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 0 &&
            !can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
            !can_add_follower(&fixture.owner, RETAINER_MOB_VNUM);
@@ -322,6 +331,100 @@ void Test_pet_policy_summoner_has_two_dedicated_summon_slots(CuTest *tc)
   CuAssertTrue(tc, second);
   CuAssertTrue(tc, third);
   CuAssertTrue(tc, fourth);
+}
+
+/* A wild creature that shares its prototype with a summon spell is an ordinary
+ * charmed follower when charmed in the world: it uses a general slot, leaves
+ * the dedicated summon slot to real summons, and restores the same way.  Only a
+ * prototype query or a mobile that records its summoning spell is a summon. */
+void Test_pet_policy_charmed_wild_animal_is_a_general_follower(CuTest *tc)
+{
+  struct pet_policy_fixture fixture;
+  struct descriptor_data descriptor = {0};
+  struct char_data *staged[1];
+  bool admitted[1];
+  char reason[64];
+  bool general_slot, summon_slot_free, restore_denied, displayed, summoned;
+
+  begin_pet_policy_fixture(&fixture, 1);
+  GET_MOB_RNUM(&fixture.pets[0]) = real_mobile(MOB_DIRE_WOLF);
+  general_slot = !can_add_follower(&fixture.owner, RETAINER_MOB_VNUM) &&
+                 !can_add_follower_mobile(&fixture.owner, &fixture.pets[1]) &&
+                 check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 0;
+  summon_slot_free =
+      can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
+      can_add_summoned_followers(&fixture.owner, MOB_DIRE_WOLF, SPELL_SUMMON_CREATURE_3, 1);
+  GET_MOB_RNUM(&fixture.pets[1]) = real_mobile(MOB_DIRE_WOLF);
+  staged[0] = &fixture.pets[1];
+  memset(reason, 0, sizeof(reason));
+  restore_denied = select_restorable_followers(&fixture.owner, staged, 1, admitted, reason,
+                                               sizeof(reason)) == 0 &&
+                   strcmp(reason, "General: general slots 1/1 used") == 0;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &fixture.owner;
+  descriptor.pProtocol = ProtocolCreate();
+  if (descriptor.pProtocol == NULL)
+  {
+    end_pet_policy_fixture(&fixture);
+    CuFail(tc, "could not initialize the pet status fixture");
+    return;
+  }
+  fixture.owner.desc = &descriptor;
+  displayed =
+      check_npc_followers(&fixture.owner, NPC_MODE_DISPLAY, 0) == 1 &&
+      strstr(descriptor.output, "General slots: 1/1 used, 0 available") != NULL &&
+      strstr(descriptor.output, "Ordinary summons: 0/1 dedicated, 0 in general slots") != NULL;
+  fixture.owner.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  /* The same dire wolf recorded as a spell summon takes the dedicated slot. */
+  fixture.pets[0].pet_source_spell = SPELL_SUMMON_CREATURE_3;
+  summoned = can_add_follower(&fixture.owner, RETAINER_MOB_VNUM) &&
+             check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 1 &&
+             select_restorable_followers(&fixture.owner, staged, 1, admitted, NULL, 0) == 1;
+  end_pet_policy_fixture(&fixture);
+  CuAssertTrue(tc, general_slot);
+  CuAssertTrue(tc, summon_slot_free);
+  CuAssertTrue(tc, restore_denied);
+  CuAssertTrue(tc, displayed);
+  CuAssertTrue(tc, summoned);
+}
+
+/* NPC casters ask the same questions (mob_spells.c) and have no class levels:
+ * a mobile owner, even without player specials, gets the base allowances. */
+void Test_pet_policy_npc_owner_uses_base_allowances_without_player_specials(CuTest *tc)
+{
+  struct pet_policy_fixture fixture;
+  mob_rnum lesser;
+  bool undead_room, undead_full, summon_room, summon_full;
+
+  begin_pet_policy_fixture(&fixture, 2);
+  SET_BIT_AR(MOB_FLAGS(&fixture.owner), MOB_ISNPC);
+  fixture.owner.player_specials = NULL;
+  lesser = real_mobile(RETAINER_MOB_VNUM);
+  SET_BIT_AR(MOB_FLAGS(&fixture.prototypes[lesser]), MOB_ANIMATED_DEAD);
+  SET_BIT_AR(MOB_FLAGS(&fixture.pets[0]), MOB_ANIMATED_DEAD);
+  undead_room = can_add_follower_by_flag(&fixture.owner, MOB_ANIMATED_DEAD) &&
+                can_add_follower(&fixture.owner, RETAINER_MOB_VNUM);
+  SET_BIT_AR(MOB_FLAGS(&fixture.pets[1]), MOB_ANIMATED_DEAD);
+  undead_full = !can_add_follower_by_flag(&fixture.owner, MOB_ANIMATED_DEAD) &&
+                !can_add_follower(&fixture.owner, RETAINER_MOB_VNUM);
+  /* One dedicated summon slot, then the single Charisma 10 general slot. */
+  fixture.links[1].next = &fixture.links[2];
+  GET_MOB_RNUM(&fixture.pets[2]) = real_mobile(MOB_DIRE_WOLF);
+  fixture.pets[2].pet_source_spell = SPELL_SUMMON_CREATURE_3;
+  summon_room = can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
+                check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 1;
+  fixture.links[2].next = &fixture.links[3];
+  GET_MOB_RNUM(&fixture.pets[3]) = real_mobile(MOB_DIRE_WOLF);
+  fixture.pets[3].pet_source_spell = SPELL_SUMMON_CREATURE_3;
+  summon_full = !can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
+                check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 0;
+  end_pet_policy_fixture(&fixture);
+  CuAssertTrue(tc, undead_room);
+  CuAssertTrue(tc, undead_full);
+  CuAssertTrue(tc, summon_room);
+  CuAssertTrue(tc, summon_full);
 }
 
 void Test_pet_policy_display_handles_missing_rooms_and_reports_real_capacity(CuTest *tc)
@@ -479,6 +582,8 @@ void Test_pet_policy_staged_selection_is_deterministic_and_explains_denials(CuTe
   /* A staged summon fills the dedicated slot; the next needs the full general pool. */
   GET_MOB_RNUM(&fixture.pets[6]) = real_mobile(MOB_DIRE_WOLF);
   GET_MOB_RNUM(&fixture.pets[7]) = real_mobile(MOB_DIRE_WOLF);
+  fixture.pets[6].pet_source_spell = SPELL_SUMMON_CREATURE_3;
+  fixture.pets[7].pet_source_spell = SPELL_SUMMON_CREATURE_3;
   summons[0] = &fixture.pets[6];
   summons[1] = &fixture.pets[7];
   memset(summon_reasons, 0, sizeof(summon_reasons));
