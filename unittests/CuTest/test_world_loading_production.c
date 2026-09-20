@@ -809,3 +809,51 @@ void Test_olc_zone_and_shop_files_round_trip_through_the_loaders(CuTest *tc)
   CuAssertTrue(tc, WIFEXITED(status));
   CuAssertIntEquals(tc, 0, WEXITSTATUS(status));
 }
+
+void Test_world_loading_production_mob_path_espec_stops_at_array_bound(CuTest *tc)
+{
+  struct char_data prototype;
+  struct char_data *saved_mob_proto;
+  struct index_data prototype_index;
+  struct index_data *saved_mob_index;
+  mob_rnum saved_top_of_mobt;
+  char value[1024];
+  size_t used;
+  int room;
+
+  clear_char(&prototype);
+  memset(&prototype_index, 0, sizeof(prototype_index));
+  saved_mob_proto = mob_proto;
+  saved_mob_index = mob_index;
+  saved_top_of_mobt = top_of_mobt;
+  mob_proto = &prototype;
+  mob_index = &prototype_index;
+  top_of_mobt = 0;
+  prototype_index.vnum = 1234;
+  prototype.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_ISNPC);
+
+  /* A path line listing more rooms than the prototype array holds. */
+  used = (size_t)snprintf(value, sizeof(value), "10:");
+  for (room = 1; room <= MAX_PATH + 5; room++)
+  {
+    used += (size_t)snprintf(value + used, sizeof(value) - used, "%d ", 100 + room);
+  }
+  CuAssertTrue(tc, used < sizeof(value));
+
+  test_interpret_mobile_espec("Path", value, 0, 1234);
+
+  CuAssertIntEquals(tc, MAX_PATH, PATH_SIZE(&prototype));
+  CuAssertIntEquals(tc, 10, PATH_RESET(&prototype));
+  CuAssertIntEquals(tc, 101, GET_PATH(&prototype, 0));
+  CuAssertIntEquals(tc, 100 + MAX_PATH, GET_PATH(&prototype, MAX_PATH - 1));
+
+  /* A path that fits is still stored in full. */
+  test_interpret_mobile_espec("Path", "5:201 202 203", 0, 1234);
+  CuAssertIntEquals(tc, 3, PATH_SIZE(&prototype));
+  CuAssertIntEquals(tc, 203, GET_PATH(&prototype, 2));
+
+  mob_proto = saved_mob_proto;
+  mob_index = saved_mob_index;
+  top_of_mobt = saved_top_of_mobt;
+}
