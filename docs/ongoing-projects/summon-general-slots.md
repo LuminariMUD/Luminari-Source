@@ -270,7 +270,7 @@ The PR #209 review raised four points; all are in the branch.
 3. `follower_category_limit()` returned 1 for General and Summon after the refactor. It reports
    the general-slot pool and the dedicated summon slots again, and `count_followers()` reads both
    from it so there is one source for each number.
-4. The unrelated craft-training notes commit was dropped from the branch.
+4. The craft-training notes commit stays in the branch by the owner's decision.
 
 Tests: `Test_pet_policy_charmed_wild_animal_is_a_general_follower` and
 `Test_pet_policy_npc_owner_uses_base_allowances_without_player_specials`; the existing
