@@ -62,13 +62,21 @@ void Test_pet_admission_uses_existing_categories_without_materialization(CuTest 
   owner.followers = &links[real_mobile(MOB_DIRE_BADGER)];
   mixed = mixed && can_add_follower(&owner, MOB_DJINNI_KIND) &&
           can_add_follower(&owner, RETAINER_MOB_VNUM);
-  duplicate = duplicate && !can_add_follower(&owner, MOB_DIRE_BADGER);
+  /* A second ordinary summon is admitted into the free general slot. */
+  duplicate = duplicate && can_add_follower(&owner, MOB_DIRE_BADGER);
+  /* A Summoner has two dedicated summon slots; the third summon takes the one
+   * general slot of a Charisma 10 caster and the fourth is refused. */
   CLASS_LEVEL((&owner), CLASS_SUMMONER) = 1;
   summoner = can_add_follower(&owner, MOB_DIRE_BADGER);
   owner.followers->next = &links[real_mobile(MOB_DJINNI_KIND)];
   summoner = summoner && can_add_follower(&owner, MOB_DIRE_BADGER);
   GET_MOB_RNUM(&pets[real_mobile(MOB_DJINNI_KIND)]) = real_mobile(MOB_DIRE_BADGER);
+  summoner = summoner && can_add_follower(&owner, MOB_DIRE_BADGER);
+  owner.followers->next->next = &links[real_mobile(RETAINER_MOB_VNUM)];
+  GET_MOB_RNUM(&pets[real_mobile(RETAINER_MOB_VNUM)]) = real_mobile(MOB_DIRE_BADGER);
   summoner = summoner && !can_add_follower(&owner, MOB_DIRE_BADGER);
+  owner.followers->next->next = NULL;
+  GET_MOB_RNUM(&pets[real_mobile(RETAINER_MOB_VNUM)]) = real_mobile(RETAINER_MOB_VNUM);
 
   i = real_mobile(RETAINER_MOB_VNUM);
   owner.followers = &links[i];
@@ -252,13 +260,14 @@ void Test_pet_policy_source_flags_preserve_bonds_and_epic_allowances(CuTest *tc)
   CuAssertTrue(tc, invalid);
 }
 
-void Test_pet_policy_second_summon_requires_a_spare_general_slot(CuTest *tc)
+void Test_pet_policy_extra_summons_consume_general_slots(CuTest *tc)
 {
   struct pet_policy_fixture fixture;
-  bool shared_full, extra_room, summon_full, first_dedicated;
+  bool shared_full, extra_room, pool_full, shared_pool;
 
+  /* A non-Summoner with one dire wolf in the dedicated slot and a retainer in
+   * the single Charisma 10 general slot: the next summon needs a general slot. */
   begin_pet_policy_fixture(&fixture, 2);
-  CLASS_LEVEL((&fixture.owner), CLASS_SUMMONER) = 1;
   GET_MOB_RNUM(&fixture.pets[0]) = real_mobile(MOB_DIRE_WOLF);
   shared_full = !can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
                 check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 0;
@@ -267,18 +276,52 @@ void Test_pet_policy_second_summon_requires_a_spare_general_slot(CuTest *tc)
                check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 2;
   fixture.links[1].next = &fixture.links[2];
   GET_MOB_RNUM(&fixture.pets[2]) = real_mobile(MOB_DIRE_WOLF);
-  summon_full = !can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
-                check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 1;
-  fixture.owner.followers = &fixture.links[1];
-  fixture.links[1].next = NULL;
-  GET_CHA(&fixture.owner) = 10;
-  first_dedicated = can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
-                    check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 0;
+  extra_room = extra_room && check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 1 &&
+               can_add_follower(&fixture.owner, MOB_DIRE_WOLF);
+  fixture.links[2].next = &fixture.links[3];
+  GET_MOB_RNUM(&fixture.pets[3]) = real_mobile(MOB_DIRE_WOLF);
+  pool_full = check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 0 &&
+              !can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
+              !can_add_follower(&fixture.owner, RETAINER_MOB_VNUM);
+  /* Dismissing one overflow summon frees the slot for a charmed follower. */
+  fixture.links[2].next = NULL;
+  shared_pool = check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 1 &&
+                can_add_follower(&fixture.owner, RETAINER_MOB_VNUM) &&
+                can_add_follower(&fixture.owner, MOB_DIRE_WOLF);
   end_pet_policy_fixture(&fixture);
   CuAssertTrue(tc, shared_full);
   CuAssertTrue(tc, extra_room);
-  CuAssertTrue(tc, summon_full);
-  CuAssertTrue(tc, first_dedicated);
+  CuAssertTrue(tc, pool_full);
+  CuAssertTrue(tc, shared_pool);
+}
+
+void Test_pet_policy_summoner_has_two_dedicated_summon_slots(CuTest *tc)
+{
+  struct pet_policy_fixture fixture;
+  bool first, second, third, fourth;
+
+  begin_pet_policy_fixture(&fixture, 0);
+  CLASS_LEVEL((&fixture.owner), CLASS_SUMMONER) = 1;
+  first = can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
+          check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 1;
+  fixture.owner.followers = &fixture.links[0];
+  GET_MOB_RNUM(&fixture.pets[0]) = real_mobile(MOB_DIRE_WOLF);
+  second = can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
+           check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 1;
+  fixture.links[0].next = &fixture.links[1];
+  GET_MOB_RNUM(&fixture.pets[1]) = real_mobile(MOB_DIRE_WOLF);
+  third = can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
+          check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 1;
+  fixture.links[1].next = &fixture.links[2];
+  GET_MOB_RNUM(&fixture.pets[2]) = real_mobile(MOB_DIRE_WOLF);
+  fourth = check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 0 &&
+           !can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
+           !can_add_follower(&fixture.owner, RETAINER_MOB_VNUM);
+  end_pet_policy_fixture(&fixture);
+  CuAssertTrue(tc, first);
+  CuAssertTrue(tc, second);
+  CuAssertTrue(tc, third);
+  CuAssertTrue(tc, fourth);
 }
 
 void Test_pet_policy_display_handles_missing_rooms_and_reports_real_capacity(CuTest *tc)
@@ -301,10 +344,12 @@ void Test_pet_policy_display_handles_missing_rooms_and_reports_real_capacity(CuT
     return;
   }
   fixture.owner.desc = &descriptor;
-  displayed = check_npc_followers(&fixture.owner, NPC_MODE_DISPLAY, 0) == 1 &&
-              strstr(descriptor.output, "Away") != NULL &&
-              strstr(descriptor.output, "General slots: 1/3 used, 2 available") != NULL &&
-              can_add_follower(&fixture.owner, RETAINER_MOB_VNUM);
+  displayed =
+      check_npc_followers(&fixture.owner, NPC_MODE_DISPLAY, 0) == 1 &&
+      strstr(descriptor.output, "Away") != NULL &&
+      strstr(descriptor.output, "General slots: 1/3 used, 2 available") != NULL &&
+      strstr(descriptor.output, "Ordinary summons: 0/1 dedicated, 0 in general slots") != NULL &&
+      can_add_follower(&fixture.owner, RETAINER_MOB_VNUM);
   fixture.owner.desc = NULL;
   ProtocolDestroy(descriptor.pProtocol);
   end_pet_policy_fixture(&fixture);
@@ -408,7 +453,10 @@ void Test_pet_policy_staged_selection_is_deterministic_and_explains_denials(CuTe
   bool admitted[5];
   char reasons[5][64];
   int selected, i;
-  bool first_fit, reasons_named, live_counted, reordered, invalid;
+  struct char_data *summons[2];
+  bool summon_admitted[2];
+  char summon_reasons[2][64];
+  bool first_fit, reasons_named, summon_overflow, live_counted, reordered, invalid;
 
   /* One live general follower already uses the single Charisma slot. */
   begin_pet_policy_fixture(&fixture, 1);
@@ -427,6 +475,17 @@ void Test_pet_policy_staged_selection_is_deterministic_and_explains_denials(CuTe
                   strstr(reasons[3], "Eidolon") != NULL && strstr(reasons[3], "1/1") != NULL &&
                   strstr(reasons[4], "General") != NULL && reasons[1][0] == '\0' &&
                   reasons[2][0] == '\0';
+
+  /* A staged summon fills the dedicated slot; the next needs the full general pool. */
+  GET_MOB_RNUM(&fixture.pets[6]) = real_mobile(MOB_DIRE_WOLF);
+  GET_MOB_RNUM(&fixture.pets[7]) = real_mobile(MOB_DIRE_WOLF);
+  summons[0] = &fixture.pets[6];
+  summons[1] = &fixture.pets[7];
+  memset(summon_reasons, 0, sizeof(summon_reasons));
+  selected = select_restorable_followers(&fixture.owner, summons, 2, summon_admitted,
+                                         summon_reasons[0], sizeof(summon_reasons[0]));
+  summon_overflow = selected == 1 && summon_admitted[0] && !summon_admitted[1] &&
+                    strcmp(summon_reasons[1], "Summon: general slots 1/1 used") == 0;
 
   /* Without the live follower the first staged general pet takes the slot. */
   fixture.owner.followers = NULL;
@@ -454,6 +513,7 @@ void Test_pet_policy_staged_selection_is_deterministic_and_explains_denials(CuTe
   end_pet_policy_fixture(&fixture);
   CuAssertTrue(tc, first_fit);
   CuAssertTrue(tc, reasons_named);
+  CuAssertTrue(tc, summon_overflow);
   CuAssertTrue(tc, live_counted);
   CuAssertTrue(tc, reordered);
   CuAssertTrue(tc, invalid);

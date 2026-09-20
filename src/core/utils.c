@@ -1180,6 +1180,7 @@ struct follower_count_data
   int matching_vnum;
   int general_limit;
   int general_used;
+  int summon_dedicated;
 };
 
 static bool isGenieKind(int vnum)
@@ -1247,11 +1248,12 @@ static bool is_controlled_follower(struct char_data *owner, struct char_data *pe
   return pet != NULL && IS_PET(pet) && pet->master == owner && !MOB_FLAGGED(pet, MOB_NOTDEADYET);
 }
 
-/* The first ordinary summon has its own slot; the rest use general slots. */
+/* Ordinary summons fill the dedicated summon slots first; every summon beyond
+ * them shares the general slots with the General category. */
 static void follower_recount_general(struct follower_count_data *counts)
 {
-  counts->general_used =
-      counts->categories[FOLLOWER_GENERAL] + MAX(0, counts->categories[FOLLOWER_SUMMON] - 1);
+  counts->general_used = counts->categories[FOLLOWER_GENERAL] +
+                         MAX(0, counts->categories[FOLLOWER_SUMMON] - counts->summon_dedicated);
 }
 
 static void count_followers(struct char_data *ch, int flag, mob_vnum vnum,
@@ -1266,6 +1268,7 @@ static void count_followers(struct char_data *ch, int flag, mob_vnum vnum,
   if (ch == NULL)
     return;
   counts->general_limit = 1 + MAX(0, GET_CHA_BONUS(ch));
+  counts->summon_dedicated = IS_SUMMONER(ch) ? 2 : 1;
   for (link = ch->followers; link != NULL; link = link->next)
   {
     pet = link->follower;
@@ -1283,12 +1286,10 @@ static void count_followers(struct char_data *ch, int flag, mob_vnum vnum,
   follower_recount_general(counts);
 }
 
+/* Fixed-cap categories only.  General and Summon have no cap of their own; the
+ * general-slot pool in follower_category_available() decides them. */
 static int follower_category_limit(struct char_data *ch, size_t category)
 {
-  if (category == FOLLOWER_GENERAL)
-    return 1 + MAX(0, GET_CHA_BONUS(ch));
-  if (category == FOLLOWER_SUMMON)
-    return IS_SUMMONER(ch) ? 2 : 1;
   if (category == FOLLOWER_ORC_HORDE)
     return 4;
   if (follower_rules[category].flag == MOB_ANIMATED_DEAD)
@@ -1299,12 +1300,17 @@ static int follower_category_limit(struct char_data *ch, size_t category)
 static bool follower_category_available(struct char_data *ch, size_t category,
                                         const struct follower_count_data *counts)
 {
-  if (counts->categories[category] >= follower_category_limit(ch, category))
-    return false;
-  if (category == FOLLOWER_GENERAL ||
-      (category == FOLLOWER_SUMMON && counts->categories[FOLLOWER_SUMMON] > 0))
+  if (category == FOLLOWER_GENERAL)
     return counts->general_used < counts->general_limit;
-  return true;
+  if (category == FOLLOWER_SUMMON)
+    return counts->categories[FOLLOWER_SUMMON] < counts->summon_dedicated ||
+           counts->general_used < counts->general_limit;
+  return counts->categories[category] < follower_category_limit(ch, category);
+}
+
+static bool follower_uses_general_pool(size_t category)
+{
+  return category == FOLLOWER_GENERAL || category == FOLLOWER_SUMMON;
 }
 
 bool can_add_follower_by_flag(struct char_data *ch, int flag)
@@ -1331,7 +1337,9 @@ static bool follower_admit(struct char_data *ch, struct char_data *pet,
   size_t category = follower_category(pet, vnum);
   int cost = follower_control_cost(category, vnum);
 
-  if (!follower_category_available(ch, category, counts) ||
+  if (!follower_category_available(ch, category, counts))
+    return false;
+  if (!follower_uses_general_pool(category) &&
       counts->categories[category] + cost > follower_category_limit(ch, category))
     return false;
   counts->categories[category] += cost;
@@ -1347,9 +1355,7 @@ static void follower_denial_reason(struct char_data *ch, struct char_data *pet,
 {
   size_t category = follower_category(pet, follower_vnum(pet));
 
-  if (category == FOLLOWER_GENERAL ||
-      (category == FOLLOWER_SUMMON &&
-       counts->categories[FOLLOWER_SUMMON] < follower_category_limit(ch, FOLLOWER_SUMMON)))
+  if (follower_uses_general_pool(category))
     snprintf(reason, size, "%s: general slots %d/%d used", follower_rules[category].name,
              counts->general_used, counts->general_limit);
   else
@@ -1540,12 +1546,15 @@ int check_npc_followers(struct char_data *ch, int mode, int variable)
                      "gone if it passes while you are away.\r\nOrdinary spell summons last only "
                      "for this session and are never saved.\r\n");
     send_to_char(ch,
-                 "\tC%d pets. General slots: %d/%d used, %d available. "
-                 "Ordinary summons: %d/%d.\tn\r\n"
-                 "The first ordinary summon has its own slot; additional ones use general "
-                 "slots. Other categories have separate limits.\r\n",
+                 "\tC%d pets. General slots: %d/%d used, %d available.\tn\r\n"
+                 "Ordinary summons: %d/%d dedicated, %d in general slots.\r\n"
+                 "General slots are shared by charmed followers and ordinary summons beyond "
+                 "your dedicated slots.\r\nOther categories have their own limits and never "
+                 "use general slots.\r\n",
                  counts.total, counts.general_used, counts.general_limit, spare,
-                 counts.categories[FOLLOWER_SUMMON], follower_category_limit(ch, FOLLOWER_SUMMON));
+                 MIN(counts.categories[FOLLOWER_SUMMON], counts.summon_dedicated),
+                 counts.summon_dedicated,
+                 MAX(0, counts.categories[FOLLOWER_SUMMON] - counts.summon_dedicated));
     for (category = FOLLOWER_GENIE; category < FOLLOWER_RULE_COUNT; category++)
       if (follower_rules[category].flag == MOB_ANIMATED_DEAD)
         send_to_char(ch,

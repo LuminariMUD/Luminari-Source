@@ -4,15 +4,15 @@ Tracking issue: #208. Written 2026-09-20 from a trace of `master` at
 `e4897c4b8267f92a00066579664f8ec7ad83dced`; line
 numbers refer to that revision. Branch: `fix/208-summon-general-slots`.
 
-Status: planned, not started.
+Status: steps 1-3 implemented (2026-09-20); help text and verification remain.
 
 ## Progress
 
 Update this list with every commit, so a new session can resume from it.
 
-- [ ] Step 1: regression tests that fail on `master`.
-- [ ] Step 2: admission rule in `src/core/utils.c`.
-- [ ] Step 3: denial reason and PETS display.
+- [x] Step 1: regression tests that fail on `master` (5 of 29 `Test_pet_` cases failed before step 2).
+- [x] Step 2: admission rule in `src/core/utils.c` (`summon_dedicated`, pool checks, `follower_uses_general_pool()`).
+- [x] Step 3: denial reason `Summon: general slots N/N used` and PETS line `Ordinary summons: D/T dedicated, G in general slots.`
 - [ ] Step 4: help text (file and database).
 - [ ] Step 5: verification.
 
@@ -128,6 +128,8 @@ new rule for a non-Summoner, and add one Summoner test:
   two categories share one pool.
 - `Test_pet_policy_summoner_has_two_dedicated_summon_slots`. `CLASS_LEVEL(owner, CLASS_SUMMONER) = 1`, Charisma 10: two dire wolves are admitted with `NPC_MODE_SPARE` still 1, a third dire wolf
   is admitted and `NPC_MODE_SPARE` becomes 0, a fourth is refused.
+- The same test's `duplicate` check also asserted a non-Summoner's second dire badger is refused;
+  it now asserts admission into the free general slot.
 - In `Test_pet_admission_uses_existing_categories_without_materialization` (line 66-71) the
   Summoner branch currently ends with two summons and asserts a third is refused. Under the new
   rule the third summon is admitted (two dedicated, Charisma 10 gives one general slot). Change
@@ -187,8 +189,9 @@ No signature changes. `IS_SUMMONER` is `src/core/utils.h:2366` and already used 
   slots. Other categories have their own limits and never use general slots.
   ```
 
-  Print "Summoners have 2 dedicated" only when the character is not a Summoner, or print the
-  character's own dedicated count; decide during implementation and keep it to one line.
+  Implemented as the character's own dedicated count on one line:
+  `Ordinary summons: 1/1 dedicated, 1 in general slots.` followed by the two explanatory
+  sentences. No conditional Summoner note.
 
 - The refusal message in `mag_summons()` (`src/magic/magic.c:13232`) stays; `pets` now explains
   the limit correctly.
