@@ -3938,7 +3938,7 @@ void Test_gameplay_juggernaut_failed_publication_retains_daily_use(CuTest *tc)
 {
   struct gameplay_fixture f;
   struct player_special_data specials = {0};
-  struct char_data prototype, *pet, *owner;
+  struct char_data prototype, *pet, *extra, *owner;
   struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
   struct domain_event_subscription_config observer = {0};
   struct domain_event_subscription_handle subscription;
@@ -3955,6 +3955,7 @@ void Test_gameplay_juggernaut_failed_publication_retains_daily_use(CuTest *tc)
   owner->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
   GET_PFILEPOS(owner) = -1;
   CLASS_LEVEL(owner, CLASS_PSIONICIST) = 20;
+  GET_CHA(owner) = 10; /* one general slot beyond the dedicated summon slot */
   add_char_perk(owner, PERK_PSIONICIST_ASTRAL_JUGGERNAUT, CLASS_PSIONICIST);
   add_char_perk(owner, PERK_PSIONICIST_HARDENED_CONSTRUCTS_I, CLASS_PSIONICIST);
   add_char_perk(owner, PERK_PSIONICIST_HARDENED_CONSTRUCTS_II, CLASS_PSIONICIST);
@@ -3986,9 +3987,20 @@ void Test_gameplay_juggernaut_failed_publication_retains_daily_use(CuTest *tc)
   pet = owner->followers != NULL ? owner->followers->follower : NULL;
   spent = pet != NULL && GET_SIZE(pet) == SIZE_LARGE &&
           char_has_mud_event(owner, eASTRAL_JUGGERNAUT_USED) != NULL;
+  /* A second ordinary summon takes the general slot; the third is refused. */
   circle_srandom(421);
   mag_summons(20, owner, NULL, PSIONIC_ECTOPLASMIC_SHAMBLER, 0, CAST_SPELL);
-  denied = pet != NULL && owner->followers->follower == pet && owner->followers->next == NULL;
+  extra = owner->followers != NULL ? owner->followers->follower : NULL;
+  denied = pet != NULL && extra != NULL && extra != pet && owner->followers->next != NULL &&
+           owner->followers->next->follower == pet && owner->followers->next->next == NULL;
+  circle_srandom(421);
+  mag_summons(20, owner, NULL, PSIONIC_ECTOPLASMIC_SHAMBLER, 0, CAST_SPELL);
+  denied = denied && owner->followers->follower == extra && owner->followers->next->next == NULL;
+  if (extra != NULL)
+  {
+    extract_char(extra);
+    extract_pending_chars();
+  }
   if (pet != NULL)
   {
     boosted[0] = GET_HITROLL(pet);
