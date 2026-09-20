@@ -1,0 +1,131 @@
+#363
+forge anvil~
+a stone forge~
+A stone forge glows beside a heavy iron anvil.~
+~
+12 0 0 0 m 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+500 0 0 1 5
+E
+forge anvil~
+Coals glow deep in the belly of this stone forge, and a heavy iron anvil
+stands ready beside it.  Weaponsmithing, armorsmithing and metalworking
+projects and supply orders can be worked here.
+~
+G
+0
+H
+36
+I
+5
+J
+0
+#364
+loom~
+a wooden loom~
+A sturdy wooden loom is strung with a half-finished bolt of cloth.~
+~
+12 0 0 0 l 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+200 0 0 1 5
+E
+loom~
+A half-finished bolt of cloth stretches across the frame of this sturdy
+wooden loom.  Tailoring projects and supply orders can be worked here.
+~
+G
+0
+H
+8
+I
+5
+J
+0
+#365
+tannery rack~
+a tanning rack~
+A tanning rack hung with stretched hides stands over a vat of tannin.~
+~
+12 0 0 0 p 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+200 0 0 1 5
+E
+tannery rack~
+Stretched hides hang from this wooden rack above a vat of dark tannin.
+Leatherworking projects and supply orders can be worked here.
+~
+G
+0
+H
+8
+I
+5
+J
+0
+#366
+alchemy lab bench~
+an alchemy lab~
+An alchemy lab of glassware and burners bubbles quietly on a stone bench.~
+~
+12 0 0 0 n 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+200 0 0 1 5
+E
+alchemy lab bench~
+Retorts, alembics and burners crowd this stone bench, and something in one of
+the flasks bubbles quietly.  Alchemy projects and supply orders can be worked
+here.
+~
+G
+0
+H
+3
+I
+5
+J
+0
+#367
+carpentry table workbench~
+a carpentry table~
+A carpentry table covered in sawdust holds a rack of saws and chisels.~
+~
+12 0 0 0 q 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+300 0 0 1 5
+E
+carpentry table workbench~
+Sawdust covers this heavy carpentry table, and a rack of saws, planes and
+chisels hangs within reach.  Woodworking projects and supply orders can be
+worked here.
+~
+G
+0
+H
+8
+I
+5
+J
+0
+#368
+jewelcrafting station bench~
+a jewelcrafting station~
+A jewelcrafting station with a lens, a tiny vise and fine tools sits here.~
+~
+12 0 0 0 o 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+100 0 0 1 5
+E
+jewelcrafting station bench~
+A magnifying lens on a brass arm, a tiny vise and a tray of fine files and
+tweezers make up this jewelcrafting station.  Jewelcrafting projects and
+supply orders can be worked here.
+~
+G
+0
+H
+7
+I
+5
+J
+0
+$~

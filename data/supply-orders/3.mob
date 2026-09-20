@@ -1,0 +1,25 @@
+#372
+quartermaster supply master~
+the crafting quartermaster~
+The crafting quartermaster stands behind a ledger-strewn counter here.
+~
+   Ink stains the quartermaster's fingers and a stack of open contracts weighs
+down one corner of the counter.  Every guild, garrison and shop in Sanctus
+sends its orders for finished goods here, and the quartermaster pays good coin
+to any artisan willing to fill them.  Type 'supplyorder' to hear the terms.
+~
+bdnosx 0 0 d 0 0 0 0 0 E
+15 17 1 1d6+150 1d6+3
+0 0
+9 9 1
+Str: 14
+Dex: 12
+Int: 16
+Wis: 16
+Con: 12
+Cha: 14
+Race: 1
+Class: 3
+Size: 5
+E
+$~

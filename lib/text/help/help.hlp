@@ -36111,12 +36111,14 @@ In the Sanctus supply-order office (room 370), the room special intercepts:
 Put exactly three single-unit objects of the requested material, and nothing
 else, in a carried CRAFTING-KIT, then type AUTOCRAFT. Repeat for all five items.
 
-BUILDER-BOUND MOBILE HANDLER
-A mobile with the "New Supply Orders" special intercepts SUPPLYORDER in its
-room and runs the general command below, so every subcommand works there.
-Subcommands that need a quartermaster still need a mobile flagged QUARTERMASTER
-in the room. The tracked source does not bind this special, but builders can
-assign it.
+WHERE TO FIND IT
+The crafting quartermaster stands in the central Crafting Benches room of the
+Sanctus III crafting district (room 372, east of the Slanting Passageway and
+south of the master artisan), together with a forge, a loom, a tanning rack,
+an alchemy lab, a carpentry table and a jewelcrafting station. Every step of
+an order can be done in that room. Builders can add more quartermasters with
+the QUARTERMASTER mobile flag, or bind the "New Supply Orders" mobile special
+so the mobile intercepts SUPPLYORDER itself; the flag is still required.
 
 MATERIALS-AND-MOTES GENERAL COMMAND
 Outside the room-370 office, the general command accepts:
@@ -36125,7 +36127,7 @@ Outside the room-370 office, the general command accepts:
   supplyorder request
   supplyorder show|status|info
   supplyorder start|begin
-  supplyorder material add <material>
+  supplyorder material add <material> (full name, e.g. ADD LOW GRADE HIDE)
   supplyorder material remove         (MATERIALS is also accepted)
   supplyorder complete|finish
   supplyorder reset|abandon|cancel
