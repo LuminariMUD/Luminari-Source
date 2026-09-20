@@ -275,3 +275,20 @@ The PR #209 review raised four points; all are in the branch.
 Tests: `Test_pet_policy_charmed_wild_animal_is_a_general_follower` and
 `Test_pet_policy_npc_owner_uses_base_allowances_without_player_specials`; the existing
 dire-wolf fixtures now record their summoning spell, as live summons do.
+
+## Second review round (2026-09-20)
+
+1. The prototype check from the first round made `can_add_follower()` classify a bought or
+   item-made pet on a summon prototype (hound, dire wolf) as a Summon while the live pet counted
+   as General, so a pet shop could bypass a full general pool and the pet was refused on the next
+   login. `follower_category()` no longer inspects where the pointer lives: a mobile is a Summon
+   only when it records its summoning spell. `can_add_summoned_followers()` asks for the summon
+   slots itself when an ordinary summon spell names a prototype that would otherwise be General;
+   prototypes in a named category (racial warg, artifact creatures) keep their own rule.
+2. The pointer-range comparison went away with that check.
+3. `follower_category_limit()` guards the `follower_rules` index.
+4. The craft-training notes stay in the branch by the owner's decision.
+
+`Test_pet_policy_charmed_wild_animal_is_a_general_follower` now also checks that
+`can_add_follower()` on the dire-wolf prototype needs a general slot while the summon spell gets
+the dedicated slot; summon-intent checks in the fixtures use `can_add_summoned_followers()`.
