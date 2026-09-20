@@ -100,6 +100,47 @@ void Test_command_dispatch_lookup(CuTest *tc)
     free_command_list();
 }
 
+/* command_interpreter() dispatches the first table row whose name starts with
+ * the typed text, so a short prefix must land on the intended command. */
+static int first_prefix_match(const char *typed)
+{
+  int cmd;
+  size_t length = strlen(typed);
+
+  for (cmd = 0; *complete_cmd_info[cmd].command != '\n'; cmd++)
+    if (complete_cmd_info[cmd].command_pointer != do_action &&
+        !strncmp(complete_cmd_info[cmd].command, typed, length))
+      return cmd;
+
+  return -1;
+}
+
+void Test_command_prefix_priority_tell_and_summon(CuTest *tc)
+{
+  int cmd;
+  bool created_command_list;
+
+  created_command_list = false;
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+
+  cmd = first_prefix_match("t");
+  CuAssertTrue(tc, cmd >= 0);
+  CuAssertStrEquals(tc, "tell", complete_cmd_info[cmd].command);
+  CuAssertTrue(tc, complete_cmd_info[cmd].command_pointer == do_tell);
+
+  cmd = first_prefix_match("summon");
+  CuAssertTrue(tc, cmd >= 0);
+  CuAssertStrEquals(tc, "summon", complete_cmd_info[cmd].command);
+  CuAssertTrue(tc, complete_cmd_info[cmd].command_pointer == do_summon);
+
+  if (created_command_list)
+    free_command_list();
+}
+
 void Test_command_table_excludes_unimplemented_commands(CuTest *tc)
 {
   bool created_command_list;

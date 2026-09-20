@@ -313,6 +313,23 @@ cpp_extern const struct command_info cmd_info[] = {
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
+    /* High-priority commands: these must precede every other row that shares
+     * their prefix, because find_command() takes the first prefix match in
+     * table order. "t" must resolve to tell, and "summon" typed in full must
+     * resolve to the pet recall rather than summonwarg/summonhorde. */
+    {"tell",
+     "t",
+     POS_DEAD,
+     do_tell,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
+    {"summon", "summon", POS_RECLINING, do_summon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+
     {"abilities",
      "abilities",
      POS_DEAD,
@@ -4977,21 +4994,9 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_NONE,
      {0, 0},
      NULL},
-    {"summon", "summon", POS_RECLINING, do_summon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"statcap", "statcap", POS_RECLINING, do_statcap, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
-    {"tell",
-     "t",
-     POS_DEAD,
-     do_tell,
-     0,
-     0,
-     TRUE,
-     ACTION_NONE,
-     {0, 0},
-     NULL,
-     CMD_FEATURE_ACTIVITY_SPEECH},
     {"testartifact",
      "testartifact",
      POS_DEAD,
