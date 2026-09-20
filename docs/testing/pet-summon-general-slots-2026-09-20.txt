@@ -1,0 +1,334 @@
+Pet summon general-slot acceptance - 2026-09-20
+================================================
+
+Scope
+-----
+
+Issue #208: ordinary summons beyond the dedicated slot must use general
+slots, as the pets display and the CHARMEES help already promised.
+
+Tested revision
+---------------
+
+Branch fix/208-summon-general-slots at 6f703c16d on top of master
+ed336925d.  The server binary was the release installed by make install
+after the full suite (build id 4c5688c7f03c3c0f208e76719d8e949f31932a35).
+
+Production-linked suite
+-----------------------
+
+  make -j$(nproc) test        OK (1682 tests)
+  make install                no root-level luminari artifact remains
+  CUTEST_FILTER=Test_pet_ ./cutest          OK (29 tests)
+  CUTEST_FILTER=Test_necromancer ./cutest   OK
+
+Live acceptance on port 4100 (worktree server in a private network
+namespace, Kohdee, Charisma set to 14 for three general slots)
+----------------------------------------------------------------------
+
+Sequence: four summon creature i casts (one dedicated slot plus three
+general slots), a fifth cast refused, charm person refused for the same
+reason, one summon dismissed, charm person admitted, a further summon
+refused again, quit and log back in (summons gone, charmed janitor
+restored into the general slot), help charmees and help pets.
+
+Transcript
+----------
+
+>>> goto 3054
+[ 3054] By The Temple Altar [ Indoors ]  [Inside] ( None )
+You are by the temple altar in the northern end of the            [,]
+Temple of Midgen. A huge altar made from white polished            |
+marble dominates this part of the temple. Towering behind [.]-[$]-[-]-[-]-[-]
+the altar is a ten foot tall sitting statue of Odin, the
+King of the Gods. To the north, steps lead out the back           [&]
+of the temple towards the countryside.                             | +
+                                                              [$]-[.]-[.]
+                                                                   |
+                                                              [.] [|] [.]-[.]
+[ Exits: (N) S ]
+[3124] A shimmering portal leading to Sanctus is here.
+
+>>> set self cha 14
+Kohdee's cha set to 14.
+
+>>> pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+Durable pets and timed control are saved with you; control time pauses while you are offline.
+Timed summons keep a real-time deadline and are gone if it passes while you are away.
+Ordinary spell summons last only for this session and are never saved.
+0 pets. General slots: 0/3 used, 3 available.
+Ordinary summons: 0/1 dedicated, 0 in general slots.
+General slots are shared by charmed followers and ordinary summons beyond your dedicated slots.
+Other categories have their own limits and never use general slots.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+
+>>> cast 'summon creature i'
+*augmented* *improved augmentation* *epic augmentation* [Greater Summons +25% HP] [Greater Summons +4 attack] [Greater Summons +1d6 dmg] A dire badger skimpers into the area, then quickly moves next to you.
+[Group] a dire badger joins the group.
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+>>> pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+--------------------------------------------------------------------------------
+Durable pets and timed control are saved with you; control time pauses while you are offline.
+Timed summons keep a real-time deadline and are gone if it passes while you are away.
+Ordinary spell summons last only for this session and are never saved.
+1 pets. General slots: 0/3 used, 3 available.
+Ordinary summons: 1/1 dedicated, 0 in general slots.
+General slots are shared by charmed followers and ordinary summons beyond your dedicated slots.
+Other categories have their own limits and never use general slots.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+
+>>> cast 'summon creature i'
+*augmented* *improved augmentation* *epic augmentation* [Greater Summons +25% HP] [Greater Summons +4 attack] [Greater Summons +1d6 dmg] A dire badger skimpers into the area, then quickly moves next to you.
+[Group] a dire badger joins the group.
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+>>> pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+2 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+--------------------------------------------------------------------------------
+Durable pets and timed control are saved with you; control time pauses while you are offline.
+Timed summons keep a real-time deadline and are gone if it passes while you are away.
+Ordinary spell summons last only for this session and are never saved.
+2 pets. General slots: 1/3 used, 2 available.
+Ordinary summons: 1/1 dedicated, 1 in general slots.
+General slots are shared by charmed followers and ordinary summons beyond your dedicated slots.
+Other categories have their own limits and never use general slots.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+
+>>> cast 'summon creature i'
+*augmented* *improved augmentation* *epic augmentation* [Greater Summons +25% HP] [Greater Summons +4 attack] [Greater Summons +1d6 dmg] A dire badger skimpers into the area, then quickly moves next to you.
+[Group] a dire badger joins the group.
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+>>> pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+2 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+3 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+--------------------------------------------------------------------------------
+Durable pets and timed control are saved with you; control time pauses while you are offline.
+Timed summons keep a real-time deadline and are gone if it passes while you are away.
+Ordinary spell summons last only for this session and are never saved.
+3 pets. General slots: 2/3 used, 1 available.
+Ordinary summons: 1/1 dedicated, 2 in general slots.
+General slots are shared by charmed followers and ordinary summons beyond your dedicated slots.
+Other categories have their own limits and never use general slots.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+
+>>> cast 'summon creature i'
+*augmented* *improved augmentation* *epic augmentation* [Greater Summons +25% HP] [Greater Summons +4 attack] [Greater Summons +1d6 dmg] A dire badger skimpers into the area, then quickly moves next to you.
+[Group] a dire badger joins the group.
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+>>> pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+2 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+3 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+4 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+--------------------------------------------------------------------------------
+Durable pets and timed control are saved with you; control time pauses while you are offline.
+Timed summons keep a real-time deadline and are gone if it passes while you are away.
+Ordinary spell summons last only for this session and are never saved.
+4 pets. General slots: 3/3 used, 0 available.
+Ordinary summons: 1/1 dedicated, 3 in general slots.
+General slots are shared by charmed followers and ordinary summons beyond your dedicated slots.
+Other categories have their own limits and never use general slots.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+
+>>> cast 'summon creature i'
+You cannot control that summon group; use 'pets' to check your limits.
+
+>>> pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+2 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+3 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+4 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+--------------------------------------------------------------------------------
+Durable pets and timed control are saved with you; control time pauses while you are offline.
+Timed summons keep a real-time deadline and are gone if it passes while you are away.
+Ordinary spell summons last only for this session and are never saved.
+4 pets. General slots: 3/3 used, 0 available.
+Ordinary summons: 1/1 dedicated, 3 in general slots.
+General slots are shared by charmed followers and ordinary summons beyond your dedicated slots.
+Other categories have their own limits and never use general slots.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+
+>>> load mob 3061
+You create the janitor.
+
+>>> cast 'charm person' janitor
+You can not manage more followers!
+
+>>> pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+2 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+3 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+4 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+--------------------------------------------------------------------------------
+Durable pets and timed control are saved with you; control time pauses while you are offline.
+Timed summons keep a real-time deadline and are gone if it passes while you are away.
+Ordinary spell summons last only for this session and are never saved.
+4 pets. General slots: 3/3 used, 0 available.
+Ordinary summons: 1/1 dedicated, 3 in general slots.
+General slots are shared by charmed followers and ordinary summons beyond your dedicated slots.
+Other categories have their own limits and never use general slots.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+
+>>> pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+2 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+3 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+4 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+--------------------------------------------------------------------------------
+Durable pets and timed control are saved with you; control time pauses while you are offline.
+Timed summons keep a real-time deadline and are gone if it passes while you are away.
+Ordinary spell summons last only for this session and are never saved.
+4 pets. General slots: 3/3 used, 0 available.
+Ordinary summons: 1/1 dedicated, 3 in general slots.
+General slots are shared by charmed followers and ordinary summons beyond your dedicated slots.
+Other categories have their own limits and never use general slots.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+
+>>> dismiss badger
+You dismiss a dire badger.
+A dire badger is no longer serving you!
+[Group] a dire badger has left the group.
+
+>>> pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+2 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+3 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+--------------------------------------------------------------------------------
+Durable pets and timed control are saved with you; control time pauses while you are offline.
+Timed summons keep a real-time deadline and are gone if it passes while you are away.
+Ordinary spell summons last only for this session and are never saved.
+3 pets. General slots: 2/3 used, 1 available.
+Ordinary summons: 1/1 dedicated, 2 in general slots.
+General slots are shared by charmed followers and ordinary summons beyond your dedicated slots.
+Other categories have their own limits and never use general slots.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+
+>>> cast 'charm person' janitor
+*(Challenge:29>Will:10) Opponent Failed Save!* The janitor starts following you.
+[Group] the janitor joins the group.
+
+>>> pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) the janitor - By The Temple Altar - General [follow] [#47345989] - timed control, pauses offline
+2 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+3 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+4 ) a dire badger - By The Temple Altar - Summon [follow] - this session only, not saved
+--------------------------------------------------------------------------------
+Durable pets and timed control are saved with you; control time pauses while you are offline.
+Timed summons keep a real-time deadline and are gone if it passes while you are away.
+Ordinary spell summons last only for this session and are never saved.
+4 pets. General slots: 3/3 used, 0 available.
+Ordinary summons: 1/1 dedicated, 2 in general slots.
+General slots are shared by charmed followers and ordinary summons beyond your dedicated slots.
+Other categories have their own limits and never use general slots.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+
+>>> cast 'summon creature i'
+You cannot control that summon group; use 'pets' to check your limits.
+
+>>> save
+Saving Kohdee.
+
+>>> quit
+[ Kohdee has quit the game. ]
+Goodbye, friend.. Come back soon!
+The janitor is no longer serving you!
+[Group] the janitor has left the group.
+A dire badger is no longer serving you!
+[Group] a dire badger has left the group.
+A dire badger is no longer serving you!
+[Group] a dire badger has left the group.
+A dire badger is no longer serving you!
+[Group] a dire badger has left the group.
+
+Logged back in as Kohdee.
+
+>>> pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) the janitor - By The Temple Altar - General [follow] [#47345989] - timed control, pauses offline
+--------------------------------------------------------------------------------
+Durable pets and timed control are saved with you; control time pauses while you are offline.
+Timed summons keep a real-time deadline and are gone if it passes while you are away.
+Ordinary spell summons last only for this session and are never saved.
+1 pets. General slots: 1/3 used, 2 available.
+Ordinary summons: 0/1 dedicated, 0 in general slots.
+General slots are shared by charmed followers and ordinary summons beyond your dedicated slots.
+Other categories have their own limits and never use general slots.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+
+>>> help charmees
+[ Return to continue, (q)uit, (r)efresh, (b)ack, or page number (1/2) ]
+--------------------------------------------------------------------------------
+Help Tag      : charmee
+Help Keywords : Charmee, Charmees, Charmie, Charmies, Followers
+Last Updated  : 2026-09-20 17:41:28
+--------------------------------------------------------------------------------
+Charmee is a term coined for mobile (non-player) characters that are
+either charmed, or otherwise controlled by PC (player characters).
+
+Use 'pets' to see your controlled NPCs, their locations and categories, and
+your available general follower slots. Ordinary social followers are separate.
+
+General followers have one base slot plus your positive Charisma modifier.
+Your first ordinary summon has a dedicated slot (a Summoner has two). Every
+ordinary summon after that uses one general slot, so with free general slots
+you can keep summoning. Companion bonds, mercenaries, golems, genies,
+elementals, and special summons use their own limits and never use general
+slots. An animal companion is not also an ordinary summon just because it
+shares a creature type with one.
+
+Animation uses 2 control points, or 4 for a necromancer. Lesser undead cost 1
+point and elite undead cost 2; see ANIMATE-DEAD for form costs. Epic summons such as
+Mummy Dust have separate allowances. An authored multi-creature spell can
+produce its whole group; this does not grant unlimited repeated casts.
+
+Persistence and duration depend on how a follower was acquired. Do not
+[Page 1/2]
+
+[ Return to continue, (q)uit, (r)efresh, (b)ack, or page number (1/2) ]
+
+>>> help pets
+[ Return to continue, (q)uit, (r)efresh, (b)ack, or page number (1/4) ]
+--------------------------------------------------------------------------------
+Help Tag      : pets
+Help Keywords : Animals, Black-bear, Buy-pet, Buy-pets, Cohort, Companion, Companions, Henchmen, Hired-mercenary, Hired-mount, Hired-pet, Horse, Mercenaries, Mercenary, Pet-commands, Pets, Pony, Retain, Retainer, Wardog
+Last Updated  : 2026-09-20 17:41:28
+--------------------------------------------------------------------------------
+   A few stores within the realm will allow you to buy pets. These pets are
+your obedient servants. As such you will be able to order them to do as you
+wish.
+
+Similarly you can find henchmen and mercenaries that can be hired by gold or tasks.
+
+Limits depend on follower type. Use 'pets' to see current categories and
+capacity; see CHARMEE for control rules. Ordinary summons beyond your
+dedicated slot use general slots; see CHARMEE.
+
+Usage: pets <pet|followers> <follow|wait|passive|assist|guard>
+Use a numbered name such as 2.wolf to select one of several matching pets.
+PETS shows assigned stable IDs as #123. Use that ID instead of a name in
+pets #123 wait, order #123 stand, dismiss #123, or stable store #123.
+The ID stays the same through saving and keeper storage. Pets without an
+assigned ID can still be selected by name. IDs do not bypass room or control
+restrictions. Stable reclaim continues to accept its listed number or raw ID.
+Only loyal pets in your room can accept a behavior change.
+Follow keeps normal following and assistance. Wait stops automatic f
+[Page 1/4]
+
+[ Return to continue, (q)uit, (r)efresh, (b)ack, or page number (1/4) ]

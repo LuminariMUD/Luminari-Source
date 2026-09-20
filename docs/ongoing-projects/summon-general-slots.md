@@ -4,7 +4,7 @@ Tracking issue: #208. Written 2026-09-20 from a trace of `master` at
 `e4897c4b8267f92a00066579664f8ec7ad83dced`; line
 numbers refer to that revision. Branch: `fix/208-summon-general-slots`.
 
-Status: steps 1-4 implemented (2026-09-20); verification (step 5) remains.
+Status: complete (2026-09-20). All five steps done; transcript in `docs/testing/pet-summon-general-slots-2026-09-20.txt`.
 
 ## Progress
 
@@ -14,7 +14,7 @@ Update this list with every commit, so a new session can resume from it.
 - [x] Step 2: admission rule in `src/core/utils.c` (`summon_dedicated`, pool checks, `follower_uses_general_pool()`).
 - [x] Step 3: denial reason `Summon: general slots N/N used` and PETS line `Ordinary summons: D/T dedicated, G in general slots.`
 - [x] Step 4: help text. Dev DB rows `charmee` and `pets` updated (archived to `help_versions` first), `help.hlp` regenerated from the dev catalog; audit shows both dev layers matching. Production help is untouched.
-- [ ] Step 5: verification.
+- [x] Step 5: verification. Full suite OK (1682 tests) after restating the juggernaut e2e denial (`Test_gameplay_juggernaut_failed_publication_retains_daily_use` locked in the old cap); `make install` clean; live check on 4100 in a private network namespace as Kohdee with Charisma 14, recorded in `docs/testing/pet-summon-general-slots-2026-09-20.txt`.
 
 ## The defect
 
@@ -241,6 +241,7 @@ Both places, per `AGENTS.md`: the development help database and `lib/text/help/h
 | `unittests/CuTest/test_pet_policy.c` | step 1 |
 | `lib/text/help/help.hlp` | step 4, regenerated from the catalog |
 | development help database | step 4 |
+| `unittests/CuTest/test_gameplay_e2e.c` | step 5: juggernaut test expects the second shambler in the general slot |
 | `docs/testing/pet-summon-general-slots-2026-09-20.txt` | step 5 transcript |
 
 `Makefile.am` and `CMakeLists.txt` are not touched: no source file is added or removed.
