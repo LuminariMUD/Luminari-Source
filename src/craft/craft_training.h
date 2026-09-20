@@ -17,11 +17,11 @@ struct char_data;
 struct descriptor_data;
 
 /* A contract lasts this many seconds of wall-clock time. */
-#define CRAFT_TRAINING_DURATION ((time_t)24 * 60 * 60)
+#define CRAFT_TRAINING_DURATION ((time_t)6 * 60 * 60)
 /* A contract starts only below this rank. */
 #define CRAFT_TRAINING_RANK_CEILING 20
 /* The fee is this many gold coins times (rank + 1) squared. */
-#define CRAFT_TRAINING_FEE_BASE 100
+#define CRAFT_TRAINING_FEE_BASE 400
 
 /** True for the craft and harvest abilities a trainer can train. */
 bool craft_training_track_eligible(int ability);

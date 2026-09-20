@@ -83,7 +83,7 @@ static void craft_training_list(struct char_data *ch, struct char_data *trainer)
 {
   int ability, rank;
 
-  act("$N can train these skills while you spend a day away from play:", FALSE, ch, 0, trainer,
+  act("$N can train these skills while you spend six hours away from play:", FALSE, ch, 0, trainer,
       TO_CHAR);
   send_to_char(ch, "%-16s %4s %10s %8s\r\n", "Skill", "Rank", "Experience", "Fee");
   for (ability = START_CRAFT_ABILITIES; ability <= END_HARVEST_ABILITIES; ability++)

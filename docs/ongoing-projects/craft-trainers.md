@@ -173,20 +173,20 @@ final (decision 1).
 
 | Tunable | Value | Reason |
 | -- | -- | -- |
-| Duration | 24 hours of wall-clock time | Issue proposal |
+| Duration | 6 hours of wall-clock time | Owner decision 2026-09-20 (was 24 hours from the issue proposal) |
 | Grant | Half of the next rank's requirement: 500 x (rank + 1) | A meaningful share of one rank |
 | Rank ceiling | A contract starts only below rank 20 | Leaves the top of each track to active play and bounds what gold alone buys |
-| Fee | 100 x (rank + 1)^2 gold, from gold on hand | Gold per experience point rises with rank |
+| Fee | 400 x (rank + 1)^2 gold, from gold on hand | Gold per experience point rises with rank; quadrupled with the duration cut so gold per hour away is unchanged |
 | Insightful talent | Applies, through `gain_craft_exp()` | No second grant path |
 | Cooldown | None beyond one contract per character | The ceiling already bounds a permanently training alt |
 
 | Rank | Next rank needs | Grant | Grant with +25% | Fee | Gold per point |
 | -: | -: | -: | -: | -: | -: |
-| 0 | 1,000 | 500 | 625 | 100 | 0.2 |
-| 4 | 5,000 | 2,500 | 3,125 | 2,500 | 1.0 |
-| 9 | 10,000 | 5,000 | 6,250 | 10,000 | 2.0 |
-| 14 | 15,000 | 7,500 | 9,375 | 22,500 | 3.0 |
-| 19 | 20,000 | 10,000 | 12,500 | 40,000 | 4.0 |
+| 0 | 1,000 | 500 | 625 | 400 | 0.8 |
+| 4 | 5,000 | 2,500 | 3,125 | 10,000 | 4.0 |
+| 9 | 10,000 | 5,000 | 6,250 | 40,000 | 8.0 |
+| 14 | 15,000 | 7,500 | 9,375 | 90,000 | 12.0 |
+| 19 | 20,000 | 10,000 | 12,500 | 160,000 | 16.0 |
 
 What these values guarantee:
 
@@ -198,9 +198,9 @@ What these values guarantee:
 - **Well below active play.** At rank 9 a character can attempt items up to level 19 (the check
   refuses when 20 + rank is below 10 + item level), and one 60-second create of such an item grants
   950 experience, so the rank-9 grant equals about five creates. At rank 19 it equals about seven. A
-  day away buys minutes of materials-limited crafting.
-- **Bounded spending.** Training from rank 0 to the ceiling takes at most 40 daily contracts and
-  574,000 gold; from rank 10 it takes at most 20 contracts and 497,000 gold. Then the trainer
+  six-hour contract buys minutes of materials-limited crafting.
+- **Bounded spending.** Training from rank 0 to the ceiling takes at most 40 contracts and
+  2,296,000 gold; from rank 10 it takes at most 20 contracts and 1,988,000 gold. Then the trainer
   refuses.
 
 ### Contract record
@@ -361,7 +361,7 @@ Done. As built:
   record removes the line), `Test_craft_training_ignores_malformed_contracts`,
   `Test_craft_training_grant_never_crosses_two_ranks` (every trainable track and rank below the
   ceiling, with every talent at its highest rank, through `gain_craft_exp()`),
-  `Test_craft_training_fee_rises_with_rank` (also checks the 574,000 gold total), and
+  `Test_craft_training_fee_rises_with_rank` (also checks the 2,296,000 gold total), and
   `Test_craft_training_status_counts_down_to_finished`.
 
 Plan as written:
@@ -613,9 +613,10 @@ no timers or scans, one contract per character, and the out-of-scope list.
 
 The owner accepted these defaults as final on 2026-09-16.
 
-1. **Tunables:** the table under Design (24 hours, half of the next rank's requirement, contracts
-   only below rank 20, a fee of 100 x (rank + 1)^2 gold). They are constants in one header, so
-   retuning later changes one file.
+1. **Tunables:** the table under Design (6 hours, half of the next rank's requirement, contracts
+   only below rank 20, a fee of 400 x (rank + 1)^2 gold). They are constants in one header, so
+   retuning later changes one file. On 2026-09-20 the owner cut the duration from 24 hours to 6
+   and quadrupled the fee to match.
 2. **Cooldown or weekly cap:** none. The rank ceiling bounds an always-training alt.
 3. **Insightful bonus on trainer experience:** applies.
 4. **Web lobby:** no protocol change. The lock still holds for web players, but the structured lobby

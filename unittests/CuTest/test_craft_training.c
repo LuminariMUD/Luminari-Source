@@ -586,9 +586,9 @@ void Test_craft_training_fee_rises_with_rank(CuTest *tc)
   CuAssertIntEquals(tc, 500, craft_training_grant(0));
   CuAssertIntEquals(tc, 5000, craft_training_grant(9));
   CuAssertIntEquals(tc, 10000, craft_training_grant(19));
-  CuAssertIntEquals(tc, 100, craft_training_fee(0));
-  CuAssertIntEquals(tc, 10000, craft_training_fee(9));
-  CuAssertIntEquals(tc, 40000, craft_training_fee(19));
+  CuAssertIntEquals(tc, 400, craft_training_fee(0));
+  CuAssertIntEquals(tc, 40000, craft_training_fee(9));
+  CuAssertIntEquals(tc, 160000, craft_training_fee(19));
   for (rank = 1; rank < CRAFT_TRAINING_RANK_CEILING; rank++)
   {
     /* Both the fee and the gold paid per experience point rise. */
@@ -599,7 +599,7 @@ void Test_craft_training_fee_rises_with_rank(CuTest *tc)
   /* Two contracts per rank take a skill from 0 to the ceiling without any bonus. */
   for (rank = 0; rank < CRAFT_TRAINING_RANK_CEILING; rank++)
     total += 2 * craft_training_fee(rank);
-  CuAssertIntEquals(tc, 574000, total);
+  CuAssertIntEquals(tc, 2296000, total);
 }
 
 void Test_craft_training_status_counts_down_to_finished(CuTest *tc)
@@ -617,7 +617,7 @@ void Test_craft_training_status_counts_down_to_finished(CuTest *tc)
   GET_CRAFT(ch).training_exp = 500;
   GET_CRAFT(ch).training_end = now + CRAFT_TRAINING_DURATION;
   CuAssertTrue(tc, craft_training_status(ch, now, status, sizeof(status)));
-  CuAssertStrEquals(tc, "training, 24h 0m left", status);
+  CuAssertStrEquals(tc, "training, 6h 0m left", status);
   GET_CRAFT(ch).training_end = now + 13L * 3600 + 19L * 60 + 1;
   craft_training_status(ch, now, status, sizeof(status));
   CuAssertStrEquals(tc, "training, 13h 20m left", status);
@@ -731,7 +731,7 @@ static void craft_trainer_begin(CuTest *tc, struct craft_trainer_fixture *fixtur
   }
   SET_ABILITY(player, ABILITY_CRAFT_ALCHEMY, 4);
   GET_CRAFT_SKILL_EXP(player, ABILITY_CRAFT_ALCHEMY) = craft_skill_level_exp(NULL, 4);
-  GET_GOLD(player) = 10000;
+  GET_GOLD(player) = 40000;
 
   fixture->descriptor.character = player;
   player->desc = &fixture->descriptor;
@@ -811,11 +811,11 @@ void Test_craft_trainer_lists_and_quotes_without_changes(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(listing, "alchemy"));
   CuAssertPtrNotNull(tc, strstr(listing, "mining"));
   CuAssertPtrEquals(tc, NULL, strstr(listing, "bowmaking"));
-  CuAssertPtrNotNull(tc, strstr(listing, "2500"));
-  CuAssertPtrNotNull(tc, strstr(quote, "costs 2500 gold coins"));
+  CuAssertPtrNotNull(tc, strstr(listing, "10000"));
+  CuAssertPtrNotNull(tc, strstr(quote, "costs 10000 gold coins"));
   CuAssertPtrNotNull(tc, strstr(quote, "followers are dismissed"));
   CuAssertPtrNotNull(tc, strstr(quote, "apprentice alchemy confirm"));
-  CuAssertIntEquals(tc, 10000, gold);
+  CuAssertIntEquals(tc, 40000, gold);
   CuAssertIntEquals(tc, 0, ability);
   CuAssertTrue(tc, !extracted);
   CuAssertIntEquals(tc, -1, saved_lines);
@@ -892,9 +892,9 @@ void Test_craft_trainer_refusals_leave_gold_and_contract_alone(CuTest *tc)
   SET_ABILITY(fixture.player, ABILITY_HARVEST_MINING, CRAFT_TRAINING_RANK_CEILING);
   craft_trainer_command(&fixture, "apprentice mining confirm", ceiling, sizeof(ceiling));
 
-  GET_GOLD(fixture.player) = 2499;
+  GET_GOLD(fixture.player) = 9999;
   craft_trainer_command(&fixture, "apprentice alchemy confirm", poor, sizeof(poor));
-  GET_GOLD(fixture.player) = 10000;
+  GET_GOLD(fixture.player) = 40000;
 
   FIGHTING(fixture.player) = &fixture.trainer;
   craft_trainer_command(&fixture, "apprentice alchemy confirm", fighting, sizeof(fighting));
@@ -912,12 +912,12 @@ void Test_craft_trainer_refusals_leave_gold_and_contract_alone(CuTest *tc)
 
   CuAssertPtrNotNull(tc, strstr(ineligible, "bowmaking skill cannot be trained here"));
   CuAssertPtrNotNull(tc, strstr(ceiling, "only below rank 20"));
-  CuAssertPtrNotNull(tc, strstr(poor, "costs 2500 gold coins, and you carry 2499"));
+  CuAssertPtrNotNull(tc, strstr(poor, "costs 10000 gold coins, and you carry 9999"));
   CuAssertPtrNotNull(tc, strstr(fighting, "fighting for your life"));
   CuAssertTrue(tc, activity_started);
   CuAssertPtrNotNull(tc, strstr(busy, "cannot leave to train while testing an activity"));
   CuAssertPtrNotNull(tc, strstr(asleep, "is unable to talk to you"));
-  CuAssertIntEquals(tc, 10000, gold);
+  CuAssertIntEquals(tc, 40000, gold);
   CuAssertIntEquals(tc, 0, ability);
   CuAssertTrue(tc, !extracted);
 }
@@ -952,7 +952,7 @@ void Test_craft_trainer_confirm_takes_fee_and_leaves_play(CuTest *tc)
   CuAssertIntEquals(tc, 0, craft_trainer_end(&fixture));
 
   CuAssertPtrNotNull(tc, strstr(seen, "leads you away to train"));
-  CuAssertIntEquals(tc, 7500, gold);
+  CuAssertIntEquals(tc, 30000, gold);
   CuAssertTrue(tc, marked);
   CuAssertIntEquals(tc, CON_MENU, state);
   CuAssertIntEquals(tc, 1, saved_lines);
@@ -962,7 +962,7 @@ void Test_craft_trainer_confirm_takes_fee_and_leaves_play(CuTest *tc)
   CuAssertTrue(tc,
                end >= before + CRAFT_TRAINING_DURATION && end <= after + CRAFT_TRAINING_DURATION);
   CuAssertIntEquals(tc, CRAFT_TRAINER_TEST_ROOM, (int)load_room);
-  CuAssertIntEquals(tc, 7500, loaded_gold);
+  CuAssertIntEquals(tc, 30000, loaded_gold);
 }
 
 static char craft_chisel_keywords[] = "chisel fine";
@@ -1110,7 +1110,7 @@ void Test_craft_training_main_menu_refuses_entry_while_away(CuTest *tc)
   CuAssertIntEquals(tc, CON_MENU, state);
   CuAssertTrue(tc, !in_play);
   CuAssertPtrNotNull(tc, strstr(seen, "cannot enter the game from here"));
-  CuAssertPtrNotNull(tc, strstr(seen, "training, 24h 0m left"));
+  CuAssertPtrNotNull(tc, strstr(seen, "training, 6h 0m left"));
 }
 
 void Test_craft_training_copyover_drops_a_character_leaving_to_train(CuTest *tc)
@@ -1165,7 +1165,7 @@ static bool craft_account_save_contract(struct craft_account_fixture *fixture, t
   GET_PFILEPOS(ch) = 0;
   GET_IDNUM(ch) = fixture->id;
   GET_LEVEL(ch) = 10;
-  GET_GOLD(ch) = 7500;
+  GET_GOLD(ch) = 30000;
   SET_ABILITY(ch, ABILITY_CRAFT_ALCHEMY, 4);
   GET_CRAFT_SKILL_EXP(ch, ABILITY_CRAFT_ALCHEMY) = craft_skill_level_exp(NULL, 5) - 1;
   ch->player_specials->saved.talent_ranks[TALENT_INSIGHTFUL_ALCHEMY] = (ubyte)insight;
@@ -1335,7 +1335,7 @@ void Test_craft_training_recall_ends_contract_without_refund(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(done, "returns from training early"));
   CuAssertIntEquals(tc, 0, recalled.ability);
   CuAssertIntEquals(tc, 0, recalled.contract_lines);
-  CuAssertIntEquals(tc, 7500, recalled.gold);
+  CuAssertIntEquals(tc, 30000, recalled.gold);
   CuAssertIntEquals(tc, craft_skill_level_exp(NULL, 5) - 1, recalled.experience);
   CuAssertIntEquals(tc, CON_RMOTD, state);
 }
