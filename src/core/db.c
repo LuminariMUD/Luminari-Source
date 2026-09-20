@@ -3463,6 +3463,11 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     while (*temp != 0)
     {
       room_vnum room = atoi(temp);
+      if (room && PATH_SIZE(&mob_proto[i]) >= MAX_PATH)
+      {
+        log("SYSERR: Mob #%d has more than %d path rooms; extra rooms ignored.", nr, MAX_PATH);
+        break;
+      }
       if (room)
       {
         /* too much spam in log file -zusuk */
