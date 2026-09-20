@@ -4,7 +4,7 @@ Tracking issue: #208. Written 2026-09-20 from a trace of `master` at
 `e4897c4b8267f92a00066579664f8ec7ad83dced`; line
 numbers refer to that revision. Branch: `fix/208-summon-general-slots`.
 
-Status: steps 1-3 implemented (2026-09-20); help text and verification remain.
+Status: steps 1-4 implemented (2026-09-20); verification (step 5) remains.
 
 ## Progress
 
@@ -13,7 +13,7 @@ Update this list with every commit, so a new session can resume from it.
 - [x] Step 1: regression tests that fail on `master` (5 of 29 `Test_pet_` cases failed before step 2).
 - [x] Step 2: admission rule in `src/core/utils.c` (`summon_dedicated`, pool checks, `follower_uses_general_pool()`).
 - [x] Step 3: denial reason `Summon: general slots N/N used` and PETS line `Ordinary summons: D/T dedicated, G in general slots.`
-- [ ] Step 4: help text (file and database).
+- [x] Step 4: help text. Dev DB rows `charmee` and `pets` updated (archived to `help_versions` first), `help.hlp` regenerated from the dev catalog; audit shows both dev layers matching. Production help is untouched.
 - [ ] Step 5: verification.
 
 ## The defect
