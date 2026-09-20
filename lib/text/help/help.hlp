@@ -1487,6 +1487,7 @@ See also:  BUY SELL CHARISMA SHOP
 #0
 APPRENTICE CRAFT-TRAINER CRAFT-TRAINING TRAINER TRAINERS
 
+
 Usage: apprentice
        apprentice <skill>
        apprentice <skill> confirm
