@@ -5584,10 +5584,12 @@ Use 'pets' to see your controlled NPCs, their locations and categories, and
 your available general follower slots. Ordinary social followers are separate.
 
 General followers have one base slot plus your positive Charisma modifier.
-The first ordinary summon has its own slot; additional ordinary summons also
-use general slots. Companion bonds, mercenaries, golems, genies, and special
-summons use their own limits. An animal companion is not also an ordinary
-summon just because it shares a creature type with one.
+Your first ordinary summon has a dedicated slot (a Summoner has two). Every
+ordinary summon after that uses one general slot, so with free general slots
+you can keep summoning. Companion bonds, mercenaries, golems, genies,
+elementals, and special summons use their own limits and never use general
+slots. An animal companion is not also an ordinary summon just because it
+shares a creature type with one.
 
 Animation uses 2 control points, or 4 for a necromancer. Lesser undead cost 1
 point and elite undead cost 2; see ANIMATE-DEAD for form costs. Epic summons such as
@@ -24718,7 +24720,8 @@ wish.
 Similarly you can find henchmen and mercenaries that can be hired by gold or tasks.
 
 Limits depend on follower type. Use 'pets' to see current categories and
-capacity; see CHARMEE for control rules.
+capacity; see CHARMEE for control rules. Ordinary summons beyond your
+dedicated slot use general slots; see CHARMEE.
 
 Usage: pets <pet|followers> <follow|wait|passive|assist|guard>
 Use a numbered name such as 2.wolf to select one of several matching pets.
