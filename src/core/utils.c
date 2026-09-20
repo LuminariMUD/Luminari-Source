@@ -1203,14 +1203,6 @@ static mob_vnum follower_vnum(struct char_data *pet)
   return GET_MOB_VNUM(pet);
 }
 
-/* Pre-spawn checks pass a prototype from mob_proto; everything else is a live
- * or staged mobile whose own state decides its category. */
-static bool follower_is_prototype(const struct char_data *pet)
-{
-  return mob_proto != NULL && top_of_mobt != (mob_rnum)NOBODY && pet >= mob_proto &&
-         pet <= mob_proto + top_of_mobt;
-}
-
 /* NPC owners have no class levels; dummy or missing player specials count as none. */
 static int follower_owner_class_level(struct char_data *ch, int class)
 {
@@ -1237,10 +1229,11 @@ static size_t follower_category(struct char_data *pet, mob_vnum vnum)
       return i;
   if (isGenieKind(vnum))
     return FOLLOWER_GENIE;
-  /* A wild creature charmed in the world shares a prototype with a summon spell
-   * but was never summoned: it is an ordinary charmed follower.  Only a
-   * prototype query, or a mobile that records its summoning spell, is a summon. */
-  if (isSummonMob(vnum) && (pet->pet_source_spell != 0 || follower_is_prototype(pet)))
+  /* Sharing a prototype with a summon spell does not make a pet a summon: a
+   * charmed wild creature, a bought pet, or an item's creature is an ordinary
+   * General follower.  Only a mobile that records its summoning spell is a
+   * summon; can_add_summoned_followers() asks for the summon slots by spell. */
+  if (isSummonMob(vnum) && pet->pet_source_spell != 0)
     return FOLLOWER_SUMMON;
   return FOLLOWER_GENERAL;
 }
@@ -1320,7 +1313,7 @@ static int follower_category_limit(struct char_data *ch, size_t category)
     return follower_owner_class_level(ch, CLASS_SUMMONER) > 0 ? 2 : 1;
   if (category == FOLLOWER_ORC_HORDE)
     return 4;
-  if (follower_rules[category].flag == MOB_ANIMATED_DEAD)
+  if (category < FOLLOWER_RULE_COUNT && follower_rules[category].flag == MOB_ANIMATED_DEAD)
     return follower_owner_class_level(ch, CLASS_NECROMANCER) > 0 ? 4 : 2;
   return 1;
 }
@@ -1486,9 +1479,12 @@ bool can_add_summoned_followers(struct char_data *ch, int mob_vnum_id, int spell
   struct follower_count_data counts;
   int flag, maximum;
   size_t category;
+  mob_rnum rnum;
 
-  if (ch == NULL || mob_proto == NULL || mob_index == NULL || top_of_mobt == NOBODY ||
-      real_mobile(mob_vnum_id) == NOBODY)
+  if (ch == NULL || mob_proto == NULL || mob_index == NULL || top_of_mobt == NOBODY)
+    return false;
+  rnum = real_mobile(mob_vnum_id);
+  if (rnum == NOBODY)
     return false;
   flag = summoned_follower_flag(spell);
   maximum = spell == SPELL_ELEMENTAL_SWARM  ? 8
@@ -1519,6 +1515,15 @@ bool can_add_summoned_followers(struct char_data *ch, int mob_vnum_id, int spell
   }
   if (flag >= 0)
     return can_add_follower_by_flag(ch, flag);
+  /* An ordinary summon spell asks for the summon slots.  The prototype alone
+   * would count as a General follower, as it does when bought or charmed;
+   * prototypes in a named category (wargs, artifact creatures) keep it. */
+  if (isSummonMob(mob_vnum_id) &&
+      follower_category(&mob_proto[rnum], mob_vnum_id) == FOLLOWER_GENERAL)
+  {
+    count_followers(ch, -1, NOBODY, &counts);
+    return follower_category_available(ch, FOLLOWER_SUMMON, &counts);
+  }
   return can_add_follower(ch, mob_vnum_id);
 }
 

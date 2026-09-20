@@ -351,8 +351,10 @@ void Test_pet_policy_charmed_wild_animal_is_a_general_follower(CuTest *tc)
   general_slot = !can_add_follower(&fixture.owner, RETAINER_MOB_VNUM) &&
                  !can_add_follower_mobile(&fixture.owner, &fixture.pets[1]) &&
                  check_npc_followers(&fixture.owner, NPC_MODE_SPARE, 0) == 0;
+  /* A bought or item-made hound is a General follower and needs a general slot;
+   * a summon spell for the same prototype takes the dedicated summon slot. */
   summon_slot_free =
-      can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
+      !can_add_follower(&fixture.owner, MOB_DIRE_WOLF) &&
       can_add_summoned_followers(&fixture.owner, MOB_DIRE_WOLF, SPELL_SUMMON_CREATURE_3, 1);
   GET_MOB_RNUM(&fixture.pets[1]) = real_mobile(MOB_DIRE_WOLF);
   staged[0] = &fixture.pets[1];
