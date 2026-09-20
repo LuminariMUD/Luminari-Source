@@ -4,7 +4,7 @@ Tracking issue: #208. Written 2026-09-20 from a trace of `master` at
 `e4897c4b8267f92a00066579664f8ec7ad83dced`; line
 numbers refer to that revision. Branch: `fix/208-summon-general-slots`.
 
-Status: complete (2026-09-20). All five steps done; transcript in `docs/testing/pet-summon-general-slots-2026-09-20.txt`.
+Status: complete (2026-09-20), PR #209 open. All five steps done; transcript in `docs/testing/pet-summon-general-slots-2026-09-20.txt`.
 
 ## Progress
 
