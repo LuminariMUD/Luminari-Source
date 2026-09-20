@@ -1203,6 +1203,22 @@ static mob_vnum follower_vnum(struct char_data *pet)
   return GET_MOB_VNUM(pet);
 }
 
+/* Pre-spawn checks pass a prototype from mob_proto; everything else is a live
+ * or staged mobile whose own state decides its category. */
+static bool follower_is_prototype(const struct char_data *pet)
+{
+  return mob_proto != NULL && top_of_mobt != (mob_rnum)NOBODY && pet >= mob_proto &&
+         pet <= mob_proto + top_of_mobt;
+}
+
+/* NPC owners have no class levels; dummy or missing player specials count as none. */
+static int follower_owner_class_level(struct char_data *ch, int class)
+{
+  if (ch == NULL || IS_NPC(ch) || ch->player_specials == NULL)
+    return 0;
+  return CLASS_LEVEL(ch, class);
+}
+
 static size_t follower_category(struct char_data *pet, mob_vnum vnum)
 {
   size_t i;
@@ -1221,7 +1237,12 @@ static size_t follower_category(struct char_data *pet, mob_vnum vnum)
       return i;
   if (isGenieKind(vnum))
     return FOLLOWER_GENIE;
-  return isSummonMob(vnum) ? FOLLOWER_SUMMON : FOLLOWER_GENERAL;
+  /* A wild creature charmed in the world shares a prototype with a summon spell
+   * but was never summoned: it is an ordinary charmed follower.  Only a
+   * prototype query, or a mobile that records its summoning spell, is a summon. */
+  if (isSummonMob(vnum) && (pet->pet_source_spell != 0 || follower_is_prototype(pet)))
+    return FOLLOWER_SUMMON;
+  return FOLLOWER_GENERAL;
 }
 
 /* Lesser forms trade strength for numbers; other pet categories still count heads. */
@@ -1248,6 +1269,8 @@ static bool is_controlled_follower(struct char_data *owner, struct char_data *pe
   return pet != NULL && IS_PET(pet) && pet->master == owner && !MOB_FLAGGED(pet, MOB_NOTDEADYET);
 }
 
+static int follower_category_limit(struct char_data *ch, size_t category);
+
 /* Ordinary summons fill the dedicated summon slots first; every summon beyond
  * them shares the general slots with the General category. */
 static void follower_recount_general(struct follower_count_data *counts)
@@ -1267,8 +1290,8 @@ static void count_followers(struct char_data *ch, int flag, mob_vnum vnum,
   memset(counts, 0, sizeof(*counts));
   if (ch == NULL)
     return;
-  counts->general_limit = 1 + MAX(0, GET_CHA_BONUS(ch));
-  counts->summon_dedicated = IS_SUMMONER(ch) ? 2 : 1;
+  counts->general_limit = follower_category_limit(ch, FOLLOWER_GENERAL);
+  counts->summon_dedicated = follower_category_limit(ch, FOLLOWER_SUMMON);
   for (link = ch->followers; link != NULL; link = link->next)
   {
     pet = link->follower;
@@ -1286,14 +1309,19 @@ static void count_followers(struct char_data *ch, int flag, mob_vnum vnum,
   follower_recount_general(counts);
 }
 
-/* Fixed-cap categories only.  General and Summon have no cap of their own; the
- * general-slot pool in follower_category_available() decides them. */
+/* Per-category capacity.  For General this is the general-slot pool and for
+ * Summon the dedicated slots; follower_category_available() applies the pool
+ * sharing between those two. */
 static int follower_category_limit(struct char_data *ch, size_t category)
 {
+  if (category == FOLLOWER_GENERAL)
+    return 1 + MAX(0, GET_CHA_BONUS(ch));
+  if (category == FOLLOWER_SUMMON)
+    return follower_owner_class_level(ch, CLASS_SUMMONER) > 0 ? 2 : 1;
   if (category == FOLLOWER_ORC_HORDE)
     return 4;
   if (follower_rules[category].flag == MOB_ANIMATED_DEAD)
-    return CLASS_LEVEL(ch, CLASS_NECROMANCER) > 0 ? 4 : 2;
+    return follower_owner_class_level(ch, CLASS_NECROMANCER) > 0 ? 4 : 2;
   return 1;
 }
 
