@@ -4,7 +4,7 @@ Written 2026-09-21; reviewed against `dbef1778c` on the same date. Source line n
 that revision. Counts below were rechecked against the development `*.plr` files and the world
 files listed in the `index` files under `lib/`. These are not production counts.
 
-Status: plan. Nothing implemented. This document supersedes the root `CRAFTING_MERGE_PLAN.md`
+Tracking issue: #212. Status: plan. Nothing implemented. This document supersedes the root `CRAFTING_MERGE_PLAN.md`
 (deleted in `dbef1778c`) and the earlier assessment draft that occupied this file.
 
 ## Outcome
