@@ -11316,53 +11316,6 @@ ACMDU(do_wearapplies)
  * This command allows players to:
  * 1. View their stored materials (basic or detailed view)
  */
-ACMD(do_materials)
-{
-  char arg[MAX_INPUT_LENGTH];
-  bool show_details = false;
-
-  if (IS_NPC(ch))
-  {
-    send_to_char(ch, "NPCs don't store materials.\r\n");
-    return;
-  }
-
-  one_argument(argument, arg, sizeof(arg));
-
-  /* Handle 'materials details' */
-  if (*arg && !str_cmp(arg, "details"))
-  {
-    show_details = true;
-  }
-  else if (*arg)
-  {
-    send_to_char(ch, "Usage: materials [details]\r\n");
-    send_to_char(ch, "  materials        - Show basic materials list\r\n");
-    send_to_char(ch, "  materials details - Show detailed crafting information\r\n");
-    return;
-  }
-
-  /* Show basic materials by default, enhanced with 'details' */
-  if (show_details)
-  {
-#ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
-    /* Enhanced materials display */
-    send_to_char(ch, "\\cW=== Enhanced Wilderness Materials (LuminariMUD) ===\\cn\r\n");
-    send_to_char(ch, "Your materials are preserved with their full hierarchy and quality.\r\n");
-    send_to_char(ch,
-                 "These materials can be used in enhanced LuminariMUD crafting recipes.\r\n\r\n");
-    show_enhanced_material_storage(ch);
-#else
-    send_to_char(ch, "Enhanced crafting integration is not available in this build.\r\n");
-    show_basic_material_storage(ch);
-#endif
-  }
-  else
-  {
-    /* Always show basic display for regular 'materials' command */
-    show_basic_material_storage(ch);
-  }
-}
 
 /* Phase 6: Conservation statistics command */
 ACMD(do_conservation)

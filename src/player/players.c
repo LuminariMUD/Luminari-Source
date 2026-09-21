@@ -1471,7 +1471,10 @@ int load_char(const char *name, struct char_data *ch)
             {
               if (ch->player_specials->saved.stored_materials[inner_i].quantity == 0)
               {
-                if (validate_material_data(category, subtype, quality) && quantity > 0)
+                /* Old wilderness holdings are pending migration data (CrMg stage 3). An
+                 * invalid record is kept as written so the conversion can refuse it and a
+                 * reviewer can still see it, rather than being dropped and lost on save. */
+                if (quantity > 0)
                 {
                   ch->player_specials->saved.stored_materials[inner_i].category = category;
                   ch->player_specials->saved.stored_materials[inner_i].subtype = subtype;
@@ -2227,6 +2230,8 @@ int load_char(const char *name, struct char_data *ch)
     ch->player_specials->craft_migration_unsaved = TRUE;
   if (craft_settle_legacy_supply_order(ch))
     ch->player_specials->craft_migration_unsaved = TRUE;
+  if (craft_migrate_wilderness_holdings(ch))
+    ch->player_specials->craft_migration_unsaved = TRUE;
 
   resetCastingData(ch);
   CLOUDKILL(ch) = 0; // make sure init cloudkill burst
@@ -2273,12 +2278,6 @@ int load_char(const char *name, struct char_data *ch)
     GET_COND(ch, HUNGER) = -1;
     GET_COND(ch, THIRST) = -1;
     GET_COND(ch, DRUNK) = -1;
-  }
-
-  /* Initialize material storage if not present (for existing characters) */
-  if (ch->player_specials && ch->player_specials->saved.stored_material_count == 0)
-  {
-    init_material_storage(ch);
   }
 
   /* Initialize craft variant if invalid (for existing characters) */

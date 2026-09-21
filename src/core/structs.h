@@ -6494,12 +6494,6 @@ struct char_special_data
   int affect_batch_depth;                     /* nested deferred affect MSDP updates */
   bool affect_batch_dirty;                    /* affect state changed in current batch */
 
-  /** crafting **/
-  ubyte crafting_type;              // like SCMD_x
-  ubyte crafting_ticks;             // ticks left to complete task
-  struct obj_data *crafting_object; // refers to obj crafting (deprecated)
-  ubyte crafting_repeat;            // multiple objects created in one session
-  int crafting_bonus;               // bonus for crafting the item
 
   /* mob feats (npc's and pc wildshaped) */
   byte mob_feats[MAX_FEATS]; /* Feats (booleans and counters)  */

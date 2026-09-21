@@ -361,21 +361,12 @@ void apply_region_resource_modifiers_to_node(struct char_data *ch, struct resour
 
 /* Phase 4.5: Material Subtype Management Functions */
 /* Material storage and retrieval */
-int add_material_to_storage(struct char_data *ch, int category, int subtype, int quality,
-                            int quantity);
-int remove_material_from_storage(struct char_data *ch, int category, int subtype, int quality,
-                                 int quantity);
-int get_material_quantity(struct char_data *ch, int category, int subtype, int quality);
-void show_material_storage(struct char_data *ch);
-void show_basic_material_storage(struct char_data *ch);
 
 /* Material name and description functions */
 const char *get_material_subtype_name(int category, int subtype);
 const char *get_material_quality_name(int quality);
 const char *get_full_material_name(int category, int subtype, int quality);
 const char *get_material_description(int category, int subtype, int quality);
-const char *get_material_applications(int category);
-const char *get_quality_bonus_description(int quality);
 
 /* Material conversion and validation */
 int validate_material_data(int category, int subtype, int quality);
@@ -387,9 +378,6 @@ int determine_harvested_material_subtype(int resource_type, int x, int y, double
 int calculate_material_quality_from_resource(int resource_type, int x, int y, double level);
 
 /* Material utility functions */
-void init_material_storage(struct char_data *ch);
-void cleanup_material_storage(struct char_data *ch);
-int compact_material_storage(struct char_data *ch);
 void resourceadmin_effects_show(struct char_data *ch, int effect_id);
 void resourceadmin_effects_assign(struct char_data *ch, int region_vnum, int effect_id,
                                   double intensity);
@@ -403,11 +391,8 @@ void apply_json_resource_modifiers(struct resource_node *resources, const char *
 int get_enhanced_wilderness_material_id(int category, int subtype);
 const char *get_enhanced_material_name(int category, int subtype, int quality);
 int get_enhanced_material_crafting_value(int category, int subtype, int quality);
-void integrate_wilderness_harvest_with_crafting(struct char_data *ch, int category, int subtype,
-                                                int quality, int amount);
 bool is_enhanced_wilderness_material(int material_id);
 const char *get_enhanced_material_description(int category, int subtype, int quality);
-void show_enhanced_material_storage(struct char_data *ch);
 #endif /* ENABLE_WILDERNESS_CRAFTING_INTEGRATION */
 
 /* Phase 5: Player Harvesting Commands */
@@ -416,10 +401,7 @@ void do_wilderness_gather(struct char_data *ch, const char *argument, int cmd, i
 void do_wilderness_mine(struct char_data *ch, const char *argument, int cmd, int subcmd);
 
 /* Phase 5: Harvesting Support Functions */
-int attempt_wilderness_harvest(struct char_data *ch, int resource_type);
 int can_harvest_resource_in_terrain(int resource_type, int sector_type);
-int get_harvest_skill_level(struct char_data *ch, int resource_type);
-int get_harvest_skill(int resource_type);
 int get_harvest_difficulty(int resource_type, double resource_level);
 int calculate_harvest_quality(struct char_data *ch, int resource_type, int success_roll,
                               int skill_level);

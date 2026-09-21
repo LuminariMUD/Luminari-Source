@@ -2775,8 +2775,7 @@ ACMD(do_harvest)
   /* Explicit legacy nodes retain their original path. Category harvests store
    * crafting balances and do not depend on physical inventory capacity. */
   if (ch && IN_ROOM(ch) != NOWHERE && IN_ROOM(ch) <= top_of_world &&
-      ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS) &&
-      wilderness_harvest_crafting_enabled())
+      ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
   {
     one_argument(argument, arg, sizeof(arg));
     node = *arg ? get_obj_in_list_vis(ch, arg, NULL, world[IN_ROOM(ch)].contents) : NULL;

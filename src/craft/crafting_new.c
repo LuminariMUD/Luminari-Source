@@ -36,6 +36,7 @@
 #include "character/talents.h" /* crafting talent system */
 #include "dgscript/dg_scripts.h"
 #include "wilderness/resource_system.h"
+#include "wilderness/harvest.h"
 
 #ifndef TRUE
 #define TRUE 1
@@ -3908,6 +3909,94 @@ bool craft_settle_legacy_supply_order(struct char_data *ch)
     free(ch->player_specials->craft_settlement_note);
   ch->player_specials->craft_settlement_note = strdup(note);
   GET_CRAFT_MIGRATION(ch) = CRAFT_MIGRATION_ORDERS;
+  return true;
+}
+
+/* CrMg stage 3: convert old wilderness holdings (consolidation Decision 10) through the frozen
+ * pre-merge mapping: material records by wilderness_harvest_material(), mote records by
+ * wilderness_harvest_mote() at quantity times quality. Additions are aggregated per
+ * destination and checked for capacity before anything is credited; invalid or overflowing
+ * data keeps every record and leaves the stage unadvanced. No experience is earned. */
+bool craft_migrate_wilderness_holdings(struct char_data *ch)
+{
+  int material_needs[NUM_CRAFT_MATS] = {0};
+  int mote_needs[NUM_CRAFT_MOTES] = {0};
+  struct material_storage *record;
+  int i, material, mote, amount, moved = 0;
+
+  if (!ch || IS_NPC(ch) || !ch->player_specials ||
+      GET_CRAFT_MIGRATION(ch) >= CRAFT_MIGRATION_HOLDINGS)
+    return false;
+  if (GET_CRAFT_MIGRATION(ch) < CRAFT_MIGRATION_ORDERS)
+    return false; /* stages run in order */
+  for (i = 0; i < MAX_STORED_MATERIALS; i++)
+  {
+    record = &ch->player_specials->saved.stored_materials[i];
+    if (record->quantity <= 0)
+      continue;
+    if (!validate_material_data(record->category, record->subtype, record->quality))
+    {
+      log("CRAFT: %s: old wilderness record %d (%d/%d/%d x%d) is invalid; holdings kept",
+          GET_NAME(ch), i, record->category, record->subtype, record->quality, record->quantity);
+      return false;
+    }
+    material = wilderness_harvest_material(record->category, record->subtype, record->quality);
+    if (material != CRAFT_MAT_NONE)
+    {
+      if (material_needs[material] > INT_MAX - record->quantity)
+      {
+        log("CRAFT: %s: old wilderness holdings overflow %s; holdings kept", GET_NAME(ch),
+            crafting_materials[material]);
+        return false;
+      }
+      material_needs[material] += record->quantity;
+      continue;
+    }
+    mote = wilderness_harvest_mote(record->category, record->subtype);
+    if (mote <= CRAFTING_MOTE_NONE || record->quantity > INT_MAX / record->quality)
+    {
+      log("CRAFT: %s: old wilderness record %d (%d/%d/%d x%d) has no destination; holdings "
+          "kept",
+          GET_NAME(ch), i, record->category, record->subtype, record->quality, record->quantity);
+      return false;
+    }
+    amount = record->quantity * record->quality;
+    if (mote_needs[mote] > INT_MAX - amount)
+    {
+      log("CRAFT: %s: old wilderness holdings overflow %s motes; holdings kept", GET_NAME(ch),
+          crafting_motes[mote]);
+      return false;
+    }
+    mote_needs[mote] += amount;
+  }
+  for (material = 1; material < NUM_CRAFT_MATS; material++)
+    if (material_needs[material] > 0 &&
+        !craft_balance_can_add(ch, material, material_needs[material]))
+    {
+      log("CRAFT: %s: %d %s from old wilderness holdings does not fit; holdings kept", GET_NAME(ch),
+          material_needs[material], crafting_materials[material]);
+      return false;
+    }
+  for (mote = 1; mote < NUM_CRAFT_MOTES; mote++)
+    if (mote_needs[mote] > 0 && !craft_mote_can_add(ch, mote, mote_needs[mote]))
+    {
+      log("CRAFT: %s: %d %s motes from old wilderness holdings do not fit; holdings kept",
+          GET_NAME(ch), mote_needs[mote], crafting_motes[mote]);
+      return false;
+    }
+  for (material = 1; material < NUM_CRAFT_MATS; material++)
+    if (material_needs[material] > 0 && craft_balance_add(ch, material, material_needs[material]))
+      moved += material_needs[material];
+  for (mote = 1; mote < NUM_CRAFT_MOTES; mote++)
+    if (mote_needs[mote] > 0 && craft_mote_add(ch, mote, mote_needs[mote]))
+      moved += mote_needs[mote];
+  memset(ch->player_specials->saved.stored_materials, 0,
+         sizeof(ch->player_specials->saved.stored_materials));
+  ch->player_specials->saved.stored_material_count = 0;
+  if (moved > 0)
+    log("CRAFT: %s: moved %d units from old wilderness holdings into the crafting balances",
+        GET_NAME(ch), moved);
+  GET_CRAFT_MIGRATION(ch) = CRAFT_MIGRATION_HOLDINGS;
   return true;
 }
 

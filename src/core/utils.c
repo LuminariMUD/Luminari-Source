@@ -2132,11 +2132,6 @@ int skill_check(struct char_data *ch, int skill, int dc)
    !rand_number(0, this)
    suggested:  (500) */
 #define PASS 500
-/* this define is for crafting skills, they increase much easier
- suggested:  (20) */
-#define C_SKILL 20
-/* for stricter crafting skill notching (fast crafting) */
-#define C_SKILL_SLOW 100
 
 void increase_skill(struct char_data *ch, int skillnum)
 {
@@ -2153,8 +2148,6 @@ void increase_skill(struct char_data *ch, int skillnum)
 
   int use = rand_number(0, USE);
   int pass = rand_number(0, PASS);
-  int craft = rand_number(0, C_SKILL);
-  int slow_craft = rand_number(0, C_SKILL_SLOW);
 
   switch (skillnum)
   {
@@ -2775,127 +2768,6 @@ void increase_skill(struct char_data *ch, int skillnum)
     }
     break;
 
-    /* crafting skills */
-  case SKILL_MINING:
-    if (!craft)
-    {
-      notched = TRUE;
-      GET_SKILL(ch, skillnum)
-      ++;
-    }
-    break;
-  case SKILL_HUNTING:
-    if (!craft)
-    {
-      notched = TRUE;
-      GET_SKILL(ch, skillnum)
-      ++;
-    }
-    break;
-  case SKILL_FORESTING:
-    if (!craft)
-    {
-      notched = TRUE;
-      GET_SKILL(ch, skillnum)
-      ++;
-    }
-    break;
-  case SKILL_KNITTING:
-    if (!craft)
-    {
-      notched = TRUE;
-      GET_SKILL(ch, skillnum)
-      ++;
-    }
-    break;
-  case SKILL_CHEMISTRY:
-    if (!craft)
-    {
-      notched = TRUE;
-      GET_SKILL(ch, skillnum)
-      ++;
-    }
-    break;
-  case SKILL_ARMOR_SMITHING:
-    if (!craft)
-    {
-      notched = TRUE;
-      GET_SKILL(ch, skillnum)
-      ++;
-    }
-    break;
-  case SKILL_WEAPON_SMITHING:
-    if (!craft)
-    {
-      notched = TRUE;
-      GET_SKILL(ch, skillnum)
-      ++;
-    }
-    break;
-  case SKILL_JEWELRY_MAKING:
-    if (!craft)
-    {
-      notched = TRUE;
-      GET_SKILL(ch, skillnum)
-      ++;
-    }
-    break;
-  case SKILL_LEATHER_WORKING:
-    if (!craft)
-    {
-      notched = TRUE;
-      GET_SKILL(ch, skillnum)
-      ++;
-    }
-    break;
-  case SKILL_FAST_CRAFTER:
-    if (!slow_craft)
-    {
-      notched = TRUE;
-      GET_SKILL(ch, skillnum)
-      ++;
-    }
-    break;
-  case SKILL_BONE_ARMOR:
-    if (!craft)
-    {
-      notched = TRUE;
-      GET_SKILL(ch, skillnum)
-      ++;
-    }
-    break;
-  case SKILL_ELVEN_CRAFTING:
-    if (!craft)
-    {
-      notched = TRUE;
-      GET_SKILL(ch, skillnum)
-      ++;
-    }
-    break;
-  case SKILL_MASTERWORK_CRAFTING:
-    if (!craft)
-    {
-      notched = TRUE;
-      GET_SKILL(ch, skillnum)
-      ++;
-    }
-    break;
-  case SKILL_DRACONIC_CRAFTING:
-    if (!craft)
-    {
-      notched = TRUE;
-      GET_SKILL(ch, skillnum)
-      ++;
-    }
-    break;
-  case SKILL_DWARVEN_CRAFTING:
-    if (!craft)
-    {
-      notched = TRUE;
-      GET_SKILL(ch, skillnum)
-      ++;
-    }
-    break;
     /* end crafting */
 
   case SKILL_LIGHTNING_REFLEXES:
@@ -2974,7 +2846,6 @@ void increase_skill(struct char_data *ch, int skillnum)
 }
 #undef USE
 #undef PASS
-#undef C_SKILL
 
 /** A portable random number function.
  * @param from The lower bounds of the random number.
@@ -11609,10 +11480,7 @@ bool is_in_hometown(struct char_data *ch)
 
 bool is_crafting_skill(int skillnum)
 {
-  if (skillnum >= START_CRAFT_ABILITIES && skillnum <= END_CRAFT_ABILITIES)
-    return true;
-
-  return (spell_info[skillnum].schoolOfMagic == CRAFTING_SKILL);
+  return skillnum >= START_CRAFT_ABILITIES && skillnum <= END_HARVEST_ABILITIES;
 }
 
 int get_knowledge_skill_from_creature_type(int race_type)

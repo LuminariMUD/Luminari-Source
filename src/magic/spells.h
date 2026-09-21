@@ -1179,27 +1179,11 @@
 #define SKILL_PROPAGANDA 2068
 #define SKILL_LOBBY 2069
 #define SKILL_STUNNING_FIST 2070 // implemented
-/* initial crafting skills */
-#define TOP_CRAFT_SKILL 2071
-/**/
-#define SKILL_MINING 2071          // implemented
-#define SKILL_HUNTING 2072         // implemented
-#define SKILL_FORESTING 2073       // implemented
-#define SKILL_KNITTING 2074        // implemented
-#define SKILL_CHEMISTRY 2075       // implemented
-#define SKILL_ARMOR_SMITHING 2076  // implemented
-#define SKILL_WEAPON_SMITHING 2077 // implemented
-#define SKILL_JEWELRY_MAKING 2078  // implemented
-#define SKILL_LEATHER_WORKING 2079 // implemented
-#define SKILL_FAST_CRAFTER 2080    // implemented
-#define SKILL_BONE_ARMOR 2081
-#define SKILL_ELVEN_CRAFTING 2082
-#define SKILL_MASTERWORK_CRAFTING 2083
-#define SKILL_DRACONIC_CRAFTING 2084
-#define SKILL_DWARVEN_CRAFTING 2085
-/* */
-#define BOTTOM_CRAFT_SKILL 2086
-/* finish batch crafting skills */
+/* Skill slots 2071 to 2085 held the legacy crafting skills (mining, hunting, foresting,
+ * knitting, chemistry, armor smithing, weapon smithing, jewelry making, leather working,
+ * fast crafter, and five unimplemented crafts). They converted to the craft and harvest
+ * abilities (CrMg stage 1, src/craft/crafting_new.c, CRAFT_LEGACY_ID_*); the slots stay
+ * reserved and their saved values remain readable audit data. */
 #define SKILL_LIGHTNING_REFLEXES 2086 // implemented
 #define SKILL_GREAT_FORTITUDE 2087    // implemented
 #define SKILL_IRON_WILL 2088          // implemented
@@ -1683,7 +1667,6 @@
 #define UNCATEGORIZED 0
 #define ACTIVE_SKILL 1
 #define PASSIVE_SKILL 2
-#define CRAFTING_SKILL 3
 #define CASTER_SKILL 4
 
 #define NUM_SKILL_CATEGORIES 5
