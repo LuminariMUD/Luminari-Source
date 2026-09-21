@@ -55,7 +55,7 @@ struct mud_event_list mud_event_index[] = {
      FEAT_UNDEFINED, 0},
     {"Stunning fist", event_daily_use_cooldown, EVENT_CHAR, "You have recovered a ki point.",
      "One of your ki points has recovered.", FEAT_STUNNING_FIST, 0},
-    {"Crafting", event_crafting, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Crafting", event_retired, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0}, /* reserved id */
     {"Crystal fist", event_daily_use_cooldown, EVENT_CHAR,
      "You may enhance your unarmed attacks again.", "One of your crystal fist uses has recovered.",
      FEAT_CRYSTAL_FIST, 0},
@@ -221,7 +221,7 @@ struct mud_event_list mud_event_index[] = {
      FEAT_DRACONIC_HERITAGE_CLAWS, 0},
     {"Spell Preparation", event_preparation, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     /*100*/
-    {"Craft", event_craft, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Craft", event_retired, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0}, /* reserved id */
     {"Copyover Event!", event_copyover, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Autocollect delay", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0}, /* Special */
     {"Metamagic Adept Usage Cooldown", event_daily_use_cooldown, EVENT_CHAR, NULL,
@@ -393,7 +393,7 @@ struct mud_event_list mud_event_index[] = {
     {"Device Creation", event_device_creation, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Device Progress", event_device_progress, EVENT_CHAR, "test1", "test2", FEAT_UNDEFINED, 0},
     // 170
-    {"Brew Potion", event_brewing, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Brew Potion", event_retired, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0}, /* reserved */
     {"Beacon of Hope", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Fist of Four Thunders", event_fist_of_four_thunders, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED,
      0},

@@ -422,7 +422,7 @@ MUD_EVENT_CALLBACK(event_daily_use_cooldown);
 MUD_EVENT_CALLBACK(get_protocols);
 MUD_EVENT_CALLBACK(event_whirlwind);
 MUD_EVENT_CALLBACK(event_preparing);
-MUD_EVENT_CALLBACK(event_crafting);
+MUD_EVENT_CALLBACK(event_retired); /* crafting work moved to the activity manager */
 MUD_EVENT_CALLBACK(event_acid_arrow);
 MUD_EVENT_CALLBACK(event_concussive_onslaught);
 MUD_EVENT_CALLBACK(event_power_leech);
@@ -436,7 +436,6 @@ MUD_EVENT_CALLBACK(event_combat_round);
 MUD_EVENT_CALLBACK(event_action_cooldown);
 MUD_EVENT_CALLBACK(event_trap_triggered);
 MUD_EVENT_CALLBACK(event_preparation);
-MUD_EVENT_CALLBACK(event_craft); /* NewCraft */
 MUD_EVENT_CALLBACK(event_copyover);
 MUD_EVENT_CALLBACK(event_spiritual_weapon);
 MUD_EVENT_CALLBACK(event_dancing_weapon);

@@ -2225,6 +2225,8 @@ int load_char(const char *name, struct char_data *ch)
    * requests before play; loading for inspection never rewrites the file. */
   if (craft_migrate_legacy_skills(ch))
     ch->player_specials->craft_migration_unsaved = TRUE;
+  if (craft_settle_legacy_supply_order(ch))
+    ch->player_specials->craft_migration_unsaved = TRUE;
 
   resetCastingData(ch);
   CLOUDKILL(ch) = 0; // make sure init cloudkill burst

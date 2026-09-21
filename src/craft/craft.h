@@ -40,6 +40,12 @@
 /* Node harvest: five steps of PULSE_VIOLENCE (30 seconds) per unit, credited at completion. */
 #define NODE_HARVEST_STEPS 5U
 extern int mining_nodes, farming_nodes, hunting_nodes, foresting_nodes;
+/* Kit operations on the activity manager; reforge is shared with the reforge command. */
+bool reforge_plan(struct char_data *ch, struct obj_data *obj, const char *target, int *index_out,
+                  int *cost_out, bool verbose);
+void reforge_apply(struct char_data *ch, struct obj_data *obj, int index);
+int reforge_skill(struct obj_data *obj);
+void craft_mold_command(struct char_data *ch, const char *argument);
 // end DEFINES //
 
 #define CREATE_MODE_CREATE 1
@@ -169,7 +175,6 @@ void reset_harvesting_rooms(void);
 extern int assembly_skills[NUM_CRAFT];
 void reset_acraft(struct char_data *ch);
 int crafting_kit(struct char_data *ch, void *me, int cmd, const char *argument);
-int crafting_quest(struct char_data *ch, void *me, int cmd, const char *argument);
 
 /* end external functions */
 
@@ -184,7 +189,6 @@ void put_mysql_supply_orders_available(struct char_data *ch, int avail);
 
 #ifdef LUMINARI_CUTEST
 int test_award_legacy_crafting_experience(struct char_data *ch, int exp);
-int test_legacy_supply_order_skill(int material);
 struct obj_data *test_get_single_bone_armor_object(struct obj_data *kit, int *num_objs);
 void test_update_bone_armor_descriptions(struct obj_data *obj, char *argument);
 #endif

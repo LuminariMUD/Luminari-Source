@@ -545,29 +545,65 @@ the same balance and the same ability, and neither can be cancelled for free or 
 
 ### Phase 4: capability and activity closure
 
-- [ ] Port mold creation/preview and the seven kit utilities to the shared execution path
+- [x] Port mold creation/preview and the seven kit utilities to the shared execution path
   (Decision 6). Preserve authored templates, crystal effects, essence/masterwork and feat
   benefits, novice equipment, and scripts; remove only the replaced implementation and the
-  unregistered `convert` branch. Both reforge front ends delegate to one operation.
-- [ ] Move kit work, standalone reforge, catalog retries, and brew to the activity manager per
+  unregistered `convert` branch. Both reforge front ends delegate to one operation. Done: every
+  kit command is a plan/apply pair in `craft.c` (`plan_*` validates and prices without touching
+  anything; `apply_*` mutates); mold creation draws its `mats_needed` units from the shared
+  balance of the material named in the description (canonical groups, bone-armor substitution,
+  the dragonscale and dragonbone rules), keeps the mold, crystal, and essence physical, and
+  `craft mold [check | <description>]` plans and runs the same operation as the kit's
+  `create`/`checkcraft`. `reforge_plan()`/`reforge_apply()` serve both the kit and the
+  `reforge` command (the station rule now applies to both; an item without a restring
+  identifier is named "a reforged <type>"). `convert`, `divide`, `synthesize`, and `autocraft`
+  are gone; `disenchant` captures the object level before extraction.
+- [x] Move kit work, standalone reforge, catalog retries, and brew to the activity manager per
   Decision 11. Move kit mutation/payment to completion; retain editor project resume behavior.
-  Remove old event callers, callbacks, and blockers after the replacements work.
-- [ ] Implement `CrMg` stage 2 settlement before retiring room-370 orders. Drain old work;
+  Remove old event callers, callbacks, and blockers after the replacements work. Done: kit
+  work targets the kit object (the standalone reforge its item), rechecks by re-planning, and
+  completes by re-planning, applying, paying, firing the quest hook, and awarding craft and
+  the old per-tick character experience once; the catalog runs as a `timed_step` activity
+  whose struggle result retries with the recipe's timer; brew captures its inputs in a context,
+  rechecks motes, gold, and spell availability at resolution, and then runs the existing roll,
+  costs, failure fractions, and potion storage. `event_crafting`, `event_craft`, and
+  `event_brewing` are replaced by one `event_retired` stub on their reserved ids; the
+  interpreter's crafting/brewing command blockers are gone (the activity manager rejects
+  commands); `harvest_conditions()` no longer reads the kit tick counter.
+- [x] Implement `CrMg` stage 2 settlement before retiring room-370 orders. Drain old work;
   preserve completed rewards and refund recorded partial material investment, with checked
   save/retry behavior. Remove the room assignment, registry binding, and `autocraft` execution.
-- [ ] Tests in the existing crafting and gameplay suites: shop and newbie molds can become
+  Done: `craft_settle_legacy_supply_order()` runs from `load_char()` after stage 1; a completed
+  order pays its saved gold, quest points, and experience once (refused when the gold would not
+  fit); an unfinished order refunds `(5 - remaining) * 3` units of its material's balance and
+  is cancelled; unmappable or capped records stay and the stage does not advance; the player
+  sees a note at entry. Room 370, the "Crafting Quest" registry entry, and `autocraft` are
+  removed; the `Cvnm`..`Cmat` readers and writers stay. In-flight installments whose three
+  units were consumed at admission before the binary changed are not represented in `Cmnm`
+  and are not refunded.
+- [x] Tests in the existing crafting and gameplay suites: shop and newbie molds can become
   equipment with crystal affects, essence outcomes, and feat benefits preserved; kit and `craft`
   entry points produce the same result, including a wood mold supplied from wilderness balances.
   Both reforge contexts hit the same validation. Utilities modify nothing at admission;
   interrupted work preserves inputs; successful completion applies
-  effects, costs, quest hooks, and experience exactly once.
-- [ ] Test catalog success/retry/failure and brew success/failure costs through real commands;
+  effects, costs, quest hooks, and experience exactly once. Done in `test_crafting_projects.c`
+  (mold creation through the kit and `craft mold`, redesc admission/cancel/completion, both
+  reforge contexts and overlap refusal).
+- [x] Test catalog success/retry/failure and brew success/failure costs through real commands;
   no overlapping craft, catalog, brew, or harvest job is admitted. Test loss of required objects,
   changed balances/spell availability, logout/copyover, and missing output prototypes. Existing
-  editor, supply-order, golem, and training persistence tests remain green.
-- [ ] Migration tests: both a never-migrated file and a `CrMg: 1` file settle old orders once;
+  editor, supply-order, golem, and training persistence tests remain green. Done: catalog
+  success, retry, and failure through `crafting`; brew success and an input-recheck refusal
+  through the resolution seam (`do_brew` needs prepared spells that the fixture cannot supply);
+  overlap refusal for kit, catalog, and brew while a reforge runs. Activities are not persisted,
+  so logout and copyover cancel them; a missing output prototype ends the catalog step with a
+  diagnostic (covered by code, not asserted).
+- [x] Migration tests: both a never-migrated file and a `CrMg: 1` file settle old orders once;
   `Cmnm: 3` refunds six recorded material units, completed orders pay their saved rewards,
-  capped/invalid records survive, and `CPts`, `CrCT`, and `CrTr` are unchanged.
+  capped/invalid records survive, and `CPts`, `CrCT`, and `CrTr` are unchanged. Done in
+  `test_craft_training.c` (`Cmnm: 3` refunds six steel; a completed order pays gold, quest
+  points, and experience; a reward past the gold capacity and a glass material keep their
+  records; `CrCT` and `CrTr` survive; a reload after publication pays nothing more).
 
 Completion evidence: every retained creation or utility capability works on shared progression,
 balances, and activity admission. Crystals and molds have usable consumers; no timed crafting

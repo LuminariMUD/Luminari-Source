@@ -6887,8 +6887,7 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
     send_to_char(ch, "You step out of the shadows...  (attempting to cast without 'magical ambush' "
                      "removes hidden status)\r\n");
   }
-  else if ((char_has_mud_event(ch, eCRAFTING) || char_has_mud_event(ch, eDEVICE_CREATION) ||
-            char_has_mud_event(ch, eDEVICE_REPAIR) || char_has_mud_event(ch, eBREWING)) &&
+  else if ((char_has_mud_event(ch, eDEVICE_CREATION) || char_has_mud_event(ch, eDEVICE_REPAIR)) &&
            !(complete_cmd_info[cmd].feature_flags & CMD_FEATURE_ACTIVITY_CONTROL) &&
            !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gemote") &&
@@ -6913,14 +6912,10 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "wearlocations") &&
            !is_abbrev(complete_cmd_info[cmd].command, "tell"))
   {
-    if (char_has_mud_event(ch, eCRAFTING))
-      send_to_char(ch, "You are too busy crafting to do that! ");
-    else if (char_has_mud_event(ch, eDEVICE_CREATION))
+    if (char_has_mud_event(ch, eDEVICE_CREATION))
       send_to_char(ch, "You are too busy devising your creation to do that! ");
     else if (char_has_mud_event(ch, eDEVICE_REPAIR))
       send_to_char(ch, "You are too busy repairing your device to do that! ");
-    else if (char_has_mud_event(ch, eBREWING))
-      send_to_char(ch, "You are too busy brewing to do that! ");
     send_to_char(ch, "[Available commands: "
                      "gossip/chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/"
                      "idea/class/race/spelllist]\r\n");
@@ -7769,6 +7764,12 @@ int enter_player_game(struct descriptor_data *d)
       !save_char_checked(d->character, 0))
     log("SYSERR: Crafting migration for %s could not be published at entry; will retry on save.",
         GET_NAME(d->character));
+  if (d->character->player_specials && d->character->player_specials->craft_settlement_note)
+  {
+    send_to_char(d->character, "%s", d->character->player_specials->craft_settlement_note);
+    free(d->character->player_specials->craft_settlement_note);
+    d->character->player_specials->craft_settlement_note = NULL;
+  }
 
   // /* Save the character and their object file */
   // save_char(d->character, 0);

@@ -187,8 +187,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 121, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 100, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 120, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 99, (int)spec_registry_legacy_count());
   CuAssertIntEquals(tc, 21, (int)spec_registry_typed_count());
 
   alias_count = 0;
@@ -238,8 +238,6 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
        SPEC_BINDING_SOURCE_WORLD},
       {"Crafting Kit", crafting_kit, SPEC_OWNER_OBJECT,
        SPEC_EVENT_COMMAND | SPEC_EVENT_ITEM_IDENTIFY,
-       SPEC_BINDING_SOURCE_WORLD | SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT},
-      {"Crafting Quest", crafting_quest, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD | SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT},
       {"Cryogenicist", cryogenicist, SPEC_OWNER_MOBILE, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD | SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT},
@@ -544,7 +542,8 @@ void Test_spec_registry_alias_owner_and_reverse_lookup(CuTest *tc)
   CuAssertPtrNotNull(tc, bank_definition);
   CuAssertTrue(tc, spec_registry_find_for_owner("BANK", SPEC_OWNER_OBJECT) == bank_definition);
   CuAssertTrue(tc, spec_registry_find_for_owner("Bank", SPEC_OWNER_ROOM) == NULL);
-  CuAssertTrue(tc, spec_registry_find_for_owner("Crafting Quest", SPEC_OWNER_ROOM) != NULL);
+  /* The room-370 supply order office retired with the crafting consolidation. */
+  CuAssertTrue(tc, spec_registry_find_for_owner("Crafting Quest", SPEC_OWNER_ROOM) == NULL);
   CuAssertTrue(tc, spec_registry_find_for_owner("Crafting Quest", SPEC_OWNER_MOBILE) == NULL);
   CuAssertTrue(tc, spec_registry_find_for_owner("Pet Shop", SPEC_OWNER_ROOM) != NULL);
   CuAssertTrue(tc, spec_registry_find_for_owner("Pet Shop", SPEC_OWNER_MOBILE) == NULL);

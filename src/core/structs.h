@@ -7086,6 +7086,7 @@ struct player_special_data
   int diplomacy_wait;           /**< Diplomacy Timer */
   int buildwalk_sector;         /**< Default sector type for buildwalk */
   bool craft_migration_unsaved; /**< A crafting migration ran at load and awaits its save. */
+  char *craft_settlement_note;  /**< Message about a settled legacy order, shown at entry. */
 
   /* salvation spell */
   room_vnum salvation_room;

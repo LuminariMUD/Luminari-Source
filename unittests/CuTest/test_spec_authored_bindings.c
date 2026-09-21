@@ -290,7 +290,7 @@ static bool spec_binding_olc_lifecycle_scenario(const char *sandbox, char *error
   static const char *const selections[SPEC_TEST_OWNER_COUNT] = {
       "15",
       "5",
-      "6",
+      "5",
   };
   static const char *const selected_names[SPEC_TEST_OWNER_COUNT] = {
       "Postmaster",

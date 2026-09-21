@@ -2151,15 +2151,6 @@ void increase_skill(struct char_data *ch, int skillnum)
     return;
   }
 
-  // We don't want to allow crafting skill improvements if they are
-  // resizing to their racial size, since such resizing has no
-  // gold cost.
-  if (GET_CRAFTING_TYPE(ch) == SCMD_RESIZE)
-  {
-    if (GET_CRAFTING_OBJ(ch) && GET_OBJ_SIZE(GET_CRAFTING_OBJ(ch)) == GET_SIZE(ch))
-      return;
-  }
-
   int use = rand_number(0, USE);
   int pass = rand_number(0, PASS);
   int craft = rand_number(0, C_SKILL);

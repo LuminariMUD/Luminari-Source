@@ -136,7 +136,6 @@ static const char *const spec_object_names[] = {
 
 static const char *const spec_room_names[] = {
     "Bazaar",
-    "Crafting Quest",
     "Dump",
     "Pet Shop",
     "Wizard Library",
@@ -272,7 +271,6 @@ static bool spec_owner_render_scenario(const char *sandbox, char *error, size_t 
   static const char *const room_required[] = {
       "Room Prototypes",
       "Bazaar [Commerce]",
-      "Crafting Quest [Crafting]",
       "Wizard Library [Magic]",
       "Greyhawk Ship Commands [Vessels]",
       "RoL Guild Room [RoL Conversion]",
@@ -423,7 +421,7 @@ void Test_spec_owner_olc_selection_parser_is_strict_and_bounded(CuTest *tc)
   if (definition == NULL)
     return;
   CuAssertStrEquals(tc, "Greyhawk Ship", definition->canonical_name);
-  result = spec_olc_parse_selection(SPEC_OWNER_ROOM, "6", &definition);
+  result = spec_olc_parse_selection(SPEC_OWNER_ROOM, "5", &definition);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_DEFINITION, result);
   CuAssertPtrNotNull(tc, definition);
   if (definition == NULL)

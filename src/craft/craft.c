@@ -55,7 +55,6 @@ int hunting_nodes = 0;
 int foresting_nodes = 0;
 
 static int award_legacy_crafting_experience(struct char_data *ch, int exp);
-static int legacy_supply_order_skill(int material);
 
 /***********************************/
 /* crafting local utility functions*/
@@ -289,21 +288,6 @@ static bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_
 /* this function will switch the material of an item based on the
    conversion crafting system
  */
-static int convert_material(int material)
-{
-  switch (material)
-  {
-  case MATERIAL_IRON:
-    return MATERIAL_COLD_IRON;
-  case MATERIAL_SILVER:
-    return MATERIAL_ALCHEMAL_SILVER;
-  default:
-    return material;
-  }
-
-  return material;
-}
-
 static int award_legacy_crafting_experience(struct char_data *ch, int exp)
 {
   int gained = award_experience(ch, exp, AWARD_EXP_MODE_CRAFT);
@@ -314,50 +298,15 @@ static int award_legacy_crafting_experience(struct char_data *ch, int exp)
   return gained;
 }
 
-static int legacy_supply_order_skill(int material)
-{
-  if (IS_HARD_METAL(material) || IS_PRECIOUS_METAL(material))
-    return ABILITY_HARVEST_MINING;
-  if (IS_LEATHER(material))
-    return ABILITY_HARVEST_HUNTING;
-  if (IS_WOOD(material))
-    return ABILITY_HARVEST_FORESTRY;
-  if (IS_CLOTH(material))
-    return ABILITY_HARVEST_GATHERING;
-
-  return -1;
-}
-
-/* Kit work runs in six-second ticks. Fast crafter is now the rapid talents of the ability the
- * operation uses (none for skill-less utilities), converted from seconds and never below one
- * tick. */
-static ubyte legacy_kit_ticks(struct char_data *ch, int ability, int base_ticks)
-{
-  return (ubyte)MAX(1, craft_legacy_kit_seconds(ch, ability, base_ticks) / 6);
-}
-
 #ifdef LUMINARI_CUTEST
 int test_award_legacy_crafting_experience(struct char_data *ch, int exp)
 {
   return award_legacy_crafting_experience(ch, exp);
 }
 
-int test_legacy_supply_order_skill(int material)
-{
-  return legacy_supply_order_skill(material);
-}
 #endif
 
 /* simple function to reset craft data */
-static void reset_craft(struct char_data *ch)
-{
-  /* initialize values */
-  GET_CRAFTING_TYPE(ch) = 0; // SCMD_ of craft
-  GET_CRAFTING_TICKS(ch) = 0;
-  GET_CRAFTING_OBJ(ch) = NULL;
-  GET_CRAFTING_REPEAT(ch) = 0;
-}
-
 /* simple function to reset auto craft data */
 void reset_acraft(struct char_data *ch)
 {
@@ -376,34 +325,6 @@ void reset_acraft(struct char_data *ch)
 
 /* compartmentalized auto-quest crafting reporting since its done
    a few times in the code */
-static void cquest_report(struct char_data *ch)
-{
-  if (GET_AUTOCQUEST_VNUM(ch))
-  {
-    if (GET_AUTOCQUEST_MAKENUM(ch) <= 0)
-      send_to_char(ch, "You have completed your supply order for %s.\r\n", GET_AUTOCQUEST_DESC(ch));
-    else
-      send_to_char(ch,
-                   "You have not yet completed your supply order "
-                   "for %s.\r\n"
-                   "You still need to make %d more.\r\n",
-                   GET_AUTOCQUEST_DESC(ch), GET_AUTOCQUEST_MAKENUM(ch));
-    send_to_char(ch,
-                 "Once completed/turned-in you will receive the"
-                 " following:\r\n"
-                 "You will receive %d reputation points.\r\n"
-                 "%u gold will be awarded to you.\r\n"
-                 "You will receive %u experience points.\r\n"
-                 "(type 'supplyorder complete' at the supply office)\r\n",
-                 GET_AUTOCQUEST_QP(ch), GET_AUTOCQUEST_GOLD(ch), GET_AUTOCQUEST_EXP(ch));
-  }
-  else
-    send_to_char(ch, "Type 'supplyorder new' for a new supply order, "
-                     "'supplyorder complete' to finish your supply "
-                     "order and receive your reward or 'supplyorder quit' "
-                     "to quit your current supply order.\r\n");
-}
-
 /*
  * Our current list of materials distributed in this manner:
  METALS (hard)
@@ -840,739 +761,6 @@ void reset_harvesting_rooms(void)
 /* start primary engines */
 /*************************/
 
-// combine essence to make them stronger
-
-static int augment(struct obj_data *kit, struct char_data *ch)
-{
-  struct obj_data *obj = NULL, *essence_one = NULL, *essence_two = NULL;
-  int num_objs = 0, cost = 0, level_diff = 0, success_chance = 0;
-  int dice_roll = 0, essence_level = 0;
-  int skill_type = ABILITY_CRAFT_ALCHEMY; /* chemistry converted to alchemy */
-
-  // Cycle through contents and categorize
-  for (obj = kit->contains; obj != NULL; obj = obj->next_content)
-  {
-    if (obj)
-    {
-      num_objs++;
-      if (num_objs > 2)
-      {
-        send_to_char(ch, "Make sure only two items are in the kit.\r\n");
-        return 1;
-      }
-      if (GET_OBJ_TYPE(obj) == ITEM_ESSENCE && !essence_one)
-      {
-        essence_one = obj;
-      }
-      else if (GET_OBJ_TYPE(obj) == ITEM_ESSENCE && !essence_two)
-      {
-        essence_two = obj;
-      }
-    }
-  }
-
-  if (num_objs > 2)
-  {
-    send_to_char(ch, "Make sure only two items are in the kit.\r\n");
-    return 1;
-  }
-  if (!essence_one || !essence_two)
-  {
-    send_to_char(ch, "You need two essences to augment.\r\n");
-    return 1;
-  }
-  if (GET_OBJ_LEVEL(essence_one) >= (LVL_IMMORT - 1) ||
-      GET_OBJ_LEVEL(essence_two) >= (LVL_IMMORT - 1))
-  {
-    send_to_char(ch, "You can not further augment that essence!\r\n");
-    return 1;
-  }
-  level_diff = abs(GET_OBJ_LEVEL(essence_one) - GET_OBJ_LEVEL(essence_two));
-  /* essence have to be 4 level range of each other */
-  if (level_diff > 4)
-  {
-    send_to_char(ch, "The essence have to be closer in power (level) to each other!\r\n");
-    return 1;
-  }
-
-  /* what is the level we are adjusting? */
-  if (GET_OBJ_LEVEL(essence_one) >= GET_OBJ_LEVEL(essence_two))
-    essence_level = GET_OBJ_LEVEL(essence_one);
-  else
-    essence_level = GET_OBJ_LEVEL(essence_two);
-
-  /* high enough skill? */
-  if (essence_level > (craft_legacy_skill_equivalent(ch, skill_type) / 3))
-  {
-    send_to_char(ch,
-                 "The essence level is %d but your %s skill is "
-                 "only capable of creating level %d crystals.\r\n",
-                 essence_level, ability_names[skill_type],
-                 (craft_legacy_skill_equivalent(ch, skill_type) / 3));
-    return 1;
-  }
-
-  cost = essence_level * 500 / 3; // expense for augmenting
-  if (GET_GOLD(ch) < cost)
-  {
-    send_to_char(ch,
-                 "You need %d coins on hand for supplies to augment this "
-                 "crystal.\r\n",
-                 cost);
-    return 1;
-  }
-
-  /* roll the dice! */
-  dice_roll = dice(1, 100);
-
-  /* success is level difference divided by 4,  percent */
-  success_chance = 100 - (level_diff * 10);
-  success_chance -= essence_level; /* minus level */
-
-  /* critical success */
-  if (dice_roll >= 95)
-    success_chance = 150;
-
-  dice_roll += craft_legacy_skill_equivalent(ch, skill_type) / 3;
-
-  /* failed our attempt */
-  if (dice_roll > success_chance)
-  {
-    send_to_char(ch, "There seems to be a flaw in your augmentation...\r\n");
-  }
-  /* success! */
-  else
-  {
-    essence_level++;
-    GET_OBJ_LEVEL(essence_one) = essence_level;
-  }
-
-  /* exp bonus for crafting ticks */
-  GET_CRAFTING_BONUS(ch) = 10 + MIN(30, essence_level);
-  /* cost */
-  send_to_char(ch,
-               "It cost you %d coins in supplies to augment this "
-               "essence.\r\n",
-               cost);
-  award_gold(ch, -cost);
-
-  GET_CRAFTING_TYPE(ch) = SCMD_AUGMENT;
-  GET_CRAFTING_TICKS(ch) = legacy_kit_ticks(ch, skill_type, 10);
-  GET_CRAFTING_OBJ(ch) = essence_one;
-  send_to_char(ch, "You begin to augment %s.\r\n", essence_one->short_description);
-  act("$n begins to augment $p.", FALSE, ch, essence_one, 0, TO_ROOM);
-
-  /* get rid of the items in the kit */
-  obj_from_obj(essence_one);
-  extract_obj(essence_two);
-  obj_to_char(essence_one, ch);
-  save_char(ch, 0);
-  Crash_crashsave(ch);
-
-  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
-
-  return 1;
-}
-
-// convert one material into another
-// requires multiples of exactly 10 of same mat to do the converstion
-
-/*  !! still under construction - zusuk !! */
-static int convert(struct obj_data *kit, struct char_data *ch)
-{
-  int cost = 500; /* flat cost */
-  int num_mats = 0, material = -1, obj_vnum_id = 0;
-  struct obj_data *new_mat = NULL, *obj = NULL;
-
-  /* Cycle through contents and categorize */
-  for (obj = kit->contains; obj != NULL; obj = obj->next_content)
-  {
-    if (obj)
-    {
-      if (GET_OBJ_TYPE(obj) != ITEM_MATERIAL)
-      {
-        send_to_char(ch, "Only materials should be inside the kit in"
-                         " order to convert.\r\n");
-        return 1;
-      }
-      else if (GET_OBJ_TYPE(obj) == ITEM_MATERIAL)
-      {
-        if (GET_OBJ_VAL(obj, 0) >= 2)
-        {
-          send_to_char(ch,
-                       "%s is a bundled item, which must first be unbundled before you can use it "
-                       "to craft.\r\n",
-                       obj->short_description);
-          return 1;
-        }
-        if (material == -1)
-        { /* first item */
-          new_mat = obj;
-          material = GET_OBJ_MATERIAL(obj);
-        }
-        else if (GET_OBJ_MATERIAL(obj) != material)
-        {
-          send_to_char(ch, "You have mixed materials inside the kit, "
-                           "put only the exact same materials for "
-                           "conversion.\r\n");
-          return 1;
-        }
-        num_mats++; /* we found matching material */
-        obj_vnum_id = GET_OBJ_VNUM(obj);
-      }
-    }
-  }
-
-  if (num_mats)
-  {
-    if (num_mats % 10)
-    {
-      send_to_char(ch, "You must convert materials in multiple "
-                       "of 10 units exactly.\r\n");
-      return 1;
-    }
-  }
-  else
-  {
-    send_to_char(ch, "There is no material in the kit.\r\n");
-    return 1;
-  }
-
-  if ((num_mats = convert_material(material)))
-    send_to_char(ch, "You are converting the material to:  %s\r\n", material_name[num_mats]);
-  else
-  {
-    send_to_char(ch, "You do not have a valid material in the crafting "
-                     "kit.\r\n");
-    return 1;
-  }
-
-  if (GET_GOLD(ch) < cost)
-  {
-    send_to_char(ch,
-                 "You need %d gold on hand for supplies to covert these "
-                 "materials.\r\n",
-                 cost);
-    return 1;
-  }
-  send_to_char(ch,
-               "It cost you %d gold in supplies to convert this "
-               "item.\r\n",
-               cost);
-  award_gold(ch, -cost);
-  // new name
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
-  snprintf(buf, sizeof(buf), "\tca portion of %s material\tn", material_name[num_mats]);
-  new_mat->name = strdup(buf);
-  new_mat->short_description = strdup(buf);
-  snprintf(buf, sizeof(buf), "\tcA portion of %s material lies here.\tn", material_name[num_mats]);
-  new_mat->description = strdup(buf);
-  act("$n begins a conversion of materials into $p.", FALSE, ch, new_mat, 0, TO_ROOM);
-
-  GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(new_mat));
-  GET_CRAFTING_TYPE(ch) = SCMD_CONVERT;
-  GET_CRAFTING_TICKS(ch) = legacy_kit_ticks(ch, ABILITY_CRAFT_ALCHEMY, 5);
-  GET_CRAFTING_OBJ(ch) = new_mat;
-  GET_CRAFTING_REPEAT(ch) = (ubyte)MAX(0, (num_mats / 10) + 1);
-
-  obj_from_obj(new_mat);
-
-  obj_vnum_id = GET_OBJ_VNUM(kit);
-  obj_from_char(kit);
-  extract_obj(kit);
-  kit = read_object(obj_vnum_id, VIRTUAL);
-
-  obj_to_char(kit, ch);
-
-  obj_to_char(new_mat, ch);
-
-  save_char(ch, 0);
-  Crash_crashsave(ch);
-  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
-
-  return 1;
-}
-
-/* rename an object */
-static int restring(char *argument, struct obj_data *kit, struct char_data *ch)
-{
-  int num_objs = 0, cost;
-  struct obj_data *obj = NULL;
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
-
-  /* Cycle through contents */
-  /* restring requires just one item be inside the kit */
-  for (obj = kit->contains; obj != NULL; obj = obj->next_content)
-    num_objs++;
-  obj = kit->contains;
-
-  if (num_objs > 1)
-  {
-    send_to_char(ch, "Only one item should be inside the kit.\r\n");
-    return 1;
-  }
-
-  if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
-  {
-    if (obj->contains)
-    {
-      send_to_char(ch, "You cannot restring bags that have items in them.\r\n");
-      return 1;
-    }
-  }
-
-  if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK)
-  {
-    send_to_char(ch, "You cannot restring spellbooks.\r\n");
-    return 1;
-  }
-
-  if (GET_OBJ_MATERIAL(obj))
-  {
-    if (!strstr(argument, material_name[GET_OBJ_MATERIAL(obj)]))
-    {
-      send_to_char(ch,
-                   "You must include the material name, '%s', in the object "
-                   "description somewhere.\r\n",
-                   material_name[GET_OBJ_MATERIAL(obj)]);
-      return 1;
-    }
-  }
-
-  /* Thazull wanted very cheap at low level for RP fun */
-  switch (GET_OBJ_LEVEL(obj))
-  {
-  case 0:
-  case 1:
-  case 2:
-  case 3:
-  case 4:
-  case 5:
-  case 6:
-    cost = 10;
-    break;
-  case 7:
-  case 8:
-  case 9:
-  case 10:
-  case 11:
-  case 12:
-    cost = 20 + GET_OBJ_LEVEL(obj);
-    break;
-  case 13:
-  case 14:
-  case 15:
-  case 16:
-    cost = 40 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 6;
-    break;
-  case 17:
-  case 18:
-  case 19:
-  case 20:
-    cost = 150 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 5;
-    break;
-  case 21:
-  case 22:
-  case 23:
-  case 24:
-  case 25:
-    cost = 500 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 4;
-    break;
-  default:
-    cost = 2000 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 2;
-    break;
-  }
-
-  if (GET_GOLD(ch) < cost)
-  {
-    send_to_char(ch,
-                 "You need %d gold on hand for supplies to restring"
-                 " this item.\r\n",
-                 cost);
-    return 1;
-  }
-
-  /* you need to parse the @ sign */
-  parse_at(argument);
-
-  /* success!! */
-  free_object_string(obj, obj->name);
-  obj->name = strdup(argument);
-  strip_colors(obj->name);
-  free_object_string(obj, obj->short_description);
-  obj->short_description = strdup(argument);
-  snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
-  free_object_string(obj, obj->description);
-  obj->description = strdup(buf);
-  if (obj->ex_description)
-  {
-    /* A live object shares its prototype's extra descriptions until changed. */
-    if (obj_proto == NULL || !VALID_OBJ_RNUM(obj) ||
-        obj->ex_description != obj_proto[GET_OBJ_RNUM(obj)].ex_description)
-      free_ex_descriptions(obj->ex_description);
-    struct extra_descr_data *new_descr;
-    CREATE(new_descr, struct extra_descr_data, 1);
-    new_descr->keyword = strdup(argument);
-    new_descr->description = strdup("You don't notice any extra details.\n");
-    obj->ex_description = new_descr;
-  }
-  GET_CRAFTING_TYPE(ch) = SCMD_RESTRING;
-  GET_CRAFTING_TICKS(ch) = legacy_kit_ticks(ch, -1, 5);
-  GET_CRAFTING_OBJ(ch) = obj;
-
-  send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
-  award_gold(ch, -cost);
-  send_to_char(ch,
-               "You put the item into the crafting kit and wait for it "
-               "to transform into %s.\r\n",
-               obj->short_description);
-
-  obj_from_obj(obj);
-
-  obj_to_char(obj, ch);
-  save_char(ch, 0);
-  Crash_crashsave(ch);
-  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
-
-  return 1;
-}
-
-/* change extra description of an object */
-static int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
-{
-  int num_objs = 0, cost;
-  struct obj_data *obj = NULL;
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
-
-  /* Cycle through contents */
-  /* redesc requires just one item be inside the kit */
-  for (obj = kit->contains; obj != NULL; obj = obj->next_content)
-    num_objs++;
-  obj = kit->contains;
-
-  if (num_objs > 1)
-  {
-    send_to_char(ch, "Only one item should be inside the kit.\r\n");
-    return 1;
-  }
-
-  if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
-  {
-    if (obj->contains)
-    {
-      send_to_char(ch, "You cannot redesc bags that have items in them.\r\n");
-      return 1;
-    }
-  }
-
-  if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK)
-  {
-    send_to_char(ch, "You cannot redesc spellbooks.\r\n");
-    return 1;
-  }
-
-  /* Thazull wanted very cheap at low level for RP fun */
-  switch (GET_OBJ_LEVEL(obj))
-  {
-  case 0:
-  case 1:
-  case 2:
-  case 3:
-  case 4:
-  case 5:
-  case 6:
-    cost = 10;
-    break;
-  case 7:
-  case 8:
-  case 9:
-  case 10:
-  case 11:
-  case 12:
-    cost = 20 + GET_OBJ_LEVEL(obj);
-    break;
-  case 13:
-  case 14:
-  case 15:
-  case 16:
-    cost = 40 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 6;
-    break;
-  case 17:
-  case 18:
-  case 19:
-  case 20:
-    cost = 150 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 5;
-    break;
-  case 21:
-  case 22:
-  case 23:
-  case 24:
-  case 25:
-    cost = 500 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 4;
-    break;
-  default:
-    cost = 2000 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 2;
-    break;
-  }
-
-  if (GET_GOLD(ch) < cost)
-  {
-    send_to_char(ch, "You need %d gold on hand for supplies to redesc this item.\r\n", cost);
-    return 1;
-  }
-
-  /* you need to parse the @ sign */
-  parse_at(argument);
-
-  /* success!! */
-  if (obj->ex_description)
-  {
-    free_ex_descriptions(obj->ex_description);
-  }
-
-  struct extra_descr_data *new_descr;
-  CREATE(new_descr, struct extra_descr_data, 1);
-  new_descr->keyword = strdup(obj->name);
-  snprintf(buf, sizeof(buf), "%s\n", strfrmt(argument, 80, 1, FALSE, FALSE, FALSE));
-  new_descr->description = strdup(buf);
-  obj->ex_description = new_descr;
-
-  GET_CRAFTING_TYPE(ch) = SCMD_REDESC;
-  GET_CRAFTING_TICKS(ch) = legacy_kit_ticks(ch, -1, 5);
-  GET_CRAFTING_OBJ(ch) = obj;
-
-  send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
-  award_gold(ch, -cost);
-  send_to_char(ch,
-               "You put the item into the crafting kit and wait for it to transform into %s.\r\n",
-               obj->short_description);
-
-  obj_from_obj(obj);
-
-  obj_to_char(obj, ch);
-  save_char(ch, 0);
-  Crash_crashsave(ch);
-  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
-
-  return 1;
-}
-
-/* autocraft - crafting quest command */
-static int autocraft(struct obj_data *kit, struct char_data *ch)
-{
-  int material, obj_vnum_id, num_mats = 0;
-  struct obj_data *obj = NULL;
-
-  if (!GET_AUTOCQUEST_MATERIAL(ch))
-  {
-    send_to_char(ch, "You do not have a supply order active right now. "
-                     "(supplyorder new)\r\n");
-    return 1;
-  }
-  if (!GET_AUTOCQUEST_MAKENUM(ch))
-  {
-    send_to_char(ch, "You have completed your supply order, "
-                     "go turn it in (type 'supplyorder complete' in a supplyorder office).\r\n");
-    return 1;
-  }
-
-  material = GET_AUTOCQUEST_MATERIAL(ch);
-
-  /* Cycle through contents and categorize */
-  for (obj = kit->contains; obj != NULL; obj = obj->next_content)
-  {
-    if (obj)
-    {
-      if (GET_OBJ_TYPE(obj) != ITEM_MATERIAL)
-      {
-        send_to_char(ch, "Only materials should be inside the kit in"
-                         " order to complete a supplyorder.\r\n");
-        return 1;
-      }
-      else if (GET_OBJ_TYPE(obj) == ITEM_MATERIAL)
-      {
-        if (GET_OBJ_VAL(obj, 0) >= 2)
-        {
-          send_to_char(ch,
-                       "%s is a bundled item, which must first be unbundled before you can use it "
-                       "to craft.\r\n",
-                       obj->short_description);
-          return 1;
-        }
-        if (GET_OBJ_MATERIAL(obj) != material)
-        {
-          send_to_char(ch, "You need %s to complete this supplyorder.\r\n",
-                       material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
-          return 1;
-        }
-        obj_vnum_id = GET_OBJ_VNUM(obj);
-        num_mats++; /* we found matching material */
-        if (num_mats > SUPPLYORDER_MATS)
-        {
-          send_to_char(ch,
-                       "You have too much materials in the kit, put "
-                       "exactly %d for the supplyorder.\r\n",
-                       SUPPLYORDER_MATS);
-          return 1;
-        }
-      }
-      else
-      { /* must be an essence */
-        send_to_char(ch, "Essence items will not work for supplyorders!\r\n");
-        return 1;
-      }
-    }
-  }
-
-  if (num_mats < SUPPLYORDER_MATS)
-  {
-    send_to_char(ch,
-                 "You have %d material units in the kit, you will need "
-                 "%d more units to complete the supplyorder.\r\n",
-                 num_mats, SUPPLYORDER_MATS - num_mats);
-    return 1;
-  }
-
-  GET_CRAFTING_TYPE(ch) = SCMD_SUPPLYORDER;
-  GET_CRAFTING_TICKS(ch) =
-      legacy_kit_ticks(ch, legacy_supply_order_skill(GET_AUTOCQUEST_MATERIAL(ch)), 5);
-  GET_AUTOCQUEST_GOLD(ch) += GET_LEVEL(ch);
-  send_to_char(ch, "You begin a supply order for %s.\r\n", GET_AUTOCQUEST_DESC(ch));
-  act("$n begins a supply order.", FALSE, ch, NULL, 0, TO_ROOM);
-
-  obj_vnum_id = GET_OBJ_VNUM(kit);
-  obj_from_char(kit);
-  extract_obj(kit);
-  kit = read_object(obj_vnum_id, VIRTUAL);
-  obj_to_char(kit, ch);
-  save_char(ch, 0);
-  Crash_crashsave(ch);
-  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
-
-  return 1;
-}
-
-/* resize an object, also will change weapon damage */
-static int resize(char *argument, struct obj_data *kit, struct char_data *ch)
-{
-  int num_objs = 0, newsize, cost;
-  struct obj_data *obj = NULL;
-  int num_dice = -1;
-  int size_dice = -1;
-
-  /* Cycle through contents */
-  /* resize requires just one item be inside the kit */
-  for (obj = kit->contains; obj != NULL; obj = obj->next_content)
-    num_objs++;
-  obj = kit->contains;
-
-  if (num_objs > 1)
-  {
-    send_to_char(ch, "Only one item should be inside the kit.\r\n");
-    return 1;
-  }
-
-  if (is_abbrev(argument, "fine"))
-    newsize = SIZE_FINE;
-  else if (is_abbrev(argument, "diminutive"))
-    newsize = SIZE_DIMINUTIVE;
-  else if (is_abbrev(argument, "tiny"))
-    newsize = SIZE_TINY;
-  else if (is_abbrev(argument, "small"))
-    newsize = SIZE_SMALL;
-  else if (is_abbrev(argument, "medium"))
-    newsize = SIZE_MEDIUM;
-  else if (is_abbrev(argument, "large"))
-    newsize = SIZE_LARGE;
-  else if (is_abbrev(argument, "huge"))
-    newsize = SIZE_HUGE;
-  else if (is_abbrev(argument, "gargantuan"))
-    newsize = SIZE_GARGANTUAN;
-  else if (is_abbrev(argument, "colossal"))
-    newsize = SIZE_COLOSSAL;
-  else
-  {
-    send_to_char(ch, "That is not a valid size: (fine|diminutive|tiny|small|"
-                     "medium|large|huge|gargantuan|colossal)\r\n");
-    return 1;
-  }
-
-  if (newsize == GET_OBJ_SIZE(obj))
-  {
-    send_to_char(ch, "The object is already the size you desire.\r\n");
-    return 1;
-  }
-
-  /* "cost" of resizing */
-  cost = GET_OBJ_COST(obj) / 2;
-  // if it's a race changing the size to their own so they can use it normally, we don't want to penalize them with a cost in gold
-  if (newsize == GET_SIZE(ch))
-  {
-    cost = 0;
-  }
-
-  if (GET_GOLD(ch) < cost)
-  {
-    send_to_char(ch,
-                 "You need %d coins on hand for supplies to resize this "
-                 "item.\r\n",
-                 cost);
-    return 1;
-  }
-
-  /* weapon damage adjustment */
-  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
-  {
-    num_dice = GET_OBJ_VAL(obj, 1);
-    size_dice = GET_OBJ_VAL(obj, 2);
-
-    if (scale_damage(ch, obj, newsize))
-    {
-      /* success, weapon upgraded or downgraded in damage
-         corresponding to size change */
-      send_to_char(ch, "Weapon change:  %dd%d to %dd%d\r\n", num_dice, size_dice,
-                   GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2));
-    }
-    else
-    {
-      send_to_char(ch, "You failed to resize this weapon!\r\n");
-      return 1;
-    }
-  }
-
-  if (cost > 0)
-  {
-    send_to_char(ch, "It cost you %d coins to resize this item.\r\n", cost);
-    award_gold(ch, -cost);
-  }
-  send_to_char(ch, "You begin to resize %s from %s to %s.\r\n", obj->short_description,
-               size_names[GET_OBJ_SIZE(obj)], size_names[newsize]);
-  act("$n begins resizing $p.", FALSE, ch, obj, 0, TO_ROOM);
-  obj_from_obj(obj);
-
-  /* resize object after taking out of kit, otherwise issues */
-  /* weight adjustment of object */
-  GET_OBJ_SIZE(obj) = newsize;
-  GET_OBJ_WEIGHT(obj) += (newsize - GET_OBJ_SIZE(obj)) * GET_OBJ_WEIGHT(obj);
-  if (GET_OBJ_WEIGHT(obj) <= 0)
-    GET_OBJ_WEIGHT(obj) = 1;
-
-  GET_CRAFTING_OBJ(ch) = obj;
-  GET_CRAFTING_TYPE(ch) = SCMD_RESIZE;
-  if (cost == 0)
-    GET_CRAFTING_TICKS(ch) = 1;
-  else
-    GET_CRAFTING_TICKS(ch) = legacy_kit_ticks(ch, -1, 5);
-
-  obj_to_char(obj, ch);
-  save_char(ch, 0);
-  Crash_crashsave(ch);
-  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
-
-  return 1;
-}
-
-
 static struct obj_data *get_single_bone_armor_object(struct obj_data *kit, int *num_objs)
 {
   struct obj_data *obj;
@@ -1628,236 +816,484 @@ void test_update_bone_armor_descriptions(struct obj_data *obj, char *argument)
 }
 #endif
 
-/* change armor from original material to bone material */
-static int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
+/*************************/
+/* Kit operations        */
+/*************************/
+
+/* Every crafting-kit operation (and the standalone reforge) runs on the activity manager with
+ * one lifecycle (consolidation Decision 11): admission plans the work without touching any
+ * object, balance, or gold; the activity targets the kit (or the item, for the standalone
+ * reforge); completion re-plans against the current state and then applies the mutation,
+ * consumption, payment, quest hook, and experience exactly once. Cancelling spends nothing. */
+
+struct kit_operation
 {
-  int num_objs = 0, cost;
-  struct obj_data *obj = NULL;
+  int type;       /* SCMD_CRAFT, SCMD_RESIZE, ... */
+  int skill;      /* craft ability, or -1 for a skill-less utility */
+  int quest;      /* AQ_CRAFT_* hook fired once on completion, or -1 */
+  int seconds;    /* work duration */
+  int cost;       /* gold paid at completion */
+  int legacy_exp; /* the character experience the old tick loop paid, paid once */
+  char text[MAX_INPUT_LENGTH];
+  int new_size;
+  int reforge_index;
+  int obj_level;
+  int chance_of_crit;
+  int essence_level;
+  int material;    /* create: the balance material used */
+  int mats_needed; /* create: units debited */
+};
+
+static struct obj_data *kit_single_item(struct obj_data *kit, int *count)
+{
+  struct obj_data *obj;
+
+  *count = 0;
+  for (obj = kit->contains; obj != NULL; obj = obj->next_content)
+    (*count)++;
+  return *count == 1 ? kit->contains : NULL;
+}
+
+/* The duration of a kit operation whose old timer ran base_ticks of six seconds. */
+static int kit_seconds(struct char_data *ch, int skill, int base_ticks, int cost)
+{
+  if (cost == 0 && base_ticks > 1)
+    return 6; /* the old code ran one tick for free work */
+  return craft_legacy_kit_seconds(ch, skill, base_ticks);
+}
+
+/* The character experience the old tick loop paid per tick, for the whole run. */
+static int kit_legacy_exp(int per_tick, int seconds)
+{
+  return per_tick * MAX(1, seconds / 6);
+}
+
+/* Restring cost table (Thazull wanted very cheap at low level for RP fun). */
+static int restring_cost(struct obj_data *obj)
+{
+  int level = GET_OBJ_LEVEL(obj);
+
+  if (level <= 6)
+    return 10;
+  if (level <= 12)
+    return 20 + level;
+  if (level <= 16)
+    return 40 + level + GET_OBJ_COST(obj) / 6;
+  if (level <= 20)
+    return 150 + level + GET_OBJ_COST(obj) / 5;
+  if (level <= 25)
+    return 500 + level + GET_OBJ_COST(obj) / 4;
+  return 2000 + level + GET_OBJ_COST(obj) / 2;
+}
+
+/* ---- restring ---- */
+
+static bool plan_restring(struct char_data *ch, struct obj_data *kit, const char *argument,
+                          struct kit_operation *op, bool verbose)
+{
+  int count;
+  struct obj_data *obj = kit_single_item(kit, &count);
+
+  if (obj == NULL)
+  {
+    if (verbose)
+      send_to_char(ch, "Only one item should be inside the kit.\r\n");
+    return false;
+  }
+  if ((GET_OBJ_TYPE(obj) == ITEM_CONTAINER || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH) &&
+      obj->contains)
+  {
+    if (verbose)
+      send_to_char(ch, "You cannot restring bags that have items in them.\r\n");
+    return false;
+  }
+  if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK)
+  {
+    if (verbose)
+      send_to_char(ch, "You cannot restring spellbooks.\r\n");
+    return false;
+  }
+  if (GET_OBJ_MATERIAL(obj) && !strstr(argument, material_name[GET_OBJ_MATERIAL(obj)]))
+  {
+    if (verbose)
+      send_to_char(ch,
+                   "You must include the material name, '%s', in the object "
+                   "description somewhere.\r\n",
+                   material_name[GET_OBJ_MATERIAL(obj)]);
+    return false;
+  }
+  op->type = SCMD_RESTRING;
+  op->skill = -1;
+  op->quest = AQ_CRAFT_RESTRING;
+  op->cost = restring_cost(obj);
+  op->seconds = kit_seconds(ch, -1, 5, op->cost);
+  op->legacy_exp = kit_legacy_exp(GET_OBJ_LEVEL(obj) * GET_LEVEL(ch) + GET_LEVEL(ch), op->seconds);
+  snprintf(op->text, sizeof(op->text), "%s", argument);
+  return true;
+}
+
+static void apply_restring(struct char_data *ch, struct obj_data *obj, struct kit_operation *op)
+{
+  char buf[MAX_INPUT_LENGTH];
+  char *text = op->text;
+
+  (void)ch;
+  parse_at(text);
+  free_object_string(obj, obj->name);
+  obj->name = strdup(text);
+  strip_colors(obj->name);
+  free_object_string(obj, obj->short_description);
+  obj->short_description = strdup(text);
+  snprintf(buf, sizeof(buf), "%s lies here.", CAP(text));
+  free_object_string(obj, obj->description);
+  obj->description = strdup(buf);
+  if (obj->ex_description)
+  {
+    struct extra_descr_data *new_descr;
+
+    /* A live object shares its prototype's extra descriptions until changed. */
+    if (obj_proto == NULL || !VALID_OBJ_RNUM(obj) ||
+        obj->ex_description != obj_proto[GET_OBJ_RNUM(obj)].ex_description)
+      free_ex_descriptions(obj->ex_description);
+    CREATE(new_descr, struct extra_descr_data, 1);
+    new_descr->keyword = strdup(text);
+    new_descr->description = strdup("You don't notice any extra details.\n");
+    obj->ex_description = new_descr;
+  }
+}
+
+/* ---- redesc ---- */
+
+static bool plan_redesc(struct char_data *ch, struct obj_data *kit, const char *argument,
+                        struct kit_operation *op, bool verbose)
+{
+  int count;
+  struct obj_data *obj = kit_single_item(kit, &count);
+
+  if (obj == NULL)
+  {
+    if (verbose)
+      send_to_char(ch, "Only one item should be inside the kit.\r\n");
+    return false;
+  }
+  if ((GET_OBJ_TYPE(obj) == ITEM_CONTAINER || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH) &&
+      obj->contains)
+  {
+    if (verbose)
+      send_to_char(ch, "You cannot redesc bags that have items in them.\r\n");
+    return false;
+  }
+  if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK)
+  {
+    if (verbose)
+      send_to_char(ch, "You cannot redesc spellbooks.\r\n");
+    return false;
+  }
+  op->type = SCMD_REDESC;
+  op->skill = -1;
+  op->quest = -1;
+  op->cost = restring_cost(obj);
+  op->seconds = kit_seconds(ch, -1, 5, op->cost);
+  op->legacy_exp = kit_legacy_exp(GET_OBJ_LEVEL(obj) * GET_LEVEL(ch) + GET_LEVEL(ch), op->seconds);
+  snprintf(op->text, sizeof(op->text), "%s", argument);
+  return true;
+}
+
+static void apply_redesc(struct char_data *ch, struct obj_data *obj, struct kit_operation *op)
+{
+  char buf[MAX_INPUT_LENGTH];
+  struct extra_descr_data *new_descr;
+
+  (void)ch;
+  parse_at(op->text);
+  if (obj->ex_description)
+  {
+    if (obj_proto == NULL || !VALID_OBJ_RNUM(obj) ||
+        obj->ex_description != obj_proto[GET_OBJ_RNUM(obj)].ex_description)
+      free_ex_descriptions(obj->ex_description);
+  }
+  CREATE(new_descr, struct extra_descr_data, 1);
+  new_descr->keyword = strdup(obj->name);
+  snprintf(buf, sizeof(buf), "%s\n", strfrmt(op->text, 80, 1, FALSE, FALSE, FALSE));
+  new_descr->description = strdup(buf);
+  obj->ex_description = new_descr;
+}
+
+/* ---- resize ---- */
+
+static int parse_size_name(const char *argument)
+{
+  static const char *names[] = {"fine",  "diminutive", "tiny",       "small",   "medium",
+                                "large", "huge",       "gargantuan", "colossal"};
+  static const int size_values[] = {SIZE_FINE,  SIZE_DIMINUTIVE, SIZE_TINY,
+                                    SIZE_SMALL, SIZE_MEDIUM,     SIZE_LARGE,
+                                    SIZE_HUGE,  SIZE_GARGANTUAN, SIZE_COLOSSAL};
+  int i;
+
+  if (!argument || !*argument)
+    return SIZE_UNDEFINED;
+  for (i = 0; i < 9; i++)
+    if (is_abbrev(argument, names[i]))
+      return size_values[i];
+  return SIZE_UNDEFINED;
+}
+
+static bool plan_resize(struct char_data *ch, struct obj_data *kit, const char *argument,
+                        struct kit_operation *op, bool verbose)
+{
+  int count;
+  struct obj_data *obj = kit_single_item(kit, &count);
+
+  if (obj == NULL)
+  {
+    if (verbose)
+      send_to_char(ch, "Only one item should be inside the kit.\r\n");
+    return false;
+  }
+  op->new_size = parse_size_name(argument);
+  if (op->new_size == SIZE_UNDEFINED)
+  {
+    if (verbose)
+      send_to_char(ch, "That is not a valid size: (fine|diminutive|tiny|small|"
+                       "medium|large|huge|gargantuan|colossal)\r\n");
+    return false;
+  }
+  if (op->new_size == GET_OBJ_SIZE(obj))
+  {
+    if (verbose)
+      send_to_char(ch, "The object is already the size you desire.\r\n");
+    return false;
+  }
+  op->type = SCMD_RESIZE;
+  op->skill = -1;
+  op->quest = AQ_CRAFT_RESIZE;
+  /* Resizing to your own size is free: no gold, one tick. */
+  op->cost = op->new_size == GET_SIZE(ch) ? 0 : GET_OBJ_COST(obj) / 2;
+  op->seconds = kit_seconds(ch, -1, 5, op->cost);
+  op->legacy_exp = 0;
+  return true;
+}
+
+/* Resize applies the weapon damage chart first; an invalid shift leaves the item alone. */
+static bool apply_resize(struct char_data *ch, struct obj_data *obj, struct kit_operation *op)
+{
+  int num_dice, size_dice;
+
+  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+  {
+    num_dice = GET_OBJ_VAL(obj, 1);
+    size_dice = GET_OBJ_VAL(obj, 2);
+    if (!scale_damage(ch, obj, op->new_size))
+    {
+      send_to_char(ch, "You failed to resize this weapon!\r\n");
+      return false;
+    }
+    send_to_char(ch, "Weapon change:  %dd%d to %dd%d\r\n", num_dice, size_dice, GET_OBJ_VAL(obj, 1),
+                 GET_OBJ_VAL(obj, 2));
+  }
+  GET_OBJ_WEIGHT(obj) += (op->new_size - GET_OBJ_SIZE(obj)) * GET_OBJ_WEIGHT(obj);
+  GET_OBJ_SIZE(obj) = op->new_size;
+  if (GET_OBJ_WEIGHT(obj) <= 0)
+    GET_OBJ_WEIGHT(obj) = 1;
+  return true;
+}
+
+/* ---- bonearmor ---- */
+
+static bool plan_bonearmor(struct char_data *ch, struct obj_data *kit, const char *argument,
+                           struct kit_operation *op, bool verbose)
+{
+  int count;
+  struct obj_data *obj;
 
   if (!HAS_REAL_FEAT(ch, FEAT_BONE_ARMOR))
   {
-    send_to_char(ch, "You must have the bone armor feat to convert armor into bone.\r\n");
-    return 1;
+    if (verbose)
+      send_to_char(ch, "You must have the bone armor feat to convert armor into bone.\r\n");
+    return false;
   }
-
-  obj = get_single_bone_armor_object(kit, &num_objs);
-  if (num_objs == 0)
+  obj = get_single_bone_armor_object(kit, &count);
+  if (count == 0)
   {
-    send_to_char(ch, "You must place one armor item in the kit.\r\n");
-    return 1;
+    if (verbose)
+      send_to_char(ch, "You must place one armor item in the kit.\r\n");
+    return false;
   }
-  if (num_objs > 1 || obj == NULL)
+  if (count > 1 || obj == NULL)
   {
-    send_to_char(ch, "Only one item should be inside the kit.\r\n");
-    return 1;
+    if (verbose)
+      send_to_char(ch, "Only one item should be inside the kit.\r\n");
+    return false;
   }
-
   if (GET_OBJ_TYPE(obj) != ITEM_ARMOR)
   {
-    send_to_char(ch, "You can only convert armor and shields to bone.\r\n");
-    return 1;
+    if (verbose)
+      send_to_char(ch, "You can only convert armor and shields to bone.\r\n");
+    return false;
   }
-
-
   if (GET_OBJ_MATERIAL(obj) == MATERIAL_BONE)
   {
-    send_to_char(ch, "The object is already made of bone.\r\n");
-    return 1;
+    if (verbose)
+      send_to_char(ch, "The object is already made of bone.\r\n");
+    return false;
   }
-
   if (!strstr(argument, material_name[MATERIAL_BONE]))
   {
-    send_to_char(
-        ch, "You must include the material name, '%s', in the object description somewhere.\r\n",
-        material_name[MATERIAL_BONE]);
-    return 1;
+    if (verbose)
+      send_to_char(ch,
+                   "You must include the material name, '%s', in the object description "
+                   "somewhere.\r\n",
+                   material_name[MATERIAL_BONE]);
+    return false;
   }
+  op->type = SCMD_BONEARMOR;
+  op->skill = ABILITY_CRAFT_ARMORSMITHING;
+  op->quest = AQ_CRAFT_RESIZE; /* the old completion fired the resize hook */
+  op->cost = GET_OBJ_COST(obj) / 3;
+  op->seconds = kit_seconds(ch, op->skill, 5, op->cost);
+  op->legacy_exp = kit_legacy_exp(GET_OBJ_LEVEL(obj) * GET_LEVEL(ch) + GET_LEVEL(ch), op->seconds);
+  snprintf(op->text, sizeof(op->text), "%s", argument);
+  return true;
+}
 
-  /* "cost" of resizing */
-  cost = GET_OBJ_COST(obj) / 3;
-
-  if (GET_GOLD(ch) < cost)
-  {
-    send_to_char(ch, "You need %d coins on hand for supplies to convert this item into bone.\r\n",
-                 cost);
-    return 1;
-  }
-
-  if (cost > 0)
-  {
-    send_to_char(ch, "It cost you %d coins to convert this item into bone.\r\n", cost);
-    award_gold(ch, -cost);
-  }
-
-  update_bone_armor_descriptions(obj, argument);
-
-  send_to_char(ch, "You begin to convert %s into bone.\r\n", obj->short_description);
-  act("$n begins converting $p to bone.", FALSE, ch, obj, 0, TO_ROOM);
-  obj_from_obj(obj);
-
+static void apply_bonearmor(struct char_data *ch, struct obj_data *obj, struct kit_operation *op)
+{
+  (void)ch;
+  update_bone_armor_descriptions(obj, op->text);
   GET_OBJ_MATERIAL(obj) = MATERIAL_BONE;
   if (GET_OBJ_WEIGHT(obj) <= 0)
     GET_OBJ_WEIGHT(obj) = 1;
-
-  GET_CRAFTING_OBJ(ch) = obj;
-  GET_CRAFTING_TYPE(ch) = SCMD_BONEARMOR;
-  if (cost == 0)
-    GET_CRAFTING_TICKS(ch) = 1;
-  else
-    GET_CRAFTING_TICKS(ch) = legacy_kit_ticks(ch, ABILITY_CRAFT_ARMORSMITHING, 5);
-
-  obj_to_char(obj, ch);
-  save_char(ch, 0);
-  Crash_crashsave(ch);
-  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
-
-  return 1;
 }
 
-/* change armor or weapon from one type to another */
-static int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
+/* ---- reforge (shared by the kit and the reforge command) ---- */
+
+/* Validate a reforge and choose the target type without touching the item. The station the
+ * item's material needs must be in the room; the item must be a weapon, armor, or shield. */
+bool reforge_plan(struct char_data *ch, struct obj_data *obj, const char *target, int *index_out,
+                  int *cost_out, bool verbose)
 {
-  int num_objs = 0, cost;
-  struct obj_data *obj = NULL;
-  char buf[MAX_STRING_LENGTH];
-  int i = 0;
-  char bonus[30];
-  int orig_cost = 0, enhancement = 0, material = 0;
+  int i = 0, skill;
 
-  /* Cycle through contents */
-  /* resize requires just one item be inside the kit */
-  for (obj = kit->contains; obj != NULL; obj = obj->next_content)
-    num_objs++;
-  obj = kit->contains;
-
-  if (num_objs > 1)
+  if (obj == NULL || (GET_OBJ_TYPE(obj) != ITEM_ARMOR && GET_OBJ_TYPE(obj) != ITEM_WEAPON))
   {
-    send_to_char(ch, "Only one item should be inside the kit.\r\n");
-    return 1;
+    if (verbose)
+      send_to_char(ch, "You can only reforge armor, shields and weapons.\r\n");
+    return false;
   }
-
-  if (GET_OBJ_TYPE(obj) != ITEM_ARMOR && GET_OBJ_TYPE(obj) != ITEM_WEAPON)
+  while (target && *target == ' ')
+    target++;
+  if (!target || !*target)
   {
-    send_to_char(ch, "You can only reforge armor, shields and weapons.\r\n");
-    return 1;
+    if (verbose)
+      send_to_char(ch, "Please specify the type of weapon, armor or shield you'd like to reforge "
+                       "this item into. Type weaponlist or armorlistfull to see options.\r\n");
+    return false;
   }
-
-  skip_spaces(&argument);
-
-  if (!*argument)
+  skill = material_type_to_crafting_skill(GET_OBJ_MATERIAL(obj));
+  if (!has_crafting_station_in_room(ch, skill))
   {
-    send_to_char(ch, "Please specify the type of weapon, armor or shield you'd like to reforge "
-                     "this item into. Type weaponlist or armorlistfull to see options.\r\n");
-    return 1;
+    if (verbose)
+      send_to_char(ch, "You need %s to reforge this item.\r\n", get_crafting_station_name(skill));
+    return false;
   }
-
-  orig_cost = GET_OBJ_COST(obj);
-  enhancement = GET_OBJ_VAL(obj, 4);
-  material = GET_OBJ_MATERIAL(obj);
-
-  /* "cost" of reforge */
-  cost = GET_OBJ_COST(obj) / 2;
-
-  if (GET_GOLD(ch) < cost)
+  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
   {
-    send_to_char(ch, "You need %d coins on hand for supplies to reforge this item.\r\n", cost);
-    return 1;
-  }
-
-  switch (GET_OBJ_TYPE(obj))
-  {
-  case ITEM_WEAPON:
     for (i = 1; i < NUM_WEAPON_TYPES; i++)
-    {
-      if (is_abbrev(argument, weapon_list[i].name))
+      if (is_abbrev(target, weapon_list[i].name))
         break;
-    }
     if (i >= NUM_WEAPON_TYPES)
     {
-      send_to_char(ch, "That is not a valid weapon type. Type weaponlist for options.\r\n");
-      return 1;
+      if (verbose)
+        send_to_char(ch, "That is not a valid weapon type. Type weaponlist for options.\r\n");
+      return false;
     }
     if (i == GET_OBJ_VAL(obj, 0))
     {
-      send_to_char(ch, "The item is already %s %s.\r\n", AN(weapon_list[i].name),
-                   weapon_list[i].name);
-      return 1;
+      if (verbose)
+        send_to_char(ch, "The item is already %s %s.\r\n", AN(weapon_list[i].name),
+                     weapon_list[i].name);
+      return false;
     }
-    set_weapon_object(obj, i);
-    break;
-  case ITEM_ARMOR:
-    if (IS_SHIELD(GET_OBJ_VAL(obj, 1)))
-    {
-      for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
-      {
-        if (!IS_SHIELD(i))
-          continue;
-        if (is_abbrev(argument, armor_list[i].name))
-          break;
-      }
-      if (i >= NUM_SPEC_ARMOR_TYPES)
-      {
-        send_to_char(ch, "That is not a valid shield type. Type armorlistfull for options.\r\n");
-        return 1;
-      }
-      if (i == GET_OBJ_VAL(obj, 1))
-      {
-        send_to_char(ch, "The item is already %s %s.\r\n", AN(armor_list[i].name),
-                     armor_list[i].name);
-        return 1;
-      }
-      GET_OBJ_VAL(obj, 1) = i;
-    }
-    else
-    {
-      for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
-      {
-        if (IS_SHIELD(i))
-          continue;
-        if (CAN_WEAR(obj, ITEM_WEAR_HEAD) && armor_list[i].wear != ITEM_WEAR_HEAD)
-        {
-          continue;
-        }
-        else if (CAN_WEAR(obj, ITEM_WEAR_BODY) && armor_list[i].wear != ITEM_WEAR_BODY)
-        {
-          continue;
-        }
-        else if (CAN_WEAR(obj, ITEM_WEAR_ARMS) && armor_list[i].wear != ITEM_WEAR_ARMS)
-        {
-          continue;
-        }
-        else if (CAN_WEAR(obj, ITEM_WEAR_LEGS) && armor_list[i].wear != ITEM_WEAR_LEGS)
-        {
-          continue;
-        }
-        if (is_abbrev(argument, armor_list[i].name))
-          break;
-      }
-      if (i >= NUM_SPEC_ARMOR_TYPES)
-      {
-        send_to_char(ch, "That is not a valid armor type. Type armorlistfull for options. Please "
-                         "ensure wear types match. Ie. You can only reforge a body wear slot to "
-                         "another body wear slot.\r\n");
-        return 1;
-      }
-      if (i == GET_OBJ_VAL(obj, 1))
-      {
-        send_to_char(ch, "The item is already %s %s.\r\n", AN(armor_list[i].name),
-                     armor_list[i].name);
-        return 1;
-      }
-      GET_OBJ_VAL(obj, 1) = i;
-    }
-    set_armor_object(obj, i);
-    break;
-  default:
-    send_to_char(ch, "You can only reforge armor, shields and weapons.\r\n");
-    return 1;
   }
+  else if (IS_SHIELD(GET_OBJ_VAL(obj, 1)))
+  {
+    for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
+      if (IS_SHIELD(i) && is_abbrev(target, armor_list[i].name))
+        break;
+    if (i >= NUM_SPEC_ARMOR_TYPES)
+    {
+      if (verbose)
+        send_to_char(ch, "That is not a valid shield type. Type armorlistfull for options.\r\n");
+      return false;
+    }
+    if (i == GET_OBJ_VAL(obj, 1))
+    {
+      if (verbose)
+        send_to_char(ch, "The item is already %s %s.\r\n", AN(armor_list[i].name),
+                     armor_list[i].name);
+      return false;
+    }
+  }
+  else
+  {
+    for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
+    {
+      if (IS_SHIELD(i))
+        continue;
+      if (CAN_WEAR(obj, ITEM_WEAR_HEAD) && armor_list[i].wear != ITEM_WEAR_HEAD)
+        continue;
+      if (CAN_WEAR(obj, ITEM_WEAR_BODY) && armor_list[i].wear != ITEM_WEAR_BODY)
+        continue;
+      if (CAN_WEAR(obj, ITEM_WEAR_ARMS) && armor_list[i].wear != ITEM_WEAR_ARMS)
+        continue;
+      if (CAN_WEAR(obj, ITEM_WEAR_LEGS) && armor_list[i].wear != ITEM_WEAR_LEGS)
+        continue;
+      if (is_abbrev(target, armor_list[i].name))
+        break;
+    }
+    if (i >= NUM_SPEC_ARMOR_TYPES)
+    {
+      if (verbose)
+        send_to_char(ch, "That is not a valid armor type for this slot. Type armorlistfull for "
+                         "options. Wear types must match: a body item becomes another body "
+                         "item.\r\n");
+      return false;
+    }
+    if (i == GET_OBJ_VAL(obj, 1))
+    {
+      if (verbose)
+        send_to_char(ch, "The item is already %s %s.\r\n", AN(armor_list[i].name),
+                     armor_list[i].name);
+      return false;
+    }
+  }
+  if (index_out)
+    *index_out = i;
+  if (cost_out)
+    *cost_out = GET_OBJ_COST(obj) / 2;
+  return true;
+}
 
+/* The one reforge mutation: type, restored cost, enhancement, and material, then the names.
+ * An item with a restring identifier keeps its custom strings with the type word replaced;
+ * otherwise it becomes "a reforged <type> (+N)". */
+void reforge_apply(struct char_data *ch, struct obj_data *obj, int index)
+{
+  int orig_cost = GET_OBJ_COST(obj), enhancement = GET_OBJ_VAL(obj, 4);
+  int material = GET_OBJ_MATERIAL(obj);
+  const char *type_name;
+  char buf[MAX_STRING_LENGTH], bonus[30];
+
+  (void)ch;
+  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+    set_weapon_object(obj, index);
+  else
+  {
+    GET_OBJ_VAL(obj, 1) = index;
+    set_armor_object(obj, index);
+  }
   GET_OBJ_COST(obj) = orig_cost;
   GET_OBJ_VAL(obj, 4) = enhancement;
-  // restore the original material if new item type is of the same material type as orig.
   if (IS_HARD_METAL(GET_OBJ_MATERIAL(obj)) && IS_HARD_METAL(material))
     GET_OBJ_MATERIAL(obj) = material;
   else if (IS_LEATHER(GET_OBJ_MATERIAL(obj)) && IS_LEATHER(material))
@@ -1866,1274 +1302,996 @@ static int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
     GET_OBJ_MATERIAL(obj) = material;
   else if (IS_WOOD(GET_OBJ_MATERIAL(obj)) && IS_WOOD(material))
     GET_OBJ_MATERIAL(obj) = material;
-
-  if (cost > 0)
+  type_name = GET_OBJ_TYPE(obj) == ITEM_WEAPON ? weapon_list[GET_OBJ_VAL(obj, 0)].name
+                                               : armor_list[GET_OBJ_VAL(obj, 1)].name;
+  if (obj->restring_identifier && *obj->restring_identifier)
   {
-    send_to_char(ch, "It cost you %d coins to reforge this item.\r\n", cost);
-    award_gold(ch, -cost);
+    char *updated;
+
+    if (obj->name &&
+        (updated = replace_substring_ci(obj->name, obj->restring_identifier, type_name)) != NULL)
+    {
+      free_object_string(obj, obj->name);
+      obj->name = updated;
+    }
+    if (obj->short_description &&
+        (updated = replace_substring_ci(obj->short_description, obj->restring_identifier,
+                                        type_name)) != NULL)
+    {
+      free_object_string(obj, obj->short_description);
+      obj->short_description = updated;
+    }
+    if (obj->description && (updated = replace_substring_ci(
+                                 obj->description, obj->restring_identifier, type_name)) != NULL)
+    {
+      free_object_string(obj, obj->description);
+      obj->description = updated;
+    }
+    free(obj->restring_identifier);
+    obj->restring_identifier = strdup(type_name);
   }
-
-  send_to_char(ch, "You begin to reforge %s into %s %s.\r\n", obj->short_description,
-               (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? AN(weapon_list[GET_OBJ_VAL(obj, 0)].name)
-                                                  : AN(armor_list[GET_OBJ_VAL(obj, 1)].name),
-               (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? weapon_list[GET_OBJ_VAL(obj, 0)].name
-                                                  : armor_list[GET_OBJ_VAL(obj, 1)].name);
-  snprintf(buf, sizeof(buf), "$n begins to reforge %s into %s %s.", obj->short_description,
-           (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? AN(weapon_list[GET_OBJ_VAL(obj, 0)].name)
-                                              : AN(armor_list[GET_OBJ_VAL(obj, 1)].name),
-           (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? weapon_list[GET_OBJ_VAL(obj, 0)].name
-                                              : armor_list[GET_OBJ_VAL(obj, 1)].name);
-  act(buf, FALSE, ch, obj, 0, TO_ROOM);
-
-  // new descriptions
-  if (GET_OBJ_VAL(obj, 4) > 0)
-    snprintf(bonus, sizeof(bonus), "(+%d)", GET_OBJ_VAL(obj, 4));
   else
-    snprintf(bonus, sizeof(bonus), "(no enchantment bonus)");
-
-  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
   {
-    snprintf(buf, sizeof(buf), "a reforged %s %s", weapon_list[GET_OBJ_VAL(obj, 0)].name, bonus);
+    if (GET_OBJ_VAL(obj, 4) > 0)
+      snprintf(bonus, sizeof(bonus), "(+%d)", GET_OBJ_VAL(obj, 4));
+    else
+      snprintf(bonus, sizeof(bonus), "(no enchantment bonus)");
+    snprintf(buf, sizeof(buf), "a reforged %s %s", type_name, bonus);
+    free_object_string(obj, obj->name);
+    obj->name = strdup(buf);
+    strip_colors(obj->name);
+    free_object_string(obj, obj->short_description);
+    obj->short_description = strdup(buf);
+    snprintf(buf, sizeof(buf), "A reforged %s %s lies here.", type_name, bonus);
+    free_object_string(obj, obj->description);
+    obj->description = strdup(buf);
   }
-  else
-  {
-    snprintf(buf, sizeof(buf), "a reforged %s %s", armor_list[GET_OBJ_VAL(obj, 1)].name, bonus);
-  }
-
-  free_object_string(obj, obj->name);
-  obj->name = strdup(buf);
-  strip_colors(obj->name);
-  free_object_string(obj, obj->short_description);
-  obj->short_description = strdup(buf);
-
-  /* Fix string memory leak - CAP modifies the string in-place, but strdup creates a leak */
-  char *temp_str = strdup(obj->short_description);
-  snprintf(buf, sizeof(buf), "%s lies here.", CAP(temp_str));
-  free_object_string(obj, obj->description);
-  obj->description = strdup(buf);
-  free(temp_str);
-
-  obj_from_obj(obj);
-
   if (GET_OBJ_WEIGHT(obj) <= 0)
     GET_OBJ_WEIGHT(obj) = 1;
-
-  GET_CRAFTING_OBJ(ch) = obj;
-  GET_CRAFTING_TYPE(ch) = SCMD_REFORGE;
-  if (cost == 0)
-    GET_CRAFTING_TICKS(ch) = 1;
-  else
-    GET_CRAFTING_TICKS(ch) =
-        legacy_kit_ticks(ch,
-                         GET_OBJ_TYPE(obj) == ITEM_WEAPON ? ABILITY_CRAFT_WEAPONSMITHING
-                                                          : ABILITY_CRAFT_ARMORSMITHING,
-                         10);
-
-  obj_to_char(obj, ch);
-  save_char(ch, 0);
-  Crash_crashsave(ch);
-  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
-
-  return 1;
 }
 
-/* convert magic objects to essence */
-static int disenchant(struct obj_data *kit, struct char_data *ch)
+int reforge_skill(struct obj_data *obj)
 {
-  struct obj_data *obj = NULL;
-  int num_objs = 0, essence_level = 0;
-  int chem_check = craft_legacy_skill_equivalent(ch, ABILITY_CRAFT_ALCHEMY) + d20(ch);
+  return GET_OBJ_TYPE(obj) == ITEM_WEAPON ? ABILITY_CRAFT_WEAPONSMITHING
+                                          : ABILITY_CRAFT_ARMORSMITHING;
+}
 
-  /* Cycle through contents */
-  /* disenchant requires just one item be inside the kit */
+static bool plan_reforge(struct char_data *ch, struct obj_data *kit, const char *argument,
+                         struct kit_operation *op, bool verbose)
+{
+  int count;
+  struct obj_data *obj = kit_single_item(kit, &count);
+
+  if (obj == NULL)
+  {
+    if (verbose)
+      send_to_char(ch, "Only one item should be inside the kit.\r\n");
+    return false;
+  }
+  if (!reforge_plan(ch, obj, argument, &op->reforge_index, &op->cost, verbose))
+    return false;
+  op->type = SCMD_REFORGE;
+  op->skill = reforge_skill(obj);
+  op->quest = AQ_CRAFT_RESIZE;
+  op->seconds = kit_seconds(ch, op->skill, 10, op->cost);
+  op->legacy_exp = kit_legacy_exp(GET_OBJ_LEVEL(obj) * GET_LEVEL(ch) + GET_LEVEL(ch), op->seconds);
+  snprintf(op->text, sizeof(op->text), "%s", argument);
+  return true;
+}
+
+/* ---- augment ---- */
+
+static bool plan_augment(struct char_data *ch, struct obj_data *kit, const char *argument,
+                         struct kit_operation *op, bool verbose)
+{
+  struct obj_data *obj, *one = NULL, *two = NULL;
+  int count = 0, level_diff;
+
+  (void)argument;
   for (obj = kit->contains; obj != NULL; obj = obj->next_content)
   {
-    num_objs++;
+    count++;
+    if (GET_OBJ_TYPE(obj) == ITEM_ESSENCE && !one)
+      one = obj;
+    else if (GET_OBJ_TYPE(obj) == ITEM_ESSENCE && !two)
+      two = obj;
   }
-  if (num_objs > 1)
+  if (count > 2)
   {
-    send_to_char(ch, "Only one item should be inside the kit.\r\n");
-    return 1;
+    if (verbose)
+      send_to_char(ch, "Make sure only two items are in the kit.\r\n");
+    return false;
   }
+  if (!one || !two)
+  {
+    if (verbose)
+      send_to_char(ch, "You need two essences to augment.\r\n");
+    return false;
+  }
+  if (GET_OBJ_LEVEL(one) >= (LVL_IMMORT - 1) || GET_OBJ_LEVEL(two) >= (LVL_IMMORT - 1))
+  {
+    if (verbose)
+      send_to_char(ch, "You can not further augment that essence!\r\n");
+    return false;
+  }
+  level_diff = abs(GET_OBJ_LEVEL(one) - GET_OBJ_LEVEL(two));
+  if (level_diff > 4)
+  {
+    if (verbose)
+      send_to_char(ch, "The essence have to be closer in power (level) to each other!\r\n");
+    return false;
+  }
+  op->essence_level = MAX(GET_OBJ_LEVEL(one), GET_OBJ_LEVEL(two));
+  op->skill = ABILITY_CRAFT_ALCHEMY;
+  if (op->essence_level > (craft_legacy_skill_equivalent(ch, op->skill) / 3))
+  {
+    if (verbose)
+      send_to_char(ch,
+                   "The essence level is %d but your %s skill is only capable of creating level "
+                   "%d crystals.\r\n",
+                   op->essence_level, ability_names[op->skill],
+                   craft_legacy_skill_equivalent(ch, op->skill) / 3);
+    return false;
+  }
+  op->type = SCMD_AUGMENT;
+  op->quest = AQ_CRAFT_AUGMENT;
+  op->cost = op->essence_level * 500 / 3;
+  op->seconds = kit_seconds(ch, op->skill, 10, op->cost);
+  op->legacy_exp = kit_legacy_exp(op->essence_level * GET_LEVEL(ch) + GET_LEVEL(ch), op->seconds);
+  return true;
+}
 
-  if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch))
-  {
-    send_to_char(ch, "You must drop something before you can disenchant anything.\r\n");
-    return 1;
-  }
+/* The augment roll happens at resolution: the second essence is consumed either way. */
+static void apply_augment(struct char_data *ch, struct obj_data *kit, struct kit_operation *op)
+{
+  struct obj_data *obj, *one = NULL, *two = NULL;
+  int level_diff, success_chance, roll;
+
   for (obj = kit->contains; obj != NULL; obj = obj->next_content)
   {
-    break; // this should be the object
+    if (GET_OBJ_TYPE(obj) == ITEM_ESSENCE && !one)
+      one = obj;
+    else if (GET_OBJ_TYPE(obj) == ITEM_ESSENCE && !two)
+      two = obj;
   }
+  level_diff = abs(GET_OBJ_LEVEL(one) - GET_OBJ_LEVEL(two));
+  roll = dice(1, 100);
+  success_chance = 100 - (level_diff * 10) - op->essence_level;
+  if (roll >= 95)
+    success_chance = 150;
+  roll += craft_legacy_skill_equivalent(ch, op->skill) / 3;
+  if (roll > success_chance)
+    send_to_char(ch, "There seems to be a flaw in your augmentation...\r\n");
+  else
+    GET_OBJ_LEVEL(one) = op->essence_level + 1;
+  obj_from_obj(one);
+  extract_obj(two);
+  obj_to_char(one, ch);
+  act("You augment $p.", false, ch, one, 0, TO_CHAR);
+  act("$n augments $p.", false, ch, one, 0, TO_ROOM);
+}
 
-  if (!obj)
+/* ---- disenchant ---- */
+
+static bool plan_disenchant(struct char_data *ch, struct obj_data *kit, const char *argument,
+                            struct kit_operation *op, bool verbose)
+{
+  int count;
+  struct obj_data *obj = kit_single_item(kit, &count);
+
+  (void)argument;
+  if (obj == NULL)
   {
-    send_to_char(ch, "You do not seem to have a magical item in the kit.\r\n");
-    return 1;
+    if (verbose)
+      send_to_char(ch, count > 1 ? "Only one item should be inside the kit.\r\n"
+                                 : "You do not seem to have a magical item in the kit.\r\n");
+    return false;
   }
-
   if (!IS_SET_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC))
   {
-    send_to_char(ch, "Only magical items can be disenchanted.\r\n");
-    return 1;
+    if (verbose)
+      send_to_char(ch, "Only magical items can be disenchanted.\r\n");
+    return false;
   }
-
-  /* You can disenchant object level equal to your: chemistry-skill / 3 + 1 */
   if (GET_OBJ_LEVEL(obj) < 5)
   {
-    send_to_char(ch, "You need a more powerful object to have any chance of "
-                     "extracting magic essence.\r\n");
-    return 1;
+    if (verbose)
+      send_to_char(ch, "You need a more powerful object to have any chance of extracting magic "
+                       "essence.\r\n");
+    return false;
   }
+  op->type = SCMD_DISENCHANT;
+  op->skill = ABILITY_CRAFT_ALCHEMY;
+  op->quest = AQ_CRAFT_DISENCHANT;
+  op->cost = 0;
+  op->obj_level = GET_OBJ_LEVEL(obj);
+  op->seconds = MAX(12, craft_legacy_kit_seconds(ch, op->skill, 11));
+  op->legacy_exp = kit_legacy_exp(10 * GET_LEVEL(ch) + GET_LEVEL(ch), op->seconds);
+  return true;
+}
 
-  /* determine the level of this essence */
-  essence_level = dice(1, ((GET_OBJ_LEVEL(obj) / 2)));
+/* The item's level is captured before extraction; the check and the essence roll resolve here. */
+static void apply_disenchant(struct char_data *ch, struct obj_data *obj, struct kit_operation *op)
+{
+  struct obj_data *essence;
+  int chem_check = craft_legacy_skill_equivalent(ch, op->skill) + d20(ch);
+  int essence_level = dice(1, MAX(1, op->obj_level / 2));
 
-  GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
-  GET_CRAFTING_TICKS(ch) = (ubyte)MAX(2, legacy_kit_ticks(ch, ABILITY_CRAFT_ALCHEMY, 11));
-  GET_CRAFTING_OBJ(ch) = NULL;
-
-  send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
-  act("$n begins to disenchant $p.", FALSE, ch, obj, 0, TO_ROOM);
-
-  /* clear item that got disenchanted */
   obj_from_obj(obj);
   extract_obj(obj);
-
-  /* make the check! */
-  if (chem_check <= (GET_OBJ_LEVEL(obj) * 3 + 10))
+  if (chem_check <= (op->obj_level * 3 + 10))
   {
-    /* fail! */
     send_to_char(ch, "You are having difficulty extracting the magical essence...\r\n");
   }
+  else if ((essence = read_object(MAGICAL_ESSENCE, VIRTUAL)) == NULL)
+  {
+    log("SYSERR: disenchant failed to load essence object %d", MAGICAL_ESSENCE);
+    send_to_char(ch, "Report to staff please: disenchant failed to load essence object.\r\n");
+  }
   else
   {
-    /* create the essence */
-    obj = read_object(MAGICAL_ESSENCE, VIRTUAL);
-    if (!obj)
-    {
-      log("Failed to load the seence object in disenchant()");
-      send_to_char(ch, "Report to staff please: disenchant failed to load essence object.\r\n");
-      return 1;
-    }
-    GET_OBJ_LEVEL(obj) = essence_level;
-    obj_to_char(obj, ch);
+    GET_OBJ_LEVEL(essence) = essence_level;
+    obj_to_char(essence, ch);
+    act("You extract $p.", false, ch, essence, 0, TO_CHAR);
   }
-
-  save_char(ch, 0);
-  Crash_crashsave(ch);
-  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
-  return 1;
+  act("You complete the disenchantment process.", false, ch, 0, 0, TO_CHAR);
+  act("$n finishes the disenchanting process.", false, ch, 0, 0, TO_ROOM);
 }
 
-/* our create command and craftcheck, mode determines which we're using */
-/* mode = 1; create     */
-/* mode = 2; craftcheck */
+/* ---- create (mold) ---- */
 
-/* As an extra layer of protection, only ITEM_MOLD should be used for
- * crafting.  It should be hard-coded un-wearable, BUT have the exact WEAR_
- * flags you want it to create. Also it should have the raw stats of the
- * item you want it to turn into.  Otherwise you could run into some issues
- * with stacking stats, etc.
- */
-
-/*
- * create is for wearable gear at this stage
- */
-#define CREATE_STRING_LIMIT 80
-
-static int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
+/* The canonical material group a mold works in, from its object material. */
+static int mold_group(struct obj_data *mold)
 {
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
-  struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL, *material = NULL, *essence = NULL;
-  int num_mats = 0, obj_level = 1, skill = ABILITY_CRAFT_WEAPONSMITHING, mats_needed = 12345,
-      found = 0, i = 0, l = 0;
-  int chance_of_crit = 0;
+  int group = craft_group_by_material(obj_material_to_craft_material(GET_OBJ_MATERIAL(mold)));
 
-  /* weird find, color codes doesn't play nice with the ' character -zusuk */
-  if (mode == CREATE_MODE_CREATE && *argument)
+  if (group != CRAFT_GROUP_NONE)
+    return group;
+  if (IS_CLOTH(GET_OBJ_MATERIAL(mold)))
+    return CRAFT_GROUP_CLOTH;
+  if (IS_LEATHER(GET_OBJ_MATERIAL(mold)))
+    return CRAFT_GROUP_HIDES;
+  if (IS_WOOD(GET_OBJ_MATERIAL(mold)))
+    return CRAFT_GROUP_WOOD;
+  if (IS_HARD_METAL(GET_OBJ_MATERIAL(mold)))
+    return CRAFT_GROUP_HARD_METALS;
+  if (IS_PRECIOUS_METAL(GET_OBJ_MATERIAL(mold)))
+    return CRAFT_GROUP_SOFT_METALS;
+  return CRAFT_GROUP_NONE;
+}
+
+/* Whether the character may work a mold of this group with this balance material. Bone-armor
+ * masters may substitute bone or dragonbone for the normal material. */
+static bool mold_accepts_material(struct char_data *ch, struct obj_data *mold, int group,
+                                  int material)
+{
+  if (material <= CRAFT_MAT_NONE || material >= NUM_CRAFT_MATS)
+    return false;
+  if (HAS_FEAT(ch, FEAT_BONE_ARMOR) &&
+      (material == CRAFT_MAT_BONE || material == CRAFT_MAT_DRAGONBONE))
+    return !(GET_OBJ_TYPE(mold) == ITEM_ARMOR && material == CRAFT_MAT_DRAGONBONE);
+  if (craft_group_by_material(material) != group)
+    return false;
+  if (GET_OBJ_TYPE(mold) == ITEM_WEAPON && material == CRAFT_MAT_DRAGONSCALE)
+    return false;
+  return true;
+}
+
+/* Case-insensitive substring test. */
+static bool contains_ci(const char *haystack, const char *needle)
+{
+  size_t length = strlen(needle);
+
+  if (length == 0)
+    return false;
+  for (; *haystack; haystack++)
+    if (!strncasecmp(haystack, needle, length))
+      return true;
+  return false;
+}
+
+/* Find the material the description names: the longest acceptable material name it contains
+ * (so "high grade hide" beats "hide" and "cold iron" beats "iron"). */
+static int mold_material_from_text(struct char_data *ch, struct obj_data *mold, int group,
+                                   const char *text)
+{
+  int material, best = CRAFT_MAT_NONE;
+  size_t best_length = 0;
+
+  if (!text || !*text)
+    return CRAFT_MAT_NONE;
+  for (material = 1; material < NUM_CRAFT_MATS; material++)
   {
-    for (l = 0; *(argument + l); l++)
+    if (!mold_accepts_material(ch, mold, group, material))
+      continue;
+    if (contains_ci(text, crafting_materials[material]) &&
+        strlen(crafting_materials[material]) > best_length)
     {
-      if (*(argument + l) == '\'')
-      {
-        send_to_char(ch, "The usage of the character: ' is not allowed in create "
-                         "currently (it conflicts with color codes).\r\n");
-        return 1;
-      }
+      best = material;
+      best_length = strlen(crafting_materials[material]);
     }
   }
+  return best;
+}
 
-  /* string length limit  -zusuk */
-  if (l > CREATE_STRING_LIMIT)
-  {
-    send_to_char(ch,
-                 "The length (%d) of the name you gave your object is over "
-                 "the limit (%d).\r\n",
-                 l, CREATE_STRING_LIMIT);
-    return 1;
-  }
-
-  /* sort through our kit and check if we got everything we need */
-  for (obj = kit->contains; obj != NULL; obj = obj->next_content)
-  {
-    if (obj)
-    {
-      /* find a mold? */
-      if (OBJ_FLAGGED(obj, ITEM_MOLD))
-      {
-        if (!mold)
-        {
-          mold = obj;
-          found++;
-        }
-        else
-        {
-          send_to_char(ch, "You have more than one mold inside the kit, "
-                           "please only put one inside.\r\n");
-          return 1;
-        }
-      }
-
-      if (found)
-      { // we didn't have a mold and found one, iterate main loop
-        found = FALSE;
-        continue;
-      }
-
-      /* find a crystal? */
-      if (GET_OBJ_TYPE(obj) == ITEM_CRYSTAL)
-      {
-        if (!crystal)
-        {
-          crystal = obj;
-        }
-        else
-        {
-          send_to_char(ch, "You have more than one crystal inside the kit, "
-                           "please only put one inside.\r\n");
-          return 1;
-        }
-
-        /* find a material? */
-      }
-      else if (GET_OBJ_TYPE(obj) == ITEM_MATERIAL)
-      {
-        if (GET_OBJ_VAL(obj, 0) >= 2)
-        {
-          send_to_char(ch,
-                       "%s is a bundled item, which must first be unbundled before you can use it "
-                       "to craft.\r\n",
-                       obj->short_description);
-          return 1;
-        }
-        if (!material)
-        {
-          material = obj;
-          num_mats++;
-        }
-        else if (GET_OBJ_MATERIAL(obj) != GET_OBJ_MATERIAL(material))
-        {
-          send_to_char(ch, "You have mixed materials in the kit, please "
-                           "make sure to use only the required materials.\r\n");
-          return 1;
-        }
-        else
-        { /* this should be good */
-          num_mats++;
-        }
-
-        /* find an essence? */
-      }
-      else if (GET_OBJ_TYPE(obj) == ITEM_ESSENCE)
-      {
-        if (!essence)
-        {
-          essence = obj;
-        }
-        else
-        {
-          send_to_char(ch, "You have more than one essence inside the kit, "
-                           "please only put one inside.\r\n");
-          return 1;
-        }
-      }
-      else
-      { /* didn't find anything we need */
-        send_to_char(ch, "There is an unnecessary item in the kit, please "
-                         "remove it.\r\n");
-        return 1;
-      }
-    }
-  } /* end our sorting loop */
-
-  /** check we have all the ingredients we need **/
-  if (!mold)
-  {
-    send_to_char(ch, "The creation process requires a mold to continue.\r\n");
-    return 1;
-  }
-
-  /* set base level, crystal should be ultimate determinant */
-  obj_level = GET_OBJ_LEVEL(mold);
-  if (crystal)
-    obj_level = GET_OBJ_LEVEL(crystal);
-
-  if (!material)
-  {
-    send_to_char(ch, "You need to put materials into the kit.\r\n");
-    return 1;
-  }
-
-  /* right material? */
-  if (HAS_FEAT(ch, FEAT_BONE_ARMOR) && (GET_OBJ_MATERIAL(material) == MATERIAL_BONE ||
-                                        GET_OBJ_MATERIAL(material) == MATERIAL_DRAGONBONE))
-  {
-    send_to_char(ch, "You use your mastery in bone-crafting to substitutue "
-                     "bone for the normal material needed...\r\n");
-  }
-  else if (IS_CLOTH(GET_OBJ_MATERIAL(mold)) && !IS_CLOTH(GET_OBJ_MATERIAL(material)))
-  {
-    send_to_char(ch, "You need cloth for this mold pattern.\r\n");
-    return 1;
-  }
-  else if (IS_LEATHER(GET_OBJ_MATERIAL(mold)) && !IS_LEATHER(GET_OBJ_MATERIAL(material)))
-  {
-    send_to_char(ch, "You need leather for this mold pattern.\r\n");
-    return 1;
-  }
-  else if (IS_WOOD(GET_OBJ_MATERIAL(mold)) && !IS_WOOD(GET_OBJ_MATERIAL(material)))
-  {
-    send_to_char(ch, "You need wood for this mold pattern.\r\n");
-    return 1;
-  }
-  else if (IS_HARD_METAL(GET_OBJ_MATERIAL(mold)) && !IS_HARD_METAL(GET_OBJ_MATERIAL(material)))
-  {
-    send_to_char(ch, "You need hard metal for this mold pattern.\r\n");
-    return 1;
-  }
-  else if (IS_PRECIOUS_METAL(GET_OBJ_MATERIAL(mold)) &&
-           !IS_PRECIOUS_METAL(GET_OBJ_MATERIAL(material)))
-  {
-    send_to_char(ch, "You need precious metal for this mold pattern.\r\n");
-    return 1;
-  }
-  else if (GET_OBJ_TYPE(mold) == ITEM_WEAPON && GET_OBJ_MATERIAL(material) == MATERIAL_DRAGONSCALE)
-  {
-    send_to_char(ch, "You can't use dragonscale to make weapons.\r\n");
-    return 1;
-  }
-  else if (GET_OBJ_TYPE(mold) == ITEM_ARMOR && GET_OBJ_MATERIAL(material) == MATERIAL_DRAGONBONE)
-  {
-    send_to_char(ch, "You can't use dragonbone to make armor or shields.\r\n");
-    return 1;
-  }
-  /* we should be OK at this point with material validity, */
-  /* although more error checking might be good */
-  /* valid_misc_item_material_type(mold, material)) */
-  /* expansion here or above to other miscellaneous materials, etc */
-
-  /* determine how much material is needed
-   * [mold weight divided by weight_factor]
-   */
-  mats_needed = MAX(MIN_MATS, (GET_OBJ_WEIGHT(mold) / WEIGHT_FACTOR));
-
-  /* elven crafting reduces material needed */
-  if (HAS_FEAT(ch, FEAT_ELVEN_CRAFTING))
-    mats_needed = MAX(MIN_ELF_MATS, mats_needed / 2);
-
-  if (num_mats < mats_needed)
-  {
-    send_to_char(ch,
-                 "You do not have enough materials to make that item.  "
-                 "You need %d more units of the same type.\r\n",
-                 mats_needed - num_mats);
-    return 1;
-  }
-  else if (num_mats > mats_needed)
-  {
-    send_to_char(ch,
-                 "You put too much material in the kit, please "
-                 "take out %d units.\r\n",
-                 num_mats - mats_needed);
-    return 1;
-  }
-
-  /** check for other disqualifiers */
-  /* valid name */
-  if (mode == CREATE_MODE_CREATE && !strstr(argument, material_name[GET_OBJ_MATERIAL(material)]))
-  {
-    send_to_char(ch,
-                 "You must include the material name, '%s', in the object "
-                 "description somewhere.\r\n",
-                 material_name[GET_OBJ_MATERIAL(material)]);
-
-    return 1;
-  }
-
-  /* calculate chance for master work */
-  if (essence)
-  {
-    chance_of_crit += (GET_OBJ_LEVEL(essence) * 2);
-    /* feat, etc bonuses */
-    if (HAS_FEAT(ch, FEAT_MASTERWORK_CRAFTING))
-    {
-      send_to_char(
-          ch,
-          "Your masterwork-crafting skill increases the chance of creating a master-piece!\r\n");
-      chance_of_crit += 10;
-    }
-    if (HAS_FEAT(ch, FEAT_DWARVEN_CRAFTING))
-    {
-      send_to_char(
-          ch, "Your dwarven-crafting skill increases the chance of creating a master-piece!\r\n");
-      chance_of_crit += 10;
-    }
-    if (HAS_FEAT(ch, FEAT_DRACONIC_CRAFTING))
-    {
-      send_to_char(
-          ch, "Your draconic-crafting skill increases the chance of creating a master-piece!\r\n");
-      chance_of_crit += 10;
-    }
-  }
-
-  /* which skill is used for this crafting session? */
-  /* we determine crafting skill by wear-flag */
-
-  /* jewel making (finger, */
+/* The ability a mold's wear flags use. */
+static int mold_skill(struct obj_data *mold)
+{
   if (CAN_WEAR(mold, ITEM_WEAR_FINGER) || CAN_WEAR(mold, ITEM_WEAR_ANKLE) ||
       CAN_WEAR(mold, ITEM_WEAR_NECK) || CAN_WEAR(mold, ITEM_WEAR_HOLD))
-  {
-    skill = ABILITY_CRAFT_JEWELCRAFTING;
-  } /* body armor pieces: either armor-smith/leather-worker/or knitting */
-  else if (CAN_WEAR(mold, ITEM_WEAR_BODY) || CAN_WEAR(mold, ITEM_WEAR_ARMS) ||
-           CAN_WEAR(mold, ITEM_WEAR_LEGS) || CAN_WEAR(mold, ITEM_WEAR_HEAD) ||
-           CAN_WEAR(mold, ITEM_WEAR_FEET) || CAN_WEAR(mold, ITEM_WEAR_HANDS) ||
-           CAN_WEAR(mold, ITEM_WEAR_WRIST) || CAN_WEAR(mold, ITEM_WEAR_WAIST))
+    return ABILITY_CRAFT_JEWELCRAFTING;
+  if (CAN_WEAR(mold, ITEM_WEAR_BODY) || CAN_WEAR(mold, ITEM_WEAR_ARMS) ||
+      CAN_WEAR(mold, ITEM_WEAR_LEGS) || CAN_WEAR(mold, ITEM_WEAR_HEAD) ||
+      CAN_WEAR(mold, ITEM_WEAR_FEET) || CAN_WEAR(mold, ITEM_WEAR_HANDS) ||
+      CAN_WEAR(mold, ITEM_WEAR_WRIST) || CAN_WEAR(mold, ITEM_WEAR_WAIST))
   {
     if (IS_HARD_METAL(GET_OBJ_MATERIAL(mold)))
-      skill = ABILITY_CRAFT_ARMORSMITHING;
-    else if (IS_LEATHER(GET_OBJ_MATERIAL(mold)))
-      skill = ABILITY_CRAFT_LEATHERWORKING;
-    else
-      skill = ABILITY_CRAFT_TAILORING;
-  } /* about body */
-  else if (CAN_WEAR(mold, ITEM_WEAR_ABOUT))
-  {
-    skill = ABILITY_CRAFT_TAILORING;
-  } /* weapon-smithing:  weapons and shields */
-  else if (CAN_WEAR(mold, ITEM_WEAR_WIELD) || CAN_WEAR(mold, ITEM_WEAR_SHIELD))
-  {
-    skill = ABILITY_CRAFT_WEAPONSMITHING;
+      return ABILITY_CRAFT_ARMORSMITHING;
+    if (IS_LEATHER(GET_OBJ_MATERIAL(mold)))
+      return ABILITY_CRAFT_LEATHERWORKING;
+    return ABILITY_CRAFT_TAILORING;
   }
-
-  /* skill restriction, in the legacy units the mold levels were written for */
-  if (craft_legacy_skill_equivalent(ch, skill) / 3 < obj_level)
-  {
-    send_to_char(ch,
-                 "Your skill in %s (rank %d) is too low to create that item, you need rank %d.\r\n",
-                 ability_names[skill], get_craft_skill_value(ch, skill),
-                 (obj_level * 3 + CRAFT_LEGACY_SKILL_PER_RANK - 1) / CRAFT_LEGACY_SKILL_PER_RANK);
-    return 1;
-  }
-
-  int cost = obj_level * obj_level * 100 / 3;
-
-  /** passed all the tests, time to check or create the item **/
-  if (CREATE_MODE_CHECK == mode)
-  { /* checkcraft */
-    send_to_char(ch, "This crafting session will create the following "
-                     "item:\r\n\r\n");
-    do_stat_object(ch, mold, ITEM_STAT_MODE_IDENTIFY_SPELL);
-    if (crystal)
-    {
-      send_to_char(ch, "You will be enhancing it with this crystal:\r\n");
-      do_stat_object(ch, crystal, ITEM_STAT_MODE_IDENTIFY_SPELL);
-    }
-    /* calculate chance for master work */
-    if (essence)
-    {
-      send_to_char(ch, "Basic essence chance of critical (masterwork): %d.  ",
-                   GET_OBJ_LEVEL(essence) * 2);
-      /* feat, etc bonuses */
-      if (HAS_FEAT(ch, FEAT_MASTERWORK_CRAFTING))
-        send_to_char(ch, "Masterwork Crafting feat bonus: 10.  ");
-      if (HAS_FEAT(ch, FEAT_DWARVEN_CRAFTING))
-        send_to_char(ch, "Dwarven Crafting feat bonus: 10.  ");
-      if (HAS_FEAT(ch, FEAT_DRACONIC_CRAFTING))
-        send_to_char(ch, "Draconic Crafting feat bonus: 10.  ");
-      send_to_char(ch, "\r\n");
-      send_to_char(ch, "You have a %d percent chance of creating a masterwork item.\r\n",
-                   chance_of_crit);
-    }
-    send_to_char(ch, "The item will be level: %d.\r\n", obj_level);
-    send_to_char(ch, "It will make use of your %s skill, which is at rank %d.\r\n",
-                 ability_names[skill], get_craft_skill_value(ch, skill));
-    send_to_char(ch, "This crafting session will take 60 seconds.\r\n");
-    send_to_char(ch, "You need %d gold on hand to make this item.\r\n", cost);
-
-    return 1;
-  }
-
-  /* not enough gold? */
-  else if (GET_GOLD(ch) < cost)
-  {
-    send_to_char(ch,
-                 "You need %d coins on hand for supplies to make"
-                 "this item.\r\n",
-                 cost);
-    return 1;
-  }
-  /* CREATE! */
-  else
-  {
-    REMOVE_BIT_AR(GET_OBJ_EXTRA(mold), ITEM_MOLD);
-    if (essence || crystal)
-      SET_BIT_AR(GET_OBJ_EXTRA(mold), ITEM_MAGIC);
-    GET_OBJ_LEVEL(mold) = obj_level;
-    GET_OBJ_MATERIAL(mold) = GET_OBJ_MATERIAL(material);
-
-    /* transfer crystal over to item */
-    if (crystal)
-    {
-      for (i = 0; i < MAX_OBJ_AFFECT; i++)
-      {
-        if (crystal->affected[i].modifier && crystal->affected[i].location)
-        {
-          mold->affected[i].location = crystal->affected[i].location;
-          mold->affected[i].modifier = crystal->affected[i].modifier;
-          if (!crystal->affected[i].bonus_type)
-            mold->affected[i].bonus_type = BONUS_TYPE_ENHANCEMENT;
-          else
-            mold->affected[i].bonus_type = crystal->affected[i].bonus_type;
-        }
-      }
-      /* enhancement bonus */
-      if (CAN_WEAR(mold, ITEM_WEAR_WIELD) || CAN_WEAR(mold, ITEM_WEAR_SHIELD) ||
-          CAN_WEAR(mold, ITEM_WEAR_HEAD) || CAN_WEAR(mold, ITEM_WEAR_BODY) ||
-          CAN_WEAR(mold, ITEM_WEAR_LEGS) || CAN_WEAR(mold, ITEM_WEAR_ARMS) ||
-          GET_OBJ_TYPE(mold) == ITEM_MISSILE)
-      {
-        GET_OBJ_VAL(mold, 4) = MIN(CRAFT_MAX_BONUS, ((GET_OBJ_LEVEL(mold) + 5) / 5));
-      }
-    }
-
-    /* try for master-work craft! */
-    if (essence)
-    {
-      /*debug*/
-      if (GET_LEVEL(ch) >= LVL_IMMORT)
-      {
-        send_to_char(ch, "Staff override on crit chance (real chance: %d)\r\n", chance_of_crit);
-        chance_of_crit = 101;
-      }
-      /*debug*/
-      if (dice(1, 100) <= chance_of_crit)
-      {
-        /* did it! we assumed [3rd] value is available for this bonus */
-        mold->affected[3].location = random_apply_value();
-        mold->affected[3].modifier = adjust_bonus_value(mold->affected[3].location, 1);
-        mold->affected[3].bonus_type = BONUS_TYPE_INHERENT;
-        send_to_char(ch, "You feel a sense of inspiration as you begin your craft!\r\n");
-      }
-    }
-
-    GET_OBJ_COST(mold) =
-        100 + GET_OBJ_LEVEL(mold) * 50 * MAX(1, GET_OBJ_LEVEL(mold) - 1) + GET_OBJ_COST(mold);
-    GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(mold));
-
-    send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
-    award_gold(ch, -cost);
-
-    /* gotta convert @ sign */
-    parse_at(argument);
-
-    /* restringing aspect */
-    free_object_string(mold, mold->short_description);
-    mold->short_description = strdup(argument);
-    snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
-    free_object_string(mold, mold->description);
-    mold->description = strdup(buf);
-    strip_colors(argument);
-    free_object_string(mold, mold->name);
-    mold->name = strdup(argument); /*keywords, leave last*/
-
-    send_to_char(ch, "You begin to craft %s.\r\n", mold->short_description);
-    act("$n begins to craft $p.", FALSE, ch, mold, 0, TO_ROOM);
-
-    GET_CRAFTING_OBJ(ch) = mold;
-    obj_from_obj(mold); /* extracting this causes issues, solution? */
-    GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
-    GET_CRAFTING_TICKS(ch) = legacy_kit_ticks(ch, skill, 11);
-    int kit_obj_vnum = GET_OBJ_VNUM(kit);
-    obj_from_room(kit);
-    extract_obj(kit);
-    kit = read_object(kit_obj_vnum, VIRTUAL);
-
-    obj_to_char(kit, ch);
-
-    obj_to_char(mold, ch);
-
-    /*save here just in case*/
-    save_char(ch, 0);
-    Crash_crashsave(ch);
-
-    NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
-  }
-  return 1;
+  if (CAN_WEAR(mold, ITEM_WEAR_ABOUT))
+    return ABILITY_CRAFT_TAILORING;
+  if (CAN_WEAR(mold, ITEM_WEAR_WIELD) || CAN_WEAR(mold, ITEM_WEAR_SHIELD))
+    return ABILITY_CRAFT_WEAPONSMITHING;
+  return ABILITY_CRAFT_WEAPONSMITHING;
 }
-#undef CREATE_STRING_LIMIT
+
+/* Sort the kit: one mold, at most one crystal and one essence; material bundles are refused
+ * with the deposit step, because the mold draws its materials from the shared balances. */
+static bool mold_kit_contents(struct char_data *ch, struct obj_data *kit, struct obj_data **mold,
+                              struct obj_data **crystal, struct obj_data **essence, bool verbose)
+{
+  struct obj_data *obj;
+
+  *mold = *crystal = *essence = NULL;
+  for (obj = kit->contains; obj != NULL; obj = obj->next_content)
+  {
+    if (OBJ_FLAGGED(obj, ITEM_MOLD))
+    {
+      if (*mold)
+      {
+        if (verbose)
+          send_to_char(ch, "You have more than one mold inside the kit, please only put one "
+                           "inside.\r\n");
+        return false;
+      }
+      *mold = obj;
+    }
+    else if (GET_OBJ_TYPE(obj) == ITEM_CRYSTAL)
+    {
+      if (*crystal)
+      {
+        if (verbose)
+          send_to_char(ch, "You have more than one crystal inside the kit, please only put one "
+                           "inside.\r\n");
+        return false;
+      }
+      *crystal = obj;
+    }
+    else if (GET_OBJ_TYPE(obj) == ITEM_ESSENCE)
+    {
+      if (*essence)
+      {
+        if (verbose)
+          send_to_char(ch, "You have more than one essence inside the kit, please only put one "
+                           "inside.\r\n");
+        return false;
+      }
+      *essence = obj;
+    }
+    else if (GET_OBJ_TYPE(obj) == ITEM_MATERIAL)
+    {
+      if (verbose)
+        send_to_char(ch,
+                     "Molds draw their materials from your crafting materials now. Take %s out "
+                     "of the kit and deposit it with 'craftmaterials store', then name the "
+                     "material in the item description.\r\n",
+                     obj->short_description);
+      return false;
+    }
+    else
+    {
+      if (verbose)
+        send_to_char(ch, "There is an unnecessary item in the kit, please remove it.\r\n");
+      return false;
+    }
+  }
+  if (!*mold)
+  {
+    if (verbose)
+      send_to_char(ch, "The creation process requires a mold to continue.\r\n");
+    return false;
+  }
+  return true;
+}
+
+#define CREATE_STRING_LIMIT 80
+
+static bool plan_create(struct char_data *ch, struct obj_data *kit, const char *argument,
+                        struct kit_operation *op, bool check_only, bool verbose)
+{
+  struct obj_data *mold, *crystal, *essence;
+  int group, material, best_material = CRAFT_MAT_NONE, i;
+  size_t l = 0;
+
+  if (!check_only)
+  {
+    if (!argument || !*argument)
+    {
+      if (verbose)
+        send_to_char(ch, "Please provide an item description containing the material name.\r\n");
+      return false;
+    }
+    if (strchr(argument, '\''))
+    {
+      if (verbose)
+        send_to_char(ch, "The usage of the character: ' is not allowed in create currently (it "
+                         "conflicts with color codes).\r\n");
+      return false;
+    }
+    l = strlen(argument);
+    if (l > CREATE_STRING_LIMIT)
+    {
+      if (verbose)
+        send_to_char(ch,
+                     "The length (%d) of the name you gave your object is over the limit "
+                     "(%d).\r\n",
+                     (int)l, CREATE_STRING_LIMIT);
+      return false;
+    }
+  }
+  if (!mold_kit_contents(ch, kit, &mold, &crystal, &essence, verbose))
+    return false;
+  group = mold_group(mold);
+  if (group == CRAFT_GROUP_NONE)
+  {
+    if (verbose)
+      send_to_char(ch, "This mold's material cannot be worked from your crafting materials.\r\n");
+    return false;
+  }
+  op->obj_level = crystal ? GET_OBJ_LEVEL(crystal) : GET_OBJ_LEVEL(mold);
+  op->mats_needed = MAX(MIN_MATS, GET_OBJ_WEIGHT(mold) / WEIGHT_FACTOR);
+  if (HAS_FEAT(ch, FEAT_ELVEN_CRAFTING))
+    op->mats_needed = MAX(MIN_ELF_MATS, op->mats_needed / 2);
+
+  /* The material: named in the description, or for a check the best-stocked acceptable one. */
+  if (check_only)
+  {
+    for (material = 1; material < NUM_CRAFT_MATS; material++)
+      if (mold_accepts_material(ch, mold, group, material) &&
+          (best_material == CRAFT_MAT_NONE ||
+           GET_CRAFT_MAT(ch, material) > GET_CRAFT_MAT(ch, best_material)))
+        best_material = material;
+    op->material = best_material;
+  }
+  else
+    op->material = mold_material_from_text(ch, mold, group, argument);
+  if (op->material == CRAFT_MAT_NONE)
+  {
+    if (verbose)
+    {
+      send_to_char(ch, "You must name the material in the object description. This mold takes %s: ",
+                   crafting_material_groups[group]);
+      for (material = 1, i = 0; material < NUM_CRAFT_MATS; material++)
+        if (mold_accepts_material(ch, mold, group, material))
+          send_to_char(ch, "%s%s", i++ ? ", " : "", crafting_materials[material]);
+      send_to_char(ch, ".\r\n");
+    }
+    return false;
+  }
+  if (GET_CRAFT_MAT(ch, op->material) < op->mats_needed)
+  {
+    if (verbose)
+      send_to_char(ch,
+                   "You need %d units of %s in your crafting materials to make that item; you "
+                   "have %d. Deposit bundles with 'craftmaterials store'.\r\n",
+                   op->mats_needed, crafting_materials[op->material],
+                   GET_CRAFT_MAT(ch, op->material));
+    return false;
+  }
+  op->chance_of_crit = 0;
+  if (essence)
+  {
+    op->chance_of_crit = GET_OBJ_LEVEL(essence) * 2;
+    if (HAS_FEAT(ch, FEAT_MASTERWORK_CRAFTING))
+      op->chance_of_crit += 10;
+    if (HAS_FEAT(ch, FEAT_DWARVEN_CRAFTING))
+      op->chance_of_crit += 10;
+    if (HAS_FEAT(ch, FEAT_DRACONIC_CRAFTING))
+      op->chance_of_crit += 10;
+  }
+  op->skill = mold_skill(mold);
+  if (craft_legacy_skill_equivalent(ch, op->skill) / 3 < op->obj_level)
+  {
+    if (verbose)
+      send_to_char(ch,
+                   "Your skill in %s (rank %d) is too low to create that item, you need rank "
+                   "%d.\r\n",
+                   ability_names[op->skill], get_craft_skill_value(ch, op->skill),
+                   (op->obj_level * 3 + CRAFT_LEGACY_SKILL_PER_RANK - 1) /
+                       CRAFT_LEGACY_SKILL_PER_RANK);
+    return false;
+  }
+  op->type = SCMD_CRAFT;
+  op->quest = AQ_CRAFT;
+  op->cost = op->obj_level * op->obj_level * 100 / 3;
+  op->seconds = kit_seconds(ch, op->skill, 11, op->cost);
+  op->legacy_exp = kit_legacy_exp(op->obj_level * GET_LEVEL(ch) + GET_LEVEL(ch), op->seconds);
+  if (!check_only)
+    snprintf(op->text, sizeof(op->text), "%s", argument);
+  return true;
+}
+
+/* checkcraft: the preview of what create would make. */
+static void preview_create(struct char_data *ch, struct obj_data *kit, struct kit_operation *op)
+{
+  struct obj_data *mold, *crystal, *essence;
+
+  if (!mold_kit_contents(ch, kit, &mold, &crystal, &essence, false))
+    return;
+  send_to_char(ch, "This crafting session will create the following item:\r\n\r\n");
+  do_stat_object(ch, mold, ITEM_STAT_MODE_IDENTIFY_SPELL);
+  if (crystal)
+  {
+    send_to_char(ch, "You will be enhancing it with this crystal:\r\n");
+    do_stat_object(ch, crystal, ITEM_STAT_MODE_IDENTIFY_SPELL);
+  }
+  if (essence)
+  {
+    send_to_char(ch, "Basic essence chance of critical (masterwork): %d.  ",
+                 GET_OBJ_LEVEL(essence) * 2);
+    if (HAS_FEAT(ch, FEAT_MASTERWORK_CRAFTING))
+      send_to_char(ch, "Masterwork Crafting feat bonus: 10.  ");
+    if (HAS_FEAT(ch, FEAT_DWARVEN_CRAFTING))
+      send_to_char(ch, "Dwarven Crafting feat bonus: 10.  ");
+    if (HAS_FEAT(ch, FEAT_DRACONIC_CRAFTING))
+      send_to_char(ch, "Draconic Crafting feat bonus: 10.  ");
+    send_to_char(ch, "\r\nYou have a %d percent chance of creating a masterwork item.\r\n",
+                 op->chance_of_crit);
+  }
+  send_to_char(ch, "The item will be level: %d.\r\n", op->obj_level);
+  send_to_char(ch, "It will use %d units of %s from your crafting materials (you have %d).\r\n",
+               op->mats_needed, crafting_materials[op->material], GET_CRAFT_MAT(ch, op->material));
+  send_to_char(ch, "It will make use of your %s skill, which is at rank %d.\r\n",
+               ability_names[op->skill], get_craft_skill_value(ch, op->skill));
+  send_to_char(ch, "This crafting session will take %d seconds.\r\n", op->seconds);
+  send_to_char(ch, "You need %d gold on hand to make this item.\r\n", op->cost);
+}
+
+/* The mold becomes the item: flags, level, material, crystal affects and enhancement, the
+ * masterwork roll, cost, and the player's strings; the crystal and essence are consumed. */
+static void apply_create(struct char_data *ch, struct obj_data *kit, struct kit_operation *op)
+{
+  struct obj_data *mold, *crystal, *essence;
+  char buf[MAX_INPUT_LENGTH];
+  char *text = op->text;
+  int i, chance_of_crit = op->chance_of_crit;
+
+  if (!mold_kit_contents(ch, kit, &mold, &crystal, &essence, false))
+    return;
+  REMOVE_BIT_AR(GET_OBJ_EXTRA(mold), ITEM_MOLD);
+  if (essence || crystal)
+    SET_BIT_AR(GET_OBJ_EXTRA(mold), ITEM_MAGIC);
+  GET_OBJ_LEVEL(mold) = op->obj_level;
+  GET_OBJ_MATERIAL(mold) = craft_material_to_obj_material(op->material);
+  if (crystal)
+  {
+    for (i = 0; i < MAX_OBJ_AFFECT; i++)
+    {
+      if (crystal->affected[i].modifier && crystal->affected[i].location)
+      {
+        mold->affected[i].location = crystal->affected[i].location;
+        mold->affected[i].modifier = crystal->affected[i].modifier;
+        mold->affected[i].bonus_type = crystal->affected[i].bonus_type
+                                           ? crystal->affected[i].bonus_type
+                                           : BONUS_TYPE_ENHANCEMENT;
+      }
+    }
+    if (CAN_WEAR(mold, ITEM_WEAR_WIELD) || CAN_WEAR(mold, ITEM_WEAR_SHIELD) ||
+        CAN_WEAR(mold, ITEM_WEAR_HEAD) || CAN_WEAR(mold, ITEM_WEAR_BODY) ||
+        CAN_WEAR(mold, ITEM_WEAR_LEGS) || CAN_WEAR(mold, ITEM_WEAR_ARMS) ||
+        GET_OBJ_TYPE(mold) == ITEM_MISSILE)
+      GET_OBJ_VAL(mold, 4) = MIN(CRAFT_MAX_BONUS, ((GET_OBJ_LEVEL(mold) + 5) / 5));
+  }
+  if (essence)
+  {
+    if (GET_LEVEL(ch) >= LVL_IMMORT)
+    {
+      send_to_char(ch, "Staff override on crit chance (real chance: %d)\r\n", chance_of_crit);
+      chance_of_crit = 101;
+    }
+    if (dice(1, 100) <= chance_of_crit)
+    {
+      mold->affected[3].location = random_apply_value();
+      mold->affected[3].modifier = adjust_bonus_value(mold->affected[3].location, 1);
+      mold->affected[3].bonus_type = BONUS_TYPE_INHERENT;
+      send_to_char(ch, "You feel a sense of inspiration as you finish your craft!\r\n");
+    }
+  }
+  GET_OBJ_COST(mold) =
+      100 + GET_OBJ_LEVEL(mold) * 50 * MAX(1, GET_OBJ_LEVEL(mold) - 1) + GET_OBJ_COST(mold);
+  parse_at(text);
+  free_object_string(mold, mold->short_description);
+  mold->short_description = strdup(text);
+  snprintf(buf, sizeof(buf), "%s lies here.", CAP(text));
+  free_object_string(mold, mold->description);
+  mold->description = strdup(buf);
+  strip_colors(text);
+  free_object_string(mold, mold->name);
+  mold->name = strdup(text);
+  GET_CRAFT_MAT(ch, op->material) -= op->mats_needed;
+  obj_from_obj(mold);
+  if (crystal)
+    extract_obj(crystal);
+  if (essence)
+    extract_obj(essence);
+  obj_to_char(mold, ch);
+  act("You create $p.", false, ch, mold, 0, TO_CHAR);
+  act("$n creates $p.", false, ch, mold, 0, TO_ROOM);
+}
+
+/* ---- the activity ---- */
+
+static bool plan_kit_operation(struct char_data *ch, struct obj_data *kit, int type,
+                               const char *argument, struct kit_operation *op, bool verbose)
+{
+  memset(op, 0, sizeof(*op));
+  op->skill = -1;
+  op->quest = -1;
+  switch (type)
+  {
+  case SCMD_RESTRING:
+    return plan_restring(ch, kit, argument, op, verbose);
+  case SCMD_REDESC:
+    return plan_redesc(ch, kit, argument, op, verbose);
+  case SCMD_RESIZE:
+    return plan_resize(ch, kit, argument, op, verbose);
+  case SCMD_BONEARMOR:
+    return plan_bonearmor(ch, kit, argument, op, verbose);
+  case SCMD_REFORGE:
+    return plan_reforge(ch, kit, argument, op, verbose);
+  case SCMD_AUGMENT:
+    return plan_augment(ch, kit, argument, op, verbose);
+  case SCMD_DISENCHANT:
+    return plan_disenchant(ch, kit, argument, op, verbose);
+  case SCMD_CRAFT:
+    return plan_create(ch, kit, argument, op, false, verbose);
+  }
+  return false;
+}
+
+static bool kit_activity_recheck(struct char_data *ch, void *target, void *context)
+{
+  struct kit_operation *op = context;
+  struct obj_data *kit = target;
+  struct kit_operation again;
+
+  if (!ch || !kit || !op || kit->carried_by != ch || !FIGHTING(ch) == false ||
+      GET_POS(ch) < POS_STANDING || ch->desc == NULL)
+    return false;
+  return plan_kit_operation(ch, kit, op->type, op->text, &again, false);
+}
+
+/* Completion: re-plan against the current kit, gold, and gates, then resolve once. */
+static void kit_activity_complete(struct char_data *ch, void *target, void *context)
+{
+  struct kit_operation *op = context, now;
+  struct obj_data *kit = target, *obj;
+  int count;
+  bool applied = true;
+
+  if (!ch || !kit || !op || kit->carried_by != ch)
+    return;
+  if (!plan_kit_operation(ch, kit, op->type, op->text, &now, true))
+  {
+    send_to_char(ch, "Your crafting work comes to nothing; the kit's contents no longer suit "
+                     "it.\r\n");
+    return;
+  }
+  if (GET_GOLD(ch) < now.cost)
+  {
+    send_to_char(ch, "You need %d coins on hand for supplies to finish this work.\r\n", now.cost);
+    return;
+  }
+  if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch))
+  {
+    send_to_char(ch, "You must make room in your inventory before the finished item can leave "
+                     "the kit.\r\n");
+    return;
+  }
+  obj = kit_single_item(kit, &count);
+  switch (now.type)
+  {
+  case SCMD_RESTRING:
+    apply_restring(ch, obj, &now);
+    obj_from_obj(obj);
+    obj_to_char(obj, ch);
+    act("You rename $p.", false, ch, obj, 0, TO_CHAR);
+    act("$n renames $p.", false, ch, obj, 0, TO_ROOM);
+    break;
+  case SCMD_REDESC:
+    apply_redesc(ch, obj, &now);
+    obj_from_obj(obj);
+    obj_to_char(obj, ch);
+    act("You redesc $p.", false, ch, obj, 0, TO_CHAR);
+    act("$n redescs $p.", false, ch, obj, 0, TO_ROOM);
+    break;
+  case SCMD_RESIZE:
+    applied = apply_resize(ch, obj, &now);
+    if (!applied)
+      break;
+    obj_from_obj(obj);
+    obj_to_char(obj, ch);
+    act("You resize $p.", false, ch, obj, 0, TO_CHAR);
+    act("$n resizes $p.", false, ch, obj, 0, TO_ROOM);
+    break;
+  case SCMD_BONEARMOR:
+    apply_bonearmor(ch, obj, &now);
+    obj_from_obj(obj);
+    obj_to_char(obj, ch);
+    act("You finish converting $p into bone.", false, ch, obj, 0, TO_CHAR);
+    act("$n finishes converting $p into bone.", false, ch, obj, 0, TO_ROOM);
+    break;
+  case SCMD_REFORGE:
+    reforge_apply(ch, obj, now.reforge_index);
+    obj_from_obj(obj);
+    obj_to_char(obj, ch);
+    act("You finish reforging $p.", false, ch, obj, 0, TO_CHAR);
+    act("$n finishes reforging $p.", false, ch, obj, 0, TO_ROOM);
+    break;
+  case SCMD_AUGMENT:
+    apply_augment(ch, kit, &now);
+    break;
+  case SCMD_DISENCHANT:
+    apply_disenchant(ch, obj, &now);
+    break;
+  case SCMD_CRAFT:
+    apply_create(ch, kit, &now);
+    break;
+  default:
+    return;
+  }
+  if (!applied)
+    return;
+  if (now.cost > 0)
+  {
+    send_to_char(ch, "It cost you %d coins in supplies.\r\n", now.cost);
+    award_gold(ch, -now.cost);
+  }
+  if (now.quest >= 0)
+    autoquest_trigger_check(ch, NULL, NULL, 0, now.quest);
+  if (now.skill >= 0)
+    gain_craft_exp(ch, craft_operation_exp(now.obj_level > 0 ? now.obj_level : 1), now.skill, TRUE);
+  if (now.legacy_exp > 0)
+    award_legacy_crafting_experience(ch, now.legacy_exp);
+  save_char(ch, 0);
+  Crash_crashsave(ch);
+}
+
+static const char *kit_operation_verb(int type)
+{
+  switch (type)
+  {
+  case SCMD_RESTRING:
+    return "restring";
+  case SCMD_REDESC:
+    return "redesc";
+  case SCMD_RESIZE:
+    return "resize";
+  case SCMD_BONEARMOR:
+    return "convert to bone";
+  case SCMD_REFORGE:
+    return "reforge";
+  case SCMD_AUGMENT:
+    return "augment";
+  case SCMD_DISENCHANT:
+    return "disenchant";
+  default:
+    return "craft";
+  }
+}
+
+/* Start a planned kit operation: nothing is spent or changed until completion. */
+static bool start_kit_operation(struct char_data *ch, struct obj_data *kit,
+                                struct kit_operation *planned)
+{
+  struct primary_activity_definition definition = {0};
+  struct primary_activity_snapshot snapshot;
+  struct kit_operation *op;
+  char description[64];
+
+  if (primary_activity_snapshot(ch, &snapshot))
+  {
+    send_to_char(ch, "You are already doing something. Please wait until your current task "
+                     "ends.\r\n");
+    return false;
+  }
+  if (GET_GOLD(ch) < planned->cost)
+  {
+    send_to_char(ch, "You need %d coins on hand for supplies to %s this item.\r\n", planned->cost,
+                 kit_operation_verb(planned->type));
+    return false;
+  }
+  CREATE(op, struct kit_operation, 1);
+  *op = *planned;
+  snprintf(description, sizeof(description), "using a crafting kit to %s",
+           kit_operation_verb(op->type));
+  definition.type = PRIMARY_ACTIVITY_CRAFT;
+  definition.display_name = description;
+  definition.capabilities = PRIMARY_ACTIVITY_CAP_HANDS | PRIMARY_ACTIVITY_CAP_ATTENTION;
+  definition.traits = PRIMARY_ACTIVITY_TRAIT_STATIONARY | PRIMARY_ACTIVITY_TRAIT_HANDS_OCCUPIED;
+  definition.progress_model = PRIMARY_ACTIVITY_PROGRESS_PROGRESSIVE;
+  definition.progress_owner = PRIMARY_ACTIVITY_PROGRESS_CHARACTER;
+  definition.total_steps = (uint32_t)MAX(1, op->seconds);
+  definition.step_interval = PASSES_PER_SEC;
+  definition.wall_clock = true;
+  definition.movement_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.damage_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.combat_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.target_loss_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.command_response = PRIMARY_ACTIVITY_RESPONSE_REJECT;
+  definition.recheck = kit_activity_recheck;
+  definition.complete = kit_activity_complete;
+  definition.cleanup_context = free;
+  definition.context = op;
+  if (!primary_activity_start(ch, domain_event_object_handle(kit), &definition))
+  {
+    free(op);
+    send_to_char(ch, "Your crafting task could not be scheduled. Please try again.\r\n");
+    return false;
+  }
+  send_to_char(ch, "You begin to %s. This will take %d seconds.\r\n",
+               kit_operation_verb(planned->type), planned->seconds);
+  act("$n starts working with a crafting kit.", FALSE, ch, 0, 0, TO_ROOM);
+  return true;
+}
+
+/* Plan and start one kit operation from any front end (the kit special or 'craft mold'). */
+static bool run_kit_operation(struct char_data *ch, struct obj_data *kit, int type,
+                              const char *argument)
+{
+  struct kit_operation op;
+
+  if (!plan_kit_operation(ch, kit, type, argument, &op, true))
+    return false;
+  return start_kit_operation(ch, kit, &op);
+}
+
+/* The first crafting kit the character carries, for the editor's mold entry point. */
+static struct obj_data *carried_crafting_kit(struct char_data *ch)
+{
+  struct obj_data *obj;
+
+  for (obj = ch->carrying; obj; obj = obj->next_content)
+    if (is_crafting_kit(obj))
+      return obj;
+  return NULL;
+}
+
+/* craft mold [check | <description>]: the editor's front end to mold creation. */
+void craft_mold_command(struct char_data *ch, const char *argument)
+{
+  struct obj_data *kit = carried_crafting_kit(ch);
+  struct kit_operation op;
+
+  while (argument && *argument == ' ')
+    argument++;
+  if (kit == NULL)
+  {
+    send_to_char(ch, "Mold creation needs a crafting kit in your inventory holding the mold "
+                     "(and optionally a crystal and an essence).\r\n");
+    return;
+  }
+  if (!argument || !*argument || !str_cmp(argument, "check"))
+  {
+    if (plan_create(ch, kit, NULL, &op, true, true))
+      preview_create(ch, kit, &op);
+    return;
+  }
+  (void)run_kit_operation(ch, kit, SCMD_CRAFT, argument);
+}
 
 SPECIAL(crafting_kit)
 {
+  struct obj_data *kit = (struct obj_data *)me;
+  struct kit_operation op;
+  int type;
+
   if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "This is a crafting kit. You can use the following commands:\r\n");
     send_to_char(ch, "  resize      - Resize armor or weapons\r\n");
-    send_to_char(ch, "  create      - Create new items from materials\r\n");
-    send_to_char(ch, "  checkcraft  - Check your crafting progress\r\n");
+    send_to_char(ch, "  create      - Create an item from a mold (materials come from your "
+                     "crafting materials; 'craft mold' does the same)\r\n");
+    send_to_char(ch, "  checkcraft  - Preview what create would make\r\n");
     send_to_char(ch, "  restring    - Change an item's short description\r\n");
     send_to_char(ch, "  redesc      - Change an item's long description\r\n");
-    send_to_char(ch, "  augment     - Enhance items with crystals\r\n");
-    send_to_char(ch, "  convert     - Convert items to crafting materials\r\n");
-    send_to_char(ch, "  autocraft   - Automatically craft items\r\n");
-    send_to_char(ch, "  disenchant  - Remove enchantments from items\r\n");
-    send_to_char(ch, "  bonearmor   - Create bone armor\r\n");
-    send_to_char(ch, "  reforge     - Reforge weapons\r\n");
+    send_to_char(ch, "  augment     - Combine two essences\r\n");
+    send_to_char(ch, "  disenchant  - Extract an essence from a magic item\r\n");
+    send_to_char(ch, "  bonearmor   - Convert armor to bone\r\n");
+    send_to_char(ch, "  reforge     - Reforge weapons, armor, and shields\r\n");
     return TRUE;
   }
 
-  if (!CMD_IS("resize") && !CMD_IS("create") && !CMD_IS("checkcraft") && !CMD_IS("restring") &&
-      !CMD_IS("redesc") && !CMD_IS("augment") && !CMD_IS("convert") && !CMD_IS("autocraft") &&
-      !CMD_IS("disenchant") && !CMD_IS("bonearmor") && !CMD_IS("reforge"))
+  if (CMD_IS("resize"))
+    type = SCMD_RESIZE;
+  else if (CMD_IS("create"))
+    type = SCMD_CRAFT;
+  else if (CMD_IS("checkcraft"))
+    type = SCMD_CRAFT_UNDF;
+  else if (CMD_IS("restring"))
+    type = SCMD_RESTRING;
+  else if (CMD_IS("redesc"))
+    type = SCMD_REDESC;
+  else if (CMD_IS("augment"))
+    type = SCMD_AUGMENT;
+  else if (CMD_IS("disenchant"))
+    type = SCMD_DISENCHANT;
+  else if (CMD_IS("bonearmor"))
+    type = SCMD_BONEARMOR;
+  else if (CMD_IS("reforge"))
+    type = SCMD_REFORGE;
+  else
     return 0;
 
   if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch))
   {
-    send_to_char(ch, "You cannot craft anything until you've made some "
-                     "room in your inventory.\r\n");
+    send_to_char(ch, "You cannot craft anything until you've made some room in your "
+                     "inventory.\r\n");
     return 1;
   }
-
-  if (GET_CRAFTING_OBJ(ch) || char_has_mud_event(ch, eCRAFTING))
-  {
-    send_to_char(ch, "You are already doing something.  Please wait until "
-                     "your current task ends.\r\n");
-    return 1;
-  }
-
-  struct obj_data *kit = (struct obj_data *)me;
   skip_spaces(&argument);
-
-  /* Some of the commands require argument */
-  if (!*argument && !CMD_IS("checkcraft") && !CMD_IS("augment") && !CMD_IS("autocraft") &&
-      !CMD_IS("convert") && !CMD_IS("disenchant"))
+  if (!*argument && (type == SCMD_CRAFT || type == SCMD_RESTRING || type == SCMD_BONEARMOR ||
+                     type == SCMD_REDESC || type == SCMD_RESIZE || type == SCMD_REFORGE))
   {
-    if (CMD_IS("create") || CMD_IS("restring") || CMD_IS("bonearmor") || CMD_IS("redesc"))
-      send_to_char(
-          ch, "Please provide an item description containing the item name in the string.\r\n");
-    else if (CMD_IS("resize"))
-      send_to_char(ch, "What would you like the new size to be?"
-                       " (fine|diminutive|tiny|small|"
+    if (type == SCMD_RESIZE)
+      send_to_char(ch, "What would you like the new size to be? (fine|diminutive|tiny|small|"
                        "medium|large|huge|gargantuan|colossal)\r\n");
-    else if (CMD_IS("reforge"))
-    {
-      send_to_char(ch, "Please specify the type of weapon, armor of shield you'd like to reforge "
+    else if (type == SCMD_REFORGE)
+      send_to_char(ch, "Please specify the type of weapon, armor or shield you'd like to reforge "
                        "this item into. See weaponlist and armorlistfull for options.\r\n");
-    }
+    else
+      send_to_char(ch, "Please provide an item description containing the item name in the "
+                       "string.\r\n");
     return 1;
   }
-
   if (!kit->contains)
   {
-    if (CMD_IS("augment"))
-      send_to_char(ch, "You must place at least two crystals of the same "
-                       "type into the kit in order to augment.\r\n");
-    else if (CMD_IS("autocraft"))
-    {
-      if (GET_AUTOCQUEST_MATERIAL(ch))
-        send_to_char(ch,
-                     "You must place %d units of %s or a similar type of "
-                     "material (all the same type) into the kit to continue.\r\n",
-                     SUPPLYORDER_MATS, material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
-      else
-        send_to_char(ch, "You do not have a supply order active "
-                         "right now.\r\n");
-    }
-    else if (CMD_IS("create"))
-      send_to_char(ch, "You must place an item to use as the mold pattern, "
-                       "a crystal and your crafting resource materials in the "
-                       "kit and then type 'create <optional item "
-                       "description>'\r\n");
-    else if (CMD_IS("restring"))
-      send_to_char(ch, "You must place the item to restring and in the "
-                       "crafting kit.\r\n");
-    else if (CMD_IS("redesc"))
-      send_to_char(ch, "You must place the item to redesc and in the "
-                       "crafting kit.\r\n");
-    else if (CMD_IS("resize"))
-      send_to_char(ch, "You must place the item in the kit to resize it.\r\n");
-    else if (CMD_IS("bonearmor"))
-      send_to_char(ch, "You must place the item in the kit to convert it to bone armor.\r\n");
-    else if (CMD_IS("reforge"))
-      send_to_char(ch, "You must place the item in the kit to reforge it.\r\n");
-    else if (CMD_IS("checkcraft"))
-      send_to_char(ch, "You must place an item to use as the mold pattern, a "
-                       "crystal and your crafting resource materials in the kit and "
-                       "then type 'checkcraft'\r\n");
-    else if (CMD_IS("convert"))
-      send_to_char(ch, "You must place exact multiples of 10, of a material "
-                       "to being the conversion process.\r\n");
-    else if (CMD_IS("disenchant"))
-      send_to_char(ch, "You must place the item you want to disenchant "
-                       "in the kit.\r\n");
+    if (type == SCMD_AUGMENT)
+      send_to_char(ch, "You must place two essences into the kit in order to augment.\r\n");
+    else if (type == SCMD_CRAFT || type == SCMD_CRAFT_UNDF)
+      send_to_char(ch, "You must place a mold (and optionally a crystal and an essence) in the "
+                       "kit, deposit your materials with 'craftmaterials store', and then type "
+                       "'create <item description naming the material>'.\r\n");
     else
-      send_to_char(ch, "Unrecognized crafting-kit command!\r\n");
+      send_to_char(ch, "You must place the item in the kit first.\r\n");
     return 1;
   }
-
   if (kit->carried_by != ch)
   {
     send_to_char(ch, "You must be holding your kit to perform any crafting tasks.\r\n");
     return 1;
   }
-
-  if (CMD_IS("resize"))
-    return resize(argument, kit, ch);
-  if (CMD_IS("bonearmor"))
-    return bonearmor(argument, kit, ch);
-  if (CMD_IS("reforge"))
-    return reforge(argument, kit, ch);
-  else if (CMD_IS("restring"))
-    return restring(argument, kit, ch);
-  else if (CMD_IS("redesc"))
-    return redesc(argument, kit, ch);
-  else if (CMD_IS("augment"))
-    return augment(kit, ch);
-  else if (CMD_IS("convert"))
-    return convert(kit, ch);
-  else if (CMD_IS("autocraft"))
-    return autocraft(kit, ch);
-  else if (CMD_IS("create"))
-    return create(argument, kit, ch, CREATE_MODE_CREATE);
-  else if (CMD_IS("checkcraft"))
-    return create(NULL, kit, ch, CREATE_MODE_CHECK);
-  else if (CMD_IS("disenchant"))
-    return disenchant(kit, ch);
-  else
+  if (type == SCMD_CRAFT_UNDF)
   {
-    send_to_char(ch, "Invalid command.\r\n");
-    return 0;
-  }
-  return 0;
-}
-
-/* here is our room-spec for crafting quest */
-SPECIAL(crafting_quest)
-{
-  char desc[MAX_INPUT_LENGTH] = {'\0'};
-  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
-  int roll = 0;
-
-  if (!CMD_IS("supplyorder"))
-  {
-    return 0;
-  }
-
-  if (IS_NPC(ch))
-  {
-    send_to_char(ch, "Mobiles can't craft.\r\n");
+    if (plan_create(ch, kit, NULL, &op, true, true))
+      preview_create(ch, kit, &op);
     return 1;
   }
-
-  two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
-
-  if (!*arg)
-    cquest_report(ch);
-  else if (!strcmp(arg, "new"))
-  {
-    if (GET_AUTOCQUEST_VNUM(ch) && GET_AUTOCQUEST_MAKENUM(ch) <= 0)
-    {
-      send_to_char(ch, "You can't take a new supply order until you've "
-                       "handed in the one you've completed (supplyorder complete).\r\n");
-      return 1;
-    }
-
-    /* initialize values */
-    reset_acraft(ch);
-    GET_AUTOCQUEST_VNUM(ch) = AUTOCQUEST_VNUM;
-
-    switch (dice(1, 5))
-    {
-    case 1:
-      snprintf(desc, sizeof(desc), "a shield");
-      GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_WOOD;
-      break;
-    case 2:
-      snprintf(desc, sizeof(desc), "a sword");
-      GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_STEEL;
-      break;
-    case 3:
-      if ((roll = dice(1, 7)) == 1)
-      {
-        snprintf(desc, sizeof(desc), "a necklace");
-        GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_COPPER;
-      }
-      else if (roll == 2)
-      {
-        snprintf(desc, sizeof(desc), "a bracer");
-        GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_COPPER;
-      }
-      else if (roll == 3)
-      {
-        snprintf(desc, sizeof(desc), "a cloak");
-        GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_WOOL;
-      }
-      else if (roll == 4)
-      {
-        snprintf(desc, sizeof(desc), "a cape");
-        GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_HEMP;
-      }
-      else if (roll == 5)
-      {
-        snprintf(desc, sizeof(desc), "a belt");
-        GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_BURLAP;
-      }
-      else if (roll == 6)
-      {
-        snprintf(desc, sizeof(desc), "a pair of gloves");
-        GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_COTTON;
-      }
-      else
-      {
-        snprintf(desc, sizeof(desc), "a pair of boots");
-        GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_LEATHER;
-      }
-      break;
-    case 4:
-      if ((roll = dice(1, 2)) == 1)
-      {
-        snprintf(desc, sizeof(desc), "a suit of ringmail");
-        GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_IRON;
-      }
-      else
-      {
-        snprintf(desc, sizeof(desc), "a cloth robe");
-        GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_SATIN;
-      }
-      break;
-    default:
-      snprintf(desc, sizeof(desc), "some war supplies");
-      GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_BRONZE;
-      break;
-    }
-
-    if (GET_AUTOCQUEST_DESC(ch))
-      free(GET_AUTOCQUEST_DESC(ch));
-    GET_AUTOCQUEST_DESC(ch) = strdup(desc);
-    GET_AUTOCQUEST_MAKENUM(ch) = AUTOCQUEST_MAKENUM;
-    if (!rand_number(0, 20))
-      GET_AUTOCQUEST_QP(ch) = 1;
-    else
-      GET_AUTOCQUEST_QP(ch) = 0;
-    if (GET_LEVEL(ch) <= 5)
-    {
-      GET_AUTOCQUEST_GOLD(ch) = 50;
-      GET_AUTOCQUEST_EXP(ch) = 100;
-    }
-    else if (GET_LEVEL(ch) <= 10)
-    {
-      GET_AUTOCQUEST_GOLD(ch) = 100;
-      GET_AUTOCQUEST_EXP(ch) = 200;
-    }
-    else if (GET_LEVEL(ch) <= 15)
-    {
-      GET_AUTOCQUEST_GOLD(ch) = 300;
-      GET_AUTOCQUEST_EXP(ch) = 400;
-    }
-    else if (GET_LEVEL(ch) <= 20)
-    {
-      GET_AUTOCQUEST_GOLD(ch) = 500;
-      GET_AUTOCQUEST_EXP(ch) = 800;
-    }
-    else if (GET_LEVEL(ch) <= 25)
-    {
-      GET_AUTOCQUEST_GOLD(ch) = 800;
-      GET_AUTOCQUEST_EXP(ch) = 1000;
-    }
-    else
-    {
-      GET_AUTOCQUEST_GOLD(ch) = 1000;
-      GET_AUTOCQUEST_EXP(ch) = 1500;
-    };
-
-    send_to_char(ch,
-                 "You have been commissioned for a supply order to "
-                 "make %s.  We expect you to make %d before you can collect your "
-                 "reward.  Good luck!  Once completed you will receive the "
-                 "following:  You will receive %d quest points."
-                 "  %u gold will be given to you.  You will receive %u "
-                 "experience points.\r\n",
-                 desc, GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_QP(ch), GET_AUTOCQUEST_GOLD(ch),
-                 GET_AUTOCQUEST_EXP(ch));
-  }
-  else if (!strcmp(arg, "complete"))
-  {
-    if (GET_AUTOCQUEST_VNUM(ch) && GET_AUTOCQUEST_MAKENUM(ch) <= 0)
-    {
-      int quest_points = award_quest_points(ch, GET_AUTOCQUEST_QP(ch));
-      int gold = award_gold(ch, GET_AUTOCQUEST_GOLD(ch));
-      int exp = (int)award_points(ch, AWARD_EXPERIENCE, GET_AUTOCQUEST_EXP(ch));
-
-      send_to_char(ch,
-                   "You have completed your supply order contract"
-                   " for %s.\r\n"
-                   "You receive %d reputation points.\r\n"
-                   "%d gold has been given to you.\r\n"
-                   "You receive %d experience points.\r\n",
-                   GET_AUTOCQUEST_DESC(ch), quest_points, gold, exp);
-
-      reset_acraft(ch);
-    }
-    else
-      cquest_report(ch);
-  }
-  else if (!strcmp(arg, "quit"))
-  {
-    send_to_char(ch, "You abandon your supply order to make %d %s.\r\n", GET_AUTOCQUEST_MAKENUM(ch),
-                 GET_AUTOCQUEST_DESC(ch));
-    reset_acraft(ch);
-  }
-  else
-    cquest_report(ch);
-
+  (void)run_kit_operation(ch, kit, type, argument);
   return 1;
 }
 
-/* the event driver for crafting */
-MUD_EVENT_CALLBACK(event_crafting)
+#undef CREATE_STRING_LIMIT
+
+/* eCRAFTING, eCRAFT, and eBREWING keep their serialized ids; the work they timed now runs on the
+ * activity manager. A stray record from an older save ends here without effect. */
+MUD_EVENT_CALLBACK(event_retired)
 {
-  int i = 0; /* shared by the repeat loops of several subcommands */
-  struct char_data *ch;
-  struct mud_event_data *pMudEvent;
-  struct obj_data *obj2 = NULL;
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
-  char buf2[24] = {'\0'}; /* Small buffer for repeat suffix " (x%d)" or "\tn" */
-  int exp = 0;
-  int skill = -1;
-
-  // initialize everything and dummy checks
-  if (event_obj == NULL)
-    return 0;
-  pMudEvent = (struct mud_event_data *)event_obj;
-  ch = (struct char_data *)pMudEvent->pStruct;
-
-  if (!ch || !ch->desc)
-    return 0;
-  if (!IS_NPC(ch) && !IS_PLAYING(ch->desc))
-    return 0;
-
-  if (GET_CRAFTING_TYPE(ch) == SCMD_DISENCHANT)
-  {
-    ; /* disenchant is unique - we do not bring an object along */
-  }
-  else if (!GET_AUTOCQUEST_VNUM(ch) && GET_CRAFTING_OBJ(ch) == NULL)
-  {
-    log("SYSERR: crafting - null object");
-    return 0;
-  }
-  if (GET_CRAFTING_TYPE(ch) == 0)
-  {
-    log("SYSERR: crafting - invalid type");
-    return 0;
-  }
-
-  if (FIGHTING(ch))
-  {
-    send_to_char(ch, "You are too busy fighting to do continue!\r\n");
-    return 0;
-  }
-
-  if (GET_CRAFTING_TICKS(ch))
-  { /* still working! */
-
-    /* disenchant.   disenchant has no OBJ so we handle separate */
-    if (GET_CRAFTING_TYPE(ch) == SCMD_DISENCHANT)
-    {
-      send_to_char(ch, "You continue to %s.\r\n", craft_type[GET_CRAFTING_TYPE(ch)]);
-      exp = 10 * GET_LEVEL(ch) + GET_LEVEL(ch);
-
-      /* should be everything that is not disenchant/supplyorder */
-    }
-    else if (GET_CRAFTING_OBJ(ch))
-    {
-      send_to_char(ch, "You continue to %s and work to create %s.\r\n",
-                   craft_type[GET_CRAFTING_TYPE(ch)], GET_CRAFTING_OBJ(ch)->short_description);
-      exp = GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * GET_LEVEL(ch) + GET_LEVEL(ch);
-
-      /* supply orders */
-    }
-    else
-    {
-      send_to_char(ch, "You continue your supply order for %s.\r\n", GET_AUTOCQUEST_DESC(ch));
-      exp = GET_LEVEL(ch) * 2;
-    }
-
-    if (GET_CRAFTING_TYPE(ch) == SCMD_RESIZE)
-      exp = 0;
-    if (exp > 0)
-      award_legacy_crafting_experience(ch, exp);
-    send_to_char(ch,
-                 "\tnYou have approximately %d seconds "
-                 "left to go.\r\n",
-                 GET_CRAFTING_TICKS(ch) * 6);
-
-    GET_CRAFTING_TICKS(ch)--;
-
-    if (GET_LEVEL(ch) >= LVL_IMMORT)
-      return 1;
-    else
-      return (6 * PASSES_PER_SEC); // come back in x time to the event
-  }
-  else
-  { /* should be completed */
-
-    switch (GET_CRAFTING_TYPE(ch))
-    {
-    case SCMD_RESIZE:
-      // no skill association
-      snprintf(buf, sizeof(buf), "You resize $p.");
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      snprintf(buf, sizeof(buf), "$n resizes $p.");
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-
-      /* resize system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_RESIZE);
-
-      break;
-
-    case SCMD_BONEARMOR:
-      skill = ABILITY_CRAFT_ARMORSMITHING;
-      snprintf(buf, sizeof(buf), "You finish converting $p into bone.");
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      snprintf(buf, sizeof(buf), "$n finishes converting $p into bone.");
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-
-      /* resize system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_RESIZE);
-      break;
-
-    case SCMD_REFORGE:
-      if (GET_OBJ_TYPE(GET_CRAFTING_OBJ(ch)) == ITEM_WEAPON)
-        skill = ABILITY_CRAFT_WEAPONSMITHING;
-      else
-        skill = ABILITY_CRAFT_ARMORSMITHING;
-
-      snprintf(buf, sizeof(buf), "You finish reforging $p.");
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      snprintf(buf, sizeof(buf), "$n finishes reforging $p.");
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-
-      /* Save the character to persist restring_identifier and other object changes */
-      save_char(ch, 0);
-      Crash_crashsave(ch);
-
-      /* resize system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_RESIZE);
-
-      break;
-
-    case SCMD_DIVIDE:
-      // no skill association
-      snprintf(buf, sizeof(buf), "You create $p (x%d).", GET_CRAFTING_REPEAT(ch));
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      snprintf(buf, sizeof(buf), "$n creates $p (x%d).", GET_CRAFTING_REPEAT(ch));
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-
-      for (i = 1; i < GET_CRAFTING_REPEAT(ch); i++)
-      {
-        obj2 = read_object(GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)), VIRTUAL);
-        obj_to_char(obj2, ch);
-      }
-
-      /* divide system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_DIVIDE);
-
-      break;
-
-    case SCMD_DISENCHANT:
-      skill = ABILITY_CRAFT_ALCHEMY;
-
-      snprintf(buf, sizeof(buf), "You complete the disenchantment process.");
-      act(buf, false, ch, 0, 0, TO_CHAR);
-      snprintf(buf, sizeof(buf), "$n finishes the disenchanting process.");
-      act(buf, false, ch, 0, 0, TO_ROOM);
-
-      /* disenchant system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_DISENCHANT);
-
-      break;
-
-    case SCMD_SYNTHESIZE:
-      // synthesizing here, incomplete
-
-      /* syntheize system check point -Zusuk */
-      // autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_SYNTHESIZE);
-
-      break;
-
-    case SCMD_CRAFT:
-      if (GET_CRAFTING_REPEAT(ch))
-      {
-        snprintf(buf2, sizeof(buf2), " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
-        for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++)
-        {
-          obj2 = GET_CRAFTING_OBJ(ch);
-          obj_to_char(obj2, ch);
-        }
-        GET_CRAFTING_REPEAT(ch) = 0;
-      }
-      else
-        snprintf(buf2, sizeof(buf2), "\tn");
-
-      snprintf(buf, sizeof(buf), "You create $p%s.", buf2);
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      snprintf(buf, sizeof(buf), "$n creates $p%s.", buf2);
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-      /*
-        if (GET_GOLD(ch) < (GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4)) {
-          award_bank_gold(ch, -(GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4));
-        } else {
-          award_gold(ch, -(GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4));
-        }
-         */
-
-      /* autoquest system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT);
-
-      break;
-
-    case SCMD_AUGMENT:
-      // use to be part of crafting
-      skill = ABILITY_CRAFT_ALCHEMY;
-
-      if (GET_CRAFTING_REPEAT(ch))
-      {
-        snprintf(buf2, sizeof(buf2), " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
-        for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++)
-        {
-          obj2 = GET_CRAFTING_OBJ(ch);
-          obj_to_char(obj2, ch);
-        }
-        GET_CRAFTING_REPEAT(ch) = 0;
-      }
-      else
-        snprintf(buf2, sizeof(buf2), "\tn");
-
-      snprintf(buf, sizeof(buf), "You augment $p%s.", buf2);
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      snprintf(buf, sizeof(buf), "$n augments $p%s.", buf2);
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-
-      /* augment system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_AUGMENT);
-
-      break;
-
-    case SCMD_CONVERT:
-      skill = ABILITY_CRAFT_ALCHEMY;
-      // use to be part of crafting
-
-      if (GET_CRAFTING_REPEAT(ch))
-      {
-        snprintf(buf2, sizeof(buf2), " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
-        for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++)
-        {
-          obj2 = GET_CRAFTING_OBJ(ch);
-          obj_to_char(obj2, ch);
-        }
-        GET_CRAFTING_REPEAT(ch) = 0;
-      }
-      else
-        snprintf(buf2, sizeof(buf2), "\tn");
-
-      snprintf(buf, sizeof(buf), "You convert $p%s.", buf2);
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      snprintf(buf, sizeof(buf), "$n converts $p%s.", buf2);
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-
-      /* convert system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_CONVERT);
-
-      break;
-
-    case SCMD_RESTRING:
-      // no skill association
-      snprintf(buf2, sizeof(buf2), "\tn");
-      snprintf(buf, sizeof(buf), "You rename $p%s.", buf2);
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      snprintf(buf, sizeof(buf), "$n renames $p%s.", buf2);
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-
-      /* hunt system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_RESTRING);
-
-      break;
-
-    case SCMD_REDESC:
-      // no skill association
-      snprintf(buf2, sizeof(buf2), "\tn");
-      snprintf(buf, sizeof(buf), "You redesc $p%s.", buf2);
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      snprintf(buf, sizeof(buf), "$n redescs $p%s.", buf2);
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-
-      break;
-
-    case SCMD_SUPPLYORDER:
-      skill = legacy_supply_order_skill(GET_AUTOCQUEST_MATERIAL(ch));
-      GET_AUTOCQUEST_MAKENUM(ch)
-      --;
-      if (GET_AUTOCQUEST_MAKENUM(ch) <= 0)
-      {
-        snprintf(buf, sizeof(buf), "$n completes an item for a supply order.");
-        act(buf, false, ch, NULL, 0, TO_ROOM);
-        send_to_char(ch, "You have completed your supply order! Go turn"
-                         " it in for more exp, quest points and "
-                         "gold!\r\n");
-
-        /* autoquest system check point -Zusuk */
-        autoquest_trigger_check(ch, NULL, NULL, 0, AQ_AUTOCRAFT);
-      }
-      else
-      {
-        snprintf(buf, sizeof(buf), "$n completes a supply order.");
-        act(buf, false, ch, NULL, 0, TO_ROOM);
-        send_to_char(ch,
-                     "You have completed another item in your supply "
-                     "order and have %d more to make.\r\n",
-                     GET_AUTOCQUEST_MAKENUM(ch));
-      }
-      break;
-    default:
-      log("SYSERR: crafting - unsupported SCMD_");
-      return 0;
-    }
-
-    /* One craft experience award for the finished operation, on the ability it used, by the
-     * object's level. */
-    if (skill != -1 && !IS_NPC(ch))
-    {
-      int craft_exp;
-
-      craft_exp =
-          craft_operation_exp(GET_CRAFTING_OBJ(ch) ? GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) : 1);
-      gain_craft_exp(ch, craft_exp, skill, TRUE);
-    }
-    reset_craft(ch);
-    return 0; // done with the event
-  }
-  log("SYSERR: crafting, crafting_event end");
+  (void)event_obj;
+  log("SYSERR: retired crafting event fired; ignoring.");
   return 0;
 }
 

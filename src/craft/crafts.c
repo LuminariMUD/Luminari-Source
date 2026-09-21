@@ -26,8 +26,11 @@
 #include "crafts.h"
 #include "obj/item.h"
 #include "crafting_new.h"
+#include "events/activity_manager.h"
+#include "events/domain_event_world.h"
 
 #include <limits.h>
+#include <stdint.h>
 
 
 /* Statics */
@@ -915,47 +918,47 @@ void show_craft(struct char_data *ch, struct craft_data *craft, int mode)
   }
 }
 
-MUD_EVENT_CALLBACK(event_craft)
+/* One catalog attempt on the activity manager: the timer runs as a timed step, a "struggle"
+ * result retries with the same delay, success or failure ends the work. Nothing is consumed
+ * before the attempt resolves; a cancellation spends nothing. */
+static long catalog_craft_step(struct char_data *ch, void *target, void *context)
 {
-  struct mud_event_data *pMudEvent;
-  struct craft_data *craft;
-  struct char_data *ch = NULL;
+  struct craft_data *craft = get_craft_from_id((int)(intptr_t)context);
   struct obj_data *obj;
   int missing, skill, rand;
 
-  pMudEvent = (struct mud_event_data *)event_obj;
-  ch = (struct char_data *)pMudEvent->pStruct;
-
+  (void)target;
+  if (craft == NULL)
+  {
+    mudlog(CMP, LVL_STAFF, TRUE, "SYSERR: catalog craft step without a craft.");
+    return 0;
+  }
   if (FIGHTING(ch))
   {
-    send_to_char(ch, "You abort your attempt at crafting.\r\n");
-    return (0);
+    send_to_char(ch, "You abort your attempt to craft.\r\n");
+    return 0;
   }
-
   if (GET_POS(ch) != POS_STANDING)
   {
     send_to_char(ch, "You must be standing to craft.\r\n");
-    return (0);
+    return 0;
   }
-
-  if ((craft = get_craft_from_arg(pMudEvent->sVariables)) == NULL)
-  {
-    mudlog(CMP, LVL_STAFF, TRUE, "SYSERR: Event Craft called without craft.");
-    return (0);
-  }
-
   if ((missing = missing_craft_requirements(ch, craft)) > 0)
   {
     send_to_char(ch, "You are still missing %d components.\r\n", missing);
-    return (0);
+    return 0;
   }
-
-  if (!craft_skill_id_is_valid(CRAFT_SKILL(craft)))
+  if (!craft_skill_id_is_valid(CRAFT_SKILL(craft)) || !character_meets_craft_skill(ch, craft))
   {
-    mudlog(CMP, LVL_STAFF, TRUE, "SYSERR: Event Craft called with invalid skill id %d.",
-           CRAFT_SKILL(craft));
-    send_to_char(ch, "That craft has an invalid skill requirement.\r\n");
-    return (0);
+    send_to_char(ch, "You are no longer able to craft that.\r\n");
+    return 0;
+  }
+  if (real_object(CRAFT_OBJVNUM(craft)) == NOTHING)
+  {
+    send_to_char(ch, "That craft has no usable result; please report it.\r\n");
+    mudlog(CMP, LVL_STAFF, TRUE, "SYSERR: Craft %d (%s) has missing output prototype %d.",
+           CRAFT_ID(craft), CRAFT_NAME(craft), (int)CRAFT_OBJVNUM(craft));
+    return 0;
   }
 
   /* The roll keeps its legacy 1 to 99 scale: the rank and the threshold both read through the
@@ -977,40 +980,64 @@ MUD_EVENT_CALLBACK(event_craft)
     if ((obj = read_object(CRAFT_OBJVNUM(craft), VIRTUAL)) == NULL)
     {
       send_to_char(ch, "You seem to have an issue with your crafting.\r\n");
-      mudlog(CMP, LVL_STAFF, TRUE, "SYSERR: Event Craft called without created object.");
-      return (0);
+      mudlog(CMP, LVL_STAFF, TRUE, "SYSERR: catalog craft could not create its object.");
+      return 0;
     }
-
     remove_components(ch, craft, TRUE);
     obj_to_char(obj, ch);
-
     if (!CRAFT_MSG_SELF(craft))
       send_to_char(ch, "You have created %s.\r\n", obj->short_description);
     else
       act(CRAFT_MSG_SELF(craft), TRUE, ch, obj, 0, TO_CHAR);
-
     if (CRAFT_MSG_ROOM(craft))
       act(CRAFT_MSG_ROOM(craft), TRUE, ch, obj, 0, TO_NOTVICT);
-
     /* One craft experience award per success on the recipe's ability; none for no-skill
      * recipes, retries, or failures. */
     if (CRAFT_SKILL(craft) != -1)
       gain_craft_exp(ch, craft_operation_exp(GET_OBJ_LEVEL(obj)), CRAFT_SKILL(craft), TRUE);
+    return 0;
   }
-  else if (skill > (rand / 2))
+  if (skill > (rand / 2))
   {
     act("You struggle in your attempt to craft, but you continue on.", TRUE, ch, 0, 0, TO_CHAR);
     act("$n struggles in $s attempt to craft.", TRUE, ch, 0, 0, TO_NOTVICT);
-    return (CRAFT_TIMER(craft) * PASSES_PER_SEC);
+    return CRAFT_TIMER(craft) * PASSES_PER_SEC;
   }
-  else
-  {
-    remove_components(ch, craft, FALSE);
-    act("You mess up your attempt to craft.", TRUE, ch, 0, 0, TO_CHAR);
-    act("$n messes up $s attempt to craft.", TRUE, ch, 0, 0, TO_NOTVICT);
-  }
+  remove_components(ch, craft, FALSE);
+  act("You mess up your attempt to craft.", TRUE, ch, 0, 0, TO_CHAR);
+  act("$n messes up $s attempt to craft.", TRUE, ch, 0, 0, TO_NOTVICT);
+  return 0;
+}
 
-  return (0);
+static bool catalog_craft_recheck(struct char_data *ch, void *target, void *context)
+{
+  (void)context;
+  return ch && ch->desc && STATE(ch->desc) == CON_PLAYING && !FIGHTING(ch) &&
+         target == &world[IN_ROOM(ch)];
+}
+
+static bool start_catalog_craft(struct char_data *ch, struct craft_data *craft)
+{
+  struct primary_activity_definition definition = {0};
+
+  definition.type = PRIMARY_ACTIVITY_CRAFT;
+  definition.display_name = "crafting from the catalog";
+  definition.capabilities = PRIMARY_ACTIVITY_CAP_HANDS | PRIMARY_ACTIVITY_CAP_ATTENTION;
+  definition.traits = PRIMARY_ACTIVITY_TRAIT_STATIONARY | PRIMARY_ACTIVITY_TRAIT_HANDS_OCCUPIED;
+  definition.progress_model = PRIMARY_ACTIVITY_PROGRESS_PROGRESSIVE;
+  definition.progress_owner = PRIMARY_ACTIVITY_PROGRESS_CHARACTER;
+  definition.total_steps = 1U;
+  definition.step_interval = MAX(1, CRAFT_TIMER(craft)) * PASSES_PER_SEC;
+  definition.wall_clock = true;
+  definition.movement_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.damage_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.combat_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.target_loss_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.command_response = PRIMARY_ACTIVITY_RESPONSE_REJECT;
+  definition.timed_step = catalog_craft_step;
+  definition.recheck = catalog_craft_recheck;
+  definition.context = (void *)(intptr_t)CRAFT_ID(craft);
+  return primary_activity_start(ch, domain_event_room_handle(IN_ROOM(ch)), &definition);
 }
 
 /* One crafting surface in every configuration: the project editor. */
@@ -1023,6 +1050,7 @@ ACMDU(do_craft_with_kits)
 {
   struct craft_data *craft;
   struct obj_data *obj;
+  struct primary_activity_snapshot snapshot;
   int missing;
 
   if (IS_NPC(ch))
@@ -1034,9 +1062,9 @@ ACMDU(do_craft_with_kits)
     return;
   }
 
-  if (char_has_mud_event(ch, eCRAFT))
+  if (primary_activity_snapshot(ch, &snapshot))
   {
-    send_to_char(ch, "You are already attempting to craft something.\r\n");
+    send_to_char(ch, "You are already busy with another task.\r\n");
     return;
   }
 
@@ -1075,8 +1103,11 @@ ACMDU(do_craft_with_kits)
     return;
   }
 
-  /* Activate the Event */
-  NEW_EVENT(eCRAFT, ch, CRAFT_NAME(craft), CRAFT_TIMER(craft) * PASSES_PER_SEC);
+  if (IN_ROOM(ch) == NOWHERE || !start_catalog_craft(ch, craft))
+  {
+    send_to_char(ch, "You cannot begin crafting right now.\r\n");
+    return;
+  }
   act("You begin attempting to craft.", TRUE, ch, 0, 0, TO_CHAR);
   act("$n is attempting to craft.", TRUE, ch, 0, 0, TO_NOTVICT);
 }

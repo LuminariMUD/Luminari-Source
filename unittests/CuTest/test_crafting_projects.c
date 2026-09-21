@@ -246,6 +246,27 @@ static int craft_project_live_objects(void)
   return count;
 }
 
+/** A fresh game-scheduler event backend at a known pulse, for activities that complete later. */
+static void craft_project_start_events(void)
+{
+  event_free_all();
+  event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER);
+  pulse = 200U;
+  event_init();
+}
+
+/** Advance the scheduler by whole seconds. */
+static void craft_project_advance_seconds(int seconds)
+{
+  int i;
+
+  for (i = 0; i < seconds; i++)
+  {
+    pulse += PASSES_PER_SEC;
+    event_test_advance();
+  }
+}
+
 void Test_craft_materials_sort_and_list_every_material_once(CuTest *tc)
 {
   struct craft_project_fixture f;
@@ -1118,21 +1139,20 @@ void Test_reforge_matches_abbreviations_and_numbered_bows(CuTest *tc)
   int abbreviated = -1, numbered = -1;
 
   craft_project_begin(&f);
-  event_free_all();
-  event_init();
+  craft_project_start_events();
   runtime = domain_event_runtime_init();
   weapon = craft_project_reforgeable_dagger();
   if (weapon != NULL)
   {
     obj_to_char(weapon, ch);
+    /* The reforge resolves when its activity completes, not at the command. */
     do_reforge_new(ch, "weapon khop", 0, 0);
-    abbreviated = GET_OBJ_VAL(weapon, 0);
-    clear_char_event_list(ch);
-    GET_CRAFTING_OBJ(ch) = NULL;
-    do_reforge_new(ch, "weapon composite long bow (2)", 0, 0);
+    abbreviated = GET_OBJ_VAL(weapon, 0) == WEAPON_TYPE_DAGGER ? -2 : -3;
+    craft_project_advance_seconds(8);
+    abbreviated = abbreviated == -2 ? GET_OBJ_VAL(weapon, 0) : abbreviated;
+    do_reforge_new(ch, "khopesh composite long bow (2)", 0, 0);
+    craft_project_advance_seconds(8);
     numbered = GET_OBJ_VAL(weapon, 0);
-    clear_char_event_list(ch);
-    GET_CRAFTING_OBJ(ch) = NULL;
   }
   domain_event_runtime_shutdown();
   event_free_all();
@@ -1154,8 +1174,7 @@ void Test_crafting_kit_reforge_needs_exactly_one_item(CuTest *tc)
   int reforge_cmd, reforged = -1;
 
   craft_project_begin(&f);
-  event_free_all();
-  event_init();
+  craft_project_start_events();
   runtime = domain_event_runtime_init();
   if (complete_cmd_info == NULL)
   {
@@ -1183,9 +1202,9 @@ void Test_crafting_kit_reforge_needs_exactly_one_item(CuTest *tc)
     extract_obj(second);
     snprintf(argument, sizeof(argument), "khop");
     crafting_kit(ch, kit, reforge_cmd, argument);
-    reforged = GET_OBJ_VAL(first, 0);
-    clear_char_event_list(ch);
-    GET_CRAFTING_OBJ(ch) = NULL;
+    reforged = GET_OBJ_VAL(first, 0) == WEAPON_TYPE_DAGGER ? -2 : -3;
+    craft_project_advance_seconds(8);
+    reforged = reforged == -2 ? GET_OBJ_VAL(first, 0) : reforged;
   }
   if (created_commands)
     free_command_list();
@@ -1201,6 +1220,7 @@ void Test_crafting_kit_reforge_needs_exactly_one_item(CuTest *tc)
 
 /* ---- Material identity and checked balance credits (crafting consolidation, Phase 1) ---- */
 
+#include "../../src/craft/brew.h"
 #include "../../src/craft/crafts.h"
 #include "../../src/obj/objsave.h"
 
@@ -1758,4 +1778,370 @@ void Test_craft_commands_show_one_rank_space(CuTest *tc)
   CuAssertIntEquals(tc, 1, menu_lists_catalog);
   CuAssertIntEquals(tc, 30, craft_legacy_kit_seconds(ch, -1, 5));
   CuAssertIntEquals(tc, 6, craft_legacy_kit_seconds(ch, ABILITY_CRAFT_ALCHEMY, 1));
+}
+
+/* ---- Kit operations on the shared lifecycle (crafting consolidation, Phase 4) ---- */
+
+/** An empty container carried by the crafter, used as the crafting kit. */
+static struct obj_data *craft_project_kit(struct char_data *ch)
+{
+  struct obj_data *kit = read_object(WEAPON_PROTO, VIRTUAL);
+
+  if (kit == NULL)
+    return NULL;
+  GET_OBJ_TYPE(kit) = ITEM_CONTAINER;
+  obj_to_char(kit, ch);
+  return kit;
+}
+
+/** A body-armor mold of the given material and level, weighing enough for five units. */
+static struct obj_data *craft_project_mold(int material, int level)
+{
+  struct obj_data *mold = read_object(WEAPON_PROTO, VIRTUAL);
+
+  if (mold == NULL)
+    return NULL;
+  GET_OBJ_TYPE(mold) = ITEM_ARMOR;
+  SET_BIT_AR(GET_OBJ_EXTRA(mold), ITEM_MOLD);
+  SET_BIT_AR(GET_OBJ_WEAR(mold), ITEM_WEAR_TAKE);
+  SET_BIT_AR(GET_OBJ_WEAR(mold), ITEM_WEAR_BODY);
+  GET_OBJ_MATERIAL(mold) = material;
+  GET_OBJ_LEVEL(mold) = level;
+  GET_OBJ_WEIGHT(mold) = 100;
+  GET_OBJ_COST(mold) = 10;
+  return mold;
+}
+
+/** A mold becomes equipment at completion, through the kit or 'craft mold': crystal affects
+ * and enhancement, the essence's masterwork, the feat bonus, the level, the strings, the
+ * balance debit, and the gold all land once; nothing moves at admission. */
+void Test_kit_create_makes_equipment_from_a_mold_and_balances(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct obj_data *kit, *mold, *crystal, *essence, *wood_mold;
+  enum domain_event_status runtime;
+  int create_cmd, objects_before, objects_after;
+  bool created_commands = false;
+  int mold_at_admission = -1, steel_at_admission = -1, gold_at_admission = -1;
+  int mold_after = -1, level_after = -1, material_after = -1, str_after = -1, bonus_after = -1;
+  int enhancement_after = -1, masterwork_after = -1, steel_after = -1, gold_after = -1;
+  int exp_after = -1, in_inventory = 0, named = 0, wood_material = -1, ash_after = -1;
+  int wood_in_inventory = 0;
+
+  craft_project_begin(&f);
+  craft_project_start_events();
+  runtime = domain_event_runtime_init();
+  if (complete_cmd_info == NULL)
+  {
+    created_commands = true;
+    create_command_list();
+  }
+  create_cmd = find_command("create");
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
+  GET_LEVEL(ch) = LVL_IMMORT; /* the staff override makes the masterwork roll certain */
+  SET_ABILITY(ch, ABILITY_CRAFT_ARMORSMITHING, 20);
+  SET_FEAT(ch, FEAT_MASTERWORK_CRAFTING, 1);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL) = 10;
+  GET_GOLD(ch) = 1000;
+
+  kit = craft_project_kit(ch);
+  mold = craft_project_mold(MATERIAL_STEEL, 3);
+  crystal = read_object(WEAPON_PROTO, VIRTUAL);
+  essence = read_object(WEAPON_PROTO, VIRTUAL);
+  CuAssertPtrNotNull(tc, kit);
+  CuAssertPtrNotNull(tc, mold);
+  CuAssertPtrNotNull(tc, crystal);
+  CuAssertPtrNotNull(tc, essence);
+  GET_OBJ_TYPE(crystal) = ITEM_CRYSTAL;
+  GET_OBJ_LEVEL(crystal) = 4;
+  crystal->affected[0].location = APPLY_STR;
+  crystal->affected[0].modifier = 1;
+  GET_OBJ_TYPE(essence) = ITEM_ESSENCE;
+  GET_OBJ_LEVEL(essence) = 5;
+  obj_to_obj(mold, kit);
+  obj_to_obj(crystal, kit);
+  obj_to_obj(essence, kit);
+  objects_before = craft_project_live_objects();
+
+  crafting_kit(ch, kit, create_cmd, "a steel breastplate");
+  mold_at_admission = OBJ_FLAGGED(mold, ITEM_MOLD) && mold->in_obj == kit;
+  steel_at_admission = GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL);
+  gold_at_admission = GET_GOLD(ch);
+  craft_project_advance_seconds(70);
+  mold_after = OBJ_FLAGGED(mold, ITEM_MOLD);
+  in_inventory = mold->carried_by == ch;
+  level_after = GET_OBJ_LEVEL(mold);
+  material_after = GET_OBJ_MATERIAL(mold);
+  str_after = mold->affected[0].location == APPLY_STR ? mold->affected[0].modifier : -1;
+  bonus_after = mold->affected[0].bonus_type;
+  enhancement_after = GET_OBJ_VAL(mold, 4);
+  masterwork_after =
+      mold->affected[3].location != 0 && mold->affected[3].bonus_type == BONUS_TYPE_INHERENT;
+  steel_after = GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL);
+  gold_after = GET_GOLD(ch);
+  exp_after = GET_CRAFT_SKILL_EXP(ch, ABILITY_CRAFT_ARMORSMITHING);
+  named = mold->short_description && !strcmp(mold->short_description, "a steel breastplate");
+  objects_after = craft_project_live_objects();
+
+  /* The editor's entry point runs the same operation on a wood mold from wilderness balances;
+   * it finds the kit by its special-procedure binding. */
+  obj_index[GET_OBJ_RNUM(kit)].func = crafting_kit;
+  wood_mold = craft_project_mold(MATERIAL_WOOD, 1);
+  CuAssertPtrNotNull(tc, wood_mold);
+  obj_to_obj(wood_mold, kit);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_ASH_WOOD) = 5;
+  do_craft(ch, "mold an ash wood cuirass", 0, 0);
+  craft_project_advance_seconds(70);
+  wood_material = GET_OBJ_MATERIAL(wood_mold);
+  ash_after = GET_CRAFT_MAT(ch, CRAFT_MAT_ASH_WOOD);
+  wood_in_inventory = wood_mold->carried_by == ch && !OBJ_FLAGGED(wood_mold, ITEM_MOLD);
+
+  obj_index[GET_OBJ_RNUM(kit)].func = NULL;
+  if (created_commands)
+    free_command_list();
+  domain_event_runtime_shutdown();
+  event_free_all();
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, runtime);
+  CuAssertTrue(tc, create_cmd >= 0);
+  CuAssertIntEquals(tc, 1, mold_at_admission);
+  CuAssertIntEquals(tc, 10, steel_at_admission);
+  CuAssertIntEquals(tc, 1000, gold_at_admission);
+  CuAssertIntEquals(tc, 0, mold_after);
+  CuAssertIntEquals(tc, 1, in_inventory);
+  CuAssertIntEquals(tc, 4, level_after);
+  CuAssertIntEquals(tc, MATERIAL_STEEL, material_after);
+  CuAssertIntEquals(tc, 1, str_after);
+  CuAssertIntEquals(tc, BONUS_TYPE_ENHANCEMENT, bonus_after);
+  CuAssertIntEquals(tc, 1, enhancement_after);
+  CuAssertIntEquals(tc, 1, masterwork_after);
+  CuAssertIntEquals(tc, 5, steel_after);
+  CuAssertIntEquals(tc, 1000 - 4 * 4 * 100 / 3, gold_after);
+  CuAssertTrue(tc, exp_after > 0);
+  CuAssertIntEquals(tc, 1, named);
+  /* The crystal and the essence were consumed. */
+  CuAssertIntEquals(tc, objects_before - 2, objects_after);
+  CuAssertIntEquals(tc, MATERIAL_ASH, wood_material);
+  CuAssertIntEquals(tc, 0, ash_after);
+  CuAssertIntEquals(tc, 1, wood_in_inventory);
+}
+
+/** Redesc changes nothing at admission or on cancellation, and applies its description, its
+ * gold, and its delivery exactly once at completion. */
+void Test_kit_utility_changes_nothing_until_completion(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct obj_data *kit, *item;
+  enum domain_event_status runtime;
+  struct primary_activity_snapshot snapshot;
+  int redesc_cmd;
+  bool created_commands = false;
+  int started = 0, unchanged_at_admission = 0, unchanged_after_cancel = 0, still_in_kit = 0;
+  int described = 0, gold_after = -1, delivered = 0, exp_after = -1;
+
+  craft_project_begin(&f);
+  craft_project_start_events();
+  runtime = domain_event_runtime_init();
+  if (complete_cmd_info == NULL)
+  {
+    created_commands = true;
+    create_command_list();
+  }
+  redesc_cmd = find_command("redesc");
+  GET_GOLD(ch) = 100;
+  kit = craft_project_kit(ch);
+  item = craft_project_reforgeable_dagger();
+  CuAssertPtrNotNull(tc, kit);
+  CuAssertPtrNotNull(tc, item);
+  GET_OBJ_LEVEL(item) = 1;
+  obj_to_obj(item, kit);
+
+  crafting_kit(ch, kit, redesc_cmd, "A plain steel blade, well kept.");
+  started = primary_activity_snapshot(ch, &snapshot);
+  unchanged_at_admission =
+      item->ex_description == NULL && GET_GOLD(ch) == 100 && item->in_obj == kit;
+  primary_activity_cancel(ch, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false);
+  craft_project_advance_seconds(40);
+  unchanged_after_cancel = item->ex_description == NULL && GET_GOLD(ch) == 100;
+  still_in_kit = item->in_obj == kit;
+
+  crafting_kit(ch, kit, redesc_cmd, "A plain steel blade, well kept.");
+  craft_project_advance_seconds(40);
+  described = item->ex_description != NULL && item->ex_description->description != NULL &&
+              strstr(item->ex_description->description, "well kept") != NULL;
+  gold_after = GET_GOLD(ch);
+  delivered = item->carried_by == ch;
+  exp_after = GET_CRAFT_SKILL_EXP(ch, ABILITY_CRAFT_WEAPONSMITHING);
+
+  if (created_commands)
+    free_command_list();
+  domain_event_runtime_shutdown();
+  event_free_all();
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, runtime);
+  CuAssertTrue(tc, redesc_cmd >= 0);
+  CuAssertIntEquals(tc, 1, started);
+  CuAssertIntEquals(tc, 1, unchanged_at_admission);
+  CuAssertIntEquals(tc, 1, unchanged_after_cancel);
+  CuAssertIntEquals(tc, 1, still_in_kit);
+  CuAssertIntEquals(tc, 1, described);
+  CuAssertIntEquals(tc, 90, gold_after);
+  CuAssertIntEquals(tc, 1, delivered);
+  /* Renaming is skill-less: no craft experience. */
+  CuAssertIntEquals(tc, 0, exp_after);
+}
+
+/** Both reforge front ends run one validation: without the forge neither admits, and while
+ * one crafting activity runs no other crafting, catalog, or brew work is admitted. */
+void Test_reforge_contexts_share_validation_and_refuse_overlap(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct obj_data *kit, *first, *second;
+  enum domain_event_status runtime;
+  struct primary_activity_snapshot snapshot;
+  int reforge_cmd;
+  bool created_commands = false;
+  int standalone_refused = 0, kit_refused = 0, standalone_started = 0, kit_overlap_refused = 0;
+  int catalog_overlap_refused = 0, brew_overlap_refused = 0;
+
+  craft_project_begin(&f);
+  craft_project_start_events();
+  runtime = domain_event_runtime_init();
+  if (complete_cmd_info == NULL)
+  {
+    created_commands = true;
+    create_command_list();
+  }
+  reforge_cmd = find_command("reforge");
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
+  kit = craft_project_kit(ch);
+  first = craft_project_reforgeable_dagger();
+  second = craft_project_reforgeable_dagger();
+  CuAssertPtrNotNull(tc, kit);
+  CuAssertPtrNotNull(tc, first);
+  CuAssertPtrNotNull(tc, second);
+  obj_to_char(first, ch);
+  obj_to_obj(second, kit);
+
+  /* No forge in the room: the same station rule refuses both. */
+  f.room.contents = NULL;
+  craft_project_reset_output(&f);
+  do_reforge_new(ch, "weapon khop", 0, 0);
+  standalone_refused =
+      craft_project_output_has(&f, "You need") && !primary_activity_snapshot(ch, &snapshot);
+  craft_project_reset_output(&f);
+  crafting_kit(ch, kit, reforge_cmd, "khop");
+  kit_refused =
+      craft_project_output_has(&f, "You need") && !primary_activity_snapshot(ch, &snapshot);
+  f.room.contents = &f.forge;
+
+  do_reforge_new(ch, "weapon khop", 0, 0);
+  standalone_started = primary_activity_snapshot(ch, &snapshot);
+  craft_project_reset_output(&f);
+  crafting_kit(ch, kit, reforge_cmd, "khop");
+  kit_overlap_refused = craft_project_output_has(&f, "already doing something");
+  craft_project_reset_output(&f);
+  do_craft_with_kits(ch, "nothing", 0, 0);
+  catalog_overlap_refused = craft_project_output_has(&f, "already busy") ||
+                            craft_project_output_has(&f, "What are you trying to craft");
+  craft_project_reset_output(&f);
+  do_brew(ch, "bless", 0, 0);
+  brew_overlap_refused = craft_project_output_has(&f, "already busy");
+  primary_activity_cancel(ch, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false);
+
+  if (created_commands)
+    free_command_list();
+  domain_event_runtime_shutdown();
+  event_free_all();
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, runtime);
+  CuAssertIntEquals(tc, 1, standalone_refused);
+  CuAssertIntEquals(tc, 1, kit_refused);
+  CuAssertIntEquals(tc, 1, standalone_started);
+  CuAssertIntEquals(tc, 1, kit_overlap_refused);
+  CuAssertIntEquals(tc, 1, catalog_overlap_refused);
+  CuAssertIntEquals(tc, 1, brew_overlap_refused);
+}
+
+/** A catalog recipe runs on the activity manager: success creates the item and pays craft
+ * experience once; a struggle retries in the same activity; a failure ends it with nothing. */
+void Test_catalog_craft_resolves_success_retry_and_failure(CuTest *tc)
+{
+  static const char *catalog = "NEW\nName: Plain Dagger\nId  : 11390\nFlag: 0\nVnum: 3299\n"
+                               "Time: 10\nAbil: 38 4\nMslf: You craft $p.\nMroo: $n crafts $p.\n"
+                               "End :\n$\n";
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct primary_activity_snapshot snapshot;
+  enum domain_event_status runtime;
+  FILE *file;
+  unsigned long seed, retry_seed = 0, failure_seed = 0;
+  int r, objects_before, success_objects = -1, success_exp = -1, retry_active = -1;
+  int retry_objects = -1, failure_active = -1, failure_objects = -1;
+
+  craft_project_begin(&f);
+  craft_project_start_events();
+  runtime = domain_event_runtime_init();
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
+  test_clear_crafts();
+  file = tmpfile();
+  CuAssertPtrNotNull(tc, file);
+  fputs(catalog, file);
+  rewind(file);
+  test_load_crafts_from(file);
+  fclose(file);
+  objects_before = craft_project_live_objects();
+
+  /* Rank 40 reads as 200 on the legacy scale: it beats any roll up to 40. */
+  SET_ABILITY(ch, ABILITY_CRAFT_WEAPONSMITHING, 40);
+  do_craft_with_kits(ch, "Plain Dagger", 0, 0);
+  CuAssertTrue(tc, primary_activity_snapshot(ch, &snapshot));
+  craft_project_advance_seconds(12);
+  success_objects = craft_project_live_objects() - objects_before;
+  success_exp = GET_CRAFT_SKILL_EXP(ch, ABILITY_CRAFT_WEAPONSMITHING);
+
+  /* Rank 4 (the threshold) reads as 20 against a roll of 0 to 40: 20 to 39 struggles and
+   * retries, 40 fails outright. */
+  SET_ABILITY(ch, ABILITY_CRAFT_WEAPONSMITHING, 4);
+  for (seed = 1; seed < 200000 && (!retry_seed || !failure_seed); seed++)
+  {
+    circle_srandom(seed);
+    r = rand_number(0, 40);
+    if (r >= 20 && r <= 39 && !retry_seed)
+      retry_seed = seed;
+    if (r == 40 && !failure_seed)
+      failure_seed = seed;
+  }
+  objects_before = craft_project_live_objects();
+  do_craft_with_kits(ch, "Plain Dagger", 0, 0);
+  circle_srandom(retry_seed);
+  craft_project_advance_seconds(11);
+  retry_active = primary_activity_snapshot(ch, &snapshot);
+  retry_objects = craft_project_live_objects() - objects_before;
+  primary_activity_cancel(ch, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false);
+  do_craft_with_kits(ch, "Plain Dagger", 0, 0);
+  circle_srandom(failure_seed);
+  craft_project_advance_seconds(11);
+  failure_active = primary_activity_snapshot(ch, &snapshot);
+  failure_objects = craft_project_live_objects() - objects_before;
+
+  test_clear_crafts();
+  domain_event_runtime_shutdown();
+  event_free_all();
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, runtime);
+  CuAssertTrue(tc, retry_seed && failure_seed);
+  CuAssertIntEquals(tc, 1, success_objects);
+  CuAssertTrue(tc, success_exp > 0);
+  CuAssertIntEquals(tc, 1, retry_active);
+  CuAssertIntEquals(tc, 0, retry_objects);
+  CuAssertIntEquals(tc, 0, failure_active);
+  CuAssertIntEquals(tc, 0, failure_objects);
 }
