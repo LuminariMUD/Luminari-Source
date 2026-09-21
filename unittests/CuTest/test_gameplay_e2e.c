@@ -13430,3 +13430,275 @@ void Test_wilderness_harvest_rewards_are_consumed_by_existing_crafting(CuTest *t
   CuAssertTrue(tc, consumed);
   CuAssertIntEquals(tc, 0, specials.saved.stored_material_count);
 }
+
+/** @brief Object nodes on the activity manager (consolidation Phase 3b): nothing is credited at
+ * admission; completion credits one balance unit or delivers an object, then spends the charge
+ * and awards the harvest ability; every cancellation and every refused reward leaves the charge
+ * and the experience alone; the last charge pays exactly once. */
+void Test_node_harvest_credits_at_completion_and_never_pays_for_cancelling(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0}, other_specials = {0};
+  struct descriptor_data descriptor = {0}, other_descriptor = {0};
+  struct primary_activity_snapshot snapshot;
+  struct obj_data protos[6];
+  struct index_data indexes[6];
+  struct index_data *saved_index = obj_index;
+  struct obj_data *saved_proto = obj_proto;
+  obj_rnum saved_top = top_of_objt;
+  struct obj_data *saved_objects = object_list;
+  struct char_data *saved_characters = character_list;
+  unsigned long saved_pulse = pulse, seed, balance_seed = 0, gem_seed = 0;
+  struct obj_data *node;
+  int i, roll, before_mining, result[12] = {0}, balance_total, saved_mining_nodes = mining_nodes;
+  const obj_vnum vnums[6] = {HARVESTING_NODE, STEEL_MATERIAL, BRONZE_MATERIAL,
+                             IRON_MATERIAL,   ONYX_MATERIAL,  OBSIDIAN_MATERIAL};
+  const int materials[6] = {MATERIAL_STEEL, MATERIAL_STEEL, MATERIAL_BRONZE,
+                            MATERIAL_IRON,  MATERIAL_ONYX,  MATERIAL_OBSIDIAN};
+
+#define NODE_BALANCE_TOTAL()                                                                       \
+  (GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_BRONZE) +                                             \
+   GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_IRON) +                                               \
+   GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_STEEL))
+#define NODE_ADVANCE(steps)                                                                        \
+  do                                                                                               \
+  {                                                                                                \
+    for (i = 0; i < (steps); i++)                                                                  \
+    {                                                                                              \
+      pulse += PULSE_VIOLENCE;                                                                     \
+      event_test_advance();                                                                        \
+    }                                                                                              \
+  } while (0)
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.victim), MOB_ISNPC);
+  fixture.actor.player_specials = &specials;
+  fixture.victim.player_specials = &other_specials;
+  fixture.actor.player.name = CuMutableString("node harvester");
+  fixture.victim.player.name = CuMutableString("node rival");
+  fixture.actor.desc = &descriptor;
+  fixture.victim.desc = &other_descriptor;
+  GET_LEVEL(&fixture.actor) = GET_LEVEL(&fixture.victim) = 10;
+  GET_POS(&fixture.actor) = GET_POS(&fixture.victim) = POS_STANDING;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &fixture.actor;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  other_descriptor.output = other_descriptor.small_outbuf;
+  other_descriptor.bufspace = SMALL_BUFSIZE - 1;
+  other_descriptor.character = &fixture.victim;
+  other_descriptor.pProtocol = ProtocolCreate();
+  other_descriptor.connected = CON_PLAYING;
+  character_list = &fixture.actor;
+  fixture.actor.next = &fixture.victim;
+  fixture.rooms[0].light = 1;
+
+  memset(protos, 0, sizeof(protos));
+  memset(indexes, 0, sizeof(indexes));
+  for (i = 0; i < 6; i++)
+  {
+    clear_object(&protos[i]);
+    protos[i].item_number = i;
+    indexes[i].vnum = vnums[i];
+    GET_OBJ_TYPE(&protos[i]) = i == 0 ? ITEM_OTHER : ITEM_MATERIAL;
+    GET_OBJ_MATERIAL(&protos[i]) = materials[i];
+    GET_OBJ_VAL(&protos[i], 0) = i == 0 ? 2 : 1;
+    if (i > 0)
+      SET_BIT_AR(GET_OBJ_WEAR(&protos[i]), ITEM_WEAR_TAKE);
+    protos[i].name = CuMutableString(i == 0 ? "vein node" : "material bar");
+    protos[i].short_description = CuMutableString(i == 0 ? "a dull vein" : "a material bar");
+    protos[i].description = CuMutableString("Something lies here.");
+  }
+  obj_index = indexes;
+  obj_proto = protos;
+  top_of_objt = 5;
+  object_list = NULL;
+
+  /* The drop roll is the first draw of completion: 96 or less is a balance, more a gem. */
+  for (seed = 1; seed < 10000 && (!balance_seed || !gem_seed); seed++)
+  {
+    circle_srandom(seed);
+    roll = dice(1, 100);
+    if (roll <= 96 && !balance_seed)
+      balance_seed = seed;
+    if (roll > 96 && !gem_seed)
+      gem_seed = seed;
+  }
+
+  event_free_all();
+  active_world_reset_for_test();
+  active_world_select_for_test(false);
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(false);
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(false);
+  event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER);
+  pulse = 200U;
+  event_init();
+  domain_event_runtime_init();
+
+  node = read_object(HARVESTING_NODE, VIRTUAL);
+  CuAssertPtrNotNull(tc, node);
+  obj_to_room(node, 0);
+
+  /* Nothing at admission, nothing after four steps, one balance unit after the fifth. */
+  do_harvest(&fixture.actor, "vein", 0, 0);
+  result[0] = primary_activity_snapshot(&fixture.actor, &snapshot) && NODE_BALANCE_TOTAL() == 0 &&
+              GET_OBJ_VAL(node, 0) == 2 &&
+              GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_MINING) == 0;
+  NODE_ADVANCE(4);
+  result[0] = result[0] && primary_activity_snapshot(&fixture.actor, &snapshot) &&
+              NODE_BALANCE_TOTAL() == 0 && GET_OBJ_VAL(node, 0) == 2;
+  circle_srandom(balance_seed);
+  NODE_ADVANCE(1);
+  result[1] = !primary_activity_snapshot(&fixture.actor, &snapshot) && NODE_BALANCE_TOTAL() == 1 &&
+              GET_OBJ_VAL(node, 0) == 1 && fixture.actor.carrying == NULL &&
+              GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_MINING) > 0;
+  reset_harvest_fixture_output(&descriptor, NULL);
+
+  /* A gem arrives as an object and spends a charge too. */
+  GET_OBJ_VAL(node, 0) = 2;
+  before_mining = GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_MINING);
+  do_harvest(&fixture.actor, "vein", 0, 0);
+  circle_srandom(gem_seed);
+  NODE_ADVANCE(5);
+  result[2] = fixture.actor.carrying != NULL && fixture.actor.carrying->next_content == NULL &&
+              NODE_BALANCE_TOTAL() == 1 && GET_OBJ_VAL(node, 0) == 1 &&
+              GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_MINING) > before_mining;
+  if (fixture.actor.carrying)
+    extract_obj(fixture.actor.carrying);
+  reset_harvest_fixture_output(&descriptor, NULL);
+
+  /* Movement, combat, and the node leaving the room cancel without any reward. */
+  GET_OBJ_VAL(node, 0) = 2;
+  before_mining = GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_MINING);
+  do_harvest(&fixture.actor, "vein", 0, 0);
+  result[3] = primary_activity_snapshot(&fixture.actor, &snapshot);
+  char_from_room(&fixture.actor);
+  char_to_room_cause(&fixture.actor, 1, NULL, DOMAIN_RELOCATION_WALK, NORTH);
+  circle_srandom(balance_seed);
+  NODE_ADVANCE(5);
+  result[3] = result[3] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+              NODE_BALANCE_TOTAL() == 1 && GET_OBJ_VAL(node, 0) == 2;
+  char_from_room(&fixture.actor);
+  char_to_room_cause(&fixture.actor, 0, NULL, DOMAIN_RELOCATION_WALK, SOUTH);
+  do_harvest(&fixture.actor, "vein", 0, 0);
+  result[4] = primary_activity_snapshot(&fixture.actor, &snapshot);
+  domain_event_runtime_combat_state_changed(&fixture.actor, &fixture.victim, true);
+  circle_srandom(balance_seed);
+  NODE_ADVANCE(5);
+  result[4] = result[4] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+              NODE_BALANCE_TOTAL() == 1 && GET_OBJ_VAL(node, 0) == 2;
+  FIGHTING(&fixture.actor) = NULL;
+  do_harvest(&fixture.actor, "vein", 0, 0);
+  result[5] = primary_activity_snapshot(&fixture.actor, &snapshot);
+  obj_from_room(node);
+  extract_obj(node);
+  circle_srandom(balance_seed);
+  NODE_ADVANCE(5);
+  result[5] = result[5] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+              NODE_BALANCE_TOTAL() == 1 &&
+              GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_MINING) == before_mining;
+  reset_harvest_fixture_output(&descriptor, NULL);
+  node = read_object(HARVESTING_NODE, VIRTUAL);
+  CuAssertPtrNotNull(tc, node);
+  obj_to_room(node, 0);
+
+  /* A full balance or a full inventory refuses the reward and keeps the charge. */
+  GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_BRONZE) = INT_MAX;
+  GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_IRON) = INT_MAX;
+  GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_STEEL) = INT_MAX;
+  do_harvest(&fixture.actor, "vein", 0, 0);
+  circle_srandom(balance_seed);
+  NODE_ADVANCE(5);
+  result[6] = GET_OBJ_VAL(node, 0) == 2 && strstr(descriptor.output, "cannot hold") != NULL &&
+              GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_MINING) == before_mining;
+  GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_BRONZE) = 0;
+  GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_IRON) = 0;
+  GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_STEEL) = 0;
+  reset_harvest_fixture_output(&descriptor, NULL);
+  do_harvest(&fixture.actor, "vein", 0, 0);
+  IS_CARRYING_N(&fixture.actor) = CAN_CARRY_N(&fixture.actor);
+  circle_srandom(gem_seed);
+  NODE_ADVANCE(5);
+  result[7] = GET_OBJ_VAL(node, 0) == 2 && fixture.actor.carrying == NULL &&
+              strstr(descriptor.output, "must drop") != NULL;
+  IS_CARRYING_N(&fixture.actor) = 0;
+  reset_harvest_fixture_output(&descriptor, NULL);
+
+  /* Two harvesters on the last charge: exactly one reward, the node gone, the counter down one. */
+  GET_OBJ_VAL(node, 0) = 1;
+  mining_nodes = 5;
+  do_harvest(&fixture.actor, "vein", 0, 0);
+  do_harvest(&fixture.victim, "vein", 0, 0);
+  result[8] = primary_activity_snapshot(&fixture.actor, &snapshot) &&
+              primary_activity_snapshot(&fixture.victim, &snapshot);
+  circle_srandom(balance_seed);
+  NODE_ADVANCE(5);
+  balance_total = NODE_BALANCE_TOTAL() + GET_CRAFT_MAT((&fixture.victim), CRAFT_MAT_BRONZE) +
+                  GET_CRAFT_MAT((&fixture.victim), CRAFT_MAT_IRON) +
+                  GET_CRAFT_MAT((&fixture.victim), CRAFT_MAT_STEEL) +
+                  (fixture.actor.carrying != NULL) + (fixture.victim.carrying != NULL);
+  result[8] = result[8] && balance_total == 1 && fixture.rooms[0].contents == NULL &&
+              mining_nodes == 4 && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+              !primary_activity_snapshot(&fixture.victim, &snapshot);
+
+  /* A depleted node refuses admission. */
+  node = read_object(HARVESTING_NODE, VIRTUAL);
+  CuAssertPtrNotNull(tc, node);
+  GET_OBJ_VAL(node, 0) = 0;
+  obj_to_room(node, 0);
+  reset_harvest_fixture_output(&descriptor, NULL);
+  do_harvest(&fixture.actor, "vein", 0, 0);
+  result[9] = !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+              strstr(descriptor.output, "depleted") != NULL;
+  obj_from_room(node);
+  extract_obj(node);
+
+  domain_event_runtime_shutdown();
+  event_free_all();
+  active_world_reset_for_test();
+  character_periodic_reset_for_test();
+  point_update_periodic_reset_for_test();
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  while (fixture.actor.carrying)
+    extract_obj(fixture.actor.carrying);
+  while (fixture.victim.carrying)
+    extract_obj(fixture.victim.carrying);
+  fixture.actor.desc = NULL;
+  fixture.victim.desc = NULL;
+  fixture.actor.next = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  ProtocolDestroy(other_descriptor.pProtocol);
+  if (descriptor.large_outbuf)
+  {
+    free(descriptor.large_outbuf->text);
+    free(descriptor.large_outbuf);
+  }
+  if (other_descriptor.large_outbuf)
+  {
+    free(other_descriptor.large_outbuf->text);
+    free(other_descriptor.large_outbuf);
+  }
+  character_list = saved_characters;
+  object_list = saved_objects;
+  obj_index = saved_index;
+  obj_proto = saved_proto;
+  top_of_objt = saved_top;
+  pulse = saved_pulse;
+  mining_nodes = saved_mining_nodes;
+  end_gameplay_fixture(&fixture);
+#undef NODE_BALANCE_TOTAL
+#undef NODE_ADVANCE
+
+  CuAssertTrue(tc, balance_seed && gem_seed);
+  for (i = 0; i < 10; i++)
+  {
+    char message[64];
+    snprintf(message, sizeof(message), "Node harvest scenario %d failed", i);
+    CuAssert(tc, message, result[i]);
+  }
+}

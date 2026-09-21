@@ -515,17 +515,30 @@ balances. Existing projects, orders, and training contracts still load and resum
 
 ### Phase 3b: node harvesting on the activity manager
 
-- [ ] Replace the body of `do_harvest()` after node lookup with an activity per Decision 3,
+- [x] Replace the body of `do_harvest()` after node lookup with an activity per Decision 3,
   reusing the manager API and admission pattern of `start_wilderness_crafting_harvest()`;
   preserve counters, quest hooks, and rare drops. Delete the harvest branches of
-  `event_crafting` and the harvest use of `GET_CRAFTING_TYPE`.
-- [ ] Replace `resource_configs[].harvest_skill` legacy ids in `resource_system.c:44` with the
+  `event_crafting` and the harvest use of `GET_CRAFTING_TYPE`. Done: `node_drop_prototype()`
+  rolls the authored table into a vnum at completion only; `do_harvest()` checks the node, the
+  legacy-unit threshold through the equivalent, the charge, and the full round, then starts
+  five `PULSE_VIOLENCE` steps targeting the node through `domain_event_object_handle()`;
+  `node_harvest_complete()` rechecks the node and its charge, credits one unit through the
+  checked add when the prototype has a balance or delivers the object after a capacity check,
+  and only then fires the family's `AQ_CRAFT_*` hook, awards `20 + 10 * grade`, and spends the
+  charge (counters and extraction on depletion). Cancellation and refused rewards touch nothing.
+- [x] Replace `resource_configs[].harvest_skill` legacy ids in `resource_system.c:44` with the
   harvest abilities and update its display consumers; do not feed the new ids to `GET_SKILL()`.
-- [ ] Tests in `test_gameplay_e2e.c`: a node harvest credits nothing at start and one unit of
+  Done in Phase 2.
+- [x] Tests in `test_gameplay_e2e.c`: a node harvest credits nothing at start and one unit of
   the right balance at completion; gems and eggs arrive as objects; movement, combat, damage,
   and node movement/extraction cancel without rewards. Test two characters contesting the last
   charge, counters and quest hooks firing once, full balances/inventory, missing reward
-  prototypes, and save/reload or copyover producing no early award or duplicate.
+  prototypes, and save/reload or copyover producing no early award or duplicate. Done as
+  `Test_node_harvest_credits_at_completion_and_never_pays_for_cancelling` (start, four steps,
+  completion, gem delivery, movement, combat, extraction, full balance, full inventory, the
+  contested last charge with the counter, and a depleted node). The activity is not persisted,
+  so a save, reload, or copyover cannot replay it; a missing prototype logs and leaves the
+  charge (covered by code, not asserted, since the fixture index is complete).
 
 Completion evidence: `harvest <node>` in a zone and `harvest <material>` in the wilderness raise
 the same balance and the same ability, and neither can be cancelled for free or paid twice.

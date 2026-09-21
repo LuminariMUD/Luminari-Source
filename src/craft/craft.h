@@ -37,6 +37,9 @@
 #define WEAPON_RESIZE_INC 2
 /* the maximun harvesting-nodes allowed is number of rooms divided by this value */
 #define NODE_CAP_FACTOR 17
+/* Node harvest: five steps of PULSE_VIOLENCE (30 seconds) per unit, credited at completion. */
+#define NODE_HARVEST_STEPS 5U
+extern int mining_nodes, farming_nodes, hunting_nodes, foresting_nodes;
 // end DEFINES //
 
 #define CREATE_MODE_CREATE 1
