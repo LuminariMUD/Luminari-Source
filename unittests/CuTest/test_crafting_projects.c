@@ -1403,9 +1403,11 @@ void Test_craft_unstored_bundle_keeps_its_identity_through_an_object_file(CuTest
 
   file = tmpfile();
   CuAssertPtrNotNull(tc, file);
+  if (file == NULL)
+    return;
   wrote = objsave_save_obj_record(bundle, ch, file, 0);
   extract_obj(bundle);
-  rewind(file);
+  CuAssertIntEquals(tc, 0, fseek(file, 0, SEEK_SET));
   records = objsave_parse_objects(file);
   fclose(file);
   for (record = records; record != NULL; record = record->next)
@@ -1588,8 +1590,10 @@ void Test_catalog_records_convert_once_and_round_trip(CuTest *tc)
   test_clear_crafts();
   file = tmpfile();
   CuAssertPtrNotNull(tc, file);
+  if (file == NULL)
+    return;
   fputs(legacy_file, file);
-  rewind(file);
+  CuAssertIntEquals(tc, 0, fseek(file, 0, SEEK_SET));
   test_load_crafts_from(file);
   fclose(file);
 
@@ -1621,11 +1625,13 @@ void Test_catalog_records_convert_once_and_round_trip(CuTest *tc)
   /* Write the catalog back and load that text again: no second conversion. */
   file = tmpfile();
   CuAssertPtrNotNull(tc, file);
+  if (file == NULL)
+    return;
   test_save_crafts_to(file);
-  rewind(file);
+  CuAssertIntEquals(tc, 0, fseek(file, 0, SEEK_SET));
   saved_length = fread(saved, 1, sizeof(saved) - 1, file);
   saved[saved_length] = '\0';
-  rewind(file);
+  CuAssertIntEquals(tc, 0, fseek(file, 0, SEEK_SET));
   test_clear_crafts();
   test_load_crafts_from(file);
   fclose(file);
@@ -1691,8 +1697,10 @@ void Test_catalog_material_requirements_spend_shared_balances(CuTest *tc)
   test_clear_crafts();
   file = tmpfile();
   CuAssertPtrNotNull(tc, file);
+  if (file == NULL)
+    return;
   fputs(catalog, file);
-  rewind(file);
+  CuAssertIntEquals(tc, 0, fseek(file, 0, SEEK_SET));
   test_load_crafts_from(file);
   fclose(file);
   blade = get_craft_from_id(11380);
@@ -2092,8 +2100,10 @@ void Test_catalog_craft_resolves_success_retry_and_failure(CuTest *tc)
   test_clear_crafts();
   file = tmpfile();
   CuAssertPtrNotNull(tc, file);
+  if (file == NULL)
+    return;
   fputs(catalog, file);
-  rewind(file);
+  CuAssertIntEquals(tc, 0, fseek(file, 0, SEEK_SET));
   test_load_crafts_from(file);
   fclose(file);
   objects_before = craft_project_live_objects();

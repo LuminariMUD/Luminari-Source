@@ -1456,10 +1456,14 @@ void Test_craft_legacy_skills_convert_once_on_load(CuTest *tc)
 
     get_filename(filename, sizeof(filename), PLR_FILE, files.name);
     file = fopen(filename, "a");
-    for (i = 0; i < TALENT_MAX; i++)
-      fprintf(file, " %d", i == TALENT_RAPID_MINING ? 1 : 0);
-    fprintf(file, "\nCrTr: %d 2500 1800000000\n", ABILITY_HARVEST_FORESTRY);
-    fclose(file);
+    CuAssertPtrNotNull(tc, file);
+    if (file != NULL)
+    {
+      for (i = 0; i < TALENT_MAX; i++)
+        fprintf(file, " %d", i == TALENT_RAPID_MINING ? 1 : 0);
+      fprintf(file, "\nCrTr: %d 2500 1800000000\n", ABILITY_HARVEST_FORESTRY);
+      fclose(file);
+    }
   }
 
   result = load_char(files.name, loaded);
@@ -2016,11 +2020,11 @@ void Test_device_events_block_ordinary_commands(CuTest *tc)
   event_free_all();
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   event_init();
-  attach_mud_event(new_mud_event(eDEVICE_CREATION, fixture.player, NULL), 300 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eDEVICE_CREATION, fixture.player, NULL), 300L * PASSES_PER_SEC);
   craft_trainer_command(&fixture, "inventory", seen, sizeof(seen));
   creation_blocks = strstr(seen, "devising your creation") != NULL;
   event_cancel_specific(fixture.player, eDEVICE_CREATION);
-  attach_mud_event(new_mud_event(eDEVICE_REPAIR, fixture.player, NULL), 300 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eDEVICE_REPAIR, fixture.player, NULL), 300L * PASSES_PER_SEC);
   craft_trainer_command(&fixture, "inventory", seen, sizeof(seen));
   repair_blocks = strstr(seen, "repairing your device") != NULL;
   craft_trainer_command(&fixture, "score", seen, sizeof(seen));
