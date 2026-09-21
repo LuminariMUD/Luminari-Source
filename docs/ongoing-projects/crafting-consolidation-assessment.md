@@ -498,10 +498,20 @@ balances. Existing projects, orders, and training contracts still load and resum
 
 ### Phase 3a: wilderness targeted gathering
 
-- [ ] Implement `harvesting-system.md` steps 1 to 7 against Phase 1's grade table and checked
+- [x] Implement `harvesting-system.md` steps 1 to 7 against Phase 1's grade table and checked
   balances, with Decision 4's integration qualifications. Its gameplay tests, help, and
   acceptance criteria apply. Preserve Decision 10's old-holdings conversion mapping before
-  replacing the live reward ladder.
+  replacing the live reward ladder. Done: `wilderness_pool_material()` names the sourced set;
+  `harvest.c` carries the pool per sector, the richness/skill/tool tier, the grade-based
+  difficulty, name parsing, the listing, and one `wilderness_harvest_command()` behind
+  `harvest`, `gather`, and `mine`; a named material resolves through the checked credit,
+  awards `20 + 10 * grade`, and a category name lists its pool. `wilderness_harvest_material()`
+  stays as the frozen compatibility reader for Decision 10. `wilderness_crafting_bridge.c/.h`
+  are deleted (they were in neither manifest). Tests: `test_wilderness_material_pool.c` (new,
+  in both manifests) and the rewritten command scenarios in `test_gameplay_e2e.c`. The help and
+  `WILDERNESS_HARVESTING.md` updates (its step 6) are folded into Phase 6 with the other help
+  work. The terrain gate is unchanged, so a forest also lists cloth (the plan's "five woods
+  and five hides" understated it).
 
 ### Phase 3b: node harvesting on the activity manager
 

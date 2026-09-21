@@ -245,6 +245,7 @@ void assign_harvest_materials_to_room(room_rnum room);
 int determine_harvest_material_for_room(room_rnum room);
 int determine_number_of_harvest_units_for_room(void);
 int determine_material_type_by_group_and_grade(int group, int grade);
+bool wilderness_pool_material(int material);
 int determine_random_material_group_by_sector_type(room_rnum sector);
 bool is_valid_craft_ability(int ability);
 bool is_valid_craft_feat(int feat);
