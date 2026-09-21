@@ -1899,3 +1899,137 @@ void Test_craft_wilderness_holdings_convert_once(CuTest *tc)
   CuAssertIntEquals(tc, 10, unmarked_mining);
   CuAssertIntEquals(tc, 2, unmarked_hemp);
 }
+
+/** Entry publishes a migration that ran at load and delivers its settlement note once. When the
+ * player file cannot be replaced, the flag stays set for the next save while the note is still
+ * spent; characters without player specials are left alone. */
+void Test_craft_migration_publishes_at_entry(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *first = new_char(), *again = new_char(), *blocked = new_char();
+  char extra[256], filename[MAX_FILEPATH];
+  int first_unsaved, first_marker, again_marker, again_unsaved, blocked_unsaved;
+  bool first_note, first_published, first_note_spent, again_note, blocked_published;
+  bool blocked_note_spent, npc_published;
+
+  craft_player_files_enter(tc, &files, "crpub", 4314);
+  snprintf(extra, sizeof(extra),
+           "Cvnm: 30084\nCmnm: 3\nCqps: 1\nCexp: 200\nCgld: 100\nCdsc: a sword\nCmat: %d\n"
+           "CrMg: 1\n",
+           MATERIAL_STEEL);
+  craft_write_legacy_pfile(tc, &files, 4314, "", extra);
+  CuAssertIntEquals(tc, 0, load_char(files.name, first));
+  first_unsaved = first->player_specials->craft_migration_unsaved;
+  first_marker = GET_CRAFT_MIGRATION(first);
+  first_note = first->player_specials->craft_settlement_note != NULL;
+  GET_PFILEPOS(first) = 0;
+  first_published = craft_publish_migration_on_entry(first);
+  first_note_spent = first->player_specials->craft_settlement_note == NULL;
+  CuAssertIntEquals(tc, 0, load_char(files.name, again));
+  again_marker = GET_CRAFT_MIGRATION(again);
+  again_unsaved = again->player_specials->craft_migration_unsaved;
+  again_note = again->player_specials->craft_settlement_note != NULL;
+
+  /* The player file replaced by a directory: the temporary file is discarded, nothing moves. */
+  craft_write_legacy_pfile(tc, &files, 4314, "", extra);
+  CuAssertIntEquals(tc, 0, load_char(files.name, blocked));
+  GET_PFILEPOS(blocked) = 0;
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, files.name));
+  CuAssertIntEquals(tc, 0, unlink(filename));
+  CuAssertIntEquals(tc, 0, mkdir(filename, 0700));
+  blocked_published = craft_publish_migration_on_entry(blocked);
+  blocked_unsaved = blocked->player_specials->craft_migration_unsaved;
+  blocked_note_spent = blocked->player_specials->craft_settlement_note == NULL;
+  CuAssertIntEquals(tc, 0, rmdir(filename));
+
+  SET_BIT_AR(MOB_FLAGS(first), MOB_ISNPC);
+  npc_published = craft_publish_migration_on_entry(first) && craft_publish_migration_on_entry(NULL);
+  REMOVE_BIT_AR(MOB_FLAGS(first), MOB_ISNPC);
+
+  free_char(first);
+  free_char(again);
+  free_char(blocked);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertTrue(tc, first_unsaved);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_CURRENT, first_marker);
+  CuAssertTrue(tc, first_note);
+  CuAssertTrue(tc, first_published);
+  CuAssertTrue(tc, first_note_spent);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_CURRENT, again_marker);
+  CuAssertTrue(tc, !again_unsaved);
+  CuAssertTrue(tc, !again_note);
+  CuAssertTrue(tc, !blocked_published);
+  CuAssertTrue(tc, blocked_unsaved);
+  CuAssertTrue(tc, blocked_note_spent);
+  CuAssertTrue(tc, npc_published);
+}
+
+/** A resize interrupted by logout refunds its material at load; a refused credit keeps the
+ * allocation for recovery in game. */
+void Test_craft_resize_interrupted_by_logout_refunds_at_load(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *loaded = new_char(), *full = new_char();
+  char extra[512];
+  int loaded_steel, loaded_size, full_size, full_num, full_steel, offset, material;
+
+  craft_player_files_enter(tc, &files, "crrsz", 4315);
+  snprintf(extra, sizeof(extra), "CrMg: %d\nRSSz: 2\nRSMT: %d\nRSMN: 3\n", CRAFT_MIGRATION_CURRENT,
+           CRAFT_MAT_STEEL);
+  craft_write_legacy_pfile(tc, &files, 4315, "", extra);
+  CuAssertIntEquals(tc, 0, load_char(files.name, loaded));
+  loaded_steel = GET_CRAFT_MAT(loaded, CRAFT_MAT_STEEL);
+  loaded_size = GET_CRAFT(loaded).new_size;
+
+  offset = snprintf(extra, sizeof(extra), "CrMg: %d\nRSSz: 2\nRSMT: %d\nRSMN: 3\nCfMt:\n",
+                    CRAFT_MIGRATION_CURRENT, CRAFT_MAT_STEEL);
+  for (material = 0; material < NUM_CRAFT_MATS; material++)
+    offset += snprintf(extra + offset, sizeof(extra) - (size_t)offset, "%d\n",
+                       material == CRAFT_MAT_STEEL ? INT_MAX : 0);
+  snprintf(extra + offset, sizeof(extra) - (size_t)offset, "-1\n");
+  craft_write_legacy_pfile(tc, &files, 4315, "", extra);
+  CuAssertIntEquals(tc, 0, load_char(files.name, full));
+  full_size = GET_CRAFT(full).new_size;
+  full_num = GET_CRAFT(full).resize_mat_num;
+  full_steel = GET_CRAFT_MAT(full, CRAFT_MAT_STEEL);
+
+  free_char(loaded);
+  free_char(full);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertIntEquals(tc, 3, loaded_steel);
+  CuAssertIntEquals(tc, 0, loaded_size);
+  CuAssertIntEquals(tc, 2, full_size);
+  CuAssertIntEquals(tc, 3, full_num);
+  CuAssertIntEquals(tc, INT_MAX, full_steel);
+}
+
+/** Device work still blocks ordinary commands while the crafting blockers are gone. */
+void Test_device_events_block_ordinary_commands(CuTest *tc)
+{
+  struct craft_trainer_fixture fixture;
+  char seen[MAX_STRING_LENGTH];
+  bool creation_blocks, repair_blocks, score_allowed;
+
+  craft_trainer_begin(tc, &fixture, "crdev", 4317);
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  attach_mud_event(new_mud_event(eDEVICE_CREATION, fixture.player, NULL), 300 * PASSES_PER_SEC);
+  craft_trainer_command(&fixture, "inventory", seen, sizeof(seen));
+  creation_blocks = strstr(seen, "devising your creation") != NULL;
+  event_cancel_specific(fixture.player, eDEVICE_CREATION);
+  attach_mud_event(new_mud_event(eDEVICE_REPAIR, fixture.player, NULL), 300 * PASSES_PER_SEC);
+  craft_trainer_command(&fixture, "inventory", seen, sizeof(seen));
+  repair_blocks = strstr(seen, "repairing your device") != NULL;
+  craft_trainer_command(&fixture, "score", seen, sizeof(seen));
+  score_allowed = strstr(seen, "repairing your device") == NULL;
+  event_cancel_specific(fixture.player, eDEVICE_REPAIR);
+  event_free_all();
+  CuAssertIntEquals(tc, 0, craft_trainer_end(&fixture));
+
+  CuAssertTrue(tc, creation_blocks);
+  CuAssertTrue(tc, repair_blocks);
+  CuAssertTrue(tc, score_allowed);
+}

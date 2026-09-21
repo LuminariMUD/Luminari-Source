@@ -7733,19 +7733,7 @@ int enter_player_game(struct descriptor_data *d)
   load_char_pets(d->character);
   PERF_PROF_EXIT(pr_login_load_pets_);
 
-  /* A crafting migration that ran at load is published with its marker before play. A failed
-   * save leaves the old file intact and the flag set, so the next save retries; reloading from
-   * the old file simply converts again from the same inputs. */
-  if (d->character->player_specials && d->character->player_specials->craft_migration_unsaved &&
-      !save_char_checked(d->character, 0))
-    log("SYSERR: Crafting migration for %s could not be published at entry; will retry on save.",
-        GET_NAME(d->character));
-  if (d->character->player_specials && d->character->player_specials->craft_settlement_note)
-  {
-    send_to_char(d->character, "%s", d->character->player_specials->craft_settlement_note);
-    free(d->character->player_specials->craft_settlement_note);
-    d->character->player_specials->craft_settlement_note = NULL;
-  }
+  craft_publish_migration_on_entry(d->character);
 
   // /* Save the character and their object file */
   // save_char(d->character, 0);
