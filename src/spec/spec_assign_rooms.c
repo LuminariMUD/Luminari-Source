@@ -37,9 +37,6 @@ void assign_rooms(void)
   room_rnum i;
 
 
-  /* crafting quest (autocraft) */
-  ASSIGNROOM(370, crafting_quest);
-
   /* wizard library - research wizard spells for spellbook */
   ASSIGNROOM(5905, wizard_library); /* wizard training mansion */
 

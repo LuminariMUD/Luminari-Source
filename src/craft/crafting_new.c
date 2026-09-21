@@ -3830,6 +3830,87 @@ bool craft_migrate_legacy_skills(struct char_data *ch)
   return true;
 }
 
+/* CrMg stage 2: settle a room-370 supply order (consolidation Decision 8). A completed,
+ * unclaimed order pays its saved gold, quest points, and experience once through the award
+ * helpers; an unfinished order refunds the material units its completed installments consumed
+ * ((AUTOCQUEST_MAKENUM - remaining) * SUPPLYORDER_MATS) into the balance of its material. A
+ * settlement the destination cannot accept keeps its record and does not advance the stage.
+ * Returns true when the stage advanced. */
+bool craft_settle_legacy_supply_order(struct char_data *ch)
+{
+  char note[MAX_INPUT_LENGTH];
+  int remaining, units, material;
+
+  if (!ch || IS_NPC(ch) || !ch->player_specials ||
+      GET_CRAFT_MIGRATION(ch) >= CRAFT_MIGRATION_ORDERS)
+    return false;
+  if (GET_CRAFT_MIGRATION(ch) < CRAFT_MIGRATION_SKILLS)
+    return false; /* stages run in order */
+  if (GET_AUTOCQUEST_VNUM(ch) == 0)
+  {
+    GET_CRAFT_MIGRATION(ch) = CRAFT_MIGRATION_ORDERS;
+    return true;
+  }
+  remaining = GET_AUTOCQUEST_MAKENUM(ch);
+  if (remaining <= 0)
+  {
+    /* Completed and unclaimed: the saved rewards, once, if they fit. */
+    if ((long)GET_AUTOCQUEST_GOLD(ch) > award_capacity(ch, AWARD_GOLD))
+    {
+      log("CRAFT: %s: legacy supply order reward of %u gold exceeds capacity; kept for review",
+          GET_NAME(ch), GET_AUTOCQUEST_GOLD(ch));
+      return false;
+    }
+    award_quest_points(ch, GET_AUTOCQUEST_QP(ch));
+    award_gold(ch, (int)GET_AUTOCQUEST_GOLD(ch));
+    award_points(ch, AWARD_EXPERIENCE, (long)GET_AUTOCQUEST_EXP(ch));
+    snprintf(note, sizeof(note),
+             "Your completed supply order for %s has been settled: %d reputation points, %u "
+             "gold, and %u experience points.\r\n",
+             GET_AUTOCQUEST_DESC(ch) ? GET_AUTOCQUEST_DESC(ch) : "the guild", GET_AUTOCQUEST_QP(ch),
+             GET_AUTOCQUEST_GOLD(ch), GET_AUTOCQUEST_EXP(ch));
+    log("CRAFT: %s: settled completed legacy supply order (%u gold, %d qp, %u exp)", GET_NAME(ch),
+        GET_AUTOCQUEST_GOLD(ch), GET_AUTOCQUEST_QP(ch), GET_AUTOCQUEST_EXP(ch));
+  }
+  else
+  {
+    units = (AUTOCQUEST_MAKENUM - MIN(AUTOCQUEST_MAKENUM, remaining)) * SUPPLYORDER_MATS;
+    material = obj_material_to_craft_material(GET_AUTOCQUEST_MATERIAL(ch));
+    if (units > 0 && material == CRAFT_MAT_NONE)
+    {
+      log("CRAFT: %s: legacy supply order material %d has no balance; kept for review",
+          GET_NAME(ch), GET_AUTOCQUEST_MATERIAL(ch));
+      return false;
+    }
+    if (units > 0 && !craft_balance_add(ch, material, units))
+    {
+      log("CRAFT: %s: legacy supply order refund of %d %s does not fit; kept for review",
+          GET_NAME(ch), units, crafting_materials[material]);
+      return false;
+    }
+    if (units > 0)
+      snprintf(note, sizeof(note),
+               "The old supply-order office has closed. Your unfinished order for %s is "
+               "cancelled and the %d units of %s you had worked into it are back in your "
+               "crafting materials. New orders come from 'supplyorder'.\r\n",
+               GET_AUTOCQUEST_DESC(ch) ? GET_AUTOCQUEST_DESC(ch) : "the guild", units,
+               crafting_materials[material]);
+    else
+      snprintf(note, sizeof(note),
+               "The old supply-order office has closed. Your order for %s is cancelled; "
+               "new orders come from 'supplyorder'.\r\n",
+               GET_AUTOCQUEST_DESC(ch) ? GET_AUTOCQUEST_DESC(ch) : "the guild");
+    log("CRAFT: %s: cancelled unfinished legacy supply order, refunded %d units", GET_NAME(ch),
+        units);
+  }
+  reset_acraft(ch);
+  if (ch->player_specials->craft_settlement_note)
+    free(ch->player_specials->craft_settlement_note);
+  ch->player_specials->craft_settlement_note = strdup(note);
+  GET_CRAFT_MIGRATION(ch) = CRAFT_MIGRATION_ORDERS;
+  return true;
+}
+
 /* The legacy kit timers ran base_ticks six-second ticks minus a fast-crafter bonus. Fast
  * crafter is now the rapid talents, which are measured in seconds; convert and clamp to at
  * least one tick before the caller divides back into ticks. */
@@ -4812,6 +4893,13 @@ void newcraft_create(struct char_data *ch, const char *argument)
   else if (is_abbrev(arg1, "create"))
   {
     newcraft_create(ch, arg2);
+    return;
+  }
+  else if (!str_cmp(arg1, "mold"))
+  {
+    /* Authored molds are made through a carried crafting kit; the kit's create command and
+     * this entry point plan and run the same operation. */
+    craft_mold_command(ch, arg2);
     return;
   }
   else if (is_abbrev(arg1, "catalog"))
@@ -11216,7 +11304,7 @@ int material_type_to_crafting_skill(int material)
 
 /* Helper: case-insensitive substring replace (replace all occurrences).
  * Returns newly allocated string; caller should free original before assigning. */
-static char *replace_substring_ci(const char *src, const char *find, const char *repl)
+char *replace_substring_ci(const char *src, const char *find, const char *repl)
 {
   size_t src_len, find_len, repl_len;
   size_t count = 0, out_len, o = 0, i;
@@ -11291,29 +11379,72 @@ void do_reforge_new(struct char_data *ch, const char *argument, int cmd, int sub
     impl_do_reforge_new_(ch, arg_buf, cmd, subcmd);
   }
 }
-static void impl_do_reforge_new_(struct char_data *ch, char *argument,
-                                 int cmd __attribute__((unused)),
-                                 int subcmd __attribute__((unused)))
+/* The reforge command: the same validation, execution, and timer as the crafting kit's
+ * reforge, on an item selected from the inventory by name and its reforgeable flag. */
+struct reforge_context
 {
-  struct obj_data *obj = NULL;
-  struct obj_data *i = NULL;
+  int index;
+  int cost;
+  char target[MAX_INPUT_LENGTH];
+};
+
+static bool reforge_activity_recheck(struct char_data *ch, void *target, void *context)
+{
+  struct reforge_context *reforge = context;
+  struct obj_data *obj = target;
+  int index, cost;
+
+  return ch && obj && reforge && obj->carried_by == ch && !FIGHTING(ch) &&
+         GET_POS(ch) >= POS_STANDING &&
+         reforge_plan(ch, obj, reforge->target, &index, &cost, false);
+}
+
+static void reforge_activity_complete(struct char_data *ch, void *target, void *context)
+{
+  struct reforge_context *reforge = context;
+  struct obj_data *obj = target;
+  int index, cost;
+
+  if (!ch || !obj || obj->carried_by != ch ||
+      !reforge_plan(ch, obj, reforge->target, &index, &cost, true))
+    return;
+  if (GET_GOLD(ch) < cost)
+  {
+    send_to_char(ch, "You need %d coins on hand for supplies to finish reforging.\r\n", cost);
+    return;
+  }
+  reforge_apply(ch, obj, index);
+  if (cost > 0)
+  {
+    send_to_char(ch, "It cost you %d coins to reforge this item.\r\n", cost);
+    award_gold(ch, -cost);
+  }
+  act("You finish reforging $p.", false, ch, obj, 0, TO_CHAR);
+  act("$n finishes reforging $p.", false, ch, obj, 0, TO_ROOM);
+  autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_RESIZE);
+  gain_craft_exp(ch, craft_operation_exp(GET_OBJ_LEVEL(obj)), reforge_skill(obj), TRUE);
+  save_char(ch, 0);
+  Crash_crashsave(ch);
+}
+
+static void impl_do_reforge_new_(struct char_data *ch, char *argument, int cmd, int subcmd)
+{
+  struct obj_data *obj = NULL, *i = NULL;
+  struct primary_activity_definition definition = {0};
+  struct primary_activity_snapshot snapshot;
+  struct reforge_context *reforge;
   char item_arg[MAX_INPUT_LENGTH];
   char target_arg[MAX_INPUT_LENGTH];
-  int material, skill_required;
-  int cost, orig_cost, enhancement;
-  char buf[1024]; /* Buffer for room message */
-  int weapon_index = 0;
-  int armor_index = 0;
+  int index, cost, seconds;
 
+  (void)cmd;
+  (void)subcmd;
   half_chop(argument, item_arg, target_arg);
-
   if (!*item_arg || !*target_arg)
   {
     send_to_char(ch, "Usage: reforge <item name> <reforge into>\r\n");
     return;
   }
-
-  /* Search inventory for matching reforgeable item */
   for (i = ch->carrying; i; i = i->next_content)
   {
     if (isname(item_arg, i->name) && OBJ_FLAGGED(i, ITEM_REFORGEABLE))
@@ -11322,246 +11453,57 @@ static void impl_do_reforge_new_(struct char_data *ch, char *argument,
       break;
     }
   }
-
   if (!obj)
   {
     send_to_char(ch, "You don't have an item by that description that can be reforged.\r\n"
                      "An object must be flagged as reforgeable to use this command on it.\r\n");
     return;
   }
-
-  /* Check item type - can only reforge weapons and armor */
-  if (GET_OBJ_TYPE(obj) != ITEM_ARMOR && GET_OBJ_TYPE(obj) != ITEM_WEAPON)
+  if (primary_activity_snapshot(ch, &snapshot))
   {
-    send_to_char(ch, "You can only reforge armor, shields and weapons.\r\n");
+    send_to_char(ch, "You are already busy with another task.\r\n");
     return;
   }
-
-  /* Determine material and get required crafting skill */
-  material = GET_OBJ_MATERIAL(obj);
-  skill_required = material_type_to_crafting_skill(material);
-
-  /* Check if required crafting station is present */
-  if (!has_crafting_station_in_room(ch, skill_required))
-  {
-    send_to_char(ch, "You need %s to reforge this item.\r\n",
-                 get_crafting_station_name(skill_required));
+  if (!reforge_plan(ch, obj, target_arg, &index, &cost, true))
     return;
-  }
-
-  /* Store original values */
-  orig_cost = GET_OBJ_COST(obj);
-  enhancement = GET_OBJ_VAL(obj, 4);
-
-  /* Determine what to reforge it into */
-  switch (GET_OBJ_TYPE(obj))
-  {
-  case ITEM_WEAPON:
-    /* Search for matching weapon type */
-    for (weapon_index = 1; weapon_index < NUM_WEAPON_TYPES; weapon_index++)
-    {
-      if (is_abbrev(target_arg, weapon_list[weapon_index].name))
-        break;
-    }
-    if (weapon_index >= NUM_WEAPON_TYPES)
-    {
-      send_to_char(ch, "That is not a valid weapon type. Type weaponlist for options.\r\n");
-      return;
-    }
-    if (weapon_index == GET_OBJ_VAL(obj, 0))
-    {
-      send_to_char(ch, "The item is already %s %s.\r\n", AN(weapon_list[weapon_index].name),
-                   weapon_list[weapon_index].name);
-      return;
-    }
-    break;
-
-  case ITEM_ARMOR:
-    if (IS_SHIELD(GET_OBJ_VAL(obj, 1)))
-    {
-      /* Reforging a shield */
-      for (armor_index = 1; armor_index < NUM_SPEC_ARMOR_TYPES; armor_index++)
-      {
-        if (!IS_SHIELD(armor_index))
-          continue;
-        if (is_abbrev(target_arg, armor_list[armor_index].name))
-          break;
-      }
-      if (armor_index >= NUM_SPEC_ARMOR_TYPES)
-      {
-        send_to_char(ch, "That is not a valid shield type. Type armorlistfull for options.\r\n");
-        return;
-      }
-      if (armor_index == GET_OBJ_VAL(obj, 1))
-      {
-        send_to_char(ch, "The item is already %s %s.\r\n", AN(armor_list[armor_index].name),
-                     armor_list[armor_index].name);
-        return;
-      }
-    }
-    else
-    {
-      /* Reforging non-shield armor - must match wear slot */
-      for (armor_index = 1; armor_index < NUM_SPEC_ARMOR_TYPES; armor_index++)
-      {
-        if (IS_SHIELD(armor_index))
-          continue;
-
-        /* Check if wear slot matches */
-        if (CAN_WEAR(obj, ITEM_WEAR_HEAD) && armor_list[armor_index].wear != ITEM_WEAR_HEAD)
-          continue;
-        else if (CAN_WEAR(obj, ITEM_WEAR_BODY) && armor_list[armor_index].wear != ITEM_WEAR_BODY)
-          continue;
-        else if (CAN_WEAR(obj, ITEM_WEAR_ARMS) && armor_list[armor_index].wear != ITEM_WEAR_ARMS)
-          continue;
-        else if (CAN_WEAR(obj, ITEM_WEAR_LEGS) && armor_list[armor_index].wear != ITEM_WEAR_LEGS)
-          continue;
-
-        if (is_abbrev(target_arg, armor_list[armor_index].name))
-          break;
-      }
-      if (armor_index >= NUM_SPEC_ARMOR_TYPES)
-      {
-        send_to_char(
-            ch,
-            "That is not a valid armor type for this slot. Type armorlistfull for options.\r\n");
-        return;
-      }
-      if (armor_index == GET_OBJ_VAL(obj, 1))
-      {
-        send_to_char(ch, "The item is already %s %s.\r\n", AN(armor_list[armor_index].name),
-                     armor_list[armor_index].name);
-        return;
-      }
-    }
-    break;
-
-  default:
-    send_to_char(ch, "You can only reforge armor, shields and weapons.\r\n");
-    return;
-  }
-
-  /* Calculate cost (half the object's value) */
-  cost = orig_cost / 2;
-
   if (GET_GOLD(ch) < cost)
   {
     send_to_char(ch, "You need %d coins on hand for supplies to reforge this item.\r\n", cost);
     return;
   }
-
-  /* Update item properties */
-  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+  seconds = cost == 0 ? 6 : craft_legacy_kit_seconds(ch, reforge_skill(obj), 10);
+  CREATE(reforge, struct reforge_context, 1);
+  reforge->index = index;
+  reforge->cost = cost;
+  snprintf(reforge->target, sizeof(reforge->target), "%s", target_arg);
+  definition.type = PRIMARY_ACTIVITY_CRAFT;
+  definition.display_name = "reforging";
+  definition.capabilities = PRIMARY_ACTIVITY_CAP_HANDS | PRIMARY_ACTIVITY_CAP_ATTENTION;
+  definition.traits = PRIMARY_ACTIVITY_TRAIT_STATIONARY | PRIMARY_ACTIVITY_TRAIT_HANDS_OCCUPIED;
+  definition.progress_model = PRIMARY_ACTIVITY_PROGRESS_PROGRESSIVE;
+  definition.progress_owner = PRIMARY_ACTIVITY_PROGRESS_CHARACTER;
+  definition.total_steps = (uint32_t)seconds;
+  definition.step_interval = PASSES_PER_SEC;
+  definition.wall_clock = true;
+  definition.movement_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.damage_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.combat_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.target_loss_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.command_response = PRIMARY_ACTIVITY_RESPONSE_REJECT;
+  definition.recheck = reforge_activity_recheck;
+  definition.complete = reforge_activity_complete;
+  definition.cleanup_context = free;
+  definition.context = reforge;
+  if (!primary_activity_start(ch, domain_event_object_handle(obj), &definition))
   {
-    set_weapon_object(obj, weapon_index);
+    free(reforge);
+    send_to_char(ch, "Your reforging could not be scheduled. Please try again.\r\n");
+    return;
   }
-  else
-  {
-    GET_OBJ_VAL(obj, 1) = armor_index;
-    set_armor_object(obj, armor_index);
-  }
-
-  /* If the object has a restring identifier, update keywords, short/long desc using it */
-  if (obj->restring_identifier && *obj->restring_identifier)
-  {
-    const char *new_type_str = (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
-                                   ? weapon_list[GET_OBJ_VAL(obj, 0)].name
-                                   : armor_list[GET_OBJ_VAL(obj, 1)].name;
-    char *new_restring_id = NULL;
-
-    /* Make a copy of the new type string first to avoid using freed memory */
-    new_restring_id = strdup(new_type_str);
-    if (!new_restring_id)
-    {
-      log("SYSERR: do_reforge: Failed to allocate memory for new restring_identifier");
-      return;
-    }
-
-    /* Replace in keywords */
-    if (obj->name)
-    {
-      char *updated = replace_substring_ci(obj->name, obj->restring_identifier, new_type_str);
-      if (updated)
-      {
-        free_object_string(obj, obj->name);
-        obj->name = updated;
-      }
-    }
-
-    /* Replace in short description */
-    if (obj->short_description)
-    {
-      char *updated =
-          replace_substring_ci(obj->short_description, obj->restring_identifier, new_type_str);
-      if (updated)
-      {
-        free_object_string(obj, obj->short_description);
-        obj->short_description = updated;
-      }
-    }
-
-    /* Replace in long description */
-    if (obj->description)
-    {
-      char *updated2 =
-          replace_substring_ci(obj->description, obj->restring_identifier, new_type_str);
-      if (updated2)
-      {
-        free_object_string(obj, obj->description);
-        obj->description = updated2;
-      }
-    }
-
-    /* Update restring identifier to the current item subtype for future partial restrings */
-    if (obj->restring_identifier)
-      free(obj->restring_identifier);
-    obj->restring_identifier = new_restring_id;
-  }
-
-  /* Restore original cost and enhancement */
-  GET_OBJ_COST(obj) = orig_cost;
-  GET_OBJ_VAL(obj, 4) = enhancement;
-
-  /* Restore material if compatible */
-  if (IS_HARD_METAL(GET_OBJ_MATERIAL(obj)) && IS_HARD_METAL(material))
-    GET_OBJ_MATERIAL(obj) = material;
-  else if (IS_LEATHER(GET_OBJ_MATERIAL(obj)) && IS_LEATHER(material))
-    GET_OBJ_MATERIAL(obj) = material;
-  else if (IS_CLOTH(GET_OBJ_MATERIAL(obj)) && IS_CLOTH(material))
-    GET_OBJ_MATERIAL(obj) = material;
-  else if (IS_WOOD(GET_OBJ_MATERIAL(obj)) && IS_WOOD(material))
-    GET_OBJ_MATERIAL(obj) = material;
-
-  /* Deduct the cost */
-  if (cost > 0)
-  {
-    send_to_char(ch, "It cost you %d coins to reforge this item.\r\n", cost);
-    award_gold(ch, -cost);
-  }
-
-  /* Prepare messages */
-  send_to_char(ch, "You begin to reforge %s into %s %s.\r\n", obj->short_description,
-               (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? AN(weapon_list[GET_OBJ_VAL(obj, 0)].name)
-                                                  : AN(armor_list[GET_OBJ_VAL(obj, 1)].name),
-               (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? weapon_list[GET_OBJ_VAL(obj, 0)].name
-                                                  : armor_list[GET_OBJ_VAL(obj, 1)].name);
-  snprintf(buf, sizeof(buf), "$n begins to reforge %s into %s %s.", obj->short_description,
-           (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? AN(weapon_list[GET_OBJ_VAL(obj, 0)].name)
-                                              : AN(armor_list[GET_OBJ_VAL(obj, 1)].name),
-           (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? weapon_list[GET_OBJ_VAL(obj, 0)].name
-                                              : armor_list[GET_OBJ_VAL(obj, 1)].name);
-  act(buf, FALSE, ch, obj, 0, TO_ROOM);
-
-  /* Set up crafting state */
-  GET_CRAFTING_OBJ(ch) = obj;
-  GET_CRAFTING_TYPE(ch) = SCMD_REFORGE;
-  if (cost == 0)
-    GET_CRAFTING_TICKS(ch) = 1;
-  else
-    GET_CRAFTING_TICKS(ch) = (ubyte)MAX(1, craft_legacy_kit_seconds(ch, skill_required, 10) / 6);
-
-  /* Start crafting event - save after all modifications including restring_identifier */
-  save_char(ch, 0);
-  Crash_crashsave(ch);
-  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
+  send_to_char(
+      ch, "You begin to reforge %s into %s %s. This will take %d seconds.\r\n",
+      obj->short_description,
+      GET_OBJ_TYPE(obj) == ITEM_WEAPON ? AN(weapon_list[index].name) : AN(armor_list[index].name),
+      GET_OBJ_TYPE(obj) == ITEM_WEAPON ? weapon_list[index].name : armor_list[index].name, seconds);
+  act("$n begins reforging $p.", FALSE, ch, obj, 0, TO_ROOM);
 }

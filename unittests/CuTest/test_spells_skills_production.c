@@ -544,20 +544,6 @@ void Test_legacy_crafting_reports_modified_experience(CuTest *tc)
   CuAssertTrue(tc, !base_gain_reported);
 }
 
-void Test_legacy_supply_orders_improve_the_material_skill(CuTest *tc)
-{
-  /* Legacy room-370 orders now advance the harvest ability of their material. */
-  CuAssertIntEquals(tc, ABILITY_HARVEST_MINING, test_legacy_supply_order_skill(MATERIAL_STEEL));
-  CuAssertIntEquals(tc, ABILITY_HARVEST_MINING, test_legacy_supply_order_skill(MATERIAL_BRONZE));
-  CuAssertIntEquals(tc, ABILITY_HARVEST_MINING, test_legacy_supply_order_skill(MATERIAL_COPPER));
-  CuAssertIntEquals(tc, ABILITY_HARVEST_HUNTING, test_legacy_supply_order_skill(MATERIAL_LEATHER));
-  CuAssertIntEquals(tc, ABILITY_HARVEST_FORESTRY, test_legacy_supply_order_skill(MATERIAL_WOOD));
-  CuAssertIntEquals(tc, ABILITY_HARVEST_GATHERING, test_legacy_supply_order_skill(MATERIAL_WOOL));
-  CuAssertIntEquals(tc, ABILITY_HARVEST_GATHERING, test_legacy_supply_order_skill(MATERIAL_SATIN));
-
-  CuAssertIntEquals(tc, -1, test_legacy_supply_order_skill(MATERIAL_GLASS));
-}
-
 void Test_spells_production_name_and_level_lookup(CuTest *tc)
 {
   const char *saved_name;

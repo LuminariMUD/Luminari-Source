@@ -19,6 +19,7 @@
 #include "../../src/character/race.h"
 #include "../../src/character/talents.h"
 #include "../../src/craft/brew.h"
+#include "../../src/craft/craft.h"
 #include "../../src/craft/craft_training.h"
 #include "../../src/craft/crafting_new.h"
 #include "../../src/database/mysql.h"
@@ -153,27 +154,16 @@ static unsigned long craft_brewing_seed(struct char_data *ch, bool critical)
 static void craft_brew_failure(struct craft_actor *actor, bool critical, unsigned long *seed)
 {
   struct char_data *ch = &actor->ch;
-  struct mud_event_data event;
-  char payload[128];
-  int length, i;
 
   craft_actor_init(actor);
   SET_ABILITY(ch, ABILITY_CRAFT_ALCHEMY, 2);
   GET_CRAFT_SKILL_EXP(ch, ABILITY_CRAFT_ALCHEMY) = craft_skill_level_exp(NULL, 3) - 1;
   actor->specials.saved.talent_ranks[TALENT_INSIGHTFUL_ALCHEMY] = 5;
 
-  /* spell1,spell2,spell3,num_spells,highest_circle,brewing_skill,dc,motes...,gold,multiplier */
-  length = snprintf(payload, sizeof(payload), "1,-1,-1,1,20,0,1000");
-  for (i = 0; i < NUM_CRAFT_MOTES; i++)
-    length += snprintf(payload + length, sizeof(payload) - (size_t)length, ",0");
-  snprintf(payload + length, sizeof(payload) - (size_t)length, ",0,1");
-
-  memset(&event, 0, sizeof(event));
-  event.pStruct = ch;
-  event.sVariables = payload;
+  /* One spell of circle 20 at skill 0 against DC 1000: the roll cannot succeed. */
   *seed = craft_brewing_seed(ch, critical);
   circle_srandom(*seed);
-  event_brewing(&event);
+  test_brew_resolve(ch, 1, 20, 0, 1000, false, 0, 0, 0);
 }
 
 void Test_craft_brewing_failures_raise_alchemy_with_insight(CuTest *tc)
@@ -1509,7 +1499,7 @@ void Test_craft_legacy_skills_convert_once_on_load(CuTest *tc)
   CuAssertIntEquals(tc, 6, gathering);
   /* 3 unspent + 18 alchemy + 6 knitting (once) + 66 / 5 fast crafter; mining granted nothing. */
   CuAssertIntEquals(tc, 3 + 18 + 6 + 13, points);
-  CuAssertIntEquals(tc, CRAFT_MIGRATION_SKILLS, marker);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_CURRENT, marker);
   CuAssertIntEquals(tc, 1, unsaved);
   CuAssertTrue(tc, alchemy_equivalent >= 87);
   CuAssertTrue(tc, mining_equivalent >= 48);
@@ -1519,12 +1509,13 @@ void Test_craft_legacy_skills_convert_once_on_load(CuTest *tc)
   CuAssertIntEquals(tc, 1, talent_rank);
   CuAssertTrue(tc, saved);
   CuAssertIntEquals(tc, 1, marker_lines);
-  CuAssertStrEquals(tc, "CrMg: 1\n", marker_line);
+  snprintf(skills, sizeof(skills), "CrMg: %d\n", CRAFT_MIGRATION_CURRENT);
+  CuAssertStrEquals(tc, skills, marker_line);
   CuAssertIntEquals(tc, 0, again_result);
   CuAssertIntEquals(tc, 3 + 18 + 6 + 13, again_points);
   CuAssertIntEquals(tc, 18, again_alchemy);
   CuAssertIntEquals(tc, 0, again_unsaved);
-  CuAssertIntEquals(tc, CRAFT_MIGRATION_SKILLS, again_marker);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_CURRENT, again_marker);
 }
 
 /** An already-versioned file converts nothing again, and a fresh character (every legacy slot
@@ -1534,13 +1525,14 @@ void Test_craft_migration_skips_versioned_and_fresh_files(CuTest *tc)
   struct craft_player_files files;
   struct char_data *versioned = new_char();
   struct char_data *fresh = new_char();
-  char skills[512];
+  char skills[512], extra[64];
   int i, offset = 0, versioned_result, versioned_mining, versioned_points, versioned_unsaved;
   int fresh_result, fresh_ranks = 0, fresh_points, fresh_marker, fresh_unsaved;
 
   craft_player_files_enter(tc, &files, "crver", 4311);
   snprintf(skills, sizeof(skills), "%d 99\n", CRAFT_LEGACY_ID_MINING);
-  craft_write_legacy_pfile(tc, &files, 4311, skills, "CrMg: 1\n");
+  snprintf(extra, sizeof(extra), "CrMg: %d\n", CRAFT_MIGRATION_CURRENT);
+  craft_write_legacy_pfile(tc, &files, 4311, skills, extra);
   versioned_result = load_char(files.name, versioned);
   versioned_mining = GET_ABILITY(versioned, ABILITY_HARVEST_MINING);
   versioned_points = GET_TALENT_POINTS(versioned);
@@ -1567,7 +1559,7 @@ void Test_craft_migration_skips_versioned_and_fresh_files(CuTest *tc)
   CuAssertIntEquals(tc, 0, fresh_result);
   CuAssertIntEquals(tc, 0, fresh_ranks);
   CuAssertIntEquals(tc, 0, fresh_points);
-  CuAssertIntEquals(tc, CRAFT_MIGRATION_SKILLS, fresh_marker);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_CURRENT, fresh_marker);
   CuAssertIntEquals(tc, 1, fresh_unsaved);
 }
 
@@ -1655,4 +1647,136 @@ void Test_craft_save_failure_leaves_the_previous_file(CuTest *tc)
     CuAssertStrEquals(tc, "Tlpt: 7\n", after);
   }
   CuAssertIntEquals(tc, 0, leftovers);
+}
+
+/* ---- Brew and legacy order settlement (crafting consolidation, Phase 4) ---- */
+
+/** A brew resolves once at completion: a success spends its motes and gold and stores the
+ * potion; a resolution whose inputs no longer suffice spends nothing. */
+void Test_craft_brew_resolution_spends_once_or_nothing(CuTest *tc)
+{
+  struct craft_actor actor;
+  struct char_data *ch = &actor.ch;
+  int water_after_success, gold_after_success, potions_after_success;
+  int water_after_refusal, gold_after_refusal;
+
+  craft_actor_init(&actor);
+  SET_ABILITY(ch, ABILITY_CRAFT_ALCHEMY, 40);
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_USE_STORED_CONSUMABLES);
+  GET_CRAFT_MOTES(ch, CRAFTING_MOTE_WATER) = 10;
+  GET_GOLD(ch) = 100;
+  /* Skill 40 + d20 always beats DC 5 unless the die shows a 1; a natural 1 is a critical
+   * failure that spends half, so pick a seed whose first d20 is not 1. */
+  circle_srandom(7);
+  while (d20(ch) == 1)
+    ;
+  test_brew_resolve(ch, 1, 1, 40, 5, false, CRAFTING_MOTE_WATER, 4, 20);
+  water_after_success = GET_CRAFT_MOTES(ch, CRAFTING_MOTE_WATER);
+  gold_after_success = GET_GOLD(ch);
+  potions_after_success = STORED_POTIONS(ch, 1);
+
+  /* Motes fell below the requirement before resolution: nothing is spent. */
+  GET_CRAFT_MOTES(ch, CRAFTING_MOTE_WATER) = 2;
+  test_brew_resolve(ch, 1, 1, 40, 5, false, CRAFTING_MOTE_WATER, 4, 20);
+  water_after_refusal = GET_CRAFT_MOTES(ch, CRAFTING_MOTE_WATER);
+  gold_after_refusal = GET_GOLD(ch);
+
+  CuAssertTrue(tc, water_after_success == 6 || water_after_success == 8);
+  CuAssertTrue(tc, gold_after_success == 80 || gold_after_success == 90);
+  CuAssertTrue(tc, potions_after_success >= 1 || water_after_success == 8);
+  CuAssertIntEquals(tc, 2, water_after_refusal);
+  CuAssertIntEquals(tc, gold_after_success, gold_after_refusal);
+}
+
+/** CrMg stage 2 settles a room-370 order once: an unfinished order refunds the units its
+ * completed installments consumed, a completed one pays its saved rewards, and a settlement
+ * the destination cannot take keeps its record; supply and training contracts are untouched. */
+void Test_craft_legacy_supply_orders_settle_once(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *partial = new_char(), *again = new_char(), *done = new_char();
+  struct char_data *capped = new_char(), *odd = new_char();
+  char extra[512];
+  int partial_result, partial_steel, partial_vnum, partial_marker, partial_training;
+  int partial_contract, again_steel, again_marker, done_gold, done_qp, done_vnum, done_marker;
+  int capped_vnum, capped_marker, capped_gold, odd_vnum, odd_marker;
+  const char *partial_note;
+  bool note_mentions_units;
+
+  craft_player_files_enter(tc, &files, "crord", 4313);
+
+  /* Three of five installments remain: two were made, so six units of steel come back. */
+  snprintf(extra, sizeof(extra),
+           "Cvnm: 30084\nCmnm: 3\nCqps: 1\nCexp: 200\nCgld: 100\nCdsc: a sword\nCmat: %d\n"
+           "CrCT: 1 0\nCrTr: %d 2500 1800000000\nCrMg: 1\n",
+           MATERIAL_STEEL, ABILITY_HARVEST_FORESTRY);
+  craft_write_legacy_pfile(tc, &files, 4313, "", extra);
+  partial_result = load_char(files.name, partial);
+  partial_steel = GET_CRAFT_MAT(partial, CRAFT_MAT_STEEL);
+  partial_vnum = (int)GET_AUTOCQUEST_VNUM(partial);
+  partial_marker = GET_CRAFT_MIGRATION(partial);
+  partial_training = GET_CRAFT(partial).training_ability;
+  partial_contract = GET_CRAFT(partial).supply_contract_type;
+  partial_note = partial->player_specials->craft_settlement_note;
+  note_mentions_units = partial_note != NULL && strstr(partial_note, "6 units of steel") != NULL;
+  GET_PFILEPOS(partial) = 0;
+  CuAssertTrue(tc, save_char_checked(partial, 0));
+  CuAssertIntEquals(tc, 0, load_char(files.name, again));
+  again_steel = GET_CRAFT_MAT(again, CRAFT_MAT_STEEL);
+  again_marker = GET_CRAFT_MIGRATION(again);
+
+  /* Completed and unclaimed: the saved rewards, once. */
+  snprintf(extra, sizeof(extra),
+           "Gold: 5\nCvnm: 30084\nCmnm: 0\nCqps: 1\nCexp: 200\nCgld: 100\nCdsc: a shield\n"
+           "Cmat: %d\n",
+           MATERIAL_WOOD);
+  craft_write_legacy_pfile(tc, &files, 4313, "", extra);
+  CuAssertIntEquals(tc, 0, load_char(files.name, done));
+  done_gold = GET_GOLD(done);
+  done_qp = GET_QUESTPOINTS(done);
+  done_vnum = (int)GET_AUTOCQUEST_VNUM(done);
+  done_marker = GET_CRAFT_MIGRATION(done);
+
+  /* A reward past the gold capacity keeps its record and does not advance the stage. */
+  snprintf(extra, sizeof(extra),
+           "Gold: %d\nCvnm: 30084\nCmnm: 0\nCqps: 0\nCexp: 0\nCgld: 100\nCdsc: a cape\nCmat: %d\n",
+           MAX_GOLD - 10, MATERIAL_HEMP);
+  craft_write_legacy_pfile(tc, &files, 4313, "", extra);
+  CuAssertIntEquals(tc, 0, load_char(files.name, capped));
+  capped_vnum = (int)GET_AUTOCQUEST_VNUM(capped);
+  capped_marker = GET_CRAFT_MIGRATION(capped);
+  capped_gold = GET_GOLD(capped);
+
+  /* An unmappable material keeps its record too. */
+  snprintf(extra, sizeof(extra), "Cvnm: 30084\nCmnm: 2\nCdsc: a lens\nCmat: %d\n", MATERIAL_GLASS);
+  craft_write_legacy_pfile(tc, &files, 4313, "", extra);
+  CuAssertIntEquals(tc, 0, load_char(files.name, odd));
+  odd_vnum = (int)GET_AUTOCQUEST_VNUM(odd);
+  odd_marker = GET_CRAFT_MIGRATION(odd);
+
+  free_char(partial);
+  free_char(again);
+  free_char(done);
+  free_char(capped);
+  free_char(odd);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertIntEquals(tc, 0, partial_result);
+  CuAssertIntEquals(tc, 6, partial_steel);
+  CuAssertIntEquals(tc, 0, partial_vnum);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_ORDERS, partial_marker);
+  CuAssertIntEquals(tc, ABILITY_HARVEST_FORESTRY, partial_training);
+  CuAssertIntEquals(tc, 1, partial_contract);
+  CuAssertTrue(tc, note_mentions_units);
+  CuAssertIntEquals(tc, 6, again_steel);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_ORDERS, again_marker);
+  CuAssertIntEquals(tc, 105, done_gold);
+  CuAssertIntEquals(tc, 1, done_qp);
+  CuAssertIntEquals(tc, 0, done_vnum);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_ORDERS, done_marker);
+  CuAssertIntEquals(tc, 30084, capped_vnum);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_SKILLS, capped_marker);
+  CuAssertIntEquals(tc, MAX_GOLD - 10, capped_gold);
+  CuAssertIntEquals(tc, 30084, odd_vnum);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_SKILLS, odd_marker);
 }

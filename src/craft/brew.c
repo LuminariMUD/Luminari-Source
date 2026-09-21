@@ -27,6 +27,8 @@
 #include "crafting_new.h"
 #include "core/interpreter.h"
 #include "brew.h"
+#include "events/activity_manager.h"
+#include "events/domain_event_world.h"
 
 /* External function declarations */
 extern int spell_school(int spellnum);
@@ -34,86 +36,63 @@ extern int spell_school(int spellnum);
 /* Forward declarations */
 
 /* Mud event for brewing completion */
-MUD_EVENT_CALLBACK(event_brewing)
+/* One brew's inputs, captured at admission and re-verified at resolution. */
+struct brew_context
 {
-  struct char_data *ch = NULL;
-  struct mud_event_data *pMudEvent = NULL;
-  char *data_str = NULL;
-  int spell_nums[3] = {-1, -1, -1};
-  int num_spells = 0, highest_circle = 0, brewing_skill = 0;
-  int total_motes_by_type[NUM_CRAFT_MOTES] = {0};
-  int total_gold = 0;
-  int dc = 0, d20_roll = 0, roll = 0;
+  int spell_nums[3];
+  int num_spells;
+  int highest_circle;
+  int brewing_skill;
+  int dc;
+  int total_motes_by_type[NUM_CRAFT_MOTES];
+  int total_gold;
+  bool verify_spells; /* recheck spell availability at resolution (always, in play) */
+};
+
+/* Resolve a brew after its full duration: the roll, the costs, and the potions happen here,
+ * and only after affordability and spell availability are confirmed again. */
+static void brew_resolve(struct char_data *ch, struct brew_context *brew)
+{
+  int spell_nums[3];
+  int num_spells, highest_circle, brewing_skill, dc, total_gold;
+  int total_motes_by_type[NUM_CRAFT_MOTES];
+  int d20_roll = 0, roll = 0;
   bool critical_success = FALSE;
   int i, cycle;
 
-  if (event_obj == NULL)
-    return 0;
-
-  pMudEvent = (struct mud_event_data *)event_obj;
-
-  if (pMudEvent->pStruct == NULL)
-    return 0;
-
-  ch = (struct char_data *)pMudEvent->pStruct;
-
-  /* Parse data from the sVariables string */
-  if (pMudEvent->sVariables)
+  if (!ch || !brew || brew->num_spells == 0)
+    return;
+  memcpy(spell_nums, brew->spell_nums, sizeof(spell_nums));
+  memcpy(total_motes_by_type, brew->total_motes_by_type, sizeof(total_motes_by_type));
+  num_spells = brew->num_spells;
+  highest_circle = brew->highest_circle;
+  brewing_skill = brew->brewing_skill;
+  dc = brew->dc;
+  total_gold = brew->total_gold;
+  for (i = 0; i < NUM_CRAFT_MOTES; i++)
   {
-    data_str = strdup(pMudEvent->sVariables);
-    if (data_str)
+    if (total_motes_by_type[i] > 0 && GET_CRAFT_MOTES(ch, i) < total_motes_by_type[i])
     {
-      char *token;
-      int token_count = 0;
-
-      /* Parse: spell1,spell2,spell3,num_spells,highest_circle,brewing_skill,dc,total_motes_type0,total_motes_type1,...,total_gold,cost_multiplier */
-      token = strtok(data_str, ",");
-      while (token && token_count < (6 + NUM_CRAFT_MOTES + 2))
-      {
-        switch (token_count)
-        {
-        case 0:
-          spell_nums[0] = atoi(token);
-          break;
-        case 1:
-          spell_nums[1] = atoi(token);
-          break;
-        case 2:
-          spell_nums[2] = atoi(token);
-          break;
-        case 3:
-          num_spells = atoi(token);
-          break;
-        case 4:
-          highest_circle = atoi(token);
-          break;
-        case 5:
-          brewing_skill = atoi(token);
-          break;
-        case 6:
-          dc = atoi(token);
-          break;
-        default:
-          if (token_count >= 7 && token_count < (7 + NUM_CRAFT_MOTES))
-          {
-            total_motes_by_type[token_count - 7] = atoi(token);
-          }
-          else if (token_count == (7 + NUM_CRAFT_MOTES))
-          {
-            total_gold = atoi(token);
-          }
-          /* Note: cost_multiplier is parsed but not used in event since costs are pre-calculated */
-          break;
-        }
-        token = strtok(NULL, ",");
-        token_count++;
-      }
-      free(data_str);
+      send_to_char(ch, "Your brewing comes to nothing: you no longer have %d %s%s.\r\n",
+                   total_motes_by_type[i], crafting_motes[i],
+                   total_motes_by_type[i] > 1 ? "s" : "");
+      return;
     }
   }
-
-  if (!ch || num_spells == 0)
-    return 0;
+  if (GET_GOLD(ch) < total_gold)
+  {
+    send_to_char(ch, "Your brewing comes to nothing: you no longer have %d gold.\r\n", total_gold);
+    return;
+  }
+  for (i = 0; brew->verify_spells && i < num_spells; i++)
+  {
+    if (spell_nums[i] > 0 && spell_prep_gen_check(ch, spell_nums[i], 0) == CLASS_UNDEFINED)
+    {
+      send_to_char(ch, "Your brewing comes to nothing: you can no longer cast %s.\r\n",
+                   spell_info[spell_nums[i]].name);
+      return;
+    }
+  }
 
   /* NOW perform the skill check at the end of brewing */
   d20_roll = d20(ch);
@@ -154,7 +133,7 @@ MUD_EVENT_CALLBACK(event_brewing)
       gain_craft_exp(ch, highest_circle * 5 + (num_spells - 1) * 2, ABILITY_CRAFT_ALCHEMY, TRUE);
 
     save_char(ch, 0);
-    return 0;
+    return;
   }
 
   /* Check for regular failure */
@@ -175,7 +154,7 @@ MUD_EVENT_CALLBACK(event_brewing)
       gain_craft_exp(ch, MAX(5, highest_circle * 3 / 4), ABILITY_CRAFT_ALCHEMY, TRUE);
 
     save_char(ch, 0);
-    return 0;
+    return;
   }
 
   /* Check for critical success (natural 20) */
@@ -334,7 +313,7 @@ MUD_EVENT_CALLBACK(event_brewing)
   /* Save character */
   save_char(ch, 0);
 
-  return 0;
+  return;
 }
 
 /* Map spell schools to elemental mote types for brewing */
@@ -887,10 +866,53 @@ struct obj_data *create_multi_spell_potion(int *spell_nums, int num_spells, stru
 }
 
 /* Main brew command - Enhanced to support multiple spells */
+static bool brew_activity_recheck(struct char_data *ch, void *target, void *context)
+{
+  (void)context;
+  return ch && ch->desc && STATE(ch->desc) == CON_PLAYING && !FIGHTING(ch) &&
+         GET_POS(ch) >= POS_STANDING && target == &world[IN_ROOM(ch)];
+}
+
+static void brew_activity_complete(struct char_data *ch, void *target, void *context)
+{
+  (void)target;
+  brew_resolve(ch, context);
+}
+
+/* Schedule the brew as one interruptible activity; cancellation spends nothing. */
+static bool start_brew_activity(struct char_data *ch, struct brew_context *brew, int seconds)
+{
+  struct primary_activity_definition definition = {0};
+
+  if (!ch || IS_NPC(ch) || ch->desc == NULL || IN_ROOM(ch) == NOWHERE || seconds <= 0)
+    return false;
+  definition.type = PRIMARY_ACTIVITY_CRAFT;
+  definition.display_name = "brewing a potion";
+  definition.capabilities = PRIMARY_ACTIVITY_CAP_HANDS | PRIMARY_ACTIVITY_CAP_ATTENTION;
+  definition.traits = PRIMARY_ACTIVITY_TRAIT_STATIONARY | PRIMARY_ACTIVITY_TRAIT_HANDS_OCCUPIED;
+  definition.progress_model = PRIMARY_ACTIVITY_PROGRESS_PROGRESSIVE;
+  definition.progress_owner = PRIMARY_ACTIVITY_PROGRESS_CHARACTER;
+  definition.total_steps = (uint32_t)seconds;
+  definition.step_interval = PASSES_PER_SEC;
+  definition.wall_clock = true;
+  definition.movement_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.damage_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.combat_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.target_loss_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.command_response = PRIMARY_ACTIVITY_RESPONSE_REJECT;
+  definition.recheck = brew_activity_recheck;
+  definition.complete = brew_activity_complete;
+  definition.cleanup_context = free;
+  definition.context = brew;
+  return primary_activity_start(ch, domain_event_room_handle(IN_ROOM(ch)), &definition);
+}
+
+
 ACMD(do_brew)
 {
+  struct primary_activity_snapshot snapshot;
+  struct brew_context *brew;
   char spell_names[3][MAX_INPUT_LENGTH];
-  char data_string[1024]; /* Increased size for longer data string */
   int spell_nums[3] = {-1, -1, -1};
   int spell_levels[3] = {0, 0, 0};
   int spell_circles[3], mote_types[3];
@@ -899,7 +921,6 @@ ACMD(do_brew)
   int total_gold = 0, brew_time = 0;
   int num_spells = 0, highest_circle = 0, i;
   double cost_multiplier = 1.0;
-  struct mud_event_data *pMudEvent = NULL;
   const char *arg_ptr;
   int brewing_skill, dc;
 
@@ -910,9 +931,9 @@ ACMD(do_brew)
   }
 
   /* Check if already brewing */
-  if (char_has_mud_event(ch, eBREWING))
+  if (primary_activity_snapshot(ch, &snapshot))
   {
-    send_to_char(ch, "You are already brewing a potion.\r\n");
+    send_to_char(ch, "You are already busy with another task.\r\n");
     return;
   }
 
@@ -1142,33 +1163,48 @@ ACMD(do_brew)
 
   act("$n begins creating a magical potion.", TRUE, ch, 0, 0, TO_ROOM);
 
-  /* Create the mud event with data string containing all spell info, costs, and DC */
-  /* Format: spell1,spell2,spell3,num_spells,highest_circle,brewing_skill,dc,mote_type0,mote_type1,...,total_gold,cost_multiplier */
-  char mote_data[512] = {0};
-  char temp[32];
-  for (i = 0; i < NUM_CRAFT_MOTES; i++)
+  /* The activity owns the captured inputs; nothing is spent until it completes. */
+  CREATE(brew, struct brew_context, 1);
+  memcpy(brew->spell_nums, spell_nums, sizeof(brew->spell_nums));
+  memcpy(brew->total_motes_by_type, total_motes_by_type, sizeof(brew->total_motes_by_type));
+  brew->num_spells = num_spells;
+  brew->highest_circle = highest_circle;
+  brew->brewing_skill = brewing_skill;
+  brew->dc = dc;
+  brew->total_gold = total_gold;
+  brew->verify_spells = true;
+  if (!start_brew_activity(ch, brew, brew_time))
   {
-    snprintf(temp, sizeof(temp), "%d,", total_motes_by_type[i]);
-    strncat(mote_data, temp, sizeof(mote_data) - strlen(mote_data) - 1);
-  }
-
-  snprintf(data_string, sizeof(data_string), "%d,%d,%d,%d,%d,%d,%d,%s%d,%.2f", spell_nums[0],
-           spell_nums[1], spell_nums[2], num_spells, highest_circle, brewing_skill, dc, mote_data,
-           total_gold, cost_multiplier);
-
-  pMudEvent = new_mud_event(eBREWING, (void *)ch, data_string);
-  if (pMudEvent == NULL)
-  {
-    send_to_char(ch, "Error: Could not create alchemy event.\r\n");
+    free(brew);
+    send_to_char(ch, "You cannot begin brewing right now.\r\n");
     return;
   }
-
-  /* Attach the event with proper timing */
-  attach_mud_event(pMudEvent, brew_time * PASSES_PER_SEC);
 
   /* Save character */
   save_char(ch, 0);
 }
+#ifdef LUMINARI_CUTEST
+/* Resolve one single-spell brew directly, for the production-linked tests. */
+void test_brew_resolve(struct char_data *ch, int spellnum, int circle, int skill, int dc,
+                       bool verify_spell, int mote_type, int motes, int gold)
+{
+  struct brew_context brew;
+
+  memset(&brew, 0, sizeof(brew));
+  if (mote_type > CRAFTING_MOTE_NONE && mote_type < NUM_CRAFT_MOTES)
+    brew.total_motes_by_type[mote_type] = motes;
+  brew.total_gold = gold;
+  brew.spell_nums[0] = spellnum;
+  brew.spell_nums[1] = brew.spell_nums[2] = -1;
+  brew.num_spells = 1;
+  brew.highest_circle = circle;
+  brew.brewing_skill = skill;
+  brew.dc = dc;
+  brew.verify_spells = verify_spell;
+  brew_resolve(ch, &brew);
+}
+#endif
+
 /*
  * do_brew - Enhanced Potion brewing system for LuminariMUD
  *

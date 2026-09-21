@@ -571,7 +571,7 @@ static bool harvest_conditions(struct char_data *ch)
 {
   return harvest_location_valid(ch) && !FIGHTING(ch) && GET_POS(ch) >= POS_STANDING &&
          !AFF_FLAGGED(ch, AFF_GRAPPLED) && !AFF_FLAGGED(ch, AFF_ENTANGLED) &&
-         GET_CRAFTING_TICKS(ch) == 0 && GET_CRAFT(ch).craft_duration == 0;
+         GET_CRAFT(ch).craft_duration == 0;
 }
 
 /** @brief Cancel eligibility when the toggle, target room, coordinates, or resources change. */
