@@ -43,6 +43,9 @@
 #include "wilderness/resource_system.h"
 #include "wilderness/harvest.h"
 #include "crafting_new.h"
+#include "events/activity_manager.h"
+#include "events/actions.h"
+#include "events/domain_event_world.h"
 
 
 /* global variables */
@@ -2958,58 +2961,6 @@ MUD_EVENT_CALLBACK(event_crafting)
 
       break;
 
-    case SCMD_MINE:
-      skill = ABILITY_HARVEST_MINING;
-
-      snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      snprintf(buf, sizeof(buf), "$n's efforts in the area result in: $p.");
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-
-      /* mine system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_MINE);
-
-      break;
-
-    case SCMD_HUNT:
-      skill = ABILITY_HARVEST_HUNTING;
-
-      snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      snprintf(buf, sizeof(buf), "$n's efforts in the area result in: $p.");
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-
-      /* hunt system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_HUNT);
-
-      break;
-
-    case SCMD_KNIT:
-      skill = ABILITY_HARVEST_GATHERING;
-
-      snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      snprintf(buf, sizeof(buf), "$n's efforts in the area result in: $p.");
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-
-      /* knit system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_KNIT);
-
-      break;
-
-    case SCMD_FOREST:
-      skill = ABILITY_HARVEST_FORESTRY;
-
-      snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      snprintf(buf, sizeof(buf), "$n's efforts in the area result in: $p.");
-      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
-
-      /* foresting system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_FOREST);
-
-      break;
-
     case SCMD_DISENCHANT:
       skill = ABILITY_CRAFT_ALCHEMY;
 
@@ -3169,21 +3120,14 @@ MUD_EVENT_CALLBACK(event_crafting)
       return 0;
     }
 
-    /* One craft experience award for the finished operation, on the ability it used. Node
-     * harvests pay by the material's grade; everything else by the object's level. */
+    /* One craft experience award for the finished operation, on the ability it used, by the
+     * object's level. */
     if (skill != -1 && !IS_NPC(ch))
     {
       int craft_exp;
 
-      if (GET_CRAFTING_TYPE(ch) == SCMD_MINE || GET_CRAFTING_TYPE(ch) == SCMD_HUNT ||
-          GET_CRAFTING_TYPE(ch) == SCMD_KNIT || GET_CRAFTING_TYPE(ch) == SCMD_FOREST)
-        craft_exp =
-            20 + 10 * (GET_CRAFTING_OBJ(ch)
-                           ? material_grade(craft_material_from_object(GET_CRAFTING_OBJ(ch)))
-                           : 1);
-      else
-        craft_exp =
-            craft_operation_exp(GET_CRAFTING_OBJ(ch) ? GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) : 1);
+      craft_exp =
+          craft_operation_exp(GET_CRAFTING_OBJ(ch) ? GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) : 1);
       gain_craft_exp(ch, craft_exp, skill, TRUE);
     }
     reset_craft(ch);
@@ -3204,11 +3148,467 @@ static bool try_wilderness_harvest_fallback(struct char_data *ch, const char *ar
   return true;
 }
 
+/* ---- Object nodes on the activity manager (consolidation Decision 3) ---- */
+
+/* Roll a node's authored drop table into a prototype vnum, and report the minimum legacy skill
+ * the node needs. The probabilities are the original table's; NOTHING for an unknown node. */
+static obj_vnum node_drop_prototype(int material, int *minskill_out)
+{
+  obj_vnum vnum = NOTHING;
+  int roll = 0, min_skill = 0;
+
+  switch (material)
+  {
+  case MATERIAL_STEEL:
+    roll = dice(1, 100);
+    if (roll <= 40)
+      vnum = BRONZE_MATERIAL;
+    else if (roll <= 75)
+      vnum = IRON_MATERIAL;
+    else if (roll <= 96)
+      vnum = STEEL_MATERIAL;
+    else if (roll <= 98)
+      vnum = ONYX_MATERIAL;
+    else
+      vnum = OBSIDIAN_MATERIAL;
+    min_skill = 1;
+    break;
+
+  case MATERIAL_COLD_IRON:
+    roll = dice(1, 100);
+    if (roll <= 48)
+      vnum = COLD_IRON_MATERIAL;
+    else if (roll <= 52)
+      vnum = ONYX_MATERIAL;
+    else
+      vnum = IRON_MATERIAL;
+    min_skill = 35;
+    break;
+
+  case MATERIAL_MITHRIL:
+    roll = dice(1, 100);
+    if (roll <= 48)
+      vnum = MITHRIL_MATERIAL;
+    else if (roll <= 96)
+      vnum = MITHRIL_MATERIAL;
+    else if (roll <= 98)
+      vnum = RUBY_MATERIAL;
+    else
+      vnum = SAPPHIRE_MATERIAL;
+    min_skill = 48;
+    break;
+
+  case MATERIAL_ADAMANTINE:
+    roll = dice(1, 100);
+    if (roll <= 4)
+      vnum = ADAMANTINE_MATERIAL;
+    else if (roll <= 96)
+      vnum = PLATINUM_MATERIAL;
+    else
+    {
+      if (dice(1, 2) % 2 == 0)
+        vnum = DIAMOND_MATERIAL;
+      else
+        vnum = EMERALD_MATERIAL;
+    }
+    min_skill = 61;
+    break;
+
+  case MATERIAL_SILVER:
+    roll = dice(1, 10);
+    if (roll <= (8))
+    {
+      roll = dice(1, 100);
+      if (roll <= 48)
+        vnum = COPPER_MATERIAL;
+      else if (roll <= 96)
+        vnum = ALCHEMAL_SILVER_MATERIAL;
+      else if (roll <= 98)
+        vnum = ONYX_MATERIAL;
+      else
+        vnum = OBSIDIAN_MATERIAL;
+    }
+    else
+    {
+      roll = dice(1, 100);
+      if (roll <= 48)
+        vnum = SILVER_MATERIAL;
+      else if (roll <= 52)
+        vnum = ONYX_MATERIAL;
+      else
+        vnum = SILVER_MATERIAL;
+    }
+    min_skill = 1;
+    break;
+
+  case MATERIAL_GOLD:
+    roll = dice(1, 10);
+    if (roll <= (8))
+    {
+      roll = dice(1, 100);
+      if (roll <= 48)
+        vnum = GOLD_MATERIAL;
+      else if (roll <= 96)
+        vnum = GOLD_MATERIAL;
+      else if (roll <= 98)
+        vnum = RUBY_MATERIAL;
+      else
+        vnum = SAPPHIRE_MATERIAL;
+    }
+    else
+    {
+      roll = dice(1, 100);
+      if (roll <= 4)
+        vnum = PLATINUM_MATERIAL;
+      else if (roll <= 96)
+        vnum = PLATINUM_MATERIAL;
+      else
+      {
+        if (dice(1, 2) % 2 == 0)
+          vnum = DIAMOND_MATERIAL;
+        else
+          vnum = EMERALD_MATERIAL;
+      }
+    }
+    min_skill = 30;
+    break;
+
+  case MATERIAL_WOOD:
+    roll = dice(1, 100);
+    if (roll <= (80))
+    {
+      if (dice(1, 100) <= 96)
+        vnum = ALDERWOOD_MATERIAL;
+      else
+        vnum = FOS_BIRD_MATERIAL;
+    }
+    else if (roll <= (94))
+    {
+      if (dice(1, 100) <= 96)
+        vnum = YEW_MATERIAL;
+      else
+        vnum = FOS_LIZARD_MATERIAL;
+    }
+    else
+    {
+      if (dice(1, 100) <= 96)
+        vnum = OAK_MATERIAL;
+      else
+        vnum = FOS_WYVERN_MATERIAL;
+    }
+    min_skill = 1;
+    break;
+
+  case MATERIAL_DARKWOOD:
+    if (dice(1, 100) <= 96)
+      vnum = DARKWOOD_MATERIAL;
+    else
+      vnum = FOS_DRAGON_MATERIAL;
+    min_skill = 38;
+    break;
+
+  case MATERIAL_LEATHER:
+    roll = dice(1, 100);
+    if (roll <= (82))
+    {
+      if (dice(1, 100) <= 96)
+      {
+        vnum = LEATHER_LQ_MATERIAL;
+      }
+      else
+        vnum = FOS_BIRD_MATERIAL;
+    }
+    else if (roll <= (94))
+    {
+      if (dice(1, 10) <= 96)
+      {
+        vnum = LEATHER_MQ_MATERIAL;
+      }
+      else
+        vnum = FOS_LIZARD_MATERIAL;
+    }
+    else
+    {
+      if (dice(1, 100) <= 96)
+      {
+        vnum = LEATHER_HQ_MATERIAL;
+      }
+      else
+        vnum = FOS_WYVERN_MATERIAL;
+    }
+    min_skill = 1;
+    break;
+
+  case MATERIAL_DRAGONHIDE:
+    if (dice(1, 100) <= 70)
+      vnum = LEATHER_HQ_MATERIAL;
+    else
+      vnum = DRAGONHIDE_MATERIAL;
+    min_skill = 58;
+    break;
+
+  case MATERIAL_HEMP:
+    if (dice(1, 100) <= 96)
+      vnum = HEMP_MATERIAL;
+    else
+      vnum = FOS_BIRD_MATERIAL;
+    min_skill = 1;
+    break;
+
+  case MATERIAL_COTTON:
+    if (dice(1, 100) <= 96)
+    {
+      vnum = COTTON_MATERIAL;
+    }
+    else
+      vnum = FOS_LIZARD_MATERIAL;
+    min_skill = 5;
+    break;
+
+  case MATERIAL_WOOL:
+    if (dice(1, 100) <= 96)
+    {
+      vnum = WOOL_MATERIAL;
+    }
+    else
+      vnum = FOS_LIZARD_MATERIAL;
+    min_skill = 10;
+    break;
+
+  case MATERIAL_VELVET:
+    if (dice(1, 100) <= 96)
+    {
+      vnum = VELVET_MATERIAL;
+    }
+    else
+      vnum = FOS_WYVERN_MATERIAL;
+    min_skill = 25;
+    break;
+
+  case MATERIAL_SATIN:
+    if (dice(1, 100) <= 96)
+    {
+      vnum = SATIN_MATERIAL;
+    }
+    else
+      vnum = FOS_WYVERN_MATERIAL;
+    min_skill = 31;
+    break;
+
+  case MATERIAL_SILK:
+    if (dice(1, 100) <= 96)
+    {
+      if (dice(1, 100) <= 25)
+        vnum = VELVET_MATERIAL;
+      else if (dice(1, 100) <= 25)
+        vnum = SATIN_MATERIAL;
+      else
+        vnum = SILK_MATERIAL;
+    }
+    else
+      vnum = FOS_DRAGON_MATERIAL;
+    min_skill = 38;
+    break;
+
+  default:
+    return NOTHING;
+  }
+
+
+  if (minskill_out)
+    *minskill_out = min_skill;
+  return vnum;
+}
+
+/* The minimum legacy-unit skill a node needs, without rolling a drop; -1 for an unknown node.
+ * These mirror the thresholds in node_drop_prototype(). */
+static int node_minimum_skill(int material)
+{
+  switch (material)
+  {
+  case MATERIAL_STEEL:
+  case MATERIAL_SILVER:
+  case MATERIAL_WOOD:
+  case MATERIAL_LEATHER:
+  case MATERIAL_HEMP:
+    return 1;
+  case MATERIAL_COTTON:
+    return 5;
+  case MATERIAL_WOOL:
+    return 10;
+  case MATERIAL_VELVET:
+    return 25;
+  case MATERIAL_GOLD:
+    return 30;
+  case MATERIAL_SATIN:
+    return 31;
+  case MATERIAL_COLD_IRON:
+    return 35;
+  case MATERIAL_DARKWOOD:
+  case MATERIAL_SILK:
+    return 38;
+  case MATERIAL_MITHRIL:
+    return 48;
+  case MATERIAL_DRAGONHIDE:
+    return 58;
+  case MATERIAL_ADAMANTINE:
+    return 61;
+  }
+  return -1;
+}
+
+/* The harvest ability and node family for a node's material. */
+static int node_harvest_skill(int material, int *sub_command)
+{
+  if (IS_WOOD(material))
+  {
+    *sub_command = SCMD_FOREST;
+    return ABILITY_HARVEST_FORESTRY;
+  }
+  if (IS_LEATHER(material))
+  {
+    *sub_command = SCMD_HUNT;
+    return ABILITY_HARVEST_HUNTING;
+  }
+  if (IS_CLOTH(material))
+  {
+    *sub_command = SCMD_KNIT;
+    return ABILITY_HARVEST_GATHERING;
+  }
+  *sub_command = SCMD_MINE;
+  return ABILITY_HARVEST_MINING;
+}
+
+struct node_harvest_context
+{
+  int material;    /* the node's object material */
+  int skill;       /* harvest ability */
+  int sub_command; /* node family, for counters and quest hooks */
+  room_rnum room;
+};
+
+/* The node must still be here, charged, and the harvester still able to work. */
+static bool node_harvest_recheck(struct char_data *ch, void *target, void *context)
+{
+  struct node_harvest_context *harvest = context;
+  struct obj_data *node = target;
+
+  return ch && node && harvest && IN_ROOM(ch) == harvest->room && node->in_room == IN_ROOM(ch) &&
+         GET_OBJ_VNUM(node) == HARVESTING_NODE && GET_OBJ_VAL(node, 0) > 0 && !FIGHTING(ch) &&
+         GET_POS(ch) >= POS_STANDING;
+}
+
+/* Spend a charge after a confirmed reward: counters and extraction on depletion. */
+static void node_spend_charge(struct obj_data *node, int sub_command)
+{
+  GET_OBJ_VAL(node, 0)--;
+  if (GET_OBJ_VAL(node, 0) > 0)
+    return;
+  switch (sub_command)
+  {
+  case SCMD_MINE:
+    mining_nodes--;
+    break;
+  case SCMD_KNIT:
+    farming_nodes--;
+    break;
+  case SCMD_HUNT:
+    hunting_nodes--;
+    break;
+  default:
+    foresting_nodes--;
+    break;
+  }
+  act("$p has been depleted.", FALSE, 0, node, 0, TO_ROOM);
+  obj_from_room(node);
+  extract_obj(node);
+}
+
+static int node_quest_type(int sub_command)
+{
+  switch (sub_command)
+  {
+  case SCMD_MINE:
+    return AQ_CRAFT_MINE;
+  case SCMD_KNIT:
+    return AQ_CRAFT_KNIT;
+  case SCMD_HUNT:
+    return AQ_CRAFT_HUNT;
+  default:
+    return AQ_CRAFT_FOREST;
+  }
+}
+
+/* Completion: recheck the node, roll the drop, credit a balance unit or deliver an object,
+ * and only then spend the charge, fire the quest hook, and award experience. */
+static void node_harvest_complete(struct char_data *ch, void *target, void *context)
+{
+  struct node_harvest_context *harvest = context;
+  struct obj_data *node = target, *reward = NULL;
+  obj_vnum drop;
+  obj_rnum drop_rnum;
+  int balance = CRAFT_MAT_NONE, grade;
+
+  if (!node_harvest_recheck(ch, target, context))
+  {
+    if (ch)
+      send_to_char(ch, "The node has been depleted.\r\n");
+    return;
+  }
+  drop = node_drop_prototype(harvest->material, NULL);
+  if (drop == NOTHING || (drop_rnum = real_object(drop)) == NOTHING)
+  {
+    send_to_char(ch, "Nothing useful can be taken from this node; please report it.\r\n");
+    log("SYSERR: node harvest: material %d rolled missing prototype %d", harvest->material,
+        (int)drop);
+    return;
+  }
+  balance = craft_material_from_object(&obj_proto[drop_rnum]);
+  if (balance != CRAFT_MAT_NONE)
+  {
+    if (!craft_balance_add(ch, balance, 1))
+    {
+      send_to_char(ch, "Your crafting storage cannot hold any more %s.\r\n",
+                   crafting_materials[balance]);
+      return;
+    }
+    send_to_char(ch, "Your efforts in the area yield 1 unit of %s.\r\n",
+                 crafting_materials[balance]);
+    act("$n's efforts in the area yield some material.", FALSE, ch, 0, 0, TO_ROOM);
+    grade = material_grade(balance);
+  }
+  else
+  {
+    if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch) || (reward = read_object(drop, VIRTUAL)) == NULL)
+    {
+      send_to_char(ch, "You must drop something before you can take what this node yields.\r\n");
+      return;
+    }
+    if (IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(reward) > CAN_CARRY_W(ch))
+    {
+      extract_obj(reward);
+      send_to_char(ch, "You must lighten your load before you can take what this node yields.\r\n");
+      return;
+    }
+    obj_to_char(reward, ch);
+    act("Your efforts in the area result in: $p.", FALSE, ch, reward, 0, TO_CHAR);
+    act("$n's efforts in the area result in: $p.", FALSE, ch, reward, 0, TO_ROOM);
+    /* A rare object pays by the node's ordinary material grade. */
+    grade = material_grade(obj_material_to_craft_material(harvest->material));
+  }
+  grade = MAX(1, grade);
+  autoquest_trigger_check(ch, NULL, NULL, 0, node_quest_type(harvest->sub_command));
+  gain_craft_exp(ch, 20 + 10 * grade, harvest->skill, TRUE);
+  node_spend_charge(node, harvest->sub_command);
+}
+
 /* the 'harvest' command */
 ACMD(do_harvest)
 {
-  struct obj_data *obj = NULL, *node = NULL;
-  int roll = 0, material = -1, minskill = 0;
+  struct obj_data *node = NULL;
+  struct primary_activity_definition definition = {0};
+  struct node_harvest_context *harvest;
+  int material = -1, minskill = 0;
   int skillnum = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   char buf[MEDIUM_STRING] = {'\0'};
@@ -3235,6 +3635,7 @@ ACMD(do_harvest)
     send_to_char(ch, "You must drop something before you can harvest anything else.\r\n");
     return;
   }
+
   if (IS_CARRYING_W(ch) >= CAN_CARRY_W(ch))
   {
     send_to_char(ch, "You must lighten your load before you can harvest anything else.\r\n");
@@ -3253,7 +3654,6 @@ ACMD(do_harvest)
   {
     if (try_wilderness_harvest_fallback(ch, argument, cmd, subcmd))
       return;
-
     send_to_char(ch, "You need to specify what you want to harvest.\r\n");
     return;
   }
@@ -3262,7 +3662,6 @@ ACMD(do_harvest)
   {
     if (try_wilderness_harvest_fallback(ch, argument, cmd, subcmd))
       return;
-
     send_to_char(ch, "That doesn't seem to be present in this room.\r\n");
     return;
   }
@@ -3271,297 +3670,16 @@ ACMD(do_harvest)
   {
     if (try_wilderness_harvest_fallback(ch, argument, cmd, subcmd))
       return;
-
     send_to_char(ch, "That is not a harvesting node.\r\n");
     return;
   }
 
   material = GET_OBJ_MATERIAL(node);
-
-  if (IS_WOOD(material))
+  skillnum = node_harvest_skill(material, &sub_command);
+  if ((minskill = node_minimum_skill(material)) < 0)
   {
-    skillnum = ABILITY_HARVEST_FORESTRY;
-    sub_command = SCMD_FOREST;
-  }
-  else if (IS_LEATHER(material))
-  {
-    skillnum = ABILITY_HARVEST_HUNTING;
-    sub_command = SCMD_HUNT;
-  }
-  else if (IS_CLOTH(material))
-  {
-    skillnum = ABILITY_HARVEST_GATHERING;
-    sub_command = SCMD_KNIT;
-  }
-  else
-  {
-    skillnum = ABILITY_HARVEST_MINING;
-    sub_command = SCMD_MINE;
-  }
-
-  switch (material)
-  {
-  case MATERIAL_STEEL:
-    roll = dice(1, 100);
-    if (roll <= 40)
-      obj = read_object(BRONZE_MATERIAL, VIRTUAL); // bronze
-    else if (roll <= 75)
-      obj = read_object(IRON_MATERIAL, VIRTUAL); // iron
-    else if (roll <= 96)
-      obj = read_object(STEEL_MATERIAL, VIRTUAL); // steel
-    else if (roll <= 98)
-      obj = read_object(ONYX_MATERIAL, VIRTUAL); // onyx
-    else
-      obj = read_object(OBSIDIAN_MATERIAL, VIRTUAL); // obsidian
-    minskill = 1;
-    break;
-
-  case MATERIAL_COLD_IRON:
-    roll = dice(1, 100);
-    if (roll <= 48)
-      obj = read_object(COLD_IRON_MATERIAL, VIRTUAL); // cold iron
-    else if (roll <= 52)
-      obj = read_object(ONYX_MATERIAL, VIRTUAL); // onyx
-    else
-      obj = read_object(IRON_MATERIAL, VIRTUAL); // iron
-    minskill = 35;
-    break;
-
-  case MATERIAL_MITHRIL:
-    roll = dice(1, 100);
-    if (roll <= 48)
-      obj = read_object(MITHRIL_MATERIAL, VIRTUAL); // mithril
-    else if (roll <= 96)
-      obj = read_object(MITHRIL_MATERIAL, VIRTUAL); // mithril
-    else if (roll <= 98)
-      obj = read_object(RUBY_MATERIAL, VIRTUAL); // ruby
-    else
-      obj = read_object(SAPPHIRE_MATERIAL, VIRTUAL); // sapphire
-    minskill = 48;
-    break;
-
-  case MATERIAL_ADAMANTINE:
-    roll = dice(1, 100);
-    if (roll <= 4)
-      obj = read_object(ADAMANTINE_MATERIAL, VIRTUAL); // adamantine
-    else if (roll <= 96)
-      obj = read_object(PLATINUM_MATERIAL, VIRTUAL); // platinum
-    else
-    {
-      if (dice(1, 2) % 2 == 0)
-        obj = read_object(DIAMOND_MATERIAL, VIRTUAL); // diamond
-      else
-        obj = read_object(EMERALD_MATERIAL, VIRTUAL); // emerald
-    }
-    minskill = 61;
-    break;
-
-  case MATERIAL_SILVER:
-    roll = dice(1, 10);
-    if (roll <= (8))
-    {
-      roll = dice(1, 100);
-      if (roll <= 48)
-        obj = read_object(COPPER_MATERIAL, VIRTUAL); // copper
-      else if (roll <= 96)
-        obj = read_object(ALCHEMAL_SILVER_MATERIAL, VIRTUAL); // alchemal silver
-      else if (roll <= 98)
-        obj = read_object(ONYX_MATERIAL, VIRTUAL); // onyx
-      else
-        obj = read_object(OBSIDIAN_MATERIAL, VIRTUAL); // obsidian
-    }
-    else
-    {
-      roll = dice(1, 100);
-      if (roll <= 48)
-        obj = read_object(SILVER_MATERIAL, VIRTUAL); // silver
-      else if (roll <= 52)
-        obj = read_object(ONYX_MATERIAL, VIRTUAL); // onyx
-      else
-        obj = read_object(SILVER_MATERIAL, VIRTUAL); // silver
-    }
-    minskill = 1;
-    break;
-
-  case MATERIAL_GOLD:
-    roll = dice(1, 10);
-    if (roll <= (8))
-    {
-      roll = dice(1, 100);
-      if (roll <= 48)
-        obj = read_object(GOLD_MATERIAL, VIRTUAL); // gold
-      else if (roll <= 96)
-        obj = read_object(GOLD_MATERIAL, VIRTUAL); // gold
-      else if (roll <= 98)
-        obj = read_object(RUBY_MATERIAL, VIRTUAL); // ruby
-      else
-        obj = read_object(SAPPHIRE_MATERIAL, VIRTUAL); // sapphire
-    }
-    else
-    {
-      roll = dice(1, 100);
-      if (roll <= 4)
-        obj = read_object(PLATINUM_MATERIAL, VIRTUAL); // platinum
-      else if (roll <= 96)
-        obj = read_object(PLATINUM_MATERIAL, VIRTUAL); // platinum
-      else
-      {
-        if (dice(1, 2) % 2 == 0)
-          obj = read_object(DIAMOND_MATERIAL, VIRTUAL); // diamond
-        else
-          obj = read_object(EMERALD_MATERIAL, VIRTUAL); // emerald
-      }
-    }
-    minskill = 30;
-    break;
-
-  case MATERIAL_WOOD:
-    roll = dice(1, 100);
-    if (roll <= (80))
-    {
-      if (dice(1, 100) <= 96)
-        obj = read_object(ALDERWOOD_MATERIAL, VIRTUAL); // alderwood
-      else
-        obj = read_object(FOS_BIRD_MATERIAL, VIRTUAL); // fossilized bird egg
-    }
-    else if (roll <= (94))
-    {
-      if (dice(1, 100) <= 96)
-        obj = read_object(YEW_MATERIAL, VIRTUAL); // yew
-      else
-        obj = read_object(FOS_LIZARD_MATERIAL, VIRTUAL); // fossilized giant lizard egg
-    }
-    else
-    {
-      if (dice(1, 100) <= 96)
-        obj = read_object(OAK_MATERIAL, VIRTUAL); // oak
-      else
-        obj = read_object(FOS_WYVERN_MATERIAL, VIRTUAL); // fossilized wyvern egg
-    }
-    minskill = 1;
-    break;
-
-  case MATERIAL_DARKWOOD:
-    if (dice(1, 100) <= 96)
-      obj = read_object(DARKWOOD_MATERIAL, VIRTUAL); // darkwood
-    else
-      obj = read_object(FOS_DRAGON_MATERIAL, VIRTUAL); // fossilized dragon egg
-    minskill = 38;
-    break;
-
-  case MATERIAL_LEATHER:
-    roll = dice(1, 100);
-    if (roll <= (82))
-    {
-      if (dice(1, 100) <= 96)
-      {
-        obj = read_object(LEATHER_LQ_MATERIAL, VIRTUAL); // low quality hide
-      }
-      else
-        obj = read_object(FOS_BIRD_MATERIAL, VIRTUAL); // fossilized bird egg
-    }
-    else if (roll <= (94))
-    {
-      if (dice(1, 10) <= 96)
-      {
-        obj = read_object(LEATHER_MQ_MATERIAL, VIRTUAL); // medium quality hide
-      }
-      else
-        obj = read_object(FOS_LIZARD_MATERIAL, VIRTUAL); // fossilized giant lizard egg
-    }
-    else
-    {
-      if (dice(1, 100) <= 96)
-      {
-        obj = read_object(LEATHER_HQ_MATERIAL, VIRTUAL); // high quality hide
-      }
-      else
-        obj = read_object(FOS_WYVERN_MATERIAL, VIRTUAL); // fossilized wyvern egg
-    }
-    minskill = 1;
-    break;
-
-  case MATERIAL_DRAGONHIDE:
-    if (dice(1, 100) <= 70)
-      obj = read_object(LEATHER_HQ_MATERIAL, VIRTUAL); // high quality leather
-    else
-      obj = read_object(DRAGONHIDE_MATERIAL, VIRTUAL); // dragon hide
-    minskill = 58;
-    break;
-
-  case MATERIAL_HEMP:
-    if (dice(1, 100) <= 96)
-      obj = read_object(HEMP_MATERIAL, VIRTUAL); // hemp
-    else
-      obj = read_object(FOS_BIRD_MATERIAL, VIRTUAL); // fossilized bird egg
-    minskill = 1;
-    break;
-
-  case MATERIAL_COTTON:
-    if (dice(1, 100) <= 96)
-    {
-      obj = read_object(COTTON_MATERIAL, VIRTUAL); // cotton
-    }
-    else
-      obj = read_object(FOS_LIZARD_MATERIAL, VIRTUAL); // fossilized giant lizard egg
-    minskill = 5;
-    break;
-
-  case MATERIAL_WOOL:
-    if (dice(1, 100) <= 96)
-    {
-      obj = read_object(WOOL_MATERIAL, VIRTUAL); // wool
-    }
-    else
-      obj = read_object(FOS_LIZARD_MATERIAL, VIRTUAL); // fossilized giant lizard egg
-    minskill = 10;
-    break;
-
-  case MATERIAL_VELVET:
-    if (dice(1, 100) <= 96)
-    {
-      obj = read_object(VELVET_MATERIAL, VIRTUAL); // velvet
-    }
-    else
-      obj = read_object(FOS_WYVERN_MATERIAL, VIRTUAL); // fossilized wyvern egg
-    minskill = 25;
-    break;
-
-  case MATERIAL_SATIN:
-    if (dice(1, 100) <= 96)
-    {
-      obj = read_object(SATIN_MATERIAL, VIRTUAL); // satin
-    }
-    else
-      obj = read_object(FOS_WYVERN_MATERIAL, VIRTUAL); // fossilized wyvern egg
-    minskill = 31;
-    break;
-
-  case MATERIAL_SILK:
-    if (dice(1, 100) <= 96)
-    {
-      if (dice(1, 100) <= 25)
-        obj = read_object(VELVET_MATERIAL, VIRTUAL); // velvet
-      else if (dice(1, 100) <= 25)
-        obj = read_object(SATIN_MATERIAL, VIRTUAL); // satin
-      else
-        obj = read_object(SILK_MATERIAL, VIRTUAL); // silk
-    }
-    else
-      obj = read_object(FOS_DRAGON_MATERIAL, VIRTUAL); // fossilized dragon egg
-    minskill = 38;
-    break;
-
-  default:
     send_to_char(ch,
                  "That is not a valid node type, please report this to a staff member [1].\r\n");
-    return;
-  }
-
-  if (!obj)
-  {
-    send_to_char(ch,
-                 "That is not a valid node type, please report this to a staff member [2].\r\n");
     return;
   }
 
@@ -3574,51 +3692,57 @@ ACMD(do_harvest)
                  get_craft_skill_value(ch, skillnum));
     return;
   }
-
-  GET_CRAFTING_TYPE(ch) = (ubyte)sub_command;
-  GET_CRAFTING_TICKS(ch) = 5;
-  GET_CRAFTING_OBJ(ch) = obj;
-
-  // Tell the character they started.
-  snprintf(buf, sizeof(buf), "You begin to %s.", CMD_NAME);
-  act(buf, FALSE, ch, 0, NULL, TO_CHAR);
-
-  // Tell the room the character started.
-  snprintf(buf, sizeof(buf), "$n begins to %s.", CMD_NAME);
-  act(buf, FALSE, ch, 0, NULL, TO_ROOM);
-
-  if (node)
-    GET_OBJ_VAL(node, 0)
-  --;
-
-  if (node && GET_OBJ_VAL(node, 0) <= 0)
+  if (GET_OBJ_VAL(node, 0) <= 0)
   {
-    switch (sub_command)
-    {
-    case SCMD_MINE:
-      mining_nodes--;
-      break;
-    case SCMD_KNIT:
-      farming_nodes--;
-      break;
-    case SCMD_HUNT:
-      hunting_nodes--;
-      break;
-    default:
-      foresting_nodes--;
-      break;
-    }
-
-    // Tell the room the character used up the node
-    act("$p has been depleted.", FALSE, 0, node, 0, TO_ROOM);
-    obj_from_room(node);
-    extract_obj(node);
+    send_to_char(ch, "That node has been depleted.\r\n");
+    return;
+  }
+  if (!is_action_available(ch, atSTANDARD, FALSE) || !is_action_available(ch, atMOVE, FALSE))
+  {
+    send_to_char(ch, "You must recover your full round before harvesting.\r\n");
+    return;
   }
 
-  obj_to_char(obj, ch);
-  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
+  /* Nothing is allocated, spent, or rolled at admission: the reward, the charge, and the
+   * experience all wait for completion, so cancelling costs nothing and pays nothing. */
+  CREATE(harvest, struct node_harvest_context, 1);
+  harvest->material = material;
+  harvest->skill = skillnum;
+  harvest->sub_command = sub_command;
+  harvest->room = IN_ROOM(ch);
+  snprintf(buf, sizeof(buf), "harvesting %s",
+           node->short_description ? node->short_description : "a node");
+  definition.type = PRIMARY_ACTIVITY_HARVEST;
+  definition.display_name = buf;
+  definition.capabilities = PRIMARY_ACTIVITY_CAP_HANDS | PRIMARY_ACTIVITY_CAP_ATTENTION |
+                            PRIMARY_ACTIVITY_CAP_STANDARD | PRIMARY_ACTIVITY_CAP_MOVE;
+  definition.traits = PRIMARY_ACTIVITY_TRAIT_STATIONARY | PRIMARY_ACTIVITY_TRAIT_HANDS_OCCUPIED |
+                      PRIMARY_ACTIVITY_TRAIT_OBVIOUS;
+  definition.progress_model = PRIMARY_ACTIVITY_PROGRESS_PROGRESSIVE;
+  definition.progress_owner = PRIMARY_ACTIVITY_PROGRESS_CHARACTER;
+  definition.total_steps = NODE_HARVEST_STEPS;
+  definition.step_interval = PULSE_VIOLENCE;
+  definition.combat_actions_required = ACTION_STANDARD | ACTION_MOVE;
+  definition.movement_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.damage_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.combat_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.target_loss_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.command_response = PRIMARY_ACTIVITY_RESPONSE_REJECT;
+  definition.cannot_pause = true;
+  definition.recheck = node_harvest_recheck;
+  definition.complete = node_harvest_complete;
+  definition.cleanup_context = free;
+  definition.context = harvest;
+  if (!primary_activity_start(ch, domain_event_object_handle(node), &definition))
+  {
+    free(harvest);
+    send_to_char(ch, "You are already occupied or cannot begin harvesting right now.\r\n");
+    return;
+  }
 
-  return;
+  act("You begin to harvest $p.", FALSE, ch, node, NULL, TO_CHAR);
+  act("$n begins to harvest $p.", FALSE, ch, node, NULL, TO_ROOM);
+  USE_FULL_ROUND_ACTION(ch);
 }
 
 int get_mysql_supply_orders_available(struct char_data *ch)
