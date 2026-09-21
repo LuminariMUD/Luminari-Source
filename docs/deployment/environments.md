@@ -109,8 +109,9 @@ security and privacy result is recorded in the
 
 ## Wilderness harvesting
 
-`WILDERNESS_HARVEST_CRAFTING=TRUE` enables full-round category harvesting into
-usable crafting balances. It defaults to true. Set it to `FALSE` to restore
-the earlier wilderness-storage route. Node systems keep their current behavior.
+Wilderness harvesting always credits the crafting balances; the former
+`WILDERNESS_HARVEST_CRAFTING` toggle and the separate wilderness store it
+selected were retired by the crafting consolidation (`docs/ongoing-projects/`
+`crafting-consolidation-assessment.md`). Old holdings convert once at login.
 See [Wilderness harvesting](../systems/WILDERNESS_HARVESTING.md). The requested
 `lib/.env.example` spelling links to the maintained `lib/.env_example` template.

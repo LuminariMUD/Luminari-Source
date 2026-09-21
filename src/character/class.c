@@ -38,6 +38,7 @@
 #include "evolutions.h"
 #include "backgrounds.h"
 #include "perks.h"
+#include "craft/crafting_new.h"
 
 /** LOCAL DEFINES **/
 // good/bad
@@ -2830,10 +2831,10 @@ static void init_start_char(struct char_data *ch)
   CNDNSD(ch) = NULL;
 
   /* reset skills/abilities */
-  /* we don't want players to lose their hard-earned crafting skills; craft and harvest ranks
-   * follow the general abilities and keep the experience that earned them */
+  /* Craft and harvest ranks follow the general abilities below and keep the experience that
+   * earned them; the retired legacy crafting slots are audit data and are left alone too. */
   for (i = START_SKILLS; i < NUM_SKILLS; i++)
-    if (spell_info[i].schoolOfMagic != CRAFTING_SKILL)
+    if (i < CRAFT_LEGACY_ID_FIRST || i > CRAFT_LEGACY_ID_LAST)
       SET_SKILL(ch, i, 0);
   for (i = START_GENERAL_ABILITIES; i <= END_GENERAL_ABILITIES; i++)
     SET_ABILITY(ch, i, 0);

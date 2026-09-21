@@ -399,16 +399,6 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
   case SKILL_PROF_MINIMAL:
   case SKILL_PROF_SHIELDS:
   case SKILL_PROF_LIGHT_A:
-  case SKILL_MINING:
-  case SKILL_HUNTING:
-  case SKILL_FORESTING:
-  case SKILL_KNITTING:
-  case SKILL_CHEMISTRY:
-  case SKILL_ARMOR_SMITHING:
-  case SKILL_WEAPON_SMITHING:
-  case SKILL_JEWELRY_MAKING:
-  case SKILL_LEATHER_WORKING:
-  case SKILL_FAST_CRAFTER:
     return TRUE;
 
     /**
@@ -418,11 +408,6 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
   case SKILL_MURMUR:
   case SKILL_PROPAGANDA:
   case SKILL_LOBBY:
-  case SKILL_BONE_ARMOR:
-  case SKILL_ELVEN_CRAFTING:
-  case SKILL_MASTERWORK_CRAFTING:
-  case SKILL_DRACONIC_CRAFTING:
-  case SKILL_DWARVEN_CRAFTING:
   case SKILL_SPELLBATTLE: // arcana golem innate
   default:
     return FALSE;
@@ -545,23 +530,7 @@ void list_skills(struct char_data *ch)
   }
   send_to_char(ch, "\r\n\r\n");
 
-  /* Crafting Skills */
-  send_to_char(ch, "\tCCrafting Skills\tn\r\n\r\n");
-  for (i = START_SKILLS + 1; i < NUM_SKILLS; i++)
-  {
-    if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
-        spell_info[i].schoolOfMagic == CRAFTING_SKILL)
-    {
-      if (meet_skill_reqs(ch, i))
-      {
-        send_to_char(ch, "%-24s %d          ", spell_info[i].name, GET_SKILL(ch, i));
-        printed++;
-        if (!(printed % 2))
-          send_to_char(ch, "\r\n");
-      }
-    }
-  }
-  send_to_char(ch, "\r\n\r\n");
+  send_to_char(ch, "\tDCraft and harvest ranks: type 'craftscore'.\tn\r\n\r\n");
 
   send_to_char(ch, "\tCPractice Session(s): %d\tn\r\n\r\n", GET_PRACTICES(ch));
 }

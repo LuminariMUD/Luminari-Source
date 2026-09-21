@@ -49,45 +49,6 @@
 /* #define USE_VIRTUAL_BAGS_ONLY */
 
 /* ************************************************************************
- * Crafting System Configuration
- *
- * WARNING: ONE AND ONLY ONE of the following two options MUST be defined.
- * Defining both or neither will cause compilation errors.
- *
- * The crafting system determines how magic items are awarded in the game.
- * ************************************************************************ */
-
-/**
- * USE_OLD_CRAFTING_SYSTEM - Traditional magic item award system
- *
- * This is the simpler, more stable option and is recommended for most MUDs.
- * Provides basic crafting functionality with proven stability.
- *
- * Status: RECOMMENDED - Stable and well-tested
- */
-#define USE_OLD_CRAFTING_SYSTEM
-
-/**
- * USE_NEW_CRAFTING_SYSTEM - Advanced crafting system
- *
- * Provides more advanced crafting features including:
- * - More complex recipes
- * - Additional crafting skills
- * - Enhanced customization options
- *
- * Status: EXPERIMENTAL - May be less stable
- */
-/* #define USE_NEW_CRAFTING_SYSTEM */
-
-// One of these two must be chosen.
-// basic materials means that each type of material (iron, steel, mithril, etc) has a static quality
-// variable quality means that each time materials are harvested, their quality can vary, such as
-// iron of a quality 1.5 or 0.6 or 1.8 with the quality affecting crafting success and degree
-// Variable quality requires the use of wilderness maps
-// #define USE_BASIC_MATERIALS
-#define USE_VARIABLE_QUALITY_MATERIALS
-
-/* ************************************************************************
  * Available Races Configuration
  *
  * Define which races are available for player selection.

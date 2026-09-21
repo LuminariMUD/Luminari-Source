@@ -161,11 +161,6 @@ void craft_mold_command(struct char_data *ch, const char *argument);
 #define GET_AUTOCQUEST_MATERIAL(ch)                                                                \
   CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.autocquest_material))
 
-#define GET_CRAFTING_TYPE(ch) ((ch)->char_specials.crafting_type)
-#define GET_CRAFTING_TICKS(ch) ((ch)->char_specials.crafting_ticks)
-#define GET_CRAFTING_OBJ(ch) ((ch)->char_specials.crafting_object)
-#define GET_CRAFTING_REPEAT(ch) ((ch)->char_specials.crafting_repeat)
-#define GET_CRAFTING_BONUS(ch) ((ch)->char_specials.crafting_bonus)
 
 /* end item defines */
 

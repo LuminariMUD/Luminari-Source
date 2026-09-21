@@ -14,7 +14,6 @@
 #include "craft/craft.h"
 #include "core/db.h"
 #include "events/domain_event_world.h"
-#include "config/dotenv.h"
 #include "config/harvest_vnums.h"
 #include "magic/spells.h"
 #include "core/interpreter.h"
@@ -30,12 +29,6 @@ struct wilderness_harvest_context
   int x;
   int y;
 };
-
-/** @brief Read the live routing toggle through the shared configuration cache, defaulting true. */
-bool wilderness_harvest_crafting_enabled(void)
-{
-  return get_env_bool("WILDERNESS_HARVEST_CRAFTING", TRUE);
-}
 
 /** @brief A currently valid wilderness room, for any character. */
 static bool in_wilderness_room(struct char_data *ch)
@@ -579,9 +572,8 @@ static bool harvest_recheck(struct char_data *ch, void *target, void *context)
 {
   struct wilderness_harvest_context *harvest = context;
 
-  return harvest_conditions(ch) && wilderness_harvest_crafting_enabled() &&
-         target == &world[IN_ROOM(ch)] && world[IN_ROOM(ch)].coords[0] == harvest->x &&
-         world[IN_ROOM(ch)].coords[1] == harvest->y &&
+  return harvest_conditions(ch) && target == &world[IN_ROOM(ch)] &&
+         world[IN_ROOM(ch)].coords[0] == harvest->x && world[IN_ROOM(ch)].coords[1] == harvest->y &&
          wilderness_harvest_available(ch, harvest->category, true) &&
          (harvest->material == CRAFT_MAT_NONE ||
           wilderness_material_refusal(ch, harvest->material) == NULL);
@@ -779,6 +771,12 @@ static int start_harvest(struct char_data *ch, int category, int material)
 int start_wilderness_crafting_harvest(struct char_data *ch, int category)
 {
   return start_harvest(ch, category, CRAFT_MAT_NONE);
+}
+
+/** @brief The rank a category's mote harvest rolls with (its ability, talent, and the Miner feat). */
+int wilderness_harvest_rank(struct char_data *ch, int category)
+{
+  return harvest_rank(ch, category, crafting_harvest_skill(category));
 }
 
 int start_wilderness_material_harvest(struct char_data *ch, int material)

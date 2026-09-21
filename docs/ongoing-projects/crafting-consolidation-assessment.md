@@ -611,28 +611,50 @@ operation still starts `eCRAFT`, `eCRAFTING`, or `eBREWING`.
 
 ### Phase 5: retire duplicate paths
 
-- [ ] Implement `CrMg` stage 3 for old wilderness holdings (Decision 10). Delete their gameplay
+- [x] Implement `CrMg` stage 3 for old wilderness holdings (Decision 10). Delete their gameplay
   store and commands, the fallback branch of `do_wilderness_harvest()`, its old skill helpers,
   `USE_VARIABLE_QUALITY_MATERIALS`, and `WILDERNESS_HARVEST_CRAFTING` in code, example
   configuration, and docs. Keep migration readers and unresolved-data serialization independent
-  of removed compile-time flags; do not remove them on a one-release deadline.
-- [ ] Make the crystal-inclusive loot table unconditional; delete the other branch,
+  of removed compile-time flags; do not remove them on a one-release deadline. Done:
+  `craft_migrate_wilderness_holdings()` aggregates every record through the frozen
+  `wilderness_harvest_material()` / `wilderness_harvest_mote()` mapping (quantity times quality
+  for motes), checks every destination's capacity, then credits and clears together; an
+  invalid or unmappable record or an overflow keeps every holding and the stage unadvanced. The
+  `WMat`/`Mat` reader now keeps an invalid record as written instead of dropping it. Removed:
+  the `materials` and `materialadmin` commands, the storage add/remove/show/init/compact
+  helpers, the fallback `attempt_wilderness_harvest()`, `get_harvest_skill()` and
+  `get_harvest_skill_level()` (the Miner feat rank is `wilderness_harvest_rank()` in
+  `harvest.c`), the toggle and its reader, its `lib/.env.example` line, and the
+  `environments.md` paragraph. The `stored_materials` fields and their tags remain as pending
+  migration data.
+- [x] Make the crystal-inclusive loot table unconditional; delete the other branch,
   `get_check_craft_material`, and both `USE_*_CRAFTING_SYSTEM` flags in the example header.
-- [ ] Delete `enhanced_crafting_recipes.h` (no includer) if Phase 3a has not already.
-- [ ] Remove skills 2071 to 2085: the `skillo()` lines (`src/magic/spell_parser.c:6813`), the
+  Done (the local `mud_options.h` still defines the flags; nothing reads them).
+- [x] Delete `enhanced_crafting_recipes.h` (no includer) if Phase 3a has not already. Done.
+- [x] Remove skills 2071 to 2085: the `skillo()` lines (`src/magic/spell_parser.c:6813`), the
   `CRAFTING_SKILL` school and `list_crafting_skills()`, the `increase_skill()` cases, the
   old respec exception, and live defines. Delete `init_char()`'s legacy seed; Decision 1's
   equivalent floor covers starter access. Keep `players.c:load_skills()`'s old-id remap,
   reserved slots, and explicit historical ids in migration code. Preserve the distinct crafting
   feats. Search all callers, configs, special bindings, tests, and documentation for retired
-  selectors and skill readers.
-- [ ] Update both build manifests for every removed file and run
-  `python3 scripts/ci/check_build_parity.py`.
-- [ ] Tests: `CrMg` versions 0, 1, and 2 reach stage 3 with each applicable migration exactly
+  selectors and skill readers. Done: the defines, `TOP_CRAFT_SKILL`/`BOTTOM_CRAFT_SKILL`, the
+  `CRAFTING_SKILL` school, the registrations, the notch cases, the seed, and the kit state
+  fields (`crafting_type`, `crafting_ticks`, `crafting_object`, `crafting_repeat`,
+  `crafting_bonus`) are gone; respec leaves slots 2071 to 2085 alone (they are audit data);
+  the player writer serializes every non-zero skill slot by index, so saved legacy values
+  survive; `load_skills()` still remaps 471 to 485.
+- [x] Update both build manifests for every removed file and run
+  `python3 scripts/ci/check_build_parity.py`. Done (the deleted files were in neither
+  manifest; parity passes).
+- [x] Tests: `CrMg` versions 0, 1, and 2 reach stage 3 with each applicable migration exactly
   once. All old material categories and quality tiers, ore exceptions, mote multipliers, duplicate
   destinations, unknown mappings, overflow, and save failure are covered. Returning pre-merge
   files still convert after live legacy definitions disappear. No invalid or uncredited input
-  is erased; no ordinary command reads the old holdings as a second wallet.
+  is erased; no ordinary command reads the old holdings as a second wallet. Done in
+  `test_craft_training.c` (`Test_craft_wilderness_holdings_convert_once` plus the existing
+  stage 1 and 2 tests; save failure is covered by the atomic-writer test); the `materials`
+  command no longer exists, and the retired toggle scenarios in `test_gameplay_e2e.c` now
+  assert that harvesting never writes the old store.
 
 ### Phase 6: help and documentation
 

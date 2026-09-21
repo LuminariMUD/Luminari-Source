@@ -60,9 +60,6 @@
 /* do_get utility functions */
 static int can_take_obj(struct char_data *ch, struct obj_data *obj);
 static void get_check_money(struct char_data *ch, struct obj_data *obj);
-#ifdef USE_NEW_CRAFTING_SYSTEM
-static void get_check_craft_material(struct char_data *ch, struct obj_data *obj);
-#endif
 static void get_from_container(struct char_data *ch, struct obj_data *cont, char *arg, int mode,
                                int amount);
 static void get_from_room(struct char_data *ch, char *arg, int amount);
@@ -2277,44 +2274,6 @@ static void get_check_money(struct char_data *ch, struct obj_data *obj)
   }
 }
 
-#ifdef USE_NEW_CRAFTING_SYSTEM
-/* Function to automatically add craft materials to player's storage when picked up.
- * Works similarly to get_check_money() for gold coins.
- * ITEM_MATERIAL objects have:
- *   GET_OBJ_VAL(obj, 0) = quantity/bundle size
- *   GET_OBJ_VAL(obj, 1) = crafting material, on bundles from craftmaterials unstore
- *   GET_OBJ_MATERIAL(obj) = material type
- * Only active when USE_NEW_CRAFTING_SYSTEM is defined.
- */
-static void get_check_craft_material(struct char_data *ch, struct obj_data *obj)
-{
-  int quantity = 0;
-  int material_type = 0;
-
-  if (GET_OBJ_TYPE(obj) != ITEM_MATERIAL)
-    return;
-
-  quantity = MAX(1, GET_OBJ_VAL(obj, 0));
-  /* The same lookup as craftmaterials store, so a bundle keeps its hide grade. */
-  material_type = craft_material_from_object(obj);
-
-  if (material_type == CRAFT_MAT_NONE)
-    return;
-
-  extract_obj(obj);
-
-  GET_CRAFT_MAT(ch, material_type) += quantity;
-
-  if (!ch->char_specials.post_combat_messages)
-  {
-    if (quantity == 1)
-      send_to_char(ch, "You collect 1 %s material.\r\n", crafting_materials[material_type]);
-    else
-      send_to_char(ch, "You collect %d %s materials.\r\n", quantity,
-                   crafting_materials[material_type]);
-  }
-}
-#endif /* USE_NEW_CRAFTING_SYSTEM */
 
 static void perform_get_from_container_impl(struct char_data *ch, struct obj_data *obj,
                                             struct obj_data *cont, int mode);
@@ -2411,22 +2370,12 @@ static void perform_get_from_container_impl(struct char_data *ch, struct obj_dat
       }
       /* Check if it's money before calling get_check_money */
       bool was_money = (GET_OBJ_TYPE(obj) == ITEM_MONEY);
-#ifdef USE_NEW_CRAFTING_SYSTEM
-      bool was_material = (GET_OBJ_TYPE(obj) == ITEM_MATERIAL);
-#else
-      bool was_material = false;
-#endif
 
       get_check_money(ch, obj);
 
-#ifdef USE_NEW_CRAFTING_SYSTEM
-      /* If money was extracted, obj is invalid - check material only if obj still valid */
-      if (!was_money)
-        get_check_craft_material(ch, obj);
-#endif
 
-      /* If it was money or material, obj has been extracted, so don't use it anymore */
-      if (!was_money && !was_material)
+      /* If it was money, obj has been extracted, so don't use it anymore */
+      if (!was_money)
       {
         if (cont->carried_by != ch)
         {
@@ -2540,13 +2489,8 @@ static int perform_get_from_room_impl(struct char_data *ch, struct obj_data *obj
 
     /* Check if it's money before calling get_check_money */
     bool was_money = (GET_OBJ_TYPE(obj) == ITEM_MONEY);
-#ifdef USE_NEW_CRAFTING_SYSTEM
-    bool was_material = (GET_OBJ_TYPE(obj) == ITEM_MATERIAL);
-#else
-    bool was_material = false;
-#endif
 
-    if (!was_money && !was_material)
+    if (!was_money)
     {
       if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
         auto_store_obj(ch, obj);
@@ -2556,11 +2500,6 @@ static int perform_get_from_room_impl(struct char_data *ch, struct obj_data *obj
 
     get_check_money(ch, obj);
 
-#ifdef USE_NEW_CRAFTING_SYSTEM
-    /* If money was extracted, obj is invalid - check material only if obj still valid */
-    if (!was_money)
-      get_check_craft_material(ch, obj);
-#endif
 
     /* this is necessary because of disarm */
     if (FIGHTING(ch))

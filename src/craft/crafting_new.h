@@ -316,12 +316,13 @@ int craft_material_from_object(struct obj_data *obj);
 #define CRAFT_MIGRATION_SKILLS 1
 #define CRAFT_MIGRATION_ORDERS 2
 #define CRAFT_MIGRATION_HOLDINGS 3
-#define CRAFT_MIGRATION_CURRENT CRAFT_MIGRATION_ORDERS
+#define CRAFT_MIGRATION_CURRENT CRAFT_MIGRATION_HOLDINGS
 int craft_legacy_rank_for_skill(int legacy_value);
 int craft_legacy_ability_for_skill(int legacy_skill, int *second_ability);
 int craft_legacy_skill_equivalent(struct char_data *ch, int ability);
 bool craft_migrate_legacy_skills(struct char_data *ch);
 bool craft_settle_legacy_supply_order(struct char_data *ch);
+bool craft_migrate_wilderness_holdings(struct char_data *ch);
 char *replace_substring_ci(const char *src, const char *find, const char *repl);
 int craft_legacy_kit_seconds(struct char_data *ch, int ability, int base_ticks);
 int craft_operation_exp(int object_level);

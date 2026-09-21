@@ -34,6 +34,7 @@
 #include "../../src/wilderness/resource_system.h"
 #include "../../src/wilderness/kdtree.h"
 #include "../../src/wilderness/wilderness.h"
+#include "../../src/wilderness/harvest.h"
 
 #include <string.h>
 #include <time.h>
@@ -998,14 +999,14 @@ void TestMinerRaisesMineralHarvestSkill(CuTest *tc)
   int base_minerals, base_herbs;
 
   begin_innate_fixture(&fixture);
-  base_minerals = get_harvest_skill_level(&fixture.ch, RESOURCE_MINERALS);
-  base_herbs = get_harvest_skill_level(&fixture.ch, RESOURCE_HERBS);
+  base_minerals = wilderness_harvest_rank(&fixture.ch, RESOURCE_MINERALS);
+  base_herbs = wilderness_harvest_rank(&fixture.ch, RESOURCE_HERBS);
 
   SET_FEAT(&fixture.ch, FEAT_MINER, 1);
-  CuAssertIntEquals(tc, base_minerals + 4, get_harvest_skill_level(&fixture.ch, RESOURCE_MINERALS));
-  CuAssertIntEquals(tc, base_minerals + 4, get_harvest_skill_level(&fixture.ch, RESOURCE_STONE));
-  CuAssertIntEquals(tc, base_minerals + 4, get_harvest_skill_level(&fixture.ch, RESOURCE_CRYSTAL));
-  CuAssertIntEquals(tc, base_herbs, get_harvest_skill_level(&fixture.ch, RESOURCE_HERBS));
+  CuAssertIntEquals(tc, base_minerals + 4, wilderness_harvest_rank(&fixture.ch, RESOURCE_MINERALS));
+  CuAssertIntEquals(tc, base_minerals + 4, wilderness_harvest_rank(&fixture.ch, RESOURCE_STONE));
+  CuAssertIntEquals(tc, base_minerals + 4, wilderness_harvest_rank(&fixture.ch, RESOURCE_CRYSTAL));
+  CuAssertIntEquals(tc, base_herbs, wilderness_harvest_rank(&fixture.ch, RESOURCE_HERBS));
 
   end_innate_fixture(&fixture);
 }

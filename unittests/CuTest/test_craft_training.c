@@ -22,6 +22,7 @@
 #include "../../src/craft/craft.h"
 #include "../../src/craft/craft_training.h"
 #include "../../src/craft/crafting_new.h"
+#include "../../src/wilderness/resource_system.h"
 #include "../../src/database/mysql.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/events/activity_manager.h"
@@ -1764,19 +1765,137 @@ void Test_craft_legacy_supply_orders_settle_once(CuTest *tc)
   CuAssertIntEquals(tc, 0, partial_result);
   CuAssertIntEquals(tc, 6, partial_steel);
   CuAssertIntEquals(tc, 0, partial_vnum);
-  CuAssertIntEquals(tc, CRAFT_MIGRATION_ORDERS, partial_marker);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_CURRENT, partial_marker);
   CuAssertIntEquals(tc, ABILITY_HARVEST_FORESTRY, partial_training);
   CuAssertIntEquals(tc, 1, partial_contract);
   CuAssertTrue(tc, note_mentions_units);
   CuAssertIntEquals(tc, 6, again_steel);
-  CuAssertIntEquals(tc, CRAFT_MIGRATION_ORDERS, again_marker);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_CURRENT, again_marker);
   CuAssertIntEquals(tc, 105, done_gold);
   CuAssertIntEquals(tc, 1, done_qp);
   CuAssertIntEquals(tc, 0, done_vnum);
-  CuAssertIntEquals(tc, CRAFT_MIGRATION_ORDERS, done_marker);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_CURRENT, done_marker);
   CuAssertIntEquals(tc, 30084, capped_vnum);
   CuAssertIntEquals(tc, CRAFT_MIGRATION_SKILLS, capped_marker);
   CuAssertIntEquals(tc, MAX_GOLD - 10, capped_gold);
   CuAssertIntEquals(tc, 30084, odd_vnum);
   CuAssertIntEquals(tc, CRAFT_MIGRATION_SKILLS, odd_marker);
+}
+
+/* ---- Old wilderness holdings (crafting consolidation, Phase 5) ---- */
+
+/** CrMg stage 3 moves old wilderness holdings through the frozen pre-merge mapping once:
+ * every material category and quality tier, the cold-iron and adamantine exceptions, mote
+ * records at quantity times quality, duplicate destinations aggregated; invalid records or
+ * overflow keep every holding and the stage unadvanced; files at markers 0, 1, and 2 all reach
+ * stage 3 exactly once, and a pre-merge file still converts its legacy skills. */
+void Test_craft_wilderness_holdings_convert_once(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *holder = new_char(), *again = new_char(), *invalid = new_char();
+  struct char_data *full = new_char(), *unmarked = new_char();
+  char extra[1024];
+  int result, marker, hemp, flax, tin, cold_iron, adamantine, ironwood, dragonscale, water;
+  int water_records, again_marker, again_hemp, again_records, invalid_marker, invalid_records;
+  int invalid_hemp, full_marker, full_records, unmarked_marker, unmarked_mining, unmarked_hemp;
+
+  craft_player_files_enter(tc, &files, "crwild", 4314);
+
+  /* Vegetation poor and common (hemp, flax; hemp twice), minerals poor (tin), cold iron at
+   * rare, adamantine at legendary, ironwood at legendary, dragonscale at legendary, and
+   * spring water at uncommon (three motes per unit). */
+  snprintf(extra, sizeof(extra),
+           "CrMg: 2\nWMat: 8\nMat : %d 0 1 2\nMat : %d 0 2 3\nMat : %d 0 1 4\nMat : %d %d 4 1\n"
+           "Mat : %d %d 5 1\nMat : %d %d 5 2\nMat : %d %d 5 1\nMat : %d %d 3 2\nMat : %d 0 1 5\n",
+           RESOURCE_VEGETATION, RESOURCE_VEGETATION, RESOURCE_MINERALS, RESOURCE_MINERALS,
+           ORE_COLD_IRON, RESOURCE_MINERALS, ORE_ADAMANTINE, RESOURCE_WOOD, WOOD_IRONWOOD,
+           RESOURCE_GAME, GAME_LEATHER, RESOURCE_WATER, WATER_SPRING, RESOURCE_VEGETATION);
+  craft_write_legacy_pfile(tc, &files, 4314, "", extra);
+  result = load_char(files.name, holder);
+  marker = GET_CRAFT_MIGRATION(holder);
+  hemp = GET_CRAFT_MAT(holder, CRAFT_MAT_HEMP);
+  flax = GET_CRAFT_MAT(holder, CRAFT_MAT_FLAX);
+  tin = GET_CRAFT_MAT(holder, CRAFT_MAT_TIN);
+  cold_iron = GET_CRAFT_MAT(holder, CRAFT_MAT_COLD_IRON);
+  adamantine = GET_CRAFT_MAT(holder, CRAFT_MAT_ADAMANTINE);
+  ironwood = GET_CRAFT_MAT(holder, CRAFT_MAT_IRONWOOD);
+  dragonscale = GET_CRAFT_MAT(holder, CRAFT_MAT_DRAGONSCALE);
+  water = GET_CRAFT_MOTES(holder, CRAFTING_MOTE_WATER);
+  water_records = holder->player_specials->saved.stored_material_count;
+  GET_PFILEPOS(holder) = 0;
+  CuAssertTrue(tc, save_char_checked(holder, 0));
+  CuAssertIntEquals(tc, 0, load_char(files.name, again));
+  again_marker = GET_CRAFT_MIGRATION(again);
+  again_hemp = GET_CRAFT_MAT(again, CRAFT_MAT_HEMP);
+  again_records = again->player_specials->saved.stored_material_count;
+
+  /* An invalid record keeps every holding and the stage stays at 2. */
+  snprintf(extra, sizeof(extra), "CrMg: 2\nWMat: 2\nMat : %d 0 1 2\nMat : 99 0 1 2\n",
+           RESOURCE_VEGETATION);
+  craft_write_legacy_pfile(tc, &files, 4314, "", extra);
+  CuAssertIntEquals(tc, 0, load_char(files.name, invalid));
+  invalid_marker = GET_CRAFT_MIGRATION(invalid);
+  invalid_records = invalid->player_specials->saved.stored_material_count;
+  invalid_hemp = GET_CRAFT_MAT(invalid, CRAFT_MAT_HEMP);
+
+  /* A destination that cannot take the holdings keeps them too (the balance block is one
+   * value per material in id order, ended by -1). */
+  {
+    int offset, material;
+
+    offset = snprintf(extra, sizeof(extra), "CrMg: 2\nWMat: 1\nMat : %d 0 1 2\nCfMt:\n",
+                      RESOURCE_VEGETATION);
+    for (material = 0; material < NUM_CRAFT_MATS; material++)
+      offset += snprintf(extra + offset, sizeof(extra) - (size_t)offset, "%d\n",
+                         material == CRAFT_MAT_HEMP ? INT_MAX : 0);
+    snprintf(extra + offset, sizeof(extra) - (size_t)offset, "-1\n");
+  }
+  craft_write_legacy_pfile(tc, &files, 4314, "", extra);
+  CuAssertIntEquals(tc, 0, load_char(files.name, full));
+  full_marker = GET_CRAFT_MIGRATION(full);
+  full_records = full->player_specials->saved.stored_material_count;
+
+  /* A pre-merge file (no marker, legacy skills, holdings) runs every stage in order. */
+  snprintf(extra, sizeof(extra), "WMat: 1\nMat : %d 0 1 2\n", RESOURCE_VEGETATION);
+  snprintf(extra + strlen(extra), sizeof(extra) - strlen(extra), "%s", "");
+  {
+    char skills[64];
+
+    snprintf(skills, sizeof(skills), "%d 48\n", CRAFT_LEGACY_ID_MINING);
+    craft_write_legacy_pfile(tc, &files, 4314, skills, extra);
+  }
+  CuAssertIntEquals(tc, 0, load_char(files.name, unmarked));
+  unmarked_marker = GET_CRAFT_MIGRATION(unmarked);
+  unmarked_mining = GET_ABILITY(unmarked, ABILITY_HARVEST_MINING);
+  unmarked_hemp = GET_CRAFT_MAT(unmarked, CRAFT_MAT_HEMP);
+
+  free_char(holder);
+  free_char(again);
+  free_char(invalid);
+  free_char(full);
+  free_char(unmarked);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_HOLDINGS, marker);
+  CuAssertIntEquals(tc, 7, hemp);
+  CuAssertIntEquals(tc, 3, flax);
+  CuAssertIntEquals(tc, 4, tin);
+  CuAssertIntEquals(tc, 1, cold_iron);
+  CuAssertIntEquals(tc, 1, adamantine);
+  CuAssertIntEquals(tc, 2, ironwood);
+  CuAssertIntEquals(tc, 1, dragonscale);
+  CuAssertIntEquals(tc, 6, water);
+  CuAssertIntEquals(tc, 0, water_records);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_HOLDINGS, again_marker);
+  CuAssertIntEquals(tc, 7, again_hemp);
+  CuAssertIntEquals(tc, 0, again_records);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_ORDERS, invalid_marker);
+  CuAssertIntEquals(tc, 2, invalid_records);
+  CuAssertIntEquals(tc, 0, invalid_hemp);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_ORDERS, full_marker);
+  CuAssertIntEquals(tc, 1, full_records);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_HOLDINGS, unmarked_marker);
+  CuAssertIntEquals(tc, 10, unmarked_mining);
+  CuAssertIntEquals(tc, 2, unmarked_hemp);
 }

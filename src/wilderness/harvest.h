@@ -8,10 +8,10 @@
 #define WILDERNESS_CMD_GATHER 1
 #define WILDERNESS_CMD_MINE 2
 
-bool wilderness_harvest_crafting_enabled(void);
 bool wilderness_harvest_available(struct char_data *ch, int category, bool verbose);
 int start_wilderness_crafting_harvest(struct char_data *ch, int category);
 int start_wilderness_material_harvest(struct char_data *ch, int material);
+int wilderness_harvest_rank(struct char_data *ch, int category);
 int wilderness_harvest_tool_quality(struct char_data *ch);
 int wilderness_harvest_material(int category, int subtype, int quality);
 int wilderness_harvest_mote(int category, int subtype);

@@ -12807,6 +12807,12 @@ void Test_wilderness_harvest_tools_use_vnum_and_best_inventory_or_equipment_tier
   CuAssertTrue(tc, highest);
 }
 
+/** @brief The configuration cache probe the retired harvest toggle used to be. */
+static bool env_probe_enabled(void)
+{
+  return get_env_bool("WILDERNESS_HARVEST_CRAFTING", TRUE);
+}
+
 /** @brief Write a synthetic environment file without touching development configuration. */
 static bool write_env_fixture(const char *path, const char *contents)
 {
@@ -12833,51 +12839,47 @@ void Test_environment_cache_observes_edits_replacements_and_path_changes(CuTest 
   CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
   CuAssertPtrNotNull(tc, mkdtemp(temporary));
   CuAssertIntEquals(tc, 0, chdir(temporary));
-  result[0] = wilderness_harvest_crafting_enabled() && get_env_int("NUMBER", 17) == 17 &&
-              !get_env_bool("ABSENT", false);
+  result[0] =
+      env_probe_enabled() && get_env_int("NUMBER", 17) == 17 && !get_env_bool("ABSENT", false);
 
   result[1] =
       mkdir("lib", 0700) == 0 &&
       write_env_fixture("lib/.env", " # comment\nWILDERNESS_HARVEST_CRAFTING = \"yes\" \n"
                                     "NUMBER = 13\nNUMBER=99\nTEXT=\"two words\"\nEMPTY=\n") &&
-      wilderness_harvest_crafting_enabled() && get_env_int("NUMBER", 0) == 13 &&
+      env_probe_enabled() && get_env_int("NUMBER", 0) == 13 &&
       strcmp(get_env_value("TEXT"), "two words") == 0 && get_env_bool("EMPTY", true) &&
       !get_env_bool("EMPTY", false);
-  result[2] = write_env_fixture(".env", disabled) && !wilderness_harvest_crafting_enabled() &&
-              get_env_int("NUMBER", 0) == 42;
+  result[2] =
+      write_env_fixture(".env", disabled) && !env_probe_enabled() && get_env_int("NUMBER", 0) == 42;
   for (i = 0; i < 20; i++)
-    result[2] =
-        result[2] && !wilderness_harvest_crafting_enabled() && get_env_int("NUMBER", 0) == 42;
+    result[2] = result[2] && !env_probe_enabled() && get_env_int("NUMBER", 0) == 42;
 
   /* A same-size edit with restored mtime still changes ctime and must refresh. */
   result[3] = stat(".env", &status) == 0;
   times[0] = status.st_atim;
   times[1] = status.st_mtim;
   result[3] = write_env_fixture(".env", enabled) && utimensat(AT_FDCWD, ".env", times, 0) == 0 &&
-              result[3] && wilderness_harvest_crafting_enabled() && get_env_int("NUMBER", 0) == 24;
+              result[3] && env_probe_enabled() && get_env_int("NUMBER", 0) == 24;
 
   /* Editors may replace the inode while retaining the old size and mtime. */
   result[4] = write_env_fixture(".env.next", disabled) &&
               utimensat(AT_FDCWD, ".env.next", times, 0) == 0 && rename(".env.next", ".env") == 0 &&
-              !wilderness_harvest_crafting_enabled() && get_env_int("NUMBER", 0) == 42;
+              !env_probe_enabled() && get_env_int("NUMBER", 0) == 42;
   result[5] = true;
   if (geteuid() != 0)
   {
-    result[5] = chmod(".env", 0000) == 0 && wilderness_harvest_crafting_enabled() &&
-                get_env_int("NUMBER", 0) == 13;
-    result[5] = chmod(".env", 0600) == 0 && result[5] && !wilderness_harvest_crafting_enabled();
+    result[5] = chmod(".env", 0000) == 0 && env_probe_enabled() && get_env_int("NUMBER", 0) == 13;
+    result[5] = chmod(".env", 0600) == 0 && result[5] && !env_probe_enabled();
   }
-  result[6] = unlink(".env") == 0 && wilderness_harvest_crafting_enabled() &&
-              get_env_int("NUMBER", 0) == 13 && write_env_fixture("lib/.env", disabled) &&
-              !wilderness_harvest_crafting_enabled() && get_env_int("NUMBER", 0) == 42 &&
-              strcmp(get_env_value("TEXT"), "") == 0;
+  result[6] = unlink(".env") == 0 && env_probe_enabled() && get_env_int("NUMBER", 0) == 13 &&
+              write_env_fixture("lib/.env", disabled) && !env_probe_enabled() &&
+              get_env_int("NUMBER", 0) == 42 && strcmp(get_env_value("TEXT"), "") == 0;
 
   result[7] = mkdir("other", 0700) == 0 && write_env_fixture("other/.env", enabled);
   if (chdir("other") == 0)
   {
-    result[7] =
-        result[7] && wilderness_harvest_crafting_enabled() && get_env_int("NUMBER", 0) == 24;
-    result[7] = chdir(temporary) == 0 && result[7] && !wilderness_harvest_crafting_enabled() &&
+    result[7] = result[7] && env_probe_enabled() && get_env_int("NUMBER", 0) == 24;
+    result[7] = chdir(temporary) == 0 && result[7] && !env_probe_enabled() &&
                 get_env_int("NUMBER", 0) == 42;
   }
   else
@@ -12887,7 +12889,7 @@ void Test_environment_cache_observes_edits_replacements_and_path_changes(CuTest 
   unlink(".env.next");
   unlink("lib/.env");
   unlink("other/.env");
-  result[8] = result[8] && wilderness_harvest_crafting_enabled() && get_env_int("NUMBER", 17) == 17;
+  result[8] = result[8] && env_probe_enabled() && get_env_int("NUMBER", 17) == 17;
   rmdir("lib");
   rmdir("other");
   result[8] = chdir(directory) == 0 && result[8];
@@ -12962,7 +12964,6 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   char directory[PATH_MAX], temporary[] = "/tmp/luminari-harvest-XXXXXX";
   double levels[NUM_RESOURCE_TYPES];
   int i, x, y, mining_x, mining_y, roll, quality, before, result[20] = {0};
-  FILE *env;
   char command[] = "harvest satin";
   static const int cloth_by_grade[] = {
       0, CRAFT_MAT_HEMP, CRAFT_MAT_FLAX, CRAFT_MAT_WOOL, CRAFT_MAT_COTTON, CRAFT_MAT_SATIN};
@@ -12971,7 +12972,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
   CuAssertPtrNotNull(tc, mkdtemp(temporary));
   CuAssertIntEquals(tc, 0, chdir(temporary));
-  result[0] = wilderness_harvest_crafting_enabled();
+  result[0] = true;
   begin_gameplay_fixture(&fixture);
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
   fixture.actor.player_specials = &specials;
@@ -13339,30 +13340,14 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
   reset_harvest_fixture_output(&descriptor, database);
 
-  /* A live toggle edit invalidates cached TRUE and cancels a pending harvest. */
-  result[16] = write_env_fixture(".env", "WILDERNESS_HARVEST_CRAFTING=TRUE\n");
+  /* The routing toggle and the separate wilderness store are retired: harvesting always
+   * credits the balances, and the old store is never written. */
   do_harvest(&fixture.actor, "satin", 0, 0);
-  result[16] = result[16] && primary_activity_snapshot(&fixture.actor, &snapshot);
-
-  /* Disabling the toggle retains the immediate, separate wilderness inventory. */
-  env = fopen(".env", "w");
-  if (env)
-  {
-    fputs("WILDERNESS_HARVEST_CRAFTING=FALSE\n", env);
-    fclose(env);
-    pulse += PULSE_VIOLENCE;
-    event_test_advance();
-    result[16] = result[16] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
-                 GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before &&
-                 specials.saved.stored_material_count == 0;
-    reset_harvest_fixture_output(&descriptor, database);
-    circle_srandom(poor_seed);
-    do_wilderness_harvest(&fixture.actor, "vegetation", 0, 0);
-    result[8] = !wilderness_harvest_crafting_enabled() &&
-                !primary_activity_snapshot(&fixture.actor, &snapshot) &&
-                specials.saved.stored_material_count == 1 &&
-                GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before;
-  }
+  result[16] = primary_activity_snapshot(&fixture.actor, &snapshot);
+  primary_activity_cancel(&fixture.actor, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false);
+  result[8] = specials.saved.stored_material_count == 0 &&
+              GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before;
+  reset_harvest_fixture_output(&descriptor, database);
   result[9] = fixture.rooms[0].harvest_material == CRAFT_MAT_MITHRIL &&
               fixture.rooms[0].harvest_material_amount == 17;
 

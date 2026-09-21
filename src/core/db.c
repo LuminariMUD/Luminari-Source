@@ -7576,11 +7576,6 @@ void reset_char(struct char_data *ch)
   ch->char_specials.blasting = 0;
   for (i = 0; i < NUM_CASTERS; i++)
     ch->char_specials.is_preparing[i] = 0;
-  ch->char_specials.crafting_type = 0;
-  ch->char_specials.crafting_ticks = 0;
-  ch->char_specials.crafting_object = NULL;
-  ch->char_specials.crafting_repeat = 0;
-  ch->char_specials.crafting_bonus = 0;
 
   CLOUDKILL(ch) = 0;
   DOOM(ch) = 0;
@@ -7705,9 +7700,6 @@ void init_char(struct char_data *ch)
   /* Create the action queues */
   GET_QUEUE(ch) = create_action_queue();
   GET_ATTACK_QUEUE(ch) = create_attack_queue();
-
-  /* Initialize material storage for Phase 4.5 */
-  init_material_storage(ch);
 
   /* create the preparation / collection lists */
   /*
@@ -7852,31 +7844,6 @@ void init_char(struct char_data *ch)
   ACCOMPANYING(ch) = NULL;
   GET_TOTAL_AOO(ch) = 0;
 
-  /*
-  #define SKILL_MINING                    471  //implemented
-  #define SKILL_HUNTING                   472  //implemented
-  #define SKILL_FORESTING                 473  //implemented
-  #define SKILL_KNITTING                  474  //implemented
-  #define SKILL_CHEMISTRY                 475  //implemented
-  #define SKILL_ARMOR_SMITHING            476  //implemented
-  #define SKILL_WEAPON_SMITHING           477  //implemented
-  #define SKILL_JEWELRY_MAKING            478  //implemented
-  #define SKILL_LEATHER_WORKING           479  //implemented
-  #define SKILL_FAST_CRAFTER              480  //implemented
-  #define SKILL_BONE_ARMOR                481
-  #define SKILL_ELVEN_CRAFTING            482
-  #define SKILL_MASTERWORK_CRAFTING       483
-  #define SKILL_DRACONIC_CRAFTING         484
-  #define SKILL_DWARVEN_CRAFTING          485
-   */
-  /* start crafting skills at 4 */
-  if (GET_LEVEL(ch) < LVL_STAFF)
-  {
-    for (i = TOP_CRAFT_SKILL; i < BOTTOM_CRAFT_SKILL; i++)
-    {
-      SET_SKILL(ch, i, 4);
-    }
-  }
   /* A new character has nothing to convert. */
   GET_CRAFT_MIGRATION(ch) = CRAFT_MIGRATION_CURRENT;
 
