@@ -46,6 +46,8 @@
 #include "config/vnums.h"
 #include "crafting_recipes.h"
 
+#include <limits.h>
+
 
 void process_craft_critical_success(struct char_data *ch, struct obj_data *obj);
 int get_rapid_talent_bonus(struct char_data *ch, int skill);
@@ -672,6 +674,7 @@ int material_grade(int material)
   case CRAFT_MAT_PRISTINE_GRADE_HIDE:
   case CRAFT_MAT_VALENWOOD:
   case CRAFT_MAT_SILK:
+  case CRAFT_MAT_COTTON:
     return 4;
 
   case CRAFT_MAT_MITHRIL:
@@ -1437,7 +1440,11 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
         send_to_char(ch, "There are no motes assigned to that bonus slot yet.\r\n");
         return;
       }
-      GET_CRAFT_MOTES(ch, mote_type) += allocated;
+      if (!craft_mote_add(ch, mote_type, allocated))
+      {
+        send_to_char(ch, CRAFT_MOTE_REFUND_REFUSED);
+        return;
+      }
       GET_CRAFT(ch).motes_required[slot] = 0;
     }
     else if (method == 3)
@@ -1448,7 +1455,11 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
         send_to_char(ch, "There are no motes assigned for your instrument quality yet.\r\n");
         return;
       }
-      GET_CRAFT_MOTES(ch, mote_type) += allocated;
+      if (!craft_mote_add(ch, mote_type, allocated))
+      {
+        send_to_char(ch, CRAFT_MOTE_REFUND_REFUSED);
+        return;
+      }
       GET_CRAFT(ch).instrument_motes[1] = 0;
     }
     else if (method == 4)
@@ -1459,7 +1470,11 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
         send_to_char(ch, "There are no motes assigned for your instrument effectiveness yet.\r\n");
         return;
       }
-      GET_CRAFT_MOTES(ch, mote_type) += allocated;
+      if (!craft_mote_add(ch, mote_type, allocated))
+      {
+        send_to_char(ch, CRAFT_MOTE_REFUND_REFUSED);
+        return;
+      }
       GET_CRAFT(ch).instrument_motes[2] = 0;
     }
     else if (method == 5)
@@ -1470,7 +1485,11 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
         send_to_char(ch, "There are no motes assigned for your instrument breakability yet.\r\n");
         return;
       }
-      GET_CRAFT_MOTES(ch, mote_type) += allocated;
+      if (!craft_mote_add(ch, mote_type, allocated))
+      {
+        send_to_char(ch, CRAFT_MOTE_REFUND_REFUSED);
+        return;
+      }
       GET_CRAFT(ch).instrument_motes[3] = 0;
     }
     else
@@ -1481,7 +1500,11 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
         send_to_char(ch, "There are no motes assigned for your item enhancement yet.\r\n");
         return;
       }
-      GET_CRAFT_MOTES(ch, mote_type) += allocated;
+      if (!craft_mote_add(ch, mote_type, allocated))
+      {
+        send_to_char(ch, CRAFT_MOTE_REFUND_REFUSED);
+        return;
+      }
       GET_CRAFT(ch).enhancement_motes_required = 0;
     }
     send_to_char(
@@ -1732,7 +1755,11 @@ static void set_crafting_bonuses(struct char_data *ch, const char *argument)
     send_to_char(ch, "You've reset the bonus in slot %d.\r\n", slot + 1);
     if (num_motes > 0 && mote_type != CRAFTING_MOTE_NONE)
     {
-      GET_CRAFT_MOTES(ch, mote_type) += num_motes;
+      if (!craft_mote_add(ch, mote_type, num_motes))
+      {
+        send_to_char(ch, CRAFT_MOTE_REFUND_REFUSED);
+        return;
+      }
       send_to_char(ch, "You've recovered %d %s.\r\n", num_motes, crafting_motes[mote_type]);
     }
     GET_CRAFT(ch).affected[slot].location = 0;
@@ -2452,13 +2479,18 @@ void reset_craft_materials(struct char_data *ch, bool verbose, bool reimburse)
       continue;
     if (reimburse)
     {
+      if (!craft_balance_add(ch, GET_CRAFT(ch).materials[i][0], GET_CRAFT(ch).materials[i][1]))
+      {
+        /* The destination cannot accept the refund: keep the allocation. */
+        send_to_char(ch, CRAFT_MATERIAL_REFUND_REFUSED);
+        continue;
+      }
       if (verbose)
       {
         send_to_char(ch, "You have recovered %d unit%s of %s.\r\n", GET_CRAFT(ch).materials[i][1],
                      GET_CRAFT(ch).materials[i][1] > 0 ? "s" : "",
                      crafting_materials[GET_CRAFT(ch).materials[i][0]]);
       }
-      GET_CRAFT_MAT(ch, GET_CRAFT(ch).materials[i][0]) += GET_CRAFT(ch).materials[i][1];
     }
     GET_CRAFT(ch).materials[i][0] = 0;
     GET_CRAFT(ch).materials[i][1] = 0;
@@ -2513,7 +2545,11 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
                                        GET_CRAFT(ch).crafting_specific);
       if (mote != CRAFTING_MOTE_NONE && reimburse)
       {
-        GET_CRAFT_MOTES(ch, mote) += GET_CRAFT(ch).enhancement_motes_required;
+        if (!craft_mote_add(ch, mote, GET_CRAFT(ch).enhancement_motes_required))
+        {
+          send_to_char(ch, CRAFT_MOTE_REFUND_REFUSED);
+          goto enhancement_kept;
+        }
         if (verbose)
         {
           send_to_char(ch, "You have recovered %d %ss.\r\n",
@@ -2521,6 +2557,7 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
         }
       }
       GET_CRAFT(ch).enhancement_motes_required = 0;
+    enhancement_kept:;
     }
   }
 
@@ -2538,7 +2575,11 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
                                              GET_CRAFT(ch).affected[i].bonus_type);
       if (mote != CRAFTING_MOTE_NONE && reimburse)
       {
-        GET_CRAFT_MOTES(ch, mote) += GET_CRAFT(ch).motes_required[i];
+        if (!craft_mote_add(ch, mote, GET_CRAFT(ch).motes_required[i]))
+        {
+          send_to_char(ch, CRAFT_MOTE_REFUND_REFUSED);
+          continue;
+        }
         if (verbose)
         {
           send_to_char(ch, "You have recovered %d %ss.\r\n", GET_CRAFT(ch).motes_required[i],
@@ -2572,8 +2613,12 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
       {
         if (reimburse)
         {
-          GET_CRAFT_MAT(ch, GET_CRAFT(ch).refining_materials[i][0]) +=
-              GET_CRAFT(ch).refining_materials[i][1];
+          if (!craft_balance_add(ch, GET_CRAFT(ch).refining_materials[i][0],
+                                 GET_CRAFT(ch).refining_materials[i][1]))
+          {
+            send_to_char(ch, CRAFT_MATERIAL_REFUND_REFUSED);
+            continue;
+          }
           if (verbose)
           {
             send_to_char(ch, "You have recovered %d %s.\r\n",
@@ -2594,18 +2639,21 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
   {
     if (GET_CRAFT(ch).new_size)
     {
-      if (reimburse)
+      if (reimburse && GET_CRAFT(ch).resize_mat_num > 0 &&
+          !craft_balance_add(ch, GET_CRAFT(ch).resize_mat_type, GET_CRAFT(ch).resize_mat_num))
       {
-        GET_CRAFT_MAT(ch, GET_CRAFT(ch).resize_mat_type) += GET_CRAFT(ch).resize_mat_num;
-        if (verbose)
+        send_to_char(ch, CRAFT_MATERIAL_REFUND_REFUSED);
+      }
+      else
+      {
+        if (reimburse && verbose && GET_CRAFT(ch).resize_mat_num > 0)
         {
           send_to_char(ch, "You have recovered %d %s.\r\n", GET_CRAFT(ch).resize_mat_num,
                        crafting_materials[GET_CRAFT(ch).resize_mat_type]);
         }
+        GET_CRAFT(ch).new_size = GET_CRAFT(ch).resize_mat_type = GET_CRAFT(ch).resize_mat_num = 0;
+        reset_crafting_obj(ch);
       }
-
-      GET_CRAFT(ch).new_size = GET_CRAFT(ch).resize_mat_type = GET_CRAFT(ch).resize_mat_num = 0;
-      reset_crafting_obj(ch);
 
       if (verbose && mode != CR_RESET_ALL)
         send_to_char(ch, "You have reset resizing values to the default.\r\n");
@@ -2618,8 +2666,12 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
     {
       if (GET_CRAFT(ch).instrument_motes[i] > 0 && reimburse)
       {
-        GET_CRAFT_MOTES(ch, get_crafting_instrument_motes(ch, i, FALSE)) +=
-            GET_CRAFT(ch).instrument_motes[i];
+        if (!craft_mote_add(ch, get_crafting_instrument_motes(ch, i, FALSE),
+                            GET_CRAFT(ch).instrument_motes[i]))
+        {
+          send_to_char(ch, CRAFT_MOTE_REFUND_REFUSED);
+          continue;
+        }
         if (verbose)
         {
           send_to_char(ch, "You have recovered %d %s.\r\n", GET_CRAFT(ch).instrument_motes[i],
@@ -3339,8 +3391,12 @@ void return_efficient_saved_materials(struct char_data *ch)
   {
     if (GET_CRAFT(ch).efficient_saved_materials[i][1] > 0)
     {
-      GET_CRAFT_MAT(ch, GET_CRAFT(ch).efficient_saved_materials[i][0]) +=
-          GET_CRAFT(ch).efficient_saved_materials[i][1];
+      if (!craft_balance_add(ch, GET_CRAFT(ch).efficient_saved_materials[i][0],
+                             GET_CRAFT(ch).efficient_saved_materials[i][1]))
+      {
+        send_to_char(ch, CRAFT_MATERIAL_REFUND_REFUSED);
+        continue;
+      }
       total_saved += GET_CRAFT(ch).efficient_saved_materials[i][1];
       /* Clear the saved materials */
       GET_CRAFT(ch).efficient_saved_materials[i][0] = 0;
@@ -3491,6 +3547,7 @@ int obj_material_to_craft_material(int material)
     return CRAFT_MAT_DRAGONBONE;
   case MATERIAL_LEATHER:
     return CRAFT_MAT_LOW_GRADE_HIDE;
+  case MATERIAL_WOOD:
   case MATERIAL_ASH:
     return CRAFT_MAT_ASH_WOOD;
   case MATERIAL_MAPLE:
@@ -3501,6 +3558,7 @@ int obj_material_to_craft_material(int material)
     return CRAFT_MAT_VALENWOOD;
   case MATERIAL_IRONWOOD:
     return CRAFT_MAT_IRONWOOD;
+  case MATERIAL_BURLAP:
   case MATERIAL_HEMP:
     return CRAFT_MAT_HEMP;
   case MATERIAL_WOOL:
@@ -3610,17 +3668,100 @@ int craft_material_to_obj_material(int craftmat)
   return MATERIAL_UNDEFINED;
 }
 
-/* The crafting material a material object is stored as. Unstored bundles record it in value 1,
- * since several hide grades share one object material; other material objects convert their
- * object material. */
+/* Legacy node and shop prototypes whose object material does not name their balance. An entry
+ * with CRAFT_MAT_NONE is explicitly not storable: the lookup stops there instead of falling
+ * through to the generic material (fossil eggs would otherwise store as stone). */
+static const struct
+{
+  obj_vnum vnum;
+  int material;
+} craft_prototype_materials[] = {
+    {WOOD_MATERIAL, CRAFT_MAT_ASH_WOOD},
+    {ALDERWOOD_MATERIAL, CRAFT_MAT_ASH_WOOD},
+    {YEW_MATERIAL, CRAFT_MAT_MAPLE_WOOD},
+    {OAK_MATERIAL, CRAFT_MAT_MAHAGONY_WOOD},
+    {DARKWOOD_MATERIAL, CRAFT_MAT_IRONWOOD},
+    {LEATHER_MQ_MATERIAL, CRAFT_MAT_MEDIUM_GRADE_HIDE},
+    {LEATHER_HQ_MATERIAL, CRAFT_MAT_HIGH_GRADE_HIDE},
+    {VELVET_MATERIAL, CRAFT_MAT_COTTON},
+    {BURLAP_MATERIAL, CRAFT_MAT_HEMP},
+    {FOS_BIRD_MATERIAL, CRAFT_MAT_NONE},
+    {FOS_WYVERN_MATERIAL, CRAFT_MAT_NONE},
+    {FOS_DRAGON_MATERIAL, CRAFT_MAT_NONE},
+    {FOS_LIZARD_MATERIAL, CRAFT_MAT_NONE},
+};
+
+/* The balance a legacy prototype stores as. Returns true when the prototype has an explicit
+ * entry, with *material set to its balance or CRAFT_MAT_NONE for a non-storable object. */
+bool craft_material_for_prototype(obj_vnum vnum, int *material)
+{
+  size_t i;
+
+  for (i = 0; i < sizeof(craft_prototype_materials) / sizeof(craft_prototype_materials[0]); i++)
+  {
+    if (craft_prototype_materials[i].vnum == vnum)
+    {
+      if (material)
+        *material = craft_prototype_materials[i].material;
+      return true;
+    }
+  }
+  return false;
+}
+
+/* The crafting material a material object is stored as. The prototype table above is consulted
+ * first. Unstored bundles record their material in value 1, since several hide grades share one
+ * object material; other material objects convert their object material. */
 int craft_material_from_object(struct obj_data *obj)
 {
-  int craft_material = GET_OBJ_VAL(obj, 1);
+  int craft_material;
 
+  if (!obj)
+    return CRAFT_MAT_NONE;
+  if (craft_material_for_prototype(GET_OBJ_VNUM(obj), &craft_material))
+    return craft_material;
+  craft_material = GET_OBJ_VAL(obj, 1);
   if (craft_material <= CRAFT_MAT_NONE || craft_material >= NUM_CRAFT_MATS ||
       craft_material_to_obj_material(craft_material) != GET_OBJ_MATERIAL(obj))
     craft_material = obj_material_to_craft_material(GET_OBJ_MATERIAL(obj));
   return craft_material;
+}
+
+/* Checked balance credits. Every writer that adds to a material or mote balance goes through
+ * these so an invalid id, a non-positive quantity, a corrupt balance, or overflow is refused
+ * before any source state (an object, a node charge, a project allocation) is spent. */
+bool craft_balance_can_add(struct char_data *ch, int material, int quantity)
+{
+  if (!ch || IS_NPC(ch) || !ch->player_specials || quantity <= 0)
+    return false;
+  if (material <= CRAFT_MAT_NONE || material >= NUM_CRAFT_MATS)
+    return false;
+  return GET_CRAFT_MAT(ch, material) >= 0 && GET_CRAFT_MAT(ch, material) <= INT_MAX - quantity;
+}
+
+bool craft_balance_add(struct char_data *ch, int material, int quantity)
+{
+  if (!craft_balance_can_add(ch, material, quantity))
+    return false;
+  GET_CRAFT_MAT(ch, material) += quantity;
+  return true;
+}
+
+bool craft_mote_can_add(struct char_data *ch, int mote, int quantity)
+{
+  if (!ch || IS_NPC(ch) || !ch->player_specials || quantity <= 0)
+    return false;
+  if (mote <= CRAFTING_MOTE_NONE || mote >= NUM_CRAFT_MOTES)
+    return false;
+  return GET_CRAFT_MOTES(ch, mote) >= 0 && GET_CRAFT_MOTES(ch, mote) <= INT_MAX - quantity;
+}
+
+bool craft_mote_add(struct char_data *ch, int mote, int quantity)
+{
+  if (!craft_mote_can_add(ch, mote, quantity))
+    return false;
+  GET_CRAFT_MOTES(ch, mote) += quantity;
+  return true;
 }
 
 struct obj_data *setup_craft_weapon(struct char_data *ch, int w_type)
@@ -4248,7 +4389,11 @@ void process_crafting_materials(struct char_data *ch, int group, int mat_type, i
       return;
     }
     base_amount = GET_CRAFT(ch).materials[group][1];
-    GET_CRAFT_MAT(ch, mat_type) += base_amount;
+    if (!craft_balance_add(ch, mat_type, base_amount))
+    {
+      send_to_char(ch, CRAFT_MATERIAL_REFUND_REFUSED);
+      return;
+    }
     send_to_char(ch, "You recover %d unit%s of %s (%s) from the crafting project.\r\n", base_amount,
                  base_amount == 1 ? "" : "s", crafting_materials[mat_type],
                  crafting_material_groups[craft_group_by_material(mat_type)]);
@@ -4406,9 +4551,13 @@ void set_crafting_enhancement(struct char_data *ch, const char *arg2)
                                               GET_CRAFT(ch).crafting_specific);
     if (GET_CRAFT(ch).enhancement_motes_required > 0)
     {
+      if (!craft_mote_add(ch, mote_type, GET_CRAFT(ch).enhancement_motes_required))
+      {
+        send_to_char(ch, CRAFT_MOTE_REFUND_REFUSED);
+        return;
+      }
       send_to_char(ch, "You've recovered %d %s.\r\n", GET_CRAFT(ch).enhancement_motes_required,
                    crafting_motes[mote_type]);
-      GET_CRAFT_MOTES(ch, mote_type) += GET_CRAFT(ch).enhancement_motes_required;
       GET_CRAFT(ch).enhancement_motes_required = 0;
     }
     GET_CRAFT(ch).enhancement = 0;
@@ -4702,7 +4851,11 @@ void craft_refine_complete(struct char_data *ch)
     gain_craft_exp(ch, (REFINE_BASE_EXP)*num, skill_type, TRUE);
   }
 
-  GET_CRAFT_MAT(ch, GET_CRAFT(ch).refining_result[0]) += GET_CRAFT(ch).refining_result[1];
+  if (!craft_balance_add(ch, GET_CRAFT(ch).refining_result[0], GET_CRAFT(ch).refining_result[1]))
+  {
+    send_to_char(ch, "Your crafting storage cannot hold the refined material.\r\n");
+    return;
+  }
   send_to_char(ch, "You refine %d unit%s of %s.\r\n", GET_CRAFT(ch).refining_result[1],
                GET_CRAFT(ch).refining_result[1] > 1 ? "s" : "",
                crafting_materials[GET_CRAFT(ch).refining_result[0]]);
@@ -4818,9 +4971,15 @@ static void harvest_complete(struct char_data *ch)
                    "\tC*EFFICIENT*\tn You gain 2 extra units from your efficient harvesting!\r\n");
     }
 
+    if (!craft_balance_add(ch, world[IN_ROOM(ch)].harvest_material,
+                           amount + bonus + efficient_bonus))
+    {
+      send_to_char(ch, "Your crafting storage cannot hold this harvest.\r\n");
+      GET_CRAFT(ch).craft_duration = 0;
+      GET_CRAFT(ch).crafting_method = 0;
+      return;
+    }
     world[IN_ROOM(ch)].harvest_material_amount -= amount;
-
-    GET_CRAFT_MAT(ch, world[IN_ROOM(ch)].harvest_material) += amount + bonus + efficient_bonus;
 
     if (world[IN_ROOM(ch)].harvest_material_amount <= 0)
     {
@@ -4885,9 +5044,9 @@ static void harvest_complete(struct char_data *ch)
         }
       }
 
-      send_to_char(ch, "\tYYou have extracted a small cache of %d %ss!.\r\n",
-                   num_motes + bonus_motes, crafting_motes[mote_type]);
-      GET_CRAFT_MOTES(ch, mote_type) += (num_motes + bonus_motes);
+      if (craft_mote_add(ch, mote_type, num_motes + bonus_motes))
+        send_to_char(ch, "\tYYou have extracted a small cache of %d %ss!.\r\n",
+                     num_motes + bonus_motes, crafting_motes[mote_type]);
     }
 
     GET_CRAFT(ch).craft_duration = 0;
@@ -6095,12 +6254,10 @@ ACMD(do_list_craft_materials)
       return;
     }
 
-    int stored = quantity;
-
-    if (stored > 0)
+    /* A refused credit leaves the object in the inventory. */
+    if (craft_balance_add(ch, craft_material, quantity))
     {
-      GET_CRAFT_MAT(ch, craft_material) += stored;
-      send_to_char(ch, "You store %d unit%s of %s.\r\n", stored, stored == 1 ? "" : "s",
+      send_to_char(ch, "You store %d unit%s of %s.\r\n", quantity, quantity == 1 ? "" : "s",
                    crafting_materials[craft_material]);
       extract_obj(obj);
     }
@@ -7265,10 +7422,14 @@ static void newcraft_resize(struct char_data *ch, const char *argument)
     }
     else if (GET_CRAFT(ch).new_size)
     {
+      if (!craft_balance_add(ch, GET_CRAFT(ch).resize_mat_type, GET_CRAFT(ch).resize_mat_num))
+      {
+        send_to_char(ch, CRAFT_MATERIAL_REFUND_REFUSED);
+        return;
+      }
       send_to_char(ch, "You recover %d unit%s of %s and cancel your resizing of %s.\r\n",
                    GET_CRAFT(ch).resize_mat_num, GET_CRAFT(ch).resize_mat_num > 1 ? "s" : "",
                    crafting_materials[GET_CRAFT(ch).resize_mat_type], obj->short_description);
-      GET_CRAFT_MAT(ch, GET_CRAFT(ch).resize_mat_type) += GET_CRAFT(ch).resize_mat_num;
       GET_CRAFT(ch).new_size = GET_CRAFT(ch).resize_mat_type = GET_CRAFT(ch).resize_mat_num = 0;
     }
     else
@@ -7750,7 +7911,11 @@ bool remove_supply_order_materials(struct char_data *ch)
     {
       material = GET_CRAFT(ch).materials[i][0];
       num_mats = GET_CRAFT(ch).materials[i][1];
-      GET_CRAFT_MAT(ch, material) += num_mats;
+      if (!craft_balance_add(ch, material, num_mats))
+      {
+        send_to_char(ch, CRAFT_MATERIAL_REFUND_REFUSED);
+        continue;
+      }
       send_to_char(ch, "You've removed %d unit%s of %s from your supply order.\r\n", num_mats,
                    num_mats > 1 ? "s" : "", crafting_materials[material]);
       GET_CRAFT(ch).materials[i][0] = 0;
@@ -10291,11 +10456,11 @@ void recover_golem_materials(struct char_data *ch, struct char_data *golem, int 
     if (material_types[i] > 0 && material_amounts[i] > 0)
     {
       recovered = (material_amounts[i] * recovery_percent) / 100;
-      if (recovered > 0)
-      {
-        GET_CRAFT_MAT(ch, material_types[i]) += recovered;
+      if (recovered > 0 && craft_balance_add(ch, material_types[i], recovered))
         send_to_char(ch, "  %d %s\r\n", recovered, crafting_materials[material_types[i]]);
-      }
+      else if (recovered > 0)
+        send_to_char(ch, "  %d %s (lost: your storage is full)\r\n", recovered,
+                     crafting_materials[material_types[i]]);
     }
   }
 }

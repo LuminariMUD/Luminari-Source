@@ -288,6 +288,16 @@ bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int sk
 int get_craft_material_final_level_adjustment(struct char_data *ch);
 int craft_material_to_obj_material(int craftmat);
 int craft_material_from_object(struct obj_data *obj);
+/* Messages for a refund that a full balance refused; the allocation stays with the project. */
+#define CRAFT_MATERIAL_REFUND_REFUSED                                                              \
+  "Your crafting storage cannot hold those materials; they remain allocated to the project.\r\n"
+#define CRAFT_MOTE_REFUND_REFUSED                                                                  \
+  "Your crafting storage cannot hold those motes; they remain allocated to the project.\r\n"
+bool craft_material_for_prototype(obj_vnum vnum, int *material);
+bool craft_balance_can_add(struct char_data *ch, int material, int quantity);
+bool craft_balance_add(struct char_data *ch, int material, int quantity);
+bool craft_mote_can_add(struct char_data *ch, int mote, int quantity);
+bool craft_mote_add(struct char_data *ch, int mote, int quantity);
 void show_refine_noargs(struct char_data *ch);
 bool is_refine_ready(struct char_data *ch, bool verbose);
 void craft_refine_complete(struct char_data *ch);
