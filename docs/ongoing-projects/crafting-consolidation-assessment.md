@@ -4,8 +4,10 @@ Written 2026-09-21; reviewed against `dbef1778c` on the same date. Source line n
 that revision. Counts below were rechecked against the development `*.plr` files and the world
 files listed in the `index` files under `lib/`. These are not production counts.
 
-Tracking issue: #212. Status: in progress on `feat/212-crafting-consolidation`; the phase
-checklists below record what is done. This document supersedes the root `CRAFTING_MERGE_PLAN.md`
+Tracking issue: #212. Status: implemented on `feat/212-crafting-consolidation` (Phases 1 to
+6); the phase checklists below record what was done and what remains for release (the
+production help publication and the pre-release conversion report under "Verification and
+deployment"). This document supersedes the root `CRAFTING_MERGE_PLAN.md`
 (deleted in `dbef1778c`) and the earlier assessment draft that occupied this file.
 
 ## Outcome
@@ -658,15 +660,25 @@ operation still starts `eCRAFT`, `eCRAFTING`, or `eBREWING`.
 
 ### Phase 6: help and documentation
 
-- [ ] Help, in the database and `lib/text/help/help.hlp` through the help-sync workflow:
+- [x] Help, in the database and `lib/text/help/help.hlp` through the help-sync workflow:
   rewrite `CRAFTING`, `CRAFT-SCORE`, `CRAFTING-SKILLS`, `HARVEST`, `CRAFTING-KIT`,
   `APPRENTICE`, `SUPPLYORDER`, and `CRAFTS`; update retained create/checkcraft, crystal,
   essence, utility, and brew instructions. Remove mode text and obsolete `AUTOCRAFT` and
   `LEGACY ROOM-370 AUTOCRAFT QUEST` directions; Phase 3a covers wilderness topics. Review
-  help deletions, renames, and conflicts explicitly under the help-sync workflow.
-- [ ] Replace `docs/world_game-data/CRAFTING_SYSTEM_NOTES.md` with a description of the merged
+  help deletions, renames, and conflicts explicitly under the help-sync workflow. Done for
+  the development catalog: 24 entries (CRAFTING, CRAFT-SCORE, CRAFTING-SKILLS/MATERIALS,
+  HARVEST/GATHER/MINE/WILDERNESS-HARVEST, HARVEST-TOOLS, CRAFTING-KIT, APPRENTICE,
+  SUPPLYORDER/AUTOCRAFT, CRAFTS, CREATE, CHECKCRAFT, CRYSTAL, ESSENCE, AUGMENT,
+  DISENCHANT, RESIZE, RESTRING, REFORGE, MOLD, CONVERT, CRAFT-MATERIALS, NEWCRAFT,
+  BONE-ARMOR, and the vessels/salvage topic) were rewritten in `help.hlp` and written to
+  the development database in the HEDIT shape (a `help_versions` archive row, then the
+  entry update; keyword sets unchanged, so the sync sees no deletions or renames). The
+  read-only `help_sync.py audit` afterwards reports development database and file in
+  agreement (`file_matches: true`) and production unchanged. Publishing to production is a
+  separate `sync --authorize-production` run that needs its own explicit authorization.
+- [x] Replace `docs/world_game-data/CRAFTING_SYSTEM_NOTES.md` with a description of the merged
   system; update `docs/systems/WILDERNESS_HARVESTING.md` and `docs/deployment/environments.md`;
-  mark `craft-training-apprentice-skills.md` resolved and point it here.
+  mark `craft-training-apprentice-skills.md` resolved and point it here. Done.
 
 ## Verification and deployment
 

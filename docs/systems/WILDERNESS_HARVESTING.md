@@ -2,69 +2,72 @@
 
 Issue: https://github.com/LuminariMUD/Luminari-Source/issues/145
 
-`harvest <category>` uses wilderness terrain, coordinate resource levels and
-regenerating depletion to produce usable crafting rewards. `harvest` lists the
-categories available at the current location. Each attempt occupies one full
+`harvest <material>` uses wilderness terrain, coordinate resource levels and
+regenerating depletion to credit that exact crafting material. `harvest` lists
+the materials and mote categories available at the current location. Each attempt occupies one full
 round (six seconds) and awards its result at completion. Movement, damage,
 combat, loss of eligibility, or `activity cancel` ends the attempt without a
 reward. Commands cannot start overlapping activities. The same rules apply to
 `gather` and `mine` for their supported categories.
 
-An explicitly named legacy object node retains its existing command path. The
-separate room-node crafting system also retains its existing behavior. `search`
-is reserved and has no harvesting behavior or dependency.
+An explicitly named zone node still wins in the same room; it runs its own
+five-round activity that credits the same balances (see `do_harvest()` in
+`src/craft/craft.c`). `search` is reserved and has no harvesting behavior or
+dependency.
 
 ## Configuration
 
-Set `WILDERNESS_HARVEST_CRAFTING=TRUE` in `lib/.env`. The default is true when
-omitted. The setting is read when a harvest starts and rechecked at completion;
-disabling it cancels any pending category harvest at its next check.
+There is no configuration. Wilderness harvesting always credits the crafting
+balances; the former `WILDERNESS_HARVEST_CRAFTING` toggle and the separate
+wilderness store it selected were retired by the crafting consolidation
+(`docs/ongoing-projects/crafting-consolidation-assessment.md`). A character's
+old wilderness holdings convert once at login (CrMg stage 3).
 
-The shared environment parser caches parsed assignments. Each lookup checks the
-selected file's identity, size, modification time and change time before reusing
-them, so ordinary edits, replacements and environment-path changes are visible
-immediately without reopening and parsing a stable file for every check. Files
-changed within the last two seconds bypass the cache because rapid writes can
-receive identical timestamps on filesystems with a coarse clock.
+The maintained environment example is `lib/.env_example`, as used by deployment
+scripts. `lib/.env.example` is a symlink to that same template.
 
-`FALSE` restores the earlier immediate wilderness-material storage behavior.
-It does not change node spawning or node rewards. Credentials and other local
-configuration stay in their existing ignored files.
+## Materials, grades, and the quality tier
 
-The maintained example is `lib/.env_example`, as used by deployment scripts.
-`lib/.env.example` is a symlink to that same template, so either spelling gives
-the same default without maintaining duplicate configuration.
+`harvest` with no argument lists the materials this terrain and coordinate can
+yield, grouped by category with each material's grade, plus the mote
+categories. `harvest <material>` starts a full-round attempt for that exact
+material; a category name only lists. `gather` accepts vegetation and game
+materials and herbs; `mine` accepts minerals and the crystal, salt, and stone
+categories (`stone` names the material where minerals are allowed).
 
-## Quality and rewards
+The pool (`wilderness_pool_material()` in `src/craft/crafting_new.c`) is the
+group-and-grade ladder plus the storable node drops: 31 materials. Brass,
+linen, dragonmetal, dragonbone, dragonblood, and bone have no source and are
+excluded. Which categories a sector allows is unchanged
+(`can_harvest_resource_in_terrain()`).
 
-The wilderness quality roll uses the relevant harvesting ability rank, its
-proficient talent bonus, the success roll, and the existing Miner racial bonus
-where applicable. It reads harvesting abilities from crafting's ability storage,
-not the unrelated ordinary skill-spell array. Mining handles minerals, crystal,
-stone, clay and salt; Forestry handles wood; Hunting handles game; Gathering
-handles vegetation, herbs and water.
+| Category | Pool with grade |
+| -- | -- |
+| minerals | tin 1, zinc 1, copper 1, stone 1, bronze 2, iron 3, coal 3, silver 3, steel 4, cold iron 4, alchemical silver 4, gold 4, mithril 5, adamantite 5, platinum 5 |
+| wood | ash 1, maple 2, mahagony 3, valenwood 4, ironwood 5 |
+| game | low grade hide 1, medium grade hide 2, high grade hide 3, pristine grade hide 4, dragonscale 5 |
+| vegetation | hemp 1, flax 2, wool 3, cotton 4, silk 4, satin 5 |
 
-The following table maps each successful material harvest to existing crafting
-material IDs. All subtypes use the same row except the two ore exceptions below.
-Wilderness qualities and crafting grades are separate concepts; the selected
-materials have at least the corresponding grade, so a tool floor survives payout.
+Resolution (`complete_material_harvest()` in `src/wilderness/harvest.c`):
 
-| Category | Poor (1) | Common (2) | Uncommon (3) | Rare (4) | Legendary (5) |
-| -- | -- | -- | -- | -- | -- |
-| vegetation | hemp | flax | wool | silk | satin |
-| minerals | tin | bronze | iron | steel | mithril |
-| wood | ash | maple | mahagony | valenwood | ironwood |
-| game | low-grade hide | medium-grade hide | high-grade hide | pristine hide | dragonscale |
+- Skill: `harvesting_skill_by_material()`, with the proficient talent and the
+  Miner feat (`wilderness_harvest_rank()`).
+- Difficulty: the category's difficulty plus five per grade
+  (`wilderness_material_difficulty()`), then the terrain success modifier.
+- Failure: message, one unit of depletion, the small experience award.
+- Grade access: the attempt's quality tier is the highest of the skill roll
+  (`calculate_harvest_quality()`), the coordinate's richness band (0.3, 0.5,
+  0.7, 0.9), and the best harvest tool carried. A material whose grade exceeds
+  the tier is "beyond your reach": nothing is credited, nothing depletes, and
+  the failure experience is paid.
+- Quantity: `dice(2, 2)`, plus `dice(2, 2)` on a natural 100, plus the
+  efficient talent bonus, credited through `craft_balance_add()`.
+- Experience: `20 + 10 * grade` on success, matching zone nodes.
+- Depletion, cascades, conservation, and the node-style bonus motes are
+  unchanged.
 
-Legendary adamantine ore produces adamantine, and rare cold-iron ore produces
-cold iron. Both exceptions preserve the material grade floor. These rewards
-credit `GET_CRAFT_MAT`, the same balances consumed by existing crafting recipes.
-
-The other categories have no full set of equivalent graded crafting materials.
-They supply crafting motes directly, preserving quality as a useful yield bonus:
-each raw unit yields 1, 2, 3, 4 or 5 motes for Poor through Legendary quality.
-This avoids awarding unusable wilderness storage entries or turning water into
-an unrelated metal.
+The mote categories are unchanged: each raw unit yields 1 through 5 motes for
+Poor through Legendary quality, with the tool floor applied.
 
 | Category | Crafting mote |
 | -- | -- |
@@ -79,19 +82,8 @@ an unrelated metal.
 | crystal: frostgem | ice |
 | crystal: stormcrystal | lightning |
 
-Motes credit `GET_CRAFT_MOTES`, which existing equipment, instrument and other
-crafting recipes consume. A harvest credits one primary balance only. Overflow
-or a failed payout awards neither experience nor resource depletion. No second
-copy is placed in the old wilderness `stored_materials` inventory.
-
-Successful attempts yield 2-4 raw units, with an extra 2-4 on a natural 100.
-The efficient talent can add two units. Material harvests can also award the
-node-style random bonus motes; primary mote harvests already include their
-quality bonus. The harvesting ability gains experience using `gain_craft_exp`,
-including its existing insightful talent handling. Failed rolls earn the small
-failure experience award and deplete one raw unit. Successful depletion,
-cascades and conservation use actual raw units harvested, not the multiplied
-mote count.
+The pre-merge quality ladder (`wilderness_harvest_material()`) is retained only
+as the frozen compatibility reader for old holdings.
 
 ## Harvest tools
 
@@ -100,30 +92,32 @@ The authored object prototypes are in
 VNUM definitions live in `src/config/harvest_vnums.h`, which is included by the example
 VNUM configuration. Existing customized `src/config/vnums.h` files need no edits.
 
-| VNUM | Name | Minimum quality | Cost |
+| VNUM | Name | Guaranteed tier | Cost |
 | -- | -- | -- | -- |
-| 1251 | poor harvest tool | Poor | 50 |
-| 1252 | common harvest tool | Common | 500 |
-| 1253 | uncommon harvest tool | Uncommon | 2500 |
-| 1254 | rare harvest tool | Rare | 12500 |
-| 1255 | legendary harvest tool | Legendary | 50000 |
+| 1251 | poor harvest tool | 1 | 50 |
+| 1252 | common harvest tool | 2 | 500 |
+| 1253 | uncommon harvest tool | 3 | 2500 |
+| 1254 | rare harvest tool | 4 | 12500 |
+| 1255 | legendary harvest tool | 5 | 50000 |
 
-The highest qualifying VNUM in top-level inventory or any equipment slot sets
-`max(rolled_quality, tool_quality)` at completion. Names alone do not identify a
-tool. Tools inside containers must be taken out. Tools are retained after use,
-do not stack, and do not grant success or bypass terrain and depletion checks.
-A tool removed before completion supplies no benefit.
+The highest qualifying VNUM in top-level inventory or any equipment slot is one
+of the three tier inputs at completion; the legendary tool alone reaches every
+grade-5 material a spot allows. Names alone do not identify a tool. Tools
+inside containers must be taken out. Tools are retained after use, do not
+stack, and do not grant success or bypass terrain and depletion checks. A tool
+removed before completion supplies no benefit. Zone nodes ignore harvest tools.
 
 ## Delivery and verification
 
 Install the five prototypes into the site's world data as described in
 [data/harvest-tools/README.md](../../data/harvest-tools/README.md).
-Apply `sql/components/help_wilderness_harvest.sql` to the target help database
-alongside `lib/text/help/help.hlp`. The migration updates the harvesting entries
-and their command aliases; it preserves the unrelated help entries themselves.
+The HARVEST, HARVEST-TOOLS, and related help entries live in the help database
+and `lib/text/help/help.hlp`; publish them with the help-sync workflow.
 
-Production-linked tests in `unittests/CuTest/test_gameplay_e2e.c` cover command
-dispatch, delayed payout, the tool floors, rollback, material mapping, overflow,
+Production-linked tests in `unittests/CuTest/test_gameplay_e2e.c` and
+`unittests/CuTest/test_wilderness_material_pool.c` cover the pool per sector,
+difficulty per grade, the tier inputs, command dispatch, delayed payout, the
+tool floors, the mountain and scarce-spot cases, material mapping, overflow,
 and interrupted work. Run the normal `make test` gate and follow with
 `make install`. World content validation:
 
