@@ -181,9 +181,8 @@ int award_wilderness_harvest(struct char_data *ch, int category, int subtype, in
   material = wilderness_harvest_material(category, subtype, quality);
   if (material != CRAFT_MAT_NONE)
   {
-    if (GET_CRAFT_MAT(ch, material) < 0 || GET_CRAFT_MAT(ch, material) > INT_MAX - quantity)
+    if (!craft_balance_add(ch, material, quantity))
       return 0;
-    GET_CRAFT_MAT(ch, material) += quantity;
     send_to_char(ch, "You harvest %d units of %s (%s quality).\r\n", quantity,
                  crafting_materials[material], get_material_quality_name(quality));
     return quantity;
@@ -192,9 +191,8 @@ int award_wilderness_harvest(struct char_data *ch, int category, int subtype, in
   if (!mote || quantity > INT_MAX / quality)
     return 0;
   amount = quantity * quality;
-  if (GET_CRAFT_MOTES(ch, mote) < 0 || GET_CRAFT_MOTES(ch, mote) > INT_MAX - amount)
+  if (!craft_mote_add(ch, mote, amount))
     return 0;
-  GET_CRAFT_MOTES(ch, mote) += amount;
   send_to_char(ch, "You harvest %d units of %s, yielding %d %ss.\r\n", quantity,
                get_full_material_name(category, subtype, quality), amount, crafting_motes[mote]);
   return quantity;
@@ -289,12 +287,8 @@ static void complete_wilderness_harvest(struct char_data *ch, void *target, void
   {
     mote = dice(1, NUM_CRAFT_MOTES - 1);
     motes = dice(quality, 4) * 150 / 100;
-    motes = MIN(motes, INT_MAX - MAX(0, GET_CRAFT_MOTES(ch, mote)));
-    if (motes > 0 && GET_CRAFT_MOTES(ch, mote) >= 0)
-    {
-      GET_CRAFT_MOTES(ch, mote) += motes;
+    if (craft_mote_add(ch, mote, motes))
       send_to_char(ch, "You also extract %d %ss.\r\n", motes, crafting_motes[mote]);
-    }
   }
   act("$n finishes harvesting.", FALSE, ch, NULL, NULL, TO_ROOM);
 }

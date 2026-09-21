@@ -2219,9 +2219,12 @@ int load_char(const char *name, struct char_data *ch)
   TENACIOUS_PLAGUE(ch) = 0;
   INCENDIARY(ch) = 0; // make sure init incendiary burst
 
-  if (GET_CRAFT(ch).new_size)
+  /* A resize interrupted by logout refunds its materials; a refused credit keeps the
+   * allocation so the player can recover it in game. */
+  if (GET_CRAFT(ch).new_size &&
+      (GET_CRAFT(ch).resize_mat_num <= 0 ||
+       craft_balance_add(ch, GET_CRAFT(ch).resize_mat_type, GET_CRAFT(ch).resize_mat_num)))
   {
-    GET_CRAFT_MAT(ch, GET_CRAFT(ch).resize_mat_type) += GET_CRAFT(ch).resize_mat_num;
     GET_CRAFT(ch).new_size = GET_CRAFT(ch).resize_mat_type = GET_CRAFT(ch).resize_mat_num =
         GET_CRAFT(ch).crafting_method = GET_CRAFT(ch).craft_duration = 0;
   }

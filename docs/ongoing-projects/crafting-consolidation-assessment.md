@@ -4,7 +4,8 @@ Written 2026-09-21; reviewed against `dbef1778c` on the same date. Source line n
 that revision. Counts below were rechecked against the development `*.plr` files and the world
 files listed in the `index` files under `lib/`. These are not production counts.
 
-Tracking issue: #212. Status: plan. Nothing implemented. This document supersedes the root `CRAFTING_MERGE_PLAN.md`
+Tracking issue: #212. Status: in progress on `feat/212-crafting-consolidation`; the phase
+checklists below record what is done. This document supersedes the root `CRAFTING_MERGE_PLAN.md`
 (deleted in `dbef1778c`) and the earlier assessment draft that occupied this file.
 
 ## Outcome
@@ -412,15 +413,23 @@ changes accompany their phase in both help stores; Phase 6 is the final consiste
 
 ### Phase 1: material identity and checked balances
 
-- [ ] Add `craft_balance_add(ch, material, quantity)` and `craft_mote_add()` with the overflow
+- [x] Add `craft_balance_add(ch, material, quantity)` and `craft_mote_add()` with the overflow
   guard from `award_wilderness_harvest()`; route store, salvage, harvest including bonus motes,
   project refunds/returns, golem refunds, and load-time refunds through checked credits. Preflight
-  multi-balance operations before modifying their source state (Decision 2).
-- [ ] Add the prototype table from Decision 2 and consult it first in
-  `craft_material_from_object()`; mark fossil eggs unstorable.
-- [ ] Make `material_grade()` authoritative (cotton 4); use it in the targeted material pool
-  while preserving unrelated random reward selection.
-- [ ] Tests in `test_crafting_projects.c`: each row of Decision 2 stores as its balance and
+  multi-balance operations before modifying their source state (Decision 2). Done: the four
+  checked helpers (`craft_balance_can_add`, `craft_balance_add`, `craft_mote_can_add`,
+  `craft_mote_add`) live in `crafting_new.c`; every `+=` writer in `crafting_new.c`,
+  `harvest.c`, `act.item.c` (salvage, which now rolls and preflights gold, material, and motes
+  before extracting), and the load-time resize refund in `players.c` goes through them. A
+  refused project refund leaves the allocation on the project and says so.
+- [x] Add the prototype table from Decision 2 and consult it first in
+  `craft_material_from_object()`; mark fossil eggs unstorable. Done:
+  `craft_material_for_prototype()`; generic `MATERIAL_WOOD` and `MATERIAL_BURLAP` objects also
+  map to ash wood and hemp (Decision 8).
+- [x] Make `material_grade()` authoritative (cotton 4); use it in the targeted material pool
+  while preserving unrelated random reward selection. Done for the grade table; the targeted pool
+  is Phase 3a.
+- [x] Tests in `test_crafting_projects.c`: each row of Decision 2 stores as its balance and
   `unstore` preserves the balance identity and quantity across save/reload and re-store; a fossil
   egg is refused without extraction; a generic high-hide bundle keeps its grade. Store and
   multi-reward salvage refuse overflow without partial credit or source loss; a capped refund

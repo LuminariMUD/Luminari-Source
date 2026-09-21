@@ -1202,3 +1202,322 @@ void Test_crafting_kit_reforge_needs_exactly_one_item(CuTest *tc)
   CuAssertTrue(tc, refused);
   CuAssertIntEquals(tc, WEAPON_TYPE_KHOPESH, reforged);
 }
+
+/* ---- Material identity and checked balance credits (crafting consolidation, Phase 1) ---- */
+
+#include "../../src/obj/objsave.h"
+
+#include <limits.h>
+
+/** Legacy node and shop prototypes and the balance each stores as (CRAFT_MAT_NONE: refused). */
+static const struct
+{
+  obj_vnum vnum;
+  int object_material;
+  int balance;
+  const char *keyword;
+} craft_legacy_prototypes[] = {
+    {WOOD_MATERIAL, MATERIAL_WOOD, CRAFT_MAT_ASH_WOOD, "planks"},
+    {ALDERWOOD_MATERIAL, MATERIAL_WOOD, CRAFT_MAT_ASH_WOOD, "alderwood"},
+    {YEW_MATERIAL, MATERIAL_WOOD, CRAFT_MAT_MAPLE_WOOD, "yew"},
+    {OAK_MATERIAL, MATERIAL_WOOD, CRAFT_MAT_MAHAGONY_WOOD, "oak"},
+    {DARKWOOD_MATERIAL, MATERIAL_DARKWOOD, CRAFT_MAT_IRONWOOD, "darkwood"},
+    {LEATHER_MQ_MATERIAL, MATERIAL_LEATHER, CRAFT_MAT_MEDIUM_GRADE_HIDE, "studded"},
+    {LEATHER_HQ_MATERIAL, MATERIAL_LEATHER, CRAFT_MAT_HIGH_GRADE_HIDE, "cured"},
+    {VELVET_MATERIAL, MATERIAL_VELVET, CRAFT_MAT_COTTON, "velvet"},
+    {BURLAP_MATERIAL, MATERIAL_BURLAP, CRAFT_MAT_HEMP, "burlap"},
+    {FOS_BIRD_MATERIAL, MATERIAL_STONE, CRAFT_MAT_NONE, "birdegg"},
+    {FOS_WYVERN_MATERIAL, MATERIAL_STONE, CRAFT_MAT_NONE, "wyvernegg"},
+    {FOS_DRAGON_MATERIAL, MATERIAL_STONE, CRAFT_MAT_NONE, "dragonegg"},
+    {FOS_LIZARD_MATERIAL, MATERIAL_STONE, CRAFT_MAT_NONE, "lizardegg"},
+};
+#define NUM_CRAFT_LEGACY_PROTOTYPES                                                                \
+  ((int)(sizeof(craft_legacy_prototypes) / sizeof(craft_legacy_prototypes[0])))
+
+/** A larger, sorted object index holding the fixture's two prototypes plus every legacy
+ * material prototype above, so read_object() and GET_OBJ_VNUM() see the real vnums. */
+static struct index_data craft_legacy_index[NUM_CRAFT_LEGACY_PROTOTYPES + 2];
+static struct obj_data craft_legacy_proto[NUM_CRAFT_LEGACY_PROTOTYPES + 2];
+
+static void craft_project_use_legacy_prototypes(struct craft_project_fixture *f)
+{
+  int i, j, count = 0;
+  struct index_data index_swap;
+  struct obj_data proto_swap;
+
+  memset(craft_legacy_index, 0, sizeof(craft_legacy_index));
+  memset(craft_legacy_proto, 0, sizeof(craft_legacy_proto));
+  for (i = 0; i < 2; i++)
+  {
+    craft_legacy_index[count] = f->object_index[i];
+    craft_legacy_proto[count] = f->object_proto[i];
+    count++;
+  }
+  for (i = 0; i < NUM_CRAFT_LEGACY_PROTOTYPES; i++)
+  {
+    clear_object(&craft_legacy_proto[count]);
+    GET_OBJ_TYPE(&craft_legacy_proto[count]) = ITEM_MATERIAL;
+    GET_OBJ_MATERIAL(&craft_legacy_proto[count]) = craft_legacy_prototypes[i].object_material;
+    GET_OBJ_VAL(&craft_legacy_proto[count], 0) = 2;
+    craft_legacy_proto[count].name = CuMutableString(craft_legacy_prototypes[i].keyword);
+    craft_legacy_proto[count].short_description = CuMutableString("a legacy material");
+    craft_legacy_proto[count].description = CuMutableString("A legacy material lies here.");
+    craft_legacy_index[count].vnum = craft_legacy_prototypes[i].vnum;
+    count++;
+  }
+  /* Insertion sort by vnum, keeping index and prototype rows together. */
+  for (i = 1; i < count; i++)
+  {
+    for (j = i; j > 0 && craft_legacy_index[j - 1].vnum > craft_legacy_index[j].vnum; j--)
+    {
+      index_swap = craft_legacy_index[j];
+      craft_legacy_index[j] = craft_legacy_index[j - 1];
+      craft_legacy_index[j - 1] = index_swap;
+      proto_swap = craft_legacy_proto[j];
+      craft_legacy_proto[j] = craft_legacy_proto[j - 1];
+      craft_legacy_proto[j - 1] = proto_swap;
+    }
+  }
+  for (i = 0; i < count; i++)
+    craft_legacy_proto[i].item_number = i;
+  obj_index = craft_legacy_index;
+  obj_proto = craft_legacy_proto;
+  top_of_objt = count - 1;
+}
+
+void Test_craft_prototype_table_names_every_legacy_material(CuTest *tc)
+{
+  int i, material;
+
+  for (i = 0; i < NUM_CRAFT_LEGACY_PROTOTYPES; i++)
+  {
+    material = -1;
+    CuAssertTrue(tc, craft_material_for_prototype(craft_legacy_prototypes[i].vnum, &material));
+    CuAssertIntEquals(tc, craft_legacy_prototypes[i].balance, material);
+  }
+  CuAssertTrue(tc, !craft_material_for_prototype(ONYX_MATERIAL, &material));
+  CuAssertTrue(tc, !craft_material_for_prototype(NOTHING, &material));
+  CuAssertIntEquals(tc, 4, material_grade(CRAFT_MAT_COTTON));
+  CuAssertIntEquals(tc, 4, material_grade(CRAFT_MAT_SILK));
+  CuAssertIntEquals(tc, 5, material_grade(CRAFT_MAT_SATIN));
+  CuAssertIntEquals(tc, CRAFT_MAT_ASH_WOOD, obj_material_to_craft_material(MATERIAL_WOOD));
+  CuAssertIntEquals(tc, CRAFT_MAT_HEMP, obj_material_to_craft_material(MATERIAL_BURLAP));
+}
+
+/** Every Decision 2 row stores into its named balance, and a fossil egg is refused without
+ * extraction (it must not store as stone). */
+void Test_craft_store_credits_legacy_prototypes_and_refuses_eggs(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct obj_data *obj;
+  char command[64];
+  int i, before, stored[NUM_CRAFT_LEGACY_PROTOTYPES], kept[NUM_CRAFT_LEGACY_PROTOTYPES];
+  int stone_after;
+
+  craft_project_begin(&f);
+  craft_project_use_legacy_prototypes(&f);
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
+  for (i = 0; i < NUM_CRAFT_LEGACY_PROTOTYPES; i++)
+  {
+    obj = read_object(craft_legacy_prototypes[i].vnum, VIRTUAL);
+    CuAssertPtrNotNull(tc, obj);
+    obj_to_char(obj, ch);
+    before = craft_legacy_prototypes[i].balance != CRAFT_MAT_NONE
+                 ? GET_CRAFT_MAT(ch, craft_legacy_prototypes[i].balance)
+                 : 0;
+    snprintf(command, sizeof(command), "store %s", craft_legacy_prototypes[i].keyword);
+    do_list_craft_materials(ch, command, 0, 0);
+    stored[i] = craft_legacy_prototypes[i].balance != CRAFT_MAT_NONE
+                    ? GET_CRAFT_MAT(ch, craft_legacy_prototypes[i].balance) - before
+                    : 0;
+    kept[i] = ch->carrying == obj;
+    if (kept[i])
+      extract_obj(obj);
+  }
+  stone_after = GET_CRAFT_MAT(ch, CRAFT_MAT_STONE);
+  craft_project_end(&f);
+
+  for (i = 0; i < NUM_CRAFT_LEGACY_PROTOTYPES; i++)
+  {
+    if (craft_legacy_prototypes[i].balance != CRAFT_MAT_NONE)
+    {
+      CuAssertIntEquals(tc, 2, stored[i]);
+      CuAssertIntEquals(tc, 0, kept[i]);
+    }
+    else
+    {
+      CuAssertIntEquals(tc, 1, kept[i]);
+    }
+  }
+  CuAssertIntEquals(tc, 0, stone_after);
+}
+
+/** A generic high-hide bundle keeps its grade, and an unstored bundle written to and read
+ * back from an object file still stores as the same material and quantity. */
+void Test_craft_unstored_bundle_keeps_its_identity_through_an_object_file(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct obj_data *bundle, *loaded = NULL;
+  obj_save_data *records, *record;
+  FILE *file;
+  int loaded_value = -1, loaded_quantity = -1, high_after_store = -1, low_after_store = -1;
+  int wrote = 0;
+
+  craft_project_begin(&f);
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_HIGH_GRADE_HIDE) = 8;
+  do_list_craft_materials(ch, "unstore 5 high grade hide", 0, 0);
+  bundle = ch->carrying;
+  CuAssertPtrNotNull(tc, bundle);
+
+  file = tmpfile();
+  CuAssertPtrNotNull(tc, file);
+  wrote = objsave_save_obj_record(bundle, ch, file, 0);
+  extract_obj(bundle);
+  rewind(file);
+  records = objsave_parse_objects(file);
+  fclose(file);
+  for (record = records; record != NULL; record = record->next)
+  {
+    if (record->obj != NULL && loaded == NULL)
+      loaded = record->obj;
+    else if (record->obj != NULL)
+      extract_obj(record->obj);
+  }
+  while (records != NULL)
+  {
+    record = records->next;
+    free(records);
+    records = record;
+  }
+  if (loaded != NULL)
+  {
+    loaded_value = GET_OBJ_VAL(loaded, 1);
+    loaded_quantity = GET_OBJ_VAL(loaded, 0);
+    obj_to_char(loaded, ch);
+    do_list_craft_materials(ch, "store bundle", 0, 0);
+    high_after_store = GET_CRAFT_MAT(ch, CRAFT_MAT_HIGH_GRADE_HIDE);
+    low_after_store = GET_CRAFT_MAT(ch, CRAFT_MAT_LOW_GRADE_HIDE);
+  }
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, 1, wrote);
+  CuAssertPtrNotNull(tc, loaded);
+  CuAssertIntEquals(tc, CRAFT_MAT_HIGH_GRADE_HIDE, loaded_value);
+  CuAssertIntEquals(tc, 5, loaded_quantity);
+  CuAssertIntEquals(tc, 8, high_after_store);
+  CuAssertIntEquals(tc, 0, low_after_store);
+}
+
+void Test_craft_store_refuses_overflow_and_keeps_the_bundle(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct obj_data *bundle;
+  int balance_after, kept, refused;
+
+  craft_project_begin(&f);
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL) = 5;
+  do_list_craft_materials(ch, "unstore 5 steel", 0, 0);
+  bundle = ch->carrying;
+  CuAssertPtrNotNull(tc, bundle);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL) = INT_MAX - 1;
+  craft_project_reset_output(&f);
+  do_list_craft_materials(ch, "store bundle", 0, 0);
+  balance_after = GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL);
+  kept = ch->carrying == bundle;
+  refused = craft_project_output_has(&f, "storage space");
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, INT_MAX - 1, balance_after);
+  CuAssertIntEquals(tc, 1, kept);
+  CuAssertIntEquals(tc, 1, refused);
+  CuAssertTrue(tc, !craft_balance_can_add(NULL, CRAFT_MAT_STEEL, 1));
+  CuAssertTrue(tc, !craft_mote_can_add(NULL, CRAFTING_MOTE_AIR, 1));
+}
+
+/** A project refund the balance cannot accept leaves the allocation on the project. */
+void Test_craft_capped_refund_keeps_its_allocation(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  int steel_after, hide_after, steel_allocated, hide_allocated, enhancement_after, motes_after;
+
+  craft_project_begin(&f);
+  craft_project_ready_long_sword(ch);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL) = INT_MAX - 2;
+  GET_CRAFT_MAT(ch, CRAFT_MAT_LOW_GRADE_HIDE) = 0;
+  GET_CRAFT(ch).enhancement = 1;
+  GET_CRAFT(ch).enhancement_motes_required = 4;
+  GET_CRAFT_MOTES(ch, get_enhancement_mote_type(ch, CRAFT_TYPE_WEAPON, WEAPON_TYPE_LONG_SWORD)) =
+      INT_MAX;
+  reset_craft_materials(ch, FALSE, TRUE);
+  reset_current_craft(ch, NULL, FALSE, TRUE);
+  steel_after = GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL);
+  hide_after = GET_CRAFT_MAT(ch, CRAFT_MAT_LOW_GRADE_HIDE);
+  steel_allocated = GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1];
+  hide_allocated = GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][1];
+  enhancement_after = GET_CRAFT(ch).enhancement_motes_required;
+  motes_after =
+      GET_CRAFT_MOTES(ch, get_enhancement_mote_type(ch, CRAFT_TYPE_WEAPON, WEAPON_TYPE_LONG_SWORD));
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, INT_MAX - 2, steel_after);
+  CuAssertIntEquals(tc, 6, steel_allocated);
+  CuAssertIntEquals(tc, 1, hide_after);
+  CuAssertIntEquals(tc, 0, hide_allocated);
+  CuAssertIntEquals(tc, 4, enhancement_after);
+  CuAssertIntEquals(tc, INT_MAX, motes_after);
+}
+
+/** Salvage preflights its material result: a full balance refuses the whole salvage, leaving
+ * the item, the gold, and the balance untouched. The material roll is random, so repeat until a
+ * material result is rolled; a miss must still salvage normally. */
+void Test_salvage_refuses_a_full_balance_before_extracting(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct obj_data *obj;
+  int attempt, refusals = 0, successes = 0, bad_refusal = 0, bad_success = 0, gold_before;
+
+  craft_project_begin(&f);
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
+  SET_FEAT(ch, FEAT_SALVAGE, 1);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL) = INT_MAX;
+  for (attempt = 0; attempt < 400 && refusals == 0; attempt++)
+  {
+    obj = craft_project_reforgeable_dagger();
+    CuAssertPtrNotNull(tc, obj);
+    GET_OBJ_COST(obj) = 100;
+    GET_OBJ_LEVEL(obj) = 30;
+    SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_TAKE);
+    obj_to_char(obj, ch);
+    gold_before = GET_GOLD(ch);
+    craft_project_reset_output(&f);
+    do_salvage(ch, "weapon", 0, 0);
+    if (ch->carrying == obj)
+    {
+      refusals++;
+      if (GET_GOLD(ch) != gold_before || !craft_project_output_has(&f, "cannot hold"))
+        bad_refusal++;
+      extract_obj(obj);
+    }
+    else
+    {
+      successes++;
+      if (GET_GOLD(ch) != gold_before + 15)
+        bad_success++;
+    }
+    if (GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL) != INT_MAX)
+      bad_success++;
+  }
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, 1, refusals);
+  CuAssertIntEquals(tc, 0, bad_refusal);
+  CuAssertIntEquals(tc, 0, bad_success);
+  CuAssertTrue(tc, successes >= 0);
+}

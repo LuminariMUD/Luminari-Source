@@ -9199,7 +9199,8 @@ ACMD(do_salvage)
   int mote_type = 0;
   int i = 0;
   int material_amount = 0;
-  int mote_amount = 0;
+  int mote_types[MAX_OBJ_AFFECT];
+  int mote_amounts[MAX_OBJ_AFFECT];
   int level_adjustment = 0;
 
   one_argument(argument, arg, sizeof(arg));
@@ -9260,59 +9261,75 @@ ACMD(do_salvage)
   /* Calculate chance for crafting material: (artificer_level / 3) + 10 */
   chance = (artificer_level / 3) + 10;
 
-  /* Give gold to the character */
-  award_gold(ch, gold_value);
-
-  /* Announce the salvage */
-  send_to_char(ch, "You carefully dismantle %s, salvaging %d gold coins worth of materials.\r\n",
-               GET_OBJ_SHORT(obj), gold_value);
-
-  /* Check for crafting material reward */
+  /* Roll the whole result first, then preflight every balance it touches, so a full balance
+   * refuses the salvage before the item is destroyed or any part is credited. */
   if (rand_number(1, 100) <= chance)
   {
-    /* Determine what material the item was made of */
     craft_material = obj_material_to_craft_material(GET_OBJ_MATERIAL(obj));
-
     if (craft_material != CRAFT_MAT_NONE && craft_material < NUM_CRAFT_MATS)
-    {
-      /* Calculate material amount: random 1 to (item level / 6) */
       material_amount = MAX(1, rand_number(1, MAX(1, GET_OBJ_LEVEL(obj) / 6)));
-
-      /* Give the crafting materials */
-      GET_CRAFT_MAT(ch, craft_material) += material_amount;
-      material_name_value = crafting_materials[craft_material];
-
-      send_to_char(ch, "You manage to recover %d unit%s of %s from the salvaged item!\r\n",
-                   material_amount, material_amount == 1 ? "" : "s", material_name_value);
-    }
+    else
+      craft_material = CRAFT_MAT_NONE;
+  }
+  if (material_amount > 0 && !craft_balance_can_add(ch, craft_material, material_amount))
+  {
+    send_to_char(ch, "Your crafting storage cannot hold the %s that salvaging %s would yield.\r\n",
+                 crafting_materials[craft_material], GET_OBJ_SHORT(obj));
+    return;
   }
 
-  /* Check for elemental mote rewards (half the material chance) */
   mote_chance = chance / 2;
   for (i = 0; i < MAX_OBJ_AFFECT; i++)
   {
+    mote_types[i] = CRAFTING_MOTE_NONE;
+    mote_amounts[i] = 0;
     if (obj->affected[i].location != APPLY_NONE && rand_number(1, 100) <= mote_chance)
     {
-      /* Determine the mote type based on the APPLY bonus */
       mote_type = crafting_mote_by_bonus_location(
           obj->affected[i].location, obj->affected[i].specific, obj->affected[i].bonus_type);
-
       if (mote_type != CRAFTING_MOTE_NONE && mote_type < NUM_CRAFT_MOTES)
       {
-        /* Calculate level adjustment for this bonus */
         level_adjustment = get_level_adjustment_by_apply_and_modifier(
             obj->affected[i].location, obj->affected[i].modifier, obj->affected[i].bonus_type);
-
-        /* Calculate mote amount: random 1 to (level adjustment / 6) */
-        mote_amount = MAX(1, rand_number(1, MAX(1, level_adjustment / 6)));
-
-        /* Give the elemental motes */
-        GET_CRAFT_MOTES(ch, mote_type) += mote_amount;
-
-        send_to_char(ch, "You extract %d %s mote%s from the item's magical essence!\r\n",
-                     mote_amount, crafting_motes[mote_type], mote_amount == 1 ? "" : "s");
+        mote_types[i] = mote_type;
+        mote_amounts[i] = MAX(1, rand_number(1, MAX(1, level_adjustment / 6)));
       }
     }
+  }
+  for (i = 0; i < MAX_OBJ_AFFECT; i++)
+  {
+    int total = 0, j;
+
+    if (mote_types[i] == CRAFTING_MOTE_NONE)
+      continue;
+    for (j = 0; j < MAX_OBJ_AFFECT; j++)
+      if (mote_types[j] == mote_types[i])
+        total += mote_amounts[j];
+    if (!craft_mote_can_add(ch, mote_types[i], total))
+    {
+      send_to_char(ch,
+                   "Your crafting storage cannot hold the %s motes that salvaging %s would "
+                   "yield.\r\n",
+                   crafting_motes[mote_types[i]], GET_OBJ_SHORT(obj));
+      return;
+    }
+  }
+
+  /* Everything fits: credit it all. */
+  award_gold(ch, gold_value);
+  send_to_char(ch, "You carefully dismantle %s, salvaging %d gold coins worth of materials.\r\n",
+               GET_OBJ_SHORT(obj), gold_value);
+  if (material_amount > 0 && craft_balance_add(ch, craft_material, material_amount))
+  {
+    material_name_value = crafting_materials[craft_material];
+    send_to_char(ch, "You manage to recover %d unit%s of %s from the salvaged item!\r\n",
+                 material_amount, material_amount == 1 ? "" : "s", material_name_value);
+  }
+  for (i = 0; i < MAX_OBJ_AFFECT; i++)
+  {
+    if (mote_types[i] != CRAFTING_MOTE_NONE && craft_mote_add(ch, mote_types[i], mote_amounts[i]))
+      send_to_char(ch, "You extract %d %s mote%s from the item's magical essence!\r\n",
+                   mote_amounts[i], crafting_motes[mote_types[i]], mote_amounts[i] == 1 ? "" : "s");
   }
 
   /* Notify others in the room */
