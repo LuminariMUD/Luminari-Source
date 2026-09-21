@@ -441,32 +441,56 @@ back as the same material, or stays an object.
 
 ### Phase 2: progression conversion and one command surface
 
-- [ ] Add `craft_legacy_skill_equivalent()` and the conversion table to `crafting_new.c`; run
+- [x] Add `craft_legacy_skill_equivalent()` and the conversion table to `crafting_new.c`; run
   stage 1 from the post-load reconciliation in `players.c` under `CrMg`, persisting it safely at
   entry; log old/new ranks and talent grants. Make the existing player writer publish atomically
   before enabling conversion, with failure-injection coverage. Keep the marker outside project
-  reset state.
-- [ ] Map legacy skill consumers to abilities and replace use-based notches with operation-level
+  reset state. Done: `craft_legacy_rank_for_skill()`, `craft_legacy_ability_for_skill()`,
+  `craft_legacy_skill_equivalent()`, and `craft_migrate_legacy_skills()` (stage 1) in
+  `crafting_new.c`; the marker is `craft_migration_version` beside the balances, read and
+  written as `CrMg`; `load_char()` runs stage 1 before the immortal initialization and sets a
+  non-saved pending flag that `enter_player_game()` publishes with `save_char_checked()`, which
+  now writes a temporary file beside the live one and renames it in after flush, sync, and
+  close. New characters start at the current marker.
+- [x] Map legacy skill consumers to abilities and replace use-based notches with operation-level
   craft experience. Audit symbolic and indirect readers across the tree, including standalone
   reforge's fast-crafter dependency and resource display code. Preserve skill-less utility gates.
-- [ ] Convert catalog reader/writer, validation, display, and `craftedit` to Decision 7's explicit
+  Done: every kit utility, mold creation, node harvest, and the standalone reforge read
+  abilities; legacy-unit gates read `craft_legacy_skill_equivalent()`; the per-tick fast-crafter
+  notch and the admission notches are gone and `event_crafting` awards `gain_craft_exp()` once
+  at completion (`20 + 10 * grade` for nodes, `craft_operation_exp(level)` otherwise); kit
+  timers use `craft_legacy_kit_seconds()` (rapid talents, clamped to one tick, none for
+  skill-less utilities); `resource_configs[].harvest_skill` and `get_harvest_skill()` return
+  harvest abilities and `get_harvest_skill_level()` reads ranks. The `increase_skill()` cases
+  and skill definitions stay until Phase 5.
+- [x] Convert catalog reader/writer, validation, display, and `craftedit` to Decision 7's explicit
   ability record. Resolve ordinary material requirements against shared balances before nodes
-  switch to direct credit; retain exact unique ingredients and requirement flags.
-- [ ] `do_craft` opens the editor and `do_craft_score` the score; remove the selector, its
+  switch to direct credit; retain exact unique ingredients and requirement flags. Done: `Skil`
+  records in either numbering convert on load (level rounded up to a rank); an unmapped id is
+  kept as `CRAFT_SKILL_UNSUPPORTED` with its raw id, cannot execute, and writes back as `Skil`;
+  the writer emits `Abil: <ability> <rank>`; the roll stays in legacy-equivalent units; success
+  awards `craft_operation_exp()` once; consumable inventory requirements for storable
+  `ITEM_MATERIAL` prototypes are checked and debited in aggregate from the balances (save-on-fail
+  honored), in-room and no-remove requirements keep object semantics.
+- [x] `do_craft` opens the editor and `do_craft_score` the score; remove the selector, its
   config field, the `cedit` entry, and the mode-2 gates; remove the crafting-skill listing from
   `practice`. Add common-menu discovery for catalog and mold creation without dropping their
-  existing front ends while Phase 4 completes their execution changes.
-- [ ] Tests in `test_craft_training.c`: conversion boundaries 0, 1, 4, 5, 6, 48, 98, 99 and
+  existing front ends while Phase 4 completes their execution changes. Done: `craft catalog [recipe]` and `craft score` dispatch from the editor; `crafting_system` is gone from the
+  config struct, parser, `cedit`, constants, and `lib/etc/config`; `practice` and the guild
+  procedure no longer list legacy skills.
+- [x] Tests in `test_craft_training.c`: conversion boundaries 0, 1, 4, 5, 6, 48, 98, 99 and
   saved 100; chemistry 87 still admits a level-29 essence and mining 48 a mithril node. Knitting
   fills both abilities and pays once; higher rank/experience, spent talents, and paid `CrTr`
   survive. Test repeat load/save, project reset, respec, save failure, fresh characters (rank 0,
   no points), and entry from pre-migration and already-versioned files; slot 47 receives no new
-  progression.
-- [ ] Tests in `test_crafting_projects.c`: old and new catalog records round-trip without a
+  progression. Done (five tests; the essence and node gates are asserted through the legacy
+  equivalent the kit and node code now read).
+- [x] Tests in `test_crafting_projects.c`: old and new catalog records round-trip without a
   second conversion; unmapped ids cannot execute; 477/2077 at threshold 90 becomes weaponsmithing
   18 and uses the correct roll scale. Material balances plus exact gems/eggs satisfy a real
   catalog recipe; flags and failure costs survive, and a missing ingredient consumes nothing.
-  Skill-less resize remains available; commands reach the same ranks in each former mode.
+  Skill-less resize remains available; commands reach the same ranks in each former mode. Done
+  (three tests through `crafts.c` test seams and the real commands).
 
 Completion evidence: `craft`, `craftscore`, and the eligible `apprentice` tracks use the same
 ranks, existing gates remain reachable, and catalog commodity requirements can spend harvested

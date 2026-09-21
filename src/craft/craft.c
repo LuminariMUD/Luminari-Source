@@ -42,6 +42,7 @@
 #include "olc/genobj.h"
 #include "wilderness/resource_system.h"
 #include "wilderness/harvest.h"
+#include "crafting_new.h"
 
 
 /* global variables */
@@ -313,15 +314,23 @@ static int award_legacy_crafting_experience(struct char_data *ch, int exp)
 static int legacy_supply_order_skill(int material)
 {
   if (IS_HARD_METAL(material) || IS_PRECIOUS_METAL(material))
-    return SKILL_MINING;
+    return ABILITY_HARVEST_MINING;
   if (IS_LEATHER(material))
-    return SKILL_HUNTING;
+    return ABILITY_HARVEST_HUNTING;
   if (IS_WOOD(material))
-    return SKILL_FORESTING;
+    return ABILITY_HARVEST_FORESTRY;
   if (IS_CLOTH(material))
-    return SKILL_KNITTING;
+    return ABILITY_HARVEST_GATHERING;
 
   return -1;
+}
+
+/* Kit work runs in six-second ticks. Fast crafter is now the rapid talents of the ability the
+ * operation uses (none for skill-less utilities), converted from seconds and never below one
+ * tick. */
+static ubyte legacy_kit_ticks(struct char_data *ch, int ability, int base_ticks)
+{
+  return (ubyte)MAX(1, craft_legacy_kit_seconds(ch, ability, base_ticks) / 6);
 }
 
 #ifdef LUMINARI_CUTEST
@@ -835,8 +844,7 @@ static int augment(struct obj_data *kit, struct char_data *ch)
   struct obj_data *obj = NULL, *essence_one = NULL, *essence_two = NULL;
   int num_objs = 0, cost = 0, level_diff = 0, success_chance = 0;
   int dice_roll = 0, essence_level = 0;
-  int skill_type = SKILL_CHEMISTRY; // change this to change the skill used
-  int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
+  int skill_type = ABILITY_CRAFT_ALCHEMY; /* chemistry converted to alchemy */
 
   // Cycle through contents and categorize
   for (obj = kit->contains; obj != NULL; obj = obj->next_content)
@@ -891,12 +899,13 @@ static int augment(struct obj_data *kit, struct char_data *ch)
     essence_level = GET_OBJ_LEVEL(essence_two);
 
   /* high enough skill? */
-  if (essence_level > (GET_SKILL(ch, skill_type) / 3))
+  if (essence_level > (craft_legacy_skill_equivalent(ch, skill_type) / 3))
   {
     send_to_char(ch,
                  "The essence level is %d but your %s skill is "
                  "only capable of creating level %d crystals.\r\n",
-                 essence_level, skill_name(skill_type), (GET_SKILL(ch, skill_type) / 3));
+                 essence_level, ability_names[skill_type],
+                 (craft_legacy_skill_equivalent(ch, skill_type) / 3));
     return 1;
   }
 
@@ -921,7 +930,7 @@ static int augment(struct obj_data *kit, struct char_data *ch)
   if (dice_roll >= 95)
     success_chance = 150;
 
-  dice_roll += GET_SKILL(ch, skill_type) / 3;
+  dice_roll += craft_legacy_skill_equivalent(ch, skill_type) / 3;
 
   /* failed our attempt */
   if (dice_roll > success_chance)
@@ -945,7 +954,7 @@ static int augment(struct obj_data *kit, struct char_data *ch)
   award_gold(ch, -cost);
 
   GET_CRAFTING_TYPE(ch) = SCMD_AUGMENT;
-  GET_CRAFTING_TICKS(ch) = (ubyte)(10 - fast_craft_bonus);
+  GET_CRAFTING_TICKS(ch) = legacy_kit_ticks(ch, skill_type, 10);
   GET_CRAFTING_OBJ(ch) = essence_one;
   send_to_char(ch, "You begin to augment %s.\r\n", essence_one->short_description);
   act("$n begins to augment $p.", FALSE, ch, essence_one, 0, TO_ROOM);
@@ -959,9 +968,6 @@ static int augment(struct obj_data *kit, struct char_data *ch)
 
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
-  if (!IS_NPC(ch))
-    increase_skill(ch, skill_type);
-
   return 1;
 }
 
@@ -974,7 +980,6 @@ static int convert(struct obj_data *kit, struct char_data *ch)
   int cost = 500; /* flat cost */
   int num_mats = 0, material = -1, obj_vnum_id = 0;
   struct obj_data *new_mat = NULL, *obj = NULL;
-  int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
   /* Cycle through contents and categorize */
   for (obj = kit->contains; obj != NULL; obj = obj->next_content)
@@ -1063,7 +1068,7 @@ static int convert(struct obj_data *kit, struct char_data *ch)
 
   GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(new_mat));
   GET_CRAFTING_TYPE(ch) = SCMD_CONVERT;
-  GET_CRAFTING_TICKS(ch) = (ubyte)(5 - fast_craft_bonus);
+  GET_CRAFTING_TICKS(ch) = legacy_kit_ticks(ch, ABILITY_CRAFT_ALCHEMY, 5);
   GET_CRAFTING_OBJ(ch) = new_mat;
   GET_CRAFTING_REPEAT(ch) = (ubyte)MAX(0, (num_mats / 10) + 1);
 
@@ -1091,7 +1096,6 @@ static int restring(char *argument, struct obj_data *kit, struct char_data *ch)
   int num_objs = 0, cost;
   struct obj_data *obj = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
-  int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
   /* Cycle through contents */
   /* restring requires just one item be inside the kit */
@@ -1210,7 +1214,7 @@ static int restring(char *argument, struct obj_data *kit, struct char_data *ch)
     obj->ex_description = new_descr;
   }
   GET_CRAFTING_TYPE(ch) = SCMD_RESTRING;
-  GET_CRAFTING_TICKS(ch) = (ubyte)(5 - fast_craft_bonus);
+  GET_CRAFTING_TICKS(ch) = legacy_kit_ticks(ch, -1, 5);
   GET_CRAFTING_OBJ(ch) = obj;
 
   send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
@@ -1236,7 +1240,6 @@ static int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
   int num_objs = 0, cost;
   struct obj_data *obj = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
-  int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
   /* Cycle through contents */
   /* redesc requires just one item be inside the kit */
@@ -1332,7 +1335,7 @@ static int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
   obj->ex_description = new_descr;
 
   GET_CRAFTING_TYPE(ch) = SCMD_REDESC;
-  GET_CRAFTING_TICKS(ch) = (ubyte)(5 - fast_craft_bonus);
+  GET_CRAFTING_TICKS(ch) = legacy_kit_ticks(ch, -1, 5);
   GET_CRAFTING_OBJ(ch) = obj;
 
   send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
@@ -1356,7 +1359,6 @@ static int autocraft(struct obj_data *kit, struct char_data *ch)
 {
   int material, obj_vnum_id, num_mats = 0;
   struct obj_data *obj = NULL;
-  int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
   if (!GET_AUTOCQUEST_MATERIAL(ch))
   {
@@ -1429,7 +1431,8 @@ static int autocraft(struct obj_data *kit, struct char_data *ch)
   }
 
   GET_CRAFTING_TYPE(ch) = SCMD_SUPPLYORDER;
-  GET_CRAFTING_TICKS(ch) = (ubyte)(5 - fast_craft_bonus);
+  GET_CRAFTING_TICKS(ch) =
+      legacy_kit_ticks(ch, legacy_supply_order_skill(GET_AUTOCQUEST_MATERIAL(ch)), 5);
   GET_AUTOCQUEST_GOLD(ch) += GET_LEVEL(ch);
   send_to_char(ch, "You begin a supply order for %s.\r\n", GET_AUTOCQUEST_DESC(ch));
   act("$n begins a supply order.", FALSE, ch, NULL, 0, TO_ROOM);
@@ -1453,7 +1456,6 @@ static int resize(char *argument, struct obj_data *kit, struct char_data *ch)
   struct obj_data *obj = NULL;
   int num_dice = -1;
   int size_dice = -1;
-  int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
   /* Cycle through contents */
   /* resize requires just one item be inside the kit */
@@ -1557,7 +1559,7 @@ static int resize(char *argument, struct obj_data *kit, struct char_data *ch)
   if (cost == 0)
     GET_CRAFTING_TICKS(ch) = 1;
   else
-    GET_CRAFTING_TICKS(ch) = (ubyte)(5 - fast_craft_bonus);
+    GET_CRAFTING_TICKS(ch) = legacy_kit_ticks(ch, -1, 5);
 
   obj_to_char(obj, ch);
   save_char(ch, 0);
@@ -1628,7 +1630,6 @@ static int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
 {
   int num_objs = 0, cost;
   struct obj_data *obj = NULL;
-  int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
   if (!HAS_REAL_FEAT(ch, FEAT_BONE_ARMOR))
   {
@@ -1700,7 +1701,7 @@ static int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
   if (cost == 0)
     GET_CRAFTING_TICKS(ch) = 1;
   else
-    GET_CRAFTING_TICKS(ch) = (ubyte)MAX(1, 5 - fast_craft_bonus);
+    GET_CRAFTING_TICKS(ch) = legacy_kit_ticks(ch, ABILITY_CRAFT_ARMORSMITHING, 5);
 
   obj_to_char(obj, ch);
   save_char(ch, 0);
@@ -1715,7 +1716,6 @@ static int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
 {
   int num_objs = 0, cost;
   struct obj_data *obj = NULL;
-  int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
   char buf[MAX_STRING_LENGTH];
   int i = 0;
   char bonus[30];
@@ -1920,7 +1920,11 @@ static int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
   if (cost == 0)
     GET_CRAFTING_TICKS(ch) = 1;
   else
-    GET_CRAFTING_TICKS(ch) = (ubyte)(10 - fast_craft_bonus);
+    GET_CRAFTING_TICKS(ch) =
+        legacy_kit_ticks(ch,
+                         GET_OBJ_TYPE(obj) == ITEM_WEAPON ? ABILITY_CRAFT_WEAPONSMITHING
+                                                          : ABILITY_CRAFT_ARMORSMITHING,
+                         10);
 
   obj_to_char(obj, ch);
   save_char(ch, 0);
@@ -1935,8 +1939,7 @@ static int disenchant(struct obj_data *kit, struct char_data *ch)
 {
   struct obj_data *obj = NULL;
   int num_objs = 0, essence_level = 0;
-  int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
-  int chem_check = GET_SKILL(ch, SKILL_CHEMISTRY) + d20(ch);
+  int chem_check = craft_legacy_skill_equivalent(ch, ABILITY_CRAFT_ALCHEMY) + d20(ch);
 
   /* Cycle through contents */
   /* disenchant requires just one item be inside the kit */
@@ -1983,16 +1986,8 @@ static int disenchant(struct obj_data *kit, struct char_data *ch)
   /* determine the level of this essence */
   essence_level = dice(1, ((GET_OBJ_LEVEL(obj) / 2)));
 
-  /* getting complaints it is too slow to notch - zusuk */
-  if (!IS_NPC(ch))
-  {
-    increase_skill(ch, SKILL_CHEMISTRY);
-    increase_skill(ch, SKILL_CHEMISTRY);
-    increase_skill(ch, SKILL_CHEMISTRY);
-  }
-
   GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
-  GET_CRAFTING_TICKS(ch) = (ubyte)MAX(2, 11 - fast_craft_bonus);
+  GET_CRAFTING_TICKS(ch) = (ubyte)MAX(2, legacy_kit_ticks(ch, ABILITY_CRAFT_ALCHEMY, 11));
   GET_CRAFTING_OBJ(ch) = NULL;
 
   send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
@@ -2050,7 +2045,6 @@ static int create(char *argument, struct obj_data *kit, struct char_data *ch, in
   struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL, *material = NULL, *essence = NULL;
   int num_mats = 0, obj_level = 1, skill = ABILITY_CRAFT_WEAPONSMITHING, mats_needed = 12345,
       found = 0, i = 0, l = 0;
-  int fast_craft_bonus = 0;
   int chance_of_crit = 0;
 
   /* weird find, color codes doesn't play nice with the ' character -zusuk */
@@ -2307,7 +2301,7 @@ static int create(char *argument, struct obj_data *kit, struct char_data *ch, in
   if (CAN_WEAR(mold, ITEM_WEAR_FINGER) || CAN_WEAR(mold, ITEM_WEAR_ANKLE) ||
       CAN_WEAR(mold, ITEM_WEAR_NECK) || CAN_WEAR(mold, ITEM_WEAR_HOLD))
   {
-    skill = SKILL_JEWELRY_MAKING;
+    skill = ABILITY_CRAFT_JEWELCRAFTING;
   } /* body armor pieces: either armor-smith/leather-worker/or knitting */
   else if (CAN_WEAR(mold, ITEM_WEAR_BODY) || CAN_WEAR(mold, ITEM_WEAR_ARMS) ||
            CAN_WEAR(mold, ITEM_WEAR_LEGS) || CAN_WEAR(mold, ITEM_WEAR_HEAD) ||
@@ -2315,26 +2309,28 @@ static int create(char *argument, struct obj_data *kit, struct char_data *ch, in
            CAN_WEAR(mold, ITEM_WEAR_WRIST) || CAN_WEAR(mold, ITEM_WEAR_WAIST))
   {
     if (IS_HARD_METAL(GET_OBJ_MATERIAL(mold)))
-      skill = SKILL_ARMOR_SMITHING;
+      skill = ABILITY_CRAFT_ARMORSMITHING;
     else if (IS_LEATHER(GET_OBJ_MATERIAL(mold)))
-      skill = SKILL_LEATHER_WORKING;
+      skill = ABILITY_CRAFT_LEATHERWORKING;
     else
-      skill = SKILL_KNITTING;
+      skill = ABILITY_CRAFT_TAILORING;
   } /* about body */
   else if (CAN_WEAR(mold, ITEM_WEAR_ABOUT))
   {
-    skill = SKILL_KNITTING;
+    skill = ABILITY_CRAFT_TAILORING;
   } /* weapon-smithing:  weapons and shields */
   else if (CAN_WEAR(mold, ITEM_WEAR_WIELD) || CAN_WEAR(mold, ITEM_WEAR_SHIELD))
   {
-    skill = SKILL_WEAPON_SMITHING;
+    skill = ABILITY_CRAFT_WEAPONSMITHING;
   }
 
-  /* skill restriction */
-  if (GET_SKILL(ch, skill) / 3 < obj_level)
+  /* skill restriction, in the legacy units the mold levels were written for */
+  if (craft_legacy_skill_equivalent(ch, skill) / 3 < obj_level)
   {
-    send_to_char(ch, "Your skill in %s (%d) is too low to create that item, you need %d.\r\n",
-                 spell_info[skill].name, GET_SKILL(ch, skill), obj_level * 3);
+    send_to_char(ch,
+                 "Your skill in %s (rank %d) is too low to create that item, you need rank %d.\r\n",
+                 ability_names[skill], get_craft_skill_value(ch, skill),
+                 (obj_level * 3 + CRAFT_LEGACY_SKILL_PER_RANK - 1) / CRAFT_LEGACY_SKILL_PER_RANK);
     return 1;
   }
 
@@ -2368,10 +2364,8 @@ static int create(char *argument, struct obj_data *kit, struct char_data *ch, in
                    chance_of_crit);
     }
     send_to_char(ch, "The item will be level: %d.\r\n", obj_level);
-    send_to_char(ch,
-                 "It will make use of your %s skill, which has a value "
-                 "of %d.\r\n",
-                 spell_info[skill].name, GET_SKILL(ch, skill));
+    send_to_char(ch, "It will make use of your %s skill, which is at rank %d.\r\n",
+                 ability_names[skill], get_craft_skill_value(ch, skill));
     send_to_char(ch, "This crafting session will take 60 seconds.\r\n");
     send_to_char(ch, "You need %d gold on hand to make this item.\r\n", cost);
 
@@ -2467,8 +2461,7 @@ static int create(char *argument, struct obj_data *kit, struct char_data *ch, in
     GET_CRAFTING_OBJ(ch) = mold;
     obj_from_obj(mold); /* extracting this causes issues, solution? */
     GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
-    fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
-    GET_CRAFTING_TICKS(ch) = (ubyte)(11 - fast_craft_bonus);
+    GET_CRAFTING_TICKS(ch) = legacy_kit_ticks(ch, skill, 11);
     int kit_obj_vnum = GET_OBJ_VNUM(kit);
     obj_from_room(kit);
     extract_obj(kit);
@@ -2482,8 +2475,6 @@ static int create(char *argument, struct obj_data *kit, struct char_data *ch, in
     save_char(ch, 0);
     Crash_crashsave(ch);
 
-    if (!IS_NPC(ch))
-      increase_skill(ch, skill);
     NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
   }
   return 1;
@@ -2896,10 +2887,6 @@ MUD_EVENT_CALLBACK(event_crafting)
 
     GET_CRAFTING_TICKS(ch)--;
 
-    /* skill notch */
-    if (GET_SKILL(ch, SKILL_FAST_CRAFTER) < 99)
-      increase_skill(ch, SKILL_FAST_CRAFTER);
-
     if (GET_LEVEL(ch) >= LVL_IMMORT)
       return 1;
     else
@@ -2923,7 +2910,7 @@ MUD_EVENT_CALLBACK(event_crafting)
       break;
 
     case SCMD_BONEARMOR:
-      skill = SKILL_ARMOR_SMITHING;
+      skill = ABILITY_CRAFT_ARMORSMITHING;
       snprintf(buf, sizeof(buf), "You finish converting $p into bone.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n finishes converting $p into bone.");
@@ -2935,9 +2922,9 @@ MUD_EVENT_CALLBACK(event_crafting)
 
     case SCMD_REFORGE:
       if (GET_OBJ_TYPE(GET_CRAFTING_OBJ(ch)) == ITEM_WEAPON)
-        skill = SKILL_WEAPON_SMITHING;
+        skill = ABILITY_CRAFT_WEAPONSMITHING;
       else
-        skill = SKILL_ARMOR_SMITHING;
+        skill = ABILITY_CRAFT_ARMORSMITHING;
 
       snprintf(buf, sizeof(buf), "You finish reforging $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
@@ -2972,7 +2959,7 @@ MUD_EVENT_CALLBACK(event_crafting)
       break;
 
     case SCMD_MINE:
-      skill = SKILL_MINING;
+      skill = ABILITY_HARVEST_MINING;
 
       snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
@@ -2985,7 +2972,7 @@ MUD_EVENT_CALLBACK(event_crafting)
       break;
 
     case SCMD_HUNT:
-      skill = SKILL_FORESTING;
+      skill = ABILITY_HARVEST_HUNTING;
 
       snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
@@ -2998,7 +2985,7 @@ MUD_EVENT_CALLBACK(event_crafting)
       break;
 
     case SCMD_KNIT:
-      skill = SKILL_KNITTING;
+      skill = ABILITY_HARVEST_GATHERING;
 
       snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
@@ -3011,7 +2998,7 @@ MUD_EVENT_CALLBACK(event_crafting)
       break;
 
     case SCMD_FOREST:
-      skill = SKILL_FORESTING;
+      skill = ABILITY_HARVEST_FORESTRY;
 
       snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
@@ -3024,7 +3011,7 @@ MUD_EVENT_CALLBACK(event_crafting)
       break;
 
     case SCMD_DISENCHANT:
-      skill = SKILL_CHEMISTRY;
+      skill = ABILITY_CRAFT_ALCHEMY;
 
       snprintf(buf, sizeof(buf), "You complete the disenchantment process.");
       act(buf, false, ch, 0, 0, TO_CHAR);
@@ -3077,7 +3064,7 @@ MUD_EVENT_CALLBACK(event_crafting)
 
     case SCMD_AUGMENT:
       // use to be part of crafting
-      skill = SKILL_CHEMISTRY;
+      skill = ABILITY_CRAFT_ALCHEMY;
 
       if (GET_CRAFTING_REPEAT(ch))
       {
@@ -3103,7 +3090,7 @@ MUD_EVENT_CALLBACK(event_crafting)
       break;
 
     case SCMD_CONVERT:
-      skill = SKILL_CHEMISTRY;
+      skill = ABILITY_CRAFT_ALCHEMY;
       // use to be part of crafting
 
       if (GET_CRAFTING_REPEAT(ch))
@@ -3182,9 +3169,23 @@ MUD_EVENT_CALLBACK(event_crafting)
       return 0;
     }
 
-    /* notch skills */
-    if (skill != -1)
-      increase_skill(ch, skill);
+    /* One craft experience award for the finished operation, on the ability it used. Node
+     * harvests pay by the material's grade; everything else by the object's level. */
+    if (skill != -1 && !IS_NPC(ch))
+    {
+      int craft_exp;
+
+      if (GET_CRAFTING_TYPE(ch) == SCMD_MINE || GET_CRAFTING_TYPE(ch) == SCMD_HUNT ||
+          GET_CRAFTING_TYPE(ch) == SCMD_KNIT || GET_CRAFTING_TYPE(ch) == SCMD_FOREST)
+        craft_exp =
+            20 + 10 * (GET_CRAFTING_OBJ(ch)
+                           ? material_grade(craft_material_from_object(GET_CRAFTING_OBJ(ch)))
+                           : 1);
+      else
+        craft_exp =
+            craft_operation_exp(GET_CRAFTING_OBJ(ch) ? GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) : 1);
+      gain_craft_exp(ch, craft_exp, skill, TRUE);
+    }
     reset_craft(ch);
     return 0; // done with the event
   }
@@ -3279,22 +3280,22 @@ ACMD(do_harvest)
 
   if (IS_WOOD(material))
   {
-    skillnum = SKILL_FORESTING;
+    skillnum = ABILITY_HARVEST_FORESTRY;
     sub_command = SCMD_FOREST;
   }
   else if (IS_LEATHER(material))
   {
-    skillnum = SKILL_HUNTING;
+    skillnum = ABILITY_HARVEST_HUNTING;
     sub_command = SCMD_HUNT;
   }
   else if (IS_CLOTH(material))
   {
-    skillnum = SKILL_KNITTING;
+    skillnum = ABILITY_HARVEST_GATHERING;
     sub_command = SCMD_KNIT;
   }
   else
   {
-    skillnum = SKILL_MINING;
+    skillnum = ABILITY_HARVEST_MINING;
     sub_command = SCMD_MINE;
   }
 
@@ -3564,10 +3565,13 @@ ACMD(do_harvest)
     return;
   }
 
-  if (GET_SKILL(ch, skillnum) < minskill)
+  /* Node thresholds are written in legacy units; ranks read through the equivalent. */
+  if (craft_legacy_skill_equivalent(ch, skillnum) < minskill)
   {
-    send_to_char(ch, "You need a minimum %s skill of %d, while yours is only %d.\r\n",
-                 spell_info[skillnum].name, minskill, GET_SKILL(ch, skillnum));
+    send_to_char(ch, "You need a minimum %s rank of %d, while yours is only %d.\r\n",
+                 ability_names[skillnum],
+                 (minskill + CRAFT_LEGACY_SKILL_PER_RANK - 1) / CRAFT_LEGACY_SKILL_PER_RANK,
+                 get_craft_skill_value(ch, skillnum));
     return;
   }
 
@@ -3613,9 +3617,6 @@ ACMD(do_harvest)
 
   obj_to_char(obj, ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
-
-  if (!IS_NPC(ch))
-    increase_skill(ch, skillnum);
 
   return;
 }

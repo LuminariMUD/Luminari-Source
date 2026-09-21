@@ -1176,6 +1176,12 @@ int load_char(const char *name, struct char_data *ch)
             GET_CRAFT(ch).supply_quality_tier_requirement = (int)quality_tier;
           }
         }
+        else if (!strcmp(tag, "CrMg"))
+        {
+          /* Crafting consolidation migration stage; never below zero or above the current. */
+          GET_CRAFT_MIGRATION(ch) =
+              LIMIT(atoi(line), CRAFT_MIGRATION_NONE, CRAFT_MIGRATION_CURRENT);
+        }
         else if (!strcmp(tag, "CrTr"))
         {
           /* Craft training contract: ability experience end-epoch. A contract already paid for
@@ -2213,6 +2219,13 @@ int load_char(const char *name, struct char_data *ch)
       SET_ABILITY(ch, i, earned_rank);
   }
 
+  /* Crafting consolidation: convert legacy kit skills once, before the immortal
+   * initialization below can make automatic values look like earned ranks. The results and
+   * the CrMg marker are published together by the first save, which enter_player_game()
+   * requests before play; loading for inspection never rewrites the file. */
+  if (craft_migrate_legacy_skills(ch))
+    ch->player_specials->craft_migration_unsaved = TRUE;
+
   resetCastingData(ch);
   CLOUDKILL(ch) = 0; // make sure init cloudkill burst
   DOOM(ch) = 0;      // make sure init creeping doom
@@ -2417,6 +2430,9 @@ bool save_char_checked(struct char_data *ch, int mode)
   const char *account_name = NULL;
   char filename[40] = {'\0'}, bits[127] = {'\0'}, bits2[127] = {'\0'}, bits3[127] = {'\0'},
        bits4[127] = {'\0'};
+  char temp_filename[64] = {'\0'};
+  int temp_fd = -1;
+  struct stat live_stat;
   int i = 0, j = 0, id = 0, save_index = FALSE;
   int64_t save_epoch;
   int aff_count = 0, saved_aff_count = 0;
@@ -2519,9 +2535,46 @@ bool save_char_checked(struct char_data *ch, int mode)
     PERF_PROF_EXIT(pr_save_char_checked_);
     return FALSE;
   }
-  if (!(fl = fopen_restricted(filename, "w")))
+  /* Publish by replacement: write a temporary file beside the live one and rename it into
+   * place only after every byte is flushed and synced, so an interrupted or failed save leaves
+   * the previous file intact. Follows save_player_index_checked(). */
+  i = snprintf(temp_filename, sizeof(temp_filename), "%s.save-tmp.XXXXXX", filename);
+  if (i < 0 || i >= (int)sizeof(temp_filename) || (temp_fd = mkstemp(temp_filename)) < 0)
+  {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't create temporary player file for %s: %s",
+           filename, strerror(errno));
+    free(write_buffer);
+    PERF_PROF_EXIT(pr_save_char_checked_);
+    return FALSE;
+  }
+  if (stat(filename, &live_stat) == 0)
+  {
+    if (!S_ISREG(live_stat.st_mode) || fchmod(temp_fd, live_stat.st_mode & 07777) != 0)
+    {
+      mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't preserve player file permissions for %s: %s",
+             filename, strerror(errno));
+      close(temp_fd);
+      unlink(temp_filename);
+      free(write_buffer);
+      PERF_PROF_EXIT(pr_save_char_checked_);
+      return FALSE;
+    }
+  }
+  else if (fchmod(temp_fd, S_IRUSR | S_IWUSR) != 0)
+  {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't set player file permissions for %s: %s",
+           filename, strerror(errno));
+    close(temp_fd);
+    unlink(temp_filename);
+    free(write_buffer);
+    PERF_PROF_EXIT(pr_save_char_checked_);
+    return FALSE;
+  }
+  if (!(fl = fdopen(temp_fd, "w")))
   {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't open player file %s for write", filename);
+    close(temp_fd);
+    unlink(temp_filename);
     free(write_buffer);
     PERF_PROF_EXIT(pr_save_char_checked_);
     return FALSE;
@@ -3409,6 +3462,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   if (GET_CRAFT(ch).training_ability)
     BUFFER_WRITE("CrTr: %d %d %ld\n", GET_CRAFT(ch).training_ability, GET_CRAFT(ch).training_exp,
                  (long)GET_CRAFT(ch).training_end);
+  BUFFER_WRITE("CrMg: %d\n", GET_CRAFT_MIGRATION(ch));
 
   BUFFER_WRITE("CrSR: %d\n", GET_CRAFT(ch).survey_rooms);
   BUFFER_WRITE("CrIy: %d\n", GET_CRAFT(ch).instrument_type);
@@ -3963,9 +4017,14 @@ save_char_restore:
    * equipment and affects that were stripped for serialization, and skipping
    * that would corrupt the in-memory character on top of a failed save.
    */
-  if (fflush(fl) != 0)
+  if (fflush(fl) != 0 || ferror(fl))
   {
     log("SYSERR: save_char: Failed to flush player file for %s", GET_NAME(ch));
+    save_ok = FALSE;
+  }
+  if (save_ok && fsync(fileno(fl)) != 0)
+  {
+    log("SYSERR: save_char: Failed to sync player file for %s", GET_NAME(ch));
     save_ok = FALSE;
   }
 
@@ -3975,6 +4034,16 @@ save_char_restore:
     log("SYSERR: save_char: Failed to close player file for %s", GET_NAME(ch));
     save_ok = FALSE;
   }
+  if (save_ok && rename(temp_filename, filename) != 0)
+  {
+    log("SYSERR: save_char: Failed to install player file for %s: %s", GET_NAME(ch),
+        strerror(errno));
+    save_ok = FALSE;
+  }
+  if (!save_ok)
+    unlink(temp_filename);
+  else if (ch->player_specials)
+    ch->player_specials->craft_migration_unsaved = FALSE;
 
   /* Free the write buffer */
   free(write_buffer);

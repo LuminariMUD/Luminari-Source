@@ -2606,12 +2606,6 @@ ACMD(do_dismiss)
 
 ACMD(do_destroygolem)
 {
-  if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)
-  {
-    send_to_char(ch, "Golem crafting is not enabled on this server.\r\n");
-    return;
-  }
-
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *golem = NULL;
 
@@ -2963,12 +2957,6 @@ ACMD(do_aurareading_perk)
 
 ACMD(do_golemrepair)
 {
-  if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)
-  {
-    send_to_char(ch, "Golem crafting is not enabled on this server.\r\n");
-    return;
-  }
-
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *golem = NULL;
   int material_needed = 0, material_type = 0;
@@ -7392,7 +7380,7 @@ ACMD(do_boosts)
   send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
-  send_to_char(ch, "\tDType 'craft' to see your crafting proficiency\tn\r\n");
+  send_to_char(ch, "\tDType 'craftscore' to see your crafting proficiency\tn\r\n");
   send_to_char(ch, "\tDType 'spells <classname>' to see your currently known spells\tn\r\n");
 }
 
@@ -7407,11 +7395,7 @@ ACMD(do_practice)
 
   one_argument(argument, arg, sizeof(arg));
 
-  if (*arg)
-    ; // send_to_char(ch, "Type '\tYcraft\tn' without an argument to view your crafting skills.\r\n");
-  else
-    list_crafting_skills(ch);
-
+  (void)arg;
   send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");

@@ -6955,6 +6955,9 @@ struct player_special_data_saved
 
   int craft_mats_owned[NUM_CRAFT_MATS];
   int craft_motes_owned[NUM_CRAFT_MOTES];
+  /* Highest crafting consolidation migration stage applied (CrMg); outside the resettable
+   * project state so a project reset or respec cannot repeat a conversion. */
+  int craft_migration_version;
 
   /* Arcane mark personalization */
   char *arcane_mark; /**< Stored arcane mark string */
@@ -7073,15 +7076,16 @@ struct player_special_data
 {
   struct player_special_data_saved saved; /**< Information to be saved. */
 
-  char *poofin;               /**< Description displayed to room on arrival of a god. */
-  char *poofout;              /**< Description displayed to room at a god's exit. */
-  struct alias_data *aliases; /**< Command aliases			*/
-  long last_tell;             /**< idnum of PC who last told this PC, used to reply */
-  void *last_olc_targ;        /**< ? Currently Unused ? */
-  int last_olc_mode;          /**< ? Currently Unused ? */
-  char *host;                 /**< Resolved hostname, or ip, for player. */
-  int diplomacy_wait;         /**< Diplomacy Timer */
-  int buildwalk_sector;       /**< Default sector type for buildwalk */
+  char *poofin;                 /**< Description displayed to room on arrival of a god. */
+  char *poofout;                /**< Description displayed to room at a god's exit. */
+  struct alias_data *aliases;   /**< Command aliases			*/
+  long last_tell;               /**< idnum of PC who last told this PC, used to reply */
+  void *last_olc_targ;          /**< ? Currently Unused ? */
+  int last_olc_mode;            /**< ? Currently Unused ? */
+  char *host;                   /**< Resolved hostname, or ip, for player. */
+  int diplomacy_wait;           /**< Diplomacy Timer */
+  int buildwalk_sector;         /**< Default sector type for buildwalk */
+  bool craft_migration_unsaved; /**< A crafting migration ran at load and awaits its save. */
 
   /* salvation spell */
   room_vnum salvation_room;
@@ -8111,7 +8115,6 @@ struct extra_game_data
 {
   ubyte bag_system;
   ubyte new_player_gear;
-  ubyte crafting_system;
   ubyte landmarks_system;
   ubyte allow_cexchange;
   ubyte wilderness_system;

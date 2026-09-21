@@ -55,7 +55,6 @@ struct craft_project_fixture
   struct obj_data *saved_obj_proto;
   obj_rnum saved_top_of_objt;
   struct obj_data *saved_object_list;
-  ubyte saved_crafting_system;
 };
 
 static void craft_project_reset_output(struct craft_project_fixture *f)
@@ -96,8 +95,6 @@ static void craft_project_begin(struct craft_project_fixture *f)
   f->saved_obj_proto = obj_proto;
   f->saved_top_of_objt = top_of_objt;
   f->saved_object_list = object_list;
-  f->saved_crafting_system = CONFIG_CRAFTING_SYSTEM;
-  CONFIG_CRAFTING_SYSTEM = CRAFTING_SYSTEM_MOTES;
 
   f->room.number = 1;
   f->room.name = CuMutableString("A smithy");
@@ -194,7 +191,6 @@ static void craft_project_end(struct craft_project_fixture *f)
   obj_proto = f->saved_obj_proto;
   top_of_objt = f->saved_top_of_objt;
   object_list = f->saved_object_list;
-  CONFIG_CRAFTING_SYSTEM = f->saved_crafting_system;
 }
 
 /** Everything a steel long sword needs except motes: type, variant, descriptions and materials. */
@@ -1205,18 +1201,23 @@ void Test_crafting_kit_reforge_needs_exactly_one_item(CuTest *tc)
 
 /* ---- Material identity and checked balance credits (crafting consolidation, Phase 1) ---- */
 
+#include "../../src/craft/crafts.h"
 #include "../../src/obj/objsave.h"
 
 #include <limits.h>
 
-/** Legacy node and shop prototypes and the balance each stores as (CRAFT_MAT_NONE: refused). */
-static const struct
+/** A test prototype: its vnum, object material, the balance it stores as (CRAFT_MAT_NONE:
+ * refused or object-only), and a keyword. */
+struct craft_test_prototype
 {
   obj_vnum vnum;
   int object_material;
   int balance;
   const char *keyword;
-} craft_legacy_prototypes[] = {
+};
+
+/** Legacy node and shop prototypes and the balance each stores as (CRAFT_MAT_NONE: refused). */
+static const struct craft_test_prototype craft_legacy_prototypes[] = {
     {WOOD_MATERIAL, MATERIAL_WOOD, CRAFT_MAT_ASH_WOOD, "planks"},
     {ALDERWOOD_MATERIAL, MATERIAL_WOOD, CRAFT_MAT_ASH_WOOD, "alderwood"},
     {YEW_MATERIAL, MATERIAL_WOOD, CRAFT_MAT_MAPLE_WOOD, "yew"},
@@ -1233,13 +1234,15 @@ static const struct
 };
 #define NUM_CRAFT_LEGACY_PROTOTYPES                                                                \
   ((int)(sizeof(craft_legacy_prototypes) / sizeof(craft_legacy_prototypes[0])))
+#define MAX_CRAFT_TEST_PROTOTYPES 24
 
-/** A larger, sorted object index holding the fixture's two prototypes plus every legacy
- * material prototype above, so read_object() and GET_OBJ_VNUM() see the real vnums. */
-static struct index_data craft_legacy_index[NUM_CRAFT_LEGACY_PROTOTYPES + 2];
-static struct obj_data craft_legacy_proto[NUM_CRAFT_LEGACY_PROTOTYPES + 2];
+/** A larger, sorted object index holding the fixture's two prototypes plus the given material
+ * prototypes, so read_object(), real_object(), and GET_OBJ_VNUM() see the real vnums. */
+static struct index_data craft_legacy_index[MAX_CRAFT_TEST_PROTOTYPES + 2];
+static struct obj_data craft_legacy_proto[MAX_CRAFT_TEST_PROTOTYPES + 2];
 
-static void craft_project_use_legacy_prototypes(struct craft_project_fixture *f)
+static void craft_project_use_prototypes(struct craft_project_fixture *f,
+                                         const struct craft_test_prototype *rows, int rows_count)
 {
   int i, j, count = 0;
   struct index_data index_swap;
@@ -1253,16 +1256,17 @@ static void craft_project_use_legacy_prototypes(struct craft_project_fixture *f)
     craft_legacy_proto[count] = f->object_proto[i];
     count++;
   }
-  for (i = 0; i < NUM_CRAFT_LEGACY_PROTOTYPES; i++)
+  for (i = 0; i < rows_count && i < MAX_CRAFT_TEST_PROTOTYPES; i++)
   {
     clear_object(&craft_legacy_proto[count]);
     GET_OBJ_TYPE(&craft_legacy_proto[count]) = ITEM_MATERIAL;
-    GET_OBJ_MATERIAL(&craft_legacy_proto[count]) = craft_legacy_prototypes[i].object_material;
+    GET_OBJ_MATERIAL(&craft_legacy_proto[count]) = rows[i].object_material;
     GET_OBJ_VAL(&craft_legacy_proto[count], 0) = 2;
-    craft_legacy_proto[count].name = CuMutableString(craft_legacy_prototypes[i].keyword);
+    SET_BIT_AR(GET_OBJ_WEAR(&craft_legacy_proto[count]), ITEM_WEAR_TAKE);
+    craft_legacy_proto[count].name = CuMutableString(rows[i].keyword);
     craft_legacy_proto[count].short_description = CuMutableString("a legacy material");
     craft_legacy_proto[count].description = CuMutableString("A legacy material lies here.");
-    craft_legacy_index[count].vnum = craft_legacy_prototypes[i].vnum;
+    craft_legacy_index[count].vnum = rows[i].vnum;
     count++;
   }
   /* Insertion sort by vnum, keeping index and prototype rows together. */
@@ -1283,6 +1287,11 @@ static void craft_project_use_legacy_prototypes(struct craft_project_fixture *f)
   obj_index = craft_legacy_index;
   obj_proto = craft_legacy_proto;
   top_of_objt = count - 1;
+}
+
+static void craft_project_use_legacy_prototypes(struct craft_project_fixture *f)
+{
+  craft_project_use_prototypes(f, craft_legacy_prototypes, NUM_CRAFT_LEGACY_PROTOTYPES);
 }
 
 void Test_craft_prototype_table_names_every_legacy_material(CuTest *tc)
@@ -1520,4 +1529,233 @@ void Test_salvage_refuses_a_full_balance_before_extracting(CuTest *tc)
   CuAssertIntEquals(tc, 0, bad_refusal);
   CuAssertIntEquals(tc, 0, bad_success);
   CuAssertTrue(tc, successes >= 0);
+}
+
+/* ---- Catalog on abilities and balances (crafting consolidation, Phase 2) ---- */
+
+/** Old and new catalog records load onto abilities, round-trip through the writer in the new
+ * form without converting twice, and an unmapped legacy skill keeps its raw record but can never
+ * execute. */
+void Test_catalog_records_convert_once_and_round_trip(CuTest *tc)
+{
+  static const char *legacy_file = "NEW\nName: Sword of Aegon\nId  : 11371\nFlag: 0\n"
+                                   "Vnum: 3299\nTime: 60\nSkil: 477 90\nMslf: You craft $p.\n"
+                                   "Mroo: $n crafts $p.\nReq : 3193 10 0\nEnd :\n"
+                                   "NEW\nName: Iron Cap\nId  : 11372\nFlag: 0\nVnum: 3299\n"
+                                   "Time: 10\nSkil: 2076 70\nMslf: You craft $p.\n"
+                                   "Mroo: $n crafts $p.\nEnd :\n"
+                                   "NEW\nName: Quick Stitch\nId  : 11373\nFlag: 0\nVnum: 3299\n"
+                                   "Time: 10\nSkil: 480 50\nMslf: You craft $p.\n"
+                                   "Mroo: $n crafts $p.\nEnd :\n"
+                                   "NEW\nName: Plain Hat\nId  : 11374\nFlag: 0\nVnum: 3299\n"
+                                   "Time: 10\nSkil: -1 0\nMslf: You craft $p.\n"
+                                   "Mroo: $n crafts $p.\nEnd :\n"
+                                   "NEW\nName: Silver Ring\nId  : 11375\nFlag: 0\nVnum: 3299\n"
+                                   "Time: 10\nAbil: 40 5\nMslf: You craft $p.\n"
+                                   "Mroo: $n crafts $p.\nEnd :\n$\n";
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct craft_data *sword, *cap, *stitch, *hat, *ring;
+  FILE *file;
+  char saved[4096];
+  size_t saved_length;
+  int sword_skill = -9, sword_rank = -9, cap_skill = -9, cap_rank = -9, stitch_skill = -9;
+  int stitch_legacy = -9, stitch_rank = -9, hat_skill = -9, ring_skill = -9, ring_rank = -9;
+  int reloaded_sword_rank = -9, reloaded_stitch_skill = -9, reloaded_stitch_legacy = -9;
+  int meets_at_17 = -1, meets_at_18 = -1, stitch_meets = -1;
+
+  craft_project_begin(&f);
+  test_clear_crafts();
+  file = tmpfile();
+  CuAssertPtrNotNull(tc, file);
+  fputs(legacy_file, file);
+  rewind(file);
+  test_load_crafts_from(file);
+  fclose(file);
+
+  sword = get_craft_from_id(11371);
+  cap = get_craft_from_id(11372);
+  stitch = get_craft_from_id(11373);
+  hat = get_craft_from_id(11374);
+  ring = get_craft_from_id(11375);
+  if (sword && cap && stitch && hat && ring)
+  {
+    sword_skill = CRAFT_SKILL(sword);
+    sword_rank = CRAFT_SKILL_LEVEL(sword);
+    cap_skill = CRAFT_SKILL(cap);
+    cap_rank = CRAFT_SKILL_LEVEL(cap);
+    stitch_skill = CRAFT_SKILL(stitch);
+    stitch_legacy = CRAFT_SKILL_LEGACY(stitch);
+    stitch_rank = CRAFT_SKILL_LEVEL(stitch);
+    hat_skill = CRAFT_SKILL(hat);
+    ring_skill = CRAFT_SKILL(ring);
+    ring_rank = CRAFT_SKILL_LEVEL(ring);
+    SET_ABILITY(ch, ABILITY_CRAFT_WEAPONSMITHING, 17);
+    meets_at_17 = test_character_meets_craft_skill(ch, sword);
+    SET_ABILITY(ch, ABILITY_CRAFT_WEAPONSMITHING, 18);
+    meets_at_18 = test_character_meets_craft_skill(ch, sword);
+    SET_ABILITY(ch, ABILITY_CRAFT_TAILORING, 40);
+    stitch_meets = test_character_meets_craft_skill(ch, stitch);
+  }
+
+  /* Write the catalog back and load that text again: no second conversion. */
+  file = tmpfile();
+  CuAssertPtrNotNull(tc, file);
+  test_save_crafts_to(file);
+  rewind(file);
+  saved_length = fread(saved, 1, sizeof(saved) - 1, file);
+  saved[saved_length] = '\0';
+  rewind(file);
+  test_clear_crafts();
+  test_load_crafts_from(file);
+  fclose(file);
+  sword = get_craft_from_id(11371);
+  stitch = get_craft_from_id(11373);
+  if (sword && stitch)
+  {
+    reloaded_sword_rank = CRAFT_SKILL_LEVEL(sword);
+    reloaded_stitch_skill = CRAFT_SKILL(stitch);
+    reloaded_stitch_legacy = CRAFT_SKILL_LEGACY(stitch);
+  }
+  test_clear_crafts();
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, ABILITY_CRAFT_WEAPONSMITHING, sword_skill);
+  CuAssertIntEquals(tc, 18, sword_rank);
+  CuAssertIntEquals(tc, ABILITY_CRAFT_ARMORSMITHING, cap_skill);
+  CuAssertIntEquals(tc, 14, cap_rank);
+  CuAssertIntEquals(tc, CRAFT_SKILL_UNSUPPORTED, stitch_skill);
+  CuAssertIntEquals(tc, 480, stitch_legacy);
+  CuAssertIntEquals(tc, 50, stitch_rank);
+  CuAssertIntEquals(tc, -1, hat_skill);
+  CuAssertIntEquals(tc, ABILITY_CRAFT_JEWELCRAFTING, ring_skill);
+  CuAssertIntEquals(tc, 5, ring_rank);
+  CuAssertIntEquals(tc, 0, meets_at_17);
+  CuAssertIntEquals(tc, 1, meets_at_18);
+  CuAssertIntEquals(tc, 0, stitch_meets);
+  CuAssertTrue(tc, strstr(saved, "Abil: 38 18\n") != NULL);
+  CuAssertTrue(tc, strstr(saved, "Abil: 37 14\n") != NULL);
+  CuAssertTrue(tc, strstr(saved, "Skil: 480 50\n") != NULL);
+  CuAssertTrue(tc, strstr(saved, "Abil: -1 0\n") != NULL);
+  CuAssertTrue(tc, strstr(saved, "Abil: 40 5\n") != NULL);
+  CuAssertIntEquals(tc, 18, reloaded_sword_rank);
+  CuAssertIntEquals(tc, CRAFT_SKILL_UNSUPPORTED, reloaded_stitch_skill);
+  CuAssertIntEquals(tc, 480, reloaded_stitch_legacy);
+}
+
+/** A catalog recipe's storable material requirements are met from and spent against the shared
+ * balances (aggregated over duplicate rows), exact gems stay objects, save-on-fail protects the
+ * debit, and a missing ingredient consumes nothing. */
+void Test_catalog_material_requirements_spend_shared_balances(CuTest *tc)
+{
+  static const struct craft_test_prototype rows[] = {
+      {ADAMANTINE_MATERIAL, MATERIAL_ADAMANTINE, CRAFT_MAT_ADAMANTINE, "adamantine"},
+      {ONYX_MATERIAL, MATERIAL_ONYX, CRAFT_MAT_NONE, "onyx"},
+  };
+  static const char *catalog = "NEW\nName: Adamantine Blade\nId  : 11380\nFlag: 0\nVnum: 3299\n"
+                               "Time: 10\nAbil: 38 1\nMslf: You craft $p.\nMroo: $n crafts $p.\n"
+                               "Req : 3193 6 0\nReq : 3193 4 4\nReq : 3187 2 0\nEnd :\n$\n";
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct craft_data *blade;
+  struct obj_data *onyx_one, *onyx_two;
+  FILE *file;
+  int missing_short = -9, missing_with_balance = -9, missing_no_gems = -9, missing_ready = -9;
+  int balance_after_refusal = -9, balance_after_fail = -9, balance_after_success = -9;
+  int gems_after_success = -9, refused = 0;
+
+  craft_project_begin(&f);
+  craft_project_use_prototypes(&f, rows, 2);
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
+  SET_ABILITY(ch, ABILITY_CRAFT_WEAPONSMITHING, 20);
+  test_clear_crafts();
+  file = tmpfile();
+  CuAssertPtrNotNull(tc, file);
+  fputs(catalog, file);
+  rewind(file);
+  test_load_crafts_from(file);
+  fclose(file);
+  blade = get_craft_from_id(11380);
+  CuAssertPtrNotNull(tc, blade);
+
+  /* Nine adamantine in the balance and no gems: the balance row is short and the gems missing. */
+  GET_CRAFT_MAT(ch, CRAFT_MAT_ADAMANTINE) = 9;
+  missing_short = test_missing_craft_requirements(ch, blade);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_ADAMANTINE) = 10;
+  missing_no_gems = test_missing_craft_requirements(ch, blade);
+  onyx_one = read_object(ONYX_MATERIAL, VIRTUAL);
+  onyx_two = read_object(ONYX_MATERIAL, VIRTUAL);
+  CuAssertPtrNotNull(tc, onyx_one);
+  CuAssertPtrNotNull(tc, onyx_two);
+  obj_to_char(onyx_one, ch);
+  obj_to_char(onyx_two, ch);
+  missing_ready = test_missing_craft_requirements(ch, blade);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_ADAMANTINE) = 9;
+  missing_with_balance = test_missing_craft_requirements(ch, blade);
+
+  /* The command refuses a short recipe before anything is spent. */
+  craft_project_reset_output(&f);
+  do_craft_with_kits(ch, "Adamantine Blade", 0, 0);
+  refused = craft_project_output_has(&f, "still missing");
+  balance_after_refusal = GET_CRAFT_MAT(ch, CRAFT_MAT_ADAMANTINE);
+
+  /* A failure keeps the save-on-fail four units and spends the other six. */
+  GET_CRAFT_MAT(ch, CRAFT_MAT_ADAMANTINE) = 10;
+  test_remove_components(ch, blade, FALSE);
+  balance_after_fail = GET_CRAFT_MAT(ch, CRAFT_MAT_ADAMANTINE);
+
+  /* Success spends all ten and both gems. */
+  GET_CRAFT_MAT(ch, CRAFT_MAT_ADAMANTINE) = 10;
+  if (ch->carrying != onyx_one && ch->carrying != onyx_two)
+  {
+    onyx_one = read_object(ONYX_MATERIAL, VIRTUAL);
+    onyx_two = read_object(ONYX_MATERIAL, VIRTUAL);
+    obj_to_char(onyx_one, ch);
+    obj_to_char(onyx_two, ch);
+  }
+  test_remove_components(ch, blade, TRUE);
+  balance_after_success = GET_CRAFT_MAT(ch, CRAFT_MAT_ADAMANTINE);
+  gems_after_success = ch->carrying == NULL ? 0 : 1;
+  test_clear_crafts();
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, 2, missing_short);
+  CuAssertIntEquals(tc, 1, missing_no_gems);
+  CuAssertIntEquals(tc, 0, missing_ready);
+  CuAssertIntEquals(tc, 1, missing_with_balance);
+  CuAssertIntEquals(tc, 1, refused);
+  CuAssertIntEquals(tc, 9, balance_after_refusal);
+  CuAssertIntEquals(tc, 4, balance_after_fail);
+  CuAssertIntEquals(tc, 0, balance_after_success);
+  CuAssertIntEquals(tc, 0, gems_after_success);
+}
+
+/** craft, craftscore, and the editor's own score reach the same ranks; skill-less kit work
+ * keeps its base timer. */
+void Test_craft_commands_show_one_rank_space(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  int score_shows = 0, craft_score_shows = 0, menu_lists_catalog = 0;
+
+  craft_project_begin(&f);
+  SET_ABILITY(ch, ABILITY_CRAFT_WEAPONSMITHING, 20);
+  craft_project_reset_output(&f);
+  do_craft_score(ch, "", 0, 0);
+  score_shows =
+      craft_project_output_has(&f, "weaponsmithing") && craft_project_output_has(&f, " 20 ");
+  craft_project_reset_output(&f);
+  do_craft(ch, "score", 0, 0);
+  craft_score_shows =
+      craft_project_output_has(&f, "weaponsmithing") && craft_project_output_has(&f, " 20 ");
+  craft_project_reset_output(&f);
+  do_craft(ch, "", 0, 0);
+  menu_lists_catalog = craft_project_output_has(&f, "craft catalog");
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, 1, score_shows);
+  CuAssertIntEquals(tc, 1, craft_score_shows);
+  CuAssertIntEquals(tc, 1, menu_lists_catalog);
+  CuAssertIntEquals(tc, 30, craft_legacy_kit_seconds(ch, -1, 5));
+  CuAssertIntEquals(tc, 6, craft_legacy_kit_seconds(ch, ABILITY_CRAFT_ALCHEMY, 1));
 }

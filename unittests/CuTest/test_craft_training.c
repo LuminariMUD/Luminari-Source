@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -1384,4 +1385,274 @@ void Test_craft_training_account_menu_shows_time_left(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(running, fixture.files.name));
   CuAssertPtrNotNull(tc, strstr(running, "training, 13h 20m left"));
   CuAssertPtrNotNull(tc, strstr(finished, "training finished"));
+}
+
+/* ---- Legacy skill conversion (crafting consolidation, Phase 2) ---- */
+
+void Test_craft_legacy_conversion_boundaries(CuTest *tc)
+{
+  struct craft_actor actor;
+  int second = -9;
+
+  craft_actor_init(&actor);
+  CuAssertIntEquals(tc, 0, craft_legacy_rank_for_skill(0));
+  CuAssertIntEquals(tc, 0, craft_legacy_rank_for_skill(1));
+  CuAssertIntEquals(tc, 0, craft_legacy_rank_for_skill(4));
+  CuAssertIntEquals(tc, 1, craft_legacy_rank_for_skill(5));
+  CuAssertIntEquals(tc, 2, craft_legacy_rank_for_skill(6));
+  CuAssertIntEquals(tc, 10, craft_legacy_rank_for_skill(48));
+  CuAssertIntEquals(tc, 18, craft_legacy_rank_for_skill(87));
+  CuAssertIntEquals(tc, 20, craft_legacy_rank_for_skill(98));
+  CuAssertIntEquals(tc, 20, craft_legacy_rank_for_skill(99));
+  CuAssertIntEquals(tc, 20, craft_legacy_rank_for_skill(100));
+  CuAssertIntEquals(tc, ABILITY_CRAFT_WEAPONSMITHING, craft_legacy_ability_for_skill(477, NULL));
+  CuAssertIntEquals(tc, ABILITY_CRAFT_WEAPONSMITHING, craft_legacy_ability_for_skill(2077, NULL));
+  CuAssertIntEquals(tc, ABILITY_CRAFT_TAILORING, craft_legacy_ability_for_skill(474, &second));
+  CuAssertIntEquals(tc, ABILITY_HARVEST_GATHERING, second);
+  CuAssertIntEquals(tc, -1, craft_legacy_ability_for_skill(2080, &second));
+  CuAssertIntEquals(tc, -1, second);
+  CuAssertIntEquals(tc, -1, craft_legacy_ability_for_skill(2085, NULL));
+  CuAssertIntEquals(tc, -1, craft_legacy_ability_for_skill(1, NULL));
+  /* A fresh character keeps the seed's starter access; ranks scale by the divisor. */
+  CuAssertIntEquals(tc, 4, craft_legacy_skill_equivalent(&actor.ch, ABILITY_HARVEST_MINING));
+  SET_ABILITY(&actor.ch, ABILITY_HARVEST_MINING, 10);
+  CuAssertIntEquals(tc, 50, craft_legacy_skill_equivalent(&actor.ch, ABILITY_HARVEST_MINING));
+  CuAssertIntEquals(tc, 4, craft_legacy_skill_equivalent(&actor.ch, 47));
+}
+
+/** Write a minimal pre-migration player file with the given legacy skill lines and extras. */
+static void craft_write_legacy_pfile(CuTest *tc, struct craft_player_files *files, long id,
+                                     const char *skills, const char *extra)
+{
+  char filename[MAX_FILEPATH];
+  FILE *file;
+
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, files->name));
+  file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, file);
+  if (file != NULL)
+  {
+    fprintf(file, "Name: %s\nId  : %ld\nLevl: 7\nSkil:\n%s0 0\n%s", files->name, id, skills, extra);
+    fclose(file);
+  }
+}
+
+/** A veteran converts once: gates they met before they still meet, higher saved ranks and
+ * spent talents survive, knitting fills two abilities and pays once, fast crafter pays
+ * compensation, slot 47 gains nothing, and a reload of the published file pays nothing more. */
+void Test_craft_legacy_skills_convert_once_on_load(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *loaded = new_char();
+  struct char_data *again = new_char();
+  char skills[256], extra[256], marker_line[MAX_INPUT_LENGTH];
+  int result, mining, mining_exp, alchemy, tailoring, gathering, points, marker, unsaved;
+  int alchemy_equivalent, mining_equivalent, slot47, slot47_exp, training, talent_rank, saved;
+  int marker_lines, again_result, again_points, again_alchemy, again_unsaved, again_marker;
+
+  craft_player_files_enter(tc, &files, "crmig", 4310);
+  snprintf(skills, sizeof(skills), "%d 48\n%d 87\n%d 30\n%d 66\n%d 4\n", CRAFT_LEGACY_ID_MINING,
+           CRAFT_LEGACY_ID_CHEMISTRY, CRAFT_LEGACY_ID_KNITTING, CRAFT_LEGACY_ID_FAST_CRAFTER,
+           CRAFT_LEGACY_ID_ARMOR_SMITHING);
+  /* Mining already holds a higher saved rank; three points are unspent; one rapid talent is
+   * spent; a paid training contract is pending. */
+  snprintf(extra, sizeof(extra), "Ablt:\n%d 12\n0 0\nTlpt: 3\nTlrk:", ABILITY_HARVEST_MINING);
+  craft_write_legacy_pfile(tc, &files, 4310, skills, extra);
+  {
+    char filename[MAX_FILEPATH];
+    FILE *file;
+    int i;
+
+    get_filename(filename, sizeof(filename), PLR_FILE, files.name);
+    file = fopen(filename, "a");
+    for (i = 0; i < TALENT_MAX; i++)
+      fprintf(file, " %d", i == TALENT_RAPID_MINING ? 1 : 0);
+    fprintf(file, "\nCrTr: %d 2500 1800000000\n", ABILITY_HARVEST_FORESTRY);
+    fclose(file);
+  }
+
+  result = load_char(files.name, loaded);
+  mining = GET_ABILITY(loaded, ABILITY_HARVEST_MINING);
+  mining_exp = GET_CRAFT_SKILL_EXP(loaded, ABILITY_HARVEST_MINING);
+  alchemy = GET_ABILITY(loaded, ABILITY_CRAFT_ALCHEMY);
+  tailoring = GET_ABILITY(loaded, ABILITY_CRAFT_TAILORING);
+  gathering = GET_ABILITY(loaded, ABILITY_HARVEST_GATHERING);
+  points = GET_TALENT_POINTS(loaded);
+  marker = GET_CRAFT_MIGRATION(loaded);
+  unsaved = loaded->player_specials->craft_migration_unsaved;
+  alchemy_equivalent = craft_legacy_skill_equivalent(loaded, ABILITY_CRAFT_ALCHEMY);
+  mining_equivalent = craft_legacy_skill_equivalent(loaded, ABILITY_HARVEST_MINING);
+  slot47 = GET_ABILITY(loaded, 47);
+  slot47_exp = GET_CRAFT_SKILL_EXP(loaded, 47);
+  training = GET_CRAFT(loaded).training_ability;
+  talent_rank = get_talent_rank(loaded, TALENT_RAPID_MINING);
+
+  /* Publish, then reload the published file: the marker is there and nothing is paid twice. */
+  GET_PFILEPOS(loaded) = 0;
+  saved = save_char_checked(loaded, 0);
+  marker_lines = craft_saved_tag_lines(files.name, "CrMg:", marker_line, sizeof(marker_line));
+  again_result = load_char(files.name, again);
+  again_points = GET_TALENT_POINTS(again);
+  again_alchemy = GET_ABILITY(again, ABILITY_CRAFT_ALCHEMY);
+  again_unsaved = again->player_specials->craft_migration_unsaved;
+  again_marker = GET_CRAFT_MIGRATION(again);
+
+  free_char(loaded);
+  free_char(again);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, 12, mining);
+  CuAssertTrue(tc, mining_exp >= craft_skill_level_exp(NULL, 12));
+  CuAssertIntEquals(tc, 18, alchemy);
+  CuAssertIntEquals(tc, 6, tailoring);
+  CuAssertIntEquals(tc, 6, gathering);
+  /* 3 unspent + 18 alchemy + 6 knitting (once) + 66 / 5 fast crafter; mining granted nothing. */
+  CuAssertIntEquals(tc, 3 + 18 + 6 + 13, points);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_SKILLS, marker);
+  CuAssertIntEquals(tc, 1, unsaved);
+  CuAssertTrue(tc, alchemy_equivalent >= 87);
+  CuAssertTrue(tc, mining_equivalent >= 48);
+  CuAssertIntEquals(tc, 0, slot47);
+  CuAssertIntEquals(tc, 0, slot47_exp);
+  CuAssertIntEquals(tc, ABILITY_HARVEST_FORESTRY, training);
+  CuAssertIntEquals(tc, 1, talent_rank);
+  CuAssertTrue(tc, saved);
+  CuAssertIntEquals(tc, 1, marker_lines);
+  CuAssertStrEquals(tc, "CrMg: 1\n", marker_line);
+  CuAssertIntEquals(tc, 0, again_result);
+  CuAssertIntEquals(tc, 3 + 18 + 6 + 13, again_points);
+  CuAssertIntEquals(tc, 18, again_alchemy);
+  CuAssertIntEquals(tc, 0, again_unsaved);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_SKILLS, again_marker);
+}
+
+/** An already-versioned file converts nothing again, and a fresh character (every legacy slot
+ * at the seed of 4) gains no ranks or points but is marked converted. */
+void Test_craft_migration_skips_versioned_and_fresh_files(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *versioned = new_char();
+  struct char_data *fresh = new_char();
+  char skills[512];
+  int i, offset = 0, versioned_result, versioned_mining, versioned_points, versioned_unsaved;
+  int fresh_result, fresh_ranks = 0, fresh_points, fresh_marker, fresh_unsaved;
+
+  craft_player_files_enter(tc, &files, "crver", 4311);
+  snprintf(skills, sizeof(skills), "%d 99\n", CRAFT_LEGACY_ID_MINING);
+  craft_write_legacy_pfile(tc, &files, 4311, skills, "CrMg: 1\n");
+  versioned_result = load_char(files.name, versioned);
+  versioned_mining = GET_ABILITY(versioned, ABILITY_HARVEST_MINING);
+  versioned_points = GET_TALENT_POINTS(versioned);
+  versioned_unsaved = versioned->player_specials->craft_migration_unsaved;
+
+  for (i = CRAFT_LEGACY_ID_FIRST; i <= CRAFT_LEGACY_ID_LAST; i++)
+    offset += snprintf(skills + offset, sizeof(skills) - offset, "%d 4\n", i);
+  craft_write_legacy_pfile(tc, &files, 4311, skills, "");
+  fresh_result = load_char(files.name, fresh);
+  for (i = START_CRAFT_ABILITIES; i <= END_HARVEST_ABILITIES; i++)
+    fresh_ranks += GET_ABILITY(fresh, i) + GET_CRAFT_SKILL_EXP(fresh, i);
+  fresh_points = GET_TALENT_POINTS(fresh);
+  fresh_marker = GET_CRAFT_MIGRATION(fresh);
+  fresh_unsaved = fresh->player_specials->craft_migration_unsaved;
+
+  free_char(versioned);
+  free_char(fresh);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertIntEquals(tc, 0, versioned_result);
+  CuAssertIntEquals(tc, 0, versioned_mining);
+  CuAssertIntEquals(tc, 0, versioned_points);
+  CuAssertIntEquals(tc, 0, versioned_unsaved);
+  CuAssertIntEquals(tc, 0, fresh_result);
+  CuAssertIntEquals(tc, 0, fresh_ranks);
+  CuAssertIntEquals(tc, 0, fresh_points);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_SKILLS, fresh_marker);
+  CuAssertIntEquals(tc, 1, fresh_unsaved);
+}
+
+/** The marker lives outside the project state: a project reset and a respec leave it alone. */
+void Test_craft_migration_marker_survives_reset_and_respec(CuTest *tc)
+{
+  struct char_data *ch = new_char();
+  int after_reset, after_respec;
+
+  if (class_list[CLASS_WARRIOR].name == NULL)
+    load_class_list();
+  if (feat_list[FEAT_ANIMATE_DEAD].name == NULL)
+    assign_feats();
+  if (race_list[RACE_HUMAN].name == NULL)
+    assign_races();
+  ch->player.name = strdup("Zzcraftmarker");
+  GET_PFILEPOS(ch) = -1;
+  IN_ROOM(ch) = NOWHERE;
+  GET_CLASS(ch) = CLASS_WARRIOR;
+  GET_REAL_RACE(ch) = RACE_HUMAN;
+  GET_LEVEL(ch) = 10;
+  CLASS_LEVEL(ch, CLASS_WARRIOR) = 10;
+  GET_CRAFT_MIGRATION(ch) = CRAFT_MIGRATION_SKILLS;
+
+  reset_current_craft(ch, NULL, FALSE, FALSE);
+  after_reset = GET_CRAFT_MIGRATION(ch);
+  do_start(ch);
+  after_respec = GET_CRAFT_MIGRATION(ch);
+  free_char(ch);
+
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_SKILLS, after_reset);
+  CuAssertIntEquals(tc, CRAFT_MIGRATION_SKILLS, after_respec);
+}
+
+/** The player writer publishes by replacement: when the temporary file cannot be created, the
+ * save reports failure and the previous file is untouched. */
+void Test_craft_save_failure_leaves_the_previous_file(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *ch = new_char();
+  char before[MAX_INPUT_LENGTH], after[MAX_INPUT_LENGTH];
+  int first, second = -1, before_lines, after_lines, leftovers = 0;
+  struct stat directory;
+
+  craft_player_files_enter(tc, &files, "crsave", 4312);
+  ch->player.name = strdup(files.name);
+  GET_PFILEPOS(ch) = 0;
+  GET_IDNUM(ch) = 4312;
+  GET_LEVEL(ch) = 10;
+  GET_TALENT_POINTS(ch) = 7;
+  first = save_char_checked(ch, 0);
+  before_lines = craft_saved_tag_lines(files.name, "Tlpt:", before, sizeof(before));
+
+  if (geteuid() != 0 && stat("plrfiles/U-Z", &directory) == 0 &&
+      chmod("plrfiles/U-Z", S_IRUSR | S_IXUSR) == 0)
+  {
+    GET_TALENT_POINTS(ch) = 9;
+    second = save_char_checked(ch, 0);
+    chmod("plrfiles/U-Z", directory.st_mode & 07777);
+  }
+  after_lines = craft_saved_tag_lines(files.name, "Tlpt:", after, sizeof(after));
+  {
+    /* No temporary file may be left behind. */
+    DIR *dir = opendir("plrfiles/U-Z");
+    struct dirent *entry;
+
+    if (dir != NULL)
+    {
+      while ((entry = readdir(dir)) != NULL)
+        if (strstr(entry->d_name, ".save-tmp.") != NULL)
+          leftovers++;
+      closedir(dir);
+    }
+  }
+  free_char(ch);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertTrue(tc, first);
+  CuAssertIntEquals(tc, 1, before_lines);
+  CuAssertStrEquals(tc, "Tlpt: 7\n", before);
+  if (second != -1)
+  {
+    CuAssertIntEquals(tc, 0, second);
+    CuAssertIntEquals(tc, 1, after_lines);
+    CuAssertStrEquals(tc, "Tlpt: 7\n", after);
+  }
+  CuAssertIntEquals(tc, 0, leftovers);
 }

@@ -578,7 +578,6 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define CEDIT_PLAYER_OPTIONS_SUMMON_30_AC 86
 #define CEDIT_PLAYER_OPTIONS_ALCHEMY_PREP_TIME 87
 #define CEDIT_SET_BAG_SYSTEM 89
-#define CEDIT_SET_CRAFTING_SYSTEM 90
 #define CEDIT_SET_LANDMARK_SYSTEM 91
 #define CEDIT_SET_NEW_PLAYER_GEAR 92
 #define CEDIT_SET_ALLOW_CEXCHANGE 93
@@ -771,7 +770,6 @@ i added this trying to debug issues with qedit-copy -zusuk
 
 
 #define NUM_BAG_SYSTEMS 2
-#define NUM_CRAFTING_SYSTEMS 3
 #define NUM_LANDMARK_SYSTEMS 3
 #define NUM_NEW_PLAYER_GEAR_OPTIONS 2
 #define NUM_ALLOW_CEXCHANGE_OPTIONS 2

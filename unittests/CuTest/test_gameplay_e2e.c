@@ -3414,7 +3414,6 @@ static bool verify_authored_constructs(const char *sandbox, char *error, size_t 
   snprintf(error, error_size, "corpse construct acquisition/resource/lifecycle contract failed");
   event_free_all();
   event_init();
-  CONFIG_CRAFTING_SYSTEM = CRAFTING_SYSTEM_MOTES;
   corpse = create_obj();
   corpse->name = strdup("corpse");
   corpse->short_description = strdup("a corpse");
@@ -3671,7 +3670,7 @@ void Test_gameplay_golem_minor_repairs_cost_materials_and_pending_destruction_ca
   struct gameplay_fixture fixture;
   struct player_special_data specials = {0};
   struct char_data *ch = &fixture.actor, *golem = &fixture.victim;
-  int needed = 0, material = 0, unit_cost, saved_system;
+  int needed = 0, material = 0, unit_cost;
   bool empty_denied, small_repair, next_increment, pending_denied, no_reward;
 
   begin_gameplay_fixture(&fixture);
@@ -3693,13 +3692,10 @@ void Test_gameplay_golem_minor_repairs_cost_materials_and_pending_destruction_ca
   next_increment = can_repair_golem(ch, golem, &needed, &material) && needed == 2 * unit_cost;
   SET_BIT_AR(MOB_FLAGS(golem), MOB_NOTDEADYET);
   pending_denied = !can_repair_golem(ch, golem, &needed, &material);
-  saved_system = CONFIG_CRAFTING_SYSTEM;
-  CONFIG_CRAFTING_SYSTEM = CRAFTING_SYSTEM_MOTES;
   do_destroygolem(ch, "victim", 0, 0);
   do_destroygolem(ch, "victim", 0, 0);
   no_reward =
       GET_CRAFT_MAT(ch, CRAFT_MAT_MAPLE_WOOD) == 100 && GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE) == 0;
-  CONFIG_CRAFTING_SYSTEM = (ubyte)saved_system;
   REMOVE_BIT_AR(MOB_FLAGS(golem), MOB_NOTDEADYET);
   golem->master = NULL;
   end_gameplay_fixture(&fixture);

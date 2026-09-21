@@ -288,6 +288,41 @@ bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int sk
 int get_craft_material_final_level_adjustment(struct char_data *ch);
 int craft_material_to_obj_material(int craftmat);
 int craft_material_from_object(struct obj_data *obj);
+/* Crafting consolidation (docs/ongoing-projects/crafting-consolidation-assessment.md).
+ * Legacy kit skills 2071 to 2085 convert to the craft and harvest abilities once per character,
+ * recorded by the CrMg stage marker. The historical ids stay here for migration code and old
+ * catalog records even after the live skill definitions retire. */
+#define CRAFT_LEGACY_ID_MINING 2071
+#define CRAFT_LEGACY_ID_HUNTING 2072
+#define CRAFT_LEGACY_ID_FORESTING 2073
+#define CRAFT_LEGACY_ID_KNITTING 2074
+#define CRAFT_LEGACY_ID_CHEMISTRY 2075
+#define CRAFT_LEGACY_ID_ARMOR_SMITHING 2076
+#define CRAFT_LEGACY_ID_WEAPON_SMITHING 2077
+#define CRAFT_LEGACY_ID_JEWELRY_MAKING 2078
+#define CRAFT_LEGACY_ID_LEATHER_WORKING 2079
+#define CRAFT_LEGACY_ID_FAST_CRAFTER 2080
+#define CRAFT_LEGACY_ID_FIRST 2071
+#define CRAFT_LEGACY_ID_LAST 2085
+/* Player files and the catalog once numbered these skills 471 to 485. */
+#define CRAFT_LEGACY_ID_OLD_OFFSET 1600
+/* Every character was seeded with 4 in each legacy slot; that is starter access, not progress. */
+#define CRAFT_LEGACY_SKILL_SEED 4
+#define CRAFT_LEGACY_SKILL_PER_RANK 5
+#define CRAFT_LEGACY_SKILL_MAX 99
+/* CrMg stages, applied in order; each runs only while the marker is below it. */
+#define CRAFT_MIGRATION_NONE 0
+#define CRAFT_MIGRATION_SKILLS 1
+#define CRAFT_MIGRATION_ORDERS 2
+#define CRAFT_MIGRATION_HOLDINGS 3
+#define CRAFT_MIGRATION_CURRENT CRAFT_MIGRATION_SKILLS
+int craft_legacy_rank_for_skill(int legacy_value);
+int craft_legacy_ability_for_skill(int legacy_skill, int *second_ability);
+int craft_legacy_skill_equivalent(struct char_data *ch, int ability);
+bool craft_migrate_legacy_skills(struct char_data *ch);
+int craft_legacy_kit_seconds(struct char_data *ch, int ability, int base_ticks);
+int craft_operation_exp(int object_level);
+
 /* Messages for a refund that a full balance refused; the allocation stays with the project. */
 #define CRAFT_MATERIAL_REFUND_REFUSED                                                              \
   "Your crafting storage cannot hold those materials; they remain allocated to the project.\r\n"

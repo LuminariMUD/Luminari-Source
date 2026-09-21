@@ -192,7 +192,6 @@ static void cedit_setup(struct descriptor_data *d)
 
   // Extra game data
   OLC_CONFIG(d)->extra.bag_system = CONFIG_BAG_SYSTEM;
-  OLC_CONFIG(d)->extra.crafting_system = CONFIG_CRAFTING_SYSTEM;
   OLC_CONFIG(d)->extra.landmarks_system = CONFIG_LANDMARK_SYSTEM;
   OLC_CONFIG(d)->extra.new_player_gear = CONFIG_NEW_PLAYER_GEAR;
   OLC_CONFIG(d)->extra.allow_cexchange = CONFIG_ALLOW_CEXCHANGE;
@@ -376,7 +375,6 @@ static void cedit_save_internally(struct descriptor_data *d)
 
   // extra game data
   CONFIG_BAG_SYSTEM = OLC_CONFIG(d)->extra.bag_system;
-  CONFIG_CRAFTING_SYSTEM = OLC_CONFIG(d)->extra.crafting_system;
   CONFIG_LANDMARK_SYSTEM = OLC_CONFIG(d)->extra.landmarks_system;
   CONFIG_NEW_PLAYER_GEAR = OLC_CONFIG(d)->extra.new_player_gear;
   CONFIG_ALLOW_CEXCHANGE = OLC_CONFIG(d)->extra.allow_cexchange;
@@ -981,10 +979,6 @@ int save_config(IDXTYPE nowhere __attribute__((unused)))
           "bag_system = %d\n\n",
           CONFIG_BAG_SYSTEM);
   fprintf(fl,
-          "* Which crafting system do you want to use?\n"
-          "crafting_system = %d\n\n",
-          CONFIG_CRAFTING_SYSTEM);
-  fprintf(fl,
           "* Which landmark system to use?\n"
           "landmark_system = %d\n\n",
           CONFIG_LANDMARK_SYSTEM);
@@ -1369,23 +1363,21 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
   write_to_output(d,
                   "\r\n\r\n"
                   "%sA%s) Choose Bag System              : %s%s\r\n"
-                  "%sB%s) Choose Crafting System         : %s%s\r\n"
-                  "%sC%s) Choose Walkto System           : %s%s\r\n"
-                  "%sD%s) Choose New Player Gear         : %s%s\r\n"
-                  "%sE%s) Allow CExchange Command?       : %s%s\r\n"
-                  "%sF%s) Wilderness System              : %s%s\r\n"
-                  "%sG%s) Allow Exp on Melee Hits        : %s%s\r\n"
-                  "%sH%s) Allow Exp on Spells Cast       : %s%s\r\n"
-                  "%sI%s) Use Arcane Moon Phases         : %s%s\r\n"
-                  "%sJ%s) Spellcasting Time Mode         : %s%s\r\n"
-                  "%sK%s) Vessel System                  : %s%s\r\n"
-                  "%sL%s) Auto-Download MUDlet Package?  : %s%s\r\n"
+                  "%sB%s) Choose Walkto System           : %s%s\r\n"
+                  "%sC%s) Choose New Player Gear         : %s%s\r\n"
+                  "%sD%s) Allow CExchange Command?       : %s%s\r\n"
+                  "%sE%s) Wilderness System              : %s%s\r\n"
+                  "%sF%s) Allow Exp on Melee Hits        : %s%s\r\n"
+                  "%sG%s) Allow Exp on Spells Cast       : %s%s\r\n"
+                  "%sH%s) Use Arcane Moon Phases         : %s%s\r\n"
+                  "%sI%s) Spellcasting Time Mode         : %s%s\r\n"
+                  "%sJ%s) Vessel System                  : %s%s\r\n"
+                  "%sK%s) Auto-Download MUDlet Package?  : %s%s\r\n"
                   "\r\n"
                   "%sQ%s) Exit To The Main Menu\r\n"
                   "Enter your choice : ",
 
                   grn, nrm, cyn, bag_system_options[OLC_CONFIG(d)->extra.bag_system], grn, nrm, cyn,
-                  crafting_system_options[OLC_CONFIG(d)->extra.crafting_system], grn, nrm, cyn,
                   landmark_system_options[OLC_CONFIG(d)->extra.landmarks_system], grn, nrm, cyn,
                   new_player_gear_options[OLC_CONFIG(d)->extra.new_player_gear], grn, nrm, cyn,
                   allow_cexchange_options[OLC_CONFIG(d)->extra.allow_cexchange], grn, nrm, cyn,
@@ -2159,22 +2151,6 @@ void cedit_parse(struct descriptor_data *d, char *arg)
 
     case 'b':
     case 'B':
-      write_to_output(d, "Enter the desired crafting system:\r\n");
-      write_to_output(d, "Crafting kits are a physical item which molds, materials and a crystal "
-                         "must be put into. Stats are limited to what is tied to the crystal.\r\n");
-      write_to_output(
-          d,
-          "Elemental motes and crafting menu allows you to harvest materials and elemental motes. "
-          "Stats can be customised based on the type & number of elemental mote you're using.\r\n");
-      for (i = 0; i < NUM_CRAFTING_SYSTEMS; i++)
-      {
-        write_to_output(d, "%d) %s\n", i + 1, crafting_system_options[i]);
-      }
-      OLC_MODE(d) = CEDIT_SET_CRAFTING_SYSTEM;
-      return;
-
-    case 'c':
-    case 'C':
       write_to_output(d, "Enter the desired walkto/landmark system:\r\n");
       write_to_output(
           d, "Cities only limits walkto to go to landmarks within supporting citites.\r\n");
@@ -2187,8 +2163,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_LANDMARK_SYSTEM;
       return;
 
-    case 'd':
-    case 'D':
+    case 'c':
+    case 'C':
       write_to_output(d, "Enter the desired new player gear option:\r\n");
       write_to_output(d, "Luminari style adds a teleporter and crafting kit, plus uses shared "
                          "items and limited armor.\r\n");
@@ -2201,8 +2177,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_NEW_PLAYER_GEAR;
       return;
 
-    case 'e':
-    case 'E':
+    case 'd':
+    case 'D':
       write_to_output(d, "Do you wish to allow the cexchab=nge command?\r\n");
       write_to_output(d, "Cexhcnage allows a playere to convert experience, gold, quest points, "
                          "etc between each other. So exp for gold, gold for qp, etc.\r\n");
@@ -2213,8 +2189,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_ALLOW_CEXCHANGE;
       return;
 
-    case 'f':
-    case 'F':
+    case 'e':
+    case 'E':
       write_to_output(d, "What kind of wilderness system do you use??\r\n");
       write_to_output(d, "None/Roads only means you have no grid-like, ASCII wilderness system, "
                          "and connect zones by roads.\r\n");
@@ -2229,8 +2205,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_WILDERNESS_SYSTEM;
       return;
 
-    case 'g':
-    case 'G':
+    case 'f':
+    case 'F':
       write_to_output(d, "How much experience should be granted for melee hits?\r\n");
       write_to_output(d, "Full: Normal experience gain from melee attacks.\r\n");
       write_to_output(d, "Reduced: Diminished experience gain from melee attacks.\r\n");
@@ -2242,8 +2218,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_MELEE_EXP;
       return;
 
-    case 'h':
-    case 'H':
+    case 'g':
+    case 'G':
       write_to_output(d, "How much experience should be granted for casting spells?\r\n");
       write_to_output(d, "Full: Normal experience gain from spell casting.\r\n");
       write_to_output(d, "Reduced: Diminished experience gain from spell casting.\r\n");
@@ -2255,8 +2231,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_SPELL_CAST_EXP;
       return;
 
-    case 'i':
-    case 'I':
+    case 'h':
+    case 'H':
       write_to_output(d, "Do you wish to enable arcane moon phase bonus spells?\r\n");
       write_to_output(
           d, "When enabled, arcane casters gain bonuses depending on the phase of the moons.\r\n");
@@ -2266,8 +2242,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_ARCANE_MOON_PHASES;
       return;
 
-    case 'j':
-    case 'J':
+    case 'i':
+    case 'I':
       write_to_output(d, "Choose spellcasting time mode:\r\n");
       for (i = 0; i < NUM_SPELLCASTING_TIME_OPTIONS; i++)
       {
@@ -2276,8 +2252,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_SPELLCASTING_TIME_MODE;
       return;
 
-    case 'k':
-    case 'K':
+    case 'j':
+    case 'J':
       write_to_output(d, "Enable the vessel system?\r\n");
       for (i = 0; i < NUM_VESSEL_SYSTEM_OPTIONS; i++)
       {
@@ -2286,8 +2262,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_VESSEL_SYSTEM;
       return;
 
-    case 'l':
-    case 'L':
+    case 'k':
+    case 'K':
       write_to_output(d, "Auto-download MUDlet package?\r\n");
       write_to_output(d,
                       "When enabled, players connecting via MUDlet will automatically receive\r\n");
@@ -3428,15 +3404,6 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.bag_system = ((ubyte)(MIN(NUM_BAG_SYSTEMS, MAX(1, atoi(arg))) - 1));
-    }
-    cedit_disp_extra_game_play_options(d);
-    break;
-
-  case CEDIT_SET_CRAFTING_SYSTEM:
-    if (*arg)
-    {
-      OLC_CONFIG(d)->extra.crafting_system =
-          ((ubyte)(MIN(NUM_CRAFTING_SYSTEMS, MAX(1, atoi(arg))) - 1));
     }
     cedit_disp_extra_game_play_options(d);
     break;

@@ -45,6 +45,7 @@
 #endif
 #include "config/vnums.h"
 #include "crafting_recipes.h"
+#include "crafts.h"
 
 #include <limits.h>
 
@@ -87,6 +88,8 @@ int materials_sort_info[NUM_CRAFT_MATS];
   "argument|motes|materials|enhancement|instrument|bonuses|descriptions|refine|resize)\r\n"        \
   "craft start\r\n"                                                                                \
   "craft golem - Construct a golem (see 'craft golem' for its options)\r\n"                        \
+  "craft catalog [recipe] - Builder catalog recipes (also the \'crafting\' command)\r\n"           \
+  "craft mold - Authored molds are made with a crafting kit: see HELP CRAFTING-KIT\r\n"            \
   "\r\n"                                                                                           \
   "Other commands:\r\n"                                                                            \
   "craft equipment - Show your equipped crafting gear\r\n"                                         \
@@ -3668,6 +3671,138 @@ int craft_material_to_obj_material(int craftmat)
   return MATERIAL_UNDEFINED;
 }
 
+/* ---- Legacy skill conversion (Decision 1 of the consolidation plan) ---- */
+
+/* A legacy 1 to 99 skill value converts to a rank: the starter seed and anything below it is
+ * rank 0; above it, ceil(value / CRAFT_LEGACY_SKILL_PER_RANK) so an existing gate is never lost
+ * (48 becomes 10, 87 becomes 18, 99 becomes 20). */
+int craft_legacy_rank_for_skill(int legacy_value)
+{
+  if (legacy_value <= CRAFT_LEGACY_SKILL_SEED)
+    return 0;
+  legacy_value = MIN(legacy_value, CRAFT_LEGACY_SKILL_MAX);
+  return (legacy_value + CRAFT_LEGACY_SKILL_PER_RANK - 1) / CRAFT_LEGACY_SKILL_PER_RANK;
+}
+
+/* The ability a legacy skill id (old 471 to 485 or current 2071 to 2085) converts to, or -1
+ * for a legacy skill with no gameplay successor (fast crafter, the five unimplemented
+ * crafts). Knitting fills tailoring and, through *second_ability, gathering. */
+int craft_legacy_ability_for_skill(int legacy_skill, int *second_ability)
+{
+  static const struct
+  {
+    int legacy;
+    int ability;
+    int second;
+  } conversions[] = {
+      {CRAFT_LEGACY_ID_MINING, ABILITY_HARVEST_MINING, -1},
+      {CRAFT_LEGACY_ID_HUNTING, ABILITY_HARVEST_HUNTING, -1},
+      {CRAFT_LEGACY_ID_FORESTING, ABILITY_HARVEST_FORESTRY, -1},
+      {CRAFT_LEGACY_ID_KNITTING, ABILITY_CRAFT_TAILORING, ABILITY_HARVEST_GATHERING},
+      {CRAFT_LEGACY_ID_CHEMISTRY, ABILITY_CRAFT_ALCHEMY, -1},
+      {CRAFT_LEGACY_ID_ARMOR_SMITHING, ABILITY_CRAFT_ARMORSMITHING, -1},
+      {CRAFT_LEGACY_ID_WEAPON_SMITHING, ABILITY_CRAFT_WEAPONSMITHING, -1},
+      {CRAFT_LEGACY_ID_JEWELRY_MAKING, ABILITY_CRAFT_JEWELCRAFTING, -1},
+      {CRAFT_LEGACY_ID_LEATHER_WORKING, ABILITY_CRAFT_LEATHERWORKING, -1},
+  };
+  size_t i;
+
+  if (second_ability)
+    *second_ability = -1;
+  if (legacy_skill >= CRAFT_LEGACY_ID_FIRST - CRAFT_LEGACY_ID_OLD_OFFSET &&
+      legacy_skill <= CRAFT_LEGACY_ID_LAST - CRAFT_LEGACY_ID_OLD_OFFSET)
+    legacy_skill += CRAFT_LEGACY_ID_OLD_OFFSET;
+  for (i = 0; i < sizeof(conversions) / sizeof(conversions[0]); i++)
+  {
+    if (conversions[i].legacy == legacy_skill)
+    {
+      if (second_ability)
+        *second_ability = conversions[i].second;
+      return conversions[i].ability;
+    }
+  }
+  return -1;
+}
+
+/* Gates written in legacy 1 to 99 units read this: rank times the divisor, floored at the old
+ * seed so a fresh character keeps the level-1 creation and minimum-skill-1 node access it had. */
+int craft_legacy_skill_equivalent(struct char_data *ch, int ability)
+{
+  if (!ch || ability < START_CRAFT_ABILITIES || ability > END_HARVEST_ABILITIES)
+    return CRAFT_LEGACY_SKILL_SEED;
+  return MAX(CRAFT_LEGACY_SKILL_SEED,
+             get_craft_skill_value(ch, ability) * CRAFT_LEGACY_SKILL_PER_RANK);
+}
+
+/* Raise one ability to at least the converted rank and return the ranks newly granted. */
+static int craft_migrate_ability(struct char_data *ch, int ability, int converted_rank)
+{
+  int old_rank, new_rank, old_exp, new_exp;
+
+  old_exp = GET_CRAFT_SKILL_EXP(ch, ability);
+  old_rank = MAX(get_craft_skill_value(ch, ability), craft_skill_rank_for_exp(ch, old_exp));
+  new_rank = MAX(old_rank, converted_rank);
+  new_exp = MAX(old_exp, craft_skill_level_exp(ch, new_rank));
+  if (new_rank != get_craft_skill_value(ch, ability))
+    SET_ABILITY(ch, ability, new_rank);
+  GET_CRAFT_SKILL_EXP(ch, ability) = new_exp;
+  if (new_rank != old_rank || new_exp != old_exp)
+    log("CRAFT: %s: %s rank %d (exp %d) -> rank %d (exp %d)", GET_NAME(ch), ability_names[ability],
+        old_rank, old_exp, new_rank, new_exp);
+  return new_rank - old_rank;
+}
+
+/* CrMg stage 1: convert the nine mapped legacy skills to abilities. Talent points are paid only
+ * for ranks newly granted (knitting pays the larger of its two grants once) plus fast crafter
+ * divided by the divisor as compensation. Returns true when the stage ran, whether or not any
+ * value changed; the caller persists the marker with the results. */
+bool craft_migrate_legacy_skills(struct char_data *ch)
+{
+  int legacy, rank, ability, second, granted, points = 0, fast;
+
+  if (!ch || IS_NPC(ch) || !ch->player_specials ||
+      GET_CRAFT_MIGRATION(ch) >= CRAFT_MIGRATION_SKILLS)
+    return false;
+  for (legacy = CRAFT_LEGACY_ID_FIRST; legacy <= CRAFT_LEGACY_ID_LAST; legacy++)
+  {
+    ability = craft_legacy_ability_for_skill(legacy, &second);
+    if (ability < 0)
+      continue;
+    rank = craft_legacy_rank_for_skill(GET_SKILL(ch, legacy));
+    granted = craft_migrate_ability(ch, ability, rank);
+    if (second >= 0)
+      granted = MAX(granted, craft_migrate_ability(ch, second, rank));
+    points += granted;
+  }
+  fast = GET_SKILL(ch, CRAFT_LEGACY_ID_FAST_CRAFTER);
+  if (fast > CRAFT_LEGACY_SKILL_SEED)
+    points += MIN(fast, CRAFT_LEGACY_SKILL_MAX) / CRAFT_LEGACY_SKILL_PER_RANK;
+  if (points > 0)
+  {
+    GET_TALENT_POINTS(ch) += points;
+    log("CRAFT: %s: %d talent point%s granted by legacy skill conversion", GET_NAME(ch), points,
+        points == 1 ? "" : "s");
+  }
+  GET_CRAFT_MIGRATION(ch) = CRAFT_MIGRATION_SKILLS;
+  return true;
+}
+
+/* The legacy kit timers ran base_ticks six-second ticks minus a fast-crafter bonus. Fast
+ * crafter is now the rapid talents, which are measured in seconds; convert and clamp to at
+ * least one tick before the caller divides back into ticks. */
+int craft_legacy_kit_seconds(struct char_data *ch, int ability, int base_ticks)
+{
+  int seconds = base_ticks * 6 - get_rapid_talent_bonus(ch, ability);
+
+  return MAX(6, seconds);
+}
+
+/* The one craft experience award for a completed operation on an object of this level. */
+int craft_operation_exp(int object_level)
+{
+  return MAX(CREATE_BASE_EXP, MAX(0, object_level) * CREATE_BASE_EXP);
+}
+
 /* Legacy node and shop prototypes whose object material does not name their balance. An entry
  * with CRAFT_MAT_NONE is explicitly not storable: the lookup stops there instead of falling
  * through to the generic material (fossil eggs would otherwise store as stone). */
@@ -4622,11 +4757,6 @@ void newcraft_create(struct char_data *ch, const char *argument)
   }
   else if (is_abbrev(arg1, "golem"))
   {
-    if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)
-    {
-      send_to_char(ch, "Golem crafting is not enabled on this server.\r\n");
-      return;
-    }
     newcraft_golem(ch, arg2);
     return;
   }
@@ -4639,6 +4769,18 @@ void newcraft_create(struct char_data *ch, const char *argument)
   else if (is_abbrev(arg1, "create"))
   {
     newcraft_create(ch, arg2);
+    return;
+  }
+  else if (is_abbrev(arg1, "catalog"))
+  {
+    /* The builder catalog (blueprint recipes) shares this progression; its own command
+     * spelling, crafting, remains. Listed after check and create so 'c' keeps its meaning. */
+    do_craft_with_kits(ch, arg2, 0, 0);
+    return;
+  }
+  else if (!str_cmp(arg1, "score"))
+  {
+    show_craft_score(ch, arg2);
     return;
   }
   else if (is_abbrev(arg1, "itemtype") || is_abbrev(arg1, "type"))
@@ -6810,20 +6952,10 @@ ACMD(do_craftbonuses)
     send_to_char(ch, "\r\n");
 }
 
+/* One score in every configuration: the craft and harvest ability ranks. */
 ACMD(do_craft_score)
 {
-  switch (CONFIG_CRAFTING_SYSTEM)
-  {
-  case CRAFTING_SYSTEM_KITS:
-    do_practice(ch, argument, cmd, subcmd);
-    break;
-  case CRAFTING_SYSTEM_MOTES:
-    do_craft_score_new(ch, argument, cmd, subcmd);
-    break;
-  default:
-    send_to_char(ch, "There is no crafting system implemented right now.\r\n");
-    break;
-  }
+  show_craft_score(ch, argument);
 }
 
 ACMD(do_craft_score_new)
@@ -10673,11 +10805,6 @@ static void animate_bone_golem(struct char_data *ch, const char *argument)
 
   if (ch == NULL || IS_NPC(ch) || !VALID_ROOM_RNUM(IN_ROOM(ch)))
     return;
-  if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)
-  {
-    send_to_char(ch, "Golem crafting is not enabled on this server.\r\n");
-    return;
-  }
   if (!HAS_REAL_FEAT(ch, FEAT_CONSTRUCT_WOOD_GOLEM) &&
       !HAS_REAL_FEAT(ch, FEAT_SUMMON_GREATER_UNDEAD))
   {
@@ -11130,19 +11257,10 @@ static void impl_do_reforge_new_(struct char_data *ch, char *argument,
   char item_arg[MAX_INPUT_LENGTH];
   char target_arg[MAX_INPUT_LENGTH];
   int material, skill_required;
-  int fast_craft_bonus;
   int cost, orig_cost, enhancement;
   char buf[1024]; /* Buffer for room message */
   int weapon_index = 0;
   int armor_index = 0;
-
-  if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)
-  {
-    send_to_char(ch, "Sorry, but you cannot do that here!\r\n");
-    return;
-  }
-
-  fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
   half_chop(argument, item_arg, target_arg);
 
@@ -11397,7 +11515,7 @@ static void impl_do_reforge_new_(struct char_data *ch, char *argument,
   if (cost == 0)
     GET_CRAFTING_TICKS(ch) = 1;
   else
-    GET_CRAFTING_TICKS(ch) = (ubyte)(10 - fast_craft_bonus);
+    GET_CRAFTING_TICKS(ch) = (ubyte)MAX(1, craft_legacy_kit_seconds(ch, skill_required, 10) / 6);
 
   /* Start crafting event - save after all modifications including restring_identifier */
   save_char(ch, 0);

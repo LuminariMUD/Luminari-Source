@@ -58,7 +58,8 @@ SPECIAL(guild)
   // Practice code
   if (CMD_IS("practice"))
   {
-    list_crafting_skills(ch);
+    send_to_char(ch, "Crafting and harvesting ranks are trained by apprentices; type "
+                     "'craftscore' to see them.\r\n");
     return (TRUE);
 
     /***************************************/
