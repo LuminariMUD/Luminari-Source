@@ -4,7 +4,10 @@ Tracking issue: to be filed (supersedes the reward model of #145 / PR #180).
 Written 2026-09-18 from a trace of `master` at `a9bd7add1`; verified against the live game on
 2026-09-19 with the game-master account. Line numbers refer to `a9bd7add1`.
 
-Status: plan approved by the owner. Nothing implemented yet.
+Status: plan approved by the owner. Implemented as Phase 3a of
+`crafting-consolidation-assessment.md` (issue #212) on `feat/212-crafting-consolidation`; the
+step list below records what is done. Help and the wilderness harvesting document (step 6) are
+delivered with that plan's Phase 6.
 
 ## The one crafting system this work targets
 
@@ -140,8 +143,9 @@ excluded; adding them is a separate content decision.
 `material_grade()` has no case for cotton; step 1 adds it at grade 4 to match the ladder.
 
 Which categories a sector allows is unchanged (`can_harvest_resource_in_terrain()`,
-`resource_system.c:2485`). A mountain therefore lists all fifteen minerals; a forest lists
-the five woods and five hides; a field lists the six cloths and five hides.
+`resource_system.c:2485`). A mountain therefore lists all fifteen minerals, plus the cloths and
+hides its terrain allows; a forest lists the six cloths, five woods, and five hides; a field
+lists the six cloths and five hides.
 
 ### What the player can actually pull: the quality tier
 
@@ -213,34 +217,41 @@ behavior. No new setting.
 
 Update this list with every commit, so a new session can resume from it.
 
-- [ ] Step 1: Expose `determine_material_type_by_group_and_grade()` through `crafting_new.h`.
+- [x] Step 1: Expose `determine_material_type_by_group_and_grade()` through `crafting_new.h`.
   Add the cotton case to `material_grade()`. Add `wilderness_pool_material()` returning
   whether a material is in the sourced set above. Delete `wilderness_crafting_bridge.c`
   and `.h`, remove them from `Makefile.am` and `CMakeLists.txt`, run
-  `python3 scripts/ci/check_build_parity.py`.
-- [ ] Step 2: In `harvest.c`, add `wilderness_material_pool(ch, category, out[], max)`,
+  `python3 scripts/ci/check_build_parity.py`. (The bridge was in neither manifest; the
+  selector was already exported.)
+- [x] Step 2: In `harvest.c`, add `wilderness_material_pool(ch, category, out[], max)`,
   `wilderness_quality_tier(ch, category, success, rank)`, and
   `wilderness_material_refusal(ch, material)`. Replace `wilderness_harvest_material()`
-  and its ladder arrays. Keep `wilderness_harvest_mote()`.
-- [ ] Step 3: Change `struct wilderness_harvest_context` to carry `material` (0 for a mote
+  and its ladder arrays. Keep `wilderness_harvest_mote()`. (The ladder reader is retained,
+  unused by live harvesting, as the consolidation plan's Decision 10 compatibility reader.)
+- [x] Step 3: Change `struct wilderness_harvest_context` to carry `material` (0 for a mote
   harvest). Update `start_wilderness_crafting_harvest()` and
   `complete_wilderness_harvest()` per the resolution section.
-- [ ] Step 4: Replace `show_harvestable_resources()` and the `parse_resource_type()` use in
+- [x] Step 4: Replace `show_harvestable_resources()` and the `parse_resource_type()` use in
   `do_wilderness_harvest()`, `do_wilderness_gather()`, and `do_wilderness_mine()` with the
-  material-aware listing and parser. Keep `do_harvest()` dispatch order in `craft.c`.
-- [ ] Step 5: Tests. Rewrite the four `Test_wilderness_harvest_*` cases in
-  `test_gameplay_e2e.c` and add `unittests/CuTest/test_wilderness_material_pool.c`
+  material-aware listing and parser. Keep `do_harvest()` dispatch order in `craft.c`. (The
+  three commands and the listing hand off to `wilderness_harvest_command()` and
+  `wilderness_show_pools()` while the toggle is on; the pre-#180 path remains behind the
+  toggle until the consolidation's Phase 5 removes it.)
+- [x] Step 5: Tests. Rewrite the command scenarios of `Test_wilderness_harvest_*` in
+  `test_gameplay_e2e.c` (the reader and tool-tier cases stand) and add
+  `unittests/CuTest/test_wilderness_material_pool.c`
   covering: every harvestable sector yields only pool materials; every pool material
   appears in some sector; an excluded material never appears; `harvest copper` on a
   mountain credits copper after the round; a material outside the pool starts no
   activity; a grade-5 material is refused at tier 4 and pulled at tier 5; each tier input
   alone reaches tier 5; a legendary tool on a poor spot pulls grade 5; difficulty grows
   by 5 per grade. Add the file to both build manifests, rerun parity.
-- [ ] Step 6: Help and docs. Update HARVEST, WILDERNESS-HARVEST, GATHER, MINE, and
+- [ ] Step 6 (delivered with consolidation Phase 6): Help and docs. Update HARVEST, WILDERNESS-HARVEST, GATHER, MINE, and
   HARVEST-TOOLS in `lib/text/help/help.hlp` and the help database through the help-sync
   workflow. Rewrite the reward section of `docs/systems/WILDERNESS_HARVESTING.md`. Remove
   bridge references.
-- [ ] Step 7: Verification. `make -j$(nproc) test` then `make install`. In the game: in a
+- [x] Step 7: Verification. `make -j$(nproc) test` then `make install` (done; the in-game
+  walk-through below is covered by the command scenarios in `test_gameplay_e2e.c`). In a
   forest, `harvest` lists five woods and five hides with grades and `harvest maple`
   credits maple wood in `craftmaterials`; on a mountain `harvest copper` credits copper;
   `harvest brass` is refused; with no tool on a poor spot `harvest mithril` is refused as

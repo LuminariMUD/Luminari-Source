@@ -2262,6 +2262,13 @@ ACMD(do_wilderness_harvest)
     return;
   }
 
+  /* Targeted gathering: name a material to start, a category to list. */
+  if (wilderness_harvest_crafting_enabled())
+  {
+    wilderness_harvest_command(ch, argument, WILDERNESS_CMD_HARVEST);
+    return;
+  }
+
   /* Show available resources if no argument */
   if (!*arg)
   {
@@ -2297,6 +2304,12 @@ ACMD(do_wilderness_gather)
     return;
   }
 
+  if (wilderness_harvest_crafting_enabled())
+  {
+    wilderness_harvest_command(ch, argument, WILDERNESS_CMD_GATHER);
+    return;
+  }
+
   if (!*arg)
   {
     send_to_char(ch, "Gather what? Try: herbs, vegetation, game\r\n");
@@ -2329,6 +2342,12 @@ ACMD(do_wilderness_mine)
       !ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
   {
     send_to_char(ch, "You can only mine materials in the wilderness.\r\n");
+    return;
+  }
+
+  if (wilderness_harvest_crafting_enabled())
+  {
+    wilderness_harvest_command(ch, argument, WILDERNESS_CMD_MINE);
     return;
   }
 
@@ -2810,6 +2829,12 @@ void show_harvestable_resources(struct char_data *ch)
 {
   int x, y, i;
   double resource_level;
+
+  if (wilderness_harvest_crafting_enabled())
+  {
+    wilderness_show_pools(ch, WILDERNESS_CMD_HARVEST);
+    return;
+  }
 
   x = world[IN_ROOM(ch)].coords[0];
   y = world[IN_ROOM(ch)].coords[1];

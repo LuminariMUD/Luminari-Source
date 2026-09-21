@@ -312,6 +312,49 @@ int determine_material_type_by_group_and_grade(int group, int grade)
   return CRAFT_MAT_NONE;
 }
 
+/* Materials with a live source (the group-and-grade ladder or a storable node drop), and so
+ * harvestable by name in the wilderness. Brass, linen, dragonmetal, dragonbone, dragonblood, and
+ * bone have no source anywhere and are excluded. */
+bool wilderness_pool_material(int material)
+{
+  switch (material)
+  {
+  case CRAFT_MAT_TIN:
+  case CRAFT_MAT_ZINC:
+  case CRAFT_MAT_COPPER:
+  case CRAFT_MAT_STONE:
+  case CRAFT_MAT_BRONZE:
+  case CRAFT_MAT_IRON:
+  case CRAFT_MAT_COAL:
+  case CRAFT_MAT_SILVER:
+  case CRAFT_MAT_STEEL:
+  case CRAFT_MAT_COLD_IRON:
+  case CRAFT_MAT_ALCHEMAL_SILVER:
+  case CRAFT_MAT_GOLD:
+  case CRAFT_MAT_MITHRIL:
+  case CRAFT_MAT_ADAMANTINE:
+  case CRAFT_MAT_PLATINUM:
+  case CRAFT_MAT_ASH_WOOD:
+  case CRAFT_MAT_MAPLE_WOOD:
+  case CRAFT_MAT_MAHAGONY_WOOD:
+  case CRAFT_MAT_VALENWOOD:
+  case CRAFT_MAT_IRONWOOD:
+  case CRAFT_MAT_LOW_GRADE_HIDE:
+  case CRAFT_MAT_MEDIUM_GRADE_HIDE:
+  case CRAFT_MAT_HIGH_GRADE_HIDE:
+  case CRAFT_MAT_PRISTINE_GRADE_HIDE:
+  case CRAFT_MAT_DRAGONSCALE:
+  case CRAFT_MAT_HEMP:
+  case CRAFT_MAT_FLAX:
+  case CRAFT_MAT_WOOL:
+  case CRAFT_MAT_COTTON:
+  case CRAFT_MAT_SILK:
+  case CRAFT_MAT_SATIN:
+    return true;
+  }
+  return false;
+}
+
 static int craft_material_level_adjustment(int material)
 {
   switch (material)

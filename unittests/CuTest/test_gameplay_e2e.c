@@ -1840,7 +1840,7 @@ void Test_gameplay_e2e_harvest_uses_wilderness_only_as_fallback(CuTest *tc)
   SET_BIT_AR(fixture.zones[0].zone_flags, ZONE_WILDERNESS);
 
   do_harvest(&fixture.actor, "not-a-resource", 0, 0);
-  fallback_used = strstr(descriptor.output, "Invalid resource type.") != NULL;
+  fallback_used = strstr(descriptor.output, "You cannot harvest that.") != NULL;
   legacy_error_suppressed =
       strstr(descriptor.output, "That doesn't seem to be present in this room.") == NULL;
 
@@ -12953,6 +12953,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   obj_rnum saved_top = top_of_objt;
   struct char_data *saved_characters = character_list;
   unsigned long saved_pulse = pulse, seed, poor_seed = 0, legendary_seed = 0, failure_seed = 0;
+  unsigned long strong_poor_seed = 0;
   bool saved_mysql = mysql_available;
   MYSQL *saved_connection = conn, *database = NULL;
   MYSQL_RES *sql_result;
@@ -12960,9 +12961,12 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   char query[512];
   char directory[PATH_MAX], temporary[] = "/tmp/luminari-harvest-XXXXXX";
   double levels[NUM_RESOURCE_TYPES];
-  int i, x, y, mining_x, mining_y, roll, quality, before, result[17] = {0};
+  int i, x, y, mining_x, mining_y, roll, quality, before, result[20] = {0};
   FILE *env;
-  char command[] = "harvest vegetation";
+  char command[] = "harvest satin";
+  static const int cloth_by_grade[] = {
+      0, CRAFT_MAT_HEMP, CRAFT_MAT_FLAX, CRAFT_MAT_WOOL, CRAFT_MAT_COTTON, CRAFT_MAT_SATIN};
+  char gather_command[64];
 
   CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
   CuAssertPtrNotNull(tc, mkdtemp(temporary));
@@ -13014,8 +13018,9 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   init_perlin(NOISE_MATERIAL_PLANE_ELEV, NOISE_MATERIAL_PLANE_ELEV_SEED);
   init_perlin(NOISE_MATERIAL_PLANE_MOISTURE, NOISE_MATERIAL_PLANE_MOISTURE_SEED);
   init_perlin(NOISE_MATERIAL_PLANE_ELEV_DIST, NOISE_MATERIAL_PLANE_ELEV_DIST_SEED);
+  /* A moderate spot: richness tier 2, so tools and skill decide the higher grades. */
   for (i = 0; i < NUM_RESOURCE_TYPES; i++)
-    levels[i] = 0.9;
+    levels[i] = 0.45;
   for (x = -100; x <= 100; x += 10)
   {
     y = x / 2;
@@ -13032,14 +13037,20 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   tool.item_number = 0;
   fixture.actor.carrying = &tool;
   /* Seed selection uses real quality rolls, independent of the payout implementation. */
-  for (seed = 1; seed < 10000 && (!poor_seed || !legendary_seed || !failure_seed); seed++)
+  for (seed = 1;
+       seed < 100000 && (!poor_seed || !legendary_seed || !failure_seed || !strong_poor_seed);
+       seed++)
   {
     circle_srandom(seed);
     roll = dice(1, 100);
     quality = calculate_harvest_quality(&fixture.actor, RESOURCE_VEGETATION, roll, 0);
-    if (roll >= 25 && quality == MATERIAL_QUALITY_POOR)
+    /* A roll of 61 or more passes the hardest difficulty below (satin or copper, 60); 90 or
+     * more passes mithril on a scarce spot with only the tool supplying the tier. */
+    if (roll >= 61 && quality == MATERIAL_QUALITY_POOR)
       poor_seed = seed;
-    if (roll >= 25 && quality == MATERIAL_QUALITY_LEGENDARY)
+    if (roll >= 90 && quality == MATERIAL_QUALITY_POOR)
+      strong_poor_seed = seed;
+    if (roll >= 61 && quality == MATERIAL_QUALITY_LEGENDARY)
       legendary_seed = seed;
     if (roll <= 5)
       failure_seed = seed;
@@ -13105,46 +13116,65 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
 
   IS_CARRYING_N(&fixture.actor) = 0;
 
-  /* Removing the tool during the round removes its guarantee. */
-  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  /* Removing the tool during the round removes its guarantee: satin (grade 5) is beyond a
+   * poor roll on a moderate spot, and nothing is credited or depleted. */
+  before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
+  do_harvest(&fixture.actor, "satin", 0, 0);
   fixture.actor.carrying = NULL;
   circle_srandom(poor_seed);
   pulse += PULSE_VIOLENCE;
   event_test_advance();
-  result[3] = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_HEMP) >= 2;
+  result[3] = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before &&
+              strstr(descriptor.output, "beyond your reach") != NULL;
   reset_harvest_fixture_output(&descriptor, database);
 
-  /* All five floors apply at completion; a lower tool never caps a natural roll. */
+  /* All five floors apply at completion: each tool tier pulls the cloth of its grade on a
+   * poor roll; a lower tool never caps a natural legendary roll. */
   result[4] = true;
   for (i = 1; i <= 5; i++)
   {
     index.vnum = HARVEST_TOOL_FIRST + i - 1;
     GET_EQ(&fixture.actor, WEAR_HOLD_1) = &tool;
-    before =
-        GET_CRAFT_MAT((&fixture.actor), wilderness_harvest_material(RESOURCE_VEGETATION, 0, i));
-    do_wilderness_gather(&fixture.actor, "vegetation", 0, 0);
+    before = GET_CRAFT_MAT((&fixture.actor), cloth_by_grade[i]);
+    snprintf(gather_command, sizeof(gather_command), "%s", crafting_materials[cloth_by_grade[i]]);
+    do_wilderness_gather(&fixture.actor, gather_command, 0, 0);
     circle_srandom(poor_seed);
     pulse += PULSE_VIOLENCE;
     event_test_advance();
-    result[4] =
-        result[4] && GET_CRAFT_MAT((&fixture.actor),
-                                   wilderness_harvest_material(RESOURCE_VEGETATION, 0, i)) > before;
+    result[4] = result[4] && GET_CRAFT_MAT((&fixture.actor), cloth_by_grade[i]) > before;
     GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_GATHERING) = 0;
     reset_harvest_fixture_output(&descriptor, database);
   }
   index.vnum = HARVEST_TOOL_FIRST;
   before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
-  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  do_harvest(&fixture.actor, "satin", 0, 0);
   circle_srandom(legendary_seed);
   pulse += PULSE_VIOLENCE;
   event_test_advance();
   result[4] = result[4] && GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) > before;
   reset_harvest_fixture_output(&descriptor, database);
 
+  /* A category name lists its pool and starts nothing; a material outside the pool and an
+   * empty argument start nothing either. */
+  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  result[17] = !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+               strstr(descriptor.output, "satin[5]") != NULL &&
+               strstr(descriptor.output, "hemp[1]") != NULL;
+  reset_harvest_fixture_output(&descriptor, database);
+  do_harvest(&fixture.actor, "brass", 0, 0);
+  result[17] = result[17] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+               strstr(descriptor.output, "cannot harvest") != NULL;
+  reset_harvest_fixture_output(&descriptor, database);
+  do_harvest(&fixture.actor, "", 0, 0);
+  result[17] = result[17] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+               strstr(descriptor.output, "vegetation") != NULL &&
+               strstr(descriptor.output, "hemp[1]") != NULL;
+  reset_harvest_fixture_output(&descriptor, database);
+
   /* Failed attempts still fail with a legendary tool. */
   index.vnum = HARVEST_TOOL_LAST;
   before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
-  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  do_harvest(&fixture.actor, "satin", 0, 0);
   circle_srandom(failure_seed);
   pulse += PULSE_VIOLENCE;
   event_test_advance();
@@ -13164,7 +13194,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   }
   reset_harvest_fixture_output(&descriptor, database);
 
-  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  do_harvest(&fixture.actor, "satin", 0, 0);
   char_from_room(&fixture.actor);
   X_LOC(&fixture.actor) = fixture.rooms[1].coords[0];
   Y_LOC(&fixture.actor) = fixture.rooms[1].coords[1];
@@ -13177,7 +13207,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   X_LOC(&fixture.actor) = x;
   Y_LOC(&fixture.actor) = y;
   char_to_room_cause(&fixture.actor, 0, NULL, DOMAIN_RELOCATION_WALK, SOUTH);
-  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  do_harvest(&fixture.actor, "satin", 0, 0);
   levels[RESOURCE_VEGETATION] = 0.0;
   cache_store_resource_values(x, y, levels);
   pulse += PULSE_VIOLENCE;
@@ -13185,17 +13215,17 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   result[6] = result[6] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
               GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before;
   reset_harvest_fixture_output(&descriptor, database);
-  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  do_harvest(&fixture.actor, "satin", 0, 0);
   do_harvest(&fixture.actor, "unknown", 0, 0);
   result[7] = !primary_activity_snapshot(&fixture.actor, &snapshot);
-  levels[RESOURCE_VEGETATION] = 0.9;
+  levels[RESOURCE_VEGETATION] = 0.45;
   cache_store_resource_values(x, y, levels);
 
   /* Capacity failure must not deplete resources or award progression. */
   before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
   GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) = INT_MAX;
   GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_GATHERING) = 0;
-  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  do_harvest(&fixture.actor, "satin", 0, 0);
   circle_srandom(poor_seed);
   pulse += PULSE_VIOLENCE;
   event_test_advance();
@@ -13211,7 +13241,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   /* Damage, combat and explicit cancellation use the production event hooks. */
   for (i = 0; i < 3; i++)
   {
-    do_harvest(&fixture.actor, "vegetation", 0, 0);
+    do_harvest(&fixture.actor, "satin", 0, 0);
     result[12] = result[12] && primary_activity_snapshot(&fixture.actor, &snapshot);
     if (i == 0)
       domain_event_runtime_character_damaged(&fixture.actor, &fixture.victim, 1, TYPE_HIT);
@@ -13229,7 +13259,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   /* Database depletion changing during the round also cancels delivery. */
   if (database)
   {
-    do_harvest(&fixture.actor, "vegetation", 0, 0);
+    do_harvest(&fixture.actor, "satin", 0, 0);
     snprintf(query, sizeof(query),
              "INSERT INTO resource_depletion (zone_vnum,x_coord,y_coord,resource_type,"
              "depletion_level) VALUES (0,%d,%d,%d,0)",
@@ -13242,15 +13272,16 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
     reset_harvest_fixture_output(&descriptor, database);
   }
 
-  /* The mining alias also schedules its mote payout and honors the tool floor. */
+  /* The mining alias refuses cloth, and on a mountain 'harvest copper' credits copper after
+   * the round while 'stone' names the material rather than the earth-mote category. */
   result[14] = true;
-  do_wilderness_mine(&fixture.actor, "vegetation", 0, 0);
+  do_wilderness_mine(&fixture.actor, "satin", 0, 0);
   result[14] = !primary_activity_snapshot(&fixture.actor, &snapshot);
   mining_y = 0;
   for (mining_x = -2000; mining_x <= 2000; mining_x += 100)
   {
     for (mining_y = -2000; mining_y <= 2000; mining_y += 100)
-      if (can_harvest_resource_in_terrain(RESOURCE_STONE,
+      if (can_harvest_resource_in_terrain(RESOURCE_MINERALS,
                                           get_modified_sector_type(0, mining_x, mining_y)))
         break;
     if (mining_y <= 2000)
@@ -13259,23 +13290,58 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   fixture.rooms[0].coords[0] = mining_x;
   fixture.rooms[0].coords[1] = mining_y;
   cache_store_resource_values(mining_x, mining_y, levels);
-  do_wilderness_mine(&fixture.actor, "stone", 0, 0);
-  result[14] = result[14] && primary_activity_snapshot(&fixture.actor, &snapshot) &&
-               GET_CRAFT_MOTES((&fixture.actor), CRAFTING_MOTE_EARTH) >= 0;
+  before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_COPPER);
+  do_harvest(&fixture.actor, "copper", 0, 0);
+  result[18] = primary_activity_snapshot(&fixture.actor, &snapshot) &&
+               GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_COPPER) == before;
+  circle_srandom(poor_seed);
+  pulse += PULSE_VIOLENCE;
+  event_test_advance();
+  result[18] = result[18] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+               GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_COPPER) >= before + 2 &&
+               GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_MINING) > 0;
+  reset_harvest_fixture_output(&descriptor, database);
   quality = GET_CRAFT_MOTES((&fixture.actor), CRAFTING_MOTE_EARTH);
-  circle_srandom(legendary_seed);
+  before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_STONE);
+  do_wilderness_mine(&fixture.actor, "stone", 0, 0);
+  result[14] = result[14] && primary_activity_snapshot(&fixture.actor, &snapshot);
+  circle_srandom(poor_seed);
   pulse += PULSE_VIOLENCE;
   event_test_advance();
   result[14] = result[14] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
-               GET_CRAFT_MOTES((&fixture.actor), CRAFTING_MOTE_EARTH) > quality &&
-               (GET_CRAFT_MOTES((&fixture.actor), CRAFTING_MOTE_EARTH) - quality) % 5 == 0;
+               GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_STONE) > before &&
+               GET_CRAFT_MOTES((&fixture.actor), CRAFTING_MOTE_EARTH) == quality;
+  reset_harvest_fixture_output(&descriptor, database);
+  /* A legendary tool on a poor spot still pulls grade 5 (the tool alone reaches tier 5);
+   * without it the same spot and roll cannot reach it. */
+  levels[RESOURCE_MINERALS] = 0.15;
+  cache_store_resource_values(mining_x, mining_y, levels);
+  index.vnum = HARVEST_TOOL_LAST;
+  before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_MITHRIL);
+  do_harvest(&fixture.actor, "mithril", 0, 0);
+  circle_srandom(strong_poor_seed);
+  pulse += PULSE_VIOLENCE;
+  event_test_advance();
+  result[19] = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_MITHRIL) > before;
+  reset_harvest_fixture_output(&descriptor, database);
+  index.vnum = HARVEST_TOOL_FIRST;
+  before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_MITHRIL);
+  do_harvest(&fixture.actor, "mithril", 0, 0);
+  circle_srandom(strong_poor_seed);
+  pulse += PULSE_VIOLENCE;
+  event_test_advance();
+  result[19] = result[19] && GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_MITHRIL) == before &&
+               strstr(descriptor.output, "beyond your reach") != NULL;
+  levels[RESOURCE_MINERALS] = 0.45;
+  index.vnum = HARVEST_TOOL_LAST;
   fixture.rooms[0].coords[0] = x;
   fixture.rooms[0].coords[1] = y;
+  before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
   reset_harvest_fixture_output(&descriptor, database);
 
   /* A live toggle edit invalidates cached TRUE and cancels a pending harvest. */
   result[16] = write_env_fixture(".env", "WILDERNESS_HARVEST_CRAFTING=TRUE\n");
-  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  do_harvest(&fixture.actor, "satin", 0, 0);
   result[16] = result[16] && primary_activity_snapshot(&fixture.actor, &snapshot);
 
   /* Disabling the toggle retains the immediate, separate wilderness inventory. */
@@ -13329,8 +13395,8 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   unlink(".env");
   result[0] = (chdir(directory) == 0) && result[0];
   rmdir(temporary);
-  CuAssertTrue(tc, poor_seed && legendary_seed && failure_seed);
-  for (i = 0; i < 17; i++)
+  CuAssertTrue(tc, poor_seed && legendary_seed && failure_seed && strong_poor_seed);
+  for (i = 0; i < 20; i++)
   {
     char message[80];
     snprintf(message, sizeof(message), "Wilderness harvest scenario %d failed", i);
