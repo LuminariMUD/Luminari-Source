@@ -15,6 +15,7 @@
 #include "wilderness.h"
 #include "perlin.h"
 #include "resource_system.h"
+#include "craft/crafting_new.h"
 #include "harvest.h"
 #include "resource_depletion.h"    /* Phase 6: Add depletion system */
 #include "resource_descriptions.h" /* For elevation functions */
@@ -41,25 +42,25 @@ static double simple_fabs(double value)
 /* Global resource configuration array */
 struct resource_config resource_configs[NUM_RESOURCE_TYPES] = {
     /* type, noise_layer, base_mult, regen_rate, depletion, quality_var, seasonal, weather, skill, name, description */
-    {NOISE_VEGETATION, 1.0, 0.2, 0.8, 20, true, true, SKILL_FORESTING, "vegetation",
+    {NOISE_VEGETATION, 1.0, 0.2, 0.8, 20, true, true, ABILITY_HARVEST_GATHERING, "vegetation",
      "General plant life and foliage"},
-    {NOISE_MINERALS, 0.3, 0.01, 0.9, 30, false, false, SKILL_MINING, "minerals",
+    {NOISE_MINERALS, 0.3, 0.01, 0.9, 30, false, false, ABILITY_HARVEST_MINING, "minerals",
      "Ores, metals, and mineral deposits"},
-    {NOISE_WATER_RESOURCE, 1.2, 0.5, 0.6, 10, false, true, SKILL_FORESTING, "water",
+    {NOISE_WATER_RESOURCE, 1.2, 0.5, 0.6, 10, false, true, ABILITY_HARVEST_GATHERING, "water",
      "Fresh water sources and springs"},
-    {NOISE_HERBS, 0.4, 0.1, 0.7, 40, true, true, SKILL_FORESTING, "herbs",
+    {NOISE_HERBS, 0.4, 0.1, 0.7, 40, true, true, ABILITY_HARVEST_GATHERING, "herbs",
      "Medicinal and magical plants"},
-    {NOISE_GAME, 0.6, 0.15, 0.5, 25, true, false, SKILL_HUNTING, "game",
+    {NOISE_GAME, 0.6, 0.15, 0.5, 25, true, false, ABILITY_HARVEST_HUNTING, "game",
      "Wildlife and huntable animals"},
-    {NOISE_WOOD, 0.8, 0.05, 0.9, 15, true, false, SKILL_FORESTING, "wood",
+    {NOISE_WOOD, 0.8, 0.05, 0.9, 15, true, false, ABILITY_HARVEST_FORESTRY, "wood",
      "Harvestable timber and lumber"},
-    {NOISE_STONE, 0.5, 0.005, 0.95, 5, false, false, SKILL_MINING, "stone",
+    {NOISE_STONE, 0.5, 0.005, 0.95, 5, false, false, ABILITY_HARVEST_MINING, "stone",
      "Building stone and quarry materials"},
-    {NOISE_CRYSTAL, 0.1, 0.001, 0.99, 50, false, false, SKILL_MINING, "crystal",
+    {NOISE_CRYSTAL, 0.1, 0.001, 0.99, 50, false, false, ABILITY_HARVEST_MINING, "crystal",
      "Rare magical crystal formations"},
-    {NOISE_MINERALS, 0.3, 0.02, 0.8, 15, false, true, SKILL_MINING, "clay",
+    {NOISE_MINERALS, 0.3, 0.02, 0.8, 15, false, true, ABILITY_HARVEST_MINING, "clay",
      "Clay deposits for pottery and crafting"},
-    {NOISE_WATER_RESOURCE, 0.2, 0.03, 0.7, 20, false, true, SKILL_MINING, "salt",
+    {NOISE_WATER_RESOURCE, 0.2, 0.03, 0.7, 20, false, true, ABILITY_HARVEST_MINING, "salt",
      "Salt deposits and brine pools"}};
 
 /* Resource name array for display */
@@ -1475,9 +1476,7 @@ void show_resource_detail(struct char_data *ch, int resource_type)
 
   send_to_char(ch, "Description: %s\r\n", resource_configs[resource_type].description);
   send_to_char(ch, "Harvest Skill: %s\r\n",
-               resource_configs[resource_type].harvest_skill == SKILL_FORESTING ? "Foresting"
-               : resource_configs[resource_type].harvest_skill == SKILL_MINING  ? "Mining"
-                                                                                : "Unknown");
+               ability_names[resource_configs[resource_type].harvest_skill]);
 
   /* Environmental factors */
   send_to_char(ch, "\r\nEnvironmental Factors:\r\n");
@@ -2695,7 +2694,7 @@ int can_harvest_resource_in_terrain(int resource_type, int sector_type)
 int get_harvest_skill_level(struct char_data *ch, int resource_type)
 {
   int skill = get_harvest_skill(resource_type);
-  int level = GET_SKILL(ch, skill);
+  int level = get_craft_skill_value(ch, skill);
 
   /* miner (Sep 2026 racial innate): reads the rock */
   if ((resource_type == RESOURCE_MINERALS || resource_type == RESOURCE_STONE ||
@@ -2717,7 +2716,7 @@ int get_harvest_skill(int resource_type)
   case RESOURCE_CRYSTAL:
   case RESOURCE_STONE:
   case RESOURCE_SALT:
-    return SKILL_MINING;
+    return ABILITY_HARVEST_MINING;
   case RESOURCE_WOOD:
     return ABILITY_HARVEST_FORESTRY;
   case RESOURCE_GAME:

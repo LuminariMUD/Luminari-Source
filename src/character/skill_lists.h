@@ -23,7 +23,6 @@ struct char_data;
 extern const char *cross_names[];
 
 int meet_skill_reqs(struct char_data *ch, int skillnum);
-void list_crafting_skills(struct char_data *ch);
 void list_skills(struct char_data *ch);
 void list_abilities(struct char_data *ch, int ability_type);
 void process_skill(struct char_data *ch, int skillnum);

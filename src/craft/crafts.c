@@ -27,18 +27,52 @@
 #include "obj/item.h"
 #include "crafting_new.h"
 
+#include <limits.h>
+
 
 /* Statics */
 static void craftedit_disp_menu(struct descriptor_data *d);
 static void save_crafts_to_disk(void);
+static int missing_craft_requirements(struct char_data *ch, struct craft_data *craft);
 static void remove_components(struct char_data *ch, struct craft_data *craft, bool success);
+static bool character_meets_craft_skill(struct char_data *ch, struct craft_data *craft);
 int num_crafts = 0;
 
 struct list_data *global_craft_list = NULL;
 
+/* Catalog records name a craft or harvest ability, or -1 for no skill. */
 bool craft_skill_id_is_valid(int skill)
 {
-  return skill == -1 || (skill > 0 && skill <= TOP_SKILL_DEFINE);
+  return skill == -1 || (skill >= START_CRAFT_ABILITIES && skill <= END_HARVEST_ABILITIES);
+}
+
+/* Set a record's skill from a legacy "Skil" line (old 471 to 485 or 2071 to 2085 ids with a
+ * 1 to 99 level). An id with no ability keeps its raw value and marks the record unsupported. */
+static void craft_set_legacy_skill(struct craft_data *craft, int legacy_skill, int level)
+{
+  int ability;
+
+  craft->craft_skill_legacy = 0;
+  if (legacy_skill == -1)
+  {
+    craft->craft_skill = -1;
+    craft->craft_skill_level = 0;
+    return;
+  }
+  ability = craft_legacy_ability_for_skill(legacy_skill, NULL);
+  if (ability < 0)
+  {
+    log("SYSERR: Craft %d (%s): legacy skill %d has no ability mapping; the recipe cannot run "
+        "until craftedit assigns one.",
+        CRAFT_ID(craft), CRAFT_NAME(craft), legacy_skill);
+    craft->craft_skill = CRAFT_SKILL_UNSUPPORTED;
+    craft->craft_skill_legacy = legacy_skill;
+    craft->craft_skill_level = level;
+    return;
+  }
+  craft->craft_skill = ability;
+  craft->craft_skill_level =
+      MAX(0, level + CRAFT_LEGACY_SKILL_PER_RANK - 1) / CRAFT_LEGACY_SKILL_PER_RANK;
 }
 
 static bool character_meets_craft_skill(struct char_data *ch, struct craft_data *craft)
@@ -49,7 +83,7 @@ static bool character_meets_craft_skill(struct char_data *ch, struct craft_data 
   if (CRAFT_SKILL(craft) == -1)
     return TRUE;
 
-  return GET_SKILL(ch, CRAFT_SKILL(craft)) >= CRAFT_SKILL_LEVEL(craft);
+  return get_craft_skill_value(ch, CRAFT_SKILL(craft)) >= CRAFT_SKILL_LEVEL(craft);
 }
 
 static const char *craft_skill_name(struct craft_data *craft)
@@ -62,10 +96,12 @@ static const char *craft_skill_name(struct craft_data *craft)
   skill = CRAFT_SKILL(craft);
   if (skill == -1)
     return "No Skill";
-  if (!craft_skill_id_is_valid(skill) || spell_info[skill].name == NULL)
+  if (skill == CRAFT_SKILL_UNSUPPORTED)
+    return "Unsupported Legacy Skill";
+  if (!craft_skill_id_is_valid(skill))
     return "Invalid Skill";
 
-  return spell_info[skill].name;
+  return ability_names[skill];
 }
 
 struct craft_data *create_craft(void)
@@ -81,6 +117,7 @@ struct craft_data *create_craft(void)
   new_craft->craft_id = 0;
   new_craft->craft_skill = -1;
   new_craft->craft_skill_level = 0;
+  new_craft->craft_skill_legacy = 0;
 
   new_craft->craft_msg_room = NULL;
   new_craft->craft_msg_self = NULL;
@@ -145,9 +182,8 @@ void free_craft(struct craft_data *craft)
   free(craft);
 }
 
-void load_crafts(void)
+static void load_crafts_from(FILE *fp)
 {
-  FILE *fp;
   char *line;
   char tag[6];
   struct craft_data *craft = NULL;
@@ -155,12 +191,6 @@ void load_crafts(void)
   bool in_craft = FALSE;
   bool done = FALSE;
 
-  if ((fp = fopen(CRAFT_FILE, "r")) == NULL)
-  {
-    log("No Craft file found!");
-    return;
-  }
-  else
   {
     while ((line = fread_line(fp)) != NULL && line[0] != '\0' && !done)
     {
@@ -187,7 +217,8 @@ void load_crafts(void)
           if (!strcmp(tag, "End "))
           {
             in_craft = FALSE;
-            if (!craft_skill_id_is_valid(CRAFT_SKILL(craft)))
+            if (!craft_skill_id_is_valid(CRAFT_SKILL(craft)) &&
+                CRAFT_SKILL(craft) != CRAFT_SKILL_UNSUPPORTED)
             {
               log("SYSERR: Rejecting craft %d (%s) with invalid skill id %d.", CRAFT_ID(craft),
                   CRAFT_NAME(craft), CRAFT_SKILL(craft));
@@ -226,11 +257,39 @@ void load_crafts(void)
               add_to_list(requirement, craft->requirements);
           }
           break;
+        case 'A':
+          if (!strcmp(tag, "Abil"))
+          {
+            int ability = -1, rank = 0;
+
+            if (sscanf(line, "%d %d\n", &ability, &rank) != 2)
+              log("SYSERR: Format error in craft %d ability record", CRAFT_ID(craft));
+            else if (!craft_skill_id_is_valid(ability))
+            {
+              log("SYSERR: Craft %d (%s): ability %d is not a craft or harvest ability; the "
+                  "recipe cannot run until craftedit assigns one.",
+                  CRAFT_ID(craft), CRAFT_NAME(craft), ability);
+              craft->craft_skill = CRAFT_SKILL_UNSUPPORTED;
+              craft->craft_skill_legacy = ability;
+              craft->craft_skill_level = rank;
+            }
+            else
+            {
+              craft->craft_skill = ability;
+              craft->craft_skill_level = ability == -1 ? 0 : MAX(0, rank);
+              craft->craft_skill_legacy = 0;
+            }
+          }
+          break;
         case 'S':
           if (!strcmp(tag, "Skil"))
           {
-            if (sscanf(line, "%d %d\n", &craft->craft_skill, &craft->craft_skill_level) != 2)
+            int legacy_skill = -1, level = 0;
+
+            if (sscanf(line, "%d %d\n", &legacy_skill, &level) != 2)
               log("SYSERR: Format error in Skill Level");
+            else
+              craft_set_legacy_skill(craft, legacy_skill, level);
           }
           break;
         case 'T':
@@ -257,23 +316,27 @@ void load_crafts(void)
     log("SYSERR: Craft file ended with incomplete craft definition!");
     free_craft(craft);
   }
+}
 
+void load_crafts(void)
+{
+  FILE *fp;
+
+  if ((fp = fopen(CRAFT_FILE, "r")) == NULL)
+  {
+    log("No Craft file found!");
+    return;
+  }
+  load_crafts_from(fp);
   fclose(fp);
 }
 
 /* write_crafts() */
-static void save_crafts_to_disk(void)
+static void save_crafts_to(FILE *fp)
 {
-  FILE *fp;
   struct craft_data *c;
   struct requirement_data *r;
   struct iterator_data Iterator;
-
-  if ((fp = fopen_restricted(CRAFT_FILE, "w")) == NULL)
-  {
-    log("Cannot open craft file for writing!");
-    return;
-  }
 
   for (c = (struct craft_data *)merge_iterator(&Iterator, global_craft_list); c;
        c = next_in_list(&Iterator))
@@ -284,7 +347,11 @@ static void save_crafts_to_disk(void)
     fprintf(fp, "Flag: %d\n", CRAFT_FLAGS(c));
     fprintf(fp, "Vnum: %d\n", (int)CRAFT_OBJVNUM(c));
     fprintf(fp, "Time: %d\n", CRAFT_TIMER(c));
-    fprintf(fp, "Skil: %d %d\n", CRAFT_SKILL(c), CRAFT_SKILL_LEVEL(c));
+    /* An unsupported legacy record writes its raw skill back so nothing is lost. */
+    if (CRAFT_SKILL(c) == CRAFT_SKILL_UNSUPPORTED)
+      fprintf(fp, "Skil: %d %d\n", CRAFT_SKILL_LEGACY(c), CRAFT_SKILL_LEVEL(c));
+    else
+      fprintf(fp, "Abil: %d %d\n", CRAFT_SKILL(c), CRAFT_SKILL_LEVEL(c));
 
     fprintf(fp, "Mslf: %s\n", CRAFT_MSG_SELF(c));
     fprintf(fp, "Mroo: %s\n", CRAFT_MSG_ROOM(c));
@@ -303,8 +370,65 @@ static void save_crafts_to_disk(void)
   remove_iterator(&Iterator);
 
   fprintf(fp, "$\n");
+}
+
+static void save_crafts_to_disk(void)
+{
+  FILE *fp;
+
+  if ((fp = fopen_restricted(CRAFT_FILE, "w")) == NULL)
+  {
+    log("Cannot open craft file for writing!");
+    return;
+  }
+  save_crafts_to(fp);
   fclose(fp);
 }
+
+#ifdef LUMINARI_CUTEST
+/* Production-linked tests drive the catalog through these seams. */
+void test_load_crafts_from(FILE *fp)
+{
+  if (global_craft_list == NULL)
+    global_craft_list = create_list();
+  load_crafts_from(fp);
+}
+
+void test_save_crafts_to(FILE *fp)
+{
+  save_crafts_to(fp);
+}
+
+void test_clear_crafts(void)
+{
+  struct craft_data *craft;
+
+  if (global_craft_list == NULL)
+    return;
+  simple_list(NULL);
+  while ((craft = (struct craft_data *)simple_list(global_craft_list)) != NULL)
+  {
+    remove_from_list(craft, global_craft_list);
+    free_craft(craft);
+    simple_list(NULL);
+  }
+}
+
+int test_missing_craft_requirements(struct char_data *ch, struct craft_data *craft)
+{
+  return missing_craft_requirements(ch, craft);
+}
+
+void test_remove_components(struct char_data *ch, struct craft_data *craft, bool success)
+{
+  remove_components(ch, craft, success);
+}
+
+bool test_character_meets_craft_skill(struct char_data *ch, struct craft_data *craft)
+{
+  return character_meets_craft_skill(ch, craft);
+}
+#endif
 
 /* Craft Handlers */
 static void sort_craft_list(void)
@@ -343,7 +467,7 @@ struct craft_data *get_craft_from_arg(char *arg)
   struct iterator_data iterator;
   struct craft_data *craft = NULL;
 
-  if (!global_craft_list->iSize)
+  if (global_craft_list == NULL || !global_craft_list->iSize)
     return NULL;
 
   for (craft = (struct craft_data *)merge_iterator(&iterator, global_craft_list); craft != NULL;
@@ -362,7 +486,7 @@ struct craft_data *get_craft_from_id(int id)
   struct iterator_data iterator;
   struct craft_data *craft = NULL;
 
-  if (!global_craft_list->iSize)
+  if (global_craft_list == NULL || !global_craft_list->iSize)
     return NULL;
 
   for (craft = (struct craft_data *)merge_iterator(&iterator, global_craft_list); craft != NULL;
@@ -429,6 +553,43 @@ static struct obj_data *get_object_from_requirement(struct char_data *ch,
   return (NULL);
 }
 
+/* A consumable inventory requirement for a storable material prototype is met from the shared
+ * crafting balance instead of carried objects. In-room and no-remove requirements keep their
+ * object semantics; gems, fossil eggs, blueprints, and unique components stay objects. */
+static int requirement_balance_material(struct requirement_data *req)
+{
+  obj_rnum rnum;
+
+  if (req == NULL || IS_SET(req->req_flags, REQ_FLAG_IN_ROOM) ||
+      IS_SET(req->req_flags, REQ_FLAG_NO_REMOVE))
+    return CRAFT_MAT_NONE;
+  if ((rnum = real_object(req->req_vnum)) == NOTHING ||
+      GET_OBJ_TYPE(&obj_proto[rnum]) != ITEM_MATERIAL)
+    return CRAFT_MAT_NONE;
+  return craft_material_from_object(&obj_proto[rnum]);
+}
+
+/* Sum the balance units a craft needs per material, over every balance-backed requirement. */
+static void craft_balance_needs(struct craft_data *craft, int needs[NUM_CRAFT_MATS],
+                                bool skip_saved_on_fail)
+{
+  struct iterator_data iterator;
+  struct requirement_data *req;
+  int material;
+
+  memset(needs, 0, sizeof(int) * NUM_CRAFT_MATS);
+  for (req = (struct requirement_data *)merge_iterator(&iterator, craft->requirements); req;
+       req = next_in_list(&iterator))
+  {
+    if (skip_saved_on_fail && IS_SET(req->req_flags, REQ_SAVE_ON_FAIL))
+      continue;
+    material = requirement_balance_material(req);
+    if (material != CRAFT_MAT_NONE && req->req_amount > 0)
+      needs[material] += req->req_amount;
+  }
+  remove_iterator(&iterator);
+}
+
 static bool find_requirement(struct char_data *ch, struct requirement_data *req)
 {
   bool in_room = IS_SET(req->req_flags, REQ_FLAG_IN_ROOM);
@@ -460,7 +621,8 @@ static bool find_requirement(struct char_data *ch, struct requirement_data *req)
 
 static int missing_craft_requirements(struct char_data *ch, struct craft_data *craft)
 {
-  int missing = 0;
+  int missing = 0, material;
+  int needs[NUM_CRAFT_MATS];
   struct iterator_data iterator;
   struct requirement_data *requirement;
   obj_rnum rnum;
@@ -473,11 +635,18 @@ static int missing_craft_requirements(struct char_data *ch, struct craft_data *c
   {
     if ((rnum = real_object(requirement->req_vnum)) == NOTHING)
       continue;
+    if (requirement_balance_material(requirement) != CRAFT_MAT_NONE)
+      continue; /* checked in aggregate below */
     if (find_requirement(ch, requirement) == FALSE)
       missing++;
   }
-
   remove_iterator(&iterator);
+
+  craft_balance_needs(craft, needs, FALSE);
+  for (material = 1; material < NUM_CRAFT_MATS; material++)
+    if (needs[material] > 0 && (IS_NPC(ch) || GET_CRAFT_MAT(ch, material) < needs[material]))
+      missing++;
+
   return (missing);
 }
 
@@ -486,7 +655,21 @@ static void remove_components(struct char_data *ch, struct craft_data *craft, bo
   struct iterator_data iterator;
   struct requirement_data *req;
   struct obj_data *obj;
-  int count;
+  int count, material;
+  int needs[NUM_CRAFT_MATS];
+
+  /* Balance-backed requirements are debited in aggregate; save-on-fail applies to them too. */
+  craft_balance_needs(craft, needs, !success);
+  for (material = 1; material < NUM_CRAFT_MATS; material++)
+  {
+    if (needs[material] <= 0 || IS_NPC(ch))
+      continue;
+    if (GET_CRAFT_MAT(ch, material) < needs[material])
+      log("SYSERR: Craft %d (%s) debits %d %s from %s who holds %d.", CRAFT_ID(craft),
+          CRAFT_NAME(craft), needs[material], crafting_materials[material], GET_NAME(ch),
+          GET_CRAFT_MAT(ch, material));
+    GET_CRAFT_MAT(ch, material) = MAX(0, GET_CRAFT_MAT(ch, material) - needs[material]);
+  }
 
   for (req = (struct requirement_data *)merge_iterator(&iterator, craft->requirements); req;
        req = next_in_list(&iterator))
@@ -494,6 +677,8 @@ static void remove_components(struct char_data *ch, struct craft_data *craft, bo
     if (IS_SET(req->req_flags, REQ_FLAG_NO_REMOVE))
       continue;
     if (!success && IS_SET(req->req_flags, REQ_SAVE_ON_FAIL))
+      continue;
+    if (requirement_balance_material(req) != CRAFT_MAT_NONE)
       continue;
     count = req->req_amount;
     while (count)
@@ -522,7 +707,7 @@ void list_all_crafts(struct char_data *ch)
   struct craft_data *craft;
   obj_vnum vnum;
 
-  if (global_craft_list->iSize > 0)
+  if (global_craft_list != NULL && global_craft_list->iSize > 0)
   {
     send_to_char(ch, "\t1Crafts:\r\n"
                      "\t2ID  ) Name                       VNUM   Item Name\tn\r\n");
@@ -553,7 +738,7 @@ void list_available_crafts(struct char_data *ch)
 
   send_to_char(ch, "Crafts:\r\n");
 
-  if (global_craft_list->iSize > 0)
+  if (global_craft_list != NULL && global_craft_list->iSize > 0)
   {
     /* Beginner's Note: Reset simple_list iterator before use to prevent
      * cross-contamination from previous iterations. Without this reset,
@@ -624,6 +809,17 @@ void show_craft(struct char_data *ch, struct craft_data *craft, int mode)
         else
           send_to_char(ch, "Req: NO OBJECT! ");
       }
+      else if (requirement_balance_material(req) != CRAFT_MAT_NONE)
+      {
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "Req: %-14s (%-2d) %s ",
+                        crafting_materials[requirement_balance_material(req)], req->req_amount,
+                        "From Crafting Materials");
+        else
+          send_to_char(ch, "Req: %-14s (%-2d) %s ",
+                       crafting_materials[requirement_balance_material(req)], req->req_amount,
+                       "From Crafting Materials");
+      }
       else
       {
         if (mode == ITEM_STAT_MODE_G_LORE)
@@ -692,6 +888,17 @@ void show_craft(struct char_data *ch, struct craft_data *craft, int mode)
         else
           send_to_char(ch, "Req: NO OBJECT! ");
       }
+      else if (requirement_balance_material(req) != CRAFT_MAT_NONE)
+      {
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "Req: %-14s (%-2d) %s ",
+                        crafting_materials[requirement_balance_material(req)], req->req_amount,
+                        "From Crafting Materials");
+        else
+          send_to_char(ch, "Req: %-14s (%-2d) %s ",
+                       crafting_materials[requirement_balance_material(req)], req->req_amount,
+                       "From Crafting Materials");
+      }
       else
       {
         if (mode == ITEM_STAT_MODE_G_LORE)
@@ -751,6 +958,8 @@ MUD_EVENT_CALLBACK(event_craft)
     return (0);
   }
 
+  /* The roll keeps its legacy 1 to 99 scale: the rank and the threshold both read through the
+   * legacy equivalent, so converting a record does not change its odds. */
   if (CRAFT_SKILL(craft) == -1)
   {
     skill = 1;
@@ -758,8 +967,8 @@ MUD_EVENT_CALLBACK(event_craft)
   }
   else
   {
-    skill = GET_SKILL(ch, CRAFT_SKILL(craft));
-    rand = rand_number(0, (CRAFT_SKILL_LEVEL(craft) * 2));
+    skill = craft_legacy_skill_equivalent(ch, CRAFT_SKILL(craft));
+    rand = rand_number(0, (CRAFT_SKILL_LEVEL(craft) * CRAFT_LEGACY_SKILL_PER_RANK * 2));
     rand = MIN(151, rand);
   }
 
@@ -782,6 +991,11 @@ MUD_EVENT_CALLBACK(event_craft)
 
     if (CRAFT_MSG_ROOM(craft))
       act(CRAFT_MSG_ROOM(craft), TRUE, ch, obj, 0, TO_NOTVICT);
+
+    /* One craft experience award per success on the recipe's ability; none for no-skill
+     * recipes, retries, or failures. */
+    if (CRAFT_SKILL(craft) != -1)
+      gain_craft_exp(ch, craft_operation_exp(GET_OBJ_LEVEL(obj)), CRAFT_SKILL(craft), TRUE);
   }
   else if (skill > (rand / 2))
   {
@@ -799,20 +1013,10 @@ MUD_EVENT_CALLBACK(event_craft)
   return (0);
 }
 
+/* One crafting surface in every configuration: the project editor. */
 ACMDU(do_craft)
 {
-  switch (CONFIG_CRAFTING_SYSTEM)
-  {
-  case CRAFTING_SYSTEM_KITS:
-    do_practice(ch, argument, cmd, subcmd);
-    break;
-  case CRAFTING_SYSTEM_MOTES:
-    do_newcraft(ch, argument, cmd, SCMD_NEWCRAFT_CREATE);
-    break;
-  default:
-    send_to_char(ch, "There is no crafting system implemented right now.\r\n");
-    break;
-  }
+  do_newcraft(ch, argument, cmd, SCMD_NEWCRAFT_CREATE);
 }
 
 ACMDU(do_craft_with_kits)
@@ -1028,14 +1232,14 @@ static void craftedit_disp_skill_menu(struct descriptor_data *d)
   get_char_colors(d->character);
   clear_screen(d);
 
-  for (counter = TOP_CRAFT_SKILL; counter < BOTTOM_CRAFT_SKILL; counter++)
+  for (counter = START_CRAFT_ABILITIES; counter <= END_HARVEST_ABILITIES; counter++)
   {
-    if (spell_info[counter].min_level[0] == LVL_IMPL + 1) /* UNUSED */
+    if (crafting_skill_type(counter) == CRAFT_SKILL_TYPE_NONE)
       continue;
-    write_to_output(d, "\t2%3d\t3) \t1%-20.20s\tn %s", counter, spell_info[counter].name,
+    write_to_output(d, "\t2%3d\t3) \t1%-20.20s\tn %s", counter, ability_names[counter],
                     !(++columns % 3) ? "\r\n" : "");
   }
-  write_to_output(d, "\r\n%sEnter skill choice (-1 for none) : ", nrm);
+  write_to_output(d, "\r\n%sEnter craft ability choice (-1 for none) : ", nrm);
 }
 
 /* Display craft requirement flags menu. */
@@ -1131,8 +1335,8 @@ static void craftedit_disp_menu(struct descriptor_data *d)
                       : "None",
                   CRAFT_MSG_SELF(c), CRAFT_MSG_ROOM(c));
 
-  write_to_output(d, "\t2S\t3) Craft Skill    : \t1%s \t2(\t3%d\t2)\tn\r\n", craft_skill_name(c),
-                  CRAFT_SKILL_LEVEL(c));
+  write_to_output(d, "\t2S\t3) Craft Ability  : \t1%s \t2(rank \t3%d\t2)\tn\r\n",
+                  craft_skill_name(c), CRAFT_SKILL_LEVEL(c));
 
   sprintbit(CRAFT_FLAGS(c), craft_flags, buf, sizeof(buf));
   write_to_output(d, "\t2F\t3) Flags          : \t1%s\tn\r\n", buf);
@@ -1321,13 +1525,15 @@ void craftedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    if (!is_number(arg) || !craft_skill_id_is_valid((var = atoi(arg))))
+    if (!is_number(arg) || !craft_skill_id_is_valid((var = atoi(arg))) ||
+        (var != -1 && crafting_skill_type(var) == CRAFT_SKILL_TYPE_NONE))
     {
-      write_to_output(d, "Please select -1 or a skill from 1 to %d: ", TOP_SKILL_DEFINE);
+      write_to_output(d, "Please select -1 or a listed craft ability: ");
       return;
     }
 
     OLC_CRAFT(d)->craft_skill = var;
+    OLC_CRAFT(d)->craft_skill_legacy = 0;
     if (var == -1)
     {
       OLC_CRAFT(d)->craft_skill_level = 0;
@@ -1335,17 +1541,17 @@ void craftedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    write_to_output(d, "At what level?: ");
+    write_to_output(d, "At what rank?: ");
     OLC_MODE(d) = CRAFTEDIT_SKILL_LEVEL;
     return;
   case CRAFTEDIT_SKILL_LEVEL:
     if (!*arg)
     {
-      write_to_output(d, "Please select a skill level: ");
+      write_to_output(d, "Please select a rank: ");
       return;
     }
 
-    OLC_CRAFT(d)->craft_skill_level = LIMIT(atoi(arg), 0, 100);
+    OLC_CRAFT(d)->craft_skill_level = LIMIT(atoi(arg), 0, UCHAR_MAX);
     break;
   case CRAFTEDIT_REQUIREMENTS:
     switch (*arg)

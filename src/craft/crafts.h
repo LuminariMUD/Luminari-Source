@@ -22,11 +22,17 @@ struct craft_data
   char *craft_msg_self;
   char *craft_msg_room;
 
+  /* The craft or harvest ability (34 to 51) the recipe uses, -1 for none, or
+   * CRAFT_SKILL_UNSUPPORTED for a legacy record whose skill has no ability; such a record
+   * stays editable but cannot execute, and craft_skill_legacy keeps its raw id for write-back. */
   int craft_skill;
-  int craft_skill_level;
+  int craft_skill_level; /* rank required (legacy levels convert on load, rounded up) */
+  int craft_skill_legacy;
 
   struct list_data *requirements;
 };
+
+#define CRAFT_SKILL_UNSUPPORTED (-2)
 
 struct requirement_data
 {
@@ -42,6 +48,7 @@ struct requirement_data
 #define CRAFT_TIMER(craft) (craft->craft_timer)
 #define CRAFT_SKILL(craft) (craft->craft_skill)
 #define CRAFT_SKILL_LEVEL(craft) (craft->craft_skill_level)
+#define CRAFT_SKILL_LEGACY(craft) (craft->craft_skill_legacy)
 
 #define CRAFT_MSG_SELF(craft) (craft->craft_msg_self)
 #define CRAFT_MSG_ROOM(craft) (craft->craft_msg_room)
@@ -88,3 +95,12 @@ ACMD_DECL(do_craft_with_kits);
 
 /* Craftedit */
 extern struct list_data *global_craft_list;
+
+#ifdef LUMINARI_CUTEST
+void test_load_crafts_from(FILE *fp);
+void test_save_crafts_to(FILE *fp);
+void test_clear_crafts(void);
+int test_missing_craft_requirements(struct char_data *ch, struct craft_data *craft);
+void test_remove_components(struct char_data *ch, struct craft_data *craft, bool success);
+bool test_character_meets_craft_skill(struct char_data *ch, struct craft_data *craft);
+#endif

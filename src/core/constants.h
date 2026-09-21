@@ -228,7 +228,6 @@ extern const char *requirement_flags[];
 extern const char *crafting_motes[];
 
 extern const char *bag_system_options[];
-extern const char *crafting_system_options[];
 extern const char *landmark_system_options[];
 extern const char *new_player_gear_options[];
 extern const char *allow_cexchange_options[];

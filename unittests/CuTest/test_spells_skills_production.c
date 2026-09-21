@@ -546,13 +546,15 @@ void Test_legacy_crafting_reports_modified_experience(CuTest *tc)
 
 void Test_legacy_supply_orders_improve_the_material_skill(CuTest *tc)
 {
-  CuAssertIntEquals(tc, SKILL_MINING, test_legacy_supply_order_skill(MATERIAL_STEEL));
-  CuAssertIntEquals(tc, SKILL_MINING, test_legacy_supply_order_skill(MATERIAL_BRONZE));
-  CuAssertIntEquals(tc, SKILL_MINING, test_legacy_supply_order_skill(MATERIAL_COPPER));
-  CuAssertIntEquals(tc, SKILL_HUNTING, test_legacy_supply_order_skill(MATERIAL_LEATHER));
-  CuAssertIntEquals(tc, SKILL_FORESTING, test_legacy_supply_order_skill(MATERIAL_WOOD));
-  CuAssertIntEquals(tc, SKILL_KNITTING, test_legacy_supply_order_skill(MATERIAL_WOOL));
-  CuAssertIntEquals(tc, SKILL_KNITTING, test_legacy_supply_order_skill(MATERIAL_SATIN));
+  /* Legacy room-370 orders now advance the harvest ability of their material. */
+  CuAssertIntEquals(tc, ABILITY_HARVEST_MINING, test_legacy_supply_order_skill(MATERIAL_STEEL));
+  CuAssertIntEquals(tc, ABILITY_HARVEST_MINING, test_legacy_supply_order_skill(MATERIAL_BRONZE));
+  CuAssertIntEquals(tc, ABILITY_HARVEST_MINING, test_legacy_supply_order_skill(MATERIAL_COPPER));
+  CuAssertIntEquals(tc, ABILITY_HARVEST_HUNTING, test_legacy_supply_order_skill(MATERIAL_LEATHER));
+  CuAssertIntEquals(tc, ABILITY_HARVEST_FORESTRY, test_legacy_supply_order_skill(MATERIAL_WOOD));
+  CuAssertIntEquals(tc, ABILITY_HARVEST_GATHERING, test_legacy_supply_order_skill(MATERIAL_WOOL));
+  CuAssertIntEquals(tc, ABILITY_HARVEST_GATHERING, test_legacy_supply_order_skill(MATERIAL_SATIN));
+
   CuAssertIntEquals(tc, -1, test_legacy_supply_order_skill(MATERIAL_GLASS));
 }
 
@@ -1607,12 +1609,14 @@ void Test_legacy_no_skill_craft_is_available_without_a_skill_array_lookup(CuTest
   ch.desc = NULL;
   cleanup_test_descriptor(&descriptor);
 
+  /* Catalog skills are craft and harvest abilities, or -1 for none. */
   CuAssertTrue(tc, craft_skill_id_is_valid(-1));
-  CuAssertTrue(tc, craft_skill_id_is_valid(1));
-  CuAssertTrue(tc, craft_skill_id_is_valid(TOP_SKILL_DEFINE));
+  CuAssertTrue(tc, craft_skill_id_is_valid(START_CRAFT_ABILITIES));
+  CuAssertTrue(tc, craft_skill_id_is_valid(END_HARVEST_ABILITIES));
   CuAssertTrue(tc, !craft_skill_id_is_valid(-2));
   CuAssertTrue(tc, !craft_skill_id_is_valid(0));
-  CuAssertTrue(tc, !craft_skill_id_is_valid(TOP_SKILL_DEFINE + 1));
+  CuAssertTrue(tc, !craft_skill_id_is_valid(1));
+  CuAssertTrue(tc, !craft_skill_id_is_valid(END_HARVEST_ABILITIES + 1));
   CuAssertTrue(tc, listed);
 }
 

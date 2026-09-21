@@ -2893,7 +2893,6 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 
 // extra game data
 #define CONFIG_BAG_SYSTEM config_info.extra.bag_system
-#define CONFIG_CRAFTING_SYSTEM config_info.extra.crafting_system
 #define CONFIG_LANDMARK_SYSTEM config_info.extra.landmarks_system
 #define CONFIG_NEW_PLAYER_GEAR config_info.extra.new_player_gear
 #define CONFIG_ALLOW_CEXCHANGE config_info.extra.allow_cexchange
@@ -2951,9 +2950,6 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define BAG_SYSTEM_PHYSICAL 0
 #define BAG_SYSTEM_VIRTUAL 1
 
-#define CRAFTING_SYSTEM_NONE 0
-#define CRAFTING_SYSTEM_KITS 1
-#define CRAFTING_SYSTEM_MOTES 2
 
 #define NEW_PLAYER_GEAR_SHARED 0
 #define NEW_PLAYER_GEAR_UNIQUE 1
@@ -3153,6 +3149,7 @@ bool has_reach(struct char_data *ch);
 #define GET_CRAFT(ch) (ch->player_specials->saved.craft_data)
 #define GET_CRAFT_MAT(ch, i) (ch->player_specials->saved.craft_mats_owned[i])
 #define GET_CRAFT_MOTES(ch, i) (ch->player_specials->saved.craft_motes_owned[i])
+#define GET_CRAFT_MIGRATION(ch) (ch->player_specials->saved.craft_migration_version)
 #define GET_CRAFT_SKILL_EXP(ch, i) (ch->player_specials->saved.ability_exp[i])
 
 #define GET_NSUPPLY_NUM_MADE(ch) (ch->player_specials->saved.new_supply_num_made)

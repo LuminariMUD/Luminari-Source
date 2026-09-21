@@ -4959,9 +4959,6 @@ CHECK_TABLE_SIZE(crafting_methods_short, NUM_CRAFTING_METHODS + 1);
 
 const char *bag_system_options[] = {"Use container objects", "Use virtual bags", "\n"};
 
-const char *crafting_system_options[] = {"None", "Use crystals and crafting kits",
-                                         "Use elemental motes and crafting menu", "\n"};
-
 const char *landmark_system_options[] = {"None", "City landmarks only", "World map landmarks",
                                          "\n"};
 

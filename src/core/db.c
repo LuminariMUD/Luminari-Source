@@ -747,7 +747,7 @@ void boot_world(void)
       reset_harvesting_rooms();
   }
 
-  /* The materials-and-motes crafting system (crafting_system 2) reads these static tables. */
+  /* The materials-and-motes crafting system reads these static tables. */
   log("Populating crafting recipes.");
   populate_crafting_recipes();
   log("Sorting crafting materials.");
@@ -7877,6 +7877,8 @@ void init_char(struct char_data *ch)
       SET_SKILL(ch, i, 4);
     }
   }
+  /* A new character has nothing to convert. */
+  GET_CRAFT_MIGRATION(ch) = CRAFT_MIGRATION_CURRENT;
 
   /* Initialize stage data for stage-based leveling (Step 3) */
   init_stage_data(ch);
@@ -8380,7 +8382,6 @@ static void load_default_config(void)
 
   /* Extra game options - defaults to 0 (Full for exp options) */
   CONFIG_BAG_SYSTEM = 0;
-  CONFIG_CRAFTING_SYSTEM = 0;
   CONFIG_LANDMARK_SYSTEM = 0;
   CONFIG_NEW_PLAYER_GEAR = 0;
   CONFIG_ALLOW_CEXCHANGE = 0;
@@ -8464,8 +8465,6 @@ void load_config_stream(FILE *fl)
     case 'c':
       if (!str_cmp(tag, "crash_file_timeout"))
         CONFIG_CRASH_TIMEOUT = num;
-      if (!str_cmp(tag, "crafting_system"))
-        CONFIG_CRAFTING_SYSTEM = (ubyte)num;
       break;
 
     case 'd':
