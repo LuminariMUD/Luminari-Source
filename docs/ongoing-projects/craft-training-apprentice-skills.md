@@ -2,6 +2,12 @@
 
 Written 2026-09-20 following player reports regarding the `apprentice` command.
 
+Status: resolved by the crafting consolidation (issue #212,
+[crafting-consolidation-assessment.md](crafting-consolidation-assessment.md)).
+`craft`, `craftscore`, and `apprentice` now read one set of ranks, the legacy
+skills converted once per character (CrMg stage 1), and the `craft` mode
+selector is gone. The analysis below is kept as the record of the report.
+
 ## Overview
 
 Following the deployment of the Craft Trainer system (\[`src/craft/craft_training.c`\](file:///home/aiwithapex/projects/Luminari-Source-issue-208/src/craft/craft_training.c)), players noticed two discrepancies when comparing the output of the `apprentice` command with their existing crafting list in `craft`:
