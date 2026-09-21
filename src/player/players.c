@@ -1180,7 +1180,7 @@ int load_char(const char *name, struct char_data *ch)
         {
           /* Crafting consolidation migration stage; never below zero or above the current. */
           GET_CRAFT_MIGRATION(ch) =
-              LIMIT(atoi(line), CRAFT_MIGRATION_NONE, CRAFT_MIGRATION_CURRENT);
+              LIMIT((int)strtol(line, NULL, 10), CRAFT_MIGRATION_NONE, CRAFT_MIGRATION_CURRENT);
         }
         else if (!strcmp(tag, "CrTr"))
         {
@@ -2540,7 +2540,8 @@ bool save_char_checked(struct char_data *ch, int mode)
    * place only after every byte is flushed and synced, so an interrupted or failed save leaves
    * the previous file intact. Follows save_player_index_checked(). */
   i = snprintf(temp_filename, sizeof(temp_filename), "%s.save-tmp.XXXXXX", filename);
-  if (i < 0 || i >= (int)sizeof(temp_filename) || (temp_fd = mkstemp(temp_filename)) < 0)
+  temp_fd = i < 0 || i >= (int)sizeof(temp_filename) ? -1 : mkstemp(temp_filename);
+  if (temp_fd < 0)
   {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't create temporary player file for %s: %s",
            filename, strerror(errno));
@@ -2571,7 +2572,8 @@ bool save_char_checked(struct char_data *ch, int mode)
     PERF_PROF_EXIT(pr_save_char_checked_);
     return FALSE;
   }
-  if (!(fl = fdopen(temp_fd, "w")))
+  fl = fdopen(temp_fd, "w");
+  if (!fl)
   {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't open player file %s for write", filename);
     close(temp_fd);

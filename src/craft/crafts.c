@@ -1060,6 +1060,7 @@ static bool start_catalog_craft(struct char_data *ch, struct craft_data *craft)
   definition.command_response = PRIMARY_ACTIVITY_RESPONSE_REJECT;
   definition.timed_step = catalog_craft_step;
   definition.recheck = catalog_craft_recheck;
+  /* NOLINTNEXTLINE(performance-no-int-to-ptr) -- the id outlives any reload of the list */
   definition.context = (void *)(intptr_t)CRAFT_ID(craft);
   return primary_activity_start(ch, domain_event_room_handle(IN_ROOM(ch)), &definition);
 }

@@ -512,7 +512,8 @@ void wilderness_harvest_command(struct char_data *ch, const char *argument, int 
                    crafting_materials[material], crafting_materials[material]);
       return;
     }
-    if ((reason = wilderness_material_refusal(ch, material)) != NULL)
+    reason = wilderness_material_refusal(ch, material);
+    if (reason != NULL)
     {
       send_to_char(ch, "%c%s %s.\r\n", UPPER(*crafting_materials[material]),
                    crafting_materials[material] + 1, reason);
@@ -729,6 +730,7 @@ static int start_harvest(struct char_data *ch, int category, int material)
   if (material != CRAFT_MAT_NONE && wilderness_material_refusal(ch, material) != NULL)
     return 0;
   what = material != CRAFT_MAT_NONE ? crafting_materials[material] : resource_names[category];
+  /* NOLINTNEXTLINE(bugprone-assignment-in-if-condition) -- CREATE() assigns inside its check */
   CREATE(harvest, struct wilderness_harvest_context, 1);
   harvest->category = category;
   harvest->material = material;
