@@ -7105,6 +7105,8 @@ void free_char(struct char_data *ch)
 
     if (ch->player_specials->poofin)
       free(ch->player_specials->poofin);
+    if (ch->player_specials->craft_settlement_note)
+      free(ch->player_specials->craft_settlement_note);
     if (ch->player_specials->poofout)
       free(ch->player_specials->poofout);
     if (ch->player_specials->saved.account_name)

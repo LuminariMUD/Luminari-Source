@@ -29,6 +29,7 @@
 #include "events/activity_manager.h"
 #include "events/domain_event_world.h"
 
+#include <errno.h>
 #include <limits.h>
 #include <stdint.h>
 
@@ -185,6 +186,29 @@ void free_craft(struct craft_data *craft)
   free(craft);
 }
 
+/* Two integers from a record line; anything else, including trailing text, is a format error. */
+static bool craft_parse_int_pair(const char *line, int *first, int *second)
+{
+  char *end = NULL;
+  long a, b;
+
+  errno = 0;
+  a = strtol(line, &end, 10);
+  if (end == line || errno != 0 || a < INT_MIN || a > INT_MAX)
+    return false;
+  line = end;
+  b = strtol(line, &end, 10);
+  if (end == line || errno != 0 || b < INT_MIN || b > INT_MAX)
+    return false;
+  while (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n')
+    end++;
+  if (*end != '\0')
+    return false;
+  *first = (int)a;
+  *second = (int)b;
+  return true;
+}
+
 static void load_crafts_from(FILE *fp)
 {
   char *line;
@@ -265,7 +289,7 @@ static void load_crafts_from(FILE *fp)
           {
             int ability = -1, rank = 0;
 
-            if (sscanf(line, "%d %d\n", &ability, &rank) != 2)
+            if (!craft_parse_int_pair(line, &ability, &rank))
               log("SYSERR: Format error in craft %d ability record", CRAFT_ID(craft));
             else if (!craft_skill_id_is_valid(ability))
             {
@@ -289,7 +313,7 @@ static void load_crafts_from(FILE *fp)
           {
             int legacy_skill = -1, level = 0;
 
-            if (sscanf(line, "%d %d\n", &legacy_skill, &level) != 2)
+            if (!craft_parse_int_pair(line, &legacy_skill, &level))
               log("SYSERR: Format error in Skill Level");
             else
               craft_set_legacy_skill(craft, legacy_skill, level);

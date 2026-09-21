@@ -402,8 +402,9 @@ static char *node_keywords(int material)
     return strdup("cloth raw material high quality");
   case MATERIAL_SILK:
     return strdup("cloth raw material rich");
+  default:
+    return strdup("node harvesting");
   }
-  return strdup("node harvesting");
 }
 
 /* this function returns an appropriate short-desc based on material */
@@ -450,8 +451,9 @@ static char *node_sdesc(int material)
     return strdup("raw material for high quality");
   case MATERIAL_SILK:
     return strdup("raw material for rich cloth");
+  default:
+    return strdup("a harvesting node");
   }
-  return strdup("a harvesting node");
 }
 
 /* this function returns an appropriate desc based on material */
@@ -498,8 +500,9 @@ static char *node_desc(int material)
     return strdup("There is enough raw material for high quality cloth here. \tn(\tYharvest\tn)");
   case MATERIAL_SILK:
     return strdup("There is enough raw material for rich cloth here. \tn(\tYharvest\tn)");
+  default:
+    return strdup("A harvesting node is here.  Please inform an imm, this is an error.");
   }
-  return strdup("A harvesting node is here.  Please inform an imm, this is an error.");
 }
 
 /* a function to try and make an intelligent(?) decision
@@ -1308,21 +1311,25 @@ void reforge_apply(struct char_data *ch, struct obj_data *obj, int index)
   {
     char *updated;
 
-    if (obj->name &&
-        (updated = replace_substring_ci(obj->name, obj->restring_identifier, type_name)) != NULL)
+    updated =
+        obj->name ? replace_substring_ci(obj->name, obj->restring_identifier, type_name) : NULL;
+    if (updated)
     {
       free_object_string(obj, obj->name);
       obj->name = updated;
     }
-    if (obj->short_description &&
-        (updated = replace_substring_ci(obj->short_description, obj->restring_identifier,
-                                        type_name)) != NULL)
+    updated = obj->short_description ? replace_substring_ci(obj->short_description,
+                                                            obj->restring_identifier, type_name)
+                                     : NULL;
+    if (updated)
     {
       free_object_string(obj, obj->short_description);
       obj->short_description = updated;
     }
-    if (obj->description && (updated = replace_substring_ci(
-                                 obj->description, obj->restring_identifier, type_name)) != NULL)
+    updated = obj->description
+                  ? replace_substring_ci(obj->description, obj->restring_identifier, type_name)
+                  : NULL;
+    if (updated)
     {
       free_object_string(obj, obj->description);
       obj->description = updated;
@@ -1454,6 +1461,11 @@ static void apply_augment(struct char_data *ch, struct obj_data *kit, struct kit
     else if (GET_OBJ_TYPE(obj) == ITEM_ESSENCE && !two)
       two = obj;
   }
+  if (!one || !two)
+  {
+    send_to_char(ch, "The kit no longer holds two essences to augment.\r\n");
+    return;
+  }
   level_diff = abs(GET_OBJ_LEVEL(one) - GET_OBJ_LEVEL(two));
   roll = dice(1, 100);
   success_chance = 100 - (level_diff * 10) - op->essence_level;
@@ -1523,7 +1535,7 @@ static void apply_disenchant(struct char_data *ch, struct obj_data *obj, struct 
   {
     send_to_char(ch, "You are having difficulty extracting the magical essence...\r\n");
   }
-  else if ((essence = read_object(MAGICAL_ESSENCE, VIRTUAL)) == NULL)
+  else if (!(essence = read_object(MAGICAL_ESSENCE, VIRTUAL)))
   {
     log("SYSERR: disenchant failed to load essence object %d", MAGICAL_ESSENCE);
     send_to_char(ch, "Report to staff please: disenchant failed to load essence object.\r\n");
@@ -1958,8 +1970,9 @@ static bool plan_kit_operation(struct char_data *ch, struct obj_data *kit, int t
     return plan_disenchant(ch, kit, argument, op, verbose);
   case SCMD_CRAFT:
     return plan_create(ch, kit, argument, op, false, verbose);
+  default:
+    return false;
   }
-  return false;
 }
 
 static bool kit_activity_recheck(struct char_data *ch, void *target, void *context)
@@ -2114,6 +2127,7 @@ static bool start_kit_operation(struct char_data *ch, struct obj_data *kit,
                  kit_operation_verb(planned->type));
     return false;
   }
+  /* NOLINTNEXTLINE(bugprone-assignment-in-if-condition) -- CREATE() assigns inside its check */
   CREATE(op, struct kit_operation, 1);
   *op = *planned;
   snprintf(description, sizeof(description), "using a crafting kit to %s",
@@ -2714,7 +2728,8 @@ static void node_harvest_complete(struct char_data *ch, void *target, void *cont
     return;
   }
   drop = node_drop_prototype(harvest->material, NULL);
-  if (drop == NOTHING || (drop_rnum = real_object(drop)) == NOTHING)
+  drop_rnum = drop == NOTHING ? NOTHING : real_object(drop);
+  if (drop_rnum == NOTHING)
   {
     send_to_char(ch, "Nothing useful can be taken from this node; please report it.\r\n");
     log("SYSERR: node harvest: material %d rolled missing prototype %d", harvest->material,
@@ -2737,7 +2752,8 @@ static void node_harvest_complete(struct char_data *ch, void *target, void *cont
   }
   else
   {
-    if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch) || (reward = read_object(drop, VIRTUAL)) == NULL)
+    reward = IS_CARRYING_N(ch) >= CAN_CARRY_N(ch) ? NULL : read_object(drop, VIRTUAL);
+    if (!reward)
     {
       send_to_char(ch, "You must drop something before you can take what this node yields.\r\n");
       return;
@@ -2774,7 +2790,7 @@ ACMD(do_harvest)
 
   /* Explicit legacy nodes retain their original path. Category harvests store
    * crafting balances and do not depend on physical inventory capacity. */
-  if (ch && IN_ROOM(ch) != NOWHERE && IN_ROOM(ch) <= top_of_world &&
+  if (IN_ROOM(ch) != NOWHERE && IN_ROOM(ch) <= top_of_world &&
       ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
   {
     one_argument(argument, arg, sizeof(arg));
@@ -2833,7 +2849,8 @@ ACMD(do_harvest)
 
   material = GET_OBJ_MATERIAL(node);
   skillnum = node_harvest_skill(material, &sub_command);
-  if ((minskill = node_minimum_skill(material)) < 0)
+  minskill = node_minimum_skill(material);
+  if (minskill < 0)
   {
     send_to_char(ch,
                  "That is not a valid node type, please report this to a staff member [1].\r\n");
@@ -2862,6 +2879,7 @@ ACMD(do_harvest)
 
   /* Nothing is allocated, spent, or rolled at admission: the reward, the charge, and the
    * experience all wait for completion, so cancelling costs nothing and pays nothing. */
+  /* NOLINTNEXTLINE(bugprone-assignment-in-if-condition) -- CREATE() assigns inside its check */
   CREATE(harvest, struct node_harvest_context, 1);
   harvest->material = material;
   harvest->skill = skillnum;

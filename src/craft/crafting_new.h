@@ -322,6 +322,7 @@ int craft_legacy_ability_for_skill(int legacy_skill, int *second_ability);
 int craft_legacy_skill_equivalent(struct char_data *ch, int ability);
 bool craft_migrate_legacy_skills(struct char_data *ch);
 bool craft_settle_legacy_supply_order(struct char_data *ch);
+bool craft_publish_migration_on_entry(struct char_data *ch);
 bool craft_migrate_wilderness_holdings(struct char_data *ch);
 char *replace_substring_ci(const char *src, const char *find, const char *repl);
 int craft_legacy_kit_seconds(struct char_data *ch, int ability, int base_ticks);

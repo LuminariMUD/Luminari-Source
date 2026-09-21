@@ -3877,7 +3877,7 @@ bool craft_settle_legacy_supply_order(struct char_data *ch)
   {
     units = (AUTOCQUEST_MAKENUM - MIN(AUTOCQUEST_MAKENUM, remaining)) * SUPPLYORDER_MATS;
     material = obj_material_to_craft_material(GET_AUTOCQUEST_MATERIAL(ch));
-    if (units > 0 && material == CRAFT_MAT_NONE)
+    if (units > 0 && (material <= CRAFT_MAT_NONE || material >= NUM_CRAFT_MATS))
     {
       log("CRAFT: %s: legacy supply order material %d has no balance; kept for review",
           GET_NAME(ch), GET_AUTOCQUEST_MATERIAL(ch));
@@ -3889,7 +3889,7 @@ bool craft_settle_legacy_supply_order(struct char_data *ch)
           GET_NAME(ch), units, crafting_materials[material]);
       return false;
     }
-    if (units > 0)
+    if (units > 0 && material > CRAFT_MAT_NONE && material < NUM_CRAFT_MATS)
       snprintf(note, sizeof(note),
                "The old supply-order office has closed. Your unfinished order for %s is "
                "cancelled and the %d units of %s you had worked into it are back in your "
@@ -3917,6 +3917,31 @@ bool craft_settle_legacy_supply_order(struct char_data *ch)
  * wilderness_harvest_mote() at quantity times quality. Additions are aggregated per
  * destination and checked for capacity before anything is credited; invalid or overflowing
  * data keeps every record and leaves the stage unadvanced. No experience is earned. */
+/* A crafting migration that ran at load is published with its marker before play, and the
+ * settlement note is delivered once. A failed save leaves the old file intact and the flag set,
+ * so the next save retries; reloading from the old file simply converts again from the same
+ * inputs. Returns whether an unsaved migration is now on disk (or none was pending). */
+bool craft_publish_migration_on_entry(struct char_data *ch)
+{
+  bool published = true;
+
+  if (!ch || IS_NPC(ch) || !ch->player_specials)
+    return true;
+  if (ch->player_specials->craft_migration_unsaved && !save_char_checked(ch, 0))
+  {
+    log("SYSERR: Crafting migration for %s could not be published at entry; will retry on save.",
+        GET_NAME(ch));
+    published = false;
+  }
+  if (ch->player_specials->craft_settlement_note)
+  {
+    send_to_char(ch, "%s", ch->player_specials->craft_settlement_note);
+    free(ch->player_specials->craft_settlement_note);
+    ch->player_specials->craft_settlement_note = NULL;
+  }
+  return published;
+}
+
 bool craft_migrate_wilderness_holdings(struct char_data *ch)
 {
   int material_needs[NUM_CRAFT_MATS] = {0};
