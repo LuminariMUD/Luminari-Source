@@ -254,9 +254,9 @@ int text_processed(char *field, char *subfield, struct trig_var_data *vd, char *
   else if (!str_cmp(field, "contains"))
   { /* contains  */
     if (str_str(vd->value, subfield))
-      strcpy(str, "1");
+      strlcpy(str, "1", slen);
     else
-      strcpy(str, "0");
+      strlcpy(str, "0", slen);
     return TRUE;
   }
   else if (!str_cmp(field, "car"))
@@ -282,7 +282,7 @@ int text_processed(char *field, char *subfield, struct trig_var_data *vd, char *
   { /* CharAt    */
     size_t len = strlen(vd->value), cindex = atoi(subfield);
     if (cindex > len || cindex < 1)
-      strcpy(str, "");
+      strlcpy(str, "", slen);
     else
       snprintf(str, slen, "%c", vd->value[cindex - 1]);
     return TRUE;
@@ -573,7 +573,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         if (!*field || !subfield || !*subfield)
         {
           script_log("findmob.vnum(mvnum) - illegal syntax");
-          strcpy(str, "0");
+          strlcpy(str, "0", slen);
         }
         else
         {
@@ -583,7 +583,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (rrnum == NOWHERE)
           {
             script_log("findmob.vnum(ovnum): No room with vnum %d", atoi(field));
-            strcpy(str, "0");
+            strlcpy(str, "0", slen);
           }
           else
           {
@@ -600,7 +600,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         if (!*field || !subfield || !*subfield)
         {
           script_log("findobj.vnum(ovnum) - illegal syntax");
-          strcpy(str, "0");
+          strlcpy(str, "0", slen);
         }
         else
         {
@@ -609,7 +609,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (rrnum == NOWHERE)
           {
             script_log("findobj.vnum(ovnum): No room with vnum %d", atoi(field));
-            strcpy(str, "0");
+            strlcpy(str, "0", slen);
           }
           else
           {
@@ -742,12 +742,12 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           {
             int spell = find_skill_num(subfield);
             if (affected_by_spell(c, spell))
-              strcpy(str, "1");
+              strlcpy(str, "1", slen);
             else
-              strcpy(str, "0");
+              strlcpy(str, "0", slen);
           }
           else
-            strcpy(str, "0");
+            strlcpy(str, "0", slen);
         }
         else if (!str_cmp(field, "alias"))
           snprintf(str, slen, "%s", GET_PC_NAME(c));
@@ -768,9 +768,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         if (!str_cmp(field, "canbeseen"))
         {
           if ((type == MOB_TRIGGER) && !CAN_SEE(((char_data *)go), c))
-            strcpy(str, "0");
+            strlcpy(str, "0", slen);
           else
-            strcpy(str, "1");
+            strlcpy(str, "1", slen);
         }
         else if (!str_cmp(field, "cha"))
         {
@@ -819,11 +819,11 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             if (cr != NO_CLAN)
               snprintf(str, slen, "%s", clan_list[cr].clan_name);
             else
-              strcpy(str, "None");
+              strlcpy(str, "None", slen);
           }
           else
           {
-            strcpy(str, "None");
+            strlcpy(str, "None", slen);
           }
         }
         else if (!str_cmp(field, "is_clan_leader"))
@@ -929,7 +929,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
                 break;
               }
             if (j > 0)
-              strcpy(str, "1");
+              strlcpy(str, "1", slen);
             else
               *str = '\0';
           }
@@ -988,7 +988,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         }
         else if (!str_cmp(field, "has_class"))
         {
-          strcpy(str, "0");
+          strlcpy(str, "0", slen);
           if (subfield && *subfield)
           {
             int cl = get_class_by_name(subfield);
@@ -996,7 +996,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             {
               if (CLASS_LEVEL(c, cl))
               {
-                strcpy(str, "1");
+                strlcpy(str, "1", slen);
               }
             }
           }
@@ -1053,9 +1053,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         else if (!str_cmp(field, "is_pc"))
         {
           if (IS_NPC(c))
-            strcpy(str, "0");
+            strlcpy(str, "0", slen);
           else
-            strcpy(str, "1");
+            strlcpy(str, "1", slen);
         }
         else if (!str_cmp(field, "int"))
         {
@@ -1106,9 +1106,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
               REMOVE_BIT_AR(PLR_FLAGS(c), PLR_KILLER);
           }
           if (PLR_FLAGGED(c, PLR_KILLER))
-            strcpy(str, "1");
+            strlcpy(str, "1", slen);
           else
-            strcpy(str, "0");
+            strlcpy(str, "0", slen);
         }
 
         else if (!str_cmp(field, "is_on_quest"))
@@ -1124,12 +1124,12 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
                 found = TRUE;
 
             if (found)
-              strcpy(str, "1");
+              strlcpy(str, "1", slen);
             else
-              strcpy(str, "0");
+              strlcpy(str, "0", slen);
           }
           else
-            strcpy(str, "0");
+            strlcpy(str, "0", slen);
         }
 
         else if (!str_cmp(field, "is_thief"))
@@ -1142,9 +1142,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
               REMOVE_BIT_AR(PLR_FLAGS(c), PLR_THIEF);
           }
           if (PLR_FLAGGED(c, PLR_THIEF))
-            strcpy(str, "1");
+            strlcpy(str, "1", slen);
           else
-            strcpy(str, "0");
+            strlcpy(str, "0", slen);
         }
         break;
       case 'l':
@@ -1266,12 +1266,12 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           {
             int pref = get_flag_by_name(preference_bits, subfield);
             if (!IS_NPC(c) && pref != (int)NOFLAG && PRF_FLAGGED(c, pref))
-              strcpy(str, "1");
+              strlcpy(str, "1", slen);
             else
-              strcpy(str, "0");
+              strlcpy(str, "0", slen);
           }
           else
-            strcpy(str, "0");
+            strlcpy(str, "0", slen);
         }
         break;
       case 'q':
@@ -1304,7 +1304,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           }
 
           if (!found)
-            strcpy(str, "0");
+            strlcpy(str, "0", slen);
         }
 
         else if (!str_cmp(field, "questdone"))
@@ -1313,12 +1313,12 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           {
             int q_num = atoi(subfield);
             if (is_complete(c, q_num))
-              strcpy(str, "1");
+              strlcpy(str, "1", slen);
             else
-              strcpy(str, "0");
+              strlcpy(str, "0", slen);
           }
           else
-            strcpy(str, "0");
+            strlcpy(str, "0", slen);
         }
 
         break;
@@ -1727,7 +1727,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         if (!str_cmp(field, "varexists"))
         {
           struct trig_var_data *remote_vd;
-          strcpy(str, "0");
+          strlcpy(str, "0", slen);
           if (SCRIPT(c))
           {
             for (remote_vd = SCRIPT(c)->global_vars; remote_vd; remote_vd = remote_vd->next)
@@ -1736,7 +1736,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
                 break;
             }
             if (remote_vd)
-              strcpy(str, "1");
+              strlcpy(str, "1", slen);
           }
         }
         else if (!str_cmp(field, "vnum"))
@@ -1755,7 +1755,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
                * - this is deprecated - use %actor.is_pc% to check
                * instead of %actor.vnum% == -1  --Welcor 09/03
                */
-              strcpy(str, "-1");
+              strlcpy(str, "-1", slen);
           }
         }
         break;
@@ -1886,7 +1886,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (GET_OBJ_TYPE(o) == ITEM_CONTAINER || GET_OBJ_TYPE(o) == ITEM_AMMO_POUCH)
             snprintf(str, slen, "%d", item_in_list(subfield, o->contains));
           else
-            strcpy(str, "0");
+            strlcpy(str, "0", slen);
         }
         break;
       case 'e':
@@ -1912,7 +1912,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (GET_OBJ_TYPE(o) == ITEM_CONTAINER || GET_OBJ_TYPE(o) == ITEM_AMMO_POUCH)
             snprintf(str, slen, "%s", (item_in_list(subfield, o->contains) ? "1" : "0"));
           else
-            strcpy(str, "0");
+            strlcpy(str, "0", slen);
         }
         else if (!str_cmp(field, "hasattached"))
         {
@@ -1938,7 +1938,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         }
         else if (!str_cmp(field, "is_pc"))
         {
-          strcpy(str, "-1");
+          strlcpy(str, "-1", slen);
         }
         break;
       case 'n':
@@ -1959,9 +1959,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (subfield && *subfield)
           {
             if (handle_oset(o, subfield))
-              strcpy(str, "1");
+              strlcpy(str, "1", slen);
             else
-              strcpy(str, "0");
+              strlcpy(str, "0", slen);
           }
         }
         break;
@@ -2414,6 +2414,7 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig, int type, char
 {
   char tmp[MAX_INPUT_LENGTH] = {'\0'}, repl_str[MAX_INPUT_LENGTH] = {'\0'};
   char *var = NULL, *field = NULL, *p = NULL;
+  char tmpvr_name[] = "tmpvr"; /* the eval temporary that replaces a dotted prefix */
   char tmp2[MAX_INPUT_LENGTH + 16] = {'\0'};
   char *subfield_p, subfield[MAX_INPUT_LENGTH] = {'\0'};
   int left, len;
@@ -2475,7 +2476,7 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig, int type, char
             {
               snprintf(tmp2, sizeof(tmp2), "eval tmpvr %s", repl_str); // temp var
               process_eval(go, sc, trig, type, tmp2);
-              strcpy(var, "tmpvr");
+              var = tmpvr_name;
               field = p;
               dots = 0;
               continue;

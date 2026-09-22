@@ -593,7 +593,8 @@ struct landmass_info *detect_landmasses(FILE *fp)
           }
         }
 
-        strcpy(new_landmass->dominant_biome, sector_types[max_biome]);
+        strlcpy(new_landmass->dominant_biome, sector_types[max_biome],
+                sizeof(new_landmass->dominant_biome));
 
         /* Add to list */
         if (!landmasses)
@@ -834,27 +835,29 @@ void analyze_climate_zones(FILE *fp)
   zones[0].min_y = 0;
   zones[0].max_y = MAP_HEIGHT / 5;
   zones[0].avg_temperature = -20;
-  strcpy(zones[0].description, "Arctic - Perpetual ice and snow");
+  strlcpy(zones[0].description, "Arctic - Perpetual ice and snow", sizeof(zones[0].description));
 
   zones[1].min_y = MAP_HEIGHT / 5;
   zones[1].max_y = MAP_HEIGHT * 2 / 5;
   zones[1].avg_temperature = 5;
-  strcpy(zones[1].description, "Subarctic - Cold winters, cool summers");
+  strlcpy(zones[1].description, "Subarctic - Cold winters, cool summers",
+          sizeof(zones[1].description));
 
   zones[2].min_y = MAP_HEIGHT * 2 / 5;
   zones[2].max_y = MAP_HEIGHT * 3 / 5;
   zones[2].avg_temperature = 20;
-  strcpy(zones[2].description, "Temperate - Moderate seasons");
+  strlcpy(zones[2].description, "Temperate - Moderate seasons", sizeof(zones[2].description));
 
   zones[3].min_y = MAP_HEIGHT * 3 / 5;
   zones[3].max_y = MAP_HEIGHT * 4 / 5;
   zones[3].avg_temperature = 25;
-  strcpy(zones[3].description, "Subtropical - Warm, humid");
+  strlcpy(zones[3].description, "Subtropical - Warm, humid", sizeof(zones[3].description));
 
   zones[4].min_y = MAP_HEIGHT * 4 / 5;
   zones[4].max_y = MAP_HEIGHT;
   zones[4].avg_temperature = 30;
-  strcpy(zones[4].description, "Tropical - Hot and humid year-round");
+  strlcpy(zones[4].description, "Tropical - Hot and humid year-round",
+          sizeof(zones[4].description));
 
   /* Count tiles in each zone */
   memset(zone_tiles, 0, sizeof(zone_tiles));

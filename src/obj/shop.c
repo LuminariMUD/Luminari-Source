@@ -561,7 +561,8 @@ static int transaction_amt(char *arg)
   buywhat = one_argument_u(arg, buf);
   if (*buywhat && *buf && is_number(buf))
   {
-    strcpy(arg, arg + strlen(buf) + 1); /* strcpy: OK (always smaller) */
+    /* Drop the count; source and destination overlap, so memmove. */
+    memmove(arg, arg + strlen(buf) + 1, strlen(arg + strlen(buf) + 1) + 1);
     return (atoi(buf));
   }
   return (1);
@@ -818,12 +819,10 @@ static void shopping_buy_transfer_impl(char *arg, struct char_data *ch, struct c
       switch (SHOP_BROKE_TEMPER(shop_nr))
       {
       case 0:
-        do_action(keeper, strcpy(actbuf, GET_NAME(ch)), cmd_shake,
-                  0); /* strcpy: OK (MAX_NAME_LENGTH < MAX_INPUT_LENGTH) */
+        do_action(keeper, GET_NAME(ch), cmd_shake, 0);
         return;
       case 1:
-        do_echo(keeper, strcpy(actbuf, "smokes on his joint."), cmd_emote,
-                SCMD_EMOTE); /* strcpy: OK */
+        do_echo(keeper, "smokes on his joint.", cmd_emote, SCMD_EMOTE);
         return;
       default:
         return;
@@ -1947,7 +1946,7 @@ static void list_all_shops(struct char_data *ch)
        */
       if (len + headerlen + 1 >= sizeof(buf))
         break;
-      strcpy(buf + len, list_all_shops_header); /* strcpy: OK (length checked above) */
+      strlcpy(buf + len, list_all_shops_header, sizeof(buf) - len);
       len += headerlen;
     }
 

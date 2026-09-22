@@ -2874,7 +2874,8 @@ void study_parse(struct descriptor_data *d, char *arg)
 
   two_arguments(arg, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
-  sprintf(arg, "%s", arg1);
+  /* arg1 is a word taken from arg, so it fits where arg was. */
+  strlcpy(arg, arg1, strlen(arg) + 1);
 
   if (LEVELUP(ch)->class == CLASS_NECROMANCER)
     necromancer_progression_class =

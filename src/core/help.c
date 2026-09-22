@@ -2465,7 +2465,7 @@ ACMDU(do_helpsearch)
         char *last_space = strrchr(preview, ' ');
         if (last_space && (last_space - preview) > 150)
         {
-          strcpy(last_space, "...");
+          strlcpy(last_space, "...", sizeof(preview) - (size_t)(last_space - preview));
         }
         else
         {

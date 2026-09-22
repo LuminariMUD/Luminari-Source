@@ -518,7 +518,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
         strlcat(buf, s, sizeof(buf));
       RECREATE(*d->str, char, strlen(buf) + 3);
 
-      strcpy(*d->str, buf);
+      strlcpy(*d->str, buf, strlen(buf) + 3);
       write_to_output(d, "Line inserted.\r\n");
     }
     else
@@ -592,7 +592,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
       }
       /* Change the size of the REAL buffer to fit the new text. */
       RECREATE(*d->str, char, strlen(buf) + 3);
-      strcpy(*d->str, buf);
+      strlcpy(*d->str, buf, strlen(buf) + 3);
       write_to_output(d, "Line changed.\r\n");
     }
     else

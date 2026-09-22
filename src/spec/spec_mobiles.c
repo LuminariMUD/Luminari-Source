@@ -74,8 +74,6 @@ static void npc_steal(struct char_data *ch, struct char_data *victim)
 
 SPECIAL(mayor)
 {
-  char actbuf[MAX_INPUT_LENGTH] = {'\0'};
-
   static const char open_path[] = "W3a3003b33000c111d0d111Oe333333Oe22c222112212111a1S.";
   static const char close_path[] = "W3a3003b33000c111d0d111CE333333CE22c222112212111a1S.";
 
@@ -148,13 +146,13 @@ SPECIAL(mayor)
     break;
 
   case 'O':
-    do_gen_door(ch, strcpy(actbuf, "gate"), 0, SCMD_UNLOCK); /* strcpy: OK */
-    do_gen_door(ch, strcpy(actbuf, "gate"), 0, SCMD_OPEN);   /* strcpy: OK */
+    do_gen_door(ch, "gate", 0, SCMD_UNLOCK);
+    do_gen_door(ch, "gate", 0, SCMD_OPEN);
     break;
 
   case 'C':
-    do_gen_door(ch, strcpy(actbuf, "gate"), 0, SCMD_CLOSE); /* strcpy: OK */
-    do_gen_door(ch, strcpy(actbuf, "gate"), 0, SCMD_LOCK);  /* strcpy: OK */
+    do_gen_door(ch, "gate", 0, SCMD_CLOSE);
+    do_gen_door(ch, "gate", 0, SCMD_LOCK);
     break;
 
   case '.':
@@ -334,24 +332,22 @@ SPECIAL(wall)
 
 SPECIAL(puff)
 {
-  char actbuf[MAX_INPUT_LENGTH] = {'\0'};
-
   if (cmd)
     return (FALSE);
 
   switch (rand_number(0, 60))
   {
   case 0:
-    do_say(ch, strcpy(actbuf, "My god!  It's full of stars!"), 0, 0); /* strcpy: OK */
+    do_say(ch, "My god!  It's full of stars!", 0, 0);
     return (TRUE);
   case 1:
-    do_say(ch, strcpy(actbuf, "How'd all those fish get up here?"), 0, 0); /* strcpy: OK */
+    do_say(ch, "How'd all those fish get up here?", 0, 0);
     return (TRUE);
   case 2:
-    do_say(ch, strcpy(actbuf, "I'm a very female dragon."), 0, 0); /* strcpy: OK */
+    do_say(ch, "I'm a very female dragon.", 0, 0);
     return (TRUE);
   case 3:
-    do_say(ch, strcpy(actbuf, "I've got a peaceful, easy feeling."), 0, 0); /* strcpy: OK */
+    do_say(ch, "I've got a peaceful, easy feeling.", 0, 0);
     return (TRUE);
   default:
     return (FALSE);

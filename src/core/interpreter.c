@@ -7107,7 +7107,7 @@ static int perform_complex_alias(struct txt_q *input_q, char *orig, struct alias
       {
         if ((write_point - buf) + strlen(tokens[num]) >= MAX_RAW_INPUT_LENGTH)
           goto overflow;
-        strcpy(write_point, tokens[num]);
+        strlcpy(write_point, tokens[num], sizeof(buf) - (size_t)(write_point - buf));
         write_point += strlen(tokens[num]);
       }
       else if (*temp == ALIAS_GLOB_CHAR)
@@ -7115,7 +7115,7 @@ static int perform_complex_alias(struct txt_q *input_q, char *orig, struct alias
         skip_spaces(&orig);
         if ((write_point - buf) + strlen(orig) >= MAX_RAW_INPUT_LENGTH)
           goto overflow;
-        strcpy(write_point, orig);
+        strlcpy(write_point, orig, sizeof(buf) - (size_t)(write_point - buf));
         write_point += strlen(orig);
       }
       else
@@ -7921,8 +7921,8 @@ void nanny(struct descriptor_data *d, char *arg)
 
       if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 ||
           strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||
-          fill_word(strcpy(buf, tmp_name)) || reserved_word(buf))
-      { /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          (strlcpy(buf, tmp_name, sizeof(buf)), fill_word(buf)) || reserved_word(buf))
+      { /* fill_word() lowercases buf, so it gets a copy */
         write_to_output(d, "Invalid account name, please try another.\r\nName: ");
         return;
       }
@@ -7957,7 +7957,7 @@ void nanny(struct descriptor_data *d, char *arg)
           return;
         }
         CREATE(d->account->name, char, strlen(tmp_name) + 1);
-        strcpy(d->account->name, CAP(tmp_name)); /* strcpy: OK (size checked above) */
+        strlcpy(d->account->name, CAP(tmp_name), strlen(tmp_name) + 1);
 
         write_to_output(d, "Did I get that right, %s (Y/N)?", tmp_name);
         STATE(d) = CON_ACCOUNT_NAME_CONFIRM;
@@ -8182,8 +8182,8 @@ void nanny(struct descriptor_data *d, char *arg)
       char buf[MAX_INPUT_LENGTH] = {'\0'}, tmp_name[MAX_INPUT_LENGTH] = {'\0'};
       if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 ||
           strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||
-          fill_word(strcpy(buf, tmp_name)) || reserved_word(buf))
-      { /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          (strlcpy(buf, tmp_name, sizeof(buf)), fill_word(buf)) || reserved_word(buf))
+      { /* fill_word() lowercases buf, so it gets a copy */
         write_to_output(d, "Invalid character name.\r\n");
         STATE(d) = CON_ACCOUNT_MENU;
         show_account_menu(d);
@@ -8312,8 +8312,8 @@ void nanny(struct descriptor_data *d, char *arg)
 
       if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 ||
           strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||
-          fill_word(strcpy(buf, tmp_name)) || reserved_word(buf))
-      { /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          (strlcpy(buf, tmp_name, sizeof(buf)), fill_word(buf)) || reserved_word(buf))
+      { /* fill_word() lowercases buf, so it gets a copy */
         write_to_output(d, "Invalid name, please try another.\r\nName: ");
         web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_INVALID_NAME);
         return;
@@ -8361,7 +8361,7 @@ void nanny(struct descriptor_data *d, char *arg)
 
           d->character->desc = d;
           CREATE(d->character->player.name, char, strlen(tmp_name) + 1);
-          strcpy(d->character->player.name, CAP(tmp_name)); /* strcpy: OK (size checked above) */
+          strlcpy(d->character->player.name, CAP(tmp_name), strlen(tmp_name) + 1);
           GET_PFILEPOS(d->character) = player_i;
 
           /*
@@ -8397,7 +8397,7 @@ void nanny(struct descriptor_data *d, char *arg)
           return;
         }
         CREATE(d->character->player.name, char, strlen(tmp_name) + 1);
-        strcpy(d->character->player.name, CAP(tmp_name)); /* strcpy: OK (size checked above) */
+        strlcpy(d->character->player.name, CAP(tmp_name), strlen(tmp_name) + 1);
 
         /*
           if (d->pProtocol && (d->pProtocol->pVariables[eMSDP_ANSI_COLORS] ||

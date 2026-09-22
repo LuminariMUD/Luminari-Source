@@ -9232,28 +9232,29 @@ ACMD(do_whois)
     free_char(victim);
 }
 
-static bool get_zone_levels(zone_rnum znum, char *buf)
+static bool get_zone_levels(zone_rnum znum, char *buf, size_t buf_size)
 {
   /* Create a string for the level restrictions for this zone. */
   if ((zone_table[znum].min_level == -1) && (zone_table[znum].max_level == -1))
   {
-    sprintf(buf, "<Not Set!>");
+    snprintf(buf, buf_size, "<Not Set!>");
     return FALSE;
   }
 
   if (zone_table[znum].min_level == -1)
   {
-    sprintf(buf, "Up to level %d", zone_table[znum].max_level);
+    snprintf(buf, buf_size, "Up to level %d", zone_table[znum].max_level);
     return TRUE;
   }
 
   if (zone_table[znum].max_level == -1)
   {
-    sprintf(buf, "Above level %d", zone_table[znum].min_level);
+    snprintf(buf, buf_size, "Above level %d", zone_table[znum].min_level);
     return TRUE;
   }
 
-  sprintf(buf, "Levels %d to %d", zone_table[znum].min_level, zone_table[znum].max_level);
+  snprintf(buf, buf_size, "Levels %d to %d", zone_table[znum].min_level,
+           zone_table[znum].max_level);
   return TRUE;
 }
 
@@ -9392,7 +9393,7 @@ ACMD(do_areas)
     {
       if (overlap)
         overlap_shown = TRUE;
-      lev_set = get_zone_levels(i, lev_str);
+      lev_set = get_zone_levels(i, lev_str, sizeof(lev_str));
       name_width = count_color_chars(zone_table[i].name) + 40;
       len = snprintf_append(buf, sizeof(buf), len, "\tn(%3d) %s%-*.*s\tn %s%.64s\tn\r\n", ++zcount,
                             overlap ? QRED : QCYN, name_width, name_width, zone_table[i].name,
