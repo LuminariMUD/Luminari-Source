@@ -3118,6 +3118,12 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
     status->yielded = false;
   }
 
+  if (trig == NULL)
+  {
+    script_log("SYSERR: script_driver called without a trigger.");
+    return 0;
+  }
+
   /* CRITICAL VALIDATION: Detect when triggers are attached to wrong entity types
    * This prevents hours of debugging wild goose chases!
    * Example: Object trigger 7705 was attached to room 7771, causing it to be

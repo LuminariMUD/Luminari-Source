@@ -74,6 +74,9 @@ int is_substring(char *sub, char *string)
 {
   char *s;
 
+  if (!sub || !string)
+    return 0;
+
   if ((s = str_str(string, sub)))
   {
     int len = (int)strlen(string);

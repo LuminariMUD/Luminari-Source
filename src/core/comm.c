@@ -379,8 +379,8 @@ int main(int argc, char **argv)
     case 'o':
       if (*(argv[pos] + 2))
         logname_override = argv[pos] + 2;
-      else if (++pos < argc)
-        logname_override = argv[pos];
+      else if (pos + 1 < argc && argv[pos + 1] != NULL)
+        logname_override = argv[++pos];
       else
       {
         puts("SYSERR: File name to log to expected after option -o.");

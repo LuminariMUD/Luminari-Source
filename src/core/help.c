@@ -114,6 +114,7 @@ bool help_sync_barrier_active_at(const char *path, char *owner, size_t owner_siz
     if (fgets(owner, (int)owner_size, lock_file) == NULL)
       strlcpy(owner, "unknown", owner_size);
     else
+      /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- strcspn() is within the string */
       owner[strcspn(owner, "\r\n")] = '\0';
   }
   fclose(lock_file);
@@ -229,6 +230,7 @@ void help_sync_poll_reload(void)
   if (fgets(token, sizeof(token), request_file) == NULL)
     token[0] = '\0';
   fclose(request_file);
+  /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- strcspn() is within the string */
   token[strcspn(token, "\r\n")] = '\0';
 
   if (!help_sync_reload_token_valid(token))
@@ -1175,8 +1177,8 @@ int handle_database_help(struct char_data *ch, const char *argument, const char 
     if (HELP_DEBUG)
       log("DEBUG: handle_database_help: Comparing '%s' with keyword '%s'", argument,
           tmp_keyword->keyword);
-    if (strcasecmp(tmp_keyword->keyword, argument) == 0 ||
-        strcasecmp(tmp_keyword->keyword, raw_argument) == 0)
+    if (tmp_keyword->keyword && (strcasecmp(tmp_keyword->keyword, argument) == 0 ||
+                                 strcasecmp(tmp_keyword->keyword, raw_argument) == 0))
     {
       exact_match_found = 1;
       if (HELP_DEBUG)

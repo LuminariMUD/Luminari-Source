@@ -333,6 +333,7 @@ void analyze_copyover_failure(void)
     while (fgets(line, sizeof(line), state_file))
     {
       /* Remove newline */
+      /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- strcspn() is within the string */
       line[strcspn(line, "\n")] = 0;
       log("  %s", line);
     }

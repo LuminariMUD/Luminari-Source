@@ -1959,24 +1959,25 @@ void char_to_coords(struct char_data *ch, int x, int y, int wilderness __attribu
   room_rnum room = NOWHERE;
 
   if (ch == NULL)
-    log("SYSERR: Illegal value(s) passed to char_to_coords. ((x, y): (%d,%d) Ch: %p)", x, y, ch);
-  else
   {
-    room = find_room_by_coordinates(x, y);
+    log("SYSERR: Illegal value(s) passed to char_to_coords. ((x, y): (%d,%d) Ch: %p)", x, y, ch);
+    return;
+  }
+
+  room = find_room_by_coordinates(x, y);
+  if (room == NOWHERE)
+  {
+    room = find_available_wilderness_room();
     if (room == NOWHERE)
     {
-      room = find_available_wilderness_room();
-      if (room == NOWHERE)
-      {
-        return;
-      }
-      /* MEMORY MANAGEMENT: assign_wilderness_room() safely handles room strings
-       * Room name/description will be set to static strings by default,
-       * with safe dynamic allocation for region/path overrides.
-       * No memory leaks or crashes from this call.
-       */
-      assign_wilderness_room(room, x, y);
+      return;
     }
+    /* MEMORY MANAGEMENT: assign_wilderness_room() safely handles room strings
+     * Room name/description will be set to static strings by default,
+     * with safe dynamic allocation for region/path overrides.
+     * No memory leaks or crashes from this call.
+     */
+    assign_wilderness_room(room, x, y);
   }
 
   X_LOC(ch) = x;
