@@ -553,6 +553,7 @@ static bool spec_effective_read_source(const char *relative_path, char **text)
     free(buffer);
     return false;
   }
+  /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- fread() returns at most its count */
   buffer[bytes_read] = '\0';
   *text = buffer;
   return true;

@@ -471,6 +471,7 @@ static bool spec_test_read_saved_file(struct spec_test_fixture *fixture, const c
     return false;
   }
 
+  /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- loaded holds length + 1 bytes */
   loaded[length] = '\0';
   free(*contents);
   *contents = loaded;

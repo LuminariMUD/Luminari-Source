@@ -69,8 +69,18 @@ extern void (*CuTestSetUp)(CuTest *tc);
  * coverage build first records what the child executed. */
 void CuTestChildExit(int status) __attribute__((noreturn));
 
+/* A failed assertion jumps out of the test, but the jump lives in CuTest.c,
+ * where the static analyzer checking a test cannot see it. This tells the
+ * analyzer that CuFail_Line() does not return. */
+#if defined(__clang__)
+#define CU_ANALYZER_NORETURN __attribute__((analyzer_noreturn))
+#else
+#define CU_ANALYZER_NORETURN
+#endif
+
 /* Internal versions of assert functions -- use the public versions */
-void CuFail_Line(CuTest *tc, const char *file, int line, const char *message2, const char *message);
+void CuFail_Line(CuTest *tc, const char *file, int line, const char *message2,
+                 const char *message) CU_ANALYZER_NORETURN;
 void CuAssert_Line(CuTest *tc, const char *file, int line, const char *message, int condition);
 void CuAssertStrEquals_LineMsg(CuTest *tc, const char *file, int line, const char *message,
                                const char *expected, const char *actual);
@@ -84,8 +94,11 @@ void CuAssertPtrEquals_LineMsg(CuTest *tc, const char *file, int line, const cha
 /* public assert functions */
 
 #define CuFail(tc, ms) CuFail_Line((tc), __FILE__, __LINE__, NULL, (ms))
-#define CuAssert(tc, ms, cond) CuAssert_Line((tc), __FILE__, __LINE__, (ms), (cond))
-#define CuAssertTrue(tc, cond) CuAssert_Line((tc), __FILE__, __LINE__, "assert failed", (cond))
+/* These call CuFail_Line() directly so the analyzer sees a failed check end the test. */
+#define CuAssert(tc, ms, cond)                                                                     \
+  ((cond) ? (void)0 : CuFail_Line((tc), __FILE__, __LINE__, NULL, (ms)))
+#define CuAssertTrue(tc, cond)                                                                     \
+  ((cond) ? (void)0 : CuFail_Line((tc), __FILE__, __LINE__, NULL, "assert failed"))
 
 #define CuAssertStrEquals(tc, ex, ac)                                                              \
   CuAssertStrEquals_LineMsg((tc), __FILE__, __LINE__, NULL, (ex), (ac))
@@ -105,9 +118,9 @@ void CuAssertPtrEquals_LineMsg(CuTest *tc, const char *file, int line, const cha
   CuAssertPtrEquals_LineMsg((tc), __FILE__, __LINE__, (ms), (ex), (ac))
 
 #define CuAssertPtrNotNull(tc, p)                                                                  \
-  CuAssert_Line((tc), __FILE__, __LINE__, "null pointer unexpected", (p != NULL))
+  (((p) != NULL) ? (void)0 : CuFail_Line((tc), __FILE__, __LINE__, NULL, "null pointer unexpected"))
 #define CuAssertPtrNotNullMsg(tc, msg, p)                                                          \
-  CuAssert_Line((tc), __FILE__, __LINE__, (msg), (p != NULL))
+  (((p) != NULL) ? (void)0 : CuFail_Line((tc), __FILE__, __LINE__, NULL, (msg)))
 
 /* CuSuite */
 

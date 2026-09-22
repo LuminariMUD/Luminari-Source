@@ -1235,6 +1235,7 @@ static bool craft_account_file_text(struct craft_account_fixture *fixture, char 
   if (file == NULL)
     return false;
   length = fread(text, 1, size - 1, file);
+  /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- fread() returns at most its count */
   text[length] = '\0';
   fclose(file);
   return length > 0;

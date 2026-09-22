@@ -1917,6 +1917,7 @@ static bool read_upstream_test_file(const char *path, char *buffer, size_t buffe
   if (path == NULL || buffer == NULL || buffer_size == 0 || !(file = fopen(path, "r")))
     return false;
   length = fread(buffer, 1, buffer_size - 1, file);
+  /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- fread() returns at most its count */
   buffer[length] = '\0';
   if (ferror(file) || fclose(file) != 0)
     return false;
