@@ -83,6 +83,8 @@ static void craft_project_begin(struct craft_project_fixture *f)
 
   if (crafting_recipes[CRAFT_RECIPE_WEAPON_LONG_SWORD].object_type != ITEM_WEAPON)
     populate_crafting_recipes();
+  if (refining_recipes[REFINE_RECIPE_BRONZE].result[0] != CRAFT_MAT_BRONZE)
+    populate_refining_recipes();
   if (!IS_SET(weapon_list[WEAPON_TYPE_LONG_BOW].weaponFlags, WEAPON_FLAG_RANGED))
     load_weapons();
 
@@ -207,6 +209,15 @@ static void craft_project_ready_long_sword(struct char_data *ch)
   GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] = 6;
   GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][0] = CRAFT_MAT_LOW_GRADE_HIDE;
   GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][1] = 1;
+}
+
+/** A paid +5 enhancement lifts the object about 18 levels, so with no weaponsmithing rank the DC
+ * is past any roll. */
+static void craft_project_raise_level_past_any_roll(struct char_data *ch)
+{
+  SET_ABILITY(ch, ABILITY_CRAFT_WEAPONSMITHING, 0);
+  GET_CRAFT(ch).enhancement = 5;
+  GET_CRAFT(ch).enhancement_motes_required = craft_motes_required(0, 0, 0, 5);
 }
 
 /** A held supply order for three long swords (the long sword recipe's first variant). */
@@ -396,8 +407,7 @@ void Test_craft_show_and_failed_completion_release_their_objects(CuTest *tc)
   live_after_show = f.object_index[0].number + f.object_index[1].number;
 
   /* A DC no roll reaches fails the check at completion. */
-  SET_ABILITY(ch, ABILITY_CRAFT_WEAPONSMITHING, 0);
-  GET_CRAFT(ch).level_adjust = -10;
+  craft_project_raise_level_past_any_roll(ch);
   craft_project_reset_output(&f);
   craft_create_complete(ch);
   failed = craft_project_output_has(&f, "don't have the skill") && ch->carrying == NULL;
@@ -539,8 +549,7 @@ void Test_craft_start_and_check_report_skill_and_station_first(CuTest *tc)
 
   craft_project_begin(&f);
   craft_project_ready_long_sword(ch);
-  SET_ABILITY(ch, ABILITY_CRAFT_WEAPONSMITHING, 0);
-  GET_CRAFT(ch).level_adjust = -10;
+  craft_project_raise_level_past_any_roll(ch);
 
   newcraft_create(ch, "start");
   refused = craft_project_output_has(&f, "don't have the skill to craft");
@@ -1554,16 +1563,213 @@ void Test_craft_refused_reset_keeps_the_bonuses_that_name_their_motes(CuTest *tc
   CuAssertTrue(tc, refunded);
 }
 
-/** A prepared bronze refining project: four copper allocated for two bronze. */
+/** A prepared bronze refining project: four copper allocated for two bronze. Refining reads its
+ * DC and skill from the bronze recipe. */
 static void craft_project_prepare_refining(struct char_data *ch)
 {
   GET_CRAFT(ch).refining_materials[0][0] = CRAFT_MAT_COPPER;
   GET_CRAFT(ch).refining_materials[0][1] = 4;
   GET_CRAFT(ch).refining_result[0] = CRAFT_MAT_BRONZE;
   GET_CRAFT(ch).refining_result[1] = 2;
-  GET_CRAFT(ch).dc = 15;
-  GET_CRAFT(ch).skill_type = ABILITY_HARVEST_MINING;
 }
+
+/** The staged long sword from craft_project_ready_long_sword(), with the recipe, DC, and skill it
+ * held before other work ran. */
+static bool craft_project_long_sword_intact(struct char_data *ch, int recipe, int dc, int skill)
+{
+  return GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_WEAPON &&
+         GET_CRAFT(ch).crafting_specific == WEAPON_TYPE_LONG_SWORD &&
+         GET_CRAFT(ch).crafting_recipe == recipe && GET_CRAFT(ch).dc == dc &&
+         GET_CRAFT(ch).skill_type == skill &&
+         GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] == 6 &&
+         GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][1] == 1 && GET_CRAFT(ch).keywords != NULL &&
+         strcmp(GET_CRAFT(ch).keywords, "steel long sword") == 0;
+}
+
+/** Refining shares the project record with the item project but is separate work: preparing,
+ * showing, cancelling, and finishing a refine leave a staged item project with its recipe, DC,
+ * skill, and allocations. The die is random, so the completion repeats. */
+void Test_refine_work_leaves_a_staged_item_project(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  int attempt, recipe, disturbed = 0;
+  bool prepared, shown, cancelled;
+
+  craft_project_begin(&f);
+  SET_OBJ_FLAG(&f.forge, ITEM_CRAFTING_SMELTER);
+  craft_project_ready_long_sword(ch);
+  recipe = GET_CRAFT(ch).crafting_recipe;
+  GET_CRAFT(ch).dc = 33;
+  GET_CRAFT(ch).skill_type = ABILITY_CRAFT_WEAPONSMITHING;
+  SET_ABILITY(ch, ABILITY_HARVEST_MINING, 30);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_COPPER) = 1;
+  GET_CRAFT_MAT(ch, CRAFT_MAT_TIN) = 1;
+
+  do_newcraft(ch, "add bronze", 0, SCMD_NEWCRAFT_REFINE);
+  prepared = GET_CRAFT(ch).refining_result[0] == CRAFT_MAT_BRONZE &&
+             GET_CRAFT_MAT(ch, CRAFT_MAT_COPPER) == 0 &&
+             craft_project_long_sword_intact(ch, recipe, 33, ABILITY_CRAFT_WEAPONSMITHING);
+  do_newcraft(ch, "show", 0, SCMD_NEWCRAFT_REFINE);
+  shown = craft_project_output_has(&f, "vs. dc of 15");
+  do_newcraft(ch, "remove", 0, SCMD_NEWCRAFT_REFINE);
+  cancelled = GET_CRAFT(ch).refining_result[0] == 0 && GET_CRAFT_MAT(ch, CRAFT_MAT_COPPER) == 1 &&
+              GET_CRAFT_MAT(ch, CRAFT_MAT_TIN) == 1 &&
+              craft_project_long_sword_intact(ch, recipe, 33, ABILITY_CRAFT_WEAPONSMITHING);
+
+  for (attempt = 0; attempt < 40; attempt++)
+  {
+    GET_CRAFT_MAT(ch, CRAFT_MAT_COPPER) = GET_CRAFT_MAT(ch, CRAFT_MAT_TIN) = 1;
+    craft_project_reset_output(&f);
+    do_newcraft(ch, "add bronze", 0, SCMD_NEWCRAFT_REFINE);
+    craft_refine_complete(ch);
+    if (GET_CRAFT(ch).refining_result[0] != 0 ||
+        !craft_project_long_sword_intact(ch, recipe, 33, ABILITY_CRAFT_WEAPONSMITHING))
+      disturbed++;
+  }
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, prepared);
+  CuAssertTrue(tc, shown);
+  CuAssertTrue(tc, cancelled);
+  CuAssertIntEquals(tc, 0, disturbed);
+}
+
+/** Resizing is separate work too: its completion, and a natural 1 on it, lose only the resize
+ * allocation and never a staged item project. */
+void Test_resize_work_leaves_a_staged_item_project(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct obj_data *obj;
+  int attempt, recipe, resized = 0, disturbed = 0;
+
+  craft_project_begin(&f);
+  craft_project_ready_long_sword(ch);
+  recipe = GET_CRAFT(ch).crafting_recipe;
+  GET_CRAFT(ch).dc = 33;
+  GET_CRAFT(ch).skill_type = ABILITY_CRAFT_WEAPONSMITHING;
+  SET_ABILITY(ch, ABILITY_HARVEST_MINING, 30);
+  obj = craft_project_reforgeable_dagger();
+  CuAssertPtrNotNull(tc, obj);
+  obj_to_char(obj, ch);
+  for (attempt = 0; attempt < 40; attempt++)
+  {
+    GET_OBJ_SIZE(obj) = SIZE_MEDIUM;
+    GET_CRAFT(ch).new_size = SIZE_LARGE;
+    GET_CRAFT(ch).resize_mat_type = CRAFT_MAT_STEEL;
+    GET_CRAFT(ch).resize_mat_num = 2;
+    GET_CRAFT(ch).craft_obj_rnum = GET_OBJ_RNUM(obj);
+    craft_project_reset_output(&f);
+    craft_resize_complete(ch, obj);
+    if (GET_OBJ_SIZE(obj) == SIZE_LARGE)
+      resized++;
+    if (GET_CRAFT(ch).new_size != 0 ||
+        !craft_project_long_sword_intact(ch, recipe, 33, ABILITY_CRAFT_WEAPONSMITHING))
+      disturbed++;
+  }
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, resized > 0);
+  CuAssertIntEquals(tc, 0, disturbed);
+}
+
+/** The item project's completion, whether it makes the item or loses the project to a natural 1,
+ * leaves a refining allocation in place. */
+void Test_craft_completion_leaves_refining_allocations(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool finished, kept;
+
+  craft_project_begin(&f);
+  craft_project_ready_long_sword(ch);
+  craft_project_prepare_refining(ch);
+  craft_create_complete(ch);
+  finished = GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_NONE;
+  kept = GET_CRAFT(ch).refining_result[0] == CRAFT_MAT_BRONZE &&
+         GET_CRAFT(ch).refining_materials[0][0] == CRAFT_MAT_COPPER &&
+         GET_CRAFT(ch).refining_materials[0][1] == 4;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, finished);
+  CuAssertTrue(tc, kept);
+}
+
+/** craft leveladjust takes a whole number within five levels either way, and the adjusted object
+ * level must stay from 1 to 30 before the project is ready; a saved value outside the range is
+ * refused there too. */
+void Test_craft_level_adjust_is_bounded(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool large_refused, garbled_refused, accepted, low_refused, saved_refused, cap_refused, cap_fits;
+  int base;
+
+  craft_project_begin(&f);
+  craft_project_ready_long_sword(ch);
+  newcraft_create(ch, "leveladjust 500");
+  large_refused = GET_CRAFT(ch).level_adjust == 0 && craft_project_output_has(&f, "from -5 to +5");
+  newcraft_create(ch, "leveladjust 2x");
+  garbled_refused = GET_CRAFT(ch).level_adjust == 0;
+  newcraft_create(ch, "leveladjust 3");
+  accepted = GET_CRAFT(ch).level_adjust == 3 && is_craft_ready(ch, FALSE);
+
+  base = get_craft_project_level(ch);
+  GET_CRAFT(ch).level_adjust = -base;
+  low_refused = base <= 5 && !is_craft_ready(ch, FALSE);
+  GET_CRAFT(ch).level_adjust = 9;
+  saved_refused = !is_craft_ready(ch, FALSE);
+
+  /* A paid +8 enhancement, less the steel's level reduction, puts the project within five levels
+   * of the cap. */
+  GET_CRAFT(ch).enhancement = 8;
+  GET_CRAFT(ch).enhancement_motes_required = craft_motes_required(0, 0, 0, 8);
+  base = get_craft_project_level(ch);
+  GET_CRAFT(ch).level_adjust = 31 - base;
+  cap_refused = !is_craft_ready(ch, FALSE);
+  GET_CRAFT(ch).level_adjust = 30 - base;
+  cap_fits = is_craft_ready(ch, FALSE);
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, large_refused);
+  CuAssertTrue(tc, garbled_refused);
+  CuAssertTrue(tc, accepted);
+  CuAssertTrue(tc, low_refused);
+  CuAssertTrue(tc, saved_refused);
+  CuAssertTrue(tc, base > 25 && base <= 30);
+  CuAssertTrue(tc, cap_refused);
+  CuAssertTrue(tc, cap_fits);
+}
+
+/** The specific type is fixed once set, so enhancement motes refund as the element they were
+ * allocated in. */
+void Test_craft_specific_type_stays_once_set(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  int element, hammer_element, motes;
+  bool refused, refunded;
+
+  craft_project_begin(&f);
+  craft_project_ready_long_sword(ch);
+  element = get_enhancement_mote_type(ch, CRAFT_TYPE_WEAPON, WEAPON_TYPE_LONG_SWORD);
+  hammer_element = get_enhancement_mote_type(ch, CRAFT_TYPE_WEAPON, WEAPON_TYPE_WARHAMMER);
+  motes = craft_motes_required(0, 0, 0, 1);
+  GET_CRAFT(ch).enhancement = 1;
+  GET_CRAFT(ch).enhancement_motes_required = motes;
+  newcraft_create(ch, "specifictype warhammer");
+  refused = craft_project_output_has(&f, "already set the crafting specific type") &&
+            GET_CRAFT(ch).crafting_specific == WEAPON_TYPE_LONG_SWORD;
+  reset_current_craft(ch, "enhancement", FALSE, TRUE);
+  refunded = GET_CRAFT_MOTES(ch, element) == motes && GET_CRAFT_MOTES(ch, hammer_element) == 0;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, element != hammer_element && hammer_element != CRAFTING_MOTE_NONE);
+  CuAssertTrue(tc, refused);
+  CuAssertTrue(tc, refunded);
+}
+
 
 /** A refining refund the balance refuses keeps the whole project, and refine add will not start
  * over materials a project still holds. */

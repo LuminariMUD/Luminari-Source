@@ -250,7 +250,7 @@ int determine_random_material_group_by_sector_type(room_rnum sector);
 bool is_valid_craft_ability(int ability);
 bool is_valid_craft_feat(int feat);
 bool is_valid_craft_class(int ch_class, int location);
-bool reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool reimburse);
+bool reset_current_craft(struct char_data *ch, const char *arg2, bool verbose, bool reimburse);
 int craft_recipe_by_type(int type);
 int craft_misc_type_by_wear_loc(int wear_loc);
 bool is_craft_ready(struct char_data *ch, bool verbose);
@@ -285,7 +285,7 @@ int get_craft_project_level(struct char_data *ch);
 int get_enhancement_mote_type(struct char_data *ch, int type, int spec);
 void show_craft_progress_meter(void);
 bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int skill,
-                              const char *method, int exp, int dc);
+                              const char *method, int exp, int dc, int lost_mode);
 int get_craft_material_final_level_adjustment(struct char_data *ch);
 int craft_material_to_obj_material(int craftmat);
 int craft_material_from_object(struct obj_data *obj);

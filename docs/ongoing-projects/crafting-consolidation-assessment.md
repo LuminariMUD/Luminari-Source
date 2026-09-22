@@ -427,6 +427,11 @@ changes accompany their phase in both help stores; Phase 6 is the final consiste
   its refunds per balance first and changes nothing unless all of them fit, so no reset clears a
   field that names a kept allocation. Refining and room-node harvests credit their output before
   paying experience, and a refused credit pays nothing and leaves the project or node charge.
+  Refining and resizing share the project record with the item project but are separate work:
+  each completion, natural 1, or cancellation resets only its own part, and refining reads its
+  recipe, DC, and skill from its result instead of the item project's fields. (No command reaches
+  the refine or resize handlers yet.) `craft leveladjust` takes -5 to +5, and the adjusted object
+  level must stay from 1 to 30 before a project is ready.
 - [x] Add the prototype table from Decision 2 and consult it first in
   `craft_material_from_object()`; mark fossil eggs unstorable. Done:
   `craft_material_for_prototype()`; generic `MATERIAL_WOOD` and `MATERIAL_BURLAP` objects also

@@ -134,6 +134,8 @@ int materials_sort_info[NUM_CRAFT_MATS];
 #define SURVEY_BASE_TIME 3
 #define HARVEST_BASE_DC 5
 #define CREATE_BASE_DC 10
+/* craft leveladjust moves the object level by at most this much, at 5 DC per level. */
+#define CRAFT_LEVEL_ADJUST_MAX 5
 #define RESIZE_BASE_DC 10
 #define HARVEST_MOTE_DICE_SIZE 4
 #define HARVEST_MOTE_CHANCE 20
@@ -1715,18 +1717,29 @@ int get_craft_level_adjust_dc_change(int adjust)
 
 void set_craft_level_adjust(struct char_data *ch, char *arg2)
 {
+  long parsed;
   int adjust = 0;
+  char *end = NULL;
 
   if (!*arg2)
   {
-    send_to_char(
-        ch,
-        "You need to specify the level adjustment for the crafting item. Each -1 to the final "
-        "object level adds +5 to the craft dc, and vice versa for increasing object level.\r\n");
+    send_to_char(ch,
+                 "You need to specify the level adjustment for the crafting item, from %d to +%d. "
+                 "Each -1 to the final object level adds +5 to the craft dc, and vice versa for "
+                 "increasing object level.\r\n",
+                 -CRAFT_LEVEL_ADJUST_MAX, CRAFT_LEVEL_ADJUST_MAX);
     return;
   }
 
-  adjust = atoi(arg2);
+  parsed = strtol(arg2, &end, 10);
+  if (end == arg2 || *end != '\0' || parsed < -CRAFT_LEVEL_ADJUST_MAX ||
+      parsed > CRAFT_LEVEL_ADJUST_MAX)
+  {
+    send_to_char(ch, "The level adjustment must be a whole number from %d to +%d.\r\n",
+                 -CRAFT_LEVEL_ADJUST_MAX, CRAFT_LEVEL_ADJUST_MAX);
+    return;
+  }
+  adjust = (int)parsed;
 
   send_to_char(ch, "You've set the crafting level adjustment to %d.\r\n", adjust);
   send_to_char(
@@ -2556,20 +2569,24 @@ void reset_craft_materials(struct char_data *ch, bool verbose, bool reimburse)
 #define CR_RESET_DESCRIPTIONS 6
 #define CR_RESET_REFINE 7
 #define CR_RESET_RESIZE 8
+/* The item project alone. Refining and resizing share the record but are separate work, so the
+ * item project's completion or loss leaves them, as theirs leaves it. */
+#define CR_RESET_ITEM 9
 
 /* The project sections each reset mode releases. */
+#define CR_RESETS_PROJECT(mode) ((mode) == CR_RESET_ALL || (mode) == CR_RESET_ITEM)
 #define CR_RESETS_ENHANCEMENT_MOTES(mode)                                                          \
-  ((mode) == CR_RESET_ALL || (mode) == CR_RESET_MOTES || (mode) == CR_RESET_ENHANCEMENT)
+  (CR_RESETS_PROJECT(mode) || (mode) == CR_RESET_MOTES || (mode) == CR_RESET_ENHANCEMENT)
 #define CR_RESETS_BONUSES(mode)                                                                    \
-  ((mode) == CR_RESET_ALL || (mode) == CR_RESET_MOTES || (mode) == CR_RESET_BONUSES)
+  (CR_RESETS_PROJECT(mode) || (mode) == CR_RESET_MOTES || (mode) == CR_RESET_BONUSES)
 #define CR_RESETS_MATERIALS(mode)                                                                  \
-  ((mode) == CR_RESET_ALL || (mode) == CR_RESET_MATERIALS || (mode) == CR_RESET_DESCRIPTIONS)
+  (CR_RESETS_PROJECT(mode) || (mode) == CR_RESET_MATERIALS || (mode) == CR_RESET_DESCRIPTIONS)
 #define CR_RESETS_REFINE(mode)                                                                     \
   ((mode) == CR_RESET_ALL || (mode) == CR_RESET_MATERIALS || (mode) == CR_RESET_REFINE)
 #define CR_RESETS_RESIZE(mode)                                                                     \
   ((mode) == CR_RESET_ALL || (mode) == CR_RESET_MATERIALS || (mode) == CR_RESET_RESIZE)
 #define CR_RESETS_INSTRUMENT_MOTES(mode)                                                           \
-  ((mode) == CR_RESET_ALL || (mode) == CR_RESET_INSTRUMENT || (mode) == CR_RESET_MOTES)
+  (CR_RESETS_PROJECT(mode) || (mode) == CR_RESET_INSTRUMENT || (mode) == CR_RESET_MOTES)
 
 /* Adds one refund to the per-balance total; an id or quantity a credit would refuse fails. */
 static bool craft_reset_owe(long long *due, int count, int id, int quantity)
@@ -2650,30 +2667,11 @@ static bool craft_reset_refunds_fit(struct char_data *ch, int mode)
   return true;
 }
 
-bool reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool reimburse)
+/* Resets the sections of the project record a mode names, refunding their allocations when
+ * reimburse is set. A reimbursing reset that cannot refund everything changes nothing. */
+static bool craft_reset_sections(struct char_data *ch, int mode, bool verbose, bool reimburse)
 {
   int i = 0, mote;
-  int mode = 0;
-
-  if (arg2 != NULL)
-  {
-    if (is_abbrev(arg2, "motes"))
-      mode = CR_RESET_MOTES;
-    else if (is_abbrev(arg2, "materials"))
-      mode = CR_RESET_MATERIALS;
-    else if (is_abbrev(arg2, "enhancement"))
-      mode = CR_RESET_ENHANCEMENT;
-    else if (is_abbrev(arg2, "instrument"))
-      mode = CR_RESET_INSTRUMENT;
-    else if (is_abbrev(arg2, "bonuses"))
-      mode = CR_RESET_BONUSES;
-    else if (is_abbrev(arg2, "descriptions"))
-      mode = CR_RESET_DESCRIPTIONS;
-    else if (is_abbrev(arg2, "refine"))
-      mode = CR_RESET_REFINE;
-    else if (is_abbrev(arg2, "resize"))
-      mode = CR_RESET_RESIZE;
-  }
 
   if (reimburse && !craft_reset_refunds_fit(ch, mode))
   {
@@ -2708,7 +2706,7 @@ bool reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
     }
   }
 
-  if (mode == CR_RESET_ALL || mode == CR_RESET_ENHANCEMENT)
+  if (CR_RESETS_PROJECT(mode) || mode == CR_RESET_ENHANCEMENT)
     GET_CRAFT(ch).enhancement = 0;
 
   if (CR_RESETS_BONUSES(mode))
@@ -2829,7 +2827,7 @@ bool reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
     }
   }
 
-  if (mode == CR_RESET_INSTRUMENT || mode == CR_RESET_ALL)
+  if (CR_RESETS_PROJECT(mode) || mode == CR_RESET_INSTRUMENT)
   {
     GET_CRAFT(ch).instrument_quality = 0;
     GET_CRAFT(ch).instrument_effectiveness = 0;
@@ -2838,7 +2836,7 @@ bool reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
       send_to_char(ch, "You have reset instrument values to the default.\r\n");
   }
 
-  if (mode == CR_RESET_ALL || mode == CR_RESET_DESCRIPTIONS || mode == CR_RESET_MATERIALS)
+  if (CR_RESETS_PROJECT(mode) || mode == CR_RESET_DESCRIPTIONS || mode == CR_RESET_MATERIALS)
   {
     /* Free old strings before allocating new ones to prevent memory leaks */
     if (GET_CRAFT(ch).keywords)
@@ -2858,7 +2856,7 @@ bool reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
       send_to_char(ch, "You have reset the descriptions to default values.\r\n");
   }
 
-  if (mode == CR_RESET_ALL)
+  if (CR_RESETS_PROJECT(mode))
   {
     GET_CRAFT(ch).crafting_method = 0;
     GET_CRAFT(ch).crafting_item_type = 0;
@@ -2877,6 +2875,34 @@ bool reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
   }
   return true;
 }
+
+bool reset_current_craft(struct char_data *ch, const char *arg2, bool verbose, bool reimburse)
+{
+  int mode = CR_RESET_ALL;
+
+  if (arg2 != NULL)
+  {
+    if (is_abbrev(arg2, "motes"))
+      mode = CR_RESET_MOTES;
+    else if (is_abbrev(arg2, "materials"))
+      mode = CR_RESET_MATERIALS;
+    else if (is_abbrev(arg2, "enhancement"))
+      mode = CR_RESET_ENHANCEMENT;
+    else if (is_abbrev(arg2, "instrument"))
+      mode = CR_RESET_INSTRUMENT;
+    else if (is_abbrev(arg2, "bonuses"))
+      mode = CR_RESET_BONUSES;
+    else if (is_abbrev(arg2, "descriptions"))
+      mode = CR_RESET_DESCRIPTIONS;
+    else if (is_abbrev(arg2, "refine"))
+      mode = CR_RESET_REFINE;
+    else if (is_abbrev(arg2, "resize"))
+      mode = CR_RESET_RESIZE;
+  }
+
+  return craft_reset_sections(ch, mode, verbose, reimburse);
+}
+
 void reset_crafting_obj(struct char_data *ch)
 {
   GET_CRAFT(ch).craft_obj_rnum = NOTHING;
@@ -2890,7 +2916,7 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
   ;
   int location = 0, modifier = 0, bonus_type = 0, specific = 0;
   int base_group, base_amount, project_amount;
-  int skill = 0;
+  int skill = 0, level;
 
   if (verbose)
     send_to_char(ch, "\r\n");
@@ -3061,13 +3087,33 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
     }
   }
 
-  if (get_craft_project_level(ch) > 30)
+  /* The level adjustment moves the object level, so the adjusted level is what must fit. A saved
+   * adjustment outside the range the command accepts is refused here. */
+  level = get_craft_project_level(ch) + GET_CRAFT(ch).level_adjust;
+  if (GET_CRAFT(ch).level_adjust < -CRAFT_LEVEL_ADJUST_MAX ||
+      GET_CRAFT(ch).level_adjust > CRAFT_LEVEL_ADJUST_MAX)
+  {
+    if (verbose)
+      send_to_char(ch,
+                   "The level adjustment must be from %d to +%d. Set it again with 'craft "
+                   "leveladjust'.\r\n",
+                   -CRAFT_LEVEL_ADJUST_MAX, CRAFT_LEVEL_ADJUST_MAX);
+    ready = FALSE;
+  }
+  else if (level > 30)
   {
     if (verbose)
       send_to_char(ch, "The object level based on the existing bonuses and enhancement bonus "
                        "(weapons, armor, shields only) is too high.\r\n"
-                       "You must downgrade the enhanceent bonus, some of the other bonuses or try "
-                       "adding higher quality materials.\r\n");
+                       "You must downgrade the enhancement bonus, some of the other bonuses, lower "
+                       "the level adjustment, or try adding higher quality materials.\r\n");
+    ready = FALSE;
+  }
+  else if (level < 1)
+  {
+    if (verbose)
+      send_to_char(ch, "The level adjustment would take the object below level 1. Raise it with "
+                       "'craft leveladjust'.\r\n");
     ready = FALSE;
   }
 
@@ -3560,8 +3606,10 @@ void return_efficient_saved_materials(struct char_data *ch)
   }
 }
 
+/* lost_mode names the project sections a natural 1 loses: the item project for crafting, the
+ * resize allocation for resizing. */
 bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int skill,
-                              const char *method, int exp, int dc)
+                              const char *method, int exp, int dc, int lost_mode)
 {
   if (!ch || !obj)
     return FALSE;
@@ -3583,7 +3631,7 @@ bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int sk
                  "\tM[CRITICAL FAILURE]\tn You rolled a natural 1! The %s failed, and the project "
                  "is lost with everything allocated to it.\r\n",
                  method);
-    reset_current_craft(ch, NULL, FALSE, FALSE);
+    craft_reset_sections(ch, lost_mode, FALSE, FALSE);
     return FALSE;
   }
   // critical success. Item is masterwork quality.
@@ -4614,7 +4662,7 @@ static void create_craft_project_item(struct char_data *ch)
   dc = GET_CRAFT(ch).dc + get_craft_level_adjust_dc_change(GET_CRAFT(ch).level_adjust);
 
   /* skill check to determine success or failure */
-  if (!create_craft_skill_check(ch, obj, skill, "craft", CREATE_BASE_EXP / 2, dc))
+  if (!create_craft_skill_check(ch, obj, skill, "craft", CREATE_BASE_EXP / 2, dc, CR_RESET_ITEM))
   {
     extract_obj(obj);
     return;
@@ -4630,7 +4678,7 @@ static void create_craft_project_item(struct char_data *ch)
 
   send_to_char(ch, "You've created %s!\r\n", obj->short_description);
   obj_to_char(obj, ch);
-  reset_current_craft(ch, NULL, FALSE, FALSE);
+  craft_reset_sections(ch, CR_RESET_ITEM, FALSE, FALSE);
 }
 
 void craft_create_complete(struct char_data *ch)
@@ -5282,19 +5330,35 @@ static void newcraft_survey(struct char_data *ch, const char *argument __attribu
   act("$n starts surveying.", FALSE, ch, 0, 0, TO_ROOM);
 }
 
+/* The refining recipe that makes a material, or 0 (an empty recipe) when none does. Refining reads
+ * its recipe, DC, and skill from here rather than from the item project's fields it shares the
+ * record with. */
+static int refining_recipe_for_result(int material)
+{
+  int i;
+
+  if (material <= CRAFT_MAT_NONE)
+    return 0;
+  for (i = 1; i < NUM_REFINING_RECIPES; i++)
+    if (refining_recipes[i].result[0] == material)
+      return i;
+  return 0;
+}
+
 void craft_refine_complete(struct char_data *ch)
 {
-  int roll, dc, skill, skill_type, num = 0;
+  int roll, dc, skill, skill_type, num = 0, recipe;
 
-  if (GET_CRAFT(ch).refining_result[0] == 0 || GET_CRAFT(ch).refining_result[1] == 0)
+  recipe = refining_recipe_for_result(GET_CRAFT(ch).refining_result[0]);
+  if (recipe == 0 || GET_CRAFT(ch).refining_result[1] == 0)
   {
     send_to_char(ch, "Refining result error. Please inform staff.\r\n ");
     return;
   }
 
   roll = d20(ch);
-  dc = GET_CRAFT(ch).dc;
-  skill_type = GET_CRAFT(ch).skill_type;
+  dc = refining_recipes[recipe].dc;
+  skill_type = refining_recipes[recipe].skill;
   skill = get_craft_skill_value(ch, skill_type);
 
   /* Add proficient talent bonus */
@@ -5305,14 +5369,14 @@ void craft_refine_complete(struct char_data *ch)
   if ((20 + skill) < dc)
   {
     send_to_char(ch, "That refining type is too complex for you.\r\n");
-    reset_current_craft(ch, NULL, TRUE, TRUE);
+    craft_reset_sections(ch, CR_RESET_REFINE, TRUE, TRUE);
     return;
   }
   else if (roll == 1)
   {
     send_to_char(ch, "\tM[CRITICAL FAILURE]\tn You rolled a natural 1! Your refining attempt "
                      "failed and you lost your materials.\r\n");
-    reset_current_craft(ch, NULL, FALSE, FALSE);
+    craft_reset_sections(ch, CR_RESET_REFINE, FALSE, FALSE);
     return;
   }
   else if ((roll + skill) < dc)
@@ -5349,7 +5413,7 @@ void craft_refine_complete(struct char_data *ch)
   }
   send_to_char(ch, "You refine %d unit%s of %s.\r\n", num, num > 1 ? "s" : "",
                crafting_materials[GET_CRAFT(ch).refining_result[0]]);
-  reset_current_craft(ch, NULL, FALSE, FALSE);
+  craft_reset_sections(ch, CR_RESET_REFINE, FALSE, FALSE);
   act("$n finishes refining.", FALSE, ch, 0, 0, TO_ROOM);
 }
 
@@ -5935,8 +5999,6 @@ static void newcraft_refine(struct char_data *ch, const char *argument)
       }
     }
 
-    GET_CRAFT(ch).crafting_recipe = recipe;
-    GET_CRAFT(ch).dc = refining_recipes[recipe].dc;
     GET_CRAFT(ch).refining_result[0] = refining_recipes[recipe].result[0];
     GET_CRAFT(ch).refining_result[1] = refining_recipes[recipe].result[1];
 
@@ -5952,7 +6014,7 @@ static void newcraft_refine(struct char_data *ch, const char *argument)
       return;
     }
 
-    if (reset_current_craft(ch, NULL, TRUE, TRUE))
+    if (craft_reset_sections(ch, CR_RESET_REFINE, TRUE, TRUE))
       send_to_char(ch, "You cancel your refining project.\r\n");
     return;
   }
@@ -5974,6 +6036,7 @@ static void newcraft_refine(struct char_data *ch, const char *argument)
 
     send_to_char(ch, "MATERIALS:\r\n");
 
+    recipe = refining_recipe_for_result(GET_CRAFT(ch).refining_result[0]);
     // materials
     for (i = 0; i < 3; i++)
     {
@@ -5981,7 +6044,7 @@ static void newcraft_refine(struct char_data *ch, const char *argument)
       {
         send_to_char(ch, "-- %d/%d %s unit%s allocated.\r\n",
                      GET_CRAFT(ch).refining_materials[i][1],
-                     refining_recipes[GET_CRAFT(ch).crafting_recipe].materials[i][1],
+                     refining_recipes[recipe].materials[i][1],
                      crafting_materials[GET_CRAFT(ch).refining_materials[i][0]],
                      GET_CRAFT(ch).refining_materials[i][1] > 1 ? "" : "s");
       }
@@ -5999,9 +6062,9 @@ static void newcraft_refine(struct char_data *ch, const char *argument)
     // dc and skill
     send_to_char(ch, "SKILL CHECK:\r\n");
     send_to_char(ch, "-- 1d20 + %s skill of %d vs. dc of %d.\r\n",
-                 ability_names[refining_recipes[GET_CRAFT(ch).crafting_recipe].skill],
-                 get_craft_skill_value(ch, refining_recipes[GET_CRAFT(ch).crafting_recipe].skill),
-                 GET_CRAFT(ch).dc);
+                 ability_names[refining_recipes[recipe].skill],
+                 get_craft_skill_value(ch, refining_recipes[recipe].skill),
+                 refining_recipes[recipe].dc);
 
     send_to_char(ch, "\tc");
     draw_line(ch, 80, '-', '-');
@@ -6024,15 +6087,8 @@ static void newcraft_refine(struct char_data *ch, const char *argument)
       return;
     }
 
-    for (i = 0; i < NUM_REFINING_RECIPES; i++)
-    {
-      if (refining_recipes[i].result[0] == GET_CRAFT(ch).refining_result[0])
-      {
-        break;
-      }
-    }
-
-    if (i >= NUM_REFINING_RECIPES)
+    recipe = refining_recipe_for_result(GET_CRAFT(ch).refining_result[0]);
+    if (recipe == 0)
     {
       send_to_char(
           ch,
@@ -6040,13 +6096,12 @@ static void newcraft_refine(struct char_data *ch, const char *argument)
       return;
     }
 
-    recipe = i;
-
-    GET_CRAFT(ch).skill_type = refining_recipes[recipe].skill;
-    GET_CRAFT(ch).dc = refining_recipes[recipe].dc;
+    /* A held supply order's marker is the method field this work would take over. */
+    if (craft_project_holds_supply_order(ch))
+      return;
 
     // Check if the player is in a room with the required crafting station
-    int skill = GET_CRAFT(ch).skill_type;
+    int skill = refining_recipes[recipe].skill;
     if (!has_crafting_station_in_room(ch, skill))
     {
       send_to_char(ch, "You need to be in a room with %s to refine this material.\r\n",
@@ -6076,6 +6131,7 @@ int get_craft_skill_value(struct char_data *ch, int skill_num)
 bool is_refine_ready(struct char_data *ch, bool verbose)
 {
   bool fail = FALSE;
+  int recipe = refining_recipe_for_result(GET_CRAFT(ch).refining_result[0]);
 
   if (GET_CRAFT(ch).refining_result[0] == 0)
   {
@@ -6091,27 +6147,24 @@ bool is_refine_ready(struct char_data *ch, bool verbose)
     fail = TRUE;
   }
 
-  if ((refining_recipes[GET_CRAFT(ch).crafting_recipe].materials[0][1] != 0 &&
-       (GET_CRAFT(ch).refining_materials[0][1] <
-        refining_recipes[GET_CRAFT(ch).crafting_recipe].materials[0][1])))
+  if ((refining_recipes[recipe].materials[0][1] != 0 &&
+       (GET_CRAFT(ch).refining_materials[0][1] < refining_recipes[recipe].materials[0][1])))
   {
     if (verbose)
       send_to_char(ch, "You haven't added the primary refining ingredient.\r\n");
     fail = TRUE;
   }
 
-  if ((refining_recipes[GET_CRAFT(ch).crafting_recipe].materials[1][1] != 0 &&
-       (GET_CRAFT(ch).refining_materials[1][1] <
-        refining_recipes[GET_CRAFT(ch).crafting_recipe].materials[1][1])))
+  if ((refining_recipes[recipe].materials[1][1] != 0 &&
+       (GET_CRAFT(ch).refining_materials[1][1] < refining_recipes[recipe].materials[1][1])))
   {
     if (verbose)
       send_to_char(ch, "You haven't added the secondary refining ingredient.\r\n");
     fail = TRUE;
   }
 
-  if ((refining_recipes[GET_CRAFT(ch).crafting_recipe].materials[2][1] != 0 &&
-       (GET_CRAFT(ch).refining_materials[2][1] <
-        refining_recipes[GET_CRAFT(ch).crafting_recipe].materials[2][1])))
+  if ((refining_recipes[recipe].materials[2][1] != 0 &&
+       (GET_CRAFT(ch).refining_materials[2][1] < refining_recipes[recipe].materials[2][1])))
   {
     if (verbose)
       send_to_char(ch, "You haven't added the tertiary refining ingredient.\r\n");
@@ -6480,8 +6533,11 @@ static bool craft_activity_recheck(struct char_data *ch, void *target, void *con
   if (method == SCMD_NEWCRAFT_HARVEST)
     return world[IN_ROOM(ch)].harvest_material_amount > 0 &&
            has_proper_harvesting_tool_equipped(ch);
-  if (method == SCMD_NEWCRAFT_CREATE || method == SCMD_NEWCRAFT_REFINE)
+  if (method == SCMD_NEWCRAFT_CREATE)
     return has_crafting_station_in_room(ch, GET_CRAFT(ch).skill_type);
+  if (method == SCMD_NEWCRAFT_REFINE)
+    return has_crafting_station_in_room(
+        ch, refining_recipes[refining_recipe_for_result(GET_CRAFT(ch).refining_result[0])].skill);
   if (method == SCMD_NEWCRAFT_SUPPLYORDER)
     return has_crafting_station_in_room(
         ch, recipe_skill_to_actual_crafting_skill(GET_CRAFT(ch).skill_type));
@@ -7359,7 +7415,7 @@ void craft_resize_complete(struct char_data *ch, struct obj_data *obj)
   dc = MAX(RESIZE_BASE_DC, GET_OBJ_LEVEL(obj));
 
   // skill check to determine success or failure
-  if (!create_craft_skill_check(ch, obj, skill, "resize", RESIZE_BASE_EXP / 2, dc))
+  if (!create_craft_skill_check(ch, obj, skill, "resize", RESIZE_BASE_EXP / 2, dc, CR_RESET_RESIZE))
   {
     // failure means we end things here.
     return;
@@ -7371,7 +7427,6 @@ void craft_resize_complete(struct char_data *ch, struct obj_data *obj)
   GET_OBJ_SIZE(obj) = size;
   reset_crafting_obj(ch);
   GET_CRAFT(ch).new_size = GET_CRAFT(ch).resize_mat_type = GET_CRAFT(ch).resize_mat_num = 0;
-  reset_current_craft(ch, NULL, FALSE, FALSE);
 }
 
 /**
@@ -7966,6 +8021,9 @@ static void newcraft_resize(struct char_data *ch, const char *argument)
   }
   else if (is_abbrev(arg1, "start") || is_abbrev(arg1, "begin"))
   {
+    /* A held supply order's marker is the method field this work would take over. */
+    if (craft_project_holds_supply_order(ch))
+      return;
     if (!check_resize(ch, TRUE))
     {
       send_to_char(ch, "\tRYou are not ready to resize yet.\tn\r\n");
