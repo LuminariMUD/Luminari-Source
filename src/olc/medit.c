@@ -2582,8 +2582,8 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   armor_class += level * 10; // 110 (11) - 400 (40)
 
   /* exp and gold */
-  award_set_points(mob, AWARD_EXPERIENCE, (level * level * 75));
-  award_set_points(mob, AWARD_GOLD, (level * 10));
+  award_set_points(mob, AWARD_EXPERIENCE, ((long)level * level * 75));
+  award_set_points(mob, AWARD_GOLD, ((long)level * 10));
 
   /* class modifications to base */
   switch (GET_CLASS(mob))
@@ -2798,7 +2798,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
 
     mobs_hps *= (bonus_level * 2);
     GET_DAMROLL(mob) += bonus_level;
-    award_points(mob, AWARD_EXPERIENCE, (bonus_level * 5000));
+    award_points(mob, AWARD_EXPERIENCE, ((long)bonus_level * 5000));
     award_gold(mob, (bonus_level * 50));
   }
 

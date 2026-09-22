@@ -3460,17 +3460,17 @@ struct time_info_data *real_time_passed(time_t t2, time_t t1)
 
   secs = t2 - t1;
 
-  now.hours = (int)((secs / SECS_PER_REAL_HOUR) % 24); /* 0..23 hours */
-  secs -= SECS_PER_REAL_HOUR * now.hours;
+  now.hours = (int)((secs / (long)SECS_PER_REAL_HOUR) % 24); /* 0..23 hours */
+  secs -= (long)SECS_PER_REAL_HOUR * now.hours;
 
-  now.day = (int)((secs / SECS_PER_REAL_DAY) % 35); /* 0..34 days  */
-  secs -= SECS_PER_REAL_DAY * now.day;
+  now.day = (int)((secs / (long)SECS_PER_REAL_DAY) % 35); /* 0..34 days  */
+  secs -= (long)SECS_PER_REAL_DAY * now.day;
 
   now.month = (int)((secs / (SECS_PER_REAL_YEAR / 12)) % 12); /* 0..11 months */
-  secs -= (SECS_PER_REAL_YEAR / 12) * now.month;
+  secs -= (long)(SECS_PER_REAL_YEAR / 12) * now.month;
 
-  now.year = (sh_int)((secs / SECS_PER_REAL_YEAR));
-  secs -= SECS_PER_REAL_YEAR * now.year;
+  now.year = (sh_int)((secs / (long)SECS_PER_REAL_YEAR));
+  secs -= (long)SECS_PER_REAL_YEAR * now.year;
 
   return (&now);
 }
@@ -3489,15 +3489,15 @@ struct time_info_data *mud_time_passed(time_t t2, time_t t1)
   secs = t2 - t1;
 
   now.hours = (int)((secs / SECS_PER_MUD_HOUR) % 24); /* 0..23 hours */
-  secs -= SECS_PER_MUD_HOUR * now.hours;
+  secs -= (long)SECS_PER_MUD_HOUR * now.hours;
 
-  now.day = (int)((secs / SECS_PER_MUD_DAY) % 35); /* 0..34 days  */
-  secs -= SECS_PER_MUD_DAY * now.day;
+  now.day = (int)((secs / (long)SECS_PER_MUD_DAY) % 35); /* 0..34 days  */
+  secs -= (long)SECS_PER_MUD_DAY * now.day;
 
-  now.month = (int)((secs / SECS_PER_MUD_MONTH) % 17); /* 0..16 months */
-  secs -= SECS_PER_MUD_MONTH * now.month;
+  now.month = (int)((secs / (long)SECS_PER_MUD_MONTH) % 17); /* 0..16 months */
+  secs -= (long)SECS_PER_MUD_MONTH * now.month;
 
-  now.year = (sh_int)((secs / SECS_PER_MUD_YEAR)); /* 0..XX? years */
+  now.year = (sh_int)((secs / (long)SECS_PER_MUD_YEAR)); /* 0..XX? years */
 
   return (&now);
 }
@@ -3510,10 +3510,10 @@ time_t mud_time_to_secs(struct time_info_data *now)
 {
   time_t when = 0;
 
-  when += now->year * SECS_PER_MUD_YEAR;
-  when += now->month * SECS_PER_MUD_MONTH;
-  when += now->day * SECS_PER_MUD_DAY;
-  when += now->hours * SECS_PER_MUD_HOUR;
+  when += (time_t)now->year * (time_t)SECS_PER_MUD_YEAR;
+  when += (time_t)now->month * (time_t)SECS_PER_MUD_MONTH;
+  when += (time_t)now->day * (time_t)SECS_PER_MUD_DAY;
+  when += (time_t)now->hours * SECS_PER_MUD_HOUR;
   return (time(NULL) - when);
 }
 
@@ -3647,7 +3647,7 @@ void stop_follower(struct char_data *ch)
   if (IS_NPC(ch) && (MOB_FLAGGED(ch, MOB_C_ANIMAL) || MOB_FLAGGED(ch, MOB_C_FAMILIAR) ||
                      MOB_FLAGGED(ch, MOB_C_MOUNT) || MOB_FLAGGED(ch, MOB_ELEMENTAL) ||
                      MOB_FLAGGED(ch, MOB_ANIMATED_DEAD)))
-    attach_mud_event(new_mud_event(ePURGEMOB, ch, NULL), (12 * PASSES_PER_SEC));
+    attach_mud_event(new_mud_event(ePURGEMOB, ch, NULL), ((long)12 * PASSES_PER_SEC));
 }
 
 /** Finds the number of follows that are following, and charmed by, the
@@ -5996,7 +5996,8 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum)
   {
     /* No event - so attach one. */
     uses = 1;
-    attach_mud_event(new_mud_event(iId, ch, "uses:1"), (SECS_PER_MUD_DAY / daily_uses) RL_SEC);
+    attach_mud_event(new_mud_event(iId, ch, "uses:1"),
+                     (long)(SECS_PER_MUD_DAY / daily_uses) RL_SEC);
   }
 
   return uses;
@@ -6099,7 +6100,8 @@ int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab)
   {
     /* No event - so attach one. */
     uses = 1;
-    attach_mud_event(new_mud_event(iId, obj, "uses:1"), (SECS_PER_MUD_DAY / daily_uses) RL_SEC);
+    attach_mud_event(new_mud_event(iId, obj, "uses:1"),
+                     (long)(SECS_PER_MUD_DAY / daily_uses) RL_SEC);
   }
 
   return uses;

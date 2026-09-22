@@ -799,7 +799,7 @@ void Test_legacy_npc_perform_cooldown_is_not_an_active_song(CuTest *tc)
   IN_ROOM(&npc) = 0;
   GET_POS(&npc) = POS_STANDING;
   fixture.bard.next_in_room = &npc;
-  attach_mud_event(new_mud_event(ePERFORM, &npc, NULL), 60 RL_SEC);
+  attach_mud_event(new_mud_event(ePERFORM, &npc, NULL), (long)60 RL_SEC);
 
   CuAssertTrue(tc, can_perform(&fixture.bard, 0, FALSE, TRUE));
 

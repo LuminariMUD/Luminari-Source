@@ -1259,7 +1259,7 @@ void TestMinorRejuvenationChangesDisplayedAgeTemporarily(CuTest *tc)
   clear_char(&ch);
   memset(&specials, 0, sizeof(specials));
   ch.player_specials = &specials;
-  ch.player.time.birth = time(NULL) - (time_t)20 * SECS_PER_MUD_YEAR;
+  ch.player.time.birth = time(NULL) - (time_t)20 * (time_t)SECS_PER_MUD_YEAR;
   original_age = GET_AGE(&ch);
 
   add_test_affect(&ch, SPELL_REJUVENATE_MINOR, APPLY_AGE, -5);

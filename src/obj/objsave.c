@@ -945,7 +945,7 @@ int Crash_clean_file(char *name)
 
   if ((rentcode == RENT_CRASH) || (rentcode == RENT_FORCED) || (rentcode == RENT_TIMEDOUT))
   {
-    if (timed < time(0) - (CONFIG_CRASH_TIMEOUT * SECS_PER_REAL_DAY))
+    if (timed < time(0) - ((time_t)CONFIG_CRASH_TIMEOUT * (time_t)SECS_PER_REAL_DAY))
     {
       Crash_delete_file(name);
       switch (rentcode)
@@ -969,7 +969,7 @@ int Crash_clean_file(char *name)
     /* Must retrieve rented items w/in 30 days */
   }
   else if (rentcode == RENT_RENTED)
-    if (timed < time(0) - (CONFIG_RENT_TIMEOUT * SECS_PER_REAL_DAY))
+    if (timed < time(0) - ((time_t)CONFIG_RENT_TIMEOUT * (time_t)SECS_PER_REAL_DAY))
     {
       Crash_delete_file(name);
       log("    Deleting %s's rent file.", name);

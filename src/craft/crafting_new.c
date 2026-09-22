@@ -10162,7 +10162,8 @@ void update_contract_expiration(struct char_data *ch, int contract_type)
     break;
   }
 
-  GET_CRAFT(ch).supply_contract_expiration = now + (hours * 3600); // Convert hours to seconds
+  GET_CRAFT(ch).supply_contract_expiration =
+      now + ((time_t)hours * 3600); // Convert hours to seconds
 }
 
 // Special event system

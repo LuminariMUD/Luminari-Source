@@ -784,32 +784,32 @@ static int call_magic_impl(struct char_data *caster, struct char_data *cvict,
   switch (spellnum)
   {
   case SPELL_MUMMY_DUST:
-    attach_mud_event(new_mud_event(eMUMMYDUST, caster, NULL), 9 * SECS_PER_MUD_DAY);
+    attach_mud_event(new_mud_event(eMUMMYDUST, caster, NULL), (long)9 * (long)SECS_PER_MUD_DAY);
     if (!IS_NPC(caster))
       increase_skill(caster, SKILL_MUMMY_DUST);
     break;
   case SPELL_DRAGON_KNIGHT:
-    attach_mud_event(new_mud_event(eDRAGONKNIGHT, caster, NULL), 9 * SECS_PER_MUD_DAY);
+    attach_mud_event(new_mud_event(eDRAGONKNIGHT, caster, NULL), (long)9 * (long)SECS_PER_MUD_DAY);
     if (!IS_NPC(caster))
       increase_skill(caster, SKILL_DRAGON_KNIGHT);
     break;
   case SPELL_GREATER_RUIN:
-    attach_mud_event(new_mud_event(eGREATERRUIN, caster, NULL), 9 * SECS_PER_MUD_DAY);
+    attach_mud_event(new_mud_event(eGREATERRUIN, caster, NULL), (long)9 * (long)SECS_PER_MUD_DAY);
     if (!IS_NPC(caster))
       increase_skill(caster, SKILL_GREATER_RUIN);
     break;
   case SPELL_HELLBALL:
-    attach_mud_event(new_mud_event(eHELLBALL, caster, NULL), 9 * SECS_PER_MUD_DAY);
+    attach_mud_event(new_mud_event(eHELLBALL, caster, NULL), (long)9 * (long)SECS_PER_MUD_DAY);
     if (!IS_NPC(caster))
       increase_skill(caster, SKILL_HELLBALL);
     break;
   case SPELL_EPIC_MAGE_ARMOR:
-    attach_mud_event(new_mud_event(eEPICMAGEARMOR, caster, NULL), 9 * SECS_PER_MUD_DAY);
+    attach_mud_event(new_mud_event(eEPICMAGEARMOR, caster, NULL), (long)9 * (long)SECS_PER_MUD_DAY);
     if (!IS_NPC(caster))
       increase_skill(caster, SKILL_EPIC_MAGE_ARMOR);
     break;
   case SPELL_EPIC_WARDING:
-    attach_mud_event(new_mud_event(eEPICWARDING, caster, NULL), 9 * SECS_PER_MUD_DAY);
+    attach_mud_event(new_mud_event(eEPICWARDING, caster, NULL), (long)9 * (long)SECS_PER_MUD_DAY);
     if (!IS_NPC(caster))
       increase_skill(caster, SKILL_EPIC_WARDING);
     break;
@@ -2580,7 +2580,7 @@ static bool start_casting_activity(struct char_data *ch)
   definition.type = PRIMARY_ACTIVITY_CASTING;
   definition.display_name = "casting";
   definition.total_steps = MAX(1, CASTING_TIME(ch));
-  definition.step_interval = (IS_NPC(ch) ? 2 : 1) * PASSES_PER_SEC;
+  definition.step_interval = (long)(IS_NPC(ch) ? 2 : 1) * PASSES_PER_SEC;
   definition.wall_clock = true;
   definition.cannot_pause = true;
   definition.watch_target = true;
@@ -2988,7 +2988,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
           casting_time = 0;
           quickened = true;
           attach_mud_event(new_mud_event(eACCELERATED_MANIFESTATION_USED, ch, NULL),
-                           10 * PASSES_PER_SEC);
+                           (long)10 * PASSES_PER_SEC);
           send_to_char(ch, "Your manifesting of '%s' accelerates to a faster action.\r\n",
                        spell_info[spellnum].name);
         }
@@ -3240,7 +3240,7 @@ will be using for casting this spell */
           GET_CASTING_CLASS(ch) == CLASS_INQUISITOR && FIGHTING(ch) &&
           !char_has_mud_event(ch, eDIVINE_SPELLSTRIKE_USED))
       {
-        attach_mud_event(new_mud_event(eDIVINE_SPELLSTRIKE_USED, ch, NULL), SECS_PER_MUD_DAY);
+        attach_mud_event(new_mud_event(eDIVINE_SPELLSTRIKE_USED, ch, NULL), (long)SECS_PER_MUD_DAY);
         USE_SWIFT_ACTION(ch);
         send_to_char(ch, "\tYYou channel Divine Spellstrike, unleashing a flurry of blows!\tn\r\n");
 #define NORMAL_ATTACK_ROUTINE 0 /* perform full attack routine */
@@ -3956,7 +3956,7 @@ return;
                !char_has_mud_event(ch, eACCELERATED_MANIFESTATION_USED))
       {
         attach_mud_event(new_mud_event(eACCELERATED_MANIFESTATION_USED, ch, NULL),
-                         10 * PASSES_PER_SEC);
+                         (long)10 * PASSES_PER_SEC);
       }
       /* Mark Ectoplasmic Artisan as used (per encounter) if it was used for this power */
       if (!perfect_fabricator_active && psionic_powers[spellnum].power_type == METACREATIVITY &&

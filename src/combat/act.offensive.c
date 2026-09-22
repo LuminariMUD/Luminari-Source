@@ -914,7 +914,7 @@ MUD_EVENT_CALLBACK(event_fist_of_four_thunders)
     /* Schedule next lightning strike */
     char buf[20];
     snprintf(buf, sizeof(buf), "%d", strikes_remaining);
-    attach_mud_event(new_mud_event(eFIST_OF_FOUR_THUNDERS, ch, buf), PULSE_VIOLENCE);
+    attach_mud_event(new_mud_event(eFIST_OF_FOUR_THUNDERS, ch, buf), (long)PULSE_VIOLENCE);
   }
 
   return 0;
@@ -957,7 +957,7 @@ static void perform_fistoffourthunders(struct char_data *ch)
   targets_hit = aoe_effect(ch, SKILL_FIST_OF_FOUR_THUNDERS, fistoffourthunders_callback, NULL);
 
   /* Schedule the first lightning strike event (3 strikes total) */
-  attach_mud_event(new_mud_event(eFIST_OF_FOUR_THUNDERS, ch, "3"), PULSE_VIOLENCE);
+  attach_mud_event(new_mud_event(eFIST_OF_FOUR_THUNDERS, ch, "3"), (long)PULSE_VIOLENCE);
 
   /* Consume ki (25% chance free while Avatar active) */
   maybe_consume_ki(ch, FEAT_STUNNING_FIST);
@@ -1122,7 +1122,7 @@ static void perform_surpriseaccuracy(struct char_data *ch)
 
   affect_to_char(ch, &af);
 
-  attach_mud_event(new_mud_event(eSURPRISE_ACCURACY, ch, NULL), SECS_PER_MUD_DAY * 1);
+  attach_mud_event(new_mud_event(eSURPRISE_ACCURACY, ch, NULL), (long)SECS_PER_MUD_DAY * 1);
 
   send_to_char(ch, "You focus your rage and prepare a surprise accurate attack.\r\n");
   act("$n's focuses $s rage, preparing a surprise accuracy attack!", FALSE, ch, 0, 0, TO_ROOM);
@@ -1141,7 +1141,7 @@ static void perform_comeandgetme(struct char_data *ch)
 
   affect_to_char(ch, &af);
 
-  attach_mud_event(new_mud_event(eCOME_AND_GET_ME, ch, NULL), SECS_PER_MUD_DAY * 1);
+  attach_mud_event(new_mud_event(eCOME_AND_GET_ME, ch, NULL), (long)SECS_PER_MUD_DAY * 1);
 
   send_to_char(ch, "You focus your rage and prepare to SMASH.\r\n");
   act("$n's focuses $s rage, preparing to SMASH!", FALSE, ch, 0, 0, TO_ROOM);
@@ -1160,7 +1160,7 @@ static void perform_powerfulblow(struct char_data *ch)
 
   affect_to_char(ch, &af);
 
-  attach_mud_event(new_mud_event(ePOWERFUL_BLOW, ch, NULL), SECS_PER_MUD_DAY * 1);
+  attach_mud_event(new_mud_event(ePOWERFUL_BLOW, ch, NULL), (long)SECS_PER_MUD_DAY * 1);
 
   send_to_char(ch, "You focus your rage and prepare a powerful blow.\r\n");
   act("$n's focuses $s rage, preparing a powerful blow!", FALSE, ch, 0, 0, TO_ROOM);
@@ -1329,7 +1329,7 @@ void perform_rage(struct char_data *ch)
   //
   //  }
 
-  attach_mud_event(new_mud_event(eRAGE, ch, NULL), (180 * PASSES_PER_SEC));
+  attach_mud_event(new_mud_event(eRAGE, ch, NULL), ((long)180 * PASSES_PER_SEC));
 
   USE_STANDARD_ACTION(ch);
 }
@@ -1456,7 +1456,7 @@ bool bull_charge_stun(struct char_data *ch, struct char_data *vict)
   act("\tR$n's charge slams into you, leaving you stunned!\tn", FALSE, ch, NULL, vict, TO_VICT);
   act("$n's charge slams into $N, leaving $M stunned!", FALSE, ch, NULL, vict, TO_NOTVICT);
   if (!char_has_mud_event(vict, eSTUNNED))
-    attach_mud_event(new_mud_event(eSTUNNED, vict, NULL), 6 * PASSES_PER_SEC);
+    attach_mud_event(new_mud_event(eSTUNNED, vict, NULL), (long)6 * PASSES_PER_SEC);
   return TRUE;
 }
 
@@ -2188,7 +2188,7 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict)
   if (!HAS_FEAT(ch, FEAT_IMPROVED_SHIELD_PUNCH))
   {
     /* Remove shield bonus from ac. */
-    attach_mud_event(new_mud_event(eSHIELD_RECOVERY, ch, NULL), PULSE_VIOLENCE);
+    attach_mud_event(new_mud_event(eSHIELD_RECOVERY, ch, NULL), (long)PULSE_VIOLENCE);
   }
 
   /*  Use an attack mechanic to determine success. */
@@ -3367,7 +3367,7 @@ MUD_EVENT_CALLBACK(event_whirlwind)
     return 0;
   }
   else
-    return 4 * PASSES_PER_SEC;
+    return (long)4 * PASSES_PER_SEC;
 }
 
 /******* start offensive commands *******/
@@ -3816,7 +3816,7 @@ ACMDU(do_channelenergy)
       {
         /* Create new event - resets every MUD day */
         attach_mud_event(new_mud_event(ePALADIN_CHANNEL_ENERGY, ch, "uses:1"),
-                         SECS_PER_MUD_DAY RL_SEC);
+                         (long)SECS_PER_MUD_DAY RL_SEC);
       }
     }
   }
@@ -3846,7 +3846,7 @@ ACMDU(do_channelenergy)
     {
       /* Create new event - resets every MUD day */
       attach_mud_event(new_mud_event(ePALADIN_CHANNEL_ENERGY, ch, "uses:1"),
-                       SECS_PER_MUD_DAY RL_SEC);
+                       (long)SECS_PER_MUD_DAY RL_SEC);
     }
   }
 }
@@ -3944,7 +3944,7 @@ ACMDU(do_beaconofhope)
                  healed_count == 1 ? "ally" : "allies");
 
   /* Set daily cooldown - 2 hours */
-  attach_mud_event(new_mud_event(eBEACON_OF_HOPE, ch, NULL), 2 * 60 * 60 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eBEACON_OF_HOPE, ch, NULL), (long)2 * 60 * 60 * PASSES_PER_SEC);
 
   /* Actions */
   USE_STANDARD_ACTION(ch);
@@ -5454,7 +5454,8 @@ static int perform_taunt(struct char_data *ch, struct char_data *vict)
     send_to_char(ch, "You taunt your opponent!\r\n");
     act("You are \tRtaunted\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
     act("$n \tWtaunts\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-    attach_mud_event(new_mud_event(eTAUNTED, vict, NULL), (attempt - resist + 6) * PASSES_PER_SEC);
+    attach_mud_event(new_mud_event(eTAUNTED, vict, NULL),
+                     (long)(attempt - resist + 6) * PASSES_PER_SEC);
     success = 1;
   }
   else
@@ -5571,10 +5572,10 @@ static int perform_intimidate(struct char_data *ch, struct char_data *vict)
     send_to_char(ch, "You intimidate your opponent!\r\n");
     act("You are \tRintimidated\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
     act("$n \tWintimidates\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-    long base_duration = (attempt - resist + 6) * PASSES_PER_SEC;
+    long base_duration = (long)(attempt - resist + 6) * PASSES_PER_SEC;
     /* Blackguard: Command the Weak modest duration bump */
     if (has_blackguard_command_the_weak(ch))
-      base_duration += (2 * PASSES_PER_SEC);
+      base_duration += ((long)2 * PASSES_PER_SEC);
     attach_mud_event(new_mud_event(eINTIMIDATED, vict, NULL), base_duration);
     success = 1;
     /* Blackguard Tier 2: Terror Tactics/Nightmarish Visage splash */
@@ -5598,7 +5599,7 @@ static int perform_intimidate(struct char_data *ch, struct char_data *vict)
             (has_blackguard_nightmarish_visage(ch) && margin >= 6))
         {
           act("$n's terrifying presence unsettles $N!", FALSE, ch, 0, tch, TO_NOTVICT);
-          attach_mud_event(new_mud_event(eINTIMIDATED, tch, NULL), (6 * PASSES_PER_SEC));
+          attach_mud_event(new_mud_event(eINTIMIDATED, tch, NULL), ((long)6 * PASSES_PER_SEC));
           splashes++;
         }
       }
@@ -5683,7 +5684,7 @@ ACMD(do_arrowstorm)
   aoe_effect(ch, -1, arrowstorm_callback, NULL);
 
   /* 24-hour cooldown */
-  attach_mud_event(new_mud_event(eARROW_STORM, ch, NULL), 24 * 60 * 60 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eARROW_STORM, ch, NULL), (long)24 * 60 * 60 * PASSES_PER_SEC);
 
   USE_STANDARD_ACTION(ch);
 }
@@ -5769,7 +5770,7 @@ ACMD(do_manyshot)
   int cooldown_secs = 120;
   if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_IMPROVED_MANYSHOT))
     cooldown_secs = 60;
-  attach_mud_event(new_mud_event(eMANYSHOT, ch, NULL), cooldown_secs * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eMANYSHOT, ch, NULL), (long)cooldown_secs * PASSES_PER_SEC);
 
   /* Consume a standard action */
   USE_STANDARD_ACTION(ch);
@@ -6317,7 +6318,7 @@ ACMD(do_frightful)
   aoe_effect(ch, -1, frightful_callback, &fright_data);
 
   /* 12 seconds = 2 rounds */
-  attach_mud_event(new_mud_event(eDRAGON_ATTACK_COOLDOWN, ch, NULL), 12 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eDRAGON_ATTACK_COOLDOWN, ch, NULL), (long)12 * PASSES_PER_SEC);
 }
 
 ACMDCHECK(can_tailspikes)
@@ -6603,7 +6604,7 @@ ACMD(do_breathe)
   USE_STANDARD_ACTION(ch);
 
   /* 12 seconds = 2 rounds */
-  attach_mud_event(new_mud_event(eDRAGON_ATTACK_COOLDOWN, ch, NULL), 12 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eDRAGON_ATTACK_COOLDOWN, ch, NULL), (long)12 * PASSES_PER_SEC);
 }
 
 ACMDCHECK(can_poisonbreath)
@@ -8177,7 +8178,7 @@ ACMD(do_tailsweep)
   perform_tailsweep(ch);
 
   /* 12 seconds = 2 rounds */
-  attach_mud_event(new_mud_event(eDRAGON_ATTACK_COOLDOWN, ch, NULL), 12 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eDRAGON_ATTACK_COOLDOWN, ch, NULL), (long)12 * PASSES_PER_SEC);
 }
 
 ACMD(do_bash)
@@ -8605,7 +8606,7 @@ ACMD(do_reneweddefense)
 
   send_to_char(ch, "Your body glows \tRred\tn as your wounds heal...\r\n");
   act("$n's body glows \tRred\tn as some wounds heal!", FALSE, ch, 0, NULL, TO_NOTVICT);
-  attach_mud_event(new_mud_event(eRENEWEDDEFENSE, ch, NULL), (2 * SECS_PER_MUD_DAY));
+  attach_mud_event(new_mud_event(eRENEWEDDEFENSE, ch, NULL), ((long)2 * (long)SECS_PER_MUD_DAY));
   GET_HIT(ch) +=
       MIN((GET_MAX_HIT(ch) - GET_HIT(ch)),
           (dice(CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) / 2 + 1, 8) + 10 + GET_CON_BONUS(ch)));
@@ -8639,7 +8640,7 @@ ACMD(do_renewedvigor)
 
   send_to_char(ch, "Your body glows \tRred\tn as your wounds heal...\r\n");
   act("$n's body glows \tRred\tn as some wounds heal!", FALSE, ch, 0, NULL, TO_NOTVICT);
-  attach_mud_event(new_mud_event(eRENEWEDVIGOR, ch, NULL), (2 * SECS_PER_MUD_DAY));
+  attach_mud_event(new_mud_event(eRENEWEDVIGOR, ch, NULL), ((long)2 * (long)SECS_PER_MUD_DAY));
   GET_HIT(ch) += dice(CLASS_LEVEL(ch, CLASS_BERSERKER) + 3, 8) + 10 + GET_CON_BONUS(ch) +
                  GET_DEX_BONUS(ch) + GET_STR_BONUS(ch);
   update_pos(ch);
@@ -8671,7 +8672,7 @@ ACMD(do_wholenessofbody)
 
   send_to_char(ch, "Your body glows \tWwhite\tn as your wounds heal...\r\n");
   act("$n's body glows \tWwhite\tn as some wounds heal!", FALSE, ch, 0, NULL, TO_NOTVICT);
-  attach_mud_event(new_mud_event(eWHOLENESSOFBODY, ch, NULL), (4 * SECS_PER_MUD_DAY));
+  attach_mud_event(new_mud_event(eWHOLENESSOFBODY, ch, NULL), ((long)4 * (long)SECS_PER_MUD_DAY));
   GET_HIT(ch) += 20 + (MONK_TYPE(ch) + (GET_WIS_BONUS(ch) * 2) * 3);
   update_pos(ch);
 
@@ -8712,7 +8713,7 @@ ACMD(do_emptybody)
       "realm!",
       FALSE, ch, 0, NULL, TO_NOTVICT);
 
-  attach_mud_event(new_mud_event(eEMPTYBODY, ch, NULL), (2 * SECS_PER_MUD_DAY));
+  attach_mud_event(new_mud_event(eEMPTYBODY, ch, NULL), ((long)2 * (long)SECS_PER_MUD_DAY));
 
   new_affect(&af);
 
@@ -8834,9 +8835,9 @@ ACMD(do_treatinjury)
   act("$n \tWtreats\tn $N's injuries!", FALSE, ch, 0, vict, TO_NOTVICT);
 
   if (HAS_FEAT(ch, FEAT_FAST_HEALER))
-    attach_mud_event(new_mud_event(eTREATINJURY, ch, NULL), (10 * SECS_PER_MUD_HOUR));
+    attach_mud_event(new_mud_event(eTREATINJURY, ch, NULL), ((long)10 * SECS_PER_MUD_HOUR));
   else
-    attach_mud_event(new_mud_event(eTREATINJURY, ch, NULL), (20 * SECS_PER_MUD_HOUR));
+    attach_mud_event(new_mud_event(eTREATINJURY, ch, NULL), ((long)20 * SECS_PER_MUD_HOUR));
 
   /* first attempt to recover lost health */
   if (GET_MAX_HIT(vict) != GET_HIT(vict))
@@ -10313,7 +10314,7 @@ ACMD(do_radiantaura)
     /* Start the periodic damage event - triggers every 6 seconds (1 round) */
     if (!char_has_mud_event(ch, eRADIANT_AURA))
     {
-      attach_mud_event(new_mud_event(eRADIANT_AURA, ch, NULL), 6 * PASSES_PER_SEC);
+      attach_mud_event(new_mud_event(eRADIANT_AURA, ch, NULL), (long)6 * PASSES_PER_SEC);
     }
   }
 }
@@ -10383,7 +10384,7 @@ MUD_EVENT_CALLBACK(event_radiant_aura)
   }
 
   /* Continue the event every 6 seconds */
-  return 6 * PASSES_PER_SEC;
+  return (long)6 * PASSES_PER_SEC;
 }
 
 /* drow faerie fire engine */
@@ -13997,7 +13998,7 @@ ACMDU(do_inexorable_judgment)
   }
 
   USE_STANDARD_ACTION(ch);
-  attach_mud_event(new_mud_event(eINEXORABLE_JUDGMENT_USED, ch, NULL), SECS_PER_MUD_DAY);
+  attach_mud_event(new_mud_event(eINEXORABLE_JUDGMENT_USED, ch, NULL), (long)SECS_PER_MUD_DAY);
 }
 
 /* Favored Terrain: choose a terrain type for passive bonuses */
@@ -14616,7 +14617,7 @@ ACMD(do_stampede)
 
   send_to_char(ch, "\tWYou lower your head and stampede through your foes!\tn\r\n");
   act("$n lowers $s head and stampedes through the melee!", FALSE, ch, 0, 0, TO_ROOM);
-  attach_mud_event(new_mud_event(eSTAMPEDE, ch, NULL), 3 * PULSE_VIOLENCE);
+  attach_mud_event(new_mud_event(eSTAMPEDE, ch, NULL), (long)3 * (long)PULSE_VIOLENCE);
   USE_FULL_ROUND_ACTION(ch);
 
   for (tch = world[room].people; tch != NULL; tch = next_tch)
@@ -15330,7 +15331,7 @@ ACMD(do_evobreath)
 
   cooldown -= MAX(0, num_evo_breaths(ch) - 1) * 18;
 
-  attach_mud_event(new_mud_event(eEVOBREATH, ch, NULL), cooldown * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eEVOBREATH, ch, NULL), (long)cooldown * PASSES_PER_SEC);
   USE_STANDARD_ACTION(ch);
 }
 
@@ -15836,7 +15837,7 @@ ACMD(do_curtain_call)
   }
 
   /* Set cooldown: 5 minutes = 300 seconds */
-  attach_mud_event(new_mud_event(eCURTAIN_CALL_COOLDOWN, ch, NULL), 300 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eCURTAIN_CALL_COOLDOWN, ch, NULL), (long)300 * PASSES_PER_SEC);
 
   USE_STANDARD_ACTION(ch);
 }
@@ -16674,7 +16675,8 @@ ACMD(do_masscurewounds)
   else
   {
     /* Create new event that lasts 1 MUD day */
-    attach_mud_event(new_mud_event(eMASS_CURE_WOUNDS, ch, "1"), SECS_PER_MUD_DAY * PASSES_PER_SEC);
+    attach_mud_event(new_mud_event(eMASS_CURE_WOUNDS, ch, "1"),
+                     (long)SECS_PER_MUD_DAY * PASSES_PER_SEC);
   }
 }
 

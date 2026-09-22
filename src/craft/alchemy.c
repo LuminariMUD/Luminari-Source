@@ -2495,7 +2495,7 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
     set_perk_toggle(ch, PERK_ALCHEMIST_UNIVERSAL_MUTAGEN, FALSE);
 
     /* start 30-minute universal mutagen lockout */
-    attach_mud_event(new_mud_event(eUNIVERSAL_MUTAGEN_COOLDOWN, ch, NULL), 30 * 60 RL_SEC);
+    attach_mud_event(new_mud_event(eUNIVERSAL_MUTAGEN_COOLDOWN, ch, NULL), (long)30 * 60 RL_SEC);
   }
 
 

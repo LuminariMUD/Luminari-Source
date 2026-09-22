@@ -2145,7 +2145,8 @@ static int calculate_metamagic_modifier(struct char_data *ch, int char_class, in
       has_inquisitor_spell_metamastery(ch) && !char_has_mud_event(ch, eSPELL_METAMASTERY_USED))
   {
     metamagic_mod = 0;
-    attach_mud_event(new_mud_event(eSPELL_METAMASTERY_USED, ch, NULL), 5 * 60 * PASSES_PER_SEC);
+    attach_mud_event(new_mud_event(eSPELL_METAMASTERY_USED, ch, NULL),
+                     (long)5 * 60 * PASSES_PER_SEC);
     send_to_char(
         ch,
         "\tYYou focus your Spell Metamastery to ignore metamagic strain for this casting.\tn\r\n");
@@ -2861,7 +2862,7 @@ void start_prep_event(struct char_data *ch, int class)
   if (!char_has_mud_event(ch, ePREPARATION))
   {
     snprintf(buf, sizeof(buf), "%d", class); /* carry our class as the svar */
-    NEW_EVENT(ePREPARATION, ch, buf, (1 * PASSES_PER_SEC));
+    NEW_EVENT(ePREPARATION, ch, buf, ((long)1 * PASSES_PER_SEC));
   }
 }
 
@@ -3360,7 +3361,8 @@ static int spell_prep_resource(struct char_data *ch, int spellnum, int metamagic
       if (ch_class == CLASS_INQUISITOR && has_inquisitor_supreme_spellcasting(ch) &&
           !char_has_mud_event(ch, eSUPREME_SPELLCASTING_USED))
       {
-        attach_mud_event(new_mud_event(eSUPREME_SPELLCASTING_USED, ch, NULL), SECS_PER_MUD_DAY);
+        attach_mud_event(new_mud_event(eSUPREME_SPELLCASTING_USED, ch, NULL),
+                         (long)SECS_PER_MUD_DAY);
         send_to_char(ch, "\tY[Supreme Spellcasting]:\tn You cast this spell without expending the "
                          "prepared slot!\r\n");
         return ch_class; /* keep spell prepared */
@@ -3428,7 +3430,8 @@ static int spell_prep_resource(struct char_data *ch, int spellnum, int metamagic
       if (ch_class == CLASS_INQUISITOR && has_inquisitor_supreme_spellcasting(ch) &&
           !char_has_mud_event(ch, eSUPREME_SPELLCASTING_USED))
       {
-        attach_mud_event(new_mud_event(eSUPREME_SPELLCASTING_USED, ch, NULL), SECS_PER_MUD_DAY);
+        attach_mud_event(new_mud_event(eSUPREME_SPELLCASTING_USED, ch, NULL),
+                         (long)SECS_PER_MUD_DAY);
         send_to_char(ch, "\tY[Supreme Spellcasting]:\tn You cast this spell without expending a "
                          "spell slot!\r\n");
         return ch_class; /* slot preserved */
@@ -4988,7 +4991,7 @@ MUD_EVENT_CALLBACK(event_preparation)
   if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND))
     return ((1 * PASSES_PER_SEC) / 2); /* Double speed preparation */
 
-  return (1 * PASSES_PER_SEC); /* Normal speed - continue next second */
+  return ((long)1 * PASSES_PER_SEC); /* Normal speed - continue next second */
 }
 
 /* END event-related */

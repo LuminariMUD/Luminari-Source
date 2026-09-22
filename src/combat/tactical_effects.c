@@ -133,7 +133,7 @@ int tactical_defense_remaining(struct char_data *ch)
   else if (ch->player_specials->saved.defensive_casting_pulses > 0)
     remaining = ch->player_specials->saved.defensive_casting_pulses;
   else
-    remaining = (uint64_t)GET_DEFENSIVE_CASTING_TIMER(ch) * DEFENSE_ROUND_PULSES;
+    remaining = (uint64_t)GET_DEFENSIVE_CASTING_TIMER(ch) * (uint64_t)DEFENSE_ROUND_PULSES;
   return remaining > INT_MAX ? INT_MAX : (int)remaining;
 }
 
@@ -267,7 +267,7 @@ int tactical_bleeding_remaining(struct char_data *ch)
       extra_turns = ch->bleeding_critical_turn - snapshot.turn_serial - 1U;
       if (extra_turns > INT_MAX / DEFENSE_ROUND_PULSES)
         return INT_MAX;
-      remaining = snapshot.pulses_until_next_turn + extra_turns * DEFENSE_ROUND_PULSES;
+      remaining = snapshot.pulses_until_next_turn + extra_turns * (uint64_t)DEFENSE_ROUND_PULSES;
     }
   }
   else if (ch->bleeding_critical_due != 0U)
@@ -371,7 +371,7 @@ static struct char_data *bleeding_step(struct char_data *ch)
     af->duration--;
     /* Publish/save callbacks must see the next interval, never a due tick that
      * has already been charged. */
-    ch->bleeding_critical_due = (uint64_t)pulse + DEFENSE_ROUND_PULSES;
+    ch->bleeding_critical_due = (uint64_t)pulse + (uint64_t)DEFENSE_ROUND_PULSES;
     if (ch->bleeding_critical_turn != 0U)
       ch->bleeding_critical_turn = ch->combat_turn_serial + 1U;
     damage(ch, ch, amount, TYPE_SUFFERING, DAM_BLEEDING, TYPE_SPECAB_BLEEDING);
@@ -417,8 +417,8 @@ static struct game_event_result bleeding_tick(const struct game_event_context *c
     ch->bleeding_critical_pulses = 0;
     return game_event_result_complete();
   }
-  ch->bleeding_critical_due = (uint64_t)pulse + DEFENSE_ROUND_PULSES;
-  return game_event_result_reschedule_after(DEFENSE_ROUND_PULSES);
+  ch->bleeding_critical_due = (uint64_t)pulse + (uint64_t)DEFENSE_ROUND_PULSES;
+  return game_event_result_reschedule_after((game_tick_t)DEFENSE_ROUND_PULSES);
 }
 
 bool tactical_bleeding_on_turn_end(struct char_data *ch)
@@ -437,7 +437,7 @@ bool tactical_bleeding_on_turn_end(struct char_data *ch)
     if (combat_encounter_semantic_manages(ch) && ch->combat_turn_serial < UINT64_MAX - 1U)
     {
       ch->bleeding_critical_turn = ch->combat_turn_serial + 1U;
-      ch->bleeding_critical_due = (uint64_t)pulse + DEFENSE_ROUND_PULSES;
+      ch->bleeding_critical_due = (uint64_t)pulse + (uint64_t)DEFENSE_ROUND_PULSES;
     }
     else
     {
@@ -508,7 +508,7 @@ static bool billowing_source_active(const struct raff_node *source)
     return false;
   if (!source->lifetime_initialized)
     return true;
-  round = (uint64_t)pulse / PULSE_VIOLENCE;
+  round = (uint64_t)pulse / (uint64_t)PULSE_VIOLENCE;
   elapsed = round > source->lifetime_round ? round - source->lifetime_round : 0U;
   return elapsed < (uint64_t)source->timer;
 }
@@ -626,7 +626,7 @@ static void apply_billowing_exposure(struct raff_node *source, struct char_data 
     return;
   old_event = exposure->event;
   exposure->event = EVENT_RUNTIME_HANDLE_NONE;
-  exposure->next_due = (uint64_t)pulse + DEFENSE_ROUND_PULSES;
+  exposure->next_due = (uint64_t)pulse + (uint64_t)DEFENSE_ROUND_PULSES;
   if (!event_runtime_handle_is_none(old_event))
     (void)event_runtime_cancel(old_event);
 #ifdef LUMINARI_CUTEST

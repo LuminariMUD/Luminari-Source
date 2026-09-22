@@ -4431,7 +4431,8 @@ void clean_pfiles(void)
         for (ci = 0; pclean_criteria[ci].level > -1; ci++)
         {
           if (player_table[i].level <= pclean_criteria[ci].level &&
-              ((time(0) - player_table[i].last) > (pclean_criteria[ci].days * SECS_PER_REAL_DAY)))
+              ((time(0) - player_table[i].last) >
+               ((time_t)pclean_criteria[ci].days * (time_t)SECS_PER_REAL_DAY)))
           {
             remove_player(i);
             break;
@@ -4631,7 +4632,7 @@ static void load_perk_toggles(FILE *fl, struct char_data *ch)
     /* Read each pair of hex digits as a byte */
     for (i = 0; i < 32; i++)
     {
-      if (sscanf(line + (i * 2), "%2x", &value) == 1)
+      if (sscanf(line + ((ptrdiff_t)i * 2), "%2x", &value) == 1)
       {
         ch->player_specials->saved.perk_toggles[i] = (byte)value;
       }

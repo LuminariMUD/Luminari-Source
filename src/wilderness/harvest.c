@@ -745,7 +745,7 @@ static int start_harvest(struct char_data *ch, int category, int material)
   definition.progress_model = PRIMARY_ACTIVITY_PROGRESS_ATOMIC;
   definition.progress_owner = PRIMARY_ACTIVITY_PROGRESS_CHARACTER;
   definition.total_steps = 1U;
-  definition.step_interval = PULSE_VIOLENCE;
+  definition.step_interval = (long)PULSE_VIOLENCE;
   definition.combat_actions_required = ACTION_STANDARD | ACTION_MOVE;
   definition.movement_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
   definition.damage_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;

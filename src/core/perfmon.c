@@ -4146,9 +4146,9 @@ size_t PERF_memory_repr(char *out_buf, size_t n)
   event_delta = (int64_t)cur.count_events - (int64_t)reset_memory_stats.count_events;
 
   PERF_memory_growth_rate(&rss_rate, &anon_rate, &heap_rate);
-  has_short_slope = calculate_memory_slope(15 * 60, &short_slope);
-  has_medium_slope = calculate_memory_slope(60 * 60, &medium_slope);
-  has_long_slope = calculate_memory_slope(6 * 60 * 60, &long_slope);
+  has_short_slope = calculate_memory_slope((uint64_t)15 * 60, &short_slope);
+  has_medium_slope = calculate_memory_slope((uint64_t)60 * 60, &medium_slope);
+  has_long_slope = calculate_memory_slope((uint64_t)6 * 60 * 60, &long_slope);
   explained_heap_kib =
       ((double)mob_delta * sizeof(struct char_data) + (double)obj_delta * sizeof(struct obj_data)) /
       1024.0;
@@ -4159,7 +4159,7 @@ size_t PERF_memory_repr(char *out_buf, size_t n)
 
   if (cur.vm_swap_kib > 0 && cur.vm_rss_kib > 0)
     assessment = "CRITICAL HEADROOM";
-  else if (reset_elapsed_sec < 15 * 60)
+  else if (reset_elapsed_sec < (uint64_t)15 * 60)
     assessment = "WARMING";
   else if (has_short_slope && short_slope.anon_kib_per_min > 200.0)
   {
@@ -4482,7 +4482,7 @@ int PERF_write_copyover_snapshot(const char *path)
     return 0;
   }
   temp_path = malloc(path_length + 5);
-  buffer = malloc(COPYOVER_SNAPSHOT_BUFFER_SIZE);
+  buffer = malloc((size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE);
   if (temp_path == NULL || buffer == NULL)
   {
     errno = ENOMEM;
@@ -4516,71 +4516,72 @@ int PERF_write_copyover_snapshot(const char *path)
     goto fail;
   }
 
-  written = PERF_repr(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE);
-  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+  written = PERF_repr(buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE);
+  if (!perf_snapshot_write_report(snapshot, buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
                                   "health_summary"))
   {
     failure = "write health summary";
     goto fail;
   }
-  written = persistence_scheduler_repr(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE);
-  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+  written = persistence_scheduler_repr(buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE);
+  if (!perf_snapshot_write_report(snapshot, buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
                                   "persistence_scheduler"))
   {
     failure = "write persistence scheduler";
     goto fail;
   }
-  written = PERF_prof_repr_top(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, "max", 20);
-  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+  written = PERF_prof_repr_top(buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, "max", 20);
+  if (!perf_snapshot_write_report(snapshot, buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
                                   "top_max"))
   {
     failure = "write maximum ranking";
     goto fail;
   }
-  written = PERF_prof_repr_top(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, "p99", 20);
-  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+  written = PERF_prof_repr_top(buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, "p99", 20);
+  if (!perf_snapshot_write_report(snapshot, buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
                                   "top_p99"))
   {
     failure = "write p99 ranking";
     goto fail;
   }
-  written = PERF_prof_repr_csv(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE);
-  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+  written = PERF_prof_repr_csv(buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE);
+  if (!perf_snapshot_write_report(snapshot, buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
                                   "profiling_csv"))
   {
     failure = "write profiling CSV";
     goto fail;
   }
-  written = PERF_sql_repr(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, TRUE);
-  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+  written = PERF_sql_repr(buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, TRUE);
+  if (!perf_snapshot_write_report(snapshot, buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
                                   "sql_csv"))
   {
     failure = "write SQL CSV";
     goto fail;
   }
-  written = PERF_slow_repr(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, 128, TRUE);
-  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+  written = PERF_slow_repr(buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, 128, TRUE);
+  if (!perf_snapshot_write_report(snapshot, buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
                                   "slow_pulses_csv"))
   {
     failure = "write slow-pulse CSV";
     goto fail;
   }
-  written = PERF_combat_repr(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, 64, TRUE);
-  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+  written = PERF_combat_repr(buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, 64, TRUE);
+  if (!perf_snapshot_write_report(snapshot, buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
                                   "combat_csv"))
   {
     failure = "write combat CSV";
     goto fail;
   }
-  written = perf_memory_csv_with_current(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, &memory_snapshot);
-  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+  written =
+      perf_memory_csv_with_current(buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, &memory_snapshot);
+  if (!perf_snapshot_write_report(snapshot, buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
                                   "memory_csv"))
   {
     failure = "write memory CSV";
     goto fail;
   }
-  written = PERF_entities_repr(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, TRUE);
-  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+  written = PERF_entities_repr(buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, TRUE);
+  if (!perf_snapshot_write_report(snapshot, buffer, (size_t)COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
                                   "entities_csv"))
   {
     failure = "write entity CSV";

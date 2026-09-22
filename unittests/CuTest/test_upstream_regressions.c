@@ -2166,18 +2166,19 @@ void Test_upstream_time_helpers(CuTest *tc)
   struct time_info_data *elapsed;
   time_t base = 1000000;
 
-  elapsed = real_time_passed(base + 3 * SECS_PER_REAL_HOUR, base);
+  elapsed = real_time_passed(base + (time_t)3 * (time_t)SECS_PER_REAL_HOUR, base);
   CuAssertIntEquals(tc, 3, elapsed->hours);
   CuAssertIntEquals(tc, 0, elapsed->day);
-  elapsed = real_time_passed(base + 2 * SECS_PER_REAL_DAY + SECS_PER_REAL_HOUR, base);
+  elapsed = real_time_passed(
+      base + (time_t)2 * (time_t)SECS_PER_REAL_DAY + (time_t)SECS_PER_REAL_HOUR, base);
   CuAssertIntEquals(tc, 1, elapsed->hours);
   CuAssertIntEquals(tc, 2, elapsed->day);
 
-  elapsed = mud_time_passed(base + 2 * SECS_PER_MUD_HOUR, base);
+  elapsed = mud_time_passed(base + (time_t)2 * SECS_PER_MUD_HOUR, base);
   CuAssertIntEquals(tc, 2, elapsed->hours);
-  elapsed = mud_time_passed(base + SECS_PER_MUD_DAY, base);
+  elapsed = mud_time_passed(base + (time_t)SECS_PER_MUD_DAY, base);
   CuAssertIntEquals(tc, 1, elapsed->day);
-  elapsed = mud_time_passed(base + SECS_PER_MUD_MONTH, base);
+  elapsed = mud_time_passed(base + (time_t)SECS_PER_MUD_MONTH, base);
   CuAssertIntEquals(tc, 1, elapsed->month);
 }
 

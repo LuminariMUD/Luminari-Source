@@ -100,7 +100,7 @@ void Test_pet_lifetime_deadline_survives_save_and_restores_a_fresh_event(CuTest 
 
   begin_lifetime_pet(&source);
   begin_lifetime_pet(&restored);
-  attach_mud_event(new_mud_event(ePURGEMOB, &source, NULL), 90 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(ePURGEMOB, &source, NULL), (long)90 * PASSES_PER_SEC);
   now = (long long)time(NULL);
 
   first = serialize_pet_runtime_state_for_test(&source);
@@ -268,7 +268,7 @@ void Test_pet_lifetime_status_reports_each_policy(CuTest *tc)
   timed_control =
       pet_lifetime_kind(&pet) == PET_LIFETIME_CONTROL && strstr(status, "timed control") != NULL;
 
-  attach_mud_event(new_mud_event(ePURGEMOB, &pet, NULL), 125 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(ePURGEMOB, &pet, NULL), (long)125 * PASSES_PER_SEC);
   pet_lifetime_status(&pet, status, sizeof(status));
   deadline = pet_lifetime_kind(&pet) == PET_LIFETIME_DEADLINE &&
              strstr(status, "expires in 2m") != NULL && strstr(status, "real time") != NULL;
@@ -331,7 +331,7 @@ void Test_pet_lifetime_session_summons_are_never_saved(CuTest *tc)
   timed_control_kept =
       pet_lifetime_kind(&summon) == PET_LIFETIME_CONTROL && pet_keeper_accepts(&summon);
 
-  attach_mud_event(new_mud_event(ePURGEMOB, &summon, NULL), 60 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(ePURGEMOB, &summon, NULL), (long)60 * PASSES_PER_SEC);
   deadline_not_boarded = pet_lifetime_kind(&summon) == PET_LIFETIME_DEADLINE &&
                          pet_lifetime_persists(&summon) && !pet_keeper_accepts(&summon);
 

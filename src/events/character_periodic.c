@@ -221,17 +221,17 @@ static long next_owner_delay(struct char_data *ch)
       delay = candidate;
     if (!IS_NPC(ch))
     {
-      candidate = cadence_delay(ch, PULSE_HINTS);
+      candidate = cadence_delay(ch, (long)PULSE_HINTS);
       if (candidate < delay)
         delay = candidate;
     }
   }
   if (is_in_world(ch))
   {
-    candidate = cadence_delay(ch, PULSE_LUMINARI);
+    candidate = cadence_delay(ch, (long)PULSE_LUMINARI);
     if (candidate < delay)
       delay = candidate;
-    candidate = cadence_delay(ch, PULSE_VIOLENCE);
+    candidate = cadence_delay(ch, (long)PULSE_VIOLENCE);
     if (candidate < delay)
       delay = candidate;
   }
@@ -252,7 +252,7 @@ static long next_owner_delay(struct char_data *ch)
   }
   if (IS_PERFORMING(ch))
   {
-    candidate = cadence_delay(ch, PULSE_VERSE_INTERVAL);
+    candidate = cadence_delay(ch, (long)PULSE_VERSE_INTERVAL);
     if (candidate < delay)
       delay = candidate;
   }
@@ -374,25 +374,25 @@ static bool dispatch_due_work(struct char_data *ch, unsigned long earliest_due)
     regen_psp_one(ch);
   }
   if (callback_owner_still_live() && is_in_world(ch) &&
-      cadence_due(ch, PULSE_LUMINARI, earliest_due))
+      cadence_due(ch, (long)PULSE_LUMINARI, earliest_due))
   {
     luminari_executions++;
     process_character_environment_and_recovery(ch);
   }
   if (callback_owner_still_live() && IS_PERFORMING(ch) &&
-      cadence_due(ch, PULSE_VERSE_INTERVAL, earliest_due))
+      cadence_due(ch, (long)PULSE_VERSE_INTERVAL, earliest_due))
   {
     bardic_executions++;
     advance_bardic_performance(ch);
   }
   if (callback_owner_still_live() && ch->desc != NULL && !IS_NPC(ch) &&
-      cadence_due(ch, PULSE_HINTS, earliest_due))
+      cadence_due(ch, (long)PULSE_HINTS, earliest_due))
   {
     hint_executions++;
     show_hint_one(ch);
   }
   if (callback_owner_still_live() && is_in_world(ch) &&
-      cadence_due(ch, PULSE_VIOLENCE, earliest_due))
+      cadence_due(ch, (long)PULSE_VIOLENCE, earliest_due))
   {
     d20_round_executions++;
     proc_d20_round_one(ch);
@@ -400,13 +400,13 @@ static bool dispatch_due_work(struct char_data *ch, unsigned long earliest_due)
       character_periodic_forget(ch);
   }
   if (callback_owner_still_live() && is_in_world(ch) &&
-      cadence_due(ch, PULSE_VIOLENCE, earliest_due))
+      cadence_due(ch, (long)PULSE_VIOLENCE, earliest_due))
   {
     damage_effect_executions++;
     update_damage_and_effects_over_time_one(ch);
   }
   if (callback_owner_still_live() && ch->desc != NULL && is_in_world(ch) &&
-      cadence_due(ch, PULSE_VIOLENCE, earliest_due))
+      cadence_due(ch, (long)PULSE_VIOLENCE, earliest_due))
   {
     player_misc_executions++;
     update_player_misc_one(ch);

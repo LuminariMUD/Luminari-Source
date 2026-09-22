@@ -254,7 +254,7 @@ void Test_gameplay_save_captures_charge_cadence_before_unequipping(CuTest *tc)
   top_of_p_table = saved_top;
   CuAssertTrue(tc, saved);
   CuAssertIntEquals(tc, 20, equipped_charisma);
-  CuAssertTrue(tc, saved_cadence == (SECS_PER_MUD_DAY / 8) * PASSES_PER_SEC);
+  CuAssertTrue(tc, saved_cadence == (long long)(SECS_PER_MUD_DAY / 8) * PASSES_PER_SEC);
 }
 
 /* Copyover uses this same mode-zero pfile save and native load path. */
@@ -296,7 +296,7 @@ void Test_gameplay_pet_cooldowns_survive_character_save_and_load(CuTest *tc)
     attach_mud_event(
         new_mud_event(types[i], ch,
                       policy->payload_policy == MUD_EVENT_PAYLOAD_USES ? "uses:1" : NULL),
-        300 * PASSES_PER_SEC);
+        (long)300 * PASSES_PER_SEC);
   }
   CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
   enter_player_fixture(tc, temporary_directory);
@@ -315,7 +315,7 @@ void Test_gameplay_pet_cooldowns_survive_character_save_and_load(CuTest *tc)
       continue;
     }
     remaining = mud_event_remaining(event);
-    retained = retained && remaining > 0 && remaining <= 300 * PASSES_PER_SEC;
+    retained = retained && remaining > 0 && remaining <= (long)300 * PASSES_PER_SEC;
     policy = mud_event_persistence_policy(types[i]);
     if (policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
       retained = retained && event->sVariables != NULL && !strcmp(event->sVariables, "uses:1");
@@ -3640,7 +3640,7 @@ static bool verify_authored_constructs(const char *sandbox, char *error, size_t 
   if (ch->followers->follower != pet || ch->followers->next != NULL ||
       cast_spell(ch, ch, NULL, SPELL_MISLEAD, 0) != 0)
     return false;
-  pulse += 120 * PASSES_PER_SEC;
+  pulse += (unsigned long)120 * PASSES_PER_SEC;
   event_test_advance();
   extract_pending_chars();
   if (ch->followers != NULL)
@@ -4332,7 +4332,7 @@ static bool verify_authored_lycanthropes(const char *sandbox, char *error, size_
     if (GET_OBJ_VAL(wand, 2) != 1 || owner->followers->follower != pet ||
         owner->followers->next != NULL)
       return false;
-    pulse += 30 * PASSES_PER_SEC;
+    pulse += (unsigned long)30 * PASSES_PER_SEC;
     event_test_advance();
     extract_pending_chars();
     if (owner->followers != NULL)
@@ -4412,7 +4412,7 @@ void Test_gameplay_lycanthrope_admission_expiry_and_control_break(CuTest *tc)
         }
         circle_srandom(seed);
       }
-      pulse += 30 * PASSES_PER_SEC;
+      pulse += (unsigned long)30 * PASSES_PER_SEC;
       event_test_advance();
       extract_pending_chars();
       pet = domain_event_world_resolve_character(pet_handle);
@@ -5795,10 +5795,10 @@ static void verify_expiring_pet_assets(CuTest *tc, int mode)
     char_from_room(&fixture.actor);
     char_to_room(&fixture.actor, 1);
     if (mode == 1)
-      attach_mud_event(new_mud_event(ePURGEMOB, charmie, NULL), 12 * PASSES_PER_SEC);
+      attach_mud_event(new_mud_event(ePURGEMOB, charmie, NULL), (long)12 * PASSES_PER_SEC);
     else
       stop_follower(charmie);
-    pulse += 12 * PASSES_PER_SEC;
+    pulse += (unsigned long)12 * PASSES_PER_SEC;
     event_test_advance();
   }
   extract_pending_chars();
@@ -7202,7 +7202,7 @@ static void verify_owned_craft_lifecycle(CuTest *tc, bool move_instead)
   if (!move_instead)
   {
     /* Offline time does not advance CrDu, and login reconstructs an owned timer. */
-    pulse += 20 * PASSES_PER_SEC;
+    pulse += (unsigned long)20 * PASSES_PER_SEC;
     event_test_advance();
     resume_craft_activity(&f.actor);
     pulse += PASSES_PER_SEC;
@@ -7294,7 +7294,7 @@ static void verify_native_transport(CuTest *tc, int mode)
   activity.type = PRIMARY_ACTIVITY_TEST;
   activity.display_name = "passenger activity";
   activity.total_steps = 100;
-  activity.step_interval = 100 * PASSES_PER_SEC;
+  activity.step_interval = (long)100 * PASSES_PER_SEC;
   primary_allowed = primary_activity_start(&f.actor, domain_event_room_handle(1), &activity);
   pulse += PASSES_PER_SEC;
   event_test_advance();
@@ -7303,7 +7303,7 @@ static void verify_native_transport(CuTest *tc, int mode)
   {
     transport_job_cancel(&f.actor, true);
     f.actor.desc = NULL;
-    pulse += 20 * PASSES_PER_SEC;
+    pulse += (unsigned long)20 * PASSES_PER_SEC;
     event_test_advance();
     paused = transport_remaining_seconds(&f.actor) == 2 && IN_ROOM(&f.actor) == 1;
     f.actor.desc = &descriptor;
@@ -7316,7 +7316,7 @@ static void verify_native_transport(CuTest *tc, int mode)
   }
   else if (mode == 3)
     f.rooms[0].event_owner_generation++;
-  pulse += 2 * PASSES_PER_SEC;
+  pulse += (unsigned long)2 * PASSES_PER_SEC;
   event_test_advance();
   destination = IN_ROOM(&f.actor);
   event_runtime_find_type("transport.arrival", &type);
@@ -7725,7 +7725,7 @@ static void verify_staff_agenda_lifecycle(CuTest *tc, int mode)
   staffevent_data.event_num = UNDEFINED_EVENT;
   staffevent_data.ticks_left = staffevent_data.delay = 0;
   event_free_all();
-  pulse = 10 * PASSES_PER_SEC;
+  pulse = (unsigned long)10 * PASSES_PER_SEC;
   event_init();
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   duration_ticks = (2 * SECS_PER_MUD_HOUR - 10) * PASSES_PER_SEC;
@@ -8019,7 +8019,7 @@ static void verify_counterspell_reaction(CuTest *tc, int scenario)
                                                  PRIMARY_ACTIVITY_END_COUNTERED, false));
   }
   if (scenario == 3 || scenario == 12)
-    pulse += (CASTING_TIME(&f.victim) + 1U) * PASSES_PER_SEC;
+    pulse += (unsigned long)(CASTING_TIME(&f.victim) + 1U) * PASSES_PER_SEC;
   else
     pulse++;
   event_test_advance();
@@ -9906,7 +9906,7 @@ void Test_gameplay_npc_phenomenon_interest_replaces_expires_and_investigates(CuT
   event_test_advance();
   CuAssertIntEquals(tc, 2, trace.started);
   CuAssertTrue(tc, AFF_FLAGGED(&fixture.actor, AFF_TOTAL_DEFENSE));
-  for (count = 0U; count < 30U * PASSES_PER_SEC; count++)
+  for (count = 0U; count < (unsigned long)30U * PASSES_PER_SEC; count++)
   {
     pulse++;
     event_test_advance();
@@ -9992,7 +9992,7 @@ void Test_gameplay_search_commits_after_owned_work_and_cancels_on_movement(CuTes
   char_to_room_cause(&fixture.actor, 0, NULL, DOMAIN_RELOCATION_WALK, SOUTH);
   do_search(&fixture.actor, "", 0, 0);
   CuAssertTrue(tc, primary_activity_snapshot(&fixture.actor, &snapshot));
-  pulse += PULSE_VIOLENCE;
+  pulse += (unsigned long)PULSE_VIOLENCE;
   event_test_advance();
   CuAssertTrue(tc, !primary_activity_snapshot(&fixture.actor, &snapshot));
   CuAssertTrue(tc, !EXIT_FLAGGED(&fixture.exits[0], EX_HIDDEN));
@@ -13206,7 +13206,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   do_harvest(&fixture.actor, "satin", 0, 0);
   fixture.actor.carrying = NULL;
   circle_srandom(poor_seed);
-  pulse += PULSE_VIOLENCE;
+  pulse += (unsigned long)PULSE_VIOLENCE;
   event_test_advance();
   result[3] = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before &&
               strstr(descriptor.output, "beyond your reach") != NULL;
@@ -13223,7 +13223,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
     snprintf(gather_command, sizeof(gather_command), "%s", crafting_materials[cloth_by_grade[i]]);
     do_wilderness_gather(&fixture.actor, gather_command, 0, 0);
     circle_srandom(poor_seed);
-    pulse += PULSE_VIOLENCE;
+    pulse += (unsigned long)PULSE_VIOLENCE;
     event_test_advance();
     result[4] = result[4] && GET_CRAFT_MAT((&fixture.actor), cloth_by_grade[i]) > before;
     GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_GATHERING) = 0;
@@ -13233,7 +13233,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
   do_harvest(&fixture.actor, "satin", 0, 0);
   circle_srandom(legendary_seed);
-  pulse += PULSE_VIOLENCE;
+  pulse += (unsigned long)PULSE_VIOLENCE;
   event_test_advance();
   result[4] = result[4] && GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) > before;
   reset_harvest_fixture_output(&descriptor, database);
@@ -13260,7 +13260,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
   do_harvest(&fixture.actor, "satin", 0, 0);
   circle_srandom(failure_seed);
-  pulse += PULSE_VIOLENCE;
+  pulse += (unsigned long)PULSE_VIOLENCE;
   event_test_advance();
   result[5] = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before &&
               strstr(descriptor.output, "fail to harvest") != NULL;
@@ -13283,7 +13283,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   X_LOC(&fixture.actor) = fixture.rooms[1].coords[0];
   Y_LOC(&fixture.actor) = fixture.rooms[1].coords[1];
   char_to_room_cause(&fixture.actor, 1, NULL, DOMAIN_RELOCATION_WALK, NORTH);
-  pulse += PULSE_VIOLENCE;
+  pulse += (unsigned long)PULSE_VIOLENCE;
   event_test_advance();
   result[6] = !primary_activity_snapshot(&fixture.actor, &snapshot) &&
               GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before;
@@ -13294,7 +13294,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   do_harvest(&fixture.actor, "satin", 0, 0);
   levels[RESOURCE_VEGETATION] = 0.0;
   cache_store_resource_values(x, y, levels);
-  pulse += PULSE_VIOLENCE;
+  pulse += (unsigned long)PULSE_VIOLENCE;
   event_test_advance();
   result[6] = result[6] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
               GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before;
@@ -13311,7 +13311,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_GATHERING) = 0;
   do_harvest(&fixture.actor, "satin", 0, 0);
   circle_srandom(poor_seed);
-  pulse += PULSE_VIOLENCE;
+  pulse += (unsigned long)PULSE_VIOLENCE;
   event_test_advance();
   result[11] = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == INT_MAX &&
                GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_GATHERING) == 0 &&
@@ -13333,7 +13333,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
       domain_event_runtime_combat_state_changed(&fixture.actor, &fixture.victim, true);
     else
       primary_activity_cancel(&fixture.actor, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false);
-    pulse += PULSE_VIOLENCE;
+    pulse += (unsigned long)PULSE_VIOLENCE;
     event_test_advance();
     result[12] = result[12] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
                  GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before;
@@ -13349,7 +13349,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
              "depletion_level) VALUES (0,%d,%d,%d,0)",
              x, y, RESOURCE_VEGETATION);
     result[13] = mysql_query(database, query) == 0;
-    pulse += PULSE_VIOLENCE;
+    pulse += (unsigned long)PULSE_VIOLENCE;
     event_test_advance();
     result[13] = result[13] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
                  GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before;
@@ -13379,7 +13379,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   result[18] = primary_activity_snapshot(&fixture.actor, &snapshot) &&
                GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_COPPER) == before;
   circle_srandom(poor_seed);
-  pulse += PULSE_VIOLENCE;
+  pulse += (unsigned long)PULSE_VIOLENCE;
   event_test_advance();
   result[18] = result[18] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
                GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_COPPER) >= before + 2 &&
@@ -13390,7 +13390,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   do_wilderness_mine(&fixture.actor, "stone", 0, 0);
   result[14] = result[14] && primary_activity_snapshot(&fixture.actor, &snapshot);
   circle_srandom(poor_seed);
-  pulse += PULSE_VIOLENCE;
+  pulse += (unsigned long)PULSE_VIOLENCE;
   event_test_advance();
   result[14] = result[14] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
                GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_STONE) > before &&
@@ -13404,7 +13404,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_MITHRIL);
   do_harvest(&fixture.actor, "mithril", 0, 0);
   circle_srandom(strong_poor_seed);
-  pulse += PULSE_VIOLENCE;
+  pulse += (unsigned long)PULSE_VIOLENCE;
   event_test_advance();
   result[19] = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_MITHRIL) > before;
   reset_harvest_fixture_output(&descriptor, database);
@@ -13412,7 +13412,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_MITHRIL);
   do_harvest(&fixture.actor, "mithril", 0, 0);
   circle_srandom(strong_poor_seed);
-  pulse += PULSE_VIOLENCE;
+  pulse += (unsigned long)PULSE_VIOLENCE;
   event_test_advance();
   result[19] = result[19] && GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_MITHRIL) == before &&
                strstr(descriptor.output, "beyond your reach") != NULL;
@@ -13533,7 +13533,7 @@ void Test_node_harvest_credits_at_completion_and_never_pays_for_cancelling(CuTes
   {                                                                                                \
     for (i = 0; i < (steps); i++)                                                                  \
     {                                                                                              \
-      pulse += PULSE_VIOLENCE;                                                                     \
+      pulse += (unsigned long)PULSE_VIOLENCE;                                                      \
       event_test_advance();                                                                        \
     }                                                                                              \
   } while (0)

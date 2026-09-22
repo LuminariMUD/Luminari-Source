@@ -2216,27 +2216,27 @@ void perform_call(struct char_data *ch, int call_type, int level)
   /* finally attach cooldown, approximately 14 minutes right now */
   if (call_type == MOB_C_ANIMAL)
   {
-    attach_mud_event(new_mud_event(eC_ANIMAL, ch, NULL), 4 * SECS_PER_MUD_DAY);
+    attach_mud_event(new_mud_event(eC_ANIMAL, ch, NULL), (long)4 * (long)SECS_PER_MUD_DAY);
   }
   if (call_type == MOB_C_DRAGON)
   {
-    attach_mud_event(new_mud_event(eC_DRAGONMOUNT, ch, NULL), 4 * SECS_PER_MUD_DAY);
+    attach_mud_event(new_mud_event(eC_DRAGONMOUNT, ch, NULL), (long)4 * (long)SECS_PER_MUD_DAY);
   }
   else if (call_type == MOB_C_FAMILIAR)
   {
-    attach_mud_event(new_mud_event(eC_FAMILIAR, ch, NULL), 4 * SECS_PER_MUD_DAY);
+    attach_mud_event(new_mud_event(eC_FAMILIAR, ch, NULL), (long)4 * (long)SECS_PER_MUD_DAY);
   }
   else if (call_type == MOB_C_MOUNT)
   {
-    attach_mud_event(new_mud_event(eC_MOUNT, ch, NULL), 4 * SECS_PER_MUD_DAY);
+    attach_mud_event(new_mud_event(eC_MOUNT, ch, NULL), (long)4 * (long)SECS_PER_MUD_DAY);
   }
   else if (call_type == MOB_SHADOW)
   {
-    attach_mud_event(new_mud_event(eSUMMONSHADOW, ch, NULL), 4 * SECS_PER_MUD_DAY);
+    attach_mud_event(new_mud_event(eSUMMONSHADOW, ch, NULL), (long)4 * (long)SECS_PER_MUD_DAY);
   }
   else if (call_type == MOB_EIDOLON)
   {
-    attach_mud_event(new_mud_event(eC_EIDOLON, ch, NULL), 4 * SECS_PER_MUD_DAY);
+    attach_mud_event(new_mud_event(eC_EIDOLON, ch, NULL), (long)4 * (long)SECS_PER_MUD_DAY);
   }
 
   load_mtrigger(mob);
@@ -2496,8 +2496,8 @@ static void reduce_dismissed_companion_cooldown(struct char_data *ch, struct cha
     if (MOB_FLAGGED(pet, companions[i].flag))
     {
       event = char_has_mud_event(ch, companions[i].event);
-      if (event != NULL && mud_event_remaining(event) > 59 * PASSES_PER_SEC)
-        change_event_duration(ch, companions[i].event, 59 * PASSES_PER_SEC);
+      if (event != NULL && mud_event_remaining(event) > (long)59 * PASSES_PER_SEC)
+        change_event_duration(ch, companions[i].event, (long)59 * PASSES_PER_SEC);
     }
 }
 
@@ -2844,7 +2844,7 @@ ACMD(do_perfectadaptation_perk)
     return;
   }
 
-  attach_mud_event(new_mud_event(ePERFECT_ADAPTATION_COOLDOWN, ch, NULL), 300 RL_SEC);
+  attach_mud_event(new_mud_event(ePERFECT_ADAPTATION_COOLDOWN, ch, NULL), (long)300 RL_SEC);
   send_to_char(ch, "You swiftly adapt to the threat.\r\n");
 }
 
@@ -6770,7 +6770,7 @@ ACMD(do_search)
   definition.progress_model = PRIMARY_ACTIVITY_PROGRESS_ATOMIC;
   definition.progress_owner = PRIMARY_ACTIVITY_PROGRESS_CHARACTER;
   definition.total_steps = 1U;
-  definition.step_interval = PULSE_VIOLENCE;
+  definition.step_interval = (long)PULSE_VIOLENCE;
   definition.combat_actions_required = ACTION_STANDARD | ACTION_MOVE;
   definition.movement_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
   definition.damage_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
@@ -6835,11 +6835,14 @@ ACMD(do_vanish)
 
   /* Attach event based on what they have - use longer duration if both */
   if (has_feat_vanish && has_perk_vanish)
-    attach_mud_event(new_mud_event(eVANISH, ch, NULL), 18 * PASSES_PER_SEC); /* 3 rounds for perk */
+    attach_mud_event(new_mud_event(eVANISH, ch, NULL),
+                     (long)18 * PASSES_PER_SEC); /* 3 rounds for perk */
   else if (has_feat_vanish)
-    attach_mud_event(new_mud_event(eVANISH, ch, NULL), 12 * PASSES_PER_SEC); /* 2 rounds for feat */
+    attach_mud_event(new_mud_event(eVANISH, ch, NULL),
+                     (long)12 * PASSES_PER_SEC); /* 2 rounds for feat */
   else if (has_perk_vanish)
-    attach_mud_event(new_mud_event(eVANISH, ch, NULL), 18 * PASSES_PER_SEC); /* 3 rounds for perk */
+    attach_mud_event(new_mud_event(eVANISH, ch, NULL),
+                     (long)18 * PASSES_PER_SEC); /* 3 rounds for perk */
 
   /* stop vanishers combat */
   if (char_has_mud_event(ch, eCOMBAT_ROUND))
@@ -9236,7 +9239,7 @@ ACMD(do_gen_tog)
       time_t time_since_enabled = current_time - GET_PVP_TIMER(ch);
       int minutes_remaining = (int)(15 - (time_since_enabled / 60));
 
-      if (time_since_enabled < (15 * 60)) /* 15 minutes in seconds */
+      if (time_since_enabled < ((time_t)15 * 60)) /* 15 minutes in seconds */
       {
         send_to_char(ch, "You must wait %d more minute%s before you can disable your PvP flag.\r\n",
                      minutes_remaining, minutes_remaining != 1 ? "s" : "");
@@ -12529,10 +12532,10 @@ ACMDU(do_device)
 
     /* Start the creation event */
     attach_mud_event(new_mud_event(eDEVICE_CREATION, ch, event_data),
-                     creation_time * PASSES_PER_SEC);
+                     (long)creation_time * PASSES_PER_SEC);
 
     /* Start progress updates every 10 seconds */
-    attach_mud_event(new_mud_event(eDEVICE_PROGRESS, ch, NULL), 10 * PASSES_PER_SEC);
+    attach_mud_event(new_mud_event(eDEVICE_PROGRESS, ch, NULL), (long)10 * PASSES_PER_SEC);
 
     /* Build spell list for user feedback */
     char spell_list[MAX_STRING_LENGTH * 4];
@@ -12684,7 +12687,7 @@ ACMDU(do_device)
     act("$n carefully dismantles a weird science invention.", TRUE, ch, 0, 0, TO_ROOM);
 
     /* Set 20-minute cooldown on device creation */
-    ch->player_specials->saved.device_creation_cooldown = time(0) + (20 * 60);
+    ch->player_specials->saved.device_creation_cooldown = time(0) + ((time_t)20 * 60);
     send_to_char(ch, "You must wait 20 minutes before creating another device.\r\n");
 
     /* Shift all inventions after this one down by one */
@@ -12776,7 +12779,8 @@ ACMDU(do_device)
     snprintf(event_data, sizeof(event_data), "%d", inv_idx);
 
     /* Start the repair event */
-    attach_mud_event(new_mud_event(eDEVICE_REPAIR, ch, event_data), repair_time * PASSES_PER_SEC);
+    attach_mud_event(new_mud_event(eDEVICE_REPAIR, ch, event_data),
+                     (long)repair_time * PASSES_PER_SEC);
 
     send_to_char(ch, "You begin repairing %s. This will take %d seconds to complete.\r\n",
                  inv->short_description, repair_time);
@@ -13995,7 +13999,8 @@ MUD_EVENT_CALLBACK(event_device_progress)
   act("$n continues working intently on $s invention.", TRUE, ch, 0, 0, TO_ROOM);
 
   /* Schedule next progress update in 10 seconds */
-  attach_mud_event(new_mud_event(eDEVICE_PROGRESS, ch, pMudEvent->sVariables), 10 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eDEVICE_PROGRESS, ch, pMudEvent->sVariables),
+                   (long)10 * PASSES_PER_SEC);
 
   return 0;
 }

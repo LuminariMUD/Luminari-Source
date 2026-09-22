@@ -3643,7 +3643,7 @@ void Test_spec_rol_planar_control_and_vrock_dance_profiles(CuTest *tc)
   CuAssertTrue(tc, fixture.actor.mob_specials.rol_planar_captive_kill_at >=
                        deadline_start + SECS_PER_MUD_HOUR);
   CuAssertTrue(tc, fixture.actor.mob_specials.rol_planar_captive_kill_at <=
-                       time(NULL) + 4 * SECS_PER_MUD_HOUR);
+                       time(NULL) + (time_t)4 * SECS_PER_MUD_HOUR);
 
   context.event = SPEC_EVENT_COMMAND;
   context.actor = &fixture.target;
@@ -4152,7 +4152,7 @@ void Test_spec_rol_lich_energy_drain_preserves_party_targeting_and_life_transfer
   CuAssertIntEquals(tc, 237, rol_lich_energy_drain_healer_hit(100, 137, false));
   CuAssertIntEquals(tc, 100, rol_lich_energy_drain_healer_hit(100, 137, true));
   CuAssertIntEquals(tc, INT_MAX, rol_lich_energy_drain_healer_hit(INT_MAX - 2, 137, false));
-  CuAssertTrue(tc, rol_lich_energy_drain_stun_duration(0) == PULSE_VIOLENCE * 2);
+  CuAssertTrue(tc, rol_lich_energy_drain_stun_duration(0) == (long)PULSE_VIOLENCE * 2);
   CuAssertTrue(tc, rol_lich_energy_drain_stun_duration(7) == (PULSE_VIOLENCE * 2) + 7);
   CuAssertTrue(tc, rol_lich_energy_drain_stun_duration(LONG_MAX) == LONG_MAX);
 
@@ -4232,7 +4232,7 @@ void Test_spec_rol_trade_bandit_preserves_cargo_tolls_and_cleanup_timer(CuTest *
 
   CuAssertIntEquals(tc, FALSE, rol_bandit(&fixture.actor, &fixture.actor, 0, ""));
   CuAssertTrue(tc, fixture.actor.mob_specials.rol_bandit_expire_at >=
-                       before + (10 * SECS_PER_MUD_HOUR));
+                       before + ((time_t)10 * SECS_PER_MUD_HOUR));
   fixture.actor.mob_specials.rol_bandit_expire_at = before - 1;
   CuAssertIntEquals(tc, TRUE, rol_bandit(&fixture.actor, &fixture.actor, 0, ""));
   CuAssertTrue(tc, fixture.actor.mob_specials.rol_bandit_expire_at == (time_t)-1);
@@ -4314,14 +4314,15 @@ void Test_spec_rol_shaman_totem_preserves_identity_gating_and_usage(CuTest *tc)
   CuAssertIntEquals(tc, 0, GET_ROL_TOTEM_WINDOW(actor));
   CuAssertPtrEquals(tc, NULL, actor->followers);
 
-  first_window = (time_t)100 * SECS_PER_MUD_DAY;
+  first_window = (time_t)100 * (time_t)SECS_PER_MUD_DAY;
   CuAssertTrue(tc, rol_shaman_totem_consume_weekly_use(actor, first_window));
   CuAssertTrue(tc, rol_shaman_totem_consume_weekly_use(actor, first_window + 1));
   CuAssertTrue(tc, rol_shaman_totem_consume_weekly_use(actor, first_window + 2));
   CuAssertTrue(tc, !rol_shaman_totem_consume_weekly_use(actor, first_window + 3));
   CuAssertIntEquals(tc, 3, GET_ROL_TOTEM_USES(actor));
   CuAssertIntEquals(tc, 107, GET_ROL_TOTEM_WINDOW(actor));
-  CuAssertTrue(tc, rol_shaman_totem_consume_weekly_use(actor, (time_t)107 * SECS_PER_MUD_DAY));
+  CuAssertTrue(tc,
+               rol_shaman_totem_consume_weekly_use(actor, (time_t)107 * (time_t)SECS_PER_MUD_DAY));
   CuAssertIntEquals(tc, 1, GET_ROL_TOTEM_USES(actor));
   CuAssertTrue(tc, !rol_shaman_totem_consume_weekly_use(NULL, first_window));
 

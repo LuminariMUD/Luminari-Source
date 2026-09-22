@@ -65,7 +65,7 @@ static int scan_self_build_id(struct dl_phdr_info *info, size_t size, void *data
         ElfW(Word) byte = 0;
 
         for (byte = 0; byte < nhdr.n_descsz; byte++)
-          snprintf(self_elf_build_id + (byte * 2), 3, "%02x", (unsigned char)desc[byte]);
+          snprintf(self_elf_build_id + ((size_t)byte * 2), 3, "%02x", (unsigned char)desc[byte]);
         return 1;
       }
 

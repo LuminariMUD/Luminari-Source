@@ -820,7 +820,7 @@ MUD_EVENT_CALLBACK(event_countdown)
       free_tokens(tokens); /* Free the tokenized list */
     }
 
-    return 60 RL_SEC;
+    return (long)60 RL_SEC;
 
     break;
   default:

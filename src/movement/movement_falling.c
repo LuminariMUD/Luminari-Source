@@ -225,7 +225,7 @@ MUD_EVENT_CALLBACK(event_falling)
     if (pMudEvent->sVariables)
       free(pMudEvent->sVariables);
     pMudEvent->sVariables = strdup(buf);
-    return (1 * PASSES_PER_SEC);
+    return ((long)1 * PASSES_PER_SEC);
   }
   else
   { // stop falling!

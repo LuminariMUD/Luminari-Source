@@ -240,7 +240,7 @@ static int rol_tarrasque_tail_fling(struct char_data *mob, struct char_data *vic
   GET_POS(victim) = POS_RECLINING;
   if (can_stun(victim) && char_has_mud_event(victim, eSTUNNED) == NULL)
     attach_mud_event(new_mud_event(eSTUNNED, victim, NULL),
-                     PULSE_VIOLENCE * ROL_TARRASQUE_STUN_ROUNDS);
+                     (long)PULSE_VIOLENCE * ROL_TARRASQUE_STUN_ROUNDS);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
   greet_mtrigger(victim, -1);

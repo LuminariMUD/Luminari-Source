@@ -566,7 +566,7 @@ ACMD(do_greyhawk_tactical)
   memset(contact_status, 0, sizeof(contact_status));
   for (x = 0; x < VESSEL_TACTICAL_SIZE; x++)
   {
-    map[x] = map_data + x * VESSEL_TACTICAL_SIZE;
+    map[x] = map_data + (ptrdiff_t)x * VESSEL_TACTICAL_SIZE;
   }
   get_map(VESSEL_TACTICAL_SIZE, VESSEL_TACTICAL_SIZE, ship_x, ship_y, map);
 

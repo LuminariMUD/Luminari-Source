@@ -3781,7 +3781,7 @@ long int level_exp(struct char_data *ch, int level)
     level--;
     if (level < 0)
       level = 0;
-    exp += (level * level * factor);
+    exp += ((long)level * level * factor);
     break;
 
   default:

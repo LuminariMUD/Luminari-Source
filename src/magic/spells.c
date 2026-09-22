@@ -983,7 +983,7 @@ ASPELL(spell_acid_arrow)
 
   for (x = 0; x < num_arrows; x++)
   {
-    NEW_EVENT(eACIDARROW, ch, NULL, ((x * 6) * PASSES_PER_SEC));
+    NEW_EVENT(eACIDARROW, ch, NULL, ((long)(x * 6) * PASSES_PER_SEC));
   }
 }
 
@@ -1398,7 +1398,7 @@ ASPELL(spell_aqueous_orb)
 
   for (x = 0; x < num_rounds; x++)
   {
-    NEW_EVENT(eAQUEOUSORB, ch, NULL, ((x * 6) * PASSES_PER_SEC));
+    NEW_EVENT(eAQUEOUSORB, ch, NULL, ((long)(x * 6) * PASSES_PER_SEC));
   }
 }
 
@@ -1929,7 +1929,7 @@ ASPELL(spell_implode)
 
   for (x = 0; x < (CASTER_LEVEL(ch) / 3); x++)
   {
-    NEW_EVENT(eIMPLODE, ch, NULL, ((x * 6) * PASSES_PER_SEC));
+    NEW_EVENT(eIMPLODE, ch, NULL, ((long)(x * 6) * PASSES_PER_SEC));
   }
 }
 
@@ -2691,7 +2691,7 @@ ASPELL(spell_moonbeam)
 
   for (x = 0; x < 5; x++)
   {
-    NEW_EVENT(eMOONBEAM, ch, NULL, ((x * 6) * PASSES_PER_SEC));
+    NEW_EVENT(eMOONBEAM, ch, NULL, ((long)(x * 6) * PASSES_PER_SEC));
   }
 }
 
@@ -2893,8 +2893,8 @@ ASPELL(spell_storm_of_vengeance)
   send_to_char(ch, "You summon a storm of vengeance!\r\n");
   act("$n summons a storm of vengeance!", FALSE, ch, 0, 0, TO_ROOM);
 
-  NEW_EVENT(eICE_STORM, ch, NULL, (6 * PASSES_PER_SEC));
-  NEW_EVENT(eCHAIN_LIGHTNING, ch, NULL, (12 * PASSES_PER_SEC));
+  NEW_EVENT(eICE_STORM, ch, NULL, ((long)6 * PASSES_PER_SEC));
+  NEW_EVENT(eCHAIN_LIGHTNING, ch, NULL, ((long)12 * PASSES_PER_SEC));
 }
 
 ASPELL(warlock_charm)
@@ -3921,7 +3921,7 @@ ASPELL(psionic_concussive_onslaught)
 
   for (x = 0; x < GET_PSIONIC_LEVEL(ch); x++)
   {
-    NEW_EVENT(eCONCUSSIVEONSLAUGHT, ch, NULL, ((x * 6) * PASSES_PER_SEC));
+    NEW_EVENT(eCONCUSSIVEONSLAUGHT, ch, NULL, ((long)(x * 6) * PASSES_PER_SEC));
   }
   ch->player_specials->concussive_onslaught_duration = GET_PSIONIC_LEVEL(ch);
 }
@@ -4213,7 +4213,7 @@ ASPELL(spell_spiritual_weapon)
   for (; bab > 0; bab -= 5)
   {
     for (i = level; i > 0; i--)
-      NEW_EVENT(eSPIRITUALWEAPON, ch, NULL, ((i * 6) * PASSES_PER_SEC));
+      NEW_EVENT(eSPIRITUALWEAPON, ch, NULL, ((long)(i * 6) * PASSES_PER_SEC));
   }
 }
 
@@ -4321,7 +4321,7 @@ ASPELL(spell_dancing_weapon)
   for (; bab > 0; bab -= 5)
   {
     for (i = level; i > 0; i--)
-      NEW_EVENT(eDANCINGWEAPON, ch, NULL, ((i * 6) * PASSES_PER_SEC));
+      NEW_EVENT(eDANCINGWEAPON, ch, NULL, ((long)(i * 6) * PASSES_PER_SEC));
   }
 }
 
@@ -4504,7 +4504,7 @@ ASPELL(spell_holy_javelin)
 
   for (x = 0; x < num_times; x++)
   {
-    NEW_EVENT(eHOLYJAVELIN, ch, NULL, ((x * 6) * PASSES_PER_SEC));
+    NEW_EVENT(eHOLYJAVELIN, ch, NULL, ((long)(x * 6) * PASSES_PER_SEC));
   }
 }
 
@@ -4583,7 +4583,7 @@ static void adjust_character_age(struct char_data *victim, int years)
     return;
 
   now = time(NULL);
-  delta = (time_t)years * SECS_PER_MUD_YEAR;
+  delta = (time_t)years * (time_t)SECS_PER_MUD_YEAR;
   victim->player.time.birth -= delta;
   if (years < 0 && victim->player.time.birth > now)
     victim->player.time.birth = now;
@@ -5884,7 +5884,7 @@ MUD_EVENT_CALLBACK(event_rol_call_lycanthrope_charm)
   }
 
   if (rand_number(1, 20) < call_lycanthrope_charm_save_target(GET_CHA(master)))
-    return 30 * PASSES_PER_SEC;
+    return (long)30 * PASSES_PER_SEC;
 
   stop_follower(mob);
   act("$n breaks free of the charm and turns on you with a furious snarl!", FALSE, mob, NULL,
@@ -5941,7 +5941,7 @@ ASPELL(spell_call_lycanthrope)
     return;
   owner_handle = domain_event_character_handle(ch);
   pet_handle = domain_event_character_handle(mob);
-  NEW_EVENT(eROL_CALL_LYCANTHROPE_CHARM, mob, NULL, 30 * PASSES_PER_SEC);
+  NEW_EVENT(eROL_CALL_LYCANTHROPE_CHARM, mob, NULL, (long)30 * PASSES_PER_SEC);
   act("A black door opens in space and $N leaps through!", FALSE, ch, NULL, mob, TO_ROOM);
   ch = domain_event_world_resolve_character(owner_handle);
   mob = domain_event_world_resolve_character(pet_handle);
@@ -6060,7 +6060,7 @@ MUD_EVENT_CALLBACK(event_rol_tazriks_frenzied_hound)
   }
   free(event->sVariables);
   event->sVariables = next_state;
-  return PULSE_VIOLENCE;
+  return (long)PULSE_VIOLENCE;
 }
 
 ASPELL(spell_tazriks_frenzied_hound)
@@ -6073,7 +6073,7 @@ ASPELL(spell_tazriks_frenzied_hound)
   send_to_room(IN_ROOM(ch),
                "A vortex to the Abyss opens in midair. From it springs a slavering hellhound!\r\n");
   snprintf(state, sizeof(state), "%" PRI_IDX " 0", world[IN_ROOM(ch)].number);
-  NEW_EVENT(eROL_TAZRIKS_FRENZIED_HOUND, ch, state, PULSE_VIOLENCE);
+  NEW_EVENT(eROL_TAZRIKS_FRENZIED_HOUND, ch, state, (long)PULSE_VIOLENCE);
 }
 
 #define ROL_ELEMENTAL_MAX_RESISTANCES 3

@@ -339,7 +339,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     /* NOTE: May not display the exact age specified due to the integer
      * division used elsewhere in the code.  Seems to only happen for
      * some values below the starting age (17) anyway. -gg 5/27/98 */
-    vict->player.time.birth = time(0) - ((value - 17) * SECS_PER_MUD_YEAR);
+    vict->player.time.birth = time(0) - ((time_t)(value - 17) * (time_t)SECS_PER_MUD_YEAR);
     break;
   case 3: /* align */
     GET_ALIGNMENT(vict) = RANGE(-1000, 1000);

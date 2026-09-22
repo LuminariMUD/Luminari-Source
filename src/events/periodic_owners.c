@@ -168,7 +168,7 @@ static struct game_event_result periodic_autoproc_event(const struct game_event_
     return game_event_result_complete();
   }
   object_auto_proc_run_one(obj);
-  return game_event_result_reschedule_after(PULSE_MOBILE);
+  return game_event_result_reschedule_after((game_tick_t)PULSE_MOBILE);
 }
 
 static struct game_event_result periodic_dg_random_event(const struct game_event_context *context)
@@ -205,7 +205,7 @@ static struct game_event_result periodic_dg_random_event(const struct game_event
   }
   if (dg_random_trigger_run_one(owner, owner_type))
     dg_random_execution_counts[owner_type]++;
-  return game_event_result_reschedule_after(PULSE_DG_SCRIPT);
+  return game_event_result_reschedule_after((game_tick_t)PULSE_DG_SCRIPT);
 }
 
 void periodic_autoproc_sync(struct obj_data *obj)
@@ -228,7 +228,7 @@ void periodic_autoproc_sync(struct obj_data *obj)
     return;
   if (event_runtime_schedule_owned_after(
           autoproc_event_type, owner,
-          (game_tick_t)spread_delay(owner, PULSE_MOBILE, UINT64_C(0xa17f0c)), obj,
+          (game_tick_t)spread_delay(owner, (long)PULSE_MOBILE, UINT64_C(0xa17f0c)), obj,
           &obj->autoproc_event_handle) != GAME_SCHEDULER_OK)
   {
     autoproc_rejections++;
@@ -277,7 +277,7 @@ void periodic_dg_random_sync(struct script_data *script)
     return;
   if (event_runtime_schedule_owned_after(
           dg_random_event_type, owner,
-          (game_tick_t)spread_delay(owner, PULSE_DG_SCRIPT,
+          (game_tick_t)spread_delay(owner, (long)PULSE_DG_SCRIPT,
                                     UINT64_C(0xd672a9) + (uint64_t)owner_type),
           script, &script->random_event_handle) != GAME_SCHEDULER_OK)
   {

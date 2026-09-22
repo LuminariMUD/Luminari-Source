@@ -557,14 +557,14 @@ ACMD(do_camp)
   definition.progress_model = PRIMARY_ACTIVITY_PROGRESS_PROGRESSIVE;
   definition.progress_owner = PRIMARY_ACTIVITY_PROGRESS_CHARACTER;
   definition.total_steps = 3U;
-  definition.step_interval = 2 RL_SEC;
+  definition.step_interval = (long)2 RL_SEC;
   definition.combat_actions_required = ACTION_STANDARD | ACTION_MOVE;
   definition.movement_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
   definition.damage_response = PRIMARY_ACTIVITY_RESPONSE_DELAY;
   definition.combat_response = PRIMARY_ACTIVITY_RESPONSE_PAUSE;
   definition.target_loss_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
   definition.command_response = PRIMARY_ACTIVITY_RESPONSE_REJECT;
-  definition.delay_pulses = 2 RL_SEC;
+  definition.delay_pulses = (long)2 RL_SEC;
   definition.recheck = camp_activity_recheck;
   definition.progress = camp_activity_progress;
   definition.complete = camp_activity_complete;

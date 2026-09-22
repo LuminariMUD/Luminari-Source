@@ -2955,7 +2955,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   {
     time_t current_time = time(0);
     time_t time_since_enabled = current_time - GET_PVP_TIMER(k);
-    int seconds_remaining = (int)((15 * 60) - time_since_enabled);
+    int seconds_remaining = (int)(((time_t)15 * 60) - time_since_enabled);
     char timebuf[100];
 
     if (seconds_remaining < 60)
@@ -10209,7 +10209,7 @@ MUD_EVENT_CALLBACK(event_tracks)
            track_dir);
   pMudEvent->sVariables = strdup(buf);
 
-  return 60 RL_SEC; /* Decay tracks every 60 seconds, subject to change :) */
+  return (long)60 RL_SEC; /* Decay tracks every 60 seconds, subject to change :) */
 }
 
 /* rank command, in rank.c */

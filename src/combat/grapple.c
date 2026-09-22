@@ -425,7 +425,7 @@ ACMD(do_struggle)
     act("\ty$n fails to escape the grapple from $N!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
   }
   /* gotta make sure we don't allow this more than once a around */
-  attach_mud_event(new_mud_event(eSTRUGGLE, ch, NULL), (6 * PASSES_PER_SEC));
+  attach_mud_event(new_mud_event(eSTRUGGLE, ch, NULL), ((long)6 * PASSES_PER_SEC));
 }
 
 /* as a free action, release your grapple victim */
