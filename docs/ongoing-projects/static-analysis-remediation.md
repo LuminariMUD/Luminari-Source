@@ -102,8 +102,11 @@ fingerprints changed when nearby code moved. Code fixes, not new dismissals, so 
   results; clamp explicitly where an index depends on them. Test findings were CuTest
   asserts the analyzer could not see end the test: `CuFail_Line()` now carries
   `analyzer_noreturn` and the null/true asserts call it directly.
-- [ ] 5. Unsafe string functions: every site to `snprintf`/`strlcpy`/`strlcat`; `rewind` to
-  a checked `fseek`.
+- [x] 5. Unsafe string functions: zero left (commits `529003390` for the helpers whose
+  signatures changed, `2196fd8cd` for local conversions). New `rewind_stream()` in utils.c
+  replaces `rewind()`; `sprintbitarray()`, `one_phrase()`, and `zedit_get_levels()` take
+  buffer sizes. `clang_tidy_unsafe_sites.txt` is now empty, so any new unbounded call fails
+  the gate.
 - [ ] 6. String-to-number conversions (design recorded here before starting).
 - [ ] 7. `--update` baselines, local CI jobs for the touched paths, push, PR, confirm CodeQL
   on the PR shows no open alerts in changed code.
@@ -112,4 +115,5 @@ fingerprints changed when nearby code moved. Code fixes, not new dismissals, so 
 
 - 2026-09-22: branch at master aeb9f3dda; full clang-tidy run recorded above; plan written.
 - 2026-09-22: steps 1-3 done and committed; step 4 done and pushed through `d5af939e7`
-  (full CuTest suite 1723/1723); step 5 next.
+  (full CuTest suite 1723/1723).
+- 2026-09-22: step 5 done (baseline 7,223 -> 6,926); step 6 next.
