@@ -50,6 +50,7 @@ src/core/comm.c bugprone-branch-clone 1
 src/core/comm.c bugprone-unchecked-string-to-number-conversion 2
 src/core/comm.c clang-analyzer-deadcode.DeadStores 2
 src/core/db.c bugprone-branch-clone 4
+src/core/db.c bugprone-switch-missing-default-case 5
 src/core/db.c bugprone-unchecked-string-to-number-conversion 41
 src/core/handler.c bugprone-branch-clone 3
 src/core/handler.c clang-analyzer-deadcode.DeadStores 3
@@ -74,6 +75,7 @@ src/craft/crafts.c bugprone-branch-clone 1
 src/craft/crafts.c bugprone-unchecked-string-to-number-conversion 1
 src/craft/crafts.c clang-analyzer-deadcode.DeadStores 2
 src/database/db_init_data.c clang-analyzer-deadcode.DeadStores 2
+src/database/mysql.c bugprone-multi-level-implicit-pointer-conversion 5
 src/database/mysql.c bugprone-unchecked-string-to-number-conversion 3
 src/database/mysql.c clang-analyzer-deadcode.DeadStores 1
 src/dgscript/dg_comm.c bugprone-branch-clone 1
@@ -83,8 +85,12 @@ src/dgscript/dg_handler.c bugprone-branch-clone 2
 src/dgscript/dg_misc.c bugprone-branch-clone 2
 src/dgscript/dg_misc.c clang-analyzer-deadcode.DeadStores 1
 src/dgscript/dg_mobcmd.c clang-analyzer-deadcode.DeadStores 5
+src/dgscript/dg_olc.c bugprone-multi-level-implicit-pointer-conversion 1
+src/dgscript/dg_olc.c bugprone-switch-missing-default-case 2
 src/dgscript/dg_olc.c bugprone-unchecked-string-to-number-conversion 1
 src/dgscript/dg_scripts.c bugprone-branch-clone 4
+src/dgscript/dg_scripts.c bugprone-implicit-widening-of-multiplication-result 2
+src/dgscript/dg_scripts.c bugprone-switch-missing-default-case 5
 src/dgscript/dg_scripts.c bugprone-unchecked-string-to-number-conversion 3
 src/dgscript/dg_scripts.c clang-analyzer-deadcode.DeadStores 3
 src/dgscript/dg_variables.c bugprone-branch-clone 4
@@ -127,6 +133,7 @@ src/obj/act.item.c bugprone-branch-clone 5
 src/obj/act.item.c clang-analyzer-deadcode.DeadStores 5
 src/obj/house.c clang-analyzer-deadcode.DeadStores 1
 src/obj/objsave.c bugprone-branch-clone 3
+src/obj/objsave.c bugprone-implicit-widening-of-multiplication-result 1
 src/obj/objsave.c bugprone-unchecked-string-to-number-conversion 21
 src/obj/player_shop.c clang-analyzer-deadcode.DeadStores 1
 src/obj/shop.c bugprone-unchecked-string-to-number-conversion 3
@@ -140,6 +147,8 @@ src/olc/aedit.c clang-analyzer-deadcode.DeadStores 1
 src/olc/cedit.c bugprone-unchecked-string-to-number-conversion 1
 src/olc/clan_edit.c bugprone-unchecked-string-to-number-conversion 4
 src/olc/clan_edit.c clang-analyzer-deadcode.DeadStores 3
+src/olc/genmob.c bugprone-switch-missing-default-case 1
+src/olc/genobj.c bugprone-switch-missing-default-case 2
 src/olc/genwld.c clang-analyzer-deadcode.DeadStores 3
 src/olc/genzon.c bugprone-unchecked-string-to-number-conversion 1
 src/olc/hedit.c clang-analyzer-deadcode.DeadStores 2
@@ -164,6 +173,8 @@ src/player/ban.c bugprone-unchecked-string-to-number-conversion 1
 src/player/player_rename.c bugprone-branch-clone 2
 src/player/player_rename.c bugprone-unchecked-string-to-number-conversion 6
 src/player/players.c bugprone-branch-clone 1
+src/player/players.c bugprone-implicit-widening-of-multiplication-result 1
+src/player/players.c bugprone-switch-missing-default-case 1
 src/player/players.c bugprone-unchecked-string-to-number-conversion 100
 src/player/players.c clang-analyzer-deadcode.DeadStores 8
 src/quest/hlquest.c bugprone-branch-clone 1

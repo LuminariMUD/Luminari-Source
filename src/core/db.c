@@ -1996,8 +1996,6 @@ void index_boot(int mode)
     case DB_BOOT_HLQST:
       boot_the_quests(db_file, buf2, rec_count);
       break;
-    default:
-      break;
     }
 
     fclose(db_file);
@@ -2875,8 +2873,6 @@ static void renum_zone_table(void)
         break;
       case 'V': /* trigger variable assignment */
         b = ZCMD.arg3 = real_room(ZCMD.arg3);
-        break;
-      default:
         break;
       }
       if (a == NOWHERE || b == NOWHERE || c == NOWHERE)
@@ -5488,8 +5484,6 @@ bitvector_t rol_reset_legacy_door_flags(bitvector_t flags, int state)
   case 3:
     SET_BIT(flags, EX_CLOSED | EX_LOCKED_EASY);
     break;
-  default:
-    break;
   }
   if (state & 0x04)
     SET_BIT(flags, EX_HIDDEN | EX_HIDDEN_EASY);
@@ -6426,8 +6420,6 @@ static void reset_zone_transfer_impl(zone_rnum zone)
         case 16:
           SET_BIT(flags, EX_LOCKED_HARD);
           SET_BIT(flags, EX_CLOSED);
-          break;
-        default:
           break;
         }
 
@@ -8942,8 +8934,6 @@ void save_objects_to_database(struct char_data *ch __attribute__((unused)))
       break;
     case ITEM_ARMOR:
       snprintf(specific_type, sizeof(specific_type), "%s", armor_list[GET_OBJ_VAL(obj, 1)].name);
-      break;
-    default:
       break;
     }
 

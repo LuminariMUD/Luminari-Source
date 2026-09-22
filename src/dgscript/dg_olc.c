@@ -648,7 +648,7 @@ void trigedit_save(struct descriptor_data *d)
       trig_data_copy(proto, trig);
     }
 
-    free((void *)trig_index);
+    free(trig_index);
 
     trig_index = new_index;
     top_of_trigt++;
@@ -956,8 +956,6 @@ int dg_script_edit_parse(struct descriptor_data *d, char *arg)
       free(trig);
     }
     break;
-  default:
-    break;
   }
 
   dg_script_menu(d);
@@ -970,8 +968,6 @@ void trigedit_string_cleanup(struct descriptor_data *d, int terminator __attribu
   {
   case TRIGEDIT_COMMANDS:
     trigedit_disp_menu(d);
-    break;
-  default:
     break;
   }
 }
