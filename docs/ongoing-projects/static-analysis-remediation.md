@@ -91,8 +91,17 @@ fingerprints changed when nearby code moved. Code fixes, not new dismissals, so 
   `is_safe_path_component()` and `is_safe_relative_path()`; used by both `index_boot()`
   loops, the `-f` configuration file, and `setup_log()` (log names may be absolute but not
   traverse). `Test_path_component_validation` covers it.
-- [ ] 4. NullDereference / ArrayBound / NonNullParamChecker: fix every site (source first,
-  then tests), grouped by directory into commits.
+- [x] 4. NullDereference / ArrayBound / NonNullParamChecker: zero left tree-wide (commits
+  `49ad4de40`, `94f3b3ae2`, `8c84e3965` for src, `dd77ba152` for tests, baseline `d5af939e7`).
+  About 40 were real defects (listed in the commit messages). Recurring false positives,
+  each fixed with a NOLINT and reason rather than contorted code: `buf[strcspn(...)]` after
+  `fgets`, `isspace()` on an `unsigned char`, `buf[fread(...)]`, and heap arrays sized by
+  `CREATE()` (its `number * sizeof <= 0` check lets the analyzer assume a zero-byte block;
+  changing the macro surfaced a new gcc `-Walloc-size-larger-than` warning, so it stays).
+  `MIN`/`MAX` are out-of-line functions in utils.c, so the analyzer cannot bound their
+  results; clamp explicitly where an index depends on them. Test findings were CuTest
+  asserts the analyzer could not see end the test: `CuFail_Line()` now carries
+  `analyzer_noreturn` and the null/true asserts call it directly.
 - [ ] 5. Unsafe string functions: every site to `snprintf`/`strlcpy`/`strlcat`; `rewind` to
   a checked `fseek`.
 - [ ] 6. String-to-number conversions (design recorded here before starting).
@@ -102,4 +111,5 @@ fingerprints changed when nearby code moved. Code fixes, not new dismissals, so 
 ## Progress log
 
 - 2026-09-22: branch at master aeb9f3dda; full clang-tidy run recorded above; plan written.
-- 2026-09-22: steps 1-3 done and committed; step 4 in progress (source files first).
+- 2026-09-22: steps 1-3 done and committed; step 4 done and pushed through `d5af939e7`
+  (full CuTest suite 1723/1723); step 5 next.
