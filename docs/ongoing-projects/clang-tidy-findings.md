@@ -46,14 +46,15 @@ Applied in step 1, each with the scope, reason, owner, and expiry entry `.clang-
 
 84% of the findings are gone after steps 1-5, about 6.5 hours with lanes.
 
-1. Configuration. Done, not yet committed: `.clang-tidy` carries D1-D3, the four
+1. Configuration. Done: `.clang-tidy` carries D1-D3, the four
    `NOLINTNEXTLINE(bugprone-assignment-in-if-condition)` comments on `CREATE` calls are gone (the
    gate rejects a NOLINT naming a disabled check), and the baseline records 2,366.
-2. Macros, one edit per macro:
-   - `RECREATE` (`core/utils.h`) and `APPEND_TO_BUF` (`olc/hedit.c`): realloc into a temporary
-     and keep the abort on failure (-40 realloc, -1 pointer conversion).
+2. Macros. Done (2,304 left), one edit per macro:
+   - `RECREATE` (`core/utils.h`, also used by `APPEND_TO_BUF` in `olc/hedit.c`): realloc into
+     a temporary and keep the abort on failure (-40 realloc, -1 pointer conversion).
    - `TEST_OBJS` (three copies in `obj/objsave.c`): compare the `strcmp()` result with 0 (-12).
-   - `USEC_PER_PULSE` (`core/perfmon.c`): a floating-point form for its nine floating uses (-9).
+   - `USEC_PER_PULSE` (`core/perfmon.c`): its nine floating uses take the new
+     `USEC_PER_PULSE_F` (-9); the values are unchanged at 10 pulses a second.
 3. Defect review. The issue's groups 1 and 2 minus what step 2 cleared (191), plus
    `performance-no-int-to-ptr` (4), `portability-avoid-pragma-once` (3), and the 35 narrowing
    leftovers (int to char is where `char c = getc()` truncation hides). Fix real defects and
@@ -167,11 +168,10 @@ fixes land early and the branch is exposed to #216 and other parallel work for l
 
 ## Resume here
 
-Step 1 is applied in the working tree and verified (full gate with `--update`: 2,366;
-`check_baseline_ratchet.py --base origin/master`: no baseline grew; pre-commit hooks pass). It is
-not committed. Next: commit step 1, then step 2.
+Steps 1 and 2 are committed. Next: step 3.
 
 ## Progress log
 
 - 2026-09-22: full run at `ac248dd16` reproduced 5,215 findings; plan written.
-- 2026-09-22: D1-D3 approved; step 1 applied (5,215 -> 2,366).
+- 2026-09-22: D1-D3 approved; step 1 committed (5,215 -> 2,366).
+- 2026-09-22: step 2 committed (2,304); build warning-free, CuTest 1,734/1,734.

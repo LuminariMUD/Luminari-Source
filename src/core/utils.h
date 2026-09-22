@@ -759,11 +759,13 @@ void char_from_furniture(struct char_data *ch);
 #define RECREATE(result, type, number)                                                             \
   do                                                                                               \
   {                                                                                                \
-    if (!((result) = (type *)realloc((result), sizeof(type) * (number))))                          \
+    type *recreated_block = (type *)realloc((void *)(result), sizeof(type) * (number));            \
+    if (!recreated_block)                                                                          \
     {                                                                                              \
       perror("SYSERR: realloc failure");                                                           \
       abort();                                                                                     \
     }                                                                                              \
+    (result) = recreated_block;                                                                    \
   } while (0)
 
 /** Remove an item from a linked list and reset the links.
