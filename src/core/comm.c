@@ -5535,6 +5535,13 @@ static void setup_log(const char *filename, int fd __attribute__((unused)))
   exit(1);
 }
 
+#if defined(LUMINARI_CUTEST)
+void setup_log_for_test(const char *filename)
+{
+  setup_log(filename, STDERR_FILENO);
+}
+#endif
+
 static int open_logfile(const char *filename, FILE *stderr_fp)
 {
   if (stderr_fp) /* freopen() the descriptor. */
