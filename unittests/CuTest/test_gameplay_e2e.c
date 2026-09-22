@@ -5968,18 +5968,19 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   bool loaded_ambush_preserved;
   bool loaded_supremacy_migrated;
   bool loaded_stones_endurance_preserved;
-  bool changed_directory;
   bool filename_ready;
   bool legacy_file_ready;
   bool cooldown_checkpoint_written;
   bool cooldown_checkpoint_backdated;
+  char temporary_directory[] = "/tmp/luminari-player-fixture-XXXXXX";
   char original_directory[PATH_MAX];
-  char lib_directory[PATH_MAX];
   char filename[MAX_FILEPATH];
   char player_name[32];
 
   memset(fixture_index, 0, sizeof(fixture_index));
   memset(filename, 0, sizeof(filename));
+  CuAssertPtrNotNull(tc, getcwd(original_directory, sizeof(original_directory)));
+  enter_player_fixture(tc, temporary_directory);
   source = new_char();
   loaded = new_char();
   legacy_loaded = new_char();
@@ -6027,7 +6028,6 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   af.duration = 7;
   affect_to_char(source, &af);
 
-  changed_directory = false;
   filename_ready = false;
   load_result = -1;
   loaded_level = -1;
@@ -6047,53 +6047,43 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   legacy_file_ready = false;
   cooldown_checkpoint_written = false;
   cooldown_checkpoint_backdated = false;
-  restore_result = 0;
 
-  if (getcwd(original_directory, sizeof(original_directory)) != NULL &&
-      snprintf(lib_directory, sizeof(lib_directory), "%s/lib", test_source_root()) <
-          (int)sizeof(lib_directory) &&
-      chdir(lib_directory) == 0)
+  filename_ready = get_filename(filename, sizeof(filename), PLR_FILE, player_name);
+  if (filename_ready)
   {
-    changed_directory = true;
-    filename_ready = get_filename(filename, sizeof(filename), PLR_FILE, player_name);
-    if (filename_ready)
+    save_char(source, TRUE);
+    cooldown_checkpoint_written = player_file_has_cooldown_checkpoint(filename);
+    cooldown_checkpoint_backdated =
+        rewrite_player_cooldown_checkpoint(filename, (int64_t)time(NULL) - 120);
+    if (cooldown_checkpoint_backdated)
+      load_result = load_char(player_name, loaded);
+    if (load_result >= 0)
     {
-      save_char(source, TRUE);
-      cooldown_checkpoint_written = player_file_has_cooldown_checkpoint(filename);
-      cooldown_checkpoint_backdated =
-          rewrite_player_cooldown_checkpoint(filename, (int64_t)time(NULL) - 120);
-      if (cooldown_checkpoint_backdated)
-        load_result = load_char(player_name, loaded);
-      if (load_result >= 0)
-      {
-        loaded_level = GET_LEVEL(loaded);
-        loaded_gold = GET_GOLD(loaded);
-        loaded_mission_cooldown = GET_MISSION_COOLDOWN(loaded);
-        loaded_race = GET_REAL_RACE(loaded);
-        loaded_boarding = GET_ABILITY(loaded, ABILITY_BOARDING);
-        loaded_faction_one = GET_FACTION_STANDING(loaded, 1);
-        loaded_faction_two = GET_FACTION_STANDING(loaded, 2);
-        loaded_faction_three = GET_FACTION_STANDING(loaded, 3);
-        loaded_merchant_consequence = GET_VESSEL_MERCHANT_CONSEQUENCE(loaded);
-        loaded_name_matches =
-            GET_NAME(loaded) != NULL && strcmp(GET_NAME(loaded), player_name) == 0;
-        loaded_ambush_preserved = affected_by_spell(loaded, AFFECT_INQUISITOR_AMBUSH_USED) &&
-                                  !affected_by_spell(loaded, AFFECT_PSIONICIST_PSYCHIC_SUNDERING);
-        loaded_supremacy_migrated = affected_by_spell(loaded, AFFECT_INQUISITOR_SUPREMACY) &&
-                                    !affected_by_spell(loaded, PERK_INQUISITOR_SUPREMACY);
-        loaded_stones_endurance_preserved =
-            affected_by_spell(loaded, ABILITY_AFFECT_STONES_ENDURANCE) &&
-            !affected_by_spell(loaded, AFFECT_ALCHEMIST_DISCOVERY_EXTRACTION);
-      }
-      legacy_file_ready = remove_boarding_ability_version(filename);
-      if (legacy_file_ready && load_char(player_name, legacy_loaded) >= 0)
-        legacy_loaded_boarding = GET_ABILITY(legacy_loaded, ABILITY_BOARDING);
-      unlink(filename);
+      loaded_level = GET_LEVEL(loaded);
+      loaded_gold = GET_GOLD(loaded);
+      loaded_mission_cooldown = GET_MISSION_COOLDOWN(loaded);
+      loaded_race = GET_REAL_RACE(loaded);
+      loaded_boarding = GET_ABILITY(loaded, ABILITY_BOARDING);
+      loaded_faction_one = GET_FACTION_STANDING(loaded, 1);
+      loaded_faction_two = GET_FACTION_STANDING(loaded, 2);
+      loaded_faction_three = GET_FACTION_STANDING(loaded, 3);
+      loaded_merchant_consequence = GET_VESSEL_MERCHANT_CONSEQUENCE(loaded);
+      loaded_name_matches = GET_NAME(loaded) != NULL && strcmp(GET_NAME(loaded), player_name) == 0;
+      loaded_ambush_preserved = affected_by_spell(loaded, AFFECT_INQUISITOR_AMBUSH_USED) &&
+                                !affected_by_spell(loaded, AFFECT_PSIONICIST_PSYCHIC_SUNDERING);
+      loaded_supremacy_migrated = affected_by_spell(loaded, AFFECT_INQUISITOR_SUPREMACY) &&
+                                  !affected_by_spell(loaded, PERK_INQUISITOR_SUPREMACY);
+      loaded_stones_endurance_preserved =
+          affected_by_spell(loaded, ABILITY_AFFECT_STONES_ENDURANCE) &&
+          !affected_by_spell(loaded, AFFECT_ALCHEMIST_DISCOVERY_EXTRACTION);
     }
+    legacy_file_ready = remove_boarding_ability_version(filename);
+    if (legacy_file_ready && load_char(player_name, legacy_loaded) >= 0)
+      legacy_loaded_boarding = GET_ABILITY(legacy_loaded, ABILITY_BOARDING);
+    unlink(filename);
   }
 
-  if (changed_directory)
-    restore_result = chdir(original_directory);
+  restore_result = leave_player_fixture(original_directory, temporary_directory);
 
   free_char(loaded);
   free_char(legacy_loaded);
@@ -6101,7 +6091,6 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   player_table = saved_player_table;
   top_of_p_table = saved_top_of_p_table;
 
-  CuAssertTrue(tc, changed_directory);
   CuAssertIntEquals(tc, 0, restore_result);
   CuAssertTrue(tc, filename_ready);
   CuAssertTrue(tc, cooldown_checkpoint_written);
@@ -6137,18 +6126,19 @@ void Test_gameplay_e2e_late_psychic_sundering_migrates_from_legacy_affects(CuTes
   int loaded_reduction;
   int restore_result;
   int saved_top_of_p_table;
-  bool changed_directory;
   bool filename_ready;
   bool legacy_file_ready;
   bool migrated;
   bool save_result;
+  char temporary_directory[] = "/tmp/luminari-player-fixture-XXXXXX";
   char filename[MAX_FILEPATH];
-  char lib_directory[PATH_MAX];
   char original_directory[PATH_MAX];
   char player_name[32];
 
   memset(fixture_index, 0, sizeof(fixture_index));
   memset(filename, 0, sizeof(filename));
+  CuAssertPtrNotNull(tc, getcwd(original_directory, sizeof(original_directory)));
+  enter_player_fixture(tc, temporary_directory);
   source = new_char();
   loaded = new_char();
   snprintf(player_name, sizeof(player_name), "Zzps%ld", (long)getpid());
@@ -6176,7 +6166,6 @@ void Test_gameplay_e2e_late_psychic_sundering_migrates_from_legacy_affects(CuTes
   af.duration = 5;
   affect_to_char(source, &af);
 
-  changed_directory = false;
   filename_ready = false;
   legacy_file_ready = false;
   save_result = false;
@@ -6184,52 +6173,42 @@ void Test_gameplay_e2e_late_psychic_sundering_migrates_from_legacy_affects(CuTes
   loaded_duration = -1;
   loaded_reduction = 0;
   migrated = false;
-  restore_result = 0;
 
-  if (getcwd(original_directory, sizeof(original_directory)) != NULL &&
-      snprintf(lib_directory, sizeof(lib_directory), "%s/lib", test_source_root()) <
-          (int)sizeof(lib_directory) &&
-      chdir(lib_directory) == 0)
+  filename_ready = get_filename(filename, sizeof(filename), PLR_FILE, player_name);
+  if (filename_ready)
   {
-    changed_directory = true;
-    filename_ready = get_filename(filename, sizeof(filename), PLR_FILE, player_name);
-    if (filename_ready)
+    save_result = save_char_checked(source, TRUE);
+    if (save_result)
+      legacy_file_ready = rewrite_psychic_sundering_as_legacy(filename);
+    if (legacy_file_ready)
     {
-      save_result = save_char_checked(source, TRUE);
-      if (save_result)
-        legacy_file_ready = rewrite_psychic_sundering_as_legacy(filename);
-      if (legacy_file_ready)
+      load_result = load_char(player_name, loaded);
+      if (load_result >= 0)
       {
-        load_result = load_char(player_name, loaded);
-        if (load_result >= 0)
+        migrated = affected_by_spell(loaded, AFFECT_PSIONICIST_PSYCHIC_SUNDERING) &&
+                   !affected_by_spell(loaded, AFFECT_INQUISITOR_AMBUSH_USED);
+        for (loaded_affect = loaded->affected; loaded_affect; loaded_affect = loaded_affect->next)
         {
-          migrated = affected_by_spell(loaded, AFFECT_PSIONICIST_PSYCHIC_SUNDERING) &&
-                     !affected_by_spell(loaded, AFFECT_INQUISITOR_AMBUSH_USED);
-          for (loaded_affect = loaded->affected; loaded_affect; loaded_affect = loaded_affect->next)
+          if (loaded_affect->spell == AFFECT_PSIONICIST_PSYCHIC_SUNDERING)
           {
-            if (loaded_affect->spell == AFFECT_PSIONICIST_PSYCHIC_SUNDERING)
-            {
-              loaded_duration = loaded_affect->duration;
-              break;
-            }
+            loaded_duration = loaded_affect->duration;
+            break;
           }
-          loaded_reduction =
-              compute_damtype_reduction(loaded, DAM_RESERVED_DBC, NULL, TYPE_UNDEFINED);
         }
+        loaded_reduction =
+            compute_damtype_reduction(loaded, DAM_RESERVED_DBC, NULL, TYPE_UNDEFINED);
       }
-      unlink(filename);
     }
+    unlink(filename);
   }
 
-  if (changed_directory)
-    restore_result = chdir(original_directory);
+  restore_result = leave_player_fixture(original_directory, temporary_directory);
 
   free_char(loaded);
   free_char(source);
   player_table = saved_player_table;
   top_of_p_table = saved_top_of_p_table;
 
-  CuAssertTrue(tc, changed_directory);
   CuAssertIntEquals(tc, 0, restore_result);
   CuAssertTrue(tc, filename_ready);
   CuAssertTrue(tc, save_result);
