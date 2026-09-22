@@ -1078,7 +1078,8 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
         pProtocol->bBlockMXP = false;
         break;
       case '[':
-        if (tolower((unsigned char)apData[++j]) == 'u')
+        ++j;
+        if (tolower((unsigned char)apData[j]) == 'u')
         {
           char BugString[256];
           int Index = 0;

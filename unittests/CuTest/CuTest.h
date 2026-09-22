@@ -69,18 +69,14 @@ extern void (*CuTestSetUp)(CuTest *tc);
  * coverage build first records what the child executed. */
 void CuTestChildExit(int status) __attribute__((noreturn));
 
-/* A failed assertion jumps out of the test, but the jump lives in CuTest.c,
- * where the static analyzer checking a test cannot see it. This tells the
- * analyzer that CuFail_Line() does not return. */
-#if defined(__clang__)
-#define CU_ANALYZER_NORETURN __attribute__((analyzer_noreturn))
-#else
-#define CU_ANALYZER_NORETURN
-#endif
+/* A failed assertion jumps out of the test (or aborts when no test runner
+ * is active), so the code after an assert never runs with the failed
+ * condition. The attribute lets compilers and analyzers see that. */
+#define CU_NORETURN __attribute__((noreturn))
 
 /* Internal versions of assert functions -- use the public versions */
 void CuFail_Line(CuTest *tc, const char *file, int line, const char *message2,
-                 const char *message) CU_ANALYZER_NORETURN;
+                 const char *message) CU_NORETURN;
 void CuAssert_Line(CuTest *tc, const char *file, int line, const char *message, int condition);
 void CuAssertStrEquals_LineMsg(CuTest *tc, const char *file, int line, const char *message,
                                const char *expected, const char *actual);

@@ -15,6 +15,7 @@
 #include "../../src/character/feats.h"
 #include "../../src/character/premadebuilds.h"
 #include "../../src/character/race.h"
+#include "../../src/character/roleplay.h"
 #include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/net/protocol.h"
 
@@ -842,4 +843,36 @@ void TestRaceEquivalenceExperienceMultipliers(CuTest *tc)
   CuAssertTrue(tc, level_exp(&ch, 10) == normal * 7);
 
   CONFIG_EXPERIENCE_MULTIPLIER = old_multiplier;
+}
+
+/* Each roleplay idea menu leaves for its text editor on "q". */
+void TestRoleplayIdeaMenusProceedToTheirEditors(CuTest *tc)
+{
+  static const int menus[][2] = {
+      {CON_CHARACTER_PERSONALITY_IDEAS, CON_CHARACTER_PERSONALITY_ENTER},
+      {CON_CHARACTER_IDEALS_IDEAS, CON_CHARACTER_IDEALS_ENTER},
+      {CON_CHARACTER_BONDS_IDEAS, CON_CHARACTER_BONDS_ENTER},
+      {CON_CHARACTER_FLAWS_IDEAS, CON_CHARACTER_FLAWS_ENTER},
+  };
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  char input[MAX_INPUT_LENGTH];
+  size_t i;
+
+  for (i = 0; i < sizeof(menus) / sizeof(menus[0]); i++)
+  {
+    init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+    descriptor.pProtocol = ProtocolCreate();
+    CuAssertPtrNotNull(tc, descriptor.pProtocol);
+    STATE(&descriptor) = menus[i][0];
+    snprintf(input, sizeof(input), "q");
+    nanny(&descriptor, input);
+    CuAssertIntEquals(tc, menus[i][1], STATE(&descriptor));
+    CuAssertPtrNotNull(tc, descriptor.str);
+    CuAssertPtrNotNull(tc, strstr(descriptor.output, "Enter your character"));
+    free(descriptor.backstr);
+    cleanup_race_equivalence_descriptor(&descriptor);
+  }
 }

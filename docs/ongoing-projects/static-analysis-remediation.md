@@ -169,4 +169,23 @@ Workflow notes learned here:
   `cpp/bad-strncpy-size` alerts (#898, #902-#906) flagged `strlcpy` sizes computed as
   `strlen(source) + n`. Fixed all 13 such sites from the step 5 conversion by sharing one
   size variable between the allocation and the copy (or sizing from the destination array).
-  Awaiting the CodeQL rerun and the local matrix on the new head.
+  CodeQL on the new head passes with no alerts in changed code.
+- 2026-09-22: local matrix (33 jobs) had 4 failures, all addressed:
+  - `quality-clang-tidy`: `bugprone-inc-dec-in-conditions` at `protocol.c:1081` (only seen in
+    the container's glibc, where `tolower` is a macro); the `++j` moved out of the condition.
+  - `test-warning-budget-gcc-16-gcc`: two new `-Wnull-dereference` in
+    `test_crafting_projects.c` because the inlined assert macros let gcc see a null path past
+    `CuFail_Line()`. `CuFail_Line()`/`CuFailInternal()` are now truly `noreturn` (abort when
+    no runner jump buffer is set) for every compiler, replacing the clang-only
+    `analyzer_noreturn`.
+  - `test-coverage`: the mechanical renames touched hundreds of untested lines, so the
+    changed-line floors failed for authentication, command_parsing, olc, persistence, sql,
+    and threaded_services. New tests cover them: `load_account` NULL guard
+    (test_password.c), roleplay idea menus (test_race_equivalence.c), `oset_apply` and the
+    export commands (test_world_loading_production.c), `load_char` numeric tags and aliases
+    (test_craft_training.c, reuses its player-file fixture), `load_wilderness` on a
+    TEMPORARY table (test_database_persistence.c), and `i3_load_config` numeric keys
+    (test_i3_client_production.c). Tests calling `real_zone()` must stage a one-entry
+    `zone_table` first; it has no NULL check.
+  - `test-cmake-Release-clang-clang`: the known `-Wcast-align` probe flake under load;
+    rerun alone.

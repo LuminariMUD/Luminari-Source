@@ -2127,3 +2127,114 @@ void Test_device_events_block_ordinary_commands(CuTest *tc)
   CuAssertTrue(tc, repair_blocks);
   CuAssertTrue(tc, score_allowed);
 }
+
+/* Every numeric player-file tag that load_char() reads with a parse helper, in file order.
+ * Aliases use their own multi-line format and are written separately. */
+static const char *const numeric_pfile_tags[] = {
+    "AExp", "Alin", "Age ", "AgeS", "Badp", "BGnd", "Blst", "Bane", "Bost", "Bank", "ClkT", "Con ",
+    "Cln ", "Clrk", "CPts", "ChEn", "CrMe", "DvCD", "Dex ", "DRMd", "Drnk", "Drol", "DipT", "DRac",
+    "DDex", "DStr", "DCon", "DAC ", "Dom1", "Dom2", "DrMU", "DrMT", "DrBT", "DrDT", "Exp ", "Efpt",
+    "EidB", "EidC", "EfMU", "EfMT", "EncM", "Frez", "FBAB", "FrgC", "FLGT", "FdBn", "FLGU", "Ftpt",
+    "FSWT", "FSWU", "FstH", "FttD", "GTCT", "GTCU", "GODT", "GODU", "Hite", "HECn", "HPRg", "Hrol",
+    "Hung", "InqR", "Int ", "Invs", "InFT", "InFU", "KpkS", "Lern", "Lmot", "Lnew", "LTCT", "LTCU",
+    "Mrph", "MFrm", "MVRg", "MBSp", "MBSU", "MBSR", "NAr0", "NAr1", "NAr2", "NAr3", "NecC", "PSRg",
+    "PxDU", "PxDT", "PvPT", "DvRc", "Qstp", "Qpnt", "Qcnt", "Qcn1", "Qcn2", "QSvy", "RacR", "Res1",
+    "Res2", "Res3", "Res4", "Res5", "Res6", "Res7", "Res8", "Res9", "ResA", "ResB", "ResC", "ResD",
+    "ResE", "ResF", "ResG", "ResH", "ResI", "ResJ", "ResK", "RSc1", "RSc2", "RetC", "BDsU", "BDsT",
+    "BSlU", "BSlT", "Sex ", "SBld", "Scrg", "SpWC", "IrMC", "QkCs", "SpRc", "SpRs", "Slyr", "SySt",
+    "SSch", "SpNM", "SpCd", "SuLR", "SuNR", "Tmpl", "Thir", "Thr1", "Thr2", "Thr3", "Thr4", "Thr5",
+    "Trns", "VitS", "Wate", "Wimp", "Wis ",
+};
+
+/* The value written for each tag: small enough for the byte-sized fields. */
+static int numeric_pfile_value(size_t index)
+{
+  return 1 + (int)(index % 90);
+}
+
+static int numeric_pfile_tag_value(const char *tag)
+{
+  size_t i;
+
+  for (i = 0; i < sizeof(numeric_pfile_tags) / sizeof(numeric_pfile_tags[0]); i++)
+    if (strcmp(numeric_pfile_tags[i], tag) == 0)
+      return numeric_pfile_value(i);
+  return -1;
+}
+
+void Test_load_char_reads_every_numeric_tag(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *loaded = new_char();
+  struct alias_data *alias;
+  char filename[MAX_FILEPATH];
+  FILE *file;
+  size_t i;
+  int result, alignment, bank, con, dex, intel, wis, exp, height, weight, wimp, sex, trains;
+  int questpoints, save_fort, save_will, practices, alias_type, invis;
+  sbyte hunger;
+  char alias_name[64] = "", alias_replacement[64] = "";
+
+  craft_player_files_enter(tc, &files, "crtags", 4303);
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, files.name));
+  file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, file);
+  fprintf(file, "Name: %s\nId  : 4303\nLevl: 7\n", files.name);
+  for (i = 0; i < sizeof(numeric_pfile_tags) / sizeof(numeric_pfile_tags[0]); i++)
+    fprintf(file, "%s: %d\n", numeric_pfile_tags[i], numeric_pfile_value(i));
+  fprintf(file, "Alis: 1\n gt\n group tell\n1\n");
+  fclose(file);
+
+  result = load_char(files.name, loaded);
+  alignment = GET_ALIGNMENT(loaded);
+  bank = GET_BANK_GOLD(loaded);
+  con = GET_REAL_CON(loaded);
+  dex = GET_REAL_DEX(loaded);
+  intel = GET_REAL_INT(loaded);
+  wis = GET_REAL_WIS(loaded);
+  exp = (int)GET_EXP(loaded);
+  height = GET_HEIGHT(loaded);
+  weight = GET_WEIGHT(loaded);
+  wimp = GET_WIMP_LEV(loaded);
+  sex = GET_SEX(loaded);
+  trains = GET_TRAINS(loaded);
+  questpoints = GET_QUESTPOINTS(loaded);
+  save_fort = GET_REAL_SAVE(loaded, 0);
+  save_will = GET_REAL_SAVE(loaded, 2);
+  hunger = GET_COND(loaded, HUNGER);
+  practices = GET_PRACTICES(loaded);
+  invis = GET_INVIS_LEV(loaded);
+  alias = GET_ALIASES(loaded);
+  alias_type = alias != NULL ? alias->type : -1;
+  if (alias != NULL)
+  {
+    strlcpy(alias_name, alias->alias, sizeof(alias_name));
+    strlcpy(alias_replacement, alias->replacement, sizeof(alias_replacement));
+  }
+  free_char(loaded);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Alin"), alignment);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Bank"), bank);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Con "), con);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Dex "), dex);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Int "), intel);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Wis "), wis);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Exp "), exp);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Hite"), height);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Wate"), weight);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Wimp"), wimp);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Sex "), sex);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Trns"), trains);
+  /* Qpnt is the older spelling of Qstp and is written after it. */
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Qpnt"), questpoints);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Thr1"), save_fort);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Thr3"), save_will);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Hung"), hunger);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Lern"), practices);
+  CuAssertIntEquals(tc, numeric_pfile_tag_value("Invs"), invis);
+  CuAssertIntEquals(tc, 1, alias_type);
+  CuAssertStrEquals(tc, "gt", alias_name);
+  CuAssertStrEquals(tc, " group tell", alias_replacement);
+}
