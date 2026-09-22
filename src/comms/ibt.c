@@ -1159,7 +1159,7 @@ static void ibtedit_disp_main_menu(struct descriptor_data *d)
   clear_screen(d);
 
   rr = real_room(OLC_IBT(d)->room);
-  sprintbitarray(OLC_IBT(d)->flags, ibt_bits, IBT_ARRAY_MAX, flg_text);
+  sprintbitarray(OLC_IBT(d)->flags, ibt_bits, IBT_ARRAY_MAX, flg_text, sizeof(flg_text));
 
   send_to_char(
       ch,
@@ -1191,7 +1191,7 @@ static void ibtedit_disp_flags(struct descriptor_data *d)
 
   column_list(d->character, 2, ibt_bits, NUM_IBT_FLAGS, TRUE);
 
-  sprintbitarray(OLC_IBT(d)->flags, ibt_bits, IBT_ARRAY_MAX, buf);
+  sprintbitarray(OLC_IBT(d)->flags, ibt_bits, IBT_ARRAY_MAX, buf, sizeof(buf));
   write_to_output(d, "\r\nCurrent flags : %s%s%s\r\nEnter flags (0 to quit) : ", cyn, buf, nrm);
 
   OLC_MODE(d) = IBTEDIT_FLAGS;

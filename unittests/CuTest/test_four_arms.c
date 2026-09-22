@@ -700,7 +700,7 @@ void TestFourArmsLossIgnoresRemoveTriggerVeto(CuTest *tc)
   fprintf(trigger_file, "~\n");
   fprintf(trigger_file, "return 0\n");
   fprintf(trigger_file, "~\n");
-  rewind(trigger_file);
+  CuAssertTrue(tc, rewind_stream(trigger_file));
   parse_trigger(trigger_file, 9001);
   fclose(trigger_file);
   CuAssertIntEquals(tc, 1, top_of_trigt);
@@ -784,7 +784,7 @@ void TestFourArmsRestoreIsOrderIndependent(CuTest *tc)
   CuAssertTrue(tc, test_objsave_save_obj_record(&bracer, &fixture.ch, file, WEAR_WRIST_R2 + 1));
   CuAssertTrue(tc, test_objsave_save_obj_record(&ring, &fixture.ch, file, WEAR_FINGER_R + 1));
   fputs("$~\n", file);
-  rewind(file);
+  CuAssertTrue(tc, rewind_stream(file));
   records = objsave_parse_objects(file);
   fclose(file);
   CuAssertPtrNotNull(tc, records);
@@ -812,7 +812,7 @@ void TestFourArmsRestoreIsOrderIndependent(CuTest *tc)
   CuAssertTrue(tc, test_objsave_save_obj_record(&pouch, &fixture.ch, file, WEAR_WIELD_4 + 1));
   CuAssertTrue(tc, test_objsave_save_obj_record(&sword, &fixture.ch, file, WEAR_WIELD_3 + 1));
   fputs("$~\n", file);
-  rewind(file);
+  CuAssertTrue(tc, rewind_stream(file));
   records = objsave_parse_objects(file);
   fclose(file);
   CuAssertPtrNotNull(tc, records);
@@ -1325,7 +1325,7 @@ void TestFourArmsDeferredRestoreHonorsBagSort(CuTest *tc)
   CuAssertTrue(tc, test_objsave_save_obj_record(&sword, &fixture.ch, file, WEAR_WIELD_3 + 1));
   CuAssertTrue(tc, test_objsave_save_obj_record(&ring, &fixture.ch, file, WEAR_FINGER_R + 1));
   fputs("$~\n", file);
-  rewind(file);
+  CuAssertTrue(tc, rewind_stream(file));
   records = objsave_parse_objects(file);
   fclose(file);
   CuAssertPtrNotNull(tc, records);
@@ -1342,7 +1342,7 @@ void TestFourArmsDeferredRestoreHonorsBagSort(CuTest *tc)
   CuAssertPtrNotNull(tc, file);
   CuAssertTrue(tc, test_objsave_save_obj_record(&sword, &fixture.ch, file, WEAR_WIELD_3 + 1));
   fputs("$~\n", file);
-  rewind(file);
+  CuAssertTrue(tc, rewind_stream(file));
   records = objsave_parse_objects(file);
   fclose(file);
   CuAssertPtrNotNull(tc, records);

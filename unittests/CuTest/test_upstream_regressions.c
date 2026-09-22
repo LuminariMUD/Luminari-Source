@@ -161,7 +161,7 @@ void Test_ban_file_reader_skips_malformed_and_overlong_records(CuTest *tc)
     fputc('x', fixture);
   fputc('\n', fixture);
   fputs("new second.example 200 Second\n", fixture);
-  rewind(fixture);
+  CuAssertTrue(tc, rewind_stream(fixture));
 
   read_first = ban_read_record_for_test(fixture, &record);
   CuAssertTrue(tc, read_first);

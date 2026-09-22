@@ -2242,7 +2242,7 @@ bool shopping_identify(char *arg, struct char_data *ch, struct char_data *keeper
           QYEL, sell_price(obj, shop_nr, keeper, ch), QNRM,
           QYEL, buy_price(obj, shop_nr, keeper, ch), QNRM);
 
-  sprintbitarray(GET_OBJ_WEAR(obj), wear_bits, TW_ARRAY_MAX, buf);
+  sprintbitarray(GET_OBJ_WEAR(obj), wear_bits, TW_ARRAY_MAX, buf, sizeof(buf));
   send_to_char(ch, "Can be worn on: %s\r\n", buf);
 
   switch (GET_OBJ_TYPE(obj)) {
@@ -2325,7 +2325,7 @@ bool shopping_identify(char *arg, struct char_data *ch, struct char_data *keeper
     send_to_char(ch, " None");
 
   send_to_char(ch, "\r\nExtra Flags: ");
-  sprintbitarray(GET_OBJ_EXTRA(obj), extra_bits, EF_ARRAY_MAX, buf);
+  sprintbitarray(GET_OBJ_EXTRA(obj), extra_bits, EF_ARRAY_MAX, buf, sizeof(buf));
   send_to_char(ch, "%s\r\n", buf);
    */
 

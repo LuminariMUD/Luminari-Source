@@ -103,7 +103,11 @@ static void read_file(void)
   while (get_line(fl, line))
     if (*line != '~')
       recs++;
-  rewind(fl);
+  if (fseek(fl, 0L, SEEK_SET) != 0)
+  {
+    perror("Error rewinding playerfile");
+    exit(1);
+  }
 
   for (i = 0; i < recs; i++)
   {

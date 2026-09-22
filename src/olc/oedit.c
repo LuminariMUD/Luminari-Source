@@ -1744,7 +1744,7 @@ static void oedit_disp_extra_menu(struct descriptor_data *d)
     write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter + 1, nrm, extra_bits[counter],
                     !(++columns % 2) ? "\r\n" : "");
   }
-  sprintbitarray(GET_OBJ_EXTRA(OLC_OBJ(d)), extra_bits, EF_ARRAY_MAX, bits);
+  sprintbitarray(GET_OBJ_EXTRA(OLC_OBJ(d)), extra_bits, EF_ARRAY_MAX, bits, sizeof(bits));
   write_to_output(d,
                   "\r\nObject flags: %s%s%s\r\n"
                   "Enter object extra flag (0 to quit) : ",
@@ -1765,7 +1765,7 @@ static void oedit_disp_perm_menu(struct descriptor_data *d)
     write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm, affected_bits[counter],
                     !(++columns % 2) ? "\r\n" : "");
   }
-  sprintbitarray(GET_OBJ_AFFECT(OLC_OBJ(d)), affected_bits, EF_ARRAY_MAX, bits);
+  sprintbitarray(GET_OBJ_AFFECT(OLC_OBJ(d)), affected_bits, EF_ARRAY_MAX, bits, sizeof(bits));
   write_to_output(d,
                   "\r\nObject permanent flags: %s%s%s\r\n"
                   "Enter object perm flag (0 to quit) : ",
@@ -1786,7 +1786,7 @@ static void oedit_disp_perm2_menu(struct descriptor_data *d)
     write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm, affected2_bits[counter],
                     !(++columns % 2) ? "\r\n" : "");
   }
-  sprintbitarray(GET_OBJ_PERM2(OLC_OBJ(d)), affected2_bits, EF_ARRAY_MAX, bits);
+  sprintbitarray(GET_OBJ_PERM2(OLC_OBJ(d)), affected2_bits, EF_ARRAY_MAX, bits, sizeof(bits));
   write_to_output(d,
                   "\r\nObject permanent AFF2 flags: %s%s%s\r\n"
                   "Enter object perm2 flag (0 to quit) : ",
@@ -1834,7 +1834,7 @@ static void oedit_disp_wear_menu(struct descriptor_data *d)
     write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter + 1, nrm, wear_bits[counter],
                     !(++columns % 2) ? "\r\n" : "");
   }
-  sprintbitarray(GET_OBJ_WEAR(OLC_OBJ(d)), wear_bits, TW_ARRAY_MAX, bits);
+  sprintbitarray(GET_OBJ_WEAR(OLC_OBJ(d)), wear_bits, TW_ARRAY_MAX, bits, sizeof(bits));
   write_to_output(d,
                   "\r\nWear flags: %s%s%s\r\n"
                   "Enter wear flag, 0 to quit : ",
@@ -1928,7 +1928,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
   sprinttype(GET_OBJ_TYPE(obj), item_types, buf1, sizeof(buf1));
 
   /* build buffer for obj extras */
-  sprintbitarray(GET_OBJ_EXTRA(obj), extra_bits, EF_ARRAY_MAX, buf2);
+  sprintbitarray(GET_OBJ_EXTRA(obj), extra_bits, EF_ARRAY_MAX, buf2, sizeof(buf2));
 
   /* Build first half of menu. */
   /* Current spec proc name (from OLC selection if any, else from index) */
@@ -1966,11 +1966,11 @@ static void oedit_disp_menu(struct descriptor_data *d)
   /* Send first half then build second half of menu. */
 
   /* wear slots of gear */
-  sprintbitarray(GET_OBJ_WEAR(OLC_OBJ(d)), wear_bits, EF_ARRAY_MAX, buf1);
+  sprintbitarray(GET_OBJ_WEAR(OLC_OBJ(d)), wear_bits, EF_ARRAY_MAX, buf1, sizeof(buf1));
   /* permanent affections of gear */
-  sprintbitarray(GET_OBJ_AFFECT(OLC_OBJ(d)), affected_bits, EF_ARRAY_MAX, buf2);
+  sprintbitarray(GET_OBJ_AFFECT(OLC_OBJ(d)), affected_bits, EF_ARRAY_MAX, buf2, sizeof(buf2));
   /* permanent AFF2 affections of gear */
-  sprintbitarray(GET_OBJ_PERM2(OLC_OBJ(d)), affected2_bits, EF_ARRAY_MAX, buf4);
+  sprintbitarray(GET_OBJ_PERM2(OLC_OBJ(d)), affected2_bits, EF_ARRAY_MAX, buf4, sizeof(buf4));
 
   /* build a buffer for displaying suggested worn eq stats -zusuk */
   /* we have to fix this so treasure + here are synced! */

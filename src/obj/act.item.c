@@ -1560,19 +1560,19 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
 
   if (GET_OBJ_TYPE(j) != ITEM_FOOD && GET_OBJ_TYPE(j) != ITEM_DRINK)
   {
-    sprintbitarray(GET_OBJ_WEAR(j), wear_bits, TW_ARRAY_MAX, buf);
+    sprintbitarray(GET_OBJ_WEAR(j), wear_bits, TW_ARRAY_MAX, buf, sizeof(buf));
     if (mode == ITEM_STAT_MODE_G_LORE)
       send_to_group(NULL, GROUP(ch), "Can be worn on: %s\r\n", buf);
     else
       send_to_char(ch, "Can be worn on: %s\r\n", buf);
-    sprintbitarray(GET_OBJ_AFFECT(j), affected_bits, AF_ARRAY_MAX, buf);
-    sprintbitarray(GET_OBJ2_AFFECT(j), affected2_bits, AF_ARRAY_MAX, buf2);
+    sprintbitarray(GET_OBJ_AFFECT(j), affected_bits, AF_ARRAY_MAX, buf, sizeof(buf));
+    sprintbitarray(GET_OBJ2_AFFECT(j), affected2_bits, AF_ARRAY_MAX, buf2, sizeof(buf2));
     if (mode == ITEM_STAT_MODE_G_LORE)
       send_to_group(NULL, GROUP(ch), "Set char bits : %s %s\r\n", buf, buf2);
     else
       send_to_char(ch, "Set char bits : %s %s\r\n", buf, buf2);
 
-    sprintbitarray(GET_OBJ_EXTRA(j), extra_bits, EF_ARRAY_MAX, buf);
+    sprintbitarray(GET_OBJ_EXTRA(j), extra_bits, EF_ARRAY_MAX, buf, sizeof(buf));
     if (mode == ITEM_STAT_MODE_G_LORE)
       send_to_group(NULL, GROUP(ch), "Extra flags   : %s\r\n", buf);
     else

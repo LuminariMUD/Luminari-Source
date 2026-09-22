@@ -988,7 +988,7 @@ static void do_stat_room(struct char_data *ch, struct room_data *rm)
     else
       send_to_char(ch, "Entry level range: up to %d\r\n", rm->maximum_level);
   }
-  sprintbitarray(rm->room_flags, room_bits, RF_ARRAY_MAX, buf2);
+  sprintbitarray(rm->room_flags, room_bits, RF_ARRAY_MAX, buf2, sizeof(buf2));
   send_to_char(ch, "SpecProc: %s, Flags: %s\r\n",
                rm->func == NULL ? "None" : get_spec_func_name(rm->func), buf2);
 
@@ -1391,17 +1391,17 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
     else
       send_to_char(ch, "\tCEncounter tier: \tn%s\tC (\tn%d\tC)\tn\r\n",
                    mob_tier_name(GET_MOB_TIER(k)), GET_MOB_TIER(k));
-    sprintbitarray(MOB_FLAGS(k), action_bits, PM_ARRAY_MAX, buf);
+    sprintbitarray(MOB_FLAGS(k), action_bits, PM_ARRAY_MAX, buf, sizeof(buf));
     send_to_char(ch, "\tCNPC flags: \tn%s\r\n", buf);
   }
   else
   {
     send_to_char(ch, "\tC, Idle Timer (in tics) [\tn%d\tC]\tn\r\n", k->char_specials.timer);
 
-    sprintbitarray(PLR_FLAGS(k), player_bits, PM_ARRAY_MAX, buf);
+    sprintbitarray(PLR_FLAGS(k), player_bits, PM_ARRAY_MAX, buf, sizeof(buf));
     send_to_char(ch, "\tCPLR: \tn%s\r\n", buf);
 
-    sprintbitarray(PRF_FLAGS(k), preference_bits, PR_ARRAY_MAX, buf);
+    sprintbitarray(PRF_FLAGS(k), preference_bits, PR_ARRAY_MAX, buf, sizeof(buf));
     send_to_char(ch, "\tCPRF: \tn%s\r\n", buf);
 
     send_to_char(ch, "\tCQuest Points: [\tn%9d\tC] Quests Completed: [\tn%5d\tC]\tn\r\n",
@@ -3295,7 +3295,7 @@ static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int l
     int i, j, k, l, m, n, o;
     char buf[MAX_STRING_LENGTH] = {'\0'};
 
-    sprintbitarray(zone_table[zone].zone_flags, zone_bits, ZN_ARRAY_MAX, buf);
+    sprintbitarray(zone_table[zone].zone_flags, zone_bits, ZN_ARRAY_MAX, buf, sizeof(buf));
 
     tmp = snprintf(bufptr, left,
                    "%3" PRI_IDX
@@ -4052,7 +4052,7 @@ ACMD(do_shopstat)
     struct obj_data *obj = &obj_proto[orn];
     /* Wear flags */
     char wearstr[32];
-    sprintbitarray(GET_OBJ_WEAR(obj), wear_bits, TW_ARRAY_MAX, line);
+    sprintbitarray(GET_OBJ_WEAR(obj), wear_bits, TW_ARRAY_MAX, line, sizeof(line));
     snprintf(wearstr, sizeof(wearstr), "%.30s", line);
     /* Object name */
     char objname[42];
@@ -8399,7 +8399,8 @@ ACMD(do_eqrating)
     }
 
     /* perm affects */
-    sprintbitarray(GET_OBJ_AFFECT(&obj_proto[a]), affected_bits, AF_ARRAY_MAX, bitbuf);
+    sprintbitarray(GET_OBJ_AFFECT(&obj_proto[a]), affected_bits, AF_ARRAY_MAX, bitbuf,
+                   sizeof(bitbuf));
     len = snprintf_append(buf, sizeof(buf), len, "%s | ", bitbuf);
 
     *bitbuf = '\0';

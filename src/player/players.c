@@ -220,7 +220,8 @@ void build_player_index(void)
   while (get_line(plr_index, line))
     if (*line != '~')
       rec_count++;
-  rewind(plr_index);
+  if (!rewind_stream(plr_index))
+    exit(1);
 
   if (rec_count == 0)
   {

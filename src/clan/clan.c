@@ -4050,7 +4050,12 @@ ACMD(do_clanlog)
   }
 
   /* Rewind and skip to the lines we want to show */
-  rewind(fl);
+  if (!rewind_stream(fl))
+  {
+    send_to_char(ch, "Your clan's activity log cannot be read right now.\r\n");
+    fclose(fl);
+    return;
+  }
   int skip_lines = MAX(0, line_count - lines_to_show);
   for (i = 0; i < skip_lines; i++)
   {

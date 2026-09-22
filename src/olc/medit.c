@@ -719,7 +719,7 @@ static void medit_disp_mob_flags(struct descriptor_data *d)
                     !(++columns % 2) ? "\r\n" : "");
   }
 
-  sprintbitarray(MOB_FLAGS(OLC_MOB(d)), action_bits, AF_ARRAY_MAX, flags);
+  sprintbitarray(MOB_FLAGS(OLC_MOB(d)), action_bits, AF_ARRAY_MAX, flags, sizeof(flags));
   write_to_output(d, "\r\nCurrent flags : %s%s%s\r\nEnter mob flags (0 to quit) : ", cyn, flags,
                   nrm);
 }
@@ -733,7 +733,7 @@ static void medit_disp_aff_flags(struct descriptor_data *d)
   clear_screen(d);
   /* +1 since AFF_FLAGS don't start at 0. */
   column_list(d->character, 0, affected_bits + 1, NUM_AFF_FLAGS - 1, TRUE);
-  sprintbitarray(AFF_FLAGS(OLC_MOB(d)), affected_bits, AF_ARRAY_MAX, flags);
+  sprintbitarray(AFF_FLAGS(OLC_MOB(d)), affected_bits, AF_ARRAY_MAX, flags, sizeof(flags));
   write_to_output(d, "\r\nCurrent flags   : %s%s%s\r\nEnter aff flags (0 to quit) : ", cyn, flags,
                   nrm);
 }
@@ -747,7 +747,7 @@ static void medit_disp_aff2_flags(struct descriptor_data *d)
   clear_screen(d);
   /* +1 since AFF_FLAGS don't start at 0. */
   column_list(d->character, 0, affected2_bits + 1, NUM_AFF2_FLAGS - 1, TRUE);
-  sprintbitarray(AFF2_FLAGS(OLC_MOB(d)), affected2_bits, AF_ARRAY_MAX, flags);
+  sprintbitarray(AFF2_FLAGS(OLC_MOB(d)), affected2_bits, AF_ARRAY_MAX, flags, sizeof(flags));
   write_to_output(d, "\r\nCurrent flags   : %s%s%s\r\nEnter aff2 flags (0 to quit) : ", cyn, flags,
                   nrm);
 }
@@ -844,9 +844,9 @@ static void medit_disp_menu(struct descriptor_data *d)
                   yel, GET_ALIAS(mob), grn, nrm, yel, GET_SDESC(mob), grn, nrm, yel, GET_LDESC(mob),
                   grn, nrm, yel, GET_DDESC(mob));
 
-  sprintbitarray(MOB_FLAGS(mob), action_bits, AF_ARRAY_MAX, flags);
-  sprintbitarray(AFF_FLAGS(mob), affected_bits, AF_ARRAY_MAX, flag2);
-  sprintbitarray(AFF2_FLAGS(mob), affected2_bits, AF_ARRAY_MAX, flag3);
+  sprintbitarray(MOB_FLAGS(mob), action_bits, AF_ARRAY_MAX, flags, sizeof(flags));
+  sprintbitarray(AFF_FLAGS(mob), affected_bits, AF_ARRAY_MAX, flag2, sizeof(flag2));
+  sprintbitarray(AFF2_FLAGS(mob), affected2_bits, AF_ARRAY_MAX, flag3, sizeof(flag3));
 
   write_to_output(
       d,
