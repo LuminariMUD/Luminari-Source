@@ -5971,18 +5971,12 @@ MUD_EVENT_CALLBACK(event_copyover)
 /* (c) 1996-97 Erwin S. Andreasen. Modified by Zusuk to accept countdown argument */
 ACMD(do_copyover)
 {
-  int min_level_to_copyover = LVL_GRSTAFF;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int timer = 0;
   char buf[50] = {'\0'};
   struct descriptor_data *pt = NULL;
 
-  if (port == CONFIG_DFLT_DEV_PORT)
-  {
-    min_level_to_copyover = LVL_IMMORT;
-  }
-
-  if (GET_LEVEL(ch) < min_level_to_copyover)
+  if (GET_LEVEL(ch) < LVL_GRSTAFF)
   {
     send_to_char(ch, "You are not high enough level staff to use this command.\r\n");
     return;

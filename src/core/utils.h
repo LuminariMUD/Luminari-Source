@@ -2816,7 +2816,6 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 /* Game Operation */
 /** Get the default mud connection port. */
 #define CONFIG_DFLT_PORT config_info.operation.DFLT_PORT
-#define CONFIG_DFLT_DEV_PORT 4101
 /** Get the default mud ip address. */
 #define CONFIG_DFLT_IP config_info.operation.DFLT_IP
 /** Get the max number of players allowed. */

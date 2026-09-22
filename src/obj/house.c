@@ -1264,12 +1264,6 @@ ACMD(do_hsort)
 {
   UNUSED(argument);
 
-  /* this was here for debugging/testing */
-  /*
-  if (port != 4101)
-    return;
-  */
-
   /* grab the players' room! */
   room_rnum location = NOWHERE;
 

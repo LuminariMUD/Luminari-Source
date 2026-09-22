@@ -547,7 +547,6 @@ int main(int argc, char **argv)
   {
     log("Running game on port %d.", port);
     init_game(port);
-    log("Dev port set in utils.h to: %d.", CONFIG_DFLT_DEV_PORT);
   }
 
   shutdown_ai_service();
