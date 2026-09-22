@@ -107,8 +107,8 @@ fingerprints changed when nearby code moved. Code fixes, not new dismissals, so 
   replaces `rewind()`; `sprintbitarray()`, `one_phrase()`, and `zedit_get_levels()` take
   buffer sizes. `clang_tidy_unsafe_sites.txt` is now empty, so any new unbounded call fails
   the gate.
-- [ ] 6. String-to-number conversions: IN PROGRESS; the conversion is committed and pushed
-  (see "Resume here" for what remains). Design: the issue's item says `atoi/atol -> strtol`, so every
+- [x] 6. String-to-number conversions: done (baseline 6,926 -> 5,231). Design: the issue's item
+  says `atoi/atol -> strtol`, so every
   `atoi`, `atol`, `atoll`, and `atof` call in `src/` becomes a strtol-family helper;
   `sscanf`/`fscanf` numeric parsing (252 sites in src, multi-field world/DB loaders) is not
   converted, because it has no drop-in bounded form and the item does not name it.
@@ -116,14 +116,18 @@ fingerprints changed when nearby code moved. Code fixes, not new dismissals, so 
     `parse_long()`, `parse_llong()`, `parse_double()`. Same reading as libc (leading
     space, sign, digits); NULL or no digits gives 0; out of range saturates
     (`parse_int` clamps to `INT_MIN`/`INT_MAX`) instead of undefined behaviour.
-  - 1,702 calls in 113 `src/` files renamed mechanically (comment lines skipped).
+  - 1,702 calls in 113 `src/` files renamed mechanically (comment lines skipped); the
+    gate run then found 7 stragglers in `src/` (hedit.c, vessels_balance.c,
+    vessels_contracts.c) and 9 in the CuTest files, converted by hand. No `atoi`-family
+    call is left in `src/` or `unittests/`; `util/` (separately linked tools) keeps its 14.
   - `src/net/protocol.c` (2 sites) and `src/net/onboarding.c` (1) use `strtol()` directly:
     the protocol parser harness (`unittests/CuTest/Makefile`) links them without utils.c.
   - `src/vessels/vessels_autopilot.c` gained `#include "core/utils.h"`, placed after
     `<math.h>` because utils.h defines `log` as a macro.
-  - Verified: `make` warning-free, full CuTest 1723/1723, protocol harness 31/31.
+  - Verified: `make` warning-free, full CuTest 1724/1724, protocol harness 31/31, full
+    clang-tidy gate clean, `--update` recorded. Remaining under the check: 313, all
+    `sscanf`/`fscanf` except the 14 in `util/`.
   - `Test_parse_number_helpers` (test_bounds_checking.c) covers the helpers and passes.
-  - Not yet: the clang-tidy gate run and `--update`.
 - [ ] 7. `--update` baselines, rebase onto current `origin/master` (it moved to `9a7ece8c2`
   and later), local CI jobs for the touched paths, push, open the PR (`Closes #213`),
   confirm CodeQL on the PR shows the 11 alerts fixed and nothing new in changed code, then
@@ -131,24 +135,14 @@ fingerprints changed when nearby code moved. Code fixes, not new dismissals, so 
 
 ## Resume here
 
-State when the session stopped (2026-09-22): everything is committed and pushed, including
-the step 6 conversion (helpers commit first, then the renames by directory). Not done for
-step 6: the clang-tidy gate run and `--update`.
+Steps 1-6 are done and committed. Only step 7 remains:
 
-1. `git fetch` and confirm the worktree is clean at the pushed branch head.
-2. Build and run the helper test:
-   `make -j16 cutest && CUTEST_FILTER=Test_parse_number_helpers LUMINARI_TEST_ROOT=$PWD ./cutest`.
-3. Format: `pre-commit run clang-format --files $(git diff --name-only -- '*.c' '*.h')`.
-4. Gate: `python3 scripts/ci/check_clang_tidy.py --build-dir build/analysis --base HEAD`
-   (about 150 s). Fix anything above the baseline, then
-   `python3 scripts/ci/check_clang_tidy.py --build-dir build/analysis --update`
-   (expected: `bugprone-unchecked-string-to-number-conversion` drops by about 1,700).
-5. Full suite: `CUTEST_FILTER= LUMINARI_TEST_ROOT="$PWD" LUMINARI_TEST_SPEC_WORLD_ROOT="$PWD/unittests/CuTest/fixtures/spec_world_inventory" ./cutest`
-   (1723+ tests, about a minute), and `make -C unittests/CuTest protocol-parser`.
-6. Commit the baseline update and this file's progress entry. `git add` paths under `src/core` need
-   `git add -u` or `-f` (a core-dump ignore pattern matches them).
-7. Step 7 above. `make install` after every push (the pre-push hook leaves a root
-   `luminari` binary).
+1. `git fetch`; rebase onto `origin/master`; rebuild (`make -j16 && make -j16 cutest`).
+2. Rerun the gate incrementally: `python3 scripts/ci/check_clang_tidy.py --build-dir build/analysis --base origin/master`.
+3. Local CI jobs for the touched paths (build parity, hygiene, cutest, protocol harness).
+4. Push, open the PR (`Closes #213`), check CodeQL on the PR, delete this file in the
+   final commit. `make install` after every push (the pre-push hook leaves a root
+   `luminari` binary). `git add` paths under `src/core` need `git add -u` or `-f`.
 
 Workflow notes learned here:
 
@@ -166,5 +160,5 @@ Workflow notes learned here:
 - 2026-09-22: steps 1-3 done and committed; step 4 done and pushed through `d5af939e7`
   (full CuTest suite 1723/1723).
 - 2026-09-22: step 5 done (baseline 7,223 -> 6,926); step 6 next.
-- 2026-09-22: step 6 conversion committed and pushed; session stopped. Continue at
-  "Resume here".
+- 2026-09-22: step 6 conversion committed and pushed; session stopped.
+- 2026-09-22: step 6 finished (stragglers converted, gate clean, baseline 5,231); step 7 next.

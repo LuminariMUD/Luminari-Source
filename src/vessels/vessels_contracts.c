@@ -407,11 +407,11 @@ static bool contract_fetch(int contract_id, int *commodity_id, int *quantity, in
   row = mysql_fetch_row(result);
   if (row != NULL)
   {
-    *commodity_id = row[0] ? atoi(row[0]) : 0;
-    *quantity = row[1] ? atoi(row[1]) : 0;
-    *payout = row[2] ? atoi(row[2]) : 0;
-    *destination = row[3] ? atoi(row[3]) : 0;
-    *status = row[4] ? atoi(row[4]) : CONTRACT_STATUS_OPEN;
+    *commodity_id = row[0] ? parse_int(row[0]) : 0;
+    *quantity = row[1] ? parse_int(row[1]) : 0;
+    *payout = row[2] ? parse_int(row[2]) : 0;
+    *destination = row[3] ? parse_int(row[3]) : 0;
+    *status = row[4] ? parse_int(row[4]) : CONTRACT_STATUS_OPEN;
     strlcpy(taken_by, row[5] ? row[5] : "", taken_size);
     found = TRUE;
   }

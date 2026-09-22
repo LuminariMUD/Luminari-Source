@@ -10074,7 +10074,7 @@ static int keeper_query_int(MYSQL *connection, const char *query)
     return -1;
   row = mysql_fetch_row(result);
   if (row && row[0])
-    value = atoi(row[0]);
+    value = parse_int(row[0]);
   mysql_free_result(result);
   return value;
 }
@@ -13110,7 +13110,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
     sql_result = mysql_store_result(database);
     row = sql_result ? mysql_fetch_row(sql_result) : NULL;
     result[10] =
-        result[10] && row && atoi(row[0]) == GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
+        result[10] && row && parse_int(row[0]) == GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
     if (sql_result)
       mysql_free_result(sql_result);
     result[10] = result[10] && get_resource_depletion_level(0, RESOURCE_HERBS) < 1.0;
@@ -13191,7 +13191,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
     result[10] = result[10] && mysql_query(database, query) == 0;
     sql_result = mysql_store_result(database);
     row = sql_result ? mysql_fetch_row(sql_result) : NULL;
-    result[10] = result[10] && row && atoi(row[0]) == 1;
+    result[10] = result[10] && row && parse_int(row[0]) == 1;
     if (sql_result)
       mysql_free_result(sql_result);
   }
