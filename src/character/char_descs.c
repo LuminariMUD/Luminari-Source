@@ -819,7 +819,7 @@ void HandleStateGenericDescsDescriptors1(struct descriptor_data *d, char *arg)
     return;
 
   changeStateTo = STATE(d);
-  type = atoi(arg);
+  type = parse_int(arg);
 
   if (type < 1 || type > NUM_FEATURE_TYPES)
   {
@@ -847,13 +847,13 @@ void HandleStateGenericDescsAdjectives1(struct descriptor_data *d, char *arg)
   int changeStateTo = STATE(d);
   int count = count_adjective_types(d->roleplay_pending.short_descriptor_1);
 
-  if (atoi(arg) < 1 || atoi(arg) > count)
+  if (parse_int(arg) < 1 || parse_int(arg) > count)
   {
     SEND_TO_Q("That number is out of range. Please choose again.\r\n\r\n", d);
   }
   else
   {
-    d->roleplay_pending.short_adjective_1 = atoi(arg);
+    d->roleplay_pending.short_adjective_1 = parse_int(arg);
 
     SEND_TO_Q("\tY(Press enter to continue)\tn", d);
     changeStateTo = CON_GEN_DESCS_MENU;
@@ -871,7 +871,7 @@ void HandleStateGenericDescsDescriptors2(struct descriptor_data *d, char *arg)
     return;
 
   changeStateTo = STATE(d);
-  type = atoi(arg);
+  type = parse_int(arg);
 
   if (type < 1 || type > NUM_FEATURE_TYPES)
   {
@@ -899,13 +899,13 @@ void HandleStateGenericDescsAdjectives2(struct descriptor_data *d, char *arg)
   int changeStateTo = STATE(d);
   int count = count_adjective_types(d->roleplay_pending.short_descriptor_2);
 
-  if (atoi(arg) < 1 || atoi(arg) > count)
+  if (parse_int(arg) < 1 || parse_int(arg) > count)
   {
     SEND_TO_Q("That number is out of range. Please choose again.\r\n\r\n", d);
   }
   else
   {
-    d->roleplay_pending.short_adjective_2 = atoi(arg);
+    d->roleplay_pending.short_adjective_2 = parse_int(arg);
 
     SEND_TO_Q("\tY(Press enter to continue)\tn", d);
     changeStateTo = CON_GEN_DESCS_MENU;
@@ -954,7 +954,7 @@ void HandleStateGenericDescsParseMenuChoice(struct descriptor_data *d, char *arg
   char *tmpdesc = NULL;
   enum roleplay_commit_result commit_result = ROLEPLAY_COMMIT_INVALID_SELECTION;
 
-  switch (atoi(arg))
+  switch (parse_int(arg))
   {
   case 0:
     d->roleplay_pending.short_description_active = TRUE;

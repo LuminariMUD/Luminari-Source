@@ -59,9 +59,9 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
   {
     if ((row = mysql_fetch_row(res)) != NULL)
     {
-      level_id = atol(row[0]);
+      level_id = parse_long(row[0]);
       log("ERROR: %s", query);
-      LEVELUP(ch)->class = atoi(row[1]);
+      LEVELUP(ch)->class = parse_int(row[1]);
     }
   }
 
@@ -79,7 +79,7 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
   {
     while ((row = mysql_fetch_row(res)) != NULL)
     {
-      LEVELUP(ch)->skills[atoi(row[0])] += atoi(row[1]);
+      LEVELUP(ch)->skills[parse_int(row[0])] += parse_int(row[1]);
     }
   }
 
@@ -94,8 +94,8 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
   {
     while ((row = mysql_fetch_row(res)) != NULL)
     {
-      LEVELUP(ch)->feats[atoi(row[0])] = 1;
-      switch (atoi(row[0]))
+      LEVELUP(ch)->feats[parse_int(row[0])] = 1;
+      switch (parse_int(row[0]))
       {
       case FEAT_IMPROVED_CRITICAL:
       case FEAT_WEAPON_FINESSE:
@@ -110,12 +110,12 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
       case FEAT_WEAPON_MASTERY:
       case FEAT_WEAPON_FLURRY:
       case FEAT_WEAPON_SUPREMACY:
-        LEVELUP(ch)->feat_weapons[atoi(row[0])] = atoi(row[1]);
+        LEVELUP(ch)->feat_weapons[parse_int(row[0])] = parse_int(row[1]);
         break;
 
       case FEAT_SKILL_FOCUS:
       case FEAT_EPIC_SKILL_FOCUS:
-        LEVELUP(ch)->feat_skills[atoi(row[0])] = atoi(row[1]);
+        LEVELUP(ch)->feat_skills[parse_int(row[0])] = parse_int(row[1]);
         break;
       }
     }
@@ -133,7 +133,7 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
   {
     while ((row = mysql_fetch_row(res)) != NULL)
     {
-      LEVELUP(ch)->boosts[atoi(row[0])] = 1;
+      LEVELUP(ch)->boosts[parse_int(row[0])] = 1;
     }
   }
 
@@ -243,7 +243,7 @@ void show_level_history(struct char_data *ch, int level)
   {
     if ((row = mysql_fetch_row(res)) != NULL)
     {
-      level_id = atol(row[0]);
+      level_id = parse_long(row[0]);
       send_to_char(ch, "@uLevel:@n %2d @uClass:@n %s\r\n", level, row[4]);
     }
   }
@@ -261,8 +261,8 @@ void show_level_history(struct char_data *ch, int level)
   {
     while ((row = mysql_fetch_row(res)) != NULL)
     {
-      feat_num = atoi(row[2]);
-      sub_feat = atoi(row[3]);
+      feat_num = parse_int(row[2]);
+      sub_feat = parse_int(row[3]);
 
       if (num_found > 0)
         strlcat(buf, ", ", sizeof(buf));
@@ -349,7 +349,7 @@ ACMD(do_templates)
       return;
     }
 
-    int level_num = atoi(arg2);
+    int level_num = parse_int(arg2);
 
     if (level_num < 1 || level_num >= (LVL_IMMORT - 1))
     {
@@ -440,7 +440,7 @@ long get_level_id_by_level_num(int level_num, const char *chname)
   {
     if ((row = mysql_fetch_row(res)) != NULL)
     {
-      level_id = atol(row[0]);
+      level_id = parse_long(row[0]);
     }
   }
 
@@ -491,8 +491,8 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, cons
   {
     if ((row = mysql_fetch_row(res)) != NULL)
     {
-      level_num = atoi(row[0]);
-      class_number = atoi(row[1]);
+      level_num = parse_int(row[0]);
+      class_number = parse_int(row[1]);
     }
   }
   mysql_free_result(res);
@@ -524,7 +524,7 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, cons
   {
     while ((row = mysql_fetch_row(res)) != NULL)
     {
-      display_levelinfo_feats(ch, atoi(row[0]), atoi(row[1]));
+      display_levelinfo_feats(ch, parse_int(row[0]), parse_int(row[1]));
     }
   }
   mysql_free_result(res);
@@ -540,9 +540,9 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, cons
   {
     while ((row = mysql_fetch_row(res)) != NULL)
     {
-      if (atoi(row[0]) < START_GENERAL_ABILITIES)
+      if (parse_int(row[0]) < START_GENERAL_ABILITIES)
         continue;
-      send_to_char(ch, "%-30s +%s ranks\r\n", spell_info[atoi(row[0])].name, row[1]);
+      send_to_char(ch, "%-30s +%s ranks\r\n", spell_info[parse_int(row[0])].name, row[1]);
     }
   }
   mysql_free_result(res);
@@ -557,9 +557,9 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, cons
   {
     while ((row = mysql_fetch_row(res)) != NULL)
     {
-      if (atoi(row[0]) > MAX_LANGUAGES)
+      if (parse_int(row[0]) > MAX_LANGUAGES)
         continue;
-      send_to_char(ch, "%-30s learned\r\n", spell_info[atoi(row[0])].name);
+      send_to_char(ch, "%-30s learned\r\n", spell_info[parse_int(row[0])].name);
     }
   }
   mysql_free_result(res);
@@ -575,7 +575,7 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, cons
   {
     while ((row = mysql_fetch_row(res)) != NULL)
     {
-      display_levelinfo_ability_scores(ch, atoi(row[0]));
+      display_levelinfo_ability_scores(ch, parse_int(row[0]));
     }
   }
   mysql_free_result(res);
@@ -622,7 +622,7 @@ ACMD(do_levelinfo)
     {
       while ((row = mysql_fetch_row(res)) != NULL)
       {
-        send_to_char(ch, "%-20s %-14s %s\r\n", row[0], row[1], class_names[atoi(row[2])]);
+        send_to_char(ch, "%-20s %-14s %s\r\n", row[0], row[1], class_names[parse_int(row[2])]);
       }
     }
 
@@ -687,7 +687,7 @@ ACMD(do_levelinfo)
         return;
       }
     }
-    else if ((level_id = atol(arg1)) > 0)
+    else if ((level_id = parse_long(arg1)) > 0)
     {
       char *chname = strdup(GET_NAME(ch));
       show_levelinfo_for_specific_level(ch, level_id, chname);
@@ -819,7 +819,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
       while ((row = mysql_fetch_row(res)) != NULL)
       {
         send_to_char(ch, "Level ID = %s, Level = %s, ", row[2], row[3]);
-        display_levelinfo_feats(ch, atoi(row[0]), atoi(row[1]));
+        display_levelinfo_feats(ch, parse_int(row[0]), parse_int(row[1]));
       }
     }
 
@@ -858,10 +858,10 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
     {
       while ((row = mysql_fetch_row(res)) != NULL)
       {
-        if (atoi(row[0]) < START_GENERAL_ABILITIES)
+        if (parse_int(row[0]) < START_GENERAL_ABILITIES)
           continue;
         send_to_char(ch, "Level ID = %s, Level = %s, ", row[2], row[3]);
-        send_to_char(ch, "%-30s +%s ranks\r\n", spell_info[atoi(row[0])].name, row[1]);
+        send_to_char(ch, "%-30s +%s ranks\r\n", spell_info[parse_int(row[0])].name, row[1]);
       }
     }
 
@@ -900,10 +900,10 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
     {
       while ((row = mysql_fetch_row(res)) != NULL)
       {
-        if (atoi(row[0]) > MAX_LANGUAGES)
+        if (parse_int(row[0]) > MAX_LANGUAGES)
           continue;
         send_to_char(ch, "Level ID = %s, Level = %s, ", row[2], row[3]);
-        send_to_char(ch, "%-30s learned\r\n", spell_info[atoi(row[0])].name);
+        send_to_char(ch, "%-30s learned\r\n", spell_info[parse_int(row[0])].name);
       }
     }
 
@@ -940,7 +940,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
     {
       while ((row = mysql_fetch_row(res)) != NULL)
       {
-        if (atoi(row[0]) > MAX_LANGUAGES)
+        if (parse_int(row[0]) > MAX_LANGUAGES)
           continue;
         send_to_char(ch, "Level ID = %s, Level = %s, ", row[1], row[2]);
         send_to_char(ch, "%-30s raised by one\r\n", levelup_ability_scores[i]);
@@ -989,7 +989,7 @@ void erase_levelup_info(struct char_data *ch)
       if ((row = mysql_fetch_row(res)) != NULL)
       {
         found = true;
-        level_id = atoi(row[0]);
+        level_id = parse_int(row[0]);
       }
     }
     mysql_free_result(res);

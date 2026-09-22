@@ -213,12 +213,12 @@ static IBT_DATA *read_ibt(char *filename, FILE *fp)
       {
         if (id_num)
         {
-          ibtData->id_num = atol(id_num);
+          ibtData->id_num = parse_long(id_num);
           STRFREE(id_num);
         }
         if (dated)
         {
-          ibtData->dated = atol(dated);
+          ibtData->dated = parse_long(dated);
           STRFREE(dated);
         }
         if (!ibtData->name)
@@ -606,7 +606,7 @@ ACMD(do_ibt)
       send_to_char(ch, "Show which %s?\r\n", CMD_NAME);
       return;
     }
-    ano = atoi(arg2);
+    ano = parse_int(arg2);
 
     if ((ibtData = get_ibt_by_num(subcmd, ano)) == NULL)
     {
@@ -838,7 +838,7 @@ ACMD(do_ibt)
       send_to_char(ch, "Resolve which %s?\r\n", CMD_NAME);
       return;
     }
-    ano = atoi(arg2);
+    ano = parse_int(arg2);
 
     if ((ibtData = get_ibt_by_num(subcmd, ano)) == NULL)
     {
@@ -876,7 +876,7 @@ ACMD(do_ibt)
       send_to_char(ch, "Remove which %s?\r\n", CMD_NAME);
       return;
     }
-    ano = atoi(arg2);
+    ano = parse_int(arg2);
 
     if ((ibtData = get_ibt_by_num(subcmd, ano)) == NULL)
     {
@@ -966,7 +966,7 @@ ACMD(do_oasis_ibtedit)
 
   /* If a numeric argument was given (like a room number), get it. */
   if (number == (int)NOTHING)
-    number = atoi(buf1);
+    number = parse_int(buf1);
 
   /* Validate that the IBT number exists */
   if (get_ibt_by_num(subcmd, number) == NULL)
@@ -1308,7 +1308,7 @@ void ibtedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case IBTEDIT_ROOM:
-    i = atoi(arg);
+    i = parse_int(arg);
     if (i == 0)
     { /* Cancel option */
       ibtedit_disp_main_menu(d);
@@ -1332,7 +1332,7 @@ void ibtedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case IBTEDIT_FLAGS:
-    if ((i = atoi(arg)) <= 0)
+    if ((i = parse_int(arg)) <= 0)
       break;
     else if (i <= NUM_IBT_FLAGS)
       TOGGLE_BIT_AR(IBT_FLAGS(OLC_IBT(d)), (i - 1));

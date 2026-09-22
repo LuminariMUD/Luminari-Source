@@ -137,7 +137,7 @@ ACMD(do_quitlog)
       return;
     }
 
-    delete_idx = atoi(arg2);
+    delete_idx = parse_int(arg2);
 
     /* Read all non-empty lines from the file */
     fp = fopen(QUIT_FEEDBACK_FILE, "r");
@@ -206,7 +206,7 @@ ACMD(do_quitlog)
 
   /* Display mode */
   if (*arg1 && isdigit(*arg1))
-    max_lines = MAX(5, MIN(200, atoi(arg1)));
+    max_lines = MAX(5, MIN(200, parse_int(arg1)));
   if (max_lines <= 0)
     max_lines = 20;
 
@@ -399,7 +399,7 @@ room_rnum find_target_room(struct char_data *ch, const char *rawroomstr)
 
   if (isdigit(*roomstr) && !strchr(roomstr, '.'))
   {
-    if ((location = real_room((room_vnum)atoi(roomstr))) >= NOWHERE)
+    if ((location = real_room((room_vnum)parse_int(roomstr))) >= NOWHERE)
     {
       send_to_char(ch, "No room exists with that number.\r\n");
       return (NOWHERE);
@@ -549,7 +549,7 @@ ACMD(do_goto)
   else
   {
     /* Have two args, that means coordinates (potentially) */
-    if ((location = find_room_by_coordinates(atoi(arg), atoi(arg2))) == NOWHERE)
+    if ((location = find_room_by_coordinates(parse_int(arg), parse_int(arg2))) == NOWHERE)
     {
       if ((location = find_available_wilderness_room()) == NOWHERE)
       {
@@ -562,7 +562,7 @@ ACMD(do_goto)
          * with safe dynamic allocation for region/path overrides.
          * No memory leaks or crashes from this call.
          */
-        assign_wilderness_room(location, atoi(arg), atoi(arg2));
+        assign_wilderness_room(location, parse_int(arg), parse_int(arg2));
       }
     }
   }
@@ -2055,9 +2055,9 @@ ACMD(do_load)
     return;
   }
 
-  if (atoi(buf3) > 0 && atoi(buf3) <= 100)
+  if (parse_int(buf3) > 0 && parse_int(buf3) <= 100)
   {
-    n = atoi(buf3);
+    n = parse_int(buf3);
   }
   else
   {
@@ -2176,19 +2176,19 @@ ACMD(do_vstat)
     extract_obj(obj);
     break;
   case 'r':
-    snprintf(buf2, sizeof(buf2), "room %d", atoi(buf2));
+    snprintf(buf2, sizeof(buf2), "room %d", parse_int(buf2));
     do_stat(ch, buf2, 0, 0);
     break;
   case 'z':
-    snprintf(buf2, sizeof(buf2), "zone %d", atoi(buf2));
+    snprintf(buf2, sizeof(buf2), "zone %d", parse_int(buf2));
     do_stat(ch, buf2, 0, 0);
     break;
   case 't':
-    snprintf(buf2, sizeof(buf2), "%d", atoi(buf2));
+    snprintf(buf2, sizeof(buf2), "%d", parse_int(buf2));
     do_tstat(ch, buf2, 0, 0);
     break;
   case 's':
-    snprintf(buf2, sizeof(buf2), "shops %d", atoi(buf2));
+    snprintf(buf2, sizeof(buf2), "shops %d", parse_int(buf2));
     do_show(ch, buf2, 0, 0);
     break;
   default:
@@ -2296,7 +2296,7 @@ ACMD(do_advance)
     send_to_char(ch, "NO!  Not on NPC's.\r\n");
     return;
   }
-  if (!*level || (newlevel = atoi(level)) <= 0)
+  if (!*level || (newlevel = parse_int(level)) <= 0)
   {
     send_to_char(ch, "That's not a level!\r\n");
     return;
@@ -2540,7 +2540,7 @@ ACMD(do_invis)
   }
   else
   {
-    level = atoi(arg);
+    level = parse_int(arg);
     if (level > GET_LEVEL(ch))
       send_to_char(ch, "You can't go invisible above your own level.\r\n");
     else if (level < 1)
@@ -2582,7 +2582,7 @@ ACMD(do_dc)
   int num_to_dc;
 
   one_argument(argument, arg, sizeof(arg));
-  if (!(num_to_dc = atoi(arg)))
+  if (!(num_to_dc = parse_int(arg)))
   {
     send_to_char(ch, "Usage: DC <user number> (type USERS for a list)\r\n");
     return;
@@ -2639,7 +2639,7 @@ ACMD(do_wizlock)
   one_argument(argument, arg, sizeof(arg));
   if (*arg)
   {
-    value = atoi(arg);
+    value = parse_int(arg);
     if (value < 0 || value > GET_LEVEL(ch))
     {
       send_to_char(ch, "Invalid wizlock value.\r\n");
@@ -2834,7 +2834,7 @@ ACMDU(do_last)
       }
       if (isdigit(*arg))
       {
-        num = atoi(arg);
+        num = parse_int(arg);
         if (num < 0)
           num = 0;
       }
@@ -2985,7 +2985,7 @@ ACMDU(do_wiznet)
     if (is_number(buf1))
     {
       half_chop(argument + 1, buf1, argument);
-      level = MAX(atoi(buf1), LVL_IMMORT);
+      level = MAX(parse_int(buf1), LVL_IMMORT);
       if (level > GET_LEVEL(ch))
       {
         send_to_char(ch, "You can't wizline above your own level.\r\n");
@@ -3116,7 +3116,7 @@ ACMD(do_zreset)
     i = world[IN_ROOM(ch)].zone;
   else
   {
-    j = atoi(arg);
+    j = parse_int(arg);
     for (i = 0; i <= top_of_zone_table; i++)
       if (zone_table[i].number == j)
         break;
@@ -3441,8 +3441,8 @@ ACMD(do_show)
       print_zone_to_buf(buf, sizeof(buf), world[IN_ROOM(ch)].zone, 1);
     else if (*value && is_number(value))
     {
-      for (zvn = atoi(value), zrn = 0; zone_table[zrn].number != zvn && zrn <= top_of_zone_table;
-           zrn++)
+      for (zvn = parse_int(value), zrn = 0;
+           zone_table[zrn].number != zvn && zrn <= top_of_zone_table; zrn++)
         ;
       if (zrn <= top_of_zone_table)
         print_zone_to_buf(buf, sizeof(buf), zrn, 1);
@@ -3712,7 +3712,7 @@ ACMD(do_show)
 
   case 16: // show citizen
     if (*value && is_number(value))
-      j = atoi(value);
+      j = parse_int(value);
     else
       j = zone_table[world[ch->in_room].zone].number;
     j *= 100;
@@ -3742,7 +3742,7 @@ ACMD(do_show)
 
   case 17: // show guard
     if (*value && is_number(value))
-      j = atoi(value);
+      j = parse_int(value);
     else
       j = zone_table[world[ch->in_room].zone].number;
     j *= 100;
@@ -3920,7 +3920,7 @@ ACMD(do_shopstat)
     send_to_char(ch, "Usage: shopstat <shop_vnum>\r\n");
     return;
   }
-  vnum = atoi(arg);
+  vnum = parse_int(arg);
   shop_nr = real_shop(vnum);
   if (shop_nr < 0 || shop_nr > top_shop)
   {
@@ -4303,7 +4303,7 @@ ACMD(do_links)
   }
   else
   {
-    zvnum = atoi(arg);
+    zvnum = parse_int(arg);
     zrnum = real_zone(zvnum);
   }
 
@@ -5079,19 +5079,19 @@ ACMD(do_checkloadstatus)
 
   if (LOWER(*buf1) == 'm')
   {
-    mob_checkload(ch, atoi(buf2));
+    mob_checkload(ch, parse_int(buf2));
     return;
   }
 
   if (LOWER(*buf1) == 'o')
   {
-    obj_checkload(ch, atoi(buf2));
+    obj_checkload(ch, parse_int(buf2));
     return;
   }
 
   if (LOWER(*buf1) == 't')
   {
-    trg_checkload(ch, atoi(buf2));
+    trg_checkload(ch, parse_int(buf2));
     return;
   }
 }
@@ -5856,7 +5856,7 @@ MUD_EVENT_CALLBACK(event_copyover)
   /* grab and clear initial timer from sVar */
   if (copyover_event->sVariables)
   {
-    timer = atoi((char *)copyover_event->sVariables); /* in seconds */
+    timer = parse_int((char *)copyover_event->sVariables); /* in seconds */
     free(copyover_event->sVariables);
   }
   else
@@ -6010,7 +6010,7 @@ ACMD(do_copyover)
     return;
   }
 
-  timer = atoi(arg);
+  timer = parse_int(arg);
 
   if (timer <= 0)
   {
@@ -6184,7 +6184,7 @@ ACMD(do_zpurge)
   }
   else if (is_number(arg))
   {
-    vzone = atoi(arg);
+    vzone = parse_int(arg);
     zone = real_zone(vzone);
     if (zone == NOWHERE || zone > top_of_zone_table)
     {
@@ -6337,7 +6337,7 @@ ACMD(do_file)
   }
   else
   {
-    req_lines = atoi(value);
+    req_lines = parse_int(value);
     /* Limit the maximum number of lines */
     req_lines = MIN(req_lines, max_lines_to_read);
   }
@@ -6727,7 +6727,7 @@ ACMD(do_zlock)
     }
     return;
   }
-  else if ((znvnum = atoi(arg)) == 0)
+  else if ((znvnum = parse_int(arg)) == 0)
   {
     send_to_char(ch, "Usage: %szlock <zone number>%s\r\n", QYEL, QNRM);
     return;
@@ -6842,7 +6842,7 @@ ACMD(do_zunlock)
     }
     return;
   }
-  else if ((znvnum = atoi(arg)) == 0)
+  else if ((znvnum = parse_int(arg)) == 0)
   {
     send_to_char(ch, "Usage: %szunlock <zone number>%s\r\n", QYEL, QNRM);
     return;
@@ -6979,7 +6979,7 @@ ACMD(do_recent)
   }
   else
   {
-    limit = atoi(arg);
+    limit = parse_int(arg);
   }
 
   if (GET_LEVEL(ch) >= LVL_GRSTAFF)
@@ -7130,7 +7130,7 @@ ACMD(do_objlist)
   one_argument(argument, value, sizeof(value));
 
   if (*value && is_number(value))
-    requested_zone = atoi(value);
+    requested_zone = parse_int(value);
   else
     requested_zone = zone_table[world[ch->in_room].zone].number;
 
@@ -7245,7 +7245,7 @@ ACMD(do_hlqlist)
     /* convert buf1 to an integer */
   }
   else
-    bottom = atoi(buf1);
+    bottom = parse_int(buf1);
 
   /* if no buf2, use buf1, and top of zone information */
   if (!*buf2)
@@ -7261,7 +7261,7 @@ ACMD(do_hlqlist)
   } /* convert buf2 to an integer */
   else
   {
-    top = atoi(buf2);
+    top = parse_int(buf2);
     if (bottom > top)
     {
       send_to_char(ch, "\tcFirst number must be less than second.\tn\r\n");
@@ -7408,7 +7408,7 @@ ACMD(do_genriver)
   else if (is_abbrev(arg1, "west"))
     dir = WEST;
   else
-    dir = atoi(arg1);
+    dir = parse_int(arg1);
 
   if (dir < NORTH || dir >= NUM_OF_DIRS)
   {
@@ -7512,7 +7512,7 @@ ACMD(do_genmap)
   else if (is_abbrev(arg1, "west"))
     dir = WEST;
   else
-    dir = atoi(arg1);
+    dir = parse_int(arg1);
 
   if (dir < NORTH || dir >= NUM_OF_DIRS)
   {
@@ -7613,7 +7613,7 @@ ACMD(do_oconvert)
     return;
   }
 
-  iarg = atoi(arg);
+  iarg = parse_int(arg);
 
   if (iarg <= 0 || iarg >= NUM_WEAPON_TYPES || weapon_list[iarg].name == NULL)
   {
@@ -8278,7 +8278,7 @@ ACMD(do_eqrating)
     return;
   }
 
-  wearloc = atoi(arg1);
+  wearloc = parse_int(arg1);
 
   /* dummy check:  0 = takeable */
   if (wearloc >= NUM_ITEM_WEARS || wearloc <= 0)
@@ -8290,7 +8290,7 @@ ACMD(do_eqrating)
   /* we now have a valid wear location, was a zone number also submitted? */
   if (isdigit(*arg2))
   {
-    zone = atoi(arg2);
+    zone = parse_int(arg2);
 
     for (i = 0; i <= (int)top_of_zone_table; i++)
     {
@@ -8463,8 +8463,8 @@ ACMD(do_coordconvert)
     return;
   }
 
-  tmp_x_value = atoi(arg1);
-  tmp_y_value = atoi(arg2);
+  tmp_x_value = parse_int(arg1);
+  tmp_y_value = parse_int(arg2);
 
   if (tmp_x_value < -1024 || tmp_y_value < -1024 || tmp_x_value > 2048 || tmp_y_value > 2048)
   {
@@ -8513,7 +8513,7 @@ ACMD(do_findmagic)
 
   if (spellnum == -1)
   {
-    spellnum = atoi(spellname);
+    spellnum = parse_int(spellname);
     if (spellnum <= 0)
     {
       send_to_char(ch, "Invalid spell name or spell number\r\nUsage: findmagic "
@@ -8602,7 +8602,7 @@ ACMD(do_cmdlev)
     return;
   }
 
-  iLev = atoi(buf2);
+  iLev = parse_int(buf2);
 
   if ((iLev < 1) || (iLev > GET_LEVEL(ch)))
   {
@@ -9219,7 +9219,7 @@ ACMD(do_perfmon)
     int csv = FALSE;
 
     if (is_number(arg2))
-      count = (size_t)MAX(0, atoi(arg2));
+      count = (size_t)MAX(0, parse_int(arg2));
     else if (!str_cmp(arg2, "csv"))
       csv = TRUE;
     if (!str_cmp(arg3, "csv"))
@@ -9242,7 +9242,7 @@ ACMD(do_perfmon)
     size_t limit = 0;
 
     if (is_number(arg3))
-      limit = (size_t)MAX(0, atoi(arg3));
+      limit = (size_t)MAX(0, parse_int(arg3));
     PERF_prof_repr_top(buf, sizeof(buf), arg2[0] != '\0' ? arg2 : "total", limit);
     page_string(ch->desc, buf, TRUE);
     return;
@@ -9262,7 +9262,7 @@ ACMD(do_perfmon)
     int csv = FALSE;
 
     if (is_number(arg2))
-      count = (size_t)MAX(0, atoi(arg2));
+      count = (size_t)MAX(0, parse_int(arg2));
     else if (!str_cmp(arg2, "csv"))
       csv = TRUE;
     if (!str_cmp(arg3, "csv"))
@@ -9510,7 +9510,7 @@ ACMD(do_award)
     return;
   }
 
-  amount = atol(arg3);
+  amount = parse_long(arg3);
 
   if (amount <= 0)
   {
@@ -10052,8 +10052,8 @@ ACMD(do_resourceadmin)
       return;
     }
 
-    x = atoi(arg2);
-    y = atoi(arg3);
+    x = parse_int(arg2);
+    y = parse_int(arg3);
 
     /* Validate coordinates */
     if (x < -1024 || x > 1024 || y < -1024 || y > 1024)
@@ -10100,7 +10100,7 @@ ACMD(do_resourceadmin)
     /* Parse resource type */
     if (is_number(arg2))
     {
-      resource_type = atoi(arg2);
+      resource_type = parse_int(arg2);
     }
     else
     {
@@ -10122,7 +10122,7 @@ ACMD(do_resourceadmin)
 
     if (*arg3)
     {
-      radius = atoi(arg3);
+      radius = parse_int(arg3);
       if (radius < 3)
         radius = 3;
       if (radius > 20)
@@ -10293,7 +10293,7 @@ ACMD(do_regenadmin)
         send_to_char(ch, "Usage: regenadmin history <x> <y> [limit]\r\n");
         return;
       }
-      x = atoi(arg2);
+      x = parse_int(arg2);
 
       remaining_args = one_argument(remaining_args, arg2, sizeof(arg2));
       if (!*arg2)
@@ -10301,10 +10301,10 @@ ACMD(do_regenadmin)
         send_to_char(ch, "Usage: regenadmin history <x> <y> [limit]\r\n");
         return;
       }
-      y = atoi(arg2);
+      y = parse_int(arg2);
 
       remaining_args = one_argument(remaining_args, arg2, sizeof(arg2));
-      limit = *arg2 ? atoi(arg2) : 10;
+      limit = *arg2 ? parse_int(arg2) : 10;
 
       if (limit < 1 || limit > 100)
       {
@@ -10350,7 +10350,7 @@ static void resourceadmin_effects_list(struct char_data *ch)
 
   while ((row = mysql_fetch_row(result)) != NULL)
   {
-    const char *active = (atoi(row[4]) == 1) ? "Yes" : "No";
+    const char *active = (parse_int(row[4]) == 1) ? "Yes" : "No";
     send_to_char(ch, "%2s | %-16s | %-8s | %-6s | %.50s\r\n", row[0], row[1], row[2], active,
                  row[3] ? row[3] : "");
   }
@@ -10393,7 +10393,7 @@ void resourceadmin_effects_show(struct char_data *ch, int effect_id)
   send_to_char(ch, "\tcEffect ID %d Details:\tn\r\n", effect_id);
   send_to_char(ch, "Name: %s\r\n", row[0]);
   send_to_char(ch, "Type: %s\r\n", row[1]);
-  send_to_char(ch, "Active: %s\r\n", (atoi(row[4]) == 1) ? "Yes" : "No");
+  send_to_char(ch, "Active: %s\r\n", (parse_int(row[4]) == 1) ? "Yes" : "No");
   send_to_char(ch, "Description: %s\r\n", row[2] ? row[2] : "None");
   send_to_char(ch, "Effect Data: %s\r\n", row[3] ? row[3] : "None");
 
@@ -10416,7 +10416,7 @@ void resourceadmin_effects_show(struct char_data *ch, int effect_id)
 
       while ((row = mysql_fetch_row(result)) != NULL)
       {
-        const char *active = (atoi(row[2]) == 1) ? "Yes" : "No";
+        const char *active = (parse_int(row[2]) == 1) ? "Yes" : "No";
         const char *expires = row[4] ? row[4] : "Never";
         send_to_char(ch, "%6s | %8s | %-6s | %-13s | %s\r\n", row[0], row[1], active, row[3],
                      expires);
@@ -10540,7 +10540,7 @@ void resourceadmin_effects_region(struct char_data *ch, int region_vnum_id)
   int count = 0;
   while ((row = mysql_fetch_row(result)) != NULL)
   {
-    const char *active = (atoi(row[4]) == 1) ? "Yes" : "No";
+    const char *active = (parse_int(row[4]) == 1) ? "Yes" : "No";
     const char *expires = row[6] ? row[6] : "Never";
     send_to_char(ch, "%2s | %-16s | %-8s | %8s | %-6s | %-13s | %s\r\n", row[0], row[1], row[2],
                  row[3], active, row[5], expires);
@@ -10618,7 +10618,7 @@ ACMD(do_effectsadmin)
       return;
     }
 
-    resourceadmin_effects_show(ch, atoi(arg2));
+    resourceadmin_effects_show(ch, parse_int(arg2));
     return;
   }
 
@@ -10635,8 +10635,8 @@ ACMD(do_effectsadmin)
       return;
     }
 
-    double intensity = *arg4 ? atof(arg4) : 1.0;
-    resourceadmin_effects_assign(ch, atoi(arg2), atoi(arg3), intensity);
+    double intensity = *arg4 ? parse_double(arg4) : 1.0;
+    resourceadmin_effects_assign(ch, parse_int(arg2), parse_int(arg3), intensity);
     return;
   }
 
@@ -10651,7 +10651,7 @@ ACMD(do_effectsadmin)
       return;
     }
 
-    resourceadmin_effects_unassign(ch, atoi(arg2), atoi(arg3));
+    resourceadmin_effects_unassign(ch, parse_int(arg2), parse_int(arg3));
     return;
   }
 
@@ -10665,7 +10665,7 @@ ACMD(do_effectsadmin)
       return;
     }
 
-    resourceadmin_effects_region(ch, atoi(arg2));
+    resourceadmin_effects_region(ch, parse_int(arg2));
     return;
   }
 
@@ -10709,7 +10709,7 @@ ACMD(do_settime)
   }
 
   /* Parse hour */
-  new_hour = atoi(arg1);
+  new_hour = parse_int(arg1);
   if (new_hour < 0 || new_hour > 23)
   {
     send_to_char(ch, "Hour must be between 0 and 23.\r\n");
@@ -10719,7 +10719,7 @@ ACMD(do_settime)
   /* Parse day if provided */
   if (*arg2)
   {
-    new_day = atoi(arg2);
+    new_day = parse_int(arg2);
     if (new_day < 1 || new_day > 35)
     {
       send_to_char(ch, "Day must be between 1 and 35.\r\n");
@@ -10731,7 +10731,7 @@ ACMD(do_settime)
   /* Parse month if provided */
   if (*arg3)
   {
-    new_month = atoi(arg3);
+    new_month = parse_int(arg3);
     if (new_month < 0 || new_month > 11)
     {
       send_to_char(ch, "Month must be between 0 and 11.\r\n");
@@ -10794,7 +10794,7 @@ ACMD(do_setweather)
     return;
   }
 
-  new_weather = atoi(arg);
+  new_weather = parse_int(arg);
   if (new_weather < 0 || new_weather > 4)
   {
     send_to_char(ch, "Weather type must be between 0 and 4.\r\n");
@@ -11268,7 +11268,7 @@ ACMD(do_settestchar)
     int class_level = GET_LEVEL(vict); /* default to character's current level */
     if (colon_pos)
     {
-      class_level = atoi(colon_pos + 1);
+      class_level = parse_int(colon_pos + 1);
     }
 
     /* Apply per-class level cap */
@@ -11976,7 +11976,7 @@ ACMD(do_specbind)
     return;
   }
 
-  vnum = atoi(arg_vnum);
+  vnum = parse_int(arg_vnum);
 
   if (is_abbrev(arg_owner, "mobile") || is_abbrev(arg_owner, "mob"))
   {

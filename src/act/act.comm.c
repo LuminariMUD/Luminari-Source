@@ -1099,10 +1099,10 @@ ACMD(do_diceroll)
   if (!*marg)
     mod = 0;
   else
-    mod = atoi(marg);
+    mod = parse_int(marg);
 
-  num = atoi(narg);
-  size = atoi(sarg);
+  num = parse_int(narg);
+  size = parse_int(sarg);
 
   if (num <= 0 || size <= 0)
   {

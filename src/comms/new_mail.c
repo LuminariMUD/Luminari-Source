@@ -147,7 +147,7 @@ ACMD(do_new_mail)
                          "have mail displayed for?\r\n");
         return;
       }
-      int days = atoi(arg4);
+      int days = parse_int(arg4);
       if (days <= 0 || days >= 365)
       {
         send_to_char(ch, "You must choose an amount between 1 and 365 days.\r\n");
@@ -167,7 +167,7 @@ ACMD(do_new_mail)
         send_to_char(ch, "You must specify which mail idnum you wish to read.\r\n");
         return;
       }
-      int mnum = atoi(arg4);
+      int mnum = parse_int(arg4);
       if (mnum <= 0)
       {
         send_to_char(ch, "The mail idnum must be greater than zero.\r\n");
@@ -183,7 +183,7 @@ ACMD(do_new_mail)
         send_to_char(ch, "You must specify which mail idnum you wish to delete.\r\n");
         return;
       }
-      int mnum = atoi(arg4);
+      int mnum = parse_int(arg4);
       if (mnum <= 0)
       {
         send_to_char(ch, "The mail idnum must be greater than zero.\r\n");
@@ -489,7 +489,7 @@ void perform_mail_read(struct char_data *ch, int mnum)
   {
     if ((row = mysql_fetch_row(res)) != NULL)
     {
-      if (atoi(row[0]) > 0)
+      if (parse_int(row[0]) > 0)
         found = TRUE;
     }
   }

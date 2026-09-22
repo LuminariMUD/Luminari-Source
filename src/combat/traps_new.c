@@ -2343,7 +2343,7 @@ MUD_EVENT_CALLBACK(event_trap_triggered)
   }
   else
   {
-    effect = atoi(pMudEvent->sVariables);
+    effect = parse_int(pMudEvent->sVariables);
   }
 
   switch (pMudEvent->iId)

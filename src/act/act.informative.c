@@ -6869,7 +6869,7 @@ ACMD(do_scoreconfig)
 
   if (!str_cmp(arg1, "width"))
   {
-    int width = atoi(arg2);
+    int width = parse_int(arg2);
     if (width != 80 && width != 120 && width != 160)
     {
       send_to_char(ch, "Valid widths are: 80, 120, or 160 characters.\r\n");
@@ -7127,7 +7127,7 @@ ACMD(do_scoreconfig)
     }
 
     /* Parse position */
-    position = atoi(arg3);
+    position = parse_int(arg3);
     if (position < 1 || position > 8)
     {
       send_to_char(ch, "Position must be between 1 and 8.\r\n");
@@ -7312,7 +7312,7 @@ ACMD(do_bags)
 
   if (i > MAX_BAGS)
   {
-    bagnum = atoi(arg);
+    bagnum = parse_int(arg);
   }
 
   if (bagnum < 1 || bagnum > MAX_BAGS)
@@ -8738,7 +8738,7 @@ ACMD(do_toggle)
     }
     if (isdigit(*arg2))
     {
-      if ((wimp_lev = atoi(arg2)) != 0)
+      if ((wimp_lev = parse_int(arg2)) != 0)
       {
         if (wimp_lev < 0)
           send_to_char(ch, "Heh, heh, heh.. we are jolly funny today, eh?\r\n");
@@ -8767,7 +8767,7 @@ ACMD(do_toggle)
       send_to_char(ch, "Your current page length is set to %d lines.", GET_PAGE_LENGTH(ch));
     else if (is_number(arg2))
     {
-      GET_PAGE_LENGTH(ch) = (ubyte)(MIN(MAX(atoi(arg2), 5), 255));
+      GET_PAGE_LENGTH(ch) = (ubyte)(MIN(MAX(parse_int(arg2), 5), 255));
       send_to_char(ch, "Okay, your page length is now set to %d lines.", GET_PAGE_LENGTH(ch));
     }
     else
@@ -8778,7 +8778,7 @@ ACMD(do_toggle)
       send_to_char(ch, "Your current screen width is set to %d characters.", GET_SCREEN_WIDTH(ch));
     else if (is_number(arg2))
     {
-      GET_SCREEN_WIDTH(ch) = (ubyte)(MIN(MAX(atoi(arg2), 40), 200));
+      GET_SCREEN_WIDTH(ch) = (ubyte)(MIN(MAX(parse_int(arg2), 40), 200));
       send_to_char(ch, "Okay, your screen width is now set to %d characters.",
                    GET_SCREEN_WIDTH(ch));
     }
@@ -9292,18 +9292,18 @@ ACMD(do_areas)
       if (second == arg)
         lolev = 0;
       else
-        lolev = atoi(arg);
+        lolev = parse_int(arg);
 
       /* Check for 2nd value */
       if (*(second + 1) == '\0' || !isdigit(*(second + 1)))
         hilev = 100;
       else
-        hilev = atoi(second + 1);
+        hilev = parse_int(second + 1);
     }
     else
     {
       /* No range - single number */
-      lolev = atoi(arg);
+      lolev = parse_int(arg);
       hilev = -1; /* No high level - indicates single level */
     }
   }
@@ -9764,7 +9764,7 @@ ACMD(do_survey)
     /* Parse resource type */
     if (is_number(arg2))
     {
-      resource_type = atoi(arg2);
+      resource_type = parse_int(arg2);
     }
     else
     {
@@ -9788,7 +9788,7 @@ ACMD(do_survey)
     /* Parse radius */
     if (*arg3)
     {
-      radius = atoi(arg3);
+      radius = parse_int(arg3);
       if (radius < 3)
         radius = 3;
       if (radius > 15)
@@ -9822,7 +9822,7 @@ ACMD(do_survey)
     /* Parse resource type */
     if (is_number(arg2))
     {
-      resource_type = atoi(arg2);
+      resource_type = parse_int(arg2);
     }
     else
     {
@@ -9898,7 +9898,7 @@ ACMD(do_survey)
     /* Parse resource type */
     if (is_number(arg2))
     {
-      resource_type = atoi(arg2);
+      resource_type = parse_int(arg2);
     }
     else
     {

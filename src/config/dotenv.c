@@ -204,7 +204,7 @@ int get_env_int(const char *key, int default_value)
   {
     return default_value;
   }
-  return atoi(value);
+  return parse_int(value);
 }
 
 /**

@@ -1063,7 +1063,7 @@ ACMD(do_talents)
     }
 
     /* Try to parse as number first */
-    int num = atoi(arg2);
+    int num = parse_int(arg2);
 
     /* If not a valid number or zero, search by name */
     if (num <= 0 || num >= TALENT_MAX)
@@ -1134,7 +1134,7 @@ ACMD(do_talents)
       send_to_char(ch, "Usage: talents learn <number>\r\n");
       return;
     }
-    int num = atoi(arg2);
+    int num = parse_int(arg2);
     if (num <= 0 || num >= TALENT_MAX)
     {
       send_to_char(ch, "Invalid talent number. Use 'talents' to see the list.\r\n");
@@ -1237,7 +1237,7 @@ ACMD(do_talento)
                    GET_TALENT_POINTS(vict), GET_TALENT_POINTS(vict) == 1 ? "" : "s");
       return;
     }
-    value = atoi(arg3);
+    value = parse_int(arg3);
     GET_TALENT_POINTS(vict) = MAX(0, value);
     send_to_char(ch, "%s now has %d talent point%s.\r\n", GET_NAME(vict), GET_TALENT_POINTS(vict),
                  GET_TALENT_POINTS(vict) == 1 ? "" : "s");
@@ -1248,7 +1248,7 @@ ACMD(do_talento)
     return;
   }
 
-  talent_num = atoi(arg2);
+  talent_num = parse_int(arg2);
   if (talent_num <= 0 || talent_num >= TALENT_MAX)
   {
     send_to_char(ch, "Invalid talent number (1-%d).\r\n", TALENT_MAX - 1);
@@ -1264,7 +1264,7 @@ ACMD(do_talento)
     return;
   }
 
-  value = atoi(arg3);
+  value = parse_int(arg3);
   if (value < 0 || value > 255)
   {
     send_to_char(ch, "Rank must be between 0 and 255.\r\n");
