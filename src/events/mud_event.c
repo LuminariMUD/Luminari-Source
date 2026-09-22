@@ -718,7 +718,7 @@ MUD_EVENT_CALLBACK(event_countdown)
   case eQUEST_COMPLETE:
     if (ch == NULL)
       break;
-    qvnum = atoi((char *)pMudEvent->sVariables);
+    qvnum = parse_int((char *)pMudEvent->sVariables);
     for (index = 0; index < MAX_CURRENT_QUESTS; index++)
       if (qvnum != (int)NOTHING && qvnum == GET_QUEST(ch, index))
         complete_quest(ch, index);

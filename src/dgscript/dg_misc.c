@@ -195,8 +195,8 @@ void do_dg_affect(void *go __attribute__((unused)), struct script_data *sc __att
     return;
   }
 
-  value = atoi(value_p);
-  duration = atoi(duration_p);
+  value = parse_int(value_p);
+  duration = parse_int(duration_p);
   if (duration <= 0)
   {
     script_log("Trigger: %s, VNum %" PRI_IDX ". dg_affect: need positive duration!",

@@ -8069,18 +8069,18 @@ void nanny(struct descriptor_data *d, char *arg)
       craft_training_recall(d, arg);
       return;
     default:
-      if (atoi(arg) < 1 || atoi(arg) > (MAX_CHARS_PER_ACCOUNT))
+      if (parse_int(arg) < 1 || parse_int(arg) > (MAX_CHARS_PER_ACCOUNT))
       {
         write_to_output(d, "The number must be between 1 and %d.\r\n", MAX_CHARS_PER_ACCOUNT);
         return;
       }
-      else if (d->account->character_names[atoi(arg) - 1] == NULL)
+      else if (d->account->character_names[parse_int(arg) - 1] == NULL)
       {
         write_to_output(d, "That character doesn't exist.  Please choose another.  Your Choice: ");
         return;
       }
-      else if ((player_i = load_char(d->account->character_names[atoi(arg) - 1], d->character)) >
-               -1)
+      else if ((player_i =
+                    load_char(d->account->character_names[parse_int(arg) - 1], d->character)) > -1)
       {
         GET_PFILEPOS(d->character) = player_i;
         if (PLR_FLAGGED(d->character, PLR_DELETED))
@@ -8916,7 +8916,7 @@ void nanny(struct descriptor_data *d, char *arg)
       return;
     }
 
-    load_result = atoi(arg);
+    load_result = parse_int(arg);
     if (load_result <= REGION_NONE || load_result >= NUM_REGIONS ||
         !is_selectable_region(load_result))
     {
@@ -9305,7 +9305,7 @@ void nanny(struct descriptor_data *d, char *arg)
       return;
     }
 
-    i = atoi(arg);
+    i = parse_int(arg);
     if (i < 0 || i > (NUM_ALIGNMENTS - 1) || !valid_align_by_class(i, GET_CLASS(d->character)) ||
         !valid_align_by_race(i, GET_REAL_RACE(d->character)))
     {
@@ -9463,10 +9463,10 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_CHARACTER_PERSONALITY_ENTER;
       return;
     }
-    if (atoi(arg) >= 1 && atoi(arg) < NUM_BACKGROUNDS)
+    if (parse_int(arg) >= 1 && parse_int(arg) < NUM_BACKGROUNDS)
     {
       choose_random_roleplay_personality(d->character,
-                                         backgrounds_listed_alphabetically[atoi(arg)]);
+                                         backgrounds_listed_alphabetically[parse_int(arg)]);
       write_to_output(d, "\r\n");
       write_to_output(d, "Enter a background number to see another example or Q to proceed and "
                          "edit your character personality: ");
@@ -9495,9 +9495,10 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_CHARACTER_IDEALS_ENTER;
       return;
     }
-    if (atoi(arg) >= 1 && atoi(arg) < NUM_BACKGROUNDS)
+    if (parse_int(arg) >= 1 && parse_int(arg) < NUM_BACKGROUNDS)
     {
-      choose_random_roleplay_ideals(d->character, backgrounds_listed_alphabetically[atoi(arg)]);
+      choose_random_roleplay_ideals(d->character,
+                                    backgrounds_listed_alphabetically[parse_int(arg)]);
       write_to_output(d, "\r\n");
       write_to_output(d, "Enter a background number to see another example or Q to proceed and "
                          "edit your character ideals: ");
@@ -9526,9 +9527,9 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_CHARACTER_BONDS_ENTER;
       return;
     }
-    if (atoi(arg) >= 1 && atoi(arg) < NUM_BACKGROUNDS)
+    if (parse_int(arg) >= 1 && parse_int(arg) < NUM_BACKGROUNDS)
     {
-      choose_random_roleplay_bonds(d->character, backgrounds_listed_alphabetically[atoi(arg)]);
+      choose_random_roleplay_bonds(d->character, backgrounds_listed_alphabetically[parse_int(arg)]);
       write_to_output(d, "\r\n");
       write_to_output(d, "Enter a background number to see another example or Q to proceed and "
                          "edit your character bonds: ");
@@ -9557,9 +9558,9 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_CHARACTER_FLAWS_ENTER;
       return;
     }
-    if (atoi(arg) >= 1 && atoi(arg) < NUM_BACKGROUNDS)
+    if (parse_int(arg) >= 1 && parse_int(arg) < NUM_BACKGROUNDS)
     {
-      choose_random_roleplay_flaws(d->character, backgrounds_listed_alphabetically[atoi(arg)]);
+      choose_random_roleplay_flaws(d->character, backgrounds_listed_alphabetically[parse_int(arg)]);
       write_to_output(d, "\r\n");
       write_to_output(d, "Enter a background number to see another example or Q to proceed and "
                          "edit your character flaws: ");

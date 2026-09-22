@@ -397,7 +397,7 @@ int main(int argc, char **argv)
       break;
     case 'C': /* -C<socket number> - recover from copyover, this is the control socket */
       fCopyOver = TRUE;
-      mother_desc = atoi(argv[pos] + 2);
+      mother_desc = parse_int(argv[pos] + 2);
       break;
     case 'd':
       if (*(argv[pos] + 2))
@@ -462,7 +462,7 @@ int main(int argc, char **argv)
       printf("Usage: %s [-c] [-m] [-q] [-r] [-s] [-d pathname] [port #]\n", argv[0]);
       exit(1);
     }
-    else if ((port = (ush_int)atoi(argv[pos])) <= 1024)
+    else if ((port = (ush_int)parse_int(argv[pos])) <= 1024)
     {
       printf("SYSERR: Illegal port number %d.\n", port);
       exit(1);

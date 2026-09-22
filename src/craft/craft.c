@@ -2960,7 +2960,7 @@ int get_mysql_supply_orders_available(struct char_data *ch)
   if (!(row = mysql_fetch_row(result)))
     return 10;
 
-  avail = atoi(row[0]);
+  avail = parse_int(row[0]);
 
   mysql_free_result(result);
 

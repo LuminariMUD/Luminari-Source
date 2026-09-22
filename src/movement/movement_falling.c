@@ -122,7 +122,7 @@ MUD_EVENT_CALLBACK(event_falling)
     return 0;
 
   /* retrieve svariables and convert it */
-  height_fallen += atoi((char *)pMudEvent->sVariables);
+  height_fallen += parse_int((char *)pMudEvent->sVariables);
   send_to_char(ch, "AIYEE!!!  You have fallen %d feet!\r\n", height_fallen);
 
   /* already checked if there is a down exit, lets move the char down */

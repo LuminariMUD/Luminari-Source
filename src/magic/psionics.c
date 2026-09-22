@@ -380,7 +380,7 @@ ACMD(do_manifest)
     }
   }
 
-  int extra_pp = atoi(augment);
+  int extra_pp = parse_int(augment);
   GET_AUGMENT_PSP(ch) = extra_pp;
   snprintf(final_pass, sizeof(final_pass), " %s", pass_arg);
   do_gen_cast(ch, (const char *)final_pass, cmd, SCMD_CAST_PSIONIC);

@@ -148,7 +148,7 @@ bool help_sync_database_lock_acquire(unsigned int timeout_seconds)
   if (result != NULL)
   {
     row = mysql_fetch_row(result);
-    acquired = row != NULL && row[0] != NULL && atoi(row[0]) == 1;
+    acquired = row != NULL && row[0] != NULL && parse_int(row[0]) == 1;
     mysql_free_result(result);
   }
   return acquired;

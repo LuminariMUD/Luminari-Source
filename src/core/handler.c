@@ -319,7 +319,7 @@ static int isname_tok(const char *str, const char *namelist)
     if (curtok && is_abbrev(str, curtok))
     {
       /* Don't allow abbreviated numbers. - Sryth */
-      if (isdigit(*str) && (atoi(str) != atoi(curtok)))
+      if (isdigit(*str) && (parse_int(str) != parse_int(curtok)))
         return 0;
       free(newlist);
       return 1;
@@ -2796,7 +2796,7 @@ int get_number(char **name)
       if (!isdigit(*(number + i)))
         retval = 0;
 
-    retval = atoi(number);
+    retval = parse_int(number);
   }
 
   free(namebuf);

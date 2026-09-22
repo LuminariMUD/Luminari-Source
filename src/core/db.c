@@ -2141,7 +2141,7 @@ bitvector_t asciiflag_conv(const char *flag)
   }
 
   if (is_num)
-    flags = atol(flag);
+    flags = parse_long(flag);
 
   return (flags);
 }
@@ -2165,7 +2165,7 @@ static bitvector_t asciiflag_conv_aff(char *flag)
   }
 
   if (is_num)
-    flags = atol(flag);
+    flags = parse_long(flag);
 
   return (flags);
 }
@@ -2278,7 +2278,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
     world[room_nr].room_flags[3] = 0;
 
     /* In the old-style files, the 3rd item was the sector-type */
-    world[room_nr].sector_type = atoi(flags2);
+    world[room_nr].sector_type = parse_int(flags2);
 
     snprintf(flags, sizeof(flags), "room #%d",
              virtual_nr); /* sprintf: OK (until 399-bit integers) */
@@ -2372,7 +2372,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
         log("SYSERR: Invalid coordinates in room #%d: '%s'", virtual_nr, line);
       break;
     case 'D':
-      setup_dir(fl, room_nr, atoi(line + 1));
+      setup_dir(fl, room_nr, parse_int(line + 1));
       break;
     case 'M':
       if (world[room_nr].spec_binding != NULL)
@@ -3040,7 +3040,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   /* If there isn't a colon, there is no value.  While Boolean options are
    * possible, we don't actually have any.  Feel free to make some. */
   if (value)
-    num_arg = atoi(value);
+    num_arg = parse_int(value);
 
   CASE("BareHandAttack")
   {
@@ -3452,7 +3452,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
       temp++;
     while (*temp != 0)
     {
-      room_vnum room = atoi(temp);
+      room_vnum room = parse_int(temp);
       if (room && PATH_SIZE(&mob_proto[i]) >= MAX_PATH)
       {
         log("SYSERR: Mob #%d has more than %d path rooms; extra rooms ignored.", nr, MAX_PATH);
@@ -3607,7 +3607,7 @@ void parse_mobile(FILE *mob_f, int nr)
     AFF_FLAGS(mob_proto + i)
     [3] = 0;
 
-    GET_ALIGNMENT(mob_proto + i) = atoi(f3);
+    GET_ALIGNMENT(mob_proto + i) = parse_int(f3);
 
     /* Make some basic checks. */
     REMOVE_BIT_AR(AFF_FLAGS(mob_proto + i), AFF_CHARM);
@@ -6973,7 +6973,7 @@ int fread_flags(FILE *fp, int *fg, int fg_size)
   for (i = 0, tmp_txt = line; tmp_txt && *tmp_txt && i < fg_size; i++)
   {
     tmp_txt = one_argument(tmp_txt, val_txt, sizeof(val_txt)); /* Grab a number  */
-    fg[i] = atoi(val_txt);                                     /* Convert to int */
+    fg[i] = parse_int(val_txt);                                /* Convert to int */
   }
 
   return (i);
@@ -8389,7 +8389,7 @@ void load_config_stream(FILE *fl)
   while (get_line(fl, line))
   {
     split_argument(line, tag);
-    num = atoi(line);
+    num = parse_int(line);
     sscanf(line, "%lf", &fl_num); /*grab a float number */
 
     switch (LOWER(*tag))

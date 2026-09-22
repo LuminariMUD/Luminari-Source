@@ -2364,7 +2364,7 @@ int i3_load_config(const char *filename)
       }
       else if (strcmp(key, "gateway_port") == 0)
       {
-        i3_client->gateway_port = atoi(value);
+        i3_client->gateway_port = parse_int(value);
       }
       /* Handle old api_key format */
       else if (strcmp(key, "api_key") == 0)
@@ -2382,27 +2382,27 @@ int i3_load_config(const char *filename)
       }
       else if (strcmp(key, "enable_tell") == 0)
       {
-        i3_client->enable_tell = atoi(value);
+        i3_client->enable_tell = parse_int(value);
       }
       else if (strcmp(key, "enable_channels") == 0)
       {
-        i3_client->enable_channels = atoi(value);
+        i3_client->enable_channels = parse_int(value);
       }
       else if (strcmp(key, "enable_who") == 0)
       {
-        i3_client->enable_who = atoi(value);
+        i3_client->enable_who = parse_int(value);
       }
       else if (strcmp(key, "auto_reconnect") == 0)
       {
-        i3_client->auto_reconnect = atoi(value);
+        i3_client->auto_reconnect = parse_int(value);
       }
       else if (strcmp(key, "reconnect_delay") == 0)
       {
-        i3_client->reconnect_delay = MAX(1, MIN(atoi(value), I3_MAX_RECONNECT_DELAY));
+        i3_client->reconnect_delay = MAX(1, MIN(parse_int(value), I3_MAX_RECONNECT_DELAY));
       }
       else if (strcmp(key, "max_queue_size") == 0)
       {
-        i3_client->max_queue_size = atoi(value);
+        i3_client->max_queue_size = parse_int(value);
       }
     }
   }
