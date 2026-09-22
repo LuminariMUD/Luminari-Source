@@ -122,7 +122,7 @@ ACMD(do_oasis_redit)
     save = TRUE;
 
     if (is_number(buf2))
-      number = atoi(buf2);
+      number = parse_int(buf2);
     else if (GET_OLC_ZONE(ch) != (int)NOWHERE)
     {
       zone_rnum zlok;
@@ -142,7 +142,7 @@ ACMD(do_oasis_redit)
 
   /* If a numeric argument was given (like a room number), get it. */
   if (number == NOWHERE)
-    number = atoi(buf1);
+    number = parse_int(buf1);
 
   /* Check to make sure the room isn't already being edited. */
   for (d = descriptor_list; d; d = d->next)
@@ -944,7 +944,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case REDIT_FLAGS:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number == -1)
     {
       OLC_ROOM(d)->room_flags[0] = OLC_ROOM(d)->room_flags[1] = OLC_ROOM(d)->room_flags[2] =
@@ -968,7 +968,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case REDIT_SECTOR:
-    number = atoi(arg) - 1;
+    number = parse_int(arg) - 1;
     if (number < 0 || number >= NUM_ROOM_SECTORS)
     {
       write_to_output(d, "Invalid choice!");
@@ -1029,7 +1029,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case REDIT_EXIT_NUMBER:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number != -1)
     {
       room = real_room((room_vnum)number);
@@ -1059,7 +1059,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case REDIT_EXIT_KEY:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 0)
       OLC_EXIT(d)->key = NOTHING;
     else
@@ -1068,7 +1068,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case REDIT_EXIT_DOORFLAGS:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 0 || number > 8)
     {
       write_to_output(d, "That's not a valid choice!\r\n");
@@ -1105,7 +1105,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case REDIT_EXTRADESC_MENU:
-    switch ((number = atoi(arg)))
+    switch ((number = parse_int(arg)))
     {
     case 0:
       /* If something got left out, delete the extra description when backing
@@ -1165,7 +1165,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case REDIT_COPY:
-    room = real_room((room_vnum)atoi(arg));
+    room = real_room((room_vnum)parse_int(arg));
     if (room != NOWHERE)
     {
       redit_setup_existing(d, room, QMODE_QCOPY);
@@ -1201,7 +1201,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case REDIT_X_COORD:
-    number = atoi(arg);
+    number = parse_int(arg);
     //    if((number <= WILD_X_SIZE) &&
     //       (number >= -WILD_X_SIZE)) {
 
@@ -1218,7 +1218,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
     //    }
 
   case REDIT_Y_COORD:
-    number = atoi(arg);
+    number = parse_int(arg);
     //    if((number <= WILD_Y_SIZE) &&
     //       (number >= -WILD_Y_SIZE)) {
     OLC_ROOM(d)->coords[1] = number;

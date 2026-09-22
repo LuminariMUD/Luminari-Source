@@ -728,7 +728,7 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HSEDIT_OWNER_ID:
-    id = atoi(arg);
+    id = parse_int(arg);
     if ((tmp = get_name_by_id(id)) == NULL)
     {
       send_to_char(d->character, "There is no such player.\r\n");
@@ -742,7 +742,7 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HSEDIT_ATRIUM:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number == 0)
     {
       /* '0' chosen - go back to main menu */
@@ -787,7 +787,7 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
 
   case HSEDIT_DIR_MENU:
 
-    number = atoi(arg) - 1;
+    number = parse_int(arg) - 1;
 
     if ((*arg == 'q') || (*arg == 'Q') || (number == -1))
     {
@@ -1035,7 +1035,7 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HSEDIT_TYPE:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 0 || number >= NUM_HOUSE_TYPES)
     {
       send_to_char(d->character, "Invalid choice!");
@@ -1047,7 +1047,7 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HSEDIT_FLAGS:
-    number = atoi(arg);
+    number = parse_int(arg);
     if ((number < 0) || (number > HOUSE_NUM_FLAGS))
     {
       send_to_char(d->character, "That's not a valid choice!\r\n");
@@ -1071,23 +1071,23 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
 
     /* Houses have no 'values', but this is left commented out for future expansion
         case HSEDIT_VALUE_0:
-          number = atoi(arg);
+          number = parse_int(arg);
           OLC_HOUSE(d)->value[0] = number;
           hsedit_disp_val1_menu(d);
           return;
 
         case HSEDIT_VALUE_1:
-          OLC_HOUSE(d)->value[1] = atoi(arg);
+          OLC_HOUSE(d)->value[1] = parse_int(arg);
           hsedit_disp_val2_menu(d);
           return;
 
         case HSEDIT_VALUE_2:
-          OLC_HOUSE(d)->value[2] = atoi(arg);
+          OLC_HOUSE(d)->value[2] = parse_int(arg);
           hsedit_disp_val3_menu(d);
           return;
 
         case HSEDIT_VALUE_3:
-          OLC_HOUSE(d)->value[3] = atoi(arg);
+          OLC_HOUSE(d)->value[3] = parse_int(arg);
           break;
        */
 

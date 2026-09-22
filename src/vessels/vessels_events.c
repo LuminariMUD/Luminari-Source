@@ -264,7 +264,7 @@ static bool vessel_event_open_database_event(void)
     return TRUE;
   }
   row = mysql_fetch_row(result);
-  open_event = row != NULL && row[0] != NULL && atoi(row[0]) > 0;
+  open_event = row != NULL && row[0] != NULL && parse_int(row[0]) > 0;
   mysql_free_result(result);
   return open_event;
 }
@@ -765,7 +765,7 @@ void vessel_event_boot(void)
   runtime_count = 0;
   while ((row = mysql_fetch_row(result)) != NULL && runtime_count < GREYHAWK_MAXSHIPS)
   {
-    runtime_slots[runtime_count++] = row[0] != NULL ? atoi(row[0]) : 0;
+    runtime_slots[runtime_count++] = row[0] != NULL ? parse_int(row[0]) : 0;
   }
   mysql_free_result(result);
 
@@ -875,7 +875,7 @@ static bool vessel_event_prototype_is_warship(int prototype_id)
     return FALSE;
   }
   row = mysql_fetch_row(result);
-  warship = row != NULL && row[0] != NULL && atoi(row[0]) == VESSEL_WARSHIP;
+  warship = row != NULL && row[0] != NULL && parse_int(row[0]) == VESSEL_WARSHIP;
   mysql_free_result(result);
   return warship;
 }
@@ -1243,7 +1243,7 @@ static void vessel_event_show_leaderboard(struct char_data *ch, enum vessel_even
   rank = 0;
   while ((row = mysql_fetch_row(result)) != NULL)
   {
-    player_idnum = row[0] != NULL ? atol(row[0]) : 0;
+    player_idnum = row[0] != NULL ? parse_long(row[0]) : 0;
     indexed_name = get_name_by_id(player_idnum);
     if (indexed_name != NULL && *indexed_name != '\0')
     {
@@ -1258,7 +1258,7 @@ static void vessel_event_show_leaderboard(struct char_data *ch, enum vessel_even
     send_to_char(ch, " %2d. %-20s entries %-3s wins %-3s points %-6s", rank, display_name,
                  row[1] != NULL ? row[1] : "0", row[2] != NULL ? row[2] : "0",
                  row[3] != NULL ? row[3] : "0");
-    if (row[4] != NULL && atoi(row[4]) > 0)
+    if (row[4] != NULL && parse_int(row[4]) > 0)
     {
       send_to_char(ch, " best %ss", row[4]);
     }

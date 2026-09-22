@@ -89,7 +89,7 @@ ACMD(do_oasis_copy)
   /* We can't copy non-existing data. */
   /* Note: the source data can be in any zone. It's not restricted */
   /* to the builder's designated OLC zone. */
-  src_vnum = atoi(buf1);
+  src_vnum = parse_int(buf1);
   src_rnum = (*oasis_copy_info[i].binary_search)(src_vnum);
   if (src_rnum == NOWHERE)
   {
@@ -98,7 +98,7 @@ ACMD(do_oasis_copy)
   }
 
   /* Don't copy if the target already exists. */
-  dst_vnum = atoi(buf2);
+  dst_vnum = parse_int(buf2);
   dst_rnum = (*oasis_copy_info[i].binary_search)(dst_vnum);
   if (dst_rnum != NOWHERE)
   {
@@ -191,7 +191,7 @@ ACMD(do_dig)
 
 
   /* set up some variables */
-  rawvnum = atoi(sroom);
+  rawvnum = parse_int(sroom);
   if (rawvnum == -1)
     rvnum = NOWHERE;
   else

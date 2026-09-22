@@ -298,9 +298,9 @@ void vessel_db_load_extras(struct greyhawk_ship_data *ship)
   row = mysql_fetch_row(result);
   if (row != NULL)
   {
-    ship->upgrades = row[0] ? atoi(row[0]) : 0;
-    ship->insured_for = row[1] ? atoi(row[1]) : 0;
-    ship->wages_owed = row[2] ? atoi(row[2]) : 0;
+    ship->upgrades = row[0] ? parse_int(row[0]) : 0;
+    ship->insured_for = row[1] ? parse_int(row[1]) : 0;
+    ship->wages_owed = row[2] ? parse_int(row[2]) : 0;
   }
   mysql_free_result(result);
 }
@@ -366,7 +366,7 @@ int vessel_deliver_pending_insurance(struct char_data *ch)
     }
     if (claim_id > previous_claim_id && row[1] != NULL)
     {
-      total += atoll(row[1]);
+      total += parse_llong(row[1]);
       credited++;
     }
   }
@@ -660,7 +660,7 @@ ACMD(do_shipinsure)
     return;
   }
 
-  value = atoi(arg);
+  value = parse_int(arg);
   if (value <= 0)
   {
     send_to_char(ch, "Insure her for how much?\r\n");

@@ -117,7 +117,7 @@ ACMD(do_enhanced_survey)
       argument = one_argument(argument, arg3); /* Get third arg */
       if (*arg3 && is_number(arg3))
       {
-        radius = atoi(arg3);
+        radius = parse_int(arg3);
         if (radius < 5 || radius > 20)
           radius = 7;
       }
@@ -151,7 +151,7 @@ ACMD(do_enhanced_survey)
       radius = 7; /* Default radius */
       if (*arg2 && is_number(arg2))
       {
-        radius = atoi(arg2);
+        radius = parse_int(arg2);
         if (radius < 5 || radius > 20)
           radius = 7;
       }
@@ -313,9 +313,9 @@ void show_resource_relationships(struct char_data *ch, room_rnum room)
   int current_source = -1;
   while ((row = mysql_fetch_row(result)))
   {
-    int source_resource = atoi(row[0]);
-    int target_resource = atoi(row[1]);
-    double effect_magnitude = atof(row[2]);
+    int source_resource = parse_int(row[0]);
+    int target_resource = parse_int(row[1]);
+    double effect_magnitude = parse_double(row[2]);
     const char *description = row[3];
 
     if (source_resource >= 0 && source_resource < NUM_RESOURCE_TYPES && target_resource >= 0 &&
@@ -442,7 +442,7 @@ ACMD(do_resourceadmin_cascade)
   {
     if (*arg2 && is_number(arg2))
     {
-      room = real_room(atoi(arg2));
+      room = real_room(parse_int(arg2));
       if (room == NOWHERE)
       {
         send_to_char(ch, "Invalid room number.\r\n");
@@ -455,7 +455,7 @@ ACMD(do_resourceadmin_cascade)
   {
     if (*arg2 && is_number(arg2))
     {
-      room = real_room(atoi(arg2));
+      room = real_room(parse_int(arg2));
       if (room == NOWHERE)
       {
         send_to_char(ch, "Invalid room number.\r\n");
@@ -469,7 +469,7 @@ ACMD(do_resourceadmin_cascade)
   {
     if (*arg2 && is_number(arg2))
     {
-      room = real_room(atoi(arg2));
+      room = real_room(parse_int(arg2));
       if (room == NOWHERE)
       {
         send_to_char(ch, "Invalid room number.\r\n");

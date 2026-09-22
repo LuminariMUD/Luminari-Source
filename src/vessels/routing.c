@@ -42,22 +42,22 @@ const char *get_transport_sailing_name(int locale)
 
 int get_carriage_locale_vnum(int locale)
 {
-  return atoi(carriage_locales_lumi[locale][1]);
+  return parse_int(carriage_locales_lumi[locale][1]);
 }
 
 int get_sailing_locale_vnum(int locale)
 {
-  return atoi(sailing_locales_lumi[locale][1]);
+  return parse_int(sailing_locales_lumi[locale][1]);
 }
 
 int get_sailing_locale_x(int locale)
 {
-  return atoi(sailing_locales_lumi[locale][5]);
+  return parse_int(sailing_locales_lumi[locale][5]);
 }
 
 int get_sailing_locale_y(int locale)
 {
-  return atoi(sailing_locales_lumi[locale][6]);
+  return parse_int(sailing_locales_lumi[locale][6]);
 }
 
 const char *get_carriage_locale_region(int locale)
@@ -67,7 +67,7 @@ const char *get_carriage_locale_region(int locale)
 
 int get_carriage_locale_cost(int locale)
 {
-  return atoi(carriage_locales_lumi[locale][2]);
+  return parse_int(carriage_locales_lumi[locale][2]);
 }
 
 const char *get_carriage_locale_notes(int locale)
@@ -77,17 +77,17 @@ const char *get_carriage_locale_notes(int locale)
 
 int get_carriage_locale_x(int locale)
 {
-  return atoi(carriage_locales_lumi[locale][5]);
+  return parse_int(carriage_locales_lumi[locale][5]);
 }
 
 int get_carriage_locale_y(int locale)
 {
-  return atoi(carriage_locales_lumi[locale][6]);
+  return parse_int(carriage_locales_lumi[locale][6]);
 }
 
 int get_sailing_locale_cost(int locale)
 {
-  return atoi(sailing_locales_lumi[locale][2]);
+  return parse_int(sailing_locales_lumi[locale][2]);
 }
 
 const char *get_sailing_locale_notes(int locale)
@@ -125,7 +125,7 @@ void start_flight_to_destination_luminari(struct char_data *ch, const char *zone
 
 int get_walkto_landmark_vnum(int locale)
 {
-  return atoi(walkto_landmarks_lumi[locale][1]);
+  return parse_int(walkto_landmarks_lumi[locale][1]);
 }
 
 const char *get_walkto_landmark_region(int locale)

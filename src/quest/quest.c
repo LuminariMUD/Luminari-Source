@@ -177,7 +177,7 @@ int is_quest_target_mob(struct char_data *ch, struct char_data *mob)
       mob_vnum_str = strtok(kill_list_copy, ",");
       while (mob_vnum_str)
       {
-        mob_vnum_id = atoi(mob_vnum_str);
+        mob_vnum_id = parse_int(mob_vnum_str);
         if (mob_vnum_id == GET_MOB_VNUM(mob))
           return TRUE;
         mob_vnum_str = strtok(NULL, ",");
@@ -857,7 +857,7 @@ static bool quest_completion_pending(struct char_data *ch, qst_vnum vnum)
        event = next_in_list(&iterator))
   {
     if (event->iId == eQUEST_COMPLETE && event->sVariables != NULL &&
-        (qst_vnum)atoi(event->sVariables) == vnum)
+        (qst_vnum)parse_int(event->sVariables) == vnum)
     {
       found = true;
       break;
@@ -1021,7 +1021,7 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
         char *pt = strtok(kill_list, ",");
         while (pt != NULL)
         {
-          if (atoi(pt) >= 0 && (mob_vnum)atoi(pt) == GET_MOB_VNUM(vict))
+          if (parse_int(pt) >= 0 && (mob_vnum)parse_int(pt) == GET_MOB_VNUM(vict))
           {
             generic_complete_quest(ch, index);
             break;
@@ -1209,7 +1209,7 @@ static void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH])
   }
 
   /* convert argument to a integer */
-  num_arg = atoi(argument);
+  num_arg = parse_int(argument);
   num_arg--;
 
   if (num_arg >= GET_NUM_QUESTS(ch))
@@ -1289,7 +1289,7 @@ static void quest_join(struct char_data *ch, struct char_data *qm, char argument
   }
 
   /* assign vnum */
-  if ((vnum = find_quest_by_qmnum(ch, GET_MOB_VNUM(qm), atoi(argument))) == NOTHING)
+  if ((vnum = find_quest_by_qmnum(ch, GET_MOB_VNUM(qm), parse_int(argument))) == NOTHING)
   {
     snprintf(buf, sizeof(buf), "\r\n%s, I don't know of such a quest!\r\n", GET_NAME(ch));
     send_to_char(ch, "%s", buf);
@@ -1478,7 +1478,7 @@ static void quest_list(struct char_data *ch, struct char_data *qm, char argument
   qst_vnum vnum;
   qst_rnum rnum;
 
-  if ((vnum = find_quest_by_qmnum(ch, GET_MOB_VNUM(qm), atoi(argument))) == NOTHING)
+  if ((vnum = find_quest_by_qmnum(ch, GET_MOB_VNUM(qm), parse_int(argument))) == NOTHING)
     send_to_char(ch, "That is not a valid quest!\r\n");
   else if ((rnum = real_quest(vnum)) == NOTHING)
     send_to_char(ch, "That is not a valid quest!\r\n");
@@ -1510,7 +1510,7 @@ void quest_quit(struct char_data *ch, char argument[MAX_STRING_LENGTH])
   }
 
   /* convert argument to a integer */
-  index = atoi(argument);
+  index = parse_int(argument);
 
   if (index >= MAX_CURRENT_QUESTS || index < 0)
   {
@@ -1574,7 +1574,7 @@ static void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH
   }
 
   /* convert argument to a integer */
-  index = atoi(argument);
+  index = parse_int(argument);
 
   if (index >= MAX_CURRENT_QUESTS || index < 0)
   {
@@ -1675,7 +1675,7 @@ static void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH
         mob_vnum_str = strtok(kill_list_copy, ",");
         while (mob_vnum_str != NULL)
         {
-          mob_vnum mvnum = atoi(mob_vnum_str);
+          mob_vnum mvnum = parse_int(mob_vnum_str);
           mob_rnum mob_rnum_id = real_mobile(mvnum);
 
           if (mob_rnum_id != NOBODY)
@@ -1793,12 +1793,12 @@ static void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     send_to_char(ch, "Can not find that target!\r\n");
     return;
   }
-  else if ((rnum = real_quest(atoi(arg2))) == NOTHING)
+  else if ((rnum = real_quest(parse_int(arg2))) == NOTHING)
   {
     send_to_char(ch, "That quest does not exist.\r\n");
     return;
   }
-  else if (is_complete(victim, atoi(arg2)))
+  else if (is_complete(victim, parse_int(arg2)))
   {
     send_to_char(ch, "That character already completed that quest.\r\n");
     return;
@@ -1820,7 +1820,7 @@ static void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     return;
   }
 
-  GET_QUEST(victim, index) = atoi(arg2);
+  GET_QUEST(victim, index) = parse_int(arg2);
   complete_quest(victim, index);
   send_to_char(ch, "Success! \r\n");
 }
@@ -1841,7 +1841,7 @@ static void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     send_to_char(ch, "Huh!?!\r\n");
   else if (!*argument)
     send_to_char(ch, "%s\r\n", quest_imm_usage);
-  else if ((rnum = real_quest(atoi(argument))) == NOTHING)
+  else if ((rnum = real_quest(parse_int(argument))) == NOTHING)
     send_to_char(ch, "That quest does not exist.\r\n");
 
   else
@@ -2099,7 +2099,7 @@ static int questline_max_position(int quest_line_id)
 
   row = mysql_fetch_row(result);
   if (row && row[0])
-    max_pos = atoi(row[0]);
+    max_pos = parse_int(row[0]);
 
   mysql_free_result(result);
   return max_pos;
@@ -2131,9 +2131,9 @@ static void questline_list(struct char_data *ch)
 
   while ((row = mysql_fetch_row(result)))
   {
-    int id = atoi(row[0]);
+    int id = parse_int(row[0]);
     const char *name = row[1] ? row[1] : "(unnamed)";
-    int steps = row[2] ? atoi(row[2]) : 0;
+    int steps = row[2] ? parse_int(row[2]) : 0;
     send_to_char(ch, " [%d] %s (steps: %d)\r\n", id, name, steps);
   }
 
@@ -2184,8 +2184,8 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
       {
         while ((row = mysql_fetch_row(result)))
         {
-          int qvnum = row[1] ? atoi(row[1]) : 0;
-          int qpos = row[0] ? atoi(row[0]) : 0;
+          int qvnum = row[1] ? parse_int(row[1]) : 0;
+          int qpos = row[0] ? parse_int(row[0]) : 0;
 
           /* Find first accepted but not complete */
           if (current_quest_vnum == -1 && is_accepted_not_complete(ch, qvnum) &&
@@ -2323,8 +2323,8 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
 
   while ((row = mysql_fetch_row(result)))
   {
-    int pos = row[0] ? atoi(row[0]) : 0;
-    int qvnum = row[1] ? atoi(row[1]) : 0;
+    int pos = row[0] ? parse_int(row[0]) : 0;
+    int qvnum = row[1] ? parse_int(row[1]) : 0;
 
     /* Skip the current and next quests in the reverse display since we showed them at top */
     if (!is_staff && (qvnum == current_quest_vnum || qvnum == next_quest_vnum))
@@ -2609,10 +2609,10 @@ ACMDU(do_questline)
       if (!str_cmp(arg2, "all"))
         limit = 0; /* 0 means no limit */
       else
-        limit = atoi(arg2);
+        limit = parse_int(arg2);
     }
 
-    questline_show(ch, atoi(arg1), limit);
+    questline_show(ch, parse_int(arg1), limit);
     return;
   }
 
@@ -2642,9 +2642,9 @@ ACMDU(do_questline)
       return;
     }
 
-    int line_id = atoi(arg1);
-    int quest_vnum = atoi(arg2);
-    int position = *arg3 ? atoi(arg3) : 0;
+    int line_id = parse_int(arg1);
+    int quest_vnum = parse_int(arg2);
+    int position = *arg3 ? parse_int(arg3) : 0;
     qst_rnum qrnum = real_quest(quest_vnum);
     if (qrnum == NOTHING)
     {
@@ -2661,7 +2661,7 @@ ACMDU(do_questline)
       send_to_char(ch, "Usage: questline remove <line_id> <position>\r\n");
       return;
     }
-    questline_remove_step(ch, atoi(arg1), atoi(arg2));
+    questline_remove_step(ch, parse_int(arg1), parse_int(arg2));
   }
   else if (!str_cmp(subcmd_s, "move"))
   {
@@ -2671,7 +2671,7 @@ ACMDU(do_questline)
       send_to_char(ch, "Usage: questline move <line_id> <from> <to>\r\n");
       return;
     }
-    questline_move_step(ch, atoi(arg1), atoi(arg2), atoi(arg3));
+    questline_move_step(ch, parse_int(arg1), parse_int(arg2), parse_int(arg3));
   }
   else if (!str_cmp(subcmd_s, "rename"))
   {
@@ -2681,7 +2681,7 @@ ACMDU(do_questline)
       send_to_char(ch, "Usage: questline rename <line_id> <new name>\r\n");
       return;
     }
-    questline_rename(ch, atoi(arg1), arg2);
+    questline_rename(ch, parse_int(arg1), arg2);
   }
   else if (!str_cmp(subcmd_s, "delete"))
   {
@@ -2691,7 +2691,7 @@ ACMDU(do_questline)
       send_to_char(ch, "Usage: questline delete <line_id>\r\n");
       return;
     }
-    questline_delete(ch, atoi(arg1));
+    questline_delete(ch, parse_int(arg1));
   }
   else
   {
@@ -2716,7 +2716,7 @@ ACMD(do_aqref)
     return;
   }
 
-  vnum = atoi(buf);
+  vnum = parse_int(buf);
   real_num = real_object(vnum);
 
   if (real_num == NOTHING)

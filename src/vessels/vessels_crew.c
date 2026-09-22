@@ -268,10 +268,10 @@ void vessel_db_load_crew(struct greyhawk_ship_data *ship)
     {
       continue;
     }
-    position = CREW_ROW_VNUM_BASE - atoi(row[0]);
+    position = CREW_ROW_VNUM_BASE - parse_int(row[0]);
     if (position >= 0 && position < NUM_CREW_POSITIONS)
     {
-      ship->crew_tier[position] = atoi(row[1]);
+      ship->crew_tier[position] = parse_int(row[1]);
     }
   }
   mysql_free_result(result);

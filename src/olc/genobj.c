@@ -810,7 +810,7 @@ bool oset_apply(struct obj_data *obj, const char *argument)
 
   skip_spaces_c(&argument);
 
-  if ((value = atoi(argument)) == 0)
+  if ((value = parse_int(argument)) == 0)
     return FALSE;
 
   while (*apply_types[i] != '\n')

@@ -147,29 +147,29 @@ bool vessel_encounter_reload_config(void)
 
     definition = &vessel_encounter_definitions[loaded_count++];
     memset(definition, 0, sizeof(*definition));
-    definition->encounter_id = row[0] ? atoi(row[0]) : 0;
-    definition->region_vnum = row[1] ? atoi(row[1]) : 0;
+    definition->encounter_id = row[0] ? parse_int(row[0]) : 0;
+    definition->region_vnum = row[1] ? parse_int(row[1]) : 0;
     strlcpy(definition->name, row[2] ? row[2] : "", sizeof(definition->name));
-    definition->mob_vnum = row[3] ? atoi(row[3]) : 0;
-    definition->min_depth = row[4] ? atoi(row[4]) : 0;
-    definition->max_depth = row[5] ? atoi(row[5]) : 0;
-    definition->vessel_class = row[6] ? atoi(row[6]) : -1;
-    definition->chance = row[7] ? atoi(row[7]) : 0;
+    definition->mob_vnum = row[3] ? parse_int(row[3]) : 0;
+    definition->min_depth = row[4] ? parse_int(row[4]) : 0;
+    definition->max_depth = row[5] ? parse_int(row[5]) : 0;
+    definition->vessel_class = row[6] ? parse_int(row[6]) : -1;
+    definition->chance = row[7] ? parse_int(row[7]) : 0;
     strlcpy(definition->warn_message, row[8] ? row[8] : "", sizeof(definition->warn_message));
     strlcpy(definition->arrive_message, row[9] ? row[9] : "", sizeof(definition->arrive_message));
 
     if (row[10] != NULL)
     {
       definition->hunter_configured = 1;
-      definition->hunter_config.encounter_id = atoi(row[10]);
-      definition->hunter_config.prototype_id = row[11] ? atoi(row[11]) : 0;
-      definition->hunter_config.pilot_mob_vnum = row[12] ? atoi(row[12]) : 0;
-      definition->hunter_config.min_bounty = row[13] ? atoi(row[13]) : 0;
-      definition->hunter_config.pursuit_speed = row[14] ? atoi(row[14]) : 0;
-      definition->hunter_config.hunt_duration_seconds = row[15] ? atoi(row[15]) : 0;
-      definition->hunter_config.target_grace_seconds = row[16] ? atoi(row[16]) : 0;
-      definition->hunter_config.cooldown_seconds = row[17] ? atoi(row[17]) : 0;
-      definition->hunter_config.enabled = row[18] ? atoi(row[18]) != 0 : FALSE;
+      definition->hunter_config.encounter_id = parse_int(row[10]);
+      definition->hunter_config.prototype_id = row[11] ? parse_int(row[11]) : 0;
+      definition->hunter_config.pilot_mob_vnum = row[12] ? parse_int(row[12]) : 0;
+      definition->hunter_config.min_bounty = row[13] ? parse_int(row[13]) : 0;
+      definition->hunter_config.pursuit_speed = row[14] ? parse_int(row[14]) : 0;
+      definition->hunter_config.hunt_duration_seconds = row[15] ? parse_int(row[15]) : 0;
+      definition->hunter_config.target_grace_seconds = row[16] ? parse_int(row[16]) : 0;
+      definition->hunter_config.cooldown_seconds = row[17] ? parse_int(row[17]) : 0;
+      definition->hunter_config.enabled = row[18] ? parse_int(row[18]) != 0 : FALSE;
       if (!vessel_hunter_config_is_valid(&definition->hunter_config))
       {
         log("SYSERR: Bounty-hunter encounter %d has invalid policy values",

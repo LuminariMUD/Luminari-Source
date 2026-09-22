@@ -230,8 +230,8 @@ void apply_lazy_regeneration(room_rnum room, int resource_type)
 
   if ((row = mysql_fetch_row(result)))
   {
-    current_depletion = atof(row[0]);
-    last_harvest_time = (time_t)atol(row[1]);
+    current_depletion = parse_double(row[0]);
+    last_harvest_time = (time_t)parse_long(row[1]);
 
     /* Calculate regeneration with seasonal and weather modifiers */
     double regeneration = calculate_regeneration_amount(resource_type, last_harvest_time, x, y);
@@ -346,7 +346,7 @@ double get_resource_depletion_level(room_rnum room, int resource_type)
   {
     if ((row = mysql_fetch_row(result)))
     {
-      depletion_level = atof(row[0]);
+      depletion_level = parse_double(row[0]);
       if (depletion_level < 0.0)
         depletion_level = 0.0;
       if (depletion_level > 1.0)
@@ -399,7 +399,7 @@ double get_resource_depletion_level_by_coords(int x, int y, int zone_vnum_id, in
   {
     if ((row = mysql_fetch_row(result)))
     {
-      depletion_level = atof(row[0]);
+      depletion_level = parse_double(row[0]);
       if (depletion_level < 0.0)
         depletion_level = 0.0;
       if (depletion_level > 1.0)
@@ -1030,7 +1030,7 @@ double get_player_conservation_score(struct char_data *ch)
   {
     if ((row = mysql_fetch_row(result)))
     {
-      conservation_score = atof(row[0]);
+      conservation_score = parse_double(row[0]);
       if (conservation_score < 0.0)
         conservation_score = 0.0;
       if (conservation_score > 1.0)
@@ -1137,9 +1137,9 @@ void show_regeneration_analysis(struct char_data *ch, int x, int y)
 
   while ((row = mysql_fetch_row(result)))
   {
-    int resource_type = atoi(row[0]);
-    double depletion_level = atof(row[1]);
-    time_t last_harvest = (time_t)atol(row[2]);
+    int resource_type = parse_int(row[0]);
+    double depletion_level = parse_double(row[1]);
+    time_t last_harvest = (time_t)parse_long(row[2]);
     double hours_since = difftime(current_time, last_harvest) / 3600.0;
     double regen_rate = get_resource_regeneration_rate(resource_type);
 

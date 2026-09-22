@@ -1719,8 +1719,8 @@ void construct_path_network_graph(FILE *fp)
   /* Get basic statistics */
   if ((row = mysql_fetch_row(result)))
   {
-    int total_paths = row[0] ? atoi(row[0]) : 0;
-    int path_types = row[1] ? atoi(row[1]) : 0;
+    int total_paths = row[0] ? parse_int(row[0]) : 0;
+    int path_types = row[1] ? parse_int(row[1]) : 0;
 
     fprintf(fp, "Total paths in database: %d\n", total_paths);
     fprintf(fp, "Distinct path types: %d\n\n", path_types);

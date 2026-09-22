@@ -727,7 +727,7 @@ ACMDU(do_walkto_full)
   while (get_walkto_landmark_region(i)[0] != '0')
   {
     vnum = get_walkto_landmark_vnum(i);
-    specified = atoi(argument);
+    specified = parse_int(argument);
     if (vnum == specified)
     {
       landmark = get_walkto_landmark_vnum(i);

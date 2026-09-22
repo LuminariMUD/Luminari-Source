@@ -628,7 +628,7 @@ void aedit_parse(struct descriptor_data *d, char *arg)
       aedit_disp_menu(d);
       return;
     }
-    i = atoi(arg);
+    i = parse_int(arg);
     if ((i < POS_DEAD) || (i > POS_STANDING))
     {
       aedit_disp_menu(d);
@@ -646,7 +646,7 @@ void aedit_parse(struct descriptor_data *d, char *arg)
       aedit_disp_menu(d);
       return;
     }
-    i = atoi(arg);
+    i = parse_int(arg);
     if ((i < 0) || (i > LVL_IMPL))
     {
       aedit_disp_menu(d);

@@ -17,6 +17,7 @@
 #include "vessels.h"
 #include "database/mysql.h"
 #include "wilderness/wilderness.h"
+#include "core/utils.h" /* after <math.h>: it defines log() as a macro */
 
 #define SCHEDULE_ROUTE_VALIDATION_MAX_STEPS 10000
 
@@ -957,7 +958,7 @@ struct waypoint_node *waypoint_db_load(int waypoint_id)
     return NULL;
   }
 
-  node->waypoint_id = atoi(row[0]);
+  node->waypoint_id = parse_int(row[0]);
   if (row[1] != NULL)
   {
     strncpy(node->data.name, row[1], AUTOPILOT_NAME_LENGTH - 1);
@@ -967,12 +968,12 @@ struct waypoint_node *waypoint_db_load(int waypoint_id)
   {
     node->data.name[0] = '\0';
   }
-  node->data.x = (double)atof(row[2]);
-  node->data.y = (double)atof(row[3]);
-  node->data.z = (double)atof(row[4]);
-  node->data.tolerance = (double)atof(row[5]);
-  node->data.wait_time = atoi(row[6]);
-  node->data.flags = atoi(row[7]);
+  node->data.x = (double)parse_double(row[2]);
+  node->data.y = (double)parse_double(row[3]);
+  node->data.z = (double)parse_double(row[4]);
+  node->data.tolerance = (double)parse_double(row[5]);
+  node->data.wait_time = parse_int(row[6]);
+  node->data.flags = parse_int(row[7]);
   node->next = NULL;
 
   mysql_free_result(result);
@@ -1194,7 +1195,7 @@ struct route_node *route_db_load(int route_id)
     return NULL;
   }
 
-  node->route_id = atoi(row[0]);
+  node->route_id = parse_int(row[0]);
   if (row[1] != NULL)
   {
     strncpy(node->name, row[1], AUTOPILOT_NAME_LENGTH - 1);
@@ -1204,8 +1205,8 @@ struct route_node *route_db_load(int route_id)
   {
     node->name[0] = '\0';
   }
-  node->loop = atoi(row[2]) ? TRUE : FALSE;
-  node->active = atoi(row[3]) ? TRUE : FALSE;
+  node->loop = parse_int(row[2]) ? TRUE : FALSE;
+  node->active = parse_int(row[3]) ? TRUE : FALSE;
   node->num_waypoints = 0;
   node->waypoint_ids = NULL;
   node->next = NULL;
@@ -1645,7 +1646,7 @@ int route_get_waypoint_ids(int route_id, int **waypoint_ids, int *count)
   i = 0;
   while ((row = mysql_fetch_row(result)) && i < num_rows)
   {
-    ids[i++] = atoi(row[0]);
+    ids[i++] = parse_int(row[0]);
   }
 
   mysql_free_result(result);
@@ -1708,7 +1709,7 @@ void load_all_waypoints(void)
       continue;
     }
 
-    node->waypoint_id = atoi(row[0]);
+    node->waypoint_id = parse_int(row[0]);
     if (row[1] != NULL)
     {
       strncpy(node->data.name, row[1], AUTOPILOT_NAME_LENGTH - 1);
@@ -1718,12 +1719,12 @@ void load_all_waypoints(void)
     {
       node->data.name[0] = '\0';
     }
-    node->data.x = (double)atof(row[2]);
-    node->data.y = (double)atof(row[3]);
-    node->data.z = (double)atof(row[4]);
-    node->data.tolerance = (double)atof(row[5]);
-    node->data.wait_time = atoi(row[6]);
-    node->data.flags = atoi(row[7]);
+    node->data.x = (double)parse_double(row[2]);
+    node->data.y = (double)parse_double(row[3]);
+    node->data.z = (double)parse_double(row[4]);
+    node->data.tolerance = (double)parse_double(row[5]);
+    node->data.wait_time = parse_int(row[6]);
+    node->data.flags = parse_int(row[7]);
     node->next = NULL;
 
     waypoint_cache_add(node);
@@ -1783,7 +1784,7 @@ void load_all_routes(void)
       continue;
     }
 
-    node->route_id = atoi(row[0]);
+    node->route_id = parse_int(row[0]);
     if (row[1] != NULL)
     {
       strncpy(node->name, row[1], AUTOPILOT_NAME_LENGTH - 1);
@@ -1793,8 +1794,8 @@ void load_all_routes(void)
     {
       node->name[0] = '\0';
     }
-    node->loop = atoi(row[2]) ? TRUE : FALSE;
-    node->active = atoi(row[3]) ? TRUE : FALSE;
+    node->loop = parse_int(row[2]) ? TRUE : FALSE;
+    node->active = parse_int(row[3]) ? TRUE : FALSE;
     node->num_waypoints = 0;
     node->waypoint_ids = NULL;
     node->next = NULL;
@@ -4251,7 +4252,7 @@ ACMD(do_setschedule)
   }
 
   /* Validate interval */
-  interval = atoi(interval_arg);
+  interval = parse_int(interval_arg);
   if (interval < SCHEDULE_INTERVAL_MIN || interval > SCHEDULE_INTERVAL_MAX)
   {
     send_to_char(ch, "Interval must be between %d and %d MUD hours.\r\n", SCHEDULE_INTERVAL_MIN,

@@ -3853,7 +3853,7 @@ SPECIAL(bazaar)
     /* more checks of validity of 2nd argument (selection number) */
     if (*arg2)
     {
-      selection = atoi(arg2);
+      selection = parse_int(arg2);
 
       switch (type)
       {
@@ -3891,7 +3891,7 @@ SPECIAL(bazaar)
 
     /* more checks of validity of 3rd argument (enchantment level) */
     if (*arg3)
-      enchant = atoi(arg3);
+      enchant = parse_int(arg3);
     if (enchant < 0 || enchant > 6)
     {
       send_to_char(ch, "Invalid!  Enchantment Levels: 0-6 only\r\n");
@@ -3971,7 +3971,7 @@ ACMD(do_loadmagicspecific)
   }
   else
   {
-    number = atoi(arg3);
+    number = parse_int(arg3);
     if (number <= 0)
       number = 1;
 
@@ -4107,7 +4107,7 @@ ACMD(do_loadmagic)
   }
 
   if (*arg2)
-    number = atoi(arg2);
+    number = parse_int(arg2);
 
   if (number <= 0)
     number = 1;

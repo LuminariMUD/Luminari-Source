@@ -1417,7 +1417,7 @@ void hedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HEDIT_DEL_KEYWORD:
-    if ((number = atoi(arg)) == -1)
+    if ((number = parse_int(arg)) == -1)
     {
       hedit_disp_keywords_menu(d);
       return;
@@ -1439,7 +1439,7 @@ void hedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HEDIT_MIN_LEVEL:
-    number = atoi(arg);
+    number = parse_int(arg);
     /* Use validation function for consistency and better error messages */
     if (!validate_min_level(number, d))
     {
@@ -2827,7 +2827,7 @@ static int export_help_to_hlp(struct char_data *ch, const char *options)
           token = strtok(NULL, " ");
           if (token && *token)
           {
-            max_level = atoi(token);
+            max_level = parse_int(token);
             if (max_level < 0)
               max_level = 0;
             if (max_level > LVL_IMPL)
@@ -2948,7 +2948,7 @@ static int export_help_to_hlp(struct char_data *ch, const char *options)
     const char *tag = entry_row[0];
     const char *content = entry_row[1];
     const char *level_str = entry_row[2];
-    int min_level = level_str ? atoi(level_str) : 0;
+    int min_level = level_str ? parse_int(level_str) : 0;
     char keywords_combined[MAX_STRING_LENGTH * 2];
     int first_keyword = 1;
 

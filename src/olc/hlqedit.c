@@ -617,7 +617,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_ROOM:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number && real_room(number) != NOWHERE)
     {
       OLC_QUESTENTRY(d)->room = number;
@@ -658,7 +658,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
   break;
 
   case HLQEDIT_IN_COIN:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 0 || number > MAX_GOLD)
       send_to_char(d->character, "Invalid choice! (0-%d)\r\n", MAX_GOLD);
     else
@@ -669,9 +669,9 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     return;
     break;
   case HLQEDIT_IN_ITEM:
-    if ((number = real_object(atoi(arg))) != (int)NOWHERE)
+    if ((number = real_object(parse_int(arg))) != (int)NOWHERE)
     {
-      OLC_QUESTENTRY(d)->in->value = atoi(arg);
+      OLC_QUESTENTRY(d)->in->value = parse_int(arg);
       hlqedit_disp_incommand_menu(d);
     }
     else
@@ -831,7 +831,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_COIN:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 0 || number > MAX_GOLD)
       send_to_char(d->character, "That is not a valid choice! (0 - %d)\r\n", MAX_GOLD);
     else
@@ -844,7 +844,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_QUEST_POINTS:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < -HLQUEST_MAX_QUEST_POINTS || number > HLQUEST_MAX_QUEST_POINTS)
       send_to_char(d->character, "That is not a valid choice! (-%d - %d)\r\n",
                    HLQUEST_MAX_QUEST_POINTS, HLQUEST_MAX_QUEST_POINTS);
@@ -856,7 +856,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case HLQEDIT_OUT_EXPERIENCE:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 0 || number > MAX_GOLD)
       send_to_char(d->character, "That is not a valid choice! (0 - %d)\r\n", MAX_GOLD);
     else
@@ -867,9 +867,9 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case HLQEDIT_OUT_ITEM:
-    if ((number = real_object(atoi(arg))) != (int)NOTHING)
+    if ((number = real_object(parse_int(arg))) != (int)NOTHING)
     {
-      OLC_QCOM(d)->value = atoi(arg);
+      OLC_QCOM(d)->value = parse_int(arg);
       hlqedit_disp_outcommand_menu(d);
     }
     else
@@ -879,9 +879,9 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_LOAD_OBJECT:
-    if ((number = real_object(atoi(arg))) != (int)NOTHING)
+    if ((number = real_object(parse_int(arg))) != (int)NOTHING)
     {
-      OLC_QCOM(d)->value = atoi(arg);
+      OLC_QCOM(d)->value = parse_int(arg);
       OLC_MODE(d) = HLQEDIT_OUT_LOAD_OBJECT_ROOM;
       send_to_char(d->character, "Which room to load it (vnum). (0 for current room):\r\n");
     }
@@ -892,9 +892,9 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_LOAD_MOB:
-    if ((number = real_mobile(atoi(arg))) != (int)NOBODY)
+    if ((number = real_mobile(parse_int(arg))) != (int)NOBODY)
     {
-      OLC_QCOM(d)->value = atoi(arg);
+      OLC_QCOM(d)->value = parse_int(arg);
       OLC_MODE(d) = HLQEDIT_OUT_LOAD_MOB_ROOM;
       send_to_char(d->character, "Which room to load it (vnum). (0 for current room): ");
     }
@@ -905,10 +905,10 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_TEACH_SPELL:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number > 0 && number < TOP_SKILL_DEFINE)
     {
-      OLC_QCOM(d)->value = atoi(arg);
+      OLC_QCOM(d)->value = parse_int(arg);
       hlqedit_disp_outcommand_menu(d);
     }
     else
@@ -916,8 +916,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     return;
   case HLQEDIT_OUT_LOAD_OBJECT_ROOM:
   case HLQEDIT_OUT_LOAD_MOB_ROOM:
-    if ((number = real_room(atoi(arg))) != (int)NOWHERE)
-      OLC_QCOM(d)->location = atoi(arg);
+    if ((number = real_room(parse_int(arg))) != (int)NOWHERE)
+      OLC_QCOM(d)->location = parse_int(arg);
     else
     {
       OLC_QCOM(d)->location = 0;
@@ -930,7 +930,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_CHURCH:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number >= 0 && number < NUM_CHURCHES)
     {
       OLC_QCOM(d)->value = number;
@@ -940,7 +940,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_KIT_SELECT:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number >= 0 && number < NUM_CLASSES)
     {
       OLC_QCOM(d)->value = number;
@@ -951,7 +951,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     }
     break;
   case HLQEDIT_OUT_KIT_PREREQ:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number >= 0 && number < NUM_CLASSES)
     {
       OLC_QCOM(d)->location = number;
@@ -961,9 +961,9 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_OPEN_DOOR:
-    if ((number = real_room(atoi(arg))) != (int)NOWHERE)
+    if ((number = real_room(parse_int(arg))) != (int)NOWHERE)
     {
-      OLC_QCOM(d)->location = atoi(arg);
+      OLC_QCOM(d)->location = parse_int(arg);
       send_to_char(d->character, "Which direction? (0 = North, 1 = East, "
                                  "2 = South, 3 = West, 4 = Up, 5 = Down):  ");
 
@@ -978,9 +978,9 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_OPEN_DOOR_DIR:
-    if (atoi(arg) > -1 && atoi(arg) < 6)
+    if (parse_int(arg) > -1 && parse_int(arg) < 6)
     {
-      OLC_QCOM(d)->value = atoi(arg);
+      OLC_QCOM(d)->value = parse_int(arg);
       hlqedit_disp_outcommand_menu(d);
     }
     else
@@ -995,7 +995,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
   case HLQEDIT_DELETE_QUEST:
   {
     OLC_VAL(d) = 1;
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 1 || NULL == (quest = getquest(d, number)))
       send_to_char(d->character, "No such quest!\r\n");
     else
@@ -1021,7 +1021,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
   break;
 
   case HLQEDIT_APPROVE_QUEST:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 1 || NULL == (quest = getquest(d, number)))
       send_to_char(d->character, "No such quest!\r\n");
     else if (quest->approved == TRUE)
@@ -1041,7 +1041,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
 
   case HLQEDIT_VIEW_QUEST:
   {
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 1 || NULL == (quest = getquest(d, number)))
       send_to_char(d->character, "No such quest!\r\n");
     else

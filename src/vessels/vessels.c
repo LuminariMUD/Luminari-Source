@@ -2297,7 +2297,7 @@ ACMD(do_greyhawk_speed)
     return;
   }
 
-  new_speed = atoi(arg);
+  new_speed = parse_int(arg);
 
   /* Validate speed */
   if (new_speed < 0)

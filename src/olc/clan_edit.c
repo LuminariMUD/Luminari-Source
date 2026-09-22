@@ -234,7 +234,7 @@ void save_single_clan(clan_rnum c)
 
     if (*line == '#')
     {
-      current_clan = atoi(line + 1);
+      current_clan = parse_int(line + 1);
 
       /* Check if this is the clan we're updating */
       if (current_clan >= 0 && (clan_vnum)current_clan == clan_list[c].vnum)
@@ -339,7 +339,7 @@ void save_single_clan(clan_rnum c)
         if (*line == '#')
         {
           fprintf(new_fl, "%s\n", line);
-          current_clan = atoi(line + 1);
+          current_clan = parse_int(line + 1);
         }
         else if (*line == '$')
         {
@@ -433,7 +433,7 @@ void load_clans(void)
           log("SYSERR: Too many clans found in clans file (Max: %d)", MAX_CLANS);
           return;
         }
-        c.vnum = atoi(line + 1);
+        c.vnum = parse_int(line + 1);
         gl = 0;
       }
       if (gl)
@@ -444,9 +444,9 @@ void load_clans(void)
         {
         case 'A':
           if (!strcmp(tag, "AppL"))
-            c.applev = atoi(line);
+            c.applev = parse_int(line);
           else if (!strcmp(tag, "AppF"))
-            c.appfee = atoi(line);
+            c.appfee = parse_int(line);
           else if (!strcmp(tag, "Ally"))
           {
             if (sscanf(line,
@@ -467,14 +467,14 @@ void load_clans(void)
 
         case 'B':
           if (!strcmp(tag, "Bank"))
-            c.treasure = atol(line);
+            c.treasure = parse_long(line);
           else
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
           break;
 
         case 'C':
           if (!strcmp(tag, "CZOw"))
-            c.current_zones_owned = atoi(line);
+            c.current_zones_owned = parse_int(line);
           else
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
           break;
@@ -489,7 +489,7 @@ void load_clans(void)
             c.description = fread_string(fl, buf);
           }
           else if (!strcmp(tag, "DFnd"))
-            c.date_founded = (time_t)atol(line);
+            c.date_founded = (time_t)parse_long(line);
           else
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
           break;
@@ -509,25 +509,25 @@ void load_clans(void)
 
         case 'H':
           if (!strcmp(tag, "Hall"))
-            c.hall = atoi(line);
+            c.hall = parse_int(line);
           else if (!strcmp(tag, "HiMC"))
-            c.highest_member_count = atoi(line);
+            c.highest_member_count = parse_int(line);
           else
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
           break;
 
         case 'L':
           if (!strcmp(tag, "Lder"))
-            c.leader = atol(line);
+            c.leader = parse_long(line);
           else if (!strcmp(tag, "LAct"))
-            c.last_activity = (time_t)atol(line);
+            c.last_activity = (time_t)parse_long(line);
           else
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
           break;
 
         case 'M':
           if (!strcmp(tag, "MaxM"))
-            c.max_members = atoi(line);
+            c.max_members = parse_int(line);
           else
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
           break;
@@ -547,9 +547,9 @@ void load_clans(void)
 
         case 'P':
           if (!strcmp(tag, "PLos"))
-            c.pk_lose = atoi(line);
+            c.pk_lose = parse_int(line);
           else if (!strcmp(tag, "PWin"))
-            c.pk_win = atoi(line);
+            c.pk_win = parse_int(line);
           else if (!strcmp(tag, "Priv"))
           {
             j = 0;
@@ -594,7 +594,7 @@ void load_clans(void)
 
         case 'R':
           if (!strcmp(tag, "Raid"))
-            c.raided = atoi(line);
+            c.raided = parse_int(line);
           else if (!strcmp(tag, "Rank"))
           {
             j = 0;
@@ -624,25 +624,25 @@ void load_clans(void)
 
         case 'T':
           if (!strcmp(tag, "Tax "))
-            c.taxrate = atoi(line);
+            c.taxrate = parse_int(line);
           else if (!strcmp(tag, "TDep"))
-            c.total_deposits = atol(line);
+            c.total_deposits = parse_long(line);
           else if (!strcmp(tag, "TWit"))
-            c.total_withdrawals = atol(line);
+            c.total_withdrawals = parse_long(line);
           else if (!strcmp(tag, "TMJn"))
-            c.total_members_joined = atoi(line);
+            c.total_members_joined = parse_int(line);
           else if (!strcmp(tag, "TMLf"))
-            c.total_members_left = atoi(line);
+            c.total_members_left = parse_int(line);
           else if (!strcmp(tag, "TZCl"))
-            c.total_zones_claimed = atoi(line);
+            c.total_zones_claimed = parse_int(line);
           else if (!strcmp(tag, "TTax"))
-            c.total_taxes_collected = atol(line);
+            c.total_taxes_collected = parse_long(line);
           else if (!strcmp(tag, "TWWn"))
-            c.total_wars_won = atoi(line);
+            c.total_wars_won = parse_int(line);
           else if (!strcmp(tag, "TWLs"))
-            c.total_wars_lost = atoi(line);
+            c.total_wars_lost = parse_int(line);
           else if (!strcmp(tag, "TAFm"))
-            c.total_alliances_formed = atoi(line);
+            c.total_alliances_formed = parse_int(line);
           else
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
           break;
@@ -663,7 +663,7 @@ void load_clans(void)
             }
           }
           else if (!strcmp(tag, "WarT"))
-            c.war_timer = atoi(line);
+            c.war_timer = parse_int(line);
           else
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
           break;
@@ -775,7 +775,7 @@ void load_claims(void)
             c.claimant = 0;
           }
         }
-        c.zn = atoi(line + 1);
+        c.zn = parse_int(line + 1);
         gl = 0;
       }
       if (gl)
@@ -786,9 +786,9 @@ void load_claims(void)
         {
         case 'C':
           if (!strcmp(tag, "Clan"))
-            c.clan = atoi(line);
+            c.clan = parse_int(line);
           else if (!strcmp(tag, "Clmt"))
-            c.claimant = atol(line);
+            c.claimant = parse_long(line);
           else
             log("SYSERR: Unknown tag %s in claims file %s", tag, CLAIMS_FILE);
           break;
@@ -898,7 +898,7 @@ ACMD(do_clanedit)
       send_to_char(ch, "Usage: %sclan edit <clan ID>%s!\r\n", QYEL, QNRM);
       return;
     }
-    c_id = atoi(arg);
+    c_id = parse_int(arg);
   }
   else
   {
@@ -906,7 +906,7 @@ ACMD(do_clanedit)
     {
       if (*arg)
       {
-        c_id = atoi(arg);
+        c_id = parse_int(arg);
       }
       else
       {
@@ -1354,7 +1354,7 @@ static void clanedit_clans_menu(struct descriptor_data *d, int player_clan __att
  */
 void clanedit_parse(struct descriptor_data *d, char *arg)
 {
-  int i, number = atoi(arg), x = 0, pclan = 0;
+  int i, number = parse_int(arg), x = 0, pclan = 0;
   char *oldtext = NULL;
 
   switch (OLC_MODE(d))

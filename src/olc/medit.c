@@ -1066,7 +1066,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "Try again : ");
       return;
     }
-    i = atoi(arg);
+    i = parse_int(arg);
   }
   else
   { /* String response. */
@@ -1423,7 +1423,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case MEDIT_DELETE_ECHO:
-    if ((j = atoi(arg)) <= 0 || j > ECHO_COUNT(OLC_MOB(d)))
+    if ((j = parse_int(arg)) <= 0 || j > ECHO_COUNT(OLC_MOB(d)))
     {
       OLC_MODE(d) = MEDIT_ECHO_MENU;
       medit_disp_echo_menu(d);
@@ -1437,7 +1437,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case MEDIT_EDIT_ECHO:
-    if ((j = atoi(arg)) <= 0 || j > ECHO_COUNT(OLC_MOB(d)))
+    if ((j = parse_int(arg)) <= 0 || j > ECHO_COUNT(OLC_MOB(d)))
     {
       OLC_MODE(d) = MEDIT_ECHO_MENU;
       medit_disp_echo_menu(d);
@@ -1947,7 +1947,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case MEDIT_NPC_FLAGS:
-    if ((i = atoi(arg)) <= 0)
+    if ((i = parse_int(arg)) <= 0)
       break;
     else if ((j = medit_get_mob_flag_by_number(i)) == -1)
     {
@@ -1963,7 +1963,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case MEDIT_AFF_FLAGS:
-    if ((i = atoi(arg)) <= 0)
+    if ((i = parse_int(arg)) <= 0)
       break;
     else if (i < NUM_AFF_FLAGS)
       TOGGLE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), i);
@@ -1977,7 +1977,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case MEDIT_AFF2_FLAGS:
-    if ((i = atoi(arg)) <= 0)
+    if ((i = parse_int(arg)) <= 0)
       break;
     else if (i <= NUM_AFF2_FLAGS)
       TOGGLE_BIT_AR(AFF2_FLAGS(OLC_MOB(d)), i);
@@ -2439,7 +2439,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
 
   case MEDIT_PATH_DELAY:
     PATH_SIZE(OLC_MOB(d)) = 0;
-    PATH_RESET(OLC_MOB(d)) = atoi(arg);
+    PATH_RESET(OLC_MOB(d)) = parse_int(arg);
     PATH_DELAY(OLC_MOB(d)) = PATH_RESET(OLC_MOB(d));
     write_to_output(d, "Begin path...\r\n");
     write_to_output(d, "Enter value for path (room vnum to move mobile)\r\n");
@@ -2449,16 +2449,16 @@ void medit_parse(struct descriptor_data *d, char *arg)
 
   case MEDIT_PATH_EDIT:
     write_to_output(d, "Enter next value for path (terminate with 0)\r\n");
-    if (atoi(arg) && PATH_SIZE(OLC_MOB(d)) < MAX_PATH - 1)
+    if (parse_int(arg) && PATH_SIZE(OLC_MOB(d)) < MAX_PATH - 1)
     {
-      GET_PATH(OLC_MOB(d), PATH_SIZE(OLC_MOB(d))++) = atoi(arg);
+      GET_PATH(OLC_MOB(d), PATH_SIZE(OLC_MOB(d))++) = parse_int(arg);
       write_to_output(d, "Value received!  Continuing...\r\n");
       return;
     }
     break;
 
   case MEDIT_COPY:
-    if ((i = real_mobile(atoi(arg))) != (int)NOWHERE)
+    if ((i = real_mobile(parse_int(arg))) != (int)NOWHERE)
     {
       medit_setup_existing(d, i, QMODE_QCOPY);
     }

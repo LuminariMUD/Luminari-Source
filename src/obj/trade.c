@@ -282,7 +282,7 @@ SPECIAL(trade_master) {
         count = 1;
         strcpy(arg, arg1);
       } else {
-        count = atoi(arg1);
+        count = parse_int(arg1);
         strcpy(arg, arg2);
       }
 
@@ -301,7 +301,7 @@ SPECIAL(trade_master) {
         return TRUE;
       }
 
-      int index = atoi(arg);
+      int index = parse_int(arg);
       if (index < 1 || index > 3) {
         send_to_char(ch, "Either buy resource 1, 2 or 3?\n");
         return TRUE;
@@ -362,7 +362,7 @@ SPECIAL(trade_master) {
         count = 1;
         strcpy(arg, arg1);
       } else {
-        count = atoi(arg1);
+        count = parse_int(arg1);
         strcpy(arg, arg2);
       }
       if (!arg || !*arg) {

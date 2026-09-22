@@ -158,10 +158,10 @@ void show_regeneration_history(struct char_data *ch, int zone_vnum_id, int x, in
 
   while ((row = mysql_fetch_row(result)))
   {
-    int resource_type = atoi(row[0]);
-    double old_level = atof(row[1]);
-    double new_level = atof(row[2]);
-    double regen_amount = atof(row[3]);
+    int resource_type = parse_int(row[0]);
+    double old_level = parse_double(row[1]);
+    double new_level = parse_double(row[2]);
+    double regen_amount = parse_double(row[3]);
 
     send_to_char(ch, "%-12d %-8.3f %-8.3f %-10.3f %-10s %s\r\n", resource_type, old_level,
                  new_level, regen_amount, row[4], row[5]);

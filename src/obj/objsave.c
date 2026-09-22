@@ -2221,7 +2221,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
      */
 
     tag_argument(line, tag);
-    num = atoi(line);
+    num = parse_int(line);
     /* we need an incrementor here */
 
     switch (*tag)
@@ -2583,7 +2583,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
     else
     {
       /* House data (1) or player data (normal case) with idnum column */
-      obj_db_idnum = row[1] != NULL ? atoi(row[1]) : 0;
+      obj_db_idnum = row[1] != NULL ? parse_int(row[1]) : 0;
     }
 
     /* Tokenize the serialized object data */
@@ -2737,7 +2737,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
       }
 
       tag_argument(*line, tag);
-      num = atoi(*line);
+      num = parse_int(*line);
       /* we need an incrementor here */
 
       switch (*tag)
@@ -3106,7 +3106,7 @@ static int Crash_load_objs(struct char_data *ch)
   if (rentcode == RENT_RENTED || rentcode == RENT_TIMEDOUT)
   {
     snprintf(str, sizeof(str), "%d", SECS_PER_REAL_DAY);
-    num_of_days = (int)((double)(time(0) - timed) / (double)atoi(str));
+    num_of_days = (int)((double)(time(0) - timed) / (double)parse_int(str));
     cost = (unsigned int)(netcost * num_of_days);
     if (cost > (unsigned int)GET_GOLD(ch) + (unsigned int)GET_BANK_GOLD(ch))
     {
@@ -4924,7 +4924,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
       }
 
       tag_argument(*line, tag);
-      num = atoi(*line);
+      num = parse_int(*line);
       /* we need an incrementor here */
 
       switch (*tag)

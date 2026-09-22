@@ -869,12 +869,12 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case PREFEDIT_PAGELENGTH:
-    number = atoi(arg);
+    number = parse_int(arg);
     OLC_PREFS(d)->page_length = MAX(10, MIN(number, 60));
     break;
 
   case PREFEDIT_SCREENWIDTH:
-    number = atoi(arg);
+    number = parse_int(arg);
     OLC_PREFS(d)->screen_width = MAX(40, MIN(number, 120));
     break;
 
@@ -897,12 +897,12 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case PREFEDIT_WIMPY:
-    number = atoi(arg);
+    number = parse_int(arg);
     OLC_PREFS(d)->wimp_level = MAX(0, MIN(number, 500));
     break;
 
   case PREFEDIT_COLOR:
-    number = atoi(arg) - 1;
+    number = parse_int(arg) - 1;
     if ((number < 0) || (number > 3))
     {
       send_to_char(d->character, "%sThat's not a valid choice!%s\r\n", CBRED(d->character, C_NRM),
@@ -1274,7 +1274,7 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case PREFEDIT_SYSLOG:
-    number = atoi(arg) - 1;
+    number = parse_int(arg) - 1;
     if ((number < 0) || (number > 3))
     {
       send_to_char(d->character, "%sThat's not a valid choice!%s\r\n", CBRED(d->character, C_NRM),
@@ -1297,7 +1297,7 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     /* Sub-menu's and flag toggle menu's */
   case PREFEDIT_PROMPT:
-    number = atoi(arg);
+    number = parse_int(arg);
     if ((number < 0) || (number > 11))
     {
       send_to_char(d->character, "%sThat's not a valid choice!%s\r\n", CBRED(d->character, C_NRM),

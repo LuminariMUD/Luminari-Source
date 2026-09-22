@@ -1093,7 +1093,7 @@ ACMD(do_qinfo)
     send_to_char(ch, "qinfo what object?\r\n");
     return;
   }
-  if ((number = atoi(arg)) < 0)
+  if ((number = parse_int(arg)) < 0)
   {
     send_to_char(ch, "No such object.\r\n");
     return;
@@ -1394,7 +1394,7 @@ ACMD(do_qref)
     return;
   }
 
-  vnum = atoi(buf);
+  vnum = parse_int(buf);
   real_num = real_object(vnum);
 
   if (real_num == NOWHERE)
@@ -1478,7 +1478,7 @@ ACMD(do_qview)
     return;
   }
 
-  num = real_mobile(atoi(buf));
+  num = real_mobile(parse_int(buf));
   if (num == NOWHERE)
   {
     send_to_char(ch, "\tRNo such mobile!\tn\r\n");
@@ -1493,7 +1493,8 @@ ACMD(do_qview)
 
   if (GET_LEVEL(ch) < LVL_IMPL)
   {
-    snprintf(buf, sizeof(buf), "(GC) %s has peeked at quest for (%d).", GET_NAME(ch), atoi(buf));
+    snprintf(buf, sizeof(buf), "(GC) %s has peeked at quest for (%d).", GET_NAME(ch),
+             parse_int(buf));
     log("%s", buf);
   }
 

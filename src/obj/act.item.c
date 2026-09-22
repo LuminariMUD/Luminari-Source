@@ -2129,7 +2129,7 @@ ACMD(do_put)
     if (!cont)
     {
       bag = arg2 + 3;
-      bagnum = atoi(bag);
+      bagnum = parse_int(bag);
       if (bagnum <= 0 || bagnum > 10)
       {
         send_to_char(ch, "Please specify a bag from bag1 to bag10 or specify a physical container "
@@ -2586,13 +2586,13 @@ ACMD(do_get)
   else if (!*arg2)
     get_from_room(ch, arg1, 1);
   else if (is_number(arg1) && !*arg3)
-    get_from_room(ch, arg2, atoi(arg1));
+    get_from_room(ch, arg2, parse_int(arg1));
   else
   {
     int amount = 1;
     if (is_number(arg1))
     {
-      amount = atoi(arg1);
+      amount = parse_int(arg1);
       strlcpy(arg1, arg2, sizeof(arg1)); /* strcpy: OK (sizeof: arg1 == arg2) */
       strlcpy(arg2, arg3, sizeof(arg2)); /* strcpy: OK (sizeof: arg2 == arg3) */
     }
@@ -2602,7 +2602,7 @@ ACMD(do_get)
     {
       bag = arg2 + 3;
 
-      bagnum = atoi(bag);
+      bagnum = parse_int(bag);
 
       if (bagnum <= 0 || bagnum > 10)
       {
@@ -2642,7 +2642,7 @@ ACMD(do_get)
 
       bag = arg2 + 3;
 
-      bagnum = atoi(bag);
+      bagnum = parse_int(bag);
 
       if (bagnum <= 0 || bagnum > 10)
       {
@@ -2897,7 +2897,7 @@ ACMD(do_drop)
   }
   else if (is_number(arg))
   {
-    multi = atoi(arg);
+    multi = parse_int(arg);
     one_argument(argument, arg, sizeof(arg));
     if (!str_cmp("coins", arg) || !str_cmp("coin", arg) || !str_cmp("gold", arg))
       perform_drop_gold(ch, multi, mode, RDR);
@@ -3125,7 +3125,7 @@ ACMDU(do_give)
   else if (is_number(arg))
   {
     /* ok we received a number value */
-    amount = atoi(arg);
+    amount = parse_int(arg);
     argument = one_argument_u(argument, arg);
     if (!str_cmp("coins", arg) || !str_cmp("coin", arg) || !str_cmp("gold", arg))
     {
@@ -4798,7 +4798,7 @@ ACMD(do_priceset)
     return;
   }
 
-  amount = atoi(arg2);
+  amount = parse_int(arg2);
 
   if (amount <= 0 || amount >= MAX_OBJ_COST)
   {
@@ -5711,7 +5711,7 @@ ACMD(do_auction)
     send_to_char(ch, "%s", auction_buf);
     return;
   }
-  else if (*arg2 && (bid = atoi(arg2)) <= 0)
+  else if (*arg2 && (bid = parse_int(arg2)) <= 0)
   {
     send_to_char(ch, "Come on? One credit at least?\r\n");
     return;
@@ -5763,7 +5763,7 @@ ACMD(do_bid)
     send_to_char(ch, "Why bid on something your selling?  You can 'cancel' the auction!\r\n");
     return;
   }
-  else if ((bid = atoi(arg)) < ((int)curbid * 1.1 - 1) && ch_buying != NULL)
+  else if ((bid = parse_int(arg)) < ((int)curbid * 1.1 - 1) && ch_buying != NULL)
   {
     char auction_buf[MAX_STRING_LENGTH] = {'\0'};
     snprintf(auction_buf, sizeof(auction_buf),
@@ -8879,7 +8879,7 @@ ACMD(do_downgrade)
     return;
   }
 
-  int level = atoi(arg2);
+  int level = parse_int(arg2);
 
   if (level < 1)
   {

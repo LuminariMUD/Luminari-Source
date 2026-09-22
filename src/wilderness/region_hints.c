@@ -75,17 +75,17 @@ struct region_hint *load_region_hints(int region_vnum_id)
       break;
     }
 
-    new_hint->id = atoi(row[0]);
-    new_hint->region_vnum = atoi(row[1]);
-    new_hint->hint_category = atoi(row[2]);
+    new_hint->id = parse_int(row[0]);
+    new_hint->region_vnum = parse_int(row[1]);
+    new_hint->hint_category = parse_int(row[2]);
     new_hint->hint_text = strdup(row[3] ? row[3] : "");
-    new_hint->priority = atoi(row[4]);
+    new_hint->priority = parse_int(row[4]);
     new_hint->weather_conditions = strdup(row[5] ? row[5] : "");
     new_hint->seasonal_weight = strdup(row[6] ? row[6] : "{}");
     new_hint->time_of_day_weight = strdup(row[7] ? row[7] : "{}");
     new_hint->resource_triggers = strdup(row[8] ? row[8] : "{}");
-    new_hint->created_at = row[9] ? atol(row[9]) : 0;
-    new_hint->is_active = row[10] ? (atoi(row[10]) > 0) : false;
+    new_hint->created_at = row[9] ? parse_long(row[9]) : 0;
+    new_hint->is_active = row[10] ? (parse_int(row[10]) > 0) : false;
     new_hint->next = NULL;
 
     if (!hints)
@@ -139,13 +139,13 @@ struct region_profile *load_region_profile(int region_vnum_id)
     profile = calloc(1, sizeof(struct region_profile));
     if (profile)
     {
-      profile->region_vnum = atoi(row[0]);
+      profile->region_vnum = parse_int(row[0]);
       profile->overall_theme = strdup(row[1] ? row[1] : "");
       profile->dominant_mood = strdup(row[2] ? row[2] : "");
       profile->key_characteristics = strdup(row[3] ? row[3] : "{}");
-      profile->description_style = row[4] ? atoi(row[4]) : 0;
-      profile->complexity_level = row[5] ? atoi(row[5]) : 3;
-      profile->created_at = row[6] ? atol(row[6]) : 0;
+      profile->description_style = row[4] ? parse_int(row[4]) : 0;
+      profile->complexity_level = row[5] ? parse_int(row[5]) : 3;
+      profile->created_at = row[6] ? parse_long(row[6]) : 0;
     }
   }
 

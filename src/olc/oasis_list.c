@@ -61,7 +61,7 @@ void perform_mob_name_list(struct char_data *ch, char *arg)
   struct char_data *mob = NULL;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  mob_flag = atoi(arg);
+  mob_flag = parse_int(arg);
 
   if (mob_flag < 0 || mob_flag > NUM_MOB_FLAGS)
   {
@@ -104,7 +104,7 @@ static void perform_mob_flag_list(struct char_data *ch, char *arg)
   struct char_data *mob;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  mob_flag = atoi(arg);
+  mob_flag = parse_int(arg);
 
   if (mob_flag < 0 || mob_flag > NUM_MOB_FLAGS)
   {
@@ -147,7 +147,7 @@ static void perform_mob_level_list(struct char_data *ch, char *arg)
   struct char_data *mob;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  mob_level = atoi(arg);
+  mob_level = parse_int(arg);
 
   if (mob_level < 0 || mob_level > 99)
   {
@@ -219,7 +219,7 @@ static void perform_obj_type_list(struct char_data *ch, char *arg)
     send_to_char(ch, "Not a valid item type.\r\n");
     return;
   }
-  itemtype = atoi(arg);
+  itemtype = parse_int(arg);
   if (itemtype < 0 || itemtype >= NUM_ITEM_TYPES)
   {
     send_to_char(ch, "Not a valid item type.\r\n");
@@ -595,7 +595,7 @@ static void perform_obj_worn_list(struct char_data *ch, char *arg)
   char buf[MAX_STRING_LENGTH] = {'\0'}, bitbuf[MEDIUM_STRING] = {'\0'};
   struct obj_data *obj = NULL;
 
-  wearloc = atoi(arg);
+  wearloc = parse_int(arg);
 
   /* 0 = takeable */
   if (wearloc >= NUM_ITEM_WEARS || wearloc <= 0)
@@ -676,7 +676,7 @@ static void perform_obj_aff_list(struct char_data *ch, char *arg)
     lst[i].vobj = NOTHING;
     lst[i].val = 0;
   }
-  apply = atoi(arg);
+  apply = parse_int(arg);
 
   if (!(apply > 0 && apply < NUM_APPLIES))
   {
@@ -768,7 +768,7 @@ static void perform_obj_perms_list(struct char_data *ch, char *arg)
 {
   obj_rnum num = 0;
   int found = 0, len = 0, tmp_len = 0;
-  int flag_num = atoi(arg);
+  int flag_num = parse_int(arg);
   obj_vnum ov = NOTHING;
   char buf[MAX_STRING_LENGTH] = {'\0'};
   struct obj_data *obj = NULL;
@@ -815,7 +815,7 @@ static void perform_obj_perms2_list(struct char_data *ch, char *arg)
 {
   obj_rnum num = 0;
   int found = 0, len = 0, tmp_len = 0;
-  int flag_num = atoi(arg);
+  int flag_num = parse_int(arg);
   obj_vnum ov = NOTHING;
   char buf[MAX_STRING_LENGTH] = {'\0'};
   struct obj_data *obj = NULL;
@@ -977,13 +977,13 @@ ACMD(do_oasis_list)
         send_to_char(ch, "\r\n");
         return;
       }
-      if (!is_number(arg2) ||
-          (atoi(arg2) != PATH_ROAD && atoi(arg2) != PATH_DIRT_ROAD && atoi(arg2) != PATH_RIVER))
+      if (!is_number(arg2) || (parse_int(arg2) != PATH_ROAD && parse_int(arg2) != PATH_DIRT_ROAD &&
+                               parse_int(arg2) != PATH_RIVER))
       {
         send_to_char(ch, "Path type must be 1, 2, or 5.\r\n");
         return;
       }
-      list_paths(ch, atoi(arg2));
+      list_paths(ch, parse_int(arg2));
       return;
     }
     list_paths(ch, 0);
@@ -1024,12 +1024,13 @@ ACMD(do_oasis_list)
         send_to_char(ch, "\r\n");
         return;
       }
-      if (!is_number(arg2) || atoi(arg2) < REGION_GEOGRAPHIC || atoi(arg2) > REGION_SKY_ISLAND)
+      if (!is_number(arg2) || parse_int(arg2) < REGION_GEOGRAPHIC ||
+          parse_int(arg2) > REGION_SKY_ISLAND)
       {
         send_to_char(ch, "Region type must be between 1 and 7.\r\n");
         return;
       }
-      list_regions(ch, atoi(arg2));
+      list_regions(ch, parse_int(arg2));
       return;
     }
     list_regions(ch, 0);

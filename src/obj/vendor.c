@@ -101,7 +101,7 @@ int bank_typed(struct spec_event_context *context)
       return (TRUE);
     }
 
-    if ((amount = atoi(argument)) <= 0)
+    if ((amount = parse_int(argument)) <= 0)
     {
       send_to_char(ch, "How much do you want to deposit?\r\n");
       return (TRUE);
@@ -141,7 +141,7 @@ int bank_typed(struct spec_event_context *context)
       return (TRUE);
     }
 
-    if ((amount = atoi(argument)) <= 0)
+    if ((amount = parse_int(argument)) <= 0)
     {
       send_to_char(ch, "How much do you want to withdraw?\r\n");
       return (TRUE);

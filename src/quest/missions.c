@@ -186,14 +186,14 @@ SPECIAL(faction_mission)
 
   i = 0;
 
-  while (atoi(mission_details[i][0]) != 0)
+  while (parse_int(mission_details[i][0]) != 0)
   {
-    if (atoi(mission_details[i][mission_details_to_faction(faction)]) == 0)
+    if (parse_int(mission_details[i][mission_details_to_faction(faction)]) == 0)
     {
       i++;
       continue;
     }
-    if (atoi(mission_details[i][0]) > level)
+    if (parse_int(mission_details[i][0]) > level)
     {
       i++;
       continue;
@@ -205,14 +205,14 @@ SPECIAL(faction_mission)
   mDet = rand_number(1, count);
   count = i = 0;
 
-  while (atoi(mission_details[i][0]) != 0)
+  while (parse_int(mission_details[i][0]) != 0)
   {
-    if (atoi(mission_details[i][mission_details_to_faction(faction)]) == 0)
+    if (parse_int(mission_details[i][mission_details_to_faction(faction)]) == 0)
     {
       i++;
       continue;
     }
-    if (atoi(mission_details[i][0]) > level)
+    if (parse_int(mission_details[i][0]) > level)
     {
       i++;
       continue;
@@ -439,7 +439,7 @@ void create_mission_mobs(char_data *ch)
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
   if (GET_CURRENT_MISSION(ch) > 0)
-    to_room = atoi(mission_details[GET_CURRENT_MISSION(ch)][6]);
+    to_room = parse_int(mission_details[GET_CURRENT_MISSION(ch)][6]);
 
   for (i = 0; i < 4; i++)
   {

@@ -82,7 +82,7 @@ ACMD(do_oasis_qedit)
     save = TRUE;
 
     if (is_number(buf2))
-      number = atoi(buf2);
+      number = parse_int(buf2);
     else if (GET_OLC_ZONE(ch) > 0)
     {
       zone_rnum zlok;
@@ -104,7 +104,7 @@ ACMD(do_oasis_qedit)
   /** If a numeric argument was given, get it.                               **/
   /****************************************************************************/
   if (number == NOWHERE)
-    number = atoi(buf1);
+    number = parse_int(buf1);
 
   /****************************************************************************/
   /** Check that the quest isn't already being edited.                       **/
@@ -410,7 +410,7 @@ static void qedit_disp_menu(struct descriptor_data *d)
       {
         if (count < 5)
         {
-          int a = atoi(pt);
+          int a = parse_int(pt);
           snprintf(targs[count], sizeof(targs[count]), "(%d) %s ", a,
                    real_mobile(a) == NOBODY ? "An unknown mobile"
                                             : GET_NAME(&mob_proto[real_mobile(a)]));
@@ -559,7 +559,7 @@ static void qedit_disp_flag_menu(struct descriptor_data *d)
  **************************************************************************/
 void qedit_parse(struct descriptor_data *d, char *arg)
 {
-  int number = atoi(arg);
+  int number = parse_int(arg);
   char *oldtext = NULL;
 
   switch (OLC_MODE(d))
@@ -860,7 +860,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     OLC_MODE(d) = QEDIT_DIALOGUE_MENU;
     return;
   case QEDIT_DIALOGUE_NEXT:
-    if ((number = atoi(arg)) != -1)
+    if ((number = parse_int(arg)) != -1)
     {
       if (real_quest(number) == NOTHING)
       {
@@ -938,7 +938,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     OLC_QUEST(d)->value[1] = LIMIT(number, 0, 999999);
     break;
   case QEDIT_PREREQ:
-    if ((number = atoi(arg)) != -1)
+    if ((number = parse_int(arg)) != -1)
       if (real_object(number) == NOTHING)
       {
         write_to_output(d, "That object does not exist, try again : ");
@@ -986,7 +986,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     OLC_QUEST(d)->value[4] = LIMIT(number, -1, 100);
     break;
   case QEDIT_RETURNMOB:
-    if ((number = atoi(arg)) != -1)
+    if ((number = parse_int(arg)) != -1)
       if (real_mobile(number) == NOBODY)
       {
         write_to_output(d, "That mobile does not exist, try again : ");
@@ -1033,7 +1033,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case QEDIT_NEXTQUEST:
-    if ((number = atoi(arg)) != -1)
+    if ((number = parse_int(arg)) != -1)
     {
       if (real_quest(number) == NOTHING)
       {
@@ -1045,7 +1045,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case QEDIT_PREVQUEST:
-    if ((number = atoi(arg)) != -1)
+    if ((number = parse_int(arg)) != -1)
     {
       if (real_quest(number) == NOTHING)
       {
@@ -1062,7 +1062,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     OLC_QUEST(d)->exp_reward = LIMIT(number, 0, 999999);
     break;
   case QEDIT_OBJ:
-    if ((number = atoi(arg)) != -1)
+    if ((number = parse_int(arg)) != -1)
       if (real_object(number) == NOTHING)
       {
         write_to_output(d, "That object does not exist, try again : ");
@@ -1072,7 +1072,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     break;
   case QEDIT_RACE:
 
-    number = atoi(arg);
+    number = parse_int(arg);
 
     switch (number)
     {
@@ -1090,7 +1090,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case QEDIT_FOLLOWER:
-    if ((number = atoi(arg)) != -1)
+    if ((number = parse_int(arg)) != -1)
       if (real_mobile(number) == NOBODY)
       {
         write_to_output(d, "That mobile does not exist, try again : ");

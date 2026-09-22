@@ -218,7 +218,7 @@ void do_slug_rank(struct char_data *ch, const char *arg)
       toprank = TRUE;
       nbufp++;
     }
-    rk = atoi(nbufp);
+    rk = parse_int(nbufp);
     if (rk == 0)
       rk = 20;
     if (k < rk)
