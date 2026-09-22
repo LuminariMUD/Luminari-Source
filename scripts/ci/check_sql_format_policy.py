@@ -51,7 +51,6 @@ FROZEN_EXEMPTIONS = frozenset(
         "sql/components/help_vessel_entries.sql",
         "sql/components/narrative_weaver_installation.sql",
         "sql/components/pubsub_v3_schema.sql",
-        "sql/components/verify_help_rol_feat_entries.sql",
         "sql/components/verify_help_rol_player_kits.sql",
         "sql/components/verify_help_specproc_entries.sql",
         "sql/components/verify_help_vessel_entries.sql",

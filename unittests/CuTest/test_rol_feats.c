@@ -592,7 +592,7 @@ void TestConvertedRolSkillsAreRegistered(CuTest *tc)
     CuAssertTrue(tc, find_feat_num(feats[i]) > 0);
 }
 
-/* Both maintained help sources and their verifier cover every converted feat. */
+/* Both maintained help sources cover every converted feat. */
 void TestConvertedRolFeatHelpSourcesAreComplete(CuTest *tc)
 {
   static const char *flat_keywords[] = {"ACCOMPANY", "CALM PACIFY", "CAMP ESTABLISH-CAMP",
@@ -622,14 +622,8 @@ void TestConvertedRolFeatHelpSourcesAreComplete(CuTest *tc)
                                             prerequisite_text[i]));
   }
 
-  CuAssertTrue(tc, rol_feat_file_contains("sql/components/verify_help_rol_feat_entries.sql",
-                                          "rol_feat_content"));
-  CuAssertTrue(tc, rol_feat_file_contains("sql/components/verify_help_rol_feat_entries.sql",
-                                          "rol_feat_command_keyword_owners"));
   CuAssertTrue(tc, rol_feat_file_contains("sql/components/help_rol_feat_entries.sql",
                                           "bards gain it for free at level 2"));
-  CuAssertTrue(tc, rol_feat_file_contains("sql/components/verify_help_rol_feat_entries.sql",
-                                          "'ACTIVITY', 'PRIMARY-ACTIVITY'"));
   CuAssertTrue(tc, rol_feat_file_contains("sql/components/help_rol_feat_entries.sql",
                                           "UPPER(keyword) = 'ACTIVITY'"));
 }
