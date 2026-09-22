@@ -93,7 +93,8 @@ void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_o
       continue;
     if (to == vict_obj) /* ch == victim? */
       continue;
-    if (!PRF_FLAGGED(to, PRF_GUI_MODE))
+    /* GUI mode is a player preference; a mob has no preferences of its own. */
+    if (IS_NPC(to) || !PRF_FLAGGED(to, PRF_GUI_MODE))
       continue;
     // perform_act("<combat_message>\r\n", ch, NULL, vict_obj, to, FALSE);
   }
@@ -129,7 +130,8 @@ void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_
       continue;
     if (to == vict_obj) /* ch == victim? */
       continue;
-    if (!PRF_FLAGGED(to, PRF_GUI_MODE))
+    /* GUI mode is a player preference; a mob has no preferences of its own. */
+    if (IS_NPC(to) || !PRF_FLAGGED(to, PRF_GUI_MODE))
       continue;
     // perform_act("</combat_message>\r\n", ch, NULL, vict_obj, to, FALSE);
   }

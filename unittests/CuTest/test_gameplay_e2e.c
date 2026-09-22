@@ -11439,6 +11439,85 @@ void Test_gameplay_incorporeal_pets_reject_physical_objects(CuTest *tc)
   CuAssertTrue(tc, physical_give);
 }
 
+/* Read the log text written since the capture file was installed, then close it. */
+static void read_log_capture(FILE *capture, char *captured, size_t size)
+{
+  size_t length = 0;
+
+  if (fseek(capture, 0, SEEK_SET) == 0)
+    length = fread(captured, 1, size - 1, capture);
+  captured[length] = '\0';
+  fclose(capture);
+}
+
+/* A mob taking from a container never reads the clan fields only players own. */
+void Test_gameplay_npc_container_get_does_not_read_player_clan_data(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct obj_data *item, *bag;
+  FILE *saved_log = logfile;
+  FILE *capture = tmpfile();
+  char captured[MAX_STRING_LENGTH];
+  char get_bag_item[] = "parcel bag";
+  bool taken;
+
+  CuAssertPtrNotNull(tc, capture);
+  begin_gameplay_fixture(&f);
+  item = create_obj();
+  item->name = strdup("parcel");
+  item->short_description = strdup("a parcel");
+  GET_OBJ_TYPE(item) = ITEM_OTHER;
+  SET_BIT_AR(GET_OBJ_WEAR(item), ITEM_WEAR_TAKE);
+  bag = create_obj();
+  bag->name = strdup("bag");
+  bag->short_description = strdup("a bag");
+  GET_OBJ_TYPE(bag) = ITEM_CONTAINER;
+  obj_to_char(bag, &f.victim);
+  obj_to_obj(item, bag);
+
+  logfile = capture;
+  do_get(&f.victim, get_bag_item, 0, 0);
+  logfile = saved_log;
+  taken = item->carried_by == &f.victim;
+
+  extract_obj(item);
+  extract_obj(bag);
+  domain_event_world_forget_character(&f.actor);
+  domain_event_world_forget_character(&f.victim);
+  end_gameplay_fixture(&f);
+  read_log_capture(capture, captured, sizeof(captured));
+  CuAssertTrue(tc, taken);
+  CuAssertTrue(tc, strstr(captured, "Mob using") == NULL);
+}
+
+/* The combat GUI wrappers skip mobs that can hear the room, such as a switched mob. */
+void Test_gameplay_combat_gui_wrappers_skip_npc_observers(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct descriptor_data observer;
+  FILE *saved_log = logfile;
+  FILE *capture = tmpfile();
+  char captured[MAX_STRING_LENGTH];
+
+  CuAssertPtrNotNull(tc, capture);
+  begin_gameplay_fixture(&f);
+  memset(&observer, 0, sizeof(observer));
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.victim.desc = &observer;
+
+  logfile = capture;
+  gui_combat_wrap_notvict_open(&f.actor, NULL);
+  gui_combat_wrap_notvict_close(&f.actor, NULL);
+  logfile = saved_log;
+
+  f.victim.desc = NULL;
+  end_gameplay_fixture(&f);
+  read_log_capture(capture, captured, sizeof(captured));
+  CuAssertTrue(tc, strstr(captured, "Mob using") == NULL);
+}
+
 void Test_gameplay_dragon_rider_recognizes_only_its_controlled_bonded_mount(CuTest *tc)
 {
   struct gameplay_fixture f;

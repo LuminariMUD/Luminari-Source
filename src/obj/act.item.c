@@ -2318,7 +2318,8 @@ static void perform_get_from_container_impl(struct char_data *ch, struct obj_dat
 
   if (!strncmp(cont->name, "corpse ", 7))
     is_corpse = TRUE;
-  if (GET_CLAN(ch) != NO_CLAN && GET_CLANRANK(ch) != NO_CLANRANK)
+  /* Only players belong to clans; a mob taking from a container owes no clan tax. */
+  if (!IS_NPC(ch) && GET_CLAN(ch) != NO_CLAN && GET_CLANRANK(ch) != NO_CLANRANK)
     is_clan = TRUE;
 
   if (IS_PET(ch) && IS_INCORPOREAL(ch))
