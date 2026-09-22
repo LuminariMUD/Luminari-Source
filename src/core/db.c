@@ -1854,15 +1854,10 @@ void index_boot(int mode)
   }
   while (*buf1 != '$')
   {
-    if (!is_safe_path_component(buf1))
+    if (!build_safe_path(buf2, sizeof(buf2), prefix, buf1, SAFE_PATH_FILENAME))
     {
-      log("SYSERR: Unsafe data filename '%s' in index '%s'.", buf1, index_filename);
-      exit(1);
-    }
-    strlcpy(buf2, prefix, sizeof(buf2));
-    if (strlcat(buf2, buf1, sizeof(buf2)) >= sizeof(buf2))
-    {
-      log("SYSERR: Data file path is too long: %s%s", prefix, buf1);
+      log("SYSERR: Unsafe or overlong data filename '%s' in index '%s%s'.", buf1, prefix,
+          index_filename);
       exit(1);
     }
     if (!(db_file = fopen(buf2, "r")))
@@ -1965,15 +1960,10 @@ void index_boot(int mode)
   }
   while (*buf1 != '$')
   {
-    if (!is_safe_path_component(buf1))
+    if (!build_safe_path(buf2, sizeof(buf2), prefix, buf1, SAFE_PATH_FILENAME))
     {
-      log("SYSERR: Unsafe data filename '%s' in index '%s'.", buf1, index_filename);
-      exit(1);
-    }
-    strlcpy(buf2, prefix, sizeof(buf2));
-    if (strlcat(buf2, buf1, sizeof(buf2)) >= sizeof(buf2))
-    {
-      log("SYSERR: Data file path is too long: %s%s", prefix, buf1);
+      log("SYSERR: Unsafe or overlong data filename '%s' in index '%s%s'.", buf1, prefix,
+          index_filename);
       exit(1);
     }
     if (!(db_file = fopen(buf2, "r")))

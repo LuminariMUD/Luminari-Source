@@ -284,6 +284,7 @@ int main(int argc, char **argv)
 {
   /* Copy to stack memory to ensure the version is embedded in core dumps */
   char embed_version[256];
+  char config_path[MAX_FILEPATH];
   int pos = 1;
   const char *config_file = NULL;
   const char *dir = NULL;
@@ -348,14 +349,14 @@ int main(int argc, char **argv)
 
   if (!config_file)
     config_file = CONFIG_FILE;
-  if (!is_safe_relative_path(config_file))
+  if (!build_safe_path(config_path, sizeof(config_path), "", config_file, SAFE_PATH_RELATIVE))
   {
     fputs("SYSERR: Configuration file must be a safe path relative to the library directory.\n",
           stderr);
     return EXIT_FAILURE;
   }
 
-  CONFIG_CONFFILE = strdup(config_file);
+  CONFIG_CONFFILE = strdup(config_path);
   if (!CONFIG_CONFFILE)
   {
     perror("SYSERR: strdup configuration file");
@@ -5190,7 +5191,12 @@ void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj, v
   const char *i = NULL;
   char lbuf[MAX_STRING_LENGTH] = {'\0'}, *buf = NULL, *j = NULL;
   bool uppercasenext = FALSE;
-  struct char_data *dg_victim = (to == vict_obj) ? vict_obj : NULL;
+  /* The $-code names what vict_obj points to: a character for $N $M $S $E, an object for
+   * $O $P $A, and text for $T $F. */
+  struct char_data *vict_char = vict_obj;
+  struct obj_data *vict_item = vict_obj;
+  char *vict_text = vict_obj;
+  struct char_data *dg_victim = (to == vict_obj) ? vict_char : NULL;
   struct obj_data *dg_target = NULL;
   char *dg_arg = NULL;
 
@@ -5206,60 +5212,60 @@ void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj, v
         i = PERS(ch, to);
         break;
       case 'N':
-        CHECK_NULL(vict_obj, PERS((struct char_data *)vict_obj, to));
-        dg_victim = (struct char_data *)vict_obj;
+        CHECK_NULL(vict_obj, PERS(vict_char, to));
+        dg_victim = vict_char;
         break;
       case 'm':
         i = HMHR(ch);
         break;
       case 'M':
-        CHECK_NULL(vict_obj, HMHR((const struct char_data *)vict_obj));
-        dg_victim = (struct char_data *)vict_obj;
+        CHECK_NULL(vict_obj, HMHR(vict_char));
+        dg_victim = vict_char;
         break;
       case 's':
         i = HSHR(ch);
         break;
       case 'S':
-        CHECK_NULL(vict_obj, HSHR((const struct char_data *)vict_obj));
-        dg_victim = (struct char_data *)vict_obj;
+        CHECK_NULL(vict_obj, HSHR(vict_char));
+        dg_victim = vict_char;
         break;
       case 'e':
         i = HSSH(ch);
         break;
       case 'E':
-        CHECK_NULL(vict_obj, HSSH((const struct char_data *)vict_obj));
-        dg_victim = (struct char_data *)vict_obj;
+        CHECK_NULL(vict_obj, HSSH(vict_char));
+        dg_victim = vict_char;
         break;
       case 'o':
         CHECK_NULL(obj, OBJS(obj, to));
         break;
       case 'O':
-        CHECK_NULL(vict_obj, OBJS((const struct obj_data *)vict_obj, to));
-        dg_target = (struct obj_data *)vict_obj;
+        CHECK_NULL(vict_obj, OBJS(vict_item, to));
+        dg_target = vict_item;
         break;
       case 'p':
         CHECK_NULL(obj, OBJS(obj, to));
         break;
       case 'P':
-        CHECK_NULL(vict_obj, OBJS((const struct obj_data *)vict_obj, to));
-        dg_target = (struct obj_data *)vict_obj;
+        CHECK_NULL(vict_obj, OBJS(vict_item, to));
+        dg_target = vict_item;
         break;
       case 'a':
         CHECK_NULL(obj, SANA(obj));
         break;
       case 'A':
-        CHECK_NULL(vict_obj, SANA((const struct obj_data *)vict_obj));
-        dg_target = (struct obj_data *)vict_obj;
+        CHECK_NULL(vict_obj, SANA(vict_item));
+        dg_target = vict_item;
         break;
       case 'T':
-        CHECK_NULL(vict_obj, (const char *)vict_obj);
-        dg_arg = (char *)vict_obj;
+        CHECK_NULL(vict_obj, vict_text);
+        dg_arg = vict_text;
         break;
       case 't':
         CHECK_NULL(obj, (char *)obj);
         break;
       case 'F':
-        CHECK_NULL(vict_obj, fname((const char *)vict_obj));
+        CHECK_NULL(vict_obj, fname(vict_text));
         break;
         /* uppercase previous word */
       case 'u':
@@ -5474,6 +5480,7 @@ const char *act(const char *str, int hide_invisible, struct char_data *ch, struc
 static void setup_log(const char *filename, int fd __attribute__((unused)))
 {
   FILE *s_fp;
+  char log_path[MAX_FILEPATH];
 
 #if defined(__MWERKS__) || defined(__GNUC__)
   s_fp = stderr;
@@ -5504,7 +5511,9 @@ static void setup_log(const char *filename, int fd __attribute__((unused)))
   }
 
   /* We honor the default filename first. */
-  if (open_logfile(filename, s_fp))
+  if (!build_safe_path(log_path, sizeof(log_path), "", filename, SAFE_PATH_ABSOLUTE_OK))
+    printf("SYSERR: Log file name '%s' is not a safe path.\n", filename);
+  else if (open_logfile(log_path, s_fp))
     return;
 
   /* Well, that failed but we want it logged to a file so try a default. */

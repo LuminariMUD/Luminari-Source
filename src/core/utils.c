@@ -3848,51 +3848,69 @@ int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_nam
   return (1);
 }
 
-bool is_safe_path_component(const char *name)
+/* The character c when a safe path may contain it, otherwise 0. */
+static int safe_path_char(int c)
 {
-  const unsigned char *current;
-
-  if (!name || !*name || !strcmp(name, ".") || !strcmp(name, "..") || strstr(name, ".."))
-    return FALSE;
-
-  for (current = (const unsigned char *)name; *current; current++)
-    if (!isalnum(*current) && *current != '.' && *current != '_' && *current != '-')
-      return FALSE;
-
-  return TRUE;
+  if (isalnum(c) || c == '.' || c == '_' || c == '-' || c == '/')
+    return c;
+  return 0;
 }
 
-/* Validate a library-relative path without allowing traversal or platform-specific separators. */
-bool is_safe_relative_path(const char *path)
+bool build_safe_path(char *buf, size_t size, const char *prefix, const char *path,
+                     enum safe_path_form form)
 {
-  const unsigned char *component;
-  const unsigned char *current;
-  size_t component_length;
+  const char *current;
+  size_t length, start, component_length = 0;
+  int c;
 
-  if (!path || !*path || *path == '/' || *path == '\\' || strlen(path) >= MAX_FILEPATH)
+  if (!buf || size == 0)
+    return FALSE;
+  *buf = '\0';
+  if (!prefix || !path || strstr(path, ".."))
     return FALSE;
 
-  component = (const unsigned char *)path;
-  for (current = component;; current++)
+  start = length = strlcpy(buf, prefix, size);
+  if (length >= size)
   {
-    if (*current == '\0' || *current == '/')
-    {
-      component_length = (size_t)(current - component);
-      if (component_length == 0 || (component_length == 1 && component[0] == '.') ||
-          (component_length == 2 && component[0] == '.' && component[1] == '.'))
-        return FALSE;
-
-      if (*current == '\0')
-        return TRUE;
-
-      component = current + 1;
-      continue;
-    }
-
-    if (*current == '\\' ||
-        (!isalnum(*current) && *current != '.' && *current != '_' && *current != '-'))
-      return FALSE;
+    *buf = '\0';
+    return FALSE;
   }
+
+  /* Each character is copied from what safe_path_char() returns, so buf never
+   * holds a character that the checks below did not see. */
+  for (current = path; *current; current++)
+  {
+    c = safe_path_char((unsigned char)*current);
+    if (c == 0 || length + 1 >= size)
+    {
+      *buf = '\0';
+      return FALSE;
+    }
+    if (c == '/')
+    {
+      /* A separator may only follow a nonempty component other than ".", except
+       * as the leading '/' of an absolute path. */
+      if (form == SAFE_PATH_FILENAME ||
+          (component_length == 0 && (form != SAFE_PATH_ABSOLUTE_OK || length != start)) ||
+          (component_length == 1 && buf[length - 1] == '.'))
+      {
+        *buf = '\0';
+        return FALSE;
+      }
+      component_length = 0;
+    }
+    else
+      component_length++;
+    buf[length++] = (char)c;
+  }
+  buf[length] = '\0';
+
+  if (component_length == 0 || (component_length == 1 && buf[length - 1] == '.'))
+  {
+    *buf = '\0';
+    return FALSE;
+  }
+  return TRUE;
 }
 
 /** Calculate the number of player characters (PCs) in the room. Any NPC (mob)
