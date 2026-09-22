@@ -15,6 +15,7 @@
 #include "../../src/character/feats.h"
 #include "../../src/character/premadebuilds.h"
 #include "../../src/character/race.h"
+#include "../../src/character/backgrounds.h"
 #include "../../src/character/roleplay.h"
 #include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/net/protocol.h"
@@ -861,17 +862,28 @@ void TestRoleplayIdeaMenusProceedToTheirEditors(CuTest *tc)
   char input[MAX_INPUT_LENGTH];
   size_t i;
 
+  if (background_list[1].name == NULL)
+    assign_backgrounds();
   for (i = 0; i < sizeof(menus) / sizeof(menus[0]); i++)
   {
     init_race_equivalence_character(&ch, &specials, &descriptor, &account);
     descriptor.pProtocol = ProtocolCreate();
     CuAssertPtrNotNull(tc, descriptor.pProtocol);
     STATE(&descriptor) = menus[i][0];
+    /* A background number shows an example and stays in the menu. */
+    snprintf(input, sizeof(input), "1");
+    nanny(&descriptor, input);
+    CuAssertIntEquals(tc, menus[i][0], STATE(&descriptor));
+    CuAssertPtrNotNull(tc, strstr(descriptor.output, "Enter a background number"));
+    snprintf(input, sizeof(input), "%d", NUM_BACKGROUNDS + 5);
+    nanny(&descriptor, input);
+    CuAssertIntEquals(tc, menus[i][0], STATE(&descriptor));
     snprintf(input, sizeof(input), "q");
     nanny(&descriptor, input);
     CuAssertIntEquals(tc, menus[i][1], STATE(&descriptor));
     CuAssertPtrNotNull(tc, descriptor.str);
     CuAssertPtrNotNull(tc, strstr(descriptor.output, "Enter your character"));
+    roleplay_pending_clear_examples(&descriptor);
     free(descriptor.backstr);
     cleanup_race_equivalence_descriptor(&descriptor);
   }
