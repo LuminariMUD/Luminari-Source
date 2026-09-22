@@ -43,7 +43,7 @@ struct mysql_board_config *mysql_board_configs = NULL;
 int mysql_num_boards = 0;
 
 /* Default board configurations - each board assigned to a specific object vnum */
-static struct mysql_board_config default_boards[] = {
+static const struct mysql_board_config default_boards[] = {
     /* board_id, name, type, read_lvl, write_lvl, delete_lvl, obj_vnum, clan_id, active */
 
     // IMPORTANT! BOARD NAMES CANNOT CONTAIN ' (single quote)
@@ -177,7 +177,9 @@ void mysql_board_sync_default_boards(void)
     return;
   }
 
-  for (i = 0; default_boards[i].board_id != -1; i++)
+  for (i = 0; i < (int)(sizeof(default_boards) / sizeof(default_boards[0])) &&
+              default_boards[i].board_id != -1;
+       i++)
   {
     /* Escape the board name for SQL safety */
     mysql_real_escape_string(conn, escaped_name, default_boards[i].board_name,

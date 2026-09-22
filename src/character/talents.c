@@ -698,14 +698,14 @@ void list_talents(struct char_data *ch)
     char line[256];
 
     if (rank >= maxr)
-      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%-2d \tR[MAX]\tn", i, talent_list[i].name,
+      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%-2d \tR[MAX]\tn", i, sorted[idx].name,
                rank, maxr);
     else if (rank > 0)
-      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%-2d %2dpt/%4dgp", i, talent_list[i].name,
+      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%-2d %2dpt/%4dgp", i, sorted[idx].name,
                rank, maxr, p_cost, g_cost);
     else
       snprintf(line, sizeof(line), "\tW%2d\tn) %-24s \tD%d/%-2d\tn %2dpt/%4dgp", i,
-               talent_list[i].name, rank, maxr, p_cost, g_cost);
+               sorted[idx].name, rank, maxr, p_cost, g_cost);
 
     if (col_toggle == 0)
     {
@@ -772,8 +772,8 @@ static void list_available_talents(struct char_data *ch)
     int g_cost = talent_next_gold_cost(ch, i);
     char line[256];
 
-    snprintf(line, sizeof(line), "\tG%2d\tn) %-24s %d/%-2d %2dpt/%4dgp", i, talent_list[i].name,
-             rank, maxr, p_cost, g_cost);
+    snprintf(line, sizeof(line), "\tG%2d\tn) %-24s %d/%-2d %2dpt/%4dgp", i, sorted[idx].name, rank,
+             maxr, p_cost, g_cost);
 
     if (col_toggle == 0)
     {
@@ -832,10 +832,10 @@ static void list_all_talents(struct char_data *ch)
     char line[256];
 
     if (rank >= maxr)
-      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%-2d \tR[MAX]\tn", i, talent_list[i].name,
+      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%-2d \tR[MAX]\tn", i, sorted[idx].name,
                rank, maxr);
     else
-      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%-2d %2dpt/%4dgp", i, talent_list[i].name,
+      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%-2d %2dpt/%4dgp", i, sorted[idx].name,
                rank, maxr, p_cost, g_cost);
 
     if (col_toggle == 0)
@@ -1005,14 +1005,13 @@ static void list_talents_by_category(struct char_data *ch, int category)
     int g_cost = talent_next_gold_cost(ch, i);
 
     if (rank >= maxr)
-      send_to_char(ch, "\tW%2d\tn) %-32s %d/%-2d \tR[MAX]\tn\r\n", i, talent_list[i].name, rank,
-                   maxr);
+      send_to_char(ch, "\tW%2d\tn) %-32s %d/%-2d \tR[MAX]\tn\r\n", i, sorted[idx].name, rank, maxr);
     else if (rank > 0)
-      send_to_char(ch, "\tW%2d\tn) %-32s %d/%-2d  Next: %2dpt/%5dgp\r\n", i, talent_list[i].name,
-                   rank, maxr, p_cost, g_cost);
+      send_to_char(ch, "\tW%2d\tn) %-32s %d/%-2d  Next: %2dpt/%5dgp\r\n", i, sorted[idx].name, rank,
+                   maxr, p_cost, g_cost);
     else
-      send_to_char(ch, "\tW%2d\tn) %-32s \tD%d/%-2d\tn  Cost: %2dpt/%5dgp\r\n", i,
-                   talent_list[i].name, rank, maxr, p_cost, g_cost);
+      send_to_char(ch, "\tW%2d\tn) %-32s \tD%d/%-2d\tn  Cost: %2dpt/%5dgp\r\n", i, sorted[idx].name,
+                   rank, maxr, p_cost, g_cost);
   }
 
   send_to_char(ch, "\r\nUse '\tCtalents learn <number>\tn' to learn or rank up a talent.\r\n");

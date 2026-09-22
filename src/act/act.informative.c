@@ -456,7 +456,8 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
   {
   case SHOW_OBJ_LONG:
     /* Hide objects starting with . from non-holylighted people. - Elaseth */
-    if (*obj->description == '.' && (IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_HOLYLIGHT)))
+    if (!obj->description ||
+        (*obj->description == '.' && (IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_HOLYLIGHT))))
       return;
 
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
@@ -5697,14 +5698,16 @@ static void display_identity_section(struct char_data *ch, int line_length)
   /* Build race string with optional symbol */
   char race_display[64];
   const char *race_symbol = get_race_symbol(ch);
+  const char *race_name = (GET_RACE(ch) >= 0 && GET_RACE(ch) < NUM_EXTENDED_RACES)
+                              ? race_list[GET_RACE(ch)].type
+                              : "Unknown";
   if (race_symbol && *race_symbol)
   {
-    snprintf(race_display, sizeof(race_display), "%s %s", race_symbol,
-             race_list[GET_RACE(ch)].type);
+    snprintf(race_display, sizeof(race_display), "%s %s", race_symbol, race_name);
   }
   else
   {
-    snprintf(race_display, sizeof(race_display), "%s", race_list[GET_RACE(ch)].type);
+    snprintf(race_display, sizeof(race_display), "%s", race_name);
   }
 
   send_to_char(ch, "\tc|\tn \tcRace:\tn %-20s \tc|\tn \tcDeity:\tn %-30s \tc|\tn\r\n", race_display,
@@ -8064,7 +8067,7 @@ ACMD(do_users)
       snprintf(line2, sizeof(line2), "%s%s%s", CCGRN(ch, C_SPR), line, CCNRM(ch, C_SPR));
       strlcpy(line, line2, sizeof(line));
     }
-    if (STATE(d) != CON_PLAYING || (STATE(d) == CON_PLAYING && CAN_SEE(ch, d->character)))
+    if (STATE(d) != CON_PLAYING || (d->character && CAN_SEE(ch, d->character)))
     {
       send_to_char(ch, "%s", line);
       num_can_see++;
@@ -8949,7 +8952,7 @@ ACMD(do_commands)
       send_to_char(ch, "%s%-14s\tn\r\n", can_cmd == CAN_CMD ? "\tG" : "\tr",
                    complete_cmd_info[i].command);
     }
-    else
+    else if (no < command_count)
     {
       /* matching command: copy to commands list */
       commands[no++] = complete_cmd_info[i].command;

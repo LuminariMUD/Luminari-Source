@@ -8252,7 +8252,7 @@ static int compute_dam_dice(struct char_data *ch, struct char_data *victim,
       diceTwo = GET_OBJ_VAL(wielded, 2);
     }
   }
-  else if (is_ranged)
+  else if (is_ranged && wielded)
   { // ranged weapon
     diceOne = GET_OBJ_VAL(wielded, 1);
     diceTwo = GET_OBJ_VAL(wielded, 2);
@@ -12711,27 +12711,24 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
   }
   if (affected_by_spell(ch, SKILL_SMITE_DESTRUCTION))
   {
-    if (victim)
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
     {
-      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
-      {
-      }
-      else
-      {
-        send_to_char(ch, "[DESTRUCTIVE-SMITE] ");
-      }
-
-      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
-      {
-      }
-      else
-      {
-        send_to_char(victim, "[\tRDESTRUCTIVE-SMITE\tn] ");
-      }
-
-      act("$n performs a \tYsmiting\tn attack on $N!", ACT_CONDENSE_VALUE, ch, wielded, victim,
-          TO_NOTVICT);
     }
+    else
+    {
+      send_to_char(ch, "[DESTRUCTIVE-SMITE] ");
+    }
+
+    if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      send_to_char(victim, "[\tRDESTRUCTIVE-SMITE\tn] ");
+    }
+
+    act("$n performs a \tYsmiting\tn attack on $N!", ACT_CONDENSE_VALUE, ch, wielded, victim,
+        TO_NOTVICT);
   }
   if (affected_by_spell(ch, SKILL_STUNNING_FIST))
   {
@@ -14830,7 +14827,8 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
           victim, missile, ch, TO_VICT | TO_SLEEP);
       act("\tnWith inhuman dexterity $n snatches out of the air $o that $N fired!", FALSE, victim,
           missile, ch, TO_NOTVICT);
-      active_projectile->snatched = TRUE;
+      if (active_projectile)
+        active_projectile->snatched = TRUE;
       projectile_disposition = PROJECTILE_DISPOSITION_TARGET_INVENTORY;
     }
     else

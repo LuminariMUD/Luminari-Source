@@ -117,7 +117,7 @@ ACMD(do_action)
 /* this function adds in the loaded socials and assigns them a command # */
 void create_command_list(void)
 {
-  int i, j, k;
+  int i, j, k, num_cmds, num_socials;
   struct social_messg temp;
 
   /* free up old command list */
@@ -139,22 +139,22 @@ void create_command_list(void)
     }
   }
 
-  /* count the commands in the command list */
-  i = 0;
-  while (*cmd_info[i].command != '\n')
-    i++;
-  i++;
+  /* count the commands in the command list; cmd_info[num_cmds] is the "\n" sentinel */
+  num_cmds = 0;
+  while (*cmd_info[num_cmds].command != '\n')
+    num_cmds++;
+  num_socials = top_of_socialt + 1;
 
-  CREATE(complete_cmd_info, struct command_info, top_of_socialt + i + 2);
+  CREATE(complete_cmd_info, struct command_info, num_socials + num_cmds + 2);
 
   /* this loop sorts the socials and commands together into one big list */
   i = 0;
   j = 0;
   k = 0;
-  while ((*cmd_info[i].command != '\n') || (j <= top_of_socialt))
+  while (i < num_cmds || j < num_socials)
   {
-    if ((i < RESERVE_CMDS) || (j > top_of_socialt) ||
-        (str_cmp(cmd_info[i].sort_as, soc_mess_list[j].sort_as) < 1))
+    if (i < num_cmds && (i < RESERVE_CMDS || j >= num_socials ||
+                         str_cmp(cmd_info[i].sort_as, soc_mess_list[j].sort_as) < 1))
       complete_cmd_info[k++] = cmd_info[i++];
     else
     {

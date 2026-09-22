@@ -2863,11 +2863,20 @@ void study_parse(struct descriptor_data *d, char *arg)
   char arg1[200] = {'\0'}, arg2[200] = {'\0'};
   char buf[200] = {'\0'};
 
+  /* Every study state works on the scratch copy do_study() allocated. */
+  if (LEVELUP(ch) == NULL)
+  {
+    mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: study_parse: %s has no levelup structure.",
+           GET_NAME(ch));
+    cleanup_olc(d, CLEANUP_ALL);
+    return;
+  }
+
   two_arguments(arg, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   sprintf(arg, "%s", arg1);
 
-  if (LEVELUP(ch) != NULL && LEVELUP(ch)->class == CLASS_NECROMANCER)
+  if (LEVELUP(ch)->class == CLASS_NECROMANCER)
     necromancer_progression_class =
         get_necromancer_progression_class(ch, LEVELUP(ch)->necromancer_bonus_levels);
 
