@@ -27,6 +27,7 @@
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/net/protocol.h"
 #include "../../src/quest/hlquest.h"
+#include "../../src/wilderness/narrative_weaver.h"
 #include "../../src/wilderness/terrain_bridge.h"
 
 #include <stdlib.h>
@@ -2367,4 +2368,191 @@ void Test_free_object_string_keeps_prototype_strings(CuTest *tc)
   top_of_objt = saved_top_of_objt;
   CuAssertStrEquals(tc, "prototype keywords", prototype.name);
   CuAssertStrEquals(tc, "a prototype", prototype.short_description);
+}
+
+/* free_char() frees an NPC without a prototype down to its strings. It freed
+ * GET_NAME(), which for an NPC is the short description, so the short
+ * description was freed twice and the keywords leaked. */
+void Test_free_char_frees_an_unprototyped_npcs_strings_once(CuTest *tc)
+{
+  struct char_data *mob;
+
+  CREATE(mob, struct char_data, 1);
+  clear_char(mob);
+  SET_BIT_AR(MOB_FLAGS(mob), MOB_ISNPC);
+  mob->player.name = strdup("stray mobile");
+  mob->player.short_descr = strdup("a stray mobile");
+  CuAssertPtrNotNull(tc, mob->player.name);
+  CuAssertPtrNotNull(tc, mob->player.short_descr);
+  CuAssertTrue(tc, GET_MOB_RNUM(mob) == NOBODY);
+
+  free_char(mob);
+}
+
+/* An abbreviation of a different number is not a match, and isname() frees
+ * its keyword copy on that path as on the others. */
+void Test_isname_rejects_an_abbreviated_number_without_leaking(CuTest *tc)
+{
+  CuAssertIntEquals(tc, 0, isname("1", "10 sword"));
+  CuAssertIntEquals(tc, 1, isname("10", "10 sword"));
+  CuAssertIntEquals(tc, 1, isname("sw", "10 sword"));
+}
+
+void Test_score_width_160_survives_its_signed_byte(CuTest *tc)
+{
+  struct char_data player;
+  struct descriptor_data descriptor;
+  struct player_special_data specials;
+  bool config_shows_160;
+  size_t score_width;
+
+  clear_char(&player);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&specials, 0, sizeof(specials));
+
+  descriptor.character = &player;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  player.desc = &descriptor;
+  player.player_specials = &specials;
+  player.player.name = CuMutableString("scorewidth");
+  GET_LEVEL(&player) = 1;
+
+  if (descriptor.pProtocol == NULL)
+  {
+    player.desc = NULL;
+    CuFail(tc, "could not initialize the score output fixture");
+    return;
+  }
+
+  /* The width is stored in a signed byte, where 160 is -96. Setting it also sets the
+   * 120-column PRF_SCORE_WIDE flag, which used to win over the 160 preference. */
+  do_scoreconfig(&player, "width 160", 0, 0);
+  reset_test_descriptor_output(&descriptor);
+  do_scoreconfig(&player, "", 0, 0);
+  config_shows_160 = strstr(descriptor.output, "160 characters") != NULL;
+
+  reset_test_descriptor_output(&descriptor);
+  do_skore(&player, "magic", 0, 0);
+  score_width = longest_visible_output_line(descriptor.output);
+
+  player.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  descriptor.pProtocol = NULL;
+  reset_test_descriptor_output(&descriptor);
+
+  CuAssertTrue(tc, config_shows_160);
+  CuAssertIntEquals(tc, 160, (int)score_width);
+}
+
+/* Emptying a drink container whose whole name is the liquid keyword ("water") sized the new
+ * name at zero bytes, which CREATE() reported and the copy loop then read past. */
+void Test_drink_container_named_only_by_its_liquid_empties_cleanly(CuTest *tc)
+{
+  struct obj_data obj;
+  FILE *saved_logfile = logfile;
+  FILE *capture = tmpfile();
+  char logged[512];
+  size_t logged_length = 0;
+  bool captured = capture != NULL;
+  bool bare_name_emptied;
+  bool other_words_kept;
+
+  clear_object(&obj);
+  GET_OBJ_TYPE(&obj) = ITEM_DRINKCON;
+  GET_OBJ_VAL(&obj, 2) = LIQ_WATER;
+  if (captured)
+    logfile = capture;
+
+  obj.name = strdup("water");
+  name_from_drinkcon(&obj);
+  bare_name_emptied = obj.name != NULL && obj.name[0] == '\0';
+  free(obj.name);
+  obj.name = strdup("cup water");
+  name_from_drinkcon(&obj);
+  other_words_kept = obj.name != NULL && strcmp(obj.name, "cup") == 0;
+  free(obj.name);
+  obj.name = NULL;
+
+  logfile = saved_logfile;
+  if (captured)
+  {
+    if (rewind_stream(capture))
+      logged_length = fread(logged, 1, sizeof(logged) - 1, capture);
+    fclose(capture);
+  }
+  logged[logged_length] = '\0';
+
+  CuAssertTrue(tc, captured);
+  CuAssertTrue(tc, bare_name_emptied);
+  CuAssertTrue(tc, other_words_kept);
+  CuAssertTrue(tc, strstr(logged, "Zero bytes") == NULL);
+}
+
+/* do_homelands capitalizes the word after each space. ACMDU copies the argument into a
+ * MAX_INPUT_LENGTH buffer, and a trailing space stepped the loop past the copy's terminator
+ * into its uninitialized tail, which valgrind reports and which can run off the buffer. */
+void Test_homelands_stops_at_a_trailing_space(CuTest *tc)
+{
+  struct char_data player;
+  struct descriptor_data descriptor;
+  struct player_special_data specials;
+  bool rejected;
+
+  clear_char(&player);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&specials, 0, sizeof(specials));
+
+  descriptor.character = &player;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  player.desc = &descriptor;
+  player.player_specials = &specials;
+
+  if (descriptor.pProtocol == NULL)
+  {
+    player.desc = NULL;
+    CuFail(tc, "could not initialize the homelands output fixture");
+    return;
+  }
+
+  do_homelands(&player, "qzx ", 0, 0);
+  rejected = strstr(descriptor.output, "That is not a valid region.") != NULL;
+
+  player.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  descriptor.pProtocol = NULL;
+  reset_test_descriptor_output(&descriptor);
+
+  CuAssertTrue(tc, rejected);
+}
+
+/* Each "you " becomes "the area ", five bytes longer. The result buffer had room for twenty
+ * such growths while its writes were bounded by MAX_STRING_LENGTH, so a longer hint overran
+ * the heap block. */
+void Test_observational_voice_makes_room_for_every_rewrite(CuTest *tc)
+{
+  char text[2048];
+  char expected[4096];
+  char *result;
+  size_t length = 0;
+  size_t expected_length = 0;
+  int i;
+
+  text[0] = '\0';
+  expected[0] = '\0';
+  for (i = 0; i < 60; i++)
+  {
+    length = (size_t)snprintf_append(text, sizeof(text), (int)length, "you hear wind. ");
+    expected_length = (size_t)snprintf_append(expected, sizeof(expected), (int)expected_length,
+                                              "the area hear wind. ");
+  }
+
+  result = transform_voice_to_observational(text);
+
+  CuAssertPtrNotNull(tc, result);
+  CuAssertStrEquals(tc, expected, result);
+  free(result);
 }

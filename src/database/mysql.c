@@ -1130,6 +1130,7 @@ char *mysql_escape_string_alloc(MYSQL *mysql_conn, const char *str)
     log("SYSERR: mysql_escape_string_alloc input is too long");
     return NULL;
   }
+  /* NOLINTNEXTLINE(clang-analyzer-optin.portability.UnixAPI) -- at least 1: checked above */
   CREATE(escaped, char, (len * 2) + 1);
 
   /* Select appropriate mutex based on connection */

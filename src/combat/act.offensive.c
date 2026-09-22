@@ -3132,7 +3132,7 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
       }
 
       // reach attacks get extra attack when combat starts
-      if (has_reach(ch) && has_piercing)
+      if (has_reach(ch))
       {
         send_to_char(ch, "You gain an extra attack because of having long reach.\r\n");
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
@@ -3204,7 +3204,7 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
       }
 
       // reach attacks get extra attack when combat starts
-      if (has_reach(ch) && has_piercing)
+      if (has_reach(ch))
       {
         send_to_char(ch, "You gain an extra attack because of having long reach.\r\n");
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
@@ -13072,7 +13072,7 @@ ACMD(do_touch_of_corruption)
 
   if (*arg2)
   {
-    apply_blackguard_cruelty(ch, vict, strdup(arg2));
+    apply_blackguard_cruelty(ch, vict, arg2);
   }
 
   if (!IS_NPC(ch))

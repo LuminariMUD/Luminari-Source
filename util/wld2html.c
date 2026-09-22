@@ -42,6 +42,7 @@ static const char *const dir_names[NUM_OF_DIRS] = {
 
 static void append_string(char **destination, size_t *length, size_t *capacity, const char *text);
 static void discard_moving_room(FILE *fl, int room_vnum);
+static void fatal_file_error(const char *message, const char *context) __attribute__((noreturn));
 static void free_world(void);
 static char *fread_string(FILE *fl, const char *error);
 static const struct room_data *find_room(int vnum);

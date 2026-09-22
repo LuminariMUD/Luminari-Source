@@ -68,6 +68,7 @@ bool new_mail_send_system(const char *receiver, const char *subject, const char 
   }
 
   query_size = strlen(escaped_receiver) + strlen(escaped_subject) + strlen(escaped_message) + 256;
+  /* NOLINTNEXTLINE(clang-analyzer-optin.portability.UnixAPI) -- query_size is at least 256 */
   CREATE(query, char, query_size);
   snprintf(query, query_size,
            "INSERT INTO player_mail "

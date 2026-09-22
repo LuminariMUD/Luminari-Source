@@ -55,27 +55,30 @@ Applied in step 1, each with the scope, reason, owner, and expiry entry `.clang-
    - `TEST_OBJS` (three copies in `obj/objsave.c`): compare the `strcmp()` result with 0 (-12).
    - `USEC_PER_PULSE` (`core/perfmon.c`): its nine floating uses take the new
      `USEC_PER_PULSE_F` (-9); the values are unchanged at 10 pulses a second.
-3. Defect review. The issue's groups 1 and 2 minus what step 2 cleared (191), plus
-   `performance-no-int-to-ptr` (4), `portability-avoid-pragma-once` (3), and the 35 narrowing
-   leftovers (int to char is where `char c = getc()` truncation hides). Fix real defects and
-   give each one on a testable path a regression test; silence a confirmed false positive with
-   `/* NOLINTNEXTLINE(check) -- reason */`. Known leads:
-   - `comm.c:493-497`: copy both `getenv()` strings before `setenv()` (real, latent on glibc).
-   - `unix.Malloc`: use after free at `clan.c:4376`, `ibt.c:151`, `movement_tracks.c:363/366`;
-     double free at `db.c:7160`; six leaks.
-   - `uninitialized.Assign` (6): `SET_BIT_AR` on arrays that were never zeroed.
-   - False-positive shapes: `rand() % count` over non-empty literal tables in
-     `narrative_weaver.c` (9), eight deliberate out-of-range enum casts in tests, and `calloc`
-     sized through `CREATE` (10; changing its zero check raised a gcc
-     `-Walloc-size-larger-than` warning in #213).
-   - `roleplay.c` (25 missing commas): read each flagged pair, then one
-     `NOLINTBEGIN`/`NOLINTEND(bugprone-suspicious-missing-comma)` pair around the four sentence
-     tables (lines 889-1479).
-   - `bugprone-suspicious-string-compare` (10 left): `clang-tidy --fix` with only that check
-     applies its ` != 0` fix-its (verified); `act.social.c:157` by hand.
-   - Lanes: three agents on disjoint directories (act, core, olc / obj, combat, magic, spec /
-     the rest), each checking its files with per-file clang-tidy only. The lead builds, tests,
-     and records. Write the step 4 codemods while the lanes run.
+3. Defect review. Done (2,071 left). Three agents on disjoint directories, the lead on
+   `protocol.c` (mutation score 32.47%, floor 32.07). Of the 233 sites, 191 were fixed and 42
+   are suppressed with a named NOLINT and reason; in the critical files a suppression was used
+   only on uncovered lines that are not defects. Real defects fixed: an NPC's short
+   description freed twice in `free_char()`; uninitialized affects (bleeding, crippling
+   strike, pressure point, blinding shield, poison touch, dog charm, Menzoberranzan chokers,
+   which also stacked hitroll and could not be removed); bomb commands checking `ACTION_*`
+   bitmasks where `is_action_available()` takes `atSTANDARD`/`atMOVE`/`atSWIFT`; an Inferno
+   Bomb `$t` message reading an integer as a string; a direction passed to `act()` as an
+   object pointer in `do_drive`; `USE_FULL_ROUND_ACTION` and `USE_MOVE_ACTION` running
+   unbraced (silent trap detection and immortals' apply-poison spent actions); score width
+   160 stored in a signed byte and never applied; `getenv()` strings used after `setenv()`;
+   zero-byte allocations (board configs, drink names); leaks in `isname_tok()`,
+   `load_clans()`, `zmalloc()`, and touch of corruption; `errno` lost across `close()` in
+   `fopen_restricted()`; a device-creation spell count without a range check. Reviewing
+   next to the flagged sites also found trailing-space overruns in `do_homelands()`,
+   `handle_region_help()`, and `handle_background_help()` and a heap overflow in
+   `transform_voice_to_observational()`; all four are fixed. Ten regression tests (CuTest
+   1,744/1,744).
+   Found but not changed (outside this issue): every toggleable perk ID is 256 or more, so
+   the perk toggles ignore them (Defensive Stance and Immovable Object never apply, alchemist
+   mutagen/catalyst toggles do not stick); `score_display_width` should be `ubyte`; the
+   chokers' affect tag equals `SPELL_IRON_GUTS`; shutdown-only leaks in `ibt.c`,
+   `mysql_boards.c`, and `free_clan_list()`; an unused octave cache in `perlin.c`.
 4. Codemods. Python scripts in `tmp/218/` (gitignored) read a fresh `clang-tidy-report.json`
    and edit at the reported line and column; clang-format then lays out the result. One commit
    per codemod; after a rebase, drop the commit and run the codemod again.
@@ -168,10 +171,12 @@ fixes land early and the branch is exposed to #216 and other parallel work for l
 
 ## Resume here
 
-Steps 1 and 2 are committed. Next: step 3.
+Steps 1-3 are committed. Next: step 4 (the codemods are written in `tmp/218/codemods/`).
 
 ## Progress log
 
 - 2026-09-22: full run at `ac248dd16` reproduced 5,215 findings; plan written.
 - 2026-09-22: D1-D3 approved; step 1 committed (5,215 -> 2,366).
 - 2026-09-22: step 2 committed (2,304); build warning-free, CuTest 1,734/1,734.
+- 2026-09-23: step 3 committed (2,071); build warning-free, CuTest 1,744/1,744, protocol
+  parser harness 32/32, new tests clean under valgrind.

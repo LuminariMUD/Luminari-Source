@@ -2906,7 +2906,7 @@ ACMD(do_force)
 
   if (!*arg || !*to_force)
     send_to_char(ch, "Whom do you wish to force do what?\r\n");
-  else if ((GET_LEVEL(ch) < LVL_GRSTAFF) || (str_cmp("all", arg) != 0 && str_cmp("room", arg)))
+  else if ((GET_LEVEL(ch) < LVL_GRSTAFF) || (str_cmp("all", arg) != 0 && str_cmp("room", arg) != 0))
   {
     if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_WORLD)))
       send_to_char(ch, "%s", CONFIG_NOPERSON);
@@ -7646,9 +7646,9 @@ ACMD(do_oconvert)
 
     if (is_name(arg2, obj_proto[num].name))
     {
-      GET_OBJ_VAL(&obj_proto[num], 0) = i;                       /* Weapon type */
-      GET_OBJ_VAL(&obj_proto[num], 1) = weapon_list[i].numDice;  /* Number of dice */
-      GET_OBJ_VAL(&obj_proto[num], 2) = weapon_list[i].diceSize; /* Type of dice */
+      GET_OBJ_VAL(&obj_proto[num], 0) = i;                           /* Weapon type */
+      GET_OBJ_VAL(&obj_proto[num], 1) = (int)weapon_list[i].numDice; /* Number of dice */
+      GET_OBJ_VAL(&obj_proto[num], 2) = weapon_list[i].diceSize;     /* Type of dice */
 
       for (j = 0; j < MAX_OBJ_AFFECT; j++)
       {

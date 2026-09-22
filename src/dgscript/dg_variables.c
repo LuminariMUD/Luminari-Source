@@ -2448,7 +2448,9 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig, int type, char
     *buf = '\0';
 
     /* double % */
-    if (*p && (*(++p) == '%') && (left > 0))
+    if (*p)
+      p++;
+    if ((*p == '%') && (left > 0))
     {
       *(buf++) = *(p++);
       *buf = '\0';

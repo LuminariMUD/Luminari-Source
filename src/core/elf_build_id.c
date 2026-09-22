@@ -43,6 +43,7 @@ static int scan_self_build_id(struct dl_phdr_info *info, size_t size, void *data
     if (info->dlpi_phdr[i].p_type != PT_NOTE)
       continue;
 
+    /* NOLINTNEXTLINE(performance-no-int-to-ptr) -- dl_iterate_phdr() gives addresses as integers */
     note = (const char *)(info->dlpi_addr + info->dlpi_phdr[i].p_vaddr);
     note_end = note + info->dlpi_phdr[i].p_memsz;
 

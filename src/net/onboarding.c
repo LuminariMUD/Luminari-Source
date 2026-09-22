@@ -1003,8 +1003,9 @@ static bool flat_json_members_are_unique(const char *payload, size_t payload_byt
   bool escaped = FALSE;
 
   cursor = skip_json_whitespace(cursor, end);
-  if (cursor >= end || *cursor++ != '{')
+  if (cursor >= end || *cursor != '{')
     return FALSE;
+  cursor++;
 
   cursor = skip_json_whitespace(cursor, end);
   if (cursor < end && *cursor == '}')
@@ -1016,8 +1017,9 @@ static bool flat_json_members_are_unique(const char *payload, size_t payload_byt
   while (cursor < end)
   {
     cursor = skip_json_whitespace(cursor, end);
-    if (cursor >= end || *cursor++ != '"')
+    if (cursor >= end || *cursor != '"')
       return FALSE;
+    cursor++;
 
     key_length = 0;
     while (cursor < end && *cursor != '"')
@@ -1029,8 +1031,9 @@ static bool flat_json_members_are_unique(const char *payload, size_t payload_byt
         return FALSE;
       key[key_length++] = (char)byte_value;
     }
-    if (cursor >= end || *cursor++ != '"' || key_length == 0 || key_count >= 12)
+    if (cursor >= end || *cursor != '"' || key_length == 0 || key_count >= 12)
       return FALSE;
+    cursor++;
     key[key_length] = '\0';
 
     for (index = 0; index < key_count; index++)
@@ -1039,8 +1042,9 @@ static bool flat_json_members_are_unique(const char *payload, size_t payload_byt
     strlcpy(keys[key_count++], key, sizeof(keys[0]));
 
     cursor = skip_json_whitespace(cursor, end);
-    if (cursor >= end || *cursor++ != ':')
+    if (cursor >= end || *cursor != ':')
       return FALSE;
+    cursor++;
     cursor = skip_json_whitespace(cursor, end);
     if (cursor >= end || *cursor == '{' || *cursor == '[')
       return FALSE;
@@ -1726,7 +1730,7 @@ static bool handle_workflow_action(struct descriptor_data *d, json_object *root)
   int64_t version = 0;
   int64_t revision = 0;
 
-  if (action == NULL || (strcmp(action, "back") != 0 && strcmp(action, "restart-character")))
+  if (action == NULL || (strcmp(action, "back") != 0 && strcmp(action, "restart-character") != 0))
     return FALSE;
 
   if (!json_object_has_exact_keys(root, keys, sizeof(keys) / sizeof(keys[0])))

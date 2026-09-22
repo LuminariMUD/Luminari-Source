@@ -1285,10 +1285,9 @@ int greyhawk_weaprange(int shipnum, int slot, char range)
                      3 +
                  greyhawk_ships[shipnum].slot[slot].val1);
   case GREYHAWK_MEDRANGE:
-    return (int)((double)((greyhawk_ships[shipnum].slot[slot].val0 -
-                           greyhawk_ships[shipnum].slot[slot].val1) /
-                          3) *
-                     2 +
+    return (int)((double)(greyhawk_ships[shipnum].slot[slot].val0 -
+                          greyhawk_ships[shipnum].slot[slot].val1) /
+                     3 * 2 +
                  greyhawk_ships[shipnum].slot[slot].val1);
   case GREYHAWK_LNGRANGE:
     return greyhawk_ships[shipnum].slot[slot].val0;
@@ -2058,7 +2057,8 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
    * sailmaster's handling bonus (see vessels_crew.c) */
   greyhawk_ships[shipnum].speed =
       (short)((greyhawk_ships[shipnum].setspeed * speed_modifier) / 100);
-  greyhawk_ships[shipnum].speed += greyhawk_ships[shipnum].sailcrew.speedadjust;
+  greyhawk_ships[shipnum].speed =
+      (short)(greyhawk_ships[shipnum].speed + greyhawk_ships[shipnum].sailcrew.speedadjust);
   if (greyhawk_ships[shipnum].speed > greyhawk_ships[shipnum].maxspeed &&
       greyhawk_ships[shipnum].maxspeed > 0)
   {

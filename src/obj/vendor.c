@@ -513,7 +513,7 @@ SPECIAL(buyarmor)
       send_to_char(ch, MASTERWORK_MSG);
       return 1;
     }
-    display_buy_armor_types(ch, level, level == 0 ? !is_abbrev(arg1, "mundane") : false,
+    display_buy_armor_types(ch, level, (sbyte)(level == 0 ? !is_abbrev(arg1, "mundane") : false),
                             level == 0 ? arg2 : arg1);
     return 1;
   }
@@ -587,7 +587,7 @@ SPECIAL(buyarmor)
     mundane = FALSE;
   }
 
-  cost = get_vendor_armor_cost(ch, level, i, !mundane);
+  cost = get_vendor_armor_cost(ch, level, i, (sbyte)!mundane);
 
   if (GET_GOLD(ch) < cost)
   {
@@ -833,7 +833,7 @@ SPECIAL(buyweapons)
       send_to_char(ch, MASTERWORK_MSG);
       return 1;
     }
-    display_buy_weapon_types(ch, level, !is_abbrev(arg1, "mundane"));
+    display_buy_weapon_types(ch, level, (sbyte)!is_abbrev(arg1, "mundane"));
     return 1;
   }
 
@@ -899,7 +899,7 @@ SPECIAL(buyweapons)
     mundane = FALSE;
   }
 
-  cost = get_vendor_weapon_cost(ch, level, i, !mundane);
+  cost = get_vendor_weapon_cost(ch, level, i, (sbyte)!mundane);
 
   if (GET_GOLD(ch) < cost)
   {

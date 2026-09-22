@@ -4369,14 +4369,9 @@ void free_claim(struct claim_data *this_claim)
 
 void free_claim_list(void)
 {
-  struct claim_data *this_claim;
-
-  for (this_claim = claim_list; this_claim; this_claim = claim_list)
-  {
-    claim_list = this_claim->next;
-    free_claim(this_claim);
-  }
-  claim_list = NULL;
+  /* free_claim() unlinks the head it is given, so each pass frees the next claim. */
+  while (claim_list)
+    free_claim(claim_list);
 }
 
 struct claim_data *add_claim(zone_vnum z, clan_vnum c, long p_id)

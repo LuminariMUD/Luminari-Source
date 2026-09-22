@@ -15220,9 +15220,9 @@ void mag_creations(int level __attribute__((unused)), struct char_data *ch, stru
                weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
       tobj->description = strdup(buf);
       GET_OBJ_VAL(tobj, 0) = GET_HOLY_WEAPON_TYPE(ch);
-      GET_OBJ_VAL(tobj, 1) = weapon_list[GET_HOLY_WEAPON_TYPE(ch)].numDice;
+      GET_OBJ_VAL(tobj, 1) = (int)weapon_list[GET_HOLY_WEAPON_TYPE(ch)].numDice;
       GET_OBJ_VAL(tobj, 2) = weapon_list[GET_HOLY_WEAPON_TYPE(ch)].diceSize;
-      GET_OBJ_SIZE(tobj) = weapon_list[GET_HOLY_WEAPON_TYPE(ch)].size;
+      GET_OBJ_SIZE(tobj) = (int)weapon_list[GET_HOLY_WEAPON_TYPE(ch)].size;
     }
     if (spellnum == SPELL_UNHOLY_SWORD)
     {
@@ -15235,9 +15235,9 @@ void mag_creations(int level __attribute__((unused)), struct char_data *ch, stru
                weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
       tobj->description = strdup(buf);
       GET_OBJ_VAL(tobj, 0) = GET_HOLY_WEAPON_TYPE(ch);
-      GET_OBJ_VAL(tobj, 1) = weapon_list[GET_HOLY_WEAPON_TYPE(ch)].numDice;
+      GET_OBJ_VAL(tobj, 1) = (int)weapon_list[GET_HOLY_WEAPON_TYPE(ch)].numDice;
       GET_OBJ_VAL(tobj, 2) = weapon_list[GET_HOLY_WEAPON_TYPE(ch)].diceSize;
-      GET_OBJ_SIZE(tobj) = weapon_list[GET_HOLY_WEAPON_TYPE(ch)].size;
+      GET_OBJ_SIZE(tobj) = (int)weapon_list[GET_HOLY_WEAPON_TYPE(ch)].size;
     }
   }
 

@@ -345,7 +345,7 @@ static bool vessel_hunter_claim_lifecycle(const struct greyhawk_ship_data *targe
              "started_at = %lld, expires_at = %lld, next_eligible_at = 0, "
              "ended_at = 0, end_reason = '' WHERE target_player = '%s'",
              config->encounter_id, target->shipnum, escaped_hunter_name, *generation,
-             (long long)now, (long long)(now + config->hunt_duration_seconds), escaped_target);
+             (long long)now, (long long)now + config->hunt_duration_seconds, escaped_target);
   }
   else
   {
@@ -357,7 +357,7 @@ static bool vessel_hunter_claim_lifecycle(const struct greyhawk_ship_data *targe
              "('%s', %d, %d, NULL, '%s', %llu, 'spawning', %lld, %lld, "
              "0, 0, '')",
              escaped_target, config->encounter_id, target->shipnum, escaped_hunter_name,
-             *generation, (long long)now, (long long)(now + config->hunt_duration_seconds));
+             *generation, (long long)now, (long long)now + config->hunt_duration_seconds);
   }
   if (mysql_query(conn, query) || mysql_affected_rows(conn) != 1)
   {
@@ -400,7 +400,7 @@ static bool vessel_hunter_set_cooldown(const char *target_name, unsigned long lo
            "end_reason = '%s' WHERE target_player = '%s' "
            "AND generation = %llu AND status IN ('active', 'spawning') "
            "AND (%d <= 0 OR hunter_ship_id = %d OR hunter_ship_id IS NULL)",
-           (long long)(now + cooldown_seconds), (long long)now, escaped_reason, escaped_target,
+           (long long)now + cooldown_seconds, (long long)now, escaped_reason, escaped_target,
            generation, hunter_ship_id, hunter_ship_id);
   if (mysql_query(conn, query))
   {

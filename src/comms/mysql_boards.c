@@ -261,9 +261,10 @@ void mysql_board_load_configs(void)
     free(mysql_board_configs);
   }
 
-  /* Allocate memory for configs */
-  mysql_board_configs =
-      (struct mysql_board_config *)malloc(sizeof(struct mysql_board_config) * mysql_num_boards);
+  /* Allocate memory for configs; a table with no active boards needs none */
+  mysql_board_configs = NULL;
+  if (mysql_num_boards > 0)
+    CREATE(mysql_board_configs, struct mysql_board_config, mysql_num_boards);
 
   /* Reset result pointer */
   mysql_data_seek(result, 0);

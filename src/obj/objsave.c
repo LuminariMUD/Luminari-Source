@@ -1946,6 +1946,7 @@ int Crash_save_single(struct char_data *ch, uint64_t *obj_usec, uint64_t *char_u
     log("PERFMON [SAVE]: Slow save for player '%s': objsave=%llu usec, charsave=%llu usec (total "
         "%llu usec)",
         GET_NAME(ch), (unsigned long long)o_time, (unsigned long long)c_time,
+        /* NOLINTNEXTLINE(bugprone-misplaced-widening-cast) -- both 64 bits; %llu needs the cast */
         (unsigned long long)(o_time + c_time));
   }
 

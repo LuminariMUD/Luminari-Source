@@ -6646,6 +6646,7 @@ static bool start_craft_activity(struct char_data *ch, int method, int seconds)
   definition.progress = craft_activity_progress;
   definition.complete = craft_activity_complete;
   definition.ended = craft_activity_ended;
+  /* NOLINTNEXTLINE(performance-no-int-to-ptr) -- the method number, never dereferenced */
   definition.context = (void *)(intptr_t)method;
   old_method = GET_CRAFT(ch).crafting_method;
   old_duration = GET_CRAFT(ch).craft_duration;

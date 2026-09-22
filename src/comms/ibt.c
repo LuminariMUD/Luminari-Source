@@ -147,8 +147,8 @@ static void free_ibt_list(IBT_DATA *first_ibt, IBT_DATA *last_ibt)
   {
     this_ibt = first_ibt;
 
-    /* Disconnect from the list */
-    UNLINK(this_ibt, first_ibt, last_ibt, next, prev);
+    /* Step past it: every entry is freed, so no neighbour needs relinking */
+    first_ibt = this_ibt->next;
 
     /* Free the strings first */
     if (this_ibt->body)

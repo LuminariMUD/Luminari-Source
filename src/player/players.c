@@ -6120,8 +6120,8 @@ static char *serialize_pet_runtime_state(struct char_data *pet)
   state.max_psp = GET_REAL_MAX_PSP(pet);
   state.hitroll = GET_REAL_HITROLL(pet);
   state.damroll = GET_REAL_DAMROLL(pet);
-  state.damnodice = pet->mob_specials.damnodice;
-  state.damsizedice = pet->mob_specials.damsizedice;
+  state.damnodice = (int)pet->mob_specials.damnodice;
+  state.damsizedice = (int)pet->mob_specials.damsizedice;
   state.alignment = GET_ALIGNMENT(pet);
   state.hired_mercenary = pet_is_hired_mercenary(pet);
   state.mercenary_proc_fired = state.hired_mercenary && PROC_FIRED(pet);
@@ -7657,6 +7657,7 @@ void load_char_pets(struct char_data *ch)
   {
     CREATE(staged, struct char_data *, capacity);
     CREATE(admitted, bool, capacity);
+    /* NOLINTNEXTLINE(clang-analyzer-optin.portability.UnixAPI) -- capacity is 1..INT_MAX */
     CREATE(reasons, char, (size_t)capacity *PET_DENIAL_REASON_LENGTH);
   }
 

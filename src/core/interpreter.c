@@ -8546,6 +8546,7 @@ void nanny(struct descriptor_data *d, char *arg)
         else
           log("SYSERR: Unable to rehash the password for account %s", d->account->name);
       }
+      /* NOLINTNEXTLINE(bugprone-signed-char-misuse) -- a failed-login count, not a character */
       load_result = d->account->bad_password_count;
       d->bad_pws = 0;
 

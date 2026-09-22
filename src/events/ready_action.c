@@ -877,7 +877,7 @@ ACMD(do_ready)
   /* Only explicit noncombat commands retain command readiness. Arbitrary
    * aliases, spells and special attacks cannot bypass action reservation. */
   if (!attack && !counterspell &&
-      (on_casting || (strcasecmp(first_word, "say") != 0 && strcasecmp(first_word, "emote") &&
+      (on_casting || (strcasecmp(first_word, "say") != 0 && strcasecmp(first_word, "emote") != 0 &&
                       strcasecmp(first_word, "look") != 0 && strcasecmp(first_word, "rest") != 0 &&
                       strcasecmp(first_word, "stand") != 0 && strcasecmp(first_word, "sit") != 0 &&
                       strcasecmp(first_word, "open") != 0 && strcasecmp(first_word, "close") != 0)))

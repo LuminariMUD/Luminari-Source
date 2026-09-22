@@ -616,7 +616,10 @@ static inline FILE *fopen_restricted(const char *path, const char *mode)
   stream = fdopen(fd, mode);
   if (!stream)
   {
+    int fdopen_errno = errno; /* close() may overwrite the caller's reason */
+
     close(fd);
+    errno = fdopen_errno;
     return NULL;
   }
 

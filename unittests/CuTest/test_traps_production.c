@@ -7,6 +7,9 @@
 #include "../../src/core/db.h"
 #include "../../src/core/handler.h"
 #include "../../src/combat/traps.h"
+#include "../../src/dgscript/dg_event.h"
+#include "../../src/events/actions.h"
+#include "../../src/events/mud_event.h"
 #include "../../src/magic/spells.h"
 #include "../../src/magic/domains_schools.h"
 
@@ -297,4 +300,52 @@ void Test_traps_saving_throw_accepts_a_null_caster(CuTest *tc)
     affect_remove(&ch, ch.affected);
   world = saved_world;
   top_of_world = saved_top_of_world;
+}
+
+/* Trap sense checks silently as its owner moves; only the detecttrap command spends the
+ * full-round action. The unbraced action macro used to spend the move action either way. */
+void Test_traps_silent_detection_spends_no_action(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  bool silent_standard_available;
+  bool silent_move_available;
+  bool command_standard_available;
+  bool command_move_available;
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&room, 0, sizeof(room));
+  ch.player_specials = &player_specials;
+  ch.player.name = CuMutableString("trap sense tester");
+  GET_LEVEL(&ch) = 1;
+  GET_POS(&ch) = POS_STANDING;
+  IN_ROOM(&ch) = 0;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+  event_free_all();
+  event_init();
+
+  perform_detecttrap(&ch, TRUE);
+  silent_standard_available = is_action_available(&ch, atSTANDARD, FALSE);
+  silent_move_available = is_action_available(&ch, atMOVE, FALSE);
+  perform_detecttrap(&ch, FALSE);
+  command_standard_available = is_action_available(&ch, atSTANDARD, FALSE);
+  command_move_available = is_action_available(&ch, atMOVE, FALSE);
+
+  clear_char_event_list(&ch);
+  event_free_all();
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertTrue(tc, silent_standard_available);
+  CuAssertTrue(tc, silent_move_available);
+  CuAssertTrue(tc, !command_standard_available);
+  CuAssertTrue(tc, !command_move_available);
 }

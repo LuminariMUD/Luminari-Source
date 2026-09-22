@@ -583,7 +583,7 @@ static int weather_terrain_modify_message(struct spatial_context *ctx, char *mes
       temp_copy[sizeof(temp_copy) - 1] = '\0';
       if (temp_copy[0] >= 'A' && temp_copy[0] <= 'Z')
       {
-        temp_copy[0] = temp_copy[0] + 32; /* Convert to lowercase */
+        temp_copy[0] = (char)(temp_copy[0] + 32); /* Convert to lowercase */
       }
       snprintf(message, max_len, "Through the thick fog, %s", temp_copy);
     }
@@ -610,7 +610,7 @@ static int weather_terrain_modify_message(struct spatial_context *ctx, char *mes
       temp_copy[sizeof(temp_copy) - 1] = '\0';
       if (temp_copy[0] >= 'A' && temp_copy[0] <= 'Z')
       {
-        temp_copy[0] = temp_copy[0] + 32; /* Convert to lowercase */
+        temp_copy[0] = (char)(temp_copy[0] + 32); /* Convert to lowercase */
       }
       snprintf(message, max_len, "Through the rain, %s", temp_copy);
     }
@@ -637,7 +637,7 @@ static int weather_terrain_modify_message(struct spatial_context *ctx, char *mes
       temp_copy[sizeof(temp_copy) - 1] = '\0';
       if (temp_copy[0] >= 'A' && temp_copy[0] <= 'Z')
       {
-        temp_copy[0] = temp_copy[0] + 32; /* Convert to lowercase */
+        temp_copy[0] = (char)(temp_copy[0] + 32); /* Convert to lowercase */
       }
       snprintf(message, max_len, "In the darkness, %s", temp_copy);
     }

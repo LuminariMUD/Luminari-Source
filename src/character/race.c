@@ -465,7 +465,7 @@ bool display_race_info(struct char_data *ch, const char *racename)
   /* build buffer for ability modifiers */
   for (i = 0; i < NUM_ABILITY_MODS; i++)
   {
-    stat_mod = race_list[race].ability_mods[i];
+    stat_mod = (int)race_list[race].ability_mods[i];
     if (stat_mod != 0)
     {
       found = TRUE;

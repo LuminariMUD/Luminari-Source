@@ -152,7 +152,7 @@ int find_first_step(room_rnum src, room_rnum target)
   {
     if (queue_head_2->room == target)
     {
-      curr_dir = queue_head_2->dir;
+      curr_dir = (int)queue_head_2->dir;
       bfs_clear_queue();
       return (curr_dir);
     }

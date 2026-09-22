@@ -3257,6 +3257,8 @@ void name_from_drinkcon(struct obj_data *obj)
 
   liqlen = (int)strlen(liqname);
   name_size = strlen(obj->name) - strlen(liqname); /* +1 for NUL, -1 for space */
+  if (name_size == 0) /* the name is only the liquid: no space, but still the NUL */
+    name_size = 1;
   CREATE(new_name, char, name_size);
 
   for (cur_name = obj->name; cur_name; cur_name = next)
@@ -3294,6 +3296,7 @@ void name_to_drinkcon(struct obj_data *obj, int type)
     return;
 
   new_name_size = strlen(obj->name) + strlen(drinknames[type]) + 2;
+  /* NOLINTNEXTLINE(clang-analyzer-optin.portability.UnixAPI) -- two lengths + 2 is never 0 */
   CREATE(new_name, char, new_name_size);
   snprintf(new_name, new_name_size, "%s %s", obj->name, drinknames[type]);
 

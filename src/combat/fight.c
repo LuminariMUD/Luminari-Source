@@ -7665,8 +7665,8 @@ void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo)
 
   if (IS_NPC(ch))
   {
-    *diceOne = ch->mob_specials.damnodice;
-    *diceTwo = ch->mob_specials.damsizedice;
+    *diceOne = (int)ch->mob_specials.damnodice;
+    *diceTwo = (int)ch->mob_specials.damsizedice;
   }
   else
   {
@@ -13246,6 +13246,7 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
         if (save_result == FALSE)
         {
           struct affected_type inner_af;
+          new_affect(&inner_af);
           inner_af.spell = SKILL_BLEEDING_ATTACK;
           inner_af.duration = 5;
           inner_af.modifier = 1; /* 1d6 per round */
@@ -13274,6 +13275,7 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
         if (save_result == FALSE)
         {
           struct affected_type inner_af;
+          new_affect(&inner_af);
           inner_af.spell = SKILL_CRIPPLING_STRIKE;
           inner_af.duration = 3;
           inner_af.modifier = 0;
@@ -13306,6 +13308,7 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
           {
             struct affected_type inner_af;
 
+            new_affect(&inner_af);
             if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
             {
             }

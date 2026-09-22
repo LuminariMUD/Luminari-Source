@@ -8,6 +8,7 @@
 #include "../../src/core/structs.h"
 #include "../../src/core/utils.h"
 #include "../../src/core/help.h"
+#include "../../src/character/backgrounds.h"
 
 static struct help_keyword_list *make_suggestion(const char *tag, const char *keyword)
 {
@@ -119,4 +120,14 @@ void Test_help_merge_suggestions_caps_and_handles_empty_lists(CuTest *tc)
   free_suggestions(merged);
 
   CuAssertPtrEquals(tc, NULL, help_merge_suggestions(NULL, NULL, 10));
+}
+
+/* The region and background handlers capitalize the word after each space. A
+ * trailing space stepped their loops past the terminator, reading and
+ * rewriting memory beyond the copied argument. */
+void Test_help_name_handlers_stop_at_a_trailing_space(CuTest *tc)
+{
+  assign_backgrounds();
+  CuAssertIntEquals(tc, 0, handle_region_help(NULL, "qzx ", "qzx ", NULL));
+  CuAssertIntEquals(tc, 0, handle_background_help(NULL, "qzx ", "qzx ", NULL));
 }

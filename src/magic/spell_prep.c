@@ -5253,8 +5253,8 @@ ACMDU(do_gen_preparation)
   {
   case SCMD_PRAY:
     class = CLASS_CLERIC;
-    domain_1st = GET_1ST_DOMAIN(ch);
-    domain_2nd = GET_2ND_DOMAIN(ch);
+    domain_1st = (int)GET_1ST_DOMAIN(ch);
+    domain_2nd = (int)GET_2ND_DOMAIN(ch);
     break;
   case SCMD_MEMORIZE:
     class = CLASS_WIZARD;
@@ -5279,7 +5279,7 @@ ACMDU(do_gen_preparation)
     break;
   case SCMD_COMPEL:
     class = CLASS_INQUISITOR;
-    domain_1st = GET_1ST_DOMAIN(ch);
+    domain_1st = (int)GET_1ST_DOMAIN(ch);
     break;
   case SCMD_CONCOCT:
     class = CLASS_ALCHEMIST;

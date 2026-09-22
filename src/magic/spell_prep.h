@@ -54,7 +54,8 @@
  * inherently thread-safe without any special handling required.
  */
 
-#pragma once
+#ifndef SPELL_PREP_H
+#define SPELL_PREP_H
 
 #include "core/structs.h"
 #include "core/utils.h"
@@ -1181,5 +1182,7 @@ void assign_feat_spell_slots(int ch_class);
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* SPELL_PREP_H */
 
 /*EOF*/

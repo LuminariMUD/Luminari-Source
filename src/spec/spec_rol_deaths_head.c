@@ -275,7 +275,7 @@ static void rol_deaths_head_drop_fruit(struct char_data *tree)
   int remaining_heads;
   int index;
 
-  original_heads = tree->mob_specials.rol_deaths_head_count;
+  original_heads = (int)tree->mob_specials.rol_deaths_head_count;
   remaining_heads = original_heads;
   for (index = 0; index < original_heads; index++)
   {

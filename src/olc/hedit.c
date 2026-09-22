@@ -2897,6 +2897,8 @@ static int export_help_to_hlp(struct char_data *ch, const char *options)
         while ((bytes = fread(buffer, 1, sizeof(buffer), src)) > 0)
         {
           fwrite(buffer, 1, bytes, dst);
+          if (bytes < sizeof(buffer)) /* end of file or a read error: stop reading */
+            break;
         }
         fclose(dst);
         send_to_char(ch, "Created backup: %s\r\n", backup_path);
@@ -3157,7 +3159,7 @@ static struct help_entry_list *parse_help_entry(FILE *fp, int *min_level)
 
     /* Add line to content */
     int line_len = (int)strlen(line);
-    if ((size_t)(content_len + line_len) < sizeof(content) - 1)
+    if ((size_t)content_len + (size_t)line_len < sizeof(content) - 1)
     {
       strlcat(content, line, sizeof(content));
       content_len += line_len;
@@ -3448,6 +3450,7 @@ static int import_entry_with_resolution(struct char_data *ch __attribute__((unus
 
   /* Allocate escaped_entry buffer dynamically based on entry size */
   entry_len = strlen(entry->entry);
+  /* NOLINTNEXTLINE(clang-analyzer-optin.portability.UnixAPI) -- an entry fits the parse buffer */
   CREATE(escaped_entry, char, (entry_len * 2 + 1));
   mysql_real_escape_string(conn, escaped_entry, entry->entry, entry_len);
 
@@ -3455,6 +3458,7 @@ static int import_entry_with_resolution(struct char_data *ch __attribute__((unus
   query_size = strlen("INSERT INTO help_entries (tag, entry, min_level, auto_generated) VALUES "
                       "('', '', , FALSE)") +
                strlen(escaped_tag) + strlen(escaped_entry) + 20;
+  /* NOLINTNEXTLINE(clang-analyzer-optin.portability.UnixAPI) -- at least the literal's length */
   CREATE(query, char, query_size);
   snprintf(query, query_size,
            "INSERT INTO help_entries (tag, entry, min_level, auto_generated) "
@@ -3484,6 +3488,7 @@ static int import_entry_with_resolution(struct char_data *ch __attribute__((unus
 
     query_size = strlen("INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('', '')") +
                  strlen(escaped_tag) + strlen(escaped_keyword) + 1;
+    /* NOLINTNEXTLINE(clang-analyzer-optin.portability.UnixAPI) -- at least the literal's length */
     CREATE(query, char, query_size);
     snprintf(query, query_size,
              "INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('%s', '%s')",

@@ -79,7 +79,14 @@ void CuStringDelete(CuString *str)
 
 void CuStringResize(CuString *str, int newSize)
 {
-  str->buffer = (char *)realloc(str->buffer, sizeof(char) * newSize);
+  char *buffer = (char *)realloc(str->buffer, sizeof(char) * newSize);
+
+  if (buffer == NULL)
+  {
+    fprintf(stderr, "CuStringResize: out of memory\n");
+    abort();
+  }
+  str->buffer = buffer;
   str->size = newSize;
 }
 

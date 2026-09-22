@@ -3332,12 +3332,18 @@ static bool verify_authored_constructs(const char *sandbox, char *error, size_t 
   mob_proto = calloc(19, sizeof(*mob_proto));
   mob_index = calloc(19, sizeof(*mob_index));
   if (mob_proto == NULL || mob_index == NULL)
+  {
+    fclose(file);
     return false;
+  }
   for (i = 0; i < 13; i++)
   {
     if (!get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 ||
         vnum != PET_GOLEM_WOOD_SMALL + i)
+    {
+      fclose(file);
       return false;
+    }
     parse_mobile(file, vnum);
   }
   fclose(file);
@@ -3349,7 +3355,10 @@ static bool verify_authored_constructs(const char *sandbox, char *error, size_t 
   {
     if (!get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 ||
         vnum != PET_CELESTIAL_GUARDIAN + i)
+    {
+      fclose(file);
       return false;
+    }
     parse_mobile(file, vnum);
   }
   fclose(file);
@@ -3364,15 +3373,22 @@ static bool verify_authored_constructs(const char *sandbox, char *error, size_t 
   for (i = 0; i < 2; i++)
   {
     if (!get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 || vnum != PET_SKELETAL_MAGE + i)
+    {
+      fclose(file);
       return false;
+    }
     parse_mobile(file, vnum);
   }
   fclose(file);
   snprintf(path, sizeof(path), "%s/data/pet-illusions/199.mob", test_source_root());
   file = fopen(path, "r");
-  if (file == NULL || !get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 ||
-      vnum != PET_MISLEAD_DECOY)
+  if (file == NULL)
     return false;
+  if (!get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 || vnum != PET_MISLEAD_DECOY)
+  {
+    fclose(file);
+    return false;
+  }
   parse_mobile(file, vnum);
   fclose(file);
   REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);

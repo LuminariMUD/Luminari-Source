@@ -1,4 +1,5 @@
-#pragma once
+#ifndef HELPERS_H
+#define HELPERS_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -58,3 +59,5 @@ extern const char *fill[];
 bool legal_communication(const char *arg);
 
 void sentence_case(char *str);
+
+#endif /* HELPERS_H */

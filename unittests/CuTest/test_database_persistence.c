@@ -1073,9 +1073,9 @@ void Test_pet_object_decoder_validates_fields_and_preserves_text(CuTest *tc)
                            "#-1\nEDes:\nkey~\n",
                            "#-1\nActv: 1 2\n",
                            "#-1\nFlag: 1 2 3\n",
-                           "#-1\nFlag: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-                           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-                           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 0 0 0\n",
+                           ("#-1\nFlag: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 0 0 0\n"),
                            "#-1\nVals: not-a-number\n",
                            "#-1\nSpbk: 1\n",
                            "#-1\nType: 999\n",

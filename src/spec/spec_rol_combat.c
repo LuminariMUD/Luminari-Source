@@ -2176,7 +2176,7 @@ static int rol_planar_vrock_dance_activity(struct spec_event_context *context, s
     return TRUE;
   }
 
-  next_stage = ch->mob_specials.rol_planar_dance_stage + 1;
+  next_stage = (byte)(ch->mob_specials.rol_planar_dance_stage + 1);
   for (vrock = world[IN_ROOM(ch)].people; vrock != NULL; vrock = vrock->next_in_room)
   {
     if (!IS_NPC(vrock) || !rol_planar_vrock_dance_profile(GET_MOB_VNUM(vrock)) ||

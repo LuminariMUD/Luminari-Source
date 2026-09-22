@@ -117,6 +117,7 @@ void Test_vessel_boarding_defense_handles_damage_and_empty_maximum(CuTest *tc)
   memset(&ship, 0, sizeof(ship));
   ship.vessel_type = VESSEL_WARSHIP;
   CuAssertIntEquals(tc, 4, vessel_boarding_defense_modifier(&ship, VESSEL_BOARDING_CROSSING));
+  /* NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange) -- tests the invalid-value path */
   CuAssertIntEquals(tc, 0, vessel_boarding_defense_modifier(&ship, (enum vessel_boarding_stage)99));
   CuAssertIntEquals(tc, 0, vessel_boarding_defense_modifier(NULL, VESSEL_BOARDING_GRAPPLE));
 }

@@ -248,7 +248,7 @@ void walkdir(FILE *index_file, const char *dir)
   struct dirent *dp;
   struct stat stbuf;
   long id, sender, recipient, sent_time;
-  int flags, entry_fd, open_flags;
+  int flags, dir_fd, entry_fd, open_flags;
   DIR *dfd;
   FILE *mail_file;
   char *name;
@@ -256,6 +256,12 @@ void walkdir(FILE *index_file, const char *dir)
   if ((dfd = opendir(dir)) == NULL)
   {
     fprintf(stderr, "Can't open %s\n", dir);
+    return;
+  }
+  if ((dir_fd = dirfd(dfd)) < 0)
+  {
+    fprintf(stderr, "Can't read %s\n", dir);
+    closedir(dfd);
     return;
   }
 
@@ -274,7 +280,7 @@ void walkdir(FILE *index_file, const char *dir)
 #ifdef O_NOFOLLOW
     open_flags |= O_NOFOLLOW;
 #endif
-    entry_fd = openat(dirfd(dfd), dp->d_name, open_flags);
+    entry_fd = openat(dir_fd, dp->d_name, open_flags);
     if (entry_fd < 0 || fstat(entry_fd, &stbuf) == -1)
     {
       fprintf(stdout, "Unable to open file: %s\n", filename_qfd);

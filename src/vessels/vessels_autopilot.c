@@ -4221,8 +4221,8 @@ ACMD(do_setschedule)
   long parsed_fare;
   int interval;
   int passenger_fare;
-  int bad_x;
-  int bad_y;
+  int bad_x = 0;
+  int bad_y = 0;
 
   /* Get vessel context */
   ship = get_vessel_for_command(ch);

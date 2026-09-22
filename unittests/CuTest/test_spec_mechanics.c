@@ -1139,6 +1139,7 @@ void Test_spec_rol_class_guilds_preserve_family_gates_for_multiclass_players(CuT
   CLASS_LEVEL(target, CLASS_DRUID) = 1;
   CuAssertTrue(tc, rol_class_guild_allows(target, ROL_GUILD_FAMILY_CLERIC));
 
+  /* NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange) -- tests the invalid-value path */
   CuAssertTrue(tc, !rol_class_guild_allows(target, (enum rol_guild_family)99));
   CuAssertTrue(tc, !rol_class_guild_allows(NULL, ROL_GUILD_FAMILY_MAGE));
 
@@ -3192,7 +3193,7 @@ void Test_spec_rol_trahern_combat_profiles_preserve_quake_toss_and_engorge(CuTes
   circle_srandom(3);
   result = rol_monster_combat_typed(&context);
   target_room = IN_ROOM(&fixture.target);
-  target_position = GET_POS(&fixture.target);
+  target_position = (int)GET_POS(&fixture.target);
   actor_stopped = FIGHTING(&fixture.actor) == NULL;
   target_stopped = FIGHTING(&fixture.target) == NULL;
 
@@ -4457,4 +4458,50 @@ void Test_spec_rol_composite_profiles_cover_measured_multi_bindings(CuTest *tc)
   CuAssertTrue(tc, rol_composite_object_profile(2003088, 1, &behavior));
   CuAssertStrEquals(tc, "RoL Utility Object", behavior);
   CuAssertTrue(tc, !rol_composite_object_profile(2003088, 2, &behavior));
+}
+
+/* The Menzoberranzan chokers tag their hitroll bonus with AFF_MENZOCHOKER, the spell number the
+ * procedure looks for: the next pass keeps the one bonus instead of stacking another, and taking
+ * a choker off removes it. The affect was built uninitialized, with no tag at all. */
+void Test_spec_menzo_chokers_grant_one_removable_hitroll_bonus(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  int affects_after_first;
+  int affects_after_second;
+  int spell = -1;
+  int modifier = 0;
+  int affects_after_removal;
+
+  spec_mechanics_begin(&fixture);
+  fixture.object_indexes[0].vnum = 135626;
+  fixture.object_indexes[1].vnum = 135627;
+  GET_OBJ_RNUM(&fixture.copy) = 1;
+  GET_REAL_RACE(&fixture.actor) = RACE_DROW;
+  spec_mechanics_wear(&fixture, &fixture.worn);
+  fixture.copy.worn_by = &fixture.actor;
+  fixture.copy.worn_on = WEAR_NECK_1;
+  GET_EQ(&fixture.actor, WEAR_NECK_1) = &fixture.copy;
+
+  menzo_chokers(&fixture.actor, &fixture.worn, 0, "");
+  affects_after_first = spec_mechanics_affect_count(&fixture.actor);
+  menzo_chokers(&fixture.actor, &fixture.worn, 0, "");
+  affects_after_second = spec_mechanics_affect_count(&fixture.actor);
+  if (fixture.actor.affected != NULL)
+  {
+    spell = fixture.actor.affected->spell;
+    modifier = fixture.actor.affected->modifier;
+  }
+
+  GET_EQ(&fixture.actor, WEAR_NECK_1) = NULL;
+  fixture.copy.worn_by = NULL;
+  menzo_chokers(&fixture.actor, &fixture.worn, 0, "");
+  affects_after_removal = spec_mechanics_affect_count(&fixture.actor);
+
+  spec_mechanics_end(&fixture);
+
+  CuAssertIntEquals(tc, 1, affects_after_first);
+  CuAssertIntEquals(tc, 1, affects_after_second);
+  CuAssertIntEquals(tc, AFF_MENZOCHOKER, spell);
+  CuAssertIntEquals(tc, 1, modifier);
+  CuAssertIntEquals(tc, 0, affects_after_removal);
 }

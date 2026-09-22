@@ -1388,6 +1388,7 @@ static int export_save_mobiles(zone_rnum rznum)
 
 static int export_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
 {
+  /* NOLINTNEXTLINE(bugprone-signed-char-misuse) -- a position number, not a character */
   int pos = GET_DEFAULT_POS(mob);
   char ldesc[MAX_STRING_LENGTH] = {'\0'};
   char ddesc[MAX_STRING_LENGTH] = {'\0'};

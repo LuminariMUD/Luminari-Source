@@ -959,6 +959,7 @@ SPECIAL(dog)
         !circle_follow(pet, ch))
     {
       add_follower(pet, ch);
+      new_affect(&af);
       af.spell = SPELL_CHARM;
       af.duration = 24000;
       af.modifier = 0;

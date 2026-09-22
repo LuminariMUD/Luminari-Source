@@ -676,6 +676,7 @@ void auto_generate_room_trap(room_rnum room, int zone_level)
   {
     attach_trap_to_room(trap, room);
     log("TRAP: Auto-generated %s trap (severity: %s) in room %u",
+        /* NOLINTNEXTLINE(clang-analyzer-unix.Malloc) -- the room checked above now owns trap */
         get_trap_type_name(trap->trap_type), get_trap_severity_name(trap->severity),
         GET_ROOM_VNUM(room));
   }
@@ -2251,7 +2252,9 @@ void set_trap_detected(struct obj_data *trap)
 int perform_detecttrap(struct char_data *ch, bool silent)
 {
   if (!silent)
+  {
     USE_FULL_ROUND_ACTION(ch);
+  }
 
   return search_for_traps(ch);
 }

@@ -2093,7 +2093,7 @@ void TestWebOnboardingInvalidExistingEditorContentFailsClosed(CuTest *tc)
   struct descriptor_data d;
   struct char_data ch;
   struct player_special_data specials;
-  const unsigned char invalid_content[] = {'p', 'r', 'i', 'v', 'a', 't', 'e', 0x01, 'x', '\0'};
+  const char invalid_content[] = {'p', 'r', 'i', 'v', 'a', 't', 'e', 0x01, 'x', '\0'};
 
   CuAssertTrue(tc, init_editor_descriptor(&d, &ch, &specials, CON_PLR_BG));
   if (d.pProtocol == NULL)

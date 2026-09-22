@@ -1167,7 +1167,7 @@ static void vessel_merchant_loss(struct greyhawk_ship_data *ship, const char *ev
            "loss_count = loss_count + %d, last_error = '%s' "
            "WHERE merchant_id = %d AND generation = %u "
            "AND active_ship_id = %d",
-           (long long)(now + profile.respawn_delay_seconds), (long long)now, escaped_player,
+           (long long)now + profile.respawn_delay_seconds, (long long)now, escaped_player,
            penalize ? 1 : 0, escaped_event, profile.merchant_id, profile.generation, ship->shipnum);
   if (mysql_query(conn, query))
   {
@@ -1179,7 +1179,7 @@ static void vessel_merchant_loss(struct greyhawk_ship_data *ship, const char *ev
     log("Info: NPC merchant %d generation %u ship %d recorded %s; "
         "replacement due at %lld (actor %s, standing %d, bounty %d)",
         profile.merchant_id, profile.generation, ship->shipnum, event_type,
-        (long long)(now + profile.respawn_delay_seconds),
+        (long long)now + profile.respawn_delay_seconds,
         player_name != NULL && *player_name ? player_name : "none", standing_penalty, bounty_delta);
   }
 

@@ -3857,9 +3857,9 @@ int PERF_sample_memory(struct perf_memory_stats *stats)
 
   /* World rooms & zones */
   if (world != NULL && top_of_world != NOWHERE)
-    stats->count_rooms = (uint64_t)(top_of_world + 1);
+    stats->count_rooms = (uint64_t)top_of_world + 1;
   if (zone_table != NULL && top_of_zone_table != NOWHERE)
-    stats->count_zones = (uint64_t)(top_of_zone_table + 1);
+    stats->count_zones = (uint64_t)top_of_zone_table + 1;
 
   /* Events and extractions */
   stats->count_events = (uint64_t)event_queue_depth();

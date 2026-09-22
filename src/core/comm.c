@@ -290,6 +290,7 @@ int main(int argc, char **argv)
   const char *dir = NULL;
   const char *elf_build_id;
   const char *inherited_build_id;
+  char inherited_copy[130]; /* 128 hex digits, one more to show overlength, and NUL */
   const char *logname_override;
   char *owned_logname;
 
@@ -481,6 +482,10 @@ int main(int argc, char **argv)
    * the launching release's LUMINARI_ELF_BUILD_ID. */
   elf_build_id = get_self_elf_build_id();
   inherited_build_id = getenv("LUMINARI_ELF_BUILD_ID");
+  /* The setenv() below may invalidate the string getenv() returned. */
+  snprintf(inherited_copy, sizeof(inherited_copy), "%s",
+           inherited_build_id != NULL ? inherited_build_id : "");
+  inherited_build_id = inherited_copy;
   if (elf_build_id == NULL)
     elf_build_id = inherited_build_id;
   if (elf_build_id == NULL || *elf_build_id == '\0' || strlen(elf_build_id) > 128 ||
@@ -3741,6 +3746,7 @@ static int new_descriptor(socket_t s)
   if (CONFIG_PROTOCOL_NEGOTIATION)
   {
     /* Attach Event */
+    /* NOLINTNEXTLINE(bugprone-integer-division) -- PASSES_PER_SEC is exact: 1000000 / 100000 */
     NEW_EVENT(ePROTOCOLS, newd, NULL, (long)(1.5 * PASSES_PER_SEC));
     /* KaVir's plugin*/
     write_to_output(newd, "Attempting to Detect Client, Please Wait...\r\n");
