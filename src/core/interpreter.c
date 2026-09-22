@@ -7855,6 +7855,7 @@ void nanny(struct descriptor_data *d, char *arg)
   int load_result = 0; /* Overloaded variable */
   int player_i = 0;
   int i = 0; /* sortpos = 0; */ /* sortpos currently unused */ /* incrementor */
+  size_t name_size = 0;
 
   /* OasisOLC states */
   struct
@@ -7956,8 +7957,9 @@ void nanny(struct descriptor_data *d, char *arg)
           write_to_output(d, "Invalid account name, please try another.\r\nName: ");
           return;
         }
-        CREATE(d->account->name, char, strlen(tmp_name) + 1);
-        strlcpy(d->account->name, CAP(tmp_name), strlen(tmp_name) + 1);
+        name_size = strlen(tmp_name) + 1;
+        CREATE(d->account->name, char, name_size);
+        strlcpy(d->account->name, CAP(tmp_name), name_size);
 
         write_to_output(d, "Did I get that right, %s (Y/N)?", tmp_name);
         STATE(d) = CON_ACCOUNT_NAME_CONFIRM;
@@ -8360,8 +8362,9 @@ void nanny(struct descriptor_data *d, char *arg)
           GET_HOST(d->character) = strdup(d->host);
 
           d->character->desc = d;
-          CREATE(d->character->player.name, char, strlen(tmp_name) + 1);
-          strlcpy(d->character->player.name, CAP(tmp_name), strlen(tmp_name) + 1);
+          name_size = strlen(tmp_name) + 1;
+          CREATE(d->character->player.name, char, name_size);
+          strlcpy(d->character->player.name, CAP(tmp_name), name_size);
           GET_PFILEPOS(d->character) = player_i;
 
           /*
@@ -8396,8 +8399,9 @@ void nanny(struct descriptor_data *d, char *arg)
           web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_INVALID_NAME);
           return;
         }
-        CREATE(d->character->player.name, char, strlen(tmp_name) + 1);
-        strlcpy(d->character->player.name, CAP(tmp_name), strlen(tmp_name) + 1);
+        name_size = strlen(tmp_name) + 1;
+        CREATE(d->character->player.name, char, name_size);
+        strlcpy(d->character->player.name, CAP(tmp_name), name_size);
 
         /*
           if (d->pProtocol && (d->pProtocol->pVariables[eMSDP_ANSI_COLORS] ||

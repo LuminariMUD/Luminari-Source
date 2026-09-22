@@ -2509,10 +2509,11 @@ static void transform_description_mood(struct description_components *desc, cons
     // Transform to mysterious mood
     if (desc->opening_imagery && strstr(desc->opening_imagery, "tall"))
     {
-      char *new_imagery = malloc(strlen(desc->opening_imagery) + 50);
+      size_t new_size = strlen(desc->opening_imagery) + 50;
+      char *new_imagery = malloc(new_size);
       if (new_imagery)
       {
-        strlcpy(new_imagery, desc->opening_imagery, strlen(desc->opening_imagery) + 50);
+        strlcpy(new_imagery, desc->opening_imagery, new_size);
         // Replace "tall" with "ancient, shadow-wreathed"
         char *pos = strstr(new_imagery, "tall");
         if (pos)
@@ -2532,10 +2533,11 @@ static void transform_description_mood(struct description_components *desc, cons
     // Transform to peaceful mood
     if (desc->opening_imagery && strstr(desc->opening_imagery, "dense"))
     {
-      char *new_imagery = malloc(strlen(desc->opening_imagery) + 50);
+      size_t new_size = strlen(desc->opening_imagery) + 50;
+      char *new_imagery = malloc(new_size);
       if (new_imagery)
       {
-        strlcpy(new_imagery, desc->opening_imagery, strlen(desc->opening_imagery) + 50);
+        strlcpy(new_imagery, desc->opening_imagery, new_size);
         char *pos = strstr(new_imagery, "dense");
         if (pos)
         {

@@ -219,6 +219,7 @@ WCMD(do_wdoor)
   char choices[256] = {'\0'};
   room_data *rm;
   struct room_direction_data *newexit;
+  size_t keyword_size;
   int dir, fd, to_room;
 
   const char *const door_field[] = {"purge", "description", "flags", "key", "name", "room", "\n"};
@@ -295,8 +296,9 @@ WCMD(do_wdoor)
     case 4: /* name        */
       if (newexit->keyword)
         free(newexit->keyword);
-      CREATE(newexit->keyword, char, strlen(value) + 1);
-      strlcpy(newexit->keyword, value, strlen(value) + 1);
+      keyword_size = strlen(value) + 1;
+      CREATE(newexit->keyword, char, keyword_size);
+      strlcpy(newexit->keyword, value, keyword_size);
       break;
     case 5: /* room        */
       if ((to_room = (int)real_room(parse_int(value))) != (int)NOWHERE)

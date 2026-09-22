@@ -537,6 +537,7 @@ static bool hedit_save_to_db(struct descriptor_data *d)
   char tag_lower[MAX_HELP_TAG_LENGTH + 1];
   int i, transaction_started = 0, error_occurred = 0, sync_lock_acquired = 0;
   int keyword_count = 0;
+  size_t keyword_size;
   bool save_succeeded = FALSE;
 
   if (OLC_HELP(d) == NULL)
@@ -747,8 +748,9 @@ static bool hedit_save_to_db(struct descriptor_data *d)
     while ((row = mysql_fetch_row(result)))
     {
       CREATE(temp_keyword, struct help_keyword_list, 1);
-      CREATE(temp_keyword->keyword, char, strlen(row[0]) + 1);
-      strlcpy(temp_keyword->keyword, row[0], strlen(row[0]) + 1);
+      keyword_size = strlen(row[0]) + 1;
+      CREATE(temp_keyword->keyword, char, keyword_size);
+      strlcpy(temp_keyword->keyword, row[0], keyword_size);
       temp_keyword->next = existing_keywords;
       existing_keywords = temp_keyword;
     }
