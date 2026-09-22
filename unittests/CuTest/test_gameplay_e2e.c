@@ -6258,7 +6258,7 @@ void Test_gameplay_e2e_dg_trigger_parse_and_execute(CuTest *tc)
   saved_trig_index = trig_index;
   saved_top_of_trigt = top_of_trigt;
   saved_trigger_list = trigger_list;
-  trig_index = calloc(1, sizeof(*trig_index));
+  trig_index = (struct index_data **)calloc(1, sizeof(*trig_index));
   top_of_trigt = 0;
   trigger_file = tmpfile();
   parsed = false;
@@ -6316,7 +6316,7 @@ void Test_gameplay_e2e_dg_trigger_parse_and_execute(CuTest *tc)
     }
     free(prototype_index);
   }
-  free(trig_index);
+  free((void *)trig_index);
   trig_index = saved_trig_index;
   top_of_trigt = saved_top_of_trigt;
   trigger_list = saved_trigger_list;
@@ -6370,7 +6370,7 @@ void Test_gameplay_e2e_damage_trigger_overrides_damage(CuTest *tc)
   saved_trig_index = trig_index;
   saved_top_of_trigt = top_of_trigt;
   saved_trigger_list = trigger_list;
-  trig_index = calloc(1, sizeof(*trig_index));
+  trig_index = (struct index_data **)calloc(1, sizeof(*trig_index));
   top_of_trigt = 0;
   trigger_file = NULL;
   mobile_file = NULL;
@@ -6435,7 +6435,7 @@ void Test_gameplay_e2e_damage_trigger_overrides_damage(CuTest *tc)
     }
     free(prototype_index);
   }
-  free(trig_index);
+  free((void *)trig_index);
   trig_index = saved_trig_index;
   top_of_trigt = saved_top_of_trigt;
   trigger_list = saved_trigger_list;

@@ -110,7 +110,7 @@ void spatial_shutdown_system(void)
         registered_systems[i] = NULL;
       }
     }
-    free(registered_systems);
+    free((void *)registered_systems);
     registered_systems = NULL;
   }
 

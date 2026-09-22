@@ -778,11 +778,11 @@ void Test_process_input_reports_plain_text_truncation(CuTest *tc)
   descriptor.descriptor = sockets[0];
   descriptor.output = descriptor.small_outbuf;
   descriptor.bufspace = SMALL_BUFSIZE - 1;
-  descriptor.history = calloc(HISTORY_SIZE, sizeof(*descriptor.history));
+  descriptor.history = (char **)calloc(HISTORY_SIZE, sizeof(*descriptor.history));
   descriptor.pProtocol = ProtocolCreate();
   if (descriptor.history == NULL || descriptor.pProtocol == NULL)
   {
-    free(descriptor.history);
+    free((void *)descriptor.history);
     if (descriptor.pProtocol != NULL)
       ProtocolDestroy(descriptor.pProtocol);
     close(sockets[0]);
@@ -797,7 +797,7 @@ void Test_process_input_reports_plain_text_truncation(CuTest *tc)
   if (write(sockets[1], payload, MAX_INPUT_LENGTH + 1) != (ssize_t)(MAX_INPUT_LENGTH + 1))
   {
     ProtocolDestroy(descriptor.pProtocol);
-    free(descriptor.history);
+    free((void *)descriptor.history);
     close(sockets[0]);
     close(sockets[1]);
     CuFail(tc, "could not write the input socket fixture");
@@ -820,7 +820,7 @@ void Test_process_input_reports_plain_text_truncation(CuTest *tc)
   }
   for (index = 0; index < HISTORY_SIZE; index++)
     free(descriptor.history[index]);
-  free(descriptor.history);
+  free((void *)descriptor.history);
   ProtocolDestroy(descriptor.pProtocol);
   close(sockets[0]);
   close(sockets[1]);

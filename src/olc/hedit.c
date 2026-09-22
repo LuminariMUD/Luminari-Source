@@ -85,8 +85,8 @@ static int compare_helpcheck_keywords(const void *left, const void *right)
   const char *const *left_keyword;
   const char *const *right_keyword;
 
-  left_keyword = left;
-  right_keyword = right;
+  left_keyword = (const char *const *)left;
+  right_keyword = (const char *const *)right;
   return strcasecmp(*left_keyword, *right_keyword);
 }
 
@@ -99,7 +99,7 @@ static void free_helpcheck_keyword_index(struct helpcheck_keyword_index *index)
 
   for (i = 0; i < index->count; i++)
     free(index->items[i]);
-  free(index->items);
+  free((void *)index->items);
   memset(index, 0, sizeof(*index));
 }
 
@@ -149,7 +149,7 @@ static bool load_helpcheck_keyword_index(struct helpcheck_keyword_index *index, 
       new_capacity = index->capacity == 0 ? 256 : index->capacity * 2;
       if (new_capacity > SIZE_MAX / sizeof(*index->items))
         goto cleanup;
-      resized_items = realloc(index->items, new_capacity * sizeof(*index->items));
+      resized_items = (char **)realloc((void *)index->items, new_capacity * sizeof(*index->items));
       if (resized_items == NULL)
         goto cleanup;
       index->items = resized_items;
@@ -163,7 +163,7 @@ static bool load_helpcheck_keyword_index(struct helpcheck_keyword_index *index, 
   }
 
   if (index->count > 1)
-    qsort(index->items, index->count, sizeof(*index->items), compare_helpcheck_keywords);
+    qsort((void *)index->items, index->count, sizeof(*index->items), compare_helpcheck_keywords);
   success = true;
 
 cleanup:

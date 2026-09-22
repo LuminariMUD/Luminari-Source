@@ -1605,7 +1605,7 @@ void mysql_board_finish_post(struct descriptor_data *d, int save)
 #ifdef DEBUGMEM
     freeusg(d->str, B8);
 #else
-    free(d->str);
+    free((void *)d->str);
 #endif
     d->str = NULL;
   }

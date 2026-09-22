@@ -358,7 +358,7 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
       write_to_output(d, "Mail aborted.\r\n");
     act("$n stops writing mail.", TRUE, d->character, NULL, NULL, TO_ROOM);
     free(*d->str);
-    free(d->str);
+    free((void *)d->str);
     d->str = NULL;
   }
 
@@ -948,7 +948,7 @@ void show_string(struct descriptor_data *d, const char *input)
   /* Q is for quit. :) */
   if (LOWER(*buf) == 'q')
   {
-    free(d->showstr_vector);
+    free((void *)d->showstr_vector);
     d->showstr_vector = NULL;
     d->showstr_count = 0;
     if (d->showstr_head)
@@ -991,7 +991,7 @@ void show_string(struct descriptor_data *d, const char *input)
     else
       send_to_char(d->character, "%s\r\n[Page %d/%d]\tn\r\n", d->showstr_vector[d->showstr_page],
                    d->showstr_page + 1, d->showstr_count);
-    free(d->showstr_vector);
+    free((void *)d->showstr_vector);
     d->showstr_vector = NULL;
     d->showstr_count = 0;
     if (d->showstr_head)

@@ -1594,12 +1594,12 @@ void show_wilderness_map(struct char_data *ch, int size, int x, int y)
     return;
 
   data = malloc(sizeof(*data) * tile_count);
-  map = malloc(sizeof(struct wild_map_tile *) * xsize);
+  map = (struct wild_map_tile **)malloc(sizeof(struct wild_map_tile *) * xsize);
   if (!data || !map)
   {
     log("SYSERR: Unable to allocate a %dx%d wilderness map", xsize, ysize);
     free(data);
-    free(map);
+    free((void *)map);
     send_to_char(ch, "The wilderness map is temporarily unavailable.\r\n");
     return;
   }
@@ -1696,7 +1696,7 @@ void show_wilderness_map(struct char_data *ch, int size, int x, int y)
    */
 
   free(data);
-  free(map);
+  free((void *)map);
 }
 
 /*
@@ -1791,7 +1791,7 @@ char *gen_ascii_wilderness_map(int size, int x, int y, int map_type)
 
   if (map[0])
     free(map[0]);
-  free(map);
+  free((void *)map);
 
   return mapstring;
 }

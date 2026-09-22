@@ -301,7 +301,7 @@ void CuSuiteInit(CuSuite *testSuite)
 {
   testSuite->count = 0;
   testSuite->failCount = 0;
-  memset(testSuite->list, 0, sizeof(testSuite->list));
+  memset((void *)testSuite->list, 0, sizeof(testSuite->list));
 }
 
 CuSuite *CuSuiteNew(void)

@@ -7649,7 +7649,7 @@ ACMD(do_featlisting)
 
   for (i = 0; i < count; i++)
     free(lines[i]);
-  free(lines);
+  free((void *)lines);
 }
 
 /*

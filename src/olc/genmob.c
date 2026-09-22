@@ -425,7 +425,7 @@ int free_mobile(struct char_data *mob)
     {
       for (j = 0; j < mob->mob_specials.echo_count; j++)
         free(mob->mob_specials.echo_entries[j]);
-      free(mob->mob_specials.echo_entries);
+      free((void *)mob->mob_specials.echo_entries);
     }
   }
   while (mob->affected)

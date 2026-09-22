@@ -1259,22 +1259,27 @@ struct game_scheduler *game_scheduler_create(const struct game_scheduler_config 
   scheduler->next_event_id = 1U;
   scheduler->next_insertion_sequence = 1U;
 
-  scheduler->overflow_heap.items = calloc(resolved.max_events, sizeof(struct game_event *));
-  scheduler->ready_heap.items = calloc(resolved.max_events, sizeof(struct game_event *));
-  scheduler->deadline_heap.items = calloc(resolved.max_events, sizeof(struct game_event *));
-  scheduler->registry_buckets = calloc(registry_buckets, sizeof(struct game_event *));
-  scheduler->owner_buckets = calloc(registry_buckets, sizeof(struct game_event_owner_entry *));
+  scheduler->overflow_heap.items =
+      (struct game_event **)calloc(resolved.max_events, sizeof(struct game_event *));
+  scheduler->ready_heap.items =
+      (struct game_event **)calloc(resolved.max_events, sizeof(struct game_event *));
+  scheduler->deadline_heap.items =
+      (struct game_event **)calloc(resolved.max_events, sizeof(struct game_event *));
+  scheduler->registry_buckets =
+      (struct game_event **)calloc(registry_buckets, sizeof(struct game_event *));
+  scheduler->owner_buckets = (struct game_event_owner_entry **)calloc(
+      registry_buckets, sizeof(struct game_event_owner_entry *));
   scheduler->event_types = calloc(resolved.max_event_types, sizeof(struct game_event_type));
   if (scheduler->overflow_heap.items == NULL || scheduler->ready_heap.items == NULL ||
       scheduler->deadline_heap.items == NULL || scheduler->registry_buckets == NULL ||
       scheduler->owner_buckets == NULL || scheduler->event_types == NULL)
   {
     free(scheduler->event_types);
-    free(scheduler->owner_buckets);
-    free(scheduler->registry_buckets);
-    free(scheduler->deadline_heap.items);
-    free(scheduler->ready_heap.items);
-    free(scheduler->overflow_heap.items);
+    free((void *)scheduler->owner_buckets);
+    free((void *)scheduler->registry_buckets);
+    free((void *)scheduler->deadline_heap.items);
+    free((void *)scheduler->ready_heap.items);
+    free((void *)scheduler->overflow_heap.items);
     free(scheduler);
     if (status != NULL)
       *status = GAME_SCHEDULER_ALLOCATION_FAILED;
@@ -1335,11 +1340,11 @@ enum game_scheduler_status game_scheduler_destroy(struct game_scheduler *schedul
   for (event_type = 0; event_type < scheduler->event_type_count; event_type++)
     free(scheduler->event_types[event_type].name);
   free(scheduler->event_types);
-  free(scheduler->owner_buckets);
-  free(scheduler->registry_buckets);
-  free(scheduler->deadline_heap.items);
-  free(scheduler->ready_heap.items);
-  free(scheduler->overflow_heap.items);
+  free((void *)scheduler->owner_buckets);
+  free((void *)scheduler->registry_buckets);
+  free((void *)scheduler->deadline_heap.items);
+  free((void *)scheduler->ready_heap.items);
+  free((void *)scheduler->overflow_heap.items);
   free(scheduler);
   return GAME_SCHEDULER_OK;
 }

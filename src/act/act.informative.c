@@ -7938,7 +7938,7 @@ ACMD(do_who)
     send_to_char(ch, "\tWA staff-ran event is taking place! Type \tRstaffevent\tW to see the "
                      "current event info.\tn\r\n");
   }
-  free(account_names);
+  free((void *)account_names);
 }
 
 #define USERS_FORMAT                                                                               \
@@ -8920,7 +8920,7 @@ ACMD(do_commands)
     socials = 1;
   else if (subcmd == SCMD_WIZHELP)
   {
-    free(commands);
+    free((void *)commands);
     wizhelp = 1;
     do_wizhelp(ch);
     return;
@@ -8977,7 +8977,7 @@ ACMD(do_commands)
   /* display commands list in a nice columnized format */
   if (!maneuvers)
     column_list(ch, 0, commands, no, FALSE);
-  free(commands);
+  free((void *)commands);
 }
 
 ACMDU(do_homelands)

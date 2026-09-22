@@ -4402,7 +4402,7 @@ int levenshtein_distance(const char *s1, const char *s2)
 
   for (j = 0; j <= s1_len; j++)
     free(d[j]);
-  free(d);
+  free((void *)d);
 
   return i;
 }

@@ -1879,8 +1879,8 @@ void TestRoleplayTextFieldsShareStableSlotsAndLimits(CuTest *tc)
                     (int)roleplay_text_field_max_bytes(ROLEPLAY_TEXT_FIELD_LONG_DESCRIPTION));
   CuAssertIntEquals(tc, PLR_BG_LENGTH,
                     (int)roleplay_text_field_max_bytes(ROLEPLAY_TEXT_FIELD_BACKGROUND_STORY));
-  CuAssertPtrEquals(tc, &ch.player.ideals,
-                    roleplay_text_field_slot(&ch, ROLEPLAY_TEXT_FIELD_IDEALS));
+  CuAssertPtrEquals(tc, (const void *)&ch.player.ideals,
+                    (const void *)roleplay_text_field_slot(&ch, ROLEPLAY_TEXT_FIELD_IDEALS));
 }
 
 void TestRoleplayTextCommitNormalizesAndRollsBackAtomically(CuTest *tc)
@@ -2170,7 +2170,7 @@ void TestWebOnboardingEditorTransferCommitsOnlyAfterCheckedSave(CuTest *tc)
   CuAssertStrEquals(tc, (const char *)content, ch.player.background);
   CuAssertIntEquals(tc, CON_CHAR_RP_MENU, d.connected);
   CuAssertTrue(tc, !web_onboarding_has_active_transfer_for_test(&d));
-  CuAssertPtrEquals(tc, NULL, d.str);
+  CuAssertPtrEquals(tc, NULL, (const void *)d.str);
   CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
   CuAssertPtrNotNull(tc, strstr(payload, "\"persistenceResult\":\"saved\""));
 
@@ -2402,7 +2402,7 @@ void TestWebOnboardingEditorCancelAndResetNeverMutate(CuTest *tc)
   CuAssertStrEquals(tc, "original", ch.player.background);
   CuAssertIntEquals(tc, 0, editor_test_save_calls);
   CuAssertIntEquals(tc, CON_CHAR_RP_MENU, d.connected);
-  CuAssertPtrEquals(tc, NULL, d.str);
+  CuAssertPtrEquals(tc, NULL, (const void *)d.str);
 
   d.connected = CON_PLR_BG;
   d.web_onboarding_revision = 8;

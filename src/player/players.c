@@ -7717,7 +7717,7 @@ void load_char_pets(struct char_data *ch)
   }
 
   PERF_entity_scope_restore(previous_entity_reason);
-  free(staged);
+  free((void *)staged);
   free(admitted);
   free(reasons);
   if (ch && !restore_failed)

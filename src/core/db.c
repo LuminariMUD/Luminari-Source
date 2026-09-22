@@ -1144,7 +1144,7 @@ void destroy_db(void)
       for (j = 0; j < ECHO_COUNT(&mob_proto[cnt]); j++)
         if (ECHO_ENTRIES(&mob_proto[cnt])[j])
           free(ECHO_ENTRIES(&mob_proto[cnt])[j]);
-      free(ECHO_ENTRIES(&mob_proto[cnt]));
+      free((void *)ECHO_ENTRIES(&mob_proto[cnt]));
     }
 
     /* free quest data */
@@ -1223,7 +1223,7 @@ void destroy_db(void)
     }
     free(trig_index[cnt]);
   }
-  free(trig_index);
+  free((void *)trig_index);
 
   /* Craft Cleanup */
   /* Clear craft list - must be done safely without using simple_list during removal */
@@ -7270,7 +7270,7 @@ void free_char(struct char_data *ch)
       int j;
       for (j = 0; j < ECHO_COUNT(ch); j++)
         free(ECHO_ENTRIES(ch)[j]);
-      free(ECHO_ENTRIES(ch));
+      free((void *)ECHO_ENTRIES(ch));
     }
   }
 
