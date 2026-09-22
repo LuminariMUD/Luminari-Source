@@ -96,12 +96,13 @@ Applied in step 1, each with the scope, reason, owner, and expiry entry `.clang-
      findings) in olc, persistence, sql, and the world/DG/config parsers, leaving each at least
      ten points above its changed-line floor. `--update` never raises a count, so the baseline
      was restored from the step 3 commit and recorded again.
-5. PR 1 ("Part of #218"). Rebase onto `origin/master`; on a baseline conflict take master's
-   file and run `--update` again. Run the coverage check below and
-   `run.py --job quality-clang-tidy --jobs 1 --cpus 16` (some findings appear only with the
-   container's glibc macros), then the full local matrix once (`run.py --jobs 4 --cpus 4`,
-   about 13 min). After pushing, compare CodeQL alerts with master: moved code re-opened
-   dismissed alerts in #213.
+5. PR 1. Done: #226 ("Part of #218"), rebased onto master `e33ed0d6f`. Master's player-file
+   test rewrite had left two dead stores in `test_gameplay_e2e.c` above its baseline; they are
+   removed on the branch. The first matrix run caught two storm cases that the label merge had
+   let fall through into the new default (clang's `-Wimplicit-fallthrough`; gcc is silent), now
+   fixed, and every unit then compiled warning-free under clang-22 with the CMake warning tier.
+   All 33 `run.py` jobs pass on `beb3b3622` (1,406 s), all GitHub checks pass, and CodeQL
+   reports no alerts on the pull request ref (master has none open).
 6. Review lanes, four agents on disjoint directories as in step 3.
    - `bugprone-branch-clone` (329): merge the case labels of the 127 "switch has N consecutive
      identical branches" (a script can propose the merges; review each, since the check exists
@@ -171,7 +172,10 @@ fixes land early and the branch is exposed to #216 and other parallel work for l
 
 ## Resume here
 
-Steps 1-4 are committed. Next: step 5 (local matrix, push, PR 1, CodeQL comparison).
+Steps 1-5 are done: PR #226 is open and verified (877 findings left). Next, once #226 merges:
+rebase this branch onto master (the baseline file conflicts are resolved by taking master's
+file and running `--update`), then steps 6-8. The codemods, `coverage_trim.py`, and the latest
+report are in `tmp/218/`.
 
 ## Progress log
 
@@ -182,3 +186,5 @@ Steps 1-4 are committed. Next: step 5 (local matrix, push, PR 1, CodeQL comparis
   parser harness 32/32, new tests clean under valgrind.
 - 2026-09-23: step 4 committed (877); build warning-free, CuTest 1,744/1,744, coverage policy
   passes locally.
+- 2026-09-23: rebased onto master `e33ed0d6f`; PR #226 opened; local matrix 33/33, GitHub checks
+  and CodeQL clean.
