@@ -539,6 +539,7 @@ static int weather_terrain_calculate_interference(struct spatial_context *ctx, d
     break;
   case 4: /* Storm */
     *interference += 0.7;
+    break;
   default:
     break;
   }
