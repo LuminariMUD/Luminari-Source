@@ -412,6 +412,10 @@ PY
     fail "stop command signaled another checkout's autorun process"
   [[ ! -e "$daemon_dir/.mud.pid" ]] ||
     fail "MUD PID file survived managed shutdown"
+  grep -Fxq "STATUS=STOPPED" "$daemon_dir/.autorun.state" ||
+    fail "managed shutdown left the autorun state marked running"
+  grep -Fxq "MUD_PID=" "$daemon_dir/.autorun.state" ||
+    fail "managed shutdown left a MUD PID in the autorun state"
 
   inode_after=$(stat -c '%i' "$daemon_dir/.autorun.lock")
   [[ "$inode_before" == "$inode_after" ]] ||

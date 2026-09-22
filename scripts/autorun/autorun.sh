@@ -1815,8 +1815,10 @@ AUTORUN_START_TIME=$(date +%s)
 AUTORUN_PID=$$
 log_info "Autorun started with PID $AUTORUN_PID at $(date)"
 
-# Write autorun state file for external monitoring
+# Write autorun state file for external monitoring. The optional argument is
+# the supervisor status (default RUNNING); a clean shutdown records STOPPED.
 write_autorun_state() {
+  local status="${1:-RUNNING}"
   local active_build_id=""
   local active_commit=""
   local active_dirty=""
@@ -1864,7 +1866,7 @@ write_autorun_state() {
 PID=$AUTORUN_PID
 START_TIME=$AUTORUN_START_TIME
 LAST_UPDATE=$(date +%s)
-STATUS=RUNNING
+STATUS=$status
 CRASH_COUNT=$CRASH_COUNT
 MUD_PORT=$MUD_PORT
 MUD_BINARY=$MUD_BINARY
@@ -1918,6 +1920,8 @@ cleanup() {
   log_info "Performing cleanup..."
   stop_auxiliary_services
   rm -f "$MUD_PID_FILE" "$AUTORUN_PID_FILE" 2>/dev/null || true
+  # The MUD and its state heartbeat have exited; do not leave a RUNNING record.
+  write_autorun_state STOPPED || true
 }
 # CRITICAL: Do NOT trap EXIT! This causes autorun to terminate on any error
 # Only cleanup when we explicitly want to shut down
