@@ -191,6 +191,8 @@ void CuTestRun(CuTest *tc)
       (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec) / 1000000000.0;
 }
 
+static void CuFailInternal(CuTest *tc, const char *file, int line, CuString *string) CU_NORETURN;
+
 static void CuFailInternal(CuTest *tc, const char *file, int line, CuString *string)
 {
   char buf[HUGE_STRING_LEN];
@@ -202,6 +204,9 @@ static void CuFailInternal(CuTest *tc, const char *file, int line, CuString *str
   tc->message = string->buffer;
   if (tc->jumpBuf != 0)
     longjmp(*(tc->jumpBuf), 0);
+  /* No runner to jump back to: continuing would run the test with the failed condition. */
+  fprintf(stderr, "%s\n", string->buffer);
+  abort();
 }
 
 void CuFail_Line(CuTest *tc, const char *file, int line, const char *message2, const char *message)

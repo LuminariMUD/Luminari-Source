@@ -7,6 +7,7 @@
 #include "../../src/core/structs.h"
 #include "../../src/core/utils.h"
 #include "../../src/player/password.h"
+#include "../../src/core/interpreter.h"
 
 #include <crypt.h>
 #include <string.h>
@@ -157,4 +158,15 @@ void Test_password_output_bounds_and_secure_zero(CuTest *tc)
   password_secure_zero(secret, 0);
   CuAssertIntEquals(tc, 0xA5, secret[0]);
   password_secure_zero(NULL, sizeof(secret));
+}
+
+void Test_load_account_rejects_null_name_or_account(CuTest *tc)
+{
+  struct account_data account;
+  char name[] = "Nobody";
+
+  memset(&account, 0, sizeof(account));
+  CuAssertIntEquals(tc, -1, load_account(NULL, &account));
+  CuAssertIntEquals(tc, -1, load_account(name, NULL));
+  CuAssertPtrEquals(tc, NULL, account.name);
 }

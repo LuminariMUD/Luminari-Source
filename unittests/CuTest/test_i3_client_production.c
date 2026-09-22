@@ -516,6 +516,46 @@ void Test_i3_config_save_preserves_credentials_and_comments(CuTest *tc)
   i3_test_cleanup();
 }
 
+void Test_i3_config_load_parses_numeric_settings(CuTest *tc)
+{
+  char filename[] = "/tmp/luminari-i3-config-test-XXXXXX";
+  FILE *file;
+  int file_descriptor;
+
+  i3_test_setup();
+  file_descriptor = mkstemp(filename);
+  CuAssertTrue(tc, file_descriptor >= 0);
+  file = fdopen(file_descriptor, "w");
+  CuAssertPtrNotNull(tc, file);
+  fputs("# heading\n\n", file);
+  fputs("gateway_host=gateway.example\n", file);
+  fputs("gateway_port=8443\n", file);
+  fputs("enable_tell=1\n", file);
+  fputs("enable_channels=0\n", file);
+  fputs("enable_who=1\n", file);
+  fputs("auto_reconnect=1\n", file);
+  fputs("reconnect_delay=99999\n", file);
+  fputs("max_queue_size=42\n", file);
+  fputs("reconnect_delay 0\n", file);
+  fclose(file);
+
+  i3_client->reconnect_delay = 17;
+  CuAssertIntEquals(tc, 0, i3_load_config(filename));
+  CuAssertStrEquals(tc, "gateway.example", i3_client->gateway_host);
+  CuAssertIntEquals(tc, 8443, i3_client->gateway_port);
+  CuAssertIntEquals(tc, 1, i3_client->enable_tell);
+  CuAssertIntEquals(tc, 0, i3_client->enable_channels);
+  CuAssertIntEquals(tc, 1, i3_client->enable_who);
+  CuAssertIntEquals(tc, 1, i3_client->auto_reconnect);
+  /* The last line clamps the delay to at least one second. */
+  CuAssertIntEquals(tc, 1, i3_client->reconnect_delay);
+  CuAssertIntEquals(tc, 42, i3_client->max_queue_size);
+
+  unlink(filename);
+  CuAssertIntEquals(tc, -1, i3_load_config(filename));
+  i3_test_cleanup();
+}
+
 void Test_i3_presence_snapshot_uses_playing_descriptors(CuTest *tc)
 {
   struct descriptor_data descriptor;

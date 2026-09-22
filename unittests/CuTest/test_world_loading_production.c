@@ -11,6 +11,8 @@
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/movement/movement_validation.h"
 #include "../../src/obj/shop.h"
+#include "../../src/olc/genobj.h"
+#include "../../src/olc/genolc.h"
 #include "../../src/olc/genshp.h"
 #include "../../src/olc/genzon.h"
 
@@ -856,4 +858,43 @@ void Test_world_loading_production_mob_path_espec_stops_at_array_bound(CuTest *t
   mob_proto = saved_mob_proto;
   mob_index = saved_mob_index;
   top_of_mobt = saved_top_of_mobt;
+}
+
+void Test_oset_apply_parses_the_modifier_and_rejects_zero(CuTest *tc)
+{
+  struct obj_data obj;
+
+  memset(&obj, 0, sizeof(obj));
+  CuAssertTrue(tc, !oset_apply(&obj, "strength 0"));
+  CuAssertTrue(tc, !oset_apply(&obj, "strength"));
+  CuAssertTrue(tc, oset_apply(&obj, "strength 3"));
+  CuAssertIntEquals(tc, APPLY_STR, obj.affected[0].location);
+  CuAssertIntEquals(tc, 3, obj.affected[0].modifier);
+  CuAssertTrue(tc, !oset_apply(&obj, "nosuchapply 3"));
+}
+
+/* Both export commands parse the zone number before looking it up. */
+void Test_export_commands_reject_an_unknown_zone(CuTest *tc)
+{
+  struct char_data *ch = new_char();
+  struct zone_data *saved_zone_table = zone_table;
+  zone_rnum saved_top = top_of_zone_table;
+  struct zone_data only_zone;
+
+  /* A one-zone table so real_zone() has something to search. */
+  memset(&only_zone, 0, sizeof(only_zone));
+  only_zone.number = 1;
+  zone_table = &only_zone;
+  top_of_zone_table = 0;
+
+  GET_LEVEL(ch) = LVL_IMPL;
+  do_export_zone(ch, "999999", 0, 0);
+  do_export_map(ch, "999999 map.html", 0, 0);
+  do_export_zone(ch, "", 0, 0);
+  do_export_map(ch, "", 0, 0);
+  CuAssertIntEquals(tc, NOWHERE, real_zone(999999));
+
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top;
+  free_char(ch);
 }

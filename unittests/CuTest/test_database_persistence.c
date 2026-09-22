@@ -12,6 +12,7 @@
 #include "../../src/core/handler.h"
 #include "../../src/core/interpreter.h"
 #include "../../src/database/mysql.h"
+#include "../../src/wilderness/wilderness.h"
 #include "../../src/net/protocol.h"
 #include "../../src/database/db_init.h"
 #include "../../src/core/mudlim.h"
@@ -2858,4 +2859,72 @@ void Test_account_character_removal_commits_or_rolls_back_the_link(CuTest *tc)
   CuAssertTrue(tc, !view_has_first);
   CuAssertTrue(tc, view_has_second);
   CuAssertTrue(tc, refused_null_commit);
+}
+
+void Test_load_wilderness_reads_the_zone_row(CuTest *tc)
+{
+  MYSQL *connection;
+  MYSQL *saved_conn = conn;
+  bool saved_available = mysql_available;
+  struct wilderness_data *wild;
+  struct zone_data *saved_zone_table = zone_table;
+  zone_rnum saved_top = top_of_zone_table;
+  struct zone_data only_zone;
+  static const char *const setup[] = {
+      "CREATE TEMPORARY TABLE wilderness_data (id INT, zone_vnum INT, nav_vnum INT, "
+      "dynamic_vnum_pool_start INT, dynamic_vnum_pool_end INT, x_size INT, y_size INT, "
+      "elevation_seed INT, distortion_seed INT, moisture_seed INT, min_temp INT, max_temp INT)",
+      "INSERT INTO wilderness_data VALUES (7, 999001, 1000001, 1000100, 1000900, 2048, 1024, "
+      "11, 13, 17, -30, 45)",
+  };
+  size_t i;
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+    return;
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  for (i = 0; i < sizeof(setup) / sizeof(setup[0]); i++)
+  {
+    if (mysql_query(connection, setup[i]) != 0)
+    {
+      mysql_close(connection);
+      CuFail(tc, "could not stage the wilderness_data fixture");
+      return;
+    }
+  }
+
+  /* real_zone() needs a table to search; the zone is not loaded, so it resolves to NOWHERE. */
+  memset(&only_zone, 0, sizeof(only_zone));
+  only_zone.number = 1;
+  zone_table = &only_zone;
+  top_of_zone_table = 0;
+  conn = connection;
+  mysql_available = true;
+  wild = load_wilderness(999001);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top;
+  mysql_query(connection, "DROP TEMPORARY TABLE wilderness_data");
+  mysql_close(connection);
+
+  CuAssertPtrNotNull(tc, wild);
+  CuAssertIntEquals(tc, 7, wild->id);
+  CuAssertIntEquals(tc, NOWHERE, wild->zone);
+  CuAssertIntEquals(tc, 1000001, wild->nav_vnum);
+  CuAssertIntEquals(tc, 1000100, wild->dynamic_vnum_pool_start);
+  CuAssertIntEquals(tc, 1000900, wild->dynamic_vnum_pool_end);
+  CuAssertIntEquals(tc, 2048, wild->x_size);
+  CuAssertIntEquals(tc, 1024, wild->y_size);
+  CuAssertIntEquals(tc, 11, wild->elevation_seed);
+  CuAssertIntEquals(tc, 13, wild->distortion_seed);
+  CuAssertIntEquals(tc, 17, wild->moisture_seed);
+  CuAssertIntEquals(tc, -30, wild->min_temp);
+  CuAssertIntEquals(tc, 45, wild->max_temp);
+  free(wild);
 }
