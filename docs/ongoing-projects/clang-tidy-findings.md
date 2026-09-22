@@ -79,23 +79,23 @@ Applied in step 1, each with the scope, reason, owner, and expiry entry `.clang-
    mutagen/catalyst toggles do not stick); `score_display_width` should be `ubyte`; the
    chokers' affect tag equals `SPELL_IRON_GUTS`; shutdown-only leaks in `ibt.c`,
    `mysql_boards.c`, and `free_clan_list()`; an unused octave cache in `perlin.c`.
-4. Codemods. Python scripts in `tmp/218/` (gitignored) read a fresh `clang-tidy-report.json`
-   and edit at the reported line and column; clang-format then lays out the result. One commit
-   per codemod; after a rebase, drop the commit and run the codemod again.
-   - `bugprone-switch-missing-default-case` (620): add `default:` and `break;` before the
-     closing brace, first adding `break;` to a last case that does not end in `break`,
-     `return`, `continue`, or `goto` (`-Wimplicit-fallthrough` in the build catches a miss).
-     The check skips enum switches, so `-Wswitch` protection is unchanged.
-   - `bugprone-implicit-widening-of-multiplication-result` (455, 95 in tests): insert `(T)` at
-     the reported column, `T` being the destination type the message names (`long`, `size_t`,
-     `time_t`, ...). Before an operand it widens the multiplication; before a macro that
-     expands to a product (`PULSE_VIOLENCE`) it makes the conversion explicit.
-   - `bugprone-multi-level-implicit-pointer-conversion` (143): insert the cast the message
-     names, `(void *)` for `free()` of a `T **` and `(T **)` for the reverse. `-Wcast-qual`
-     flags a cast that drops a qualifier.
-   - Leave `src/net/protocol.c` (12 findings) alone unless
-     `python3 scripts/ci/mutation_test.py --module src/net/protocol.c` still passes: its score
-     is 0.01 above its floor.
+4. Codemods. Done (877 left). Scripts in `tmp/218/codemods/` (gitignored) read a fresh
+   `clang-tidy-report.json` and edit at the reported line and column; clang-format lays out
+   the result. Regenerate the report between codemods: each one shifts lines or columns.
+   - `bugprone-switch-missing-default-case`: 619 `default: break;` (a `break;` first where
+     the last case could fall through; `account.c` skipped, authentication's floor has no
+     room). An empty last case joins the default instead, since `case X: break; default: break;` is a new `bugprone-branch-clone` finding (15 sites), and the turn undead switch's
+     last case is braced for `-Wjump-misses-init`.
+   - `bugprone-implicit-widening-of-multiplication-result`: 455 casts to the destination type
+     before the left operand, then a second pass of 34 for products spelled inside macros
+     (`SECS_PER_MUD_DAY`) that the first pass exposed. Statement macros take the cast inside
+     their body (`NODE_ADVANCE` in test_gameplay_e2e.c).
+   - `bugprone-multi-level-implicit-pointer-conversion`: 143 casts; the three
+     `CuAssertPtrEquals` sites cast their arguments, since the conversion is in the macro.
+   - `tmp/218/codemods/coverage_trim.py` backed out the 24 unexecuted codemod hunks (26
+     findings) in olc, persistence, sql, and the world/DG/config parsers, leaving each at least
+     ten points above its changed-line floor. `--update` never raises a count, so the baseline
+     was restored from the step 3 commit and recorded again.
 5. PR 1 ("Part of #218"). Rebase onto `origin/master`; on a baseline conflict take master's
    file and run `--update` again. Run the coverage check below and
    `run.py --job quality-clang-tidy --jobs 1 --cpus 16` (some findings appear only with the
@@ -171,7 +171,7 @@ fixes land early and the branch is exposed to #216 and other parallel work for l
 
 ## Resume here
 
-Steps 1-3 are committed. Next: step 4 (the codemods are written in `tmp/218/codemods/`).
+Steps 1-4 are committed. Next: step 5 (local matrix, push, PR 1, CodeQL comparison).
 
 ## Progress log
 
@@ -180,3 +180,5 @@ Steps 1-3 are committed. Next: step 4 (the codemods are written in `tmp/218/code
 - 2026-09-22: step 2 committed (2,304); build warning-free, CuTest 1,734/1,734.
 - 2026-09-23: step 3 committed (2,071); build warning-free, CuTest 1,744/1,744, protocol
   parser harness 32/32, new tests clean under valgrind.
+- 2026-09-23: step 4 committed (877); build warning-free, CuTest 1,744/1,744, coverage policy
+  passes locally.
