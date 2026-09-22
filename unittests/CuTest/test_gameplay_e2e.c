@@ -6048,7 +6048,6 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   af.duration = 7;
   affect_to_char(source, &af);
 
-  filename_ready = false;
   load_result = -1;
   loaded_level = -1;
   loaded_gold = -1;
@@ -6186,7 +6185,6 @@ void Test_gameplay_e2e_late_psychic_sundering_migrates_from_legacy_affects(CuTes
   af.duration = 5;
   affect_to_char(source, &af);
 
-  filename_ready = false;
   legacy_file_ready = false;
   save_result = false;
   load_result = -1;
