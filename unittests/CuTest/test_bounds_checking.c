@@ -246,21 +246,61 @@ void Test_wilderness_map_truncates_an_oversized_glyph(CuTest *tc)
 void Test_path_component_validation(CuTest *tc)
 {
   char filename[MAX_FILEPATH];
+  char small[13];
 
-  CuAssertTrue(tc, is_safe_path_component("1200.wld"));
-  CuAssertTrue(tc, is_safe_path_component("zone-name_2.obj"));
-  CuAssertTrue(tc, !is_safe_path_component("../etc/passwd"));
-  CuAssertTrue(tc, !is_safe_path_component("subdir/file.wld"));
-  CuAssertTrue(tc, !is_safe_path_component("zone..obj"));
+  CuAssertTrue(tc, build_safe_path(filename, sizeof(filename), "world/wld/", "1200.wld",
+                                   SAFE_PATH_FILENAME));
+  CuAssertStrEquals(tc, "world/wld/1200.wld", filename);
+  CuAssertTrue(
+      tc, build_safe_path(filename, sizeof(filename), "", "zone-name_2.obj", SAFE_PATH_FILENAME));
+  CuAssertTrue(
+      tc, !build_safe_path(filename, sizeof(filename), "", "../etc/passwd", SAFE_PATH_FILENAME));
+  CuAssertStrEquals(tc, "", filename);
+  CuAssertTrue(
+      tc, !build_safe_path(filename, sizeof(filename), "", "subdir/file.wld", SAFE_PATH_FILENAME));
+  CuAssertTrue(tc,
+               !build_safe_path(filename, sizeof(filename), "", "zone..obj", SAFE_PATH_FILENAME));
+  CuAssertTrue(tc, !build_safe_path(filename, sizeof(filename), "", ".", SAFE_PATH_FILENAME));
+  CuAssertTrue(tc, !build_safe_path(filename, sizeof(filename), "", "", SAFE_PATH_FILENAME));
   CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, "taure_two"));
   CuAssertTrue(tc, !get_filename(filename, sizeof(filename), PLR_FILE, "../../player"));
-  CuAssertTrue(tc, is_safe_relative_path("etc/config"));
-  CuAssertTrue(tc, is_safe_relative_path("config/test-1.cfg"));
-  CuAssertTrue(tc, !is_safe_relative_path("/etc/passwd"));
-  CuAssertTrue(tc, !is_safe_relative_path("../etc/config"));
-  CuAssertTrue(tc, !is_safe_relative_path("etc/../config"));
-  CuAssertTrue(tc, !is_safe_relative_path("etc//config"));
-  CuAssertTrue(tc, !is_safe_relative_path("etc\\config"));
+  CuAssertTrue(tc,
+               build_safe_path(filename, sizeof(filename), "", "etc/config", SAFE_PATH_RELATIVE));
+  CuAssertStrEquals(tc, "etc/config", filename);
+  CuAssertTrue(
+      tc, build_safe_path(filename, sizeof(filename), "", "config/test-1.cfg", SAFE_PATH_RELATIVE));
+  CuAssertTrue(tc,
+               !build_safe_path(filename, sizeof(filename), "", "/etc/passwd", SAFE_PATH_RELATIVE));
+  CuAssertTrue(
+      tc, !build_safe_path(filename, sizeof(filename), "", "../etc/config", SAFE_PATH_RELATIVE));
+  CuAssertTrue(
+      tc, !build_safe_path(filename, sizeof(filename), "", "etc/../config", SAFE_PATH_RELATIVE));
+  CuAssertTrue(
+      tc, !build_safe_path(filename, sizeof(filename), "", "etc/./config", SAFE_PATH_RELATIVE));
+  CuAssertTrue(tc,
+               !build_safe_path(filename, sizeof(filename), "", "etc//config", SAFE_PATH_RELATIVE));
+  CuAssertTrue(tc, !build_safe_path(filename, sizeof(filename), "", "etc/", SAFE_PATH_RELATIVE));
+  CuAssertTrue(tc,
+               !build_safe_path(filename, sizeof(filename), "", "etc\\config", SAFE_PATH_RELATIVE));
+  CuAssertTrue(tc, build_safe_path(filename, sizeof(filename), "", "/var/log/luminari.log",
+                                   SAFE_PATH_ABSOLUTE_OK));
+  CuAssertStrEquals(tc, "/var/log/luminari.log", filename);
+  CuAssertTrue(
+      tc, build_safe_path(filename, sizeof(filename), "", "log/syslog", SAFE_PATH_ABSOLUTE_OK));
+  CuAssertTrue(tc, !build_safe_path(filename, sizeof(filename), "", "/", SAFE_PATH_ABSOLUTE_OK));
+  CuAssertTrue(tc,
+               !build_safe_path(filename, sizeof(filename), "", "//log", SAFE_PATH_ABSOLUTE_OK));
+  CuAssertTrue(
+      tc, !build_safe_path(filename, sizeof(filename), "", "/var/../etc", SAFE_PATH_ABSOLUTE_OK));
+
+  /* The whole result, prefix included, must fit. */
+  CuAssertTrue(tc, build_safe_path(small, sizeof(small), "wld/", "1200.wld", SAFE_PATH_FILENAME));
+  CuAssertStrEquals(tc, "wld/1200.wld", small);
+  CuAssertTrue(tc, !build_safe_path(small, sizeof(small), "wld/", "12000.wld", SAFE_PATH_FILENAME));
+  CuAssertStrEquals(tc, "", small);
+  CuAssertTrue(tc,
+               !build_safe_path(small, sizeof(small), "world/wld/xx", "1.wld", SAFE_PATH_FILENAME));
+  CuAssertStrEquals(tc, "", small);
 }
 
 void Test_fopen_restricted_blocks_world_write(CuTest *tc)
