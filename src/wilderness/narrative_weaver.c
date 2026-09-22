@@ -2828,7 +2828,7 @@ static char *reconstruct_enhanced_description(struct description_components *com
         // Ensure sensory sentence starts with lowercase (since transition provides the capital)
         if (sensory_sentence[0] >= 'A' && sensory_sentence[0] <= 'Z')
         {
-          sensory_sentence[0] = sensory_sentence[0] - 'A' + 'a';
+          sensory_sentence[0] = (char)(sensory_sentence[0] - 'A' + 'a');
         }
       }
       else
@@ -2836,7 +2836,7 @@ static char *reconstruct_enhanced_description(struct description_components *com
         // No transition - ensure sensory sentence starts with capital
         if (sensory_sentence[0] >= 'a' && sensory_sentence[0] <= 'z')
         {
-          sensory_sentence[0] = sensory_sentence[0] - 'a' + 'A';
+          sensory_sentence[0] = (char)(sensory_sentence[0] - 'a' + 'A');
         }
       }
 
