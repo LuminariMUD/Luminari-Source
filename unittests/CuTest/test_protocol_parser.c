@@ -509,6 +509,44 @@ void TestProtocolParser_TtypeAndNawsNegotiation(CuTest *tc)
   harness_destroy(&harness);
 }
 
+/* An MTTS bitmask outside 1..INT_MAX sets nothing; INT_MAX itself sets every bit. */
+void TestProtocolParser_MttsBitmaskIsClampedToInt(CuTest *tc)
+{
+  protocol_harness_t harness;
+  protocol_fixture_t fixture;
+  const unsigned char mtts_negative[] = {0, 'M', 'T', 'T', 'S', ' ', '-', '1'};
+  const unsigned char mtts_int_max[] = {0,   'M', 'T', 'T', 'S', ' ', '2', '1',
+                                        '4', '7', '4', '8', '3', '6', '4', '7'};
+
+  harness_init(tc, &harness);
+  /* ANSI defaults to on; clear it so bit 1 of the mask is observable. */
+  harness.descriptor.pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt = 0;
+
+  fixture_init(&fixture);
+  fixture_telnet3(&fixture, (unsigned char)WILL, (unsigned char)TELOPT_TTYPE);
+  fixture_subnegotiation(&fixture, (unsigned char)TELOPT_TTYPE, mtts_negative,
+                         sizeof(mtts_negative));
+  assert_fixture_valid(tc, &fixture);
+  harness_input(&harness, &fixture);
+
+  CuAssertIntEquals(tc, 0, harness.descriptor.pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt);
+  CuAssertIntEquals(tc, 0, harness.descriptor.pProtocol->pVariables[eMSDP_UTF_8]->ValueInt);
+  CuAssertIntEquals(tc, 0, harness.descriptor.pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt);
+  CuAssertTrue(tc, harness.descriptor.pProtocol->b256Support != eYES);
+
+  fixture_init(&fixture);
+  fixture_subnegotiation(&fixture, (unsigned char)TELOPT_TTYPE, mtts_int_max, sizeof(mtts_int_max));
+  assert_fixture_valid(tc, &fixture);
+  harness_input(&harness, &fixture);
+
+  CuAssertIntEquals(tc, 1, harness.descriptor.pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt);
+  CuAssertIntEquals(tc, 1, harness.descriptor.pProtocol->pVariables[eMSDP_UTF_8]->ValueInt);
+  CuAssertIntEquals(tc, 1, harness.descriptor.pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt);
+  CuAssertIntEquals(tc, eYES, harness.descriptor.pProtocol->b256Support);
+
+  harness_destroy(&harness);
+}
+
 void TestProtocolParser_ShortSubnegotiationsAreIgnored(CuTest *tc)
 {
   protocol_harness_t harness;
@@ -1453,6 +1491,7 @@ CuSuite *ProtocolParserSuite(void)
   SUITE_ADD_TEST(suite, TestProtocolParser_IncompleteAndMalformedSubnegotiations);
   SUITE_ADD_TEST(suite, TestProtocolParser_TruncatedLookaheadSequences);
   SUITE_ADD_TEST(suite, TestProtocolParser_TtypeAndNawsNegotiation);
+  SUITE_ADD_TEST(suite, TestProtocolParser_MttsBitmaskIsClampedToInt);
   SUITE_ADD_TEST(suite, TestProtocolParser_ShortSubnegotiationsAreIgnored);
   SUITE_ADD_TEST(suite, TestProtocolParser_UnsupportedOptionNegotiation);
   SUITE_ADD_TEST(suite, TestProtocolParser_GmcpAndMsdpCanCoexist);

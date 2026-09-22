@@ -282,16 +282,24 @@ void Test_path_component_validation(CuTest *tc)
   CuAssertTrue(tc, !build_safe_path(filename, sizeof(filename), "", "etc/", SAFE_PATH_RELATIVE));
   CuAssertTrue(tc,
                !build_safe_path(filename, sizeof(filename), "", "etc\\config", SAFE_PATH_RELATIVE));
-  CuAssertTrue(tc, build_safe_path(filename, sizeof(filename), "", "/var/log/luminari.log",
-                                   SAFE_PATH_ABSOLUTE_OK));
-  CuAssertStrEquals(tc, "/var/log/luminari.log", filename);
-  CuAssertTrue(
-      tc, build_safe_path(filename, sizeof(filename), "", "log/syslog", SAFE_PATH_ABSOLUTE_OK));
-  CuAssertTrue(tc, !build_safe_path(filename, sizeof(filename), "", "/", SAFE_PATH_ABSOLUTE_OK));
+
+  /* An operator's own path keeps every character and only refuses a ".." component. */
+  CuAssertTrue(tc, build_safe_path(filename, sizeof(filename), "", "/tmp/run dir/server.log",
+                                   SAFE_PATH_OPERATOR));
+  CuAssertStrEquals(tc, "/tmp/run dir/server.log", filename);
+  CuAssertTrue(tc, build_safe_path(filename, sizeof(filename), "", "~user/a+b@c:d,e/./x..log",
+                                   SAFE_PATH_OPERATOR));
+  CuAssertStrEquals(tc, "~user/a+b@c:d,e/./x..log", filename);
   CuAssertTrue(tc,
-               !build_safe_path(filename, sizeof(filename), "", "//log", SAFE_PATH_ABSOLUTE_OK));
+               build_safe_path(filename, sizeof(filename), "", "log//syslog/", SAFE_PATH_OPERATOR));
   CuAssertTrue(
-      tc, !build_safe_path(filename, sizeof(filename), "", "/var/../etc", SAFE_PATH_ABSOLUTE_OK));
+      tc, !build_safe_path(filename, sizeof(filename), "", "../log/syslog", SAFE_PATH_OPERATOR));
+  CuAssertStrEquals(tc, "", filename);
+  CuAssertTrue(
+      tc, !build_safe_path(filename, sizeof(filename), "", "log/../syslog", SAFE_PATH_OPERATOR));
+  CuAssertTrue(tc, !build_safe_path(filename, sizeof(filename), "", "log/..", SAFE_PATH_OPERATOR));
+  CuAssertTrue(tc, !build_safe_path(filename, sizeof(filename), "", "..", SAFE_PATH_OPERATOR));
+  CuAssertTrue(tc, !build_safe_path(filename, sizeof(filename), "", "", SAFE_PATH_OPERATOR));
 
   /* The whole result, prefix included, must fit. */
   CuAssertTrue(tc, build_safe_path(small, sizeof(small), "wld/", "1200.wld", SAFE_PATH_FILENAME));

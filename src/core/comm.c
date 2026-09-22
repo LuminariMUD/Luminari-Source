@@ -5511,10 +5511,15 @@ static void setup_log(const char *filename, int fd __attribute__((unused)))
     return;
   }
 
-  /* We honor the default filename first. */
-  if (!build_safe_path(log_path, sizeof(log_path), "", filename, SAFE_PATH_ABSOLUTE_OK))
-    printf("SYSERR: Log file name '%s' is not a safe path.\n", filename);
-  else if (open_logfile(log_path, s_fp))
+  /* We honor the requested filename first. The operator chose it, so any
+   * character is fine; only a ".." component is refused, and that refusal
+   * stops the boot rather than logging somewhere else. */
+  if (!build_safe_path(log_path, sizeof(log_path), "", filename, SAFE_PATH_OPERATOR))
+  {
+    printf("SYSERR: Log file name '%s' contains a '..' component.\n", filename);
+    exit(1);
+  }
+  if (open_logfile(log_path, s_fp))
     return;
 
   /* Well, that failed but we want it logged to a file so try a default. */

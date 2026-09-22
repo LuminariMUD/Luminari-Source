@@ -1019,7 +1019,8 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
     savethrow += 4;
 
   // vampire bonuses / penalties for feeding
-  challenge += vampire_last_feeding_adjustment(ch);
+  if (ch)
+    challenge += vampire_last_feeding_adjustment(ch);
 
   // vampire bonuses / penalties for feeding
   savethrow += vampire_last_feeding_adjustment(vict);
@@ -1083,7 +1084,7 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
 
   if (type == SAVING_WILL && affected_by_spell(vict, PSIONIC_PSYCHIC_BODYGUARD))
   {
-    for (af = ch->affected; af; af = af->next)
+    for (af = vict->affected; af; af = af->next)
     {
       if (af->spell == PSIONIC_PSYCHIC_BODYGUARD && af->location == APPLY_SPECIAL)
       {

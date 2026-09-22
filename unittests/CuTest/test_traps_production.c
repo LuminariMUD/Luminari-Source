@@ -7,6 +7,8 @@
 #include "../../src/core/db.h"
 #include "../../src/core/handler.h"
 #include "../../src/combat/traps.h"
+#include "../../src/magic/spells.h"
+#include "../../src/magic/domains_schools.h"
 
 #include <string.h>
 #include <time.h>
@@ -241,4 +243,58 @@ void Test_traps_rol_exit_rearm_restores_a_disarmed_trap(CuTest *tc)
   world = saved_world;
   top_of_world = saved_top_of_world;
   free_trap_list(trap);
+}
+
+/* Traps roll saves with no caster; every save type must survive a NULL caster, and a
+ * Will save spends the victim's own psychic bodyguard charges. */
+void Test_traps_saving_throw_accepts_a_null_caster(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  struct affected_type af;
+  int type;
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&room, 0, sizeof(room));
+  ch.player_specials = &player_specials;
+  ch.player.name = CuMutableString("trap tester");
+  GET_LEVEL(&ch) = 1;
+  GET_POS(&ch) = POS_STANDING;
+  IN_ROOM(&ch) = 0;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+
+  for (type = SAVING_FORT; type <= SAVING_WILL; type++)
+  {
+    test_reset_savingthrow_observation();
+    savingthrow(NULL, &ch, type, 0, CAST_INNATE, 5, NOSCHOOL);
+    CuAssertIntEquals(tc, SAVING_THROW_BASE_DC + 5, test_get_last_savingthrow_challenge());
+  }
+
+  new_affect(&af);
+  af.spell = PSIONIC_PSYCHIC_BODYGUARD;
+  af.location = APPLY_SPECIAL;
+  af.modifier = 2;
+  af.duration = 10;
+  affect_to_char(&ch, &af);
+  CuAssertTrue(tc, affected_by_spell(&ch, PSIONIC_PSYCHIC_BODYGUARD));
+
+  savingthrow(NULL, &ch, SAVING_WILL, 0, CAST_INNATE, 5, NOSCHOOL);
+  CuAssertTrue(tc, affected_by_spell(&ch, PSIONIC_PSYCHIC_BODYGUARD));
+  CuAssertIntEquals(tc, 1, ch.affected->modifier);
+
+  savingthrow(NULL, &ch, SAVING_WILL, 0, CAST_INNATE, 5, NOSCHOOL);
+  CuAssertTrue(tc, !affected_by_spell(&ch, PSIONIC_PSYCHIC_BODYGUARD));
+
+  while (ch.affected)
+    affect_remove(&ch, ch.affected);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
 }
