@@ -3025,6 +3025,35 @@ size_t strlcat(char *buf, const char *src, size_t bufsz)
 }
 #endif
 
+int parse_int(const char *text)
+{
+  long value;
+
+  if (text == NULL)
+    return 0;
+  value = strtol(text, NULL, 10);
+  if (value > INT_MAX)
+    return INT_MAX;
+  if (value < INT_MIN)
+    return INT_MIN;
+  return (int)value;
+}
+
+long parse_long(const char *text)
+{
+  return text == NULL ? 0L : strtol(text, NULL, 10);
+}
+
+long long parse_llong(const char *text)
+{
+  return text == NULL ? 0LL : strtoll(text, NULL, 10);
+}
+
+double parse_double(const char *text)
+{
+  return text == NULL ? 0.0 : strtod(text, NULL);
+}
+
 /*
  * Appends formatted text at a tracked buffer offset and returns the new,
  * saturated offset.  Unlike adding snprintf()'s return value directly, the

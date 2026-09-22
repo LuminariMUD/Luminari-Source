@@ -562,6 +562,15 @@ size_t strlcat(char *buf, const char *src, size_t bufsz);
 int snprintf_append(char *buffer, size_t buffer_size, int offset, const char *format, ...)
     __attribute__((format(printf, 4, 5)));
 
+/* strtol()-based replacements for atoi(), atol(), atoll(), and atof(). Each reads a number the
+ * way its libc counterpart does (leading whitespace, an optional sign, then the digits), but a
+ * NULL or number-free string yields 0 and an out-of-range value saturates instead of being
+ * undefined. */
+int parse_int(const char *text);
+long parse_long(const char *text);
+long long parse_llong(const char *text);
+double parse_double(const char *text);
+
 /* random functions in random.c */
 void circle_srandom(unsigned long initial_seed);
 unsigned long circle_random(void);

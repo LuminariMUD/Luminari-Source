@@ -2982,7 +2982,8 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
 
       if (PrefixString("MTTS ", pClientName))
       {
-        int mtts_capabilities = atoi(pClientName + 5);
+        long mtts_value = strtol(pClientName + 5, NULL, 10);
+        int mtts_capabilities = mtts_value > 0 && mtts_value <= INT_MAX ? (int)mtts_value : 0;
 
         if (mtts_capabilities & 1)
           pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt = 1;
@@ -3594,7 +3595,8 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
             /* Validate the MSDP value before setting */
             if (ValidateMSDPValue(var, apValue) == PROTOCOL_SUCCESS)
             {
-              int Value = atoi(apValue);
+              long parsed = strtol(apValue, NULL, 10);
+              int Value = parsed > INT_MAX ? INT_MAX : parsed < INT_MIN ? INT_MIN : (int)parsed;
               apDescriptor->pProtocol->pVariables[var]->ValueInt = Value;
             }
             else

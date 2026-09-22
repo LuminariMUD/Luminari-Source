@@ -827,13 +827,14 @@ static void reject_editor_transfer(struct descriptor_data *d, enum web_onboardin
 void web_onboarding_set_capability(struct descriptor_data *d, const char *value)
 {
   int version = 0;
+  long parsed;
 
   if (d == NULL || value == NULL)
     return;
 
-  version = atoi(value);
-  if (version < 0 || version > 1000)
-    version = 0;
+  parsed = strtol(value, NULL, 10);
+  if (parsed >= 0 && parsed <= 1000)
+    version = (int)parsed;
 
   if (version != d->web_onboarding_version)
     clear_editor_transfers(d);
