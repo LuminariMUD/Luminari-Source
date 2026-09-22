@@ -835,7 +835,7 @@ static void resume_trig_wait(struct wait_event_data *wait_event_obj)
   wait_event_obj->trigger = NULL;
 
   {
-    struct script_call_args restart_args = {&go, trig, type, TRIG_RESTART};
+    struct script_call_args restart_args = {(void *)&go, trig, type, TRIG_RESTART};
 #ifdef LUMINARI_CUTEST
     test_wait_resume_count++;
 #endif

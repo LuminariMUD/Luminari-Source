@@ -832,7 +832,7 @@ void active_world_shutdown(void)
     }
   }
   scheduled_mobiles = NULL;
-  memset(registry_buckets, 0, sizeof(registry_buckets));
+  memset((void *)registry_buckets, 0, sizeof(registry_buckets));
   dispatching_mobile = NULL;
   dispatching_mobile_forgotten = false;
   active_mobile_count = 0U;

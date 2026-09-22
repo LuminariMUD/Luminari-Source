@@ -545,7 +545,7 @@ void sync_all_loaded_vehicles(struct greyhawk_ship_data *vessel)
     }
   }
 
-  free(vehicles);
+  free((void *)vehicles);
   VHCL_DEBUG_XPORT("Completed sync of %d vehicles on vessel %s", count, vessel->name);
   VSSL_DEBUG_EXIT("sync_all_loaded_vehicles");
 }

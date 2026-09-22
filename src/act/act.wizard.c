@@ -3902,7 +3902,7 @@ ACMD(do_shoplist)
   column_list(ch, 1, (const char *const *)lines, line_count, FALSE);
   for (shop_nr = 0; shop_nr < line_count; shop_nr++)
     free(lines[shop_nr]);
-  free(lines);
+  free((void *)lines);
 }
 
 /* The shopstat command - detailed info for a specific shop vnum */

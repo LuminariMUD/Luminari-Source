@@ -690,7 +690,7 @@ void TestFourArmsLossIgnoresRemoveTriggerVeto(CuTest *tc)
   FILE *trigger_file;
 
   begin_four_arm_fixture(&fixture);
-  trig_index = calloc(1, sizeof(*trig_index));
+  trig_index = (struct index_data **)calloc(1, sizeof(*trig_index));
   top_of_trigt = 0;
   trigger_file = tmpfile();
   CuAssertPtrNotNull(tc, trig_index);
@@ -735,7 +735,7 @@ void TestFourArmsLossIgnoresRemoveTriggerVeto(CuTest *tc)
     commands = next_command;
   }
   free(prototype_index);
-  free(trig_index);
+  free((void *)trig_index);
   trig_index = saved_trig_index;
   top_of_trigt = saved_top_of_trigt;
   trigger_list = saved_trigger_list;

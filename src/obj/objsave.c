@@ -3889,7 +3889,7 @@ static char **pet_object_split_lines(char *text)
   for (cursor = text; *cursor; cursor++)
     if (*cursor == '\n')
       count++;
-  lines = calloc(count, sizeof(*lines));
+  lines = (char **)calloc(count, sizeof(*lines));
   if (lines == NULL)
     return NULL;
   lines[index++] = text;
@@ -4434,7 +4434,7 @@ static obj_save_data *objsave_parse_objects_db_pet(struct char_data *owner, long
       temp = NULL;
     }
 
-    free(lines);          /* Free the tokenized lines */
+    free((void *)lines);  /* Free the tokenized lines */
     free(serialized_obj); /* Done with this! */
     lines = NULL;
     serialized_obj = NULL;
@@ -4451,7 +4451,7 @@ decoded:
   if (parse_failed)
   {
     if (lines != NULL)
-      free(lines);
+      free((void *)lines);
     free(serialized_obj);
     if (temp != NULL)
       extract_obj(temp);

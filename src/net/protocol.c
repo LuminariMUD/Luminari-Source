@@ -473,7 +473,7 @@ void ProtocolDestroy(protocol_t *apProtocol)
       apProtocol->pVariables[i] = NULL;
     }
 
-    free(apProtocol->pVariables);
+    free((void *)apProtocol->pVariables);
     apProtocol->pVariables = NULL;
   }
 

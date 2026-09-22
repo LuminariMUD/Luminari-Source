@@ -648,7 +648,7 @@ void trigedit_save(struct descriptor_data *d)
       trig_data_copy(proto, trig);
     }
 
-    free(trig_index);
+    free((void *)trig_index);
 
     trig_index = new_index;
     top_of_trigt++;

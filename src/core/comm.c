@@ -4440,7 +4440,7 @@ void close_socket(struct descriptor_data *d)
     {
       if (*(d->str))
         free(*(d->str));
-      free(d->str);
+      free((void *)d->str);
       d->str = NULL;
     }
     else if (d->backstr && !IS_NPC(d->character) && !PLR_FLAGGED(d->character, PLR_WRITING))
@@ -4490,13 +4490,13 @@ void close_socket(struct descriptor_data *d)
     for (cnt = 0; cnt < HISTORY_SIZE; cnt++)
       if (d->history[cnt])
         free(d->history[cnt]);
-    free(d->history);
+    free((void *)d->history);
   }
 
   if (d->showstr_head)
     free(d->showstr_head);
   if (d->showstr_count)
-    free(d->showstr_vector);
+    free((void *)d->showstr_vector);
 
   /* KaVir's plugin*/
   ProtocolDestroy(d->pProtocol);
@@ -6044,7 +6044,7 @@ static void update_msdp_wilderness_graphic_map(struct descriptor_data *d, struct
       while (x_index-- > 0)
         free(map[x_index]);
 
-      free(map);
+      free((void *)map);
       free(buffer.data);
       return;
     }
@@ -6118,7 +6118,7 @@ static void update_msdp_wilderness_graphic_map(struct descriptor_data *d, struct
   for (x_index = 0; x_index < map_size; x_index++)
     free(map[x_index]);
 
-  free(map);
+  free((void *)map);
   free(buffer.data);
 }
 

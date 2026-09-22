@@ -101,7 +101,7 @@ static bool damage_trigger_fixture_begin(struct damage_trigger_fixture *fixture)
   fixture->mobile_prototype.nr = 0;
   GET_PSP(&fixture->mobile_prototype) = 100;
   mob_proto = &fixture->mobile_prototype;
-  trig_index = calloc(DAMAGE_TRIGGER_TEST_CAPACITY, sizeof(*trig_index));
+  trig_index = (struct index_data **)calloc(DAMAGE_TRIGGER_TEST_CAPACITY, sizeof(*trig_index));
   top_of_trigt = 0;
 
   damage_trigger_initialize_npc(&fixture->actor, "damage trigger actor");
@@ -160,7 +160,7 @@ static void damage_trigger_fixture_end(struct damage_trigger_fixture *fixture)
     remove_from_lookup_table(GET_ID(&fixture->victim));
 
   damage_trigger_free_prototypes();
-  free(trig_index);
+  free((void *)trig_index);
 
   world = fixture->saved_world;
   top_of_world = fixture->saved_top_of_world;

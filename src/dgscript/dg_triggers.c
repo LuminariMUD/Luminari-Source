@@ -128,7 +128,7 @@ void random_mtrigger(char_data *ch)
     if (TRIGGER_CHECK(t, MTRIG_RANDOM) && (rand_number(1, 100) <= GET_TRIG_NARG(t)))
     {
       {
-        struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
 
         script_driver(&args);
       }
@@ -153,7 +153,7 @@ void bribe_mtrigger(char_data *ch, char_data *actor, int amount)
       add_var(&GET_TRIG_VARS(t), "amount", buf, 0);
       ADD_UID_VAR(buf, t, actor, "actor", 0);
       {
-        struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
 
         script_driver(&args);
       }
@@ -205,7 +205,7 @@ void greet_memory_mtrigger(char_data *actor)
           {
             ADD_UID_VAR(buf, t, actor, "actor", 0);
             {
-              struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+              struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
 
               script_driver(&args);
             }
@@ -271,7 +271,7 @@ int greet_mtrigger(char_data *actor, int dir)
           add_var(&GET_TRIG_VARS(t), "direction", "none", 0);
         ADD_UID_VAR(buf, t, actor, "actor", 0);
         {
-          struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+          struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
 
           intermediate = script_driver(&args);
         }
@@ -314,7 +314,7 @@ void entry_memory_mtrigger(char_data *ch)
               {
                 ADD_UID_VAR(buf, t, actor, "actor", 0);
                 {
-                  struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+                  struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
 
                   script_driver(&args);
                 }
@@ -358,7 +358,7 @@ int entry_mtrigger(char_data *ch)
       int trigger_type = MOB_TRIGGER; /* MOB_TRIGGER = 0 */
       int trigger_mode = TRIG_NEW;    /* TRIG_NEW = 0 */
       {
-        struct script_call_args args = {&ch, t, trigger_type, trigger_mode};
+        struct script_call_args args = {(void *)&ch, t, trigger_type, trigger_mode};
 
         return script_driver(&args);
       }
@@ -413,7 +413,7 @@ int command_mtrigger(char_data *actor, char *cmd, char *argument)
           add_var(&GET_TRIG_VARS(t), "cmd", cmd, 0);
 
           {
-            struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+            struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
             if (script_driver(&args))
               return 1;
           }
@@ -455,7 +455,7 @@ void speech_mtrigger(char_data *actor, char *str)
           ADD_UID_VAR(buf, t, actor, "actor", 0);
           add_var(&GET_TRIG_VARS(t), "speech", str, 0);
           {
-            struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+            struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
 
             script_driver(&args);
           }
@@ -520,7 +520,7 @@ void act_mtrigger(const char_data *ch, char *str, char_data *actor, char_data *v
           }
         }
         {
-          struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+          struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
 
           script_driver(&args);
         }
@@ -549,7 +549,7 @@ void fight_mtrigger(char_data *ch)
         add_var(&GET_TRIG_VARS(t), "actor", "nobody", 0);
 
       {
-        struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
 
         script_driver(&args);
       }
@@ -575,7 +575,7 @@ void hitprcnt_mtrigger(char_data *ch)
       actor = FIGHTING(ch);
       ADD_UID_VAR(buf, t, actor, "actor", 0);
       {
-        struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
 
         script_driver(&args);
       }
@@ -602,7 +602,7 @@ int receive_mtrigger(char_data *ch, char_data *actor, obj_data *obj)
       snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, object_id);
       add_var(&GET_TRIG_VARS(t), "object", buf, 0);
       {
-        struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
 
         ret_val = script_driver(&args);
       }
@@ -632,7 +632,7 @@ int death_mtrigger(char_data *ch, char_data *actor)
       if (actor)
         ADD_UID_VAR(buf, t, actor, "actor", 0);
       {
-        struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
 
         return script_driver(&args);
       }
@@ -665,7 +665,7 @@ void load_mtrigger(char_data *ch)
       int trigger_type = MOB_TRIGGER; /* MOB_TRIGGER = 0 */
       int trigger_mode = TRIG_NEW;    /* TRIG_NEW = 0 */
       {
-        struct script_call_args args = {&ch, t, trigger_type, trigger_mode};
+        struct script_call_args args = {(void *)&ch, t, trigger_type, trigger_mode};
 
         result = script_driver(&args);
       }
@@ -703,7 +703,7 @@ int cast_mtrigger(char_data *actor, char_data *ch, int spellnum)
       add_var(&GET_TRIG_VARS(t), "spell", buf, 0);
       add_var(&GET_TRIG_VARS(t), "spellname", spell_name(spellnum), 0);
       {
-        struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
 
         return script_driver(&args);
       }
@@ -801,7 +801,7 @@ int damage_mtrigger(char_data *actor, char_data *victim, int dam, int attack_id,
       add_var(&GET_TRIG_VARS(t), "attackmode", damage_trigger_attack_mode_name(attack_mode), 0);
       {
         char_data *trigger_owner = victim;
-        struct script_call_args args = {&trigger_owner, t, MOB_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&trigger_owner, t, MOB_TRIGGER, TRIG_NEW};
         struct script_driver_status status;
 
         ret_val = script_driver_with_status(&args, &status);
@@ -851,7 +851,7 @@ int leave_mtrigger(char_data *actor, int dir)
           add_var(&GET_TRIG_VARS(t), "direction", "none", 0);
         ADD_UID_VAR(buf, t, actor, "actor", 0);
         {
-          struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+          struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
 
           return script_driver(&args);
         }
@@ -885,7 +885,7 @@ int door_mtrigger(char_data *actor, int subcmd, int dir)
           add_var(&GET_TRIG_VARS(t), "direction", "none", 0);
         ADD_UID_VAR(buf, t, actor, "actor", 0);
         {
-          struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+          struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
 
           return script_driver(&args);
         }
@@ -911,7 +911,7 @@ void time_mtrigger(char_data *ch)
       snprintf(buf, sizeof(buf), "%d", time_info.hours);
       add_var(&GET_TRIG_VARS(t), "time", buf, 0);
       {
-        struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&ch, t, MOB_TRIGGER, TRIG_NEW};
 
         script_driver(&args);
       }
@@ -938,7 +938,7 @@ void random_otrigger(obj_data *obj)
     if (TRIGGER_CHECK(t, OTRIG_RANDOM) && (rand_number(1, 100) <= GET_TRIG_NARG(t)))
     {
       {
-        struct script_call_args args = {&obj, t, OBJ_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&obj, t, OBJ_TRIGGER, TRIG_NEW};
 
         script_driver(&args);
       }
@@ -971,7 +971,7 @@ int timer_otrigger(struct obj_data *obj)
     if (TRIGGER_CHECK(t, OTRIG_TIMER))
     {
       {
-        struct script_call_args args = {&obj, t, OBJ_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&obj, t, OBJ_TRIGGER, TRIG_NEW};
 
         script_driver(&args);
       }
@@ -1002,7 +1002,7 @@ int get_otrigger(obj_data *obj, char_data *actor)
     {
       ADD_UID_VAR(buf, t, actor, "actor", 0);
       {
-        struct script_call_args args = {&obj, t, OBJ_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&obj, t, OBJ_TRIGGER, TRIG_NEW};
 
         ret_val = script_driver(&args);
       }
@@ -1062,7 +1062,7 @@ int cmd_otrig(obj_data *obj, char_data *actor, char *cmd, char *argument, int cm
 #endif
 
           {
-            struct script_call_args args = {&obj, t, trigger_type, TRIG_NEW};
+            struct script_call_args args = {(void *)&obj, t, trigger_type, TRIG_NEW};
 
 #ifdef SCRIPT_DEBUG
             script_log("SCRIPT_DEBUG %d: args struct created - ptr=%p, go_adress=%p, type=%d",
@@ -1127,7 +1127,7 @@ int wear_otrigger(obj_data *obj, char_data *actor, int where __attribute__((unus
     {
       ADD_UID_VAR(buf, t, actor, "actor", 0);
       {
-        struct script_call_args args = {&obj, t, OBJ_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&obj, t, OBJ_TRIGGER, TRIG_NEW};
 
         ret_val = script_driver(&args);
       }
@@ -1160,7 +1160,7 @@ int remove_otrigger(obj_data *obj, char_data *actor)
     {
       ADD_UID_VAR(buf, t, actor, "actor", 0);
       {
-        struct script_call_args args = {&obj, t, OBJ_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&obj, t, OBJ_TRIGGER, TRIG_NEW};
 
         ret_val = script_driver(&args);
       }
@@ -1190,7 +1190,7 @@ int drop_otrigger(obj_data *obj, char_data *actor)
     {
       ADD_UID_VAR(buf, t, actor, "actor", 0);
       {
-        struct script_call_args args = {&obj, t, OBJ_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&obj, t, OBJ_TRIGGER, TRIG_NEW};
 
         ret_val = script_driver(&args);
       }
@@ -1221,7 +1221,7 @@ int give_otrigger(obj_data *obj, char_data *actor, char_data *victim)
       ADD_UID_VAR(buf, t, actor, "actor", 0);
       ADD_UID_VAR(buf, t, victim, "victim", 0);
       {
-        struct script_call_args args = {&obj, t, OBJ_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&obj, t, OBJ_TRIGGER, TRIG_NEW};
 
         ret_val = script_driver(&args);
       }
@@ -1250,7 +1250,7 @@ void load_otrigger(obj_data *obj)
     if (TRIGGER_CHECK(t, OTRIG_LOAD) && (rand_number(1, 100) <= GET_TRIG_NARG(t)))
     {
       {
-        struct script_call_args args = {&obj, t, OBJ_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&obj, t, OBJ_TRIGGER, TRIG_NEW};
 
         result = script_driver(&args);
       }
@@ -1288,7 +1288,7 @@ int cast_otrigger(char_data *actor, obj_data *obj, int spellnum)
       add_var(&GET_TRIG_VARS(t), "spell", buf, 0);
       add_var(&GET_TRIG_VARS(t), "spellname", spell_name(spellnum), 0);
       {
-        struct script_call_args args = {&obj, t, OBJ_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&obj, t, OBJ_TRIGGER, TRIG_NEW};
 
         return script_driver(&args);
       }
@@ -1324,7 +1324,7 @@ int leave_otrigger(room_data *room, char_data *actor, int dir)
           add_var(&GET_TRIG_VARS(t), "direction", "none", 0);
         ADD_UID_VAR(buf, t, actor, "actor", 0);
         {
-          struct script_call_args args = {&obj, t, OBJ_TRIGGER, TRIG_NEW};
+          struct script_call_args args = {(void *)&obj, t, OBJ_TRIGGER, TRIG_NEW};
 
           temp = script_driver(&args);
         }
@@ -1366,7 +1366,7 @@ int consume_otrigger(obj_data *obj, char_data *actor, int cmd)
         break;
       }
       {
-        struct script_call_args args = {&obj, t, OBJ_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&obj, t, OBJ_TRIGGER, TRIG_NEW};
 
         ret_val = script_driver(&args);
       }
@@ -1396,7 +1396,7 @@ void time_otrigger(obj_data *obj)
       snprintf(buf, sizeof(buf), "%d", time_info.hours);
       add_var(&GET_TRIG_VARS(t), "time", buf, 0);
       {
-        struct script_call_args args = {&obj, t, OBJ_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&obj, t, OBJ_TRIGGER, TRIG_NEW};
 
         script_driver(&args);
       }
@@ -1418,7 +1418,7 @@ void reset_wtrigger(struct room_data *room)
     if (TRIGGER_CHECK(t, WTRIG_RESET) && (rand_number(1, 100) <= GET_TRIG_NARG(t)))
     {
       {
-        struct script_call_args args = {&room, t, WLD_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&room, t, WLD_TRIGGER, TRIG_NEW};
 
         script_driver(&args);
       }
@@ -1439,7 +1439,7 @@ void random_wtrigger(struct room_data *room)
     if (TRIGGER_CHECK(t, WTRIG_RANDOM) && (rand_number(1, 100) <= GET_TRIG_NARG(t)))
     {
       {
-        struct script_call_args args = {&room, t, WLD_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&room, t, WLD_TRIGGER, TRIG_NEW};
 
         script_driver(&args);
       }
@@ -1466,7 +1466,7 @@ int enter_wtrigger(struct room_data *room, char_data *actor, int dir)
         add_var(&GET_TRIG_VARS(t), "direction", "none", 0);
       ADD_UID_VAR(buf, t, actor, "actor", 0);
       {
-        struct script_call_args args = {&room, t, WLD_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&room, t, WLD_TRIGGER, TRIG_NEW};
 
         return script_driver(&args);
       }
@@ -1514,7 +1514,7 @@ int command_wtrigger(char_data *actor, char *cmd, char *argument)
       add_var(&GET_TRIG_VARS(t), "cmd", cmd, 0);
 
       {
-        struct script_call_args args = {&room, t, WLD_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&room, t, WLD_TRIGGER, TRIG_NEW};
 
         return script_driver(&args);
       }
@@ -1552,7 +1552,7 @@ void speech_wtrigger(char_data *actor, char *str)
       ADD_UID_VAR(buf, t, actor, "actor", 0);
       add_var(&GET_TRIG_VARS(t), "speech", str, 0);
       {
-        struct script_call_args args = {&room, t, WLD_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&room, t, WLD_TRIGGER, TRIG_NEW};
 
         script_driver(&args);
       }
@@ -1580,7 +1580,7 @@ int drop_wtrigger(obj_data *obj, char_data *actor)
       snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, object_id);
       add_var(&GET_TRIG_VARS(t), "object", buf, 0);
       {
-        struct script_call_args args = {&room, t, WLD_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&room, t, WLD_TRIGGER, TRIG_NEW};
 
         ret_val = script_driver(&args);
       }
@@ -1617,7 +1617,7 @@ int cast_wtrigger(char_data *actor, char_data *vict, obj_data *obj, int spellnum
       add_var(&GET_TRIG_VARS(t), "spell", buf, 0);
       add_var(&GET_TRIG_VARS(t), "spellname", spell_name(spellnum), 0);
       {
-        struct script_call_args args = {&room, t, WLD_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&room, t, WLD_TRIGGER, TRIG_NEW};
 
         return script_driver(&args);
       }
@@ -1648,7 +1648,7 @@ int leave_wtrigger(struct room_data *room, char_data *actor, int dir)
         add_var(&GET_TRIG_VARS(t), "direction", "none", 0);
       ADD_UID_VAR(buf, t, actor, "actor", 0);
       {
-        struct script_call_args args = {&room, t, WLD_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&room, t, WLD_TRIGGER, TRIG_NEW};
 
         return script_driver(&args);
       }
@@ -1679,7 +1679,7 @@ int door_wtrigger(char_data *actor, int subcmd, int dir)
         add_var(&GET_TRIG_VARS(t), "direction", "none", 0);
       ADD_UID_VAR(buf, t, actor, "actor", 0);
       {
-        struct script_call_args args = {&room, t, WLD_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&room, t, WLD_TRIGGER, TRIG_NEW};
 
         return script_driver(&args);
       }
@@ -1704,7 +1704,7 @@ void time_wtrigger(struct room_data *room)
       snprintf(buf, sizeof(buf), "%d", time_info.hours);
       add_var(&GET_TRIG_VARS(t), "time", buf, 0);
       {
-        struct script_call_args args = {&room, t, WLD_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&room, t, WLD_TRIGGER, TRIG_NEW};
 
         script_driver(&args);
       }
@@ -1727,7 +1727,7 @@ int login_wtrigger(struct room_data *room, char_data *actor)
     {
       ADD_UID_VAR(buf, t, actor, "actor", 0);
       {
-        struct script_call_args args = {&room, t, WLD_TRIGGER, TRIG_NEW};
+        struct script_call_args args = {(void *)&room, t, WLD_TRIGGER, TRIG_NEW};
 
         return script_driver(&args);
       }

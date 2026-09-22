@@ -649,7 +649,7 @@ struct landmass_info *detect_landmasses(FILE *fp)
   {
     free(visited[y]);
   }
-  free(visited);
+  free((void *)visited);
   WILD_DEBUG("Freed visited array for landmass detection");
 
   /* Return landmasses list - will be freed later */
@@ -815,7 +815,7 @@ void trace_mountain_ranges(FILE *fp)
   {
     free(visited[y]);
   }
-  free(visited);
+  free((void *)visited);
   WILD_DEBUG("Freed mountain visited array");
 
   report_progress("Tracing mountain ranges", 100);

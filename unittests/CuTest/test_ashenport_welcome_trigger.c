@@ -289,7 +289,7 @@ static bool ashenport_fixture_begin(struct ashenport_welcome_fixture *fixture)
   GET_PSP(&fixture->mobile_prototype) = 100;
   mob_proto = &fixture->mobile_prototype;
 
-  trig_index = calloc(ASHENPORT_TRIGGER_CAPACITY, sizeof(*trig_index));
+  trig_index = (struct index_data **)calloc(ASHENPORT_TRIGGER_CAPACITY, sizeof(*trig_index));
   top_of_trigt = 0;
   trigger_list = NULL;
   if (trig_index == NULL)
@@ -354,7 +354,7 @@ static void ashenport_fixture_end(struct ashenport_welcome_fixture *fixture)
   ashenport_destroy_descriptor(&fixture->replacement_desc);
 
   ashenport_free_prototypes();
-  free(trig_index);
+  free((void *)trig_index);
 
   if (fixture->log_file != NULL)
     fclose(fixture->log_file);

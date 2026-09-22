@@ -836,7 +836,7 @@ ACMD(do_unloadvehicle)
                    vehicle_type_name(vehicles[i]->type));
     }
     send_to_char(ch, "Use 'unloadvehicle <number>' to unload a specific vehicle.\r\n");
-    free(vehicles);
+    free((void *)vehicles);
     return;
   }
 
@@ -845,13 +845,13 @@ ACMD(do_unloadvehicle)
   if (target_id < 1 || target_id > count)
   {
     send_to_char(ch, "Invalid vehicle number. Use 'unloadvehicle' to see the list.\r\n");
-    free(vehicles);
+    free((void *)vehicles);
     return;
   }
 
   /* Get the target vehicle */
   vehicle = vehicles[target_id - 1];
-  free(vehicles);
+  free((void *)vehicles);
 
   /* Attempt to unload */
   if (unload_vehicle_from_vessel(ch, vehicle))

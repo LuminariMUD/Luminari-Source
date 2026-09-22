@@ -395,7 +395,7 @@ void ai_cache_cleanup(void)
       removed_count++;
     }
 
-    free(sorted_entries);
+    free((void *)sorted_entries);
   }
 
   if (removed_count > 0)

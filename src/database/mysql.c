@@ -2177,7 +2177,7 @@ char **tokenize(const char *input, const char *delim)
   if (!*trimmed_input)
   {
     /* Return array with single NULL element */
-    result = malloc(sizeof(char *));
+    result = (char **)malloc(sizeof(char *));
     if (!result)
     {
       log("SYSERR: tokenize() failed to allocate memory for empty result");
@@ -2195,7 +2195,7 @@ char **tokenize(const char *input, const char *delim)
   }
 
   /* Allocate space including room for NULL terminator */
-  result = malloc((capacity + 1) * sizeof(*result));
+  result = (char **)malloc((capacity + 1) * sizeof(*result));
   if (!result)
   {
     log("SYSERR: tokenize() failed to allocate memory for result array");
@@ -2216,14 +2216,14 @@ char **tokenize(const char *input, const char *delim)
       int i;
 
       capacity *= 2;
-      new_result = realloc(result, (capacity + 1) * sizeof(*result));
+      new_result = (char **)realloc((void *)result, (capacity + 1) * sizeof(*result));
       if (!new_result)
       {
         log("SYSERR: tokenize() failed to realloc result array to size %d", capacity);
         /* Clean up and bail out */
         for (i = 0; i < count; i++)
           free(result[i]);
-        free(result);
+        free((void *)result);
         free(str);
         return NULL;
       }
@@ -2238,7 +2238,7 @@ char **tokenize(const char *input, const char *delim)
       /* Clean up everything */
       for (i = 0; i < count; i++)
         free(result[i]);
-      free(result);
+      free((void *)result);
       free(str);
       return NULL;
     }
@@ -2268,7 +2268,7 @@ void free_tokens(char **tokens)
   }
 
   /* Free the array itself */
-  free(tokens);
+  free((void *)tokens);
 }
 
 static void free_region_table_data(void)

@@ -437,17 +437,19 @@ struct domain_event_bus *domain_event_bus_create(const struct domain_event_bus_c
   bus = calloc(1, sizeof(*bus));
   if (bus == NULL)
     goto allocation_failed;
-  bus->types = calloc(effective.max_event_types, sizeof(*bus->types));
-  bus->type_buckets = calloc(bucket_target, sizeof(*bus->type_buckets));
+  bus->types =
+      (struct domain_event_type_entry **)calloc(effective.max_event_types, sizeof(*bus->types));
+  bus->type_buckets =
+      (struct domain_event_type_entry **)calloc(bucket_target, sizeof(*bus->type_buckets));
   bus->subscription_bucket_count = next_power_of_two(effective.max_subscriptions * 2U);
   if (bus->subscription_bucket_count == 0)
     goto allocation_failed;
-  bus->subscription_topic_buckets =
-      calloc(bus->subscription_bucket_count, sizeof(*bus->subscription_topic_buckets));
-  bus->subscription_owner_buckets =
-      calloc(bus->subscription_bucket_count, sizeof(*bus->subscription_owner_buckets));
-  bus->subscription_handle_buckets =
-      calloc(bus->subscription_bucket_count, sizeof(*bus->subscription_handle_buckets));
+  bus->subscription_topic_buckets = (struct domain_event_subscription_entry **)calloc(
+      bus->subscription_bucket_count, sizeof(*bus->subscription_topic_buckets));
+  bus->subscription_owner_buckets = (struct domain_event_subscription_entry **)calloc(
+      bus->subscription_bucket_count, sizeof(*bus->subscription_owner_buckets));
+  bus->subscription_handle_buckets = (struct domain_event_subscription_entry **)calloc(
+      bus->subscription_bucket_count, sizeof(*bus->subscription_handle_buckets));
   if (bus->types == NULL || bus->type_buckets == NULL || bus->subscription_topic_buckets == NULL ||
       bus->subscription_owner_buckets == NULL || bus->subscription_handle_buckets == NULL)
     goto allocation_failed;
@@ -473,11 +475,11 @@ struct domain_event_bus *domain_event_bus_create(const struct domain_event_bus_c
 allocation_failed:
   if (bus != NULL)
   {
-    free(bus->type_buckets);
-    free(bus->types);
-    free(bus->subscription_topic_buckets);
-    free(bus->subscription_owner_buckets);
-    free(bus->subscription_handle_buckets);
+    free((void *)bus->type_buckets);
+    free((void *)bus->types);
+    free((void *)bus->subscription_topic_buckets);
+    free((void *)bus->subscription_owner_buckets);
+    free((void *)bus->subscription_handle_buckets);
     free(bus);
   }
   if (status != NULL)
@@ -513,11 +515,11 @@ enum domain_event_status domain_event_bus_destroy(struct domain_event_bus *bus)
     free(type->name);
     free(type);
   }
-  free(bus->type_buckets);
-  free(bus->types);
-  free(bus->subscription_topic_buckets);
-  free(bus->subscription_owner_buckets);
-  free(bus->subscription_handle_buckets);
+  free((void *)bus->type_buckets);
+  free((void *)bus->types);
+  free((void *)bus->subscription_topic_buckets);
+  free((void *)bus->subscription_owner_buckets);
+  free((void *)bus->subscription_handle_buckets);
   free(bus);
   return DOMAIN_EVENT_OK;
 }
