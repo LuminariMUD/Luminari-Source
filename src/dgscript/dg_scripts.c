@@ -1814,61 +1814,61 @@ static void eval_op(const char *op, char *lhs, char *rhs, char *result,
   if (!strcmp("||", op))
   {
     if ((!*lhs || (*lhs == '0')) && (!*rhs || (*rhs == '0')))
-      strcpy(result, "0");
+      strlcpy(result, "0", MAX_INPUT_LENGTH);
     else
-      strcpy(result, "1");
+      strlcpy(result, "1", MAX_INPUT_LENGTH);
   }
   else if (!strcmp("&&", op))
   {
     if (!*lhs || (*lhs == '0') || !*rhs || (*rhs == '0'))
-      strcpy(result, "0");
+      strlcpy(result, "0", MAX_INPUT_LENGTH);
     else
-      strcpy(result, "1");
+      strlcpy(result, "1", MAX_INPUT_LENGTH);
   }
   else if (!strcmp("==", op))
   {
     if (is_num(lhs) && is_num(rhs))
-      sprintf(result, "%d", atoi(lhs) == atoi(rhs));
+      snprintf(result, MAX_INPUT_LENGTH, "%d", atoi(lhs) == atoi(rhs));
     else
-      sprintf(result, "%d", !str_cmp(lhs, rhs));
+      snprintf(result, MAX_INPUT_LENGTH, "%d", !str_cmp(lhs, rhs));
   }
   else if (!strcmp("!=", op))
   {
     if (is_num(lhs) && is_num(rhs))
-      sprintf(result, "%d", atoi(lhs) != atoi(rhs));
+      snprintf(result, MAX_INPUT_LENGTH, "%d", atoi(lhs) != atoi(rhs));
     else
-      sprintf(result, "%d", str_cmp(lhs, rhs));
+      snprintf(result, MAX_INPUT_LENGTH, "%d", str_cmp(lhs, rhs));
   }
   else if (!strcmp("<=", op))
   {
     if (is_num(lhs) && is_num(rhs))
-      sprintf(result, "%d", atoi(lhs) <= atoi(rhs));
+      snprintf(result, MAX_INPUT_LENGTH, "%d", atoi(lhs) <= atoi(rhs));
     else
-      sprintf(result, "%d", str_cmp(lhs, rhs) <= 0);
+      snprintf(result, MAX_INPUT_LENGTH, "%d", str_cmp(lhs, rhs) <= 0);
   }
   else if (!strcmp(">=", op))
   {
     if (is_num(lhs) && is_num(rhs))
-      sprintf(result, "%d", atoi(lhs) >= atoi(rhs));
+      snprintf(result, MAX_INPUT_LENGTH, "%d", atoi(lhs) >= atoi(rhs));
     else
-      sprintf(result, "%d", str_cmp(lhs, rhs) <= 0);
+      snprintf(result, MAX_INPUT_LENGTH, "%d", str_cmp(lhs, rhs) <= 0);
   }
   else if (!strcmp("<", op))
   {
     if (is_num(lhs) && is_num(rhs))
-      sprintf(result, "%d", atoi(lhs) < atoi(rhs));
+      snprintf(result, MAX_INPUT_LENGTH, "%d", atoi(lhs) < atoi(rhs));
     else
-      sprintf(result, "%d", str_cmp(lhs, rhs) < 0);
+      snprintf(result, MAX_INPUT_LENGTH, "%d", str_cmp(lhs, rhs) < 0);
   }
   else if (!strcmp(">", op))
   {
     if (is_num(lhs) && is_num(rhs))
-      sprintf(result, "%d", atoi(lhs) > atoi(rhs));
+      snprintf(result, MAX_INPUT_LENGTH, "%d", atoi(lhs) > atoi(rhs));
     else
-      sprintf(result, "%d", str_cmp(lhs, rhs) > 0);
+      snprintf(result, MAX_INPUT_LENGTH, "%d", str_cmp(lhs, rhs) > 0);
   }
   else if (!strcmp("/=", op))
-    sprintf(result, "%c", str_str(lhs, rhs) ? '1' : '0');
+    snprintf(result, MAX_INPUT_LENGTH, "%c", str_str(lhs, rhs) ? '1' : '0');
 
   /* Script operands are ints, but their product or sum need not fit one;
    * evaluate in a wider type so a script cannot overflow the evaluator. */
@@ -1887,9 +1887,9 @@ static void eval_op(const char *op, char *lhs, char *rhs, char *result,
   else if (!strcmp("!", op))
   {
     if (is_num(rhs))
-      sprintf(result, "%d", !atoi(rhs));
+      snprintf(result, MAX_INPUT_LENGTH, "%d", !atoi(rhs));
     else
-      sprintf(result, "%d", !*rhs);
+      snprintf(result, MAX_INPUT_LENGTH, "%d", !*rhs);
   }
 }
 

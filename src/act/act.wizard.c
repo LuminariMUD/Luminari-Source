@@ -4102,7 +4102,7 @@ ACMD(do_shopstat)
         size_t tlen = strlen(tmp);
         if (blen + tlen < sizeof(bonusbuf))
         {
-          strcpy(bonusbuf + blen, tmp);
+          strlcpy(bonusbuf + blen, tmp, sizeof(bonusbuf) - blen);
           blen += tlen;
         }
       }

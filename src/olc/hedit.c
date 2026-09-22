@@ -748,7 +748,7 @@ static bool hedit_save_to_db(struct descriptor_data *d)
     {
       CREATE(temp_keyword, struct help_keyword_list, 1);
       CREATE(temp_keyword->keyword, char, strlen(row[0]) + 1);
-      strcpy(temp_keyword->keyword, row[0]);
+      strlcpy(temp_keyword->keyword, row[0], strlen(row[0]) + 1);
       temp_keyword->next = existing_keywords;
       existing_keywords = temp_keyword;
     }

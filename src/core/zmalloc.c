@@ -290,7 +290,7 @@ char *zstrdup(const char *src, char *file, int line)
   result = (char *)zmalloc((int)(strlen(src) + 1), file, line);
   if (!result)
     return NULL;
-  strcpy(result, src);
+  strlcpy(result, src, strlen(src) + 1);
   return result;
 #else
   result = (char *)malloc(strlen(src) + 1);

@@ -12129,7 +12129,7 @@ ACMDU(do_device)
 
       if (strlen(spell_name) > 0)
       {
-        strcpy(spells[num_spells], spell_name);
+        strlcpy(spells[num_spells], spell_name, sizeof(spells[num_spells]));
         num_spells++;
       }
     }

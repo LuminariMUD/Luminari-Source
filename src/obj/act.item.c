@@ -3238,6 +3238,7 @@ void name_from_drinkcon(struct obj_data *obj)
   char *new_name, *cur_name, *next;
   const char *liqname;
   int liqlen, cpylen;
+  size_t name_size;
 
   if (!obj || (GET_OBJ_TYPE(obj) != ITEM_DRINKCON && GET_OBJ_TYPE(obj) != ITEM_FOUNTAIN))
     return;
@@ -3254,7 +3255,8 @@ void name_from_drinkcon(struct obj_data *obj)
   }
 
   liqlen = (int)strlen(liqname);
-  CREATE(new_name, char, strlen(obj->name) - strlen(liqname)); /* +1 for NUL, -1 for space */
+  name_size = strlen(obj->name) - strlen(liqname); /* +1 for NUL, -1 for space */
+  CREATE(new_name, char, name_size);
 
   for (cur_name = obj->name; cur_name; cur_name = next)
   {
@@ -3270,7 +3272,7 @@ void name_from_drinkcon(struct obj_data *obj)
       continue;
 
     if (*new_name)
-      strcat(new_name, " "); /* strcat: OK (size precalculated) */
+      strlcat(new_name, " ", name_size);
     /* Use memcpy instead of strncat to avoid compiler warning */
     size_t cur_len = strlen(new_name);
     memcpy(new_name + cur_len, cur_name, cpylen);

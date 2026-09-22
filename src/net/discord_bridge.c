@@ -271,7 +271,8 @@ void init_discord_bridge(void)
 
   /* Set a default auth token - should be loaded from config file in production */
   /* Empty token means no authentication required */
-  strcpy(discord_bridge->auth_token, ""); /* Set to a secret value for security */
+  /* Set to a secret value for security */
+  strlcpy(discord_bridge->auth_token, "", sizeof(discord_bridge->auth_token));
   DISCORD_DEBUG("Auth token set (length=%d)", (int)strlen(discord_bridge->auth_token));
 
   /* Load configuration */
@@ -673,7 +674,8 @@ void send_to_discord(const char *channel, const char *name, const char *message,
   }
 
   /* Add to output buffer */
-  strcpy(discord_bridge->outbuf + discord_bridge->outbuf_len, json);
+  strlcpy(discord_bridge->outbuf + discord_bridge->outbuf_len, json,
+          sizeof(discord_bridge->outbuf) - (size_t)discord_bridge->outbuf_len);
   discord_bridge->outbuf_len += json_len;
   discord_bridge->outbuf[discord_bridge->outbuf_len++] = '\n';
   discord_bridge->outbuf[discord_bridge->outbuf_len] = '\0';

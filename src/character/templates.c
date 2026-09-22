@@ -292,7 +292,7 @@ void show_level_history(struct char_data *ch, int level)
       }
       case FEAT_SKILL_FOCUS:
       case FEAT_EPIC_SKILL_FOCUS:
-        sprintf(buf + strlen(buf), " (%s)", spell_info[sub_feat].name);
+        snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), " (%s)", spell_info[sub_feat].name);
         break;
       }
       num_found++;

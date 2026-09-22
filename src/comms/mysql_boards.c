@@ -714,8 +714,9 @@ void mysql_board_show_list(struct char_data *ch, int board_id, int page)
     title_buf[sizeof(title_buf) - 1] = '\0';
     parse_at(title_buf);
 
-    sprintf(buf + strlen(buf), "\tY|\tC%-4d%s %-39.39s %-15.15s %-8.8s        \tY|\tn\r\n",
-            post_id_val, unread_marker, title_buf, row[2], time_buf);
+    snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
+             "\tY|\tC%-4d%s %-39.39s %-15.15s %-8.8s        \tY|\tn\r\n", post_id_val,
+             unread_marker, title_buf, row[2], time_buf);
     i++;
   }
 
@@ -725,8 +726,8 @@ void mysql_board_show_list(struct char_data *ch, int board_id, int page)
              ((post_count - 1) / POSTS_PER_PAGE) + 1);
     snprintf(help_line, sizeof(help_line), "Type 'board help' for board commands");
 
-    sprintf(
-        buf + strlen(buf),
+    snprintf(
+        buf + strlen(buf), sizeof(buf) - strlen(buf),
         "\tY+------------------------------------------------------------------------------+\tn\r\n"
         "\tY|\tC%-78.78s\tY|\tn\r\n"
         "\tY|\tG%-78.78s\tY|\tn\r\n"
@@ -1492,7 +1493,8 @@ void mysql_board_handle_reply_title(struct descriptor_data *d, char *additional_
   }
 
   /* Create quoted version of original message */
-  sprintf(quoted_body, "In message %d, %s wrote:\r\n", d->reply_to_post_id, original_post->author);
+  snprintf(quoted_body, (size_t)quoted_length, "In message %d, %s wrote:\r\n", d->reply_to_post_id,
+           original_post->author);
 
   /* Quote the original body line by line */
   line_start = original_post->body;
@@ -1524,9 +1526,9 @@ void mysql_board_handle_reply_title(struct descriptor_data *d, char *additional_
     }
 
     /* Add quoted line */
-    strcat(quoted_body, "| ");
-    strcat(quoted_body, temp_line);
-    strcat(quoted_body, "\r\n");
+    strlcat(quoted_body, "| ", (size_t)quoted_length);
+    strlcat(quoted_body, temp_line, (size_t)quoted_length);
+    strlcat(quoted_body, "\r\n", (size_t)quoted_length);
 
     if (!line_end)
       break;
@@ -1534,7 +1536,7 @@ void mysql_board_handle_reply_title(struct descriptor_data *d, char *additional_
   }
 
   /* Add separator and space for new content */
-  strcat(quoted_body, "\r\n--- Reply is below this line ---\r\n\r\n");
+  strlcat(quoted_body, "\r\n--- Reply is below this line ---\r\n\r\n", (size_t)quoted_length);
 
   /* Set up string editor with quoted content */
   CREATE(d->str, char *, 1);

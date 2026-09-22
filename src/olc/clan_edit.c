@@ -37,7 +37,7 @@ static void clanedit_ranks_menu(struct descriptor_data *d); /* Display clan rank
 static void clanedit_priv_menu(struct descriptor_data *d);  /* Display clan privileges menu */
 static void clanedit_clans_menu(struct descriptor_data *d,
                                 int player_clan); /* Display clan selection menu */
-static void get_priv_string(struct descriptor_data *d, char *t,
+static void get_priv_string(struct descriptor_data *d, char *t, size_t t_size,
                             int p); /* Get privilege string representation */
 
 /*============================================*/
@@ -1057,12 +1057,12 @@ static void clanedit_save(struct descriptor_data *d)
  * Converts a privilege rank requirement to a display string.
  * Shows the minimum rank number, or "Leader Only" if restricted.
  */
-static void get_priv_string(struct descriptor_data *d, char *t, int p)
+static void get_priv_string(struct descriptor_data *d, char *t, size_t t_size, int p)
 {
   if (OLC_CLAN(d)->privilege[p] > 0)
-    sprintf(t, "%d", OLC_CLAN(d)->privilege[p]);
+    snprintf(t, t_size, "%d", OLC_CLAN(d)->privilege[p]);
   else
-    sprintf(t, "Leader Only");
+    snprintf(t, t_size, "Leader Only");
 }
 
 /*-------------------------------------------------------------------*/
@@ -1228,81 +1228,81 @@ static void clanedit_priv_menu(struct descriptor_data *d)
 
   write_to_output(d, "Command Privs                   Editor Privs\r\n");
 
-  get_priv_string(d, buf1, CP_WHERE);
-  get_priv_string(d, buf2, CP_TITLE);
+  get_priv_string(d, buf1, sizeof(buf1), CP_WHERE);
+  get_priv_string(d, buf2, sizeof(buf2), CP_TITLE);
 
   write_to_output(d,
                   "%s1%s) Where   : %s[%s%11s%s]      "
                   "A%s) Set Title    : %s[%s%11s%s]\r\n",
                   cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
-  get_priv_string(d, buf1, CP_CLAIM);
-  get_priv_string(d, buf2, CP_DESC);
+  get_priv_string(d, buf1, sizeof(buf1), CP_CLAIM);
+  get_priv_string(d, buf2, sizeof(buf2), CP_DESC);
 
   write_to_output(d,
                   "%s2%s) Claim   : %s[%s%11s%s]      "
                   "B%s) Set Desc     : %s[%s%11s%s]\r\n",
                   cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
-  get_priv_string(d, buf1, CP_BALANCE);
+  get_priv_string(d, buf1, sizeof(buf1), CP_BALANCE);
 
-  get_priv_string(d, buf1, CP_ENROL);
-  get_priv_string(d, buf2, CP_APPFEE);
+  get_priv_string(d, buf1, sizeof(buf1), CP_ENROL);
+  get_priv_string(d, buf2, sizeof(buf2), CP_APPFEE);
 
   write_to_output(d,
                   "%s3%s) Enrol   : %s[%s%11s%s]      "
                   "C%s) Set App Fee  : %s[%s%11s%s]\r\n",
                   cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
-  get_priv_string(d, buf1, CP_PROMOTE);
-  get_priv_string(d, buf2, CP_APPLEV);
+  get_priv_string(d, buf1, sizeof(buf1), CP_PROMOTE);
+  get_priv_string(d, buf2, sizeof(buf2), CP_APPLEV);
 
   write_to_output(d,
                   "%s4%s) Promote : %s[%s%11s%s]      "
                   "D%s) Set App Level: %s[%s%11s%s]\r\n",
                   cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
-  get_priv_string(d, buf1, CP_DEMOTE);
-  get_priv_string(d, buf2, CP_TAXRATE);
+  get_priv_string(d, buf1, sizeof(buf1), CP_DEMOTE);
+  get_priv_string(d, buf2, sizeof(buf2), CP_TAXRATE);
 
   write_to_output(d,
                   "%s5%s) Demote  : %s[%s%11s%s]      "
                   "E%s) Set Tax Rate : %s[%s%11s%s]\r\n",
                   cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
-  get_priv_string(d, buf1, CP_EXPEL);
-  get_priv_string(d, buf2, CP_ALLIED);
+  get_priv_string(d, buf1, sizeof(buf1), CP_EXPEL);
+  get_priv_string(d, buf2, sizeof(buf2), CP_ALLIED);
 
   write_to_output(d,
                   "%s6%s) Expel   : %s[%s%11s%s]      "
                   "F%s) Set Ally     : %s[%s%11s%s]\r\n",
                   cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
-  get_priv_string(d, buf1, CP_DEPOSIT);
-  get_priv_string(d, buf2, CP_ATWAR);
+  get_priv_string(d, buf1, sizeof(buf1), CP_DEPOSIT);
+  get_priv_string(d, buf2, sizeof(buf2), CP_ATWAR);
 
   write_to_output(d,
                   "%s7%s) Deposit : %s[%s%11s%s]      "
                   "G%s) Set Enemy    : %s[%s%11s%s]\r\n",
                   cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
-  get_priv_string(d, buf1, CP_WITHDRAW);
-  get_priv_string(d, buf2, CP_RANKS);
+  get_priv_string(d, buf1, sizeof(buf1), CP_WITHDRAW);
+  get_priv_string(d, buf2, sizeof(buf2), CP_RANKS);
 
   write_to_output(d,
                   "%s8%s) Withdraw: %s[%s%11s%s]      "
                   "H%s) Set Ranks    : %s[%s%11s%s]\r\n",
                   cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
-  get_priv_string(d, buf1, CP_OWNER);
-  get_priv_string(d, buf2, CP_SETPRIVS);
+  get_priv_string(d, buf1, sizeof(buf1), CP_OWNER);
+  get_priv_string(d, buf2, sizeof(buf2), CP_SETPRIVS);
 
   write_to_output(d,
                   "%s9%s) Owner   : %s[%s%11s%s]      "
                   "I%s) Set Privs    : %s[%s%11s%s]\r\n",
                   cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
-  get_priv_string(d, buf1, CP_CLANEDIT);
+  get_priv_string(d, buf1, sizeof(buf1), CP_CLANEDIT);
 
   write_to_output(d, "%s0%s) Edit    : %s[%s%11s%s]\r\n", cyn, nrm, cyn, yel, buf1, cyn);
 

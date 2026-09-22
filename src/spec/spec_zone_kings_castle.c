@@ -396,8 +396,6 @@ static void fry_victim(struct char_data *ch)
 /* King_welmar. Control the actions and movements of the King. */
 SPECIAL(king_welmar)
 {
-  char actbuf[MAX_INPUT_LENGTH] = {'\0'};
-
   const char *monolog[] = {"$n proclaims 'Primus in regnis Geticis coronam'.",
                            "$n proclaims 'regiam gessi, subiique regis'.",
                            "$n proclaims 'munus et mores colui sereno'.",
@@ -496,13 +494,13 @@ SPECIAL(king_welmar)
     break;
 
   case 'o':
-    do_gen_door(ch, strcpy(actbuf, "door"), 0, SCMD_UNLOCK); /* strcpy: OK */
-    do_gen_door(ch, strcpy(actbuf, "door"), 0, SCMD_OPEN);   /* strcpy: OK */
+    do_gen_door(ch, "door", 0, SCMD_UNLOCK);
+    do_gen_door(ch, "door", 0, SCMD_OPEN);
     break;
 
   case 'c':
-    do_gen_door(ch, strcpy(actbuf, "door"), 0, SCMD_CLOSE); /* strcpy: OK */
-    do_gen_door(ch, strcpy(actbuf, "door"), 0, SCMD_LOCK);  /* strcpy: OK */
+    do_gen_door(ch, "door", 0, SCMD_CLOSE);
+    do_gen_door(ch, "door", 0, SCMD_LOCK);
     break;
 
   case '.':
@@ -629,10 +627,8 @@ static int castle_twin_proc(struct char_data *ch, int cmd, char *arg, int ctlnum
 
   if ((king = find_npc_by_name(ch, "King Welmar", 11)) != NULL)
   {
-    char actbuf[MAX_INPUT_LENGTH] = {'\0'};
-
     if (!ch->master)
-      do_follow(ch, strcpy(actbuf, "King Welmar"), 0, 0); /* strcpy: OK */
+      do_follow(ch, "King Welmar", 0, 0);
     if (FIGHTING(king))
       do_npc_rescue(ch, king);
   }

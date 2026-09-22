@@ -776,8 +776,7 @@ static OCMD(do_odoor)
       if (newexit->general_description)
         free(newexit->general_description);
       CREATE(newexit->general_description, char, strlen(value) + 3);
-      strcpy(newexit->general_description, value);
-      strcat(newexit->general_description, "\r\n"); /* strcat : OK */
+      snprintf(newexit->general_description, strlen(value) + 3, "%s\r\n", value);
       break;
     case 2: /* flags       */
       newexit->exit_info = (sh_int)asciiflag_conv(value);
@@ -789,7 +788,7 @@ static OCMD(do_odoor)
       if (newexit->keyword)
         free(newexit->keyword);
       CREATE(newexit->keyword, char, strlen(value) + 1);
-      strcpy(newexit->keyword, value);
+      strlcpy(newexit->keyword, value, strlen(value) + 1);
       break;
     case 5: /* room        */
       if ((to_room = real_room(atoi(value))) != NOWHERE)

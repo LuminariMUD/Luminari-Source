@@ -1466,7 +1466,8 @@ static char *apply_vocabulary_transformation(const char *text, int style)
       if (new_len > old_len)
       {
         // Need more space
-        char *expanded = malloc(result_len + (new_len - old_len) + 1);
+        size_t expanded_size = result_len + (new_len - old_len) + 1;
+        char *expanded = malloc(expanded_size);
         if (!expanded)
         {
           free(result);
@@ -1479,10 +1480,10 @@ static char *apply_vocabulary_transformation(const char *text, int style)
         expanded[prefix_len] = '\0';
 
         // Add replacement
-        strcat(expanded, mappings[i].replacement);
+        strlcat(expanded, mappings[i].replacement, expanded_size);
 
         // Add remainder
-        strcat(expanded, pos + old_len);
+        strlcat(expanded, pos + old_len, expanded_size);
 
         free(result);
         result = expanded;
@@ -1992,7 +1993,7 @@ int safe_strcpy(char *dest, const char *src, size_t dest_size)
   }
   else
   {
-    strcpy(dest, src);
+    memcpy(dest, src, src_len + 1);
     return (int)src_len;
   }
 }
@@ -2019,7 +2020,7 @@ int narrative_safe_strcat(char *dest, const char *src, size_t dest_size)
   size_t remaining = dest_size - dest_len - 1; // -1 for null terminator
   if (src_len <= remaining)
   {
-    strcat(dest, src);
+    memcpy(dest + dest_len, src, src_len + 1);
     return (int)src_len;
   }
   else
@@ -2453,10 +2454,10 @@ static char *replace_string_safe(const char *str, const char *find, const char *
   result[prefix_len] = '\0';
 
   // Add replacement
-  strcat(result, replace);
+  strlcat(result, replace, new_len);
 
   // Add part after the match
-  strcat(result, pos + find_len);
+  strlcat(result, pos + find_len, new_len);
 
   return result;
 }
@@ -2511,7 +2512,7 @@ static void transform_description_mood(struct description_components *desc, cons
       char *new_imagery = malloc(strlen(desc->opening_imagery) + 50);
       if (new_imagery)
       {
-        strcpy(new_imagery, desc->opening_imagery);
+        strlcpy(new_imagery, desc->opening_imagery, strlen(desc->opening_imagery) + 50);
         // Replace "tall" with "ancient, shadow-wreathed"
         char *pos = strstr(new_imagery, "tall");
         if (pos)
@@ -2534,7 +2535,7 @@ static void transform_description_mood(struct description_components *desc, cons
       char *new_imagery = malloc(strlen(desc->opening_imagery) + 50);
       if (new_imagery)
       {
-        strcpy(new_imagery, desc->opening_imagery);
+        strlcpy(new_imagery, desc->opening_imagery, strlen(desc->opening_imagery) + 50);
         char *pos = strstr(new_imagery, "dense");
         if (pos)
         {

@@ -425,13 +425,23 @@ static void MapArea(room_rnum room, struct char_data *ch, int x, int y, int min,
   return;
 }
 
+/* Append text at *len in buf, which holds size bytes, and never pass its last byte. */
+static void map_append(char *buf, size_t size, size_t *len, const char *text)
+{
+  size_t copied = strlcpy(buf + *len, text, size - *len);
+
+  *len += copied < size - *len ? copied : size - *len - 1;
+}
+
 /* Returns a string representation of the map */
 static char *StringMap(int centre, int size)
 {
   static char strmap[MAX_MAP * MAX_MAP * 11 + MAX_MAP * 2 + 1];
-  char *mp = strmap;
+  size_t len = 0;
   char *tmp;
   int x, y;
+
+  *strmap = '\0';
 
   /* every row */
   for (x = centre - CANVAS_HEIGHT / 2; x <= centre + CANVAS_HEIGHT / 2; x++)
@@ -444,13 +454,10 @@ static char *StringMap(int centre, int size)
             (map[x][y] < 0) ? door_info[NUM_DOOR_TYPES + map[x][y]].disp : map_info[map[x][y]].disp;
       else
         tmp = map_info[SECT_EMPTY].disp;
-      strcpy(mp, tmp);
-      mp += strlen(tmp);
+      map_append(strmap, sizeof(strmap), &len, tmp);
     }
-    strcpy(mp, "\r\n");
-    mp += 2;
+    map_append(strmap, sizeof(strmap), &len, "\r\n");
   }
-  *mp = '\0';
   return strmap;
 }
 
@@ -482,9 +489,11 @@ const char *get_map_string(struct char_data *ch, room_vnum target_room)
 static char *WorldMap(int centre, int size, int mapshape, int maptype)
 {
   static char strmap[MAX_MAP * MAX_MAP * 4 + MAX_MAP * 2 + 1];
-  char *mp = strmap;
+  size_t len = 0;
   int x, y;
   int xmin, xmax, ymin, ymax;
+
+  *strmap = '\0';
 
   switch (maptype)
   {
@@ -513,26 +522,25 @@ static char *WorldMap(int centre, int size, int mapshape, int maptype)
           ((mapshape == MAP_CIRCLE) &&
            (centre - x) * (centre - x) + (centre - y) * (centre - y) / 4 <= (size * size + 1)))
       {
-        strcpy(mp, world_map_info[map[x][y]].disp);
-        mp += strlen(world_map_info[map[x][y]].disp);
+        map_append(strmap, sizeof(strmap), &len, world_map_info[map[x][y]].disp);
       }
       else
       {
-        strcpy(mp++, " ");
+        map_append(strmap, sizeof(strmap), &len, " ");
       }
     }
-    strcpy(mp, "\tn\r\n");
-    mp += 4;
+    map_append(strmap, sizeof(strmap), &len, "\tn\r\n");
   }
-  *mp = '\0';
   return strmap;
 }
 
 static const char *CompactStringMap(int centre, int size)
 {
   static char strmap[MAX_MAP * MAX_MAP * 12 + MAX_MAP * 2 + 1];
-  char *mp = strmap;
+  size_t len = 0;
   int x, y;
+
+  *strmap = '\0';
 
   /* every row */
   for (x = centre - size; x <= centre + size; x++)
@@ -540,15 +548,12 @@ static const char *CompactStringMap(int centre, int size)
     /* every column */
     for (y = centre - size; y <= centre + size; y++)
     {
-      strcpy(mp, (map[x][y] < 0) ? compact_door_info[NUM_DOOR_TYPES + map[x][y]].disp
+      map_append(strmap, sizeof(strmap), &len,
+                 (map[x][y] < 0) ? compact_door_info[NUM_DOOR_TYPES + map[x][y]].disp
                                  : map_info[map[x][y]].disp);
-      mp += strlen((map[x][y] < 0) ? compact_door_info[NUM_DOOR_TYPES + map[x][y]].disp
-                                   : map_info[map[x][y]].disp);
     }
-    strcpy(mp, "\r\n");
-    mp += 2;
+    map_append(strmap, sizeof(strmap), &len, "\r\n");
   }
-  *mp = '\0';
   return strmap;
 }
 
@@ -622,43 +627,66 @@ void perform_map(struct char_data *ch, const char *argument, bool worldmap)
   send_to_char(ch, " \tb--\tB= \tCLuminari Map System \tB=\tb--\tn\r\n"
                    "\tD  .-.__--.,--.__.-.\tn\r\n");
 
-  count += sprintf(buf + count, "\tn\tn\tn%s Up\\\\", door_info[NUM_DOOR_TYPES + DOOR_UP].disp);
-  count += sprintf(buf + count, "\tn\tn\tn%s Down\\\\", door_info[NUM_DOOR_TYPES + DOOR_DOWN].disp);
-  count += sprintf(buf + count, "\tn%s You\\\\", map_info[SECT_HERE].disp);
-  count += snprintf(buf + count, sizeof(buf) - count, "\tn%s Shop\\\\", map_info[SECT_SHOP].disp);
-  count += sprintf(buf + count, "\tn%s Inside\\\\", map_info[SECT_INSIDE].disp);
-  count += sprintf(buf + count, "\tn%s City\\\\", map_info[SECT_CITY].disp);
-  count += sprintf(buf + count, "\tn%s Field\\\\", map_info[SECT_FIELD].disp);
-  count += sprintf(buf + count, "\tn%s Forest\\\\", map_info[SECT_FOREST].disp);
-  count += sprintf(buf + count, "\tn%s Hills\\\\", map_info[SECT_HILLS].disp);
-  count += sprintf(buf + count, "\tn%s Mountain\\\\", map_info[SECT_MOUNTAIN].disp);
-  count += sprintf(buf + count, "\tn%s Water\\\\", map_info[SECT_WATER_SWIM].disp);
-  count += sprintf(buf + count, "\tn%s Deep Water\\\\", map_info[SECT_WATER_NOSWIM].disp);
-  count += sprintf(buf + count, "\tn%s Air\\\\", map_info[SECT_FLYING].disp);
-  count += sprintf(buf + count, "\tn%s Underwater\\\\", map_info[SECT_UNDERWATER].disp);
-  count += sprintf(buf + count, "\tn%s Zone Entry\\\\", map_info[SECT_ZONE_START].disp);
-  count += sprintf(buf + count, "\tn%s Road N-S\\\\", map_info[SECT_ROAD_NS].disp);
-  count += sprintf(buf + count, "\tn%s Road E-W\\\\", map_info[SECT_ROAD_EW].disp);
-  count += sprintf(buf + count, "\tn%s Intersect\\\\", map_info[SECT_ROAD_INT].disp);
-  count += sprintf(buf + count, "\tn%s Desert\\\\", map_info[SECT_DESERT].disp);
-  count += sprintf(buf + count, "\tn%s Ocean\\\\", map_info[SECT_OCEAN].disp);
-  count += sprintf(buf + count, "\tn%s Marsh\\\\", map_info[SECT_MARSHLAND].disp);
-  count += sprintf(buf + count, "\tn%s High Mount\\\\", map_info[SECT_HIGH_MOUNTAIN].disp);
-  count += sprintf(buf + count, "\tn%s Planes\\\\", map_info[SECT_PLANES].disp);
-  count += sprintf(buf + count, "\tn%s UD Wild\\\\", map_info[SECT_UD_WILD].disp);
-  count += sprintf(buf + count, "\tn%s UD City\\\\", map_info[SECT_UD_CITY].disp);
-  count += sprintf(buf + count, "\tn%s UD Inside\\\\", map_info[SECT_UD_INSIDE].disp);
-  count += sprintf(buf + count, "\tn%s UD Water\\\\", map_info[SECT_UD_WATER].disp);
-  count += sprintf(buf + count, "\tn%s UD D Water\\\\", map_info[SECT_UD_NOSWIM].disp);
-  count += sprintf(buf + count, "\tn%s UD Air\\\\", map_info[SECT_UD_NOGROUND].disp);
-  count += sprintf(buf + count, "\tn%s Lava\\\\", map_info[SECT_LAVA].disp);
-  count += sprintf(buf + count, "\tn%s D Rd N-S\\\\", map_info[SECT_D_ROAD_NS].disp);
-  count += sprintf(buf + count, "\tn%s D Rd E-W\\\\", map_info[SECT_D_ROAD_EW].disp);
-  count += sprintf(buf + count, "\tn%s D Inters\\\\", map_info[SECT_D_ROAD_INT].disp);
-  count += sprintf(buf + count, "\tn%s Cave\\\\", map_info[SECT_CAVE].disp);
-  count += sprintf(buf + count, "\tn%s Sea Port\\\\", map_info[SECT_SEAPORT].disp);
-  count += sprintf(buf + count, "\tn%s Inside Room\\\\", map_info[SECT_INSIDE_ROOM].disp);
-  count += sprintf(buf + count, "\tn%s River\\\\", map_info[SECT_RIVER].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn\tn\tn%s Up\\\\",
+                          door_info[NUM_DOOR_TYPES + DOOR_UP].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn\tn\tn%s Down\\\\",
+                          door_info[NUM_DOOR_TYPES + DOOR_DOWN].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s You\\\\", map_info[SECT_HERE].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s Shop\\\\", map_info[SECT_SHOP].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s Inside\\\\", map_info[SECT_INSIDE].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s City\\\\", map_info[SECT_CITY].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s Field\\\\", map_info[SECT_FIELD].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s Forest\\\\", map_info[SECT_FOREST].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s Hills\\\\", map_info[SECT_HILLS].disp);
+  count =
+      snprintf_append(buf, sizeof(buf), count, "\tn%s Mountain\\\\", map_info[SECT_MOUNTAIN].disp);
+  count =
+      snprintf_append(buf, sizeof(buf), count, "\tn%s Water\\\\", map_info[SECT_WATER_SWIM].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s Deep Water\\\\",
+                          map_info[SECT_WATER_NOSWIM].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s Air\\\\", map_info[SECT_FLYING].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s Underwater\\\\",
+                          map_info[SECT_UNDERWATER].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s Zone Entry\\\\",
+                          map_info[SECT_ZONE_START].disp);
+  count =
+      snprintf_append(buf, sizeof(buf), count, "\tn%s Road N-S\\\\", map_info[SECT_ROAD_NS].disp);
+  count =
+      snprintf_append(buf, sizeof(buf), count, "\tn%s Road E-W\\\\", map_info[SECT_ROAD_EW].disp);
+  count =
+      snprintf_append(buf, sizeof(buf), count, "\tn%s Intersect\\\\", map_info[SECT_ROAD_INT].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s Desert\\\\", map_info[SECT_DESERT].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s Ocean\\\\", map_info[SECT_OCEAN].disp);
+  count =
+      snprintf_append(buf, sizeof(buf), count, "\tn%s Marsh\\\\", map_info[SECT_MARSHLAND].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s High Mount\\\\",
+                          map_info[SECT_HIGH_MOUNTAIN].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s Planes\\\\", map_info[SECT_PLANES].disp);
+  count =
+      snprintf_append(buf, sizeof(buf), count, "\tn%s UD Wild\\\\", map_info[SECT_UD_WILD].disp);
+  count =
+      snprintf_append(buf, sizeof(buf), count, "\tn%s UD City\\\\", map_info[SECT_UD_CITY].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s UD Inside\\\\",
+                          map_info[SECT_UD_INSIDE].disp);
+  count =
+      snprintf_append(buf, sizeof(buf), count, "\tn%s UD Water\\\\", map_info[SECT_UD_WATER].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s UD D Water\\\\",
+                          map_info[SECT_UD_NOSWIM].disp);
+  count =
+      snprintf_append(buf, sizeof(buf), count, "\tn%s UD Air\\\\", map_info[SECT_UD_NOGROUND].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s Lava\\\\", map_info[SECT_LAVA].disp);
+  count =
+      snprintf_append(buf, sizeof(buf), count, "\tn%s D Rd N-S\\\\", map_info[SECT_D_ROAD_NS].disp);
+  count =
+      snprintf_append(buf, sizeof(buf), count, "\tn%s D Rd E-W\\\\", map_info[SECT_D_ROAD_EW].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s D Inters\\\\",
+                          map_info[SECT_D_ROAD_INT].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s Cave\\\\", map_info[SECT_CAVE].disp);
+  count =
+      snprintf_append(buf, sizeof(buf), count, "\tn%s Sea Port\\\\", map_info[SECT_SEAPORT].disp);
+  count = snprintf_append(buf, sizeof(buf), count, "\tn%s Inside Room\\\\",
+                          map_info[SECT_INSIDE_ROOM].disp);
+  (void)snprintf_append(buf, sizeof(buf), count, "\tn%s River\\\\", map_info[SECT_RIVER].disp);
 
   strlcpy(buf, strfrmt(buf, LEGEND_WIDTH, CANVAS_HEIGHT + 2, FALSE, TRUE, TRUE), sizeof(buf));
 
@@ -673,11 +701,11 @@ void perform_map(struct char_data *ch, const char *argument, bool worldmap)
   memset(buf, ' ', CANVAS_WIDTH);
   count = (CANVAS_WIDTH);
   if (worldmap)
-    count += sprintf(buf + count, "\r\n%s", WorldMap(centre, size, mapshape, MAP_NORMAL));
+    count = snprintf_append(buf, sizeof(buf), count, "\r\n%s",
+                            WorldMap(centre, size, mapshape, MAP_NORMAL));
   else
-    count += sprintf(buf + count, "\r\n%s", StringMap(centre, size));
-  memset(buf + count, ' ', CANVAS_WIDTH);
-  strcpy(buf + count + CANVAS_WIDTH, "\r\n");
+    count = snprintf_append(buf, sizeof(buf), count, "\r\n%s", StringMap(centre, size));
+  (void)snprintf_append(buf, sizeof(buf), count, "%*s\r\n", CANVAS_WIDTH, "");
   /* Paste it on */
   strlcpy(buf2, strpaste(buf2, buf, "\tD | \tn"), sizeof(buf2));
   /* Paste on the right border */

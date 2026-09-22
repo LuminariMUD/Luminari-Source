@@ -2452,7 +2452,7 @@ static void *ai_thread_worker(void *arg)
       response = make_api_request_single(req->prompt);
       if (response)
       {
-        strcpy(req->backend, "OpenAI");
+        strlcpy(req->backend, "OpenAI", sizeof(req->backend));
         break;
       }
       retry_count++;
@@ -2471,7 +2471,7 @@ static void *ai_thread_worker(void *arg)
       if (ollama_response)
       {
         response = ollama_response;
-        strcpy(req->backend, "Ollama");
+        strlcpy(req->backend, "Ollama", sizeof(req->backend));
         log("AI Service: OpenAI failed, using Ollama fallback");
       }
     }
@@ -2483,7 +2483,7 @@ static void *ai_thread_worker(void *arg)
     if (ollama_response)
     {
       response = ollama_response;
-      strcpy(req->backend, "Ollama");
+      strlcpy(req->backend, "Ollama", sizeof(req->backend));
       log("AI Service: Using Ollama (OpenAI disabled)");
     }
   }
@@ -2505,7 +2505,7 @@ static void *ai_thread_worker(void *arg)
     }
     int choice = rand_number(0, num_responses - 1);
     response = strdup(fallback_responses[choice]);
-    strcpy(req->backend, "Fallback");
+    strlcpy(req->backend, "Fallback", sizeof(req->backend));
     AI_DEBUG("Using generic fallback response");
   }
   pthread_mutex_unlock(&ai_request_mutex);

@@ -3084,7 +3084,7 @@ static const char *make_prompt(struct descriptor_data *d)
     if (char_fighting && (d->character->in_room == char_fighting->in_room) &&
         GET_HIT(char_fighting) > -10 && len < sizeof(prompt))
     {
-      count = sprintf(prompt + strlen(prompt), ">\tn\r\n<");
+      count = snprintf(prompt + strlen(prompt), sizeof(prompt) - strlen(prompt), ">\tn\r\n<");
       if (count >= 0)
         len += count;
 
@@ -3097,8 +3097,8 @@ static const char *make_prompt(struct descriptor_data *d)
 
         /* tank name */
         if (len < sizeof(prompt))
-          count = sprintf(prompt + strlen(prompt), "\tCT:\tn %s",
-                          (CAN_SEE(d->character, tank)) ? GET_NAME(tank) : "someone");
+          count = snprintf(prompt + strlen(prompt), sizeof(prompt) - strlen(prompt), "\tCT:\tn %s",
+                           (CAN_SEE(d->character, tank)) ? GET_NAME(tank) : "someone");
         if (count >= 0)
           len += count;
 
@@ -3134,9 +3134,9 @@ static const char *make_prompt(struct descriptor_data *d)
       /* tank combat-position,  enemy name */
       if (len < sizeof(prompt))
         count =
-            sprintf(prompt + strlen(prompt), " (%s)> <\tRE:\tn %s",
-                    tank ? position_types[GET_POS(tank)] : " ",
-                    (CAN_SEE(d->character, char_fighting) ? GET_NAME(char_fighting) : "someone"));
+            snprintf(prompt + strlen(prompt), sizeof(prompt) - strlen(prompt),
+                     " (%s)> <\tRE:\tn %s", tank ? position_types[GET_POS(tank)] : " ",
+                     (CAN_SEE(d->character, char_fighting) ? GET_NAME(char_fighting) : "someone"));
       if (count >= 0)
         len += count;
 
@@ -3176,14 +3176,15 @@ static const char *make_prompt(struct descriptor_data *d)
       if ((len < sizeof(prompt)) && !IS_NPC(d->character) &&
           !PRF_FLAGGED(d->character, PRF_COMPACT))
       {
-        count =
-            sprintf(prompt + strlen(prompt), " (%s)> \r\n", position_types[GET_POS(char_fighting)]);
+        count = snprintf(prompt + strlen(prompt), sizeof(prompt) - strlen(prompt), " (%s)> \r\n",
+                         position_types[GET_POS(char_fighting)]);
         if (count >= 0)
           len += count;
       }
       else if (len < sizeof(prompt))
       {
-        count = sprintf(prompt + strlen(prompt), " (%s)> ", position_types[GET_POS(char_fighting)]);
+        count = snprintf(prompt + strlen(prompt), sizeof(prompt) - strlen(prompt), " (%s)> ",
+                         position_types[GET_POS(char_fighting)]);
         if (count >= 0)
           len += count;
       }
@@ -3310,7 +3311,7 @@ static int get_from_q(struct txt_q *queue, char *dest, int *aliased)
   if (!queue->head)
     return (0);
 
-  strcpy(dest, queue->head->text); /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+  strlcpy(dest, queue->head->text, MAX_INPUT_LENGTH); /* callers pass MAX_INPUT_LENGTH */
 
   *aliased = queue->head->aliased;
 
@@ -4262,7 +4263,7 @@ static int process_input(struct descriptor_data *t)
         if (t->history[cnt] && is_abbrev(commandln, t->history[cnt]))
         {
           strlcpy(tmp, t->history[cnt], sizeof(tmp)); /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
-          strcpy(t->last_input, tmp);                 /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
+          strlcpy(t->last_input, tmp, sizeof(t->last_input));
           write_to_output(t, "%s\r\n", tmp);
           break;
         }
@@ -4273,11 +4274,11 @@ static int process_input(struct descriptor_data *t)
     else if (*tmp == '^')
     {
       if (!(failed_subst = perform_subst(t, t->last_input, tmp)))
-        strcpy(t->last_input, tmp); /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
+        strlcpy(t->last_input, tmp, sizeof(t->last_input));
     }
     else
     {
-      strcpy(t->last_input, tmp); /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
+      strlcpy(t->last_input, tmp, sizeof(t->last_input));
       if (t->history[t->history_pos])
         free(t->history[t->history_pos]);       /* Clear the old line. */
       t->history[t->history_pos] = strdup(tmp); /* Save the new. */
@@ -4390,7 +4391,7 @@ static int perform_subst(struct descriptor_data *t, char *orig, char *subst)
 
   /* terminate the string in case of an overflow from strncat */
   newsub[MAX_INPUT_LENGTH - 1] = '\0';
-  strcpy(subst, newsub); /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
+  strlcpy(subst, newsub, MAX_INPUT_LENGTH); /* callers pass MAX_INPUT_LENGTH */
 
   return (0);
 }

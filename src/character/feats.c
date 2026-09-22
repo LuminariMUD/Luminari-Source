@@ -7697,14 +7697,14 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
 
   /* Header bar */
   if (list_type == LIST_FEATS_KNOWN)
-    sprintf(buf + strlen(buf), "\tC%s\tn",
-            text_line_string("\tYKnown Feats\tC", line_length, '-', '-'));
+    snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), "\tC%s\tn",
+             text_line_string("\tYKnown Feats\tC", line_length, '-', '-'));
   if (list_type == LIST_FEATS_AVAILABLE)
-    sprintf(buf + strlen(buf), "\tC%s\tn",
-            text_line_string("\tYAvailable Feats\tC", line_length, '-', '-'));
+    snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), "\tC%s\tn",
+             text_line_string("\tYAvailable Feats\tC", line_length, '-', '-'));
   if (list_type == LIST_FEATS_ALL)
-    sprintf(buf + strlen(buf), "\tC%s\tn",
-            text_line_string("\tYAll Feats\tC", line_length, '-', '-'));
+    snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), "\tC%s\tn",
+             text_line_string("\tYAll Feats\tC", line_length, '-', '-'));
 
   strlcpy(buf2, buf, sizeof(buf2));
 
@@ -9936,8 +9936,8 @@ ACMD(do_epicfeats)
   int line_length = MAX(80, GET_SCREEN_WIDTH(ch));
   char buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
 
-  sprintf(buf + strlen(buf), "\tC%s\tn",
-          text_line_string("\tYEpic Feats\tC", line_length, '-', '-'));
+  snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), "\tC%s\tn",
+           text_line_string("\tYEpic Feats\tC", line_length, '-', '-'));
   strlcpy(buf2, buf, sizeof(buf2));
 
   snprintf(buf, sizeof(buf), "%s",

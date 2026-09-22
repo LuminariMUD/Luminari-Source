@@ -59,6 +59,7 @@ ACMDU(do_rsay)
   else
   {
     char buf[MAX_INPUT_LENGTH + 14];
+    char said[MAX_INPUT_LENGTH + 1]; /* argument with a closing period */
     const char *msg = NULL;
     arg2 = strdup(argument); // make a copy to send to triggers b4 parse
     struct char_data *vict;
@@ -90,7 +91,10 @@ ACMDU(do_rsay)
       // the argument ends something else, normal tone
       // append a period if it isn't already there
       if (argument[strlen(argument) - 1] != '.')
-        strcat(argument, ".");
+      {
+        snprintf(said, sizeof(said), "%s.", argument);
+        argument = said;
+      }
 
       strlcpy(type, "say", sizeof(type));
     }
@@ -166,6 +170,7 @@ ACMDU(do_say)
   else
   {
     char buf[MAX_INPUT_LENGTH + 14];
+    char said[MAX_INPUT_LENGTH + 1]; /* argument with a closing period */
     const char *msg = NULL;
     arg2 = strdup(argument); // make a copy to send to triggers b4 parse
     struct char_data *vict;
@@ -197,7 +202,10 @@ ACMDU(do_say)
       // the argument ends something else, normal tone
       // append a period if it isn't already there
       if (argument[strlen(argument) - 1] != '.')
-        strcat(argument, ".");
+      {
+        snprintf(said, sizeof(said), "%s.", argument);
+        argument = said;
+      }
 
       strlcpy(type, "say", sizeof(type));
     }
@@ -251,6 +259,7 @@ ACMDU(do_osay)
   else
   {
     char buf[MAX_INPUT_LENGTH + 14];
+    char said[MAX_INPUT_LENGTH + 1]; /* argument with a closing period */
     const char *msg = NULL;
     arg2 = strdup(argument); // make a copy to send to triggers b4 parse
     struct char_data *vict;
@@ -282,7 +291,10 @@ ACMDU(do_osay)
       // the argument ends something else, normal tone
       // append a period if it isn't already there
       if (argument[strlen(argument) - 1] != '.')
-        strcat(argument, ".");
+      {
+        snprintf(said, sizeof(said), "%s.", argument);
+        argument = said;
+      }
 
       strlcpy(type, "say", sizeof(type));
     }
@@ -396,13 +408,18 @@ ACMDU(do_gsay)
     send_to_char(ch, "Yes, but WHAT do you want to group-say?\r\n");
   else
   {
+    char said[MAX_INPUT_LENGTH + 1]; /* argument with a closing period */
+
     parse_at(argument);
     sentence_case(argument);
 
     // append period if it's not already there
     if (argument[strlen(argument) - 1] != '.' && argument[strlen(argument) - 1] != '!' &&
         argument[strlen(argument) - 1] != '?')
-      strcat(argument, ".");
+    {
+      snprintf(said, sizeof(said), "%s.", argument);
+      argument = said;
+    }
 
     /* Send group say to each member individually so we can use show_pers */
     struct descriptor_data *d = NULL;
@@ -437,12 +454,16 @@ ACMDU(do_gsay)
 static void perform_tell(struct char_data *ch, struct char_data *vict, char *arg)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
+  char said[MAX_INPUT_LENGTH + 1]; /* arg with a closing period */
   const char *msg = NULL;
 
   sentence_case(arg);
   // append period if it's not already there
   if (arg[strlen(arg) - 1] != '.' && arg[strlen(arg) - 1] != '!' && arg[strlen(arg) - 1] != '?')
-    strcat(arg, ".");
+  {
+    snprintf(said, sizeof(said), "%s.", arg);
+    arg = said;
+  }
 
   snprintf(buf, sizeof(buf), "%s$n tells you, '%s'%s", CBCYN(vict, C_NRM), arg, CCNRM(vict, C_NRM));
   msg = act(buf, FALSE, ch, 0, vict, TO_VICT | TO_SLEEP);

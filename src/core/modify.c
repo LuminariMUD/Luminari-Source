@@ -199,16 +199,16 @@ void string_add(struct descriptor_data *d, char *str)
     if (strlen(str) + 3 > d->max_str)
     { /* \r\n\0 */
       send_to_char(d->character, "String too long - Truncated.\r\n");
-      strcpy(&str[d->max_str - 3], "\r\n"); /* strcpy: OK (size checked) */
+      strlcpy(&str[d->max_str - 3], "\r\n", 3);
       CREATE(*d->str, char, d->max_str);
-      strcpy(*d->str, str); /* strcpy: OK (size checked) */
+      strlcpy(*d->str, str, d->max_str);
       if (!using_improved_editor)
         action = STRINGADD_SAVE;
     }
     else
     {
       CREATE(*d->str, char, strlen(str) + 3);
-      strcpy(*d->str, str); /* strcpy: OK (size checked) */
+      strlcpy(*d->str, str, strlen(str) + 3);
     }
   }
   else
@@ -223,8 +223,10 @@ void string_add(struct descriptor_data *d, char *str)
     }
     else
     {
-      RECREATE(*d->str, char, strlen(*d->str) + strlen(str) + 3); /* \r\n\0 */
-      strcat(*d->str, str); /* strcat: OK (size precalculated) */
+      size_t new_size = strlen(*d->str) + strlen(str) + 3; /* \r\n\0 */
+
+      RECREATE(*d->str, char, new_size);
+      strlcat(*d->str, str, new_size);
     }
   }
 
@@ -336,7 +338,7 @@ void string_add(struct descriptor_data *d, char *str)
     }
   }
   else if (action != STRINGADD_ACTION && strlen(*d->str) + 3 <= d->max_str) /* 3 = \r\n\0 */
-    strcat(*d->str, "\r\n");
+    strlcat(*d->str, "\r\n", strlen(*d->str) + 3); /* each added line reserved these 3 bytes */
 }
 
 static void playing_string_cleanup(struct descriptor_data *d, int action)
@@ -1007,13 +1009,13 @@ void show_string(struct descriptor_data *d, const char *input)
       buffer[diff] = '\0';
     else if (buffer[diff - 2] == '\n' && buffer[diff - 1] == '\r')
       /* This is backwards.  Fix it. */
-      strcpy(buffer + diff - 2, "\r\n"); /* strcpy: OK (size checked) */
+      strlcpy(buffer + diff - 2, "\r\n", sizeof(buffer) - (size_t)(diff - 2));
     else if (buffer[diff - 1] == '\r' || buffer[diff - 1] == '\n')
       /* Just one of \r\n.  Overwrite it. */
-      strcpy(buffer + diff - 1, "\r\n"); /* strcpy: OK (size checked) */
+      strlcpy(buffer + diff - 1, "\r\n", sizeof(buffer) - (size_t)(diff - 1));
     else
       /* Tack \r\n onto the end to fix bug with prompt overwriting last line. */
-      strcpy(buffer + diff, "\r\n"); /* strcpy: OK (size checked) */
+      strlcpy(buffer + diff, "\r\n", sizeof(buffer) - (size_t)diff);
     /* Append footer with page indicator */
     send_to_char(d->character, "%s[Page %d/%d]\r\n", buffer, d->showstr_page + 1, d->showstr_count);
     d->showstr_page++;

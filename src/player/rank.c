@@ -224,7 +224,7 @@ void do_slug_rank(struct char_data *ch, const char *arg)
     if (k < rk)
       rk = k;
     for (i = 0; i < k; i++)
-      strcpy(tt[i].key, GET_KEY(tt[i].ch, the_key));
+      strlcpy(tt[i].key, GET_KEY(tt[i].ch, the_key), sizeof(tt[i].key));
 
     /* sort */
     if (toprank)

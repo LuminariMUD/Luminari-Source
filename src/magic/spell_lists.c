@@ -608,7 +608,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
     }
   }
   if (len >= sizeof(buf2))
-    strcpy(buf2 + sizeof(buf2) - strlen(overflow) - 1, overflow); /* strcpy: OK */
+    strlcpy(buf2 + sizeof(buf2) - strlen(overflow) - 1, overflow, strlen(overflow) + 1);
 
   /* Append acronym legend for bst only in seconds-based mode */
   if (CONFIG_SPELLCASTING_TIME_MODE != 0)
