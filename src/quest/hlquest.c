@@ -914,6 +914,7 @@ void boot_the_quests(FILE *quest_f, char *filename, int rec_count __attribute__(
   bool done = FALSE;
   bool approved = FALSE;
   struct char_data *mob = NULL;
+  mob_rnum mob_nr;
   struct quest_command *qcom = NULL;
   struct quest_command *qlast = NULL;
   struct quest_entry *quest = NULL;
@@ -930,7 +931,8 @@ void boot_the_quests(FILE *quest_f, char *filename, int rec_count __attribute__(
     { /* New quest */
     case '#':
       sscanf(line, "#%d", &temp);
-      mob = &mob_proto[real_mobile(temp)];
+      mob_nr = real_mobile(temp);
+      mob = mob_nr == NOBODY ? NULL : &mob_proto[mob_nr];
       break;
     case 'A':
       if (mob == 0)
@@ -953,6 +955,12 @@ void boot_the_quests(FILE *quest_f, char *filename, int rec_count __attribute__(
       sscanf(inner, "%d", &temp);
       __attribute__((fallthrough));
     case 'Q':
+      if (mob == NULL)
+      {
+        log("ERROR: No mob defined in quest in %s", filename);
+        return;
+      }
+
       CREATE(quest, struct quest_entry, 1);
       clear_hlquest(quest);
       quest->room = temp;

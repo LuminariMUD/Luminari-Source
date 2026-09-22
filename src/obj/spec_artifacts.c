@@ -1476,6 +1476,7 @@ static int artifact_count_fields(const char *line)
 
   for (; *line && *line != '\n' && *line != '\r'; line++)
   {
+    /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- ctype tables cover unsigned char */
     if (isspace((unsigned char)*line))
     {
       in_field = FALSE;

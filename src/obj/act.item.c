@@ -4993,7 +4993,7 @@ static void perform_remove_impl(struct char_data *ch, int pos, bool forced)
 {
   struct obj_data *obj;
 
-  if (!(obj = GET_EQ(ch, pos)))
+  if (pos < 0 || pos >= NUM_WEARS || !(obj = GET_EQ(ch, pos)))
     log("SYSERR: perform_remove: bad pos %d passed.", pos);
   /*  This error occurs when perform_remove() is passed a bad 'pos'
    *  (location) to remove an object from. */
@@ -6310,8 +6310,16 @@ ACMD(do_channelspell)
     return;
   }
 
-  circle = spell_info[spellnum].min_level[chclass] + 1;
-  circle /= 2;
+  if (chclass >= 0 && chclass < NUM_CLASSES)
+    circle = spell_info[spellnum].min_level[chclass];
+  else
+  {
+    /* Immortals and epic spells have no preparing class: use the earliest class level. */
+    circle = LVL_IMPL;
+    for (i = 0; i < NUM_CLASSES; i++)
+      circle = MIN(circle, spell_info[spellnum].min_level[i]);
+  }
+  circle = (circle + 1) / 2;
   circle = MIN(9, circle);
 
   if (circle > (HAS_FEAT(ch, FEAT_CHANNEL_SPELL) + HAS_FEAT(ch, FEAT_MULTIPLE_CHANNEL_SPELL)))
@@ -8682,7 +8690,7 @@ ACMDU(do_activate)
     }
   }
 
-  if (target && (tch == ch) && SINFO.violent && (spellnum != SPELL_DISPEL_MAGIC) &&
+  if (target && tch != NULL && tch == ch && SINFO.violent && (spellnum != SPELL_DISPEL_MAGIC) &&
       subcmd != SCMD_WEAPON_TOUCH)
   {
     send_to_char(ch, "You shouldn't do that to yourself -- could be bad for your health!\r\n");

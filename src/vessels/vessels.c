@@ -2172,6 +2172,11 @@ ACMD(do_greyhawk_status)
   }
 
   shipnum = world[ship_room].ship->shipnum;
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
+  {
+    send_to_char(ch, "This ship's record is unavailable.\r\n");
+    return;
+  }
 
   /* Get terrain type at current position */
   terrain_type = get_ship_terrain_type(shipnum);

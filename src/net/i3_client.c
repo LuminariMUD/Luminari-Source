@@ -2434,6 +2434,7 @@ static int i3_config_line_key(const char *line, char *key, size_t key_size,
   }
 
   key_start = cursor;
+  /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- ctype tables cover unsigned char */
   while (*cursor && *cursor != '=' && !isspace((unsigned char)*cursor))
   {
     cursor++;

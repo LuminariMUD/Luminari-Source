@@ -4400,6 +4400,7 @@ void free_contextual_hints(struct region_hint *hints)
     return;
   }
 
+  /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- hint arrays end in a NULL hint_text */
   for (i = 0; hints[i].hint_text; i++)
   {
     free(hints[i].hint_text);

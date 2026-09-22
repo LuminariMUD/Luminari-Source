@@ -189,7 +189,7 @@ static void vessel_lookout_render_direction(struct char_data *ch, int center_x, 
                                           VESSEL_LOOKOUT_SAMPLE_LIMIT);
 
   send_to_char(ch, "  %-9s: ", vessel_lookout_directions[direction_index].name);
-  if (band_count == 0)
+  if (band_count <= 0 || band_count > VESSEL_LOOKOUT_SAMPLE_LIMIT)
   {
     send_to_char(ch, "nothing can be made out.\r\n");
     return;

@@ -1143,7 +1143,11 @@ void show_regeneration_analysis(struct char_data *ch, int x, int y)
     double hours_since = difftime(current_time, last_harvest) / 3600.0;
     double regen_rate = get_resource_regeneration_rate(resource_type);
 
-    send_to_char(ch, "%-17s | %6.1f%% | %9.1f%% | %18.1f\r\n", resource_names_value[resource_type],
+    send_to_char(ch, "%-17s | %6.1f%% | %9.1f%% | %18.1f\r\n",
+                 resource_type >= 0 && resource_type < (int)(sizeof(resource_names_value) /
+                                                             sizeof(resource_names_value[0]))
+                     ? resource_names_value[resource_type]
+                     : "Unknown",
                  depletion_level * 100.0, regen_rate * 100.0, hours_since);
   }
 

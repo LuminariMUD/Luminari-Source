@@ -612,16 +612,18 @@ int count_rooms_between(room_rnum src, room_rnum target)
   int result = -1;
   size_t room_count;
 
-  if (!world || top_of_world == NOWHERE || src == NOWHERE || src > top_of_world ||
-      target == NOWHERE || target > top_of_world)
+  if (!world || top_of_world == NOWHERE)
+    return -1;
+  room_count = (size_t)top_of_world + 1;
+  if (src == NOWHERE || src >= room_count || target == NOWHERE || target >= room_count)
     return -1;
 
   if (src == target)
     return 0;
 
-  room_count = (size_t)top_of_world + 1;
   CREATE(visited, int, room_count);
   CREATE(queue, room_rnum, room_count);
+  /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- src < room_count, checked above */
   visited[src] = 1;
   queue[tail++] = src;
 
