@@ -2557,7 +2557,100 @@ void reset_craft_materials(struct char_data *ch, bool verbose, bool reimburse)
 #define CR_RESET_REFINE 7
 #define CR_RESET_RESIZE 8
 
-void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool reimburse)
+/* The project sections each reset mode releases. */
+#define CR_RESETS_ENHANCEMENT_MOTES(mode)                                                          \
+  ((mode) == CR_RESET_ALL || (mode) == CR_RESET_MOTES || (mode) == CR_RESET_ENHANCEMENT)
+#define CR_RESETS_BONUSES(mode)                                                                    \
+  ((mode) == CR_RESET_ALL || (mode) == CR_RESET_MOTES || (mode) == CR_RESET_BONUSES)
+#define CR_RESETS_MATERIALS(mode)                                                                  \
+  ((mode) == CR_RESET_ALL || (mode) == CR_RESET_MATERIALS || (mode) == CR_RESET_DESCRIPTIONS)
+#define CR_RESETS_REFINE(mode)                                                                     \
+  ((mode) == CR_RESET_ALL || (mode) == CR_RESET_MATERIALS || (mode) == CR_RESET_REFINE)
+#define CR_RESETS_RESIZE(mode)                                                                     \
+  ((mode) == CR_RESET_ALL || (mode) == CR_RESET_MATERIALS || (mode) == CR_RESET_RESIZE)
+#define CR_RESETS_INSTRUMENT_MOTES(mode)                                                           \
+  ((mode) == CR_RESET_ALL || (mode) == CR_RESET_INSTRUMENT || (mode) == CR_RESET_MOTES)
+
+/* Adds one refund to the per-balance total; an id or quantity a credit would refuse fails. */
+static bool craft_reset_owe(long long *due, int count, int id, int quantity)
+{
+  if (id <= 0 || id >= count || quantity <= 0)
+    return false;
+  due[id] += quantity;
+  return true;
+}
+
+/* Whether a reimbursing reset in this mode can refund every allocation it releases. Refunds are
+ * totalled per balance first, so two slots of one mote cannot overflow it between them. A reset
+ * that cannot refund everything changes nothing, because a partial reset would clear the fields
+ * that name a kept allocation (a bonus location, the item type, the refining result). */
+static bool craft_reset_refunds_fit(struct char_data *ch, int mode)
+{
+  long long material_due[NUM_CRAFT_MATS] = {0}, mote_due[NUM_CRAFT_MOTES] = {0};
+  int i, mote;
+
+  if (CR_RESETS_ENHANCEMENT_MOTES(mode) && GET_CRAFT(ch).enhancement_motes_required > 0)
+  {
+    mote = get_enhancement_mote_type(ch, GET_CRAFT(ch).crafting_item_type,
+                                     GET_CRAFT(ch).crafting_specific);
+    if (mote != CRAFTING_MOTE_NONE &&
+        !craft_reset_owe(mote_due, NUM_CRAFT_MOTES, mote, GET_CRAFT(ch).enhancement_motes_required))
+      return false;
+  }
+  if (CR_RESETS_BONUSES(mode))
+  {
+    for (i = 0; i < MAX_OBJ_AFFECT; i++)
+    {
+      if (GET_CRAFT(ch).motes_required[i] == 0)
+        continue;
+      mote = crafting_mote_by_bonus_location(GET_CRAFT(ch).affected[i].location,
+                                             GET_CRAFT(ch).affected[i].specific,
+                                             GET_CRAFT(ch).affected[i].bonus_type);
+      if (mote != CRAFTING_MOTE_NONE &&
+          !craft_reset_owe(mote_due, NUM_CRAFT_MOTES, mote, GET_CRAFT(ch).motes_required[i]))
+        return false;
+    }
+  }
+  if (CR_RESETS_MATERIALS(mode))
+  {
+    for (i = 1; i < NUM_CRAFT_GROUPS; i++)
+      if (GET_CRAFT(ch).materials[i][0] != 0 && GET_CRAFT(ch).materials[i][1] != 0 &&
+          !craft_reset_owe(material_due, NUM_CRAFT_MATS, GET_CRAFT(ch).materials[i][0],
+                           GET_CRAFT(ch).materials[i][1]))
+        return false;
+  }
+  if (CR_RESETS_REFINE(mode))
+  {
+    for (i = 0; i < 3; i++)
+      if (GET_CRAFT(ch).refining_materials[i][1] > 0 &&
+          !craft_reset_owe(material_due, NUM_CRAFT_MATS, GET_CRAFT(ch).refining_materials[i][0],
+                           GET_CRAFT(ch).refining_materials[i][1]))
+        return false;
+  }
+  if (CR_RESETS_RESIZE(mode) && GET_CRAFT(ch).new_size && GET_CRAFT(ch).resize_mat_num > 0 &&
+      !craft_reset_owe(material_due, NUM_CRAFT_MATS, GET_CRAFT(ch).resize_mat_type,
+                       GET_CRAFT(ch).resize_mat_num))
+    return false;
+  if (CR_RESETS_INSTRUMENT_MOTES(mode))
+  {
+    for (i = 0; i < 4; i++)
+      if (GET_CRAFT(ch).instrument_motes[i] > 0 &&
+          !craft_reset_owe(mote_due, NUM_CRAFT_MOTES, get_crafting_instrument_motes(ch, i, FALSE),
+                           GET_CRAFT(ch).instrument_motes[i]))
+        return false;
+  }
+
+  for (i = 1; i < NUM_CRAFT_MATS; i++)
+    if (material_due[i] > 0 &&
+        (material_due[i] > INT_MAX || !craft_balance_can_add(ch, i, (int)material_due[i])))
+      return false;
+  for (i = 1; i < NUM_CRAFT_MOTES; i++)
+    if (mote_due[i] > 0 && (mote_due[i] > INT_MAX || !craft_mote_can_add(ch, i, (int)mote_due[i])))
+      return false;
+  return true;
+}
+
+bool reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool reimburse)
 {
   int i = 0, mote;
   int mode = 0;
@@ -2582,9 +2675,16 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
       mode = CR_RESET_RESIZE;
   }
 
+  if (reimburse && !craft_reset_refunds_fit(ch, mode))
+  {
+    send_to_char(ch, "Your crafting storage cannot hold everything this reset would refund; your "
+                     "project is unchanged.\r\n");
+    return false;
+  }
+
   // reimburse motes
 
-  if (mode == CR_RESET_ALL || mode == CR_RESET_MOTES || mode == CR_RESET_ENHANCEMENT)
+  if (CR_RESETS_ENHANCEMENT_MOTES(mode))
   {
     if (GET_CRAFT(ch).enhancement_motes_required > 0)
     {
@@ -2611,7 +2711,7 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
   if (mode == CR_RESET_ALL || mode == CR_RESET_ENHANCEMENT)
     GET_CRAFT(ch).enhancement = 0;
 
-  if (mode == CR_RESET_ALL || mode == CR_RESET_MOTES || mode == CR_RESET_BONUSES)
+  if (CR_RESETS_BONUSES(mode))
   {
     for (i = 0; i < MAX_OBJ_AFFECT; i++)
     {
@@ -2646,13 +2746,13 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
     }
   }
 
-  if (mode == CR_RESET_ALL || mode == CR_RESET_MATERIALS || mode == CR_RESET_DESCRIPTIONS)
+  if (CR_RESETS_MATERIALS(mode))
   {
     // reimburse materials
     reset_craft_materials(ch, verbose, reimburse);
   }
 
-  if (mode == CR_RESET_ALL || mode == CR_RESET_MATERIALS || mode == CR_RESET_REFINE)
+  if (CR_RESETS_REFINE(mode))
   {
     for (i = 0; i < 3; i++)
     {
@@ -2682,7 +2782,7 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
       send_to_char(ch, "You have reset refining values to the default.\r\n");
   }
 
-  if (mode == CR_RESET_ALL || mode == CR_RESET_MATERIALS || mode == CR_RESET_RESIZE)
+  if (CR_RESETS_RESIZE(mode))
   {
     if (GET_CRAFT(ch).new_size)
     {
@@ -2707,7 +2807,7 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
     }
   }
 
-  if (mode == CR_RESET_ALL || mode == CR_RESET_INSTRUMENT || mode == CR_RESET_MOTES)
+  if (CR_RESETS_INSTRUMENT_MOTES(mode))
   {
     for (i = 0; i < 4; i++)
     {
@@ -2775,6 +2875,7 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
     send_to_char(ch, "Your project has been reset to default values. All materials and motes have "
                      "been refunded.\r\n");
   }
+  return true;
 }
 void reset_crafting_obj(struct char_data *ch)
 {
@@ -5214,15 +5315,6 @@ void craft_refine_complete(struct char_data *ch)
     reset_current_craft(ch, NULL, FALSE, FALSE);
     return;
   }
-  else if (roll == 20)
-  {
-    send_to_char(ch,
-                 "\tM[CRITICAL SUCCESS]\tn You rolled a natural 20! Your refining attempt "
-                 "succeeded and you gained an extra unit of %s.\r\n",
-                 crafting_materials[GET_CRAFT(ch).refining_result[0]]);
-    num++;
-    gain_craft_exp(ch, (REFINE_BASE_EXP + dc) * num, skill_type, TRUE);
-  }
   else if ((roll + skill) < dc)
   {
     send_to_char(ch,
@@ -5231,20 +5323,31 @@ void craft_refine_complete(struct char_data *ch)
                  roll, skill, roll + skill, dc);
     return;
   }
+
+  /* Credit the output, the critical's extra unit included, before any experience: a refused
+   * credit pays nothing and leaves the project to retry. */
+  if (roll == 20)
+    num++;
+  if (!craft_balance_add(ch, GET_CRAFT(ch).refining_result[0], num))
+  {
+    send_to_char(ch, "Your crafting storage cannot hold the refined material.\r\n");
+    return;
+  }
+  if (roll == 20)
+  {
+    send_to_char(ch,
+                 "\tM[CRITICAL SUCCESS]\tn You rolled a natural 20! Your refining attempt "
+                 "succeeded and you gained an extra unit of %s.\r\n",
+                 crafting_materials[GET_CRAFT(ch).refining_result[0]]);
+    gain_craft_exp(ch, (REFINE_BASE_EXP + dc) * num, skill_type, TRUE);
+  }
   else
   {
     send_to_char(ch, "You rolled %d + skill %d for a total of %d >= dc of %d. You succeed!\r\n",
                  roll, skill, roll + skill, dc);
     gain_craft_exp(ch, (REFINE_BASE_EXP)*num, skill_type, TRUE);
   }
-
-  if (!craft_balance_add(ch, GET_CRAFT(ch).refining_result[0], GET_CRAFT(ch).refining_result[1]))
-  {
-    send_to_char(ch, "Your crafting storage cannot hold the refined material.\r\n");
-    return;
-  }
-  send_to_char(ch, "You refine %d unit%s of %s.\r\n", GET_CRAFT(ch).refining_result[1],
-               GET_CRAFT(ch).refining_result[1] > 1 ? "s" : "",
+  send_to_char(ch, "You refine %d unit%s of %s.\r\n", num, num > 1 ? "s" : "",
                crafting_materials[GET_CRAFT(ch).refining_result[0]]);
   reset_current_craft(ch, NULL, FALSE, FALSE);
   act("$n finishes refining.", FALSE, ch, 0, 0, TO_ROOM);
@@ -5326,10 +5429,28 @@ static void harvest_complete(struct char_data *ch)
   {
     amount = HARVEST_BASE_AMOUNT;
     amount = MIN(amount, world[IN_ROOM(ch)].harvest_material_amount);
+    if (roll == 20)
+      bonus = HARVEST_BASE_AMOUNT;
+
+    /* Check for efficient talent - chance to gain 2 extra units */
+    int efficient_chance = get_efficient_talent_bonus(ch, skill);
+    int efficient_bonus = 0;
+    if (efficient_chance > 0 && rand_number(1, 100) <= efficient_chance)
+      efficient_bonus = 2;
+
+    /* Credit the harvest before any experience or message: a refused credit pays nothing and
+     * leaves the node as it was. */
+    if (!craft_balance_add(ch, world[IN_ROOM(ch)].harvest_material,
+                           amount + bonus + efficient_bonus))
+    {
+      send_to_char(ch, "Your crafting storage cannot hold this harvest.\r\n");
+      GET_CRAFT(ch).craft_duration = 0;
+      GET_CRAFT(ch).crafting_method = 0;
+      return;
+    }
 
     if (roll == 20)
     {
-      bonus = HARVEST_BASE_AMOUNT;
       send_to_char(ch,
                    "\tM[CRITICAL SUCCESS!]\tn You rolled a natural 20! You've harvested %d units "
                    "of %s, plus an extra %d units!\r\n",
@@ -5347,25 +5468,9 @@ static void harvest_complete(struct char_data *ch)
                    crafting_material_nodes[world[IN_ROOM(ch)].harvest_material]);
       gain_craft_exp(ch, HARVEST_BASE_EXP + ((HARVEST_BASE_EXP / 2) * harvest_level), skill, TRUE);
     }
-
-    /* Check for efficient talent - chance to gain 2 extra units */
-    int efficient_chance = get_efficient_talent_bonus(ch, skill);
-    int efficient_bonus = 0;
-    if (efficient_chance > 0 && rand_number(1, 100) <= efficient_chance)
-    {
-      efficient_bonus = 2;
+    if (efficient_bonus)
       send_to_char(ch,
                    "\tC*EFFICIENT*\tn You gain 2 extra units from your efficient harvesting!\r\n");
-    }
-
-    if (!craft_balance_add(ch, world[IN_ROOM(ch)].harvest_material,
-                           amount + bonus + efficient_bonus))
-    {
-      send_to_char(ch, "Your crafting storage cannot hold this harvest.\r\n");
-      GET_CRAFT(ch).craft_duration = 0;
-      GET_CRAFT(ch).crafting_method = 0;
-      return;
-    }
     world[IN_ROOM(ch)].harvest_material_amount -= amount;
 
     if (world[IN_ROOM(ch)].harvest_material_amount <= 0)
@@ -5693,6 +5798,15 @@ static void newcraft_refine(struct char_data *ch, const char *argument)
                    crafting_materials[GET_CRAFT(ch).refining_result[0]]);
       return;
     }
+    for (i = 0; i < 3; i++)
+    {
+      if (GET_CRAFT(ch).refining_materials[i][1] != 0)
+      {
+        send_to_char(ch, "Materials from an earlier refining project are still allocated. Type "
+                         "'craft reset refine' to recover them first.\r\n");
+        return;
+      }
+    }
 
     for (i = 1; i < NUM_REFINING_RECIPES; i++)
     {
@@ -5838,8 +5952,8 @@ static void newcraft_refine(struct char_data *ch, const char *argument)
       return;
     }
 
-    send_to_char(ch, "You cancel your refining project.\r\n");
-    reset_current_craft(ch, NULL, TRUE, TRUE);
+    if (reset_current_craft(ch, NULL, TRUE, TRUE))
+      send_to_char(ch, "You cancel your refining project.\r\n");
     return;
   }
   else if (is_abbrev(arg1, "show") || is_abbrev(arg1, "display") || is_abbrev(arg1, "info"))
@@ -6311,6 +6425,13 @@ static void craft_activity_progress(struct char_data *ch, void *target, uint32_t
   if (GET_CRAFT(ch).craft_duration == 0)
     primary_activity_cancel(ch, PRIMARY_ACTIVITY_END_RECHECK_FAILED, false);
 }
+
+#ifdef LUMINARI_CUTEST
+void harvest_complete_for_test(struct char_data *ch)
+{
+  harvest_complete(ch);
+}
+#endif
 
 static void craft_activity_complete(struct char_data *ch, void *target, void *context)
 {

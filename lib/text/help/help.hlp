@@ -7965,7 +7965,8 @@ CRAFT RESET MATERIALS refunds and clears project allocations. It also clears
 keywords, shortdesc, roomdesc, and extradesc. CRAFT RESET DESCRIPTIONS
 likewise refunds and clears material allocations; re-add the primary material
 before setting descriptions again. An unrecognized RESET part resets the whole
-project. A refund a full balance cannot hold stays allocated to the project.
+project. A refund a full balance cannot hold stays allocated to the project,
+and a reset that cannot refund everything changes nothing.
 
 CRAFTMATERIALS lists material and elemental-mote balances. STORE deposits a
 material item into its named balance (node logs, graded hides, velvet, and
@@ -8152,7 +8153,8 @@ experience to the ability the job used, once.
 A project and a supply order share one record, so you hold one at a time.
 CRAFT RESET refunds a project's allocations; SUPPLYORDER RESET, ABANDON, and
 CANCEL give up an order and return the materials no finished item used. A
-refund a full balance cannot hold stays allocated to the project.
+refund a full balance cannot hold stays allocated to the project, and a reset
+that cannot refund everything changes nothing.
 
 See Also: CRAFT-SCORE CRAFT-MATERIALS CRAFTING-MOTES CRAFT-SHOW CRAFT-CHECK
           HARVEST SUPPLYORDER ACTIVITY CRAFTS CREATE CRAFTING-KIT BREW

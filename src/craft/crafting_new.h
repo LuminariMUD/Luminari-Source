@@ -250,7 +250,7 @@ int determine_random_material_group_by_sector_type(room_rnum sector);
 bool is_valid_craft_ability(int ability);
 bool is_valid_craft_feat(int feat);
 bool is_valid_craft_class(int ch_class, int location);
-void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool reimburse);
+bool reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool reimburse);
 int craft_recipe_by_type(int type);
 int craft_misc_type_by_wear_loc(int wear_loc);
 bool is_craft_ready(struct char_data *ch, bool verbose);
@@ -341,6 +341,9 @@ bool craft_mote_add(struct char_data *ch, int mote, int quantity);
 void show_refine_noargs(struct char_data *ch);
 bool is_refine_ready(struct char_data *ch, bool verbose);
 void craft_refine_complete(struct char_data *ch);
+#ifdef LUMINARI_CUTEST
+void harvest_complete_for_test(struct char_data *ch);
+#endif
 int get_craft_skill_value(struct char_data *ch, int skill_num);
 void craft_resize_complete(struct char_data *ch, struct obj_data *obj);
 const char *get_supply_order_item_desc(struct char_data *ch);

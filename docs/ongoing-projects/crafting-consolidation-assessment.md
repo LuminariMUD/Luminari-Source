@@ -423,7 +423,10 @@ changes accompany their phase in both help stores; Phase 6 is the final consiste
   `craft_mote_add`) live in `crafting_new.c`; every `+=` writer in `crafting_new.c`,
   `harvest.c`, `act.item.c` (salvage, which now rolls and preflights gold, material, and motes
   before extracting), and the load-time resize refund in `players.c` goes through them. A
-  refused project refund leaves the allocation on the project and says so.
+  refused project refund leaves the allocation on the project and says so. `craft reset` totals
+  its refunds per balance first and changes nothing unless all of them fit, so no reset clears a
+  field that names a kept allocation. Refining and room-node harvests credit their output before
+  paying experience, and a refused credit pays nothing and leaves the project or node charge.
 - [x] Add the prototype table from Decision 2 and consult it first in
   `craft_material_from_object()`; mark fossil eggs unstorable. Done:
   `craft_material_for_prototype()`; generic `MATERIAL_WOOD` and `MATERIAL_BURLAP` objects also
@@ -453,7 +456,9 @@ back as the same material, or stays an object.
   written as `CrMg`; `load_char()` runs stage 1 before the immortal initialization and sets a
   non-saved pending flag that `enter_player_game()` publishes with `save_char_checked()`, which
   now writes a temporary file beside the live one and renames it in after flush, sync, and
-  close. New characters start at the current marker.
+  close. The live file's mode carries over; a mode that cannot carry over is logged and the save
+  still publishes, and only a live path that is not a regular file refuses it. New characters
+  start at the current marker.
 - [x] Map legacy skill consumers to abilities and replace use-based notches with operation-level
   craft experience. Audit symbolic and indirect readers across the tree, including standalone
   reforge's fast-crafter dependency and resource display code. Preserve skill-less utility gates.

@@ -1654,6 +1654,36 @@ void Test_craft_save_failure_leaves_the_previous_file(CuTest *tc)
   CuAssertIntEquals(tc, 0, leftovers);
 }
 
+/** A player file whose mode cannot be carried over is still published: the save reports success
+ * and its contents replace the previous file's. */
+void Test_craft_save_publishes_when_the_mode_cannot_carry_over(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *ch = new_char();
+  char after[MAX_INPUT_LENGTH];
+  int first, second, after_lines;
+
+  craft_player_files_enter(tc, &files, "crmode", 4313);
+  ch->player.name = strdup(files.name);
+  GET_PFILEPOS(ch) = 0;
+  GET_IDNUM(ch) = 4313;
+  GET_LEVEL(ch) = 10;
+  GET_TALENT_POINTS(ch) = 7;
+  first = save_char_checked(ch, 0);
+  GET_TALENT_POINTS(ch) = 9;
+  save_char_fail_fchmod_for_test(true);
+  second = save_char_checked(ch, 0);
+  save_char_fail_fchmod_for_test(false);
+  after_lines = craft_saved_tag_lines(files.name, "Tlpt:", after, sizeof(after));
+  free_char(ch);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertTrue(tc, first);
+  CuAssertTrue(tc, second);
+  CuAssertIntEquals(tc, 1, after_lines);
+  CuAssertStrEquals(tc, "Tlpt: 9\n", after);
+}
+
 /* ---- Brew and legacy order settlement (crafting consolidation, Phase 4) ---- */
 
 /** A brew resolves once at completion: a success spends its motes and gold and stores the

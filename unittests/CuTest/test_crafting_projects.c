@@ -1504,6 +1504,209 @@ void Test_craft_capped_refund_keeps_its_allocation(CuTest *tc)
   CuAssertIntEquals(tc, INT_MAX, motes_after);
 }
 
+/** A reset whose refunds a balance cannot take changes nothing, even when each slot alone would
+ * fit: the kept bonuses still name their motes, and a later reset refunds them. */
+void Test_craft_refused_reset_keeps_the_bonuses_that_name_their_motes(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  int element, motes, i;
+  bool kept = TRUE, unchanged_message, refunded = TRUE;
+
+  craft_project_begin(&f);
+  craft_project_ready_long_sword(ch);
+  motes = craft_motes_required(APPLY_STR, 1, BONUS_TYPE_ENHANCEMENT, 0);
+  element = crafting_mote_by_bonus_location(APPLY_STR, 0, BONUS_TYPE_ENHANCEMENT);
+  for (i = 0; i < 2; i++)
+  {
+    GET_CRAFT(ch).affected[i].location = APPLY_STR;
+    GET_CRAFT(ch).affected[i].modifier = 1;
+    GET_CRAFT(ch).affected[i].bonus_type = BONUS_TYPE_ENHANCEMENT;
+    GET_CRAFT(ch).motes_required[i] = motes;
+  }
+  /* Room for one slot's motes, not both. */
+  GET_CRAFT_MOTES(ch, element) = INT_MAX - motes;
+  reset_current_craft(ch, CuMutableString("bonuses"), TRUE, TRUE);
+  reset_current_craft(ch, NULL, TRUE, TRUE);
+  for (i = 0; i < 2; i++)
+    kept = kept && GET_CRAFT(ch).motes_required[i] == motes &&
+           GET_CRAFT(ch).affected[i].location == APPLY_STR;
+  kept = kept && GET_CRAFT_MOTES(ch, element) == INT_MAX - motes &&
+         GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_WEAPON &&
+         GET_CRAFT(ch).materials[CRAFT_GROUP_HARD_METALS][1] == 6 &&
+         GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL) == 0;
+  unchanged_message = craft_project_output_has(&f, "project is unchanged") &&
+                      !craft_project_output_has(&f, "been refunded");
+
+  GET_CRAFT_MOTES(ch, element) = 0;
+  reset_current_craft(ch, NULL, FALSE, TRUE);
+  for (i = 0; i < 2; i++)
+    refunded =
+        refunded && GET_CRAFT(ch).motes_required[i] == 0 && GET_CRAFT(ch).affected[i].location == 0;
+  refunded = refunded && GET_CRAFT_MOTES(ch, element) == 2 * motes &&
+             GET_CRAFT_MAT(ch, CRAFT_MAT_STEEL) == 6 &&
+             GET_CRAFT_MAT(ch, CRAFT_MAT_LOW_GRADE_HIDE) == 1;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, motes > 0 && element != CRAFTING_MOTE_NONE);
+  CuAssertTrue(tc, kept);
+  CuAssertTrue(tc, unchanged_message);
+  CuAssertTrue(tc, refunded);
+}
+
+/** A prepared bronze refining project: four copper allocated for two bronze. */
+static void craft_project_prepare_refining(struct char_data *ch)
+{
+  GET_CRAFT(ch).refining_materials[0][0] = CRAFT_MAT_COPPER;
+  GET_CRAFT(ch).refining_materials[0][1] = 4;
+  GET_CRAFT(ch).refining_result[0] = CRAFT_MAT_BRONZE;
+  GET_CRAFT(ch).refining_result[1] = 2;
+  GET_CRAFT(ch).dc = 15;
+  GET_CRAFT(ch).skill_type = ABILITY_HARVEST_MINING;
+}
+
+/** A refining refund the balance refuses keeps the whole project, and refine add will not start
+ * over materials a project still holds. */
+void Test_refine_refused_refund_keeps_the_refining_project(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  bool kept, unchanged_message, stranded_refused, recovered;
+
+  craft_project_begin(&f);
+  craft_project_prepare_refining(ch);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_COPPER) = INT_MAX - 3;
+  do_newcraft(ch, "remove", 0, SCMD_NEWCRAFT_REFINE);
+  kept = GET_CRAFT(ch).refining_result[0] == CRAFT_MAT_BRONZE &&
+         GET_CRAFT(ch).refining_materials[0][1] == 4 &&
+         GET_CRAFT_MAT(ch, CRAFT_MAT_COPPER) == INT_MAX - 3;
+  unchanged_message = craft_project_output_has(&f, "project is unchanged") &&
+                      !craft_project_output_has(&f, "You cancel");
+
+  /* Materials without a result, as an older reset could leave them. */
+  craft_project_reset_output(&f);
+  GET_CRAFT(ch).refining_result[0] = GET_CRAFT(ch).refining_result[1] = 0;
+  GET_CRAFT_MAT(ch, CRAFT_MAT_COPPER) = 10;
+  GET_CRAFT_MAT(ch, CRAFT_MAT_TIN) = 10;
+  do_newcraft(ch, "add bronze", 0, SCMD_NEWCRAFT_REFINE);
+  stranded_refused = craft_project_output_has(&f, "still allocated") &&
+                     GET_CRAFT_MAT(ch, CRAFT_MAT_COPPER) == 10 &&
+                     GET_CRAFT_MAT(ch, CRAFT_MAT_TIN) == 10 &&
+                     GET_CRAFT(ch).refining_materials[0][1] == 4;
+
+  do_newcraft(ch, "reset refine", 0, SCMD_NEWCRAFT_CREATE);
+  recovered =
+      GET_CRAFT_MAT(ch, CRAFT_MAT_COPPER) == 14 && GET_CRAFT(ch).refining_materials[0][1] == 0;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, kept);
+  CuAssertTrue(tc, unchanged_message);
+  CuAssertTrue(tc, stranded_refused);
+  CuAssertTrue(tc, recovered);
+}
+
+/** Refining credits its whole output, a critical's extra unit included, before it pays
+ * experience; a credit the balance refuses pays nothing and keeps the project. The die is
+ * random, so repeat until each outcome is seen. */
+void Test_refine_completion_credits_the_output_before_experience(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  int attempt, crits = 0, bad_crits = 0, refusals = 0, bad_refusals = 0, exp_before;
+
+  craft_project_begin(&f);
+  SET_ABILITY(ch, ABILITY_HARVEST_MINING, 30);
+  for (attempt = 0; attempt < 400 && crits == 0; attempt++)
+  {
+    craft_project_prepare_refining(ch);
+    GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE) = 0;
+    craft_project_reset_output(&f);
+    craft_refine_complete(ch);
+    if (craft_project_output_has(&f, "CRITICAL SUCCESS"))
+    {
+      crits++;
+      if (GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE) != 3 || GET_CRAFT(ch).refining_result[0] != 0)
+        bad_crits++;
+    }
+  }
+  for (attempt = 0; attempt < 400 && refusals == 0; attempt++)
+  {
+    craft_project_prepare_refining(ch);
+    GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE) = INT_MAX - 1;
+    exp_before = GET_CRAFT_SKILL_EXP(ch, ABILITY_HARVEST_MINING);
+    craft_project_reset_output(&f);
+    craft_refine_complete(ch);
+    if (craft_project_output_has(&f, "cannot hold the refined material"))
+    {
+      refusals++;
+      if (GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE) != INT_MAX - 1 ||
+          GET_CRAFT_SKILL_EXP(ch, ABILITY_HARVEST_MINING) != exp_before ||
+          GET_CRAFT(ch).refining_result[0] != CRAFT_MAT_BRONZE ||
+          GET_CRAFT(ch).refining_materials[0][1] != 4 ||
+          craft_project_output_has(&f, "CRITICAL SUCCESS") ||
+          craft_project_output_has(&f, "You succeed"))
+        bad_refusals++;
+    }
+  }
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, 1, crits);
+  CuAssertIntEquals(tc, 0, bad_crits);
+  CuAssertIntEquals(tc, 1, refusals);
+  CuAssertIntEquals(tc, 0, bad_refusals);
+}
+
+/** A room-node harvest credits the balance before it pays experience: a refused credit pays
+ * nothing and leaves the node's charge, while one with room spends it. A natural 1 ruins units
+ * instead, so repeat past it. */
+void Test_harvest_refused_credit_pays_nothing_and_keeps_the_node(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  int attempt, exp_before = 0;
+  bool refused = FALSE, refusal_clean, credited = FALSE, credit_clean;
+
+  craft_project_begin(&f);
+  SET_ABILITY(ch, ABILITY_HARVEST_MINING, 40);
+  for (attempt = 0; attempt < 400 && !refused; attempt++)
+  {
+    f.room.harvest_material = CRAFT_MAT_COPPER;
+    f.room.harvest_material_amount = 10;
+    GET_CRAFT_MAT(ch, CRAFT_MAT_COPPER) = INT_MAX - 1;
+    exp_before = GET_CRAFT_SKILL_EXP(ch, ABILITY_HARVEST_MINING);
+    craft_project_reset_output(&f);
+    harvest_complete_for_test(ch);
+    refused = craft_project_output_has(&f, "cannot hold this harvest");
+  }
+  refusal_clean = GET_CRAFT_MAT(ch, CRAFT_MAT_COPPER) == INT_MAX - 1 &&
+                  GET_CRAFT_SKILL_EXP(ch, ABILITY_HARVEST_MINING) == exp_before &&
+                  f.room.harvest_material == CRAFT_MAT_COPPER &&
+                  f.room.harvest_material_amount == 10 &&
+                  !craft_project_output_has(&f, "Success!") &&
+                  !craft_project_output_has(&f, "CRITICAL SUCCESS");
+
+  for (attempt = 0; attempt < 400 && !credited; attempt++)
+  {
+    f.room.harvest_material = CRAFT_MAT_COPPER;
+    f.room.harvest_material_amount = 10;
+    GET_CRAFT_MAT(ch, CRAFT_MAT_COPPER) = 0;
+    exp_before = GET_CRAFT_SKILL_EXP(ch, ABILITY_HARVEST_MINING);
+    craft_project_reset_output(&f);
+    harvest_complete_for_test(ch);
+    credited = GET_CRAFT_MAT(ch, CRAFT_MAT_COPPER) > 0;
+  }
+  credit_clean = f.room.harvest_material_amount < 10 &&
+                 GET_CRAFT_SKILL_EXP(ch, ABILITY_HARVEST_MINING) > exp_before;
+  f.room.harvest_material = CRAFT_MAT_NONE;
+  f.room.harvest_material_amount = 0;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, refused);
+  CuAssertTrue(tc, refusal_clean);
+  CuAssertTrue(tc, credited);
+  CuAssertTrue(tc, credit_clean);
+}
+
 /** Salvage preflights its material result: a full balance refuses the whole salvage, leaving
  * the item, the gold, and the balance untouched. The material roll is random, so repeat until a
  * material result is rolled; a miss must still salvage normally. */
