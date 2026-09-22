@@ -303,6 +303,24 @@ void Test_path_component_validation(CuTest *tc)
   CuAssertStrEquals(tc, "", small);
 }
 
+/* The atoi() family replacements read numbers the same way but define the edge cases. */
+void Test_parse_number_helpers(CuTest *tc)
+{
+  CuAssertIntEquals(tc, 42, parse_int("42"));
+  CuAssertIntEquals(tc, -7, parse_int("  -7 apples"));
+  CuAssertIntEquals(tc, 0, parse_int("apples"));
+  CuAssertIntEquals(tc, 0, parse_int(""));
+  CuAssertIntEquals(tc, 0, parse_int(NULL));
+  CuAssertIntEquals(tc, INT_MAX, parse_int("99999999999"));
+  CuAssertIntEquals(tc, INT_MIN, parse_int("-99999999999"));
+  CuAssertTrue(tc, parse_long("123456789012") == 123456789012L);
+  CuAssertTrue(tc, parse_long(NULL) == 0L);
+  CuAssertTrue(tc, parse_llong("-9000000000000") == -9000000000000LL);
+  CuAssertTrue(tc, parse_llong(NULL) == 0LL);
+  CuAssertDblEquals(tc, 2.5, parse_double("2.5 units"), 0.0);
+  CuAssertDblEquals(tc, 0.0, parse_double(NULL), 0.0);
+}
+
 void Test_fopen_restricted_blocks_world_write(CuTest *tc)
 {
   char path[] = "/tmp/luminari-fopen-test-XXXXXX";
