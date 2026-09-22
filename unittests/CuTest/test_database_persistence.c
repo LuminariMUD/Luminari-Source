@@ -2928,3 +2928,15 @@ void Test_load_wilderness_reads_the_zone_row(CuTest *tc)
   CuAssertIntEquals(tc, 45, wild->max_temp);
   free(wild);
 }
+
+/* load_account() refuses a missing name or destination without touching either. */
+void Test_load_account_rejects_null_name_or_account(CuTest *tc)
+{
+  struct account_data account;
+  char name[] = "Nobody";
+
+  memset(&account, 0, sizeof(account));
+  CuAssertIntEquals(tc, -1, load_account(NULL, &account));
+  CuAssertIntEquals(tc, -1, load_account(name, NULL));
+  CuAssertPtrEquals(tc, NULL, account.name);
+}

@@ -502,18 +502,19 @@ bool format_time_string(time_t when, const char *format, char *buf, size_t size)
 const char *format_time_ymd_hms(time_t when);
 
 /* Filesystem helpers */
-/* What build_safe_path() accepts: a single filename, a relative path, or a relative or
- * absolute path. */
+/* What build_safe_path() accepts: a single filename, a relative path, or an
+ * operator-supplied path (any characters, only a ".." component refused). */
 enum safe_path_form
 {
   SAFE_PATH_FILENAME,
   SAFE_PATH_RELATIVE,
-  SAFE_PATH_ABSOLUTE_OK
+  SAFE_PATH_OPERATOR
 };
 /* Writes prefix and then path into buf when path is safe for form and the result fits in size:
  * nonempty, made of letters, digits, '.', '_', '-', and '/' between components, with no ".."
- * anywhere and no empty or "." component. Returns FALSE with buf empty otherwise. The path is
- * rebuilt from checked characters, so buf never holds unchecked input. */
+ * anywhere and no empty or "." component. SAFE_PATH_OPERATOR keeps every character of a
+ * nonempty path and refuses only a ".." component. Returns FALSE with buf empty otherwise. The
+ * path is rebuilt from checked characters, so buf never holds unchecked input. */
 bool build_safe_path(char *buf, size_t size, const char *prefix, const char *path,
                      enum safe_path_form form);
 /* Ensures that a directory path exists, creating intermediate directories as needed. */

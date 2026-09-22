@@ -3897,7 +3897,7 @@ bool build_safe_path(char *buf, size_t size, const char *prefix, const char *pat
   if (!buf || size == 0)
     return FALSE;
   *buf = '\0';
-  if (!prefix || !path || strstr(path, ".."))
+  if (!prefix || !path || (form != SAFE_PATH_OPERATOR && strstr(path, "..")))
     return FALSE;
 
   start = length = strlcpy(buf, prefix, size);
@@ -3911,7 +3911,8 @@ bool build_safe_path(char *buf, size_t size, const char *prefix, const char *pat
    * holds a character that the checks below did not see. */
   for (current = path; *current; current++)
   {
-    c = safe_path_char((unsigned char)*current);
+    c = form == SAFE_PATH_OPERATOR ? (unsigned char)*current
+                                   : safe_path_char((unsigned char)*current);
     if (c == 0 || length + 1 >= size)
     {
       *buf = '\0';
@@ -3919,11 +3920,18 @@ bool build_safe_path(char *buf, size_t size, const char *prefix, const char *pat
     }
     if (c == '/')
     {
-      /* A separator may only follow a nonempty component other than ".", except
-       * as the leading '/' of an absolute path. */
-      if (form == SAFE_PATH_FILENAME ||
-          (component_length == 0 && (form != SAFE_PATH_ABSOLUTE_OK || length != start)) ||
-          (component_length == 1 && buf[length - 1] == '.'))
+      /* An operator path only refuses a ".." component. Otherwise a separator may
+       * only follow a nonempty component other than ".". */
+      if (form == SAFE_PATH_OPERATOR)
+      {
+        if (component_length == 2 && buf[length - 1] == '.' && buf[length - 2] == '.')
+        {
+          *buf = '\0';
+          return FALSE;
+        }
+      }
+      else if (form == SAFE_PATH_FILENAME || component_length == 0 ||
+               (component_length == 1 && buf[length - 1] == '.'))
       {
         *buf = '\0';
         return FALSE;
@@ -3936,6 +3944,16 @@ bool build_safe_path(char *buf, size_t size, const char *prefix, const char *pat
   }
   buf[length] = '\0';
 
+  if (form == SAFE_PATH_OPERATOR)
+  {
+    if (length == start ||
+        (component_length == 2 && buf[length - 1] == '.' && buf[length - 2] == '.'))
+    {
+      *buf = '\0';
+      return FALSE;
+    }
+    return TRUE;
+  }
   if (component_length == 0 || (component_length == 1 && buf[length - 1] == '.'))
   {
     *buf = '\0';

@@ -508,11 +508,16 @@ void act_mtrigger(const char_data *ch, char *str, char_data *actor, char_data *v
         if (str)
         {
           /* we're guaranteed to have a string ending with \r\n\0 */
-          char *nstr = strdup(str), *fstr = nstr, *p = strchr(nstr, '\r');
-          skip_spaces(&nstr);
-          *p = '\0';
-          add_var(&GET_TRIG_VARS(t), "arg", nstr, 0);
-          free(fstr);
+          char *nstr = strdup(str), *fstr = nstr, *p;
+          if (nstr)
+          {
+            p = strchr(nstr, '\r');
+            skip_spaces(&nstr);
+            if (p)
+              *p = '\0';
+            add_var(&GET_TRIG_VARS(t), "arg", nstr, 0);
+            free(fstr);
+          }
         }
         {
           struct script_call_args args = {&ch, t, MOB_TRIGGER, TRIG_NEW};
