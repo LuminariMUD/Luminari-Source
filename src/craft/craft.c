@@ -2127,7 +2127,6 @@ static bool start_kit_operation(struct char_data *ch, struct obj_data *kit,
                  kit_operation_verb(planned->type));
     return false;
   }
-  /* NOLINTNEXTLINE(bugprone-assignment-in-if-condition) -- CREATE() assigns inside its check */
   CREATE(op, struct kit_operation, 1);
   *op = *planned;
   snprintf(description, sizeof(description), "using a crafting kit to %s",
@@ -2879,7 +2878,6 @@ ACMD(do_harvest)
 
   /* Nothing is allocated, spent, or rolled at admission: the reward, the charge, and the
    * experience all wait for completion, so cancelling costs nothing and pays nothing. */
-  /* NOLINTNEXTLINE(bugprone-assignment-in-if-condition) -- CREATE() assigns inside its check */
   CREATE(harvest, struct node_harvest_context, 1);
   harvest->material = material;
   harvest->skill = skillnum;

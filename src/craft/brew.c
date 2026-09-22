@@ -1164,7 +1164,6 @@ ACMD(do_brew)
   act("$n begins creating a magical potion.", TRUE, ch, 0, 0, TO_ROOM);
 
   /* The activity owns the captured inputs; nothing is spent until it completes. */
-  /* NOLINTNEXTLINE(bugprone-assignment-in-if-condition) -- CREATE() assigns inside its check */
   CREATE(brew, struct brew_context, 1);
   memcpy(brew->spell_nums, spell_nums, sizeof(brew->spell_nums));
   memcpy(brew->total_motes_by_type, total_motes_by_type, sizeof(brew->total_motes_by_type));
