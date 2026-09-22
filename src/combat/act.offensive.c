@@ -5263,7 +5263,7 @@ ACMD(do_order)
   else
   {
     index = 0;
-    for (pet = world[IN_ROOM(ch)].people; pet != NULL; pet = pet->next_in_room)
+    for (pet = world[IN_ROOM(ch)].people; pet != NULL && index < count; pet = pet->next_in_room)
       if (pet_order_check(ch, pet))
         targets[index++] = domain_event_character_handle(pet);
   }

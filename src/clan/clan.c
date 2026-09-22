@@ -448,26 +448,23 @@ bool remove_clan(clan_vnum c_v)
     /* Create a new list */
     CREATE(temp_list, struct clan_data, num_of_clans - 1);
 
-    /* Copy the old list data */
-    if (clan_list)
+    /* Copy the old list data (clan_list is non-null, checked on entry) */
+    for (i = 0; i < num_of_clans; i++)
     {
-      for (i = 0; i < num_of_clans; i++)
+      if (!(found))
       {
-        if (!(found))
+        if (i == (int)c_n)
         {
-          if (i == (int)c_n)
-          {
-            found = TRUE; /* Skip this one and set found flag */
-          }
-          else
-          {
-            copy_clan_data(&(temp_list[i]), &(clan_list[i]));
-          }
+          found = TRUE; /* Skip this one and set found flag */
         }
         else
         {
-          copy_clan_data(&(temp_list[i - 1]), &(clan_list[i]));
+          copy_clan_data(&(temp_list[i]), &(clan_list[i]));
         }
+      }
+      else
+      {
+        copy_clan_data(&(temp_list[i - 1]), &(clan_list[i]));
       }
     }
 

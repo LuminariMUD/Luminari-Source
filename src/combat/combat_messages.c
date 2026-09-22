@@ -438,6 +438,9 @@ int skill_message_with_projectile(int dam, struct char_data *ch, struct char_dat
       /* increment the messages until we get to that selected message */
       for (j = 1, msg = fight_messages[i].msg; (j < nr) && msg; j++)
         msg = msg->next;
+      /* an attack type listed without any messages has nothing to show */
+      if (msg == NULL)
+        continue;
       /* we now have a message! */
 
       /* old location of staff-messages */

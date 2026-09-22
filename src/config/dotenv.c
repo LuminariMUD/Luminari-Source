@@ -69,6 +69,7 @@ static bool parse_env_assignment(char *line, struct env_entry *entry)
   char *equals_pos, *value_start;
   size_t key_length, value_len;
 
+  /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- ctype tables cover unsigned char */
   while (*line_start && isspace((unsigned char)*line_start))
     line_start++;
   if (!*line_start || *line_start == '#')

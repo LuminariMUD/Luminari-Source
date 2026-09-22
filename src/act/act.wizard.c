@@ -8253,6 +8253,7 @@ ACMD(do_eqrating)
   int a = 0, b = 0; /* used for sorting */
   int len = 0;      /* string length */
   int wearloc = 0;  /* the wear-location of item */
+  int num_objs = 0; /* object prototypes when the tables are allocated */
 
   zone_vnum zone = 0;                           /* zone vnum to restrict search */
   room_vnum start_of_zone = 0, end_of_zone = 0; /* bottom/top of zone vnums */
@@ -8308,14 +8309,15 @@ ACMD(do_eqrating)
   }
 
   /* allocate memory for our tables */
-  CREATE(index, int, (size_t)top_of_objt + 1);
-  CREATE(score, int, (size_t)top_of_objt + 1);
+  num_objs = (int)top_of_objt + 1;
+  CREATE(index, int, num_objs);
+  CREATE(score, int, num_objs);
 
   /* Create tables of eq worn at that slot, with rating */
 
   /* the table index is going to be "j", the object real-num "i" will be
    * stored in the index-table along with the score in the score-table */
-  for (i = 0; i <= (int)top_of_objt; i++)
+  for (i = 0; i < num_objs; i++)
   {
     if (IS_SET_AR(obj_proto[i].obj_flags.wear_flags, wearloc))
     {
@@ -8396,11 +8398,9 @@ ACMD(do_eqrating)
       len = snprintf_append(buf, sizeof(buf), len, "AC %d | ", GET_OBJ_VAL(&obj_proto[a], 0));
     }
 
-    if (GET_OBJ_AFFECT(&obj_proto[a]))
-    { /* perm affects */
-      sprintbitarray(GET_OBJ_AFFECT(&obj_proto[a]), affected_bits, AF_ARRAY_MAX, bitbuf);
-      len = snprintf_append(buf, sizeof(buf), len, "%s | ", bitbuf);
-    }
+    /* perm affects */
+    sprintbitarray(GET_OBJ_AFFECT(&obj_proto[a]), affected_bits, AF_ARRAY_MAX, bitbuf);
+    len = snprintf_append(buf, sizeof(buf), len, "%s | ", bitbuf);
 
     *bitbuf = '\0';
 

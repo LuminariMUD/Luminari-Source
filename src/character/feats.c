@@ -75,6 +75,10 @@ int has_feat_requirement_check(struct char_data *ch, int featnum)
 /* checks if ch has feat (compare) as one of his/her combat feats (cfeat) */
 bool has_combat_feat(struct char_data *ch, int cfeat, int compare)
 {
+  /* feat_to_cfeat() returns -1 for a feat that is not a combat feat. */
+  if (cfeat < 0 || cfeat >= NUM_CFEATS)
+    return FALSE;
+
   if (ch->desc && LEVELUP(ch))
   {
     if ((IS_SET_AR(LEVELUP(ch)->combat_feats[(cfeat)], (compare))))

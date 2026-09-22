@@ -321,6 +321,7 @@ void ai_cache_cleanup(void)
   if (ai_state.cache_size > AI_MAX_CACHE_SIZE)
   {
     int to_remove = ai_state.cache_size - AI_MAX_CACHE_SIZE;
+    int num_entries = 0;
 
     /* Create array of pointers to sort */
     CREATE(sorted_entries, struct ai_cache_entry *, ai_state.cache_size);
@@ -330,19 +331,21 @@ void ai_cache_cleanup(void)
       return;
     }
 
-    /* Fill array with cache entries */
-    i = 0;
-    for (entry = ai_state.cache_head; entry && i < ai_state.cache_size; entry = entry->next)
+    /* Fill array with cache entries; only the filled slots are sorted and removed. */
+    for (entry = ai_state.cache_head; entry && num_entries < ai_state.cache_size;
+         entry = entry->next)
     {
-      sorted_entries[i++] = entry;
+      sorted_entries[num_entries++] = entry;
     }
+    if (to_remove > num_entries)
+      to_remove = num_entries;
 
     /* Sort by expiration time (oldest first) using simple selection sort */
-    for (i = 0; i < ai_state.cache_size - 1 && i < to_remove; i++)
+    for (i = 0; i < num_entries - 1 && i < to_remove; i++)
     {
       int min_idx = i;
       int j;
-      for (j = i + 1; j < ai_state.cache_size; j++)
+      for (j = i + 1; j < num_entries; j++)
       {
         if (sorted_entries[j]->expires_at < sorted_entries[min_idx]->expires_at)
         {
@@ -358,7 +361,7 @@ void ai_cache_cleanup(void)
     }
 
     /* Remove the oldest entries */
-    for (i = 0; i < to_remove && i < ai_state.cache_size; i++)
+    for (i = 0; i < to_remove; i++)
     {
       entry = sorted_entries[i];
 
@@ -375,6 +378,7 @@ void ai_cache_cleanup(void)
           }
           else
           {
+            /* NOLINTNEXTLINE(clang-analyzer-unix.Malloc) -- the list is acyclic */
             ai_state.cache_head = curr->next;
           }
           break;

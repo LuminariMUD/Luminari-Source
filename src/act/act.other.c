@@ -2546,7 +2546,7 @@ ACMD(do_dismiss)
   else
   {
     index = 0;
-    for (link = ch->followers; link != NULL; link = link->next)
+    for (link = ch->followers; link != NULL && index < count; link = link->next)
       if (pet_can_be_dismissed(ch, link->follower, true))
         targets[index++] = domain_event_character_handle(link->follower);
   }
