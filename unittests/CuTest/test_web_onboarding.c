@@ -1090,6 +1090,8 @@ void TestWebOnboardingBackgroundCatalogUsesStableIdentityAndFitsPayloadCap(CuTes
     return;
   d.pProtocol->bMSDP = bool_t_true;
   negotiate_best_version(&d);
+  if (feat_list[FEAT_BG_ACOLYTE].name == NULL)
+    assign_feats();
   assign_backgrounds();
 
   if (!web_onboarding_build_payload(&d, payload, sizeof(payload)))

@@ -3643,6 +3643,8 @@ void Test_gameplay_authored_construct_prototypes_load_and_complete_all_recipes(C
   struct class_spell_assign *assignment;
   int cleric_level = 0, summoner_level = 0;
 
+  if (feat_list[FEAT_ANIMATE_DEAD].name == NULL)
+    assign_feats();
   if (class_list[CLASS_CLERIC].name == NULL)
     load_class_list();
   for (assignment = class_list[CLASS_CLERIC].spellassign_list; assignment != NULL;
@@ -4901,6 +4903,8 @@ void Test_gameplay_innate_animation_sets_source_flag_and_retains_failed_use(CuTe
   begin_gameplay_fixture(&fixture);
   event_free_all();
   event_init();
+  if (feat_list[FEAT_ANIMATE_DEAD].name == NULL)
+    assign_feats();
   REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
   ch->player_specials = &specials;
   ch->player.name = CuMutableString("animator");
@@ -8168,6 +8172,9 @@ static void verify_restored_melee_phases(CuTest *tc, int level, bool hasted, boo
   event_init();
   if (class_list[CLASS_WARRIOR].name == NULL)
     load_class_list();
+  if (spell_info[SPELL_MAGE_ARMOR].name == NULL ||
+      spell_info[SPELL_MAGE_ARMOR].name == unused_spellname)
+    mag_assign_spells();
   load_weapons();
   REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
   f.actor.player_specials = &specials;

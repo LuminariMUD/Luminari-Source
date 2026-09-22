@@ -1233,6 +1233,8 @@ void TestActiveWorldSchedulesOnlyConcreteAutonomousWorkWithoutPlayers(CuTest *tc
   character_periodic_select_for_test(false);
   point_update_periodic_reset_for_test();
   point_update_periodic_select_for_test(false);
+  /* The boot-time staff-event delay would add a timer to the queue depths checked below. */
+  staffevent_data.delay = 0;
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   pulse = 100U;
   event_init();
@@ -1333,6 +1335,8 @@ void TestActiveWorldKeepsRolSpecialActivityScheduledDuringCombat(CuTest *tc)
   character_periodic_select_for_test(false);
   point_update_periodic_reset_for_test();
   point_update_periodic_select_for_test(false);
+  /* The boot-time staff-event delay would add a timer to the queue depths checked below. */
+  staffevent_data.delay = 0;
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   pulse = 150U;
   event_init();
@@ -1415,6 +1419,8 @@ void TestActiveWorldDormantPopulationDoesNotCreateScheduledWork(CuTest *tc)
   character_periodic_select_for_test(false);
   point_update_periodic_reset_for_test();
   point_update_periodic_select_for_test(false);
+  /* The boot-time staff-event delay would add a timer to the queue depths checked below. */
+  staffevent_data.delay = 0;
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   pulse = 150U;
   event_init();
@@ -1492,6 +1498,8 @@ void TestActiveWorldDemandDrivenAdmissionAndLegacyGateAreExclusive(CuTest *tc)
   character_periodic_select_for_test(false);
   point_update_periodic_reset_for_test();
   point_update_periodic_select_for_test(false);
+  /* The boot-time staff-event delay would add a timer to the queue depths checked below. */
+  staffevent_data.delay = 0;
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   pulse = 200U;
   event_init();
@@ -1570,6 +1578,8 @@ void TestActiveWorldResourceRecoveryWakesAndRetiresOneOwner(CuTest *tc)
   character_periodic_select_for_test(false);
   point_update_periodic_reset_for_test();
   point_update_periodic_select_for_test(false);
+  /* The boot-time staff-event delay would add a timer to the queue depths checked below. */
+  staffevent_data.delay = 0;
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   pulse = 250U;
   event_init();
@@ -1685,6 +1695,8 @@ void TestActiveWorldReactionsAndScavengingAreDemandDriven(CuTest *tc)
   character_periodic_select_for_test(false);
   point_update_periodic_reset_for_test();
   point_update_periodic_select_for_test(false);
+  /* The boot-time staff-event delay would add a timer to the queue depths checked below. */
+  staffevent_data.delay = 0;
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   pulse = 300U;
   event_init();
@@ -1801,6 +1813,8 @@ void TestIdleNpcPeriodicWorkIsSeparateFromAutonomousAgenda(CuTest *tc)
   character_periodic_select_for_test(true);
   point_update_periodic_reset_for_test();
   point_update_periodic_select_for_test(false);
+  /* The boot-time staff-event delay would add a timer to the queue depths checked below. */
+  staffevent_data.delay = 0;
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   pulse = 400U;
   event_init();

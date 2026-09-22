@@ -568,6 +568,9 @@ void TestConvertedRolSkillsAreRegistered(CuTest *tc)
   int j;
   bool found;
 
+  if (feat_list[FEAT_SHADOW].name == NULL)
+    assign_feats();
+
   for (i = 0; i < sizeof(commands) / sizeof(commands[0]); i++)
   {
     found = FALSE;

@@ -632,6 +632,9 @@ void Test_damage_trigger_exposes_stable_combat_metadata(CuTest *tc)
   char expected[MAX_INPUT_LENGTH];
   int result;
 
+  if (spell_info[SPELL_MAGIC_MISSILE].name == NULL ||
+      spell_info[SPELL_MAGIC_MISSILE].name == unused_spellname)
+    mag_assign_spells();
   CuAssertTrue(tc, damage_trigger_fixture_begin(&fixture));
   CuAssertTrue(tc, damage_trigger_fixture_add(&fixture, "Metadata test", "u", 100,
                                               "set seen_actor %actor.id%\n"

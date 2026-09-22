@@ -1427,6 +1427,8 @@ void Test_feat_sort_contains_each_valid_feat_once(CuTest *tc)
   int feat;
   int position;
 
+  if (feat_list[FEAT_ALERTNESS].name == NULL)
+    assign_feats();
   sort_feats();
   for (position = 1; position < FEAT_LAST_FEAT; position++)
   {

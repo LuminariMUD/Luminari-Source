@@ -797,6 +797,8 @@ void TestWeaponMasteryScalesWithLevelAndWeapon(CuTest *tc)
   int base_damage;
 
   begin_innate_fixture(&fixture);
+  if (!IS_SET(weapon_list[WEAPON_TYPE_LONG_BOW].weaponFlags, WEAPON_FLAG_RANGED))
+    load_weapons();
   make_test_weapon(&sword, WEAPON_TYPE_LONG_SWORD);
   make_test_weapon(&axe, WEAPON_TYPE_BATTLE_AXE);
 
