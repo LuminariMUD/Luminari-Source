@@ -479,7 +479,7 @@ static int query_single_int(MYSQL *connection, const char *query, int fallback)
   if (!result)
     return fallback;
   row = mysql_fetch_row(result);
-  value = row && row[0] ? atoi(row[0]) : fallback;
+  value = row && row[0] ? parse_int(row[0]) : fallback;
   mysql_free_result(result);
   return value;
 }
@@ -1468,7 +1468,7 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   }
 
   loop_count_text = getenv("LUMINARI_TEST_PET_SAVE_LOOPS");
-  repeat_count = loop_count_text ? atoi(loop_count_text) : 3;
+  repeat_count = loop_count_text ? parse_int(loop_count_text) : 3;
   if (repeat_count < 1)
     repeat_count = 1;
   if (repeat_count > 10000)
@@ -2241,7 +2241,8 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
     result = mysql_store_result(connection);
     row = result != NULL ? mysql_fetch_row(result) : NULL;
     matched = matched && row != NULL && mysql_num_rows(result) == 1 && row[0] != NULL &&
-              row[1] != NULL && atoi(row[0]) == (int)NOWHERE && strcmp(row[1], serialized) == 0;
+              row[1] != NULL && parse_int(row[0]) == (int)NOWHERE &&
+              strcmp(row[1], serialized) == 0;
     if (result != NULL)
       mysql_free_result(result);
 
@@ -2254,8 +2255,8 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
     result = mysql_store_result(connection);
     row = result != NULL ? mysql_fetch_row(result) : NULL;
     matched = matched && row != NULL && mysql_num_rows(result) == 1 && row[0] != NULL &&
-              row[1] != NULL && row[2] != NULL && row[3] != NULL && atoi(row[0]) == 77 &&
-              atoi(row[1]) == 2 && strcmp(row[2], owner_name) == 0 &&
+              row[1] != NULL && row[2] != NULL && row[3] != NULL && parse_int(row[0]) == 77 &&
+              parse_int(row[1]) == 2 && strcmp(row[2], owner_name) == 0 &&
               strncmp(row[3], "#-1\n", 4) == 0 &&
               strstr(row[3], "\nName: blade'); DROP TABLE player_save_objs; --\n") != NULL &&
               strstr(row[3], "\nShrt: a 'quoted' blade\\edge\n") != NULL &&

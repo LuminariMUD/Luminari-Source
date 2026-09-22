@@ -269,7 +269,7 @@ static bool vessel_balance_load_observed(struct vessel_balance_observed_data *da
   fields[6] = &data->showcase_entries;
   for (i = 0; i < 7; i++)
   {
-    *fields[i] = row[i] == NULL ? 0 : atoll(row[i]);
+    *fields[i] = row[i] == NULL ? 0 : parse_llong(row[i]);
   }
   mysql_free_result(query_result);
   return TRUE;

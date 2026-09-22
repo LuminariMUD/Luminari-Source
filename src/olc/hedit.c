@@ -3149,7 +3149,7 @@ static struct help_entry_list *parse_help_entry(FILE *fp, int *min_level)
     if (line[0] == '#')
     {
       /* Parse the level */
-      *min_level = atoi(line + 1);
+      *min_level = parse_int(line + 1);
       break;
     }
 

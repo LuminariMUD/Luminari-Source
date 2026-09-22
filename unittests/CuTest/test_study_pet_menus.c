@@ -192,7 +192,7 @@ static int listed_number_containing(const char *output, const char *needle)
   if (!isdigit((unsigned char)*line))
     return 0;
 
-  return atoi(line);
+  return parse_int(line);
 }
 
 static void open_study_pet_menu(CuTest *tc, struct study_pet_fixture *fixture, const char *choice,
