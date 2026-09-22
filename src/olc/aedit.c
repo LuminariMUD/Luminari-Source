@@ -183,15 +183,17 @@ static void aedit_setup_existing(struct descriptor_data *d, int real_num)
 static void aedit_save_internally(struct descriptor_data *d)
 {
   struct social_messg *new_soc_mess_list = NULL;
-  int i;
+  int i, num_socials;
 
   /* add a new social into the list */
   if ((int)OLC_ZNUM(d) > top_of_socialt)
   {
-    CREATE(new_soc_mess_list, struct social_messg, top_of_socialt + 2);
-    for (i = 0; i <= top_of_socialt; i++)
+    num_socials = top_of_socialt + 1;
+    CREATE(new_soc_mess_list, struct social_messg, num_socials + 1);
+    for (i = 0; i < num_socials; i++)
       new_soc_mess_list[i] = soc_mess_list[i];
-    new_soc_mess_list[++top_of_socialt] = *OLC_ACTION(d);
+    new_soc_mess_list[num_socials] = *OLC_ACTION(d);
+    top_of_socialt = num_socials;
     free(soc_mess_list);
     soc_mess_list = new_soc_mess_list;
   }

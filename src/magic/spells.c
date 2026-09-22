@@ -151,6 +151,8 @@ bool wall_blocks_movement(struct char_data *victim, room_rnum from_room, room_rn
 {
   struct obj_data *wall;
 
+  if (dir < 0 || dir >= NUM_OF_DIRS)
+    return false;
   wall = blocking_wall_in_room(victim, from_room, dir);
   if (wall == NULL)
     wall = blocking_wall_in_room(victim, to_room, rev_dir[dir]);

@@ -549,6 +549,9 @@ int load_account(char *name, struct account_data *account)
   PREPARED_STMT *statement;
   const char *value;
 
+  if (name == NULL || account == NULL)
+    return -1;
+
   /* Check if MySQL is available */
   if (!mysql_available || !conn)
   {
@@ -556,7 +559,6 @@ int load_account(char *name, struct account_data *account)
   }
 
   /* Check if the account has data, if so, clear it. */
-  if (account != NULL)
   {
     int i;
     if (account->name != NULL)

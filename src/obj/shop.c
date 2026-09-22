@@ -1497,6 +1497,10 @@ SPECIAL(shop_keeper)
     return (TRUE);
   }
 
+  /* SPECIAL() passes no argument outside a command; every shop command below reads one. */
+  if (argument == NULL)
+    return (FALSE);
+
   if (CMD_IS("buy"))
   {
     shopping_buy(argument, ch, keeper, shop_nr);

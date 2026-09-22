@@ -538,14 +538,17 @@ void clear_quest(struct char_data *ch, int index)
 void add_completed_quest(struct char_data *ch, qst_vnum vnum)
 {
   qst_vnum *temp;
-  int i;
+  int i, num_quests;
 
-  CREATE(temp, qst_vnum, GET_NUM_QUESTS(ch) + 1);
-  for (i = 0; i < GET_NUM_QUESTS(ch); i++)
+  num_quests = GET_NUM_QUESTS(ch);
+  if (num_quests < 0)
+    num_quests = 0;
+  CREATE(temp, qst_vnum, num_quests + 1);
+  for (i = 0; i < num_quests; i++)
     temp[i] = ch->player_specials->saved.completed_quests[i];
 
-  temp[GET_NUM_QUESTS(ch)] = vnum;
-  GET_NUM_QUESTS(ch)++;
+  temp[num_quests] = vnum;
+  GET_NUM_QUESTS(ch) = num_quests + 1;
 
   if (ch->player_specials->saved.completed_quests)
     free(ch->player_specials->saved.completed_quests);
@@ -1776,17 +1779,30 @@ static void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (GET_LEVEL(ch) < LVL_IMMORT)
+  {
     send_to_char(ch, "Huh!?!\r\n");
-  else if (!*arg1)
+    return;
+  }
+  else if (!*arg1 || !*arg2)
+  {
     send_to_char(ch, "Usage: quest assign <target> <quest vnum>\r\n");
-  else if (!*arg2)
-    send_to_char(ch, "Usage: quest assign <target> <quest vnum>\r\n");
+    return;
+  }
   else if ((victim = get_player_vis(ch, arg1, NULL, FIND_CHAR_WORLD)) == NULL)
+  {
     send_to_char(ch, "Can not find that target!\r\n");
+    return;
+  }
   else if ((rnum = real_quest(atoi(arg2))) == NOTHING)
+  {
     send_to_char(ch, "That quest does not exist.\r\n");
+    return;
+  }
   else if (is_complete(victim, atoi(arg2)))
+  {
     send_to_char(ch, "That character already completed that quest.\r\n");
+    return;
+  }
 
   /* got a spare slot to join a quest? */
   for (index = 0; index < MAX_CURRENT_QUESTS; index++)

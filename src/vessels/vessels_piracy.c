@@ -144,6 +144,7 @@ bool vessel_piracy_reload_laws(void)
   invalid_count = 0;
   while ((row = mysql_fetch_row(result)) != NULL && index < (size_t)row_count)
   {
+    /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- CREATE sized it for row_count rows */
     new_cache[index].region_vnum = row[0] ? atoi(row[0]) : 0;
     new_cache[index].waters_type = row[1] ? atoi(row[1]) : VESSEL_WATERS_UNCLAIMED;
     new_cache[index].priority = row[2] ? atoi(row[2]) : 0;

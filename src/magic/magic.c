@@ -716,7 +716,7 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
   if (group_has_paladin_aura_of_protection(vict))
     savethrow += 2;
 
-  if (ARCANE_LEVEL(ch) > 0)
+  if (ch && ARCANE_LEVEL(ch) > 0)
   {
     if (IS_GOOD(ch))
       savethrow += weather_info.moons.solinari_st;
@@ -795,7 +795,8 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
     break;
   case CAST_DEVICE:
     challenge += level;
-    challenge += GET_INT_BONUS(ch);
+    if (ch)
+      challenge += GET_INT_BONUS(ch);
     break;
   case CAST_SPELL:
   default:
@@ -823,7 +824,7 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
     break;
   }
 
-  if (casttype == CAST_WEAPON_SPELL && CLASS_LEVEL(ch, CLASS_SPELLSWORD) > 0)
+  if (ch && casttype == CAST_WEAPON_SPELL && CLASS_LEVEL(ch, CLASS_SPELLSWORD) > 0)
   {
     challenge += HAS_REAL_FEAT(ch, FEAT_IMPROVED_CHANNELLING);
     challenge += HAS_REAL_FEAT(ch, FEAT_ADVANCED_CHANNELLING);
@@ -1473,7 +1474,8 @@ size_t affect_update_character_one(struct char_data *ch)
     next = af->next;
     if (af->duration == 0 && rol_elemental_embodiment_affect_is_transient(af->spell))
     {
-      wearoff_spells[wearoff_count++] = af->spell;
+      if (wearoff_count < expired_count)
+        wearoff_spells[wearoff_count++] = af->spell;
       remove_rol_elemental_embodiment_affect(ch, af->spell);
       next = ch->affected;
     }
@@ -1494,7 +1496,7 @@ size_t affect_update_character_one(struct char_data *ch)
       if (af->spell == SPELL_DEATH_PACT)
         update_position_after_expiry = TRUE;
 
-      if (af->spell > 0 && af->spell < TOP_SPELL_DEFINE &&
+      if (af->spell > 0 && af->spell < TOP_SPELL_DEFINE && wearoff_count < expired_count &&
           (!af->next || af->next->spell != af->spell || af->next->duration > 0))
         wearoff_spells[wearoff_count++] = af->spell;
 
@@ -11834,7 +11836,8 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum)
       return 0;
 
     // charmee shouldn't hit pc's
-    if (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && !IS_NPC(ch->master) && !IS_NPC(tch))
+    if (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master && !IS_NPC(ch->master) &&
+        !IS_NPC(tch))
       return 0;
   }
 

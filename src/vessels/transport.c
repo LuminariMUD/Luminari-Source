@@ -491,7 +491,7 @@ static bool enter_transport_paid(struct char_data *ch, int locale, int type, int
   transit = domain_event_room_handle(taxi);
   leader = domain_event_character_handle(ch);
   if (type == TRAVEL_CARRIAGE || type == TRAVEL_SAILING)
-    for (f = ch->followers; f != NULL; f = f->next)
+    for (f = ch->followers; f != NULL && count + 1 < capacity; f = f->next)
     {
       passenger = f->follower;
       if (passenger != NULL && !IS_NPC(passenger) && passenger->desc != NULL &&

@@ -2547,6 +2547,9 @@ static int rename_verify_database_rollback(struct rename_context *ctx)
   int rollback_ok = TRUE;
   int i;
 
+  /* Only player_rename() rolls back, and it always supplies a report. */
+  if (ctx->report == NULL)
+    return FALSE;
   strlcpy(original_stage, ctx->report->failure_stage, sizeof(original_stage));
   for (i = 0; i < (int)(sizeof(ctx->keys) / sizeof(ctx->keys[0])); i++)
   {

@@ -1767,11 +1767,15 @@ char *gen_ascii_wilderness_map(int size, int x, int y, int map_type)
 
   struct wild_map_tile *data;
 
+  if (size <= 0)
+    return NULL;
+
   CREATE(data, struct wild_map_tile, (size_t)xsize * (size_t)ysize);
   CREATE(map, struct wild_map_tile *, (size_t)xsize);
 
   for (i = 0; i < xsize; i++)
   {
+    /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- CREATE sized map for xsize rows */
     map[i] = data + (i * ysize);
   }
 

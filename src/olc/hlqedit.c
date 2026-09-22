@@ -134,7 +134,7 @@ static void hlqedit_setup(struct descriptor_data *d, mob_rnum mob)
   /*
      Okies copy what already exist
    */
-  if (ch && ch->mob_specials.quest)
+  if (ch->mob_specials.quest)
   {
     for (qexist = ch->mob_specials.quest; qexist; qexist = qexist->next)
     {

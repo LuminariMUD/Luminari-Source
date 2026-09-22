@@ -551,7 +551,8 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
   }
    */
 
-  if (EXIT(ch, door))
+  /* door is -1 when the lock belongs to a container */
+  if (door >= 0 && door < NUM_OF_DIRS && EXIT(ch, door))
   {
     if (EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_EASY))
       lock_dc += 14;

@@ -3660,7 +3660,7 @@ static int rol_monster_calimshan_pasha_command(struct spec_event_context *contex
   char object_name[MAX_INPUT_LENGTH];
   char target_name[MAX_INPUT_LENGTH];
 
-  if (actor == NULL || context->argument == NULL ||
+  if (actor == NULL || context->argument == NULL || complete_cmd_info == NULL ||
       str_cmp(complete_cmd_info[context->command].command, "give") != 0)
     return FALSE;
   two_arguments(context->argument, object_name, sizeof(object_name), target_name,
@@ -3706,7 +3706,7 @@ static int rol_monster_hyssk_slave_command(struct spec_event_context *context,
   struct obj_data *entered;
   char name[MAX_INPUT_LENGTH];
 
-  if (actor == NULL || context->argument == NULL ||
+  if (actor == NULL || context->argument == NULL || complete_cmd_info == NULL ||
       str_cmp(complete_cmd_info[context->command].command, "enter") != 0 || !AWAKE(taker) ||
       !CAN_SEE(taker, actor))
     return FALSE;
@@ -3738,7 +3738,8 @@ static int rol_monster_beholder_thrall_command(struct spec_event_context *contex
   struct char_data *actor = context->actor;
   const char *command;
 
-  if (actor == NULL || actor->master != beholder || !AFF_FLAGGED(actor, AFF_CHARM))
+  if (actor == NULL || complete_cmd_info == NULL || actor->master != beholder ||
+      !AFF_FLAGGED(actor, AFF_CHARM))
     return FALSE;
   command = complete_cmd_info[context->command].command;
   if (rol_planar_captive_command_allowed(command))

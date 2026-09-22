@@ -340,8 +340,8 @@ void bedit_disp_board_type_menu(struct descriptor_data *d)
 
 void bedit_save_internally(struct descriptor_data *d)
 {
-  struct mysql_board_config *board, *old_board;
-  int i, found = FALSE;
+  struct mysql_board_config *board, *old_board, *added;
+  int i, num_boards, found = FALSE;
 
   board = (void *)OLC_STORAGE(d);
 
@@ -376,26 +376,28 @@ void bedit_save_internally(struct descriptor_data *d)
   if (!found)
   {
     /* This is a new board, add it to the array */
-    if (mysql_num_boards == 0)
+    num_boards = mysql_num_boards > 0 ? mysql_num_boards : 0;
+    if (num_boards == 0)
     {
       CREATE(mysql_board_configs, struct mysql_board_config, 1);
     }
     else
     {
-      RECREATE(mysql_board_configs, struct mysql_board_config, mysql_num_boards + 1);
+      RECREATE(mysql_board_configs, struct mysql_board_config, num_boards + 1);
     }
 
-    mysql_board_configs[mysql_num_boards].board_id = board->board_id;
-    mysql_board_configs[mysql_num_boards].board_name = strdup(board->board_name);
-    mysql_board_configs[mysql_num_boards].board_type = board->board_type;
-    mysql_board_configs[mysql_num_boards].read_level = board->read_level;
-    mysql_board_configs[mysql_num_boards].write_level = board->write_level;
-    mysql_board_configs[mysql_num_boards].delete_level = board->delete_level;
-    mysql_board_configs[mysql_num_boards].obj_vnum = board->obj_vnum;
-    mysql_board_configs[mysql_num_boards].clan_id = board->clan_id;
-    mysql_board_configs[mysql_num_boards].clan_rank = board->clan_rank;
-    mysql_board_configs[mysql_num_boards].active = board->active;
-    mysql_num_boards++;
+    added = &mysql_board_configs[num_boards];
+    added->board_id = board->board_id;
+    added->board_name = strdup(board->board_name);
+    added->board_type = board->board_type;
+    added->read_level = board->read_level;
+    added->write_level = board->write_level;
+    added->delete_level = board->delete_level;
+    added->obj_vnum = board->obj_vnum;
+    added->clan_id = board->clan_id;
+    added->clan_rank = board->clan_rank;
+    added->active = board->active;
+    mysql_num_boards = num_boards + 1;
   }
 }
 

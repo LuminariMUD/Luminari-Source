@@ -612,7 +612,7 @@ static int call_magic_impl(struct char_data *caster, struct char_data *cvict,
   int savetype = 0, spell_level = 0;
   struct char_data *tmp = NULL;
 
-  if (spellnum < 1 || spellnum > TOP_SPELL_DEFINE)
+  if (caster == NULL || spellnum < 1 || spellnum > TOP_SPELL_DEFINE)
     return (0);
 
   if (!cast_wtrigger(caster, cvict, ovict, spellnum))
@@ -2834,7 +2834,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
     }
 
     /* i made this so you can spam iron skin theoretically -zusuk */
-    if (affected_by_spell(tch, SPELL_IRONSKIN) && GET_STONESKIN(tch) >= WARD_THRESHOLD)
+    if (tch && affected_by_spell(tch, SPELL_IRONSKIN) && GET_STONESKIN(tch) >= WARD_THRESHOLD)
     {
       send_to_char(ch,
                    "The ironskin on %s is still holding strong (%d damage left, %d is the "

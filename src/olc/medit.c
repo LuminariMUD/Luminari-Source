@@ -1456,11 +1456,13 @@ void medit_parse(struct descriptor_data *d, char *arg)
     {
       char buf[MAX_INPUT_LENGTH] = {'\0'};
       snprintf(buf, sizeof(buf), "%s", delete_doubledollar(arg));
-      if (ECHO_ENTRIES(OLC_MOB(d)) && ECHO_ENTRIES(OLC_MOB(d)) != NULL &&
-          ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1])
+      /* MEDIT_EDIT_ECHO chose an existing entry, 1 to ECHO_COUNT. */
+      if (ECHO_ENTRIES(OLC_MOB(d)) != NULL && OLC_VAL(d) >= 1 &&
+          OLC_VAL(d) <= ECHO_COUNT(OLC_MOB(d)))
+      {
         free(ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1]);
-      ECHO_ENTRIES(OLC_MOB(d))
-      [OLC_VAL(d) - 1] = strdup(buf);
+        ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1] = strdup(buf);
+      }
     }
     else
       delete_echo_entry(OLC_MOB(d), OLC_VAL(d));
