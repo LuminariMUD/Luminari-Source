@@ -74,7 +74,8 @@ Applied in step 1, each with the scope, reason, owner, and expiry entry `.clang-
    `handle_region_help()`, and `handle_background_help()` and a heap overflow in
    `transform_voice_to_observational()`; all four are fixed. Ten regression tests (CuTest
    1,744/1,744).
-   Found but not changed (outside this issue): every toggleable perk ID is 256 or more, so
+   Found but not changed (outside this issue, filed as #227): every toggleable perk ID is 256
+   or more, so
    the perk toggles ignore them (Defensive Stance and Immovable Object never apply, alchemist
    mutagen/catalyst toggles do not stick); `score_display_width` should be `ubyte`; the
    chokers' affect tag equals `SPELL_IRON_GUTS`; shutdown-only leaks in `ibt.c`,
