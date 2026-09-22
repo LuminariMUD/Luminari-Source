@@ -4,12 +4,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 /* Include the actual headers from src */
 #include "conf.h"
 #include "../../src/core/sysdep.h"
 #include "../../src/core/structs.h"
 #include "../../src/core/utils.h"
+#include "../../src/core/comm.h"
 #include "../../src/core/modify.h"
 #include "../../src/act/act.h"
 #include "../../src/magic/spells.h"
@@ -309,6 +312,61 @@ void Test_path_component_validation(CuTest *tc)
   CuAssertTrue(tc,
                !build_safe_path(small, sizeof(small), "world/wld/xx", "1.wld", SAFE_PATH_FILENAME));
   CuAssertStrEquals(tc, "", small);
+}
+
+/* The -o log path opens exactly as given, and a ".." component stops the boot instead of
+ * logging somewhere else. Each call runs in a child: the accepted path redirects stderr and
+ * the refused one exits. */
+void Test_setup_log_keeps_operator_path_and_refuses_parent_component(CuTest *tc)
+{
+  char directory[] = "/tmp/luminari-setup-log-XXXXXX";
+  char subdirectory[MAX_FILEPATH];
+  char log_path[MAX_FILEPATH];
+  char refused[MAX_FILEPATH];
+  struct stat file_stat;
+  pid_t child;
+  int status = 0;
+
+  CuAssertPtrNotNull(tc, mkdtemp(directory));
+  snprintf(subdirectory, sizeof(subdirectory), "%s/run dir", directory);
+  CuAssertIntEquals(tc, 0, mkdir(subdirectory, 0700));
+  snprintf(log_path, sizeof(log_path), "%s/run dir/server.log", directory);
+  snprintf(refused, sizeof(refused), "%s/run dir/../server.log", directory);
+
+  fflush(NULL);
+  child = fork();
+  CuAssertTrue(tc, child >= 0);
+  if (child == 0)
+  {
+    if (freopen("/dev/null", "w", stdout) == NULL)
+      CuTestChildExit(2);
+    setup_log_for_test(log_path);
+    log("setup_log test entry");
+    CuTestChildExit(logfile == NULL);
+  }
+  CuAssertIntEquals(tc, child, waitpid(child, &status, 0));
+  CuAssertTrue(tc, WIFEXITED(status));
+  CuAssertIntEquals(tc, 0, WEXITSTATUS(status));
+  CuAssertIntEquals(tc, 0, stat(log_path, &file_stat));
+  CuAssertTrue(tc, file_stat.st_size > 0);
+
+  fflush(NULL);
+  child = fork();
+  CuAssertTrue(tc, child >= 0);
+  if (child == 0)
+  {
+    if (freopen("/dev/null", "w", stdout) == NULL)
+      CuTestChildExit(2);
+    setup_log_for_test(refused); /* exits 1 before opening anything */
+    CuTestChildExit(0);
+  }
+  CuAssertIntEquals(tc, child, waitpid(child, &status, 0));
+  CuAssertTrue(tc, WIFEXITED(status));
+  CuAssertIntEquals(tc, 1, WEXITSTATUS(status));
+
+  unlink(log_path);
+  rmdir(subdirectory);
+  rmdir(directory);
 }
 
 /* The atoi() family replacements read numbers the same way but define the edge cases. */

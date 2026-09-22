@@ -3879,10 +3879,11 @@ int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_nam
   return (1);
 }
 
-/* The character c when a safe path may contain it, otherwise 0. */
-static int safe_path_char(int c)
+/* The character c when a path of the given form may contain it, otherwise 0. An operator
+ * path keeps every character. */
+static int safe_path_char(int c, enum safe_path_form form)
 {
-  if (isalnum(c) || c == '.' || c == '_' || c == '-' || c == '/')
+  if (form == SAFE_PATH_OPERATOR || isalnum(c) || c == '.' || c == '_' || c == '-' || c == '/')
     return c;
   return 0;
 }
@@ -3911,8 +3912,7 @@ bool build_safe_path(char *buf, size_t size, const char *prefix, const char *pat
    * holds a character that the checks below did not see. */
   for (current = path; *current; current++)
   {
-    c = form == SAFE_PATH_OPERATOR ? (unsigned char)*current
-                                   : safe_path_char((unsigned char)*current);
+    c = safe_path_char((unsigned char)*current, form);
     if (c == 0 || length + 1 >= size)
     {
       *buf = '\0';

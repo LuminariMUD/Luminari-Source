@@ -62,6 +62,8 @@ void comm_test_retain_unsent_output(struct descriptor_data *d, const char *outpu
 bool comm_close_due_for_test(struct descriptor_data *d, uint64_t now_usec);
 int process_input_for_test(struct descriptor_data *d);
 int get_from_q_for_test(struct txt_q *queue, char *dest, int *aliased);
+/** Open the log file as the -o option would; a refused path exits the process. */
+void setup_log_for_test(const char *filename);
 void flush_queues_for_test(struct descriptor_data *d);
 /** Accept one pending connection on listener as the game loop would. */
 int new_descriptor_for_test(int listener);
