@@ -4431,8 +4431,7 @@ void clean_pfiles(void)
         for (ci = 0; pclean_criteria[ci].level > -1; ci++)
         {
           if (player_table[i].level <= pclean_criteria[ci].level &&
-              ((time(0) - player_table[i].last) >
-               ((time_t)pclean_criteria[ci].days * (time_t)SECS_PER_REAL_DAY)))
+              ((time(0) - player_table[i].last) > (pclean_criteria[ci].days * SECS_PER_REAL_DAY)))
           {
             remove_player(i);
             break;
@@ -5833,8 +5832,6 @@ static void load_HMVS(struct char_data *ch, const char *line, int mode)
   case LOAD_STRENGTH:
     GET_REAL_STR(ch) = num;
     ch->real_abils.str_add = num2;
-    break;
-  default:
     break;
   }
 }

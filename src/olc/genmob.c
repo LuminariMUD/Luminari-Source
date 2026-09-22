@@ -113,8 +113,6 @@ mob_rnum add_mobile(struct char_data *mob, mob_vnum vnum)
         if (ZCMD(zone, cmd_no).arg2 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg2 >= found)
           ZCMD(zone, cmd_no).arg2++;
         break;
-      default:
-        break;
       }
 
   /* Update shop keepers. */
