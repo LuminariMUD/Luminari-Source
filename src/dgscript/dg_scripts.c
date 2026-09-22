@@ -710,6 +710,8 @@ bool dg_random_trigger_run_one(void *owner, int owner_type)
       return true;
     }
     break;
+  default:
+    break;
   }
   return false;
 }
@@ -2555,6 +2557,8 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int t
       case MOB_TRIGGER:
         c = get_char_room_vis((struct char_data *)go, name, NULL);
         break;
+      default:
+        break;
       }
       if (c)
         snprintf(uid, sizeof(uid), "%c%ld", UID_CHAR, char_script_id(c));
@@ -2576,6 +2580,8 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int t
           o = get_obj_in_list_vis((struct char_data *)go, name, NULL,
                                   world[IN_ROOM((struct char_data *)go)].contents);
         break;
+      default:
+        break;
       }
       if (o)
         snprintf(uid, sizeof(uid), "%c%ld", UID_CHAR, obj_script_id(o));
@@ -2593,6 +2599,8 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int t
         break;
       case MOB_TRIGGER:
         r = IN_ROOM((struct char_data *)go);
+        break;
+      default:
         break;
       }
       if (r != NOWHERE)
@@ -3406,6 +3414,8 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
         script_log("  ROOM details: name='%s', vnum=%" PRI_IDX, ((room_data *)go)->name,
                    ((room_data *)go)->number);
         break;
+      default:
+        break;
       }
     }
     else
@@ -3431,6 +3441,8 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
     case WLD_TRIGGER:
       script_log("It was attached to %s [%" PRI_IDX "]", ((room_data *)go)->name,
                  ((room_data *)go)->number);
+      break;
+    default:
       break;
     }
 
@@ -3651,6 +3663,8 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
           break;
         case WLD_TRIGGER:
           wld_command_interpreter((struct room_data *)go, cmd);
+          break;
+        default:
           break;
         }
         if (dg_owner_purged)

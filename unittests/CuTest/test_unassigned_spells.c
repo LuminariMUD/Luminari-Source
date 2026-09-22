@@ -820,6 +820,8 @@ void TestElementalEmbodimentsPreserveProfilesAndLinkedCleanup(CuTest *tc)
     case SPELL_ELEMENTAL_AIR_EMBODIMENT:
       spell_elemental_air_embodiment(20, &caster, &target, NULL, CAST_SPELL);
       break;
+    default:
+      break;
     }
 
     caster_id = GET_ID(&caster);

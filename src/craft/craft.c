@@ -2624,6 +2624,8 @@ static int node_minimum_skill(int material)
     return 58;
   case MATERIAL_ADAMANTINE:
     return 61;
+  default:
+    break;
   }
   return -1;
 }

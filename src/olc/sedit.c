@@ -633,6 +633,7 @@ void sedit_parse(struct descriptor_data *d, char *arg)
       return;
     case 'q':
     case 'Q':
+    default:
       break;
     }
     break;
@@ -652,6 +653,7 @@ void sedit_parse(struct descriptor_data *d, char *arg)
       return;
     case 'q':
     case 'Q':
+    default:
       break;
     }
     break;
@@ -679,6 +681,7 @@ void sedit_parse(struct descriptor_data *d, char *arg)
       return;
     case 'q':
     case 'Q':
+    default:
       break;
     }
     break;

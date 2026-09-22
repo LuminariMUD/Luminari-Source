@@ -895,6 +895,8 @@ ACMDU(do_gen_comm)
     case CON_BACKGROUND_ARCHTYPE:
     case CON_BACKGROUND_ARCHTYPE_CONFIRM:
       continue;
+    default:
+      break;
     }
 
     /* SELF or no character associated with descriptor */
@@ -943,6 +945,8 @@ ACMDU(do_gen_comm)
     case CON_HLQEDIT:
     case CON_QSTATS:
       continue;
+    default:
+      break;
     }
 
     /* 'writing' such as study, olc, mud-mail, etc */
@@ -1353,6 +1357,8 @@ ACMD(do_dialogue_quest)
              roll_for, skill_for, roll_for + skill_for, skill_dc);
     act(buf, FALSE, ch, 0, target, TO_CHAR);
     break;
+  default:
+    break;
   }
 
   next_quest = aquest_table[quest].dialogue_alternative_quest;
@@ -1375,6 +1381,8 @@ ACMD(do_dialogue_quest)
     case SCMD_DIALOGUE_BLUFF:
       act("You succeed in beguiling $N!", FALSE, ch, 0, target, TO_CHAR);
       break;
+    default:
+      break;
     }
     if (domain_event_runtime_character_resolved(ch, target, DOMAIN_CHARACTER_RESOLUTION_NEGOTIATED,
                                                 ability) != DOMAIN_EVENT_OK)
@@ -1394,6 +1402,8 @@ ACMD(do_dialogue_quest)
       break;
     case SCMD_DIALOGUE_BLUFF:
       act("You fail to beguile $N!", FALSE, ch, 0, target, TO_CHAR);
+      break;
+    default:
       break;
     }
     set_dialogue_quest_failed(ch, aquest_table[quest].vnum);

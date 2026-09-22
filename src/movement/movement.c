@@ -1743,6 +1743,8 @@ ACMD(do_pullswitch)
       OPEN_DOOR(other_room, dummy, rev_dir[door]);
     }
     break;
+  default:
+    break;
   }
 
   if (obj->action_description != NULL)

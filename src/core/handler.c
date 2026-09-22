@@ -2348,6 +2348,8 @@ void obj_from_bag(struct char_data *ch, struct obj_data *object, int bagnum)
   case 10:
     REMOVE_FROM_LIST(object, ch->bags->bag10, next_content);
     break;
+  default:
+    break;
   }
 
   /* set flag for crash-save system, but not on mobs! */

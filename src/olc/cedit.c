@@ -1253,6 +1253,8 @@ static void cedit_disp_mob_stats_category(struct descriptor_data *d, int categor
     stats = &OLC_CONFIG(d)->mob_stats.rogues;
     category_name = "Rogues";
     break;
+  default:
+    break;
   }
 
   if (stats)
@@ -1834,6 +1836,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       case 4:
         OLC_MODE(d) = CEDIT_MOB_STATS_ROGUES_HP;
         break;
+      default:
+        break;
       }
       return;
     case '2':
@@ -1851,6 +1855,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
         break;
       case 4:
         OLC_MODE(d) = CEDIT_MOB_STATS_ROGUES_AC;
+        break;
+      default:
         break;
       }
       return;
@@ -1870,6 +1876,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       case 4:
         OLC_MODE(d) = CEDIT_MOB_STATS_ROGUES_AB;
         break;
+      default:
+        break;
       }
       return;
     case '4':
@@ -1887,6 +1895,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
         break;
       case 4:
         OLC_MODE(d) = CEDIT_MOB_STATS_ROGUES_DB;
+        break;
+      default:
         break;
       }
       return;
@@ -1906,6 +1916,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       case 4:
         OLC_MODE(d) = CEDIT_MOB_STATS_ROGUES_ST;
         break;
+      default:
+        break;
       }
       return;
     case '6':
@@ -1924,6 +1936,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       case 4:
         OLC_MODE(d) = CEDIT_MOB_STATS_ROGUES_AS;
         break;
+      default:
+        break;
       }
       return;
     case '7':
@@ -1941,6 +1955,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
         break;
       case 4:
         OLC_MODE(d) = CEDIT_MOB_STATS_ROGUES_GOLD;
+        break;
+      default:
         break;
       }
       return;
@@ -3673,6 +3689,8 @@ void cedit_string_cleanup(struct descriptor_data *d, int terminator __attribute_
   case CEDIT_WELC_MESSG:
   case CEDIT_START_MESSG:
     cedit_disp_operation_options(d);
+    break;
+  default:
     break;
   }
 }

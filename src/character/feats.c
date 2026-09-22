@@ -9345,6 +9345,8 @@ int is_class_feat(int featnum, int class, struct char_data *ch)
       case FEAT_SKILL_FOCUS:
       case FEAT_TOUGHNESS:
         return TRUE;
+      default:
+        break;
       }
     }
     else if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE))
@@ -9360,6 +9362,8 @@ int is_class_feat(int featnum, int class, struct char_data *ch)
       case FEAT_SPELL_FOCUS:
       case FEAT_STILL_SPELL:
         return TRUE;
+      default:
+        break;
       }
     }
     else if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY))
@@ -9375,6 +9379,8 @@ int is_class_feat(int featnum, int class, struct char_data *ch)
       case FEAT_QUICKEN_SPELL:
       case FEAT_SKILL_FOCUS:
         return TRUE;
+      default:
+        break;
       }
     }
     else if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_UNDEAD))
@@ -9390,6 +9396,8 @@ int is_class_feat(int featnum, int class, struct char_data *ch)
       case FEAT_TOUGHNESS:
       case FEAT_SKILL_FOCUS:
         return TRUE;
+      default:
+        break;
       }
     }
   }
@@ -9859,6 +9867,8 @@ int get_draconic_heritage_subfeat(int feat)
   {
   case FEAT_SORCERER_BLOODLINE_DRACONIC:
     return BLFEAT_DRACONIC;
+  default:
+    break;
   }
   return -1;
 }
@@ -9905,6 +9915,8 @@ bool isSorcBloodlineFeat(int featnum)
   case FEAT_SORCERER_BLOODLINE_FEY:
   case FEAT_SORCERER_BLOODLINE_UNDEAD:
     return TRUE;
+  default:
+    break;
   }
   return FALSE;
 }

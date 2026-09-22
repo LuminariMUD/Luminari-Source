@@ -562,6 +562,8 @@ ACMDU(do_discharge)
            dam_type, FALSE);
     ch->player_specials->energy_conversion[dam_type] = 0;
     return;
+  default:
+    break;
   }
 
   send_to_char(ch, "That is not a valid energy type.  Please choose from among: fire, cold, acid, "

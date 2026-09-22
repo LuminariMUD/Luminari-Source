@@ -455,6 +455,8 @@ void finalize_study(struct descriptor_data *d)
         SET_FEAT(ch, FEAT_IMPROVED_FAMILIAR, HAS_REAL_FEAT(ch, FEAT_IMPROVED_FAMILIAR) + 1);
         SET_FEAT(ch, FEAT_ARCANE_BLOODLINE_ARCANA, 1);
         break;
+      default:
+        break;
       }
     }
   } /* for loop running through feats */
@@ -725,6 +727,8 @@ static bool add_levelup_feat(struct descriptor_data *d, int feat)
                            "feat, if you do not want to do this, exit out of the study menu "
                            "without saving.\r\n");
       }
+      break;
+    default:
       break;
     }
   }
@@ -1831,6 +1835,8 @@ const char *levelup_show_necromancer_cast_type(struct char_data *ch)
     return "Arcane";
   case 2:
     return "Divine";
+  default:
+    break;
   }
   return "Not Chosen";
 }
@@ -2808,6 +2814,8 @@ static void skfeat_disp_menu(struct descriptor_data *d)
     case ABILITY_UNUSED_5:
     case ABILITY_UNUSED_6:
       continue;
+    default:
+      break;
     }
     write_to_output(d, "%d) %s\r\n", i, ability_names[i]);
   }
@@ -3640,6 +3648,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       LEVELUP(ch)->tempDiscovery = 0;
       select_alchemist_discoveries(d);
       break;
+    default:
+      break;
     }
     break;
 
@@ -3656,6 +3666,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "Paladin Mercy %s chosen!\r\n", paladin_mercies[LEVELUP(ch)->tempMercy]);
       LEVELUP(ch)->tempMercy = 0;
       select_paladin_mercies(d);
+      break;
+    default:
       break;
     }
     break;
@@ -3674,6 +3686,8 @@ void study_parse(struct descriptor_data *d, char *arg)
                       blackguard_cruelties[LEVELUP(ch)->tempCruelty]);
       LEVELUP(ch)->tempCruelty = 0;
       select_blackguard_cruelties(d);
+      break;
+    default:
       break;
     }
     break;
@@ -3743,6 +3757,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       if (add_levelup_feat(d, LEVELUP(ch)->tempFeat))
         write_to_output(d, "Feat %s chosen!\r\n", feat_list[LEVELUP(ch)->tempFeat].name);
       gen_feat_disp_menu(d);
+      break;
+    default:
       break;
     }
     break;
@@ -3842,6 +3858,8 @@ void study_parse(struct descriptor_data *d, char *arg)
     case ABILITY_UNUSED_6:
       write_to_output(d, "That is an invalid choice!\r\n");
       skfeat_disp_menu(d);
+      break;
+    default:
       break;
     }
     if ((number < 1) || (number > END_GENERAL_ABILITIES))
@@ -4372,6 +4390,8 @@ void study_parse(struct descriptor_data *d, char *arg)
     case 'Q':
       study_eidolon_main_menu_select(d);
       break;
+    default:
+      break;
     }
     if (is_abbrev(arg, "fulllist"))
     {
@@ -4463,6 +4483,8 @@ void study_parse(struct descriptor_data *d, char *arg)
     case 'q':
     case 'Q':
       study_eidolon_main_menu_select(d);
+      break;
+    default:
       break;
     }
     if (is_abbrev(arg, "list"))
@@ -5190,6 +5212,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       }
       display_main_menu(d);
       break;
+    default:
+      break;
     }
     break;
 
@@ -5783,6 +5807,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       case 9:
         write_to_output(d, "This slot is not currently modifyable.\r\n");
         break;
+      default:
+        break;
       }
 
       OLC_MODE(d) = FAVORED_ENEMY;
@@ -5917,6 +5943,8 @@ sbyte isRacialFeat(int feat)
     return true;
   case FEAT_DRAGONBORN_ANCESTRY:
     return true;
+  default:
+    break;
   }
   return false;
 }

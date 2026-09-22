@@ -474,6 +474,8 @@ void npc_spellup(struct char_data *ch)
     if (npc_should_call_companion(ch, MOB_SHADOW))
       perform_call(ch, MOB_SHADOW, GET_LEVEL(ch));
     break;
+  default:
+    break;
   }
 
   /* Check buff saturation - count existing defensive buffs */
@@ -790,6 +792,8 @@ void npc_offensive_spells(struct char_data *ch)
       return;
     }
     break;
+  default:
+    break;
   }
 
   /* 25% of spellup instead of offensive spell */
@@ -837,6 +841,8 @@ void npc_offensive_spells(struct char_data *ch)
       return;
     }
 
+    break;
+  default:
     break;
   }
 

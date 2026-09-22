@@ -475,6 +475,8 @@ static int weather_terrain_audio_apply_modifiers(struct spatial_context *ctx, do
     weather_range_mod = 0.4; /* Storm overwhelms most sounds */
     weather_clarity_mod = 0.3;
     break;
+  default:
+    break;
   }
 
   /* Combine all modifiers */
@@ -510,6 +512,7 @@ static int weather_terrain_audio_calculate_interference(struct spatial_context *
     break;
   case 4: /* Storm */
     *interference += 0.8;
+  default:
     break;
   }
 

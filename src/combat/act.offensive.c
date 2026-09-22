@@ -3071,6 +3071,8 @@ void perform_smite(struct char_data *ch, int smite_type)
     if (!IS_NPC(ch))
       start_daily_use_cooldown(ch, FEAT_DESTRUCTIVE_SMITE);
     break;
+  default:
+    break;
   }
   af.duration = 24;
 
@@ -3563,6 +3565,7 @@ int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_le
     dam_killed_vict(ch, vict);
     break;
   case 3:
+  {
     act("The mighty force of your faith blasts $N!", FALSE, ch, 0, vict, TO_CHAR);
     act("The mighty force of $N's faith blasts you!", FALSE, vict, 0, ch, TO_CHAR);
     act("The mighty force of $N's faith blasts $n!", FALSE, vict, 0, ch, TO_NOTVICT);
@@ -3579,6 +3582,9 @@ int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_le
     }
 
     damage(ch, vict, turn_damage, SPELL_GREATER_RUIN, DAM_HOLY, FALSE);
+    break;
+  }
+  default:
     break;
   }
 
@@ -6573,6 +6579,8 @@ ACMD(do_breathe)
       spellnum = SPELL_LIGHTNING_BREATHE;
       break;
       // no need for red here, as defaults above are fire.
+    default:
+      break;
     }
   }
 
@@ -12677,6 +12685,8 @@ ACMD(do_process_attack)
       fail = TRUE;
     }
     break;
+  default:
+    break;
   }
 
   if (fail == TRUE)
@@ -13424,6 +13434,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     to_vict = "You are -stunned- from the cruelty inflicted upon you by the corrupting touch!";
     to_room = "$n is -stunned- from the cruelty inflicted upon $M by the corrupting touch!";
     break;
+  default:
+    break;
   }
 
   // figure out duration
@@ -13866,6 +13878,8 @@ ACMDU(do_judgement)
             break;
           case INQ_JUDGEMENT_RESISTANCE:
             af.location = APPLY_SAVING_REFL;
+            break;
+          default:
             break;
           }
           affect_to_char(ch, &af);

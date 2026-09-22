@@ -192,6 +192,8 @@ void *dg_time_registry_resolve_owner(struct script_data *script)
     if (room != NOWHERE && SCRIPT(&world[room]) == script)
       return &world[room];
     break;
+  default:
+    break;
   }
   dg_time_registry_remove(script);
   return NULL;
@@ -335,6 +337,8 @@ void *dg_random_registry_resolve_owner(struct script_data *script)
     room = real_room((room_vnum)script->owner_vnum);
     if (room != NOWHERE && SCRIPT(&world[room]) == script)
       return &world[room];
+    break;
+  default:
     break;
   }
   dg_random_registry_remove(script);

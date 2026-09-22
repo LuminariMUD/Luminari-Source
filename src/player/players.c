@@ -5833,6 +5833,8 @@ static void load_HMVS(struct char_data *ch, const char *line, int mode)
     GET_REAL_STR(ch) = num;
     ch->real_abils.str_add = num2;
     break;
+  default:
+    break;
   }
 }
 

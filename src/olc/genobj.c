@@ -144,6 +144,8 @@ obj_rnum adjust_objects(obj_rnum refpt)
       case 'R':
         ZCMD(zone, cmd_no).arg2 += (ZCMD(zone, cmd_no).arg2 >= (int)refpt);
         break;
+      default:
+        break;
       }
     }
   }
@@ -768,6 +770,8 @@ int delete_object(obj_rnum rnum)
           ZCMD(zone, cmd_no).arg2--;
           zone_touched = true;
         }
+        break;
+      default:
         break;
       }
     }

@@ -4652,6 +4652,8 @@ ACMD(do_zcheck)
         }
         break;
 
+      default:
+        break;
       } /*switch on Item_Type*/
 
       if (!CAN_WEAR(obj, ITEM_WEAR_TAKE))
@@ -4933,6 +4935,8 @@ static void obj_checkload(struct char_data *ch, obj_vnum ovnum)
           send_to_char(ch, "  [%5" PRI_IDX "] %s (Removed from room)\r\n", lastroom_v,
                        world[lastroom_r].name);
         break;
+      default:
+        break;
       } /* switch */
     } /*for cmd_no......*/
   } /*for zone...*/
@@ -5015,6 +5019,8 @@ static void trg_checkload(struct char_data *ch, trig_vnum tvnum)
                        world[lastroom_r].name);
           found = 1;
         }
+        break;
+      default:
         break;
       } /* switch */
     } /*for cmd_no......*/
@@ -10834,6 +10840,8 @@ ACMD(do_setweather)
   case 4:
     weather_info.sky = SKY_LIGHTNING;
     break;
+  default:
+    break;
   }
 
   send_to_char(ch,
@@ -11334,6 +11342,8 @@ ACMD(do_settestchar)
       break;
     case R_CHA_MOD:
       GET_REAL_CHA(vict) = 10 + race_list[race_num].ability_mods[i];
+      break;
+    default:
       break;
     }
   }

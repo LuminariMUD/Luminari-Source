@@ -179,6 +179,8 @@ bool valid_psionic_spellup_power(int powernum)
   case PSIONIC_BODY_OF_IRON:
   case PSIONIC_SHADOW_BODY:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -234,6 +236,8 @@ bool valid_psionic_combat_power(int powernum)
   case PSIONIC_BARRED_MIND_PERSONAL:
   case PSIONIC_TRUE_METABOLISM:
     return true;
+  default:
+    break;
   }
   return false;
 }

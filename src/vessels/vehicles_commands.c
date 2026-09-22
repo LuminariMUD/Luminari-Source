@@ -192,6 +192,8 @@ static int parse_drive_direction(const char *arg)
         return SOUTHEAST;
       case 7:
         return SOUTHWEST;
+      default:
+        break;
       }
     }
     return -1;

@@ -309,6 +309,8 @@ WCMD(do_wdoor)
         wld_log(room, "wdoor: invalid door target (arg == %s)", value);
       }
       break;
+    default:
+      break;
     }
   }
   door_state_finish(&operation);

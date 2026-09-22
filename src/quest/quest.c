@@ -425,6 +425,8 @@ void parse_quest(FILE *quest_f, int nr)
     case 'S':
       total_quests = ++i;
       return;
+    default:
+      break;
     }
   }
 }

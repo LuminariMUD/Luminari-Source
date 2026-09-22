@@ -257,6 +257,8 @@ static int get_vendor_armor_cost(struct char_data *ch, int level, int armortype,
   case 4:
     cost += 50000;
     break;
+  default:
+    break;
   }
 
   if (armor_list[armortype].armorType != ARMOR_TYPE_SHIELD &&
@@ -291,6 +293,8 @@ static int get_vendor_weapon_cost(struct char_data *ch, int level, int weapontyp
     break;
   case 4:
     cost += 50000;
+    break;
+  default:
     break;
   }
 
@@ -625,6 +629,8 @@ SPECIAL(buyarmor)
       break;
     case 3:
       base_vnum = 57;
+      break;
+    default:
       break;
     }
   }

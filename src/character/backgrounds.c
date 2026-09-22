@@ -674,6 +674,8 @@ ACMDU(do_swindle)
       case 10:
         award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));
         break;
+      default:
+        break;
       }
       ch->char_specials.which_treasure_message = CUSTOM_TREASURE_MESSAGE_NONE;
       return;
@@ -782,6 +784,8 @@ ACMDU(do_entertain)
         break;
       case 10:
         award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));
+        break;
+      default:
         break;
       }
       ch->char_specials.which_treasure_message = CUSTOM_TREASURE_MESSAGE_NONE;
@@ -921,6 +925,8 @@ ACMDU(do_tribute)
       case 10:
         award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));
         break;
+      default:
+        break;
       }
       ch->char_specials.which_treasure_message = CUSTOM_TREASURE_MESSAGE_NONE;
       return;
@@ -1024,6 +1030,8 @@ ACMDU(do_extort)
         break;
       case 10:
         award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));
+        break;
+      default:
         break;
       }
       ch->char_specials.which_treasure_message = CUSTOM_TREASURE_MESSAGE_NONE;

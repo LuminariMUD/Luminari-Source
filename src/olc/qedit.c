@@ -1128,5 +1128,7 @@ void qedit_string_cleanup(struct descriptor_data *d, int terminator __attribute_
   case QEDIT_ABANDON:
     qedit_disp_menu(d);
     break;
+  default:
+    break;
   }
 }

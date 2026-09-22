@@ -477,6 +477,8 @@ static int weather_terrain_apply_modifiers(struct spatial_context *ctx, double *
     weather_range_mod = 0.2;
     weather_clarity_mod = 0.3;
     break;
+  default:
+    break;
   }
 
   /* Time of day effects - now using SUN_* constants */
@@ -537,6 +539,7 @@ static int weather_terrain_calculate_interference(struct spatial_context *ctx, d
     break;
   case 4: /* Storm */
     *interference += 0.7;
+  default:
     break;
   }
 

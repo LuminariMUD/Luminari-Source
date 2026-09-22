@@ -983,6 +983,7 @@ int calculate_total_light_level(room_rnum room)
       break;
     case SUN_DARK:
       /* Night time - no natural light */
+    default:
       break;
     }
   }
@@ -1093,6 +1094,8 @@ int calculate_natural_light_level(room_rnum room)
       break;
     case SUN_DARK:
       natural_light = 5; /* Moonlight/starlight */
+      break;
+    default:
       break;
     }
   }
@@ -1619,6 +1622,8 @@ void add_vegetation_details(char *desc, struct resource_state *state,
         safe_strcat(desc, ", where hardy winter grasses persist despite the cold.");
       }
       break;
+    default:
+      break;
     }
   }
   else if (state->vegetation_level >= RESOURCE_MODERATE_THRESHOLD)
@@ -1744,6 +1749,8 @@ void add_vegetation_details(char *desc, struct resource_state *state,
                     ", where frost-touched grasses create a sparse but resilient ground cover.");
       }
       break;
+    default:
+      break;
     }
   }
   else
@@ -1822,6 +1829,8 @@ void add_vegetation_details(char *desc, struct resource_state *state,
       {
         safe_strcat(desc, ", where only the hardiest grasses survive the winter cold.");
       }
+      break;
+    default:
       break;
     }
   }
@@ -2036,6 +2045,8 @@ void add_temporal_atmosphere(char *desc, struct environmental_context *context)
       case SUN_DARK:
         safe_strcat(desc, atmosphere_night[rand() % 20]);
         break;
+      default:
+        break;
       }
     }
     break;
@@ -2060,6 +2071,8 @@ void add_temporal_atmosphere(char *desc, struct environmental_context *context)
         break;
       case SUN_DARK:
         safe_strcat(desc, atmosphere_night[rand() % 20]);
+        break;
+      default:
         break;
       }
     }
@@ -2178,6 +2191,8 @@ void add_temporal_atmosphere(char *desc, struct environmental_context *context)
       }
     }
     break;
+  default:
+    break;
   }
 
   /* Add time-of-day atmospheric details using game's actual sunlight values */
@@ -2250,6 +2265,8 @@ void add_temporal_atmosphere(char *desc, struct environmental_context *context)
         safe_strcat(desc, " under the pale light of moon and stars");
       }
       break;
+    default:
+      break;
     }
   }
 }
@@ -2302,6 +2319,8 @@ void add_wildlife_presence(char *desc, struct resource_state *state,
       case SUN_DARK:
         safe_strcat(desc, ". Nocturnal marine life becomes active in the darkness");
         break;
+      default:
+        break;
       }
     }
     else
@@ -2330,6 +2349,8 @@ void add_wildlife_presence(char *desc, struct resource_state *state,
         break;
       case SUN_DARK:
         safe_strcat(desc, ". Night sounds drift through the darkness");
+        break;
+      default:
         break;
       }
     }

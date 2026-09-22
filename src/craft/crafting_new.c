@@ -249,6 +249,8 @@ int determine_material_type_by_group_and_grade(int group, int grade)
       return dice(1, 3) == 1 ? CRAFT_MAT_COAL : CRAFT_MAT_IRON;
     case 5:
       return dice(1, 2) == 1 ? CRAFT_MAT_MITHRIL : CRAFT_MAT_ADAMANTINE;
+    default:
+      break;
     }
     break;
   case CRAFT_GROUP_SOFT_METALS:
@@ -265,6 +267,8 @@ int determine_material_type_by_group_and_grade(int group, int grade)
       return CRAFT_MAT_GOLD;
     case 5:
       return CRAFT_MAT_PLATINUM;
+    default:
+      break;
     }
     break;
   case CRAFT_GROUP_WOOD:
@@ -280,6 +284,8 @@ int determine_material_type_by_group_and_grade(int group, int grade)
       return CRAFT_MAT_VALENWOOD;
     case 5:
       return CRAFT_MAT_IRONWOOD;
+    default:
+      break;
     }
     break;
   case CRAFT_GROUP_HIDES:
@@ -294,6 +300,8 @@ int determine_material_type_by_group_and_grade(int group, int grade)
     case 4:
     case 5:
       return CRAFT_MAT_PRISTINE_GRADE_HIDE;
+    default:
+      break;
     }
     break;
   case CRAFT_GROUP_CLOTH:
@@ -309,7 +317,11 @@ int determine_material_type_by_group_and_grade(int group, int grade)
       return CRAFT_MAT_COTTON;
     case 5:
       return CRAFT_MAT_SILK;
+    default:
+      break;
     }
+    break;
+  default:
     break;
   }
   return CRAFT_MAT_NONE;
@@ -354,6 +366,8 @@ bool wilderness_pool_material(int material)
   case CRAFT_MAT_SILK:
   case CRAFT_MAT_SATIN:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -410,6 +424,8 @@ static int craft_material_level_adjustment(int material)
   case CRAFT_MAT_DRAGONSCALE:
   case CRAFT_MAT_DRAGONBONE:
     return 10;
+  default:
+    break;
   }
   return 0;
 }
@@ -459,6 +475,8 @@ int harvesting_skill_by_material(int material)
   case CRAFT_MAT_COTTON:
   case CRAFT_MAT_SILK:
     return ABILITY_HARVEST_GATHERING;
+  default:
+    break;
   }
   return 0;
 }
@@ -550,6 +568,9 @@ int determine_random_material_group_by_sector_type(room_rnum sector)
     // case SECT_WATER_SWIM:
     // case SECT_WATER_NOSWIM:
     // case SECT_UNDERWATER:
+    break;
+  default:
+    break;
   }
 
   return CRAFT_GROUP_NONE;
@@ -595,6 +616,9 @@ int determine_random_grade(int grade)
       return 4;
     else
       return 5;
+    break;
+  default:
+    break;
   }
   return 1;
 }
@@ -659,6 +683,8 @@ bool is_valid_harvesting_sector(int sector)
     // case SECT_WATER_NOSWIM:
     // case SECT_UNDERWATER:
     return TRUE;
+  default:
+    break;
   }
   return FALSE;
 }
@@ -737,6 +763,8 @@ int material_grade(int material)
 
   case CRAFT_MAT_DRAGONMETAL:
     return 6;
+  default:
+    break;
   }
   return 0;
 }
@@ -794,6 +822,8 @@ int craft_group_by_material(int material)
   case CRAFT_MAT_COAL:
   case CRAFT_MAT_DRAGONBLOOD:
     return CRAFT_GROUP_REFINING;
+  default:
+    break;
   }
   return CRAFT_GROUP_NONE;
 }
@@ -1623,6 +1653,8 @@ int get_crafting_instrument_motes(struct char_data *ch, int type, bool get_amoun
                5; // 0-30 breakability, so 0-6 motes
     }
     break;
+  default:
+    break;
   }
   return 0;
 }
@@ -2191,6 +2223,8 @@ int crafting_mote_by_bonus_location(int location, int specific, int bonus_type)
       return CRAFTING_MOTE_EARTH;
     case BONUS_TYPE_DODGE:
       return CRAFTING_MOTE_LIGHTNING;
+    default:
+      break;
     }
     break;
 
@@ -2228,7 +2262,11 @@ int crafting_mote_by_bonus_location(int location, int specific, int bonus_type)
     case ABILITY_USE_MAGIC_DEVICE:
     case ABILITY_PERFORM:
       return CRAFTING_MOTE_AIR;
+    default:
+      break;
     }
+    break;
+  default:
     break;
   }
   return CRAFTING_MOTE_NONE;
@@ -2262,6 +2300,8 @@ static struct obj_data *setup_craft_project_object(struct char_data *ch)
     return setup_craft_misc(ch, craft_misc_spec_to_vnum(spec_type));
   case CRAFT_TYPE_INSTRUMENT:
     return setup_craft_instrument(ch, spec_type);
+  default:
+    break;
   }
   return NULL;
 }
@@ -2309,6 +2349,8 @@ void show_current_craft(struct char_data *ch)
   case CRAFT_TYPE_MISC:
     snprintf(spec_item_type, sizeof(spec_item_type), "%s",
              crafting_misc_types[GET_CRAFT(ch).crafting_specific]);
+    break;
+  default:
     break;
   }
 
@@ -2470,6 +2512,8 @@ void show_current_craft(struct char_data *ch)
       case APPLY_SPELL_CIRCLE_9:
         snprintf(spectext, sizeof(spectext), " [%s]",
                  class_list[GET_CRAFT(ch).affected[i].specific].name);
+        break;
+      default:
         break;
       }
       send_to_char(ch, "-- slot %d: +%d to %s%s (%s) %d/%d %ss required.\r\n", i + 1,
@@ -3173,6 +3217,8 @@ bool is_wearing_tool_for_crafting_ability(struct char_data *ch, int ability)
     /* There is no woodworking tool slot; carpentry needs only its station. */
     has_tool = TRUE;
     break;
+  default:
+    break;
   }
   return has_tool;
 }
@@ -3779,6 +3825,8 @@ int obj_material_to_craft_material(int material)
     return CRAFT_MAT_STONE;
   case MATERIAL_DRAGONBLOOD:
     return CRAFT_MAT_DRAGONBLOOD;
+  default:
+    break;
   }
   return CRAFT_MAT_NONE;
 }
@@ -3860,6 +3908,8 @@ int craft_material_to_obj_material(int craftmat)
     return MATERIAL_BONE;
   case CRAFT_MAT_STONE:
     return MATERIAL_STONE;
+  default:
+    break;
   }
   return MATERIAL_UNDEFINED;
 }
@@ -4443,6 +4493,8 @@ int craft_instrument_type_to_actual(int type)
     return INSTRUMENT_HORN;
   case CRAFT_INSTRUMENT_MANDOLIN:
     return INSTRUMENT_MANDOLIN;
+  default:
+    break;
   }
   return INSTRUMENT_LYRE; // default to lyre if not found
 }
@@ -4563,6 +4615,8 @@ int craft_misc_spec_to_vnum(int s_type)
   case CRAFT_MISC_ANKLET:
     vnum = ANKLET_MOLD;
     break;
+    break;
+  default:
     break;
   }
   return vnum;
@@ -5606,6 +5660,8 @@ static void harvest_complete(struct char_data *ch)
       case CRAFTING_MOTE_WATER:
         synergy_talent = TALENT_WATER_MOTE_SYNERGY;
         break;
+      default:
+        break;
       }
 
       /* Check for mote synergy talent and apply bonus */
@@ -5735,6 +5791,8 @@ void show_harvesting_tool_needed(struct char_data *ch)
     send_to_char(ch, "You need a wood axe equipped to harvest %s.\r\n",
                  crafting_material_nodes[mat_type]);
     break;
+  default:
+    break;
   }
 }
 
@@ -5768,6 +5826,8 @@ bool has_proper_harvesting_tool_equipped(struct char_data *ch)
     break;
   case CRAFT_GROUP_WOOD:
     has_tool = GET_EQ(ch, WEAR_CRAFT_AXE);
+    break;
+  default:
     break;
   }
   return has_tool;
@@ -6244,6 +6304,8 @@ bool is_valid_craft_ability(int ability)
   case ABILITY_HARVEST_FORESTRY:
   case ABILITY_HARVEST_GATHERING:
     return TRUE;
+  default:
+    break;
   }
   return FALSE;
 }
@@ -6274,6 +6336,8 @@ int crafting_skill_type(int skill)
   case ABILITY_CRAFT_FISHING:
   case ABILITY_CRAFT_COOKING:
     return CRAFT_SKILL_TYPE_NONE;
+  default:
+    break;
   }
   return CRAFT_SKILL_TYPE_NONE;
 }
@@ -6302,6 +6366,8 @@ bool is_valid_craft_feat(int feat)
   case FEAT_GREATER_SPELL_FOCUS:
   case FEAT_SKILL_FOCUS:
     return FALSE;
+  default:
+    break;
   }
 
   // we only allow general, combat, spellcasting, metamagic, psionic and teamwork feats
@@ -6343,6 +6409,8 @@ bool is_valid_craft_class(int ch_class, int location)
     case CLASS_DRUID:
     case CLASS_ALCHEMIST:
       return TRUE;
+    default:
+      break;
     }
     break;
   case APPLY_SPELL_CIRCLE_5:
@@ -6358,6 +6426,8 @@ bool is_valid_craft_class(int ch_class, int location)
     case CLASS_DRUID:
     case CLASS_ALCHEMIST:
       return TRUE;
+    default:
+      break;
     }
     break;
   case APPLY_SPELL_CIRCLE_7:
@@ -6370,7 +6440,11 @@ bool is_valid_craft_class(int ch_class, int location)
     case CLASS_CLERIC:
     case CLASS_DRUID:
       return TRUE;
+    default:
+      break;
     }
+    break;
+  default:
     break;
   }
   return FALSE;
@@ -6388,6 +6462,8 @@ int craft_recipe_by_type(int type)
     return ITEM_WORN;
   case CRAFT_TYPE_INSTRUMENT:
     return ITEM_INSTRUMENT;
+  default:
+    break;
   }
   return 0;
 }
@@ -6409,6 +6485,8 @@ int craft_misc_type_by_wear_loc(int wear_loc)
   case ITEM_WEAR_ANKLE:
   case ITEM_WEAR_SHOULDERS:
     return CRAFT_TYPE_MISC;
+  default:
+    break;
   }
   return CRAFT_TYPE_NONE;
 }
@@ -6497,6 +6575,8 @@ static void craft_activity_progress(struct char_data *ch, void *target, uint32_t
       send_to_char(ch, "\r\n");
     }
     break;
+  default:
+    break;
   }
   if (GET_CRAFT(ch).craft_duration == 0)
     primary_activity_cancel(ch, PRIMARY_ACTIVITY_END_RECHECK_FAILED, false);
@@ -6537,6 +6617,8 @@ static void craft_activity_complete(struct char_data *ch, void *target, void *co
     break;
   case SCMD_NEWCRAFT_SUPPLYORDER:
     craft_supplyorder_complete(ch);
+    break;
+  default:
     break;
   }
 }
@@ -7262,6 +7344,8 @@ int get_level_adjustment_by_apply_and_modifier(int apply, int mod, int btype)
   case APPLY_HITROLL:
     div = 7.5;
     break;
+  default:
+    break;
   }
 
   if (btype == BONUS_TYPE_ENHANCEMENT)
@@ -7586,6 +7670,8 @@ int recipe_skill_to_actual_crafting_skill(int recipe_skill)
     return ABILITY_CRAFT_TAILORING;
   case CRAFT_SKILL_BREWING:
     return ABILITY_CRAFT_ALCHEMY;
+  default:
+    break;
   }
   return ABILITY_CRAFT_METALWORKING; // default fallback
 }
@@ -8363,6 +8449,8 @@ bool does_craft_apply_type_have_specific_value(int location)
   case APPLY_SPELL_CIRCLE_8:
   case APPLY_SPELL_CIRCLE_9:
     return 1;
+  default:
+    break;
   }
   return 0;
 }
@@ -8775,6 +8863,8 @@ int generate_contract_reward(int contract_type, int quantity, int difficulty)
     break;
   case SUPPLY_CONTRACT_QUALITY:
     type_multiplier = SUPPLY_QUALITY_BONUS_MULTIPLIER;
+    break;
+  default:
     break;
   }
 
@@ -9842,6 +9932,8 @@ int select_contract_by_id(struct char_data *ch, int contract_id)
     type_name = "Event";
     type_color = "\tR";
     break;
+  default:
+    break;
   }
 
   send_to_char(ch, "You've accepted the %s%s\tn contract to %s.\r\n", type_color, type_name,
@@ -9927,6 +10019,8 @@ int reject_contract_by_id(struct char_data *ch, int contract_id)
   case SUPPLY_CONTRACT_EVENT:
     type_name = "Event";
     type_color = "\tR";
+    break;
+  default:
     break;
   }
 
@@ -10441,6 +10535,8 @@ bool is_crafting_skill_in_game(int skill)
   case ABILITY_HARVEST_HUNTING:
   case ABILITY_HARVEST_GATHERING:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -11619,6 +11715,8 @@ int material_type_to_crafting_skill(int material)
   case MATERIAL_VALENWOOD:
   case MATERIAL_IRONWOOD:
     return ABILITY_CRAFT_WOODWORKING;
+  default:
+    break;
   }
   return 0;
 }

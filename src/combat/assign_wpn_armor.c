@@ -84,6 +84,8 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_SLING:
     case WEAPON_TYPE_SPEAR:
       return TRUE;
+    default:
+      break;
     }
   }
 
@@ -107,6 +109,8 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
     case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
       return TRUE;
+    default:
+      break;
     }
   }
 
@@ -121,6 +125,8 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_SHORT_BOW:
     case WEAPON_TYPE_WHIP:
       return TRUE;
+    default:
+      break;
     }
   }
 
@@ -143,6 +149,8 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
     case WEAPON_TYPE_SHORT_SWORD:
       return TRUE;
+    default:
+      break;
     }
   }
 
@@ -161,6 +169,8 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
       return TRUE;
+    default:
+      break;
     }
   }
 
@@ -175,6 +185,8 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_HEAVY_CROSSBOW:
     case WEAPON_TYPE_LIGHT_CROSSBOW:
       return TRUE;
+    default:
+      break;
     }
   }
 
@@ -190,6 +202,8 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_LIGHT_CROSSBOW:
     case WEAPON_TYPE_SHORTSPEAR:
       return TRUE;
+    default:
+      break;
     }
   }
 
@@ -219,6 +233,8 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
     case WEAPON_TYPE_SHORT_SWORD:
       return TRUE;
+    default:
+      break;
     }
   }
 
@@ -230,6 +246,8 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_RAPIER:
     case WEAPON_TYPE_SHORT_SWORD:
       return TRUE;
+    default:
+      break;
     }
   }
 
@@ -252,6 +270,8 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
       return TRUE;
+    default:
+      break;
     }
   }
 
@@ -265,6 +285,8 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_DWARVEN_WAR_AXE:
     case WEAPON_TYPE_DWARVEN_URGOSH:
       return TRUE;
+    default:
+      break;
     }
   }
 
@@ -280,6 +302,8 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_DWARVEN_WAR_AXE:
     case WEAPON_TYPE_DWARVEN_URGOSH:
       return TRUE;
+    default:
+      break;
     }
   }
 
@@ -293,6 +317,8 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_DWARVEN_WAR_AXE:
     case WEAPON_TYPE_DWARVEN_URGOSH:
       return TRUE;
+    default:
+      break;
     }
   }
 
@@ -672,6 +698,8 @@ bool is_reloading_weapon(struct char_data *ch, struct obj_data *wielded, bool si
   case WEAPON_TYPE_SLING:
   case WEAPON_TYPE_HAND_CROSSBOW:
     return TRUE;
+  default:
+    break;
   }
   if (!silent_mode)
     send_to_char(ch, "This is not a ranged weapon that needs reloading!\r\n");
@@ -1406,6 +1434,8 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
     case MATERIAL_DARKWOOD:
       counter += 1.1;
       break;
+    default:
+      break;
     }
     counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
     /* DON'T increment num_pieces, should get full bang for buck on shields */
@@ -1435,6 +1465,8 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
     case MATERIAL_DARKWOOD:
       counter += 1.1;
       break;
+    default:
+      break;
     }
     counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
   }
@@ -1454,6 +1486,8 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
     case MATERIAL_DIAMOND:
     case MATERIAL_DARKWOOD:
       counter += 1.1;
+      break;
+    default:
       break;
     }
     counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
@@ -1475,6 +1509,8 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
     case MATERIAL_DARKWOOD:
       counter += 1.1;
       break;
+    default:
+      break;
     }
     counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
   }
@@ -1495,6 +1531,8 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
     case MATERIAL_DARKWOOD:
       counter += 1.1;
       break;
+    default:
+      break;
     }
     counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
   }
@@ -1514,6 +1552,8 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
     case MATERIAL_DIAMOND:
     case MATERIAL_DARKWOOD:
       counter += 1.1;
+      break;
+    default:
       break;
     }
     counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
@@ -1712,6 +1752,8 @@ int is_proficient_with_shield(struct char_data *ch)
   case ARMOR_TYPE_TOWER_SHIELD:
     if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD))
       return TRUE;
+    break;
+  default:
     break;
   }
 
@@ -2230,6 +2272,8 @@ ACMD(do_weaponlist_old)
       break;
     case CRIT_X6:
       crit_multi = 6;
+      break;
+    default:
       break;
     }
     sprintbit(weapon_list[type].weaponFlags, weapon_flags, buf2, sizeof(buf2));
@@ -2820,6 +2864,8 @@ int get_wear_location_by_armor_type(int type)
   case SPEC_ARMOR_TYPE_HALF_PLATE_LEGS:
   case SPEC_ARMOR_TYPE_FULL_PLATE_LEGS:
     return ITEM_WEAR_LEGS;
+  default:
+    break;
   }
   return ITEM_WEAR_TAKE;
 }

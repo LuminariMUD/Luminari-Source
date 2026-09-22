@@ -995,6 +995,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     case MATERIAL_DARKWOOD:
       ac_bonus++;
       break;
+    default:
+      break;
     }
     ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4),
                     get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
@@ -1011,6 +1013,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     case MATERIAL_DIAMOND:
     case MATERIAL_DARKWOOD:
       ac_bonus++;
+      break;
+    default:
       break;
     }
     ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4),
@@ -1029,6 +1033,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     case MATERIAL_DARKWOOD:
       ac_bonus++;
       break;
+    default:
+      break;
     }
     ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4),
                     get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
@@ -1046,6 +1052,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     case MATERIAL_DARKWOOD:
       ac_bonus++;
       break;
+    default:
+      break;
     }
     ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4),
                     get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
@@ -1062,6 +1070,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     case MATERIAL_DIAMOND:
     case MATERIAL_DARKWOOD:
       ac_bonus++;
+      break;
+    default:
       break;
     }
     ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4),
@@ -1086,6 +1096,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     case MATERIAL_DIAMOND:
     case MATERIAL_DARKWOOD:
       ac_bonus++;
+      break;
+    default:
       break;
     }
     ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4),
@@ -4519,6 +4531,8 @@ bool ok_damage_handling(int attacktype)
     return FALSE;
   case SKILL_SAP:
     return FALSE;
+  default:
+    break;
   }
   return TRUE;
 }
@@ -4734,6 +4748,7 @@ static int damage_handling_with_weapon(struct char_data *ch, struct char_data *v
 
       case CLASS_ALCHEMIST:
         // place holder in case we want to adjust alchemy damage down the line -- Gicker
+      default:
         break;
       }
       // To ensure they don't get the bonus on subsequent spells/powers unless casting_class has been set again
@@ -8027,6 +8042,8 @@ static int determine_critical_multiplier(struct char_data *ch, struct obj_data *
     case CRIT_X6:
       crit_multi = 6;
       break;
+    default:
+      break;
     }
   }
 
@@ -8321,6 +8338,8 @@ static int compute_dam_dice(struct char_data *ch, struct char_data *victim,
         diceTwo = 3;
         break;
       }
+      break;
+    default:
       break;
     }
   }
@@ -9489,6 +9508,8 @@ static bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_
         else if ((dr->bypass_val[i] == DR_DAMTYPE_PIERCING) &&
                  HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_PIERCING))
           passed = TRUE;
+        break;
+      default:
         break;
       }
     }
@@ -15291,6 +15312,9 @@ static int is_skilled_dualer(struct char_data *ch, int mode)
     }
     else
       return FALSE;
+    break;
+  default:
+    break;
   }
 
   log("ERR: is_skilled_dualer() reached end!");
@@ -15662,6 +15686,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
           perform_attack = TRUE;
         }
         break;
+      default:
+        break;
       }
       if (perform_attack)
       { /* correct phase for this attack? */
@@ -15804,6 +15830,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
         {
           perform_attack = TRUE;
         }
+        break;
+      default:
         break;
       }
       if (perform_attack)
@@ -16251,6 +16279,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       {
         perform_attack = TRUE;
       }
+      break;
+    default:
       break;
     }
 

@@ -702,6 +702,8 @@ static void zedit_disp_menu(struct descriptor_data *d)
       case 16:
         snprintf(door_reset_string, sizeof(door_reset_string), "locked (hard)");
         break;
+      default:
+        break;
       }
 
       write_to_output(

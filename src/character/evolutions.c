@@ -679,6 +679,8 @@ bool is_evolution_attack(int attack_type)
   case ATTACK_TYPE_PRIMARY_EVO_REND:
   case ATTACK_TYPE_PRIMARY_EVO_TRAMPLE:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -709,6 +711,8 @@ int get_evolution_attack_w_type(int attack_type)
     return TYPE_RAKE;
   case ATTACK_TYPE_PRIMARY_EVO_TRAMPLE:
     return TYPE_TRAMPLE;
+  default:
+    break;
   }
   return TYPE_HIT;
 }
@@ -762,6 +766,9 @@ int determine_evolution_attack_damage_dice(struct char_data *ch, int attack_type
     default:
       return dice(1, 3);
     }
+    break;
+  default:
+    break;
   }
   return 0;
 }
@@ -1050,6 +1057,8 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob, bool
       GET_REAL_CON(mob) += 6;
       GET_REAL_DEX(mob) += 2;
     }
+    break;
+  default:
     break;
   }
 
@@ -1854,6 +1863,9 @@ bool is_eidolon_base_form_evolution(int form, int evo)
   case EIDOLON_BASE_FORM_TAURIC:
     if (evo == EVOLUTION_HOOVES)
       return true;
+    break;
+  default:
+    break;
   }
   return false;
 }

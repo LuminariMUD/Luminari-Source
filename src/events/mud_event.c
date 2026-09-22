@@ -1123,6 +1123,8 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
   case EVENT_REGION:
     add_to_list(pMudEvent, region->events);
     break;
+  default:
+    break;
   }
   return;
 
@@ -1246,6 +1248,8 @@ void mud_event_detach_owner(struct mud_event_data *pMudEvent)
         region->events = NULL;
       }
     }
+    break;
+  default:
     break;
   }
 }

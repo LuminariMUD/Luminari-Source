@@ -589,6 +589,8 @@ void msgedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "Exiting message editor.\r\n");
       cleanup_olc(d, CLEANUP_ALL);
       return;
+    default:
+      break;
     }
     break;
   case MSGEDIT_CONFIRM_SAVE:
@@ -734,6 +736,8 @@ void msgedit_parse(struct descriptor_data *d, char *arg)
       free(OLC_MSG(d)->god_msg.room_msg);
 
     OLC_MSG(d)->god_msg.room_msg = strdup(arg);
+    break;
+  default:
     break;
   }
 

@@ -539,6 +539,8 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
     if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_WILL))
       saves += 3;
     break;
+  default:
+    break;
   }
 
   /* universal bonuses/penalties */
@@ -1053,6 +1055,8 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
       case SPELL_CURSE:
         // bonus is doubled against poisons, curses and diseases at inquisitor level 10
         savethrow += get_judgement_bonus(vict, INQ_JUDGEMENT_PURITY);
+        break;
+      default:
         break;
       }
     }
@@ -1621,6 +1625,8 @@ static int mag_materials(struct char_data *ch, IDXTYPE item0, IDXTYPE item1, IDX
       case 2:
         send_to_char(ch, "A huge corn develops on your big toe.\r\n");
         break;
+      default:
+        break;
       }
     }
     /* Return fales, the material check has failed. */
@@ -1713,6 +1719,8 @@ void mag_loops(int level, struct char_data *ch, struct char_data *victim, struct
         num_times = MIN(5, (level + 1) / 2);
         dam = true;
         break; */
+  default:
+    break;
   }
 
   for (i = 0; i < num_times; i++)
@@ -3758,6 +3766,8 @@ static int mag_damage_scaled(int level, struct char_data *ch, struct char_data *
     bonus = level;
     break;
 
+  default:
+    break;
   } /* end switch(spellnum) */
   /**************************/
 
@@ -4006,6 +4016,8 @@ static int mag_damage_scaled(int level, struct char_data *ch, struct char_data *
           HAS_FEAT(ch, FEAT_ELEMENTAL_FOCUS_ELECTRICITY))
         bonus += num_dice;
       GET_DC_BONUS(ch)++;
+      break;
+    default:
       break;
     }
 
@@ -5552,6 +5564,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
     case DAM_SOUND:
       to_vict = "Your resistance to sonic damage has improved.";
+      break;
+    default:
       break;
     }
     break;
@@ -8141,6 +8155,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You feel yourself affected by the slimy doom.";
       to_room = "$n feels affected by the slimy doom.";
       break;
+    default:
+      break;
     }
     SET_BIT_AR(af[0].bitvector, AFF_DISEASE);
     af[0].duration = 300; // 15 real minutes (supposed to be permanent)
@@ -9797,6 +9813,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You feel yourself slow down because of the prismatic spray!";
 
       break;
+    default:
+      break;
     }
     break;
 
@@ -11062,6 +11080,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel more wise!";
     to_room = "$n's wisdom increases!";
     break;
+  default:
+    break;
   }
 
   /* slippery mind */
@@ -11564,6 +11584,8 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj, int spell
     to_char = "You manifest a tower of iron will against psionic attacks!";
     to_room = "$n manifests a tower of iron will against psionic attacks!";
     break;
+  default:
+    break;
   }
 
   /* if you are not groupped, just hit self with this spell and exit */
@@ -11706,6 +11728,8 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj, int spell
   case PSIONIC_SHATTER_MIND_BLANK:
     isUnEffect = TRUE;
     skip_groups = true;
+    break;
+  default:
     break;
   }
 
@@ -12570,6 +12594,8 @@ bool isSummonMob(int vnum)
   case PET_RACIAL_WARG:
   case PET_RACIAL_ORC_WARRIOR:
     return true;
+  default:
+    break;
   }
   return is_shambler_summon(vnum);
 }
@@ -12861,6 +12887,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     case MOB_CHILDREN_OF_THE_NIGHT_BATS:
       msg = 34;
       break;
+    default:
+      break;
     }
     pfail = 10;
     break;
@@ -12987,6 +13015,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       break;
     case PET_SWARM_WATER:
       msg = 10;
+      break;
+    default:
       break;
     }
     num = dice(2, 4);
@@ -13174,6 +13204,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       mob_num = MOB_WATER_ELEMENTAL;
       msg = 10;
       break;
+    default:
+      break;
     }
 
     pfail = 10;
@@ -13349,6 +13381,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       GET_LEVEL(mob) = mob_level;
       autoroll_mob(mob, TRUE, TRUE);
       GET_HITROLL(mob) += 10; /* help them hit a bit */
+      break;
+    default:
       break;
     }
 
@@ -13536,6 +13570,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       GET_REAL_AC(mob) = (mob)->points.armor += (spell_focus_bonus * 2) * 10;
       GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += ((spell_focus_bonus)*GET_LEVEL(mob));
       GET_HIT(mob) = GET_MAX_HIT(mob);
+      break;
+    default:
       break;
     }
 
@@ -14183,6 +14219,8 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
     to_char = "You \twbestow psionic power\tn to $N.";
     to_vict = "$n \twbestows psionic power\tn to you.";
     return;
+  default:
+    break;
   }
 
   if (affected_by_spell(victim, BOMB_AFFECT_BONESHARD))
@@ -14797,6 +14835,8 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj, int s
       GET_OBJ_VAL(obj, 3) = 0;
       to_char = "$p steams briefly.";
     }
+    break;
+  default:
     break;
   }
 
@@ -15604,6 +15644,8 @@ bool is_spell_mind_affecting(int snum)
   case SPELL_WAIL_OF_THE_BANSHEE:
   case AFFECT_AURA_OF_TERROR:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -15831,6 +15873,8 @@ bool can_spell_be_empowered(int spellnum)
   case SPELL_HOLY_AURA:
   case SPELL_FLAME_ARROW:
     return true;
+  default:
+    break;
   }
   return false;
 }

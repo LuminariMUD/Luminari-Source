@@ -48,6 +48,8 @@ static const char *label_rare_grade(int rare_grade)
     return "[Legendary] ";
   case RARE_GRADE_RARE:
     return "[Rare] ";
+  default:
+    break;
   }
   return "";
 }
@@ -292,6 +294,8 @@ bool valid_item_spell(int spellnum)
   case SPELL_CONTROL_WEATHER:
   case SPELL_I_DARKNESS:
     return FALSE;
+  default:
+    break;
   }
   return TRUE;
 }
@@ -402,7 +406,11 @@ static int determine_stat_apply(int wear)
       case 4:
         stat = APPLY_RES_ENERGY;
         break;
+      default:
+        break;
       }
+      break;
+    default:
       break;
     }
     break;
@@ -436,7 +444,11 @@ static int determine_stat_apply(int wear)
         stat = APPLY_RES_WATER;
         break;
         break;
+      default:
+        break;
       }
+      break;
+    default:
       break;
     }
     break;
@@ -466,7 +478,11 @@ static int determine_stat_apply(int wear)
       case 4:
         stat = APPLY_RES_LIGHT;
         break;
+      default:
+        break;
       }
+      break;
+    default:
       break;
     }
     break;
@@ -484,6 +500,8 @@ static int determine_stat_apply(int wear)
     case 3:
       stat = APPLY_HIT;
       break;
+    default:
+      break;
     }
     break;
   case WEAR_FEET:
@@ -498,6 +516,8 @@ static int determine_stat_apply(int wear)
     case 3:
       stat = APPLY_MOVE;
       break;
+    default:
+      break;
     }
     break;
   case WEAR_HANDS:
@@ -511,6 +531,8 @@ static int determine_stat_apply(int wear)
       break;
     case 3:
       stat = APPLY_RES_DISEASE;
+      break;
+    default:
       break;
     }
     break;
@@ -527,6 +549,8 @@ static int determine_stat_apply(int wear)
     case 3:
       stat = APPLY_RES_NEGATIVE;
       break;
+    default:
+      break;
     }
     break;
   case WEAR_WAIST:
@@ -540,6 +564,8 @@ static int determine_stat_apply(int wear)
       break;
     case 3:
       stat = APPLY_RES_EARTH;
+      break;
+    default:
       break;
     }
     break;
@@ -640,7 +666,6 @@ int adjust_bonus_value(int apply_location, int bonus)
   case APPLY_RES_WATER:
     /* this is WAY off balance for the rest of the game -zusuk */
     // adjusted_bonus = bonus * 8;
-    break;
   /* no modifications */
   default:
     break;
@@ -949,6 +974,8 @@ int random_apply_value(void)
     case 20:
       val = APPLY_RES_WATER;
       break;
+    default:
+      break;
     }
   }
   return val;
@@ -1143,6 +1170,8 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
           return;
       } while (spell_level < spell_info[spell_num].min_level[class] ||
                !valid_item_spell(spell_num) || spell_info[spell_num].violent);
+      break;
+    default:
       break;
     }
   }
@@ -1459,6 +1488,8 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj, int en
       obj->affected[2].location = bonus_location;
       obj->affected[2].modifier = adjust_bonus_value(bonus_location, dice(1, 2));
       obj->affected[2].bonus_type = BONUS_TYPE_INHERENT;
+      break;
+    default:
       break;
     }
   }
@@ -2617,6 +2648,8 @@ int possible_material_upgrade(int base_mat, int grade)
       break;
     }
     break;
+  default:
+    break;
   }
 
   return material;
@@ -3167,6 +3200,8 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
     snprintf(armor_name, MEDIUM_STRING, "%s", ankle_descs[rand_number(0, NUM_A_ANKLET_DESCS - 1)]);
     snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
     break;
+  default:
+    break;
   }
 
   /* we already determined 'base' material, now
@@ -3257,6 +3292,8 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
       break;
     }
     break; /*end onyx*/
+  default:
+    break;
   }
 
   /* enchantment-based processing complete */
@@ -3341,6 +3378,8 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
     obj->short_description = strdup(desc);
     snprintf(desc, sizeof(desc), "A %s %s orb is lying here.", desc2, armor_name);
     obj->description = strdup(desc);
+    break;
+  default:
     break;
   }
 
@@ -3592,6 +3631,8 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
       break;
     }
     break; /*end onyx*/
+  default:
+    break;
   }
 
   /* grade-based processing complete */
@@ -3691,6 +3732,8 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     obj->short_description = strdup(desc);
     snprintf(desc, sizeof(desc), "A %s %s orb is lying here.", desc2, armor_name);
     obj->description = strdup(desc);
+    break;
+  default:
     break;
   }
 
@@ -4148,6 +4191,8 @@ int get_random_armor_suit_type(void)
     return ARMOR_STYLE_HALF_PLATE;
   case 13:
     return ARMOR_STYLE_PLATE_MAIL;
+  default:
+    break;
   }
   return 0;
 }
@@ -4168,6 +4213,8 @@ int get_armor_piece_by_style(int style, int wear_loc)
     case ITEM_WEAR_LEGS:
       return SPEC_ARMOR_TYPE_CLOTHING_LEGS;
       break;
+    default:
+      break;
     }
     break;
   case ARMOR_STYLE_PADDED:
@@ -4181,6 +4228,8 @@ int get_armor_piece_by_style(int style, int wear_loc)
       return SPEC_ARMOR_TYPE_PADDED_ARMS;
     case ITEM_WEAR_LEGS:
       return SPEC_ARMOR_TYPE_PADDED_LEGS;
+      break;
+    default:
       break;
     }
     break;
@@ -4196,6 +4245,8 @@ int get_armor_piece_by_style(int style, int wear_loc)
     case ITEM_WEAR_LEGS:
       return SPEC_ARMOR_TYPE_LEATHER_LEGS;
       break;
+    default:
+      break;
     }
     break;
   case ARMOR_STYLE_STUDDED_LEATHER:
@@ -4209,6 +4260,8 @@ int get_armor_piece_by_style(int style, int wear_loc)
       return SPEC_ARMOR_TYPE_STUDDED_LEATHER_ARMS;
     case ITEM_WEAR_LEGS:
       return SPEC_ARMOR_TYPE_STUDDED_LEATHER_LEGS;
+      break;
+    default:
       break;
     }
     break;
@@ -4224,6 +4277,8 @@ int get_armor_piece_by_style(int style, int wear_loc)
     case ITEM_WEAR_LEGS:
       return SPEC_ARMOR_TYPE_LIGHT_CHAIN_LEGS;
       break;
+    default:
+      break;
     }
     break;
   case ARMOR_STYLE_HIDE:
@@ -4237,6 +4292,8 @@ int get_armor_piece_by_style(int style, int wear_loc)
       return SPEC_ARMOR_TYPE_HIDE_ARMS;
     case ITEM_WEAR_LEGS:
       return SPEC_ARMOR_TYPE_HIDE_LEGS;
+      break;
+    default:
       break;
     }
     break;
@@ -4252,6 +4309,8 @@ int get_armor_piece_by_style(int style, int wear_loc)
     case ITEM_WEAR_LEGS:
       return SPEC_ARMOR_TYPE_SCALE_LEGS;
       break;
+    default:
+      break;
     }
     break;
   case ARMOR_STYLE_CHAINMAIL:
@@ -4265,6 +4324,8 @@ int get_armor_piece_by_style(int style, int wear_loc)
       return SPEC_ARMOR_TYPE_CHAINMAIL_ARMS;
     case ITEM_WEAR_LEGS:
       return SPEC_ARMOR_TYPE_CHAINMAIL_LEGS;
+      break;
+    default:
       break;
     }
     break;
@@ -4280,6 +4341,8 @@ int get_armor_piece_by_style(int style, int wear_loc)
     case ITEM_WEAR_LEGS:
       return SPEC_ARMOR_TYPE_PIECEMEAL_LEGS;
       break;
+    default:
+      break;
     }
     break;
   case ARMOR_STYLE_SPLINT:
@@ -4293,6 +4356,8 @@ int get_armor_piece_by_style(int style, int wear_loc)
       return SPEC_ARMOR_TYPE_SPLINT_ARMS;
     case ITEM_WEAR_LEGS:
       return SPEC_ARMOR_TYPE_SPLINT_LEGS;
+      break;
+    default:
       break;
     }
     break;
@@ -4308,6 +4373,8 @@ int get_armor_piece_by_style(int style, int wear_loc)
     case ITEM_WEAR_LEGS:
       return SPEC_ARMOR_TYPE_BANDED_LEGS;
       break;
+    default:
+      break;
     }
     break;
   case ARMOR_STYLE_HALF_PLATE:
@@ -4321,6 +4388,8 @@ int get_armor_piece_by_style(int style, int wear_loc)
       return SPEC_ARMOR_TYPE_HALF_PLATE_ARMS;
     case ITEM_WEAR_LEGS:
       return SPEC_ARMOR_TYPE_HALF_PLATE_LEGS;
+      break;
+    default:
       break;
     }
     break;
@@ -4336,7 +4405,11 @@ int get_armor_piece_by_style(int style, int wear_loc)
     case ITEM_WEAR_LEGS:
       return SPEC_ARMOR_TYPE_FULL_PLATE_LEGS;
       break;
+    default:
+      break;
     }
+    break;
+  default:
     break;
   }
   return 0;
@@ -4421,6 +4494,8 @@ bool proper_feat(struct obj_data *obj, int feat_num)
       if (feat_num == FEAT_ARMOR_PROFICIENCY_LIGHT)
         return false;
       break;
+    default:
+      break;
     }
     break;
   case ITEM_WEAPON:
@@ -4433,6 +4508,8 @@ bool proper_feat(struct obj_data *obj, int feat_num)
     if (feat_num == FEAT_EXOTIC_WEAPON_PROFICIENCY &&
         !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_EXOTIC))
       return false;
+    break;
+  default:
     break;
   }
   return true;
@@ -4783,6 +4860,8 @@ bool is_resist_magic_apply(int bonus)
   case APPLY_RES_ENERGY:
   case APPLY_RES_WATER:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -4795,6 +4874,8 @@ bool is_resist_physical_apply(int bonus)
   case APPLY_RES_PUNCTURE:
   case APPLY_RES_FORCE:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -4820,6 +4901,8 @@ static bool is_everywhere_apply(int bonus)
   case APPLY_SAVING_REFL:
   case APPLY_ENCUMBRANCE:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -4838,6 +4921,8 @@ bool is_spell_slot_apply(int bonus)
   case APPLY_SPELL_CIRCLE_8:
   case APPLY_SPELL_CIRCLE_9:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -4873,7 +4958,11 @@ bool is_bonus_valid_for_item_type(int bonus, int item_type)
     case APPLY_SPELL_DURATION:
     case APPLY_SPELL_PENETRATION:
       return true;
+    default:
+      break;
     }
+    break;
+  default:
     break;
   }
   return false;
@@ -4908,6 +4997,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_SPELL_DURATION:
     case APPLY_SPELL_PENETRATION:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_NECK:
@@ -4932,6 +5023,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_SPELL_DURATION:
     case APPLY_SPELL_PENETRATION:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_BODY:
@@ -4952,6 +5045,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_MOVE:
     case APPLY_PSP:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_HEAD:
@@ -4971,6 +5066,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_MOVE:
     case APPLY_PSP:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_LEGS:
@@ -4990,6 +5087,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_MOVE:
     case APPLY_PSP:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_FEET:
@@ -5009,6 +5108,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_MOVE:
     case APPLY_PSP:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_HANDS:
@@ -5028,6 +5129,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_MOVE:
     case APPLY_PSP:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_ARMS:
@@ -5047,6 +5150,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_MOVE:
     case APPLY_PSP:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_SHIELD:
@@ -5064,6 +5169,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_MOVE:
     case APPLY_PSP:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_ABOUT:
@@ -5083,6 +5190,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_MOVE:
     case APPLY_PSP:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_WAIST:
@@ -5103,6 +5212,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_MOVE:
     case APPLY_PSP:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_WRIST:
@@ -5120,6 +5231,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_MOVE:
     case APPLY_PSP:
       return true;
+    default:
+      break;
     }
     break;
   // held items can have everything
@@ -5144,6 +5257,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_MOVE:
     case APPLY_PSP:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_AMMO_POUCH:
@@ -5157,6 +5272,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_MOVE:
     case APPLY_PSP:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_EAR:
@@ -5178,6 +5295,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_SPELL_DURATION:
     case APPLY_SPELL_PENETRATION:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_EYES:
@@ -5197,6 +5316,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_MOVE:
     case APPLY_PSP:
       return true;
+    default:
+      break;
     }
     break;
 
@@ -5221,6 +5342,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_SPELL_DURATION:
     case APPLY_SPELL_PENETRATION:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_INSTRUMENT:
@@ -5242,6 +5365,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_MOVE:
     case APPLY_PSP:
       return true;
+    default:
+      break;
     }
     break;
   case ITEM_WEAR_ANKLE:
@@ -5265,7 +5390,12 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     case APPLY_SPELL_DURATION:
     case APPLY_SPELL_PENETRATION:
       return true;
+    default:
+      break;
     }
+    break;
+  default:
+    break;
   }
   return false;
 }
@@ -6073,6 +6203,8 @@ static int get_apply_type_from_apply(int apply)
   case APPLY_SPELL_DURATION:
   case APPLY_SPELL_PENETRATION:
     return APPLY_TYPE_SPELL_ENHANCE;
+  default:
+    break;
   }
   return APPLY_TYPE_NONE;
 }
@@ -6197,6 +6329,8 @@ void assign_a_random_apply_to_slot(struct obj_data *obj, int olevel, int i)
     case 3:
       obj->affected[i].bonus_type = BONUS_TYPE_DODGE;
       break;
+    default:
+      break;
     }
   }
   else
@@ -6241,6 +6375,8 @@ bool is_valid_spell_circle_for_class(int circle, int ch_class)
     case CLASS_RANGER:
     case CLASS_BLACKGUARD:
       return false; // these classes can only cast up to circle 4 spells
+    default:
+      break;
     }
     __attribute__((fallthrough));
   case APPLY_SPELL_CIRCLE_7:
@@ -6253,7 +6389,12 @@ bool is_valid_spell_circle_for_class(int circle, int ch_class)
     case CLASS_BARD:
     case CLASS_INQUISITOR:
       return false; // these classes can only cast up to level 6 spells.
+    default:
+      break;
     }
+    break;
+  default:
+    break;
   }
   return true;
 }
@@ -6423,6 +6564,8 @@ int get_apply_no_repeat_category(int apply)
     return APPLY_CAT_SD; // spell duration
   case APPLY_SPELL_PENETRATION:
     return APPLY_CAT_SPN; // spell penetration
+  default:
+    break;
   }
   return APPLY_CAT_NONE; // no category assigned
 }

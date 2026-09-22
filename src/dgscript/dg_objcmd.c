@@ -801,6 +801,8 @@ static OCMD(do_odoor)
         obj_log(obj, "odoor: invalid door target (arg == %s)", value);
       }
       break;
+    default:
+      break;
     }
   }
   door_state_finish(&operation);

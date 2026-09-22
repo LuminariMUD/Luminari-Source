@@ -1252,6 +1252,8 @@ static void oedit_disp_val2_menu(struct descriptor_data *d)
     case PORTAL_CLANHALL:
       oedit_disp_menu(d);
       break;
+    default:
+      break;
     }
     break;
   case ITEM_TREASURE_CHEST:
@@ -1338,6 +1340,8 @@ static void oedit_disp_val3_menu(struct descriptor_data *d)
 
     case PORTAL_RANDOM:
       write_to_output(d, "Highest room VNUM in range : ");
+      break;
+    default:
       break;
     }
     break;
@@ -3988,6 +3992,8 @@ void oedit_string_cleanup(struct descriptor_data *d, int terminator __attribute_
     break;
   case OEDIT_EXTRADESC_DESCRIPTION:
     oedit_disp_extradesc_menu(d);
+    break;
+  default:
     break;
   }
 }

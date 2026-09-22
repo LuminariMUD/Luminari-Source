@@ -340,6 +340,8 @@ static void MapArea(room_rnum room, struct char_data *ch, int x, int y, int min,
         if (xpos < ns_size || ypos != y_exit_pos || ypos > 0 || xpos != x_exit_pos)
           continue;
         break;
+      default:
+        break;
       }
 
       /*     if ( (x < min) || ( y < min) || ( x > max ) || ( y > max) ) return;*/
@@ -404,6 +406,8 @@ static void MapArea(room_rnum room, struct char_data *ch, int x, int y, int min,
             (sh_int)(world[prospect_room].dir_option[rev_dir[door]] ? x_exit_pos : ns_size / 2);
         prospect_ypos =
             (sh_int)(world[prospect_room].dir_option[rev_dir[door]] ? y_exit_pos : ew_size / 2);
+        break;
+      default:
         break;
       }
 

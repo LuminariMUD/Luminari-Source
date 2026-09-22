@@ -90,6 +90,8 @@ static struct game_event_owner script_owner(struct script_data *script)
     owner.runtime_id = (uint64_t)(uint32_t)room->number + 1U;
     owner.generation = ensure_owner_generation(&room->periodic_event_generation);
     break;
+  default:
+    break;
   }
   return owner;
 }

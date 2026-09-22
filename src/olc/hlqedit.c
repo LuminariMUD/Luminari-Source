@@ -329,6 +329,8 @@ int hlqedit_save_to_disk(zone_rnum zone_num)
           case QUEST_ROOM:
             command = 'R';
             break;
+          default:
+            break;
           }
           if (quest->approved)
             fprintf(fp, "%c!\n", command);
@@ -594,6 +596,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = HLQEDIT_KEYWORDS;
       send_to_char(d->character, "Enter Keywords >");
       return;
+    default:
+      break;
     }
     send_to_char(d->character, "\r\nInvalid choice!\r\nWhat type of quest"
                                " entry (G)ive, (R)oom or (A)sk?  ");
@@ -653,6 +657,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     case 'e':
       hlqedit_disp_outcommand_menu(d);
       return;
+    default:
+      break;
     }
   }
   break;
@@ -826,6 +832,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
       hlqedit_init_replymsg(d);
       return;
 
+      break;
+    default:
       break;
     } /* end out command arg switch */
     break;
@@ -1094,6 +1102,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = HLQEDIT_VIEW_QUEST;
       send_to_char(d->character, "Select which quest to view:\r\n");
       return;
+    default:
+      break;
     }
     break;
 

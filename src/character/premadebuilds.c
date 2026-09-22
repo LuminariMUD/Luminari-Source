@@ -227,6 +227,8 @@ void increase_skills(struct char_data *ch, int chclass, bool verbose, int level)
     if (GET_REAL_RACE(ch) == RACE_HUMAN)
       give_premade_skill(ch, verbose, ABILITY_DISCIPLINE, amount);
     break;
+  default:
+    break;
   }
 }
 
@@ -294,6 +296,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 20:
       GET_REAL_CHA(ch)++;
       break;
+    default:
+      break;
     }
     break;
   case CLASS_WARRIOR:
@@ -313,6 +317,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 16:
     case 20:
       GET_REAL_STR(ch)++;
+      break;
+    default:
       break;
     }
     break;
@@ -334,6 +340,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 20:
       GET_REAL_DEX(ch)++;
       break;
+    default:
+      break;
     }
     break;
   case CLASS_MONK:
@@ -353,6 +361,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 16:
     case 20:
       GET_REAL_WIS(ch)++;
+      break;
+    default:
       break;
     }
     break;
@@ -376,6 +386,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 20:
       GET_REAL_STR(ch)++;
       break;
+    default:
+      break;
     }
     break;
   case CLASS_BERSERKER:
@@ -395,6 +407,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 16:
     case 20:
       GET_REAL_STR(ch)++;
+      break;
+    default:
       break;
     }
     break;
@@ -416,6 +430,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 20:
       GET_REAL_INT(ch)++;
       break;
+    default:
+      break;
     }
     break;
   case CLASS_SORCERER:
@@ -435,6 +451,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 16:
     case 20:
       GET_REAL_CHA(ch)++;
+      break;
+    default:
       break;
     }
     break;
@@ -459,6 +477,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 20:
       GET_REAL_STR(ch)++;
       break;
+    default:
+      break;
     }
     break;
   case CLASS_DRUID:
@@ -478,6 +498,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 16:
     case 20:
       GET_REAL_WIS(ch)++;
+      break;
+    default:
       break;
     }
     break;
@@ -499,6 +521,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 20:
       GET_REAL_STR(ch)++;
       break;
+    default:
+      break;
     }
     break;
   case CLASS_BARD:
@@ -518,6 +542,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 16:
     case 20:
       GET_REAL_CHA(ch)++;
+      break;
+    default:
       break;
     }
     break;
@@ -539,6 +565,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 20:
       GET_REAL_INT(ch)++;
       break;
+    default:
+      break;
     }
     break;
   case CLASS_PSIONICIST:
@@ -558,6 +586,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 16:
     case 20:
       GET_REAL_INT(ch)++;
+      break;
+    default:
       break;
     }
     break;
@@ -583,6 +613,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
       GET_REAL_STR(ch)
       ++;
       break;
+    default:
+      break;
     }
     break;
 
@@ -604,6 +636,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 20:
       GET_REAL_CHA(ch)++;
       break;
+    default:
+      break;
     }
     break;
   case CLASS_ARTIFICER:
@@ -624,7 +658,11 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case 20:
       GET_REAL_INT(ch)++;
       break;
+    default:
+      break;
     }
+    break;
+  default:
     break;
   }
 
@@ -677,6 +715,8 @@ void add_human_premade_stats(struct char_data *ch, int chclass)
   case CLASS_SUMMONER:
   case CLASS_WARLOCK:
     GET_REAL_CHA(ch) += 2;
+    break;
+  default:
     break;
   }
 }
@@ -769,6 +809,8 @@ static void add_premade_sorcerer_spells(struct char_data *ch, int level)
   case 20:
     known_spells_add(ch, chclass, SPELL_SUMMON_CREATURE_9, FALSE);
     break;
+  default:
+    break;
   }
 }
 
@@ -837,6 +879,8 @@ static void add_premade_bard_spells(struct char_data *ch, int level)
     break;
   case 20:
     known_spells_add(ch, chclass, SPELL_NIGHTMARE, FALSE);
+    break;
+  default:
     break;
   }
 }
@@ -923,6 +967,8 @@ static void add_premade_inquisitor_spells(struct char_data *ch, int level)
     known_spells_add(ch, chclass, SPELL_REMOVE_POISON, FALSE);
     known_spells_add(ch, chclass, SPELL_UNDEATH_TO_DEATH, FALSE);
     break;
+  default:
+    break;
   }
 }
 
@@ -1005,6 +1051,8 @@ static void add_premade_summoner_spells(struct char_data *ch, int level)
     known_spells_add(ch, chclass, SPELL_COMMUNAL_PROTECTION_FROM_ENERGY, FALSE);
     known_spells_add(ch, chclass, SPELL_OVERLAND_FLIGHT, FALSE);
     break;
+  default:
+    break;
   }
 }
 
@@ -1046,6 +1094,8 @@ static void add_premade_warlock_invocations(struct char_data *ch, int level)
     break;
   case 19:
     known_spells_add(ch, chclass, WARLOCK_DARK_FORESIGHT, FALSE);
+    break;
+  default:
     break;
   }
 }
@@ -1108,6 +1158,8 @@ static void add_premade_summoner_evolutions(struct char_data *ch, int level)
     break;
   case 20:
     add_premade_evolution(ch, EVOLUTION_IMPROVED_NATURAL_ARMOR);
+    break;
+  default:
     break;
   }
 }
@@ -1191,6 +1243,8 @@ static void add_premade_alchemist_discoveries(struct char_data *ch, int level)
     send_to_char(ch, "You have learned the '%s' alchemist grand discovery!\r\n",
                  grand_alchemical_discovery_names[disc]);
     do_help(ch, grand_alchemical_discovery_names[disc], 0, 0);
+    break;
+  default:
     break;
   }
 }
@@ -1282,6 +1336,8 @@ static void add_premade_psionicist_powers(struct char_data *ch, int level)
     known_spells_add(ch, chclass, PSIONIC_POWER_LEECH, FALSE);
     known_spells_add(ch, chclass, PSIONIC_INCITE_PASSION, FALSE);
     break;
+  default:
+    break;
   }
 }
 
@@ -1336,6 +1392,8 @@ static void levelup_psionicist(struct char_data *ch, int level, bool verbose)
   case 20:
     set_premade_stats(ch, chclass, 20);
     give_premade_feat(ch, verbose, FEAT_EMPOWERED_PSIONICS, 0);
+    break;
+  default:
     break;
   }
   increase_skills(ch, chclass, TRUE, level);
@@ -1403,6 +1461,8 @@ void levelup_warrior(struct char_data *ch, int level, bool verbose)
     set_premade_stats(ch, chclass, 20);
     give_premade_feat(ch, verbose, FEAT_WHIRLWIND_ATTACK, 0);
     break;
+  default:
+    break;
   }
   increase_skills(ch, chclass, TRUE, level);
 }
@@ -1451,6 +1511,8 @@ void levelup_rogue(struct char_data *ch, int level, bool verbose)
   case 20:
     set_premade_stats(ch, chclass, 20);
     break;
+  default:
+    break;
   }
   increase_skills(ch, chclass, TRUE, level);
 }
@@ -1498,6 +1560,8 @@ static void levelup_monk(struct char_data *ch, int level, bool verbose)
     break;
   case 20:
     set_premade_stats(ch, chclass, 20);
+    break;
+  default:
     break;
   }
   increase_skills(ch, chclass, TRUE, level);
@@ -1554,6 +1618,8 @@ static void levelup_cleric(struct char_data *ch, int level, bool verbose)
   case 20:
     set_premade_stats(ch, chclass, 20);
     break;
+  default:
+    break;
   }
   increase_skills(ch, chclass, TRUE, level);
 }
@@ -1601,6 +1667,8 @@ static void levelup_berserker(struct char_data *ch, int level, bool verbose)
     break;
   case 20:
     set_premade_stats(ch, chclass, 20);
+    break;
+  default:
     break;
   }
   increase_skills(ch, chclass, TRUE, level);
@@ -1657,6 +1725,8 @@ static void levelup_wizard(struct char_data *ch, int level, bool verbose)
   case 20:
     set_premade_stats(ch, chclass, 20);
     give_premade_feat(ch, verbose, FEAT_IMPROVED_FAMILIAR, 0);
+    break;
+  default:
     break;
   }
   increase_skills(ch, chclass, TRUE, level);
@@ -1721,6 +1791,8 @@ static void levelup_sorcerer(struct char_data *ch, int level, bool verbose)
     set_premade_stats(ch, chclass, 20);
     give_premade_feat(ch, verbose, FEAT_IMPROVED_FAMILIAR, 0);
     break;
+  default:
+    break;
   }
   increase_skills(ch, chclass, TRUE, level);
   add_premade_sorcerer_spells(ch, level);
@@ -1770,6 +1842,8 @@ static void levelup_paladin(struct char_data *ch, int level, bool verbose)
   case 20:
     set_premade_stats(ch, chclass, 20);
     break;
+  default:
+    break;
   }
   increase_skills(ch, chclass, TRUE, level);
 }
@@ -1818,6 +1892,8 @@ static void levelup_blackguard(struct char_data *ch, int level, bool verbose)
     break;
   case 20:
     set_premade_stats(ch, chclass, 20);
+    break;
+  default:
     break;
   }
   increase_skills(ch, chclass, TRUE, level);
@@ -1870,6 +1946,8 @@ static void levelup_druid(struct char_data *ch, int level, bool verbose)
     break;
   case 20:
     set_premade_stats(ch, chclass, 20);
+    break;
+  default:
     break;
   }
   increase_skills(ch, chclass, TRUE, level);
@@ -1942,6 +2020,8 @@ static void levelup_ranger(struct char_data *ch, int level, bool verbose)
     if (verbose)
       send_to_char(ch, "You have added a new favored enemy of type: outsider.\r\n");
     break;
+  default:
+    break;
   }
   increase_skills(ch, chclass, TRUE, level);
 }
@@ -1989,6 +2069,8 @@ static void levelup_bard(struct char_data *ch, int level, bool verbose)
     break;
   case 20:
     set_premade_stats(ch, chclass, 20);
+    break;
+  default:
     break;
   }
   increase_skills(ch, chclass, TRUE, level);
@@ -2038,6 +2120,8 @@ static void levelup_warlock(struct char_data *ch, int level, bool verbose)
     break;
   case 20:
     set_premade_stats(ch, chclass, 20);
+    break;
+  default:
     break;
   }
   increase_skills(ch, chclass, TRUE, level);
@@ -2089,6 +2173,8 @@ static void levelup_inquisitor(struct char_data *ch, int level, bool verbose)
   case 20:
     set_premade_stats(ch, chclass, 20);
     break;
+  default:
+    break;
   }
   increase_skills(ch, chclass, TRUE, level);
   add_premade_inquisitor_spells(ch, level);
@@ -2137,6 +2223,8 @@ static void levelup_alchemist(struct char_data *ch, int level, bool verbose)
     break;
   case 20:
     set_premade_stats(ch, chclass, 20);
+    break;
+  default:
     break;
   }
   increase_skills(ch, chclass, TRUE, level);
@@ -2192,6 +2280,8 @@ static void levelup_summoner(struct char_data *ch, int level, bool verbose)
     set_premade_stats(ch, chclass, 20);
 
     break;
+  default:
+    break;
   }
   increase_skills(ch, chclass, TRUE, level);
   add_premade_summoner_spells(ch, level);
@@ -2242,6 +2332,8 @@ static void levelup_artificer(struct char_data *ch, int level, bool verbose)
   case 20:
     set_premade_stats(ch, chclass, 20);
     give_premade_feat(ch, verbose, FEAT_GREATER_SPELL_PENETRATION, 0);
+    break;
+  default:
     break;
   }
   increase_skills(ch, chclass, TRUE, level);

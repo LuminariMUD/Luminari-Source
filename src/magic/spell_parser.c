@@ -458,6 +458,8 @@ bool isEpicSpell(int spellnum)
   case PSIONIC_PSYCHOKINETIC_THRASHING:
   case PSIONIC_EPIC_PSIONIC_WARD:
     return TRUE;
+  default:
+    break;
   }
   return FALSE;
 }
@@ -643,6 +645,8 @@ static int call_magic_impl(struct char_data *caster, struct char_data *cvict,
       case SPELL_HEAL:
         spellnum = SPELL_HARM;
         break;
+      default:
+        break;
       }
     }
     switch (spellnum)
@@ -661,6 +665,8 @@ static int call_magic_impl(struct char_data *caster, struct char_data *cvict,
       break;
     case SPELL_HARM:
       spellnum = SPELL_HEAL;
+      break;
+    default:
       break;
     }
   }
@@ -770,6 +776,8 @@ static int call_magic_impl(struct char_data *caster, struct char_data *cvict,
         }
       }
       break;
+    default:
+      break;
     }
 
   // attach event for epic spells, increase skill
@@ -804,6 +812,8 @@ static int call_magic_impl(struct char_data *caster, struct char_data *cvict,
     attach_mud_event(new_mud_event(eEPICWARDING, caster, NULL), 9 * SECS_PER_MUD_DAY);
     if (!IS_NPC(caster))
       increase_skill(caster, SKILL_EPIC_WARDING);
+    break;
+  default:
     break;
   }
 
@@ -919,6 +929,8 @@ SAVING_WILL here...  */
     case CLASS_WARLOCK:
     case CLASS_SUMMONER:
       spell_level = level;
+      break;
+    default:
       break;
     }
 
@@ -1450,6 +1462,8 @@ SAVING_WILL here...  */
       act("Your eldritch blasts will be in that essence going forward.", FALSE, caster, NULL,
           caster, TO_CHAR);
       GET_ELDRITCH_ESSENCE(caster) = spellnum;
+      break;
+    default:
       break;
     } /* end manual spells */
 
@@ -4039,6 +4053,8 @@ return;
                      10 + circle, circle);
         return;
       }
+      break;
+    default:
       break;
     }
 
@@ -7091,6 +7107,8 @@ bool isBozakMagic(struct char_data *ch, int spellnum)
     return true;
   case SPELL_WEB:
     return true;
+  default:
+    break;
   }
 
   return false;
@@ -7114,6 +7132,8 @@ bool isThornMagic(struct char_data *ch, int spellnum)
   case SPELL_LOCATE_CREATURE:
     if (HAS_REAL_FEAT(ch, FEAT_READ_PORTENTS))
       return true;
+    break;
+  default:
     break;
   }
   return false;
@@ -7156,6 +7176,8 @@ bool isDragonRiderMagic(struct char_data *ch, int spellnum)
   case SPELL_SLOW:
     if (HAS_REAL_FEAT(ch, FEAT_MASTER_RIDER))
       is_valid_spell = true;
+    break;
+  default:
     break;
   }
 
@@ -7227,6 +7249,8 @@ bool isSkullMagic(struct char_data *ch, int spellnum)
     if (HAS_REAL_FEAT(ch, FEAT_AURA_OF_THE_VISION))
       return true;
     break;
+  default:
+    break;
   }
   return false;
 }
@@ -7245,6 +7269,8 @@ bool isPaleMasterMagic(struct char_data *ch, int spellnum)
   case SPELL_GREATER_ANIMATION:
     if (HAS_REAL_FEAT(ch, FEAT_SUMMON_GREATER_UNDEAD))
       return true;
+    break;
+  default:
     break;
   }
 
@@ -7301,6 +7327,8 @@ bool isSummonerMagic(struct char_data *ch, int spellnum)
     if (CLASS_LEVEL(ch, CLASS_SUMMONER) >= 19)
       return true;
     break;
+  default:
+    break;
   }
 
   return false;
@@ -7351,6 +7379,8 @@ sbyte isEidolonMagic(struct char_data *ch, int spellnum)
     //case SPELL_TONGUES:
     if (HAS_EVOLUTION(ch, EVOLUTION_ULTIMATE_MAGIC))
       return true;
+    break;
+  default:
     break;
   }
   return false;
@@ -7406,6 +7436,8 @@ sbyte isDrowMagic(struct char_data *ch, int spellnum)
       return false;
     }
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -7439,6 +7471,8 @@ sbyte isDuergarMagic(struct char_data *ch, int spellnum)
       return false;
     }
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -7506,6 +7540,8 @@ sbyte isLunarMagic(struct char_data *ch, int spellnum)
       return false;
     }
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -7550,6 +7586,8 @@ sbyte isTieflingMagic(struct char_data *ch, int spellnum)
       return false;
     }
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -7583,6 +7621,8 @@ sbyte isForestGnomeMagic(struct char_data *ch, int spellnum)
       return false;
     }
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -7613,6 +7653,8 @@ sbyte isAasimarMagic(struct char_data *ch, int spellnum)
       return false;
     }
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -7641,6 +7683,8 @@ sbyte isFaeMagic(struct char_data *ch, int spellnum)
       return false;
     }
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -7670,6 +7714,8 @@ sbyte isPrimordialMagic(struct char_data *ch __attribute__((unused)), int spelln
     //               if (GET_PRIMORDIAL_COOLDOWN(ch, 2) <= 0 && GET_PRIMORDIAL_MAGIC(ch, 2) == 0) GET_PRIMORDIAL_MAGIC(ch, 2) = 3;
     //   if (GET_PRIMORDIAL_MAGIC(ch, 2) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
     //   return true;
+  default:
+    break;
   }
   return false;
 }

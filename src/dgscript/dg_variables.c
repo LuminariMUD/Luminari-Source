@@ -377,6 +377,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         case WLD_TRIGGER:
           snprintf(str, slen, "%c%ld", UID_CHAR, (long)((room_data *)go)->number + ROOM_ID_BASE);
           break;
+        default:
+          break;
         }
       }
       else if (!str_cmp(var, "global"))
@@ -483,6 +485,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         }
 
         break;
+      default:
+        break;
       }
     }
     else
@@ -505,6 +509,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           r = (struct room_data *)go;
           c = NULL;
           o = NULL;
+          break;
+        default:
           break;
         }
       }
@@ -683,6 +689,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             break;
           case MOB_TRIGGER:
             in_room = IN_ROOM((struct char_data *)go);
+            break;
+          default:
             break;
           }
           if (!VALID_ROOM_RNUM(in_room))
@@ -1781,6 +1789,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           snprintf(str, slen, "%d", GET_WIS(c));
         }
         break;
+      default:
+        break;
       } /* switch *field */
 
       if (*str == '\x1')
@@ -2037,6 +2047,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           else
             *str = '\0';
         }
+        break;
+      default:
         break;
       } /* switch *field */
 
