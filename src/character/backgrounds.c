@@ -1462,9 +1462,9 @@ ACMD(do_shortcut)
     return;
   }
 
-  if (atoi(arg1) > 0)
+  if (parse_int(arg1) > 0)
   {
-    rvnum = atoi(arg1);
+    rvnum = parse_int(arg1);
     target_room = real_room(rvnum);
   }
   else

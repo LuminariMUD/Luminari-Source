@@ -1759,7 +1759,7 @@ ACMD(do_brutalfoe)
   /* Try to parse as race type number */
   if (isdigit(*arg))
   {
-    race_type = atoi(arg);
+    race_type = parse_int(arg);
     if (race_type < 1 || race_type >= NUM_RACE_TYPES)
     {
       send_to_char(ch,
@@ -8907,7 +8907,7 @@ ACMD(do_perk)
       return;
     }
 
-    perk_id = atoi(arg2);
+    perk_id = parse_int(arg2);
     perk = get_perk_by_id(perk_id);
 
     if (!perk)
@@ -8930,7 +8930,7 @@ ACMD(do_perk)
       return;
     }
 
-    perk_id = atoi(arg2);
+    perk_id = parse_int(arg2);
     perk = get_perk_by_id(perk_id);
 
     if (!perk)
@@ -9012,7 +9012,7 @@ ACMD(do_perk)
     /* Try to find the perk by number first */
     if (is_number(arg2))
     {
-      inner_perk_id = atoi(arg2);
+      inner_perk_id = parse_int(arg2);
       if (inner_perk_id < 0 || inner_perk_id >= NUM_PERKS)
       {
         send_to_char(ch, "Invalid perk number.\r\n");

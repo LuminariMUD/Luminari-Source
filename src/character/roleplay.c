@@ -1829,7 +1829,7 @@ void HandleStateCharacterAgeParseMenuChoice(struct descriptor_data *d, char *arg
 {
   int changeStateTo = STATE(d);
   struct char_data *ch = d->character;
-  int age = atoi(arg) - 1;
+  int age = parse_int(arg) - 1;
   enum roleplay_commit_result result = ROLEPLAY_COMMIT_INVALID_SELECTION;
 
   if (web_onboarding_handle_catalog_control(d, arg))
@@ -1903,7 +1903,7 @@ void HandleStateCharacterFactionParseMenuChoice(struct descriptor_data *d, char 
   int changeStateTo = STATE(d);
   struct char_data *ch = d->character;
   bool is_clan = isdigit(*arg);
-  int clan = atoi(arg);
+  int clan = parse_int(arg);
   clan_rnum c_n;
   int i = 0;
   char letter;
@@ -2014,7 +2014,7 @@ void HandleStateCharacterHometownParseMenuChoice(struct descriptor_data *d, char
 {
   int changeStateTo = STATE(d);
   struct char_data *ch = d->character;
-  int hometown = atoi(arg);
+  int hometown = parse_int(arg);
   enum roleplay_commit_result result = ROLEPLAY_COMMIT_INVALID_SELECTION;
 
   if (web_onboarding_handle_catalog_control(d, arg))
@@ -2115,7 +2115,7 @@ void HandleStateCharacterDeityParseMenuChoice(struct descriptor_data *d, char *a
 {
   int changeStateTo = STATE(d);
   struct char_data *ch = d->character;
-  int deity = atoi(arg);
+  int deity = parse_int(arg);
 
   if (web_onboarding_handle_catalog_control(d, arg))
     return;

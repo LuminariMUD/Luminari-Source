@@ -338,7 +338,7 @@ ACMD(do_claninvest)
   }
 
   /* Parse amount */
-  amount = atol(arg2);
+  amount = parse_long(arg2);
   if (amount <= 0)
   {
     send_to_char(ch, "Invalid investment amount.\r\n");
@@ -346,7 +346,7 @@ ACMD(do_claninvest)
   }
 
   /* Parse duration */
-  duration = atoi(arg3);
+  duration = parse_int(arg3);
   if (duration <= 0 || duration > 30)
   {
     send_to_char(ch, "Invalid duration. Must be between 1 and 30 days.\r\n");

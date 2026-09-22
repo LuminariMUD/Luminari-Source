@@ -799,7 +799,7 @@ MUD_EVENT_CALLBACK(event_fist_of_four_thunders)
     return 0;
 
   /* Check how many strikes remain */
-  strikes_remaining = atoi(pMudEvent->sVariables);
+  strikes_remaining = parse_int(pMudEvent->sVariables);
   if (strikes_remaining <= 0)
     return 0;
 
@@ -9779,7 +9779,7 @@ ACMD(do_powerstrike)
     return;
   }
 
-  value = atoi(arg);
+  value = parse_int(arg);
   max_ranks = get_perk_rank(ch, PERK_MONK_POWER_STRIKE, CLASS_MONK);
 
   if (value < 0)
@@ -14070,7 +14070,7 @@ ACMDU(do_favored_terrain)
     if (*arg2 && is_number(arg2))
     {
       /* Clear specific slot */
-      slot = atoi(arg2);
+      slot = parse_int(arg2);
       if (slot < 0 || slot >= MAX_ENEMIES)
       {
         send_to_char(ch, "That is not a valid slot number.\r\n");
@@ -14231,7 +14231,7 @@ ACMDU(do_inquisitor_favored_enemy)
     if (*arg2 && is_number(arg2))
     {
       /* Clear specific slot */
-      slot = atoi(arg2);
+      slot = parse_int(arg2);
       if (slot < 0 || slot >= MAX_ENEMIES)
       {
         send_to_char(ch, "That is not a valid slot number.\r\n");

@@ -170,7 +170,7 @@ int vampire_cloak_typed(struct spec_event_context *context)
     return 1;
   }
 
-  choice = atoi(argument);
+  choice = parse_int(argument);
 
   if (choice <= APPLY_NONE || choice >= NUM_APPLIES)
   {

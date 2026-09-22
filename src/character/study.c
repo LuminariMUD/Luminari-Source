@@ -3278,7 +3278,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       display_main_menu(d);
       break;
     default: /* Choose Feats */
-      number = atoi(arg);
+      number = parse_int(arg);
       if (!CAN_STUDY_FEATS(ch) || (number < 1) || (number >= NUM_LEARNABLE_FEAT_TYPES) ||
           !can_study_feat_type(ch, number))
       {
@@ -3444,7 +3444,7 @@ void study_parse(struct descriptor_data *d, char *arg)
   }
 
   case STUDY_SELECT_ALC_DISCOVERY:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       display_main_menu(d);
@@ -3483,7 +3483,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
 
   case STUDY_SELECT_PAL_MERCY:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       display_main_menu(d);
@@ -3520,7 +3520,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
 
   case STUDY_SET_NECROMANCER_CAST_TYPE:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       display_main_menu(d);
@@ -3540,7 +3540,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
 
   case STUDY_CHOOSE_LANGUAGES:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       display_main_menu(d);
@@ -3587,7 +3587,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
 
   case STUDY_SELECT_BG_CRUELTY:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       display_main_menu(d);
@@ -3679,7 +3679,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
 
   case STUDY_GEN_FEAT_MENU:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       main_feat_disp_menu(d);
@@ -3748,7 +3748,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
   /* Combat feats require the selection of a weapon type. */
   case STUDY_CFEAT_MENU:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       LEVELUP(d->character)->tempFeat = -1;
@@ -3787,7 +3787,7 @@ void study_parse(struct descriptor_data *d, char *arg)
 
   /* School feats require the selection of a spell school. */
   case STUDY_SFEAT_MENU:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       LEVELUP(d->character)->tempFeat = -1;
@@ -3825,7 +3825,7 @@ void study_parse(struct descriptor_data *d, char *arg)
 
   /* Skill feats require the selection of a skill. */
   case STUDY_SKFEAT_MENU:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       LEVELUP(d->character)->tempFeat = -1;
@@ -3901,7 +3901,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     case '7':
     case '8':
     case '9':
-      sorc_study_menu(d, atoi(arg));
+      sorc_study_menu(d, parse_int(arg));
       OLC_MODE(d) = STUDY_SPELLS;
       break;
     default:
@@ -3932,7 +3932,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         write_to_output(d, "You do not have any free new arcana slots.\r\n");
       }
-      else if (compute_slots_by_circle(d->character, CLASS_SORCERER, atoi(arg)) <= 0)
+      else if (compute_slots_by_circle(d->character, CLASS_SORCERER, parse_int(arg)) <= 0)
       {
         write_to_output(d, "You are not able to cast spells of that circle yet.\r\n");
       }
@@ -3941,11 +3941,11 @@ void study_parse(struct descriptor_data *d, char *arg)
         write_to_output(
             d, "You've assigned an extra spell circle %s with your new arcana prowess.\r\n", arg);
         if (NEW_ARCANA_SLOT(d->character, 0) <= 0)
-          NEW_ARCANA_SLOT(d->character, 0) = atoi(arg);
+          NEW_ARCANA_SLOT(d->character, 0) = parse_int(arg);
         else if (NEW_ARCANA_SLOT(d->character, 1) <= 0)
-          NEW_ARCANA_SLOT(d->character, 1) = atoi(arg);
+          NEW_ARCANA_SLOT(d->character, 1) = parse_int(arg);
         else if (NEW_ARCANA_SLOT(d->character, 2) <= 0)
-          NEW_ARCANA_SLOT(d->character, 2) = atoi(arg);
+          NEW_ARCANA_SLOT(d->character, 2) = parse_int(arg);
         write_to_output(d, "You have %d new arcana slots let to spend.\r\n",
                         free_arcana_slots(d->character));
       }
@@ -3969,7 +3969,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       break;
 
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
 
       /* SPELL PREPARATION HOOK */
       for (counter = 1; counter < NUM_SPELLS; counter++)
@@ -4038,7 +4038,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     case '2':
     case '3':
     case '4':
-      warlock_study_menu(d, atoi(arg));
+      warlock_study_menu(d, parse_int(arg));
       break;
     default:
       write_to_output(d, "That is an invalid choice!\r\n");
@@ -4056,7 +4056,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       break;
 
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
 
       /* SPELL PREPARATION HOOK */
       for (counter = WARLOCK_POWER_START + 2; counter < WARLOCK_POWER_END; counter++)
@@ -4127,7 +4127,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     case '4':
     case '5':
     case '6':
-      bard_study_menu(d, atoi(arg));
+      bard_study_menu(d, parse_int(arg));
       break;
     default:
       write_to_output(d, "That is an invalid choice!\r\n");
@@ -4145,7 +4145,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       break;
 
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
 
       /* SPELL PREPARATION HOOK */
       for (counter = 1; counter < NUM_SPELLS; counter++)
@@ -4218,7 +4218,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     case '4':
     case '5':
     case '6':
-      summoner_study_menu(d, atoi(arg));
+      summoner_study_menu(d, parse_int(arg));
       break;
     default:
       write_to_output(d, "That is an invalid choice!\r\n");
@@ -4236,7 +4236,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       break;
 
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
 
       /* SPELL PREPARATION HOOK */
       for (counter = 1; counter < NUM_SPELLS; counter++)
@@ -4353,9 +4353,9 @@ void study_parse(struct descriptor_data *d, char *arg)
     case '3':
     case '4':
     case '5':
-      study_assign_eidolon_base_form(d->character, atoi(arg));
+      study_assign_eidolon_base_form(d->character, parse_int(arg));
       write_to_output(d, "\tGEidolon Base Form '%s' Selected.\tn\r\n",
-                      eidolon_base_form_names[atoi(arg)]);
+                      eidolon_base_form_names[parse_int(arg)]);
       study_eidolon_main_menu_select(d);
       break;
     default:
@@ -4414,7 +4414,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       study_show_evolution_select_bottom_text(d);
       return;
     }
-    number = atoi(arg);
+    number = parse_int(arg);
 
     if (number < 1 || number >= NUM_EVOLUTIONS)
     {
@@ -4483,7 +4483,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "\r\n");
       return;
     }
-    number = atoi(arg);
+    number = parse_int(arg);
 
     if (number < 1 || number >= NUM_EVOLUTIONS)
     {
@@ -4550,7 +4550,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     case '4':
     case '5':
     case '6':
-      inquisitor_study_menu(d, atoi(arg));
+      inquisitor_study_menu(d, parse_int(arg));
       break;
     default:
       write_to_output(d, "That is an invalid choice!\r\n");
@@ -4568,7 +4568,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       break;
 
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
 
       /* SPELL PREPARATION HOOK */
       for (counter = 1; counter < NUM_SPELLS; counter++)
@@ -4643,13 +4643,13 @@ void study_parse(struct descriptor_data *d, char *arg)
     case '7':
     case '8':
     case '9':
-      if (((CLASS_LEVEL(d->character, CLASS_PSIONICIST) + 1) / 2) < atoi(arg))
+      if (((CLASS_LEVEL(d->character, CLASS_PSIONICIST) + 1) / 2) < parse_int(arg))
       {
         send_to_char(d->character,
                      "You are not yet able to learn psionic powers of that level.\r\n");
         break;
       }
-      psionicist_study_menu(d, atoi(arg));
+      psionicist_study_menu(d, parse_int(arg));
       OLC_MODE(d) = PSIONICIST_STUDY_POWERS;
       break;
     default:
@@ -4668,7 +4668,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       break;
 
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
 
       /* SPELL PREPARATION HOOK */
       for (counter = PSIONIC_POWER_START; counter <= PSIONIC_POWER_END; counter++)
@@ -4724,7 +4724,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     /******* end psionicist **********/
 
   case SET_1ST_DOMAIN:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 0)
     {
       write_to_output(d, "Invalid value!  Try again.\r\n");
@@ -4753,7 +4753,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     set_domain_menu(d);
     break;
   case SET_2ND_DOMAIN:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 0)
     {
       write_to_output(d, "Invalid value!  Try again.\r\n");
@@ -4790,7 +4790,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       break;
 
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
       switch (number)
       {
       case 1:
@@ -4816,7 +4816,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
 
   case SET_SCHOOL:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 0)
     {
       write_to_output(d, "Invalid value!  Try again.\r\n");
@@ -4846,7 +4846,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       break;
 
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
       switch (number)
       {
       case 0:
@@ -4864,7 +4864,7 @@ void study_parse(struct descriptor_data *d, char *arg)
 
     /***/
   case SET_PREFERRED_ARCANE:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number != CLASS_WIZARD && number != CLASS_SORCERER && number != CLASS_SUMMONER &&
         number != CLASS_BARD)
     {
@@ -4879,7 +4879,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     set_preferred_caster(d);
     break;
   case SET_PREFERRED_DIVINE:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number != CLASS_DRUID && number != CLASS_INQUISITOR && number != CLASS_CLERIC &&
         number != CLASS_PALADIN && number != CLASS_RANGER)
     {
@@ -4902,7 +4902,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       display_main_menu(d);
       break;
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
       switch (number)
       {
       case 0:
@@ -4930,7 +4930,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       display_main_menu(d);
       break;
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
       switch (number)
       {
       case 0:
@@ -4966,7 +4966,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
 
   case SET_BLOODLINE_DRACONIC:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number != DRACONIC_HERITAGE_BLACK && number != DRACONIC_HERITAGE_BLUE &&
         number != DRACONIC_HERITAGE_GREEN && number != DRACONIC_HERITAGE_RED &&
         number != DRACONIC_HERITAGE_WHITE && number != DRACONIC_HERITAGE_BRASS &&
@@ -5025,7 +5025,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
 
   case STUDY_DRAGON_RIDER_DRAGON_TYPE:
-    number = atoi(arg);
+    number = parse_int(arg);
 
     if (number < 1 || number >= NUM_DRAGON_TYPES)
     {
@@ -5141,7 +5141,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
 
   case SET_BLOODLINE_ARCANE:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number <= 0 || number >= NUM_SCHOOLS)
     {
       write_to_output(d, "Invalid value!  Try again.\r\n");
@@ -5201,7 +5201,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       display_main_menu(d);
       break;
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
       switch (number)
       {
       case 0:
@@ -5234,7 +5234,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     /*****/
 
   case SET_HIGH_ELF_CANTRIP:
-    number = atoi(arg);
+    number = parse_int(arg);
     for (i = 1; i < NUM_SPELLS; i++)
     {
       if (i == SPELL_ENCHANT_ITEM)
@@ -5289,7 +5289,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
 
   case SET_DRAGONBORN_ANCESTRY:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number != DRACONIC_HERITAGE_BLACK && number != DRACONIC_HERITAGE_BLUE &&
         number != DRACONIC_HERITAGE_GREEN && number != DRACONIC_HERITAGE_RED &&
         number != DRACONIC_HERITAGE_WHITE && number != DRACONIC_HERITAGE_BRASS &&
@@ -5382,7 +5382,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       break;
 
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
       write_to_output(d,
                       "Please enter the value to modify your current stat by."
                       "  Example:  If you want to change your stat from 10 to 14, you would enter "
@@ -5418,7 +5418,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
   /***** end study set stats */
   case SET_STAT_STR:
-    number = MAX(-10, MIN(atoi(arg), 10));
+    number = MAX(-10, MIN(parse_int(arg), 10));
     /*debug*/
     // write_to_output(d, "Number: %d\r\n", number);
     points_left = stat_points_left(d->character);
@@ -5461,7 +5461,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
     break;
   case SET_STAT_DEX:
-    number = MAX(-10, MIN(atoi(arg), 10));
+    number = MAX(-10, MIN(parse_int(arg), 10));
     /*debug*/
     // write_to_output(d, "Number: %d\r\n", number);
     points_left = stat_points_left(d->character);
@@ -5503,7 +5503,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
     break;
   case SET_STAT_CON:
-    number = MAX(-10, MIN(atoi(arg), 10));
+    number = MAX(-10, MIN(parse_int(arg), 10));
     /*debug*/
     // write_to_output(d, "Number: %d\r\n", number);
     points_left = stat_points_left(d->character);
@@ -5545,7 +5545,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
     break;
   case SET_STAT_INTE:
-    number = MAX(-10, MIN(atoi(arg), 10));
+    number = MAX(-10, MIN(parse_int(arg), 10));
     /*debug*/
     // write_to_output(d, "Number: %d\r\n", number);
     points_left = stat_points_left(d->character);
@@ -5587,7 +5587,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
     break;
   case SET_STAT_WIS:
-    number = MAX(-10, MIN(atoi(arg), 10));
+    number = MAX(-10, MIN(parse_int(arg), 10));
     /*debug*/
     // write_to_output(d, "Number: %d\r\n", number);
     points_left = stat_points_left(d->character);
@@ -5629,7 +5629,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
     break;
   case SET_STAT_CHA:
-    number = MAX(-10, MIN(atoi(arg), 10));
+    number = MAX(-10, MIN(parse_int(arg), 10));
     /*debug*/
     // write_to_output(d, "Number: %d\r\n", number);
     points_left = stat_points_left(d->character);
@@ -5680,7 +5680,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       break;
 
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
       int ranger_level = CLASS_LEVEL(d->character, CLASS_RANGER);
       switch (number)
       {
@@ -5801,7 +5801,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       break;
 
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
 
       if (number < 0 || number >= NUM_RACE_TYPES)
         write_to_output(d, "Invalid race!\r\n");
@@ -5826,7 +5826,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       display_main_menu(d);
       break;
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
       last_choice = last_listed_choice_index(animal_vnums, animal_names);
 
       if (number == 0)
@@ -5863,7 +5863,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       display_main_menu(d);
       break;
     default:
-      number = atoi(arg);
+      number = parse_int(arg);
       last_choice = last_listed_choice_index(familiar_vnums, familiar_names);
 
       if (number == 0)

@@ -302,7 +302,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   }
   else if (set_fields[mode].type == NUMBER || set_fields[mode].type == ADDER)
   {
-    value = atoi(val_arg);
+    value = parse_int(val_arg);
   }
 
   if (set_fields[mode].class_num_plus_one != 0)
@@ -424,7 +424,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     }
     else if (is_number(val_arg))
     {
-      value = atoi(val_arg);
+      value = parse_int(val_arg);
       RANGE(0, 24);
       GET_COND(vict, DRUNK) = (sbyte)value;
       send_to_char(ch, "%s's drunkenness set to %d.\r\n", GET_NAME(vict), value);
@@ -469,7 +469,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     }
     else if (is_number(val_arg))
     {
-      value = atoi(val_arg);
+      value = parse_int(val_arg);
       RANGE(0, 24);
       GET_COND(vict, HUNGER) = (sbyte)value;
       send_to_char(ch, "%s's hunger set to %d.\r\n", GET_NAME(vict), value);
@@ -515,7 +515,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     }
     else if (is_number(val_arg))
     {
-      rvnum = atoi(val_arg);
+      rvnum = parse_int(val_arg);
       if (real_room(rvnum) != NOWHERE)
       {
         SET_BIT_AR(PLR_FLAGS(vict), PLR_LOADROOM);
@@ -598,7 +598,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       return (0);
     }
     else
-      GET_OLC_ZONE(vict) = atoi(val_arg);
+      GET_OLC_ZONE(vict) = parse_int(val_arg);
     break;
   case 40: /* password */
     if (GET_LEVEL(vict) >= LVL_GRSTAFF)
@@ -653,7 +653,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     GET_PRACTICES(vict) = RANGE(0, 100);
     break;
   case 44: /* quest */
-    value = atoi(val_arg);
+    value = parse_int(val_arg);
     if (IS_NPC(vict))
     {
       send_to_char(ch, "%s is an NPC and this command cannot be used on NPCs.\r\n", GET_NAME(vict));
@@ -767,7 +767,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     }
     else if (is_number(val_arg))
     {
-      value = atoi(val_arg);
+      value = parse_int(val_arg);
       RANGE(0, 24);
       GET_COND(vict, THIRST) = (sbyte)value;
       send_to_char(ch, "%s's thirst set to %d.\r\n", GET_NAME(vict), value);
@@ -798,7 +798,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     award_set_points(vict, AWARD_QUEST_POINTS, RANGE(0, 100000000));
     break;
   case 59: /* questhistory */
-    qvnum = atoi(val_arg);
+    qvnum = parse_int(val_arg);
     if (real_quest(qvnum) == NOTHING)
     {
       send_to_char(ch, "That quest doesn't exist.\r\n");
@@ -856,7 +856,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       send_to_char(ch, "Invalid class! <example: set zusuk classfeat warrior 2>\r\n");
       return 0;
     }
-    value = atoi(arg2);
+    value = parse_int(arg2);
     GET_CLASS_FEATS(vict, class) = (byte)RANGE(0, 20);
     send_to_char(ch, "%s's %s for %s set to %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, arg1,
                  value);
@@ -870,7 +870,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       send_to_char(ch, "Invalid class! <example: set zusuk epicclassfeat warrior 2>\r\n");
       return 0;
     }
-    value = atoi(arg2);
+    value = parse_int(arg2);
     GET_EPIC_CLASS_FEATS(vict, class) = (byte)RANGE(0, 20);
     send_to_char(ch, "%s's %s for %s set to %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, arg1,
                  value);

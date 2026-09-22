@@ -272,16 +272,16 @@ void mysql_board_load_configs(void)
   i = 0;
   while ((row = mysql_fetch_row(result)) && i < mysql_num_boards)
   {
-    mysql_board_configs[i].board_id = atoi(row[0]);
+    mysql_board_configs[i].board_id = parse_int(row[0]);
     mysql_board_configs[i].board_name = strdup(row[1]);
-    mysql_board_configs[i].board_type = atoi(row[2]);
-    mysql_board_configs[i].read_level = atoi(row[3]);
-    mysql_board_configs[i].write_level = atoi(row[4]);
-    mysql_board_configs[i].delete_level = atoi(row[5]);
-    mysql_board_configs[i].obj_vnum = atoi(row[6]);
-    mysql_board_configs[i].clan_id = atoi(row[7]);
-    mysql_board_configs[i].clan_rank = atoi(row[8]);
-    mysql_board_configs[i].active = (atoi(row[9]) == 1);
+    mysql_board_configs[i].board_type = parse_int(row[2]);
+    mysql_board_configs[i].read_level = parse_int(row[3]);
+    mysql_board_configs[i].write_level = parse_int(row[4]);
+    mysql_board_configs[i].delete_level = parse_int(row[5]);
+    mysql_board_configs[i].obj_vnum = parse_int(row[6]);
+    mysql_board_configs[i].clan_id = parse_int(row[7]);
+    mysql_board_configs[i].clan_rank = parse_int(row[8]);
+    mysql_board_configs[i].active = (parse_int(row[9]) == 1);
     i++;
   }
 
@@ -471,7 +471,7 @@ int mysql_board_create_post(struct char_data *ch, int board_id, char *title, cha
     res = mysql_store_result(conn);
     if (res && (row = mysql_fetch_row(res)))
     {
-      post_id = atoi(row[0]);
+      post_id = parse_int(row[0]);
       snprintf(buf, sizeof(buf), "Board post created successfully: ID %d, Board %d, Author %s",
                post_id, board_id, GET_NAME(ch));
       log("%s", buf);
@@ -525,16 +525,16 @@ struct mysql_board_post *mysql_board_get_post(int board_id, int post_id)
 
   /* Allocate and populate post structure */
   CREATE(post, struct mysql_board_post, 1);
-  post->post_id = atoi(row[0]);
-  post->board_id = atoi(row[1]);
+  post->post_id = parse_int(row[0]);
+  post->board_id = parse_int(row[1]);
   post->title = strdup(row[2]);
   post->body = strdup(row[3]);
   post->author = strdup(row[4]);
-  post->author_id = atoi(row[5]);
-  post->author_level = atoi(row[6]);
-  post->date_posted = (time_t)atol(row[7]);
-  post->date_modified = (time_t)atol(row[8]);
-  post->deleted = (atoi(row[9]) == 1);
+  post->author_id = parse_int(row[5]);
+  post->author_level = parse_int(row[6]);
+  post->date_posted = (time_t)parse_long(row[7]);
+  post->date_modified = (time_t)parse_long(row[8]);
+  post->deleted = (parse_int(row[9]) == 1);
 
   mysql_free_result(result);
   if (!post->title || !post->body || !post->author)
@@ -605,7 +605,7 @@ void mysql_board_show_list(struct char_data *ch, int board_id, int page)
   {
     row = mysql_fetch_row(result);
     if (row)
-      post_count = atoi(row[0]);
+      post_count = parse_int(row[0]);
     mysql_free_result(result);
   }
 
@@ -688,8 +688,8 @@ void mysql_board_show_list(struct char_data *ch, int board_id, int page)
   {
     char title_buf[MAX_BOARD_TITLE_LENGTH + 1];
     char unread_marker[10] = "";
-    int post_id_val = atoi(row[0]);
-    time_t post_time = (time_t)atol(row[3]);
+    int post_id_val = parse_int(row[0]);
+    time_t post_time = (time_t)parse_long(row[3]);
     format_time_string(post_time, "%m/%d/%y", time_buf, sizeof(time_buf));
 
     /* Check if this post is unread by the player */
@@ -1053,7 +1053,7 @@ ACMD(do_read_board)
     return;
   }
 
-  post_id = atoi(arg);
+  post_id = parse_int(arg);
   mysql_board_show_post(ch, board->board_id, post_id);
 }
 
@@ -1148,7 +1148,7 @@ ACMD(do_remove_board)
     return;
   }
 
-  post_id = atoi(arg);
+  post_id = parse_int(arg);
 
   /* Get the post to check permissions */
   post = mysql_board_get_post(board->board_id, post_id);
@@ -1220,7 +1220,7 @@ ACMD(do_reply_board)
     return;
   }
 
-  post_id = atoi(arg);
+  post_id = parse_int(arg);
 
   /* Start reply creation process */
   if (ch->desc)
@@ -1292,7 +1292,7 @@ ACMD(do_note)
 
     if (*arg2 && is_number(arg2))
     {
-      page = atoi(arg2);
+      page = parse_int(arg2);
     }
 
     mysql_board_show_list(ch, board->board_id, page);
@@ -1315,7 +1315,7 @@ ACMD(do_note)
       return;
     }
 
-    post_id = atoi(arg2);
+    post_id = parse_int(arg2);
 
     /* Start reply creation process */
     if (ch->desc)
@@ -1350,7 +1350,7 @@ ACMD(do_note)
       return;
     }
 
-    page = atoi(arg1);
+    page = parse_int(arg1);
     mysql_board_show_list(ch, board->board_id, page);
     return;
   }
@@ -1926,7 +1926,7 @@ ACMD(do_boardcheck)
       row = mysql_fetch_row(result);
       if (row)
       {
-        int unread = atoi(row[0]);
+        int unread = parse_int(row[0]);
         if (unread > 0)
         {
           int visible_len = 0;

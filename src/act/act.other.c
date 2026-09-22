@@ -188,7 +188,7 @@ ACMD(do_cexchange)
     return;
   }
 
-  amount = atoi(arg2);
+  amount = parse_int(arg2);
 
   if (amount <= 0.0)
   {
@@ -437,7 +437,7 @@ ACMD(do_cexchange)
     return;
   }
 
-  amount = atoi(arg3);
+  amount = parse_int(arg3);
 
   if (amount <= 0)
   {
@@ -908,7 +908,7 @@ ACMD(do_abundantstep)
 
     if (isdigit(*p))
     { /* value a number?  if so it will be our repeat */
-      repeat = atoi(p);
+      repeat = parse_int(p);
 
       while (isdigit(*p)) /* get rid of extra numbers */
         p++;
@@ -1602,7 +1602,7 @@ ACMD(do_sorcerer_arcane_apotheosis)
   }
   else
   {
-    circle = atoi(arg);
+    circle = parse_int(arg);
     if (circle < 1 || circle > 9)
     {
       send_to_char(ch, "That is an invalid spell circle!\r\n");
@@ -5050,7 +5050,7 @@ void perform_shapechange(struct char_data *ch, char *arg, int mode)
   }
   else
   {
-    form = atoi(arg);
+    form = parse_int(arg);
     if (form < 1 || form > NUM_RACE_TYPES - 1)
     {
       send_to_char(ch, "That is not a valid race!\r\n");
@@ -7231,7 +7231,7 @@ ACMD(do_spells)
     }
     if (*arg1)
     {
-      circle = atoi(arg1);
+      circle = parse_int(arg1);
       if (circle < 0 || circle > 9)
       {
         send_to_char(ch, "That is an invalid %s circle (use 0 for cantrips).\r\n",
@@ -7283,7 +7283,7 @@ ACMD(do_spelllist)
     class = CLASS_ALCHEMIST;
     if (*arg)
     {
-      circle = atoi(arg);
+      circle = parse_int(arg);
       if (circle < 0 || circle > 9)
       {
         send_to_char(ch, "That is an invalid extract circle (use 0 for cantrips).\r\n");
@@ -7296,7 +7296,7 @@ ACMD(do_spelllist)
     class = CLASS_PSIONICIST;
     if (*arg)
     {
-      circle = atoi(arg);
+      circle = parse_int(arg);
       if (circle < 0 || circle > 9)
       {
         send_to_char(ch, "That is an invalid power circle (use 0 for cantrips).\r\n");
@@ -7322,7 +7322,7 @@ ACMD(do_spelllist)
       }
       if (*arg1)
       {
-        circle = atoi(arg1);
+        circle = parse_int(arg1);
         if (circle < 0 || circle > 9)
         {
           send_to_char(ch, "That is an invalid spell circle (use 0 for cantrips).\r\n");
@@ -8163,7 +8163,7 @@ ACMD(do_split)
 
   if (is_number(buf))
   {
-    amount = atoi(buf);
+    amount = parse_int(buf);
     if (amount <= 0)
     {
       send_to_char(ch, "Sorry, you can't do that.\r\n");
@@ -9615,25 +9615,25 @@ ACMD(do_happyhour)
 
   if (is_abbrev(arg, "experience"))
   {
-    num = MIN(MAX((atoi(val)), 0), 1000);
+    num = MIN(MAX((parse_int(val)), 0), 1000);
     HAPPY_EXP = num;
     send_to_char(ch, "Happy Hour Exp rate set to +%d%%\r\n", HAPPY_EXP);
   }
   else if (is_abbrev(arg, "treasure"))
   {
-    num = MIN(MAX((atoi(val)), TREASURE_PERCENT + 1), 99 - TREASURE_PERCENT);
+    num = MIN(MAX((parse_int(val)), TREASURE_PERCENT + 1), 99 - TREASURE_PERCENT);
     HAPPY_TREASURE = num;
     send_to_char(ch, "Happy Hour Treasure drop-rate set to +%d%%\r\n", HAPPY_TREASURE);
   }
   else if ((is_abbrev(arg, "gold")) || (is_abbrev(arg, "coins")))
   {
-    num = MIN(MAX((atoi(val)), 0), 1000);
+    num = MIN(MAX((parse_int(val)), 0), 1000);
     HAPPY_GOLD = num;
     send_to_char(ch, "Happy Hour Gold rate set to +%d%%\r\n", HAPPY_GOLD);
   }
   else if ((is_abbrev(arg, "time")) || (is_abbrev(arg, "ticks")))
   {
-    num = MIN(MAX((atoi(val)), 0), 1000);
+    num = MIN(MAX((parse_int(val)), 0), 1000);
     if (HAPPY_TIME && !num)
     {
       game_info("Happyhour has been stopped!");
@@ -9653,7 +9653,7 @@ ACMD(do_happyhour)
   }
   else if ((is_abbrev(arg, "qp")) || (is_abbrev(arg, "questpoints")))
   {
-    num = MIN(MAX((atoi(val)), 0), 1000);
+    num = MIN(MAX((parse_int(val)), 0), 1000);
     HAPPY_QP = num;
     send_to_char(ch, "Happy Hour Questpoints rate set to +%d%%\r\n", HAPPY_QP);
   }
@@ -10561,7 +10561,7 @@ ACMD(do_dice)
 
   if (is_number(Gbuf1))
   {
-    rolls = atoi(Gbuf1);
+    rolls = parse_int(Gbuf1);
     if (rolls < 1 || rolls > 10000)
     {
       send_to_char(ch, "Sorry bub, the first parameter is out of range.\r\n");
@@ -10584,7 +10584,7 @@ ACMD(do_dice)
 
   if (is_number(Gbuf1))
   {
-    size = atoi(Gbuf1);
+    size = parse_int(Gbuf1);
     if (size < 1 || size > 10000)
     {
       send_to_char(ch, "Sorry bub, the second number is out of range.\n");
@@ -11346,7 +11346,7 @@ ACMD(do_sacrifice)
     return;
   }
 
-  if ((sac = atoi(arg2) <= 1))
+  if ((sac = parse_int(arg2) <= 1))
   {
     send_to_char(ch, "You have to sacrifice 2 hit points or more.\r\n");
     return;
@@ -12518,7 +12518,7 @@ ACMDU(do_device)
       send_to_char(ch, "Changes the short description of an invention.\r\n");
       return;
     }
-    int inv_idx = atoi(arg2) - 1;
+    int inv_idx = parse_int(arg2) - 1;
     if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions)
     {
       send_to_char(ch, "No such invention. Use 'device list' to see your inventions.\r\n");
@@ -12559,7 +12559,7 @@ ACMDU(do_device)
       send_to_char(ch, "To confirm, use: device destroy <number> CONFIRM\r\n");
       return;
     }
-    int inv_idx = atoi(arg2) - 1;
+    int inv_idx = parse_int(arg2) - 1;
     if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions)
     {
       send_to_char(ch, "No such invention. Use 'device list' to see your inventions.\r\n");
@@ -12693,7 +12693,7 @@ ACMDU(do_device)
       return;
     }
 
-    int inv_idx = atoi(arg2) - 1;
+    int inv_idx = parse_int(arg2) - 1;
     if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions)
     {
       send_to_char(ch, "No such invention. Use 'device list' to see your inventions.\r\n");
@@ -12760,7 +12760,7 @@ ACMDU(do_device)
       send_to_char(ch, "Add another spell effect to an existing invention.\r\n");
       return;
     }
-    int inv_idx = atoi(arg2) - 1;
+    int inv_idx = parse_int(arg2) - 1;
     if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions)
     {
       send_to_char(ch, "No such invention. Use 'device list' to see your inventions.\r\n");
@@ -12844,7 +12844,7 @@ ACMDU(do_device)
       send_to_char(ch, "Use which invention? Usage: device use <number> [target]\r\n");
       return;
     }
-    int inv_idx = atoi(arg2) - 1;
+    int inv_idx = parse_int(arg2) - 1;
     if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions)
     {
       send_to_char(ch, "No such invention. Use 'device list' to see your inventions.\r\n");
@@ -13234,7 +13234,7 @@ ACMDU(do_device)
       send_to_char(ch, "Usage: device info <number>\r\n");
       return;
     }
-    int inv_idx = atoi(arg2) - 1;
+    int inv_idx = parse_int(arg2) - 1;
     if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions)
     {
       send_to_char(ch, "No such invention. Use 'device list' to see your inventions.\r\n");
@@ -13661,9 +13661,9 @@ static void finalize_invention_creation(struct char_data *ch, const char *variab
   if (!spells_part || !num_spells_str || !duration_str || !reliability_str)
     return; /* malformed */
 
-  int num_spells = atoi(num_spells_str);
-  int duration = atoi(duration_str);
-  int reliability = atoi(reliability_str);
+  int num_spells = parse_int(num_spells_str);
+  int duration = parse_int(duration_str);
+  int reliability = parse_int(reliability_str);
   if (num_spells <= 0 || num_spells > MAX_INVENTION_SPELLS)
     return;
 
@@ -13681,12 +13681,12 @@ static void finalize_invention_creation(struct char_data *ch, const char *variab
     if (colon)
     {
       *colon = '\0';
-      spell_nums[i] = atoi(spell_token);
-      spell_levels[i] = atoi(colon + 1);
+      spell_nums[i] = parse_int(spell_token);
+      spell_levels[i] = parse_int(colon + 1);
     }
     else
     {
-      spell_nums[i] = atoi(spell_token);
+      spell_nums[i] = parse_int(spell_token);
       spell_levels[i] = 0;
     }
     i++;
@@ -13918,7 +13918,7 @@ MUD_EVENT_CALLBACK(event_device_progress)
 
     if (spells_part && num_spells_str)
     {
-      int num_spells = atoi(num_spells_str);
+      int num_spells = parse_int(num_spells_str);
 
       /* Parse the spell numbers */
       int spell_nums[MAX_INVENTION_SPELLS];
@@ -13927,7 +13927,7 @@ MUD_EVENT_CALLBACK(event_device_progress)
 
       while (spell_token && i < num_spells && i < MAX_INVENTION_SPELLS)
       {
-        spell_nums[i] = atoi(spell_token);
+        spell_nums[i] = parse_int(spell_token);
         spell_token = strtok(NULL, ",");
         i++;
       }
@@ -14004,9 +14004,9 @@ MUD_EVENT_CALLBACK(event_device_creation)
     return 0;
   }
 
-  int num_spells = atoi(num_spells_str);
-  int duration = atoi(duration_str);
-  int reliability = atoi(reliability_str);
+  int num_spells = parse_int(num_spells_str);
+  int duration = parse_int(duration_str);
+  int reliability = parse_int(reliability_str);
 
   /* Parse the spell numbers and chosen levels */
   int spell_nums[MAX_INVENTION_SPELLS];
@@ -14022,13 +14022,13 @@ MUD_EVENT_CALLBACK(event_device_creation)
     if (colon)
     {
       *colon = '\0';
-      spell_nums[i] = atoi(spell_token);
-      spell_levels[i] = atoi(colon + 1);
+      spell_nums[i] = parse_int(spell_token);
+      spell_levels[i] = parse_int(colon + 1);
     }
     else
     {
       /* Legacy format without level - just use spell number */
-      spell_nums[i] = atoi(spell_token);
+      spell_nums[i] = parse_int(spell_token);
       spell_levels[i] = 0; /* Will recalculate if needed */
     }
     spell_token = strtok(NULL, ",");
@@ -14141,7 +14141,7 @@ MUD_EVENT_CALLBACK(event_device_repair)
     return 0;
   }
 
-  int inv_idx = atoi(pMudEvent->sVariables);
+  int inv_idx = parse_int(pMudEvent->sVariables);
 
   /* Validate device index */
   if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions)

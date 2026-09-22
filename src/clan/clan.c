@@ -276,7 +276,7 @@ clan_rnum get_clan_by_name(const char *c_n)
   }
 
   /* Still not found, so let's look for the VNUM */
-  if ((v = atoi(c_n)) > 0)
+  if ((v = parse_int(c_n)) > 0)
   {
     for (i = 0; i < num_of_clans; i++)
     {
@@ -1685,7 +1685,7 @@ ACMD(do_clanaward)
     return;
   }
 
-  if ((num_cp = atol(ncp)) < 1)
+  if ((num_cp = parse_long(ncp)) < 1)
   {
     send_to_char(ch, "Invalid number of clanpoints!\r\n");
     return;
@@ -2225,7 +2225,7 @@ ACMD(do_clandeposit)
 
   buf2 = one_argument(argument, buf, sizeof(buf));
 
-  amt = atoi(buf);
+  amt = parse_int(buf);
   if (amt == 0)
   {
     if (immcom)
@@ -2388,13 +2388,13 @@ ACMD(do_clandestroy)
   {
     if (immcom)
     {
-      if ((c_n = real_clan(atoi(buf2))) == NO_CLAN)
+      if ((c_n = real_clan(parse_int(buf2))) == NO_CLAN)
       {
         send_to_char(ch, "Invalid clan VNUM specified.\r\n");
         send_to_char(ch,
                      "The clan you entered %" PRI_IDX ", doesn't match your"
                      " clan %" PRI_IDX ".\r\n",
-                     real_clan(atoi(buf2)), real_clan(GET_CLAN(ch)));
+                     real_clan(parse_int(buf2)), real_clan(GET_CLAN(ch)));
         return;
       }
     }
@@ -2507,7 +2507,7 @@ ACMD(do_clanenrol)
   {
     if (*arg && is_number(arg))
     {
-      if ((c_n = real_clan(atoi(arg))) == NO_CLAN)
+      if ((c_n = real_clan(parse_int(arg))) == NO_CLAN)
       {
         send_to_char(ch, "Invalid clan ID\r\n");
         return;
@@ -3074,7 +3074,7 @@ ACMD(do_clanlist) /* List of clan members */
     }
     else
     {
-      vc = atoi(arg);
+      vc = parse_int(arg);
       if ((c = real_clan(vc)) == NO_CLAN)
       {
         send_to_char(ch, "Invalid clan ID!\r\n");
@@ -3174,7 +3174,7 @@ ACMD(do_clanowner)
   {
     if (immcom)
     {
-      if ((c_n = real_clan(atoi(buf2))) == NO_CLAN)
+      if ((c_n = real_clan(parse_int(buf2))) == NO_CLAN)
       {
         send_to_char(ch, "Invalid clan VNUM specified.\r\n");
         return;
@@ -3520,7 +3520,7 @@ ACMD(do_clanwithdraw)
 
   buf2 = one_argument(argument, buf, sizeof(buf));
 
-  amt = atoi(buf);
+  amt = parse_int(buf);
   if (amt == 0)
   {
     if (immcom)
@@ -3643,7 +3643,7 @@ ACMD(do_clanunclaim)
     return;
   }
 
-  z = atoi(argument);
+  z = parse_int(argument);
 
   if ((zr = real_zone(z)) == NOWHERE)
   {
@@ -4019,7 +4019,7 @@ ACMD(do_clanlog)
   one_argument(argument, arg, sizeof(arg));
   if (*arg)
   {
-    lines_to_show = atoi(arg);
+    lines_to_show = parse_int(arg);
     if (lines_to_show < 1)
       lines_to_show = 20;
     if (lines_to_show > MAX_CLAN_LOG_LINES)
@@ -4449,7 +4449,7 @@ void show_claims(struct char_data *ch, char *arg)
   int cc = 0;
 
   if (arg && *arg)
-    c = atoi(arg);
+    c = parse_int(arg);
   else
     c = NO_CLAN;
 
@@ -4784,7 +4784,7 @@ void show_popularity(struct char_data *ch, char *arg)
   struct claim_data *this_claim;
 
   if (arg && *arg)
-    c = atoi(arg);
+    c = parse_int(arg);
   else
     c = NOWHERE;
 
@@ -4926,7 +4926,7 @@ ACMD(do_clanset)
     return;
   }
 
-  value = atoi(name);
+  value = parse_int(name);
 
   /* Check the clan exists */
   if ((clannum = real_clan(value)) == NO_CLAN)
@@ -4952,7 +4952,7 @@ ACMD(do_clanset)
 
   if (fields[l].type == NUMBER)
   {
-    value = atoi(val_arg);
+    value = parse_int(val_arg);
   }
 
   mudlog(CMP, LVL_IMPL, TRUE,
@@ -5006,7 +5006,7 @@ ACMD(do_clanset)
   case 2:
     /* Val arg would be the rank ID, and the title - separate them */
     half_chop(val_arg, rankbuf, rankname);
-    rankid = atoi(rankbuf);
+    rankid = parse_int(rankbuf);
     if ((rankid < 1) || (rankid > clan_list[clannum].ranks))
     {
       send_to_char(ch, "Invalid rank ID number - Try again!");
@@ -5096,7 +5096,7 @@ ACMD(do_clanset)
     return;
     /* Commented out until spells array is added to clan_data structure:
     half_chop(val_arg, spellbuf, spellname);
-    spellid = atoi(spellbuf);
+    spellid = parse_int(spellbuf);
     if ((spellid < 1) || (spellid > 5))
     {
       send_to_char(ch, "Invalid clan skill ID number - Try again! (1 to 5)");
@@ -5105,7 +5105,7 @@ ACMD(do_clanset)
     spellnum = find_skill_num(spellname);
     if (spellnum == -1)
     {
-      spellnum = atoi(spellname);
+      spellnum = parse_int(spellname);
       if (spellnum <= 0)
       {
         send_to_char(ch, "Invalid skill name or skill number");
@@ -5325,7 +5325,7 @@ ACMD(do_clantalk)
   if (imm)
   {
     arg2 = one_argument(argument, arg, sizeof(arg));
-    if ((c_arg = atoi(arg)) > 0)
+    if ((c_arg = parse_int(arg)) > 0)
     {
       if (real_clan(c_arg) != NO_CLAN)
       {

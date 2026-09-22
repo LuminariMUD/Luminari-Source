@@ -8835,7 +8835,7 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
           int crippling_critical_var = 0;
           char buf[20] = {'\0'}; /* Increased to handle all int values */
 
-          crippling_critical_var = atoi((char *)pMudEvent->sVariables);
+          crippling_critical_var = parse_int((char *)pMudEvent->sVariables);
           crippling_critical_var++;
           snprintf(buf, sizeof(buf), "%d", crippling_critical_var);
           if (pMudEvent->sVariables) /* need to free memory if we changing it */
@@ -8877,7 +8877,7 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
           act("\tr$n strikes $N with a crippling critical!\tn", ACT_CONDENSE_VALUE, ch, NULL,
               victim, TO_NOTVICT);
 
-          switch (atoi((char *)pMudEvent->sVariables))
+          switch (parse_int((char *)pMudEvent->sVariables))
           {
           case 1: /* 1d4 strength damage */
             new_affect(&af);

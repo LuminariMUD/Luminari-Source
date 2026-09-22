@@ -232,7 +232,7 @@ ACMD(do_mode)
       number = 5;
     }
     else if (is_number(arg))
-      number = atoi(arg);
+      number = parse_int(arg);
     else
     {
       send_to_char(ch, "The argument must be a number!\r\n");
@@ -332,7 +332,7 @@ ACMD(do_spellbattle)
 
   /* ok we have an arg, lets make sure its valid */
   if (is_number(arg))
-    number = atoi(arg);
+    number = parse_int(arg);
   else
   {
     send_to_char(ch, "The argument needs to be a number!\r\n");
