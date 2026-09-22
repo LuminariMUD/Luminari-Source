@@ -512,6 +512,7 @@ static int weather_terrain_audio_calculate_interference(struct spatial_context *
     break;
   case 4: /* Storm */
     *interference += 0.8;
+    break;
   default:
     break;
   }
