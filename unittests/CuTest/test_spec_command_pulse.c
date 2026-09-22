@@ -376,6 +376,7 @@ static bool spec_pulse_read_source(const char *relative_path, char **text)
   {
     bytes_read = fread(buffer, 1, (size_t)source_length, file);
     success = bytes_read == (size_t)source_length && ferror(file) == 0;
+    /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- fread() returns at most its count */
     buffer[bytes_read] = '\0';
   }
   if (fclose(file) != 0)

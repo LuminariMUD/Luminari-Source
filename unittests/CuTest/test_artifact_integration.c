@@ -881,7 +881,8 @@ void Test_artifact_integration_full_lifecycle(CuTest *tc)
   /* acquire */
   artifact_obj_to_char(&obj, &fixture.actor);
   art = artifact_by_vnum(ART_VNUM_TRORXEK);
-  claimed = (art && art->owner && !str_cmp(art->owner, "Artifactor") && art->instance_persisted &&
+  CuAssertPtrNotNull(tc, art);
+  claimed = (art->owner && !str_cmp(art->owner, "Artifactor") && art->instance_persisted &&
              art->discovered && art->claim_count == 1);
 
   /* equip - bind on equip, bonuses, first-equip XP */
@@ -898,7 +899,8 @@ void Test_artifact_integration_full_lifecycle(CuTest *tc)
   artint_uncarry(&fixture, &obj);
   artifact_obj_from_char(&obj);
   artifact_from_char(&obj, &fixture.actor);
-  kept_owner_on_drop = (!str_cmp(art->owner, "Artifactor") && !art->instance_persisted);
+  kept_owner_on_drop =
+      (art->owner && !str_cmp(art->owner, "Artifactor") && !art->instance_persisted);
 
   /* save and reload: the registry is rebuilt from disk */
   artifact_save();

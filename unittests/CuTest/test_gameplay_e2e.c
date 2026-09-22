@@ -12750,6 +12750,8 @@ void Test_wilderness_harvest_quality_maps_to_usable_rewards_without_duplicate_st
         else
         {
           valid = valid && mote > 0 && mote < NUM_CRAFT_MOTES;
+          if (mote <= 0 || mote >= NUM_CRAFT_MOTES)
+            continue;
           before = GET_CRAFT_MOTES((&actor), mote);
           valid = valid && award_wilderness_harvest(&actor, category, subtype, quality, 3) == 3;
           valid = valid && GET_CRAFT_MOTES((&actor), mote) == before + 3 * quality;
