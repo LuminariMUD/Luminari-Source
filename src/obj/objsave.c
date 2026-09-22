@@ -246,7 +246,7 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
   }
 
 #define TEST_OBJS(obj1, obj2, field)                                                               \
-  ((!obj1->field || !obj2->field || strcmp(obj1->field, obj2->field)))
+  ((!obj1->field || !obj2->field || strcmp(obj1->field, obj2->field) != 0))
 #define TEST_OBJN(field) (obj->obj_flags.field != temp->obj_flags.field)
 
   if (TEST_OBJS(obj, temp, name))
@@ -3470,7 +3470,7 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj,
   strlcat(ins_buf, line_buf, sizeof(ins_buf));
 
 #define TEST_OBJS(obj1, obj2, field)                                                               \
-  ((!obj1->field || !obj2->field || strcmp(obj1->field, obj2->field)))
+  ((!obj1->field || !obj2->field || strcmp(obj1->field, obj2->field) != 0))
 #define TEST_OBJN(field) (obj->obj_flags.field != temp->obj_flags.field)
 
   if (TEST_OBJS(obj, temp, name))
@@ -4509,7 +4509,7 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
            GET_OBJ_EXTRA(obj)[1], GET_OBJ_EXTRA(obj)[2], GET_OBJ_EXTRA(obj)[3]);
 
 #define TEST_OBJS(obj1, obj2, field)                                                               \
-  ((!obj1->field || !obj2->field || strcmp(obj1->field, obj2->field)))
+  ((!obj1->field || !obj2->field || strcmp(obj1->field, obj2->field) != 0))
 #define TEST_OBJN(field) (obj->obj_flags.field != temp->obj_flags.field)
 
   if (TEST_OBJS(obj, temp, name))

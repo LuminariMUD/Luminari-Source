@@ -127,7 +127,6 @@ src/core/db.c bugprone-branch-clone 4
 src/core/db.c bugprone-implicit-widening-of-multiplication-result 1
 src/core/db.c bugprone-multi-level-implicit-pointer-conversion 3
 src/core/db.c bugprone-narrowing-conversions 10
-src/core/db.c bugprone-suspicious-realloc-usage 1
 src/core/db.c bugprone-switch-missing-default-case 8
 src/core/db.c bugprone-unchecked-string-to-number-conversion 41
 src/core/db.c clang-analyzer-unix.Malloc 1
@@ -154,7 +153,6 @@ src/core/modify.c bugprone-multi-level-implicit-pointer-conversion 3
 src/core/modify.c bugprone-switch-missing-default-case 1
 src/core/perfmon.c bugprone-branch-clone 1
 src/core/perfmon.c bugprone-implicit-widening-of-multiplication-result 25
-src/core/perfmon.c bugprone-integer-division 9
 src/core/perfmon.c bugprone-misplaced-widening-cast 2
 src/core/perfmon.c clang-analyzer-deadcode.DeadStores 4
 src/core/perfmon.c clang-analyzer-unix.Errno 1
@@ -320,7 +318,6 @@ src/obj/objsave.c bugprone-branch-clone 3
 src/obj/objsave.c bugprone-implicit-widening-of-multiplication-result 2
 src/obj/objsave.c bugprone-misplaced-widening-cast 1
 src/obj/objsave.c bugprone-multi-level-implicit-pointer-conversion 3
-src/obj/objsave.c bugprone-suspicious-string-compare 12
 src/obj/objsave.c bugprone-unchecked-string-to-number-conversion 21
 src/obj/player_shop.c clang-analyzer-deadcode.DeadStores 1
 src/obj/shop.c bugprone-narrowing-conversions 1
@@ -337,7 +334,6 @@ src/obj/treasure.c clang-analyzer-deadcode.DeadStores 3
 src/obj/vendor.c bugprone-narrowing-conversions 4
 src/obj/vendor.c bugprone-switch-missing-default-case 3
 src/olc/aedit.c clang-analyzer-deadcode.DeadStores 1
-src/olc/bedit.c bugprone-suspicious-realloc-usage 1
 src/olc/cedit.c bugprone-switch-missing-default-case 9
 src/olc/cedit.c bugprone-unchecked-string-to-number-conversion 1
 src/olc/clan_edit.c bugprone-unchecked-string-to-number-conversion 4
@@ -345,21 +341,14 @@ src/olc/clan_edit.c clang-analyzer-deadcode.DeadStores 3
 src/olc/clan_edit.c clang-analyzer-unix.Malloc 1
 src/olc/genmob.c bugprone-multi-level-implicit-pointer-conversion 1
 src/olc/genmob.c bugprone-signed-char-misuse 1
-src/olc/genmob.c bugprone-suspicious-realloc-usage 4
 src/olc/genmob.c bugprone-switch-missing-default-case 1
-src/olc/genobj.c bugprone-suspicious-realloc-usage 4
 src/olc/genobj.c bugprone-switch-missing-default-case 2
 src/olc/genolc.c bugprone-signed-char-misuse 1
-src/olc/genqst.c bugprone-suspicious-realloc-usage 2
-src/olc/genshp.c bugprone-suspicious-realloc-usage 1
-src/olc/genwld.c bugprone-suspicious-realloc-usage 2
 src/olc/genwld.c clang-analyzer-deadcode.DeadStores 3
-src/olc/genzon.c bugprone-suspicious-realloc-usage 1
 src/olc/genzon.c bugprone-unchecked-string-to-number-conversion 1
 src/olc/hedit.c bugprone-implicit-widening-of-multiplication-result 2
 src/olc/hedit.c bugprone-misplaced-widening-cast 1
 src/olc/hedit.c bugprone-multi-level-implicit-pointer-conversion 6
-src/olc/hedit.c bugprone-suspicious-realloc-usage 20
 src/olc/hedit.c bugprone-switch-missing-default-case 1
 src/olc/hedit.c clang-analyzer-deadcode.DeadStores 2
 src/olc/hedit.c clang-analyzer-optin.portability.UnixAPI 3
@@ -375,9 +364,7 @@ src/olc/improved-edit.c clang-analyzer-deadcode.DeadStores 3
 src/olc/improved-edit.c clang-analyzer-optin.portability.UnixAPI 1
 src/olc/medit.c bugprone-branch-clone 4
 src/olc/medit.c bugprone-implicit-widening-of-multiplication-result 3
-src/olc/medit.c bugprone-multi-level-implicit-pointer-conversion 1
 src/olc/medit.c bugprone-narrowing-conversions 2
-src/olc/medit.c bugprone-suspicious-realloc-usage 1
 src/olc/msgedit.c bugprone-switch-missing-default-case 2
 src/olc/msgedit.c bugprone-unchecked-string-to-number-conversion 1
 src/olc/msgedit.c clang-analyzer-deadcode.DeadStores 1
@@ -407,7 +394,6 @@ src/player/players.c bugprone-branch-clone 1
 src/player/players.c bugprone-implicit-widening-of-multiplication-result 2
 src/player/players.c bugprone-multi-level-implicit-pointer-conversion 1
 src/player/players.c bugprone-signed-char-misuse 2
-src/player/players.c bugprone-suspicious-realloc-usage 3
 src/player/players.c bugprone-switch-missing-default-case 1
 src/player/players.c bugprone-unchecked-string-to-number-conversion 100
 src/player/players.c clang-analyzer-deadcode.DeadStores 8

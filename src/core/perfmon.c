@@ -85,6 +85,8 @@ static const char *PERF_event_mode_name(bool scheduled)
 
 /* Microseconds per pulse */
 #define USEC_PER_PULSE (USEC_PER_SEC / PULSE_PER_SECOND)
+/* The same for floating-point arithmetic, which keeps any remainder */
+#define USEC_PER_PULSE_F ((double)USEC_PER_SEC / (double)PULSE_PER_SECOND)
 
 /* ========================================================================
  * DATA STRUCTURES
@@ -763,9 +765,9 @@ static void capture_slow_pulse(double usage_percent)
   record->wall_timestamp_sec = now_sec;
   record->monotonic_timestamp_usec = monotonic_usec();
   record->pulse_number = pulse_last_heartbeat;
-  record->duration_usec = usage_percent >= ((double)UINT64_MAX * 100.0 / (double)USEC_PER_PULSE)
+  record->duration_usec = usage_percent >= ((double)UINT64_MAX * 100.0 / USEC_PER_PULSE_F)
                               ? UINT64_MAX
-                              : (uint64_t)((usage_percent * (double)USEC_PER_PULSE) / 100.0);
+                              : (uint64_t)((usage_percent * USEC_PER_PULSE_F) / 100.0);
   record->schedule_flags = pulse_schedule_flags;
   pthread_mutex_lock(&sql_stats_mutex);
   record->sql_queries = pulse_main_sql_calls;
@@ -1677,29 +1679,28 @@ size_t PERF_repr(char *out_buf, size_t n)
 
   /* Format the report */
   written = bounded_format_length(
-      snprintf(
-          out_buf, n,
-          "Measurement started: %s\n\r"
-          "Elapsed: %.2f seconds | Pulse budget: %.2f ms | Logged outer loops: %" PRIu64
-          " | Expected slots: %" PRIu64 " | Executed heartbeats: %" PRIu64 "\n\r"
-          "Catch-up: requested=%" PRIu64 " replayed=%" PRIu64 " dropped=%" PRIu64 "\n\r"
-          "Rolling completed windows (percent of %.2f ms pulse budget)\n\r"
-          "                     Avg         Min         Max\n\r"
-          "  1 Pulse:   %10.2f%% %10.2f%% %10.2f%%\n\r"
-          "%3zu Pulses:  %10.2f%% %10.2f%% %10.2f%%\n\r"
-          "%3zu Seconds: %10.2f%% %10.2f%% %10.2f%%\n\r"
-          "%3zu Minutes: %10.2f%% %10.2f%% %10.2f%%\n\r"
-          "%3zu Hours:   %10.2f%% %10.2f%% %10.2f%%\n\r"
-          "\n\rMax pulse:      %.2f ms (%.2f%%)\n\r\n\r",
-          reset_time, (double)elapsed_usec / (double)USEC_PER_SEC, (double)USEC_PER_PULSE / 1000.0,
-          logged_pulse_count, expected_slots, total_heartbeats_executed,
-          total_catchup_stats.requested_missed, total_catchup_stats.replayed_missed,
-          total_catchup_stats.remaining_backlog, (double)USEC_PER_PULSE / 1000.0, last_pulse,
-          last_pulse, last_pulse, pulse_data.count, get_interval_avg(&pulse_data), pulse_min,
-          get_interval_max(&pulse_data), sec_data.count, get_interval_avg(&sec_data), sec_min,
-          get_interval_max(&sec_data), min_data.count, get_interval_avg(&min_data), min_min,
-          get_interval_max(&min_data), hour_data.count, get_interval_avg(&hour_data), hour_min,
-          get_interval_max(&hour_data), (max_pulse * (double)USEC_PER_PULSE) / 100000.0, max_pulse),
+      snprintf(out_buf, n,
+               "Measurement started: %s\n\r"
+               "Elapsed: %.2f seconds | Pulse budget: %.2f ms | Logged outer loops: %" PRIu64
+               " | Expected slots: %" PRIu64 " | Executed heartbeats: %" PRIu64 "\n\r"
+               "Catch-up: requested=%" PRIu64 " replayed=%" PRIu64 " dropped=%" PRIu64 "\n\r"
+               "Rolling completed windows (percent of %.2f ms pulse budget)\n\r"
+               "                     Avg         Min         Max\n\r"
+               "  1 Pulse:   %10.2f%% %10.2f%% %10.2f%%\n\r"
+               "%3zu Pulses:  %10.2f%% %10.2f%% %10.2f%%\n\r"
+               "%3zu Seconds: %10.2f%% %10.2f%% %10.2f%%\n\r"
+               "%3zu Minutes: %10.2f%% %10.2f%% %10.2f%%\n\r"
+               "%3zu Hours:   %10.2f%% %10.2f%% %10.2f%%\n\r"
+               "\n\rMax pulse:      %.2f ms (%.2f%%)\n\r\n\r",
+               reset_time, (double)elapsed_usec / (double)USEC_PER_SEC, USEC_PER_PULSE_F / 1000.0,
+               logged_pulse_count, expected_slots, total_heartbeats_executed,
+               total_catchup_stats.requested_missed, total_catchup_stats.replayed_missed,
+               total_catchup_stats.remaining_backlog, USEC_PER_PULSE_F / 1000.0, last_pulse,
+               last_pulse, last_pulse, pulse_data.count, get_interval_avg(&pulse_data), pulse_min,
+               get_interval_max(&pulse_data), sec_data.count, get_interval_avg(&sec_data), sec_min,
+               get_interval_max(&sec_data), min_data.count, get_interval_avg(&min_data), min_min,
+               get_interval_max(&min_data), hour_data.count, get_interval_avg(&hour_data), hour_min,
+               get_interval_max(&hour_data), (max_pulse * USEC_PER_PULSE_F) / 100000.0, max_pulse),
       n);
 
   /* Add threshold statistics */
@@ -1711,7 +1712,7 @@ size_t PERF_repr(char *out_buf, size_t n)
     written += bounded_format_length(
         snprintf(out_buf + written, n - written, "Over %5d%% (%7.1f ms): %.2f%% (%lu)\n\r",
                  thresholds[i].threshold,
-                 ((double)thresholds[i].threshold * (double)USEC_PER_PULSE) / 100000.0, percent,
+                 ((double)thresholds[i].threshold * USEC_PER_PULSE_F) / 100000.0, percent,
                  thresholds[i].count),
         n - written);
   }
@@ -1813,7 +1814,7 @@ size_t PERF_slow_repr(char *out_buf, size_t n, size_t count, int csv)
     written = bounded_format_length(
         snprintf(out_buf, n,
                  "Slow pulse flight recorder (newest first, > %.1f ms, retained %zu/%d)\n\r",
-                 (double)USEC_PER_PULSE / 1000.0, slow_pulse_count, SLOW_PULSE_CAPACITY),
+                 USEC_PER_PULSE_F / 1000.0, slow_pulse_count, SLOW_PULSE_CAPACITY),
         n);
   }
 
@@ -2989,7 +2990,7 @@ static size_t format_prof_section(char *buf, size_t n, const struct PERF_prof_se
     usec_max = sect->pulse_max_usec;
 
     /* Calculate percentage of pulse time */
-    percent = (100.0 * (double)usec_total) / USEC_PER_PULSE;
+    percent = (100.0 * (double)usec_total) / USEC_PER_PULSE_F;
   }
 
   if (enter_count == 0)
@@ -3026,7 +3027,7 @@ static size_t format_prof_section(char *buf, size_t n, const struct PERF_prof_se
                                           "%-63s|%9" PRIu64 "|%9" PRIu64 "|%12" PRIu64 "|%8.2f%%|"
                                           "%10" PRIu64 "|%8.2f%%\n\r",
                                           sect->id, enter_count, exit_count, usec_total, percent,
-                                          usec_max, (100.0 * (double)usec_max) / USEC_PER_PULSE),
+                                          usec_max, (100.0 * (double)usec_max) / USEC_PER_PULSE_F),
                                  n);
   }
 }
