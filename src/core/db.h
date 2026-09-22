@@ -372,6 +372,7 @@ void reset_char(struct char_data *ch);
 void free_char(struct char_data *ch);
 const char *player_file_account_name(const struct char_data *ch);
 #ifdef LUMINARI_CUTEST
+void save_char_fail_fchmod_for_test(bool fail);
 bool apply_clone_owner_identity_for_test(struct char_data *mob, const char *owner_name);
 char *serialize_pet_runtime_state_for_test(struct char_data *pet);
 bool restore_pet_runtime_state_for_test(struct char_data *pet, const char *serialized);

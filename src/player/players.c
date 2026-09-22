@@ -2413,6 +2413,20 @@ static bool append_player_save_buffer(char **buffer, size_t *capacity, size_t *u
   return true;
 }
 
+#ifdef LUMINARI_CUTEST
+static bool save_char_fail_fchmod;
+
+/* Makes save_char_checked() see its permission carry-over fail, as on a filesystem that
+ * rejects the mode. */
+void save_char_fail_fchmod_for_test(bool fail)
+{
+  save_char_fail_fchmod = fail;
+}
+#define SAVE_CHAR_FCHMOD(fd, mode) (save_char_fail_fchmod ? (errno = EPERM, -1) : fchmod(fd, mode))
+#else
+#define SAVE_CHAR_FCHMOD(fd, mode) fchmod(fd, mode)
+#endif
+
 /**
  * Write a player file, reporting whether the write actually succeeded.
  *
@@ -2549,28 +2563,23 @@ bool save_char_checked(struct char_data *ch, int mode)
     PERF_PROF_EXIT(pr_save_char_checked_);
     return FALSE;
   }
+  /* mkstemp creates the file 0600, and a live file passes its mode on. Only a live path that
+   * rename cannot replace refuses the save; a mode that will not carry over is only logged, since
+   * refusing would lose the session. */
   if (stat(filename, &live_stat) == 0)
   {
-    if (!S_ISREG(live_stat.st_mode) || fchmod(temp_fd, live_stat.st_mode & 07777) != 0)
+    if (!S_ISREG(live_stat.st_mode))
     {
-      mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't preserve player file permissions for %s: %s",
-             filename, strerror(errno));
+      mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Player file %s is not a regular file", filename);
       close(temp_fd);
       unlink(temp_filename);
       free(write_buffer);
       PERF_PROF_EXIT(pr_save_char_checked_);
       return FALSE;
     }
-  }
-  else if (fchmod(temp_fd, S_IRUSR | S_IWUSR) != 0)
-  {
-    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't set player file permissions for %s: %s",
-           filename, strerror(errno));
-    close(temp_fd);
-    unlink(temp_filename);
-    free(write_buffer);
-    PERF_PROF_EXIT(pr_save_char_checked_);
-    return FALSE;
+    if (SAVE_CHAR_FCHMOD(temp_fd, live_stat.st_mode & 07777) != 0)
+      mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't preserve player file permissions for %s: %s",
+             filename, strerror(errno));
   }
   fl = fdopen(temp_fd, "w");
   if (!fl)
