@@ -85,8 +85,17 @@ Examples:
 See also: COMBAT, INITIATIVE, CONCENTRATION, CASTING-TIME
 ', 0, 0) ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level), auto_generated = VALUES (auto_generated);
 
+-- The tag owns the keyword of its own name, as help.hlp lists every tag among
+-- its keywords; READY belongs to ready-action (help_semantic_combat_entries.sql).
+DELETE FROM help_keywords
+WHERE
+  UPPER(keyword) IN ('READIED-ACTION', 'COUNTERSPELL')
+  AND help_tag <> 'READIED-ACTION';
+DELETE FROM help_keywords
+WHERE
+  help_tag = 'READIED-ACTION'
+  AND UPPER(keyword) = 'READY';
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('READIED-ACTION', 'READIED-ACTION');
-INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('READIED-ACTION', 'READY');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('READIED-ACTION', 'COUNTERSPELL');
 
 COMMIT;

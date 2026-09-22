@@ -2,6 +2,11 @@
 --
 -- The database help system is authoritative. This migration is safe to run
 -- repeatedly and replaces the combat entries with the current phase rules.
+--
+-- help.hlp lists every tag among its entry's keywords, so each tag here owns the
+-- keyword of its own name and no other tag may claim it: INITIATIVE belongs to
+-- initiative, INITIATIVE-ORDER to initiative-order, and READY to ready-action.
+-- READIED-ACTION belongs to the READIED-ACTION tag (help_counterspell_readiness.sql).
 
 START TRANSACTION;
 
@@ -97,15 +102,45 @@ auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
 WHERE
-  UPPER(keyword) IN ('INITIATIVE', 'INITIATIVE-ORDER')
+  UPPER(keyword) = 'INITIATIVE-ORDER'
   AND help_tag <> 'initiative-order';
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('initiative-order', 'INITIATIVE');
+DELETE FROM help_keywords
+WHERE
+  help_tag = 'initiative-order'
+  AND UPPER(keyword) = 'INITIATIVE';
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('initiative-order', 'INITIATIVE-ORDER');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
-VALUES ('ready-action', 'Usage: ready attack <target> on casting
+VALUES ('initiative', 'INITIATIVE
+
+Usage:
+  initiative
+
+Initiative determines who strikes first. It is rolled as 1d20 plus Dexterity
+and other bonuses when combat starts and when a combatant joins a fight. The
+winner of the opening roll strikes first. A combatant whose roll matches or
+beats its opponent''s gets its first attack phase 2 seconds later, otherwise 4.
+
+Use INITIATIVE while fighting to see each visible combatant''s roll, upcoming
+attack phase, and the seconds until it. Your own name is highlighted in green
+when color is enabled.
+
+See also: COMBAT, ACTIONS', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
+
+DELETE FROM help_keywords
+WHERE
+  UPPER(keyword) = 'INITIATIVE'
+  AND help_tag <> 'initiative';
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('initiative', 'INITIATIVE');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('ready-action', 'Usage: ready attack on ally <ally> attacked
+       ready counterspell <target> on casting
+       ready attack <target> on casting
        ready attack <target> on entry
        ready attack <target> on door open <direction>
        ready <command> on entry [target]
@@ -126,6 +161,35 @@ casting. A miss or successful concentration check lets the spell continue.
 You need only name the caster, and do not need to identify their spell. Instant
 spells cannot trigger this reaction. A cancelled spell cannot redirect a queued
 attack to a replacement spell.
+
+COUNTERSPELL reserves the same standard action and expiry for one counter.
+You must be an eligible spellcaster with speech and hands available. Watch a
+visible local caster before they start a timed spell. You need a perceptible
+verbal or somatic component and a Spellcraft check above 20 to identify it.
+Deafness prevents hearing verbal components; visible gestures can still reveal
+a spell. The relevant senses must remain available when the counter executes.
+Failure ends readiness without spending a spell resource. Instant spells and
+psionic powers cannot be countered this way.
+
+A successful identification queues the counter. At execution, you must still
+see the caster and have the identical base spell available as a preparation,
+spontaneous slot or eligible moon bonus. Normal resource-preservation rules
+apply once. The counter cancels that exact spell; it does not cast your spell''s
+normal effect. An ended or replaced cast consumes no counterspell resource.
+Dispel and Improved Counterspell alternatives are not supported. The old
+counterspell mode now directs you to this explicit READY command.
+
+ON ALLY <ally> ATTACKED watches a visible group member or one of your NPC
+followers in the room. It reserves your standard action for one normal melee
+strike against the first eligible attacker you witness. A committed miss or
+prevented strike can trigger it; rejected commands cannot. You must still see
+the ally and attacker, and the ally relationship must still hold when triggered.
+
+The triggering attack resolves before your queued retaliation. This does not
+redirect damage or grant cover. Once triggered, the reaction watches the bound
+attacker: their departure, death or extraction cancels it. The ally dying after
+the trigger does not erase your already-readied retaliation. Later attacks
+cannot retarget it or grant another strike. Normal melee and PvP rules apply.
 
 ON ENTRY waits for the named target to arrive. ON DOOR OPEN watches a visible,
 closed door; its attack target must already be visible in your room. Opening
@@ -149,6 +213,8 @@ execution even if it reopens. Only one action can be readied at a time. READY
 shows it. Readied actions do not survive copyover or reboot.
 
 Examples:
+  ready attack on ally companion attacked
+  ready counterspell mage on casting
   ready attack mage on casting
   ready attack guard on entry
   ready say Hold the doorway! on door open north
@@ -159,11 +225,13 @@ auto_generated = VALUES (auto_generated);
 
 DELETE FROM help_keywords
 WHERE
-  UPPER(keyword) IN ('READY', 'READIED-ACTION')
+  UPPER(keyword) = 'READY'
   AND help_tag <> 'ready-action';
+DELETE FROM help_keywords
+WHERE
+  help_tag = 'ready-action'
+  AND UPPER(keyword) = 'READIED-ACTION';
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('ready-action', 'READY');
-INSERT IGNORE INTO help_keywords (help_tag, keyword)
-VALUES ('ready-action', 'READIED-ACTION');
 
 COMMIT;

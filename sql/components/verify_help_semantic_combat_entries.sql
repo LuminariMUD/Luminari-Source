@@ -1,4 +1,5 @@
--- Read-only verification for help_semantic_combat_entries.sql.
+-- Read-only verification for help_semantic_combat_entries.sql and the keyword
+-- ownership it shares with help_counterspell_readiness.sql.
 
 SELECT
   'semantic_combat_entry' AS check_name,
@@ -52,12 +53,12 @@ WHERE
 SELECT
   'initiative_order_keywords' AS check_name,
   COUNT(*) AS actual,
-  2 AS expected,
-  IF(COUNT(*) = 2, 'PASS', 'FAIL') AS result
+  1 AS expected,
+  IF(COUNT(*) = 1, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE
   help_tag = 'initiative-order'
-  AND UPPER(keyword) IN ('INITIATIVE', 'INITIATIVE-ORDER');
+  AND UPPER(keyword) = 'INITIATIVE-ORDER';
 
 SELECT
   'initiative_order_keyword_conflicts' AS check_name,
@@ -66,8 +67,42 @@ SELECT
   IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE
-  UPPER(keyword) IN ('INITIATIVE', 'INITIATIVE-ORDER')
+  UPPER(keyword) = 'INITIATIVE-ORDER'
   AND help_tag <> 'initiative-order';
+
+SELECT
+  'initiative_entry' AS check_name,
+  COUNT(*) AS actual,
+  1 AS expected,
+  IF(COUNT(*) = 1, 'PASS', 'FAIL') AS result
+FROM help_entries
+WHERE
+  tag = 'initiative'
+  AND min_level = 0
+  AND auto_generated = FALSE
+  AND INSTR(entry, 'upcoming') > 0
+  AND INSTR(entry, 'highlighted in green') > 0
+  AND INSTR(entry, '+8 bonus') = 0;
+
+SELECT
+  'initiative_keywords' AS check_name,
+  COUNT(*) AS actual,
+  1 AS expected,
+  IF(COUNT(*) = 1, 'PASS', 'FAIL') AS result
+FROM help_keywords
+WHERE
+  help_tag = 'initiative'
+  AND UPPER(keyword) = 'INITIATIVE';
+
+SELECT
+  'initiative_keyword_conflicts' AS check_name,
+  COUNT(*) AS actual,
+  0 AS expected,
+  IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
+FROM help_keywords
+WHERE
+  UPPER(keyword) = 'INITIATIVE'
+  AND help_tag <> 'initiative';
 
 SELECT
   'ready_action_entry' AS check_name,
@@ -85,17 +120,19 @@ WHERE
   AND INSTR(entry, 'ready attack <target> on casting') > 0
   AND INSTR(entry, 'ready attack <target> on door open <direction>') > 0
   AND INSTR(entry, 'spends your standard action now') > 0
-  AND INSTR(entry, 'Other combat commands and aliases cannot be readied') > 0;
+  AND INSTR(entry, 'Other combat commands and aliases cannot be readied') > 0
+  AND INSTR(entry, 'ready attack on ally <ally> attacked') > 0
+  AND INSTR(entry, 'ready counterspell <target> on casting') > 0;
 
 SELECT
   'ready_action_keywords' AS check_name,
   COUNT(*) AS actual,
-  2 AS expected,
-  IF(COUNT(*) = 2, 'PASS', 'FAIL') AS result
+  1 AS expected,
+  IF(COUNT(*) = 1, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE
   help_tag = 'ready-action'
-  AND UPPER(keyword) IN ('READY', 'READIED-ACTION');
+  AND UPPER(keyword) = 'READY';
 
 SELECT
   'ready_action_keyword_conflicts' AS check_name,
@@ -104,5 +141,25 @@ SELECT
   IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE
-  UPPER(keyword) IN ('READY', 'READIED-ACTION')
+  UPPER(keyword) = 'READY'
   AND help_tag <> 'ready-action';
+
+SELECT
+  'readied_action_keywords' AS check_name,
+  COUNT(*) AS actual,
+  2 AS expected,
+  IF(COUNT(*) = 2, 'PASS', 'FAIL') AS result
+FROM help_keywords
+WHERE
+  help_tag = 'READIED-ACTION'
+  AND UPPER(keyword) IN ('READIED-ACTION', 'COUNTERSPELL');
+
+SELECT
+  'readied_action_keyword_conflicts' AS check_name,
+  COUNT(*) AS actual,
+  0 AS expected,
+  IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
+FROM help_keywords
+WHERE
+  UPPER(keyword) IN ('READIED-ACTION', 'COUNTERSPELL')
+  AND help_tag <> 'READIED-ACTION';
