@@ -128,21 +128,22 @@ fingerprints changed when nearby code moved. Code fixes, not new dismissals, so 
     clang-tidy gate clean, `--update` recorded. Remaining under the check: 313, all
     `sscanf`/`fscanf` except the 14 in `util/`.
   - `Test_parse_number_helpers` (test_bounds_checking.c) covers the helpers and passes.
-- [ ] 7. `--update` baselines, rebase onto current `origin/master` (it moved to `9a7ece8c2`
-  and later), local CI jobs for the touched paths, push, open the PR (`Closes #213`),
-  confirm CodeQL on the PR shows the 11 alerts fixed and nothing new in changed code, then
-  delete this file in the final commit (move anything enduring to `docs/`).
+- [x] 7. Baselines updated, rebased onto master `9a7ece8c2`, pushed, PR #217 open
+  (`Closes #213`). CodeQL on the PR: the 11 alerts are fixed and nothing new in changed
+  code (the six `bad-strncpy-size` alerts it raised first are fixed). Local CI: all 33
+  `run.py` jobs pass on the final head. Enduring notes live in
+  `docs/development/CONVENTIONS.md`.
 
 ## Resume here
 
-Steps 1-6 are done and committed. Only step 7 remains:
-
-1. `git fetch`; rebase onto `origin/master`; rebuild (`make -j16 && make -j16 cutest`).
-2. Rerun the gate incrementally: `python3 scripts/ci/check_clang_tidy.py --build-dir build/analysis --base origin/master`.
-3. Local CI jobs for the touched paths (build parity, hygiene, cutest, protocol harness).
-4. Push, open the PR (`Closes #213`), check CodeQL on the PR, delete this file in the
-   final commit. `make install` after every push (the pre-push hook leaves a root
-   `luminari` binary). `git add` paths under `src/core` need `git add -u` or `-f`.
+All steps are done. PR #217 is pushed, verified locally, and waiting for review and merge.
+If it needs changes: rebase onto `origin/master` in this worktree, rebuild
+(`make -j16 && make -j16 cutest`), run the full suite and the incremental gate
+(`python3 scripts/ci/check_clang_tidy.py --build-dir build/analysis --base origin/master`),
+then the local matrix (`python3 scripts/ci/local/run.py --jobs 4 --cpus 4 --results <dir>`,
+about 22 minutes; `--job <name>` reruns one). `make install` after every push (the pre-push
+hook leaves a root `luminari` binary). `git add` paths under `src/core` need `git add -u`
+or `-f`. Delete this file when the issue closes.
 
 Workflow notes learned here:
 
@@ -189,3 +190,6 @@ Workflow notes learned here:
     `zone_table` first; it has no NULL check.
   - `test-cmake-Release-clang-clang`: the known `-Wcast-align` probe flake under load;
     rerun alone.
+- 2026-09-22: matrix reruns: three of the four fixed; `test-coverage` still missed
+  command_parsing by one line, so the roleplay menu test also drives the numeric example
+  branch. Final head verified; PR #217 ready for review.
