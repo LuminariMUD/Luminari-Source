@@ -286,11 +286,13 @@ void zfree(unsigned char *what, char *file, int line)
 char *zstrdup(const char *src, char *file, int line)
 {
   char *result;
+  size_t size;
 #ifndef NO_MEMORY_STRDUP
-  result = (char *)zmalloc((int)(strlen(src) + 1), file, line);
+  size = strlen(src) + 1;
+  result = (char *)zmalloc((int)size, file, line);
   if (!result)
     return NULL;
-  strlcpy(result, src, strlen(src) + 1);
+  strlcpy(result, src, size);
   return result;
 #else
   result = (char *)malloc(strlen(src) + 1);

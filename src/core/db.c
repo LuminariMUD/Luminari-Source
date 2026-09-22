@@ -4668,8 +4668,9 @@ void load_help(FILE *fl, char *name)
     {
       int keysize;
       const char *truncmsg = "\r\n*TRUNCATED*\r\n";
+      size_t tail = sizeof(entry) - strlen(truncmsg) - 1;
 
-      strlcpy(entry + sizeof(entry) - strlen(truncmsg) - 1, truncmsg, strlen(truncmsg) + 1);
+      strlcpy(entry + tail, truncmsg, sizeof(entry) - tail);
 
       keysize = (int)(strlen(key) - 2);
       log("SYSERR: Help entry exceeded buffer space: %.*s", keysize, key);

@@ -178,6 +178,7 @@ void string_write(struct descriptor_data *d, char **writeto, size_t len, long ma
 void string_add(struct descriptor_data *d, char *str)
 {
   int action;
+  size_t str_size;
 
   /* Determine if this is the terminal string, and truncate if so. Changed to
    * only accept '\t' at the beginning of line. - JE */
@@ -207,8 +208,9 @@ void string_add(struct descriptor_data *d, char *str)
     }
     else
     {
-      CREATE(*d->str, char, strlen(str) + 3);
-      strlcpy(*d->str, str, strlen(str) + 3);
+      str_size = strlen(str) + 3;
+      CREATE(*d->str, char, str_size);
+      strlcpy(*d->str, str, str_size);
     }
   }
   else

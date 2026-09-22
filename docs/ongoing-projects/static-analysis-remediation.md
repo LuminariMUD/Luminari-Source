@@ -162,3 +162,11 @@ Workflow notes learned here:
 - 2026-09-22: step 5 done (baseline 7,223 -> 6,926); step 6 next.
 - 2026-09-22: step 6 conversion committed and pushed; session stopped.
 - 2026-09-22: step 6 finished (stragglers converted, gate clean, baseline 5,231); step 7 next.
+- 2026-09-22: rebased onto master `9a7ece8c2`, pushed, PR #217 opened; local CI matrix
+  running (`scripts/ci/local/run.py --jobs 4 --cpus 4`). Enduring notes moved to
+  `docs/development/CONVENTIONS.md`; this file is deleted in the final commit.
+- 2026-09-22: PR CodeQL: the 11 alerts are gone on the PR ref, but six new
+  `cpp/bad-strncpy-size` alerts (#898, #902-#906) flagged `strlcpy` sizes computed as
+  `strlen(source) + n`. Fixed all 13 such sites from the step 5 conversion by sharing one
+  size variable between the allocation and the copy (or sizing from the destination array).
+  Awaiting the CodeQL rerun and the local matrix on the new head.

@@ -24,7 +24,10 @@ and operational conventions that apply to contributors.
 - Use `/* */` comments, explain why rather than restating code, and keep declarations at block
   tops.
 - Do not use variable-length arrays. Use `snprintf`, never `sprintf`, and NULL-check before
-  dereferencing.
+  dereferencing. Parse numbers with `parse_int()`, `parse_long()`, `parse_llong()`, and
+  `parse_double()` from `core/utils.h` rather than `atoi` and its relatives: they read the same
+  text but saturate instead of overflowing. Reposition a stream with `rewind_stream()`, not
+  `rewind()`. Build file names from untrusted components with `build_safe_path()`.
 - Log actionable runtime failures with `log("SYSERR: ...")`; fix all baseline-tier warnings
   (`-Wall -Wextra` and the rest of the list in `scripts/deployment/production_profile.sh`) and
   never add to the migration-tier budget.
@@ -154,7 +157,10 @@ ownership evidence in the
   CMake test trees require `-DBUILD_TESTS=ON`.
 - Use `.clang-format` for formatting and `.clang-tidy` for configured static analysis. Each check
   `.clang-tidy` disables records its scope, reason, owner, and expiry there. New `sprintf`,
-  `vsprintf`, `strcpy`, and `strcat` calls are findings; `snprintf` is the accepted form. CI fails
+  `vsprintf`, `strcpy`, `strcat`, `rewind`, and `atoi`-family calls are findings; `snprintf`,
+  `rewind_stream()`, and the `parse_*` helpers are the accepted forms. The analyzer checks
+  `clang-analyzer-core.NullDereference`, `clang-analyzer-security.ArrayBound`, and
+  `clang-analyzer-core.NonNullParamChecker` are at zero and must stay there. CI fails
   when a file gains clang-tidy findings beyond `scripts/ci/clang_tidy_baseline.txt`, when an unsafe
   call is not one `scripts/ci/clang_tidy_unsafe_sites.txt` records, and when a change raises any
   static-analysis baseline: fix new findings, or silence a false positive with

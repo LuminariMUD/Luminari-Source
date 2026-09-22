@@ -97,6 +97,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   char cname[100];
   const char *overflow = "\r\n**OVERFLOW**\r\n";
+  size_t tail = 0;
 
   if (!ch)
     return;
@@ -608,7 +609,10 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
     }
   }
   if (len >= sizeof(buf2))
-    strlcpy(buf2 + sizeof(buf2) - strlen(overflow) - 1, overflow, strlen(overflow) + 1);
+  {
+    tail = sizeof(buf2) - strlen(overflow) - 1;
+    strlcpy(buf2 + tail, overflow, sizeof(buf2) - tail);
+  }
 
   /* Append acronym legend for bst only in seconds-based mode */
   if (CONFIG_SPELLCASTING_TIME_MODE != 0)

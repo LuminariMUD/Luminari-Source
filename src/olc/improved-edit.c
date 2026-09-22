@@ -107,7 +107,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
 {
   int indent = 0, rep_all = 0, flags = 0, replaced, i, line_low = 1, line_high = 999999, j = 0;
   int truncated = 0;
-  size_t length;
+  size_t length, str_size;
   unsigned int total_len;
   char *s, *t, temp;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -516,9 +516,9 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
       strlcat(buf, buf2, sizeof(buf));
       if (*s)
         strlcat(buf, s, sizeof(buf));
-      RECREATE(*d->str, char, strlen(buf) + 3);
-
-      strlcpy(*d->str, buf, strlen(buf) + 3);
+      str_size = strlen(buf) + 3;
+      RECREATE(*d->str, char, str_size);
+      strlcpy(*d->str, buf, str_size);
       write_to_output(d, "Line inserted.\r\n");
     }
     else
@@ -591,8 +591,9 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
         return;
       }
       /* Change the size of the REAL buffer to fit the new text. */
-      RECREATE(*d->str, char, strlen(buf) + 3);
-      strlcpy(*d->str, buf, strlen(buf) + 3);
+      str_size = strlen(buf) + 3;
+      RECREATE(*d->str, char, str_size);
+      strlcpy(*d->str, buf, str_size);
       write_to_output(d, "Line changed.\r\n");
     }
     else
