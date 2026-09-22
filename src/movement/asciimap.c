@@ -577,7 +577,7 @@ void perform_map(struct char_data *ch, const char *argument, bool worldmap)
   }
   else if (*arg1)
   {
-    size = atoi(arg1);
+    size = parse_int(arg1);
   }
   if (*arg2)
   {

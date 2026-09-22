@@ -185,7 +185,7 @@ WCMD(do_wzoneecho)
   if (!*room_num_id || !*msg)
     wld_log(room, "wzoneecho called with too few args");
 
-  else if ((zone = real_zone_by_thing(atoi(room_num_id))) == NOWHERE)
+  else if ((zone = real_zone_by_thing(parse_int(room_num_id))) == NOWHERE)
     wld_log(room, "wzoneecho called for nonexistant zone");
 
   else
@@ -208,7 +208,7 @@ WCMD(do_wrecho)
   if (!*msg || !*start || !*finish || !is_number(start) || !is_number(finish))
     wld_log(room, "wrecho: too few args");
   else
-    send_to_range(atoi(start), atoi(finish), "%s\r\n", msg);
+    send_to_range(parse_int(start), parse_int(finish), "%s\r\n", msg);
 }
 
 WCMD(do_wdoor)
@@ -290,7 +290,7 @@ WCMD(do_wdoor)
       newexit->exit_info = (sh_int)asciiflag_conv(value);
       break;
     case 3: /* key         */
-      newexit->key = atoi(value);
+      newexit->key = parse_int(value);
       break;
     case 4: /* name        */
       if (newexit->keyword)
@@ -299,7 +299,7 @@ WCMD(do_wdoor)
       strlcpy(newexit->keyword, value, strlen(value) + 1);
       break;
     case 5: /* room        */
-      if ((to_room = (int)real_room(atoi(value))) != (int)NOWHERE)
+      if ((to_room = (int)real_room(parse_int(value))) != (int)NOWHERE)
         newexit->to_room = to_room;
       else
       {
@@ -326,7 +326,7 @@ WCMD(do_wteleport)
     return;
   }
 
-  nr = atoi(arg2);
+  nr = parse_int(arg2);
   target = real_room(nr);
 
   if (target == NOWHERE)
@@ -499,7 +499,7 @@ WCMD(do_wload)
 
   target = two_arguments_u(argument, arg1, arg2);
 
-  if (!*arg1 || !*arg2 || !is_number(arg2) || ((number = atoi(arg2)) < 0))
+  if (!*arg1 || !*arg2 || !is_number(arg2) || ((number = parse_int(arg2)) < 0))
   {
     wld_log(room, "wload: bad syntax");
     return;
@@ -515,7 +515,7 @@ WCMD(do_wload)
     }
     else
     {
-      if (!isdigit(*target) || (rnum = real_room(atoi(target))) == NOWHERE)
+      if (!isdigit(*target) || (rnum = real_room(parse_int(target))) == NOWHERE)
       {
         wld_log(room, "wload: room target vnum doesn't exist (loading mob vnum %d to room %s)",
                 number, target);
@@ -612,7 +612,7 @@ WCMD(do_wdamage)
     return;
   }
 
-  dam = atoi(amount);
+  dam = parse_int(amount);
   ch = get_char_by_room(room, name);
 
   if (!ch)
@@ -679,8 +679,8 @@ WCMD(do_wroldamage)
     return;
   }
 
-  count = atoi(count_argument);
-  size = atoi(size_argument);
+  count = parse_int(count_argument);
+  size = parse_int(size_argument);
   if (count < 1 || count > 100 || size < 1 || size > 1000)
   {
     wld_log(room, "wroldamage rejected dice outside 1d1 through 100d1000");
@@ -718,7 +718,7 @@ WCMD(do_wat)
   }
 
   if (isdigit(*arg))
-    loc = real_room(atoi(arg));
+    loc = real_room(parse_int(arg));
   else if ((ch = get_char_by_room(room, arg)))
     loc = IN_ROOM(ch);
 
@@ -744,7 +744,7 @@ WCMD(do_wmove)
     return;
   }
 
-  nr = atoi(arg2);
+  nr = parse_int(arg2);
   target = real_room(nr);
 
   if (target == NOWHERE)

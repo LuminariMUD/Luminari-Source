@@ -126,7 +126,7 @@ int item_in_list(char *item, obj_data *list)
 
   if (*item == UID_CHAR)
   {
-    long id = atol(item + 1);
+    long id = parse_long(item + 1);
 
     for (i = list; i; i = i->next_content)
     {
@@ -138,7 +138,7 @@ int item_in_list(char *item, obj_data *list)
   }
   else if (is_number(item))
   { /* check for vnum */
-    obj_vnum ovnum = atoi(item);
+    obj_vnum ovnum = parse_int(item);
 
     for (i = list; i; i = i->next_content)
     {
@@ -280,7 +280,7 @@ int text_processed(char *field, char *subfield, struct trig_var_data *vd, char *
   }
   else if (!str_cmp(field, "charat"))
   { /* CharAt    */
-    size_t len = strlen(vd->value), cindex = atoi(subfield);
+    size_t len = strlen(vd->value), cindex = parse_int(subfield);
     if (cindex > len || cindex < 1)
       strlcpy(str, "", slen);
     else
@@ -528,7 +528,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
       }
       else if (!str_cmp(var, "people"))
       {
-        snprintf(str, slen, "%d", ((num = atoi(field)) > 0) ? trgvar_in_room(num) : 0);
+        snprintf(str, slen, "%d", ((num = parse_int(field)) > 0) ? trgvar_in_room(num) : 0);
         return;
       }
       else if (!str_cmp(var, "happyhour"))
@@ -577,12 +577,12 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         }
         else
         {
-          room_rnum rrnum = real_room(atoi(field));
-          mob_vnum mvnum = atoi(subfield);
+          room_rnum rrnum = real_room(parse_int(field));
+          mob_vnum mvnum = parse_int(subfield);
 
           if (rrnum == NOWHERE)
           {
-            script_log("findmob.vnum(ovnum): No room with vnum %d", atoi(field));
+            script_log("findmob.vnum(ovnum): No room with vnum %d", parse_int(field));
             strlcpy(str, "0", slen);
           }
           else
@@ -604,11 +604,11 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         }
         else
         {
-          room_rnum rrnum = real_room(atoi(field));
+          room_rnum rrnum = real_room(parse_int(field));
 
           if (rrnum == NOWHERE)
           {
-            script_log("findobj.vnum(ovnum): No room with vnum %d", atoi(field));
+            script_log("findobj.vnum(ovnum): No room with vnum %d", parse_int(field));
             strlcpy(str, "0", slen);
           }
           else
@@ -714,7 +714,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           }
         }
         else
-          snprintf(str, slen, "%d", ((num = atoi(field)) > 0) ? rand_number(1, num) : 0);
+          snprintf(str, slen, "%d", ((num = parse_int(field)) > 0) ? rand_number(1, num) : 0);
 
         return;
       }
@@ -756,7 +756,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_ALIGNMENT(c) = MAX(-1000, MIN(addition, 1000));
           }
           snprintf(str, slen, "%d", GET_ALIGNMENT(c));
@@ -776,7 +776,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             int max = 50;
             c->real_abils.cha += addition;
             c->real_abils.cha = MAX(3, MIN(c->real_abils.cha, max));
@@ -790,7 +790,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           {
             if (subfield && *subfield)
             {
-              int addition = atoi(subfield);
+              int addition = parse_int(subfield);
               GET_CLAN(c) = MAX(0, MIN(addition, MAX_CLANS));
             }
             snprintf(str, slen, "%d", (int)GET_CLAN(c));
@@ -873,7 +873,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             int max = 50;
             c->real_abils.con += addition;
             c->real_abils.con = MAX(3, MIN(c->real_abils.con, max));
@@ -887,7 +887,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_DAMROLL(c) = MAX(1, GET_DAMROLL(c) + addition);
           }
           snprintf(str, slen, "%d", GET_DAMROLL(c));
@@ -896,7 +896,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             int max = 50;
             c->real_abils.dex += addition;
             c->real_abils.dex = MAX(3, MIN(c->real_abils.dex, max));
@@ -908,7 +908,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_COND(c, DRUNK) = (sbyte)MAX(-1, MIN(addition, 24));
           }
           snprintf(str, slen, "%d", GET_COND(c, DRUNK));
@@ -942,7 +942,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = MIN(atoi(subfield), 1000);
+            int addition = MIN(parse_int(subfield), 1000);
 
             award_experience(c, addition, AWARD_EXP_MODE_SCRIPT);
           }
@@ -972,7 +972,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             award_gold(c, addition);
           }
           snprintf(str, slen, "%d", GET_GOLD(c));
@@ -1007,7 +1007,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             *str = '\0';
           else
           {
-            i = atoi(subfield);
+            i = parse_int(subfield);
             snprintf(str, slen, "%d", trig_is_attached(SCRIPT(c), i));
           }
         }
@@ -1021,7 +1021,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_HIT(c) += addition;
             update_pos(c);
           }
@@ -1031,7 +1031,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_HITROLL(c) = MAX(1, GET_HITROLL(c) + addition);
           }
           snprintf(str, slen, "%d", GET_HITROLL(c));
@@ -1040,7 +1040,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_COND(c, HUNGER) = (sbyte)MAX(-1, MIN(addition, 24));
           }
           snprintf(str, slen, "%d", GET_COND(c, HUNGER));
@@ -1061,7 +1061,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             int max = 50;
             c->real_abils.intel += addition;
             c->real_abils.intel = MAX(3, MIN(c->real_abils.intel, max));
@@ -1115,7 +1115,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (!IS_NPC(c) && subfield && *subfield)
           {
-            int q_num = atoi(subfield);
+            int q_num = parse_int(subfield);
             bool found = FALSE;
 
             /* loop through all the character's quest slots */
@@ -1152,7 +1152,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int lev = atoi(subfield);
+            int lev = parse_int(subfield);
             GET_LEVEL(c) = MIN(MAX(lev, 0), LVL_IMMORT - 1);
           }
           else
@@ -1164,7 +1164,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_PSP(c) += addition;
           }
           snprintf(str, slen, "%d", GET_PSP(c));
@@ -1180,7 +1180,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_MAX_HIT(c) = MAX(GET_MAX_HIT(c) + addition, 1);
           }
           snprintf(str, slen, "%d", GET_MAX_HIT(c));
@@ -1189,7 +1189,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_MAX_PSP(c) = MAX(GET_MAX_PSP(c) + addition, 1);
           }
           snprintf(str, slen, "%d", GET_MAX_PSP(c));
@@ -1198,7 +1198,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_MAX_MOVE(c) = MAX(GET_MAX_MOVE(c) + addition, 1);
           }
           snprintf(str, slen, "%d", GET_MAX_MOVE(c));
@@ -1207,7 +1207,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_MOVE(c) += addition;
           }
           snprintf(str, slen, "%d", GET_MOVE(c));
@@ -1255,7 +1255,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_PRACTICES(c) = MAX(0, GET_PRACTICES(c) + addition);
           }
           snprintf(str, slen, "%d", GET_PRACTICES(c));
@@ -1281,7 +1281,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             award_quest_points(c, addition);
           }
           snprintf(str, slen, "%d", GET_QUESTPOINTS(c));
@@ -1311,7 +1311,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (!IS_NPC(c) && subfield && *subfield)
           {
-            int q_num = atoi(subfield);
+            int q_num = parse_int(subfield);
             if (is_complete(c, q_num))
               strlcpy(str, "1", slen);
             else
@@ -1348,7 +1348,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_FIRE) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_FIRE));
@@ -1357,7 +1357,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_COLD) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_COLD));
@@ -1366,7 +1366,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_AIR) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_AIR));
@@ -1375,7 +1375,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_EARTH) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_EARTH));
@@ -1384,7 +1384,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_ACID) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_ACID));
@@ -1393,7 +1393,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_HOLY) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_HOLY));
@@ -1402,7 +1402,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_ELECTRIC) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_ELECTRIC));
@@ -1411,7 +1411,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_UNHOLY) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_UNHOLY));
@@ -1420,7 +1420,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_SLICE) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_SLICE));
@@ -1429,7 +1429,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_PUNCTURE) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_PUNCTURE));
@@ -1438,7 +1438,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_FORCE) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_FORCE));
@@ -1447,7 +1447,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_SOUND) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_SOUND));
@@ -1456,7 +1456,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_POISON) += addition;
             GET_RESISTANCES(c, DAM_CELESTIAL_POISON) += addition;
           }
@@ -1466,7 +1466,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_DISEASE) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_DISEASE));
@@ -1475,7 +1475,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_NEGATIVE) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_NEGATIVE));
@@ -1484,7 +1484,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_ILLUSION) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_ILLUSION));
@@ -1493,7 +1493,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_MENTAL) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_MENTAL));
@@ -1502,7 +1502,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_LIGHT) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_LIGHT));
@@ -1511,7 +1511,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_ENERGY) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_ENERGY));
@@ -1520,7 +1520,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_RESISTANCES(c, DAM_WATER) += addition;
           }
           snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_WATER));
@@ -1542,7 +1542,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_SAVE(c, SAVING_DEATH) += addition;
           }
           snprintf(str, slen, "%d", GET_SAVE(c, SAVING_DEATH));
@@ -1551,7 +1551,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_SAVE(c, SAVING_POISON) += addition;
           }
           snprintf(str, slen, "%d", GET_SAVE(c, SAVING_POISON));
@@ -1560,7 +1560,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_SAVE(c, SAVING_FORT) += addition;
           }
           snprintf(str, slen, "%d", GET_SAVE(c, SAVING_FORT));
@@ -1569,7 +1569,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_SAVE(c, SAVING_REFL) += addition;
           }
           snprintf(str, slen, "%d", GET_SAVE(c, SAVING_REFL));
@@ -1578,7 +1578,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_SAVE(c, SAVING_WILL) += addition;
           }
           snprintf(str, slen, "%d", GET_SAVE(c, SAVING_WILL));
@@ -1605,7 +1605,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
               int skillnum = find_skill_num(skillname);
               if (skillnum > 0)
               {
-                int new_value = MAX(0, MIN(100, atoi(amount)));
+                int new_value = MAX(0, MIN(100, parse_int(amount)));
                 SET_SKILL(c, skillnum, new_value);
               }
             }
@@ -1616,7 +1616,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             int max = 50;
             c->real_abils.str += addition;
             c->real_abils.str = MAX(3, MIN(c->real_abils.str, max));
@@ -1630,7 +1630,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           {
             if (subfield && *subfield)
             {
-              int addition = atoi(subfield);
+              int addition = parse_int(subfield);
               c->real_abils.str_add += addition;
               c->real_abils.str_add = MAX(0, MIN(c->real_abils.str_add, 100));
               affect_total(c);
@@ -1707,7 +1707,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_COND(c, THIRST) = (sbyte)MAX(-1, MIN(addition, 24));
           }
           snprintf(str, slen, "%d", GET_COND(c, THIRST));
@@ -1763,7 +1763,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         if (!str_cmp(field, "wait"))
         {
           if (subfield && *subfield)
-            GET_WAIT_STATE(c) = MAX(0, atoi(subfield)) * (PULSE_VIOLENCE / 2);
+            GET_WAIT_STATE(c) = MAX(0, parse_int(subfield)) * (PULSE_VIOLENCE / 2);
           snprintf(str, slen, "%d", GET_WAIT_STATE(c));
         }
         else if (!str_cmp(field, "weight"))
@@ -1772,7 +1772,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             int max = 50;
             c->real_abils.wis += addition;
             c->real_abils.wis = MAX(3, MIN(c->real_abils.wis, max));
@@ -1853,7 +1853,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_OBJ_COST(o) = MAX(1, addition + GET_OBJ_COST(o));
           }
           snprintf(str, slen, "%d", GET_OBJ_COST(o));
@@ -1862,7 +1862,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_OBJ_RENT(o) = MAX(1, addition + GET_OBJ_RENT(o));
           }
           snprintf(str, slen, "%d", GET_OBJ_RENT(o));
@@ -1920,7 +1920,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             *str = '\0';
           else
           {
-            i = atoi(subfield);
+            i = parse_int(subfield);
             snprintf(str, slen, "%d", trig_is_attached(SCRIPT(o), i));
           }
         }
@@ -2025,7 +2025,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            int addition = atoi(subfield);
+            int addition = parse_int(subfield);
             GET_OBJ_WEIGHT(o) = MAX(1, addition + GET_OBJ_WEIGHT(o));
           }
           snprintf(str, slen, "%d", GET_OBJ_WEIGHT(o));
@@ -2171,7 +2171,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           *str = '\0';
         else
         {
-          i = atoi(subfield);
+          i = parse_int(subfield);
           snprintf(str, slen, "%d", trig_is_attached(SCRIPT(r), i));
         }
       }

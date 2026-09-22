@@ -113,7 +113,7 @@ ACMD(do_oasis_trigedit)
     return;
   }
 
-  number = atoi(argument);
+  number = parse_int(argument);
 
   /* Check that it isn't already being edited. */
   for (d = descriptor_list; d; d = d->next)
@@ -423,14 +423,14 @@ void trigedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case TRIGEDIT_INTENDED:
-    if ((atoi(arg) >= MOB_TRIGGER) || (atoi(arg) <= WLD_TRIGGER))
-      OLC_TRIG(d)->attach_type = (byte)atoi(arg);
+    if ((parse_int(arg) >= MOB_TRIGGER) || (parse_int(arg) <= WLD_TRIGGER))
+      OLC_TRIG(d)->attach_type = (byte)parse_int(arg);
     OLC_VAL(d)
     ++;
     break;
 
   case TRIGEDIT_NARG:
-    OLC_TRIG(d)->narg = LIMIT(atoi(arg), 0, 100);
+    OLC_TRIG(d)->narg = LIMIT(parse_int(arg), 0, 100);
     OLC_VAL(d)
     ++;
     break;
@@ -443,7 +443,7 @@ void trigedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case TRIGEDIT_TYPES:
-    if ((i = atoi(arg)) == 0)
+    if ((i = parse_int(arg)) == 0)
       break;
     else if (i >= 1 && i <= trigedit_type_count(OLC_TRIG(d)->attach_type))
       TOGGLE_BIT((GET_TRIG_TYPE(OLC_TRIG(d))), 1 << (i - 1));
@@ -453,7 +453,7 @@ void trigedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case TRIGEDIT_COPY:
-    if ((i = (int)real_trigger(atoi(arg))) != (int)NOWHERE)
+    if ((i = (int)real_trigger(parse_int(arg))) != (int)NOWHERE)
     {
       trigedit_setup_existing(d, i, QMODE_QCOPY);
     }
@@ -927,7 +927,7 @@ int dg_script_edit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case SCRIPT_DEL_TRIGGER:
-    pos = atoi(arg);
+    pos = parse_int(arg);
     if (pos <= 0)
       break;
 

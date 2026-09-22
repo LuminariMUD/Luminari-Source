@@ -1399,7 +1399,7 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
   }
   else
   {
-    slot = atoi(arg2);
+    slot = parse_int(arg2);
 
     if (slot < 1 || slot > MAX_OBJ_AFFECT)
     {
@@ -1655,7 +1655,7 @@ void set_crafting_instrument(struct char_data *ch, char *arg2)
 
   if (is_abbrev(arg3, "quality"))
   {
-    value = atoi(arg4);
+    value = parse_int(arg4);
     if (value < 1 || value > 30)
     {
       send_to_char(ch, "The quality must be between 1 and 30.\r\n"
@@ -1667,7 +1667,7 @@ void set_crafting_instrument(struct char_data *ch, char *arg2)
   }
   else if (is_abbrev(arg3, "effectiveness"))
   {
-    value = atoi(arg4);
+    value = parse_int(arg4);
     if (value < 1 || value > 10)
     {
       send_to_char(
@@ -1681,7 +1681,7 @@ void set_crafting_instrument(struct char_data *ch, char *arg2)
   }
   else if (is_abbrev(arg3, "breakability"))
   {
-    value = atoi(arg4);
+    value = parse_int(arg4);
     if (value < 0 || value > INSTRUMENT_BREAKABILITY_DEFAULT)
     {
       send_to_char(
@@ -1794,7 +1794,7 @@ static void set_crafting_bonuses(struct char_data *ch, const char *argument)
   }
 
   // determine bonus slot
-  slot = atoi(arg1);
+  slot = parse_int(arg1);
 
   if (slot < 1 || slot > 6)
   {
@@ -1949,7 +1949,7 @@ static void set_crafting_bonuses(struct char_data *ch, const char *argument)
   }
 
   // determine bonus modifier
-  modifier = atoi(arg4);
+  modifier = parse_int(arg4);
 
   if (modifier < 1)
   {
@@ -5116,7 +5116,7 @@ void set_crafting_enhancement(struct char_data *ch, const char *arg2)
     return;
   }
 
-  amount = atoi(arg2);
+  amount = parse_int(arg2);
 
   if (amount <= 0 || amount > max)
   {
@@ -6735,7 +6735,7 @@ ACMD(do_setmaterial)
                        "words, connect them with a dash - instead of a space.\r\n");
       return;
     }
-    if ((amount = atoi(mat_amount)) == 0)
+    if ((amount = parse_int(mat_amount)) == 0)
     {
       send_to_char(ch, "You must specify a positive or negative number. Positive will give mote "
                        "units, negative will take them away.\r\n");
@@ -6765,7 +6765,7 @@ ACMD(do_setmaterial)
     }
   }
 
-  if ((amount = atoi(mat_amount)) == 0)
+  if ((amount = parse_int(mat_amount)) == 0)
   {
     send_to_char(ch, "You must specify a positive or negative number. Positive will give material "
                      "units, negative will take them away.\r\n");
@@ -6877,7 +6877,7 @@ ACMD(do_list_craft_materials)
       return;
     }
 
-    unstore_quantity = atoi(quantity_str);
+    unstore_quantity = parse_int(quantity_str);
 
     if (unstore_quantity <= 0)
     {
@@ -8194,7 +8194,7 @@ void newcraft_supplyorder(struct char_data *ch, const char *argument)
       return;
     }
 
-    contract_id = atoi(arg2);
+    contract_id = parse_int(arg2);
     if (contract_id < 1)
     {
       send_to_char(ch, "Please specify a valid contract number.\r\n");

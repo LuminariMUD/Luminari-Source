@@ -2130,18 +2130,18 @@ struct wilderness_data *load_wilderness(zone_vnum zone)
 
   if (row)
   {
-    wild->id = atoi(row[0]);
+    wild->id = parse_int(row[0]);
     wild->zone = real_zone(zone);
-    wild->nav_vnum = atoi(row[1]);
-    wild->dynamic_vnum_pool_start = atoi(row[2]);
-    wild->dynamic_vnum_pool_end = atoi(row[3]);
-    wild->x_size = atoi(row[4]);
-    wild->y_size = atoi(row[5]);
-    wild->elevation_seed = atoi(row[6]);
-    wild->distortion_seed = atoi(row[7]);
-    wild->moisture_seed = atoi(row[8]);
-    wild->min_temp = atoi(row[9]);
-    wild->max_temp = atoi(row[10]);
+    wild->nav_vnum = parse_int(row[1]);
+    wild->dynamic_vnum_pool_start = parse_int(row[2]);
+    wild->dynamic_vnum_pool_end = parse_int(row[3]);
+    wild->x_size = parse_int(row[4]);
+    wild->y_size = parse_int(row[5]);
+    wild->elevation_seed = parse_int(row[6]);
+    wild->distortion_seed = parse_int(row[7]);
+    wild->moisture_seed = parse_int(row[8]);
+    wild->min_temp = parse_int(row[9]);
+    wild->max_temp = parse_int(row[10]);
   }
 
   mysql_free_result(result);
@@ -2414,13 +2414,13 @@ void load_regions()
       continue;
     }
 
-    region_table[i].vnum = atoi(row[0]);
+    region_table[i].vnum = parse_int(row[0]);
     region_table[i].rnum = i;
-    region_table[i].zone = real_zone(atoi(row[1]));
+    region_table[i].zone = real_zone(parse_int(row[1]));
     region_table[i].name = strdup(row[2]);
-    region_table[i].region_type = atoi(row[3]);
-    region_table[i].num_vertices = atoi(row[4]);
-    region_table[i].region_props = atoi(row[6]);
+    region_table[i].region_type = parse_int(row[3]);
+    region_table[i].num_vertices = parse_int(row[4]);
+    region_table[i].region_props = parse_int(row[6]);
     region_table[i].reset_time = 0;
     region_table[i].reset_data = NULL;
     region_table[i].events = NULL; /* CRITICAL: Initialize events list to NULL */
@@ -2471,9 +2471,9 @@ void load_regions()
     }
 
     /* Store event data for later creation */
-    if (region_table[i].region_type == REGION_ENCOUNTER && row[8] && atoi(row[8]) > 0)
+    if (region_table[i].region_type == REGION_ENCOUNTER && row[8] && parse_int(row[8]) > 0)
     {
-      region_table[i].reset_time = atoi(row[8]);
+      region_table[i].reset_time = parse_int(row[8]);
       if (row[7])
         region_table[i].reset_data = strdup(row[7]);
       else
@@ -2864,19 +2864,19 @@ struct region_proximity_list *get_nearby_regions(zone_rnum zone, int x, int y, i
 
   while ((row = mysql_fetch_row(result)))
   {
-    region_rnum rnum = real_region(atoi(row[0]));
+    region_rnum rnum = real_region(parse_int(row[0]));
 
     /* Skip regions that don't exist in the region table */
     if (rnum == NOWHERE)
     {
-      log("SYSERR: Region vnum %d from database not found in region table", atoi(row[0]));
+      log("SYSERR: Region vnum %d from database not found in region table", parse_int(row[0]));
       continue;
     }
 
     /* Allocate memory for the region data. */
     CREATE(new_node, struct region_proximity_list, 1);
     new_node->rnum = rnum;
-    new_node->dist = atof(row[3]); /* Distance from query */
+    new_node->dist = parse_double(row[3]); /* Distance from query */
 
     /* Check position - inside, edge, or nearby the region */
     bool is_inside = (strcmp(row[2], "INSIDE") == 0);
@@ -2910,7 +2910,8 @@ struct region_proximity_list *get_nearby_regions(zone_rnum zone, int x, int y, i
       /* Process the directional flags from the query (rows 4-11: n, ne, e, se, s, sw, w, nw) */
       for (i = 0; i < 8; i++)
       {
-        int intersects = atoi(row[i + 4]); /* 1 if region intersects this direction, 0 if not */
+        int intersects =
+            parse_int(row[i + 4]); /* 1 if region intersects this direction, 0 if not */
         if (intersects)
         {
           /* Use inverse distance as strength - closer regions have higher influence */
@@ -3007,13 +3008,13 @@ void load_paths()
 
   while ((row = mysql_fetch_row(result)))
   {
-    path_table[i].vnum = atoi(row[0]);
+    path_table[i].vnum = parse_int(row[0]);
     path_table[i].rnum = i;
-    path_table[i].zone = real_zone(atoi(row[1]));
+    path_table[i].zone = real_zone(parse_int(row[1]));
     path_table[i].name = strdup(row[2]);
-    path_table[i].path_type = atoi(row[3]);
-    path_table[i].num_vertices = atoi(row[4]);
-    path_table[i].path_props = atoi(row[6]);
+    path_table[i].path_type = parse_int(row[3]);
+    path_table[i].num_vertices = parse_int(row[4]);
+    path_table[i].path_props = parse_int(row[6]);
 
     path_table[i].glyphs[GLYPH_TYPE_PATH_NS] = strdup(row[7]);
     path_table[i].glyphs[GLYPH_TYPE_PATH_EW] = strdup(row[8]);
@@ -3490,10 +3491,10 @@ void read_factions_from_mysql()
   {
     factions[i].id = strdup(row[0]);
     factions[i].name = strdup(row[1]);
-    factions[i].flags = atoi(row[2]);
-    factions[i].gold = atoll(row[3]);
-    factions[i].tax = atof(row[4]);
-    factions[i].num_ranks = atoi(row[5]);
+    factions[i].flags = parse_int(row[2]);
+    factions[i].gold = parse_llong(row[3]);
+    factions[i].tax = parse_double(row[4]);
+    factions[i].num_ranks = parse_int(row[5]);
 
     if (factions[i].num_ranks > 0)
       CREATE(factions[i].ranks, struct faction_rank, factions[i].num_ranks);
@@ -3529,7 +3530,7 @@ void read_factions_from_mysql()
       exit(1);
     }
 
-    fact->ranks[atoi(row[1])].name = strdup(row[2]);
+    fact->ranks[parse_int(row[1])].name = strdup(row[2]);
   }
 
   mysql_free_result(result);
@@ -3560,7 +3561,7 @@ void read_factions_from_mysql()
       exit(1);
     }
 
-    i = atoi(row[1]);
+    i = parse_int(row[1]);
 
     if (i < 0 || i >= NUM_SKILLGROUPS)
     {
@@ -3589,8 +3590,8 @@ void read_factions_from_mysql()
   {
     if ((fact = find_faction(row[1], NULL)))
     {
-      i = atoi(row[0]);
-      total = atoi(row[2]);
+      i = parse_int(row[0]);
+      total = parse_int(row[2]);
 
       if (i <= 0 || total <= 0 || total > TOTAL_SHARES)
         log("SYSERR: Invalid mob %s or sharecount %s for faction %s.", row[0], row[2], row[1]);
@@ -3621,7 +3622,7 @@ void read_factions_from_mysql()
   {
     if ((fact = find_faction(row[1], NULL)))
     {
-      total = atoi(row[2]);
+      total = parse_int(row[2]);
 
       if (total <= 0 || total > TOTAL_SHARES)
         log("SYSERR: Invalid player %s sharecount %s for faction %s.", row[0], row[2], row[1]);

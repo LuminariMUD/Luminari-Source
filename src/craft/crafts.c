@@ -238,7 +238,7 @@ static void load_crafts_from(FILE *fp)
         {
         case 'I':
           if (!strcmp(tag, "Id  "))
-            craft->craft_id = atoi(line);
+            craft->craft_id = parse_int(line);
           break;
         case 'E':
           if (!strcmp(tag, "End "))
@@ -258,7 +258,7 @@ static void load_crafts_from(FILE *fp)
           break;
         case 'F':
           if (!strcmp(tag, "Flag"))
-            craft->craft_flags = atoi(line);
+            craft->craft_flags = parse_int(line);
           break;
         case 'M':
           if (!strcmp(tag, "Mroo"))
@@ -321,11 +321,11 @@ static void load_crafts_from(FILE *fp)
           break;
         case 'T':
           if (!strcmp(tag, "Time"))
-            craft->craft_timer = atoi(line);
+            craft->craft_timer = parse_int(line);
           break;
         case 'V':
           if (!strcmp(tag, "Vnum"))
-            craft->craft_object_vnum = atoi(line);
+            craft->craft_object_vnum = parse_int(line);
           break;
         default:
           log("SYSERR: Craft File: Unexpected '%s' in file.", tag);
@@ -1236,7 +1236,7 @@ ACMD(do_oasis_craftedit)
     return;
   }
 
-  if ((idnum = atoi(argument)) <= 0)
+  if ((idnum = parse_int(argument)) <= 0)
   {
     send_to_char(ch, "Please select a craft to edit.\r\n");
     return;
@@ -1536,10 +1536,10 @@ void craftedit_parse(struct descriptor_data *d, char *arg)
     OLC_CRAFT(d)->craft_name = str_udup(arg);
     break;
   case CRAFTEDIT_TIMER:
-    OLC_CRAFT(d)->craft_timer = LIMIT(atoi(arg), 0, 60);
+    OLC_CRAFT(d)->craft_timer = LIMIT(parse_int(arg), 0, 60);
     break;
   case CRAFTEDIT_VNUM:
-    var = atoi(arg);
+    var = parse_int(arg);
     if (real_object(var) != NOTHING)
       OLC_CRAFT(d)->craft_object_vnum = var;
     break;
@@ -1566,7 +1566,7 @@ void craftedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    if ((var = atoi(arg)))
+    if ((var = parse_int(arg)))
     {
       TOGGLE_BIT(CRAFT_FLAGS(OLC_CRAFT(d)), (1 << (var - 1)));
       craftedit_disp_craft_flags(d);
@@ -1581,7 +1581,7 @@ void craftedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    if (!is_number(arg) || !craft_skill_id_is_valid((var = atoi(arg))) ||
+    if (!is_number(arg) || !craft_skill_id_is_valid((var = parse_int(arg))) ||
         (var != -1 && crafting_skill_type(var) == CRAFT_SKILL_TYPE_NONE))
     {
       write_to_output(d, "Please select -1 or a listed craft ability: ");
@@ -1607,7 +1607,7 @@ void craftedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    OLC_CRAFT(d)->craft_skill_level = LIMIT(atoi(arg), 0, UCHAR_MAX);
+    OLC_CRAFT(d)->craft_skill_level = LIMIT(parse_int(arg), 0, UCHAR_MAX);
     break;
   case CRAFTEDIT_REQUIREMENTS:
     switch (*arg)
@@ -1640,7 +1640,7 @@ void craftedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    if ((r = find_requirement_in_craft(OLC_CRAFT(d), atoi(arg))) != NULL)
+    if ((r = find_requirement_in_craft(OLC_CRAFT(d), parse_int(arg))) != NULL)
     {
       remove_from_list(r, OLC_CRAFT(d)->requirements);
       free(r);
@@ -1658,7 +1658,7 @@ void craftedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    var = atoi(arg);
+    var = parse_int(arg);
 
     if ((OLC_CRAFT_REQ(d) = find_requirement_in_craft(OLC_CRAFT(d), var)) == NULL)
     {
@@ -1684,7 +1684,7 @@ void craftedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    OLC_CRAFT_REQ(d)->req_amount = atoi(arg);
+    OLC_CRAFT_REQ(d)->req_amount = parse_int(arg);
 
     craftedit_disp_req_flags(d);
     OLC_MODE(d) = CRAFTEDIT_REQ_FLAGS;
@@ -1696,7 +1696,7 @@ void craftedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    if ((var = atoi(arg)))
+    if ((var = parse_int(arg)))
     {
       TOGGLE_BIT(OLC_CRAFT_REQ(d)->req_flags, (1 << (var - 1)));
       craftedit_disp_req_flags(d);

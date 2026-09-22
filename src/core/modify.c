@@ -575,7 +575,7 @@ ACMDU(do_skillset)
     send_to_char(ch, "Learned value expected.\r\n");
     return;
   }
-  value = atoi(buf);
+  value = parse_int(buf);
   if (value < 0)
   {
     send_to_char(ch, "Minimum value for learned is 0.\r\n");
@@ -685,7 +685,7 @@ ACMDU(do_abilityset)
     send_to_char(ch, "Trained value expected.\r\n");
     return;
   }
-  value = atoi(buf);
+  value = parse_int(buf);
   if (value < 0)
   {
     send_to_char(ch, "Minimum value for trained is 0.\r\n");
@@ -778,7 +778,7 @@ ACMDU(do_featset)
     return;
   }
 
-  value = atoi(buf);
+  value = parse_int(buf);
 
   if (value < -10)
   {
@@ -964,7 +964,7 @@ void show_string(struct descriptor_data *d, const char *input)
 
   /* Type the number of the page and you are there! */
   else if (isdigit(*buf))
-    d->showstr_page = MAX(0, MIN(atoi(buf) - 1, d->showstr_count - 1));
+    d->showstr_page = MAX(0, MIN(parse_int(buf) - 1, d->showstr_count - 1));
 
   else if (*buf)
   {

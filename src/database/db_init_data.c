@@ -42,7 +42,7 @@ static int table_has_data(const char *table_name)
   int count = 0;
   if (row && row[0])
   {
-    count = atoi(row[0]);
+    count = parse_int(row[0]);
   }
   mysql_free_result(result);
 
@@ -107,7 +107,7 @@ void ensure_path_types_reference(void)
     if (result)
     {
       row = mysql_fetch_row(result);
-      if (row && row[0] && atoi(row[0]) > 0)
+      if (row && row[0] && parse_int(row[0]) > 0)
         has_type_name_column = TRUE;
       mysql_free_result(result);
     }
@@ -209,7 +209,7 @@ void ensure_player_data_account_link(void)
   if (result)
   {
     row = mysql_fetch_row(result);
-    if (row && row[0] && atoi(row[0]) > 0)
+    if (row && row[0] && parse_int(row[0]) > 0)
       has_column = TRUE;
     mysql_free_result(result);
   }
@@ -279,7 +279,7 @@ void ensure_player_data_account_link(void)
     if (result)
     {
       row = mysql_fetch_row(result);
-      if (row && row[0] && atoi(row[0]) > 0)
+      if (row && row[0] && parse_int(row[0]) > 0)
         has_index = TRUE;
       mysql_free_result(result);
     }
@@ -314,7 +314,7 @@ void ensure_player_data_account_link(void)
     if (result)
     {
       row = mysql_fetch_row(result);
-      if (row && row[0] && atoi(row[0]) > 0)
+      if (row && row[0] && parse_int(row[0]) > 0)
         has_foreign_key = TRUE;
       mysql_free_result(result);
     }
@@ -449,7 +449,7 @@ void ensure_account_quit_survey_column(void)
   if (result)
   {
     row = mysql_fetch_row(result);
-    if (row && row[0] && atoi(row[0]) > 0)
+    if (row && row[0] && parse_int(row[0]) > 0)
       has_column = TRUE;
     mysql_free_result(result);
   }
@@ -1086,7 +1086,8 @@ static int pet_schema_has_index(const char *table_name, const char *column_name,
 
   while ((row = mysql_fetch_row(result)))
   {
-    if (!row[2] || !row[3] || !row[4] || atoi(row[3]) != 1 || strcasecmp(row[4], column_name) != 0)
+    if (!row[2] || !row[3] || !row[4] || parse_int(row[3]) != 1 ||
+        strcasecmp(row[4], column_name) != 0)
       continue;
     if (require_primary && strcasecmp(row[2], "PRIMARY") != 0)
       continue;
@@ -1177,7 +1178,7 @@ static int pet_schema_has_primary_key(const char *table_name)
 
   while ((row = mysql_fetch_row(result)))
   {
-    if (row[2] && row[3] && atoi(row[3]) == 1 && strcasecmp(row[2], "PRIMARY") == 0)
+    if (row[2] && row[3] && parse_int(row[3]) == 1 && strcasecmp(row[2], "PRIMARY") == 0)
     {
       matches = TRUE;
       break;

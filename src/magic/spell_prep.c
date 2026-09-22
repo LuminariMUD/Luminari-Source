@@ -4925,7 +4925,7 @@ MUD_EVENT_CALLBACK(event_preparation)
     return 0;
 
   /* Extract the class from event variables (stored as string) */
-  class = atoi((char *)prepare_event->sVariables);
+  class = parse_int((char *)prepare_event->sVariables);
 
   /* Verify the character has something to prepare */
   if (!validate_preparation_queue(ch, class))

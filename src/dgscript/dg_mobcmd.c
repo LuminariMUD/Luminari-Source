@@ -376,7 +376,7 @@ ACMD(do_mzoneecho)
   if (!*room_number || !*msg)
     mob_log(ch, "mzoneecho called with too few args");
 
-  else if ((zone = (int)real_zone_by_thing(atoi(room_number))) == (int)NOWHERE)
+  else if ((zone = (int)real_zone_by_thing(parse_int(room_number))) == (int)NOWHERE)
     mob_log(ch, "mzoneecho called for nonexistant zone");
 
   else
@@ -414,7 +414,7 @@ ACMD(do_mrolzoneecho)
     mob_log(ch, "mrolzoneecho usage: <all|indoors|outdoors> <room-vnum> <message>");
     return;
   }
-  if ((zone = real_zone_by_thing(atoi(room_number))) == NOWHERE)
+  if ((zone = real_zone_by_thing(parse_int(room_number))) == NOWHERE)
   {
     mob_log(ch, "mrolzoneecho called for nonexistant zone");
     return;
@@ -456,7 +456,7 @@ ACMD(do_mrolwalkto)
     return;
 
   one_argument(argument, room_number, sizeof(room_number));
-  if (!*room_number || (destination = real_room(atoi(room_number))) == NOWHERE)
+  if (!*room_number || (destination = real_room(parse_int(room_number))) == NOWHERE)
   {
     mob_log(ch, "mrolwalkto called with an invalid room");
     return;
@@ -521,7 +521,7 @@ ACMD(do_mload)
 
   target = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
-  if (!*arg1 || !*arg2 || !is_number(arg2) || ((number = atoi(arg2)) < 0))
+  if (!*arg1 || !*arg2 || !is_number(arg2) || ((number = parse_int(arg2)) < 0))
   {
     mob_log(ch, "mload: bad syntax");
     return;
@@ -537,7 +537,7 @@ ACMD(do_mload)
     }
     else
     {
-      if (!isdigit(*target) || (rnum = real_room(atoi(target))) == NOWHERE)
+      if (!isdigit(*target) || (rnum = real_room(parse_int(target))) == NOWHERE)
       {
         mob_log(ch,
                 "mload: room target vnum doesn't exist "
@@ -934,7 +934,7 @@ ACMD(do_mdamage)
     return;
   }
 
-  dam = atoi(amount);
+  dam = parse_int(amount);
   if (*name == UID_CHAR)
   {
     if (!(vict = get_char(name)))
@@ -1127,12 +1127,12 @@ ACMD(do_mrolalert)
     cursor = any_one_arg_c(cursor, argument_word, sizeof(argument_word));
     if (!*argument_word)
       break;
-    if (!is_number(argument_word) || atoi(argument_word) <= 0)
+    if (!is_number(argument_word) || parse_int(argument_word) <= 0)
     {
       mob_log(ch, "mrolalert called with invalid helper vnum '%s'", argument_word);
       return;
     }
-    helper_vnums[helper_count++] = atoi(argument_word);
+    helper_vnums[helper_count++] = parse_int(argument_word);
   }
   skip_spaces_c(&cursor);
   if (helper_count == 0 || *cursor)
@@ -1332,11 +1332,11 @@ ACMD(do_mtransform)
   else
   {
     if (isdigit(*arg))
-      m = read_mobile_reason(atoi(arg), VIRTUAL, PERF_ENTITY_DG_SCRIPT);
+      m = read_mobile_reason(parse_int(arg), VIRTUAL, PERF_ENTITY_DG_SCRIPT);
     else
     {
       keep_hp = 0;
-      m = read_mobile_reason(atoi(arg + 1), VIRTUAL, PERF_ENTITY_DG_SCRIPT);
+      m = read_mobile_reason(parse_int(arg + 1), VIRTUAL, PERF_ENTITY_DG_SCRIPT);
     }
     if (m == NULL)
     {
@@ -1530,7 +1530,7 @@ ACMD(do_mdoor)
       newexit->exit_info = (sh_int)asciiflag_conv(value);
       break;
     case 3: /* key         */
-      newexit->key = atoi(value);
+      newexit->key = parse_int(value);
       break;
     case 4: /* name        */
       if (newexit->keyword)
@@ -1539,7 +1539,7 @@ ACMD(do_mdoor)
       strlcpy(newexit->keyword, value, strlen(value) + 1);
       break;
     case 5: /* room        */
-      if ((to_room = (int)real_room(atoi(value))) != (int)NOWHERE)
+      if ((to_room = (int)real_room(parse_int(value))) != (int)NOWHERE)
         newexit->to_room = to_room;
       else
       {
@@ -1653,7 +1653,7 @@ ACMD(do_mrecho)
   if (!*msg || !*start || !*finish || !is_number(start) || !is_number(finish))
     mob_log(ch, "mrecho called with too few args");
   else
-    send_to_range(atoi(start), atoi(finish), "%s\r\n", msg);
+    send_to_range(parse_int(start), parse_int(finish), "%s\r\n", msg);
 }
 
 /* Clan-related DG Script commands */
@@ -1710,7 +1710,7 @@ ACMDU(do_mclanset)
 
   if (is_number(arg2))
   {
-    clan_num = atoi(arg2);
+    clan_num = parse_int(arg2);
   }
   else
   {
@@ -1786,7 +1786,7 @@ ACMDU(do_mclanrank)
     return;
   }
 
-  rank = atoi(arg2);
+  rank = parse_int(arg2);
   if (rank < 1 || rank > clan_list[clan_r].ranks)
   {
     mob_log(ch, "mclanrank: invalid rank %d (valid: 1-%d)", rank, clan_list[clan_r].ranks);
@@ -1827,7 +1827,7 @@ ACMDU(do_mclangold)
   /* Find clan by name or vnum */
   if (is_number(arg1))
   {
-    clan_num = atoi(arg1);
+    clan_num = parse_int(arg1);
     clan_r = real_clan(clan_num);
   }
   else
@@ -1843,7 +1843,7 @@ ACMDU(do_mclangold)
     return;
   }
 
-  amount = atoi(arg2);
+  amount = parse_int(arg2);
   if (amount == 0)
   {
     mob_log(ch, "mclangold: invalid amount %s", arg2);
@@ -1894,7 +1894,7 @@ ACMDU(do_mclanwar)
   /* Find first clan */
   if (is_number(arg1))
   {
-    clan1_num = atoi(arg1);
+    clan1_num = parse_int(arg1);
     clan1_r = real_clan(clan1_num);
   }
   else
@@ -1913,7 +1913,7 @@ ACMDU(do_mclanwar)
   /* Find second clan */
   if (is_number(arg2))
   {
-    clan2_num = atoi(arg2);
+    clan2_num = parse_int(arg2);
     clan2_r = real_clan(clan2_num);
   }
   else
@@ -1997,7 +1997,7 @@ ACMDU(do_mclanally)
   /* Find first clan */
   if (is_number(arg1))
   {
-    clan1_num = atoi(arg1);
+    clan1_num = parse_int(arg1);
     clan1_r = real_clan(clan1_num);
   }
   else
@@ -2016,7 +2016,7 @@ ACMDU(do_mclanally)
   /* Find second clan */
   if (is_number(arg2))
   {
-    clan2_num = atoi(arg2);
+    clan2_num = parse_int(arg2);
     clan2_r = real_clan(clan2_num);
   }
   else

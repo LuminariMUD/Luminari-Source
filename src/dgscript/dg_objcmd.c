@@ -108,7 +108,7 @@ static room_rnum find_obj_target_room(obj_data *obj, char *rawroomstr)
 
   if (isdigit(*roomstr) && !strchr(roomstr, '.'))
   {
-    tmp = atoi(roomstr);
+    tmp = parse_int(roomstr);
     if ((location = real_room(tmp)) == NOWHERE)
       return NOWHERE;
   }
@@ -234,7 +234,7 @@ static OCMD(do_ozoneecho)
   if (!*room_number || !*msg)
     obj_log(obj, "ozoneecho called with too few args");
 
-  else if ((zone = real_zone_by_thing(atoi(room_number))) == NOWHERE)
+  else if ((zone = real_zone_by_thing(parse_int(room_number))) == NOWHERE)
     obj_log(obj, "ozoneecho called for nonexistant zone");
 
   else
@@ -289,7 +289,7 @@ static OCMD(do_orecho)
   if (!*msg || !*start || !*finish || !is_number(start) || !is_number(finish))
     obj_log(obj, "orecho: too few args");
   else
-    send_to_range(atoi(start), atoi(finish), "%s\r\n", msg);
+    send_to_range(parse_int(start), parse_int(finish), "%s\r\n", msg);
 }
 
 /* set the object's timer value */
@@ -305,7 +305,7 @@ static OCMD(do_otimer)
     obj_log(obj, "otimer: bad argument");
   else
   {
-    GET_OBJ_TIMER(obj) = atoi(arg);
+    GET_OBJ_TIMER(obj) = parse_int(arg);
     point_update_object_sync(obj);
   }
 }
@@ -327,7 +327,7 @@ static OCMD(do_otransform)
     obj_log(obj, "otransform: bad argument");
   else
   {
-    o = read_object_reason(atoi(arg), VIRTUAL, PERF_ENTITY_DG_SCRIPT);
+    o = read_object_reason(parse_int(arg), VIRTUAL, PERF_ENTITY_DG_SCRIPT);
     if (o == NULL)
     {
       obj_log(obj, "otransform: bad object vnum");
@@ -538,7 +538,7 @@ static OCMD(do_dgoload)
 
   target = two_arguments_u(argument, arg1, arg2);
 
-  if (!*arg1 || !*arg2 || !is_number(arg2) || ((number = atoi(arg2)) < 0))
+  if (!*arg1 || !*arg2 || !is_number(arg2) || ((number = parse_int(arg2)) < 0))
   {
     obj_log(obj, "oload: bad syntax");
     return;
@@ -560,7 +560,7 @@ static OCMD(do_dgoload)
     }
     else
     {
-      if (!isdigit(*target) || (rnum = real_room(atoi(target))) == NOWHERE)
+      if (!isdigit(*target) || (rnum = real_room(parse_int(target))) == NOWHERE)
       {
         obj_log(obj,
                 "oload: room target vnum doesn't exist "
@@ -660,7 +660,7 @@ static OCMD(do_odamage)
     return;
   }
 
-  dam = atoi(amount);
+  dam = parse_int(amount);
   ch = get_char_by_obj(obj, name);
 
   if (!ch)
@@ -782,7 +782,7 @@ static OCMD(do_odoor)
       newexit->exit_info = (sh_int)asciiflag_conv(value);
       break;
     case 3: /* key         */
-      newexit->key = atoi(value);
+      newexit->key = parse_int(value);
       break;
     case 4: /* name        */
       if (newexit->keyword)
@@ -791,7 +791,7 @@ static OCMD(do_odoor)
       strlcpy(newexit->keyword, value, strlen(value) + 1);
       break;
     case 5: /* room        */
-      if ((to_room = real_room(atoi(value))) != NOWHERE)
+      if ((to_room = real_room(parse_int(value))) != NOWHERE)
         newexit->to_room = to_room;
       else
       {
@@ -817,8 +817,8 @@ static OCMD(do_osetval)
     return;
   }
 
-  position = atoi(arg1);
-  new_value = atoi(arg2);
+  position = parse_int(arg1);
+  new_value = parse_int(arg2);
 
   if (position >= 0 && position < NUM_OBJ_VAL_POSITIONS)
   {
@@ -867,7 +867,7 @@ static OCMD(do_oat)
   }
 
   if (isdigit(*arg))
-    loc = real_room(atoi(arg));
+    loc = real_room(parse_int(arg));
   else if ((ch = get_char_by_obj(obj, arg)))
     loc = IN_ROOM(ch);
 
