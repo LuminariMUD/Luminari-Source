@@ -475,7 +475,14 @@ bonus and trained-offhand opportunities with stable ordinals and iterative
 penalties, rolls each once in its own phase (50 percent, +25 with
 two-weapon training, +25 with improved training, `is_skilled_dualer()`), adds
 the floor of the summed chances in count mode, and prints rows in display
-mode. The design record is `docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md`.
+mode. Some consumers read only the first pair by design: the parry message
+weapon in `skill_message()`, the monk weapon armor-class pick, reach-weapon
+detection, sunder's attacking weapon, and the explicit slot checks in
+`mob_spells.c`, `spec_abilities.c`, `magic.c`, `feats.c`, `perks.c`, and the
+`spec_rol_*` procedures. The stochastic ranger Wilderness Warrior offhand
+procs are not mirrored, and NPCs get no trained extra fourth-hand swings,
+matching the first pair. The design study behind issue #168 is preserved at
+[THRI_KREEN_FOUR_ARMS.md](https://github.com/LuminariMUD/Luminari-Source/blob/e33ed0d6f98d28d4218c98aa57b16de9742ac8c5/docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md).
 
 When `NUM_FEATS` moves, regenerate `scripts/world/wtool_constants.json` with
 `python3 scripts/world/wtool.py constants sync --write`. Player-facing text

@@ -18,7 +18,7 @@ int wilderness_harvest_mote(int category, int subtype);
 int award_wilderness_harvest(struct char_data *ch, int category, int subtype, int quality,
                              int quantity);
 
-/* Targeted gathering (docs/ongoing-projects/harvesting-system.md). */
+/* Targeted gathering (docs/systems/WILDERNESS_HARVESTING.md). */
 int wilderness_material_category(int material);
 int wilderness_sector_material_pool(int sector, int *out, int max);
 int wilderness_material_pool(struct char_data *ch, int category, int *out, int max);

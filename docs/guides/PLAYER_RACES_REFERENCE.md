@@ -495,10 +495,25 @@ Extra Arms is the general "one more arm" trait at 3 RP per rank (one extra
 full-bonus swing, no extra slots). The Thri-Kreen four-arm mechanic
 (issue #168) is the separate Four Arms innate: a second weapon pair plus
 doubled sleeve, glove and wrist slots. Its price is provisional and not yet
-validated; the study's 8 RP figure exceeds the single-trait cap of every tier,
-so the race's tier and cost are open decisions recorded in
-`docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md`. Do not grant both traits
-automatically.
+validated. No race grants it yet; a playable race that does needs these
+decisions first (see the
+[design study](https://github.com/LuminariMUD/Luminari-Source/blob/e33ed0d6f98d28d4218c98aa57b16de9742ac8c5/docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md)
+for the source mechanics):
+
+- Tier and price. The study's 8 RP exceeds the 30 percent single-trait cap of
+  every tier (4.2 Advanced, 7.2 Epic), and its 11 RP subtotal ignores the
+  25 percent drawback cap: capped, the proposed Thri-Kreen comes to 18.5 RP as
+  Advanced or 16 RP as Epic, outside both bands. Price Four Arms from
+  low- and high-level damage per round, or record an explicit exception.
+- Psionic damage reduction: choose and price a mapping, or omit it and say so.
+- Venom: Poison Bite procs on any damaging hit, so the extra swings amplify
+  it; keep it, rescale its level gate, or build a real bite.
+- Riding: a separate mount-only restriction, or none. Quadruped Body is not
+  a substitute; its knockdown resistance is an unrelated benefit.
+- Ability adjustments: re-evaluate the proposed +2 Str, +1 Con, +3 Dex,
+  -4 Int, -4 Wis, -3 Cha.
+
+Do not grant both traits automatically.
 
 Alignment restrictions and forced class respecs are not priced. They shape
 who plays the race; they do not change how strong the race is once played.
@@ -513,8 +528,10 @@ who plays the race; they do not change how strong the race is once played.
 | Epic quest | 50 | 40 to 60 | Reward for a level 30 quest line; may exceed epic by about double |
 
 The step from each tier to the next is deliberately about +7 to +10 RP for
-Advanced and Epic, and about +25 for Epic quest. Expressed as a formula that
-also covers future tiers:
+Advanced and Epic, and about +25 for Epic quest. The table's targets are the
+ones to price against. The formula below is only a rough extrapolation for
+future tiers: it reproduces Normal and Advanced but gives 21 for Epic and 42
+for Epic quest, below the calibrated 24 and 50.
 
 ```
 budget(tier) = 7 + 7 * tier_index          for tier_index 0..2

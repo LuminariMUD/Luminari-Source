@@ -2,8 +2,9 @@
 
 This mobile prototype places the paid craft trainer from
 https://github.com/LuminariMUD/Luminari-Source/issues/196 in the Sanctus III
-crafting district. The design and its tunables are in
-[craft-trainers.md](../../docs/ongoing-projects/craft-trainers.md).
+crafting district. The design is described under "Craft trainers" in
+[CRAFTING_SYSTEM_NOTES.md](../../docs/world_game-data/CRAFTING_SYSTEM_NOTES.md#craft-trainers),
+and the tunables are constants in `src/craft/craft_training.h`.
 
 ## Prototype record
 

@@ -20,8 +20,8 @@ dependency.
 There is no configuration. Wilderness harvesting always credits the crafting
 balances; the former `WILDERNESS_HARVEST_CRAFTING` toggle and the separate
 wilderness store it selected were retired by the crafting consolidation
-(`docs/ongoing-projects/crafting-consolidation-assessment.md`). A character's
-old wilderness holdings convert once at login (CrMg stage 3).
+(issue #212). A character's old wilderness holdings convert once at login
+(CrMg stage 3).
 
 The maintained environment example is `lib/.env_example`, as used by deployment
 scripts. `lib/.env.example` is a symlink to that same template.

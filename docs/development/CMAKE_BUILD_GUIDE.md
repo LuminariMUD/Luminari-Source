@@ -15,7 +15,7 @@ and declaration style.
 | Dependency | Minimum | Ubuntu package |
 | -- | -- | -- |
 | CMake | 3.21 | `cmake` |
-| GCC or Clang with GNU C23 | GCC 13 / Clang 16 | `gcc` or `clang` |
+| GCC or Clang with GNU C23 | GCC 13 / Clang 18 | `gcc` or `clang` |
 | pkg-config | any | `pkg-config` |
 | libevent core | 2.1.12 | `libevent-dev` |
 | MariaDB Connector/C (or MySQL client) | 3.1 | `libmariadb-dev` |
@@ -113,10 +113,10 @@ summary.
 | `LUMINARI_SANITIZERS` | empty | Comma-separated `-fsanitize=` list, for example `address,undefined` |
 | `LUMINARI_FUZZ` | `OFF` | Build the production-linked libFuzzer harness `luminari_fuzz` (Clang, with `BUILD_TESTS` and `LUMINARI_SANITIZERS=fuzzer-no-link,address,undefined`) |
 
-Options compose with any preset. The `migration` tier is deliberately not
-enabled by a checked-in preset because `-Wconversion` alone reports thousands
-of pre-existing warnings; turn it on for a focused pass, then lower the
-budget file with `scripts/ci/check_warning_budget.py --update`:
+Options compose with any preset. No checked-in preset enables the
+`migration` tier: its flags report what the optimizer proves, so it runs
+against a budget instead of `-Werror`. Turn it on for a focused pass, then
+lower the budget file with `scripts/ci/check_warning_budget.py --update`:
 
 ```bash
 cmake --preset dev -DLUMINARI_WARNING_TIER=migration

@@ -3,7 +3,8 @@
  * Paid craft trainers: a player pays to leave play and returns with craft or harvest experience.
  *
  * A contract is three fields in the player's crafting data (training_ability, training_exp,
- * training_end), saved as the CrTr player-file tag. See docs/ongoing-projects/craft-trainers.md.
+ * training_end), saved as the CrTr player-file tag. See "Craft trainers" in
+ * docs/world_game-data/CRAFTING_SYSTEM_NOTES.md.
  */
 
 #ifndef LUMINARI_CRAFT_CRAFT_TRAINING_H

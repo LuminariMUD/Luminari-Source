@@ -1,7 +1,7 @@
 /* Production-linked tests for paid craft trainers (issue 196,
- * docs/ongoing-projects/craft-trainers.md): craft and harvest ranks, the contract record, the Craft
- * Trainer procedure, and the account-menu entry lock, settlement, and recall. The player-file
- * crafting records for supply contracts and golem projects are tested here too. */
+ * docs/world_game-data/CRAFTING_SYSTEM_NOTES.md): craft and harvest ranks, the contract record,
+ * the Craft Trainer procedure, and the account-menu entry lock, settlement, and recall. The
+ * player-file crafting records for supply contracts and golem projects are tested here too. */
 
 #include "CuTest.h"
 

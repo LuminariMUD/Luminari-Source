@@ -289,7 +289,7 @@ bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int sk
 int get_craft_material_final_level_adjustment(struct char_data *ch);
 int craft_material_to_obj_material(int craftmat);
 int craft_material_from_object(struct obj_data *obj);
-/* Crafting consolidation (docs/ongoing-projects/crafting-consolidation-assessment.md).
+/* Crafting consolidation (issue #212, docs/world_game-data/CRAFTING_SYSTEM_NOTES.md).
  * Legacy kit skills 2071 to 2085 convert to the craft and harvest abilities once per character,
  * recorded by the CrMg stage marker. The historical ids stay here for migration code and old
  * catalog records even after the live skill definitions retire. */

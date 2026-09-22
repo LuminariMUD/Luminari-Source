@@ -45,5 +45,5 @@ rewards is a world-building choice; the prototypes themselves are complete.
 python3 scripts/world/wtool.py validate --paths data/harvest-tools/harvest-tools.obj --strict
 ```
 
-The minimum-quality rule, crafting mappings and environment switch are documented
-in [WILDERNESS_HARVESTING.md](../../docs/systems/WILDERNESS_HARVESTING.md).
+The quality-tier rule and the crafting mappings are documented in
+[WILDERNESS_HARVESTING.md](../../docs/systems/WILDERNESS_HARVESTING.md).

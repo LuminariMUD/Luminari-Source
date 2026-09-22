@@ -1,10 +1,11 @@
 # LuminariMUD Crafting System Reference
 
 This document describes the crafting code in the current source tree after the
-crafting consolidation (issue #212,
-`docs/ongoing-projects/crafting-consolidation-assessment.md`). There is one
-crafting economy: one skill space, one set of material and mote balances, and
-one timed-work lifecycle, reached through several command spellings.
+crafting consolidation (issue #212; the
+[consolidation plan](https://github.com/LuminariMUD/Luminari-Source/blob/e33ed0d6f98d28d4218c98aa57b16de9742ac8c5/docs/ongoing-projects/crafting-consolidation-assessment.md)
+records its decisions). There is one crafting economy: one skill space, one set
+of material and mote balances, and one timed-work lifecycle, reached through
+several command spellings.
 
 ## Commands and where they lead
 
@@ -37,7 +38,7 @@ operation; ranks grant talent points.
 
 The legacy kit skills (slots 2071 to 2085) have no definitions, registrations,
 or notch cases. `craft_migrate_legacy_skills()` in `crafting_new.c` converts
-them once per character (CrMg stage 1, Decision 1 of the plan): a value at or
+them once per character (CrMg stage 1): a value at or
 below the old seed of 4 becomes rank 0; anything above rounds up by 5 per rank;
 knitting fills tailoring and gathering; chemistry becomes alchemy; fast
 crafter pays talent points. Gates that were written in legacy units (node
@@ -119,6 +120,59 @@ renames it into place after flush, sync, and close. A stage that cannot
 complete (a reward that does not fit, an unmappable material, an invalid
 holding) logs, keeps its records, and leaves the marker so the next login
 retries. New characters start at the current marker.
+
+Conversion is lazy, so characters who have not logged in since the
+consolidation still hold unconverted records: the old wilderness store
+(`WMat`/`Mat`), the room-370 order tags (`Cvnm`, `Cmnm`, `Cqps`, `Cexp`, `Cgld`,
+`Cdsc`, `Cmat`; `CPts` is clan points), and legacy skill values that stage 1 has
+not read yet. Those readers and writers, and the historical skill ids the
+conversion uses, stay until a verified complete conversion or an approved
+offline migration; an elapsed release does not prove that every dormant
+character has converted.
+
+## Craft trainers
+
+A mobile bound to the `Craft Trainer` special procedure
+(`src/craft/craft_training.c`; the world record is in `data/craft-trainers`)
+sells training in the twelve active craft and harvest tracks through
+`apprentice`. A contract grants half of the next rank's requirement,
+500 x (rank + 1) experience, through `gain_craft_exp()`, so the insightful
+talent applies. It starts only below rank 20 and costs 400 x (rank + 1)^2 gold
+on hand. The tunables are constants in `src/craft/craft_training.h`, and a
+table test keeps every grant, with the largest insightful bonus, below one
+rank.
+
+Confirming pays the fee, records `CrTr` (the ability, the experience, and an end
+time six hours of wall-clock time later), saves, and quits the character through
+`perform_player_quit()`, which saves its belongings once. Nothing runs while the
+character is away:
+
+- The main menu refuses to enter play while a contract exists, and the account
+  menu shows the time left in the class column.
+- Selecting the character at the account menu (`craft_training_admit_selection()`)
+  settles a finished contract: the grant and the cleared record reach the player
+  file in the same save, so the experience is granted exactly once even when a
+  save fails. Settlement happens there and not in `load_char()`, because the account menu,
+  the web lobby, `finger`, and staff file commands load characters without
+  entering play.
+- `recall <number> confirm` at the account menu ends a contract early; the fee
+  and the experience are forfeit.
+- The copyover writer skips a descriptor whose character is pending extraction
+  (`copyover_restores_descriptor()`), so a character that has just left to
+  train, quit, or rented is neither restored into play nor saved again with
+  empty belongings.
+
+The web lobby enforces the same lock, but its character card has no field for
+the time left; the classic terminal shows it.
+
+## Dormant features
+
+Refining and resizing in `crafting_new.c` (`newcraft_refine()`,
+`newcraft_resize()`) are reachable from no command; their save fields stay. They
+stay off deliberately: six of the eight refining recipes need a smelter, which
+no world object provides, harvesting already yields the alloys, and the kit
+`resize` command already resizes items. Enabling either needs station objects in
+the world first.
 
 ## Source and validation map
 

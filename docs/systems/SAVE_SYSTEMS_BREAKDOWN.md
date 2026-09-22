@@ -33,6 +33,9 @@ These systems use file-based storage exclusively for persistence.
   - A golem project, written only while a golem type is set, so construction resumes after login:
     `CrGo: <golem type> <size> <wood material>` (wood is 0 unless the golem is wooden). Loading
     ignores out-of-range values.
+  - The crafting consolidation marker `CrMg: <stage>` (1 legacy skills, 2 room-370 supply
+    orders, 3 old wilderness holdings); see
+    [CRAFTING_SYSTEM_NOTES.md](../world_game-data/CRAFTING_SYSTEM_NOTES.md#persistence-and-migration).
 
 **Example Structure:**
 
@@ -277,6 +280,13 @@ on known save failure. Prototype keywords remain available for targeting;
 repeated renaming does not accumulate prior custom names. Saved eidolon identity
 is restored before considering legacy owner-description defaults. Malformed
 records remain saved for recovery; `pets restore` offers a bounded retry and skips already published pet IDs.
+
+The category accounting lives in `src/core/utils.c`. Most categories have their own cap.
+Charmed mobiles and any follower that matches no named category share the general slots
+(`1 + max(0, Charisma bonus)`); ordinary summons fill their dedicated slots (one, or two for a
+Summoner) and then take general slots. A mobile counts as an ordinary summon only when it
+records its summoning spell, so a charmed, bought, or item-made creature on a summon prototype
+is a General follower.
 
 Follower persistence follows an explicit policy (`pet_lifetime_kind()` in
 `src/core/utils.c`). Durable followers persist until dismissed, killed, or stored.

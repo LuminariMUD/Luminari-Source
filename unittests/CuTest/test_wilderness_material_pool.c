@@ -1,5 +1,5 @@
 /* Production-linked tests for wilderness targeted gathering
- * (docs/ongoing-projects/harvesting-system.md): the material pool per sector, the grade-based
+ * (docs/systems/WILDERNESS_HARVESTING.md): the material pool per sector, the grade-based
  * difficulty, the quality tier from skill, richness, and tools, and name parsing. Command-driven
  * scenarios live in test_gameplay_e2e.c. */
 

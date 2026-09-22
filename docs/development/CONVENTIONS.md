@@ -33,6 +33,9 @@ and operational conventions that apply to contributors.
   never add to the migration-tier budget.
 - Use repository macros and typed VNUM definitions after tracing them; never hard-code virtual
   numbers.
+- Index types are unsigned. Print an index that can hold `NOWHERE`, `NOTHING`, or `NOBODY` as
+  `(int)` with `%d` wherever the text is read back or compared, so the sentinel stays `-1`;
+  `PRI_IDX` would write `4294967295`.
 
 Build configuration prefers `-std=gnu23`. It accepts the legacy `-std=gnu2x` spelling only when the
 compiler passes the required C23 keyword probe.

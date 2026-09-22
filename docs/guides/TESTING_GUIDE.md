@@ -962,6 +962,22 @@ Tests must include positive, negative, boundary, and cleanup assertions where
 they are meaningful. An unconditional passing placeholder is not a test and
 must not be added to the enforced suite.
 
+Fixture pitfalls:
+
+- A failed assertion jumps straight back to the runner (`CuFail_Line()` never
+  returns), so the rest of the test, including its cleanup, does not run. A
+  later test that fails on leftover global state is usually a symptom of the
+  first failure.
+- `equip_char()`, `unequip_char()`, and every other `affect_total()` caller
+  reset a character's modified points (hit roll, damage roll, maximum hit
+  points, armor) from its real points. Set those values after the last
+  equipment or affect change.
+- `real_zone()` indexes `zone_table` without a NULL check; stage a one-entry
+  table before calling code that looks up a zone.
+- A string literal stored in a `char *` fixture field goes through
+  `CuMutableString()`, which copies it into an arena that lives for the whole
+  run.
+
 ## CI Jobs
 
 `.github/workflows/test.yml` enforces:

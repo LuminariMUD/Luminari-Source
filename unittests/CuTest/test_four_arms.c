@@ -1,9 +1,10 @@
-/* Four arms (FEAT_FOUR_ARMS): the second weapon pair and the doubled limb
- * slots, exercised through the production equip paths.  Step 1 of
- * docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md: capability sources, anatomy
- * gate, hand budget, placement, lower armor consumers and the restore cases.
- * Step 2: loss handling, deferral across provider cycles, order-independent
- * restoration.  Step 3: second-pair combat routing (THIRD/FOURTH attacks). */
+/* Four arms (FEAT_FOUR_ARMS, issue #168, described in
+ * docs/systems/GAME_MECHANICS_SYSTEMS.md): the second weapon pair and the
+ * doubled limb slots, exercised through the production equip paths.
+ * Capability sources, anatomy gate, hand budget, placement, lower armor
+ * consumers and the restore cases; loss handling, deferral across provider
+ * cycles, order-independent restoration; second-pair combat routing
+ * (THIRD/FOURTH attacks). */
 #include "CuTest.h"
 #include <string.h>
 #include "conf.h"

@@ -158,14 +158,15 @@ lacks one reports it and continues.
 
 | Tier | Contents | Enforcement |
 | -- | -- | -- |
-| `baseline` | `-Wall -Wextra` plus prototype hygiene, format security, `-Wvla`, and the GCC allocation-size and flexible-array checks | errors on every pull request (`--enable-werror`, `LUMINARI_WERROR=ON`) |
-| `migration` | conversions, shadowing, switch coverage, missing prototypes, `-Wformat=2`, allocation, duplicated conditions and branches, logical-operator mistakes, fallthrough, `-Wwrite-strings` | a per-compiler budget that may only shrink |
-| `analysis` | GCC `-fanalyzer`; Clang's opinionated extras | scheduled; GCC's `-Wanalyzer-*` classes have a budget that may only shrink, the rest is informational (see [Static Analysis](#static-analysis)) |
+| `baseline` | `-Wall -Wextra` plus prototype and declaration hygiene, format security, `-Wvla`, `-Wconversion` (without sign conversion) and the floating-point checks, `-Wshadow`, `-Wjump-misses-init`, `-Wwrite-strings`, `-Wcast-qual`, `-Wundef`, `-Walloca`, `-Wimplicit-fallthrough`, and cast alignment; GCC adds its allocation-size, flexible-array, duplicated-condition, duplicated-branch, logical-operator, and format-signedness checks | errors on every pull request (`--enable-werror`, `LUMINARI_WERROR=ON`) |
+| `migration` | `-Wnull-dereference` and GCC's `-Walloc-zero` | a per-compiler budget that may only shrink, currently zero |
+| `analysis` | GCC `-fanalyzer`; `-Wswitch-enum`, `-Wformat-nonliteral`, and `-Wsign-conversion`; Clang's opinionated extras | scheduled; GCC's `-Wanalyzer-*` classes have a budget that may only shrink, the rest is informational (see [Static Analysis](#static-analysis)) |
 
 Select a tier with `./configure --enable-warning-tier=migration` or
 `cmake -DLUMINARI_WARNING_TIER=migration`. `-Werror` is refused with any
-tier but `baseline`; the migration tier has thousands of pre-existing
-instances and is held by `scripts/ci/check_warning_budget.py` instead. The
+tier but `baseline`. The migration flags report what the optimizer proves, so
+another optimization level could fail a `-Werror` build that is clean here;
+`scripts/ci/check_warning_budget.py` holds them instead. The
 CI job builds with the pinned current compilers and compares the count of
 distinct warning sites per class with `scripts/ci/warning_budget_gcc-16.txt`
 and `scripts/ci/warning_budget_clang-22.txt`. Growth in any class, or a new
@@ -181,7 +182,8 @@ scripts/ci/check_warning_budget.py --compiler clang-22 --log build/budget/build.
 ```
 
 A class whose budget reaches zero on both compilers is promoted to the
-baseline tier. A warning that must be suppressed is suppressed at the site
+baseline tier, unless its result depends on the optimizer as the two
+migration flags do. A warning that must be suppressed is suppressed at the site
 (`__attribute__` or a pragma) or, for a diagnostic that is wrong for this
 code base, in the profile script next to a comment giving the reason; the
 repository-wide tier lists are never weakened to accommodate one site.
@@ -614,6 +616,18 @@ out of the results unnoticed. With the CodeQL CLI, from a configured checkout:
 make clean
 codeql database create /tmp/luminari-codeql --language=cpp --command='make -j8'
 scripts/ci/check_codeql_coverage.py --database /tmp/luminari-codeql
+```
+
+The same database reproduces a code-scanning alert before a push: run the
+flagged query's `.ql` file from the `cpp-queries` pack of the CodeQL bundle
+(`codeql-bundle-linux64.tar.gz` in the `github/codeql-action` releases). For an
+analysis GitHub has already run, the API returns its SARIF with the code flows;
+`code-scanning/analyses?ref=refs/heads/master` lists the analysis ids.
+
+```bash
+codeql database analyze /tmp/luminari-codeql <query.ql> --format=sarif-latest --output=alert.sarif
+gh api -H 'Accept: application/sarif+json' \
+  repos/LuminariMUD/Luminari-Source/code-scanning/analyses/<id>
 ```
 
 ### Suppressions
