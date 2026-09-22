@@ -3254,7 +3254,7 @@ static int import_entry_with_resolution(struct char_data *ch __attribute__((unus
     token = strtok_r(keyword_copy, " ", &rest);
 
     /* Allocate initial buffer for escaped keywords */
-    escaped_size = MAX_STRING_LENGTH * 4;
+    escaped_size = (size_t)MAX_STRING_LENGTH * 4;
     CREATE(escaped_keywords, char, escaped_size);
     escaped_keywords[0] = '\0';
 
@@ -3523,7 +3523,7 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode)
   size_t output_len = 0;
 
   /* Initialize output buffer */
-  output_size = MAX_STRING_LENGTH * 8;
+  output_size = (size_t)MAX_STRING_LENGTH * 8;
   CREATE(output_buf, char, output_size);
   output_buf[0] = '\0';
 

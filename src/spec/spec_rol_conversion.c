@@ -1403,7 +1403,7 @@ static void rol_gate_one(struct char_data *ch, const char *alias, int family_fla
 
   char_to_room(summoned, IN_ROOM(ch));
   summoned->mob_specials.rol_gated_creature = true;
-  summoned->mob_specials.rol_gate_expire_at = time(NULL) + (4 * SECS_PER_MUD_HOUR);
+  summoned->mob_specials.rol_gate_expire_at = time(NULL) + ((time_t)4 * SECS_PER_MUD_HOUR);
   act("With an arcane motion, $n gates in $N!", FALSE, ch, NULL, summoned, TO_ROOM);
 
   if (!isname("rutterkin", GET_NAME(summoned)))
@@ -1927,12 +1927,12 @@ MUD_EVENT_CALLBACK(event_rol_barbazu_bloodloss)
   if (event == NULL || (victim = event->pStruct) == NULL)
     return 0;
   if (IS_NPC(victim) || GET_LEVEL(victim) >= LVL_IMMORT || GET_HIT(victim) <= -5)
-    return PULSE_VIOLENCE * 3;
+    return (long)PULSE_VIOLENCE * 3;
 
   send_to_char(victim, "\trYour wounds continue to bleed out of control!\tn\r\n");
   GET_HIT(victim) = rol_barbazu_bloodloss_next_hit(GET_HIT(victim));
   update_pos(victim);
-  return PULSE_VIOLENCE * 3;
+  return (long)PULSE_VIOLENCE * 3;
 }
 
 int rol_yggdrasil_branch(struct char_data *ch, void *me, int cmd, const char *argument)
@@ -1979,7 +1979,7 @@ int rol_yggdrasil_branch(struct char_data *ch, void *me, int cmd, const char *ar
   affect_to_char(victim, &affect);
 
   duration = rand_number(4, 12);
-  NEW_EVENT(eROL_YGGDRASIL_RELEASE, victim, NULL, PULSE_VIOLENCE * duration);
+  NEW_EVENT(eROL_YGGDRASIL_RELEASE, victim, NULL, (long)PULSE_VIOLENCE * duration);
   return FALSE;
 }
 
@@ -2945,7 +2945,7 @@ int rol_travel_portal(struct char_data *ch, void *me, int cmd, const char *argum
         TRUE, ch, obj, NULL, TO_ROOM);
     send_to_char(ch, "You inhale the spores and suddenly your face feels like it is on fire!\r\n"
                      "You sneeze violently and stagger...\r\n");
-    attach_mud_event(new_mud_event(eSTUNNED, ch, NULL), 10 * PULSE_VIOLENCE);
+    attach_mud_event(new_mud_event(eSTUNNED, ch, NULL), (long)10 * (long)PULSE_VIOLENCE);
     extract_obj(obj);
     return TRUE;
   }
@@ -3862,7 +3862,7 @@ int rol_lich_energy_drain_healer_hit(int current_hit, int drained_hit, bool blac
 
 long rol_lich_energy_drain_stun_duration(long remaining)
 {
-  long duration = PULSE_VIOLENCE * 2;
+  long duration = (long)PULSE_VIOLENCE * 2;
 
   if (remaining <= 0)
     return duration;
@@ -4266,7 +4266,7 @@ int rol_bandit(struct char_data *ch, void *me, int cmd, const char *argument)
 
   now = time(NULL);
   if (bandit->mob_specials.rol_bandit_expire_at == 0)
-    bandit->mob_specials.rol_bandit_expire_at = now + (10 * SECS_PER_MUD_HOUR);
+    bandit->mob_specials.rol_bandit_expire_at = now + ((time_t)10 * SECS_PER_MUD_HOUR);
 
   if (cmd == 0)
   {
@@ -7182,7 +7182,7 @@ static void rol_shadow_giant_spook(struct char_data *ch, struct char_data *targe
       !rol_shadow_giant_stun_succeeds(GET_LEVEL(ch), rand_number(1, 100), rand_number(1, 5)))
     return;
 
-  attach_mud_event(new_mud_event(eSTUNNED, target, NULL), PULSE_VIOLENCE * rand_number(1, 3));
+  attach_mud_event(new_mud_event(eSTUNNED, target, NULL), (long)PULSE_VIOLENCE * rand_number(1, 3));
 }
 
 int rol_shadow_giant(struct char_data *ch, void *me, int cmd, const char *argument)
@@ -7874,7 +7874,7 @@ static int rol_weapon_shadow_dagger(struct spec_event_context *context, struct c
   act("Swirling shadows lift your $p and drive it repeatedly into $N!", FALSE, ch, obj, victim,
       TO_CHAR);
   if (can_stun(victim) && !char_has_mud_event(victim, eSTUNNED))
-    attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), PULSE_VIOLENCE * 2);
+    attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), (long)PULSE_VIOLENCE * 2);
   amount = rand_number(150, 200);
   result = rol_weapon_damage(ch, victim, amount, DAM_PUNCTURE);
   if (result.status != SPEC_DAMAGE_TARGET_INVALIDATED && !affected_by_spell(ch, SPELL_MAGE_ARMOR) &&
@@ -8192,7 +8192,7 @@ static int rol_weapon_tahlshara(struct char_data *ch, struct obj_data *obj,
   if (can_stun(victim))
   {
     if (!char_has_mud_event(victim, eSTUNNED))
-      attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), PULSE_VIOLENCE);
+      attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), (long)PULSE_VIOLENCE);
     change_position(victim, POS_SITTING);
   }
   GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + 250);
@@ -8210,7 +8210,8 @@ static int rol_weapon_rockcrusher(struct char_data *ch, struct obj_data *obj,
   if (can_stun(victim))
   {
     if (!char_has_mud_event(victim, eSTUNNED))
-      attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), PULSE_VIOLENCE * rand_number(1, 3));
+      attach_mud_event(new_mud_event(eSTUNNED, victim, NULL),
+                       (long)PULSE_VIOLENCE * rand_number(1, 3));
     change_position(victim, POS_SITTING);
   }
   return TRUE;
@@ -8241,7 +8242,7 @@ static int rol_weapon_entangling_root(struct char_data *ch, struct obj_data *obj
   affect.modifier = -2;
   SET_BIT_AR(affect.bitvector, AFF_ENTANGLED);
   affect_to_char(victim, &affect);
-  NEW_EVENT(eROL_YGGDRASIL_RELEASE, victim, NULL, PULSE_VIOLENCE * 8);
+  NEW_EVENT(eROL_YGGDRASIL_RELEASE, victim, NULL, (long)PULSE_VIOLENCE * 8);
   return TRUE;
 }
 
@@ -8450,7 +8451,7 @@ static int rol_barbazu_glaive(struct char_data *ch, struct obj_data *obj, struct
       TO_VICT);
   act("$n sends a wicked slash across $N, opening a deep wound.", FALSE, ch, obj, victim,
       TO_NOTVICT);
-  attach_mud_event(new_mud_event(eROL_BARBAZU_BLOODLOSS, victim, NULL), PULSE_VIOLENCE * 3);
+  attach_mud_event(new_mud_event(eROL_BARBAZU_BLOODLOSS, victim, NULL), (long)PULSE_VIOLENCE * 3);
   return TRUE;
 }
 
@@ -9064,8 +9065,8 @@ static int rol_weapon_hit(struct spec_event_context *context,
     weapon = unequip_char(victim, victim_slot);
     obj_to_room(weapon, IN_ROOM(ch));
     change_position(victim, POS_SITTING);
-    SET_WAIT(victim, PULSE_VIOLENCE * 2);
-    SET_WAIT(ch, PULSE_VIOLENCE);
+    SET_WAIT(victim, (long)PULSE_VIOLENCE * 2);
+    SET_WAIT(ch, (long)PULSE_VIOLENCE);
     return TRUE;
   }
   case ROL_WEAPON_UM_UNDEAD_TRIDENT:
@@ -9243,7 +9244,7 @@ static int rol_weapon_hit(struct spec_event_context *context,
     result = rol_weapon_damage(ch, victim, dice(8, 10), DAM_MENTAL);
     if (result.status != SPEC_DAMAGE_TARGET_INVALIDATED && rand_number(0, 5) == 0 &&
         can_stun(victim) && !char_has_mud_event(victim, eSTUNNED))
-      attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), PULSE_VIOLENCE);
+      attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), (long)PULSE_VIOLENCE);
     return TRUE;
   case ROL_WEAPON_GITHYANKI_TWO_HANDED:
     return rol_weapon_githyanki_two_handed(ch, obj, victim);

@@ -1789,7 +1789,7 @@ void Test_pet_lifetime_survives_snapshot_restore_and_keeper_release(CuTest *tc)
   GET_CHA(&fixture.owner) = 14;
   /* first_pet: timed control (charm affect).  second_pet: 90 second deadline.
    * session_pet: an ordinary summon with neither. */
-  attach_mud_event(new_mud_event(ePURGEMOB, &fixture.second_pet, NULL), 90 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(ePURGEMOB, &fixture.second_pet, NULL), (long)90 * PASSES_PER_SEC);
   clear_char(&session_pet);
   SET_BIT_AR(MOB_FLAGS(&session_pet), MOB_ISNPC);
   SET_BIT_AR(AFF_FLAGS(&session_pet), AFF_CHARM);
@@ -2380,7 +2380,7 @@ void Test_pet_bounded_restore_selects_capacity_and_stables_the_rest(CuTest *tc)
   GET_CHA(&fixture.owner) = 10;
 
   /* first_pet: timed control, keeper-eligible.  second_pet: real-time deadline. */
-  attach_mud_event(new_mud_event(ePURGEMOB, &fixture.second_pet, NULL), 900 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(ePURGEMOB, &fixture.second_pet, NULL), (long)900 * PASSES_PER_SEC);
   timed_saved = create_pet_snapshot_temporary_schema(connection) &&
                 save_char_pets(&fixture.owner) &&
                 query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 2;

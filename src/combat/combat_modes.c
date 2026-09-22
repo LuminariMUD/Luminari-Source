@@ -378,7 +378,7 @@ ACMD(do_spellbattle)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
 
   SET_BIT_AR(AFF_FLAGS(ch), AFF_SPELLBATTLE);
-  attach_mud_event(new_mud_event(eSPELLBATTLE, ch, NULL), 1 * SECS_PER_REAL_HOUR);
+  attach_mud_event(new_mud_event(eSPELLBATTLE, ch, NULL), (long)1 * (long)SECS_PER_REAL_HOUR);
 }
 
 #undef SPELLBATTLE_CAP

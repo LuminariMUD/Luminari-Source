@@ -74,7 +74,7 @@ static bool schedule_ready_expiry(struct ready_action *action)
     return false;
   expiry->owner = action->owner;
   if (event_runtime_schedule_owned_after(ready_expiry_event_type, ready_owner(action->owner),
-                                         6 * PASSES_PER_SEC, expiry,
+                                         (game_tick_t)6 * PASSES_PER_SEC, expiry,
                                          &action->expiry_handle) != GAME_SCHEDULER_OK)
   {
     free(expiry);

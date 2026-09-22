@@ -1042,7 +1042,7 @@ static void verify_native_mover_lifecycle(CuTest *tc, int mode)
   }
   if (mode == 2)
   {
-    pulse += 100 * PASSES_PER_SEC;
+    pulse += (unsigned long)100 * PASSES_PER_SEC;
     event_test_advance();
   }
   else

@@ -77,12 +77,12 @@ static void log_resource_usage(const char *phase)
     if (rlim.rlim_cur == RLIM_INFINITY)
       fprintf(diag_file, "unlimited/");
     else
-      fprintf(diag_file, "%ld MB/", (long)(rlim.rlim_cur / (1024 * 1024)));
+      fprintf(diag_file, "%ld MB/", (long)(rlim.rlim_cur / ((rlim_t)1024 * 1024)));
 
     if (rlim.rlim_max == RLIM_INFINITY)
       fprintf(diag_file, "unlimited\n");
     else
-      fprintf(diag_file, "%ld MB\n", (long)(rlim.rlim_max / (1024 * 1024)));
+      fprintf(diag_file, "%ld MB\n", (long)(rlim.rlim_max / ((rlim_t)1024 * 1024)));
   }
 
   /* Check core dump limit */
@@ -94,7 +94,7 @@ static void log_resource_usage(const char *phase)
     else if (rlim.rlim_cur == RLIM_INFINITY)
       fprintf(diag_file, "unlimited\n");
     else
-      fprintf(diag_file, "%ld MB\n", (long)(rlim.rlim_cur / (1024 * 1024)));
+      fprintf(diag_file, "%ld MB\n", (long)(rlim.rlim_cur / ((rlim_t)1024 * 1024)));
   }
 
   fflush(diag_file);

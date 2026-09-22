@@ -1246,7 +1246,7 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
         time_t time_since_enabled = current_time - GET_PVP_TIMER(PREFEDIT_GET_CHAR);
         int minutes_remaining = (int)(15 - (time_since_enabled / 60));
 
-        if (time_since_enabled < (15 * 60)) /* 15 minutes in seconds */
+        if (time_since_enabled < ((time_t)15 * 60)) /* 15 minutes in seconds */
         {
           send_to_char(d->character,
                        "You must wait %d more minute%s before you can disable your PvP flag.\r\n",

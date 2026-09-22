@@ -724,11 +724,11 @@ void Test_necromancer_tough_as_bone_blocks_timed_stun_events_at_admission(CuTest
   event_init();
 
   SET_FEAT(&ch, FEAT_TOUGH_AS_BONE, 1);
-  attach_mud_event(new_mud_event(eSTUNNED, &ch, NULL), 6 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eSTUNNED, &ch, NULL), (long)6 * PASSES_PER_SEC);
   immune_has_event = char_has_mud_event(&ch, eSTUNNED) != NULL;
 
   SET_FEAT(&ch, FEAT_TOUGH_AS_BONE, 0);
-  attach_mud_event(new_mud_event(eSTUNNED, &ch, NULL), 6 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eSTUNNED, &ch, NULL), (long)6 * PASSES_PER_SEC);
   ordinary_has_event = char_has_mud_event(&ch, eSTUNNED) != NULL;
 
   clear_char_event_list(&ch);

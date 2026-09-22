@@ -84,7 +84,7 @@ long rol_drow_decay_delay_pulses(int jitter_pulses)
 
   jitter_pulses = MAX(ROL_DROW_SOURCE_JITTER_MIN, MIN(ROL_DROW_SOURCE_JITTER_MAX, jitter_pulses));
   jitter = (long)jitter_pulses * PASSES_PER_SEC / ROL_DROW_SOURCE_PASSES_PER_SEC;
-  return (SECS_PER_MUD_HOUR * PASSES_PER_SEC) + jitter;
+  return ((long)SECS_PER_MUD_HOUR * PASSES_PER_SEC) + jitter;
 }
 
 bool rol_drow_reduce_object_value(struct obj_data *obj, int decay_modulus)

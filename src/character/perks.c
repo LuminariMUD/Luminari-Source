@@ -1117,7 +1117,7 @@ void use_command_the_weak_swift(struct char_data *ch)
   if (!has_blackguard_command_the_weak(ch))
     return;
   /* Start a short encounter cooldown (e.g., 120 seconds) */
-  attach_mud_event(new_mud_event(eINTIMIDATE_SWIFT, ch, NULL), 120 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eINTIMIDATE_SWIFT, ch, NULL), (long)120 * PASSES_PER_SEC);
 }
 
 /* ========================================================================
@@ -1421,7 +1421,7 @@ bool perform_midnight_edict(struct char_data *ch)
   }
 
   /* Start daily cooldown: 24 hours */
-  NEW_EVENT(eMIDNIGHT_EDICT, ch, NULL, 24 * 60 * 60 * PASSES_PER_SEC);
+  NEW_EVENT(eMIDNIGHT_EDICT, ch, NULL, (long)24 * 60 * 60 * PASSES_PER_SEC);
 
   send_to_char(ch, "You have affected %d enemies with your Midnight Edict.\r\n", affected_count);
   return TRUE;
@@ -1701,7 +1701,7 @@ bool activate_profane_weapon_bond(struct char_data *ch)
   act("\tD$n's weapon crackles with profane energy!\tn", FALSE, ch, 0, 0, TO_ROOM);
 
   /* Start encounter cooldown */
-  NEW_EVENT(ePROFANE_WEAPON_BOND, ch, NULL, 120 * PASSES_PER_SEC);
+  NEW_EVENT(ePROFANE_WEAPON_BOND, ch, NULL, (long)120 * PASSES_PER_SEC);
 
   return TRUE;
 }
@@ -1870,7 +1870,7 @@ ACMD(do_unholyblitz)
       FALSE, ch, 0, 0, TO_ROOM);
 
   /* Set encounter cooldown for next use */
-  NEW_EVENT(eUNHOLY_BLITZ, ch, NULL, SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+  NEW_EVENT(eUNHOLY_BLITZ, ch, NULL, (long)SECS_PER_MUD_HOUR * PASSES_PER_SEC);
 }
 
 /**
@@ -1908,7 +1908,7 @@ ACMD(do_avatarprofanity)
   act("\tR$n transforms into a terrifying avatar of profane power!\tn", FALSE, ch, 0, 0, TO_ROOM);
 
   /* Set daily cooldown (approximately 24 hours) */
-  NEW_EVENT(eAVATAR_OF_PROFANITY, ch, NULL, SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+  NEW_EVENT(eAVATAR_OF_PROFANITY, ch, NULL, (long)SECS_PER_MUD_HOUR * PASSES_PER_SEC);
 }
 
 /**
@@ -1978,7 +1978,7 @@ ACMD(do_cataclysmsmite)
   }
 
   /* Set daily cooldown */
-  NEW_EVENT(eCATACLYSMIC_SMITE, ch, NULL, SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+  NEW_EVENT(eCATACLYSMIC_SMITE, ch, NULL, (long)SECS_PER_MUD_HOUR * PASSES_PER_SEC);
 }
 
 /**
@@ -2023,7 +2023,7 @@ ACMD(do_sinisterrecovery)
     }
   }
 
-  NEW_EVENT(eSINISTER_RECOVERY, ch, NULL, SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+  NEW_EVENT(eSINISTER_RECOVERY, ch, NULL, (long)SECS_PER_MUD_HOUR * PASSES_PER_SEC);
 }
 
 /**
@@ -2058,7 +2058,7 @@ ACMD(do_shadestep)
   act("\tD$n blurs, stepping through the shadows with unsettling grace.\tn", FALSE, ch, 0, 0,
       TO_ROOM);
 
-  NEW_EVENT(eSHADE_STEP, ch, NULL, 60 * PASSES_PER_SEC);
+  NEW_EVENT(eSHADE_STEP, ch, NULL, (long)60 * PASSES_PER_SEC);
 }
 
 /**
@@ -2101,7 +2101,7 @@ void trigger_relentless_assault(struct char_data *ch)
   /* Grant extra attack (implementation hook needed in combat code) */
   /* TODO: Hook into combat system to grant extra attack */
 
-  NEW_EVENT(eRELENTLESS_ASSAULT, ch, NULL, 6 * PASSES_PER_SEC);
+  NEW_EVENT(eRELENTLESS_ASSAULT, ch, NULL, (long)6 * PASSES_PER_SEC);
 }
 
 /**
@@ -2185,7 +2185,7 @@ void trigger_blackguard_graveborn_vigor(struct char_data *ch)
   int temp_hp = MAX(5, CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 2 + GET_CHA_BONUS(ch));
   GET_HIT(ch) = MIN(GET_MAX_HIT(ch) + 50, GET_HIT(ch) + temp_hp);
   send_to_char(ch, "\tWProfane vigor knits your wounds! (+%d hp)\tn\r\n", temp_hp);
-  NEW_EVENT(eGRAVEBORN_VIGOR, ch, NULL, 5 * 60 * PASSES_PER_SEC);
+  NEW_EVENT(eGRAVEBORN_VIGOR, ch, NULL, (long)5 * 60 * PASSES_PER_SEC);
 }
 
 bool has_blackguard_sinister_recovery(struct char_data *ch)
@@ -2458,7 +2458,7 @@ bool trigger_blackguard_undying_vigor(struct char_data *ch)
   act("\tW$n's eyes flash with unholy light as $e refuses to die!\tn", FALSE, ch, 0, 0, TO_ROOM);
 
   /* Set daily cooldown (24 in-game hours) */
-  NEW_EVENT(eUNDYING_VIGOR, ch, NULL, 24 * SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+  NEW_EVENT(eUNDYING_VIGOR, ch, NULL, (long)24 * SECS_PER_MUD_HOUR * PASSES_PER_SEC);
 
   return TRUE;
 }
@@ -3722,7 +3722,7 @@ void use_singular_impact(struct char_data *ch, struct char_data *victim)
 
   /* Mark as used for the day */
   attach_mud_event(new_mud_event(eSINGULAR_IMPACT_USED, ch, NULL),
-                   24 * 60 * PASSES_PER_SEC); /* 24 hours */
+                   (long)24 * 60 * PASSES_PER_SEC); /* 24 hours */
 }
 
 bool has_perfect_deflection(struct char_data *ch)
@@ -3750,7 +3750,7 @@ void use_perfect_deflection(struct char_data *ch)
   /* The actual reflection logic will be handled in the attack code */
   /* This just marks it as used */
   attach_mud_event(new_mud_event(ePERFECT_DEFLECTION_USED, ch, NULL),
-                   24 * 60 * PASSES_PER_SEC); /* 24 hours */
+                   (long)24 * 60 * PASSES_PER_SEC); /* 24 hours */
 
   send_to_char(ch, "\tCYou prepare to deflect the next attack against you!\tn\r\n");
 }
@@ -3994,7 +3994,8 @@ void use_astral_juggernaut(struct char_data *ch)
   if (!can_use_astral_juggernaut(ch))
     return;
   /* Mark as used for 24 hours (daily cooldown) */
-  attach_mud_event(new_mud_event(eASTRAL_JUGGERNAUT_USED, ch, NULL), 24 * 60 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eASTRAL_JUGGERNAUT_USED, ch, NULL),
+                   (long)24 * 60 * PASSES_PER_SEC);
 }
 
 bool has_perfect_fabricator(struct char_data *ch)
@@ -4016,7 +4017,8 @@ void use_perfect_fabricator(struct char_data *ch)
   if (!can_use_perfect_fabricator(ch))
     return;
   /* Mark as used for 24 hours (daily cooldown) */
-  attach_mud_event(new_mud_event(ePERFECT_FABRICATOR_USED, ch, NULL), 24 * 60 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(ePERFECT_FABRICATOR_USED, ch, NULL),
+                   (long)24 * 60 * PASSES_PER_SEC);
 }
 
 /* Lookup functions */

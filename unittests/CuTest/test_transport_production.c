@@ -2147,7 +2147,7 @@ void Test_vessel_pvp_logout_grace_is_bounded_and_opponent_specific(CuTest *tc)
   CuAssertTrue(tc, ship.pvp_grace_attacker[0] == '\0');
 
   /* The persisted consent snapshot must not break the 5 KiB base budget. */
-  CuAssertTrue(tc, sizeof(struct greyhawk_ship_data) <= 5 * 1024);
+  CuAssertTrue(tc, sizeof(struct greyhawk_ship_data) <= (size_t)5 * 1024);
 }
 
 void Test_vessel_message_throttling_is_keyed_per_ship(CuTest *tc)

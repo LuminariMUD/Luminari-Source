@@ -2165,11 +2165,11 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
     ntime = (min * SECS_PER_MUD_HOUR * PASSES_PER_SEC) / 60;
 
     /* calculate pulse of day of current time */
-    when = (pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)) +
-           (time_info.hours * SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+    when = (pulse % ((unsigned long)SECS_PER_MUD_HOUR * PASSES_PER_SEC)) +
+           ((unsigned long)time_info.hours * SECS_PER_MUD_HOUR * PASSES_PER_SEC);
 
     if (when >= ntime) /* adjust for next day */
-      when = (SECS_PER_MUD_DAY * PASSES_PER_SEC) - when + ntime;
+      when = ((long)SECS_PER_MUD_DAY * PASSES_PER_SEC) - when + ntime;
     else
       when = ntime - when;
   }
@@ -2178,7 +2178,7 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
     if (sscanf(arg, "%ld %c", &when, &c) == 2)
     {
       if (c == 't')
-        when *= PULSES_PER_MUD_HOUR;
+        when *= (long)PULSES_PER_MUD_HOUR;
       else if (c == 's')
         when *= PASSES_PER_SEC;
     }

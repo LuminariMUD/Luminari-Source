@@ -88,16 +88,17 @@ static struct game_event_owner room_owner(struct room_data *room)
 
 static long next_round_delay(void)
 {
-  unsigned long remainder = pulse % PULSE_VIOLENCE;
+  unsigned long remainder = pulse % (unsigned long)PULSE_VIOLENCE;
 
-  return remainder == 0U ? PULSE_VIOLENCE : (long)(PULSE_VIOLENCE - remainder);
+  return remainder == 0U ? (long)PULSE_VIOLENCE : (long)((unsigned long)PULSE_VIOLENCE - remainder);
 }
 
 static long next_room_delay(void)
 {
-  unsigned long luminari_remainder = pulse % PULSE_LUMINARI;
-  long luminari_delay =
-      luminari_remainder == 0U ? PULSE_LUMINARI : (long)(PULSE_LUMINARI - luminari_remainder);
+  unsigned long luminari_remainder = pulse % (unsigned long)PULSE_LUMINARI;
+  long luminari_delay = luminari_remainder == 0U
+                            ? (long)PULSE_LUMINARI
+                            : (long)((unsigned long)PULSE_LUMINARI - luminari_remainder);
   long round_delay = next_round_delay();
 
   return luminari_delay < round_delay ? luminari_delay : round_delay;
@@ -206,7 +207,7 @@ static struct game_event_result affected_character_event(const struct game_event
   character_nodes_processed += affect_update_character_one(ch);
   if (!runtime_handle_matches(ch->affected_event_handle, context))
     return game_event_result_complete();
-  return game_event_result_reschedule_after(PULSE_VIOLENCE);
+  return game_event_result_reschedule_after((game_tick_t)PULSE_VIOLENCE);
 }
 
 /* The owner wakes for the earliest of two cadences. A delayed wake may cross
@@ -228,7 +229,7 @@ static uint64_t room_cadences_due(const struct game_event_context *context, uint
 static struct game_event_result affected_room_event(const struct game_event_context *context)
 {
   struct room_data *room = context != NULL ? context->payload : NULL;
-  uint64_t rounds_due = room_cadences_due(context, PULSE_VIOLENCE);
+  uint64_t rounds_due = room_cadences_due(context, (uint64_t)PULSE_VIOLENCE);
 
   if (room == NULL)
     return game_event_result_complete();
@@ -246,7 +247,8 @@ static struct game_event_result affected_room_event(const struct game_event_cont
   }
   if (rounds_due != 0U)
   {
-    room_nodes_processed += affect_update_room_until(room, context->now_tick / PULSE_VIOLENCE);
+    room_nodes_processed +=
+        affect_update_room_until(room, context->now_tick / (game_tick_t)PULSE_VIOLENCE);
     if (!room->affected_registered || room->affected_head == NULL ||
         event_runtime_handle_is_none(room->affected_event_handle))
     {
@@ -260,7 +262,7 @@ static struct game_event_result affected_room_event(const struct game_event_cont
       return game_event_result_complete();
     }
   }
-  if (room_cadences_due(context, PULSE_LUMINARI) != 0U)
+  if (room_cadences_due(context, (uint64_t)PULSE_LUMINARI) != 0U)
   {
     room_behavior_executions++;
     room_behavior_nodes_processed += process_room_affect_activity(room);
@@ -371,7 +373,7 @@ void affected_room_owner_add(struct raff_node *raff)
     return;
   if (!raff->lifetime_initialized)
   {
-    raff->lifetime_round = (uint64_t)pulse / PULSE_VIOLENCE;
+    raff->lifetime_round = (uint64_t)pulse / (uint64_t)PULSE_VIOLENCE;
     raff->lifetime_initialized = true;
   }
   room = &world[raff->room];

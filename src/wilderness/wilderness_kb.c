@@ -485,7 +485,7 @@ struct landmass_info *detect_landmasses(FILE *fp)
     CREATE(visited[y], int, MAP_WIDTH);
     memset(visited[y], 0, MAP_WIDTH * sizeof(int));
   }
-  WILD_DEBUG_MEM("Visited array", MAP_WIDTH * MAP_HEIGHT * sizeof(int));
+  WILD_DEBUG_MEM("Visited array", (size_t)MAP_WIDTH * MAP_HEIGHT * sizeof(int));
 
   /* Allocate stack dynamically for larger landmasses */
   CREATE(stack_x, int, MAX_STACK_SIZE);
@@ -670,7 +670,7 @@ void trace_mountain_ranges(FILE *fp)
     CREATE(visited[y], int, MAP_WIDTH);
     memset(visited[y], 0, MAP_WIDTH * sizeof(int));
   }
-  WILD_DEBUG_MEM("Mountain visited array", MAP_WIDTH * MAP_HEIGHT * sizeof(int));
+  WILD_DEBUG_MEM("Mountain visited array", (size_t)MAP_WIDTH * MAP_HEIGHT * sizeof(int));
 
   report_progress("Tracing mountain ranges", 0);
 
@@ -3489,10 +3489,10 @@ void calculate_dijkstra_paths(FILE *fp, int source_x, int source_y, int dest_x, 
   if (max_search_radius > 500)
     max_search_radius = 500; /* Cap at reasonable size */
 
-  CREATE(distance, double, MAP_WIDTH *MAP_HEIGHT);
-  CREATE(visited, int, MAP_WIDTH *MAP_HEIGHT);
-  CREATE(previous_x, int, MAP_WIDTH *MAP_HEIGHT);
-  CREATE(previous_y, int, MAP_WIDTH *MAP_HEIGHT);
+  CREATE(distance, double, (size_t)MAP_WIDTH *MAP_HEIGHT);
+  CREATE(visited, int, (size_t)MAP_WIDTH *MAP_HEIGHT);
+  CREATE(previous_x, int, (size_t)MAP_WIDTH *MAP_HEIGHT);
+  CREATE(previous_y, int, (size_t)MAP_WIDTH *MAP_HEIGHT);
 
   for (i = 0; i < MAP_WIDTH * MAP_HEIGHT; i++)
   {

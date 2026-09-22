@@ -7107,7 +7107,7 @@ static int perform_complex_alias(struct txt_q *input_q, char *orig, struct alias
       temp++;
       if ((num = *temp - '1') < num_of_tokens && num >= 0)
       {
-        if ((write_point - buf) + strlen(tokens[num]) >= MAX_RAW_INPUT_LENGTH)
+        if ((write_point - buf) + strlen(tokens[num]) >= (size_t)MAX_RAW_INPUT_LENGTH)
           goto overflow;
         strlcpy(write_point, tokens[num], sizeof(buf) - (size_t)(write_point - buf));
         write_point += strlen(tokens[num]);
@@ -7115,14 +7115,14 @@ static int perform_complex_alias(struct txt_q *input_q, char *orig, struct alias
       else if (*temp == ALIAS_GLOB_CHAR)
       {
         skip_spaces(&orig);
-        if ((write_point - buf) + strlen(orig) >= MAX_RAW_INPUT_LENGTH)
+        if ((write_point - buf) + strlen(orig) >= (size_t)MAX_RAW_INPUT_LENGTH)
           goto overflow;
         strlcpy(write_point, orig, sizeof(buf) - (size_t)(write_point - buf));
         write_point += strlen(orig);
       }
       else
       {
-        if ((write_point - buf) + 2 >= MAX_RAW_INPUT_LENGTH)
+        if ((write_point - buf) + 2 >= (ptrdiff_t)MAX_RAW_INPUT_LENGTH)
           goto overflow;
         if ((*(write_point++) = *temp) == '$') /* redouble $ for act safety */
           *(write_point++) = '$';
@@ -7130,7 +7130,7 @@ static int perform_complex_alias(struct txt_q *input_q, char *orig, struct alias
     }
     else
     {
-      if ((write_point - buf) + 1 >= MAX_RAW_INPUT_LENGTH)
+      if ((write_point - buf) + 1 >= (ptrdiff_t)MAX_RAW_INPUT_LENGTH)
         goto overflow;
       *(write_point++) = *temp;
     }

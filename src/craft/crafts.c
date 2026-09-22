@@ -1025,7 +1025,7 @@ static long catalog_craft_step(struct char_data *ch, void *target, void *context
   {
     act("You struggle in your attempt to craft, but you continue on.", TRUE, ch, 0, 0, TO_CHAR);
     act("$n struggles in $s attempt to craft.", TRUE, ch, 0, 0, TO_NOTVICT);
-    return CRAFT_TIMER(craft) * PASSES_PER_SEC;
+    return (long)CRAFT_TIMER(craft) * PASSES_PER_SEC;
   }
   remove_components(ch, craft, FALSE);
   act("You mess up your attempt to craft.", TRUE, ch, 0, 0, TO_CHAR);
@@ -1051,7 +1051,7 @@ static bool start_catalog_craft(struct char_data *ch, struct craft_data *craft)
   definition.progress_model = PRIMARY_ACTIVITY_PROGRESS_PROGRESSIVE;
   definition.progress_owner = PRIMARY_ACTIVITY_PROGRESS_CHARACTER;
   definition.total_steps = 1U;
-  definition.step_interval = MAX(1, CRAFT_TIMER(craft)) * PASSES_PER_SEC;
+  definition.step_interval = (long)MAX(1, CRAFT_TIMER(craft)) * PASSES_PER_SEC;
   definition.wall_clock = true;
   definition.movement_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
   definition.damage_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;

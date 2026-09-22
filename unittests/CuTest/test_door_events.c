@@ -732,14 +732,14 @@ static void verify_ready_expiry_after_combat_admission(CuTest *tc, bool counters
   do_ready(&f.owner, counterspell ? "counterspell caster on casting" : "attack caster on casting",
            0, 0);
   CuAssertPtrNotNull(tc, f.owner.ready_action);
-  pulse = start + 3 * PASSES_PER_SEC;
+  pulse = start + (unsigned long)3 * PASSES_PER_SEC;
   FIGHTING(&f.owner) = &target;
   domain_event_runtime_combat_state_changed(&f.owner, &target, true);
   CuAssertTrue(tc, combat_encounter_join(&f.owner, &target, PASSES_PER_SEC));
-  pulse = start + 6 * PASSES_PER_SEC;
+  pulse = start + (unsigned long)6 * PASSES_PER_SEC;
   event_test_advance();
   CuAssertPtrNotNull(tc, f.owner.ready_action);
-  pulse = start + 9 * PASSES_PER_SEC;
+  pulse = start + (unsigned long)9 * PASSES_PER_SEC;
   event_test_advance();
   CuAssertTrue(tc, expired_before_turn);
   CuAssertPtrEquals(tc, NULL, f.owner.ready_action);

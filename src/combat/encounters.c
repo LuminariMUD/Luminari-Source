@@ -1736,8 +1736,8 @@ void check_random_encounter(struct char_data *ch)
           GET_LEVEL(mob) = MAX(1, highest_level - 2);
           autoroll_mob(mob, TRUE, FALSE);
           GET_REAL_SIZE(mob) = encounter_table[j].size;
-          award_set_points(mob, AWARD_EXPERIENCE, (GET_LEVEL(mob) * GET_LEVEL(mob) * 75));
-          award_set_points(mob, AWARD_GOLD, (GET_LEVEL(mob) * 10));
+          award_set_points(mob, AWARD_EXPERIENCE, ((long)GET_LEVEL(mob) * GET_LEVEL(mob) * 75));
+          award_set_points(mob, AWARD_GOLD, ((long)GET_LEVEL(mob) * 10));
           set_alignment(mob, encounter_table[j].alignment);
           // set flags
           SET_BIT_AR(MOB_FLAGS(mob), MOB_ENCOUNTER);

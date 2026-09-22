@@ -147,7 +147,7 @@ bool rol_shaman_totem_consume_weekly_use(struct char_data *ch, time_t now)
   if (ch == NULL || now < 0)
     return false;
 
-  current_day = (int)(now / SECS_PER_MUD_DAY);
+  current_day = (int)(now / (time_t)SECS_PER_MUD_DAY);
   if (GET_ROL_TOTEM_WINDOW(ch) <= current_day)
   {
     GET_ROL_TOTEM_USES(ch) = 0;

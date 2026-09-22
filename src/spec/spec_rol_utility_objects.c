@@ -252,7 +252,7 @@ static int rol_utility_spiderhaunt_maggots(struct char_data *ch, struct obj_data
       GET_COND(ch, HUNGER) > 20 || char_has_mud_event(ch, eROL_SPIDERHAUNT_MAGGOTS) != NULL)
     return FALSE;
 
-  NEW_EVENT(eROL_SPIDERHAUNT_MAGGOTS, ch, NULL, ROL_SPIDERHAUNT_MAGGOTS_DELAY);
+  NEW_EVENT(eROL_SPIDERHAUNT_MAGGOTS, ch, NULL, (long)ROL_SPIDERHAUNT_MAGGOTS_DELAY);
   return FALSE;
 }
 
@@ -930,8 +930,8 @@ static int rol_utility_lathander_disc(struct spec_event_context *context, struct
   ch->player.time.birth = time(NULL);
   GET_POS(ch) = POS_SLEEPING;
   if (!char_has_mud_event(ch, eSTUNNED))
-    attach_mud_event(new_mud_event(eSTUNNED, ch, NULL), PULSE_VIOLENCE * rand_number(5, 8));
-  SET_WAIT(ch, PULSE_VIOLENCE);
+    attach_mud_event(new_mud_event(eSTUNNED, ch, NULL), (long)PULSE_VIOLENCE * rand_number(5, 8));
+  SET_WAIT(ch, (long)PULSE_VIOLENCE);
   extract_obj(obj);
   context->invalidation |= SPEC_INVALIDATE_OWNER;
   return TRUE;
@@ -1056,8 +1056,8 @@ static int rol_utility_smoke_shield(struct spec_event_context *context, struct c
     act("A crackling bolt leaps from your $p and violently jolts $N!", FALSE, ch, obj, victim,
         TO_CHAR);
     if (can_stun(victim) && !char_has_mud_event(victim, eSTUNNED))
-      attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), PULSE_VIOLENCE * 2);
-    SET_WAIT(ch, PULSE_VIOLENCE * 2);
+      attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), (long)PULSE_VIOLENCE * 2);
+    SET_WAIT(ch, (long)PULSE_VIOLENCE * 2);
     return TRUE;
   }
   if (context->event != SPEC_EVENT_DEFENSE_REACTION || context->argument == NULL ||
@@ -1122,7 +1122,7 @@ static int rol_utility_called_effect(struct spec_event_context *context,
   case ROL_UTILITY_CRESCENT_MOON:
     act("Moonlight spills from your $p as shadows wrap around you.", FALSE, ch, obj, NULL, TO_CHAR);
     (void)call_magic(ch, ch, NULL, SPELL_INVISIBLE, 0, 51, CAST_INNATE);
-    SET_WAIT(ch, PULSE_VIOLENCE);
+    SET_WAIT(ch, (long)PULSE_VIOLENCE);
     break;
   case ROL_UTILITY_HASTE_SLEEVES:
     act("Your $p vibrates with power and every motion accelerates.", FALSE, ch, obj, NULL, TO_CHAR);

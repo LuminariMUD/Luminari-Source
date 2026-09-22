@@ -616,7 +616,7 @@ void mysql_pool_shrink(void)
   while (pc && mysql_pool->current_size > MYSQL_POOL_MIN_SIZE)
   {
     /* Check if connection is idle and old */
-    if (pc->state == CONN_STATE_FREE && (now - pc->last_used) > (MYSQL_POOL_TIMEOUT * 2))
+    if (pc->state == CONN_STATE_FREE && (now - pc->last_used) > ((time_t)MYSQL_POOL_TIMEOUT * 2))
     {
       /* Remove this connection */
       to_remove = pc;
@@ -2502,7 +2502,7 @@ void load_regions()
             " (%s) - resets every %d seconds",
             region_table[j].vnum, region_table[j].name, region_table[j].reset_time);
         NEW_EVENT(eENCOUNTER_REG_RESET, &vnum, region_table[j].reset_data,
-                  region_table[j].reset_time RL_SEC);
+                  (long)region_table[j].reset_time RL_SEC);
       }
     }
   }

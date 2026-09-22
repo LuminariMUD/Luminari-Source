@@ -7417,7 +7417,7 @@ void free_obj(struct obj_data *obj)
 }
 
 /* Cap text file loads to guard against runaway allocations */
-static const size_t MAX_TEXT_FILE_SIZE = 512 * 1024;
+static const size_t MAX_TEXT_FILE_SIZE = (size_t)512 * 1024;
 
 /* Steps: 1: Read contents of a text file. 2: Make sure no one is using the
  * pointer in paging. 3: Allocate space. 4: Point 'buf' to it. */

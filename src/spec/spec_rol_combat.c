@@ -1203,7 +1203,7 @@ static void rol_monster_stun(struct char_data *victim, int rounds)
     GET_POS(victim) = POS_SITTING;
   resetCastingData(victim);
   if (can_stun(victim) && char_has_mud_event(victim, eSTUNNED) == NULL)
-    attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), PULSE_VIOLENCE * rounds);
+    attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), (long)PULSE_VIOLENCE * rounds);
 }
 
 static struct char_data *rol_monster_random_player(struct char_data *ch)
@@ -1459,7 +1459,7 @@ static int rol_monster_trahern_quake(struct char_data *ch)
     send_to_char(victim, "You lose your balance and fall down!\r\n");
     act("$n loses $s balance and falls down!", FALSE, victim, NULL, NULL, TO_ROOM);
     change_position(victim, POS_SITTING);
-    SET_WAIT(victim, PULSE_VIOLENCE);
+    SET_WAIT(victim, (long)PULSE_VIOLENCE);
   }
   return FALSE;
 }
@@ -1998,7 +1998,7 @@ static int rol_planar_vrock_screech(struct char_data *ch, time_t now)
       continue;
     rol_monster_stun(victim, 1);
   }
-  ch->mob_specials.rol_planar_screech_ready_at = now + SECS_PER_MUD_DAY;
+  ch->mob_specials.rol_planar_screech_ready_at = now + (time_t)SECS_PER_MUD_DAY;
   return TRUE;
 }
 
@@ -2018,7 +2018,7 @@ static int rol_planar_vrock_spores(struct spec_event_context *context, struct ch
       TO_CHAR);
   act("$n raises $s wings and showers you with a cloud of spores.", FALSE, ch, NULL, victim,
       TO_VICT);
-  ch->mob_specials.rol_planar_spore_ready_at = now + ROL_PLANAR_HIT_BURST_COOLDOWN;
+  ch->mob_specials.rol_planar_spore_ready_at = now + (time_t)ROL_PLANAR_HIT_BURST_COOLDOWN;
   (void)rol_monster_successful_hit_damage(context, ch, victim, dice(10, 2), DAM_POISON);
   return TRUE;
 }
@@ -2223,7 +2223,7 @@ static int rol_planar_spinagon_spikes(struct spec_event_context *context, struct
     send_to_char(victim, "You scream as a flaming spike slams into your chest!\r\n");
     (void)rol_monster_successful_hit_damage(context, ch, victim, dice(20, 2), DAM_FIRE);
   }
-  ch->mob_specials.rol_planar_spike_ready_at = now + ROL_PLANAR_HIT_BURST_COOLDOWN;
+  ch->mob_specials.rol_planar_spike_ready_at = now + (time_t)ROL_PLANAR_HIT_BURST_COOLDOWN;
   return TRUE;
 }
 
@@ -3073,7 +3073,8 @@ static int rol_seelie_faerie_fire_activity(struct char_data *ch)
   send_to_char(ch, "You utter a magical word, and the area glows with purplish light.\r\n");
   act("$n utters a magical word, and the area glows with purplish light.", FALSE, ch, NULL, NULL,
       TO_ROOM);
-  attach_mud_event(new_mud_event(eROL_SEELIE_FAERIE_FIRE, ch, NULL), (3 * SECS_PER_MUD_DAY) RL_SEC);
+  attach_mud_event(new_mud_event(eROL_SEELIE_FAERIE_FIRE, ch, NULL),
+                   (long)(3 * SECS_PER_MUD_DAY) RL_SEC);
 
   for (target = world[IN_ROOM(ch)].people; target != NULL; target = next)
   {
@@ -3124,7 +3125,7 @@ static int rol_seelie_search_activity(struct char_data *ch)
       resetCastingData(target);
       rounds = rol_seelie_search_stun_rounds(GET_MOB_VNUM(ch));
       if (rounds > 0 && can_stun(target) && char_has_mud_event(target, eSTUNNED) == NULL)
-        attach_mud_event(new_mud_event(eSTUNNED, target, NULL), PULSE_VIOLENCE * rounds);
+        attach_mud_event(new_mud_event(eSTUNNED, target, NULL), (long)PULSE_VIOLENCE * rounds);
     }
     /* The source procedure consumes its event after the first eligible target. */
     return TRUE;
@@ -4144,7 +4145,7 @@ static int rol_monster_command(struct spec_event_context *context,
       !str_cmp(command, "disarm") && GET_LEVEL(actor) < LVL_IMMORT)
   {
     change_position(actor, POS_SITTING);
-    SET_WAIT(actor, PULSE_VIOLENCE * 3);
+    SET_WAIT(actor, (long)PULSE_VIOLENCE * 3);
     act("As you attempt a disarm, $n slides by and trips you with $s spear!", FALSE, ch, NULL,
         actor, TO_VICT);
     act("As $N attempts a disarm, $n slides by and flicks $N to the ground with $s spear!", FALSE,
@@ -4742,7 +4743,7 @@ static int rol_monster_warhorse_turn(struct spec_event_context *context, struct 
     act("$n charges you, knocks you flat, and tramples you!", FALSE, ch, NULL, victim, TO_VICT);
     act("$n charges $N, knocks $M flat, and tramples $M!", FALSE, ch, NULL, victim, TO_NOTVICT);
     change_position(victim, POS_RECLINING);
-    SET_WAIT(victim, PULSE_VIOLENCE * 3);
+    SET_WAIT(victim, (long)PULSE_VIOLENCE * 3);
     for (attack = 0; attack < 3; attack++)
     {
       amount = dice(MAX(1, GET_LEVEL(ch) / 10), 8) + GET_DAMROLL(ch) + 5;
@@ -4766,7 +4767,7 @@ static int rol_monster_warhorse_turn(struct spec_event_context *context, struct 
   if (result.status == SPEC_DAMAGE_TARGET_INVALIDATED)
     context->invalidation |= SPEC_INVALIDATE_TARGET;
   else
-    SET_WAIT(victim, PULSE_VIOLENCE * 2);
+    SET_WAIT(victim, (long)PULSE_VIOLENCE * 2);
   return TRUE;
 }
 
@@ -5133,7 +5134,7 @@ static int rol_monster_malodin_companion_activity(struct char_data *ch, bool gho
   if (ghost && FIGHTING(ch) != NULL && rand_number(0, 2) == 0 &&
       GET_LEVEL(FIGHTING(ch)) < LVL_IMMORT)
   {
-    FIGHTING(ch)->player.time.birth -= (time_t)dice(2, 20) * SECS_PER_MUD_YEAR;
+    FIGHTING(ch)->player.time.birth -= (time_t)dice(2, 20) * (time_t)SECS_PER_MUD_YEAR;
     send_to_char(FIGHTING(ch), "You feel decades older all of a sudden!\r\n");
   }
   return FALSE;

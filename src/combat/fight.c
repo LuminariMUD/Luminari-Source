@@ -5572,7 +5572,7 @@ static int resolve_damage_with_projectile(struct char_data *ch, struct char_data
       int dr = get_deflective_screen_first_hit_dr(victim);
       dam = MAX(0, dam - dr);
       attach_mud_event(new_mud_event(eDEFLECTIVE_SCREEN_HIT_THIS_ROUND, victim, NULL),
-                       10 * PASSES_PER_SEC);
+                       (long)10 * PASSES_PER_SEC);
     }
   }
 
@@ -5757,7 +5757,7 @@ static int resolve_damage_with_projectile(struct char_data *ch, struct char_data
         TO_VICT | TO_SLEEP);
     act("$n sensing a \tWdeath blow\tn from $N, unleashes a final attack!\tn", FALSE, victim, NULL,
         ch, TO_NOTVICT);
-    attach_mud_event(new_mud_event(eLAST_WORD, victim, NULL), (2 * SECS_PER_MUD_DAY));
+    attach_mud_event(new_mud_event(eLAST_WORD, victim, NULL), ((long)2 * (long)SECS_PER_MUD_DAY));
     if (ch && victim && IN_ROOM(ch) == IN_ROOM(victim) && GET_POS(ch) > POS_DEAD)
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
     if (ch && victim && IN_ROOM(ch) == IN_ROOM(victim) && GET_POS(ch) > POS_DEAD)
@@ -5778,7 +5778,7 @@ static int resolve_damage_with_projectile(struct char_data *ch, struct char_data
     act("$n times a \tWdefensive roll\tn perfectly and avoids an attack "
         "from $N!\tn",
         FALSE, victim, NULL, ch, TO_NOTVICT);
-    attach_mud_event(new_mud_event(eD_ROLL, victim, NULL), (2 * SECS_PER_MUD_DAY));
+    attach_mud_event(new_mud_event(eD_ROLL, victim, NULL), ((long)2 * (long)SECS_PER_MUD_DAY));
     return 0;
   }
 
@@ -5799,7 +5799,7 @@ static int resolve_damage_with_projectile(struct char_data *ch, struct char_data
         "from $N!\tn",
         FALSE, victim, NULL, ch, TO_NOTVICT);
 
-    attach_mud_event(new_mud_event(eLICH_REJUV, victim, NULL), (2 * SECS_PER_MUD_DAY));
+    attach_mud_event(new_mud_event(eLICH_REJUV, victim, NULL), ((long)2 * (long)SECS_PER_MUD_DAY));
 
     GET_HIT(victim) = GET_MAX_HIT(victim);
     GET_MOVE(victim) = GET_MAX_MOVE(victim);
@@ -5850,7 +5850,7 @@ static int resolve_damage_with_projectile(struct char_data *ch, struct char_data
       update_pos(k);
 
       /* Start 10 minute cooldown */
-      attach_mud_event(new_mud_event(eDIVINE_SACRIFICE, k, NULL), 10 * 60 * PASSES_PER_SEC);
+      attach_mud_event(new_mud_event(eDIVINE_SACRIFICE, k, NULL), (long)10 * 60 * PASSES_PER_SEC);
 
       if (GET_POS(k) == POS_DEAD)
         (void)dam_killed_vict(ch, k);
@@ -5935,7 +5935,7 @@ static int resolve_damage_with_projectile(struct char_data *ch, struct char_data
     {
       /* Attach event to track that they were hit this round (lasts 1 round) */
       attach_mud_event(new_mud_event(ePERFECT_TEMPO_HIT_THIS_ROUND, victim, NULL),
-                       10 * PASSES_PER_SEC); /* ~1 round */
+                       (long)10 * PASSES_PER_SEC); /* ~1 round */
     }
   }
 
@@ -8865,7 +8865,7 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
         { /* no event, so make one */
           pMudEvent = new_mud_event(eCRIPPLING_CRITICAL, victim, "1");
           /* create and attach new event, apply the first effect */
-          attach_mud_event(pMudEvent, 60 * PASSES_PER_SEC);
+          attach_mud_event(pMudEvent, (long)60 * PASSES_PER_SEC);
           pMudEvent = char_has_mud_event(victim, eCRIPPLING_CRITICAL);
         }
 
@@ -9010,7 +9010,7 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
       {
         dam += damage_holder * 2; /* triple total damage (base + 2x) */
         attach_mud_event(new_mud_event(eSAVAGE_CHARGE_USED, ch, NULL),
-                         60 * PASSES_PER_SEC); /* Mark as used this rage */
+                         (long)60 * PASSES_PER_SEC); /* Mark as used this rage */
 
         /* Knockdown with no save - but check NOBASH */
         if (victim && (!IS_NPC(victim) || !MOB_FLAGGED(victim, MOB_NOBASH)))
@@ -12781,7 +12781,7 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
 
         if (!char_has_mud_event(victim, eSTUNNED))
         {
-          attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), 6 * PASSES_PER_SEC);
+          attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), (long)6 * PASSES_PER_SEC);
         }
       }
       else
@@ -13352,7 +13352,7 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
             /* Apply the 1 round stun */
             if (!char_has_mud_event(victim, eSTUNNED))
             {
-              attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), 6 * PASSES_PER_SEC);
+              attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), (long)6 * PASSES_PER_SEC);
             }
 
             /* Apply 4 round cooldown on victim to prevent being pressure pointed again */
@@ -16708,7 +16708,7 @@ MUD_EVENT_CALLBACK(event_combat_round)
   snprintf(next_phase_text, sizeof(next_phase_text), "%u", next_phase);
   free(pMudEvent->sVariables);
   pMudEvent->sVariables = strdup(next_phase_text);
-  return 2 RL_SEC; /* 6 second rounds, hack! */
+  return (long)2 RL_SEC; /* 6 second rounds, hack! */
 }
 
 static void handle_cleave(struct char_data *ch)
@@ -16791,7 +16791,7 @@ static void handle_smash_defense(struct char_data *ch)
   send_to_char(ch, "\tW[Smash Defense]\tn");
   perform_knockdown(ch, vict, SKILL_BASH, true, true);
 
-  attach_mud_event(new_mud_event(eSMASH_DEFENSE, ch, NULL), 6 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eSMASH_DEFENSE, ch, NULL), (long)6 * PASSES_PER_SEC);
 
   return;
 }

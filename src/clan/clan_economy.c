@@ -214,7 +214,8 @@ void process_clan_investments(void)
   for (invest = clan_investments; invest;)
   {
     /* Check if investment has matured */
-    if ((current_time - invest->start_time) >= (invest->duration * SECS_PER_MUD_DAY))
+    if ((current_time - invest->start_time) >=
+        ((time_t)invest->duration * (time_t)SECS_PER_MUD_DAY))
     {
       /* Investment has matured - process it */
 

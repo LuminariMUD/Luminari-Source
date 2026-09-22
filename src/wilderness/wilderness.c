@@ -1097,7 +1097,7 @@ void mark_wilderness_room_occupied(room_rnum room)
   SET_BIT_AR(ROOM_FLAGS(room), ROOM_OCCUPIED);
   if (!room_has_mud_event(&world[room], eCHECK_OCCUPIED))
   {
-    NEW_EVENT(eCHECK_OCCUPIED, &world[room].number, NULL, 10 RL_SEC);
+    NEW_EVENT(eCHECK_OCCUPIED, &world[room].number, NULL, (long)10 RL_SEC);
   }
 }
 
@@ -1606,7 +1606,7 @@ void show_wilderness_map(struct char_data *ch, int size, int x, int y)
 
   for (i = 0; i < xsize; i++)
   {
-    map[i] = data + (i * ysize);
+    map[i] = data + ((ptrdiff_t)i * ysize);
   }
 
   get_map(xsize, ysize, x, y, map);
@@ -1747,7 +1747,7 @@ MUD_EVENT_CALLBACK(event_check_occupied)
   }
   else
   {
-    return 10 RL_SEC; /* Keep checking every 10 seconds. */
+    return (long)10 RL_SEC; /* Keep checking every 10 seconds. */
   }
 
   /* If we got here something went terribly wrong. */
@@ -1778,7 +1778,7 @@ char *gen_ascii_wilderness_map(int size, int x, int y, int map_type)
   for (i = 0; i < xsize; i++)
   {
     /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- CREATE sized map for xsize rows */
-    map[i] = data + (i * ysize);
+    map[i] = data + ((ptrdiff_t)i * ysize);
   }
 
   get_map(xsize, ysize, x, y, map);

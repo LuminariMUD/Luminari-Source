@@ -1430,7 +1430,7 @@ void apply_trap_special_effect(struct char_data *ch, struct trap_data *trap)
           remember(mob, ch);
 
           // Auto-purge after 3 minutes
-          attach_mud_event(new_mud_event(ePURGEMOB, mob, NULL), (180 * PASSES_PER_SEC));
+          attach_mud_event(new_mud_event(ePURGEMOB, mob, NULL), ((long)180 * PASSES_PER_SEC));
         }
       }
       send_to_char(ch, "Hostile creatures emerge from the trap!\r\n");
@@ -2571,7 +2571,7 @@ MUD_EVENT_CALLBACK(event_trap_triggered)
             char_to_room(mob, ch->in_room);
             remember(mob, ch);
             /* popular demand asks that we add this -zusuk */
-            attach_mud_event(new_mud_event(ePURGEMOB, mob, NULL), (180 * PASSES_PER_SEC));
+            attach_mud_event(new_mud_event(ePURGEMOB, mob, NULL), ((long)180 * PASSES_PER_SEC));
           }
           else
           {

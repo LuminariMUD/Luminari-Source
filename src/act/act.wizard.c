@@ -5888,7 +5888,7 @@ MUD_EVENT_CALLBACK(event_copyover)
         send_to_char(pt->character, "\r\n     \tR[COPYOVER IMMINENT!]\tn\r\n");
     snprintf(buf, sizeof(buf), "%d", (timer - 1));
     copyover_event->sVariables = strdup(buf);
-    return (1 * PASSES_PER_SEC);
+    return ((long)1 * PASSES_PER_SEC);
   }
   else if (timer == 2)
   {
@@ -5897,7 +5897,7 @@ MUD_EVENT_CALLBACK(event_copyover)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 2 seconds]\tn\r\n");
     snprintf(buf, sizeof(buf), "%d", (timer - 1));
     copyover_event->sVariables = strdup(buf);
-    return (1 * PASSES_PER_SEC);
+    return ((long)1 * PASSES_PER_SEC);
   }
   else if (timer == 3)
   {
@@ -5906,7 +5906,7 @@ MUD_EVENT_CALLBACK(event_copyover)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 seconds]\tn\r\n");
     snprintf(buf, sizeof(buf), "%d", (timer - 1));
     copyover_event->sVariables = strdup(buf);
-    return (1 * PASSES_PER_SEC);
+    return ((long)1 * PASSES_PER_SEC);
   }
   else if (timer <= 10)
   {
@@ -5915,7 +5915,7 @@ MUD_EVENT_CALLBACK(event_copyover)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 seconds]\tn\r\n");
     snprintf(buf, sizeof(buf), "%d", (3));
     copyover_event->sVariables = strdup(buf);
-    return ((timer - 3) * PASSES_PER_SEC);
+    return ((long)(timer - 3) * PASSES_PER_SEC);
   }
   else if (timer <= 30)
   {
@@ -5924,7 +5924,7 @@ MUD_EVENT_CALLBACK(event_copyover)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 30 seconds]\tn\r\n");
     snprintf(buf, sizeof(buf), "%d", (10));
     copyover_event->sVariables = strdup(buf);
-    return ((timer - 10) * PASSES_PER_SEC);
+    return ((long)(timer - 10) * PASSES_PER_SEC);
   }
   else if (timer <= 60)
   {
@@ -5934,7 +5934,7 @@ MUD_EVENT_CALLBACK(event_copyover)
                                     "from combat and find a safe place to wait]\tn\r\n");
     snprintf(buf, sizeof(buf), "%d", (30));
     copyover_event->sVariables = strdup(buf);
-    return ((timer - 30) * PASSES_PER_SEC);
+    return ((long)(timer - 30) * PASSES_PER_SEC);
   }
   else if (timer <= 180)
   {
@@ -5943,7 +5943,7 @@ MUD_EVENT_CALLBACK(event_copyover)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 minutes]\tn\r\n");
     snprintf(buf, sizeof(buf), "%d", (60));
     copyover_event->sVariables = strdup(buf);
-    return ((timer - 60) * PASSES_PER_SEC);
+    return ((long)(timer - 60) * PASSES_PER_SEC);
   }
   else if (timer <= 300)
   {
@@ -5952,7 +5952,7 @@ MUD_EVENT_CALLBACK(event_copyover)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 5 minutes]\tn\r\n");
     snprintf(buf, sizeof(buf), "%d", (180));
     copyover_event->sVariables = strdup(buf);
-    return ((timer - 180) * PASSES_PER_SEC);
+    return ((long)(timer - 180) * PASSES_PER_SEC);
   }
   else if (timer <= 600)
   {
@@ -5961,7 +5961,7 @@ MUD_EVENT_CALLBACK(event_copyover)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 minutes]\tn\r\n");
     snprintf(buf, sizeof(buf), "%d", (300));
     copyover_event->sVariables = strdup(buf);
-    return ((timer - 300) * PASSES_PER_SEC);
+    return ((long)(timer - 300) * PASSES_PER_SEC);
   }
   else
   {
@@ -5970,7 +5970,7 @@ MUD_EVENT_CALLBACK(event_copyover)
         send_to_char(pt->character, "\r\n     \tR[Copyover in about %d minutes]\tn\r\n",
                      timer / 60);
     copyover_event->sVariables = strdup("600");
-    return ((timer - 600) * PASSES_PER_SEC);
+    return ((long)(timer - 600) * PASSES_PER_SEC);
   }
 }
 
@@ -6025,7 +6025,7 @@ ACMD(do_copyover)
                timer);
 
   snprintf(buf, sizeof(buf), "%d", timer); /* sVariable */
-  NEW_EVENT(eCOPYOVER, ch, buf, (1 * PASSES_PER_SEC));
+  NEW_EVENT(eCOPYOVER, ch, buf, ((long)1 * PASSES_PER_SEC));
 }
 
 /* stop combat in the room you are in */

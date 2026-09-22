@@ -2652,7 +2652,7 @@ void inject_temporal_and_sensory_elements(struct description_components *desc,
   if (temporal_aspects && desc->opening_imagery)
   {
     char *old_opening = desc->opening_imagery;
-    char *temp_buffer = malloc(MAX_STRING_LENGTH * 2);
+    char *temp_buffer = malloc((size_t)MAX_STRING_LENGTH * 2);
     narrative_debug_log(2, "Allocated temp_buffer=%p, will free old_opening=%p", temp_buffer,
                         old_opening);
 
@@ -2663,33 +2663,33 @@ void inject_temporal_and_sensory_elements(struct description_components *desc,
       if (strlen(temporal_aspects) > 50)
       {
         // Long temporal description - use it as a separate sentence before the main description
-        snprintf(temp_buffer, MAX_STRING_LENGTH * 2, "%s %s", temporal_aspects,
+        snprintf(temp_buffer, (size_t)MAX_STRING_LENGTH * 2, "%s %s", temporal_aspects,
                  desc->opening_imagery);
       }
       else if (strstr(temporal_aspects, "dawn") || strstr(temporal_aspects, "morning"))
       {
-        snprintf(temp_buffer, MAX_STRING_LENGTH * 2, "In the early morning light, %s",
+        snprintf(temp_buffer, (size_t)MAX_STRING_LENGTH * 2, "In the early morning light, %s",
                  desc->opening_imagery);
       }
       else if (strstr(temporal_aspects, "dusk") || strstr(temporal_aspects, "evening"))
       {
-        snprintf(temp_buffer, MAX_STRING_LENGTH * 2, "As evening approaches, %s",
+        snprintf(temp_buffer, (size_t)MAX_STRING_LENGTH * 2, "As evening approaches, %s",
                  desc->opening_imagery);
       }
       else if (strstr(temporal_aspects, "moonlight") || strstr(temporal_aspects, "night"))
       {
-        snprintf(temp_buffer, MAX_STRING_LENGTH * 2, "Under the cover of night, %s",
+        snprintf(temp_buffer, (size_t)MAX_STRING_LENGTH * 2, "Under the cover of night, %s",
                  desc->opening_imagery);
       }
       else if (strstr(temporal_aspects, "noon") || strstr(temporal_aspects, "midday"))
       {
-        snprintf(temp_buffer, MAX_STRING_LENGTH * 2, "In the bright midday sun, %s",
+        snprintf(temp_buffer, (size_t)MAX_STRING_LENGTH * 2, "In the bright midday sun, %s",
                  desc->opening_imagery);
       }
       else
       {
         // Use the actual temporal content
-        snprintf(temp_buffer, MAX_STRING_LENGTH * 2, "%s %s", temporal_aspects,
+        snprintf(temp_buffer, (size_t)MAX_STRING_LENGTH * 2, "%s %s", temporal_aspects,
                  desc->opening_imagery);
       }
 
@@ -2732,7 +2732,7 @@ static char *reconstruct_enhanced_description(struct description_components *com
   if (!components)
     return NULL;
 
-  enhanced = malloc(MAX_STRING_LENGTH * 2);
+  enhanced = malloc((size_t)MAX_STRING_LENGTH * 2);
   if (!enhanced)
     return NULL;
 
@@ -2806,7 +2806,7 @@ static char *reconstruct_enhanced_description(struct description_components *com
   }
 
   // Step 4: Start building the enhanced description
-  safe_strcpy(enhanced, primary_sentence, MAX_STRING_LENGTH * 2);
+  safe_strcpy(enhanced, primary_sentence, (size_t)MAX_STRING_LENGTH * 2);
 
   // Step 5: Add sensory details as a separate, well-integrated sentence with style-aware transitions
   if (components->sensory_additions)
@@ -2818,12 +2818,12 @@ static char *reconstruct_enhanced_description(struct description_components *com
       const char *transition = get_transitional_phrase(regional_style, sensory_sentence);
 
       // Add transitional space
-      narrative_safe_strcat(enhanced, " ", MAX_STRING_LENGTH * 2);
+      narrative_safe_strcat(enhanced, " ", (size_t)MAX_STRING_LENGTH * 2);
 
       if (strlen(transition) > 0)
       {
         // Add transition phrase
-        narrative_safe_strcat(enhanced, transition, MAX_STRING_LENGTH * 2);
+        narrative_safe_strcat(enhanced, transition, (size_t)MAX_STRING_LENGTH * 2);
 
         // Ensure sensory sentence starts with lowercase (since transition provides the capital)
         if (sensory_sentence[0] >= 'A' && sensory_sentence[0] <= 'Z')
@@ -2840,14 +2840,14 @@ static char *reconstruct_enhanced_description(struct description_components *com
         }
       }
 
-      narrative_safe_strcat(enhanced, sensory_sentence, MAX_STRING_LENGTH * 2);
+      narrative_safe_strcat(enhanced, sensory_sentence, (size_t)MAX_STRING_LENGTH * 2);
 
       // Ensure proper termination
       len = strlen(sensory_sentence);
       if (len > 0 && sensory_sentence[len - 1] != '.' && sensory_sentence[len - 1] != '!' &&
           sensory_sentence[len - 1] != '?')
       {
-        narrative_safe_strcat(enhanced, ".", MAX_STRING_LENGTH * 2);
+        narrative_safe_strcat(enhanced, ".", (size_t)MAX_STRING_LENGTH * 2);
       }
 
       free(sensory_sentence);
@@ -3465,7 +3465,7 @@ static char *weave_unified_description(const char *base_description __attribute_
       "coords=(%d,%d)",
       env_context.weather, weather_condition, env_context.time_of_day, env_context.season, x, y);
 
-  unified = malloc(MAX_STRING_LENGTH * 3);
+  unified = malloc((size_t)MAX_STRING_LENGTH * 3);
   if (!unified)
   {
     if (regional_characteristics)
@@ -3474,7 +3474,7 @@ static char *weave_unified_description(const char *base_description __attribute_
   }
 
   // Build natural description from hints and environmental context
-  safe_strcpy(unified, "", MAX_STRING_LENGTH * 3);
+  safe_strcpy(unified, "", (size_t)MAX_STRING_LENGTH * 3);
   int sentence_count = 0;
   int used_hints[50]; // Track which hints we've used
   int used_count = 0;
@@ -3816,7 +3816,7 @@ static char *weave_unified_description(const char *base_description __attribute_
     safe_strcpy(unified,
                 "The ancient forest spreads around you, moss-covered trees creating a mystical "
                 "canopy overhead.",
-                MAX_STRING_LENGTH * 3);
+                (size_t)MAX_STRING_LENGTH * 3);
   }
 
   // Ensure description ends properly
@@ -4163,7 +4163,7 @@ char *simple_hint_layering(char *base_description, struct region_hint *hints, in
   }
 
   // Allocate buffer for enhanced description
-  enhanced = malloc(MAX_STRING_LENGTH * 2);
+  enhanced = malloc((size_t)MAX_STRING_LENGTH * 2);
   if (!enhanced)
   {
     if (regional_characteristics)
@@ -4172,7 +4172,7 @@ char *simple_hint_layering(char *base_description, struct region_hint *hints, in
   }
 
   // Start with the base description
-  safe_strcpy(enhanced, base_description, MAX_STRING_LENGTH * 2);
+  safe_strcpy(enhanced, base_description, (size_t)MAX_STRING_LENGTH * 2);
   safe_strcpy(hint_additions, "", MAX_STRING_LENGTH);
 
   // Add atmospheric hints (mood/ambiance) using weighted selection

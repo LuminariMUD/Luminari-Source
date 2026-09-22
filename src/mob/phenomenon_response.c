@@ -129,7 +129,7 @@ static struct game_event_result run_response(const struct game_event_context *co
   observer = domain_event_world_resolve_character(payload->perceived.observer);
   if (observer == NULL || observer->phenomenon_interest_event.id != context->event_id)
     return game_event_result_complete();
-  return game_event_result_reschedule_after(PHENOMENON_INTEREST_PULSES);
+  return game_event_result_reschedule_after((game_tick_t)PHENOMENON_INTEREST_PULSES);
 }
 
 static void note_admission_rejection(void)

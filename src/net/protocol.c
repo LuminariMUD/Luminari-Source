@@ -807,14 +807,14 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
   if (aSize == 0)
     return 0;
 
-  OutputLength = strnlen(apOut, MAX_PROTOCOL_BUFFER);
-  if (OutputLength >= MAX_PROTOCOL_BUFFER)
+  OutputLength = strnlen(apOut, (size_t)MAX_PROTOCOL_BUFFER);
+  if (OutputLength >= (size_t)MAX_PROTOCOL_BUFFER)
     return PROTOCOL_ERROR_BUFFER_FULL;
 
   pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
   if (pProtocol == NULL)
   {
-    Available = MAX_PROTOCOL_BUFFER - OutputLength - 1;
+    Available = (size_t)MAX_PROTOCOL_BUFFER - OutputLength - 1;
     CopyLength = (size_t)aSize < Available ? (size_t)aSize : Available;
     memcpy(apOut + OutputLength, apData, CopyLength);
     apOut[OutputLength + CopyLength] = '\0';
@@ -935,7 +935,7 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
       {
         pProtocol->InputState = ePROTOCOL_INPUT_SUBNEGOTIATION_IAC;
       }
-      else if (pProtocol->IacLength < MAX_PROTOCOL_BUFFER)
+      else if (pProtocol->IacLength < (size_t)MAX_PROTOCOL_BUFFER)
       {
         pProtocol->IacBuf[pProtocol->IacLength++] = (char)Byte;
       }
@@ -962,7 +962,7 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
       }
       else
       {
-        if (pProtocol->IacLength < MAX_PROTOCOL_BUFFER)
+        if (pProtocol->IacLength < (size_t)MAX_PROTOCOL_BUFFER)
           pProtocol->IacBuf[pProtocol->IacLength++] = (char)IAC;
         else if (!pProtocol->bIacTruncated)
         {
@@ -972,7 +972,7 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
 
         if (Byte != IAC)
         {
-          if (pProtocol->IacLength < MAX_PROTOCOL_BUFFER)
+          if (pProtocol->IacLength < (size_t)MAX_PROTOCOL_BUFFER)
             pProtocol->IacBuf[pProtocol->IacLength++] = (char)Byte;
           else if (!pProtocol->bIacTruncated)
           {
@@ -988,11 +988,11 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
 
   CmdBuf[CmdIndex] = '\0';
 
-  OutputLength = strnlen(apOut, MAX_PROTOCOL_BUFFER);
-  if (OutputLength >= MAX_PROTOCOL_BUFFER)
+  OutputLength = strnlen(apOut, (size_t)MAX_PROTOCOL_BUFFER);
+  if (OutputLength >= (size_t)MAX_PROTOCOL_BUFFER)
     return PROTOCOL_ERROR_BUFFER_FULL;
 
-  Available = MAX_PROTOCOL_BUFFER - OutputLength - 1;
+  Available = (size_t)MAX_PROTOCOL_BUFFER - OutputLength - 1;
   CopyLength = (size_t)CmdIndex < Available ? (size_t)CmdIndex : Available;
   memcpy(apOut + OutputLength, CmdBuf, CopyLength);
   apOut[OutputLength + CopyLength] = '\0';

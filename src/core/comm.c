@@ -2193,26 +2193,27 @@ static struct runtime_service runtime_service_table[] = {
 
 
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MINUTE_MAINTENANCE, "service.minute_maintenance",
-                          PASSES_PER_SEC * 60),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_ZONE, "service.zone", PULSE_ZONE),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_IDLE_PASSWORD, "service.idle_password", PULSE_IDLEPWD),
+                          (long)PASSES_PER_SEC * 60),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_ZONE, "service.zone", (long)PULSE_ZONE),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_IDLE_PASSWORD, "service.idle_password",
+                          (long)PULSE_IDLEPWD),
 
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_AUTOMATIC_PROCEDURES, "service.automatic_procedures",
-                          PULSE_MOBILE),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HUNT_CLOCK, "service.hunt_clock", PULSE_VIOLENCE),
+                          (long)PULSE_MOBILE),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HUNT_CLOCK, "service.hunt_clock", (long)PULSE_VIOLENCE),
 
 
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_AUCTION, "service.auction", PASSES_PER_SEC * 30),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_AUCTION, "service.auction", (long)PASSES_PER_SEC * 30),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MINUTE_PERSISTENCE, "service.minute_persistence",
-                          PASSES_PER_SEC * 60),
+                          (long)PASSES_PER_SEC * 60),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HUNT_CREATION, "service.hunt_creation",
-                          (60 * PASSES_PER_SEC) * 60 * 2),
+                          (long)(60 * PASSES_PER_SEC) * 60 * 2),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MUD_HOUR, "service.mud_hour",
-                          SECS_PER_MUD_HOUR *PASSES_PER_SEC),
+                          (long)SECS_PER_MUD_HOUR *PASSES_PER_SEC),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MUD_DAY, "service.mud_day",
-                          SECS_PER_MUD_HOUR * 24 * PASSES_PER_SEC),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_USAGE, "service.usage", PULSE_USAGE),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_TIME_SAVE, "service.time_save", PULSE_TIMESAVE),
+                          (long)SECS_PER_MUD_HOUR * 24 * PASSES_PER_SEC),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_USAGE, "service.usage", (long)PULSE_USAGE),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_TIME_SAVE, "service.time_save", (long)PULSE_TIMESAVE),
 };
 
 _Static_assert(sizeof(runtime_service_table) / sizeof(runtime_service_table[0]) ==
@@ -2327,8 +2328,8 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
       autosave_interval = (unsigned long)CONFIG_AUTOSAVE_TIME * 60U * PASSES_PER_SEC;
       if (runtime_service_next_crashsave_tick == 0U)
       {
-        first_delay = autosave_interval > 60U * PASSES_PER_SEC
-                          ? autosave_interval - 60U * PASSES_PER_SEC
+        first_delay = autosave_interval > (unsigned long)60U * PASSES_PER_SEC
+                          ? autosave_interval - (unsigned long)60U * PASSES_PER_SEC
                           : 0U;
         runtime_service_next_crashsave_tick =
             now_tick > ULONG_MAX - first_delay ? ULONG_MAX : now_tick + first_delay;

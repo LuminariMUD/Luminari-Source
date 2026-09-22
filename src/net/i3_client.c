@@ -902,7 +902,7 @@ int i3_process_input(const char *data, size_t length)
     return 0;
   }
 
-  if (length > I3_MAX_RECEIVE_LENGTH - i3_client->receive_length)
+  if (length > (size_t)I3_MAX_RECEIVE_LENGTH - i3_client->receive_length)
   {
     i3_error("Gateway response exceeded %d bytes", I3_MAX_RECEIVE_LENGTH);
     i3_client->receive_length = 0;
@@ -917,7 +917,7 @@ int i3_process_input(const char *data, size_t length)
     {
       if (capacity >= I3_MAX_RECEIVE_LENGTH / 2)
       {
-        capacity = I3_MAX_RECEIVE_LENGTH;
+        capacity = (size_t)I3_MAX_RECEIVE_LENGTH;
         break;
       }
       capacity *= 2;
@@ -965,7 +965,7 @@ int i3_process_input(const char *data, size_t length)
     i3_client->receive_buffer[i3_client->receive_length] = '\0';
   }
 
-  if (i3_client->receive_length == I3_MAX_RECEIVE_LENGTH)
+  if (i3_client->receive_length == (size_t)I3_MAX_RECEIVE_LENGTH)
   {
     i3_error("Gateway sent an unterminated oversized response");
     i3_client->receive_length = 0;
@@ -1186,7 +1186,7 @@ int i3_send_json(void *obj)
 
   json_str = json_object_to_json_string_ext((json_object *)obj, JSON_C_TO_STRING_PLAIN);
   json_length = strlen(json_str);
-  if (json_length >= I3_MAX_RECEIVE_LENGTH)
+  if (json_length >= (size_t)I3_MAX_RECEIVE_LENGTH)
   {
     i3_error("Refusing to send oversized JSON request");
     return -1;

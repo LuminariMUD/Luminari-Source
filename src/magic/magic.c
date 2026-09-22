@@ -1122,7 +1122,7 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
                      "\tR%s's legendary resilience allows them to automatically succeed!\tn\r\n",
                      GET_NAME(vict));
       }
-      attach_mud_event(new_mud_event(eLEGENDARY_RESILIENCE_USED, vict, NULL), 300 RL_SEC);
+      attach_mud_event(new_mud_event(eLEGENDARY_RESILIENCE_USED, vict, NULL), (long)300 RL_SEC);
       return (TRUE);
     }
   }
@@ -5880,7 +5880,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$N reaches out to $N opponent and begin to drain $s psychic energies.";
     for (x = 0; x < GET_PSIONIC_LEVEL(ch); x++)
     {
-      NEW_EVENT(ePOWERLEECH, ch, NULL, ((x * 6) * PASSES_PER_SEC));
+      NEW_EVENT(ePOWERLEECH, ch, NULL, ((long)(x * 6) * PASSES_PER_SEC));
     }
     break;
 
@@ -13347,7 +13347,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     case ABILITY_SUMMON_HORDE: /* Sep 2026 racial innate: orcs that drift off later */
       GET_LEVEL(mob) = MAX(1, GET_LEVEL(ch) / 2);
       autoroll_mob(mob, TRUE, TRUE);
-      attach_mud_event(new_mud_event(ePURGEMOB, mob, NULL), 900 * PASSES_PER_SEC);
+      attach_mud_event(new_mud_event(ePURGEMOB, mob, NULL), (long)900 * PASSES_PER_SEC);
       break;
 
     case ABILITY_CREATE_VAMPIRE_SPAWN:
@@ -13368,7 +13368,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     case SPELL_MISLEAD:
       SET_BIT_AR(AFF_FLAGS(mob), AFF_IMMATERIAL);
       mob->pet_behavior = PET_BEHAVIOR_ASSIST;
-      attach_mud_event(new_mud_event(ePURGEMOB, mob, NULL), 120 * PASSES_PER_SEC);
+      attach_mud_event(new_mud_event(ePURGEMOB, mob, NULL), (long)120 * PASSES_PER_SEC);
       break;
 
     case SPELL_CLONE:
@@ -15559,7 +15559,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
   if (IdNum != eNULL)
   {
     /* note, as of now we are setting the room flag in the switch() above */
-    NEW_EVENT(IdNum, &world[rnum].number, NULL, rounds * PULSE_VIOLENCE);
+    NEW_EVENT(IdNum, &world[rnum].number, NULL, (long)rounds * (long)PULSE_VIOLENCE);
   } /* ok, must be a room affection */
   else if (aff != -1)
   {

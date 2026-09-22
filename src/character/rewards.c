@@ -347,23 +347,23 @@ int award_experience(struct char_data *ch, int gain, int mode)
       }
       else if (GET_LEVEL(ch) < 11)
       {
-        gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_5 * 4);
+        gain_cap = xp_to_lvl / ((long)MIN_NUM_MOBS_TO_KILL_5 * 4);
       }
       else if (GET_LEVEL(ch) < 16)
       {
-        gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_10 * 4);
+        gain_cap = xp_to_lvl / ((long)MIN_NUM_MOBS_TO_KILL_10 * 4);
       }
       else if (GET_LEVEL(ch) < 21)
       {
-        gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_15 * 4);
+        gain_cap = xp_to_lvl / ((long)MIN_NUM_MOBS_TO_KILL_15 * 4);
       }
       else if (GET_LEVEL(ch) < 26)
       {
-        gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_20 * 4);
+        gain_cap = xp_to_lvl / ((long)MIN_NUM_MOBS_TO_KILL_20 * 4);
       }
       else
       {
-        gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_25 * 4);
+        gain_cap = xp_to_lvl / ((long)MIN_NUM_MOBS_TO_KILL_25 * 4);
       }
       gain = (int)long_min(gain_cap, gain);
       break;

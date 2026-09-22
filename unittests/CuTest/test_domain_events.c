@@ -1597,13 +1597,13 @@ void TestActiveWorldResourceRecoveryWakesAndRetiresOneOwner(CuTest *tc)
 
   mobile.mob_specials.last_known_slot_regen = time(0) - 60;
   FIGHTING(&mobile) = &opponent;
-  process_scheduler_pulses(60U * PASSES_PER_SEC);
+  process_scheduler_pulses((unsigned long)60U * PASSES_PER_SEC);
   CuAssertIntEquals(tc, 1, mobile.mob_specials.known_spell_slots[spellnum]);
   CuAssertIntEquals(tc, PULSE_MOBILE,
                     (int)native_event_remaining(tc, mobile.active_world_event_handle));
 
   FIGHTING(&mobile) = NULL;
-  process_scheduler_pulses(PULSE_MOBILE);
+  process_scheduler_pulses((unsigned long)PULSE_MOBILE);
   CuAssertIntEquals(tc, 2, mobile.mob_specials.known_spell_slots[spellnum]);
   CuAssertIntEquals(tc, 0, (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
   CuAssertIntEquals(tc, 0, event_queue_depth());
@@ -1619,7 +1619,7 @@ void TestActiveWorldResourceRecoveryWakesAndRetiresOneOwner(CuTest *tc)
   CuAssertIntEquals(tc, 300 * PASSES_PER_SEC,
                     (int)native_event_remaining(tc, mobile.active_world_event_handle));
   mobile.mob_specials.last_slot_regen = time(0) - 300;
-  process_scheduler_pulses(300U * PASSES_PER_SEC);
+  process_scheduler_pulses((unsigned long)300U * PASSES_PER_SEC);
   CuAssertIntEquals(tc, 1, mobile.mob_specials.spell_slots[spell_circle]);
   CuAssertIntEquals(tc, 0, (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
   CuAssertIntEquals(tc, 0, event_queue_depth());
@@ -1961,7 +1961,7 @@ void TestPeriodicOwnersScheduleEveryEligibleOwnerAndCancelLifecycle(CuTest *tc)
                     event_runtime_inspect(room_script.random_event_handle, &snapshot));
   CuAssertStrEquals(tc, "dg.random_trigger", event_runtime_type_name(snapshot.event_type));
 
-  pulse += PULSE_DG_SCRIPT;
+  pulse += (unsigned long)PULSE_DG_SCRIPT;
   event_test_advance();
   CuAssertIntEquals(tc, 1, (int)periodic_autoproc_callbacks());
   CuAssertIntEquals(tc, 1, (int)periodic_dg_random_callbacks(MOB_TRIGGER));
@@ -2046,7 +2046,7 @@ void TestPeriodicOwnerCapacityAndRegistrationFailureAreIndependent(CuTest *tc)
   autoproc_registry_remove(&first);
   CuAssertIntEquals(tc, 1, event_queue_depth());
   first_script.owner = NULL;
-  pulse += PULSE_DG_SCRIPT;
+  pulse += (unsigned long)PULSE_DG_SCRIPT;
   event_test_advance();
   CuAssertTrue(tc, event_runtime_handle_is_none(first_script.random_event_handle));
   CuAssertIntEquals(tc, 0, (int)periodic_dg_random_scheduled_count(OBJ_TRIGGER));
@@ -2333,7 +2333,7 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
   affected_registry_reset_for_test();
   affected_owners_select_for_test(true);
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
-  pulse = PULSE_VIOLENCE * 20U;
+  pulse = (unsigned long)PULSE_VIOLENCE * 20U;
   event_init();
   affected_owners_init();
   event_runtime_get_stats(&scheduler_stats);
@@ -2382,7 +2382,7 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
   CuAssertIntEquals(tc, 1, (int)event_count);
   CuAssertStrEquals(tc, "affected.room.duration", event_runtime_type_name(snapshot.event_type));
 
-  pulse += PULSE_LUMINARI;
+  pulse += (unsigned long)PULSE_LUMINARI;
   event_test_advance();
   CuAssertIntEquals(tc, 1, ch.affected->duration);
   CuAssertIntEquals(tc, 2, raff->timer);
@@ -2447,7 +2447,7 @@ void TestAffectedRoomOwnerExpiresBeforeCoincidentBehavior(CuTest *tc)
   affected_registry_reset_for_test();
   affected_owners_select_for_test(true);
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
-  pulse = PULSE_VIOLENCE * 4U;
+  pulse = (unsigned long)PULSE_VIOLENCE * 4U;
   event_init();
   affected_owners_init();
 
@@ -2461,14 +2461,14 @@ void TestAffectedRoomOwnerExpiresBeforeCoincidentBehavior(CuTest *tc)
   SET_BIT(room.room_affections, RAFF_FOG);
   affected_room_owner_add(raff);
 
-  pulse += PULSE_LUMINARI - (pulse % PULSE_LUMINARI);
+  pulse += (unsigned long)PULSE_LUMINARI - (pulse % (unsigned long)PULSE_LUMINARI);
   event_test_advance();
   CuAssertIntEquals(tc, 1, (int)affected_room_behavior_executions());
   CuAssertIntEquals(tc, 1, (int)affected_room_behavior_nodes_processed());
   CuAssertIntEquals(tc, 1, raff->timer);
   CuAssertIntEquals(tc, 1, event_queue_depth());
 
-  pulse += PULSE_LUMINARI;
+  pulse += (unsigned long)PULSE_LUMINARI;
   event_test_advance();
   CuAssertPtrEquals(tc, NULL, raff_list);
   CuAssertIntEquals(tc, 1, (int)affected_room_behavior_executions());
@@ -2513,7 +2513,7 @@ void TestAffectedOwnerAdmissionAndLegacyRollbackAreExclusive(CuTest *tc)
   affected_owners_select_for_test(true);
   affected_owners_set_limits_for_test(0U, 0U);
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
-  pulse = PULSE_VIOLENCE * 30U;
+  pulse = (unsigned long)PULSE_VIOLENCE * 30U;
   event_init();
   affected_owners_init();
 
@@ -2617,7 +2617,7 @@ void TestAffectedOwnerCapacityRefillsAfterLifecycleCancellation(CuTest *tc)
   affected_owners_select_for_test(true);
   affected_owners_set_limits_for_test(1U, 1U);
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
-  pulse = PULSE_VIOLENCE * 40U;
+  pulse = (unsigned long)PULSE_VIOLENCE * 40U;
   event_init();
   affected_owners_init();
 
@@ -2709,7 +2709,7 @@ void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
   affected_owners_reset_for_test();
   affected_owners_select_for_test(true);
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
-  pulse = PULSE_VIOLENCE * 50U;
+  pulse = (unsigned long)PULSE_VIOLENCE * 50U;
   event_init();
   affected_owners_init();
 
@@ -2748,7 +2748,7 @@ void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
   CuAssertIntEquals(tc, 1, event_queue_depth());
   CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
 
-  pulse += PULSE_VIOLENCE;
+  pulse += (unsigned long)PULSE_VIOLENCE;
   event_test_advance();
   CuAssertIntEquals(tc, 1, raff->timer);
 
@@ -2766,7 +2766,7 @@ void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
   CuAssertIntEquals(tc, 1, event_queue_depth());
   CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
 
-  pulse += PULSE_VIOLENCE;
+  pulse += (unsigned long)PULSE_VIOLENCE;
   event_test_advance();
   CuAssertPtrEquals(tc, NULL, raff_list);
   CuAssertIntEquals(tc, 0, event_queue_depth());
@@ -2960,15 +2960,15 @@ void TestCharacterPeriodicSchedulesPerformingNpcWithoutOtherWork(CuTest *tc)
   character_periodic_reset_for_test();
   character_periodic_select_for_test(true);
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
-  pulse = PULSE_VIOLENCE * 20U;
+  pulse = (unsigned long)PULSE_VIOLENCE * 20U;
   event_init();
   character_periodic_init();
   CuAssertIntEquals(tc, 1, (int)character_periodic_owner_count());
   CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
   delay = (long)native_event_remaining(tc, npc.character_periodic_event_handle);
-  CuAssertTrue(tc, delay > 0L && delay <= PULSE_VERSE_INTERVAL);
+  CuAssertTrue(tc, delay > 0L && delay <= (long)PULSE_VERSE_INTERVAL);
 
-  process_scheduler_pulses(PULSE_VERSE_INTERVAL);
+  process_scheduler_pulses((unsigned long)PULSE_VERSE_INTERVAL);
   CuAssertIntEquals(tc, 1, (int)character_periodic_bardic_executions());
   CuAssertTrue(tc, !IS_PERFORMING(&npc));
   CuAssertIntEquals(tc, 0, (int)character_periodic_owner_count());
@@ -3045,7 +3045,7 @@ void TestCharacterPeriodicSchedulesInWorldMixedWorkByOwner(CuTest *tc)
   character_periodic_reset_for_test();
   character_periodic_select_for_test(true);
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
-  pulse = PULSE_VIOLENCE * 20U;
+  pulse = (unsigned long)PULSE_VIOLENCE * 20U;
   event_init();
   character_periodic_init();
 
@@ -3053,7 +3053,7 @@ void TestCharacterPeriodicSchedulesInWorldMixedWorkByOwner(CuTest *tc)
   CuAssertIntEquals(tc, 2, (int)character_periodic_scheduled_count());
   CuAssertIntEquals(tc, 2, event_queue_depth());
 
-  process_scheduler_pulses(PULSE_LUMINARI);
+  process_scheduler_pulses((unsigned long)PULSE_LUMINARI);
   CuAssertIntEquals(tc, 2, (int)character_periodic_luminari_executions());
   CuAssertIntEquals(tc, 1, (int)character_periodic_damage_effect_executions());
   CuAssertIntEquals(tc, 0, (int)character_periodic_player_misc_executions());
@@ -3072,7 +3072,7 @@ void TestCharacterPeriodicSchedulesInWorldMixedWorkByOwner(CuTest *tc)
   CuAssertIntEquals(tc, 0, (int)character_periodic_registry_validate());
   CuAssertIntEquals(tc, 2, event_queue_depth());
 
-  process_scheduler_pulses(SECS_PER_MUD_HOUR * PASSES_PER_SEC * 2U - pulse);
+  process_scheduler_pulses((unsigned long)SECS_PER_MUD_HOUR * PASSES_PER_SEC * 2U - pulse);
   /* The NPC retires when its explicit cooldown work ends; only the player
    * remains eligible for the later generic device check. */
   CuAssertIntEquals(tc, 1, (int)character_periodic_device_executions());
@@ -3355,7 +3355,7 @@ void TestPointUpdateSchedulesOnlyDuePlayersAndObjects(CuTest *tc)
   CuAssertIntEquals(tc, 0, (int)point_update_character_registry_validate());
   CuAssertIntEquals(tc, 0, (int)point_update_object_registry_validate());
 
-  pulse = SECS_PER_MUD_HOUR * PASSES_PER_SEC;
+  pulse = (unsigned long)SECS_PER_MUD_HOUR * PASSES_PER_SEC;
   event_test_advance();
   CuAssertIntEquals(tc, 1, (int)point_update_service_callbacks());
   CuAssertIntEquals(tc, 3, HAPPY_TIME);
@@ -3374,7 +3374,7 @@ void TestPointUpdateSchedulesOnlyDuePlayersAndObjects(CuTest *tc)
   CuAssertIntEquals(tc, 1, (int)point_update_object_executions());
   CuAssertTrue(tc, !point_update_periodic_dispatch_due());
 
-  pulse += SECS_PER_MUD_HOUR * PASSES_PER_SEC;
+  pulse += (unsigned long)SECS_PER_MUD_HOUR * PASSES_PER_SEC;
   event_test_advance();
   CuAssertTrue(tc, point_update_periodic_dispatch_due());
   CuAssertIntEquals(tc, 0, GET_OBJ_TIMER(&timed));
@@ -3471,7 +3471,7 @@ void TestPointUpdateObjectDecayRemainsExtractionSafe(CuTest *tc)
   point_update_object_sync(second);
   CuAssertIntEquals(tc, 2, (int)point_update_object_count());
 
-  pulse = SECS_PER_MUD_HOUR * PASSES_PER_SEC;
+  pulse = (unsigned long)SECS_PER_MUD_HOUR * PASSES_PER_SEC;
   event_test_advance();
   CuAssertTrue(tc, point_update_periodic_dispatch_due());
   CuAssertPtrEquals(tc, NULL, object_list);
@@ -4217,7 +4217,7 @@ static void verify_late_room_affect_clock(CuTest *tc, bool expires, bool add_sou
   affected_registry_reset_for_test();
   affected_owners_select_for_test(true);
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
-  pulse = (unsigned long)PULSE_VIOLENCE * PULSE_LUMINARI;
+  pulse = (unsigned long)PULSE_VIOLENCE * (unsigned long)PULSE_LUMINARI;
   started = pulse;
   event_init();
   affected_owners_init();
@@ -4230,13 +4230,13 @@ static void verify_late_room_affect_clock(CuTest *tc, bool expires, bool add_sou
   SET_BIT(room.room_affections, RAFF_FOG);
   affected_room_owner_add(raff);
 
-  pulse = started + PULSE_VIOLENCE + 1U;
+  pulse = started + (unsigned long)PULSE_VIOLENCE + 1U;
   event_test_advance();
   CuAssertIntEquals(tc, expires ? 2 : 9, raff->timer);
   CuAssertIntEquals(tc, 1, (int)affected_room_behavior_executions());
 
   /* Two more lifetime boundaries pass, but behavior must not catch up twice. */
-  pulse = started + 3U * PULSE_VIOLENCE + 1U;
+  pulse = started + (unsigned long)3U * (unsigned long)PULSE_VIOLENCE + 1U;
   if (add_source)
   {
     CREATE(fresh, struct raff_node, 1);

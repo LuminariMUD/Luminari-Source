@@ -1367,7 +1367,7 @@ static bool consume_editor_rate_budget(struct web_onboarding_session *session, s
   }
 
   if (session->rate_window_commits + 1 > WEB_ONBOARDING_EDITOR_MAX_COMMITS_PER_WINDOW ||
-      session->rate_window_bytes + bytes > WEB_ONBOARDING_EDITOR_MAX_BYTES_PER_WINDOW)
+      session->rate_window_bytes + bytes > (size_t)WEB_ONBOARDING_EDITOR_MAX_BYTES_PER_WINDOW)
     return FALSE;
 
   session->rate_window_commits++;
