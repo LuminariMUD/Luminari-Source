@@ -1119,9 +1119,9 @@ int vehicle_load(int vehicle_id, struct vehicle_data *vehicle)
 
   if ((row = mysql_fetch_row(result)))
   {
-    vehicle->id = atoi(row[0]);
-    vehicle->type = atoi(row[1]);
-    vehicle->state = atoi(row[2]);
+    vehicle->id = parse_int(row[0]);
+    vehicle->type = parse_int(row[1]);
+    vehicle->state = parse_int(row[2]);
 
     if (row[3])
     {
@@ -1130,20 +1130,20 @@ int vehicle_load(int vehicle_id, struct vehicle_data *vehicle)
     }
 
     vehicle->location = NOWHERE;
-    vehicle->direction = atoi(row[5]);
-    vehicle->x_coord = atoi(row[6]);
-    vehicle->y_coord = atoi(row[7]);
-    vehicle->max_passengers = atoi(row[8]);
-    vehicle->current_passengers = atoi(row[9]);
-    vehicle->max_weight = atoi(row[10]);
-    vehicle->current_weight = atoi(row[11]);
-    vehicle->base_speed = atoi(row[12]);
-    vehicle->current_speed = atoi(row[13]);
-    vehicle->terrain_flags = atoi(row[14]);
-    vehicle->max_condition = atoi(row[15]);
-    vehicle->condition = atoi(row[16]);
-    vehicle->owner_id = atol(row[17]);
-    vehicle->parent_vessel_id = row[18] ? atoi(row[18]) : 0;
+    vehicle->direction = parse_int(row[5]);
+    vehicle->x_coord = parse_int(row[6]);
+    vehicle->y_coord = parse_int(row[7]);
+    vehicle->max_passengers = parse_int(row[8]);
+    vehicle->current_passengers = parse_int(row[9]);
+    vehicle->max_weight = parse_int(row[10]);
+    vehicle->current_weight = parse_int(row[11]);
+    vehicle->base_speed = parse_int(row[12]);
+    vehicle->current_speed = parse_int(row[13]);
+    vehicle->terrain_flags = parse_int(row[14]);
+    vehicle->max_condition = parse_int(row[15]);
+    vehicle->condition = parse_int(row[16]);
+    vehicle->owner_id = parse_long(row[17]);
+    vehicle->parent_vessel_id = row[18] ? parse_int(row[18]) : 0;
     vehicle->obj = NULL;
     vehicle_restore_runtime_location(vehicle);
 
@@ -1243,9 +1243,9 @@ void vehicle_load_all(void)
     /* Clear and populate */
     memset(vehicle, 0, sizeof(struct vehicle_data));
 
-    vehicle->id = atoi(row[0]);
-    vehicle->type = atoi(row[1]);
-    vehicle->state = atoi(row[2]);
+    vehicle->id = parse_int(row[0]);
+    vehicle->type = parse_int(row[1]);
+    vehicle->state = parse_int(row[2]);
 
     if (row[3])
     {
@@ -1254,20 +1254,20 @@ void vehicle_load_all(void)
     }
 
     vehicle->location = NOWHERE;
-    vehicle->direction = atoi(row[5]);
-    vehicle->x_coord = atoi(row[6]);
-    vehicle->y_coord = atoi(row[7]);
-    vehicle->max_passengers = atoi(row[8]);
-    vehicle->current_passengers = atoi(row[9]);
-    vehicle->max_weight = atoi(row[10]);
-    vehicle->current_weight = atoi(row[11]);
-    vehicle->base_speed = atoi(row[12]);
-    vehicle->current_speed = atoi(row[13]);
-    vehicle->terrain_flags = atoi(row[14]);
-    vehicle->max_condition = atoi(row[15]);
-    vehicle->condition = atoi(row[16]);
-    vehicle->owner_id = atol(row[17]);
-    vehicle->parent_vessel_id = row[18] ? atoi(row[18]) : 0;
+    vehicle->direction = parse_int(row[5]);
+    vehicle->x_coord = parse_int(row[6]);
+    vehicle->y_coord = parse_int(row[7]);
+    vehicle->max_passengers = parse_int(row[8]);
+    vehicle->current_passengers = parse_int(row[9]);
+    vehicle->max_weight = parse_int(row[10]);
+    vehicle->current_weight = parse_int(row[11]);
+    vehicle->base_speed = parse_int(row[12]);
+    vehicle->current_speed = parse_int(row[13]);
+    vehicle->terrain_flags = parse_int(row[14]);
+    vehicle->max_condition = parse_int(row[15]);
+    vehicle->condition = parse_int(row[16]);
+    vehicle->owner_id = parse_long(row[17]);
+    vehicle->parent_vessel_id = row[18] ? parse_int(row[18]) : 0;
     vehicle->obj = NULL;
 
     vehicle_restore_runtime_location(vehicle);

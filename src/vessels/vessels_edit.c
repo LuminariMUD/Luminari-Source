@@ -99,7 +99,8 @@ static void vedit_list(struct char_data *ch)
   while ((row = mysql_fetch_row(result)) != NULL)
   {
     send_to_char(ch, "%-5s %-10s %-5s %-5s %s\r\n", row[0],
-                 get_vessel_type_name((enum vessel_class)atoi(row[2])), row[3], row[4], row[1]);
+                 get_vessel_type_name((enum vessel_class)parse_int(row[2])), row[3], row[4],
+                 row[1]);
   }
   mysql_free_result(result);
 }
@@ -115,7 +116,7 @@ static void vedit_new(struct char_data *ch, const char *class_arg, const char *n
   int max_speed;
   int armor;
 
-  vclass = atoi(class_arg);
+  vclass = parse_int(class_arg);
   if (!isdigit((unsigned char)*class_arg) || vclass < 0 || vclass >= NUM_VESSEL_TYPES)
   {
     send_to_char(ch, "Invalid class. %s", VEDIT_USAGE);
@@ -253,8 +254,8 @@ static void vedit_show(struct char_data *ch, int id)
                "  Speed : %s\r\n"
                "  Armor : %s (all four sides at spawn)\r\n"
                "  Cargo : %d lbs (fixed per class)\r\n",
-               row[0], row[1], row[2], get_vessel_type_name((enum vessel_class)atoi(row[2])),
-               row[3], row[4], get_vessel_cargo_capacity((enum vessel_class)atoi(row[2])));
+               row[0], row[1], row[2], get_vessel_type_name((enum vessel_class)parse_int(row[2])),
+               row[3], row[4], get_vessel_cargo_capacity((enum vessel_class)parse_int(row[2])));
   mysql_free_result(result);
 }
 
@@ -290,7 +291,7 @@ static void vedit_set(struct char_data *ch, int id, const char *field, const cha
   }
   else if (!str_cmp(field, "class"))
   {
-    ivalue = atoi(value);
+    ivalue = parse_int(value);
     if (!isdigit((unsigned char)*value) || ivalue < 0 || ivalue >= NUM_VESSEL_TYPES)
     {
       send_to_char(ch, "Class must be 0-%d.\r\n", NUM_VESSEL_TYPES - 1);
@@ -301,7 +302,7 @@ static void vedit_set(struct char_data *ch, int id, const char *field, const cha
   }
   else if (!str_cmp(field, "speed"))
   {
-    ivalue = atoi(value);
+    ivalue = parse_int(value);
     if (ivalue < 1 || ivalue > VEDIT_MAX_SPEED_LIMIT)
     {
       send_to_char(ch, "Speed must be 1-%d.\r\n", VEDIT_MAX_SPEED_LIMIT);
@@ -312,7 +313,7 @@ static void vedit_set(struct char_data *ch, int id, const char *field, const cha
   }
   else if (!str_cmp(field, "armor"))
   {
-    ivalue = atoi(value);
+    ivalue = parse_int(value);
     if (ivalue < 0 || ivalue > VEDIT_MAX_ARMOR_LIMIT)
     {
       send_to_char(ch, "Armor must be 0-%d.\r\n", VEDIT_MAX_ARMOR_LIMIT);
@@ -450,9 +451,9 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
     return -1;
   }
 
-  vclass = atoi(row[2]);
-  max_speed = atoi(row[3]);
-  armor = atoi(row[4]);
+  vclass = parse_int(row[2]);
+  max_speed = parse_int(row[3]);
+  armor = parse_int(row[4]);
   spawn_name = instance_name != NULL && *instance_name ? instance_name : row[1];
 
   if (vclass < 0 || vclass >= NUM_VESSEL_TYPES || max_speed < 1 ||
@@ -753,8 +754,9 @@ ACMD(do_shipbrowse)
   while ((row = mysql_fetch_row(result)) != NULL)
   {
     send_to_char(ch, "%-5s %-10s %-5s %-5s %-10d %s\r\n", row[0],
-                 get_vessel_type_name((enum vessel_class)atoi(row[2])), row[3], row[4],
-                 vessel_prototype_price(atoi(row[2]), atoi(row[3]), atoi(row[4])), row[1]);
+                 get_vessel_type_name((enum vessel_class)parse_int(row[2])), row[3], row[4],
+                 vessel_prototype_price(parse_int(row[2]), parse_int(row[3]), parse_int(row[4])),
+                 row[1]);
   }
   mysql_free_result(result);
   send_to_char(ch, "Purchase with 'shipbuy <id>' at any dock.\r\n");
@@ -795,7 +797,7 @@ ACMD(do_shipbuy)
     send_to_char(ch, "Buy which hull? See 'shipbrowse' for the catalog.\r\n");
     return;
   }
-  id = atoi(arg);
+  id = parse_int(arg);
 
   if (!vedit_ensure_table())
   {
@@ -808,7 +810,7 @@ ACMD(do_shipbuy)
   {
     return;
   }
-  price = vessel_prototype_price(atoi(row[2]), atoi(row[3]), atoi(row[4]));
+  price = vessel_prototype_price(parse_int(row[2]), parse_int(row[3]), parse_int(row[4]));
   mysql_free_result(result);
 
   if (GET_GOLD(ch) < price)
@@ -1063,7 +1065,7 @@ ACMD(do_vedit)
       send_to_char(ch, "%s", VEDIT_USAGE);
       return;
     }
-    vedit_show(ch, atoi(arg2));
+    vedit_show(ch, parse_int(arg2));
   }
   else if (!str_cmp(arg1, "set"))
   {
@@ -1075,7 +1077,7 @@ ACMD(do_vedit)
       send_to_char(ch, "%s", VEDIT_USAGE);
       return;
     }
-    vedit_set(ch, atoi(arg2), arg3, remainder);
+    vedit_set(ch, parse_int(arg2), arg3, remainder);
   }
   else if (!str_cmp(arg1, "delete"))
   {
@@ -1085,7 +1087,7 @@ ACMD(do_vedit)
       send_to_char(ch, "%s", VEDIT_USAGE);
       return;
     }
-    vedit_delete(ch, atoi(arg2));
+    vedit_delete(ch, parse_int(arg2));
   }
   else if (!str_cmp(arg1, "spawn"))
   {
@@ -1095,7 +1097,7 @@ ACMD(do_vedit)
       send_to_char(ch, "%s", VEDIT_USAGE);
       return;
     }
-    vessel_spawn_from_prototype(ch, atoi(arg2));
+    vessel_spawn_from_prototype(ch, parse_int(arg2));
   }
   else if (!str_cmp(arg1, "spawnpublic"))
   {
@@ -1105,7 +1107,7 @@ ACMD(do_vedit)
       send_to_char(ch, "%s", VEDIT_USAGE);
       return;
     }
-    vessel_spawn_public_from_prototype(ch, atoi(arg2));
+    vessel_spawn_public_from_prototype(ch, parse_int(arg2));
   }
   else
   {

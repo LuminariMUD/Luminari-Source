@@ -485,7 +485,7 @@ static void worldmap_collect_zone_markers(
       if (!*asciimap_points[i][0])
         continue;
 
-      point_vnum = atoi(asciimap_points[i][1]);
+      point_vnum = parse_int(asciimap_points[i][1]);
       if (!worldmap_vnum_to_xy(zone->zvnum, point_vnum, &x, &y))
         continue;
 
@@ -973,7 +973,7 @@ ACMD(do_export_zone)
     return;
   }
 
-  zvnum = atoi(argument);
+  zvnum = parse_int(argument);
   zrnum = real_zone(zvnum);
 
   if (zrnum == NOWHERE)
@@ -1089,7 +1089,7 @@ ACMD(do_export_map)
     return;
   }
 
-  zvnum = atoi(zone_arg);
+  zvnum = parse_int(zone_arg);
   zrnum = real_zone(zvnum);
 
   if (zrnum == NOWHERE)

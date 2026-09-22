@@ -196,7 +196,7 @@ static void load_ship_room_template_triggers(void)
   while ((row = mysql_fetch_row(result)) != NULL)
   {
     type = room_template_index_by_name(row[0]);
-    trigger_vnum = row[1] ? atoi(row[1]) : 0;
+    trigger_vnum = row[1] ? parse_int(row[1]) : 0;
     if (type < 0 || trigger_vnum <= 0)
     {
       log("SYSERR: Ignoring invalid ship room trigger mapping (%s, %d)", row[0] ? row[0] : "(null)",
@@ -266,9 +266,9 @@ void load_ship_room_templates_from_db(void)
       db_room_templates[i].type = (enum ship_room_type)i;
       db_room_templates[i].name_format = strdup(row[0]);
       db_room_templates[i].description_format = strdup(row[1]);
-      db_room_templates[i].room_flags = row[2] ? atoi(row[2]) : (ROOM_VEHICLE | ROOM_INDOORS);
-      db_room_templates[i].sector_type = row[3] ? atoi(row[3]) : SECT_INSIDE;
-      db_room_templates[i].min_vessel_size = row[4] ? atoi(row[4]) : 0;
+      db_room_templates[i].room_flags = row[2] ? parse_int(row[2]) : (ROOM_VEHICLE | ROOM_INDOORS);
+      db_room_templates[i].sector_type = row[3] ? parse_int(row[3]) : SECT_INSIDE;
+      db_room_templates[i].min_vessel_size = row[4] ? parse_int(row[4]) : 0;
       db_room_template_loaded[i] = TRUE;
       loaded++;
     }

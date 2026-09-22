@@ -644,7 +644,7 @@ static int rol_ship_control_sail(struct char_data *ch, int ship_index, const cha
     state->velocity = MAX(1, state->max_speed >> 2);
   state->last_direction = direction;
   state->move_timer = rol_ship_move_delay_for_speed(state->velocity);
-  repeat = is_number(repeat_name) ? MIN(50, atoi(repeat_name)) : 0;
+  repeat = is_number(repeat_name) ? MIN(50, parse_int(repeat_name)) : 0;
   if (repeat > 1)
   {
     state->repeat = repeat - 1;

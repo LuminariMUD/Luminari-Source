@@ -2004,7 +2004,7 @@ static int parse_and_validate_event_num(struct char_data *ch, const char *arg2)
   /* Parse event number */
   if (isdigit(*arg2))
   {
-    event_num = atoi(arg2);
+    event_num = parse_int(arg2);
   }
   else
   {
@@ -2994,8 +2994,8 @@ static int test_command_parsing(void)
   TEST_ASSERT(isdigit(*valid_number), "Valid number string detection");
   TEST_ASSERT(!isdigit(*invalid_number), "Invalid number string detection");
 
-  int parsed_valid = atoi(valid_number);
-  int parsed_invalid = atoi(out_of_range);
+  int parsed_valid = parse_int(valid_number);
+  int parsed_invalid = parse_int(out_of_range);
 
   TEST_ASSERT(parsed_valid >= 0 && parsed_valid < NUM_STAFF_EVENTS, "Valid event number parsing");
   TEST_ASSERT(parsed_invalid >= NUM_STAFF_EVENTS, "Out of range number detection");

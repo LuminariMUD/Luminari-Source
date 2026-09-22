@@ -563,7 +563,7 @@ static int transaction_amt(char *arg)
   {
     /* Drop the count; source and destination overlap, so memmove. */
     memmove(arg, arg + strlen(buf) + 1, strlen(arg + strlen(buf) + 1) + 1);
-    return (atoi(buf));
+    return (parse_int(buf));
   }
   return (1);
 }
@@ -623,9 +623,9 @@ static struct obj_data *get_hash_obj_vis(struct char_data *ch, char *name, struc
   int qindex;
 
   if (is_number(name))
-    qindex = atoi(name);
+    qindex = parse_int(name);
   else if (is_number(name + 1))
-    qindex = atoi(name + 1);
+    qindex = parse_int(name + 1);
   else
     return (NULL);
 
@@ -2152,7 +2152,7 @@ void show_shops(struct char_data *ch, char *arg)
       }
     }
     else if (is_number(arg))
-      shop_nr = real_shop(atoi(arg));
+      shop_nr = real_shop(parse_int(arg));
     else
       shop_nr = -1;
 

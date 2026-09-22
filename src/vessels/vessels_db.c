@@ -298,7 +298,7 @@ void load_ship_interior(struct greyhawk_ship_data *ship)
   if ((row = mysql_fetch_row(result)))
   {
     /* Load basic data */
-    ship->vessel_type = atoi(row[0]);
+    ship->vessel_type = parse_int(row[0]);
     /* name is an array, not pointer, so always valid */
     if (row[1] && row[1][0] != '\0')
     {
@@ -306,7 +306,7 @@ void load_ship_interior(struct greyhawk_ship_data *ship)
     }
     vessel_set_figurehead(ship, row[2] ? row[2] : "");
     vessel_set_paint_scheme(ship, row[3] ? row[3] : "");
-    ship->num_rooms = atoi(row[4]);
+    ship->num_rooms = parse_int(row[4]);
 
     /* Parse room vnums */
     if (row[5])
@@ -318,19 +318,19 @@ void load_ship_interior(struct greyhawk_ship_data *ship)
       token = strtok(room_vnums_copy, ",");
       while (token && i < MAX_SHIP_ROOMS)
       {
-        ship->room_vnums[i++] = atoi(token);
+        ship->room_vnums[i++] = parse_int(token);
         token = strtok(NULL, ",");
       }
     }
 
     /* Load special rooms */
-    ship->bridge_room = atoi(row[6]);
-    ship->entrance_room = atoi(row[7]);
+    ship->bridge_room = parse_int(row[6]);
+    ship->entrance_room = parse_int(row[7]);
 
     /* Load cargo rooms */
     for (i = 0; i < 5; i++)
     {
-      ship->cargo_rooms[i] = atoi(row[8 + i]);
+      ship->cargo_rooms[i] = parse_int(row[8 + i]);
     }
 
     /* Deserialize room data */
@@ -523,7 +523,7 @@ int vessel_deserialize_slot_state(struct greyhawk_ship_data *ship, const char *d
     return 0;
   }
 
-  declared_count = atoi(token);
+  declared_count = parse_int(token);
   declared_count = MIN(GREYHAWK_MAXSLOTS, MAX(0, declared_count));
   memset(ship->slot, 0, sizeof(ship->slot));
   parsed = 0;
@@ -680,7 +680,7 @@ bool vessel_db_load_weapons(struct greyhawk_ship_data *ship)
 
   while ((row = mysql_fetch_row(result)) != NULL)
   {
-    slot_index = row[0] ? atoi(row[0]) : -1;
+    slot_index = row[0] ? parse_int(row[0]) : -1;
     if (slot_index < 0 || slot_index >= GREYHAWK_MAXSLOTS)
     {
       log("SYSERR: Ignoring invalid weapon slot %d for ship %d", slot_index, ship->shipnum);
@@ -689,20 +689,20 @@ bool vessel_db_load_weapons(struct greyhawk_ship_data *ship)
 
     slot = &ship->slot[slot_index];
     memset(slot, 0, sizeof(*slot));
-    slot->type = (char)(row[1] ? atoi(row[1]) : 1);
-    slot->position = (char)(row[2] ? atoi(row[2]) : 0);
-    slot->weight = (unsigned char)(row[3] ? atoi(row[3]) : 0);
+    slot->type = (char)(row[1] ? parse_int(row[1]) : 1);
+    slot->position = (char)(row[2] ? parse_int(row[2]) : 0);
+    slot->weight = (unsigned char)(row[3] ? parse_int(row[3]) : 0);
     if (row[4] != NULL)
     {
       strlcpy(slot->desc, row[4], sizeof(slot->desc));
     }
-    slot->val0 = (char)(row[5] ? atoi(row[5]) : 0);
-    slot->val1 = (char)(row[6] ? atoi(row[6]) : 0);
-    slot->val2 = (char)(row[7] ? atoi(row[7]) : 0);
-    slot->val3 = (char)(row[8] ? atoi(row[8]) : 0);
-    slot->x = (unsigned char)(row[9] ? atoi(row[9]) : 0);
-    slot->y = (unsigned char)(row[10] ? atoi(row[10]) : 0);
-    slot->timer = (short int)(row[11] ? atoi(row[11]) : 0);
+    slot->val0 = (char)(row[5] ? parse_int(row[5]) : 0);
+    slot->val1 = (char)(row[6] ? parse_int(row[6]) : 0);
+    slot->val2 = (char)(row[7] ? parse_int(row[7]) : 0);
+    slot->val3 = (char)(row[8] ? parse_int(row[8]) : 0);
+    slot->x = (unsigned char)(row[9] ? parse_int(row[9]) : 0);
+    slot->y = (unsigned char)(row[10] ? parse_int(row[10]) : 0);
+    slot->timer = (short int)(row[11] ? parse_int(row[11]) : 0);
   }
   mysql_free_result(result);
   return TRUE;
@@ -881,16 +881,16 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
   }
 
   column = 0;
-  ship->prototype_id = row[column] ? atoi(row[column]) : 0;
+  ship->prototype_id = row[column] ? parse_int(row[column]) : 0;
   column++;
-  ship->hull_object_vnum = row[column] ? atoi(row[column]) : VESSEL_BASE_HULL_OBJ_VNUM;
+  ship->hull_object_vnum = row[column] ? parse_int(row[column]) : VESSEL_BASE_HULL_OBJ_VNUM;
   column++;
   if (row[column] != NULL)
   {
     strlcpy(ship->id, row[column], sizeof(ship->id));
   }
   column++;
-  ship->location = row[column] ? atoi(row[column]) : 0;
+  ship->location = row[column] ? parse_int(row[column]) : 0;
   column++;
   ship->x = row[column] ? strtod(row[column], NULL) : 0.0;
   column++;
@@ -904,31 +904,31 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
   column++;
   ship->dz = row[column] ? strtod(row[column], NULL) : 0.0;
   column++;
-  ship->heading = row[column] ? (short int)atoi(row[column]) : 0;
+  ship->heading = row[column] ? (short int)parse_int(row[column]) : 0;
   column++;
-  ship->setheading = row[column] ? (short int)atoi(row[column]) : 0;
+  ship->setheading = row[column] ? (short int)parse_int(row[column]) : 0;
   column++;
-  ship->minspeed = row[column] ? (short int)atoi(row[column]) : 0;
+  ship->minspeed = row[column] ? (short int)parse_int(row[column]) : 0;
   column++;
-  ship->maxspeed = row[column] ? (short int)atoi(row[column]) : 0;
+  ship->maxspeed = row[column] ? (short int)parse_int(row[column]) : 0;
   column++;
-  ship->speed = row[column] ? (short int)atoi(row[column]) : 0;
+  ship->speed = row[column] ? (short int)parse_int(row[column]) : 0;
   column++;
-  ship->setspeed = row[column] ? (short int)atoi(row[column]) : 0;
+  ship->setspeed = row[column] ? (short int)parse_int(row[column]) : 0;
   column++;
-  ship->dock = row[column] ? atoi(row[column]) : 0;
+  ship->dock = row[column] ? parse_int(row[column]) : 0;
   column++;
-  ship->docked_to_ship = row[column] ? atoi(row[column]) : -1;
+  ship->docked_to_ship = row[column] ? parse_int(row[column]) : -1;
   column++;
-  ship->docking_room = row[column] ? atoi(row[column]) : 0;
+  ship->docking_room = row[column] ? parse_int(row[column]) : 0;
   column++;
-  ship->max_docked_ships = row[column] ? atoi(row[column]) : 0;
+  ship->max_docked_ships = row[column] ? parse_int(row[column]) : 0;
   column++;
 
 #define LOAD_UCHAR(field)                                                                          \
   do                                                                                               \
   {                                                                                                \
-    ship->field = row[column] ? (unsigned char)atoi(row[column]) : 0;                              \
+    ship->field = row[column] ? (unsigned char)parse_int(row[column]) : 0;                         \
     column++;                                                                                      \
   } while (0)
   LOAD_UCHAR(maxfarmor);
@@ -955,24 +955,24 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
   LOAD_UCHAR(maxslots);
 #undef LOAD_UCHAR
 
-  ship->last_attacker = row[column] ? atoi(row[column]) : 0;
+  ship->last_attacker = row[column] ? parse_int(row[column]) : 0;
   column++;
-  ship->pvp_grace_until = row[column] ? (time_t)atoll(row[column]) : 0;
+  ship->pvp_grace_until = row[column] ? (time_t)parse_llong(row[column]) : 0;
   column++;
   if (row[column] != NULL)
   {
     strlcpy(ship->pvp_grace_attacker, row[column], sizeof(ship->pvp_grace_attacker));
   }
   column++;
-  ship->dock_fee_balance = row[column] ? atoi(row[column]) : 0;
+  ship->dock_fee_balance = row[column] ? parse_int(row[column]) : 0;
   column++;
-  ship->dock_fee_port = row[column] ? atoi(row[column]) : 0;
+  ship->dock_fee_port = row[column] ? parse_int(row[column]) : 0;
   column++;
-  ship->dock_fee_clan = row[column] ? atoi(row[column]) : 0;
+  ship->dock_fee_clan = row[column] ? parse_int(row[column]) : 0;
   column++;
-  ship->wear_ticks = row[column] ? atoi(row[column]) : 0;
+  ship->wear_ticks = row[column] ? parse_int(row[column]) : 0;
   column++;
-  ship->wage_ticks = row[column] ? atoi(row[column]) : 0;
+  ship->wage_ticks = row[column] ? parse_int(row[column]) : 0;
   column++;
 
   memset(ship->room_templates, 0xff, sizeof(ship->room_templates));
@@ -981,7 +981,7 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
     strlcpy(room_types_copy, row[column], sizeof(room_types_copy));
     save_pointer = NULL;
     token = strtok_r(room_types_copy, ",", &save_pointer);
-    room_count = token ? atoi(token) : 0;
+    room_count = token ? parse_int(token) : 0;
     for (i = 0; i < room_count && i < MAX_SHIP_ROOMS; i++)
     {
       token = strtok_r(NULL, ",", &save_pointer);
@@ -989,7 +989,7 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
       {
         break;
       }
-      ship->room_templates[i] = atoi(token);
+      ship->room_templates[i] = parse_int(token);
     }
   }
   column++;
@@ -1000,17 +1000,17 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
   }
   column++;
 
-  autopilot_state = row[column] ? atoi(row[column]) : AUTOPILOT_OFF;
+  autopilot_state = row[column] ? parse_int(row[column]) : AUTOPILOT_OFF;
   column++;
-  route_id = row[column] ? atoi(row[column]) : 0;
+  route_id = row[column] ? parse_int(row[column]) : 0;
   column++;
-  current_waypoint_index = row[column] ? atoi(row[column]) : 0;
+  current_waypoint_index = row[column] ? parse_int(row[column]) : 0;
   column++;
-  autopilot_tick_counter = row[column] ? atoi(row[column]) : 0;
+  autopilot_tick_counter = row[column] ? parse_int(row[column]) : 0;
   column++;
-  wait_remaining = row[column] ? atoi(row[column]) : 0;
+  wait_remaining = row[column] ? parse_int(row[column]) : 0;
   column++;
-  last_update = row[column] ? atoll(row[column]) : 0;
+  last_update = row[column] ? parse_llong(row[column]) : 0;
 
   if (route_id > 0)
   {
@@ -1276,8 +1276,8 @@ void load_cargo_manifest(struct greyhawk_ship_data *ship)
 
   while ((row = mysql_fetch_row(result)))
   {
-    cargo_room = real_room(atoi(row[0]));
-    obj_num_id = real_object(atoi(row[1]));
+    cargo_room = real_room(parse_int(row[0]));
+    obj_num_id = real_object(parse_int(row[1]));
 
     if (cargo_room != NOWHERE && obj_num_id != NOTHING)
     {
@@ -1355,8 +1355,8 @@ void load_crew_roster(struct greyhawk_ship_data *ship)
 
   while ((row = mysql_fetch_row(result)))
   {
-    mob_num = real_mobile(atoi(row[0]));
-    target_room = real_room(atoi(row[1]));
+    mob_num = real_mobile(parse_int(row[0]));
+    target_room = real_room(parse_int(row[1]));
 
     if (mob_num != NOBODY && target_room != NOWHERE)
     {
@@ -1637,7 +1637,7 @@ void load_all_ship_interiors(void)
   ship_count = 0;
   while ((row = mysql_fetch_row(result)) != NULL && ship_count < GREYHAWK_MAXSHIPS)
   {
-    shipnum = row[0] ? atoi(row[0]) : -1;
+    shipnum = row[0] ? parse_int(row[0]) : -1;
     if (shipnum <= 0 || shipnum >= GREYHAWK_MAXSHIPS)
     {
       log("SYSERR: Ignoring persisted vessel with invalid fleet slot %d", shipnum);
@@ -1942,7 +1942,7 @@ void vessel_db_load_pilot(struct greyhawk_ship_data *ship)
 
   if ((row = mysql_fetch_row(result)))
   {
-    ship->autopilot->pilot_mob_vnum = atoi(row[0]);
+    ship->autopilot->pilot_mob_vnum = parse_int(row[0]);
     log("Info: Loaded pilot VNUM %d for ship %d", ship->autopilot->pilot_mob_vnum, ship->shipnum);
   }
   else
@@ -2105,14 +2105,14 @@ int schedule_load(struct greyhawk_ship_data *ship)
       }
     }
 
-    ship->schedule->schedule_id = atoi(row[0]);
+    ship->schedule->schedule_id = parse_int(row[0]);
     ship->schedule->ship_id = ship->shipnum;
-    ship->schedule->route_id = atoi(row[1]);
-    ship->schedule->interval_hours = atoi(row[2]);
-    ship->schedule->next_departure = atoi(row[3]);
-    ship->schedule->flags = atoi(row[4]) ? SCHEDULE_FLAG_ENABLED : 0;
+    ship->schedule->route_id = parse_int(row[1]);
+    ship->schedule->interval_hours = parse_int(row[2]);
+    ship->schedule->next_departure = parse_int(row[3]);
+    ship->schedule->flags = parse_int(row[4]) ? SCHEDULE_FLAG_ENABLED : 0;
     ship->schedule->passenger_fare =
-        MAX(0, MIN(row[5] ? atoi(row[5]) : 0, VESSEL_PASSENGER_FARE_MAX));
+        MAX(0, MIN(row[5] ? parse_int(row[5]) : 0, VESSEL_PASSENGER_FARE_MAX));
 
     log("Info: Loaded schedule for ship %d (route %d, interval %d hours, fare %d)", ship->shipnum,
         ship->schedule->route_id, ship->schedule->interval_hours, ship->schedule->passenger_fare);

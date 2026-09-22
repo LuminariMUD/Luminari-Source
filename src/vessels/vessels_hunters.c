@@ -169,15 +169,15 @@ int vessel_hunter_load_config(int encounter_id, struct vessel_hunter_config *con
     return 0;
   }
 
-  config->encounter_id = row[0] ? atoi(row[0]) : 0;
-  config->prototype_id = row[1] ? atoi(row[1]) : 0;
-  config->pilot_mob_vnum = row[2] ? atoi(row[2]) : 0;
-  config->min_bounty = row[3] ? atoi(row[3]) : 0;
-  config->pursuit_speed = row[4] ? atoi(row[4]) : 0;
-  config->hunt_duration_seconds = row[5] ? atoi(row[5]) : 0;
-  config->target_grace_seconds = row[6] ? atoi(row[6]) : 0;
-  config->cooldown_seconds = row[7] ? atoi(row[7]) : 0;
-  config->enabled = row[8] ? atoi(row[8]) != 0 : FALSE;
+  config->encounter_id = row[0] ? parse_int(row[0]) : 0;
+  config->prototype_id = row[1] ? parse_int(row[1]) : 0;
+  config->pilot_mob_vnum = row[2] ? parse_int(row[2]) : 0;
+  config->min_bounty = row[3] ? parse_int(row[3]) : 0;
+  config->pursuit_speed = row[4] ? parse_int(row[4]) : 0;
+  config->hunt_duration_seconds = row[5] ? parse_int(row[5]) : 0;
+  config->target_grace_seconds = row[6] ? parse_int(row[6]) : 0;
+  config->cooldown_seconds = row[7] ? parse_int(row[7]) : 0;
+  config->enabled = row[8] ? parse_int(row[8]) != 0 : FALSE;
   mysql_free_result(result);
 
   if (!vessel_hunter_config_is_valid(config))
@@ -251,7 +251,7 @@ static bool vessel_hunter_lifecycle_is_available(const char *target_name, time_t
   }
 
   status = row[0] ? row[0] : "";
-  next_eligible_at = row[1] ? (time_t)atoll(row[1]) : 0;
+  next_eligible_at = row[1] ? (time_t)parse_llong(row[1]) : 0;
   available = vessel_hunter_lifecycle_allows_spawn(status, next_eligible_at, now);
   mysql_free_result(result);
   return available;
@@ -321,7 +321,7 @@ static bool vessel_hunter_claim_lifecycle(const struct greyhawk_ship_data *targe
   exists = row != NULL;
   old_generation = exists && row[0] ? strtoull(row[0], NULL, 10) : 0;
   status = exists && row[1] ? row[1] : "";
-  next_eligible_at = exists && row[2] ? (time_t)atoll(row[2]) : 0;
+  next_eligible_at = exists && row[2] ? (time_t)parse_llong(row[2]) : 0;
   if ((exists && !vessel_hunter_lifecycle_allows_spawn(status, next_eligible_at, now)) ||
       old_generation == ULLONG_MAX)
   {
@@ -737,18 +737,18 @@ static int vessel_hunter_collect_boot_rows(struct vessel_hunter_boot_row *rows, 
     strlcpy(boot_row->hunter_name, row[1] ? row[1] : "", sizeof(boot_row->hunter_name));
     boot_row->generation = row[2] ? strtoull(row[2], NULL, 10) : 0;
     strlcpy(boot_row->status, row[3] ? row[3] : "", sizeof(boot_row->status));
-    boot_row->target_ship_id = row[4] ? atoi(row[4]) : 0;
-    boot_row->hunter_ship_id = row[5] ? atoi(row[5]) : -1;
-    boot_row->expires_at = row[6] ? (time_t)atoll(row[6]) : 0;
-    boot_row->config.encounter_id = row[7] ? atoi(row[7]) : 0;
-    boot_row->config.prototype_id = row[8] ? atoi(row[8]) : 0;
-    boot_row->config.pilot_mob_vnum = row[9] ? atoi(row[9]) : 0;
-    boot_row->config.min_bounty = row[10] ? atoi(row[10]) : 0;
-    boot_row->config.pursuit_speed = row[11] ? atoi(row[11]) : 0;
-    boot_row->config.hunt_duration_seconds = row[12] ? atoi(row[12]) : 0;
-    boot_row->config.target_grace_seconds = row[13] ? atoi(row[13]) : 0;
-    boot_row->config.cooldown_seconds = row[14] ? atoi(row[14]) : 0;
-    boot_row->config.enabled = row[15] ? atoi(row[15]) != 0 : FALSE;
+    boot_row->target_ship_id = row[4] ? parse_int(row[4]) : 0;
+    boot_row->hunter_ship_id = row[5] ? parse_int(row[5]) : -1;
+    boot_row->expires_at = row[6] ? (time_t)parse_llong(row[6]) : 0;
+    boot_row->config.encounter_id = row[7] ? parse_int(row[7]) : 0;
+    boot_row->config.prototype_id = row[8] ? parse_int(row[8]) : 0;
+    boot_row->config.pilot_mob_vnum = row[9] ? parse_int(row[9]) : 0;
+    boot_row->config.min_bounty = row[10] ? parse_int(row[10]) : 0;
+    boot_row->config.pursuit_speed = row[11] ? parse_int(row[11]) : 0;
+    boot_row->config.hunt_duration_seconds = row[12] ? parse_int(row[12]) : 0;
+    boot_row->config.target_grace_seconds = row[13] ? parse_int(row[13]) : 0;
+    boot_row->config.cooldown_seconds = row[14] ? parse_int(row[14]) : 0;
+    boot_row->config.enabled = row[15] ? parse_int(row[15]) != 0 : FALSE;
   }
   mysql_free_result(result);
   return count;

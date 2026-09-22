@@ -212,23 +212,23 @@ static bool vessel_merchant_profile_from_row(MYSQL_ROW row, struct vessel_mercha
   }
 
   memset(profile, 0, sizeof(*profile));
-  profile->merchant_id = row[0] ? atoi(row[0]) : 0;
+  profile->merchant_id = row[0] ? parse_int(row[0]) : 0;
   strlcpy(profile->name, row[1] ? row[1] : "", sizeof(profile->name));
-  profile->faction_id = row[2] ? atoi(row[2]) : 0;
-  profile->prototype_id = row[3] ? atoi(row[3]) : 0;
-  profile->route_id = row[4] ? atoi(row[4]) : 0;
-  profile->pilot_mob_vnum = row[5] ? atoi(row[5]) : 0;
-  profile->spawn_x = row[6] ? atoi(row[6]) : 0;
-  profile->spawn_y = row[7] ? atoi(row[7]) : 0;
-  profile->spawn_z = row[8] ? atoi(row[8]) : 0;
-  profile->cargo_commodity_id = row[9] ? atoi(row[9]) : 0;
-  profile->cargo_quantity = row[10] ? atoi(row[10]) : 0;
-  profile->schedule_interval_hours = row[11] ? atoi(row[11]) : 0;
-  profile->respawn_delay_seconds = row[12] ? atoi(row[12]) : 0;
-  profile->active_ship_id = row[13] ? atoi(row[13]) : 0;
+  profile->faction_id = row[2] ? parse_int(row[2]) : 0;
+  profile->prototype_id = row[3] ? parse_int(row[3]) : 0;
+  profile->route_id = row[4] ? parse_int(row[4]) : 0;
+  profile->pilot_mob_vnum = row[5] ? parse_int(row[5]) : 0;
+  profile->spawn_x = row[6] ? parse_int(row[6]) : 0;
+  profile->spawn_y = row[7] ? parse_int(row[7]) : 0;
+  profile->spawn_z = row[8] ? parse_int(row[8]) : 0;
+  profile->cargo_commodity_id = row[9] ? parse_int(row[9]) : 0;
+  profile->cargo_quantity = row[10] ? parse_int(row[10]) : 0;
+  profile->schedule_interval_hours = row[11] ? parse_int(row[11]) : 0;
+  profile->respawn_delay_seconds = row[12] ? parse_int(row[12]) : 0;
+  profile->active_ship_id = row[13] ? parse_int(row[13]) : 0;
   profile->next_respawn_at = row[14] ? (time_t)strtoll(row[14], NULL, 10) : 0;
   profile->generation = row[15] ? (unsigned int)strtoul(row[15], NULL, 10) : 0;
-  profile->enabled = row[16] ? atoi(row[16]) != 0 : FALSE;
+  profile->enabled = row[16] ? parse_int(row[16]) != 0 : FALSE;
   strlcpy(profile->last_attacker_name, row[17] ? row[17] : "", sizeof(profile->last_attacker_name));
   profile->last_attacked_at = row[18] ? (time_t)strtoll(row[18], NULL, 10) : 0;
   return vessel_merchant_profile_values_are_valid(profile);
@@ -363,7 +363,7 @@ static int vessel_merchant_commodity_weight(int commodity_id)
     return 0;
   }
   row = mysql_fetch_row(result);
-  weight = row != NULL && row[0] != NULL ? atoi(row[0]) : 0;
+  weight = row != NULL && row[0] != NULL ? parse_int(row[0]) : 0;
   mysql_free_result(result);
   return MAX(0, weight);
 }
@@ -413,7 +413,7 @@ static bool vessel_merchant_load_cargo(struct greyhawk_ship_data *ship,
     return FALSE;
   }
   row = mysql_fetch_row(result);
-  saved = row != NULL && row[0] != NULL && atoi(row[0]) == 1;
+  saved = row != NULL && row[0] != NULL && parse_int(row[0]) == 1;
   mysql_free_result(result);
   return saved;
 }
@@ -629,7 +629,8 @@ static void vessel_merchant_reconcile(void)
     {
       if (row[0] != NULL)
       {
-        vessel_merchant_set_error(atoi(row[0]), "definition values are outside Phase 14 bounds",
+        vessel_merchant_set_error(parse_int(row[0]),
+                                  "definition values are outside Phase 14 bounds",
                                   now + VESSEL_MERCHANT_RETRY_SECONDS);
       }
       continue;
@@ -915,7 +916,7 @@ int vessel_merchant_deliver_pending_consequences(struct char_data *ch)
   {
     pending++;
     consequence_id = row[0] ? strtoull(row[0], NULL, 10) : 0;
-    faction_id = row[1] ? atoi(row[1]) : FACTION_NONE;
+    faction_id = row[1] ? parse_int(row[1]) : FACTION_NONE;
     if (consequence_id > highest_id)
     {
       highest_id = consequence_id;
@@ -925,13 +926,13 @@ int vessel_merchant_deliver_pending_consequences(struct char_data *ch)
     {
       continue;
     }
-    if (penalty_by_faction[faction_id] > LLONG_MAX - MAX(0, atoi(row[2])))
+    if (penalty_by_faction[faction_id] > LLONG_MAX - MAX(0, parse_int(row[2])))
     {
       penalty_by_faction[faction_id] = LLONG_MAX;
     }
     else
     {
-      penalty_by_faction[faction_id] += MAX(0, atoi(row[2]));
+      penalty_by_faction[faction_id] += MAX(0, parse_int(row[2]));
     }
     applied++;
   }
@@ -1254,18 +1255,21 @@ static void vessel_merchant_list(struct char_data *ch)
                    "----------- ---- ------------------------\r\n");
   while ((row = mysql_fetch_row(result)) != NULL)
   {
-    due = row[9] ? atoll(row[9]) : 0;
-    active_ship_id = row[8] ? atoi(row[8]) : 0;
-    enabled = row[11] && atoi(row[11]);
+    due = row[9] ? parse_llong(row[9]) : 0;
+    active_ship_id = row[8] ? parse_int(row[8]) : 0;
+    enabled = row[11] && parse_int(row[11]);
     send_to_char(ch, "%3d %3u %4s %-11s %-10.10s %5d %5d %5d %4d x %-4d %4d %s\r\n",
-                 row[0] ? atoi(row[0]) : 0, row[10] ? (unsigned int)strtoul(row[10], NULL, 10) : 0,
+                 row[0] ? parse_int(row[0]) : 0,
+                 row[10] ? (unsigned int)strtoul(row[10], NULL, 10) : 0,
                  active_ship_id > 0 ? row[8] : "-",
                  !enabled ? "disabled"
                           : (active_ship_id > 0 ? "active" : (due > now ? "recovering" : "due")),
-                 row[2] && atoi(row[2]) >= 0 && atoi(row[2]) < NUM_FACTIONS ? factions[atoi(row[2])]
-                                                                            : "invalid",
-                 row[3] ? atoi(row[3]) : 0, row[4] ? atoi(row[4]) : 0, row[5] ? atoi(row[5]) : 0,
-                 row[7] ? atoi(row[7]) : 0, row[6] ? atoi(row[6]) : 0, row[12] ? atoi(row[12]) : 0,
+                 row[2] && parse_int(row[2]) >= 0 && parse_int(row[2]) < NUM_FACTIONS
+                     ? factions[parse_int(row[2])]
+                     : "invalid",
+                 row[3] ? parse_int(row[3]) : 0, row[4] ? parse_int(row[4]) : 0,
+                 row[5] ? parse_int(row[5]) : 0, row[7] ? parse_int(row[7]) : 0,
+                 row[6] ? parse_int(row[6]) : 0, row[12] ? parse_int(row[12]) : 0,
                  row[1] ? row[1] : "(unnamed)");
     if (row[13] != NULL && *row[13])
     {

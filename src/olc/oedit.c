@@ -2456,7 +2456,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_TYPE:
-    number = atoi(arg);
+    number = parse_int(arg);
     if ((number < 0) || (number >= NUM_ITEM_TYPES))
     {
       write_to_output(d, "Invalid choice, try again : ");
@@ -2473,7 +2473,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_PROF:
-    number = atoi(arg);
+    number = parse_int(arg);
     if ((number < 0) || (number >= NUM_ITEM_PROFS))
     {
       write_to_output(d, "Invalid choice, try again : ");
@@ -2484,7 +2484,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_MATERIAL:
-    number = atoi(arg);
+    number = parse_int(arg);
     if ((number < 1) || (number >= NUM_MATERIALS))
     {
       write_to_output(d, "Invalid choice, try again : ");
@@ -2495,7 +2495,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_EXTRAS:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number == -1)
     {
       OLC_OBJ(d)->obj_flags.extra_flags[0] = OLC_OBJ(d)->obj_flags.extra_flags[1] =
@@ -2521,7 +2521,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     }
 
   case OEDIT_WEAR:
-    number = atoi(arg);
+    number = parse_int(arg);
     if ((number < 0) || (number > NUM_ITEM_WEARS))
     {
       write_to_output(d, "That's not a valid choice!\r\n");
@@ -2538,38 +2538,38 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     }
 
   case OEDIT_WEIGHT:
-    GET_OBJ_WEIGHT(OLC_OBJ(d)) = LIMIT(atoi(arg), 0, MAX_OBJ_WEIGHT);
+    GET_OBJ_WEIGHT(OLC_OBJ(d)) = LIMIT(parse_int(arg), 0, MAX_OBJ_WEIGHT);
     break;
 
   case OEDIT_SIZE:
-    number = atoi(arg) - 1;
+    number = parse_int(arg) - 1;
     GET_OBJ_SIZE(OLC_OBJ(d)) = LIMIT(number, 0, NUM_SIZES - 1);
     break;
 
   case OEDIT_MOB_RECIPIENT:
-    number = atoi(arg);
+    number = parse_int(arg);
     (OLC_OBJ(d)->mob_recepient) = number;
     break;
 
   case OEDIT_COST:
-    GET_OBJ_COST(OLC_OBJ(d)) = LIMIT(atoi(arg), 0, MAX_OBJ_COST);
+    GET_OBJ_COST(OLC_OBJ(d)) = LIMIT(parse_int(arg), 0, MAX_OBJ_COST);
     break;
 
   case OEDIT_COSTPERDAY:
-    GET_OBJ_RENT(OLC_OBJ(d)) = LIMIT(atoi(arg), 0, MAX_OBJ_RENT);
+    GET_OBJ_RENT(OLC_OBJ(d)) = LIMIT(parse_int(arg), 0, MAX_OBJ_RENT);
     break;
 
   case OEDIT_TIMER:
-    GET_OBJ_TIMER(OLC_OBJ(d)) = LIMIT(atoi(arg), 0, MAX_OBJ_TIMER);
+    GET_OBJ_TIMER(OLC_OBJ(d)) = LIMIT(parse_int(arg), 0, MAX_OBJ_TIMER);
     point_update_object_sync(OLC_OBJ(d));
     break;
 
   case OEDIT_LEVEL:
-    GET_OBJ_LEVEL(OLC_OBJ(d)) = LIMIT(atoi(arg), 0, LVL_IMPL);
+    GET_OBJ_LEVEL(OLC_OBJ(d)) = LIMIT(parse_int(arg), 0, LVL_IMPL);
     break;
 
   case OEDIT_PERM:
-    if ((number = atoi(arg)) == 0)
+    if ((number = parse_int(arg)) == 0)
       break;
     if (number > 0 && number < NUM_AFF_FLAGS)
     {
@@ -2583,7 +2583,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_PERM2:
-    if ((number = atoi(arg)) == 0)
+    if ((number = parse_int(arg)) == 0)
       break;
     if (number > 0 && number <= NUM_AFF2_FLAGS)
     {
@@ -2593,15 +2593,16 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_VALUE_1:
-    number = atoi(arg);
+    number = parse_int(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_INSTRUMENT:
-      GET_OBJ_VAL(OLC_OBJ(d), INSTRUMENT_VALUE_TYPE) = MIN(MAX(atoi(arg), 0), MAX_INSTRUMENTS - 1);
+      GET_OBJ_VAL(OLC_OBJ(d), INSTRUMENT_VALUE_TYPE) =
+          MIN(MAX(parse_int(arg), 0), MAX_INSTRUMENTS - 1);
       break;
 
     case ITEM_SWITCH:
-      GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), 1);
+      GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(parse_int(arg), 0), 1);
       break;
 
     case ITEM_GEAR_OUTFIT:
@@ -2629,57 +2630,58 @@ void oedit_parse(struct descriptor_data *d, char *arg)
 
     case ITEM_WEAPON:
       /* function from treasure.c */
-      set_weapon_object(OLC_OBJ(d), MIN(MAX(atoi(arg), 0), NUM_WEAPON_TYPES - 1));
+      set_weapon_object(OLC_OBJ(d), MIN(MAX(parse_int(arg), 0), NUM_WEAPON_TYPES - 1));
 
       /*  Skip a few. */
       oedit_disp_val5_menu(d);
       return;
 
     case ITEM_TREASURE_CHEST:
-      if (atoi(arg) <= LOOTBOX_LEVEL_UNDEFINED || atoi(arg) >= NUM_LOOTBOX_LEVELS)
+      if (parse_int(arg) <= LOOTBOX_LEVEL_UNDEFINED || parse_int(arg) >= NUM_LOOTBOX_LEVELS)
       {
         write_to_output(d, "Invalid option.  Try again: ");
         return;
       }
-      GET_OBJ_VAL(OLC_OBJ(d), 0) = atoi(arg);
+      GET_OBJ_VAL(OLC_OBJ(d), 0) = parse_int(arg);
       oedit_disp_val2_menu(d);
       return;
 
     case ITEM_FIREWEAPON:
-      GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_RANGED_WEAPONS - 1);
+      GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(parse_int(arg), 0), NUM_RANGED_WEAPONS - 1);
       break;
 
     case ITEM_MISSILE:
-      GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), 1, NUM_AMMO_TYPES - 1);
+      GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(parse_int(arg), 1, NUM_AMMO_TYPES - 1);
       /* jump to break probability */
       oedit_disp_val3_menu(d);
       return;
 
     case ITEM_CONTAINER:
-      GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), -1, MAX_CONTAINER_SIZE);
+      GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(parse_int(arg), -1, MAX_CONTAINER_SIZE);
       break;
 
     case ITEM_AMMO_POUCH:
-      GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), -1, MAX_CONTAINER_SIZE);
+      GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(parse_int(arg), -1, MAX_CONTAINER_SIZE);
       break;
 
       /* NewCraft */
     case ITEM_BLUEPRINT:
-      GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), 0, 1000);
+      GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(parse_int(arg), 0, 1000);
       break;
 
       /* special values for worn gear, example monk-gloves will apply
              an enhancement bonus to damage */
     case ITEM_WORN:
-      GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), 1, 10);
+      GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(parse_int(arg), 1, 10);
       break;
 
     case ITEM_CRAFTING_TOOL:
-      GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), START_CRAFT_ABILITIES, END_HARVEST_ABILITIES);
+      GET_OBJ_VAL(OLC_OBJ(d), 0) =
+          LIMIT(parse_int(arg), START_CRAFT_ABILITIES, END_HARVEST_ABILITIES);
       break;
 
     default:
-      GET_OBJ_VAL(OLC_OBJ(d), 0) = atoi(arg);
+      GET_OBJ_VAL(OLC_OBJ(d), 0) = parse_int(arg);
     }
     /* proceed to menu 2 */
     oedit_disp_val2_menu(d);
@@ -2687,7 +2689,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
 
   case OEDIT_VALUE_2:
     /* Here, I do need to check for out of range values. */
-    number = atoi(arg);
+    number = parse_int(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_GEAR_OUTFIT:
@@ -2704,12 +2706,12 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_val3_menu(d);
       break;
     case ITEM_TREASURE_CHEST:
-      if (atoi(arg) <= LOOTBOX_TYPE_UNDEFINED || atoi(arg) >= NUM_LOOTBOX_TYPES)
+      if (parse_int(arg) <= LOOTBOX_TYPE_UNDEFINED || parse_int(arg) >= NUM_LOOTBOX_TYPES)
       {
         write_to_output(d, "Invalid option.  Try again: ");
         return;
       }
-      GET_OBJ_VAL(OLC_OBJ(d), 1) = atoi(arg);
+      GET_OBJ_VAL(OLC_OBJ(d), 1) = parse_int(arg);
       oedit_disp_val3_menu(d);
       break;
     case ITEM_SCROLL:
@@ -2741,7 +2743,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       break;
     case ITEM_ARMOR: /* val[0] is AC from old system setup */
       /* from treasure.c - auto set some values of this item now! */
-      set_armor_object(OLC_OBJ(d), MIN(MAX(atoi(arg), 0), NUM_SPEC_ARMOR_TYPES - 1));
+      set_armor_object(OLC_OBJ(d), MIN(MAX(parse_int(arg), 0), NUM_SPEC_ARMOR_TYPES - 1));
 
       /*  Skip to enhancement menu. */
       oedit_disp_val5_menu(d);
@@ -2777,7 +2779,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_VALUE_3:
-    number = atoi(arg);
+    number = parse_int(arg);
     /* Quick'n'easy error checking. */
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
@@ -2865,7 +2867,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_VALUE_4:
-    number = atoi(arg);
+    number = parse_int(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_TREASURE_CHEST:
@@ -2941,7 +2943,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
 
     /*this is enhancement bonus so far*/
   case OEDIT_VALUE_5:
-    number = atoi(arg);
+    number = parse_int(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_TREASURE_CHEST:
@@ -2982,7 +2984,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_VALUE_6:
-    number = atoi(arg);
+    number = parse_int(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_TREASURE_CHEST:
@@ -3011,7 +3013,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_VALUE_7:
-    number = atoi(arg);
+    number = parse_int(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_GEAR_OUTFIT:
@@ -3041,7 +3043,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_VALUE_8:
-    number = atoi(arg);
+    number = parse_int(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_GEAR_OUTFIT:
@@ -3057,7 +3059,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_VALUE_9:
-    number = atoi(arg);
+    number = parse_int(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_GEAR_OUTFIT:
@@ -3075,7 +3077,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_VALUE_10:
-    number = atoi(arg);
+    number = parse_int(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_GEAR_OUTFIT:
@@ -3105,7 +3107,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_VALUE_11:
-    number = atoi(arg);
+    number = parse_int(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_GEAR_OUTFIT:
@@ -3121,7 +3123,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_VALUE_12:
-    number = atoi(arg);
+    number = parse_int(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_GEAR_OUTFIT:
@@ -3139,7 +3141,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_VALUE_13:
-    number = atoi(arg);
+    number = parse_int(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_GEAR_OUTFIT:
@@ -3169,7 +3171,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_VALUE_14:
-    number = atoi(arg);
+    number = parse_int(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_GEAR_OUTFIT:
@@ -3185,7 +3187,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_VALUE_15:
-    number = atoi(arg);
+    number = parse_int(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_GEAR_OUTFIT:
@@ -3204,7 +3206,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     //  }
 
   case OEDIT_PROMPT_APPLY:
-    if ((number = atoi(arg)) == 0)
+    if ((number = parse_int(arg)) == 0)
       break;
     else if (number < 0 || number > MAX_OBJ_AFFECT)
     {
@@ -3217,7 +3219,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_APPLY:
-    if (((number = atoi(arg)) == 0) || ((number = atoi(arg)) == 1))
+    if (((number = parse_int(arg)) == 0) || ((number = parse_int(arg)) == 1))
     {
       OLC_OBJ(d)->affected[OLC_VAL(d)].location = 0;
       OLC_OBJ(d)->affected[OLC_VAL(d)].modifier = 0;
@@ -3272,19 +3274,19 @@ void oedit_parse(struct descriptor_data *d, char *arg)
   case OEDIT_APPLYMOD:
     if (OLC_OBJ(d)->affected[OLC_VAL(d)].location == APPLY_FEAT)
     {
-      if (!valid_item_feat(atoi(arg)))
+      if (!valid_item_feat(parse_int(arg)))
       {
         send_to_char(d->character, "You can't assign that feat to an item.\r\n");
         return;
       }
     }
-    OLC_OBJ(d)->affected[OLC_VAL(d)].modifier = atoi(arg);
+    OLC_OBJ(d)->affected[OLC_VAL(d)].modifier = parse_int(arg);
     oedit_disp_apply_prompt_bonus_type_menu(d);
     return;
 
   case OEDIT_APPLYSPEC:
     if (isdigit(*arg))
-      OLC_OBJ(d)->affected[OLC_VAL(d)].modifier = atoi(arg);
+      OLC_OBJ(d)->affected[OLC_VAL(d)].modifier = parse_int(arg);
     else
       switch (OLC_OBJ(d)->affected[OLC_VAL(d)].location)
       {
@@ -3308,7 +3310,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_APPLY_BONUS_TYPE:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 0 || number > NUM_BONUS_TYPES)
     {
       write_to_output(d, "Invalid bonus type, please enter a valid bonus type.");
@@ -3316,7 +3318,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    OLC_OBJ(d)->affected[OLC_VAL(d)].bonus_type = atoi(arg);
+    OLC_OBJ(d)->affected[OLC_VAL(d)].bonus_type = parse_int(arg);
 
     if (OLC_OBJ(d)->affected[OLC_VAL(d)].location == APPLY_SKILL)
     {
@@ -3355,7 +3357,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     }
     return;
   case OEDIT_APPLY_SPECIFIC:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (OLC_OBJ(d)->affected[OLC_VAL(d)].location == APPLY_SKILL)
     {
       if (number < START_GENERAL_ABILITIES || number > END_CRAFT_ABILITIES)
@@ -3387,7 +3389,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_EXTRADESC_MENU:
-    switch ((number = atoi(arg)))
+    switch ((number = parse_int(arg)))
     {
     case 0:
       if (!OLC_DESC(d)->keyword || !OLC_DESC(d)->description)
@@ -3447,7 +3449,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_COPY:
-    if ((number = real_object(atoi(arg))) != (int)NOTHING)
+    if ((number = real_object(parse_int(arg))) != (int)NOTHING)
     {
       oedit_setup_existing(d, number, QMODE_QCOPY);
     }
@@ -3479,7 +3481,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_WEAPON_SPELL_MENU:
-    if ((number = atoi(arg)) == -1)
+    if ((number = parse_int(arg)) == -1)
       break;
     else if (number < 1 || number > MAX_WEAPON_SPELLS)
     {
@@ -3494,7 +3496,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_WEAPON_SPELLS:
-    if ((number = atoi(arg)) == -1)
+    if ((number = parse_int(arg)) == -1)
     {
       OLC_OBJ(d)->wpn_spells[OLC_VAL(d)].level = 0;
       OLC_OBJ(d)->wpn_spells[OLC_VAL(d)].percent = 0;
@@ -3514,7 +3516,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_WEAPON_SPELL_LEVEL:
-    if ((number = atoi(arg)) == -1)
+    if ((number = parse_int(arg)) == -1)
     {
       break;
     }
@@ -3530,7 +3532,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_WEAPON_SPELL_PERCENT:
-    if ((number = atoi(arg)) == -1)
+    if ((number = parse_int(arg)) == -1)
       break;
     if (number < 1 || number > 50)
     {
@@ -3544,7 +3546,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_WEAPON_SPELL_INCOMBAT:
-    if ((number = atoi(arg)) == -1)
+    if ((number = parse_int(arg)) == -1)
       break;
     if (number != 1 && number != 0)
     {
@@ -3562,7 +3564,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
 
   case OEDIT_PROMPT_SPELLBOOK:
   {
-    if ((number = atoi(arg)) == 0)
+    if ((number = parse_int(arg)) == 0)
       break;
     else if (number < 0 || number > SPELLBOOK_SIZE)
     {
@@ -3596,7 +3598,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
   }
 
   case OEDIT_SPELLBOOK:
-    if ((number = atoi(arg)) == 0)
+    if ((number = parse_int(arg)) == 0)
     {
       if (OLC_OBJ(d)->sbinfo)
       {
@@ -3644,7 +3646,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_ACTIVATED_SPELLS_LEVEL:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number == 0)
     {
       OLC_OBJ(d)->activate_spell[ACT_SPELL_LEVEL] = 0;
@@ -3681,7 +3683,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_ACTIVATED_SPELLS_SPELLNUM:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number <= 0 || number >= NUM_SPELLS)
     {
       write_to_output(d, "That is not a valid spell.\r\n");
@@ -3694,7 +3696,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_ACTIVATED_SPELLS_MAX_USES:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number <= 0 || number > MAX_NUMBER_OF_ACTIVATED_SPELL_USES)
     {
       write_to_output(d, "You must select between 1 and %d uses.\r\n",
@@ -3747,7 +3749,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
   case OEDIT_EDIT_WEAPON_SPECAB:
     /* Editing is the same as assign - just load the chosen specab. */
-    number = atoi(arg);
+    number = parse_int(arg);
     OLC_SPECAB(d) = get_specab_by_position(OLC_OBJ(d), number);
 
     if (OLC_SPECAB(d) == NULL)
@@ -3808,7 +3810,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     }
     return;
   case OEDIT_DELETE_WEAPON_SPECAB:
-    if ((number = atoi(arg)) == -1)
+    if ((number = parse_int(arg)) == -1)
     {
       oedit_disp_weapon_special_abilities_menu(d);
       OLC_MODE(d) = OEDIT_WEAPON_SPECAB_MENU;
@@ -3831,7 +3833,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
   case OEDIT_WEAPON_SPECAB:
     /* The user has chosen a special ability for this weapon. */
-    number = atoi(arg); /* No need to decrement number, we adjusted it already. */
+    number = parse_int(arg); /* No need to decrement number, we adjusted it already. */
     if ((number < 0) || (number >= NUM_SPECABS))
     {
       write_to_output(d, "Invalid choice, try again : ");
@@ -3846,7 +3848,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     oedit_disp_assign_weapon_specab_menu(d);
     return;
   case OEDIT_WEAPON_SPECAB_LEVEL:
-    number = atoi(arg);
+    number = parse_int(arg);
     if ((number < 1) || (number > 34))
     {
       write_to_output(d, "Invalid level, try again : ");
@@ -3865,7 +3867,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     oedit_disp_assign_weapon_specab_menu(d);
     return;
   case OEDIT_WEAPON_SPECAB_ACTMTD:
-    number = atoi(arg);
+    number = parse_int(arg);
     if ((number < 0) || (number > NUM_ACTIVATION_METHODS))
     { // added -3 to prevent eyes, ears, badge
       write_to_output(d, "That's not a valid choice!\r\n");
@@ -3889,7 +3891,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     switch (OLC_SPECAB(d)->ability)
     {
     case WEAPON_SPECAB_BANE: /* Val 1: NPC RACE */
-      number = atoi(arg);
+      number = parse_int(arg);
       if ((number < 0) || (number >= NUM_RACE_TYPES))
       {
         /* Value out of range. */
@@ -3901,7 +3903,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_specab_val2_menu(d);
       return;
     case ITEM_SPECAB_HORN_OF_SUMMONING: /* Val 1: VNUM of mob summoned. */
-      number = atoi(arg);
+      number = parse_int(arg);
       if ((number < 0) || (number >= 12157521))
       {
         /* Value out of range. */
@@ -3913,7 +3915,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_assign_weapon_specab_menu(d);
       return;
     case ITEM_SPECAB_ITEM_SUMMON: /* Val 1: VNUM of mob summoned. */
-      number = atoi(arg);
+      number = parse_int(arg);
       if ((number < 0) || (number >= 12157521))
       {
         /* Value out of range. */
@@ -3933,7 +3935,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     switch (OLC_SPECAB(d)->ability)
     {
     case WEAPON_SPECAB_BANE: /* Val 2: NPC SUBRACE */
-      number = atoi(arg);
+      number = parse_int(arg);
       if ((number < 0) || (number >= NUM_SUB_RACES))
       {
         /* Value out of range. */

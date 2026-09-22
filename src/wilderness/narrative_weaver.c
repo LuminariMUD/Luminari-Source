@@ -414,7 +414,7 @@ double parse_json_double_value(const char *json, const char *key)
   strncpy(value_str, start, len);
   value_str[len] = '\0';
 
-  return atof(value_str);
+  return parse_double(value_str);
 }
 
 /**
@@ -3111,8 +3111,8 @@ struct region_hint *load_contextual_hints_optimized(int region_vnum_id,
     }
 
     current_hint = &hints[hint_count];
-    current_hint->id = row[0] ? atoi(row[0]) : 0;
-    current_hint->region_vnum = row[1] ? atoi(row[1]) : region_vnum_id;
+    current_hint->id = row[0] ? parse_int(row[0]) : 0;
+    current_hint->region_vnum = row[1] ? parse_int(row[1]) : region_vnum_id;
 
     /* Enhanced category mapping with error checking */
     if (row[2])
@@ -3144,7 +3144,7 @@ struct region_hint *load_contextual_hints_optimized(int region_vnum_id,
     /* Copy priority with contextual adjustment */
     if (row[4])
     {
-      current_hint->priority = (int)(atoi(row[4]) * combined_weight);
+      current_hint->priority = (int)(parse_int(row[4]) * combined_weight);
     }
     else
     {

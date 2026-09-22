@@ -2578,7 +2578,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.psionic_power_damage_bonus = atoi(arg);
+      OLC_CONFIG(d)->player_config.psionic_power_damage_bonus = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2591,7 +2591,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.divine_spell_damage_bonus = atoi(arg);
+      OLC_CONFIG(d)->player_config.divine_spell_damage_bonus = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2604,7 +2604,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.arcane_spell_damage_bonus = atoi(arg);
+      OLC_CONFIG(d)->player_config.arcane_spell_damage_bonus = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2617,7 +2617,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.psionic_mem_times = atoi(arg);
+      OLC_CONFIG(d)->player_config.psionic_mem_times = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2630,7 +2630,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.divine_mem_times = atoi(arg);
+      OLC_CONFIG(d)->player_config.divine_mem_times = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2643,7 +2643,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.arcane_mem_times = atoi(arg);
+      OLC_CONFIG(d)->player_config.arcane_mem_times = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2657,7 +2657,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.alchemy_mem_times = atoi(arg);
+      OLC_CONFIG(d)->player_config.alchemy_mem_times = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2671,7 +2671,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.extra_hp_per_level = atoi(arg);
+      OLC_CONFIG(d)->player_config.extra_hp_per_level = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2686,7 +2686,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.extra_mv_per_level = atoi(arg);
+      OLC_CONFIG(d)->player_config.extra_mv_per_level = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2699,7 +2699,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.armor_class_cap = atoi(arg);
+      OLC_CONFIG(d)->player_config.armor_class_cap = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2713,7 +2713,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.group_level_difference_restriction = atoi(arg);
+      OLC_CONFIG(d)->player_config.group_level_difference_restriction = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2727,7 +2727,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.death_exp_loss_penalty = atoi(arg);
+      OLC_CONFIG(d)->player_config.death_exp_loss_penalty = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2741,7 +2741,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.level_1_10_summon_hp = atoi(arg);
+      OLC_CONFIG(d)->player_config.level_1_10_summon_hp = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2754,7 +2754,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.level_1_10_summon_hit_and_dam = atoi(arg);
+      OLC_CONFIG(d)->player_config.level_1_10_summon_hit_and_dam = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2767,7 +2767,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.level_1_10_summon_ac = atoi(arg);
+      OLC_CONFIG(d)->player_config.level_1_10_summon_ac = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2781,7 +2781,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.level_11_20_summon_hp = atoi(arg);
+      OLC_CONFIG(d)->player_config.level_11_20_summon_hp = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2794,7 +2794,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.level_11_20_summon_hit_and_dam = atoi(arg);
+      OLC_CONFIG(d)->player_config.level_11_20_summon_hit_and_dam = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2807,7 +2807,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.level_11_20_summon_ac = atoi(arg);
+      OLC_CONFIG(d)->player_config.level_11_20_summon_ac = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2821,7 +2821,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.level_21_30_summon_hp = atoi(arg);
+      OLC_CONFIG(d)->player_config.level_21_30_summon_hp = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2834,7 +2834,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.level_21_30_summon_hit_and_dam = atoi(arg);
+      OLC_CONFIG(d)->player_config.level_21_30_summon_hit_and_dam = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2847,7 +2847,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->player_config.level_21_30_summon_ac = atoi(arg);
+      OLC_CONFIG(d)->player_config.level_21_30_summon_ac = parse_int(arg);
       cedit_disp_player_options(d);
     }
     break;
@@ -2861,7 +2861,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->happy_hour.chance = atoi(arg);
+      OLC_CONFIG(d)->happy_hour.chance = parse_int(arg);
       cedit_disp_happy_hour_options(d);
     }
     break;
@@ -2875,7 +2875,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->happy_hour.exp = atoi(arg);
+      OLC_CONFIG(d)->happy_hour.exp = parse_int(arg);
       cedit_disp_happy_hour_options(d);
     }
     break;
@@ -2889,7 +2889,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->happy_hour.qp = atoi(arg);
+      OLC_CONFIG(d)->happy_hour.qp = parse_int(arg);
       cedit_disp_happy_hour_options(d);
     }
     break;
@@ -2903,7 +2903,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->happy_hour.gold = atoi(arg);
+      OLC_CONFIG(d)->happy_hour.gold = parse_int(arg);
       cedit_disp_happy_hour_options(d);
     }
     break;
@@ -2917,7 +2917,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->happy_hour.treasure = atoi(arg);
+      OLC_CONFIG(d)->happy_hour.treasure = parse_int(arg);
       cedit_disp_happy_hour_options(d);
     }
     break;
@@ -2930,7 +2930,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->play.level_can_shout = atoi(arg);
+      OLC_CONFIG(d)->play.level_can_shout = parse_int(arg);
       cedit_disp_game_play_options(d);
     }
     break;
@@ -2943,7 +2943,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->play.holler_move_cost = atoi(arg);
+      OLC_CONFIG(d)->play.holler_move_cost = parse_int(arg);
       cedit_disp_game_play_options(d);
     }
     break;
@@ -2956,28 +2956,28 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->play.tunnel_size = atoi(arg);
+      OLC_CONFIG(d)->play.tunnel_size = parse_int(arg);
       cedit_disp_game_play_options(d);
     }
     break;
 
   case CEDIT_MAX_EXP_GAIN:
     if (*arg)
-      OLC_CONFIG(d)->play.max_exp_gain = atoi(arg);
+      OLC_CONFIG(d)->play.max_exp_gain = parse_int(arg);
 
     cedit_disp_game_play_options(d);
     break;
 
   case CEDIT_MAX_EXP_LOSS:
     if (*arg)
-      OLC_CONFIG(d)->play.max_exp_loss = atoi(arg);
+      OLC_CONFIG(d)->play.max_exp_loss = parse_int(arg);
 
     cedit_disp_game_play_options(d);
     break;
 
   case CEDIT_EXPERIENCE_MULTIPLIER:
     if (*arg)
-      OLC_CONFIG(d)->play.experience_multiplier = atoi(arg);
+      OLC_CONFIG(d)->play.experience_multiplier = parse_int(arg);
 
     cedit_disp_game_play_options(d);
     break;
@@ -2990,7 +2990,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->play.max_npc_corpse_time = atoi(arg);
+      OLC_CONFIG(d)->play.max_npc_corpse_time = parse_int(arg);
       cedit_disp_game_play_options(d);
     }
     break;
@@ -3003,7 +3003,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->play.max_pc_corpse_time = atoi(arg);
+      OLC_CONFIG(d)->play.max_pc_corpse_time = parse_int(arg);
       cedit_disp_game_play_options(d);
     }
     break;
@@ -3016,7 +3016,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->play.idle_void = atoi(arg);
+      OLC_CONFIG(d)->play.idle_void = parse_int(arg);
       cedit_disp_game_play_options(d);
     }
     break;
@@ -3030,7 +3030,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->play.idle_rent_time = atoi(arg);
+      OLC_CONFIG(d)->play.idle_rent_time = parse_int(arg);
       cedit_disp_game_play_options(d);
     }
     break;
@@ -3043,7 +3043,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->play.idle_max_level = atoi(arg);
+      OLC_CONFIG(d)->play.idle_max_level = parse_int(arg);
       cedit_disp_game_play_options(d);
     }
     break;
@@ -3104,7 +3104,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->csd.max_obj_save = atoi(arg);
+      OLC_CONFIG(d)->csd.max_obj_save = parse_int(arg);
       cedit_disp_crash_save_options(d);
     }
     break;
@@ -3117,7 +3117,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->csd.min_rent_cost = atoi(arg);
+      OLC_CONFIG(d)->csd.min_rent_cost = parse_int(arg);
       cedit_disp_crash_save_options(d);
     }
     break;
@@ -3130,7 +3130,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->csd.autosave_time = atoi(arg);
+      OLC_CONFIG(d)->csd.autosave_time = parse_int(arg);
       cedit_disp_crash_save_options(d);
     }
     break;
@@ -3143,7 +3143,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->csd.crash_file_timeout = atoi(arg);
+      OLC_CONFIG(d)->csd.crash_file_timeout = parse_int(arg);
       cedit_disp_crash_save_options(d);
     }
     break;
@@ -3156,7 +3156,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->csd.rent_file_timeout = atoi(arg);
+      OLC_CONFIG(d)->csd.rent_file_timeout = parse_int(arg);
       cedit_disp_crash_save_options(d);
     }
     break;
@@ -3167,14 +3167,14 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "That is an invalid choice!\r\n"
                          "Enter the room's vnum where mortals should load into : ");
     }
-    else if (real_room(atoi(arg)) == NOWHERE)
+    else if (real_room(parse_int(arg)) == NOWHERE)
     {
       write_to_output(d, "That room doesn't exist!\r\n"
                          "Enter the room's vnum where mortals should load into : ");
     }
     else
     {
-      OLC_CONFIG(d)->room_nums.mortal_start_room = atoi(arg);
+      OLC_CONFIG(d)->room_nums.mortal_start_room = parse_int(arg);
       cedit_disp_room_numbers(d);
     }
     break;
@@ -3185,14 +3185,14 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "That is an invalid choice!\r\n"
                          "Enter the room's vnum where immortals should load into : ");
     }
-    else if (real_room(atoi(arg)) == NOWHERE)
+    else if (real_room(parse_int(arg)) == NOWHERE)
     {
       write_to_output(d, "That room doesn't exist!\r\n"
                          "Enter the room's vnum where immortals should load into : ");
     }
     else
     {
-      OLC_CONFIG(d)->room_nums.immort_start_room = atoi(arg);
+      OLC_CONFIG(d)->room_nums.immort_start_room = parse_int(arg);
       cedit_disp_room_numbers(d);
     }
     break;
@@ -3203,14 +3203,14 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "That is an invalid choice!\r\n"
                          "Enter the room's vnum where frozen people should load into : ");
     }
-    else if (real_room(atoi(arg)) == NOWHERE)
+    else if (real_room(parse_int(arg)) == NOWHERE)
     {
       write_to_output(d, "That room doesn't exist!\r\n"
                          "Enter the room's vnum where frozen people should load into : ");
     }
     else
     {
-      OLC_CONFIG(d)->room_nums.frozen_start_room = atoi(arg);
+      OLC_CONFIG(d)->room_nums.frozen_start_room = parse_int(arg);
       cedit_disp_room_numbers(d);
     }
     break;
@@ -3221,14 +3221,14 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "That is an invalid choice!\r\n"
                          "Enter the vnum for donation room #1 : ");
     }
-    else if (real_room(atoi(arg)) == NOWHERE)
+    else if (real_room(parse_int(arg)) == NOWHERE)
     {
       write_to_output(d, "That room doesn't exist!\r\n"
                          "Enter the vnum for donation room #1 : ");
     }
     else
     {
-      OLC_CONFIG(d)->room_nums.donation_room_1 = atoi(arg);
+      OLC_CONFIG(d)->room_nums.donation_room_1 = parse_int(arg);
       cedit_disp_room_numbers(d);
     }
     break;
@@ -3239,14 +3239,14 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "That is an invalid choice!\r\n"
                          "Enter the vnum for donation room #2 : ");
     }
-    else if (real_room(atoi(arg)) == NOWHERE)
+    else if (real_room(parse_int(arg)) == NOWHERE)
     {
       write_to_output(d, "That room doesn't exist!\r\n"
                          "Enter the vnum for donation room #2 : ");
     }
     else
     {
-      OLC_CONFIG(d)->room_nums.donation_room_2 = atoi(arg);
+      OLC_CONFIG(d)->room_nums.donation_room_2 = parse_int(arg);
       cedit_disp_room_numbers(d);
     }
     break;
@@ -3257,20 +3257,20 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "That is an invalid choice!\r\n"
                          "Enter the vnum for donation room #3 : ");
     }
-    else if (real_room(atoi(arg)) == NOWHERE)
+    else if (real_room(parse_int(arg)) == NOWHERE)
     {
       write_to_output(d, "That room doesn't exist!\r\n"
                          "Enter the vnum for donation room #3 : ");
     }
     else
     {
-      OLC_CONFIG(d)->room_nums.donation_room_3 = atoi(arg);
+      OLC_CONFIG(d)->room_nums.donation_room_3 = parse_int(arg);
       cedit_disp_room_numbers(d);
     }
     break;
 
   case CEDIT_DFLT_PORT:
-    OLC_CONFIG(d)->operation.DFLT_PORT = (ush_int)atoi(arg);
+    OLC_CONFIG(d)->operation.DFLT_PORT = (ush_int)parse_int(arg);
     cedit_disp_operation_options(d);
     break;
 
@@ -3314,27 +3314,27 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case CEDIT_MAX_PLAYING:
-    OLC_CONFIG(d)->operation.max_playing = atoi(arg);
+    OLC_CONFIG(d)->operation.max_playing = parse_int(arg);
     cedit_disp_operation_options(d);
     break;
 
   case CEDIT_MAX_FILESIZE:
-    OLC_CONFIG(d)->operation.max_filesize = atoi(arg);
+    OLC_CONFIG(d)->operation.max_filesize = parse_int(arg);
     cedit_disp_operation_options(d);
     break;
 
   case CEDIT_MAX_BAD_PWS:
-    OLC_CONFIG(d)->operation.max_bad_pws = atoi(arg);
+    OLC_CONFIG(d)->operation.max_bad_pws = parse_int(arg);
     cedit_disp_operation_options(d);
     break;
 
   case CEDIT_DEBUG_MODE:
-    OLC_CONFIG(d)->operation.debug_mode = LIMIT(atoi(arg), 0, 3);
+    OLC_CONFIG(d)->operation.debug_mode = LIMIT(parse_int(arg), 0, 3);
     cedit_disp_operation_options(d);
     break;
 
   case CEDIT_MIN_WIZLIST_LEV:
-    if (atoi(arg) > LVL_IMPL)
+    if (parse_int(arg) > LVL_IMPL)
     {
       write_to_output(d,
                       "The minimum wizlist level can't be greater than %d.\r\n"
@@ -3343,7 +3343,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->autowiz.min_wizlist_lev = atoi(arg);
+      OLC_CONFIG(d)->autowiz.min_wizlist_lev = parse_int(arg);
       cedit_disp_autowiz_options(d);
     }
     break;
@@ -3356,8 +3356,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      if ((atoi(arg) >= 1) && (atoi(arg) <= 3))
-        OLC_CONFIG(d)->play.map_option = (atoi(arg) - 1);
+      if ((parse_int(arg) >= 1) && (parse_int(arg) <= 3))
+        OLC_CONFIG(d)->play.map_option = (parse_int(arg) - 1);
       cedit_disp_game_play_options(d);
     }
     break;
@@ -3371,7 +3371,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->play.map_size = MIN(MAX((atoi(arg)), 1), 12);
+      OLC_CONFIG(d)->play.map_size = MIN(MAX((parse_int(arg)), 1), 12);
       cedit_disp_game_play_options(d);
     }
     break;
@@ -3385,7 +3385,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_CONFIG(d)->play.minimap_size = MIN(MAX((atoi(arg)), 1), 12);
+      OLC_CONFIG(d)->play.minimap_size = MIN(MAX((parse_int(arg)), 1), 12);
       cedit_disp_game_play_options(d);
     }
     break;
@@ -3403,7 +3403,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
   case CEDIT_SET_BAG_SYSTEM:
     if (*arg)
     {
-      OLC_CONFIG(d)->extra.bag_system = ((ubyte)(MIN(NUM_BAG_SYSTEMS, MAX(1, atoi(arg))) - 1));
+      OLC_CONFIG(d)->extra.bag_system = ((ubyte)(MIN(NUM_BAG_SYSTEMS, MAX(1, parse_int(arg))) - 1));
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3412,7 +3412,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.landmarks_system =
-          ((ubyte)(MIN(NUM_LANDMARK_SYSTEMS, MAX(1, atoi(arg))) - 1));
+          ((ubyte)(MIN(NUM_LANDMARK_SYSTEMS, MAX(1, parse_int(arg))) - 1));
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3421,7 +3421,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.new_player_gear =
-          (ubyte)(MIN(NUM_NEW_PLAYER_GEAR_OPTIONS, MAX(1, atoi(arg))) - 1);
+          (ubyte)(MIN(NUM_NEW_PLAYER_GEAR_OPTIONS, MAX(1, parse_int(arg))) - 1);
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3430,7 +3430,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.allow_cexchange =
-          (ubyte)(MIN(NUM_ALLOW_CEXCHANGE_OPTIONS, MAX(1, atoi(arg))) - 1);
+          (ubyte)(MIN(NUM_ALLOW_CEXCHANGE_OPTIONS, MAX(1, parse_int(arg))) - 1);
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3439,7 +3439,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.wilderness_system =
-          (ubyte)(MIN(NUM_WILDERNESS_SYSTEM_OPTIONS, MAX(1, atoi(arg))) - 1);
+          (ubyte)(MIN(NUM_WILDERNESS_SYSTEM_OPTIONS, MAX(1, parse_int(arg))) - 1);
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3448,7 +3448,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.melee_exp_option =
-          ((ubyte)(MIN(NUM_EXP_OPTIONS, MAX(1, atoi(arg))) - 1));
+          ((ubyte)(MIN(NUM_EXP_OPTIONS, MAX(1, parse_int(arg))) - 1));
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3457,7 +3457,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.spell_cast_exp_option =
-          ((ubyte)(MIN(NUM_EXP_OPTIONS, MAX(1, atoi(arg))) - 1));
+          ((ubyte)(MIN(NUM_EXP_OPTIONS, MAX(1, parse_int(arg))) - 1));
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3466,7 +3466,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.spellcasting_time_mode =
-          (ubyte)(MIN(NUM_SPELLCASTING_TIME_OPTIONS, MAX(1, atoi(arg))) - 1);
+          (ubyte)(MIN(NUM_SPELLCASTING_TIME_OPTIONS, MAX(1, parse_int(arg))) - 1);
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3475,7 +3475,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.vessel_system =
-          ((ubyte)(MIN(NUM_VESSEL_SYSTEM_OPTIONS, MAX(1, atoi(arg))) - 1));
+          ((ubyte)(MIN(NUM_VESSEL_SYSTEM_OPTIONS, MAX(1, parse_int(arg))) - 1));
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3483,7 +3483,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
   case CEDIT_SET_ARCANE_MOON_PHASES:
     if (*arg)
     {
-      OLC_CONFIG(d)->extra.arcane_moon_phases = ((ubyte)(MIN(2, MAX(1, atoi(arg))) - 1));
+      OLC_CONFIG(d)->extra.arcane_moon_phases = ((ubyte)(MIN(2, MAX(1, parse_int(arg))) - 1));
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3492,7 +3492,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.auto_dl_mudlet_package =
-          (ubyte)(MIN(NUM_AUTO_DL_MUDLET_PACKAGE_OPTIONS, MAX(1, atoi(arg))) - 1);
+          (ubyte)(MIN(NUM_AUTO_DL_MUDLET_PACKAGE_OPTIONS, MAX(1, parse_int(arg))) - 1);
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3500,148 +3500,148 @@ void cedit_parse(struct descriptor_data *d, char *arg)
   /* Warriors stats */
   case CEDIT_MOB_STATS_WARRIORS_HP:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.warriors.hit_points = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.warriors.hit_points = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 1);
     break;
   case CEDIT_MOB_STATS_WARRIORS_AC:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.warriors.armor_class = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.warriors.armor_class = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 1);
     break;
   case CEDIT_MOB_STATS_WARRIORS_AB:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.warriors.attack_bonus = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.warriors.attack_bonus = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 1);
     break;
   case CEDIT_MOB_STATS_WARRIORS_DB:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.warriors.damage_bonus = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.warriors.damage_bonus = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 1);
     break;
   case CEDIT_MOB_STATS_WARRIORS_ST:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.warriors.saving_throws = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.warriors.saving_throws = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 1);
     break;
   case CEDIT_MOB_STATS_WARRIORS_AS:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.warriors.ability_scores = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.warriors.ability_scores = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 1);
     break;
   case CEDIT_MOB_STATS_WARRIORS_GOLD:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.warriors.gold = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.warriors.gold = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 1);
     break;
 
   /* Arcane Casters stats */
   case CEDIT_MOB_STATS_ARCANE_HP:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.arcane_casters.hit_points = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.arcane_casters.hit_points = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 2);
     break;
   case CEDIT_MOB_STATS_ARCANE_AC:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.arcane_casters.armor_class = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.arcane_casters.armor_class = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 2);
     break;
   case CEDIT_MOB_STATS_ARCANE_AB:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.arcane_casters.attack_bonus = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.arcane_casters.attack_bonus = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 2);
     break;
   case CEDIT_MOB_STATS_ARCANE_DB:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.arcane_casters.damage_bonus = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.arcane_casters.damage_bonus = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 2);
     break;
   case CEDIT_MOB_STATS_ARCANE_ST:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.arcane_casters.saving_throws = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.arcane_casters.saving_throws = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 2);
     break;
   case CEDIT_MOB_STATS_ARCANE_AS:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.arcane_casters.ability_scores = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.arcane_casters.ability_scores = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 2);
     break;
   case CEDIT_MOB_STATS_ARCANE_GOLD:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.arcane_casters.gold = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.arcane_casters.gold = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 2);
     break;
 
   /* Divine Casters stats */
   case CEDIT_MOB_STATS_DIVINE_HP:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.divine_casters.hit_points = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.divine_casters.hit_points = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 3);
     break;
   case CEDIT_MOB_STATS_DIVINE_AC:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.divine_casters.armor_class = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.divine_casters.armor_class = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 3);
     break;
   case CEDIT_MOB_STATS_DIVINE_AB:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.divine_casters.attack_bonus = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.divine_casters.attack_bonus = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 3);
     break;
   case CEDIT_MOB_STATS_DIVINE_DB:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.divine_casters.damage_bonus = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.divine_casters.damage_bonus = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 3);
     break;
   case CEDIT_MOB_STATS_DIVINE_ST:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.divine_casters.saving_throws = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.divine_casters.saving_throws = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 3);
     break;
   case CEDIT_MOB_STATS_DIVINE_AS:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.divine_casters.ability_scores = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.divine_casters.ability_scores = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 3);
     break;
   case CEDIT_MOB_STATS_DIVINE_GOLD:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.divine_casters.gold = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.divine_casters.gold = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 3);
     break;
 
   /* Rogues stats */
   case CEDIT_MOB_STATS_ROGUES_HP:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.rogues.hit_points = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.rogues.hit_points = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 4);
     break;
   case CEDIT_MOB_STATS_ROGUES_AC:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.rogues.armor_class = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.rogues.armor_class = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 4);
     break;
   case CEDIT_MOB_STATS_ROGUES_AB:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.rogues.attack_bonus = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.rogues.attack_bonus = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 4);
     break;
   case CEDIT_MOB_STATS_ROGUES_DB:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.rogues.damage_bonus = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.rogues.damage_bonus = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 4);
     break;
   case CEDIT_MOB_STATS_ROGUES_ST:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.rogues.saving_throws = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.rogues.saving_throws = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 4);
     break;
   case CEDIT_MOB_STATS_ROGUES_AS:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.rogues.ability_scores = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.rogues.ability_scores = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 4);
     break;
   case CEDIT_MOB_STATS_ROGUES_GOLD:
     if (*arg)
-      OLC_CONFIG(d)->mob_stats.rogues.gold = MAX(1, MIN(1000, atoi(arg)));
+      OLC_CONFIG(d)->mob_stats.rogues.gold = MAX(1, MIN(1000, parse_int(arg)));
     cedit_disp_mob_stats_category(d, 4);
     break;
 

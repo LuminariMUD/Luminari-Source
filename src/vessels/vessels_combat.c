@@ -839,7 +839,7 @@ ACMD(do_shipfire)
     return;
   }
 
-  slot_num = atoi(arg1);
+  slot_num = parse_int(arg1);
   if (!isdigit((unsigned char)*arg1) || slot_num < 0 || slot_num >= GREYHAWK_MAXSLOTS)
   {
     send_to_char(ch, "Weapon slots run 0-%d.\r\n", GREYHAWK_MAXSLOTS - 1);

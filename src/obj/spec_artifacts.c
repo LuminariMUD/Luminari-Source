@@ -6285,7 +6285,7 @@ ACMD(do_testartifact)
 
   if (is_abbrev(arg, "spawn"))
   {
-    vnum = atoi(arg2);
+    vnum = parse_int(arg2);
 
     if (vnum <= 0)
     {
@@ -6339,7 +6339,7 @@ ACMD(do_testartifact)
    * recovery in the artifact's own history, and logs it. */
   if (is_abbrev(arg, "recover"))
   {
-    vnum = atoi(arg2);
+    vnum = parse_int(arg2);
 
     if (!(art = artifact_by_vnum(vnum)))
     {
@@ -6403,7 +6403,7 @@ ACMD(do_testartifact)
 
   if (is_abbrev(arg, "reset"))
   {
-    vnum = atoi(arg2);
+    vnum = parse_int(arg2);
 
     if (!(art = artifact_by_vnum(vnum)))
     {

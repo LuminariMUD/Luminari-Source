@@ -1470,7 +1470,7 @@ static int rename_activate_db_key(struct rename_context *ctx, struct rename_db_k
     rename_set_failure(ctx, PLAYER_RENAME_DATABASE_ERROR, "reading rename column metadata");
     return FALSE;
   }
-  if (!row[0] || atoll(row[0]) != 1)
+  if (!row[0] || parse_llong(row[0]) != 1)
   {
     mysql_free_result(result);
     rename_set_failure(ctx, PLAYER_RENAME_DATABASE_ERROR, "missing active rename column");
@@ -1514,7 +1514,7 @@ static int rename_require_innodb_table(struct rename_context *ctx, const char *t
                        "reading required transactional table metadata");
     return FALSE;
   }
-  if (!row[0] || atoll(row[0]) != 1)
+  if (!row[0] || parse_llong(row[0]) != 1)
   {
     mysql_free_result(result);
     rename_set_failure(ctx, PLAYER_RENAME_DATABASE_ERROR,
@@ -1592,7 +1592,7 @@ static int rename_activate_level_30_view(struct rename_context *ctx)
     rename_set_failure(ctx, PLAYER_RENAME_DATABASE_ERROR, "reading level-30 character view column");
     return FALSE;
   }
-  if (!row[0] || atoll(row[0]) != 1)
+  if (!row[0] || parse_llong(row[0]) != 1)
   {
     mysql_free_result(result);
     rename_set_failure(ctx, PLAYER_RENAME_DATABASE_ERROR,
@@ -1927,11 +1927,11 @@ static int rename_lock_canonical_player(struct rename_context *ctx)
 
   strlcpy(ctx->old_database_name, row[0], sizeof(ctx->old_database_name));
   ctx->database_player_id = row[1] ? strtoull(row[1], NULL, 10) : 0;
-  ctx->object_header_is_null = atoi(row[3]) != 0;
+  ctx->object_header_is_null = parse_int(row[3]) != 0;
   strlcpy(ctx->object_header_hash, row[4], sizeof(ctx->object_header_hash));
   if (row[2])
   {
-    ctx->report->account_id = atoi(row[2]);
+    ctx->report->account_id = parse_int(row[2]);
     ctx->report->account_linked = TRUE;
   }
   else
@@ -2113,9 +2113,9 @@ static int rename_verify_canonical_player(struct rename_context *ctx, const char
   if (!row || !row[0] || strcmp(row[0], expected_name) != 0 || !row[3] || !row[4] ||
       (ctx->database_player_id_present &&
        (!row[1] || strtoull(row[1], NULL, 10) != ctx->database_player_id)) ||
-      (atoi(row[3]) != 0) != ctx->object_header_is_null ||
+      (parse_int(row[3]) != 0) != ctx->object_header_is_null ||
       strcmp(row[4], ctx->object_header_hash) != 0 ||
-      (ctx->report->account_linked ? (!row[2] || atoi(row[2]) != ctx->report->account_id)
+      (ctx->report->account_linked ? (!row[2] || parse_int(row[2]) != ctx->report->account_id)
                                    : row[2] != NULL))
   {
     mysql_free_result(result);

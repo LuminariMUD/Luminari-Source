@@ -97,7 +97,7 @@ static struct obj_data *find_player_shop_obj(struct char_data *ch, char *argumen
   if (isdigit(*argument))
   {
     is_number = TRUE;
-    index = atoi(argument);
+    index = parse_int(argument);
   }
 
   if (is_number)

@@ -839,7 +839,7 @@ ACMD(do_unloadvehicle)
   }
 
   /* Parse argument as vehicle number */
-  target_id = atoi(arg);
+  target_id = parse_int(arg);
   if (target_id < 1 || target_id > count)
   {
     send_to_char(ch, "Invalid vehicle number. Use 'unloadvehicle' to see the list.\r\n");

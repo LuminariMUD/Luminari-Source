@@ -875,7 +875,7 @@ int load_char(const char *name, struct char_data *ch)
         if (!strcmp(tag, "AbXP"))
           load_ability_exp(fl, ch);
         else if (!strcmp(tag, "Ac  "))
-          GET_REAL_AC(ch) = atoi(line);
+          GET_REAL_AC(ch) = parse_int(line);
         else if (!strcmp(tag, "Acct"))
         {
           GET_ACCOUNT_NAME(ch) = strdup(line);
@@ -923,17 +923,17 @@ int load_char(const char *name, struct char_data *ch)
           [0] = (int)asciiflag_conv(line);
         }
         else if (!strcmp(tag, "AExp"))
-          GET_ARTISAN_EXP(ch) = atoi(line);
+          GET_ARTISAN_EXP(ch) = parse_int(line);
         else if (!strcmp(tag, "Affs"))
-          load_affects(fl, ch, atoi(line));
+          load_affects(fl, ch, parse_int(line));
         else if (!strcmp(tag, "Alin"))
-          GET_ALIGNMENT(ch) = atoi(line);
+          GET_ALIGNMENT(ch) = parse_int(line);
         else if (!strcmp(tag, "Age "))
-          GET_CH_AGE(ch) = atoi(line);
+          GET_CH_AGE(ch) = parse_int(line);
         else if (!strcmp(tag, "AgeS"))
-          (ch)->player_specials->saved.character_age_saved = atoi(line);
+          (ch)->player_specials->saved.character_age_saved = parse_int(line);
         else if (!strcmp(tag, "Alis"))
-          read_aliases_ascii(fl, ch, atoi(line));
+          read_aliases_ascii(fl, ch, parse_int(line));
         else if (!strcmp(tag, "AMrk"))
         {
           if (GET_ARCANE_MARK(ch))
@@ -946,19 +946,19 @@ int load_char(const char *name, struct char_data *ch)
 
       case 'B':
         if (!strcmp(tag, "Badp"))
-          GET_BAD_PWS(ch) = (ubyte)atoi(line);
+          GET_BAD_PWS(ch) = (ubyte)parse_int(line);
         else if (!strcmp(tag, "BGnd"))
-          GET_BACKGROUND(ch) = atoi(line);
+          GET_BACKGROUND(ch) = parse_int(line);
         else if (!strcmp(tag, "BgFx"))
-          BACKGROUND_EFFECTS_APPLIED(ch) = atoi(line) != 0;
+          BACKGROUND_EFFECTS_APPLIED(ch) = parse_int(line) != 0;
         else if (!strcmp(tag, "Bond"))
           ch->player.bonds = fread_string(fl, buf2);
         else if (!strcmp(tag, "Bag1"))
           GET_BAG_NAME(ch, 1) = strdup(line);
         else if (!strcmp(tag, "Blst"))
-          BLASTING(ch) = atoi(line);
+          BLASTING(ch) = parse_int(line);
         else if (!strcmp(tag, "BlCt"))
-          ch->bleeding_critical_pulses = MAX(1, atoi(line));
+          ch->bleeding_critical_pulses = MAX(1, parse_int(line));
         else if (!strcmp(tag, "Bag2"))
           GET_BAG_NAME(ch, 2) = strdup(line);
         else if (!strcmp(tag, "Bag3"))
@@ -978,19 +978,19 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Bag0"))
           GET_BAG_NAME(ch, 10) = strdup(line);
         else if (!strcmp(tag, "Bane"))
-          GET_BANE_TARGET_TYPE(ch) = atoi(line);
+          GET_BANE_TARGET_TYPE(ch) = parse_int(line);
         else if (!strcmp(tag, "BGrd"))
           ch->player.background = fread_string(fl, buf2);
         else if (!strcmp(tag, "Bomb"))
           load_bombs(fl, ch);
         else if (!strcmp(tag, "Bost"))
-          GET_BOOSTS(ch) = (ubyte)atoi(line);
+          GET_BOOSTS(ch) = (ubyte)parse_int(line);
         else if (!strcmp(tag, "Bank"))
-          GET_BANK_GOLD(ch) = atoi(line);
+          GET_BANK_GOLD(ch) = parse_int(line);
         else if (!strcmp(tag, "Brth"))
-          ch->player.time.birth = atol(line);
+          ch->player.time.birth = parse_long(line);
         else if (!strcmp(tag, "BrdV"))
-          boarding_ability_current = atoi(line) >= BOARDING_ABILITY_PFILE_VERSION;
+          boarding_ability_current = parse_int(line) >= BOARDING_ABILITY_PFILE_VERSION;
         else if (!strcmp(tag, "Buff"))
           load_buffs(fl, ch);
         break;
@@ -1016,17 +1016,17 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Cfpt"))
           load_class_feat_points(fl, ch);
         else if (!strcmp(tag, "Cha "))
-          GET_REAL_CHA(ch) = atoi(line);
+          GET_REAL_CHA(ch) = parse_int(line);
         else if (!strcmp(tag, "Clas"))
-          GET_CLASS(ch) = atoi(line);
+          GET_CLASS(ch) = parse_int(line);
         else if (!strcmp(tag, "ClkT"))
-          GET_SETCLOAK_TIMER(ch) = atoi(line);
+          GET_SETCLOAK_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "CkAt"))
           cooldown_saved_at_epoch = strtoll(line, NULL, 10);
         else if (!strcmp(tag, "Coll"))
           load_spell_collection(fl, ch);
         else if (!strcmp(tag, "Con "))
-          GET_REAL_CON(ch) = atoi(line);
+          GET_REAL_CON(ch) = parse_int(line);
         else if (!strcmp(tag, "CfMt"))
           load_craft_mats_onhand(fl, ch);
         else if (!strcmp(tag, "CLoc"))
@@ -1034,29 +1034,29 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "CLvl"))
           load_class_level(fl, ch);
         else if (!strcmp(tag, "Cln "))
-          GET_CLAN(ch) = atoi(line);
+          GET_CLAN(ch) = parse_int(line);
         else if (!strcmp(tag, "Clrk"))
-          GET_CLANRANK(ch) = atoi(line);
+          GET_CLANRANK(ch) = parse_int(line);
         else if (!strcmp(tag, "Clty"))
           load_cruelties(fl, ch);
         else if (!strcmp(tag, "CPts"))
-          GET_CLANPOINTS(ch) = atoi(line);
+          GET_CLANPOINTS(ch) = parse_int(line);
         else if (!strcmp(tag, "Cvnm"))
-          GET_AUTOCQUEST_VNUM(ch) = atoi(line);
+          GET_AUTOCQUEST_VNUM(ch) = parse_int(line);
         else if (!strcmp(tag, "Cmnm"))
-          GET_AUTOCQUEST_MAKENUM(ch) = (ubyte)atoi(line);
+          GET_AUTOCQUEST_MAKENUM(ch) = (ubyte)parse_int(line);
         else if (!strcmp(tag, "Cqps"))
-          GET_AUTOCQUEST_QP(ch) = (ubyte)atoi(line);
+          GET_AUTOCQUEST_QP(ch) = (ubyte)parse_int(line);
         else if (!strcmp(tag, "Cexp"))
-          GET_AUTOCQUEST_EXP(ch) = atoi(line);
+          GET_AUTOCQUEST_EXP(ch) = parse_int(line);
         else if (!strcmp(tag, "Cgld"))
-          GET_AUTOCQUEST_GOLD(ch) = atoi(line);
+          GET_AUTOCQUEST_GOLD(ch) = parse_int(line);
         else if (!strcmp(tag, "Cdsc"))
           GET_AUTOCQUEST_DESC(ch) = strdup(line);
         else if (!strcmp(tag, "Cmat"))
-          GET_AUTOCQUEST_MATERIAL(ch) = (ubyte)atoi(line);
+          GET_AUTOCQUEST_MATERIAL(ch) = (ubyte)parse_int(line);
         else if (!strcmp(tag, "ChEn"))
-          ch->player_specials->saved.channel_energy_type = atoi(line);
+          ch->player_specials->saved.channel_energy_type = parse_int(line);
         else if (!strcmp(tag, "CrAf"))
           load_craft_affects(fl, ch);
         else if (!strcmp(tag, "CrMo"))
@@ -1064,36 +1064,36 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "CrMa"))
           load_craft_materials(fl, ch);
         else if (!strcmp(tag, "CrMe"))
-          GET_CRAFT(ch).crafting_method = atoi(line);
+          GET_CRAFT(ch).crafting_method = parse_int(line);
         else if (!strcmp(tag, "CrIT"))
-          GET_CRAFT(ch).crafting_item_type = atoi(line);
+          GET_CRAFT(ch).crafting_item_type = parse_int(line);
         else if (!strcmp(tag, "CrSp"))
-          GET_CRAFT(ch).crafting_specific = atoi(line);
+          GET_CRAFT(ch).crafting_specific = parse_int(line);
         else if (!strcmp(tag, "CrSk"))
-          GET_CRAFT(ch).skill_type = atoi(line);
+          GET_CRAFT(ch).skill_type = parse_int(line);
         else if (!strcmp(tag, "CrRe"))
-          GET_CRAFT(ch).crafting_recipe = atoi(line);
+          GET_CRAFT(ch).crafting_recipe = parse_int(line);
         else if (!strcmp(tag, "CrSt"))
         {
-          int stage = atoi(line);
+          int stage = parse_int(line);
 
           CREATION_STAGE(ch) =
               character_creation_stage_is_valid(stage) ? stage : CHARACTER_CREATION_STAGE_NONE;
         }
         else if (!strcmp(tag, "CrVt"))
-          GET_CRAFT(ch).craft_variant = atoi(line);
+          GET_CRAFT(ch).craft_variant = parse_int(line);
         else if (!strcmp(tag, "CrMe"))
-          GET_CRAFT(ch).crafting_method = atoi(line);
+          GET_CRAFT(ch).crafting_method = parse_int(line);
         else if (!strcmp(tag, "CrEn"))
-          GET_CRAFT(ch).enhancement = atoi(line);
+          GET_CRAFT(ch).enhancement = parse_int(line);
         else if (!strcmp(tag, "CrEM"))
-          GET_CRAFT(ch).enhancement_motes_required = atoi(line);
+          GET_CRAFT(ch).enhancement_motes_required = parse_int(line);
         else if (!strcmp(tag, "CrRl"))
-          GET_CRAFT(ch).skill_roll = atoi(line);
+          GET_CRAFT(ch).skill_roll = parse_int(line);
         else if (!strcmp(tag, "CrDC"))
-          GET_CRAFT(ch).dc = atoi(line);
+          GET_CRAFT(ch).dc = parse_int(line);
         else if (!strcmp(tag, "CrDu"))
-          GET_CRAFT(ch).craft_duration = atoi(line);
+          GET_CRAFT(ch).craft_duration = parse_int(line);
         else if (!strcmp(tag, "CrKy"))
         {
           if (GET_CRAFT(ch).keywords)
@@ -1119,29 +1119,29 @@ int load_char(const char *name, struct char_data *ch)
           GET_CRAFT(ch).ex_description = strdup(line);
         }
         else if (!strcmp(tag, "CrOL"))
-          GET_CRAFT(ch).obj_level = atoi(line);
+          GET_CRAFT(ch).obj_level = parse_int(line);
         else if (!strcmp(tag, "CrLA"))
-          GET_CRAFT(ch).level_adjust = atoi(line);
+          GET_CRAFT(ch).level_adjust = parse_int(line);
         else if (!strcmp(tag, "CrSN"))
-          GET_CRAFT(ch).supply_num_required = atoi(line);
+          GET_CRAFT(ch).supply_num_required = parse_int(line);
         else if (!strcmp(tag, "CrSR"))
-          GET_CRAFT(ch).survey_rooms = atoi(line);
+          GET_CRAFT(ch).survey_rooms = parse_int(line);
         else if (!strcmp(tag, "CrIy"))
-          GET_CRAFT(ch).instrument_type = atoi(line);
+          GET_CRAFT(ch).instrument_type = parse_int(line);
         else if (!strcmp(tag, "CrIQ"))
-          GET_CRAFT(ch).instrument_quality = atoi(line);
+          GET_CRAFT(ch).instrument_quality = parse_int(line);
         else if (!strcmp(tag, "CrIE"))
-          GET_CRAFT(ch).instrument_effectiveness = atoi(line);
+          GET_CRAFT(ch).instrument_effectiveness = parse_int(line);
         else if (!strcmp(tag, "CrIB"))
-          GET_CRAFT(ch).instrument_breakability = atoi(line);
+          GET_CRAFT(ch).instrument_breakability = parse_int(line);
         else if (!strcmp(tag, "CrI1"))
-          GET_CRAFT(ch).instrument_motes[1] = atoi(line);
+          GET_CRAFT(ch).instrument_motes[1] = parse_int(line);
         else if (!strcmp(tag, "CrI2"))
-          GET_CRAFT(ch).instrument_motes[2] = atoi(line);
+          GET_CRAFT(ch).instrument_motes[2] = parse_int(line);
         else if (!strcmp(tag, "CrI3"))
-          GET_CRAFT(ch).instrument_motes[3] = atoi(line);
+          GET_CRAFT(ch).instrument_motes[3] = parse_int(line);
         else if (!strcmp(tag, "CrAS"))
-          GET_CRAFT(ch).supply_active_slot = atoi(line);
+          GET_CRAFT(ch).supply_active_slot = parse_int(line);
         else if (!strcmp(tag, "CrGo"))
         {
           /* Golem project: type, size, and the wood a wood golem uses. */
@@ -1213,58 +1213,58 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Desc"))
           ch->player.description = fread_string(fl, buf2);
         else if (!strcmp(tag, "DvCD"))
-          ch->player_specials->saved.device_creation_cooldown = (time_t)atol(line);
+          ch->player_specials->saved.device_creation_cooldown = (time_t)parse_long(line);
         else if (!strcmp(tag, "Dvis"))
           load_devices(fl, ch);
         else if (!strcmp(tag, "DrgB"))
-          GET_DRAGONBORN_ANCESTRY(ch) = atoi(line);
+          GET_DRAGONBORN_ANCESTRY(ch) = parse_int(line);
         else if (!strcmp(tag, "DAd1"))
-          GET_PC_ADJECTIVE_1(ch) = atoi(line);
+          GET_PC_ADJECTIVE_1(ch) = parse_int(line);
         else if (!strcmp(tag, "DAd2"))
-          GET_PC_ADJECTIVE_2(ch) = atoi(line);
+          GET_PC_ADJECTIVE_2(ch) = parse_int(line);
         else if (!strcmp(tag, "DDs1"))
-          GET_PC_DESCRIPTOR_1(ch) = atoi(line);
+          GET_PC_DESCRIPTOR_1(ch) = parse_int(line);
         else if (!strcmp(tag, "DDs2"))
-          GET_PC_DESCRIPTOR_2(ch) = atoi(line);
+          GET_PC_DESCRIPTOR_2(ch) = parse_int(line);
         else if (!strcmp(tag, "Dex "))
-          GET_REAL_DEX(ch) = atoi(line);
+          GET_REAL_DEX(ch) = parse_int(line);
         else if (!strcmp(tag, "DRMd"))
-          GET_DR_MOD(ch) = atoi(line);
+          GET_DR_MOD(ch) = parse_int(line);
         else if (!strcmp(tag, "Drnk"))
-          GET_COND(ch, DRUNK) = (sbyte)atoi(line);
+          GET_COND(ch, DRUNK) = (sbyte)parse_int(line);
         else if (!strcmp(tag, "Drol"))
-          GET_REAL_DAMROLL(ch) = atoi(line);
+          GET_REAL_DAMROLL(ch) = parse_int(line);
         else if (!strcmp(tag, "Disc"))
           load_discoveries(fl, ch);
         else if (!strcmp(tag, "DipT"))
-          GET_DIPTIMER(ch) = atoi(line);
+          GET_DIPTIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "DRac"))
-          GET_DISGUISE_RACE(ch) = (sh_int)atoi(line);
+          GET_DISGUISE_RACE(ch) = (sh_int)parse_int(line);
         else if (!strcmp(tag, "DDex"))
-          GET_DISGUISE_DEX(ch) = atoi(line);
+          GET_DISGUISE_DEX(ch) = parse_int(line);
         else if (!strcmp(tag, "DStr"))
-          GET_DISGUISE_STR(ch) = atoi(line);
+          GET_DISGUISE_STR(ch) = parse_int(line);
         else if (!strcmp(tag, "DCon"))
-          GET_DISGUISE_CON(ch) = atoi(line);
+          GET_DISGUISE_CON(ch) = parse_int(line);
         else if (!strcmp(tag, "DAC "))
-          GET_DISGUISE_AC(ch) = atoi(line);
+          GET_DISGUISE_AC(ch) = parse_int(line);
         else if (!strcmp(tag, "Dom1"))
-          GET_1ST_DOMAIN(ch) = (byte)atoi(line);
+          GET_1ST_DOMAIN(ch) = (byte)parse_int(line);
         else if (!strcmp(tag, "Dom2"))
-          GET_2ND_DOMAIN(ch) = (byte)atoi(line);
+          GET_2ND_DOMAIN(ch) = (byte)parse_int(line);
         else if (!strcmp(tag, "DrMU"))
-          DRAGON_MAGIC_USES(ch) = atoi(line);
+          DRAGON_MAGIC_USES(ch) = parse_int(line);
         else if (!strcmp(tag, "DrMT"))
-          DRAGON_MAGIC_TIMER(ch) = atoi(line);
+          DRAGON_MAGIC_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "DrBT"))
-          GET_DRAGON_BOND_TYPE(ch) = atoi(line);
+          GET_DRAGON_BOND_TYPE(ch) = parse_int(line);
         else if (!strcmp(tag, "DrDT"))
-          GET_DRAGON_RIDER_DRAGON_TYPE(ch) = atoi(line);
+          GET_DRAGON_RIDER_DRAGON_TYPE(ch) = parse_int(line);
         break;
 
       case 'E':
         if (!strcmp(tag, "Exp "))
-          GET_EXP(ch) = atoi(line);
+          GET_EXP(ch) = parse_int(line);
         else if (!strcmp(tag, "Evnt"))
           load_events(fl, ch);
         else if (!strcmp(tag, "Evn2"))
@@ -1274,85 +1274,85 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Ecfp"))
           load_epic_class_feat_points(fl, ch);
         else if (!strcmp(tag, "Efpt"))
-          GET_EPIC_FEAT_POINTS(ch) = (byte)atoi(line);
+          GET_EPIC_FEAT_POINTS(ch) = (byte)parse_int(line);
         else if (!strcmp(tag, "EidB"))
-          GET_EIDOLON_BASE_FORM(ch) = atoi(line);
+          GET_EIDOLON_BASE_FORM(ch) = parse_int(line);
         else if (!strcmp(tag, "EidC"))
-          CALL_EIDOLON_COOLDOWN(ch) = atoi(line);
+          CALL_EIDOLON_COOLDOWN(ch) = parse_int(line);
         else if (!strcmp(tag, "EfMU"))
-          EFREETI_MAGIC_USES(ch) = atoi(line);
+          EFREETI_MAGIC_USES(ch) = parse_int(line);
         else if (!strcmp(tag, "EfMT"))
-          EFREETI_MAGIC_TIMER(ch) = atoi(line);
+          EFREETI_MAGIC_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "EldE"))
-          GET_ELDRITCH_ESSENCE(ch) = atoi(line);
+          GET_ELDRITCH_ESSENCE(ch) = parse_int(line);
         else if (!strcmp(tag, "EldS"))
-          GET_ELDRITCH_SHAPE(ch) = atoi(line);
+          GET_ELDRITCH_SHAPE(ch) = parse_int(line);
         else if (!strcmp(tag, "EncM"))
-          GET_ENCUMBRANCE_MOD(ch) = atoi(line);
+          GET_ENCUMBRANCE_MOD(ch) = parse_int(line);
         break;
 
       case 'F':
         if (!strcmp(tag, "Frez"))
-          GET_FREEZE_LEV(ch) = (byte)atoi(line);
+          GET_FREEZE_LEV(ch) = (byte)parse_int(line);
         if (!strcmp(tag, "FBAB"))
-          FIXED_BAB(ch) = atoi(line);
+          FIXED_BAB(ch) = parse_int(line);
         else if (!strcmp(tag, "FaEn"))
           load_favored_enemy(fl, ch);
         else if (!strcmp(tag, "FaTr"))
           load_favored_terrains(fl, ch);
         else if (!strcmp(tag, "FaAd"))
-          GET_FACTION_STANDING(ch, FACTION_ADVENTURERS) = atol(line);
+          GET_FACTION_STANDING(ch, FACTION_ADVENTURERS) = parse_long(line);
         else if (!strcmp(tag, "Fa01"))
-          GET_FACTION_STANDING(ch, 1) = atol(line);
+          GET_FACTION_STANDING(ch, 1) = parse_long(line);
         else if (!strcmp(tag, "Fa02"))
-          GET_FACTION_STANDING(ch, 2) = atol(line);
+          GET_FACTION_STANDING(ch, 2) = parse_long(line);
         else if (!strcmp(tag, "Fa03"))
-          GET_FACTION_STANDING(ch, 3) = atol(line);
+          GET_FACTION_STANDING(ch, 3) = parse_long(line);
         else if (!strcmp(tag, "Feat"))
           load_feats(fl, ch);
         else if (!strcmp(tag, "FrgC"))
-          GET_FORAGE_COOLDOWN(ch) = atoi(line);
+          GET_FORAGE_COOLDOWN(ch) = parse_int(line);
         else if (!strcmp(tag, "FLGT"))
-          FLEETING_GLANCE_TIMER(ch) = atoi(line);
+          FLEETING_GLANCE_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "Flaw"))
           ch->player.flaws = fread_string(fl, buf2);
         else if (!strcmp(tag, "FdBn"))
-          ch->player_specials->saved.active_fiendish_boons = atoi(line);
+          ch->player_specials->saved.active_fiendish_boons = parse_int(line);
         else if (!strcmp(tag, "FLGU"))
-          FLEETING_GLANCE_USES(ch) = atoi(line);
+          FLEETING_GLANCE_USES(ch) = parse_int(line);
         else if (!strcmp(tag, "Ftpt"))
-          GET_FEAT_POINTS(ch) = (byte)atoi(line);
+          GET_FEAT_POINTS(ch) = (byte)parse_int(line);
         else if (!strcmp(tag, "FSWT"))
-          FEY_SHADOW_WALK_TIMER(ch) = atoi(line);
+          FEY_SHADOW_WALK_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "FSWU"))
-          FEY_SHADOW_WALK_USES(ch) = atoi(line);
+          FEY_SHADOW_WALK_USES(ch) = parse_int(line);
         else if (!strcmp(tag, "FstH"))
-          GET_FAST_HEALING_MOD(ch) = atoi(line);
+          GET_FAST_HEALING_MOD(ch) = parse_int(line);
         else if (!strcmp(tag, "FttD"))
-          GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) = atoi(line);
+          GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) = parse_int(line);
         else if (!strcmp(tag, "FDQs"))
           load_failed_dialogue_quests(fl, ch);
         break;
 
       case 'G':
         if (!strcmp(tag, "Gold"))
-          GET_GOLD(ch) = atoi(line);
+          GET_GOLD(ch) = parse_int(line);
         if (!strcmp(tag, "God "))
-          GET_DEITY(ch) = atoi(line);
+          GET_DEITY(ch) = parse_int(line);
         else if (!strcmp(tag, "GMCP") && ch->desc)
-          ch->desc->pProtocol->bGMCP = atoi(line);
+          ch->desc->pProtocol->bGMCP = parse_int(line);
         else if (!strcmp(tag, "GrDs"))
-          GET_GRAND_DISCOVERY(ch) = atoi(line);
+          GET_GRAND_DISCOVERY(ch) = parse_int(line);
         else if (!strcmp(tag, "GjTp"))
-          ch->player_specials->inq_greater_judgment_type = atoi(line);
+          ch->player_specials->inq_greater_judgment_type = parse_int(line);
         else if (!strcmp(tag, "GTCT"))
-          GRAVE_TOUCH_TIMER(ch) = atoi(line);
+          GRAVE_TOUCH_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "GTCU"))
-          GRAVE_TOUCH_USES(ch) = atoi(line);
+          GRAVE_TOUCH_USES(ch) = parse_int(line);
         else if (!strcmp(tag, "GODT"))
-          GRASP_OF_THE_DEAD_TIMER(ch) = atoi(line);
+          GRASP_OF_THE_DEAD_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "GODU"))
-          GRASP_OF_THE_DEAD_USES(ch) = atoi(line);
+          GRASP_OF_THE_DEAD_USES(ch) = parse_int(line);
         else if (!strcmp(tag, "Goal"))
           ch->player.goals = fread_string(fl, buf2);
         break;
@@ -1361,15 +1361,15 @@ int load_char(const char *name, struct char_data *ch)
         if (!strcmp(tag, "Hit "))
           load_HMVS(ch, line, LOAD_HIT);
         else if (!strcmp(tag, "Hite"))
-          GET_HEIGHT(ch) = atoi(line);
+          GET_HEIGHT(ch) = parse_int(line);
         else if (!strcmp(tag, "HECn"))
-          HIGH_ELF_CANTRIP(ch) = atoi(line);
+          HIGH_ELF_CANTRIP(ch) = parse_int(line);
         else if (!strcmp(tag, "HlyW"))
-          GET_HOLY_WEAPON_TYPE(ch) = atoi(line);
+          GET_HOLY_WEAPON_TYPE(ch) = parse_int(line);
         else if (!strcmp(tag, "Home"))
-          GET_REGION(ch) = atoi(line);
+          GET_REGION(ch) = parse_int(line);
         else if (!strcmp(tag, "HomT"))
-          GET_HOMETOWN(ch) = atoi(line);
+          GET_HOMETOWN(ch) = parse_int(line);
         else if (!strcmp(tag, "Host"))
         {
           if (GET_HOST(ch))
@@ -1377,20 +1377,20 @@ int load_char(const char *name, struct char_data *ch)
           GET_HOST(ch) = strdup(line);
         }
         else if (!strcmp(tag, "HPRg"))
-          GET_HP_REGEN(ch) = atoi(line);
+          GET_HP_REGEN(ch) = parse_int(line);
         else if (!strcmp(tag, "Hrol"))
-          GET_REAL_HITROLL(ch) = atoi(line);
+          GET_REAL_HITROLL(ch) = parse_int(line);
         else if (!strcmp(tag, "Hung"))
-          GET_COND(ch, HUNGER) = (sbyte)atoi(line);
+          GET_COND(ch, HUNGER) = (sbyte)parse_int(line);
         break;
 
       case 'I':
         if (!strcmp(tag, "Id  "))
-          GET_IDNUM(ch) = atol(line);
+          GET_IDNUM(ch) = parse_long(line);
         else if (!strcmp(tag, "InqT"))
-          GET_FAVORED_TERRAIN(ch) = atoi(line);
+          GET_FAVORED_TERRAIN(ch) = parse_int(line);
         else if (!strcmp(tag, "InqR"))
-          GET_FAVORED_TERRAIN_RESET(ch) = atol(line);
+          GET_FAVORED_TERRAIN_RESET(ch) = parse_long(line);
         else if (!strcmp(tag, "Idel"))
           ch->player.ideals = fread_string(fl, buf2);
         else if (!strcmp(tag, "InMa"))
@@ -1398,13 +1398,13 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Intr"))
           load_introductions(fl, ch);
         else if (!strcmp(tag, "Int "))
-          GET_REAL_INT(ch) = atoi(line);
+          GET_REAL_INT(ch) = parse_int(line);
         else if (!strcmp(tag, "Invs"))
-          GET_INVIS_LEV(ch) = (sh_int)atoi(line);
+          GET_INVIS_LEV(ch) = (sh_int)parse_int(line);
         else if (!strcmp(tag, "InFT"))
-          INCORPOREAL_FORM_TIMER(ch) = atoi(line);
+          INCORPOREAL_FORM_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "InFU"))
-          INCORPOREAL_FORM_USES(ch) = atoi(line);
+          INCORPOREAL_FORM_USES(ch) = parse_int(line);
         else if (!strcmp(tag, "ITtl"))
           GET_IMM_TITLE(ch) = strdup(line);
         break;
@@ -1418,30 +1418,30 @@ int load_char(const char *name, struct char_data *ch)
         if (!strcmp(tag, "KnSp"))
           load_known_spells(fl, ch);
         else if (!strcmp(tag, "KpkS"))
-          GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch) = atoi(line);
+          GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch) = parse_int(line);
         else if (!strcmp(tag, "KEvo"))
           load_known_evolutions(fl, ch);
         break;
 
       case 'L':
         if (!strcmp(tag, "Last"))
-          ch->player.time.logon = atol(line);
+          ch->player.time.logon = parse_long(line);
         else if (!strcmp(tag, "Lang"))
           load_languages(fl, ch);
         else if (!strcmp(tag, "Lern"))
-          GET_PRACTICES(ch) = atoi(line);
+          GET_PRACTICES(ch) = parse_int(line);
         else if (!strcmp(tag, "Levl"))
-          GET_LEVEL(ch) = atoi(line);
+          GET_LEVEL(ch) = parse_int(line);
         else if (!strcmp(tag, "Lmot"))
-          GET_LAST_MOTD(ch) = atoi(line);
+          GET_LAST_MOTD(ch) = parse_int(line);
         else if (!strcmp(tag, "Lnew"))
-          GET_LAST_NEWS(ch) = atoi(line);
+          GET_LAST_NEWS(ch) = parse_int(line);
         else if (!strcmp(tag, "LTCT"))
-          LAUGHING_TOUCH_TIMER(ch) = atoi(line);
+          LAUGHING_TOUCH_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "LTCU"))
-          LAUGHING_TOUCH_USES(ch) = atoi(line);
+          LAUGHING_TOUCH_USES(ch) = parse_int(line);
         else if (!strcmp(tag, "LstR"))
-          GET_LAST_ROOM(ch) = atoi(line);
+          GET_LAST_ROOM(ch) = parse_int(line);
         break;
 
       case 'M':
@@ -1450,9 +1450,9 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Mote"))
           load_craft_motes_onhand(fl, ch);
         else if (!strcmp(tag, "Mrph"))
-          IS_MORPHED(ch) = (ubyte)(atol(line));
+          IS_MORPHED(ch) = (ubyte)(parse_long(line));
         else if (!strcmp(tag, "MFrm"))
-          MERGE_FORMS_TIMER(ch) = atoi(line);
+          MERGE_FORMS_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "Mrcy"))
           load_mercies(fl, ch);
         else if (!strcmp(tag, "Mat "))
@@ -1489,67 +1489,67 @@ int load_char(const char *name, struct char_data *ch)
         }
         // Faction mission system
         else if (!strcmp(tag, "MiCu"))
-          GET_CURRENT_MISSION(ch) = atoi(line);
+          GET_CURRENT_MISSION(ch) = parse_int(line);
         else if (!strcmp(tag, "MiCr"))
-          GET_MISSION_CREDITS(ch) = atol(line);
+          GET_MISSION_CREDITS(ch) = parse_long(line);
         else if (!strcmp(tag, "MiCd"))
-          GET_MISSION_COOLDOWN(ch) = atoi(line);
+          GET_MISSION_COOLDOWN(ch) = parse_int(line);
         else if (!strcmp(tag, "MiSt"))
-          GET_MISSION_STANDING(ch) = atoi(line);
+          GET_MISSION_STANDING(ch) = parse_int(line);
         else if (!strcmp(tag, "MiFa"))
-          GET_MISSION_FACTION(ch) = atoi(line);
+          GET_MISSION_FACTION(ch) = parse_int(line);
         else if (!strcmp(tag, "MiRe"))
-          GET_MISSION_REP(ch) = atoi(line);
+          GET_MISSION_REP(ch) = parse_int(line);
         else if (!strcmp(tag, "MiXp"))
-          GET_MISSION_EXP(ch) = atol(line);
+          GET_MISSION_EXP(ch) = parse_long(line);
         else if (!strcmp(tag, "MiDf"))
-          GET_MISSION_DIFFICULTY(ch) = atoi(line);
+          GET_MISSION_DIFFICULTY(ch) = parse_int(line);
         else if (!strcmp(tag, "MiRN"))
-          GET_MISSION_NPC_NAME_NUM(ch) = atoi(line);
+          GET_MISSION_NPC_NAME_NUM(ch) = parse_int(line);
         else if (!strcmp(tag, "MiRm"))
-          GET_CURRENT_MISSION_ROOM(ch) = atoi(line);
+          GET_CURRENT_MISSION_ROOM(ch) = parse_int(line);
         else if (!strcmp(tag, "MVRg"))
-          GET_MV_REGEN(ch) = atoi(line);
+          GET_MV_REGEN(ch) = parse_int(line);
         /* Moon bonus spells */
         else if (!strcmp(tag, "MBSp"))
-          ch->player_specials->saved.moon_bonus_spells = atoi(line);
+          ch->player_specials->saved.moon_bonus_spells = parse_int(line);
         else if (!strcmp(tag, "MBSU"))
-          ch->player_specials->saved.moon_bonus_spells_used = atoi(line);
+          ch->player_specials->saved.moon_bonus_spells_used = parse_int(line);
         else if (!strcmp(tag, "MBSR"))
-          ch->player_specials->saved.moon_bonus_regen_timer = atoi(line);
+          ch->player_specials->saved.moon_bonus_regen_timer = parse_int(line);
         break;
 
       case 'N':
         if (!strcmp(tag, "Name"))
           GET_PC_NAME(ch) = strdup(line);
         else if (!strcmp(tag, "NAr0"))
-          NEW_ARCANA_SLOT(ch, 0) = atoi(line);
+          NEW_ARCANA_SLOT(ch, 0) = parse_int(line);
         else if (!strcmp(tag, "NAr1"))
-          NEW_ARCANA_SLOT(ch, 1) = atoi(line);
+          NEW_ARCANA_SLOT(ch, 1) = parse_int(line);
         else if (!strcmp(tag, "NAr2"))
-          NEW_ARCANA_SLOT(ch, 2) = atoi(line);
+          NEW_ARCANA_SLOT(ch, 2) = parse_int(line);
         else if (!strcmp(tag, "NAr3"))
-          NEW_ARCANA_SLOT(ch, 3) = atoi(line);
+          NEW_ARCANA_SLOT(ch, 3) = parse_int(line);
         else if (!strcmp(tag, "NecC"))
-          NECROMANCER_CAST_TYPE(ch) = atoi(line);
+          NECROMANCER_CAST_TYPE(ch) = parse_int(line);
         break;
 
       case 'O':
         if (!strcmp(tag, "Olc "))
-          GET_OLC_ZONE(ch) = atoi(line);
+          GET_OLC_ZONE(ch) = parse_int(line);
         break;
 
       case 'P':
         if (!strcmp(tag, "Page"))
-          GET_PAGE_LENGTH(ch) = (ubyte)atoi(line);
+          GET_PAGE_LENGTH(ch) = (ubyte)parse_int(line);
         else if (!strcmp(tag, "Pass"))
           strlcpy(GET_PASSWD(ch), line, sizeof(ch->player.passwd));
         else if (!strcmp(tag, "Potn"))
           load_potions(fl, ch);
         else if (!strcmp(tag, "Plyd"))
-          ch->player.time.played = atoi(line);
+          ch->player.time.played = parse_int(line);
         else if (!strcmp(tag, "PreB"))
-          GET_PREMADE_BUILD_CLASS(ch) = atoi(line);
+          GET_PREMADE_BUILD_CLASS(ch) = parse_int(line);
         else if (!strcmp(tag, "Pryg"))
           load_praying(fl, ch);
         else if (!strcmp(tag, "Prgm"))
@@ -1586,33 +1586,33 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "PrQu"))
           load_spell_prep_queue(fl, ch);
         else if (!strcmp(tag, "PCAr"))
-          GET_PREFERRED_ARCANE(ch) = (byte)atoi(line);
+          GET_PREFERRED_ARCANE(ch) = (byte)parse_int(line);
         else if (!strcmp(tag, "PCDi"))
-          GET_PREFERRED_DIVINE(ch) = (byte)atoi(line);
+          GET_PREFERRED_DIVINE(ch) = (byte)parse_int(line);
         else if (!strcmp(tag, "PSP "))
           load_HMVS(ch, line, LOAD_PSP);
         else if (!strcmp(tag, "PSRg"))
-          GET_PSP_REGEN(ch) = atoi(line);
+          GET_PSP_REGEN(ch) = parse_int(line);
         else if (!strcmp(tag, "PsET"))
-          GET_PSIONIC_ENERGY_TYPE(ch) = atoi(line);
+          GET_PSIONIC_ENERGY_TYPE(ch) = parse_int(line);
         else if (!strcmp(tag, "PxDU"))
-          PIXIE_DUST_USES(ch) = atoi(line);
+          PIXIE_DUST_USES(ch) = parse_int(line);
         else if (!strcmp(tag, "PxDT"))
-          PIXIE_DUST_TIMER(ch) = atoi(line);
+          PIXIE_DUST_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "Pers"))
           ch->player.personality = fread_string(fl, buf2);
         else if (!strcmp(tag, "PvPT"))
-          GET_PVP_TIMER(ch) = atoi(line);
+          GET_PVP_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "DvRc"))
-          ch->player_specials->saved.last_device_recharge = atol(line);
+          ch->player_specials->saved.last_device_recharge = parse_long(line);
         else if (!strcmp(tag, "Perk"))
           load_perks(fl, ch);
         else if (!strcmp(tag, "PPts"))
           load_perk_points(fl, ch);
         else if (!strcmp(tag, "PStg"))
-          ch->player_specials->saved.stage_info.current_stage = atoi(line);
+          ch->player_specials->saved.stage_info.current_stage = parse_int(line);
         else if (!strcmp(tag, "PSXp"))
-          ch->player_specials->saved.stage_info.stage_exp = atoi(line);
+          ch->player_specials->saved.stage_info.stage_exp = parse_int(line);
         else if (!strcmp(tag, "PTog"))
           load_perk_toggles(fl, ch);
         else if (!strcmp(tag, "PKil"))
@@ -1796,123 +1796,123 @@ int load_char(const char *name, struct char_data *ch)
 
       case 'Q':
         if (!strcmp(tag, "Qstp"))
-          GET_QUESTPOINTS(ch) = atoi(line);
+          GET_QUESTPOINTS(ch) = parse_int(line);
         else if (!strcmp(tag, "Qpnt"))
-          GET_QUESTPOINTS(ch) = atoi(line); /* Backward compatibility */
+          GET_QUESTPOINTS(ch) = parse_int(line); /* Backward compatibility */
         else if (!strcmp(tag, "Qcur"))
-          GET_QUEST(ch, 0) = atoi(line);
+          GET_QUEST(ch, 0) = parse_int(line);
         else if (!strcmp(tag, "Qcu1"))
-          GET_QUEST(ch, 1) = atoi(line);
+          GET_QUEST(ch, 1) = parse_int(line);
         else if (!strcmp(tag, "Qcu2"))
-          GET_QUEST(ch, 2) = atoi(line);
+          GET_QUEST(ch, 2) = parse_int(line);
         else if (!strcmp(tag, "Qcnt"))
-          GET_QUEST_COUNTER(ch, 0) = atoi(line);
+          GET_QUEST_COUNTER(ch, 0) = parse_int(line);
         else if (!strcmp(tag, "Qcn1"))
-          GET_QUEST_COUNTER(ch, 1) = atoi(line);
+          GET_QUEST_COUNTER(ch, 1) = parse_int(line);
         else if (!strcmp(tag, "Qcn2"))
-          GET_QUEST_COUNTER(ch, 2) = atoi(line);
+          GET_QUEST_COUNTER(ch, 2) = parse_int(line);
         else if (!strcmp(tag, "Qtim"))
-          GET_QUEST_TIME(ch, 0) = atoi(line);
+          GET_QUEST_TIME(ch, 0) = parse_int(line);
         else if (!strcmp(tag, "Qti1"))
-          GET_QUEST_TIME(ch, 1) = atoi(line);
+          GET_QUEST_TIME(ch, 1) = parse_int(line);
         else if (!strcmp(tag, "Qti2"))
-          GET_QUEST_TIME(ch, 2) = atoi(line);
+          GET_QUEST_TIME(ch, 2) = parse_int(line);
         else if (!strcmp(tag, "Qest"))
           load_quests(fl, ch);
         else if (!strcmp(tag, "QSvy"))
-          GET_QUIT_SURVEY_DONE(ch) = atoi(line);
+          GET_QUIT_SURVEY_DONE(ch) = parse_int(line);
         break;
 
       case 'R':
         if (!strcmp(tag, "Race"))
-          GET_REAL_RACE(ch) = atoi(line);
+          GET_REAL_RACE(ch) = parse_int(line);
         if (!strcmp(tag, "RacR"))
-          ch->player_specials->saved.new_race_stats = atoi(line);
+          ch->player_specials->saved.new_race_stats = parse_int(line);
         else if (!strcmp(tag, "Room"))
-          GET_LOADROOM(ch) = atoi(line);
+          GET_LOADROOM(ch) = parse_int(line);
         else if (!strcmp(tag, "Res1"))
-          GET_REAL_RESISTANCES(ch, 1) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 1) = parse_int(line);
         else if (!strcmp(tag, "Res2"))
-          GET_REAL_RESISTANCES(ch, 2) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 2) = parse_int(line);
         else if (!strcmp(tag, "Res3"))
-          GET_REAL_RESISTANCES(ch, 3) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 3) = parse_int(line);
         else if (!strcmp(tag, "Res4"))
-          GET_REAL_RESISTANCES(ch, 4) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 4) = parse_int(line);
         else if (!strcmp(tag, "Res5"))
-          GET_REAL_RESISTANCES(ch, 5) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 5) = parse_int(line);
         else if (!strcmp(tag, "Res6"))
-          GET_REAL_RESISTANCES(ch, 6) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 6) = parse_int(line);
         else if (!strcmp(tag, "Res7"))
-          GET_REAL_RESISTANCES(ch, 7) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 7) = parse_int(line);
         else if (!strcmp(tag, "Res8"))
-          GET_REAL_RESISTANCES(ch, 8) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 8) = parse_int(line);
         else if (!strcmp(tag, "Res9"))
-          GET_REAL_RESISTANCES(ch, 9) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 9) = parse_int(line);
         else if (!strcmp(tag, "ResA"))
-          GET_REAL_RESISTANCES(ch, 10) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 10) = parse_int(line);
         else if (!strcmp(tag, "ResB"))
-          GET_REAL_RESISTANCES(ch, 11) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 11) = parse_int(line);
         else if (!strcmp(tag, "ResC"))
-          GET_REAL_RESISTANCES(ch, 12) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 12) = parse_int(line);
         else if (!strcmp(tag, "ResD"))
-          GET_REAL_RESISTANCES(ch, 13) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 13) = parse_int(line);
         else if (!strcmp(tag, "ResE"))
-          GET_REAL_RESISTANCES(ch, 14) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 14) = parse_int(line);
         else if (!strcmp(tag, "ResF"))
-          GET_REAL_RESISTANCES(ch, 15) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 15) = parse_int(line);
         else if (!strcmp(tag, "ResG"))
-          GET_REAL_RESISTANCES(ch, 16) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 16) = parse_int(line);
         else if (!strcmp(tag, "ResH"))
-          GET_REAL_RESISTANCES(ch, 17) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 17) = parse_int(line);
         else if (!strcmp(tag, "ResI"))
-          GET_REAL_RESISTANCES(ch, 18) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 18) = parse_int(line);
         else if (!strcmp(tag, "ResJ"))
-          GET_REAL_RESISTANCES(ch, 19) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 19) = parse_int(line);
         else if (!strcmp(tag, "ResK"))
-          GET_REAL_RESISTANCES(ch, 20) = atoi(line);
+          GET_REAL_RESISTANCES(ch, 20) = parse_int(line);
         else if (!strcmp(tag, "RSc1"))
-          GET_1ST_RESTRICTED_SCHOOL(ch) = (byte)atoi(line);
+          GET_1ST_RESTRICTED_SCHOOL(ch) = (byte)parse_int(line);
         else if (!strcmp(tag, "RSc2"))
-          GET_2ND_RESTRICTED_SCHOOL(ch) = (byte)atoi(line);
+          GET_2ND_RESTRICTED_SCHOOL(ch) = (byte)parse_int(line);
         else if (!strcmp(tag, "RetC"))
-          GET_RETAINER_COOLDOWN(ch) = atoi(line);
+          GET_RETAINER_COOLDOWN(ch) = parse_int(line);
         else if (!strcmp(tag, "BDsU"))
-          GET_BONUS_DOMAIN_SLOTS_USED(ch) = atoi(line);
+          GET_BONUS_DOMAIN_SLOTS_USED(ch) = parse_int(line);
         else if (!strcmp(tag, "BDsT"))
-          GET_BONUS_DOMAIN_REGEN_TIMER(ch) = atoi(line);
+          GET_BONUS_DOMAIN_REGEN_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "BSlU"))
-          GET_BONUS_SLOTS_USED(ch) = atoi(line);
+          GET_BONUS_SLOTS_USED(ch) = parse_int(line);
         else if (!strcmp(tag, "BSlT"))
-          GET_BONUS_SLOTS_REGEN_TIMER(ch) = atoi(line);
+          GET_BONUS_SLOTS_REGEN_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "RM00"))
-          GET_CRAFT(ch).refining_materials[0][0] = atoi(line);
+          GET_CRAFT(ch).refining_materials[0][0] = parse_int(line);
         else if (!strcmp(tag, "RM01"))
-          GET_CRAFT(ch).refining_materials[0][1] = atoi(line);
+          GET_CRAFT(ch).refining_materials[0][1] = parse_int(line);
         else if (!strcmp(tag, "RM10"))
-          GET_CRAFT(ch).refining_materials[1][0] = atoi(line);
+          GET_CRAFT(ch).refining_materials[1][0] = parse_int(line);
         else if (!strcmp(tag, "RM11"))
-          GET_CRAFT(ch).refining_materials[1][1] = atoi(line);
+          GET_CRAFT(ch).refining_materials[1][1] = parse_int(line);
         else if (!strcmp(tag, "RM20"))
-          GET_CRAFT(ch).refining_materials[2][0] = atoi(line);
+          GET_CRAFT(ch).refining_materials[2][0] = parse_int(line);
         else if (!strcmp(tag, "RM21"))
-          GET_CRAFT(ch).refining_materials[2][1] = atoi(line);
+          GET_CRAFT(ch).refining_materials[2][1] = parse_int(line);
         else if (!strcmp(tag, "RRs0"))
-          GET_CRAFT(ch).refining_result[0] = atoi(line);
+          GET_CRAFT(ch).refining_result[0] = parse_int(line);
         else if (!strcmp(tag, "RRs1"))
-          GET_CRAFT(ch).refining_result[1] = atoi(line);
+          GET_CRAFT(ch).refining_result[1] = parse_int(line);
         else if (!strcmp(tag, "RSSz"))
-          GET_CRAFT(ch).new_size = atoi(line);
+          GET_CRAFT(ch).new_size = parse_int(line);
         else if (!strcmp(tag, "RSMT"))
-          GET_CRAFT(ch).resize_mat_type = atoi(line);
+          GET_CRAFT(ch).resize_mat_type = parse_int(line);
         else if (!strcmp(tag, "RSMN"))
-          GET_CRAFT(ch).resize_mat_num = atoi(line);
+          GET_CRAFT(ch).resize_mat_num = parse_int(line);
         break;
 
       case 'S':
         if (!strcmp(tag, "Sex "))
-          GET_SEX(ch) = atoi(line);
+          GET_SEX(ch) = parse_int(line);
         else if (!strcmp(tag, "SBld"))
-          GET_BLOODLINE_SUBTYPE(ch) = atoi(line);
+          GET_BLOODLINE_SUBTYPE(ch) = parse_int(line);
         else if (!strcmp(tag, "SclF"))
         {
           if (sscanf(line, "%d %127s", &i, f1) != 2)
@@ -1930,17 +1930,17 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Scrl"))
           load_scrolls(fl, ch);
         else if (!strcmp(tag, "Scrg"))
-          GET_SCROUNGE_COOLDOWN(ch) = atoi(line);
+          GET_SCROUNGE_COOLDOWN(ch) = parse_int(line);
         else if (!strcmp(tag, "ScrW"))
-          GET_SCREEN_WIDTH(ch) = (ubyte)atoi(line);
+          GET_SCREEN_WIDTH(ch) = (ubyte)parse_int(line);
         else if (!strcmp(tag, "SpWC"))
-          GET_SPIRITUAL_WEAPON_COOLDOWN(ch) = atoi(line);
+          GET_SPIRITUAL_WEAPON_COOLDOWN(ch) = parse_int(line);
         else if (!strcmp(tag, "IrMC"))
-          GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch) = atoi(line);
+          GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch) = parse_int(line);
         else if (!strcmp(tag, "QkCs"))
-          GET_QUICK_CAST_COOLDOWN(ch) = atoi(line);
+          GET_QUICK_CAST_COOLDOWN(ch) = parse_int(line);
         else if (!strcmp(tag, "SpRc"))
-          GET_SPELL_RECALL_COOLDOWN(ch) = atoi(line);
+          GET_SPELL_RECALL_COOLDOWN(ch) = parse_int(line);
         else if (!strcmp(tag, "Skil"))
           load_skills(fl, ch);
         else if (!strcmp(tag, "SklF"))
@@ -1948,25 +1948,25 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "SpAb"))
           load_spec_abil(fl, ch);
         else if (!strcmp(tag, "Spek"))
-          SPEAKING(ch) = atoi(line);
+          SPEAKING(ch) = parse_int(line);
         else if (!strcmp(tag, "SpRs"))
-          GET_REAL_SPELL_RES(ch) = atoi(line);
+          GET_REAL_SPELL_RES(ch) = parse_int(line);
         else if (!strcmp(tag, "Size"))
-          GET_REAL_SIZE(ch) = atoi(line);
+          GET_REAL_SIZE(ch) = parse_int(line);
         else if (!strcmp(tag, "Stav"))
           load_staves(fl, ch);
         else if (!strcmp(tag, "Slyr"))
-          GET_SLAYER_JUDGEMENT(ch) = (byte)atoi(line);
+          GET_SLAYER_JUDGEMENT(ch) = (byte)parse_int(line);
         else if (!strcmp(tag, "SySt"))
-          HAS_SET_STATS_STUDY(ch) = atoi(line);
+          HAS_SET_STATS_STUDY(ch) = parse_int(line);
         else if (!strcmp(tag, "Str "))
           load_HMVS(ch, line, LOAD_STRENGTH);
         else if (!strcmp(tag, "SSch"))
-          GET_SPECIALTY_SCHOOL(ch) = (byte)atoi(line);
+          GET_SPECIALTY_SCHOOL(ch) = (byte)parse_int(line);
         else if (!strcmp(tag, "SpNM"))
-          GET_NSUPPLY_NUM_MADE(ch) = atoi(line);
+          GET_NSUPPLY_NUM_MADE(ch) = parse_int(line);
         else if (!strcmp(tag, "SpCd"))
-          GET_NSUPPLY_COOLDOWN(ch) = atoi(line);
+          GET_NSUPPLY_COOLDOWN(ch) = parse_int(line);
         else if (!strcmp(tag, "SuSl"))
         {
           /* Load supply contract slot: slot_idx type recipe variant quantity reward difficulty time_limit reputation expiration */
@@ -2028,9 +2028,9 @@ int load_char(const char *name, struct char_data *ch)
           }
         }
         else if (!strcmp(tag, "SuLR"))
-          GET_CRAFT(ch).supply_slots_last_refresh = (time_t)atol(line);
+          GET_CRAFT(ch).supply_slots_last_refresh = (time_t)parse_long(line);
         else if (!strcmp(tag, "SuNR"))
-          GET_CRAFT(ch).supply_slots_next_refresh = (time_t)atol(line);
+          GET_CRAFT(ch).supply_slots_next_refresh = (time_t)parse_long(line);
         else if (!strcmp(tag, "SuCD"))
         {
           /* Load supply slot cooldowns: slot_idx timestamp */
@@ -2063,9 +2063,9 @@ int load_char(const char *name, struct char_data *ch)
           }
         }
         else if (!strcmp(tag, "Tmpl"))
-          GET_TEMPLATE(ch) = (ubyte)atoi(line);
+          GET_TEMPLATE(ch) = (ubyte)parse_int(line);
         else if (!strcmp(tag, "Tlpt"))
-          GET_TALENT_POINTS(ch) = atoi(line);
+          GET_TALENT_POINTS(ch) = parse_int(line);
         else if (!strcmp(tag, "Tlbt"))
         {
           /* Legacy bitset: store and migrate into rank array (rank 1 if bit set) */
@@ -2107,22 +2107,22 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "TEvo"))
           load_temp_evolutions(fl, ch);
         else if (!strcmp(tag, "Thir"))
-          GET_COND(ch, THIRST) = (sbyte)atoi(line);
+          GET_COND(ch, THIRST) = (sbyte)parse_int(line);
         else if (!strcmp(tag, "Thr1"))
-          GET_REAL_SAVE(ch, 0) = atoi(line);
+          GET_REAL_SAVE(ch, 0) = parse_int(line);
         else if (!strcmp(tag, "Thr2"))
-          GET_REAL_SAVE(ch, 1) = atoi(line);
+          GET_REAL_SAVE(ch, 1) = parse_int(line);
         else if (!strcmp(tag, "Thr3"))
-          GET_REAL_SAVE(ch, 2) = atoi(line);
+          GET_REAL_SAVE(ch, 2) = parse_int(line);
         else if (!strcmp(tag, "Thr4"))
-          GET_REAL_SAVE(ch, 3) = atoi(line);
+          GET_REAL_SAVE(ch, 3) = parse_int(line);
         else if (!strcmp(tag, "Thr5"))
-          GET_REAL_SAVE(ch, 4) = atoi(line);
+          GET_REAL_SAVE(ch, 4) = parse_int(line);
         else if (!strcmp(tag, "Titl"))
           GET_TITLE(ch) = strdup(line);
         else if (!strcmp(tag, "Trig") && CONFIG_SCRIPT_PLAYERS)
         {
-          if ((t_rnum = real_trigger(atoi(line))) != NOTHING)
+          if ((t_rnum = real_trigger(parse_int(line))) != NOTHING)
           {
             t = read_trigger(t_rnum);
             if (!SCRIPT(ch))
@@ -2132,7 +2132,7 @@ int load_char(const char *name, struct char_data *ch)
           }
         }
         else if (!strcmp(tag, "Trns"))
-          GET_TRAINS(ch) = atoi(line);
+          GET_TRAINS(ch) = parse_int(line);
         else if (!strcmp(tag, "Todo"))
         {
           CREATE(GET_TODO(ch), struct txt_block, 1);
@@ -2155,14 +2155,14 @@ int load_char(const char *name, struct char_data *ch)
 
       case 'U':
         if (!strcmp(tag, "UTF8") && ch->desc)
-          ch->desc->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt = atoi(line);
+          ch->desc->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt = parse_int(line);
         break;
 
       case 'V':
         if (!strcmp(tag, "Vars"))
-          read_saved_vars_ascii(fl, ch, atoi(line));
+          read_saved_vars_ascii(fl, ch, parse_int(line));
         else if (!strcmp(tag, "VitS"))
-          VITAL_STRIKING(ch) = atoi(line);
+          VITAL_STRIKING(ch) = parse_int(line);
         else if (!strcmp(tag, "VIns"))
           GET_VESSEL_INSURANCE_CLAIM(ch) = strtoull(line, NULL, 10);
         else if (!strcmp(tag, "VMer"))
@@ -2171,19 +2171,19 @@ int load_char(const char *name, struct char_data *ch)
 
       case 'W':
         if (!strcmp(tag, "Wate"))
-          GET_WEIGHT(ch) = atoi(line);
+          GET_WEIGHT(ch) = parse_int(line);
         else if (!strcmp(tag, "Wand"))
           load_wands(fl, ch);
         else if (!strcmp(tag, "Wimp"))
-          GET_WIMP_LEV(ch) = atoi(line);
+          GET_WIMP_LEV(ch) = parse_int(line);
         else if (!strcmp(tag, "Ward"))
           load_warding(fl, ch);
         else if (!strcmp(tag, "Wis "))
-          GET_REAL_WIS(ch) = atoi(line);
+          GET_REAL_WIS(ch) = parse_int(line);
         else if (!strcmp(tag, "WMat"))
         {
           /* Phase 4.5: Load wilderness material storage count */
-          int material_count = atoi(line);
+          int material_count = parse_int(line);
           if (material_count > 0 && material_count <= MAX_STORED_MATERIALS)
           {
             ch->player_specials->saved.stored_material_count = material_count;
@@ -2196,7 +2196,7 @@ int load_char(const char *name, struct char_data *ch)
 
       case 'X':
         if (!strcmp(tag, "XTrm") && ch->desc)
-          ch->desc->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = atoi(line);
+          ch->desc->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = parse_int(line);
         break;
 
       default:
@@ -5892,7 +5892,7 @@ static void read_aliases_ascii(FILE *file, struct char_data *ch, int count)
       CREATE(temp, struct alias_data, 1);
       temp->alias = strdup(abuf[0] == ' ' ? abuf + 1 : abuf);
       temp->replacement = strdup(rbuf[1] == ' ' ? rbuf + 1 : rbuf);
-      temp->type = atoi(tbuf);
+      temp->type = parse_int(tbuf);
       temp->next = GET_ALIASES(ch);
       GET_ALIASES(ch) = temp;
     }
@@ -7300,12 +7300,12 @@ static struct char_data *prepare_saved_pet_row(struct char_data *ch, MYSQL_ROW r
   if (row[16] && *row[16] && !has_runtime_state)
   {
     log("SYSERR: %s: Retaining invalid follower runtime state for %s (vnum %d)", __func__,
-        GET_NAME(ch), atoi(row[0]));
+        GET_NAME(ch), parse_int(row[0]));
     *restore_failed = true;
     return NULL;
   }
 
-  mob = read_mobile(atoi(row[0]), VIRTUAL);
+  mob = read_mobile(parse_int(row[0]), VIRTUAL);
   if (!mob)
   {
     *restore_failed = true;
@@ -7313,7 +7313,7 @@ static struct char_data *prepare_saved_pet_row(struct char_data *ch, MYSQL_ROW r
   }
   mob->pet_data_id = pet_idnum;
   hired_mercenary = pet_is_hired_mercenary(mob);
-  if (isSummonMob(atoi(row[0])))
+  if (isSummonMob(parse_int(row[0])))
   {
     if (GET_LEVEL(mob) <= 10)
     {
@@ -7351,7 +7351,7 @@ static struct char_data *prepare_saved_pet_row(struct char_data *ch, MYSQL_ROW r
   }
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
-  GET_LEVEL(mob) = row[1] ? atoi(row[1]) : GET_LEVEL(mob);
+  GET_LEVEL(mob) = row[1] ? parse_int(row[1]) : GET_LEVEL(mob);
   autoroll_mob(mob, TRUE, TRUE);
   if (row[11] && *row[11])
   {
@@ -7410,23 +7410,23 @@ static struct char_data *prepare_saved_pet_row(struct char_data *ch, MYSQL_ROW r
     }
   }
   if (row[4])
-    GET_REAL_STR(mob) = MIN(100, atoi(row[4]));
+    GET_REAL_STR(mob) = MIN(100, parse_int(row[4]));
   if (row[5])
-    GET_REAL_CON(mob) = MIN(100, atoi(row[5]));
+    GET_REAL_CON(mob) = MIN(100, parse_int(row[5]));
   if (row[6])
-    GET_REAL_DEX(mob) = MIN(100, atoi(row[6]));
+    GET_REAL_DEX(mob) = MIN(100, parse_int(row[6]));
   if (row[8])
-    GET_REAL_INT(mob) = MIN(100, atoi(row[8]));
+    GET_REAL_INT(mob) = MIN(100, parse_int(row[8]));
   if (row[9])
-    GET_REAL_WIS(mob) = MIN(100, atoi(row[9]));
+    GET_REAL_WIS(mob) = MIN(100, parse_int(row[9]));
   if (row[10])
-    GET_REAL_CHA(mob) = MIN(100, atoi(row[10]));
+    GET_REAL_CHA(mob) = MIN(100, parse_int(row[10]));
   if (row[7])
-    GET_REAL_AC(mob) = MIN(100, atoi(row[7]));
+    GET_REAL_AC(mob) = MIN(100, parse_int(row[7]));
   if (row[3])
-    GET_REAL_MAX_HIT(mob) = MAX(1, atoi(row[3]));
+    GET_REAL_MAX_HIT(mob) = MAX(1, parse_int(row[3]));
   if (row[2])
-    GET_HIT(mob) = MIN(GET_REAL_MAX_HIT(mob), atoi(row[2]));
+    GET_HIT(mob) = MIN(GET_REAL_MAX_HIT(mob), parse_int(row[2]));
 
   if (has_runtime_state)
     apply_pet_runtime_state(mob, &runtime_state);
@@ -7441,7 +7441,7 @@ static struct char_data *prepare_saved_pet_row(struct char_data *ch, MYSQL_ROW r
   if (GET_POS(mob) == POS_DEAD)
   {
     log("SYSERR: %s: Discarding dead saved follower for %s (vnum %d)", __func__, GET_NAME(ch),
-        atoi(row[0]));
+        parse_int(row[0]));
     extract_char(mob);
     return NULL;
   }
@@ -7450,7 +7450,7 @@ static struct char_data *prepare_saved_pet_row(struct char_data *ch, MYSQL_ROW r
   if (!restore_pet_lifetime(mob, has_runtime_state ? &runtime_state : NULL, time(NULL)))
   {
     log("Info: %s: Discarding expired saved follower %ld for %s (vnum %d)", __func__, pet_idnum,
-        GET_NAME(ch), atoi(row[0]));
+        GET_NAME(ch), parse_int(row[0]));
     *expired = true;
     extract_char(mob);
     return NULL;
@@ -7764,7 +7764,7 @@ int pet_stored_count(struct char_data *owner)
     return -1;
   row = mysql_fetch_row(result);
   if (row && row[0])
-    count = atoi(row[0]);
+    count = parse_int(row[0]);
   mysql_free_result(result);
   return count;
 }

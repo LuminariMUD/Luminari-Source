@@ -434,7 +434,7 @@ void vessel_trade_ensure_schema(void)
   if (result != NULL)
   {
     row = mysql_fetch_row(result);
-    if (row != NULL && row[0] != NULL && atoi(row[0]) > 0)
+    if (row != NULL && row[0] != NULL && parse_int(row[0]) > 0)
     {
       empty = FALSE;
     }
@@ -480,11 +480,11 @@ void vessel_trade_ensure_schema(void)
     {
       continue;
     }
-    commodity_cache[num_commodities].id = atoi(row[0]);
+    commodity_cache[num_commodities].id = parse_int(row[0]);
     strlcpy(commodity_cache[num_commodities].name, row[1],
             sizeof(commodity_cache[num_commodities].name));
-    commodity_cache[num_commodities].base_price = MAX(1, row[2] ? atoi(row[2]) : 10);
-    commodity_cache[num_commodities].unit_weight = MAX(1, row[3] ? atoi(row[3]) : 10);
+    commodity_cache[num_commodities].base_price = MAX(1, row[2] ? parse_int(row[2]) : 10);
+    commodity_cache[num_commodities].unit_weight = MAX(1, row[3] ? parse_int(row[3]) : 10);
     num_commodities++;
   }
   mysql_free_result(result);
@@ -865,7 +865,7 @@ static int port_supply(int port_vnum, int commodity_id)
   row = mysql_fetch_row(result);
   if (row != NULL && row[0] != NULL)
   {
-    supply = vessel_trade_adjusted_supply(atoi(row[0]), 0);
+    supply = vessel_trade_adjusted_supply(parse_int(row[0]), 0);
     mysql_free_result(result);
     return supply;
   }
@@ -1058,8 +1058,8 @@ void vessel_db_load_cargo(struct greyhawk_ship_data *ship)
     {
       continue;
     }
-    ship->cargo[lot].commodity_id = atoi(row[0]);
-    ship->cargo[lot].quantity = atoi(row[1]);
+    ship->cargo[lot].commodity_id = parse_int(row[0]);
+    ship->cargo[lot].quantity = parse_int(row[1]);
     lot++;
   }
   ship->num_cargo_lots = lot;

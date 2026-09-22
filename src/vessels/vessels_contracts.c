@@ -137,7 +137,7 @@ void vessel_contracts_refresh_port(int port_vnum)
     row = mysql_fetch_row(result);
     if (row != NULL && row[0] != NULL)
     {
-      fresh = atoi(row[0]);
+      fresh = parse_int(row[0]);
     }
     mysql_free_result(result);
   }
@@ -171,7 +171,7 @@ void vessel_contracts_refresh_port(int port_vnum)
     {
       if (row[0] != NULL)
       {
-        destinations[num_destinations++] = atoi(row[0]);
+        destinations[num_destinations++] = parse_int(row[0]);
       }
     }
     mysql_free_result(result);
@@ -197,8 +197,8 @@ void vessel_contracts_refresh_port(int port_vnum)
     {
       if (row[0] != NULL)
       {
-        commodity_ids[num_commodities] = atoi(row[0]);
-        base_prices[num_commodities] = row[1] ? atoi(row[1]) : 10;
+        commodity_ids[num_commodities] = parse_int(row[0]);
+        base_prices[num_commodities] = row[1] ? parse_int(row[1]) : 10;
         num_commodities++;
       }
     }
@@ -332,7 +332,7 @@ ACMD(do_contracts)
     while ((row = mysql_fetch_row(result)) != NULL)
     {
       send_to_char(ch, "%-6s %-16s %4s %7s  %s\r\n", row[0], row[1], row[2], row[3],
-                   port_name(atoi(row[4])));
+                   port_name(parse_int(row[4])));
       listed++;
     }
     mysql_free_result(result);
@@ -366,7 +366,7 @@ ACMD(do_contracts)
         send_to_char(ch, "\r\nYour active contracts:\r\n");
       }
       send_to_char(ch, "%-6s %-16s %4s %7s  deliver to %s\r\n", row[0], row[1], row[2], row[3],
-                   port_name(atoi(row[4])));
+                   port_name(parse_int(row[4])));
       listed++;
     }
     mysql_free_result(result);
@@ -450,7 +450,7 @@ ACMD(do_contractaccept)
   }
 
   one_argument(argument, arg, sizeof(arg));
-  contract_id = atoi(arg);
+  contract_id = parse_int(arg);
   if (contract_id <= 0)
   {
     send_to_char(ch, "Accept which contract? See 'contracts'.\r\n");
@@ -564,7 +564,7 @@ ACMD(do_contractdeliver)
   }
 
   one_argument(argument, arg, sizeof(arg));
-  contract_id = atoi(arg);
+  contract_id = parse_int(arg);
   if (contract_id <= 0)
   {
     send_to_char(ch, "Deliver which contract? See 'contracts'.\r\n");
@@ -650,7 +650,7 @@ ACMD(do_contractabandon)
   }
 
   one_argument(argument, arg, sizeof(arg));
-  contract_id = atoi(arg);
+  contract_id = parse_int(arg);
   if (contract_id <= 0)
   {
     send_to_char(ch, "Abandon which contract?\r\n");

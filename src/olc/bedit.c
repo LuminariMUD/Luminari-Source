@@ -107,7 +107,7 @@ ACMD(do_bedit)
     return;
   }
 
-  board_id = atoi(arg);
+  board_id = parse_int(arg);
 
   /* Check if board exists */
   for (i = 0; i < mysql_num_boards; i++)
@@ -554,7 +554,7 @@ void bedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case BEDIT_TYPE:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 0 || number >= BOARD_TYPE_NEWBIE + 1)
     {
       send_to_char(d->character, "Invalid board type!\r\n");
@@ -569,7 +569,7 @@ void bedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case BEDIT_READ_LEVEL:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 0 || number > 100)
     {
       send_to_char(d->character, "Invalid level!\r\n");
@@ -584,7 +584,7 @@ void bedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case BEDIT_WRITE_LEVEL:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 0 || number > 100)
     {
       send_to_char(d->character, "Invalid level!\r\n");
@@ -599,7 +599,7 @@ void bedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case BEDIT_DELETE_LEVEL:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 0 || number > 100)
     {
       send_to_char(d->character, "Invalid level!\r\n");
@@ -614,21 +614,21 @@ void bedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case BEDIT_OBJ_VNUM:
-    number = atoi(arg);
+    number = parse_int(arg);
     B_OBJ_VNUM(board) = number;
     OLC_VAL(d) = 1;
     bedit_disp_menu(d);
     break;
 
   case BEDIT_CLAN_ID:
-    number = atoi(arg);
+    number = parse_int(arg);
     B_CLAN_ID(board) = number;
     OLC_VAL(d) = 1;
     bedit_disp_menu(d);
     break;
 
   case BEDIT_CLAN_RANK:
-    number = atoi(arg);
+    number = parse_int(arg);
     if (number < 0)
     {
       send_to_char(d->character, "Invalid clan rank! Must be 0 or higher.\r\n");

@@ -726,8 +726,8 @@ void sedit_parse(struct descriptor_data *d, char *arg)
 
     /* Numerical responses. */
   case SEDIT_KEEPER:
-    i = atoi(arg);
-    if ((i = atoi(arg)) != -1)
+    i = parse_int(arg);
+    if ((i = parse_int(arg)) != -1)
       if ((i = real_mobile(i)) == (int)NOBODY)
       {
         write_to_output(d, "That mobile does not exist, try again : ");
@@ -741,16 +741,16 @@ void sedit_parse(struct descriptor_data *d, char *arg)
     mob_index[i].func = shop_keeper;
     break;
   case SEDIT_OPEN1:
-    S_OPEN1(OLC_SHOP(d)) = LIMIT(atoi(arg), 0, 28);
+    S_OPEN1(OLC_SHOP(d)) = LIMIT(parse_int(arg), 0, 28);
     break;
   case SEDIT_OPEN2:
-    S_OPEN2(OLC_SHOP(d)) = LIMIT(atoi(arg), 0, 28);
+    S_OPEN2(OLC_SHOP(d)) = LIMIT(parse_int(arg), 0, 28);
     break;
   case SEDIT_CLOSE1:
-    S_CLOSE1(OLC_SHOP(d)) = LIMIT(atoi(arg), 0, 28);
+    S_CLOSE1(OLC_SHOP(d)) = LIMIT(parse_int(arg), 0, 28);
     break;
   case SEDIT_CLOSE2:
-    S_CLOSE2(OLC_SHOP(d)) = LIMIT(atoi(arg), 0, 28);
+    S_CLOSE2(OLC_SHOP(d)) = LIMIT(parse_int(arg), 0, 28);
     break;
   case SEDIT_BUY_PROFIT:
     sscanf(arg, "%lf", &S_BUYPROFIT(OLC_SHOP(d)));
@@ -759,16 +759,16 @@ void sedit_parse(struct descriptor_data *d, char *arg)
     sscanf(arg, "%lf", &S_SELLPROFIT(OLC_SHOP(d)));
     break;
   case SEDIT_TYPE_MENU:
-    OLC_VAL(d) = LIMIT(atoi(arg), 0, NUM_ITEM_TYPES - 1);
+    OLC_VAL(d) = LIMIT(parse_int(arg), 0, NUM_ITEM_TYPES - 1);
     write_to_output(d, "Enter namelist (return for none) :-\r\n] ");
     OLC_MODE(d) = SEDIT_NAMELIST;
     return;
   case SEDIT_DELETE_TYPE:
-    remove_shop_from_type_list(&(S_NAMELISTS(OLC_SHOP(d))), atoi(arg));
+    remove_shop_from_type_list(&(S_NAMELISTS(OLC_SHOP(d))), parse_int(arg));
     sedit_namelist_menu(d);
     return;
   case SEDIT_NEW_PRODUCT:
-    if ((i = atoi(arg)) != -1)
+    if ((i = parse_int(arg)) != -1)
       if ((i = real_object(i)) == (int)NOTHING)
       {
         write_to_output(d, "That object does not exist, try again : ");
@@ -779,26 +779,26 @@ void sedit_parse(struct descriptor_data *d, char *arg)
     sedit_products_menu(d);
     return;
   case SEDIT_DELETE_PRODUCT:
-    remove_shop_from_int_list(&(S_PRODUCTS(OLC_SHOP(d))), atoi(arg));
+    remove_shop_from_int_list(&(S_PRODUCTS(OLC_SHOP(d))), parse_int(arg));
     sedit_products_menu(d);
     return;
   case SEDIT_NEW_ROOM:
-    if ((i = atoi(arg)) != -1)
+    if ((i = parse_int(arg)) != -1)
       if ((i = real_room(i)) == (int)NOWHERE)
       {
         write_to_output(d, "That room does not exist, try again : ");
         return;
       }
     if (i >= 0)
-      add_shop_to_int_list(&(S_ROOMS(OLC_SHOP(d))), atoi(arg));
+      add_shop_to_int_list(&(S_ROOMS(OLC_SHOP(d))), parse_int(arg));
     sedit_rooms_menu(d);
     return;
   case SEDIT_DELETE_ROOM:
-    remove_shop_from_int_list(&(S_ROOMS(OLC_SHOP(d))), atoi(arg));
+    remove_shop_from_int_list(&(S_ROOMS(OLC_SHOP(d))), parse_int(arg));
     sedit_rooms_menu(d);
     return;
   case SEDIT_SHOP_FLAGS:
-    if ((i = LIMIT(atoi(arg), 0, NUM_SHOP_FLAGS)) > 0)
+    if ((i = LIMIT(parse_int(arg), 0, NUM_SHOP_FLAGS)) > 0)
     {
       TOGGLE_BIT(S_BITVECTOR(OLC_SHOP(d)), 1 << (i - 1));
       sedit_shop_flags_menu(d);
@@ -806,7 +806,7 @@ void sedit_parse(struct descriptor_data *d, char *arg)
     }
     break;
   case SEDIT_NOTRADE:
-    if ((i = LIMIT(atoi(arg), 0, NUM_TRADERS)) > 0)
+    if ((i = LIMIT(parse_int(arg), 0, NUM_TRADERS)) > 0)
     {
       TOGGLE_BIT(S_NOTRADE(OLC_SHOP(d)), 1 << (i - 1));
       sedit_no_trade_menu(d);
@@ -814,7 +814,7 @@ void sedit_parse(struct descriptor_data *d, char *arg)
     }
     break;
   case SEDIT_COPY:
-    if ((i = real_shop(atoi(arg))) != (int)NOWHERE)
+    if ((i = real_shop(parse_int(arg))) != (int)NOWHERE)
     {
       sedit_setup_existing(d, i, QMODE_QCOPY);
     }

@@ -463,7 +463,7 @@ void hcontrol_list_houses(struct char_data *ch, char *arg)
     if (*arg == '.')
       toshow = GET_ROOM_VNUM(IN_ROOM(ch));
     else
-      toshow = atoi(arg);
+      toshow = parse_int(arg);
 
     if ((house = find_house(toshow)) == NOWHERE)
     {
@@ -546,7 +546,7 @@ static void hcontrol_build_house(struct char_data *ch, char *arg)
     return;
   }
 
-  virt_house = atoi(arg1);
+  virt_house = parse_int(arg1);
 
   if ((real_house = real_room(virt_house)) == NOWHERE)
   {
@@ -638,20 +638,21 @@ static void hcontrol_destroy_house(struct char_data *ch, char *arg)
     return;
   }
 
-  if ((house = find_house(atoi(arg))) == NOWHERE)
+  if ((house = find_house(parse_int(arg))) == NOWHERE)
   {
     send_to_char(ch, "Unknown house.\r\n");
     return;
   }
 
   if ((real_atrium = real_room(house_control[house].atrium)) == NOWHERE)
-    log("SYSERR: House %d had invalid atrium %" PRI_IDX "!", atoi(arg),
+    log("SYSERR: House %d had invalid atrium %" PRI_IDX "!", parse_int(arg),
         house_control[house].atrium);
   else
     REMOVE_BIT_AR(ROOM_FLAGS(real_atrium), ROOM_ATRIUM);
 
   if ((real_house = real_room(house_control[house].vnum)) == NOWHERE)
-    log("SYSERR: House %d had invalid vnum %" PRI_IDX "!", atoi(arg), house_control[house].vnum);
+    log("SYSERR: House %d had invalid vnum %" PRI_IDX "!", parse_int(arg),
+        house_control[house].vnum);
   else
   {
     REMOVE_BIT_AR(ROOM_FLAGS(real_house), ROOM_HOUSE);
@@ -683,7 +684,7 @@ static void hcontrol_pay_house(struct char_data *ch, char *arg)
 
   if (!*arg)
     send_to_char(ch, "%s", HCONTROL_FORMAT);
-  else if ((i = find_house(atoi(arg))) == NOWHERE)
+  else if ((i = find_house(parse_int(arg))) == NOWHERE)
     send_to_char(ch, "Unknown house.\r\n");
   else
   {

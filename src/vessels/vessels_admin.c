@@ -415,7 +415,7 @@ ACMD(do_shipgoto)
     return;
   }
 
-  slot = atoi(arg);
+  slot = parse_int(arg);
   if (slot < 0 || slot >= GREYHAWK_MAXSHIPS)
   {
     send_to_char(ch, "Ship slots run 0-%d.\r\n", GREYHAWK_MAXSHIPS - 1);
@@ -479,7 +479,7 @@ ACMD(do_shipfix)
     return;
   }
 
-  slot = atoi(arg);
+  slot = parse_int(arg);
   if (slot < 0 || slot >= GREYHAWK_MAXSHIPS)
   {
     send_to_char(ch, "Ship slots run 0-%d.\r\n", GREYHAWK_MAXSHIPS - 1);

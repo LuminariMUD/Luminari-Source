@@ -81,8 +81,8 @@ void apply_cascade_effects(room_rnum room, int source_resource, int quantity)
   /* Apply each cascade effect */
   while ((row = mysql_fetch_row(result)))
   {
-    target_resource = atoi(row[0]);
-    effect_magnitude = atof(row[1]);
+    target_resource = parse_int(row[0]);
+    effect_magnitude = parse_double(row[1]);
 
     /* Skip if invalid target resource */
     if (target_resource < 0 || target_resource >= NUM_RESOURCE_TYPES)
@@ -333,8 +333,8 @@ void show_cascade_preview(struct char_data *ch, room_rnum room, int resource_typ
   bool found_effects = FALSE;
   while ((row = mysql_fetch_row(result)))
   {
-    int target_resource = atoi(row[0]);
-    double effect_magnitude = atof(row[1]);
+    int target_resource = parse_int(row[0]);
+    double effect_magnitude = parse_double(row[1]);
     const char *description = row[2];
 
     if (target_resource >= 0 && target_resource < NUM_RESOURCE_TYPES)

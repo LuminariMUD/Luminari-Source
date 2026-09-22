@@ -145,10 +145,10 @@ bool vessel_piracy_reload_laws(void)
   while ((row = mysql_fetch_row(result)) != NULL && index < (size_t)row_count)
   {
     /* NOLINTNEXTLINE(clang-analyzer-security.ArrayBound) -- CREATE sized it for row_count rows */
-    new_cache[index].region_vnum = row[0] ? atoi(row[0]) : 0;
-    new_cache[index].waters_type = row[1] ? atoi(row[1]) : VESSEL_WATERS_UNCLAIMED;
-    new_cache[index].priority = row[2] ? atoi(row[2]) : 0;
-    new_cache[index].bounty_percent = row[3] ? atoi(row[3]) : 100;
+    new_cache[index].region_vnum = row[0] ? parse_int(row[0]) : 0;
+    new_cache[index].waters_type = row[1] ? parse_int(row[1]) : VESSEL_WATERS_UNCLAIMED;
+    new_cache[index].priority = row[2] ? parse_int(row[2]) : 0;
+    new_cache[index].bounty_percent = row[3] ? parse_int(row[3]) : 100;
     if (row[4] != NULL && *row[4])
     {
       strlcpy(new_cache[index].authority, row[4], sizeof(new_cache[index].authority));
@@ -583,7 +583,7 @@ int vessel_get_bounty(const char *player_name)
   row = mysql_fetch_row(result);
   if (row != NULL && row[0] != NULL)
   {
-    bounty = atoi(row[0]);
+    bounty = parse_int(row[0]);
   }
   mysql_free_result(result);
 
@@ -673,7 +673,7 @@ bool vessel_has_letter_of_marque(const char *player_name)
   row = mysql_fetch_row(result);
   if (row != NULL && row[0] != NULL)
   {
-    valid = (atoi(row[0]) > (int)time(0));
+    valid = (parse_int(row[0]) > (int)time(0));
   }
   mysql_free_result(result);
 
