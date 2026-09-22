@@ -431,7 +431,8 @@ void load_clans(void)
         if (num_of_clans >= MAX_CLANS)
         {
           log("SYSERR: Too many clans found in clans file (Max: %d)", MAX_CLANS);
-          return;
+          c.vnum = 0; /* stop reading: what was read is freed and the file closed below */
+          break;
         }
         c.vnum = parse_int(line + 1);
         gl = 0;
@@ -674,9 +675,17 @@ void load_clans(void)
         } /* end switch tag */
       } /* end if (gl) */
     } /* end while get_line */
-    /* if there is a clan pending, add it */
+    /* if there is a clan pending, add it; strings read without a clan number are dropped */
     if (c.vnum)
       add_clan(&c);
+    else
+    {
+      free(c.clan_name);
+      free(c.description);
+      free(c.abrev);
+      for (j = 0; j < MAX_CLANRANKS; j++)
+        free(c.rank_name[j]);
+    }
     fclose(fl);
   } /* end else */
 }

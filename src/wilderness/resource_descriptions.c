@@ -967,7 +967,7 @@ int calculate_total_light_level(room_rnum room)
     return 0;
 
   /* Base room light level */
-  total_light = world[room].light;
+  total_light = (int)world[room].light;
 
   /* Add natural light based on time of day and outdoor conditions */
   if (ROOM_OUTDOORS(room))
@@ -1034,7 +1034,7 @@ int calculate_artificial_light_level(room_rnum room)
     return 0;
 
   /* Base room light level (includes magical room lighting) */
-  artificial_light = world[room].light;
+  artificial_light = (int)world[room].light;
 
   /* Check all characters in room for light sources */
   for (ch = world[room].people; ch; ch = ch->next_in_room)

@@ -386,7 +386,7 @@ void Test_rewards_staff_award_uses_the_central_path_for_every_type(CuTest *tc)
   snprintf(command, sizeof(command), "%s feats 5", reward_target_name);
   reward_reset_output(&staff.descriptor);
   do_award(&staff.ch, command, 0, 0);
-  feats_after_limit = GET_FEAT_POINTS(victim);
+  feats_after_limit = (int)GET_FEAT_POINTS(victim);
   reported_limit = strstr(staff.descriptor.output, "is already at its maximum") != NULL;
 
   snprintf(command, sizeof(command), "%s gold 9999999999", reward_target_name);

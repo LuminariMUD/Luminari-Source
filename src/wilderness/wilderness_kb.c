@@ -3714,7 +3714,7 @@ void analyze_noise_spectrum(FILE *fp)
       }
     }
 
-    amplitude[freq] /= (sample_size * sample_size / 256);
+    amplitude[freq] /= (sample_size * sample_size / 256.0);
   }
 
   total_power = 0.0;

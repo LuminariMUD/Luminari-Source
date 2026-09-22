@@ -1517,7 +1517,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
       return;
     case 't':
     case 'T':
-      ECHO_SEQUENTIAL(OLC_MOB(d)) = !ECHO_SEQUENTIAL(OLC_MOB(d));
+      ECHO_SEQUENTIAL(OLC_MOB(d)) = (byte)!ECHO_SEQUENTIAL(OLC_MOB(d));
       OLC_VAL(d) = TRUE;
       medit_disp_echo_menu(d);
       return;
@@ -1525,7 +1525,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     case 'Z':
       if (GET_LEVEL(d->character) >= LVL_STAFF)
       {
-        ECHO_IS_ZONE(OLC_MOB(d)) = !ECHO_IS_ZONE(OLC_MOB(d));
+        ECHO_IS_ZONE(OLC_MOB(d)) = (byte)!ECHO_IS_ZONE(OLC_MOB(d));
         OLC_VAL(d) = TRUE;
         medit_disp_echo_menu(d);
       }

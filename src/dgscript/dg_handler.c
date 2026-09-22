@@ -61,7 +61,7 @@ static void dg_time_registry_remove(struct script_data *script)
 
   if (script == NULL || !script->time_registered)
     return;
-  owner_type = script->owner_type;
+  owner_type = (int)script->owner_type;
   if (dg_time_iteration_active && dg_time_iteration_next == script)
     dg_time_iteration_next = script->time_next;
   if (script->time_prev != NULL)
@@ -84,7 +84,7 @@ void dg_time_registry_sync(struct script_data *script)
 
   if (script == NULL)
     return;
-  owner_type = script->owner_type;
+  owner_type = (int)script->owner_type;
   eligible = script->owner != NULL && owner_type >= MOB_TRIGGER && owner_type <= WLD_TRIGGER &&
              IS_SET(SCRIPT_TYPES(script), dg_time_trigger_mask(owner_type));
   if (!eligible)
@@ -110,7 +110,7 @@ static void dg_random_registry_remove(struct script_data *script)
   periodic_dg_random_forget(script);
   if (script == NULL || !script->random_registered)
     return;
-  owner_type = script->owner_type;
+  owner_type = (int)script->owner_type;
   if (dg_random_iteration_active && dg_random_iteration_next == script)
     dg_random_iteration_next = script->random_next;
   if (script->random_prev != NULL)
@@ -133,7 +133,7 @@ void dg_random_registry_sync(struct script_data *script)
 
   if (script == NULL)
     return;
-  owner_type = script->owner_type;
+  owner_type = (int)script->owner_type;
   eligible = script->owner != NULL && owner_type >= MOB_TRIGGER && owner_type <= WLD_TRIGGER &&
              IS_SET(SCRIPT_TYPES(script), MTRIG_RANDOM);
   if (!eligible)

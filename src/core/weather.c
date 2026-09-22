@@ -447,6 +447,7 @@ struct weather_msg
 
     {SECT_MARSHLAND,
      {"The sun becomes obscured between the openings in the canopy above as heavy clouds roll in.",
+      /* NOLINTNEXTLINE(bugprone-suspicious-missing-comma) -- one message split to fit the line */
       "The mucky ground below you becomes spotty with sun beams as it shines through the canopy "
       "above.",
       "Heavy droplets begin to fall, the clouds above growing thicker, darkening the swamp.",

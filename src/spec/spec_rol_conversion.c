@@ -2970,8 +2970,12 @@ int rol_travel_portal(struct char_data *ch, void *me, int cmd, const char *argum
       return TRUE;
     }
     obj_to_char(reward, ch);
-    if (GET_OBJ_VAL(obj, 2) > 0 && --GET_OBJ_VAL(obj, 2) == 0)
-      rol_travel_portal_consume(ch, obj);
+    if (GET_OBJ_VAL(obj, 2) > 0)
+    {
+      GET_OBJ_VAL(obj, 2)--;
+      if (GET_OBJ_VAL(obj, 2) == 0)
+        rol_travel_portal_consume(ch, obj);
+    }
   }
 
   return TRUE;
@@ -5719,7 +5723,7 @@ static int rol_waterdeep_bouncer(struct char_data *keeper,
                                  const struct rol_waterdeep_bouncer_profile *profile)
 {
   struct char_data *offender;
-  room_rnum route[ROL_WATERDEEP_BOUNCER_MAX_ROUTE];
+  room_rnum route[ROL_WATERDEEP_BOUNCER_MAX_ROUTE] = {NOWHERE};
   size_t index;
 
   for (index = 0; index < profile->route_length; index++)

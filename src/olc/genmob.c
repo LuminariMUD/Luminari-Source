@@ -658,7 +658,7 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
 
 int write_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
 {
-  int pos = GET_DEFAULT_POS(mob);
+  int pos = (int)GET_DEFAULT_POS(mob);
 
   char ldesc[MAX_STRING_LENGTH] = {'\0'};
   char ddesc[MAX_STRING_LENGTH] = {'\0'};

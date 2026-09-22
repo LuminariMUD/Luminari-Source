@@ -92,6 +92,7 @@ void Test_vessel_narrative_rejects_invalid_or_short_output(CuTest *tc)
   char message[8];
 
   memset(message, 'x', sizeof(message));
+  /* NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange) -- tests the invalid-value path */
   CuAssertTrue(tc, !vessel_build_ambient_message((enum vessel_class) - 1, 0, 0, 0, 0, message,
                                                  sizeof(message)));
   CuAssertIntEquals(tc, '\0', message[0]);

@@ -1562,7 +1562,9 @@ ACMD(do_applypoison)
     act(buf2, FALSE, ch, weapon, 0, TO_ROOM);
 
     if (GET_LEVEL(ch) < LVL_IMMORT)
+    {
       USE_FULL_ROUND_ACTION(ch);
+    }
   }
   else
   {
@@ -7076,7 +7078,7 @@ ACMD(do_steal)
     percent = 100;
   }
 
-  if (str_cmp(obj_name, "coins") != 0 && str_cmp(obj_name, "gold"))
+  if (str_cmp(obj_name, "coins") != 0 && str_cmp(obj_name, "gold") != 0)
   {
     if (!(obj = get_obj_in_list_vis(ch, obj_name, NULL, vict->carrying)))
     {
@@ -8788,7 +8790,7 @@ ACMD(do_screenreader)
                  PRF_FLAGGED(ch, PRF_SCREEN_READER) ? "on" : "off");
     return;
   }
-  if (str_cmp(argument, "on") != 0 && str_cmp(argument, "off"))
+  if (str_cmp(argument, "on") != 0 && str_cmp(argument, "off") != 0)
   {
     send_to_char(ch, "Usage: screenreader on | off | status\r\n");
     return;
@@ -8834,7 +8836,7 @@ ACMD(do_sound)
                    "Sound test sent. If silent, check your client sound pack; see help sound.\r\n");
     return;
   }
-  if (str_cmp(argument, "on") != 0 && str_cmp(argument, "off"))
+  if (str_cmp(argument, "on") != 0 && str_cmp(argument, "off") != 0)
   {
     send_to_char(ch, "Usage: sound on | off | status | test\r\n");
     return;
@@ -12206,7 +12208,7 @@ ACMDU(do_device)
     }
 
     /* Check that all spells are either violent or non-violent (no mixing) */
-    int first_spell_violent = spell_info[spell_nums[0]].violent;
+    int first_spell_violent = (int)spell_info[spell_nums[0]].violent;
     for (i = 1; i < num_spells; i++)
     {
       if (spell_info[spell_nums[i]].violent != first_spell_violent)
@@ -12818,8 +12820,8 @@ ACMDU(do_device)
     /* Check that the new spell matches the violent/non-violent nature of existing spells */
     if (inv->num_spells > 0)
     {
-      int existing_violent = spell_info[inv->spell_effects[0]].violent;
-      int new_violent = spell_info[spell_num].violent;
+      int existing_violent = (int)spell_info[inv->spell_effects[0]].violent;
+      int new_violent = (int)spell_info[spell_num].violent;
       if (existing_violent != new_violent)
       {
         send_to_char(ch, "You cannot mix violent and non-violent spells in the same device.\r\n");
@@ -12878,7 +12880,7 @@ ACMDU(do_device)
     int device_is_violent = 0;
     if (inv->num_spells > 0)
     {
-      device_is_violent = spell_info[inv->spell_effects[0]].violent;
+      device_is_violent = (int)spell_info[inv->spell_effects[0]].violent;
     }
 
     /* Handle targeting logic */
@@ -14007,6 +14009,11 @@ MUD_EVENT_CALLBACK(event_device_creation)
   int num_spells = parse_int(num_spells_str);
   int duration = parse_int(duration_str);
   int reliability = parse_int(reliability_str);
+  if (num_spells <= 0 || num_spells > MAX_INVENTION_SPELLS)
+  {
+    send_to_char(ch, "Your invention creation process was interrupted due to corrupted data.\r\n");
+    return 0;
+  }
 
   /* Parse the spell numbers and chosen levels */
   int spell_nums[MAX_INVENTION_SPELLS];

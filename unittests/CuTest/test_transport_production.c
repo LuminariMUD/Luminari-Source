@@ -536,6 +536,7 @@ void Test_vessel_production_geometry_and_type_data(CuTest *tc)
   CuAssertDblEquals(tc, 13.0, greyhawk_range(0.0, 0.0, 0.0, 3.0, 4.0, 12.0), 0.001);
 
   CuAssertStrEquals(tc, "Airship", get_vessel_type_name(VESSEL_AIRSHIP));
+  /* NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange) -- tests the invalid-value path */
   CuAssertStrEquals(tc, "Unknown Vessel", get_vessel_type_name((enum vessel_class)99));
 
   caps = get_vessel_terrain_caps(VESSEL_SUBMARINE);
@@ -2167,6 +2168,7 @@ void Test_vessel_message_throttling_is_keyed_per_ship(CuTest *tc)
   /* A process-pulse rollback must not leave a reconstructed ship muted. */
   CuAssertTrue(tc, vessel_message_allowed(&ship, VESSEL_MESSAGE_AMBIENT_SQUALL, 50, 10));
   CuAssertTrue(tc, !vessel_message_allowed(NULL, VESSEL_MESSAGE_AMBIENT_SQUALL, 50, 10));
+  /* NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange) -- tests the invalid-value path */
   CuAssertTrue(tc, !vessel_message_allowed(&ship, (enum vessel_message_key) - 1, 50, 10));
   CuAssertTrue(tc, PERF_vessel_message_throttled_count() == 1);
 }
@@ -2180,6 +2182,7 @@ void Test_vessel_dock_fee_is_one_charge_per_owned_port_visit(CuTest *tc)
   strlcpy(ship.owner, "Kohdee", sizeof(ship.owner));
 
   CuAssertIntEquals(tc, 35, vessel_dock_fee_for_class(VESSEL_TRANSPORT));
+  /* NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange) -- tests the invalid-value path */
   CuAssertIntEquals(tc, 25, vessel_dock_fee_for_class((enum vessel_class) - 1));
   CuAssertIntEquals(tc, 35, vessel_assess_dock_fee(&ship, 70000, 12));
   CuAssertIntEquals(tc, 35, ship.dock_fee_balance);
@@ -2333,7 +2336,9 @@ void Test_transport_production_cargo_capacity_table(CuTest *tc)
   CuAssertIntEquals(tc, VESSEL_CARGO_MAGICAL, get_vessel_cargo_capacity(VESSEL_MAGICAL));
 
   /* Invalid types fall back to the standard ship capacity. */
+  /* NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange) -- tests the invalid-value path */
   CuAssertIntEquals(tc, VESSEL_CARGO_SHIP, get_vessel_cargo_capacity((enum vessel_class) - 1));
+  /* NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange) -- tests the invalid-value path */
   CuAssertIntEquals(tc, VESSEL_CARGO_SHIP, get_vessel_cargo_capacity((enum vessel_class)99));
 
   /* Freighters must out-haul warships; every class carries something

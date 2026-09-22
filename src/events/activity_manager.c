@@ -1324,6 +1324,7 @@ ACMD(do_activity)
   if (snapshot.state == PRIMARY_ACTIVITY_STATE_ACTIVE)
     send_to_char(ch, "Clock: %s  Next step: %.1f seconds\r\n",
                  snapshot.combat_clock ? "combat turn" : "wall time",
+                 /* NOLINTNEXTLINE(bugprone-integer-division) -- 1000000 / OPT_USEC is exact */
                  (double)snapshot.next_step_pulses / PASSES_PER_SEC);
 }
 

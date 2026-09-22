@@ -1561,6 +1561,7 @@ static enum game_scheduler_status schedule_normalized(struct game_scheduler *sch
   {
     if (owner_entry != NULL && owner_entry->live_events == 0)
       free(owner_entry);
+    /* NOLINTNEXTLINE(clang-analyzer-unix.Malloc) -- a new owner_entry has 0 events, freed above */
     free(event);
     return GAME_SCHEDULER_ALLOCATION_FAILED;
   }

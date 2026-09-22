@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BOOL_H
+#define BOOL_H
 
 /* Provides bool on pre-C23 compilers and remains harmless in C23 mode. */
 #include <stdbool.h>
@@ -28,3 +29,5 @@ typedef char bool; /**< Technically 1 signed byte; vals should only = TRUE or FA
 /** Just in case TRUE is not defined. */
 #define TRUE true
 #endif
+
+#endif /* BOOL_H */

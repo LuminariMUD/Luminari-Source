@@ -74,6 +74,8 @@ static int read_ban_record(FILE *fl, struct ban_list_element *record)
     {
       while ((c = fgetc(fl)) != '\n' && c != EOF)
         ;
+      if (c == EOF) /* end of file or a read error: nothing more to read */
+        break;
       continue;
     }
 

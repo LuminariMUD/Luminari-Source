@@ -614,7 +614,7 @@ ACMD(do_drive)
   /* Success messages */
   send_to_char(ch, "You drive the %s %s.\r\n", vehicle_type_name(vehicle->type),
                get_direction_name(direction));
-  act("$n drives $T $u.", TRUE, ch, (void *)(intptr_t)direction, vehicle->name, TO_ROOM);
+  act("$n drives $T $u.", TRUE, ch, NULL, vehicle->name, TO_ROOM);
 
   /* Show new position */
   send_to_char(ch, "Current position: (%d, %d)\r\n", vehicle->x_coord, vehicle->y_coord);

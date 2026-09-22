@@ -1396,16 +1396,18 @@ int handle_region_help(struct char_data *ch, const char *argument, const char *r
     if (i == 0)
     {
       if ((region_arg[i] >= 'a' && region_arg[i] <= 'z'))
-        region_arg[i] = region_arg[i] - 32;
+        region_arg[i] = (char)(region_arg[i] - 32);
       continue;
     }
     /* Character after space should be capital */
     if (region_arg[i] == ' ')
     {
       ++i;
+      if (region_arg[i] == '\0')
+        break; /* a trailing space: do not step past the terminator */
       if (region_arg[i] >= 'a' && region_arg[i] <= 'z')
       {
-        region_arg[i] = region_arg[i] - 32;
+        region_arg[i] = (char)(region_arg[i] - 32);
         continue;
       }
     }
@@ -1413,7 +1415,7 @@ int handle_region_help(struct char_data *ch, const char *argument, const char *r
     {
       /* Other uppercase characters should be lowercase */
       if (region_arg[i] >= 'A' && region_arg[i] <= 'Z')
-        region_arg[i] = region_arg[i] + 32;
+        region_arg[i] = (char)(region_arg[i] + 32);
     }
   }
 
@@ -1448,22 +1450,24 @@ int handle_background_help(struct char_data *ch, const char *argument __attribut
     if (i == 0)
     {
       if ((bg_arg[i] >= 'a' && bg_arg[i] <= 'z'))
-        bg_arg[i] = bg_arg[i] - 32;
+        bg_arg[i] = (char)(bg_arg[i] - 32);
       continue;
     }
     if (bg_arg[i] == ' ')
     {
       ++i;
+      if (bg_arg[i] == '\0')
+        break; /* a trailing space: do not step past the terminator */
       if (bg_arg[i] >= 'a' && bg_arg[i] <= 'z')
       {
-        bg_arg[i] = bg_arg[i] - 32;
+        bg_arg[i] = (char)(bg_arg[i] - 32);
         continue;
       }
     }
     else
     {
       if (bg_arg[i] >= 'A' && bg_arg[i] <= 'Z')
-        bg_arg[i] = bg_arg[i] + 32;
+        bg_arg[i] = (char)(bg_arg[i] + 32);
     }
   }
 

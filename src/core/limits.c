@@ -1330,6 +1330,7 @@ void run_autowiz(void)
     if (res < sizeof(buf))
     {
       mudlog(CMP, LVL_IMMORT, FALSE, "Initiating autowiz.");
+      /* NOLINTNEXTLINE(bugprone-command-processor) -- fixed command: constant paths, integers */
       if (system(buf) == -1)
       {
         log("SYSERR: Failed to run autowiz command");

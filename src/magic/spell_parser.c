@@ -2667,7 +2667,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
     return 0;
   }
 
-  int position = GET_POS(ch);
+  int position = (int)GET_POS(ch);
   int ch_class = CLASS_WIZARD;
   int casting_time = 0;
   bool quickened = FALSE;

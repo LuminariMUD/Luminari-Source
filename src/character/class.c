@@ -2897,7 +2897,7 @@ static void init_start_char(struct char_data *ch)
   */
 
   /* setting racial size here */
-  GET_REAL_SIZE(ch) = race_list[GET_RACE(ch)].size;
+  GET_REAL_SIZE(ch) = (int)race_list[GET_RACE(ch)].size;
   GET_REAL_MAX_HIT(ch) += race_starting_hp_bonus(GET_RACE(ch));
 
   /* some racial related modifications */

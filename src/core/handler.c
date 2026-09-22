@@ -320,7 +320,10 @@ static int isname_tok(const char *str, const char *namelist)
     {
       /* Don't allow abbreviated numbers. - Sryth */
       if (isdigit(*str) && (parse_int(str) != parse_int(curtok)))
+      {
+        free(newlist);
         return 0;
+      }
       free(newlist);
       return 1;
     }
@@ -2164,7 +2167,7 @@ void resize_obj_to_char(struct obj_data *object, struct char_data *ch)
     if (IS_NPC(ch)) // For NPCs we won't change the size
       break;
     else
-      GET_OBJ_SIZE(object) = race_list[GET_REAL_RACE(ch)]
+      GET_OBJ_SIZE(object) = (int)race_list[GET_REAL_RACE(ch)]
                                  .size; // in case they are shapechanged/wildshaped/enlarged/etc.
     break;
   default:

@@ -154,7 +154,7 @@ void create_command_list(void)
   while (i < num_cmds || j < num_socials)
   {
     if (i < num_cmds && (i < RESERVE_CMDS || j >= num_socials ||
-                         str_cmp(cmd_info[i].sort_as, soc_mess_list[j].sort_as) < 1))
+                         str_cmp(cmd_info[i].sort_as, soc_mess_list[j].sort_as) <= 0))
       complete_cmd_info[k++] = cmd_info[i++];
     else
     {

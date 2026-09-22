@@ -635,7 +635,7 @@ static unsigned int msdp_hash_string(const char *str)
   if (str == NULL)
     return 0;
 
-  while ((c = *str++))
+  while ((c = (unsigned char)*str++))
     hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
   return hash % MSDP_HASH_TABLE_SIZE;
@@ -2953,7 +2953,7 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
        */
       if (pProtocol->pLastTTYPE == NULL ||
           (strcmp(pProtocol->pLastTTYPE, pClientName) != 0 &&
-           strcmp(pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString, pClientName)))
+           strcmp(pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString, pClientName) != 0))
       {
         char RequestTTYPE[] = {(char)IAC, (char)SB, TELOPT_TTYPE, SEND, (char)IAC, (char)SE, '\0'};
         const char *pStartPos = strstr(pClientName, "-");

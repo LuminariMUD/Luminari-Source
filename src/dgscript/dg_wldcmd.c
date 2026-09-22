@@ -642,7 +642,7 @@ WCMD(do_wrolroomflag)
     wld_log(room, "wrolroomflag usage: <room> <magic-darkness> <on|off>");
     return;
   }
-  if (str_cmp(flag, "magic-darkness") != 0 && str_cmp(flag, "magical-darkness"))
+  if (str_cmp(flag, "magic-darkness") != 0 && str_cmp(flag, "magical-darkness") != 0)
   {
     wld_log(room, "wrolroomflag rejected unsupported flag '%s'", flag);
     return;

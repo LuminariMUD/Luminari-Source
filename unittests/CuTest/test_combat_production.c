@@ -19,7 +19,11 @@
 #include "../../src/combat/combat_reactions.h"
 #include "../../src/combat/combat_state.h"
 #include "../../src/combat/grapple.h"
+#include "../../src/craft/alchemy.h"
+#include "../../src/dgscript/dg_event.h"
+#include "../../src/events/actions.h"
 #include "../../src/events/domain_event_world.h"
+#include "../../src/events/mud_event.h"
 #include "../../src/core/lists.h"
 #include "../../src/core/mudlim.h"
 #include "../../src/character/rewards.h"
@@ -976,4 +980,40 @@ void Test_combat_restoration_offhand_ordinals_preserve_each_hand_policy(CuTest *
   CuAssertTrue(tc, !test_attack_number_runs_in_phase(1, 4, ATTACK_TYPE_OFFHAND));
   CuAssertTrue(tc, !test_attack_number_runs_in_phase(0, 1, ATTACK_TYPE_FOURTH));
   CuAssertTrue(tc, !test_attack_number_runs_in_phase(1, 4, ATTACK_TYPE_FOURTH));
+}
+
+/* Bomb commands check the action they spend. They passed the ACTION_* bit masks where
+ * is_action_available() takes an action_type, so making a bomb checked the move action. */
+void Test_alchemist_bomb_making_waits_for_the_standard_action(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  int bomb_while_spent;
+  int bomb_when_ready;
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  ch.player.name = CuMutableString("bomb making tester");
+  GET_LEVEL(&ch) = 1;
+  CLASS_LEVEL((&ch), CLASS_ALCHEMIST) = 1;
+  GET_REAL_INT(&ch) = 10;
+  GET_INT(&ch) = 10;
+  SET_FEAT(&ch, FEAT_BOMBS, 1);
+  GET_PFILEPOS(&ch) = -1; /* save_char() skips a character with no player file */
+  event_free_all();
+  event_init();
+
+  start_action_cooldown(&ch, atSTANDARD, 6 RL_SEC);
+  do_bombs(&ch, "make normal", 0, 0);
+  bomb_while_spent = GET_BOMB((&ch), 0);
+  clear_char_event_list(&ch);
+  do_bombs(&ch, "make normal", 0, 0);
+  bomb_when_ready = GET_BOMB((&ch), 0);
+
+  clear_char_event_list(&ch);
+  event_free_all();
+
+  CuAssertIntEquals(tc, BOMB_NONE, bomb_while_spent);
+  CuAssertIntEquals(tc, BOMB_NORMAL, bomb_when_ready);
 }

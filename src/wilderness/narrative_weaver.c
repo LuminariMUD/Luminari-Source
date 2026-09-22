@@ -826,7 +826,7 @@ static double detect_region_boundary_proximity(int x, int y,
   int min_edge_distance = MIN(edge_distance_x, edge_distance_y);
 
   /* Convert to boundary proximity (0.0 = center, 1.0 = edge) */
-  double boundary_proximity = 1.0 - ((double)min_edge_distance / (region_size / 2));
+  double boundary_proximity = 1.0 - ((double)min_edge_distance / (region_size / 2.0));
 
   /* Clamp to 0.0-1.0 range */
   if (boundary_proximity < 0.0)
@@ -1675,7 +1675,7 @@ const char *get_transitional_phrase(int style, const char *context)
     int count = 0;
     while (temporal_transitions[count])
       count++;
-    return temporal_transitions[rand() % count];
+    return count > 0 ? temporal_transitions[rand() % count] : "";
   }
 
   // Spatial/directional context
@@ -1686,7 +1686,7 @@ const char *get_transitional_phrase(int style, const char *context)
     int count = 0;
     while (spatial_transitions[count])
       count++;
-    return spatial_transitions[rand() % count];
+    return count > 0 ? spatial_transitions[rand() % count] : "";
   }
 
   // Weather context
@@ -1697,7 +1697,7 @@ const char *get_transitional_phrase(int style, const char *context)
     int count = 0;
     while (weather_transitions[count])
       count++;
-    return weather_transitions[rand() % count];
+    return count > 0 ? weather_transitions[rand() % count] : "";
   }
 
   // Sensory context - expanded detection
@@ -1709,7 +1709,7 @@ const char *get_transitional_phrase(int style, const char *context)
     int count = 0;
     while (sensory_transitions[count])
       count++;
-    return sensory_transitions[rand() % count];
+    return count > 0 ? sensory_transitions[rand() % count] : "";
   }
 
   // Style-specific transitions with enhanced variety
@@ -1720,28 +1720,28 @@ const char *get_transitional_phrase(int style, const char *context)
     int count = 0;
     while (mysterious_transitions[count])
       count++;
-    return mysterious_transitions[rand() % count];
+    return count > 0 ? mysterious_transitions[rand() % count] : "";
   }
   case STYLE_DRAMATIC:
   {
     int count = 0;
     while (dramatic_transitions[count])
       count++;
-    return dramatic_transitions[rand() % count];
+    return count > 0 ? dramatic_transitions[rand() % count] : "";
   }
   case STYLE_PASTORAL:
   {
     int count = 0;
     while (pastoral_transitions[count])
       count++;
-    return pastoral_transitions[rand() % count];
+    return count > 0 ? pastoral_transitions[rand() % count] : "";
   }
   case STYLE_POETIC:
   {
     int count = 0;
     while (poetic_transitions[count])
       count++;
-    return poetic_transitions[rand() % count];
+    return count > 0 ? poetic_transitions[rand() % count] : "";
   }
   case STYLE_PRACTICAL:
     // Practical style uses minimal, functional transitions
@@ -1754,7 +1754,7 @@ const char *get_transitional_phrase(int style, const char *context)
     int count = 0;
     while (atmospheric_transitions[count])
       count++;
-    return atmospheric_transitions[rand() % count];
+    return count > 0 ? atmospheric_transitions[rand() % count] : "";
   }
   }
 }
@@ -3243,12 +3243,17 @@ char *transform_voice_to_observational(const char *text)
 {
   char *result;
   char *pos;
+  const char *scan;
   size_t len;
+  size_t you_count = 0;
 
   if (!text)
     return NULL;
 
-  len = strlen(text) + 100; // Extra space for transformations
+  /* Each "you " can become "the area ", five bytes longer */
+  for (scan = strstr(text, "you "); scan != NULL; scan = strstr(scan + 4, "you "))
+    you_count++;
+  len = strlen(text) + 5 * you_count + 100; // Extra space for transformations
   result = malloc(len);
   if (!result)
     return NULL;
@@ -3265,6 +3270,7 @@ char *transform_voice_to_observational(const char *text)
   while ((pos = strstr(result, "you have stepped")) != NULL)
   {
     memmove(pos + 9, pos + 16, strlen(pos + 16) + 1);
+    /* NOLINTNEXTLINE(bugprone-not-null-terminated-result) -- the memmove above kept the NUL */
     memcpy(pos, "one steps", 9);
   }
 
@@ -3277,8 +3283,8 @@ char *transform_voice_to_observational(const char *text)
       // This is start of sentence or after period
       char temp[MAX_STRING_LENGTH];
       safe_strcpy(temp, pos + 4, MAX_STRING_LENGTH);
-      safe_strcpy(pos, "the area ", MAX_STRING_LENGTH - (pos - result));
-      strncat(pos, temp, MAX_STRING_LENGTH - (pos - result) - strlen(pos) - 1);
+      safe_strcpy(pos, "the area ", len - (size_t)(pos - result));
+      strncat(pos, temp, len - (size_t)(pos - result) - strlen(pos) - 1);
       pos += 9;
     }
     else

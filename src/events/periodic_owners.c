@@ -177,7 +177,7 @@ static struct game_event_result periodic_dg_random_event(const struct game_event
 
   if (script == NULL)
     return game_event_result_complete();
-  owner_type = script->owner_type;
+  owner_type = (int)script->owner_type;
   if (owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER || !script->random_registered)
   {
     if (runtime_handle_matches(script->random_event_handle, context))
@@ -257,7 +257,7 @@ void periodic_dg_random_sync(struct script_data *script)
   if (!initialized || !dg_random_scheduled || script == NULL || !script->random_registered ||
       !event_runtime_handle_is_none(script->random_event_handle))
     return;
-  owner_type = script->owner_type;
+  owner_type = (int)script->owner_type;
   if (owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER)
     return;
   total =
@@ -292,7 +292,7 @@ void periodic_dg_random_forget(struct script_data *script)
 
   if (script == NULL || event_runtime_handle_is_none(script->random_event_handle))
     return;
-  owner_type = script->owner_type;
+  owner_type = (int)script->owner_type;
   handle = script->random_event_handle;
   script->random_event_handle = EVENT_RUNTIME_HANDLE_NONE;
   if (owner_type >= MOB_TRIGGER && owner_type <= WLD_TRIGGER && dg_random_counts[owner_type] > 0U)

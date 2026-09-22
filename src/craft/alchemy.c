@@ -167,17 +167,17 @@ const char *bomb_descriptions[NUM_BOMB_TYPES] = {
     "Deals 1d4/rank force damage with direct targets possibly being knocked prone.",
     "Deals 1d6/rank frost damage with direct targets having a chance to be staggered.",
     "Heals target 1d4/rank.",
-    "Deals 1d6/rank holy damage. Evil targets may be staggered. Neutral targets take 1/2 damage "
-    "and good ones take none.",
+    ("Deals 1d6/rank holy damage. Evil targets may be staggered. Neutral targets take 1/2 damage "
+     "and good ones take none."),
     "Deals 1d6+int mod fire damage each round for # of rounds equal to # of bomb ranks.",
-    "Kills weak creatures outright and deals 1d4 consitution damage continuously until suiccessful "
-    "fortitude save.",
-    "Deals 1d6/rank unholy damage. Good targets may be staggered. Neutral targets take 1/2 damage "
-    "and evil ones take none.",
+    ("Kills weak creatures outright and deals 1d4 consitution damage continuously until "
+     "suiccessful fortitude save."),
+    ("Deals 1d6/rank unholy damage. Good targets may be staggered. Neutral targets take 1/2 "
+     "damage and evil ones take none."),
     "Deals 1d6/rank electricity damage with chance to dazzle direct targets for 1d4 rounds.",
     "Makes all targets nauseated on failed save for 1 round / bomb rank",
-    "Deals 1d6/rank radiant damage, chance to blind, Undead take +2 damage/bomb rank and are "
-    "staggered on failed save.",
+    ("Deals 1d6/rank radiant damage, chance to blind, Undead take +2 damage/bomb rank and are "
+     "staggered on failed save."),
     "Chance to entangle those caught in effect."};
 
 const char *discovery_requisites[NUM_ALC_DISCOVERIES] = {
@@ -656,16 +656,15 @@ ACMD(do_bombs)
       }
     }
 
-    int action_type_value =
-        KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS) ? ACTION_MOVE : ACTION_STANDARD;
+    int action_type_value = KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS) ? atMOVE : atSTANDARD;
     bool quick_proc = FALSE;
 
     int quick_chance = get_alchemist_quick_bomb_chance(ch);
     if (quick_chance > 0 && rand_number(1, 100) <= quick_chance)
     {
-      if (is_action_available(ch, ACTION_SWIFT, FALSE))
+      if (is_action_available(ch, atSWIFT, FALSE))
       {
-        action_type_value = ACTION_SWIFT;
+        action_type_value = atSWIFT;
         quick_proc = TRUE;
         send_to_char(ch, "You react instantly and ready a bomb as a swift action!\r\n");
       }
@@ -756,8 +755,8 @@ ACMD(do_bombs)
       return;
     }
 
-    if (!is_action_available(
-            ch, KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS) ? ACTION_MOVE : ACTION_STANDARD, TRUE))
+    if (!is_action_available(ch, KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS) ? atMOVE : atSTANDARD,
+                             TRUE))
       return;
 
     ch->player_specials->saved.bombs[bSlot] = type;
@@ -1233,9 +1232,13 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
   if (has_alchemist_inferno_bomb(ch) && rand_number(1, 100) <= 10)
   {
     int inferno_bonus = dice(2, 6);
+    char inferno_msg[128];
+
     dam += inferno_bonus;
-    act("\tRYour bomb explodes in a massive inferno, dealing an extra $t damage!\tn", FALSE, ch,
-        (void *)(intptr_t)inferno_bonus, victim, TO_CHAR | TO_SLEEP);
+    snprintf(inferno_msg, sizeof(inferno_msg),
+             "\tRYour bomb explodes in a massive inferno, dealing an extra %d damage!\tn",
+             inferno_bonus);
+    act(inferno_msg, FALSE, ch, 0, victim, TO_CHAR | TO_SLEEP);
     act("\tR$n's bomb explodes in a massive inferno!\tn", FALSE, ch, 0, victim, TO_VICT);
     act("\tR$n's bomb explodes in a massive inferno!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
   }
@@ -3940,6 +3943,7 @@ ACMD(do_poisontouch)
     {
       struct affected_type af;
 
+      new_affect(&af);
       af.spell = SPELL_POISON;
       SET_BIT_AR(af.bitvector, AFF_POISON);
       af.location = APPLY_CON;

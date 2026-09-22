@@ -2432,7 +2432,7 @@ void set_weapon_object(struct obj_data *obj, int type)
   GET_OBJ_VAL(obj, 0) = type;
 
   /* Set damdice  and size based on weapon type. */
-  GET_OBJ_VAL(obj, 1) = weapon_list[GET_OBJ_VAL(obj, 0)].numDice;
+  GET_OBJ_VAL(obj, 1) = (int)weapon_list[GET_OBJ_VAL(obj, 0)].numDice;
   GET_OBJ_VAL(obj, 2) = weapon_list[GET_OBJ_VAL(obj, 0)].diceSize;
   /* cost */
   GET_OBJ_COST(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].cost + 1;
@@ -2441,7 +2441,7 @@ void set_weapon_object(struct obj_data *obj, int type)
   /* material */
   GET_OBJ_MATERIAL(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].material;
   /* size */
-  GET_OBJ_SIZE(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].size;
+  GET_OBJ_SIZE(obj) = (int)weapon_list[GET_OBJ_VAL(obj, 0)].size;
 
   /* set the proper wear bits */
 

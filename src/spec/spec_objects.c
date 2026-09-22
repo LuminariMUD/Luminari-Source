@@ -3792,6 +3792,8 @@ SPECIAL(menzo_chokers)
     {
       send_to_char(ch, "\tLYour blood quickens, as if your soul has been touched "
                        "by a higher power.\tn\r\n");
+      new_affect(&af);
+      af.spell = AFF_MENZOCHOKER; /* the tag the loop above looks for */
       af.location = APPLY_HITROLL;
       af.duration = 5;
       af.modifier = 1;

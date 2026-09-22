@@ -802,6 +802,7 @@ int replace_str(char **string, const char *pattern, const char *replacement, int
   if ((strlen(*string) - strlen(pattern)) + strlen(replacement) > max_size)
     return -1;
 
+  /* NOLINTNEXTLINE(clang-analyzer-optin.portability.UnixAPI) -- no caller passes UINT_MAX */
   CREATE(replace_buffer, char, max_size + 1);
   i = 0;
   jetsam = *string;

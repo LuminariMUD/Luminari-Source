@@ -3321,7 +3321,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   /* Power Strike display */
   if (!IS_NPC(k) && GET_POWER_STRIKE(k) > 0)
   {
-    int value = GET_POWER_STRIKE(k);
+    int value = (int)GET_POWER_STRIKE(k);
     send_to_char(
         ch, "Power Strike (Monk): -%d to hit, +%d to damage on unarmed/monk weapon attacks\r\n",
         value, value * 2);
@@ -4989,7 +4989,7 @@ ACMD(do_score)
   /* Display Wizard school specialization */
   if (CLASS_LEVEL(ch, CLASS_WIZARD))
   {
-    int school = GET_SPECIALTY_SCHOOL(ch);
+    int school = (int)GET_SPECIALTY_SCHOOL(ch);
     send_to_char(ch, "\tcSpecialty School: \tn%s\tc, Restricted: \tn%s\tc.\r\n",
                  (school >= 0 && school < NUM_SCHOOLS) ? school_names[school]
                                                        : "None", /* Specialized school */
@@ -6295,14 +6295,16 @@ ACMD(do_skore)
   /* Determine display width based on preferences */
   if (!IS_NPC(ch))
   {
-    int pref_width = GET_SCORE_DISPLAY_WIDTH(ch);
-    if (pref_width == 120 || PRF_FLAGGED(ch, PRF_SCORE_WIDE))
-    {
-      line_length = 120;
-    }
-    else if (pref_width == 160)
+    /* The signed byte holds 160 as -96; read it back unsigned. Width 160 also sets
+     * PRF_SCORE_WIDE, so it is tested first. */
+    int pref_width = (unsigned char)GET_SCORE_DISPLAY_WIDTH(ch);
+    if (pref_width == 160)
     {
       line_length = 160;
+    }
+    else if (pref_width == 120 || PRF_FLAGGED(ch, PRF_SCORE_WIDE))
+    {
+      line_length = 120;
     }
     else
     {
@@ -6645,7 +6647,7 @@ ACMD(do_skore)
     }
     for (i = 0; i < 8; i++)
     {
-      section = GET_SCORE_SECTION_ORDER(ch, i);
+      section = (int)GET_SCORE_SECTION_ORDER(ch, i);
       if (section >= 0 && section < 8)
       {
         section_count[section]++;
@@ -6802,7 +6804,7 @@ ACMD(do_scoreconfig)
     send_to_char(ch,
                  "\tc|\tn   \tcWidth:\tn %-3d characters                                           "
                  "\tc|\tn\r\n",
-                 GET_SCORE_DISPLAY_WIDTH(ch) ? GET_SCORE_DISPLAY_WIDTH(ch) : 80);
+                 GET_SCORE_DISPLAY_WIDTH(ch) ? (unsigned char)GET_SCORE_DISPLAY_WIDTH(ch) : 80);
     send_to_char(
         ch, "\tc|\tn   \tcTheme:\tn %-15s                                           \tc|\tn\r\n",
         GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_CLASSIC        ? "Classic"
@@ -8992,25 +8994,28 @@ ACMDU(do_homelands)
     if (i == 0)
     {
       if ((argument[i] >= 'a' && argument[i] <= 'z'))
-        argument[i] = argument[i] - 32; // subtract 32 to make it capital
-      continue;                         // continue to the loop
+        argument[i] = (char)(argument[i] - 32); // subtract 32 to make it capital
+      continue;                                 // continue to the loop
     }
     if (argument[i] == ' ') // check space
     {
       // if space is found, check next character
       ++i;
+      // a trailing space ends the string here; stepping on would pass the terminator
+      if (argument[i] == '\0')
+        break;
       // check next character is lowercase alphabet
       if (argument[i] >= 'a' && argument[i] <= 'z')
       {
-        argument[i] = argument[i] - 32; // subtract 32 to make it capital
-        continue;                       // continue to the loop
+        argument[i] = (char)(argument[i] - 32); // subtract 32 to make it capital
+        continue;                               // continue to the loop
       }
     }
     else
     {
       // all other uppercase characters should be in lowercase
       if (argument[i] >= 'A' && argument[i] <= 'Z')
-        argument[i] = argument[i] + 32; // subtract 32 to make it small/lowercase
+        argument[i] = (char)(argument[i] + 32); // subtract 32 to make it small/lowercase
     }
   }
 

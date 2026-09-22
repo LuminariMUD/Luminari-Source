@@ -102,8 +102,8 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
   if (!ch)
     return;
 
-  int domain_1 = GET_1ST_DOMAIN(ch);
-  int domain_2 = GET_2ND_DOMAIN(ch);
+  int domain_1 = (int)GET_1ST_DOMAIN(ch);
+  int domain_2 = (int)GET_2ND_DOMAIN(ch);
   bool is_psionic = (class == CLASS_PSIONICIST);
   bool is_warlock = (class == CLASS_WARLOCK);
 

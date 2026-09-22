@@ -202,11 +202,17 @@ int walkdir(FILE *index_file, const char *dir)
   char *name;
   FILE *plr_file;
   long id, last;
-  int level, adminlevel, entry_fd, open_flags, errors = 0;
+  int level, adminlevel, dir_fd, entry_fd, open_flags, errors = 0;
 
   if ((dfd = opendir(dir)) == NULL)
   {
     fprintf(stderr, "Can't open %s\n", dir);
+    return 1;
+  }
+  if ((dir_fd = dirfd(dfd)) < 0)
+  {
+    fprintf(stderr, "Can't read %s\n", dir);
+    closedir(dfd);
     return 1;
   }
 
@@ -226,7 +232,7 @@ int walkdir(FILE *index_file, const char *dir)
 #ifdef O_NOFOLLOW
     open_flags |= O_NOFOLLOW;
 #endif
-    entry_fd = openat(dirfd(dfd), dp->d_name, open_flags);
+    entry_fd = openat(dir_fd, dp->d_name, open_flags);
     if (entry_fd < 0 || fstat(entry_fd, &stbuf) == -1)
     {
       fprintf(stdout, "Unable to open file: %s\n", filename_qfd);

@@ -115,6 +115,7 @@ void zdump(meminfo *m)
 unsigned char *zmalloc(int len, char *file, int line)
 {
   unsigned char *ret;
+  unsigned char *block;
   meminfo *m;
 
 #ifndef NO_MEMORY_PADDING
@@ -128,6 +129,7 @@ unsigned char *zmalloc(int len, char *file, int line)
     fprintf(zfd, "zmalloc: malloc FAILED");
     return NULL;
   }
+  block = ret; /* what calloc() returned, for the failure paths below */
 #ifndef NO_MEMORY_PADDING
   /* insert begin and end padding to detect buffer under/overruns: */
   memcpy(ret, beginPad, sizeof(beginPad));
@@ -142,6 +144,7 @@ unsigned char *zmalloc(int len, char *file, int line)
   if (!m)
   {
     fprintf(zfd, "zmalloc: FAILED mem alloc for zmalloc struct... bailing!\n");
+    free(block);
     return NULL;
   }
   m->addr = ret;
@@ -152,6 +155,7 @@ unsigned char *zmalloc(int len, char *file, int line)
   {
     fprintf(zfd, "zmalloc: FAILED mem alloc for zmalloc struct... bailing!\n");
     free(m);
+    free(block);
     return NULL;
   }
   m->line = line;

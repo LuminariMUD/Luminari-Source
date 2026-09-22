@@ -5636,6 +5636,7 @@ static void artifact_show_one_progress(struct char_data *ch, struct obj_data *ob
   send_to_char(ch, "  Level %d - %d/%d experience to the next level\r\n", art->level,
                art->experience, needed);
 
+  /* NOLINTNEXTLINE(clang-analyzer-core.DivideZero) -- level 1..max-1 here, so needed > 0 */
   filled = MIN(20, (art->experience * 20) / needed);
 
   send_to_char(ch, "  [");

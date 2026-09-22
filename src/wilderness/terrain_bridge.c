@@ -214,7 +214,7 @@ char *process_terrain_http_request(const char *http_request, bool database_healt
   *status_code = 400;
   *head_only = false;
   if (!http_request || sscanf(http_request, "%15s %255s %15s", method, path, version) != 3 ||
-      (strcmp(version, "HTTP/1.0") != 0 && strcmp(version, "HTTP/1.1")))
+      (strcmp(version, "HTTP/1.0") != 0 && strcmp(version, "HTTP/1.1") != 0))
     return strdup("{\"service\":\"luminari-mud\",\"status\":\"bad_request\"}");
 
   if (!strcmp(method, "HEAD"))

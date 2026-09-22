@@ -4149,7 +4149,7 @@ MUD_EVENT_CALLBACK(event_spiritual_weapon)
   int roll = dice(1, 20);
   int threat = 20 - weapon_list[get_default_spell_weapon(ch)].range;
   bool is_crit = roll >= threat;
-  int mult = weapon_list[get_default_spell_weapon(ch)].critMult;
+  int mult = (int)weapon_list[get_default_spell_weapon(ch)].critMult;
   int attack_roll = MAX(roll, d20(ch)) + GET_BAB(ch) + GET_WIS_BONUS(ch);
   int ac = compute_armor_class(ch, victim, FALSE, MODE_ARMOR_CLASS_NORMAL);
   int dam = dice(weapon_list[get_default_spell_weapon(ch)].numDice,
@@ -4258,7 +4258,7 @@ MUD_EVENT_CALLBACK(event_dancing_weapon)
   int roll = dice(1, 20);
   int threat = 20 - weapon_list[get_default_spell_weapon(ch)].range;
   bool is_crit = roll >= threat;
-  int mult = weapon_list[get_default_spell_weapon(ch)].critMult;
+  int mult = (int)weapon_list[get_default_spell_weapon(ch)].critMult;
   int attack_roll = MAX(roll, d20(ch)) + GET_BAB(ch) + MAX(GET_INT_BONUS(ch), GET_CHA_BONUS(ch));
   int ac = compute_armor_class(ch, victim, FALSE, MODE_ARMOR_CLASS_NORMAL);
   int dam = dice(weapon_list[get_default_spell_weapon(ch)].numDice,

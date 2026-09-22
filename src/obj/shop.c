@@ -1909,7 +1909,7 @@ static char *customer_string(int shop_nr, int detailed)
     }
     else
     {
-      buf[len++] = (IS_SET(flag, SHOP_TRADE_WITH(shop_nr)) ? '_' : *trade_letters[sindex]);
+      buf[len++] = (char)(IS_SET(flag, SHOP_TRADE_WITH(shop_nr)) ? '_' : *trade_letters[sindex]);
       buf[len] = '\0';
 
       if (len >= sizeof(buf))

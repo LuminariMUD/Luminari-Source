@@ -205,7 +205,7 @@ static double get_radial_gradient(int x, int y)
       dist = MIN(xdist, ydist);
 
       /* Invert dist */
-      dist = xsize / 8 - dist;
+      dist = xsize / 8.0 - dist;
 
       if (dist < 0)
         dist = 0;
@@ -411,6 +411,7 @@ int get_temperature(int map, int x, int y)
 
   /* Return the temp. */
   temp = (int)((max_temp - (max_temp - min_temp) * pct) -
+               /* NOLINTNEXTLINE(bugprone-integer-division) -- terrain depends on this rounding */
                (MAX((int)(1.5 * get_elevation(map, x, y) - WATERLINE), 0)) / 10);
 
   return temp;
@@ -657,6 +658,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
   /* use the kd_wilderness_rooms kd-tree index to look up the nearby rooms */
   loc[0] = center_x;
   loc[1] = center_y;
+  /* NOLINTNEXTLINE(bugprone-integer-division) -- whole-tile radius, matching x_offset above */
   set = kd_nearest_range(kd_wilderness_rooms, loc, ((xsize - 1) / 2) + 1);
 
   while (!kd_res_end(set))
@@ -1481,7 +1483,7 @@ static char *wilderness_map_to_string(struct wild_map_tile **map, int size, int 
     {
       if (((shape == WILD_MAP_SHAPE_CIRCLE) &&
            (sqrt((centerx - x) * (centerx - x) + (centery - y) * (centery - y)) <=
-            (((size - 1) / 2) + 1))) ||
+            (centerx + 1))) ||
           (shape == WILD_MAP_SHAPE_RECT))
       {
         if ((x == centerx) && (y == centery))

@@ -321,6 +321,7 @@ static sbyte test_result(sbyte offset, zone_rnum zone, int cmd_no)
   else if (offset > 0)
     return (result_q.q[((RQ_MAXSIZE - (abs(offset) - result_q.tail)) % RQ_MAXSIZE)]);
   else
+    /* NOLINTNEXTLINE(bugprone-narrowing-conversions) -- ! yields 0 or 1, which sbyte holds */
     return !(result_q.q[((RQ_MAXSIZE - (abs(offset) - result_q.tail)) % RQ_MAXSIZE)]);
 }
 
@@ -1782,7 +1783,8 @@ void index_boot(int mode)
 {
   const char *index_filename, *prefix = NULL; /* NULL or egcs 1.1 complains */
   FILE *db_index, *db_file;
-  int rec_count = 0, size[2] = {0, 0};
+  int rec_count = 0;
+  size_t size[2] = {0, 0};
   bool optional_index;
   char buf2[MAX_FILEPATH] = {'\0'};
   char buf1[MAX_FILEPATH] = {'\0'};
@@ -1917,38 +1919,38 @@ void index_boot(int mode)
   case DB_BOOT_WLD:
     CREATE(world, struct room_data, rec_count);
     size[0] = sizeof(struct room_data) * rec_count;
-    log("   %d rooms, %d bytes.", rec_count, size[0]);
+    log("   %d rooms, %zu bytes.", rec_count, size[0]);
     break;
   case DB_BOOT_MOB:
     CREATE(mob_proto, struct char_data, rec_count);
     CREATE(mob_index, struct index_data, rec_count);
     size[0] = sizeof(struct index_data) * rec_count;
     size[1] = sizeof(struct char_data) * rec_count;
-    log("   %d mobs, %d bytes in index, %d bytes in prototypes.", rec_count, size[0], size[1]);
+    log("   %d mobs, %zu bytes in index, %zu bytes in prototypes.", rec_count, size[0], size[1]);
     break;
   case DB_BOOT_OBJ:
     CREATE(obj_proto, struct obj_data, rec_count);
     CREATE(obj_index, struct index_data, rec_count);
     size[0] = sizeof(struct index_data) * rec_count;
     size[1] = sizeof(struct obj_data) * rec_count;
-    log("   %d objs, %d bytes in index, %d bytes in prototypes.", rec_count, size[0], size[1]);
+    log("   %d objs, %zu bytes in index, %zu bytes in prototypes.", rec_count, size[0], size[1]);
     break;
   case DB_BOOT_ZON:
     CREATE(zone_table, struct zone_data, rec_count);
     size[0] = sizeof(struct zone_data) * rec_count;
-    log("   %d zones, %d bytes.", rec_count, size[0]);
+    log("   %d zones, %zu bytes.", rec_count, size[0]);
     break;
   case DB_BOOT_HLP:
     /* Allocate help table for file-based help entries
      * System operates in dual mode: file + database */
     CREATE(help_table, struct help_index_element, rec_count);
     size[0] = sizeof(struct help_index_element) * rec_count;
-    log("   %d help entries, %d bytes (dual mode: file + database).", rec_count, size[0]);
+    log("   %d help entries, %zu bytes (dual mode: file + database).", rec_count, size[0]);
     break;
   case DB_BOOT_QST:
     CREATE(aquest_table, struct aq_data, rec_count);
     size[0] = sizeof(struct aq_data) * rec_count;
-    log("   %d entries, %d bytes.", rec_count, size[0]);
+    log("   %d entries, %zu bytes.", rec_count, size[0]);
     break;
   }
 
@@ -7151,9 +7153,10 @@ void free_char(struct char_data *ch)
 
   if (!IS_NPC(ch) || (IS_NPC(ch) && GET_MOB_RNUM(ch) == NOBODY))
   {
-    /* if this is a player, or a non-prototyped non-player, free all */
-    if (GET_NAME(ch))
-      free(GET_NAME(ch));
+    /* if this is a player, or a non-prototyped non-player, free all.  Not
+     * GET_NAME(): for an NPC that is short_descr, which is freed below. */
+    if (ch->player.name)
+      free(ch->player.name);
     if (ch->player.title)
       free(ch->player.title);
     if (ch->player.short_descr)
@@ -7770,6 +7773,7 @@ void init_char(struct char_data *ch)
   GET_REAL_WIS(ch) = 3;
 
   for (i = 0; i < 3; i++)
+    /* NOLINTNEXTLINE(bugprone-narrowing-conversions) -- -1 and 24 fit in sbyte */
     GET_COND(ch, i) = (GET_LEVEL(ch) == LVL_IMPL ? -1 : 24);
 
   GET_LOADROOM(ch) = NOWHERE;

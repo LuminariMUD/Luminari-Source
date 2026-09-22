@@ -695,6 +695,7 @@ static FILE *rename_open_regular(const char *path, const char *mode, struct stat
   struct stat opened_stat;
   int fd;
   int flags = O_RDONLY;
+  int saved_errno;
 
 #ifdef O_NOFOLLOW
   flags |= O_NOFOLLOW;
@@ -705,7 +706,9 @@ static FILE *rename_open_regular(const char *path, const char *mode, struct stat
     return NULL;
   if (fstat(fd, &opened_stat) != 0)
   {
+    saved_errno = errno; /* close() may overwrite the reason callers check */
     close(fd);
+    errno = saved_errno;
     return NULL;
   }
   if (!S_ISREG(opened_stat.st_mode))
@@ -718,7 +721,9 @@ static FILE *rename_open_regular(const char *path, const char *mode, struct stat
   file = fdopen(fd, mode);
   if (!file)
   {
+    saved_errno = errno;
     close(fd);
+    errno = saved_errno;
     return NULL;
   }
 
@@ -1027,11 +1032,15 @@ static int rename_copy_to_backup(const char *source, char *backup, size_t backup
   }
 
   while ((count = fread(buffer, 1, sizeof(buffer), input)) > 0)
+  {
     if (fwrite(buffer, 1, count, output) != count)
     {
       failed = TRUE;
       break;
     }
+    if (count < sizeof(buffer)) /* end of file or a read error, which ferror() reports */
+      break;
+  }
 
   if (ferror(input) || fflush(output) != 0 || ferror(output))
     failed = TRUE;
@@ -1113,7 +1122,7 @@ static int rename_file_matches_snapshot(const char *path, const char *snapshot)
     if (current_count != saved_count ||
         (current_count > 0 && memcmp(current_buffer, saved_buffer, current_count) != 0))
       goto cleanup;
-  } while (current_count > 0);
+  } while (current_count == sizeof(current_buffer)); /* a short read is end of file or error */
 
   matches = !ferror(current) && !ferror(saved);
 

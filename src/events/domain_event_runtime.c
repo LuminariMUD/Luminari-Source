@@ -409,7 +409,7 @@ domain_event_runtime_character_resolved(struct char_data *actor, struct char_dat
                                         enum domain_character_resolution_kind kind, int method)
 {
   static uint64_t next_resolution_id;
-  struct domain_character_resolved event = {0};
+  struct domain_character_resolved event = {.kind = DOMAIN_CHARACTER_RESOLUTION_RESCUED};
   struct domain_event_topic topics[3];
   size_t topic_count = 0U;
 

@@ -784,7 +784,7 @@ int compute_current_size(struct char_data *ch)
 
   if (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && racenum)
   { // wildshaped
-    size = race_list[racenum].size;
+    size = (int)race_list[racenum].size;
     if (affected_by_spell(ch, SPELL_ENLARGE_PERSON))
       size++;
     if (affected_by_spell(ch, SPELL_SHRINK_PERSON))
@@ -4548,6 +4548,7 @@ void column_list(struct char_data *ch, int num_cols, const char *const *list, in
 
   buffer_size =
       (size_t)num_per_col * ((size_t)num_cols * (prefix_width + (size_t)col_width + 1) + 2) + 1;
+  /* NOLINTNEXTLINE(clang-analyzer-optin.portability.UnixAPI) -- at least 1: checked above */
   CREATE(buf, char, buffer_size);
 
   /* Fill 'buf' with the columnised list */
@@ -5118,7 +5119,7 @@ char *strfrmt(const char *str, int w, int h, int justify __attribute__((unused))
       }
       else if (*sp == '\t' && sp[1])
       {
-        mxp_code = sp[1] == '[' ? ']' : sp[1] == '<' ? '>' : '\0';
+        mxp_code = (char)(sp[1] == '[' ? ']' : sp[1] == '<' ? '>' : '\0');
         if (!mxp_code)
           last_color = sp[1];
 
@@ -5498,9 +5499,9 @@ int get_feat_value(const struct char_data *ch, int featnum)
 
   /* Check for the feat. */
   if (IS_NPC(ch))
-    featval = MOB_HAS_FEAT(ch, featnum);
+    featval = (int)MOB_HAS_FEAT(ch, featnum);
   else if (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch))
-    featval = MOB_HAS_FEAT(ch, featnum);
+    featval = (int)MOB_HAS_FEAT(ch, featnum);
   else
   {
     /* check if we got this feat equipped */

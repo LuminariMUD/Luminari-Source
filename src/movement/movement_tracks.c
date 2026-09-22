@@ -360,9 +360,11 @@ void movement_trail_record(struct trail_data_list *list, const char *name, const
 
   match = NULL;
   count = 0;
+  /* NOLINTNEXTLINE(clang-analyzer-unix.Malloc) -- pruned nodes are unlinked before free() */
   for (trail = list->head; trail != NULL; trail = trail->next)
   {
     count++;
+    /* NOLINTNEXTLINE(clang-analyzer-unix.Malloc) -- pruned nodes are unlinked before free() */
     if (match == NULL && trail->from == from && trail->to == to &&
         !strcmp(trail->name ? trail->name : "", name) &&
         !strcmp(trail->race ? trail->race : "", race))

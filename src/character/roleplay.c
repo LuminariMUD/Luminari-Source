@@ -886,6 +886,8 @@ enum roleplay_commit_result roleplay_commit_deity(struct descriptor_data *d)
    "you? What's the one person, concept, or event that you are terrified of? What "                \
    "are your vices? ")
 
+/* NOLINTBEGIN(bugprone-suspicious-missing-comma) -- long sentences wrap onto a second
+ * literal on purpose; every row of these four tables holds its full count of entries. */
 const char *personality_traits[NUM_BACKGROUNDS][10] = {
     {// none - 0
      "", "", "", "", "", "", "", "", "", ""},
@@ -1476,6 +1478,7 @@ const char *character_flaws[NUM_BACKGROUNDS][8] = {
      "I'd rather kill someone in their sleep than fight fair.",
      "It's not stealing if I need it more than someone else.",
      "People who can't take care of themselves get what they deserve.", ""}};
+/* NOLINTEND(bugprone-suspicious-missing-comma) */
 
 static void store_roleplay_examples(struct char_data *ch, int state, const char *first,
                                     const char *second, const char *third)
