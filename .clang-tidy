@@ -20,6 +20,12 @@
 #   Scope: all sources. Reason: game functions take adjacent parameters of one
 #   type by design (character and victim, vnum and rnum), so nearly every
 #   function would be a finding. Owner: this configuration. Expires: never.
+# -bugprone-assignment-in-if-condition
+#   Scope: all sources. Reason: -Wparentheses, part of -Wall, already rejects
+#   an unparenthesized assignment in a condition, so every finding is the
+#   deliberate if ((x = f())) idiom, which the code and macros such as CREATE
+#   use throughout and which the check has no option to accept. Owner: this
+#   configuration. Expires: never.
 # -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
 #   Scope: all sources. Reason: it recommends the C11 Annex K *_s functions,
 #   which glibc does not provide, and reports every memcpy, memset, and
@@ -36,6 +42,11 @@
 #   same function checked as gnu17 is clean. Owner: whoever bumps the
 #   clang-tidy pin. Expires: when the pinned release no longer reports the
 #   reproducer in the setup guide.
+# -clang-analyzer-optin.performance.Padding
+#   Scope: all sources. Reason: an opt-in memory layout advisory; reordering
+#   the fields of char_data and of positionally initialized tables risks
+#   silent misinitialization for no measurable gain. Owner: this
+#   configuration. Expires: never.
 Checks: >
   -*,
   clang-analyzer-*,
@@ -45,10 +56,17 @@ Checks: >
   -bugprone-macro-parentheses,
   -bugprone-reserved-identifier,
   -bugprone-easily-swappable-parameters,
+  -bugprone-assignment-in-if-condition,
   -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
   -clang-analyzer-security.insecureAPI.strcpy,
-  -clang-analyzer-security.VAList
+  -clang-analyzer-security.VAList,
+  -clang-analyzer-optin.performance.Padding
 CheckOptions:
   # Unbounded string functions; snprintf and its relatives are the bounded forms.
   bugprone-unsafe-functions.CustomFunctions: "^::sprintf$,snprintf,is unbounded;^::vsprintf$,vsnprintf,is unbounded;^::strcpy$,snprintf or strlcpy,is unbounded;^::strcat$,snprintf or strlcat,is unbounded"
+  # Same-width signed and unsigned conversions, such as the unsigned vnum and
+  # rnum typedefs stored in int with NOWHERE becoming -1, are the class the
+  # build allows with -Wno-sign-conversion; GCC and Clang define them as
+  # modular. Narrower conversions are still reported.
+  bugprone-narrowing-conversions.WarnOnEquivalentBitWidth: false
 HeaderFilterRegex: "src/.*"

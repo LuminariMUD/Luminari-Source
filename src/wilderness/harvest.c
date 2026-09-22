@@ -730,7 +730,6 @@ static int start_harvest(struct char_data *ch, int category, int material)
   if (material != CRAFT_MAT_NONE && wilderness_material_refusal(ch, material) != NULL)
     return 0;
   what = material != CRAFT_MAT_NONE ? crafting_materials[material] : resource_names[category];
-  /* NOLINTNEXTLINE(bugprone-assignment-in-if-condition) -- CREATE() assigns inside its check */
   CREATE(harvest, struct wilderness_harvest_context, 1);
   harvest->category = category;
   harvest->material = material;
