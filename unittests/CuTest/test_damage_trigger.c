@@ -191,7 +191,11 @@ static bool damage_trigger_attach(struct char_data *owner, const char *name, con
   fprintf(trigger_file, "%s~\n", name);
   fprintf(trigger_file, "0 %s %d\n", flags, chance);
   fprintf(trigger_file, "~\n%s\n~\n", body);
-  rewind(trigger_file);
+  if (!rewind_stream(trigger_file))
+  {
+    fclose(trigger_file);
+    return false;
+  }
   rnum = top_of_trigt;
   parse_trigger(trigger_file, 9100 + rnum);
   fclose(trigger_file);

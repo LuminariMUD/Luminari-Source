@@ -402,7 +402,7 @@ void Test_world_loading_production_zone_reset_dispatch_and_whitespace(CuTest *tc
           "R 0 10000 10001 -1 -1 (legacy saved form)\n"
           " \tS  \n$\n",
           input);
-    rewind(input);
+    CuAssertTrue(tc, rewind_stream(input));
     zone_table = calloc(1, sizeof(*zone_table));
     if (zone_table == NULL)
       CuTestChildExit(2);
@@ -452,7 +452,7 @@ void Test_world_loading_production_zone_header_forms_and_diagnostics(CuTest *tc)
       for (i = 0; i < count; i++)
         fprintf(input, "%d ", values[i]);
       fputs("\nS\n$\n", input);
-      rewind(input);
+      CuAssertTrue(tc, rewind_stream(input));
       test_load_zones(input, CuMutableString("header-fixture.zon"));
       zone = &zone_table[count - 4];
       used = count >= 14 ? 14 : count >= 11 ? 11 : count >= 10 ? 10 : 4;
@@ -465,7 +465,7 @@ void Test_world_loading_production_zone_header_forms_and_diagnostics(CuTest *tc)
       for (i = 0; i < ZN_ARRAY_MAX; i++)
         if (zone->zone_flags[i] != (used >= 10 ? values[i + 4] : 0))
           CuTestChildExit(count + 30);
-      rewind(capture);
+      CuAssertTrue(tc, rewind_stream(capture));
       length = fread(output, 1, sizeof(output) - 1, capture);
       output[length] = '\0';
       if (used == count && length != 0)
@@ -500,7 +500,7 @@ void Test_world_loading_production_zone_without_builder_preserves_first_reset(Cu
     if (input == NULL)
       CuTestChildExit(2);
     fputs("#100\nLegacy zone~\n10000 10099 30 2\nI 0 100\nS\n$\n", input);
-    rewind(input);
+    CuAssertTrue(tc, rewind_stream(input));
     zone_table = calloc(1, sizeof(*zone_table));
     if (zone_table == NULL)
       CuTestChildExit(2);
@@ -535,7 +535,7 @@ void Test_world_loading_production_unsupported_zone_reset_reports_line(CuTest *t
     fputs("#100\nBuilder~\nUnsupported reset~\n10000 10099 30 2\n"
           " L 0 10001 50\nS\n$\n",
           input);
-    rewind(input);
+    CuAssertTrue(tc, rewind_stream(input));
     zone_table = calloc(1, sizeof(*zone_table));
     if (zone_table == NULL)
       CuTestChildExit(2);
@@ -543,7 +543,7 @@ void Test_world_loading_production_unsupported_zone_reset_reports_line(CuTest *t
     CuTestChildExit(0);
   }
   assert_world_loader_child(tc, child, 1);
-  rewind(capture);
+  CuAssertTrue(tc, rewind_stream(capture));
   length = fread(output, 1, sizeof(output) - 1, capture);
   output[length] = '\0';
   fclose(capture);
@@ -581,7 +581,7 @@ void Test_world_loading_production_exit_diagnostics(CuTest *tc)
   world = saved_world;
   top_of_world = saved_top;
   logfile = saved_logfile;
-  rewind(capture);
+  CuAssertTrue(tc, rewind_stream(capture));
   length = fread(output, 1, sizeof(output) - 1, capture);
   output[length] = '\0';
   fclose(capture);

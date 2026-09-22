@@ -943,7 +943,7 @@ void Test_legacy_event_loader_normalizes_payloads_by_policy(CuTest *tc)
   event_init();
   initialize_persistence_test_character(&ch, &specials, 9191L);
   fprintf(fixture, "%d 25 9\n%d 30 2\n-1\n", eTREATINJURY, eLAYONHANDS);
-  rewind(fixture);
+  CuAssertTrue(tc, rewind_stream(fixture));
 
   load_legacy_events_for_test(fixture, &ch);
   event = char_has_mud_event(&ch, eTREATINJURY);
@@ -970,7 +970,7 @@ void Test_durable_event_section_skip_reports_terminator_state(CuTest *tc)
   if (fixture == NULL)
     return;
   fputs("discarded record\n-1\nNext tag\n", fixture);
-  rewind(fixture);
+  CuAssertTrue(tc, rewind_stream(fixture));
   CuAssertTrue(tc, skip_durable_event_section_for_test(fixture));
   CuAssertTrue(tc, get_line(fixture, line));
   CuAssertStrEquals(tc, "Next tag", line);
@@ -981,7 +981,7 @@ void Test_durable_event_section_skip_reports_terminator_state(CuTest *tc)
   if (fixture == NULL)
     return;
   fputs("discarded record\n", fixture);
-  rewind(fixture);
+  CuAssertTrue(tc, rewind_stream(fixture));
   CuAssertTrue(tc, !skip_durable_event_section_for_test(fixture));
   fclose(fixture);
 }
@@ -1028,7 +1028,7 @@ static void verify_durable_event_parser(CuTest *tc, unsigned int version)
   if (version != 1U)
     fputs(" 700", fixture);
   fputs("\n-1\nNext tag\n", fixture);
-  rewind(fixture);
+  CuAssertTrue(tc, rewind_stream(fixture));
   memset(records, 0, sizeof(records));
   count = load_durable_events_for_test(fixture, &ch, header, records, 2U);
   CuAssertIntEquals(tc, 2, (int)count);
@@ -1073,7 +1073,7 @@ void Test_durable_event_parser_rejects_unsupported_headers(CuTest *tc)
     if (fixture == NULL)
       return;
     fputs("17 2 9191 250 1000 3 600\n-1\nNext tag\n", fixture);
-    rewind(fixture);
+    CuAssertTrue(tc, rewind_stream(fixture));
     CuAssertIntEquals(tc, 0,
                       (int)load_durable_events_for_test(fixture, &ch, headers[index], NULL, 0U));
     CuAssertTrue(tc, get_line(fixture, next_tag));

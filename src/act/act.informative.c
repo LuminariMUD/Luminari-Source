@@ -1390,7 +1390,7 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, room_rnum room_
 
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
   {
-    sprintbitarray(ROOM_FLAGS(room_number), room_bits, RF_ARRAY_MAX, buf);
+    sprintbitarray(ROOM_FLAGS(room_number), room_bits, RF_ARRAY_MAX, buf, sizeof(buf));
     send_to_char(ch, "\tc[%5u]\tn %s \tc[ %s] %s\tn", GET_ROOM_VNUM(room_number),
                  world[room_number].name, buf, sector_types[(world[room_number].sector_type)]);
   }
@@ -1567,7 +1567,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   // staff can see some extra details
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
   {
-    sprintbitarray(ROOM_FLAGS(IN_ROOM(ch)), room_bits, RF_ARRAY_MAX, buf);
+    sprintbitarray(ROOM_FLAGS(IN_ROOM(ch)), room_bits, RF_ARRAY_MAX, buf, sizeof(buf));
     send_to_char(ch, "%s", CCCYN(ch, C_NRM));
     send_to_char(ch, "[%5u]%s ", GET_ROOM_VNUM(IN_ROOM(ch)), CCNRM(ch, C_NRM));
     send_to_char(ch, "%s %s[ %s] ", world[IN_ROOM(ch)].name, CCCYN(ch, C_NRM), buf);

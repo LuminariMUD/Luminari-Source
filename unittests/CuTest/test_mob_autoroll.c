@@ -341,7 +341,7 @@ void Test_mobile_spell_resistance_enhanced_field_loads_and_saves(CuTest *tc)
   output = tmpfile();
   CuAssertPtrNotNull(tc, output);
   CuAssertTrue(tc, write_mobile_espec(1234, &prototype, output));
-  rewind(output);
+  CuAssertTrue(tc, rewind_stream(output));
   count = fread(buffer, 1, sizeof(buffer) - 1, output);
   buffer[count] = '\0';
   CuAssertPtrNotNull(tc, strstr(buffer, "SpellRes: 100\n"));

@@ -23,8 +23,10 @@ static void read_whole_file(FILE *fp, char *out, size_t out_size)
 {
   size_t got;
 
+  *out = '\0';
   fflush(fp);
-  rewind(fp);
+  if (!rewind_stream(fp))
+    return;
   got = fread(out, 1, out_size - 1, fp);
   out[got] = '\0';
 }

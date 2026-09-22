@@ -1901,7 +1901,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           }
           else
           {
-            sprintbitarray(GET_OBJ_EXTRA(o), extra_bits, EF_ARRAY_MAX, str);
+            sprintbitarray(GET_OBJ_EXTRA(o), extra_bits, EF_ARRAY_MAX, str, slen);
           }
         }
         break;

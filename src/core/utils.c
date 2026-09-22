@@ -3361,10 +3361,12 @@ size_t sprinttype(int type, const char *names[], char *result, size_t reslen)
  * @param[out] result Holds the names of the set bits in bitarray. The bit
  * names are delimited by a single space. Ideally, results will be large enough
  * to hold the description of every bit that could possibly be set in bitvector.
+ * @param[in] result_size The size of result; longer text is truncated.
  * Will be set to "NOBITS" if no bits are set in bitarray (ie all bits in the
  * bitarray are equal to 0).
  */
-void sprintbitarray(int bitvector[], const char *names[], int maxar, char *result)
+void sprintbitarray(int bitvector[], const char *names[], int maxar, char *result,
+                    size_t result_size)
 {
   int nr, teller, found = FALSE, count = 0;
 
@@ -3380,19 +3382,19 @@ void sprintbitarray(int bitvector[], const char *names[], int maxar, char *resul
         {
           if (*names[(teller * 32) + nr] != '\0')
           {
-            strcat(result, names[(teller * 32) + nr]);
-            strcat(result, " ");
+            strlcat(result, names[(teller * 32) + nr], result_size);
+            strlcat(result, " ", result_size);
             count++;
             if (count >= 8)
             {
-              strcat(result, "\r\n");
+              strlcat(result, "\r\n", result_size);
               count = 0;
             }
           }
         }
         else
         {
-          strcat(result, "UNDEFINED ");
+          strlcat(result, "UNDEFINED ", result_size);
         }
       }
       if (*names[(teller * 32) + nr] == '\n')
@@ -3401,7 +3403,7 @@ void sprintbitarray(int bitvector[], const char *names[], int maxar, char *resul
   }
 
   if (!*result)
-    strcpy(result, "None ");
+    strlcpy(result, "None ", result_size);
 }
 
 /** Calculate the REAL time passed between two time invervals.
@@ -4639,6 +4641,17 @@ int get_flag_by_name(const char *flag_list[], char *flag_name)
   return (NOFLAG);
 }
 
+bool rewind_stream(FILE *stream)
+{
+  if (stream == NULL || fseek(stream, 0L, SEEK_SET) != 0)
+  {
+    log("SYSERR: Unable to rewind a stream: %s", stream ? strerror(errno) : "no stream");
+    return FALSE;
+  }
+  clearerr(stream);
+  return TRUE;
+}
+
 /**
  * Reads a certain number of lines from the begining of a file, like performing
  * a 'head'.
@@ -4681,7 +4694,8 @@ int file_head(FILE *file, char *buf, size_t bufsize, int lines_to_read)
   buflen = strlen(buf);
 
   /* Read from the front of the file. */
-  rewind(file);
+  if (!rewind_stream(file))
+    return 0;
 
   while ((lines_read < lines_to_read) && (readstatus > 0) && (buflen < bufsize))
   {
@@ -4713,7 +4727,8 @@ int file_head(FILE *file, char *buf, size_t bufsize, int lines_to_read)
     }
   }
 
-  rewind(file);
+  /* rewind_stream() logs a failure; the lines were still read. */
+  (void)rewind_stream(file);
 
   /* Return the number of lines. */
   return lines_read;
@@ -4808,7 +4823,8 @@ int file_tail(FILE *file, char *buf, size_t bufsize, int lines_to_read)
     }
   }
 
-  rewind(file);
+  /* rewind_stream() logs a failure; the lines were still read. */
+  (void)rewind_stream(file);
 
   /* Return the number of lines read. */
   return lines_read;
@@ -4827,7 +4843,8 @@ size_t file_sizeof(FILE *file)
 {
   size_t numbytes = 0;
 
-  rewind(file);
+  if (!rewind_stream(file))
+    return 0;
 
   /* It would be so much easier to do a byte count if an fseek SEEK_END and
    * ftell pair of calls was portable for text files, but all information
@@ -4840,7 +4857,7 @@ size_t file_sizeof(FILE *file)
     numbytes++;
   }
 
-  rewind(file);
+  (void)rewind_stream(file); /* logs a failure; the count stands */
 
   return numbytes;
 }
@@ -4859,7 +4876,8 @@ int file_numlines(FILE *file)
   int numlines = 0;
   char c;
 
-  rewind(file);
+  if (!rewind_stream(file))
+    return 0;
 
   while (!feof(file))
   {
@@ -4870,7 +4888,7 @@ int file_numlines(FILE *file)
     }
   }
 
-  rewind(file);
+  (void)rewind_stream(file); /* logs a failure; the count stands */
 
   return numlines;
 }

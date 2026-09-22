@@ -422,7 +422,7 @@ void Test_mixed_projectile_pouch_survives_object_save_load(CuTest *tc)
   CuAssertTrue(tc, test_objsave_save_obj_record(&missile, &ch, file, -1));
   CuAssertTrue(tc, test_objsave_save_obj_record(&pouch, &ch, file, WEAR_AMMO_POUCH + 1));
   fputs("$~\n", file);
-  rewind(file);
+  CuAssertTrue(tc, rewind_stream(file));
 
   saved_objects = objsave_parse_objects(file);
   fclose(file);

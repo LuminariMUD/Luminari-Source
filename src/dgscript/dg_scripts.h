@@ -231,7 +231,7 @@ typedef struct trig_data trig_data;
 typedef struct char_data char_data;
 
 /* function prototypes from dg_triggers.c */
-char *one_phrase(char *arg, char *first_arg);
+char *one_phrase(char *arg, char *first_arg, size_t first_arg_size);
 int is_substring(char *sub, char *string);
 int word_check(char *str, char *wordlist);
 

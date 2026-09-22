@@ -6274,7 +6274,7 @@ void Test_gameplay_e2e_dg_trigger_parse_and_execute(CuTest *tc)
     fprintf(trigger_file, "set result 42\n");
     fprintf(trigger_file, "global result\n");
     fprintf(trigger_file, "~\n");
-    rewind(trigger_file);
+    CuAssertTrue(tc, rewind_stream(trigger_file));
 
     parse_trigger(trigger_file, 9000);
     parsed = top_of_trigt == 1 && trig_index[0] != NULL;

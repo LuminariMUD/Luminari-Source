@@ -177,7 +177,8 @@ static void combat_messages_captured_log(struct combat_messages_fixture *fix, ch
   if (length <= 0)
     return;
 
-  rewind(fix->log_capture);
+  if (!rewind_stream(fix->log_capture))
+    return;
   wanted = (size_t)length < size - 1 ? (size_t)length : size - 1;
   got = fread(out, 1, wanted, fix->log_capture);
   out[got] = '\0';

@@ -407,7 +407,8 @@ static void ashenport_copy_log(struct ashenport_welcome_fixture *fixture, char *
   pos = ftell(fixture->log_file);
   if (pos < 0)
     return;
-  rewind(fixture->log_file);
+  if (!rewind_stream(fixture->log_file))
+    return;
   bytes_read = fread(buffer, 1, size - 1, fixture->log_file);
   buffer[bytes_read] = '\0';
   fseek(fixture->log_file, pos, SEEK_SET);

@@ -166,7 +166,7 @@ static void check_restored_object_registries(CuTest *tc, bool database)
       return;
     }
     fputs(records, fixture);
-    rewind(fixture);
+    CuAssertTrue(tc, rewind_stream(fixture));
   }
 
   event_free_all();
@@ -2216,10 +2216,10 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
               mysql_query(connection, "DELETE FROM player_save_objs") == 0 &&
               mysql_query(connection, "DELETE FROM house_data") == 0;
     matched = matched && fflush(fixture) == 0 && ftruncate(fileno(fixture), 0) == 0;
-    rewind(fixture);
+    CuAssertTrue(tc, rewind_stream(fixture));
     objsave_save_obj_record_db(obj, &ch, NOWHERE, fixture, 3);
     fflush(fixture);
-    rewind(fixture);
+    CuAssertTrue(tc, rewind_stream(fixture));
     length = fread(serialized, 1, sizeof(serialized) - 1, fixture);
     /* The file has a final blank line separating objects; the database does not. */
     if (length == 0 || serialized[length - 1] != '\n')

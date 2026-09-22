@@ -1941,7 +1941,7 @@ void print_zone(struct char_data *ch, zone_vnum vnum)
       size_trigs++;
 
   size_quests = count_quests(bottom, top);
-  sprintbitarray(zone_table[rnum].zone_flags, zone_bits, ZN_ARRAY_MAX, buf);
+  sprintbitarray(zone_table[rnum].zone_flags, zone_bits, ZN_ARRAY_MAX, buf, sizeof(buf));
 
   /* Display all of the zone information at once. */
   send_to_char(ch,

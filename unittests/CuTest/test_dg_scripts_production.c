@@ -78,7 +78,7 @@ void Test_dg_production_text_matching_helpers(CuTest *tc)
   CuAssertTrue(tc, word_check(CuMutableString("alpha beta gamma"), CuMutableString("delta beta")));
   CuAssertTrue(tc, !word_check(CuMutableString("alpha beta"), CuMutableString("gamma delta")));
 
-  remainder = one_phrase(phrase_input, phrase);
+  remainder = one_phrase(phrase_input, phrase, sizeof(phrase));
   CuAssertStrEquals(tc, "two words", phrase);
   CuAssertStrEquals(tc, " remainder", remainder);
 }

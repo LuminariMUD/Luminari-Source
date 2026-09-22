@@ -336,7 +336,8 @@ void proc_d20_round_one(struct char_data *ch);
 void check_device_one(struct char_data *ch);
 bool can_fly(struct char_data *ch);
 int get_first_spellcasting_classes(struct char_data *ch);
-void sprintbitarray(int bitvector[], const char *names[], int maxar, char *result);
+void sprintbitarray(int bitvector[], const char *names[], int maxar, char *result,
+                    size_t result_size);
 int get_line(FILE *fl, char *buf);
 int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_name);
 const char *get_wearoff(int abilnum);
@@ -372,6 +373,9 @@ void column_list(struct char_data *ch, int num_cols, const char *const *list, in
 void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_cols,
                          const char **list, int list_length, bool show_nums);
 int get_flag_by_name(const char *flag_list[], char *flag_name);
+/* rewind() that reports failure: seeks to the start and clears the error and end-of-file
+ * indicators, or logs and returns FALSE when the seek fails. */
+bool rewind_stream(FILE *stream);
 int file_head(FILE *file, char *buf, size_t bufsize, int lines_to_read);
 int file_tail(FILE *file, char *buf, size_t bufsize, int lines_to_read);
 size_t file_sizeof(FILE *file);

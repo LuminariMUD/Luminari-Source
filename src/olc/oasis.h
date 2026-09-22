@@ -927,7 +927,7 @@ void show_dragonrider_bond_type(struct descriptor_data *d);
 void show_dragonrider_mount_type(struct descriptor_data *d);
 
 
-bool zedit_get_levels(struct descriptor_data *d, char *buf);
+bool zedit_get_levels(struct descriptor_data *d, char *buf, size_t buf_size);
 
 void reset_training_points(struct char_data *ch);
 void perform_mob_name_list(struct char_data *ch, char *arg);

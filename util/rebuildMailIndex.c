@@ -144,7 +144,9 @@ static char *parsefilename(char *filename)
 static char *findLine(FILE *plr_file, const char *tag)
 {
   static char line[5000];
-  rewind(plr_file);
+
+  if (fseek(plr_file, 0L, SEEK_SET) != 0)
+    return NULL;
 
   while (get_line(plr_file, line))
   {

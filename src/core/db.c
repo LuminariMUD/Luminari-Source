@@ -408,7 +408,8 @@ static void boot_social_messages(void)
   }
 
   log("Social table contains %d socials.", top_of_socialt);
-  rewind(fl);
+  if (!rewind_stream(fl))
+    exit(1);
 
   CREATE(soc_mess_list, struct social_messg, top_of_socialt + 1);
 
@@ -1951,8 +1952,7 @@ void index_boot(int mode)
     break;
   }
 
-  rewind(db_index);
-  if (fscanf(db_index, "%255s\n", buf1) != 1)
+  if (!rewind_stream(db_index) || fscanf(db_index, "%255s\n", buf1) != 1)
   {
     log("SYSERR: Failed to reread from index file");
     fclose(db_index);
@@ -4379,7 +4379,8 @@ static void load_zones(FILE *fl, char *zonename)
       num_of_cmds++;
   }
 
-  rewind(fl);
+  if (!rewind_stream(fl))
+    exit(1);
 
   if (num_of_cmds == 0)
   {
