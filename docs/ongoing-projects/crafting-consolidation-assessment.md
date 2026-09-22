@@ -4,11 +4,11 @@ Written 2026-09-21; reviewed against `dbef1778c` on the same date. Source line n
 that revision. Counts below were rechecked against the development `*.plr` files and the world
 files listed in the `index` files under `lib/`. These are not production counts.
 
-Tracking issue: #212. Status: implemented on `feat/212-crafting-consolidation` (Phases 1 to
-6); the phase checklists below record what was done and what remains for release (the
-production help publication and the pre-release conversion report under "Verification and
-deployment"). This document supersedes the root `CRAFTING_MERGE_PLAN.md`
-(deleted in `dbef1778c`) and the earlier assessment draft that occupied this file.
+Tracking issue: #212. Status: Phases 1 to 6 are merged (PR #215), and the pre-release conversion
+report is done. What remains for release is the cutover under "Verification and deployment":
+the coordinated backup, the production build and restart, and the production help publication.
+This document supersedes the root `CRAFTING_MERGE_PLAN.md` (deleted in `dbef1778c`) and the
+earlier assessment draft that occupied this file.
 
 ## Outcome
 
@@ -155,9 +155,15 @@ becomes 20. Rounding up deliberately grants at most four legacy points of access
 taking away an existing gate. The seed exception matters: every character carries 4 in all
 fifteen legacy slots (`src/core/db.c:7877`), so a rule that converted the seed would grant nine
 rank-1 tracks, nine talent points, and 9000 experience to every character; the seed is starter
-access, which the equivalent below preserves, not progress. The divisor changes progression
-economics; do not describe this as identical success odds or silently replace legacy creation
-rolls with the editor's `d20 + rank` roll.
+access, which the equivalent below preserves, not progress. Older characters were seeded higher,
+which the pre-release report found in production files: 5 before March 2013, and 20 in the first
+ten slots from `533bd36ca` (March 2013) until `d6f399500` (April 2015). A character created from
+2013-03-01 to 2015-04-08 whose ten slots all still hold at least 20 has the 20 seed; one created
+before that window, or in it with a slot below 20, has the 5 seed. A value over the use cap of 99
+is the immortal grant. Such values still convert to ranks, so no gate is lost, but talent points
+are paid only for ranks above the seed's rank and never for the immortal grant. The divisor
+changes progression economics; do not describe this as identical success odds or silently
+replace legacy creation rolls with the editor's `d20 + rank` roll.
 
 - Reconcile earned ranks from experience first. For each mapped ability, let `old_rank` be the
   higher of its saved rank and `craft_skill_rank_for_exp(ch, old_exp)`. Set the result to the
@@ -707,6 +713,21 @@ operation still starts `eCRAFT`, `eCRAFTING`, or `eBREWING`.
   old/new ranks, talent deltas, each holding's destination, pending order settlement, and unresolved
   records. Include dormant characters and object persistence, not just characters who log in for
   the smoke test. No unreviewed unmapped record may be silently discarded by the release.
+  Done 2026-09-22 against a read-only copy of the production player files and object tables,
+  taken at 11:56 UTC, by loading every indexed character through `load_char()` in a scratch
+  driver linked with the release code (loading never writes). Of 6,982 indexed characters, 6,979
+  reach `CrMg` 3 and none is kept for review; three index entries have no file. The 422 files
+  missing from the index cannot be loaded by the game and hold no legacy order or wilderness
+  holding. Stage 1 changes 5,012 abilities (4,658 rank increases, 354 experience-only staff
+  records) and lowers none. It first paid 20,685 talent points to 1,173 characters, because
+  it treated the older seeds and the immortal grant as progress. With the corrected seed rule,
+  it pays 8,082 points to 890 characters (median 2; at most 199, for a character with every
+  mapped skill and fast crafter at 99). Stage 2 settles 17 completed room-370 orders (3,969 gold,
+  1 quest point, and 4,230 experience in all) and cancels 106 unfinished ones, refunding 279
+  units to 42 of them. Stage 3 moves 6,240 units of old wilderness holdings for 25 characters.
+  Objects convert nothing: 47,210 saved `ITEM_MATERIAL` objects (5,575 player saves, 11
+  houses) stay as they are. Stored, 45,362 of them would go to 24 balances, and the 1,848 gems
+  and fossil eggs stay objects by design.
 - Quiesce work for cutover and take a coordinated backup of player files, rent files, the
   MariaDB object tables, the catalog, and affected help/world/config data together with the
   previous binary.
@@ -721,7 +742,10 @@ operation still starts `eCRAFT`, `eCRAFTING`, or `eBREWING`.
   `ITEM_CRAFTING_TOOL`; a modern-system inconsistency, not a merge concern.
 - `supplyorder list` prints advice and artisan points but no offers for `select`.
 - Refining and resizing handlers in `crafting_new.c` are reachable by no command; they are the
-  modern system's own dormant features and their save fields stay.
+  modern system's own dormant features and their save fields stay. They stay off after the
+  release: the production world has one loom (object 364) and no smelter, so six of the eight
+  refining recipes could never run, harvesting already yields the alloys, and the kit `resize`
+  command already resizes items. Enabling either would need station objects in the world first.
 - `scribe` in `magic/spellbook_scroll.c` is an immediate spell/feat-gated scroll and spellbook
   operation; it has no craft-rank wallet or work timer to merge. Alchemist bombs and mutagens in
   `alchemy.c` are class combat/magic features, not an additional material economy. Their rules stay.

@@ -1568,6 +1568,65 @@ void Test_craft_migration_skips_versioned_and_fresh_files(CuTest *tc)
   CuAssertIntEquals(tc, 1, fresh_unsaved);
 }
 
+/** Load a file whose first ten legacy slots hold value, except one slot, and report the mining
+ * and alchemy ranks and the talent points the conversion paid. */
+static void craft_load_seeded_pfile(CuTest *tc, struct craft_player_files *files, long birth,
+                                    int value, int practised, int practised_value, int *mining,
+                                    int *alchemy, int *points)
+{
+  struct char_data *loaded = new_char();
+  char skills[512], extra[64];
+  int i, offset = 0;
+
+  for (i = CRAFT_LEGACY_ID_FIRST; i <= CRAFT_LEGACY_ID_FAST_CRAFTER; i++)
+    offset += snprintf(skills + offset, sizeof(skills) - offset, "%d %d\n", i,
+                       i == practised ? practised_value : value);
+  snprintf(extra, sizeof(extra), "Brth: %ld\n", birth);
+  craft_write_legacy_pfile(tc, files, 4316, skills, extra);
+  CuAssertIntEquals(tc, 0, load_char(files->name, loaded));
+  *mining = GET_ABILITY(loaded, ABILITY_HARVEST_MINING);
+  *alchemy = GET_ABILITY(loaded, ABILITY_CRAFT_ALCHEMY);
+  *points = GET_TALENT_POINTS(loaded);
+  free_char(loaded);
+}
+
+/** Characters created before April 2015 started with 20 in each slot (5 before March 2013), and
+ * an immortal grant set 100: every rank keeps the gate its value met, but only progress above
+ * the seed pays talent points. */
+void Test_craft_legacy_seed_pays_no_talent_points(CuTest *tc)
+{
+  struct craft_player_files files;
+  int mining[4], alchemy[4], points[4];
+
+  craft_player_files_enter(tc, &files, "crseed", 4316);
+  /* June 2013, the 20 seed: mining practised to 31 pays its three ranks above rank 4. */
+  craft_load_seeded_pfile(tc, &files, 1370044800L, 20, CRAFT_LEGACY_ID_MINING, 31, &mining[0],
+                          &alchemy[0], &points[0]);
+  /* June 2012, the 5 seed: chemistry practised to 12 pays two ranks above rank 1. */
+  craft_load_seeded_pfile(tc, &files, 1339000000L, 5, CRAFT_LEGACY_ID_CHEMISTRY, 12, &mining[1],
+                          &alchemy[1], &points[1]);
+  /* Inside the 2013 window but a slot below 20: still the 5 seed. */
+  craft_load_seeded_pfile(tc, &files, 1363600000L, 5, CRAFT_LEGACY_ID_CHEMISTRY, 12, &mining[2],
+                          &alchemy[2], &points[2]);
+  /* 2020, the 4 seed, once promoted: slots at 100 pay nothing; mining earned to 48 pays 10. */
+  craft_load_seeded_pfile(tc, &files, 1600000000L, 100, CRAFT_LEGACY_ID_MINING, 48, &mining[3],
+                          &alchemy[3], &points[3]);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertIntEquals(tc, 7, mining[0]);
+  CuAssertIntEquals(tc, 4, alchemy[0]);
+  CuAssertIntEquals(tc, 3, points[0]);
+  CuAssertIntEquals(tc, 1, mining[1]);
+  CuAssertIntEquals(tc, 3, alchemy[1]);
+  CuAssertIntEquals(tc, 2, points[1]);
+  CuAssertIntEquals(tc, 1, mining[2]);
+  CuAssertIntEquals(tc, 3, alchemy[2]);
+  CuAssertIntEquals(tc, 2, points[2]);
+  CuAssertIntEquals(tc, 10, mining[3]);
+  CuAssertIntEquals(tc, 20, alchemy[3]);
+  CuAssertIntEquals(tc, 10, points[3]);
+}
+
 /** The marker lives outside the project state: a project reset and a respec leave it alone. */
 void Test_craft_migration_marker_survives_reset_and_respec(CuTest *tc)
 {

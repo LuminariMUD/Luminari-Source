@@ -3927,8 +3927,26 @@ int craft_legacy_skill_equivalent(struct char_data *ch, int ability)
              get_craft_skill_value(ch, ability) * CRAFT_LEGACY_SKILL_PER_RANK);
 }
 
-/* Raise one ability to at least the converted rank and return the ranks newly granted. */
-static int craft_migrate_ability(struct char_data *ch, int ability, int converted_rank)
+/* The value a character's legacy slots started at. A character without a birth time is judged by
+ * the current seed. */
+static int craft_legacy_seed_for(struct char_data *ch)
+{
+  int legacy;
+
+  if (ch->player.time.birth <= 0 || ch->player.time.birth >= CRAFT_LEGACY_SEED_2015_FROM)
+    return CRAFT_LEGACY_SKILL_SEED;
+  if (ch->player.time.birth < CRAFT_LEGACY_SEED_2013_FROM)
+    return CRAFT_LEGACY_SKILL_SEED_2012;
+  for (legacy = CRAFT_LEGACY_ID_FIRST; legacy <= CRAFT_LEGACY_ID_FAST_CRAFTER; legacy++)
+    if (GET_SKILL(ch, legacy) < CRAFT_LEGACY_SKILL_SEED_2013)
+      return CRAFT_LEGACY_SKILL_SEED_2012;
+  return CRAFT_LEGACY_SKILL_SEED_2013;
+}
+
+/* Raise one ability to at least the converted rank and return the ranks newly granted above
+ * paid_from, the rank the character had without earning it. */
+static int craft_migrate_ability(struct char_data *ch, int ability, int converted_rank,
+                                 int paid_from)
 {
   int old_rank, new_rank, old_exp, new_exp;
 
@@ -3942,34 +3960,39 @@ static int craft_migrate_ability(struct char_data *ch, int ability, int converte
   if (new_rank != old_rank || new_exp != old_exp)
     log("CRAFT: %s: %s rank %d (exp %d) -> rank %d (exp %d)", GET_NAME(ch), ability_names[ability],
         old_rank, old_exp, new_rank, new_exp);
-  return new_rank - old_rank;
+  return MAX(0, new_rank - MAX(old_rank, paid_from));
 }
 
-/* CrMg stage 1: convert the nine mapped legacy skills to abilities. Talent points are paid only
- * for ranks newly granted (knitting pays the larger of its two grants once) plus fast crafter
- * divided by the divisor as compensation. Returns true when the stage ran, whether or not any
- * value changed; the caller persists the marker with the results. */
+/* CrMg stage 1: convert the nine mapped legacy skills to abilities. Every converted rank keeps
+ * its gate, but talent points are paid only for ranks earned above the character's seed
+ * (knitting pays the larger of its two grants once) plus fast crafter above the seed divided by
+ * the divisor as compensation. A value over the use cap of 99 came from the immortal grant and
+ * pays nothing. Returns true when the stage ran, whether or not any value changed; the caller
+ * persists the marker with the results. */
 bool craft_migrate_legacy_skills(struct char_data *ch)
 {
-  int legacy, rank, ability, second, granted, points = 0, fast;
+  int legacy, value, rank, ability, second, granted, points = 0, fast, seed, paid_from;
 
   if (!ch || IS_NPC(ch) || !ch->player_specials ||
       GET_CRAFT_MIGRATION(ch) >= CRAFT_MIGRATION_SKILLS)
     return false;
+  seed = craft_legacy_seed_for(ch);
   for (legacy = CRAFT_LEGACY_ID_FIRST; legacy <= CRAFT_LEGACY_ID_LAST; legacy++)
   {
     ability = craft_legacy_ability_for_skill(legacy, &second);
     if (ability < 0)
       continue;
-    rank = craft_legacy_rank_for_skill(GET_SKILL(ch, legacy));
-    granted = craft_migrate_ability(ch, ability, rank);
+    value = GET_SKILL(ch, legacy);
+    rank = craft_legacy_rank_for_skill(value);
+    paid_from = value > CRAFT_LEGACY_SKILL_MAX ? rank : craft_legacy_rank_for_skill(seed);
+    granted = craft_migrate_ability(ch, ability, rank, paid_from);
     if (second >= 0)
-      granted = MAX(granted, craft_migrate_ability(ch, second, rank));
+      granted = MAX(granted, craft_migrate_ability(ch, second, rank, paid_from));
     points += granted;
   }
   fast = GET_SKILL(ch, CRAFT_LEGACY_ID_FAST_CRAFTER);
-  if (fast > CRAFT_LEGACY_SKILL_SEED)
-    points += MIN(fast, CRAFT_LEGACY_SKILL_MAX) / CRAFT_LEGACY_SKILL_PER_RANK;
+  if (fast > seed && fast <= CRAFT_LEGACY_SKILL_MAX)
+    points += fast / CRAFT_LEGACY_SKILL_PER_RANK - seed / CRAFT_LEGACY_SKILL_PER_RANK;
   if (points > 0)
   {
     GET_TALENT_POINTS(ch) += points;

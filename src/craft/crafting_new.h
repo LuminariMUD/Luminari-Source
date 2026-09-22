@@ -309,6 +309,13 @@ int craft_material_from_object(struct obj_data *obj);
 #define CRAFT_LEGACY_ID_OLD_OFFSET 1600
 /* Every character was seeded with 4 in each legacy slot; that is starter access, not progress. */
 #define CRAFT_LEGACY_SKILL_SEED 4
+/* Older characters were seeded higher: 5 before March 2013, then 20 in the first ten slots
+ * (533bd36ca) until April 2015 (d6f399500). The 20 era is dated from a little before its commit,
+ * and a character counts in it only while all ten slots still hold at least 20. */
+#define CRAFT_LEGACY_SKILL_SEED_2012 5
+#define CRAFT_LEGACY_SKILL_SEED_2013 20
+#define CRAFT_LEGACY_SEED_2013_FROM 1362096000L /* 2013-03-01 UTC */
+#define CRAFT_LEGACY_SEED_2015_FROM 1428451200L /* 2015-04-08 UTC */
 #define CRAFT_LEGACY_SKILL_PER_RANK 5
 #define CRAFT_LEGACY_SKILL_MAX 99
 /* CrMg stages, applied in order; each runs only while the marker is below it. */
