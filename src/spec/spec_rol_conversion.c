@@ -4236,6 +4236,8 @@ static void rol_bandit_announce_demand(struct char_data *bandit, int target_vnum
       do_say(bandit, message, 0, 0);
     }
     break;
+  default:
+    break;
   }
 }
 

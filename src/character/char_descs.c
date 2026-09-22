@@ -471,6 +471,8 @@ char *current_short_desc_for_values(struct char_data *ch, int descriptor_1, int 
     snprintf(adj1, sizeof(adj1), " with %s %s %s", AN(complexion_descriptions[pca1]),
              complexion_descriptions[pca1], "complexion");
     break;
+  default:
+    break;
   }
 
   switch (pcd2)
@@ -523,6 +525,8 @@ char *current_short_desc_for_values(struct char_data *ch, int descriptor_1, int 
   case FEATURE_TYPE_COMPLEXION:
     snprintf(adj2, sizeof(adj2), " and %s %s complexion", AN(complexion_descriptions[pca2]),
              complexion_descriptions[pca2]);
+    break;
+  default:
     break;
   }
 
@@ -762,6 +766,8 @@ static void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
       SEND_TO_Q(buf, ch->desc);
       i++;
     }
+    break;
+  default:
     break;
   }
 

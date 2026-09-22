@@ -711,6 +711,8 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     case 'Q':
       hsedit_disp_menu(d);
       break;
+    default:
+      break;
     }
     break;
 
@@ -840,6 +842,8 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
       hsedit_disp_menu(d);
       return;
       break;
+    default:
+      break;
     }
     break;
 
@@ -855,6 +859,8 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
       send_to_char(d->character, "House not deleted!\r\n");
       hsedit_disp_menu(d);
       return;
+      break;
+    default:
       break;
     }
     break;
@@ -884,6 +890,8 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
       send_to_char(d->character, "Last Payment Date not changed\r\n");
       hsedit_disp_menu(d);
       return;
+      break;
+    default:
       break;
     }
     break;
@@ -1106,6 +1114,8 @@ void hsedit_string_cleanup(struct descriptor_data *d, int terminator __attribute
   switch (OLC_MODE(d))
   {
     /* There are no strings to be edited in houses - if there are any added later, add them here */
+  default:
+    break;
   }
 }
 

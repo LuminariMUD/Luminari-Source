@@ -394,6 +394,8 @@ static bool execute_operation(struct trans_operation *op)
     case 3: /* total_members_left */
       clan_list[op->clan].total_members_left = op->new_value;
       break;
+    default:
+      break;
     }
     return TRUE;
 
@@ -517,6 +519,8 @@ static bool rollback_operation(struct trans_operation *op)
       break;
     case 3: /* total_members_left */
       clan_list[op->clan].total_members_left = op->old_value;
+      break;
+    default:
       break;
     }
     return TRUE;

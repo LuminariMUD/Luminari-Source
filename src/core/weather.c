@@ -394,6 +394,8 @@ bool sect_no_weather(struct char_data *ch)
   case SECT_LAVA:
     // case SECT_UNDERGROUND:
     return TRUE;
+  default:
+    break;
   }
 
   return FALSE;

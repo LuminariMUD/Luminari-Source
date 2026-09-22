@@ -157,6 +157,8 @@ static void create_crafting_mold(struct char_data *ch, int selection, int type)
     case MOLD_CRAFT_CLOAK:
       SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_ABOUT);
       break;
+    default:
+      break;
     }
 
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
@@ -176,6 +178,8 @@ static void create_crafting_mold(struct char_data *ch, int selection, int type)
                  MOLD_OBJ_COST);
     GET_OBJ_COST(obj) = 0;
     return;
+  default:
+    break;
   }
 }
 

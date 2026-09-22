@@ -81,6 +81,8 @@ SPECIAL(gromph)
           gr_stalled = TRUE;
       }
       break;
+    default:
+      break;
     }
     if (dir >= 0)
       perform_move(ch, dir, 1);

@@ -208,6 +208,8 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
         send_to_char(ch, "Target Object: %s\r\n",
                      (target_obj == NOTHING) ? "Nothing" : obj_proto[target_obj].short_description);
       break;
+    default:
+      break;
     }
 
     if (GET_OBJ_VAL(item, 2) <= 0 || GET_OBJ_VAL(item, 2) >= NUM_TRAP_SPECIAL_EFFECTS)
@@ -416,6 +418,8 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       break;
     case CRIT_X6:
       crit_multi = 6;
+      break;
+    default:
       break;
     }
 
@@ -2876,6 +2880,8 @@ ACMD(do_drop)
       break;
     case 4:
       RDR = real_room(CONFIG_DON_ROOM_3);
+      break;
+    default:
       break;
     }
     if (RDR == NOWHERE)
@@ -5427,6 +5433,8 @@ ACMD(do_loot)
     case 4:
       award_expendable_item(ch, max_grade, TYPE_STAFF);
       break;
+    default:
+      break;
     }
     chance = 12;
     recConsumable = true;
@@ -5654,6 +5662,9 @@ void check_auction(void)
       return;
     }
   }
+  break;
+  default:
+    break;
   }
 }
 
@@ -6458,6 +6469,8 @@ void list_consumables(struct char_data *ch, int type)
       send_to_char(ch, "You don't seem to have any magical staves stored.\r\n");
     }
     break;
+  default:
+    break;
   }
 }
 
@@ -6607,6 +6620,8 @@ ACMD(do_store)
                  spell_info[GET_OBJ_VAL(obj, 3)].name, GET_OBJ_VAL(obj, 2));
     obj_from_char(obj);
     extract_obj(obj);
+    break;
+  default:
     break;
   }
   save_char(ch, 0);
@@ -7424,6 +7439,8 @@ ACMD(do_use_consumable)
   case SCMD_INVOKE:
     invoke_staff(ch, consumable_arg);
     return;
+  default:
+    break;
   }
 }
 
@@ -7493,6 +7510,8 @@ int outfit_type_to_armor_type(int type, int wear)
       return SPEC_ARMOR_TYPE_CLOTHING_LEGS;
     case ITEM_WEAR_BODY:
       return SPEC_ARMOR_TYPE_CLOTHING;
+    default:
+      break;
     }
     break;
   case SPEC_ARMOR_TYPE_PADDED:
@@ -7506,6 +7525,8 @@ int outfit_type_to_armor_type(int type, int wear)
       return SPEC_ARMOR_TYPE_PADDED_LEGS;
     case ITEM_WEAR_BODY:
       return SPEC_ARMOR_TYPE_PADDED;
+    default:
+      break;
     }
     break;
   case SPEC_ARMOR_TYPE_LEATHER:
@@ -7519,6 +7540,8 @@ int outfit_type_to_armor_type(int type, int wear)
       return SPEC_ARMOR_TYPE_LEATHER_LEGS;
     case ITEM_WEAR_BODY:
       return SPEC_ARMOR_TYPE_LEATHER;
+    default:
+      break;
     }
     break;
   case SPEC_ARMOR_TYPE_STUDDED_LEATHER:
@@ -7532,6 +7555,8 @@ int outfit_type_to_armor_type(int type, int wear)
       return SPEC_ARMOR_TYPE_STUDDED_LEATHER_LEGS;
     case ITEM_WEAR_BODY:
       return SPEC_ARMOR_TYPE_STUDDED_LEATHER;
+    default:
+      break;
     }
     break;
   case SPEC_ARMOR_TYPE_LIGHT_CHAIN:
@@ -7545,6 +7570,8 @@ int outfit_type_to_armor_type(int type, int wear)
       return SPEC_ARMOR_TYPE_LIGHT_CHAIN_LEGS;
     case ITEM_WEAR_BODY:
       return SPEC_ARMOR_TYPE_LIGHT_CHAIN;
+    default:
+      break;
     }
     break;
   case SPEC_ARMOR_TYPE_SCALE:
@@ -7558,6 +7585,8 @@ int outfit_type_to_armor_type(int type, int wear)
       return SPEC_ARMOR_TYPE_SCALE_LEGS;
     case ITEM_WEAR_BODY:
       return SPEC_ARMOR_TYPE_SCALE;
+    default:
+      break;
     }
     break;
   case SPEC_ARMOR_TYPE_CHAINMAIL:
@@ -7571,6 +7600,8 @@ int outfit_type_to_armor_type(int type, int wear)
       return SPEC_ARMOR_TYPE_CHAINMAIL_LEGS;
     case ITEM_WEAR_BODY:
       return SPEC_ARMOR_TYPE_CHAINMAIL;
+    default:
+      break;
     }
     break;
   case SPEC_ARMOR_TYPE_PIECEMEAL:
@@ -7584,6 +7615,8 @@ int outfit_type_to_armor_type(int type, int wear)
       return SPEC_ARMOR_TYPE_PIECEMEAL_LEGS;
     case ITEM_WEAR_BODY:
       return SPEC_ARMOR_TYPE_PIECEMEAL;
+    default:
+      break;
     }
     break;
   case SPEC_ARMOR_TYPE_SPLINT:
@@ -7597,6 +7630,8 @@ int outfit_type_to_armor_type(int type, int wear)
       return SPEC_ARMOR_TYPE_SPLINT_LEGS;
     case ITEM_WEAR_BODY:
       return SPEC_ARMOR_TYPE_SPLINT;
+    default:
+      break;
     }
     break;
   case SPEC_ARMOR_TYPE_BANDED:
@@ -7610,6 +7645,8 @@ int outfit_type_to_armor_type(int type, int wear)
       return SPEC_ARMOR_TYPE_BANDED_LEGS;
     case ITEM_WEAR_BODY:
       return SPEC_ARMOR_TYPE_BANDED;
+    default:
+      break;
     }
     break;
   case SPEC_ARMOR_TYPE_HALF_PLATE:
@@ -7623,6 +7660,8 @@ int outfit_type_to_armor_type(int type, int wear)
       return SPEC_ARMOR_TYPE_HALF_PLATE_LEGS;
     case ITEM_WEAR_BODY:
       return SPEC_ARMOR_TYPE_HALF_PLATE;
+    default:
+      break;
     }
     break;
   case SPEC_ARMOR_TYPE_FULL_PLATE:
@@ -7636,7 +7675,11 @@ int outfit_type_to_armor_type(int type, int wear)
       return SPEC_ARMOR_TYPE_FULL_PLATE_LEGS;
     case ITEM_WEAR_BODY:
       return SPEC_ARMOR_TYPE_FULL_PLATE;
+    default:
+      break;
     }
+    break;
+  default:
     break;
   }
   return 1;
@@ -8544,6 +8587,8 @@ int get_bag_number_by_obj_type(struct obj_data *obj)
   case ITEM_TREASURE_CHEST:
   case ITEM_GEAR_OUTFIT:
     return -1;
+  default:
+    break;
   }
   return -1;
 }
@@ -8832,6 +8877,8 @@ static void downgrade_item(struct char_data *ch, struct obj_data *obj, int level
   case ITEM_MISSILE:
     GET_OBJ_VAL(obj, 4) -= reduce / 5;
     GET_OBJ_VAL(obj, 4) = MAX(0, GET_OBJ_VAL(obj, 4));
+    break;
+  default:
     break;
   }
 

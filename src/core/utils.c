@@ -924,6 +924,8 @@ bool is_room_outdoors(room_rnum room_number)
   case SECT_LAVA:
   case SECT_UNDERWATER:
     return FALSE;
+  default:
+    break;
   }
 
   return TRUE;
@@ -946,6 +948,8 @@ bool is_in_water(struct char_data *ch)
   case SECT_WATER_SWIM:
   case SECT_UNDERWATER:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -969,6 +973,8 @@ bool is_in_wilderness(struct char_data *ch)
   case SECT_TAIGA:
   case SECT_TUNDRA:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -1194,6 +1200,8 @@ static bool isGenieKind(int vnum)
   case MOB_MARID_KIND:
   case MOB_SHAITAN_KIND:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -1597,6 +1605,8 @@ int check_npc_followers(struct char_data *ch, int mode, int variable)
                      "Lesser forms cost 1; elite forms cost 2.\r\n",
                      counts.categories[category], follower_category_limit(ch, category));
     break;
+  default:
+    break;
   }
   return counts.total;
 }
@@ -1954,6 +1964,8 @@ const char *a_or_an(const char *string)
   case 'u':
   case 'o':
     return "an";
+  default:
+    break;
   }
 
   return "a";
@@ -5649,6 +5661,8 @@ int find_armor_type(int specType)
   case SPEC_ARMOR_TYPE_LARGE_SHIELD:
   case SPEC_ARMOR_TYPE_TOWER_SHIELD:
     return ARMOR_TYPE_SHIELD;
+  default:
+    break;
   }
   return ARMOR_TYPE_LIGHT;
 }
@@ -5912,6 +5926,8 @@ int get_daily_uses(struct char_data *ch, int featnum)
       daily_uses += CLASS_LEVEL(ch, CLASS_ALCHEMIST) / 2;
     else
       daily_uses = -1;
+    break;
+  default:
     break;
   }
 
@@ -7076,6 +7092,8 @@ void perform_draconian_death_throes(struct char_data *ch)
     case LEGACY_RACE_BOZAK_DRACONIAN:
       call_magic(ch, 0, 0, ABILITY_BOZAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
       return;
+    default:
+      break;
     }
   }
   else
@@ -7481,6 +7499,8 @@ bool is_fear_spell(int spellnum)
   {
   case SPELL_DOOM:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -7911,6 +7931,8 @@ bool is_monk_weapon(struct obj_data *obj)
   case WEAPON_TYPE_SPEAR:
   case WEAPON_TYPE_SHORT_SWORD:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -8210,6 +8232,8 @@ int damage_type_to_resistance_type(int type)
     return APPLY_RES_ENERGY;
   case DAM_WATER:
     return APPLY_RES_WATER;
+  default:
+    break;
   }
   return APPLY_NONE;
 }
@@ -8290,6 +8314,8 @@ void absorb_energy_conversion(struct char_data *ch, int dam_type, int dam)
       ch->player_specials->energy_conversion[dam_type] += dam;
       send_to_char(ch, "\tY[Energy Conversion Absorb %s! +%d]\tn\r\n", damtypes[dam_type], dam / 2);
     }
+    break;
+  default:
     break;
   }
 }
@@ -8901,6 +8927,8 @@ bool can_spell_be_revoked(int spellnum)
   case AFFECT_INSPIRE_GREATNESS:
 
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -9319,6 +9347,8 @@ bool is_paladin_mount(struct char_data *ch, struct char_data *victim)
   case MOB_EPIC_PALADIN_MOUNT:
   case MOB_EPIC_PALADIN_MOUNT_SMALL:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -9440,6 +9470,8 @@ int get_judgement_bonus(struct char_data *ch, int type)
   case INQ_JUDGEMENT_PURITY:
   case INQ_JUDGEMENT_RESILIENCY:
     bonus += level / 5;
+    break;
+  default:
     break;
   }
 
@@ -9707,6 +9739,8 @@ bool is_caster_class(int class)
   case CLASS_SORCERER:
   case CLASS_SUMMONER:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -9751,6 +9785,8 @@ static bool can_room_sector_give_cover(int type)
   case SECT_MARSHLAND:     // trees
   case SECT_MOUNTAIN:      // boulders
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -9851,6 +9887,8 @@ bool display_dam_type(int dam_type)
   case DAM_BLEEDING:
   case DAM_TEMPORAL:
     return false;
+  default:
+    break;
   }
   return true;
 }
@@ -9870,6 +9908,8 @@ bool is_swimming(struct char_data *ch)
   case SECT_WATER_SWIM:
     /* case SECT_RIVER: */
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -9939,6 +9979,8 @@ bool is_poison_spell(int spell)
   case WEAPON_POISON_BLACK_ADDER_VENOM:
   case SPELL_POISON_BREATHE:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -9967,6 +10009,8 @@ bool is_spell_restoreable(int spell)
     case SKILL_AFFECT_RAGE:
     case SPELL_AFFECT_PRAYER_DEBUFF: */
     return true;
+  default:
+    break;
   }
   if (is_poison_spell(spell))
     return true;
@@ -10009,6 +10053,8 @@ bool is_spell_or_spell_like(int type)
   case ABILITY_CREATE_VAMPIRE_SPAWN:
   case ABILITY_BLOOD_DRAIN:
     return true;
+  default:
+    break;
   }
 
   return false;
@@ -10023,6 +10069,8 @@ bool can_dam_be_resisted(int type)
   case DAM_BLOOD_DRAIN:
   case DAM_BLEEDING:
     return false;
+  default:
+    break;
   }
 
   return true;
@@ -10142,6 +10190,8 @@ bool valid_vampire_cloak_apply(int type)
   case APPLY_RES_ENERGY:
   case APPLY_RES_WATER:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -10200,6 +10250,8 @@ int get_vampire_cloak_bonus(int level, int type)
   case APPLY_RES_ENERGY:
   case APPLY_RES_WATER:
     return amount * 10;
+  default:
+    break;
   }
   return 0;
 }
@@ -10290,6 +10342,9 @@ bool has_epic_power(struct char_data *ch, int powernum)
       return true;
     else
       return false;
+    break;
+  default:
+    break;
   }
 
   return false;
@@ -10424,6 +10479,8 @@ bool do_not_list_spell(int spellnum)
   case SPELL_SOLACE_RECALL:
   case SPELL_SANCTION_RECALL:
     return true;
+  default:
+    break;
   }
 
   if (spellnum > 0 && spellnum <= TOP_SPELL_DEFINE && spell_info[spellnum].no_player)
@@ -11052,6 +11109,8 @@ int can_carry_weight_limit(struct char_data *ch)
   case SIZE_COLOSSAL:
     limit = (int)(limit * 16);
     break;
+  default:
+    break;
   }
 
   limit += MAX(0, get_char_affect_modifier(ch, SPELL_UNSEEN_SERVANT, APPLY_SPECIAL));
@@ -11090,6 +11149,8 @@ bool is_valid_ability_number(int num)
   case ABILITY_HISTORY:
   case ABILITY_RELIGION:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -11121,6 +11182,8 @@ struct obj_data *get_char_bag(struct char_data *ch, int bagnum)
     return ch->bags->bag9;
   case 10:
     return ch->bags->bag10;
+  default:
+    break;
   }
 
   log("Error in get_char_bag returning NULL");
@@ -11144,6 +11207,8 @@ bool is_spellcasting_class(int class_name)
   case CLASS_INQUISITOR:
   case CLASS_SUMMONER:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -11543,6 +11608,8 @@ bool is_selectable_region(int region)
 {
   switch (region)
   {
+  default:
+    break;
   }
   return true;
 }
@@ -11594,6 +11661,8 @@ int get_knowledge_skill_from_creature_type(int race_type)
   case RACE_TYPE_ELEMENTAL:
   case RACE_TYPE_MAGICAL_BEAST:
     return ABILITY_ARCANA;
+  default:
+    break;
   }
   return ABILITY_NATURE;
 }
@@ -12028,6 +12097,9 @@ bool is_valid_apply_location_and_circle(int apply, int circle)
       return true;
     else
       return false;
+    break;
+  default:
+    break;
   }
   return false;
 }
@@ -12572,6 +12644,8 @@ bool hide_damage_message(int snum)
   {
   case SPELL_POISON:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -12597,6 +12671,8 @@ bool is_valid_apply(int apply)
   case APPLY_ELDRITCH_SHAPE:
   case APPLY_ELDRITCH_ESSENCE:
     return false;
+  default:
+    break;
   }
 
   return true;
@@ -12725,6 +12801,8 @@ int max_bonus_modifier(int location, int bonus_type)
   case APPLY_SPELL_PENETRATION:
     max_modifier = 3;
     break;
+  default:
+    break;
   }
 
   if (bonus_type == BONUS_TYPE_UNIVERSAL)
@@ -12843,6 +12921,8 @@ bool is_valid_skill(int snum)
   case ABILITY_TOTAL_DEFENSE:
   case ABILITY_USE_MAGIC_DEVICE:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -13011,6 +13091,8 @@ int sector_type_to_terrain_type(int sector)
   case SECT_UD_WILD:
   case SECT_CAVE:
     return TERRAIN_TYPE_CAVERNS;
+  default:
+    break;
   }
   return TERRAIN_TYPE_NONE;
 }

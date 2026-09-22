@@ -356,6 +356,8 @@ void load_ibt_file(int mode)
     case SCMD_TYPO:
       LINK(ibtData, first_typo, last_typo, next, prev);
       break;
+    default:
+      break;
     }
   }
 
@@ -521,6 +523,8 @@ static bool free_ibt(int mode, IBT_DATA *ibtData)
       break;
     case SCMD_TYPO:
       UNLINK(ibtData, first_typo, last_typo, next, prev);
+      break;
+    default:
       break;
     }
   }
@@ -819,6 +823,8 @@ ACMD(do_ibt)
       break;
     case SCMD_TYPO:
       LINK(ibtData, first_typo, last_typo, next, prev);
+      break;
+    default:
       break;
     }
     mudlog(NRM, LVL_IMMORT, FALSE, "%s has begun posting %s %s!", GET_NAME(ch), TANA(CMD_NAME),

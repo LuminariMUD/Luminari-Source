@@ -2090,6 +2090,8 @@ void generate_ascii_visualization(FILE *fp, int map_type)
     fprintf(fp, "- `P` Plains/Fields\n");
     fprintf(fp, "- `.` Other\n");
     break;
+  default:
+    break;
   }
 }
 
@@ -2443,6 +2445,8 @@ void write_climate_analysis(FILE *fp)
     case 4:
       fprintf(fp, "Rainforests, hot deserts |\n");
       break;
+    default:
+      break;
     }
   }
 
@@ -2586,6 +2590,8 @@ void write_resource_analysis(FILE *fp)
       break;
     case 9:
       fprintf(fp, "Deserts, Dry Lakes | Preservation, Trade |\n");
+      break;
+    default:
       break;
     }
   }
@@ -3284,6 +3290,8 @@ void write_resources_json(FILE *fp)
     case 9: /* salt */
       fprintf(fp, "\"desert\", \"ocean\", \"salt_flats\"");
       break;
+    default:
+      break;
     }
     fprintf(fp, "]\n");
     fprintf(fp, "      }%s\n", (r < 9) ? "," : "");
@@ -3396,6 +3404,8 @@ void write_climate_json(FILE *fp)
       fprintf(fp, "        \"high_biodiversity\",\n");
       fprintf(fp, "        \"constant_warmth\",\n");
       fprintf(fp, "        \"monsoons\"\n");
+      break;
+    default:
       break;
     }
 

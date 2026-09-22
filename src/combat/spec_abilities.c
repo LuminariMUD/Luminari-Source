@@ -2293,6 +2293,8 @@ char *get_weapon_specab_default_command_word(int specab)
     return strdup("aegis");
   case WEAPON_SPECAB_VAMPIRIC:
     return strdup("drain");
+  default:
+    break;
   }
   return NULL;
 }

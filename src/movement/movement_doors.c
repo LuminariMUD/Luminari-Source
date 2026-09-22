@@ -467,6 +467,8 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
       len = strlcpy(buf, "$n skillfully picks the lock on ", sizeof(buf));
     }
     break;
+  default:
+    break;
   }
 
   /* Notify the room. */

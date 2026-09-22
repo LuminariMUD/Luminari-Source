@@ -1952,6 +1952,8 @@ void index_boot(int mode)
     size[0] = sizeof(struct aq_data) * rec_count;
     log("   %d entries, %zu bytes.", rec_count, size[0]);
     break;
+  default:
+    break;
   }
 
   if (!rewind_stream(db_index) || fscanf(db_index, "%255s\n", buf1) != 1)
@@ -1993,6 +1995,8 @@ void index_boot(int mode)
       break;
     case DB_BOOT_HLQST:
       boot_the_quests(db_file, buf2, rec_count);
+      break;
+    default:
       break;
     }
 
@@ -2102,6 +2106,7 @@ void discrete_load(FILE *fl, int mode, char *filename)
         break;
       case DB_BOOT_HLQST:
         /* nothing is done here right now */
+      default:
         break;
       }
     }
@@ -2870,6 +2875,8 @@ static void renum_zone_table(void)
         break;
       case 'V': /* trigger variable assignment */
         b = ZCMD.arg3 = real_room(ZCMD.arg3);
+        break;
+      default:
         break;
       }
       if (a == NOWHERE || b == NOWHERE || c == NOWHERE)
@@ -5481,6 +5488,8 @@ bitvector_t rol_reset_legacy_door_flags(bitvector_t flags, int state)
   case 3:
     SET_BIT(flags, EX_CLOSED | EX_LOCKED_EASY);
     break;
+  default:
+    break;
   }
   if (state & 0x04)
     SET_BIT(flags, EX_HIDDEN | EX_HIDDEN_EASY);
@@ -6417,6 +6426,8 @@ static void reset_zone_transfer_impl(zone_rnum zone)
         case 16:
           SET_BIT(flags, EX_LOCKED_HARD);
           SET_BIT(flags, EX_CLOSED);
+          break;
+        default:
           break;
         }
 
@@ -8131,6 +8142,8 @@ static int check_object(struct obj_data *obj)
       log("SYSERR: Object #%u (%s) contains (%d) more than maximum (%d).", GET_OBJ_VNUM(obj), buf1,
           GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 0));
     break;
+  default:
+    break;
   }
 
   return (error);
@@ -8929,6 +8942,8 @@ void save_objects_to_database(struct char_data *ch __attribute__((unused)))
       break;
     case ITEM_ARMOR:
       snprintf(specific_type, sizeof(specific_type), "%s", armor_list[GET_OBJ_VAL(obj, 1)].name);
+      break;
+    default:
       break;
     }
 

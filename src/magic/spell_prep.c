@@ -1159,6 +1159,8 @@ bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, bool loa
       if ((num_psionicist_powers_available(ch) - num_psionicist_powers_known(ch)) <= 0)
         return FALSE;
       break;
+    default:
+      break;
     }
   }
 
@@ -1540,6 +1542,8 @@ int count_known_spells_by_circle(struct char_data *ch, int class, int circle)
     case CLASS_SUMMONER:
       if (compute_spells_circle(ch, class, current->spell, 0, 0) == circle)
         counter++;
+      break;
+    default:
       break;
     } /*end switch*/
   } /*end slot loop*/
@@ -2299,6 +2303,8 @@ bool is_sorc_bloodline_spell(int bloodline, int spellnum)
     case SPELL_MASS_DOMINATION:     // replace with form of dragon iii when imp'd
     case SPELL_POLYMORPH:           // replace with wish when imp'd
       return TRUE;
+    default:
+      break;
     }
     break;
   case SORC_BLOODLINE_ARCANE:
@@ -2315,6 +2321,8 @@ bool is_sorc_bloodline_spell(int bloodline, int spellnum)
     case SPELL_POWER_WORD_STUN:
     case SPELL_TIMESTOP:
       return TRUE;
+    default:
+      break;
     }
     break;
   case SORC_BLOODLINE_FEY:
@@ -2330,6 +2338,8 @@ bool is_sorc_bloodline_spell(int bloodline, int spellnum)
     case SPELL_IRRESISTIBLE_DANCE:
     case SPELL_POLYMORPH:
       return TRUE;
+    default:
+      break;
     }
     break;
   case SORC_BLOODLINE_UNDEAD:
@@ -2345,7 +2355,11 @@ bool is_sorc_bloodline_spell(int bloodline, int spellnum)
     case SPELL_HORRID_WILTING:
     case SPELL_ENERGY_DRAIN:
       return TRUE;
+    default:
+      break;
     }
+    break;
+  default:
     break;
   }
   return FALSE;
@@ -2760,6 +2774,8 @@ bool ready_to_prep_spells(struct char_data *ch, int class)
                          "memorized are not in your spellbook.\r\n");
         return FALSE;
       }
+    break;
+  default:
     break;
   }
 
@@ -4171,6 +4187,8 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
     prep_time *= INQUISITOR_PREP_TIME_FACTOR;
     stat_bonus = GET_WIS_BONUS(ch);
     break;
+  default:
+    break;
   }
 
   /** Calculate time reductions from various sources **/
@@ -4354,6 +4372,8 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
     {
       prep_time = prep_time * CONFIG_ALCHEMY_PREP_TIME / 100;
     }
+    break;
+  default:
     break;
   }
 
@@ -5599,6 +5619,8 @@ int class_to_spell_prep_scmd(int class_name)
     return SCMD_COMPEL;
   case CLASS_SUMMONER:
     return SCMD_CONJURE;
+  default:
+    break;
   }
   return 0;
 }

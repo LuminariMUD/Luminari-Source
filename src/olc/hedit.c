@@ -1469,6 +1469,8 @@ void hedit_string_cleanup(struct descriptor_data *d, int terminator __attribute_
   case HEDIT_ENTRY:
     hedit_disp_menu(d);
     break;
+  default:
+    break;
   }
 }
 

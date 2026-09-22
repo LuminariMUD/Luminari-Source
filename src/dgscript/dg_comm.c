@@ -111,6 +111,8 @@ static void sub_write_to_char(char_data *ch, char *tokens[], void *otokens[], ch
       else
         strlcat(sb, OBJS(((obj_data *)otokens[i]), ch), sizeof(sb));
       break;
+    default:
+      break;
     }
   }
 

@@ -418,6 +418,8 @@ static void configure_rol_exit_trap_type(struct trap_data *trap, int source_type
     trap->damage_type = DAM_FORCE;
     trap->save_type = TRAP_SAVE_REFLEX;
     break;
+  default:
+    break;
   }
 }
 
@@ -1214,6 +1216,8 @@ void apply_trap_damage(struct char_data *ch, struct trap_data *trap)
     case TRAP_SAVE_WILL:
       save_type_idx = SAVING_WILL;
       break;
+    default:
+      break;
     }
 
     // Add trap sense bonus to save
@@ -1257,6 +1261,8 @@ void apply_trap_damage(struct char_data *ch, struct trap_data *trap)
       GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + dam);
       send_to_char(ch, "The negative energy heals you!\r\n");
     }
+    break;
+  default:
     break;
   }
 }
@@ -1430,6 +1436,8 @@ void apply_trap_special_effect(struct char_data *ch, struct trap_data *trap)
       send_to_char(ch, "Hostile creatures emerge from the trap!\r\n");
     }
     return; // Don't apply affect for summons
+  default:
+    break;
   }
 
   // Apply the affect if it's not a summon
@@ -1839,6 +1847,8 @@ static void rol_object_trap_apply_to_target(struct char_data *ch, int damage_typ
     break;
   case 16:
     target_damage_type = DAM_ELECTRIC;
+    break;
+  default:
     break;
   }
 
@@ -2329,7 +2339,6 @@ MUD_EVENT_CALLBACK(event_trap_triggered)
     break;
   case EVENT_ROOM:
     /* Room-based traps not yet implemented */
-    break;
   default:
     break;
   }

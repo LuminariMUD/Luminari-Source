@@ -55,6 +55,8 @@ int get_speed(struct char_data *ch, sbyte to_display)
     case RACE_GNOME:
       speed = 25;
       break;
+    default:
+      break;
     }
   }
 

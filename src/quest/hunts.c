@@ -574,6 +574,8 @@ void select_hunt_coords(int which_hunt)
   case SECT_INSIDE_ROOM:
     select_hunt_coords(which_hunt);
     return;
+  default:
+    break;
   }
 
   active_hunts[which_hunt][1] = x;
@@ -623,6 +625,8 @@ void select_reported_hunt_coords(int which_hunt, int times_called)
   case SECT_WATER_SWIM:
     select_reported_hunt_coords(which_hunt, times_called);
     return;
+  default:
+    break;
   }
   active_hunts[which_hunt][3] = x;
   active_hunts[which_hunt][4] = y;
@@ -1297,6 +1301,8 @@ bool is_hunt_trophy_a_trinket(int vnum)
   case 60035:
   case 60037:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -1382,6 +1388,8 @@ bool weapon_specab_desc_position(int specab)
     return true;
   case WEAPON_SPECAB_BANE:
     return false;
+  default:
+    break;
   }
 
   return false;
@@ -1490,6 +1498,8 @@ int obj_vnum_to_hunt_type(int vnum)
   case 60037:
   case 60038:
     return HUNT_TYPE_BARGHEST;
+  default:
+    break;
   }
   return 0;
 }
@@ -1514,6 +1524,8 @@ bool is_specab_upgradeable(int specab_source, int specab_apply)
     if (specab_apply == WEAPON_SPECAB_CORROSIVE)
       return true;
     return false;
+  default:
+    break;
   }
   return false;
 }

@@ -97,6 +97,8 @@ int mission_details_to_faction(int faction)
     return MISSION_EMPIRE;
   case FACTION_CRIMINAL:
     return MISSION_HUTTS;
+  default:
+    break;
   }
   return MISSION_FREELANCERS;
 }
@@ -323,6 +325,8 @@ long get_mission_reward(char_data *ch, int reward_type)
     reward = (int)(level * MAX(1, level / 4) * mult * 300);
     /* Mission rewards use the current Luminari experience scale. */
     break;
+  default:
+    break;
   }
 
   if (reward_type != MISSION_CREDITS)
@@ -392,6 +396,8 @@ static void increase_mob_difficulty(struct char_data *mob, int difficulty)
     GET_DAMROLL(mob) += 6;
     mob->points.armor += 100;
     break;
+  default:
+    break;
   }
   award_set_points(mob, AWARD_EXPERIENCE,
                    (long)GET_LEVEL(mob) * GET_LEVEL(mob) * (75 + (10 * difficulty)));
@@ -425,6 +431,8 @@ int select_mission_coords(int start)
   case SECT_INSIDE_ROOM:
     select_hunt_coords(start);
     return room_vnum_id;
+  default:
+    break;
   }
 
   return room_vnum_id;
@@ -501,6 +509,9 @@ void create_mission_mobs(char_data *ch)
         increase_mob_difficulty(mob, MISSION_DIFF_SEVERE);
       else
         increase_mob_difficulty(mob, MISSION_DIFF_CHALLENGING);
+      break;
+    default:
+      break;
     }
 
     GET_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob);

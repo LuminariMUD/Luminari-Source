@@ -1472,6 +1472,8 @@ int valid_align_by_class(int alignment, int class)
   case CLASS_WARLOCK:
   case CLASS_ARTIFICER:
     return TRUE;
+  default:
+    break;
   }
   /* shouldn't get here if we got all classes listed above */
   return TRUE;
@@ -3302,6 +3304,8 @@ static void process_conditional_class_level_feats(struct char_data *ch, int clas
     GRANT_SPELL_CIRCLE(CLASS_BLACKGUARD, FEAT_BLACKGUARD_1ST_CIRCLE, FEAT_BLACKGUARD_4TH_CIRCLE);
   }
   break;
+  default:
+    break;
   }
 }
 #undef GRANT_SPELL_CIRCLE
@@ -9633,6 +9637,8 @@ bool can_learn_paladin_mercy(struct char_data *ch, int mercy)
     if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 12)
       return true;
     break;
+  default:
+    break;
   }
 
   return false;
@@ -9845,6 +9851,8 @@ bool can_learn_blackguard_cruelty(struct char_data *ch, int mercy)
     if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 12)
       return true;
     break;
+  default:
+    break;
   }
 
   return false;
@@ -9966,6 +9974,8 @@ ACMD(do_racefix)
       ch->real_abils.con += 2;
       ch->real_abils.dex += 2;
       send_to_char(ch, "Your strength, dexterity and constituion have been increased by two.\r\n");
+      break;
+    default:
       break;
     }
   }

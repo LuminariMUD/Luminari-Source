@@ -1026,6 +1026,8 @@ void perform_bomb_effect(struct char_data *ch, struct char_data *victim, int bom
       if (PRF_FLAGGED(ch, PRF_AOE_BOMBS))
         perform_bomb_splash_effect(ch, victim, bomb_type); // entangled
       break;
+    default:
+      break;
     }
   }
 
@@ -1202,6 +1204,8 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
     active = TRUE;
     if (IS_UNDEAD(victim) || IS_OOZE(victim))
       damMod += HAS_FEAT(ch, FEAT_BOMBS) * 2;
+    break;
+  default:
     break;
   }
 
@@ -1423,6 +1427,8 @@ void perform_bomb_splash_damage(struct char_data *ch, struct char_data *victim, 
     active = TRUE;
     if (IS_UNDEAD(victim) || IS_OOZE(victim))
       damMod += (HAS_FEAT(ch, FEAT_BOMBS) / 2) + 2;
+    break;
+  default:
     break;
   }
 
@@ -1662,6 +1668,8 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
     to_vict = "You're all tangled up in sticky goo.";
     to_room = "$n is all tangled up in sticky goo.";
     break;
+  default:
+    break;
   }
 
   if (KNOWS_DISCOVERY(ch, ALC_DISC_STICKY_BOMBS))
@@ -1765,6 +1773,8 @@ void perform_bomb_splash_effect(struct char_data *ch, struct char_data *victim, 
     to_vict = "You're all tangled up in sticky goo.";
     to_room = "$n is all tangled up in sticky goo.";
     break;
+  default:
+    break;
   }
 
   if (af.spell == 0)
@@ -1825,6 +1835,8 @@ void perform_bomb_direct_healing(struct char_data *ch, struct char_data *victim,
     to_vict = "You feel much better!";
     to_room = "$n seems to feel much better.";
     break;
+  default:
+    break;
   }
 
   if (HAS_FEAT(ch, FEAT_BOMB_MASTERY))
@@ -1859,6 +1871,8 @@ void perform_bomb_self_effect(struct char_data *ch, struct char_data *victim, in
     af.duration = 10;
     to_vict = "Your weapons are set ablaze.";
     to_notvict = "$N's weapons are set ablaze.";
+    break;
+  default:
     break;
   }
 
@@ -1899,6 +1913,8 @@ void perform_bomb_spell_effect(struct char_data *ch, struct char_data *victim, i
       spellnum = SPELL_DISPEL_MAGIC;
     else
       spellnum = SPELL_GREATER_DISPELLING;
+    break;
+  default:
     break;
   }
 
@@ -2307,6 +2323,8 @@ sbyte bomb_is_friendly(int bomb)
   case BOMB_HEALING:
   case BOMB_FIRE_BRAND:
     return TRUE;
+  default:
+    break;
   }
   return FALSE;
 }
@@ -3625,6 +3643,8 @@ void add_sticky_bomb_effect(struct char_data *ch, struct char_data *vict, int bo
     dam_type = DAM_LIGHT;
     if (IS_UNDEAD(vict) || IS_OOZE(vict))
       damage += (HAS_FEAT(ch, FEAT_BOMBS) / 2) + 2;
+    break;
+  default:
     break;
   }
 

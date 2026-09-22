@@ -254,6 +254,8 @@ bool is_compatible_launcher_ammo(const struct obj_data *launcher, const struct o
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
       return TRUE;
+    default:
+      break;
     }
     break;
 
@@ -266,6 +268,8 @@ bool is_compatible_launcher_ammo(const struct obj_data *launcher, const struct o
     case WEAPON_TYPE_HEAVY_CROSSBOW:
     case WEAPON_TYPE_LIGHT_CROSSBOW:
       return TRUE;
+    default:
+      break;
     }
     break;
 
@@ -274,6 +278,8 @@ bool is_compatible_launcher_ammo(const struct obj_data *launcher, const struct o
 
   case AMMO_TYPE_DART:
     return weapon_type_value == WEAPON_TYPE_BLOWGUN;
+  default:
+    break;
   }
 
   return FALSE;

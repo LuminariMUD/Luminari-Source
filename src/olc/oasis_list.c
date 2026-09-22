@@ -1489,6 +1489,8 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
       temp_num = GET_ROOM_VNUM(ZCMD(rnum, subcmd).arg3);
       // send_to_char(ch, "O/M subcmd: %d\r\n", temp_num);
       break;
+    default:
+      break;
     }
     if (temp_num != NOWHERE && temp_num >= bottom && temp_num <= top)
       has_zcmds[temp_num - bottom] = TRUE;

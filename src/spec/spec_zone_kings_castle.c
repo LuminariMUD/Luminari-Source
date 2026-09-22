@@ -506,6 +506,8 @@ SPECIAL(king_welmar)
   case '.':
     move = FALSE;
     break;
+  default:
+    break;
   }
 
   path_index++;

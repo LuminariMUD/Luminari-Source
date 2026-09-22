@@ -79,6 +79,8 @@ bool yan_yell(struct char_data *ch)
             hunt_victim(i);
           }
           break;
+        default:
+          break;
         }
       }
     }
@@ -242,6 +244,8 @@ bool chan_yell(struct char_data *ch)
             set_hunting_target(i, ch);
             hunt_victim(i);
           }
+          break;
+        default:
           break;
         }
       }

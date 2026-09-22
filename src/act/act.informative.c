@@ -392,6 +392,8 @@ static void show_obj_info(struct obj_data *obj, struct char_data *ch)
   case ITEM_ARMOR:
     send_to_char(ch, "Armor: %s ", armor_val ? armor_list[armor_val].name : "???");
     break;
+  default:
+    break;
   }
 
   /* spec proc system for items */
@@ -546,6 +548,8 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
         break;
       case 2: // equipment
         send_to_char(ch, "\t<send href='remove %s'>%s\t</send>", keyword, obj->short_description);
+        break;
+      default:
         break;
       }
     }
@@ -1828,6 +1832,8 @@ static void look_in_obj(struct char_data *ch, char *arg)
           break;
         case FIND_OBJ_EQUIP:
           send_to_char(ch, " (used): \r\n");
+          break;
+        default:
           break;
         }
 
@@ -6776,6 +6782,8 @@ static void display_score_section(struct char_data *ch, int section_id, int line
       display_equipment_section(ch, line_length);
     }
     break;
+  default:
+    break;
   }
 }
 
@@ -7262,6 +7270,8 @@ static int count_bag_contents(struct char_data *ch, int bagnum)
     for (obj = ch->bags->bag10; obj; obj = obj->next_content)
       count++;
     return count;
+  default:
+    break;
   }
   return count;
 }
@@ -7362,6 +7372,8 @@ ACMD(do_bags)
     break;
   case 10:
     list_obj_to_char(ch->bags->bag10, ch, SHOW_OBJ_SHORT, TRUE, 1);
+    break;
+  default:
     break;
   }
 }
@@ -7508,6 +7520,8 @@ ACMD(do_time)
       break;
     case 3:
       suf = "rd";
+      break;
+    default:
       break;
     }
   }
@@ -10333,6 +10347,8 @@ static int is_weapon_proficient(int weapon, int type)
     case WEAPON_TYPE_SLING:
     case WEAPON_TYPE_SPEAR:
       return TRUE;
+    default:
+      break;
     }
   }
   else if (type == WPT_BARD)
@@ -10346,6 +10362,8 @@ static int is_weapon_proficient(int weapon, int type)
     case WEAPON_TYPE_SHORT_BOW:
     case WEAPON_TYPE_WHIP:
       return TRUE;
+    default:
+      break;
     }
   }
   else if (type == WPT_ROGUE)
@@ -10363,6 +10381,8 @@ static int is_weapon_proficient(int weapon, int type)
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
       return TRUE;
+    default:
+      break;
     }
   }
   else if (type == WPT_WIZARD)
@@ -10376,6 +10396,8 @@ static int is_weapon_proficient(int weapon, int type)
     case WEAPON_TYPE_HEAVY_CROSSBOW:
     case WEAPON_TYPE_LIGHT_CROSSBOW:
       return TRUE;
+    default:
+      break;
     }
   }
   else if (type == WPT_PSIONICIST)
@@ -10390,6 +10412,8 @@ static int is_weapon_proficient(int weapon, int type)
     case WEAPON_TYPE_LIGHT_CROSSBOW:
     case WEAPON_TYPE_SHORTSPEAR:
       return TRUE;
+    default:
+      break;
     }
   }
   else if (type == WPT_SHADOWDANCER)
@@ -10418,6 +10442,8 @@ static int is_weapon_proficient(int weapon, int type)
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
     case WEAPON_TYPE_SHORT_SWORD:
       return TRUE;
+    default:
+      break;
     }
   }
   else if (type == WPT_DROW)
@@ -10428,6 +10454,8 @@ static int is_weapon_proficient(int weapon, int type)
     case WEAPON_TYPE_RAPIER:
     case WEAPON_TYPE_SHORT_SWORD:
       return TRUE;
+    default:
+      break;
     }
   }
   else if (type == WPT_ELF)
@@ -10449,6 +10477,8 @@ static int is_weapon_proficient(int weapon, int type)
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
       return TRUE;
+    default:
+      break;
     }
   }
   else if (type == WPT_DWARF)
@@ -10461,6 +10491,8 @@ static int is_weapon_proficient(int weapon, int type)
     case WEAPON_TYPE_DWARVEN_WAR_AXE:
     case WEAPON_TYPE_DWARVEN_URGOSH:
       return TRUE;
+    default:
+      break;
     }
   }
   else if (type == WPT_ASSASSIN)
@@ -10482,6 +10514,8 @@ static int is_weapon_proficient(int weapon, int type)
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
     case WEAPON_TYPE_SHORT_SWORD:
       return TRUE;
+    default:
+      break;
     }
   }
 
@@ -10671,6 +10705,8 @@ ACMD(do_weaponinfo)
       break;
     case CRIT_X6:
       crit_multi = 6;
+      break;
+    default:
       break;
     }
     sprintbit(weapon_list[type].weaponFlags, weapon_flags, buf2, sizeof(buf2));

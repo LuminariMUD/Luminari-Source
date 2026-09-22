@@ -202,6 +202,8 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
         return;
       }
       break;
+    default:
+      break;
     }
     /* in case line_low is negative or zero */
     line_low = MAX(1, line_low);
@@ -275,6 +277,8 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
         return;
       }
       break;
+    default:
+      break;
     }
 
     i = 1;
@@ -337,6 +341,8 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
         break;
       case 1:
         line_high = line_low;
+        break;
+      default:
         break;
       }
     else
@@ -410,6 +416,8 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
         break;
       case 1:
         line_high = line_low;
+        break;
+      default:
         break;
       }
     else

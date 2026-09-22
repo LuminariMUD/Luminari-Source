@@ -287,6 +287,7 @@ void string_add(struct descriptor_data *d, char *str)
     d->backstr = NULL;
     break;
   case STRINGADD_ACTION:
+  default:
     break;
   }
 

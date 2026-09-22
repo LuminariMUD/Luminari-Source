@@ -117,6 +117,8 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
       case FEAT_EPIC_SKILL_FOCUS:
         LEVELUP(ch)->feat_skills[parse_int(row[0])] = parse_int(row[1]);
         break;
+      default:
+        break;
       }
     }
   }
@@ -293,6 +295,8 @@ void show_level_history(struct char_data *ch, int level)
       case FEAT_SKILL_FOCUS:
       case FEAT_EPIC_SKILL_FOCUS:
         snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), " (%s)", spell_info[sub_feat].name);
+        break;
+      default:
         break;
       }
       num_found++;
@@ -764,6 +768,8 @@ void display_levelinfo_ability_scores(struct char_data *ch, int ability_score)
     break;
   case 5:
     send_to_char(ch, "%-30s increased by one\r\n", "Charisma");
+    break;
+  default:
     break;
   }
 }

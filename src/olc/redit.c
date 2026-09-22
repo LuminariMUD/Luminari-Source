@@ -419,6 +419,8 @@ void redit_save_internally(struct descriptor_data *d)
         case 'X':
           OLC_ZONE(dsc)->cmd[j].arg1 += (OLC_ZONE(dsc)->cmd[j].arg1 >= (int)room_num_id);
           break;
+        default:
+          break;
         }
     }
     else if (STATE(dsc) == CON_REDIT)
@@ -1161,6 +1163,8 @@ void redit_parse(struct descriptor_data *d, char *arg)
         redit_disp_extradesc_menu(d);
       }
       return;
+    default:
+      break;
     }
     break;
 
@@ -1281,6 +1285,8 @@ void redit_string_cleanup(struct descriptor_data *d, int terminator __attribute_
     break;
   case REDIT_EXTRADESC_DESCRIPTION:
     redit_disp_extradesc_menu(d);
+    break;
+  default:
     break;
   }
 }

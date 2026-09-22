@@ -1549,6 +1549,8 @@ ACMD(do_mdoor)
         mob_log(ch, "mdoor: invalid door target (arg == %s)", value);
       }
       break;
+    default:
+      break;
     }
   }
   door_state_finish(&operation);

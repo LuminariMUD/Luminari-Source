@@ -99,6 +99,8 @@ SPECIAL(ogremoch)
             }
           }
           break;
+        default:
+          break;
         }
       }
     }

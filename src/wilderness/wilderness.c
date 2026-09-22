@@ -827,7 +827,6 @@ int get_modified_sector_type(zone_rnum zone, int x, int y)
       sector_type = get_sector_type(elev, temp, mois);
       break;
     case REGION_ENCOUNTER:
-      break;
     default:
       break;
     }
@@ -1039,7 +1038,6 @@ void assign_wilderness_room(room_rnum room, int x, int y)
     case REGION_SECTOR_TRANSFORM:
       break;
     case REGION_ENCOUNTER:
-      break;
     default:
       break;
     }
@@ -1157,6 +1155,8 @@ static void line_vis(struct wild_map_tile **map, int x, int y, int x2, int y2)
       break;
     case SECT_HILLS:
       visibility -= 3;
+      break;
+    default:
       break;
     }
 

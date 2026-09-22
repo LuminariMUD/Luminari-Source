@@ -2018,6 +2018,8 @@ void perform_call(struct char_data *ch, int call_type, int level)
 
     mob_num = MOB_NUM_EIDOLON;
     break;
+  default:
+    break;
   }
 
   /* couple of dummy checks */
@@ -2176,6 +2178,8 @@ void perform_call(struct char_data *ch, int call_type, int level)
       snprintf(buf, sizeof(buf), "%s\n", GET_EIDOLON_LONG_DESCRIPTION(ch));
       mob->player.description = strdup(buf);
     }
+    break;
+  default:
     break;
   }
   GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
@@ -3729,6 +3733,8 @@ static void set_wild_shape_mods(int race, struct wild_shape_mods *abil_mods)
       abil_mods->strength = 10;
       abil_mods->natural_armor = 10;
       break;
+    default:
+      break;
     }
     break;
   case RACE_TYPE_MAGICAL_BEAST:
@@ -3753,6 +3759,8 @@ static void set_wild_shape_mods(int race, struct wild_shape_mods *abil_mods)
       abil_mods->constitution = 2;
       abil_mods->natural_armor = 6;
       break;
+    default:
+      break;
     }
     break;
   case RACE_TYPE_FEY:
@@ -3771,6 +3779,8 @@ static void set_wild_shape_mods(int race, struct wild_shape_mods *abil_mods)
     case SIZE_SMALL:
       abil_mods->dexterity = 4;
       abil_mods->natural_armor = 2;
+      break;
+    default:
       break;
     }
     break;
@@ -3804,6 +3814,8 @@ static void set_wild_shape_mods(int race, struct wild_shape_mods *abil_mods)
       abil_mods->strength = 18;
       abil_mods->constitution = 10;
       abil_mods->natural_armor = 10;
+      break;
+    default:
       break;
     }
     break;
@@ -3852,6 +3864,8 @@ static void set_wild_shape_mods(int race, struct wild_shape_mods *abil_mods)
       abil_mods->constitution = 8;
       abil_mods->natural_armor = 8;
       break;
+    default:
+      break;
     }
     break;
   case RACE_TYPE_DRAGON:
@@ -3880,6 +3894,8 @@ static void set_wild_shape_mods(int race, struct wild_shape_mods *abil_mods)
       abil_mods->strength = 12;
       abil_mods->constitution = 12;
       abil_mods->natural_armor = 24;
+      break;
+    default:
       break;
     }
     break;
@@ -3917,6 +3933,8 @@ static void set_wild_shape_mods(int race, struct wild_shape_mods *abil_mods)
       abil_mods->dexterity = -2;
       abil_mods->constitution = 8;
       abil_mods->natural_armor = 10;
+      break;
+    default:
       break;
     }
     break;
@@ -4067,6 +4085,8 @@ static void set_wild_shape_mods(int race, struct wild_shape_mods *abil_mods)
       abil_mods->constitution = 12;
       abil_mods->natural_armor = 8;
       break;
+    default:
+      break;
     }
     break;
   default:
@@ -4156,6 +4176,8 @@ static int display_eligible_wildshape_races(struct char_data *ch, const char *ar
       case RACE_TYPE_OUTSIDER:
       case RACE_TYPE_DRAGON:
         continue;
+      default:
+        break;
       }
     }
     else if (mode == 2)
@@ -4503,6 +4525,8 @@ static void cleanup_wildshape_feats(struct char_data *ch)
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_MINOR_GLOBE);
     break;
+  default:
+    break;
   }
 }
 
@@ -4787,6 +4811,8 @@ static void assign_wildshape_feats(struct char_data *ch)
     SET_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
     SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
     SET_BIT_AR(AFF_FLAGS(ch), AFF_MINOR_GLOBE);
+    break;
+  default:
     break;
   }
 }
@@ -5129,6 +5155,8 @@ void perform_wildshape(struct char_data *ch, int form_num, int spellnum)
     SET_BIT_AR(af[0].bitvector, AFF_WATERWALK);
     af[1].location = APPLY_STR;
     af[1].modifier = 6;
+    break;
+  default:
     break;
   }
 
@@ -8392,6 +8420,8 @@ ACMD(do_use)
       return;
     }
     break;
+  default:
+    break;
   }
 
   if ((GET_OBJ_BOUND_ID(mag_item) != (int)NOBODY) && (GET_OBJ_BOUND_ID(mag_item) != GET_IDNUM(ch)))
@@ -8418,6 +8448,8 @@ ACMD(do_use)
         else
           send_to_char(ch, "That staff belongs to %s, go wave your own about!\r\n",
                        CAP(get_name_by_id(GET_OBJ_BOUND_ID(mag_item))));
+        break;
+      default:
         break;
       }
       return;
@@ -8700,6 +8732,8 @@ ACMD(do_use)
     } /* end switch for obj-type */
 
     break; /* break for 'use' case above */
+  default:
+    break;
   }
 
   mag_objectmagic(ch, mag_item, buf);
@@ -10717,6 +10751,8 @@ ACMDU(do_holyweapon)
   case WEAPON_TYPE_UNDEFINED:
     send_to_char(ch, "Sorry, that is not a valid weapon type.\r\n");
     return;
+  default:
+    break;
   }
 
   GET_HOLY_WEAPON_TYPE(ch) = i;
@@ -11517,6 +11553,8 @@ ACMDU(do_borrow)
           break;
         case 11:
           award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));
+          break;
+        default:
           break;
         }
         ch->char_specials.which_treasure_message = CUSTOM_TREASURE_MESSAGE_NONE;

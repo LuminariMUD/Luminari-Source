@@ -306,6 +306,8 @@ static void room_aff_tick(struct raff_node *raff)
     call_magic(caster, NULL, NULL, SPELL_STENCH, 0, DG_SPELL_LEVEL, CAST_SPELL);
     extract_char(caster);
     break;
+  default:
+    break;
   }
 }
 
@@ -451,6 +453,8 @@ static void hazard_tick(struct char_data *ch)
       if (!IS_UNDEAD(ch) && !AFF_FLAGGED(ch, AFF_WATER_BREATH) &&
           !ROOM_FLAGGED(IN_ROOM(ch), ROOM_AIRY) && !ROOM_AFFECTED(IN_ROOM(ch), RAFF_AIRY_WATER))
         damage(ch, ch, rand_number(1, 65), TYPE_DROWNING, DAM_WATER, FALSE);
+      break;
+    default:
       break;
     }
   }
@@ -1150,6 +1154,8 @@ int psp_gain(struct char_data *ch)
     case POS_SITTING:
       gain += (gain / 4); /* Divide by 4 */
       break;
+    default:
+      break;
     }
 
     if (IS_WIZARD(ch) || IS_CLERIC(ch) || IS_SORCERER(ch) || IS_BARD(ch) || IS_DRUID(ch) ||
@@ -1200,6 +1206,8 @@ int hit_gain(struct char_data *ch)
       break;
     case POS_SITTING:
       gain += (gain / 8); /* Divide by 8 */
+      break;
+    default:
       break;
     }
 
@@ -1252,6 +1260,8 @@ int move_gain(struct char_data *ch)
       break;
     case POS_SITTING:
       gain += (gain / 8); /* Divide by 8 */
+      break;
+    default:
       break;
     }
 
@@ -2209,6 +2219,8 @@ void proc_d20_round_one(struct char_data *i)
           break;
         case 1:
           act("\tR$n is preparing to attack you.\tN", true, i, 0, 0, TO_ROOM);
+          break;
+        default:
           break;
         }
         i->mob_specials.aggro_timer--;

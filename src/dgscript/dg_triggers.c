@@ -1362,6 +1362,8 @@ int consume_otrigger(obj_data *obj, char_data *actor, int cmd)
       case OCMD_QUAFF:
         add_var(&GET_TRIG_VARS(t), "command", "quaff", 0);
         break;
+      default:
+        break;
       }
       {
         struct script_call_args args = {&obj, t, OBJ_TRIGGER, TRIG_NEW};

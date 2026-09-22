@@ -6937,6 +6937,8 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
       break;
       //    } else if (HAS_WAIT(ch) && complete_cmd_info[cmd].ignore_wait == FALSE) {
       //      send_to_char(ch, "You need to wait longer before you are able to do that.\r\n");
+    default:
+      break;
     }
   else if (!IS_NPC(ch) && !command_actions_available(ch, complete_cmd_info[cmd].actions_required))
   {
@@ -7584,6 +7586,8 @@ static int perform_dupe_check(struct descriptor_data *d)
     write_to_output(d, "Reconnecting to unswitched char.");
     mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE, "%s [%s] has reconnected.",
            GET_NAME(d->character), d->host);
+    break;
+  default:
     break;
   }
 

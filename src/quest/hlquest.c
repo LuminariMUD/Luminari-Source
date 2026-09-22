@@ -128,6 +128,8 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
           snprintf(buf, sizeof(buf), "\tCGIVE\tn %d coins\r\n", qcom->value);
           send_to_char(ch, "%s", buf);
           break;
+        default:
+          break;
         }
       }
     }
@@ -242,6 +244,8 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
         snprintf(buf, sizeof(buf), "\tcCAST_SPELL\tn %s\r\n", spell_info[qcom->value].name);
         send_to_char(ch, "%s", buf);
         break;
+      default:
+        break;
       }
     }
   }
@@ -291,6 +295,8 @@ static void give_back_items(struct char_data *questor, struct char_data *player,
         obj_to_char(obj, player);
       }
       break;
+    default:
+      break;
     }
   }
 }
@@ -331,6 +337,8 @@ bool is_object_in_a_quest(struct obj_data *obj)
               return TRUE;
             case QUEST_COMMAND_LOAD_OBJECT_INROOM:
               return TRUE;
+            default:
+              break;
             }
           }
         }
@@ -627,6 +635,8 @@ static void perform_out_chain(struct char_data *ch, struct char_data *victim,
     case QUEST_COMMAND_CAST_SPELL:
       call_magic(victim, ch, 0, qcom->value, 0, GET_LEVEL(victim), CAST_SPELL);
       break;
+    default:
+      break;
     }
   }
 }
@@ -770,6 +780,8 @@ void quest_give(struct char_data *ch, struct char_data *victim)
             if (available < hlquest_required_item_count(quest, qcom->value))
               fullfilled = FALSE;
             break;
+          default:
+            break;
           }
         }
       }
@@ -790,6 +802,8 @@ void quest_give(struct char_data *ch, struct char_data *victim)
               obj_from_char(obj);
               extract_obj(obj);
             }
+            break;
+          default:
             break;
           }
         }
@@ -879,6 +893,8 @@ int quest_value_vnum(struct quest_command *qcom)
   case QUEST_COMMAND_ATTACK_QUESTOR:
   case QUEST_COMMAND_DISAPPEAR:
     return 0;
+  default:
+    break;
   }
   return 0;
 }
@@ -896,6 +912,8 @@ int quest_location_vnum(struct quest_command *qcom)
   case QUEST_COMMAND_LOAD_OBJECT_INROOM:
   case QUEST_COMMAND_LOAD_MOB_INROOM:
     return GET_ROOM_VNUM(qcom->value);
+  default:
+    break;
   }
   return -1;
 }
@@ -1022,6 +1040,8 @@ void boot_the_quests(FILE *quest_f, char *filename, int rec_count __attribute__(
           break;
         case 'E':
           qcom->type = QUEST_COMMAND_EXPERIENCE;
+          break;
+        default:
           break;
         }
         /* Check if we've hit the terminator before processing direction */
@@ -1449,6 +1469,8 @@ ACMD(do_qref)
                        mob_index[i].vnum);
               send_to_char(ch, "%s", buf);
               count++;
+              break;
+            default:
               break;
             }
           }

@@ -5167,6 +5167,8 @@ int get_perk_skill_bonus(struct char_data *ch, int skill_num)
   case ABILITY_DISABLE_DEVICE:
     bonus += get_perk_skill_mastery_bonus(ch);
     break;
+  default:
+    break;
   }
 
   /* Trapfinding Expert perks apply to perception (finding traps) and disable device */
@@ -5176,6 +5178,8 @@ int get_perk_skill_bonus(struct char_data *ch, int skill_num)
   case ABILITY_DISABLE_DEVICE:
     bonus += get_perk_trapfinding_bonus(ch);
     break;
+  default:
+    break;
   }
 
   /* Fast Hands perks apply to sleight of hand and disable device (pick locks) */
@@ -5184,6 +5188,8 @@ int get_perk_skill_bonus(struct char_data *ch, int skill_num)
   case ABILITY_SLEIGHT_OF_HAND:
   case ABILITY_DISABLE_DEVICE:
     bonus += get_perk_fast_hands_bonus(ch);
+    break;
+  default:
     break;
   }
 
@@ -9401,6 +9407,8 @@ int get_wizard_elemental_damage_bonus(struct char_data *ch, int dam_type)
       bonus += 15;
     }
     break;
+  default:
+    break;
   }
 
   return bonus;
@@ -9434,6 +9442,8 @@ int get_wizard_elemental_dc_bonus(struct char_data *ch, int dam_type)
   case DAM_ELECTRIC:
     if (has_perk(ch, PERK_WIZARD_FOCUSED_ELEMENT_LIGHTNING))
       return 1;
+    break;
+  default:
     break;
   }
 
@@ -13574,6 +13584,8 @@ int class_to_perk_class(int class_type, int which_perk)
     return CLASS_WARRIOR;
   case CLASS_ARTIFICER:
     return CLASS_ARTIFICER;
+  default:
+    break;
   }
   return -1;
 }

@@ -3521,6 +3521,8 @@ sbyte has_racial_abils_unchosen(struct char_data *ch)
     if (!GET_DRAGONBORN_ANCESTRY(ch))
       return true;
     break;
+  default:
+    break;
   }
   return false;
 }
@@ -3601,6 +3603,8 @@ bool is_furry(int race)
   case RACE_WEMIC:
   case LEGACY_RACE_MINOTAUR:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -3612,6 +3616,8 @@ bool has_horns(int race)
   case RACE_TIEFLING:
   case LEGACY_RACE_MINOTAUR:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -3628,6 +3634,8 @@ bool has_scales(int race)
   case LEGACY_RACE_KAPAK_DRACONIAN:
   case LEGACY_RACE_SIVAK_DRACONIAN:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -3646,6 +3654,8 @@ bool race_has_no_hair(int race)
   case LEGACY_RACE_KAPAK_DRACONIAN:
   case LEGACY_RACE_SIVAK_DRACONIAN:
     return true;
+  default:
+    break;
   }
   return false;
 }
@@ -3790,6 +3800,8 @@ void award_random_food_item(struct char_data *ch, int result, int type)
   case 18:
     bonus = APPLY_SAVING_WILL;
     break;
+  default:
+    break;
   }
 
   obj = read_object(FORAGE_FOOD_ITEM_VNUM, VIRTUAL);
@@ -3907,6 +3919,8 @@ ACMD(do_scrounge)
       break;
     case 5:
       award_magic_armor(ch, grade, ITEM_WEAR_SHIELD);
+      break;
+    default:
       break;
     }
     break;

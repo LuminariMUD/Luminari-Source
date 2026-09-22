@@ -557,6 +557,8 @@ double get_seasonal_modifier(int resource_type)
     case 10:
     case 11:
       return 0.7; /* Autumn - declining */
+    default:
+      break;
     }
     break;
   case RESOURCE_GAME:
@@ -579,6 +581,8 @@ double get_seasonal_modifier(int resource_type)
     case 10:
     case 11:
       return 1.1; /* Autumn - fattening */
+    default:
+      break;
     }
     break;
   case RESOURCE_WOOD:
@@ -596,6 +600,8 @@ double get_seasonal_modifier(int resource_type)
     default:
       return 1.0;
     }
+    break;
+  default:
     break;
   }
   return 1.0;
@@ -628,6 +634,8 @@ double get_weather_modifier(int resource_type, int weather)
     if (weather >= 178)
       return 1.3;
     return 1.0;
+  default:
+    break;
   }
   return 1.0;
 }
@@ -1575,6 +1583,8 @@ const char *get_material_subtype_name(int category, int subtype)
     if (subtype >= 0 && subtype < NUM_SALT_SUBTYPES)
       return salt_subtype_names[subtype];
     break;
+  default:
+    break;
   }
   return "unknown";
 }
@@ -1753,6 +1763,8 @@ int get_enhanced_wilderness_material_id(int category, int subtype)
     if (subtype >= 0 && subtype < NUM_SALT_SUBTYPES)
       return WILDERNESS_CRAFT_MAT_ORE_BASE + 300 + subtype; /* Salt offset */
     break;
+  default:
+    break;
   }
   return WILDERNESS_CRAFT_MAT_NONE;
 }
@@ -1804,6 +1816,8 @@ int get_enhanced_material_crafting_value(int category, int subtype, int quality)
     break;
   case RESOURCE_GAME:
     base_value = 7 + (subtype * 2); /* Leather: 7-21 */
+    break;
+  default:
     break;
   }
 
@@ -2141,6 +2155,8 @@ int get_harvest_difficulty(int resource_type, double resource_level)
     break;
   case RESOURCE_WATER:
     base_difficulty = 20; /* Very easy */
+    break;
+  default:
     break;
   }
 

@@ -1490,6 +1490,8 @@ void craftedit_parse(struct descriptor_data *d, char *arg)
       craftedit_disp_skill_menu(d);
       OLC_MODE(d) = CRAFTEDIT_SKILL;
       break;
+    default:
+      break;
     }
     return;
   case CRAFTEDIT_DELETE:
@@ -1630,6 +1632,7 @@ void craftedit_parse(struct descriptor_data *d, char *arg)
       return;
     case 'q':
     case 'Q':
+    default:
       break;
     }
     break;
