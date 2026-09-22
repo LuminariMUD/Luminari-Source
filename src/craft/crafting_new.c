@@ -10753,11 +10753,12 @@ bool begin_golem_craft(struct char_data *ch)
   int mote_types[NUM_CRAFT_MOTES] = {0}, mote_amounts[NUM_CRAFT_MOTES] = {0};
   int num_mats = 0, num_motes = 0;
   int seconds = 0;
+  int golem_type = GET_CRAFT(ch).golem_type;
 
   if (craft_project_holds_supply_order(ch))
     return false;
 
-  if (GET_CRAFT(ch).golem_type == GOLEM_TYPE_NONE)
+  if (golem_type == GOLEM_TYPE_NONE)
   {
     send_to_char(
         ch, "You must set a golem type first. Use: craft create golem type (wood|stone|iron)\r\n");
@@ -10765,7 +10766,7 @@ bool begin_golem_craft(struct char_data *ch)
   }
 
   // Check for required feats based on golem type
-  switch (GET_CRAFT(ch).golem_type)
+  switch (golem_type)
   {
   case GOLEM_TYPE_WOOD:
     if (!HAS_FEAT(ch, FEAT_CONSTRUCT_WOOD_GOLEM))
@@ -10794,6 +10795,9 @@ bool begin_golem_craft(struct char_data *ch)
       return false;
     }
     break;
+  default:
+    send_to_char(ch, "Unknown golem type. Use: craft create golem type (wood|stone|iron)\r\n");
+    return false;
   }
 
   num_mats = get_golem_material_requirements(GET_CRAFT(ch).golem_type, GET_CRAFT(ch).golem_size,
@@ -10889,8 +10893,8 @@ bool begin_golem_craft(struct char_data *ch)
   send_to_char(ch,
                "You begin constructing a %s %s golem. This will take approximately %d minutes and "
                "%d seconds.\r\n",
-               golem_size_names[GET_CRAFT(ch).golem_size],
-               golem_type_names[GET_CRAFT(ch).golem_type], seconds / 60, seconds % 60);
+               golem_size_names[GET_CRAFT(ch).golem_size], golem_type_names[golem_type],
+               seconds / 60, seconds % 60);
   act("$n begins constructing a golem.", FALSE, ch, 0, 0, TO_ROOM);
 
   return true;

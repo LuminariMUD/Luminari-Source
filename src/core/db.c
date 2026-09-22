@@ -2047,7 +2047,7 @@ void discrete_load(FILE *fl, int mode, char *filename)
   int nr = -1, last = 0;
   char line[READ_SIZE] = {'\0'};
 
-  const char *modes[] = {"world", "mob", "obj", "ZON", "SHP", "HLP", "trg", "qst"};
+  const char *modes[] = {"world", "mob", "obj", "ZON", "SHP", "HLP", "trg", "qst", "hlq"};
   /* modes positions correspond to DB_BOOT_xxx in db.h */
 
   for (;;)
@@ -7174,9 +7174,10 @@ void free_char(struct char_data *ch)
     if (ch->player.eidolon_detaildescription)
       free(ch->player.eidolon_detaildescription);
 
-    for (i = 0; i < NUM_HIST; i++)
-      if (GET_HISTORY(ch, i))
-        free_history(ch, i);
+    if (ch->player_specials != NULL)
+      for (i = 0; i < NUM_HIST; i++)
+        if (GET_HISTORY(ch, i))
+          free_history(ch, i);
 
     /* free todo list - must be done before freeing player_specials */
     if (ch && ch->player_specials && GET_TODO(ch))
@@ -7508,7 +7509,7 @@ static int file_to_string_alloc(const char *name, char **buf)
 
   for (in_use = descriptor_list; in_use; in_use = in_use->next)
   {
-    if (!in_use->showstr_count || *in_use->showstr_vector != *buf)
+    if (!in_use->showstr_count || !in_use->showstr_vector || *in_use->showstr_vector != *buf)
       continue;
 
     temppage = in_use->showstr_page;

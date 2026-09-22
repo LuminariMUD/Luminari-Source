@@ -970,6 +970,11 @@ void show_string(struct descriptor_data *d, const char *input)
                  "Valid commands while paging are RETURN, Q, R, B, or a numeric value.\r\n");
     return;
   }
+  /* Keep the page inside the vector. */
+  if (d->showstr_page >= d->showstr_count)
+    d->showstr_page = d->showstr_count - 1;
+  if (d->showstr_page < 0)
+    d->showstr_page = 0;
   /* If we're displaying the last page, just send it to the character, and
    * then free up the space we used. Also send a \tn - to make color stop
    * bleeding. - Welcor */

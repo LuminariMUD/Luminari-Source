@@ -677,13 +677,15 @@ static void handle_entity_extracted(const struct domain_event_context *context,
   struct primary_activity *activity;
   uint64_t *ids;
   size_t count = 0U;
+  size_t capacity;
   size_t index;
 
   (void)handler_context;
-  ids = calloc(size_max(1U, activity_stats.active), sizeof(*ids));
+  capacity = size_max(1U, activity_stats.active);
+  ids = calloc(capacity, sizeof(*ids));
   if (ids == NULL)
     return;
-  for (activity = activity_head; activity != NULL; activity = activity->next)
+  for (activity = activity_head; activity != NULL && count < capacity; activity = activity->next)
   {
     if (domain_entity_handle_equal(activity->actor, event->entity) ||
         domain_entity_handle_equal(activity->target, event->entity))

@@ -1242,6 +1242,16 @@ bool dg_format_script_text(const char *source, size_t max_length, char **formatt
     control = format_control_command(&text, &argument);
     line_indent = indent;
 
+    /* validate_script_structure() matched every block; this keeps blocks[] in range. */
+    if (block_top < 0 && (control == FORMAT_CONTROL_END || control == FORMAT_CONTROL_DONE ||
+                          control == FORMAT_CONTROL_ELSE || control == FORMAT_CONTROL_ELSEIF ||
+                          control == FORMAT_CONTROL_CASE || control == FORMAT_CONTROL_DEFAULT))
+    {
+      snprintf(error, error_size, "Line %d: no open block to continue or close.", line_number);
+      free(copy);
+      return FALSE;
+    }
+
     if (control == FORMAT_CONTROL_END || control == FORMAT_CONTROL_DONE)
     {
       line_indent = blocks[block_top].base_indent;
