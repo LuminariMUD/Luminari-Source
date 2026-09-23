@@ -1884,8 +1884,7 @@ ACMDU(do_mclanwar)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
-  one_argument(argument, arg3, sizeof(arg3));
+  three_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
 
   if (!*arg1 || !*arg2 || !*arg3)
   {
@@ -1983,8 +1982,7 @@ ACMDU(do_mclanally)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
-  one_argument(argument, arg3, sizeof(arg3));
+  three_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
 
   if (!*arg1 || !*arg2 || !*arg3)
   {

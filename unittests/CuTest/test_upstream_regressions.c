@@ -25,6 +25,8 @@
 #include "../../src/character/feats.h"
 #include "../../src/dgscript/dg_olc.h"
 #include "../../src/dgscript/dg_scripts.h"
+#include "../../src/craft/crafting_new.h"
+#include "../../src/core/constants.h"
 #include "../../src/net/protocol.h"
 #include "../../src/quest/hlquest.h"
 #include "../../src/wilderness/narrative_weaver.h"
@@ -2638,4 +2640,53 @@ void Test_observational_voice_makes_room_for_every_rewrite(CuTest *tc)
   CuAssertPtrNotNull(tc, result);
   CuAssertStrEquals(tc, expected, result);
   free(result);
+}
+
+/* The Dodge line of "motes <type>" printed ability_names[] at an index the loop had not set yet,
+ * reading past the table for the mote that grants a dodge bonus. */
+void Test_motes_dodge_line_names_only_the_bonus(CuTest *tc)
+{
+  struct char_data player;
+  struct descriptor_data descriptor;
+  struct player_special_data specials;
+  int mote = crafting_mote_by_bonus_location(APPLY_AC_NEW, 0, BONUS_TYPE_DODGE);
+  const char *dodge;
+  bool listed;
+  bool ability_after = false;
+  int ability;
+
+  clear_char(&player);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&specials, 0, sizeof(specials));
+  descriptor.character = &player;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  player.desc = &descriptor;
+  player.player_specials = &specials;
+
+  if (descriptor.pProtocol == NULL || mote <= 0)
+  {
+    player.desc = NULL;
+    if (descriptor.pProtocol != NULL)
+      ProtocolDestroy(descriptor.pProtocol);
+    CuFail(tc, "could not set up the motes output fixture");
+    return;
+  }
+
+  do_motes(&player, crafting_motes[mote], 0, 0);
+  dodge = strstr(descriptor.output, "(Dodge), ");
+  listed = dodge != NULL;
+  for (ability = 0; listed && ability <= END_GENERAL_ABILITIES; ability++)
+    if (*ability_names[ability] != '\0' &&
+        strncmp(dodge + 9, ability_names[ability], strlen(ability_names[ability])) == 0)
+      ability_after = true;
+
+  player.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  descriptor.pProtocol = NULL;
+  reset_test_descriptor_output(&descriptor);
+
+  CuAssertTrue(tc, listed);
+  CuAssertTrue(tc, !ability_after);
 }

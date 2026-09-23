@@ -1914,7 +1914,7 @@ void perform_bomb_spell_effect(struct char_data *ch, struct char_data *victim, i
     return;
 
   call_magic(ch, victim, NULL, spellnum, 0,
-             CLASS_LEVEL(ch, CLASS_ALCHEMIST) += (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 5 : 0),
+             CLASS_LEVEL(ch, CLASS_ALCHEMIST) + (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 5 : 0),
              CAST_BOMB);
 }
 
