@@ -148,7 +148,7 @@ void Test_help_feat_handler_accepts_a_leading_feat(CuTest *tc)
   int bare, prefixed, spaced, unknown;
   bool shown;
 
-  if (feat_list[FEAT_EIDOLON].name == NULL || strcmp(feat_list[FEAT_EIDOLON].name, "eidolon"))
+  if (feat_list[FEAT_EIDOLON].name == NULL || strcmp(feat_list[FEAT_EIDOLON].name, "eidolon") != 0)
     assign_feats();
   clear_char(&ch);
   memset(&specials, 0, sizeof(specials));
