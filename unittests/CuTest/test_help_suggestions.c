@@ -11,7 +11,10 @@
 #include "../../src/core/comm.h"
 #include "../../src/core/db.h"
 #include "../../src/character/backgrounds.h"
+#include "../../src/character/deities.h"
+#include "../../src/character/evolutions.h"
 #include "../../src/character/feats.h"
+#include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/net/protocol.h"
 
 #include <string.h>
@@ -138,47 +141,73 @@ void Test_help_name_handlers_stop_at_a_trailing_space(CuTest *tc)
   CuAssertIntEquals(tc, 0, handle_background_help(NULL, "qzx ", "qzx ", NULL));
 }
 
-/* The production help log had 'feat eidolon': players ask for 'help feat <name>'. The feat
- * handler shows the named feat with or without that leading word (issue 224). */
-void Test_help_feat_handler_accepts_a_leading_feat(CuTest *tc)
+/** Empty the descriptor's output, including a large buffer a long page switched to. */
+static void help_feat_reset_output(struct descriptor_data *descriptor)
+{
+  if (descriptor->large_outbuf != NULL)
+  {
+    free(descriptor->large_outbuf->text);
+    free(descriptor->large_outbuf);
+    descriptor->large_outbuf = NULL;
+  }
+  descriptor->small_outbuf[0] = '\0';
+  descriptor->output = descriptor->small_outbuf;
+  descriptor->bufptr = 0;
+  descriptor->bufspace = SMALL_BUFSIZE - 1;
+}
+
+/* The production help log had 'feat eidolon': players ask for 'help feat <name>'. The help
+ * command shows that form, however it is spaced, the same page the feat handler shows for the
+ * bare name, and the handler passes an unknown name down the chain (issue 224). */
+void Test_help_command_shows_a_feat_asked_for_with_a_leading_feat(CuTest *tc)
 {
   struct char_data ch;
   struct player_special_data specials;
   struct descriptor_data descriptor;
-  int bare, prefixed, spaced, unknown;
-  bool shown;
+  char page[MAX_STRING_LENGTH];
+  int bare, unknown;
+  bool shown, spaced;
 
   if (feat_list[FEAT_EIDOLON].name == NULL || strcmp(feat_list[FEAT_EIDOLON].name, "eidolon") != 0)
     assign_feats();
+  /* The handlers after the feat handler read these tables, so a name that falls through fails an
+   * assertion below instead of crashing. */
+  if (weapon_list[WEAPON_TYPE_DAGGER].name == NULL)
+    load_weapons();
+  if (armor_list[SPEC_ARMOR_TYPE_CLOTHING].name == NULL)
+    load_armor();
+  if (deity_list[0].name == NULL)
+    assign_deities();
+  if (background_list[BACKGROUND_ACOLYTE].name == NULL)
+    assign_backgrounds();
+  if (evolution_list[0].name == NULL)
+    assign_evolutions();
   clear_char(&ch);
   memset(&specials, 0, sizeof(specials));
   memset(&descriptor, 0, sizeof(descriptor));
   ch.player_specials = &specials;
   ch.desc = &descriptor;
   descriptor.character = &ch;
-  descriptor.output = descriptor.small_outbuf;
-  descriptor.bufspace = SMALL_BUFSIZE - 1;
   descriptor.pProtocol = ProtocolCreate();
   STATE(&descriptor) = CON_PLAYING;
 
+  help_feat_reset_output(&descriptor);
   bare = handle_feat_help(&ch, "eidolon", "eidolon", NULL);
-  descriptor.small_outbuf[0] = '\0';
-  descriptor.bufptr = 0;
-  prefixed = handle_feat_help(&ch, "feat-eidolon", "feat eidolon", NULL);
-  shown = strstr(descriptor.output, "eidolon") != NULL;
-  spaced = handle_feat_help(&ch, "Feat--eidolon", "Feat  eidolon", NULL);
+  strlcpy(page, descriptor.output, sizeof(page));
+  help_feat_reset_output(&descriptor);
+  do_help(&ch, "feat eidolon", 0, 0);
+  shown = strstr(page, "Feat    : ") != NULL && strstr(page, "eidolon") != NULL &&
+          strcmp(descriptor.output, page) == 0;
+  help_feat_reset_output(&descriptor);
+  do_help(&ch, "Feat  eidolon", 0, 0);
+  spaced = strcmp(descriptor.output, page) == 0;
   unknown = handle_feat_help(&ch, "feat-qzx", "feat qzx", NULL);
 
-  if (descriptor.large_outbuf != NULL)
-  {
-    free(descriptor.large_outbuf->text);
-    free(descriptor.large_outbuf);
-  }
+  help_feat_reset_output(&descriptor);
   ProtocolDestroy(descriptor.pProtocol);
 
   CuAssertIntEquals(tc, 1, bare);
-  CuAssertIntEquals(tc, 1, prefixed);
   CuAssertTrue(tc, shown);
-  CuAssertIntEquals(tc, 1, spaced);
+  CuAssertTrue(tc, spaced);
   CuAssertIntEquals(tc, 0, unknown);
 }
