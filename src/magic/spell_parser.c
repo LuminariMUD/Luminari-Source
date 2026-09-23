@@ -887,21 +887,9 @@ SAVING_WILL here...  */
     spell_level = level;
     break;
   case CAST_WEAPON_SPELL:
-    savetype = SAVING_WILL;
-    spell_level = level;
-    break;
   case CAST_STAFF:
-    savetype = SAVING_WILL;
-    spell_level = level;
-    break;
   case CAST_SCROLL:
-    savetype = SAVING_WILL;
-    spell_level = level;
-    break;
   case CAST_POTION:
-    savetype = SAVING_WILL;
-    spell_level = level;
-    break;
   case CAST_WAND:
     savetype = SAVING_WILL;
     spell_level = level;
@@ -912,29 +900,6 @@ SAVING_WILL here...  */
 
     /* default and casting a spell */
   case CAST_SPELL:
-    savetype = SAVING_WILL;
-    switch (CASTING_CLASS(caster))
-    {
-    case CLASS_WIZARD:
-    case CLASS_CLERIC:
-    case CLASS_DRUID:
-    case CLASS_SORCERER:
-    case CLASS_PALADIN:
-    case CLASS_BLACKGUARD:
-    case CLASS_RANGER:
-    case CLASS_BARD:
-    case CLASS_ALCHEMIST:
-    case CLASS_PSIONICIST:
-    case CLASS_INQUISITOR:
-    case CLASS_WARLOCK:
-    case CLASS_SUMMONER:
-      spell_level = level;
-      break;
-    default:
-      break;
-    }
-
-    __attribute__((fallthrough));
   default:
     savetype = SAVING_WILL;
     spell_level = level;
@@ -3077,13 +3042,10 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
         USE_SWIFT_ACTION(ch);
       }
     }
-    else if (AFF_FLAGGED(ch, AFF_TIME_STOPPED))
+    else if (AFF_FLAGGED(ch, AFF_TIME_STOPPED) ||
+             (AFF_FLAGGED(ch, AFF_RAPID_BUFF) && IS_BUFFING(ch)))
     {
-      // buffing doesn't use actions when time stopped
-    }
-    else if (AFF_FLAGGED(ch, AFF_RAPID_BUFF) && IS_BUFFING(ch))
-    {
-      // buffing doesn't use actions when affected by rapid buff
+      /* buffing doesn't use actions when time stopped or affected by rapid buff */
     }
     else
     {
@@ -3370,11 +3332,8 @@ ACMDU(do_gen_cast)
   switch (subcmd)
   {
   case SCMD_CAST_SPELL:
-    break;
   case SCMD_WEAPON_TOUCH:
-    break;
   case SCMD_CAST_PSIONIC:
-    break;
   case SCMD_CAST_EXTRACT:
     break;
   case SCMD_CAST_SHADOW:
@@ -3997,7 +3956,7 @@ return;
     {
       if (canCastAtWill(ch, spellnum))
       {
-        GET_CASTING_CLASS(ch) = class_num = at_will_casting_class(ch, spellnum);
+        GET_CASTING_CLASS(ch) = at_will_casting_class(ch, spellnum);
       }
       else
         GET_CASTING_CLASS(ch) = class_num;
@@ -6939,11 +6898,7 @@ void display_shadowcast_spells(struct char_data *ch)
   {
     max_circle = 7;
   }
-  else if (HAS_REAL_FEAT(ch, FEAT_SHADOW_POWER))
-  {
-    max_circle = 4;
-  }
-  else if (HAS_REAL_FEAT(ch, FEAT_SHADOW_JUMP))
+  else if (HAS_REAL_FEAT(ch, FEAT_SHADOW_POWER) || HAS_REAL_FEAT(ch, FEAT_SHADOW_JUMP))
   {
     max_circle = 4;
   }
@@ -7098,13 +7053,9 @@ bool isBozakMagic(struct char_data *ch, int spellnum)
   switch (spellnum)
   {
   case SPELL_ENLARGE_PERSON:
-    return true;
   case SPELL_REDUCE_PERSON:
-    return true;
   case SPELL_INVISIBLE:
-    return true;
   case SPELL_STINKING_CLOUD:
-    return true;
   case SPELL_WEB:
     return true;
   default:
@@ -7126,9 +7077,6 @@ bool isThornMagic(struct char_data *ch, int spellnum)
       return true;
     break;
   case SPELL_LOCATE_OBJECT:
-    if (HAS_REAL_FEAT(ch, FEAT_READ_PORTENTS))
-      return true;
-    break;
   case SPELL_LOCATE_CREATURE:
     if (HAS_REAL_FEAT(ch, FEAT_READ_PORTENTS))
       return true;
@@ -7150,29 +7098,17 @@ bool isDragonRiderMagic(struct char_data *ch, int spellnum)
   switch (spellnum)
   {
   case SPELL_DARKNESS:
-    if (HAS_REAL_FEAT(ch, FEAT_ADEPT_RIDER))
-      is_valid_spell = true;
-    break;
   case SPELL_DAYLIGHT:
-    if (HAS_REAL_FEAT(ch, FEAT_ADEPT_RIDER))
-      is_valid_spell = true;
-    break;
   case SPELL_OBSCURING_MIST:
     if (HAS_REAL_FEAT(ch, FEAT_ADEPT_RIDER))
       is_valid_spell = true;
     break;
   case SPELL_HEAL_MOUNT:
-    if (HAS_REAL_FEAT(ch, FEAT_SKILLED_RIDER))
-      is_valid_spell = true;
-    break;
   case SPELL_ACID_ARROW:
     if (HAS_REAL_FEAT(ch, FEAT_SKILLED_RIDER))
       is_valid_spell = true;
     break;
   case SPELL_LIGHTNING_BOLT:
-    if (HAS_REAL_FEAT(ch, FEAT_MASTER_RIDER))
-      is_valid_spell = true;
-    break;
   case SPELL_SLOW:
     if (HAS_REAL_FEAT(ch, FEAT_MASTER_RIDER))
       is_valid_spell = true;
@@ -7210,37 +7146,19 @@ bool isSkullMagic(struct char_data *ch, int spellnum)
   switch (spellnum)
   {
   case SPELL_DETECT_INVIS:
-    if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 1)
-      return true;
-    break;
   case SPELL_DETECT_ALIGN:
-    if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 1)
-      return true;
-    break;
   case SPELL_DETECT_MAGIC:
-    if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 1)
-      return true;
-    break;
   case SPELL_DETECT_POISON:
     if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 1)
       return true;
     break;
   case SPELL_SENSE_LIFE:
-    if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 2)
-      return true;
-    break;
   case SPELL_IDENTIFY:
-    if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 2)
-      return true;
-    break;
   case SPELL_DISPEL_INVIS:
     if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 2)
       return true;
     break;
   case SPELL_TRUE_SEEING:
-    if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 3)
-      return true;
-    break;
   case SPELL_CLAIRVOYANCE:
     if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 3)
       return true;

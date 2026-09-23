@@ -2162,7 +2162,7 @@ ACMD(do_greyhawk_status)
   room_rnum ship_room = IN_ROOM(ch);
   int shipnum;
   int terrain_type;
-  const char *terrain_name = "Unknown";
+  const char *terrain_name;
 
   /* Check if character is in a ship */
   if (!world[ship_room].ship)
@@ -2669,12 +2669,8 @@ ACMD(do_greyhawk_disembark)
   }
 
   /* Check for swimming ability */
-  if (GET_LEVEL(ch) >= LVL_IMMORT)
-  {
-    can_swim = TRUE;
-  }
-  else if (AFF_FLAGGED(ch, AFF_WATERWALK) || AFF_FLAGGED(ch, AFF_FLYING) ||
-           AFF_FLAGGED(ch, AFF_LEVITATE))
+  if (GET_LEVEL(ch) >= LVL_IMMORT || AFF_FLAGGED(ch, AFF_WATERWALK) ||
+      AFF_FLAGGED(ch, AFF_FLYING) || AFF_FLAGGED(ch, AFF_LEVITATE))
   {
     can_swim = TRUE;
   }

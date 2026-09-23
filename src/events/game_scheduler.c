@@ -946,7 +946,6 @@ static bool reschedule_dispatched_event(struct game_scheduler *scheduler, struct
     return false;
   deadline_tick = 0;
   future_tick = 0;
-  interval_ticks = 0;
   skipped = 0;
   catch_up_again = false;
 
@@ -1128,12 +1127,8 @@ static void dispatch_ready_events(struct game_scheduler *scheduler,
       finalize_event(scheduler, event, GAME_EVENT_STATE_COMPLETED);
       report->completed++;
     }
-    else if (result.kind == GAME_EVENT_RESULT_FAILED)
-    {
-      finalize_event(scheduler, event, GAME_EVENT_STATE_FAILED);
-      report->failed++;
-    }
-    else if (!reschedule_dispatched_event(scheduler, event, result, report))
+    else if (result.kind == GAME_EVENT_RESULT_FAILED ||
+             !reschedule_dispatched_event(scheduler, event, result, report))
     {
       finalize_event(scheduler, event, GAME_EVENT_STATE_FAILED);
       report->failed++;

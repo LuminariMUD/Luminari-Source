@@ -3283,7 +3283,6 @@ SPECIAL(clanportal)
   int iPlayerClan = -1;
   struct obj_data *obj = (struct obj_data *)me;
   struct obj_data *port_value;
-  zone_vnum z;
   room_vnum r;
   char obj_name[MAX_INPUT_LENGTH] = {'\0'};
   room_rnum was_in = IN_ROOM(ch);
@@ -3317,7 +3316,7 @@ SPECIAL(clanportal)
     return TRUE;
   }
 
-  if ((z = get_clanhall_by_char(ch)) == NOWHERE)
+  if (get_clanhall_by_char(ch) == NOWHERE)
   {
     send_to_char(ch, "Your clan does not have a clanhall!\n\r");
     log("Warning: Clan Portal - No clanhall (Player: %s, Clan ID: %d)", GET_NAME(ch), iPlayerClan);

@@ -269,7 +269,7 @@ void space_to_minus(char *str)
  */
 static struct help_entry_list *search_help_table(const char *argument, int level)
 {
-  struct help_entry_list *help_entries = NULL, *new_entry = NULL, *cur = NULL;
+  struct help_entry_list *help_entries = NULL, *new_entry = NULL;
   int i;
 
   /* No file-based help loaded */
@@ -324,20 +324,9 @@ static struct help_entry_list *search_help_table(const char *argument, int level
         continue;
       }
 
-      /* Add to linked list */
-      if (help_entries == NULL)
-      {
-        help_entries = new_entry;
-        cur = new_entry;
-      }
-      else
-      {
-        cur->next = new_entry;
-        cur = new_entry;
-      }
-
       /* For file-based help, return after first match
        * (traditional behavior - one entry per keyword) */
+      help_entries = new_entry;
       break;
     }
   }
@@ -1842,6 +1831,7 @@ int handle_soundex_suggestions(struct char_data *ch, const char *argument __attr
   keywords = help_lookup_suggestions(raw_argument, GET_LEVEL(ch));
   if (keywords != NULL)
   {
+    /* NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores) -- the HELP_DEBUG log below reads it */
     soundex_matches_found = 1;
     if (ctx->partial_help_displayed)
     {

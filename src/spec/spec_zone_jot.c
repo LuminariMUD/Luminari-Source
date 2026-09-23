@@ -942,8 +942,6 @@ SPECIAL(giantslayer)
   switch (GET_RACE(ch))
   {
   case RACE_DWARF:
-    break;
-
   case RACE_DUERGAR:
     break;
 

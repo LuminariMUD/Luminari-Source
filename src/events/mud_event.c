@@ -1096,10 +1096,6 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
     if (status != GAME_SCHEDULER_OK)
       pMudEvent->runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
   }
-  else
-  {
-    status = GAME_SCHEDULER_INVALID_ARGUMENT;
-  }
   if (event_runtime_handle_is_none(pMudEvent->runtime_handle))
     goto admission_failed;
 

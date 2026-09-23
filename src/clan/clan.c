@@ -1536,16 +1536,8 @@ ACMD(do_clan)
     {
       if (is_abbrev(clan_cmd, CC_CMD(i)))
       {
-        if ((CC_PRIV(i) == CP_NONE) && (CC_ILEV(i) != LVL_IMPL) && (GET_LEVEL(ch) < CC_ILEV(i)))
-        {
-          continue;
-        }
-        else if ((CC_PRIV(i) == CP_NONE) && (CC_ILEV(i) == LVL_IMPL) &&
-                 (GET_LEVEL(ch) < CC_ILEV(i)))
-        {
-          continue;
-        }
-        else if ((CC_PRIV(i) != CP_ALL) && (clan == NO_CLAN) && (GET_LEVEL(ch) < CC_ILEV(i)))
+        if (((CC_PRIV(i) == CP_NONE) && (GET_LEVEL(ch) < CC_ILEV(i))) ||
+            ((CC_PRIV(i) != CP_ALL) && (clan == NO_CLAN) && (GET_LEVEL(ch) < CC_ILEV(i))))
         {
           continue;
           /* Flagged accessible for all players      */
@@ -1994,7 +1986,7 @@ ACMD(do_clandemote)
 
   one_argument(argument, buf, sizeof(buf));
 
-  if (!immcom && (c_n = real_clan(GET_CLAN(ch))) == NO_CLAN)
+  if (!immcom && real_clan(GET_CLAN(ch)) == NO_CLAN)
   {
     send_to_char(ch, CLAN_ERR_NOT_IN_CLAN);
     return;
@@ -2807,7 +2799,6 @@ ACMD(do_claninfo) /* Information about clans */
   {
     for (i = 0; i < num_of_clans; i++)
     {
-      xcount = 0;
       if (++count == 1)
         send_to_char(ch, "Clan ID  Clan Name                       "
                          "Members  Power\r\n");
@@ -3233,7 +3224,7 @@ ACMD(do_clanpromote)
 
   one_argument(argument, buf, sizeof(buf));
 
-  if (!immcom && (c_n = real_clan(GET_CLAN(ch))) == NO_CLAN)
+  if (!immcom && real_clan(GET_CLAN(ch)) == NO_CLAN)
   {
     send_to_char(ch, CLAN_ERR_NOT_IN_CLAN);
     return;

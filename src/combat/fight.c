@@ -842,11 +842,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += 1;
   }
-  else if (HAS_FEAT(ch, FEAT_KAPAK_DRACONIAN_SCALES))
-  {
-    bonuses[BONUS_TYPE_NATURALARMOR] += 2;
-  }
-  else if (HAS_FEAT(ch, FEAT_BOZAK_DRACONIAN_SCALES))
+  else if (HAS_FEAT(ch, FEAT_KAPAK_DRACONIAN_SCALES) || HAS_FEAT(ch, FEAT_BOZAK_DRACONIAN_SCALES))
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += 2;
   }
@@ -936,12 +932,9 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
 
   /* bonus type deflection */
   /* two weapon defense */
-  if (is_using_double_weapon(ch) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE))
-  {
-    bonuses[BONUS_TYPE_SHIELD]++;
-  }
-  else if (!IS_NPC(ch) && (GET_EQ(ch, WEAR_WIELD_OFFHAND) || GET_EQ(ch, WEAR_WIELD_4)) &&
-           HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE))
+  if ((is_using_double_weapon(ch) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE)) ||
+      (!IS_NPC(ch) && (GET_EQ(ch, WEAR_WIELD_OFFHAND) || GET_EQ(ch, WEAR_WIELD_4)) &&
+       HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE)))
   {
     bonuses[BONUS_TYPE_SHIELD]++;
   }
@@ -1395,11 +1388,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   if (attacker && attacker != ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER))
   {
     // checking if we have humanoid favored enemies for PC victims
-    if (!IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID))
-    {
-      bonuses[BONUS_TYPE_MORALE] += (CLASS_LEVEL(ch, CLASS_RANGER) / 5) + 2;
-    }
-    else if (IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, GET_RACE(attacker)))
+    if ((!IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
+        (IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, GET_RACE(attacker))))
     {
       bonuses[BONUS_TYPE_MORALE] += (CLASS_LEVEL(ch, CLASS_RANGER) / 5) + 2;
     }
@@ -1510,11 +1500,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   { /* don't include armor, natural armor, shield */
     for (i = 0; i < NUM_BONUS_TYPES; i++)
     {
-      if (i == BONUS_TYPE_NATURALARMOR)
-        continue;
-      else if (i == BONUS_TYPE_ARMOR)
-        continue;
-      else if (i == BONUS_TYPE_SHIELD)
+      if (i == BONUS_TYPE_NATURALARMOR || i == BONUS_TYPE_ARMOR || i == BONUS_TYPE_SHIELD)
         continue;
       else
         armorclass += bonuses[i];
@@ -1795,9 +1781,8 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
    *  but only if they are not currently fighting.  */
   if (!FIGHTING(ch))
   {
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_ONE_THOUGHT) && is_grouped_in_room(ch))
-      ; // cannot be flat footed
-    else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_UNCANNY_DODGE) || has_uncanny_dodge(ch)))
+    if ((!IS_NPC(ch) && HAS_FEAT(ch, FEAT_ONE_THOUGHT) && is_grouped_in_room(ch)) ||
+        (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_UNCANNY_DODGE) || has_uncanny_dodge(ch))))
       ; // cannot be flat footed
     else
       SET_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
@@ -2494,22 +2479,13 @@ static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
    * on a character being processed for death */
   clear_char_event_list(ch);
 
-  /* clear all affections */
-  if (IS_NPC(ch))
-  {
-    /* NPCs will be extracted, so avoid recalculating stats */
-    while (ch->affected)
-      affect_remove_no_total(ch, ch->affected);
-  }
-  else
-  {
-    /* For players, use affect_remove_no_total to avoid MSDP updates during death
-     * The heap can be corrupted during death processing, and MSDP protocol updates
-     * can trigger memory allocations that crash. Players will have their stats
-     * properly recalculated after respawn. */
-    while (ch->affected)
-      affect_remove_no_total(ch, ch->affected);
-  }
+  /* clear all affections: NPCs will be extracted, so avoid recalculating stats.
+   * For players, use affect_remove_no_total to avoid MSDP updates during death
+   * The heap can be corrupted during death processing, and MSDP protocol updates
+   * can trigger memory allocations that crash. Players will have their stats
+   * properly recalculated after respawn. */
+  while (ch->affected)
+    affect_remove_no_total(ch, ch->affected);
 
   /* Wipe character from the memory of hunters and other intelligent NPCs... */
   for (temp = character_list; temp; temp = temp->next)
@@ -2755,13 +2731,9 @@ struct combat_death_result combat_death_apply(struct char_data *ch, struct char_
 
   penalty = penalty * CONFIG_DEATH_EXP_LOSS / 100;
 
-  if (GET_LEVEL(ch) <= 6)
+  if (GET_LEVEL(ch) <= 6 || (IS_STAFF_EVENT && STAFF_EVENT_NUM == THE_PRISONER_EVENT))
   {
-    /* no xp loss for newbs - Bakarus */
-  }
-  else if (IS_STAFF_EVENT && STAFF_EVENT_NUM == THE_PRISONER_EVENT)
-  {
-    /* no exp loss during the prisoner event */
+    /* no xp loss for newbs - Bakarus, or during the prisoner event */
   }
   else
   {
@@ -3267,13 +3239,8 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += 10;
     break;
   case DAM_SLICE:
-    /* Elemental Embodiment (Earth) - +10 resistance to slashing */
-    if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 &&
-        GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 4)
-      dam_reduction += 10;
-    break;
   case DAM_PUNCTURE:
-    /* Elemental Embodiment (Earth) - +10 resistance to piercing */
+    /* Elemental Embodiment (Earth) - +10 resistance to slashing and piercing */
     if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 &&
         GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 4)
       dam_reduction += 10;
@@ -3307,9 +3274,7 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += 20;
     break;
   case DAM_ILLUSION:
-    break;
   case DAM_MENTAL:
-    break;
   case DAM_LIGHT:
     break;
   case DAM_ENERGY:
@@ -4461,16 +4426,8 @@ int compute_concealment(struct char_data *ch, struct char_data *attacker)
     else
       concealment += 20;
   }
-  else if (AFF_FLAGGED(ch, AFF_BLINKING))
-    concealment += 20;
-  else if (
-      affected_by_spell(
-          ch,
-          PSIONIC_CONCEALING_AMORPHA)) // this is here to prevent overpowered combinations of buffs
-    concealment += 20;
-  else if (affected_by_spell(ch, WARLOCK_ENTROPIC_WARDING))
-    concealment += 20;
-  else if (AFF_FLAGGED(ch, AFF_BLUR))
+  else if (AFF_FLAGGED(ch, AFF_BLINKING) || affected_by_spell(ch, PSIONIC_CONCEALING_AMORPHA) ||
+           affected_by_spell(ch, WARLOCK_ENTROPIC_WARDING) || AFF_FLAGGED(ch, AFF_BLUR))
     concealment += 20;
 
   if (ROOM_AFFECTED(IN_ROOM(ch), RAFF_OBSCURING_MIST))
@@ -4506,29 +4463,17 @@ bool ok_damage_handling(int attacktype)
   switch (attacktype)
   {
   case TYPE_SUFFERING:
-    return FALSE;
   case SKILL_BASH:
-    return FALSE;
   case SKILL_TRIP:
-    return FALSE;
   case SPELL_POISON:
-    return FALSE;
   case SPELL_SPIKE_GROWTH:
-    return FALSE;
   case SKILL_CHARGE:
-    return FALSE;
   case SKILL_BODYSLAM:
-    return FALSE;
   case SKILL_SPRINGLEAP:
-    return FALSE;
   case SKILL_SHIELD_PUNCH:
-    return FALSE;
   case SKILL_SHIELD_CHARGE:
-    return FALSE;
   case SKILL_SHIELD_SLAM:
-    return FALSE;
   case SKILL_DIRT_KICK:
-    return FALSE;
   case SKILL_SAP:
     return FALSE;
   default:
@@ -5136,6 +5081,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
         solo_gain(ch->master, victim);
     }
     else if (IS_NPC(ch) && ch->confuser_idnum > 0 && is_pc_idnum_in_room(ch, ch->confuser_idnum))
+    /* NOLINTNEXTLINE(bugprone-branch-clone) -- meant to credit the confuser; a reported defect */
     {
       if (GROUP(ch))
         group_gain(ch, victim);
@@ -7042,13 +6988,10 @@ static int compute_damage_bonus_with_projectile(struct char_data *ch, struct cha
 
   if (vict)
   {
-    if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_GOOD) && IS_GOOD(vict))
-      dambonus += 2;
-    else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_EVIL) && IS_EVIL(vict))
-      dambonus += 2;
-    else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_CHAOS) && IS_CHAOTIC(vict))
-      dambonus += 2;
-    else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_LAW) && IS_LAWFUL(vict))
+    if ((HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_GOOD) && IS_GOOD(vict)) ||
+        (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_EVIL) && IS_EVIL(vict)) ||
+        (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_CHAOS) && IS_CHAOTIC(vict)) ||
+        (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_LAW) && IS_LAWFUL(vict)))
       dambonus += 2;
   }
 
@@ -7234,16 +7177,8 @@ static int compute_damage_bonus_with_projectile(struct char_data *ch, struct cha
       CLASS_LEVEL(ch, CLASS_RANGER))
   {
     /* checking if we have humanoid favored enemies for PC victims */
-    if (!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID))
-    {
-      if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
-      {
-        if (display_mode)
-          send_to_char(ch, "Epic favored enemy ranged dex bonus: \tR%d\tn\r\n", GET_DEX_BONUS(ch));
-        dambonus += GET_DEX_BONUS(ch);
-      }
-    }
-    else if (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict)))
+    if ((!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
+        (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict))))
     {
       if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
       {
@@ -7509,21 +7444,8 @@ static int compute_damage_bonus_with_projectile(struct char_data *ch, struct cha
   if (vict && vict != ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER))
   {
     // checking if we have humanoid favored enemies for PC victims
-    if (!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID))
-    {
-      if (display_mode)
-        send_to_char(ch, "Favored enemy bonus: \tR%d\tn\r\n",
-                     CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2);
-      dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 3 + 2;
-
-      if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
-      {
-        if (display_mode)
-          send_to_char(ch, "Epic favored enemy bonus: \tR4\tn\r\n");
-        dambonus += 6;
-      }
-    }
-    else if (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict)))
+    if ((!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
+        (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict))))
     {
       if (display_mode)
         send_to_char(ch, "Favored enemy bonus: \tR%d\tn\r\n",
@@ -8197,8 +8119,6 @@ static int compute_dam_dice(struct char_data *ch, struct char_data *victim,
     switch (GET_SIZE(ch))
     {
     case SIZE_FINE:
-      diceTwo = 1;
-      break;
     case SIZE_DIMINUTIVE:
       diceTwo = 1;
       break;
@@ -8209,14 +8129,10 @@ static int compute_dam_dice(struct char_data *ch, struct char_data *victim,
       diceTwo = 3;
       break;
     case SIZE_MEDIUM:
-      diceTwo = 4;
-      break;
     case SIZE_LARGE:
       diceTwo = 4;
       break;
     case SIZE_HUGE:
-      diceTwo = 5;
-      break;
     case SIZE_GARGANTUAN:
       diceTwo = 5;
       break;
@@ -8963,32 +8879,12 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
       /* raging critical feat */
       if (HAS_FEAT(ch, FEAT_RAGING_CRITICAL) && affected_by_spell(ch, SKILL_RAGE))
       {
-        /*fail*/ if ((GET_SIZE(ch) - GET_SIZE(victim)) >= 2)
-        {
-          ;
-        }
-        /*fail*/ else if ((GET_SIZE(victim) - GET_SIZE(ch)) >= 2)
-        {
-          ;
-        }
-        /*fail*/ else if (GET_POS(victim) <= POS_SITTING)
-        {
-          ;
-        }
-        /*fail*/ else if (IS_INCORPOREAL(victim))
-        {
-          ;
-        }
-        /*fail*/ else if (MOB_FLAGGED(victim, MOB_NOBASH))
-        {
-          ;
-        }
-        /*fail*/ else if (MOB_FLAGGED(victim, MOB_NOKILL) || !is_mission_mob(ch, victim))
-        {
-          ;
-        }
-        /*fail*/ else if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-                          ch->next_in_room != victim && victim->next_in_room != ch)
+        /*fail*/ if ((GET_SIZE(ch) - GET_SIZE(victim)) >= 2 ||
+                     (GET_SIZE(victim) - GET_SIZE(ch)) >= 2 || GET_POS(victim) <= POS_SITTING ||
+                     IS_INCORPOREAL(victim) || MOB_FLAGGED(victim, MOB_NOBASH) ||
+                     MOB_FLAGGED(victim, MOB_NOKILL) || !is_mission_mob(ch, victim) ||
+                     (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && ch->next_in_room != victim &&
+                      victim->next_in_room != ch))
         {
           ;
         }
@@ -9167,13 +9063,8 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
       /*bane weapon*/
       if (victim != ch && HAS_FEAT(ch, FEAT_BANE_OF_ENEMIES) && HAS_FEAT(ch, FEAT_FAVORED_ENEMY))
       {
-        if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID))
-        {
-          send_combat_roll_info(ch, "\tW[BANE]\tn ");
-          send_combat_roll_info(victim, "\tR[BANE]\tn ");
-          dam += dice(2, 6);
-        }
-        else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim)))
+        if ((!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
+            (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))))
         {
           send_combat_roll_info(ch, "\tW[BANE]\tn ");
           send_combat_roll_info(victim, "\tR[BANE]\tn ");
@@ -9499,14 +9390,12 @@ static bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_
         {
           break;
         }
-        if ((dr->bypass_val[i] == DR_DAMTYPE_BLUDGEONING) &&
-            HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_BLUDGEONING))
-          passed = TRUE;
-        else if ((dr->bypass_val[i] == DR_DAMTYPE_SLASHING) &&
-                 HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_SLASHING))
-          passed = TRUE;
-        else if ((dr->bypass_val[i] == DR_DAMTYPE_PIERCING) &&
-                 HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_PIERCING))
+        if (((dr->bypass_val[i] == DR_DAMTYPE_BLUDGEONING) &&
+             HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_BLUDGEONING)) ||
+            ((dr->bypass_val[i] == DR_DAMTYPE_SLASHING) &&
+             HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_SLASHING)) ||
+            ((dr->bypass_val[i] == DR_DAMTYPE_PIERCING) &&
+             HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_PIERCING)))
           passed = TRUE;
         break;
       default:
@@ -9642,14 +9531,10 @@ void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_da
     return;
 
   /* weapon or claws not poisoned */
-  if (is_trelux && (TRLX_PSN_VAL(ch) <= 0 || TRLX_PSN_VAL(ch) >= NUM_SPELLS))
+  if ((is_trelux && (TRLX_PSN_VAL(ch) <= 0 || TRLX_PSN_VAL(ch) >= NUM_SPELLS)) ||
+      (!is_trelux &&
+       (wielded->weapon_poison.poison <= 0 || wielded->weapon_poison.poison >= MAX_SPELLS)))
     return;
-  else if (!is_trelux &&
-           (wielded->weapon_poison.poison <= 0 ||
-            wielded->weapon_poison.poison >= MAX_SPELLS)) /* this weapon is not poisoned */
-  {
-    return;
-  }
 
   /* decrement strength and hits on weapon */
   if (is_trelux)
@@ -10240,15 +10125,10 @@ static int compute_attack_bonus_full_with_weapon(
   case ATTACK_TYPE_OFFHAND_SNEAK:
   case ATTACK_TYPE_THIRD:
   case ATTACK_TYPE_FOURTH:
-    if (wielded && HAS_FEAT(ch, FEAT_WEAPON_FINESSE) && is_using_light_weapon(ch, wielded) &&
-        GET_DEX_BONUS(ch) > GET_STR_BONUS(ch))
-    {
-      calc_bab += GET_DEX_BONUS(ch); /* superior bonus is used */
-      if (display)
-        send_to_char(ch, "%2d: %-50s\r\n", GET_DEX_BONUS(ch), "Weapon Finesse Dex");
-    }
-    else if (!wielded && HAS_FEAT(ch, FEAT_UNARMED_STRIKE) && HAS_FEAT(ch, FEAT_WEAPON_FINESSE) &&
-             GET_DEX_BONUS(ch) > GET_STR_BONUS(ch))
+    if ((wielded && HAS_FEAT(ch, FEAT_WEAPON_FINESSE) && is_using_light_weapon(ch, wielded) &&
+         GET_DEX_BONUS(ch) > GET_STR_BONUS(ch)) ||
+        (!wielded && HAS_FEAT(ch, FEAT_UNARMED_STRIKE) && HAS_FEAT(ch, FEAT_WEAPON_FINESSE) &&
+         GET_DEX_BONUS(ch) > GET_STR_BONUS(ch)))
     {
       calc_bab += GET_DEX_BONUS(ch); /* superior bonus is used */
       if (display)
@@ -11055,19 +10935,8 @@ static int compute_attack_bonus_full_with_weapon(
   if (victim && victim != ch && !IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAVORED_ENEMY))
   {
     // checking if we have humanoid favored enemies for PC victims
-    if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID))
-    {
-      bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_RANGER) / 3 + 2;
-      if (display)
-        send_to_char(ch, "%2d: %-50s\r\n", CLASS_LEVEL(ch, CLASS_RANGER) / 3 + 2, "Favored Enemy");
-      if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
-      {
-        bonuses[BONUS_TYPE_MORALE] += 6;
-        if (display)
-          send_to_char(ch, " 6: %-50s\r\n", "Epic Favored Enemy");
-      }
-    }
-    else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim)))
+    if ((!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
+        (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))))
     {
       bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_RANGER) / 3 + 2;
       if (display)
@@ -11476,7 +11345,6 @@ int compute_cmb(struct char_data *ch,     /* Attacker */
   switch (combat_maneuver_type)
   {
   case COMBAT_MANEUVER_TYPE_KNOCKDOWN:
-    break;
   case COMBAT_MANEUVER_TYPE_KICK:
     break;
   case COMBAT_MANEUVER_TYPE_DISARM:
@@ -11490,9 +11358,6 @@ int compute_cmb(struct char_data *ch,     /* Attacker */
       cm_bonus += 2; // doubled for grapple
     break;
   case COMBAT_MANEUVER_TYPE_PIN:
-    if (HAS_FEAT(ch, FEAT_IMPROVED_GRAPPLE))
-      cm_bonus += 2;
-    break;
   case COMBAT_MANEUVER_TYPE_INIT_GRAPPLE:
     if (HAS_FEAT(ch, FEAT_IMPROVED_GRAPPLE))
       cm_bonus += 2;
@@ -11534,7 +11399,6 @@ int compute_cmd(struct char_data *vict,   /* Defender */
   switch (combat_maneuver_type)
   {
   case COMBAT_MANEUVER_TYPE_KNOCKDOWN:
-    break;
   case COMBAT_MANEUVER_TYPE_KICK:
     break;
   case COMBAT_MANEUVER_TYPE_DISARM:
@@ -11542,17 +11406,8 @@ int compute_cmd(struct char_data *vict,   /* Defender */
       cm_defense += 2;
     break;
   case COMBAT_MANEUVER_TYPE_GRAPPLE:
-    if (HAS_FEAT(vict, FEAT_IMPROVED_GRAPPLE))
-      cm_defense += 2;
-    break;
   case COMBAT_MANEUVER_TYPE_PIN:
-    if (HAS_FEAT(vict, FEAT_IMPROVED_GRAPPLE))
-      cm_defense += 2;
-    break;
   case COMBAT_MANEUVER_TYPE_INIT_GRAPPLE:
-    if (HAS_FEAT(vict, FEAT_IMPROVED_GRAPPLE))
-      cm_defense += 2;
-    break;
   case COMBAT_MANEUVER_TYPE_REVERSAL:
     if (HAS_FEAT(vict, FEAT_IMPROVED_GRAPPLE))
       cm_defense += 2;
@@ -13924,7 +13779,6 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
       return dam;
     if (wielded && artifact_weapon_proc(ch, victim, wielded, dam, is_critical))
     {
-      victim_is_dead = TRUE;
       if (attack_context_invalidated)
         *attack_context_invalidated = TRUE;
       return dam;
@@ -15267,46 +15121,41 @@ static int is_skilled_dualer(struct char_data *ch, int mode)
   switch (mode)
   {
   case MODE_2_WPN:
-    if (IS_NPC(ch))
-      return TRUE;
-    else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_TWO_WEAPON_FIGHTING) ||
-                             (compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT &&
-                              HAS_FEAT(ch, FEAT_DUAL_WEAPON_FIGHTING))))
+    if (IS_NPC(ch) || (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_TWO_WEAPON_FIGHTING) ||
+                                       (compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT &&
+                                        HAS_FEAT(ch, FEAT_DUAL_WEAPON_FIGHTING)))))
     {
       return TRUE;
     }
     else
       return FALSE;
   case MODE_IMP_2_WPN:
-    if (IS_NPC(ch) && (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE))
-      return TRUE;
-    else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING) ||
-                             (compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT &&
-                              HAS_FEAT(ch, FEAT_IMPROVED_DUAL_WEAPON_FIGHTING))))
+    if ((IS_NPC(ch) && (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE)) ||
+        (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING) ||
+                         (compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT &&
+                          HAS_FEAT(ch, FEAT_IMPROVED_DUAL_WEAPON_FIGHTING)))))
     {
       return TRUE;
     }
     else
       return FALSE;
   case MODE_GREAT_2_WPN:
-    if (IS_NPC(ch) && GET_LEVEL(ch) >= 17 &&
-        (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE))
-      return TRUE;
-    else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_GREATER_TWO_WEAPON_FIGHTING) ||
-                             (compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT &&
-                              HAS_FEAT(ch, FEAT_GREATER_DUAL_WEAPON_FIGHTING))))
+    if ((IS_NPC(ch) && GET_LEVEL(ch) >= 17 &&
+         (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE)) ||
+        (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_GREATER_TWO_WEAPON_FIGHTING) ||
+                         (compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT &&
+                          HAS_FEAT(ch, FEAT_GREATER_DUAL_WEAPON_FIGHTING)))))
     {
       return TRUE;
     }
     else
       return FALSE;
   case MODE_EPIC_2_WPN:
-    if (IS_NPC(ch) && GET_LEVEL(ch) >= 24 &&
-        (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE))
-      return TRUE;
-    else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_PERFECT_TWO_WEAPON_FIGHTING) ||
-                             (compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT &&
-                              HAS_FEAT(ch, FEAT_PERFECT_DUAL_WEAPON_FIGHTING))))
+    if ((IS_NPC(ch) && GET_LEVEL(ch) >= 24 &&
+         (GET_CLASS(ch) == CLASS_RANGER || GET_CLASS(ch) == CLASS_ROGUE)) ||
+        (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_PERFECT_TWO_WEAPON_FIGHTING) ||
+                         (compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT &&
+                          HAS_FEAT(ch, FEAT_PERFECT_DUAL_WEAPON_FIGHTING)))))
     {
       return TRUE;
     }
@@ -15526,10 +15375,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   /*  If we have no standard action (and are using regular attack mode.)
    *  Do not attack at all. If we have no move action (and are in regular
    *  attack mode) skip all phases but the first. */
-  if ((mode == NORMAL_ATTACK_ROUTINE) && !is_action_available(ch, atSTANDARD, FALSE))
-    return (0);
-  else if ((mode == NORMAL_ATTACK_ROUTINE) && (phase != PHASE_1) &&
-           !is_action_available(ch, atMOVE, FALSE))
+  if (((mode == NORMAL_ATTACK_ROUTINE) && !is_action_available(ch, atSTANDARD, FALSE)) ||
+      ((mode == NORMAL_ATTACK_ROUTINE) && (phase != PHASE_1) &&
+       !is_action_available(ch, atMOVE, FALSE)))
     return (0);
 
   guard_check(ch, FIGHTING(ch)); /* this is the guard skill check */
@@ -15716,11 +15564,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       return 0;
     }
   }
-  else if (mode == NORMAL_ATTACK_ROUTINE && IS_LAUNCHER_MODE(ch))
-  {
-    projectile_ready = can_fire_ammo(ch, TRUE);
-  }
-  else if (mode != NORMAL_ATTACK_ROUTINE)
+  else if ((mode == NORMAL_ATTACK_ROUTINE && IS_LAUNCHER_MODE(ch)) || mode != NORMAL_ATTACK_ROUTINE)
   {
     projectile_ready = can_fire_ammo(ch, TRUE);
   }

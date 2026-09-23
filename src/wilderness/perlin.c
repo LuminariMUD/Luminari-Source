@@ -316,7 +316,6 @@ double RidgedMultifractal2D(int idx, double x, double y, double H, double lacuna
   signal *= signal;
   /* assign initial values */
   result = signal;
-  weight = 1.0;
 
   for (i = 1; i < octaves; i++)
   {

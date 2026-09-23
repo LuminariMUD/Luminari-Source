@@ -332,9 +332,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     ridden_by = 1;
 
   /* if they're mounted, are they in the same room w/ their mount(ee)? */
-  if (riding && RIDING(ch)->in_room == ch->in_room)
-    same_room = 1;
-  else if (ridden_by && RIDDEN_BY(ch)->in_room == ch->in_room)
+  if ((riding && RIDING(ch)->in_room == ch->in_room) ||
+      (ridden_by && RIDDEN_BY(ch)->in_room == ch->in_room))
     same_room = 1;
 
   /* tamed mobiles cannot move about */
@@ -675,25 +674,16 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     if (!IS_NPC(mob))
       continue;
 
-    if (dir == NORTH && MOB_FLAGGED(mob, MOB_BLOCK_N))
-      block = TRUE;
-    else if (dir == EAST && MOB_FLAGGED(mob, MOB_BLOCK_E))
-      block = TRUE;
-    else if (dir == SOUTH && MOB_FLAGGED(mob, MOB_BLOCK_S))
-      block = TRUE;
-    else if (dir == WEST && MOB_FLAGGED(mob, MOB_BLOCK_W))
-      block = TRUE;
-    else if (dir == NORTHEAST && MOB_FLAGGED(mob, MOB_BLOCK_NE))
-      block = TRUE;
-    else if (dir == SOUTHEAST && MOB_FLAGGED(mob, MOB_BLOCK_SE))
-      block = TRUE;
-    else if (dir == SOUTHWEST && MOB_FLAGGED(mob, MOB_BLOCK_SW))
-      block = TRUE;
-    else if (dir == NORTHWEST && MOB_FLAGGED(mob, MOB_BLOCK_NW))
-      block = TRUE;
-    else if (dir == UP && MOB_FLAGGED(mob, MOB_BLOCK_U))
-      block = TRUE;
-    else if (dir == DOWN && MOB_FLAGGED(mob, MOB_BLOCK_D))
+    if ((dir == NORTH && MOB_FLAGGED(mob, MOB_BLOCK_N)) ||
+        (dir == EAST && MOB_FLAGGED(mob, MOB_BLOCK_E)) ||
+        (dir == SOUTH && MOB_FLAGGED(mob, MOB_BLOCK_S)) ||
+        (dir == WEST && MOB_FLAGGED(mob, MOB_BLOCK_W)) ||
+        (dir == NORTHEAST && MOB_FLAGGED(mob, MOB_BLOCK_NE)) ||
+        (dir == SOUTHEAST && MOB_FLAGGED(mob, MOB_BLOCK_SE)) ||
+        (dir == SOUTHWEST && MOB_FLAGGED(mob, MOB_BLOCK_SW)) ||
+        (dir == NORTHWEST && MOB_FLAGGED(mob, MOB_BLOCK_NW)) ||
+        (dir == UP && MOB_FLAGGED(mob, MOB_BLOCK_U)) ||
+        (dir == DOWN && MOB_FLAGGED(mob, MOB_BLOCK_D)))
       block = TRUE;
 
     if (block && MOB_FLAGGED(mob, MOB_BLOCK_RACE) && GET_RACE(ch) == GET_RACE(mob))
@@ -788,6 +778,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     int wstride_rank = get_inquisitor_wilderness_stride_rank(ch);
 
     if (!has_inquisitor_wilderness_stride(ch))
+    /* NOLINTNEXTLINE(bugprone-branch-clone) -- no stride must win over the outdoor exemption */
     {
       need_movement *= 2;
     }
@@ -1091,9 +1082,9 @@ int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bo
     send_to_char(ch, "You are too busy fighting to move!\r\n");
   else if (char_has_mud_event(ch, eFISTED))
     send_to_char(ch, "You can't move!  You are being held in place by a large clenched fist!\r\n");
-  else if (!CONFIG_DIAGONAL_DIRS && IS_DIAGONAL(dir))
-    send_to_char(ch, "Alas, you cannot go that way...\r\n");
-  else if ((!EXIT(ch, dir) && !buildwalk(ch, dir)) || EXIT(ch, dir)->to_room == NOWHERE)
+  else if ((!CONFIG_DIAGONAL_DIRS && IS_DIAGONAL(dir)) || (!EXIT(ch, dir) && !buildwalk(ch, dir)) ||
+           EXIT(ch, dir)->to_room == NOWHERE)
+    /* NOLINTNEXTLINE(bugprone-branch-clone) -- a blocked hidden exit reports the block first */
     send_to_char(ch, "Alas, you cannot go that way...\r\n");
   else if (EXIT_FLAGGED(EXIT(ch, dir), EX_BLOCKED) && GET_LEVEL(ch) < LVL_IMMORT)
     send_to_char(ch, "The way is blocked.\r\n");

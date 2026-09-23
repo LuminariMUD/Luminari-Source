@@ -231,7 +231,7 @@ void dg_read_trigger(FILE *fp, void *proto, int type, int proto_vnum)
     trg_proto = mob->proto_script;
     if (!trg_proto)
     {
-      mob->proto_script = trg_proto = new_trg;
+      mob->proto_script = new_trg;
     }
     else
     {
@@ -256,7 +256,7 @@ void dg_read_trigger(FILE *fp, void *proto, int type, int proto_vnum)
     trg_proto = room->proto_script;
     if (!trg_proto)
     {
-      room->proto_script = trg_proto = new_trg;
+      room->proto_script = new_trg;
     }
     else
     {
@@ -329,7 +329,7 @@ void dg_obj_trigger(char *line, struct obj_data *obj, int obj_vnum_id)
   trg_proto = obj->proto_script;
   if (!trg_proto)
   {
-    obj->proto_script = trg_proto = new_trg;
+    obj->proto_script = new_trg;
   }
   else
   {

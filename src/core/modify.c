@@ -837,12 +837,10 @@ static char *next_page(char *str, struct char_data *ch)
 
     /* A configured page can be wider than the descriptor output queue. Keep each
      * pager record below that queue's capacity, including conservative allowance
-     * for protocol color/MXP expansion and the page footer. */
-    if (output_bytes >= output_limit)
-      return (str);
-
-    /* If we're at the start of the next page, return this fact. */
-    else if (line > (GET_PAGE_LENGTH(ch) - (PRF_FLAGGED(ch, PRF_COMPACT) ? 1 : 2)))
+     * for protocol color/MXP expansion and the page footer. If we're at the start
+     * of the next page, return this fact too. */
+    if (output_bytes >= output_limit ||
+        line > (GET_PAGE_LENGTH(ch) - (PRF_FLAGGED(ch, PRF_COMPACT) ? 1 : 2)))
       return (str);
 
     /* Check for the beginning of an ANSI color code block. */

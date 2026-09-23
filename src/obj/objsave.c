@@ -666,20 +666,11 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
       location = LOC_INVENTORY;
       break;
     case WEAR_WIELD_OFFHAND:
-      if (!CAN_WEAR(obj, ITEM_WEAR_WIELD))
-        location = LOC_INVENTORY;
-      break;
     case WEAR_WIELD_2H:
       if (!CAN_WEAR(obj, ITEM_WEAR_WIELD))
         location = LOC_INVENTORY;
       break;
     case WEAR_HOLD_2:
-      if (CAN_WEAR(obj, ITEM_WEAR_HOLD))
-        break;
-      if (IS_WARRIOR(ch) && CAN_WEAR(obj, ITEM_WEAR_WIELD) && GET_OBJ_TYPE(obj) == ITEM_WEAPON)
-        break;
-      location = LOC_INVENTORY;
-      break;
     case WEAR_HOLD_2H:
       if (CAN_WEAR(obj, ITEM_WEAR_HOLD))
         break;
@@ -2571,14 +2562,9 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
     }
     serialized_obj = strdup(row[0]);
     /* Handle different query types */
-    if (loading_house_data == 2)
+    if (loading_house_data == 2 || loading_house_data == 3)
     {
-      /* House data fallback query without idnum */
-      obj_db_idnum = 0;
-    }
-    else if (loading_house_data == 3)
-    {
-      /* Player data fallback query without idnum */
+      /* House (2) or player (3) data fallback query without idnum */
       obj_db_idnum = 0;
     }
     else

@@ -453,30 +453,8 @@ SPECIAL(temple)
 
   one_argument(argument, arg, sizeof(arg));
 
-  if (!*arg)
-  {
-    send_to_char(ch, "Please select from the following options:\r\n");
-    send_to_char(ch, "-- %-15s %-30s%-d coins\r\n", "cure", "casts cure critical wounds",
-                 TEMPLE_COST_CURE);
-    send_to_char(ch, "-- %-15s %-30s%-d coins\r\n", "heal", "casts heal", TEMPLE_COST_HEAL);
-    send_to_char(ch, "-- %-15s %-30s%-d coins\r\n", "vision", "casts cure blindness",
-                 TEMPLE_COST_REMOVE_BLINDNESS);
-    send_to_char(ch, "-- %-15s %-30s%-d coins\r\n", "hearing", "casts cure deafness",
-                 TEMPLE_COST_REMOVE_DEAFNESS);
-    send_to_char(ch, "-- %-15s %-30s%-d coins\r\n", "poison", "casts remove poison",
-                 TEMPLE_COST_REMOVE_POISON);
-    send_to_char(ch, "-- %-15s %-30s%-d coins\r\n", "disease", "casts cure disease",
-                 TEMPLE_COST_REMOVE_DISEASE);
-    send_to_char(ch, "-- %-15s %-30s%-d coins\r\n", "curse", "casts remove curse",
-                 TEMPLE_COST_REMOVE_CURSE);
-    send_to_char(ch, "-- %-15s %-30s%-d coins\r\n", "restore", "casts restoration",
-                 TEMPLE_COST_RESTORATION);
-    send_to_char(ch, "-- %-15s %-30s%-d coins\r\n", "stamina", "casts vigorize critical",
-                 TEMPLE_COST_REJUV);
-    send_to_char(ch, "\r\n");
-    return 1;
-  }
-  else if (is_abbrev(arg, "cure"))
+  /* An empty argument matches no option below and shows the menu. */
+  if (is_abbrev(arg, "cure"))
   {
     if (temple_blessing_cost_handling(ch, TEMPLE_COST_CURE))
     {
@@ -1242,12 +1220,8 @@ ACMD(do_retainer)
 
   half_chop_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
-  if (!*arg1)
-  {
-    send_to_char(ch, "%s", RETAINER_SYNTAX);
-    return;
-  }
-  else if (is_abbrev(arg1, "call"))
+  /* An empty argument matches no subcommand below and shows the syntax. */
+  if (is_abbrev(arg1, "call"))
   {
     if (!VALID_ROOM_RNUM(IN_ROOM(ch)))
       return;
@@ -1298,7 +1272,7 @@ ACMD(do_retainer)
       return;
     }
 
-    if ((obj = retainer->carrying) == NULL)
+    if (retainer->carrying == NULL)
     {
       send_to_char(ch, "Your retainer isn't carrying anything.  Give any items you wish to sell to "
                        "your retainer and then type: retainer sell\r\n");

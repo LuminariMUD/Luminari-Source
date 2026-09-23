@@ -3510,9 +3510,6 @@ sbyte has_racial_abils_unchosen(struct char_data *ch)
   switch (GET_RACE(ch))
   {
   case RACE_HIGH_ELF:
-    if (HIGH_ELF_CANTRIP(ch) == 0)
-      return true;
-    break;
   case LEGACY_RACE_SILVANESTI_ELF:
     if (HIGH_ELF_CANTRIP(ch) == 0)
       return true;

@@ -203,7 +203,7 @@ static char *build_pet_keyword_list(const char *saved_keywords, const char *prot
  * table for the player file. */
 void build_player_index(void)
 {
-  int rec_count = 0, i, nr;
+  int rec_count = 0, i;
   size_t name_length;
   FILE *plr_index;
   char index_name[40], line[MEDIUM_STRING] = {'\0'}, bits[64];
@@ -246,12 +246,11 @@ void build_player_index(void)
   for (i = 0; i < rec_count; i++)
   {
     get_line(plr_index, line);
-    if ((nr = sscanf(line, "%ld %79s %d %63s %ld %d", &player_table[i].id, arg2,
-                     &player_table[i].level, bits, (long *)&player_table[i].last,
-                     &player_table[i].clan)) != 6)
+    if (sscanf(line, "%ld %79s %d %63s %ld %d", &player_table[i].id, arg2, &player_table[i].level,
+               bits, (long *)&player_table[i].last, &player_table[i].clan) != 6)
     {
-      if ((nr = sscanf(line, "%ld %79s %d %63s %ld", &player_table[i].id, arg2,
-                       &player_table[i].level, bits, (long *)&player_table[i].last)) != 5)
+      if (sscanf(line, "%ld %79s %d %63s %ld", &player_table[i].id, arg2, &player_table[i].level,
+                 bits, (long *)&player_table[i].last) != 5)
       {
         log("SYSERR: Invalid line in player index (%s)", line);
         continue;
@@ -1082,8 +1081,6 @@ int load_char(const char *name, struct char_data *ch)
         }
         else if (!strcmp(tag, "CrVt"))
           GET_CRAFT(ch).craft_variant = parse_int(line);
-        else if (!strcmp(tag, "CrMe"))
-          GET_CRAFT(ch).crafting_method = parse_int(line);
         else if (!strcmp(tag, "CrEn"))
           GET_CRAFT(ch).enhancement = parse_int(line);
         else if (!strcmp(tag, "CrEM"))
@@ -5434,11 +5431,6 @@ static void load_devices(FILE *fl, struct char_data *ch)
   {
     get_line(fl, line);
   }
-  else
-  {
-    /* consume pre-read terminator by clearing flag */
-    has_pre_line = 0;
-  }
 }
 
 static void load_skills(FILE *fl, struct char_data *ch)
@@ -5527,14 +5519,14 @@ void load_known_evolutions(FILE *fl, struct char_data *ch)
 
 void load_class_feat_points(FILE *fl, struct char_data *ch)
 {
-  int cls = 0, pts = 0, num_fields = 0;
+  int cls = 0, pts = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do
   {
     get_line(fl, line);
 
-    if ((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
+    if (sscanf(line, "%d %d", &cls, &pts) == 1)
       return;
     GET_CLASS_FEATS(ch, cls) = (byte)pts;
   } while (1);
@@ -5542,14 +5534,14 @@ void load_class_feat_points(FILE *fl, struct char_data *ch)
 
 void load_epic_class_feat_points(FILE *fl, struct char_data *ch)
 {
-  int cls = 0, pts = 0, num_fields = 0;
+  int cls = 0, pts = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do
   {
     get_line(fl, line);
 
-    if ((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
+    if (sscanf(line, "%d %d", &cls, &pts) == 1)
       return;
     GET_EPIC_CLASS_FEATS(ch, cls) = (byte)pts;
   } while (1);
@@ -7100,7 +7092,6 @@ bool save_char_pets(struct char_data *ch)
   success = false;
   transaction_started = false;
   cache_entry = NULL;
-  fingerprint = 0;
   escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(ch));
   if (!escaped_owner)
   {
@@ -7140,6 +7131,7 @@ bool save_char_pets(struct char_data *ch)
     log_pet_save_failure(ch, NOBODY, "start transaction", mysql_errno(conn), mysql_error(conn));
     goto cleanup;
   }
+  /* NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores) -- arms cleanup's safety-net rollback */
   transaction_started = true;
 
   /* Replace only rows this owner binding owns; a differently bound row under the
@@ -7925,6 +7917,7 @@ bool pet_store_pet(struct char_data *owner, struct char_data *pet)
                          mysql_error(conn));
     goto cleanup;
   }
+  /* NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores) -- arms cleanup's safety-net rollback */
   transaction_started = true;
 
   /* Replace this pet's own rows only; other followers stay untouched.  The

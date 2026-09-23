@@ -1583,6 +1583,7 @@ static void reset_time(void)
   time_info = *mud_time_passed(time(0), beginning_of_time);
 
   if (time_info.hours <= 4)
+    /* NOLINTNEXTLINE(bugprone-branch-clone) -- day order: dark before sunrise and after sunset */
     weather_info.sunlight = SUN_DARK;
   else if (time_info.hours == 5)
     weather_info.sunlight = SUN_RISE;
@@ -6004,6 +6005,7 @@ static void reset_zone_transfer_impl(zone_rnum zone)
       {
         /* Add logging for debugging */
         if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0)
+        /* NOLINTNEXTLINE(bugprone-branch-clone) -- each arm keeps its own disabled log call */
         {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'P' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum,
@@ -6089,6 +6091,7 @@ static void reset_zone_transfer_impl(zone_rnum zone)
       {
         /* Add logging for debugging */
         if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0)
+        /* NOLINTNEXTLINE(bugprone-branch-clone) -- each arm keeps its own disabled log call */
         {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'G' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum,
@@ -6239,6 +6242,7 @@ static void reset_zone_transfer_impl(zone_rnum zone)
       {
         /* Add logging for debugging */
         if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0)
+        /* NOLINTNEXTLINE(bugprone-branch-clone) -- each arm keeps its own disabled log call */
         {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'E' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum,

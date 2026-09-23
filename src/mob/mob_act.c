@@ -415,18 +415,10 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
             continue;
           if (HAS_FEAT(ch, FEAT_COWARDLY) && dice(1, 4) < 4)
             continue;
-          if (mob_is_encounter && ((mob_level - GET_LEVEL(vict)) < 2))
+          /* We don't want abandoned random encounters killing people they weren't meant
+           * for; all other aggro mobs attack. */
+          if ((mob_is_encounter && ((mob_level - GET_LEVEL(vict)) < 2)) || !mob_is_encounter)
           {
-            // We don't want abandoned random encounters killing people they weren't meant for
-            hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-            found = TRUE;
-            /* CRITICAL: mob may have been extracted during combat */
-            if (!ch || ch->in_room == NOWHERE)
-              break;
-          }
-          else if (!mob_is_encounter)
-          {
-            // all other aggro mobs
             hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
             found = TRUE;
             /* CRITICAL: mob may have been extracted during combat */

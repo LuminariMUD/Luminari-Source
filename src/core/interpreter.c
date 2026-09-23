@@ -7842,8 +7842,8 @@ MUD_EVENT_CALLBACK(get_protocols)
                   d->pProtocol->bMXP ? "Yes" : "No");
   len += snprintf(buf + len, MAX_STRING_LENGTH - len, "\tO[\toMSDP\tO] \tw%s\tn | ",
                   d->pProtocol->bMSDP ? "Yes" : "No");
-  len += snprintf(buf + len, MAX_STRING_LENGTH - len, "\tO[\toGMCP\tO] \tw%s\tn\r\n\r\n",
-                  d->pProtocol->bGMCP ? "Yes" : "No");
+  snprintf(buf + len, MAX_STRING_LENGTH - len, "\tO[\toGMCP\tO] \tw%s\tn\r\n\r\n",
+           d->pProtocol->bGMCP ? "Yes" : "No");
 
   write_to_output(d, "%s", buf);
 
@@ -8195,7 +8195,7 @@ void nanny(struct descriptor_data *d, char *arg)
         show_account_menu(d);
         return;
       }
-      if ((player_i = load_char(tmp_name, d->character)) > -1)
+      if (load_char(tmp_name, d->character) > -1)
       {
         /* Player found! */
 

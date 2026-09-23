@@ -1154,8 +1154,6 @@ static void add_premade_summoner_evolutions(struct char_data *ch, int level)
     add_premade_aspect(ch, EVOLUTION_ELECTRIC_ATTACK);
     break;
   case 19:
-    add_premade_evolution(ch, EVOLUTION_IMPROVED_NATURAL_ARMOR);
-    break;
   case 20:
     add_premade_evolution(ch, EVOLUTION_IMPROVED_NATURAL_ARMOR);
     break;

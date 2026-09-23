@@ -106,27 +106,20 @@ static int find_door(struct char_data *ch, const char *type, char *dir, const ch
         {
           if (isname(type, EXIT(ch, door)->keyword) || is_abbrev(type, dirs[door]))
           {
+            /* cmdname is one of cmd_door[], so at most one is_abbrev() test matches */
             if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) && GET_LEVEL(ch) < LVL_IMMORT)
               ;
-            else if ((!IS_NPC(ch)) && (!PRF_FLAGGED(ch, PRF_AUTODOOR)))
-              return door;
-            else if (is_abbrev(cmdname, "open"))
-            {
-              if (IS_SET(EXIT(ch, door)->exit_info, EX_CLOSED))
-                return door;
-              else if (IS_SET(EXIT(ch, door)->exit_info, EX_LOCKED))
-                return door;
-            }
-            else if ((is_abbrev(cmdname, "close")) &&
-                     (!(IS_SET(EXIT(ch, door)->exit_info, EX_CLOSED))))
-              return door;
-            else if ((is_abbrev(cmdname, "lock")) &&
-                     (!(IS_SET(EXIT(ch, door)->exit_info, EX_LOCKED))))
-              return door;
-            else if ((is_abbrev(cmdname, "unlock")) &&
-                     (IS_SET(EXIT(ch, door)->exit_info, EX_LOCKED)))
-              return door;
-            else if ((is_abbrev(cmdname, "pick")) && (IS_SET(EXIT(ch, door)->exit_info, EX_LOCKED)))
+            else if ((!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_AUTODOOR)) ||
+                     (is_abbrev(cmdname, "open") &&
+                      (IS_SET(EXIT(ch, door)->exit_info, EX_CLOSED) ||
+                       IS_SET(EXIT(ch, door)->exit_info, EX_LOCKED))) ||
+                     (is_abbrev(cmdname, "close") &&
+                      !IS_SET(EXIT(ch, door)->exit_info, EX_CLOSED)) ||
+                     (is_abbrev(cmdname, "lock") &&
+                      !IS_SET(EXIT(ch, door)->exit_info, EX_LOCKED)) ||
+                     (is_abbrev(cmdname, "unlock") &&
+                      IS_SET(EXIT(ch, door)->exit_info, EX_LOCKED)) ||
+                     (is_abbrev(cmdname, "pick") && IS_SET(EXIT(ch, door)->exit_info, EX_LOCKED)))
               return door;
           }
         }

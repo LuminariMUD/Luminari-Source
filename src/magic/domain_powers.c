@@ -567,7 +567,7 @@ ACMD(do_ethshift) {
 ACMD(do_battlerage)
 {
   struct affected_type af, aftwo;
-  int bonus = 0, duration = 0, uses_remaining = 0;
+  int bonus = 0, duration = 0;
 
   if (AFF_FLAGGED(ch, AFF_FATIGUED))
   {
@@ -587,7 +587,7 @@ ACMD(do_battlerage)
     return;
   }
 
-  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_BATTLE_RAGE)) == 0))
+  if (!IS_NPC(ch) && (daily_uses_remaining(ch, FEAT_BATTLE_RAGE) == 0))
   {
     send_to_char(ch, "You must recover before you can go into a battle rage.\r\n");
     return;

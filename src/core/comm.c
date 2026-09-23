@@ -1973,7 +1973,6 @@ static int persistence_run_player_task(enum persistence_task task)
     return PERSISTENCE_STEP_PROGRESS;
   }
 
-  success = false;
   if (task == PERSISTENCE_TASK_CHARACTER)
   {
     PERF_PROF_ENTER_SAMPLED(pr_minute_char_save_, "minute.character_save");
@@ -2047,7 +2046,6 @@ static void persistence_scheduler_step(uint64_t heart_pulse)
   if (!persistence_scheduler.active)
     return;
   PERF_PROF_ENTER_SAMPLED(pr_persistence_scheduler_, "persistence.scheduler");
-  result = PERSISTENCE_STEP_IDLE;
   task = persistence_scheduler.next_task;
   for (attempts = 0; attempts < PERSISTENCE_TASK_COUNT; attempts++)
   {
@@ -2962,15 +2960,9 @@ static const char *make_prompt(struct descriptor_data *d)
         if (IS_DARK(IN_ROOM(ch)))
           isDark = 1;
 
-        if (isDark && !CAN_SEE_IN_DARK(ch) && !CAN_INFRA_IN_DARK(ch))
-        {
-          seesExits = 0;
-        }
-        else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT && !has_blindsense(ch))
-        {
-          seesExits = 0;
-        }
-        else if (ROOM_AFFECTED(ch->in_room, RAFF_FOG))
+        if ((isDark && !CAN_SEE_IN_DARK(ch) && !CAN_INFRA_IN_DARK(ch)) ||
+            (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT && !has_blindsense(ch)) ||
+            ROOM_AFFECTED(ch->in_room, RAFF_FOG))
         {
           seesExits = 0;
         }

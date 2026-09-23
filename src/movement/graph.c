@@ -453,7 +453,6 @@ void hunt_victim(struct char_data *ch)
   {
     if (MOB_FLAGGED(ch, MOB_MEMORY) && MEMORY(ch))
     {
-      mem_found = FALSE;
       for (mem_found = FALSE, tmp = character_list; tmp && !mem_found; tmp = tmp->next)
       {
         if (IS_NPC(tmp) || !CAN_SEE(ch, tmp) || PRF_FLAGGED(tmp, PRF_NOHASSLE))

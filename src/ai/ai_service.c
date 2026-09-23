@@ -1746,14 +1746,10 @@ static int json_escape_string(char *dest, size_t dest_size, const char *src)
       space_left -= 2;
       break;
     default:
-      if ((unsigned char)*s < 0x20)
+      if ((unsigned char)*s < 0x20 || (unsigned char)*s >= 0x80)
       {
-        /* Other control characters - skip them */
-        continue;
-      }
-      else if ((unsigned char)*s >= 0x80)
-      {
-        /* Non-ASCII characters are excluded from this ASCII-only JSON path. */
+        /* Skip other control characters, and non-ASCII characters, which are
+           excluded from this ASCII-only JSON path. */
         continue;
       }
       else

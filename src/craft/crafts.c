@@ -216,10 +216,9 @@ static void load_crafts_from(FILE *fp)
   struct craft_data *craft = NULL;
   struct requirement_data *requirement;
   bool in_craft = FALSE;
-  bool done = FALSE;
 
   {
-    while ((line = fread_line(fp)) != NULL && line[0] != '\0' && !done)
+    while ((line = fread_line(fp)) != NULL && line[0] != '\0')
     {
       if (!in_craft && !strcmp(line, "NEW"))
       {
@@ -228,7 +227,6 @@ static void load_crafts_from(FILE *fp)
       }
       else if (line[0] == '$')
       {
-        done = TRUE;
         break;
       }
       else if (in_craft)
@@ -471,9 +469,7 @@ static void sort_craft_list(void)
     rem_craft = NULL;
     while ((craft = (struct craft_data *)simple_list(global_craft_list)) != NULL)
     {
-      if (rem_craft == NULL)
-        rem_craft = craft;
-      else if (CRAFT_ID(craft) <= CRAFT_ID(rem_craft))
+      if (rem_craft == NULL || CRAFT_ID(craft) <= CRAFT_ID(rem_craft))
         rem_craft = craft;
     }
     if (rem_craft != NULL)
@@ -652,7 +648,6 @@ static int missing_craft_requirements(struct char_data *ch, struct craft_data *c
   int needs[NUM_CRAFT_MATS];
   struct iterator_data iterator;
   struct requirement_data *requirement;
-  obj_rnum rnum;
 
   if (!craft->requirements->iSize)
     return (-1);
@@ -660,7 +655,7 @@ static int missing_craft_requirements(struct char_data *ch, struct craft_data *c
   for (requirement = (struct requirement_data *)merge_iterator(&iterator, craft->requirements);
        requirement != NULL; requirement = (struct requirement_data *)next_in_list(&iterator))
   {
-    if ((rnum = real_object(requirement->req_vnum)) == NOTHING)
+    if (real_object(requirement->req_vnum) == NOTHING)
       continue;
     if (requirement_balance_material(requirement) != CRAFT_MAT_NONE)
       continue; /* checked in aggregate below */

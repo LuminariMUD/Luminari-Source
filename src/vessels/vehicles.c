@@ -1506,10 +1506,12 @@ int get_vehicle_speed_modifier(struct vehicle_data *vehicle, int sector_type)
     return VEHICLE_SPEED_MOD_ROAD;
   case VTERRAIN_PLAINS:
     return VEHICLE_SPEED_MOD_PLAINS;
+  /* NOLINTNEXTLINE(bugprone-branch-clone) -- per-terrain tunables that happen to match */
   case VTERRAIN_FOREST:
     return VEHICLE_SPEED_MOD_FOREST;
   case VTERRAIN_HILLS:
     return VEHICLE_SPEED_MOD_HILLS;
+  /* NOLINTNEXTLINE(bugprone-branch-clone) -- per-terrain tunables that happen to match */
   case VTERRAIN_MOUNTAIN:
     return VEHICLE_SPEED_MOD_MOUNTAIN;
   case VTERRAIN_SWAMP:

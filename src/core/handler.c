@@ -509,27 +509,17 @@ static void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod,
     GET_RESISTANCES(ch, DAM_WATER) += mod;
     break;
   case APPLY_DR:
-    break;
     /* Do Not Use. */
   case APPLY_FEAT:
-    break;
   case APPLY_AGE:
     // ch->player.time.birth -= (mod * SECS_PER_MUD_YEAR);
-    break;
   case APPLY_CLASS:
-    break;
   case APPLY_LEVEL:
-    break;
   case APPLY_GOLD:
-    break;
   case APPLY_EXP:
-    break;
   case APPLY_NONE:
-    break;
   case APPLY_SKILL:
-    break;
   case APPLY_POWER_RES:
-    break;
   case APPLY_SPECIAL:
     break;
   case APPLY_HP_REGEN:
@@ -847,12 +837,6 @@ void compute_char_cap(struct char_data *ch, int mode)
         dam_cap += class_level / 3;
         break;
       case CLASS_SPELLSWORD:
-        int_cap += class_level / 4 + 1;
-        str_cap += class_level / 4 + 1;
-        cha_cap += class_level / 4 + 1;
-        hit_cap += class_level / 3;
-        dam_cap += class_level / 3;
-        break;
       case CLASS_ELDRITCH_KNIGHT:
       case CLASS_ALCHEMIST:
         int_cap += class_level / 4 + 1;
@@ -2489,7 +2473,6 @@ int invalid_prof(struct char_data *ch, struct obj_data *obj)
   switch (GET_OBJ_PROF(obj))
   {
   case ITEM_PROF_NONE:
-    return FALSE;
   case ITEM_PROF_MINIMAL:
     return FALSE;
   case ITEM_PROF_BASIC:
@@ -2797,11 +2780,10 @@ int get_number(char **name)
     strlcpy(number, namebuf, sizeof(number));
     memmove(*name, ppos, strlen(ppos) + 1);
 
+    retval = parse_int(number);
     for (i = 0; *(number + i); i++)
       if (!isdigit(*(number + i)))
         retval = 0;
-
-    retval = parse_int(number);
   }
 
   free(namebuf);
@@ -2969,7 +2951,6 @@ void obj_to_obj(struct obj_data *obj, struct obj_data *obj_to)
   obj->next_content = obj_to->contains;
   obj_to->contains = obj;
   obj->in_obj = obj_to;
-  tmp_obj = obj->in_obj;
 
   /* Add weight to container, unless unlimited. */
   if (GET_OBJ_VAL(obj->in_obj, 0) > 0)
@@ -2998,7 +2979,6 @@ void obj_from_obj(struct obj_data *obj)
   }
   domain_object_detaching(obj);
   obj_from = obj->in_obj;
-  temp = obj->in_obj;
   REMOVE_FROM_LIST(obj, obj_from->contains, next_content);
 
   /* Subtract weight from containers container unless unlimited. */

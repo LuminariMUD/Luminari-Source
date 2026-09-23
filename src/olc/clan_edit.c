@@ -190,7 +190,7 @@ void save_single_clan(clan_rnum c)
   FILE *fl, *new_fl;
   char tmpname[256];
   char line[MAX_INPUT_LENGTH + 1]; /* tag[6] unused in this function */
-  int j, x, gl, current_clan = -1;
+  int j, x, current_clan = -1;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
   if (c == NO_CLAN || c >= (clan_rnum)num_of_clans)
@@ -226,7 +226,7 @@ void save_single_clan(clan_rnum c)
   fprintf(new_fl, "* Number of clans: %d\n", num_of_clans);
 
   /* Read and copy clans, replacing the modified one */
-  while ((gl = get_line(fl, line)) && *line != '$')
+  while (get_line(fl, line) && *line != '$')
   {
     /* Skip comment lines */
     if (*line == '*')
@@ -330,7 +330,7 @@ void save_single_clan(clan_rnum c)
 
 
         /* Skip the rest of this clan in the original file */
-        while ((gl = get_line(fl, line)) && *line != '#' && *line != '$')
+        while (get_line(fl, line) && *line != '#' && *line != '$')
         {
           /* Skip until we find the next clan or end of file */
         }
@@ -339,7 +339,6 @@ void save_single_clan(clan_rnum c)
         if (*line == '#')
         {
           fprintf(new_fl, "%s\n", line);
-          current_clan = parse_int(line + 1);
         }
         else if (*line == '$')
         {

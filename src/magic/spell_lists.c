@@ -156,347 +156,43 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
 
         bool auto_cantrip_known = spell_is_cantrip(i) && sinfo == 0 && CLASS_LEVEL(ch, class) > 0;
 
-        if (class == CLASS_SORCERER &&
-            (is_a_known_spell(ch, CLASS_SORCERER, i) || (auto_cantrip_known && slot == 0)) &&
-            compute_spells_circle(ch, CLASS_SORCERER, i, 0, DOMAIN_UNDEFINED) == slot)
-        {
-          if (!header_added)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            header_added = TRUE;
-            col = 0;
-          }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          }
-          else
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
-                            spell_info[i].time);
-          }
-          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-          {
-            break;
-          }
-          len += nlen;
-          col++;
-          if (col == 3)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            col = 0;
-          }
-        }
-        else if (class == CLASS_BARD &&
-                 (is_a_known_spell(ch, CLASS_BARD, i) || (auto_cantrip_known && slot == 0)) &&
-                 compute_spells_circle(ch, CLASS_BARD, i, 0, DOMAIN_UNDEFINED) == slot)
-        {
-          if (!header_added)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            header_added = TRUE;
-            col = 0;
-          }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          }
-          else
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
-                            spell_info[i].time);
-          }
-          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-          {
-            break;
-          }
-          len += nlen;
-          col++;
-          if (col == 3)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            col = 0;
-          }
-        }
-        else if (class == CLASS_SUMMONER &&
-                 (is_a_known_spell(ch, CLASS_SUMMONER, i) || (auto_cantrip_known && slot == 0)) &&
-                 compute_spells_circle(ch, CLASS_SUMMONER, i, 0, DOMAIN_UNDEFINED) == slot)
-        {
-          if (!header_added)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            header_added = TRUE;
-            col = 0;
-          }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          }
-          else
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
-                            spell_info[i].time);
-          }
-          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-          {
-            break;
-          }
-          len += nlen;
-          col++;
-          if (col == 3)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            col = 0;
-          }
-        }
-        else if (class == CLASS_INQUISITOR &&
-                 (is_a_known_spell(ch, CLASS_INQUISITOR, i) || (auto_cantrip_known && slot == 0)) &&
-                 compute_spells_circle(ch, CLASS_INQUISITOR, i, 0, GET_1ST_DOMAIN(ch)) == slot)
-        {
-          if (!header_added)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            header_added = TRUE;
-            col = 0;
-          }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          }
-          else
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
-                            spell_info[i].time);
-          }
-          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-          {
-            break;
-          }
-          len += nlen;
-          col++;
-          if (col == 3)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            col = 0;
-          }
-        }
-        else if (class == CLASS_WARLOCK &&
-                 (is_a_known_spell(ch, CLASS_WARLOCK, i) || (auto_cantrip_known && slot == 0)) &&
-                 warlock_spell_type(i) == WARLOCK_POWER_SPELL &&
-                 compute_spells_circle(ch, CLASS_WARLOCK, i, 0, DOMAIN_UNDEFINED) == slot)
-        {
-          if (!header_added)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            header_added = TRUE;
-            col = 0;
-          }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          }
-          else
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
-                            spell_info[i].time);
-          }
-          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-          {
-            break;
-          }
-          len += nlen;
-          col++;
-          if (col == 3)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            col = 0;
-          }
-        }
-        else if (class == CLASS_PSIONICIST &&
-                 (is_a_known_spell(ch, CLASS_PSIONICIST, i) || (auto_cantrip_known && slot == 0)) &&
-                 compute_spells_circle(ch, CLASS_PSIONICIST, i, 0, DOMAIN_UNDEFINED) == slot)
-        {
-          if (!header_added)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            header_added = TRUE;
-            col = 0;
-          }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          }
-          else
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
-                            spell_info[i].time);
-          }
-          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-          {
-            break;
-          }
-          len += nlen;
-          col++;
-          if (col == 3)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            col = 0;
-          }
-        }
-        else if (class == CLASS_WIZARD && spellbook_ok(ch, i, class, FALSE) &&
-                 (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >= sinfo &&
-                 compute_spells_circle(ch, class, i, 0, DOMAIN_UNDEFINED) == slot &&
-                 ((slot == 0 && sinfo == 0) || GET_SKILL(ch, i)))
-        {
-          if (!header_added)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            header_added = TRUE;
-            col = 0;
-          }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          }
-          else
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
-                            spell_info[i].time);
-          }
-          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-          {
-            break;
-          }
-          len += nlen;
-          col++;
-          if (col == 3)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            col = 0;
-          }
-        }
-        else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD &&
-                 class != CLASS_INQUISITOR && class != CLASS_PSIONICIST && class != CLASS_WARLOCK &&
-                 class != CLASS_SUMMONER &&
-                 (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >=
-                     MIN_SPELL_LVL(i, class, domain_1) &&
-                 compute_spells_circle(ch, class, i, 0, domain_1) == slot &&
-                 ((slot == 0 && sinfo == 0) || GET_SKILL(ch, i)))
-        {
-          if (!header_added)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            header_added = TRUE;
-            col = 0;
-          }
-          if (CONFIG_SPELLCASTING_TIME_MODE == 0)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s  ", spell_info[i].name);
-          }
-          else
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
-                            spell_info[i].time);
-          }
-          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-          {
-            break;
-          }
-          len += nlen;
-          col++;
-          if (col == 3)
-          {
-            nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
-            {
-              break;
-            }
-            len += nlen;
-            col = 0;
-          }
-        }
-        else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD &&
-                 class != CLASS_INQUISITOR && class != CLASS_PSIONICIST && class != CLASS_WARLOCK &&
-                 class != CLASS_SUMMONER &&
-                 (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >=
-                     MIN_SPELL_LVL(i, class, domain_2) &&
-                 compute_spells_circle(ch, class, i, 0, domain_2) == slot &&
-                 ((slot == 0 && sinfo == 0) || GET_SKILL(ch, i)))
+        if ((class == CLASS_SORCERER &&
+             (is_a_known_spell(ch, CLASS_SORCERER, i) || (auto_cantrip_known && slot == 0)) &&
+             compute_spells_circle(ch, CLASS_SORCERER, i, 0, DOMAIN_UNDEFINED) == slot) ||
+            (class == CLASS_BARD &&
+             (is_a_known_spell(ch, CLASS_BARD, i) || (auto_cantrip_known && slot == 0)) &&
+             compute_spells_circle(ch, CLASS_BARD, i, 0, DOMAIN_UNDEFINED) == slot) ||
+            (class == CLASS_SUMMONER &&
+             (is_a_known_spell(ch, CLASS_SUMMONER, i) || (auto_cantrip_known && slot == 0)) &&
+             compute_spells_circle(ch, CLASS_SUMMONER, i, 0, DOMAIN_UNDEFINED) == slot) ||
+            (class == CLASS_INQUISITOR &&
+             (is_a_known_spell(ch, CLASS_INQUISITOR, i) || (auto_cantrip_known && slot == 0)) &&
+             compute_spells_circle(ch, CLASS_INQUISITOR, i, 0, GET_1ST_DOMAIN(ch)) == slot) ||
+            (class == CLASS_WARLOCK &&
+             (is_a_known_spell(ch, CLASS_WARLOCK, i) || (auto_cantrip_known && slot == 0)) &&
+             warlock_spell_type(i) == WARLOCK_POWER_SPELL &&
+             compute_spells_circle(ch, CLASS_WARLOCK, i, 0, DOMAIN_UNDEFINED) == slot) ||
+            (class == CLASS_PSIONICIST &&
+             (is_a_known_spell(ch, CLASS_PSIONICIST, i) || (auto_cantrip_known && slot == 0)) &&
+             compute_spells_circle(ch, CLASS_PSIONICIST, i, 0, DOMAIN_UNDEFINED) == slot) ||
+            (class == CLASS_WIZARD && spellbook_ok(ch, i, class, FALSE) &&
+             (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >= sinfo &&
+             compute_spells_circle(ch, class, i, 0, DOMAIN_UNDEFINED) == slot &&
+             ((slot == 0 && sinfo == 0) || GET_SKILL(ch, i))) ||
+            (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD &&
+             class != CLASS_INQUISITOR && class != CLASS_PSIONICIST && class != CLASS_WARLOCK &&
+             class != CLASS_SUMMONER &&
+             (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >=
+                 MIN_SPELL_LVL(i, class, domain_1) &&
+             compute_spells_circle(ch, class, i, 0, domain_1) == slot &&
+             ((slot == 0 && sinfo == 0) || GET_SKILL(ch, i))) ||
+            (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD &&
+             class != CLASS_INQUISITOR && class != CLASS_PSIONICIST && class != CLASS_WARLOCK &&
+             class != CLASS_SUMMONER &&
+             (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >=
+                 MIN_SPELL_LVL(i, class, domain_2) &&
+             compute_spells_circle(ch, class, i, 0, domain_2) == slot &&
+             ((slot == 0 && sinfo == 0) || GET_SKILL(ch, i))))
         {
           if (!header_added)
           {
@@ -554,7 +250,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
 
     if (class == CLASS_PALADIN || class == CLASS_RANGER)
       slot = 4;
-    if (class == CLASS_ALCHEMIST)
+    else if (class == CLASS_ALCHEMIST)
       slot = 6;
     else
       slot = 9;
@@ -576,7 +272,6 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
       for (; bottom < top; bottom++)
       {
         i = spell_sort_info[bottom];
-        sinfo = spell_info[i].min_level[class];
         if (do_not_list_spell(i))
           continue;
 
@@ -617,9 +312,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
   /* Append acronym legend for bst only in seconds-based mode */
   if (CONFIG_SPELLCASTING_TIME_MODE != 0)
   {
-    nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\nbst: base spellcasting time\r\n");
-    if (len + nlen < sizeof(buf2) && nlen > 0)
-      len += nlen;
+    snprintf(buf2 + len, sizeof(buf2) - len, "\r\nbst: base spellcasting time\r\n");
   }
 
   page_string(ch->desc, buf2, TRUE);

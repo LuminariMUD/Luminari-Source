@@ -1978,13 +1978,10 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
     else
     { /* failed!! */
       /* Messages for shield charge */
-      if (skill == SKILL_SHIELD_CHARGE)
+      if (skill == SKILL_SHIELD_CHARGE || skill == SPELL_BANISHING_BLADE ||
+          skill == EVOLUTION_WING_BUFFET_EFFECT)
       {
-        /* just moved this to damage-messages */
-      }
-      else if (skill == SPELL_BANISHING_BLADE || skill == EVOLUTION_WING_BUFFET_EFFECT)
-      {
-        // no fail message
+        /* shield charge messages moved to damage-messages; the others have no fail message */
       }
       else
       {
@@ -2641,10 +2638,9 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict)
   if (!IS_NPC(ch) && has_paladin_cleansing_touch(ch))
   {
     struct affected_type *af = NULL, *af_next = NULL;
-    bool removed = FALSE;
 
     /* Try to find and remove a negative affect */
-    for (af = vict->affected; af && !removed; af = af_next)
+    for (af = vict->affected; af; af = af_next)
     {
       af_next = af->next;
 
@@ -2662,7 +2658,6 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict)
           send_to_char(ch, "\tWYou cleanse %s's affliction '%s'!\tn\r\n", GET_NAME(vict),
                        spell_info[af->spell].name);
         affect_from_char(vict, af->spell);
-        removed = TRUE;
         break;
       }
     }
@@ -4883,7 +4878,6 @@ ACMD(do_hit)
           continue;
 
         // ok we found one
-        found = true;
         snprintf(mob_keys, sizeof(mob_keys), "%s", (mob)->player.name);
         for (i = 0; (size_t)i < strlen(mob_keys); i++)
           if (mob_keys[i] == ' ')
@@ -5086,12 +5080,9 @@ ACMD(do_kill)
       send_to_char(ch, "Targets room just has such a peaceful, easy feeling...\r\n");
       return;
     }
-    else if (GET_LEVEL(ch) <= GET_LEVEL(vict) || (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_NOHASSLE)))
-    {
-      do_hit(ch, argument, cmd, subcmd);
-      return;
-    }
-    else if (GET_LEVEL(ch) < LVL_GRSTAFF || IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_NOHASSLE))
+    else if (GET_LEVEL(ch) <= GET_LEVEL(vict) ||
+             (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_NOHASSLE)) || GET_LEVEL(ch) < LVL_GRSTAFF ||
+             IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_NOHASSLE))
     {
       do_hit(ch, argument, cmd, subcmd);
       return;
@@ -11366,7 +11357,6 @@ ACMD(do_charge)
           continue;
 
         // ok we found one
-        found = true;
         snprintf(mob_keys, sizeof(mob_keys), "%s", (mob)->player.name);
         for (i = 0; (size_t)i < strlen(mob_keys); i++)
           if (mob_keys[i] == ' ')
@@ -13497,7 +13487,7 @@ void throw_hedging_weapon(struct char_data *ch)
   if (!affected_by_spell(ch, SPELL_HEDGING_WEAPONS))
     return;
 
-  struct affected_type *af = ch->affected;
+  struct affected_type *af = NULL;
   bool remove = false;
   int roll = 0, defense = 0, dam = 0;
 

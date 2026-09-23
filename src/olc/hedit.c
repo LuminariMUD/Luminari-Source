@@ -1671,15 +1671,15 @@ ACMD(do_hindex)
   if (!count)
     len = snprintf_append(buf, sizeof(buf), len, "  None.\r\n");
   if (!count2)
-    len2 = snprintf_append(buf2, sizeof(buf2), len2, "  None.\r\n");
+    snprintf_append(buf2, sizeof(buf2), len2, "  None.\r\n");
 
   /* Join the two strings */
   len = snprintf_append(buf, sizeof(buf), len, "%s", buf2);
 
-  len = snprintf_append(buf, sizeof(buf), len,
-                        "\t1Applicable Index Entries: \t3%d\r\n"
-                        "\t1Total Index Entries: \t3%d\tn\r\n",
-                        count + count2, total_entries);
+  snprintf_append(buf, sizeof(buf), len,
+                  "\t1Applicable Index Entries: \t3%d\r\n"
+                  "\t1Total Index Entries: \t3%d\tn\r\n",
+                  count + count2, total_entries);
 
   page_string(ch->desc, buf, TRUE);
 }

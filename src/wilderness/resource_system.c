@@ -1844,7 +1844,7 @@ const char *get_enhanced_material_description(int category, int subtype, int qua
 {
   static char enhanced_desc_buf[512];
   const char *material_name_value = get_enhanced_material_name(category, subtype, quality);
-  const char *crafting_use = "";
+  const char *crafting_use;
 
   /* Determine crafting applications */
   switch (category)
@@ -1963,10 +1963,9 @@ int can_harvest_resource_in_terrain(int resource_type, int sector_type)
     switch (sector_type)
     {
     case SECT_FOREST:
+    case SECT_FIELD: /* Scattered trees */
+    case SECT_HILLS: /* Scattered trees */
       return 1;
-    case SECT_FIELD:
-    case SECT_HILLS:
-      return 1; /* Scattered trees */
     case SECT_WATER_SWIM:
     case SECT_WATER_NOSWIM:
     case SECT_UNDERWATER:
@@ -1975,9 +1974,8 @@ int can_harvest_resource_in_terrain(int resource_type, int sector_type)
     case SECT_DESERT:
     case SECT_HIGH_MOUNTAIN:
     case SECT_MARSHLAND: /* Dead wood maybe, but not living trees */
+    default:             /* Conservative - only specific areas have wood */
       return 0;
-    default:
-      return 0; /* Conservative - only specific areas have wood */
     }
 
   case RESOURCE_GAME:
@@ -1989,7 +1987,6 @@ int can_harvest_resource_in_terrain(int resource_type, int sector_type)
     case SECT_HILLS:
     case SECT_MARSHLAND:
     case SECT_DESERT:
-      return 1;
     case SECT_WATER_SWIM: /* Some aquatic game */
       return 1;
     case SECT_WATER_NOSWIM:
@@ -2042,9 +2039,8 @@ int can_harvest_resource_in_terrain(int resource_type, int sector_type)
     case SECT_FIELD:
     case SECT_MARSHLAND:
     case SECT_DESERT: /* Sand, not stone */
+    default:          /* Conservative - only rocky areas have stone */
       return 0;
-    default:
-      return 0; /* Conservative - only rocky areas have stone */
     }
 
   case RESOURCE_SALT:
@@ -2064,7 +2060,6 @@ int can_harvest_resource_in_terrain(int resource_type, int sector_type)
     case SECT_HILLS:
     case SECT_MOUNTAIN:
     case SECT_HIGH_MOUNTAIN:
-      return 0;
     default:
       return 0;
     }
@@ -2077,13 +2072,11 @@ int can_harvest_resource_in_terrain(int resource_type, int sector_type)
     case SECT_WATER_NOSWIM:
     case SECT_OCEAN:
     case SECT_MARSHLAND:
-      return 1;
     case SECT_FOREST:
     case SECT_HILLS:
     case SECT_MOUNTAIN: /* Springs */
+    case SECT_DESERT:   /* Rare oases and underground springs, with severe resource penalties */
       return 1;
-    case SECT_DESERT: /* Rare oases and underground springs */
-      return 1;       /* Allow harvesting but with severe resource penalties */
     case SECT_UNDERWATER:
     case SECT_FLYING:
     case SECT_HIGH_MOUNTAIN:
@@ -2110,7 +2103,6 @@ int can_harvest_resource_in_terrain(int resource_type, int sector_type)
     case SECT_MOUNTAIN:
     case SECT_HIGH_MOUNTAIN:
     case SECT_DESERT:
-      return 0;
     default:
       return 0;
     }

@@ -247,7 +247,6 @@ void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_roo
     return;
   }
 
-  changed = FALSE;
   changed = vessel_clear_departed_berth(ship, old_room, old_is_port);
 
   if (vessel_room_is_port(new_room))

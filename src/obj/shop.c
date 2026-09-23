@@ -461,7 +461,7 @@ static int evaluate_expression(struct obj_data *obj, char *expr)
 
         if (temp == OPER_CLOSE_PAREN)
         {
-          if ((temp = pop(&ops)) != OPER_OPEN_PAREN)
+          if (pop(&ops) != OPER_OPEN_PAREN)
           {
             log("SYSERR: Illegal parenthesis in shop keyword expression.");
             return (FALSE);

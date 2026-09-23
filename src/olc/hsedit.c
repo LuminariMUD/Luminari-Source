@@ -573,7 +573,6 @@ void hsedit_disp_menu(struct descriptor_data *d)
 void hsedit_parse(struct descriptor_data *d, char *arg)
 {
   int number = 0, id = 0, i, room_rnum_id;
-  char *tmp;
   bool found = FALSE;
 
   if (!d)
@@ -731,7 +730,7 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
 
   case HSEDIT_OWNER_ID:
     id = parse_int(arg);
-    if ((tmp = get_name_by_id(id)) == NULL)
+    if (get_name_by_id(id) == NULL)
     {
       send_to_char(d->character, "There is no such player.\r\n");
       hsedit_owner_menu(d);

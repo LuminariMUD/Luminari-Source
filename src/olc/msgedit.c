@@ -185,7 +185,7 @@ static void show_messages(struct char_data *ch)
                             : "Unknown");
     }
 
-  len += snprintf(buf + len, sizeof(buf) - len, "Total Messages: %d\r\n", count);
+  snprintf(buf + len, sizeof(buf) - len, "Total Messages: %d\r\n", count);
   page_string(ch->desc, buf, TRUE);
 }
 

@@ -692,7 +692,7 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
   if (has_teamwork_feat(vict, FEAT_DUCK_AND_COVER) && type == SAVING_REFL)
     diceroll = MAX(diceroll, d20(vict));
 
-  savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
+  savethrow += compute_mag_saves(vict, type, modifier) + diceroll;
 
   /* Inquisitor Legendary Resilience: +3 vs ability-penalty effects */
   if (!IS_NPC(vict) && has_inquisitor_legendary_resilience(vict) &&
@@ -1029,9 +1029,7 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
 
   if (has_teamwork_feat(vict, FEAT_PHALANX_FIGHTER))
   {
-    if (ch && IS_EVIL(vict) && !IS_EVIL(ch))
-      savethrow += has_teamwork_feat(vict, FEAT_PHALANX_FIGHTER);
-    else if (ch && !IS_EVIL(vict) && IS_EVIL(ch))
+    if ((ch && IS_EVIL(vict) && !IS_EVIL(ch)) || (ch && !IS_EVIL(vict) && IS_EVIL(ch)))
       savethrow += has_teamwork_feat(vict, FEAT_PHALANX_FIGHTER);
   }
 
@@ -1430,11 +1428,7 @@ static void dispatch_affect_wearoff(struct char_data *ch, int spell)
 
   /* Skill and special handlers can perform required cleanup in addition to
    * sending text. Run them before the generic generated wear-off message. */
-  if (alt_wear_off_msg(ch, spell))
-  {
-    ;
-  }
-  else if (spec_wear_off(ch, spell))
+  if (alt_wear_off_msg(ch, spell) || spec_wear_off(ch, spell))
   {
     ;
   }
@@ -3959,9 +3953,8 @@ static int mag_damage_scaled(int level, struct char_data *ch, struct char_data *
   // resistances to magic, message in mag_resistance
   if (dam && mag_resist && casttype != CAST_DEVICE)
   {
-    if (process_iron_golem_immunity(ch, victim, element, dam))
-      ;
-    else if (HAS_FEAT(victim, FEAT_WOOD_GOLEM_IMMUNITY) && element == DAM_FIRE)
+    if (process_iron_golem_immunity(ch, victim, element, dam) ||
+        (HAS_FEAT(victim, FEAT_WOOD_GOLEM_IMMUNITY) && element == DAM_FIRE))
       ;
     else
     {
@@ -4124,11 +4117,8 @@ static int mag_damage_scaled(int level, struct char_data *ch, struct char_data *
     // saving throw for half damage if applies
     if (savingthrow(ch, victim, save, race_bonus + dc_mod, casttype, level, spell_school))
     {
-      if (save_negates)
-      {
-        dam = 0;
-      }
-      else if ((!IS_NPC(victim)) && save != SAVING_REFL && (HAS_FEAT(victim, FEAT_STALWART)))
+      if (save_negates ||
+          ((!IS_NPC(victim)) && save != SAVING_REFL && (HAS_FEAT(victim, FEAT_STALWART))))
       {
         dam = 0;
       }
@@ -4583,8 +4573,6 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     switch (GET_RACE(ch))
     {                /* caster */
     case RACE_GNOME: // illusions
-      break;
-
     default:
       break;
     }
@@ -4594,13 +4582,9 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     { /* target */
     case RACE_H_ELF:
     case RACE_DROW:
-    case RACE_ELF: // enchantments
-      break;
+    case RACE_ELF:          // enchantments
     case RACE_ARCANA_GOLEM: // enchantments, penalty
-      break;
-    case RACE_GNOME: // illusions
-      break;
-
+    case RACE_GNOME:        // illusions
     default:
       break;
     }
@@ -5025,8 +5009,10 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
       af[1].duration = (int)(af[1].duration * 1.5);
     af[1].modifier = -(dice(1, 3));
+    /* NOLINTBEGIN(clang-analyzer-deadcode.DeadStores) -- overwritten below; a reported defect */
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
+    /* NOLINTEND(clang-analyzer-deadcode.DeadStores) */
     if (can_stun(victim))
     {
       af[2].duration = dice(1, 3);
@@ -6796,6 +6782,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_HITROLL;
       af[0].modifier = -1;
       af[0].duration = 10;
+      /* NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores) -- the return skips it; reported */
       to_vict = "A lesser despair grips you and you feel weakened.";
       return;
     }
@@ -10793,8 +10780,10 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_STR;
     af[0].duration = level;
     af[0].modifier = -(dice(1, 4));
+    /* NOLINTBEGIN(clang-analyzer-deadcode.DeadStores) -- overwritten below; a reported defect */
     to_room = "$n's strength is withered!";
     to_vict = "You feel your strength wither!";
+    /* NOLINTEND(clang-analyzer-deadcode.DeadStores) */
 
     if (can_stun(victim))
     {
@@ -11659,11 +11648,7 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj, int spell
     isEffect = TRUE;
     break;
   case SPELL_ACID:
-    isDamage = true;
-    break;
   case ABILITY_KAPAK_ACID:
-    isDamage = true;
-    break;
   case SPELL_BLADES:
     isDamage = true;
     break;
@@ -12352,14 +12337,12 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
 
     if (aoeOK(ch, tch, spellnum))
     {
-      if (spellnum == ABILITY_CHANNEL_POSITIVE_ENERGY &&
-          (!IS_UNDEAD(tch) || is_player_grouped(ch, tch)))
-        continue;
-      else if (spellnum == ABILITY_CHANNEL_NEGATIVE_ENERGY && IS_UNDEAD(tch))
+      if ((spellnum == ABILITY_CHANNEL_POSITIVE_ENERGY &&
+           (!IS_UNDEAD(tch) || is_player_grouped(ch, tch))) ||
+          (spellnum == ABILITY_CHANNEL_NEGATIVE_ENERGY && IS_UNDEAD(tch)))
         continue;
       if (is_eff_and_dam)
       {
-        metamagic = temp_meta;
         GET_CASTING_CLASS(ch) = temp_class;
         mag_damage(level, ch, tch, obj, spellnum, temp_meta, 1, casttype);
         metamagic = temp_meta;
@@ -12374,7 +12357,6 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
       }
       else if (is_uneffect)
       {
-        metamagic = temp_meta;
         GET_CASTING_CLASS(ch) = temp_class;
         mag_unaffects(level, ch, tch, obj, spellnum, savetype, casttype);
       }
@@ -14218,6 +14200,9 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
         MIN(GET_MAX_PSP(victim), GET_PSP(victim) + 2 + ((GET_AUGMENT_PSP(ch) / 3) * 2));
     to_char = "You \twbestow psionic power\tn to $N.";
     to_vict = "$n \twbestows psionic power\tn to you.";
+    if (ch != victim)
+      act(to_vict, TRUE, ch, 0, victim, TO_VICT | TO_SLEEP);
+    act(to_char, TRUE, ch, 0, victim, TO_CHAR);
     return;
   default:
     break;
@@ -14501,14 +14486,6 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_REMOVE_FEAR:
-    spell = SPELL_SCARE;
-    affect = AFF_FEAR;
-    affect2 = AFF_SHAKEN;
-    to_char = "You remove the fear from $N.";
-    to_vict = "$n removes the fear upon you.";
-    to_notvict = "$N looks brave again.";
-    break;
-
   case SPELL_BRAVERY:
     spell = SPELL_SCARE;
     affect = AFF_FEAR;

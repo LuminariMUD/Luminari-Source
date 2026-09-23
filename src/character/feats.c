@@ -6692,14 +6692,6 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg,
       return FALSE;
 
     case FEAT_BLEEDING_CRITICAL:
-      if (critical_feat_total(ch) >= 1 && !HAS_FEAT(ch, FEAT_CRITICAL_MASTERY))
-        return FALSE;
-      if (critical_feat_total(ch) >= 2)
-        return FALSE;
-      if (ACTUAL_BAB(ch) < 13)
-        return FALSE;
-      return TRUE;
-
     case FEAT_STAGGERING_CRITICAL:
       if (critical_feat_total(ch) >= 1 && !HAS_FEAT(ch, FEAT_CRITICAL_MASTERY))
         return FALSE;
@@ -6802,8 +6794,6 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg,
       return TRUE;
 
     case FEAT_ARMOR_SKIN:
-      return TRUE;
-
     case FEAT_ANIMATE_DEAD:
       return TRUE;
 
@@ -6961,26 +6951,8 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg,
       return TRUE;
 
     case FEAT_EPIC_SHAMBLER:
-      if (!IS_PSIONIC(ch))
-        return FALSE;
-      if (CLASS_LEVEL(ch, CLASS_PSIONICIST) < 20)
-        return FALSE;
-      return TRUE;
-
     case FEAT_EPIC_POWER_PENETRATION:
-      if (!IS_PSIONIC(ch))
-        return FALSE;
-      if (CLASS_LEVEL(ch, CLASS_PSIONICIST) < 20)
-        return FALSE;
-      return TRUE;
-
     case FEAT_EPIC_POWER_DAMAGE:
-      if (!IS_PSIONIC(ch))
-        return FALSE;
-      if (CLASS_LEVEL(ch, CLASS_PSIONICIST) < 20)
-        return FALSE;
-      return TRUE;
-
     case FEAT_EPIC_PSI_MIND:
       if (!IS_PSIONIC(ch))
         return FALSE;
@@ -7068,25 +7040,13 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg,
       return true;
 
     case FEAT_AURA_OF_GOOD:
-      if (CLASS_LEVEL(ch, CLASS_PALADIN))
-        return true;
-      return false;
-
     case FEAT_DETECT_EVIL:
-      if (CLASS_LEVEL(ch, CLASS_PALADIN))
-        return true;
-      return false;
-
     case FEAT_SMITE_EVIL:
       if (CLASS_LEVEL(ch, CLASS_PALADIN))
         return true;
       return false;
 
     case FEAT_DIVINE_GRACE:
-      if (CLASS_LEVEL(ch, CLASS_PALADIN) > 1)
-        return true;
-      return false;
-
     case FEAT_LAYHANDS:
       if (CLASS_LEVEL(ch, CLASS_PALADIN) > 1)
         return true;
@@ -7118,15 +7078,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg,
       return false;
 
     case FEAT_LICH_TOUCH:
-      if (IS_LICH(ch))
-        return true;
-      return false;
-
     case FEAT_LICH_REJUV:
-      if (IS_LICH(ch))
-        return true;
-      return false;
-
     case FEAT_LICH_FEAR:
       if (IS_LICH(ch))
         return true;
@@ -7563,20 +7515,8 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg,
 
     case FEAT_MAXIMIZE_SPELL:
     case FEAT_EMPOWER_SPELL:
-      if (IS_SPELLCASTER(ch))
-        return TRUE;
-      return FALSE;
-
     case FEAT_QUICKEN_SPELL:
-      if (IS_SPELLCASTER(ch))
-        return TRUE;
-      return FALSE;
-
     case FEAT_SILENT_SPELL:
-      if (IS_SPELLCASTER(ch))
-        return TRUE;
-      return FALSE;
-
     case FEAT_STILL_SPELL:
       if (IS_SPELLCASTER(ch))
         return TRUE;
@@ -8078,39 +8018,7 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
-      else if (i == FEAT_EFREETI_MAGIC)
-      {
-        if (mode == 1)
-        {
-          snprintf(buf3, sizeof(buf3), "%s (%dx/day)", feat_list[i].name, get_daily_uses(ch, i));
-          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3,
-                   feat_list[i].short_description);
-        }
-        else
-        {
-          snprintf(buf3, sizeof(buf3), "%s (%dx/day)", feat_list[i].name, get_daily_uses(ch, i));
-          snprintf(buf, sizeof(buf), "%-40s ", buf3);
-        }
-        strlcat(buf2, buf, sizeof(buf2));
-        none_shown = FALSE;
-      }
-      else if (i == FEAT_DRAGON_MAGIC)
-      {
-        if (mode == 1)
-        {
-          snprintf(buf3, sizeof(buf3), "%s (%dx/day)", feat_list[i].name, get_daily_uses(ch, i));
-          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3,
-                   feat_list[i].short_description);
-        }
-        else
-        {
-          snprintf(buf3, sizeof(buf3), "%s (%dx/day)", feat_list[i].name, get_daily_uses(ch, i));
-          snprintf(buf, sizeof(buf), "%-40s ", buf3);
-        }
-        strlcat(buf2, buf, sizeof(buf2));
-        none_shown = FALSE;
-      }
-      else if (i == FEAT_PIXIE_DUST)
+      else if (i == FEAT_EFREETI_MAGIC || i == FEAT_DRAGON_MAGIC || i == FEAT_PIXIE_DUST)
       {
         if (mode == 1)
         {
@@ -9876,13 +9784,10 @@ int get_draconic_heritage_subfeat(int feat)
 int get_sorcerer_bloodline_type(struct char_data *ch)
 {
   int bl = 0;
-  if (HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_DRACONIC)))
-    return bl;
-  else if (HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_ARCANE)))
-    return bl;
-  else if (HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_FEY)))
-    return bl;
-  else if (HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_UNDEAD)))
+  if (HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_DRACONIC)) ||
+      HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_ARCANE)) ||
+      HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_FEY)) ||
+      HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_UNDEAD)))
     return bl;
   else
     bl = 0;

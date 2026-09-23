@@ -652,7 +652,7 @@ static void perform_obj_worn_list(struct char_data *ch, char *arg)
     /* another dummy check */
     if (found >= 700)
     {
-      len = snprintf_append(buf, sizeof(buf), len, "**OVERLOADED BUFF***\r\n");
+      snprintf_append(buf, sizeof(buf), len, "**OVERLOADED BUFF***\r\n");
 
       break;
     }
@@ -697,7 +697,7 @@ static void perform_obj_aff_list(struct char_data *ch, char *arg)
         else
           v1 = (obj_proto[num].obj_flags.value[0]);
 
-        if ((r_num = real_object(ov)) != NOTHING)
+        if (real_object(ov) != NOTHING)
           add_to_obj_list(lst, MAX_OBJ_LIST, ov, v1);
       }
     }
@@ -738,7 +738,7 @@ static void perform_obj_aff_list(struct char_data *ch, char *arg)
           ov = obj_index[num].vnum;
           v1 = obj_proto[num].affected[i].modifier;
 
-          if ((r_num = real_object(ov)) != NOTHING)
+          if (real_object(ov) != NOTHING)
             add_to_obj_list(lst, MAX_OBJ_LIST, ov, v1);
         }
       }
@@ -1529,8 +1529,7 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
       /* still having issues with overflow, guessing it is a miscalculation with color codes -zusuk */
       if (counter >= 200)
       {
-        len = snprintf_append(buf, sizeof(buf), len,
-                              "\r\n OVERFLOW, use a range to view the rest! \r\n");
+        snprintf_append(buf, sizeof(buf), len, "\r\n OVERFLOW, use a range to view the rest! \r\n");
         break;
       }
     }
@@ -1917,7 +1916,6 @@ void print_zone(struct char_data *ch, zone_vnum vnum)
   size_mobiles = 0;
   size_shops = 0;
   size_trigs = 0;
-  size_quests = 0;
   top = zone_table[rnum].top;
   bottom = zone_table[rnum].bot;
 

@@ -2522,9 +2522,8 @@ static int rename_verify_file_rollback(struct rename_context *ctx)
                                                  ctx->report->player_id))
         return FALSE;
     }
-    else if (restored_stat.st_ino != ctx->files[i].source_stat.st_ino)
-      return FALSE;
-    else if (!ctx->files[i].digest_ready ||
+    else if (restored_stat.st_ino != ctx->files[i].source_stat.st_ino ||
+             !ctx->files[i].digest_ready ||
              !rename_digest_regular_file(ctx->files[i].old_path, &ctx->files[i].source_stat,
                                          digest) ||
              memcmp(digest, ctx->files[i].source_digest, sizeof(digest)) != 0)
@@ -2667,9 +2666,8 @@ static int rename_rollback(struct rename_context *ctx)
   {
     if (ctx->target_backup_ready)
     {
-      if (!rename_restore_backup(ctx->target_backup, ctx->files[0].old_path))
-        rollback_ok = FALSE;
-      else if (unlink(ctx->files[0].new_path) != 0 && errno != ENOENT)
+      if (!rename_restore_backup(ctx->target_backup, ctx->files[0].old_path) ||
+          (unlink(ctx->files[0].new_path) != 0 && errno != ENOENT))
         rollback_ok = FALSE;
     }
     else if (rename(ctx->files[0].new_path, ctx->files[0].old_path) != 0)

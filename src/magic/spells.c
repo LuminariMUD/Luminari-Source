@@ -444,14 +444,8 @@ void effect_charm(struct char_data *ch, struct char_data *victim, int spellnum, 
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
-  else if (IS_AFFECTED(victim, AFF_MIND_BLANK))
-  {
-    send_to_char(ch, "Your victim is protected from this "
-                     "enchantment!\r\n");
-    if (IS_NPC(victim))
-      hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-  }
-  else if (spellnum != SPELL_COMMAND_UNDEAD && is_immune_charm(ch, victim, FALSE))
+  else if (IS_AFFECTED(victim, AFF_MIND_BLANK) ||
+           (spellnum != SPELL_COMMAND_UNDEAD && is_immune_charm(ch, victim, FALSE)))
   {
     send_to_char(ch, "Your victim is protected from this "
                      "enchantment!\r\n");
@@ -466,17 +460,16 @@ void effect_charm(struct char_data *ch, struct char_data *victim, int spellnum, 
 
   else if (spellnum == SPELL_CHARM &&
            (CASTER_LEVEL(ch) < GET_LEVEL(victim) || GET_LEVEL(victim) >= 8))
+    /* NOLINTNEXTLINE(bugprone-branch-clone) -- the follower check must run in between */
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
   else if (IS_NPC(victim) && !can_add_follower_mobile(ch, victim))
     send_to_char(ch, "You can not manage more followers!\r\n");
 
-  else if ((spellnum == SPELL_DOMINATE_PERSON || spellnum == SPELL_MASS_DOMINATION ||
-            spellnum == WARLOCK_CHARM) &&
-           CASTER_LEVEL(ch) < GET_LEVEL(victim))
-    send_to_char(ch, "Your victim is too powerful.\r\n");
-
-  else if (spellnum == ABILITY_VAMPIRIC_DOMINATION && level < GET_LEVEL(victim))
+  else if (((spellnum == SPELL_DOMINATE_PERSON || spellnum == SPELL_MASS_DOMINATION ||
+             spellnum == WARLOCK_CHARM) &&
+            CASTER_LEVEL(ch) < GET_LEVEL(victim)) ||
+           (spellnum == ABILITY_VAMPIRIC_DOMINATION && level < GET_LEVEL(victim)))
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
   /* player charming another player - no legal reason for this */
@@ -1542,10 +1535,7 @@ ASPELL(spell_control_weather)
 
   one_argument(cast_arg2, arg, sizeof(arg));
 
-  if (is_abbrev(arg, "worsen"))
-  {
-  }
-  else if (is_abbrev(arg, "improve"))
+  if (is_abbrev(arg, "worsen") || is_abbrev(arg, "improve"))
   {
   }
   else
@@ -2867,8 +2857,6 @@ ASPELL(spell_summon_instrument)
 
 ASPELL(spell_storm_of_vengeance)
 {
-  struct mud_event_data *pMudEvent = NULL;
-
   if (ch == NULL)
     return;
 
@@ -2878,13 +2866,13 @@ ASPELL(spell_storm_of_vengeance)
     return;
   }
 
-  if ((pMudEvent = char_has_mud_event(ch, eICE_STORM)))
+  if (char_has_mud_event(ch, eICE_STORM))
   {
     send_to_char(ch, "You already have a storm of vengeance!\r\n");
     return;
   }
 
-  if ((pMudEvent = char_has_mud_event(ch, eCHAIN_LIGHTNING)))
+  if (char_has_mud_event(ch, eCHAIN_LIGHTNING))
   {
     send_to_char(ch, "You already have a storm of vengeance!\r\n");
     return;
@@ -2981,10 +2969,9 @@ ASPELL(eldritch_blast)
     for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
     {
       next_tch = tch->next_in_room;
-      if (!aoeOK(ch, tch, WARLOCK_ELDRITCH_BLAST))
-        continue;
-      else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN &&
-               target_list->iSize >= (size_t)(GET_WARLOCK_LEVEL(ch) / 5))
+      if (!aoeOK(ch, tch, WARLOCK_ELDRITCH_BLAST) ||
+          (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN &&
+           target_list->iSize >= (size_t)(GET_WARLOCK_LEVEL(ch) / 5)))
         continue;
       add_to_list(tch, target_list);
     }
@@ -4114,7 +4101,6 @@ MUD_EVENT_CALLBACK(event_spiritual_weapon)
 {
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
-  int level = 0;
 
   /* This is just a dummy check, but we'll do it anyway */
   if (event_obj == NULL)
@@ -4140,11 +4126,6 @@ MUD_EVENT_CALLBACK(event_spiritual_weapon)
 
   if (mag_resistance(ch, victim, 0))
     return 0;
-
-  /* how about wands and everything else?? */
-  level = DIVINE_LEVEL(ch);
-  if (level < 1)
-    level = 15; /* so lame */
 
   int roll = dice(1, 20);
   int threat = 20 - weapon_list[get_default_spell_weapon(ch)].range;
@@ -4182,7 +4163,6 @@ MUD_EVENT_CALLBACK(event_spiritual_weapon)
 
 ASPELL(spell_spiritual_weapon)
 {
-  struct mud_event_data *pMudEvent = NULL;
   char msg[200];
   int bab = 0;
   int i = 0;
@@ -4196,7 +4176,7 @@ ASPELL(spell_spiritual_weapon)
     return;
   }
 
-  if ((pMudEvent = char_has_mud_event(ch, eSPIRITUALWEAPON)))
+  if (char_has_mud_event(ch, eSPIRITUALWEAPON))
   {
     send_to_char(ch, "You already have a spiritual weapon!\r\n");
     return;
@@ -4224,7 +4204,6 @@ MUD_EVENT_CALLBACK(event_dancing_weapon)
 {
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
-  int level = 0;
 
   /* This is just a dummy check, but we'll do it anyway */
   if (event_obj == NULL)
@@ -4249,11 +4228,6 @@ MUD_EVENT_CALLBACK(event_dancing_weapon)
 
   if (mag_resistance(ch, victim, 0))
     return 0;
-
-  /* how about wands and everything else?? */
-  level = CASTER_LEVEL(ch);
-  if (level < 1)
-    level = 15; /* so lame */
 
   int roll = dice(1, 20);
   int threat = 20 - weapon_list[get_default_spell_weapon(ch)].range;
@@ -4291,7 +4265,6 @@ MUD_EVENT_CALLBACK(event_dancing_weapon)
 
 ASPELL(spell_dancing_weapon)
 {
-  struct mud_event_data *pMudEvent = NULL;
   char msg[200];
   int bab = 0, i = 0;
 
@@ -4304,7 +4277,7 @@ ASPELL(spell_dancing_weapon)
     return;
   }
 
-  if ((pMudEvent = char_has_mud_event(ch, eDANCINGWEAPON)))
+  if (char_has_mud_event(ch, eDANCINGWEAPON))
   {
     send_to_char(ch, "You already have a dancing weapon!\r\n");
     return;
@@ -4332,7 +4305,6 @@ MUD_EVENT_CALLBACK(event_holy_javelin)
 {
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
-  int level = 0;
 
   /* This is just a dummy check, but we'll do it anyway */
   if (event_obj == NULL)
@@ -4354,11 +4326,6 @@ MUD_EVENT_CALLBACK(event_holy_javelin)
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return 0;
   }
-
-  /* how about wands and everything else?? */
-  level = CASTER_LEVEL(ch);
-  if (level < 1)
-    level = 15; /* so lame */
 
   damage(ch, victim, dice(1, 6), SPELL_HOLY_JAVELIN, DAM_HOLY, FALSE);
 

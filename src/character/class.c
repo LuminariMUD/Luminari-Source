@@ -1421,11 +1421,6 @@ int valid_align_by_class(int alignment, int class)
     }
     /* only lawful good */
   case CLASS_PALADIN:
-    if (alignment == LAWFUL_GOOD)
-      return TRUE;
-    else
-      return FALSE;
-  // lawful good only
   case CLASS_KNIGHT_OF_SOLAMNIA:
     if (alignment == LAWFUL_GOOD)
       return TRUE;
@@ -1439,11 +1434,7 @@ int valid_align_by_class(int alignment, int class)
     else
       return FALSE;
   case CLASS_BLACKGUARD:
-    if (alignment == LAWFUL_EVIL)
-      return TRUE;
-    else if (alignment == NEUTRAL_EVIL)
-      return TRUE;
-    else if (alignment == CHAOTIC_EVIL)
+    if (alignment == LAWFUL_EVIL || alignment == NEUTRAL_EVIL || alignment == CHAOTIC_EVIL)
       return TRUE;
     else
       return FALSE;
@@ -2734,13 +2725,13 @@ static void init_start_char(struct char_data *ch)
 
   /* clear immortal flags */
   if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
-    i = PRF_TOG_CHK(ch, PRF_HOLYLIGHT);
+    TOGGLE_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
   if (PRF_FLAGGED(ch, PRF_NOHASSLE))
-    i = PRF_TOG_CHK(ch, PRF_NOHASSLE);
+    TOGGLE_BIT_AR(PRF_FLAGS(ch), PRF_NOHASSLE);
   if (PRF_FLAGGED(ch, PRF_SHOWVNUMS))
-    i = PRF_TOG_CHK(ch, PRF_SHOWVNUMS);
+    TOGGLE_BIT_AR(PRF_FLAGS(ch), PRF_SHOWVNUMS);
   if (PRF_FLAGGED(ch, PRF_BUILDWALK))
-    i = PRF_TOG_CHK(ch, PRF_BUILDWALK);
+    TOGGLE_BIT_AR(PRF_FLAGS(ch), PRF_BUILDWALK);
 
   /* clear gear for clean start */
   for (i = 0; i < NUM_WEARS; i++)
@@ -3796,17 +3787,9 @@ long int level_exp(struct char_data *ch, int level)
 
     // advanced races
   case RACE_HALF_TROLL:
-    exp *= 2;
-    break;
   case RACE_ARCANA_GOLEM:
-    exp *= 2;
-    break;
   case RACE_DROW:
-    exp *= 2;
-    break;
   case RACE_DUERGAR:
-    exp *= 2;
-    break;
   case RACE_WEMIC:
   case RACE_HALF_OGRE:
   case RACE_YUAN_TI:
@@ -3815,26 +3798,14 @@ long int level_exp(struct char_data *ch, int level)
 
     /* epic races */
   case RACE_CRYSTAL_DWARF:
-    exp *= 7;
-    break;
-
   case RACE_FAE:
-    exp *= 7;
-    break;
-
   case RACE_TRELUX:
-    exp *= 7;
-    break;
-
   case RACE_HALF_ILLITHID:
   case RACE_MYCONID:
     exp *= 7;
     break;
 
   case RACE_LICH:
-    exp *= 10;
-    break;
-
   case RACE_VAMPIRE:
     exp *= 10;
     break;

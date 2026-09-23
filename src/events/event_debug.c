@@ -863,8 +863,6 @@ ACMD(do_eventdebug)
              "The intentional one-pulse ready delay is excluded.\r\n",
              stats.samples, stats.callbacks, stats.p50, stats.p95, stats.p99, stats.maximum);
   }
-  else if (!strcasecmp(action, "help"))
-    event_debug_render_help(buffer, sizeof(buffer), width);
   else if (!strcasecmp(action, "queue"))
   {
     limit = parse_limit(arg1, EVENT_DEBUG_DEFAULT_LIMIT);
@@ -1045,6 +1043,7 @@ ACMD(do_eventdebug)
   }
   else
   {
+    /* "help" and any unrecognized action show the usage summary. */
     event_debug_render_help(buffer, sizeof(buffer), width);
   }
   event_debug_page(ch, buffer);

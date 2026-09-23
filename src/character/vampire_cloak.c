@@ -75,7 +75,6 @@ int vampire_cloak_typed(struct spec_event_context *context)
   obj = (struct obj_data *)context->owner;
   argument = context->argument;
   cmd = context->command;
-  choice = 0;
   count = 0;
   result = 0;
 

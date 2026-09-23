@@ -1297,13 +1297,10 @@ void reforge_apply(struct char_data *ch, struct obj_data *obj, int index)
   }
   GET_OBJ_COST(obj) = orig_cost;
   GET_OBJ_VAL(obj, 4) = enhancement;
-  if (IS_HARD_METAL(GET_OBJ_MATERIAL(obj)) && IS_HARD_METAL(material))
-    GET_OBJ_MATERIAL(obj) = material;
-  else if (IS_LEATHER(GET_OBJ_MATERIAL(obj)) && IS_LEATHER(material))
-    GET_OBJ_MATERIAL(obj) = material;
-  else if (IS_CLOTH(GET_OBJ_MATERIAL(obj)) && IS_CLOTH(material))
-    GET_OBJ_MATERIAL(obj) = material;
-  else if (IS_WOOD(GET_OBJ_MATERIAL(obj)) && IS_WOOD(material))
+  if ((IS_HARD_METAL(GET_OBJ_MATERIAL(obj)) && IS_HARD_METAL(material)) ||
+      (IS_LEATHER(GET_OBJ_MATERIAL(obj)) && IS_LEATHER(material)) ||
+      (IS_CLOTH(GET_OBJ_MATERIAL(obj)) && IS_CLOTH(material)) ||
+      (IS_WOOD(GET_OBJ_MATERIAL(obj)) && IS_WOOD(material)))
     GET_OBJ_MATERIAL(obj) = material;
   type_name = GET_OBJ_TYPE(obj) == ITEM_WEAPON ? weapon_list[GET_OBJ_VAL(obj, 0)].name
                                                : armor_list[GET_OBJ_VAL(obj, 1)].name;
@@ -2359,6 +2356,7 @@ static obj_vnum node_drop_prototype(int material, int *minskill_out)
   case MATERIAL_MITHRIL:
     roll = dice(1, 100);
     if (roll <= 48)
+      /* NOLINTNEXTLINE(bugprone-branch-clone) -- drop-table buckets; may be a data slip */
       vnum = MITHRIL_MATERIAL;
     else if (roll <= 96)
       vnum = MITHRIL_MATERIAL;
@@ -2403,6 +2401,7 @@ static obj_vnum node_drop_prototype(int material, int *minskill_out)
     {
       roll = dice(1, 100);
       if (roll <= 48)
+        /* NOLINTNEXTLINE(bugprone-branch-clone) -- drop-table buckets; may be a data slip */
         vnum = SILVER_MATERIAL;
       else if (roll <= 52)
         vnum = ONYX_MATERIAL;
@@ -2418,6 +2417,7 @@ static obj_vnum node_drop_prototype(int material, int *minskill_out)
     {
       roll = dice(1, 100);
       if (roll <= 48)
+        /* NOLINTNEXTLINE(bugprone-branch-clone) -- drop-table buckets; may be a data slip */
         vnum = GOLD_MATERIAL;
       else if (roll <= 96)
         vnum = GOLD_MATERIAL;
@@ -2430,6 +2430,7 @@ static obj_vnum node_drop_prototype(int material, int *minskill_out)
     {
       roll = dice(1, 100);
       if (roll <= 4)
+        /* NOLINTNEXTLINE(bugprone-branch-clone) -- drop-table buckets; may be a data slip */
         vnum = PLATINUM_MATERIAL;
       else if (roll <= 96)
         vnum = PLATINUM_MATERIAL;

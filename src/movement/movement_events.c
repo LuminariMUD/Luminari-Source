@@ -61,9 +61,8 @@ bool process_movement_events(struct char_data *ch, room_rnum was_in, room_rnum g
   struct domain_entity_handle identity = domain_event_character_handle(ch);
 
   /* Check mount/rider same room status */
-  if (riding && RIDING(ch)->in_room == ch->in_room)
-    same_room = 1;
-  else if (ridden_by && RIDDEN_BY(ch)->in_room == ch->in_room)
+  if ((riding && RIDING(ch)->in_room == ch->in_room) ||
+      (ridden_by && RIDDEN_BY(ch)->in_room == ch->in_room))
     same_room = 1;
 
   /* Process room damage effects */

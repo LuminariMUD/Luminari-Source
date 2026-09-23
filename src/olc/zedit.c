@@ -833,8 +833,6 @@ static void zedit_disp_arg2(struct descriptor_data *d)
     write_to_output(d, "Chance to execute (0-100%%) : ");
     break;
   case 'M':
-    write_to_output(d, "Input the maximum number that can exist on the mud : ");
-    break;
   case 'O':
   case 'E':
   case 'P':
@@ -1494,10 +1492,6 @@ void zedit_parse(struct descriptor_data *d, char *arg)
       zedit_disp_arg4(d);
       break;
     case 'G':
-      OLC_CMD(d).arg2 = MIN(MAX_DUPLICATES, parse_int(arg));
-      zedit_disp_arg3(d);
-      // zedit_disp_menu(d);
-      break;
     case 'P':
     case 'E':
       OLC_CMD(d).arg2 = MIN(MAX_DUPLICATES, parse_int(arg));

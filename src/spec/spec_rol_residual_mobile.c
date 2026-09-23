@@ -197,6 +197,7 @@ static void rol_residual_beavis(struct char_data *ch, bool butthead)
   else if (!butthead && roll == 19)
     rol_residual_say(ch, "Isn't this new band, Schlong?");
   else if (!butthead && roll == 20)
+    /* NOLINTNEXTLINE(bugprone-branch-clone) -- dialogue table; both brothers say this line */
     rol_residual_say(ch, "Nachos rule! They rule!");
   else if (butthead && roll == 13)
     rol_residual_say(ch, "Settle down Beavis.");

@@ -444,41 +444,17 @@ bool is_valid_performance(int performance_num)
   switch (performance_info[performance_num][PERFORMANCE_SKILLNUM])
   {
   case SKILL_SONG_OF_FOCUSED_MIND:
-    return_val = TRUE;
-    break;
   case SKILL_SONG_OF_FEAR:
-    return_val = TRUE;
-    break;
   case SKILL_SONG_OF_ROOTING:
-    return_val = TRUE;
-    break;
   case SKILL_DEAFENING_SONG:
-    return_val = TRUE;
-    break;
   case SKILL_SONG_OF_THE_MAGI:
-    return_val = TRUE;
-    break;
   case SKILL_SONG_OF_HEALING:
-    return_val = TRUE;
-    break;
   case SKILL_DANCE_OF_PROTECTION:
-    return_val = TRUE;
-    break;
   case SKILL_SONG_OF_FLIGHT:
-    return_val = TRUE;
-    break;
   case SKILL_SONG_OF_HEROISM:
-    return_val = TRUE;
-    break;
   case SKILL_ORATORY_OF_REJUVENATION:
-    return_val = TRUE;
-    break;
   case SKILL_ACT_OF_FORGETFULNESS:
-    return_val = TRUE;
-    break;
   case SKILL_SONG_OF_REVELATION:
-    return_val = TRUE;
-    break;
   case SKILL_SONG_OF_DRAGONS:
     return_val = TRUE;
     break;
@@ -798,7 +774,6 @@ ACMD(do_perform)
     return;
 
   has_move_action = TRUE;
-  has_standard_action = TRUE;
   if (!IS_NPC(ch))
   {
     has_move_action = is_action_available(ch, atMOVE, FALSE);
@@ -897,8 +872,6 @@ static bool bardic_performance_target_resists(struct char_data *ch, struct char_
   int school;
 
   save_level = bardic_performance_save_level(ch, effectiveness);
-  save_type = -1;
-  school = NOSCHOOL;
 
   switch (spellnum)
   {
@@ -1092,7 +1065,6 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
                  GET_NAME(tch), spellnum, effectiveness, aoe);
   }
 
-  resonant_bonus = 0;
   resonant_active = FALSE;
   new_affect(&resonant_af);
 

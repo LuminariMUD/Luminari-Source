@@ -802,7 +802,6 @@ void vessel_hunter_boot(void)
         vessel_hunter_set_cooldown(row->target_player, row->generation, 0,
                                    "restart activation failed", VESSEL_HUNTER_SPAWN_RETRY_SECONDS);
         vessel_hunter_retire_runtime_ship(hunter_ship_id, NULL);
-        hunter_ship_id = -1;
         continue;
       }
     }

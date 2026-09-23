@@ -2448,12 +2448,8 @@ void artifact_cleanup_duplicate_passives(struct char_data *ch)
           check->modifier == af->modifier && check->bonus_type == af->bonus_type &&
           bitvectors_match)
       {
-        if (af->source_id == 0 && check->source_id != 0)
-        {
-          affect_remove(ch, af);
-          break;
-        }
-        else if (af->source_id == check->source_id && af > check)
+        if ((af->source_id == 0 && check->source_id != 0) ||
+            (af->source_id == check->source_id && af > check))
         {
           affect_remove(ch, af);
           break;
@@ -6043,7 +6039,6 @@ ACMD(do_artifact_ability)
 
 ACMD(do_artifact_invoke)
 {
-  struct obj_data *obj = NULL;
   int i = 0, found = 0;
 
   if (!ch || IS_NPC(ch))
@@ -6061,7 +6056,7 @@ ACMD(do_artifact_invoke)
       if (artifact_effects[i].channel != ART_INVOKE_COMMAND || artifact_effect_is_disabled(i))
         continue;
 
-      if (!(obj = artifact_held_instance(ch, artifact_effects[i].vnum)))
+      if (!artifact_held_instance(ch, artifact_effects[i].vnum))
         continue;
 
       send_to_char(ch, "  \tcinvoke %s%s\tn - %s\r\n", artifact_effects[i].phrase,

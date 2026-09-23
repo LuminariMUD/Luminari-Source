@@ -396,14 +396,10 @@ int prisoner_attacks(struct char_data *ch)
 
     return 1;
   }
-  else if (!rand_number(0, 2) && perform_tailsweep(ch))
+  else if ((!rand_number(0, 2) && perform_tailsweep(ch)) ||
+           (!rand_number(0, 2) && perform_dragonbite(ch, FIGHTING(ch))))
   {
-    /* looks like we did the tailsweeep successffully to at least one victim */
-    return 1;
-  }
-  else if (!rand_number(0, 2) && perform_dragonbite(ch, FIGHTING(ch)))
-  {
-    /* looks like we did the dragonbite to at least one victim */
+    /* looks like we did the tailsweep or the dragonbite to at least one victim */
     return 1;
   }
   else if (!rand_number(0, 2))
@@ -589,7 +585,6 @@ void prisoner_gear_loading(struct char_data *ch)
       num_items++;
     }
 
-    ovnum = NOTHING;
     loaded = FALSE;
 
     loop_counter++;

@@ -400,12 +400,8 @@ int process_weapon_abilities(
       damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
     }
   }
-  //  Sun metal spell
-  else if (affected_by_spell(ch, SPELL_SUN_METAL))
-  {
-    damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
-  }
-  else if (AFF_FLAGGED(ch, AFF_FLAME_BLADE))
+  /* Sun metal spell or flame blade */
+  else if (affected_by_spell(ch, SPELL_SUN_METAL) || AFF_FLAGGED(ch, AFF_FLAME_BLADE))
   {
     damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
   }
@@ -650,9 +646,8 @@ int process_weapon_abilities(
   {
     if (victim->player_specials->has_banishment_been_attempted)
       ;
-    else if (mag_resistance(ch, victim, 0))
-      victim->player_specials->has_banishment_been_attempted = true;
-    else if (savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL,
+    else if (mag_resistance(ch, victim, 0) ||
+             savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL,
                          CLASS_LEVEL(ch, CLASS_PALADIN), SCHOOL_NOSCHOOL))
       victim->player_specials->has_banishment_been_attempted = true;
     else
@@ -670,9 +665,8 @@ int process_weapon_abilities(
   {
     if (victim->player_specials->has_banishment_been_attempted)
       ;
-    else if (mag_resistance(ch, victim, 0))
-      victim->player_specials->has_banishment_been_attempted = true;
-    else if (savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL,
+    else if (mag_resistance(ch, victim, 0) ||
+             savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL,
                          CLASS_LEVEL(ch, CLASS_BLACKGUARD), SCHOOL_NOSCHOOL))
       victim->player_specials->has_banishment_been_attempted = true;
     else
@@ -888,10 +882,8 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning)
 
     break;
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
-    break;
-  case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
-    break;
-  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+  case ACTMTD_ON_HIT:       /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_ON_CRIT:      /* Called whenever a weapon hits critically. */
     break;
   case ACTMTD_WEAR: /* Called whenever the item is worn. */
     if (!ch->mute_equip_messages)
@@ -1012,10 +1004,8 @@ ITEM_SPECIAL_ABILITY(item_specab_item_summon)
 
     break;
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
-    break;
-  case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
-    break;
-  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+  case ACTMTD_ON_HIT:       /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_ON_CRIT:      /* Called whenever a weapon hits critically. */
     break;
   case ACTMTD_WEAR: /* Called whenever the item is worn. */
     if (!ch->mute_equip_messages)
@@ -1123,10 +1113,8 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding)
     start_item_specab_daily_use_cooldown(armor, ARMOR_SPECAB_BLINDING);
 
     break;
-  case ACTMTD_USE: /* User USEs the item. */
-    break;
-  case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
-    break;
+  case ACTMTD_USE:     /* User USEs the item. */
+  case ACTMTD_ON_HIT:  /* Called whenever a weapon hits an enemy. */
   case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
     break;
   case ACTMTD_WEAR: /* Called whenever the item is worn. */

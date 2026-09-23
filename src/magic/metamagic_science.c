@@ -271,6 +271,5 @@ void get_metamagic_description(int metamagic, char *buf, size_t buf_size)
   {
     snprintf(temp, sizeof(temp), "%s%s", first ? "" : ", ", "still");
     strncat(buf, temp, buf_size - strlen(buf) - 1);
-    first = FALSE;
   }
 }

@@ -661,9 +661,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
 
   case ITEM_BOAT: /* 22 */
-    break;
-
-  case ITEM_KEY: /* 18 */
+  case ITEM_KEY:  /* 18 */
     break;
 
     // case ITEM_FOOD: // 19
@@ -833,31 +831,15 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       send_to_char(ch, "Arcanite crafting crystal - can be used in crafting.\r\n");
     break;
 
-  case ITEM_TREASURE: /* 8 */
-    break;
-
-  case ITEM_OTHER: /* 12 */
-    break;
-
-  case ITEM_TRASH: /* 13 */
-    break;
-
-  case ITEM_PEN: /* 21 */
-    break;
-
+  case ITEM_TREASURE:  /* 8 */
+  case ITEM_OTHER:     /* 12 */
+  case ITEM_TRASH:     /* 13 */
+  case ITEM_PEN:       /* 21 */
   case ITEM_CLANARMOR: /* 24 */
-    break;
-
-  case ITEM_ESSENCE: /* 26 */
-    break;
-
-  case ITEM_MATERIAL: /* 27 */
-    break;
-
-  case ITEM_PLANT: /* 30 */
-    break;
-
-  case ITEM_TELEPORT: /* 32 */
+  case ITEM_ESSENCE:   /* 26 */
+  case ITEM_MATERIAL:  /* 27 */
+  case ITEM_PLANT:     /* 30 */
+  case ITEM_TELEPORT:  /* 32 */
     /* portal replaced this */
     break;
 
@@ -1080,19 +1062,11 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
   }
 
-  case ITEM_BOWL: /* 41 */
-    break;
-
+  case ITEM_BOWL:       /* 41 */
   case ITEM_INGREDIENT: /* 42 */
-    break;
-
-  case ITEM_BLOCKER: /* 43 */
+  case ITEM_BLOCKER:    /* 43 */
     /* needs to be implemented from HL! */
-    break;
-
-  case ITEM_WAGON: /* 44 */
-    break;
-
+  case ITEM_WAGON:    /* 44 */
   case ITEM_RESOURCE: /* 45 */
     break;
 
@@ -3343,9 +3317,8 @@ static void perform_drink_from_drinkcon(struct char_data *ch, struct obj_data *o
 
   if (bonus_location == APPLY_NONE)
   {
-    if (liquid == LIQ_BLOOD && IS_VAMPIRE(ch))
-      bonus_location = APPLY_DAMROLL;
-    else if (liquid == LIQ_SALTWATER && AFF_FLAGGED(ch, AFF_WATER_BREATH))
+    if ((liquid == LIQ_BLOOD && IS_VAMPIRE(ch)) ||
+        (liquid == LIQ_SALTWATER && AFF_FLAGGED(ch, AFF_WATER_BREATH)))
       bonus_location = APPLY_DAMROLL;
     else
     {
@@ -4003,9 +3976,7 @@ int hands_needed_full(struct char_data *ch, struct obj_data *obj, int use_feats)
   // that we can calculate penalties associated with such feat uses
   if (use_feats)
   {
-    if (HAS_FEAT(ch, FEAT_MONKEY_GRIP))
-      size--;
-    else if (HAS_FEAT(ch, FEAT_POWERFUL_BUILD))
+    if (HAS_FEAT(ch, FEAT_MONKEY_GRIP) || HAS_FEAT(ch, FEAT_POWERFUL_BUILD))
       size--;
   }
 
@@ -7289,7 +7260,7 @@ static void use_wand(struct char_data *ch, char *argument)
   act("$n points a wand at YOU!", TRUE, ch, 0, vict, TO_VICT);
   act("$n points a wand at $N.", TRUE, ch, 0, vict, TO_NOTVICT);
 
-  call_magic(ch, vict, NULL, spellnum, metamagic, spell_level, CAST_WAND);
+  call_magic(ch, vict, obj, spellnum, metamagic, spell_level, CAST_WAND);
   USE_SWIFT_ACTION(ch);
 
   save_char(ch, 0);
@@ -8792,7 +8763,7 @@ ACMDU(do_activate)
   GET_DC_BONUS(ch) += spell_level / 2;
   obj->activate_spell[ACT_SPELL_CURRENT_USES]--;
   obj->activate_spell[ACT_SPELL_COOLDOWN] = ACT_SPELL_COOLDOWN_TIME;
-  call_magic(ch, tch, NULL, spellnum, 0, spell_level, CAST_WEAPON_SPELL);
+  call_magic(ch, tch, tobj, spellnum, 0, spell_level, CAST_WEAPON_SPELL);
 }
 
 #undef SINFO

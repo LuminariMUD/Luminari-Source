@@ -226,7 +226,7 @@ static int parse_mail_flags(FILE *plr_file)
     if (atol(txt) > 0)
       SET_BIT(ret, MINDEX_HAS_GOLD);
   }
-  if ((txt = findLine(plr_file, "Objs:")) != NULL)
+  if (findLine(plr_file, "Objs:") != NULL)
   {
     SET_BIT(ret, MINDEX_HAS_OBJ);
   }

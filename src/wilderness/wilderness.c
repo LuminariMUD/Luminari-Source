@@ -607,7 +607,6 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
           //log("  -> MAP: Changing (%d, %d) to sector : %d", x + x_offset, y + y_offset, region_table[curr_region->rnum].region_props);
           break;
         case REGION_SECTOR_TRANSFORM:
-          break;
         case REGION_GEOGRAPHIC:
         case REGION_ENCOUNTER:
         default:
@@ -1036,7 +1035,6 @@ void assign_wilderness_room(room_rnum room, int x, int y)
       world[room].sector_type = region_table[curr_region->rnum].region_props;
       break;
     case REGION_SECTOR_TRANSFORM:
-      break;
     case REGION_ENCOUNTER:
     default:
       break;
@@ -1894,7 +1892,6 @@ void save_map_to_file(const char *fn, int xsize, int ysize)
 
           break;
         case REGION_SECTOR_TRANSFORM:
-          break;
         case REGION_GEOGRAPHIC:
         case REGION_ENCOUNTER:
         default:
@@ -2098,7 +2095,6 @@ void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char 
     if (move_dir != EAST && w_elev < elev)
     {
       new_move_dir = WEST;
-      elev = w_elev;
       new_x = x - 1;
       new_y = y;
     }
@@ -2167,7 +2163,6 @@ void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char 
 
         break;
       case REGION_SECTOR_TRANSFORM:
-        break;
       case REGION_GEOGRAPHIC:
       case REGION_ENCOUNTER:
       default:

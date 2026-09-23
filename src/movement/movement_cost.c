@@ -76,9 +76,7 @@ int get_speed(struct char_data *ch, sbyte to_display)
     speed += 20;
 
   // haste and exp. retreat don't stack for balance reasons
-  if (AFF_FLAGGED(ch, AFF_HASTE))
-    speed += 30;
-  else if (affected_by_spell(ch, SPELL_EXPEDITIOUS_RETREAT))
+  if (AFF_FLAGGED(ch, AFF_HASTE) || affected_by_spell(ch, SPELL_EXPEDITIOUS_RETREAT))
     speed += 30;
 
   // Sprint doubles movement speed
@@ -113,21 +111,11 @@ int get_speed(struct char_data *ch, sbyte to_display)
   // the person's base speed for display purposes (ie. score)
 
   // Autosearch penalty - moving cautiously to detect traps is slow
-  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOSEARCH))
-    speed /= 2;
-  else if (AFF_FLAGGED(ch, AFF_SLOW))
-    speed /= 2;
-  else if (AFF_FLAGGED(ch, AFF_ENTANGLED))
-    speed /= 2;
-  else if (AFF_FLAGGED(ch, AFF_CRIPPLED))
-    speed /= 2;
-  else if (!to_display && AFF_FLAGGED(ch, AFF_BLIND) && skill_roll(ch, ABILITY_ACROBATICS) < 10)
-    speed /= 2;
-  else if (affected_by_spell(ch, PSIONIC_DECELERATION))
-    speed /= 2;
-  else if (affected_by_spell(ch, PSIONIC_OAK_BODY))
-    speed /= 2;
-  else if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+  if ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOSEARCH)) || AFF_FLAGGED(ch, AFF_SLOW) ||
+      AFF_FLAGGED(ch, AFF_ENTANGLED) || AFF_FLAGGED(ch, AFF_CRIPPLED) ||
+      (!to_display && AFF_FLAGGED(ch, AFF_BLIND) && skill_roll(ch, ABILITY_ACROBATICS) < 10) ||
+      affected_by_spell(ch, PSIONIC_DECELERATION) || affected_by_spell(ch, PSIONIC_OAK_BODY) ||
+      affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
     speed /= 2;
 
   // Fleet of Foot perk bonus (Shadow Scout tree)
@@ -196,6 +184,7 @@ int calculate_movement_cost(struct char_data *ch, room_rnum from_room, room_rnum
     int wstride_rank = get_inquisitor_wilderness_stride_rank(ch);
 
     if (!has_inquisitor_wilderness_stride(ch))
+    /* NOLINTNEXTLINE(bugprone-branch-clone) -- no stride must win over the outdoor exemption */
     {
       need_movement *= 2;
     }

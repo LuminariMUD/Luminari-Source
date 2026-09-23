@@ -400,7 +400,6 @@ int get_base_rooms_for_type(enum vessel_class type)
   case VESSEL_WARSHIP:
     return 5;
   case VESSEL_AIRSHIP:
-    return 4;
   case VESSEL_SUBMARINE:
     return 4;
   case VESSEL_TRANSPORT:

@@ -1837,8 +1837,6 @@ ACMDU(do_mclangold)
   else
   {
     clan_r = get_clan_by_name(arg1);
-    if (clan_r != NO_CLAN)
-      clan_num = clan_list[clan_r].vnum;
   }
 
   if (clan_r == NO_CLAN)
@@ -1904,8 +1902,6 @@ ACMDU(do_mclanwar)
   else
   {
     clan1_r = get_clan_by_name(arg1);
-    if (clan1_r != NO_CLAN)
-      clan1_num = clan_list[clan1_r].vnum;
   }
 
   if (clan1_r == NO_CLAN)
@@ -1923,8 +1919,6 @@ ACMDU(do_mclanwar)
   else
   {
     clan2_r = get_clan_by_name(arg2);
-    if (clan2_r != NO_CLAN)
-      clan2_num = clan_list[clan2_r].vnum;
   }
 
   if (clan2_r == NO_CLAN)
@@ -2007,8 +2001,6 @@ ACMDU(do_mclanally)
   else
   {
     clan1_r = get_clan_by_name(arg1);
-    if (clan1_r != NO_CLAN)
-      clan1_num = clan_list[clan1_r].vnum;
   }
 
   if (clan1_r == NO_CLAN)
@@ -2026,8 +2018,6 @@ ACMDU(do_mclanally)
   else
   {
     clan2_r = get_clan_by_name(arg2);
-    if (clan2_r != NO_CLAN)
-      clan2_num = clan_list[clan2_r].vnum;
   }
 
   if (clan2_r == NO_CLAN)

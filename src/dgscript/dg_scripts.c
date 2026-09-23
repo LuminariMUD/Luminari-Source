@@ -497,6 +497,7 @@ obj_data *get_obj_near_obj(obj_data *obj, char *name)
       return obj->in_obj;
   } /* or worn ?*/
   else if (obj->worn_by && (i = get_object_in_equip(obj->worn_by, name)))
+    /* NOLINTNEXTLINE(bugprone-branch-clone) -- worn and carried are separate lookups */
     return i;
   /* or carried ? */
   else if (obj->carried_by && (i = get_obj_in_list(name, obj->carried_by->carrying)))
@@ -777,7 +778,7 @@ void check_time_triggers(void)
 
 static struct game_event_owner dg_wait_owner(void *go, int type)
 {
-  struct domain_entity_handle entity = domain_entity_handle_none();
+  struct domain_entity_handle entity;
   struct game_event_owner owner = game_event_owner_none();
   room_rnum room;
 
@@ -931,10 +932,6 @@ static bool schedule_trig_wait(struct trig_data *trig, void *go, int type, long 
                                                     wait_event_obj, &new_runtime_handle);
       if (status != GAME_SCHEDULER_OK)
         new_runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
-    }
-    else
-    {
-      status = GAME_SCHEDULER_INVALID_ARGUMENT;
     }
   }
   if (event_runtime_handle_is_none(new_runtime_handle))
@@ -1126,7 +1123,7 @@ static void do_stat_trigger(struct char_data *ch, trig_data *trig)
 
     if (len > MAX_STRING_LENGTH - 80)
     {
-      len += snprintf(sb + len, sizeof(sb) - len, "*** Overflow - script too long! ***\r\n");
+      snprintf(sb + len, sizeof(sb) - len, "*** Overflow - script too long! ***\r\n");
       break;
     }
     cmd_list = cmd_list->next;
@@ -1513,6 +1510,7 @@ static int remove_trigger(struct script_data *sc, char *name)
     } /* This isn't clean. A numeric value will match if it's position OR vnum
        * is found. originally the number was position-only. */
     else if (++n >= num)
+      /* NOLINTNEXTLINE(bugprone-branch-clone) -- position and vnum matches are separate rules */
       break;
     else if ((int)trig_index[i->nr]->vnum == num)
       break;
@@ -1650,6 +1648,7 @@ ACMD(do_detach)
     {
       /* Thanks to Carlos Myers for fixing the line below */
       if ((object = get_obj_in_equip_vis(ch, arg1, NULL, ch->equipment)))
+        /* NOLINTNEXTLINE(bugprone-branch-clone) -- first-match lookup ladder; each arm ends it */
         ;
       else if ((object = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
         ;
@@ -3784,6 +3783,7 @@ static struct cmdlist_element *find_case(struct trig_data *trig, struct cmdlist_
       }
     }
     else if (!strn_cmp("default", p, 7))
+      /* NOLINTNEXTLINE(bugprone-branch-clone) -- 'default' and 'done' are separate stops */
       return c;
     else if (!strn_cmp("done", p, 3))
       return c;

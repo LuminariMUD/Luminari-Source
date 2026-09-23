@@ -2380,7 +2380,7 @@ void HandleStateCharacterRPDecideParseMenuChoice(struct descriptor_data *d, char
 {
   struct char_data *ch = d->character;
   enum character_creation_stage target_stage = CHARACTER_CREATION_STAGE_NONE;
-  int target_state = STATE(d);
+  int target_state;
   int previous_preferences[PR_ARRAY_MAX];
 
   if (ch == NULL)

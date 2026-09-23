@@ -25,14 +25,13 @@
 /* racial behaviour function */
 void npc_racial_behave(struct char_data *ch)
 {
-  struct char_data *vict = NULL;
   int num_targets = 0;
 
   if (!can_continue(ch, TRUE))
     return;
 
   /* retrieve random valid target and number of targets */
-  if (!(vict = npc_find_target(ch, &num_targets)))
+  if (!npc_find_target(ch, &num_targets))
     return;
 
   if (AFF_FLAGGED(ch, AFF_FEAR_AURA) && dice(1, 2) == 1)

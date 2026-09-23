@@ -7597,7 +7597,7 @@ static void verify_buff_sequence_casting(CuTest *tc, int mode)
   unsigned long saved_pulse = pulse;
   int saved_mode = CONFIG_SPELLCASTING_TIME_MODE;
   int saved_divine_prep = CONFIG_DIVINE_PREP_TIME;
-  int saved_min_level = spell_info[SPELL_CURE_LIGHT].min_level[CLASS_CLERIC];
+  int saved_min_level;
   int i, hit_points;
   bool admitted, casting, pending_spell, stopped;
   bool interrupt = mode == 1;
@@ -11340,7 +11340,6 @@ static void verify_quest_pet_reward_admission(CuTest *tc, int mode)
   {
     CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                       domain_event_unsubscribe(domain_event_runtime_bus(), subscription));
-    subscription_active = false;
   }
   if ((mode > 0 && mode < 4) || mode == 6)
   {

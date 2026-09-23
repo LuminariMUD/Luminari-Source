@@ -2843,7 +2843,6 @@ void increase_skill(struct char_data *ch, int skillnum)
   default:
     if (!pass)
     {
-      notched = TRUE;
       GET_SKILL(ch, skillnum)
       ++;
     }
@@ -3470,7 +3469,6 @@ struct time_info_data *real_time_passed(time_t t2, time_t t1)
   secs -= (long)(SECS_PER_REAL_YEAR / 12) * now.month;
 
   now.year = (sh_int)((secs / (long)SECS_PER_REAL_YEAR));
-  secs -= (long)SECS_PER_REAL_YEAR * now.year;
 
   return (&now);
 }
@@ -4071,9 +4069,7 @@ int count_non_protocol_chars(const char *str)
       string++;
       if (!*string)
         break;
-      if (*string != '[' && *string != '<' && *string != '>' && *string != '(' && *string != ')')
-        string++;
-      else if (*string == '[')
+      if (*string == '[')
       {
         while (*string && *string != ']')
           string++;
@@ -5083,7 +5079,6 @@ char *strfrmt(const char *str, int w, int h, int justify __attribute__((unused))
   rp = ret;
   line_remaining = sizeof(line);
   output_remaining = sizeof(ret);
-  word_length = 0;
   line_length = 0;
   line_count = 0;
   last_color = 'n';
@@ -5510,9 +5505,7 @@ int get_feat_value(const struct char_data *ch, int featnum)
   }
 
   /* Check for the feat. */
-  if (IS_NPC(ch))
-    featval = (int)MOB_HAS_FEAT(ch, featnum);
-  else if (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch))
+  if (IS_NPC(ch) || (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)))
     featval = (int)MOB_HAS_FEAT(ch, featnum);
   else
   {
@@ -5698,8 +5691,6 @@ int get_daily_uses(struct char_data *ch, int featnum)
         CLASS_LEVEL(ch, CLASS_DRAGONRIDER) * ((GET_DRAGON_BOND_TYPE(ch) == DRAGON_BOND_MAGE) + 1);
     break;
   case FEAT_CROWN_OF_KNIGHTHOOD:
-    daily_uses = 1;
-    break;
   case FEAT_SOUL_OF_KNIGHTHOOD:
     daily_uses = 1;
     break;
@@ -5716,11 +5707,7 @@ int get_daily_uses(struct char_data *ch, int featnum)
     daily_uses = 2;
     break;
   case FEAT_FINAL_STAND:
-    daily_uses = 1;
-    break;
   case FEAT_KNIGHTHOODS_FLOWER:
-    daily_uses = 1;
-    break;
   case FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT:
     daily_uses = 1;
     break;
@@ -5782,8 +5769,6 @@ int get_daily_uses(struct char_data *ch, int featnum)
     daily_uses = 3 + GET_INT_BONUS(ch);
     break;
   case FEAT_LICH_FEAR:
-    daily_uses = 3;
-    break;
   case FEAT_SLA_INVIS:
   case FEAT_SLA_STRENGTH:
   case FEAT_SLA_ENLARGE:
@@ -5796,8 +5781,6 @@ int get_daily_uses(struct char_data *ch, int featnum)
   case FEAT_AASIMAR_HEALING_HANDS:
   case FEAT_AASIMAR_LIGHT_BEARER:
   case FEAT_MASTER_OF_THE_MIND:
-    daily_uses = 3;
-    break;
   /* Duris racial innates */
   case FEAT_SLA_FARSEE:
   case FEAT_SLA_LIGHTNING_BOLT:
@@ -5893,8 +5876,6 @@ int get_daily_uses(struct char_data *ch, int featnum)
     daily_uses = GET_REAL_CHA(ch) + 4;
     break;
   case FEAT_EFREETI_MAGIC:
-    daily_uses = 10;
-    break;
   case FEAT_DRAGON_MAGIC:
     daily_uses = 10;
     break;
@@ -5908,14 +5889,8 @@ int get_daily_uses(struct char_data *ch, int featnum)
     daily_uses = 3;
     break;
   case FEAT_MUTAGEN:
-    daily_uses = 1;
-    break;
   case FEAT_TINKER:
-    daily_uses = 1;
-    break;
   case FEAT_PSYCHOKINETIC:
-    daily_uses = 1;
-    break;
   case FEAT_METAMAGIC_ADEPT:
     daily_uses = 1;
     break;
@@ -8110,7 +8085,6 @@ int d20(struct char_data *ch)
 
   int roll = dice(1, 20);
   int roll2 = 0;
-  int high = 0;
 
   // critical failure always returns a roll of one
   if (roll == 1)
@@ -8127,7 +8101,7 @@ int d20(struct char_data *ch)
       roll2 = dice(1, 20);
       if (roll != roll2)
       {
-        roll = high = MAX(roll, roll2);
+        roll = MAX(roll, roll2);
         // send_to_char(ch, "\tY[Fortune of the Many Reroll! %d to %d]\tn\r\n", MIN(roll2, roll), high);
       }
     }
@@ -11401,7 +11375,6 @@ int get_bonus_from_liquid_type(int liquid)
   case LIQ_COFFE:
     return APPLY_INT;
   case LIQ_BLOOD:
-    return APPLY_NONE;
   case LIQ_SALTWATER:
     return APPLY_NONE;
   case LIQ_CLEARWATER:
@@ -11439,19 +11412,14 @@ bool is_road_room(room_rnum room, int type)
   if (zone == NOWHERE)
     return false;
 
-  if (ZONE_FLAGGED(zone, ZONE_MISSIONS) && type == 1)
+  if ((ZONE_FLAGGED(zone, ZONE_MISSIONS) && type == 1) ||
+      (ZONE_FLAGGED(zone, ZONE_HUNTS) && type == 2) ||
+      (ZONE_FLAGGED(zone, ZONE_RANDOM_ENCOUNTERS) && type == 3))
     return true;
-  else if (ZONE_FLAGGED(zone, ZONE_HUNTS) && type == 2)
-    return true;
-  else if (ZONE_FLAGGED(zone, ZONE_RANDOM_ENCOUNTERS) && type == 3)
-    return true;
-  else if (!ZONE_FLAGGED(zone, ZONE_OPEN))
+  if (!ZONE_FLAGGED(zone, ZONE_OPEN))
     return false;
-  else if (world[room].sector_type == SECT_ROAD_EW)
-    return true;
-  else if (world[room].sector_type == SECT_ROAD_INT)
-    return true;
-  else if (world[room].sector_type == SECT_ROAD_NS)
+  if (world[room].sector_type == SECT_ROAD_EW || world[room].sector_type == SECT_ROAD_INT ||
+      world[room].sector_type == SECT_ROAD_NS)
     return true;
   return false;
 }
@@ -12696,9 +12664,6 @@ int max_bonus_modifier(int location, int bonus_type)
     break;
 
   case APPLY_PSP:
-    max_modifier = 100;
-    break;
-
   case APPLY_HIT:
     max_modifier = 100;
     break;
@@ -12709,9 +12674,6 @@ int max_bonus_modifier(int location, int bonus_type)
 
   case APPLY_HITROLL:
   case APPLY_DAMROLL:
-    max_modifier = 6;
-    break;
-
   case APPLY_SAVING_FORT:
   case APPLY_SAVING_REFL:
   case APPLY_SAVING_WILL:
@@ -12797,9 +12759,6 @@ int max_bonus_modifier(int location, int bonus_type)
     break;
 
   case APPLY_SPELL_DC:
-    max_modifier = 3;
-    break;
-
   case APPLY_SPELL_PENETRATION:
     max_modifier = 3;
     break;
@@ -12821,13 +12780,8 @@ bool is_exit_hidden(struct char_data *ch, int dir)
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     return false;
 
-  if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN))
-    return true;
-  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN_EASY))
-    return true;
-  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN_MEDIUM))
-    return true;
-  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN_HARD))
+  if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN) || EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN_EASY) ||
+      EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN_MEDIUM) || EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN_HARD))
     return true;
 
   return false;
@@ -12838,13 +12792,8 @@ bool is_exit_locked(struct char_data *ch, int dir)
   if (dir < 0 || dir >= NUM_OF_DIRS)
     return false;
 
-  if (EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED))
-    return true;
-  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED_EASY))
-    return true;
-  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED_MEDIUM))
-    return true;
-  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED_HARD))
+  if (EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED) || EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED_EASY) ||
+      EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED_MEDIUM) || EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED_HARD))
     return true;
 
   return false;

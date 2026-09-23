@@ -729,7 +729,6 @@ void sedit_parse(struct descriptor_data *d, char *arg)
 
     /* Numerical responses. */
   case SEDIT_KEEPER:
-    i = parse_int(arg);
     if ((i = parse_int(arg)) != -1)
       if ((i = real_mobile(i)) == (int)NOBODY)
       {

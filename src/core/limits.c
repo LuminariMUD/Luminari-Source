@@ -1285,12 +1285,9 @@ void set_title(struct char_data *ch, char *title)
   if (GET_TITLE(ch) != NULL)
     free(GET_TITLE(ch));
 
-  // why are we checking sex?  old title system -zusuk
-  // OK to remove sex check!
   if (title == NULL)
   {
-    GET_TITLE(ch) = strdup(GET_SEX(ch) == SEX_FEMALE ? titles(GET_CLASS(ch), GET_LEVEL(ch))
-                                                     : titles(GET_CLASS(ch), GET_LEVEL(ch)));
+    GET_TITLE(ch) = strdup(titles(GET_CLASS(ch), GET_LEVEL(ch)));
   }
   else
   {
@@ -2711,8 +2708,8 @@ void update_damage_and_effects_over_time_one(struct char_data *ch)
       snprintf(buf, sizeof(buf), "A sticky %s bomb explodes on $n again causing $m %s damage.",
                bomb_types[GET_STICKY_BOMB(ch, 0)], damtypes[GET_STICKY_BOMB(ch, 1)]);
       act(buf, FALSE, ch, 0, 0, TO_ROOM);
-      dam = damage(ch, ch, GET_STICKY_BOMB(ch, 2), SKILL_BOMB_TOSS, GET_STICKY_BOMB(ch, 1),
-                   SKILL_BOMB_TOSS);
+      damage(ch, ch, GET_STICKY_BOMB(ch, 2), SKILL_BOMB_TOSS, GET_STICKY_BOMB(ch, 1),
+             SKILL_BOMB_TOSS);
       GET_STICKY_BOMB(ch, 0) = GET_STICKY_BOMB(ch, 1) = GET_STICKY_BOMB(ch, 2) = 0;
     }
     else if (GET_STICKY_BOMB(ch, 0) == BOMB_HEALING)

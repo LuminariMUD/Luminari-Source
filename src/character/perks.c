@@ -10130,16 +10130,13 @@ void use_metamagic_reduction(struct char_data *ch)
 
   ch->player_specials->saved.metamagic_reduction_uses--;
 
-  /* If we just used our last charge, start the cooldown */
-  if (ch->player_specials->saved.metamagic_reduction_uses == 0)
+  /* Start the cooldown if we just used our last charge, or if we have 1 use left and the
+   * cooldown isn't set */
+  if (ch->player_specials->saved.metamagic_reduction_uses == 0 ||
+      (ch->player_specials->saved.metamagic_reduction_uses == 1 &&
+       ch->player_specials->saved.metamagic_reduction_cooldown <= time(0)))
   {
     ch->player_specials->saved.metamagic_reduction_cooldown = time(0) + 300; /* 5 minutes */
-  }
-  /* If we have 1 use left and cooldown isn't set, set it */
-  else if (ch->player_specials->saved.metamagic_reduction_uses == 1 &&
-           ch->player_specials->saved.metamagic_reduction_cooldown <= time(0))
-  {
-    ch->player_specials->saved.metamagic_reduction_cooldown = time(0) + 300;
   }
 }
 
