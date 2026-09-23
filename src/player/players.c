@@ -4699,15 +4699,19 @@ static void load_perk_points(FILE *fl, struct char_data *ch)
 }
 
 /* Load the ids of the perks toggled on, the value of a PTg2 line. An empty value means no toggle
- * is on. A value with anything but ids is damaged: it changes nothing and returns false, so the
- * toggles get their defaults. */
+ * is on. A value with anything but perk ids (0 to NUM_PERKS - 1) is damaged: it changes nothing and
+ * returns false, so the toggles get their defaults. */
 static bool load_perk_toggles(struct char_data *ch, const char *line)
 {
   const char *rest = line;
   int perk_id, consumed;
 
   while (strict_sscanf(rest, "%d%n", &perk_id, &consumed) == 1)
+  {
+    if (perk_id < 0 || perk_id >= NUM_PERKS)
+      return false;
     rest += consumed;
+  }
   while (isspace((unsigned char)*rest))
     rest++;
   if (*rest != '\0')
@@ -4724,16 +4728,25 @@ static bool load_perk_toggles(struct char_data *ch, const char *line)
 }
 
 /* Load the score display preferences, the value of a ScPr line: width, color theme, information
- * density, layout template, and the order of the eight sections. A value out of range keeps its
- * default. A line without all twelve values is damaged: it changes nothing and returns false. */
+ * density, layout template, and the order of the eight sections. A width, theme, density, or layout
+ * out of range keeps its default; a new character saves width 0 until it picks one. Every writer
+ * of the order keeps each section once, so a line without all twelve values, or whose order repeats
+ * or misses a section, is damaged: it changes nothing and returns false. */
 static bool load_score_preferences(struct char_data *ch, const char *line)
 {
   int width, theme, density, layout, order[8], i;
+  bool listed[8] = {false};
 
   if (strict_sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d", &width, &theme, &density, &layout,
                     &order[0], &order[1], &order[2], &order[3], &order[4], &order[5], &order[6],
                     &order[7]) != 12)
     return false;
+  for (i = 0; i < 8; i++)
+  {
+    if (order[i] < 0 || order[i] >= 8 || listed[order[i]])
+      return false;
+    listed[order[i]] = true;
+  }
   if (width == 80 || width == 120 || width == 160)
     GET_SCORE_DISPLAY_WIDTH(ch) = (ubyte)width;
   if (theme >= SCORE_THEME_ENHANCED && theme <= SCORE_THEME_COLORBLIND)
@@ -4743,8 +4756,7 @@ static bool load_score_preferences(struct char_data *ch, const char *line)
   if (layout >= LAYOUT_DEFAULT && layout <= LAYOUT_CASTER)
     GET_SCORE_LAYOUT_TEMPLATE(ch) = (byte)layout;
   for (i = 0; i < 8; i++)
-    if (order[i] >= 0 && order[i] < 8)
-      GET_SCORE_SECTION_ORDER(ch, i) = (byte)order[i];
+    GET_SCORE_SECTION_ORDER(ch, i) = (byte)order[i];
   return true;
 }
 

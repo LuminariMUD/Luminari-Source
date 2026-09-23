@@ -693,39 +693,56 @@ void Test_load_char_restores_what_old_perk_and_score_lines_lost(CuTest *tc)
 
 /* A damaged PTg2 or ScPr line counted as saved (issue 227): PTg2 cleared every toggle first, so an
  * owned toggleable perk stayed off, and a wide score stayed at the default width. A damaged line
- * changes nothing, and the defaults for a file without it apply. */
+ * changes nothing, and the defaults for a file without it apply. A perk id outside the toggle array
+ * is damage, and so is a section order that repeats or misses a section. */
 void Test_load_char_gives_defaults_for_damaged_perk_and_score_lines(CuTest *tc)
 {
+  static const char *const score_lines[] = {"160 1", "160 1 0 0 0 0 1 2 3 4 5 6",
+                                            "160 1 0 0 0 1 2 3 4 5 6 8",
+                                            "160 1 0 0 7 6 5 4 3 2 1 1"};
   struct craft_player_files files;
-  struct char_data *loaded = new_char();
-  char filename[MAX_FILEPATH];
+  struct char_data *loaded;
+  char filename[MAX_FILEPATH], toggle_lines[4][64];
   FILE *file;
-  int result, width;
-  bool stance_on;
+  size_t i;
+  int failed = -1, result;
+  bool defaults;
 
+  snprintf(toggle_lines[0], sizeof(toggle_lines[0]), "4x2");
+  snprintf(toggle_lines[1], sizeof(toggle_lines[1]), "-1");
+  snprintf(toggle_lines[2], sizeof(toggle_lines[2]), "%d", NUM_PERKS);
+  snprintf(toggle_lines[3], sizeof(toggle_lines[3]), "7 %d 12", NUM_PERKS);
   if (get_perk_by_id(PERK_FIGHTER_DEFENSIVE_STANCE) == NULL)
     init_perks();
   craft_player_files_enter(tc, &files, "crdmg", 4323);
   CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, files.name));
-  file = fopen(filename, "w");
-  CuAssertPtrNotNull(tc, file);
-  if (file != NULL)
+  for (i = 0; i < sizeof(score_lines) / sizeof(score_lines[0]) && failed < 0; i++)
   {
+    file = fopen(filename, "w");
+    if (file == NULL)
+    {
+      failed = (int)i;
+      break;
+    }
     fprintf(file,
-            "Name: %s\nId  : 4323\nLevl: 7\nPref: 0 0 p 0\nPerk:\n%d %d 1\n0 0 0\nPTg2: 4x2\n"
-            "ScPr: 160 1\n",
-            files.name, PERK_FIGHTER_DEFENSIVE_STANCE, CLASS_WARRIOR);
+            "Name: %s\nId  : 4323\nLevl: 7\nPref: 0 0 p 0\nPerk:\n%d %d 1\n0 0 0\nPTg2: %s\n"
+            "ScPr: %s\n",
+            files.name, PERK_FIGHTER_DEFENSIVE_STANCE, CLASS_WARRIOR, toggle_lines[i],
+            score_lines[i]);
     fclose(file);
+    loaded = new_char();
+    result = load_char(files.name, loaded);
+    defaults = result == 0 && is_perk_toggled_on(loaded, PERK_FIGHTER_DEFENSIVE_STANCE) &&
+               GET_SCORE_DISPLAY_WIDTH(loaded) == 120 &&
+               GET_SCORE_COLOR_THEME(loaded) == SCORE_THEME_ENHANCED &&
+               GET_SCORE_SECTION_ORDER(loaded, 0) == 0 && GET_SCORE_SECTION_ORDER(loaded, 7) == 7;
+    free_char(loaded);
+    if (!defaults)
+      failed = (int)i;
   }
-  result = load_char(files.name, loaded);
-  stance_on = is_perk_toggled_on(loaded, PERK_FIGHTER_DEFENSIVE_STANCE);
-  width = GET_SCORE_DISPLAY_WIDTH(loaded);
-  free_char(loaded);
   CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
 
-  CuAssertIntEquals(tc, 0, result);
-  CuAssertTrue(tc, stance_on);
-  CuAssertIntEquals(tc, 120, width);
+  CuAssertIntEquals(tc, -1, failed);
 }
 
 /* Every spell bomb thrown with Bomb Mastery added five to the thrower's alchemist level until
