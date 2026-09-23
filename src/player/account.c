@@ -441,6 +441,8 @@ ACMD(do_accexp)
         case CLASS_KNIGHT_OF_THE_SKULL:
           matches_alternate = is_abbrev(arg2, "knight of the skull");
           break;
+        default:
+          break;
         }
 
         if (matches_alternate)

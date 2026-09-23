@@ -2164,8 +2164,8 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
     ntime = (min * SECS_PER_MUD_HOUR * PASSES_PER_SEC) / 60;
 
     /* calculate pulse of day of current time */
-    when = (pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)) +
-           (time_info.hours * SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+    when = (pulse % ((unsigned long)SECS_PER_MUD_HOUR * PASSES_PER_SEC)) +
+           ((unsigned long)time_info.hours * SECS_PER_MUD_HOUR * PASSES_PER_SEC);
 
     if (when >= ntime) /* adjust for next day */
       when = ((long)SECS_PER_MUD_DAY * PASSES_PER_SEC) - when + ntime;
@@ -2556,6 +2556,8 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int t
       case MOB_TRIGGER:
         c = get_char_room_vis((struct char_data *)go, name, NULL);
         break;
+      default:
+        break;
       }
       if (c)
         snprintf(uid, sizeof(uid), "%c%ld", UID_CHAR, char_script_id(c));
@@ -2577,6 +2579,8 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int t
           o = get_obj_in_list_vis((struct char_data *)go, name, NULL,
                                   world[IN_ROOM((struct char_data *)go)].contents);
         break;
+      default:
+        break;
       }
       if (o)
         snprintf(uid, sizeof(uid), "%c%ld", UID_CHAR, obj_script_id(o));
@@ -2594,6 +2598,8 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int t
         break;
       case MOB_TRIGGER:
         r = IN_ROOM((struct char_data *)go);
+        break;
+      default:
         break;
       }
       if (r != NOWHERE)
@@ -3407,6 +3413,8 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
         script_log("  ROOM details: name='%s', vnum=%" PRI_IDX, ((room_data *)go)->name,
                    ((room_data *)go)->number);
         break;
+      default:
+        break;
       }
     }
     else
@@ -3432,6 +3440,8 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
     case WLD_TRIGGER:
       script_log("It was attached to %s [%" PRI_IDX "]", ((room_data *)go)->name,
                  ((room_data *)go)->number);
+      break;
+    default:
       break;
     }
 

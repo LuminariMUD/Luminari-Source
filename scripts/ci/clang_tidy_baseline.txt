@@ -3,15 +3,3 @@
 # may only shrink. After fixing findings, record the lower counts:
 #   scripts/ci/check_clang_tidy.py --build-dir build/analysis --update
 # When a file moves, rename its entries here in the same change.
-src/core/db.c bugprone-switch-missing-default-case 5
-src/database/mysql.c bugprone-multi-level-implicit-pointer-conversion 5
-src/dgscript/dg_olc.c bugprone-multi-level-implicit-pointer-conversion 1
-src/dgscript/dg_olc.c bugprone-switch-missing-default-case 2
-src/dgscript/dg_scripts.c bugprone-implicit-widening-of-multiplication-result 2
-src/dgscript/dg_scripts.c bugprone-switch-missing-default-case 5
-src/obj/objsave.c bugprone-implicit-widening-of-multiplication-result 1
-src/olc/genmob.c bugprone-switch-missing-default-case 1
-src/olc/genobj.c bugprone-switch-missing-default-case 2
-src/player/account.c bugprone-switch-missing-default-case 1
-src/player/players.c bugprone-implicit-widening-of-multiplication-result 1
-src/player/players.c bugprone-switch-missing-default-case 1
