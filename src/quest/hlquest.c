@@ -925,8 +925,8 @@ int quest_location_vnum(struct quest_command *qcom)
 void boot_the_quests(FILE *quest_f, char *filename, int rec_count __attribute__((unused)))
 {
   char str[256] = {'\0'};
-  char line[256] = {'\0'};
-  char inner[256] = {'\0'};
+  char line[READ_SIZE] = {'\0'};
+  char inner[READ_SIZE] = {'\0'};
   int temp = 0;
   bool done = FALSE;
   bool approved = FALSE;
