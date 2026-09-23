@@ -472,8 +472,9 @@ void Test_save_char_keeps_perk_toggles_and_score_preferences(CuTest *tc)
   struct craft_player_files files;
   struct char_data *ch = new_char();
   struct char_data *loaded = new_char();
-  bool saved, stance, bit_seven, catalyst, neighbour_off, order_kept = TRUE;
-  int i, result, width, theme, density, layout;
+  bool saved, stance, bit_seven, catalyst, neighbour_off, theme, density, layout;
+  bool order_kept = TRUE;
+  int i, result, width;
 
   craft_player_files_enter(tc, &files, "crptog", 4307);
   ch->player.name = strdup(files.name);
@@ -497,9 +498,9 @@ void Test_save_char_keeps_perk_toggles_and_score_preferences(CuTest *tc)
   catalyst = is_perk_toggled_on(loaded, PERK_ALCHEMIST_VOLATILE_CATALYST);
   neighbour_off = !is_perk_toggled_on(loaded, 424) && !is_perk_toggled_on(loaded, 416);
   width = GET_SCORE_DISPLAY_WIDTH(loaded);
-  theme = GET_SCORE_COLOR_THEME(loaded);
-  density = GET_SCORE_INFO_DENSITY(loaded);
-  layout = GET_SCORE_LAYOUT_TEMPLATE(loaded);
+  theme = GET_SCORE_COLOR_THEME(loaded) == SCORE_THEME_DARK;
+  density = GET_SCORE_INFO_DENSITY(loaded) == 1;
+  layout = GET_SCORE_LAYOUT_TEMPLATE(loaded) == LAYOUT_ROLEPLAY;
   for (i = 0; i < 8; i++)
     if (GET_SCORE_SECTION_ORDER(loaded, i) != 7 - i)
       order_kept = FALSE;
@@ -514,9 +515,9 @@ void Test_save_char_keeps_perk_toggles_and_score_preferences(CuTest *tc)
   CuAssertTrue(tc, catalyst);
   CuAssertTrue(tc, neighbour_off);
   CuAssertIntEquals(tc, 160, width);
-  CuAssertIntEquals(tc, SCORE_THEME_DARK, theme);
-  CuAssertIntEquals(tc, 1, density);
-  CuAssertIntEquals(tc, LAYOUT_ROLEPLAY, layout);
+  CuAssertTrue(tc, theme);
+  CuAssertTrue(tc, density);
+  CuAssertTrue(tc, layout);
   CuAssertTrue(tc, order_kept);
 }
 
