@@ -8124,17 +8124,20 @@ Set the variant and allocate the primary material before the three required
 descriptions. Each must contain the exact variant phrase and the selected
 primary material. Keywords reject dashes. The maximum lengths for keywords,
 shortdesc, and roomdesc are 100, 100, and 120 characters. The recipe variant
-sets the project's crafting skill, which decides the tool, the crafting
-station, talents, the roll, and experience. START refuses a project whose DC no
+sets the project's crafting skill (hide and leather items use leatherworking,
+cloth garments tailoring), which decides the tool, the crafting station,
+talents, the roll, and experience. START refuses a project whose DC no
 roll can reach; rapid talents shorten the work.
 
 TOOLS
 Every equipment project except woodworking needs its skill's crafting tool,
-worn in that skill's tool slot: a sewing needle for tailoring, an armorsmith's
-or a weaponsmith's hammer, jeweler's pliers, or an alchemy set. Jufus the
-materials vendor sells all five in the Supply Materials Shop of the Sanctus III
-crafting district, north of the Slanting Passageway. WEAR the tool, and CRAFT
-TOOLS shows it. Supply orders need no tool.
+worn in that skill's tool slot: a sewing needle for tailoring, a
+leatherworker's knife for leatherworking (in the skinning knife slot, which
+hunting shares), an armorsmith's or a weaponsmith's hammer, jeweler's pliers,
+or an alchemy set. Jufus the materials vendor sells all six in the Supply
+Materials Shop of the Sanctus III crafting district, north of the Slanting
+Passageway. WEAR the tool, and CRAFT TOOLS shows it. Supply orders need no
+tool.
 
 OTHER WAYS TO MAKE THINGS
   craft mold [check | <description>]   authored molds, through a carried
@@ -8220,6 +8223,11 @@ weaponsmithing, woodworking, forestry, gathering, hunting, and mining. CRAFTSCOR
 shows them; APPRENTICE trainers and finished work advance them; talents spend
 the points ranks grant. There is no separate list of old crafting skills.
 
+A project's skill comes from its recipe variant, and CRAFT SHOW names it.
+Items made mainly of hides, such as leather and hide armor, boots, gloves,
+belts, bracers, whips, saps, and slings, use leatherworking; cloth garments
+use tailoring.
+
 MATERIALS
 CRAFTMATERIALS lists material and elemental-mote balances. STORE deposits a
 material item into its balance: node logs store as their wood (alderwood as
@@ -8240,9 +8248,11 @@ TOOLS
 CRAFT TOOLS lists the crafting tool worn in each skill's tool slot, the tool a
 project of that skill needs. A crafting tool for another skill, or any other
 object, in the slot does not count. Woodworking needs no tool and has no row.
-Jufus the materials vendor sells the sewing needle, the armorsmith's and
-weaponsmith's hammers, jeweler's pliers, and an alchemy set in the Sanctus III
-crafting district. Harvest tools are separate: see HARVEST-TOOLS.
+Leatherworking and hunting share the skinning knife slot, so wear the tool the
+work needs. Jufus the materials vendor sells the sewing needle, the
+leatherworker's knife, the armorsmith's and weaponsmith's hammers, jeweler's
+pliers, and an alchemy set in the Sanctus III crafting district. Harvest tools
+are separate: see HARVEST-TOOLS.
 
 Enhancement and object bonuses are funded with motes. MOTES lists mote types and
 the bonuses associated with a selected type.
@@ -8272,8 +8282,9 @@ permanent fixture in a crafting hall.
 If you try to craft without the station you are told which one the item
 needs. Some skills need no station at all. You also need the materials on
 hand and, for every skill but woodworking, the skill's crafting tool worn in
-its tool slot. Jufus the materials vendor sells the tools next to the crafting
-benches; see CRAFTING.
+its tool slot. The Crafting Benches of the Sanctus III crafting district hold
+one of each station, and Jufus the materials vendor sells the tools two rooms
+away; see CRAFTING.
 
 See also: CRAFTING, CRAFT-TOOLS, CRAFT-MATERIALS, CRAFT-TRAINER, SUPPLYORDER
 #0
@@ -15976,12 +15987,14 @@ vegetation). Mote categories work as before and pay motes.
 
 ZONE NODES
 HARVEST <node> works a zone node (veins, trees, game areas, cloth plants) for
-five rounds. Completion draws from the node's own drop table: a storable
+one round. Completion draws from the node's own drop table: a storable
 material is credited straight to CRAFTMATERIALS (one unit), while gems and
 fossil eggs arrive as objects. Only then is the node's charge spent and the
 harvest ability paid. Cancelling costs nothing and leaves the charge; a full
 balance or a full inventory refuses the reward and keeps the charge. A node
-needs a minimum rank, shown when you are short.
+needs a minimum rank, shown when you are short. It yields less per round than a
+wilderness success, but it never fails once you meet its rank and has no grade
+limit.
 
 See also: HARVEST-TOOLS, CRAFTING, CRAFT-SCORE, ACTIVITY
 #0
@@ -15991,12 +16004,15 @@ Harvest tools raise the quality tier of wilderness harvests while carried in
 your top-level inventory or equipped. A tool inside a container must be taken
 out first.
 
-Tool                      Guaranteed tier
-poor harvest tool         1
-common harvest tool       2
-uncommon harvest tool     3
-rare harvest tool         4
-legendary harvest tool    5
+Tool                      Guaranteed tier   List price
+poor harvest tool         1                         50
+common harvest tool       2                        500
+uncommon harvest tool     3                      2,500
+rare harvest tool         4                     12,500
+legendary harvest tool    5                     50,000
+
+Jufus the materials vendor sells all five in the Supply Materials Shop of the
+Sanctus III crafting district.
 
 Your best tool applies. It is not consumed and does not need to be wielded,
 but it must still be with you when the round completes. A material can be
@@ -19135,7 +19151,10 @@ LEAPS-AND-BOUNDS SPELL-LEAPS-AND-BOUNDS
 LEATHERWORKING
 
    Leatherworking is a crafting skill used to create leather armor, weapons such
-as slings and saps, and other wearables made from hides.
+as slings and saps, and other wearables made from hides. Its projects need a
+tannery and a leatherworker's knife worn in the skinning knife slot.
+
+See also: CRAFTING, CRAFT-TOOLS, CRAFTING-STATIONS
 #0
 LEAVE
 
