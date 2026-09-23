@@ -13643,9 +13643,9 @@ void Test_wilderness_harvest_rewards_are_consumed_by_existing_crafting(CuTest *t
 }
 
 /** @brief Object nodes on the activity manager (consolidation Phase 3b): nothing is credited at
- * admission; completion credits one balance unit or delivers an object, then spends the charge
- * and awards the harvest ability; every cancellation and every refused reward leaves the charge
- * and the experience alone; the last charge pays exactly once. */
+ * admission; completion, one round later, credits one balance unit or delivers an object, then
+ * spends the charge and awards the harvest ability; every cancellation and every refused reward
+ * leaves the charge and the experience alone; the last charge pays exactly once. */
 void Test_node_harvest_credits_at_completion_and_never_pays_for_cancelling(CuTest *tc)
 {
   struct gameplay_fixture fixture;
@@ -13754,14 +13754,12 @@ void Test_node_harvest_credits_at_completion_and_never_pays_for_cancelling(CuTes
   CuAssertPtrNotNull(tc, node);
   obj_to_room(node, 0);
 
-  /* Nothing at admission, nothing after four steps, one balance unit after the fifth. */
+  /* Nothing at admission; one balance unit after one round, the pace of a wilderness harvest
+   * (issue 223). */
   do_harvest(&fixture.actor, "vein", 0, 0);
   result[0] = primary_activity_snapshot(&fixture.actor, &snapshot) && NODE_BALANCE_TOTAL() == 0 &&
               GET_OBJ_VAL(node, 0) == 2 &&
               GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_MINING) == 0;
-  NODE_ADVANCE(4);
-  result[0] = result[0] && primary_activity_snapshot(&fixture.actor, &snapshot) &&
-              NODE_BALANCE_TOTAL() == 0 && GET_OBJ_VAL(node, 0) == 2;
   circle_srandom(balance_seed);
   NODE_ADVANCE(1);
   result[1] = !primary_activity_snapshot(&fixture.actor, &snapshot) && NODE_BALANCE_TOTAL() == 1 &&
@@ -13774,7 +13772,7 @@ void Test_node_harvest_credits_at_completion_and_never_pays_for_cancelling(CuTes
   before_mining = GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_MINING);
   do_harvest(&fixture.actor, "vein", 0, 0);
   circle_srandom(gem_seed);
-  NODE_ADVANCE(5);
+  NODE_ADVANCE((int)NODE_HARVEST_STEPS);
   result[2] = fixture.actor.carrying != NULL && fixture.actor.carrying->next_content == NULL &&
               NODE_BALANCE_TOTAL() == 1 && GET_OBJ_VAL(node, 0) == 1 &&
               GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_MINING) > before_mining;
@@ -13790,7 +13788,7 @@ void Test_node_harvest_credits_at_completion_and_never_pays_for_cancelling(CuTes
   char_from_room(&fixture.actor);
   char_to_room_cause(&fixture.actor, 1, NULL, DOMAIN_RELOCATION_WALK, NORTH);
   circle_srandom(balance_seed);
-  NODE_ADVANCE(5);
+  NODE_ADVANCE((int)NODE_HARVEST_STEPS);
   result[3] = result[3] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
               NODE_BALANCE_TOTAL() == 1 && GET_OBJ_VAL(node, 0) == 2;
   char_from_room(&fixture.actor);
@@ -13799,7 +13797,7 @@ void Test_node_harvest_credits_at_completion_and_never_pays_for_cancelling(CuTes
   result[4] = primary_activity_snapshot(&fixture.actor, &snapshot);
   domain_event_runtime_combat_state_changed(&fixture.actor, &fixture.victim, true);
   circle_srandom(balance_seed);
-  NODE_ADVANCE(5);
+  NODE_ADVANCE((int)NODE_HARVEST_STEPS);
   result[4] = result[4] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
               NODE_BALANCE_TOTAL() == 1 && GET_OBJ_VAL(node, 0) == 2;
   FIGHTING(&fixture.actor) = NULL;
@@ -13808,7 +13806,7 @@ void Test_node_harvest_credits_at_completion_and_never_pays_for_cancelling(CuTes
   obj_from_room(node);
   extract_obj(node);
   circle_srandom(balance_seed);
-  NODE_ADVANCE(5);
+  NODE_ADVANCE((int)NODE_HARVEST_STEPS);
   result[5] = result[5] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
               NODE_BALANCE_TOTAL() == 1 &&
               GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_MINING) == before_mining;
@@ -13823,7 +13821,7 @@ void Test_node_harvest_credits_at_completion_and_never_pays_for_cancelling(CuTes
   GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_STEEL) = INT_MAX;
   do_harvest(&fixture.actor, "vein", 0, 0);
   circle_srandom(balance_seed);
-  NODE_ADVANCE(5);
+  NODE_ADVANCE((int)NODE_HARVEST_STEPS);
   result[6] = GET_OBJ_VAL(node, 0) == 2 && strstr(descriptor.output, "cannot hold") != NULL &&
               GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_MINING) == before_mining;
   GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_BRONZE) = 0;
@@ -13833,7 +13831,7 @@ void Test_node_harvest_credits_at_completion_and_never_pays_for_cancelling(CuTes
   do_harvest(&fixture.actor, "vein", 0, 0);
   IS_CARRYING_N(&fixture.actor) = CAN_CARRY_N(&fixture.actor);
   circle_srandom(gem_seed);
-  NODE_ADVANCE(5);
+  NODE_ADVANCE((int)NODE_HARVEST_STEPS);
   result[7] = GET_OBJ_VAL(node, 0) == 2 && fixture.actor.carrying == NULL &&
               strstr(descriptor.output, "must drop") != NULL;
   IS_CARRYING_N(&fixture.actor) = 0;
@@ -13847,7 +13845,7 @@ void Test_node_harvest_credits_at_completion_and_never_pays_for_cancelling(CuTes
   result[8] = primary_activity_snapshot(&fixture.actor, &snapshot) &&
               primary_activity_snapshot(&fixture.victim, &snapshot);
   circle_srandom(balance_seed);
-  NODE_ADVANCE(5);
+  NODE_ADVANCE((int)NODE_HARVEST_STEPS);
   balance_total = NODE_BALANCE_TOTAL() + GET_CRAFT_MAT((&fixture.victim), CRAFT_MAT_BRONZE) +
                   GET_CRAFT_MAT((&fixture.victim), CRAFT_MAT_IRON) +
                   GET_CRAFT_MAT((&fixture.victim), CRAFT_MAT_STEEL) +
@@ -14059,9 +14057,9 @@ void Test_node_harvest_merged_drop_buckets_keep_their_materials(CuTest *tc)
 
     GET_OBJ_MATERIAL(node) = drop->material;
     do_harvest(&fixture.actor, "vein", 0, 0);
-    for (step = 0; step < 5; step++)
+    for (step = 0; step < (int)NODE_HARVEST_STEPS; step++)
     {
-      if (step == 4)
+      if (step == (int)NODE_HARVEST_STEPS - 1)
         circle_srandom(seed);
       pulse += (unsigned long)PULSE_VIOLENCE;
       event_test_advance();

@@ -11,9 +11,9 @@ reward. Commands cannot start overlapping activities. The same rules apply to
 `gather` and `mine` for their supported categories.
 
 An explicitly named zone node still wins in the same room; it runs its own
-five-round activity that credits the same balances (see `do_harvest()` in
-`src/craft/craft.c`). `search` is reserved and has no harvesting behavior or
-dependency.
+one-round activity that credits the same balances (see `do_harvest()` in
+`src/craft/craft.c` and [Zone nodes and wilderness spots](#zone-nodes-and-wilderness-spots)).
+`search` is reserved and has no harvesting behavior or dependency.
 
 ## Configuration
 
@@ -84,6 +84,29 @@ Poor through Legendary quality, with the tool floor applied.
 
 The pre-merge quality ladder (`wilderness_harvest_material()`) is retained only
 as the frozen compatibility reader for old holdings.
+
+## Zone nodes and wilderness spots
+
+Both paths credit the same balances and train the same harvest abilities, and both pay
+`20 + 10 * grade` experience per completion. Their rates (decided in issue #223):
+
+| Path | Time | Yield per completion | Supply |
+| -- | -- | -- | -- |
+| `harvest <node>` | one round (`NODE_HARVEST_STEPS` in `src/craft/craft.h`) | one unit, or one object for a gem or fossil egg | 2-6 charges per node, spent one per completion; nodes are placed at boot |
+| `harvest <material>` | one round | 2-4 units on a success, plus 2-4 on a natural 100 and 2 from the efficient talent | the spot depletes and regenerates |
+
+- Per round, a node yields about a third of an average wilderness success. It has no failure
+  roll and no grade gate beyond its minimum rank, and it carries the authored rare drops, so a
+  node is a reliable source of its material rather than a bulk one.
+- Per charge nothing changed: a charge is one unit or one drop, so a node's total output and its
+  rare-drop chances stay as authored. Only the wait was cut, from five rounds (30 seconds) to
+  one; at five rounds the wilderness yielded about fifteen times as much per second.
+- A node placed in a wilderness zone behaves like any other node: `harvest <node keyword>` works
+  the node, and any other argument works the spot.
+
+The tuning constants are `NODE_HARVEST_STEPS`, the single unit credited in
+`node_harvest_complete()` (`src/craft/craft.c`), and `dice(2, 2)` in
+`complete_material_harvest()` (`src/wilderness/harvest.c`).
 
 ## Harvest tools
 

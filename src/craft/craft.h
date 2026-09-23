@@ -37,8 +37,9 @@
 #define WEAPON_RESIZE_INC 2
 /* the maximun harvesting-nodes allowed is number of rooms divided by this value */
 #define NODE_CAP_FACTOR 17
-/* Node harvest: five steps of PULSE_VIOLENCE (30 seconds) per unit, credited at completion. */
-#define NODE_HARVEST_STEPS 5U
+/* Node harvest: one step of PULSE_VIOLENCE (one round, like a wilderness harvest) per charge,
+ * credited at completion. A charge still yields one unit, so a node's total is unchanged. */
+#define NODE_HARVEST_STEPS 1U
 extern int mining_nodes, farming_nodes, hunting_nodes, foresting_nodes;
 /* Kit operations on the activity manager; reforge is shared with the reforge command. */
 bool reforge_plan(struct char_data *ch, struct obj_data *obj, const char *target, int *index_out,
