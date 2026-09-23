@@ -232,7 +232,6 @@ static int audio_generate_message(struct spatial_context *ctx, char *output, siz
 
   switch (msg_type)
   {
-  /* NOLINTNEXTLINE(bugprone-branch-clone) -- DISTANT may want its own wording; not guessed */
   case AUDIO_MSG_CLEAR:
     if (ctx->direction == SPATIAL_DIR_HERE)
     {
@@ -251,7 +250,8 @@ static int audio_generate_message(struct spatial_context *ctx, char *output, siz
     }
     else
     {
-      snprintf(output, max_len, "You hear %s from %s.", ctx->source_description, direction_str);
+      snprintf(output, max_len, "You hear %s in the distance, from %s.", ctx->source_description,
+               direction_str);
     }
     break;
 

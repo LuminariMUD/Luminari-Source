@@ -58,6 +58,7 @@
 #include "../../src/movement/movement.h"
 #include "../../src/movement/door_state.h"
 #include "../../src/wilderness/kdtree.h"
+#include "../../src/wilderness/spatial_audio.h"
 #include "../../src/wilderness/spatial_core.h"
 #include "../../src/wilderness/wilderness.h"
 #include "../../src/character/perks.h"
@@ -14318,4 +14319,30 @@ void Test_script_object_token_names_a_carried_object(CuTest *tc)
   end_defect_fixture(&f);
 
   CuAssertTrue(tc, named);
+}
+
+/* The distant audio message read the same as the clear one, and the closest distance tier the same
+ * as the next. */
+void Test_spatial_audio_words_distant_and_immediate_sounds(CuTest *tc)
+{
+  struct spatial_context context;
+  char clear[MAX_STRING_LENGTH], distant[MAX_STRING_LENGTH];
+
+  memset(&context, 0, sizeof(context));
+  context.source_description = "a wolf howling";
+  context.direction = SPATIAL_DIR_NORTH;
+  context.distance = 5.0;
+  context.final_intensity = 0.9;
+  CuAssertIntEquals(tc, SPATIAL_SUCCESS,
+                    audio_system.stimulus->generate_base_message(&context, clear, sizeof(clear)));
+  context.final_intensity = 0.6;
+  CuAssertIntEquals(
+      tc, SPATIAL_SUCCESS,
+      audio_system.stimulus->generate_base_message(&context, distant, sizeof(distant)));
+
+  CuAssertStrEquals(tc, "You hear a wolf howling from the distant north.", clear);
+  CuAssertStrEquals(tc, "You hear a wolf howling in the distance, from the distant north.",
+                    distant);
+  CuAssertStrEquals(tc, "the immediate north", spatial_direction_to_string(SPATIAL_DIR_NORTH, 0.5));
+  CuAssertStrEquals(tc, "the north", spatial_direction_to_string(SPATIAL_DIR_NORTH, 2.0));
 }

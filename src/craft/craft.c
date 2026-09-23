@@ -2355,10 +2355,7 @@ static obj_vnum node_drop_prototype(int material, int *minskill_out)
 
   case MATERIAL_MITHRIL:
     roll = dice(1, 100);
-    if (roll <= 48)
-      /* NOLINTNEXTLINE(bugprone-branch-clone) -- drop-table buckets; may be a data slip */
-      vnum = MITHRIL_MATERIAL;
-    else if (roll <= 96)
+    if (roll <= 96)
       vnum = MITHRIL_MATERIAL;
     else if (roll <= 98)
       vnum = RUBY_MATERIAL;
@@ -2400,10 +2397,7 @@ static obj_vnum node_drop_prototype(int material, int *minskill_out)
     else
     {
       roll = dice(1, 100);
-      if (roll <= 48)
-        /* NOLINTNEXTLINE(bugprone-branch-clone) -- drop-table buckets; may be a data slip */
-        vnum = SILVER_MATERIAL;
-      else if (roll <= 52)
+      if (roll > 48 && roll <= 52)
         vnum = ONYX_MATERIAL;
       else
         vnum = SILVER_MATERIAL;
@@ -2416,10 +2410,7 @@ static obj_vnum node_drop_prototype(int material, int *minskill_out)
     if (roll <= (8))
     {
       roll = dice(1, 100);
-      if (roll <= 48)
-        /* NOLINTNEXTLINE(bugprone-branch-clone) -- drop-table buckets; may be a data slip */
-        vnum = GOLD_MATERIAL;
-      else if (roll <= 96)
+      if (roll <= 96)
         vnum = GOLD_MATERIAL;
       else if (roll <= 98)
         vnum = RUBY_MATERIAL;
@@ -2429,10 +2420,7 @@ static obj_vnum node_drop_prototype(int material, int *minskill_out)
     else
     {
       roll = dice(1, 100);
-      if (roll <= 4)
-        /* NOLINTNEXTLINE(bugprone-branch-clone) -- drop-table buckets; may be a data slip */
-        vnum = PLATINUM_MATERIAL;
-      else if (roll <= 96)
+      if (roll <= 96)
         vnum = PLATINUM_MATERIAL;
       else
       {
