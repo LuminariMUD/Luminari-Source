@@ -304,9 +304,9 @@ void Test_load_char_stops_at_a_truncated_class_feat_list(CuTest *tc)
   CuAssertIntEquals(tc, 2, epic_feats);
 }
 
-/* Every list and string in a player file, cut off after its first entry (issue 230). get_line()
- * leaves its last line in place at the end of the file, so the list loaders read that line
- * forever, and a file that ended inside a string stopped the game. load_char() must return. */
+/* Every list in a player file, cut off after its first entry (issue 230). get_line() leaves its
+ * last line in place at the end of the file, so the list loaders read that line forever.
+ * load_char() must return. */
 void Test_load_char_returns_for_every_cut_off_list(CuTest *tc)
 {
   static const char *const sections[] = {
@@ -314,9 +314,7 @@ void Test_load_char_returns_for_every_cut_off_list(CuTest *tc)
       "AbXP:\n5 100\n",
       "Affs: 1\n1 10 1 1 0 0 0 0 0 0 0 0 0 0\n",
       "Alis: 3\n l\n look\n0\n",
-      "BGrd:\nRaised by wolves.\n",
       "Bomb:\n3\n",
-      "Bond:\nA sworn friend.\n",
       "Buff:\n0 5 6\n",
       "CfMt:\n7\n",
       "Cfpt:\n0 3\n",
@@ -327,7 +325,6 @@ void Test_load_char_returns_for_every_cut_off_list(CuTest *tc)
       "CrAf:\n0 1 2 0 0\n",
       "CrMa:\n0 3 4\n",
       "CrMo:\n0 5\n",
-      "Desc:\nA tall figure.\n",
       "Disc:\n1\n",
       "DmgR:\n1 2 3 4 5\n",
       "Dvis:\n1\n",
@@ -339,9 +336,6 @@ void Test_load_char_returns_for_every_cut_off_list(CuTest *tc)
       "FaTr:\n0 2\n",
       "FDQs:\n12\n",
       "Feat:\n1 1\n",
-      "Flaw:\nImpatient.\n",
-      "Goal:\nFind the relic.\n",
-      "Idel:\nHonor.\n",
       "InMa:\n0 1 0 0 0\n",
       "Intr:\n12\n",
       "Intr:\nSomebody\n",
@@ -352,7 +346,6 @@ void Test_load_char_returns_for_every_cut_off_list(CuTest *tc)
       "Mote:\n4\n",
       "Mrcy:\n3\n",
       "Perk:\n417 3 1\n",
-      "Pers:\nCheerful.\n",
       "Potn:\n5 2\n",
       "PPts:\n0 3\n",
       "PrQu:\n0 1 0 0 0\n",
@@ -401,6 +394,72 @@ void Test_load_char_returns_for_every_cut_off_list(CuTest *tc)
   CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
 
   CuAssertStrEquals(tc, "", failed != NULL ? failed : "");
+}
+
+/* A player string without its '~' (issue 230): the reader takes in every line after it, to the end
+ * of the file, and a file that ended there stopped the game. Loading the rest let the next save
+ * drop every tag after the string, and a string longer than the buffer still stopped the game.
+ * Both refuse the load. */
+void Test_load_char_refuses_a_string_without_its_tilde(CuTest *tc)
+{
+  static const char *const strings[] = {"BGrd", "Bond", "Desc", "Flaw", "Goal", "Idel", "Pers"};
+  struct craft_player_files files;
+  struct char_data *loaded;
+  char filename[MAX_FILEPATH];
+  const char *loaded_anyway = NULL;
+  FILE *file;
+  size_t i;
+  int cut_off = 0, too_long = 0;
+
+  craft_player_files_enter(tc, &files, "crtilde", 4319);
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, files.name));
+  for (i = 0; i < sizeof(strings) / sizeof(strings[0]) && loaded_anyway == NULL; i++)
+  {
+    loaded = new_char();
+    file = fopen(filename, "w");
+    if (file == NULL)
+      loaded_anyway = strings[i];
+    else
+    {
+      /* The Levl and Gold tags read as the string's text. */
+      fprintf(file, "Name: %s\nId  : 4319\n%s:\nA line of text.\nLevl: 7\nGold: 500\n", files.name,
+              strings[i]);
+      fclose(file);
+      if (load_char(files.name, loaded) != -1)
+        loaded_anyway = strings[i];
+    }
+    free_char(loaded);
+  }
+
+  /* A file cut off inside the string. */
+  loaded = new_char();
+  file = fopen(filename, "w");
+  if (file != NULL)
+  {
+    fprintf(file, "Name: %s\nId  : 4319\nLevl: 7\nDesc:\nA tall figure.\n", files.name);
+    fclose(file);
+  }
+  cut_off = load_char(files.name, loaded);
+  free_char(loaded);
+
+  /* More text than MAX_STRING_LENGTH before the end of the file. */
+  loaded = new_char();
+  file = fopen(filename, "w");
+  if (file != NULL)
+  {
+    fprintf(file, "Name: %s\nId  : 4319\nDesc:\n", files.name);
+    for (i = 0; i < MAX_STRING_LENGTH / 60 + 1; i++)
+      fprintf(file, "%s\n", "A line of text that is long enough to fill the buffer faster.");
+    fprintf(file, "Levl: 7\n");
+    fclose(file);
+  }
+  too_long = load_char(files.name, loaded);
+  free_char(loaded);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertStrEquals(tc, "", loaded_anyway != NULL ? loaded_anyway : "");
+  CuAssertIntEquals(tc, -1, cut_off);
+  CuAssertIntEquals(tc, -1, too_long);
 }
 
 /* An intact list longer than its array (issue 230): the loaders advanced their index with no
@@ -1843,6 +1902,56 @@ void Test_craft_training_account_menu_shows_time_left(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(running, fixture.files.name));
   CuAssertPtrNotNull(tc, strstr(running, "training, 13h 20m left"));
   CuAssertPtrNotNull(tc, strstr(finished, "training finished"));
+}
+
+/* A player file with a string missing its '~' does not load (issue 230). Choosing the character at
+ * the account menu, or adding it to the account, says so; the name prompt does not offer the name
+ * to a new character, whose first save would take over the player's index entry and file. */
+void Test_account_menu_refuses_a_character_whose_file_does_not_load(CuTest *tc)
+{
+  struct craft_account_fixture fixture;
+  char filename[MAX_FILEPATH], before[MAX_STRING_LENGTH], after[MAX_STRING_LENGTH];
+  char chosen[MAX_STRING_LENGTH], added[MAX_STRING_LENGTH], named[MAX_STRING_LENGTH];
+  int chosen_state, added_state, named_state, top_before;
+  bool read_before, read_after, named_character;
+  FILE *file;
+
+  craft_account_begin(tc, &fixture, "crbroke", 4321);
+  /* Character names are letters only. */
+  snprintf(fixture.files.name, sizeof(fixture.files.name), "Zzbrokenfile");
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, fixture.files.name));
+  file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, file);
+  if (file != NULL)
+  {
+    fprintf(file, "Name: %s\nId  : 4321\nDesc:\nA tall figure.\nLevl: 7\n", fixture.files.name);
+    fclose(file);
+  }
+  read_before = craft_account_file_text(&fixture, before, sizeof(before));
+  top_before = top_of_p_table;
+
+  craft_account_input(&fixture, "1", chosen, sizeof(chosen));
+  chosen_state = STATE(&fixture.descriptor);
+  STATE(&fixture.descriptor) = CON_ACCOUNT_ADD;
+  craft_account_input(&fixture, fixture.files.name, added, sizeof(added));
+  added_state = STATE(&fixture.descriptor);
+  STATE(&fixture.descriptor) = CON_GET_NAME;
+  craft_account_input(&fixture, fixture.files.name, named, sizeof(named));
+  named_state = STATE(&fixture.descriptor);
+  named_character = fixture.descriptor.character != NULL;
+  read_after = craft_account_file_text(&fixture, after, sizeof(after));
+  CuAssertIntEquals(tc, 0, craft_account_end(&fixture));
+
+  CuAssertTrue(tc, read_before && read_after);
+  CuAssertIntEquals(tc, CON_ACCOUNT_MENU, chosen_state);
+  CuAssertPtrNotNull(tc, strstr(chosen, "could not be loaded"));
+  CuAssertIntEquals(tc, CON_ACCOUNT_MENU, added_state);
+  CuAssertPtrNotNull(tc, strstr(added, "could not be loaded"));
+  CuAssertIntEquals(tc, CON_GET_NAME, named_state);
+  CuAssertPtrNotNull(tc, strstr(named, "could not be loaded"));
+  CuAssertTrue(tc, !named_character);
+  CuAssertIntEquals(tc, top_before, top_of_p_table);
+  CuAssertStrEquals(tc, before, after);
 }
 
 /* ---- Legacy skill conversion (crafting consolidation, Phase 2) ---- */
