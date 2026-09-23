@@ -354,6 +354,80 @@ void Test_load_char_cuts_device_text_to_its_fields(CuTest *tc)
   CuAssertIntEquals(tc, 7, first_effect);
 }
 
+/* A player can name a device so its lines start with *, which get_line() skips as a comment;
+ * the loader then read every later line of the block one field early. A saved spell count past
+ * the effect slots is also cut to them, since do_device() reads that many. */
+void Test_load_char_keeps_device_text_that_starts_with_a_star(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *ch = new_char();
+  struct char_data *loaded = new_char();
+  struct char_data *clamped = new_char();
+  struct player_invention *device;
+  char filename[MAX_FILEPATH];
+  char keywords[MAX_INVENTION_KEYWORDS];
+  char short_description[MAX_INVENTION_SHORTDESC];
+  char long_description[MAX_INVENTION_LONGDESC];
+  FILE *file;
+  int saved, result, clamped_result, num_inventions, num_spells, first_effect, second_effect;
+  int clamped_spells;
+
+  craft_player_files_enter(tc, &files, "crdvs", 4305);
+  ch->player.name = strdup(files.name);
+  GET_PFILEPOS(ch) = 0;
+  GET_IDNUM(ch) = 4305;
+  GET_LEVEL(ch) = 10;
+  ch->player_specials->saved.num_inventions = 1;
+  device = &ch->player_specials->saved.inventions[0];
+  strlcpy(device->keywords, "*shiny* device", sizeof(device->keywords));
+  strlcpy(device->short_description, "*shiny*", sizeof(device->short_description));
+  strlcpy(device->long_description, "*shiny* rests here.", sizeof(device->long_description));
+  device->num_spells = 2;
+  device->spell_effects[0] = 26;
+  device->spell_effects[1] = 211;
+  device->reliability = 90;
+  saved = save_char_checked(ch, 0);
+  result = load_char(files.name, loaded);
+  num_inventions = loaded->player_specials->saved.num_inventions;
+  device = &loaded->player_specials->saved.inventions[0];
+  strlcpy(keywords, device->keywords, sizeof(keywords));
+  strlcpy(short_description, device->short_description, sizeof(short_description));
+  strlcpy(long_description, device->long_description, sizeof(long_description));
+  num_spells = device->num_spells;
+  first_effect = device->spell_effects[0];
+  second_effect = device->spell_effects[1];
+
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, files.name));
+  file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, file);
+  if (file != NULL)
+  {
+    fprintf(file,
+            "Name: %s\nId  : 4305\nLevl: 7\nDvis:\n1\n0\n kit\n a kit\n A kit lies here.\n"
+            "211 30 90 1 0\n7\n0\n0\n0\n~\n",
+            files.name);
+    fclose(file);
+  }
+  clamped_result = load_char(files.name, clamped);
+  clamped_spells = clamped->player_specials->saved.inventions[0].num_spells;
+  free_char(ch);
+  free_char(loaded);
+  free_char(clamped);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertTrue(tc, saved);
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, 1, num_inventions);
+  CuAssertStrEquals(tc, "*shiny* device", keywords);
+  CuAssertStrEquals(tc, "*shiny*", short_description);
+  CuAssertStrEquals(tc, "*shiny* rests here.", long_description);
+  CuAssertIntEquals(tc, 2, num_spells);
+  CuAssertIntEquals(tc, 26, first_effect);
+  CuAssertIntEquals(tc, 211, second_effect);
+  CuAssertIntEquals(tc, 0, clamped_result);
+  CuAssertIntEquals(tc, MAX_INVENTION_SPELLS, clamped_spells);
+}
+
 /* Harvest talents have ids above 63, which the rank storage once could not hold. */
 void Test_craft_harvest_talent_ranks_apply_and_persist(CuTest *tc)
 {

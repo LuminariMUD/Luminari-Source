@@ -3284,9 +3284,11 @@ bool save_char_checked(struct char_data *ch, int mode)
     {
       struct player_invention *inv = &ch->player_specials->saved.inventions[i];
       BUFFER_WRITE("%d\n", i); /* invention index */
-      BUFFER_WRITE("%s\n", inv->keywords);
-      BUFFER_WRITE("%s\n", inv->short_description);
-      BUFFER_WRITE("%s\n", inv->long_description);
+      /* A leading space keeps a line that starts with * or is empty from being skipped by
+       * get_line(), as the aliases do; the loader strips it. */
+      BUFFER_WRITE(" %s\n", inv->keywords);
+      BUFFER_WRITE(" %s\n", inv->short_description);
+      BUFFER_WRITE(" %s\n", inv->long_description);
       BUFFER_WRITE("%d %d %d %d %ld\n", inv->num_spells, inv->duration, inv->reliability, inv->uses,
                    (long)inv->cooldown_expires);
       /* Save spell effects */
@@ -5350,6 +5352,10 @@ static void load_devices(FILE *fl, struct char_data *ch)
   /* Read number of inventions */
   get_line(fl, line);
   strict_sscanf(line, "%d", &num_inventions);
+  if (num_inventions < 0)
+    num_inventions = 0;
+  else if (num_inventions > MAX_PLAYER_INVENTIONS)
+    num_inventions = MAX_PLAYER_INVENTIONS;
 
   ch->player_specials->saved.num_inventions = num_inventions;
 
@@ -5373,19 +5379,27 @@ static void load_devices(FILE *fl, struct char_data *ch)
     strict_sscanf(line, "%d", &inv_idx);
 
     /* Read keywords, short description, and long description through line, which holds what
-     * get_line() writes, keeping what fits each field */
+     * get_line() writes, keeping what fits each field; files saved before the leading space
+     * have none to strip */
     get_line(fl, line);
-    strlcpy(inv->keywords, line, sizeof(inv->keywords));
+    strlcpy(inv->keywords, line[0] == ' ' ? line + 1 : line, sizeof(inv->keywords));
     get_line(fl, line);
-    strlcpy(inv->short_description, line, sizeof(inv->short_description));
+    strlcpy(inv->short_description, line[0] == ' ' ? line + 1 : line,
+            sizeof(inv->short_description));
     get_line(fl, line);
-    strlcpy(inv->long_description, line, sizeof(inv->long_description));
+    strlcpy(inv->long_description, line[0] == ' ' ? line + 1 : line, sizeof(inv->long_description));
 
     /* Read num_spells, duration, reliability, and optionally uses, cooldown_expires */
     get_line(fl, line);
     long cooldown_long = 0;
     int scanned = strict_sscanf(line, "%d %d %d %d %ld", &inv->num_spells, &inv->duration,
                                 &inv->reliability, &inv->uses, &cooldown_long);
+
+    /* do_device() reads num_spells entries of spell_effects */
+    if (inv->num_spells < 0)
+      inv->num_spells = 0;
+    else if (inv->num_spells > MAX_INVENTION_SPELLS)
+      inv->num_spells = MAX_INVENTION_SPELLS;
 
     /* Handle backward compatibility - if only 3 values were read, initialize new fields */
     if (scanned < 4)
