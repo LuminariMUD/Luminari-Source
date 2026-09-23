@@ -428,8 +428,10 @@ void Test_strict_scan_matches_scanf_and_stops_at_overflow(CuTest *tc)
       {"%u %u %d %d%n", "4294967295 0 -5 6"},
       {"%i %i %i", "0x1f 017 -9"},
   };
-  unsigned char expected[8][64];
-  unsigned char actual[8][64];
+  /* Each slot holds the widest conversion, since sanitizers charge a scanf field its full
+   * width. */
+  unsigned char expected[8][1024];
+  unsigned char actual[8][1024];
   size_t i;
   int first = 11;
   int second = 12;
