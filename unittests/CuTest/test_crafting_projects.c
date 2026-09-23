@@ -12,6 +12,7 @@
 #include "../../src/character/feats.h"
 #include "../../src/character/talents.h"
 #include "../../src/combat/assign_wpn_armor.h"
+#include "../../src/config/harvest_vnums.h"
 #include "../../src/config/vnums.h"
 #include "../../src/core/comm.h"
 #include "../../src/core/constants.h"
@@ -1206,6 +1207,161 @@ void Test_bought_crafting_tool_lets_a_tailoring_project_start_and_complete(CuTes
   CuAssertTrue(tc, listed);
   CuAssertTrue(tc, started);
   CuAssertTrue(tc, completed);
+}
+
+/* Jufus listed two harvest tools but carried none, so no tier could be bought (issue 222). The
+ * five tools shipped in data/harvest-tools, read by the object loader, and the resets shipped
+ * beside them, read by the zone loader after Jufus's own reset, give him one of each. With the
+ * product lines the README installs, buy sells every tier at its listed cost and keeps it in
+ * stock. */
+void Test_jufus_sells_every_harvest_tool_tier_at_its_listed_cost(CuTest *tc)
+{
+  static const char *const tiers[] = {"poor", "common", "uncommon", "rare", "legendary"};
+  static const int costs[] = {50, 500, 2500, 12500, 50000};
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch, keeper;
+  struct obj_data protos[5], *tool;
+  struct index_data indexes[5];
+  struct zone_data zone;
+  struct reset_com *give;
+  struct shop_data shop, *saved_shops = shop_index;
+  int saved_top_shop = top_shop, buy_cmd, tier, gold;
+  obj_vnum products[6];
+  room_vnum shop_rooms[2];
+  const char *root = getenv("LUMINARI_TEST_ROOT");
+  char path[PATH_MAX], line[READ_SIZE], wanted[32], buy_argument[32];
+  FILE *file, *resets;
+  bool loaded = false, stocked, neutral, sold = true, kept = true;
+
+  craft_project_begin(&f);
+  if (complete_cmd_info == NULL)
+    create_command_list();
+  if (root == NULL)
+    root = ".";
+
+  /* The object file holds exactly the five tools, in tier order. */
+  world_loader_reset_for_test();
+  memset(protos, 0, sizeof(protos));
+  memset(indexes, 0, sizeof(indexes));
+  obj_proto = protos;
+  obj_index = indexes;
+  snprintf(path, sizeof(path), "%s/data/harvest-tools/harvest-tools.obj", root);
+  tier = 0;
+  if ((file = fopen(path, "r")) != NULL)
+  {
+    if (get_line(file, line))
+      for (; tier < 5; tier++)
+      {
+        snprintf(wanted, sizeof(wanted), "#%d", HARVEST_TOOL_FIRST + tier);
+        if (strcmp(line, wanted) != 0)
+          break;
+        strlcpy(line, parse_object(file, HARVEST_TOOL_FIRST + tier), sizeof(line));
+      }
+    loaded = tier == 5 && *line == '$';
+    fclose(file);
+  }
+  f.zone.top = MAX(f.zone.top, HARVEST_TOOL_LAST);
+
+  /* The shipped resets follow Jufus's reset, as the README installs them. */
+  memset(&zone, 0, sizeof(zone));
+  snprintf(path, sizeof(path), "%s/data/harvest-tools/3.zon", root);
+  resets = tmpfile();
+  if (resets != NULL && (file = fopen(path, "r")) != NULL)
+  {
+    fputs("#3\nBuilder~\nSanctus III~\n300 399 30 2\nM 0 369 1 369 100\n", resets);
+    while (fgets(line, sizeof(line), file) != NULL)
+      fputs(line, resets);
+    fputs("S\n$\n", resets);
+    fclose(file);
+    if (rewind_stream(resets))
+    {
+      zone_table = &zone;
+      test_load_zones(resets, CuMutableString("3.zon"));
+      zone_table = &f.zone;
+      top_of_zone_table = 0;
+    }
+  }
+  if (resets != NULL)
+    fclose(resets);
+
+  /* Each G reset depends on Jufus loading and always gives him its tool. */
+  clear_char(&keeper);
+  SET_BIT_AR(MOB_FLAGS(&keeper), MOB_ISNPC);
+  keeper.player_specials = &dummy_mob;
+  keeper.player.short_descr = CuMutableString("Jufus the materials vendor");
+  keeper.nr = 0;
+  GET_POS(&keeper) = POS_STANDING;
+  IN_ROOM(&keeper) = 0;
+  f.ch.next_in_room = &keeper;
+  stocked = zone.cmd != NULL && zone.cmd[0].command == 'M';
+  for (tier = 0; stocked && tier < 5; tier++)
+  {
+    give = &zone.cmd[tier + 1];
+    stocked = give->command == 'G' && give->if_flag == 1 &&
+              give->arg1 == HARVEST_TOOL_FIRST + tier && give->arg3 == 100 &&
+              real_object(give->arg1) == (obj_rnum)tier && obj_index[tier].number < give->arg2;
+    if (stocked && (tool = read_object(tier, REAL)) != NULL)
+      obj_to_char(tool, &keeper);
+  }
+  stocked = stocked && zone.cmd[6].command == 'S';
+
+  /* Shop 369 produces the five tools at list price. */
+  memset(&shop, 0, sizeof(shop));
+  for (tier = 0; tier < 5; tier++)
+    products[tier] = tier;
+  products[5] = NOTHING;
+  shop_rooms[0] = f.room.number;
+  shop_rooms[1] = NOWHERE;
+  shop.keeper = 0;
+  shop.in_room = shop_rooms;
+  shop.producing = products;
+  shop.profit_buy = 1.0;
+  shop.close1 = 24;
+  shop_index = &shop;
+  top_shop = 0;
+  GET_GOLD(ch) = 100000;
+  GET_REAL_SIZE(ch) = ch->points.size = SIZE_MEDIUM;
+  neutral = shop_haggle_score(&keeper) == shop_haggle_score(ch);
+  buy_cmd = find_command("buy");
+  for (tier = 0; loaded && stocked && tier < 5; tier++)
+  {
+    gold = GET_GOLD(ch);
+    snprintf(buy_argument, sizeof(buy_argument), "%s", tiers[tier]);
+    shop_keeper(ch, &keeper, buy_cmd, buy_argument);
+    tool = ch->carrying;
+    sold = sold && tool != NULL && GET_OBJ_VNUM(tool) == (obj_vnum)(HARVEST_TOOL_FIRST + tier) &&
+           gold - GET_GOLD(ch) == costs[tier];
+    for (tool = keeper.carrying; tool != NULL && GET_OBJ_RNUM(tool) != (obj_rnum)tier;
+         tool = tool->next_content)
+      ;
+    kept = kept && tool != NULL;
+  }
+
+  while (keeper.carrying != NULL)
+    extract_obj(keeper.carrying);
+  f.ch.next_in_room = NULL;
+  shop_index = saved_shops;
+  top_shop = saved_top_shop;
+  while (ch->carrying != NULL)
+    extract_obj(ch->carrying);
+  if (zone.cmd != NULL)
+  {
+    free(zone.cmd);
+    free(zone.name);
+    free(zone.builders);
+  }
+  for (tier = 0; tier < 5; tier++)
+    craft_project_free_parsed_prototype(&protos[tier]);
+  obj_proto = f.object_proto;
+  obj_index = f.object_index;
+  top_of_objt = 1;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, loaded);
+  CuAssertTrue(tc, stocked);
+  CuAssertTrue(tc, neutral);
+  CuAssertTrue(tc, sold);
+  CuAssertTrue(tc, kept);
 }
 
 /** A leather sling project with its materials allocated: the sling recipe's only variant takes
