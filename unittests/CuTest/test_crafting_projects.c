@@ -1253,7 +1253,7 @@ static int craft_project_carried_weapons(struct char_data *ch)
  * project (issue 221). Recipes whose main material is hides now use leatherworking: a sling needs
  * the leatherworker's knife shipped in data/crafting-tools, worn in the knife slot, and a tannery,
  * and it pays leatherworking experience. A project or supply order saved while hides used
- * tailoring resumes and starts by the recipe's skill, not the skill it recorded. */
+ * tailoring resumes, starts, and rewards by the recipe's skill, not the skill it recorded. */
 void Test_hide_recipes_use_leatherworking_its_knife_and_the_tannery(CuTest *tc)
 {
   struct craft_project_fixture f;
@@ -1261,7 +1261,7 @@ void Test_hide_recipes_use_leatherworking_its_knife_and_the_tannery(CuTest *tc)
   struct obj_data protos[3], *knife = NULL;
   struct index_data indexes[3];
   struct primary_activity_snapshot snapshot;
-  int recipe, variant, hide_variants = 0;
+  int recipe, variant, hide_variants = 0, unskilled_reward, tailoring_reward, leatherworking_reward;
   bool parsed, mapped = true, refused, worn, listed, started, completed, resumed, ordered;
 
   craft_project_begin(&f);
@@ -1337,6 +1337,15 @@ void Test_hide_recipes_use_leatherworking_its_knife_and_the_tannery(CuTest *tc)
   craft_project_reset_output(&f);
   start_supply_order(ch);
   ordered = primary_activity_snapshot(ch, &snapshot) && snapshot.type == PRIMARY_ACTIVITY_CRAFT;
+
+  /* Its reward counts leatherworking ranks, not the tailoring ranks the record names. */
+  SET_ABILITY(ch, ABILITY_CRAFT_LEATHERWORKING, 0);
+  unskilled_reward = calculate_supply_order_reward(ch);
+  SET_ABILITY(ch, ABILITY_CRAFT_TAILORING, 40);
+  tailoring_reward = calculate_supply_order_reward(ch);
+  SET_ABILITY(ch, ABILITY_CRAFT_TAILORING, 0);
+  SET_ABILITY(ch, ABILITY_CRAFT_LEATHERWORKING, 40);
+  leatherworking_reward = calculate_supply_order_reward(ch);
   primary_activity_cancel(ch, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false);
   reset_supply_order(ch);
 
@@ -1363,6 +1372,8 @@ void Test_hide_recipes_use_leatherworking_its_knife_and_the_tannery(CuTest *tc)
   CuAssertTrue(tc, completed);
   CuAssertTrue(tc, resumed);
   CuAssertTrue(tc, ordered);
+  CuAssertIntEquals(tc, unskilled_reward, tailoring_reward);
+  CuAssertTrue(tc, leatherworking_reward > unskilled_reward);
 }
 
 /* Room harvesting kept a second tool rule, any object in the harvest slot (issue 219): it takes the
