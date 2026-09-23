@@ -689,6 +689,43 @@ void Test_load_char_restores_what_old_perk_and_score_lines_lost(CuTest *tc)
   CuAssertTrue(tc, stance_off);
 }
 
+/* A damaged PTg2 or ScPr line counted as saved (issue 227): PTg2 cleared every toggle first, so an
+ * owned toggleable perk stayed off, and a wide score stayed at the default width. A damaged line
+ * changes nothing, and the defaults for a file without it apply. */
+void Test_load_char_gives_defaults_for_damaged_perk_and_score_lines(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *loaded = new_char();
+  char filename[MAX_FILEPATH];
+  FILE *file;
+  int result, width;
+  bool stance_on;
+
+  if (get_perk_by_id(PERK_FIGHTER_DEFENSIVE_STANCE) == NULL)
+    init_perks();
+  craft_player_files_enter(tc, &files, "crdmg", 4323);
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, files.name));
+  file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, file);
+  if (file != NULL)
+  {
+    fprintf(file,
+            "Name: %s\nId  : 4323\nLevl: 7\nPref: 0 0 p 0\nPerk:\n%d %d 1\n0 0 0\nPTg2: 4x2\n"
+            "ScPr: 160 1\n",
+            files.name, PERK_FIGHTER_DEFENSIVE_STANCE, CLASS_WARRIOR);
+    fclose(file);
+  }
+  result = load_char(files.name, loaded);
+  stance_on = is_perk_toggled_on(loaded, PERK_FIGHTER_DEFENSIVE_STANCE);
+  width = GET_SCORE_DISPLAY_WIDTH(loaded);
+  free_char(loaded);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertTrue(tc, stance_on);
+  CuAssertIntEquals(tc, 120, width);
+}
+
 /* Every spell bomb thrown with Bomb Mastery added five to the thrower's alchemist level until
  * issue 228 was fixed, and the player file kept it. Bomb Mastery comes at alchemist level 30, the
  * most a class reaches, so loading brings a higher level back to 30 and leaves the others alone. */

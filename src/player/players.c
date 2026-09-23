@@ -149,8 +149,8 @@ static void load_craft_materials(FILE *fl, struct char_data *ch);
 static void load_craft_motes(FILE *fl, struct char_data *ch);
 static void load_perks(FILE *fl, struct char_data *ch);
 static void load_perk_points(FILE *fl, struct char_data *ch);
-static void load_perk_toggles(struct char_data *ch, const char *line);
-static void load_score_preferences(struct char_data *ch, const char *line);
+static bool load_perk_toggles(struct char_data *ch, const char *line);
+static bool load_score_preferences(struct char_data *ch, const char *line);
 
 /* The legacy pet_data columns retain descriptions and core attributes.  This
  * versioned payload holds state that cannot be reconstructed from a mobile
@@ -1644,8 +1644,11 @@ int load_char(const char *name, struct char_data *ch)
           ch->player_specials->saved.stage_info.stage_exp = parse_int(line);
         else if (!strcmp(tag, "PTg2"))
         {
-          load_perk_toggles(ch, line);
-          perk_toggles_saved = TRUE;
+          if (load_perk_toggles(ch, line))
+            perk_toggles_saved = TRUE;
+          else
+            log("SYSERR: Damaged PTg2 line in player file %s; perk toggles keep their defaults.",
+                filename);
         }
         else if (!strcmp(tag, "PKil"))
         {
@@ -1967,8 +1970,12 @@ int load_char(const char *name, struct char_data *ch)
           GET_SCREEN_WIDTH(ch) = (ubyte)parse_int(line);
         else if (!strcmp(tag, "ScPr"))
         {
-          load_score_preferences(ch, line);
-          score_preferences_saved = TRUE;
+          if (load_score_preferences(ch, line))
+            score_preferences_saved = TRUE;
+          else
+            log("SYSERR: Damaged ScPr line in player file %s; score preferences keep their "
+                "defaults.",
+                filename);
         }
         else if (!strcmp(tag, "SpWC"))
           GET_SPIRITUAL_WEAPON_COOLDOWN(ch) = parse_int(line);
@@ -4691,10 +4698,20 @@ static void load_perk_points(FILE *fl, struct char_data *ch)
   }
 }
 
-/* Load the ids of the perks toggled on, the value of a PTg2 line */
-static void load_perk_toggles(struct char_data *ch, const char *line)
+/* Load the ids of the perks toggled on, the value of a PTg2 line. An empty value means no toggle
+ * is on. A value with anything but ids is damaged: it changes nothing and returns false, so the
+ * toggles get their defaults. */
+static bool load_perk_toggles(struct char_data *ch, const char *line)
 {
+  const char *rest = line;
   int perk_id, consumed;
+
+  while (strict_sscanf(rest, "%d%n", &perk_id, &consumed) == 1)
+    rest += consumed;
+  while (isspace((unsigned char)*rest))
+    rest++;
+  if (*rest != '\0')
+    return false;
 
   memset(ch->player_specials->saved.perk_toggles, 0,
          sizeof(ch->player_specials->saved.perk_toggles));
@@ -4703,19 +4720,20 @@ static void load_perk_toggles(struct char_data *ch, const char *line)
     set_perk_toggle(ch, perk_id, TRUE);
     line += consumed;
   }
+  return true;
 }
 
 /* Load the score display preferences, the value of a ScPr line: width, color theme, information
  * density, layout template, and the order of the eight sections. A value out of range keeps its
- * default. */
-static void load_score_preferences(struct char_data *ch, const char *line)
+ * default. A line without all twelve values is damaged: it changes nothing and returns false. */
+static bool load_score_preferences(struct char_data *ch, const char *line)
 {
   int width, theme, density, layout, order[8], i;
 
   if (strict_sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d", &width, &theme, &density, &layout,
                     &order[0], &order[1], &order[2], &order[3], &order[4], &order[5], &order[6],
                     &order[7]) != 12)
-    return;
+    return false;
   if (width == 80 || width == 120 || width == 160)
     GET_SCORE_DISPLAY_WIDTH(ch) = (ubyte)width;
   if (theme >= SCORE_THEME_ENHANCED && theme <= SCORE_THEME_COLORBLIND)
@@ -4727,6 +4745,7 @@ static void load_score_preferences(struct char_data *ch, const char *line)
   for (i = 0; i < 8; i++)
     if (order[i] >= 0 && order[i] < 8)
       GET_SCORE_SECTION_ORDER(ch, i) = (byte)order[i];
+  return true;
 }
 
 /* Migrate perk IDs that were historically stored in the spell/affect namespace. Some of the old
