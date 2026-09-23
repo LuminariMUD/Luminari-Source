@@ -937,7 +937,7 @@ int Crash_clean_file(char *name)
 
   if ((rentcode == RENT_CRASH) || (rentcode == RENT_FORCED) || (rentcode == RENT_TIMEDOUT))
   {
-    if (timed < time(0) - (CONFIG_CRASH_TIMEOUT * SECS_PER_REAL_DAY))
+    if (timed < time(0) - ((time_t)CONFIG_CRASH_TIMEOUT * (time_t)SECS_PER_REAL_DAY))
     {
       Crash_delete_file(name);
       switch (rentcode)
