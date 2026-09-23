@@ -8270,6 +8270,8 @@ ACMD(do_split)
  * staff without a Use Magic Device check. */
 static bool spell_on_class_list(struct char_data *ch, int spell)
 {
+  if (spell <= 0 || spell >= TOP_SPELL_DEFINE)
+    return FALSE;
   return ((spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) &&
           CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
          ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) &&
