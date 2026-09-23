@@ -12,7 +12,8 @@ and it is worn in that skill's tool slot. The same rule decides project readines
 
 ## Prototype records
 
-`3.obj` holds five records, objects 391-395, followed by the `$~` terminator. Each is item type 57
+`3.obj` holds five records, objects 391-395, followed by the `$~` terminator, and `3.zon` holds
+the five resets that give them to the vendor. Each is item type 57
 with wear flags Take plus its tool slot, level 1, a room description, and an examine description.
 They are tiny: wearing checks an item's size against the wearer's, and a medium tool would not fit
 a fae. Value 0 is the skill's ability number, value 1 the bonus (0), value 2 the quality
@@ -31,7 +32,9 @@ a fae. Value 0 is the skill's ability number, value 1 the bonus (0), value 2 the
 Jufus the materials vendor (mobile 369) sells them in the Supply Materials Shop, room 369 of the
 Sanctus III crafting district, north of the Slanting Passageway (room 368) and two rooms from the
 crafting benches and the quartermaster (room 372). Shop 369 already sells the crafting materials
-there; the tools join its product list.
+there; the tools join its product list. A shopkeeper sells only what it carries, so zone 3 gives
+Jufus one of each tool when it loads him, as it does the materials, and the product list makes each
+sale a new copy.
 
 ## World installation
 
@@ -47,7 +50,11 @@ no other crafting tools (item type 57, or any crafting tool wear flag) that shou
    `#369~`, before the `-1` that ends it. The shop's buy types, messages, keeper, and room stay as
    they are.
 
-3. Validate the merged world, then load it through the site's usual world-data release procedure.
+3. In `lib/world/zon/3.zon`, add the five `G` resets from `3.zon` after Jufus's reset
+   (`M 0 369 1 369 100`) and the `G` resets that follow it.
+
+4. Validate the merged world, then load it through the site's usual world-data release procedure;
+   the new objects, shop products, and resets take effect at the next boot or copyover.
 
 ```sh
 python3 scripts/world/wtool.py validate --paths data/crafting-tools/3.obj --strict
@@ -55,6 +62,7 @@ python3 scripts/world/wtool.py validate --zone 3 --strict
 ```
 
 Alternatively, build them in game: `oedit 391` through `395` (type crafting tool, the values and
-wear flags above), and `sedit 369` to add them to the shop's products. Like `data/supply-orders`,
+wear flags above), `sedit 369` to add them to the shop's products, and `zedit` to give them to
+Jufus. Like `data/supply-orders`,
 the bundle has no installer script and no build-list entry. Players see where tools come from in
 `HELP CRAFTING` and `HELP CRAFTING-STATIONS`.
