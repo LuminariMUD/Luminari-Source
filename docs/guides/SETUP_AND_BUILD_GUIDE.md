@@ -461,7 +461,7 @@ shrink.
 
 | Gate | Tool | Runs in | Baseline |
 | -- | -- | -- | -- |
-| clang-tidy, including the Clang static analyzer | clang-tidy 22.1.8, pinned in `scripts/ci/clang-tidy-requirements.txt` | Code Quality: the translation units each pull request or push changes; the whole tree weekly and on manual runs | `scripts/ci/clang_tidy_baseline.txt`, findings per file and check |
+| clang-tidy, including the Clang static analyzer | clang-tidy 22.1.8, pinned in `scripts/ci/clang-tidy-requirements.txt` | Code Quality: the translation units each pull request or push changes; the whole tree weekly and on manual runs | `scripts/ci/clang_tidy_baseline.txt`, findings per file and check; empty, so any finding fails |
 | GCC static analyzer | GCC 16.2 `-fanalyzer` in the `gcc:16.2` image | Toolchain analysis: the server, weekly | `scripts/ci/warning_budget_gcc-16-analyzer.txt`, sites per `-Wanalyzer-*` class |
 | Header self-containment | the configured compiler | `make test` and CTest, so every CI job that runs them | `scripts/ci/header_self_containment_baseline.txt`, headers that do not compile alone yet |
 | CodeQL source coverage | CodeQL with the `security-extended` queries | Security | none: every production source must be in the database |

@@ -26,8 +26,12 @@ and operational conventions that apply to contributors.
 - Do not use variable-length arrays. Use `snprintf`, never `sprintf`, and NULL-check before
   dereferencing. Parse numbers with `parse_int()`, `parse_long()`, `parse_llong()`, and
   `parse_double()` from `core/utils.h` rather than `atoi` and its relatives: they read the same
-  text but saturate instead of overflowing. Reposition a stream with `rewind_stream()`, not
-  `rewind()`. Build file names from untrusted components with `build_safe_path()`.
+  text but saturate instead of overflowing. Read numbers from formatted text with
+  `strict_sscanf()` and `strict_fscanf()` (`core/strict_scan.h`, included by `core/utils.h`)
+  rather than `sscanf` and `fscanf`: they take the same formats and return the same results, but
+  stop at a number outside its type instead of storing it. Reposition a stream with
+  `rewind_stream()`, not `rewind()`. Build file names from untrusted components with
+  `build_safe_path()`.
 - Log actionable runtime failures with `log("SYSERR: ...")`; fix all baseline-tier warnings
   (`-Wall -Wextra` and the rest of the list in `scripts/deployment/production_profile.sh`) and
   never add to the migration-tier budget.
@@ -160,13 +164,15 @@ ownership evidence in the
   CMake test trees require `-DBUILD_TESTS=ON`.
 - Use `.clang-format` for formatting and `.clang-tidy` for configured static analysis. Each check
   `.clang-tidy` disables records its scope, reason, owner, and expiry there. New `sprintf`,
-  `vsprintf`, `strcpy`, `strcat`, `rewind`, and `atoi`-family calls are findings; `snprintf`,
-  `rewind_stream()`, and the `parse_*` helpers are the accepted forms. The analyzer checks
+  `vsprintf`, `strcpy`, `strcat`, `rewind`, and `atoi`-family calls, and `sscanf` or `fscanf`
+  calls that convert numbers, are findings; `snprintf`, `rewind_stream()`, the `parse_*`
+  helpers, and the `strict_*scanf()` pair are the accepted forms. The analyzer checks
   `clang-analyzer-core.NullDereference`, `clang-analyzer-security.ArrayBound`, and
   `clang-analyzer-core.NonNullParamChecker` are at zero and must stay there. CI fails
-  when a file gains clang-tidy findings beyond `scripts/ci/clang_tidy_baseline.txt`, when an unsafe
-  call is not one `scripts/ci/clang_tidy_unsafe_sites.txt` records, and when a change raises any
-  static-analysis baseline: fix new findings, or silence a false positive with
+  when a file gains clang-tidy findings beyond `scripts/ci/clang_tidy_baseline.txt` (empty, since
+  the tree has none), when an unsafe call is not one `scripts/ci/clang_tidy_unsafe_sites.txt`
+  records, and when a change raises any static-analysis baseline: fix new findings, or silence a
+  false positive with
   `/* NOLINTNEXTLINE(check) -- reason */` naming a check `.clang-tidy` enables. See
   [Static Analysis](../guides/SETUP_AND_BUILD_GUIDE.md#static-analysis).
 - Respect the pre-commit hooks, including include-comment alignment changes. Rebuild and retest
