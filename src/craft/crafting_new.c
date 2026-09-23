@@ -3216,9 +3216,9 @@ static int crafting_tool_slot(int skill)
   }
 }
 
-/* The one tool rule, for project readiness and completion, craft tools, and the tool's skill
- * bonus: the tool for a skill is a crafting tool object for that skill (value 0) worn in the
- * skill's tool slot. NULL when there is none, or the skill has no slot. */
+/* The one tool rule, for project readiness and completion, room harvesting, craft tools, and the
+ * tool's skill bonus: the tool for a skill is a crafting tool object for that skill (value 0) worn
+ * in the skill's tool slot. NULL when there is none, or the skill has no slot. */
 struct obj_data *worn_crafting_tool(struct char_data *ch, int skill)
 {
   struct obj_data *tool;
@@ -5758,8 +5758,8 @@ static void newcraft_harvest(struct char_data *ch, const char *argument __attrib
 
 void show_harvesting_tool_needed(struct char_data *ch)
 {
-  int mat_type;
-  int mat_group;
+  const char *tool;
+  int mat_type, skill;
 
   if (!ch || IN_ROOM(ch) == NOWHERE)
   {
@@ -5773,42 +5773,35 @@ void show_harvesting_tool_needed(struct char_data *ch)
     return;
   }
 
-  if ((mat_group = craft_group_by_material(mat_type)) == CRAFT_GROUP_NONE)
+  /* The tool has_proper_harvesting_tool_equipped() takes: the one for the harvesting skill. */
+  switch ((skill = harvesting_skill_by_material(mat_type)))
   {
-    send_to_char(ch, "There was an error determining the material group. Please inform staff.\r\n");
-    return;
-  }
-
-  switch (mat_group)
-  {
-  case CRAFT_GROUP_CLOTH:
-    send_to_char(ch, "You need a harvesting sickle equipped to harvest %s.\r\n",
-                 crafting_material_nodes[mat_type]);
+  case ABILITY_HARVEST_GATHERING:
+    tool = "a harvesting sickle";
     break;
-  case CRAFT_GROUP_HARD_METALS:
-  case CRAFT_GROUP_SOFT_METALS:
-  case CRAFT_GROUP_STONE:
-    send_to_char(ch, "You need a pickaxe equipped to harvest %s.\r\n",
-                 crafting_material_nodes[mat_type]);
+  case ABILITY_HARVEST_MINING:
+    tool = "a pickaxe";
     break;
-  case CRAFT_GROUP_HIDES:
-    send_to_char(ch, "You need a skinning knife equipped to harvest %s.\r\n",
-                 crafting_material_nodes[mat_type]);
+  case ABILITY_HARVEST_HUNTING:
+    tool = "a skinning knife";
     break;
-  case CRAFT_GROUP_WOOD:
-    send_to_char(ch, "You need a wood axe equipped to harvest %s.\r\n",
-                 crafting_material_nodes[mat_type]);
+  case ABILITY_HARVEST_FORESTRY:
+    tool = "a wood axe";
     break;
   default:
-    break;
+    send_to_char(ch,
+                 "There was an error determining the harvesting skill. Please inform staff.\r\n");
+    return;
   }
+  send_to_char(ch, "You need %s equipped to harvest %s: a crafting tool made for %s.\r\n", tool,
+               crafting_material_nodes[mat_type], ability_names[skill]);
 }
 
+/* The one tool rule for the room's harvest: a crafting tool for the skill that harvests the
+ * material, worn in that skill's tool slot. */
 bool has_proper_harvesting_tool_equipped(struct char_data *ch)
 {
   int mat_type;
-  int mat_group;
-  bool has_tool = FALSE;
 
   if (!ch || IN_ROOM(ch) == NOWHERE)
     return false;
@@ -5816,29 +5809,7 @@ bool has_proper_harvesting_tool_equipped(struct char_data *ch)
   if ((mat_type = world[IN_ROOM(ch)].harvest_material) == CRAFT_MAT_NONE)
     return false;
 
-  if ((mat_group = craft_group_by_material(mat_type)) == CRAFT_GROUP_NONE)
-    return false;
-
-  switch (mat_group)
-  {
-  case CRAFT_GROUP_CLOTH:
-    has_tool = GET_EQ(ch, WEAR_CRAFT_SICKLE);
-    break;
-  case CRAFT_GROUP_HARD_METALS:
-  case CRAFT_GROUP_SOFT_METALS:
-  case CRAFT_GROUP_STONE:
-    has_tool = GET_EQ(ch, WEAR_CRAFT_PICKAXE);
-    break;
-  case CRAFT_GROUP_HIDES:
-    has_tool = GET_EQ(ch, WEAR_CRAFT_KNIFE);
-    break;
-  case CRAFT_GROUP_WOOD:
-    has_tool = GET_EQ(ch, WEAR_CRAFT_AXE);
-    break;
-  default:
-    break;
-  }
-  return has_tool;
+  return worn_crafting_tool(ch, harvesting_skill_by_material(mat_type)) != NULL;
 }
 
 void gain_craft_exp(struct char_data *ch, int exp, int abil, bool verbose)

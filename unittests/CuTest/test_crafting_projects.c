@@ -1192,6 +1192,46 @@ void Test_bought_crafting_tool_lets_a_tailoring_project_start_and_complete(CuTes
   CuAssertTrue(tc, completed);
 }
 
+/* Room harvesting kept a second tool rule, any object in the harvest slot (issue 219): it takes the
+ * one rule, a crafting tool for the skill that harvests the room's material, worn in that skill's
+ * slot. Coal, which mining harvests, had no tool under the old rule, and its refusal said nothing. */
+void Test_room_harvest_takes_only_a_tool_for_its_skill(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct obj_data pick;
+  bool bare, other_object, other_skill, mining_tool, coal, told;
+
+  craft_project_begin(&f);
+  world[0].harvest_material = CRAFT_MAT_IRON;
+  clear_object(&pick);
+  GET_OBJ_TYPE(&pick) = ITEM_OTHER;
+  bare = has_proper_harvesting_tool_equipped(ch);
+  GET_EQ(ch, WEAR_CRAFT_PICKAXE) = &pick;
+  other_object = has_proper_harvesting_tool_equipped(ch);
+  GET_OBJ_TYPE(&pick) = ITEM_CRAFTING_TOOL;
+  GET_OBJ_VAL(&pick, 0) = ABILITY_HARVEST_FORESTRY;
+  other_skill = has_proper_harvesting_tool_equipped(ch);
+  GET_OBJ_VAL(&pick, 0) = ABILITY_HARVEST_MINING;
+  mining_tool = has_proper_harvesting_tool_equipped(ch);
+  world[0].harvest_material = CRAFT_MAT_COAL;
+  coal = has_proper_harvesting_tool_equipped(ch);
+  GET_EQ(ch, WEAR_CRAFT_PICKAXE) = NULL;
+  craft_project_reset_output(&f);
+  show_harvesting_tool_needed(ch);
+  told = strstr(f.descriptor.output, "You need a pickaxe equipped to harvest") != NULL &&
+         strstr(f.descriptor.output, "a crafting tool made for mining") != NULL;
+  world[0].harvest_material = CRAFT_MAT_NONE;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, !bare);
+  CuAssertTrue(tc, !other_object);
+  CuAssertTrue(tc, !other_skill);
+  CuAssertTrue(tc, mining_tool);
+  CuAssertTrue(tc, coal);
+  CuAssertTrue(tc, told);
+}
+
 void Test_supply_order_mobile_runs_every_supplyorder_subcommand(CuTest *tc)
 {
   struct craft_project_fixture f;

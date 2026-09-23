@@ -543,7 +543,8 @@ crafting/harvesting tool positions at bits 24-32 are separate from normal combat
 equipment positions. A crafting tool counts when it is an `ITEM_CRAFTING_TOOL`
 whose value 0 names its ability and it is worn in that ability's tool position
 (`worn_crafting_tool()` in `src/craft/crafting_new.c`); any other object in the
-position does not count. Equipment-crafting admission and completion, the
+position does not count. Equipment-crafting admission and completion, room
+harvesting (the skill that harvests the room's material), the
 `craft tools|equipment|gear` display, and the value 1 bonus all use that rule.
 Woodworking has no tool position and needs no tool; metalworking and
 leatherworking have no tool position either.
