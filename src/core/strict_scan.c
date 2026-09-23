@@ -526,8 +526,9 @@ static int strict_vscan(struct strict_scan_input *in, const char *format, va_lis
           (errno == ERANGE && isinf(value)))
         return assigned;
       /* Converting a value outside the target type's range is undefined, so it fails too. */
-      if ((length == 'l' && (value > DBL_MAX || value < -DBL_MAX)) ||
-          (length != 'l' && length != 'L' && (value > FLT_MAX || value < -FLT_MAX)))
+      if ((length == 'l' && (value > (long double)DBL_MAX || value < -(long double)DBL_MAX)) ||
+          (length != 'l' && length != 'L' &&
+           (value > (long double)FLT_MAX || value < -(long double)FLT_MAX)))
         return assigned;
       if (suppress)
         break;
