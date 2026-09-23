@@ -1236,7 +1236,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
   {
     char trailing;
 
-    if (sscanf(arg, " %d %c", &number, &trailing) != 1 ||
+    if (strict_sscanf(arg, " %d %c", &number, &trailing) != 1 ||
         (number != -1 && (number < 1 || number > LVL_IMPL)))
     {
       write_to_output(d, "Enter -1 or a level from 1 to %d: ", LVL_IMPL);
@@ -1252,7 +1252,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
   {
     char trailing;
 
-    if (sscanf(arg, " %d %c", &number, &trailing) != 1 ||
+    if (strict_sscanf(arg, " %d %c", &number, &trailing) != 1 ||
         (number != -1 && (number < 1 || number > LVL_IMPL)) ||
         (OLC_ROOM(d)->minimum_level > 0 && number > 0 && OLC_ROOM(d)->minimum_level > number))
     {

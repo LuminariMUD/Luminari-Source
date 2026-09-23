@@ -24,6 +24,7 @@
 #include "structs.h" /* for sbyte */
 #include "helpers.h" /* for UPPER */
 #include "perfmon.h"
+#include "strict_scan.h" /* strict_sscanf() and strict_fscanf() */
 
 #define FLAG(n) (1 << (n))
 
@@ -571,6 +572,8 @@ int parse_int(const char *text);
 long parse_long(const char *text);
 long long parse_llong(const char *text);
 double parse_double(const char *text);
+/* For sscanf() and fscanf() use strict_sscanf() and strict_fscanf() from strict_scan.h, which
+ * refuse a number outside its type. */
 
 /* random functions in random.c */
 void circle_srandom(unsigned long initial_seed);

@@ -24,6 +24,7 @@
 #include "core/utils.h"
 #include "core/db.h"
 #include "obj/shop.h"
+#include "core/strict_scan.h"
 
 /**
  * Basic logging function for the conversion utility
@@ -83,7 +84,7 @@ static void do_list(FILE *shop_f, FILE *newshop_f, int max)
 
   for (count = 0; count < max; count++)
   {
-    if (fscanf(shop_f, "%d", &temp) != 1)
+    if (strict_fscanf(shop_f, "%d", &temp) != 1)
     {
       fprintf(stderr, "Error reading shop data\n");
       exit(1);
@@ -105,7 +106,7 @@ static void do_float(FILE *shop_f, FILE *newshop_f)
   double f;
   char str[512];
 
-  if (fscanf(shop_f, "%lf \n", &f) != 1)
+  if (strict_fscanf(shop_f, "%lf \n", &f) != 1)
   {
     fprintf(stderr, "Error reading float value\n");
     exit(1);
@@ -121,7 +122,7 @@ static void do_int(FILE *shop_f, FILE *newshop_f)
 {
   int i;
 
-  if (fscanf(shop_f, "%d \n", &i) != 1)
+  if (strict_fscanf(shop_f, "%d \n", &i) != 1)
   {
     fprintf(stderr, "Error reading int value\n");
     exit(1);
@@ -150,7 +151,7 @@ static int boot_the_shops_conv(FILE *shop_f, FILE *newshop_f, char *filename)
     buf = fread_string(shop_f, buf2);
     if (*buf == '#')
     { /* New shop */
-      if (sscanf(buf, "#%d\n", &temp) != 1)
+      if (strict_sscanf(buf, "#%d\n", &temp) != 1)
       {
         fprintf(stderr, "Invalid shop header: %s\n", buf);
         free(buf);

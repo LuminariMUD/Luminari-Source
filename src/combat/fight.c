@@ -2859,7 +2859,7 @@ struct combat_death_result combat_death_apply(struct char_data *ch, struct char_
     if (pMudEvent && pMudEvent->sVariables)
     {
       int uses = 0;
-      if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1 && uses > 0)
+      if (strict_sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1 && uses > 0)
       {
         /* Reduce uses by 1 to restore a smite use */
         uses--;
@@ -5113,7 +5113,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
         pMudEvent = char_has_mud_event(ch, eJUDGEMENT);
         if (pMudEvent && pMudEvent->sVariables)
         {
-          if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1 && uses > 0)
+          if (strict_sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1 && uses > 0)
           {
             uses--;
             free(pMudEvent->sVariables);

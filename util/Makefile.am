@@ -20,15 +20,16 @@ AM_CFLAGS = -I../src @CSTD_CFLAGS@ @MYFLAGS@
 
 # Source files for each utility
 asciipasswd_SOURCES = asciipasswd.c
-autowiz_SOURCES = autowiz.c
+autowiz_SOURCES = autowiz.c ../src/core/strict_scan.c
 rebuildAsciiIndex_SOURCES = rebuildAsciiIndex.c
 rebuildMailIndex_SOURCES = rebuildMailIndex.c
-rol_mob_calculator_SOURCES = rol_mob_calculator.c ../src/mob/mob_autoroll.c \
+rol_mob_calculator_SOURCES = rol_mob_calculator.c ../src/core/strict_scan.c \
+	../src/mob/mob_autoroll.c \
 	../src/mob/mob_autoroll_profile.c
-shopconv_SOURCES = shopconv.c
+shopconv_SOURCES = shopconv.c ../src/core/strict_scan.c
 sign_SOURCES = sign.c
 split_SOURCES = split.c
-wld2html_SOURCES = wld2html.c
+wld2html_SOURCES = wld2html.c ../src/core/strict_scan.c
 
 # Libraries needed by some utilities
 asciipasswd_LDADD = @CRYPTLIB@

@@ -66,7 +66,7 @@ static struct mail_t *read_mail_record(FILE *mail_file)
   if (!get_line(mail_file, line))
     return NULL;
 
-  if (sscanf(line, "### %ld %ld %ld", &recipient, &sender, (long *)&sent_time) != 3)
+  if (strict_sscanf(line, "### %ld %ld %ld", &recipient, &sender, (long *)&sent_time) != 3)
   {
     log("Mail system - fatal error - malformed mail header");
     log("Line was: %s", line);

@@ -3406,7 +3406,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     break;
   case CEDIT_POPULARITY:
-    if (sscanf(arg, "%lf", &f_num) != 1)
+    if (strict_sscanf(arg, "%lf", &f_num) != 1)
     {
       write_to_output(d, "Please enter a number from 0 to 100.\r\n");
       cedit_disp_game_play_options(d);

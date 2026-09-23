@@ -426,7 +426,8 @@ static void boot_social_messages(void)
       break;
     if (CONFIG_NEW_SOCIALS == TRUE)
     {
-      if (fscanf(fl, " %s %d %d %d %d \n", sorted, &hide, &min_char_pos, &min_pos, &min_lvl) != 5)
+      if (strict_fscanf(fl, " %s %d %d %d %d \n", sorted, &hide, &min_char_pos, &min_pos,
+                        &min_lvl) != 5)
       {
         log("SYSERR: format error in social file near social '%s'", next_soc);
         /* SYSERR_DESC: From boot_social_messages(), this error is output when
@@ -447,7 +448,7 @@ static void boot_social_messages(void)
     }
     else
     { /* old style */
-      if (fscanf(fl, " %d %d \n", &hide, &min_pos) != 2)
+      if (strict_fscanf(fl, " %d %d \n", &hide, &min_pos) != 2)
       {
         log("SYSERR: format error in social file near social '%s'", next_soc);
         /* SYSERR_DESC: From boot_social_messages(), this error is output when the
@@ -1569,7 +1570,7 @@ static void reset_time(void)
     log("No time file '%s' starting from the beginning.", TIME_FILE);
   else
   {
-    if (fscanf(bgtime, "%ld\n", (long *)&beginning_of_time) != 1)
+    if (strict_fscanf(bgtime, "%ld\n", (long *)&beginning_of_time) != 1)
     {
       log("SYSERR: Failed to read time from time file");
       beginning_of_time = 0;
@@ -2081,7 +2082,7 @@ void discrete_load(FILE *fl, int mode, char *filename)
     if (*line == '#')
     {
       last = nr;
-      if (sscanf(line, "#%d", &nr) != 1)
+      if (strict_sscanf(line, "#%d", &nr) != 1)
       {
         log("SYSERR: Format error after %s #%d", modes[mode], last);
         exit(1);
@@ -2259,8 +2260,8 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
     exit(1);
   }
 
-  if (((retval = sscanf(line, " %d %127s %127s %127s %127s %d ", t, flags, flags2, flags3, flags4,
-                        t + 2)) == 3) &&
+  if (((retval = strict_sscanf(line, " %d %127s %127s %127s %127s %d ", t, flags, flags2, flags3,
+                               flags4, t + 2)) == 3) &&
       (bitwarning == TRUE))
   {
     log("WARNING: Conventional world files detected. See config.c.");
@@ -2372,7 +2373,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
     {
     case 'C': /* Coordinates. */
       get_line(fl, line);
-      if (sscanf(line, "%d %d", world[room_nr].coords, world[room_nr].coords + 1) == 2)
+      if (strict_sscanf(line, "%d %d", world[room_nr].coords, world[room_nr].coords + 1) == 2)
         world[room_nr].wilderness_coordinates_set = true;
       else
         log("SYSERR: Invalid coordinates in room #%d: '%s'", virtual_nr, line);
@@ -2421,7 +2422,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
         log("SYSERR: Room #%d has more than one level-range R record.", virtual_nr);
         exit(1);
       }
-      if (sscanf(line + 1, " %d %d %c", &minimum_level, &maximum_level, &trailing) != 2)
+      if (strict_sscanf(line + 1, " %d %d %c", &minimum_level, &maximum_level, &trailing) != 2)
       {
         log("SYSERR: Room #%d level-range R record requires exactly two integers.", virtual_nr);
         exit(1);
@@ -2445,9 +2446,9 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
       int area_effect, hardness, load_percent;
       char trailing;
 
-      if (sscanf(line + 1, " %d %d %d %d %d %d %d %d %c", &direction, &state, &trap_type_value,
-                 &minimum_damage, &maximum_damage, &area_effect, &hardness, &load_percent,
-                 &trailing) != 8 ||
+      if (strict_sscanf(line + 1, " %d %d %d %d %d %d %d %d %c", &direction, &state,
+                        &trap_type_value, &minimum_damage, &maximum_damage, &area_effect, &hardness,
+                        &load_percent, &trailing) != 8 ||
           !rol_exit_trap_values_are_valid(direction, state, trap_type_value, minimum_damage,
                                           maximum_damage, area_effect, hardness, load_percent))
       {
@@ -2561,7 +2562,7 @@ void setup_dir(FILE *fl, room_rnum room, int dir)
     log("SYSERR: Format error, %s", buf2);
     exit(1);
   }
-  if (sscanf(line, " %d %d %d ", t, t + 1, t + 2) != 3)
+  if (strict_sscanf(line, " %d %d %d ", t, t + 1, t + 2) != 3)
   {
     log("SYSERR: Format error, %s", buf2);
     exit(1);
@@ -2917,8 +2918,8 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
     exit(1);
   }
 
-  if (sscanf(line, " %d %d %d %dd%d+%d %dd%d+%d ", t, t + 1, t + 2, t + 3, t + 4, t + 5, t + 6,
-             t + 7, t + 8) != 9)
+  if (strict_sscanf(line, " %d %d %d %dd%d+%d %dd%d+%d ", t, t + 1, t + 2, t + 3, t + 4, t + 5,
+                    t + 6, t + 7, t + 8) != 9)
   {
     log("SYSERR: Format error in mob #%d, first line after S flag\n"
         "...expecting line of form '# # # #d#+# #d#+#'",
@@ -2960,7 +2961,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
     exit(1);
   }
 
-  if (sscanf(line, " %d %d ", t, t + 1) != 2)
+  if (strict_sscanf(line, " %d %d ", t, t + 1) != 2)
   {
     log("SYSERR: Format error in mob #%d, second line after S flag\n"
         "...expecting line of form '# #'",
@@ -2982,7 +2983,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
     exit(1);
   }
 
-  if (sscanf(line, " %d %d %d ", t, t + 1, t + 2) != 3)
+  if (strict_sscanf(line, " %d %d %d ", t, t + 1, t + 2) != 3)
   {
     log("SYSERR: Format error in last line of mob #%d\n"
         "...expecting line of form '# # #'",
@@ -3165,7 +3166,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   CASE("MFeat")
   {
-    if (sscanf(value, "%d %d", &num, &num2) != 2 || num < 0 || num >= NUM_FEATS)
+    if (strict_sscanf(value, "%d %d", &num, &num2) != 2 || num < 0 || num >= NUM_FEATS)
     {
       log("SYSERR: Mob #%d has invalid MFeat data: %s", nr, value);
       return;
@@ -3175,7 +3176,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   CASE("Aff2")
   {
-    if (sscanf(value, "%d %d %d %d", &num, &num2, &num3, &num4) != 4)
+    if (strict_sscanf(value, "%d %d %d %d", &num, &num2, &num3, &num4) != 4)
     {
       log("SYSERR: Mob #%d has invalid Aff2 data: %s", nr, value);
       return;
@@ -3365,7 +3366,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   CASE("Feat")
   {
-    if (sscanf(value, "%d %d", &num, &num2) != 2 || num < 0 || num >= NUM_FEATS)
+    if (strict_sscanf(value, "%d %d", &num, &num2) != 2 || num < 0 || num >= NUM_FEATS)
     {
       log("SYSERR: Mob #%d has invalid Feat data: %s", nr, value);
       return;
@@ -3583,8 +3584,8 @@ void parse_mobile(FILE *mob_f, int nr)
     exit(1);
   }
 
-  if (((retval = sscanf(line, "%127s %127s %127s %127s %127s %127s %127s %127s %d %c", f1, f2, f3,
-                        f4, f5, f6, f7, f8, t + 2, &letter)) != 10) &&
+  if (((retval = strict_sscanf(line, "%127s %127s %127s %127s %127s %127s %127s %127s %d %c", f1,
+                               f2, f3, f4, f5, f6, f7, f8, t + 2, &letter)) != 10) &&
       (bitwarning == TRUE))
   {
     /* Let's make the implementor read some, before converting his world files. */
@@ -3785,11 +3786,11 @@ const char *parse_object(FILE *obj_f, int nr)
     exit(1);
   }
 
-  if (((retval = sscanf(line,
-                        " %d %511s %511s %511s %511s %511s %511s %511s %511s %511s %511s %511s "
-                        "%511s %511s %511s %511s %511s",
-                        t, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15,
-                        f16)) == 4) &&
+  if (((retval = strict_sscanf(
+            line,
+            " %d %511s %511s %511s %511s %511s %511s %511s %511s %511s %511s %511s "
+            "%511s %511s %511s %511s %511s",
+            t, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16)) == 4) &&
       (bitwarning == TRUE))
   {
     /* Let's make the implementor read some, before converting his world files. */
@@ -3934,9 +3935,9 @@ const char *parse_object(FILE *obj_f, int nr)
   for (j = 0; j < NUM_OBJ_VAL_POSITIONS; j++)
     t[j] = 0;
 
-  if ((retval = sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &t[0], &t[1], &t[2],
-                       &t[3], &t[4], &t[5], &t[6], &t[7], &t[8], &t[9], &t[10], &t[11], &t[12],
-                       &t[13], &t[14], &t[15])) != 4)
+  if ((retval = strict_sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &t[0], &t[1],
+                              &t[2], &t[3], &t[4], &t[5], &t[6], &t[7], &t[8], &t[9], &t[10],
+                              &t[11], &t[12], &t[13], &t[14], &t[15])) != 4)
   {
     if (retval != 16)
     {
@@ -3970,7 +3971,7 @@ const char *parse_object(FILE *obj_f, int nr)
     log("SYSERR: Expecting third numeric line of %s, but file ended!", buf2);
     exit(1);
   }
-  if ((retval = sscanf(line, "%d %d %d %d %d", t, t + 1, t + 2, t + 3, t + 4)) != 5)
+  if ((retval = strict_sscanf(line, "%d %d %d %d %d", t, t + 1, t + 2, t + 3, t + 4)) != 5)
   {
     if (retval == 3)
     {
@@ -4046,7 +4047,7 @@ const char *parse_object(FILE *obj_f, int nr)
         exit(1);
       }
 
-      if ((retval = sscanf(line, " %d %d %d %d", t, t + 1, t + 2, t + 3)) != 4)
+      if ((retval = strict_sscanf(line, " %d %d %d %d", t, t + 1, t + 2, t + 3)) != 4)
       {
         if (retval == 3)
         {
@@ -4091,7 +4092,7 @@ const char *parse_object(FILE *obj_f, int nr)
         exit(1);
       }
 
-      if ((retval = sscanf(line, " %d %d ", t, t + 1)) != 2)
+      if ((retval = strict_sscanf(line, " %d %d ", t, t + 1)) != 2)
       {
         log("SYSERR: Format error in 'B' field, %s\n"
             "...expecting 2 numeric arguments, got %d\n"
@@ -4120,8 +4121,8 @@ const char *parse_object(FILE *obj_f, int nr)
             buf2);
         exit(1);
       }
-      if ((retval = sscanf(line, "%d %d %d %d %d %d %d %511s", t, t + 1, t + 2, t + 3, t + 4, t + 5,
-                           t + 6, f1)) < 7)
+      if ((retval = strict_sscanf(line, "%d %d %d %d %d %d %d %511s", t, t + 1, t + 2, t + 3, t + 4,
+                                  t + 5, t + 6, f1)) < 7)
       {
         log("SYSERR: Format error in 'C' field, %s\n"
             "...expecting 7 numeric arguments, got %d\n"
@@ -4157,7 +4158,7 @@ const char *parse_object(FILE *obj_f, int nr)
             buf2);
         exit(1);
       }
-      if (sscanf(line, "%d", t) != 1)
+      if (strict_sscanf(line, "%d", t) != 1)
       {
         log("SYSERR: Format error in 'G' field, %s\n"
             "...expecting numeric argument\n"
@@ -4175,7 +4176,7 @@ const char *parse_object(FILE *obj_f, int nr)
             buf2);
         exit(1);
       }
-      if (sscanf(line, "%d", t) != 1)
+      if (strict_sscanf(line, "%d", t) != 1)
       {
         log("SYSERR: Format error in 'H' field, %s\n"
             "...expecting numeric argument\n"
@@ -4193,7 +4194,7 @@ const char *parse_object(FILE *obj_f, int nr)
             buf2);
         exit(1);
       }
-      if (sscanf(line, "%d", t) != 1)
+      if (strict_sscanf(line, "%d", t) != 1)
       {
         log("SYSERR: Format error in 'I' field, %s\n"
             "...expecting numeric argument\n"
@@ -4213,7 +4214,7 @@ const char *parse_object(FILE *obj_f, int nr)
             buf2);
         exit(1);
       }
-      if (sscanf(line, "%d", t) != 1)
+      if (strict_sscanf(line, "%d", t) != 1)
       {
         log("SYSERR: Format error in 'J' field, %s\n"
             "...expecting numeric argument\n"
@@ -4240,7 +4241,7 @@ const char *parse_object(FILE *obj_f, int nr)
             buf2);
         exit(1);
       }
-      if ((retval = sscanf(line, " %d %d %d %d %d ", t, t + 1, t + 2, t + 3, t + 4)) != 5)
+      if ((retval = strict_sscanf(line, " %d %d %d %d %d ", t, t + 1, t + 2, t + 3, t + 4)) != 5)
       {
         log("SYSERR: Format error in 'K' field, %s  expecting 5 numeric args, got %d.  line: '%s'",
             buf2, retval, line);
@@ -4269,7 +4270,7 @@ const char *parse_object(FILE *obj_f, int nr)
             buf2);
         exit(1);
       }
-      if ((retval = sscanf(line, " %d %d %d %d ", t, t + 1, t + 2, t + 3)) != 4)
+      if ((retval = strict_sscanf(line, " %d %d %d %d ", t, t + 1, t + 2, t + 3)) != 4)
       {
         log("SYSERR: Format error in 'S' field, %s  expecting 4 numeric args, got %d.  line: '%s'",
             buf2, retval, line);
@@ -4319,12 +4320,13 @@ static bool parse_zone_header(struct zone_data *zone, char *line, const char *na
   int fields, used, end4 = 0, end10 = 0, end11 = 0, end14 = 0;
   int i;
 
-  fields = sscanf(line,
-                  " %" SCN_IDX " %" SCN_IDX " %d %d%n %511s %511s %511s %511s %d %d%n"
-                  " %d%n %d %d %d%n",
-                  &zone->bot, &zone->top, &zone->lifespan, &zone->reset_mode, &end4, flags[0],
-                  flags[1], flags[2], flags[3], &zone->min_level, &zone->max_level, &end10,
-                  &zone->show_weather, &end11, &zone->region, &zone->faction, &zone->city, &end14);
+  fields = strict_sscanf(line,
+                         " %" SCN_IDX " %" SCN_IDX " %d %d%n %511s %511s %511s %511s %d %d%n"
+                         " %d%n %d %d %d%n",
+                         &zone->bot, &zone->top, &zone->lifespan, &zone->reset_mode, &end4,
+                         flags[0], flags[1], flags[2], flags[3], &zone->min_level, &zone->max_level,
+                         &end10, &zone->show_weather, &end11, &zone->region, &zone->faction,
+                         &zone->city, &end14);
   if (fields < 4)
     return false;
 
@@ -4399,7 +4401,7 @@ static void load_zones(FILE *fl, char *zonename)
   line_num += get_line(fl, buf);
   /* vnum expansion */
   //  if (sscanf(buf, "#%hd", &Z.number) != 1) {
-  if (sscanf(buf, "#%" SCN_IDX, &Z.number) != 1)
+  if (strict_sscanf(buf, "#%" SCN_IDX, &Z.number) != 1)
   {
     log("SYSERR: Format error in %s, line %d", zname, line_num);
     exit(1);
@@ -4486,8 +4488,8 @@ static void load_zones(FILE *fl, char *zonename)
     error = 0;
     if (ZCMD.command == 'V')
     { /* a string-arg command */
-      if (sscanf(ptr, " %d %d %d %d %79s %79[^\f\n\r\t\v]", &tmp, &ZCMD.arg1, &ZCMD.arg2,
-                 &ZCMD.arg3, t1, t2) != 6)
+      if (strict_sscanf(ptr, " %d %d %d %d %79s %79[^\f\n\r\t\v]", &tmp, &ZCMD.arg1, &ZCMD.arg2,
+                        &ZCMD.arg3, t1, t2) != 6)
         error = 1;
       else
       {
@@ -4500,12 +4502,12 @@ static void load_zones(FILE *fl, char *zonename)
       switch (ZCMD.command)
       {
       case 'I': /* Load random treasure on mobile */
-        arg_count = sscanf(ptr, " %d %d ", &tmp, &ZCMD.arg1);
+        arg_count = strict_sscanf(ptr, " %d %d ", &tmp, &ZCMD.arg1);
         if (arg_count != 2)
           error = 1;
         break;
       case 'J':
-        arg_count = sscanf(ptr, " %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2);
+        arg_count = strict_sscanf(ptr, " %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2);
         if (arg_count == 2)
           ZCMD.arg2 = 100; /* defaults to 100%, always loads */
         else if (arg_count != 3)
@@ -4515,15 +4517,15 @@ static void load_zones(FILE *fl, char *zonename)
       case 'O':
       case 'E':
       case 'P':
-        arg_count =
-            sscanf(ptr, " %d %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3, &ZCMD.arg4);
+        arg_count = strict_sscanf(ptr, " %d %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3,
+                                  &ZCMD.arg4);
         if (arg_count == 4 || ZCMD.arg4 < 0)
           ZCMD.arg4 = 100;
         else if (arg_count != 5)
           error = 1;
         break;
       case 'G':
-        arg_count = sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3);
+        arg_count = strict_sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3);
         if (arg_count == 3 || ZCMD.arg3 < 0)
           ZCMD.arg3 = 100;
         else if (arg_count != 4)
@@ -4531,11 +4533,11 @@ static void load_zones(FILE *fl, char *zonename)
         break;
       case 'D':
       case 'T':
-        if (sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3) != 4)
+        if (strict_sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3) != 4)
           error = 1;
         break;
       case 'R':
-        arg_count = sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3);
+        arg_count = strict_sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3);
         if (arg_count == 3 || ZCMD.arg3 < 0)
         {
           ZCMD.arg3 = 100;
@@ -4547,8 +4549,8 @@ static void load_zones(FILE *fl, char *zonename)
           error = 1;
         break;
       case 'F':
-        arg_count =
-            sscanf(ptr, " %d %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3, &ZCMD.arg4);
+        arg_count = strict_sscanf(ptr, " %d %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3,
+                                  &ZCMD.arg4);
         if (arg_count == 4 || ZCMD.arg4 < 0)
           ZCMD.arg4 = 100;
         else if (arg_count != 5)
@@ -4557,8 +4559,8 @@ static void load_zones(FILE *fl, char *zonename)
       case 'K':
       case 'X':
       case 'C':
-        if (sscanf(ptr, " %d %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3, &ZCMD.arg4) !=
-            5)
+        if (strict_sscanf(ptr, " %d %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3,
+                          &ZCMD.arg4) != 5)
           error = 1;
         break;
       default:
@@ -4688,7 +4690,7 @@ void load_help(FILE *fl, char *name)
 
     if (*line == '#')
     {
-      if (sscanf(line, "#%d", &el.min_level) != 1)
+      if (strict_sscanf(line, "#%d", &el.min_level) != 1)
       {
         log("SYSERR: Help entry does not have a min level. %s", key);
         el.min_level = 0;
@@ -8404,7 +8406,7 @@ void load_config_stream(FILE *fl)
   {
     split_argument(line, tag);
     num = parse_int(line);
-    sscanf(line, "%lf", &fl_num); /*grab a float number */
+    strict_sscanf(line, "%lf", &fl_num); /*grab a float number */
 
     switch (LOWER(*tag))
     {

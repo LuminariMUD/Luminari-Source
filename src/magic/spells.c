@@ -5927,7 +5927,8 @@ static bool tazriks_event_state(const char *state, room_vnum *room, int *strike)
   int parsed_strike;
   char trailing;
 
-  if (state == NULL || sscanf(state, "%d %d %c", &parsed_room, &parsed_strike, &trailing) != 2 ||
+  if (state == NULL ||
+      strict_sscanf(state, "%d %d %c", &parsed_room, &parsed_strike, &trailing) != 2 ||
       parsed_room < 0 || parsed_strike < 0 || parsed_strike > 2)
     return false;
 

@@ -97,8 +97,8 @@ static bool objsave_replace_special_ability(struct obj_data *obj, const char *li
   char command[128];
 
   if (obj == NULL || line == NULL ||
-      sscanf(line, "%d %d %d %d %d %d %d %127s", &values[0], &values[1], &values[2], &values[3],
-             &values[4], &values[5], &values[6], command) != 8)
+      strict_sscanf(line, "%d %d %d %d %d %d %d %127s", &values[0], &values[1], &values[2],
+                    &values[3], &values[4], &values[5], &values[6], command) != 8)
   {
     log("SYSERR: Invalid SpAb record in object save data: %s", line ? line : "(null)");
     return false;
@@ -892,7 +892,7 @@ int Crash_delete_crashfile(struct char_data *ch)
 
   if (numread == FALSE)
     return FALSE;
-  if (sscanf(line, "%d ", &rentcode) != 1)
+  if (strict_sscanf(line, "%d ", &rentcode) != 1)
   {
     log("SYSERR: Invalid rent code in object file %s.", filename);
     return FALSE;
@@ -928,7 +928,8 @@ int Crash_clean_file(char *name)
   if (numread == FALSE)
     return FALSE;
 
-  if (sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account, &nitems) != 6)
+  if (strict_sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account,
+                    &nitems) != 6)
   {
     log("SYSERR: Invalid rent header in object file %s.", filename);
     return FALSE;
@@ -1006,7 +1007,8 @@ void Crash_listrent(struct char_data *ch, char *name)
     return;
   }
 
-  if (sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account, &nitems) != 6)
+  if (strict_sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account,
+                    &nitems) != 6)
   {
     send_to_char(ch, "Invalid rent information.\r\n");
     fclose(fl);
@@ -2107,7 +2109,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
     if (*line == '#')
     {
       /* check for false alarm. */
-      if (sscanf(line, "#%d", &nr) == 1)
+      if (strict_sscanf(line, "#%d", &nr) == 1)
       {
         /* If we attempt to load an object with a legal VNUM 0-65534, that
          * does not exist, skip it. If the object has a VNUM of NOTHING or
@@ -2228,7 +2230,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       else if (!strcmp(tag, "Aff "))
       {
         t[4] = 0;
-        sscanf(line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
+        strict_sscanf(line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
         if (t[0] < MAX_OBJ_AFFECT)
         {
           temp->affected[t[0]].location = t[1];
@@ -2239,7 +2241,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       }
       else if (!strcmp(tag, "Actv"))
       {
-        sscanf(line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
+        strict_sscanf(line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
         temp->activate_spell[ACT_SPELL_LEVEL] = t[0];
         temp->activate_spell[ACT_SPELL_SPELLNUM] = t[1];
         temp->activate_spell[ACT_SPELL_CURRENT_USES] = t[2];
@@ -2367,7 +2369,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
         GET_OBJ_SORT(temp) = num;
       else if (!strcmp(tag, "Spbk"))
       {
-        sscanf(line, "%d %d", &t[0], &t[1]);
+        strict_sscanf(line, "%d %d", &t[0], &t[1]);
         if (j < SPELLBOOK_SIZE)
         {
           if (!temp->sbinfo)
@@ -2416,9 +2418,9 @@ obj_save_data *objsave_parse_objects(FILE *fl)
         /* Initialize the values. */
         for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
           t[i] = 0;
-        sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &t[0], &t[1], &t[2], &t[3],
-               &t[4], &t[5], &t[6], &t[7], &t[8], &t[9], &t[10], &t[11], &t[12], &t[13], &t[14],
-               &t[15]);
+        strict_sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &t[0], &t[1], &t[2],
+                      &t[3], &t[4], &t[5], &t[6], &t[7], &t[8], &t[9], &t[10], &t[11], &t[12],
+                      &t[13], &t[14], &t[15]);
         for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
           GET_OBJ_VAL(temp, i) = t[i];
       }
@@ -2597,7 +2599,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
       if (**line == '#')
       {
         /* check for false alarm. */
-        if (sscanf(*line, "#%d", &nr) == 1)
+        if (strict_sscanf(*line, "#%d", &nr) == 1)
         {
           /* The aborted 20960 Jotunheim rebase reached saved-object rows even
            * though those prototypes were never installed. Preserve player and
@@ -2741,7 +2743,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         else if (!strcmp(tag, "Aff "))
         {
           t[4] = 0;
-          sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
+          strict_sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
           if (t[0] < MAX_OBJ_AFFECT)
           {
             temp->affected[t[0]].location = t[1];
@@ -2752,7 +2754,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         }
         else if (!strcmp(tag, "Actv"))
         {
-          sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
+          strict_sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
           temp->activate_spell[ACT_SPELL_LEVEL] = t[0];
           temp->activate_spell[ACT_SPELL_SPELLNUM] = t[1];
           temp->activate_spell[ACT_SPELL_CURRENT_USES] = t[2];
@@ -2867,7 +2869,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
           GET_OBJ_SORT(temp) = num;
         else if (!strcmp(tag, "Spbk"))
         {
-          sscanf(*line, "%d %d", &t[0], &t[1]);
+          strict_sscanf(*line, "%d %d", &t[0], &t[1]);
           if (j < SPELLBOOK_SIZE)
           {
             if (!temp->sbinfo)
@@ -2912,9 +2914,9 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
           /* Initialize the values. */
           for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
             t[i] = 0;
-          sscanf(*line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &t[0], &t[1], &t[2],
-                 &t[3], &t[4], &t[5], &t[6], &t[7], &t[8], &t[9], &t[10], &t[11], &t[12], &t[13],
-                 &t[14], &t[15]);
+          strict_sscanf(*line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &t[0], &t[1],
+                        &t[2], &t[3], &t[4], &t[5], &t[6], &t[7], &t[8], &t[9], &t[10], &t[11],
+                        &t[12], &t[13], &t[14], &t[15]);
           for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
             GET_OBJ_VAL(temp, i) = t[i];
         }
@@ -3032,8 +3034,8 @@ static int Crash_load_objs(struct char_data *ch)
 
   if (row && row[0] && row[0][0] != '\0')
   {
-    if (sscanf(row[0], "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account,
-               &nitems) == 6)
+    if (strict_sscanf(row[0], "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account,
+                      &nitems) == 6)
     {
       /* This player has saved objects in the database */
       COPYOVER_DEBUG("Object save header found for: %s", GET_NAME(ch));
@@ -3080,8 +3082,8 @@ static int Crash_load_objs(struct char_data *ch)
       fclose(fl);
       return 1;
     }
-    else if (sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account,
-                    &nitems) != 6)
+    else if (strict_sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account,
+                           &nitems) != 6)
     {
       mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "Invalid rent header for player: %s.",
              GET_NAME(ch));
@@ -4794,7 +4796,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
       if (**line == '#')
       {
         /* check for false alarm. */
-        if (sscanf(*line, "#%d", &nr) == 1)
+        if (strict_sscanf(*line, "#%d", &nr) == 1)
         {
           /* If we attempt to load an object with a legal VNUM 0-65534, that
            * does not exist, skip it. If the object has a VNUM of NOTHING or
@@ -4928,7 +4930,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         else if (!strcmp(tag, "Aff "))
         {
           t[4] = 0;
-          sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
+          strict_sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
           if (t[0] < MAX_OBJ_AFFECT)
           {
             temp->affected[t[0]].location = t[1];
@@ -4939,7 +4941,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         }
         else if (!strcmp(tag, "Actv"))
         {
-          sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
+          strict_sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
           temp->activate_spell[ACT_SPELL_LEVEL] = t[0];
           temp->activate_spell[ACT_SPELL_SPELLNUM] = t[1];
           temp->activate_spell[ACT_SPELL_CURRENT_USES] = t[2];
@@ -5046,7 +5048,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
           GET_OBJ_SORT(temp) = num;
         else if (!strcmp(tag, "Spbk"))
         {
-          sscanf(*line, "%d %d", &t[0], &t[1]);
+          strict_sscanf(*line, "%d %d", &t[0], &t[1]);
           if (j < SPELLBOOK_SIZE)
           {
             if (!temp->sbinfo)
@@ -5091,9 +5093,9 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
           /* Initialize the values. */
           for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
             t[i] = 0;
-          sscanf(*line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &t[0], &t[1], &t[2],
-                 &t[3], &t[4], &t[5], &t[6], &t[7], &t[8], &t[9], &t[10], &t[11], &t[12], &t[13],
-                 &t[14], &t[15]);
+          strict_sscanf(*line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &t[0], &t[1],
+                        &t[2], &t[3], &t[4], &t[5], &t[6], &t[7], &t[8], &t[9], &t[10], &t[11],
+                        &t[12], &t[13], &t[14], &t[15]);
           for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
             GET_OBJ_VAL(temp, i) = t[i];
         }

@@ -60,7 +60,8 @@ void parse_trigger(FILE *trig_f, int nr)
   trig->nr = top_of_trigt;
   trig->name = fread_string(trig_f, errors);
 
-  if (!get_line(trig_f, line) || (k = sscanf(line, "%d %255s %d", &attach_type, flags, t)) < 2)
+  if (!get_line(trig_f, line) ||
+      (k = strict_sscanf(line, "%d %255s %d", &attach_type, flags, t)) < 2)
   {
     log("SYSERR: Trigger #%d has an invalid numeric header.", nr);
     exit(1);
@@ -171,7 +172,7 @@ void dg_read_trigger(FILE *fp, void *proto, int type, int proto_vnum)
   struct trig_proto_list *trg_proto, *new_trg;
 
   get_line(fp, line);
-  count = sscanf(line, "%7s %d", junk, &vnum);
+  count = strict_sscanf(line, "%7s %d", junk, &vnum);
 
   if (count != 2)
   {
@@ -296,7 +297,7 @@ void dg_obj_trigger(char *line, struct obj_data *obj, int obj_vnum_id)
   int vnum, count;
   struct trig_proto_list *trg_proto, *new_trg;
 
-  count = sscanf(line, "%7s %d", junk, &vnum);
+  count = strict_sscanf(line, "%7s %d", junk, &vnum);
 
   if (count != 2)
   {

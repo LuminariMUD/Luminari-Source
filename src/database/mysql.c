@@ -2463,8 +2463,8 @@ void load_regions()
 
         for (it = tokens; it && *it && vtx < region_table[i].num_vertices; ++it)
         {
-          sscanf(*it, "%d %d", &(region_table[i].vertices[vtx].x),
-                 &(region_table[i].vertices[vtx].y));
+          strict_sscanf(*it, "%d %d", &(region_table[i].vertices[vtx].x),
+                        &(region_table[i].vertices[vtx].y));
           vtx++;
         }
         free_tokens(tokens);
@@ -3061,7 +3061,8 @@ void load_paths()
 
         for (it = tokens; it && *it && vtx < path_table[i].num_vertices; ++it)
         {
-          sscanf(*it, "%d %d", &(path_table[i].vertices[vtx].x), &(path_table[i].vertices[vtx].y));
+          strict_sscanf(*it, "%d %d", &(path_table[i].vertices[vtx].x),
+                        &(path_table[i].vertices[vtx].y));
           vtx++;
         }
         free_tokens(tokens);
@@ -3351,7 +3352,7 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
     for (it = tokens; it && *it; ++it)
     {
       log(" Token: %s", *it);
-      if (sscanf(*it, "%d %d", &newx, &newy) != 2)
+      if (strict_sscanf(*it, "%d %d", &newx, &newy) != 2)
       {
         log("SYSERR: Invalid spatial coordinate: %s", *it);
         continue;

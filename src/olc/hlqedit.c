@@ -80,7 +80,7 @@ static int zedit_create_index(int znum)
     }
     else if (!found)
     {
-      if (sscanf(buf, "%d", &num) != 1)
+      if (strict_sscanf(buf, "%d", &num) != 1)
       {
         log("SYSERR: Invalid high-level quest index entry: %s", buf);
         continue;

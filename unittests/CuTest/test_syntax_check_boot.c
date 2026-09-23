@@ -876,7 +876,7 @@ void Test_durable_charge_recovery_preserves_equipped_save_cadence(CuTest *tc)
   event = char_has_mud_event(&ch, eCHANNELENERGY);
   if (event != NULL && event->sVariables != NULL)
   {
-    sscanf(event->sVariables, "uses:%d", &remaining_uses);
+    strict_sscanf(event->sVariables, "uses:%d", &remaining_uses);
     retained_cadence =
         mud_event_make_durable_record(&ch, event, 2000, &record) &&
         record.recovery_interval_ticks == (int64_t)(SECS_PER_MUD_DAY / 8) * PASSES_PER_SEC;

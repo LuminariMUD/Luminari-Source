@@ -51,8 +51,8 @@ void setup_moving_room(FILE *fl, int rroom, int vroom, char *line)
     fD[j] = -1;
   }
 
-  if (sscanf(line, " %d %d %d %d %d ", roomInfo, roomInfo + 1, roomInfo + 2, roomInfo + 3,
-             roomInfo + 4) != 5)
+  if (strict_sscanf(line, " %d %d %d %d %d ", roomInfo, roomInfo + 1, roomInfo + 2, roomInfo + 3,
+                    roomInfo + 4) != 5)
   {
     fprintf(stderr, "Format error, room #%" PRI_IDX ", M line\n", world[rroom].number);
     exit(1);
@@ -98,7 +98,7 @@ void setup_moving_room(FILE *fl, int rroom, int vroom, char *line)
 
   while (lineIn[0] != '~')
   {
-    if (sscanf(lineIn, " %d %d %d ", connInfo, connInfo + 1, connInfo + 2) != 3)
+    if (strict_sscanf(lineIn, " %d %d %d ", connInfo, connInfo + 1, connInfo + 2) != 3)
     {
       fprintf(stderr, "Format error, room #%d, %" PRI_IDX " after M line\n", (connLine + 1),
               world[rroom].number);

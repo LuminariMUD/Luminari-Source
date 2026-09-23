@@ -387,6 +387,123 @@ void Test_parse_number_helpers(CuTest *tc)
   CuAssertDblEquals(tc, 0.0, parse_double(NULL), 0.0);
 }
 
+/* strict_sscanf() and strict_fscanf() must read every format shape the code base uses as
+ * sscanf() and fscanf() do, and stop at a number outside its type instead of storing it. */
+void Test_strict_scan_matches_scanf_and_stops_at_overflow(CuTest *tc)
+{
+  static const struct
+  {
+    const char *format;
+    const char *input;
+  } cases[] = {
+      {"%d %d", "12 -34"},
+      {"%d %d", "12"},
+      {"%d", ""},
+      {"%d", "   "},
+      {"%d", "x"},
+      {"%d %ld %511s %1023s %1023s\n", "7 1700000000 name host.example gui\nnext"},
+      {" %s %d %d %d %d \n", " north 1 2 3 4 \n\nnext"},
+      {"%ld\n", "1700000000\n\n42"},
+      {"%u", "-1"},
+      {"%lu", "18446744073709551615"},
+      {"%ld %lld", "-9223372036854775807 9223372036854775807"},
+      {"%2x%2x", "0aff"},
+      {"%2x", "0x"},
+      {"%lf", "1.5e3"},
+      {"%lf", "1e"},
+      {"%lf", ".5"},
+      {"%3s", "abcdef"},
+      {"%c%c", "ab"},
+      {"%3c", "ab"},
+      {"%[^,],%d", "a b,7"},
+      {"%d \"%19[^\"]\" \"%19[^\"]\" %s", "5 \"one two\" \"three\" four"},
+      {"%*d %d", "1"},
+      {"%*s %d", "x 9"},
+      {"%d%n %d%n", "4 5"},
+      {"#%d", "#42"},
+      {"#%d", "42"},
+      {"%d%%", "5%"},
+      {" %d , %d ", " 1 , 2 "},
+      {"%d-%d", "3-4"},
+      {"%u %u %d %d%n", "4294967295 0 -5 6"},
+      {"%i %i %i", "0x1f 017 -9"},
+  };
+  unsigned char expected[8][64];
+  unsigned char actual[8][64];
+  size_t i;
+  int first = 11;
+  int second = 12;
+  unsigned int index = 13;
+  long seconds = 14;
+  double real = 15.0;
+
+  for (i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
+  {
+    char label[160];
+    char expected_rest[64];
+    char actual_rest[64];
+    FILE *expected_stream;
+    FILE *actual_stream;
+    size_t length = strlen(cases[i].input);
+    int expected_result;
+    int actual_result;
+
+    snprintf(label, sizeof(label), "format \"%s\" on \"%s\"", cases[i].format, cases[i].input);
+    memset(expected, 0xAB, sizeof(expected));
+    memset(actual, 0xAB, sizeof(actual));
+    expected_result = sscanf(cases[i].input, cases[i].format, expected[0], expected[1], expected[2],
+                             expected[3], expected[4], expected[5], expected[6], expected[7]);
+    actual_result = strict_sscanf(cases[i].input, cases[i].format, actual[0], actual[1], actual[2],
+                                  actual[3], actual[4], actual[5], actual[6], actual[7]);
+    CuAssertIntEquals_Msg(tc, label, expected_result, actual_result);
+    CuAssert(tc, label, memcmp(expected, actual, sizeof(expected)) == 0);
+
+    /* The stream form must also leave the same text unread. */
+    expected_stream = tmpfile();
+    actual_stream = tmpfile();
+    CuAssertPtrNotNull(tc, expected_stream);
+    if (actual_stream == NULL)
+      fclose(expected_stream);
+    CuAssertPtrNotNull(tc, actual_stream);
+    CuAssertTrue(tc, fwrite(cases[i].input, 1, length, expected_stream) == length &&
+                         fwrite(cases[i].input, 1, length, actual_stream) == length &&
+                         fseek(expected_stream, 0, SEEK_SET) == 0 &&
+                         fseek(actual_stream, 0, SEEK_SET) == 0);
+    memset(expected, 0xAB, sizeof(expected));
+    memset(actual, 0xAB, sizeof(actual));
+    expected_result =
+        fscanf(expected_stream, cases[i].format, expected[0], expected[1], expected[2], expected[3],
+               expected[4], expected[5], expected[6], expected[7]);
+    actual_result = strict_fscanf(actual_stream, cases[i].format, actual[0], actual[1], actual[2],
+                                  actual[3], actual[4], actual[5], actual[6], actual[7]);
+    /* NOLINTBEGIN(clang-analyzer-unix.Stream) -- the unread rest after a failed scan is what
+     * this compares; both streams are healthy temporary files */
+    expected_rest[fread(expected_rest, 1, sizeof(expected_rest) - 1, expected_stream)] = '\0';
+    actual_rest[fread(actual_rest, 1, sizeof(actual_rest) - 1, actual_stream)] = '\0';
+    /* NOLINTEND(clang-analyzer-unix.Stream) */
+    fclose(expected_stream);
+    fclose(actual_stream);
+    CuAssertIntEquals_Msg(tc, label, expected_result, actual_result);
+    CuAssert(tc, label, memcmp(expected, actual, sizeof(expected)) == 0);
+    CuAssertStrEquals_Msg(tc, label, expected_rest, actual_rest);
+  }
+
+  /* A number outside its type ends the scan and is not stored. */
+  CuAssertIntEquals(tc, 0, strict_sscanf("2147483648", "%d", &first));
+  CuAssertIntEquals(tc, 11, first);
+  CuAssertIntEquals(tc, 1, strict_sscanf("1 -2147483649", "%d %d", &first, &second));
+  CuAssertIntEquals(tc, 1, first);
+  CuAssertIntEquals(tc, 12, second);
+  CuAssertIntEquals(tc, 0, strict_sscanf("4294967296", "%u", &index));
+  CuAssertTrue(tc, index == 13U);
+  CuAssertIntEquals(tc, 0, strict_sscanf("9223372036854775808", "%ld", &seconds));
+  CuAssertTrue(tc, seconds == 14L);
+  CuAssertIntEquals(tc, 0, strict_sscanf("1e999", "%lf", &real));
+  CuAssertDblEquals(tc, 15.0, real, 0.0);
+  CuAssertIntEquals(tc, EOF, strict_sscanf(NULL, "%d", &first));
+  CuAssertIntEquals(tc, EOF, strict_fscanf(NULL, "%d", &first));
+}
+
 void Test_fopen_restricted_blocks_world_write(CuTest *tc)
 {
   char path[] = "/tmp/luminari-fopen-test-XXXXXX";

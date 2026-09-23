@@ -43,7 +43,7 @@ static int parse_ban_record(const char *line, struct ban_list_element *record)
   int date, type;
 
   if (line == NULL || record == NULL ||
-      sscanf(line, " %99s %50s %d %20s %c", ban_type, site_name, &date, name, &extra) != 4)
+      strict_sscanf(line, " %99s %50s %d %20s %c", ban_type, site_name, &date, name, &extra) != 4)
     return FALSE;
 
   for (type = BAN_NOT; type <= BAN_ALL; type++)

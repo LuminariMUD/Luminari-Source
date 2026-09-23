@@ -758,6 +758,7 @@ set(SRC_C_FILES
     src/magic/spellbook_scroll.c
     src/magic/spells.c
     src/quest/staff_events.c
+    src/core/strict_scan.c
     src/character/skill_lists.c
     src/character/study.c
     src/character/talents.c
@@ -857,20 +858,21 @@ target_link_libraries(luminari PRIVATE luminari_build luminari_deps)
 # Build utilities by default (can be disabled with -DBUILD_UTILS=OFF)
 if(BUILD_UTILS)
     # Utilities from util/ directory
-    add_executable(autowiz util/autowiz.c)
+    add_executable(autowiz util/autowiz.c src/core/strict_scan.c)
     add_executable(asciipasswd util/asciipasswd.c)
     add_executable(rebuildAsciiIndex util/rebuildAsciiIndex.c)
     add_executable(rebuildMailIndex util/rebuildMailIndex.c)
     add_executable(
         rol_mob_calculator
         util/rol_mob_calculator.c
+        src/core/strict_scan.c
         src/mob/mob_autoroll.c
         src/mob/mob_autoroll_profile.c
     )
-    add_executable(shopconv util/shopconv.c)
+    add_executable(shopconv util/shopconv.c src/core/strict_scan.c)
     add_executable(sign util/sign.c)
     add_executable(split util/split.c)
-    add_executable(wld2html util/wld2html.c)
+    add_executable(wld2html util/wld2html.c src/core/strict_scan.c)
 
     set(LUMINARI_UTIL_TARGETS
         autowiz

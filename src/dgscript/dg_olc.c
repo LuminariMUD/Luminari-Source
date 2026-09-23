@@ -867,7 +867,7 @@ int dg_script_edit_parse(struct descriptor_data *d, char *arg)
   case SCRIPT_NEW_TRIGGER:
     pos = 0;
     vnum = -1;
-    count = sscanf(arg, "%d, %d", &pos, &vnum);
+    count = strict_sscanf(arg, "%d, %d", &pos, &vnum);
     if (count == 1)
     {
       vnum = pos;

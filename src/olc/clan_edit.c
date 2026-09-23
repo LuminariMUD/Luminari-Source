@@ -449,14 +449,15 @@ void load_clans(void)
             c.appfee = parse_int(line);
           else if (!strcmp(tag, "Ally"))
           {
-            if (sscanf(line,
-                       "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
-                       &c.allies[0], &c.allies[1], &c.allies[2], &c.allies[3], &c.allies[4],
-                       &c.allies[5], &c.allies[6], &c.allies[7], &c.allies[8], &c.allies[9],
-                       &c.allies[10], &c.allies[11], &c.allies[12], &c.allies[13], &c.allies[14],
-                       &c.allies[15], &c.allies[16], &c.allies[17], &c.allies[18], &c.allies[19],
-                       &c.allies[20], &c.allies[21], &c.allies[22], &c.allies[23],
-                       &c.allies[24]) != 25)
+            if (strict_sscanf(
+                    line,
+                    "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
+                    &c.allies[0], &c.allies[1], &c.allies[2], &c.allies[3], &c.allies[4],
+                    &c.allies[5], &c.allies[6], &c.allies[7], &c.allies[8], &c.allies[9],
+                    &c.allies[10], &c.allies[11], &c.allies[12], &c.allies[13], &c.allies[14],
+                    &c.allies[15], &c.allies[16], &c.allies[17], &c.allies[18], &c.allies[19],
+                    &c.allies[20], &c.allies[21], &c.allies[22], &c.allies[23],
+                    &c.allies[24]) != 25)
             {
               log("SYSERR: Unknown Ally tag format in clan file %s", CLAN_FILE);
             }
@@ -564,7 +565,7 @@ void load_clans(void)
               }
               else
               {
-                if (sscanf(line, "%d %d", &priv, &lev) != 2)
+                if (strict_sscanf(line, "%d %d", &priv, &lev) != 2)
                 {
                   log("SYSERR: Invalid privilege line in clan file (clan ID: %" PRI_IDX
                       ", rank line %d)",
@@ -650,14 +651,15 @@ void load_clans(void)
         case 'W':
           if (!strcmp(tag, "War "))
           {
-            if (sscanf(line,
-                       "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
-                       &c.at_war[0], &c.at_war[1], &c.at_war[2], &c.at_war[3], &c.at_war[4],
-                       &c.at_war[5], &c.at_war[6], &c.at_war[7], &c.at_war[8], &c.at_war[9],
-                       &c.at_war[10], &c.at_war[11], &c.at_war[12], &c.at_war[13], &c.at_war[14],
-                       &c.at_war[15], &c.at_war[16], &c.at_war[17], &c.at_war[18], &c.at_war[19],
-                       &c.at_war[20], &c.at_war[21], &c.at_war[22], &c.at_war[23],
-                       &c.at_war[24]) != 25)
+            if (strict_sscanf(
+                    line,
+                    "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
+                    &c.at_war[0], &c.at_war[1], &c.at_war[2], &c.at_war[3], &c.at_war[4],
+                    &c.at_war[5], &c.at_war[6], &c.at_war[7], &c.at_war[8], &c.at_war[9],
+                    &c.at_war[10], &c.at_war[11], &c.at_war[12], &c.at_war[13], &c.at_war[14],
+                    &c.at_war[15], &c.at_war[16], &c.at_war[17], &c.at_war[18], &c.at_war[19],
+                    &c.at_war[20], &c.at_war[21], &c.at_war[22], &c.at_war[23],
+                    &c.at_war[24]) != 25)
             {
               log("SYSERR: Unknown War tag format in clan file %s", CLAN_FILE);
             }
@@ -816,7 +818,7 @@ void load_claims(void)
               }
               else
               {
-                if (sscanf(line, "%d %lf", &cn, &pop) != 2)
+                if (strict_sscanf(line, "%d %lf", &cn, &pop) != 2)
                 {
                   log("SYSERR: Invalid popularity line in claims file (zone ID: %" PRI_IDX
                       ", line %d)",

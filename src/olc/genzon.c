@@ -351,7 +351,7 @@ int create_world_index(int znum, const char *type)
     }
     else if (!found)
     {
-      if (sscanf(buf, "%d", &num) != 1)
+      if (strict_sscanf(buf, "%d", &num) != 1)
       {
         mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: Invalid zone index entry: %s", buf);
         continue;

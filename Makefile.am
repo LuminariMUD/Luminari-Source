@@ -352,6 +352,7 @@ luminari_SOURCES = \
 	src/magic/spellbook_scroll.c \
 	src/magic/spells.c \
 	src/quest/staff_events.c \
+	src/core/strict_scan.c \
 	src/character/skill_lists.c \
 	src/character/study.c \
 	src/olc/tedit.c \

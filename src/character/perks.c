@@ -967,7 +967,7 @@ int perk_daily_uses_remaining(struct char_data *ch, event_id event, int uses_per
 
   if ((pMudEvent = char_has_mud_event(ch, event)))
   {
-    if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
+    if (pMudEvent->sVariables && strict_sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
       uses = 0;
   }
 
@@ -989,7 +989,7 @@ void perk_start_daily_use_cooldown(struct char_data *ch, event_id event, int use
 
   if ((pMudEvent = char_has_mud_event(ch, event)))
   {
-    if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
+    if (pMudEvent->sVariables && strict_sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
       uses = 0;
     uses++;
     if (pMudEvent->sVariables)

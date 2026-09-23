@@ -239,7 +239,7 @@ static int artifact_test_object_integer_field(const char *path, int vnum, char f
 
     if (in_record && line[0] == field && line[1] == '\0')
     {
-      if (fgets(line, sizeof(line), fl) && sscanf(line, "%d", value) == 1)
+      if (fgets(line, sizeof(line), fl) && strict_sscanf(line, "%d", value) == 1)
       {
         fclose(fl);
         return TRUE;
@@ -293,7 +293,7 @@ static int artifact_test_object_identity_fields(const char *path, int vnum, int 
       continue;
     }
 
-    if (sscanf(line, "%d %*s %*s %*s %*s %511s", item_type, wear) == 2)
+    if (strict_sscanf(line, "%d %*s %*s %*s %*s %511s", item_type, wear) == 2)
     {
       *wear_flags = asciiflag_conv(wear);
       fclose(fl);
@@ -639,8 +639,8 @@ void Test_artifact_save_round_trips_values(CuTest *tc)
     if (line[0] == '#' || line[0] == '\n' || line[0] == '\r')
       continue;
 
-    if (sscanf(line, "%d %127s %127s %d %d %ld %d", &vnum, owner, account, &level, &exp, &bound,
-               &persisted) != 7)
+    if (strict_sscanf(line, "%d %127s %127s %d %d %ld %d", &vnum, owner, account, &level, &exp,
+                      &bound, &persisted) != 7)
       continue;
 
     if (vnum != ART_VNUM_TRORXEK)
@@ -704,8 +704,8 @@ void Test_artifact_subthreshold_xp_flushes_when_dirty(CuTest *tc)
   {
     while (fgets(line, sizeof(line), fl))
     {
-      if (sscanf(line, "%d %127s %127s %d %d %ld %d", &vnum, owner, account, &level, &exp, &bound,
-                 &persisted) == 7 &&
+      if (strict_sscanf(line, "%d %127s %127s %d %d %ld %d", &vnum, owner, account, &level, &exp,
+                        &bound, &persisted) == 7 &&
           vnum == ART_VNUM_TRORXEK)
       {
         found = TRUE;

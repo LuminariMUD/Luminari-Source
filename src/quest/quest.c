@@ -327,8 +327,9 @@ void parse_quest(FILE *quest_f, int nr)
   /***** */
 
   /* Parse the value line. */
-  if (!get_line(quest_f, line) || (retval = sscanf(line, " %d %d %127s %d %d %d %d", t, t + 1, f1,
-                                                   t + 2, t + 3, t + 4, t + 5)) != 7)
+  if (!get_line(quest_f, line) ||
+      (retval = strict_sscanf(line, " %d %d %127s %d %d %d %d", t, t + 1, f1, t + 2, t + 3, t + 4,
+                              t + 5)) != 7)
   {
     log("Format error in numeric line 1 (expected 7, got %d), %s\n", retval, line);
     exit(1);
@@ -344,8 +345,8 @@ void parse_quest(FILE *quest_f, int nr)
   aquest_table[i].prereq = (t[5] == -1) ? NOTHING : (obj_vnum)t[5];
 
   /* parse the next line of values */
-  if (!get_line(quest_f, line) || (retval = sscanf(line, " %d %d %d %d %d %d %d", t, t + 1, t + 2,
-                                                   t + 3, t + 4, t + 5, t + 6)) != 7)
+  if (!get_line(quest_f, line) || (retval = strict_sscanf(line, " %d %d %d %d %d %d %d", t, t + 1,
+                                                          t + 2, t + 3, t + 4, t + 5, t + 6)) != 7)
   {
     log("Format error in numeric line 2 (expected 7, got %d), %s\n", retval, line);
     exit(1); /* harsh but defensive -> game won't start */
@@ -357,9 +358,10 @@ void parse_quest(FILE *quest_f, int nr)
 
   /* parse the next line of values
        re-wrote this to handle the old 3 values or new 7 values -zusuk */
-  if (!get_line(quest_f, line) || ((retval = sscanf(line, " %d %d %d %d %d %d %d", t, t + 1, t + 2,
-                                                    t + 3, t + 4, t + 5, t + 6)) != 3 &&
-                                   retval != 7))
+  if (!get_line(quest_f, line) ||
+      ((retval = strict_sscanf(line, " %d %d %d %d %d %d %d", t, t + 1, t + 2, t + 3, t + 4, t + 5,
+                               t + 6)) != 3 &&
+       retval != 7))
   {
     log("Format error in numeric line 3 (expected 3 or 7, got %d), %s\n", retval, line);
     exit(1); /* harsh but defensive -> game won't start */
@@ -405,7 +407,7 @@ void parse_quest(FILE *quest_f, int nr)
         exit(1); /* harsh but defensive -> game won't start */
       }
 
-      if (sscanf(line, "%d %d %d %d", t, t + 1, t + 2, t + 3) != 4)
+      if (strict_sscanf(line, "%d %d %d %d", t, t + 1, t + 2, t + 3) != 4)
       {
         log("SYSERR: Format error in 'D' field, %s\n"
             "...expecting 4 numeric arguments\n"
