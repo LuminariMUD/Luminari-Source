@@ -2272,7 +2272,8 @@ int crafting_mote_by_bonus_location(int location, int specific, int bonus_type)
 };
 
 /* The crafting ability the project's recipe variant uses, or 0 before a variant is chosen.
- * Supply orders derive their skill the same way. */
+ * Supply orders derive their skill the same way. Checks read it here, not from the saved
+ * skill_type, so a project saved before a recipe changed skills follows the recipe table. */
 static int get_craft_project_skill(struct char_data *ch)
 {
   int recipe = GET_CRAFT(ch).crafting_recipe, variant = GET_CRAFT(ch).craft_variant;
@@ -3188,7 +3189,8 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
   return ready;
 }
 
-/* The equipment slot that holds the tool for a crafting or harvesting skill, or -1. */
+/* The equipment slot that holds the tool for a crafting or harvesting skill, or -1. Hunting and
+ * leatherworking share the knife slot; each still needs a tool made for its own skill. */
 static int crafting_tool_slot(int skill)
 {
   switch (skill)
@@ -3208,6 +3210,7 @@ static int crafting_tool_slot(int skill)
   case ABILITY_HARVEST_FORESTRY:
     return WEAR_CRAFT_AXE;
   case ABILITY_HARVEST_HUNTING:
+  case ABILITY_CRAFT_LEATHERWORKING:
     return WEAR_CRAFT_KNIFE;
   case ABILITY_HARVEST_MINING:
     return WEAR_CRAFT_PICKAXE;
@@ -6617,14 +6620,11 @@ static bool craft_activity_recheck(struct char_data *ch, void *target, void *con
   if (method == SCMD_NEWCRAFT_HARVEST)
     return world[IN_ROOM(ch)].harvest_material_amount > 0 &&
            has_proper_harvesting_tool_equipped(ch);
-  if (method == SCMD_NEWCRAFT_CREATE)
-    return has_crafting_station_in_room(ch, GET_CRAFT(ch).skill_type);
+  if (method == SCMD_NEWCRAFT_CREATE || method == SCMD_NEWCRAFT_SUPPLYORDER)
+    return has_crafting_station_in_room(ch, get_craft_project_skill(ch));
   if (method == SCMD_NEWCRAFT_REFINE)
     return has_crafting_station_in_room(
         ch, refining_recipes[refining_recipe_for_result(GET_CRAFT(ch).refining_result[0])].skill);
-  if (method == SCMD_NEWCRAFT_SUPPLYORDER)
-    return has_crafting_station_in_room(
-        ch, recipe_skill_to_actual_crafting_skill(GET_CRAFT(ch).skill_type));
   return true;
 }
 
@@ -7643,6 +7643,8 @@ int recipe_skill_to_actual_crafting_skill(int recipe_skill)
     return ABILITY_CRAFT_TAILORING;
   case CRAFT_SKILL_BREWING:
     return ABILITY_CRAFT_ALCHEMY;
+  case CRAFT_SKILL_LEATHERWORKER:
+    return ABILITY_CRAFT_LEATHERWORKING;
   default:
     break;
   }
@@ -7835,8 +7837,7 @@ int calculate_supply_order_reward(struct char_data *ch)
 
   // Calculate skill bonus
   skill_bonus =
-      get_craft_skill_value(ch, recipe_skill_to_actual_crafting_skill(GET_CRAFT(ch).skill_type)) *
-      SUPPLY_SKILL_BONUS_MULTIPLIER;
+      get_craft_skill_value(ch, get_craft_project_skill(ch)) * SUPPLY_SKILL_BONUS_MULTIPLIER;
 
   total_reward = base_reward + material_bonus + quantity_bonus + skill_bonus;
 
@@ -8980,7 +8981,6 @@ void request_new_supply_order(struct char_data *ch)
     GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_SUPPLYORDER;
     GET_CRAFT(ch).supply_num_required = quantity;
     GET_NSUPPLY_NUM_MADE(ch) = 0;
-    GET_CRAFT(ch).skill_type = crafting_recipes[recipe].variant_skill[variant];
     send_to_char(ch, "You've requested a new supply order to make %d %ss.\r\n", quantity,
                  crafting_recipes[recipe].variant_descriptions[variant]);
     send_to_char(ch, "Complete this order to earn \tCartisan points\tn!\r\n");
@@ -9023,8 +9023,7 @@ void start_supply_order(struct char_data *ch)
   else
   {
     // Check if the player is in a room with the required crafting station
-    int recipe_skill = GET_CRAFT(ch).skill_type;
-    int actual_skill = recipe_skill_to_actual_crafting_skill(recipe_skill);
+    int actual_skill = get_craft_project_skill(ch);
     if (!has_crafting_station_in_room(ch, actual_skill))
     {
       send_to_char(ch, "You need to be in a room with %s to work on this supply order.\r\n",
@@ -9927,7 +9926,6 @@ int select_contract_by_id(struct char_data *ch, int contract_id)
   GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_SUPPLYORDER;
   GET_CRAFT(ch).supply_num_required = contract->quantity;
   GET_NSUPPLY_NUM_MADE(ch) = 0;
-  GET_CRAFT(ch).skill_type = crafting_recipes[contract->recipe].variant_skill[contract->variant];
 
   // Store contract type and advanced features
   GET_CRAFT(ch).supply_contract_type = contract->contract_type;
@@ -10315,7 +10313,7 @@ static const char *get_craft_tool_name(int wear_slot)
   case WEAR_CRAFT_AXE:
     return "chopping axe (forestry)";
   case WEAR_CRAFT_KNIFE:
-    return "skinning knife (hunting)";
+    return "skinning knife (hunting, leatherworking)";
   case WEAR_CRAFT_PICKAXE:
     return "pickaxe (mining)";
   case WEAR_CRAFT_ALCHEMY:
@@ -10437,6 +10435,7 @@ bool is_crafting_skill_in_game(int skill)
   switch (skill)
   {
   case ABILITY_CRAFT_TAILORING:
+  case ABILITY_CRAFT_LEATHERWORKING:
   case ABILITY_CRAFT_ARMORSMITHING:
   case ABILITY_CRAFT_WEAPONSMITHING:
   case ABILITY_CRAFT_JEWELCRAFTING:

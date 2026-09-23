@@ -1038,6 +1038,46 @@ static void craft_project_free_parsed_prototype(struct obj_data *proto)
   }
 }
 
+/** Parse one record of data/crafting-tools/3.obj the way the world loader does, into protos[0],
+ * followed by the fixture's weapon and bundle prototypes. True when the record was found and
+ * parsed; free its strings with craft_project_free_parsed_prototype(). */
+static bool craft_project_load_shipped_tool(struct craft_project_fixture *f, obj_vnum vnum,
+                                            struct obj_data protos[3], struct index_data indexes[3])
+{
+  char path[PATH_MAX], line[READ_SIZE], wanted[32];
+  bool found = false;
+  FILE *file;
+
+  world_loader_reset_for_test();
+  top_of_world = 0;
+  top_of_zone_table = 0;
+  memset(protos, 0, 3 * sizeof(*protos));
+  memset(indexes, 0, 3 * sizeof(*indexes));
+  obj_proto = protos;
+  obj_index = indexes;
+  snprintf(path, sizeof(path), "%s/data/crafting-tools/3.obj",
+           getenv("LUMINARI_TEST_ROOT") != NULL ? getenv("LUMINARI_TEST_ROOT") : ".");
+  snprintf(wanted, sizeof(wanted), "#%d", (int)vnum);
+  file = fopen(path, "r");
+  if (file != NULL)
+  {
+    while (!found && get_line(file, line))
+      found = !strcmp(line, wanted);
+    if (found)
+      parse_object(file, vnum);
+    fclose(file);
+  }
+  protos[1] = f->object_proto[0];
+  indexes[1] = f->object_index[0];
+  protos[2] = f->object_proto[1];
+  indexes[2] = f->object_index[1];
+  protos[1].item_number = 1;
+  protos[2].item_number = 2;
+  top_of_objt = 2;
+  f->zone.top = MAX(f->zone.top, vnum);
+  return found;
+}
+
 /* No object a player could get fit a crafting tool slot, so only woodworking projects could start
  * (issue 219). The sewing needle shipped in data/crafting-tools, loaded as the world loader does,
  * bought from its shop and worn, lets a tailoring project start and complete, and craft tools lists
@@ -1053,9 +1093,8 @@ void Test_bought_crafting_tool_lets_a_tailoring_project_start_and_complete(CuTes
   int saved_top_shop = top_shop, buy_cmd, seconds;
   obj_vnum products[2];
   room_vnum shop_rooms[2];
-  char path[PATH_MAX], line[READ_SIZE], buy_argument[] = "needle";
-  bool parsed = false, sorted, bought, wrong_tool_refused, worn, listed, started, completed;
-  FILE *file;
+  char buy_argument[] = "needle";
+  bool parsed, sorted, bought, wrong_tool_refused, worn, listed, started, completed;
 
   craft_project_begin(&f);
   craft_project_start_events();
@@ -1064,32 +1103,9 @@ void Test_bought_crafting_tool_lets_a_tailoring_project_start_and_complete(CuTes
     create_command_list();
 
   /* The shipped record, then the fixture's weapon and bundle prototypes, in vnum order. */
-  world_loader_reset_for_test();
-  top_of_world = 0;
-  top_of_zone_table = 0;
-  memset(protos, 0, sizeof(protos));
-  memset(indexes, 0, sizeof(indexes));
-  obj_proto = protos;
-  obj_index = indexes;
-  snprintf(path, sizeof(path), "%s/data/crafting-tools/3.obj",
-           getenv("LUMINARI_TEST_ROOT") != NULL ? getenv("LUMINARI_TEST_ROOT") : ".");
-  file = fopen(path, "r");
-  if (file != NULL)
-  {
-    parsed = get_line(file, line) && !strcmp(line, "#391");
-    if (parsed)
-      parse_object(file, 391);
-    fclose(file);
-  }
-  protos[1] = f.object_proto[0];
-  indexes[1] = f.object_index[0];
-  protos[2] = f.object_proto[1];
-  indexes[2] = f.object_index[1];
-  protos[1].item_number = 1;
-  protos[2].item_number = 2;
-  top_of_objt = 2;
-  sorted = indexes[0].vnum < indexes[1].vnum && indexes[1].vnum < indexes[2].vnum;
-  f.zone.top = MAX(f.zone.top, 391);
+  parsed = craft_project_load_shipped_tool(&f, 391, protos, indexes);
+  sorted = indexes[0].vnum == 391 && indexes[0].vnum < indexes[1].vnum &&
+           indexes[1].vnum < indexes[2].vnum;
 
   /* Jufus's shop sells the tools it produces. */
   clear_char(&keeper);
@@ -1123,20 +1139,20 @@ void Test_bought_crafting_tool_lets_a_tailoring_project_start_and_complete(CuTes
   needle = ch->carrying;
   bought = needle != NULL && GET_OBJ_VNUM(needle) == 391 && GET_GOLD(ch) < 1000;
 
-  /* A sling is a tailoring recipe; the fixture's forge serves as its loom too. */
+  /* A net is a tailoring recipe; the fixture's forge serves as its loom too. */
   SET_OBJ_FLAG(&f.forge, ITEM_CRAFTING_LOOM);
   SET_ABILITY(ch, ABILITY_CRAFT_TAILORING, 40);
   GET_CRAFT(ch).crafting_item_type = CRAFT_TYPE_WEAPON;
-  GET_CRAFT(ch).crafting_specific = WEAPON_TYPE_SLING;
-  GET_CRAFT(ch).crafting_recipe = CRAFT_RECIPE_WEAPON_SLING;
+  GET_CRAFT(ch).crafting_specific = WEAPON_TYPE_NET;
+  GET_CRAFT(ch).crafting_recipe = CRAFT_RECIPE_WEAPON_NET;
   GET_CRAFT(ch).craft_variant = 0;
-  GET_CRAFT(ch).keywords = strdup("hemp sling");
-  GET_CRAFT(ch).short_description = strdup("a hemp sling");
-  GET_CRAFT(ch).room_description = strdup("A hemp sling lies here.");
-  GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][0] = CRAFT_MAT_LOW_GRADE_HIDE;
-  GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][1] = 3;
+  GET_CRAFT(ch).keywords = strdup("hemp net");
+  GET_CRAFT(ch).short_description = strdup("a hemp net");
+  GET_CRAFT(ch).room_description = strdup("A hemp net lies here.");
   GET_CRAFT(ch).materials[CRAFT_GROUP_CLOTH][0] = CRAFT_MAT_HEMP;
-  GET_CRAFT(ch).materials[CRAFT_GROUP_CLOTH][1] = 1;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_CLOTH][1] = 6;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][0] = CRAFT_MAT_LOW_GRADE_HIDE;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][1] = 1;
 
   /* Another object in the needle slot is not a sewing needle: craft tools and the project agree. */
   GET_EQ(ch, WEAR_CRAFT_NEEDLE) = &f.hammer;
@@ -1190,6 +1206,163 @@ void Test_bought_crafting_tool_lets_a_tailoring_project_start_and_complete(CuTes
   CuAssertTrue(tc, listed);
   CuAssertTrue(tc, started);
   CuAssertTrue(tc, completed);
+}
+
+/** A leather sling project with its materials allocated: the sling recipe's only variant takes
+ * three hides and one cloth. */
+static void craft_project_ready_sling(struct char_data *ch)
+{
+  free(GET_CRAFT(ch).keywords);
+  free(GET_CRAFT(ch).short_description);
+  free(GET_CRAFT(ch).room_description);
+  GET_CRAFT(ch).crafting_item_type = CRAFT_TYPE_WEAPON;
+  GET_CRAFT(ch).crafting_specific = WEAPON_TYPE_SLING;
+  GET_CRAFT(ch).crafting_recipe = CRAFT_RECIPE_WEAPON_SLING;
+  GET_CRAFT(ch).craft_variant = 0;
+  GET_CRAFT(ch).keywords = strdup("leather sling");
+  GET_CRAFT(ch).short_description = strdup("a leather sling");
+  GET_CRAFT(ch).room_description = strdup("A leather sling lies here.");
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][0] = CRAFT_MAT_LOW_GRADE_HIDE;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][1] = 3;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_CLOTH][0] = CRAFT_MAT_HEMP;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_CLOTH][1] = 1;
+}
+
+/** Run the character's crafting work to its end, at most ten minutes. */
+static void craft_project_finish_work(struct char_data *ch)
+{
+  struct primary_activity_snapshot snapshot;
+  int seconds;
+
+  for (seconds = 0; seconds < 600 && primary_activity_snapshot(ch, &snapshot); seconds++)
+    craft_project_advance_seconds(1);
+}
+
+static int craft_project_carried_weapons(struct char_data *ch)
+{
+  struct obj_data *obj;
+  int count = 0;
+
+  for (obj = ch->carrying; obj != NULL; obj = obj->next_content)
+    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+      count++;
+  return count;
+}
+
+/* Every hide recipe used tailoring, so leatherworking ranks, talents, and the tannery served no
+ * project (issue 221). Recipes whose main material is hides now use leatherworking: a sling needs
+ * the leatherworker's knife shipped in data/crafting-tools, worn in the knife slot, and a tannery,
+ * and it pays leatherworking experience. A project or supply order saved while hides used
+ * tailoring resumes and starts by the recipe's skill, not the skill it recorded. */
+void Test_hide_recipes_use_leatherworking_its_knife_and_the_tannery(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct obj_data protos[3], *knife = NULL;
+  struct index_data indexes[3];
+  struct primary_activity_snapshot snapshot;
+  int recipe, variant, hide_variants = 0;
+  bool parsed, mapped = true, refused, worn, listed, started, completed, resumed, ordered;
+
+  craft_project_begin(&f);
+  craft_project_start_events();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  if (complete_cmd_info == NULL)
+    create_command_list();
+  parsed = craft_project_load_shipped_tool(&f, 389, protos, indexes);
+
+  /* The main material decides: hides are leatherworking, everything else is not. */
+  for (recipe = CRAFT_RECIPE_NONE + 1; recipe < NUM_CRAFTING_RECIPES; recipe++)
+    for (variant = 0; variant < NUM_CRAFT_VARIANTS; variant++)
+    {
+      int skill = crafting_recipes[recipe].variant_skill[variant];
+      bool leather;
+
+      if (skill == 0)
+        continue;
+      leather = recipe_skill_to_actual_crafting_skill(skill) == ABILITY_CRAFT_LEATHERWORKING;
+      if (crafting_recipes[recipe].materials[0][variant][0] == CRAFT_GROUP_HIDES)
+      {
+        hide_variants++;
+        mapped = mapped && leather;
+      }
+      else
+        mapped = mapped && !leather;
+    }
+
+  /* A loom and no knife: the sling asks for the leatherworking tool and a tannery. */
+  SET_OBJ_FLAG(&f.forge, ITEM_CRAFTING_LOOM);
+  SET_ABILITY(ch, ABILITY_CRAFT_LEATHERWORKING, 40);
+  GET_REAL_SIZE(ch) = ch->points.size = SIZE_MEDIUM;
+  craft_project_ready_sling(ch);
+  craft_project_reset_output(&f);
+  newcraft_create(ch, "start");
+  refused = craft_project_output_has(&f, "not wearing the proper tool") &&
+            craft_project_output_has(&f, "a tannery") && !primary_activity_snapshot(ch, &snapshot);
+
+  if (parsed && (knife = read_object(389, VIRTUAL)) != NULL)
+    obj_to_char(knife, ch);
+  do_wear(ch, "knife", 0, 0);
+  worn = knife != NULL && GET_EQ(ch, WEAR_CRAFT_KNIFE) == knife &&
+         worn_crafting_tool(ch, ABILITY_CRAFT_LEATHERWORKING) == knife &&
+         worn_crafting_tool(ch, ABILITY_HARVEST_HUNTING) == NULL;
+  craft_project_reset_output(&f);
+  newcraft_show_tools(ch, "");
+  listed = craft_project_output_has(&f, "a leatherworker's knife");
+
+  SET_OBJ_FLAG(&f.forge, ITEM_CRAFTING_TANNERY);
+  newcraft_create(ch, "start");
+  started = primary_activity_snapshot(ch, &snapshot) && snapshot.type == PRIMARY_ACTIVITY_CRAFT;
+  craft_project_finish_work(ch);
+  completed = craft_project_carried_weapons(ch) == 1 &&
+              GET_CRAFT_SKILL_EXP(ch, ABILITY_CRAFT_LEATHERWORKING) > 0 &&
+              GET_CRAFT_SKILL_EXP(ch, ABILITY_CRAFT_TAILORING) == 0;
+
+  /* Saved mid-work before the change: the record says tailoring, the room has only a tannery. */
+  REMOVE_OBJ_FLAG(&f.forge, ITEM_CRAFTING_LOOM);
+  craft_project_ready_sling(ch);
+  GET_CRAFT(ch).skill_type = ABILITY_CRAFT_TAILORING;
+  GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_CREATE;
+  GET_CRAFT(ch).craft_duration = 5;
+  resume_craft_activity(ch);
+  craft_project_finish_work(ch);
+  resumed = craft_project_carried_weapons(ch) == 2;
+
+  /* A sling supply order that recorded the tailor recipe skill starts at the tannery. */
+  craft_project_ready_sling(ch);
+  GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_SUPPLYORDER;
+  GET_CRAFT(ch).crafting_item_type = ITEM_WEAPON;
+  GET_CRAFT(ch).supply_num_required = 2;
+  GET_CRAFT(ch).skill_type = CRAFT_SKILL_TAILOR;
+  craft_project_reset_output(&f);
+  start_supply_order(ch);
+  ordered = primary_activity_snapshot(ch, &snapshot) && snapshot.type == PRIMARY_ACTIVITY_CRAFT;
+  primary_activity_cancel(ch, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false);
+  reset_supply_order(ch);
+
+  if (GET_EQ(ch, WEAR_CRAFT_KNIFE) != NULL)
+    extract_obj(unequip_char(ch, WEAR_CRAFT_KNIFE));
+  while (ch->carrying != NULL)
+    extract_obj(ch->carrying);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  if (parsed)
+    craft_project_free_parsed_prototype(&protos[0]);
+  obj_proto = f.object_proto;
+  obj_index = f.object_index;
+  top_of_objt = 1;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, parsed);
+  CuAssertIntEquals(tc, 74, hide_variants);
+  CuAssertTrue(tc, mapped);
+  CuAssertTrue(tc, refused);
+  CuAssertTrue(tc, worn);
+  CuAssertTrue(tc, listed);
+  CuAssertTrue(tc, started);
+  CuAssertTrue(tc, completed);
+  CuAssertTrue(tc, resumed);
+  CuAssertTrue(tc, ordered);
 }
 
 /* Room harvesting kept a second tool rule, any object in the harvest slot (issue 219): it takes the
