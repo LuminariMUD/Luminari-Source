@@ -2149,9 +2149,9 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
   if (!strn_cmp(arg, "until ", 6))
   {
     /* valid forms of time are 14:30 and 1430 */
-    if (sscanf(arg, "until %ld:%ld", &hr, &min) == 2)
+    if (strict_sscanf(arg, "until %ld:%ld", &hr, &min) == 2)
       min += (hr * 60);
-    else if (sscanf(arg, "until %ld", &hr) == 1)
+    else if (strict_sscanf(arg, "until %ld", &hr) == 1)
       min = (hr % 100) + ((hr / 100) * 60);
     else
     {
@@ -2174,7 +2174,7 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
   }
   else
   {
-    if (sscanf(arg, "%ld %c", &when, &c) == 2)
+    if (strict_sscanf(arg, "%ld %c", &when, &c) == 2)
     {
       if (c == 't')
         when *= (long)PULSES_PER_MUD_HOUR;

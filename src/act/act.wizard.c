@@ -6485,7 +6485,7 @@ ACMD(do_plist)
     half_chop(buf, arg, buf1);
     if (isdigit(*arg))
     {
-      if (sscanf(arg, "%d-%d", &low, &high) == 1)
+      if (strict_sscanf(arg, "%d-%d", &low, &high) == 1)
         high = low;
       strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
     }
@@ -6496,7 +6496,7 @@ ACMD(do_plist)
       {
       case 'l':
         half_chop(buf1, arg, buf);
-        sscanf(arg, "%d-%d", &low, &high);
+        strict_sscanf(arg, "%d-%d", &low, &high);
         break;
       case 'n':
         half_chop(buf1, name_search, buf);
@@ -6511,12 +6511,12 @@ ACMD(do_plist)
         break;
       case 'd':
         half_chop(buf1, arg, buf);
-        if (sscanf(arg, "%d-%d", &low_day, &high_day) == 1)
+        if (strict_sscanf(arg, "%d-%d", &low_day, &high_day) == 1)
           high_day = low_day;
         break;
       case 'h':
         half_chop(buf1, arg, buf);
-        if (sscanf(arg, "%d-%d", &low_hr, &high_hr) == 1)
+        if (strict_sscanf(arg, "%d-%d", &low_hr, &high_hr) == 1)
           high_hr = low_hr;
         break;
       default:

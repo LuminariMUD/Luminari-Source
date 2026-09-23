@@ -272,8 +272,8 @@ static void load_crafts_from(FILE *fp)
           if (!strcmp(tag, "Req "))
           {
             requirement = create_requirement();
-            if (sscanf(line, "%d %d %d\n", (int *)&requirement->req_vnum, &requirement->req_amount,
-                       &requirement->req_flags) != 3)
+            if (strict_sscanf(line, "%d %d %d\n", (int *)&requirement->req_vnum,
+                              &requirement->req_amount, &requirement->req_flags) != 3)
             {
               log("SYSERR: Format error in Requirement");
               free(requirement); /* Free the requirement if parsing failed */

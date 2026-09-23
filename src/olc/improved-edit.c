@@ -185,7 +185,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
         flags += FORMAT_INDENT;
       }
     }
-    switch (sscanf((indent ? string + 1 : string), " %d - %d ", &line_low, &line_high))
+    switch (strict_sscanf((indent ? string + 1 : string), " %d - %d ", &line_low, &line_high))
     {
     case -1:
     case 0:
@@ -260,7 +260,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
       write_to_output(d, "Not enough space left in buffer.\r\n");
     break;
   case PARSE_DELETE:
-    switch (sscanf(string, " %d - %d ", &line_low, &line_high))
+    switch (strict_sscanf(string, " %d - %d ", &line_low, &line_high))
     {
     case EOF:
     case 0:
@@ -331,7 +331,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
      * are ok for what we do here. */
     *buf = '\0';
     if (*string)
-      switch (sscanf(string, " %d - %d ", &line_low, &line_high))
+      switch (strict_sscanf(string, " %d - %d ", &line_low, &line_high))
       {
       case EOF:
       case 0:
@@ -406,7 +406,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
      * are probably ok for what we do here. */
     *buf = '\0';
     if (*string)
-      switch (sscanf(string, " %d - %d ", &line_low, &line_high))
+      switch (strict_sscanf(string, " %d - %d ", &line_low, &line_high))
       {
       case EOF:
       case 0:

@@ -340,8 +340,9 @@ bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *
   uses = -1;
   if (policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
   {
-    if (pMudEvent->sVariables == NULL || sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1 ||
-        uses <= 0 || uses > MUD_EVENT_MAX_PERSISTED_USES)
+    if (pMudEvent->sVariables == NULL ||
+        strict_sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1 || uses <= 0 ||
+        uses > MUD_EVENT_MAX_PERSISTED_USES)
       return false;
   }
 
@@ -761,7 +762,7 @@ MUD_EVENT_CALLBACK(event_countdown)
         int x, y;
         int ctr = 0;
 
-        if (sscanf(*it, "%" SCN_IDX, &eroom_vnum) != 1)
+        if (strict_sscanf(*it, "%" SCN_IDX, &eroom_vnum) != 1)
         {
           log("SYSERR: Invalid encounter room vnum: %s", *it);
           continue;
@@ -868,7 +869,7 @@ MUD_EVENT_CALLBACK(event_daily_use_cooldown)
   }
   else
   {
-    if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
+    if (strict_sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
     {
       log("SYSERR: In event_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %u",
           pMudEvent->iId);

@@ -7578,7 +7578,7 @@ ACMD(do_who)
     // if arg is a digit...
     if (isdigit(*arg))
     {
-      sscanf(arg, "%d-%d", &low, &high);
+      strict_sscanf(arg, "%d-%d", &low, &high);
       strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
 
       // arg isn't a digit, only acceptable input is '-' and a letter
@@ -7957,7 +7957,7 @@ ACMD(do_users)
       case 'l':
         playing = 1;
         half_chop(buf1, arg, buf);
-        sscanf(arg, "%d-%d", &low, &high);
+        strict_sscanf(arg, "%d-%d", &low, &high);
         break;
       case 'n':
         playing = 1;
@@ -8154,7 +8154,7 @@ ACMD(do_levels)
   {
     if (isdigit(*arg))
     {
-      ret = sscanf(arg, "%d-%d", &min_lev, &max_lev);
+      ret = strict_sscanf(arg, "%d-%d", &min_lev, &max_lev);
       if (ret == 0)
       {
         /* No valid args found */
@@ -10164,8 +10164,8 @@ MUD_EVENT_CALLBACK(event_tracks)
 
   /* Get the track information from the sVariables. */
   if (pMudEvent->sVariables)
-    sscanf(pMudEvent->sVariables, "%d \"%19[^\"]\" \"%19[^\"]\" %s", &track_age, creator_race,
-           creator_name, track_dir);
+    strict_sscanf(pMudEvent->sVariables, "%d \"%19[^\"]\" \"%19[^\"]\" %s", &track_age,
+                  creator_race, creator_name, track_dir);
 
   if (track_age == 0) /* Time for this track to disappear. */
     return 0;

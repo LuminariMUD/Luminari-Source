@@ -624,7 +624,7 @@ void copyover_recover()
 
   /* read boot_time - first line in file */
   COPYOVER_DEBUG("copyover_recover: Reading boot time from copyover file");
-  i = fscanf(fp, "%ld\n", (long *)&boot_time);
+  i = strict_fscanf(fp, "%ld\n", (long *)&boot_time);
 
   if (i != 1)
   {
@@ -641,7 +641,7 @@ void copyover_recover()
   for (;;)
   {
     fOld = TRUE;
-    i = fscanf(fp, "%d %ld %511s %1023s %1023s\n", &desc, &pref, name, host, guiopt);
+    i = strict_fscanf(fp, "%d %ld %511s %1023s %1023s\n", &desc, &pref, name, host, guiopt);
     if (i >= 1 && desc == -1)
     {
       COPYOVER_DEBUG("copyover_recover: Found end marker (-1), finishing recovery");

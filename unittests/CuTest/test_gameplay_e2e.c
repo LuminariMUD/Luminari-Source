@@ -237,8 +237,8 @@ void Test_gameplay_save_captures_charge_cadence_before_unequipping(CuTest *tc)
   if (file != NULL)
   {
     while (fgets(line, sizeof(line), file) != NULL)
-      if (sscanf(line, "%d %u %lld %lld %lld %d %lld", &type, &schema, &owner, &remaining, &epoch,
-                 &uses, &cadence) == 7 &&
+      if (strict_sscanf(line, "%d %u %lld %lld %lld %d %lld", &type, &schema, &owner, &remaining,
+                        &epoch, &uses, &cadence) == 7 &&
           type == eCHANNELENERGY && owner == 4246)
         saved_cadence = cadence;
     fclose(file);
@@ -415,7 +415,7 @@ static bool player_file_has_cooldown_checkpoint(const char *filename)
   found = false;
   while (fgets(line, sizeof(line), file) != NULL)
   {
-    if (sscanf(line, "CkAt: %lld", &checkpoint) == 1 && checkpoint > 0)
+    if (strict_sscanf(line, "CkAt: %lld", &checkpoint) == 1 && checkpoint > 0)
     {
       found = true;
       break;
@@ -530,7 +530,7 @@ static bool rewrite_psychic_sundering_as_legacy(const char *filename)
       continue;
     }
 
-    if (in_affects && sscanf(line, "%d", &affect_id) == 1)
+    if (in_affects && strict_sscanf(line, "%d", &affect_id) == 1)
     {
       if (affect_id == AFFECT_PSIONICIST_PSYCHIC_SUNDERING)
       {
@@ -3338,7 +3338,7 @@ static bool verify_authored_constructs(const char *sandbox, char *error, size_t 
   }
   for (i = 0; i < 13; i++)
   {
-    if (!get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 ||
+    if (!get_line(file, line) || strict_sscanf(line, "#%d", &vnum) != 1 ||
         vnum != PET_GOLEM_WOOD_SMALL + i)
     {
       fclose(file);
@@ -3353,7 +3353,7 @@ static bool verify_authored_constructs(const char *sandbox, char *error, size_t 
     return false;
   for (i = 0; i < 3; i++)
   {
-    if (!get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 ||
+    if (!get_line(file, line) || strict_sscanf(line, "#%d", &vnum) != 1 ||
         vnum != PET_CELESTIAL_GUARDIAN + i)
     {
       fclose(file);
@@ -3372,7 +3372,8 @@ static bool verify_authored_constructs(const char *sandbox, char *error, size_t 
     return false;
   for (i = 0; i < 2; i++)
   {
-    if (!get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 || vnum != PET_SKELETAL_MAGE + i)
+    if (!get_line(file, line) || strict_sscanf(line, "#%d", &vnum) != 1 ||
+        vnum != PET_SKELETAL_MAGE + i)
     {
       fclose(file);
       return false;
@@ -3384,7 +3385,7 @@ static bool verify_authored_constructs(const char *sandbox, char *error, size_t 
   file = fopen(path, "r");
   if (file == NULL)
     return false;
-  if (!get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 || vnum != PET_MISLEAD_DECOY)
+  if (!get_line(file, line) || strict_sscanf(line, "#%d", &vnum) != 1 || vnum != PET_MISLEAD_DECOY)
   {
     fclose(file);
     return false;
@@ -4272,7 +4273,8 @@ static bool verify_authored_lycanthropes(const char *sandbox, char *error, size_
     return false;
   for (i = 0; i < 2; i++)
   {
-    if (!get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 || vnum != PET_LYCAN_WEREWOLF + i)
+    if (!get_line(file, line) || strict_sscanf(line, "#%d", &vnum) != 1 ||
+        vnum != PET_LYCAN_WEREWOLF + i)
       return false;
     parse_mobile(file, vnum);
     if (!MOB_FLAGGED(&mob_proto[i], MOB_ROL_LYCANTHROPE_SUMMON))
@@ -4295,7 +4297,7 @@ static bool verify_authored_lycanthropes(const char *sandbox, char *error, size_
     return false;
   snprintf(path, sizeof(path), "%s/data/pet-lycanthropes/195.obj", test_source_root());
   file = fopen(path, "r");
-  if (file == NULL || !get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 ||
+  if (file == NULL || !get_line(file, line) || strict_sscanf(line, "#%d", &vnum) != 1 ||
       vnum != PET_LYCAN_CALL_WAND)
     return false;
   parse_object(file, vnum);

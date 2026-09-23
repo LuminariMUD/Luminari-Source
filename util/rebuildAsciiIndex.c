@@ -137,7 +137,7 @@ char *findLine(FILE *plr_file, const char *tag)
 long parseid(FILE *plr_file)
 {
   char *id_str = findLine(plr_file, "Id  :");
-  return id_str ? atol(id_str) : -1;
+  return id_str ? strtol(id_str, NULL, 10) : -1;
 }
 
 /**
@@ -149,7 +149,7 @@ long parseid(FILE *plr_file)
 int parselevel(FILE *plr_file)
 {
   char *level_str = findLine(plr_file, "Levl:");
-  return level_str ? atoi(level_str) : -1;
+  return level_str ? (int)strtol(level_str, NULL, 10) : -1;
 }
 
 /**
@@ -163,7 +163,7 @@ int parseadminlevel(FILE *plr_file, int level)
 {
   char *fromFile = findLine(plr_file, "Admn:");
   if (fromFile != NULL)
-    return atoi(fromFile);
+    return (int)strtol(fromFile, NULL, 10);
 
   /* Fallback: calculate from regular level for older files */
   if (level >= 30)
@@ -181,7 +181,7 @@ int parseadminlevel(FILE *plr_file, int level)
 long parselast(FILE *plr_file)
 {
   char *last_str = findLine(plr_file, "Last:");
-  return last_str ? atol(last_str) : -1;
+  return last_str ? strtol(last_str, NULL, 10) : -1;
 }
 
 /**

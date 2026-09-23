@@ -455,8 +455,8 @@ void load_clan_investments(void)
       break;
 
     CREATE(invest, struct clan_investment, 1);
-    if (sscanf(line, "%d %ld %ld %d", &invest->type, &invest->amount, (long *)&invest->start_time,
-               &invest->duration) != 4)
+    if (strict_sscanf(line, "%d %ld %ld %d", &invest->type, &invest->amount,
+                      (long *)&invest->start_time, &invest->duration) != 4)
     {
       log("SYSERR: Format error in clan investments file");
       free(invest);

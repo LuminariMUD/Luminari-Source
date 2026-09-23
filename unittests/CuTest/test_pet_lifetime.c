@@ -79,7 +79,7 @@ static long long saved_deadline(const char *serialized)
   long long deadline;
 
   line = strstr(serialized, "\nT ");
-  if (line == NULL || sscanf(line, "\nT %d %lld", &kind, &deadline) != 2 || kind != 1)
+  if (line == NULL || strict_sscanf(line, "\nT %d %lld", &kind, &deadline) != 2 || kind != 1)
     return -1;
   return deadline;
 }

@@ -947,7 +947,7 @@ void boot_the_quests(FILE *quest_f, char *filename, int rec_count __attribute__(
     switch (line[0])
     { /* New quest */
     case '#':
-      sscanf(line, "#%d", &temp);
+      strict_sscanf(line, "#%d", &temp);
       mob_nr = real_mobile(temp);
       mob = mob_nr == NOBODY ? NULL : &mob_proto[mob_nr];
       break;
@@ -969,7 +969,7 @@ void boot_the_quests(FILE *quest_f, char *filename, int rec_count __attribute__(
       break;
     case 'R':
       get_line(quest_f, inner);
-      sscanf(inner, "%d", &temp);
+      strict_sscanf(inner, "%d", &temp);
       __attribute__((fallthrough));
     case 'Q':
       if (mob == NULL)
@@ -991,7 +991,7 @@ void boot_the_quests(FILE *quest_f, char *filename, int rec_count __attribute__(
       {
         get_line(quest_f, inner);
         CREATE(qcom, struct quest_command, 1);
-        if (3 == sscanf(inner + 1, "%255s%d%d", str, &qcom->value, &qcom->location))
+        if (3 == strict_sscanf(inner + 1, "%255s%d%d", str, &qcom->value, &qcom->location))
         {
         }
         else

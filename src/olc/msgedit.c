@@ -116,7 +116,7 @@ void load_messages(void)
     {
       if (!fgets(chk, 128, fl))
         break;
-      if (sscanf(chk, " %d\n", &type) != 1)
+      if (strict_sscanf(chk, " %d\n", &type) != 1)
       {
         log("SYSERR: Invalid combat message type line: %s", chk);
         exit(1);

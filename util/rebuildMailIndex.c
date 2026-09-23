@@ -160,25 +160,25 @@ static char *findLine(FILE *plr_file, const char *tag)
 /* Search file for mail ID and convert to long */
 static long parse_mailid(FILE *plr_file)
 {
-  return atol(findLine(plr_file, "MlID:"));
+  return strtol(findLine(plr_file, "MlID:"), NULL, 10);
 }
 
 /* Search file for sender ID and convert to long */
 static long parse_sender(FILE *plr_file)
 {
-  return atol(findLine(plr_file, "Send:"));
+  return strtol(findLine(plr_file, "Send:"), NULL, 10);
 }
 
 /* Search file for recipient ID and convert to long */
 static long parse_recipient(FILE *plr_file)
 {
-  return atoi(findLine(plr_file, "Reci:"));
+  return (int)strtol(findLine(plr_file, "Reci:"), NULL, 10);
 }
 
 /* Search file for date/time mail was sent and convert to long */
 static long parse_send_time(FILE *plr_file)
 {
-  return atoi(findLine(plr_file, "Sent:"));
+  return (int)strtol(findLine(plr_file, "Sent:"), NULL, 10);
 }
 
 /* Search file for mail subject and return as string */
@@ -223,7 +223,7 @@ static int parse_mail_flags(FILE *plr_file)
   }
   if ((txt = findLine(plr_file, "Gold:")) != NULL)
   {
-    if (atol(txt) > 0)
+    if (strtol(txt, NULL, 10) > 0)
       SET_BIT(ret, MINDEX_HAS_GOLD);
   }
   if (findLine(plr_file, "Objs:") != NULL)
@@ -379,7 +379,7 @@ long asciiflag_conv(char *flag)
   }
 
   if (is_num)
-    flags = atol(flag);
+    flags = strtol(flag, NULL, 10);
 
   return (flags);
 }

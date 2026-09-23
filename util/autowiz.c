@@ -20,6 +20,7 @@
 #include "core/structs.h"
 #include "core/utils.h"
 #include "core/db.h"
+#include "core/strict_scan.h"
 
 #define IMM_LMARG "   "
 #define IMM_NSIZE 16
@@ -112,7 +113,7 @@ static void read_file(void)
   for (i = 0; i < recs; i++)
   {
     get_line(fl, line);
-    if (sscanf(line, "%ld %19s %d %63s %d", &id, name, &level, bits, &last) != 5)
+    if (strict_sscanf(line, "%ld %19s %d %63s %d", &id, name, &level, bits, &last) != 5)
     {
       fprintf(stderr, "Invalid player index record: %s\n", line);
       continue;
@@ -301,8 +302,8 @@ int main(int argc, char **argv)
     printf("Example: %s 31 wizlist.txt 34 immlist.txt\n", argv[0]);
     exit(0);
   }
-  wizlevel = atoi(argv[1]);
-  immlevel = atoi(argv[3]);
+  wizlevel = (int)strtol(argv[1], NULL, 10);
+  immlevel = (int)strtol(argv[3], NULL, 10);
 
 #ifdef CIRCLE_UNIX /* Perhaps #ifndef CIRCLE_WINDOWS but ... */
 //  int pid;
@@ -393,7 +394,7 @@ bitvector_t asciiflag_conv(const char *flag)
   }
 
   if (is_number)
-    flags = atol(flag);
+    flags = strtol(flag, NULL, 10);
 
   return (flags);
 }

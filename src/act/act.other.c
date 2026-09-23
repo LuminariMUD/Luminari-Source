@@ -10532,7 +10532,7 @@ ACMD(do_todo)
   {
     int num, i, success = 0;
 
-    if (sscanf(argument, "%d", &num) != 1)
+    if (strict_sscanf(argument, "%d", &num) != 1)
     {
       send_to_char(ch, "Please specify the number of the completed item.\r\n");
       return;

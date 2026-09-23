@@ -531,8 +531,8 @@ int vessel_deserialize_slot_state(struct greyhawk_ship_data *ship, const char *d
   while (parsed < declared_count && (token = strtok_r(NULL, "|", &save_pointer)) != NULL)
   {
     encoded_description[0] = '\0';
-    if (sscanf(token, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%512s", &type, &position, &weight, &val0,
-               &val1, &val2, &val3, &x, &y, &timer, encoded_description) != 11)
+    if (strict_sscanf(token, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%512s", &type, &position, &weight,
+                      &val0, &val1, &val2, &val3, &x, &y, &timer, encoded_description) != 11)
     {
       break;
     }
@@ -1416,7 +1416,7 @@ int deserialize_room_data(struct greyhawk_ship_data *ship, const char *data)
   /* Parse format: connection_count|from:to:dir:hatch:locked|... */
   /* Keep parsing simple and portable. */
   conn_count = 0;
-  sscanf(data_copy, "%d", &conn_count);
+  strict_sscanf(data_copy, "%d", &conn_count);
 
   /* Find first | separator */
   token = strchr(data_copy, '|');
@@ -1431,7 +1431,7 @@ int deserialize_room_data(struct greyhawk_ship_data *ship, const char *data)
   {
     int from, to, dir, hatch, locked;
 
-    if (sscanf(token, "%d:%d:%d:%d:%d", &from, &to, &dir, &hatch, &locked) == 5)
+    if (strict_sscanf(token, "%d:%d:%d:%d:%d", &from, &to, &dir, &hatch, &locked) == 5)
     {
       ship->connections[i].from_room = from;
       ship->connections[i].to_room = to;

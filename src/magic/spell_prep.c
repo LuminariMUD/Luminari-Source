@@ -1219,7 +1219,8 @@ void load_spell_prep_queue(FILE *fl, struct char_data *ch)
     /* Read next line from file */
     get_line(fl, line);
     /* Validate that all 5 values were successfully read */
-    if (sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time, &domain) != 5)
+    if (strict_sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time,
+                      &domain) != 5)
     {
       log("SYSERR: Invalid spell prep queue data in player file: %s", line);
       continue; /* Skip malformed line */
@@ -1274,7 +1275,8 @@ void load_innate_magic_queue(FILE *fl, struct char_data *ch)
     /* Read next line */
     get_line(fl, line);
     /* Validate that all 5 values were successfully read */
-    if (sscanf(line, "%d %d %d %d %d", &ch_class, &circle, &metamagic, &prep_time, &domain) != 5)
+    if (strict_sscanf(line, "%d %d %d %d %d", &ch_class, &circle, &metamagic, &prep_time,
+                      &domain) != 5)
     {
       log("SYSERR: Invalid innate magic queue data in player file: %s", line);
       continue; /* Skip malformed line */
@@ -1328,7 +1330,8 @@ void load_spell_collection(FILE *fl, struct char_data *ch)
     /* Read next line */
     get_line(fl, line);
     /* Validate that all 5 values were successfully read */
-    if (sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time, &domain) != 5)
+    if (strict_sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time,
+                      &domain) != 5)
     {
       log("SYSERR: Invalid spell collection data in player file: %s", line);
       continue; /* Skip malformed line */
@@ -1379,7 +1382,7 @@ void load_known_spells(FILE *fl, struct char_data *ch)
     /* Read next line */
     get_line(fl, line);
     /* Validate that both values were successfully read */
-    if (sscanf(line, "%d %d", &ch_class, &spell_num) != 2)
+    if (strict_sscanf(line, "%d %d", &ch_class, &spell_num) != 2)
     {
       log("SYSERR: Invalid known spells data in player file: %s", line);
       continue; /* Skip malformed line */

@@ -10,6 +10,7 @@
 #include "core/sysdep.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include "core/strict_scan.h"
 
 #define NUM_OF_DIRS 10
 #define LINE_LENGTH 1024
@@ -202,8 +203,8 @@ static void setup_dir(FILE *fl, struct room_data *room, int dir)
   exit_data->general_description = fread_string(fl, context);
   exit_data->keyword = fread_string(fl, context);
 
-  if (!get_line(fl, line, sizeof(line)) ||
-      sscanf(line, " %d %d %d ", &exit_data->exit_info, &exit_data->key, &exit_data->to_room) != 3)
+  if (!get_line(fl, line, sizeof(line)) || strict_sscanf(line, " %d %d %d ", &exit_data->exit_info,
+                                                         &exit_data->key, &exit_data->to_room) != 3)
     fatal_file_error("invalid exit data", context);
 
   room->dir_option[dir] = exit_data;
@@ -246,10 +247,10 @@ static void parse_room(FILE *fl, int virtual_nr)
   if (!get_line(fl, line, sizeof(line)))
     fatal_file_error("missing room flags", context);
 
-  fields =
-      sscanf(line, " %d %127s %127s %127s %127s %d ", &zone, flag1, flag2, flag3, flag4, &sector);
+  fields = strict_sscanf(line, " %d %127s %127s %127s %127s %d ", &zone, flag1, flag2, flag3, flag4,
+                         &sector);
   if (fields != 6)
-    fields = sscanf(line, " %d %127s %d ", &zone, flag1, &sector);
+    fields = strict_sscanf(line, " %d %127s %d ", &zone, flag1, &sector);
   if (fields != 3 && fields != 6)
     fatal_file_error("invalid room flags or sector", context);
 
@@ -265,7 +266,7 @@ static void parse_room(FILE *fl, int virtual_nr)
         fatal_file_error("missing coordinate data", context);
       break;
     case 'D':
-      if (sscanf(line + 1, "%d", &dir) != 1)
+      if (strict_sscanf(line + 1, "%d", &dir) != 1)
         fatal_file_error("invalid direction marker", context);
       setup_dir(fl, room, dir);
       break;

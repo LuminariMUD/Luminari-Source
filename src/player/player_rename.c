@@ -505,7 +505,7 @@ static int rename_intro_line_starts_legacy_block(const char *line)
   line_length = strlen(line);
   while (line_length > 0 && (line[line_length - 1] == '\n' || line[line_length - 1] == '\r'))
     line_length--;
-  return line_length < 10 && sscanf(line, "%ld", &value) == 1;
+  return line_length < 10 && strict_sscanf(line, "%ld", &value) == 1;
 }
 
 static void rename_classify_intro_block(enum rename_tilde_block *block, const char *line)
@@ -527,7 +527,7 @@ static int rename_tilde_block_ends(enum rename_tilde_block block, const char *li
   if (block == RENAME_TILDE_BLOCK_TODO)
     return line[0] == '~';
   if (block == RENAME_TILDE_BLOCK_INTRODUCTIONS_LEGACY)
-    return sscanf(line, "%ld", &value) != 1 || value == -1;
+    return strict_sscanf(line, "%ld", &value) != 1 || value == -1;
   return rename_line_equals(line, "~");
 }
 
@@ -796,7 +796,7 @@ static int rename_source_player_identity_matches(const char *path, const char *o
       id_lines++;
       parsed_id = -1;
       extra = '\0';
-      if (sscanf(line, "Id  : %ld %c", &parsed_id, &extra) == 1 && parsed_id == player_id)
+      if (strict_sscanf(line, "Id  : %ld %c", &parsed_id, &extra) == 1 && parsed_id == player_id)
         matching_ids++;
     }
     else if (!strncmp(line, "Acct:", 5))
@@ -2365,7 +2365,7 @@ static int rename_verify_player_file(struct rename_context *ctx)
       id_lines++;
       parsed_id = -1;
       extra = '\0';
-      if (sscanf(line, "Id  : %ld %c", &parsed_id, &extra) == 1 &&
+      if (strict_sscanf(line, "Id  : %ld %c", &parsed_id, &extra) == 1 &&
           parsed_id == ctx->report->player_id)
         id_count++;
     }
@@ -2396,7 +2396,7 @@ static int rename_verify_index_file(struct rename_context *ctx)
   {
     name[0] = '\0';
     id = -1;
-    if (sscanf(line, "%ld %20s", &id, name) != 2)
+    if (strict_sscanf(line, "%ld %20s", &id, name) != 2)
       continue;
     if (!strcasecmp(name, ctx->old_display_name))
     {
@@ -2473,7 +2473,7 @@ static int rename_verify_old_index_file(struct rename_context *ctx)
   {
     name[0] = '\0';
     id = -1;
-    if (sscanf(line, "%ld %20s", &id, name) != 2)
+    if (strict_sscanf(line, "%ld %20s", &id, name) != 2)
       continue;
     if (!strcasecmp(name, ctx->new_display_name))
     {

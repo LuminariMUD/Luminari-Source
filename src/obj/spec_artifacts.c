@@ -1510,8 +1510,8 @@ static enum artifact_file_format artifact_detect_record_format(const char *line)
   if (fields >= ARTIFACT_V23_FIELDS)
     return ARTIFACT_FORMAT_V23;
 
-  parsed = sscanf(line, "%d %511s %511s %d %d %ld %d", &vnum, owner, third, &fourth, &fifth, &sixth,
-                  &seventh);
+  parsed = strict_sscanf(line, "%d %511s %511s %d %d %ld %d", &vnum, owner, third, &fourth, &fifth,
+                         &sixth, &seventh);
 
   if (parsed >= 7)
     return ARTIFACT_FORMAT_V22;
@@ -1544,31 +1544,31 @@ static int artifact_load_modern_tail(const char *line, struct artifact_record *r
       p++;
   }
 
-  if (sscanf(p, " %511s %511s %ld %ld%n", rec->first_owner, rec->first_account,
-             &rec->first_claimed_at, &rec->last_claimed_at, &consumed) != 4)
+  if (strict_sscanf(p, " %511s %511s %ld %ld%n", rec->first_owner, rec->first_account,
+                    &rec->first_claimed_at, &rec->last_claimed_at, &consumed) != 4)
     return FALSE;
   p += consumed;
 
-  if (sscanf(p, " %d %d %d %d %d %d %ld%n", &rec->claim_count, &rec->transfer_count,
-             &rec->destroy_count, &rec->recovery_count, &rec->override_count, &rec->discovered,
-             &rec->discovered_at, &consumed) != 7)
+  if (strict_sscanf(p, " %d %d %d %d %d %d %ld%n", &rec->claim_count, &rec->transfer_count,
+                    &rec->destroy_count, &rec->recovery_count, &rec->override_count,
+                    &rec->discovered, &rec->discovered_at, &consumed) != 7)
     return FALSE;
   p += consumed;
 
-  if (sscanf(p, " %ld %ld%n", &rec->last_ability_use, &rec->last_proc, &consumed) != 2)
+  if (strict_sscanf(p, " %ld %ld%n", &rec->last_ability_use, &rec->last_proc, &consumed) != 2)
     return FALSE;
   p += consumed;
 
   if (has_signature_cooldown)
   {
-    if (sscanf(p, " %ld%n", &rec->last_signature_proc, &consumed) != 1)
+    if (strict_sscanf(p, " %ld%n", &rec->last_signature_proc, &consumed) != 1)
       return FALSE;
     p += consumed;
   }
 
   for (i = 0; i < ARTIFACT_MAX_EFFECTS; i++)
   {
-    if (sscanf(p, " %ld%n", &rec->effect_used[i], &consumed) != 1)
+    if (strict_sscanf(p, " %ld%n", &rec->effect_used[i], &consumed) != 1)
       return FALSE;
     p += consumed;
   }
@@ -1588,33 +1588,33 @@ static int artifact_load_record(const char *line, enum artifact_file_format form
   switch (format)
   {
   case ARTIFACT_FORMAT_V24:
-    if (sscanf(line, "%d %511s %511s %d %d %ld %d", &rec->vnum, rec->owner, rec->account,
-               &rec->level, &rec->exp, &rec->bound_time, &rec->instance_persisted) != 7)
+    if (strict_sscanf(line, "%d %511s %511s %d %d %ld %d", &rec->vnum, rec->owner, rec->account,
+                      &rec->level, &rec->exp, &rec->bound_time, &rec->instance_persisted) != 7)
       return FALSE;
     return artifact_load_modern_tail(line, rec, TRUE);
 
   case ARTIFACT_FORMAT_V23:
-    if (sscanf(line, "%d %511s %511s %d %d %ld %d", &rec->vnum, rec->owner, rec->account,
-               &rec->level, &rec->exp, &rec->bound_time, &rec->instance_persisted) != 7)
+    if (strict_sscanf(line, "%d %511s %511s %d %d %ld %d", &rec->vnum, rec->owner, rec->account,
+                      &rec->level, &rec->exp, &rec->bound_time, &rec->instance_persisted) != 7)
       return FALSE;
     return artifact_load_modern_tail(line, rec, FALSE);
 
   case ARTIFACT_FORMAT_V22:
-    return sscanf(line, "%d %511s %511s %d %d %ld %d", &rec->vnum, rec->owner, rec->account,
-                  &rec->level, &rec->exp, &rec->bound_time, &rec->instance_persisted) == 7;
+    return strict_sscanf(line, "%d %511s %511s %d %d %ld %d", &rec->vnum, rec->owner, rec->account,
+                         &rec->level, &rec->exp, &rec->bound_time, &rec->instance_persisted) == 7;
 
   case ARTIFACT_FORMAT_V21:
     rec->instance_persisted = TRUE;
-    return sscanf(line, "%d %511s %511s %d %d %ld", &rec->vnum, rec->owner, rec->account,
-                  &rec->level, &rec->exp, &rec->bound_time) == 6;
+    return strict_sscanf(line, "%d %511s %511s %d %d %ld", &rec->vnum, rec->owner, rec->account,
+                         &rec->level, &rec->exp, &rec->bound_time) == 6;
 
   case ARTIFACT_FORMAT_V20:
     rec->instance_persisted = TRUE;
-    return sscanf(line, "%d %511s %d %d %d %ld", &rec->vnum, rec->owner, &rec->level, &rec->exp,
-                  &saved_binding, &rec->bound_time) == 6;
+    return strict_sscanf(line, "%d %511s %d %d %d %ld", &rec->vnum, rec->owner, &rec->level,
+                         &rec->exp, &saved_binding, &rec->bound_time) == 6;
 
   case ARTIFACT_FORMAT_V1:
-    if (sscanf(line, "%d %511s %ld", &rec->vnum, rec->owner, &legacy_timestamp) != 3)
+    if (strict_sscanf(line, "%d %511s %ld", &rec->vnum, rec->owner, &legacy_timestamp) != 3)
       return FALSE;
     rec->bound_time = legacy_timestamp;
     rec->instance_persisted = TRUE;

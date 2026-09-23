@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "core/strict_scan.h"
 
 #define PROTOCOL_VERSION 1
 
@@ -41,7 +42,7 @@ int main(int argc, char **argv)
   }
 
   mob_autoroll_default_config(&config);
-  if (!fgets(line, sizeof(line), stdin) || sscanf(line, "%31s %d", command, &version) != 2 ||
+  if (!fgets(line, sizeof(line), stdin) || strict_sscanf(line, "%31s %d", command, &version) != 2 ||
       strcmp(command, "ROL_MOB_CALCULATOR") != 0 || version != PROTOCOL_VERSION)
   {
     fprintf(stderr, "invalid or unsupported protocol header\n");
@@ -58,8 +59,8 @@ int main(int argc, char **argv)
       printf("END\n");
       return fflush(stdout) == 0 ? 0 : 1;
     }
-    if (sscanf(line, "%31s %d %d %d %d %d %d", command, &identifier, &input.level, &input.race,
-               &input.ch_class, &input.tier, &input.custom_profile) != 7 ||
+    if (strict_sscanf(line, "%31s %d %d %d %d %d %d", command, &identifier, &input.level,
+                      &input.race, &input.ch_class, &input.tier, &input.custom_profile) != 7 ||
         strcmp(command, "MOB") != 0)
     {
       fprintf(stderr, "invalid request row: %s", line);

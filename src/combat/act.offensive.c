@@ -3705,7 +3705,7 @@ ACMDU(do_channelenergy)
 
     if ((pMudEvent = char_has_mud_event(ch, ePALADIN_CHANNEL_ENERGY)))
     {
-      if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &perk_uses) == 1)
+      if (pMudEvent->sVariables && strict_sscanf(pMudEvent->sVariables, "uses:%d", &perk_uses) == 1)
       {
         /* perk_uses is how many used, calculate remaining */
         perk_uses = max_perk_uses - perk_uses;
@@ -3741,7 +3741,7 @@ ACMDU(do_channelenergy)
 
     if ((pMudEvent = char_has_mud_event(ch, ePALADIN_CHANNEL_ENERGY)))
     {
-      if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1)
+      if (pMudEvent->sVariables && strict_sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1)
       {
         if (uses >= max_uses)
         {
@@ -3799,7 +3799,7 @@ ACMDU(do_channelenergy)
       if ((pMudEvent = char_has_mud_event(ch, ePALADIN_CHANNEL_ENERGY)))
       {
         /* Increment existing event */
-        if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1)
+        if (pMudEvent->sVariables && strict_sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1)
         {
           uses++;
           free(pMudEvent->sVariables);
@@ -3829,7 +3829,7 @@ ACMDU(do_channelenergy)
     if ((pMudEvent = char_has_mud_event(ch, ePALADIN_CHANNEL_ENERGY)))
     {
       /* Increment existing event */
-      if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1)
+      if (pMudEvent->sVariables && strict_sscanf(pMudEvent->sVariables, "uses:%d", &uses) == 1)
       {
         uses++;
         free(pMudEvent->sVariables);
@@ -16618,7 +16618,7 @@ ACMD(do_masscurewounds)
 
   if ((pMudEvent = char_has_mud_event(ch, eMASS_CURE_WOUNDS)))
   {
-    if (pMudEvent->sVariables && sscanf(pMudEvent->sVariables, "%d", &uses_today) == 1)
+    if (pMudEvent->sVariables && strict_sscanf(pMudEvent->sVariables, "%d", &uses_today) == 1)
     {
       if (uses_today >= 2)
       {

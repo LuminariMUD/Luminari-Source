@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  port = atoi(argv[1]);
+  port = (int)strtol(argv[1], NULL, 10);
   if (port < 1024)
   {
     fprintf(stderr, "Error: Port number must be >= 1024\n");

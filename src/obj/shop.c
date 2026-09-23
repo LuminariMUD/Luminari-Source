@@ -1661,7 +1661,7 @@ static int read_type_list(FILE *shop_f, struct shop_buy_data *list, int new_form
     ptr = buf;
     if (num == -1)
     {
-      if (sscanf(buf, "%d", &num) != 1)
+      if (strict_sscanf(buf, "%d", &num) != 1)
       {
         log("SYSERR: Invalid shop buy-type line: %s", buf);
         error++;
@@ -1750,7 +1750,7 @@ void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
     buf = fread_string(shop_f, buf2);
     if (*buf == '#')
     { /* New shop */
-      if (sscanf(buf, "#%d", &temp) != 1)
+      if (strict_sscanf(buf, "#%d", &temp) != 1)
       {
         log("SYSERR: Invalid shop header in %s: %s", filename, buf);
         free(buf);
@@ -1814,7 +1814,7 @@ void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
         new_format = TRUE;
       else if (!strncmp(buf, "R ", 2))
       {
-        if (top_shop < 0 || sscanf(buf, "R %lu %c", &rol_cheat_with, &extra) != 1)
+        if (top_shop < 0 || strict_sscanf(buf, "R %lu %c", &rol_cheat_with, &extra) != 1)
         {
           log("SYSERR: Invalid RoL shop extension in %s: %s", filename, buf);
           free(buf);

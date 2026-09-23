@@ -5950,7 +5950,7 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum)
     }
     else
     {
-      if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
+      if (strict_sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
       {
         log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %u",
             iId);
@@ -6000,7 +6000,7 @@ int daily_uses_remaining(struct char_data *ch, int featnum)
     }
     else
     {
-      if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
+      if (strict_sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
       {
         log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %u",
             iId);
@@ -6054,7 +6054,7 @@ int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab)
     }
     else
     {
-      if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
+      if (strict_sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
       {
         log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %u",
             iId);
@@ -6104,7 +6104,7 @@ int daily_item_specab_uses_remaining(struct obj_data *obj, int specab)
     }
     else
     {
-      if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
+      if (strict_sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
       {
         log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %u",
             iId);
