@@ -149,7 +149,8 @@ static void load_craft_materials(FILE *fl, struct char_data *ch);
 static void load_craft_motes(FILE *fl, struct char_data *ch);
 static void load_perks(FILE *fl, struct char_data *ch);
 static void load_perk_points(FILE *fl, struct char_data *ch);
-static void load_perk_toggles(FILE *fl, struct char_data *ch);
+static void load_perk_toggles(struct char_data *ch, const char *line);
+static void load_score_preferences(struct char_data *ch, const char *line);
 
 /* The legacy pet_data columns retain descriptions and core attributes.  This
  * versioned payload holds state that cannot be reconstructed from a mobile
@@ -511,6 +512,8 @@ int load_char(const char *name, struct char_data *ch)
   int id, i, j, parsed, earned_rank;
   int64_t cooldown_saved_at_epoch = 0;
   bool boarding_ability_current = FALSE;
+  bool perk_toggles_saved = FALSE;
+  bool score_preferences_saved = FALSE;
   FILE *fl;
   char filename[40];
   char buf[128], line[MAX_INPUT_LENGTH + 1], tag[6];
@@ -637,6 +640,12 @@ int load_char(const char *name, struct char_data *ch)
     GET_OLC_ZONE(ch) = PFDEF_OLC;
     GET_PAGE_LENGTH(ch) = PFDEF_PAGELENGTH;
     GET_SCREEN_WIDTH(ch) = PFDEF_SCREENWIDTH;
+    GET_SCORE_DISPLAY_WIDTH(ch) = PFDEF_SCORE_DISPLAY_WIDTH;
+    GET_SCORE_COLOR_THEME(ch) = PFDEF_SCORE_COLOR_THEME;
+    GET_SCORE_INFO_DENSITY(ch) = PFDEF_SCORE_INFO_DENSITY;
+    GET_SCORE_LAYOUT_TEMPLATE(ch) = LAYOUT_DEFAULT;
+    for (i = 0; i < 8; i++)
+      GET_SCORE_SECTION_ORDER(ch, i) = (byte)i;
     GET_ALIASES(ch) = NULL;
     SITTING(ch) = NULL;
     NEXT_SITTING(ch) = NULL;
@@ -1611,8 +1620,11 @@ int load_char(const char *name, struct char_data *ch)
           ch->player_specials->saved.stage_info.current_stage = parse_int(line);
         else if (!strcmp(tag, "PSXp"))
           ch->player_specials->saved.stage_info.stage_exp = parse_int(line);
-        else if (!strcmp(tag, "PTog"))
-          load_perk_toggles(fl, ch);
+        else if (!strcmp(tag, "PTg2"))
+        {
+          load_perk_toggles(ch, line);
+          perk_toggles_saved = TRUE;
+        }
         else if (!strcmp(tag, "PKil"))
         {
           long timestamp;
@@ -1931,6 +1943,11 @@ int load_char(const char *name, struct char_data *ch)
           GET_SCROUNGE_COOLDOWN(ch) = parse_int(line);
         else if (!strcmp(tag, "ScrW"))
           GET_SCREEN_WIDTH(ch) = (ubyte)parse_int(line);
+        else if (!strcmp(tag, "ScPr"))
+        {
+          load_score_preferences(ch, line);
+          score_preferences_saved = TRUE;
+        }
         else if (!strcmp(tag, "SpWC"))
           GET_SPIRITUAL_WEAPON_COOLDOWN(ch) = parse_int(line);
         else if (!strcmp(tag, "IrMC"))
@@ -2201,6 +2218,23 @@ int load_char(const char *name, struct char_data *ch)
       }
     }
   }
+
+  /* PTg2 replaced PTog, a bitfield of perk ids 0-255 that no toggleable perk reached, so each
+   * toggleable perk a character bought lost the toggle that buying turns on. Turn it on once. */
+  if (!perk_toggles_saved)
+  {
+    struct char_perk_data *owned;
+    struct perk_data *owned_def;
+
+    for (owned = ch->player_specials->saved.perks; owned != NULL; owned = owned->next)
+      if ((owned_def = get_perk_by_id(owned->perk_id)) != NULL && owned_def->toggleable)
+        set_perk_toggle(ch, owned->perk_id, TRUE);
+  }
+
+  /* Files saved before ScPr kept only PRF_SCORE_WIDE of the score preferences, which a width of
+   * 120 or 160 sets; 160 was lost, so the flag reads as 120. */
+  if (!score_preferences_saved && PRF_FLAGGED(ch, PRF_SCORE_WIDE))
+    GET_SCORE_DISPLAY_WIDTH(ch) = 120;
 
   /* Slot 27 previously held Jump and remained serialized after that ability
    * was retired. Clear it exactly once so legacy ranks cannot become free
@@ -3186,6 +3220,11 @@ bool save_char_checked(struct char_data *ch, int mode)
     BUFFER_WRITE("Page: %d\n", GET_PAGE_LENGTH(ch));
   if (GET_SCREEN_WIDTH(ch) != PFDEF_SCREENWIDTH)
     BUFFER_WRITE("ScrW: %d\n", GET_SCREEN_WIDTH(ch));
+  BUFFER_WRITE("ScPr: %d %d %d %d", GET_SCORE_DISPLAY_WIDTH(ch), GET_SCORE_COLOR_THEME(ch),
+               GET_SCORE_INFO_DENSITY(ch), GET_SCORE_LAYOUT_TEMPLATE(ch));
+  for (i = 0; i < 8; i++)
+    BUFFER_WRITE(" %d", GET_SCORE_SECTION_ORDER(ch, i));
+  BUFFER_WRITE("\n");
   if (GET_QUESTPOINTS(ch) != PFDEF_QUESTPOINTS)
     BUFFER_WRITE("Qstp: %d\n", GET_QUESTPOINTS(ch));
   if (GET_QUEST_COUNTER(ch, 0) != PFDEF_QUESTCOUNT)
@@ -3635,12 +3674,11 @@ bool save_char_checked(struct char_data *ch, int mode)
   BUFFER_WRITE("PStg: %d\n", ch->player_specials->saved.stage_info.current_stage);
   BUFFER_WRITE("PSXp: %d\n", ch->player_specials->saved.stage_info.stage_exp);
 
-  /* Save perk toggles as hex string (32 bytes = 256 bits = 64 hex chars) */
-  BUFFER_WRITE("PTog: ");
-  for (i = 0; i < 32; i++)
-  {
-    BUFFER_WRITE("%02x", (unsigned int)ch->player_specials->saved.perk_toggles[i]);
-  }
+  /* Save the ids of the perks toggled on */
+  BUFFER_WRITE("PTg2:");
+  for (i = 0; i < NUM_PERKS; i++)
+    if (is_perk_toggled_on(ch, i))
+      BUFFER_WRITE(" %d", i);
   BUFFER_WRITE("\n");
 
   /* Save Perfect Kill data */
@@ -4605,28 +4643,42 @@ static void load_perk_points(FILE *fl, struct char_data *ch)
   }
 }
 
-/* Load character's perk toggle bitfield */
-static void load_perk_toggles(FILE *fl, struct char_data *ch)
+/* Load the ids of the perks toggled on, the value of a PTg2 line */
+static void load_perk_toggles(struct char_data *ch, const char *line)
 {
-  char line[MAX_INPUT_LENGTH + 1];
-  int i;
-  unsigned int value;
+  int perk_id, consumed;
 
-  /* Initialize all toggles to 0 */
-  memset(ch->player_specials->saved.perk_toggles, 0, 32);
-
-  /* Parse hex string (64 hex chars, 2 per byte) */
-  if (get_line(fl, line) && strlen(line) >= 64)
+  memset(ch->player_specials->saved.perk_toggles, 0,
+         sizeof(ch->player_specials->saved.perk_toggles));
+  while (strict_sscanf(line, "%d%n", &perk_id, &consumed) == 1)
   {
-    /* Read each pair of hex digits as a byte */
-    for (i = 0; i < 32; i++)
-    {
-      if (strict_sscanf(line + ((ptrdiff_t)i * 2), "%2x", &value) == 1)
-      {
-        ch->player_specials->saved.perk_toggles[i] = (byte)value;
-      }
-    }
+    set_perk_toggle(ch, perk_id, TRUE);
+    line += consumed;
   }
+}
+
+/* Load the score display preferences, the value of a ScPr line: width, color theme, information
+ * density, layout template, and the order of the eight sections. A value out of range keeps its
+ * default. */
+static void load_score_preferences(struct char_data *ch, const char *line)
+{
+  int width, theme, density, layout, order[8], i;
+
+  if (strict_sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d", &width, &theme, &density, &layout,
+                    &order[0], &order[1], &order[2], &order[3], &order[4], &order[5], &order[6],
+                    &order[7]) != 12)
+    return;
+  if (width == 80 || width == 120 || width == 160)
+    GET_SCORE_DISPLAY_WIDTH(ch) = (ubyte)width;
+  if (theme >= SCORE_THEME_ENHANCED && theme <= SCORE_THEME_COLORBLIND)
+    GET_SCORE_COLOR_THEME(ch) = (byte)theme;
+  if (density >= 0 && density <= 2)
+    GET_SCORE_INFO_DENSITY(ch) = (byte)density;
+  if (layout >= LAYOUT_DEFAULT && layout <= LAYOUT_CASTER)
+    GET_SCORE_LAYOUT_TEMPLATE(ch) = (byte)layout;
+  for (i = 0; i < 8; i++)
+    if (order[i] >= 0 && order[i] < 8)
+      GET_SCORE_SECTION_ORDER(ch, i) = (byte)order[i];
 }
 
 /* Migrate perk IDs that were historically stored in the spell/affect namespace. Some of the old

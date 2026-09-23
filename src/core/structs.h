@@ -4326,6 +4326,8 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
  * ============================================================================ */
 /* Total number of defined perks - update this as perks are added */
 #define NUM_PERKS 1492
+/* Bytes of the perk toggle bitfield, one bit per perk id */
+#define PERK_TOGGLE_BYTES ((NUM_PERKS + 7) / 8)
 
 /* alchemist */
 #define NUM_DISCOVERIES_KNOWN 20
@@ -6966,7 +6968,7 @@ struct player_special_data_saved
   int new_supply_cooldown;
 
   /* Score display preferences */
-  byte score_display_width; /**< Preferred score display width (80, 120, 160) */
+  ubyte score_display_width; /**< Preferred score display width (80, 120, 160) */
   byte
       score_color_theme; /**< Color theme preference (0=enhanced, 1=classic, 2=minimal, 3=highcontrast, 4=dark, 5=colorblind) */
   byte score_info_density; /**< Information density (0=full, 1=compact, 2=minimal) */
@@ -6993,10 +6995,10 @@ struct player_special_data_saved
   int num_inventions;
 
   /* Perks System - Stage-based progression */
-  struct stage_data stage_info; /**< Current stage and stage XP within level */
-  int perk_points[NUM_CLASSES]; /**< Unspent perk points per class */
-  struct char_perk_data *perks; /**< Linked list of acquired perks */
-  byte perk_toggles[32];        /**< Bitfield tracking toggled perks (256 perks max, 1 bit each) */
+  struct stage_data stage_info;          /**< Current stage and stage XP within level */
+  int perk_points[NUM_CLASSES];          /**< Unspent perk points per class */
+  struct char_perk_data *perks;          /**< Linked list of acquired perks */
+  ubyte perk_toggles[PERK_TOGGLE_BYTES]; /**< Bitfield tracking toggled perks, 1 bit per id */
 
   /* Perfect Kill tracking (Rogue Assassin perk) */
   time_t perfect_kill_last_combat; /**< Timestamp of last combat end */

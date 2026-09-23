@@ -4502,7 +4502,52 @@ void Test_spec_menzo_chokers_grant_one_removable_hitroll_bonus(CuTest *tc)
 
   CuAssertIntEquals(tc, 1, affects_after_first);
   CuAssertIntEquals(tc, 1, affects_after_second);
-  CuAssertIntEquals(tc, AFF_MENZOCHOKER, spell);
+  CuAssertIntEquals(tc, AFFECT_MENZO_CHOKERS, spell);
   CuAssertIntEquals(tc, 1, modifier);
   CuAssertIntEquals(tc, 0, affects_after_removal);
+}
+
+/* The Menzoberranzan chokers tagged their affect with an affect flag used as a spell number, and
+ * that number is Iron Guts (issue 227): wearing one choker stripped Iron Guts, and Iron Guts kept
+ * a drow wearing the pair from the chokers' bonus. */
+void Test_spec_menzo_chokers_leave_iron_guts_alone(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct char_data *actor;
+  struct affected_type af;
+  bool kept_with_one, blessed, kept_with_pair, blessing_removed, kept_after;
+
+  spec_mechanics_begin(&fixture);
+  actor = &fixture.actor;
+  GET_REAL_RACE(actor) = RACE_DROW;
+  fixture.object_indexes[0].vnum = 135626;
+  fixture.object_indexes[1].vnum = 135627;
+  GET_OBJ_RNUM(&fixture.copy) = 1;
+  new_affect(&af);
+  af.spell = SPELL_IRON_GUTS;
+  af.duration = 10;
+  affect_to_char(actor, &af);
+
+  GET_EQ(actor, WEAR_NECK_1) = &fixture.worn;
+  menzo_chokers(actor, &fixture.worn, 0, "");
+  kept_with_one = affected_by_spell(actor, SPELL_IRON_GUTS);
+
+  GET_EQ(actor, WEAR_NECK_2) = &fixture.copy;
+  menzo_chokers(actor, &fixture.worn, 0, "");
+  blessed = affected_by_spell(actor, AFFECT_MENZO_CHOKERS);
+  kept_with_pair = affected_by_spell(actor, SPELL_IRON_GUTS);
+
+  GET_EQ(actor, WEAR_NECK_2) = NULL;
+  menzo_chokers(actor, &fixture.worn, 0, "");
+  blessing_removed = !affected_by_spell(actor, AFFECT_MENZO_CHOKERS);
+  kept_after = affected_by_spell(actor, SPELL_IRON_GUTS);
+
+  GET_EQ(actor, WEAR_NECK_1) = NULL;
+  spec_mechanics_end(&fixture);
+
+  CuAssertTrue(tc, kept_with_one);
+  CuAssertTrue(tc, blessed);
+  CuAssertTrue(tc, kept_with_pair);
+  CuAssertTrue(tc, blessing_removed);
+  CuAssertTrue(tc, kept_after);
 }

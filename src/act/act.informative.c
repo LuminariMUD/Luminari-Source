@@ -6272,9 +6272,8 @@ ACMD(do_skore)
   /* Determine display width based on preferences */
   if (!IS_NPC(ch))
   {
-    /* The signed byte holds 160 as -96; read it back unsigned. Width 160 also sets
-     * PRF_SCORE_WIDE, so it is tested first. */
-    int pref_width = (unsigned char)GET_SCORE_DISPLAY_WIDTH(ch);
+    /* Width 160 also sets PRF_SCORE_WIDE, so it is tested first. */
+    int pref_width = GET_SCORE_DISPLAY_WIDTH(ch);
     if (pref_width == 160)
     {
       line_length = 160;
@@ -6783,7 +6782,7 @@ ACMD(do_scoreconfig)
     send_to_char(ch,
                  "\tc|\tn   \tcWidth:\tn %-3d characters                                           "
                  "\tc|\tn\r\n",
-                 GET_SCORE_DISPLAY_WIDTH(ch) ? (unsigned char)GET_SCORE_DISPLAY_WIDTH(ch) : 80);
+                 GET_SCORE_DISPLAY_WIDTH(ch) ? GET_SCORE_DISPLAY_WIDTH(ch) : 80);
     send_to_char(
         ch, "\tc|\tn   \tcTheme:\tn %-15s                                           \tc|\tn\r\n",
         GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_CLASSIC        ? "Classic"
@@ -6856,7 +6855,7 @@ ACMD(do_scoreconfig)
       send_to_char(ch, "Valid widths are: 80, 120, or 160 characters.\r\n");
       return;
     }
-    GET_SCORE_DISPLAY_WIDTH(ch) = (byte)width;
+    GET_SCORE_DISPLAY_WIDTH(ch) = (ubyte)width;
 
     // Update preference flags for compatibility
     if (width == 120 || width == 160)
