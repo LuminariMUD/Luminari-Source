@@ -5009,19 +5009,17 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
       af[1].duration = (int)(af[1].duration * 1.5);
     af[1].modifier = -(dice(1, 3));
-    /* NOLINTBEGIN(clang-analyzer-deadcode.DeadStores) -- overwritten below; a reported defect */
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
-    /* NOLINTEND(clang-analyzer-deadcode.DeadStores) */
     if (can_stun(victim))
     {
       af[2].duration = dice(1, 3);
       if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
         af[2].duration = (int)(af[2].duration * 1.5);
       SET_BIT_AR(af[2].bitvector, AFF_STUN);
+      to_vict = "The poison stuns you.";
+      to_room = "$n looks stunned.";
     }
-    to_vict = "The poison stuns you.";
-    to_room = "$n looks stunned.";
     accum_duration = TRUE;
     break;
 
@@ -6782,9 +6780,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_HITROLL;
       af[0].modifier = -1;
       af[0].duration = 10;
-      /* NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores) -- the return skips it; reported */
       to_vict = "A lesser despair grips you and you feel weakened.";
-      return;
+      break;
     }
 
     af[0].location = APPLY_DEX;
@@ -10780,18 +10777,16 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_STR;
     af[0].duration = level;
     af[0].modifier = -(dice(1, 4));
-    /* NOLINTBEGIN(clang-analyzer-deadcode.DeadStores) -- overwritten below; a reported defect */
     to_room = "$n's strength is withered!";
     to_vict = "You feel your strength wither!";
-    /* NOLINTEND(clang-analyzer-deadcode.DeadStores) */
 
     if (can_stun(victim))
     {
       SET_BIT_AR(af[1].bitvector, AFF_STUN);
       af[1].duration = 1;
+      to_room = "$n is stunned by a terrible WEIRD!";
+      to_vict = "You are stunned by a terrible WEIRD!";
     }
-    to_room = "$n is stunned by a terrible WEIRD!";
-    to_vict = "You are stunned by a terrible WEIRD!";
     break;
 
   case SPELL_UNSEEN_SERVANT:

@@ -2236,6 +2236,16 @@ int load_char(const char *name, struct char_data *ch)
   if (!score_preferences_saved && PRF_FLAGGED(ch, PRF_SCORE_WIDE))
     GET_SCORE_DISPLAY_WIDTH(ch) = 120;
 
+  /* Every spell bomb thrown with Bomb Mastery used to add five to the thrower's alchemist level,
+   * and the file kept it. Bomb Mastery comes at alchemist level 30, the most any class reaches,
+   * so a higher alchemist level is that inflation. */
+  if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) > LVL_IMMORT - 1)
+  {
+    log("%s: alchemist level %d, raised by spell bombs, restored to %d.", GET_NAME(ch),
+        CLASS_LEVEL(ch, CLASS_ALCHEMIST), LVL_IMMORT - 1);
+    CLASS_LEVEL(ch, CLASS_ALCHEMIST) = LVL_IMMORT - 1;
+  }
+
   /* Slot 27 previously held Jump and remained serialized after that ability
    * was retired. Clear it exactly once so legacy ranks cannot become free
    * Boarding training; current saves carry BrdV and preserve real ranks. */

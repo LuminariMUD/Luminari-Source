@@ -593,9 +593,9 @@ void perform_mail_delete(struct char_data *ch, int mnum)
     return;
   }
   snprintf(query, sizeof(query),
-           "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE sender='%s' OR "
-           "receiver='%s' OR (receiver='All')",
-           escaped_name, escaped_name);
+           "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE (sender='%s' OR "
+           "receiver='%s' OR receiver='All') AND mail_id='%d'",
+           escaped_name, escaped_name, mnum);
   free(escaped_name);
   mysql_query(conn, query);
   res = mysql_use_result(conn);

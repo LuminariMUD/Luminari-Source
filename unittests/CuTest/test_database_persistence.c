@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../../src/obj/objsave.h"
+#include "../../src/comms/new_mail.h"
 
 extern int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *pet,
                                           struct char_data *owner, long int pet_idnum, int locate);
@@ -3006,4 +3007,80 @@ void Test_load_account_rejects_null_name_or_account(CuTest *tc)
   CuAssertIntEquals(tc, -1, load_account(NULL, &account));
   CuAssertIntEquals(tc, -1, load_account(name, NULL));
   CuAssertPtrEquals(tc, NULL, account.name);
+}
+
+/* Mail delete checked whether the player could see any mail at all, not the mail it named (issue
+ * 228), so a player with one letter could mark any mail id deleted for themselves. */
+void Test_database_mail_delete_needs_access_to_the_named_mail(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  MYSQL *saved_conn = conn;
+  bool saved_available = mysql_available;
+  MYSQL *connection;
+  struct char_data *ch;
+  struct descriptor_data descriptor;
+  bool prepared, refused, deleted;
+  int foreign_rows, own_rows;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+    return;
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  prepared =
+      mysql_query(connection, "CREATE TEMPORARY TABLE player_mail (mail_id INT UNSIGNED "
+                              "AUTO_INCREMENT PRIMARY KEY, sender VARCHAR(255) NOT NULL, receiver "
+                              "VARCHAR(255) NOT NULL, subject VARCHAR(255) NOT NULL, message TEXT "
+                              "NOT NULL, date_sent DATE DEFAULT NULL)") == 0 &&
+      mysql_query(connection, "CREATE TEMPORARY TABLE player_mail_read (player_name VARCHAR(255) "
+                              "NOT NULL, mail_id INT NOT NULL, PRIMARY KEY (player_name, "
+                              "mail_id))") == 0 &&
+      mysql_query(connection, "CREATE TEMPORARY TABLE player_mail_deleted (player_name "
+                              "VARCHAR(255) NOT NULL, mail_id INT NOT NULL, PRIMARY KEY "
+                              "(player_name, mail_id))") == 0 &&
+      mysql_query(connection, "INSERT INTO player_mail (mail_id, sender, receiver, subject, "
+                              "message) VALUES (1, 'Zzsender', 'Zzmailer', 'mine', 'hello'), (2, "
+                              "'Zzsender', 'Zzother', 'theirs', 'secret')") == 0;
+
+  ch = new_char();
+  ch->player.name = strdup("Zzmailer");
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = ch;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  ch->desc = &descriptor;
+  conn = connection;
+  mysql_available = true;
+
+  do_new_mail(ch, "delete 2", 0, 0);
+  refused = strstr(descriptor.output, "That mail is not accessible to you.") != NULL;
+  foreign_rows = query_single_int(connection,
+                                  "SELECT COUNT(*) FROM player_mail_deleted WHERE mail_id = 2", -1);
+  descriptor.small_outbuf[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  do_new_mail(ch, "delete 1", 0, 0);
+  deleted = strstr(descriptor.output, "You have successfully deleted that mail.") != NULL;
+  own_rows = query_single_int(connection,
+                              "SELECT COUNT(*) FROM player_mail_deleted WHERE mail_id = 1 AND "
+                              "player_name = 'Zzmailer'",
+                              -1);
+
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+  ch->desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  free_char(ch);
+
+  CuAssertTrue(tc, prepared);
+  CuAssertTrue(tc, refused);
+  CuAssertIntEquals(tc, 0, foreign_rows);
+  CuAssertTrue(tc, deleted);
+  CuAssertIntEquals(tc, 1, own_rows);
 }

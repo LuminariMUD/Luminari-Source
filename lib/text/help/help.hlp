@@ -13470,10 +13470,11 @@ Usage:  Automatic
 Special:  Use the 'study' command to modify the list
 
 'Favored enemy' is a ranger ability that indicates the ranger's
-chosen list of hunted victims.  It is based on race and gives a
-+2 bonus to hitroll, damage and armor-class against the chosen
-opponent(s).  In addition, this bonus will increase by another
-+1 for every 5 levels achieved in the ranger class.
+chosen list of hunted victims.  It is based on race.  Against a
+chosen opponent the ranger gains 2 + (ranger level / 3) to hitroll
+and damage, and 2 + (ranger level / 5) to armor class.  The Epic
+Favored Enemy feat adds another 6 to hitroll and damage, and the
+ranger's dexterity bonus to ranged damage.
 
 Type 'study ranger' to alter the list of enemies, it can only
 be modified once per level gained as a ranger.
@@ -40031,11 +40032,18 @@ Potions and scrolls are consumed upon use, whereas wands and staves have a certa
 number of charges before they become un-useable.
 .
 
+A wand or staff works for anyone who passes a Use Magic Device check against DC 20;
+otherwise it needs a caster with its spell on a class spell list.  A scroll works the
+same way, against DC 20 plus the scroll's level.  Before that, a character without the
+scroll's spell on a class spell list must decipher it with Spellcraft (DC 20 plus the
+scroll's level) or Use Magic Device (5 higher).
+.
+
 You may optionally use the stored consumable system instead if you like.  Read HELP
 CONSUMABLES for more information on that.
 .
 
-See Also: CONSUMABLES
+See Also: CONSUMABLES, USE-MAGIC-DEVICE
 #0
 USE-MAGIC
 

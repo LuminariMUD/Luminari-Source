@@ -692,18 +692,16 @@ ACMDU(do_handleanimal)
     return;
   }
 
-  /* you have to be higher level to have a chance */
-  if (GET_LEVEL(vict) >= GET_LEVEL(ch))
-  {
-    /* NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores) -- overwritten below; a reported defect */
-    dc += 999; /* impossible */
-  }
-
   USE_STANDARD_ACTION(ch);
 
   /* skill check */
   /* dc = hit-dice + 20 */
   dc = GET_LEVEL(vict) + 20;
+
+  /* you have to be higher level to have a chance */
+  if (GET_LEVEL(vict) >= GET_LEVEL(ch))
+    dc += 999; /* impossible */
+
   if (!skill_check(ch, ABILITY_HANDLE_ANIMAL, dc))
   {
     /* failed, do another check to see if you pissed off the animal */
@@ -8268,6 +8266,30 @@ ACMD(do_split)
   }
 }
 
+/* Whether one of ch's classes has spell on its list, which lets ch use it from a scroll, wand, or
+ * staff without a Use Magic Device check. */
+static bool spell_on_class_list(struct char_data *ch, int spell)
+{
+  return ((spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) &&
+          CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
+         ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) &&
+          CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
+         ((spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) &&
+          CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
+         ((MIN_SPELL_LVL(spell, CLASS_INQUISITOR, GET_1ST_DOMAIN(ch)) < LVL_STAFF) &&
+          CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0) ||
+         ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF) &&
+          CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+         ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF) &&
+          CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+         ((spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF) &&
+          CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
+         ((spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF) &&
+          CLASS_LEVEL(ch, CLASS_PALADIN) > 0) ||
+         ((spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF) &&
+          CLASS_LEVEL(ch, CLASS_RANGER) > 0);
+}
+
 /* lazy hack to fix some troublesome staves in-game */
 static bool invalid_staff_spell(int spell_num)
 {
@@ -8446,11 +8468,13 @@ ACMD(do_use)
       break;
 
     /* 1. Decipher Writing
-     *    Spellcraft check: DC 20 + spell level */
+     *    A caster with the spell on a class list reads it, as read magic lets them; anyone
+     *    else needs a Spellcraft check: DC 20 + spell level, or Use Magic Device five higher.
+     *    skill_check() returns 0 on a failure. */
 
     dc = 20 + GET_OBJ_VAL(mag_item, 0);
-    if ((skill_check(ch, ABILITY_SPELLCRAFT, dc) < 0) &&
-        (skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc + 5) < 0))
+    if (!spell_on_class_list(ch, spell) && !skill_check(ch, ABILITY_SPELLCRAFT, dc) &&
+        !skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc + 5))
     {
       send_to_char(ch, "You are unable to decipher the magical writings!\r\n");
       return;
@@ -8461,7 +8485,7 @@ ACMD(do_use)
     /* 2.a. Check the spell type
      *      ARCANE - Wizard, Sorcerer, Bard
      *      DIVINE - Cleric, Druid, Paladin, Ranger */
-    if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0)
+    if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) == 0)
     {
       if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF ||
           spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF ||
@@ -8486,24 +8510,7 @@ ACMD(do_use)
       }
 
       /* 2.b. Check the spell is on class spell list */
-      if (!(((spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) &&
-             CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
-            ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) &&
-             CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
-            ((spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) &&
-             CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
-            ((MIN_SPELL_LVL(spell, CLASS_INQUISITOR, GET_1ST_DOMAIN(ch)) < LVL_STAFF) &&
-             CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0) ||
-            ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF) &&
-             CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
-            ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF) &&
-             CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
-            ((spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF) &&
-             CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
-            ((spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF) &&
-             CLASS_LEVEL(ch, CLASS_PALADIN) > 0) ||
-            ((spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF) &&
-             CLASS_LEVEL(ch, CLASS_RANGER) > 0)))
+      if (!spell_on_class_list(ch, spell))
       {
         send_to_char(ch, "The spell on the scroll is outside your realm of knowledge.\r\n");
         return;
@@ -8649,7 +8656,7 @@ ACMD(do_use)
 
       dc = 20;
 
-      if (skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc) < 0)
+      if (!skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc))
       {
         if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF ||
             spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF ||
@@ -8676,24 +8683,7 @@ ACMD(do_use)
         }
 
         /* 1.b. Check the spell is on class spell list */
-        if (!(((spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) &&
-               CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
-              ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) &&
-               CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
-              ((spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) &&
-               CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
-              ((MIN_SPELL_LVL(spell, CLASS_INQUISITOR, GET_1ST_DOMAIN(ch)) < LVL_STAFF) &&
-               CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0) ||
-              ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF) &&
-               CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
-              ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF) &&
-               CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
-              ((spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF) &&
-               CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
-              ((spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF) &&
-               CLASS_LEVEL(ch, CLASS_PALADIN) > 0) ||
-              ((spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF) &&
-               CLASS_LEVEL(ch, CLASS_RANGER) > 0)))
+        if (!spell_on_class_list(ch, spell))
         {
           send_to_char(ch, "The spell stored in the %s is outside your realm of knowledge.\r\n",
                        GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
