@@ -2080,10 +2080,10 @@ void Test_account_menu_refuses_a_character_whose_file_does_not_load(CuTest *tc)
 
   craft_account_input(&fixture, "1", chosen, sizeof(chosen));
   chosen_state = STATE(&fixture.descriptor);
-  STATE(&fixture.descriptor) = CON_ACCOUNT_ADD;
+  craft_account_input(&fixture, "A", added, sizeof(added));
   craft_account_input(&fixture, fixture.files.name, added, sizeof(added));
   added_state = STATE(&fixture.descriptor);
-  STATE(&fixture.descriptor) = CON_GET_NAME;
+  craft_account_input(&fixture, "C", named, sizeof(named));
   craft_account_input(&fixture, fixture.files.name, named, sizeof(named));
   named_state = STATE(&fixture.descriptor);
   named_character = fixture.descriptor.character != NULL;
