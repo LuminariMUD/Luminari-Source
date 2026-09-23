@@ -3188,38 +3188,55 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
   return ready;
 }
 
-bool is_wearing_tool_for_crafting_ability(struct char_data *ch, int ability)
+/* The equipment slot that holds the tool for a crafting or harvesting skill, or -1. */
+static int crafting_tool_slot(int skill)
 {
-  if (!ch)
-    return false;
-
-  bool has_tool = FALSE;
-
-  switch (ability)
+  switch (skill)
   {
   case ABILITY_CRAFT_TAILORING:
-    has_tool = GET_EQ(ch, WEAR_CRAFT_NEEDLE);
-    break;
+    return WEAR_CRAFT_NEEDLE;
   case ABILITY_CRAFT_ALCHEMY:
-    has_tool = GET_EQ(ch, WEAR_CRAFT_ALCHEMY);
-    break;
+    return WEAR_CRAFT_ALCHEMY;
   case ABILITY_CRAFT_ARMORSMITHING:
-    has_tool = GET_EQ(ch, WEAR_CRAFT_ARMOR_HAMMER);
-    break;
+    return WEAR_CRAFT_ARMOR_HAMMER;
   case ABILITY_CRAFT_WEAPONSMITHING:
-    has_tool = GET_EQ(ch, WEAR_CRAFT_WEAPON_HAMMER);
-    break;
+    return WEAR_CRAFT_WEAPON_HAMMER;
   case ABILITY_CRAFT_JEWELCRAFTING:
-    has_tool = GET_EQ(ch, WEAR_CRAFT_JEWEL_PLIERS);
-    break;
-  case ABILITY_CRAFT_WOODWORKING:
-    /* There is no woodworking tool slot; carpentry needs only its station. */
-    has_tool = TRUE;
-    break;
+    return WEAR_CRAFT_JEWEL_PLIERS;
+  case ABILITY_HARVEST_GATHERING:
+    return WEAR_CRAFT_SICKLE;
+  case ABILITY_HARVEST_FORESTRY:
+    return WEAR_CRAFT_AXE;
+  case ABILITY_HARVEST_HUNTING:
+    return WEAR_CRAFT_KNIFE;
+  case ABILITY_HARVEST_MINING:
+    return WEAR_CRAFT_PICKAXE;
   default:
-    break;
+    return -1;
   }
-  return has_tool;
+}
+
+/* The one tool rule, for project readiness and completion, craft tools, and the tool's skill
+ * bonus: the tool for a skill is a crafting tool object for that skill (value 0) worn in the
+ * skill's tool slot. NULL when there is none, or the skill has no slot. */
+struct obj_data *worn_crafting_tool(struct char_data *ch, int skill)
+{
+  struct obj_data *tool;
+  int slot = crafting_tool_slot(skill);
+
+  if (!ch || slot < 0 || (tool = GET_EQ(ch, slot)) == NULL)
+    return NULL;
+  if (GET_OBJ_TYPE(tool) != ITEM_CRAFTING_TOOL || GET_OBJ_VAL(tool, 0) != skill)
+    return NULL;
+  return tool;
+}
+
+bool is_wearing_tool_for_crafting_ability(struct char_data *ch, int ability)
+{
+  /* There is no woodworking tool slot; carpentry needs only its station. */
+  if (ability == ABILITY_CRAFT_WOODWORKING)
+    return TRUE;
+  return worn_crafting_tool(ch, ability) != NULL;
 }
 
 /* Everything a craft check adds to the d20: skill rank, proficient talent, and the crafting feat
@@ -10392,7 +10409,7 @@ void newcraft_equipment(struct char_data *ch, const char *argument __attribute__
 void newcraft_show_tools(struct char_data *ch, const char *argument __attribute__((unused)))
 {
   struct obj_data *tool = NULL;
-  int ability, i, found_tools = 0;
+  int ability, found_tools = 0;
 
   send_to_char(ch, "\tcCrafting and Harvesting Tools Status:\tn\r\n");
   send_to_char(ch,
@@ -10407,37 +10424,21 @@ void newcraft_show_tools(struct char_data *ch, const char *argument __attribute_
   {
     if (!is_crafting_skill_in_game(ability))
       continue;
-    bool tool_found = FALSE;
     char bonus_string[20];
     char where_string[50];
 
-    // Check all equipment slots for a tool that matches this ability
-    for (i = 0; i < NUM_WEARS; i++)
+    tool = worn_crafting_tool(ch, ability);
+    if (tool != NULL)
     {
-      snprintf(bonus_string, sizeof(bonus_string), "---");
-      tool = GET_EQ(ch, i);
-      if (tool && GET_OBJ_TYPE(tool) == ITEM_CRAFTING_TOOL)
-      {
-        int tool_skill = GET_OBJ_VAL(tool, 0);
-        int tool_bonus = GET_OBJ_VAL(tool, 1);
-
-        if (tool_skill == ability && tool_bonus >= 0)
-        {
-          snprintf(bonus_string, sizeof(bonus_string), "+%d", tool_bonus);
-          snprintf(where_string, sizeof(where_string), "%s", wear_where[i]);
-          strip_colors(where_string);
-          send_to_char(ch, "%-20s %-22s %3s \tc%-15s\tn\r\n", ability_names[ability], where_string,
-                       bonus_string,
-                       tool->short_description ? tool->short_description : "a crafting tool");
-          tool_found = TRUE;
-          found_tools++;
-          break; // Found the tool for this ability, move to next ability
-        }
-      }
+      snprintf(bonus_string, sizeof(bonus_string), "+%d", MAX(0, GET_OBJ_VAL(tool, 1)));
+      snprintf(where_string, sizeof(where_string), "%s", wear_where[tool->worn_on]);
+      strip_colors(where_string);
+      send_to_char(ch, "%-20s %-22s %3s \tc%-15s\tn\r\n", ability_names[ability], where_string,
+                   bonus_string,
+                   tool->short_description ? tool->short_description : "a crafting tool");
+      found_tools++;
     }
-
-    // If no tool found for this ability, show empty slot
-    if (!tool_found)
+    else
     {
       send_to_char(ch, "%-20s %-22s %3s \ty%-15s\tn\r\n", ability_names[ability], "---", "---",
                    "None");

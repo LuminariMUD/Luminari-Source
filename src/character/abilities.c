@@ -38,6 +38,7 @@
 #include "quest/quest.h"
 #include "character/backgrounds.h"
 #include "character/perks.h"
+#include "craft/crafting_new.h"
 
 
 /* Sep 2026 racial innates: +6 stealth in the sector set of a held terrain stealth
@@ -79,6 +80,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
 {
   int value = 0;
   struct char_data *mobfol = NULL;
+  struct obj_data *tool;
 
   if (!ch)
     return -1;
@@ -243,23 +245,10 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
 
   value += high_eq;
 
-  /* Check for crafting tool bonuses */
-  for (i = 0; i < NUM_WEARS; i++)
-  {
-    if (GET_EQ(ch, i) && GET_OBJ_TYPE(GET_EQ(ch, i)) == ITEM_CRAFTING_TOOL)
-    {
-      int tool_skill = GET_OBJ_VAL(GET_EQ(ch, i), 0);
-      int tool_bonus = GET_OBJ_VAL(GET_EQ(ch, i), 1);
-
-      /* Validate that the tool_skill is a valid crafting/harvest ability */
-      if (tool_skill >= START_CRAFT_ABILITIES && tool_skill <= END_HARVEST_ABILITIES &&
-          tool_skill == abilityNum && tool_bonus > 0)
-      {
-        /* Crafting tools provide their specified bonus to the associated skill */
-        value += tool_bonus;
-      }
-    }
-  }
+  /* A crafting tool adds its bonus to its skill when worn in the skill's tool slot. */
+  tool = worn_crafting_tool(ch, abilityNum);
+  if (tool != NULL && GET_OBJ_VAL(tool, 1) > 0)
+    value += GET_OBJ_VAL(tool, 1);
 
   /* Add perk skill bonuses */
   if (!IS_NPC(ch))

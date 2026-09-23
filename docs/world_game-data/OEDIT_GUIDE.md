@@ -540,10 +540,13 @@ up at all. Nearly every object needs it. An item with wear flags but without
 
 Bits 21-33 map to active equipment positions in `find_eq_pos()`. The nine
 crafting/harvesting tool positions at bits 24-32 are separate from normal combat
-equipment positions. Ordinary equipment-crafting admission checks occupancy of
-only the alchemy, armorsmithing, jewelcrafting, tailoring, and weaponsmithing
-positions; it does not validate the occupying object's type or values.
-Woodworking has no tool position and needs no tool.
+equipment positions. A crafting tool counts when it is an `ITEM_CRAFTING_TOOL`
+whose value 0 names its ability and it is worn in that ability's tool position
+(`worn_crafting_tool()` in `src/craft/crafting_new.c`); any other object in the
+position does not count. Equipment-crafting admission and completion, the
+`craft tools|equipment|gear` display, and the value 1 bonus all use that rule.
+Woodworking has no tool position and needs no tool; metalworking and
+leatherworking have no tool position either.
 
 Bit 34 is the active Yuan-Ti tail slot. On a non-ring object, `ITEM_WEAR_TAIL`
 marks dedicated tail gear: the runtime rejects that object in every other
@@ -553,21 +556,17 @@ ring can already be worn on either a finger or a Yuan-Ti tail. If imported data
 contains both finger and tail bits, the ring rule wins and the object remains
 finger-or-tail gear.
 
-The `craft tools|equipment|gear` display uses a different rule: it scans all
-equipped positions for an `ITEM_CRAFTING_TOOL` whose value 0 names the ability.
-Its value 1 bonus is applied only by `compute_ability()`, which feeds skill
-listings; no crafting, golem, harvesting, or brewing roll reads it. The display
-omits woodworking, which needs no tool, and may disagree with admission for the
-other abilities. The only grant
-path in tracked source is compile-time: `NOOB_CRAFTING_TAILORING`,
-`NOOB_CRAFTING_ALCHEMY`, `NOOB_CRAFTING_ARMORSMITHING`,
-`NOOB_CRAFTING_WEAPONSMITHING`, and `NOOB_CRAFTING_JEWELCRAFTING` in the
-deployment's local vnums header make `newbieEquipment()` equip those prototypes
-directly into the admission slots. The definitions are commented out in the
-tracked `src/config/vnums.example.h` template. The routine runs for a level-0
-character entering the game and on staff demotion to level 1; ordinary existing
-characters receive nothing automatically. Check the local header, those
-prototypes, and deployed world data before promising tool availability.
+The value 1 bonus is applied only by `compute_ability()`, which feeds skill
+listings; no crafting, golem, harvesting, or brewing roll reads it. The tools
+players can get are objects 391-395 in `data/crafting-tools`, sold by the Sanctus
+III materials vendor (shop 369). A site can also name tool prototypes in the
+`NOOB_CRAFTING_TAILORING`, `NOOB_CRAFTING_ALCHEMY`,
+`NOOB_CRAFTING_ARMORSMITHING`, `NOOB_CRAFTING_WEAPONSMITHING`, and
+`NOOB_CRAFTING_JEWELCRAFTING` definitions of its local vnums header, which make
+`newbieEquipment()` equip them into the tool positions for a level-0 character
+entering the game and on staff demotion to level 1. The definitions are
+commented out in the tracked `src/config/vnums.example.h` template, and a
+prototype named there counts only if it follows the rule above.
 
 ## Object Value Reference
 
