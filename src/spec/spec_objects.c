@@ -3773,13 +3773,13 @@ SPECIAL(menzo_chokers)
 
   for (af2 = ch->affected; af2; af2 = af2->next)
   {
-    if (af2->spell == AFF_MENZOCHOKER)
+    if (af2->spell == AFFECT_MENZO_CHOKERS)
     {
       if (!is_wearing(ch, 135626) || !is_wearing(ch, 135627))
       {
         send_to_char(ch, "\tLYou suddenly feel bereft of your \tmgoddess's\tL"
                          " touch.\tn\r\n");
-        affect_from_char(ch, AFF_MENZOCHOKER);
+        affect_from_char(ch, AFFECT_MENZO_CHOKERS);
       }
       return FALSE;
     }
@@ -3792,7 +3792,7 @@ SPECIAL(menzo_chokers)
       send_to_char(ch, "\tLYour blood quickens, as if your soul has been touched "
                        "by a higher power.\tn\r\n");
       new_affect(&af);
-      af.spell = AFF_MENZOCHOKER; /* the tag the loop above looks for */
+      af.spell = AFFECT_MENZO_CHOKERS;
       af.location = APPLY_HITROLL;
       af.duration = 5;
       af.modifier = 1;

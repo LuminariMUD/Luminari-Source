@@ -4478,7 +4478,7 @@ bool has_perk(struct char_data *ch, int perk_id)
  * Check if a perk toggle bit is set for a character.
  *
  * @param ch The character
- * @param perk_id The perk ID to check (0-255)
+ * @param perk_id The perk ID to check (0 to NUM_PERKS - 1)
  * @return TRUE if toggled on, FALSE if toggled off
  */
 bool is_perk_toggled_on(struct char_data *ch, int perk_id)
@@ -4488,7 +4488,7 @@ bool is_perk_toggled_on(struct char_data *ch, int perk_id)
   if (!ch || IS_NPC(ch))
     return FALSE;
 
-  if (perk_id < 0 || perk_id >= 256)
+  if (perk_id < 0 || perk_id >= NUM_PERKS)
     return FALSE;
 
   byte_index = perk_id / 8;
@@ -4501,7 +4501,7 @@ bool is_perk_toggled_on(struct char_data *ch, int perk_id)
  * Set a perk toggle bit for a character.
  *
  * @param ch The character
- * @param perk_id The perk ID to set (0-255)
+ * @param perk_id The perk ID to set (0 to NUM_PERKS - 1)
  * @param state TRUE to toggle on, FALSE to toggle off
  */
 void set_perk_toggle(struct char_data *ch, int perk_id, bool state)
@@ -4511,7 +4511,7 @@ void set_perk_toggle(struct char_data *ch, int perk_id, bool state)
   if (!ch || IS_NPC(ch))
     return;
 
-  if (perk_id < 0 || perk_id >= 256)
+  if (perk_id < 0 || perk_id >= NUM_PERKS)
     return;
 
   byte_index = perk_id / 8;
@@ -4519,10 +4519,10 @@ void set_perk_toggle(struct char_data *ch, int perk_id, bool state)
 
   if (state)
     ch->player_specials->saved.perk_toggles[byte_index] =
-        (byte)(ch->player_specials->saved.perk_toggles[byte_index] | (1 << bit_index));
+        (ubyte)(ch->player_specials->saved.perk_toggles[byte_index] | (1 << bit_index));
   else
     ch->player_specials->saved.perk_toggles[byte_index] =
-        (byte)(ch->player_specials->saved.perk_toggles[byte_index] & (~(1 << bit_index)));
+        (ubyte)(ch->player_specials->saved.perk_toggles[byte_index] & (~(1 << bit_index)));
 }
 
 /**
@@ -9269,7 +9269,8 @@ void remove_all_perks(struct char_data *ch)
   ch->player_specials->saved.perks = NULL;
 
   /* Clear all perk toggles when removing all perks */
-  memset(ch->player_specials->saved.perk_toggles, 0, 32);
+  memset(ch->player_specials->saved.perk_toggles, 0,
+         sizeof(ch->player_specials->saved.perk_toggles));
 }
 
 /**

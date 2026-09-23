@@ -19,6 +19,7 @@
 #include "../../src/character/class.h"
 #include "../../src/character/perks.h"
 #include "../../src/character/perk_definitions.h"
+#include "../../src/craft/alchemy.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -267,4 +268,51 @@ void Test_perk_definitions_list_every_perk_under_its_tree(CuTest *tc)
   CuAssertIntEquals(tc, 0, first_unlisted);
   CuAssertIntEquals(tc, 0, first_without_header);
   CuAssertIntEquals(tc, count_defined_perks(), listed);
+}
+
+/* Toggles reach every perk id (issue 227). The bitfield covered ids 0-255, below every perk that
+ * uses a toggle, so Defensive Stance never applied, a bought toggleable perk lost its default-on
+ * toggle, and the alchemist toggle commands changed nothing. */
+void Test_perk_toggles_reach_every_perk_that_uses_one(CuTest *tc)
+{
+  struct char_data *ch;
+  int id, toggleable = 0, reached = 0;
+  bool bought_on, active, off_inactive, catalyst_on, catalyst_off, mutagen_on;
+
+  init_perks();
+  ch = new_char();
+  for (id = 0; id < NUM_PERKS; id++)
+    if (perk_list[id].id != PERK_UNDEFINED && perk_list[id].toggleable)
+    {
+      toggleable++;
+      set_perk_toggle(ch, id, TRUE);
+      reached += is_perk_toggled_on(ch, id) ? 1 : 0;
+      set_perk_toggle(ch, id, FALSE);
+    }
+
+  add_char_perk(ch, PERK_FIGHTER_DEFENSIVE_STANCE, CLASS_WARRIOR);
+  bought_on = is_perk_toggled_on(ch, PERK_FIGHTER_DEFENSIVE_STANCE);
+  active = has_perk_active(ch, PERK_FIGHTER_DEFENSIVE_STANCE);
+  set_perk_toggle(ch, PERK_FIGHTER_DEFENSIVE_STANCE, FALSE);
+  off_inactive = !has_perk_active(ch, PERK_FIGHTER_DEFENSIVE_STANCE);
+
+  add_char_perk(ch, PERK_ALCHEMIST_VOLATILE_CATALYST, CLASS_ALCHEMIST);
+  add_char_perk(ch, PERK_ALCHEMIST_UNSTABLE_MUTAGEN, CLASS_ALCHEMIST);
+  set_perk_toggle(ch, PERK_ALCHEMIST_VOLATILE_CATALYST, FALSE);
+  do_volatilecatalyst(ch, "", 0, 0);
+  catalyst_on = is_volatile_catalyst_on(ch);
+  do_volatilecatalyst(ch, "", 0, 0);
+  catalyst_off = !is_volatile_catalyst_on(ch);
+  do_unstablemutagen(ch, "", 0, 0);
+  mutagen_on = is_alchemist_unstable_mutagen_on(ch);
+  free_char(ch);
+
+  CuAssertTrue(tc, toggleable >= 3);
+  CuAssertIntEquals(tc, toggleable, reached);
+  CuAssertTrue(tc, bought_on);
+  CuAssertTrue(tc, active);
+  CuAssertTrue(tc, off_inactive);
+  CuAssertTrue(tc, catalyst_on);
+  CuAssertTrue(tc, catalyst_off);
+  CuAssertTrue(tc, mutagen_on);
 }

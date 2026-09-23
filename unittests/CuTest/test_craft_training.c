@@ -16,6 +16,7 @@
 #include "../../src/core/interpreter.h"
 #include "../../src/character/class.h"
 #include "../../src/character/feats.h"
+#include "../../src/character/perks.h"
 #include "../../src/character/race.h"
 #include "../../src/character/talents.h"
 #include "../../src/craft/alchemy.h"
@@ -461,6 +462,118 @@ void Test_load_char_keeps_long_lists_inside_their_arrays(CuTest *tc)
   CuAssertIntEquals(tc, 8, bomb_first);
   CuAssertIntEquals(tc, 5, material);
   CuAssertIntEquals(tc, 9, mote_first);
+}
+
+/* Perk toggles and score preferences survive a save and a load (issue 227). The toggle bitfield
+ * stopped at id 255, a byte with bit 7 set was printed as eight hex digits, and no score preference
+ * was saved at all. */
+void Test_save_char_keeps_perk_toggles_and_score_preferences(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *ch = new_char();
+  struct char_data *loaded = new_char();
+  bool saved, stance, bit_seven, catalyst, neighbour_off, order_kept = TRUE;
+  int i, result, width, theme, density, layout;
+
+  craft_player_files_enter(tc, &files, "crptog", 4307);
+  ch->player.name = strdup(files.name);
+  GET_PFILEPOS(ch) = 0;
+  GET_IDNUM(ch) = 4307;
+  GET_LEVEL(ch) = 7;
+  set_perk_toggle(ch, PERK_FIGHTER_DEFENSIVE_STANCE, TRUE);
+  set_perk_toggle(ch, 423, TRUE); /* bit 7 of its byte */
+  set_perk_toggle(ch, PERK_ALCHEMIST_VOLATILE_CATALYST, TRUE);
+  GET_SCORE_DISPLAY_WIDTH(ch) = 160;
+  GET_SCORE_COLOR_THEME(ch) = SCORE_THEME_DARK;
+  GET_SCORE_INFO_DENSITY(ch) = 1;
+  GET_SCORE_LAYOUT_TEMPLATE(ch) = LAYOUT_ROLEPLAY;
+  for (i = 0; i < 8; i++)
+    GET_SCORE_SECTION_ORDER(ch, i) = (byte)(7 - i);
+
+  saved = save_char_checked(ch, 0);
+  result = load_char(files.name, loaded);
+  stance = is_perk_toggled_on(loaded, PERK_FIGHTER_DEFENSIVE_STANCE);
+  bit_seven = is_perk_toggled_on(loaded, 423);
+  catalyst = is_perk_toggled_on(loaded, PERK_ALCHEMIST_VOLATILE_CATALYST);
+  neighbour_off = !is_perk_toggled_on(loaded, 424) && !is_perk_toggled_on(loaded, 416);
+  width = GET_SCORE_DISPLAY_WIDTH(loaded);
+  theme = GET_SCORE_COLOR_THEME(loaded);
+  density = GET_SCORE_INFO_DENSITY(loaded);
+  layout = GET_SCORE_LAYOUT_TEMPLATE(loaded);
+  for (i = 0; i < 8; i++)
+    if (GET_SCORE_SECTION_ORDER(loaded, i) != 7 - i)
+      order_kept = FALSE;
+  free_char(ch);
+  free_char(loaded);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertTrue(tc, saved);
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertTrue(tc, stance);
+  CuAssertTrue(tc, bit_seven);
+  CuAssertTrue(tc, catalyst);
+  CuAssertTrue(tc, neighbour_off);
+  CuAssertIntEquals(tc, 160, width);
+  CuAssertIntEquals(tc, SCORE_THEME_DARK, theme);
+  CuAssertIntEquals(tc, 1, density);
+  CuAssertIntEquals(tc, LAYOUT_ROLEPLAY, layout);
+  CuAssertTrue(tc, order_kept);
+}
+
+/* A player file from before PTg2 and ScPr (issue 227). Its PTog bitfield could hold no toggleable
+ * perk, so an owned one comes back on, as buying it turns it on; the loader also took the line
+ * after PTog for the bitfield and lost it. A saved wide score comes back at 120. A file with PTg2
+ * keeps a toggle that was turned off. */
+void Test_load_char_restores_what_old_perk_and_score_lines_lost(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *loaded = new_char();
+  char filename[MAX_FILEPATH];
+  FILE *file;
+  int legacy_result, current_result, width;
+  bool stance_on, perfect_kill_kept, stance_off;
+
+  if (get_perk_by_id(PERK_FIGHTER_DEFENSIVE_STANCE) == NULL)
+    init_perks();
+  craft_player_files_enter(tc, &files, "crold", 4308);
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, files.name));
+  file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, file);
+  if (file != NULL)
+  {
+    fprintf(file,
+            "Name: %s\nId  : 4308\nLevl: 7\nPref: 0 0 p 0\nPerk:\n%d %d 1\n0 0 0\n"
+            "PTog: 0000000000000000000000000000000000000000000000000000000000000000\n"
+            "PKil: 1234 1\n",
+            files.name, PERK_FIGHTER_DEFENSIVE_STANCE, CLASS_WARRIOR);
+    fclose(file);
+  }
+  legacy_result = load_char(files.name, loaded);
+  stance_on = is_perk_toggled_on(loaded, PERK_FIGHTER_DEFENSIVE_STANCE);
+  perfect_kill_kept = loaded->player_specials->saved.perfect_kill_used &&
+                      loaded->player_specials->saved.perfect_kill_last_combat == 1234;
+  width = GET_SCORE_DISPLAY_WIDTH(loaded);
+  free_char(loaded);
+
+  loaded = new_char();
+  file = fopen(filename, "w");
+  if (file != NULL)
+  {
+    fprintf(file, "Name: %s\nId  : 4308\nLevl: 7\nPerk:\n%d %d 1\n0 0 0\nPTg2:\n", files.name,
+            PERK_FIGHTER_DEFENSIVE_STANCE, CLASS_WARRIOR);
+    fclose(file);
+  }
+  current_result = load_char(files.name, loaded);
+  stance_off = !is_perk_toggled_on(loaded, PERK_FIGHTER_DEFENSIVE_STANCE);
+  free_char(loaded);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertIntEquals(tc, 0, legacy_result);
+  CuAssertTrue(tc, stance_on);
+  CuAssertTrue(tc, perfect_kill_kept);
+  CuAssertIntEquals(tc, 120, width);
+  CuAssertIntEquals(tc, 0, current_result);
+  CuAssertTrue(tc, stance_off);
 }
 
 /* A saved device line longer than its field is cut to fit; get_line() used to write it straight

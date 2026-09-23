@@ -864,6 +864,7 @@
 #define AFFECT_RACIAL_FLURRY 1342 /* one extra attack per round for four rounds */
 #define ABILITY_SUMMON_WARG 1343  /* MAG_SUMMONS: a mountable warg */
 #define ABILITY_SUMMON_HORDE 1344 /* MAG_SUMMONS: two to four orc warriors */
+#define AFFECT_MENZO_CHOKERS 1345 /* +1 hitroll for a drow wearing both Menzoberranzan chokers */
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 

@@ -6254,6 +6254,7 @@ void mag_assign_spells(void)
   affecto(AFFECT_CLERIC_AVATAR_OF_WAR, "cleric avatar of war",
           "The power of the avatar of war leaves you.");
   affecto(AFFECT_RACIAL_FLURRY, "racial flurry", "Your flurry of blows subsides.");
+  affecto(AFFECT_MENZO_CHOKERS, "menzoberranzan chokers", "The touch of your goddess fades.");
   affecto(AFFECT_MONK_AVATAR_OF_ELEMENTS, "monk avatar of the elements",
           "Your unity with the elements fades.");
   affecto(AFFECT_RANGER_NATURES_WRATH, "ranger nature's wrath",
