@@ -130,9 +130,15 @@ inside containers must be taken out. Tools are retained after use, do not
 stack, and do not grant success or bypass terrain and depletion checks. A tool
 removed before completion supplies no benefit. Zone nodes ignore harvest tools.
 
+Jufus the materials vendor (shop 369, Sanctus III room 369) sells all five at the
+costs above (issue #222). No reward system can grant an object, and the costs
+already rise five times per tier; a tool only sets a grade floor, so every
+harvest still has to pass its difficulty roll.
+
 ## Delivery and verification
 
-Install the five prototypes into the site's world data as described in
+Install the five prototypes, the shop products, and Jufus's resets into the
+site's world data as described in
 [data/harvest-tools/README.md](../../data/harvest-tools/README.md).
 The HARVEST, HARVEST-TOOLS, and related help entries live in the help database
 and `lib/text/help/help.hlp`; publish them with the help-sync workflow.
