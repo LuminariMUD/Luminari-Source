@@ -1,8 +1,9 @@
 # clang-tidy findings (issue #218)
 
-Working plan for issue #218 on branch `fix/218-clang-tidy-findings` (worktree
-`../Luminari-Source-issue-218`). Goal: remove the most findings per hour of work. Every batch
-lowers `scripts/ci/clang_tidy_baseline.txt`. Delete this file when the issue closes.
+Working plan for issue #218: steps 1-5 on branch `fix/218-clang-tidy-findings` (PR #226), steps
+6-8 on `fix/218-clang-tidy-remaining`, stacked on it (worktree `../Luminari-Source-issue-218`).
+Goal: remove the most findings per hour of work. Every batch lowers
+`scripts/ci/clang_tidy_baseline.txt`. Delete this file when the issue closes.
 
 ## Measured starting point
 
@@ -104,23 +105,39 @@ Applied in step 1, each with the scope, reason, owner, and expiry entry `.clang-
    fixed, and every unit then compiled warning-free under clang-22 with the CMake warning tier.
    All 33 `run.py` jobs pass on `beb3b3622` (1,406 s), all GitHub checks pass, and CodeQL
    reports no alerts on the pull request ref (master has none open).
-6. Review lanes, four agents on disjoint directories as in step 3.
-   - `bugprone-branch-clone` (329): merge the case labels of the 127 "switch has N consecutive
-     identical branches" (a script can propose the merges; review each, since the check exists
-     to catch copy-paste slips). The 200 repeated arms in `if`/`else if` chains: combine the
-     conditions, or suppress where separate arms document separate rules.
-   - `clang-analyzer-deadcode.DeadStores` (227): delete the store, or keep the call and drop
-     the variable. A value that should have been read is a defect: fix it and test it.
-7. String-to-number parsing (297): 275 `sscanf`, 8 `fscanf`, 14 `atoi`/`atol` in `util/`. 203
-   formats are integer-only (173 plain `%d`, some with literal separators such as `"%d-%d"`;
-   30 with length modifiers), 6 add floats, 71 mix in `%s`, `%c`, or `%[`. 172 sit in critical
-   files (players.c 100, db.c 41, objsave.c 21). Add one strict helper beside `parse_int()` in
-   `src/core/utils.c` for the integer-only subset (whitespace, literal characters, `%d`, `%ld`,
-   `%u`), parsing each field with `strtol` and treating overflow as a failed parse. Convert the
-   integer-only sites to it and the mixed ones by hand; `util/` calls `strtol` directly (it is
-   linked separately). Well-formed input must parse as before. Test the helper in
-   `test_bounds_checking.c` beside `Test_parse_number_helpers`.
-8. PR 2 ("Closes #218"), as in step 5.
+6. Review lanes. Done (324 left), four agents on disjoint directories as in step 3.
+   `bugprone-branch-clone` (326) and `clang-analyzer-deadcode.DeadStores` (227) are cleared in
+   125 files: identical switch arms share one body, adjacent identical `if` arms share one
+   condition, unread stores are gone. About a hundred clones stay behind a named NOLINT where
+   the arms are separate rules that coincide (treasure.c level tiers, per-class values, ordered
+   first-match ladders). Seven sites were defects and are fixed: `get_number()` ("2x.sword"
+   picked the second sword), `do_activate()` and `use_wand()` (object spells cast with no
+   object), `get_spell_circle()` (three-quarter and half caster mobs read low spells as circle 5
+   or 3), `list_spells()` (paladin and ranger lists printed empty circles), `savingthrow_full()`
+   (Indomitable Will overwrote the save), and bestow power in `mag_points()` (returned before its
+   messages); three regression tests. Four more found beside the sites are fixed with tests in a
+   separate commit: Bomb Mastery raised the thrower's saved alchemist level by 5 per spell bomb,
+   `show_mote_bonuses()` read `ability_names[j]` with `j` unset, the class feat point loaders
+   looped forever on a truncated player file, and `mclanwar`/`mclanally` reread their first
+   argument as the status. The rest of what the lanes noticed is filed as #228.
+7. String-to-number parsing. Done (27 left). Instead of an integer-only helper,
+   `src/core/strict_scan.c` adds `strict_sscanf()` and `strict_fscanf()`: the same formats and
+   results as scanf (every directive the tree uses, one pushback character for streams, the
+   format attribute), with each number converted by `strto*` and one outside its type treated
+   as a matching failure. A differential run against glibc over every format in the tree (79,695
+   generated and mutated inputs, string and stream) matched except on overflow. The 272 calls in
+   `src/` and `unittests/` are renamed; `util/` links the module for four tools and uses `strtol`
+   for its `atoi`/`atol`. `Test_strict_scan_matches_scanf_and_stops_at_overflow` compares both
+   entry points with libc.
+8. PR 2 ("Closes #218"). The 27 findings left were the codemod sites step 4 held back for
+   coverage: they are applied again (17 defaults, 6 pointer casts, 4 widening casts), and the
+   baseline file is now empty, so any finding fails the gate. `do_accexp`'s knight alias switch
+   admitted only the classes its cases named, so its default could never run; it is one
+   condition per class instead. Ten tests execute the changed lines the coverage gate prices
+   (accexp knight alias, exits prompt, protocol report, copyover recovery, script editor, zone
+   index insertion, tokenize, random region point against temporary region tables, zone
+   command forms, `wait until`). Priced against #226, every critical subsystem clears its
+   changed-line floor by at least five points.
 
 ## Rules for every batch
 
@@ -137,7 +154,9 @@ Applied in step 1, each with the scope, reason, owner, and expiry entry `.clang-
    coverage at least one point above its floor, since GitHub's runner measured a line or two
    differently on #203. If a subsystem falls short, take the mechanical edits on its uncovered
    lines back out (codemods take an exclusion list) and record their findings again, instead
-   of writing tests for untested parsers. Defect fixes keep their regression tests.
+   of writing tests for untested parsers. Defect fixes keep their regression tests. Step 8 is
+   the exception: it leaves no findings, so it tests the lines instead. `run.py` tests
+   committed `HEAD` (`git archive`), so commit before running it.
 6. Add tests to existing test files, which avoids manifest changes. Stage `src/core` paths with
    `git add -u` or `-f`.
 
@@ -173,10 +192,11 @@ fixes land early and the branch is exposed to #216 and other parallel work for l
 
 ## Resume here
 
-Steps 1-5 are done: PR #226 is open and verified (877 findings left). Next, once #226 merges:
-rebase this branch onto master (the baseline file conflicts are resolved by taking master's
-file and running `--update`), then steps 6-8. The codemods, `coverage_trim.py`, and the latest
-report are in `tmp/218/`.
+All steps are done: #226 carries steps 1-5, and the pull request from
+`fix/218-clang-tidy-remaining` carries steps 6-8 and closes #218; the tree has no findings.
+When #226 merges, rebase the second branch onto master
+(`git rebase --onto origin/master origin/fix/218-clang-tidy-findings`) and retarget it. Found
+defects that change gameplay are #227 and #228.
 
 ## Progress log
 
@@ -189,3 +209,9 @@ report are in `tmp/218/`.
   passes locally.
 - 2026-09-23: rebased onto master `e33ed0d6f`; PR #226 opened; local matrix 33/33, GitHub checks
   and CodeQL clean.
+- 2026-09-23: step 6 committed (324); seven defects fixed. Four more defects fixed beside its
+  sites; the rest filed as #228.
+- 2026-09-23: step 7 committed (27); `strict_sscanf()`/`strict_fscanf()` with a differential
+  check against glibc.
+- 2026-09-23: held-back codemod sites applied (0 findings, empty baseline); ten coverage tests,
+  CuTest 1,763/1,763 with the test database, coverage policy passes against #226.
