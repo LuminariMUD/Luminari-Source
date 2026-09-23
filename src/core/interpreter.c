@@ -8156,6 +8156,9 @@ void nanny(struct descriptor_data *d, char *arg)
           STATE(d) = CON_RMOTD;
         }
       }
+      else
+        write_to_output(d, "That character could not be loaded; please tell a staff member.  "
+                           "Your Choice: ");
     }
 
     break;
@@ -8287,6 +8290,13 @@ void nanny(struct descriptor_data *d, char *arg)
         d->input.tail = NULL;
         return;
       }
+      else if (get_ptable_by_name(tmp_name) >= 0)
+      {
+        write_to_output(d, "That character could not be loaded; please tell a staff member.\r\n");
+        STATE(d) = CON_ACCOUNT_MENU;
+        show_account_menu(d);
+        return;
+      }
       else
       {
         write_to_output(d, "That character does not exist, please create a new character.\r\n");
@@ -8391,6 +8401,17 @@ void nanny(struct descriptor_data *d, char *arg)
           web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_NAME_TAKEN);
           return;
         }
+      }
+      else if (get_ptable_by_name(tmp_name) >= 0)
+      {
+        /* The name belongs to a character whose file would not load. A new character would take
+         * over its index entry and write over that file. */
+        write_to_output(
+            d, "That character could not be loaded; please tell a staff member.\r\nName: ");
+        free_char(d->character);
+        d->character = NULL;
+        web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_NAME_TAKEN);
+        return;
       }
       else
       {

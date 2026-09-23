@@ -514,6 +514,7 @@ int load_char(const char *name, struct char_data *ch)
   bool boarding_ability_current = FALSE;
   bool perk_toggles_saved = FALSE;
   bool score_preferences_saved = FALSE;
+  bool load_failed = FALSE;
   FILE *fl;
   char filename[40];
   char buf[128], line[MAX_INPUT_LENGTH + 1], tag[6];
@@ -872,7 +873,7 @@ int load_char(const char *name, struct char_data *ch)
 
     /* finished inits, start loading from file */
 
-    while (get_line(fl, line))
+    while (!load_failed && get_line(fl, line))
     {
       tag_argument(line, tag);
 
@@ -961,7 +962,10 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "BgFx"))
           BACKGROUND_EFFECTS_APPLIED(ch) = parse_int(line) != 0;
         else if (!strcmp(tag, "Bond"))
-          ch->player.bonds = fread_player_string(fl, filename);
+        {
+          if (!fread_player_string(fl, filename, &ch->player.bonds))
+            load_failed = TRUE;
+        }
         else if (!strcmp(tag, "Bag1"))
           GET_BAG_NAME(ch, 1) = strdup(line);
         else if (!strcmp(tag, "Blst"))
@@ -989,7 +993,10 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Bane"))
           GET_BANE_TARGET_TYPE(ch) = parse_int(line);
         else if (!strcmp(tag, "BGrd"))
-          ch->player.background = fread_player_string(fl, filename);
+        {
+          if (!fread_player_string(fl, filename, &ch->player.background))
+            load_failed = TRUE;
+        }
         else if (!strcmp(tag, "Bomb"))
           load_bombs(fl, ch);
         else if (!strcmp(tag, "Bost"))
@@ -1218,7 +1225,10 @@ int load_char(const char *name, struct char_data *ch)
         if (!strcmp(tag, "DmgR"))
           load_dr(fl, ch);
         else if (!strcmp(tag, "Desc"))
-          ch->player.description = fread_player_string(fl, filename);
+        {
+          if (!fread_player_string(fl, filename, &ch->player.description))
+            load_failed = TRUE;
+        }
         else if (!strcmp(tag, "DvCD"))
           ch->player_specials->saved.device_creation_cooldown = (time_t)parse_long(line);
         else if (!strcmp(tag, "Dvis"))
@@ -1322,7 +1332,10 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "FLGT"))
           FLEETING_GLANCE_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "Flaw"))
-          ch->player.flaws = fread_player_string(fl, filename);
+        {
+          if (!fread_player_string(fl, filename, &ch->player.flaws))
+            load_failed = TRUE;
+        }
         else if (!strcmp(tag, "FdBn"))
           ch->player_specials->saved.active_fiendish_boons = parse_int(line);
         else if (!strcmp(tag, "FLGU"))
@@ -1361,7 +1374,10 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "GODU"))
           GRASP_OF_THE_DEAD_USES(ch) = parse_int(line);
         else if (!strcmp(tag, "Goal"))
-          ch->player.goals = fread_player_string(fl, filename);
+        {
+          if (!fread_player_string(fl, filename, &ch->player.goals))
+            load_failed = TRUE;
+        }
         break;
 
       case 'H':
@@ -1399,7 +1415,10 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "InqR"))
           GET_FAVORED_TERRAIN_RESET(ch) = parse_long(line);
         else if (!strcmp(tag, "Idel"))
-          ch->player.ideals = fread_player_string(fl, filename);
+        {
+          if (!fread_player_string(fl, filename, &ch->player.ideals))
+            load_failed = TRUE;
+        }
         else if (!strcmp(tag, "InMa"))
           load_innate_magic_queue(fl, ch);
         else if (!strcmp(tag, "Intr"))
@@ -1607,7 +1626,10 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "PxDT"))
           PIXIE_DUST_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "Pers"))
-          ch->player.personality = fread_player_string(fl, filename);
+        {
+          if (!fread_player_string(fl, filename, &ch->player.personality))
+            load_failed = TRUE;
+        }
         else if (!strcmp(tag, "PvPT"))
           GET_PVP_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "DvRc"))
@@ -2216,6 +2238,23 @@ int load_char(const char *name, struct char_data *ch)
       default:
         snprintf(buf, sizeof(buf), "SYSERR: Unknown tag %s in pfile %s", tag, name);
       }
+    }
+
+    /* A string without its '~' took in the rest of the file, so every tag after it is lost. The
+     * next save would make that loss permanent: the character is not loaded, and the file stays as
+     * it is for staff to repair. */
+    if (load_failed)
+    {
+      while (pending_events != NULL)
+      {
+        pending_event = pending_events;
+        pending_events = pending_event->next;
+        free(pending_event);
+      }
+      fclose(fl);
+      mudlog(NRM, LVL_STAFF, TRUE,
+             "SYSERR: Player file %s has a string without its ~ and was not loaded.", filename);
+      return (-1);
     }
   }
 

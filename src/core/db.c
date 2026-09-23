@@ -6702,9 +6702,10 @@ static size_t normalize_fread_line(char *line, size_t line_size, bool *done)
 
 /* read and allocate space for a '~'-terminated string from a given file
  * This function reads multi-line text from a file until it finds a '~' character.
- * The '~' acts as an end-of-text marker in Luminari data files. A file that ends first stops
- * the game when fatal is set (world files are corrupt) and otherwise returns NULL. */
-static char *fread_tilde_string(FILE *fl, const char *error, bool fatal)
+ * The '~' acts as an end-of-text marker in Luminari data files. A file that ends first, or a
+ * string too long for the buffer, stops the game when failed is NULL (world files are corrupt);
+ * otherwise it sets *failed and returns NULL. */
+static char *fread_tilde_string(FILE *fl, const char *error, bool *failed)
 {
   /* buf will store our complete final string (up to MAX_STRING_LENGTH)
    * tmp is a smaller buffer with room to append CRLF and a null terminator. */
@@ -6729,8 +6730,11 @@ static char *fread_tilde_string(FILE *fl, const char *error, bool fatal)
       log("SYSERR: fread_string: format error while reading %s (file position %ld, errno=%d '%s'). "
           "Partial buffer so far: '%s'",
           error, file_pos, saved_errno, (saved_errno ? strerror(saved_errno) : "none"), buf);
-      if (!fatal)
+      if (failed != NULL)
+      {
+        *failed = TRUE;
         return NULL;
+      }
       exit(1); /* Kill the whole MUD - data files are corrupted */
     }
 
@@ -6742,6 +6746,11 @@ static char *fread_tilde_string(FILE *fl, const char *error, bool fatal)
       /* String is too long - fatal error to prevent buffer overflow */
       log("SYSERR: fread_string: string too large (db.c)");
       log("%s", error);
+      if (failed != NULL)
+      {
+        *failed = TRUE;
+        return NULL;
+      }
       exit(1); /* Kill the MUD rather than risk memory corruption */
     }
     else
@@ -6769,14 +6778,18 @@ static char *fread_tilde_string(FILE *fl, const char *error, bool fatal)
 
 char *fread_string(FILE *fl, const char *error)
 {
-  return fread_tilde_string(fl, error, true);
+  return fread_tilde_string(fl, error, NULL);
 }
 
-/* fread_string() for player files: a file cut off inside the string loses the string instead of
- * stopping the game for every connection. */
-char *fread_player_string(FILE *fl, const char *error)
+/* fread_string() for player files, into *result. A string without its '~' runs to the end of the
+ * file or past the buffer; that returns false instead of stopping the game for every connection,
+ * and the caller must not use the rest of the file. */
+bool fread_player_string(FILE *fl, const char *error, char **result)
 {
-  return fread_tilde_string(fl, error, false);
+  bool failed = FALSE;
+
+  *result = fread_tilde_string(fl, error, &failed);
+  return !failed;
 }
 
 /* fread_clean_string is the same as fread_string, but skips preceding spaces */
