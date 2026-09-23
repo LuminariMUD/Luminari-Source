@@ -3055,10 +3055,37 @@ static int award_kill_experience(struct char_data *ch, int exp, int mode)
   return gained;
 }
 
+/* Give the experience for ch killing victim: a pet's master in the room takes it, a mob confused
+ * by a player in the room gives it to that player, and anyone else keeps it. */
+static void gain_kill_experience(struct char_data *ch, struct char_data *victim)
+{
+  struct char_data *gainer = ch;
+
+  if (IS_PET(ch) && ch->master && IN_ROOM(ch) == IN_ROOM(ch->master))
+    gainer = ch->master;
+  else if (IS_NPC(ch) && ch->confuser_idnum > 0)
+  {
+    struct char_data *confuser = find_pc_idnum_in_room(ch, ch->confuser_idnum);
+
+    if (confuser != NULL)
+      gainer = confuser;
+  }
+
+  if (GROUP(gainer))
+    group_gain(gainer, victim);
+  else
+    solo_gain(gainer, victim);
+}
+
 #ifdef LUMINARI_CUTEST
 int test_award_kill_experience(struct char_data *ch, int exp, int mode)
 {
   return award_kill_experience(ch, exp, mode);
+}
+
+void test_gain_kill_experience(struct char_data *ch, struct char_data *victim)
+{
+  gain_kill_experience(ch, victim);
 }
 
 void test_solo_gain(struct char_data *ch, struct char_data *victim)
@@ -5072,29 +5099,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
 
   if (ch != victim && (IS_NPC(victim) || victim->desc))
   { // xp gain
-    /* pets give xp to their master */
-    if (IS_PET(ch) && ch->master && IN_ROOM(ch) == IN_ROOM(ch->master))
-    {
-      if (GROUP(ch->master))
-        group_gain(ch->master, victim);
-      else
-        solo_gain(ch->master, victim);
-    }
-    else if (IS_NPC(ch) && ch->confuser_idnum > 0 && is_pc_idnum_in_room(ch, ch->confuser_idnum))
-    /* NOLINTNEXTLINE(bugprone-branch-clone) -- meant to credit the confuser; a reported defect */
-    {
-      if (GROUP(ch))
-        group_gain(ch, victim);
-      else
-        solo_gain(ch, victim);
-    }
-    else
-    {
-      if (GROUP(ch))
-        group_gain(ch, victim);
-      else
-        solo_gain(ch, victim);
-    }
+    gain_kill_experience(ch, victim);
 
     /* artifact experience for the kill */
     artifact_combat_kill(ch, victim);
@@ -7449,13 +7454,13 @@ static int compute_damage_bonus_with_projectile(struct char_data *ch, struct cha
     {
       if (display_mode)
         send_to_char(ch, "Favored enemy bonus: \tR%d\tn\r\n",
-                     CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2);
+                     CLASS_LEVEL(ch, CLASS_RANGER) / 3 + 2);
       dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 3 + 2;
 
       if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
       {
         if (display_mode)
-          send_to_char(ch, "Epic favored enemy bonus: \tR4\tn\r\n");
+          send_to_char(ch, "Epic favored enemy bonus: \tR6\tn\r\n");
         dambonus += 6;
       }
     }

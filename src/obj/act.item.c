@@ -8760,6 +8760,7 @@ ACMDU(do_activate)
     act(output, TRUE, ch, obj, tch, TO_NOTVICT);
   }
 
+  spell_level = obj->activate_spell[ACT_SPELL_LEVEL];
   GET_DC_BONUS(ch) += spell_level / 2;
   obj->activate_spell[ACT_SPELL_CURRENT_USES]--;
   obj->activate_spell[ACT_SPELL_COOLDOWN] = ACT_SPELL_COOLDOWN_TIME;

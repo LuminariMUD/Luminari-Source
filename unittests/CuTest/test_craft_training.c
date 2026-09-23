@@ -576,6 +576,38 @@ void Test_load_char_restores_what_old_perk_and_score_lines_lost(CuTest *tc)
   CuAssertTrue(tc, stance_off);
 }
 
+/* Every spell bomb thrown with Bomb Mastery added five to the thrower's alchemist level until
+ * issue 228 was fixed, and the player file kept it. Bomb Mastery comes at alchemist level 30, the
+ * most a class reaches, so loading brings a higher level back to 30 and leaves the others alone. */
+void Test_load_char_restores_alchemist_levels_raised_by_spell_bombs(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *loaded = new_char();
+  char filename[MAX_FILEPATH];
+  FILE *file;
+  int result, alchemist, wizard;
+
+  craft_player_files_enter(tc, &files, "cralch", 4318);
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, files.name));
+  file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, file);
+  if (file != NULL)
+  {
+    fprintf(file, "Name: %s\nId  : 4318\nLevl: 30\nCLvl:\n%d 45\n%d 3\n-1 -1\n", files.name,
+            CLASS_ALCHEMIST, CLASS_WIZARD);
+    fclose(file);
+  }
+  result = load_char(files.name, loaded);
+  alchemist = CLASS_LEVEL(loaded, CLASS_ALCHEMIST);
+  wizard = CLASS_LEVEL(loaded, CLASS_WIZARD);
+  free_char(loaded);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, 30, alchemist);
+  CuAssertIntEquals(tc, 3, wizard);
+}
+
 /* A saved device line longer than its field is cut to fit; get_line() used to write it straight
  * into the field and on into the fields after it. */
 void Test_load_char_cuts_device_text_to_its_fields(CuTest *tc)

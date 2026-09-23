@@ -3305,7 +3305,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
                  (int)(mud_event_remaining(pMudEvent) / 10));
   if (char_has_mud_event(k, eCONCUSSIVEONSLAUGHT))
     send_to_char(ch, "\tRConcussive Onslaught!\tn - Duration: %d rounds\r\n",
-                 ch->player_specials->concussive_onslaught_duration);
+                 k->player_specials->concussive_onslaught_duration);
   if ((pMudEvent = char_has_mud_event(k, eMOONBEAM)))
     send_to_char(ch, "\tRMoonbeam!\tn - Duration: %d seconds\r\n",
                  (int)(mud_event_remaining(pMudEvent) / 10));

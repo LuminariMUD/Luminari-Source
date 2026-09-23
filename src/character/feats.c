@@ -3864,8 +3864,9 @@ void assign_feats(void)
   /* unfinished */ feato(FEAT_FAVORED_ENEMY, "favored enemy", TRUE, FALSE, TRUE,
                          FEAT_TYPE_CLASS_ABILITY,
                          "Gain bonuses when fighting against a particular type of enemy.",
-                         "Gain bonuses when fighting against a particular type of enemy. Equal to "
-                         "2 + (Ranger Level / 5). Affects hitroll damroll and armor class.");
+                         "Gain bonuses when fighting against a particular type of enemy: 2 + "
+                         "(Ranger Level / 3) to hitroll and damroll, and 2 + (Ranger Level / 5) "
+                         "to armor class.");
   /* modified from original */
   feato(FEAT_CAMOUFLAGE, "camouflage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "gain stealth bonus in nature", "Gains +6 bonus to sneak/hide in nature");

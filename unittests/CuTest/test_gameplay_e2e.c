@@ -4348,7 +4348,7 @@ static bool verify_authored_lycanthropes(const char *sandbox, char *error, size_
   owner->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
   GET_PFILEPOS(owner) = -1;
   GET_LEVEL(owner) = 20;
-  SET_SKILL(owner, ABILITY_USE_MAGIC_DEVICE, 100);
+  SET_ABILITY(owner, ABILITY_USE_MAGIC_DEVICE, 40);
   if (spell_info[SPELL_CALL_LYCANTHROPE].name == NULL ||
       spell_info[SPELL_CALL_LYCANTHROPE].name == unused_spellname)
     mag_assign_spells();
@@ -13911,4 +13911,411 @@ void Test_node_harvest_credits_at_completion_and_never_pays_for_cancelling(CuTes
     snprintf(message, sizeof(message), "Node harvest scenario %d failed", i);
     CuAssert(tc, message, result[i]);
   }
+}
+
+/* Issue 228: gameplay defects found beside the branch-clone and dead-store findings. */
+
+/** The gameplay fixture with a player actor that sees what is sent to it, and the class, feat, and
+ * spell tables the commands read. */
+struct defect_fixture
+{
+  struct gameplay_fixture game;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+};
+
+static void begin_defect_fixture(struct defect_fixture *f)
+{
+  struct char_data *ch;
+
+  if (class_list[CLASS_WARRIOR].name == NULL)
+    load_class_list();
+  if (feat_list[FEAT_LAYHANDS].name == NULL)
+    assign_feats();
+  if (spell_info[SPELL_MAGE_ARMOR].name == NULL ||
+      spell_info[SPELL_MAGE_ARMOR].name == unused_spellname)
+    mag_assign_spells();
+  memset(f, 0, sizeof(*f));
+  begin_gameplay_fixture(&f->game);
+  ch = &f->game.actor;
+  REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
+  ch->player_specials = &f->specials;
+  ch->player.name = CuMutableString("defectplayer");
+  GET_PFILEPOS(ch) = -1;
+  GET_IDNUM(ch) = 4228;
+  GET_CLASS(ch) = CLASS_WARRIOR;
+  CLASS_LEVEL(ch, CLASS_WARRIOR) = 10;
+  f->descriptor.output = f->descriptor.small_outbuf;
+  f->descriptor.bufspace = SMALL_BUFSIZE - 1;
+  f->descriptor.character = ch;
+  f->descriptor.pProtocol = ProtocolCreate();
+  f->descriptor.connected = CON_PLAYING;
+  ch->desc = &f->descriptor;
+}
+
+static void reset_defect_output(struct defect_fixture *f)
+{
+  if (f->descriptor.large_outbuf != NULL)
+  {
+    free(f->descriptor.large_outbuf->text);
+    free(f->descriptor.large_outbuf);
+    f->descriptor.large_outbuf = NULL;
+    if (buf_largecount > 0)
+      buf_largecount--;
+  }
+  f->descriptor.small_outbuf[0] = '\0';
+  f->descriptor.output = f->descriptor.small_outbuf;
+  f->descriptor.bufptr = 0;
+  f->descriptor.bufspace = SMALL_BUFSIZE - 1;
+}
+
+static bool defect_output_has(struct defect_fixture *f, const char *text)
+{
+  return strstr(f->descriptor.output, text) != NULL;
+}
+
+static void end_defect_fixture(struct defect_fixture *f)
+{
+  reset_defect_output(f);
+  ProtocolDestroy(f->descriptor.pProtocol);
+  f->game.actor.desc = NULL;
+  end_gameplay_fixture(&f->game);
+}
+
+/** A strdup'd object that extract_obj() can free. */
+static struct obj_data *defect_object(const char *name, int type)
+{
+  struct obj_data *obj = create_obj();
+
+  obj->name = strdup(name);
+  obj->short_description = strdup(name);
+  obj->description = strdup(name);
+  GET_OBJ_TYPE(obj) = type;
+  GET_OBJ_BOUND_ID(obj) = NOBODY;
+  return obj;
+}
+
+/* An activated item cast its spell at level 0; it casts at the level set in OLC. */
+void Test_activate_casts_at_the_item_spell_level(CuTest *tc)
+{
+  struct defect_fixture f;
+  struct obj_data *amulet;
+  struct affected_type *af;
+  int duration = -1;
+
+  begin_defect_fixture(&f);
+  amulet = defect_object("amulet", ITEM_WORN);
+  amulet->activate_spell[ACT_SPELL_LEVEL] = 10;
+  amulet->activate_spell[ACT_SPELL_SPELLNUM] = SPELL_SENSE_LIFE;
+  amulet->activate_spell[ACT_SPELL_MAX_USES] = 2;
+  amulet->activate_spell[ACT_SPELL_CURRENT_USES] = 2;
+  equip_char(&f.game.actor, amulet, WEAR_NECK_1);
+  do_activate(&f.game.actor, " 'sense life'", 0, 0);
+  for (af = f.game.actor.affected; af != NULL; af = af->next)
+    if (af->spell == SPELL_SENSE_LIFE)
+      duration = af->duration;
+  extract_obj(unequip_char(&f.game.actor, WEAR_NECK_1));
+  end_defect_fixture(&f);
+
+  /* Sense life lasts 25 per caster level. */
+  CuAssertIntEquals(tc, 250, duration);
+}
+
+/* skill_check() returns 0 on a failure, never a negative number, so the Use Magic Device and
+ * Spellcraft gates in do_use never failed. A warrior with no ranks and a caster's weak charisma
+ * cannot use a wizard's wand or read a wizard's scroll; ranks in Use Magic Device work the wand, and
+ * a wizard reads the scroll. */
+void Test_use_checks_magic_device_before_class_magic(CuTest *tc)
+{
+  struct defect_fixture f;
+  struct char_data *ch;
+  struct obj_data *wand, *scroll;
+  bool wand_refused, wand_used_with_ranks, scroll_refused, scroll_read_by_wizard;
+
+  begin_defect_fixture(&f);
+  ch = &f.game.actor;
+  ch->real_abils.cha = ch->aff_abils.cha = 1;
+  ch->real_abils.intel = ch->aff_abils.intel = 1;
+  wand = defect_object("wand", ITEM_WAND);
+  GET_OBJ_VAL(wand, 0) = 5;
+  GET_OBJ_VAL(wand, 1) = 5;
+  GET_OBJ_VAL(wand, 2) = 5;
+  GET_OBJ_VAL(wand, 3) = SPELL_MAGE_ARMOR;
+  equip_char(ch, wand, WEAR_HOLD_1);
+  scroll = defect_object("scroll", ITEM_SCROLL);
+  GET_OBJ_VAL(scroll, 0) = 5;
+  GET_OBJ_VAL(scroll, 1) = SPELL_MAGE_ARMOR;
+  GET_OBJ_VAL(scroll, 2) = -1;
+  GET_OBJ_VAL(scroll, 3) = -1;
+  obj_to_char(scroll, ch);
+
+  do_use(ch, "wand", 0, SCMD_USE);
+  wand_refused = defect_output_has(&f, "You must be able to use arcane magic to use this wand.");
+  reset_defect_output(&f);
+  do_use(ch, "scroll", 0, SCMD_RECITE);
+  scroll_refused = defect_output_has(&f, "You are unable to decipher the magical writings!");
+
+  reset_defect_output(&f);
+  SET_ABILITY(ch, ABILITY_USE_MAGIC_DEVICE, 40);
+  do_use(ch, "wand", 0, SCMD_USE);
+  wand_used_with_ranks = !defect_output_has(&f, "You must be able to use arcane magic");
+  SET_ABILITY(ch, ABILITY_USE_MAGIC_DEVICE, 0);
+  reset_defect_output(&f);
+  CLASS_LEVEL(ch, CLASS_WIZARD) = 10;
+  do_use(ch, "scroll", 0, SCMD_RECITE);
+  scroll_read_by_wizard = !defect_output_has(&f, "unable to decipher");
+
+  if (GET_EQ(ch, WEAR_HOLD_1) != NULL)
+    extract_obj(unequip_char(ch, WEAR_HOLD_1));
+  while (ch->carrying != NULL)
+    extract_obj(ch->carrying);
+  end_defect_fixture(&f);
+
+  CuAssertTrue(tc, wand_refused);
+  CuAssertTrue(tc, scroll_refused);
+  CuAssertTrue(tc, wand_used_with_ranks);
+  CuAssertTrue(tc, scroll_read_by_wizard);
+}
+
+/* Handle animal set a DC past any roll for an animal at or above the handler's level and then
+ * overwrote it, so any animal could be tamed. */
+void Test_handle_animal_fails_for_an_animal_at_the_handler_level(CuTest *tc)
+{
+  struct defect_fixture f;
+  struct char_data *ch, *animal;
+  bool refused, charmed;
+
+  begin_defect_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  event_init();
+  ch = &f.game.actor;
+  animal = &f.game.victim;
+  GET_LEVEL(ch) = 10;
+  SET_ABILITY(ch, ABILITY_HANDLE_ANIMAL, 60);
+  GET_HIT(ch) = GET_MAX_HIT(ch) = 100000;
+  GET_REAL_RACE(animal) = RACE_TYPE_ANIMAL;
+  GET_LEVEL(animal) = 10;
+  animal->player.name = CuMutableString("wolf");
+  GET_ATTACK_QUEUE(ch) = create_attack_queue();
+  GET_ATTACK_QUEUE(animal) = create_attack_queue();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+
+  do_handleanimal(ch, "wolf", 0, 0);
+  refused = defect_output_has(&f, "You failed to properly train the animal");
+  charmed = AFF_FLAGGED(animal, AFF_CHARM) || animal->master == ch;
+
+  stop_fighting(ch);
+  stop_fighting(animal);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  free_attack_queue(GET_ATTACK_QUEUE(ch));
+  free_attack_queue(GET_ATTACK_QUEUE(animal));
+  GET_ATTACK_QUEUE(ch) = GET_ATTACK_QUEUE(animal) = NULL;
+  if (ch->events != NULL)
+    free_list(ch->events);
+  if (animal->events != NULL)
+    free_list(animal->events);
+  ch->events = animal->events = NULL;
+  end_defect_fixture(&f);
+
+  CuAssertTrue(tc, refused);
+  CuAssertTrue(tc, !charmed);
+}
+
+/* Curse of despair built its lesser -1 to hit for a successful save and returned before applying
+ * it. The victim here saves on anything but a natural 1. */
+void Test_curse_of_despair_applies_its_lesser_curse_on_a_save(CuTest *tc)
+{
+  struct defect_fixture f;
+  struct char_data *victim;
+  struct affected_type *af;
+  bool lesser = FALSE;
+  int attempt;
+
+  begin_defect_fixture(&f);
+  victim = &f.game.victim;
+  GET_REAL_SAVE(victim, SAVING_WILL) = 200;
+  affect_total(victim);
+  for (attempt = 0; attempt < 20 && !lesser; attempt++)
+  {
+    mag_affects(10, &f.game.actor, victim, NULL, WARLOCK_CURSE_OF_DESPAIR, SAVING_WILL, CAST_INNATE,
+                0);
+    for (af = victim->affected; af != NULL; af = af->next)
+      if (af->spell == WARLOCK_CURSE_OF_DESPAIR && af->location == APPLY_HITROLL &&
+          af->modifier == -1)
+        lesser = TRUE;
+  }
+  end_defect_fixture(&f);
+
+  CuAssertTrue(tc, lesser);
+}
+
+/* Cockatrice poison and weird always printed their stun messages, even on a victim that cannot be
+ * stunned. */
+void Test_weird_and_cockatrice_poison_name_a_stun_only_when_they_stun(CuTest *tc)
+{
+  struct defect_fixture f;
+  struct char_data *victim;
+  bool weird_withers, weird_stun_named, poison_sickens, poison_stun_named, stunned;
+
+  begin_defect_fixture(&f);
+  victim = &f.game.victim;
+  SET_BIT_AR(MOB_FLAGS(victim), MOB_NOPARALYZE);
+  GET_REAL_SAVE(victim, SAVING_FORT) = -200;
+  affect_total(victim);
+
+  mag_affects(10, &f.game.actor, victim, NULL, SPELL_WEIRD, SAVING_WILL, CAST_SPELL, 0);
+  weird_withers = defect_output_has(&f, "strength is withered");
+  weird_stun_named = defect_output_has(&f, "stunned by a terrible WEIRD");
+  reset_defect_output(&f);
+  mag_affects(10, &f.game.actor, victim, NULL, POISON_TYPE_COCKATRICE, SAVING_FORT, CAST_SPELL, 0);
+  poison_sickens = defect_output_has(&f, "gets violently ill");
+  poison_stun_named = defect_output_has(&f, "looks stunned");
+  stunned = AFF_FLAGGED(victim, AFF_STUN);
+  end_defect_fixture(&f);
+
+  CuAssertTrue(tc, weird_withers);
+  CuAssertTrue(tc, !weird_stun_named);
+  CuAssertTrue(tc, poison_sickens);
+  CuAssertTrue(tc, !poison_stun_named);
+  CuAssertTrue(tc, !stunned);
+}
+
+/* A mob confused by a player kept the experience for its kill, the same as any mob; it goes to the
+ * player who confused it when that player is in the room. */
+void Test_confused_mob_kill_credits_the_player_who_confused_it(CuTest *tc)
+{
+  struct defect_fixture f;
+  struct char_data *player, *confused, prey;
+  int saved_max_exp_gain = CONFIG_MAX_EXP_GAIN, saved_multiplier = CONFIG_EXPERIENCE_MULTIPLIER;
+  long start;
+  bool credited, reported;
+
+  begin_defect_fixture(&f);
+  player = &f.game.actor;
+  confused = &f.game.victim;
+  GET_LEVEL(player) = 12;
+  player->player_specials->saved.stage_info.current_stage = 1;
+  initialize_test_npc(&prey, "confused prey", 0);
+  GET_LEVEL(&prey) = 12;
+  GET_EXP(&prey) = 60;
+  confused->next_in_room = &prey;
+  confused->confuser_idnum = GET_IDNUM(player);
+  CONFIG_MAX_EXP_GAIN = 100000;
+  CONFIG_EXPERIENCE_MULTIPLIER = 100;
+  start = level_exp(player, GET_LEVEL(player));
+  GET_EXP(player) = start;
+
+  test_gain_kill_experience(confused, &prey);
+  credited = GET_EXP(player) > start;
+  reported = defect_output_has(&f, "You receive");
+
+  CONFIG_MAX_EXP_GAIN = saved_max_exp_gain;
+  CONFIG_EXPERIENCE_MULTIPLIER = saved_multiplier;
+  confused->next_in_room = NULL;
+  end_defect_fixture(&f);
+
+  CuAssertTrue(tc, credited);
+  CuAssertTrue(tc, reported);
+}
+
+/* The affects display showed the viewer's concussive onslaught rounds for the target's event. */
+void Test_affects_show_the_target_concussive_onslaught_rounds(CuTest *tc)
+{
+  struct defect_fixture f;
+  struct char_data *target;
+  int saved_rounds = dummy_mob.concussive_onslaught_duration;
+  bool shown;
+
+  begin_defect_fixture(&f);
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  target = &f.game.victim;
+  target->player_specials->concussive_onslaught_duration = 7;
+  attach_mud_event(new_mud_event(eCONCUSSIVEONSLAUGHT, target, NULL), 60);
+
+  perform_affects(&f.game.actor, target);
+  shown = defect_output_has(&f, "Duration: 7 rounds");
+
+  event_free_all();
+  if (target->events != NULL)
+    free_list(target->events);
+  target->events = NULL;
+  dummy_mob.concussive_onslaught_duration = saved_rounds;
+  end_defect_fixture(&f);
+
+  CuAssertTrue(tc, shown);
+}
+
+/* The favored enemy damage display showed ranger level / 5 + 2 and 4 for the epic feat, while the
+ * damage adds ranger level / 3 + 2 and 6. */
+void Test_favored_enemy_display_matches_its_damage(CuTest *tc)
+{
+  struct defect_fixture f;
+  struct char_data *ranger, *enemy;
+  bool level_bonus, epic_bonus;
+
+  begin_defect_fixture(&f);
+  ranger = &f.game.actor;
+  enemy = &f.game.victim;
+  CLASS_LEVEL(ranger, CLASS_RANGER) = 15;
+  SET_FEAT(ranger, FEAT_EPIC_FAVORED_ENEMY, 1);
+  GET_REAL_RACE(enemy) = RACE_TYPE_ANIMAL;
+  GET_FAVORED_ENEMY(ranger, 0) = RACE_TYPE_ANIMAL;
+
+  compute_damage_bonus(ranger, enemy, NULL, -1, 0, MODE_DISPLAY_PRIMARY, ATTACK_TYPE_PRIMARY);
+  level_bonus = defect_output_has(&f, "Favored enemy bonus: 7");
+  epic_bonus = defect_output_has(&f, "Epic favored enemy bonus: 6");
+  end_defect_fixture(&f);
+
+  CuAssertTrue(tc, level_bonus);
+  CuAssertTrue(tc, epic_bonus);
+}
+
+/* increase_skill() raised a skill without its own case silently. */
+void Test_increase_skill_announces_every_skill(CuTest *tc)
+{
+  struct defect_fixture f;
+  int tries;
+  bool raised = FALSE, announced;
+
+  begin_defect_fixture(&f);
+  SET_SKILL(&f.game.actor, SKILL_HEADBUTT, 50);
+  for (tries = 0; tries < 10000 && !raised; tries++)
+  {
+    increase_skill(&f.game.actor, SKILL_HEADBUTT);
+    raised = GET_SKILL(&f.game.actor, SKILL_HEADBUTT) != 50;
+  }
+  announced = defect_output_has(&f, "improve!");
+  end_defect_fixture(&f);
+
+  CuAssertTrue(tc, raised);
+  CuAssertTrue(tc, announced);
+}
+
+/* A script's ? object token found an object only if it lay in the room and in the actor's
+ * equipment, and then took the inventory match; it takes the first match of the room, the
+ * equipment, and the inventory. */
+void Test_script_object_token_names_a_carried_object(CuTest *tc)
+{
+  struct defect_fixture f;
+  struct obj_data *gem;
+  char text[] = "?gem glows.";
+  bool named;
+
+  begin_defect_fixture(&f);
+  gem = defect_object("gem", ITEM_TREASURE);
+  free(gem->short_description);
+  gem->short_description = strdup("a violet gem");
+  obj_to_char(gem, &f.game.actor);
+
+  sub_write(text, &f.game.actor, FALSE, TO_CHAR);
+  named = defect_output_has(&f, "violet gem glows.");
+
+  extract_obj(gem);
+  end_defect_fixture(&f);
+
+  CuAssertTrue(tc, named);
 }

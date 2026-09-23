@@ -2843,11 +2843,11 @@ void increase_skill(struct char_data *ch, int skillnum)
   default:
     if (!pass)
     {
+      notched = TRUE;
       GET_SKILL(ch, skillnum)
       ++;
     }
-    return;
-    ;
+    break;
   }
 
   if (notched)
@@ -7835,10 +7835,11 @@ bool pvp_ok_single(struct char_data *ch, bool display)
   return FALSE;
 }
 
-bool is_pc_idnum_in_room(struct char_data *ch, long int idnum)
+/* The player other than ch in ch's room whose id is idnum, or NULL. */
+struct char_data *find_pc_idnum_in_room(struct char_data *ch, long int idnum)
 {
   if (!ch)
-    return false;
+    return NULL;
 
   struct char_data *tch = NULL;
 
@@ -7849,9 +7850,9 @@ bool is_pc_idnum_in_room(struct char_data *ch, long int idnum)
     if (IS_NPC(tch))
       continue;
     if (GET_IDNUM(tch) == idnum)
-      return true;
+      return tch;
   }
-  return false;
+  return NULL;
 }
 
 int find_ability_num_by_name(char *name)
