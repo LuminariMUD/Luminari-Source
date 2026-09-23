@@ -116,8 +116,8 @@ int materials_sort_info[NUM_CRAFT_MATS];
 
 #define SUPPLY_ORDER_NOARG1                                                                        \
   "Please specify what supply order action you'd like to take.\r\n"                                \
-  "supplyorder list       : Show supply order information and your artisan points.\r\n"            \
-  "supplyorder select <id>: Select a specific contract by ID number.\r\n"                          \
+  "supplyorder list       : Show the open offers, numbered, and your artisan points.\r\n"          \
+  "supplyorder select <id>: Take a listed offer by its number.\r\n"                                \
   "supplyorder request    : Request a random supply order project.\r\n"                            \
   "supplyorder show       : Show information on current supply order project.\r\n"                 \
   "supplyorder start      : Begin working on your supply order.\r\n"                               \
@@ -168,7 +168,7 @@ int materials_sort_info[NUM_CRAFT_MATS];
 
 // Contract generation functions - structure defined in crafting_new.h
 int select_contract_by_id(struct char_data *ch, int contract_id);
-int reject_contract_by_id(struct char_data *ch, int contract_id);
+static bool supply_contract_is_orderable(const struct supply_contract *contract);
 
 
 static bool start_craft_activity(struct char_data *ch, int method, int seconds);
@@ -8870,13 +8870,73 @@ bool player_has_supply_order(struct char_data *ch)
   return FALSE;
 }
 
+/* The name and color a supply contract type is shown with. */
+static const char *supply_contract_type_name(int contract_type, const char **color)
+{
+  switch (contract_type)
+  {
+  case SUPPLY_CONTRACT_RUSH:
+    *color = "\ty";
+    return "Rush";
+  case SUPPLY_CONTRACT_BULK:
+    *color = "\tb";
+    return "Bulk";
+  case SUPPLY_CONTRACT_QUALITY:
+    *color = "\tm";
+    return "Quality";
+  case SUPPLY_CONTRACT_PRESTIGE:
+    *color = "\tM";
+    return "Prestige";
+  case SUPPLY_CONTRACT_EVENT:
+    *color = "\tR";
+    return "Event";
+  default:
+    *color = "\tc";
+    return "Basic";
+  }
+}
+
+/* supplyorder list: the active offers, numbered as supplyorder select takes them. It refreshes the
+ * offer slots the way select does, so the numbers agree. */
 void show_available_contracts(struct char_data *ch)
 {
-  send_to_char(ch, "\r\n\tgSupply Order System:\tn\r\n");
+  struct supply_contract *contracts;
+  const char *type_name, *type_color;
+  int num_contracts = 0, i;
+
+  contracts = generate_available_contracts(ch, &num_contracts);
+
+  send_to_char(ch, "\r\n\tgSupply Order Offers:\tn\r\n");
   send_to_char(ch, "\tW=====================================\tn\r\n");
-  send_to_char(ch, "Use '\tCsupplyorder request\tn' to get a new supply order.\r\n");
-  send_to_char(ch, "Complete supply orders to earn \tCartisan points\tn!\r\n");
-  send_to_char(ch, "\r\nYou currently have \tC%d artisan points\tn.\r\n", GET_ARTISAN_EXP(ch));
+  if (num_contracts == 0)
+    send_to_char(ch, "No offers are open. Each taken offer's slot opens again an hour later.\r\n");
+  for (i = 0; i < num_contracts; i++)
+  {
+    type_name = supply_contract_type_name(contracts[i].contract_type, &type_color);
+    send_to_char(ch, "\tW%d)\tn %s%s\tn: %s\r\n", contracts[i].contract_id, type_color, type_name,
+                 contracts[i].description ? contracts[i].description : "an unnamed order");
+    send_to_char(ch, "   Requires: %s\r\n",
+                 contracts[i].requirements ? contracts[i].requirements : "standard materials");
+    if (contracts[i].quality_tier_requirement > QUALITY_TIER_STANDARD)
+      send_to_char(ch, "   Materials: grade %d or better only\r\n",
+                   contracts[i].quality_tier_requirement + 1);
+    if (contracts[i].time_limit > 0)
+      send_to_char(ch, "   Time limit: %d hour%s\r\n", contracts[i].time_limit,
+                   contracts[i].time_limit == 1 ? "" : "s");
+    else
+      send_to_char(ch, "   Time limit: none\r\n");
+    send_to_char(ch,
+                 "   Pays: %d artisan points, plus gold and bonus experience set by your "
+                 "materials and skill\r\n",
+                 contracts[i].quantity * 10);
+    if (!supply_contract_is_orderable(&contracts[i]))
+      send_to_char(ch, "   \tRThis offer cannot be taken; the next refresh replaces it.\tn\r\n");
+  }
+  free_contract_list(contracts, num_contracts);
+
+  send_to_char(ch, "\r\nUse '\tCsupplyorder select <number>\tn' to take an offer, or "
+                   "'\tCsupplyorder request\tn' for a random one.\r\n");
+  send_to_char(ch, "You currently have \tC%d artisan points\tn.\r\n", GET_ARTISAN_EXP(ch));
   send_to_char(ch, "(Artisan points will be usable for special rewards in the future)\r\n\r\n");
 }
 
@@ -9886,37 +9946,15 @@ int select_contract_by_id(struct char_data *ch, int contract_id)
   GET_CRAFT(ch).supply_quality_tier_requirement = contract->quality_tier_requirement;
   // Note: No longer setting expiration time as per user request
 
-  const char *type_name = "Basic";
-  const char *type_color = "\tc";
-  switch (contract->contract_type)
-  {
-  case SUPPLY_CONTRACT_RUSH:
-    type_name = "Rush";
-    type_color = "\ty";
-    break;
-  case SUPPLY_CONTRACT_BULK:
-    type_name = "Bulk";
-    type_color = "\tb";
-    break;
-  case SUPPLY_CONTRACT_QUALITY:
-    type_name = "Quality";
-    type_color = "\tm";
-    break;
-  case SUPPLY_CONTRACT_PRESTIGE:
-    type_name = "Prestige";
-    type_color = "\tM";
-    break;
-  case SUPPLY_CONTRACT_EVENT:
-    type_name = "Event";
-    type_color = "\tR";
-    break;
-  default:
-    break;
-  }
+  const char *type_color;
+  const char *type_name = supply_contract_type_name(contract->contract_type, &type_color);
 
   send_to_char(ch, "You've accepted the %s%s\tn contract to %s.\r\n", type_color, type_name,
                contract->description);
-  send_to_char(ch, "Reward upon completion: %d experience points.\r\n", contract->reward);
+  send_to_char(ch,
+               "Reward upon completion: %d artisan points, plus gold and bonus experience set by "
+               "your materials and skill.\r\n",
+               contract->quantity * 10);
   send_to_char(ch, "This contract slot will refresh in 1 hour.\r\n");
 
   if (contract->quality_tier_requirement > QUALITY_TIER_STANDARD)
@@ -9927,84 +9965,6 @@ int select_contract_by_id(struct char_data *ch, int contract_id)
   // Award reputation points for accepting challenging contracts
   int rep_bonus = contract->contract_type * 2;
   add_reputation_points(ch, rep_bonus);
-
-  free_contract_list(contracts, num_contracts);
-  return 1; // Success
-}
-
-int reject_contract_by_id(struct char_data *ch, int contract_id)
-{
-  int num_contracts = 0;
-  struct supply_contract *contracts = generate_available_contracts(ch, &num_contracts);
-
-  if (!contracts || contract_id < 1 || contract_id > num_contracts)
-  {
-    if (contracts)
-    {
-      free_contract_list(contracts, num_contracts);
-    }
-    send_to_char(ch, "Invalid contract selection.\r\n");
-    return 0; // Invalid contract
-  }
-
-  struct supply_contract *contract = &contracts[contract_id - 1];
-
-  // Find which slot this contract corresponds to and deactivate it
-  int slot_found = -1;
-  int i;
-  for (i = 0; i < 5; i++)
-  {
-    if (GET_CRAFT(ch).supply_slot_active[i] &&
-        GET_CRAFT(ch).supply_slots[i].recipe == contract->recipe &&
-        GET_CRAFT(ch).supply_slots[i].variant == contract->variant &&
-        GET_CRAFT(ch).supply_slots[i].contract_type == contract->contract_type)
-    {
-      slot_found = i;
-      break;
-    }
-  }
-
-  if (slot_found == -1)
-  {
-    send_to_char(ch, "Error: Could not find the corresponding contract slot.\r\n");
-    free_contract_list(contracts, num_contracts);
-    return 0;
-  }
-
-  // Deactivate the slot
-  GET_CRAFT(ch).supply_slot_active[slot_found] = FALSE;
-
-  const char *type_name = "Basic";
-  const char *type_color = "\tc";
-  switch (contract->contract_type)
-  {
-  case SUPPLY_CONTRACT_RUSH:
-    type_name = "Rush";
-    type_color = "\ty";
-    break;
-  case SUPPLY_CONTRACT_BULK:
-    type_name = "Bulk";
-    type_color = "\tb";
-    break;
-  case SUPPLY_CONTRACT_QUALITY:
-    type_name = "Quality";
-    type_color = "\tm";
-    break;
-  case SUPPLY_CONTRACT_PRESTIGE:
-    type_name = "Prestige";
-    type_color = "\tM";
-    break;
-  case SUPPLY_CONTRACT_EVENT:
-    type_name = "Event";
-    type_color = "\tR";
-    break;
-  default:
-    break;
-  }
-
-  send_to_char(ch, "You've rejected the %s%s\tn contract for %s.\r\n", type_color, type_name,
-               contract->description);
-  send_to_char(ch, "This slot will refresh after 1 hour of online time.\r\n");
 
   free_contract_list(contracts, num_contracts);
   return 1; // Success
