@@ -24,6 +24,7 @@
 #include "../../src/craft/craft.h"
 #include "../../src/craft/craft_training.h"
 #include "../../src/craft/crafting_new.h"
+#include "../../src/craft/crafting_recipes.h"
 #include "../../src/wilderness/resource_system.h"
 #include "../../src/database/mysql.h"
 #include "../../src/dgscript/dg_event.h"
@@ -40,6 +41,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -1736,6 +1738,62 @@ void Test_craft_training_copyover_drops_a_character_leaving_to_train(CuTest *tc)
 
   CuAssertTrue(tc, before);
   CuAssertTrue(tc, !leaving);
+}
+
+/* Losing the link cleared the supply offers before the save (issue 220): a player who listed
+ * offers and closed the client came back to none until the hourly refresh. */
+void Test_lost_link_saves_the_supply_offers(CuTest *tc)
+{
+  struct craft_trainer_fixture fixture;
+  struct descriptor_data *d, *saved_descriptors = descriptor_list;
+  struct char_data *loaded;
+  int sockets[2] = {-1, -1}, i, listed = 0, kept = 0, saved = 0, result = -1;
+  bool paired, linkless = FALSE;
+
+  if (crafting_recipes[CRAFT_RECIPE_WEAPON_LONG_SWORD].object_type != ITEM_WEAPON)
+    populate_crafting_recipes();
+  craft_trainer_begin(tc, &fixture, "crlink", 4324);
+  show_available_contracts(fixture.player);
+  for (i = 0; i < 5; i++)
+    if (GET_CRAFT(fixture.player).supply_slot_active[i])
+      listed++;
+
+  /* close_socket() frees its descriptor, so the player gets one of its own. */
+  paired = socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == 0;
+  if (paired)
+  {
+    CREATE(d, struct descriptor_data, 1);
+    d->descriptor = sockets[0];
+    d->output = d->small_outbuf;
+    d->bufspace = SMALL_BUFSIZE - 1;
+    d->pProtocol = ProtocolCreate();
+    STATE(d) = CON_PLAYING;
+    d->character = fixture.player;
+    fixture.player->desc = d;
+    fixture.descriptor.character = NULL;
+    descriptor_list = d;
+    close_socket(d);
+    close(sockets[1]);
+    linkless = fixture.player->desc == NULL && descriptor_list == NULL;
+    for (i = 0; i < 5; i++)
+      if (GET_CRAFT(fixture.player).supply_slot_active[i])
+        kept++;
+    loaded = new_char();
+    result = load_char(fixture.files.name, loaded);
+    for (i = 0; i < 5; i++)
+      if (GET_CRAFT(loaded).supply_slot_active[i])
+        saved++;
+    free_char(loaded);
+  }
+  descriptor_list = saved_descriptors;
+  CuAssertIntEquals(tc, 0, craft_trainer_end(&fixture));
+
+  CuAssertTrue(tc, paired);
+  CuAssertTrue(tc, listed > 0);
+  CuAssertTrue(tc, linkless);
+  CuAssertIntEquals(tc, listed, kept);
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, listed, saved);
 }
 
 /** A connection at the account menu whose account lists one isolated player file. */
