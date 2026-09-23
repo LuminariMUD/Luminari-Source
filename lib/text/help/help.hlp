@@ -1239,12 +1239,13 @@ Overlapping quarter-reduction wards do not multiply their protection.
 
 See also: AREA SPELLS, GROUP, NATURES-BLESSING
 #0
-ANIMAL-COMPANION FAERIE-DRAGON SNOW-LEOPARD
+ANIMAL-COMPANION COMPANION-LEVEL FAERIE-DRAGON LEVEL-COMPANIONS SNOW-LEOPARD
 
 Usage:  call companion
 
 Call companion calls your loyal animal companion to assist you. You first have
-to select its type with the study command.
+to select its type with the study command. Its level is your druid level plus
+your ranger levels above 3, five more with Boon Companion, and at most 20.
 
 A Ranger 4/Warrior 1 multiclass character with Animal Companion can select a
 dire wolf. The dire wolf uses the normal animal-companion level, Boon Companion,
@@ -17189,7 +17190,7 @@ stored in your house.
 
 See also:  HOUSES
 #0
-HOUSE-BUILD
+HOUSE-BUILD HOUSE-VENDOR
 
 House build requests must be made through Staff, either by MUDmail or direct
 contact, and include name of player and three desired locations.  Should all
@@ -17203,7 +17204,9 @@ anything is dropped within the room in order for the item to be reloaded after
 quit, copyover, or crash.  Failure to do so will result in loss of items and
 staff will be unable to recompense player.
 
-Current House Price:  See House Vendor
+Current House Price:  ask the house vendor, Sazzy the real estate agent in the
+Real Estate Office of Sanctus III. LIST there shows the deeds and building
+permits for sale and their prices.
 
 The price includes up to 99 guests, an atrium room and the 'treasury' room.
 You can add additional rooms with a permit from the vendor.
@@ -27888,7 +27891,7 @@ corpses.
 
 See also: COLLECT, COMBAT, RELOAD, THROW, THROWN-WEAPONS
 #0
-CLASS-RANGER RANGER RANGER-SPELL RANGER-SPELLLIST RANGER-SPELLS SPELLLIST-RANGER SPELLS-RANGER
+CLASS-RANGER RANGER RANGER-ABILITIES RANGER-SPELL RANGER-SPELLLIST RANGER-SPELLS SPELLLIST-RANGER SPELLS-RANGER
 
 	A-----------------------------------------------------------------	n
 	A>Description:	n
@@ -27927,7 +27930,7 @@ each additional level	n
 	WMedium Armor	n
 	WShields	n
 	n
-	YSee also:	n CLASSES SPELLS ADJURE
+	YSee also:	n CLASSES SPELLS ADJURE ANIMAL-COMPANION
 	n
 #0
 RANK
@@ -34986,7 +34989,7 @@ as certain skills (rage) and items (twilight) that can
 increase your cap further.
 .
 #0
-ATTRIBUTES CHARISMA CONSTITUTION DEXTERITY INTELLIGENCE STATISTICS STATS STRENGTH WISDOM
+ATTRIBUTES CHARISMA CONSTITUTION DEXTERITY INTELLIGENCE POINT-BUY STATISTICS STATS STRENGTH WISDOM
 
 	n
 Statistics (Stats)- How your character measures up mentally and physically.
@@ -35005,6 +35008,14 @@ Strength     - Determines accuracy and damage with melee weapons.  Affects how
                much weight you can carry.
 Intelligence - Affects how many abilities you can train per level.  Grants
                bonus spells for certain arcane classes.
+
+BUYING STARTING SCORES
+A level 1 character buys its six base scores in STUDY. Each starts at 8 and
+can be raised by up to 10; raising it by 1 through 10 costs 1, 2, 3, 4, 5, 6,
+8, 10, 13, and 16 points in total. Humans have 34 points, half-elves 32, and
+everyone else 30, and all of them must be spent. Racial and age modifiers apply
+on top. Premade builds set the scores for you, and RESPEC starts a character
+over.
 	n   
 	YSee also:	n 	Rhitroll, damroll, armor-class, bonus-stat-cap, dexterity-bonus	n
 	n
