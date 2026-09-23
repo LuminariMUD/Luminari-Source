@@ -10431,7 +10431,7 @@ void newcraft_show_tools(struct char_data *ch, const char *argument __attribute_
     if (tool != NULL)
     {
       snprintf(bonus_string, sizeof(bonus_string), "+%d", MAX(0, GET_OBJ_VAL(tool, 1)));
-      snprintf(where_string, sizeof(where_string), "%s", wear_where[tool->worn_on]);
+      snprintf(where_string, sizeof(where_string), "%s", wear_where[crafting_tool_slot(ability)]);
       strip_colors(where_string);
       send_to_char(ch, "%-20s %-22s %3s \tc%-15s\tn\r\n", ability_names[ability], where_string,
                    bonus_string,
