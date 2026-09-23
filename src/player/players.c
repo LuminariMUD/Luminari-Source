@@ -2173,18 +2173,17 @@ int load_char(const char *name, struct char_data *ch)
           GET_TRAINS(ch) = parse_int(line);
         else if (!strcmp(tag, "Todo"))
         {
-          CREATE(GET_TODO(ch), struct txt_block, 1);
-          struct txt_block *tmp = GET_TODO(ch);
+          struct txt_block **next = &GET_TODO(ch);
 
-          /* One entry per line, ended by ~ or the end of the file. */
+          /* One entry per line, ended by ~ or the end of the file. A node is made only for a line
+           * read, so an empty list stays NULL. */
+          while (*next != NULL)
+            next = &(*next)->next;
           while (get_line(fl, line) && *line != '~')
           {
-            if (tmp->text != NULL)
-            {
-              CREATE(tmp->next, struct txt_block, 1);
-              tmp = tmp->next;
-            }
-            tmp->text = strdup(line);
+            CREATE(*next, struct txt_block, 1);
+            (*next)->text = strdup(line);
+            next = &(*next)->next;
           }
         }
         break;
