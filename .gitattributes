@@ -78,6 +78,7 @@ lib/text/help/help.hlp text eol=lf -whitespace
 data/**/*.obj text eol=lf
 data/harvest-tools/*.obj text eol=lf diff merge
 data/supply-orders/*.obj text eol=lf diff merge
+data/crafting-tools/*.obj text eol=lf diff merge
 lib/world/**/*.obj text eol=lf
 scripts/world/tests/fixtures/**/*.obj text eol=lf
 unittests/CuTest/fixtures/**/*.obj text eol=lf

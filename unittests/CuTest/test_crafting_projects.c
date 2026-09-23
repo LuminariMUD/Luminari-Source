@@ -28,6 +28,7 @@
 #include "../../src/events/mud_event.h"
 #include "../../src/magic/spells.h"
 #include "../../src/net/protocol.h"
+#include "../../src/obj/shop.h"
 #include "../../src/obj/treasure.h"
 
 #include <string.h>
@@ -117,6 +118,8 @@ static void craft_project_begin(struct craft_project_fixture *f)
   SET_OBJ_FLAG(&f->forge, ITEM_CRAFTING_FORGE);
   IN_ROOM(&f->forge) = 0;
   clear_object(&f->hammer);
+  GET_OBJ_TYPE(&f->hammer) = ITEM_CRAFTING_TOOL;
+  GET_OBJ_VAL(&f->hammer, 0) = ABILITY_CRAFT_WEAPONSMITHING;
 
   /* Instances share the prototype strings, which free_obj() leaves alone. The index is sorted
    * by vnum for real_object(). */
@@ -1015,6 +1018,178 @@ void Test_supply_order_list_shows_the_offers_select_takes(CuTest *tc)
   CuAssertTrue(tc, termed);
   CuAssertTrue(tc, taken);
   CuAssertTrue(tc, same_offer);
+}
+
+/** Free what parse_object() allocated for one prototype. */
+static void craft_project_free_parsed_prototype(struct obj_data *proto)
+{
+  struct extra_descr_data *extra;
+
+  free(proto->name);
+  free(proto->short_description);
+  free(proto->description);
+  free(proto->action_description);
+  while ((extra = proto->ex_description) != NULL)
+  {
+    proto->ex_description = extra->next;
+    free(extra->keyword);
+    free(extra->description);
+    free(extra);
+  }
+}
+
+/* No object a player could get fit a crafting tool slot, so only woodworking projects could start
+ * (issue 219). The sewing needle shipped in data/crafting-tools, loaded as the world loader does,
+ * bought from its shop and worn, lets a tailoring project start and complete, and craft tools lists
+ * the tool the project uses. */
+void Test_bought_crafting_tool_lets_a_tailoring_project_start_and_complete(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch, keeper;
+  struct obj_data protos[3], *stock, *needle, *made, *obj;
+  struct index_data indexes[3];
+  struct shop_data shop, *saved_shops = shop_index;
+  struct primary_activity_snapshot snapshot;
+  int saved_top_shop = top_shop, buy_cmd, seconds;
+  obj_vnum products[2];
+  room_vnum shop_rooms[2];
+  char path[PATH_MAX], line[READ_SIZE], buy_argument[] = "needle";
+  bool parsed = false, sorted, bought, wrong_tool_refused, worn, listed, started, completed;
+  FILE *file;
+
+  craft_project_begin(&f);
+  craft_project_start_events();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  if (complete_cmd_info == NULL)
+    create_command_list();
+
+  /* The shipped record, then the fixture's weapon and bundle prototypes, in vnum order. */
+  world_loader_reset_for_test();
+  top_of_world = 0;
+  top_of_zone_table = 0;
+  memset(protos, 0, sizeof(protos));
+  memset(indexes, 0, sizeof(indexes));
+  obj_proto = protos;
+  obj_index = indexes;
+  snprintf(path, sizeof(path), "%s/data/crafting-tools/3.obj",
+           getenv("LUMINARI_TEST_ROOT") != NULL ? getenv("LUMINARI_TEST_ROOT") : ".");
+  file = fopen(path, "r");
+  if (file != NULL)
+  {
+    parsed = get_line(file, line) && !strcmp(line, "#391");
+    if (parsed)
+      parse_object(file, 391);
+    fclose(file);
+  }
+  protos[1] = f.object_proto[0];
+  indexes[1] = f.object_index[0];
+  protos[2] = f.object_proto[1];
+  indexes[2] = f.object_index[1];
+  protos[1].item_number = 1;
+  protos[2].item_number = 2;
+  top_of_objt = 2;
+  sorted = indexes[0].vnum < indexes[1].vnum && indexes[1].vnum < indexes[2].vnum;
+  f.zone.top = MAX(f.zone.top, 391);
+
+  /* Jufus's shop sells the tools it produces. */
+  clear_char(&keeper);
+  SET_BIT_AR(MOB_FLAGS(&keeper), MOB_ISNPC);
+  keeper.player_specials = &dummy_mob;
+  keeper.player.short_descr = CuMutableString("Jufus the materials vendor");
+  keeper.nr = 0;
+  GET_POS(&keeper) = POS_STANDING;
+  IN_ROOM(&keeper) = 0;
+  f.ch.next_in_room = &keeper;
+  stock = read_object(0, REAL);
+  if (stock != NULL)
+    obj_to_char(stock, &keeper);
+  memset(&shop, 0, sizeof(shop));
+  products[0] = 0;
+  products[1] = NOTHING;
+  shop_rooms[0] = f.room.number;
+  shop_rooms[1] = NOWHERE;
+  shop.keeper = 0;
+  shop.in_room = shop_rooms;
+  shop.producing = products;
+  shop.profit_buy = 1.0;
+  shop.close1 = 24;
+  shop.lastsort = 1;
+  shop_index = &shop;
+  top_shop = 0;
+  GET_GOLD(ch) = 1000;
+  GET_REAL_SIZE(ch) = ch->points.size = SIZE_MEDIUM;
+  buy_cmd = find_command("buy");
+  shop_keeper(ch, &keeper, buy_cmd, buy_argument);
+  needle = ch->carrying;
+  bought = needle != NULL && GET_OBJ_VNUM(needle) == 391 && GET_GOLD(ch) < 1000;
+
+  /* A sling is a tailoring recipe; the fixture's forge serves as its loom too. */
+  SET_OBJ_FLAG(&f.forge, ITEM_CRAFTING_LOOM);
+  SET_ABILITY(ch, ABILITY_CRAFT_TAILORING, 40);
+  GET_CRAFT(ch).crafting_item_type = CRAFT_TYPE_WEAPON;
+  GET_CRAFT(ch).crafting_specific = WEAPON_TYPE_SLING;
+  GET_CRAFT(ch).crafting_recipe = CRAFT_RECIPE_WEAPON_SLING;
+  GET_CRAFT(ch).craft_variant = 0;
+  GET_CRAFT(ch).keywords = strdup("hemp sling");
+  GET_CRAFT(ch).short_description = strdup("a hemp sling");
+  GET_CRAFT(ch).room_description = strdup("A hemp sling lies here.");
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][0] = CRAFT_MAT_LOW_GRADE_HIDE;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_HIDES][1] = 3;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_CLOTH][0] = CRAFT_MAT_HEMP;
+  GET_CRAFT(ch).materials[CRAFT_GROUP_CLOTH][1] = 1;
+
+  /* Another object in the needle slot is not a sewing needle: craft tools and the project agree. */
+  GET_EQ(ch, WEAR_CRAFT_NEEDLE) = &f.hammer;
+  craft_project_reset_output(&f);
+  newcraft_create(ch, "start");
+  wrong_tool_refused = craft_project_output_has(&f, "not wearing the proper tool") &&
+                       !primary_activity_snapshot(ch, &snapshot) &&
+                       worn_crafting_tool(ch, ABILITY_CRAFT_TAILORING) == NULL;
+  GET_EQ(ch, WEAR_CRAFT_NEEDLE) = NULL;
+
+  do_wear(ch, "needle", 0, 0);
+  worn = needle != NULL && GET_EQ(ch, WEAR_CRAFT_NEEDLE) == needle &&
+         worn_crafting_tool(ch, ABILITY_CRAFT_TAILORING) == needle;
+  craft_project_reset_output(&f);
+  newcraft_show_tools(ch, "");
+  listed = craft_project_output_has(&f, "a tailor's sewing needle");
+
+  newcraft_create(ch, "start");
+  started = primary_activity_snapshot(ch, &snapshot) && snapshot.type == PRIMARY_ACTIVITY_CRAFT;
+  for (seconds = 0; seconds < 600 && primary_activity_snapshot(ch, &snapshot); seconds++)
+    craft_project_advance_seconds(1);
+  made = NULL;
+  for (obj = ch->carrying; obj != NULL; obj = obj->next_content)
+    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+      made = obj;
+  completed = made != NULL && !primary_activity_snapshot(ch, &snapshot);
+
+  if (GET_EQ(ch, WEAR_CRAFT_NEEDLE) != NULL)
+    extract_obj(unequip_char(ch, WEAR_CRAFT_NEEDLE));
+  while (keeper.carrying != NULL)
+    extract_obj(keeper.carrying);
+  f.ch.next_in_room = NULL;
+  shop_index = saved_shops;
+  top_shop = saved_top_shop;
+  while (ch->carrying != NULL)
+    extract_obj(ch->carrying);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  if (parsed)
+    craft_project_free_parsed_prototype(&protos[0]);
+  obj_proto = f.object_proto;
+  obj_index = f.object_index;
+  top_of_objt = 1;
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, parsed);
+  CuAssertTrue(tc, sorted);
+  CuAssertTrue(tc, bought);
+  CuAssertTrue(tc, wrong_tool_refused);
+  CuAssertTrue(tc, worn);
+  CuAssertTrue(tc, listed);
+  CuAssertTrue(tc, started);
+  CuAssertTrue(tc, completed);
 }
 
 void Test_supply_order_mobile_runs_every_supplyorder_subcommand(CuTest *tc)

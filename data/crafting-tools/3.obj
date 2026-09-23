@@ -1,0 +1,121 @@
+#391
+sewing needle tool tailoring~
+a tailor's sewing needle~
+A long steel sewing needle lies here, threaded with waxed cord.~
+~
+57 0 0 0 0 aF 0 0 0 0 0 0 0
+35 0 100 0 0 0 0 0 0 0 0 0 0 0 0 0
+1 100 0 1 0
+E
+sewing needle tool tailoring~
+A long steel needle with a wide eye, threaded with a length of waxed cord
+that will pull through leather as readily as cloth.
+
+Wear it to hold it in your sewing needle tool slot. Tailoring projects
+need it there, and CRAFT TOOLS lists it once it is worn.
+~
+G
+0
+H
+7
+I
+3
+J
+0
+#392
+armorsmith hammer tool armorsmithing~
+an armorsmith's hammer~
+A broad-faced armorsmith's hammer lies here.~
+~
+57 0 0 0 0 aD 0 0 0 0 0 0 0
+37 0 100 0 0 0 0 0 0 0 0 0 0 0 0 0
+3 200 0 1 0
+E
+armorsmith hammer tool armorsmithing~
+A heavy iron hammer with a broad, slightly domed face for beating plates
+into shape and a narrow peen for setting rivets.
+
+Wear it to hold it in your armorsmith's hammer tool slot. Armorsmithing
+projects need it there, and CRAFT TOOLS lists it once it is worn.
+~
+G
+0
+H
+14
+I
+3
+J
+0
+#393
+weaponsmith hammer tool weaponsmithing~
+a weaponsmith's hammer~
+A well-balanced weaponsmith's hammer lies here.~
+~
+57 0 0 0 0 a a 0 0 0 0 0 0
+38 0 100 0 0 0 0 0 0 0 0 0 0 0 0 0
+3 200 0 1 0
+E
+weaponsmith hammer tool weaponsmithing~
+A balanced iron hammer with a flat face and a cross peen, made for drawing
+out blades and shaping heads on the anvil.
+
+Wear it to hold it in your weaponsmith's hammer tool slot. Weaponsmithing
+projects need it there, and CRAFT TOOLS lists it once it is worn.
+~
+G
+0
+H
+14
+I
+3
+J
+0
+#394
+jeweler pliers tool jewelcrafting~
+a pair of jeweler's pliers~
+A pair of fine-nosed jeweler's pliers lies here.~
+~
+57 0 0 0 0 aE 0 0 0 0 0 0 0
+40 0 100 0 0 0 0 0 0 0 0 0 0 0 0 0
+1 150 0 1 0
+E
+jeweler pliers tool jewelcrafting~
+Slender steel pliers with fine, smooth jaws for bending wire and seating
+stones without marring them.
+
+Wear them to hold them in your jeweler's pliers tool slot. Jewelcrafting
+projects need them there, and CRAFT TOOLS lists them once they are worn.
+~
+G
+0
+H
+7
+I
+3
+J
+0
+#395
+alchemy set alchemist kit tool~
+an alchemy set~
+A leather case holding an alchemy set lies here.~
+~
+57 0 0 0 0 aC 0 0 0 0 0 0 0
+36 0 100 0 0 0 0 0 0 0 0 0 0 0 0 0
+5 250 0 1 0
+E
+alchemy set alchemist kit tool~
+A padded leather case holds glass vials, a small alembic, a mortar and
+pestle, and a spirit burner, each in its own fitted pocket.
+
+Wear it to hold it in your alchemy set tool slot. Alchemy projects need
+it there, and CRAFT TOOLS lists it once it is worn.
+~
+G
+0
+H
+3
+I
+3
+J
+0
+$~

@@ -411,6 +411,7 @@ int get_craft_wear_loc(struct char_data *ch);
 int recipe_skill_to_actual_crafting_skill(int recipe_skill);
 bool has_proper_harvesting_tool_equipped(struct char_data *ch);
 bool is_wearing_tool_for_crafting_ability(struct char_data *ch, int ability);
+struct obj_data *worn_crafting_tool(struct char_data *ch, int skill);
 bool is_crafting_skill_in_game(int skill);
 void show_harvesting_tool_needed(struct char_data *ch);
 

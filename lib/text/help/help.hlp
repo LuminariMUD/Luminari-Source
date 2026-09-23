@@ -8128,6 +8128,14 @@ sets the project's crafting skill, which decides the tool, the crafting
 station, talents, the roll, and experience. START refuses a project whose DC no
 roll can reach; rapid talents shorten the work.
 
+TOOLS
+Every equipment project except woodworking needs its skill's crafting tool,
+worn in that skill's tool slot: a sewing needle for tailoring, an armorsmith's
+or a weaponsmith's hammer, jeweler's pliers, or an alchemy set. Jufus the
+materials vendor sells all five in the Supply Materials Shop of the Sanctus III
+crafting district, north of the Slanting Passageway. WEAR the tool, and CRAFT
+TOOLS shows it. Supply orders need no tool.
+
 OTHER WAYS TO MAKE THINGS
   craft mold [check | <description>]   authored molds, through a carried
                                         CRAFTING-KIT (see CREATE)
@@ -8229,9 +8237,12 @@ destroys an eligible carried item for gold and possible materials and motes;
 if a balance cannot hold the result the item is not salvaged.
 
 TOOLS
-CRAFT TOOLS lists equipped ITEM_CRAFTING_TOOL objects whose value 0 matches a
-crafting ability; woodworking has no row. Harvest tools are separate: see
-HARVEST-TOOLS.
+CRAFT TOOLS lists the crafting tool worn in each skill's tool slot, the tool a
+project of that skill needs. A crafting tool for another skill, or any other
+object, in the slot does not count. Woodworking needs no tool and has no row.
+Jufus the materials vendor sells the sewing needle, the armorsmith's and
+weaponsmith's hammers, jeweler's pliers, and an alchemy set in the Sanctus III
+crafting district. Harvest tools are separate: see HARVEST-TOOLS.
 
 Enhancement and object bonuses are funded with motes. MOTES lists mote types and
 the bonuses associated with a selected type.
@@ -8259,8 +8270,10 @@ permanent fixture in a crafting hall.
   woodworking        a carpentry table
 
 If you try to craft without the station you are told which one the item
-needs. Some skills need no station at all. You still need the proper tool
-equipped and the materials on hand.
+needs. Some skills need no station at all. You also need the materials on
+hand and, for every skill but woodworking, the skill's crafting tool worn in
+its tool slot. Jufus the materials vendor sells the tools next to the crafting
+benches; see CRAFTING.
 
 See also: CRAFTING, CRAFT-TOOLS, CRAFT-MATERIALS, CRAFT-TRAINER, SUPPLYORDER
 #0
