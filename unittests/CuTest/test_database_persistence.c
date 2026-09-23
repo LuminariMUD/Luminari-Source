@@ -259,6 +259,73 @@ void Test_database_object_restore_reconciles_scheduled_work(CuTest *tc)
     check_restored_object_registries(tc, true);
 }
 
+/* tokenize() answers an all-delimiter string with an empty list and grows past its first ten
+ * slots, keeping the tokens in order. */
+void Test_database_tokenize_handles_empty_input_and_growth(CuTest *tc)
+{
+  char **empty;
+  char **tokens;
+  char expected[32];
+  bool ordered = true;
+  int count;
+
+  empty = tokenize(" ,, ", " ,");
+  CuAssertPtrNotNull(tc, empty);
+  CuAssertPtrEquals(tc, NULL, empty[0]);
+  free_tokens(empty);
+
+  tokens = tokenize("0 1,2 3,4 5,6 7,8 9,10 11,12 13,14 15,16 17,18 19,20 21,22 23", ",");
+  CuAssertPtrNotNull(tc, tokens);
+  for (count = 0; tokens[count] != NULL; count++)
+  {
+    snprintf(expected, sizeof(expected), "%d %d", count * 2, count * 2 + 1);
+    ordered = ordered && strcmp(tokens[count], expected) == 0;
+  }
+  free_tokens(tokens);
+  CuAssertIntEquals(tc, 12, count);
+  CuAssertTrue(tc, ordered);
+}
+
+/* A random point in a region lies strictly inside the region's polygon. */
+void Test_database_random_region_location_lies_inside_the_polygon(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  MYSQL *saved_conn = conn;
+  bool saved_available = mysql_available;
+  MYSQL *connection;
+  bool prepared;
+  bool found;
+  int x = -1;
+  int y = -1;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+    return;
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  prepared = mysql_query(connection, "CREATE TEMPORARY TABLE region_data (vnum INT, "
+                                     "region_polygon POLYGON NOT NULL)") == 0 &&
+             mysql_query(connection, "CREATE TEMPORARY TABLE region_index (vnum INT, "
+                                     "region_polygon POLYGON NOT NULL)") == 0 &&
+             mysql_query(connection, "INSERT INTO region_data VALUES (990001, "
+                                     "ST_GeomFromText('POLYGON((0 0,4 0,4 4,0 4,0 0))'))") == 0 &&
+             mysql_query(connection, "INSERT INTO region_index VALUES (990001, "
+                                     "ST_GeomFromText('POLYGON((0 0,4 0,4 4,0 4,0 0))'))") == 0;
+  conn = connection;
+  mysql_available = true;
+  found = prepared && get_random_region_location(990001, &x, &y);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, prepared);
+  CuAssertTrue(tc, found);
+  CuAssertTrue(tc, x > 0 && x < 4 && y > 0 && y < 4);
+}
+
 static bool create_legacy_pet_temporary_schema(MYSQL *connection)
 {
   const char *queries[] = {"CREATE TEMPORARY TABLE schema_migrations ("

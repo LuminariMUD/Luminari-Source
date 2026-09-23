@@ -425,6 +425,99 @@ void Test_world_loading_production_zone_reset_dispatch_and_whitespace(CuTest *tc
   assert_world_loader_child(tc, child, 0);
 }
 
+/** Verify J, F, K, X, C, and V read their arguments, with the optional percents defaulted. */
+void Test_world_loading_production_zone_command_forms(CuTest *tc)
+{
+  pid_t child;
+
+  child = fork();
+  if (child == 0)
+  {
+    FILE *input = tmpfile();
+    struct reset_com *commands;
+
+    if (input == NULL)
+      CuTestChildExit(2);
+    fputs("#100\nBuilder~\nCommand forms~\n10000 10099 30 2\n"
+          "J 0 3\n"
+          "J 1 4 25\n"
+          "F 0 5 6 7\n"
+          "F 1 5 6 7 30\n"
+          "K 0 1 2 3 4\n"
+          "X 0 5 6 7 8\n"
+          "C 1 9 10 11 12\n"
+          "V 0 13 14 15 greeting hello there\n"
+          "S\n$\n",
+          input);
+    CuAssertTrue(tc, rewind_stream(input));
+    zone_table = calloc(1, sizeof(*zone_table));
+    if (zone_table == NULL)
+      CuTestChildExit(2);
+    test_load_zones(input, CuMutableString("command-fixture.zon"));
+    commands = zone_table[0].cmd;
+    if (commands[0].command != 'J' || commands[0].arg1 != 3 || commands[0].arg2 != 100 ||
+        commands[1].if_flag != 1 || commands[1].arg1 != 4 || commands[1].arg2 != 25)
+      CuTestChildExit(3);
+    if (commands[2].command != 'F' || commands[2].arg3 != 7 || commands[2].arg4 != 100 ||
+        commands[3].arg4 != 30)
+      CuTestChildExit(4);
+    if (commands[4].command != 'K' || commands[4].arg4 != 4 || commands[5].command != 'X' ||
+        commands[5].arg1 != 5 || commands[6].command != 'C' || commands[6].if_flag != 1 ||
+        commands[6].arg4 != 12)
+      CuTestChildExit(5);
+    if (commands[7].command != 'V' || commands[7].arg3 != 15 ||
+        strcmp(commands[7].sarg1, "greeting") != 0 ||
+        strcmp(commands[7].sarg2, "hello there") != 0 || commands[8].command != 'S')
+      CuTestChildExit(6);
+    CuTestChildExit(0);
+  }
+  assert_world_loader_child(tc, child, 0);
+}
+
+/** A new zone's index entry lands in numeric order, and an entry that is not a number is dropped. */
+void Test_world_loading_production_zone_index_inserts_in_order(CuTest *tc)
+{
+  char scratch[] = "/tmp/luminari-zone-index-XXXXXX";
+  char previous[4096];
+  char contents[256];
+  FILE *file;
+  size_t length = 0;
+  bool written = false;
+  int created = FALSE;
+
+  if (getcwd(previous, sizeof(previous)) == NULL || mkdtemp(scratch) == NULL)
+  {
+    CuFail(tc, "could not create the zone index scratch directory");
+    return;
+  }
+  if (chdir(scratch) == 0)
+  {
+    if (mkdir("world", 0700) == 0 && mkdir(ZON_PREFIX, 0700) == 0 &&
+        (file = fopen(ZON_PREFIX "index", "w")) != NULL)
+    {
+      written = fputs("10.zon\njunk\n30.zon\n$\n", file) >= 0;
+      written = fclose(file) == 0 && written;
+    }
+    if (written)
+      created = create_world_index(20, "zon");
+    if (written && (file = fopen(ZON_PREFIX "index", "r")) != NULL)
+    {
+      length = fread(contents, 1, sizeof(contents) - 1, file);
+      fclose(file);
+    }
+    remove(ZON_PREFIX "index");
+    rmdir(ZON_PREFIX);
+    rmdir("world");
+    CuAssertIntEquals(tc, 0, chdir(previous));
+  }
+  rmdir(scratch);
+  contents[length] = '\0';
+
+  CuAssertTrue(tc, written);
+  CuAssertIntEquals(tc, TRUE, created);
+  CuAssertStrEquals(tc, "10.zon\n20.zon\n30.zon\n$\n", contents);
+}
+
 /** Check supported header defaults and physical-line warnings for ignored suffixes. */
 void Test_world_loading_production_zone_header_forms_and_diagnostics(CuTest *tc)
 {
