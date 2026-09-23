@@ -177,47 +177,31 @@ No code changed for these; a race import grants the existing feat.
 Duris defines 37 player races, `RACE_HUMAN` (1) to `RACE_TIEFLING` (37, `RACE_PLAYER_MAX`) in
 `src/core/defines.h`. Availability comes from `playable_races[]` and `restricted_races[]` in
 `src/core/constant.c`; rows below follow those tables. None was imported, and the NPC races (38
-and up) were out of scope. The last column names the nearest LuminariMUD race where one exists;
-each is our own earlier design and this work did not change it.
+and up) were out of scope. The table leaves out the 20 races LuminariMUD already covers: Human,
+Barbarian (replaced by Wemic), Grey Elf (Moon Elf, High Elf), Mountain Dwarf, Halfling (Lightfoot,
+Stout), Gnome (Rock, Forest), Drow Elf, Duergar Dwarf, Ogre (Half-Ogre), Troll (HalfTroll), Orc
+(HalfOrc), Goblin, Tiefling, Lich, Vampire, Shade, Half-Elf, Wood Elf (Wild Elf), Illithid, and
+Planetbound Illithid (both Half-Illithid). The last column names the nearest LuminariMUD race
+where one exists; each is our own earlier design and this work did not change it.
 
 | Duris race | Constant | Duris availability | Nearest LuminariMUD race |
 | -- | -- | -- | -- |
-| Human | `RACE_HUMAN` (1) | Creation, good | Human |
-| Barbarian | `RACE_BARBARIAN` (2) | Creation, good | - |
-| Grey Elf | `RACE_GREY` (4) | Creation, good | Moon Elf, High Elf |
-| Mountain Dwarf | `RACE_MOUNTAIN` (5) | Creation, good | Mountain Dwarf |
-| Halfling | `RACE_HALFLING` (7) | Creation, good | Lightfoot Halfling, Stout Halfling |
-| Gnome | `RACE_GNOME` (8) | Creation, good | Rock Gnome, Forest Gnome |
 | Centaur | `RACE_CENTAUR` (15) | Creation, good | Wemic (four-legged body) |
 | Githzerai | `RACE_GITHZERAI` (30) | Creation, good | - |
 | Firbolg | `RACE_FIRBOLG` (36) | Creation, good | - |
-| Drow Elf | `RACE_DROW` (3) | Creation, evil | Drow |
-| Duergar Dwarf | `RACE_DUERGAR` (6) | Creation, evil | Duergar |
-| Ogre | `RACE_OGRE` (9) | Creation, evil | Half-Ogre |
-| Troll | `RACE_TROLL` (10) | Creation, evil | HalfTroll |
-| Orc | `RACE_ORC` (13) | Creation, evil | HalfOrc |
 | Githyanki | `RACE_GITHYANKI` (16) | Creation, evil | - |
-| Goblin | `RACE_GOBLIN` (20) | Creation, evil | Goblin |
 | Kobold | `RACE_KOBOLD` (32) | Creation, evil | - |
 | Drider | `RACE_DRIDER` (31) | Creation, evil | - |
 | Thri-Kreen | `RACE_THRIKREEN` (14) | Creation, either side | Trelux (insectoid) |
 | Minotaur | `RACE_MINOTAUR` (17) | Creation, either side | - |
-| Tiefling | `RACE_TIEFLING` (37) | Creation, either side | Tiefling |
-| Lich | `RACE_LICH` (21) | Descend: necromancer | Lich |
-| Vampire | `RACE_PVAMPIRE` (22) | Descend: sorcerer or dreadlord | Vampire |
 | Death Knight | `RACE_PDKNIGHT` (23) | Descend: anti-paladin | - |
 | Wight | `RACE_WIGHT` (26) | Descend: warrior | - |
 | Revenant | `RACE_REVENANT` (19) | Descend: mercenary | - |
 | Shadow Beast | `RACE_PSBEAST` (24) | Descend: assassin | - |
 | Phantom | `RACE_PHANTOM` (27) | Descend: conjurer | - |
-| Shade | `RACE_SHADE` (18) | Descend: thief or illusionist | Shade |
-| Half-Elf | `RACE_HALFELF` (11) | Legacy | Half Elf |
-| Wood Elf | `RACE_WOODELF` (35) | Legacy | Wild Elf |
 | Kuo Toa | `RACE_KUOTOA` (34) | Legacy | - |
 | Orog | `RACE_OROG` (29) | Legacy | - |
 | Harpy | `RACE_HARPY` (28) | Lore-restricted | - |
-| Illithid | `RACE_ILLITHID` (12) | Lore-restricted, no racewar side | - |
-| Planetbound Illithid | `RACE_PILLITHID` (33) | Lore-restricted, no racewar side | - |
 | Storm Giant | `RACE_SGIANT` (25) | Lore-restricted, no racewar side | - |
 
 To add one, register it with `add_race()` and grant feats from the tables above with
