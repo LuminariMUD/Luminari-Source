@@ -15,6 +15,7 @@
 #include "database/mysql.h"
 #include "lists.h"
 #include "help.h"
+#include "helpers.h"
 #include "character/feats.h"
 #include "magic/spells.h" /* need this for class.h NUM_ABILITIES */
 #include "character/class.h"
@@ -1539,6 +1540,15 @@ int handle_feat_help(struct char_data *ch, const char *argument __attribute__((u
   if (display_feat_info(ch, raw_argument))
   {
     return 1; /* Handled */
+  }
+  /* Players also ask for 'help feat <name>'. */
+  if (!strn_cmp(raw_argument, "feat ", 5))
+  {
+    const char *name = raw_argument + 5;
+
+    skip_spaces_c(&name);
+    if (*name && display_feat_info(ch, name))
+      return 1;
   }
   return 0; /* Not a feat */
 }

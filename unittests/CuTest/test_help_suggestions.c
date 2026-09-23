@@ -8,7 +8,13 @@
 #include "../../src/core/structs.h"
 #include "../../src/core/utils.h"
 #include "../../src/core/help.h"
+#include "../../src/core/comm.h"
+#include "../../src/core/db.h"
 #include "../../src/character/backgrounds.h"
+#include "../../src/character/feats.h"
+#include "../../src/net/protocol.h"
+
+#include <string.h>
 
 static struct help_keyword_list *make_suggestion(const char *tag, const char *keyword)
 {
@@ -130,4 +136,49 @@ void Test_help_name_handlers_stop_at_a_trailing_space(CuTest *tc)
   assign_backgrounds();
   CuAssertIntEquals(tc, 0, handle_region_help(NULL, "qzx ", "qzx ", NULL));
   CuAssertIntEquals(tc, 0, handle_background_help(NULL, "qzx ", "qzx ", NULL));
+}
+
+/* The production help log had 'feat eidolon': players ask for 'help feat <name>'. The feat
+ * handler shows the named feat with or without that leading word (issue 224). */
+void Test_help_feat_handler_accepts_a_leading_feat(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  int bare, prefixed, spaced, unknown;
+  bool shown;
+
+  if (feat_list[FEAT_EIDOLON].name == NULL || strcmp(feat_list[FEAT_EIDOLON].name, "eidolon"))
+    assign_feats();
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  memset(&descriptor, 0, sizeof(descriptor));
+  ch.player_specials = &specials;
+  ch.desc = &descriptor;
+  descriptor.character = &ch;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  STATE(&descriptor) = CON_PLAYING;
+
+  bare = handle_feat_help(&ch, "eidolon", "eidolon", NULL);
+  descriptor.small_outbuf[0] = '\0';
+  descriptor.bufptr = 0;
+  prefixed = handle_feat_help(&ch, "feat-eidolon", "feat eidolon", NULL);
+  shown = strstr(descriptor.output, "eidolon") != NULL;
+  spaced = handle_feat_help(&ch, "Feat--eidolon", "Feat  eidolon", NULL);
+  unknown = handle_feat_help(&ch, "feat-qzx", "feat qzx", NULL);
+
+  if (descriptor.large_outbuf != NULL)
+  {
+    free(descriptor.large_outbuf->text);
+    free(descriptor.large_outbuf);
+  }
+  ProtocolDestroy(descriptor.pProtocol);
+
+  CuAssertIntEquals(tc, 1, bare);
+  CuAssertIntEquals(tc, 1, prefixed);
+  CuAssertTrue(tc, shown);
+  CuAssertIntEquals(tc, 1, spaced);
+  CuAssertIntEquals(tc, 0, unknown);
 }
