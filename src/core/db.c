@@ -2053,6 +2053,7 @@ void world_loader_reset_for_test(void)
 void discrete_load(FILE *fl, int mode, char *filename)
 {
   int nr = -1, last = 0;
+  IDXTYPE vnum = 0;
   char line[READ_SIZE] = {'\0'};
 
   const char *modes[] = {"world", "mob", "obj", "ZON", "SHP", "HLP", "trg", "qst", "hlq"};
@@ -2084,11 +2085,13 @@ void discrete_load(FILE *fl, int mode, char *filename)
     if (*line == '#')
     {
       last = nr;
-      if (strict_sscanf(line, "#%d", &nr) != 1)
+      /* The writers print vnums with PRI_IDX; the parsers take them as an int. */
+      if (strict_sscanf(line, "#%" SCN_IDX, &vnum) != 1)
       {
         log("SYSERR: Format error after %s #%d", modes[mode], last);
         exit(1);
       }
+      nr = (int)vnum;
       switch (mode)
       {
       case DB_BOOT_WLD:
