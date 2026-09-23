@@ -1771,7 +1771,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 /* Currently unused crafting-tool slots; reserved and hidden from the equipment command. */
 #define WEAR_CRAFT_SICKLE 33        /* harvesting sickle (gathering) */
 #define WEAR_CRAFT_AXE 34           /* chopping axe (forestry) */
-#define WEAR_CRAFT_KNIFE 35         /* skinning knife (hunting) */
+#define WEAR_CRAFT_KNIFE 35         /* skinning knife (hunting, leatherworking) */
 #define WEAR_CRAFT_PICKAXE 36       /* pickaxe (mining) */
 #define WEAR_CRAFT_ALCHEMY 37       /* alchemy set (alchemy) */
 #define WEAR_CRAFT_ARMOR_HAMMER 38  /* armorsmith's hammer (armorsmithing) */
@@ -4696,7 +4696,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define ITEM_WEAR_SHEATH 23
 #define ITEM_WEAR_CRAFT_SICKLE 24        /* harvesting sickle (gathering) */
 #define ITEM_WEAR_CRAFT_AXE 25           /* chopping axe (forestry) */
-#define ITEM_WEAR_CRAFT_KNIFE 26         /* skinning knife (hunting) */
+#define ITEM_WEAR_CRAFT_KNIFE 26         /* skinning knife (hunting, leatherworking) */
 #define ITEM_WEAR_CRAFT_PICKAXE 27       /* pickaxe (mining) */
 #define ITEM_WEAR_CRAFT_ALCHEMY 28       /* alchemy set (alchemy) */
 #define ITEM_WEAR_CRAFT_ARMOR_HAMMER 29  /* armorsmith's hammer (armorsmithing) */

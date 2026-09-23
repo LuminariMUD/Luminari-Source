@@ -1832,11 +1832,11 @@ const char *equipment_types[] = {"Used as light", // 0
                                  "Worn on left ankle", // 30
                                  "Worn as sheath",
                                  "Used as instrument",
-                                 "Harvesting sickle (gathering)",       // WEAR_CRAFT_SICKLE
-                                 "Chopping axe (forestry)",             // WEAR_CRAFT_AXE
-                                 "Skinning knife (hunting)",            // WEAR_CRAFT_KNIFE
-                                 "Mining pickaxe (mining)",             // WEAR_CRAFT_PICKAXE
-                                 "Alchemy set (alchemy)",               // WEAR_CRAFT_ALCHEMY
+                                 "Harvesting sickle (gathering)",            // WEAR_CRAFT_SICKLE
+                                 "Chopping axe (forestry)",                  // WEAR_CRAFT_AXE
+                                 "Skinning knife (hunting, leatherworking)", // WEAR_CRAFT_KNIFE
+                                 "Mining pickaxe (mining)",                  // WEAR_CRAFT_PICKAXE
+                                 "Alchemy set (alchemy)",                    // WEAR_CRAFT_ALCHEMY
                                  "Armorsmith hammer (armorsmithing)",   // WEAR_CRAFT_ARMOR_HAMMER
                                  "Jeweler's pliers (jewelcraft)",       // WEAR_CRAFT_JEWEL_PLIERS
                                  "Sewing needle (tailoring)",           // WEAR_CRAFT_NEEDLE
