@@ -5,8 +5,12 @@
 #include "../../src/core/structs.h"
 #include "../../src/core/utils.h"
 #include "../../src/core/comm.h"
+#include "../../src/core/db.h"
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 void Test_copyover_executes_the_installed_release(CuTest *tc)
 {
@@ -96,4 +100,45 @@ void Test_copyover_checkpoint_timer_is_suspended_and_restored(CuTest *tc)
 #else
   CuAssertTrue(tc, TRUE);
 #endif
+}
+
+/* Recovery reads the boot time the old process saved, stops at the end marker, and deletes the
+ * copyover file. */
+void Test_copyover_recover_restores_boot_time_and_removes_the_file(CuTest *tc)
+{
+  char scratch[] = "/tmp/luminari-copyover-XXXXXX";
+  char previous[4096];
+  time_t saved_boot_time = boot_time;
+  time_t restored = 0;
+  FILE *file;
+  bool written = false;
+  bool removed = false;
+
+  if (getcwd(previous, sizeof(previous)) == NULL || mkdtemp(scratch) == NULL)
+  {
+    CuFail(tc, "could not create the copyover scratch directory");
+    return;
+  }
+  if (chdir(scratch) == 0)
+  {
+    file = fopen(COPYOVER_FILE, "w");
+    if (file != NULL)
+    {
+      written = fputs("1700000000\n-1 0 x x x\n", file) >= 0;
+      written = fclose(file) == 0 && written;
+    }
+    if (written)
+    {
+      copyover_recover();
+      restored = boot_time;
+      removed = access(COPYOVER_FILE, F_OK) != 0;
+      boot_time = saved_boot_time;
+    }
+    CuAssertIntEquals(tc, 0, chdir(previous));
+  }
+  rmdir(scratch);
+
+  CuAssertTrue(tc, written);
+  CuAssertTrue(tc, restored == (time_t)1700000000);
+  CuAssertTrue(tc, removed);
 }

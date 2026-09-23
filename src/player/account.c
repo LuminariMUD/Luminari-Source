@@ -423,33 +423,13 @@ ACMD(do_accexp)
       }
 
       /* For knight classes, also check alternate names */
-      if (i == CLASS_KNIGHT_OF_SOLAMNIA ||
-          (i >= CLASS_KNIGHT_OF_THE_THORN && i <= CLASS_KNIGHT_OF_THE_LILY))
+      if ((i == CLASS_KNIGHT_OF_SOLAMNIA && is_abbrev(arg2, "knight of solamnia")) ||
+          (i == CLASS_KNIGHT_OF_THE_LILY && is_abbrev(arg2, "knight of the lily")) ||
+          (i == CLASS_KNIGHT_OF_THE_THORN && is_abbrev(arg2, "knight of the thorn")) ||
+          (i == CLASS_KNIGHT_OF_THE_SKULL && is_abbrev(arg2, "knight of the skull")))
       {
-        bool matches_alternate = FALSE;
-        switch (i)
-        {
-        case CLASS_KNIGHT_OF_SOLAMNIA:
-          matches_alternate = is_abbrev(arg2, "knight of solamnia");
-          break;
-        case CLASS_KNIGHT_OF_THE_LILY:
-          matches_alternate = is_abbrev(arg2, "knight of the lily");
-          break;
-        case CLASS_KNIGHT_OF_THE_THORN:
-          matches_alternate = is_abbrev(arg2, "knight of the thorn");
-          break;
-        case CLASS_KNIGHT_OF_THE_SKULL:
-          matches_alternate = is_abbrev(arg2, "knight of the skull");
-          break;
-        default:
-          break;
-        }
-
-        if (matches_alternate)
-        {
-          cost = CLSLIST_COST(i);
-          break;
-        }
+        cost = CLSLIST_COST(i);
+        break;
       }
     }
     if (i >= NUM_CLASSES)

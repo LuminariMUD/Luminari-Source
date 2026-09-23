@@ -2023,6 +2023,67 @@ void Test_gameplay_e2e_accexp_class_hides_disabled_classes(CuTest *tc)
   CuAssertTrue(tc, !saw_placeholder_2);
 }
 
+/* A knight class also answers to its order's older name, and a purchase the account cannot
+ * afford names the price. */
+void Test_gameplay_e2e_accexp_class_matches_a_knight_alias(CuTest *tc)
+{
+  struct class_table saved_class_list[NUM_CLASSES];
+  struct char_data character;
+  struct player_special_data player_specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  bool priced;
+  int i;
+
+  memcpy(saved_class_list, class_list, sizeof(saved_class_list));
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    memset(&class_list[i], 0, sizeof(class_list[i]));
+    class_list[i].name = "disabled class";
+    class_list[i].max_level = 20;
+  }
+  for (i = CLASS_KNIGHT_OF_SOLAMNIA; i <= CLASS_KNIGHT_OF_THE_LILY; i++)
+  {
+    class_list[i].locked_class = true;
+    class_list[i].in_game = true;
+    class_list[i].unlock_cost = 5000;
+  }
+  class_list[CLASS_KNIGHT_OF_THE_SKULL].name = "knight of the pale throne";
+  class_list[CLASS_KNIGHT_OF_THE_SKULL].unlock_cost = 4000;
+
+  memset(&character, 0, sizeof(character));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&account, 0, sizeof(account));
+  for (i = 1; i < MAX_UNLOCKED_CLASSES; i++)
+    account.classes[i] = -1;
+  account.experience = 100;
+  character.player_specials = &player_specials;
+  character.desc = &descriptor;
+  descriptor.character = &character;
+  descriptor.account = &account;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+
+  if (descriptor.pProtocol == NULL)
+  {
+    memcpy(class_list, saved_class_list, sizeof(saved_class_list));
+    CuFail(tc, "could not initialize the account experience descriptor");
+    return;
+  }
+
+  do_accexp(&character, "class knight of the skull", 0, 0);
+
+  priced = strstr(descriptor.output, "You need 4000 account experience") != NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  memcpy(class_list, saved_class_list, sizeof(saved_class_list));
+
+  CuAssertTrue(tc, priced);
+  CuAssertIntEquals(tc, 0, account.classes[0]);
+  CuAssertIntEquals(tc, 100, account.experience);
+}
+
 void Test_gameplay_e2e_combat_applies_real_damage(CuTest *tc)
 {
   struct gameplay_fixture fixture;
@@ -11013,6 +11074,88 @@ void Test_gameplay_screen_reader_hides_actual_prompts_but_keeps_input_instructio
   CuAssertTrue(tc, combat_hidden);
   CuAssertTrue(tc, pager_visible);
   CuAssertTrue(tc, editor_visible);
+}
+
+/* The exits prompt lists the room's exits, and fog or blindness leaves it listing none. */
+void Test_gameplay_prompt_exits_hide_in_fog_and_blindness(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct descriptor_data descriptor = {0};
+  struct player_special_data specials = {0};
+  const char *prompt;
+  bool clear_shows_north, fog_hides, blind_hides;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player_specials = &specials;
+  fixture.actor.player.name = CuMutableString("Exit prompt fixture");
+  fixture.actor.desc = &descriptor;
+  descriptor.character = &fixture.actor;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  STATE(&descriptor) = CON_PLAYING;
+  SET_BIT_AR(PRF_FLAGS(&fixture.actor), PRF_DISPEXITS);
+  prompt = comm_make_prompt_for_test(&descriptor);
+  clear_shows_north = strstr(prompt, "EX:N") != NULL && strstr(prompt, "None!") == NULL;
+  SET_BIT(ROOM_AFFECTIONS(0), RAFF_FOG);
+  fog_hides = strstr(comm_make_prompt_for_test(&descriptor), "EX:None! ") != NULL;
+  REMOVE_BIT(ROOM_AFFECTIONS(0), RAFF_FOG);
+  SET_BIT_AR(AFF_FLAGS(&fixture.actor), AFF_BLIND);
+  blind_hides = strstr(comm_make_prompt_for_test(&descriptor), "EX:None! ") != NULL;
+  fixture.actor.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, clear_shows_north);
+  CuAssertTrue(tc, fog_hides);
+  CuAssertTrue(tc, blind_hides);
+}
+
+/* True when the protocol report's field for label shows answer before the next field. */
+static bool protocol_report_shows(const char *report, const char *label, const char *answer)
+{
+  const char *field = strstr(report, label);
+  const char *end;
+
+  if (field == NULL)
+    return false;
+  end = strpbrk(field, "|\r");
+  field = strstr(field, answer);
+  return field != NULL && (end == NULL || field < end);
+}
+
+/* After negotiation the connection reports each protocol the client agreed to and moves on to
+ * the account name prompt. */
+void Test_gameplay_protocol_report_moves_on_to_the_account_name(CuTest *tc)
+{
+  struct descriptor_data descriptor = {0};
+  struct mud_event_data event = {0};
+  long result;
+  bool reported;
+
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.pProtocol->bMSDP = true;
+  descriptor.pProtocol->bGMCP = true;
+  event.pStruct = &descriptor;
+
+  result = get_protocols(&event);
+
+  reported = protocol_report_shows(descriptor.output, "MXP", "No") &&
+             protocol_report_shows(descriptor.output, "MSDP", "Yes") &&
+             protocol_report_shows(descriptor.output, "GMCP", "Yes");
+  if (descriptor.large_outbuf != NULL)
+  {
+    free(descriptor.large_outbuf->text);
+    free(descriptor.large_outbuf);
+  }
+  ProtocolDestroy(descriptor.pProtocol);
+  CuAssertIntEquals(tc, 0, (int)result);
+  CuAssertTrue(tc, reported);
+  CuAssertIntEquals(tc, CON_ACCOUNT_NAME, STATE(&descriptor));
+  CuAssertIntEquals(tc, 0, (int)get_protocols(NULL));
 }
 
 /** Compare reader-mode room output with mapless output using the real room renderer. */

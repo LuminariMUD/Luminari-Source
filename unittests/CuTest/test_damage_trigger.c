@@ -359,6 +359,51 @@ void Test_damage_trigger_olc_uses_attachment_specific_type_counts(CuTest *tc)
   ProtocolDestroy(descriptor.pProtocol);
 }
 
+/* The script editor drops a new-trigger entry at position 0 and an unknown edit mode, returning to
+ * its menu either way, and string cleanup redraws nothing outside the command editor. */
+void Test_damage_trigger_script_editor_returns_to_its_menu(CuTest *tc)
+{
+  struct descriptor_data descriptor;
+  struct oasis_olc_data olc;
+  struct char_data builder;
+  bool abandoned, recovered, quiet;
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&olc, 0, sizeof(olc));
+  damage_trigger_initialize_npc(&builder, "script editor builder");
+  descriptor.character = &builder;
+  descriptor.olc = &olc;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  if (descriptor.pProtocol == NULL)
+    return;
+  builder.desc = &descriptor;
+  olc.item_type = MOB_TRIGGER;
+  damage_trigger_reset_output(&descriptor);
+
+  OLC_SCRIPT_EDIT_MODE(&descriptor) = SCRIPT_NEW_TRIGGER;
+  abandoned = dg_script_edit_parse(&descriptor, CuMutableString("0, 5")) == 1 &&
+              OLC_SCRIPT(&descriptor) == NULL && OLC_VAL(&descriptor) == 0 &&
+              OLC_SCRIPT_EDIT_MODE(&descriptor) == SCRIPT_MAIN_MENU &&
+              strstr(descriptor.output, "<none>") != NULL;
+
+  damage_trigger_reset_output(&descriptor);
+  OLC_SCRIPT_EDIT_MODE(&descriptor) = SCRIPT_DEL_TRIGGER + 1;
+  recovered = dg_script_edit_parse(&descriptor, CuMutableString("x")) == 1 &&
+              OLC_SCRIPT_EDIT_MODE(&descriptor) == SCRIPT_MAIN_MENU &&
+              strstr(descriptor.output, "Triggers Attached") != NULL;
+
+  damage_trigger_reset_output(&descriptor);
+  trigedit_string_cleanup(&descriptor, 0);
+  quiet = descriptor.bufptr == 0 && OLC_MODE(&descriptor) == OLC_SCRIPT_EDIT;
+
+  damage_trigger_reset_output(&descriptor);
+  ProtocolDestroy(descriptor.pProtocol);
+  CuAssertTrue(tc, abandoned);
+  CuAssertTrue(tc, recovered);
+  CuAssertTrue(tc, quiet);
+}
+
 void Test_damage_trigger_olc_flag_serializes_and_reloads_as_u(CuTest *tc)
 {
   struct damage_trigger_fixture fixture;
@@ -531,6 +576,42 @@ void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
   damage_trigger_fixture_end(&fixture);
   event_free_all();
   pulse = saved_pulse;
+}
+
+/* "wait until" sleeps to the named mud hour, written as hh:mm or as hhmm. */
+void Test_damage_trigger_wait_until_sleeps_to_the_named_hour(CuTest *tc)
+{
+  static const struct
+  {
+    const char *body;
+    long hours;
+  } cases[] = {{"wait until 12:00\nreturn 3", 2}, {"wait until 1300\nreturn 3", 3}};
+  const long hour = (long)SECS_PER_MUD_HOUR * PASSES_PER_SEC;
+  struct damage_trigger_fixture fixture;
+  struct time_info_data saved_time = time_info;
+  unsigned long saved_pulse = pulse;
+  long remaining[2];
+  size_t i;
+
+  event_free_all();
+  pulse = (saved_pulse / (unsigned long)hour + 1) * (unsigned long)hour;
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  CuAssertTrue(tc, dg_wait_runtime_init());
+  time_info.hours = 10;
+  for (i = 0; i < 2; i++)
+  {
+    CuAssertTrue(tc, damage_trigger_fixture_begin(&fixture));
+    CuAssertTrue(tc, damage_trigger_fixture_add(&fixture, "Wait until", "u", 100, cases[i].body));
+    (void)damage(&fixture.actor, &fixture.victim, 17, TYPE_HIT, DAM_BLUDGEON, ATTACK_TYPE_PRIMARY);
+    remaining[i] = dg_trigger_wait_remaining(TRIGGERS(SCRIPT(&fixture.victim)));
+    damage_trigger_fixture_end(&fixture);
+  }
+  event_free_all();
+  time_info = saved_time;
+  pulse = saved_pulse;
+  for (i = 0; i < 2; i++)
+    CuAssertTrue(tc, remaining[i] == cases[i].hours * hour);
 }
 
 static void damage_trigger_verify_wait_loop(CuTest *tc, bool explicit_wait)
