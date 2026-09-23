@@ -109,19 +109,24 @@ enduring content lives in the docs, help, and bundles named below.
   LEATHERWORKING, TAILORING, HARVEST, HARVEST-TOOLS.
 - [x] 9. #224 section 1 terms (dev DB + `help.hlp`), feat-handler code and test.
 - [x] 10. #224 alias review (dev DB + `help.hlp`); comment the declines and the review summary.
-- [ ] 11. Full `make test` with the database, local CI jobs, then the PR.
+- [x] 11. Full `make test` with the database, local CI jobs, then the PR.
 
 Post-merge (owner): world-data release of both bundles (`data/crafting-tools` object 389 and
 `data/harvest-tools` shop products and resets), the code release, then help-sync to production
 (`sync --authorize-production --repair-layers` from the main checkout after it fast-forwards),
 and a fresh look at production `log/help`. The help must not reach production before the code.
 
-## Verification so far
+## Verification
 
 - `make test-all` with the isolated MariaDB (`prepare_test_runtime.sh`, container on
   127.0.0.2:3306): all suites pass, 1797 CuTest tests.
 - `scripts/ci/local/run.py --job quality-clang-tidy`: baseline respected (one finding in the
   new help test was fixed).
+- Local CI matrix (`scripts/ci/local/run.py --jobs 4 --cpus 4`) at `22f32b032`: 30 of 33
+  jobs passed. The sanitizer and valgrind jobs failed on a leak: the web-onboarding test's
+  unconditional `assign_feats()` dropped the feat table the new help test had built first.
+  After `47c84a2fd`, both sanitizer jobs, the memory check, unit tests, coverage, clang-tidy,
+  format, and hygiene pass.
 - New tests fail on the old code: the leather test at its resume case with the old
   `skill_type` readers; the node test at the one-round completion; the feat help test at
   `feat eidolon`.
