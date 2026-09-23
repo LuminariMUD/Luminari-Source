@@ -18,6 +18,7 @@
 #include "../../src/character/feats.h"
 #include "../../src/character/race.h"
 #include "../../src/character/talents.h"
+#include "../../src/craft/alchemy.h"
 #include "../../src/craft/brew.h"
 #include "../../src/craft/craft.h"
 #include "../../src/craft/craft_training.h"
@@ -300,6 +301,166 @@ void Test_load_char_stops_at_a_truncated_class_feat_list(CuTest *tc)
   CuAssertIntEquals(tc, 0, result);
   CuAssertIntEquals(tc, 3, class_feats);
   CuAssertIntEquals(tc, 2, epic_feats);
+}
+
+/* Every list and string in a player file, cut off after its first entry (issue 230). get_line()
+ * leaves its last line in place at the end of the file, so the list loaders read that line
+ * forever, and a file that ended inside a string stopped the game. load_char() must return. */
+void Test_load_char_returns_for_every_cut_off_list(CuTest *tc)
+{
+  static const char *const sections[] = {
+      "Ablt:\n5 1\n",
+      "AbXP:\n5 100\n",
+      "Affs: 1\n1 10 1 1 0 0 0 0 0 0 0 0 0 0\n",
+      "Alis: 3\n l\n look\n0\n",
+      "BGrd:\nRaised by wolves.\n",
+      "Bomb:\n3\n",
+      "Bond:\nA sworn friend.\n",
+      "Buff:\n0 5 6\n",
+      "CfMt:\n7\n",
+      "Cfpt:\n0 3\n",
+      "CLoc:\n",
+      "CLvl:\n0 3\n",
+      "Clty:\n2\n",
+      "Coll:\n0 1 0 0 0\n",
+      "CrAf:\n0 1 2 0 0\n",
+      "CrMa:\n0 3 4\n",
+      "CrMo:\n0 5\n",
+      "Desc:\nA tall figure.\n",
+      "Disc:\n1\n",
+      "DmgR:\n1 2 3 4 5\n",
+      "Dvis:\n1\n",
+      "Ecfp:\n0 2\n",
+      "Evn2: 2\n",
+      "Evnt:\n",
+      "Evol:\n1 1\n",
+      "FaEn:\n0 3\n",
+      "FaTr:\n0 2\n",
+      "FDQs:\n12\n",
+      "Feat:\n1 1\n",
+      "Flaw:\nImpatient.\n",
+      "Goal:\nFind the relic.\n",
+      "Idel:\nHonor.\n",
+      "InMa:\n0 1 0 0 0\n",
+      "Intr:\n12\n",
+      "Intr:\nSomebody\n",
+      "Judg:\n1\n",
+      "KEvo:\n1 1\n",
+      "KnSp:\n0 1\n",
+      "Lang:\n1\n",
+      "Mote:\n4\n",
+      "Mrcy:\n3\n",
+      "Perk:\n417 3 1\n",
+      "Pers:\nCheerful.\n",
+      "Potn:\n5 2\n",
+      "PPts:\n0 3\n",
+      "PrQu:\n0 1 0 0 0\n",
+      "PrQu:\nnot a queue entry\n",
+      "Prdm:\n0 1 2 3 4 5 6 7\n",
+      "Prgm:\n0 1 2 3 4 5 6 7\n",
+      "Pryd:\n0 1 2 3 4 5 6 7\n",
+      "Pryg:\n0 1 2 3 4 5 6 7\n",
+      "Pryt:\n0 1 2 3 4 5 6 7\n",
+      "PTog: 00\n",
+      "Qest:\n1234\n",
+      "Scrl:\n5 2\n",
+      "Skil:\n2001 50\n",
+      "SklF:\n0 1 0\n",
+      "SpAb:\n0 2\n",
+      "Stav:\n5 2\n",
+      "TEvo:\n1 1\n",
+      "Todo:\nfirst task\n",
+      "Wand:\n5 2\n",
+      "Ward:\n0 2\n",
+  };
+  struct craft_player_files files;
+  char filename[MAX_FILEPATH];
+  const char *failed = NULL;
+  FILE *file;
+  size_t i;
+
+  craft_player_files_enter(tc, &files, "crcut", 4305);
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, files.name));
+  for (i = 0; i < sizeof(sections) / sizeof(sections[0]) && failed == NULL; i++)
+  {
+    struct char_data *loaded = new_char();
+
+    file = fopen(filename, "w");
+    if (file == NULL)
+      failed = sections[i];
+    else
+    {
+      fprintf(file, "Name: %s\nId  : 4305\nLevl: 7\n%s", files.name, sections[i]);
+      fclose(file);
+      if (load_char(files.name, loaded) != 0)
+        failed = sections[i];
+    }
+    free_char(loaded);
+  }
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertStrEquals(tc, "", failed != NULL ? failed : "");
+}
+
+/* An intact list longer than its array (issue 230): the loaders advanced their index with no
+ * bound and wrote on into the next array. Mercies run into cruelties, discoveries into bombs, and
+ * materials into motes. */
+void Test_load_char_keeps_long_lists_inside_their_arrays(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *loaded = new_char();
+  char filename[MAX_FILEPATH];
+  FILE *file;
+  int i, result, mercy, cruelty_last, discovery, bomb_first, material, mote_first;
+
+  craft_player_files_enter(tc, &files, "crlong", 4306);
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, files.name));
+  file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, file);
+  if (file != NULL)
+  {
+    fprintf(file, "Name: %s\nId  : 4306\nLevl: 7\nClty:\n", files.name);
+    for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
+      fprintf(file, "7\n");
+    fprintf(file, "-1\nBomb:\n");
+    for (i = 0; i < MAX_BOMBS_ALLOWED; i++)
+      fprintf(file, "8\n");
+    fprintf(file, "-1\nMote:\n");
+    for (i = 0; i < NUM_CRAFT_MOTES; i++)
+      fprintf(file, "9\n");
+    fprintf(file, "-1\nMrcy:\n");
+    for (i = 0; i < NUM_PALADIN_MERCIES + 10; i++)
+      fprintf(file, "3\n");
+    fprintf(file, "-1\nDisc:\n");
+    for (i = 0; i < NUM_ALC_DISCOVERIES + 10; i++)
+      fprintf(file, "4\n");
+    fprintf(file, "-1\nCfMt:\n");
+    for (i = 0; i < NUM_CRAFT_MATS + 5; i++)
+      fprintf(file, "5\n");
+    fprintf(file, "-1\n");
+    fclose(file);
+  }
+
+  result = load_char(files.name, loaded);
+  mercy = KNOWS_MERCY(loaded, NUM_PALADIN_MERCIES - 1);
+  cruelty_last = 7;
+  for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
+    if (KNOWS_CRUELTY(loaded, i) != 7)
+      cruelty_last = KNOWS_CRUELTY(loaded, i);
+  discovery = KNOWS_DISCOVERY(loaded, NUM_ALC_DISCOVERIES - 1);
+  bomb_first = GET_BOMB(loaded, 0);
+  material = GET_CRAFT_MAT(loaded, NUM_CRAFT_MATS - 1);
+  mote_first = GET_CRAFT_MOTES(loaded, 0);
+  free_char(loaded);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, 3, mercy);
+  CuAssertIntEquals(tc, 7, cruelty_last);
+  CuAssertIntEquals(tc, 4, discovery);
+  CuAssertIntEquals(tc, 8, bomb_first);
+  CuAssertIntEquals(tc, 5, material);
+  CuAssertIntEquals(tc, 9, mote_first);
 }
 
 /* A saved device line longer than its field is cut to fit; get_line() used to write it straight
