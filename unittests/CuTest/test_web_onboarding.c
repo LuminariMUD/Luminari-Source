@@ -340,7 +340,9 @@ void TestEveryBackgroundHasNonPlaceholderMechanicMetadata(CuTest *tc)
 {
   int background_value = 0;
 
-  assign_feats();
+  /* A second assign_feats() would drop the prerequisite lists an earlier test built. */
+  if (feat_list[FEAT_BG_ACOLYTE].name == NULL)
+    assign_feats();
   assign_backgrounds();
 
   for (background_value = 1; background_value < NUM_BACKGROUNDS; background_value++)
