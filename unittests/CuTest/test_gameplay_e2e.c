@@ -13914,6 +13914,199 @@ void Test_node_harvest_credits_at_completion_and_never_pays_for_cancelling(CuTes
   }
 }
 
+/** One node drop to check: the node's material, the range of the first d10 (none when the table
+ * rolls only a d100), the d100 roll, and the prototype that roll yields (0: the d2 after a d100
+ * above 96 picks a diamond or an emerald). */
+struct node_drop_case
+{
+  int material;
+  int d10_low, d10_high;
+  int roll;
+  obj_vnum expected;
+};
+
+/** @brief The drop tables whose repeated buckets issue 228 merged still yield what the original
+ * buckets did, at each boundary roll, through a whole node harvest: mithril, silver's d10 9-10
+ * table, and both gold tables. */
+void Test_node_harvest_merged_drop_buckets_keep_their_materials(CuTest *tc)
+{
+  static const struct node_drop_case cases[] = {
+      {MATERIAL_MITHRIL, 0, 0, 48, MITHRIL_MATERIAL},
+      {MATERIAL_MITHRIL, 0, 0, 49, MITHRIL_MATERIAL},
+      {MATERIAL_MITHRIL, 0, 0, 96, MITHRIL_MATERIAL},
+      {MATERIAL_MITHRIL, 0, 0, 97, RUBY_MATERIAL},
+      {MATERIAL_MITHRIL, 0, 0, 99, SAPPHIRE_MATERIAL},
+      {MATERIAL_SILVER, 9, 10, 48, SILVER_MATERIAL},
+      {MATERIAL_SILVER, 9, 10, 49, ONYX_MATERIAL},
+      {MATERIAL_SILVER, 9, 10, 52, ONYX_MATERIAL},
+      {MATERIAL_SILVER, 9, 10, 53, SILVER_MATERIAL},
+      {MATERIAL_GOLD, 1, 8, 48, GOLD_MATERIAL},
+      {MATERIAL_GOLD, 1, 8, 49, GOLD_MATERIAL},
+      {MATERIAL_GOLD, 1, 8, 96, GOLD_MATERIAL},
+      {MATERIAL_GOLD, 1, 8, 97, RUBY_MATERIAL},
+      {MATERIAL_GOLD, 9, 10, 4, PLATINUM_MATERIAL},
+      {MATERIAL_GOLD, 9, 10, 5, PLATINUM_MATERIAL},
+      {MATERIAL_GOLD, 9, 10, 96, PLATINUM_MATERIAL},
+      {MATERIAL_GOLD, 9, 10, 97, 0},
+  };
+  /* Sorted by vnum for real_object(). */
+  static const obj_vnum vnums[] = {
+      HARVESTING_NODE, SILVER_MATERIAL,   GOLD_MATERIAL,     ONYX_MATERIAL,    MITHRIL_MATERIAL,
+      RUBY_MATERIAL,   SAPPHIRE_MATERIAL, PLATINUM_MATERIAL, DIAMOND_MATERIAL, EMERALD_MATERIAL};
+  const size_t num_protos = sizeof(vnums) / sizeof(vnums[0]);
+  const size_t num_cases = sizeof(cases) / sizeof(cases[0]);
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct obj_data protos[sizeof(vnums) / sizeof(vnums[0])];
+  struct index_data indexes[sizeof(vnums) / sizeof(vnums[0])];
+  struct index_data *saved_index = obj_index;
+  struct obj_data *saved_proto = obj_proto;
+  obj_rnum saved_top = top_of_objt;
+  struct obj_data *saved_objects = object_list;
+  struct char_data *saved_characters = character_list;
+  unsigned long saved_pulse = pulse, seed;
+  struct obj_data *node;
+  obj_vnum expected, delivered[sizeof(cases) / sizeof(cases[0])];
+  obj_vnum wanted[sizeof(cases) / sizeof(cases[0])];
+  size_t c;
+  int i, step;
+  bool seeded;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player_specials = &specials;
+  fixture.actor.player.name = CuMutableString("node harvester");
+  fixture.actor.desc = &descriptor;
+  GET_LEVEL(&fixture.actor) = 10;
+  GET_POS(&fixture.actor) = POS_STANDING;
+  /* Mithril nodes need 48 legacy units: rank 10 reads as 50. */
+  SET_ABILITY(&fixture.actor, ABILITY_HARVEST_MINING, 10);
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &fixture.actor;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  character_list = &fixture.actor;
+  fixture.actor.next = NULL;
+  fixture.rooms[0].light = 1;
+
+  /* Every drop has no crafting material, so each arrives as an object with its own vnum. */
+  memset(protos, 0, sizeof(protos));
+  memset(indexes, 0, sizeof(indexes));
+  for (c = 0; c < num_protos; c++)
+  {
+    clear_object(&protos[c]);
+    protos[c].item_number = (obj_rnum)c;
+    indexes[c].vnum = vnums[c];
+    GET_OBJ_TYPE(&protos[c]) = c == 0 ? ITEM_OTHER : ITEM_MATERIAL;
+    GET_OBJ_VAL(&protos[c], 0) = c == 0 ? 100 : 1;
+    if (c > 0)
+      SET_BIT_AR(GET_OBJ_WEAR(&protos[c]), ITEM_WEAR_TAKE);
+    protos[c].name = CuMutableString(c == 0 ? "vein node" : "material");
+    protos[c].short_description = CuMutableString(c == 0 ? "a dull vein" : "some material");
+    protos[c].description = CuMutableString("Something lies here.");
+  }
+  obj_index = indexes;
+  obj_proto = protos;
+  top_of_objt = (obj_rnum)(num_protos - 1);
+  object_list = NULL;
+
+  event_free_all();
+  active_world_reset_for_test();
+  active_world_select_for_test(false);
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(false);
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(false);
+  event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER);
+  pulse = 200U;
+  event_init();
+  domain_event_runtime_init();
+
+  node = read_object(HARVESTING_NODE, VIRTUAL);
+  CuAssertPtrNotNull(tc, node);
+  obj_to_room(node, 0);
+
+  for (c = 0; c < num_cases; c++)
+  {
+    const struct node_drop_case *drop = &cases[c];
+
+    /* The drop is the first draw of completion: find a seed whose draws are this case's. */
+    seeded = false;
+    expected = drop->expected;
+    for (seed = 1; seed < 1000000 && !seeded; seed++)
+    {
+      circle_srandom(seed);
+      if (drop->d10_high > 0)
+      {
+        int d10 = dice(1, 10);
+
+        if (d10 < drop->d10_low || d10 > drop->d10_high)
+          continue;
+      }
+      if (dice(1, 100) != drop->roll)
+        continue;
+      if (expected == 0)
+        expected = dice(1, 2) % 2 == 0 ? DIAMOND_MATERIAL : EMERALD_MATERIAL;
+      seeded = true;
+    }
+    seed--;
+    wanted[c] = expected;
+    delivered[c] = NOTHING;
+    if (!seeded)
+      continue;
+
+    GET_OBJ_MATERIAL(node) = drop->material;
+    do_harvest(&fixture.actor, "vein", 0, 0);
+    for (step = 0; step < 5; step++)
+    {
+      if (step == 4)
+        circle_srandom(seed);
+      pulse += (unsigned long)PULSE_VIOLENCE;
+      event_test_advance();
+    }
+    if (fixture.actor.carrying != NULL)
+    {
+      delivered[c] = GET_OBJ_VNUM(fixture.actor.carrying);
+      while (fixture.actor.carrying)
+        extract_obj(fixture.actor.carrying);
+    }
+  }
+
+  obj_from_room(node);
+  extract_obj(node);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  active_world_reset_for_test();
+  character_periodic_reset_for_test();
+  point_update_periodic_reset_for_test();
+  domain_event_world_forget_character(&fixture.actor);
+  fixture.actor.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  if (descriptor.large_outbuf)
+  {
+    free(descriptor.large_outbuf->text);
+    free(descriptor.large_outbuf);
+  }
+  character_list = saved_characters;
+  object_list = saved_objects;
+  obj_index = saved_index;
+  obj_proto = saved_proto;
+  top_of_objt = saved_top;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&fixture);
+
+  for (i = 0; i < (int)num_cases; i++)
+  {
+    char message[96];
+
+    snprintf(message, sizeof(message), "Drop case %d (material %d, roll %d)", i, cases[i].material,
+             cases[i].roll);
+    CuAssertIntEquals_Msg(tc, message, (int)wanted[i], (int)delivered[i]);
+  }
+}
+
 /* Issue 228: gameplay defects found beside the branch-clone and dead-store findings. */
 
 /** The gameplay fixture with a player actor that sees what is sent to it, and the class, feat, and
