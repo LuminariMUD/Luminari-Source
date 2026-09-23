@@ -5631,7 +5631,7 @@
         },
         {
           "index": 35,
-          "name": "Skinning knife (hunting)",
+          "name": "Skinning knife (hunting, leatherworking)",
           "required_wear_index": 26,
           "required_wear_macro": "ITEM_WEAR_CRAFT_KNIFE"
         },
