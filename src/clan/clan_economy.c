@@ -441,7 +441,7 @@ void load_clan_investments(void)
 {
   FILE *fl;
   struct clan_investment *invest;
-  char line[256];
+  char line[READ_SIZE];
 
   if (!(fl = fopen("etc/clan_investments", "r")))
   {

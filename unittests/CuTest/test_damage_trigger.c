@@ -359,6 +359,37 @@ void Test_damage_trigger_olc_uses_attachment_specific_type_counts(CuTest *tc)
   ProtocolDestroy(descriptor.pProtocol);
 }
 
+/* A trigger header longer than 255 characters loads and runs: its flags word fills the 255
+ * characters the field takes. The loader's line once held 256 bytes, fewer than get_line()
+ * writes. */
+void Test_damage_trigger_long_header_line_loads(CuTest *tc)
+{
+  struct damage_trigger_fixture fixture;
+  char flags[256];
+  bool added;
+  long type = 0;
+  int chance = 0;
+  int result = 0;
+
+  memset(flags, 'u', sizeof(flags) - 1);
+  flags[sizeof(flags) - 1] = '\0';
+  CuAssertTrue(tc, damage_trigger_fixture_begin(&fixture));
+  added = damage_trigger_fixture_add(&fixture, "Long header", flags, 100, "return 5");
+  if (added)
+  {
+    type = GET_TRIG_TYPE(TRIGGERS(SCRIPT(&fixture.victim)));
+    chance = GET_TRIG_NARG(TRIGGERS(SCRIPT(&fixture.victim)));
+    result =
+        damage(&fixture.actor, &fixture.victim, 17, TYPE_HIT, DAM_BLUDGEON, ATTACK_TYPE_PRIMARY);
+  }
+  damage_trigger_fixture_end(&fixture);
+
+  CuAssertTrue(tc, added);
+  CuAssertTrue(tc, type == MTRIG_DAMAGE);
+  CuAssertIntEquals(tc, 100, chance);
+  CuAssertIntEquals(tc, 5, result);
+}
+
 /* The script editor drops a new-trigger entry at position 0 and an unknown edit mode, returning to
  * its menu either way, and string cleanup redraws nothing outside the command editor. */
 void Test_damage_trigger_script_editor_returns_to_its_menu(CuTest *tc)

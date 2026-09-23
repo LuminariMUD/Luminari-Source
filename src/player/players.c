@@ -206,7 +206,7 @@ void build_player_index(void)
   int rec_count = 0, i;
   size_t name_length;
   FILE *plr_index;
-  char index_name[40], line[MEDIUM_STRING] = {'\0'}, bits[64];
+  char index_name[40], line[READ_SIZE] = {'\0'}, bits[64];
   char arg2[80];
 
   snprintf(index_name, sizeof(index_name), "%s%s", LIB_PLRFILES, INDEX_FILE);
@@ -5372,14 +5372,14 @@ static void load_devices(FILE *fl, struct char_data *ch)
     }
     strict_sscanf(line, "%d", &inv_idx);
 
-    /* Read keywords */
-    get_line(fl, inv->keywords);
-
-    /* Read short description */
-    get_line(fl, inv->short_description);
-
-    /* Read long description */
-    get_line(fl, inv->long_description);
+    /* Read keywords, short description, and long description through line, which holds what
+     * get_line() writes, keeping what fits each field */
+    get_line(fl, line);
+    strlcpy(inv->keywords, line, sizeof(inv->keywords));
+    get_line(fl, line);
+    strlcpy(inv->short_description, line, sizeof(inv->short_description));
+    get_line(fl, line);
+    strlcpy(inv->long_description, line, sizeof(inv->long_description));
 
     /* Read num_spells, duration, reliability, and optionally uses, cooldown_expires */
     get_line(fl, line);

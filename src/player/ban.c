@@ -350,7 +350,7 @@ void free_invalid_list(void)
 void read_invalid_list(void)
 {
   FILE *fp;
-  char temp[MEDIUM_STRING] = {'\0'};
+  char temp[READ_SIZE] = {'\0'};
 
   if (!(fp = fopen(XNAME_FILE, "r")))
   {

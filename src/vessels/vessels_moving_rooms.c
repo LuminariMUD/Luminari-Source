@@ -28,7 +28,7 @@ void setup_moving_room(FILE *fl, int rroom, int vroom, char *line)
   int fD[MAX_MOVING_ROOMS];
 
   char errStr[100];
-  char lineIn[256];
+  char lineIn[READ_SIZE];
   char msg1[200], msg2[200], msg3[200];
 
   struct moving_room_data *newRoom;

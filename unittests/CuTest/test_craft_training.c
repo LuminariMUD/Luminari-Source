@@ -302,6 +302,58 @@ void Test_load_char_stops_at_a_truncated_class_feat_list(CuTest *tc)
   CuAssertIntEquals(tc, 2, epic_feats);
 }
 
+/* A saved device line longer than its field is cut to fit; get_line() used to write it straight
+ * into the field and on into the fields after it. */
+void Test_load_char_cuts_device_text_to_its_fields(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *loaded = new_char();
+  struct player_invention *device;
+  char filename[MAX_FILEPATH];
+  char keywords[101];
+  char long_description[301];
+  char short_description[MAX_INVENTION_SHORTDESC];
+  FILE *file;
+  size_t keywords_length, long_length;
+  int result, num_spells, reliability, first_effect;
+
+  memset(keywords, 'k', sizeof(keywords) - 1);
+  keywords[sizeof(keywords) - 1] = '\0';
+  memset(long_description, 'l', sizeof(long_description) - 1);
+  long_description[sizeof(long_description) - 1] = '\0';
+  craft_player_files_enter(tc, &files, "crdvt", 4304);
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, files.name));
+  file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, file);
+  if (file != NULL)
+  {
+    fprintf(file,
+            "Name: %s\nId  : 4304\nLevl: 7\nDvis:\n1\n0\n%s\na brass device\n%s\n2 30 90 1 0\n"
+            "7\n0\n0\n0\n~\n",
+            files.name, keywords, long_description);
+    fclose(file);
+  }
+
+  result = load_char(files.name, loaded);
+  device = &loaded->player_specials->saved.inventions[0];
+  keywords_length = strlen(device->keywords);
+  long_length = strnlen(device->long_description, sizeof(device->long_description));
+  strlcpy(short_description, device->short_description, sizeof(short_description));
+  num_spells = device->num_spells;
+  reliability = device->reliability;
+  first_effect = device->spell_effects[0];
+  free_char(loaded);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, MAX_INVENTION_KEYWORDS - 1, (int)keywords_length);
+  CuAssertStrEquals(tc, "a brass device", short_description);
+  CuAssertIntEquals(tc, MAX_INVENTION_LONGDESC - 1, (int)long_length);
+  CuAssertIntEquals(tc, 2, num_spells);
+  CuAssertIntEquals(tc, 90, reliability);
+  CuAssertIntEquals(tc, 7, first_effect);
+}
+
 /* Harvest talents have ids above 63, which the rank storage once could not hold. */
 void Test_craft_harvest_talent_ranks_apply_and_persist(CuTest *tc)
 {

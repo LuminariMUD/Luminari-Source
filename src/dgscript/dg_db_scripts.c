@@ -41,7 +41,7 @@ static bool proto_script_has_trigger_vnum(const struct trig_proto_list *proto_sc
 void parse_trigger(FILE *trig_f, int nr)
 {
   int t[2], k, attach_type;
-  char line[MEDIUM_STRING] = {'\0'}, *cmds, *s, flags[MEDIUM_STRING] = {'\0'},
+  char line[READ_SIZE] = {'\0'}, *cmds, *s, flags[MEDIUM_STRING] = {'\0'},
        errors[MAX_INPUT_LENGTH] = {'\0'};
   struct cmdlist_element *cle;
   struct index_data *t_index;
