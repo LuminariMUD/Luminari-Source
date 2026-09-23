@@ -1206,8 +1206,8 @@ void load_spell_prep_queue(FILE *fl, struct char_data *ch)
   int spell_num, ch_class, metamagic, prep_time, domain, counter = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  /* Read entries until sentinel or limit reached */
-  do
+  /* Read entries until the sentinel, the limit, or the end of the file */
+  while (counter < MAX_MEM && counter < MAX_PREP_QUEUE_SIZE && get_line(fl, line))
   {
     /* Initialize variables for safety */
     ch_class = 0;
@@ -1216,8 +1216,6 @@ void load_spell_prep_queue(FILE *fl, struct char_data *ch)
     prep_time = 0;
     domain = 0;
 
-    /* Read next line from file */
-    get_line(fl, line);
     /* Validate that all 5 values were successfully read */
     if (strict_sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time,
                       &domain) != 5)
@@ -1242,7 +1240,9 @@ void load_spell_prep_queue(FILE *fl, struct char_data *ch)
     }
 
     counter++;
-  } while (counter < MAX_MEM && counter < MAX_PREP_QUEUE_SIZE && spell_num != -1);
+    if (spell_num == -1)
+      break;
+  }
 }
 /**
  * load_innate_magic_queue - Load all innate magic slots from file
@@ -1262,8 +1262,8 @@ void load_innate_magic_queue(FILE *fl, struct char_data *ch)
   int circle, ch_class, metamagic, prep_time, domain, counter = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  /* Read entries until sentinel or limit */
-  do
+  /* Read entries until the sentinel, the limit, or the end of the file */
+  while (counter < MAX_MEM && counter < MAX_INNATE_QUEUE_SIZE && get_line(fl, line))
   {
     /* Initialize for safety */
     ch_class = 0;
@@ -1272,8 +1272,6 @@ void load_innate_magic_queue(FILE *fl, struct char_data *ch)
     prep_time = 0;
     domain = 0;
 
-    /* Read next line */
-    get_line(fl, line);
     /* Validate that all 5 values were successfully read */
     if (strict_sscanf(line, "%d %d %d %d %d", &ch_class, &circle, &metamagic, &prep_time,
                       &domain) != 5)
@@ -1298,7 +1296,9 @@ void load_innate_magic_queue(FILE *fl, struct char_data *ch)
     }
 
     counter++;
-  } while (counter < MAX_MEM && counter < MAX_INNATE_QUEUE_SIZE && circle != -1);
+    if (circle == -1)
+      break;
+  }
 }
 /**
  * load_spell_collection - Load all prepared spells from file
@@ -1317,8 +1317,8 @@ void load_spell_collection(FILE *fl, struct char_data *ch)
   int spell_num, ch_class, metamagic, prep_time, domain, counter = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  /* Read entries until sentinel or limit */
-  do
+  /* Read entries until the sentinel, the limit, or the end of the file */
+  while (counter < MAX_MEM && counter < MAX_COLLECTION_SIZE && get_line(fl, line))
   {
     /* Initialize for safety */
     ch_class = 0;
@@ -1327,8 +1327,6 @@ void load_spell_collection(FILE *fl, struct char_data *ch)
     prep_time = 0; /* Usually 0 for collection */
     domain = 0;
 
-    /* Read next line */
-    get_line(fl, line);
     /* Validate that all 5 values were successfully read */
     if (strict_sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time,
                       &domain) != 5)
@@ -1353,7 +1351,9 @@ void load_spell_collection(FILE *fl, struct char_data *ch)
     }
 
     counter++;
-  } while (counter < MAX_MEM && counter < MAX_COLLECTION_SIZE && spell_num != -1);
+    if (spell_num == -1)
+      break;
+  }
 }
 /**
  * load_known_spells - Load all known spell lists from file
@@ -1372,15 +1372,13 @@ void load_known_spells(FILE *fl, struct char_data *ch)
   int spell_num, ch_class, counter = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  /* Read entries until sentinel or limit */
-  do
+  /* Read entries until the sentinel, the limit, or the end of the file */
+  while (counter < MAX_MEM && counter < MAX_KNOWN_SPELLS && get_line(fl, line))
   {
     /* Initialize for safety */
     ch_class = 0;
     spell_num = 0;
 
-    /* Read next line */
-    get_line(fl, line);
     /* Validate that both values were successfully read */
     if (strict_sscanf(line, "%d %d", &ch_class, &spell_num) != 2)
     {
@@ -1393,7 +1391,9 @@ void load_known_spells(FILE *fl, struct char_data *ch)
       known_spells_add(ch, ch_class, spell_num, TRUE); /* TRUE = loading, skip checks */
 
     counter++;
-  } while (counter < MAX_MEM && counter < MAX_KNOWN_SPELLS && ch_class != -1);
+    if (ch_class == -1)
+      break;
+  }
 }
 
 /**

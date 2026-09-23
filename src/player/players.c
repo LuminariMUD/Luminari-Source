@@ -513,7 +513,7 @@ int load_char(const char *name, struct char_data *ch)
   bool boarding_ability_current = FALSE;
   FILE *fl;
   char filename[40];
-  char buf[128], buf2[128], line[MAX_INPUT_LENGTH + 1], tag[6];
+  char buf[128], line[MAX_INPUT_LENGTH + 1], tag[6];
   char f1[128], f2[128], f3[128], f4[128];
   trig_data *t = NULL;
   trig_rnum t_rnum = NOTHING;
@@ -952,7 +952,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "BgFx"))
           BACKGROUND_EFFECTS_APPLIED(ch) = parse_int(line) != 0;
         else if (!strcmp(tag, "Bond"))
-          ch->player.bonds = fread_string(fl, buf2);
+          ch->player.bonds = fread_player_string(fl, filename);
         else if (!strcmp(tag, "Bag1"))
           GET_BAG_NAME(ch, 1) = strdup(line);
         else if (!strcmp(tag, "Blst"))
@@ -980,7 +980,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Bane"))
           GET_BANE_TARGET_TYPE(ch) = parse_int(line);
         else if (!strcmp(tag, "BGrd"))
-          ch->player.background = fread_string(fl, buf2);
+          ch->player.background = fread_player_string(fl, filename);
         else if (!strcmp(tag, "Bomb"))
           load_bombs(fl, ch);
         else if (!strcmp(tag, "Bost"))
@@ -1209,7 +1209,7 @@ int load_char(const char *name, struct char_data *ch)
         if (!strcmp(tag, "DmgR"))
           load_dr(fl, ch);
         else if (!strcmp(tag, "Desc"))
-          ch->player.description = fread_string(fl, buf2);
+          ch->player.description = fread_player_string(fl, filename);
         else if (!strcmp(tag, "DvCD"))
           ch->player_specials->saved.device_creation_cooldown = (time_t)parse_long(line);
         else if (!strcmp(tag, "Dvis"))
@@ -1313,7 +1313,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "FLGT"))
           FLEETING_GLANCE_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "Flaw"))
-          ch->player.flaws = fread_string(fl, buf2);
+          ch->player.flaws = fread_player_string(fl, filename);
         else if (!strcmp(tag, "FdBn"))
           ch->player_specials->saved.active_fiendish_boons = parse_int(line);
         else if (!strcmp(tag, "FLGU"))
@@ -1352,7 +1352,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "GODU"))
           GRASP_OF_THE_DEAD_USES(ch) = parse_int(line);
         else if (!strcmp(tag, "Goal"))
-          ch->player.goals = fread_string(fl, buf2);
+          ch->player.goals = fread_player_string(fl, filename);
         break;
 
       case 'H':
@@ -1390,7 +1390,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "InqR"))
           GET_FAVORED_TERRAIN_RESET(ch) = parse_long(line);
         else if (!strcmp(tag, "Idel"))
-          ch->player.ideals = fread_string(fl, buf2);
+          ch->player.ideals = fread_player_string(fl, filename);
         else if (!strcmp(tag, "InMa"))
           load_innate_magic_queue(fl, ch);
         else if (!strcmp(tag, "Intr"))
@@ -1598,7 +1598,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "PxDT"))
           PIXIE_DUST_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "Pers"))
-          ch->player.personality = fread_string(fl, buf2);
+          ch->player.personality = fread_player_string(fl, filename);
         else if (!strcmp(tag, "PvPT"))
           GET_PVP_TIMER(ch) = parse_int(line);
         else if (!strcmp(tag, "DvRc"))
@@ -2137,17 +2137,15 @@ int load_char(const char *name, struct char_data *ch)
           CREATE(GET_TODO(ch), struct txt_block, 1);
           struct txt_block *tmp = GET_TODO(ch);
 
-          get_line(fl, line);
-          while (*line != '~')
+          /* One entry per line, ended by ~ or the end of the file. */
+          while (get_line(fl, line) && *line != '~')
           {
-            tmp->text = strdup(line);
-            get_line(fl, line);
-
-            if (*line != '~')
+            if (tmp->text != NULL)
             {
               CREATE(tmp->next, struct txt_block, 1);
               tmp = tmp->next;
             }
+            tmp->text = strdup(line);
           }
         }
         break;
@@ -4507,23 +4505,27 @@ static void load_dr(FILE *f1, struct char_data *ch)
   } while (num != 0 && 0 <= max_loops--);
 }
 
+/* The list loaders below read entries until the list's terminator. get_line() returns 0 at the
+ * end of the file and leaves its last line in the buffer, so each loop also stops there, and at a
+ * line with fewer fields than an entry (a one-number terminator ends a list of pairs that way).
+ * Every index is checked against its array before the store. */
+
 static void load_craft_affects(FILE *fl, struct char_data *ch)
 {
   int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
+  while (get_line(fl, line) &&
+         strict_sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5) == 5 && num != -1)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
-    if (num != -1)
+    if (num >= 0 && num < MAX_OBJ_AFFECT)
     {
       GET_CRAFT(ch).affected[num].location = num2;
       GET_CRAFT(ch).affected[num].modifier = num3;
       GET_CRAFT(ch).affected[num].bonus_type = num4;
       GET_CRAFT(ch).affected[num].specific = num5;
     }
-  } while (num != -1);
+  }
 }
 
 static void load_craft_materials(FILE *fl, struct char_data *ch)
@@ -4531,33 +4533,28 @@ static void load_craft_materials(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0, num3 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d %d", &num, &num2, &num3) == 3 &&
+         num != -1)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d %d", &num, &num2, &num3);
-    if (num != -1)
+    if (num >= 0 && num < NUM_CRAFT_GROUPS)
     {
       GET_CRAFT(ch).materials[num][0] = num2;
       GET_CRAFT(ch).materials[num][1] = num3;
     }
-  } while (num != -1);
+  }
 }
 
 static void load_craft_motes_onhand(FILE *fl, struct char_data *ch)
 {
-  int num = 0;
+  int num = 0, i = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  int i = 0;
-
-  do
+  while (get_line(fl, line) && strict_sscanf(line, "%d", &num) == 1 && num != -1)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d", &num);
-    if (num != -1)
+    if (i < NUM_CRAFT_MOTES)
       GET_CRAFT_MOTES(ch, i) = num;
     i++;
-  } while (num != -1);
+  }
 }
 
 static void load_craft_motes(FILE *fl, struct char_data *ch)
@@ -4565,15 +4562,11 @@ static void load_craft_motes(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != -1)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
-    if (num != -1)
-    {
+    if (num >= 0 && num < MAX_OBJ_AFFECT)
       GET_CRAFT(ch).motes_required[num] = num2;
-    }
-  } while (num != -1);
+  }
 }
 
 /* Load character's purchased perks */
@@ -4583,11 +4576,10 @@ static void load_perks(FILE *fl, struct char_data *ch)
   char line[MAX_INPUT_LENGTH + 1];
   struct char_perk_data *new_perk;
 
-  do
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d %d", &perk_id, &class_id, &rank) == 3 &&
+         perk_id > 0)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d %d", &perk_id, &class_id, &rank);
-    if (perk_id > 0 && rank > 0)
+    if (rank > 0)
     {
       /* Directly create the perk entry without deducting points */
       CREATE(new_perk, struct char_perk_data, 1);
@@ -4597,7 +4589,7 @@ static void load_perks(FILE *fl, struct char_data *ch)
       new_perk->next = ch->player_specials->saved.perks;
       ch->player_specials->saved.perks = new_perk;
     }
-  } while (perk_id > 0);
+  }
 }
 
 /* Load character's perk points per class */
@@ -4606,13 +4598,11 @@ static void load_perk_points(FILE *fl, struct char_data *ch)
   int cls = 0, pts = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &cls, &pts) == 2 && cls >= 0)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &cls, &pts);
-    if (cls >= 0 && cls < NUM_CLASSES)
+    if (cls < NUM_CLASSES)
       ch->player_specials->saved.perk_points[cls] = pts;
-  } while (cls >= 0);
+  }
 }
 
 /* Load character's perk toggle bitfield */
@@ -4625,10 +4615,8 @@ static void load_perk_toggles(FILE *fl, struct char_data *ch)
   /* Initialize all toggles to 0 */
   memset(ch->player_specials->saved.perk_toggles, 0, 32);
 
-  get_line(fl, line);
-
   /* Parse hex string (64 hex chars, 2 per byte) */
-  if (strlen(line) >= 64)
+  if (get_line(fl, line) && strlen(line) >= 64)
   {
     /* Read each pair of hex digits as a byte */
     for (i = 0; i < 32; i++)
@@ -4754,13 +4742,13 @@ static void load_affects(FILE *fl, struct char_data *ch, int affect_file_version
   struct affected_type af;
 
   i = 0;
-  do
+  while (get_line(fl, line) &&
+         (n_vars = strict_sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &num, &num2,
+                                 &num3, &num4, &num5, &num6, &num7, &num8, &num9, &num10, &num11,
+                                 &num12, &num13, &num14, &num15)) >= 1 &&
+         num != 0)
   {
     new_affect(&af);
-    get_line(fl, line);
-    n_vars = strict_sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &num, &num2, &num3,
-                           &num4, &num5, &num6, &num7, &num8, &num9, &num10, &num11, &num12, &num13,
-                           &num14, &num15);
     if (num > 0)
     {
       af.spell = num;
@@ -4834,193 +4822,75 @@ static void load_affects(FILE *fl, struct char_data *ch, int affect_file_version
       affect_to_char(ch, &af);
       i++;
     }
-  } while (num != 0);
+  }
   (void)i;
 }
 
-/* praytimes loading isn't a loop, so has to be manually changed if you
-   change NUM_CASTERS! */
+/* The prayer loaders read at most MAX_MEM lines: Pryg: has no terminator, so the counter must end
+ * its list before the next tag. They take a line with fewer numbers than the format asks for,
+ * missing values being 0, and read only the first seven casters, so they have to be changed by
+ * hand if NUM_CASTERS changes. */
+static bool read_prayer_line(FILE *fl, int *slot, int values[7])
+{
+  char line[MAX_INPUT_LENGTH + 1];
+
+  memset(values, 0, sizeof(int) * 7);
+  return get_line(fl, line) &&
+         strict_sscanf(line, "%d %d %d %d %d %d %d %d", slot, &values[0], &values[1], &values[2],
+                       &values[3], &values[4], &values[5], &values[6]) >= 1 &&
+         *slot != -1;
+}
+
 static void load_praytimes(FILE *fl, struct char_data *ch)
 {
-  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0;
-  int counter = 0;
-  char line[MAX_INPUT_LENGTH + 1];
+  int counter, num, j, values[7];
 
-  do
-  {
-    num2 = 0;
-    num3 = 0;
-    num4 = 0;
-    num5 = 0;
-    num6 = 0;
-    num7 = 0;
-    num8 = 0;
-    get_line(fl, line);
-
-    strict_sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5, &num6, &num7,
-                  &num8);
-    if (num != -1)
-    {
-      PREP_TIME(ch, num, 0) = num2;
-      PREP_TIME(ch, num, 1) = num3;
-      PREP_TIME(ch, num, 2) = num4;
-      PREP_TIME(ch, num, 3) = num5;
-      PREP_TIME(ch, num, 4) = num6;
-      PREP_TIME(ch, num, 5) = num7;
-      PREP_TIME(ch, num, 6) = num8;
-    }
-    counter++;
-  } while (counter < MAX_MEM && num != -1);
+  for (counter = 0; counter < MAX_MEM && read_prayer_line(fl, &num, values); counter++)
+    if (num >= 0 && num < MAX_MEM)
+      for (j = 0; j < 7; j++)
+        PREP_TIME(ch, num, j) = values[j];
 }
 
-/* prayed loading isn't a loop, so has to be manually changed if you
-   change NUM_CASTERS! */
 static void load_prayed_metamagic(FILE *fl, struct char_data *ch)
 {
-  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0;
-  int counter = 0;
-  char line[MAX_INPUT_LENGTH + 1];
+  int counter, num, j, values[7];
 
-  do
-  {
-    num2 = 0;
-    num3 = 0;
-    num4 = 0;
-    num5 = 0;
-    num6 = 0;
-    num7 = 0;
-    num8 = 0;
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5, &num6, &num7,
-                  &num8);
-    if (num != -1)
-    {
-      PREPARED_SPELLS(ch, num, 0).metamagic = num2;
-      PREPARED_SPELLS(ch, num, 1).metamagic = num3;
-      PREPARED_SPELLS(ch, num, 2).metamagic = num4;
-      PREPARED_SPELLS(ch, num, 3).metamagic = num5;
-      PREPARED_SPELLS(ch, num, 4).metamagic = num6;
-      PREPARED_SPELLS(ch, num, 5).metamagic = num7;
-      PREPARED_SPELLS(ch, num, 6).metamagic = num8;
-    }
-    counter++;
-  } while (counter < MAX_MEM && num != -1);
+  for (counter = 0; counter < MAX_MEM && read_prayer_line(fl, &num, values); counter++)
+    if (num >= 0 && num < MAX_MEM)
+      for (j = 0; j < 7; j++)
+        PREPARED_SPELLS(ch, num, j).metamagic = values[j];
 }
 
-/* prayed loading isn't a loop, so has to be manually changed if you
-   change NUM_CASTERS! */
 static void load_prayed(FILE *fl, struct char_data *ch)
 {
-  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0;
-  int counter = 0;
-  char line[MAX_INPUT_LENGTH + 1];
+  int counter, num, j, values[7];
 
-  do
-  {
-    num2 = 0;
-    num3 = 0;
-    num4 = 0;
-    num5 = 0;
-    num6 = 0;
-    num7 = 0;
-    num8 = 0;
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5, &num6, &num7,
-                  &num8);
-    if (num != -1)
-    {
-      PREPARED_SPELLS(ch, num, 0).spell = num2;
-      PREPARED_SPELLS(ch, num, 1).spell = num3;
-      PREPARED_SPELLS(ch, num, 2).spell = num4;
-      PREPARED_SPELLS(ch, num, 3).spell = num5;
-      PREPARED_SPELLS(ch, num, 4).spell = num6;
-      PREPARED_SPELLS(ch, num, 5).spell = num7;
-      PREPARED_SPELLS(ch, num, 6).spell = num8;
-    }
-    counter++;
-  } while (counter < MAX_MEM && num != -1);
+  for (counter = 0; counter < MAX_MEM && read_prayer_line(fl, &num, values); counter++)
+    if (num >= 0 && num < MAX_MEM)
+      for (j = 0; j < 7; j++)
+        PREPARED_SPELLS(ch, num, j).spell = values[j];
 }
 
-/* praying loading isn't a loop, so has to be manually changed if you
-   change NUM_CASTERS! */
 static void load_praying(FILE *fl, struct char_data *ch)
 {
-  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0;
-  char line[MAX_INPUT_LENGTH + 1];
-  int counter = 0;
+  int counter, num, j, values[7];
 
-  do
-  {
-    num2 = 0;
-    num3 = 0;
-    num4 = 0;
-    num5 = 0;
-    num6 = 0;
-    num7 = 0;
-    num8 = 0;
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5, &num6, &num7,
-                  &num8);
-    if (num != -1)
-    {
-      if (num2 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 0).spell = num2;
-      if (num3 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 1).spell = num3;
-      if (num4 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 2).spell = num4;
-      if (num5 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 3).spell = num5;
-      if (num6 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 4).spell = num6;
-      if (num7 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 5).spell = num7;
-      if (num8 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 6).spell = num8;
-    }
-    counter++;
-  } while (num != -1 && counter < MAX_MEM);
+  for (counter = 0; counter < MAX_MEM && read_prayer_line(fl, &num, values); counter++)
+    if (num >= 0 && num < MAX_MEM)
+      for (j = 0; j < 7; j++)
+        if (values[j] < MAX_SPELLS)
+          PREPARATION_QUEUE(ch, num, j).spell = values[j];
 }
 
-/* praying loading isn't a loop, so has to be manually changed if you
-   change NUM_CASTERS! */
 static void load_praying_metamagic(FILE *fl, struct char_data *ch)
 {
-  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0;
-  char line[MAX_INPUT_LENGTH + 1];
-  int counter = 0;
+  int counter, num, j, values[7];
 
-  do
-  {
-    num2 = 0;
-    num3 = 0;
-    num4 = 0;
-    num5 = 0;
-    num6 = 0;
-    num7 = 0;
-    num8 = 0;
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5, &num6, &num7,
-                  &num8);
-    if (num != -1)
-    {
-      if (num2 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 0).metamagic = num2;
-      if (num3 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 1).metamagic = num3;
-      if (num4 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 2).metamagic = num4;
-      if (num5 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 3).metamagic = num5;
-      if (num6 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 4).metamagic = num6;
-      if (num7 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 5).metamagic = num7;
-      if (num8 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 6).metamagic = num8;
-    }
-    counter++;
-  } while (num != -1 && counter < MAX_MEM);
+  for (counter = 0; counter < MAX_MEM && read_prayer_line(fl, &num, values); counter++)
+    if (num >= 0 && num < MAX_MEM)
+      for (j = 0; j < 7; j++)
+        if (values[j] < MAX_SPELLS)
+          PREPARATION_QUEUE(ch, num, j).metamagic = values[j];
 }
 
 static void load_class_level(FILE *fl, struct char_data *ch)
@@ -5028,21 +4898,17 @@ static void load_class_level(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
-    if (num != -1)
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != -1)
+    if (num >= 0 && num < MAX_CLASSES)
       CLASS_LEVEL(ch, num) = num2;
-  } while (num != -1);
 }
 
 static void load_coord_location(FILE *fl, struct char_data *ch)
 {
   char line[MAX_INPUT_LENGTH + 1];
 
-  get_line(fl, line);
-  strict_sscanf(line, "%d %d", ch->coords, ch->coords + 1);
+  if (get_line(fl, line))
+    strict_sscanf(line, "%d %d", ch->coords, ch->coords + 1);
 }
 
 static void load_warding(FILE *fl, struct char_data *ch)
@@ -5050,13 +4916,9 @@ static void load_warding(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
-    if (num != -1)
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != -1)
+    if (num >= 0 && num < MAX_WARDING)
       GET_WARDING(ch, num) = num2;
-  } while (num != -1);
 }
 
 static void load_spec_abil(FILE *fl, struct char_data *ch)
@@ -5064,13 +4926,9 @@ static void load_spec_abil(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
-    if (num != -1)
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != -1)
+    if (num >= 0 && num < MAX_CLASSES)
       GET_SPEC_ABIL(ch, num) = num2;
-  } while (num != -1);
 }
 
 static void load_mercies(FILE *fl, struct char_data *ch)
@@ -5078,16 +4936,12 @@ static void load_mercies(FILE *fl, struct char_data *ch)
   int num = 0, i = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
+  while (get_line(fl, line) && strict_sscanf(line, "%d", &num) == 1 && num != -1)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d", &num);
-    if (num != -1)
-    {
+    if (i < NUM_PALADIN_MERCIES)
       KNOWS_MERCY(ch, i) = num;
-      i++;
-    }
-  } while (num != -1);
+    i++;
+  }
 }
 
 static void load_failed_dialogue_quests(FILE *fl, struct char_data *ch)
@@ -5095,16 +4949,13 @@ static void load_failed_dialogue_quests(FILE *fl, struct char_data *ch)
   int num = 0, i = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
+  while (get_line(fl, line) && strict_sscanf(line, "%d", &num) == 1 && num != -1)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d", &num);
-    if (num != -1)
-    {
+    if (i < (int)(sizeof(ch->player_specials->saved.failed_dialogue_quests) /
+                  sizeof(ch->player_specials->saved.failed_dialogue_quests[0])))
       ch->player_specials->saved.failed_dialogue_quests[i] = num;
-      i++;
-    }
-  } while (num != -1);
+    i++;
+  }
 }
 
 static void load_cruelties(FILE *fl, struct char_data *ch)
@@ -5112,16 +4963,12 @@ static void load_cruelties(FILE *fl, struct char_data *ch)
   int num = 0, i = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
+  while (get_line(fl, line) && strict_sscanf(line, "%d", &num) == 1 && num != -1)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d", &num);
-    if (num != -1)
-    {
+    if (i < NUM_BLACKGUARD_CRUELTIES)
       KNOWS_CRUELTY(ch, i) = num;
-      i++;
-    }
-  } while (num != -1);
+    i++;
+  }
 }
 
 static void load_languages(FILE *fl, struct char_data *ch)
@@ -5129,18 +4976,12 @@ static void load_languages(FILE *fl, struct char_data *ch)
   int num = 0, i = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
+  while (get_line(fl, line) && strict_sscanf(line, "%d", &num) == 1 && num != -1)
   {
-    if (!get_line(fl, line))
-      break;
-    strict_sscanf(line, "%d", &num);
-    if (num != -1)
-    {
-      if (i < NUM_LANGUAGES)
-        ch->player_specials->saved.languages_known[i] = num;
-      i++;
-    }
-  } while (num != -1);
+    if (i < NUM_LANGUAGES)
+      ch->player_specials->saved.languages_known[i] = num;
+    i++;
+  }
 }
 
 static void load_discoveries(FILE *fl, struct char_data *ch)
@@ -5148,16 +4989,12 @@ static void load_discoveries(FILE *fl, struct char_data *ch)
   int num = 0, i = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
+  while (get_line(fl, line) && strict_sscanf(line, "%d", &num) == 1 && num != -1)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d", &num);
-    if (num != -1)
-    {
+    if (i < NUM_ALC_DISCOVERIES)
       KNOWS_DISCOVERY(ch, i) = num;
-      i++;
-    }
-  } while (num != -1);
+    i++;
+  }
 }
 
 static void load_judgements(FILE *fl, struct char_data *ch)
@@ -5165,50 +5002,38 @@ static void load_judgements(FILE *fl, struct char_data *ch)
   int num = 0, i = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
+  while (get_line(fl, line) && strict_sscanf(line, "%d", &num) == 1 && num != -1)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d", &num);
-    if (num != -1)
-    {
+    if (i < NUM_INQ_JUDGEMENTS)
       IS_JUDGEMENT_ACTIVE(ch, i) = (byte)num;
-      i++;
-    }
-  } while (num != -1);
+    i++;
+  }
 }
 
 static void load_bombs(FILE *fl, struct char_data *ch)
 {
-  int num = 0;
+  int num = 0, i = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  int i = 0;
-
-  do
+  while (get_line(fl, line) && strict_sscanf(line, "%d", &num) == 1 && num != -1)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d", &num);
-    if (num != -1)
+    if (i < MAX_BOMBS_ALLOWED)
       GET_BOMB(ch, i) = num;
     i++;
-  } while (num != -1);
+  }
 }
 
 static void load_craft_mats_onhand(FILE *fl, struct char_data *ch)
 {
-  int num = 0;
+  int num = 0, i = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  int i = 0;
-
-  do
+  while (get_line(fl, line) && strict_sscanf(line, "%d", &num) == 1 && num != -1)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d", &num);
-    if (num != -1)
+    if (i < NUM_CRAFT_MATS)
       GET_CRAFT_MAT(ch, i) = num;
     i++;
-  } while (num != -1);
+  }
 }
 
 static void load_favored_enemy(FILE *fl, struct char_data *ch)
@@ -5216,13 +5041,9 @@ static void load_favored_enemy(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != -1)
     if (num >= 0 && num < MAX_ENEMIES)
       GET_FAVORED_ENEMY(ch, num) = (ubyte)num2;
-  } while (num != -1);
 }
 
 static void load_favored_terrains(FILE *fl, struct char_data *ch)
@@ -5230,13 +5051,9 @@ static void load_favored_terrains(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
-    if (num != -1 && num >= 0 && num < MAX_ENEMIES)
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != -1)
+    if (num >= 0 && num < MAX_ENEMIES)
       GET_FAVORED_TERRAINS(ch, num) = (sbyte)num2;
-  } while (num != -1);
 }
 
 static void load_potions(FILE *fl, struct char_data *ch)
@@ -5244,13 +5061,9 @@ static void load_potions(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != -1)
     if (num > 0 && num < MAX_SPELLS)
       STORED_POTIONS(ch, num) = num2;
-  } while (num != -1);
 }
 
 static void load_buffs(FILE *fl, struct char_data *ch)
@@ -5258,16 +5071,15 @@ static void load_buffs(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0, num3 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d %d", &num, &num2, &num3) == 3 &&
+         num != -1)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d %d", &num, &num2, &num3);
     if (num >= 0 && num < MAX_BUFFS)
     {
       GET_BUFF(ch, num, 0) = num2;
       GET_BUFF(ch, num, 1) = num3;
     }
-  } while (num != -1);
+  }
 }
 
 static void load_scrolls(FILE *fl, struct char_data *ch)
@@ -5275,13 +5087,9 @@ static void load_scrolls(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != -1)
     if (num > 0 && num < MAX_SPELLS)
       STORED_SCROLLS(ch, num) = num2;
-  } while (num != -1);
 }
 
 static void load_wands(FILE *fl, struct char_data *ch)
@@ -5289,13 +5097,9 @@ static void load_wands(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != -1)
     if (num > 0 && num < MAX_SPELLS)
       STORED_WANDS(ch, num) = num2;
-  } while (num != -1);
 }
 
 static void load_staves(FILE *fl, struct char_data *ch)
@@ -5303,13 +5107,9 @@ static void load_staves(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != -1)
     if (num > 0 && num < MAX_SPELLS)
       STORED_STAVES(ch, num) = num2;
-  } while (num != -1);
 }
 
 static void load_abilities(FILE *fl, struct char_data *ch)
@@ -5317,13 +5117,9 @@ static void load_abilities(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
-    if (num != 0)
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != 0)
+    if (num > 0 && num <= MAX_ABILITIES)
       GET_ABILITY(ch, num) = (ubyte)num2;
-  } while (num != 0);
 }
 
 static void load_ability_exp(FILE *fl, struct char_data *ch)
@@ -5331,13 +5127,9 @@ static void load_ability_exp(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
-    if (num != 0)
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != 0)
+    if (num > 0 && num <= MAX_ABILITIES)
       GET_CRAFT_SKILL_EXP(ch, num) = num2;
-  } while (num != 0);
 }
 
 static void load_devices(FILE *fl, struct char_data *ch)
@@ -5350,8 +5142,8 @@ static void load_devices(FILE *fl, struct char_data *ch)
   int has_pre_line = 0;
 
   /* Read number of inventions */
-  get_line(fl, line);
-  strict_sscanf(line, "%d", &num_inventions);
+  if (get_line(fl, line))
+    strict_sscanf(line, "%d", &num_inventions);
   if (num_inventions < 0)
     num_inventions = 0;
   else if (num_inventions > MAX_PLAYER_INVENTIONS)
@@ -5457,30 +5249,17 @@ static void load_devices(FILE *fl, struct char_data *ch)
 
 static void load_skills(FILE *fl, struct char_data *ch)
 {
-  int num = 0, num2 = 0, counter = 0;
+  int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != 0)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
-    if (num != 0)
-    {
-      /* this is a hack since we moved the skill numbering */
-      if (num < START_SKILLS)
-        num += 1600;
-
-      if (counter >= (MAX_SKILLS + 1))
-        ;
-      else
-      {
-        GET_SKILL(ch, num) = num2;
-      }
-      /* end hack */
-
-      counter++;
-    }
-  } while (num != 0 && counter < MAX_SKILLS);
+    /* this is a hack since we moved the skill numbering */
+    if (num < START_SKILLS)
+      num += 1600;
+    if (num > 0 && num <= MAX_SKILLS)
+      GET_SKILL(ch, num) = num2;
+  }
 }
 
 void load_feats(FILE *fl, struct char_data *ch)
@@ -5488,13 +5267,9 @@ void load_feats(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
-    if (num != 0)
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != 0)
+    if (num > 0 && num < NUM_FEATS)
       SET_FEAT(ch, num, num2);
-  } while (num != 0);
 }
 
 void load_evolutions(FILE *fl, struct char_data *ch)
@@ -5502,13 +5277,9 @@ void load_evolutions(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
-    if (num != 0)
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != 0)
+    if (num > 0 && num < NUM_EVOLUTIONS)
       HAS_REAL_EVOLUTION(ch, num) = num2;
-  } while (num != 0);
 }
 
 void load_temp_evolutions(FILE *fl, struct char_data *ch)
@@ -5516,13 +5287,9 @@ void load_temp_evolutions(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
-    if (num != 0)
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != 0)
+    if (num > 0 && num < NUM_EVOLUTIONS)
       HAS_TEMP_EVOLUTION(ch, num) = num2;
-  } while (num != 0);
 }
 
 void load_known_evolutions(FILE *fl, struct char_data *ch)
@@ -5530,13 +5297,9 @@ void load_known_evolutions(FILE *fl, struct char_data *ch)
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d", &num, &num2);
-    if (num != 0)
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &num, &num2) == 2 && num != 0)
+    if (num > 0 && num < NUM_EVOLUTIONS)
       KNOWS_EVOLUTION(ch, num) = num2;
-  } while (num != 0);
 }
 
 void load_class_feat_points(FILE *fl, struct char_data *ch)
@@ -5575,16 +5338,15 @@ void load_skill_focus(FILE *fl, struct char_data *ch)
   int skfeat = 0, skill = 0, skfeat_epic = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
+  while (get_line(fl, line) &&
+         strict_sscanf(line, "%d %d %d", &skill, &skfeat, &skfeat_epic) == 3 && skill != -1)
   {
-    get_line(fl, line);
-    strict_sscanf(line, "%d %d %d", &skill, &skfeat, &skfeat_epic);
-    if (skill != -1)
+    if (skill >= 0 && skill <= MAX_ABILITIES)
     {
       ch->player_specials->saved.skill_focus[skill][0] = skfeat;
       ch->player_specials->saved.skill_focus[skill][1] = skfeat_epic;
     }
-  } while (skill != -1);
+  }
 }
 
 static void load_events(FILE *fl, struct char_data *ch)
@@ -5758,13 +5520,8 @@ void load_quests(FILE *fl, struct char_data *ch)
   int num = (int)NOTHING;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
-  {
-    get_line(fl, line);
-    strict_sscanf(line, "%d", &num);
-    if (num != (int)NOTHING)
-      add_completed_quest(ch, num);
-  } while (num != (int)NOTHING);
+  while (get_line(fl, line) && strict_sscanf(line, "%d", &num) == 1 && num != (int)NOTHING)
+    add_completed_quest(ch, num);
 }
 
 /* Load introduction list */
@@ -5781,15 +5538,15 @@ static void load_introductions(FILE *fl, struct char_data *ch)
   i = 0;
 
   /* Read first line to detect format */
-  get_line(fl, line);
+  if (!get_line(fl, line))
+    return;
 
   /* Check if this is old numeric format by testing first line */
   if (strict_sscanf(line, "%ld", &test_num) == 1 && strlen(line) < 10)
   {
     /* Keep reading and discarding old format data */
-    while (1)
+    while (get_line(fl, line))
     {
-      get_line(fl, line);
       /* Stop when we hit NOTHING (-1) or a non-numeric line */
       if (strict_sscanf(line, "%ld", &test_num) != 1 || test_num == -1 || test_num == NOTHING)
         break;
@@ -5806,9 +5563,8 @@ static void load_introductions(FILE *fl, struct char_data *ch)
   }
 
   /* Continue reading new format data */
-  while (i < MAX_INTROS)
+  while (i < MAX_INTROS && get_line(fl, line))
   {
-    get_line(fl, line);
     if (strcmp(line, "~") == 0)
       break;
 
@@ -5891,16 +5647,12 @@ static void read_aliases_ascii(FILE *file, struct char_data *ch, int count)
   {
     char abuf[MAX_INPUT_LENGTH + 1], rbuf[MAX_INPUT_LENGTH + 1], tbuf[MAX_INPUT_LENGTH] = {'\0'};
 
-    /* Read the aliased command. */
-    get_line(file, abuf);
-
-    /* Read the replacement. This needs to have a space prepended before placing in
-     * the in-memory struct. The space may be there already, but we can't be certain! */
+    /* Read the aliased command, the replacement, and the type; a file that ends first ends the
+     * list. The replacement needs a space prepended before placing in the in-memory struct. The
+     * space may be there already, but we can't be certain! */
     rbuf[0] = ' ';
-    get_line(file, rbuf + 1);
-
-    /* read the type */
-    get_line(file, tbuf);
+    if (!get_line(file, abuf) || !get_line(file, rbuf + 1) || !get_line(file, tbuf))
+      break;
 
     if (abuf[0] && rbuf[1] && *tbuf)
     {
