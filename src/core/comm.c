@@ -4448,9 +4448,6 @@ void close_socket(struct descriptor_data *d)
       /* We are guaranteed to have a person. */
       act("$n has lost $s link.", TRUE, link_challenged, 0, 0, TO_ROOM);
 
-      /* Clean up supply order slots before saving */
-      cleanup_supply_slots(link_challenged);
-
       buff_sequence_cancel(link_challenged);
       transport_job_cancel(link_challenged, true);
       save_char(link_challenged, 0);
