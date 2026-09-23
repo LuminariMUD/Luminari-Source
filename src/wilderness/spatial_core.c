@@ -673,9 +673,8 @@ const char *spatial_direction_to_string(spatial_direction_t direction, double di
 
   /* Add distance qualifier based on effective perception */
   if (distance <= 1.0)
-  /* NOLINTNEXTLINE(bugprone-branch-clone) -- the closest tier may want its own wording */
   {
-    snprintf(buf, 64, "the %s", base_dir);
+    snprintf(buf, 64, "the immediate %s", base_dir);
   }
   else if (distance <= 3.0)
   {
