@@ -10335,10 +10335,10 @@ static const char *const hints[] = {
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*82*/
     "\tR[HINT]:\tn \ty"
-    "With hundreds of feats available, planning your build is easy with feat navigation "
-    "tools! Use FEATTREE to view prerequisite trees and progression chains, FEAT SEARCH "
-    "<keyword> to find feats matching a specific playstyle, and FEAT INFO <feat name> to read "
-    "complete rules and mechanics. See HELP FEATS and HELP FEATTREE."
+    "With hundreds of feats available, the FEATS command helps you plan your build! Use "
+    "FEATS AVAILABLE to list the feats you qualify for now, FEATS ALL to list every feat, and "
+    "FEAT INFO <feat name> to read a feat's prerequisites, the feats it leads to, and its full "
+    "rules. See HELP FEATS."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*83*/
     "\tR[HINT]:\tn \ty"

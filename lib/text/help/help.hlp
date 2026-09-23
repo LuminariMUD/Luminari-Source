@@ -8174,7 +8174,7 @@ See Also: CRAFT-SCORE CRAFT-MATERIALS CRAFTING-MOTES CRAFT-SHOW CRAFT-CHECK
 
 Special thanks to Ellyanor for the original crafting help contribution.
 #0
-CRAFTING-KIT CRAFTINGKIT KIT
+CRAFTING-KIT CRAFTINGKIT KIT REDESC
 
 A crafting kit is a carried container that holds the physical ingredients of
 the kit commands. Put the item or items in the kit, then type the command;
@@ -10676,7 +10676,7 @@ DOMINATE-PERSON
 	YSee also:	n SPELLS, VAMPIRE-DOMINATE
 	n
 #0
-DONATE DONATING DONATION
+DONATE DONATING DONATION DONATION-ROOM
 
 Usage: donate <object>
        donate <number> coins
@@ -26833,7 +26833,7 @@ with the given mobile.
 
 See Also:  HLQUEST
 #31
-RACE RACES
+RACE RACE-LIST RACES
 
 	n
 RACE RACES
@@ -43033,7 +43033,7 @@ fields.
 	YSEE ALSO:	n  ZONE-FLAGS
 	n
 #0
-REGION REGIONS ZLIST ZONELIST ZONES
+REGION REGIONS ZLIST ZONELIST ZONES ZONES1
 
 You can use your teleporter to transport to any of these zones using the
 capitalized keyword.  Example:  teleport sanctus
