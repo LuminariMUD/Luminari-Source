@@ -981,6 +981,42 @@ void Test_supply_order_offers_always_have_a_variant(CuTest *tc)
   CuAssertTrue(tc, stale_replaced);
 }
 
+/* supplyorder list printed only advice and the artisan points (issue 220), so select picked an
+ * offer blind. It lists each offer with the number select takes and its terms, and selecting a
+ * listed number takes that offer. */
+void Test_supply_order_list_shows_the_offers_select_takes(CuTest *tc)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  char listed[MAX_STRING_LENGTH], description[MAX_INPUT_LENGTH] = {'\0'};
+  const char *offer, *start, *end;
+  bool numbered, termed, taken, same_offer;
+
+  craft_project_begin(&f);
+  craft_project_add_quartermaster(&f);
+  GET_IDNUM(ch) = 7;
+  newcraft_supplyorder(ch, "list");
+  snprintf(listed, sizeof(listed), "%s", f.descriptor.output);
+  numbered = strstr(listed, "\r\n1)") != NULL && (offer = strstr(listed, "\r\n2)")) != NULL;
+  termed = strstr(listed, "Requires:") != NULL && strstr(listed, "Time limit: none") != NULL &&
+           strstr(listed, "artisan points, plus gold") != NULL;
+  if (numbered && (start = strstr(offer, ": ")) != NULL && (end = strstr(start, "\r\n")) != NULL)
+    snprintf(description, sizeof(description), "%.*s", (int)(end - start - 2), start + 2);
+
+  craft_project_reset_output(&f);
+  newcraft_supplyorder(ch, "select 2");
+  taken = player_has_supply_order(ch);
+  same_offer = *description != '\0' && strstr(f.descriptor.output, description) != NULL;
+  reset_supply_order(ch);
+  cleanup_supply_slots(ch);
+  craft_project_end(&f);
+
+  CuAssertTrue(tc, numbered);
+  CuAssertTrue(tc, termed);
+  CuAssertTrue(tc, taken);
+  CuAssertTrue(tc, same_offer);
+}
+
 void Test_supply_order_mobile_runs_every_supplyorder_subcommand(CuTest *tc)
 {
   struct craft_project_fixture f;

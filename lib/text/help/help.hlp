@@ -36195,8 +36195,8 @@ AUTOCRAFT AUTOCRAFTING SUPPLY-OFFICE SUPPLYOFFICE SUPPLYORDER
 Supply orders are paid contracts to craft a quantity of an item from your
 crafting materials.
 
-  supplyorder list|available          (artisan points only; no offers)
-  supplyorder select|choose <number>  (offer numbers are not displayed first)
+  supplyorder list|available          (the open offers, numbered)
+  supplyorder select|choose <number>  (take a listed offer)
   supplyorder request
   supplyorder show|status|info
   supplyorder start|begin
@@ -36217,9 +36217,14 @@ so the mobile intercepts SUPPLYORDER itself; the flag is still required.
 
 LIST, SELECT, REQUEST, and COMPLETE require a quartermaster in the room. START
 requires the crafting station for the contract recipe skill, and timed work
-rechecks that station. SELECT and COOLDOWN refresh eligible empty offer slots
-and replace an offer that has no recipe variant; LIST and SHOW do not. No
-command displays the generated offers before SELECT.
+rechecks that station. LIST, SELECT, and COOLDOWN refresh eligible empty offer
+slots and replace an offer that has no recipe variant; SHOW does not.
+
+LIST shows each open offer with the number SELECT takes: its type, the item and
+quantity, the materials it needs, and its time limit and pay. An order pays 10
+artisan points per item, plus gold and bonus experience set by the materials
+and your skill when you COMPLETE it. A taken offer's slot opens again an hour
+later.
 
 Each item takes its materials only when every group can pay for it, and
 COMPLETE needs exactly the ordered quantity. A quality contract accepts only
