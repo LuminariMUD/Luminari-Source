@@ -131,7 +131,7 @@ void sub_write(char *arg, char_data *ch, byte find_invis, int targets)
   void *otokens[MAX_INPUT_LENGTH] = {NULL};
   char_data *to;
   obj_data *obj;
-  int i, tmp;
+  int i;
   /* mainly for windows compiles */
   // int to_sleeping = 1;
 
@@ -168,7 +168,7 @@ void sub_write(char *arg, char_data *ch, byte find_invis, int targets)
       if (find_invis)
         obj = get_obj_in_room(&world[IN_ROOM(ch)], name);
       else if ((obj = get_obj_in_list_vis(ch, name, NULL, world[IN_ROOM(ch)].contents)) == NULL &&
-               (obj = get_obj_in_equip_vis(ch, name, &tmp, ch->equipment)) == NULL)
+               (obj = get_obj_in_equip_vis(ch, name, NULL, ch->equipment)) == NULL)
         obj = get_obj_in_list_vis(ch, name, NULL, ch->carrying);
 
       otokens[i] = (void *)obj;
