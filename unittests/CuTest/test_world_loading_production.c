@@ -425,6 +425,32 @@ void Test_world_loading_production_zone_reset_dispatch_and_whitespace(CuTest *tc
   assert_world_loader_child(tc, child, 0);
 }
 
+/** A record header vnum above INT_MAX, which the OLC writers print with PRI_IDX, still loads. */
+void Test_world_loading_production_header_vnum_above_int_max_loads(CuTest *tc)
+{
+  pid_t child;
+
+  child = fork();
+  if (child == 0)
+  {
+    FILE *input = tmpfile();
+
+    if (input == NULL)
+      CuTestChildExit(2);
+    fputs("#2147483650\nwide vnum~\n0 g 100\n~\nsay hello\n~\n$\n", input);
+    CuAssertTrue(tc, rewind_stream(input));
+    trig_index = (struct index_data **)calloc(1, sizeof(*trig_index));
+    if (trig_index == NULL)
+      CuTestChildExit(2);
+    top_of_trigt = 0;
+    discrete_load(input, DB_BOOT_TRG, CuMutableString("wide.trg"));
+    if (top_of_trigt != 1 || trig_index[0]->vnum != (trig_vnum)2147483650U)
+      CuTestChildExit(3);
+    CuTestChildExit(0);
+  }
+  assert_world_loader_child(tc, child, 0);
+}
+
 /** Verify J, F, K, X, C, and V read their arguments, with the optional percents defaulted. */
 void Test_world_loading_production_zone_command_forms(CuTest *tc)
 {

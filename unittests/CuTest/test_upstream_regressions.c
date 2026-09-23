@@ -118,12 +118,17 @@ void Test_ban_records_are_bounded_and_reject_malformed_fields(CuTest *tc)
   char overlong_site[BANNED_SITE_LENGTH + 2];
   char line[READ_SIZE];
   int parsed_valid;
+  int parsed_wide_date;
   int rejected_extra;
   int rejected_type;
   int rejected_overlong_site;
 
   memset(&record, 0, sizeof(record));
   parsed_valid = ban_parse_record_for_test("all example.org 1234 Admin\n", &record);
+  CuAssertTrue(tc, parsed_valid);
+  CuAssertTrue(tc, record.date == (time_t)1234);
+  /* _write_one_node() writes the date with %ld, so a date past 2038 must read back. */
+  parsed_wide_date = ban_parse_record_for_test("all example.org 2147483648 Admin\n", &record);
   rejected_extra = !ban_parse_record_for_test("all example.org 1234 Admin trailing\n", &record);
   rejected_type = !ban_parse_record_for_test("bogus example.org 1234 Admin\n", &record);
 
@@ -132,11 +137,11 @@ void Test_ban_records_are_bounded_and_reject_malformed_fields(CuTest *tc)
   snprintf(line, sizeof(line), "all %s 1234 Admin\n", overlong_site);
   rejected_overlong_site = !ban_parse_record_for_test(line, &record);
 
-  CuAssertTrue(tc, parsed_valid);
+  CuAssertTrue(tc, parsed_wide_date);
   CuAssertStrEquals(tc, "example.org", record.site);
   CuAssertStrEquals(tc, "Admin", record.name);
   CuAssertIntEquals(tc, BAN_ALL, record.type);
-  CuAssertTrue(tc, record.date == (time_t)1234);
+  CuAssertTrue(tc, record.date == (time_t)2147483648LL);
   CuAssertTrue(tc, rejected_extra);
   CuAssertTrue(tc, rejected_type);
   CuAssertTrue(tc, rejected_overlong_site);

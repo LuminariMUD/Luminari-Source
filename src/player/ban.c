@@ -40,10 +40,11 @@ static const char *ban_types[] = {"no", "new", "select", "all", "ERROR"};
 static int parse_ban_record(const char *line, struct ban_list_element *record)
 {
   char ban_type[100], site_name[BANNED_SITE_LENGTH + 1], name[MAX_NAME_LENGTH + 1], extra;
-  int date, type;
+  long date;
+  int type;
 
   if (line == NULL || record == NULL ||
-      strict_sscanf(line, " %99s %50s %d %20s %c", ban_type, site_name, &date, name, &extra) != 4)
+      strict_sscanf(line, " %99s %50s %ld %20s %c", ban_type, site_name, &date, name, &extra) != 4)
     return FALSE;
 
   for (type = BAN_NOT; type <= BAN_ALL; type++)
@@ -54,7 +55,7 @@ static int parse_ban_record(const char *line, struct ban_list_element *record)
 
   strlcpy(record->site, site_name, sizeof(record->site));
   strlcpy(record->name, name, sizeof(record->name));
-  record->date = date;
+  record->date = (time_t)date;
   record->type = type;
   record->next = NULL;
   return TRUE;

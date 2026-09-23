@@ -1740,6 +1740,7 @@ void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
   char extra;
   unsigned long rol_cheat_with;
   int temp, count, new_format = FALSE;
+  shop_vnum vnum;
   struct shop_buy_data list[MAX_SHOP_OBJ + 1];
   int done = FALSE;
 
@@ -1750,18 +1751,18 @@ void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
     buf = fread_string(shop_f, buf2);
     if (*buf == '#')
     { /* New shop */
-      if (strict_sscanf(buf, "#%d", &temp) != 1)
+      if (strict_sscanf(buf, "#%" SCN_IDX, &vnum) != 1)
       {
         log("SYSERR: Invalid shop header in %s: %s", filename, buf);
         free(buf);
         exit(1);
       }
-      snprintf(buf2, sizeof(buf2), "shop #%d in shop file %s", temp, filename);
+      snprintf(buf2, sizeof(buf2), "shop #%" PRI_IDX " in shop file %s", vnum, filename);
       free(buf); /* Plug memory leak! */
       top_shop++;
       if (!top_shop)
         CREATE(shop_index, struct shop_data, rec_count);
-      SHOP_NUM(top_shop) = temp;
+      SHOP_NUM(top_shop) = vnum;
       temp = read_list(shop_f, list, new_format, MAX_PROD, LIST_PRODUCE);
       CREATE(shop_index[top_shop].producing, obj_vnum, temp);
       for (count = 0; count < temp; count++)

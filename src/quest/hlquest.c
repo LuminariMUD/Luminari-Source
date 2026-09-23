@@ -928,6 +928,7 @@ void boot_the_quests(FILE *quest_f, char *filename, int rec_count __attribute__(
   char line[READ_SIZE] = {'\0'};
   char inner[READ_SIZE] = {'\0'};
   int temp = 0;
+  mob_vnum vnum = 0;
   bool done = FALSE;
   bool approved = FALSE;
   struct char_data *mob = NULL;
@@ -947,8 +948,13 @@ void boot_the_quests(FILE *quest_f, char *filename, int rec_count __attribute__(
     switch (line[0])
     { /* New quest */
     case '#':
-      strict_sscanf(line, "#%d", &temp);
-      mob_nr = real_mobile(temp);
+      if (strict_sscanf(line, "#%" SCN_IDX, &vnum) != 1)
+      {
+        log("SYSERR: Invalid quest header in %s: %s", filename, line);
+        mob = NULL;
+        break;
+      }
+      mob_nr = real_mobile(vnum);
       mob = mob_nr == NOBODY ? NULL : &mob_proto[mob_nr];
       break;
     case 'A':

@@ -88,7 +88,8 @@ void add_name(byte level, char *name);
 static void read_file(void)
 {
   FILE *fl;
-  int recs, i, last = 0, level = 0, flags = 0;
+  int recs, i, level = 0, flags = 0;
+  long last = 0;
   char index_name[40], line[256], bits[64];
   char name[MAX_NAME_LENGTH];
   long id = 0;
@@ -113,7 +114,7 @@ static void read_file(void)
   for (i = 0; i < recs; i++)
   {
     get_line(fl, line);
-    if (strict_sscanf(line, "%ld %19s %d %63s %d", &id, name, &level, bits, &last) != 5)
+    if (strict_sscanf(line, "%ld %19s %d %63s %ld", &id, name, &level, bits, &last) != 5)
     {
       fprintf(stderr, "Invalid player index record: %s\n", line);
       continue;
