@@ -36,6 +36,16 @@ harvests; bowmaking, trapmaking, poisonmaking, fishing, and cooking keep their
 slots without features. `gain_craft_exp()` pays experience once per completed
 operation; ranks grant talent points.
 
+An equipment project or supply order takes its skill from its recipe variant
+(`variant_skill[]` in `src/craft/crafting_recipes.c`, mapped by
+`recipe_skill_to_actual_crafting_skill()`); every check reads it there through
+`get_craft_project_skill()`, not from the saved `skill_type`, so a project saved
+under an older recipe table follows the current one. The skill decides the tool,
+the station, the talents, the roll, and the experience. Variants whose main
+material is hides use leatherworking (issue #221): a tannery and a
+leatherworking tool, worn in the skinning knife slot that leatherworking shares
+with hunting. Cloth variants use tailoring, even those that take one hide.
+
 The legacy kit skills (slots 2071 to 2085) have no definitions, registrations,
 or notch cases. `craft_migrate_legacy_skills()` in `crafting_new.c` converts
 them once per character (CrMg stage 1): a value at or

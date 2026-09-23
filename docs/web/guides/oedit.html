@@ -2319,8 +2319,10 @@ value 0 names its ability and it is worn in that ability&#x2019;s tool position
 does not count. Equipment-crafting admission and completion, room
 harvesting (the skill that harvests the room&#x2019;s material), the
 <code>craft tools|equipment|gear</code> display, and the value 1 bonus
-all use that rule. Woodworking has no tool position and needs no tool;
-metalworking and leatherworking have no tool position either.</p>
+all use that rule. Hunting and leatherworking share the knife position,
+each with a tool made for its own ability. Woodworking has no tool
+position and needs no tool; metalworking has no tool position
+either.</p>
 <p>Bit 34 is the active Yuan-Ti tail slot. On a non-ring object,
 <code>ITEM_WEAR_TAIL</code> marks dedicated tail gear: the runtime
 rejects that object in every other slot, even if another wear bit is
@@ -2331,7 +2333,7 @@ tail. If imported data contains both finger and tail bits, the ring rule
 wins and the object remains finger-or-tail gear.</p>
 <p>The value 1 bonus is applied only by <code>compute_ability()</code>,
 which feeds skill listings; no crafting, golem, harvesting, or brewing
-roll reads it. The tools players can get are objects 391-395 in
+roll reads it. The tools players can get are objects 389 and 391-395 in
 <code>data/crafting-tools</code>, sold by the Sanctus III materials
 vendor (shop 369). A site can also name tool prototypes in the
 <code>NOOB_CRAFTING_TAILORING</code>,
