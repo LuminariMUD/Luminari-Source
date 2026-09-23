@@ -218,7 +218,7 @@ See also: POSITIONS
 
 See 	RHELP ROOM-VAR	n
 #31
-%TELEPORT% %TRANSPORT% MTELEPORT OTELEPORT TRIG-TELEPORT WTELEPORT
+%MTELEPORT% %TELEPORT% %TRANSPORT% MTELEPORT OTELEPORT TRIG-TELEPORT WTELEPORT
 
 Stock does not have an object type portal. This is instead done with
 trigedit.
@@ -1946,7 +1946,7 @@ will not reveal or answer its called words or its active command.
 
 See also: ARTIFACT ROSTER, INVOKE, SOULSTRIKE, DIVINEWARD, DOOMBLAST
 #0
-ARTIFACT ARTIFACT-CHRONICLE ARTIFACT-ROSTER ARTIFACTROSTER ARTIFACT_ROSTER CHRONICLE ROSTER
+ARTIFACT-CHRONICLE ARTIFACT-ROSTER ARTIFACTROSTER ARTIFACT_ROSTER CHRONICLE ROSTER
 
 
 Usage: artifact roster
@@ -2217,7 +2217,7 @@ Examples:
 
 See also: TOGGLE, EMOTE, GSAY, HOLLER, NOREPEAT, SAY, SHOUT
 #0
-AUCTION CONGRATULATIONS GOSSIP GRATS
+AUCTION
 
 These commands are used to sell things in game.
 
@@ -3081,7 +3081,7 @@ This powerful protective spell magically hardens the target's skin to the textur
 See also: SPELLS
 	n
 #0
-BARTER
+BARTER BARTERING
 
 Barter
 
@@ -3567,7 +3567,7 @@ example:  blank all / forget all / uncommune all / discard all
 
 See also:  MEMORIZATION PRAYER CONCOCT
 #0
-AMMO ARCHERY BLAST BOWS FIRE-WEAPONS LEGACY-RANGED-WEAPONS MISSILES QUIVERS RANGED-WEAPONS SHOOT
+BLAST LEGACY-RANGED-WEAPONS
 
 Usage:  fire <target> <optionally direction>
        if <target> is group member or pet, you will assist them...
@@ -4715,7 +4715,7 @@ Examples:
  
 See also: LIST, SELL, SHOPS, VALUE
 #0
-CADAVER CORPSE UNDEAD
+CADAVER CORPSE DECOMPOSE UNDEAD
 
 Corpses are bodies that no longer carry a soul. They are seen after a player
 has made a kill, until the zone either resets, it decomposes, or someone
@@ -5423,7 +5423,7 @@ if you want to remove it from your prepared spell list.
 See also:  SPELLS PALADIN
 	n
 #0
-%ACTOR% %ACTOR.ID% %ACTOR.NAME% %ACTOR.TITLE% %ACTOR.VNUM% %SELF% %SELF.ID% %TITLE% %VICTIM% ACTOR-VAR ACTOR.ID ACTOR.VNUM CHAR-VARIABLES CHAR-VARS MOB-VARS MOBVARS NEXT_IN_ROOM SELF SELF.ID TRIGEDIT-CHAR-VAR TRIGEDIT-LEVEL TRIGEDIT-VARIABLES-CHARACTERS
+%ACTOR% %ACTOR.HISHER% %ACTOR.ID% %ACTOR.LEVEL% %ACTOR.NAME% %ACTOR.TITLE% %ACTOR.VNUM% %CHAR% %DRUNK% %HUNGER% %LEVEL% %MOB% %PLAYER% %SELF% %SELF.ID% %SELF.NAME% %THIRST% %TITLE% %VICTIM% ACTOR-VAR ACTOR.ID ACTOR.VNUM CHAR-VARIABLES CHAR-VARS DG_SKILLSET MOB-VARS MOBVARS NEXT_IN_ROOM SELF SELF.ID TRIGEDIT-CHAR-VAR TRIGEDIT-LEVEL TRIGEDIT-MOB-VAR TRIGEDIT-VARIABLES-CHARACTERS
 
 	uField	n            - 	uvariable returns:	n
 cha/con/dex/int - Checks the stat. 	RHELP TRIG-STAT	n. Subfield adjusts. 
@@ -5613,7 +5613,7 @@ You can recall all of your charmies to your current room by typing 'summon'.
 
 See Also: PETS, ORDER, DISMISS, SUMMON-CHARMIES
 #0
-AUCTION CHAT CONGRATULATIONS GOSSIP GRATS
+AUCTION CHAT CHATS CONGRATULATIONS GOSSIP GRATS
 
 Usage: auction <message>
        chat <message>
@@ -6769,7 +6769,7 @@ Spell Circle Level 6
 *grace 
 *remove fear 
 #0
-CLIMB
+CLIMB CLIMBING
 
 Climb
 
@@ -7610,7 +7610,7 @@ Note that when this is enabled, you cannot start a fight with an AoE effect,
 as the option is set up to ignore anything that isn't fighting you or
 a member of your party.
 #0
-BAGS CHESTS CONTAINERS LOCKERS
+CONTAINERS LOCKERS
 
    To create a container you must selected object type container and then
 set the following to C) Values:
@@ -8097,7 +8097,7 @@ flags are:
 	cyou have the goods to create.	n
 	n
 #0
-CRAFTING
+BREW CRAFT CRAFTING
 
 CRAFT opens the crafting project editor, and CRAFTSCORE shows your craft and
 harvest ranks, in every server configuration. NEWCRAFT is an alias for CRAFT.
@@ -8213,7 +8213,7 @@ the bonus, the greater the number of motes are required to enchant the item so.
 You can see which bonuses are associated with which mote type, by using the 	Ymotes	n
 command
 #0
-CRAFT-TOOLS CRAFTING-MATERIAL CRAFTING-RECIPES-MATERIALS CRAFTING-SKILLS ENHANCEMENT ENHANCEMENT-BONUS ENHANCEMENTS MATERIALS RESOURCE TOOLS
+CRAFT-TOOLS CRAFTING-MATERIAL CRAFTING-RECIPES-MATERIALS CRAFTING-SKILLS ENHANCEMENT ENHANCEMENT-BONUS ENHANCEMENTS MATERIALS RESOURCE RESOURCES TOOLS
 
 Topic: Crafting Materials, Tools, and Skills
 
@@ -10279,7 +10279,7 @@ not 'tanking' the target.
 
 See Also:  TANKING
 #0
-DISINTEGRATION DISINTIGRATION POWER-DISINTEGRATION POWER-DISINTIGRATION
+DISINTEGRATE DISINTEGRATION DISINTIGRATION POWER-DISINTEGRATION POWER-DISINTIGRATION
 
 	D>Usage:           	W manifest 'disintegration' (target)	n
 	D>Accumulative:    	W No 	n
@@ -11043,7 +11043,7 @@ Example:
 
 See also: VMOUNT, VDISMOUNT, VSTATUS
 #0
-DROP THROWN
+DROP
 
 Usage: drop <item>
        drop all.<item>
@@ -11163,7 +11163,7 @@ choose the type of liquid it contains from the following list:
 14) salt water            15) clear water          
 See also: VALUES, ZEDIT-REMOVE
 #31
-%DEATH% DEAD DEATH-TRAPS DEATHS DEATHTRAPS DIE DTS DYING FIGHTING HEALTH INCAPACITATED MORTALLY-WOUNDED NEAR-DEATHTRAP TRAPS TRIG-DEATH TRIGEDIT-DEATH XP
+%DEATH% DEAD DEATH-TRAPS DEATHS DEATHTRAPS DIE DTS DYING HEALTH INCAPACITATED MORTALLY-WOUNDED NEAR-DEATHTRAP TRIG-DEATH TRIGEDIT-DEATH
 
 	n
 A player will be in the following state at the listed hitpoints.
@@ -11620,7 +11620,7 @@ ELDRITCH-SPEAR
 	YSee also:	n WARLOCK
 	n
 #0
-AIR ELEMENTAL ELEMENTAL-AIR-EMBODIMENT EMBODIMENT SPELL SPELL-ELEMENTAL-AIR-EMBODIMENT
+ELEMENTAL-AIR-EMBODIMENT EMBODIMENT SPELL-ELEMENTAL-AIR-EMBODIMENT
 
 Usage: cast 'elemental air embodiment' <target>
 Access: Wizard level 15 and the Master of Elements perk
@@ -11641,7 +11641,7 @@ ending either side of the linked effect ends the transformation.
 See also: ELEMENTAL-WATER-EMBODIMENT, ELEMENTAL-FIRE-EMBODIMENT,
 ELEMENTAL-EARTH-EMBODIMENT, FLY, HASTE
 #0
-EARTH ELEMENTAL ELEMENTAL-EARTH-EMBODIMENT EMBODIMENT SPELL SPELL-ELEMENTAL-EARTH-EMBODIMENT
+ELEMENTAL-EARTH-EMBODIMENT EMBODIMENT SPELL-ELEMENTAL-EARTH-EMBODIMENT
 
 Usage: cast 'elemental earth embodiment' <target>
 Access: Wizard level 17 and the Master of Elements perk
@@ -11661,7 +11661,7 @@ ending either side of the linked effect ends the transformation.
 See also: ELEMENTAL-WATER-EMBODIMENT, ELEMENTAL-FIRE-EMBODIMENT,
 ELEMENTAL-AIR-EMBODIMENT, COLD
 #0
-ELEMENTAL ELEMENTAL-FIRE-EMBODIMENT EMBODIMENT FIRE SPELL SPELL-ELEMENTAL-FIRE-EMBODIMENT
+ELEMENTAL-FIRE-EMBODIMENT EMBODIMENT SPELL-ELEMENTAL-FIRE-EMBODIMENT
 
 Usage: cast 'elemental fire embodiment' <target>
 Access: Wizard level 17 and the Master of Elements perk
@@ -11706,7 +11706,7 @@ commands require visibility; air elementals can require detect invisibility.
 
 See also: SUMMON-CHOICES, PETS, ORDER, DISMISS
 #0
-ELEMENTAL ELEMENTAL-WATER-EMBODIMENT EMBODIMENT SPELL SPELL-ELEMENTAL-WATER-EMBODIMENT WATER
+ELEMENTAL-WATER-EMBODIMENT EMBODIMENT SPELL-ELEMENTAL-WATER-EMBODIMENT
 
 Usage: cast 'elemental water embodiment' <target>
 Access: Wizard level 13 and the Master of Elements perk
@@ -11820,7 +11820,7 @@ than the preserve spell.
 
 See also: CORPSE, CORPSE-GLAMOR, PRESERVE
 #0
-: EMOTES EMOTIONS TEMOTES
+: EMOTES EMOTICONS EMOTIONS TEMOTES
 
 EMOTES
       
@@ -13000,7 +13000,7 @@ May give you some valuable information about an item or monster.
 
 See also: LOOK
 #0
-EXAMPLE-PROPOSAL EXAMPLE-REPORT PROGRESS-REPORT REPORT-EXAMPLE
+EXAMPLE-PROPOSAL EXAMPLE-PROPOSALS EXAMPLE-REPORT PROGRESS-REPORT REPORT-EXAMPLE
 
 EXAMPLE-PROPOSAL PROGRESS-REPORT REPORT-EXAMPLE EXAMPLE-REPORT
 	n
@@ -13141,7 +13141,7 @@ a new zone is to first create the new zone and then overwrite the created
 files. A zone consist of up to 5 different files that are located in their own
 directories in lib/world/: <zone_#>.mob .obj .shp .trg .wld .zon
 #31
-!= && + /= <> == ADDITION EQUAL EXPRESSIONS INCREMENTS LOGIC MATHEMATICAL NUMBERS OPERATIONS OPERATORS RNUMBERS SUBTRACTION TRIG-EXPRESSIONS TRIGEDIT-EXPRESSIONS TRIGEDIT-NUMBERS \ ||
+!= && + /= <> == ADDITION EQUAL EXPRESSIONS INCREMENTS LOGIC MATHEMATICAL NUMBERS OPERATIONS OPERATORS SUBTRACTION TRIG-EXPRESSIONS TRIGEDIT-EXPRESSIONS TRIGEDIT-NUMBERS ||
 
 A false expression is any expression that evaluates to 0, or an empty string.
 A true expression is any expression that evaluates to anything other than a
@@ -14239,7 +14239,7 @@ FORTIFY POWER-FORTIFY PSIONIC-POWER-FORTIFY
 	YSee also:	n PSIONICS
 	n
 #0
-FORUM LUMINARI-WEBSITE
+FORUM FORUMS LUMINARI-WEBSITE
 
 LUMINARI COMMUNITY
 
@@ -14574,7 +14574,7 @@ gdb > bt
 gdb > info local 
 gdb > list 
 #31
-EMOTICONS GEMOTES GMOTES
+GEMOTES GMOTES
 
 Usage: gemote <social>
        gemote @@ <message>
@@ -14813,7 +14813,7 @@ beards.  Gnomes live 350 to 500 years.
 	YSee also:	n RACES
 	n
 #0
-CASH COINS COPPER CURRENCY ECONOMY GOLD MONEY MULTI-CURRENCY PLATINUM PURSE SILVER TREASURE WEALTH
+CASH COINS GOLD MONEY PURSE WEALTH
 
 Usage: gold
    
@@ -14982,7 +14982,7 @@ GRACE
 	YSee also:	n SPELLS
 	n
 #0
-GRAMMAR GRAMMER TIPS
+GRAMMAR GRAMMER
 
 	n
 	n   Love thy dictionary. Be sure to check the spelling of your work. Medieval 
@@ -15488,7 +15488,7 @@ or asleep still does.
 
 See also: FEAT INFO GROUNDFIGHTING
 #0
-GROUP GROUPS JOIN PARTIES PARTY
+GROUP GROUPS JOIN LEAD PARTIES PARTY
 
 Usage: group 
        group < list | new | join | leave | option | kick >
@@ -15858,7 +15858,7 @@ effects:
  
 	YSee also:	n SPELLS UN
 #0
-%ACTOR.LEVEL% %HALT% HALT TRIG-HALT TRIGEDIT-HALT
+%HALT% HALT TRIG-HALT TRIGEDIT-HALT
 
 Usage: halt
 
@@ -16179,7 +16179,7 @@ lich casts it on another player lich, it restores 100 hit points instead.
 
 See also: BLACKMANTLE, HEAL, UNDEAD
 #0
-HEALERS HEALING REGENERATE REGENROOM
+HEALERS HEALING REGENROOM
 
 Healing affects can be created through trigedit.
 
@@ -16522,7 +16522,7 @@ you provide. For Example:
 Help index entries based on 'new':
 newbie-policy       newbies             news          
 #0
-HINT NO-HINT NOHINT
+HINT NO-HINT NOHINT TIPS
 
 The hint system is useful to all players, with emphasis on new ones.  It will
 give you helpful info about various aspects about the game, lore, and community.
@@ -17079,7 +17079,7 @@ dispel evil and dispel magic on your opponents when struck.
 You can change the weapon type of your holy weapon using the
 holyweapon command.
 #0
-HOLY-LIGHTING HOLYLIGHT LIGHTING LIGHTS TORCHES
+HOLY-LIGHTING HOLYLIGHT
 
 Usage: holylight
 
@@ -17270,7 +17270,7 @@ Taure	LuminariMUD.com
 Password:
 <Password you selected, lost password speak to Forger>
 #0
-HP
+HITPOINTS HP
 
 This command will show your current and maximum hit points.
 
@@ -17641,7 +17641,7 @@ IDLE LIMBO VOID
 void until you send a command to the MUD. Then you will be pulled back to where
 you went idle.
 #0
-ELSE-IF ELSEIF END ENDIF IF-ELSE IFS NESTING TRIG-ELSE TRIG-END TRIG-IF TRIGEDIT-END TRIGEDIT-IF
+ELSE-IF ELSEIF END ENDIF IF-ELSE IFS TRIG-ELSE TRIG-END TRIG-IF TRIGEDIT-END TRIGEDIT-IF
 
 Usage: if (expression)
 ...
@@ -17683,7 +17683,7 @@ ammunition.
 
 Usage: imbuearrow <ammuntion> <spell>
 #0
-ADMINS ASSISTANTS DEMIGOD GODS GREATER IMMLIST IMMORTALITY IMMORTALS IMMS LESSER WIZLIST
+GODS IMMLIST IMMORTALITY IMMORTALS IMMS WIZLIST
 
 Usage: wizlist | immlist
 
@@ -18671,7 +18671,7 @@ of time, effectively paralyzing the victim.
 	YSee also:	n SPELLS PARALYSIS
 	n
 #0
-CASE DEBUGGING DOESN'T FOR IN IS MOBILE NEEDED OR THE WANT
+IS
 
 to be loaded further.
 	n
@@ -18975,7 +18975,7 @@ can take damage and die.
  
 See also: FLEE, WIMPY
 #0
-KILLERS PKILLERS PKILLING PLAYERKILLERS PLAYERKILLING
+KILLERS PKILLERS PLAYERKILLERS
 
    The act of slaughtering another player. Not a nice thing to do. If you do
 such a horrible and pointless thing you will need to be pardoned by the staff.
@@ -19050,7 +19050,7 @@ Land is the command used to get rid of the fly spell/effect.
 
 See Also:  FLY
 #0
-LANGUAGES SPEAK SPOKEN-LANGUAGES UNDERCOMMON
+COMMON LANGUAGES SPEAK SPOKEN-LANGUAGES UNDERCOMMON
 
 Usage: speak
        speak (language)
@@ -20343,7 +20343,7 @@ Other damage types are unaffected.
 
 See also: FEAT INFO MAGICAL REDUCTION
 #0
-MAKEUID UID UNIQUE
+MAKEUID UID
 
 Usage: makeuid variable id
 
@@ -21169,7 +21169,7 @@ number.
 
 See also: MEDIT-MENU, MLIST, OLC
 #31
-AFFECTIONS AFFECTS MEDIT-AFF-FLAGS
+AFF-FLAGS AFFECTIONS AFFECTS MEDIT-AFF-FLAGS
 
  
 M) AFF Flags : 	cNOBITS	n
@@ -21314,7 +21314,7 @@ that aggressive, the player will not have time to see it. Also, if the player is
 somehow protected or invisible the mob will not attack, it will look pretty 
 silly. 
 #31
-AUTOGENERATE AUTOROLL GENERATE MEDIT-LEVEL MEDIT-STANDARDS MOB-BALANCE MOB-LIMITS MOB-STANDARDS
+AUTOGENERATE AUTOROLL MEDIT-LEVEL MEDIT-STANDARDS MOB-BALANCE MOB-LIMITS MOB-STANDARDS
 
 (1) Level:       [  #]
 (2) Auto Set Stats (based on level)
@@ -21405,7 +21405,7 @@ L) NPC Flags : 	cISNPC	n
 
 See also: MEDIT-AFF-FLAGS
 #0
-HP-DICE HPBONUS MEDIT-HP-BONUS MEDIT-NUM-HP-DICE MEDIT-SIZE-HP-DICE NUM-HP-DICE NUMHPDICE
+HP-BONUS HP-DICE HPBONUS MEDIT-HP-BONUS MEDIT-NUM-HP-DICE MEDIT-SIZE-HP-DICE NUM-HP-DICE NUMHPDICE
 
 Hit Points  (xdy+z):
 (3) HP NumDice:  [    #]
@@ -21770,7 +21770,7 @@ mforget <victim>
 
 Example: 	RTSTAT 74, 75, 41	n
 #31
-%GOTO% %MTELEPORT% MGOTO MTELEPORT
+%GOTO% MGOTO
 
 mgoto <target>
 
@@ -22969,7 +22969,7 @@ valid victims.
 
 See also: NEGATIVE-ENERGY, SPECTRAL-HAND, UNDEAD
 #0
-NESTED-IFS
+NESTED-IFS NESTING
 
    A nested if is an if statement contained within another if or if...else 
 statement. Nested if's allow the creation of a decision tree or flow chart
@@ -23103,7 +23103,7 @@ clantalk, typing it again turns it off.
 
 See Also: clantalk
 #0
-DARK DISABLE HASSEL HASSLE NO-HASSLE NOHASSEL NOHASSLE NO_HASSLE
+HASSEL HASSLE NO-HASSLE NOHASSEL NOHASSLE NO_HASSLE
 
 Usage: nohassle
 
@@ -23172,7 +23172,7 @@ Useful if you have a slow connection or if it just annoys you.
 
 See also: TOGGLE
 #0
-DIRECTIONS DOWN EAST MOVEMENT MOVES NE NORTH NORTHEAST NORTHWEST NW SE SOUTH SOUTHEAST SOUTHWEST SW UP WALK WEST
+DIRECTIONS DOWN EAST MOVEMENT NE NORTH NORTHEAST NORTHWEST NW SE SOUTH SOUTHEAST SOUTHWEST SW UP WALK WEST
 
 Usage: north
        south
@@ -23186,7 +23186,7 @@ Usage: north
        southeast/se
    To travel in a given direction.
 #0
-NE NORTHEAST NORTHWEST NW SE SOUTHEAST SOUTHWEST SW
+NORTHEAST
 
  
    To travel in a given direction.  We currently are not supporting
@@ -23406,7 +23406,7 @@ NULL
 
 This is a test.
 #0
-DAM-DICE DAMAGE-DICE DAMDICE DICE DMG HITPOINTS HP-BONUS HP-DICE MODIFIERS NUM-DICE NUMDAMDICE NUMDICE WEAPON-DAMAGE WEAPONS-DAMAGE
+DAM-DICE DAMAGE-DICE DAMDICE DICE DMG NUM-DICE NUMDAMDICE NUMDICE WEAPON-DAMAGE WEAPONS-DAMAGE
 
    Different weapons, mobs, spells, and traps cause different damage. 2D5
 means the damage will be calculated by rolling a 5 sided die twice. This is
@@ -23438,7 +23438,7 @@ since 4d5 would give damage between 4-20.
 
 See also: STANDARDS, %DAMAGE%
 #31
-%NUMERIC% NARG NUMARG NUMERIC-ARGUMENT NUMERIC-ARGUMENTS NUMERICARGUMENT TRIGEDIT-ARGUMENTS TRIGEDIT-NUMARG TRIGEDIT-NUMERIC-ARGUMENTS
+%NUMERIC% NARG NUMARG NUMERIC-ARGUMENT NUMERIC-ARGUMENTS NUMERICARGUMENT TRIGEDIT-NUMARG TRIGEDIT-NUMERIC-ARGUMENTS TRIGEDIT-NUMERICARG
 
 4) Numeric Arg : 	y100	n
 
@@ -23664,7 +23664,7 @@ $S his/her target of staff/wand/scroll/potion
 
 PROPER USAGE: 	RVSTAT OBJ 350	n
 #0
-AFF-FLAGS APPLIES-MENU HEIGHT MAXHITS OEDIT-APPLIES-MENU OEDIT-APPLYS ROLLS SAVESPELL SAVING_BREATH SAVING_PARA SAVING_PETRI SAVING_ROD SAVING_ROLLS SAVING_SPELL
+APPLIES-MENU HEIGHT MAXHITS OEDIT-APPLIES-MENU OEDIT-APPLYS SAVESPELL SAVING_BREATH SAVING_PARA SAVING_PETRI SAVING_ROD SAVING_ROLLS SAVING_SPELL
 
 D) Applies menu
 Applies are the aspects of the character affected by the object. Object 
@@ -23883,7 +23883,7 @@ descriptions, always use "the/a/an/etc." unless the item has a proper name.
 Examples:
 "Excalibur" "the wooden barrel" "an emerald bracelet"
 #31
-CHAIRS COUCH FURNITURE OBJ-TYPES OBJ-WEAPONS OBJECT-TYPES OEDIT-TYPES SEAT TRASH
+CHAIRS COUCH FURNITURE OBJ-TYPES OBJECT-TYPES OEDIT-TYPES SEAT TRASH
 
 5) Type        : 	cUNDEFINED	n
    This specifies what type an object is defined as and controls the meanings
@@ -25004,7 +25004,7 @@ the pixieinvis command.
 
 They also have 10 damage reduction and 15 spell resistance.
 #0
-PKILL PKRULES PLAYER-KILL PLAYERKILL
+PKILL PKILLING PKRULES PLAYER-KILL PLAYERKILL PLAYERKILLING
 
 PKILL
 
@@ -25174,7 +25174,7 @@ Staff see: Build-Player-Shop
 
 See also: PriceSet
 #0
-%ACTOR.HISHER% %CHAR% %DRUNK% %HUNGER% %LEVEL% %MOB% %PLAYER% %ROOM% %SELF.ID% %SELF.NAME% %TARGET% %THIRST% DG_SKILLSET PLAYER-VARIABLES TRIGEDIT-MOB-VAR
+PLAYER-VARIABLES
 
 See 	RHELP CHAR-VAR	n
 #31
@@ -25186,7 +25186,7 @@ clean slate.
 
 See Also: PLAYERPORT
 #0
-CHARACTERS NAMES PLAYERS
+CHARACTERS PLAYERS
 
    This is who you are. Or at least who you are pretending to be. Put some
 thought into your name, and write a player description. Be creative. If you
@@ -25251,7 +25251,7 @@ short description of "the ground" so they get the treasure from the ground,
 and only know where this object is by the tale of the princess. When your 
 players stumble upon something like this, they love it.
 #31
-CSH INVST LODRM PLR SITEOK
+CSH INVST LODRM PLAYER-FLAGS PLR SITEOK
 
 KILLER     - Player is a player-killer
 THIEF      - Player is a player-thief
@@ -25443,7 +25443,7 @@ between planes.
 	YSee also:	n SPELLS
 	n
 #1
-AT-POSTMASTER-MAIL-RUMBLE CHECK CHECK-MAIL CHECKMAIL MAIL MAILROOM MMS MUDMAIL PMAIL POST-OFFICE POSTAL POSTMAN POSTMASTER POSTOFFICE RECEIVE
+CHECK CHECK-MAIL CHECKMAIL MAIL MAILROOM MMS MUDMAIL PMAIL POST-OFFICE POSTAL POSTMAN POSTMASTER POSTOFFICE RECEIVE
 
 	n
 CHECK MAIL RECEIVE
@@ -25760,7 +25760,7 @@ PRESTIGE-SPELL
 divine casting classes.  The class(es) that gets advanced is selected in the
 STUDY menu.
 #0
-CHAR-FLAGS NO_TELL PC-FLAGS PLAYER-FLAGS PRF
+CHAR-FLAGS NO_TELL PC-FLAGS PRF
 
 BRIEF      - Player has enabled brief mode.
 COMPACT    - Player has enabled compact mode.
@@ -25898,7 +25898,7 @@ unintelligent.
 
 See Also: MURMUR LOBBY DIPLOMACY
 #0
-CRITERIA GUIDELINES PROPOSALS PROPOSE PROPOSITIONS REQUESTS ZONE-PROPOSALS
+PROPOSALS PROPOSE PROPOSITIONS ZONE-PROPOSALS
 
 Congratulations, you must have completed your first trial of building one
 room/mob/obj. Your next task is to submit a zone proposal to prove you have
@@ -25962,7 +25962,7 @@ PROTECTION-FROM-ENERGY
 	YSee also:	n SPELLS
 	n
 #0
-PROT-EVIL PROT-GOOD PROTECTION-FROM-EVIL PROTECTION-FROM-GOOD
+PROT-EVIL PROT-FROM-GOOD PROT-GOOD PROTECTION-FROM-EVIL PROTECTION-FROM-GOOD
 
 	D-----------------------------------------------------------------	n
 	D>Usage:           	W cast 'protection from evil' <target> 	n
@@ -25982,7 +25982,7 @@ PROT-EVIL PROT-GOOD PROTECTION-FROM-EVIL PROTECTION-FROM-GOOD
 	YSee also:	n SPELLS
 	n
 #0
-PROT-FROM-GOOD PROT-GOOD PROTECTION-FROM-GOOD
+PROTECTION-FROM-GOOD
 
 This file has been consolidated with the PROT-EVIL helpfile.
 
@@ -26270,7 +26270,7 @@ Usage: pull/push <target>
 
 Note: Not all objects are subject to manipulation...but you can always try!
 #0
-CLEANUP DECOMPOSE DELETE-MOBILE DESTROY DISINTEGRATE PURGE SACRIFICE UNLOAD
+CLEANUP DELETE-MOBILE DESTROY PURGE
 
 Usage: purge [target]
 
@@ -28246,7 +28246,7 @@ Examples:
 
 See also: COMBAT, INITIATIVE, CONCENTRATION, CASTING-TIME
 #0
-BOOT REBOOT RESTART STARTING STARTUP
+BOOT REBOOT RESTART
 
 A reboot is a scheduled clean-up of the Realms. A reboot can only be done by 
 the highest levels of immortals. A reboot disconnects all players and 
@@ -28364,7 +28364,7 @@ board in room 88 and the advertising section in the forums. There are far
 better places to recruit builders such as TMC.
 	n
 #0
-BUILD-ROOM BUILDROOM CREATE-ROOM MAKE-ROOM MAKING RCREATE REDIT REDIT-COMMAND REDIT-CREATE REDIT-NEW ROOM-CREATE ROOM-EDIT ROOMEDIT ROOMS
+BUILD-ROOM BUILDROOM CREATE-ROOM MAKE-ROOM RCREATE REDIT REDIT-COMMAND REDIT-CREATE REDIT-NEW ROOM ROOM-CREATE ROOM-EDIT ROOMEDIT ROOMS
 
 Usage: redit <room vnum>
        
@@ -28522,7 +28522,7 @@ descriptions.
 
 See also: EXTRA
 #31
-BUILDINGS CASTLES EDIT-MENU EDIT-ROOM MENU REDIT-EDITOR REDIT-MENU ROOM-MENU ROOM_MENU
+EDIT-MENU EDIT-ROOM REDIT-EDITOR REDIT-MENU ROOM-MENU ROOM_MENU
 
 -- Room number : [	c1399	n]         Room zone: [	c13	n]     	RHELP REDIT-NUMBER	n
 1) Name        : 	yAn unfinished room	n                 	RHELP REDIT-NAME	n
@@ -29862,7 +29862,7 @@ http://www.d20srd.org/srd/combat/combatStatistics.htm
 
 See also:  ATTACK-ROLL
 #0
-' ASK ASKS CHANNELS CHATS COMMON HOLLER HOLLERS SAYS SHOUT SHOUTS SPEAK SPEECH TALKS TELL TELLS VOICES WHISPER WHISPERS YELLS
+' ASK ASKS CHANNELS HOLLER HOLLERS SAYS SHOUT SHOUTS SPEECH TALKS TELL TELLS VOICES WHISPER WHISPERS YELLS
 
 
 Usage: say | ' | shout | holler <string>
@@ -30218,7 +30218,7 @@ Perhaps giving him a jewel will make him friendlier. In this way, an area can
 be made infinitely more exciting by making some triggers. The possibilities
 are endless.
 #31
-BARTENDERS BARTERING LIBRARIAN SEDIT-MENU SHOPKEEPERS SHOPPING STORES TRADE TRADING
+BARTENDERS SEDIT-MENU SHOPKEEPERS STORES TRADE TRADING
 
 -- Shop Number : [	c1300	n]                                  	RHELP SEDIT-NUMBER	n
 0) Keeper      : [	c-1	n] 	yNone	n                               	RHELP SEDIT-KEEPER	n
@@ -31386,7 +31386,7 @@ When a zone vnum is used, it displays the popularity for that one zone.
 
 See Also: SHOW-CLAIMS
 #31
-SHOW->ZONES SHOW-SHOPS SHOW-ZONES SHOWSHOPS SHOWZONES ZSTAT
+SHOW-SHOPS SHOW-ZONES SHOWSHOPS SHOWZONES ZSTAT
 
 Usage: show <mode> [argument]
 
@@ -32334,7 +32334,7 @@ PREFEDIT Sound changes the same saved preference, not client capabilities.
 
 See also: SCREEN-READER, PREFEDIT
 #0
-CODEBASE DOCUMENTATION DOWNLOADS FORUMS FTP GROUPS RESOURCES SOURCES WTFAQ
+CODEBASE DOCUMENTATION DOWNLOADS FTP SOURCES WTFAQ
 
 	n
 Source:      http://tbamud.com/
@@ -32724,7 +32724,7 @@ Colossal, 8
 
 See Also: Size-Class Mob-Size
 #0
-LEGACY-SPECIAL-PROCEDURES SPEC-PROC SPECIAL-PROCEDURES SPECIALS SPECPROC SPEC_PROC
+LEGACY-SPECIAL-PROCEDURES SPECIALS
 
    Special procedures are used to allow certain complex functions to rooms,
 mobs, and objects. They are written by coders and are normally not created
@@ -34378,7 +34378,7 @@ recover.
 
 See also: PREPARATION, PERKS, SPELLS
 #0
-ACID-ARROW BALL-OF-LIGHTNING BLACK-TENTACLES COMM-PROT-FROM-ENERGY CUSHIONING-HANDS EARTHEN-GRASP EPIC-MAGE-ARMOR EXTRACTS FINGER-OF-DEATH FOD GRASP-SPELL ICE-STORM IDENTIFY-SPELL IMPROVED-SPELL-MANTLE MAGIC-WEAPON PLANESHIFT SKILLS-IDENTIFY SPELL-TRUE-STRIKE SPELLS SPONTANEOUS-HEALING TENTACLES VIGORIZE-CRITICAL
+ACID-ARROW BALL-OF-LIGHTNING BLACK-TENTACLES COMM-PROT-FROM-ENERGY CUSHIONING-HANDS EARTHEN-GRASP EPIC-MAGE-ARMOR EXTRACTS FINGER-OF-DEATH FOD GRASP-SPELL ICE-STORM IDENTIFY-SPELL IMPROVED-SPELL-MANTLE MAGIC-WEAPON PLANESHIFT SKILLS-IDENTIFY SPELL SPELL-TRUE-STRIKE SPELLS SPONTANEOUS-HEALING TENTACLES VIGORIZE-CRITICAL
 
 The world of Luminari is filled with magic.  Spells allow for spectacular
 effects such as healing, summoning monsters, destructive magics, etc.
@@ -34853,7 +34853,7 @@ Active events are not restored after a reboot or copyover. Staff can start a
 new event after the initial three-mud-hour startup delay. Player participation
 and rewards already recorded by their existing systems are unchanged.
 #0
-ADMIN GOD-LEVELS IMMORTAL-LEVELS LVL-GOD LVL_GOD STAFF STAFF-HIERARCHY
+ADMIN ADMINS ASSISTANTS GOD-LEVELS IMMORTAL-LEVELS LVL-GOD LVL_GOD STAFF STAFF-HIERARCHY
 
 Topic  : Staff Hierarchy & Immortal Levels
 Usage  : wizlist
@@ -35669,7 +35669,7 @@ road.
         provide a link or help-keyword to it for those who wish to see the 
         original. Thanks!	n
 #0
-- BE BUILDING GUIDELINES: NAMES ROOM ROOMS: SHOULD STYLE-2 STYLISTICS-2 UNIQUE
+STYLE-2 STYLISTICS-2
 
 wherever possible, and be short, creative, and descriptive.  Never "A house".  
 Instead, "Inside a bustling, messy home".  Not "A road".  "A muddy, sogging,
@@ -36218,7 +36218,7 @@ MECHANICS:
 
 See also: COMBAT-MANEUVERS, DISARM, TRIP, WEAPON-SUPREMACY
 #0
-DAWN DAYLIGHT DUSK NIGHTTIME SUNRISE SUNSET
+DAWN DUSK NIGHTTIME SUNRISE SUNSET
 
 If you are outdoors you will see weather messages for the following times:
 
@@ -36469,7 +36469,7 @@ SYMBOL-OF-PAIN
 	YSee also:	n SPELLS
 	n
 #0
-AUTOLOG LOGS NORMAL SYSLOG SYSLOG-BRIEF SYSLOG-COMPLETE SYSLOG-NORMAL SYSLOG-OFF
+AUTOLOG LOGS SYSLOG SYSLOG-BRIEF SYSLOG-COMPLETE SYSLOG-NORMAL SYSLOG-OFF
 
 Usage: toggle syslog [ Off | Brief | Normal | On ]
 
@@ -36535,7 +36535,7 @@ reduce the chance the mount will BUCK or wander away.
 
 See also:  MOUNT DISMOUNT CHARMEE BUCK
 #0
-LEAD TANK
+TANK
 
    This individual is the leader of the group and takes the brunt of all 
 attacks. 
@@ -37189,7 +37189,7 @@ MODES & TOGGLES:
 
 See also: TOGGLE, AUTO, COMBAT, ASSIST, RESCUE
 #0
-ILLUMINATION LANTERN LIGHT-SOURCE TORCH TORCHES
+ILLUMINATION LANTERN LIGHT-SOURCE LIGHTING LIGHTS TORCH TORCHES
 
 Topic  : Light Sources & Illumination
 Usage  : hold <torch | lantern | light item>
@@ -37651,7 +37651,7 @@ Trelux Monks gain an extra dice of damage due to these pincers.
 
 Also, Trelux pincers have a chance of poisoning their victim.
 #0
-APPROVAL AUTHORIZE INTRO TEST-ROOM TESTROOMS TIRALVNUM TRAIL-ROOM TRAIL-VNUM TRAILROOM TRAINING-VNUM TRIAL-ROOM TRIAL-VNUM TRIALROOM TRIALS TRIALVNUM VNUM-APPROVAL WIZNUMBER
+APPROVAL AUTHORIZE TEST-ROOM TESTROOMS TIRALVNUM TRAIL-ROOM TRAIL-VNUM TRAILROOM TRAINING-VNUM TRIAL-ROOM TRIAL-VNUM TRIAL-ZONE TRIALROOM TRIALS TRIALVNUM VNUM-APPROVAL WIZNUMBER
 
 	n
 At Luminari, we are eager to get you started, so your training is hands on
@@ -37668,7 +37668,7 @@ Great examples: 9116, 4702
 	n
 See Also:  VIRTUAL-NUMBER PROPOSAL
 #0
-ASSIGNER JUNK-ASSIGNER LIMITER TASKS TBALIM TRIAL-VNUM-ASSIGNER TRIAL-VNUM-LIMITER VNUM-ASSIGNER
+ASSIGNER JUNK-ASSIGNER LIMITER TBALIM TRIAL-VNUM-ASSIGNER TRIAL-VNUM-LIMITER VNUM-ASSIGNER
 
    This object was created to help new builders follow the directions under 
 HELP TRIAL. It will limit them to a single vnum so they can not edit other 
@@ -37821,7 +37821,7 @@ BAD: eval command %cmd% %arg%
 
 See Also: ZEDIT-MISTAKES, SEDIT-MISTAKES
 #31
-ASSEDIT ASSEMBLE ASSEMBLIES ASSEMBLY BAKE BREW CIGARETTES CIGARS CRAFT FLETCH FORGE KNIT MAKE MIX PIPES SHOTGUN SMOKE SMOKING THATCH TRIG-EXAMPLES TRIGEDIT-EXAMPLES VEHICLES WEAVE
+ASSEDIT ASSEMBLE ASSEMBLIES ASSEMBLY CIGARETTES CIGARS PIPES SMOKE SMOKING TRIG-EXAMPLES TRIGEDIT-EXAMPLES
 
 Assemblies: 	RTSTAT 38, 48, 335	n
 Smokables: 	RTSTAT 159	n
@@ -37929,7 +37929,7 @@ Done is used to terminate a while or switch block.
 
 Example: 	RTSTAT 35, 18, 6, 153, 132	n
 #31
-DG-SCRIPTS MOBPROGS MPROGS PROGS SCRIPTING SCRIPTS TRIG-HELP TRIGEDIT TRIGEDITOR TRIGGER-EDIT TRIGGEREDIT TRIGGERS TRIGMENU TRIGS
+DG-SCRIPTS MOBPROGS MPROGS PROGS SCRIPTING SCRIPTS TRIG-HELP TRIGEDIT TRIGEDITOR TRIGGER-EDIT TRIGGEREDIT TRIGGERS TRIGS
 
 Builders working on their trial vnum do not need to learn this command, yet.
 
@@ -38126,7 +38126,7 @@ positions to an array. See the examples below.
 
 	RTSTAT 150, 41005, 1325, 57715	n
 #31
-TRIG-COMMANDLIST TRIGEDIT-COMMANDLISTS
+TRIG-COMMANDLIST TRIGEDIT-COMMANDLIST TRIGEDIT-COMMANDLISTS
 
 6) Commands:
 	csay My trigger commandlist is not complete!	n
@@ -38137,7 +38137,7 @@ step by step. In it, you can use different types of commands: trigger - specific
 commands, flow control commands - if this is a mobile trigger, you can use 
 standard mud commands like say or give.
 #1
-%COMMANDS% MUD-COMMANDS TRIG-COMMANDLIST TRIG-COMMANDS TRIGEDIT-COMMAND-LIST TRIGEDIT-COMMANDLIST TRIGEDIT-COMMANDLISTS TRIGEDIT-COMMANDS TRIGEDIT-MENU-COMMANDS TRIGEDIT-MOB-COMMANDS TRIGEDIT-MOBILE-COMMANDS TRIGEDIT_COMMANDS TRIGGER-COMMANDS
+%COMMANDS% ROOM-COMMANDS TRIG-COMMANDS TRIGEDIT-COMMAND-LIST TRIGEDIT-COMMANDS TRIGEDIT-MENU-COMMANDS TRIGEDIT-MOB-COMMANDS TRIGEDIT-MOBILE-COMMANDS TRIGEDIT-MUDCOMMANDS TRIGEDIT_COMMANDS TRIGGER-COMMANDS
 
  
 | Trigger Commands |  Mobile Commands  |  Object Commands  |   Room Commands  |
@@ -38191,7 +38191,7 @@ only use the correct type.
 
 0: Mobiles, 1: Objects, 2: Rooms:
 #31
-DG-MENU SCRIPT-EDITOR TREDITOR TRIG-EDIT TRIG-MENU TRIGEDIT-EDITOR TRIGEDIT-MENU TRIGGER-MENU
+DG-MENU SCRIPT-EDITOR TREDITOR TRIG-EDIT TRIG-MENU TRIGEDIT-EDITOR TRIGEDIT-MENU TRIGGER-MENU TRIGMENU
 
 Trigger Editor [1300]                       	RHELP TRIGEDIT-EDITOR	n
 
@@ -38210,7 +38210,7 @@ Enter Choice :
 See also: TRIGEDIT-TYPES, TRIGEDIT-COMMANDS, TRIGEDIT-VARIABLES, TRIGEDIT-MOB-TUTORIAL,
           TRIGEDIT-ADVANCED-TUTORIAL, TRIGEDIT-ADVANCED
 #0
-ACTIONS MOB-ACT TRIG-ACTIONS TRIG-MOB-ACT TRIGEDIT-ACTIONS TRIGEDIT-MOB-ACTION
+%TARGET% MOB-ACT TRIG-ACTIONS TRIG-MOB-ACT TRIGEDIT-ACTIONS TRIGEDIT-MOB-ACTION
 
    This trigger type should be set when a matching action is performed by a 
 mobile or player in the room.  Actions are any text output via the act() 
@@ -38233,7 +38233,7 @@ Variables:
 
 Example: 	RTSTAT 127, 64, 1372	n
 #31
-ASSASSINS TRIG-MOB-BRIBE TRIGEDIT-BRIBE TRIGEDIT-MOB-BRIBE
+TRIG-MOB-BRIBE TRIGEDIT-BRIBE TRIGEDIT-MOB-BRIBE
 
 Activated when a character gives a specified amount of gold to the mobile.
  
@@ -38770,7 +38770,7 @@ Variables:
 
 Example: 	RTSTAT 90	n 
 #31
-TRIG-OBJ-COMMAND TRIG-OBJ-COMMANDS TRIGEDIT-OBJ-COMMANDS TRIGEDIT-OBJECT-COMMAND
+OBJ-COMMAND TRIG-OBJ-COMMAND TRIG-OBJ-COMMANDS TRIGEDIT-OBJ-COMMANDS TRIGEDIT-OBJECT-COMMAND
 
 Activates when a command is performed near this object.
 Command triggers do not work for level 33 and above.
@@ -38811,7 +38811,7 @@ Variables:
 
 Example: 	RTSTAT 164, 1374	n
 #31
-DROP-TRIGGER TRIG-OBJ-DROP TRIG-OBJ-PUT TRIGEDIT-OBJ-DROP TRIGEDIT-OBJ-PUT
+%PUT% DROP-TRIGGER TRIG-OBJ-DROP TRIG-OBJ-PUT TRIGEDIT-OBJ-DROP TRIGEDIT-OBJ-PUT
 
 Activated any time a character attempts to drop this object. This includes
 junking, donating, putting the object into a container, and dying.
@@ -38843,7 +38843,7 @@ Variables:
 
 Example: 	RTSTAT 83	n
 #31
-%PUT% TRIG-OBJ-GIVE TRIG-OBJ-PUT TRIG-OBJ-RECEIVE TRIGEDIT-OBJ-GIVE TRIGEDIT-OBJ-PUT TRIGEDIT-OBJ-RECEIVE
+TRIG-OBJ-GIVE TRIG-OBJ-RECEIVE TRIGEDIT-OBJ-GIVE TRIGEDIT-OBJ-RECEIVE
 
  
 Activated when a player attempts to give this object away or put it inside a 
@@ -38970,7 +38970,7 @@ Variables:
 
 Example: 	RTSTAT 86, 1202	n
 #31
-OBJECT-COMMANDS ROOM-COMMANDS TRIG-MOB-COMMAND TRIGEDIT-MUDCOMMANDS TRIGEDIT-OBJECT-COMMANDS
+OBJECT-COMMANDS TRIGEDIT-OBJECT-COMMANDS
 
 See: TRIGEDIT-COMMANDS
 #31
@@ -38993,7 +38993,7 @@ Variables:
 
 Example: 	RTSTAT 57	n 
 #31
-CLIMBING TRIG-ROOM-COMMANDS TRIGEDIT-ROOM-COMMANDS
+TRIG-ROOM-COMMANDS TRIGEDIT-ROOM-COMMANDS
 
 Activates when commands are performed in the room.
 Does not work for level 33 and above.
@@ -39196,7 +39196,7 @@ info means different things, depending on what trigger type the trigger has.
 
 For a full listing of types see: 	RHELP TRIGEDIT-TYPES	n
 #31
-OBJ-TRIG-TYPES TRIG-TYPES TRIGEDIT-MOBILE-TYPES TRIGEDIT-NUMERICARG TRIGEDIT-OBJECT-TYPES TRIGEDIT-OBJECTS TRIGEDIT-ROOMS TRIGEDIT-TYPES TRIGEDIT-VALUES TRIGGER-LIST TRIGGER-TYPES TRIGTYPES TRIG_TYPES TYPES
+OBJ-TRIG-TYPES TRIG-TYPES TRIGEDIT-MOBILE-TYPES TRIGEDIT-OBJECT-TYPES TRIGEDIT-OBJECTS TRIGEDIT-ROOMS TRIGEDIT-TYPES TRIGEDIT-VALUES TRIGGER-TYPES TRIGTYPES TRIG_TYPES
 
  
    Triggers are broken up into three types by what they are attached to:
@@ -39224,7 +39224,7 @@ i.e. 	RHELP TRIGEDIT-MOB-ACT	n                         |  TRIGEDIT-MOB-LEAVE    
                                                    |  TRIGEDIT-MOB-TIME      |
 See also: TRIG-COMMANDS, TRIGGER-VARIABLES, EXPRESSIONS
 #0
-%% %COMMAND% %TRIGGER% %TRIGGERS% %VAR% %VARIABLE% %VARIABLES% %WORD% DG-VARIABLES REFERENCES TRIG-VARIABLES TRIG-VARS TRIGEDIT-VARIABLES TRIGEDIT-VARS TRIGGER-VARIABLES VARIABLES VARIABLES-REFERENCE VARS
+%% %COMMAND% %TRIGGER% %TRIGGERS% %VAR% %VARIABLE% %VARIABLES% %WORD% DG-VARIABLES TRIG-VARIABLES TRIG-VARS TRIGEDIT-VARIABLES TRIGEDIT-VARS TRIGGER-VARIABLES VARIABLES VARIABLES-REFERENCE VARS
 
 Variables appear as a name surrounded by '%'s, such as %actor% 
 
@@ -39267,7 +39267,7 @@ the help files below.
 
 See also: GLOBAL
 #0
-%ITEM% %NEXT_IN_LIST% %OBJ% %OBJECT% %SHORTDESC% CARRIED_BY HAS_IN IS_INROOM NEXT_IN_LIST OBJ-COMMAND OBJ-VAR OBJ-VARS OBJECT-VARIABLES OBJVARS TRIGEDIT-OBJ-VAR TRIGEDIT-VARIABLES-OBJECTS VAL0 VAL1 VAL2 VAL3 WORN_BY
+%ITEM% %NEXT_IN_LIST% %OBJ% %OBJECT% %SHORTDESC% CARRIED_BY COUNT HAS_IN IS_INROOM NEXT_IN_LIST OBJ-VAR OBJ-VARS OBJECT-VARIABLES OBJVARS TRIGEDIT-OBJ-VAR TRIGEDIT-VARIABLES-OBJECTS VAL0 VAL1 VAL2 VAL3 WORN_BY
 
 Objects When using field - The variable returns:
  
@@ -39374,7 +39374,7 @@ Example: 	RTSTAT 31	n
 
 See also: TRIGEDIT-RANDOM
 #31
-%ARG% %ARG.CAR% %ARG.CDR% %CAR% %CDR% %CMD% %CMD.CAR% %CMD.CDR% %CONTAINS% %STRLEN% %TEXT% %TRIM% ARG.CAR ARG.CDR CAR CDR CHAR CMD CMD.CAR CMD.CDR CONTAINS PUSH STRING-LENGTH STRINGLENGTH STRLEN TEXT-VAR TRIGEDIT-TEXT-VAR TRIGEDIT-VARIABLES-TEXTS
+%ARG% %ARG.CAR% %ARG.CDR% %CAR% %CDR% %CMD% %CMD.CAR% %CMD.CDR% %CONTAINS% %STRLEN% %TEXT% %TRIM% ARG.CAR ARG.CDR CAR CDR CMD CMD.CAR CMD.CDR CONTAINS STRING-LENGTH STRINGLENGTH STRLEN TEXT-VAR TRIGEDIT-TEXT-VAR TRIGEDIT-VARIABLES-TEXTS
 
 T
 
@@ -39621,7 +39621,7 @@ potentially utterly destroyed depending on level and charisma.
 
 Usage: turnundead <target>
 #0
-GETTING-STARTED MUDSCHOOL NEWBIE-GUIDE TUTORIAL
+GETTING-STARTED MUDSCHOOL NEWBIE-GUIDE STARTING TUTORIAL
 
 Topic  : New Player Tutorial & Mudschool
 Usage  : help start
@@ -39924,7 +39924,7 @@ UNDETECTABLE-ALIGNMENT
 	YSee also:	n SPELLS
 	n
 #0
-DISBAND UNGROUP
+UNGROUP
 
 Usage: ungroup [group member]
 
@@ -40115,7 +40115,7 @@ USE-MAGIC-DEVICE
 This skill will increase the effective level of spells invoked through
 using consumables (potions, scrolls, wands and staves).
 #0
-STATUS USERS
+USERS
 
 Usage: users [switches]
 
@@ -40572,7 +40572,7 @@ not print its ID; obtain the ID from VEHICLECREATE's success message.
 
 See also: VSTATUS, VEHICLE-TRANSPORT, SHIP-ADMIN, VESSELDEBUG
 #31
-LOADVEH LOADVEHICLE TENTER TEXIT TGO TRANSPORT TSTATUS UNLOADVEH UNLOADVEHICLE VEHICLE-TRANSPORT
+LOADVEH LOADVEHICLE TENTER TEXIT TGO TRANSPORT TSTATUS UNLOAD UNLOADVEH UNLOADVEHICLE VEHICLE-TRANSPORT
 
 Vehicle and unified transport commands:
 
@@ -41621,7 +41621,7 @@ when determining damage bonus.  This bonus will be capped by the weapon's
 enhancement bonus.  The cap does not apply to strength, in the event that the
 wielder's strength is higher than their dex.
 #0
-WEAPON-CREATION
+OBJ-WEAPONS WEAPON-CREATION
 
    When you create weapons, try to help round out the distribution of weapon
 types. What I mean by this is that there are tons of swords already in the
@@ -42029,7 +42029,7 @@ Example:
   > where torch
   > where dragon
 #0
-%NEXT% COUNT DONE FOR-LOOP LOOPS NEXT TRIG-DONE TRIG-LOOPS TRIG-WHILE WHILE
+DONE FOR-LOOP LOOPS TRIG-DONE TRIG-LOOPS TRIG-WHILE WHILE
 
 Usage: while expression
 
@@ -42498,7 +42498,7 @@ for more information.
 
 See also: BOARDS, MAIL
 #0
-COPYROOM MCLONE MCOPY OCLONE OCOPY RCLONE RCOPY ROOMCOPY SCOPY TCLONE TCOPY XCLONES XCOPY ZCOPY
+MCLONE MCOPY OCLONE OCOPY RCLONE RCOPY ROOMCOPY SCOPY TCLONE TCOPY XCLONES XCOPY ZCOPY
 
 Usage: <r | o | m | s | t>copy <target vnum> <new vnum>
 
@@ -42599,7 +42599,7 @@ If no room number is specified, the current room is used as target.
 Implementors wanting to create zones, see: 	R HELP ZONE-CREATE	n
 See also: -MENU, -NEW, CREATE-ZONE, OLC, SHOW-ZONES 
 #31
-ADVANCED ZEDIT-ADVANCED
+ZEDIT-ADVANCED
 
    Let us say you want there to be a single rose loaded in a garden. But, you 
 want to have a max of 50 in the mud. You would simply go to the command options 
@@ -42830,7 +42830,7 @@ V) Set a global variable (Advanced builders only)
 
 See also: ZEDIT-EQUIP, MAXLOAD, ZRESET
 #31
-RESET-MODES ZEDIT-RESETS
+RESET-MODES ZEDIT-RESETS ZEDIT_RESET
 
 R) Reset Mode  : 	yNormal reset.	n
    Can take one of three values:
@@ -42946,7 +42946,7 @@ to check if they made anything of value that could be saved and donated.
 "set file <playername> olc off" then "stat file <playername>" to be sure it 
 worked and then delete the zone from the server withe the RemoveWorld script.
 #31
-00 EXAMPLE-PROPOSALS EXAMPLE-ZONE-DESCRIPTIONS TEST-ZONE TRIAL-ZONE ZEDIT-DESCRIPTION ZONE-DESCRIPTION-ROOM ZONE-DESCRIPTIONS ZONE-INFO ZONE_DESCRIPTION_ROOM
+00 EXAMPLE-ZONE-DESCRIPTIONS ZEDIT-DESCRIPTION ZONE-DESCRIPTION-ROOM ZONE-DESCRIPTIONS ZONE-INFO ZONE_DESCRIPTION_ROOM
 
 Your zone proposal should be cut and pasted into your "Zone Description Room",
 which will be in room <zone #>00 (first room in your zone). In this credit room you 
@@ -42993,7 +42993,7 @@ own zone if their name is in the zone's builders list.
 zlock - Locks one or all zones. Type zlock for usage. 
 zunlock - Locks one or all zones. Type zunlock for usage. 
 #31
-SIZES ZONE-SIZES
+ZONE-SIZES
 
    Make sure to have some idea of how many rooms total you will use. Make a 
 definite decision. 20, 40, 80, 100. Try and shoot for a multiple of 20. We 
@@ -43260,7 +43260,7 @@ Usage: zpurge *  [will purge the entire world, not advised to use]
 and objs lying in the room will be purged. But, all objs carried by mobs will
 be dropped to the ground. To completely wipe a zone use it twice.
 #0
-LOAD-ZONE LOADZONE LOAD_ZONE POPS RE-POPS REFRESH REPOPS RESETS SPAWN ZEDIT_RESET ZONE-LOADS ZONE-RESETS ZONEREBOOTS ZONERESETS ZONE_RESET ZRESETS
+LOAD-ZONE LOADZONE LOAD_ZONE POPS RE-POPS REFRESH REPOPS RESETS SPAWN ZONE-LOADS ZONE-RESETS ZONEREBOOTS ZONERESETS ZONE_RESET ZRESETS
 
 Usage: zreset
 Usage: zreset <zone #>
