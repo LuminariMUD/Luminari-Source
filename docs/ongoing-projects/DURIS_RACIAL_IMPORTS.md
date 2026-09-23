@@ -14,9 +14,9 @@ checks: `FEAT_STABILITY` to CrystalDwarf and `FEAT_BODYSLAM` to HalfTroll. Sourc
 this set the "Sep 2026 racial innates".
 
 How the feats work:
-[GAME_MECHANICS_SYSTEMS.md](systems/GAME_MECHANICS_SYSTEMS.md#racial-innate-feats-and-spell-like-abilities).
+[GAME_MECHANICS_SYSTEMS.md](../systems/GAME_MECHANICS_SYSTEMS.md#racial-innate-feats-and-spell-like-abilities).
 Race point prices:
-[PLAYER_RACES_REFERENCE.md](guides/PLAYER_RACES_REFERENCE.md#race-point-rp-pricing-table).
+[PLAYER_RACES_REFERENCE.md](../guides/PLAYER_RACES_REFERENCE.md#race-point-rp-pricing-table).
 Four-arm design record:
 [THRI_KREEN_FOUR_ARMS.md](https://github.com/LuminariMUD/Luminari-Source/blob/e33ed0d6f98d28d4218c98aa57b16de9742ac8c5/docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md).
 
@@ -205,6 +205,77 @@ where one exists; each is our own earlier design and this work did not change it
 | Storm Giant | `RACE_SGIANT` (25) | Lore-restricted, no racewar side | - |
 
 To add one, register it with `add_race()` and grant feats from the tables above with
-`feat_race_assignment()`, following [ADDING_NEW_RACE_GUIDE.md](guides/ADDING_NEW_RACE_GUIDE.md).
+`feat_race_assignment()`, following [ADDING_NEW_RACE_GUIDE.md](../guides/ADDING_NEW_RACE_GUIDE.md).
 Per-race stat conversions, Duris level gates, and race point scores are in the retired
 [race conversion study](https://github.com/LuminariMUD/Luminari-Source/blob/dba4ca2de4afdbe47fc0d1f6831a1a1f75db1e7e/docs/ongoing-projects/DURIS_RACE_CONVERSION.md).
+
+## Proposal: feats for the races not imported
+
+Proposal only, written 2026-09-23; nothing here is implemented. It places the feats above on the
+races in the previous table, so each race would be `add_race()` data plus `feat_race_assignment()`
+lines. Names are the in-game feat names from the tables above, without the `innate` prefix on the
+spell-like ones.
+
+Of the 54 new feats (1268-1321), 29 already have a home here: Duris registers them on these races,
+some only in commented-out lines. Of the other 25, 24 come only from Duris races LuminariMUD
+already covers and `FEAT_EXTRA_ARMS` has no Duris source. Those, plus fearlessness and innate haste
+(wired above, held by no race), are placed by lore fit; two feats stay unassigned (see the notes).
+The tier column names the [race point band](../guides/PLAYER_RACES_REFERENCE.md#tier-budgets) each
+race would be priced against.
+
+| Duris race | Tier | Own Duris feats | From covered races (Duris owner) |
+| -- | -- | -- | -- |
+| Centaur | Advanced | quadruped body, leonine frame, doorbash, stampede, greatsword mastery | - |
+| Githzerai | Advanced | plane shift, rrakkma | quick thinking (Halfling, Half-Elf) |
+| Firbolg | Advanced | bodyslam, doorbash, forest sight, magic vulnerability | outdoor stealth (Grey Elf, Wood Elf), hatred and hammer mastery (Mountain Dwarf) |
+| Githyanki | Advanced | plane shift, enhanced spell damage; drop its sun vulnerability, a Duris racewar device rather than gith lore | longsword mastery (elves), psionic blast (Illithid) |
+| Kobold | Normal | underdark stealth, miner and calming (both commented out) | barter (Halfling, commented out) |
+| Drider | Advanced | quadruped body, leonine frame, groundfighting, web (commented out) | fireball and mass dispel (Drow Elf, its parent race, commented out) |
+| Thri-Kreen | Open | four arms, leap, vulnerable to cold | - |
+| Minotaur | Advanced | doorbash, bull charge, bloodlust | axe mastery (Mountain Dwarf), scare (Ogre roar), fearlessness (Barbarian) |
+| Death Knight | Epic quest | fire shield, fire storm, sun vulnerability, slow casting | sacrilegious power (Vampire), undead fealty (Lich) |
+| Wight | Epic quest | bodyslam, doorbash, stoneskin, weakness to fire, slow casting | frost breath (Barbarian, commented out) |
+| Revenant | Epic quest | bodyslam, doorbash, shadow jump, weakness to fire | battle frenzy (Duergar Dwarf) |
+| Shadow Beast | Epic quest | underdark stealth, weakness to fire | racial flurry (Halfling and Goblin, commented out) |
+| Phantom | Epic quest | plane shift, weakness to fire, fast casting, enhanced spell damage | spell absorb and eyeless (Lich) |
+| Kuo Toa | Normal | lightning bolt, water breathing, swamp stealth, sun vulnerability | seadog (Human, Orc) |
+| Orog | Advanced | warcaller's fury, sun vulnerability, slow casting | summon horde and summon warg (Orc), magical reduction (Mountain and Duergar Dwarf) |
+| Harpy | Advanced | - (fast casting skipped, see the notes) | farsee (Gnome), innate haste (Duergar Dwarf) |
+| Storm Giant | Advanced | doorbash and lightning bolt (both commented out), slow casting | thick hide (Troll) |
+
+Notes:
+
+- Unassigned. `FEAT_EXTRA_ARMS`: four arms covers Thri-Kreen, and the race point reference says
+  not to grant both. `FEAT_DAYBLIND`: Duris commented it out on all six of these races that list
+  it (Drider, Githyanki, Kuo Toa, Orog, Wight, Phantom), and it would stack a -4 drawback on races
+  that mostly carry sun vulnerability already.
+- Casting speed, one rank each. In the default standard-action mode (`spellcasting_time_mode` 0)
+  every non-ritual cast takes one tick, so one slow rank doubles the casting time and one fast
+  rank makes it instant. Slow casting goes only to a Duris multiplier
+  (`spellcast.pulse.racial.<Race>`) of 1.5 or more: Death Knight 1.5, Orog and Storm Giant 1.6,
+  Wight 1.9. Revenant (1.3), Shadow Beast and Kuo Toa (1.1) get none. Fast casting goes only to
+  Phantom (0.7) as a priced epic quest choice; Harpy has the same 0.7, but instant casting is too
+  strong for an Advanced race.
+- Duris re-based the creation races' casting and combat pulses on 2026-09-14 (Duris `98a8ee469`).
+  The eight creation races here now cast at 0.895 (Kobold) to 1.055 (Firbolg) and get no casting
+  feat. The retired race conversion study predates that commit, so its combat pulse and spellcast
+  values, and the melee and casting scores built on them, are stale for those races.
+- Spell resistance and spell power. Duris shrug 20 to 25 (`innate.shrug.<Race>`: Githzerai and
+  Phantom 20, Githyanki and Drider 25) maps to `FEAT_HALF_DROW_SPELL_RESISTANCE`. One rank of
+  `FEAT_ENHANCED_SPELL_DAMAGE` goes to the races with Duris Pow of 125 or more
+  (`stats.pow.<Race>`: Githyanki 130, Phantom 125); Githzerai at 120 does not get it.
+- Existing feats from "Duris innates already covered by existing feats" come along:
+  `FEAT_ULTRAVISION` on every race except Centaur and Firbolg (no vision innate) and Storm Giant
+  (`FEAT_INFRAVISION`, commented out in Duris); `FEAT_HALF_DROW_SPELL_RESISTANCE` as above;
+  `FEAT_SLA_LEVITATE` on both gith; `FEAT_WINGS` on Harpy and Phantom; `FEAT_KEEN_SENSES` on
+  Harpy; `FEAT_POISON_BITE` on Thri-Kreen; `FEAT_TROLL_REGENERATION` on Revenant;
+  `FEAT_VAMPIRE_GASEOUS_FORM` on Phantom; `FEAT_TIEFLING_HELLISH_RESISTANCE` on Death Knight;
+  `FEAT_SLA_STRENGTH` and `FEAT_SLA_ENLARGE` on Shadow Beast.
+- Leonine frame's leg and foot refusal message is generic, but its name and help text say
+  "leonine"; give it a neutral name before Centaur and Drider take it.
+- The five descend forms stay far below the epic quest band even with these feats. Duris made
+  them strong with melee multipliers, which #164 declined, so they need native feats (armor skin
+  stacks, damage reduction, hardy) the way Lich and Vampire have them.
+- Thri-Kreen waits on the open four-arms decisions in the
+  [race point pricing notes](../guides/PLAYER_RACES_REFERENCE.md#race-point-rp-pricing-table):
+  price, psionic damage reduction, venom, riding, and ability adjustments.
