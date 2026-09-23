@@ -232,6 +232,7 @@ static int audio_generate_message(struct spatial_context *ctx, char *output, siz
 
   switch (msg_type)
   {
+  /* NOLINTNEXTLINE(bugprone-branch-clone) -- DISTANT may want its own wording; not guessed */
   case AUDIO_MSG_CLEAR:
     if (ctx->direction == SPATIAL_DIR_HERE)
     {
@@ -418,10 +419,9 @@ static bool acoustic_can_transmit(int terrain_type, int stimulus_type)
   /* Sound can transmit through most terrain types, unlike light */
   switch (terrain_type)
   {
-  case SECT_MOUNTAIN:
-    return FALSE; /* Solid rock blocks sound */
-  case SECT_UD_NOGROUND:
-    return FALSE; /* Void/no medium */
+  case SECT_MOUNTAIN:    /* Solid rock blocks sound */
+  case SECT_UD_NOGROUND: /* Void/no medium */
+    return FALSE;
   default:
     return TRUE; /* Most terrain allows sound transmission */
   }
@@ -533,6 +533,7 @@ static int weather_terrain_audio_modify_message(struct spatial_context *ctx, cha
 
   /* Add environmental descriptors based on conditions */
   if (ctx->weather_conditions == 2)
+  /* NOLINTNEXTLINE(bugprone-branch-clone) -- placeholders for per-weather wording */
   { /* Rain */
     /* Could add "through the rain" to the message */
   }

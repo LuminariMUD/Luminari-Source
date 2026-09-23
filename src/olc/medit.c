@@ -506,10 +506,7 @@ void medit_save_internally(struct descriptor_data *d)
     if (STATE(dsc) == CON_SEDIT)
       S_KEEPER(OLC_SHOP(dsc)) +=
           (S_KEEPER(OLC_SHOP(dsc)) != NOTHING && S_KEEPER(OLC_SHOP(dsc)) >= new_rnum);
-    else if (STATE(dsc) == CON_MEDIT)
-      GET_MOB_RNUM(OLC_MOB(dsc)) +=
-          (GET_MOB_RNUM(OLC_MOB(dsc)) != NOTHING && GET_MOB_RNUM(OLC_MOB(dsc)) >= new_rnum);
-    else if (STATE(dsc) == CON_HLQEDIT)
+    else if (STATE(dsc) == CON_MEDIT || STATE(dsc) == CON_HLQEDIT)
       GET_MOB_RNUM(OLC_MOB(dsc)) +=
           (GET_MOB_RNUM(OLC_MOB(dsc)) != NOTHING && GET_MOB_RNUM(OLC_MOB(dsc)) >= new_rnum);
   }
@@ -2604,12 +2601,6 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
     GET_PSP(mob) = GET_LEVEL(mob) * 5;
     break;
   case CLASS_SORCERER:
-    GET_CHA(mob) += bonus;
-    (mob)->aff_abils.dex += bonus;
-    mobs_hps = mobs_hps * 2 / 5;
-    GET_SDD(mob) = (byte)(GET_SDD(mob) * 2 / 5);
-    armor_class -= 60;
-    break;
   case CLASS_NECROMANCER:
     GET_CHA(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
@@ -2722,7 +2713,6 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   switch (GET_RACE(mob))
   {
   case RACE_TYPE_HUMANOID:
-    break;
   case RACE_TYPE_UNDEAD:
     break;
   case RACE_TYPE_ANIMAL:
@@ -2782,8 +2772,6 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   case RACE_TYPE_OUTSIDER:
     break;
   case RACE_TYPE_PLANT:
-    award_set_points(mob, AWARD_GOLD, 0);
-    break;
   case RACE_TYPE_VERMIN:
     award_set_points(mob, AWARD_GOLD, 0);
     break;

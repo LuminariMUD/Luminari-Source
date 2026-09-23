@@ -301,7 +301,6 @@ ACMDU(do_carriage)
       {
         if (is_abbrev(argument, get_transport_carriage_name(i)))
         {
-          found = true;
           if (here != 999 &&
               (get_carriage_locale_vnum(here) != 30036 && get_carriage_locale_vnum(here) != 30037))
           {
@@ -416,7 +415,6 @@ ACMDU(do_sail)
       {
         if (is_abbrev(argument, get_transport_sailing_name(i)))
         {
-          found = true;
           cost = get_sailing_locale_cost(i);
           if (HAS_FEAT(ch, FEAT_BG_SAILOR))
             cost = 0;

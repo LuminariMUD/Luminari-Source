@@ -70,13 +70,13 @@ int get_spell_circle(int spellnum, int char_class)
   case CLASS_SUMMONER:
     if (spell_info[spellnum].min_level[char_class] <= 1)
       spell_circle = 1;
-    if (spell_info[spellnum].min_level[char_class] <= 4)
+    else if (spell_info[spellnum].min_level[char_class] <= 4)
       spell_circle = 2;
-    if (spell_info[spellnum].min_level[char_class] <= 7)
+    else if (spell_info[spellnum].min_level[char_class] <= 7)
       spell_circle = 3;
-    if (spell_info[spellnum].min_level[char_class] <= 10)
+    else if (spell_info[spellnum].min_level[char_class] <= 10)
       spell_circle = 4;
-    if (spell_info[spellnum].min_level[char_class] <= 13)
+    else if (spell_info[spellnum].min_level[char_class] <= 13)
       spell_circle = 5;
     else
       spell_circle = 6;
@@ -87,9 +87,9 @@ int get_spell_circle(int spellnum, int char_class)
   case CLASS_BLACKGUARD:
     if (spell_info[spellnum].min_level[char_class] <= 6)
       spell_circle = 1;
-    if (spell_info[spellnum].min_level[char_class] <= 10)
+    else if (spell_info[spellnum].min_level[char_class] <= 10)
       spell_circle = 2;
-    if (spell_info[spellnum].min_level[char_class] <= 12)
+    else if (spell_info[spellnum].min_level[char_class] <= 12)
       spell_circle = 3;
     else
       spell_circle = 4;
@@ -157,7 +157,6 @@ void init_mob_spell_slots(struct char_data *ch)
    * which is for PC multiclassing and doesn't work properly for NPCs */
   for (circle = 0; circle < 10; circle++)
   {
-    max_slots = 0;
     stat_bonus = 0;
 
     /* Get base slots from class table */

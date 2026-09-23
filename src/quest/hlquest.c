@@ -334,7 +334,6 @@ bool is_object_in_a_quest(struct obj_data *obj)
             switch (qcom->type)
             {
             case QUEST_COMMAND_ITEM:
-              return TRUE;
             case QUEST_COMMAND_LOAD_OBJECT_INROOM:
               return TRUE;
             default:

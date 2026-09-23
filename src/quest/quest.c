@@ -1480,9 +1480,8 @@ static void quest_list(struct char_data *ch, struct char_data *qm, char argument
   qst_vnum vnum;
   qst_rnum rnum;
 
-  if ((vnum = find_quest_by_qmnum(ch, GET_MOB_VNUM(qm), parse_int(argument))) == NOTHING)
-    send_to_char(ch, "That is not a valid quest!\r\n");
-  else if ((rnum = real_quest(vnum)) == NOTHING)
+  if ((vnum = find_quest_by_qmnum(ch, GET_MOB_VNUM(qm), parse_int(argument))) == NOTHING ||
+      (rnum = real_quest(vnum)) == NOTHING)
     send_to_char(ch, "That is not a valid quest!\r\n");
   else if (QST_INFO(rnum))
   {
@@ -1773,7 +1772,6 @@ static void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 {
   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *victim = NULL;
-  qst_rnum rnum = NOTHING;
   // qst_vnum vnum = NOTHING;
   int index = 0;
   bool found = FALSE;
@@ -1795,7 +1793,7 @@ static void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     send_to_char(ch, "Can not find that target!\r\n");
     return;
   }
-  else if ((rnum = real_quest(parse_int(arg2))) == NOTHING)
+  else if (real_quest(parse_int(arg2)) == NOTHING)
   {
     send_to_char(ch, "That quest does not exist.\r\n");
     return;
@@ -2027,9 +2025,7 @@ ACMD(do_quest)
   int tp;
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
-  if (!*arg1)
-    send_to_char(ch, "%s\r\n", GET_LEVEL(ch) < LVL_IMMORT ? quest_mort_usage : quest_imm_usage);
-  else if (((tp = search_block(arg1, quest_cmd, FALSE)) == -1))
+  if (!*arg1 || ((tp = search_block(arg1, quest_cmd, FALSE)) == -1))
     send_to_char(ch, "%s\r\n", GET_LEVEL(ch) < LVL_IMMORT ? quest_mort_usage : quest_imm_usage);
   else
   {
@@ -2435,9 +2431,7 @@ static void questline_insert_step(struct char_data *ch, int quest_line_id, int q
   char query[MAX_STRING_LENGTH];
   int max_pos = questline_max_position(quest_line_id);
 
-  if (position <= 0)
-    position = max_pos + 1;
-  else if (position > max_pos + 1)
+  if (position <= 0 || position > max_pos + 1)
     position = max_pos + 1;
 
   /* shift existing steps down if inserting into the middle */
@@ -2792,15 +2786,14 @@ SPECIAL(questmaster)
   for (rnum = 0; (rnum < total_quests && QST_MASTER(rnum) != GET_MOB_VNUM(qm)); rnum++)
     ;
   if (rnum >= total_quests)
+    /* NOLINTNEXTLINE(bugprone-branch-clone) -- the secondary proc needs a valid rnum first */
     return FALSE; /* No quests for this mob */
   else if (spec_gateway_quest_secondary(QST_FUNC(rnum), ch, me, cmd, argument))
     return TRUE; /* The secondary spec proc handled this command */
   else if (CMD_IS("quest"))
   {
     two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
-    if (!*arg1)
-      return FALSE;
-    else if (((tp = search_block(arg1, quest_cmd, FALSE)) == -1))
+    if (!*arg1 || ((tp = search_block(arg1, quest_cmd, FALSE)) == -1))
       return FALSE;
     else
     {

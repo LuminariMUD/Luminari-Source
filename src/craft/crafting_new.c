@@ -1840,7 +1840,6 @@ static void set_crafting_bonuses(struct char_data *ch, const char *argument)
   {
     location = GET_CRAFT(ch).affected[slot].location;
     bonus_type = GET_CRAFT(ch).affected[slot].bonus_type;
-    modifier = GET_CRAFT(ch).affected[slot].modifier;
     specific = GET_CRAFT(ch).affected[slot].specific;
     int mote_type = crafting_mote_by_bonus_location(location, specific, bonus_type);
     int num_motes = GET_CRAFT(ch).motes_required[slot];
@@ -3867,11 +3866,8 @@ int craft_material_to_obj_material(int craftmat)
   case CRAFT_MAT_DRAGONBONE:
     return MATERIAL_DRAGONBONE;
   case CRAFT_MAT_LOW_GRADE_HIDE:
-    return MATERIAL_LEATHER;
   case CRAFT_MAT_MEDIUM_GRADE_HIDE:
-    return MATERIAL_LEATHER;
   case CRAFT_MAT_HIGH_GRADE_HIDE:
-    return MATERIAL_LEATHER;
   case CRAFT_MAT_PRISTINE_GRADE_HIDE:
     return MATERIAL_LEATHER;
   case CRAFT_MAT_DRAGONBLOOD:
@@ -5214,12 +5210,8 @@ void newcraft_create(struct char_data *ch, const char *argument)
 
   half_chop_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
-  if (!*arg1)
-  {
-    send_to_char(ch, "%s", NEWCRAFT_CREATE_NOARG1);
-    return;
-  }
-  else if (is_abbrev(arg1, "golem"))
+  /* An empty argument matches no subcommand below and shows the usage. */
+  if (is_abbrev(arg1, "golem"))
   {
     newcraft_golem(ch, arg2);
     return;
@@ -5631,7 +5623,6 @@ static void harvest_complete(struct char_data *ch)
       mote_type = dice(1, NUM_CRAFT_MOTES - 1);
       bonus_motes = 0;
       synergy_talent = TALENT_NONE;
-      synergy_rank = 0;
 
       /* Determine which synergy talent applies to this mote type */
       switch (mote_type)
@@ -7384,15 +7375,10 @@ int get_craft_obj_level(struct obj_data *obj, struct char_data *ch)
     //     get_level_adjustment_by_apply_and_modifier(obj->affected[i].location, obj->affected[i].modifier, obj->affected[i].bonus_type));
   }
 
-  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON || GET_OBJ_TYPE(obj) == ITEM_ARMOR)
   {
     level += get_level_adjustment_by_enhancement_bonus(GET_OBJ_VAL(obj, 4));
-    // send_to_char(ch, "Weapon Enh +%d = %d\r\n", GET_OBJ_VAL(obj, 4), get_level_adjustment_by_enhancement_bonus(GET_OBJ_VAL(obj, 4)));
-  }
-  else if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
-  {
-    level += get_level_adjustment_by_enhancement_bonus(GET_OBJ_VAL(obj, 4));
-    // send_to_char(ch, "Armor Enh +%d = %d\r\n", GET_OBJ_VAL(obj, 4), get_level_adjustment_by_enhancement_bonus(GET_OBJ_VAL(obj, 4)));
+    // send_to_char(ch, "Enh +%d = %d\r\n", GET_OBJ_VAL(obj, 4), get_level_adjustment_by_enhancement_bonus(GET_OBJ_VAL(obj, 4)));
   }
 
   // material adjustment
@@ -7425,9 +7411,8 @@ int get_craft_project_level(struct char_data *ch)
   }
 
   // enhancement bonus
-  if (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_WEAPON)
-    level += get_level_adjustment_by_enhancement_bonus(GET_CRAFT(ch).enhancement);
-  else if (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_ARMOR)
+  if (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_WEAPON ||
+      GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_ARMOR)
     level += get_level_adjustment_by_enhancement_bonus(GET_CRAFT(ch).enhancement);
 
   // material adjustment
@@ -9064,8 +9049,8 @@ void show_supply_order(struct char_data *ch)
   }
 
   // Show contract type
-  const char *contract_type_str = "Basic";
-  const char *contract_color = "\tc";
+  const char *contract_type_str;
+  const char *contract_color;
   switch (GET_CRAFT(ch).supply_contract_type)
   {
   case SUPPLY_CONTRACT_RUSH:
@@ -9249,7 +9234,6 @@ static void show_mote_bonuses(struct char_data *ch, int mote)
 
 
   send_to_char(ch, "\tcOther Bonuses:\tn\r\n");
-  found = FALSE;
   length = 0;
   for (i = 0; i < NUM_APPLIES; i++)
   {
@@ -9268,7 +9252,6 @@ static void show_mote_bonuses(struct char_data *ch, int mote)
             send_to_char(ch, "\r\n");
             length = 0;
           }
-          found = TRUE;
         }
       }
       break;
@@ -9282,7 +9265,6 @@ static void show_mote_bonuses(struct char_data *ch, int mote)
           send_to_char(ch, "\r\n");
           length = 0;
         }
-        found = TRUE;
       }
       if (crafting_mote_by_bonus_location(i, 0, BONUS_TYPE_NATURALARMOR) == mote)
       {
@@ -9293,7 +9275,6 @@ static void show_mote_bonuses(struct char_data *ch, int mote)
           send_to_char(ch, "\r\n");
           length = 0;
         }
-        found = TRUE;
       }
       if (crafting_mote_by_bonus_location(i, 0, BONUS_TYPE_DODGE) == mote)
       {
@@ -9305,7 +9286,6 @@ static void show_mote_bonuses(struct char_data *ch, int mote)
           send_to_char(ch, "\r\n");
           length = 0;
         }
-        found = TRUE;
       }
       break;
     default:
@@ -9318,7 +9298,6 @@ static void show_mote_bonuses(struct char_data *ch, int mote)
           send_to_char(ch, "\r\n");
           length = 0;
         }
-        found = TRUE;
       }
       break;
     }

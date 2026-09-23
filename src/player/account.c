@@ -1148,6 +1148,7 @@ bool save_account_checked(struct account_data *account)
     log("SYSERR: Unable to start account save transaction: %s", mysql_error(conn));
     goto cleanup;
   }
+  /* NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores) -- arms cleanup's safety-net rollback */
   transaction_started = true;
 
   if (core_dirty)

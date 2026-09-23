@@ -1210,9 +1210,10 @@ int i3_send_json(void *obj)
   }
   i3_log("DEBUG: Sending %zu-byte JSON-RPC %s", total_length, method ? method : "request");
 
-  send_flags = 0;
 #ifdef MSG_NOSIGNAL
   send_flags = MSG_NOSIGNAL;
+#else
+  send_flags = 0;
 #endif
 
   offset = 0;
@@ -2346,8 +2347,8 @@ int i3_load_config(const char *filename)
         strlcpy(i3_client->gateway_host, url_host, sizeof(i3_client->gateway_host));
         i3_log("DEBUG: Extracted gateway host: %s", i3_client->gateway_host);
       }
-      /* Handle new I3_API_KEY format */
-      else if (strcmp(key, "I3_API_KEY") == 0)
+      /* Handle new I3_API_KEY and old api_key formats */
+      else if (strcmp(key, "I3_API_KEY") == 0 || strcmp(key, "api_key") == 0)
       {
         strlcpy(i3_client->api_key, value, sizeof(i3_client->api_key));
       }
@@ -2365,11 +2366,6 @@ int i3_load_config(const char *filename)
       else if (strcmp(key, "gateway_port") == 0)
       {
         i3_client->gateway_port = parse_int(value);
-      }
-      /* Handle old api_key format */
-      else if (strcmp(key, "api_key") == 0)
-      {
-        strlcpy(i3_client->api_key, value, sizeof(i3_client->api_key));
       }
       /* Handle old mud_name format */
       else if (strcmp(key, "mud_name") == 0)

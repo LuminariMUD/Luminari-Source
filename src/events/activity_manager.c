@@ -1265,7 +1265,6 @@ static void send_wrapped_field(struct char_data *ch, const char *label, const ch
     {
       send_to_char(ch, "%s\r\n", line);
       strlcpy(line, continuation, sizeof(line));
-      first = true;
       separator_length = 0U;
     }
     if (separator_length > 0U)

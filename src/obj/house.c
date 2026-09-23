@@ -451,7 +451,6 @@ const char *HCONTROL_FORMAT =
 
 void hcontrol_list_houses(struct char_data *ch, char *arg)
 {
-  house_rnum house;
   int i;
   const char *timestr, *temp;
   char built_on[128], last_pay[128], own_name[MAX_NAME_LENGTH + 1];
@@ -465,7 +464,7 @@ void hcontrol_list_houses(struct char_data *ch, char *arg)
     else
       toshow = parse_int(arg);
 
-    if ((house = find_house(toshow)) == NOWHERE)
+    if (find_house(toshow) == NOWHERE)
     {
       send_to_char(ch, "Unknown house, \"%s\".\r\n", arg);
       return;

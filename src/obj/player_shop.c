@@ -143,7 +143,7 @@ SPECIAL(player_owned_shops)
   room_vnum house_vnum;
   struct obj_data *i, *j;
   int num = 1, hse;
-  char *temp, shop_owner[32], buf[MAX_STRING_LENGTH] = {'\0'};
+  char shop_owner[32], buf[MAX_STRING_LENGTH] = {'\0'};
   bool found = FALSE;
 
   if (!cmd)
@@ -162,7 +162,7 @@ SPECIAL(player_owned_shops)
     if (real_room(house_control[hse].atrium) == IN_ROOM(ch))
     {
       /* Avoid seeing <UNDEF> entries from self-deleted people. */
-      if ((temp = get_name_by_id(house_control[hse].owner)) == NULL)
+      if (get_name_by_id(house_control[hse].owner) == NULL)
       {
         snprintf(shop_owner, sizeof(shop_owner), "Someone");
       }

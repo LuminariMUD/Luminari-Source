@@ -723,9 +723,6 @@ int save_rooms(zone_rnum rzone)
             if (curCnt > 0)
             {
               fprintf(sf, "%" PRI_IDX " %d %d\n", curR, curD, curCnt);
-              curR = ENDMOVING;
-              curD = -1;
-              curCnt = -1;
             }
 
             curR = world[rnum].mover->from[mm];

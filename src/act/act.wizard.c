@@ -1786,10 +1786,12 @@ ACMD(do_stat)
     int number = get_number(&name);
 
     if ((object = get_obj_in_equip_vis(ch, name, &number, ch->equipment)) != NULL)
+      /* NOLINTNEXTLINE(bugprone-branch-clone) -- one arm per place searched, in order */
       do_stat_object(ch, object, ITEM_STAT_MODE_IMMORTAL);
     else if ((object = get_obj_in_list_vis(ch, name, &number, ch->carrying)) != NULL)
       do_stat_object(ch, object, ITEM_STAT_MODE_IMMORTAL);
     else if ((victim = get_char_vis(ch, name, &number, FIND_CHAR_ROOM)) != NULL)
+      /* NOLINTNEXTLINE(bugprone-branch-clone) -- one arm per place searched, in order */
       do_stat_character(ch, victim);
     else if ((object = get_obj_in_list_vis(ch, name, &number, world[IN_ROOM(ch)].contents)) != NULL)
       do_stat_object(ch, object, ITEM_STAT_MODE_IMMORTAL);
@@ -1900,6 +1902,7 @@ ACMD(do_snoop)
   one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
+    /* NOLINTNEXTLINE(bugprone-branch-clone) -- the self check needs the lookup in between */
     stop_snooping(ch);
   else if (!(victim = get_char_vis(ch, arg, NULL, FIND_CHAR_WORLD)))
     send_to_char(ch, "No such person around.\r\n");
@@ -2880,11 +2883,6 @@ ACMDU(do_last)
     return;
   }
 
-  if (num <= 0 || num >= 100)
-  {
-    num = 10;
-  }
-
   // Gicker - 2022/10/27 - Using last "complete" for this now
   // As having issues with the llog system
 
@@ -3308,7 +3306,7 @@ static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int l
                                                              : "Normal reset")
                        : "Never reset",
                    zone_table[zone].show_weather, zone_table[zone].bot, zone_table[zone].top);
-    i = j = k = l = m = n = o = 0;
+    j = k = l = m = n = 0;
 
     for (i = 0; i <= (int)top_of_world; i++)
       if (world[i].number >= zone_table[zone].bot && world[i].number <= zone_table[zone].top)
@@ -4011,8 +4009,6 @@ ACMD(do_shopstat)
       strlcpy(ntbuf + nlen, sep, sizeof(ntbuf) - nlen);
       nlen = strlen(ntbuf);
       strlcpy(ntbuf + nlen, "NoWarrior", sizeof(ntbuf) - nlen);
-      sep = ", ";
-      nlen = strlen(ntbuf);
     }
     if (!*ntbuf)
       strlcpy(ntbuf, "None", sizeof(ntbuf));
@@ -4589,7 +4585,7 @@ ACMD(do_zcheck)
                               "- Neither SENTINEL nor STAY_ZONE bits set.\r\n");
 
       if (MOB_FLAGGED(mob, MOB_SPEC) && (found = 1))
-        len = snprintf_append(buf, sizeof(buf), (int)len, "- SPEC flag needs to be removed.\r\n");
+        snprintf_append(buf, sizeof(buf), (int)len, "- SPEC flag needs to be removed.\r\n");
 
       /* Additional mob checks.*/
       if (found)
@@ -4730,9 +4726,9 @@ ACMD(do_zcheck)
                               "- total damroll %d out of range (limit +/-%d.\r\n", todam,
                               MAX_APPLY_DAMROLL_TOTAL);
       if (abs(tohit) > MAX_APPLY_HITROLL_TOTAL && (found = 1))
-        len = snprintf_append(buf, sizeof(buf), (int)len,
-                              "- total hitroll %d out of range (limit +/-%d).\r\n", tohit,
-                              MAX_APPLY_HITROLL_TOTAL);
+        snprintf_append(buf, sizeof(buf), (int)len,
+                        "- total hitroll %d out of range (limit +/-%d).\r\n", tohit,
+                        MAX_APPLY_HITROLL_TOTAL);
 
       /*for (ext2 = NULL, ext = obj->ex_description; ext; ext = ext->next)
         if (strncmp(ext->description, "   ", 3))
@@ -4982,11 +4978,7 @@ static void trg_checkload(struct char_data *ch, trig_vnum tvnum)
         lastobj_r = ZCMD2.arg1;
         break;
       case 'P': /* object to object */
-        lastobj_r = ZCMD2.arg1;
-        break;
       case 'G': /* obj_to_char */
-        lastobj_r = ZCMD2.arg1;
-        break;
       case 'E': /* object to equipment list */
         lastobj_r = ZCMD2.arg1;
         break;
@@ -6180,7 +6172,6 @@ ACMD(do_zpurge)
   if (*arg == '.' || !*arg)
   {
     zone = world[IN_ROOM(ch)].zone;
-    vzone = zone_table[zone].number;
   }
   else if (is_number(arg))
   {
@@ -6568,10 +6559,10 @@ ACMD(do_plist)
                           player_table[i].name + 1, time_str);
     count++;
   }
-  len = snprintf_append(buf, sizeof(buf), len,
-                        "%s-------------------------------------%s\r\n"
-                        "%d players listed.\r\n",
-                        CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), count);
+  snprintf_append(buf, sizeof(buf), len,
+                  "%s-------------------------------------%s\r\n"
+                  "%d players listed.\r\n",
+                  CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), count);
   page_string(ch->desc, buf, TRUE);
 }
 
@@ -8422,7 +8413,7 @@ ACMD(do_eqrating)
      -zusuk */
     if (i >= 350)
     {
-      len = snprintf_append(buf, sizeof(buf), len, "\r\n**OVERLOADED BUFF***\r\n");
+      snprintf_append(buf, sizeof(buf), len, "\r\n**OVERLOADED BUFF***\r\n");
       break;
     }
   }
@@ -9277,7 +9268,7 @@ ACMD(do_perfmon)
     int written;
 
     written = (int)persistence_scheduler_repr(buf, sizeof(buf));
-    written += (int)PERF_prof_repr_top(buf + written, sizeof(buf) - (size_t)written, "max", 12);
+    PERF_prof_repr_top(buf + written, sizeof(buf) - (size_t)written, "max", 12);
     page_string(ch->desc, buf, TRUE);
     return;
   }
@@ -9362,7 +9353,6 @@ ACMD(do_resetpassword)
   char password[MAX_PWD_HASH_LENGTH + 1];
   const char *arg2;
   MYSQL_RES *res;
-  MYSQL_ROW row;
   bool account_found = false;
 
   arg2 = one_argument(argument, arg1, sizeof(arg1));
@@ -9400,7 +9390,7 @@ ACMD(do_resetpassword)
   res = mysql_use_result(conn);
   if (res != NULL)
   {
-    if ((row = mysql_fetch_row(res)) != NULL)
+    if (mysql_fetch_row(res) != NULL)
     {
       account_found = true;
     }
@@ -10044,7 +10034,7 @@ ACMD(do_resourceadmin)
   {
     char arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
 
-    remaining_args = two_arguments(remaining_args, arg2, sizeof(arg2), arg3, sizeof(arg3));
+    two_arguments(remaining_args, arg2, sizeof(arg2), arg3, sizeof(arg3));
 
     if (!*arg2 || !*arg3)
     {
@@ -10088,7 +10078,7 @@ ACMD(do_resourceadmin)
       return;
     }
 
-    remaining_args = two_arguments(remaining_args, arg2, sizeof(arg2), arg3, sizeof(arg3));
+    two_arguments(remaining_args, arg2, sizeof(arg2), arg3, sizeof(arg3));
 
     if (!*arg2)
     {
@@ -10243,7 +10233,7 @@ ACMD(do_regenadmin)
 
   if (is_abbrev(arg, "logging"))
   {
-    remaining_args = one_argument(remaining_args, arg2, sizeof(arg2));
+    one_argument(remaining_args, arg2, sizeof(arg2));
     if (!*arg2)
     {
       send_to_char(ch, "Usage: regenadmin logging <on|off>\r\n");
@@ -10303,7 +10293,7 @@ ACMD(do_regenadmin)
       }
       y = parse_int(arg2);
 
-      remaining_args = one_argument(remaining_args, arg2, sizeof(arg2));
+      one_argument(remaining_args, arg2, sizeof(arg2));
       limit = *arg2 ? parse_int(arg2) : 10;
 
       if (limit < 1 || limit > 100)
@@ -10832,11 +10822,9 @@ ACMD(do_setweather)
     weather_info.sky = SKY_CLOUDY;
     break;
   case 2:
+  case 3: /* Stormy = heavy rain */
     weather_info.sky = SKY_RAINING;
     break;
-  case 3:
-    weather_info.sky = SKY_RAINING;
-    break; /* Stormy = heavy rain */
   case 4:
     weather_info.sky = SKY_LIGHTNING;
     break;

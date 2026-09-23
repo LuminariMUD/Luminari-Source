@@ -822,16 +822,6 @@ void npc_offensive_spells(struct char_data *ch)
     }
     break;
   case CLASS_DRUID:
-    /* our 'healing' types will do another check for spellup */
-    /* additional 25% of spellup instead of offensive spell */
-    if (!rand_number(0, 3))
-    {
-      npc_spellup(ch);
-      return;
-    }
-
-    break;
-
   case CLASS_CLERIC:
     /* our 'healing' types will do another check for spellup */
     /* additional 25% of spellup instead of offensive spell */

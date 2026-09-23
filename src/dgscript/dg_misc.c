@@ -105,11 +105,8 @@ void do_dg_cast(void *go, struct script_data *sc __attribute__((unused)), trig_d
     one_argument_u(buf2, t);
     skip_spaces(&t);
   }
-  if (IS_SET(SINFO.targets, TAR_IGNORE))
-  {
-    target = TRUE;
-  }
-  else if (t != NULL && *t)
+  /* a TAR_IGNORE spell skips the target lookup */
+  if (!IS_SET(SINFO.targets, TAR_IGNORE) && t != NULL && *t)
   {
     if (!target && (IS_SET(SINFO.targets, TAR_CHAR_ROOM) || IS_SET(SINFO.targets, TAR_CHAR_WORLD)))
     {
@@ -307,9 +304,11 @@ void send_char_pos(struct char_data *ch, int dam)
 int valid_dg_target(struct char_data *ch, int bitvector)
 {
   if (IS_NPC(ch))
+    /* NOLINTNEXTLINE(bugprone-branch-clone) -- first-match permission ladder; order decides */
     return TRUE; /* all npcs are allowed as targets */
   else if (ch->desc && ((STATE(ch->desc) != CON_PREFEDIT) && (STATE(ch->desc) != CON_PLAYING) &&
                         (STATE(ch->desc) != CON_STUDY)))
+    /* NOLINTNEXTLINE(bugprone-branch-clone) -- first-match permission ladder; order decides */
     return FALSE; /* Only PC's who are playing can be targetted */
   else if (GET_LEVEL(ch) < LVL_IMMORT)
     return TRUE; /* as well as all mortals */

@@ -149,12 +149,6 @@ static void apply_class_profile(struct mob_autoroll_stats *stats, int ch_class, 
   switch (ch_class)
   {
   case CLASS_WIZARD:
-    stats->hit_points = stats->hit_points * 2 / 5;
-    stats->damage_dice_size = stats->damage_dice_size * 2 / 5;
-    stats->armor_class -= 60;
-    stats->intelligence += bonus;
-    stats->dexterity += bonus;
-    break;
   case CLASS_PSIONICIST:
     stats->hit_points = stats->hit_points * 2 / 5;
     stats->damage_dice_size = stats->damage_dice_size * 2 / 5;

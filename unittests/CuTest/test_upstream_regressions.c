@@ -2399,6 +2399,88 @@ void Test_isname_rejects_an_abbreviated_number_without_leaking(CuTest *tc)
   CuAssertIntEquals(tc, 1, isname("sw", "10 sword"));
 }
 
+/* A number prefix holding a non-digit selects nothing, as upstream: the value
+ * parse_int() reads from the leading digits must not override that verdict. */
+void Test_get_number_rejects_a_prefix_with_a_non_digit(CuTest *tc)
+{
+  char buf[32];
+  char *name = buf;
+
+  snprintf(buf, sizeof(buf), "%s", "2.sword");
+  CuAssertIntEquals(tc, 2, get_number(&name));
+  CuAssertStrEquals(tc, "sword", name);
+
+  snprintf(buf, sizeof(buf), "%s", "2x.sword");
+  CuAssertIntEquals(tc, 0, get_number(&name));
+  CuAssertStrEquals(tc, "sword", name);
+
+  snprintf(buf, sizeof(buf), "%s", "sword");
+  CuAssertIntEquals(tc, 1, get_number(&name));
+  CuAssertStrEquals(tc, "sword", name);
+}
+
+/* An activated item spell that targets an object reaches the object it named:
+ * do_activate() found the target but cast the spell at no object at all. */
+void Test_activate_casts_an_object_spell_on_the_named_object(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct room_data room;
+  struct obj_data ring;
+  struct obj_data token;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  bool cursed;
+  int uses_left;
+
+  if (spell_info[SPELL_CURSE_OBJ].name == NULL ||
+      spell_info[SPELL_CURSE_OBJ].name == unused_spellname)
+    mag_assign_spells();
+
+  clear_char(&ch);
+  clear_object(&ring);
+  clear_object(&token);
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&room, 0, sizeof(room));
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+  room.light = 1;
+  room.people = &ch;
+  ch.player_specials = &player_specials;
+  ch.player.name = CuMutableString("activation tester");
+  IN_ROOM(&ch) = 0;
+  GET_LEVEL(&ch) = 10;
+  GET_POS(&ch) = POS_STANDING;
+
+  ring.name = CuMutableString("activation ring");
+  ring.short_description = CuMutableString("an activation ring");
+  ring.activate_spell[ACT_SPELL_SPELLNUM] = SPELL_CURSE_OBJ;
+  ring.activate_spell[ACT_SPELL_MAX_USES] = 1;
+  ring.worn_by = &ch;
+  GET_EQ(&ch, WEAR_FINGER_R) = &ring;
+
+  token.name = CuMutableString("test token");
+  token.short_description = CuMutableString("a test token");
+  token.carried_by = &ch;
+  ch.carrying = &token;
+
+  do_activate(&ch, " 'curse item' token", 0, 0);
+  cursed = OBJ_FLAGGED(&token, ITEM_NODROP);
+  uses_left = ring.activate_spell[ACT_SPELL_CURRENT_USES];
+
+  GET_EQ(&ch, WEAR_FINGER_R) = NULL;
+  ch.carrying = NULL;
+  room.people = NULL;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertIntEquals(tc, 0, uses_left);
+  CuAssertTrue(tc, cursed);
+}
+
 void Test_score_width_160_survives_its_signed_byte(CuTest *tc)
 {
   struct char_data player;

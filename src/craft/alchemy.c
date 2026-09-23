@@ -817,7 +817,6 @@ ACMD(do_bombs)
     {
       if (is_abbrev(scmd, bomb_types[GET_BOMB(ch, i)]))
       {
-        type = GET_BOMB(ch, i);
         bSlot = i;
         break;
       }
@@ -1302,17 +1301,10 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
     {
       act("$N stands firm against the blast!", FALSE, ch, 0, victim, TO_CHAR);
     }
-    else if (GET_POS(victim) == POS_SITTING)
+    else if (GET_POS(victim) == POS_SITTING || IS_INCORPOREAL(victim) ||
+             HAS_SUBRACE(victim, SUBRACE_SWARM))
     {
-      /* Already down, no effect */
-    }
-    else if (IS_INCORPOREAL(victim))
-    {
-      /* Can't knock down incorporeal */
-    }
-    else if (HAS_SUBRACE(victim, SUBRACE_SWARM))
-    {
-      /* Can't knock down swarms */
+      /* Already down, no effect; can't knock down incorporeal creatures or swarms */
     }
     else
     {
@@ -1936,13 +1928,7 @@ int can_learn_discovery(struct char_data *ch, int discovery)
   switch (discovery)
   {
   case ALC_DISC_BONESHARD_BOMBS:
-    if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 8)
-      return TRUE;
-    break;
   case ALC_DISC_BLINDING_BOMBS:
-    if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 8)
-      return TRUE;
-    break;
   case ALC_DISC_CELESTIAL_POISONS:
     if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 8)
       return TRUE;
@@ -1960,9 +1946,6 @@ int can_learn_discovery(struct char_data *ch, int discovery)
       return TRUE;
     break;
   case ALC_DISC_FAST_BOMBS:
-    if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 8)
-      return TRUE;
-    break;
   case ALC_DISC_FORCE_BOMBS:
     if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 8)
       return TRUE;

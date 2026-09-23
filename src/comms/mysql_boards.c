@@ -1742,7 +1742,6 @@ bool mysql_board_has_read_post(struct char_data *ch, int post_id)
 {
   char query[512];
   MYSQL_RES *result;
-  MYSQL_ROW row;
   bool has_read = false;
 
   if (!ch || IS_NPC(ch) || GET_IDNUM(ch) <= 0)
@@ -1756,7 +1755,7 @@ bool mysql_board_has_read_post(struct char_data *ch, int post_id)
   result = mysql_board_execute_select(query);
   if (result)
   {
-    if ((row = mysql_fetch_row(result)))
+    if (mysql_fetch_row(result))
     {
       has_read = true;
     }

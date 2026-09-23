@@ -347,26 +347,21 @@ int get_motes_required_for_spell(int spell_circle)
 {
   switch (spell_circle)
   {
-  case 0:
-    return 1; /* Cantrips/orisons */
+  case 0: /* Cantrips/orisons */
   case 1:
-    return 1; /* 1st level */
   case 2:
-    return 1; /* 2nd level */
+    return 1;
   case 3:
-    return 2; /* 3rd level */
   case 4:
-    return 2; /* 4th level */
+    return 2;
   case 5:
-    return 3; /* 5th level */
   case 6:
-    return 3; /* 6th level */
+    return 3;
   case 7:
-    return 4; /* 7th level */
   case 8:
-    return 4; /* 8th level */
+    return 4;
   case 9:
-    return 5; /* 9th level */
+    return 5;
   case 10:
     return 10; /* Epic spells */
   default:

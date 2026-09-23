@@ -9185,7 +9185,6 @@ static int rol_weapon_hit(struct spec_event_context *context,
     return TRUE;
   }
   case ROL_WEAPON_TF_OBLIVION:
-    return FALSE;
   case ROL_WEAPON_BHAAL_MAGE:
   case ROL_WEAPON_BHAAL_PRIEST:
   case ROL_WEAPON_GREYCLOAK_SWIFTWIND:

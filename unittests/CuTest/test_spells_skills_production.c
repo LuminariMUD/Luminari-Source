@@ -25,6 +25,7 @@
 #include "../../src/craft/crafts.h"
 #include "../../src/obj/item.h"
 #include "../../src/events/affected_owners.h"
+#include "../../src/mob/mob_spellslots.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -2061,4 +2062,37 @@ void Test_spell_resource_probe_tracks_spontaneous_exhaustion_without_debit(CuTes
   CONFIG_ARCANE_MOON_PHASES = (ubyte)saved_moon;
   CONFIG_ARCANE_PREP_TIME = saved_prep;
   spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_SORCERER] = saved_level;
+}
+
+void Test_mob_semi_caster_spell_circles_follow_spell_level(CuTest *tc)
+{
+  static const int three_quarter_levels[6] = {1, 4, 7, 10, 13, 16};
+  static const int half_levels[4] = {6, 10, 12, 15};
+  int bard_circles[6];
+  int paladin_circles[4];
+  int saved_bard_level = spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_BARD];
+  int saved_paladin_level = spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_PALADIN];
+  bool saved_cantrip = spell_info[SPELL_MAGIC_MISSILE].is_cantrip;
+  int i;
+
+  spell_info[SPELL_MAGIC_MISSILE].is_cantrip = false;
+  for (i = 0; i < 6; i++)
+  {
+    spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_BARD] = three_quarter_levels[i];
+    bard_circles[i] = get_spell_circle(SPELL_MAGIC_MISSILE, CLASS_BARD);
+  }
+  for (i = 0; i < 4; i++)
+  {
+    spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_PALADIN] = half_levels[i];
+    paladin_circles[i] = get_spell_circle(SPELL_MAGIC_MISSILE, CLASS_PALADIN);
+  }
+  spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_BARD] = saved_bard_level;
+  spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_PALADIN] = saved_paladin_level;
+  spell_info[SPELL_MAGIC_MISSILE].is_cantrip = saved_cantrip;
+
+  /* Each class spell-level step is one circle higher, as compute_spells_circle() counts it. */
+  for (i = 0; i < 6; i++)
+    CuAssertIntEquals(tc, i + 1, bard_circles[i]);
+  for (i = 0; i < 4; i++)
+    CuAssertIntEquals(tc, i + 1, paladin_circles[i]);
 }

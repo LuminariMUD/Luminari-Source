@@ -784,7 +784,7 @@ static int count_adjective_types(int which_desc)
 
 void HandleStateGenericsDescsIntro(struct descriptor_data *d, char *arg)
 {
-  int changeStateTo = STATE(d);
+  int changeStateTo;
   char *tmpdesc = NULL;
 
   if (arg != NULL && !strcmp(arg, "0") && !d->forced_short_desc_setup)
@@ -922,7 +922,7 @@ void HandleStateGenericDescsAdjectives2(struct descriptor_data *d, char *arg)
 
 void HandleStateGenericDescsMenu(struct descriptor_data *d, char *arg __attribute__((unused)))
 {
-  int changeStateTo = STATE(d);
+  int changeStateTo;
   int options = 2;
   char *tmpdesc = NULL;
 

@@ -152,8 +152,6 @@ ACMD(do_introduce)
       if (!str_cmp(ch->player_specials->saved.intro_list[i], arg2))
       {
         /* Found the name - remove it */
-        found = TRUE;
-
         /* Free the memory for this name */
         free(ch->player_specials->saved.intro_list[i]);
 

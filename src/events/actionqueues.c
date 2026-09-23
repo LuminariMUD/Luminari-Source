@@ -208,9 +208,7 @@ void free_attack_action(struct attack_action_data *attack)
 
 static void *peek(struct queue_type *queue)
 {
-  if (queue == NULL)
-    return NULL;
-  else if (queue->first == NULL)
+  if (queue == NULL || queue->first == NULL)
     return NULL;
   else
     return queue->first->data;

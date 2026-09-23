@@ -445,6 +445,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         ch = (char_data *)go;
 
         if ((o = get_object_in_equip(ch, name)))
+          /* NOLINTNEXTLINE(bugprone-branch-clone) -- first-match lookup ladder; each arm ends it */
           ;
         else if ((o = get_obj_in_list(name, ch->carrying)))
           ;
@@ -465,6 +466,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         obj = (obj_data *)go;
 
         if ((c = get_char_by_obj(obj, name)))
+          /* NOLINTNEXTLINE(bugprone-branch-clone) -- first-match lookup ladder; each arm ends it */
           ;
         else if ((o = get_obj_by_obj(obj, name)))
           ;
@@ -477,6 +479,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         room = (struct room_data *)go;
 
         if ((c = get_char_by_room(room, name)))
+          /* NOLINTNEXTLINE(bugprone-branch-clone) -- first-match lookup ladder; each arm ends it */
           ;
         else if ((o = get_obj_by_room(room, name)))
           ;
@@ -927,6 +930,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           int pos;
           if (!subfield || !*subfield)
+            /* NOLINTNEXTLINE(bugprone-branch-clone) -- the '*' arm must be tested in between */
             *str = '\0';
           else if (*subfield == '*')
           {

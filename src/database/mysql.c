@@ -2519,7 +2519,6 @@ void load_regions()
 static bool is_point_within_region(region_vnum region, int x, int y)
 {
   MYSQL_RES *result;
-  MYSQL_ROW row;
   bool retval;
 
   char buf[1024];
@@ -2552,7 +2551,7 @@ static bool is_point_within_region(region_vnum region, int x, int y)
   }
 
   retval = false;
-  while ((row = mysql_fetch_row(result)))
+  while (mysql_fetch_row(result))
   {
     retval = true;
   }

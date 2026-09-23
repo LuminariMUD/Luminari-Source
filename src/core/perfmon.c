@@ -4113,7 +4113,7 @@ size_t PERF_memory_repr(char *out_buf, size_t n)
   int has_short_slope;
   int has_medium_slope;
   int has_long_slope;
-  const char *assessment = "STABLE";
+  const char *assessment;
 
   if (!out_buf || n < 1)
     return 0;
@@ -4160,6 +4160,7 @@ size_t PERF_memory_repr(char *out_buf, size_t n)
   if (cur.vm_swap_kib > 0 && cur.vm_rss_kib > 0)
     assessment = "CRITICAL HEADROOM";
   else if (reset_elapsed_sec < (uint64_t)15 * 60)
+    /* NOLINTNEXTLINE(bugprone-branch-clone) -- the growth arm between them must keep its place */
     assessment = "WARMING";
   else if (has_short_slope && short_slope.anon_kib_per_min > 200.0)
   {
@@ -4457,9 +4458,6 @@ int PERF_write_copyover_snapshot(const char *path)
   snapshot = NULL;
   buffer = NULL;
   temp_path = NULL;
-  failure = "initialization";
-  snapshot_size = 0;
-  saved_errno = 0;
   temp_created = FALSE;
 
   if (path == NULL || *path == '\0')

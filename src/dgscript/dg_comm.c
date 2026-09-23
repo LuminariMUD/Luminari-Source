@@ -166,9 +166,8 @@ void sub_write(char *arg, char_data *ch, byte find_invis, int targets)
 
       if (find_invis)
         obj = get_obj_in_room(&world[IN_ROOM(ch)], name);
-      else if (!(obj = get_obj_in_list_vis(ch, name, NULL, world[IN_ROOM(ch)].contents)))
-        ;
-      else if (!(obj = get_obj_in_equip_vis(ch, name, &tmp, ch->equipment)))
+      else if (!(obj = get_obj_in_list_vis(ch, name, NULL, world[IN_ROOM(ch)].contents)) ||
+               !(obj = get_obj_in_equip_vis(ch, name, &tmp, ch->equipment)))
         ;
       else
         obj = get_obj_in_list_vis(ch, name, NULL, ch->carrying);

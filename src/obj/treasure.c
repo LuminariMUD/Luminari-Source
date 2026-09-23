@@ -1402,6 +1402,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj, int en
     has_enhancement = TRUE;
   }
   else if (cp_type == CP_TYPE_CRYSTAL)
+  /* NOLINTNEXTLINE(bugprone-branch-clone) -- a crystal's wear flags must not pick its apply */
   {
     bonus_location = random_apply_value();
   }
@@ -1944,10 +1945,8 @@ static void give_magic_armor(struct char_data *ch, int selection, int enchantmen
     if (dcount > 0)
       dlen += dcount;
 
-    kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " with %s %s crest",
-                      AN(armor_crests[crest_num]), armor_crests[crest_num]);
-    if (kcount > 0)
-      klen += kcount;
+    snprintf(keywords + klen, sizeof(keywords) - klen, " with %s %s crest",
+             AN(armor_crests[crest_num]), armor_crests[crest_num]);
   }
   else if (roll >= 5)
   { // or symbol?
@@ -1956,10 +1955,8 @@ static void give_magic_armor(struct char_data *ch, int selection, int enchantmen
     if (dcount > 0)
       dlen += dcount;
 
-    kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " covered in symbols of %s %s",
-                      AN(armor_crests[crest_num]), armor_crests[crest_num]);
-    if (kcount > 0)
-      klen += kcount;
+    snprintf(keywords + klen, sizeof(keywords) - klen, " covered in symbols of %s %s",
+             AN(armor_crests[crest_num]), armor_crests[crest_num]);
   }
 
   // keywords
@@ -1967,9 +1964,7 @@ static void give_magic_armor(struct char_data *ch, int selection, int enchantmen
   // Set descriptions
   obj->short_description = strdup(desc);
   desc[0] = (char)toupper(desc[0]);
-  dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " is lying here.");
-  if (dcount > 0)
-    dlen += dcount;
+  snprintf(desc + dlen, sizeof(desc) - dlen, " is lying here.");
   obj->description = strdup(desc);
 
   /* END DESCRIPTION SECTION */
@@ -2555,11 +2550,7 @@ int possible_material_upgrade(int base_mat, int grade)
     switch (grade)
     {
     case GRADE_MUNDANE:
-      material = MATERIAL_LEATHER;
-      break;
     case GRADE_MINOR:
-      material = MATERIAL_LEATHER;
-      break;
     case GRADE_MEDIUM:
       material = MATERIAL_LEATHER;
       break;
@@ -5050,26 +5041,6 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     }
     break;
   case ITEM_WEAR_HEAD:
-    if (is_resist_physical_apply(bonus))
-      return true;
-    switch (bonus)
-    {
-    case APPLY_DR:
-    case APPLY_HITROLL:
-    case APPLY_DAMROLL:
-    case APPLY_INITIATIVE:
-    case APPLY_HP_REGEN:
-    case APPLY_MV_REGEN:
-    case APPLY_PSP_REGEN:
-    case APPLY_FAST_HEALING:
-    case APPLY_HIT:
-    case APPLY_MOVE:
-    case APPLY_PSP:
-      return true;
-    default:
-      break;
-    }
-    break;
   case ITEM_WEAR_LEGS:
     if (is_resist_physical_apply(bonus))
       return true;
@@ -5113,26 +5084,6 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
     }
     break;
   case ITEM_WEAR_HANDS:
-    if (is_resist_physical_apply(bonus))
-      return true;
-    switch (bonus)
-    {
-    case APPLY_DR:
-    case APPLY_HITROLL:
-    case APPLY_DAMROLL:
-    case APPLY_INITIATIVE:
-    case APPLY_HP_REGEN:
-    case APPLY_MV_REGEN:
-    case APPLY_PSP_REGEN:
-    case APPLY_FAST_HEALING:
-    case APPLY_HIT:
-    case APPLY_MOVE:
-    case APPLY_PSP:
-      return true;
-    default:
-      break;
-    }
-    break;
   case ITEM_WEAR_ARMS:
     if (is_resist_physical_apply(bonus))
       return true;
@@ -5400,6 +5351,8 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
   return false;
 }
 
+/* NOLINTBEGIN(bugprone-branch-clone) -- a table of level tiers: tiers that grant the same
+ * bonus stay separate arms so each one can be tuned on its own. */
 int get_gear_bonus_amount_by_level(int bonus, int olevel)
 {
   olevel = MAX(1, olevel);
@@ -5956,6 +5909,7 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
   }
   return 0;
 }
+/* NOLINTEND(bugprone-branch-clone) */
 
 bool highlight_apply_by_obj(struct obj_data *obj, int offset)
 {
@@ -5979,6 +5933,8 @@ bool highlight_apply_by_obj(struct obj_data *obj, int offset)
   return false;
 }
 
+/* NOLINTBEGIN(bugprone-branch-clone) -- a table of level tiers: tiers that grant the same
+ * bonus stay separate arms so each one can be tuned on its own. */
 int get_suggested_enhancement_bonus(int olevel, bool boss_mob)
 {
   if (boss_mob)
@@ -6033,6 +5989,7 @@ int get_suggested_enhancement_bonus(int olevel, bool boss_mob)
   }
   return 0;
 }
+/* NOLINTEND(bugprone-branch-clone) */
 
 void assign_weighted_bonuses(void)
 {

@@ -695,6 +695,7 @@ ACMDU(do_handleanimal)
   /* you have to be higher level to have a chance */
   if (GET_LEVEL(vict) >= GET_LEVEL(ch))
   {
+    /* NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores) -- overwritten below; a reported defect */
     dc += 999; /* impossible */
   }
 
@@ -2147,10 +2148,9 @@ void perform_call(struct char_data *ch, int call_type, int level)
     GET_LEVEL(mob) = MIN(20, level);
     break;
   case MOB_C_MOUNT:
-    if (mob_num == MOB_EPIC_PALADIN_MOUNT || mob_num == MOB_EPIC_PALADIN_MOUNT_SMALL)
-      GET_LEVEL(mob) = MIN(27, level);
-    else if (mob_num == MOB_EPIC_BLACKGUARD_MOUNT || mob_num == MOB_ADV_BLACKGUARD_MOUNT ||
-             mob_num == MOB_BLACKGUARD_MOUNT)
+    if (mob_num == MOB_EPIC_PALADIN_MOUNT || mob_num == MOB_EPIC_PALADIN_MOUNT_SMALL ||
+        mob_num == MOB_EPIC_BLACKGUARD_MOUNT || mob_num == MOB_ADV_BLACKGUARD_MOUNT ||
+        mob_num == MOB_BLACKGUARD_MOUNT)
       GET_LEVEL(mob) = MIN(27, level);
     else
       GET_LEVEL(mob) = MIN(20, level);
@@ -2420,7 +2420,6 @@ ACMD(do_purify)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
-  int uses_remaining = 0;
 
   if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_REMOVE_DISEASE))
   {
@@ -2436,7 +2435,7 @@ ACMD(do_purify)
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_REMOVE_DISEASE)) == 0)
+  if (daily_uses_remaining(ch, FEAT_REMOVE_DISEASE) == 0)
   {
     send_to_char(ch, "You must recover the divine energy required to remove disease.\r\n");
     return;
@@ -2688,15 +2687,13 @@ ACMD(do_trueseeing_perk)
   {
     if (*arg && is_abbrev(arg, "detect"))
       cast_true = false;
-    else if (*arg && is_abbrev(arg, "true"))
-      cast_true = true;
-    else if (*arg)
+    else if (!*arg || is_abbrev(arg, "true"))
+      cast_true = true; /* "true", or default to full power when rank 2+ */
+    else
     {
       send_to_char(ch, "Usage: trueseeing [detect|true]\r\n");
       return;
     }
-    else
-      cast_true = true; /* default to full power when rank 2+ */
   }
   else
   {
@@ -4101,7 +4098,6 @@ static void set_wild_shape_mods(int race, struct wild_shape_mods *abil_mods)
   {
   case RACE_CHEETAH:
     // abil_mods->dexterity += 8; // This should not be here. Gicker June 5, 2020
-    break;
   case RACE_WOLF:
   case RACE_HYENA:
     break;
@@ -4459,15 +4455,10 @@ static void cleanup_wildshape_feats(struct char_data *ch)
   case RACE_EAGLE:
   case RACE_PIXIE:
   case RACE_BAT:
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
-    break;
   case RACE_MANTICORE:
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
     break;
   case RACE_RED_DRAGON:
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
-    break;
   case RACE_EFREETI:
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
@@ -6050,8 +6041,6 @@ ACMD(do_land)
 /* enlarge ability (duergar) */
 ACMD(do_enlarge)
 {
-  int uses_remaining = 0;
-
   if (!HAS_FEAT(ch, FEAT_SLA_ENLARGE))
   {
     send_to_char(ch, "You don't have this ability.\r\n");
@@ -6072,7 +6061,7 @@ ACMD(do_enlarge)
   }
   */
 
-  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_ENLARGE)) == 0))
+  if (!IS_NPC(ch) && daily_uses_remaining(ch, FEAT_SLA_ENLARGE) == 0)
   {
     send_to_char(ch, "You must recover before you can use this ability again.\r\n");
     return;
@@ -6087,8 +6076,6 @@ ACMD(do_enlarge)
 /* invisibility (duergar) */
 ACMD(do_invisduergar)
 {
-  int uses_remaining = 0;
-
   if (!HAS_FEAT(ch, FEAT_SLA_INVIS))
   {
     send_to_char(ch, "You don't have this ability.\r\n");
@@ -6108,7 +6095,7 @@ ACMD(do_invisduergar)
     return;
   }
 
-  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_INVIS)) == 0))
+  if (!IS_NPC(ch) && daily_uses_remaining(ch, FEAT_SLA_INVIS) == 0)
   {
     send_to_char(ch, "You must recover before you can use this ability again.\r\n");
     return;
@@ -6124,8 +6111,6 @@ ACMD(do_invisduergar)
 /* strength ability (duergar) */
 ACMD(do_strength)
 {
-  int uses_remaining = 0;
-
   if (!HAS_FEAT(ch, FEAT_SLA_STRENGTH))
   {
     send_to_char(ch, "You don't have this ability.\r\n");
@@ -6138,7 +6123,7 @@ ACMD(do_strength)
     return;
   }
 
-  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_STRENGTH)) == 0))
+  if (!IS_NPC(ch) && daily_uses_remaining(ch, FEAT_SLA_STRENGTH) == 0)
   {
     send_to_char(ch, "You must recover before you can use this ability again.\r\n");
     return;
@@ -6153,8 +6138,6 @@ ACMD(do_strength)
 /* levitate ability (drow) */
 ACMD(do_levitate)
 {
-  int uses_remaining = 0;
-
   if (!HAS_FEAT(ch, FEAT_SLA_LEVITATE))
   {
     send_to_char(ch, "You don't have this ability.\r\n");
@@ -6167,7 +6150,7 @@ ACMD(do_levitate)
     return;
   }
 
-  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_LEVITATE)) == 0))
+  if (!IS_NPC(ch) && daily_uses_remaining(ch, FEAT_SLA_LEVITATE) == 0)
   {
     send_to_char(ch, "You must recover before you can use this ability again.\r\n");
     return;
@@ -6190,8 +6173,6 @@ ACMD(do_levitate)
 /* darkness ability (drow) */
 ACMD(do_darkness)
 {
-  int uses_remaining = 0;
-
   if (!HAS_FEAT(ch, FEAT_SLA_DARKNESS))
   {
     send_to_char(ch, "You don't have this ability.\r\n");
@@ -6204,7 +6185,7 @@ ACMD(do_darkness)
     return;
   }
 
-  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_DARKNESS)) == 0))
+  if (!IS_NPC(ch) && daily_uses_remaining(ch, FEAT_SLA_DARKNESS) == 0)
   {
     send_to_char(ch, "You must recover before you can use this ability again.\r\n");
     return;
@@ -6562,15 +6543,13 @@ ACMD(do_racial_flurry)
 /* invisible rogue feat */
 ACMD(do_invisiblerogue)
 {
-  int uses_remaining = 0;
-
   if (!HAS_FEAT(ch, FEAT_INVISIBLE_ROGUE))
   {
     send_to_char(ch, "You don't have this ability.\r\n");
     return;
   }
 
-  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_INVISIBLE_ROGUE)) == 0))
+  if (!IS_NPC(ch) && daily_uses_remaining(ch, FEAT_INVISIBLE_ROGUE) == 0)
   {
     send_to_char(ch, "You must recover before you can use this ability again.\r\n");
     return;
@@ -6793,7 +6772,6 @@ ACMD(do_search)
 ACMD(do_vanish)
 {
   struct char_data *vict, *next_v;
-  int uses_remaining = 0;
   bool has_feat_vanish = HAS_FEAT(ch, FEAT_VANISH);
   bool has_perk_vanish = has_vanish(ch);
 
@@ -6806,7 +6784,7 @@ ACMD(do_vanish)
   /* Check feat cooldown if using feat version */
   if (has_feat_vanish)
   {
-    if (((uses_remaining = daily_uses_remaining(ch, FEAT_VANISH)) == 0))
+    if (daily_uses_remaining(ch, FEAT_VANISH) == 0)
     {
       send_to_char(ch, "You must recover before you can vanish again.\r\n");
       return;
@@ -6834,15 +6812,12 @@ ACMD(do_vanish)
     start_daily_use_cooldown(ch, FEAT_VANISH);
 
   /* Attach event based on what they have - use longer duration if both */
-  if (has_feat_vanish && has_perk_vanish)
+  if (has_perk_vanish)
     attach_mud_event(new_mud_event(eVANISH, ch, NULL),
                      (long)18 * PASSES_PER_SEC); /* 3 rounds for perk */
   else if (has_feat_vanish)
     attach_mud_event(new_mud_event(eVANISH, ch, NULL),
                      (long)12 * PASSES_PER_SEC); /* 2 rounds for feat */
-  else if (has_perk_vanish)
-    attach_mud_event(new_mud_event(eVANISH, ch, NULL),
-                     (long)18 * PASSES_PER_SEC); /* 3 rounds for perk */
 
   /* stop vanishers combat */
   if (char_has_mud_event(ch, eCOMBAT_ROUND))
@@ -8474,8 +8449,8 @@ ACMD(do_use)
      *    Spellcraft check: DC 20 + spell level */
 
     dc = 20 + GET_OBJ_VAL(mag_item, 0);
-    if (((check_result = skill_check(ch, ABILITY_SPELLCRAFT, dc)) < 0) &&
-        ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc + 5)) < 0))
+    if ((skill_check(ch, ABILITY_SPELLCRAFT, dc) < 0) &&
+        (skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc + 5) < 0))
     {
       send_to_char(ch, "You are unable to decipher the magical writings!\r\n");
       return;
@@ -8674,7 +8649,7 @@ ACMD(do_use)
 
       dc = 20;
 
-      if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0)
+      if (skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc) < 0)
       {
         if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF ||
             spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF ||
@@ -11177,16 +11152,12 @@ ACMDU(do_devote)
     {
       if (deity_list[i].pantheon == DEITY_PANTHEON_NONE)
         continue;
-      if (listtype == DEITY_LIST_GOOD && deity_list[i].alignment != ALIGNMENT_GOOD)
-        continue;
-      else if (listtype == DEITY_LIST_NEUTRAL && !(deity_list[i].alignment == ALIGNMENT_NEUTRAL ||
-                                                   deity_list[i].ethos == ETHOS_NEUTRAL))
-        continue;
-      else if (listtype == DEITY_LIST_EVIL && deity_list[i].alignment != ALIGNMENT_EVIL)
-        continue;
-      else if (listtype == DEITY_LIST_LAWFUL && deity_list[i].ethos != ETHOS_LAWFUL)
-        continue;
-      else if (listtype == DEITY_LIST_CHAOTIC && deity_list[i].ethos != ETHOS_CHAOTIC)
+      if ((listtype == DEITY_LIST_GOOD && deity_list[i].alignment != ALIGNMENT_GOOD) ||
+          (listtype == DEITY_LIST_NEUTRAL && !(deity_list[i].alignment == ALIGNMENT_NEUTRAL ||
+                                               deity_list[i].ethos == ETHOS_NEUTRAL)) ||
+          (listtype == DEITY_LIST_EVIL && deity_list[i].alignment != ALIGNMENT_EVIL) ||
+          (listtype == DEITY_LIST_LAWFUL && deity_list[i].ethos != ETHOS_LAWFUL) ||
+          (listtype == DEITY_LIST_CHAOTIC && deity_list[i].ethos != ETHOS_CHAOTIC))
         continue;
 
       snprintf(dname, sizeof(dname), "%s", deity_list[i].name);

@@ -44,6 +44,7 @@ static long dg_time_trigger_mask(int owner_type)
 {
   switch (owner_type)
   {
+  /* NOLINTNEXTLINE(bugprone-branch-clone) -- per-owner TIME bits that happen to share a value */
   case MOB_TRIGGER:
     return MTRIG_TIME;
   case OBJ_TRIGGER:
@@ -290,9 +291,8 @@ size_t dg_time_registry_validate(int owner_type)
       invalid++;
       continue;
     }
-    if (owner_type == MOB_TRIGGER && SCRIPT((struct char_data *)script->owner) != script)
-      invalid++;
-    else if (owner_type == OBJ_TRIGGER && SCRIPT((struct obj_data *)script->owner) != script)
+    if ((owner_type == MOB_TRIGGER && SCRIPT((struct char_data *)script->owner) != script) ||
+        (owner_type == OBJ_TRIGGER && SCRIPT((struct obj_data *)script->owner) != script))
       invalid++;
     else if (owner_type == WLD_TRIGGER)
     {

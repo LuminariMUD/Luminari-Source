@@ -221,9 +221,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
   {
     if (af->location == APPLY_SKILL)
     {
-      if (af->spell == SKILL_INSPIRING_COGNATOGEN)
-        value += af->modifier;
-      else if (af->specific == abilityNum)
+      if (af->spell == SKILL_INSPIRING_COGNATOGEN || af->specific == abilityNum)
         value += af->modifier;
     }
   }
@@ -342,9 +340,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     // from above.
     if (!OUTSIDE(ch) || (IN_ROOM(ch) != NOWHERE && world[IN_ROOM(ch)].sector_type == SECT_FOREST))
     {
-      if (AFF_FLAGGED(ch, AFF_SPIDER_CLIMB))
-        value += 8;
-      else if (HAS_FEAT(ch, FEAT_VAMPIRE_SPIDER_CLIMB) && CAN_USE_VAMPIRE_ABILITY(ch))
+      if (AFF_FLAGGED(ch, AFF_SPIDER_CLIMB) ||
+          (HAS_FEAT(ch, FEAT_VAMPIRE_SPIDER_CLIMB) && CAN_USE_VAMPIRE_ABILITY(ch)))
         value += 8;
     }
 
@@ -775,9 +772,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       if (IN_ROOM(ch) == IN_ROOM(mobfol) && HAS_EVOLUTION(mobfol, EVOLUTION_SWIM))
         value += 10;
     }
-    if (AFF_FLAGGED(ch, AFF_SPIDER_CLIMB))
-      value += 30;
-    else if (HAS_FEAT(ch, FEAT_VAMPIRE_SPIDER_CLIMB) && CAN_USE_VAMPIRE_ABILITY(ch))
+    if (AFF_FLAGGED(ch, AFF_SPIDER_CLIMB) ||
+        (HAS_FEAT(ch, FEAT_VAMPIRE_SPIDER_CLIMB) && CAN_USE_VAMPIRE_ABILITY(ch)))
       value += 30;
     return value;
   case ABILITY_USE_MAGIC_DEVICE:

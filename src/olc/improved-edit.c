@@ -216,7 +216,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
       if (string[j++] == 'a' && !indent)
         rep_all = 1;
 
-    if ((s = strtok(string, "'")) == NULL)
+    if (strtok(string, "'") == NULL)
     {
       write_to_output(d, "Invalid format.\r\n");
       return;
@@ -226,7 +226,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
       write_to_output(d, "Target string must be enclosed in single quotes.\r\n");
       return;
     }
-    else if ((t = strtok(NULL, "'")) == NULL)
+    else if (strtok(NULL, "'") == NULL)
     {
       write_to_output(d, "No replacement string.\r\n");
       return;
@@ -241,8 +241,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
     {
       return;
     }
-    else if ((total_len = ((unsigned int)((strlen(t) - strlen(s)) + strlen(*d->str)))) <=
-             d->max_str)
+    else if ((unsigned int)((strlen(t) - strlen(s)) + strlen(*d->str)) <= d->max_str)
     {
       if ((replaced = replace_str(d->str, s, t, rep_all, (unsigned int)d->max_str)) > 0)
       {

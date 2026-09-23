@@ -1310,8 +1310,6 @@ static void oedit_disp_val3_menu(struct descriptor_data *d)
         break;
        */
   case ITEM_FIREWEAPON:
-    write_to_output(d, "Breaking probability : ");
-    break;
   case ITEM_MISSILE:
     write_to_output(d, "Breaking probability : ");
     break;
@@ -1402,8 +1400,6 @@ static void oedit_disp_val4_menu(struct descriptor_data *d)
                     INSTRUMENT_BREAKABILITY_SCALE, INSTRUMENT_BREAKABILITY_SCALE);
     break;
   case ITEM_WEAPON:
-    // oedit_disp_weapon_menu(d);
-    break;
   case ITEM_MISSILE:
     // oedit_disp_weapon_menu(d);
     break;
@@ -1432,22 +1428,8 @@ static void oedit_disp_val5_menu(struct descriptor_data *d)
     write_to_output(d, "Apply modifier amount: ");
     break;
   case ITEM_WEAPON:
-    write_to_output(d,
-                    "\tcSuggested Enhancement Bonused based on Object Level: Drops From... Normal "
-                    "Mob (%d) Boss Mob (%d)\tn\r\n",
-                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), FALSE),
-                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), TRUE));
-    write_to_output(d, "Enhancement bonus : ");
-    break;
   case ITEM_ARMOR:
   case ITEM_CLANARMOR:
-    write_to_output(d,
-                    "\tcSuggested Enhancement Bonused based on Object Level: Drops From... Normal "
-                    "Mob (%d) Boss Mob (%d)\tn\r\n",
-                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), FALSE),
-                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), TRUE));
-    write_to_output(d, "Enhancement bonus : ");
-    break;
   case ITEM_MISSILE:
     write_to_output(d,
                     "\tcSuggested Enhancement Bonused based on Object Level: Drops From... Normal "
@@ -1660,8 +1642,6 @@ static void oedit_disp_specab_val1_menu(struct descriptor_data *d)
     oedit_disp_specab_bane_race(d);
     break;
   case ITEM_SPECAB_HORN_OF_SUMMONING:
-    write_to_output(d, "Enter the vnum of the mob to summon : ");
-    break;
   case ITEM_SPECAB_ITEM_SUMMON:
     write_to_output(d, "Enter the vnum of the mob to summon : ");
     break;
@@ -2028,7 +2008,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHEATH))
       len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-sheath:NONE] ");
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_INSTRUMENT))
-      len += snprintf(buf3 + len, sizeof(buf3) - len, "[wear-instrument:NONE] ");
+      snprintf(buf3 + len, sizeof(buf3) - len, "[wear-instrument:NONE] ");
   }
   /* end eq-wear suggestions */
 
@@ -2661,9 +2641,6 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       return;
 
     case ITEM_CONTAINER:
-      GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(parse_int(arg), -1, MAX_CONTAINER_SIZE);
-      break;
-
     case ITEM_AMMO_POUCH:
       GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(parse_int(arg), -1, MAX_CONTAINER_SIZE);
       break;
@@ -2920,9 +2897,6 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       max_val = INSTRUMENT_BREAKABILITY_SCALE;
       break;
     case ITEM_WEAPON:
-      min_val = 0;
-      max_val = NUM_ATTACK_TYPES - 1;
-      break;
     case ITEM_FIREWEAPON:
       min_val = 0;
       max_val = NUM_ATTACK_TYPES - 1;
@@ -2967,13 +2941,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_val6_menu(d);
       return;
     case ITEM_MISSILE:
-      min_val = 0;
-      max_val = 10;
-      break;
     case ITEM_WEAPON:
-      min_val = 0;
-      max_val = 10;
-      break;
     case ITEM_ARMOR:
     case ITEM_CLANARMOR:
       min_val = 0;
@@ -3223,7 +3191,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_APPLY:
-    if (((number = parse_int(arg)) == 0) || ((number = parse_int(arg)) == 1))
+    number = parse_int(arg);
+    if (number == 0 || number == 1)
     {
       OLC_OBJ(d)->affected[OLC_VAL(d)].location = 0;
       OLC_OBJ(d)->affected[OLC_VAL(d)].modifier = 0;
@@ -3393,7 +3362,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_EXTRADESC_MENU:
-    switch ((number = parse_int(arg)))
+    switch (parse_int(arg))
     {
     case 0:
       if (!OLC_DESC(d)->keyword || !OLC_DESC(d)->description)
@@ -3907,18 +3876,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_specab_val2_menu(d);
       return;
     case ITEM_SPECAB_HORN_OF_SUMMONING: /* Val 1: VNUM of mob summoned. */
-      number = parse_int(arg);
-      if ((number < 0) || (number >= 12157521))
-      {
-        /* Value out of range. */
-        write_to_output(d, "Invalid vnum, try again : ");
-        return;
-      }
-      OLC_SPECAB(d)->value[0] = number;
-      OLC_MODE(d) = OEDIT_WEAPON_SPECAB_MENU;
-      oedit_disp_assign_weapon_specab_menu(d);
-      return;
-    case ITEM_SPECAB_ITEM_SUMMON: /* Val 1: VNUM of mob summoned. */
+    case ITEM_SPECAB_ITEM_SUMMON:       /* Val 1: VNUM of mob summoned. */
       number = parse_int(arg);
       if ((number < 0) || (number >= 12157521))
       {
@@ -3959,12 +3917,6 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_SPECAB_VALUE_3:
-    switch (OLC_SPECAB(d)->ability)
-    {
-    default:;
-    }
-    break;
-
   case OEDIT_SPECAB_VALUE_4:
     switch (OLC_SPECAB(d)->ability)
     {
@@ -4107,19 +4059,10 @@ ACMD(do_iedit)
     send_to_char(ch, "You must supply an object name.\r\n");
   }
 
-  if ((k = get_obj_in_equip_vis(ch, arg, NULL, ch->equipment)))
-  {
-    found = 1;
-  }
-  else if ((k = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
-  {
-    found = 1;
-  }
-  else if ((k = get_obj_in_list_vis(ch, arg, NULL, world[IN_ROOM(ch)].contents)))
-  {
-    found = 1;
-  }
-  else if ((k = get_obj_vis(ch, arg, NULL)))
+  if ((k = get_obj_in_equip_vis(ch, arg, NULL, ch->equipment)) ||
+      (k = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)) ||
+      (k = get_obj_in_list_vis(ch, arg, NULL, world[IN_ROOM(ch)].contents)) ||
+      (k = get_obj_vis(ch, arg, NULL)))
   {
     found = 1;
   }

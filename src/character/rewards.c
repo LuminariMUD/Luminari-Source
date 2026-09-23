@@ -58,10 +58,12 @@ static long award_limit(int type)
   {
   case AWARD_EXPERIENCE:
     return LONG_MAX;
+  /* NOLINTNEXTLINE(bugprone-branch-clone) -- separate caps that happen to share a value */
   case AWARD_QUEST_POINTS:
     return MAX_QUEST_POINTS;
   case AWARD_ACCOUNT_EXPERIENCE:
     return MAX_ACCOUNT_EXPERIENCE;
+  /* NOLINTNEXTLINE(bugprone-branch-clone) -- separate caps that happen to share a value */
   case AWARD_GOLD:
     return MAX_GOLD;
   case AWARD_BANK_GOLD:

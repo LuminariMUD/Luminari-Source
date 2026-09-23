@@ -225,7 +225,6 @@ void ensure_player_data_account_link(void)
     {
       log("Info: Added account_id column to player_data table");
     }
-    column_allows_null = TRUE;
   }
   else
   {
@@ -260,7 +259,6 @@ void ensure_player_data_account_link(void)
       }
       else
       {
-        column_allows_null = TRUE;
         log("Info: Modified player_data.account_id to allow NULL values");
       }
     }

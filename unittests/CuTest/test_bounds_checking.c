@@ -52,13 +52,13 @@ void Test_get_wearoff_bounds_checking(CuTest *tc)
   /* Test valid spell numbers (assuming spell_info is initialized) */
   /* Note: These tests may return NULL if spell_info is not initialized,
        but they should not crash */
-  result = get_wearoff(0);
+  (void)get_wearoff(0);
   /* Just ensure it doesn't crash - actual result depends on spell_info */
 
-  result = get_wearoff(1);
+  (void)get_wearoff(1);
   /* Just ensure it doesn't crash */
 
-  result = get_wearoff(TOP_SPELL_DEFINE - 1);
+  (void)get_wearoff(TOP_SPELL_DEFINE - 1);
   /* Just ensure it doesn't crash */
 }
 

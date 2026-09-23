@@ -234,9 +234,7 @@ static const char *CompactStringMap(int centre, int size);
 bool can_see_map(struct char_data *ch)
 {
   /* Is the map funcionality disabled? */
-  if (CONFIG_MAP == MAP_OFF)
-    return FALSE;
-  else if ((CONFIG_MAP == MAP_IMM_ONLY) && (GET_LEVEL(ch) < LVL_IMMORT))
+  if (CONFIG_MAP == MAP_OFF || ((CONFIG_MAP == MAP_IMM_ONLY) && (GET_LEVEL(ch) < LVL_IMMORT)))
     return FALSE;
 
   return TRUE;

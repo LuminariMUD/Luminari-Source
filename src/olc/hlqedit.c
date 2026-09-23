@@ -675,7 +675,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     return;
     break;
   case HLQEDIT_IN_ITEM:
-    if ((number = real_object(parse_int(arg))) != (int)NOWHERE)
+    if (real_object(parse_int(arg)) != NOWHERE)
     {
       OLC_QUESTENTRY(d)->in->value = parse_int(arg);
       hlqedit_disp_incommand_menu(d);
@@ -875,7 +875,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case HLQEDIT_OUT_ITEM:
-    if ((number = real_object(parse_int(arg))) != (int)NOTHING)
+    if (real_object(parse_int(arg)) != NOTHING)
     {
       OLC_QCOM(d)->value = parse_int(arg);
       hlqedit_disp_outcommand_menu(d);
@@ -887,7 +887,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_LOAD_OBJECT:
-    if ((number = real_object(parse_int(arg))) != (int)NOTHING)
+    if (real_object(parse_int(arg)) != NOTHING)
     {
       OLC_QCOM(d)->value = parse_int(arg);
       OLC_MODE(d) = HLQEDIT_OUT_LOAD_OBJECT_ROOM;
@@ -900,7 +900,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_LOAD_MOB:
-    if ((number = real_mobile(parse_int(arg))) != (int)NOBODY)
+    if (real_mobile(parse_int(arg)) != NOBODY)
     {
       OLC_QCOM(d)->value = parse_int(arg);
       OLC_MODE(d) = HLQEDIT_OUT_LOAD_MOB_ROOM;
@@ -924,7 +924,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     return;
   case HLQEDIT_OUT_LOAD_OBJECT_ROOM:
   case HLQEDIT_OUT_LOAD_MOB_ROOM:
-    if ((number = real_room(parse_int(arg))) != (int)NOWHERE)
+    if (real_room(parse_int(arg)) != NOWHERE)
       OLC_QCOM(d)->location = parse_int(arg);
     else
     {
@@ -969,7 +969,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_OPEN_DOOR:
-    if ((number = real_room(parse_int(arg))) != (int)NOWHERE)
+    if (real_room(parse_int(arg)) != NOWHERE)
     {
       OLC_QCOM(d)->location = parse_int(arg);
       send_to_char(d->character, "Which direction? (0 = North, 1 = East, "

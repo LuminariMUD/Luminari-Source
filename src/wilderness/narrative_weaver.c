@@ -2271,12 +2271,7 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
     // Extract sensory details
     if (!elements->sensory_details)
     {
-      if (hints[i].hint_category == HINT_SOUNDS)
-      {
-        elements->sensory_details = strdup(text);
-        elements->integration_weight += 0.15;
-      }
-      else if (hints[i].hint_category == HINT_SCENTS)
+      if (hints[i].hint_category == HINT_SOUNDS || hints[i].hint_category == HINT_SCENTS)
       {
         elements->sensory_details = strdup(text);
         elements->integration_weight += 0.15;
@@ -2661,6 +2656,7 @@ void inject_temporal_and_sensory_elements(struct description_components *desc,
       // Use the actual extracted temporal content, not just generic prefixes
       // Check if temporal_aspects is a complete sentence/phrase
       if (strlen(temporal_aspects) > 50)
+      /* NOLINTNEXTLINE(bugprone-branch-clone) -- long text wins before the keyword checks */
       {
         // Long temporal description - use it as a separate sentence before the main description
         snprintf(temp_buffer, (size_t)MAX_STRING_LENGTH * 2, "%s %s", temporal_aspects,

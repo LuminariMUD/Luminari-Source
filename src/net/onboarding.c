@@ -2441,7 +2441,6 @@ static void build_selection(struct json_writer *w, struct descriptor_data *d)
   {
     if (!first)
       json_raw(w, ",");
-    first = FALSE;
     json_field_string(w, "alignment", get_align_by_num(GET_ALIGNMENT(ch)), 32);
   }
 

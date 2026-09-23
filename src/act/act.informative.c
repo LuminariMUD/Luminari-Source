@@ -217,10 +217,7 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
   }
   if (GET_SUBRACE(tch, 2))
   {
-    count = snprintf(subraces + len, sizeof(subraces) - len, "/%s",
-                     npc_subrace_types[GET_SUBRACE(tch, 2)]);
-    if (count > 0)
-      len += count;
+    snprintf(subraces + len, sizeof(subraces) - len, "/%s", npc_subrace_types[GET_SUBRACE(tch, 2)]);
   }
 
   send_to_char(ch, "Name: %s\r\n", GET_NAME(tch));
@@ -439,7 +436,6 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
   {
     if (GET_OBJ_VAL(obj, 1) != 0 || OBJ_SAT_IN_BY(obj))
     {
-      temp = OBJ_SAT_IN_BY(obj);
       for (temp = OBJ_SAT_IN_BY(obj); temp; temp = NEXT_SITTING(temp))
       {
         if (temp == ch)
@@ -522,9 +518,7 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
           strlcpy(sendcmd, "recite", sizeof(sendcmd));
         else if (GET_OBJ_TYPE(obj) == ITEM_POTION)
           strlcpy(sendcmd, "quaff", sizeof(sendcmd));
-        else if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
-          strlcpy(sendcmd, "wear", sizeof(sendcmd));
-        else if (GET_OBJ_TYPE(obj) == ITEM_WORN)
+        else if (GET_OBJ_TYPE(obj) == ITEM_ARMOR || GET_OBJ_TYPE(obj) == ITEM_WORN)
           strlcpy(sendcmd, "wear", sizeof(sendcmd));
         else if (GET_OBJ_TYPE(obj) == ITEM_FOOD)
           strlcpy(sendcmd, "eat", sizeof(sendcmd));
@@ -532,11 +526,8 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
           strlcpy(sendcmd, "drink", sizeof(sendcmd));
         else if (GET_OBJ_TYPE(obj) == ITEM_NOTE)
           strlcpy(sendcmd, "read", sizeof(sendcmd));
-        else if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK)
-          strlcpy(sendcmd, "look in", sizeof(sendcmd));
-        else if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER)
-          strlcpy(sendcmd, "look in", sizeof(sendcmd));
-        else if (GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
+        else if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK || GET_OBJ_TYPE(obj) == ITEM_CONTAINER ||
+                 GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
           strlcpy(sendcmd, "look in", sizeof(sendcmd));
         else
           strlcpy(sendcmd, "hold", sizeof(sendcmd));
@@ -676,7 +667,7 @@ void list_obj_to_char_full(struct obj_data *list, struct char_data *ch, int mode
     if (j != i)
       continue; /* we counted object i earlier in the list */
 
-    if ((display = j = i) != NULL)
+    if (i != NULL)
     {
       /* Count matching objects, including this one */
       for (display = j = i; j; j = j->next_content)
@@ -753,21 +744,16 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
   {
     send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", race_list[is_disguised].type,
                  size_names[GET_SIZE(i)], RACE_ABBR(i), diagnosis[ar_index].text);
-    /* PC race info */
-  }
-  else if (!IS_NPC(i))
-  {
-    send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(pers), size_names[GET_SIZE(i)], RACE_ABBR(i),
-                 diagnosis[ar_index].text);
     /* NPC with no race info */
   }
   else if (IS_NPC(i) && GET_RACE(i) <= RACE_TYPE_UNKNOWN)
   {
     send_to_char(ch, "%s %s\r\n", CAP(pers), diagnosis[ar_index].text);
-    /* NPC with no sub-race info */
+    /* PC race info, or NPC with no sub-race info */
   }
-  else if (IS_NPC(i) && GET_SUBRACE(i, 0) <= SUBRACE_UNKNOWN &&
-           GET_SUBRACE(i, 1) <= SUBRACE_UNKNOWN && GET_SUBRACE(i, 2) <= SUBRACE_UNKNOWN)
+  else if (!IS_NPC(i) ||
+           (IS_NPC(i) && GET_SUBRACE(i, 0) <= SUBRACE_UNKNOWN &&
+            GET_SUBRACE(i, 1) <= SUBRACE_UNKNOWN && GET_SUBRACE(i, 2) <= SUBRACE_UNKNOWN))
   {
     send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(pers), size_names[GET_SIZE(i)], RACE_ABBR(i),
                  diagnosis[ar_index].text);
@@ -3265,11 +3251,11 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   {
     send_to_char(ch, "Aura of Cowardice (penalty against fear-affects)\r\n");
   }
-  if ((pMudEvent = char_has_mud_event(k, eDANCINGWEAPON)))
+  if (char_has_mud_event(k, eDANCINGWEAPON))
   {
     send_to_char(ch, "Dancing Weapon (a weapon of force attacks your foe each round)\r\n");
   }
-  if ((pMudEvent = char_has_mud_event(k, eSPIRITUALWEAPON)))
+  if (char_has_mud_event(k, eSPIRITUALWEAPON))
   {
     send_to_char(ch, "Spiritual Weapon (a weapon of force attacks your foe each round)\r\n");
   }
@@ -3317,7 +3303,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   if ((pMudEvent = char_has_mud_event(k, eIMPLODE)))
     send_to_char(ch, "\tRImplode!\tn - Duration: %d seconds\r\n",
                  (int)(mud_event_remaining(pMudEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eCONCUSSIVEONSLAUGHT)))
+  if (char_has_mud_event(k, eCONCUSSIVEONSLAUGHT))
     send_to_char(ch, "\tRConcussive Onslaught!\tn - Duration: %d rounds\r\n",
                  ch->player_specials->concussive_onslaught_duration);
   if ((pMudEvent = char_has_mud_event(k, eMOONBEAM)))
@@ -3800,15 +3786,7 @@ ACMD(do_abilities)
   vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
 
   /* needs to be a group member or it won't work */
-  if (!vict)
-  {
-    vict = ch;
-  }
-  else if (!GROUP(ch) || !GROUP(vict))
-  {
-    vict = ch;
-  }
-  else if (GROUP(ch) != GROUP(vict))
+  if (!vict || !GROUP(ch) || !GROUP(vict) || GROUP(ch) != GROUP(vict))
   {
     vict = ch;
   }
@@ -4183,19 +4161,12 @@ ACMD(do_affects)
     /* Check permissions to view target's affects */
     if (vict != ch)
     {
-      /* Level 31+ can see anyone's affects */
-      if (GET_LEVEL(ch) >= LVL_IMMORT)
+      /* Level 31+ can see anyone's affects; level 30 and below can see group members and
+       * their own charmed mobs */
+      if (GET_LEVEL(ch) >= LVL_IMMORT || (GROUP(ch) && GROUP(vict) && GROUP(ch) == GROUP(vict)) ||
+          (IS_NPC(vict) && AFF_FLAGGED(vict, AFF_CHARM) && vict->master == ch))
       {
         /* Allowed */
-      }
-      /* Level 30 and below can see group members and their charmies */
-      else if (GROUP(ch) && GROUP(vict) && GROUP(ch) == GROUP(vict))
-      {
-        /* Allowed - viewing group member */
-      }
-      else if (IS_NPC(vict) && AFF_FLAGGED(vict, AFF_CHARM) && vict->master == ch)
-      {
-        /* Allowed - viewing own charmed mob */
       }
       else
       {
@@ -8230,8 +8201,6 @@ ACMD(do_levels)
     {
     case SEX_MALE:
     case SEX_NEUTRAL:
-      len = snprintf_append(buf, sizeof(buf), (int)len, "%s\r\n", titles(GET_CLASS(ch), i));
-      break;
     case SEX_FEMALE:
       len = snprintf_append(buf, sizeof(buf), (int)len, "%s\r\n", titles(GET_CLASS(ch), i));
       break;
@@ -8244,8 +8213,8 @@ ACMD(do_levels)
   }
 
   if (max_lev == LVL_IMMORT)
-    len = snprintf_append(buf, sizeof(buf), (int)len, "[%2d] %8ld          : Immortality\r\n",
-                          LVL_IMMORT, level_exp(ch, LVL_IMMORT));
+    snprintf_append(buf, sizeof(buf), (int)len, "[%2d] %8ld          : Immortality\r\n", LVL_IMMORT,
+                    level_exp(ch, LVL_IMMORT));
   page_string(ch->desc, buf, TRUE);
 }
 
@@ -8921,7 +8890,6 @@ ACMD(do_commands)
   else if (subcmd == SCMD_WIZHELP)
   {
     free((void *)commands);
-    wizhelp = 1;
     do_wizhelp(ch);
     return;
   }
@@ -9358,6 +9326,7 @@ ACMD(do_areas)
     {
       /* Is this zone 'on the grid' ?    */
       if (lolev == -1)
+      /* NOLINTNEXTLINE(bugprone-branch-clone) -- one arm per documented level case */
       {
         /* No range supplied, show all zones */
         show_zone = TRUE;
@@ -9374,6 +9343,7 @@ ACMD(do_areas)
       }
       else if ((hilev != -1) && ((lolev >= ZONE_MINLVL(i) && lolev <= ZONE_MAXLVL(i)) ||
                                  (hilev <= ZONE_MAXLVL(i) && hilev >= ZONE_MINLVL(i))))
+      /* NOLINTNEXTLINE(bugprone-branch-clone) -- one arm per documented level case */
       {
         /* Range supplied, it overlaps this zone's range */
         show_zone = TRUE;
@@ -9436,7 +9406,7 @@ ACMD(do_areas)
         "Areas shown in \trred\tn may have some creatures outside the specified range.\r\n");
   }
 
-  len = snprintf_append(buf, sizeof(buf), len, "More areas are listed in HELP ZONES");
+  snprintf_append(buf, sizeof(buf), len, "More areas are listed in HELP ZONES");
 
   // if (zcount == 0)
   if (num_areas == 0)
@@ -10599,6 +10569,7 @@ ACMD(do_weaponproficiencies)
     type = WPT_ELF;
   }
   else if (is_abbrev(argument, "dwarf"))
+  /* NOLINTNEXTLINE(bugprone-branch-clone) -- WPT_DUERGAR is an alias of WPT_DWARF */
   {
     type = WPT_DWARF;
   }
@@ -10667,7 +10638,6 @@ ACMD(do_weaponinfo)
   char buf3[100];
   char buf4[100];
   char buf5[800];
-  size_t len = 0;
   int crit_multi = 0;
   sbyte found = false;
 
@@ -10712,32 +10682,31 @@ ACMD(do_weaponinfo)
     sprintbit(weapon_list[type].weaponFlags, weapon_flags, buf2, sizeof(buf2));
     sprintbit(weapon_list[type].damageTypes, weapon_damage_types, buf3, sizeof(buf3));
 
-    len +=
-        snprintf(buf + len, sizeof(buf) - len,
-                 "\tCType       : \tW%s\tn\n"
-                 "\tCDam        : \tW%dd%d\tn\n"
-                 "\tCThreat     : \tW%d%s\tn\n"
-                 "\tCCrit-Multi : \tWx%d\tn\n"
-                 "\tCFlags      : \tW%s\tn\n"
-                 "\tCCost       : \tW%d\tn\n"
-                 "\tCDam-Types  : \tW%s\tn\n"
-                 "\tCWeight     : \tW%d\tn\n"
-                 "\tCRange      : \tW%d\tn\n"
-                 "\tCFamily     : \tW%s\tn\n"
-                 "\tCSize       : \tW%s\tn\n"
-                 "\tCMaterial   : \tW%s\tn\n"
-                 "\tCHandle     : \tW%s\tn\n"
-                 "\tCHead       : \tW%s\tn\n"
-                 "\tCSpecial    : \tW%s\tn\n"
-                 "\tCDescription: \r\n\tn%s\tn\n",
-                 weapon_list[type].name, weapon_list[type].numDice, weapon_list[type].diceSize,
-                 (20 - weapon_list[type].critRange), weapon_list[type].critRange > 0 ? "-20" : "",
-                 crit_multi, buf2, weapon_list[type].cost, buf3, weapon_list[type].weight,
-                 weapon_list[type].range, weapon_family[weapon_list[type].weaponFamily],
-                 sizes[weapon_list[type].size], material_name[weapon_list[type].material],
-                 weapon_handle_types[weapon_list[type].handle_type],
-                 weapon_head_types[weapon_list[type].head_type], buf4,
-                 strfrmt(buf5, 80, 1, FALSE, FALSE, FALSE));
+    snprintf(buf, sizeof(buf),
+             "\tCType       : \tW%s\tn\n"
+             "\tCDam        : \tW%dd%d\tn\n"
+             "\tCThreat     : \tW%d%s\tn\n"
+             "\tCCrit-Multi : \tWx%d\tn\n"
+             "\tCFlags      : \tW%s\tn\n"
+             "\tCCost       : \tW%d\tn\n"
+             "\tCDam-Types  : \tW%s\tn\n"
+             "\tCWeight     : \tW%d\tn\n"
+             "\tCRange      : \tW%d\tn\n"
+             "\tCFamily     : \tW%s\tn\n"
+             "\tCSize       : \tW%s\tn\n"
+             "\tCMaterial   : \tW%s\tn\n"
+             "\tCHandle     : \tW%s\tn\n"
+             "\tCHead       : \tW%s\tn\n"
+             "\tCSpecial    : \tW%s\tn\n"
+             "\tCDescription: \r\n\tn%s\tn\n",
+             weapon_list[type].name, weapon_list[type].numDice, weapon_list[type].diceSize,
+             (20 - weapon_list[type].critRange), weapon_list[type].critRange > 0 ? "-20" : "",
+             crit_multi, buf2, weapon_list[type].cost, buf3, weapon_list[type].weight,
+             weapon_list[type].range, weapon_family[weapon_list[type].weaponFamily],
+             sizes[weapon_list[type].size], material_name[weapon_list[type].material],
+             weapon_handle_types[weapon_list[type].handle_type],
+             weapon_head_types[weapon_list[type].head_type], buf4,
+             strfrmt(buf5, 80, 1, FALSE, FALSE, FALSE));
     found = true;
     break;
   }
@@ -10765,7 +10734,6 @@ ACMD(do_armorinfo)
   int type = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char buf2[800];
-  size_t len = 0;
   sbyte found = false;
 
   for (type = 1; type < NUM_SPEC_ARMOR_SUIT_TYPES; type++)
@@ -10775,23 +10743,22 @@ ACMD(do_armorinfo)
 
     snprintf(buf2, sizeof(buf2), "%s", armor_list[type].description);
 
-    len += snprintf(buf + len, sizeof(buf) - len,
-                    "\tCName          : \tW%s\tn\n"
-                    "\tCType          : \tW%s\tn\n"
-                    "\tCCost          : \tW%d\tn\n"
-                    "\tCAC            : \tW%d\tn\n"
-                    "\tCMax Dex       : \tW%d\tn\n"
-                    "\tCArmor Penalty : \tW%s%d\tn\n"
-                    "\tCSpell Fail    : \tW%d%%\tn\n"
-                    "\tCWeight        : \tW%d\tn\n"
-                    "\tCMaterial      : \tW%s\tn\n"
-                    "\tCDescription   : \r\n\tn%s\tn\n",
-                    armor_list[type].name, armor_type[armor_list[type].armorType],
-                    armor_list[type].cost, armor_suit_ac_bonus[type], armor_list[type].dexBonus,
-                    armor_list[type].armorCheck > 0 ? "-" : "", armor_list[type].armorCheck,
-                    armor_list[type].spellFail, armor_suit_weight[type],
-                    material_name[armor_list[type].material],
-                    strfrmt(buf2, 80, 1, FALSE, FALSE, FALSE));
+    snprintf(buf, sizeof(buf),
+             "\tCName          : \tW%s\tn\n"
+             "\tCType          : \tW%s\tn\n"
+             "\tCCost          : \tW%d\tn\n"
+             "\tCAC            : \tW%d\tn\n"
+             "\tCMax Dex       : \tW%d\tn\n"
+             "\tCArmor Penalty : \tW%s%d\tn\n"
+             "\tCSpell Fail    : \tW%d%%\tn\n"
+             "\tCWeight        : \tW%d\tn\n"
+             "\tCMaterial      : \tW%s\tn\n"
+             "\tCDescription   : \r\n\tn%s\tn\n",
+             armor_list[type].name, armor_type[armor_list[type].armorType], armor_list[type].cost,
+             armor_suit_ac_bonus[type], armor_list[type].dexBonus,
+             armor_list[type].armorCheck > 0 ? "-" : "", armor_list[type].armorCheck,
+             armor_list[type].spellFail, armor_suit_weight[type],
+             material_name[armor_list[type].material], strfrmt(buf2, 80, 1, FALSE, FALSE, FALSE));
 
     found = true;
     break;
@@ -11143,7 +11110,6 @@ ACMD(do_flightlist)
   if ((i % 2) != 1)
     send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
-  i = 0;
 }
 
 ACMD(do_touch_spells)

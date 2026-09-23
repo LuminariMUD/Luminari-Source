@@ -1630,8 +1630,6 @@ void check_random_encounter(struct char_data *ch)
     }
   }
 
-  roll = 0;
-
   // initiatize
   for (i = 0; i < NUM_ENCOUNTER_GROUP_TYPES; i++)
     groups[i] = false;
@@ -2036,19 +2034,12 @@ bool encounter_mobs_can_move(struct char_data *ch)
       if (MOB_FLAGGED(tch, MOB_ENCOUNTER))
       {
         can_move = true;
-        if (AFF_FLAGGED(tch, AFF_GRAPPLED) || AFF_FLAGGED(tch, AFF_ENTANGLED))
-          can_move = false;
-        else if (affected_by_spell(tch, SKILL_DEFENSIVE_STANCE) &&
-                 !HAS_FEAT(tch, FEAT_MOBILE_DEFENSE))
-          can_move = false;
-        else if (AFF_FLAGGED(tch, AFF_STUN) || AFF_FLAGGED(tch, AFF_PARALYZED) ||
-                 char_has_mud_event(tch, eSTUNNED))
-          can_move = false;
-        else if (AFF_FLAGGED(tch, AFF_DAZED))
-          can_move = false;
-        else if (AFF_FLAGGED(tch, AFF_FEAR))
-          can_move = false;
-        else if (GET_POS(tch) <= POS_SLEEPING)
+        if (AFF_FLAGGED(tch, AFF_GRAPPLED) || AFF_FLAGGED(tch, AFF_ENTANGLED) ||
+            (affected_by_spell(tch, SKILL_DEFENSIVE_STANCE) &&
+             !HAS_FEAT(tch, FEAT_MOBILE_DEFENSE)) ||
+            AFF_FLAGGED(tch, AFF_STUN) || AFF_FLAGGED(tch, AFF_PARALYZED) ||
+            char_has_mud_event(tch, eSTUNNED) || AFF_FLAGGED(tch, AFF_DAZED) ||
+            AFF_FLAGGED(tch, AFF_FEAR) || GET_POS(tch) <= POS_SLEEPING)
           can_move = false;
       }
     }

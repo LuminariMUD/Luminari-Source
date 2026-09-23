@@ -2025,15 +2025,14 @@ bool is_a_known_spell(struct char_data *ch, int class, int spellnum)
  */
 static bool validate_spell_for_class(int char_class, int spellnum)
 {
-  if (char_class != CLASS_WARLOCK && char_class != CLASS_PSIONICIST &&
-      (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS))
-    return FALSE; /* Invalid spell number */
-  else if (char_class == CLASS_PSIONICIST &&
-           (spellnum < PSIONIC_POWER_START || spellnum > PSIONIC_POWER_END))
-    return FALSE; /* Not a valid psionic power */
-  else if (char_class == CLASS_WARLOCK &&
-           (spellnum < WARLOCK_POWER_START || spellnum > WARLOCK_POWER_END))
-    return FALSE; /* Not a valid warlock invocation */
+  /* Invalid spell number, not a valid psionic power, or not a valid warlock invocation */
+  if ((char_class != CLASS_WARLOCK && char_class != CLASS_PSIONICIST &&
+       (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS)) ||
+      (char_class == CLASS_PSIONICIST &&
+       (spellnum < PSIONIC_POWER_START || spellnum > PSIONIC_POWER_END)) ||
+      (char_class == CLASS_WARLOCK &&
+       (spellnum < WARLOCK_POWER_START || spellnum > WARLOCK_POWER_END)))
+    return FALSE;
 
   return TRUE;
 }
@@ -2438,17 +2437,8 @@ int compute_spells_circle(struct char_data *ch, int char_class, int spellnum, in
   switch (char_class)
   {
   case CLASS_ALCHEMIST:
-    /* Alchemists are 3/4 casters with max 6th circle extracts */
-    min_level = spell_info[spellnum].min_level[char_class];
-    spell_circle = level_to_circle_conversion(min_level, 1);
-    if (spell_circle <= 3)
-    {
-      metamagic_mod =
-          apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 3);
-    }
-    return (spell_circle <= NUM_CIRCLES) ? spell_circle + metamagic_mod : (NUM_CIRCLES + 1);
   case CLASS_BARD:
-    /* Bards are 3/4 spontaneous casters with max 6th circle */
+    /* Alchemists (extracts) and bards (spontaneous) are 3/4 casters with max 6th circle */
     min_level = spell_info[spellnum].min_level[char_class];
     spell_circle = level_to_circle_conversion(min_level, 1);
     if (spell_circle <= 3)
@@ -2458,17 +2448,8 @@ int compute_spells_circle(struct char_data *ch, int char_class, int spellnum, in
     }
     return (spell_circle <= NUM_CIRCLES) ? spell_circle + metamagic_mod : (NUM_CIRCLES + 1);
   case CLASS_INQUISITOR:
-    /* Inquisitors are 3/4 divine spontaneous casters */
-    min_level = MIN_SPELL_LVL(spellnum, char_class, domain);
-    spell_circle = level_to_circle_conversion(min_level, 1);
-    if (spell_circle <= 3)
-    {
-      metamagic_mod =
-          apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 3);
-    }
-    return (spell_circle <= NUM_CIRCLES) ? spell_circle + metamagic_mod : (NUM_CIRCLES + 1);
   case CLASS_SUMMONER:
-    /* Summoners are 3/4 spontaneous casters specializing in summon spells */
+    /* Inquisitors (divine) and summoners (summon spells) are 3/4 spontaneous casters */
     min_level = MIN_SPELL_LVL(spellnum, char_class, domain);
     spell_circle = level_to_circle_conversion(min_level, 1);
     if (spell_circle <= 3)
@@ -2479,19 +2460,8 @@ int compute_spells_circle(struct char_data *ch, int char_class, int spellnum, in
     return (spell_circle <= NUM_CIRCLES) ? spell_circle + metamagic_mod : (NUM_CIRCLES + 1);
   case CLASS_PALADIN:
   case CLASS_BLACKGUARD:
-    /* Paladins and Blackguards are half-casters (max 4th circle) */
-    min_level = spell_info[spellnum].min_level[char_class];
-    if (min_level < 6) /* No spells before 6th level */
-      return (NUM_CIRCLES + 1);
-    spell_circle = level_to_circle_conversion(min_level, 2);
-    if (spell_circle <= 3)
-    {
-      metamagic_mod =
-          apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 3);
-    }
-    return (spell_circle <= NUM_CIRCLES) ? spell_circle + metamagic_mod : (NUM_CIRCLES + 1);
   case CLASS_RANGER:
-    /* Rangers are half-casters with nature magic (max 4th circle) */
+    /* Paladins, Blackguards, and Rangers (nature magic) are half-casters (max 4th circle) */
     min_level = spell_info[spellnum].min_level[char_class];
     if (min_level < 6) /* No spells before 6th level */
       return (NUM_CIRCLES + 1);
@@ -2549,22 +2519,8 @@ int compute_spells_circle(struct char_data *ch, int char_class, int spellnum, in
 
     return (spell_circle > TOP_CIRCLE) ? (NUM_CIRCLES + 1) : MAX(1, spell_circle);
   case CLASS_WIZARD:
-    /* Wizards are full arcane prepared casters */
-    spell_circle = (spell_info[spellnum].min_level[char_class] + 1) / 2;
-    metamagic_mod =
-        apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 3);
-
-    /* Check for overflow before adding metamagic_mod */
-    if (spell_circle > INT_MAX - metamagic_mod)
-    {
-      log("SYSERR: Integer overflow in spell_circle calculation");
-      return (NUM_CIRCLES + 1);
-    }
-    spell_circle += metamagic_mod;
-
-    return (spell_circle > TOP_CIRCLE) ? (NUM_CIRCLES + 1) : MAX(1, spell_circle);
   case CLASS_DRUID:
-    /* Druids are full divine prepared casters with nature magic */
+    /* Wizards (arcane) and druids (divine, nature magic) are full prepared casters */
     spell_circle = (spell_info[spellnum].min_level[char_class] + 1) / 2;
     metamagic_mod =
         apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 3);
@@ -2661,16 +2617,6 @@ int get_class_highest_circle(struct char_data *ch, int class)
   {
   case CLASS_PALADIN:
   case CLASS_BLACKGUARD:
-    if (class_level < 6)
-      return FALSE;
-    else if (class_level < 10)
-      return 1;
-    else if (class_level < 12)
-      return 2;
-    else if (class_level < 15)
-      return 3;
-    else
-      return 4;
   case CLASS_RANGER:
     if (class_level < 6)
       return FALSE;
@@ -2692,18 +2638,6 @@ int get_class_highest_circle(struct char_data *ch, int class)
     return 4;
   case CLASS_BARD:
   case CLASS_INQUISITOR:
-    if (class_level < 4)
-      return 1;
-    else if (class_level < 7)
-      return 2;
-    else if (class_level < 10)
-      return 3;
-    else if (class_level < 13)
-      return 4;
-    else if (class_level < 16)
-      return 5;
-    else
-      return 6;
   case CLASS_SUMMONER:
   case CLASS_ALCHEMIST:
     if (class_level < 4)
@@ -2722,11 +2656,8 @@ int get_class_highest_circle(struct char_data *ch, int class)
   case CLASS_SORCERER:
     return (MAX(1, (MIN(9, class_level / 2))));
   case CLASS_WIZARD:
-    return (MAX(1, MIN(9, (class_level + 1) / 2)));
   case CLASS_DRUID:
-    return (MAX(1, MIN(9, (class_level + 1) / 2)));
   case CLASS_CLERIC:
-    return (MAX(1, MIN(9, (class_level + 1) / 2)));
   case CLASS_PSIONICIST:
     return (MAX(1, MIN(9, (class_level + 1) / 2)));
   default:
@@ -4170,6 +4101,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
     prep_time *= CLERIC_PREP_TIME_FACTOR;
     stat_bonus = GET_WIS_BONUS(ch);
     break;
+  /* NOLINTNEXTLINE(bugprone-branch-clone) -- per-class factors that happen to match */
   case CLASS_SORCERER:
     prep_time *= SORC_PREP_TIME_FACTOR;
     stat_bonus = GET_CHA_BONUS(ch);

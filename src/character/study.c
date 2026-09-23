@@ -2536,13 +2536,9 @@ static void display_study_feats(struct descriptor_data *d)
          feat_assign = feat_assign->next)
     {
       /* is this a class feat?  and is this feat a match for 'i'? */
-      if (feat_assign->is_classfeat && feat_assign->feat_num == i)
+      if ((feat_assign->is_classfeat && feat_assign->feat_num == i) || is_class_feat(i, class, ch))
       {
         class_feat = TRUE; /* yep this is a class feat! */
-      }
-      else if (is_class_feat(i, class, ch))
-      {
-        class_feat = TRUE;
       }
     }
 
@@ -5940,7 +5936,6 @@ sbyte isRacialFeat(int feat)
   switch (feat)
   {
   case FEAT_HIGH_ELF_CANTRIP:
-    return true;
   case FEAT_DRAGONBORN_ANCESTRY:
     return true;
   default:

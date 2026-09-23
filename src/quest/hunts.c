@@ -754,12 +754,7 @@ SPECIAL(huntsmaster)
   }
   else if (CMD_IS("list"))
   {
-    if (!*arg1)
-    {
-      send_to_char(ch, "Would you like to list 'trinket' rewards, or 'weapon' rewards?\r\n"
-                       "Ie. list trinkets or list weapons\r\n");
-    }
-    else if (is_abbrev(arg1, "trinkets"))
+    if (is_abbrev(arg1, "trinkets"))
     {
       list_hunt_rewards(ch, HUNT_REWARD_TYPE_TRINKET);
     }
@@ -769,6 +764,7 @@ SPECIAL(huntsmaster)
     }
     else
     {
+      /* No argument (is_abbrev() rejects an empty one) or an unknown list. */
       send_to_char(ch, "Would you like to list 'trinket' rewards, or 'weapon' rewards?\r\n"
                        "Ie. list trinkets or list weapons\r\n");
     }
@@ -1363,7 +1359,6 @@ bool weapon_specab_desc_position(int specab)
   case WEAPON_SPECAB_BLINDING:
     return false;
   case WEAPON_SPECAB_SHOCK:
-    return true;
   case WEAPON_SPECAB_FLAMING:
     return true;
   case WEAPON_SPECAB_THUNDERING:
@@ -1377,13 +1372,9 @@ bool weapon_specab_desc_position(int specab)
   case WEAPON_SPECAB_BEWILDERING:
     return false;
   case WEAPON_SPECAB_KEEN:
-    return true;
   case WEAPON_SPECAB_VICIOUS:
-    return true;
   case WEAPON_SPECAB_INVIGORATING:
-    return true;
   case WEAPON_SPECAB_VORPAL:
-    return true;
   case WEAPON_SPECAB_VAMPIRIC:
     return true;
   case WEAPON_SPECAB_BANE:

@@ -216,7 +216,6 @@ ACMD(do_new_mail)
       }
 
       MYSQL_RES *res = NULL;
-      MYSQL_ROW row = NULL;
       int found = FALSE;
 
       /* Check the connection, reconnect if necessary. */
@@ -242,7 +241,7 @@ ACMD(do_new_mail)
       res = mysql_use_result(conn);
       if (res != NULL)
       {
-        if ((row = mysql_fetch_row(res)) != NULL)
+        if (mysql_fetch_row(res) != NULL)
         {
           found = TRUE;
         }
@@ -314,9 +313,7 @@ void perform_mail_list(struct char_data *ch, int type)
   MYSQL_RES *res = NULL;
   MYSQL_ROW row = NULL;
   MYSQL_RES *res2 = NULL;
-  MYSQL_ROW row2 = NULL;
   MYSQL_RES *res3 = NULL;
-  MYSQL_ROW row3 = NULL;
 
   /* Check the connection, reconnect if necessary. */
   if (!MYSQL_PING_CONN(conn))
@@ -401,7 +398,7 @@ void perform_mail_list(struct char_data *ch, int type)
       res2 = mysql_use_result(conn2);
       if (res2 != NULL)
       {
-        if ((row2 = mysql_fetch_row(res2)) != NULL)
+        if (mysql_fetch_row(res2) != NULL)
         {
           deleted = TRUE;
         }
@@ -430,7 +427,7 @@ void perform_mail_list(struct char_data *ch, int type)
       res3 = mysql_use_result(conn3);
       if (res3 != NULL)
       {
-        if ((row3 = mysql_fetch_row(res3)) != NULL)
+        if (mysql_fetch_row(res3) != NULL)
         {
           unread = FALSE;
         }
@@ -573,7 +570,6 @@ void perform_mail_read(struct char_data *ch, int mnum)
 void perform_mail_delete(struct char_data *ch, int mnum)
 {
   MYSQL_RES *res = NULL;
-  MYSQL_ROW row = NULL;
 
   /* Check the connection, reconnect if necessary. */
   if (!MYSQL_PING_CONN(conn))
@@ -605,7 +601,7 @@ void perform_mail_delete(struct char_data *ch, int mnum)
   res = mysql_use_result(conn);
   if (res != NULL)
   {
-    if ((row = mysql_fetch_row(res)) != NULL)
+    if (mysql_fetch_row(res) != NULL)
     {
       found = TRUE;
     }
@@ -617,7 +613,6 @@ void perform_mail_delete(struct char_data *ch, int mnum)
     send_to_char(ch, "That mail is not accessible to you.\r\n");
     return;
   }
-  found = FALSE;
 
   char *end;
   char buf[200];
@@ -679,9 +674,7 @@ int new_mail_alert(struct char_data *ch, bool silent)
   MYSQL_RES *res = NULL;
   MYSQL_ROW row = NULL;
   MYSQL_RES *res2 = NULL;
-  MYSQL_ROW row2 = NULL;
   MYSQL_RES *res3 = NULL;
-  MYSQL_ROW row3 = NULL;
 
   /* Check the connection, reconnect if necessary. */
   if (!MYSQL_PING_CONN(conn))
@@ -759,7 +752,7 @@ int new_mail_alert(struct char_data *ch, bool silent)
       res2 = mysql_use_result(conn2);
       if (res2 != NULL)
       {
-        if ((row2 = mysql_fetch_row(res2)) != NULL)
+        if (mysql_fetch_row(res2) != NULL)
         {
           num_deleted++;
         }
@@ -787,7 +780,7 @@ int new_mail_alert(struct char_data *ch, bool silent)
       res3 = mysql_use_result(conn3);
       if (res3 != NULL)
       {
-        if ((row3 = mysql_fetch_row(res3)) != NULL)
+        if (mysql_fetch_row(res3) != NULL)
         {
           num_read++;
         }

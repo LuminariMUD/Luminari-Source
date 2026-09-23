@@ -200,9 +200,6 @@ static void another_hour(int mode)
       send_to_outdoor("\tYThe sun is at its \tWzenith\tY.\tn\r\n");
       break;
     case 13:
-      /* we are resetting dailies (such as shapechange) every 6 game hours */
-      reset_dailies();
-      break;
     case 19:
       /* we are resetting dailies (such as shapechange) every 6 game hours */
       reset_dailies();

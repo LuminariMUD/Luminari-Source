@@ -62,20 +62,13 @@ SPECIAL(dracolich_mob)
   /* this is the offensive arsenal */
   if (FIGHTING(ch) && rand_number(0, 1))
   {
-    if (!rand_number(0, 3) &&
-        call_magic(ch, FIGHTING(ch), 0, SPELL_ACID_BREATHE, 0, GET_LEVEL(ch), CAST_INNATE))
+    if ((!rand_number(0, 3) &&
+         call_magic(ch, FIGHTING(ch), 0, SPELL_ACID_BREATHE, 0, GET_LEVEL(ch), CAST_INNATE)) ||
+        (!rand_number(0, 3) && perform_tailsweep(ch)) ||
+        (!rand_number(0, 3) && perform_dragonfear(ch)))
     {
-      /* looks like the breathe weapon worked */
-      return 1;
-    }
-    else if (!rand_number(0, 3) && perform_tailsweep(ch))
-    {
-      /* looks like we did the tailsweeep successffully to at least one victim */
-      return 1;
-    }
-    else if (!rand_number(0, 3) && perform_dragonfear(ch))
-    {
-      /* looks like we did the dragonfear to at least one victim */
+      /* looks like the breathe weapon worked, or we did the tailsweep or the dragonfear to at
+       * least one victim */
       return 1;
     }
     else if (!rand_number(0, 4))
@@ -291,15 +284,14 @@ SPECIAL(vampire_mob)
 
 SPECIAL(cityguard)
 {
-  struct char_data *tch, *evil, *spittle;
-  int max_evil, min_cha;
+  struct char_data *tch, *spittle;
+  int min_cha;
 
   if (cmd || !AWAKE(ch) || FIGHTING(ch))
     return (FALSE);
 
-  max_evil = 1000;
   min_cha = 6;
-  spittle = evil = NULL;
+  spittle = NULL;
 
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
   {
@@ -319,12 +311,6 @@ SPECIAL(cityguard)
           TO_ROOM);
       hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       return (TRUE);
-    }
-
-    if (FIGHTING(tch) && GET_ALIGNMENT(tch) < max_evil && (IS_NPC(tch) || IS_NPC(FIGHTING(tch))))
-    {
-      max_evil = GET_ALIGNMENT(tch);
-      evil = tch;
     }
 
     if (GET_CHA(tch) < min_cha)
@@ -775,15 +761,11 @@ SPECIAL(lich_mob)
       if (call_magic(ch, vict, 0, SPELL_METEOR_SWARM, 0, GET_LEVEL(ch), CAST_INNATE))
         return 1;
     }
-    else if (!rand_number(0, 2) && (!IS_UNDEAD(vict) && !IS_LICH(vict)) &&
-             perform_lichtouch(ch, vict))
+    else if ((!rand_number(0, 2) && (!IS_UNDEAD(vict) && !IS_LICH(vict)) &&
+              perform_lichtouch(ch, vict)) ||
+             (!rand_number(0, 2) && (IS_UNDEAD(ch) || IS_LICH(ch)) && perform_lichtouch(ch, ch)))
     {
-      /* looks like we did the lichtouch! */
-      return 1;
-    }
-    else if (!rand_number(0, 2) && (IS_UNDEAD(ch) || IS_LICH(ch)) && perform_lichtouch(ch, ch))
-    {
-      /* looks like we did the self healing lichtouch */
+      /* looks like we did the lichtouch, or the self healing lichtouch */
       return 1;
     }
     else if (!rand_number(0, 4))
