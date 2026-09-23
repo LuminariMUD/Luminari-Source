@@ -8,6 +8,7 @@
 #include "../../src/core/db.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/dgscript/dg_scripts.h"
+#include "../../src/clan/clan.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -420,4 +421,42 @@ void Test_dg_production_overlong_condition_names_the_trigger(CuTest *tc)
 
   CuAssertTrue(tc, strstr(captured, "condition is too long") != NULL);
   CuAssertTrue(tc, strstr(captured, "overlong condition regression, VNum 4242") != NULL);
+}
+
+/* mclanwar and mclanally read their status from the third argument. They took it from the first
+ * word again, so every call was refused as an invalid status. */
+void Test_dg_mclanwar_and_mclanally_read_the_status_argument(CuTest *tc)
+{
+  struct clan_data clans[2];
+  struct clan_data *saved_list = clan_list;
+  int saved_count = num_of_clans;
+  struct char_data mob;
+  int at_war;
+  int allied;
+  int war_after_alliance;
+
+  memset(clans, 0, sizeof(clans));
+  clans[0].vnum = 5;
+  clans[0].clan_name = CuMutableString("Alpha");
+  clans[1].vnum = 6;
+  clans[1].clan_name = CuMutableString("Beta");
+  clan_list = clans;
+  num_of_clans = 2;
+  clear_char(&mob);
+  SET_BIT_AR(MOB_FLAGS(&mob), MOB_ISNPC);
+  mob.player.short_descr = CuMutableString("a herald");
+
+  /* Vnums other than 0 and 1, so the first word is never itself a valid status. */
+  do_mclanwar(&mob, "5 6 true", 0, 0);
+  at_war = clans[0].at_war[1] && clans[1].at_war[0];
+  do_mclanally(&mob, "5 6 yes", 0, 0);
+  allied = clans[0].allies[1] && clans[1].allies[0];
+  war_after_alliance = clans[0].at_war[1] || clans[1].at_war[0];
+
+  clan_list = saved_list;
+  num_of_clans = saved_count;
+
+  CuAssertTrue(tc, at_war);
+  CuAssertTrue(tc, allied);
+  CuAssertTrue(tc, !war_after_alliance);
 }

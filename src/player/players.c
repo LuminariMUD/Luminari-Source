@@ -5529,14 +5529,14 @@ void load_class_feat_points(FILE *fl, struct char_data *ch)
   int cls = 0, pts = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
+  /* Class and points pairs, ended by a line holding one number. The end of the file or a line
+   * that is not a pair also ends the list, where get_line() would otherwise hand back its last
+   * line forever. */
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &cls, &pts) == 2)
   {
-    get_line(fl, line);
-
-    if (strict_sscanf(line, "%d %d", &cls, &pts) == 1)
-      return;
-    GET_CLASS_FEATS(ch, cls) = (byte)pts;
-  } while (1);
+    if (cls >= 0 && cls < NUM_CLASSES)
+      GET_CLASS_FEATS(ch, cls) = (byte)pts;
+  }
 }
 
 void load_epic_class_feat_points(FILE *fl, struct char_data *ch)
@@ -5544,14 +5544,14 @@ void load_epic_class_feat_points(FILE *fl, struct char_data *ch)
   int cls = 0, pts = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
-  do
+  /* Class and points pairs, ended by a line holding one number. The end of the file or a line
+   * that is not a pair also ends the list, where get_line() would otherwise hand back its last
+   * line forever. */
+  while (get_line(fl, line) && strict_sscanf(line, "%d %d", &cls, &pts) == 2)
   {
-    get_line(fl, line);
-
-    if (strict_sscanf(line, "%d %d", &cls, &pts) == 1)
-      return;
-    GET_EPIC_CLASS_FEATS(ch, cls) = (byte)pts;
-  } while (1);
+    if (cls >= 0 && cls < NUM_CLASSES)
+      GET_EPIC_CLASS_FEATS(ch, cls) = (byte)pts;
+  }
 }
 
 /* if NUM_SKFEATS changes, this must be modified manually */

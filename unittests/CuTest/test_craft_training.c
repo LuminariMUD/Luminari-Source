@@ -269,6 +269,39 @@ void Test_craft_load_restores_rank_its_experience_earned(CuTest *tc)
   CuAssertIntEquals(tc, 2, talent_points);
 }
 
+/* A player file that ends inside the class feat point list made the loader spin forever,
+ * because get_line() leaves its last line in place at the end of the file; an out-of-range
+ * class index was also written past the array. */
+void Test_load_char_stops_at_a_truncated_class_feat_list(CuTest *tc)
+{
+  struct craft_player_files files;
+  struct char_data *loaded = new_char();
+  char filename[MAX_FILEPATH];
+  FILE *file;
+  int result, class_feats, epic_feats;
+
+  craft_player_files_enter(tc, &files, "crcfp", 4303);
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, files.name));
+  file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, file);
+  if (file != NULL)
+  {
+    fprintf(file, "Name: %s\nId  : 4303\nLevl: 7\nEcfp:\n%d 2\n%d 9\n0\nCfpt:\n%d 3\n", files.name,
+            CLASS_WIZARD, NUM_CLASSES + 5, CLASS_WIZARD);
+    fclose(file);
+  }
+
+  result = load_char(files.name, loaded);
+  class_feats = (int)GET_CLASS_FEATS(loaded, CLASS_WIZARD);
+  epic_feats = (int)GET_EPIC_CLASS_FEATS(loaded, CLASS_WIZARD);
+  free_char(loaded);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, 3, class_feats);
+  CuAssertIntEquals(tc, 2, epic_feats);
+}
+
 /* Harvest talents have ids above 63, which the rank storage once could not hold. */
 void Test_craft_harvest_talent_ranks_apply_and_persist(CuTest *tc)
 {

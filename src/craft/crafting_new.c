@@ -9279,7 +9279,6 @@ static void show_mote_bonuses(struct char_data *ch, int mote)
       if (crafting_mote_by_bonus_location(i, 0, BONUS_TYPE_DODGE) == mote)
       {
         send_to_char(ch, "%s (Dodge), ", apply_types[i]);
-        send_to_char(ch, "%s, ", ability_names[j]);
         length += (int)strlen(apply_types[i]) + 8; // +8 for " (Dodge), "
         if (length > 80)
         {
