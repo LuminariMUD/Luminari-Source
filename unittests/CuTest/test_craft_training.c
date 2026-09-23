@@ -523,6 +523,59 @@ void Test_load_char_keeps_long_lists_inside_their_arrays(CuTest *tc)
   CuAssertIntEquals(tc, 9, mote_first);
 }
 
+/* An empty Todo list, or one cut off by the end of the file, loaded as an entry with no text, which
+ * the todo command printed with %s (issue 230). */
+void Test_load_char_leaves_an_empty_todo_list_empty(CuTest *tc)
+{
+  static const char *const lists[] = {"Todo:\n~\nLevl: 7\n", "Levl: 7\nTodo:\n"};
+  struct craft_player_files files;
+  struct char_data *loaded;
+  char filename[MAX_FILEPATH];
+  FILE *file;
+  size_t i;
+  int results[2] = {-1, -1}, kept_result;
+  bool empty[2] = {FALSE, FALSE}, kept;
+
+  craft_player_files_enter(tc, &files, "crtodo", 4322);
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, files.name));
+  for (i = 0; i < sizeof(lists) / sizeof(lists[0]); i++)
+  {
+    loaded = new_char();
+    file = fopen(filename, "w");
+    if (file != NULL)
+    {
+      fprintf(file, "Name: %s\nId  : 4322\n%s", files.name, lists[i]);
+      fclose(file);
+    }
+    results[i] = load_char(files.name, loaded);
+    empty[i] = GET_TODO(loaded) == NULL && GET_LEVEL(loaded) == 7;
+    free_char(loaded);
+  }
+
+  /* Entries still load, in order, and the tags after the list too. */
+  loaded = new_char();
+  file = fopen(filename, "w");
+  if (file != NULL)
+  {
+    fprintf(file, "Name: %s\nId  : 4322\nTodo:\nfirst\nsecond\n~\nLevl: 7\n", files.name);
+    fclose(file);
+  }
+  kept_result = load_char(files.name, loaded);
+  kept = GET_TODO(loaded) != NULL && GET_TODO(loaded)->text != NULL &&
+         !strcmp(GET_TODO(loaded)->text, "first") && GET_TODO(loaded)->next != NULL &&
+         GET_TODO(loaded)->next->text != NULL && !strcmp(GET_TODO(loaded)->next->text, "second") &&
+         GET_TODO(loaded)->next->next == NULL && GET_LEVEL(loaded) == 7;
+  free_char(loaded);
+  CuAssertIntEquals(tc, 0, craft_player_files_leave(&files));
+
+  CuAssertIntEquals(tc, 0, results[0]);
+  CuAssertTrue(tc, empty[0]);
+  CuAssertIntEquals(tc, 0, results[1]);
+  CuAssertTrue(tc, empty[1]);
+  CuAssertIntEquals(tc, 0, kept_result);
+  CuAssertTrue(tc, kept);
+}
+
 /* Perk toggles and score preferences survive a save and a load (issue 227). The toggle bitfield
  * stopped at id 255, a byte with bit 7 set was printed as eight hex digits, and no score preference
  * was saved at all. */
