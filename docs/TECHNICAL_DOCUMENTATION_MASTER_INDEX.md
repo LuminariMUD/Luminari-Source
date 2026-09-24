@@ -142,6 +142,8 @@ This master index provides a comprehensive guide to all technical documentation 
   links to every race-related document
 - **[DURIS_RACIAL_IMPORTS.md](ongoing-projects/DURIS_RACIAL_IMPORTS.md)** - Racial innates imported from Duris
   as feats (granted to no race yet) and the 37 Duris player races that were not imported
+- **[DURIS_RACE_FEAT_PROPOSAL.md](ongoing-projects/DURIS_RACE_FEAT_PROPOSAL.md)** - Proposed
+  racial feat sets for the Duris player races that were not imported
 - **[PLAYER_CLASSES_REFERENCE.md](guides/PLAYER_CLASSES_REFERENCE.md)** - Playable class
   reference center: base and prestige classes, unlock costs, prerequisites,
   progression, class skills, feats by level, casting models, spell lists, and links
