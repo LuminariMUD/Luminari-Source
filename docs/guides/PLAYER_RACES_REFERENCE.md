@@ -20,6 +20,7 @@ material instead.
 | [ADDING_NEW_RACE_GUIDE.md](ADDING_NEW_RACE_GUIDE.md) | Developer procedure for adding a race: ID allocation, `assign_races()` registry, creation wiring, mechanics, unlock gate, transformation-only races, help, persistence, tests, deployment |
 | [DURIS_RACIAL_IMPORTS.md](../ongoing-projects/DURIS_RACIAL_IMPORTS.md) | Racial innate feats imported from Duris (granted to no race yet) and the Duris player races that were not imported |
 | [DURIS_RACE_FEAT_PROPOSAL.md](../ongoing-projects/DURIS_RACE_FEAT_PROPOSAL.md) | Proposed racial feat sets and tiers for the Duris player races that were not imported |
+| [DURIS_RACE_SPECIFICATIONS.md](../ongoing-projects/DURIS_RACE_SPECIFICATIONS.md) | Proposed stats, registry data, feat levels, and race point scores for those races |
 | [PLAYER_CLASSES_REFERENCE.md](PLAYER_CLASSES_REFERENCE.md) | Playable classes, prestige prerequisites (including the race rows Arcane Archer checks), class unlock costs, and the class side of race/class alignment compatibility |
 | [ADDING_NEW_PLAYER_CLASS_GUIDE.md](ADDING_NEW_PLAYER_CLASS_GUIDE.md) | Class registry and the race/class compatibility and unlock rules that character creation enforces |
 | [PLAYER_MANAGEMENT_SYSTEM.md](../systems/PLAYER_MANAGEMENT_SYSTEM.md) | Account model, `account->races[]` unlock storage, and the `CON_QRACE` / `CON_QRACE_HELP` creation states |
@@ -471,10 +472,11 @@ take the higher.
 | Casting 10 percent faster per rank (a part-tick saving is that percent chance of one tick less; ten ranks make every cast instant) | Fast Casting | 0.5 per rank, up to 10 ranks |
 | Charge into an adjacent room, stun on a connecting charge (Fortitude save) | Bull Charge | 2 |
 | Extra melee attack at full attack bonus, per rank | Extra Arms | 3 per rank |
-| Second weapon pair and doubled arm, hand, wrist slots | Four Arms | provisional, unvalidated |
+| Second weapon pair and doubled arm, hand, wrist slots | Four Arms | 15, exempt from the single-trait cap |
 
 **Drawback refund.** Drawbacks subtract from RP but, like ability penalties,
-are capped: total refund may not exceed 25 percent of the tier budget. A race
+are capped: total refund may not exceed 25 percent of the tier budget, or 7
+for Epic. A race
 that is only affordable because of its drawbacks is fragile in play, because
 players route around drawbacks and keep the power.
 
@@ -496,17 +498,17 @@ players route around drawbacks and keep the power.
 Extra Arms is the general "one more arm" trait at 3 RP per rank (one extra
 full-bonus swing, no extra slots). The Thri-Kreen four-arm mechanic
 (issue #168) is the separate Four Arms innate: a second weapon pair plus
-doubled sleeve, glove and wrist slots. Its price is provisional and not yet
-validated. No race grants it yet; a playable race that does needs these
-decisions first (see the
+doubled sleeve, glove and wrist slots. It is priced at 15 RP and, being unique
+to Thri-Kreen, is exempt from the single-trait cap (composition rule 2). No
+race grants it yet; a playable race that does needs these decisions first
+(see the
 [design study](https://github.com/LuminariMUD/Luminari-Source/blob/e33ed0d6f98d28d4218c98aa57b16de9742ac8c5/docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md)
-for the source mechanics):
+for the source mechanics; the
+[Duris race specifications](../ongoing-projects/DURIS_RACE_SPECIFICATIONS.md#thri-kreen)
+propose answers):
 
-- Tier and price. The study's 8 RP exceeds the 30 percent single-trait cap of
-  every tier (4.2 Advanced, 7.2 Epic), and its 11 RP subtotal ignores the
-  25 percent drawback cap: capped, the proposed Thri-Kreen comes to 18.5 RP as
-  Advanced or 16 RP as Epic, outside both bands. Price Four Arms from
-  low- and high-level damage per round, or record an explicit exception.
+- Tier and price. Decided: Epic at 50000 account experience, with Four Arms
+  at 15 RP.
 - Psionic damage reduction: choose and price a mapping, or omit it and say so.
 - Venom: Poison Bite procs on any damaging hit, so the extra swings amplify
   it; keep it, rescale its level gate, or build a real bite.
@@ -550,9 +552,10 @@ Composition rules, applied inside any tier:
 1. Ability points may not exceed 50 percent of the budget. A race is a set of
    traits, not a stat stick. (Wemic and Vampire currently break this.)
 2. No single trait may exceed 30 percent of the budget. Above that the race
-   is defined by one mechanic and every other choice becomes noise.
+   is defined by one mechanic and every other choice becomes noise. Four
+   Arms, unique to Thri-Kreen, is exempt.
 3. Drawback refund and penalty credit together may not exceed 25 percent of
-   the budget.
+   the budget, or 7 for Epic.
 4. An advanced or epic race should carry at least one trait that scales with
    level. Flat bonuses that matter at level 5 are irrelevant at level 30 and
    make the race feel worse than a normal race late.

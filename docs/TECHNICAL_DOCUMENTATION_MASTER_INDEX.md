@@ -144,6 +144,12 @@ This master index provides a comprehensive guide to all technical documentation 
   as feats (granted to no race yet) and the 37 Duris player races that were not imported
 - **[DURIS_RACE_FEAT_PROPOSAL.md](ongoing-projects/DURIS_RACE_FEAT_PROPOSAL.md)** - Proposed
   racial feat sets for the Duris player races that were not imported
+- **[DURIS_RACE_SPECIFICATIONS.md](ongoing-projects/DURIS_RACE_SPECIFICATIONS.md)** - Proposed
+  stats, registry data, feat levels, and race point scores for those races
+- **[EXTRA_LIMB_MECHANICS.md](ongoing-projects/EXTRA_LIMB_MECHANICS.md)** - The extra arms, four
+  arms, and vestigial arm mechanics, and what a limb-count system would need
+- **[ARM_COUNT_PLAN.md](ongoing-projects/ARM_COUNT_PLAN.md)** - Plan for one arm count that
+  drives hands, wear slots, attacks, and monk strikes, capped at four arms of equipment
 - **[PLAYER_CLASSES_REFERENCE.md](guides/PLAYER_CLASSES_REFERENCE.md)** - Playable class
   reference center: base and prestige classes, unlock costs, prerequisites,
   progression, class skills, feats by level, casting models, spell lists, and links

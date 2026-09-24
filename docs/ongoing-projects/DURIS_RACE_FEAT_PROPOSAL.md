@@ -1,7 +1,7 @@
 # Duris Race Feat Proposal
 
-Status: proposal only, written 2026-09-23, casting ranks revised 2026-09-24; nothing here is
-implemented.
+Status: proposal only, written 2026-09-23, casting ranks and Thri-Kreen tier revised 2026-09-24;
+nothing here is implemented.
 
 This proposal places the [imported racial innate feats](DURIS_RACIAL_IMPORTS.md#what-we-imported)
 on the [Duris races not imported](DURIS_RACIAL_IMPORTS.md#duris-races-not-imported), so each race
@@ -16,7 +16,8 @@ already covers and `FEAT_EXTRA_ARMS` has no Duris source. Those, plus fearlessne
 ([wired](DURIS_RACIAL_IMPORTS.md#existing-feats-wired-or-repurposed) but held by no race), are
 placed by lore fit; two feats stay unassigned (see the [notes](#notes)). The tier column names the
 [race point band](../guides/PLAYER_RACES_REFERENCE.md#tier-budgets) each race would be priced
-against.
+against. Each race's stats, size, alignment, feat levels, race point score, and the feats it needs
+to reach its band are in [DURIS_RACE_SPECIFICATIONS.md](DURIS_RACE_SPECIFICATIONS.md).
 
 ## Feats by race
 
@@ -28,7 +29,7 @@ against.
 | Githyanki | Advanced | plane shift, enhanced spell damage; drop its sun vulnerability, a Duris racewar device rather than gith lore | longsword mastery (elves), psionic blast (Illithid) |
 | Kobold | Normal | underdark stealth, miner and calming (both commented out), fast casting (1 rank) | barter (Halfling, commented out) |
 | Drider | Advanced | quadruped body, leonine frame, groundfighting, web (commented out) | fireball and mass dispel (Drow Elf, its parent race, commented out) |
-| Thri-Kreen | Open | four arms, leap, vulnerable to cold | - |
+| Thri-Kreen | Epic | four arms, leap, vulnerable to cold | - |
 | Minotaur | Advanced | doorbash, bull charge, bloodlust | axe mastery (Mountain Dwarf), scare (Ogre roar), fearlessness (Barbarian) |
 | Death Knight | Epic quest | fire shield, fire storm, sun vulnerability, slow casting (5 ranks) | sacrilegious power (Vampire), undead fealty (Lich) |
 | Wight | Epic quest | bodyslam, doorbash, stoneskin, weakness to fire, slow casting (9 ranks) | frost breath (Barbarian, commented out) |
@@ -38,7 +39,7 @@ against.
 | Kuo Toa | Normal | lightning bolt, water breathing, swamp stealth, sun vulnerability, slow casting (1 rank) | seadog (Human, Orc) |
 | Orog | Advanced | warcaller's fury, sun vulnerability, slow casting (6 ranks) | summon horde and summon warg (Orc), magical reduction (Mountain and Duergar Dwarf) |
 | Harpy | Advanced | fast casting (3 ranks) | farsee (Gnome), innate haste (Duergar Dwarf) |
-| Storm Giant | Advanced | doorbash and lightning bolt (both commented out), slow casting (6 ranks) | thick hide (Troll) |
+| Stormkin (Duris Storm Giant) | Advanced | doorbash and lightning bolt (both commented out), slow casting (6 ranks) | thick hide (Troll) |
 
 ## Notes
 
@@ -52,7 +53,7 @@ against.
   spell's casting time
   ([GAME_MECHANICS_SYSTEMS.md](../systems/GAME_MECHANICS_SYSTEMS.md#racial-innate-feats-and-spell-like-abilities)).
   Slow casting:
-  Wight 1.9 (9 ranks), Orog and Storm Giant 1.6 (6), Death Knight 1.5 (5), Revenant 1.3 (3),
+  Wight 1.9 (9 ranks), Orog and Stormkin 1.6 (6), Death Knight 1.5 (5), Revenant 1.3 (3),
   Shadow Beast and Kuo Toa 1.1 (1), Firbolg 1.055 (1). Fast casting: Phantom and Harpy 0.7 (3),
   Kobold 0.895 (1). Githzerai and Githyanki (0.975), Drider (0.985), Thri-Kreen (1.0), Centaur
   (1.02), and Minotaur (1.04) get none. A fast cast that reaches zero ticks is not a quickened
@@ -71,7 +72,7 @@ against.
 - Existing feats from
   [Duris innates already covered by existing feats](DURIS_RACIAL_IMPORTS.md#duris-innates-already-covered-by-existing-feats)
   come along: `FEAT_ULTRAVISION` on every race except Centaur and Firbolg (no vision innate) and
-  Storm Giant (`FEAT_INFRAVISION`, commented out in Duris); `FEAT_HALF_DROW_SPELL_RESISTANCE` as
+  Stormkin (`FEAT_INFRAVISION`, commented out in Duris); `FEAT_HALF_DROW_SPELL_RESISTANCE` as
   above; `FEAT_SLA_LEVITATE` on both gith; `FEAT_WINGS` on Harpy and Phantom; `FEAT_KEEN_SENSES`
   on Harpy; `FEAT_POISON_BITE` on Thri-Kreen; `FEAT_TROLL_REGENERATION` on Revenant;
   `FEAT_VAMPIRE_GASEOUS_FORM` on Phantom; `FEAT_TIEFLING_HELLISH_RESISTANCE` on Death Knight;
@@ -81,7 +82,9 @@ against.
 - The five descend forms stay far below the epic quest band even with these feats. Duris made
   them strong with melee multipliers, which #164 declined (see
   [Not imported](DURIS_RACIAL_IMPORTS.md#not-imported)), so they need native feats (armor skin
-  stacks, damage reduction, hardy) the way Lich and Vampire have them.
-- Thri-Kreen waits on the open four-arms decisions in the
-  [race point pricing notes](../guides/PLAYER_RACES_REFERENCE.md#race-point-rp-pricing-table):
+  stacks, damage reduction, hardy) the way Lich and Vampire have them; the
+  [descend chassis](DURIS_RACE_SPECIFICATIONS.md#descend-forms) proposes them.
+- Thri-Kreen is an Epic race bought with account experience, not an Epic quest race. The
+  specification [answers](DURIS_RACE_SPECIFICATIONS.md#thri-kreen) the open four-arms decisions in
+  the [race point pricing notes](../guides/PLAYER_RACES_REFERENCE.md#race-point-rp-pricing-table):
   price, psionic damage reduction, venom, riding, and ability adjustments.

@@ -19,6 +19,8 @@ Race point prices:
 [PLAYER_RACES_REFERENCE.md](../guides/PLAYER_RACES_REFERENCE.md#race-point-rp-pricing-table).
 Proposed feats for the races not imported:
 [DURIS_RACE_FEAT_PROPOSAL.md](DURIS_RACE_FEAT_PROPOSAL.md).
+Proposed specifications for those races (stats, registry data, race point scores):
+[DURIS_RACE_SPECIFICATIONS.md](DURIS_RACE_SPECIFICATIONS.md).
 Four-arm design record:
 [THRI_KREEN_FOUR_ARMS.md](https://github.com/LuminariMUD/Luminari-Source/blob/e33ed0d6f98d28d4218c98aa57b16de9742ac8c5/docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md).
 
@@ -210,4 +212,6 @@ To add one, register it with `add_race()` and grant feats from the tables above 
 `feat_race_assignment()`, following [ADDING_NEW_RACE_GUIDE.md](../guides/ADDING_NEW_RACE_GUIDE.md).
 Per-race stat conversions, Duris level gates, and race point scores are in the retired
 [race conversion study](https://github.com/LuminariMUD/Luminari-Source/blob/dba4ca2de4afdbe47fc0d1f6831a1a1f75db1e7e/docs/ongoing-projects/DURIS_RACE_CONVERSION.md).
-A proposed feat set for each race is in [DURIS_RACE_FEAT_PROPOSAL.md](DURIS_RACE_FEAT_PROPOSAL.md).
+A proposed feat set for each race is in [DURIS_RACE_FEAT_PROPOSAL.md](DURIS_RACE_FEAT_PROPOSAL.md),
+and the rest of each race's specification is in
+[DURIS_RACE_SPECIFICATIONS.md](DURIS_RACE_SPECIFICATIONS.md).
