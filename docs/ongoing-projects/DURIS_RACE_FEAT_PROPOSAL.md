@@ -48,9 +48,10 @@ against.
   (Drider, Githyanki, Kuo Toa, Orog, Wight, Phantom), and it would stack a -4 drawback on races
   that mostly carry sun vulnerability already.
 - Casting speed, one rank per 10 percent of the Duris multiplier
-  (`spellcast.pulse.racial.<Race>`), rounded to the nearest rank. The ranks assume the
-  percentage rule in [RACIAL_CASTING_SPEED_PLAN.md](RACIAL_CASTING_SPEED_PLAN.md); under the
-  current rule each rank is one whole tick, so these counts do not apply to it. Slow casting:
+  (`spellcast.pulse.racial.<Race>`), rounded to the nearest rank; each rank is 10 percent of a
+  spell's casting time
+  ([GAME_MECHANICS_SYSTEMS.md](../systems/GAME_MECHANICS_SYSTEMS.md#racial-innate-feats-and-spell-like-abilities)).
+  Slow casting:
   Wight 1.9 (9 ranks), Orog and Storm Giant 1.6 (6), Death Knight 1.5 (5), Revenant 1.3 (3),
   Shadow Beast and Kuo Toa 1.1 (1), Firbolg 1.055 (1). Fast casting: Phantom and Harpy 0.7 (3),
   Kobold 0.895 (1). Githzerai and Githyanki (0.975), Drider (0.985), Thri-Kreen (1.0), Centaur

@@ -19,8 +19,6 @@ Race point prices:
 [PLAYER_RACES_REFERENCE.md](../guides/PLAYER_RACES_REFERENCE.md#race-point-rp-pricing-table).
 Proposed feats for the races not imported:
 [DURIS_RACE_FEAT_PROPOSAL.md](DURIS_RACE_FEAT_PROPOSAL.md).
-Planned change to the casting speed feats:
-[RACIAL_CASTING_SPEED_PLAN.md](RACIAL_CASTING_SPEED_PLAN.md).
 Four-arm design record:
 [THRI_KREEN_FOUR_ARMS.md](https://github.com/LuminariMUD/Luminari-Source/blob/e33ed0d6f98d28d4218c98aa57b16de9742ac8c5/docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md).
 

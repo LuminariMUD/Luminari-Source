@@ -421,12 +421,20 @@ real index; the warg and horde rows are real indexes 36 and 37 and are
 annotated as such.
 
 Racial casting speed is two stackable innates, `FEAT_FAST_CASTING` and
-`FEAT_SLOW_CASTING`, consumed once in `cast_spell()` right after the base
-casting time is read: each slow rank adds a casting tick, each fast rank
-removes one, the two net against each other, and a cast that reaches zero
-completes at once. The adjustment precedes the quicken and other instant-cast
-overrides, so those are never delayed. In standard-action mode every
-non-ritual spell is one tick, so a single fast rank is instant casting.
+`FEAT_SLOW_CASTING`, applied by `racial_casting_time()` once in `cast_spell()`
+right after the base casting time is read. The cast takes
+`base x rate / 100` ticks, where `rate = 100 + 10 x (slow ranks - fast ranks)`
+floored at 0, so each rank is 10 percent of the spell's own casting time and
+the two feats net rank for rank. Whole ticks are kept and the fractional
+remainder becomes one more tick with that percent chance; no roll is made when
+the remainder is zero. A race's ranks therefore reproduce its Duris
+`spellcast.pulse.racial.<Race>` multiplier in both `spellcasting_time_mode`
+settings: in standard-action mode (every non-ritual cast is one tick) three
+fast ranks make a cast instant 30 percent of the time, and ten make every cast
+instant. A cast that reaches zero completes at once but is not a quickened
+cast: in standard-action mode it still costs a standard and a move action. The
+adjustment precedes the sorcerer metamagic surcharge, quicken, and the other
+instant-cast overrides, so a quickened spell is never delayed.
 
 Racial spell power needs no new feat: `FEAT_ENHANCED_SPELL_DAMAGE` is granted
 through the ordinary race level-feat path without its class prerequisites,

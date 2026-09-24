@@ -6183,15 +6183,17 @@ void assign_feats(void)
         "You can use 'summonhorde' once per day to call two to four orc warriors who follow you "
         "for a time.");
   feato(FEAT_FAST_CASTING, "fast casting", TRUE, FALSE, TRUE, FEAT_TYPE_INNATE_ABILITY,
-        "spells take one casting tick less per rank",
-        "Your race casts quickly: every spell and power you cast takes one casting tick less "
-        "per rank of this feat. A cast reduced to no time at all completes at once. Slow "
-        "casting cancels this rank for rank.");
+        "spells take 10 percent less casting time per rank",
+        "Your race casts quickly: every spell and power you cast takes 10 percent less casting "
+        "time per rank of this feat. A part-tick saving is a matching percent chance of one "
+        "tick less, and a cast reduced to no time at all completes at once. Slow casting "
+        "cancels this rank for rank.");
   feato(FEAT_SLOW_CASTING, "slow casting", TRUE, FALSE, TRUE, FEAT_TYPE_INNATE_ABILITY,
-        "spells take one casting tick more per rank",
-        "Your race casts slowly: every spell and power you cast takes one casting tick more "
-        "per rank of this feat. Quickened and other instant casts are not delayed. Fast "
-        "casting cancels this rank for rank.");
+        "spells take 10 percent more casting time per rank",
+        "Your race casts slowly: every spell and power you cast takes 10 percent more casting "
+        "time per rank of this feat. A part-tick delay is a matching percent chance of one "
+        "tick more. Quickened and other instant casts are not delayed. Fast casting cancels "
+        "this rank for rank.");
   feato(FEAT_BULL_CHARGE, "bull charge", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "charge into an adjacent room; a charge that connects can stun",
         "Your charge carries the weight of a bull.  You may 'charge <direction> <target>' to "

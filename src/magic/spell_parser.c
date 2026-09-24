@@ -2561,6 +2561,24 @@ static bool start_casting_activity(struct char_data *ch)
   return primary_activity_start(ch, target, &definition);
 }
 
+/* Racial casting speed: each rank of slow casting adds 10 percent of the casting time and each
+ * rank of fast casting removes 10 percent, netting rank for rank.  Whole ticks are kept and the
+ * fractional remainder becomes one more tick with that percent chance; a cast that reaches zero
+ * completes at once. */
+int racial_casting_time(struct char_data *ch, int casting_time)
+{
+  int rate = 100 + 10 * (HAS_FEAT(ch, FEAT_SLOW_CASTING) - HAS_FEAT(ch, FEAT_FAST_CASTING));
+  int scaled = 0;
+
+  if (rate < 0)
+    rate = 0;
+  scaled = casting_time * rate;
+  casting_time = scaled / 100;
+  if (scaled % 100 > 0 && rand_number(1, 100) <= scaled % 100)
+    casting_time++;
+  return casting_time;
+}
+
 /* cast_spell is used generically to cast any spoken spell, assuming we already
  * have the target char/obj and spell number.  It checks all restrictions,
  * prints the words, etc. Entry point for NPC casts.  Recommended entry point
@@ -2840,12 +2858,9 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
     casting_time = SINFO.time;
   }
 
-  /* racial casting speed: slow casting adds one tick per rank, fast casting removes one; a
-   * cast that reaches zero completes at once.  Applied before the instant-cast overrides so a
-   * quickened spell is never delayed. */
-  casting_time += HAS_FEAT(ch, FEAT_SLOW_CASTING) - HAS_FEAT(ch, FEAT_FAST_CASTING);
-  if (casting_time < 0)
-    casting_time = 0;
+  /* racial casting speed, applied before the instant-cast overrides so a quickened spell is
+   * never delayed */
+  casting_time = racial_casting_time(ch, casting_time);
 
   /* meta magic! */
   if (!IS_NPC(ch))

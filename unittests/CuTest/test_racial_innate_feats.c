@@ -1408,7 +1408,7 @@ static int racial_timed_cast(CuTest *tc, struct innate_fixture *fixture, int fas
     CuAssertTrue(tc, IS_CASTING(caster));
   else
     CuAssertTrue(tc, !IS_CASTING(caster));
-  for (tick = 0; tick < 10U * PASSES_PER_SEC && IS_CASTING(caster); tick++)
+  for (tick = 0; tick < 20U * PASSES_PER_SEC && IS_CASTING(caster); tick++)
   {
     pulse++;
     event_test_advance();
@@ -1465,7 +1465,9 @@ static void end_racial_cast_fixture(struct innate_fixture *fixture,
   end_innate_fixture(fixture);
 }
 
-void Test_racial_casting_feats_shift_a_timed_cast_by_one_tick_per_rank(CuTest *tc)
+/* Each rank is 10 percent of the casting time.  On a 10-tick spell every case is whole ticks, so
+ * no chance roll is made. */
+void Test_racial_casting_feats_scale_a_timed_cast_by_ten_percent_per_rank(CuTest *tc)
 {
   struct innate_fixture fixture;
   struct spell_info_type saved_spell;
@@ -1474,16 +1476,16 @@ void Test_racial_casting_feats_shift_a_timed_cast_by_one_tick_per_rank(CuTest *t
 
   begin_racial_cast_fixture(tc, &fixture, &saved_spell, &saved_mode, &saved_pulse);
   CONFIG_SPELLCASTING_TIME_MODE = 1;
+  spell_info[SPELL_CURE_LIGHT].time = 10;
 
-  CuAssertIntEquals(tc, 2, racial_timed_cast(tc, &fixture, 0, 0));
-  CuAssertIntEquals(tc, 3, racial_timed_cast(tc, &fixture, 0, 1));
-  CuAssertIntEquals(tc, 4, racial_timed_cast(tc, &fixture, 0, 2));
-  CuAssertIntEquals(tc, 1, racial_timed_cast(tc, &fixture, 1, 0));
-  /* two ranks take a two-tick spell to zero: it completes inside cast_spell() */
-  CuAssertIntEquals(tc, 0, racial_timed_cast(tc, &fixture, 2, 0));
-  CuAssertIntEquals(tc, 0, racial_timed_cast(tc, &fixture, 3, 0));
+  CuAssertIntEquals(tc, 10, racial_timed_cast(tc, &fixture, 0, 0));
+  CuAssertIntEquals(tc, 11, racial_timed_cast(tc, &fixture, 0, 1));
+  CuAssertIntEquals(tc, 7, racial_timed_cast(tc, &fixture, 3, 0));
   /* the two feats cancel rank for rank */
-  CuAssertIntEquals(tc, 2, racial_timed_cast(tc, &fixture, 1, 1));
+  CuAssertIntEquals(tc, 10, racial_timed_cast(tc, &fixture, 1, 1));
+  /* ten ranks take the cast to zero: it completes inside cast_spell(); more ranks stay there */
+  CuAssertIntEquals(tc, 0, racial_timed_cast(tc, &fixture, 10, 0));
+  CuAssertIntEquals(tc, 0, racial_timed_cast(tc, &fixture, 12, 0));
 
   end_racial_cast_fixture(&fixture, &saved_spell, saved_mode, saved_pulse);
 }
@@ -1500,10 +1502,36 @@ void Test_racial_casting_feats_apply_in_standard_action_mode(CuTest *tc)
 
   /* standard-action mode casts every non-ritual spell in one tick regardless of SINFO.time */
   CuAssertIntEquals(tc, 1, racial_timed_cast(tc, &fixture, 0, 0));
-  CuAssertIntEquals(tc, 2, racial_timed_cast(tc, &fixture, 0, 1));
-  CuAssertIntEquals(tc, 0, racial_timed_cast(tc, &fixture, 1, 0));
+  CuAssertIntEquals(tc, 0, racial_timed_cast(tc, &fixture, 10, 0));
 
   end_racial_cast_fixture(&fixture, &saved_spell, saved_mode, saved_pulse);
+}
+
+/* A part-tick change is that percent chance of one tick: at three fast ranks a one-tick cast is
+ * instant 30 percent of the time.  600 +/- 110 of 2000 is over five standard deviations, so the
+ * bounds hold for any recorded seed. */
+void Test_racial_casting_time_rolls_the_part_tick_remainder(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  int cast;
+  int ticks;
+  int instant = 0;
+  int out_of_range = 0;
+
+  begin_innate_fixture(&fixture);
+  SET_FEAT(&fixture.ch, FEAT_FAST_CASTING, 3);
+  for (cast = 0; cast < 2000; cast++)
+  {
+    ticks = racial_casting_time(&fixture.ch, 1);
+    if (ticks == 0)
+      instant++;
+    else if (ticks != 1)
+      out_of_range++;
+  }
+  end_innate_fixture(&fixture);
+
+  CuAssertIntEquals(tc, 0, out_of_range);
+  CuAssertTrue(tc, instant >= 490 && instant <= 710);
 }
 
 /* A timed cast's start message leads with the flourish of that cast's own metamagic: the flourish

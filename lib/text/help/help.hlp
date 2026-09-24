@@ -13454,10 +13454,13 @@ Fast Casting (racial innate)
 
 Requires: the fast casting feat
 
-Your race casts quickly. Every spell and power you cast takes one casting
-tick less per rank of this feat, so with one rank an ordinary one-tick spell
-completes at once. Quickened spells are already instant. Slow casting cancels
-this feat rank for rank.
+Your race casts quickly. Every spell and power you cast takes 10 percent less
+casting time per rank of this feat. Whole ticks are saved outright, and a
+part-tick saving is that percent chance of one tick less: with three ranks a
+five-tick spell takes 3 ticks, or 4 half the time, and an ordinary one-tick
+spell completes at once 30 percent of the time. Ten ranks make every cast
+instant. Quickened spells are already instant. Slow casting cancels this feat
+rank for rank.
 
 See also: FEAT INFO FAST CASTING, SLOW-CASTING, QUICKEN-SPELL
 #0
@@ -31966,9 +31969,12 @@ Slow Casting (racial drawback)
 
 Requires: the slow casting feat
 
-Your race casts slowly. Every spell and power you cast takes one casting tick
-more per rank of this feat. Quickened and other instant casts are not delayed.
-Fast casting cancels this feat rank for rank.
+Your race casts slowly. Every spell and power you cast takes 10 percent more
+casting time per rank of this feat. Whole ticks are added outright, and a
+part-tick delay is that percent chance of one tick more: with five ranks a
+five-tick spell takes 7 ticks, or 8 half the time, and an ordinary one-tick
+spell takes 2 ticks half the time. Quickened and other instant casts are not
+delayed. Fast casting cancels this feat rank for rank.
 
 See also: FEAT INFO SLOW CASTING, FAST-CASTING, QUICKEN-SPELL
 #0
