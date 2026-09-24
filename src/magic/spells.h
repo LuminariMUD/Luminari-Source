@@ -2016,7 +2016,7 @@ void test_report_summon_persistence_result(struct char_data *ch, bool saved);
 void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument);
 int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tobj, int spellnum,
                int metamagic);
-int racial_casting_time(struct char_data *ch, int casting_time);
+int scale_casting_time(int casting_time, int percent);
 int manifest_power(struct char_data *ch, struct char_data *tch, int powernum, int augment_psp);
 
 /* other prototypes */

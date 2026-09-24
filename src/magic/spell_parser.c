@@ -2561,18 +2561,16 @@ static bool start_casting_activity(struct char_data *ch)
   return primary_activity_start(ch, target, &definition);
 }
 
-/* Racial casting speed: each rank of slow casting adds 10 percent of the casting time and each
- * rank of fast casting removes 10 percent, netting rank for rank.  Whole ticks are kept and the
- * fractional remainder becomes one more tick with that percent chance; a cast that reaches zero
- * completes at once. */
-int racial_casting_time(struct char_data *ch, int casting_time)
+/* Scales a casting time to percent of itself, a percent below zero counting as zero.  Whole
+ * ticks are kept and the fractional remainder becomes one more tick with that percent chance; no
+ * roll is made when the remainder is zero. */
+int scale_casting_time(int casting_time, int percent)
 {
-  int rate = 100 + 10 * (HAS_FEAT(ch, FEAT_SLOW_CASTING) - HAS_FEAT(ch, FEAT_FAST_CASTING));
   int scaled = 0;
 
-  if (rate < 0)
-    rate = 0;
-  scaled = casting_time * rate;
+  if (percent < 0)
+    percent = 0;
+  scaled = casting_time * percent;
   casting_time = scaled / 100;
   if (scaled % 100 > 0 && rand_number(1, 100) <= scaled % 100)
     casting_time++;
@@ -2858,9 +2856,11 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
     casting_time = SINFO.time;
   }
 
-  /* racial casting speed, applied before the instant-cast overrides so a quickened spell is
-   * never delayed */
-  casting_time = racial_casting_time(ch, casting_time);
+  /* racial casting speed: each slow rank adds 10 percent of the casting time and each fast rank
+   * removes 10 percent.  Applied before the instant-cast overrides so a quickened spell is never
+   * delayed. */
+  casting_time = scale_casting_time(
+      casting_time, 100 + 10 * (HAS_FEAT(ch, FEAT_SLOW_CASTING) - HAS_FEAT(ch, FEAT_FAST_CASTING)));
 
   /* meta magic! */
   if (!IS_NPC(ch))
