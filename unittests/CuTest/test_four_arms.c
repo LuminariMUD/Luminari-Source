@@ -1,6 +1,7 @@
-/* Four arms (FEAT_FOUR_ARMS, issue #168, described in
- * docs/systems/GAME_MECHANICS_SYSTEMS.md): the second weapon pair and the
- * doubled limb slots, exercised through the production equip paths.
+/* Four arms (FEAT_FOUR_ARMS, issue #168) and the arm count that generalized
+ * it (described in docs/systems/GAME_MECHANICS_SYSTEMS.md): the second weapon
+ * pair and the doubled limb slots, exercised through the production equip
+ * paths.
  * Capability sources, anatomy gate, hand budget, placement, lower armor
  * consumers and the restore cases; loss handling, deferral across provider
  * cycles, order-independent restoration; second-pair combat routing
@@ -1388,7 +1389,7 @@ void TestFourArmsDeferredRestoreHonorsBagSort(CuTest *tc)
   end_four_arm_fixture(&fixture);
 }
 
-/* ---- Arm count (docs/ongoing-projects/ARM_COUNT_PLAN.md) ---- */
+/* ---- Arm count (docs/ongoing-projects/EXTRA_LIMB_MECHANICS.md) ---- */
 
 /* the fixture PC is human: its count is 2 plus the human arm adjustment */
 static void set_human_arms(int count)
@@ -1972,6 +1973,30 @@ void TestArmCountLossTrimsHands(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.ch, WEAR_HOLD_1));
   CuAssertPtrEquals(tc, &swords[0], GET_EQ(&fixture.ch, WEAR_WIELD_1));
   CuAssertIntEquals(tc, 1, count_carried(&fixture.ch));
+  strip_character(&fixture.ch);
+
+  /* a closed position also triggers the trim when the hands end no lower
+   * than the last completed check: two hands before and after a deferral
+   * that grew to four arms and fell to one plus the vestigial arm */
+  set_human_arms(2);
+  affect_total(&fixture.ch);
+  limb_defer_begin(&fixture.ch);
+  set_human_arms(4);
+  equip_char(&fixture.ch, &swords[0], WEAR_WIELD_1);
+  equip_char(&fixture.ch, &swords[2], WEAR_WIELD_3);
+  equip_char(&fixture.ch, &orb, WEAR_HOLD_1);
+  equip_char(&fixture.ch, &shield, WEAR_SHIELD);
+  CuAssertIntEquals(tc, 4, hands_used(&fixture.ch));
+  set_human_arms(1);
+  set_vestigial_arm(&fixture, true);
+  limb_defer_end(&fixture.ch);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.ch, WEAR_WIELD_3));
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.ch, WEAR_HOLD_1));
+  CuAssertPtrEquals(tc, &shield, GET_EQ(&fixture.ch, WEAR_SHIELD));
+  CuAssertPtrEquals(tc, &swords[0], GET_EQ(&fixture.ch, WEAR_WIELD_1));
+  CuAssertIntEquals(tc, 2, hands_used(&fixture.ch));
+  set_vestigial_arm(&fixture, false);
+  strip_character(&fixture.ch);
 
   end_four_arm_fixture(&fixture);
 }
