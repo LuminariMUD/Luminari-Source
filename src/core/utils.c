@@ -5686,24 +5686,31 @@ bool second_pair_rejects_object(const struct obj_data *obj, int pos)
  * other kind.  Shared by the wear commands, equip_char() and reconciliation. */
 bool wield_pair_conflicts(const struct char_data *ch, int pos)
 {
-  if (ch == NULL || arm_count(ch) < 3)
+  bool other_kind;
+
+  if (ch == NULL)
     return false;
 
   switch (pos)
   {
   case WEAR_WIELD_1:
   case WEAR_WIELD_OFFHAND:
-    return GET_EQ(ch, WEAR_WIELD_2H) != NULL;
+    other_kind = GET_EQ(ch, WEAR_WIELD_2H) != NULL;
+    break;
   case WEAR_WIELD_2H:
-    return GET_EQ(ch, WEAR_WIELD_1) != NULL || GET_EQ(ch, WEAR_WIELD_OFFHAND) != NULL;
+    other_kind = GET_EQ(ch, WEAR_WIELD_1) != NULL || GET_EQ(ch, WEAR_WIELD_OFFHAND) != NULL;
+    break;
   case WEAR_WIELD_3:
   case WEAR_WIELD_4:
-    return GET_EQ(ch, WEAR_WIELD_2H_2) != NULL;
+    other_kind = GET_EQ(ch, WEAR_WIELD_2H_2) != NULL;
+    break;
   case WEAR_WIELD_2H_2:
-    return GET_EQ(ch, WEAR_WIELD_3) != NULL || GET_EQ(ch, WEAR_WIELD_4) != NULL;
+    other_kind = GET_EQ(ch, WEAR_WIELD_3) != NULL || GET_EQ(ch, WEAR_WIELD_4) != NULL;
+    break;
   default:
     return false;
   }
+  return other_kind && arm_count(ch) >= 3;
 }
 
 int find_armor_type(int specType)

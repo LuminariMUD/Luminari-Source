@@ -143,7 +143,7 @@ bool character_has_tail_wear_slot(const struct char_data *ch)
 
 const char *character_wear_slot_restriction(const struct char_data *ch, int wear_slot)
 {
-  int race_num;
+  int race_num, arms_needed;
 
   if (ch == NULL || wear_slot < 0 || wear_slot >= NUM_WEARS)
     return NULL;
@@ -158,7 +158,8 @@ const char *character_wear_slot_restriction(const struct char_data *ch, int wear
 
   /* arm count: checked for NPCs too.  A lower-arm slot then follows its base
    * position's anatomy rules. */
-  if (arm_count(ch) < wear_slot_arms_needed(wear_slot))
+  arms_needed = wear_slot_arms_needed(wear_slot);
+  if (arms_needed > 0 && arm_count(ch) < arms_needed)
     return "You do not have enough arms to use that equipment slot.";
   wear_slot = four_arm_slot_base(wear_slot);
 
