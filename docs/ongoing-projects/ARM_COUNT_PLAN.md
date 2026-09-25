@@ -1,9 +1,12 @@
 # Arm Count Plan
 
-Status: implementation plan, written 2026-09-24, reviewed against the checkout 2026-09-25.
-Implementation in progress (2026-09-25): steps 1 to 4 are in the code and the existing suite
-passes; step 5 (new regression coverage) and step 6 (documentation and help) remain. This
-replaces the three separate mechanics in
+Status: implemented 2026-09-25; every step below is done and verified (`make test`, 1816 tests,
+including 17 `TestArmCount*` cases). The durable record is
+[EXTRA_LIMB_MECHANICS.md](EXTRA_LIMB_MECHANICS.md), which also carries the open pricing work, so
+this plan is retired. Choices made while implementing: a bow or crossbow in `WIELD_1` still doubles
+its item bonuses, since it already holds its two hands; the completed-restore budget check is
+`limb_restore_validate()`; and `hands_used()` charges hands through one per-position cost that the
+wear command, unsheath and reconciliation share. This replaces the three separate mechanics in
 [EXTRA_LIMB_MECHANICS.md](EXTRA_LIMB_MECHANICS.md) with an arm count, answering
 [What a limb count would need](EXTRA_LIMB_MECHANICS.md#what-a-limb-count-would-need) with
 equipment capped at four arms.

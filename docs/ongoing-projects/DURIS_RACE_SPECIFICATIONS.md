@@ -216,7 +216,8 @@ lost slots (6) and its cold vulnerability (1). These are answers to the open dec
 [race point pricing notes](../guides/PLAYER_RACES_REFERENCE.md#race-point-rp-pricing-table):
 
 1. Price. Four arms is 15 RP. It is unique to Thri-Kreen, so it is exempt from the single-trait
-   cap (7.2 at Epic). What it adds is in [EXTRA_LIMB_MECHANICS.md](EXTRA_LIMB_MECHANICS.md).
+   cap (7.2 at Epic). What it adds is in [EXTRA_LIMB_MECHANICS.md](EXTRA_LIMB_MECHANICS.md); the
+   unarmed monk third hand that came with the arm count is not priced into it.
 2. Psionic defence. Trelux already takes 20 percent less `DAM_MENTAL` damage through a race check
    in `compute_damtype_reduction()` (`src/combat/fight.c`). Make that check a feat, granted to
    Trelux and Thri-Kreen, at 1 RP. This follows how the imports turned the Trelux cold and leap

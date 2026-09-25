@@ -43,9 +43,9 @@ to reach its band are in [DURIS_RACE_SPECIFICATIONS.md](DURIS_RACE_SPECIFICATION
 
 ## Notes
 
-- Unassigned. `FEAT_EXTRA_ARMS`: four arms covers Thri-Kreen, and the
-  [race point reference](../guides/PLAYER_RACES_REFERENCE.md#race-point-rp-pricing-table) says not
-  to grant both. `FEAT_DAYBLIND`: Duris commented it out on all six of these races that list it
+- Unassigned. `FEAT_EXTRA_ARMS`: four arms covers Thri-Kreen, adding both would make six arms,
+  and the [race point reference](../guides/PLAYER_RACES_REFERENCE.md#race-point-rp-pricing-table)
+  says not to grant both. `FEAT_DAYBLIND`: Duris commented it out on all six of these races that list it
   (Drider, Githyanki, Kuo Toa, Orog, Wight, Phantom), and it would stack a -4 drawback on races
   that mostly carry sun vulnerability already.
 - Casting speed, one rank per 10 percent of the Duris multiplier

@@ -95,8 +95,8 @@ covered those innates as well.
 | 1317 | `FEAT_SLOW_CASTING` (slow casting, stackable) | - | `spellcast.pulse.racial.<Race>` above 1.0 |
 | 1318 | `FEAT_BULL_CHARGE` (bull charge) | `charge <direction> <target>` | `INNATE_CHARGE`: Minotaur (its stun and one-room reach) |
 | 1319 | `FEAT_BLOODLUST` (bloodlust) | - | `minotaur_race_proc()` in `src/classes/drannak.c`: Minotaur |
-| 1320 | `FEAT_EXTRA_ARMS` (extra arms, stackable) | - | None: general extra-arm trait kept from the rejected Thri-Kreen stand-in |
-| 1321 | `FEAT_FOUR_ARMS` (four arms) | - | `HAS_FOUR_HANDS()` in `src/core/utils.h`: Thri-Kreen |
+| 1320 | `FEAT_EXTRA_ARMS` (extra arms, stackable) | - | None: one more arm per rank toward `arm_count()`, kept from the rejected Thri-Kreen stand-in |
+| 1321 | `FEAT_FOUR_ARMS` (four arms) | - | `HAS_FOUR_HANDS()` in `src/core/utils.h`: Thri-Kreen; two more arms toward `arm_count()` |
 
 ### Existing feats wired or repurposed
 
@@ -156,8 +156,9 @@ No code changed for these; a race import grants the existing feat.
 - Summoned mobs: warg 19502 and orc warrior 19503 (`PET_RACIAL_WARG`, `PET_RACIAL_ORC_WARRIOR` in
   `src/config/pet_vnums.h`), shipped in `data/pet-lycanthropes/195.mob` and installed by
   `scripts/world/install_pet_constructs.py`.
-- Equipment: seven four-arm wear positions, `WEAR_WIELD_3` (44) to `WEAR_WRIST_L2` (50), with
-  `NUM_WEARS` 51, and the attack types `ATTACK_TYPE_THIRD` and `ATTACK_TYPE_FOURTH`.
+- Equipment: seven lower-arm wear positions, `WEAR_WIELD_3` (44) to `WEAR_WRIST_L2` (50), with
+  `NUM_WEARS` 51, and the attack types `ATTACK_TYPE_THIRD` and `ATTACK_TYPE_FOURTH`. Since
+  2026-09-25 they open by arm count ([EXTRA_LIMB_MECHANICS.md](EXTRA_LIMB_MECHANICS.md)).
 - Help: 55 entries, one per new feat plus `INNATE-HASTE`, in
   `sql/components/help_other_racial_innate_entries.sql` and `lib/text/help/help.hlp`.
 - Tests: `unittests/CuTest/test_racial_innate_feats.c` (46 tests) and

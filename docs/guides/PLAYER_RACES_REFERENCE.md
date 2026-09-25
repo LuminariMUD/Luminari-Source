@@ -471,8 +471,8 @@ take the higher.
 | Caster level bonus (level / 6) | Magical Heritage | 2 |
 | Casting 10 percent faster per rank (a part-tick saving is that percent chance of one tick less; ten ranks make every cast instant) | Fast Casting | 0.5 per rank, up to 10 ranks |
 | Charge into an adjacent room, stun on a connecting charge (Fortitude save) | Bull Charge | 2 |
-| Extra melee attack at full attack bonus, per rank | Extra Arms | 3 per rank |
-| Second weapon pair and doubled arm, hand, wrist slots | Four Arms | 15, exempt from the single-trait cap |
+| One more arm per rank toward the arm count | Extra Arms | 3 per rank (set for the old extra swing; under review) |
+| Two more arms: the lower weapon pair and doubled arm, hand, wrist slots | Four Arms | 15, exempt from the single-trait cap |
 
 **Drawback refund.** Drawbacks subtract from RP but, like ability penalties,
 are capped: total refund may not exceed 25 percent of the tier budget, or 7
@@ -495,13 +495,17 @@ players route around drawbacks and keep the power.
 | Casting 10 percent slower per rank (a part-tick delay is that percent chance of one tick more) | Slow Casting | -0.25 per rank, refund counted for up to 5 ranks |
 | Uncontrolled rage below half hit points (no casting, no fleeing) | Bloodlust | -2 |
 
-Extra Arms is the general "one more arm" trait at 3 RP per rank (one extra
-full-bonus swing, no extra slots). The Thri-Kreen four-arm mechanic
-(issue #168) is the separate Four Arms innate: a second weapon pair plus
-doubled sleeve, glove and wrist slots. It is priced at 15 RP and, being unique
-to Thri-Kreen, is exempt from the single-trait cap (composition rule 2). No
-race grants it yet; a playable race that does needs these decisions first
-(see the
+Arms are a count (see
+[EXTRA_LIMB_MECHANICS.md](../ongoing-projects/EXTRA_LIMB_MECHANICS.md)).
+Extra Arms is the general trait: one more full arm per rank, so its third
+arm opens the third hand, lower sleeves and gloves and a third wrist, and its
+fourth the rest of the lower pair. It no longer adds a swing of its own, so
+its 3 RP per rank, set for that swing, is under review and no race grants it.
+The Thri-Kreen mechanic (issue #168) is the Four Arms innate: two more arms,
+giving a second weapon pair plus doubled sleeve, glove and wrist slots, and an
+unarmed third hand for monks. It is priced at 15 RP and, being unique to
+Thri-Kreen, is exempt from the single-trait cap (composition rule 2). No race
+grants it yet; a playable race that does needs these decisions first (see the
 [design study](https://github.com/LuminariMUD/Luminari-Source/blob/e33ed0d6f98d28d4218c98aa57b16de9742ac8c5/docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md)
 for the source mechanics; the
 [Duris race specifications](../ongoing-projects/DURIS_RACE_SPECIFICATIONS.md#thri-kreen)
@@ -517,7 +521,8 @@ propose answers):
 - Ability adjustments: re-evaluate the proposed +2 Str, +1 Con, +3 Dex,
   -4 Int, -4 Wis, -3 Cha.
 
-Do not grant both traits automatically.
+Do not grant both traits automatically: together they make six arms, not
+the same four arms described twice.
 
 Alignment restrictions and forced class respecs are not priced. They shape
 who plays the race; they do not change how strong the race is once played.
