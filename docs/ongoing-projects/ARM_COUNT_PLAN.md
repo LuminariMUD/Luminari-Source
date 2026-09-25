@@ -1,7 +1,9 @@
 # Arm Count Plan
 
 Status: implementation plan, written 2026-09-24, reviewed against the checkout 2026-09-25.
-The count changes below are not implemented. This replaces the three separate mechanics in
+Implementation in progress (2026-09-25): steps 1 to 4 are in the code and the existing suite
+passes; step 5 (new regression coverage) and step 6 (documentation and help) remain. This
+replaces the three separate mechanics in
 [EXTRA_LIMB_MECHANICS.md](EXTRA_LIMB_MECHANICS.md) with an arm count, answering
 [What a limb count would need](EXTRA_LIMB_MECHANICS.md#what-a-limb-count-would-need) with
 equipment capped at four arms.

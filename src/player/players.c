@@ -2527,7 +2527,7 @@ bool save_char_checked(struct char_data *ch, int mode)
 {
   FILE *fl;
   bool save_ok = TRUE;
-  bool four_arms_deferred = FALSE;
+  bool limb_deferred = FALSE;
   bool old_mute_equip_messages = FALSE;
   const char *account_name = NULL;
   char filename[40] = {'\0'}, bits[127] = {'\0'}, bits2[127] = {'\0'}, bits3[127] = {'\0'},
@@ -2592,7 +2592,7 @@ bool save_char_checked(struct char_data *ch, int mode)
     {                                                                                              \
       log("SYSERR: save_char: Buffer formatting or allocation failed");                            \
       save_ok = FALSE;                                                                             \
-      goto save_char_restore; /* re-equip, re-affect, end the four-arm deferral */                 \
+      goto save_char_restore; /* re-equip, re-affect, end the arm-count deferral */                \
     }                                                                                              \
   } while (0)
 
@@ -2707,10 +2707,10 @@ bool save_char_checked(struct char_data *ch, int mode)
    * and wear messages while the equipment hooks run. */
   old_mute_equip_messages = ch->mute_equip_messages;
   ch->mute_equip_messages = TRUE;
-  /* providers leave and return with the rest of the gear: no four-arm
+  /* providers leave and return with the rest of the gear: no arm count
    * reconciliation until the matching re-equip pass below has finished */
-  four_arms_defer_begin(ch);
-  four_arms_deferred = TRUE;
+  limb_defer_begin(ch);
+  limb_deferred = TRUE;
   for (i = 0; i < NUM_WEARS; i++)
   {
     if (GET_EQ(ch, i))
@@ -4177,9 +4177,14 @@ save_char_restore:
   old_mute_equip_messages = ch->mute_equip_messages;
   ch->mute_equip_messages = TRUE;
 
-  for (i = 0; i < NUM_WEARS; i++)
-  {
-    if (char_eq[i])
+  /* A position the arm count closes until its provider is back waits for a
+   * second pass.  Providers only count from positions the intrinsic arms
+   * open, so every valid item is in place after that one retry. */
+  for (j = 0; j < 2; j++)
+    for (i = 0; i < NUM_WEARS; i++)
+    {
+      if (char_eq[i] == NULL || (j == 0 && wear_slot_arms_needed(i) > arm_count(ch)))
+        continue;
 #ifndef NO_EXTRANEOUS_TRIGGERS
       if (wear_otrigger(char_eq[i], ch, i))
 #endif
@@ -4188,11 +4193,12 @@ save_char_restore:
       else
         obj_to_char(char_eq[i], ch);
 #endif
-  }
+      char_eq[i] = NULL;
+    }
 
   ch->mute_equip_messages = old_mute_equip_messages;
-  if (four_arms_deferred)
-    four_arms_defer_end(ch);
+  if (limb_deferred)
+    limb_defer_end(ch);
 
   /* end char_to_store code */
 

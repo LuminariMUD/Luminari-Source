@@ -1384,8 +1384,8 @@ void affect_batch_end(struct char_data *ch)
     ch->char_specials.affect_batch_dirty = FALSE;
     update_msdp_affects(ch);
   }
-  if (ch->char_specials.affect_batch_depth == 0 && ch->four_arms_dirty)
-    four_arms_reconcile(ch);
+  if (ch->char_specials.affect_batch_depth == 0 && ch->limb_dirty)
+    limb_reconcile(ch);
 }
 
 /* This updates a character by subtracting everything he is affected by
@@ -1418,8 +1418,8 @@ void affect_total(struct char_data *ch)
   if (!defer_msdp)
     update_msdp_affects(ch);
 
-  /* four arms: a completed change may have closed the four-arm slots */
-  four_arms_reconcile(ch);
+  /* arm count: a completed change may have closed positions or hands */
+  limb_reconcile(ch);
 }
 
 static bool affect_changes_mobile_reactions(const struct affected_type *af)
@@ -2596,7 +2596,8 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
     obj_to_char(obj, ch);
     return;
   }
-  if (!character_can_use_wear_slot(ch, pos) || second_pair_rejects_object(obj, pos))
+  if (!character_can_use_wear_slot(ch, pos) || second_pair_rejects_object(obj, pos) ||
+      wield_pair_conflicts(ch, pos))
   {
     obj_to_char(obj, ch);
     return;

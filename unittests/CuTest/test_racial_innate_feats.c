@@ -870,8 +870,9 @@ void TestBattleFrenzyGate(CuTest *tc)
   end_innate_fixture(&fixture);
 }
 
-/* Extra arms adds one melee attack per rank and never touches the ranged count. */
-void TestExtraArmsAddMeleeAttacksPerRankOnly(CuTest *tc)
+/* Extra arms is one more full arm per rank toward the arm count, not a swing:
+ * empty lower hands add no melee attack and the ranged count never changes. */
+void TestExtraArmsAddArmsNotAttacks(CuTest *tc)
 {
   struct innate_fixture fixture;
   struct obj_data bow;
@@ -888,15 +889,16 @@ void TestExtraArmsAddMeleeAttacksPerRankOnly(CuTest *tc)
   GET_EQ(&fixture.ch, WEAR_WIELD_1) = &bow;
   ranged_attacks = perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0);
   GET_EQ(&fixture.ch, WEAR_WIELD_1) = NULL;
+  CuAssertIntEquals(tc, 2, arm_count(&fixture.ch));
 
   SET_FEAT(&fixture.ch, FEAT_EXTRA_ARMS, 1);
-  CuAssertIntEquals(tc, melee_attacks + 1,
-                    perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0));
+  CuAssertIntEquals(tc, 3, arm_count(&fixture.ch));
+  CuAssertIntEquals(tc, melee_attacks, perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0));
 
-  /* the Thri-Kreen shape: two extra arms, two extra swings */
+  /* two ranks: the same count as four arms, still no swing without weapons */
   SET_FEAT(&fixture.ch, FEAT_EXTRA_ARMS, 2);
-  CuAssertIntEquals(tc, melee_attacks + 2,
-                    perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0));
+  CuAssertIntEquals(tc, 4, arm_count(&fixture.ch));
+  CuAssertIntEquals(tc, melee_attacks, perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0));
 
   GET_EQ(&fixture.ch, WEAR_WIELD_1) = &bow;
   CuAssertIntEquals(tc, ranged_attacks, perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0));

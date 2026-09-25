@@ -156,14 +156,11 @@ const char *character_wear_slot_restriction(const struct char_data *ch, int wear
   if ((wear_slot == WEAR_LEGS || wear_slot == WEAR_FEET) && HAS_FEAT(ch, FEAT_LEONINE_FRAME))
     return "Your four-legged body cannot wear leg or foot equipment.";
 
-  /* four-arm slots: feat-driven like the leonine frame, checked for NPCs too.
-   * The doubled slot then follows its base position's anatomy rules. */
-  if (is_four_arm_wear_slot(wear_slot))
-  {
-    if (!has_four_arms(ch))
-      return "You would need four arms to use that equipment slot.";
-    wear_slot = four_arm_slot_base(wear_slot);
-  }
+  /* arm count: checked for NPCs too.  A lower-arm slot then follows its base
+   * position's anatomy rules. */
+  if (arm_count(ch) < wear_slot_arms_needed(wear_slot))
+    return "You do not have enough arms to use that equipment slot.";
+  wear_slot = four_arm_slot_base(wear_slot);
 
   if (IS_NPC(ch))
     return NULL;
@@ -266,6 +263,7 @@ static void initialize_races(void)
                           N);
     for (wear_slot = 0; wear_slot < NUM_WEARS; wear_slot++)
       race_list[i].wear_slot_restrictions[wear_slot] = NULL;
+    race_list[i].arm_adjust = 0;
 
     /* any linked lists to initailze? */
   }

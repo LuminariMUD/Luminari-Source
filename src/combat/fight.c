@@ -15240,16 +15240,16 @@ int valid_fight_cond(struct char_data *ch, bool strict)
 
 static bool attack_number_runs_in_phase(int attack_number, int phase, int attack_type);
 
-/* Four arms: one second-pair attack candidate.  It takes the next ordinal
- * (consumed whether or not its mirror roll succeeds, so later attacks never
- * move phases), adds its chance to the expected total, prints its row in
- * display mode, and in the normal routine rolls once, in its own phase, after
- * the fight is verified.  A missing weapon is no candidate at all. */
+/* Second pair: one attack candidate.  It takes the next ordinal (consumed
+ * whether or not its mirror roll succeeds, so later attacks never move
+ * phases), adds its chance to the expected total, prints its row in display
+ * mode, and in the normal routine rolls once, in its own phase, after the
+ * fight is verified.  An ineligible hand is no candidate at all. */
 static void second_pair_candidate(struct char_data *ch, int mode, int phase, int *ordinal,
-                                  int *expected, int chance, int attack_type,
-                                  struct obj_data *weapon, int penalty, const char *label)
+                                  int *expected, int chance, int attack_type, bool eligible,
+                                  int penalty, const char *label)
 {
-  if (weapon == NULL)
+  if (!eligible)
     return;
   (*ordinal)++;
   *expected += chance;
@@ -15271,29 +15271,34 @@ static void second_pair_candidate(struct char_data *ch, int mode, int phase, int
   }
 }
 
-/* Four arms: the second weapon pair mirrors the first pair's attack
+/* The second weapon pair (three arms and up) mirrors the first pair's attack
  * opportunities from the round's planned counters: the third-hand base swing,
- * the fourth-hand swing when the pair is dual, the haste swing, the BAB and
- * flurry bonus swings with their iterative penalties, and the trained extra
- * fourth-hand swings.  Mirror chance: 50 percent, +25 with effective
- * two-weapon training, +25 with improved training (is_skilled_dualer(), so
- * NPC training counts the same way).  Returns the count-mode addition: the
- * floor of the summed chances, rounded once. */
+ * the fourth-hand swing when four arms make the pair dual, the haste swing,
+ * the BAB and flurry bonus swings with their iterative penalties, and the
+ * trained extra fourth-hand swings.  The third hand needs a weapon, or an
+ * empty third position on a monk whose gear allows martial arts (an unarmed
+ * THIRD attack with monk dice); the fourth hand always needs a weapon.
+ * Mirror chance: 50 percent, +25 with effective two-weapon training, +25 with
+ * improved training (is_skilled_dualer(), so NPC training counts the same
+ * way).  Returns the count-mode addition: the floor of the summed chances,
+ * rounded once. */
 static int perform_second_pair_attacks(struct char_data *ch, int mode, int phase, int first_ordinal,
                                        int base_penalty, int planned_bonus, int planned_max_bab,
                                        bool hasted)
 {
-  struct obj_data *third, *fourth;
-  bool dual;
-  int chance, ordinal = first_ordinal, expected = 0, penalty = base_penalty, i;
+  bool third, dual;
+  int arms, chance, ordinal = first_ordinal, expected = 0, penalty = base_penalty, i;
   int max_bab = planned_max_bab;
 
-  if (!has_four_arms(ch) || VITAL_STRIKING(ch) || IS_WILDSHAPED(ch) || IS_MORPHED(ch))
+  arms = arm_count(ch);
+  if (arms < 3 || VITAL_STRIKING(ch) || IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     return 0;
-  third = get_wielded(ch, ATTACK_TYPE_THIRD);
-  fourth = get_wielded(ch, ATTACK_TYPE_FOURTH);
-  dual = is_dual_wielding_second_pair(ch) && fourth != NULL;
-  if (third == NULL && !dual)
+  third = get_wielded(ch, ATTACK_TYPE_THIRD) != NULL ||
+          (MONK_TYPE(ch) && monk_gear_ok(ch) && !GET_EQ(ch, WEAR_WIELD_3) &&
+           !GET_EQ(ch, WEAR_WIELD_2H_2));
+  dual =
+      arms >= 4 && is_dual_wielding_second_pair(ch) && get_wielded(ch, ATTACK_TYPE_FOURTH) != NULL;
+  if (!third && !dual)
     return 0;
 
   chance = 50 + (is_skilled_dualer(ch, MODE_2_WPN) ? 25 : 0) +
@@ -15301,9 +15306,8 @@ static int perform_second_pair_attacks(struct char_data *ch, int mode, int phase
 
   second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_THIRD, third,
                         penalty, "Third hand");
-  if (dual)
-    second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH, fourth,
-                          penalty * 2, "Fourth hand");
+  second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH, dual,
+                        penalty * 2, "Fourth hand");
   if (hasted)
   {
     max_bab--;
@@ -15322,14 +15326,14 @@ static int perform_second_pair_attacks(struct char_data *ch, int mode, int phase
   if (dual && !IS_NPC(ch))
   {
     if (is_skilled_dualer(ch, MODE_IMP_2_WPN))
-      second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH,
-                            fourth, TWO_WPN_PNLTY, "Fourth hand (Improved 2 Weapon Fighting)");
+      second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH, dual,
+                            TWO_WPN_PNLTY, "Fourth hand (Improved 2 Weapon Fighting)");
     if (is_skilled_dualer(ch, MODE_GREAT_2_WPN))
-      second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH,
-                            fourth, GREAT_TWO_PNLY, "Fourth hand (Great 2 Weapon Fighting)");
+      second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH, dual,
+                            GREAT_TWO_PNLY, "Fourth hand (Great 2 Weapon Fighting)");
     if (is_skilled_dualer(ch, MODE_EPIC_2_WPN))
-      second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH,
-                            fourth, EPIC_TWO_PNLTY, "Fourth hand (Epic 2 Weapon Fighting)");
+      second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH, dual,
+                            EPIC_TWO_PNLTY, "Fourth hand (Epic 2 Weapon Fighting)");
   }
 
   return expected / 100;
@@ -15804,17 +15808,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   /***/
   /*  End ranged attacks ---------------------------------------------------- */
 
-  /* extra arms (the Thri-Kreen four-arm stand-in): each rank of the racial
-   * innate is one more melee attack at full base attack bonus.  It sits after
-   * the ranged routines on purpose so bows and thrown weapons never gain it. */
-  if (HAS_FEAT(ch, FEAT_EXTRA_ARMS) > 0)
-  {
-    bonus_mainhand_attacks += HAS_FEAT(ch, FEAT_EXTRA_ARMS);
-    attacks_at_max_bab += HAS_FEAT(ch, FEAT_EXTRA_ARMS);
-  }
-
-  /* four arms: the second pair mirrors this round's planned counters, read
-   * here before the first pair's loops consume them */
+  /* the second pair mirrors this round's planned counters, read here before
+   * the first pair's loops consume them */
   second_pair_base_penalty = penalty;
   second_pair_planned_bonus = bonus_mainhand_attacks;
   second_pair_planned_max_bab = attacks_at_max_bab;
@@ -16282,7 +16277,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     }
   }
 
-  /* four arms: the second pair, after every ordinary attack of the round */
+  /* the second pair (three arms and up), after every ordinary attack */
   numAttacks += perform_second_pair_attacks(ch, mode, phase, numAttacks, second_pair_base_penalty,
                                             second_pair_planned_bonus, second_pair_planned_max_bab,
                                             second_pair_hasted);
