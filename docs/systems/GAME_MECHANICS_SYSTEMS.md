@@ -421,12 +421,22 @@ real index; the warg and horde rows are real indexes 36 and 37 and are
 annotated as such.
 
 Racial casting speed is two stackable innates, `FEAT_FAST_CASTING` and
-`FEAT_SLOW_CASTING`, consumed once in `cast_spell()` right after the base
-casting time is read: each slow rank adds a casting tick, each fast rank
-removes one, the two net against each other, and a cast that reaches zero
-completes at once. The adjustment precedes the quicken and other instant-cast
-overrides, so those are never delayed. In standard-action mode every
-non-ritual spell is one tick, so a single fast rank is instant casting.
+`FEAT_SLOW_CASTING`, applied through `scale_casting_time()` once in
+`cast_spell()` right after the base casting time is read. The cast takes
+`base x rate / 100` ticks, where `rate = 100 + 10 x (slow ranks - fast ranks)`
+floored at 0, so each rank is 10 percent of the spell's own casting time and
+the two feats net rank for rank. Whole ticks are kept and the fractional
+remainder becomes one more tick with that percent chance; no roll is made when
+the remainder is zero. A race's ranks therefore reproduce its Duris
+`spellcast.pulse.racial.<Race>` multiplier in both `spellcasting_time_mode`
+settings: in standard-action mode (every non-ritual cast is one tick) three
+fast ranks make a cast instant 30 percent of the time, and ten make every cast
+instant. A cast that reaches zero completes at once but is not a quickened
+cast: in standard-action mode it still costs a standard and a move action. The
+adjustment precedes the sorcerer metamagic surcharge, quicken, and the other
+instant-cast overrides, so a quickened spell is never delayed.
+`scale_casting_time(casting_time, percent)` holds no feat logic; use it for any
+percentage change to a casting time.
 
 Racial spell power needs no new feat: `FEAT_ENHANCED_SPELL_DAMAGE` is granted
 through the ordinary race level-feat path without its class prerequisites,
@@ -434,51 +444,96 @@ stacks per grant, and `mag_damage()` reads it through `HAS_FEAT()` for every
 spell-number damage roll. Price it from the race point table when a race takes
 it; spell DCs are left to the existing focus feats.
 
-`FEAT_EXTRA_ARMS`, the one stackable innate in the set, is the general
-"one more arm" trait: `perform_attacks()` in `src/combat/fight.c` adds one
-melee attack at full base attack bonus per rank, after the ranged routines so
-launchers and thrown weapons never gain it. It brings no equipment slots.
+Arms are a count. `arm_count()` in `src/core/utils.c` is the only source for
+arm-dependent equipment and combat; nothing tests a race or an arm feat
+directly. It starts at 2, adds a PC race's signed `race_data.arm_adjust` (0
+for every race today; the wild-shape disguise race while its feats are in
+use; an NPC's `GET_RACE()` is a `RACE_TYPE_*` family, so NPCs start at 2),
+2 for `FEAT_FOUR_ARMS` and 1 per rank of the stackable `FEAT_EXTRA_ARMS`,
+and clamps at 0. NPCs and wild shapes read mob feats; other PCs read their
+own feats and also `APPLY_FEAT` items, but only items worn in positions the
+intrinsic count already opens: an item never sustains its own position or
+unlocks one for another provider. Each item adds at most one Extra Arms
+rank, and Four Arms adds its two arms once across every source. Extra Arms
+adds no attack of its own. `hands_have()` (exported from `src/act/act.h`) is
+the count plus one for the alchemist's vestigial arm, which holds an item but
+opens no position and makes no attack.
 
-The Thri-Kreen four-arm mechanic is `FEAT_FOUR_ARMS`, tested through
-`has_four_arms()` in `src/core/utils.c` (never a race constant). Grant sources
-are mob feats for NPCs and disguised wild shapes, the character's own feat,
-and `APPLY_FEAT` items worn in ordinary slots; an item in one of the seven
-four-arm slots cannot sustain the arms. The slots are appended after the
-tail (`WEAR_WIELD_3`, `WEAR_WIELD_4`, `WEAR_WIELD_2H_2`, `WEAR_ARMS_2`,
-`WEAR_HANDS_2`, `WEAR_WRIST_R2`, `WEAR_WRIST_L2`; `NUM_WEARS` 51) and reuse
-the wield, arms, hands and wrist wear flags. `hands_have()` adds two hands;
-`hands_used()` counts the second pair. Weapons form two pairs: a pair holds
-its two one-handers or its one two-hander, never both, and the second pair
-takes melee weapons only (`second_pair_rejects_object()`), enforced in
-`perform_wear_impl()` and again in `equip_char()` so zone loads and object
-restoration cannot bypass it. Two-armed characters keep the old first-pair
-behavior. Lower sleeves join `apply_ac()`, enhancement, spell failure, armor
-penalty, max Dexterity, sleeve proficiency and whole-body conflicts.
-Saved object `Loc` 45..51 restore into the new slots; `auto_equip()` holds
-four-arm gear whose provider item comes later in the record set and
-`crash_restore_records()` retries it once the whole set is loaded. Losing
-the capability is reconciled by `four_arms_reconcile()` from
-`affect_total()`: the seven slots empty into inventory in a fixed order and
-the old hand positions are trimmed to two hands (held items first, primary
-weapon last). `save_char()` brackets its unequip/re-equip cycle with
-`four_arms_defer_begin()`/`four_arms_defer_end()` so a temporarily removed
-provider never moves gear. Combat: `ATTACK_TYPE_THIRD` and `ATTACK_TYPE_FOURTH` are the second pair's
+`wear_slot_arms_needed()` gives each position's requirement: one arm for the
+primary weapon, both held positions, shield, gloves, sleeves, right wrist and
+rings; two for the offhand weapon, both two-hand positions and the left wrist;
+three for `WEAR_WIELD_3`, `WEAR_HANDS_2`, `WEAR_ARMS_2` and `WEAR_WRIST_R2`;
+four for `WEAR_WIELD_4`, `WEAR_WIELD_2H_2` and `WEAR_WRIST_L2`. The seven
+lower positions sit after the tail (`NUM_WEARS` 51) and reuse the wield, arms,
+hands and wrist wear flags. `character_wear_slot_restriction()` checks the
+count for NPCs too, reporting "You do not have enough arms to use that
+equipment slot.", then applies the base position's race anatomy
+(`four_arm_slot_base()`). Arms past four open nothing; they only add hands.
+`hands_used()` charges every hand position, a bow or crossbow two hands even
+in a one-hand position. Weapons form two pairs; from three arms up a pair
+holds its one-handers or its two-hander, never both
+(`wield_pair_conflicts()`), and the second pair takes melee weapons only
+(`second_pair_rejects_object()`). Both rules hold in `perform_wear_impl()` and
+again in `equip_char()` so zone loads and object restoration cannot bypass
+them. With two arms or fewer the first pair keeps its old lenient placement.
+The wear command picks only open positions, charges the exact hand cost of
+the resolved position, routes a size-required two-hand item to its pair's
+two-hand position, and reports a full set at every count. Lower sleeves join
+`apply_ac()`, enhancement, spell failure, armor penalty, max Dexterity, sleeve
+proficiency and whole-body conflicts. A first-pair one-hander doubles its item
+bonuses only with an actual spare hand (`is_weapon_wielded_two_handed()`), and
+a lone third-hand one-hander only with a hand left once the first pair takes
+its share (`second_pair_spare_hands()`). `do_unsheath()` draws each sheathed
+item only into an open, empty first-pair position with the hands to spare,
+leaving the rest sheathed for a later `unsheath`.
+
+Losses are reconciled by `limb_reconcile()` from `affect_total()`: positions
+the count closes empty into inventory (lower positions, then two-arm, then
+one-arm ones, the primary weapon last), re-reading the count after every
+displacement because a displaced provider can close more; from three arms a
+two-hander sharing its pair with one-handers is removed; and when the hands
+fell since the last completed check (`limb_last_hands`) or a position closed,
+held items, the offhand weapon, the shield, the two-hander and last the
+primary weapon go until the hands fit. An unchanged body is never audited.
+`save_char()` brackets its unequip/re-equip cycle with
+`limb_defer_begin()`/`limb_defer_end()`, re-equips positions the count
+currently opens first and retries the rest once, so a temporarily removed
+provider never moves gear. On restore, `auto_equip()` holds any saved
+position the count closes, `crash_restore_records()` retries it once the
+whole record set is loaded, and `limb_restore_validate()` then trims an
+over-budget loadout even on a fresh character. Combat: `ATTACK_TYPE_THIRD` and `ATTACK_TYPE_FOURTH` are the second pair's
 attacks. `get_wielded()` resolves them to WIELD_3/WIELD_2H_2 and
 WIELD_4 (or the lower double weapon), and every pair-specific rule (two-hand
 strength, power attack, the spare-hand bonus, two-weapon penalties via
 `second_pair_dual_wielding_penalty()`, weapon-finesse) reads the attacking
 weapon's own pair through `attack_pair_two_hand_slot()`; the first pair's
 two-hander no longer rewrites a THIRD or FOURTH attack. In
-`perform_attacks()`, `perform_second_pair_attacks()` runs after every
-ordinary attack of the round: it mirrors the planned base, offhand, haste,
-bonus and trained-offhand opportunities with stable ordinals and iterative
-penalties, rolls each once in its own phase (50 percent, +25 with
-two-weapon training, +25 with improved training, `is_skilled_dualer()`), adds
-the floor of the summed chances in count mode, and prints rows in display
-mode. Some consumers read only the first pair by design: the parry message
-weapon in `skill_message()`, the monk weapon armor-class pick, reach-weapon
-detection, sunder's attacking weapon, and the explicit slot checks in
-`mob_spells.c`, `spec_abilities.c`, `magic.c`, `feats.c`, `perks.c`, and the
+`perform_attacks()`, `perform_second_pair_attacks()` runs from three arms up
+after every ordinary attack of the round: it mirrors the planned base,
+offhand, haste, bonus and trained-offhand opportunities with stable ordinals
+and iterative penalties, rolls each once in its own phase (50 percent, +25
+with two-weapon training, +25 with improved training, `is_skilled_dualer()`),
+adds the floor of the summed chances in count mode, and prints rows in display
+mode. The ordinals hold for the whole round because `draw_attack_round_plan()`
+draws the extra-attack procs once per round into `char_specials.attack_round`
+(cleared when `perform_violence()` begins phase 1), and phases 2 and 3 replay
+the draw and phase 1's second-pair candidate list (`plan_second_pair()`) and
+numbering; a candidate the character no longer has keeps its ordinal and does
+not swing, and none is added mid-round. The third hand needs a weapon,
+or an empty third position on a `MONK_TYPE()` character passing
+`monk_gear_ok()`, which strikes unarmed with monk dice; the fourth hand needs
+four arms and a weapon (or the lower double weapon's other end). Other
+characters' empty lower hands make no swing, and whole-character bare-hand
+bonuses such as monk gloves still need every hand empty (`is_bare_handed()`).
+An unarmed strike fills a hand no position counts, so
+`spare_hand_for_attack()` gives the unarmed third hand the free-hand strength
+bonus only when a hand remains after the equipped positions, the primary's
+strike and support hand (`second_pair_spare_hands()`), and its own strike.
+Some consumers read only the first pair by design: the parry message weapon in
+`skill_message()`, the monk weapon armor-class pick, reach-weapon detection,
+sunder's attacking weapon,
+and the explicit slot checks in `mob_spells.c`, `spec_abilities.c`, `magic.c`,
+`feats.c`, `perks.c`, and the
 `spec_rol_*` procedures. The stochastic ranger Wilderness Warrior offhand
 procs are not mirrored, and NPCs get no trained extra fourth-hand swings,
 matching the first pair. The design study behind issue #168 is preserved at

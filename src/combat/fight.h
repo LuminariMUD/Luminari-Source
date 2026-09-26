@@ -167,6 +167,12 @@ bool test_life_shield_can_reflect(struct char_data *attacker, struct char_data *
                                   int source);
 struct affected_type *test_find_spell_affect(struct char_data *ch, int spell);
 bool test_attack_number_runs_in_phase(int attack_number, int phase, int attack_type);
+/* second-pair swings delivered in normal rounds, by attack ordinal and by
+ * candidate label */
+#define TEST_SECOND_PAIR_ORDINALS 32
+void test_reset_second_pair_swings(void);
+int test_get_second_pair_swings(int ordinal);
+int test_count_second_pair_label_swings(const char *label);
 #endif
 
 /* Global variables */

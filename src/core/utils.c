@@ -5534,53 +5534,106 @@ int get_feat_value(const struct char_data *ch, int featnum)
   return featval;
 }
 
-/* Four-arm capability (FEAT_FOUR_ARMS).  Grant sources, each tested on its
- * own: mob feats for NPCs and for a PC in a wild shape with a disguise race,
- * the PC's own feat, and APPLY_FEAT gear in ordinary slots.  An item worn in
- * one of the four-arm slots may benefit from the arms but can never sustain
- * them, so restoration does not depend on record order and no equipment
- * supports itself. */
-bool has_four_arms(const struct char_data *ch)
+/* Arm count, the single source for arm-dependent equipment and combat.
+ * Intrinsic arms: 2, plus the race's arm_adjust for PCs (the wild-shape
+ * disguise race while its feats are in use; an NPC's GET_RACE() is a
+ * RACE_TYPE_* family, not a race_list index), plus 2 for the character's own
+ * Four Arms and 1 per rank of its own Extra Arms.  An ordinary PC also gains
+ * arms from APPLY_FEAT gear, but only from positions the intrinsic arms already
+ * open: an item never sustains its own position or unlocks one for another
+ * provider.  Each item adds at most one Extra Arms rank, and Four Arms adds
+ * its two arms once across every source. */
+static bool object_grants_feat(const struct obj_data *obj, int feat)
 {
-  struct obj_data *obj;
-  int i, j;
+  int i;
 
-  if (ch == NULL)
-    return false;
-
-  if (IS_NPC(ch) || (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)))
-    return MOB_HAS_FEAT(ch, FEAT_FOUR_ARMS) > 0;
-
-  if (HAS_REAL_FEAT(ch, FEAT_FOUR_ARMS) > 0)
-    return true;
-
-  for (j = 0; j < NUM_WEARS; j++)
-  {
-    if (is_four_arm_wear_slot(j) || (obj = GET_EQ(ch, j)) == NULL)
-      continue;
-    for (i = 0; i < MAX_OBJ_AFFECT; i++)
-      if (obj->affected[i].location == APPLY_FEAT && obj->affected[i].modifier == FEAT_FOUR_ARMS)
-        return true;
-  }
-
+  for (i = 0; i < MAX_OBJ_AFFECT; i++)
+    if (obj->affected[i].location == APPLY_FEAT && obj->affected[i].modifier == feat)
+      return true;
   return false;
 }
 
-/* The seven positions that exist only with four arms. */
-bool is_four_arm_wear_slot(int pos)
+int arm_count(const struct char_data *ch)
+{
+  struct obj_data *obj;
+  bool mob_feats, four_arms;
+  int race, count = 2, intrinsic, pos;
+
+  if (ch == NULL)
+    return 0;
+
+  mob_feats = IS_NPC(ch) || (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch));
+  if (!IS_NPC(ch))
+  {
+    race = mob_feats ? GET_DISGUISE_RACE(ch) : GET_REAL_RACE(ch);
+    if (race >= 0 && race < NUM_EXTENDED_RACES)
+      count += race_list[race].arm_adjust;
+  }
+
+  if (mob_feats)
+  {
+    four_arms = MOB_HAS_FEAT(ch, FEAT_FOUR_ARMS) > 0;
+    count += MAX(0, (int)MOB_HAS_FEAT(ch, FEAT_EXTRA_ARMS));
+  }
+  else
+  {
+    four_arms = HAS_REAL_FEAT(ch, FEAT_FOUR_ARMS) > 0;
+    count += MAX(0, HAS_REAL_FEAT(ch, FEAT_EXTRA_ARMS));
+  }
+  if (four_arms)
+    count += 2;
+  intrinsic = count = MAX(0, count);
+  if (mob_feats)
+    return count;
+
+  for (pos = 0; pos < NUM_WEARS; pos++)
+  {
+    if ((obj = GET_EQ(ch, pos)) == NULL || wear_slot_arms_needed(pos) > intrinsic)
+      continue;
+    if (object_grants_feat(obj, FEAT_EXTRA_ARMS))
+      count++;
+    if (!four_arms && object_grants_feat(obj, FEAT_FOUR_ARMS))
+    {
+      four_arms = true;
+      count += 2;
+    }
+  }
+
+  return count;
+}
+
+/* Full arms a wear position needs.  Every other position needs none; callers
+ * still apply race, form and item restrictions. */
+int wear_slot_arms_needed(int pos)
 {
   switch (pos)
   {
+  case WEAR_WIELD_1:
+  case WEAR_HOLD_1:
+  case WEAR_HOLD_2: /* the hand budget decides whether a second item fits */
+  case WEAR_SHIELD:
+  case WEAR_HANDS:
+  case WEAR_ARMS:
+  case WEAR_WRIST_R:
+  case WEAR_FINGER_R:
+  case WEAR_FINGER_L:
+    return 1;
+  case WEAR_WIELD_OFFHAND:
+  case WEAR_WIELD_2H:
+  case WEAR_HOLD_2H:
+  case WEAR_WRIST_L:
+    return 2;
   case WEAR_WIELD_3:
+  case WEAR_HANDS_2:
+  case WEAR_ARMS_2:
+  case WEAR_WRIST_R2:
+    return 3;
   case WEAR_WIELD_4:
   case WEAR_WIELD_2H_2:
-  case WEAR_ARMS_2:
-  case WEAR_HANDS_2:
-  case WEAR_WRIST_R2:
   case WEAR_WRIST_L2:
-    return true;
+    return 4;
   default:
-    return false;
+    return 0;
   }
 }
 
@@ -5590,7 +5643,7 @@ bool is_second_pair_wield_slot(int pos)
   return pos == WEAR_WIELD_3 || pos == WEAR_WIELD_4 || pos == WEAR_WIELD_2H_2;
 }
 
-/* The ordinary position that a four-arm slot doubles.  Base anatomy rules for
+/* The ordinary position that a lower-arm slot doubles.  Base anatomy rules for
  * that position (race tables, forms) carry over to the doubled slot. */
 int four_arm_slot_base(int pos)
 {
@@ -5625,6 +5678,39 @@ bool second_pair_rejects_object(const struct obj_data *obj, int pos)
   if (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON)
     return true;
   return is_launcher_weapon(obj);
+}
+
+/* Weapon pair exclusivity: from three arms up a pair holds its one-handers or
+ * its two-hander, never both; with fewer arms the first pair keeps its
+ * historical lenient placement.  True when the pair of pos already holds the
+ * other kind.  Shared by the wear commands, equip_char() and reconciliation. */
+bool wield_pair_conflicts(const struct char_data *ch, int pos)
+{
+  bool other_kind;
+
+  if (ch == NULL)
+    return false;
+
+  switch (pos)
+  {
+  case WEAR_WIELD_1:
+  case WEAR_WIELD_OFFHAND:
+    other_kind = GET_EQ(ch, WEAR_WIELD_2H) != NULL;
+    break;
+  case WEAR_WIELD_2H:
+    other_kind = GET_EQ(ch, WEAR_WIELD_1) != NULL || GET_EQ(ch, WEAR_WIELD_OFFHAND) != NULL;
+    break;
+  case WEAR_WIELD_3:
+  case WEAR_WIELD_4:
+    other_kind = GET_EQ(ch, WEAR_WIELD_2H_2) != NULL;
+    break;
+  case WEAR_WIELD_2H_2:
+    other_kind = GET_EQ(ch, WEAR_WIELD_3) != NULL || GET_EQ(ch, WEAR_WIELD_4) != NULL;
+    break;
+  default:
+    return false;
+  }
+  return other_kind && arm_count(ch) >= 3;
 }
 
 int find_armor_type(int specType)
@@ -12816,13 +12902,13 @@ bool is_weapon_wielded_two_handed(struct obj_data *obj, struct char_data *ch)
   wsize = GET_OBJ_SIZE(obj);
   csize = GET_SIZE(ch);
 
-  /* four arms: the lower arms' two-hand position, or a lone one-hander there
-   * with a spare hand; never decided by the other pair's weapons */
+  /* second pair: its two-hand position, or a lone one-hander there with a
+   * hand to spare once the first pair takes its share */
   if (obj->worn_on == WEAR_WIELD_2H_2)
     return true;
   if (obj->worn_on == WEAR_WIELD_3 || obj->worn_on == WEAR_WIELD_4)
     return wsize >= csize && obj->worn_on == WEAR_WIELD_3 && GET_EQ(ch, WEAR_WIELD_4) == NULL &&
-           hands_available(ch) > 0;
+           second_pair_spare_hands(ch) > 0;
 
   if (wsize >= csize)
   {
@@ -12836,6 +12922,12 @@ bool is_weapon_wielded_two_handed(struct obj_data *obj, struct char_data *ch)
       return false;
   }
   else
+    return false;
+
+  /* a first-pair one-hander needs an actual spare hand, whatever the arm
+   * count; a two-hand position or a launcher already holds its two hands */
+  if (obj->worn_on != WEAR_WIELD_2H && !is_two_handed_ranged_weapon(obj) &&
+      hands_have(ch) <= hands_used(ch))
     return false;
 
   return true;

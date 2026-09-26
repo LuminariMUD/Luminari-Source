@@ -438,7 +438,7 @@ void TestRaceAnatomyWearSlotPolicy(CuTest *tc)
 
   GET_REAL_RACE(&ch) = RACE_HUMAN;
   for (i = 0; i < NUM_WEARS; i++)
-    CuAssertIntEquals(tc, i != WEAR_TAIL && !is_four_arm_wear_slot((int)i),
+    CuAssertIntEquals(tc, i != WEAR_TAIL && wear_slot_arms_needed((int)i) <= 2,
                       character_can_use_wear_slot(&ch, (int)i));
 
   CuAssertTrue(tc, !character_has_tail_wear_slot(&ch));

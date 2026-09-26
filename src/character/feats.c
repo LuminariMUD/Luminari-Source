@@ -6183,15 +6183,17 @@ void assign_feats(void)
         "You can use 'summonhorde' once per day to call two to four orc warriors who follow you "
         "for a time.");
   feato(FEAT_FAST_CASTING, "fast casting", TRUE, FALSE, TRUE, FEAT_TYPE_INNATE_ABILITY,
-        "spells take one casting tick less per rank",
-        "Your race casts quickly: every spell and power you cast takes one casting tick less "
-        "per rank of this feat. A cast reduced to no time at all completes at once. Slow "
-        "casting cancels this rank for rank.");
+        "spells take 10 percent less casting time per rank",
+        "Your race casts quickly: every spell and power you cast takes 10 percent less casting "
+        "time per rank of this feat. A part-tick saving is a matching percent chance of one "
+        "tick less, and a cast reduced to no time at all completes at once. Slow casting "
+        "cancels this rank for rank.");
   feato(FEAT_SLOW_CASTING, "slow casting", TRUE, FALSE, TRUE, FEAT_TYPE_INNATE_ABILITY,
-        "spells take one casting tick more per rank",
-        "Your race casts slowly: every spell and power you cast takes one casting tick more "
-        "per rank of this feat. Quickened and other instant casts are not delayed. Fast "
-        "casting cancels this rank for rank.");
+        "spells take 10 percent more casting time per rank",
+        "Your race casts slowly: every spell and power you cast takes 10 percent more casting "
+        "time per rank of this feat. A part-tick delay is a matching percent chance of one "
+        "tick more. Quickened and other instant casts are not delayed. Fast casting cancels "
+        "this rank for rank.");
   feato(FEAT_BULL_CHARGE, "bull charge", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "charge into an adjacent room; a charge that connects can stun",
         "Your charge carries the weight of a bull.  You may 'charge <direction> <target>' to "
@@ -6201,19 +6203,22 @@ void assign_feats(void)
         "drawback: below half hit points you rage, unable to cast or flee",
         "Drawback.  Whenever a combat round finds you below half of your hit points a red haze "
         "of bloodlust takes you: you cannot cast or flee until you are back at half or more.");
-  /* stackable: the Thri-Kreen four-arm stand-in, one rank per extra arm */
+  /* stackable: one more arm per rank toward arm_count() */
   feato(FEAT_EXTRA_ARMS, "extra arms", TRUE, FALSE, TRUE, FEAT_TYPE_INNATE_ABILITY,
-        "one extra melee attack per rank at full BAB",
-        "Extra limbs join every melee round.  Each rank of this innate grants one additional "
-        "melee attack at your full base attack bonus.  It brings no additional equipment slots "
-        "and does nothing with ranged weapons.");
+        "one more arm per rank",
+        "Each rank is one more full arm, and every arm is one more hand.  A third arm opens a "
+        "third weapon hand, lower sleeves and gloves and a third wrist slot; a fourth opens the "
+        "rest of the lower slots, as four arms does.  Arms past four add hands only.  Extra "
+        "arms add no attack of their own: a weapon in a lower hand attacks, and so does a "
+        "monk's empty third hand.  Gear in a slot the arms open cannot itself grant them.");
   feato(FEAT_FOUR_ARMS, "four arms", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "second weapon pair and doubled arm slots",
-        "Two more arms.  You can wield a second pair of weapons (two more one-handers, or a "
-        "second two-hander), and wear a second set of sleeves and gloves and two more wrist "
-        "items.  Held items and shields draw on the same four hands.  The second pair takes "
-        "melee weapons only.  Gear worn in the extra slots cannot itself be what grants "
-        "the arms.");
+        "two more arms: second weapon pair and doubled arm slots",
+        "Two more arms, the same as two ranks of extra arms.  You can wield a second pair of "
+        "weapons (two more one-handers, or a second two-hander), and wear a second set of "
+        "sleeves and gloves and two more wrist items.  Held items and shields draw on the same "
+        "four hands.  The second pair takes melee weapons only, and a monk also strikes with "
+        "an empty third hand.  Four arms count once however they are granted, and gear worn "
+        "in the extra slots cannot itself be what grants the arms.");
   feat_prereq_ability(FEAT_SHADOW, ABILITY_STEALTH, 21);
   feat_prereq_attribute(FEAT_CALM, AB_CHA, 19);
   feat_prereq_ability(FEAT_ESTABLISH_CAMP, ABILITY_SURVIVAL, 3);

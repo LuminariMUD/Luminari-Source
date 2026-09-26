@@ -61,25 +61,42 @@ Levl: 1
   - Object properties and modifications
   - Rent information and costs
 
-##### Four-arm wear positions and rollback (issue #168)
+##### Arm-count wear positions and rollback (issue #168)
 
 Positions 44..50 (`WEAR_WIELD_3` .. `WEAR_WRIST_L2`) exist since the Four
-Arms feature; `Loc` 44 is still the tail. `auto_equip()` restores them only
-for a character whose four arms are active once the whole record set is
-loaded (`crash_restore_records()` in `src/obj/objsave.c`); otherwise the
-item goes to inventory with its contents. Readers differ on unknown
+Arms feature; `Loc` 44 is still the tail. Every hand, arm, wrist and ring
+position needs a number of arms (`wear_slot_arms_needed()`, described in
+[EXTRA_LIMB_MECHANICS.md](../ongoing-projects/EXTRA_LIMB_MECHANICS.md)).
+`auto_equip()` holds any otherwise valid saved position that the character's
+current arm count closes, keeping the item and its contents in inventory and
+out of its bag. `crash_restore_records()` in `src/obj/objsave.c` retries
+those items once the whole record set is loaded, so an arm-granting item may
+come after the gear it supports; a failed retry clears the marker and applies
+the saved bag sort. `limb_restore_validate()` then trims a loadout that
+exceeds the hands, even on a fresh character, since a missing provider can
+leave one entirely in ordinary positions. This path serves player flat files,
+database records and pet records. `save_char()` defers `limb_reconcile()`
+over its unequip/re-equip cycle and retries positions the count closed during
+the cycle once, so saving never moves valid gear. Readers differ on unknown
 positions: the player flat-file and general database parsers redirect a
 `Loc` beyond the wear table to inventory, while the strict pet parser
 (`pet_object_graph_valid()`) rejects the whole pet record set.
+
+The arm count left saved formats unchanged, but not behavior: a binary from
+before it reads `FEAT_EXTRA_ARMS` (1320) as extra melee swings and may reject
+lower gear that Extra Arms or a race adjustment opened. Before deploying or
+rolling back across it, list the characters and items with feat 1320 and the
+loadouts that depend on them, keep recoverable saves, and verify restoration
+on an isolated copy.
 
 Rolling back to a binary without these positions therefore needs data
 preparation first, in this order, on an isolated copy before production:
 
 1. Back up `lib/plrobjs/`, the pet object tables and every zone file that
    carries `E` commands with positions 44..50.
-2. With the new binary still running, remove four-arm gear from online
-   characters (the `remove` command or a staff-run `four_arms_reconcile()`
-   equivalent by clearing the feat), then save. This handles only online
+2. With the new binary still running, remove lower-arm gear from online
+   characters (the `remove` command, or clearing the arm feats so
+   `limb_reconcile()` moves it), then save. This handles only online
    characters.
 3. Normalize offline records with the new binary or a reviewed conversion:
    rewrite `Loc` 45..51 to 0 (inventory) in player object files and in the
@@ -88,6 +105,7 @@ preparation first, in this order, on an isolated copy before production:
    44..50 must be changed or removed.
 4. Clear feat 1321 (`FEAT_FOUR_ARMS`) from player records and item
    `APPLY_FEAT` modifiers, or the old binary's feat bounds will reject it.
+   Feat 1320 (`FEAT_EXTRA_ARMS`) stays valid there but means extra swings.
 5. Only then install the old binary. Verify with a copy of a converted player
    and a pet on the isolated fixture before touching production.
 

@@ -789,13 +789,13 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
     if (location > 0 && j != WEAR_TAIL && object_is_dedicated_tail_gear(obj))
       location = LOC_INVENTORY;
 
-    /* a four-arm slot whose provider has not been restored yet: hold the
-     * item in inventory and let four_arms_restore_deferred() retry once the
-     * whole record set is in place (provider order in the file is free) */
-    obj->four_arms_restore_slot = 0;
-    if (location > 0 && is_four_arm_wear_slot(j) && !character_can_use_wear_slot(ch, j))
+    /* a position the arm count closes, perhaps until a provider later in the
+     * record set is restored: hold the item in inventory and let
+     * limb_restore_deferred() retry once the whole set is in place */
+    obj->limb_restore_slot = 0;
+    if (location > 0 && wear_slot_arms_needed(j) > arm_count(ch))
     {
-      obj->four_arms_restore_slot = j + 1;
+      obj->limb_restore_slot = j + 1;
       location = LOC_INVENTORY;
     }
 
@@ -823,9 +823,9 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
   }
   if (location <= 0) /* Inventory */
   {
-    /* a deferred four-arm item must stay in ch->carrying for the retry; its
-     * bag sort is applied by four_arms_restore_deferred() if it stays out */
-    if (obj->four_arms_restore_slot <= 0 && GET_OBJ_SORT(obj) > 0 &&
+    /* a deferred item must stay in ch->carrying for the retry; its bag sort
+     * is applied by limb_restore_deferred() if it stays out */
+    if (obj->limb_restore_slot <= 0 && GET_OBJ_SORT(obj) > 0 &&
         GET_OBJ_TYPE(obj) != ITEM_CONTAINER && GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH)
       obj_to_bag(ch, obj, GET_OBJ_SORT(obj));
     else
@@ -3180,10 +3180,11 @@ static int Crash_load_objs(struct char_data *ch)
     return 1;
 }
 
-/* Retry four-arm gear that auto_equip() held back because its provider came
- * later in the record set.  Contents travel with the object.  Gear whose
- * provider never arrived stays in inventory with its saved slot cleared. */
-static void four_arms_restore_deferred(struct char_data *ch)
+/* Retry gear that auto_equip() held back because the arm count closed its
+ * position, perhaps until a provider later in the record set.  Contents travel
+ * with the object.  Gear whose provider never arrived stays in inventory with
+ * its saved slot cleared. */
+static void limb_restore_deferred(struct char_data *ch)
 {
   struct obj_data *obj, *next_obj;
   int slot, sort;
@@ -3191,11 +3192,11 @@ static void four_arms_restore_deferred(struct char_data *ch)
   for (obj = ch->carrying; obj != NULL; obj = next_obj)
   {
     next_obj = obj->next_content;
-    if (obj->four_arms_restore_slot <= 0)
+    if (obj->limb_restore_slot <= 0)
       continue;
-    slot = obj->four_arms_restore_slot - 1;
+    slot = obj->limb_restore_slot - 1;
     sort = GET_OBJ_SORT(obj); /* obj_from_char() clears the saved bag sort */
-    obj->four_arms_restore_slot = 0;
+    obj->limb_restore_slot = 0;
     if (character_can_use_wear_slot(ch, slot) && GET_EQ(ch, slot) == NULL &&
         !second_pair_rejects_object(obj, slot))
     {
@@ -3217,14 +3218,15 @@ static void four_arms_restore_deferred(struct char_data *ch)
 }
 
 /* Restore a parsed record set onto a character: providers and dependents in
- * any order, capacity checked once at the end.  Returns the object count. */
+ * any order, positions and the hand budget checked once at the end.  Returns
+ * the object count. */
 static int crash_restore_records(struct char_data *ch, obj_save_data *loaded,
                                  struct obj_data **cont_row, bool load_sheaths)
 {
   obj_save_data *current;
   int num_objs = 0;
 
-  four_arms_defer_begin(ch);
+  limb_defer_begin(ch);
   for (current = loaded; current != NULL; current = current->next)
   {
     num_objs += handle_obj(current->obj, ch, current->locate, cont_row);
@@ -3234,8 +3236,11 @@ static int crash_restore_records(struct char_data *ch, obj_save_data *loaded,
       load_sheath_contents(ch, current->obj, current->db_idnum);
     }
   }
-  four_arms_restore_deferred(ch);
-  four_arms_defer_end(ch);
+  limb_restore_deferred(ch);
+  /* missing providers can leave an over-budget loadout entirely in ordinary
+   * positions: validate it now that every provider had its chance */
+  limb_restore_validate(ch);
+  limb_defer_end(ch);
 
   return num_objs;
 }

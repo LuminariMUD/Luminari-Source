@@ -1780,8 +1780,9 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define WEAR_CRAFT_WEAPON_HAMMER 41 /* weaponsmith's hammer (weaponsmithing) */
 #define WEAR_ON_BACK 42             /* currently unused; reserved for compatibility */
 #define WEAR_TAIL 43                /* worn on the tail */
-/* Four-arm positions (FEAT_FOUR_ARMS): a second weapon pair and the doubled
- * limb slots.  Appended so every older position and saved Loc stays fixed. */
+/* Lower-arm positions: a second weapon pair and the doubled limb slots, open
+ * from three or four arms (wear_slot_arms_needed()).  Appended so every older
+ * position and saved Loc stays fixed. */
 #define WEAR_WIELD_3 44    /* third hand weapon */
 #define WEAR_WIELD_4 45    /* fourth hand weapon */
 #define WEAR_WIELD_2H_2 46 /* two-hand weapon, second pair */
@@ -3072,11 +3073,11 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define FEAT_SLOW_CASTING 1317
 #define FEAT_BULL_CHARGE 1318
 #define FEAT_BLOODLUST 1319
-/* Thri-Kreen four-arm stand-in: one extra melee attack per rank, see
+/* Extra arms: one more full arm per rank toward arm_count(), see
  * docs/systems/GAME_MECHANICS_SYSTEMS.md */
 #define FEAT_EXTRA_ARMS 1320
-/* Thri-Kreen four arms: second weapon pair and doubled arm, hand and wrist
- * slots (WEAR_WIELD_3 .. WEAR_WRIST_L2), see has_four_arms() */
+/* Four arms (Thri-Kreen): two more arms toward arm_count(), opening the
+ * lower-arm slots (WEAR_WIELD_3 .. WEAR_WRIST_L2) */
 #define FEAT_FOUR_ARMS 1321
 
 /** reserved above feat# + 1**/
@@ -6013,9 +6014,9 @@ struct obj_data
   bool transfer_pending;
   bool transfer_extracting;
   bool transfer_disposed;
-  /* saved four-arm wear position + 1 awaiting its provider during a load;
-   * 0 when not pending (runtime-only) */
-  int four_arms_restore_slot;
+  /* saved wear position + 1 that the arm count closed during a load, awaiting
+   * the retry once every record is in place; 0 when not pending (runtime-only) */
+  int limb_restore_slot;
 
   struct obj_flag_data obj_flags;                    /**< Object information */
   struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< affects */
@@ -6437,6 +6438,38 @@ struct condensed_combat_data
   int num_times_hit_by_spell;
 };
 
+/** The second weapon pair's attack candidates (three arms and up): which
+ * exist, and the counters their penalties and chances come from. */
+struct second_pair_plan
+{
+  bool third;       /**< Third-hand candidates exist */
+  bool dual;        /**< Fourth-hand candidates exist */
+  bool hasted;      /**< The haste candidate exists */
+  bool improved;    /**< Improved two-weapon fourth-hand candidate */
+  bool greater;     /**< Greater two-weapon fourth-hand candidate */
+  bool epic;        /**< Epic two-weapon fourth-hand candidate */
+  int chance;       /**< Mirror chance, percent */
+  int base_penalty; /**< The routine's opening attack penalty */
+  int bonus;        /**< Bonus (BAB, flurry) candidates */
+  int max_bab;      /**< Attacks still at full BAB */
+};
+
+/** One combat round's attack plan.  The round's first attack routine draws
+ * the extra-attack procs and lists the second pair's candidates, and phases 2
+ * and 3 replay both, so an attack's ordinal, and with it its phase, never
+ * changes within the round. */
+struct attack_round_plan
+{
+  bool drawn;                          /**< Drawn for the current round */
+  bool extra_flurry;                   /**< Flurry Focus extra flurry attack */
+  bool air_embodiment;                 /**< Air Embodiment extra attack */
+  bool ww_two_weapon;                  /**< Wilderness Warrior off-hand proc */
+  bool greater_ww_two_weapon;          /**< Greater Wilderness Warrior off-hand proc */
+  bool second_pair_numbered;           /**< second_pair and its first ordinal are set */
+  int second_pair_first_ordinal;       /**< Ordinal before the first second-pair candidate */
+  struct second_pair_plan second_pair; /**< The round's second-pair candidates */
+};
+
 /** Special playing constants shared by PCs and NPCs which aren't in pfile */
 struct char_special_data
 {
@@ -6517,6 +6550,8 @@ struct char_special_data
   struct char_data *grapple_attacker; /**< Who is grappling me?; else NULL */
 
   bool energy_retort_used; // used with energy retort ability, which only fires once per round.
+
+  struct attack_round_plan attack_round; /**< Cleared when a round's phase 1 begins */
 
   bool autodoor_message; // used for message handling in autodoor
 
@@ -7596,12 +7631,12 @@ struct char_data
   long int confuser_idnum;
   bool preserve_organs_procced;
   bool mute_equip_messages;
-  /* four arms (FEAT_FOUR_ARMS) lifecycle, runtime-only: while defer > 0 a
-   * capability loss is noted but not acted on; reconciling guards re-entry. */
-  int four_arms_defer;
-  bool four_arms_reconciling;
-  bool four_arms_dirty;
-  bool four_arms_active; /* last completed check found four arms */
+  /* arm count lifecycle (limb_reconcile()), runtime-only: while defer > 0 a
+   * loss is noted but not acted on; reconciling guards re-entry. */
+  int limb_defer;
+  bool limb_reconciling;
+  bool limb_dirty;
+  int limb_last_hands; /* hands_have() at the last completed check */
 
   /* PERFMON lifecycle attribution for NPC instances; runtime-only. */
   int perf_origin_zone_vnum;
@@ -8244,6 +8279,7 @@ struct race_data
 
   /* NULL means this anatomy supports the slot; otherwise this is the rejection message. */
   const char *wear_slot_restrictions[NUM_WEARS];
+  sbyte arm_adjust; /* PC arm count is 2 plus this, see arm_count() */
 
   /* linked lists */
   struct race_feat_assign *featassign_list; /* list of feat assigns */

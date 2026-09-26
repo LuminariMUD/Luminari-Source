@@ -10003,14 +10003,19 @@ int is_dual_wielding_second_pair(struct char_data *ch)
 }
 
 /* the spare hand of a one-hander: the first pair's primary claims a free hand
- * first, the third hand takes the next one (primary-pair-first allocation) */
+ * first, the third hand takes the next one (second_pair_spare_hands()).  An
+ * unarmed strike fills a hand that no equipped position counts, so an unarmed
+ * third hand uses one of the free hands itself. */
 static bool spare_hand_for_attack(struct char_data *ch, int attack_type)
 {
-  int claimed_by_first_pair = GET_EQ(ch, WEAR_WIELD_2H) ? 0 : 1;
+  int spare;
 
-  if (attack_type == ATTACK_TYPE_THIRD)
-    return hands_available(ch) > claimed_by_first_pair;
-  return hands_available(ch) > 0;
+  if (attack_type != ATTACK_TYPE_THIRD)
+    return hands_available(ch) > 0;
+  spare = second_pair_spare_hands(ch);
+  if (!get_wielded(ch, ATTACK_TYPE_THIRD))
+    spare--; /* the third hand's unarmed strike */
+  return spare > 0;
 }
 
 #ifdef LUMINARI_CUTEST
@@ -15240,16 +15245,44 @@ int valid_fight_cond(struct char_data *ch, bool strict)
 
 static bool attack_number_runs_in_phase(int attack_number, int phase, int attack_type);
 
-/* Four arms: one second-pair attack candidate.  It takes the next ordinal
- * (consumed whether or not its mirror roll succeeds, so later attacks never
- * move phases), adds its chance to the expected total, prints its row in
- * display mode, and in the normal routine rolls once, in its own phase, after
- * the fight is verified.  A missing weapon is no candidate at all. */
-static void second_pair_candidate(struct char_data *ch, int mode, int phase, int *ordinal,
-                                  int *expected, int chance, int attack_type,
-                                  struct obj_data *weapon, int penalty, const char *label)
+#ifdef LUMINARI_CUTEST
+static int second_pair_swings[TEST_SECOND_PAIR_ORDINALS];
+static const char *second_pair_swing_labels[TEST_SECOND_PAIR_ORDINALS];
+static int second_pair_swing_count;
+
+void test_reset_second_pair_swings(void)
 {
-  if (weapon == NULL)
+  memset(second_pair_swings, 0, sizeof(second_pair_swings));
+  second_pair_swing_count = 0;
+}
+
+int test_get_second_pair_swings(int ordinal)
+{
+  return ordinal >= 0 && ordinal < TEST_SECOND_PAIR_ORDINALS ? second_pair_swings[ordinal] : 0;
+}
+
+int test_count_second_pair_label_swings(const char *label)
+{
+  int i, count = 0;
+
+  for (i = 0; i < second_pair_swing_count; i++)
+    if (!strcmp(second_pair_swing_labels[i], label))
+      count++;
+  return count;
+}
+#endif
+
+/* Second pair: one attack candidate of the round's plan.  It takes the next
+ * ordinal (consumed whether or not it can still swing or its mirror roll
+ * succeeds, so later attacks never move phases), adds its chance to the
+ * expected total, prints its row in display mode, and in the normal routine
+ * rolls once, in its own phase, when the hand is still ready and the fight is
+ * verified.  A candidate the round did not plan is none at all. */
+static void second_pair_candidate(struct char_data *ch, int mode, int phase, int *ordinal,
+                                  int *expected, int chance, int attack_type, bool planned,
+                                  bool ready, int penalty, const char *label)
+{
+  if (!planned)
     return;
   (*ordinal)++;
   *expected += chance;
@@ -15263,74 +15296,97 @@ static void second_pair_candidate(struct char_data *ch, int mode, int phase, int
                                                         : MODE_DISPLAY_OFFHAND,
                        FALSE, attack_type, 0);
   }
-  else if (mode == NORMAL_ATTACK_ROUTINE &&
+  else if (mode == NORMAL_ATTACK_ROUTINE && ready &&
            attack_number_runs_in_phase(*ordinal, phase, attack_type) &&
            valid_fight_cond(ch, FALSE) && rand_number(1, 100) <= chance)
   {
+#ifdef LUMINARI_CUTEST
+    if (*ordinal < TEST_SECOND_PAIR_ORDINALS)
+      second_pair_swings[*ordinal]++;
+    if (second_pair_swing_count < TEST_SECOND_PAIR_ORDINALS)
+      second_pair_swing_labels[second_pair_swing_count++] = label;
+#endif
     hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, attack_type);
   }
 }
 
-/* Four arms: the second weapon pair mirrors the first pair's attack
- * opportunities from the round's planned counters: the third-hand base swing,
- * the fourth-hand swing when the pair is dual, the haste swing, the BAB and
- * flurry bonus swings with their iterative penalties, and the trained extra
- * fourth-hand swings.  Mirror chance: 50 percent, +25 with effective
- * two-weapon training, +25 with improved training (is_skilled_dualer(), so
- * NPC training counts the same way).  Returns the count-mode addition: the
- * floor of the summed chances, rounded once. */
-static int perform_second_pair_attacks(struct char_data *ch, int mode, int phase, int first_ordinal,
-                                       int base_penalty, int planned_bonus, int planned_max_bab,
-                                       bool hasted)
+/* The second weapon pair's candidates as the character stands now (three
+ * arms and up), from the routine's planned counters.  The third hand needs a
+ * weapon, or an empty third position on a monk whose gear allows martial arts
+ * (an unarmed THIRD attack with monk dice); the fourth hand always needs a
+ * weapon.  Mirror chance: 50 percent, +25 with effective two-weapon training,
+ * +25 with improved training (is_skilled_dualer(), so NPC training counts the
+ * same way). */
+static void plan_second_pair(struct char_data *ch, int base_penalty, int bonus, int max_bab,
+                             bool hasted, struct second_pair_plan *sp)
 {
-  struct obj_data *third, *fourth;
-  bool dual;
-  int chance, ordinal = first_ordinal, expected = 0, penalty = base_penalty, i;
-  int max_bab = planned_max_bab;
+  int arms = arm_count(ch);
 
-  if (!has_four_arms(ch) || VITAL_STRIKING(ch) || IS_WILDSHAPED(ch) || IS_MORPHED(ch))
+  memset(sp, 0, sizeof(*sp));
+  if (arms < 3 || VITAL_STRIKING(ch) || IS_WILDSHAPED(ch) || IS_MORPHED(ch))
+    return;
+  sp->third = get_wielded(ch, ATTACK_TYPE_THIRD) != NULL ||
+              (MONK_TYPE(ch) && monk_gear_ok(ch) && !GET_EQ(ch, WEAR_WIELD_3) &&
+               !GET_EQ(ch, WEAR_WIELD_2H_2));
+  sp->dual =
+      arms >= 4 && is_dual_wielding_second_pair(ch) && get_wielded(ch, ATTACK_TYPE_FOURTH) != NULL;
+  sp->hasted = hasted;
+  sp->improved = sp->dual && !IS_NPC(ch) && is_skilled_dualer(ch, MODE_IMP_2_WPN);
+  sp->greater = sp->dual && !IS_NPC(ch) && is_skilled_dualer(ch, MODE_GREAT_2_WPN);
+  sp->epic = sp->dual && !IS_NPC(ch) && is_skilled_dualer(ch, MODE_EPIC_2_WPN);
+  sp->chance = 50 + (is_skilled_dualer(ch, MODE_2_WPN) ? 25 : 0) +
+               (is_skilled_dualer(ch, MODE_IMP_2_WPN) ? 25 : 0);
+  sp->base_penalty = base_penalty;
+  sp->bonus = bonus;
+  sp->max_bab = max_bab;
+}
+
+/* The second pair mirrors the first pair's attack opportunities: the
+ * third-hand base swing, the fourth-hand swing when four arms make the pair
+ * dual, the haste swing, the BAB and flurry bonus swings with their iterative
+ * penalties, and the trained extra fourth-hand swings.  plan lists the
+ * round's candidates and numbers them; now is the same list as the character
+ * stands, so a candidate swings only while now still has it, and a change
+ * mid-round never adds, drops or renumbers one.  Returns the count-mode
+ * addition: the floor of the summed chances, rounded once. */
+static int perform_second_pair_attacks(struct char_data *ch, int mode, int phase, int first_ordinal,
+                                       const struct second_pair_plan *plan,
+                                       const struct second_pair_plan *now)
+{
+  int ordinal = first_ordinal, expected = 0, penalty = plan->base_penalty, i;
+  int max_bab = plan->max_bab;
+
+  if (!plan->third && !plan->dual)
     return 0;
-  third = get_wielded(ch, ATTACK_TYPE_THIRD);
-  fourth = get_wielded(ch, ATTACK_TYPE_FOURTH);
-  dual = is_dual_wielding_second_pair(ch) && fourth != NULL;
-  if (third == NULL && !dual)
-    return 0;
 
-  chance = 50 + (is_skilled_dualer(ch, MODE_2_WPN) ? 25 : 0) +
-           (is_skilled_dualer(ch, MODE_IMP_2_WPN) ? 25 : 0);
-
-  second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_THIRD, third,
-                        penalty, "Third hand");
-  if (dual)
-    second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH, fourth,
-                          penalty * 2, "Fourth hand");
-  if (hasted)
+  second_pair_candidate(ch, mode, phase, &ordinal, &expected, plan->chance, ATTACK_TYPE_THIRD,
+                        plan->third, now->third, penalty, "Third hand");
+  second_pair_candidate(ch, mode, phase, &ordinal, &expected, plan->chance, ATTACK_TYPE_FOURTH,
+                        plan->dual, now->dual, penalty * 2, "Fourth hand");
+  if (plan->hasted)
   {
     max_bab--;
-    second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_THIRD, third,
-                          penalty, "Third hand (Haste)");
+    second_pair_candidate(ch, mode, phase, &ordinal, &expected, plan->chance, ATTACK_TYPE_THIRD,
+                          plan->third, now->third && now->hasted, penalty, "Third hand (Haste)");
   }
-  for (i = 0; i < planned_bonus; i++)
+  for (i = 0; i < plan->bonus; i++)
   {
     if (max_bab > 0)
       max_bab--;
     else
       penalty -= 5;
-    second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_THIRD, third,
-                          penalty, "Third hand Bonus");
+    second_pair_candidate(ch, mode, phase, &ordinal, &expected, plan->chance, ATTACK_TYPE_THIRD,
+                          plan->third, now->third && i < now->bonus, penalty, "Third hand Bonus");
   }
-  if (dual && !IS_NPC(ch))
-  {
-    if (is_skilled_dualer(ch, MODE_IMP_2_WPN))
-      second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH,
-                            fourth, TWO_WPN_PNLTY, "Fourth hand (Improved 2 Weapon Fighting)");
-    if (is_skilled_dualer(ch, MODE_GREAT_2_WPN))
-      second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH,
-                            fourth, GREAT_TWO_PNLY, "Fourth hand (Great 2 Weapon Fighting)");
-    if (is_skilled_dualer(ch, MODE_EPIC_2_WPN))
-      second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH,
-                            fourth, EPIC_TWO_PNLTY, "Fourth hand (Epic 2 Weapon Fighting)");
-  }
+  second_pair_candidate(ch, mode, phase, &ordinal, &expected, plan->chance, ATTACK_TYPE_FOURTH,
+                        plan->improved, now->improved, TWO_WPN_PNLTY,
+                        "Fourth hand (Improved 2 Weapon Fighting)");
+  second_pair_candidate(ch, mode, phase, &ordinal, &expected, plan->chance, ATTACK_TYPE_FOURTH,
+                        plan->greater, now->greater, GREAT_TWO_PNLY,
+                        "Fourth hand (Great 2 Weapon Fighting)");
+  second_pair_candidate(ch, mode, phase, &ordinal, &expected, plan->chance, ATTACK_TYPE_FOURTH,
+                        plan->epic, now->epic, EPIC_TWO_PNLTY,
+                        "Fourth hand (Epic 2 Weapon Fighting)");
 
   return expected / 100;
 }
@@ -15350,11 +15406,34 @@ static bool attack_number_runs_in_phase(int attack_number, int phase, int attack
   return ((attack_number - 1) % 3) + 1 == phase;
 }
 
+/* Draw a round's extra-attack procs: the extra flurry, Air Embodiment and
+ * the Wilderness Warrior off-hand attacks.  They change the attack count, so
+ * a phased round draws them once and replays them in phases 2 and 3; a
+ * reroll there would move every later attack, the second pair's included,
+ * into another phase. */
+static void draw_attack_round_plan(struct char_data *ch, int mode, struct attack_round_plan *plan)
+{
+  memset(plan, 0, sizeof(*plan));
+  plan->drawn = TRUE;
+  plan->extra_flurry = mode != DISPLAY_ROUTINE_POTENTIAL && check_monk_extra_flurry_attack(ch);
+  plan->air_embodiment = mode != DISPLAY_ROUTINE_POTENTIAL && !IS_NPC(ch) &&
+                         GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 &&
+                         GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 3 && rand_number(1, 100) <= 10;
+  if (plan->air_embodiment)
+    send_to_char(ch, "\tW[\tCAir Embodiment grants you an extra attack!\tW]\tn\r\n");
+  plan->ww_two_weapon =
+      !IS_NPC(ch) && has_perk(ch, PERK_RANGER_WW_TWO_WEAPON_FIGHTING) && dice(1, 100) <= 10;
+  plan->greater_ww_two_weapon =
+      !IS_NPC(ch) && has_perk(ch, PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING) && dice(1, 100) <= 10;
+}
+
 /* Run a character's attack routine for one attack phase.
  * mode selects the normal routine or one of the display modes; phase is
  * PHASE_0 for the whole round at once, or 1..3 for the historical split with
- * Four Arms' later-added lower-hand candidates. Returns the number of attacks
- * performed, or in display mode the number that would be. */
+ * Four Arms' later-added lower-hand candidates.  Phases 1..3 share the round's
+ * plan, which perform_violence() clears when phase 1 begins; PHASE_0 draws
+ * its own. Returns the number of attacks performed, or in display mode the
+ * number that would be. */
 int perform_attacks(struct char_data *ch, int mode, int phase)
 {
   int i = 0, penalty = 0, numAttacks = 0, bonus_mainhand_attacks = 0;
@@ -15372,6 +15451,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   int second_pair_base_penalty = 0, second_pair_planned_bonus = 0;
   int second_pair_planned_max_bab = 0;
   bool second_pair_hasted = FALSE;
+  struct second_pair_plan second_pair_now;
+  struct attack_round_plan whole_routine_plan = {0};
+  struct attack_round_plan *plan = &whole_routine_plan;
 
   /* Check position..  we don't check < POS_STUNNED anymore */
   if (GET_POS(ch) == POS_DEAD)
@@ -15386,6 +15468,11 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     return (0);
 
   guard_check(ch, FIGHTING(ch)); /* this is the guard skill check */
+
+  if (phase != PHASE_0)
+    plan = &ch->char_specials.attack_round;
+  if (!plan->drawn)
+    draw_attack_round_plan(ch, mode, plan);
 
   /** BEGIN PROCESS OF COUNTING ATTACKS AND PENALTIES FOR SUCCESSIVE ATTACKS  **/
 
@@ -15404,7 +15491,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       penalty = -1; /* 9th level+, no more penalty to flurry! */
     if (penalty > 0 && has_perk(ch, PERK_MONK_FLURRY_FOCUS))
       penalty -= 1;
-    if (mode != 2 && check_monk_extra_flurry_attack(ch))
+    if (plan->extra_flurry)
     {
       bonus_mainhand_attacks++;
       attacks_at_max_bab++;
@@ -15436,15 +15523,10 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   }
 
   /* Elemental Embodiment (Air) - 10% chance for an extra attack */
-  if (mode != 2 && !IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 &&
-      GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 3)
+  if (plan->air_embodiment)
   {
-    if (rand_number(1, 100) <= 10)
-    {
-      bonus_mainhand_attacks++;
-      attacks_at_max_bab++;
-      send_to_char(ch, "\tW[\tCAir Embodiment grants you an extra attack!\tW]\tn\r\n");
-    }
+    bonus_mainhand_attacks++;
+    attacks_at_max_bab++;
   }
 
   /* Haste or equivalent gives one extra attack, ranged or melee, at max BAB. */
@@ -15804,17 +15886,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   /***/
   /*  End ranged attacks ---------------------------------------------------- */
 
-  /* extra arms (the Thri-Kreen four-arm stand-in): each rank of the racial
-   * innate is one more melee attack at full base attack bonus.  It sits after
-   * the ranged routines on purpose so bows and thrown weapons never gain it. */
-  if (HAS_FEAT(ch, FEAT_EXTRA_ARMS) > 0)
-  {
-    bonus_mainhand_attacks += HAS_FEAT(ch, FEAT_EXTRA_ARMS);
-    attacks_at_max_bab += HAS_FEAT(ch, FEAT_EXTRA_ARMS);
-  }
-
-  /* four arms: the second pair mirrors this round's planned counters, read
-   * here before the first pair's loops consume them */
+  /* the second pair mirrors this round's planned counters, read here before
+   * the first pair's loops consume them */
   second_pair_base_penalty = penalty;
   second_pair_planned_bonus = bonus_mainhand_attacks;
   second_pair_planned_max_bab = attacks_at_max_bab;
@@ -16213,7 +16286,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     }
 
     /* Wilderness Warrior Two-Weapon Fighting: 10% chance for extra off-hand attack */
-    if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_WW_TWO_WEAPON_FIGHTING) && dice(1, 100) <= 10)
+    if (plan->ww_two_weapon)
     {
       numAttacks++;
       if (mode == NORMAL_ATTACK_ROUTINE)
@@ -16236,8 +16309,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     }
 
     /* Greater Wilderness Warrior Two-Weapon Fighting: another 10% chance for extra off-hand attack */
-    if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING) &&
-        dice(1, 100) <= 10)
+    if (plan->greater_ww_two_weapon)
     {
       numAttacks++;
       if (mode == NORMAL_ATTACK_ROUTINE)
@@ -16282,10 +16354,20 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     }
   }
 
-  /* four arms: the second pair, after every ordinary attack of the round */
-  numAttacks += perform_second_pair_attacks(ch, mode, phase, numAttacks, second_pair_base_penalty,
-                                            second_pair_planned_bonus, second_pair_planned_max_bab,
-                                            second_pair_hasted);
+  /* the second pair (three arms and up), after every ordinary attack; the
+   * round's first routine lists its candidates and numbers them from its
+   * count, so each keeps one phase even when an evolution's follow-up attack,
+   * haste or a weapon change alters the routine mid-round */
+  plan_second_pair(ch, second_pair_base_penalty, second_pair_planned_bonus,
+                   second_pair_planned_max_bab, second_pair_hasted, &second_pair_now);
+  if (!plan->second_pair_numbered)
+  {
+    plan->second_pair_numbered = TRUE;
+    plan->second_pair_first_ordinal = numAttacks;
+    plan->second_pair = second_pair_now;
+  }
+  numAttacks += perform_second_pair_attacks(ch, mode, phase, plan->second_pair_first_ordinal,
+                                            &plan->second_pair, &second_pair_now);
   return numAttacks;
 }
 #ifdef LUMINARI_CUTEST
@@ -16760,6 +16842,7 @@ void perform_violence(struct char_data *ch, int phase)
 
   if (phase == 1 || phase == 0)
   { /* make sure this doesn't happen more than once a round */
+    ch->char_specials.attack_round.drawn = FALSE; /* a new round draws a new attack plan */
     bloodlust_round_check(ch);
 
     if (!IS_NPC(ch) && has_bard_warbeat(ch) && !GET_WARBEAT_USED(ch))
