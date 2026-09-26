@@ -9218,14 +9218,8 @@ ACMD(do_unsheath)
     return;
   }
 
-  if (GET_EQ(ch, WEAR_WIELD_1) || GET_EQ(ch, WEAR_WIELD_2H) || GET_EQ(ch, WEAR_WIELD_OFFHAND) ||
-      GET_EQ(ch, WEAR_SHIELD))
-  {
-    send_to_char(ch, "You must have your hands free to unsheath.\r\n");
-    return;
-  }
-
-  /* the primary draws first; the secondary then fits what is left */
+  /* the primary draws first; the secondary then fits what is left, and
+   * whatever stays sheathed can be drawn by a later unsheath */
   if ((primary = sheath->sheath_primary) != NULL)
   {
     switch (hands_needed(ch, primary))

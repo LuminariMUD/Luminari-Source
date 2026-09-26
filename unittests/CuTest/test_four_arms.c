@@ -2404,13 +2404,13 @@ static bool sheath_item_accounted(struct char_data *ch, struct sheath_case *shea
 }
 
 /* Unsheathing draws each item only into an open, empty first-pair position
- * with the hands to spare; what cannot be drawn stays sheathed, and only
- * drawn items are reported. */
+ * with the hands to spare; what cannot be drawn stays sheathed for a later
+ * unsheath, and only drawn items are reported. */
 void TestArmCountUnsheathChecksEachItem(CuTest *tc)
 {
   struct four_arm_fixture fixture;
   struct sheath_case sheath;
-  struct obj_data sword, off, shield, big, huge;
+  struct obj_data sword, off, shield, big, huge, orb;
 
   begin_four_arm_fixture(&fixture);
   memset(&sheath, 0, sizeof(sheath));
@@ -2473,6 +2473,24 @@ void TestArmCountUnsheathChecksEachItem(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, strstr(fixture.descriptor.output, "You unsheath"));
   CuAssertTrue(tc, sheath_item_accounted(&fixture.ch, &sheath, &sword));
   CuAssertTrue(tc, sheath_item_accounted(&fixture.ch, &sheath, &off));
+
+  /* two arms and a held orb: the sword draws, the dagger has no hand; once
+   * the orb is put away, unsheath again draws the dagger beside the sword */
+  set_human_arms(2);
+  init_held(&orb, "a glowing orb");
+  equip_char(&fixture.ch, &orb, WEAR_HOLD_1);
+  fill_sheath(&fixture, &sheath, &sword, &off);
+  CuAssertPtrEquals(tc, &sword, GET_EQ(&fixture.ch, WEAR_WIELD_1));
+  CuAssertPtrEquals(tc, &off, sheath.sheath.sheath_secondary);
+  CuAssertPtrEquals(tc, &orb, unequip_char(&fixture.ch, WEAR_HOLD_1));
+  reset_output(&fixture);
+  do_unsheath(&fixture.ch, "", 0, 0);
+  CuAssertPtrEquals(tc, &sword, GET_EQ(&fixture.ch, WEAR_WIELD_1));
+  CuAssertPtrEquals(tc, &off, GET_EQ(&fixture.ch, WEAR_WIELD_OFFHAND));
+  CuAssertPtrEquals(tc, NULL, sheath.sheath.sheath_secondary);
+  CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "You unsheath a sheathed dagger."));
+  unequip_char(&fixture.ch, WEAR_WIELD_1);
+  unequip_char(&fixture.ch, WEAR_WIELD_OFFHAND);
 
   /* two arms: an oversized primary stays; a two-hand secondary cannot be an
    * offhand weapon */

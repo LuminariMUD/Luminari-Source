@@ -91,7 +91,8 @@ bonuses. The existing positions use at most nine hands: four weapons, four acros
   a one-hander in `WIELD_1` and one in `WIELD_3` double only the first; four arms double both.
 - Unsheathing. `do_unsheath()` keeps its first-pair targets and draws each item only into an
   open, empty position with no pair conflict and the hands to spare; the rest stays sheathed and
-  only drawn items are reported.
+  only drawn items are reported. A later `unsheath` draws what stayed once a hand is free, beside
+  what is already drawn.
 
 ## Losing arms
 

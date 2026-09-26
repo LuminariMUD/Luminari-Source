@@ -485,7 +485,7 @@ bonuses only with an actual spare hand (`is_weapon_wielded_two_handed()`), and
 a lone third-hand one-hander only with a hand left once the first pair takes
 its share (`second_pair_spare_hands()`). `do_unsheath()` draws each sheathed
 item only into an open, empty first-pair position with the hands to spare,
-leaving the rest sheathed.
+leaving the rest sheathed for a later `unsheath`.
 
 Losses are reconciled by `limb_reconcile()` from `affect_total()`: positions
 the count closes empty into inventory (lower positions, then two-arm, then
