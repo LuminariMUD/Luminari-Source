@@ -230,7 +230,7 @@ void TestSep2026InnateFeatsAreRegisteredAsInnates(CuTest *tc)
     CuAssertTrue(tc, feat_list[feat].can_stack);
     CuAssertIntEquals(tc, FEAT_TYPE_INNATE_ABILITY, feat_list[feat].feat_type);
   }
-  CuAssertIntEquals(tc, FEAT_FOUR_ARMS + 1, FEAT_LAST_FEAT);
+  CuAssertIntEquals(tc, FEAT_PSIONIC_RESISTANCE + 1, FEAT_LAST_FEAT);
 
   /* the repurposed haste feat follows the same rules */
   CuAssertTrue(tc, feat_list[FEAT_HASTE].in_game);
@@ -381,8 +381,9 @@ void TestBucketBRacesStillHoldTheirWiredFeats(CuTest *tc)
       {RACE_HALF_TROLL, FEAT_BODYSLAM},
       {RACE_TRELUX, FEAT_VULNERABLE_TO_COLD},
       {RACE_TRELUX, FEAT_LEAP},
+      {RACE_TRELUX, FEAT_PSIONIC_RESISTANCE},
       {RACE_LICH, FEAT_LICH_SPELL_RESIST},
-      {RACE_WEMIC, FEAT_LEONINE_FRAME},
+      {RACE_WEMIC, FEAT_TAURIC_FRAME},
       {RACE_DWARF, FEAT_STABILITY},
       {RACE_DUERGAR, FEAT_STABILITY},
       {RACE_CRYSTAL_DWARF, FEAT_STABILITY},
@@ -435,6 +436,63 @@ void TestFireAndColdVulnerabilityFollowTheFeat(CuTest *tc)
   end_innate_fixture(&fixture);
 }
 
+/* Psionic resistance: the feat or the race check of a saved Trelux, never both. */
+void TestPsionicResistanceFollowsTheFeatOrTheTreluxRace(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  int base_mental, base_fire;
+
+  begin_innate_fixture(&fixture);
+  base_mental = compute_damtype_reduction(&fixture.ch, DAM_MENTAL, NULL, TYPE_UNDEFINED);
+  base_fire = compute_damtype_reduction(&fixture.ch, DAM_FIRE, NULL, TYPE_UNDEFINED);
+
+  SET_FEAT(&fixture.ch, FEAT_PSIONIC_RESISTANCE, 1);
+  CuAssertIntEquals(tc, base_mental + 20,
+                    compute_damtype_reduction(&fixture.ch, DAM_MENTAL, NULL, TYPE_UNDEFINED));
+  CuAssertIntEquals(tc, base_fire,
+                    compute_damtype_reduction(&fixture.ch, DAM_FIRE, NULL, TYPE_UNDEFINED));
+
+  GET_REAL_RACE(&fixture.ch) = RACE_TRELUX;
+  CuAssertIntEquals(tc, base_mental + 20,
+                    compute_damtype_reduction(&fixture.ch, DAM_MENTAL, NULL, TYPE_UNDEFINED));
+  SET_FEAT(&fixture.ch, FEAT_PSIONIC_RESISTANCE, 0);
+  CuAssertIntEquals(tc, base_mental + 20,
+                    compute_damtype_reduction(&fixture.ch, DAM_MENTAL, NULL, TYPE_UNDEFINED));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Cold immunity: the feat or the race check of a saved Lich.  Only the Lich race is also
+ * immune to electricity. */
+void TestColdImmunityFollowsTheFeatOrTheLichRace(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  int base_cold, base_electric;
+
+  begin_innate_fixture(&fixture);
+  base_cold = compute_damtype_reduction(&fixture.ch, DAM_COLD, NULL, TYPE_UNDEFINED);
+  base_electric = compute_damtype_reduction(&fixture.ch, DAM_ELECTRIC, NULL, TYPE_UNDEFINED);
+
+  SET_FEAT(&fixture.ch, FEAT_COLD_IMMUNITY, 1);
+  CuAssertIntEquals(tc, base_cold + 100,
+                    compute_damtype_reduction(&fixture.ch, DAM_COLD, NULL, TYPE_UNDEFINED));
+  CuAssertIntEquals(tc, base_electric,
+                    compute_damtype_reduction(&fixture.ch, DAM_ELECTRIC, NULL, TYPE_UNDEFINED));
+
+  SET_FEAT(&fixture.ch, FEAT_COLD_IMMUNITY, 0);
+  GET_REAL_RACE(&fixture.ch) = RACE_LICH;
+  CuAssertIntEquals(tc, base_cold + 100,
+                    compute_damtype_reduction(&fixture.ch, DAM_COLD, NULL, TYPE_UNDEFINED));
+  CuAssertIntEquals(tc, base_electric + 100,
+                    compute_damtype_reduction(&fixture.ch, DAM_ELECTRIC, NULL, TYPE_UNDEFINED));
+
+  SET_FEAT(&fixture.ch, FEAT_COLD_IMMUNITY, 1);
+  CuAssertIntEquals(tc, base_cold + 100,
+                    compute_damtype_reduction(&fixture.ch, DAM_COLD, NULL, TYPE_UNDEFINED));
+
+  end_innate_fixture(&fixture);
+}
+
 /* Lich spell resistance (15 + level) follows the feat. */
 void TestLichSpellResistanceFollowsTheFeat(CuTest *tc)
 {
@@ -449,8 +507,8 @@ void TestLichSpellResistanceFollowsTheFeat(CuTest *tc)
   end_innate_fixture(&fixture);
 }
 
-/* Leonine frame refuses the leg and foot slots and nothing else. */
-void TestLeonineFrameBlocksLegAndFootSlots(CuTest *tc)
+/* Tauric frame refuses the leg and foot slots and nothing else. */
+void TestTauricFrameBlocksLegAndFootSlots(CuTest *tc)
 {
   struct innate_fixture fixture;
 
@@ -461,7 +519,7 @@ void TestLeonineFrameBlocksLegAndFootSlots(CuTest *tc)
   CuAssertTrue(tc, character_wear_slot_restriction(&fixture.ch, WEAR_LEGS) == NULL);
   CuAssertTrue(tc, character_wear_slot_restriction(&fixture.ch, WEAR_FEET) == NULL);
 
-  SET_FEAT(&fixture.ch, FEAT_LEONINE_FRAME, 1);
+  SET_FEAT(&fixture.ch, FEAT_TAURIC_FRAME, 1);
   CuAssertPtrNotNull(tc, character_wear_slot_restriction(&fixture.ch, WEAR_LEGS));
   CuAssertPtrNotNull(tc, character_wear_slot_restriction(&fixture.ch, WEAR_FEET));
   CuAssertTrue(tc, character_wear_slot_restriction(&fixture.ch, WEAR_HANDS) == NULL);

@@ -1,7 +1,8 @@
 # Duris Player Races Plan
 
-Status: plan, not started; every decision is settled (2026-09-26), and only the descend forms'
-quests are left for later world work. Traced against master `2c5859388` and the Duris checkout at
+Status: in progress on branch `2-add-the-17-duris-player-races` (work item #2); see
+[Progress](#progress). Every decision is settled (2026-09-26), and only the descend forms' quests
+are left for later world work. Traced against master `2c5859388` and the Duris checkout at
 `/home/aiwithapex/projects/duris` (race data read at `e1357a30a`, unchanged through `d86a642ad`).
 It replaces `DURIS_RACE_SPECIFICATIONS.md`, `DURIS_RACE_FEAT_PROPOSAL.md`, and
 `DURIS_RACIAL_IMPORTS.md`; read them with `git show 2c5859388:docs/ongoing-projects/<name>`.
@@ -15,6 +16,15 @@ so each race is mostly `add_race()` data and `feat_race_assignment()` lines.
 work (registry, creation, unlock, hard lock, conversion, help, persistence, tests); this plan holds
 the race data, the code the guide does not cover, and the order of work. The other 20 Duris player
 races map to existing races (for example Barbarian to Wemic, both Illithids to Half-Illithid).
+
+## Progress
+
+- Step 1 done. Beyond the plan: an epic damage reduction DR entry has spell 0, which the player
+  file's DR dedupe always skips, so it was never saved. `update_feat_damage_reduction()`
+  (`src/character/class.c`) now builds it from the feat's real ranks, and `load_char()` calls it,
+  so it is rebuilt on every load. `TestSep2026InnateFeatsAreRegisteredAsInnates` pins the last
+  feat; a new feat moves it. The renamed Wemic, QUADRUPED-BODY, and SQL help are edited in the
+  files but not yet applied to the development help database; step 4 applies all help together.
 
 ## Rules behind the data
 

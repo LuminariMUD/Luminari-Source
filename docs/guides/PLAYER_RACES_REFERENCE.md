@@ -312,7 +312,7 @@ Unarmed attacks: hit, pound, punch, smash.
 ### Wemic (advanced)
 
 Infravision, Natural Athlete, Powerful Build, Claws And Bite, Survival
-Instinct, Hardy, Leonine Frame. Unarmed attacks: bite, claw, trample. Cannot
+Instinct, Hardy, Tauric Frame. Unarmed attacks: bite, claw, trample. Cannot
 wear leg or foot equipment.
 
 ### Yuan-Ti (advanced)

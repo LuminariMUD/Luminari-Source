@@ -3046,6 +3046,41 @@ void process_class_level_feats(struct char_data *ch, int class)
   }
 }
 
+/* Epic damage reduction: one DR entry of 3 per rank the character holds, rebuilt whenever the
+ * rank changes.  The entry is never saved (its spell is 0), so loading rebuilds it too. */
+void update_feat_damage_reduction(struct char_data *ch)
+{
+  struct damage_reduction_type *dr, *next_dr, *temp;
+
+  for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
+  {
+    next_dr = dr->next; /* Save next pointer before potential removal */
+    if (dr->feat == FEAT_DAMAGE_REDUCTION)
+    {
+      REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+      free(dr); /* Free the damage reduction structure */
+    }
+  }
+
+  if (HAS_REAL_FEAT(ch, FEAT_DAMAGE_REDUCTION) <= 0)
+    return;
+
+  CREATE(dr, struct damage_reduction_type, 1);
+  dr->duration = 0; /* Initialize duration field - CRITICAL FIX (feat-based DR) */
+  dr->spell = 0;
+  dr->feat = FEAT_DAMAGE_REDUCTION;
+  dr->amount = HAS_REAL_FEAT(ch, FEAT_DAMAGE_REDUCTION) * 3;
+  dr->max_damage = -1;
+  dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
+  dr->bypass_val[0] = 0;
+  dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+  dr->bypass_val[1] = 0; /* Unused. */
+  dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+  dr->bypass_val[2] = 0; /* Unused. */
+  dr->next = GET_DR(ch);
+  GET_DR(ch) = dr;
+}
+
 /* at each level we run this function to assign free RACE feats */
 void process_race_level_feats(struct char_data *ch)
 {
@@ -3081,6 +3116,8 @@ void process_race_level_feats(struct char_data *ch)
 
       /* now actually adjust the feat */
       SET_FEAT(ch, feat_assign->feat_num, HAS_REAL_FEAT(ch, feat_assign->feat_num) + 1);
+      if (feat_assign->feat_num == FEAT_DAMAGE_REDUCTION)
+        update_feat_damage_reduction(ch);
     }
   }
 }

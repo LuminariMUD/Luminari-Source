@@ -3425,13 +3425,11 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
     damtype_reduction += 100; // full immunity
   }
 
-  if (IS_LICH(ch))
-  {
-    if (dam_type == DAM_COLD)
-      damtype_reduction += 100; // full immunity
-    if (dam_type == DAM_ELECTRIC)
-      damtype_reduction += 100; // full immunity
-  }
+  /* saved Liches predate their cold immunity feat grant */
+  if (dam_type == DAM_COLD && (IS_LICH(ch) || HAS_FEAT(ch, FEAT_COLD_IMMUNITY)))
+    damtype_reduction += 100; // full immunity
+  if (dam_type == DAM_ELECTRIC && IS_LICH(ch))
+    damtype_reduction += 100; // full immunity
 
   if (HAS_FEAT(ch, FEAT_RAGE_RESISTANCE) && affected_by_spell(ch, SKILL_RAGE))
   {
@@ -3913,7 +3911,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
     break;
 
   case DAM_MENTAL:
-    if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
+    /* saved Trelux predate their psionic resistance feat grant */
+    if ((!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX) || HAS_FEAT(ch, FEAT_PSIONIC_RESISTANCE))
       damtype_reduction += 20;
 
     /* npc vulnerabilities/strengths */

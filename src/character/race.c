@@ -151,10 +151,10 @@ const char *character_wear_slot_restriction(const struct char_data *ch, int wear
   if (wear_slot == WEAR_TAIL && !character_has_tail_wear_slot(ch))
     return "Your anatomy does not provide a tail equipment slot.";
 
-  /* leonine frame: feat-driven, so any race granted it loses the slots.
+  /* tauric frame: feat-driven, so any race granted it loses the slots.
    * get_feat_value() only reads the character. */
-  if ((wear_slot == WEAR_LEGS || wear_slot == WEAR_FEET) && HAS_FEAT(ch, FEAT_LEONINE_FRAME))
-    return "Your four-legged body cannot wear leg or foot equipment.";
+  if ((wear_slot == WEAR_LEGS || wear_slot == WEAR_FEET) && HAS_FEAT(ch, FEAT_TAURIC_FRAME))
+    return "Your tauric body cannot wear leg or foot equipment.";
 
   /* arm count: checked for NPCs too.  A lower-arm slot then follows its base
    * position's anatomy rules. */
@@ -377,6 +377,19 @@ static bool race_is_available(struct char_data *ch, int race_num)
   return TRUE;
 }
 
+/* Races acquired only by conversion: never bought, never chosen at creation. */
+bool race_is_transformation_only(int race_num)
+{
+  switch (race_num)
+  {
+  case RACE_LICH:
+  case RACE_VAMPIRE:
+    return TRUE;
+  default:
+    return FALSE;
+  }
+}
+
 /* Creation policy is deliberately independent of numeric density. */
 bool race_is_creation_eligible(int race_num)
 {
@@ -386,8 +399,7 @@ bool race_is_creation_eligible(int race_num)
   if (!race_list[race_num].is_pc)
     return FALSE;
 
-  /* These races are acquired only by their existing conversion paths. */
-  if (race_num == RACE_LICH || race_num == RACE_VAMPIRE)
+  if (race_is_transformation_only(race_num))
     return FALSE;
 
   return TRUE;
@@ -1719,6 +1731,7 @@ void assign_races(void)
   feat_race_assignment(RACE_TRELUX, FEAT_TRELUX_EQ, 1, N);
   feat_race_assignment(RACE_TRELUX, FEAT_TRELUX_PINCERS, 1, N);
   feat_race_assignment(RACE_TRELUX, FEAT_INSECTBEING, 1, N);
+  feat_race_assignment(RACE_TRELUX, FEAT_PSIONIC_RESISTANCE, 1, N);
 
   /****************************************************************************/
   /****************************************************************************/
@@ -1949,7 +1962,7 @@ void assign_races(void)
   feat_race_assignment(RACE_WEMIC, FEAT_CLAWS_AND_BITE, 1, N);
   feat_race_assignment(RACE_WEMIC, FEAT_SURVIVAL_INSTINCT, 1, N);
   feat_race_assignment(RACE_WEMIC, FEAT_HARDY, 1, N);
-  feat_race_assignment(RACE_WEMIC, FEAT_LEONINE_FRAME, 1, N);
+  feat_race_assignment(RACE_WEMIC, FEAT_TAURIC_FRAME, 1, N);
   race_list[RACE_WEMIC].racial_language = SKILL_LANG_COMMON;
 
   /****************************************************************************/

@@ -1,6 +1,9 @@
 #include "CuTest.h"
 
+#include <limits.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "conf.h"
 #include "../../src/core/sysdep.h"
@@ -84,6 +87,44 @@ static void init_race_equipment_object(struct obj_data *obj, const char *name, i
   GET_OBJ_SIZE(obj) = SIZE_LARGE;
   SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_TAKE);
   SET_BIT_AR(GET_OBJ_WEAR(obj), wear_flag);
+}
+
+/* Real player saves also write the index: keep every persistence fixture isolated. */
+static void enter_race_player_fixture(CuTest *tc, char *temporary_directory)
+{
+  CuAssertPtrNotNull(tc, mkdtemp(temporary_directory));
+  CuAssertIntEquals(tc, 0, chdir(temporary_directory));
+  CuAssertIntEquals(tc, 0, mkdir("plrfiles", 0700));
+  CuAssertIntEquals(tc, 0, mkdir("plrfiles/U-Z", 0700));
+}
+
+static int leave_race_player_fixture(const char *directory, const char *temporary_directory)
+{
+  int result;
+
+  unlink("plrfiles/index");
+  rmdir("plrfiles/U-Z");
+  rmdir("plrfiles");
+  result = chdir(directory);
+  if (result == 0)
+    rmdir(temporary_directory);
+  return result;
+}
+
+/* Count the epic damage reduction entries and report the last one's amount. */
+static int count_feat_damage_reduction(struct char_data *ch, int *amount)
+{
+  struct damage_reduction_type *dr;
+  int count = 0;
+
+  for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+    if (dr->feat == FEAT_DAMAGE_REDUCTION)
+    {
+      count++;
+      *amount = dr->amount;
+    }
+
+  return count;
 }
 
 void TestRaceEquivalenceIdsAreUniqueAndRepresentable(CuTest *tc)
@@ -200,7 +241,7 @@ void TestRaceEquivalenceParsersAndRacialFeats(CuTest *tc)
   CuAssertIntEquals(tc, RACE_MYCONID, parse_race_long("Mycanoid"));
 
   CuAssertIntEquals(tc, 1, count_racial_feat(RACE_WEMIC, FEAT_CLAWS_AND_BITE));
-  CuAssertIntEquals(tc, 1, count_racial_feat(RACE_WEMIC, FEAT_LEONINE_FRAME));
+  CuAssertIntEquals(tc, 1, count_racial_feat(RACE_WEMIC, FEAT_TAURIC_FRAME));
   CuAssertIntEquals(tc, 2, count_racial_feat(RACE_HALF_OGRE, FEAT_ARMOR_SKIN));
   CuAssertIntEquals(tc, 1, count_racial_feat(RACE_HALF_ILLITHID, FEAT_SLA_LEVITATE));
   CuAssertIntEquals(tc, 3, count_racial_feat(RACE_HALF_ILLITHID, FEAT_ARMOR_SKIN));
@@ -387,7 +428,7 @@ void TestRaceEquivalenceLevelOneFeatGrants(CuTest *tc)
   GET_REAL_RACE(&ch) = RACE_WEMIC;
   process_race_level_feats(&ch);
   CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, FEAT_CLAWS_AND_BITE));
-  CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, FEAT_LEONINE_FRAME));
+  CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, FEAT_TAURIC_FRAME));
 
   memset(ch.char_specials.saved.feats, 0, sizeof(ch.char_specials.saved.feats));
   GET_REAL_RACE(&ch) = RACE_HALF_OGRE;
@@ -887,4 +928,121 @@ void TestRoleplayIdeaMenusProceedToTheirEditors(CuTest *tc)
     free(descriptor.backstr);
     cleanup_race_equivalence_descriptor(&descriptor);
   }
+}
+
+/* Three race grants of epic damage reduction build one DR 9 entry.  The entry is never saved,
+ * and loading rebuilds it from the feat. */
+void TestRaceGrantedDamageReductionBuildsOneEntryThatSurvivesReload(CuTest *tc)
+{
+  struct race_feat_assign grants[3];
+  struct race_feat_assign *saved_list;
+  struct player_index_element fixture_index[1];
+  struct player_index_element *saved_player_table;
+  struct char_data *source;
+  struct char_data *loaded;
+  char temporary_directory[] = "/tmp/luminari-race-fixture-XXXXXX";
+  char original_directory[PATH_MAX];
+  char filename[MAX_FILEPATH];
+  char player_name[32];
+  int saved_top_of_p_table;
+  int granted_rank, granted_count, granted_amount = 0;
+  int loaded_rank = -1, loaded_count = -1, loaded_amount = 0;
+  int load_result = -1;
+  int restore_result;
+  int i;
+
+  ensure_race_equivalence_registry();
+  memset(grants, 0, sizeof(grants));
+  saved_list = race_list[RACE_HUMAN].featassign_list;
+  for (i = 0; i < 3; i++)
+  {
+    grants[i].feat_num = FEAT_DAMAGE_REDUCTION;
+    grants[i].level_received = 1;
+    grants[i].next = i < 2 ? &grants[i + 1] : saved_list;
+  }
+  race_list[RACE_HUMAN].featassign_list = grants;
+
+  memset(fixture_index, 0, sizeof(fixture_index));
+  CuAssertPtrNotNull(tc, getcwd(original_directory, sizeof(original_directory)));
+  enter_race_player_fixture(tc, temporary_directory);
+  source = new_char();
+  loaded = new_char();
+  snprintf(player_name, sizeof(player_name), "Zzdr%ld", (long)getpid());
+  fixture_index[0].name = player_name;
+  fixture_index[0].id = 4243;
+  fixture_index[0].level = 1;
+  saved_player_table = player_table;
+  saved_top_of_p_table = top_of_p_table;
+  player_table = fixture_index;
+  top_of_p_table = 0;
+
+  source->player.name = strdup(player_name);
+  GET_PFILEPOS(source) = 0;
+  GET_IDNUM(source) = 4243;
+  GET_LEVEL(source) = 1;
+  GET_REAL_RACE(source) = RACE_HUMAN;
+  process_race_level_feats(source);
+  race_list[RACE_HUMAN].featassign_list = saved_list;
+  granted_rank = HAS_REAL_FEAT(source, FEAT_DAMAGE_REDUCTION);
+  granted_count = count_feat_damage_reduction(source, &granted_amount);
+
+  if (get_filename(filename, sizeof(filename), PLR_FILE, player_name))
+  {
+    save_char(source, TRUE);
+    load_result = load_char(player_name, loaded);
+    if (load_result >= 0)
+    {
+      loaded_rank = HAS_REAL_FEAT(loaded, FEAT_DAMAGE_REDUCTION);
+      loaded_count = count_feat_damage_reduction(loaded, &loaded_amount);
+    }
+    unlink(filename);
+  }
+
+  restore_result = leave_race_player_fixture(original_directory, temporary_directory);
+  free_char(loaded);
+  free_char(source);
+  player_table = saved_player_table;
+  top_of_p_table = saved_top_of_p_table;
+
+  CuAssertIntEquals(tc, 0, restore_result);
+  CuAssertIntEquals(tc, 3, granted_rank);
+  CuAssertIntEquals(tc, 1, granted_count);
+  CuAssertIntEquals(tc, 9, granted_amount);
+  CuAssertTrue(tc, load_result >= 0);
+  CuAssertIntEquals(tc, 3, loaded_rank);
+  CuAssertIntEquals(tc, 1, loaded_count);
+  CuAssertIntEquals(tc, 9, loaded_amount);
+}
+
+/* The quest conversions pass no respec argument, and neither may crash for any race. */
+void TestRespecEngineAcceptsANullArgument(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  int saved_move_gain;
+  int class_after;
+  int premade_after;
+
+  ensure_race_equivalence_registry();
+  clear_char(&ch);
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  ch.player.name = CuMutableString("null respec test character");
+  GET_REAL_RACE(&ch) = RACE_HUMAN;
+  GET_LEVEL(&ch) = 30;
+  GET_EXP(&ch) = 1;
+
+  saved_move_gain = class_list[CLASS_WARRIOR].move_gain;
+  class_list[CLASS_WARRIOR].move_gain = 1;
+  respec_engine(&ch, CLASS_WARRIOR, NULL, TRUE);
+  class_list[CLASS_WARRIOR].move_gain = saved_move_gain;
+  class_after = GET_CLASS(&ch);
+  premade_after = GET_PREMADE_BUILD_CLASS(&ch);
+
+  while (ch.affected != NULL)
+    affect_remove_no_total(&ch, ch.affected);
+  free(GET_TITLE(&ch));
+
+  CuAssertIntEquals(tc, CLASS_WARRIOR, class_after);
+  CuAssertIntEquals(tc, CLASS_UNDEFINED, premade_after);
 }

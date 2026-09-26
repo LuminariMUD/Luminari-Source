@@ -3017,7 +3017,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define FEAT_ESTABLISH_CAMP 1264
 #define FEAT_GARROTE 1265
 #define FEAT_ACCOMPANY 1266
-#define FEAT_LEONINE_FRAME 1267
+#define FEAT_TAURIC_FRAME 1267
 
 /* Duris racial innates converted to feats, see
  * docs/systems/GAME_MECHANICS_SYSTEMS.md */
@@ -3079,11 +3079,12 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 /* Four arms (Thri-Kreen): two more arms toward arm_count(), opening the
  * lower-arm slots (WEAR_WIELD_3 .. WEAR_WRIST_L2) */
 #define FEAT_FOUR_ARMS 1321
+#define FEAT_PSIONIC_RESISTANCE 1322
 
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1322
+#define FEAT_LAST_FEAT 1323
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1323
+#define NUM_FEATS 1324
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
