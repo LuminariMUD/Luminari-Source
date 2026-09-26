@@ -85,6 +85,10 @@ bonuses. The existing positions use at most nine hands: four weapons, four acros
   your wrists", "Your hands are full.").
 - Spare hands. A first-pair one-hander doubles its item bonuses only with an actual spare hand
   (`is_weapon_wielded_two_handed()`); a two-hand position or a launcher already holds its hands.
+  A lone third-hand one-hander doubles only with a hand left once the first pair takes its
+  support hand and, when it holds no weapon, the hand its unarmed strike uses
+  (`second_pair_spare_hands()`, which the third hand's strength bonus reads too). Three arms with
+  a one-hander in `WIELD_1` and one in `WIELD_3` double only the first; four arms double both.
 - Unsheathing. `do_unsheath()` keeps its first-pair targets and draws each item only into an
   open, empty position with no pair conflict and the hands to spare; the rest stays sheathed and
   only drawn items are reported.

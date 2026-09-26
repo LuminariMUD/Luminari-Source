@@ -33,6 +33,7 @@ int has_unlocked_class(struct char_data *ch, int class);
 int hands_available(struct char_data *ch);
 int hands_used(struct char_data *ch);
 int hands_have(struct char_data *ch);
+int second_pair_spare_hands(struct char_data *ch);
 int hands_needed(struct char_data *ch, struct obj_data *obj);
 int is_wielding_type(struct char_data *ch);
 extern const int eq_ordering_1[NUM_WEARS];

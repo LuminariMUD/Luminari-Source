@@ -12903,12 +12903,12 @@ bool is_weapon_wielded_two_handed(struct obj_data *obj, struct char_data *ch)
   csize = GET_SIZE(ch);
 
   /* second pair: its two-hand position, or a lone one-hander there with a
-   * spare hand; never decided by the other pair's weapons */
+   * hand to spare once the first pair takes its share */
   if (obj->worn_on == WEAR_WIELD_2H_2)
     return true;
   if (obj->worn_on == WEAR_WIELD_3 || obj->worn_on == WEAR_WIELD_4)
     return wsize >= csize && obj->worn_on == WEAR_WIELD_3 && GET_EQ(ch, WEAR_WIELD_4) == NULL &&
-           hands_have(ch) > hands_used(ch);
+           second_pair_spare_hands(ch) > 0;
 
   if (wsize >= csize)
   {

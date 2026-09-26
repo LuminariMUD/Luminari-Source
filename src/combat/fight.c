@@ -10003,19 +10003,16 @@ int is_dual_wielding_second_pair(struct char_data *ch)
 }
 
 /* the spare hand of a one-hander: the first pair's primary claims a free hand
- * first, the third hand takes the next one (primary-pair-first allocation).
- * An unarmed strike fills a hand that no equipped position counts, so an
- * unarmed primary or third hand uses one of the free hands itself. */
+ * first, the third hand takes the next one (second_pair_spare_hands()).  An
+ * unarmed strike fills a hand that no equipped position counts, so an unarmed
+ * third hand uses one of the free hands itself. */
 static bool spare_hand_for_attack(struct char_data *ch, int attack_type)
 {
-  int spare = hands_available(ch);
+  int spare;
 
   if (attack_type != ATTACK_TYPE_THIRD)
-    return spare > 0;
-  if (!GET_EQ(ch, WEAR_WIELD_2H))
-    spare--; /* the primary's support hand */
-  if (!get_wielded(ch, ATTACK_TYPE_PRIMARY))
-    spare--; /* the primary's unarmed strike */
+    return hands_available(ch) > 0;
+  spare = second_pair_spare_hands(ch);
   if (!get_wielded(ch, ATTACK_TYPE_THIRD))
     spare--; /* the third hand's unarmed strike */
   return spare > 0;

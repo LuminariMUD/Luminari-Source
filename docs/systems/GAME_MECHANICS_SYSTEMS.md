@@ -482,8 +482,10 @@ two-hand position, and reports a full set at every count. Lower sleeves join
 `apply_ac()`, enhancement, spell failure, armor penalty, max Dexterity, sleeve
 proficiency and whole-body conflicts. A first-pair one-hander doubles its item
 bonuses only with an actual spare hand (`is_weapon_wielded_two_handed()`), and
-`do_unsheath()` draws each sheathed item only into an open, empty first-pair
-position with the hands to spare, leaving the rest sheathed.
+a lone third-hand one-hander only with a hand left once the first pair takes
+its share (`second_pair_spare_hands()`). `do_unsheath()` draws each sheathed
+item only into an open, empty first-pair position with the hands to spare,
+leaving the rest sheathed.
 
 Losses are reconciled by `limb_reconcile()` from `affect_total()`: positions
 the count closes empty into inventory (lower positions, then two-arm, then
@@ -524,9 +526,10 @@ bonuses such as monk gloves still need every hand empty (`is_bare_handed()`).
 An unarmed strike fills a hand no position counts, so
 `spare_hand_for_attack()` gives the unarmed third hand the free-hand strength
 bonus only when a hand remains after the equipped positions, the primary's
-strike and support hand, and its own strike. Some consumers read only the
-first pair by design: the parry message weapon in `skill_message()`, the monk
-weapon armor-class pick, reach-weapon detection, sunder's attacking weapon,
+strike and support hand (`second_pair_spare_hands()`), and its own strike.
+Some consumers read only the first pair by design: the parry message weapon in
+`skill_message()`, the monk weapon armor-class pick, reach-weapon detection,
+sunder's attacking weapon,
 and the explicit slot checks in `mob_spells.c`, `spec_abilities.c`, `magic.c`,
 `feats.c`, `perks.c`, and the
 `spec_rol_*` procedures. The stochastic ranger Wilderness Warrior offhand

@@ -2282,26 +2282,33 @@ void TestArmCountRepeatedSavesKeepGear(CuTest *tc)
   end_four_arm_fixture(&fixture);
 }
 
-/* Item bonuses of a first-pair one-hander double only with an actual spare
- * hand: not on a one-armed body, not when every hand is already in use. */
+/* Item bonuses of a one-hander double only with an actual spare hand: not on
+ * a one-armed body, not when every hand is already in use, and a third-hand
+ * weapon only with a hand left once the primary takes its own. */
 void TestArmCountOneHanderDoublingNeedsSpareHand(CuTest *tc)
 {
   struct four_arm_fixture fixture;
   struct obj_data sword, big, third, bow;
-  int base_str;
+  int base_str, base_dex;
 
   begin_four_arm_fixture(&fixture);
   fixture.ch.real_abils.str = 10;
   fixture.ch.aff_abils.str = 10;
+  fixture.ch.real_abils.dex = 10;
+  fixture.ch.aff_abils.dex = 10;
   init_weapon(&sword, "a mighty sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
   sword.affected[0].location = APPLY_STR;
   sword.affected[0].modifier = 2;
   sword.affected[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
   init_weapon(&big, "a test greatsword", WEAPON_TYPE_GREAT_SWORD, SIZE_LARGE);
   init_weapon(&third, "a third sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  third.affected[0].location = APPLY_DEX;
+  third.affected[0].modifier = 2;
+  third.affected[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
   init_weapon(&bow, "a test bow", WEAPON_TYPE_LONG_BOW, SIZE_MEDIUM);
   affect_total(&fixture.ch);
   base_str = GET_STR(&fixture.ch);
+  base_dex = GET_DEX(&fixture.ch);
 
   /* two arms, lone sword: the spare hand doubles it */
   equip_char(&fixture.ch, &sword, WEAR_WIELD_1);
@@ -2330,11 +2337,25 @@ void TestArmCountOneHanderDoublingNeedsSpareHand(CuTest *tc)
   set_vestigial_arm(&fixture, false);
   CuAssertPtrEquals(tc, &sword, unequip_char(&fixture.ch, WEAR_WIELD_1));
 
-  /* three arms with a third-hand weapon: one hand is still spare */
+  /* three arms with a third-hand weapon: the primary takes the one spare
+   * hand, so only its bonus doubles */
   set_human_arms(3);
   equip_char(&fixture.ch, &sword, WEAR_WIELD_1);
   equip_char(&fixture.ch, &third, WEAR_WIELD_3);
   CuAssertTrue(tc, is_weapon_wielded_two_handed(&sword, &fixture.ch));
+  CuAssertTrue(tc, !is_weapon_wielded_two_handed(&third, &fixture.ch));
+  CuAssertIntEquals(tc, base_str + 4, GET_STR(&fixture.ch));
+  CuAssertIntEquals(tc, base_dex + 2, GET_DEX(&fixture.ch));
+  strip_character(&fixture.ch);
+
+  /* four arms: a spare hand for each, both double */
+  set_human_arms(4);
+  equip_char(&fixture.ch, &sword, WEAR_WIELD_1);
+  equip_char(&fixture.ch, &third, WEAR_WIELD_3);
+  CuAssertTrue(tc, is_weapon_wielded_two_handed(&sword, &fixture.ch));
+  CuAssertTrue(tc, is_weapon_wielded_two_handed(&third, &fixture.ch));
+  CuAssertIntEquals(tc, base_str + 4, GET_STR(&fixture.ch));
+  CuAssertIntEquals(tc, base_dex + 4, GET_DEX(&fixture.ch));
   strip_character(&fixture.ch);
 
   /* a launcher already holds its two hands */

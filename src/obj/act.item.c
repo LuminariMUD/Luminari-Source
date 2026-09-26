@@ -3841,6 +3841,24 @@ int hands_available(struct char_data *ch)
   return (hands_have(ch) - hands_used(ch));
 }
 
+/* Free hands left to the second pair once the first pair takes its share
+ * (primary-pair-first allocation): the primary's support hand, unless its
+ * two-hand position already counts both, and the hand an unarmed primary
+ * strikes with, which no equipped position counts.  The third hand's weapon
+ * item bonuses and its strength bonus both read it. */
+int second_pair_spare_hands(struct char_data *ch)
+{
+  int spare = hands_have(ch) - hands_used(ch);
+
+  if (!GET_EQ(ch, WEAR_WIELD_2H))
+  {
+    spare--; /* the primary's support hand */
+    if (!GET_EQ(ch, WEAR_WIELD_1))
+      spare--; /* the primary's unarmed strike */
+  }
+  return spare;
+}
+
 /* Arm count lifecycle.  A lower count (provider removed, feat cleared, a form
  * whose mob feats have fewer arms) closes positions, and a lower count or a
  * lost vestigial arm shrinks the hand budget.  Reconciliation runs from
