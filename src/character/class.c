@@ -3855,6 +3855,11 @@ long int level_exp(struct char_data *ch, int level)
 
   case RACE_LICH:
   case RACE_VAMPIRE:
+  case RACE_DEATH_KNIGHT:
+  case RACE_WIGHT:
+  case RACE_REVENANT:
+  case RACE_SHADOW_BEAST:
+  case RACE_PHANTOM:
     exp *= 10;
     break;
   default:

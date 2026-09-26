@@ -2480,6 +2480,8 @@ bool corpse_can_be_animated(struct obj_data *corpse);
 #define IS_KUO_TOA(ch) (!IS_NPC(ch) && GET_REAL_RACE(ch) == RACE_KUO_TOA)
 #define IS_HARPY(ch) (!IS_NPC(ch) && GET_REAL_RACE(ch) == RACE_HARPY)
 #define IS_STORMKIN(ch) (!IS_NPC(ch) && GET_REAL_RACE(ch) == RACE_STORMKIN)
+#define IS_DESCEND_FORM(ch)                                                                        \
+  (!IS_NPC(ch) && GET_REAL_RACE(ch) >= RACE_DEATH_KNIGHT && GET_REAL_RACE(ch) <= RACE_PHANTOM)
 
 // backwards compatibility for old circlemud code snippets
 #define SEND_TO_Q(buf, desc) (write_to_output(desc, "%s", buf))
@@ -2522,7 +2524,7 @@ bool corpse_can_be_animated(struct obj_data *corpse);
    (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ANIMAL))
 #define IS_UNDEAD(ch)                                                                              \
   ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_UNDEAD) || IS_LICH(ch) || IS_VAMPIRE(ch) ||            \
-   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_UNDEAD) ||                                          \
+   IS_DESCEND_FORM(ch) || (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_UNDEAD) ||                   \
    HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE))
 #define IS_ELEMENTAL(ch)                                                                           \
   ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_ELEMENTAL) ||                                          \
@@ -2561,7 +2563,8 @@ bool corpse_can_be_animated(struct obj_data *corpse);
    (!IS_NPC(ch) && !IS_MORPHED(ch) && !IS_LICH(ch) && !IS_VAMPIRE(ch) && !IS_WEMIC(ch) &&          \
     !IS_HALF_OGRE(ch) && !IS_HALF_ILLITHID(ch) && !IS_YUAN_TI(ch) && !IS_MYCONID(ch) &&            \
     !IS_CENTAUR(ch) && !IS_FIRBOLG(ch) && !IS_DRIDER(ch) && !IS_THRI_KREEN(ch) &&                  \
-    !IS_MINOTAUR(ch) && !IS_KUO_TOA(ch) && !IS_HARPY(ch) && !IS_STORMKIN(ch)))
+    !IS_MINOTAUR(ch) && !IS_KUO_TOA(ch) && !IS_HARPY(ch) && !IS_STORMKIN(ch) &&                    \
+    !IS_DESCEND_FORM(ch)))
 #define IS_DRACONIAN(ch)                                                                           \
   (IS_NPC(ch) &&                                                                                   \
    (GET_RACE(ch) == LEGACY_RACE_BAAZ_DRACONIAN || GET_RACE(ch) == LEGACY_RACE_BOZAK_DRACONIAN ||   \

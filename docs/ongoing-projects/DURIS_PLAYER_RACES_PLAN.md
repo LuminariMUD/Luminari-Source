@@ -35,6 +35,13 @@ races map to existing races (for example Barbarian to Wemic, both Illithids to H
   45 overflowed the 15000-byte payload at 220. Tests: the `TestDurisCreationRaces*` and
   `TestRaceLevelFeatsFollowTheRealRace` cases in `test_race_equivalence.c`, the media key and
   wire budget cases in `test_web_onboarding.c`.
+- Step 3 done. The form blocks follow Vampire in `assign_races()`. The conversion table is
+  `descend_form_conversions[]` in `src/quest/quest.c`, whose `descend_form_preflight()` runs
+  inside the race-reward preflight and whose `convert_to_descend_form()` is the switch's default
+  case. QEDIT accepts `-1` or any `race_is_transformation_only()` race. Tests:
+  `TestDescendForm*` in `test_race_equivalence.c` (the conversion tests load the class table),
+  the forged-form case in the web wire budget test, and `scripts/world/tests/test_semantics.py`.
+  No quest uses a form yet.
 
 ## Rules behind the data
 

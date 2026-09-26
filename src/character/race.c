@@ -94,6 +94,11 @@ int race_starting_hp_bonus(int race_num)
   case RACE_VAMPIRE:
   case RACE_HALF_ILLITHID:
   case RACE_MYCONID:
+  case RACE_DEATH_KNIGHT:
+  case RACE_WIGHT:
+  case RACE_REVENANT:
+  case RACE_SHADOW_BEAST:
+  case RACE_PHANTOM:
     return 10;
   default:
     return 0;
@@ -116,6 +121,11 @@ int race_hp_bonus_per_level(int race_num)
   case RACE_WEMIC:
   case RACE_OROG:
   case RACE_HARPY:
+  case RACE_DEATH_KNIGHT:
+  case RACE_WIGHT:
+  case RACE_REVENANT:
+  case RACE_SHADOW_BEAST:
+  case RACE_PHANTOM:
     return 1;
   default:
     return 0;
@@ -386,6 +396,11 @@ bool race_is_transformation_only(int race_num)
   {
   case RACE_LICH:
   case RACE_VAMPIRE:
+  case RACE_DEATH_KNIGHT:
+  case RACE_WIGHT:
+  case RACE_REVENANT:
+  case RACE_SHADOW_BEAST:
+  case RACE_PHANTOM:
     return TRUE;
   default:
     return FALSE;
@@ -2568,6 +2583,235 @@ void assign_races(void)
   /*                  race-num  affect            lvl */
   /****************************************************************************/
 
+  /* Duris descend forms: quest-only, like Lich and Vampire, with no racial language */
+  /****************************************************************************/
+  add_race(RACE_DEATH_KNIGHT, "deathknight", "Death Knight", "\tLDeath Knight\tn", "DKni",
+           "\tLDKni\tn", RACE_TYPE_UNDEAD, SIZE_LARGE, TRUE, 10, 999999999, IS_EPIC_R);
+  set_race_details(
+      RACE_DEATH_KNIGHT,
+      "Death knights are fallen paladins raised into undeath and bound in eternal torment, their "
+      "rage at their fate spent on all that lives. Unlike liches, they fight in heavy armor with "
+      "the great blades of warriors, call down hellfire, and wreathe themselves in flame; lesser "
+      "undead bow to them. A descend form is gained only through its quest, by a character of "
+      "level 30 or more with levels in one of its classes. It resets experience to 0, rebuilds the "
+      "character at level one, and sets alignment to evil; it cannot be undone.",
+      "Your flesh withers inside your armor as you rise as a Death Knight.",
+      "$n's flesh withers inside $s armor as $e rises as a Death Knight.");
+  set_race_genders(RACE_DEATH_KNIGHT, N, Y, Y);
+  set_race_abilities(RACE_DEATH_KNIGHT, 8, 6, -2, 6, -2, 0);
+  set_race_alignments(RACE_DEATH_KNIGHT, N, N, N, N, N, N, Y, Y, Y);
+  set_race_attack_types(RACE_DEATH_KNIGHT,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, Y, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, Y, N, N, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_TOUGHNESS, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_FAST_HEALING, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_GREATSWORD_MASTERY, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_TIEFLING_HELLISH_RESISTANCE, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_UNDEAD_FEALTY, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SUN_VULNERABILITY, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SLA_FIRE_STORM, 13, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SLA_FIRE_SHIELD, 16, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SACRILEGIOUS_POWER, 23, N);
+
+  /****************************************************************************/
+  add_race(RACE_WIGHT, "wight", "Wight", "\tLWight\tn", "Wght", "\tLWght\tn", RACE_TYPE_UNDEAD,
+           SIZE_LARGE, TRUE, 10, 999999999, IS_EPIC_R);
+  set_race_details(
+      RACE_WIGHT,
+      "Wights are towering undead, something between a zombie and a skeleton, as tall as an ogre "
+      "though leaner. Immensely strong and cold to the core, they breathe frost, harden their skin "
+      "like stone, and batter down doors and foes alike, but fire is their undoing. A descend form "
+      "is gained only through its quest, by a character of level 30 or more with levels in one of "
+      "its classes. It resets experience to 0, rebuilds the character at level one, and sets "
+      "alignment to evil; it cannot be undone.",
+      "Your flesh withers and a grave chill fills you as you rise as a Wight.",
+      "$n's flesh withers and a grave chill fills $m as $e rises as a Wight.");
+  set_race_genders(RACE_WIGHT, N, Y, Y);
+  set_race_abilities(RACE_WIGHT, 10, 10, -2, 0, 0, -2);
+  set_race_alignments(RACE_WIGHT, N, N, N, N, N, N, Y, Y, Y);
+  set_race_attack_types(RACE_WIGHT,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, Y, N, Y, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_TOUGHNESS, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_FAST_HEALING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_COLD_IMMUNITY, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_BODYSLAM, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_DOORBASH, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_WEAKNESS_TO_FIRE, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLA_FROST_BREATH, 6, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLA_STONESKIN, 13, N);
+
+  /****************************************************************************/
+  add_race(RACE_REVENANT, "revenant", "Revenant", "\tLRevenant\tn", "Rvnt", "\tLRvnt\tn",
+           RACE_TYPE_UNDEAD, SIZE_LARGE, TRUE, 10, 999999999, IS_EPIC_R);
+  set_race_details(
+      RACE_REVENANT,
+      "Revenants are corpses reanimated by a burning will for revenge, bound to the world by a "
+      "compact with unholy powers. They keep much of their living strength and stamina, regenerate "
+      "their wounds, step from shadow to shadow, and fight with a frenzy that makes them the elite "
+      "of the undead armies. Fire burns them badly. A descend form is gained only through its "
+      "quest, by a character of level 30 or more with levels in one of its classes. It resets "
+      "experience to 0, rebuilds the character at level one, and sets alignment to evil; it cannot "
+      "be undone.",
+      "Your corpse rises, driven by a burning will, as you become a Revenant.",
+      "$n's corpse rises, driven by a burning will, as $e becomes a Revenant.");
+  set_race_genders(RACE_REVENANT, N, Y, Y);
+  set_race_abilities(RACE_REVENANT, 7, 7, -2, 0, 6, -2);
+  set_race_alignments(RACE_REVENANT, N, N, N, N, N, N, Y, Y, Y);
+  set_race_attack_types(RACE_REVENANT,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, Y, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_TOUGHNESS, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_FAST_HEALING, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_TROLL_REGENERATION, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_BODYSLAM, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_DOORBASH, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_WEAKNESS_TO_FIRE, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_BATTLE_FRENZY, 8, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_SLA_SHADOW_JUMP, 13, N);
+
+  /****************************************************************************/
+  add_race(RACE_SHADOW_BEAST, "shadowbeast", "Shadow Beast", "\tDShadow Beast\tn", "SBst",
+           "\tDSBst\tn", RACE_TYPE_UNDEAD, SIZE_MEDIUM, TRUE, 10, 999999999, IS_EPIC_R);
+  set_race_details(
+      RACE_SHADOW_BEAST,
+      "Shadow beasts are undead killers woven from darkness, swift and silent in the deep places. "
+      "They swell their own strength and size with dark magic and strike in a blur of claws, but "
+      "fire tears through their shadowy flesh. A descend form is gained only through its quest, by "
+      "a character of level 30 or more with levels in one of its classes. It resets experience to "
+      "0, rebuilds the character at level one, and sets alignment to evil; it cannot be undone.",
+      "Your body dissolves into living darkness as you become a Shadow Beast.",
+      "$n's body dissolves into living darkness as $e becomes a Shadow Beast.");
+  set_race_genders(RACE_SHADOW_BEAST, N, Y, Y);
+  set_race_abilities(RACE_SHADOW_BEAST, 0, 7, 3, -2, 10, -2);
+  set_race_alignments(RACE_SHADOW_BEAST, N, N, N, N, N, N, Y, Y, Y);
+  set_race_attack_types(RACE_SHADOW_BEAST,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, Y, N, N, N, Y, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, Y, N, N, N, N, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_TOUGHNESS, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_FAST_HEALING, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_UNDERDARK_STEALTH, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_SLA_STRENGTH, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_SLA_ENLARGE, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_WEAKNESS_TO_FIRE, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_RACIAL_FLURRY, 18, N);
+
+  /****************************************************************************/
+  add_race(RACE_PHANTOM, "phantom", "Phantom", "\tWPhantom\tn", "Phnt", "\tWPhnt\tn",
+           RACE_TYPE_UNDEAD, SIZE_MEDIUM, TRUE, 10, 999999999, IS_EPIC_R);
+  set_race_details(
+      RACE_PHANTOM,
+      "Phantoms are ethereal, half-transparent undead, solitary by nature, whose insubstantial "
+      "forms slip past obstacles and turn aside hostile magic. They shift between the planes, cast "
+      "with frightening speed and power, drift as mist, and in time take to the air, but fire "
+      "harms them. A descend form is gained only through its quest, by a character of level 30 or "
+      "more with levels in one of its classes. It resets experience to 0, rebuilds the character "
+      "at level one, and sets alignment to evil; it cannot be undone.",
+      "Your body fades to a pale, drifting shade as you become a Phantom.",
+      "$n's body fades to a pale, drifting shade as $e becomes a Phantom.");
+  set_race_genders(RACE_PHANTOM, N, Y, Y);
+  set_race_abilities(RACE_PHANTOM, -2, 5, 10, 0, 3, 0);
+  set_race_alignments(RACE_PHANTOM, N, N, N, N, N, N, Y, Y, Y);
+  set_race_attack_types(RACE_PHANTOM,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, Y, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_TOUGHNESS, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_FAST_HEALING, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_HALF_DROW_SPELL_RESISTANCE, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_SLA_PLANE_SHIFT, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_ENHANCED_SPELL_DAMAGE, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_EYELESS, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_WEAKNESS_TO_FIRE, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_FAST_CASTING, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_FAST_CASTING, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_FAST_CASTING, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_VAMPIRE_GASEOUS_FORM, 10, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_WINGS, 11, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_SPELL_ABSORB, 11, N);
+
 
   /****************************************************************************/
   /****************************************************************************/
@@ -3869,6 +4113,24 @@ int parse_race_long(const char *arg_in)
     return RACE_HARPY;
   if (is_abbrev(arg, "stormkin"))
     return RACE_STORMKIN;
+  if (is_abbrev(arg, "deathknight"))
+    return RACE_DEATH_KNIGHT;
+  if (is_abbrev(arg, "death-knight"))
+    return RACE_DEATH_KNIGHT;
+  if (is_abbrev(arg, "death knight"))
+    return RACE_DEATH_KNIGHT;
+  if (is_abbrev(arg, "wight"))
+    return RACE_WIGHT;
+  if (is_abbrev(arg, "revenant"))
+    return RACE_REVENANT;
+  if (is_abbrev(arg, "shadowbeast"))
+    return RACE_SHADOW_BEAST;
+  if (is_abbrev(arg, "shadow-beast"))
+    return RACE_SHADOW_BEAST;
+  if (is_abbrev(arg, "shadow beast"))
+    return RACE_SHADOW_BEAST;
+  if (is_abbrev(arg, "phantom"))
+    return RACE_PHANTOM;
 
   return RACE_UNDEFINED;
 }

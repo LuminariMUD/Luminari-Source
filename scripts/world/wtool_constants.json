@@ -206,9 +206,25 @@
       "source": "src/core/structs.h:PORTAL_RANDOM",
       "value": 1
     },
+    "RACE_DEATH_KNIGHT": {
+      "source": "src/core/structs.h:RACE_DEATH_KNIGHT",
+      "value": 55
+    },
     "RACE_LICH": {
       "source": "src/core/structs.h:RACE_LICH",
       "value": 45
+    },
+    "RACE_PHANTOM": {
+      "source": "src/core/structs.h:RACE_PHANTOM",
+      "value": 59
+    },
+    "RACE_REVENANT": {
+      "source": "src/core/structs.h:RACE_REVENANT",
+      "value": 57
+    },
+    "RACE_SHADOW_BEAST": {
+      "source": "src/core/structs.h:RACE_SHADOW_BEAST",
+      "value": 58
     },
     "RACE_UNDEFINED": {
       "source": "src/core/structs.h:RACE_UNDEFINED",
@@ -217,6 +233,10 @@
     "RACE_VAMPIRE": {
       "source": "src/core/structs.h:RACE_VAMPIRE",
       "value": 46
+    },
+    "RACE_WIGHT": {
+      "source": "src/core/structs.h:RACE_WIGHT",
+      "value": 56
     },
     "READ_SIZE": {
       "source": "src/core/utils.h:READ_SIZE",

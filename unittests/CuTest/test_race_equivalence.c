@@ -15,6 +15,7 @@
 #include "../../src/core/interpreter.h"
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
+#include "../../src/character/evolutions.h"
 #include "../../src/character/feats.h"
 #include "../../src/character/premadebuilds.h"
 #include "../../src/character/race.h"
@@ -22,6 +23,8 @@
 #include "../../src/character/roleplay.h"
 #include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/net/protocol.h"
+#include "../../src/net/onboarding.h"
+#include "../../src/quest/quest.h"
 
 static void ensure_race_equivalence_registry(void)
 {
@@ -29,6 +32,14 @@ static void ensure_race_equivalence_registry(void)
     assign_races();
   if (feat_list[FEAT_ARMOR_SKIN].name == NULL)
     assign_feats();
+}
+
+/* The form conversions name and respec classes, so they need the class table too. */
+static void ensure_descend_form_registry(void)
+{
+  ensure_race_equivalence_registry();
+  if (class_list[CLASS_WARRIOR].name == NULL)
+    load_class_list();
 }
 
 static void init_race_equivalence_character(struct char_data *ch,
@@ -1423,8 +1434,11 @@ void TestDurisCreationRacesRegistry(CuTest *tc)
   CuAssertIntEquals(tc, RACE_HALF_ELF, parse_race_long("ha"));
 }
 
-/* Each race holds exactly its feats, each first at its grant level, with the stacked ranks. */
-void TestDurisCreationRacesFeatGrants(CuTest *tc)
+/* The race holds exactly its expected feats, each first at its grant level, with the stacked
+ * ranks, as it levels from 1 to 30. */
+static void assert_race_feat_grants(CuTest *tc, int race,
+                                    const struct duris_feat_expectation *expected_feats,
+                                    int expected_count)
 {
   const struct duris_feat_expectation *expected;
   struct char_data ch;
@@ -1432,44 +1446,51 @@ void TestDurisCreationRacesFeatGrants(CuTest *tc)
   struct descriptor_data descriptor;
   struct account_data account;
   struct race_feat_assign *assignment;
-  int race = 0;
   int level = 0;
   int total = 0;
-  int i = 0;
   int j = 0;
 
-  ensure_race_equivalence_registry();
   init_race_equivalence_character(&ch, &specials, &descriptor, &account);
   ch.desc = NULL;
+  for (assignment = race_list[race].featassign_list; assignment != NULL;
+       assignment = assignment->next)
+    total++;
+  for (j = 0; j < expected_count; j++)
+    if (expected_feats[j].race == race)
+      total -= expected_feats[j].count;
+  CuAssertIntEquals(tc, 0, total);
 
-  for (i = 0; i < DURIS_CREATION_RACE_COUNT; i++)
+  GET_REAL_RACE(&ch) = race;
+  for (level = 1; level <= 30; level++)
   {
-    race = duris_creation_races[i].race;
-    total = 0;
-    for (assignment = race_list[race].featassign_list; assignment != NULL;
-         assignment = assignment->next)
-      total++;
-    for (j = 0; j < (int)(sizeof(duris_creation_feats) / sizeof(duris_creation_feats[0])); j++)
-      if (duris_creation_feats[j].race == race)
-        total -= duris_creation_feats[j].count;
-    CuAssertIntEquals(tc, 0, total);
-
-    memset(ch.char_specials.saved.feats, 0, sizeof(ch.char_specials.saved.feats));
-    GET_REAL_RACE(&ch) = race;
-    for (level = 1; level <= 30; level++)
+    GET_LEVEL(&ch) = level;
+    process_race_level_feats(&ch);
+    for (j = 0; j < expected_count; j++)
     {
-      GET_LEVEL(&ch) = level;
-      process_race_level_feats(&ch);
-      for (j = 0; j < (int)(sizeof(duris_creation_feats) / sizeof(duris_creation_feats[0])); j++)
-      {
-        expected = &duris_creation_feats[j];
-        if (expected->race != race)
-          continue;
-        CuAssertIntEquals(tc, level >= expected->level ? expected->count : 0,
-                          HAS_REAL_FEAT(&ch, expected->feat));
-      }
+      expected = &expected_feats[j];
+      if (expected->race != race)
+        continue;
+      CuAssertIntEquals(tc, level >= expected->level ? expected->count : 0,
+                        HAS_REAL_FEAT(&ch, expected->feat));
     }
   }
+  while (GET_DR(&ch) != NULL)
+  {
+    struct damage_reduction_type *dr = GET_DR(&ch);
+
+    GET_DR(&ch) = dr->next;
+    free(dr);
+  }
+}
+
+void TestDurisCreationRacesFeatGrants(CuTest *tc)
+{
+  int i = 0;
+
+  ensure_race_equivalence_registry();
+  for (i = 0; i < DURIS_CREATION_RACE_COUNT; i++)
+    assert_race_feat_grants(tc, duris_creation_races[i].race, duris_creation_feats,
+                            (int)(sizeof(duris_creation_feats) / sizeof(duris_creation_feats[0])));
 }
 
 /* A disguise or wild shape does not trade a race's later grant for the disguise race's. */
@@ -1668,4 +1689,536 @@ void TestDurisCreationRacesPremadeBuildStats(CuTest *tc)
     CuAssertIntEquals(tc, wizard_base_stats[4] + get_race_stat(race, R_DEX_MOD), GET_REAL_DEX(&ch));
     CuAssertIntEquals(tc, wizard_base_stats[5] + get_race_stat(race, R_CHA_MOD), GET_REAL_CHA(&ch));
   }
+}
+
+/* ---- Duris descend forms ---- */
+
+static const struct duris_race_expectation duris_descend_forms[] = {
+    {RACE_DEATH_KNIGHT,
+     55,
+     "deathknight",
+     "Death Knight",
+     "DKni",
+     RACE_TYPE_UNDEAD,
+     SIZE_LARGE,
+     10,
+     999999999,
+     2,
+     {8, 6, -2, 6, -2, 0},
+     "NNNNNNYYY",
+     0,
+     "YNNYNNNNNNNNNNNNNNNNYNNN",
+     10,
+     1},
+    {RACE_WIGHT,
+     56,
+     "wight",
+     "Wight",
+     "Wght",
+     RACE_TYPE_UNDEAD,
+     SIZE_LARGE,
+     10,
+     999999999,
+     2,
+     {10, 10, -2, 0, 0, -2},
+     "NNNNNNYYY",
+     0,
+     "YNNNNNNNYNYNNNNNNNNNNNNN",
+     10,
+     1},
+    {RACE_REVENANT,
+     57,
+     "revenant",
+     "Revenant",
+     "Rvnt",
+     RACE_TYPE_UNDEAD,
+     SIZE_LARGE,
+     10,
+     999999999,
+     2,
+     {7, 7, -2, 0, 6, -2},
+     "NNNNNNYYY",
+     0,
+     "YNNNNNNNYNNNNYNNNNNNNNNN",
+     10,
+     1},
+    {RACE_SHADOW_BEAST,
+     58,
+     "shadowbeast",
+     "Shadow Beast",
+     "SBst",
+     RACE_TYPE_UNDEAD,
+     SIZE_MEDIUM,
+     10,
+     999999999,
+     2,
+     {0, 7, 3, -2, 10, -2},
+     "NNNNNNYYY",
+     0,
+     "NNNNYNNNYNNNNNNNNNYNNNNN",
+     10,
+     1},
+    {RACE_PHANTOM,
+     59,
+     "phantom",
+     "Phantom",
+     "Phnt",
+     RACE_TYPE_UNDEAD,
+     SIZE_MEDIUM,
+     10,
+     999999999,
+     2,
+     {-2, 5, 10, 0, 3, 0},
+     "NNNNNNYYY",
+     0,
+     "YNNNNNNNNNYNNNNNNNNNNNNN",
+     10,
+     1},
+};
+
+static const struct duris_feat_expectation duris_descend_form_feats[] = {
+    {RACE_DEATH_KNIGHT, FEAT_ARMOR_SKIN, 1, 5},
+    {RACE_DEATH_KNIGHT, FEAT_VITAL, 1, 1},
+    {RACE_DEATH_KNIGHT, FEAT_HARDY, 1, 1},
+    {RACE_DEATH_KNIGHT, FEAT_TOUGHNESS, 1, 1},
+    {RACE_DEATH_KNIGHT, FEAT_DAMAGE_REDUCTION, 1, 3},
+    {RACE_DEATH_KNIGHT, FEAT_FAST_HEALING, 1, 1},
+    {RACE_DEATH_KNIGHT, FEAT_GREATSWORD_MASTERY, 1, 1},
+    {RACE_DEATH_KNIGHT, FEAT_ULTRAVISION, 1, 1},
+    {RACE_DEATH_KNIGHT, FEAT_TIEFLING_HELLISH_RESISTANCE, 1, 1},
+    {RACE_DEATH_KNIGHT, FEAT_UNDEAD_FEALTY, 1, 1},
+    {RACE_DEATH_KNIGHT, FEAT_SUN_VULNERABILITY, 1, 1},
+    {RACE_DEATH_KNIGHT, FEAT_SLOW_CASTING, 1, 5},
+    {RACE_DEATH_KNIGHT, FEAT_SLA_FIRE_STORM, 13, 1},
+    {RACE_DEATH_KNIGHT, FEAT_SLA_FIRE_SHIELD, 16, 1},
+    {RACE_DEATH_KNIGHT, FEAT_SACRILEGIOUS_POWER, 23, 1},
+    {RACE_WIGHT, FEAT_ARMOR_SKIN, 1, 5},
+    {RACE_WIGHT, FEAT_VITAL, 1, 1},
+    {RACE_WIGHT, FEAT_HARDY, 1, 1},
+    {RACE_WIGHT, FEAT_TOUGHNESS, 1, 1},
+    {RACE_WIGHT, FEAT_DAMAGE_REDUCTION, 1, 3},
+    {RACE_WIGHT, FEAT_FAST_HEALING, 1, 1},
+    {RACE_WIGHT, FEAT_COLD_IMMUNITY, 1, 1},
+    {RACE_WIGHT, FEAT_ULTRAVISION, 1, 1},
+    {RACE_WIGHT, FEAT_BODYSLAM, 1, 1},
+    {RACE_WIGHT, FEAT_DOORBASH, 1, 1},
+    {RACE_WIGHT, FEAT_WEAKNESS_TO_FIRE, 1, 1},
+    {RACE_WIGHT, FEAT_SLOW_CASTING, 1, 9},
+    {RACE_WIGHT, FEAT_SLA_FROST_BREATH, 6, 1},
+    {RACE_WIGHT, FEAT_SLA_STONESKIN, 13, 1},
+    {RACE_REVENANT, FEAT_ARMOR_SKIN, 1, 5},
+    {RACE_REVENANT, FEAT_VITAL, 1, 1},
+    {RACE_REVENANT, FEAT_HARDY, 1, 1},
+    {RACE_REVENANT, FEAT_TOUGHNESS, 1, 1},
+    {RACE_REVENANT, FEAT_DAMAGE_REDUCTION, 1, 3},
+    {RACE_REVENANT, FEAT_FAST_HEALING, 1, 1},
+    {RACE_REVENANT, FEAT_ULTRAVISION, 1, 1},
+    {RACE_REVENANT, FEAT_TROLL_REGENERATION, 1, 1},
+    {RACE_REVENANT, FEAT_BODYSLAM, 1, 1},
+    {RACE_REVENANT, FEAT_DOORBASH, 1, 1},
+    {RACE_REVENANT, FEAT_WEAKNESS_TO_FIRE, 1, 1},
+    {RACE_REVENANT, FEAT_SLOW_CASTING, 1, 3},
+    {RACE_REVENANT, FEAT_BATTLE_FRENZY, 8, 1},
+    {RACE_REVENANT, FEAT_SLA_SHADOW_JUMP, 13, 1},
+    {RACE_SHADOW_BEAST, FEAT_ARMOR_SKIN, 1, 5},
+    {RACE_SHADOW_BEAST, FEAT_VITAL, 1, 1},
+    {RACE_SHADOW_BEAST, FEAT_HARDY, 1, 1},
+    {RACE_SHADOW_BEAST, FEAT_TOUGHNESS, 1, 1},
+    {RACE_SHADOW_BEAST, FEAT_DAMAGE_REDUCTION, 1, 3},
+    {RACE_SHADOW_BEAST, FEAT_FAST_HEALING, 1, 1},
+    {RACE_SHADOW_BEAST, FEAT_ULTRAVISION, 1, 1},
+    {RACE_SHADOW_BEAST, FEAT_UNDERDARK_STEALTH, 1, 1},
+    {RACE_SHADOW_BEAST, FEAT_SLA_STRENGTH, 1, 1},
+    {RACE_SHADOW_BEAST, FEAT_SLA_ENLARGE, 1, 1},
+    {RACE_SHADOW_BEAST, FEAT_WEAKNESS_TO_FIRE, 1, 1},
+    {RACE_SHADOW_BEAST, FEAT_SLOW_CASTING, 1, 1},
+    {RACE_SHADOW_BEAST, FEAT_RACIAL_FLURRY, 18, 1},
+    {RACE_PHANTOM, FEAT_ARMOR_SKIN, 1, 5},
+    {RACE_PHANTOM, FEAT_VITAL, 1, 1},
+    {RACE_PHANTOM, FEAT_HARDY, 1, 1},
+    {RACE_PHANTOM, FEAT_TOUGHNESS, 1, 1},
+    {RACE_PHANTOM, FEAT_DAMAGE_REDUCTION, 1, 3},
+    {RACE_PHANTOM, FEAT_FAST_HEALING, 1, 1},
+    {RACE_PHANTOM, FEAT_ULTRAVISION, 1, 1},
+    {RACE_PHANTOM, FEAT_HALF_DROW_SPELL_RESISTANCE, 1, 1},
+    {RACE_PHANTOM, FEAT_SLA_PLANE_SHIFT, 1, 1},
+    {RACE_PHANTOM, FEAT_ENHANCED_SPELL_DAMAGE, 1, 1},
+    {RACE_PHANTOM, FEAT_EYELESS, 1, 1},
+    {RACE_PHANTOM, FEAT_WEAKNESS_TO_FIRE, 1, 1},
+    {RACE_PHANTOM, FEAT_FAST_CASTING, 1, 3},
+    {RACE_PHANTOM, FEAT_VAMPIRE_GASEOUS_FORM, 10, 1},
+    {RACE_PHANTOM, FEAT_WINGS, 11, 1},
+    {RACE_PHANTOM, FEAT_SPELL_ABSORB, 11, 1},
+};
+
+#define DURIS_DESCEND_FORM_COUNT                                                                   \
+  ((int)(sizeof(duris_descend_forms) / sizeof(duris_descend_forms[0])))
+
+/* The forms' registry data, hit points, experience, undead family, and feats. */
+void TestDescendFormsRegistryAndFeats(CuTest *tc)
+{
+  const struct duris_race_expectation *expected;
+  struct char_data ch;
+  struct char_data *character = &ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  long human_exp = 0;
+  int human_hp = 0;
+  int old_multiplier = CONFIG_EXPERIENCE_MULTIPLIER;
+  int race = 0;
+  int i = 0;
+  int j = 0;
+
+  ensure_race_equivalence_registry();
+  init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+  GET_LEVEL(&ch) = 10;
+  GET_REAL_CON(&ch) = 10;
+  ch.aff_abils.con = 10;
+  GET_CLASS(&ch) = CLASS_WARRIOR;
+  CONFIG_EXPERIENCE_MULTIPLIER = 100;
+  GET_REAL_RACE(&ch) = RACE_HUMAN;
+  calculate_max_hp(&ch, FALSE);
+  human_hp = GET_MAX_HIT(&ch);
+  human_exp = level_exp(&ch, 10);
+
+  for (i = 0; i < DURIS_DESCEND_FORM_COUNT; i++)
+  {
+    expected = &duris_descend_forms[i];
+    race = expected->race;
+    CuAssertIntEquals(tc, expected->id, race);
+    CuAssertTrue(tc, race_list[race].is_pc);
+    CuAssertTrue(tc, race_is_transformation_only(race));
+    CuAssertTrue(tc, !race_is_creation_eligible(race));
+    CuAssertTrue(tc, valid_luminari_race(race));
+    CuAssertStrEquals(tc, expected->name, race_list[race].name);
+    CuAssertStrEquals(tc, expected->type, race_list[race].type);
+    CuAssertStrEquals(tc, expected->abbrev, race_list[race].abbrev);
+    CuAssertPtrNotNull(tc, race_list[race].descrip);
+    CuAssertIntEquals(tc, expected->family, race_list[race].family);
+    CuAssertIntEquals(tc, expected->size, race_list[race].size);
+    CuAssertIntEquals(tc, expected->level_adjustment, race_list[race].level_adjustment);
+    CuAssertIntEquals(tc, expected->unlock_cost, race_list[race].unlock_cost);
+    CuAssertIntEquals(tc, expected->tier, race_list[race].epic_adv);
+    CuAssertIntEquals(tc, expected->language, race_list[race].racial_language);
+    for (j = 0; j < 6; j++)
+      CuAssertIntEquals(tc, expected->stats[j], get_race_stat(race, j));
+    for (j = 0; j < NUM_ALIGNMENTS; j++)
+      CuAssertIntEquals(tc, expected->alignments[j] == 'Y', race_list[race].alignments[j]);
+    for (j = 0; j < NUM_ATTACK_TYPES; j++)
+      CuAssertIntEquals(tc, expected->attacks[j] == 'Y', race_list[race].attack_types[j]);
+    CuAssertIntEquals(tc, race, parse_race_long(race_list[race].name));
+    CuAssertIntEquals(tc, race, parse_race_long(race_list[race].type));
+
+    GET_REAL_RACE(&ch) = race;
+    calculate_max_hp(&ch, FALSE);
+    CuAssertIntEquals(tc, human_hp + 10 + 10 * expected->hp_per_level, GET_MAX_HIT(&ch));
+    CuAssertIntEquals(tc, 10, race_starting_hp_bonus(race));
+    CuAssertTrue(tc, human_exp * expected->xp_multiplier == level_exp(&ch, 10));
+    CuAssertTrue(tc, IS_DESCEND_FORM(character));
+    CuAssertTrue(tc, IS_UNDEAD(character));
+    CuAssertTrue(tc, !IS_HUMANOID(character));
+
+    assert_race_feat_grants(
+        tc, race, duris_descend_form_feats,
+        (int)(sizeof(duris_descend_form_feats) / sizeof(duris_descend_form_feats[0])));
+  }
+  CONFIG_EXPERIENCE_MULTIPLIER = old_multiplier;
+
+  CuAssertIntEquals(tc, RACE_DEATH_KNIGHT, parse_race_long("death-knight"));
+  CuAssertIntEquals(tc, RACE_SHADOW_BEAST, parse_race_long("shadow-beast"));
+}
+
+/* A forged unlock cannot buy, list, or select a form in terminal creation or the account shop. */
+void TestDescendFormsHardLock(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  char input[MAX_INPUT_LENGTH];
+  int i = 0;
+
+  ensure_race_equivalence_registry();
+  for (i = 0; i < DURIS_DESCEND_FORM_COUNT; i++)
+  {
+    init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+    account.races[0] = duris_descend_forms[i].race;
+    CuAssertTrue(tc, !has_unlocked_race(&ch, duris_descend_forms[i].race));
+    CuAssertTrue(tc, !race_is_selectable_for_creation(&ch, duris_descend_forms[i].race));
+    CuAssertStrEquals(tc, "race/fallback",
+                      web_onboarding_race_media_key(duris_descend_forms[i].race));
+
+    descriptor.pProtocol = ProtocolCreate();
+    CuAssertPtrNotNull(tc, descriptor.pProtocol);
+    if (descriptor.pProtocol == NULL)
+      return;
+    GET_REAL_RACE(&ch) = RACE_UNDEFINED;
+    STATE(&descriptor) = CON_QRACE;
+    snprintf(input, sizeof(input), "%s", race_list[duris_descend_forms[i].race].type);
+    nanny(&descriptor, input);
+    CuAssertIntEquals(tc, RACE_UNDEFINED, GET_REAL_RACE(&ch));
+    CuAssertIntEquals(tc, CON_QRACE, STATE(&descriptor));
+    CuAssertPtrNotNull(tc, strstr(descriptor.output, "cannot be selected"));
+    cleanup_race_equivalence_descriptor(&descriptor);
+
+    init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+    descriptor.pProtocol = ProtocolCreate();
+    CuAssertPtrNotNull(tc, descriptor.pProtocol);
+    if (descriptor.pProtocol == NULL)
+      return;
+    account.experience = 100000000;
+    snprintf(input, sizeof(input), "race %s", race_list[duris_descend_forms[i].race].type);
+    do_accexp(&ch, input, 0, 0);
+    CuAssertIntEquals(tc, 0, account.races[0]);
+    CuAssertIntEquals(tc, 100000000, account.experience);
+    cleanup_race_equivalence_descriptor(&descriptor);
+  }
+
+  /* the terminal race menu leaves the forms out even with every one forged */
+  init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  if (descriptor.pProtocol == NULL)
+    return;
+  for (i = 0; i < DURIS_DESCEND_FORM_COUNT; i++)
+    account.races[i] = duris_descend_forms[i].race;
+  STATE(&descriptor) = CON_QSEX;
+  snprintf(input, sizeof(input), "m");
+  nanny(&descriptor, input);
+  CuAssertIntEquals(tc, CON_QRACE, STATE(&descriptor));
+  for (i = 0; i < DURIS_DESCEND_FORM_COUNT; i++)
+    CuAssertTrue(tc,
+                 strstr(descriptor.output, race_list[duris_descend_forms[i].race].type) == NULL);
+  cleanup_race_equivalence_descriptor(&descriptor);
+}
+
+struct descend_quest_fixture
+{
+  struct aq_data quest;
+  struct aq_data *saved_quests;
+  qst_rnum saved_count;
+};
+
+/* A one-quest table whose completion rewards 100 gold and converts to the form. */
+static void begin_descend_quest(struct descend_quest_fixture *fixture, struct char_data *ch,
+                                int race)
+{
+  memset(&fixture->quest, 0, sizeof(fixture->quest));
+  fixture->saved_quests = aquest_table;
+  fixture->saved_count = total_quests;
+  aquest_table = &fixture->quest;
+  total_quests = 1;
+  fixture->quest.vnum = 701;
+  fixture->quest.done = CuMutableString("The rite is complete.");
+  fixture->quest.follower_reward = NOBODY;
+  fixture->quest.obj_reward = NOTHING;
+  fixture->quest.race_reward = race;
+  fixture->quest.next_quest = NOTHING;
+  fixture->quest.gold_reward = 100;
+  GET_QUEST(ch, 0) = fixture->quest.vnum;
+  GET_QUEST_COUNTER(ch, 0) = 0;
+}
+
+static void end_descend_quest(struct descend_quest_fixture *fixture)
+{
+  aquest_table = fixture->saved_quests;
+  total_quests = fixture->saved_count;
+}
+
+/* A level 30 Human with warrior levels, ready for a Wight conversion. */
+static void make_descend_candidate(struct char_data *ch)
+{
+  GET_REAL_RACE(ch) = RACE_HUMAN;
+  GET_REAL_SIZE(ch) = SIZE_MEDIUM;
+  GET_LEVEL(ch) = 30;
+  GET_CLASS(ch) = CLASS_WARRIOR;
+  CLASS_LEVEL(ch, CLASS_WARRIOR) = 30;
+  GET_EXP(ch) = 5000;
+  GET_ALIGNMENT(ch) = 0;
+  GET_GOLD(ch) = 0;
+}
+
+/* Every refused preflight leaves the character, the quest, and its rewards untouched. */
+void TestDescendFormConversionPreflightChangesNothing(CuTest *tc)
+{
+  const struct
+  {
+    int real_race;
+    int level;
+    int class_num;
+    int form;
+    const char *message;
+  } cases[] = {
+      {RACE_HUMAN, 29, CLASS_WARRIOR, RACE_WIGHT, "level 30"},
+      {RACE_HUMAN, 30, CLASS_WIZARD, RACE_WIGHT, "Only a character with levels in warrior"},
+      {RACE_HUMAN, 30, CLASS_WARRIOR, RACE_PHANTOM, "can become a Phantom"},
+      {RACE_LICH, 30, CLASS_WARRIOR, RACE_WIGHT, "already been transformed"},
+      {RACE_REVENANT, 30, CLASS_WARRIOR, RACE_WIGHT, "already been transformed"},
+  };
+  struct descend_quest_fixture quest;
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  bool refused = FALSE;
+  size_t i = 0;
+
+  ensure_descend_form_registry();
+  for (i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
+  {
+    init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+    descriptor.pProtocol = ProtocolCreate();
+    CuAssertPtrNotNull(tc, descriptor.pProtocol);
+    if (descriptor.pProtocol == NULL)
+      return;
+    GET_PFILEPOS(&ch) = -1;
+    ch.player.name = CuMutableString("descend preflight");
+    make_descend_candidate(&ch);
+    GET_REAL_RACE(&ch) = cases[i].real_race;
+    GET_LEVEL(&ch) = cases[i].level;
+    CLASS_LEVEL((&ch), CLASS_WARRIOR) = 0;
+    GET_CLASS(&ch) = cases[i].class_num;
+    CLASS_LEVEL((&ch), cases[i].class_num) = cases[i].level;
+    begin_descend_quest(&quest, &ch, cases[i].form);
+
+    complete_quest(&ch, 0);
+    end_descend_quest(&quest);
+    refused = strstr(descriptor.output, cases[i].message) != NULL;
+    cleanup_race_equivalence_descriptor(&descriptor);
+
+    CuAssertTrue(tc, refused);
+    CuAssertIntEquals(tc, cases[i].real_race, GET_REAL_RACE(&ch));
+    CuAssertIntEquals(tc, cases[i].class_num, GET_CLASS(&ch));
+    CuAssertIntEquals(tc, cases[i].level, GET_LEVEL(&ch));
+    CuAssertTrue(tc, GET_EXP(&ch) == 5000);
+    CuAssertIntEquals(tc, 0, GET_ALIGNMENT(&ch));
+    CuAssertIntEquals(tc, 0, GET_GOLD(&ch));
+    CuAssertIntEquals(tc, 701, GET_QUEST(&ch, 0));
+    CuAssertIntEquals(tc, 0, GET_NUM_QUESTS(&ch));
+  }
+}
+
+/* The quest converts a level 30 warrior into a level one Wight warrior with no experience, evil,
+ * Large, and holding its level-one feats and DR 9, which a save and reload keep; a second
+ * conversion is refused. */
+void TestDescendFormConversionSucceedsAndSurvivesReload(CuTest *tc)
+{
+  struct descend_quest_fixture quest;
+  struct player_index_element fixture_index[1];
+  struct player_index_element *saved_player_table;
+  struct char_data *source;
+  struct char_data *loaded;
+  char temporary_directory[] = "/tmp/luminari-descend-fixture-XXXXXX";
+  char original_directory[PATH_MAX];
+  char filename[MAX_FILEPATH];
+  char player_name[32];
+  int saved_top_of_p_table;
+  int saved_move_gain;
+  int converted_race, converted_class, converted_class_level, converted_level;
+  int converted_alignment, converted_size, converted_armor_skin, converted_cold;
+  int converted_dr_count, converted_dr = 0, converted_gold;
+  long converted_exp;
+  bool converted_quest_done;
+  int loaded_race = -1, loaded_class = -1, loaded_alignment = 0, loaded_size = -1;
+  int loaded_armor_skin = -1, loaded_dr_count = -1, loaded_dr = 0;
+  long loaded_exp = -1;
+  int load_result = -1;
+  int repeat_race;
+  int restore_result;
+
+  ensure_descend_form_registry();
+  memset(fixture_index, 0, sizeof(fixture_index));
+  CuAssertPtrNotNull(tc, getcwd(original_directory, sizeof(original_directory)));
+  enter_race_player_fixture(tc, temporary_directory);
+  source = new_char();
+  loaded = new_char();
+  snprintf(player_name, sizeof(player_name), "Zzdk%ld", (long)getpid());
+  fixture_index[0].name = player_name;
+  fixture_index[0].id = 4244;
+  fixture_index[0].level = 30;
+  saved_player_table = player_table;
+  saved_top_of_p_table = top_of_p_table;
+  player_table = fixture_index;
+  top_of_p_table = 0;
+
+  source->player.name = strdup(player_name);
+  GET_PFILEPOS(source) = 0;
+  GET_IDNUM(source) = 4244;
+  make_descend_candidate(source);
+  saved_move_gain = class_list[CLASS_WARRIOR].move_gain;
+  class_list[CLASS_WARRIOR].move_gain = 1;
+
+  begin_descend_quest(&quest, source, RACE_WIGHT);
+  complete_quest(source, 0);
+  end_descend_quest(&quest);
+
+  converted_race = GET_REAL_RACE(source);
+  converted_class = GET_CLASS(source);
+  converted_class_level = CLASS_LEVEL(source, CLASS_WARRIOR);
+  converted_level = GET_LEVEL(source);
+  converted_exp = GET_EXP(source);
+  converted_alignment = GET_ALIGNMENT(source);
+  converted_size = GET_REAL_SIZE(source);
+  converted_armor_skin = HAS_REAL_FEAT(source, FEAT_ARMOR_SKIN);
+  converted_cold = HAS_REAL_FEAT(source, FEAT_COLD_IMMUNITY);
+  converted_dr_count = count_feat_damage_reduction(source, &converted_dr);
+  converted_gold = GET_GOLD(source);
+  converted_quest_done = is_complete(source, 701) && GET_QUEST(source, 0) == (int)NOTHING;
+
+  if (get_filename(filename, sizeof(filename), PLR_FILE, player_name))
+  {
+    load_result = load_char(player_name, loaded);
+    if (load_result >= 0)
+    {
+      loaded_race = GET_REAL_RACE(loaded);
+      loaded_class = GET_CLASS(loaded);
+      loaded_exp = GET_EXP(loaded);
+      loaded_alignment = GET_ALIGNMENT(loaded);
+      loaded_size = GET_REAL_SIZE(loaded);
+      loaded_armor_skin = HAS_REAL_FEAT(loaded, FEAT_ARMOR_SKIN);
+      loaded_dr_count = count_feat_damage_reduction(loaded, &loaded_dr);
+    }
+
+    /* a second form is refused even at level 30 with warrior levels */
+    GET_LEVEL(source) = 30;
+    CLASS_LEVEL(source, CLASS_WARRIOR) = 30;
+    begin_descend_quest(&quest, source, RACE_REVENANT);
+    complete_quest(source, 0);
+    end_descend_quest(&quest);
+    unlink(filename);
+  }
+  repeat_race = GET_REAL_RACE(source);
+  class_list[CLASS_WARRIOR].move_gain = saved_move_gain;
+
+  restore_result = leave_race_player_fixture(original_directory, temporary_directory);
+  free_char(loaded);
+  free_char(source);
+  player_table = saved_player_table;
+  top_of_p_table = saved_top_of_p_table;
+
+  CuAssertIntEquals(tc, 0, restore_result);
+  CuAssertIntEquals(tc, RACE_WIGHT, converted_race);
+  CuAssertIntEquals(tc, CLASS_WARRIOR, converted_class);
+  CuAssertIntEquals(tc, 1, converted_class_level);
+  CuAssertIntEquals(tc, 1, converted_level);
+  CuAssertTrue(tc, converted_exp == 0);
+  CuAssertIntEquals(tc, -1000, converted_alignment);
+  CuAssertIntEquals(tc, SIZE_LARGE, converted_size);
+  CuAssertIntEquals(tc, 5, converted_armor_skin);
+  CuAssertIntEquals(tc, 1, converted_cold);
+  CuAssertIntEquals(tc, 1, converted_dr_count);
+  CuAssertIntEquals(tc, 9, converted_dr);
+  CuAssertIntEquals(tc, 100, converted_gold);
+  CuAssertTrue(tc, converted_quest_done);
+  CuAssertTrue(tc, load_result >= 0);
+  CuAssertIntEquals(tc, RACE_WIGHT, loaded_race);
+  CuAssertIntEquals(tc, CLASS_WARRIOR, loaded_class);
+  CuAssertTrue(tc, loaded_exp == 0);
+  CuAssertIntEquals(tc, -1000, loaded_alignment);
+  CuAssertIntEquals(tc, SIZE_LARGE, loaded_size);
+  CuAssertIntEquals(tc, 5, loaded_armor_skin);
+  CuAssertIntEquals(tc, 1, loaded_dr_count);
+  CuAssertIntEquals(tc, 9, loaded_dr);
+  CuAssertIntEquals(tc, RACE_WIGHT, repeat_race);
 }

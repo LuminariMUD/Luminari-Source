@@ -810,7 +810,12 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define RACE_LICH 45    /*quest only race*/
 #define RACE_VAMPIRE 46 /*quest only race*/
 
-// space for new quest only races up to 59
+/* Duris descend forms, quest only */
+#define RACE_DEATH_KNIGHT 55
+#define RACE_WIGHT 56
+#define RACE_REVENANT 57
+#define RACE_SHADOW_BEAST 58
+#define RACE_PHANTOM 59
 
 #define NUM_EXTENDED_PC_RACES 47
 

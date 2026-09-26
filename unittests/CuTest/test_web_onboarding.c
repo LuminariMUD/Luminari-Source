@@ -1421,10 +1421,13 @@ void TestPopulatedRaceCatalogStaysWithinTheOnboardingWireBudget(CuTest *tc)
 
   memset(&account, 0, sizeof(account));
   assign_races();
-  /* every locked creation race, the largest catalog an account can see */
+  /* every locked creation race, the largest catalog an account can see, plus forged unlocks of
+   * the quest-only races, which must never be listed */
   for (race = 0; race < NUM_EXTENDED_RACES; race++)
-    if (race_is_creation_eligible(race) && is_locked_race(race) && unlocked < MAX_UNLOCKED_RACES)
-      account.races[unlocked++] = race;
+    if ((race_is_creation_eligible(race) && is_locked_race(race)) ||
+        race_is_transformation_only(race))
+      if (unlocked < MAX_UNLOCKED_RACES)
+        account.races[unlocked++] = race;
   CuAssertTrue(tc, init_editor_descriptor(&d, &ch, &specials, CON_QRACE));
   if (d.pProtocol == NULL)
     return;
@@ -1445,6 +1448,9 @@ void TestPopulatedRaceCatalogStaysWithinTheOnboardingWireBudget(CuTest *tc)
     for (index = 0; index < sizeof(expected_media_keys) / sizeof(expected_media_keys[0]); index++)
       if (strstr(payload, expected_media_keys[index]) != NULL)
         found_media_keys[index] = TRUE;
+    for (race = 0; race < NUM_EXTENDED_RACES; race++)
+      if (race_is_transformation_only(race))
+        CuAssertTrue(tc, strstr(payload, race_list[race].type) == NULL);
 
     if (!payload_has_action(payload, "next-page"))
       break;
@@ -1472,6 +1478,9 @@ void TestPopulatedRaceCatalogStaysWithinTheOnboardingWireBudget(CuTest *tc)
        cursor = strstr(cursor + 1, "\"wireValue\""))
     index++;
   CuAssertIntEquals(tc, NUM_CREATION_RACES, (int)index);
+  for (race = 0; race < NUM_EXTENDED_RACES; race++)
+    if (race_is_transformation_only(race))
+      CuAssertTrue(tc, strstr(payload, race_list[race].type) == NULL);
   CuAssertTrue(tc, strstr(payload, "\"page\":") == NULL);
   CuAssertTrue(tc, strstr(payload, "\"next-page\"") == NULL);
   CuAssertTrue(tc, strstr(payload, "\"description\":") == NULL);

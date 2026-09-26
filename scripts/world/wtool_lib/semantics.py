@@ -827,9 +827,17 @@ def _validate_quest_scalars(
     max_level = _limit(manifest, "LVL_IMPL")
     mission_difficulties = _limit(manifest, "NUM_MISSION_DIFFICULTIES")
     valid_races = {
-        _limit(manifest, "RACE_UNDEFINED"),
-        _limit(manifest, "RACE_LICH"),
-        _limit(manifest, "RACE_VAMPIRE"),
+        _limit(manifest, name)
+        for name in (
+            "RACE_UNDEFINED",
+            "RACE_LICH",
+            "RACE_VAMPIRE",
+            "RACE_DEATH_KNIGHT",
+            "RACE_WIGHT",
+            "RACE_REVENANT",
+            "RACE_SHADOW_BEAST",
+            "RACE_PHANTOM",
+        )
     }
     string_limits = (
         ("name", "name", _limit(manifest, "MAX_QUEST_NAME")),
@@ -1013,7 +1021,7 @@ def _validate_quest_scalars(
                     findings,
                     quest,
                     "SEM026",
-                    f"race reward {race} must be -1, RACE_LICH, or RACE_VAMPIRE",
+                    f"race reward {race} must be -1, RACE_LICH, RACE_VAMPIRE, or a descend form",
                     field_name="race_reward",
                 )
 
