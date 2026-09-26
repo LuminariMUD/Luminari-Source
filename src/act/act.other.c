@@ -3324,7 +3324,7 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
   GET_PREMADE_BUILD_CLASS(ch) = CLASS_UNDEFINED;
   if (GET_REAL_RACE(ch) != RACE_LICH && GET_REAL_RACE(ch) != RACE_VAMPIRE)
   {
-    if (*arg && is_abbrev(arg, "premade"))
+    if (arg != NULL && *arg && is_abbrev(arg, "premade"))
       GET_PREMADE_BUILD_CLASS(ch) = class;
   }
 

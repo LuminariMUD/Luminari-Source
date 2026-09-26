@@ -23,6 +23,7 @@
 #include "core/modify.h"
 #include "quest/quest.h"
 #include "quest/missions.h"
+#include "character/race.h"
 #include "core/constants.h"
 #include "events/domain_event_types.h"
 #include "magic/spells.h"
@@ -783,8 +784,10 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     case 'r':
     case 'R':
       OLC_MODE(d) = QEDIT_RACE;
-      write_to_output(d, "Enter the prize race (Lich %d or Vampire %d) by race # (-1 for none) : ",
-                      RACE_LICH, RACE_VAMPIRE);
+      write_to_output(d,
+                      "Enter the prize race (Lich %d, Vampire %d, or a descend form %d-%d) by "
+                      "race # (-1 for none) : ",
+                      RACE_LICH, RACE_VAMPIRE, RACE_DEATH_KNIGHT, RACE_PHANTOM);
       break;
     case 'l':
     case 'L':
@@ -1074,18 +1077,13 @@ void qedit_parse(struct descriptor_data *d, char *arg)
 
     number = parse_int(arg);
 
-    switch (number)
+    /* only the conversion races: Lich, Vampire, and the descend forms */
+    if (number != -1 && !race_is_transformation_only(number))
     {
-    case RACE_LICH:
-    case RACE_VAMPIRE:
-    case -1:
-      OLC_QUEST(d)->race_reward = number;
-      break;
-
-    default:
       write_to_output(d, "Not a valid race, try again (-1 to cancel) : ");
       return;
     }
+    OLC_QUEST(d)->race_reward = number;
 
     break;
 

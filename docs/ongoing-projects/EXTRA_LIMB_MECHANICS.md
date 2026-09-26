@@ -36,8 +36,9 @@ their race point prices are in
 Eligibility uses the intrinsic total, never the item-enhanced count, so an item can never
 sustain its own position or unlock a position for another provider. On a two-armed body, two
 Extra Arms ranks and Four Arms give the same four arms; both together give six, and must not be
-used to describe the same two extra limbs twice. No race is assigned fewer or more arms yet, and
-there is no injury or arm-loss command.
+used to describe the same two extra limbs twice. Thri-Kreen is the only race with more arms, from
+its level-one Four Arms grant; no race uses `arm_adjust` or Extra Arms, and there is no injury or
+arm-loss command.
 
 `hands_have()` (exported from `src/act/act.h`) is the count plus one for the vestigial arm. Both
 numbers are derived at use and never saved.
@@ -191,10 +192,11 @@ but no offhand weapon or two-hand position.
   the third arm alone opens lower gloves and sleeves. How mixed Four Arms, Extra Arms and race
   adjustments are priced, and whether the Thri-Kreen exception applies, is undecided.
 - Four Arms stays at 15 race points and is exempt from the single-trait cap as a Thri-Kreen
-  trait. The unarmed monk third hand raises its value for monks; that is not priced.
+  trait (see the Thri-Kreen row in
+  [PLAYER_RACES_REFERENCE.md](../guides/PLAYER_RACES_REFERENCE.md#calibration-every-current-race-scored)).
+  The unarmed monk third hand raises its value for monks; that is not priced.
 - Existing Extra Arms grants on saved characters or staff-built items change meaning; check them
   before deploying.
 
 A third weapon pair or anything past four arms beyond extra hands would need new positions and
-attack types; this system caps equipment at four arms. The [Duris player races
-plan](DURIS_PLAYER_RACES_PLAN.md#thri-kreen) places Four Arms on Thri-Kreen.
+attack types; this system caps equipment at four arms.

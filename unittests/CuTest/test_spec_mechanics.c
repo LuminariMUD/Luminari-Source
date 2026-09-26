@@ -4390,6 +4390,14 @@ void Test_spec_rol_lich_rite_validates_irreversible_conversion_preflight(CuTest 
                     rol_lich_rite_requirements(NULL, keeper, &first_offering, &second_offering));
   CuAssertTrue(tc, first_offering == NULL);
   CuAssertTrue(tc, second_offering == NULL);
+  /* transformation is one-way: a Lich, Vampire, or descend form cannot take the rite */
+  GET_REAL_RACE(actor) = RACE_WIGHT;
+  CuAssertIntEquals(tc, ROL_LICH_RITE_ALREADY_TRANSFORMED,
+                    rol_lich_rite_requirements(actor, keeper, NULL, NULL));
+  GET_REAL_RACE(actor) = RACE_LICH;
+  CuAssertIntEquals(tc, ROL_LICH_RITE_ALREADY_TRANSFORMED,
+                    rol_lich_rite_requirements(actor, keeper, NULL, NULL));
+  GET_REAL_RACE(actor) = RACE_HUMAN;
   CuAssertIntEquals(tc, ROL_LICH_RITE_WRONG_CLASS,
                     rol_lich_rite_requirements(actor, keeper, NULL, NULL));
 
@@ -4424,6 +4432,17 @@ void Test_spec_rol_lich_rite_validates_irreversible_conversion_preflight(CuTest 
                     rol_lich_rite_requirements(actor, keeper, &first_offering, &second_offering));
   CuAssertPtrEquals(tc, &fixture.worn, first_offering);
   CuAssertPtrEquals(tc, &fixture.copy, second_offering);
+
+  /* even with every other requirement met, a descend form is refused and nothing is consumed */
+  GET_REAL_RACE(actor) = RACE_WIGHT;
+  CuAssertIntEquals(tc, ROL_LICH_RITE_ALREADY_TRANSFORMED,
+                    rol_lich_rite_requirements(actor, keeper, NULL, NULL));
+  CuAssertIntEquals(tc, TRUE, rol_lich_rite(actor, keeper, 1, "immortality"));
+  CuAssertIntEquals(tc, RACE_WIGHT, GET_REAL_RACE(actor));
+  CuAssertTrue(tc, !MOB_FLAGGED(keeper, MOB_NOTDEADYET));
+  CuAssertPtrEquals(tc, &fixture.worn, GET_EQ(keeper, WEAR_HOLD_1));
+  CuAssertPtrEquals(tc, &fixture.copy, keeper->carrying);
+  GET_REAL_RACE(actor) = RACE_HUMAN;
 
   GET_EQ(keeper, WEAR_HOLD_1) = NULL;
   fixture.worn.worn_by = NULL;

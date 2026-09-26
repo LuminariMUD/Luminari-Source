@@ -1899,6 +1899,30 @@ const char *web_onboarding_race_media_key(int race)
     return "race/half-illithid";
   case RACE_YUAN_TI:
     return "race/yuan-ti";
+  case RACE_CENTAUR:
+    return "race/centaur";
+  case RACE_GITHZERAI:
+    return "race/githzerai";
+  case RACE_FIRBOLG:
+    return "race/firbolg";
+  case RACE_GITHYANKI:
+    return "race/githyanki";
+  case RACE_KOBOLD:
+    return "race/kobold";
+  case RACE_DRIDER:
+    return "race/drider";
+  case RACE_THRI_KREEN:
+    return "race/thri-kreen";
+  case RACE_MINOTAUR:
+    return "race/minotaur";
+  case RACE_KUO_TOA:
+    return "race/kuo-toa";
+  case RACE_OROG:
+    return "race/orog";
+  case RACE_HARPY:
+    return "race/harpy";
+  case RACE_STORMKIN:
+    return "race/stormkin";
   default:
     return "race/fallback";
   }
@@ -1999,6 +2023,10 @@ static bool race_is_selectable(struct descriptor_data *d, int race)
   return race_is_selectable_for_creation(d->character, race);
 }
 
+/* Protocol v1 lists every selectable race on one page, so its summaries are shorter than the
+ * paginated v2 ones to keep a fully unlocked catalog inside the payload budget. */
+#define WEB_ONBOARDING_V1_RACE_SUMMARY_CHARS 140
+
 /* Races the server would actually accept right now, using the same lock and
  * playable checks that nanny() uses. */
 static void build_race_choices(struct json_writer *w, struct descriptor_data *d)
@@ -2052,7 +2080,8 @@ static void build_race_choices(struct json_writer *w, struct descriptor_data *d)
     json_raw(w, ",");
     json_field_string(w, "mediaKey", web_onboarding_race_media_key(race), 64);
     json_raw(w, ",");
-    json_field_string_truncated(w, "summary", race_list[race].descrip, 220);
+    json_field_string_truncated(w, "summary", race_list[race].descrip,
+                                detailed ? 220 : WEB_ONBOARDING_V1_RACE_SUMMARY_CHARS);
     if (detailed)
     {
       json_raw(w, ",");

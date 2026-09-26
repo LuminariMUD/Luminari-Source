@@ -5985,9 +5985,9 @@ void assign_feats(void)
         "instead of starting one of your own.  Your perform ability and instrument raise the "
         "quality of the lead performance, and if the lead falters you take the song over rather "
         "than letting it end.  Type 'accompany' alone to stop accompanying.");
-  feato(FEAT_LEONINE_FRAME, "leonine frame", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+  feato(FEAT_TAURIC_FRAME, "tauric frame", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "cannot wear leg or foot equipment",
-        "Your humanoid torso rises from a powerful four-legged leonine body. This anatomy "
+        "Your humanoid torso rises from the many-legged body of a beast. This anatomy "
         "prevents you from wearing equipment in the legs and feet slots.");
 
   /* Sep 2026 racial innates converted to feats.  None of these are assigned to a race here;
@@ -6219,6 +6219,9 @@ void assign_feats(void)
         "four hands.  The second pair takes melee weapons only, and a monk also strikes with "
         "an empty third hand.  Four arms count once however they are granted, and gear worn "
         "in the extra slots cannot itself be what grants the arms.");
+  feato(FEAT_PSIONIC_RESISTANCE, "psionic resistance", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "20 percent less mental damage",
+        "Your mind is alien to other thinkers: you take 20 percent less mental damage.");
   feat_prereq_ability(FEAT_SHADOW, ABILITY_STEALTH, 21);
   feat_prereq_attribute(FEAT_CALM, AB_CHA, 19);
   feat_prereq_ability(FEAT_ESTABLISH_CAMP, ABILITY_SURVIVAL, 3);

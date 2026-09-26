@@ -37,7 +37,7 @@ JOIN (
   UNION ALL
   SELECT 'Claws and Bite'
   UNION ALL
-  SELECT 'Leonine Frame'
+  SELECT 'Tauric Frame'
   UNION ALL
   SELECT 'pants and boots'
   UNION ALL

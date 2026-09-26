@@ -94,6 +94,11 @@ int race_starting_hp_bonus(int race_num)
   case RACE_VAMPIRE:
   case RACE_HALF_ILLITHID:
   case RACE_MYCONID:
+  case RACE_DEATH_KNIGHT:
+  case RACE_WIGHT:
+  case RACE_REVENANT:
+  case RACE_SHADOW_BEAST:
+  case RACE_PHANTOM:
     return 10;
   default:
     return 0;
@@ -114,6 +119,13 @@ int race_hp_bonus_per_level(int race_num)
   case RACE_HALF_OGRE:
     return 2;
   case RACE_WEMIC:
+  case RACE_OROG:
+  case RACE_HARPY:
+  case RACE_DEATH_KNIGHT:
+  case RACE_WIGHT:
+  case RACE_REVENANT:
+  case RACE_SHADOW_BEAST:
+  case RACE_PHANTOM:
     return 1;
   default:
     return 0;
@@ -151,10 +163,10 @@ const char *character_wear_slot_restriction(const struct char_data *ch, int wear
   if (wear_slot == WEAR_TAIL && !character_has_tail_wear_slot(ch))
     return "Your anatomy does not provide a tail equipment slot.";
 
-  /* leonine frame: feat-driven, so any race granted it loses the slots.
+  /* tauric frame: feat-driven, so any race granted it loses the slots.
    * get_feat_value() only reads the character. */
-  if ((wear_slot == WEAR_LEGS || wear_slot == WEAR_FEET) && HAS_FEAT(ch, FEAT_LEONINE_FRAME))
-    return "Your four-legged body cannot wear leg or foot equipment.";
+  if ((wear_slot == WEAR_LEGS || wear_slot == WEAR_FEET) && HAS_FEAT(ch, FEAT_TAURIC_FRAME))
+    return "Your tauric body cannot wear leg or foot equipment.";
 
   /* arm count: checked for NPCs too.  A lower-arm slot then follows its base
    * position's anatomy rules. */
@@ -377,6 +389,24 @@ static bool race_is_available(struct char_data *ch, int race_num)
   return TRUE;
 }
 
+/* Races acquired only by conversion: never bought, never chosen at creation. */
+bool race_is_transformation_only(int race_num)
+{
+  switch (race_num)
+  {
+  case RACE_LICH:
+  case RACE_VAMPIRE:
+  case RACE_DEATH_KNIGHT:
+  case RACE_WIGHT:
+  case RACE_REVENANT:
+  case RACE_SHADOW_BEAST:
+  case RACE_PHANTOM:
+    return TRUE;
+  default:
+    return FALSE;
+  }
+}
+
 /* Creation policy is deliberately independent of numeric density. */
 bool race_is_creation_eligible(int race_num)
 {
@@ -386,8 +416,7 @@ bool race_is_creation_eligible(int race_num)
   if (!race_list[race_num].is_pc)
     return FALSE;
 
-  /* These races are acquired only by their existing conversion paths. */
-  if (race_num == RACE_LICH || race_num == RACE_VAMPIRE)
+  if (race_is_transformation_only(race_num))
     return FALSE;
 
   return TRUE;
@@ -1719,6 +1748,7 @@ void assign_races(void)
   feat_race_assignment(RACE_TRELUX, FEAT_TRELUX_EQ, 1, N);
   feat_race_assignment(RACE_TRELUX, FEAT_TRELUX_PINCERS, 1, N);
   feat_race_assignment(RACE_TRELUX, FEAT_INSECTBEING, 1, N);
+  feat_race_assignment(RACE_TRELUX, FEAT_PSIONIC_RESISTANCE, 1, N);
 
   /****************************************************************************/
   /****************************************************************************/
@@ -1949,7 +1979,7 @@ void assign_races(void)
   feat_race_assignment(RACE_WEMIC, FEAT_CLAWS_AND_BITE, 1, N);
   feat_race_assignment(RACE_WEMIC, FEAT_SURVIVAL_INSTINCT, 1, N);
   feat_race_assignment(RACE_WEMIC, FEAT_HARDY, 1, N);
-  feat_race_assignment(RACE_WEMIC, FEAT_LEONINE_FRAME, 1, N);
+  feat_race_assignment(RACE_WEMIC, FEAT_TAURIC_FRAME, 1, N);
   race_list[RACE_WEMIC].racial_language = SKILL_LANG_COMMON;
 
   /****************************************************************************/
@@ -2030,6 +2060,373 @@ void assign_races(void)
   feat_race_assignment(RACE_YUAN_TI, FEAT_ARMOR_SKIN, 1, Y);
   feat_race_assignment(RACE_YUAN_TI, FEAT_ARMOR_SKIN, 1, Y);
   race_list[RACE_YUAN_TI].racial_language = SKILL_LANG_DRACONIC;
+
+  /* Duris races, see docs/guides/PLAYER_RACES_REFERENCE.md */
+  /****************************************************************************/
+  add_race(RACE_CENTAUR, "centaur", "Centaur", "\tGCentaur\tn", "Cent", "\tGCent\tn",
+           RACE_TYPE_MONSTROUS_HUMANOID, SIZE_LARGE, TRUE, 2, 1000, IS_ADVANCE);
+  set_race_details(
+      RACE_CENTAUR,
+      "Centaurs have the torso of a human rising from the body of a great draft horse. They are "
+      "quiet, shy folk of the deep forests, slow to trust outsiders and tireless on the move. "
+      "Their strength and hardy constitution make them fearsome warriors, and a centaur at full "
+      "gallop can trample foes underfoot.",
+      "Your legs fuse into the powerful body of a horse until you become a Centaur.",
+      "$n's legs fuse into the powerful body of a horse until $e becomes a Centaur.");
+  set_race_genders(RACE_CENTAUR, N, Y, Y);
+  set_race_abilities(RACE_CENTAUR, 3, 5, -1, 0, 0, 0);
+  set_race_alignments(RACE_CENTAUR, Y, Y, Y, Y, Y, Y, Y, Y, Y);
+  set_race_attack_types(RACE_CENTAUR,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, Y, Y, N);
+  feat_race_assignment(RACE_CENTAUR, FEAT_QUADRUPED_BODY, 1, N);
+  feat_race_assignment(RACE_CENTAUR, FEAT_TAURIC_FRAME, 1, N);
+  feat_race_assignment(RACE_CENTAUR, FEAT_DOORBASH, 1, N);
+  feat_race_assignment(RACE_CENTAUR, FEAT_STAMPEDE, 11, N);
+  feat_race_assignment(RACE_CENTAUR, FEAT_GREATSWORD_MASTERY, 16, N);
+  race_list[RACE_CENTAUR].racial_language = SKILL_LANG_ELVEN;
+
+  /****************************************************************************/
+  add_race(RACE_GITHZERAI, "githzerai", "Githzerai", "\tYGithzerai\tn", "Gthz", "\tYGthz\tn",
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 2, 1000, IS_ADVANCE);
+  set_race_details(
+      RACE_GITHZERAI,
+      "Githzerai are an ascetic, disciplined planar people who raised their monasteries in the "
+      "chaos of Limbo. Slender and gaunt, with yellow-tinged skin and unblinking eyes, they give "
+      "their lives to mental discipline and the martial arts. Ages of war against the illithids "
+      "and their githyanki cousins have honed them into patient hunters of mind flayers who shrug "
+      "off hostile magic and shift between the planes.",
+      "Your frame grows gaunt and your mind stills until you become a Githzerai.",
+      "$n's frame grows gaunt and $s gaze stills until $e becomes a Githzerai.");
+  set_race_genders(RACE_GITHZERAI, N, Y, Y);
+  set_race_abilities(RACE_GITHZERAI, 0, 0, 4, 3, 0, -1);
+  set_race_alignments(RACE_GITHZERAI, Y, Y, Y, Y, Y, Y, Y, Y, Y);
+  set_race_attack_types(RACE_GITHZERAI,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  feat_race_assignment(RACE_GITHZERAI, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_GITHZERAI, FEAT_HALF_DROW_SPELL_RESISTANCE, 1, N);
+  feat_race_assignment(RACE_GITHZERAI, FEAT_SLA_PLANE_SHIFT, 1, N);
+  feat_race_assignment(RACE_GITHZERAI, FEAT_QUICK_THINKING, 1, N);
+  feat_race_assignment(RACE_GITHZERAI, FEAT_SLA_LEVITATE, 6, N);
+  feat_race_assignment(RACE_GITHZERAI, FEAT_RRAKKMA, 11, N);
+  race_list[RACE_GITHZERAI].racial_language = SKILL_LANG_COMMON;
+
+  /****************************************************************************/
+  add_race(RACE_FIRBOLG, "firbolg", "Firbolg", "\tgFirbolg\tn", "Fbol", "\tgFbol\tn",
+           RACE_TYPE_GIANT, SIZE_LARGE, TRUE, 2, 1000, IS_ADVANCE);
+  set_race_details(
+      RACE_FIRBOLG,
+      "Firbolgs are gentle giant-kin of the highland forests and mountain glens, standing nine to "
+      "ten feet tall with flowing beards and dense, massive frames. They live in harmony with the "
+      "woodland spirits and are slow to anger, but a roused firbolg smashes gates and bodyslams "
+      "armored foes. Their bulk makes them slow spellcasters, and magic bites deeper into them "
+      "than into other folk.",
+      "Your frame swells with giant blood until you become a Firbolg.",
+      "$n's frame swells with giant blood until $e becomes a Firbolg.");
+  set_race_genders(RACE_FIRBOLG, N, Y, Y);
+  set_race_abilities(RACE_FIRBOLG, 5, 4, -1, 0, -1, 0);
+  set_race_alignments(RACE_FIRBOLG, Y, Y, Y, Y, Y, Y, Y, Y, Y);
+  set_race_attack_types(RACE_FIRBOLG,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, Y, N, N, N);
+  feat_race_assignment(RACE_FIRBOLG, FEAT_BODYSLAM, 1, N);
+  feat_race_assignment(RACE_FIRBOLG, FEAT_DOORBASH, 1, N);
+  feat_race_assignment(RACE_FIRBOLG, FEAT_FOREST_SIGHT, 1, N);
+  feat_race_assignment(RACE_FIRBOLG, FEAT_MAGIC_VULNERABILITY, 1, N);
+  feat_race_assignment(RACE_FIRBOLG, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_FIRBOLG, FEAT_OUTDOOR_STEALTH, 6, N);
+  feat_race_assignment(RACE_FIRBOLG, FEAT_HATRED, 11, N);
+  feat_race_assignment(RACE_FIRBOLG, FEAT_HAMMER_MASTERY, 16, N);
+  race_list[RACE_FIRBOLG].racial_language = SKILL_LANG_GIANT;
+
+  /****************************************************************************/
+  add_race(RACE_GITHYANKI, "githyanki", "Githyanki", "\tyGithyanki\tn", "Gthy", "\tyGthy\tn",
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 2, 1000, IS_ADVANCE);
+  set_race_details(
+      RACE_GITHYANKI,
+      "Githyanki are a ruthless people of the Astral Plane, once slaves of the illithids, who "
+      "broke free after learning many of their masters' mental powers. Tall, thin, and gaunt, with "
+      "faces like drawn corpses, they are sharper of mind than humans and hate their former "
+      "masters above all else. Their psionic blasts, planar shifting, and silver-bladed swordplay "
+      "make them feared raiders.",
+      "Your features draw tight and gaunt until you become a Githyanki.",
+      "$n's features draw tight and gaunt until $e becomes a Githyanki.");
+  set_race_genders(RACE_GITHYANKI, N, Y, Y);
+  set_race_abilities(RACE_GITHYANKI, 0, 0, 4, 0, 0, -1);
+  set_race_alignments(RACE_GITHYANKI, N, N, N, Y, Y, Y, Y, Y, Y);
+  set_race_attack_types(RACE_GITHYANKI,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, Y, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  feat_race_assignment(RACE_GITHYANKI, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_GITHYANKI, FEAT_HALF_DROW_SPELL_RESISTANCE, 1, N);
+  feat_race_assignment(RACE_GITHYANKI, FEAT_SLA_PLANE_SHIFT, 1, N);
+  feat_race_assignment(RACE_GITHYANKI, FEAT_ENHANCED_SPELL_DAMAGE, 1, N);
+  feat_race_assignment(RACE_GITHYANKI, FEAT_SLA_PSIONIC_BLAST, 1, N);
+  feat_race_assignment(RACE_GITHYANKI, FEAT_SLA_LEVITATE, 6, N);
+  feat_race_assignment(RACE_GITHYANKI, FEAT_LONGSWORD_MASTERY, 6, N);
+  race_list[RACE_GITHYANKI].racial_language = SKILL_LANG_COMMON;
+
+  /****************************************************************************/
+  add_race(RACE_KOBOLD, "kobold", "Kobold", "\trKobold\tn", "Kobo", "\trKobo\tn",
+           RACE_TYPE_HUMANOID, SIZE_SMALL, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(
+      RACE_KOBOLD,
+      "Kobolds are small, scaly, reptilian folk of the deep caverns who take fierce pride in their "
+      "claimed draconic heritage. Cunning, quick, and industrious, they are natural miners and "
+      "trap-builders who slip silently through dark tunnels and calm the dangerous beasts they "
+      "meet there. Their reflexes make them swift casters and shrewd traders.",
+      "Your body shrinks and scales cover your skin until you become a Kobold.",
+      "$n's body shrinks and scales cover $s skin until $e becomes a Kobold.");
+  set_race_genders(RACE_KOBOLD, N, Y, Y);
+  set_race_abilities(RACE_KOBOLD, -1, 0, 2, 0, 2, 0);
+  set_race_alignments(RACE_KOBOLD, N, N, N, Y, Y, Y, Y, Y, Y);
+  set_race_attack_types(RACE_KOBOLD,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, Y, N, N, N, Y, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  feat_race_assignment(RACE_KOBOLD, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_KOBOLD, FEAT_UNDERDARK_STEALTH, 1, N);
+  feat_race_assignment(RACE_KOBOLD, FEAT_CALMING, 1, N);
+  feat_race_assignment(RACE_KOBOLD, FEAT_BARTER, 1, N);
+  feat_race_assignment(RACE_KOBOLD, FEAT_FAST_CASTING, 1, Y);
+  feat_race_assignment(RACE_KOBOLD, FEAT_MINER, 26, N);
+  race_list[RACE_KOBOLD].racial_language = SKILL_LANG_KOBOLD;
+
+  /****************************************************************************/
+  add_race(RACE_DRIDER, "drider", "Drider", "\tDDrider\tn", "Drdr", "\tDDrdr\tn",
+           RACE_TYPE_ABERRATION, SIZE_LARGE, TRUE, 2, 1000, IS_ADVANCE);
+  set_race_details(
+      RACE_DRIDER,
+      "Driders are the upper torso and head of a drow elf fused at the waist to the eight-legged "
+      "body of a giant spider. Revering the dark spider goddesses, they combine drow magic with "
+      "the deadly traits of the arachnid: webs that wrap their prey, a spider's balance that keeps "
+      "them on their feet, and a natural resistance to hostile spells. Their spider bodies cannot "
+      "wear leg or foot equipment.",
+      "Your legs split and harden into a spider's eight until you become a Drider.",
+      "$n's legs split and harden into a spider's eight until $e becomes a Drider.");
+  set_race_genders(RACE_DRIDER, N, Y, Y);
+  set_race_abilities(RACE_DRIDER, 0, 5, 0, 0, 3, -1);
+  set_race_alignments(RACE_DRIDER, N, N, N, N, N, N, Y, Y, Y);
+  set_race_attack_types(RACE_DRIDER,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, Y, N, N, N, Y, N, N, Y,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  feat_race_assignment(RACE_DRIDER, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_DRIDER, FEAT_HALF_DROW_SPELL_RESISTANCE, 1, N);
+  feat_race_assignment(RACE_DRIDER, FEAT_QUADRUPED_BODY, 1, N);
+  feat_race_assignment(RACE_DRIDER, FEAT_TAURIC_FRAME, 1, N);
+  feat_race_assignment(RACE_DRIDER, FEAT_SLA_WEB, 1, N);
+  feat_race_assignment(RACE_DRIDER, FEAT_GROUNDFIGHTING, 11, N);
+  feat_race_assignment(RACE_DRIDER, FEAT_SLA_FIREBALL, 11, N);
+  feat_race_assignment(RACE_DRIDER, FEAT_SLA_MASS_DISPEL, 27, N);
+  race_list[RACE_DRIDER].racial_language = SKILL_LANG_UNDERCOMMON;
+
+  /****************************************************************************/
+  add_race(RACE_THRI_KREEN, "thrikreen", "Thri-Kreen", "\tGThri-Kreen\tn", "TKrn", "\tGTKrn\tn",
+           RACE_TYPE_MONSTROUS_HUMANOID, SIZE_MEDIUM, TRUE, 10, 50000, IS_EPIC_R);
+  set_race_details(
+      RACE_THRI_KREEN,
+      "Thri-kreen, the mantis warriors, are desert nomads who resemble a giant praying mantis "
+      "walking on two legs with four arms. Light for their seven-foot height, they are swift and "
+      "fearsomely dexterous, and they can wield a second pair of weapons. They have no true "
+      "fingers or ears, and their shape cannot wear body armor or footwear. A venomous bite and "
+      "great leaps serve them well, but the cold is their bane.",
+      "Your body hardens into a chitinous mantis shape until you become a Thri-Kreen.",
+      "$n's body hardens into a chitinous mantis shape until $e becomes a Thri-Kreen.");
+  set_race_genders(RACE_THRI_KREEN, N, Y, Y);
+  set_race_abilities(RACE_THRI_KREEN, 0, 0, -2, -2, 4, -2);
+  set_race_alignments(RACE_THRI_KREEN, Y, Y, Y, Y, Y, Y, Y, Y, Y);
+  set_race_attack_types(RACE_THRI_KREEN,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, Y, Y, N, N, N, Y, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  set_race_wear_restriction(RACE_THRI_KREEN, WEAR_BODY,
+                            "Your chitinous mantis body cannot wear body armor.");
+  set_race_wear_restriction(RACE_THRI_KREEN, WEAR_FEET,
+                            "Your mantis feet cannot wear foot equipment.");
+  set_race_wear_restriction(RACE_THRI_KREEN, WEAR_FINGER_R,
+                            "Your mantis hands have no true fingers for rings.");
+  set_race_wear_restriction(RACE_THRI_KREEN, WEAR_FINGER_L,
+                            "Your mantis hands have no true fingers for rings.");
+  set_race_wear_restriction(RACE_THRI_KREEN, WEAR_EAR_R,
+                            "Your mantis head has no ears for earrings.");
+  set_race_wear_restriction(RACE_THRI_KREEN, WEAR_EAR_L,
+                            "Your mantis head has no ears for earrings.");
+  feat_race_assignment(RACE_THRI_KREEN, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_THRI_KREEN, FEAT_FOUR_ARMS, 1, N);
+  feat_race_assignment(RACE_THRI_KREEN, FEAT_PSIONIC_RESISTANCE, 1, N);
+  feat_race_assignment(RACE_THRI_KREEN, FEAT_VULNERABLE_TO_COLD, 1, N);
+  feat_race_assignment(RACE_THRI_KREEN, FEAT_POISON_BITE, 6, N);
+  feat_race_assignment(RACE_THRI_KREEN, FEAT_LEAP, 11, N);
+  race_list[RACE_THRI_KREEN].racial_language = SKILL_LANG_COMMON;
+
+  /****************************************************************************/
+  add_race(RACE_MINOTAUR, "minotaur", "Minotaur", "\tRMinotaur\tn", "Mino", "\tRMino\tn",
+           RACE_TYPE_MONSTROUS_HUMANOID, SIZE_LARGE, TRUE, 2, 1000, IS_ADVANCE);
+  set_race_details(
+      RACE_MINOTAUR,
+      "Minotaurs have the torso of a man and the head and legs of a bull, with great horns "
+      "sweeping from their brows. Stronger than nearly any other folk and able to take tremendous "
+      "punishment, they hold honor and pride above all else. Their tempers are short: a badly "
+      "wounded minotaur falls into a bloodlust that will not let it cast or flee. Their horns keep "
+      "them from wearing anything on their heads.",
+      "Horns burst from your brow as you take the shape of a Minotaur.",
+      "Horns burst from $n's brow as $e takes the shape of a Minotaur.");
+  set_race_genders(RACE_MINOTAUR, N, Y, Y);
+  set_race_abilities(RACE_MINOTAUR, 3, 4, 0, 0, 0, 0);
+  set_race_alignments(RACE_MINOTAUR, Y, Y, Y, Y, Y, Y, Y, Y, Y);
+  set_race_attack_types(RACE_MINOTAUR,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, Y, Y);
+  set_race_wear_restriction(RACE_MINOTAUR, WEAR_HEAD,
+                            "Your great horns keep you from wearing anything on your head.");
+  feat_race_assignment(RACE_MINOTAUR, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_MINOTAUR, FEAT_DOORBASH, 1, N);
+  feat_race_assignment(RACE_MINOTAUR, FEAT_BLOODLUST, 1, N);
+  feat_race_assignment(RACE_MINOTAUR, FEAT_BULL_CHARGE, 6, N);
+  feat_race_assignment(RACE_MINOTAUR, FEAT_AXE_MASTERY, 6, N);
+  feat_race_assignment(RACE_MINOTAUR, FEAT_SLA_SCARE, 6, N);
+  feat_race_assignment(RACE_MINOTAUR, FEAT_KENDER_FEARLESSNESS, 21, N);
+  race_list[RACE_MINOTAUR].racial_language = SKILL_LANG_GIANT;
+
+  /****************************************************************************/
+  add_race(RACE_KUO_TOA, "kuotoa", "Kuo Toa", "\tcKuo Toa\tn", "KToa", "\tcKToa\tn",
+           RACE_TYPE_MONSTROUS_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(
+      RACE_KUO_TOA,
+      "Kuo-toa are fish-folk of the flooded Underdark: scaled, bulging-eyed, and web-handed, with "
+      "a zealot's devotion to their strange gods. They are at home in swamps and the water, keen "
+      "of sense and hard to catch unawares, and in time they breathe water and call down "
+      "lightning. The surface sun burns them.",
+      "Scales and gills spread across your skin until you become a Kuo Toa.",
+      "Scales and gills spread across $n's skin until $e becomes a Kuo Toa.");
+  set_race_genders(RACE_KUO_TOA, N, Y, Y);
+  set_race_abilities(RACE_KUO_TOA, 1, 2, 0, 0, 0, 0);
+  set_race_alignments(RACE_KUO_TOA, N, N, N, N, N, N, Y, Y, Y);
+  set_race_attack_types(RACE_KUO_TOA,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, Y, N, N, N, N, N, N, Y,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  feat_race_assignment(RACE_KUO_TOA, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_KUO_TOA, FEAT_KEEN_SENSES, 1, N);
+  feat_race_assignment(RACE_KUO_TOA, FEAT_SWAMP_STEALTH, 1, N);
+  feat_race_assignment(RACE_KUO_TOA, FEAT_SEADOG, 1, N);
+  feat_race_assignment(RACE_KUO_TOA, FEAT_SUN_VULNERABILITY, 1, N);
+  feat_race_assignment(RACE_KUO_TOA, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_KUO_TOA, FEAT_WATER_BREATHING, 8, N);
+  feat_race_assignment(RACE_KUO_TOA, FEAT_SLA_LIGHTNING_BOLT, 15, N);
+  race_list[RACE_KUO_TOA].racial_language = SKILL_LANG_UNDERCOMMON;
+
+  /****************************************************************************/
+  add_race(RACE_OROG, "orog", "Orog", "\trOrog\tn", "Orog", "\trOrog\tn", RACE_TYPE_HUMANOID,
+           SIZE_MEDIUM, TRUE, 2, 1000, IS_ADVANCE);
+  set_race_details(
+      RACE_OROG,
+      "Orogs, the deep orcs, are a towering and disciplined race of great-orcs who hold the "
+      "deepest fortresses of the Underdark. Larger, stronger, and shrewder than their surface kin, "
+      "they are born war leaders who forge heavy plate in magma foundries and call their hordes "
+      "and wargs to battle. The surface sun weakens them, and they are slow to work magic.",
+      "Your frame thickens with deep-orc muscle until you become an Orog.",
+      "$n's frame thickens with deep-orc muscle until $e becomes an Orog.");
+  set_race_genders(RACE_OROG, N, Y, Y);
+  set_race_abilities(RACE_OROG, 3, 4, -2, 0, 0, 0);
+  set_race_alignments(RACE_OROG, N, N, N, Y, Y, Y, Y, Y, Y);
+  set_race_attack_types(RACE_OROG,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, Y, N, N, N);
+  feat_race_assignment(RACE_OROG, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_OROG, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_OROG, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_OROG, FEAT_MAGICAL_REDUCTION, 1, N);
+  feat_race_assignment(RACE_OROG, FEAT_SUN_VULNERABILITY, 1, N);
+  feat_race_assignment(RACE_OROG, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_OROG, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_OROG, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_OROG, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_OROG, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_OROG, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_OROG, FEAT_SUMMON_HORDE, 6, N);
+  feat_race_assignment(RACE_OROG, FEAT_SUMMON_WARG, 8, N);
+  feat_race_assignment(RACE_OROG, FEAT_WARCALLERS_FURY, 11, N);
+  race_list[RACE_OROG].racial_language = SKILL_LANG_ORCISH;
+
+  /****************************************************************************/
+  add_race(RACE_HARPY, "harpy", "Harpy", "\tCHarpy\tn", "Hrpy", "\tCHrpy\tn",
+           RACE_TYPE_MONSTROUS_HUMANOID, SIZE_SMALL, TRUE, 2, 1000, IS_ADVANCE);
+  set_race_details(
+      RACE_HARPY,
+      "Harpies are slender bird-folk of the jungles, humanoid in shape but with great wings and "
+      "taloned feet, living in towns ruled by their females. Frail beside most races but quick, "
+      "hardy, and keen-eyed, they take to the mystic arts far more readily than to the sword, and "
+      "they cast with a bird's swiftness. They are born neutral and may follow any path.",
+      "Feathers sprout and wings unfold from your back until you become a Harpy.",
+      "Feathers sprout and wings unfold from $n's back until $e becomes a Harpy.");
+  set_race_genders(RACE_HARPY, N, Y, Y);
+  set_race_abilities(RACE_HARPY, -2, 1, 2, 1, 2, 0);
+  set_race_alignments(RACE_HARPY, Y, Y, Y, Y, Y, Y, Y, Y, Y);
+  set_race_attack_types(RACE_HARPY,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, N, N, N, N, Y, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, Y, Y, N, N, N, N);
+  feat_race_assignment(RACE_HARPY, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_HARPY, FEAT_WINGS, 1, N);
+  feat_race_assignment(RACE_HARPY, FEAT_KEEN_SENSES, 1, N);
+  feat_race_assignment(RACE_HARPY, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_HARPY, FEAT_FAST_CASTING, 1, Y);
+  feat_race_assignment(RACE_HARPY, FEAT_FAST_CASTING, 1, Y);
+  feat_race_assignment(RACE_HARPY, FEAT_FAST_CASTING, 1, Y);
+  feat_race_assignment(RACE_HARPY, FEAT_SLA_FARSEE, 11, N);
+  feat_race_assignment(RACE_HARPY, FEAT_HASTE, 16, N);
+  race_list[RACE_HARPY].racial_language = SKILL_LANG_COMMON;
+
+  /****************************************************************************/
+  add_race(RACE_STORMKIN, "stormkin", "Stormkin", "\tBStormkin\tn", "Stmk", "\tBStmk\tn",
+           RACE_TYPE_GIANT, SIZE_LARGE, TRUE, 2, 1000, IS_ADVANCE);
+  set_race_details(
+      RACE_STORMKIN,
+      "Stormkin carry the blood of the storm giants: towering, good-natured folk several feet "
+      "taller and far stronger than any human. They are slow of foot and slower to work magic, but "
+      "their hides are thick, they smash through doors, and in time they hurl lightning like their "
+      "giant forebears.",
+      "Your frame towers upward as storm-giant blood wakes in you until you become a Stormkin.",
+      "$n's frame towers upward as storm-giant blood wakes until $e becomes a Stormkin.");
+  set_race_genders(RACE_STORMKIN, N, Y, Y);
+  set_race_abilities(RACE_STORMKIN, 5, 4, 0, 0, -2, 0);
+  set_race_alignments(RACE_STORMKIN, Y, Y, Y, Y, Y, Y, Y, Y, Y);
+  set_race_attack_types(RACE_STORMKIN,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, Y, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, Y, N, N, N);
+  feat_race_assignment(RACE_STORMKIN, FEAT_INFRAVISION, 1, N);
+  feat_race_assignment(RACE_STORMKIN, FEAT_DOORBASH, 1, N);
+  feat_race_assignment(RACE_STORMKIN, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_STORMKIN, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_STORMKIN, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_STORMKIN, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_STORMKIN, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_STORMKIN, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_STORMKIN, FEAT_SLA_LIGHTNING_BOLT, 10, N);
+  feat_race_assignment(RACE_STORMKIN, FEAT_THICK_HIDE, 11, N);
+  race_list[RACE_STORMKIN].racial_language = SKILL_LANG_GIANT;
 
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
@@ -2185,6 +2582,235 @@ void assign_races(void)
   /* affect assignment */
   /*                  race-num  affect            lvl */
   /****************************************************************************/
+
+  /* Duris descend forms: quest-only, like Lich and Vampire, with no racial language */
+  /****************************************************************************/
+  add_race(RACE_DEATH_KNIGHT, "deathknight", "Death Knight", "\tLDeath Knight\tn", "DKni",
+           "\tLDKni\tn", RACE_TYPE_UNDEAD, SIZE_LARGE, TRUE, 10, 999999999, IS_EPIC_R);
+  set_race_details(
+      RACE_DEATH_KNIGHT,
+      "Death knights are fallen paladins raised into undeath and bound in eternal torment, their "
+      "rage at their fate spent on all that lives. Unlike liches, they fight in heavy armor with "
+      "the great blades of warriors, call down hellfire, and wreathe themselves in flame; lesser "
+      "undead bow to them. A descend form is gained only through its quest, by a character of "
+      "level 30 or more with levels in one of its classes. It resets experience to 0, rebuilds the "
+      "character at level one, and sets alignment to evil; it cannot be undone.",
+      "Your flesh withers inside your armor as you rise as a Death Knight.",
+      "$n's flesh withers inside $s armor as $e rises as a Death Knight.");
+  set_race_genders(RACE_DEATH_KNIGHT, N, Y, Y);
+  set_race_abilities(RACE_DEATH_KNIGHT, 8, 6, -2, 6, -2, 0);
+  set_race_alignments(RACE_DEATH_KNIGHT, N, N, N, N, N, N, Y, Y, Y);
+  set_race_attack_types(RACE_DEATH_KNIGHT,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, Y, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, Y, N, N, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_TOUGHNESS, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_FAST_HEALING, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_GREATSWORD_MASTERY, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_TIEFLING_HELLISH_RESISTANCE, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_UNDEAD_FEALTY, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SUN_VULNERABILITY, 1, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SLA_FIRE_STORM, 13, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SLA_FIRE_SHIELD, 16, N);
+  feat_race_assignment(RACE_DEATH_KNIGHT, FEAT_SACRILEGIOUS_POWER, 23, N);
+
+  /****************************************************************************/
+  add_race(RACE_WIGHT, "wight", "Wight", "\tLWight\tn", "Wght", "\tLWght\tn", RACE_TYPE_UNDEAD,
+           SIZE_LARGE, TRUE, 10, 999999999, IS_EPIC_R);
+  set_race_details(
+      RACE_WIGHT,
+      "Wights are towering undead, something between a zombie and a skeleton, as tall as an ogre "
+      "though leaner. Immensely strong and cold to the core, they breathe frost, harden their skin "
+      "like stone, and batter down doors and foes alike, but fire is their undoing. A descend form "
+      "is gained only through its quest, by a character of level 30 or more with levels in one of "
+      "its classes. It resets experience to 0, rebuilds the character at level one, and sets "
+      "alignment to evil; it cannot be undone.",
+      "Your flesh withers and a grave chill fills you as you rise as a Wight.",
+      "$n's flesh withers and a grave chill fills $m as $e rises as a Wight.");
+  set_race_genders(RACE_WIGHT, N, Y, Y);
+  set_race_abilities(RACE_WIGHT, 10, 10, -2, 0, 0, -2);
+  set_race_alignments(RACE_WIGHT, N, N, N, N, N, N, Y, Y, Y);
+  set_race_attack_types(RACE_WIGHT,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, Y, N, Y, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_TOUGHNESS, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_FAST_HEALING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_COLD_IMMUNITY, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_BODYSLAM, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_DOORBASH, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_WEAKNESS_TO_FIRE, 1, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLA_FROST_BREATH, 6, N);
+  feat_race_assignment(RACE_WIGHT, FEAT_SLA_STONESKIN, 13, N);
+
+  /****************************************************************************/
+  add_race(RACE_REVENANT, "revenant", "Revenant", "\tLRevenant\tn", "Rvnt", "\tLRvnt\tn",
+           RACE_TYPE_UNDEAD, SIZE_LARGE, TRUE, 10, 999999999, IS_EPIC_R);
+  set_race_details(
+      RACE_REVENANT,
+      "Revenants are corpses reanimated by a burning will for revenge, bound to the world by a "
+      "compact with unholy powers. They keep much of their living strength and stamina, regenerate "
+      "their wounds, step from shadow to shadow, and fight with a frenzy that makes them the elite "
+      "of the undead armies. Fire burns them badly. A descend form is gained only through its "
+      "quest, by a character of level 30 or more with levels in one of its classes. It resets "
+      "experience to 0, rebuilds the character at level one, and sets alignment to evil; it cannot "
+      "be undone.",
+      "Your corpse rises, driven by a burning will, as you become a Revenant.",
+      "$n's corpse rises, driven by a burning will, as $e becomes a Revenant.");
+  set_race_genders(RACE_REVENANT, N, Y, Y);
+  set_race_abilities(RACE_REVENANT, 7, 7, -2, 0, 6, -2);
+  set_race_alignments(RACE_REVENANT, N, N, N, N, N, N, Y, Y, Y);
+  set_race_attack_types(RACE_REVENANT,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, Y, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_TOUGHNESS, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_FAST_HEALING, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_TROLL_REGENERATION, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_BODYSLAM, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_DOORBASH, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_WEAKNESS_TO_FIRE, 1, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_REVENANT, FEAT_BATTLE_FRENZY, 8, N);
+  feat_race_assignment(RACE_REVENANT, FEAT_SLA_SHADOW_JUMP, 13, N);
+
+  /****************************************************************************/
+  add_race(RACE_SHADOW_BEAST, "shadowbeast", "Shadow Beast", "\tDShadow Beast\tn", "SBst",
+           "\tDSBst\tn", RACE_TYPE_UNDEAD, SIZE_MEDIUM, TRUE, 10, 999999999, IS_EPIC_R);
+  set_race_details(
+      RACE_SHADOW_BEAST,
+      "Shadow beasts are undead killers woven from darkness, swift and silent in the deep places. "
+      "They swell their own strength and size with dark magic and strike in a blur of claws, but "
+      "fire tears through their shadowy flesh. A descend form is gained only through its quest, by "
+      "a character of level 30 or more with levels in one of its classes. It resets experience to "
+      "0, rebuilds the character at level one, and sets alignment to evil; it cannot be undone.",
+      "Your body dissolves into living darkness as you become a Shadow Beast.",
+      "$n's body dissolves into living darkness as $e becomes a Shadow Beast.");
+  set_race_genders(RACE_SHADOW_BEAST, N, Y, Y);
+  set_race_abilities(RACE_SHADOW_BEAST, 0, 7, 3, -2, 10, -2);
+  set_race_alignments(RACE_SHADOW_BEAST, N, N, N, N, N, N, Y, Y, Y);
+  set_race_attack_types(RACE_SHADOW_BEAST,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, Y, N, N, N, Y, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, Y, N, N, N, N, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_TOUGHNESS, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_FAST_HEALING, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_UNDERDARK_STEALTH, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_SLA_STRENGTH, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_SLA_ENLARGE, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_WEAKNESS_TO_FIRE, 1, N);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_SLOW_CASTING, 1, Y);
+  feat_race_assignment(RACE_SHADOW_BEAST, FEAT_RACIAL_FLURRY, 18, N);
+
+  /****************************************************************************/
+  add_race(RACE_PHANTOM, "phantom", "Phantom", "\tWPhantom\tn", "Phnt", "\tWPhnt\tn",
+           RACE_TYPE_UNDEAD, SIZE_MEDIUM, TRUE, 10, 999999999, IS_EPIC_R);
+  set_race_details(
+      RACE_PHANTOM,
+      "Phantoms are ethereal, half-transparent undead, solitary by nature, whose insubstantial "
+      "forms slip past obstacles and turn aside hostile magic. They shift between the planes, cast "
+      "with frightening speed and power, drift as mist, and in time take to the air, but fire "
+      "harms them. A descend form is gained only through its quest, by a character of level 30 or "
+      "more with levels in one of its classes. It resets experience to 0, rebuilds the character "
+      "at level one, and sets alignment to evil; it cannot be undone.",
+      "Your body fades to a pale, drifting shade as you become a Phantom.",
+      "$n's body fades to a pale, drifting shade as $e becomes a Phantom.");
+  set_race_genders(RACE_PHANTOM, N, Y, Y);
+  set_race_abilities(RACE_PHANTOM, -2, 5, 10, 0, 3, 0);
+  set_race_alignments(RACE_PHANTOM, N, N, N, N, N, N, Y, Y, Y);
+  set_race_attack_types(RACE_PHANTOM,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, Y, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_TOUGHNESS, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_DAMAGE_REDUCTION, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_FAST_HEALING, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_HALF_DROW_SPELL_RESISTANCE, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_SLA_PLANE_SHIFT, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_ENHANCED_SPELL_DAMAGE, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_EYELESS, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_WEAKNESS_TO_FIRE, 1, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_FAST_CASTING, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_FAST_CASTING, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_FAST_CASTING, 1, Y);
+  feat_race_assignment(RACE_PHANTOM, FEAT_VAMPIRE_GASEOUS_FORM, 10, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_WINGS, 11, N);
+  feat_race_assignment(RACE_PHANTOM, FEAT_SPELL_ABSORB, 11, N);
 
 
   /****************************************************************************/
@@ -3454,6 +4080,57 @@ int parse_race_long(const char *arg_in)
     return RACE_GOBLIN;
   if (is_abbrev(arg, "hobgoblin"))
     return RACE_HOBGOBLIN;
+  /* Duris races: after every older entry, so no existing prefix changes race */
+  if (is_abbrev(arg, "centaur"))
+    return RACE_CENTAUR;
+  if (is_abbrev(arg, "githzerai"))
+    return RACE_GITHZERAI;
+  if (is_abbrev(arg, "firbolg"))
+    return RACE_FIRBOLG;
+  if (is_abbrev(arg, "githyanki"))
+    return RACE_GITHYANKI;
+  if (is_abbrev(arg, "kobold"))
+    return RACE_KOBOLD;
+  if (is_abbrev(arg, "drider"))
+    return RACE_DRIDER;
+  if (is_abbrev(arg, "thrikreen"))
+    return RACE_THRI_KREEN;
+  if (is_abbrev(arg, "thri-kreen"))
+    return RACE_THRI_KREEN;
+  if (is_abbrev(arg, "thri kreen"))
+    return RACE_THRI_KREEN;
+  if (is_abbrev(arg, "minotaur"))
+    return RACE_MINOTAUR;
+  if (is_abbrev(arg, "kuotoa"))
+    return RACE_KUO_TOA;
+  if (is_abbrev(arg, "kuo-toa"))
+    return RACE_KUO_TOA;
+  if (is_abbrev(arg, "kuo toa"))
+    return RACE_KUO_TOA;
+  if (is_abbrev(arg, "orog"))
+    return RACE_OROG;
+  if (is_abbrev(arg, "harpy"))
+    return RACE_HARPY;
+  if (is_abbrev(arg, "stormkin"))
+    return RACE_STORMKIN;
+  if (is_abbrev(arg, "deathknight"))
+    return RACE_DEATH_KNIGHT;
+  if (is_abbrev(arg, "death-knight"))
+    return RACE_DEATH_KNIGHT;
+  if (is_abbrev(arg, "death knight"))
+    return RACE_DEATH_KNIGHT;
+  if (is_abbrev(arg, "wight"))
+    return RACE_WIGHT;
+  if (is_abbrev(arg, "revenant"))
+    return RACE_REVENANT;
+  if (is_abbrev(arg, "shadowbeast"))
+    return RACE_SHADOW_BEAST;
+  if (is_abbrev(arg, "shadow-beast"))
+    return RACE_SHADOW_BEAST;
+  if (is_abbrev(arg, "shadow beast"))
+    return RACE_SHADOW_BEAST;
+  if (is_abbrev(arg, "phantom"))
+    return RACE_PHANTOM;
 
   return RACE_UNDEFINED;
 }
@@ -3598,6 +4275,8 @@ bool is_furry(int race)
   case RACE_TABAXI:
   case RACE_WEMIC:
   case LEGACY_RACE_MINOTAUR:
+  case RACE_CENTAUR:
+  case RACE_MINOTAUR:
     return true;
   default:
     break;
@@ -3611,6 +4290,8 @@ bool has_horns(int race)
   {
   case RACE_TIEFLING:
   case LEGACY_RACE_MINOTAUR:
+  case RACE_MINOTAUR:
+  case RACE_KOBOLD:
     return true;
   default:
     break;
@@ -3624,6 +4305,8 @@ bool has_scales(int race)
   {
   case RACE_DRAGONBORN:
   case RACE_YUAN_TI:
+  case RACE_KOBOLD:
+  case RACE_KUO_TOA:
   case LEGACY_RACE_AURAK_DRACONIAN:
   case LEGACY_RACE_BAAZ_DRACONIAN:
   case LEGACY_RACE_BOZAK_DRACONIAN:
@@ -3644,6 +4327,8 @@ bool race_has_no_hair(int race)
   case RACE_HALF_ILLITHID:
   case RACE_YUAN_TI:
   case RACE_MYCONID:
+  case RACE_THRI_KREEN:
+  case RACE_KUO_TOA:
   case LEGACY_RACE_AURAK_DRACONIAN:
   case LEGACY_RACE_BAAZ_DRACONIAN:
   case LEGACY_RACE_BOZAK_DRACONIAN:

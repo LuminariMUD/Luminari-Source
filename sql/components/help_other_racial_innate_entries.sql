@@ -154,7 +154,7 @@ Four legs are very hard to topple. Bash, trip and every other knockdown
 automatically fails against you unless the attacker is larger than you. You
 cannot ride a mount; your own legs carry you.
 
-See also: FEAT INFO QUADRUPED BODY, FEAT INFO LEONINE FRAME, WEMIC', 0, FALSE)
+See also: FEAT INFO QUADRUPED BODY, FEAT INFO TAURIC FRAME, WEMIC', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
 auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('QUADRUPED-BODY', 'QUADRUPED-BODY');
@@ -867,3 +867,16 @@ ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
 auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FOUR-ARMS', 'FOUR-ARMS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FOUR-ARMS', 'FOURARMS');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('PSIONIC-RESISTANCE', 'Psionic Resistance
+
+Requires: the psionic resistance feat (racial innate)
+
+Your mind is alien to other thinkers: you take 20 percent less mental
+damage. Trelux and Thri-Kreen are born with it.
+
+See also: FEAT INFO PSIONIC RESISTANCE, TRELUX, RACE-THRI-KREEN', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('PSIONIC-RESISTANCE', 'PSIONIC-RESISTANCE');

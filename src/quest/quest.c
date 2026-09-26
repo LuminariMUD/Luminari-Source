@@ -23,6 +23,8 @@
 #include "events/domain_event_types.h"
 #include "events/domain_event_world.h"
 #include "act/act.h" /* for do_tell */
+#include "character/class.h"
+#include "character/race.h"
 #include "core/mudlim.h"
 #include "character/rewards.h"
 #include "events/mud_event.h"
@@ -607,6 +609,80 @@ static void respec_quest_owner(struct char_data *ch, int class_num,
     free(reserved);
 }
 
+/* Descend forms: a standard quest race reward turns a character with levels in one of the
+ * form's classes into the form, respecced to the form's class.  Lich and Vampire keep their own
+ * cases below. */
+struct descend_form_conversion
+{
+  int race;
+  int classes[3]; /* CLASS_UNDEFINED ends a shorter list */
+  int respec_class;
+  const char *name; /* announced in capitals */
+};
+
+static const struct descend_form_conversion descend_form_conversions[] = {
+    {RACE_DEATH_KNIGHT,
+     {CLASS_BLACKGUARD, CLASS_WARRIOR, CLASS_UNDEFINED},
+     CLASS_BLACKGUARD,
+     "DEATH KNIGHT"},
+    {RACE_WIGHT, {CLASS_WARRIOR, CLASS_UNDEFINED, CLASS_UNDEFINED}, CLASS_WARRIOR, "WIGHT"},
+    {RACE_REVENANT, {CLASS_WARRIOR, CLASS_ROGUE, CLASS_UNDEFINED}, CLASS_WARRIOR, "REVENANT"},
+    {RACE_SHADOW_BEAST,
+     {CLASS_ROGUE, CLASS_ASSASSIN, CLASS_UNDEFINED},
+     CLASS_ROGUE,
+     "SHADOW BEAST"},
+    {RACE_PHANTOM, {CLASS_WIZARD, CLASS_SUMMONER, CLASS_PSIONICIST}, CLASS_WIZARD, "PHANTOM"},
+};
+
+static const struct descend_form_conversion *find_descend_form_conversion(int race)
+{
+  size_t i;
+
+  for (i = 0; i < sizeof(descend_form_conversions) / sizeof(descend_form_conversions[0]); i++)
+    if (descend_form_conversions[i].race == race)
+      return &descend_form_conversions[i];
+  return NULL;
+}
+
+/* Refuse a form conversion, with the reason, unless the character has one of its classes. */
+static bool descend_form_preflight(struct char_data *ch, const struct descend_form_conversion *form)
+{
+  size_t i;
+
+  for (i = 0; i < sizeof(form->classes) / sizeof(form->classes[0]); i++)
+    if (form->classes[i] != CLASS_UNDEFINED && CLASS_LEVEL(ch, form->classes[i]) > 0)
+      return TRUE;
+
+  send_to_char(ch, "Only a character with levels in");
+  for (i = 0; i < sizeof(form->classes) / sizeof(form->classes[0]); i++)
+    if (form->classes[i] != CLASS_UNDEFINED)
+      send_to_char(ch, "%s %s", i == 0 ? "" : " or", class_list[form->classes[i]].name);
+  send_to_char(ch, " can become a %s.\r\n", race_list[form->race].type);
+  return FALSE;
+}
+
+static void convert_to_descend_form(struct char_data *ch,
+                                    const struct descend_form_conversion *form,
+                                    struct domain_entity_handle pet_handle)
+{
+  struct descriptor_data *pt = NULL;
+
+  GET_REAL_RACE(ch) = form->race;
+  respec_quest_owner(ch, form->respec_class, pet_handle);
+  award_set_points(ch, AWARD_EXPERIENCE, 0);
+  GET_ALIGNMENT(ch) = -1000;
+
+  for (pt = descriptor_list; pt; pt = pt->next)
+    if (IS_PLAYING(pt) && pt->character && pt->character != ch)
+      send_to_char(pt->character,
+                   "\tL%s's \tWlifeforce\tL is torn away, and %s rises again as a "
+                   "\tY%s\tn\r\n",
+                   GET_NAME(ch), GET_NAME(ch), form->name);
+  send_to_char(ch, "\tLYour \tWlifeforce\tL is torn away, and you rise again in undeath.\tn\r\n");
+  send_to_char(ch, "You are now a \tL%s!\tn\r\n", form->name);
+  log("Quest Log : %s has changed into a %s!", GET_NAME(ch), form->name);
+}
+
 void complete_quest(struct char_data *ch, int index)
 {
   qst_rnum rnum = -1;
@@ -616,6 +692,8 @@ void complete_quest(struct char_data *ch, int index)
   struct descriptor_data *pt = NULL;
   struct char_data *mob = NULL;
   struct domain_entity_handle pet_handle = {0};
+  const struct descend_form_conversion *form = NULL;
+  bool race_converted = FALSE;
 
   /* dummy check */
   if (GET_QUEST(ch, index) == (int)NOTHING)
@@ -662,6 +740,17 @@ void complete_quest(struct char_data *ch, int index)
                        "your group with 'group leave.'\r\n");
       return;
     }
+
+    /* Transformation is one-way: no Lich, Vampire, or descend form takes another race reward. */
+    if (race_is_transformation_only(GET_REAL_RACE(ch)))
+    {
+      send_to_char(ch, "You have already been transformed, and cannot be transformed again.\r\n");
+      return;
+    }
+
+    form = find_descend_form_conversion(QST_RACE(rnum));
+    if (form != NULL && !descend_form_preflight(ch, form))
+      return;
   }
 
   /* Admit and place the follower before committing any quest rewards. */
@@ -778,6 +867,7 @@ void complete_quest(struct char_data *ch, int index)
 
       send_to_char(ch, "You are now a \tLVAMPIRE!\tn\r\n");
       log("Quest Log : %s has changed into to a VAMPIRE!", GET_NAME(ch));
+      race_converted = TRUE;
 
       break;
 
@@ -811,11 +901,18 @@ void complete_quest(struct char_data *ch, int index)
 
       send_to_char(ch, "You are now a \tLLICH!\tn\r\n");
       log("Quest Log : %s has changed into to a LICH!", GET_NAME(ch));
+      race_converted = TRUE;
 
       break;
 
     default:
-      log("Quest Log : %s reached default in race reward for quest!", GET_NAME(ch));
+      if (form != NULL)
+      {
+        convert_to_descend_form(ch, form, pet_handle);
+        race_converted = TRUE;
+      }
+      else
+        log("Quest Log : %s reached default in race reward for quest!", GET_NAME(ch));
       break;
     }
   }
@@ -839,6 +936,12 @@ void complete_quest(struct char_data *ch, int index)
     set_quest(ch, rnum, index);
     send_to_char(ch, "\tW***The next stage of your quest awaits:\tn\r\n\r\n%s\r\n", QST_INFO(rnum));
   }
+
+  /* A race conversion cannot be undone, so save it together with its quest history and next
+   * stage, before a follower's load trigger can extract the owner.  respec_engine() saved only
+   * the state before the final experience, alignment, and quest bookkeeping. */
+  if (race_converted)
+    save_char(ch, 0);
   /* Load triggers may extract either participant; quest rewards are already committed. */
   mob = domain_event_world_resolve_character(pet_handle);
   if (mob != NULL)

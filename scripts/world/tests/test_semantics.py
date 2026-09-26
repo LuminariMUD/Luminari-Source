@@ -536,11 +536,12 @@ class SemanticTests(unittest.TestCase):
         wilderness.wilderness_y = 999
         self.assertNotIn("SEM026", {item.code for item in self.quest_findings(wilderness)})
 
-        for race in (-1, 45, 46):
+        for race in (-1, 45, 46, 55, 56, 57, 58, 59):
             candidate = replace(base, raw_values={"race_reward": race})
             self.assertNotIn("SEM026", {item.code for item in self.quest_findings(candidate)})
-        bad_race = replace(base, raw_values={"race_reward": 44})
-        self.assertIn("SEM026", {item.code for item in self.quest_findings(bad_race)})
+        for race in (44, 60):
+            bad_race = replace(base, raw_values={"race_reward": race})
+            self.assertIn("SEM026", {item.code for item in self.quest_findings(bad_race)})
 
         give_gold = quest_record(
             104,

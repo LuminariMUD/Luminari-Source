@@ -810,7 +810,12 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define RACE_LICH 45    /*quest only race*/
 #define RACE_VAMPIRE 46 /*quest only race*/
 
-// space for new quest only races up to 59
+/* Duris descend forms, quest only */
+#define RACE_DEATH_KNIGHT 55
+#define RACE_WIGHT 56
+#define RACE_REVENANT 57
+#define RACE_SHADOW_BEAST 58
+#define RACE_PHANTOM 59
 
 #define NUM_EXTENDED_PC_RACES 47
 
@@ -918,11 +923,24 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define RACE_ILLITHID RACE_HALF_ILLITHID
 #define RACE_YUAN_TI 151
 #define RACE_YUANTI RACE_YUAN_TI
+/* Duris races */
+#define RACE_CENTAUR 152
+#define RACE_GITHZERAI 153
+#define RACE_FIRBOLG 154
+#define RACE_GITHYANKI 155
+#define RACE_KOBOLD 156
+#define RACE_DRIDER 157
+#define RACE_THRI_KREEN 158
+#define RACE_MINOTAUR 159
+#define RACE_KUO_TOA 160
+#define RACE_OROG 161
+#define RACE_HARPY 162
+#define RACE_STORMKIN 163
 /**/
 /* Number of creation-selectable races, independent of their numeric IDs. */
-#define NUM_CREATION_RACES 33
+#define NUM_CREATION_RACES 45
 /* Array bound for every concrete PC, NPC, and form race. */
-#define NUM_EXTENDED_RACES 152
+#define NUM_EXTENDED_RACES 164
 /*****/
 
 // npc sub-race types, currently our NPC's get 3 of these
@@ -3017,7 +3035,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define FEAT_ESTABLISH_CAMP 1264
 #define FEAT_GARROTE 1265
 #define FEAT_ACCOMPANY 1266
-#define FEAT_LEONINE_FRAME 1267
+#define FEAT_TAURIC_FRAME 1267
 
 /* Duris racial innates converted to feats, see
  * docs/systems/GAME_MECHANICS_SYSTEMS.md */
@@ -3079,11 +3097,12 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 /* Four arms (Thri-Kreen): two more arms toward arm_count(), opening the
  * lower-arm slots (WEAR_WIELD_3 .. WEAR_WRIST_L2) */
 #define FEAT_FOUR_ARMS 1321
+#define FEAT_PSIONIC_RESISTANCE 1322
 
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1322
+#define FEAT_LAST_FEAT 1323
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1323
+#define NUM_FEATS 1324
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/

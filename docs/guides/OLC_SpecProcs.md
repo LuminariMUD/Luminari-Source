@@ -172,7 +172,8 @@ not fire while the lich is casting. Use this converter-owned procedure only for 
 `RoL Lich Rite` is mobile-owned and requires `MOB_SPEC`. Converted mobiles 2000009 and 2046990
 intercept the exact lowercase phrase `say immortality`. A level-30 player with at least one
 Necromancer level may complete the rite only while ungrouped, neither following nor leading, and
-only when the keeper carries or wears converted offerings 2089471 and 2046999. Both offerings are
+only when the keeper carries or wears converted offerings 2089471 and 2046999. A character that
+is already a Lich, Vampire, or descend form is refused. Both offerings are
 validated before either is consumed. A successful rite consumes the offerings and keeper, changes
 the player to the target Lich race, rebuilds the character as a Wizard through the established
 safe-respec path, clears experience, and sets evil alignment. Do not assign this irreversible,

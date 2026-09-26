@@ -2320,6 +2320,7 @@ int load_char(const char *name, struct char_data *ch)
   if (craft_migrate_wilderness_holdings(ch))
     ch->player_specials->craft_migration_unsaved = TRUE;
 
+  update_feat_damage_reduction(ch);
   resetCastingData(ch);
   CLOUDKILL(ch) = 0; // make sure init cloudkill burst
   DOOM(ch) = 0;      // make sure init creeping doom

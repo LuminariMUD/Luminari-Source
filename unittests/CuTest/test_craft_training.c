@@ -1813,6 +1813,46 @@ void Test_lost_link_saves_the_supply_offers(CuTest *tc)
   CuAssertIntEquals(tc, listed, saved);
 }
 
+/* Losing the link at the first-quit survey prompt, a state IS_PLAYING() does not count, used to
+ * free a character still in the world: the server then spun or crashed at the next login. */
+void Test_lost_link_at_the_quit_survey_leaves_the_character_linkdead(CuTest *tc)
+{
+  struct craft_trainer_fixture fixture;
+  struct descriptor_data *d, *saved_descriptors = descriptor_list;
+  int sockets[2] = {-1, -1};
+  bool paired, linkdead = FALSE, listed = FALSE;
+  struct char_data *i;
+
+  craft_trainer_begin(tc, &fixture, "crquit", 4325);
+  paired = socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == 0;
+  if (paired)
+  {
+    CREATE(d, struct descriptor_data, 1);
+    d->descriptor = sockets[0];
+    d->output = d->small_outbuf;
+    d->bufspace = SMALL_BUFSIZE - 1;
+    d->pProtocol = ProtocolCreate();
+    STATE(d) = CON_QUIT_REASON;
+    d->character = fixture.player;
+    fixture.player->desc = d;
+    fixture.descriptor.character = NULL;
+    descriptor_list = d;
+    close_socket(d);
+    close(sockets[1]);
+    linkdead = fixture.player->desc == NULL && IN_ROOM(fixture.player) == 0 &&
+               GET_NAME(fixture.player) != NULL && descriptor_list == NULL;
+    for (i = character_list; i != NULL; i = i->next)
+      if (i == fixture.player)
+        listed = TRUE;
+  }
+  descriptor_list = saved_descriptors;
+  CuAssertIntEquals(tc, 0, craft_trainer_end(&fixture));
+
+  CuAssertTrue(tc, paired);
+  CuAssertTrue(tc, linkdead);
+  CuAssertTrue(tc, listed);
+}
+
 /** A connection at the account menu whose account lists one isolated player file. */
 struct craft_account_fixture
 {

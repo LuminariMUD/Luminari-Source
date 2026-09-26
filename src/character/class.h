@@ -121,6 +121,7 @@ bool display_armor_info(struct char_data *ch, const char *armor);
 int parse_class_long(const char *arg);
 void roll_real_abils(struct char_data *ch);
 void process_race_level_feats(struct char_data *ch);
+void update_feat_damage_reduction(struct char_data *ch);
 void process_class_level_feats(struct char_data *ch, int class);
 byte saving_throws(struct char_data *, int type);
 const char *titles(int chclass, int level);

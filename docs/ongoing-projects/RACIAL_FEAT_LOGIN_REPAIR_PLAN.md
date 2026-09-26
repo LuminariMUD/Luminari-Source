@@ -1,7 +1,7 @@
 # Racial Feat Login Repair Plan
 
-Status: plan, not started. Written 2026-09-26 and traced against master `a845fd41e`. It is separate
-from [DURIS_PLAYER_RACES_PLAN.md](DURIS_PLAYER_RACES_PLAN.md).
+Status: plan, not started. Written 2026-09-26 and traced against master `a845fd41e`; item 2 was
+done by the Duris races work.
 
 ## Problem
 
@@ -24,10 +24,8 @@ or below its level and that it does not hold, through the same code the level-up
 1. Shared grant. Move the per-assignment body of `process_race_level_feats()` (special handling or
    the gained or improved message, then the rank increment) into one static helper in
    `src/character/class.c`, so a repaired feat behaves exactly like a level-up grant.
-2. Real race. `process_race_level_feats()` reads `GET_RACE()`, which is the disguise race while a
-   character is disguised or wild-shaped; read `GET_REAL_RACE()` there and in the repair. Every
-   racial grant is at level 1 today, and `do_start()` clears the disguise before granting them, so
-   this matters once a race grants a feat at a later level, as the Duris races will.
+2. Real race. Done by the Duris races work: `process_race_level_feats()` reads
+   `GET_REAL_RACE()`. The repair must read it too.
 3. Repair. Add `grant_missing_race_feats()` beside it, declared in `src/character/class.h`. It skips
    NPCs and invalid races, then for each assignment in the real race's `featassign_list` whose
    `level_received` is at most `GET_LEVEL(ch)`, whose feat has `can_stack` false in `feat_list[]`,
@@ -77,6 +75,7 @@ then repeat through a copyover. Finish with `make -j$(nproc)`, `make test`, and 
 
 Then delete this plan and its index entry.
 
-If this lands before the Duris races plan, that plan's code items 2 and 3 no longer need their race
-checks: saved Trelux and Lich characters would receive `FEAT_PSIONIC_RESISTANCE` and
-`FEAT_COLD_IMMUNITY` at login (Lich already assigns Cold Immunity at level 1).
+The Duris races work kept race checks beside `FEAT_PSIONIC_RESISTANCE` (Trelux) and
+`FEAT_COLD_IMMUNITY` (Lich) in `compute_damtype_reduction()` because saved characters lack those
+feats. Once this repair grants them at login, those two race checks can go (Lich already assigns
+Cold Immunity at level 1).

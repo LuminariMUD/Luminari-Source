@@ -4394,6 +4394,18 @@ static int perform_subst(struct descriptor_data *t, char *orig, char *subst)
   return (0);
 }
 
+/* Is ch on the character list?  The quit survey, mail and board composition, and some editors
+ * keep an in-world character in states IS_PLAYING() does not count. */
+static bool character_in_world(const struct char_data *ch)
+{
+  const struct char_data *i;
+
+  for (i = character_list; i != NULL; i = i->next)
+    if (i == ch)
+      return TRUE;
+  return FALSE;
+}
+
 void close_socket(struct descriptor_data *d)
 {
   struct descriptor_data *temp;
@@ -4441,7 +4453,8 @@ void close_socket(struct descriptor_data *d)
       d->backstr = NULL;
     }
 
-    if (IS_PLAYING(d) || STATE(d) == CON_DISCONNECT)
+    /* A character still in the world goes linkdead; freeing it would leave it on the lists. */
+    if (IS_PLAYING(d) || STATE(d) == CON_DISCONNECT || character_in_world(d->character))
     {
       struct char_data *link_challenged = d->original ? d->original : d->character;
 

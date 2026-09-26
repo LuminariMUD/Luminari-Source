@@ -1036,6 +1036,7 @@ EXTRA_DIST = \
 	sql/components/help_crafting_entries.sql \
 	sql/components/help_pet_entries.sql \
 	sql/components/help_dg_damage_trigger.sql \
+	sql/components/help_duris_races_entries.sql \
 	sql/components/help_rol_feat_entries.sql \
 	sql/components/help_other_racial_innate_entries.sql \
 	sql/components/help_rol_player_kits.sql \
@@ -1058,6 +1059,7 @@ EXTRA_DIST = \
 	sql/components/test_vessels_integrity.sql \
 	sql/components/verify_help_arcane_mark_entries.sql \
 	sql/components/verify_help_dg_damage_trigger.sql \
+	sql/components/verify_help_duris_races_entries.sql \
 	sql/components/verify_help_rol_player_kits.sql \
 	sql/components/verify_help_rol_object_trap_entries.sql \
 	sql/components/verify_help_race_half_illithid_entries.sql \

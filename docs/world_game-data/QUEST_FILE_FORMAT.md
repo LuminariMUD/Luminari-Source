@@ -183,8 +183,13 @@ reports values that hand-edited files can place outside them.
 | Experience reward | `0..999999`. |
 | Dialogue DC | `-1..100`; a dialogue quest needs at least one positive DC. |
 | Mission difficulty target | `0..NUM_MISSION_DIFFICULTIES - 1`, currently `0..5`. |
-| Race reward | `-1`, `RACE_LICH` (`45`), or `RACE_VAMPIRE` (`46`). |
+| Race reward | `-1`, `RACE_LICH` (`45`), `RACE_VAMPIRE` (`46`), or a descend form: `RACE_DEATH_KNIGHT` (`55`), `RACE_WIGHT` (`56`), `RACE_REVENANT` (`57`), `RACE_SHADOW_BEAST` (`58`), or `RACE_PHANTOM` (`59`). |
 | Give-gold target | Zero or greater. |
+
+A race reward converts the character on completion and needs level 30, no group, leader, or
+followers, and a real race that is not already a Lich, Vampire, or descend form. A descend form
+also needs levels in one of its classes, listed in `descend_form_conversions[]` in
+`src/quest/quest.c`.
 
 String limits count encoded bytes, matching storage behavior, rather than
 displayed characters.

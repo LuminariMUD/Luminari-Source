@@ -132,8 +132,8 @@ bool is_locked_race(int race)
 */
 int has_unlocked_race(struct char_data *ch, int race)
 {
-  /* Lich and vampire races are always locked out here. */
-  if (!ch || !ch->desc || !ch->desc->account || race == RACE_LICH || race == RACE_VAMPIRE)
+  /* Transformation-only races are always locked out here. */
+  if (!ch || !ch->desc || !ch->desc->account || race_is_transformation_only(race))
     return FALSE;
 
   /* If a race isn't locked, it's available by default. */
