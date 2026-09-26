@@ -81,7 +81,10 @@ The event wakes at the earliest participant deadline, runs
 participant to its next phase two seconds later. A full attack rotation
 therefore spans six seconds in three two-second phases, as it did before the
 event-core refactor; attack ordinals are allocated across the phases by
-`attack_number_runs_in_phase()` in `fight.c`. Merging fights preserves each
+`attack_number_runs_in_phase()` in `fight.c`. Procs that add attacks (the
+extra flurry, Air Embodiment, the Wilderness Warrior offhand attacks) are drawn
+once per round by `draw_attack_round_plan()` and replayed in phases 2 and 3, so
+no ordinal moves within a round. Merging fights preserves each
 participant's pending deadline and phase. A participant admitted while the
 event is dispatching is activated afterward, keeping its supplied delay.
 

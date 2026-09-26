@@ -512,15 +512,19 @@ offhand, haste, bonus and trained-offhand opportunities with stable ordinals
 and iterative penalties, rolls each once in its own phase (50 percent, +25
 with two-weapon training, +25 with improved training, `is_skilled_dualer()`),
 adds the floor of the summed chances in count mode, and prints rows in display
-mode. The third hand needs a weapon, or an empty third position on a
-`MONK_TYPE()` character passing `monk_gear_ok()`, which strikes unarmed with
-monk dice; the fourth hand needs four arms and a weapon (or the lower double
-weapon's other end). Other characters' empty lower hands make no swing, and
-whole-character bare-hand bonuses such as monk gloves still need every hand
-empty (`is_bare_handed()`). Some consumers read only the first pair by design: the parry message
-weapon in `skill_message()`, the monk weapon armor-class pick, reach-weapon
-detection, sunder's attacking weapon, and the explicit slot checks in
-`mob_spells.c`, `spec_abilities.c`, `magic.c`, `feats.c`, `perks.c`, and the
+mode. The ordinals hold for the whole round because `draw_attack_round_plan()`
+draws the extra-attack procs once per round into `char_specials.attack_round`
+(cleared when `perform_violence()` begins phase 1), and phases 2 and 3 replay
+the draw and phase 1's second-pair numbering. The third hand needs a weapon,
+or an empty third position on a `MONK_TYPE()` character passing
+`monk_gear_ok()`, which strikes unarmed with monk dice; the fourth hand needs
+four arms and a weapon (or the lower double weapon's other end). Other
+characters' empty lower hands make no swing, and whole-character bare-hand
+bonuses such as monk gloves still need every hand empty (`is_bare_handed()`).
+Some consumers read only the first pair by design: the parry message weapon in
+`skill_message()`, the monk weapon armor-class pick, reach-weapon detection,
+sunder's attacking weapon, and the explicit slot checks in `mob_spells.c`,
+`spec_abilities.c`, `magic.c`, `feats.c`, `perks.c`, and the
 `spec_rol_*` procedures. The stochastic ranger Wilderness Warrior offhand
 procs are not mirrored, and NPCs get no trained extra fourth-hand swings,
 matching the first pair. The design study behind issue #168 is preserved at

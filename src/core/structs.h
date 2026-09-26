@@ -6438,6 +6438,20 @@ struct condensed_combat_data
   int num_times_hit_by_spell;
 };
 
+/** One combat round's attack plan.  The round's first attack routine draws
+ * the extra-attack procs, and phases 2 and 3 replay the draw, so an attack's
+ * ordinal, and with it its phase, never changes within the round. */
+struct attack_round_plan
+{
+  bool drawn;                    /**< Drawn for the current round */
+  bool extra_flurry;             /**< Flurry Focus extra flurry attack */
+  bool air_embodiment;           /**< Air Embodiment extra attack */
+  bool ww_two_weapon;            /**< Wilderness Warrior off-hand proc */
+  bool greater_ww_two_weapon;    /**< Greater Wilderness Warrior off-hand proc */
+  bool second_pair_numbered;     /**< second_pair_first_ordinal is set */
+  int second_pair_first_ordinal; /**< Ordinal before the first second-pair candidate */
+};
+
 /** Special playing constants shared by PCs and NPCs which aren't in pfile */
 struct char_special_data
 {
@@ -6518,6 +6532,8 @@ struct char_special_data
   struct char_data *grapple_attacker; /**< Who is grappling me?; else NULL */
 
   bool energy_retort_used; // used with energy retort ability, which only fires once per round.
+
+  struct attack_round_plan attack_round; /**< Cleared when a round's phase 1 begins */
 
   bool autodoor_message; // used for message handling in autodoor
 

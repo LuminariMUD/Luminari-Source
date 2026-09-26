@@ -15240,6 +15240,20 @@ int valid_fight_cond(struct char_data *ch, bool strict)
 
 static bool attack_number_runs_in_phase(int attack_number, int phase, int attack_type);
 
+#ifdef LUMINARI_CUTEST
+static int second_pair_swings[TEST_SECOND_PAIR_ORDINALS];
+
+void test_reset_second_pair_swings(void)
+{
+  memset(second_pair_swings, 0, sizeof(second_pair_swings));
+}
+
+int test_get_second_pair_swings(int ordinal)
+{
+  return ordinal >= 0 && ordinal < TEST_SECOND_PAIR_ORDINALS ? second_pair_swings[ordinal] : 0;
+}
+#endif
+
 /* Second pair: one attack candidate.  It takes the next ordinal (consumed
  * whether or not its mirror roll succeeds, so later attacks never move
  * phases), adds its chance to the expected total, prints its row in display
@@ -15267,6 +15281,10 @@ static void second_pair_candidate(struct char_data *ch, int mode, int phase, int
            attack_number_runs_in_phase(*ordinal, phase, attack_type) &&
            valid_fight_cond(ch, FALSE) && rand_number(1, 100) <= chance)
   {
+#ifdef LUMINARI_CUTEST
+    if (*ordinal < TEST_SECOND_PAIR_ORDINALS)
+      second_pair_swings[*ordinal]++;
+#endif
     hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, attack_type);
   }
 }
@@ -15354,11 +15372,34 @@ static bool attack_number_runs_in_phase(int attack_number, int phase, int attack
   return ((attack_number - 1) % 3) + 1 == phase;
 }
 
+/* Draw a round's extra-attack procs: the extra flurry, Air Embodiment and
+ * the Wilderness Warrior off-hand attacks.  They change the attack count, so
+ * a phased round draws them once and replays them in phases 2 and 3; a
+ * reroll there would move every later attack, the second pair's included,
+ * into another phase. */
+static void draw_attack_round_plan(struct char_data *ch, int mode, struct attack_round_plan *plan)
+{
+  memset(plan, 0, sizeof(*plan));
+  plan->drawn = TRUE;
+  plan->extra_flurry = mode != DISPLAY_ROUTINE_POTENTIAL && check_monk_extra_flurry_attack(ch);
+  plan->air_embodiment = mode != DISPLAY_ROUTINE_POTENTIAL && !IS_NPC(ch) &&
+                         GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 &&
+                         GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 3 && rand_number(1, 100) <= 10;
+  if (plan->air_embodiment)
+    send_to_char(ch, "\tW[\tCAir Embodiment grants you an extra attack!\tW]\tn\r\n");
+  plan->ww_two_weapon =
+      !IS_NPC(ch) && has_perk(ch, PERK_RANGER_WW_TWO_WEAPON_FIGHTING) && dice(1, 100) <= 10;
+  plan->greater_ww_two_weapon =
+      !IS_NPC(ch) && has_perk(ch, PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING) && dice(1, 100) <= 10;
+}
+
 /* Run a character's attack routine for one attack phase.
  * mode selects the normal routine or one of the display modes; phase is
  * PHASE_0 for the whole round at once, or 1..3 for the historical split with
- * Four Arms' later-added lower-hand candidates. Returns the number of attacks
- * performed, or in display mode the number that would be. */
+ * Four Arms' later-added lower-hand candidates.  Phases 1..3 share the round's
+ * plan, which perform_violence() clears when phase 1 begins; PHASE_0 draws
+ * its own. Returns the number of attacks performed, or in display mode the
+ * number that would be. */
 int perform_attacks(struct char_data *ch, int mode, int phase)
 {
   int i = 0, penalty = 0, numAttacks = 0, bonus_mainhand_attacks = 0;
@@ -15376,6 +15417,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   int second_pair_base_penalty = 0, second_pair_planned_bonus = 0;
   int second_pair_planned_max_bab = 0;
   bool second_pair_hasted = FALSE;
+  struct attack_round_plan whole_routine_plan = {0};
+  struct attack_round_plan *plan = &whole_routine_plan;
 
   /* Check position..  we don't check < POS_STUNNED anymore */
   if (GET_POS(ch) == POS_DEAD)
@@ -15390,6 +15433,11 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     return (0);
 
   guard_check(ch, FIGHTING(ch)); /* this is the guard skill check */
+
+  if (phase != PHASE_0)
+    plan = &ch->char_specials.attack_round;
+  if (!plan->drawn)
+    draw_attack_round_plan(ch, mode, plan);
 
   /** BEGIN PROCESS OF COUNTING ATTACKS AND PENALTIES FOR SUCCESSIVE ATTACKS  **/
 
@@ -15408,7 +15456,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       penalty = -1; /* 9th level+, no more penalty to flurry! */
     if (penalty > 0 && has_perk(ch, PERK_MONK_FLURRY_FOCUS))
       penalty -= 1;
-    if (mode != 2 && check_monk_extra_flurry_attack(ch))
+    if (plan->extra_flurry)
     {
       bonus_mainhand_attacks++;
       attacks_at_max_bab++;
@@ -15440,15 +15488,10 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   }
 
   /* Elemental Embodiment (Air) - 10% chance for an extra attack */
-  if (mode != 2 && !IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 &&
-      GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 3)
+  if (plan->air_embodiment)
   {
-    if (rand_number(1, 100) <= 10)
-    {
-      bonus_mainhand_attacks++;
-      attacks_at_max_bab++;
-      send_to_char(ch, "\tW[\tCAir Embodiment grants you an extra attack!\tW]\tn\r\n");
-    }
+    bonus_mainhand_attacks++;
+    attacks_at_max_bab++;
   }
 
   /* Haste or equivalent gives one extra attack, ranged or melee, at max BAB. */
@@ -16208,7 +16251,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     }
 
     /* Wilderness Warrior Two-Weapon Fighting: 10% chance for extra off-hand attack */
-    if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_WW_TWO_WEAPON_FIGHTING) && dice(1, 100) <= 10)
+    if (plan->ww_two_weapon)
     {
       numAttacks++;
       if (mode == NORMAL_ATTACK_ROUTINE)
@@ -16231,8 +16274,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     }
 
     /* Greater Wilderness Warrior Two-Weapon Fighting: another 10% chance for extra off-hand attack */
-    if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_GREATER_WW_TWO_WEAPON_FIGHTING) &&
-        dice(1, 100) <= 10)
+    if (plan->greater_ww_two_weapon)
     {
       numAttacks++;
       if (mode == NORMAL_ATTACK_ROUTINE)
@@ -16277,10 +16319,17 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     }
   }
 
-  /* the second pair (three arms and up), after every ordinary attack */
-  numAttacks += perform_second_pair_attacks(ch, mode, phase, numAttacks, second_pair_base_penalty,
-                                            second_pair_planned_bonus, second_pair_planned_max_bab,
-                                            second_pair_hasted);
+  /* the second pair (three arms and up), after every ordinary attack; it
+   * numbers its candidates from the round's first count, so each keeps one
+   * phase even when an evolution's follow-up attack changes the count */
+  if (!plan->second_pair_numbered)
+  {
+    plan->second_pair_numbered = TRUE;
+    plan->second_pair_first_ordinal = numAttacks;
+  }
+  numAttacks += perform_second_pair_attacks(ch, mode, phase, plan->second_pair_first_ordinal,
+                                            second_pair_base_penalty, second_pair_planned_bonus,
+                                            second_pair_planned_max_bab, second_pair_hasted);
   return numAttacks;
 }
 #ifdef LUMINARI_CUTEST
@@ -16755,6 +16804,7 @@ void perform_violence(struct char_data *ch, int phase)
 
   if (phase == 1 || phase == 0)
   { /* make sure this doesn't happen more than once a round */
+    ch->char_specials.attack_round.drawn = FALSE; /* a new round draws a new attack plan */
     bloodlust_round_check(ch);
 
     if (!IS_NPC(ch) && has_bard_warbeat(ch) && !GET_WARBEAT_USED(ch))

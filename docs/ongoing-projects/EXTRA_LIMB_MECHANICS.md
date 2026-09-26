@@ -130,6 +130,11 @@ before deploying or rolling back; the procedure for rolling back past the lower 
 pair. It mirrors the round's planned base, haste, BAB and flurry opportunities as
 `ATTACK_TYPE_THIRD` and `ATTACK_TYPE_FOURTH`, each at 50 percent, 75 with two-weapon training
 and 100 with improved training, with stable ordinals and one roll in the candidate's own phase.
+The ordinals hold for the whole round: `draw_attack_round_plan()` draws the extra-attack procs
+(the extra flurry, Air Embodiment and the Wilderness Warrior offhand attacks) once, when the
+round's first attack routine runs, into `char_specials.attack_round`, which `perform_violence()`
+clears when phase 1 begins. Phases 2 and 3 replay that draw and phase 1's second-pair numbering,
+so no candidate changes phase within a round.
 Count mode adds the floor of the summed chances, so a single 50 percent candidate adds nothing
 to the displayed number while still attacking. The third hand needs a weapon or, for a monk, an
 empty third position; the fourth hand needs four arms and a weapon, including the other end of a

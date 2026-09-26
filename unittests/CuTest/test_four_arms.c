@@ -2640,6 +2640,97 @@ void TestArmCountMonkEmptyThirdHandStrikes(CuTest *tc)
   end_combat_fixture(&fixture);
 }
 
+/* one real round, phases 1..3; returns how many second-pair ordinals did not
+ * swing exactly once: expected ordinals are first + 1 ..first + candidates */
+static int second_pair_round_misfits(struct four_arm_combat_fixture *fixture, int candidates,
+                                     void (*between_phases)(struct four_arm_combat_fixture *))
+{
+  const struct attack_round_plan *plan = &fixture->actor.char_specials.attack_round;
+  int phase, ordinal, want, misfits = 0;
+
+  test_reset_second_pair_swings();
+  for (phase = PHASE_1; phase <= PHASE_3; phase++)
+  {
+    GET_HITROLL(&fixture->actor) = 100;
+    GET_HIT(&fixture->victim) = 100000;
+    GET_POS(&fixture->victim) = POS_STANDING;
+    perform_violence(&fixture->actor, phase);
+    if (phase == PHASE_1 && between_phases != NULL)
+      between_phases(fixture);
+  }
+  if (candidates < 0)
+    candidates = plan->air_embodiment ? 4 : 3;
+  for (ordinal = 0; ordinal < TEST_SECOND_PAIR_ORDINALS; ordinal++)
+  {
+    want = ordinal > plan->second_pair_first_ordinal &&
+           ordinal <= plan->second_pair_first_ordinal + candidates;
+    if (test_get_second_pair_swings(ordinal) != want)
+      misfits++;
+  }
+  return misfits;
+}
+
+static struct obj_data round_plan_offhand;
+
+static void wield_round_plan_offhand(struct four_arm_combat_fixture *fixture)
+{
+  equip_char(&fixture->actor, &round_plan_offhand, WEAR_WIELD_OFFHAND);
+}
+
+/* A round draws its extra-attack procs once: phases 2 and 3 replay phase 1's
+ * Air Embodiment roll and its second-pair numbering, so every lower-hand
+ * candidate swings exactly once per round, and the next round draws again. */
+void TestArmCountRoundPlanKeepsSecondPairPhases(CuTest *tc)
+{
+  struct four_arm_combat_fixture fixture;
+  struct player_special_data specials;
+  struct obj_data first, third, fourth;
+  int round, misfits = 0, air_rounds = 0;
+
+  begin_combat_fixture(&fixture);
+  memset(&specials, 0, sizeof(specials));
+  /* trained PC fighter: every mirror roll is 100 percent, and a dual second
+   * pair adds the improved fourth-hand candidate: three candidates, four with
+   * the Air Embodiment attack */
+  make_pc_monk_actor(&fixture, &specials, CLASS_WARRIOR);
+  SET_FEAT(&fixture.actor, FEAT_FOUR_ARMS, 1);
+  affect_total(&fixture.actor);
+  CuAssertIntEquals(tc, 4, arm_count(&fixture.actor));
+  init_weapon(&first, "a first dagger", WEAPON_TYPE_DAGGER, SIZE_MEDIUM);
+  init_weapon(&third, "a third sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  init_weapon(&fourth, "a fourth sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  init_weapon(&round_plan_offhand, "an offhand dagger", WEAPON_TYPE_DAGGER, SIZE_MEDIUM);
+  equip_char(&fixture.actor, &first, WEAR_WIELD_1);
+  equip_char(&fixture.actor, &third, WEAR_WIELD_3);
+  equip_char(&fixture.actor, &fourth, WEAR_WIELD_4);
+  CuAssertIntEquals(tc, 4, perform_attacks(&fixture.actor, RETURN_NUM_ATTACKS, PHASE_0));
+
+  GET_ELEMENTAL_EMBODIMENT_TIMER(&fixture.actor) = 10;
+  GET_ELEMENTAL_EMBODIMENT_TYPE(&fixture.actor) = 3;
+  for (round = 0; round < 200; round++)
+  {
+    misfits += second_pair_round_misfits(&fixture, -1, NULL);
+    if (fixture.actor.char_specials.attack_round.air_embodiment)
+      air_rounds++;
+  }
+  CuAssertIntEquals(tc, 0, misfits);
+  /* each round drew anew: some rounds got the extra attack, most did not */
+  CuAssertTrue(tc, air_rounds > 0 && air_rounds < 200);
+
+  /* an offhand weapon wielded after phase 1 lengthens the ordinary attacks,
+   * but the round keeps phase 1's second-pair numbering */
+  GET_ELEMENTAL_EMBODIMENT_TIMER(&fixture.actor) = 0;
+  CuAssertIntEquals(tc, 0, second_pair_round_misfits(&fixture, 3, wield_round_plan_offhand));
+  CuAssertIntEquals(tc, 1, fixture.actor.char_specials.attack_round.second_pair_first_ordinal);
+  /* the next round numbers after the longer first pair */
+  CuAssertIntEquals(tc, 0, second_pair_round_misfits(&fixture, 3, NULL));
+  CuAssertIntEquals(tc, 3, fixture.actor.char_specials.attack_round.second_pair_first_ordinal);
+
+  fixture.actor.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  end_combat_fixture(&fixture);
+}
+
 /* the damage dice printed on the display row that starts with label */
 static bool display_row_has(struct four_arm_fixture *fixture, const char *label, const char *weapon,
                             const char *dice)
