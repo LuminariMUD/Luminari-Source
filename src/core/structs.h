@@ -918,11 +918,24 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define RACE_ILLITHID RACE_HALF_ILLITHID
 #define RACE_YUAN_TI 151
 #define RACE_YUANTI RACE_YUAN_TI
+/* Duris races */
+#define RACE_CENTAUR 152
+#define RACE_GITHZERAI 153
+#define RACE_FIRBOLG 154
+#define RACE_GITHYANKI 155
+#define RACE_KOBOLD 156
+#define RACE_DRIDER 157
+#define RACE_THRI_KREEN 158
+#define RACE_MINOTAUR 159
+#define RACE_KUO_TOA 160
+#define RACE_OROG 161
+#define RACE_HARPY 162
+#define RACE_STORMKIN 163
 /**/
 /* Number of creation-selectable races, independent of their numeric IDs. */
-#define NUM_CREATION_RACES 33
+#define NUM_CREATION_RACES 45
 /* Array bound for every concrete PC, NPC, and form race. */
-#define NUM_EXTENDED_RACES 152
+#define NUM_EXTENDED_RACES 164
 /*****/
 
 // npc sub-race types, currently our NPC's get 3 of these

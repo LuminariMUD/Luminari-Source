@@ -512,6 +512,18 @@ void TestWebOnboardingMediaKeysAreStableAndBounded(CuTest *tc)
   CuAssertStrEquals(tc, "race/half-illithid", web_onboarding_race_media_key(RACE_HALF_ILLITHID));
   CuAssertStrEquals(tc, "race/yuan-ti", web_onboarding_race_media_key(RACE_YUAN_TI));
   CuAssertStrEquals(tc, "race/myconid", web_onboarding_race_media_key(RACE_MYCONID));
+  CuAssertStrEquals(tc, "race/centaur", web_onboarding_race_media_key(RACE_CENTAUR));
+  CuAssertStrEquals(tc, "race/githzerai", web_onboarding_race_media_key(RACE_GITHZERAI));
+  CuAssertStrEquals(tc, "race/firbolg", web_onboarding_race_media_key(RACE_FIRBOLG));
+  CuAssertStrEquals(tc, "race/githyanki", web_onboarding_race_media_key(RACE_GITHYANKI));
+  CuAssertStrEquals(tc, "race/kobold", web_onboarding_race_media_key(RACE_KOBOLD));
+  CuAssertStrEquals(tc, "race/drider", web_onboarding_race_media_key(RACE_DRIDER));
+  CuAssertStrEquals(tc, "race/thri-kreen", web_onboarding_race_media_key(RACE_THRI_KREEN));
+  CuAssertStrEquals(tc, "race/minotaur", web_onboarding_race_media_key(RACE_MINOTAUR));
+  CuAssertStrEquals(tc, "race/kuo-toa", web_onboarding_race_media_key(RACE_KUO_TOA));
+  CuAssertStrEquals(tc, "race/orog", web_onboarding_race_media_key(RACE_OROG));
+  CuAssertStrEquals(tc, "race/harpy", web_onboarding_race_media_key(RACE_HARPY));
+  CuAssertStrEquals(tc, "race/stormkin", web_onboarding_race_media_key(RACE_STORMKIN));
   CuAssertStrEquals(tc, "class/wizard", web_onboarding_class_media_key(CLASS_WIZARD));
 
   /* Out-of-range and prestige entries resolve to the generic fallbacks rather
@@ -1390,24 +1402,29 @@ static void cleanup_editor_descriptor(struct descriptor_data *d)
 
 void TestPopulatedRaceCatalogStaysWithinTheOnboardingWireBudget(CuTest *tc)
 {
-  const char *expected_media_keys[] = {"race/wemic", "race/half-ogre", "race/half-illithid",
-                                       "race/yuan-ti", "race/myconid"};
+  const char *expected_media_keys[] = {
+      "race/wemic",   "race/half-ogre",  "race/half-illithid", "race/yuan-ti",   "race/myconid",
+      "race/centaur", "race/githzerai",  "race/firbolg",       "race/githyanki", "race/kobold",
+      "race/drider",  "race/thri-kreen", "race/minotaur",      "race/kuo-toa",   "race/orog",
+      "race/harpy",   "race/stormkin"};
   struct descriptor_data d;
   struct char_data ch;
   struct player_special_data specials;
   struct account_data account;
   char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
-  bool found_media_keys[5] = {FALSE};
+  bool found_media_keys[sizeof(expected_media_keys) / sizeof(expected_media_keys[0])] = {FALSE};
+  const char *cursor = NULL;
   int visited_pages = 0;
+  int unlocked = 0;
+  int race = 0;
   size_t index = 0;
 
   memset(&account, 0, sizeof(account));
   assign_races();
-  account.races[0] = RACE_WEMIC;
-  account.races[1] = RACE_HALF_OGRE;
-  account.races[2] = RACE_HALF_ILLITHID;
-  account.races[3] = RACE_YUAN_TI;
-  account.races[4] = RACE_MYCONID;
+  /* every locked creation race, the largest catalog an account can see */
+  for (race = 0; race < NUM_EXTENDED_RACES; race++)
+    if (race_is_creation_eligible(race) && is_locked_race(race) && unlocked < MAX_UNLOCKED_RACES)
+      account.races[unlocked++] = race;
   CuAssertTrue(tc, init_editor_descriptor(&d, &ch, &specials, CON_QRACE));
   if (d.pProtocol == NULL)
     return;
@@ -1451,6 +1468,10 @@ void TestPopulatedRaceCatalogStaysWithinTheOnboardingWireBudget(CuTest *tc)
   d.web_onboarding_version = WEB_ONBOARDING_PROTOCOL_VERSION;
   CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
   CuAssertTrue(tc, strlen(payload) < WEB_ONBOARDING_MAX_PAYLOAD);
+  for (index = 0, cursor = strstr(payload, "\"wireValue\""); cursor != NULL;
+       cursor = strstr(cursor + 1, "\"wireValue\""))
+    index++;
+  CuAssertIntEquals(tc, NUM_CREATION_RACES, (int)index);
   CuAssertTrue(tc, strstr(payload, "\"page\":") == NULL);
   CuAssertTrue(tc, strstr(payload, "\"next-page\"") == NULL);
   CuAssertTrue(tc, strstr(payload, "\"description\":") == NULL);

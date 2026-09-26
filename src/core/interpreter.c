@@ -8868,6 +8868,42 @@ void nanny(struct descriptor_data *d, char *arg)
     case RACE_MYCONID:
       perform_help(d, "race-myconid");
       break;
+    case RACE_CENTAUR:
+      perform_help(d, "race-centaur");
+      break;
+    case RACE_GITHZERAI:
+      perform_help(d, "race-githzerai");
+      break;
+    case RACE_FIRBOLG:
+      perform_help(d, "race-firbolg");
+      break;
+    case RACE_GITHYANKI:
+      perform_help(d, "race-githyanki");
+      break;
+    case RACE_KOBOLD:
+      perform_help(d, "race-kobold");
+      break;
+    case RACE_DRIDER:
+      perform_help(d, "race-drider");
+      break;
+    case RACE_THRI_KREEN:
+      perform_help(d, "race-thri-kreen");
+      break;
+    case RACE_MINOTAUR:
+      perform_help(d, "race-minotaur");
+      break;
+    case RACE_KUO_TOA:
+      perform_help(d, "race-kuo-toa");
+      break;
+    case RACE_OROG:
+      perform_help(d, "race-orog");
+      break;
+    case RACE_HARPY:
+      perform_help(d, "race-harpy");
+      break;
+    case RACE_STORMKIN:
+      perform_help(d, "race-stormkin");
+      break;
     default:
       write_to_output(d, "\r\nCommand not understood.\r\n");
       return;

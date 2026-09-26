@@ -1046,3 +1046,626 @@ void TestRespecEngineAcceptsANullArgument(CuTest *tc)
   CuAssertIntEquals(tc, CLASS_WARRIOR, class_after);
   CuAssertIntEquals(tc, CLASS_UNDEFINED, premade_after);
 }
+
+/* ---- Duris creation races (docs/guides/PLAYER_RACES_REFERENCE.md) ---- */
+
+struct duris_race_expectation
+{
+  int race;
+  int id;
+  const char *name;
+  const char *type;
+  const char *abbrev;
+  int family;
+  int size;
+  int level_adjustment;
+  int unlock_cost;
+  int tier;
+  int stats[6];
+  const char *alignments; /* LG NG CG LN TN CN LE NE CE */
+  int language;
+  const char *attacks; /* the 24 set_race_attack_types() flags */
+  int xp_multiplier;
+  int hp_per_level;
+};
+
+static const struct duris_race_expectation duris_creation_races[] = {
+    {RACE_CENTAUR,
+     152,
+     "centaur",
+     "Centaur",
+     "Cent",
+     RACE_TYPE_MONSTROUS_HUMANOID,
+     SIZE_LARGE,
+     2,
+     1000,
+     1,
+     {3, 5, -1, 0, 0, 0},
+     "YYYYYYYYY",
+     SKILL_LANG_ELVEN,
+     "YNNNNNNNNNNNNYNNNNNNNYYN",
+     2,
+     0},
+    {RACE_GITHZERAI,
+     153,
+     "githzerai",
+     "Githzerai",
+     "Gthz",
+     RACE_TYPE_HUMANOID,
+     SIZE_MEDIUM,
+     2,
+     1000,
+     1,
+     {0, 0, 4, 3, 0, -1},
+     "YYYYYYYYY",
+     SKILL_LANG_COMMON,
+     "YNNNNNNNNNNNNYNNNNNNNNNN",
+     2,
+     0},
+    {RACE_FIRBOLG,
+     154,
+     "firbolg",
+     "Firbolg",
+     "Fbol",
+     RACE_TYPE_GIANT,
+     SIZE_LARGE,
+     2,
+     1000,
+     1,
+     {5, 4, -1, 0, -1, 0},
+     "YYYYYYYYY",
+     SKILL_LANG_GIANT,
+     "YNNNNNNNNNNNNYNNNNNNYNNN",
+     2,
+     0},
+    {RACE_GITHYANKI,
+     155,
+     "githyanki",
+     "Githyanki",
+     "Gthy",
+     RACE_TYPE_HUMANOID,
+     SIZE_MEDIUM,
+     2,
+     1000,
+     1,
+     {0, 0, 4, 0, 0, -1},
+     "NNNYYYYYY",
+     SKILL_LANG_COMMON,
+     "YNNYNNNNNNNNNYNNNNNNNNNN",
+     2,
+     0},
+    {RACE_KOBOLD,
+     156,
+     "kobold",
+     "Kobold",
+     "Kobo",
+     RACE_TYPE_HUMANOID,
+     SIZE_SMALL,
+     0,
+     0,
+     0,
+     {-1, 0, 2, 0, 2, 0},
+     "NNNYYYYYY",
+     SKILL_LANG_KOBOLD,
+     "YNNNYNNNYNNNNNNNNNNNNNNN",
+     1,
+     0},
+    {RACE_DRIDER,
+     157,
+     "drider",
+     "Drider",
+     "Drdr",
+     RACE_TYPE_ABERRATION,
+     SIZE_LARGE,
+     2,
+     1000,
+     1,
+     {0, 5, 0, 0, 3, -1},
+     "NNNNNNYYY",
+     SKILL_LANG_UNDERCOMMON,
+     "NNNNYNNNYNNYNNNNNNNNNNNN",
+     2,
+     0},
+    {RACE_THRI_KREEN,
+     158,
+     "thrikreen",
+     "Thri-Kreen",
+     "TKrn",
+     RACE_TYPE_MONSTROUS_HUMANOID,
+     SIZE_MEDIUM,
+     10,
+     50000,
+     2,
+     {0, 0, -2, -2, 4, -2},
+     "YYYYYYYYY",
+     SKILL_LANG_COMMON,
+     "NNNYYNNNYNNNNNNNNNNNNNNN",
+     7,
+     0},
+    {RACE_MINOTAUR,
+     159,
+     "minotaur",
+     "Minotaur",
+     "Mino",
+     RACE_TYPE_MONSTROUS_HUMANOID,
+     SIZE_LARGE,
+     2,
+     1000,
+     1,
+     {3, 4, 0, 0, 0, 0},
+     "YYYYYYYYY",
+     SKILL_LANG_GIANT,
+     "YNNNNNNNNNNNNNNNNNNNNNYY",
+     2,
+     0},
+    {RACE_KUO_TOA,
+     160,
+     "kuotoa",
+     "Kuo Toa",
+     "KToa",
+     RACE_TYPE_MONSTROUS_HUMANOID,
+     SIZE_MEDIUM,
+     0,
+     0,
+     0,
+     {1, 2, 0, 0, 0, 0},
+     "NNNNNNYYY",
+     SKILL_LANG_UNDERCOMMON,
+     "YNNNYNNNNNNYNNNNNNNNNNNN",
+     1,
+     0},
+    {RACE_OROG,
+     161,
+     "orog",
+     "Orog",
+     "Orog",
+     RACE_TYPE_HUMANOID,
+     SIZE_MEDIUM,
+     2,
+     1000,
+     1,
+     {3, 4, -2, 0, 0, 0},
+     "NNNYYYYYY",
+     SKILL_LANG_ORCISH,
+     "YNNNNNNNNNNNNYNNNNNNYNNN",
+     2,
+     1},
+    {RACE_HARPY,
+     162,
+     "harpy",
+     "Harpy",
+     "Hrpy",
+     RACE_TYPE_MONSTROUS_HUMANOID,
+     SIZE_SMALL,
+     2,
+     1000,
+     1,
+     {-2, 1, 2, 1, 2, 0},
+     "YYYYYYYYY",
+     SKILL_LANG_COMMON,
+     "NNNNNNNNYNNNNNNNNNYYNNNN",
+     2,
+     1},
+    {RACE_STORMKIN,
+     163,
+     "stormkin",
+     "Stormkin",
+     "Stmk",
+     RACE_TYPE_GIANT,
+     SIZE_LARGE,
+     2,
+     1000,
+     1,
+     {5, 4, 0, 0, -2, 0},
+     "YYYYYYYYY",
+     SKILL_LANG_GIANT,
+     "YNNNNNYNNNNNNYNNNNNNYNNN",
+     2,
+     0},
+};
+
+struct duris_feat_expectation
+{
+  int race;
+  int feat;
+  int level;
+  int count;
+};
+
+static const struct duris_feat_expectation duris_creation_feats[] = {
+    {RACE_CENTAUR, FEAT_QUADRUPED_BODY, 1, 1},
+    {RACE_CENTAUR, FEAT_TAURIC_FRAME, 1, 1},
+    {RACE_CENTAUR, FEAT_DOORBASH, 1, 1},
+    {RACE_CENTAUR, FEAT_STAMPEDE, 11, 1},
+    {RACE_CENTAUR, FEAT_GREATSWORD_MASTERY, 16, 1},
+    {RACE_GITHZERAI, FEAT_ULTRAVISION, 1, 1},
+    {RACE_GITHZERAI, FEAT_HALF_DROW_SPELL_RESISTANCE, 1, 1},
+    {RACE_GITHZERAI, FEAT_SLA_PLANE_SHIFT, 1, 1},
+    {RACE_GITHZERAI, FEAT_QUICK_THINKING, 1, 1},
+    {RACE_GITHZERAI, FEAT_SLA_LEVITATE, 6, 1},
+    {RACE_GITHZERAI, FEAT_RRAKKMA, 11, 1},
+    {RACE_FIRBOLG, FEAT_BODYSLAM, 1, 1},
+    {RACE_FIRBOLG, FEAT_DOORBASH, 1, 1},
+    {RACE_FIRBOLG, FEAT_FOREST_SIGHT, 1, 1},
+    {RACE_FIRBOLG, FEAT_MAGIC_VULNERABILITY, 1, 1},
+    {RACE_FIRBOLG, FEAT_SLOW_CASTING, 1, 1},
+    {RACE_FIRBOLG, FEAT_OUTDOOR_STEALTH, 6, 1},
+    {RACE_FIRBOLG, FEAT_HATRED, 11, 1},
+    {RACE_FIRBOLG, FEAT_HAMMER_MASTERY, 16, 1},
+    {RACE_GITHYANKI, FEAT_ULTRAVISION, 1, 1},
+    {RACE_GITHYANKI, FEAT_HALF_DROW_SPELL_RESISTANCE, 1, 1},
+    {RACE_GITHYANKI, FEAT_SLA_PLANE_SHIFT, 1, 1},
+    {RACE_GITHYANKI, FEAT_ENHANCED_SPELL_DAMAGE, 1, 1},
+    {RACE_GITHYANKI, FEAT_SLA_PSIONIC_BLAST, 1, 1},
+    {RACE_GITHYANKI, FEAT_SLA_LEVITATE, 6, 1},
+    {RACE_GITHYANKI, FEAT_LONGSWORD_MASTERY, 6, 1},
+    {RACE_KOBOLD, FEAT_ULTRAVISION, 1, 1},
+    {RACE_KOBOLD, FEAT_UNDERDARK_STEALTH, 1, 1},
+    {RACE_KOBOLD, FEAT_CALMING, 1, 1},
+    {RACE_KOBOLD, FEAT_BARTER, 1, 1},
+    {RACE_KOBOLD, FEAT_FAST_CASTING, 1, 1},
+    {RACE_KOBOLD, FEAT_MINER, 26, 1},
+    {RACE_DRIDER, FEAT_ULTRAVISION, 1, 1},
+    {RACE_DRIDER, FEAT_HALF_DROW_SPELL_RESISTANCE, 1, 1},
+    {RACE_DRIDER, FEAT_QUADRUPED_BODY, 1, 1},
+    {RACE_DRIDER, FEAT_TAURIC_FRAME, 1, 1},
+    {RACE_DRIDER, FEAT_SLA_WEB, 1, 1},
+    {RACE_DRIDER, FEAT_GROUNDFIGHTING, 11, 1},
+    {RACE_DRIDER, FEAT_SLA_FIREBALL, 11, 1},
+    {RACE_DRIDER, FEAT_SLA_MASS_DISPEL, 27, 1},
+    {RACE_THRI_KREEN, FEAT_ULTRAVISION, 1, 1},
+    {RACE_THRI_KREEN, FEAT_FOUR_ARMS, 1, 1},
+    {RACE_THRI_KREEN, FEAT_PSIONIC_RESISTANCE, 1, 1},
+    {RACE_THRI_KREEN, FEAT_VULNERABLE_TO_COLD, 1, 1},
+    {RACE_THRI_KREEN, FEAT_POISON_BITE, 6, 1},
+    {RACE_THRI_KREEN, FEAT_LEAP, 11, 1},
+    {RACE_MINOTAUR, FEAT_ULTRAVISION, 1, 1},
+    {RACE_MINOTAUR, FEAT_DOORBASH, 1, 1},
+    {RACE_MINOTAUR, FEAT_BLOODLUST, 1, 1},
+    {RACE_MINOTAUR, FEAT_BULL_CHARGE, 6, 1},
+    {RACE_MINOTAUR, FEAT_AXE_MASTERY, 6, 1},
+    {RACE_MINOTAUR, FEAT_SLA_SCARE, 6, 1},
+    {RACE_MINOTAUR, FEAT_KENDER_FEARLESSNESS, 21, 1},
+    {RACE_KUO_TOA, FEAT_ULTRAVISION, 1, 1},
+    {RACE_KUO_TOA, FEAT_KEEN_SENSES, 1, 1},
+    {RACE_KUO_TOA, FEAT_SWAMP_STEALTH, 1, 1},
+    {RACE_KUO_TOA, FEAT_SEADOG, 1, 1},
+    {RACE_KUO_TOA, FEAT_SUN_VULNERABILITY, 1, 1},
+    {RACE_KUO_TOA, FEAT_SLOW_CASTING, 1, 1},
+    {RACE_KUO_TOA, FEAT_WATER_BREATHING, 8, 1},
+    {RACE_KUO_TOA, FEAT_SLA_LIGHTNING_BOLT, 15, 1},
+    {RACE_OROG, FEAT_ULTRAVISION, 1, 1},
+    {RACE_OROG, FEAT_HARDY, 1, 1},
+    {RACE_OROG, FEAT_ARMOR_SKIN, 1, 1},
+    {RACE_OROG, FEAT_MAGICAL_REDUCTION, 1, 1},
+    {RACE_OROG, FEAT_SUN_VULNERABILITY, 1, 1},
+    {RACE_OROG, FEAT_SLOW_CASTING, 1, 6},
+    {RACE_OROG, FEAT_SUMMON_HORDE, 6, 1},
+    {RACE_OROG, FEAT_SUMMON_WARG, 8, 1},
+    {RACE_OROG, FEAT_WARCALLERS_FURY, 11, 1},
+    {RACE_HARPY, FEAT_ULTRAVISION, 1, 1},
+    {RACE_HARPY, FEAT_WINGS, 1, 1},
+    {RACE_HARPY, FEAT_KEEN_SENSES, 1, 1},
+    {RACE_HARPY, FEAT_HARDY, 1, 1},
+    {RACE_HARPY, FEAT_FAST_CASTING, 1, 3},
+    {RACE_HARPY, FEAT_SLA_FARSEE, 11, 1},
+    {RACE_HARPY, FEAT_HASTE, 16, 1},
+    {RACE_STORMKIN, FEAT_INFRAVISION, 1, 1},
+    {RACE_STORMKIN, FEAT_DOORBASH, 1, 1},
+    {RACE_STORMKIN, FEAT_SLOW_CASTING, 1, 6},
+    {RACE_STORMKIN, FEAT_SLA_LIGHTNING_BOLT, 10, 1},
+    {RACE_STORMKIN, FEAT_THICK_HIDE, 11, 1},
+};
+
+
+#define DURIS_CREATION_RACE_COUNT                                                                  \
+  ((int)(sizeof(duris_creation_races) / sizeof(duris_creation_races[0])))
+
+/* Every registry field, the parser round trip of the name and the wire value, and a class and
+ * alignment that can finish creation. */
+void TestDurisCreationRacesRegistry(CuTest *tc)
+{
+  const struct duris_race_expectation *expected;
+  int count = 0;
+  int race = 0;
+  int i = 0;
+  int j = 0;
+
+  ensure_race_equivalence_registry();
+
+  CuAssertIntEquals(tc, 45, NUM_CREATION_RACES);
+  CuAssertIntEquals(tc, 164, NUM_EXTENDED_RACES);
+  for (race = 0; race < NUM_EXTENDED_RACES; race++)
+    if (race_is_creation_eligible(race))
+      count++;
+  CuAssertIntEquals(tc, NUM_CREATION_RACES, count);
+
+  for (i = 0; i < DURIS_CREATION_RACE_COUNT; i++)
+  {
+    expected = &duris_creation_races[i];
+    race = expected->race;
+    CuAssertIntEquals(tc, expected->id, race);
+    CuAssertTrue(tc, race_list[race].is_pc);
+    CuAssertTrue(tc, race_is_creation_eligible(race));
+    CuAssertTrue(tc, !race_is_transformation_only(race));
+    CuAssertStrEquals(tc, expected->name, race_list[race].name);
+    CuAssertStrEquals(tc, expected->type, race_list[race].type);
+    CuAssertStrEquals(tc, expected->abbrev, race_list[race].abbrev);
+    CuAssertPtrNotNull(tc, race_list[race].descrip);
+    CuAssertIntEquals(tc, expected->family, race_list[race].family);
+    CuAssertIntEquals(tc, expected->size, race_list[race].size);
+    CuAssertIntEquals(tc, expected->level_adjustment, race_list[race].level_adjustment);
+    CuAssertIntEquals(tc, expected->unlock_cost, race_list[race].unlock_cost);
+    CuAssertIntEquals(tc, expected->tier, race_list[race].epic_adv);
+    CuAssertIntEquals(tc, expected->language, race_list[race].racial_language);
+    CuAssertIntEquals(tc, 0, race_list[race].genders[SEX_NEUTRAL]);
+    CuAssertIntEquals(tc, 1, race_list[race].genders[SEX_MALE]);
+    CuAssertIntEquals(tc, 1, race_list[race].genders[SEX_FEMALE]);
+    for (j = 0; j < 6; j++)
+      CuAssertIntEquals(tc, expected->stats[j], get_race_stat(race, j));
+    for (j = 0; j < NUM_ALIGNMENTS; j++)
+      CuAssertIntEquals(tc, expected->alignments[j] == 'Y', race_list[race].alignments[j]);
+    for (j = 0; j < NUM_ATTACK_TYPES; j++)
+      CuAssertIntEquals(tc, expected->attacks[j] == 'Y', race_list[race].attack_types[j]);
+    CuAssertIntEquals(tc, race, parse_race_long(race_list[race].name));
+    CuAssertIntEquals(tc, race, parse_race_long(race_list[race].type));
+    CuAssertTrue(tc, valid_class_race_alignment(CLASS_WARRIOR, race));
+  }
+
+  /* spaced and hyphenated spellings, and the prefixes older races keep */
+  CuAssertIntEquals(tc, RACE_THRI_KREEN, parse_race_long("thri kreen"));
+  CuAssertIntEquals(tc, RACE_KUO_TOA, parse_race_long("kuo-toa"));
+  CuAssertIntEquals(tc, RACE_STOUT_HALFLING, parse_race_long("sto"));
+  CuAssertIntEquals(tc, RACE_SHADE, parse_race_long("shad"));
+  CuAssertIntEquals(tc, RACE_DROW, parse_race_long("dr"));
+  CuAssertIntEquals(tc, RACE_WOOD_ELF, parse_race_long("wi"));
+  CuAssertIntEquals(tc, RACE_HALF_OGRE, parse_race_long("o"));
+  CuAssertIntEquals(tc, RACE_HALF_ELF, parse_race_long("ha"));
+}
+
+/* Each race holds exactly its feats, each first at its grant level, with the stacked ranks. */
+void TestDurisCreationRacesFeatGrants(CuTest *tc)
+{
+  const struct duris_feat_expectation *expected;
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  struct race_feat_assign *assignment;
+  int race = 0;
+  int level = 0;
+  int total = 0;
+  int i = 0;
+  int j = 0;
+
+  ensure_race_equivalence_registry();
+  init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+  ch.desc = NULL;
+
+  for (i = 0; i < DURIS_CREATION_RACE_COUNT; i++)
+  {
+    race = duris_creation_races[i].race;
+    total = 0;
+    for (assignment = race_list[race].featassign_list; assignment != NULL;
+         assignment = assignment->next)
+      total++;
+    for (j = 0; j < (int)(sizeof(duris_creation_feats) / sizeof(duris_creation_feats[0])); j++)
+      if (duris_creation_feats[j].race == race)
+        total -= duris_creation_feats[j].count;
+    CuAssertIntEquals(tc, 0, total);
+
+    memset(ch.char_specials.saved.feats, 0, sizeof(ch.char_specials.saved.feats));
+    GET_REAL_RACE(&ch) = race;
+    for (level = 1; level <= 30; level++)
+    {
+      GET_LEVEL(&ch) = level;
+      process_race_level_feats(&ch);
+      for (j = 0; j < (int)(sizeof(duris_creation_feats) / sizeof(duris_creation_feats[0])); j++)
+      {
+        expected = &duris_creation_feats[j];
+        if (expected->race != race)
+          continue;
+        CuAssertIntEquals(tc, level >= expected->level ? expected->count : 0,
+                          HAS_REAL_FEAT(&ch, expected->feat));
+      }
+    }
+  }
+}
+
+/* A disguise or wild shape does not trade a race's later grant for the disguise race's. */
+void TestRaceLevelFeatsFollowTheRealRace(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+
+  ensure_race_equivalence_registry();
+  init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+  ch.desc = NULL;
+  GET_REAL_RACE(&ch) = RACE_CENTAUR;
+  GET_DISGUISE_RACE(&ch) = RACE_WEMIC;
+  GET_LEVEL(&ch) = 11;
+  process_race_level_feats(&ch);
+  CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, FEAT_STAMPEDE));
+
+  GET_LEVEL(&ch) = 1;
+  process_race_level_feats(&ch);
+  CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, FEAT_TAURIC_FRAME));
+  CuAssertIntEquals(tc, 0, HAS_REAL_FEAT(&ch, FEAT_CLAWS_AND_BITE));
+}
+
+/* Hit points, experience, and the family predicates that name each non-humanoid PC race. */
+void TestDurisCreationRacesHitPointsExperienceAndFamilies(CuTest *tc)
+{
+  const struct duris_race_expectation *expected;
+  struct char_data ch;
+  struct char_data *character = &ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  long human_exp = 0;
+  int human_hp = 0;
+  int old_multiplier = CONFIG_EXPERIENCE_MULTIPLIER;
+  int i = 0;
+
+  ensure_race_equivalence_registry();
+  init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+  GET_LEVEL(&ch) = 10;
+  GET_REAL_CON(&ch) = 10;
+  ch.aff_abils.con = 10;
+  GET_CLASS(&ch) = CLASS_WARRIOR;
+  CONFIG_EXPERIENCE_MULTIPLIER = 100;
+
+  GET_REAL_RACE(&ch) = RACE_HUMAN;
+  calculate_max_hp(&ch, FALSE);
+  human_hp = GET_MAX_HIT(&ch);
+  human_exp = level_exp(&ch, 10);
+
+  for (i = 0; i < DURIS_CREATION_RACE_COUNT; i++)
+  {
+    expected = &duris_creation_races[i];
+    GET_REAL_RACE(&ch) = expected->race;
+    calculate_max_hp(&ch, FALSE);
+    CuAssertIntEquals(tc, human_hp + 10 * expected->hp_per_level, GET_MAX_HIT(&ch));
+    CuAssertIntEquals(tc, expected->hp_per_level, race_hp_bonus_per_level(expected->race));
+    CuAssertIntEquals(tc, 0, race_starting_hp_bonus(expected->race));
+    CuAssertTrue(tc, human_exp * expected->xp_multiplier == level_exp(&ch, 10));
+
+    CuAssertIntEquals(tc, expected->family == RACE_TYPE_MONSTROUS_HUMANOID,
+                      IS_MONSTROUS_HUMANOID(character) != 0);
+    CuAssertIntEquals(tc, expected->family == RACE_TYPE_GIANT, IS_GIANT(character) != 0);
+    CuAssertIntEquals(tc, expected->family == RACE_TYPE_ABERRATION, IS_ABERRATION(character) != 0);
+    CuAssertIntEquals(tc, expected->family == RACE_TYPE_HUMANOID, IS_HUMANOID(character) != 0);
+  }
+
+  CONFIG_EXPERIENCE_MULTIPLIER = old_multiplier;
+}
+
+/* Thri-Kreen and Minotaur anatomy rows, and the tauric frame of Centaur and Drider. */
+void TestDurisCreationRacesLostSlots(CuTest *tc)
+{
+  const int thri_kreen_lost[] = {WEAR_BODY,     WEAR_FEET,  WEAR_FINGER_R,
+                                 WEAR_FINGER_L, WEAR_EAR_R, WEAR_EAR_L};
+  const int tauric[] = {RACE_CENTAUR, RACE_DRIDER};
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  size_t i = 0;
+
+  ensure_race_equivalence_registry();
+  init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+
+  GET_REAL_RACE(&ch) = RACE_THRI_KREEN;
+  for (i = 0; i < sizeof(thri_kreen_lost) / sizeof(thri_kreen_lost[0]); i++)
+    CuAssertTrue(tc, !character_can_use_wear_slot(&ch, thri_kreen_lost[i]));
+  CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_HEAD));
+  CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_LEGS));
+  CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_WIELD_1));
+  SET_FEAT(&ch, FEAT_FOUR_ARMS, 1);
+  CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_WIELD_3));
+  SET_FEAT(&ch, FEAT_FOUR_ARMS, 0);
+
+  GET_REAL_RACE(&ch) = RACE_MINOTAUR;
+  CuAssertTrue(tc, !character_can_use_wear_slot(&ch, WEAR_HEAD));
+  CuAssertPtrNotNull(tc, strstr(character_wear_slot_restriction(&ch, WEAR_HEAD), "horns"));
+  CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_LEGS));
+
+  for (i = 0; i < sizeof(tauric) / sizeof(tauric[0]); i++)
+  {
+    GET_REAL_RACE(&ch) = tauric[i];
+    CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_LEGS));
+    SET_FEAT(&ch, FEAT_TAURIC_FRAME, 1);
+    CuAssertTrue(tc, !character_can_use_wear_slot(&ch, WEAR_LEGS));
+    CuAssertTrue(tc, !character_can_use_wear_slot(&ch, WEAR_FEET));
+    CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_ANKLE_R));
+    SET_FEAT(&ch, FEAT_TAURIC_FRAME, 0);
+  }
+}
+
+/* Kobold and Kuo Toa are free; the locked races need an unlock, which terminal creation and the
+ * account purchase both honor, and the registry wire value is accepted. */
+void TestDurisCreationRacesUnlockAndCreationPaths(CuTest *tc)
+{
+  const struct duris_race_expectation *expected;
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  char input[MAX_INPUT_LENGTH];
+  int locked = 0;
+  int race = 0;
+  int i = 0;
+
+  ensure_race_equivalence_registry();
+  for (race = 0; race < NUM_EXTENDED_RACES; race++)
+    if (race_is_creation_eligible(race) && is_locked_race(race))
+      locked++;
+  CuAssertIntEquals(tc, 22, locked);
+  CuAssertTrue(tc, locked <= MAX_UNLOCKED_RACES);
+
+  for (i = 0; i < DURIS_CREATION_RACE_COUNT; i++)
+  {
+    expected = &duris_creation_races[i];
+    init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+    CuAssertIntEquals(tc, expected->unlock_cost == 0,
+                      race_is_selectable_for_creation(&ch, expected->race));
+    account.races[0] = expected->race;
+    CuAssertTrue(tc, race_is_selectable_for_creation(&ch, expected->race));
+
+    descriptor.pProtocol = ProtocolCreate();
+    CuAssertPtrNotNull(tc, descriptor.pProtocol);
+    if (descriptor.pProtocol == NULL)
+      return;
+    GET_REAL_RACE(&ch) = RACE_UNDEFINED;
+    STATE(&descriptor) = CON_QRACE;
+    snprintf(input, sizeof(input), "%s", race_list[expected->race].type);
+    nanny(&descriptor, input);
+    CuAssertIntEquals(tc, expected->race, GET_REAL_RACE(&ch));
+    CuAssertIntEquals(tc, CON_QRACE_HELP, STATE(&descriptor));
+    cleanup_race_equivalence_descriptor(&descriptor);
+  }
+
+  init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  if (descriptor.pProtocol == NULL)
+    return;
+  account.experience = 50000;
+  snprintf(input, sizeof(input), "race %s", race_list[RACE_THRI_KREEN].type);
+  do_accexp(&ch, input, 0, 0);
+  CuAssertIntEquals(tc, RACE_THRI_KREEN, account.races[0]);
+  CuAssertIntEquals(tc, 0, account.experience);
+  CuAssertTrue(tc, has_unlocked_race(&ch, RACE_THRI_KREEN));
+  cleanup_race_equivalence_descriptor(&descriptor);
+}
+
+/* Premade builds add each race's ability modifiers to the class's base line. */
+void TestDurisCreationRacesPremadeBuildStats(CuTest *tc)
+{
+  const int wizard_base_stats[] = {10, 14, 17, 11, 14, 8};
+  struct char_data ch;
+  struct player_special_data specials;
+  int race = 0;
+  int i = 0;
+
+  ensure_race_equivalence_registry();
+  memset(&ch, 0, sizeof(ch));
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+
+  for (i = 0; i < DURIS_CREATION_RACE_COUNT; i++)
+  {
+    race = duris_creation_races[i].race;
+    GET_REAL_RACE(&ch) = race;
+    set_premade_stats(&ch, CLASS_WIZARD, 1);
+    CuAssertIntEquals(tc, wizard_base_stats[0] + get_race_stat(race, R_STR_MOD), GET_REAL_STR(&ch));
+    CuAssertIntEquals(tc, wizard_base_stats[1] + get_race_stat(race, R_CON_MOD), GET_REAL_CON(&ch));
+    CuAssertIntEquals(tc, wizard_base_stats[2] + get_race_stat(race, R_INTEL_MOD),
+                      GET_REAL_INT(&ch));
+    CuAssertIntEquals(tc, wizard_base_stats[3] + get_race_stat(race, R_WIS_MOD), GET_REAL_WIS(&ch));
+    CuAssertIntEquals(tc, wizard_base_stats[4] + get_race_stat(race, R_DEX_MOD), GET_REAL_DEX(&ch));
+    CuAssertIntEquals(tc, wizard_base_stats[5] + get_race_stat(race, R_CHA_MOD), GET_REAL_CHA(&ch));
+  }
+}

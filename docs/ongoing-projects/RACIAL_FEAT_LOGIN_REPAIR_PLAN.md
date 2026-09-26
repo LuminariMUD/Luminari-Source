@@ -24,10 +24,8 @@ or below its level and that it does not hold, through the same code the level-up
 1. Shared grant. Move the per-assignment body of `process_race_level_feats()` (special handling or
    the gained or improved message, then the rank increment) into one static helper in
    `src/character/class.c`, so a repaired feat behaves exactly like a level-up grant.
-2. Real race. `process_race_level_feats()` reads `GET_RACE()`, which is the disguise race while a
-   character is disguised or wild-shaped; read `GET_REAL_RACE()` there and in the repair. Every
-   racial grant is at level 1 today, and `do_start()` clears the disguise before granting them, so
-   this matters once a race grants a feat at a later level, as the Duris races will.
+2. Real race. Done by the Duris races work: `process_race_level_feats()` reads
+   `GET_REAL_RACE()`. The repair must read it too.
 3. Repair. Add `grant_missing_race_feats()` beside it, declared in `src/character/class.h`. It skips
    NPCs and invalid races, then for each assignment in the real race's `featassign_list` whose
    `level_received` is at most `GET_LEVEL(ch)`, whose feat has `can_stack` false in `feat_list[]`,

@@ -3086,11 +3086,12 @@ void process_race_level_feats(struct char_data *ch)
 {
   struct race_feat_assign *feat_assign = NULL;
 
-  if (race_list[GET_RACE(ch)].featassign_list == NULL)
+  /* the real race: a disguise or wild shape must not trade away a later-level grant */
+  if (race_list[GET_REAL_RACE(ch)].featassign_list == NULL)
     return;
 
   /*  This race has potential feat assignment! Traverse the list and assign. */
-  for (feat_assign = race_list[GET_RACE(ch)].featassign_list; feat_assign != NULL;
+  for (feat_assign = race_list[GET_REAL_RACE(ch)].featassign_list; feat_assign != NULL;
        feat_assign = feat_assign->next)
   {
     /* appropriate level to receive this feat? */
@@ -3830,6 +3831,15 @@ long int level_exp(struct char_data *ch, int level)
   case RACE_WEMIC:
   case RACE_HALF_OGRE:
   case RACE_YUAN_TI:
+  case RACE_CENTAUR:
+  case RACE_GITHZERAI:
+  case RACE_FIRBOLG:
+  case RACE_GITHYANKI:
+  case RACE_DRIDER:
+  case RACE_MINOTAUR:
+  case RACE_OROG:
+  case RACE_HARPY:
+  case RACE_STORMKIN:
     exp *= 2;
     break;
 
@@ -3839,6 +3849,7 @@ long int level_exp(struct char_data *ch, int level)
   case RACE_TRELUX:
   case RACE_HALF_ILLITHID:
   case RACE_MYCONID:
+  case RACE_THRI_KREEN:
     exp *= 7;
     break;
 

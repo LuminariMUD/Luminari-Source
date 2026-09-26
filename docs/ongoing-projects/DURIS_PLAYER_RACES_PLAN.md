@@ -25,6 +25,16 @@ races map to existing races (for example Barbarian to Wemic, both Illithids to H
   so it is rebuilt on every load. `TestSep2026InnateFeatsAreRegisteredAsInnates` pins the last
   feat; a new feat moves it. The renamed Wemic, QUADRUPED-BODY, and SQL help are edited in the
   files but not yet applied to the development help database; step 4 applies all help together.
+- Step 2 done. The race blocks follow Yuan-Ti in `assign_races()` under a "Duris races" comment.
+  Registry `type` is the display name ("Thri-Kreen", "Kuo Toa"), `name` the token. Beyond the
+  plan: `process_race_level_feats()` reads `GET_REAL_RACE()`, so a disguise or wild shape cannot
+  trade away a later-level grant (item 2 of the login repair plan); Centaur and Minotaur are
+  furry, Minotaur and Kobold horned, Kobold and Kuo Toa scaled, and Thri-Kreen and Kuo Toa
+  hairless for description choices; protocol v1 race summaries are 140 characters
+  (`WEB_ONBOARDING_V1_RACE_SUMMARY_CHARS`), because v1 lists every race on one page and the full
+  45 overflowed the 15000-byte payload at 220. Tests: the `TestDurisCreationRaces*` and
+  `TestRaceLevelFeatsFollowTheRealRace` cases in `test_race_equivalence.c`, the media key and
+  wire budget cases in `test_web_onboarding.c`.
 
 ## Rules behind the data
 
