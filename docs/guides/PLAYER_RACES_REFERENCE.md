@@ -169,15 +169,12 @@ Vampire they have no racial language.
 
 - **Normal races**: pick at character creation. `race_is_selectable_for_creation()`
   returns true for any creation-eligible race that is not locked.
-
 - **Advanced and epic races**: unlock once per account with `accexp race <name>`,
   then pick at character creation on any character. The `accexp` name match uses
   the registry `type` string (for example `accexp race HalfTroll`,
   `accexp race CrystalDwarf`).
-
 - **Lich**: three owners set `GET_REAL_RACE(ch) = RACE_LICH` on an existing
   character.
-
   - Quest reward: a quest whose reward race is Lich (editable in `qedit`)
     converts the character and respecs them to Wizard (`src/quest/quest.c`).
   - Legacy hlquest: the `LICH_QUEST` command requires level 30 and no group,
@@ -186,10 +183,8 @@ Vampire they have no racial language.
   - Lich Rite special procedure: requires Necromancer levels, character level
     exactly 30 (`LVL_IMMORT - 1`), no group, master, or followers, and two
     offering objects held by the rite keeper (`src/spec/spec_rol_conversion.c`).
-
 - **Vampire**: quest reward only. A quest whose reward race is Vampire converts
   the character and respecs them to Warrior (`src/quest/quest.c`).
-
 - **Descend forms**: quest reward only, driven by `descend_form_conversions[]`
   in `src/quest/quest.c`. The quest race reward needs level 30, no group,
   master, or followers, levels in one of the form's classes, and a real race
@@ -200,20 +195,22 @@ Vampire they have no racial language.
   one (Lich and Vampire keep theirs). No quest awards a form yet; each is
   meant to follow the Vampire line (quest 34721, zone 347).
 
-  | Form | Class levels required | Respec to |
-  | -- | -- | -- |
-  | Death Knight | Blackguard or Warrior | Blackguard |
-  | Wight | Warrior | Warrior |
-  | Revenant | Warrior or Rogue | Warrior |
-  | Shadow Beast | Rogue or Assassin | Rogue |
-  | Phantom | Wizard, Summoner, or Psionicist | Wizard |
+The descend forms' class requirements:
+
+| Form | Class levels required | Respec to |
+| -- | -- | -- |
+| Death Knight | Blackguard or Warrior | Blackguard |
+| Wight | Warrior | Warrior |
+| Revenant | Warrior or Rogue | Warrior |
+| Shadow Beast | Rogue or Assassin | Rogue |
+| Phantom | Wizard, Summoner, or Psionicist | Wizard |
 
 ## Innate feats and special traits by race
 
 Every feat below is granted at level 1 and does not stack unless noted; a later
-grant level is given in parentheses. Feat
-names are the `FEAT_*` constants with the prefix dropped; `race feats <name>` in
-game and `feat info <name>` show the player-facing text. Unarmed attack verbs
+grant level is given in parentheses. Feat names are the `FEAT_*` constants with
+the prefix dropped; `race feats <name>` in game and `feat info <name>` show the
+player-facing text. Unarmed attack verbs
 default to hit and punch; only races with a different set are listed.
 
 ### Human
