@@ -1154,6 +1154,8 @@ static int damage_in_phase(struct four_arm_combat_fixture *fixture, int phase)
 
   for (round = 0; round < 6; round++)
   {
+    /* a round of its own, as perform_violence() starts one at phase 1 */
+    fixture->actor.char_specials.attack_round.drawn = FALSE;
     /* equipment changes recompute affects and reset the hit roll */
     GET_HITROLL(&fixture->actor) = 100;
     GET_HIT(&fixture->victim) = 100000;
@@ -2597,6 +2599,7 @@ void TestArmCountFailedMirrorRollsKeepPhases(CuTest *tc)
 
   for (round = 0; round < 40; round++)
   {
+    fixture.actor.char_specials.attack_round.drawn = FALSE; /* phases 2 and 3 of a new round */
     GET_HITROLL(&fixture.actor) = 100;
     GET_HIT(&fixture.victim) = 100000;
     GET_POS(&fixture.victim) = POS_STANDING;
@@ -2679,13 +2682,11 @@ void TestArmCountMonkEmptyThirdHandStrikes(CuTest *tc)
   end_combat_fixture(&fixture);
 }
 
-/* one real round, phases 1..3; returns how many second-pair ordinals did not
- * swing exactly once: expected ordinals are first + 1 ..first + candidates */
-static int second_pair_round_misfits(struct four_arm_combat_fixture *fixture, int candidates,
-                                     void (*between_phases)(struct four_arm_combat_fixture *))
+/* one real round, phases 1..3, with an optional change after phase 1 */
+static void run_real_round(struct four_arm_combat_fixture *fixture,
+                           void (*between_phases)(struct four_arm_combat_fixture *))
 {
-  const struct attack_round_plan *plan = &fixture->actor.char_specials.attack_round;
-  int phase, ordinal, want, misfits = 0;
+  int phase;
 
   test_reset_second_pair_swings();
   for (phase = PHASE_1; phase <= PHASE_3; phase++)
@@ -2697,6 +2698,17 @@ static int second_pair_round_misfits(struct four_arm_combat_fixture *fixture, in
     if (phase == PHASE_1 && between_phases != NULL)
       between_phases(fixture);
   }
+}
+
+/* one real round; returns how many second-pair ordinals did not swing exactly
+ * once: expected ordinals are first + 1 ..first + candidates */
+static int second_pair_round_misfits(struct four_arm_combat_fixture *fixture, int candidates,
+                                     void (*between_phases)(struct four_arm_combat_fixture *))
+{
+  const struct attack_round_plan *plan = &fixture->actor.char_specials.attack_round;
+  int ordinal, want, misfits = 0;
+
+  run_real_round(fixture, between_phases);
   if (candidates < 0)
     candidates = plan->air_embodiment ? 4 : 3;
   for (ordinal = 0; ordinal < TEST_SECOND_PAIR_ORDINALS; ordinal++)
@@ -2764,6 +2776,80 @@ void TestArmCountRoundPlanKeepsSecondPairPhases(CuTest *tc)
   /* the next round numbers after the longer first pair */
   CuAssertIntEquals(tc, 0, second_pair_round_misfits(&fixture, 3, NULL));
   CuAssertIntEquals(tc, 3, fixture.actor.char_specials.attack_round.second_pair_first_ordinal);
+
+  fixture.actor.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  end_combat_fixture(&fixture);
+}
+
+static void gain_haste(struct four_arm_combat_fixture *fixture)
+{
+  SET_BIT_AR(AFF_FLAGS(&fixture->actor), AFF_HASTE);
+}
+
+static void lose_haste(struct four_arm_combat_fixture *fixture)
+{
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture->actor), AFF_HASTE);
+}
+
+static void drop_fourth_weapon(struct four_arm_combat_fixture *fixture)
+{
+  unequip_char(&fixture->actor, WEAR_WIELD_4);
+}
+
+/* swings of each second-pair candidate in the last round: third, fourth,
+ * haste and improved fourth-hand */
+static bool second_pair_round_swings(int third, int fourth, int haste, int improved)
+{
+  return test_count_second_pair_label_swings("Third hand") == third &&
+         test_count_second_pair_label_swings("Fourth hand") == fourth &&
+         test_count_second_pair_label_swings("Third hand (Haste)") == haste &&
+         test_count_second_pair_label_swings("Fourth hand (Improved 2 Weapon Fighting)") ==
+             improved;
+}
+
+/* The round lists its second-pair candidates once: haste gained after phase
+ * 1 adds no candidate and moves none (the improved fourth-hand swing stays
+ * once a round), and a candidate whose haste or weapon is gone by its phase
+ * keeps its ordinal but does not swing. */
+void TestArmCountRoundPlanKeepsSecondPairCandidates(CuTest *tc)
+{
+  struct four_arm_combat_fixture fixture;
+  struct player_special_data specials;
+  struct obj_data first, third, fourth;
+
+  begin_combat_fixture(&fixture);
+  memset(&specials, 0, sizeof(specials));
+  /* trained PC fighter, level 5: every mirror roll is 100 percent */
+  make_pc_monk_actor(&fixture, &specials, CLASS_WARRIOR);
+  SET_FEAT(&fixture.actor, FEAT_FOUR_ARMS, 1);
+  affect_total(&fixture.actor);
+  init_weapon(&first, "a first dagger", WEAPON_TYPE_DAGGER, SIZE_MEDIUM);
+  init_weapon(&third, "a third sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  init_weapon(&fourth, "a fourth sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  equip_char(&fixture.actor, &first, WEAR_WIELD_1);
+  equip_char(&fixture.actor, &third, WEAR_WIELD_3);
+  equip_char(&fixture.actor, &fourth, WEAR_WIELD_4);
+
+  /* third = 2, fourth = 3, improved fourth = 4 (phase 1); haste arrives
+   * after phase 1 */
+  run_real_round(&fixture, gain_haste);
+  CuAssertTrue(tc, AFF_FLAGGED(&fixture.actor, AFF_HASTE));
+  CuAssertTrue(tc, second_pair_round_swings(1, 1, 0, 1));
+
+  /* hasted from the start: the haste swing is listed and swings once */
+  run_real_round(&fixture, NULL);
+  CuAssertIntEquals(tc, 2, fixture.actor.char_specials.attack_round.second_pair_first_ordinal);
+  CuAssertTrue(tc, second_pair_round_swings(1, 1, 1, 1));
+
+  /* haste ends after phase 1: its swing (5, phase 2) is gone, the rest stay */
+  run_real_round(&fixture, lose_haste);
+  CuAssertTrue(tc, second_pair_round_swings(1, 1, 0, 1));
+
+  /* the fourth weapon leaves after phase 1: the improved swing already came
+   * in phase 1, the fourth-hand swing (3, phase 3) does not come */
+  run_real_round(&fixture, drop_fourth_weapon);
+  CuAssertTrue(tc, second_pair_round_swings(1, 0, 0, 1));
 
   fixture.actor.player_specials = &dummy_mob;
   SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);

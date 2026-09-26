@@ -6438,18 +6438,36 @@ struct condensed_combat_data
   int num_times_hit_by_spell;
 };
 
+/** The second weapon pair's attack candidates (three arms and up): which
+ * exist, and the counters their penalties and chances come from. */
+struct second_pair_plan
+{
+  bool third;       /**< Third-hand candidates exist */
+  bool dual;        /**< Fourth-hand candidates exist */
+  bool hasted;      /**< The haste candidate exists */
+  bool improved;    /**< Improved two-weapon fourth-hand candidate */
+  bool greater;     /**< Greater two-weapon fourth-hand candidate */
+  bool epic;        /**< Epic two-weapon fourth-hand candidate */
+  int chance;       /**< Mirror chance, percent */
+  int base_penalty; /**< The routine's opening attack penalty */
+  int bonus;        /**< Bonus (BAB, flurry) candidates */
+  int max_bab;      /**< Attacks still at full BAB */
+};
+
 /** One combat round's attack plan.  The round's first attack routine draws
- * the extra-attack procs, and phases 2 and 3 replay the draw, so an attack's
- * ordinal, and with it its phase, never changes within the round. */
+ * the extra-attack procs and lists the second pair's candidates, and phases 2
+ * and 3 replay both, so an attack's ordinal, and with it its phase, never
+ * changes within the round. */
 struct attack_round_plan
 {
-  bool drawn;                    /**< Drawn for the current round */
-  bool extra_flurry;             /**< Flurry Focus extra flurry attack */
-  bool air_embodiment;           /**< Air Embodiment extra attack */
-  bool ww_two_weapon;            /**< Wilderness Warrior off-hand proc */
-  bool greater_ww_two_weapon;    /**< Greater Wilderness Warrior off-hand proc */
-  bool second_pair_numbered;     /**< second_pair_first_ordinal is set */
-  int second_pair_first_ordinal; /**< Ordinal before the first second-pair candidate */
+  bool drawn;                          /**< Drawn for the current round */
+  bool extra_flurry;                   /**< Flurry Focus extra flurry attack */
+  bool air_embodiment;                 /**< Air Embodiment extra attack */
+  bool ww_two_weapon;                  /**< Wilderness Warrior off-hand proc */
+  bool greater_ww_two_weapon;          /**< Greater Wilderness Warrior off-hand proc */
+  bool second_pair_numbered;           /**< second_pair and its first ordinal are set */
+  int second_pair_first_ordinal;       /**< Ordinal before the first second-pair candidate */
+  struct second_pair_plan second_pair; /**< The round's second-pair candidates */
 };
 
 /** Special playing constants shared by PCs and NPCs which aren't in pfile */

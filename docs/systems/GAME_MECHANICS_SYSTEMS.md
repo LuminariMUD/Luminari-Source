@@ -517,7 +517,9 @@ adds the floor of the summed chances in count mode, and prints rows in display
 mode. The ordinals hold for the whole round because `draw_attack_round_plan()`
 draws the extra-attack procs once per round into `char_specials.attack_round`
 (cleared when `perform_violence()` begins phase 1), and phases 2 and 3 replay
-the draw and phase 1's second-pair numbering. The third hand needs a weapon,
+the draw and phase 1's second-pair candidate list (`plan_second_pair()`) and
+numbering; a candidate the character no longer has keeps its ordinal and does
+not swing, and none is added mid-round. The third hand needs a weapon,
 or an empty third position on a `MONK_TYPE()` character passing
 `monk_gear_ok()`, which strikes unarmed with monk dice; the fourth hand needs
 four arms and a weapon (or the lower double weapon's other end). Other

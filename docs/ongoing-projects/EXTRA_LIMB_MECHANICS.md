@@ -138,8 +138,12 @@ and 100 with improved training, with stable ordinals and one roll in the candida
 The ordinals hold for the whole round: `draw_attack_round_plan()` draws the extra-attack procs
 (the extra flurry, Air Embodiment and the Wilderness Warrior offhand attacks) once, when the
 round's first attack routine runs, into `char_specials.attack_round`, which `perform_violence()`
-clears when phase 1 begins. Phases 2 and 3 replay that draw and phase 1's second-pair numbering,
-so no candidate changes phase within a round.
+clears when phase 1 begins. That routine also lists the second pair's candidates
+(`plan_second_pair()`: which hands, haste, the bonus count, the trained fourth-hand swings, the
+mirror chance and the penalties) and numbers them. Phases 2 and 3 replay the draw and that list,
+so no candidate changes phase within a round. A mid-round change (haste gained or lost, a weapon
+drawn or dropped) adds or renumbers no candidate; a listed candidate the character no longer has
+keeps its ordinal and does not swing.
 Count mode adds the floor of the summed chances, so a single 50 percent candidate adds nothing
 to the displayed number while still attacking. The third hand needs a weapon or, for a monk, an
 empty third position; the fourth hand needs four arms and a weapon, including the other end of a
