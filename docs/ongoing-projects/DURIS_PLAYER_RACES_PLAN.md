@@ -49,6 +49,13 @@ races map to existing races (for example Barbarian to Wemic, both Illithids to H
   with `changed_by` `duris-races`), and `help.hlp` was rendered from it with the help-sync
   catalog (`take_snapshot().file_matches` is true). Production help is not touched; it needs the
   help-sync skill and the owner's authorization after merge.
+- Step 5 done except the plan's own deletion, which waits for step 6 so a new session still has
+  this record. `PLAYER_RACES_REFERENCE.md` now holds the races, feats, calibration rows, trait
+  prices, descend acquisition, the Thri-Kreen answers, and a "How the Duris races were converted"
+  section with the rules above; `ADDING_NEW_RACE_GUIDE.md` facts that this work changed (IDs,
+  bounds, hard lock, NULL respec, QEDIT values) are updated too. After step 6, delete this plan
+  and its references: the master index entry, the Related documents row of
+  `PLAYER_RACES_REFERENCE.md`, and the link in `RACIAL_FEAT_LOGIN_REPAIR_PLAN.md`.
 
 ## Rules behind the data
 

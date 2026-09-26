@@ -398,6 +398,18 @@ mechanic that consumes it tests `HAS_FEAT()`; `GET_RACE()` is never the gate.
 Races receive innates through `feat_race_assignment(race, feat, level, stacks)`
 in `assign_races()`, so a new race is data plus feat grants. Feats that exist
 but are assigned to no race are inert until a race grants them.
+`process_race_level_feats()` grants a race's feats for the level just reached,
+reading `GET_REAL_RACE()` so a disguise or wild shape cannot trade them away,
+and a character keeps only what it was granted then: a feat added to a race
+later never reaches saved characters. Two checks therefore keep their race
+test beside the feat. `compute_damtype_reduction()` gives 20 percent less
+`DAM_MENTAL` damage for `FEAT_PSIONIC_RESISTANCE` or a Trelux, and full cold
+immunity for `FEAT_COLD_IMMUNITY` or a Lich (Lich electric immunity stays a
+race check). `FEAT_DAMAGE_REDUCTION` (epic damage reduction) is DR 3/- per
+rank from `update_feat_damage_reduction()` in `src/character/class.c`, which
+study and race grants both call. Its DR entry has spell 0, which the player
+file's DR save skips as a duplicate, so `load_char()` rebuilds it from the
+feat's real ranks.
 
 Active racial abilities share one table-driven handler: `racial_sla_table[]`
 and `do_racial_sla` in `src/act/act.other.c`, with one `cmd_info[]` row per verb

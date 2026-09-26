@@ -1,6 +1,7 @@
 # Player Races Reference
 
-Status: source-backed reference, verified 2026-09-11 against `src/character/race.c`,
+Status: source-backed reference, verified 2026-09-26 against `src/character/race.c`,
+`src/character/class.c`,
 `src/player/account.c`, `src/core/structs.h`, `src/quest/quest.c`, `src/quest/hlquest.c`,
 `src/spec/spec_rol_conversion.c`, `src/character/feats.c`, `src/core/constants.c`,
 `src/combat/fight.c`, and `src/core/limits.c`.
@@ -47,8 +48,9 @@ and `epic_adv` (`IS_NORMAL`, `IS_ADVANCE`, or `IS_EPIC_R`).
 - **Advanced races** cost 1000 account experience and carry level adjustment +2.
 - **Epic races** cost 30000 or 50000 account experience and carry level
   adjustment +10.
-- **Transformation-only races** (Lich, Vampire) are registered with a cost of
-  999999999 and are hard-blocked in `has_unlocked_race()` and
+- **Transformation-only races** (Lich, Vampire, and the five Duris descend
+  forms) are registered with a cost of 999999999 and are hard-blocked through
+  `race_is_transformation_only()` in `has_unlocked_race()` and
   `race_is_creation_eligible()`. They cannot be bought or picked at creation
   regardless of account experience; see "Acquisition paths" below.
 
@@ -61,10 +63,12 @@ on that account. Alignment changes through `accexp align` cost 2000 account
 experience each and are unrelated to race.
 
 `level_adjustment` is stored in the registry and shown as a "Level adjustment"
-fact by web onboarding (`src/net/onboarding.c`). No experience-table code
-currently reads it; the "require a lot more experience" note in the
-`LOCKED-RACES` help entry is not backed by a traced experience penalty. The
-`EPIC-RACES` help note that epic races cannot multiclass is likewise not
+fact by web onboarding (`src/net/onboarding.c`); no experience code reads it.
+The experience penalty is separate: `level_exp()` in `src/character/class.c`
+multiplies the experience each level needs by 2 for the advanced races, 7 for
+the epic races, and 10 for the transformation-only races, through one explicit
+case per race. A new race needs its case there, or it levels at the normal
+rate whatever its tier. The `EPIC-RACES` help note that epic races cannot multiclass is likewise not
 enforced: the check in `src/character/class.c` is commented out and marked
 "disabled!".
 
@@ -102,6 +106,10 @@ lists only the restriction; "any" means all nine alignments are allowed.
 | Shade | 24 | Medium | 0/0/0/0/+2/+1 | any | Common |
 | Goblin | 26 | Small | -2/+2/0/0/+4/-2 | any | Goblin |
 | Hobgoblin | 27 | Medium | 0/+2/0/0/+1/0 | any | Goblin |
+| Kobold | 156 | Small | -1/0/+2/0/+2/0 | non-good only | Kobold |
+| Kuo Toa | 160 | Medium | +1/+2/0/0/0/0 | evil only (LE, NE, CE) | Undercommon |
+
+Kuo Toa is a monstrous humanoid; every other normal race is a humanoid.
 
 Registry ID synonyms: `RACE_MOON_ELF` is `RACE_ELF`, `RACE_SHIELD_DWARF` is
 `RACE_DWARF`, `RACE_LIGHTFOOT_HALFLING` is `RACE_HALFLING`, and
@@ -120,6 +128,15 @@ the older constant name still appears in legacy help keywords (`RACE-ELF`,
 | Half-Ogre | 28 | Large | Giant | +6/+2/-2/0/-2/-2 | any | Giant |
 | Wemic | 149 | Large | Monstrous humanoid | +8/+4/-2/+2/+2/-2 | any | Common |
 | Yuan-Ti | 151 | Medium | Monstrous humanoid | 0/0/+2/0/+4/+2 | non-good only | Draconic |
+| Centaur | 152 | Large | Monstrous humanoid | +3/+5/-1/0/0/0 | any | Elven |
+| Githzerai | 153 | Medium | Humanoid | 0/0/+4/+3/0/-1 | any | Common |
+| Firbolg | 154 | Large | Giant | +5/+4/-1/0/-1/0 | any | Giant |
+| Githyanki | 155 | Medium | Humanoid | 0/0/+4/0/0/-1 | non-good only | Common |
+| Drider | 157 | Large | Aberration | 0/+5/0/0/+3/-1 | evil only | Undercommon |
+| Minotaur | 159 | Large | Monstrous humanoid | +3/+4/0/0/0/0 | any | Giant |
+| Orog | 161 | Medium | Humanoid | +3/+4/-2/0/0/0 | non-good only | Orcish |
+| Harpy | 162 | Small | Monstrous humanoid | -2/+1/+2/+1/+2/0 | any | Common |
+| Stormkin | 163 | Large | Giant | +5/+4/0/0/-2/0 | any | Giant |
 
 ### Epic races (level adjustment +10)
 
@@ -129,6 +146,7 @@ the older constant name still appears in legacy help keywords (`RACE-ELF`,
 | Trelux | 9 | Small | Humanoid | 30000 | +4/+4/0/0/+4/0 | any | - |
 | Fae | 25 | Tiny | Humanoid | 50000 | -4/0/0/0/+10/+6 | non-lawful only | Elven |
 | Half-Illithid | 150 | Medium | Aberration | 30000 | 0/0/+4/+4/0/+4 | any | Aberration |
+| Thri-Kreen | 158 | Medium | Monstrous humanoid | 50000 | 0/0/-2/-2/+4/-2 | any | Common |
 
 ### Transformation-only races (not purchasable, not selectable at creation)
 
@@ -136,20 +154,30 @@ the older constant name still appears in legacy help keywords (`RACE-ELF`,
 | -- | -- | -- | -- | -- | -- |
 | Lich | 45 | Medium | Undead | 0/+2/+6/+2/+2/+6 | evil only (LE, NE, CE) |
 | Vampire | 46 | Medium | Undead | +6/+4/+2/+2/+4/+4 | any |
+| Death Knight | 55 | Large | Undead | +8/+6/-2/+6/-2/0 | evil only |
+| Wight | 56 | Large | Undead | +10/+10/-2/0/0/-2 | evil only |
+| Revenant | 57 | Large | Undead | +7/+7/-2/0/+6/-2 | evil only |
+| Shadow Beast | 58 | Medium | Undead | 0/+7/+3/-2/+10/-2 | evil only |
+| Phantom | 59 | Medium | Undead | -2/+5/+10/0/+3/0 | evil only |
 
-Both are registered as `IS_EPIC_R` with level adjustment +10 and a nominal cost
-of 999999999 that is never checked because the account gate rejects them first.
+All seven are registered as `IS_EPIC_R` with level adjustment +10 and a nominal
+cost of 999999999 that is never checked because the account gate rejects them
+first. Death Knight through Phantom are the Duris descend forms; like Lich and
+Vampire they have no racial language.
 
 ## Acquisition paths
 
 - **Normal races**: pick at character creation. `race_is_selectable_for_creation()`
   returns true for any creation-eligible race that is not locked.
+
 - **Advanced and epic races**: unlock once per account with `accexp race <name>`,
   then pick at character creation on any character. The `accexp` name match uses
   the registry `type` string (for example `accexp race HalfTroll`,
   `accexp race CrystalDwarf`).
+
 - **Lich**: three owners set `GET_REAL_RACE(ch) = RACE_LICH` on an existing
   character.
+
   - Quest reward: a quest whose reward race is Lich (editable in `qedit`)
     converts the character and respecs them to Wizard (`src/quest/quest.c`).
   - Legacy hlquest: the `LICH_QUEST` command requires level 30 and no group,
@@ -158,12 +186,32 @@ of 999999999 that is never checked because the account gate rejects them first.
   - Lich Rite special procedure: requires Necromancer levels, character level
     exactly 30 (`LVL_IMMORT - 1`), no group, master, or followers, and two
     offering objects held by the rite keeper (`src/spec/spec_rol_conversion.c`).
+
 - **Vampire**: quest reward only. A quest whose reward race is Vampire converts
   the character and respecs them to Warrior (`src/quest/quest.c`).
 
+- **Descend forms**: quest reward only, driven by `descend_form_conversions[]`
+  in `src/quest/quest.c`. The quest race reward needs level 30, no group,
+  master, or followers, levels in one of the form's classes, and a real race
+  that is not already transformation-only, so no Lich, Vampire, or form takes
+  another form. It sets the race, respecs to the form's class, sets
+  experience to 0 and alignment to -1000, announces the change, and saves
+  again after those final values. The form's registry size replaces the old
+  one (Lich and Vampire keep theirs). No quest awards a form yet; each is
+  meant to follow the Vampire line (quest 34721, zone 347).
+
+  | Form | Class levels required | Respec to |
+  | -- | -- | -- |
+  | Death Knight | Blackguard or Warrior | Blackguard |
+  | Wight | Warrior | Warrior |
+  | Revenant | Warrior or Rogue | Warrior |
+  | Shadow Beast | Rogue or Assassin | Rogue |
+  | Phantom | Wizard, Summoner, or Psionicist | Wizard |
+
 ## Innate feats and special traits by race
 
-Every feat below is granted at level 1 and does not stack unless noted. Feat
+Every feat below is granted at level 1 and does not stack unless noted; a later
+grant level is given in parentheses. Feat
 names are the `FEAT_*` constants with the prefix dropped; `race feats <name>` in
 game and `feat info <name>` show the player-facing text. Unarmed attack verbs
 default to hit and punch; only races with a different set are listed.
@@ -280,6 +328,17 @@ Mind, Fury Of The Small.
 Ultravision, Hobgoblin Racial Adjustment, Stubborn Mind, Authoritative, Fortune
 Of The Many.
 
+### Kobold (normal)
+
+Ultravision, Underdark Stealth, Calming, Barter, Fast Casting, Miner (level 26).
+Unarmed attacks: hit, bite, claw.
+
+### Kuo Toa (normal)
+
+Ultravision, Keen Senses, Swamp Stealth, Seadog, Sun Vulnerability, Slow
+Casting, Water Breathing (level 8), Innate Lightning Bolt (level 15). Unarmed
+attacks: hit, bite, pierce.
+
 ### HalfTroll (advanced)
 
 Ultravision, Troll Regeneration, Weakness To Fire, Weakness To Acid, Strong
@@ -321,6 +380,58 @@ Ultravision, Poison Bite, Poison Immunity, Stubborn Mind, Armor Skin x2
 (stacking). Unarmed attacks: bite, thrash. Cannot wear face, leg, or foot
 equipment.
 
+### Centaur (advanced)
+
+Quadruped Body, Tauric Frame, Doorbash, Stampede (level 11), Greatsword Mastery
+(level 16). Unarmed attacks: hit, punch, trample, charge. Cannot wear leg or
+foot equipment (Tauric Frame).
+
+### Githzerai (advanced)
+
+Ultravision, Half Drow Spell Resist, Innate Plane Shift, Quick Thinking, Drow
+Levitate (level 6), Rrakkma (level 11).
+
+### Firbolg (advanced)
+
+Bodyslam, Doorbash, Forest Sight, Magic Vulnerability, Slow Casting, Outdoor
+Stealth (level 6), Hatred (level 11), Hammer Mastery (level 16). Unarmed
+attacks: hit, punch, smash.
+
+### Githyanki (advanced)
+
+Ultravision, Half Drow Spell Resist, Innate Plane Shift, Enhanced Spell Damage,
+Innate Psionic Blast, Drow Levitate (level 6), Longsword Mastery (level 6).
+Unarmed attacks: hit, slash, punch.
+
+### Drider (advanced)
+
+Ultravision, Half Drow Spell Resist, Quadruped Body, Tauric Frame, Innate Web,
+Groundfighting (level 11), Innate Fireball (level 11), Innate Mass Dispel (level
+27). Unarmed attacks: bite, pierce, claw. Cannot wear leg or foot equipment
+(Tauric Frame).
+
+### Minotaur (advanced)
+
+Ultravision, Doorbash, Bloodlust, Bull Charge (level 6), Axe Mastery (level 6),
+Innate Scare (level 6), Fearlessness (level 21). Unarmed attacks: hit, gore,
+charge. Cannot wear head equipment.
+
+### Orog (advanced)
+
+Ultravision, Hardy, Armor Skin, Magical Reduction, Sun Vulnerability, Slow
+Casting x6 (stacking), Summon Horde (level 6), Summon Warg (level 8),
+Warcaller's Fury (level 11). Unarmed attacks: hit, punch, smash.
+
+### Harpy (advanced)
+
+Ultravision, Wings, Keen Senses, Hardy, Fast Casting x3 (stacking), Innate
+Farsee (level 11), Innate Haste (level 16). Unarmed attacks: claw, rake, peck.
+
+### Stormkin (advanced)
+
+Low Light Vision, Doorbash, Slow Casting x6 (stacking), Innate Lightning Bolt
+(level 10), Thick Hide (level 11). Unarmed attacks: hit, punch, smash, crush.
+
 ### CrystalDwarf (epic)
 
 Infravision, Crystal Body, Crystal Fist, Vital, Hardy, Crystal Skin, Poison
@@ -329,8 +440,8 @@ Resist, Combat Training Vs Giants, Crystal Dwarf Racial Adjustment.
 ### Trelux (epic)
 
 Ultravision, Vital, Hardy, Vulnerable To Cold, Trelux Exoskeleton, Leap, Wings,
-Trelux Eq, Trelux Pincers, Insectbeing. Unarmed attacks: bite, claw, pierce,
-stab. Cannot use finger, hands, shield, wield, hold, leg, or foot slots.
+Trelux Eq, Trelux Pincers, Insectbeing, Psionic Resistance. Unarmed attacks:
+bite, claw, pierce, stab. Cannot use finger, hands, shield, wield, hold, leg, or foot slots.
 
 ### Half-Illithid (epic)
 
@@ -341,6 +452,12 @@ Vital, Hardy. Unarmed attacks: hit, thrash, punch.
 
 Ultravision, Dodge, Fae Racial Adjustment, Fae Magic, Fae Resistance, Fae
 Senses, Fae Flight.
+
+### Thri-Kreen (epic)
+
+Ultravision, Four Arms, Psionic Resistance, Vulnerable To Cold, Poison Bite
+(level 6), Leap (level 11). Unarmed attacks: bite, claw, slash. Cannot wear
+body, foot, finger, or ear equipment.
 
 ### Lich (transformation only)
 
@@ -358,6 +475,43 @@ Vampire Children Of The Night, Vampire Create Spawn, Vampire Dominate, Vampire
 Energy Drain, Vampire Change Shape, Vampire Gaseous Form, Vampire Spider Climb,
 Vampire Skill Bonuses, Vampire Ability Score Boosts, Vampire Bonus Feats,
 Vital, Hardy. Unarmed attacks: hit, bite, claw, thrash, punch, rake, smash.
+
+### Death Knight (transformation only)
+
+Armor Skin x5 (stacking), Vital, Hardy, Toughness, Epic Damage Reduction x3
+(stacking), Fast Healing, Greatsword Mastery, Ultravision, Hellish Resistance,
+Undead Fealty, Sun Vulnerability, Slow Casting x5 (stacking), Innate Fire Storm
+(level 13), Innate Fire Shield (level 16), Sacrilegious Power (level 23).
+Unarmed attacks: hit, slash, smash.
+
+### Wight (transformation only)
+
+Armor Skin x5 (stacking), Vital, Hardy, Toughness, Epic Damage Reduction x3
+(stacking), Fast Healing, Immune To Cold, Ultravision, Bodyslam, Doorbash,
+Weakness To Fire, Slow Casting x9 (stacking), Innate Frost Breath (level 6),
+Innate Stoneskin (level 13). Unarmed attacks: hit, claw, thrash.
+
+### Revenant (transformation only)
+
+Armor Skin x5 (stacking), Vital, Hardy, Toughness, Epic Damage Reduction x3
+(stacking), Fast Healing, Ultravision, Troll Regeneration, Bodyslam, Doorbash,
+Weakness To Fire, Slow Casting x3 (stacking), Battle Frenzy (level 8), Innate
+Shadow Jump (level 13). Unarmed attacks: hit, claw, punch.
+
+### Shadow Beast (transformation only)
+
+Armor Skin x5 (stacking), Vital, Hardy, Toughness, Epic Damage Reduction x3
+(stacking), Fast Healing, Ultravision, Underdark Stealth, Duergar Strength,
+Duergar Enlarge, Weakness To Fire, Slow Casting, Racial Flurry (level 18).
+Unarmed attacks: claw, bite, rake.
+
+### Phantom (transformation only)
+
+Armor Skin x5 (stacking), Vital, Hardy, Toughness, Epic Damage Reduction x3
+(stacking), Fast Healing, Ultravision, Half Drow Spell Resist, Innate Plane
+Shift, Enhanced Spell Damage, Eyeless, Weakness To Fire, Fast Casting x3
+(stacking), Vampiric Gaseous Form (level 10), Wings (level 11), Spell Absorb
+(level 11). Unarmed attacks: hit, thrash.
 
 ## Balance: race point budgets by tier
 
@@ -381,8 +535,9 @@ have no published reference to lean on:
 | Epic | `IS_EPIC_R`, cost 30000 or 50000, LA +10 | Account unlock | None |
 | Epic quest | `IS_EPIC_R`, cost 999999999, LA +10 | End-game quest transformation | None |
 
-Because `level_adjustment` is not read by any experience or level code, the
-tiers are today distinguished only by unlock friction. The point budget below
+The tiers differ in unlock friction and in experience: `level_exp()` makes each
+level cost 2, 7, or 10 times the normal experience for advanced, epic, and epic
+quest races (`level_adjustment` itself is display data). The point budget below
 is the tool that makes "how much stronger is an advanced race allowed to be"
 a number instead of a feeling. It is modelled on the Pathfinder Advanced Race
 Guide race builder but priced against what this server's feats actually do.
@@ -472,6 +627,18 @@ take the higher.
 | One more arm per rank toward the arm count | Extra Arms | 3 per rank (set for the old extra swing; under review) |
 | Two more arms: the lower weapon pair and doubled arm, hand, wrist slots | Four Arms | 15, exempt from the single-trait cap |
 
+Prices set by the closest row when the Duris races were scored: Stampede 2 (as
+Bull Charge); Bodyslam, Groundfighting, Battle Frenzy, Racial Flurry,
+Sacrilegious Power (as 50 percent resistance to one type), Psionic Resistance,
+and Poison Bite 1 each; Doorbash, Forest Sight, Seadog, Miner, Barter,
+Calming, Quick Thinking, Water Breathing, and Undead Fealty 0.5 each; Innate
+Haste 1.5 (a short self-buff); Magical Reduction 2 (broader than energy
+resistance 5 to four types); Enhanced Spell Damage 2 (as Magical Heritage);
+Thick Hide 4 (15 percent of physical damage is about DR 4/- at mid levels and
+grows with it); Epic Damage Reduction 3 per rank (DR 3/-); Fast Healing 3 per
+rank (as regeneration); Toughness 2 (as Hardy). Spell-like abilities price by
+their daily uses in `get_daily_uses()`.
+
 **Drawback refund.** Drawbacks subtract from RP but, like ability penalties,
 are capped: total refund may not exceed 25 percent of the tier budget, or 7
 for Epic. A race
@@ -502,22 +669,22 @@ its 3 RP per rank, set for that swing, is under review and no race grants it.
 The Thri-Kreen mechanic (issue #168) is the Four Arms innate: two more arms,
 giving a second weapon pair plus doubled sleeve, glove and wrist slots, and an
 unarmed third hand for monks. It is priced at 15 RP and, being unique to
-Thri-Kreen, is exempt from the single-trait cap (composition rule 2). No race
-grants it yet; a playable race that does needs these decisions first (see the
+Thri-Kreen, is exempt from the single-trait cap (composition rule 2). Thri-Kreen
+holds it with these settled decisions (the
 [design study](https://github.com/LuminariMUD/Luminari-Source/blob/e33ed0d6f98d28d4218c98aa57b16de9742ac8c5/docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md)
-for the source mechanics; the
-[Duris player races plan](../ongoing-projects/DURIS_PLAYER_RACES_PLAN.md#thri-kreen)
-propose answers):
+has the source mechanics):
 
-- Tier and price. Decided: Epic at 50000 account experience, with Four Arms
-  at 15 RP.
-- Psionic damage reduction: choose and price a mapping, or omit it and say so.
-- Venom: Poison Bite procs on any damaging hit, so the extra swings amplify
-  it; keep it, rescale its level gate, or build a real bite.
-- Riding: a separate mount-only restriction, or none. Quadruped Body is not
-  a substitute; its knockdown resistance is an unrelated benefit.
-- Ability adjustments: re-evaluate the proposed +2 Str, +1 Con, +3 Dex,
-  -4 Int, -4 Wis, -3 Cha.
+- Tier and price: Epic at 50000 account experience by design decision,
+  although composition rule 5 puts its 20 RP at 30000.
+- Psionic defence: `FEAT_PSIONIC_RESISTANCE` (20 percent less mental damage),
+  1 RP, held by Trelux and Thri-Kreen.
+- Venom: Poison Bite at level 6; its extra procs from the second weapon pair
+  are part of the Four Arms price.
+- Riding: no restriction. The six lost slots and the cold vulnerability
+  already fill the Epic refund cap of 7, so a riding ban would cost play value
+  without changing the score.
+- Abilities: only Dex gets a bonus (+4); Int, Wis, and Cha are -2 each and
+  earn no credit, because the refund cap leaves no room.
 
 Do not grant both traits automatically: together they make six arms, not
 the same four arms described twice.
@@ -607,11 +774,28 @@ the penalty cap, Trait is traits minus drawbacks.
 | Half-Illithid | Epic | 12 | 0 | 8.5 | 20.5 | in band |
 | Lich | Epic quest | 18 | 0 | 26.5 | 44.5 | in band |
 | Vampire | Epic quest | 22 | 0 | 37.5 | 59.5 | top of band |
+| Kobold | Normal | 3 | 0 | 4.0 | 7.0 | in band |
+| Kuo Toa | Normal | 3 | 0 | 2.25 | 5.25 | bottom of band |
+| Centaur | Advanced | 7 | 1 | 4.0 | 12.0 | bottom of band |
+| Githzerai | Advanced | 6 | 0 | 6.5 | 12.5 | in band |
+| Firbolg | Advanced | 7 | 1 | 4.75 | 12.75 | in band |
+| Githyanki | Advanced | 3 | 0 | 9.5 | 12.5 | in band |
+| Drider | Advanced | 7 | 1 | 6.0 | 14.0 | in band |
+| Minotaur | Advanced | 7 | 1 | 4.0 | 12.0 | bottom of band |
+| Orog | Advanced | 7 | 0 | 5.5 | 12.5 | in band |
+| Harpy | Advanced | 4 | 0 | 11.5 | 15.5 | in band |
+| Stormkin | Advanced | 7 | 1 | 4.75 | 12.75 | in band |
+| Thri-Kreen | Epic | 4 | 0 | 16.0 | 20.0 | bottom of band |
+| Death Knight | Epic quest | 16 | 1 | 23.75 | 40.75 | in band |
+| Wight | Epic quest | 16 | 1 | 24.25 | 41.25 | in band |
+| Revenant | Epic quest | 16 | 1 | 25.75 | 42.75 | in band |
+| Shadow Beast | Epic quest | 16 | 0 | 24.25 | 40.25 | in band |
+| Phantom | Epic quest | 16 | 0 | 35.0 | 51.0 | in band |
 
 What the calibration says:
 
-- **Normal races are consistent.** Twenty of twenty-one fall between 5.5 and
-  9.0. This is the empirical basis for the Normal band and supports the
+- **Normal races are consistent.** Twenty of the twenty-one stock ones fall
+  between 5.5 and 9.0. This is the empirical basis for the Normal band and supports the
   assumption that stock d20 races can be treated as balanced. Human is the
   one outlier and it is a known d20 property: a bonus feat is worth far more
   in a feat-hungry build than any flat price captures. Leave Human alone.
@@ -630,6 +814,14 @@ What the calibration says:
   six bonus feats stack multiplicatively with its +22 ability total. Its
   weaknesses (sunlight and running water) are the largest refund in the
   table and still do not bring it near Lich.
+- **The Duris races were built to their bands.** Each was converted by the
+  rules in "How the Duris races were converted" below, then traits were added
+  until it reached its band. Every advanced, epic, and epic quest one carries
+  a level-scaling trait (a weapon mastery, spell resistance, Hardy, Thick
+  Hide, or Four Arms). The descend forms reach the Epic quest band through a
+  shared chassis, 21.5 RP of Lich's defensive set plus Vampire's toughness and
+  healing: Armor Skin x5, Vital, Hardy, Toughness, Epic Damage Reduction x3
+  (DR 9/-), and Fast Healing, with 10 extra hit points and 1 per level.
 
 ### Suggested adjustments for existing races
 
@@ -671,6 +863,47 @@ DR 5/- at level 20 (priced as DR 5) 5, shadow step 3/day (short teleport
 within the room group, priced as a 3/day SLA) 1, Hardy 2. Total 14.5. The
 DR is the scaling trait and is 5 of 14 points, under the 30 percent limit.
 
+### How the Duris races were converted
+
+Seventeen Duris player races had no equivalent here: twelve creation races and
+five quest-only descend forms. The other twenty Duris races map to existing
+ones (Barbarian to Wemic, both Illithids to Half-Illithid). The Duris data
+comes from `lib/duris.properties` (stat factors, casting multipliers
+`spellcast.pulse.racial.<Race>`, shrug `innate.shrug.<Race>`, spell power
+`stats.pow.<Race>`), `set_char_size()` (sizes), `class_table[]` and
+`restricted_class_rows[]` (alignments), and `src/classes/innates.c` (innates
+and their levels).
+
+- Abilities: every 10 percent of a Duris stat factor above or below 100 is one
+  point, and Dex averages Duris Dex and Agi. The final line keeps bonuses only
+  on stats Duris raises, within composition rule 1 and the +10 cap, and
+  penalties only on stats Duris lowers. Drawbacks are credited first;
+  penalties take whatever room rule 3 leaves, and a penalty with no room earns
+  no credit. Harpy keeps its raw line. The descend forms follow a set emphasis
+  at 16 ability points each (Death Knight Str, Con, Wis; Wight Str, Con;
+  Revenant Str, Con, Dex; Shadow Beast Dex, Con, some Int; Phantom Int,
+  moderate Con, some Dex).
+- Size: Duris Huge becomes Large (a Huge player size was declined, #163).
+- Alignment: a race allows every alignment any of its Duris classes allows.
+  Kuo Toa, Orog, Harpy, and Storm Giant use their `restricted_class_rows[]`
+  stand-ins; Stormkin, roughly half storm giant, allows any alignment because
+  Duris gives Storm Giant no racewar side.
+- Feat levels: a gated Duris innate comes at half its Duris level, rounded up
+  (Duris mortals reach 56); a feat borrowed from a covered race takes its
+  earliest Duris owner's level; every other feat comes at level 1.
+- Casting speed: one rank of Fast or Slow Casting per 10 percent of the Duris
+  multiplier, rounded to the nearest rank; within 5 percent of 1.0 gets none.
+- Spell resistance and power: Duris shrug 20 to 25 maps to Half Drow Spell
+  Resist; Duris Pow 125 or more earns one rank of Enhanced Spell Damage.
+- Language: the nearest `SKILL_LANG_*`; the gith use Common, and the descend
+  forms have none, like Lich and Vampire.
+- Declined: the Duris experience factor, racial hit points as race data, troll
+  regeneration ranks (#163), melee multipliers and attack round speed (#164),
+  and a race class deny list and shared descend routine (#166). Dayblind goes
+  to no race, since Duris comments it out on all of these that list it, and
+  Extra Arms goes to no race, since Thri-Kreen's Four Arms already gives its
+  four arms.
+
 ### Limits of this model
 
 - RP is additive. Real power is multiplicative: Vampire's DR, fast healing
@@ -683,10 +916,9 @@ DR is the scaling trait and is 5 of 14 points, under the 30 percent limit.
 - The pricing table is a starting position, not a law. When play shows a
   trait is under or over priced, change the row here first and rescore the
   affected races, so the table stays the single yardstick.
-- The registry's `level_adjustment` values are not enforced by any
-  experience code. If a future change makes them live, the Advanced and Epic
-  budgets should be revisited, because an actual experience penalty is itself
-  a large drawback.
+- The budgets assume the experience multipliers `level_exp()` already applies
+  per race (2, 7, and 10 times); they are not priced as a drawback. The
+  registry's `level_adjustment` values are display data only.
 
 ## Registry observations worth knowing
 

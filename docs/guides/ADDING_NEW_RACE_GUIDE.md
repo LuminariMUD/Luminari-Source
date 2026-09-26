@@ -1,6 +1,7 @@
 # Adding a New Player Race to LuminariMUD
 
-Status: source-backed developer guide, verified 2026-08-24.
+Status: source-backed developer guide, verified 2026-08-24; race IDs, the hard lock, and
+quest conversion updated 2026-09-26.
 
 This guide covers the complete path for adding a player race to LuminariMUD.
 Most sections describe a race selected during character creation. It also
@@ -149,8 +150,10 @@ it. That flag does not mean "selectable at creation."
 The current lock has several layers:
 
 - terminal, web, account purchase, and `init_char()` all use
-  `race_is_creation_eligible()`, which explicitly denies Lich and Vampire;
-- `has_unlocked_race()` also always returns false for Lich and Vampire, even if
+  `race_is_creation_eligible()`, which denies every race that
+  `race_is_transformation_only()` names (Lich, Vampire, and the five Duris
+  descend forms);
+- `has_unlocked_race()` also always returns false for those races, even if
   the account array or database contains the ID;
 - direct terminal submission uses the same creation predicate as the catalogs;
   and
@@ -201,12 +204,14 @@ As of this guide's verification date, `src/core/structs.h` has these boundaries:
 - Half-Ogre is the creation-selectable ID 28.
 - IDs 29 through 54 remain reserved legacy IDs. Lich 45 and Vampire 46 are
   explicit quest-only exceptions inside that area.
-- IDs 55 through 59 are reserved by comment for future quest-only races.
+- IDs 55 through 59 are the quest-only Duris descend forms (Death Knight,
+  Wight, Revenant, Shadow Beast, Phantom).
 - Extended NPC/form IDs begin at 60. Myconid promotes its existing conceptual
   identity at ID 114 to a creation-selectable PC race without renumbering it.
 - Wemic, Half-Illithid, and Yuan-Ti are creation-selectable IDs 149 through
-  151\. `NUM_EXTENDED_RACES` is therefore 152, the registry array bound, while
-  `NUM_CREATION_RACES` is the independent count 33.
+  151, and the twelve Duris creation races follow at 152 through 163.
+  `NUM_EXTENDED_RACES` is therefore 164, the registry array bound, while
+  `NUM_CREATION_RACES` is the independent count 45.
 - `char_player_data.race` is a signed `sh_int`, so the full current registry is
   representable. Player-file and account-unlock storage remain numeric.
 
@@ -231,8 +236,9 @@ migrated.
 
 ### Transformation-only allocation
 
-IDs 55 through 59 are reserved only by a source comment for future quest-only
-races. Using one still requires an explicit registry and persistence review.
+IDs 55 through 59, once reserved for future quest-only races, now hold the
+Duris descend forms, so no reserved quest-only ID remains. Any other ID still
+requires an explicit registry and persistence review.
 Do not raise `NUM_RACES` across legacy holes: creation no longer depends on
 that bound, while remaining positional consumers would acquire misleading or
 oversized ranges. Prefer the keyed extended-registry policy, and audit every
@@ -439,11 +445,10 @@ and background and sets `HAS_SET_STATS_STUDY` false. Read the function in full,
 decide which state the conversion must preserve or re-establish, and save only
 after that post-conversion state is complete.
 
-Existing Lich/Vampire callers pass `NULL` as the respec argument. That is safe
-only because `respec_engine()` skips its `*arg` access for those two races. A
-new transformation race that copies the call can dereference `NULL`. Make the
-argument handling NULL-safe, define whether premade builds are allowed, and
-test the new race instead of relying on the existing exceptions.
+The quest conversions pass `NULL` as the respec argument, and
+`respec_engine()` accepts it for every race. Only Lich and Vampire are denied
+premade builds on respec and keep their pre-transformation size; define both
+for a new transformation race and test them.
 
 ### Family predicates, anatomy, and special choices
 
@@ -560,8 +565,9 @@ after an economy change, and an unlock row can be inserted independently of a
 purchase. Under the current terminal handler, retain a positive nominal cost
 so the lock check runs, but make the explicit hard-denial policy authoritative.
 
-The current Lich/Vampire exception is an explicit denial in both
-`race_is_creation_eligible()` and `has_unlocked_race()`. Their IDs being outside
+The explicit denial is `race_is_transformation_only()`, read by both
+`race_is_creation_eligible()` and `has_unlocked_race()`; add a new hard-locked
+race there. Their IDs being outside
 the old dense `NUM_RACES` range is no longer treated as access control.
 Preserve all of these defenses for a new hard-locked race:
 
@@ -589,9 +595,11 @@ three conversion paths with different prerequisites:
   preflight does it consume both offerings and the keeper, respec to Wizard,
   reset XP/alignment, and save the final state.
 - The standard `.qst` race reward in `complete_quest()` accepts level 30 or
-  higher with no group/master/followers, then handles only Lich or Vampire in
-  its conversion switch. QEDIT and the world validator permit only `-1`, Lich,
-  or Vampire. Gold, XP, and object rewards run before conversion; the
+  higher with no group/master/followers, then handles Lich and Vampire in its
+  conversion switch and the descend forms through `descend_form_conversions[]`,
+  whose preflight also requires levels in one of the form's classes and
+  refuses any transformation-only real race. QEDIT and the world validator
+  permit `-1` or a transformation-only race. Gold, XP, and object rewards run before conversion; the
   conversion then discards the XP reward by setting total XP to zero, while
   the other rewards remain. A follower reward runs afterward.
 - The legacy high-level quest uses `QUEST_COMMAND_KIT` with the local
