@@ -490,6 +490,14 @@ static void perform_out_chain(struct char_data *ch, struct char_data *victim,
           return;
         }
 
+        /* transformation is one-way: no Lich, Vampire, or descend form becomes a Lich */
+        if (race_is_transformation_only(GET_REAL_RACE(ch)))
+        {
+          send_to_char(ch, "You have already been transformed, and cannot become a Lich.\r\n");
+          give_back_items(victim, ch, quest);
+          return;
+        }
+
         /* these parameters break the game */
         if (GROUP(ch) || ch->master || ch->followers)
         {

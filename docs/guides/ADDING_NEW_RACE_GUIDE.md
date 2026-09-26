@@ -175,8 +175,9 @@ level-one Lich feats and racial initialization to run during `do_start()`.
 and Vampire. A new transformation race does not inherit that behavior.
 
 Lich is useful source evidence, not a complete template. Its three conversion
-implementations have drifted prerequisites, only the RoL rite saves again after
-the final XP/alignment changes, and none has an explicit already-Lich guard.
+implementations have drifted prerequisites, and the legacy high-level quest
+still does not save after the final XP/alignment changes. All three refuse a
+character whose real race is already transformation-only.
 Its flat help has a `LICH` redirect rather than an exact `RACE-LICH` entry, and
 there is no race-specific Lich SQL help component. The requirements later in
 this guide are the standard for new work, not a claim that every legacy Lich
@@ -590,21 +591,25 @@ three conversion paths with different prerequisites:
 - The RoL special procedure `rol_lich_rite()` in
   `src/spec/spec_rol_conversion.c` requires a PC with at least one Necromancer
   level, total level exactly `LVL_IMMORT - 1`, no group/master/followers, and
-  two offerings held or carried by the keeper. It accepts `say` or the
-  apostrophe alias with the exact lowercase argument `immortality`. Only after
-  preflight does it consume both offerings and the keeper, respec to Wizard,
-  reset XP/alignment, and save the final state.
+  two offerings held or carried by the keeper, and refuses a character that is
+  already transformation-only. It accepts `say` or the apostrophe alias with
+  the exact lowercase argument `immortality`. Only after preflight does it
+  consume both offerings and the keeper, respec to Wizard, reset
+  XP/alignment, and save the final state.
 - The standard `.qst` race reward in `complete_quest()` accepts level 30 or
-  higher with no group/master/followers, then handles Lich and Vampire in its
-  conversion switch and the descend forms through `descend_form_conversions[]`,
-  whose preflight also requires levels in one of the form's classes and
-  refuses any transformation-only real race. QEDIT and the world validator
-  permit `-1` or a transformation-only race. Gold, XP, and object rewards run before conversion; the
-  conversion then discards the XP reward by setting total XP to zero, while
-  the other rewards remain. A follower reward runs afterward.
+  higher with no group/master/followers and a real race that is not already
+  transformation-only, then handles Lich and Vampire in its conversion switch
+  and the descend forms through `descend_form_conversions[]`, whose preflight
+  also requires levels in one of the form's classes. QEDIT and the world
+  validator permit `-1` or a transformation-only race. Gold, XP, and object
+  rewards run before conversion; the conversion then discards the XP reward
+  by setting total XP to zero, while the other rewards remain. After the quest
+  history and any next stage are recorded, and before a follower reward can
+  run, a conversion saves the character.
 - The legacy high-level quest uses `QUEST_COMMAND_KIT` with the local
   `LICH_QUEST` value 9999. It performs a level-30-or-higher Lich conversion and
-  Wizard respec in `src/quest/hlquest.c`.
+  Wizard respec in `src/quest/hlquest.c`, and refuses a character that is
+  already transformation-only.
 
 These are separate implementations, not aliases for one shared policy.
 Their level and class requirements already differ. Do not copy all three for a
@@ -629,10 +634,11 @@ An irreversible conversion should follow this order:
 6. Save after all final fields are set, then verify disconnect/reload and
    protect against a repeated conversion.
 
-Step 6 is deliberate. `respec_engine()` saves internally, but the standard and
-legacy Lich callers set XP and alignment after that save. The RoL rite performs
-an additional `save_char()` after its final changes; new code should likewise
-persist the completed transaction explicitly.
+Step 6 is deliberate. `respec_engine()` saves internally, but its callers set
+XP and alignment after that save. The RoL rite and the standard quest race
+reward perform an additional `save_char()` after their final changes (the quest
+reward after its quest bookkeeping too); the legacy high-level quest does not.
+New code should likewise persist the completed transaction explicitly.
 
 That final save closes the normal success path but does not make the sequence
 crash-atomic: the respec has already persisted an intermediate character. If

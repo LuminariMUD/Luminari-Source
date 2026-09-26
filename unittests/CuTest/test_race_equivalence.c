@@ -25,6 +25,7 @@
 #include "../../src/net/protocol.h"
 #include "../../src/net/onboarding.h"
 #include "../../src/quest/quest.h"
+#include "../../src/quest/hlquest.h"
 
 static void ensure_race_equivalence_registry(void)
 {
@@ -1995,28 +1996,34 @@ void TestDescendFormsHardLock(CuTest *tc)
 
 struct descend_quest_fixture
 {
-  struct aq_data quest;
+  struct aq_data quests[2];
   struct aq_data *saved_quests;
   qst_rnum saved_count;
 };
 
-/* A one-quest table whose completion rewards 100 gold and converts to the form. */
+/* Quest 701 rewards 100 gold and the race, and leads to 702 when next is 702. */
 static void begin_descend_quest(struct descend_quest_fixture *fixture, struct char_data *ch,
-                                int race)
+                                int race, qst_vnum next)
 {
-  memset(&fixture->quest, 0, sizeof(fixture->quest));
+  memset(fixture->quests, 0, sizeof(fixture->quests));
   fixture->saved_quests = aquest_table;
   fixture->saved_count = total_quests;
-  aquest_table = &fixture->quest;
-  total_quests = 1;
-  fixture->quest.vnum = 701;
-  fixture->quest.done = CuMutableString("The rite is complete.");
-  fixture->quest.follower_reward = NOBODY;
-  fixture->quest.obj_reward = NOTHING;
-  fixture->quest.race_reward = race;
-  fixture->quest.next_quest = NOTHING;
-  fixture->quest.gold_reward = 100;
-  GET_QUEST(ch, 0) = fixture->quest.vnum;
+  aquest_table = fixture->quests;
+  total_quests = 2;
+  fixture->quests[0].vnum = 701;
+  fixture->quests[0].done = CuMutableString("The rite is complete.");
+  fixture->quests[0].follower_reward = NOBODY;
+  fixture->quests[0].obj_reward = NOTHING;
+  fixture->quests[0].race_reward = race;
+  fixture->quests[0].next_quest = next;
+  fixture->quests[0].gold_reward = 100;
+  fixture->quests[1].vnum = 702;
+  fixture->quests[1].info = CuMutableString("The next rite awaits.");
+  fixture->quests[1].follower_reward = NOBODY;
+  fixture->quests[1].obj_reward = NOTHING;
+  fixture->quests[1].race_reward = RACE_UNDEFINED;
+  fixture->quests[1].next_quest = NOTHING;
+  GET_QUEST(ch, 0) = fixture->quests[0].vnum;
   GET_QUEST_COUNTER(ch, 0) = 0;
 }
 
@@ -2047,7 +2054,7 @@ void TestDescendFormConversionPreflightChangesNothing(CuTest *tc)
     int real_race;
     int level;
     int class_num;
-    int form;
+    int target;
     const char *message;
   } cases[] = {
       {RACE_HUMAN, 29, CLASS_WARRIOR, RACE_WIGHT, "level 30"},
@@ -2055,6 +2062,11 @@ void TestDescendFormConversionPreflightChangesNothing(CuTest *tc)
       {RACE_HUMAN, 30, CLASS_WARRIOR, RACE_PHANTOM, "can become a Phantom"},
       {RACE_LICH, 30, CLASS_WARRIOR, RACE_WIGHT, "already been transformed"},
       {RACE_REVENANT, 30, CLASS_WARRIOR, RACE_WIGHT, "already been transformed"},
+      /* the one-way rule holds for the Lich and Vampire rewards too */
+      {RACE_WIGHT, 30, CLASS_WARRIOR, RACE_LICH, "already been transformed"},
+      {RACE_WIGHT, 30, CLASS_WARRIOR, RACE_VAMPIRE, "already been transformed"},
+      {RACE_LICH, 30, CLASS_WIZARD, RACE_VAMPIRE, "already been transformed"},
+      {RACE_VAMPIRE, 30, CLASS_WARRIOR, RACE_LICH, "already been transformed"},
   };
   struct descend_quest_fixture quest;
   struct char_data ch;
@@ -2080,7 +2092,7 @@ void TestDescendFormConversionPreflightChangesNothing(CuTest *tc)
     CLASS_LEVEL((&ch), CLASS_WARRIOR) = 0;
     GET_CLASS(&ch) = cases[i].class_num;
     CLASS_LEVEL((&ch), cases[i].class_num) = cases[i].level;
-    begin_descend_quest(&quest, &ch, cases[i].form);
+    begin_descend_quest(&quest, &ch, cases[i].target, NOTHING);
 
     complete_quest(&ch, 0);
     end_descend_quest(&quest);
@@ -2123,9 +2135,12 @@ void TestDescendFormConversionSucceedsAndSurvivesReload(CuTest *tc)
   int loaded_race = -1, loaded_class = -1, loaded_alignment = 0, loaded_size = -1;
   int loaded_armor_skin = -1, loaded_dr_count = -1, loaded_dr = 0;
   long loaded_exp = -1;
+  bool loaded_quest_done = FALSE;
   int load_result = -1;
-  int repeat_race;
+  const int second_targets[] = {RACE_REVENANT, RACE_LICH, RACE_VAMPIRE};
+  bool repeats_refused = TRUE;
   int restore_result;
+  size_t i;
 
   ensure_descend_form_registry();
   memset(fixture_index, 0, sizeof(fixture_index));
@@ -2149,7 +2164,7 @@ void TestDescendFormConversionSucceedsAndSurvivesReload(CuTest *tc)
   saved_move_gain = class_list[CLASS_WARRIOR].move_gain;
   class_list[CLASS_WARRIOR].move_gain = 1;
 
-  begin_descend_quest(&quest, source, RACE_WIGHT);
+  begin_descend_quest(&quest, source, RACE_WIGHT, 702);
   complete_quest(source, 0);
   end_descend_quest(&quest);
 
@@ -2164,7 +2179,7 @@ void TestDescendFormConversionSucceedsAndSurvivesReload(CuTest *tc)
   converted_cold = HAS_REAL_FEAT(source, FEAT_COLD_IMMUNITY);
   converted_dr_count = count_feat_damage_reduction(source, &converted_dr);
   converted_gold = GET_GOLD(source);
-  converted_quest_done = is_complete(source, 701) && GET_QUEST(source, 0) == (int)NOTHING;
+  converted_quest_done = is_complete(source, 701) && GET_QUEST(source, 0) == 702;
 
   if (get_filename(filename, sizeof(filename), PLR_FILE, player_name))
   {
@@ -2178,17 +2193,27 @@ void TestDescendFormConversionSucceedsAndSurvivesReload(CuTest *tc)
       loaded_size = GET_REAL_SIZE(loaded);
       loaded_armor_skin = HAS_REAL_FEAT(loaded, FEAT_ARMOR_SKIN);
       loaded_dr_count = count_feat_damage_reduction(loaded, &loaded_dr);
+      /* the conversion was saved with its quest history and next stage */
+      loaded_quest_done =
+          is_complete(loaded, 701) && GET_NUM_QUESTS(loaded) == 1 && GET_QUEST(loaded, 0) == 702;
     }
 
-    /* a second form is refused even at level 30 with warrior levels */
-    GET_LEVEL(source) = 30;
-    CLASS_LEVEL(source, CLASS_WARRIOR) = 30;
-    begin_descend_quest(&quest, source, RACE_REVENANT);
-    complete_quest(source, 0);
-    end_descend_quest(&quest);
+    /* no other race reward takes a form, even at level 30 with warrior levels, and a refusal
+     * spends nothing: race, experience, gold, and the quest slot stay as they were */
+    for (i = 0; i < sizeof(second_targets) / sizeof(second_targets[0]); i++)
+    {
+      GET_LEVEL(source) = 30;
+      CLASS_LEVEL(source, CLASS_WARRIOR) = 30;
+      GET_EXP(source) = 777;
+      begin_descend_quest(&quest, source, second_targets[i], NOTHING);
+      complete_quest(source, 0);
+      end_descend_quest(&quest);
+      if (GET_REAL_RACE(source) != RACE_WIGHT || GET_EXP(source) != 777 ||
+          GET_GOLD(source) != 100 || GET_QUEST(source, 0) != 701 || GET_NUM_QUESTS(source) != 1)
+        repeats_refused = FALSE;
+    }
     unlink(filename);
   }
-  repeat_race = GET_REAL_RACE(source);
   class_list[CLASS_WARRIOR].move_gain = saved_move_gain;
 
   restore_result = leave_race_player_fixture(original_directory, temporary_directory);
@@ -2220,5 +2245,61 @@ void TestDescendFormConversionSucceedsAndSurvivesReload(CuTest *tc)
   CuAssertIntEquals(tc, 5, loaded_armor_skin);
   CuAssertIntEquals(tc, 1, loaded_dr_count);
   CuAssertIntEquals(tc, 9, loaded_dr);
-  CuAssertIntEquals(tc, RACE_WIGHT, repeat_race);
+  CuAssertTrue(tc, loaded_quest_done);
+  CuAssertTrue(tc, repeats_refused);
+}
+
+/* The legacy Lich quest refuses a character that is already transformation-only, returning its
+ * offerings, so a descend form cannot become a Lich there either. */
+void TestLegacyLichQuestRefusesATransformedCharacter(CuTest *tc)
+{
+  struct char_data ch;
+  struct char_data questor;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  struct quest_command payment;
+  struct quest_command kit;
+  struct quest_entry quest;
+  const int transformed[] = {RACE_WIGHT, RACE_PHANTOM, RACE_VAMPIRE, RACE_LICH};
+  bool refused = FALSE;
+  size_t i;
+
+  ensure_descend_form_registry();
+  for (i = 0; i < sizeof(transformed) / sizeof(transformed[0]); i++)
+  {
+    init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+    descriptor.pProtocol = ProtocolCreate();
+    CuAssertPtrNotNull(tc, descriptor.pProtocol);
+    if (descriptor.pProtocol == NULL)
+      return;
+    STATE(&descriptor) = CON_PLAYING;
+    ch.player.name = CuMutableString("legacy lich candidate");
+    GET_PFILEPOS(&ch) = -1;
+    GET_REAL_RACE(&ch) = transformed[i];
+    GET_LEVEL(&ch) = 30;
+    GET_EXP(&ch) = 777;
+    GET_POS(&ch) = POS_STANDING;
+
+    clear_char(&questor);
+    SET_BIT_AR(MOB_FLAGS(&questor), MOB_ISNPC);
+    memset(&payment, 0, sizeof(payment));
+    memset(&kit, 0, sizeof(kit));
+    memset(&quest, 0, sizeof(quest));
+    payment.type = QUEST_COMMAND_COINS;
+    kit.type = QUEST_COMMAND_KIT;
+    kit.value = 9999; /* LICH_QUEST in src/quest/hlquest.c */
+    quest.type = QUEST_GIVE;
+    quest.approved = TRUE;
+    quest.reply_msg = CuMutableString("The ritual begins.");
+    quest.in = &payment;
+    quest.out = &kit;
+    questor.mob_specials.quest = &quest;
+
+    quest_give(&ch, &questor);
+    refused = strstr(descriptor.output, "cannot become a Lich") != NULL &&
+              GET_REAL_RACE(&ch) == transformed[i] && GET_EXP(&ch) == 777;
+    cleanup_race_equivalence_descriptor(&descriptor);
+    CuAssertTrue(tc, refused);
+  }
 }

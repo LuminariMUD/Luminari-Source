@@ -184,13 +184,15 @@ Vampire they have no racial language.
     offering objects held by the rite keeper (`src/spec/spec_rol_conversion.c`).
 - **Vampire**: quest reward only. A quest whose reward race is Vampire converts
   the character and respecs them to Warrior (`src/quest/quest.c`).
+- **One way only**: every conversion above refuses a character whose real race
+  is already transformation-only, so no Lich, Vampire, or descend form becomes
+  another.
 - **Descend forms**: quest reward only, driven by `descend_form_conversions[]`
   in `src/quest/quest.c`. The quest race reward needs level 30, no group,
   master, or followers, levels in one of the form's classes, and a real race
-  that is not already transformation-only, so no Lich, Vampire, or form takes
-  another form. It sets the race, respecs to the form's class, sets
-  experience to 0 and alignment to -1000, announces the change, and saves
-  again after those final values. The form's registry size replaces the old
+  that is not already transformation-only. It sets the race, respecs to the
+  form's class, sets experience to 0 and alignment to -1000, announces the
+  change, and saves once the quest history and next stage are recorded. The form's registry size replaces the old
   one (Lich and Vampire keep theirs). No quest awards a form yet; each is
   meant to follow the Vampire line (quest 34721, zone 347).
 

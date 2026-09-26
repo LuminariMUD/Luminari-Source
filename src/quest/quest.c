@@ -644,17 +644,10 @@ static const struct descend_form_conversion *find_descend_form_conversion(int ra
   return NULL;
 }
 
-/* Refuse a form conversion, with the reason, unless the character may take it. */
+/* Refuse a form conversion, with the reason, unless the character has one of its classes. */
 static bool descend_form_preflight(struct char_data *ch, const struct descend_form_conversion *form)
 {
   size_t i;
-
-  /* the forms stay standalone: no Lich, Vampire, or form becomes another */
-  if (race_is_transformation_only(GET_REAL_RACE(ch)))
-  {
-    send_to_char(ch, "You have already been transformed, and cannot be transformed again.\r\n");
-    return FALSE;
-  }
 
   for (i = 0; i < sizeof(form->classes) / sizeof(form->classes[0]); i++)
     if (form->classes[i] != CLASS_UNDEFINED && CLASS_LEVEL(ch, form->classes[i]) > 0)
@@ -688,9 +681,6 @@ static void convert_to_descend_form(struct char_data *ch,
   send_to_char(ch, "\tLYour \tWlifeforce\tL is torn away, and you rise again in undeath.\tn\r\n");
   send_to_char(ch, "You are now a \tL%s!\tn\r\n", form->name);
   log("Quest Log : %s has changed into a %s!", GET_NAME(ch), form->name);
-
-  /* respec_engine() saved before the final experience and alignment */
-  save_char(ch, 0);
 }
 
 void complete_quest(struct char_data *ch, int index)
@@ -703,6 +693,7 @@ void complete_quest(struct char_data *ch, int index)
   struct char_data *mob = NULL;
   struct domain_entity_handle pet_handle = {0};
   const struct descend_form_conversion *form = NULL;
+  bool race_converted = FALSE;
 
   /* dummy check */
   if (GET_QUEST(ch, index) == (int)NOTHING)
@@ -747,6 +738,13 @@ void complete_quest(struct char_data *ch, int index)
                        "your own to change races.\r\n"
                        "You can dismiss npc followers with the 'dismiss' command.  You can leave "
                        "your group with 'group leave.'\r\n");
+      return;
+    }
+
+    /* Transformation is one-way: no Lich, Vampire, or descend form takes another race reward. */
+    if (race_is_transformation_only(GET_REAL_RACE(ch)))
+    {
+      send_to_char(ch, "You have already been transformed, and cannot be transformed again.\r\n");
       return;
     }
 
@@ -869,6 +867,7 @@ void complete_quest(struct char_data *ch, int index)
 
       send_to_char(ch, "You are now a \tLVAMPIRE!\tn\r\n");
       log("Quest Log : %s has changed into to a VAMPIRE!", GET_NAME(ch));
+      race_converted = TRUE;
 
       break;
 
@@ -902,12 +901,16 @@ void complete_quest(struct char_data *ch, int index)
 
       send_to_char(ch, "You are now a \tLLICH!\tn\r\n");
       log("Quest Log : %s has changed into to a LICH!", GET_NAME(ch));
+      race_converted = TRUE;
 
       break;
 
     default:
       if (form != NULL)
+      {
         convert_to_descend_form(ch, form, pet_handle);
+        race_converted = TRUE;
+      }
       else
         log("Quest Log : %s reached default in race reward for quest!", GET_NAME(ch));
       break;
@@ -933,6 +936,12 @@ void complete_quest(struct char_data *ch, int index)
     set_quest(ch, rnum, index);
     send_to_char(ch, "\tW***The next stage of your quest awaits:\tn\r\n\r\n%s\r\n", QST_INFO(rnum));
   }
+
+  /* A race conversion cannot be undone, so save it together with its quest history and next
+   * stage, before a follower's load trigger can extract the owner.  respec_engine() saved only
+   * the state before the final experience, alignment, and quest bookkeeping. */
+  if (race_converted)
+    save_char(ch, 0);
   /* Load triggers may extract either participant; quest rewards are already committed. */
   mob = domain_event_world_resolve_character(pet_handle);
   if (mob != NULL)

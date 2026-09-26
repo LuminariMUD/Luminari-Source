@@ -12,6 +12,7 @@
 #include "act/act.h"
 #include "character/guild_services.h"
 #include "character/evolutions.h"
+#include "character/race.h"
 #include "combat/fight.h"
 #include "combat/combat_state.h"
 #include "core/comm.h"
@@ -3997,6 +3998,9 @@ enum rol_lich_rite_status rol_lich_rite_requirements(const struct char_data *ch,
     *second_offering = NULL;
   if (ch == NULL || keeper == NULL || ch->player_specials == NULL || IS_NPC(ch) || !IS_NPC(keeper))
     return ROL_LICH_RITE_INVALID;
+  /* transformation is one-way: no Lich, Vampire, or descend form takes the rite */
+  if (race_is_transformation_only(GET_REAL_RACE(ch)))
+    return ROL_LICH_RITE_ALREADY_TRANSFORMED;
   if (CLASS_LEVEL(ch, CLASS_NECROMANCER) <= 0)
     return ROL_LICH_RITE_WRONG_CLASS;
   if (GET_LEVEL(ch) != LVL_IMMORT - 1)
@@ -4072,6 +4076,9 @@ int rol_lich_rite(struct char_data *ch, void *me, int cmd, const char *argument)
     return TRUE;
   case ROL_LICH_RITE_MISSING_OFFERINGS:
     send_to_char(ch, "Bring me the things I requested, then we will talk again...\r\n");
+    return TRUE;
+  case ROL_LICH_RITE_ALREADY_TRANSFORMED:
+    send_to_char(ch, "You have already cheated death once. There is nothing more I can take.\r\n");
     return TRUE;
   case ROL_LICH_RITE_READY:
     break;
