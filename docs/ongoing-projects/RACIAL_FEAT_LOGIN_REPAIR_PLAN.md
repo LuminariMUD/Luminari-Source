@@ -1,7 +1,7 @@
 # Racial Feat Login Repair Plan
 
-Status: plan, not started. Written 2026-09-26 and traced against master `a845fd41e`. It is separate
-from [DURIS_PLAYER_RACES_PLAN.md](DURIS_PLAYER_RACES_PLAN.md).
+Status: plan, not started. Written 2026-09-26 and traced against master `a845fd41e`; item 2 was
+done by the Duris races work.
 
 ## Problem
 
@@ -75,6 +75,7 @@ then repeat through a copyover. Finish with `make -j$(nproc)`, `make test`, and 
 
 Then delete this plan and its index entry.
 
-If this lands before the Duris races plan, that plan's code items 2 and 3 no longer need their race
-checks: saved Trelux and Lich characters would receive `FEAT_PSIONIC_RESISTANCE` and
-`FEAT_COLD_IMMUNITY` at login (Lich already assigns Cold Immunity at level 1).
+The Duris races work kept race checks beside `FEAT_PSIONIC_RESISTANCE` (Trelux) and
+`FEAT_COLD_IMMUNITY` (Lich) in `compute_damtype_reduction()` because saved characters lack those
+feats. Once this repair grants them at login, those two race checks can go (Lich already assigns
+Cold Immunity at level 1).
