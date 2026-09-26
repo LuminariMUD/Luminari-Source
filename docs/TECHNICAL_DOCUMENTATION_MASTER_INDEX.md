@@ -143,6 +143,8 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[DURIS_PLAYER_RACES_PLAN.md](ongoing-projects/DURIS_PLAYER_RACES_PLAN.md)** - Plan for the 17
   Duris player races not yet imported: registry data, stats, feats, race point scores, descend
   forms, the code the race guide does not cover, and the order of work
+- **[RACIAL_FEAT_LOGIN_REPAIR_PLAN.md](ongoing-projects/RACIAL_FEAT_LOGIN_REPAIR_PLAN.md)** - Plan
+  to grant saved characters the single-rank racial feats they are missing when they log in
 - **[EXTRA_LIMB_MECHANICS.md](ongoing-projects/EXTRA_LIMB_MECHANICS.md)** - The arm count that
   drives hands, wear slots, attacks, and monk strikes (extra arms, four arms, race adjustment,
   vestigial arm), capped at four arms of equipment, and its open pricing work
