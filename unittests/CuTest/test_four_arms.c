@@ -2903,6 +2903,51 @@ void TestArmCountMonkGlovesNeedBareHands(CuTest *tc)
   end_four_arm_fixture(&fixture);
 }
 
+/* whether the third hand's strength line names a free lower hand */
+static bool third_hand_has_support(struct four_arm_fixture *fixture)
+{
+  reset_output(fixture);
+  compute_damage_bonus(&fixture->ch, &fixture->ch, get_wielded(&fixture->ch, ATTACK_TYPE_THIRD),
+                       TYPE_UNDEFINED, 0, MODE_DISPLAY_PRIMARY, ATTACK_TYPE_THIRD);
+  return strstr(fixture->descriptor.output, "free lower hand") != NULL;
+}
+
+/* An unarmed strike fills a hand no equipped position counts.  Three empty
+ * arms: the primary's strike and support hand and the third strike use all
+ * three, so the unarmed third hand keeps plain strength; a fourth arm is its
+ * support hand.  A first-pair one-hander leaves three arms no support hand
+ * either. */
+void TestArmCountUnarmedThirdHandNeedsARealSpareHand(CuTest *tc)
+{
+  struct four_arm_fixture fixture;
+  struct obj_data kama, sword;
+
+  begin_four_arm_fixture(&fixture);
+  make_fixture_monk(&fixture, CLASS_MONK);
+  init_weapon(&kama, "a monk kama", WEAPON_TYPE_KAMA, SIZE_MEDIUM);
+  init_weapon(&sword, "a third sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+
+  set_human_arms(3);
+  CuAssertTrue(tc, !third_hand_has_support(&fixture));
+  set_human_arms(4);
+  CuAssertTrue(tc, third_hand_has_support(&fixture));
+
+  set_human_arms(3);
+  equip_char(&fixture.ch, &kama, WEAR_WIELD_1);
+  CuAssertTrue(tc, !third_hand_has_support(&fixture));
+  set_human_arms(4);
+  CuAssertTrue(tc, third_hand_has_support(&fixture));
+
+  /* an armed third hand keeps the old rule: beside the first pair's
+   * one-hander, four arms leave it a support hand and three do not */
+  equip_char(&fixture.ch, &sword, WEAR_WIELD_3);
+  CuAssertTrue(tc, third_hand_has_support(&fixture));
+  set_human_arms(3);
+  CuAssertTrue(tc, !third_hand_has_support(&fixture));
+
+  end_four_arm_fixture(&fixture);
+}
+
 #undef RETURN_NUM_ATTACKS
 #undef DISPLAY_ROUTINE_POTENTIAL
 #undef NORMAL_ATTACK_ROUTINE

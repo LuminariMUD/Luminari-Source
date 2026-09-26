@@ -159,6 +159,10 @@ is possible. The two-armed unarmed routine is the baseline.
   bonus, the unarmed critical range).
 - Monk weapons. `monk_gear_ok()` accepts monk-family weapons in either pair; a monk weapon in the
   fourth hand attacks beside an unarmed third.
+- Support hand. An unarmed strike fills a hand that no position counts, so the unarmed third hand
+  adds the free-hand strength bonus only when a hand remains after the equipped positions, the
+  primary's strike and support hand, and its own strike: never at three arms, and at four arms
+  only with empty hands or a lone primary weapon.
 - First pair only. The monk glove bonus reads only `WEAR_HANDS`, and the One With Wood and Stone
   armor bonus reads only a first-pair weapon.
 

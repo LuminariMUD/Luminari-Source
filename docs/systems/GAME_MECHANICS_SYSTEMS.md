@@ -521,10 +521,14 @@ or an empty third position on a `MONK_TYPE()` character passing
 four arms and a weapon (or the lower double weapon's other end). Other
 characters' empty lower hands make no swing, and whole-character bare-hand
 bonuses such as monk gloves still need every hand empty (`is_bare_handed()`).
-Some consumers read only the first pair by design: the parry message weapon in
-`skill_message()`, the monk weapon armor-class pick, reach-weapon detection,
-sunder's attacking weapon, and the explicit slot checks in `mob_spells.c`,
-`spec_abilities.c`, `magic.c`, `feats.c`, `perks.c`, and the
+An unarmed strike fills a hand no position counts, so
+`spare_hand_for_attack()` gives the unarmed third hand the free-hand strength
+bonus only when a hand remains after the equipped positions, the primary's
+strike and support hand, and its own strike. Some consumers read only the
+first pair by design: the parry message weapon in `skill_message()`, the monk
+weapon armor-class pick, reach-weapon detection, sunder's attacking weapon,
+and the explicit slot checks in `mob_spells.c`, `spec_abilities.c`, `magic.c`,
+`feats.c`, `perks.c`, and the
 `spec_rol_*` procedures. The stochastic ranger Wilderness Warrior offhand
 procs are not mirrored, and NPCs get no trained extra fourth-hand swings,
 matching the first pair. The design study behind issue #168 is preserved at
