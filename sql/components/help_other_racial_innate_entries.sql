@@ -867,3 +867,16 @@ ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
 auto_generated = VALUES (auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FOUR-ARMS', 'FOUR-ARMS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FOUR-ARMS', 'FOURARMS');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('PSIONIC-RESISTANCE', 'Psionic Resistance
+
+Requires: the psionic resistance feat (racial innate)
+
+Your mind is alien to other thinkers: you take 20 percent less mental
+damage. Trelux and Thri-Kreen are born with it.
+
+See also: FEAT INFO PSIONIC RESISTANCE, TRELUX, RACE-THRI-KREEN', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),
+auto_generated = VALUES (auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('PSIONIC-RESISTANCE', 'PSIONIC-RESISTANCE');

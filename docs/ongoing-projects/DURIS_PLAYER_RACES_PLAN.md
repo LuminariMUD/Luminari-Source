@@ -42,6 +42,13 @@ races map to existing races (for example Barbarian to Wemic, both Illithids to H
   `TestDescendForm*` in `test_race_equivalence.c` (the conversion tests load the class table),
   the forged-form case in the web wire budget test, and `scripts/world/tests/test_semantics.py`.
   No quest uses a form yet.
+- Step 4 done on development. `help_duris_races_entries.sql` holds the 17 topics and the new
+  EPIC-RACES body. Minotaur updates the retired Dragonlance `minotaur` entry in place, which
+  already owned the MINOTAUR and RACE-MINOTAUR keywords, so nothing is deleted. The development
+  help database took the rows HEDIT-style (the four updated bodies archived in `help_versions`
+  with `changed_by` `duris-races`), and `help.hlp` was rendered from it with the help-sync
+  catalog (`take_snapshot().file_matches` is true). Production help is not touched; it needs the
+  help-sync skill and the owner's authorization after merge.
 
 ## Rules behind the data
 
