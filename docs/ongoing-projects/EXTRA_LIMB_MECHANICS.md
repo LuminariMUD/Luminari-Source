@@ -196,5 +196,5 @@ but no offhand weapon or two-hand position.
   before deploying.
 
 A third weapon pair or anything past four arms beyond extra hands would need new positions and
-attack types; this system caps equipment at four arms. The [Duris race
-specifications](DURIS_RACE_SPECIFICATIONS.md#thri-kreen) place Four Arms on Thri-Kreen.
+attack types; this system caps equipment at four arms. The [Duris player races
+plan](DURIS_PLAYER_RACES_PLAN.md#thri-kreen) places Four Arms on Thri-Kreen.

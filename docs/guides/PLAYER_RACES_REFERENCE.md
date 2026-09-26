@@ -18,9 +18,7 @@ material instead.
 | Document | What it covers |
 | -- | -- |
 | [ADDING_NEW_RACE_GUIDE.md](ADDING_NEW_RACE_GUIDE.md) | Developer procedure for adding a race: ID allocation, `assign_races()` registry, creation wiring, mechanics, unlock gate, transformation-only races, help, persistence, tests, deployment |
-| [DURIS_RACIAL_IMPORTS.md](../ongoing-projects/DURIS_RACIAL_IMPORTS.md) | Racial innate feats imported from Duris (granted to no race yet) and the Duris player races that were not imported |
-| [DURIS_RACE_FEAT_PROPOSAL.md](../ongoing-projects/DURIS_RACE_FEAT_PROPOSAL.md) | Proposed racial feat sets and tiers for the Duris player races that were not imported |
-| [DURIS_RACE_SPECIFICATIONS.md](../ongoing-projects/DURIS_RACE_SPECIFICATIONS.md) | Proposed stats, registry data, feat levels, and race point scores for those races |
+| [DURIS_PLAYER_RACES_PLAN.md](../ongoing-projects/DURIS_PLAYER_RACES_PLAN.md) | Plan for the 17 Duris player races not yet imported: registry data, stats, feats, race point scores, descend forms, and the order of work |
 | [PLAYER_CLASSES_REFERENCE.md](PLAYER_CLASSES_REFERENCE.md) | Playable classes, prestige prerequisites (including the race rows Arcane Archer checks), class unlock costs, and the class side of race/class alignment compatibility |
 | [ADDING_NEW_PLAYER_CLASS_GUIDE.md](ADDING_NEW_PLAYER_CLASS_GUIDE.md) | Class registry and the race/class compatibility and unlock rules that character creation enforces |
 | [PLAYER_MANAGEMENT_SYSTEM.md](../systems/PLAYER_MANAGEMENT_SYSTEM.md) | Account model, `account->races[]` unlock storage, and the `CON_QRACE` / `CON_QRACE_HELP` creation states |
@@ -508,7 +506,7 @@ Thri-Kreen, is exempt from the single-trait cap (composition rule 2). No race
 grants it yet; a playable race that does needs these decisions first (see the
 [design study](https://github.com/LuminariMUD/Luminari-Source/blob/e33ed0d6f98d28d4218c98aa57b16de9742ac8c5/docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md)
 for the source mechanics; the
-[Duris race specifications](../ongoing-projects/DURIS_RACE_SPECIFICATIONS.md#thri-kreen)
+[Duris player races plan](../ongoing-projects/DURIS_PLAYER_RACES_PLAN.md#thri-kreen)
 propose answers):
 
 - Tier and price. Decided: Epic at 50000 account experience, with Four Arms

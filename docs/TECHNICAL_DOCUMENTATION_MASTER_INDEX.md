@@ -140,12 +140,9 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[PLAYER_RACES_REFERENCE.md](guides/PLAYER_RACES_REFERENCE.md)** - Playable race
   reference center: stats, innate feats, tiers, unlock costs, acquisition paths, and
   links to every race-related document
-- **[DURIS_RACIAL_IMPORTS.md](ongoing-projects/DURIS_RACIAL_IMPORTS.md)** - Racial innates imported from Duris
-  as feats (granted to no race yet) and the 37 Duris player races that were not imported
-- **[DURIS_RACE_FEAT_PROPOSAL.md](ongoing-projects/DURIS_RACE_FEAT_PROPOSAL.md)** - Proposed
-  racial feat sets for the Duris player races that were not imported
-- **[DURIS_RACE_SPECIFICATIONS.md](ongoing-projects/DURIS_RACE_SPECIFICATIONS.md)** - Proposed
-  stats, registry data, feat levels, and race point scores for those races
+- **[DURIS_PLAYER_RACES_PLAN.md](ongoing-projects/DURIS_PLAYER_RACES_PLAN.md)** - Plan for the 17
+  Duris player races not yet imported: registry data, stats, feats, race point scores, descend
+  forms, the code the race guide does not cover, and the order of work
 - **[EXTRA_LIMB_MECHANICS.md](ongoing-projects/EXTRA_LIMB_MECHANICS.md)** - The arm count that
   drives hands, wear slots, attacks, and monk strikes (extra arms, four arms, race adjustment,
   vestigial arm), capped at four arms of equipment, and its open pricing work
