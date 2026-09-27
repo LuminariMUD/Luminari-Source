@@ -1,21 +1,18 @@
 ---
 name: help-sync
 description: >-
-  Build or operate LuminariMUD's two-way help-content synchronization between development and
-  production while keeping MySQL and lib/text/help/help.hlp aligned. Use for cross-environment help
-  drift, HEDIT reconciliation, sealed sync plans, guarded help publication, or sync rollback; do not
-  use for ordinary single-entry editing or worldfile synchronization.
+  Fully synchronize LuminariMUD help content between development and production, autonomously and
+  end to end, keeping MySQL and lib/text/help/help.hlp aligned on both. Invoking this skill is the
+  authorization to publish to production. Also covers the sync engine itself, audits, and rollback;
+  do not use for ordinary single-entry editing or worldfile synchronization.
 ---
 
 # Luminari Help Sync
 
 Before any help synchronization or sync-system implementation action, treat this skill and the
 repository's `AGENTS.md` as authoritative. Trace the current source, schema, scripts, and
-deployment configuration instead of relying on stale line numbers or assumed commands. For an
-operation whose safety depends on design decisions, locate and read the maintained design sections
-relevant to that mode. If the design is unavailable, continue read-only discovery and report the
-gap; do not mutate data, production, or synchronization state until the required safety semantics
-are available.
+deployment configuration instead of relying on stale line numbers or assumed commands. When
+changing the engine itself, read the maintained design sections for the part being changed.
 
 ## Select the operation
 
@@ -31,15 +28,19 @@ Classify the request as one or more of these modes:
 - `verify`: prove database, file projection, and candidate hashes agree; or
 - `rollback`: restore a named run from its validated backups and verify the restored state.
 
-Default an ambiguous operational request to read-only `audit` or `plan`. Do not infer permission to
-apply, delete, roll back, restart, or mutate production from skill invocation alone.
+Invoking this skill, with or without further words, means `sync`: one complete
+`sync --authorize-production` run from audit through verified publication on both endpoints. The
+invocation is the production authorization. Do not downgrade it to `audit` or `plan`, and do not
+stop after a plan or preview to ask whether to publish. Only a request that explicitly limits itself
+to inspecting, auditing, previewing, explaining, or reporting status stays read-only.
 
-A direct request to sync, reconcile, publish, or complete the help synchronization end to end is not
-ambiguous. Treat that request as authorization for one bounded
-`sync --authorize-production` run. Do not stop merely to ask the user to repeat the same production
-authorization after preview. The command must still emit the exact preview, bind its fresh token,
-refuse conflicts, deletions, and renames, and verify both endpoints. A request only to inspect,
-audit, preview, explain, or report status does not authorize this mode.
+The purpose of this skill is to make both environments hold the same help catalog without the user
+supervising it. Never ask for confirmation, and never delay, question, or withhold publication
+because of what the help describes: whether production runs the code, races, classes, commands, or
+mechanics an entry documents; how far production's checkout lags master; whether players could be
+confused; or any other judgment about the content. Help content is published exactly as the engine
+reconciles it. The command itself still emits the exact preview, binds its fresh token, and
+verifies both endpoints.
 
 ## Establish the capability and environment
 
@@ -149,9 +150,8 @@ true:
 2. every conflict and required policy decision is resolved;
 3. the sealed plan ID, hashes, row counts, deletions, and backup destination are emitted before
    mutation;
-4. either the user explicitly authorizes that exact manual apply after preview, or the current user
-   request explicitly authorizes a bounded end-to-end sync whose command refuses all deletions,
-   renames, and unresolved conflicts;
+4. the skill was invoked (which authorizes the bounded `sync` run), or the user explicitly
+   authorized that exact manual apply after preview;
 5. the HEDIT write barrier is active;
 6. a fresh production export still matches the plan's expected production hash; and
 7. validated targeted database and `help.hlp` backups exist.
@@ -169,13 +169,13 @@ barrier.
 
 ## Run bounded end-to-end synchronization
 
-For a direct user request to complete synchronization, run:
+Whenever the skill is invoked, run:
 
 ```text
 python3 scripts/help-sync/help_sync.py sync --authorize-production [--repair-layers]
 ```
 
-This is the preferred autonomous route after the first common baseline exists. It creates and saves
+This is the default route after the first common baseline exists. It creates and saves
 the plan, includes supported integrity repairs, applies and proves development, emits a fresh
 production preview, publishes using that exact token, acknowledges the runtime reload, advances
 both baseline artifacts, and independently verifies both endpoints. It holds the development HEDIT
@@ -184,16 +184,16 @@ arrives.
 
 Run the read-only audit first. If a file differs from its database projection, inspect the parsed
 file difference for legitimate file-only work. Normalize legitimate file-only entries into the
-development database through the ordinary reviewed help-editing path. When the drift is only a
-stale projection, add `--repair-layers`; this is an internal execution decision and does not require
-another conversational confirmation.
+development database through the ordinary reviewed help-editing path, then continue. When the drift
+is only a stale projection, add `--repair-layers`. Both are internal execution decisions, not
+questions for the user.
 
-Do not ask for another routine confirmation during this bounded run. Stop only when the tool proves
-that judgment or authority is genuinely required: an uninitialized baseline, an unresolved
-conflict, any deletion or rename, legitimate file-only work that has not been normalized into the
-development database, an unavailable credential or target, exhausted concurrent-edit passes, or a
-failed apply/rollback/verification invariant. Fix discoverable environment or dependency problems
-autonomously when they are within the authorized help-sync scope.
+Run straight through to the verified result without conversational pauses. The only stops are the
+ones the engine itself enforces and cannot get past: an uninitialized baseline, an unresolved
+same-field conflict, a deletion or rename, an unreachable credential or target, exhausted
+concurrent-edit passes, or a failed apply/rollback/verification invariant. Fix discoverable
+environment or dependency problems (SSH drops, missing packages, stale locks) yourself and rerun.
+When the engine does stop, name the exact entries and the decision needed in one line.
 
 ## Roll back and report
 
