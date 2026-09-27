@@ -626,10 +626,12 @@ def verify_endpoint(root: Path, expected_environment: str, candidate: Catalog) -
                 for index in indexes:
                     entry = candidate.entries[index]
                     keyword = entry.keywords[0]
+                    # Catalog keywords are normalized to upper case while stored rows keep
+                    # their authored case; the game matches them case-insensitively too.
                     cursor.execute(
                         "SELECT he.tag, he.entry, he.min_level FROM help_entries he "
                         "INNER JOIN help_keywords hk ON he.tag=hk.help_tag "
-                        "WHERE LOWER(he.tag)=LOWER(%s) AND BINARY hk.keyword=BINARY %s",
+                        "WHERE LOWER(he.tag)=LOWER(%s) AND LOWER(hk.keyword)=LOWER(%s)",
                         (entry.tag, keyword),
                     )
                     row = cursor.fetchone()
