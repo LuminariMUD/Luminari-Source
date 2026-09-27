@@ -21,6 +21,10 @@ int calculate_metamagic_charge_cost(int metamagic, int base_spell_level);
 /* Calculate Use Magic Device DC for metamagic scrolls and potions */
 int calculate_metamagic_scroll_dc(int base_spell_level, int metamagic);
 
+/* The lowest circle any spellcasting class casts the spell at, or above NUM_CIRCLES when none
+ * does: the spell level a consumable's metamagic DC is built from */
+int consumable_spell_circle(struct char_data *ch, int spellnum);
+
 /* Get metamagic description string for display */
 void get_metamagic_description(int metamagic, char *buf, size_t buf_size);
 

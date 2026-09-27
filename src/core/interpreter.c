@@ -6580,6 +6580,19 @@ static uint32_t command_activity_capabilities(const struct command_info *command
   return capabilities;
 }
 
+/* "device create cancel" and "device repair cancel" end the device work that keeps every other
+ * command waiting, so they pass that wait. The words are read the way do_device() reads them. */
+static bool is_device_cancel_command(int cmd, const char *line)
+{
+  char subcommand[MAX_INPUT_LENGTH], what[MAX_INPUT_LENGTH];
+
+  if (complete_cmd_info[cmd].command_pointer != do_device)
+    return FALSE;
+  two_arguments(line, subcommand, sizeof(subcommand), what, sizeof(what));
+  return (is_abbrev(subcommand, "create") || is_abbrev(subcommand, "repair")) &&
+         is_abbrev(what, "cancel");
+}
+
 /* This is the actual command interpreter called from game_loop() in comm.c
  * It makes sure you are the proper level and position to execute the command,
  * then calls the appropriate function. */
@@ -6865,6 +6878,7 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
   }
   else if ((char_has_mud_event(ch, eDEVICE_CREATION) || char_has_mud_event(ch, eDEVICE_REPAIR)) &&
            !(complete_cmd_info[cmd].feature_flags & CMD_FEATURE_ACTIVITY_CONTROL) &&
+           !is_device_cancel_command(cmd, line) &&
            !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gemote") &&
            !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
@@ -6892,9 +6906,11 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
       send_to_char(ch, "You are too busy devising your creation to do that! ");
     else if (char_has_mud_event(ch, eDEVICE_REPAIR))
       send_to_char(ch, "You are too busy repairing your device to do that! ");
-    send_to_char(ch, "[Available commands: "
-                     "gossip/chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/"
-                     "idea/class/race/spelllist]\r\n");
+    send_to_char(ch,
+                 "[Available commands: "
+                 "gossip/chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/"
+                 "idea/class/race/spelllist, or device %s cancel to stop]\r\n",
+                 char_has_mud_event(ch, eDEVICE_CREATION) ? "create" : "repair");
   }
   else if (!primary_activity_command_admit(
                ch, complete_cmd_info[cmd].command,

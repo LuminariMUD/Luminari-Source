@@ -229,6 +229,16 @@ int calculate_metamagic_scroll_dc(int base_spell_level, int metamagic)
   return 20 + (3 * modified_level);
 }
 
+int consumable_spell_circle(struct char_data *ch, int spellnum)
+{
+  int class_num, circle = NUM_CIRCLES + 1;
+
+  for (class_num = 0; class_num < NUM_CLASSES; class_num++)
+    if (IS_SPELLCASTER_CLASS(class_num))
+      circle = MIN(circle, compute_spells_circle(ch, class_num, spellnum, 0, 0));
+  return circle;
+}
+
 /* Get metamagic description string for display */
 void get_metamagic_description(int metamagic, char *buf, size_t buf_size)
 {

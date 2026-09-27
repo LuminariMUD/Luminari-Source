@@ -86,6 +86,8 @@ static void begin_artificer(struct artificer_fixture *f, int level)
 
 static void end_artificer(struct artificer_fixture *f)
 {
+  while (f->ch.affected != NULL)
+    affect_remove_no_total(&f->ch, f->ch.affected);
   clear_char_event_list(&f->ch);
   event_free_all();
   (void)event_test_select_backend(EVENT_BACKEND_UNINITIALIZED);
@@ -360,6 +362,100 @@ void Test_artificer_device_create_survives_an_overlong_spell_word(CuTest *tc)
   end_artificer(&f);
 
   CuAssertTrue(tc, !started);
+}
+
+/* device create cancel and device repair cancel were refused by the wait device work puts on
+ * every other command, so the work could not be abandoned. Other device commands still wait. */
+void Test_artificer_device_work_can_be_cancelled(CuTest *tc)
+{
+  struct artificer_fixture f;
+  bool created_commands = complete_cmd_info == NULL;
+  char create_cancel[] = "device create cancel";
+  char repair_cancel[] = "device repair cancel";
+  char list_command[] = "device list";
+  bool list_waited, creating, repairing;
+
+  begin_artificer(&f, 1);
+  if (created_commands)
+    create_command_list();
+  attach_mud_event(new_mud_event(eDEVICE_CREATION, &f.ch, "1:1|1|24|0"),
+                   (long)600 * PASSES_PER_SEC);
+  clear_output(&f);
+  command_interpreter(&f.ch, list_command);
+  list_waited = strstr(f.descriptor.output, "too busy devising") != NULL;
+  command_interpreter(&f.ch, create_cancel);
+  creating = char_has_mud_event(&f.ch, eDEVICE_CREATION) != NULL;
+  attach_mud_event(new_mud_event(eDEVICE_REPAIR, &f.ch, "0"), (long)600 * PASSES_PER_SEC);
+  command_interpreter(&f.ch, repair_cancel);
+  repairing = char_has_mud_event(&f.ch, eDEVICE_REPAIR) != NULL;
+  if (created_commands)
+    free_command_list();
+  end_artificer(&f);
+
+  CuAssertTrue(tc, list_waited);
+  CuAssertTrue(tc, !creating);
+  CuAssertTrue(tc, !repairing);
+}
+
+/* Metamagic Science on a wand spends one extra charge per level the metamagic adds; it used to
+ * spend one charge whatever was applied. */
+void Test_metamagic_science_wand_spends_a_charge_per_added_level(CuTest *tc)
+{
+  struct artificer_fixture f;
+  struct obj_data wand;
+  char argument[64];
+  int refused_charges, spent_charges;
+  bool armored;
+
+  begin_artificer(&f, 11);
+  SET_FEAT(&f.ch, FEAT_METAMAGIC_SCIENCE, 1);
+  SET_FEAT(&f.ch, FEAT_EXTEND_SPELL, 1);
+  memset(&wand, 0, sizeof(wand));
+  wand.name = CuMutableString("wand");
+  wand.short_description = CuMutableString("a test wand");
+  GET_OBJ_TYPE(&wand) = ITEM_WAND;
+  GET_OBJ_VAL(&wand, 0) = 5;
+  GET_OBJ_VAL(&wand, 1) = 2;
+  GET_OBJ_VAL(&wand, 2) = 1;
+  GET_OBJ_VAL(&wand, 3) = SPELL_MAGE_ARMOR;
+  strlcpy(argument, "extended zzartificer", sizeof(argument));
+  mag_objectmagic(&f.ch, &wand, argument);
+  refused_charges = GET_OBJ_VAL(&wand, 2);
+  GET_OBJ_VAL(&wand, 2) = 2;
+  strlcpy(argument, "extended zzartificer", sizeof(argument));
+  mag_objectmagic(&f.ch, &wand, argument);
+  spent_charges = GET_OBJ_VAL(&wand, 2);
+  armored = affected_by_spell(&f.ch, SPELL_MAGE_ARMOR);
+  end_artificer(&f);
+
+  CuAssertIntEquals(tc, 1, refused_charges);
+  CuAssertIntEquals(tc, 0, spent_charges);
+  CuAssertTrue(tc, armored);
+}
+
+/* Improved Metamagic Science: skill_check() returns 0 on a failed check, which the code read as
+ * a pass, and stored potions built the DC from an unset spell level (99). The DC is now
+ * 20 + 3 x (circle + metamagic levels): 26 for an extended mage armor. */
+void Test_improved_metamagic_science_potion_check_can_fail_and_pass(CuTest *tc)
+{
+  struct artificer_fixture f;
+  struct char_data *ch = &f.ch;
+  int failed_left, passed_left;
+
+  begin_artificer(&f, 11);
+  SET_FEAT(ch, FEAT_IMPROVED_METAMAGIC_SCIENCE, 1);
+  SET_FEAT(ch, FEAT_EXTEND_SPELL, 1);
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_USE_STORED_CONSUMABLES);
+  STORED_POTIONS(ch, SPELL_MAGE_ARMOR) = 2;
+  do_use_consumable(ch, "extended mage armor", 0, SCMD_QUAFF);
+  failed_left = STORED_POTIONS(ch, SPELL_MAGE_ARMOR);
+  SET_ABILITY(ch, ABILITY_USE_MAGIC_DEVICE, 40);
+  do_use_consumable(ch, "extended mage armor", 0, SCMD_QUAFF);
+  passed_left = STORED_POTIONS(ch, SPELL_MAGE_ARMOR);
+  end_artificer(&f);
+
+  CuAssertIntEquals(tc, 2, failed_left);
+  CuAssertIntEquals(tc, 1, passed_left);
 }
 
 /** An isolated player directory, so saves never touch lib/plrfiles. */

@@ -7023,8 +7023,8 @@ ACMDU(do_unstore)
 
 static void quaff_potion(struct char_data *ch, char *argument)
 {
-  int spellnum = 0, i = 0, spell_level = 99, metamagic = 0;
-  int umd_dc = 0, umd_check = 0;
+  int spellnum = 0, spell_level = 0, metamagic = 0;
+  int umd_dc = 0;
   char buf[MEDIUM_STRING] = {'\0'};
   char metamagic_desc[128] = {'\0'}; /* sufficient for all metamagic names */
   char *temp_argument = argument;
@@ -7061,14 +7061,21 @@ static void quaff_potion(struct char_data *ch, char *argument)
     return;
   }
 
+  spell_level = consumable_spell_circle(ch, spellnum);
+  if (spell_level <= 0 || spell_level > 9)
+  {
+    send_to_char(
+        ch, "There is an error in quaffing that potion. Report to a staff member ERRQUAFF1.\r\n");
+    return;
+  }
+
   /* Check Use Magic Device for metamagic potions */
   if (metamagic > 0)
   {
     get_metamagic_description(metamagic, metamagic_desc, sizeof(metamagic_desc));
     umd_dc = calculate_metamagic_scroll_dc(spell_level, metamagic);
-    umd_check = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, umd_dc);
 
-    if (umd_check < 0)
+    if (!skill_check(ch, ABILITY_USE_MAGIC_DEVICE, umd_dc))
     {
       send_to_char(ch,
                    "You fail to properly activate the metamagic effects of the potion (DC %d Use "
@@ -7080,20 +7087,6 @@ static void quaff_potion(struct char_data *ch, char *argument)
     {
       send_to_char(ch, "You successfully channel metamagic into the potion!\r\n");
     }
-  }
-
-  for (i = 0; i < NUM_CLASSES; i++)
-  {
-    if (!IS_SPELLCASTER_CLASS(i))
-      continue;
-    spell_level = MIN(spell_level, compute_spells_circle(ch, i, spellnum, 0, 0));
-  }
-
-  if (spell_level <= 0 || spell_level > 9)
-  {
-    send_to_char(
-        ch, "There is an error in quaffing that potion. Report to a staff member ERRQUAFF1.\r\n");
-    return;
   }
 
   spell_level = MAX(1, spell_level * 2 - 1);
@@ -7126,8 +7119,8 @@ static void quaff_potion(struct char_data *ch, char *argument)
 }
 static void recite_scroll(struct char_data *ch, char *argument)
 {
-  int spellnum = 0, i = 0, spell_level = 99, metamagic = 0;
-  int umd_dc = 0, umd_check = 0;
+  int spellnum = 0, spell_level = 0, metamagic = 0;
+  int umd_dc = 0;
   char buf[MEDIUM_STRING] = {'\0'}, arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
   char metamagic_desc[128] = {'\0'}; /* sufficient for all metamagic names */
   char *temp_argument = argument;
@@ -7193,14 +7186,21 @@ static void recite_scroll(struct char_data *ch, char *argument)
     return;
   }
 
+  spell_level = consumable_spell_circle(ch, spellnum);
+  if (spell_level <= 0 || spell_level > 9)
+  {
+    send_to_char(
+        ch, "There is an error in reciting that scroll. Report to a staff member ERRRECITE1.\r\n");
+    return;
+  }
+
   /* Check Use Magic Device for metamagic scrolls */
   if (metamagic > 0)
   {
     get_metamagic_description(metamagic, metamagic_desc, sizeof(metamagic_desc));
     umd_dc = calculate_metamagic_scroll_dc(spell_level, metamagic);
-    umd_check = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, umd_dc);
 
-    if (umd_check < 0)
+    if (!skill_check(ch, ABILITY_USE_MAGIC_DEVICE, umd_dc))
     {
       send_to_char(ch,
                    "You fail to properly activate the metamagic effects of the scroll (DC %d Use "
@@ -7212,20 +7212,6 @@ static void recite_scroll(struct char_data *ch, char *argument)
     {
       send_to_char(ch, "You successfully channel metamagic into the scroll!\r\n");
     }
-  }
-
-  for (i = 0; i < NUM_CLASSES; i++)
-  {
-    if (!IS_SPELLCASTER_CLASS(i))
-      continue;
-    spell_level = MIN(spell_level, compute_spells_circle(ch, i, spellnum, 0, 0));
-  }
-
-  if (spell_level <= 0 || spell_level > 9)
-  {
-    send_to_char(
-        ch, "There is an error in reciting that scroll. Report to a staff member ERRRECITE1.\r\n");
-    return;
   }
 
   spell_level += skill_roll(ch, ABILITY_USE_MAGIC_DEVICE) / 3;
