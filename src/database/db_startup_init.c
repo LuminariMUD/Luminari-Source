@@ -53,6 +53,10 @@ int startup_database_init(void)
     return FALSE;
   }
 
+  /* These repair analytics and lookup tables; the server still runs without them. */
+  if (!run_legacy_table_migrations())
+    log("SYSERR: Legacy table migrations did not complete; retrying at next startup");
+
   /* Verify critical systems are functional */
   if (!verify_core_player_tables())
   {

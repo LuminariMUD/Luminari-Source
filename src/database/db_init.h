@@ -93,6 +93,9 @@ int verify_pet_persistence_schema(void);
 /* Widen account_data.password for self-describing adaptive hashes. */
 int run_account_migrations(void);
 
+/* Add columns and indexes that older installs never received. */
+int run_legacy_table_migrations(void);
+
 /* Apply the required lossless help synchronization schema contract. */
 int run_database_migrations(void);
 

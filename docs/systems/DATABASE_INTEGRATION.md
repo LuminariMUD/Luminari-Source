@@ -292,43 +292,25 @@ Binding notes:
 
 ### Schema Versioning
 
-```sql
-CREATE TABLE schema_version (
-    version INT PRIMARY KEY,
-    applied_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    description VARCHAR(255)
-);
+`schema_migrations` records every applied migration by a date-based version
+(`YYYYMMDDNN`). `startup_database_init()` in `src/database/db_startup_init.c`
+first creates any missing table system, then runs the migration groups in
+`src/database/db_init.c` on every boot. `apply_migration()` skips a version
+that is already recorded, runs its single statement, and records it:
 
-INSERT INTO schema_version (version, description)
-VALUES (1, 'Initial schema creation');
-```
+| Group | Versions | On failure |
+| -- | -- | -- |
+| `run_database_migrations()` | help content contract, 2026082401-08 | boot stops |
+| `run_pet_persistence_migrations()` | pet tables, 2026080501-2026091007 | boot stops |
+| `run_account_migrations()` | account password width, 2026091101 | boot stops |
+| `run_legacy_table_migrations()` | `weather_cache`, `player_save_objs`, `hint_usage_log`, 2026092701-03 | logged, retried next boot |
 
-### Migration System
-
-```c
-void check_database_version() {
-    MYSQL_RES *result;
-    MYSQL_ROW row;
-    int current_version = 0;
-
-    if (mysql_query(conn, "SELECT MAX(version) FROM schema_version")) {
-        log("SYSERR: Cannot check database version: %s", mysql_error(conn));
-        return;
-    }
-
-    result = mysql_store_result(conn);
-    if ((row = mysql_fetch_row(result))) {
-        current_version = row[0] ? atoi(row[0]) : 0;
-    }
-    mysql_free_result(result);
-
-    if (current_version < REQUIRED_DB_VERSION) {
-        log("SYSERR: Database version %d is outdated. Required: %d",
-            current_version, REQUIRED_DB_VERSION);
-        exit(1);
-    }
-}
-```
+`CREATE TABLE IF NOT EXISTS` never changes a table that already exists, so a
+column or index added to a create statement reaches existing databases only
+through a new versioned migration. Write each statement so it is idempotent
+(`ADD COLUMN IF NOT EXISTS`, `ADD INDEX IF NOT EXISTS`) and correct for both
+the old and the current table shape. Statements that need a `DELIMITER` block
+belong in `create_database_procedures()`, not in a migration or a `.sql` file.
 
 ### Recent Schema Changes (2025)
 
