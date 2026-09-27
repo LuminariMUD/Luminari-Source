@@ -645,13 +645,6 @@ void init_wilderness_resource_tables(void)
     return;
   }
 
-  if (mysql_query_safe(
-          conn, "ALTER TABLE weather_cache ADD COLUMN IF NOT EXISTS wind_speed INT DEFAULT 5"))
-  {
-    log("SYSERR: Failed to add weather_cache.wind_speed: %s", mysql_error(conn));
-    return;
-  }
-
   /* room_description_settings - Per-room customization options */
   const char *create_room_description_settings =
       "CREATE TABLE IF NOT EXISTS room_description_settings ("
@@ -1686,6 +1679,41 @@ int run_account_migrations(void)
   if (!apply_migration(2026091101, "Widen account password column for adaptive hashes",
                        "ALTER TABLE account_data "
                        "MODIFY COLUMN password VARCHAR(255) NOT NULL"))
+    return FALSE;
+
+  return TRUE;
+}
+
+/* Bring tables created by older schemas up to what the code reads and writes.
+ * Their create statements already carry these columns, but CREATE TABLE IF NOT
+ * EXISTS never touches a table that is already there. */
+int run_legacy_table_migrations(void)
+{
+  if (!init_database_migrations())
+    return FALSE;
+
+  if (!apply_migration(2026092701, "Add weather cache wind speed",
+                       "ALTER TABLE weather_cache "
+                       "ADD COLUMN IF NOT EXISTS wind_speed INT DEFAULT 5"))
+    return FALSE;
+
+  if (!apply_migration(2026092702, "Index player object saves by owner name",
+                       "ALTER TABLE player_save_objs "
+                       "ADD INDEX IF NOT EXISTS idx_name (name)"))
+    return FALSE;
+
+  /* The older table keyed usage by region and has no room or context columns,
+   * so every log_hint_usage() insert failed; its region column is left in place
+   * but no longer required. */
+  if (!apply_migration(2026092703, "Align hint usage log with its writer",
+                       "ALTER TABLE hint_usage_log "
+                       "MODIFY COLUMN IF EXISTS region_vnum INT DEFAULT NULL, "
+                       "ADD COLUMN IF NOT EXISTS room_vnum INT NOT NULL, "
+                       "ADD COLUMN IF NOT EXISTS player_id INT DEFAULT NULL, "
+                       "ADD COLUMN IF NOT EXISTS weather_condition VARCHAR(20), "
+                       "ADD COLUMN IF NOT EXISTS season VARCHAR(10), "
+                       "ADD COLUMN IF NOT EXISTS time_of_day VARCHAR(10), "
+                       "ADD COLUMN IF NOT EXISTS resource_state JSON DEFAULT NULL"))
     return FALSE;
 
   return TRUE;

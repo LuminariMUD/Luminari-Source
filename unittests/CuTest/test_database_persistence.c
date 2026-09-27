@@ -1012,6 +1012,126 @@ void Test_pet_persistence_schema_rejects_incompatible_contract(CuTest *tc)
   CuAssertTrue(tc, !verified);
 }
 
+/* The shapes these tables still have on long-running installs: no wind speed,
+ * no owner-name index, and a region-keyed usage log that rejects the rows
+ * log_hint_usage() writes. */
+static bool create_legacy_table_temporary_schema(MYSQL *connection)
+{
+  const char *queries[] = {
+      "CREATE TEMPORARY TABLE schema_migrations ("
+      "version INT NOT NULL PRIMARY KEY, description VARCHAR(255) NOT NULL, "
+      "applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE weather_cache ("
+      "id INT AUTO_INCREMENT PRIMARY KEY, zone_vnum INT NOT NULL, "
+      "x_coord INT NOT NULL, y_coord INT NOT NULL, weather_type INT NOT NULL, "
+      "weather_value INT NOT NULL, "
+      "cached_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+      "expires_at TIMESTAMP NULL) ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE player_save_objs ("
+      "name VARCHAR(30) NOT NULL, serialized_obj BLOB NOT NULL, "
+      "creation_date TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), "
+      "idnum INT UNSIGNED DEFAULT 0, INDEX idx_idnum (idnum)) ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE hint_usage_log ("
+      "id INT AUTO_INCREMENT PRIMARY KEY, region_vnum INT NOT NULL, "
+      "hint_id INT NOT NULL, used_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP, "
+      "context VARCHAR(255) DEFAULT NULL) ENGINE=InnoDB",
+      "INSERT INTO weather_cache "
+      "(zone_vnum, x_coord, y_coord, weather_type, weather_value) "
+      "VALUES (30, 1, 2, 1, 40)",
+      "INSERT INTO hint_usage_log (region_vnum, hint_id) VALUES (7, 3)",
+      NULL};
+  int index;
+
+  for (index = 0; queries[index] != NULL; index++)
+    if (mysql_query(connection, queries[index]))
+      return false;
+
+  return true;
+}
+
+void Test_legacy_table_migrations_repair_old_shapes_idempotently(CuTest *tc)
+{
+  const char *enabled;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  bool saved_available;
+  bool fixture_created;
+  bool first_migration;
+  bool second_migration;
+  bool hint_rejected_before;
+  bool hint_inserted;
+  int wind_speed;
+  int name_index_columns;
+  int hint_rows;
+  int migration_count;
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+  fixture_created = create_legacy_table_temporary_schema(connection);
+  hint_rejected_before =
+      fixture_created && mysql_query(connection, "INSERT INTO hint_usage_log (hint_id, room_vnum, "
+                                                 "player_id, weather_condition, season, "
+                                                 "time_of_day) VALUES (3, 1000, 0, 'clear', "
+                                                 "'spring', 'day')") != 0;
+  first_migration = fixture_created && run_legacy_table_migrations();
+  /* The same statement log_hint_usage() issues now lands. */
+  hint_inserted =
+      first_migration && mysql_query(connection, "INSERT INTO hint_usage_log (hint_id, room_vnum, "
+                                                 "player_id, weather_condition, season, "
+                                                 "time_of_day) VALUES (3, 1000, 0, 'clear', "
+                                                 "'spring', 'day')") == 0;
+  second_migration = first_migration && run_legacy_table_migrations();
+  wind_speed =
+      query_single_int(connection, "SELECT wind_speed FROM weather_cache WHERE zone_vnum = 30", -1);
+  name_index_columns = -1;
+  if (mysql_query(connection, "SHOW INDEX FROM player_save_objs WHERE Key_name = 'idx_name' "
+                              "AND Column_name = 'name'") == 0)
+  {
+    MYSQL_RES *result = mysql_store_result(connection);
+
+    if (result != NULL)
+    {
+      name_index_columns = (int)mysql_num_rows(result);
+      mysql_free_result(result);
+    }
+  }
+  hint_rows = query_single_int(connection, "SELECT COUNT(*) FROM hint_usage_log", -1);
+  migration_count =
+      query_single_int(connection,
+                       "SELECT COUNT(*) FROM schema_migrations WHERE version BETWEEN 2026092701 "
+                       "AND 2026092703",
+                       -1);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, fixture_created);
+  CuAssertTrue(tc, hint_rejected_before);
+  CuAssertTrue(tc, first_migration);
+  CuAssertTrue(tc, hint_inserted);
+  CuAssertTrue(tc, second_migration);
+  CuAssertIntEquals(tc, 5, wind_speed);
+  CuAssertIntEquals(tc, 1, name_index_columns);
+  CuAssertIntEquals(tc, 2, hint_rows);
+  CuAssertIntEquals(tc, 3, migration_count);
+}
+
 void Test_pet_restore_failure_blocks_snapshot_replacement(CuTest *tc)
 {
   struct pet_save_fixture fixture;
