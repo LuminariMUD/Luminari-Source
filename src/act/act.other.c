@@ -3004,7 +3004,7 @@ ACMD(do_golemrepair)
   /* Make the Arcana skill check */
   dc = get_golem_repair_dc(golem_type, golem_size);
   roll = d20(ch);
-  skill = get_craft_skill_value(ch, ABILITY_ARCANA);
+  skill = get_craft_roll_value(ch, ABILITY_ARCANA);
 
   send_to_char(ch,
                "You begin carefully repairing %s. You rolled %d + %d Arcana = %d vs. DC %d.\r\n",

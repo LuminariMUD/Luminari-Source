@@ -2630,6 +2630,7 @@ void newbieEquipment(struct char_data *ch)
     __attribute__((fallthrough));
   case CLASS_ALCHEMIST:
   case CLASS_SUMMONER:
+  case CLASS_ARTIFICER:
 
     newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);  // leather sleeves
     newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE); // leather leggings

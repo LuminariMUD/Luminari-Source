@@ -30,6 +30,7 @@
 #include "events/actions.h"
 #include "events/domain_event_world.h"
 #include "olc/oasis.h"
+#include "character/abilities.h"
 #include "character/feats.h"
 #include "character/class.h"
 #include "olc/improved-edit.h"
@@ -3246,7 +3247,7 @@ bool is_wearing_tool_for_crafting_ability(struct char_data *ch, int ability)
  * that matches the project type. */
 static int get_craft_check_modifier(struct char_data *ch, int skill)
 {
-  int modifier = get_craft_skill_value(ch, skill) + get_proficient_talent_bonus(ch, skill);
+  int modifier = get_craft_roll_value(ch, skill) + get_proficient_talent_bonus(ch, skill);
 
   if (HAS_FEAT(ch, FEAT_CRAFT_WONDEROUS_ITEM) &&
       GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_MISC)
@@ -5448,7 +5449,7 @@ void craft_refine_complete(struct char_data *ch)
   roll = d20(ch);
   dc = refining_recipes[recipe].dc;
   skill_type = refining_recipes[recipe].skill;
-  skill = get_craft_skill_value(ch, skill_type);
+  skill = get_craft_roll_value(ch, skill_type);
 
   /* Add proficient talent bonus */
   skill += get_proficient_talent_bonus(ch, skill_type);
@@ -5529,7 +5530,7 @@ static void harvest_complete(struct char_data *ch)
   }
 
   roll = d20(ch);
-  skill_roll = get_craft_skill_value(ch, skill);
+  skill_roll = get_craft_roll_value(ch, skill);
 
   /* Add proficient talent bonus */
   skill_roll += get_proficient_talent_bonus(ch, skill);
@@ -6191,6 +6192,13 @@ static void newcraft_refine(struct char_data *ch, const char *argument)
 int get_craft_skill_value(struct char_data *ch, int skill_num)
 {
   return GET_ABILITY(ch, skill_num);
+}
+
+/* The skill a craft, harvest or golem check adds to its d20: ranks plus the artificer bonuses that
+ * compute_ability() adds to other skills. Rank bookkeeping reads get_craft_skill_value(). */
+int get_craft_roll_value(struct char_data *ch, int skill_num)
+{
+  return get_craft_skill_value(ch, skill_num) + artificer_skill_bonus(ch, skill_num);
 }
 
 bool is_refine_ready(struct char_data *ch, bool verbose)
@@ -11086,7 +11094,7 @@ void craft_golem_complete(struct char_data *ch)
 
   roll = d20(ch);
   dc = GET_CRAFT(ch).dc;
-  skill = get_craft_skill_value(ch, ABILITY_ARCANA);
+  skill = get_craft_roll_value(ch, ABILITY_ARCANA);
 
   send_to_char(ch, "You rolled %d + your Arcana skill of %d = total of %d vs. dc %d.\r\n", roll,
                skill, roll + skill, dc);
@@ -11302,7 +11310,7 @@ static void animate_bone_golem(struct char_data *ch, const char *argument)
   }
   dc = get_golem_base_dc(GOLEM_TYPE_BONE, GOLEM_SIZE_MEDIUM);
   roll = d20(ch);
-  skill = get_craft_skill_value(ch, ABILITY_ARCANA);
+  skill = get_craft_roll_value(ch, ABILITY_ARCANA);
   if (roll + skill < dc)
   {
     spend_bone_golem_resources(ch);

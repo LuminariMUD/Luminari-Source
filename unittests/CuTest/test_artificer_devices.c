@@ -10,10 +10,13 @@
 #include "../../src/act/act.h"
 #include "../../src/character/class.h"
 #include "../../src/character/feats.h"
+#include "../../src/character/premadebuilds.h"
+#include "../../src/character/race.h"
 #include "../../src/core/comm.h"
 #include "../../src/core/db.h"
 #include "../../src/core/handler.h"
 #include "../../src/core/interpreter.h"
+#include "../../src/craft/crafting_new.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/events/actions.h"
 #include "../../src/events/mud_event.h"
@@ -105,6 +108,13 @@ static void end_artificer(struct artificer_fixture *f)
 
 static void clear_output(struct artificer_fixture *f)
 {
+  if (f->descriptor.large_outbuf != NULL)
+  {
+    free(f->descriptor.large_outbuf->text);
+    free(f->descriptor.large_outbuf);
+    f->descriptor.large_outbuf = NULL;
+  }
+  f->descriptor.output = f->descriptor.small_outbuf;
   f->descriptor.output[0] = '\0';
   f->descriptor.bufptr = 0;
   f->descriptor.bufspace = SMALL_BUFSIZE - 1;
@@ -456,6 +466,64 @@ void Test_improved_metamagic_science_potion_check_can_fail_and_pass(CuTest *tc)
 
   CuAssertIntEquals(tc, 2, failed_left);
   CuAssertIntEquals(tc, 1, passed_left);
+}
+
+/* Elbow Grease and Jack of All Trades reached compute_ability() only, while craft, harvest and
+ * golem checks read raw ranks. Rank bookkeeping still reads the raw ranks. */
+void Test_artificer_craft_rolls_add_elbow_grease_and_jack_of_all_trades(CuTest *tc)
+{
+  struct artificer_fixture f;
+  int ranks, craft_roll, arcana_roll;
+
+  begin_artificer(&f, 10);
+  SET_FEAT(&f.ch, FEAT_ELBOW_GREASE, 1);
+  SET_FEAT(&f.ch, FEAT_JACK_OF_ALL_TRADES, 1);
+  SET_ABILITY(&f.ch, ABILITY_CRAFT_ALCHEMY, 7);
+  SET_ABILITY(&f.ch, ABILITY_ARCANA, 4);
+  ranks = get_craft_skill_value(&f.ch, ABILITY_CRAFT_ALCHEMY);
+  craft_roll = get_craft_roll_value(&f.ch, ABILITY_CRAFT_ALCHEMY);
+  arcana_roll = get_craft_roll_value(&f.ch, ABILITY_ARCANA);
+  end_artificer(&f);
+
+  CuAssertIntEquals(tc, 7, ranks);
+  CuAssertIntEquals(tc, 7 + 6 + 3, craft_roll);
+  CuAssertIntEquals(tc, 4 + 3, arcana_roll);
+}
+
+/* The premade artificer bought Craft Magical Arms and Armor and Craft Wonderous Item, which the
+ * class grants free at 5 and 4, and a human bought Craft Wonderous Item twice. */
+void Test_artificer_premade_build_skips_feats_the_class_grants(CuTest *tc)
+{
+  struct artificer_fixture f;
+  struct char_data *ch = &f.ch;
+  int level, craft_feats;
+  bool aptitude, initiative, empower;
+
+  if (race_list[RACE_HUMAN].name == NULL)
+    assign_races();
+  if (feat_list[FEAT_MAGICAL_APTITUDE].name == NULL)
+    assign_feats();
+  begin_artificer(&f, 1);
+  GET_REAL_RACE(ch) = RACE_HUMAN;
+  GET_PREMADE_BUILD_CLASS(ch) = CLASS_ARTIFICER;
+  for (level = 1; level <= 3; level++)
+  {
+    GET_LEVEL(ch) = level;
+    CLASS_LEVEL(ch, CLASS_ARTIFICER) = level;
+    advance_premade_build(ch);
+    clear_output(&f);
+  }
+  craft_feats = HAS_REAL_FEAT(ch, FEAT_CRAFT_WONDEROUS_ITEM) +
+                HAS_REAL_FEAT(ch, FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR);
+  aptitude = HAS_REAL_FEAT(ch, FEAT_MAGICAL_APTITUDE) == 1;
+  initiative = HAS_REAL_FEAT(ch, FEAT_IMPROVED_INITIATIVE) == 1;
+  empower = HAS_REAL_FEAT(ch, FEAT_EMPOWER_SPELL) == 1;
+  end_artificer(&f);
+
+  CuAssertIntEquals(tc, 0, craft_feats);
+  CuAssertTrue(tc, aptitude);
+  CuAssertTrue(tc, initiative);
+  CuAssertTrue(tc, empower);
 }
 
 /** An isolated player directory, so saves never touch lib/plrfiles. */

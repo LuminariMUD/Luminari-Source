@@ -583,7 +583,7 @@ static bool harvest_recheck(struct char_data *ch, void *target, void *context)
 /** @brief The rank an attempt rolls with: ability, proficient talent, and the Miner feat. */
 static int harvest_rank(struct char_data *ch, int category, int skill)
 {
-  int rank = get_craft_skill_value(ch, skill) + get_proficient_talent_bonus(ch, skill);
+  int rank = get_craft_roll_value(ch, skill) + get_proficient_talent_bonus(ch, skill);
 
   if ((category == RESOURCE_MINERALS || category == RESOURCE_STONE ||
        category == RESOURCE_CRYSTAL) &&

@@ -16,5 +16,7 @@ int compute_ability(struct char_data *ch, int ability_num);
 /* Sep 2026 racial innates: terrain stealth and forest sight bonuses */
 int racial_terrain_ability_bonus(struct char_data *ch, int ability_num);
 int compute_ability_full(struct char_data *ch, int ability_num, bool recursive);
+/* Artificer class bonuses: Elbow Grease on craft and harvest skills, Jack of All Trades on all */
+int artificer_skill_bonus(struct char_data *ch, int ability_num);
 
 #endif /* LUMINARI_CHARACTER_ABILITIES_H */

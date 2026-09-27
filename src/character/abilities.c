@@ -71,6 +71,33 @@ int racial_terrain_ability_bonus(struct char_data *ch, int ability_num)
   return 0;
 }
 
+/* Craft rolls read raw ranks, so they add this themselves (get_craft_roll_value()). */
+int artificer_skill_bonus(struct char_data *ch, int ability_num)
+{
+  int artificer_level = CLASS_LEVEL(ch, CLASS_ARTIFICER);
+  int bonus = 0;
+
+  if (HAS_FEAT(ch, FEAT_ELBOW_GREASE) && is_crafting_skill(ability_num))
+  {
+    if (artificer_level >= 10)
+      bonus += 6;
+    else if (artificer_level >= 6)
+      bonus += 4;
+    else if (artificer_level >= 1)
+      bonus += 2;
+  }
+
+  /* Jack of All Trades line: Exemplar (half artificer level) replaces Improved (+6), which
+   * replaces the base feat (+3) */
+  if (HAS_FEAT(ch, FEAT_EXEMPLAR))
+    bonus += artificer_level / 2;
+  else if (HAS_FEAT(ch, FEAT_IMPROVED_JACK_OF_ALL_TRADES))
+    bonus += 6;
+  else if (HAS_FEAT(ch, FEAT_JACK_OF_ALL_TRADES))
+    bonus += 3;
+  return bonus;
+}
+
 int compute_ability(struct char_data *ch, int abilityNum)
 {
   return compute_ability_full(ch, abilityNum, false);
@@ -127,16 +154,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value += 1;
   }
 
-  if (HAS_FEAT(ch, FEAT_ELBOW_GREASE) && is_crafting_skill(abilityNum))
-  {
-    int artificer_level = CLASS_LEVEL(ch, CLASS_ARTIFICER);
-    if (artificer_level >= 10)
-      value += 6;
-    else if (artificer_level >= 6)
-      value += 4;
-    else if (artificer_level >= 1)
-      value += 2;
-  }
+  value += artificer_skill_bonus(ch, abilityNum);
 
   if (HAS_FEAT(ch, FEAT_BG_SAILOR) && abilityNum == ABILITY_CRAFT_FISHING)
     value += 5;
@@ -153,24 +171,6 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value += SONG_AFF_VAL(ch);
   if (HAS_FEAT(ch, FEAT_ABLE_LEARNER))
     value += 1;
-
-  /* Jack of All Trades feat bonuses */
-  if (HAS_FEAT(ch, FEAT_EXEMPLAR))
-  {
-    /* Exemplar: +1/2 artificer level to all skills */
-    int artificer_level = CLASS_LEVEL(ch, CLASS_ARTIFICER);
-    value += artificer_level / 2;
-  }
-  else if (HAS_FEAT(ch, FEAT_IMPROVED_JACK_OF_ALL_TRADES))
-  {
-    /* Improved Jack of All Trades: +6 to all skills */
-    value += 6;
-  }
-  else if (HAS_FEAT(ch, FEAT_JACK_OF_ALL_TRADES))
-  {
-    /* Jack of All Trades: +3 to all skills */
-    value += 3;
-  }
 
   if (HAS_SKILL_FEAT(ch, abilityNum, feat_to_skfeat(FEAT_SKILL_FOCUS)))
     value += 3;
