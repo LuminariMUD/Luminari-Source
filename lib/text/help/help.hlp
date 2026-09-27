@@ -27954,6 +27954,9 @@ mental focus unless the task at hand was of notable interest.
 	WTinker Focus:	n        - +2 to concentration and use magic device skills.
 	WArtificer's Lore:	n    - +2 to lore and appraise skills.
 	WTinker:	n              - Temporarily improve weapons and armor
+	WGnomish Tinkering:	n   - +1 use per artificer device, -2 Use Magic Device DC.
+	WBrilliance and Blunder:	n - 4 spells per artificer device, but devices
+                          explode when they break.
 	n
 	G>Ability Adjustments:  	W +2 Int, +1 Con  	n
 	n

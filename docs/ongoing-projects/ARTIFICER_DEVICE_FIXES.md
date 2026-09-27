@@ -66,6 +66,16 @@ defect with file and line; item numbers below are the work item's.
   `work-item-4-artificer-help`) to the dev help DB, then `help.hlp` rendered from it; the
   snapshot verified `file_matches`. New `class-artificer`; `devices` and `gnomes` rewritten;
   `class-roster` lost the two artificer keywords. Production help is not synced (no request).
-- Item 9 (starting gear) has no unit test (object prototypes are not loaded in CuTest); live
-  check.
-- [ ] Full `make test`, live check on 4100, push, MR opened with `Closes #4`.
+- Item 9 (starting gear) has no unit test (object prototypes are not loaded in CuTest).
+- Full `make test` passed (1855 CuTest tests plus the other suites) at `a6d9eda29`.
+- Live check 2026-09-27 on 4100 in a private network namespace with a disposable MariaDB (the
+  main checkout's dev server holds host 4100; recipe in the `live-mud-check-in-namespace`
+  memory; scripts were in `/tmp/claude-1000/wi4`). A new human premade artificer got the
+  alchemist kit and Magical Aptitude plus Improved Initiative, no craft feats. Raised to
+  artificer 20 by pfile edit: `device add 1 haste` (3rd circle) and `device add 1 stone skin`
+  (4th) succeed, `device info` shows circles 1/3/4, a 4-spell create is refused, `device list`
+  during a build shows the wait message naming the cancel, `device create cancel` works, and
+  `help class-artificer` / `help device` show the new entries. The spell is "stone skin".
+- clang-tidy gate (`run.py --job quality-clang-tidy`) passed at `867e55502` after two findings
+  were fixed.
+- [ ] Full local matrix, push, MR opened with `Closes #4`.
