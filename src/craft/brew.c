@@ -587,7 +587,7 @@ static bool can_brew_spell(struct char_data *ch, int spell_num)
       return FALSE;
     }
   }
-  else
+  else if (!artificer_can_emulate_spell(ch, spell_num))
   {
     /* Non-alchemists must be able to cast the spell */
     bool can_cast = FALSE;
@@ -731,6 +731,10 @@ struct obj_data *create_potion(int spell_num, struct char_data *ch)
     caster_level = CLASS_LEVEL(ch, CLASS_ALCHEMIST);
   }
 
+  /* An artificer emulating the spell brews at its artificer level, as its devices cast */
+  if (HAS_FEAT(ch, FEAT_ARTIFICER_ITEM_CREATION))
+    caster_level = MAX(caster_level, CLASS_LEVEL(ch, CLASS_ARTIFICER));
+
   /* Create a new object */
   potion = create_obj();
   if (!potion)
@@ -813,6 +817,10 @@ struct obj_data *create_multi_spell_potion(int *spell_nums, int num_spells, stru
   {
     caster_level = CLASS_LEVEL(ch, CLASS_ALCHEMIST);
   }
+
+  /* An artificer emulating the spell brews at its artificer level, as its devices cast */
+  if (HAS_FEAT(ch, FEAT_ARTIFICER_ITEM_CREATION))
+    caster_level = MAX(caster_level, CLASS_LEVEL(ch, CLASS_ARTIFICER));
 
   /* Create a new object */
   potion = create_obj();
@@ -946,7 +954,8 @@ ACMD(do_brew)
     send_to_char(ch, "\r\nPotion creation requires:\r\n");
     send_to_char(ch, "- Elemental motes (type depends on spell school)\r\n");
     send_to_char(ch, "- Gold (amount depends on spell level)\r\n");
-    send_to_char(ch, "- Ability to cast the spell OR be an alchemist\r\n");
+    send_to_char(ch, "- Ability to cast the spell OR be an alchemist OR be an artificer\r\n"
+                     "  with Artificer Item Creation (spells it could put in a device)\r\n");
     send_to_char(ch, "- Alchemy skill check (DC based on highest spell level)\r\n");
     send_to_char(ch, "\r\nMultiple spells on one potion:\r\n");
     send_to_char(ch, "- 2 spells: 1.5x total cost\r\n");

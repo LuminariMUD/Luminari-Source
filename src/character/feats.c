@@ -5867,12 +5867,11 @@ void assign_feats(void)
         "per day.");
 
   feato(FEAT_ARTIFICER_ITEM_CREATION, "artificer item creation", TRUE, FALSE, FALSE,
-        FEAT_TYPE_CLASS_ABILITY,
-        "Enhanced ability to create magic items without prerequisite spells.",
+        FEAT_TYPE_CLASS_ABILITY, "Brew potions of spells you could put in a device.",
         "An artificer's invention ability expands to include the creation of true magic items, "
-        "even if the artificer does not "
-        "have access to the prerequisite spells. The artificer must make a Craft check to emulate "
-        "each required spell.");
+        "even if the artificer does not have access to the prerequisite spells. The artificer can "
+        "brew potions of any wizard or cleric spell of a circle it can put in a device, at its "
+        "artificer level; the brew's alchemy check emulates the spell.");
 
   feato(FEAT_SALVAGE, "salvage", TRUE, TRUE, FALSE, FEAT_TYPE_CRAFT,
         "Ability to salvage coins, materials and motes from items.",
@@ -5921,16 +5920,16 @@ void assign_feats(void)
   feato(FEAT_CONSTRUCT_STONE_GOLEM, "construct stone golem", TRUE, FALSE, FALSE,
         FEAT_TYPE_CLASS_ABILITY,
         "Craft and command a stone golem built from quarried stone and metals.",
-        "At 20th level, the artificer can build a stone golem. Constructing it consumes "
+        "At 15th level, the artificer can build a stone golem. Constructing it consumes "
         "significant quantities of stone "
         "and metal reagents and binds the construct to the artificer's commands.");
 
   feato(FEAT_CONSTRUCT_IRON_GOLEM, "construct iron golem", TRUE, TRUE, FALSE,
         FEAT_TYPE_CLASS_ABILITY, "Craft and command a powerful iron golem guardian.",
-        "Alows one to forge an iron golem. This process requires large amounts of iron and refined "
-        "materials "
-        "and produces a durable construct that answers only to its creator. Artificers egt this "
-        "feat for free at level 30.");
+        "Allows one to forge an iron golem. This process requires large amounts of iron and "
+        "refined materials "
+        "and produces a durable construct that answers only to its creator. Artificers get this "
+        "feat for free at level 20.");
   feat_prereq_ability(FEAT_CONSTRUCT_IRON_GOLEM, ABILITY_ARCANA, 26);
   feat_prereq_spellcasting(FEAT_CONSTRUCT_IRON_GOLEM, CASTING_TYPE_ARCANE, 3, 9);
   feat_prereq_feat(FEAT_CONSTRUCT_IRON_GOLEM, FEAT_CONSTRUCT_STONE_GOLEM, 1);

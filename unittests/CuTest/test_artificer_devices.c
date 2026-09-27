@@ -16,6 +16,7 @@
 #include "../../src/core/db.h"
 #include "../../src/core/handler.h"
 #include "../../src/core/interpreter.h"
+#include "../../src/craft/brew.h"
 #include "../../src/craft/crafting_new.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/events/actions.h"
@@ -524,6 +525,78 @@ void Test_artificer_premade_build_skips_feats_the_class_grants(CuTest *tc)
   CuAssertTrue(tc, aptitude);
   CuAssertTrue(tc, initiative);
   CuAssertTrue(tc, empower);
+}
+
+/* Construct Iron Golem was granted at artificer 30 on a class that stops at 20. Every artificer
+ * grant must be reachable; the golems come at 10, 15 and 20. */
+void Test_artificer_class_feats_are_reachable(CuTest *tc)
+{
+  struct class_feat_assign *assign;
+  int stone = 0, iron = 0, unreachable = 0;
+
+  if (class_list[CLASS_ARTIFICER].name == NULL)
+    load_class_list();
+  for (assign = class_list[CLASS_ARTIFICER].featassign_list; assign; assign = assign->next)
+  {
+    if (assign->level_received > class_list[CLASS_ARTIFICER].max_level)
+      unreachable = assign->feat_num;
+    if (assign->feat_num == FEAT_CONSTRUCT_STONE_GOLEM)
+      stone = assign->level_received;
+    if (assign->feat_num == FEAT_CONSTRUCT_IRON_GOLEM)
+      iron = assign->level_received;
+  }
+
+  CuAssertIntEquals(tc, 0, unreachable);
+  CuAssertIntEquals(tc, 15, stone);
+  CuAssertIntEquals(tc, 20, iron);
+}
+
+/* Brilliance and Blunder belonged to the retired Dragonlance gnome and no race granted it; gnomes
+ * now get it beside Gnomish Tinkering. */
+void Test_gnomes_get_brilliance_and_blunder(CuTest *tc)
+{
+  struct race_feat_assign *assign;
+  int level = 0;
+
+  if (race_list[RACE_GNOME].name == NULL)
+    assign_races();
+  for (assign = race_list[RACE_GNOME].featassign_list; assign; assign = assign->next)
+    if (assign->feat_num == FEAT_BRILLIANCE_AND_BLUNDER)
+      level = assign->level_received;
+
+  CuAssertIntEquals(tc, 1, level);
+}
+
+/* Artificer Item Creation was checked nowhere. An artificer with it brews any wizard or cleric
+ * spell of a circle it can put in a device, and no higher. */
+void Test_artificer_item_creation_brews_device_spells(CuTest *tc)
+{
+  struct artificer_fixture f;
+  bool without_feat, armor, stoneskin, skill, armor_refused, stoneskin_refused;
+  char armor_command[MAX_INPUT_LENGTH], stoneskin_command[MAX_INPUT_LENGTH];
+
+  begin_artificer(&f, 5);
+  snprintf(armor_command, sizeof(armor_command), "'%s'", spell_info[SPELL_MAGE_ARMOR].name);
+  snprintf(stoneskin_command, sizeof(stoneskin_command), "'%s'", spell_info[SPELL_STONESKIN].name);
+  without_feat = artificer_can_emulate_spell(&f.ch, SPELL_MAGE_ARMOR);
+  SET_FEAT(&f.ch, FEAT_ARTIFICER_ITEM_CREATION, 1);
+  armor = artificer_can_emulate_spell(&f.ch, SPELL_MAGE_ARMOR);
+  stoneskin = artificer_can_emulate_spell(&f.ch, SPELL_STONESKIN);
+  skill = artificer_can_emulate_spell(&f.ch, SKILL_KICK);
+  clear_output(&f);
+  do_brew(&f.ch, armor_command, 0, 0);
+  armor_refused = strstr(f.descriptor.output, "know how to cast") != NULL;
+  clear_output(&f);
+  do_brew(&f.ch, stoneskin_command, 0, 0);
+  stoneskin_refused = strstr(f.descriptor.output, "know how to cast") != NULL;
+  end_artificer(&f);
+
+  CuAssertTrue(tc, !without_feat);
+  CuAssertTrue(tc, armor);
+  CuAssertTrue(tc, !stoneskin);
+  CuAssertTrue(tc, !skill);
+  CuAssertTrue(tc, !armor_refused);
+  CuAssertTrue(tc, stoneskin_refused);
 }
 
 /** An isolated player directory, so saves never touch lib/plrfiles. */

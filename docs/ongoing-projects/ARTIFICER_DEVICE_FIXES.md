@@ -42,8 +42,11 @@ defect with file and line; item numbers below are the work item's.
     `compute_ability()` and by the craft roll sites; rank bookkeeping keeps raw ranks.
 08. Starting gear (9) with the alchemist kit; premade build (22) buys Magical Aptitude,
     Improved Initiative (human) and Empower Spell instead of the free craft feats.
-09. Design items 10 (Iron Golem level), 11 (Brilliance and Blunder), 23 (Artificer Item
-    Creation): pending the user's decision, see below.
+09. Design items, decided by the user 2026-09-27: Construct Stone Golem moves to artificer 15
+    and Construct Iron Golem to 20 (10); Brilliance and Blunder becomes a Gnome racial next to
+    Gnomish Tinkering, existing gnomes get it only on respec (11); Artificer Item Creation lets an
+    artificer brew wizard/cleric spells up to its device circle cap, brewing's alchemy check being
+    the emulation roll (23).
 10. Help (24): CLASS-ARTIFICER entry and a real DEVICE entry, in `help.hlp` and the dev help DB.
 
 ## Decisions

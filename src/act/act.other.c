@@ -11966,6 +11966,27 @@ static bool device_assign_levels(const int *spell_nums, int num_spells,
   return best_total >= 0;
 }
 
+/* The highest circle an artificer level can put in a device. */
+static int artificer_max_device_circle(int artificer_level)
+{
+  if (artificer_level >= 11)
+    return 4;
+  if (artificer_level >= 5)
+    return 3;
+  if (artificer_level >= 3)
+    return 2;
+  return artificer_level >= 1 ? 1 : 0;
+}
+
+/* Artificer Item Creation: brewing may emulate any spell the artificer could put in a device. */
+bool artificer_can_emulate_spell(struct char_data *ch, int spellnum)
+{
+  int circle = device_level_circle(device_spell_level(spellnum));
+
+  return HAS_FEAT(ch, FEAT_ARTIFICER_ITEM_CREATION) && circle >= 1 &&
+         circle <= artificer_max_device_circle(CLASS_LEVEL(ch, CLASS_ARTIFICER));
+}
+
 static const char *circle_ordinal(int circle)
 {
   return circle == 1 ? "st" : circle == 2 ? "nd" : circle == 3 ? "rd" : "th";
@@ -12077,15 +12098,7 @@ ACMDU(do_device)
     return;
   }
 
-  /* Determine max spell level available */
-  if (artificer_level >= 11)
-    max_spell_level = 4; /* 4th level spells (7th assignment level) */
-  else if (artificer_level >= 5)
-    max_spell_level = 3; /* 3rd level spells (5th assignment level) */
-  else if (artificer_level >= 3)
-    max_spell_level = 2; /* 2nd level spells (3rd assignment level) */
-  else
-    max_spell_level = 1; /* 1st level spells only */
+  max_spell_level = artificer_max_device_circle(artificer_level);
 
   remaining_args = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   one_argument(remaining_args, arg3, sizeof(arg3));
