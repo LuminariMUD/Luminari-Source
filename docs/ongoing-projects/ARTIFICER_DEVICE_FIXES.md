@@ -1,6 +1,6 @@
 # Artificer Device Fixes (work item 4)
 
-Status: in progress. Work item: https://gitlab.com/max757/Luminari-Source/-/work_items/4.
+Status: done, awaiting merge. Work item: https://gitlab.com/max757/Luminari-Source/-/work_items/4.
 Branch `4-artificer-device-add-rejects-3rd-and-4th-circle-spells`, worktree
 `../Luminari-Source-work-item-4`, based on master `b7152a7d9`. The work item text lists every
 defect with file and line; item numbers below are the work item's.
@@ -78,4 +78,7 @@ defect with file and line; item numbers below are the work item's.
   `help class-artificer` / `help device` show the new entries. The spell is "stone skin".
 - clang-tidy gate (`run.py --job quality-clang-tidy`) passed at `867e55502` after two findings
   were fixed.
-- [ ] Full local matrix, push, MR opened with `Closes #4`.
+- Full local matrix (`scripts/ci/local/run.py --base gitlab/master`, 33 jobs) passed at
+  `a814d7cdc` after a GCC `-Wformat-truncation` fix in the test (`2eb1c6563`).
+- Remaining: merge the MR. Production help is not synced; run the help-sync skill after merge if
+  wanted. Existing gnomes get Brilliance and Blunder only on respec.
