@@ -57,10 +57,15 @@ defect with file and line; item numbers below are the work item's.
 
 ## Progress
 
-- Steps 1-4 done in one commit (the code interleaves): all ten tests in
-  `test_artificer_devices.c` pass; 8 of them fail on the old code, the other two
+- Steps 1-4: commit `b5f07a3e8`. 8 of the first 10 tests fail on the old code; the other two
   (overlong spell word, level 25 table row) are memory-safety cases ASan catches.
 - Item 3 (device use after target dies) has no unit test: it needs a real kill, which the
   CuTest fixtures cannot do cheaply. Covered by the live check.
-- [ ] 5 [ ] 6 [ ] 7 [ ] 8 [ ] 9 [ ] 10
-- [ ] Full `make test`, live check on 4100, MR opened with `Closes #4`.
+- Steps 5-6: commit `54a3e42d8`; steps 7-8: `4313adaf8`; step 9: `e4946d92e`.
+- Step 10: help written with the help-sync engine's delta writer (plan id
+  `work-item-4-artificer-help`) to the dev help DB, then `help.hlp` rendered from it; the
+  snapshot verified `file_matches`. New `class-artificer`; `devices` and `gnomes` rewritten;
+  `class-roster` lost the two artificer keywords. Production help is not synced (no request).
+- Item 9 (starting gear) has no unit test (object prototypes are not loaded in CuTest); live
+  check.
+- [ ] Full `make test`, live check on 4100, push, MR opened with `Closes #4`.
