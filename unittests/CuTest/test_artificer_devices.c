@@ -360,11 +360,11 @@ void Test_artificer_device_create_survives_an_overlong_spell_word(CuTest *tc)
 {
   struct artificer_fixture f;
   char argument[MAX_INPUT_LENGTH];
-  char name[MAX_INPUT_LENGTH];
+  char name[401];
   bool started;
 
-  memset(name, 'm', 400);
-  name[400] = '\0';
+  memset(name, 'm', sizeof(name) - 1);
+  name[sizeof(name) - 1] = '\0';
   CuAssertIntEquals(tc, -1, find_skill_num(name));
   begin_artificer(&f, 20);
   snprintf(argument, sizeof(argument), "create %s", name);
