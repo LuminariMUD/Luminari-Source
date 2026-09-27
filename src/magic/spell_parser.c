@@ -485,7 +485,8 @@ const char *skill_name(int num)
 int find_skill_num(char *name)
 {
   int skindex, ok;
-  char *temp, *temp2;
+  char *temp;
+  const char *temp2;
   char first[MEDIUM_STRING] = {'\0'}, first2[MEDIUM_STRING] = {'\0'},
        tempbuf[MEDIUM_STRING] = {'\0'};
 
@@ -506,13 +507,13 @@ int find_skill_num(char *name)
     ok = TRUE;
     strlcpy(tempbuf, spell_info[skindex].name, sizeof(tempbuf)); /* strlcpy: OK */
     temp = any_one_arg(tempbuf, first);
-    temp2 = any_one_arg(name, first2);
+    temp2 = any_one_arg_c(name, first2, sizeof(first2));
     while (*first && *first2 && ok)
     {
       if (!is_abbrev(first2, first))
         ok = FALSE;
       temp = any_one_arg(temp, first);
-      temp2 = any_one_arg(temp2, first2);
+      temp2 = any_one_arg_c(temp2, first2, sizeof(first2));
     }
 
     if (ok && !*first2 && !*first)
@@ -537,7 +538,8 @@ int find_skill_num(char *name)
 int find_ability_num(char *name)
 {
   int skindex, ok;
-  char *temp, *temp2;
+  char *temp;
+  const char *temp2;
   char first[MEDIUM_STRING] = {'\0'}, first2[MEDIUM_STRING] = {'\0'},
        tempbuf[MEDIUM_STRING] = {'\0'};
 
@@ -561,13 +563,13 @@ int find_ability_num(char *name)
     ok = TRUE;
     strlcpy(tempbuf, ability_names[skindex], sizeof(tempbuf));
     temp = any_one_arg(tempbuf, first);
-    temp2 = any_one_arg(name, first2);
+    temp2 = any_one_arg_c(name, first2, sizeof(first2));
     while (*first && *first2 && ok)
     {
       if (!is_abbrev(first2, first))
         ok = FALSE;
       temp = any_one_arg(temp, first);
-      temp2 = any_one_arg(temp2, first2);
+      temp2 = any_one_arg_c(temp2, first2, sizeof(first2));
     }
 
     if (ok && !*first2 && !*first)
