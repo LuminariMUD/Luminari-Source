@@ -461,6 +461,19 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
                 ignore_errors=True,
             )
 
+    def test_verify_accepts_stored_keywords_in_authored_case(self):
+        plan, _ = self.build_plan()
+        apply_plan_to_endpoint(self.root, "development", plan)
+        connection = self.config.connect(autocommit=True)
+        with connection.cursor() as cursor:
+            cursor.execute("UPDATE help_keywords SET keyword='Alpha' WHERE help_tag='alpha'")
+        connection.close()
+        verification = verify_endpoint(
+            self.root, "development", Catalog.from_dict(plan["candidate"])
+        )
+        self.assertIn("alpha", [check["tag"] for check in verification["lookup_checks"]])
+        self.assertTrue(all(check["passed"] for check in verification["lookup_checks"]))
+
     def test_apply_verify_idempotence_unrelated_tables_and_rollback(self):
         plan, before = self.build_plan(self.changed_candidate)
         first = apply_plan_to_endpoint(self.root, "development", plan)
