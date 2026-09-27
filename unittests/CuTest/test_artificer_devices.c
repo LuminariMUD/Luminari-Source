@@ -348,7 +348,7 @@ void Test_artificer_device_explosion_counts_device_circles(CuTest *tc)
     GET_HIT(&f.ch) = 1;
     run_device(&f, "use 1");
   }
-  position = GET_POS(&f.ch);
+  position = (unsigned char)GET_POS(&f.ch);
   end_artificer(&f);
 
   CuAssertTrue(tc, lost >= 1 && lost <= 6);

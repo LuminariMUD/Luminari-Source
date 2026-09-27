@@ -11947,12 +11947,13 @@ static bool device_assign_levels(const int *spell_nums, int num_spells,
 
     for (i = 0; i < num_spells && fits; i++)
     {
-      levels[i] = options[i][(mask >> i) & 1];
+      int higher = (mask >> i) & 1;
+
+      levels[i] = options[i][higher];
       circle = device_level_circle(levels[i]);
-      if (((mask >> i) & 1) && levels[i] == options[i][0])
-        fits = FALSE; /* the same choice as the lower level, already tried */
-      else if (circle < 1 || circle > DEVICE_CIRCLES ||
-               used[circle - 1] + ++taken[circle - 1] > max_circles[circle - 1])
+      /* A higher choice equal to the lower one repeats a combination already tried */
+      if ((higher && levels[i] == options[i][0]) || circle < 1 || circle > DEVICE_CIRCLES ||
+          used[circle - 1] + ++taken[circle - 1] > max_circles[circle - 1])
         fits = FALSE;
       total += levels[i];
     }
