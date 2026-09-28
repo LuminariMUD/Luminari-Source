@@ -1255,6 +1255,7 @@ void assign_races(void)
   feat_race_assignment(RACE_GNOME, FEAT_TINKER_FOCUS, 1, N);
   feat_race_assignment(RACE_GNOME, FEAT_GNOME_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_GNOME, FEAT_GNOMISH_TINKERING, 1, N);
+  feat_race_assignment(RACE_GNOME, FEAT_BRILLIANCE_AND_BLUNDER, 1, N);
   feat_race_assignment(RACE_ROCK_GNOME, FEAT_ROCK_GNOME_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_ROCK_GNOME, FEAT_ARTIFICERS_LORE, 1, N);
   feat_race_assignment(RACE_ROCK_GNOME, FEAT_TINKER, 1, N);

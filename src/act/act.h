@@ -845,6 +845,7 @@ int perform_tailsweep(struct char_data *ch);
 int perform_dragonbite(struct char_data *ch, struct char_data *vict);
 void perform_children_of_the_night(struct char_data *ch);
 void perform_save(struct char_data *ch, int mode);
+bool artificer_can_emulate_spell(struct char_data *ch, int spellnum);
 
 /* do_gen_tog */
 ACMD_DECL(do_gen_tog);

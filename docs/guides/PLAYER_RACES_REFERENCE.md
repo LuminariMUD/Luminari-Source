@@ -292,8 +292,8 @@ Adjustment, Stout Halfling Racial Adjustment, Stout Resilience.
 ### Rock Gnome
 
 Infravision, Combat Training Vs Giants, Resistance To Illusions, Illusion
-Affinity, Tinker Focus, Gnome Racial Adjustment, Gnomish Tinkering, Rock Gnome
-Racial Adjustment, Artificers Lore, Tinker.
+Affinity, Tinker Focus, Gnome Racial Adjustment, Gnomish Tinkering, Brilliance
+And Blunder, Rock Gnome Racial Adjustment, Artificers Lore, Tinker.
 
 ### Forest Gnome
 

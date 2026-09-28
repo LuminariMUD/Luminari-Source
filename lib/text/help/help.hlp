@@ -6296,6 +6296,62 @@ archers can fell even the most powerful foes with a single, deadly shot.
 each additional level	n
 	n
 #0
+ARTIFICER ARTIFICER-CLASS CLASS-ARTIFICER
+
+	m-----------------------------------------------------------------	n
+	m>Description:	n
+	n
+
+Artificers fuse magic and technology. They cast no spells of their own:
+their Weird Science builds devices that release wizard and cleric spells,
+and they craft magic items, brew potions and build golems.
+	n
+	m>Class Abilities:	W Weird Science devices, Metamagic Science, golems	n
+	n
+	m>Alignment:     	W Any 	n
+	m>Hit Die:       	W d6 	n
+	m>Base Attack:   	W Medium 	n
+	m>Good Saves:    	W Fortitude, Will 	n
+	m>Skill Points:  	W 5 + Int modifier per level 	n
+	m>Class Levels:  	W 20 	n
+	m>Proficiencies:	n
+	WSimple Weapon Proficiency	n
+	WLight Armor, Shields	n
+	n
+	m>Class Features:	n
+ 1  Weird Science, Artificer's Lore, Elbow Grease, Jack of All Trades
+ 2  Scribe Scroll, Artificer Item Creation
+ 3  Brew Potion
+ 4  Craft Wonderous Item
+ 5  Craft Magical Arms and Armor, Salvage
+ 6  Metamagic Science
+ 7  Craft Wand
+ 9  Craft Rod
+10  Construct Wood Golem
+11  Improved Metamagic Science
+12  Craft Staff
+13  Improved Jack of All Trades
+14  Forge Ring
+15  Construct Stone Golem
+20  Exemplar, Construct Iron Golem
+	n
+	m>Notes:	n
+Devices hold wizard or cleric spells up to 1st circle at level 1, 2nd at
+3, 3rd at 5 and 4th at 11, within a number of spell slots per circle
+(see DEVICE). Elbow Grease adds 2, 4 or 6 (levels 1, 6, 10) to craft and
+harvest checks. Jack of All Trades adds 3 to every skill, Improved Jack of
+All Trades 6, and Exemplar half the artificer level instead. Metamagic
+Science applies metamagic to wands and staves for one extra charge per
+level it adds; Improved Metamagic Science does it for scrolls and potions
+with a Use Magic Device check of 20 + 3 x the modified spell level.
+Artificer Item Creation lets you brew potions of any spell you could put
+in a device. Gnomes add a use per device (Gnomish Tinkering) and a fourth
+spell per device, at the price of devices that explode when they break
+(Brilliance and Blunder).
+	n
+	YSee also:	n DEVICE CLASSES USE-MAGIC-DEVICE
+	n
+#0
 CLASS-BUILD CLASS-SUGGESTION
 
 The goal of the CLASS-BUILD project is to take community based feat and
@@ -6412,7 +6468,7 @@ into the psionic powers that define the psion.
 	nThe class is playable, but there may be bugs and changes made to the class.
 	n
 #0
-ARTIFICER-CLASS CLASS-ARTIFICER CLASS-FEATS-SUMMONER CLASS-INFO-NECROMANCER CLASS-INFO-SUMMONER CLASS-ROSTER CLASSES DRAGON-KNIGHT THIEF WIZARD-CLASS WIZARDS
+CLASS-FEATS-SUMMONER CLASS-INFO-NECROMANCER CLASS-INFO-SUMMONER CLASS-ROSTER CLASSES DRAGON-KNIGHT THIEF WIZARD-CLASS WIZARDS
 
 Topic  : Character Classes Directory
 Usage  : help <class name>
@@ -9806,17 +9862,46 @@ If you are interested in helping make this change, please let the lead developer
 #0
 ARTIFICER-DEVICES DEVICE DEVICE-CREATE DEVICES TOTAL-DEVICE
 
-Topic  : Artificer Magical Devices
-Usage  : device create <device-type>
-         device
+Topic  : Artificer Devices (Weird Science)
+Usage  : device <subcommand>
 
-Artificers can construct temporary and permanent magical mechanical devices, infusions,
-and automations by combining components, crafting skills, and arcane blueprints.
+Artificers build devices that release wizard and cleric spells. A device
+holds up to 3 spells (4 with Brilliance and Blunder), all violent or all
+non-violent. The circle cap is 1st at artificer level 1, 2nd at 3, 3rd at
+5 and 4th at 11, and each circle has a number of spell slots by level. A
+spell on both lists takes its lower circle unless another circle's slot
+lets the whole device fit.
 
 COMMANDS:
-- device create : Begins assembly of an alchemical or technological device.
+  device create <spell> [spell] [spell]   Build a device. Quote multi-word
+                                          spells: device create "mage armor"
+  device create cancel                    Abandon the device being built
+  device add <#> <spell>                  Add a spell to a device
+  device use <#> [target]                 Use a device; violent devices aim
+                                          at your opponent, others at you
+  device list, device info <#>            Show your devices
+  device rename <#> <name>                Rename a device
+  device repair <#>                       Repair a broken or unstable device
+  device repair cancel                    Stop repairing
+  device destroy <#>                      Destroy a device (asks for a code)
+  device spells <arcane|divine>           Spells you can use, by circle
+  device usage                            Spell slots used per circle
+  device cooldown                         Time before you may create again
 
-See also: ARTIFICER, CRAFT, USE-MAGIC-DEVICE
+Building takes 30 seconds per spell level. Repair takes 30 seconds plus 10
+per point of DC penalty, and 20 more if the device is broken. While you
+build or repair, most commands wait; you can still talk, look, check your
+score and help, or cancel.
+
+A device has 1 + half your artificer level uses. Out of combat, one device
+every 30 seconds first loses 4 points of DC penalty, then regains a use.
+Past its uses, every activation needs a Use Magic Device check against
+DC 20 + the DC penalty, more for each spell and each use past the limit.
+Each such activation adds 4 to the DC penalty, and a failed check has a
+one in four chance to break the device. Broken devices stay broken until
+repaired. Destroying a device bars creating another for 20 minutes.
+
+See also: ARTIFICER, USE-MAGIC-DEVICE
 #0
 DEVILS-SIGHT SPELL-DEVILS-SIGHT
 
@@ -14827,6 +14912,9 @@ beards.  Gnomes live 350 to 500 years.
 	WResistance to Illusions:	n  +2 saving throw bonus against illusions
 	WIllusion Affinity:	n  +2 DC opponents saves versus their illusions
 	WTinker Focus:	n  +2 to concentration and listen
+	WGnomish Tinkering:	n  +1 use per artificer device, -2 Use Magic Device DC
+	WBrilliance and Blunder:	n  4 spells per artificer device, but devices
+  explode when they break
 	n
 	G>Ability Adjustments:  	W +2 Con, -2 Str 	n
 	n
@@ -27866,6 +27954,9 @@ mental focus unless the task at hand was of notable interest.
 	WTinker Focus:	n        - +2 to concentration and use magic device skills.
 	WArtificer's Lore:	n    - +2 to lore and appraise skills.
 	WTinker:	n              - Temporarily improve weapons and armor
+	WGnomish Tinkering:	n   - +1 use per artificer device, -2 Use Magic Device DC.
+	WBrilliance and Blunder:	n - 4 spells per artificer device, but devices
+                          explode when they break.
 	n
 	G>Ability Adjustments:  	W +2 Int, +1 Con  	n
 	n

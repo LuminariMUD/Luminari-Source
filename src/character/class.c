@@ -2630,6 +2630,7 @@ void newbieEquipment(struct char_data *ch)
     __attribute__((fallthrough));
   case CLASS_ALCHEMIST:
   case CLASS_SUMMONER:
+  case CLASS_ARTIFICER:
 
     newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);  // leather sleeves
     newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE); // leather leggings
@@ -9253,8 +9254,8 @@ void load_class_list(void)
   feat_assignment(CLASS_ARTIFICER, FEAT_IMPROVED_JACK_OF_ALL_TRADES, Y, 13, N);
   feat_assignment(CLASS_ARTIFICER, FEAT_EXEMPLAR, Y, 20, N);
   feat_assignment(CLASS_ARTIFICER, FEAT_CONSTRUCT_WOOD_GOLEM, Y, 10, N);
-  feat_assignment(CLASS_ARTIFICER, FEAT_CONSTRUCT_STONE_GOLEM, Y, 20, N);
-  feat_assignment(CLASS_ARTIFICER, FEAT_CONSTRUCT_IRON_GOLEM, Y, 30, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_CONSTRUCT_STONE_GOLEM, Y, 15, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_CONSTRUCT_IRON_GOLEM, Y, 20, N);
   /* bonus feats at levels 3, 8, 12, 16, 19 */
   /* class feats */
   feat_assignment(CLASS_ARTIFICER, FEAT_COMBAT_CASTING, Y, NOASSIGN_FEAT, N);

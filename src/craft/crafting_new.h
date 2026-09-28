@@ -353,6 +353,7 @@ void craft_refine_complete(struct char_data *ch);
 void harvest_complete_for_test(struct char_data *ch);
 #endif
 int get_craft_skill_value(struct char_data *ch, int skill_num);
+int get_craft_roll_value(struct char_data *ch, int skill_num);
 void craft_resize_complete(struct char_data *ch, struct obj_data *obj);
 const char *get_supply_order_item_desc(struct char_data *ch);
 int determine_supply_order_exp(struct char_data *ch);

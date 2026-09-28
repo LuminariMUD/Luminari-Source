@@ -2291,16 +2291,19 @@ static void levelup_artificer(struct char_data *ch, int level, bool verbose)
   int chclass = CLASS_ARTIFICER;
   switch (level)
   {
+  /* The class grants Craft Wonderous Item at 4 and Craft Magical Arms and Armor at 5, so the
+   * early picks go to device use: Magical Aptitude for exhausted devices, and Empower Spell for
+   * Metamagic Science at 6 */
   case 1:
     set_premade_stats(ch, chclass, 1);
-    give_premade_feat(ch, verbose, FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR, 0);
+    give_premade_feat(ch, verbose, FEAT_MAGICAL_APTITUDE, 0);
     if (GET_REAL_RACE(ch) == RACE_HUMAN)
     {
-      give_premade_feat(ch, verbose, FEAT_CRAFT_WONDEROUS_ITEM, 0);
+      give_premade_feat(ch, verbose, FEAT_IMPROVED_INITIATIVE, 0);
     }
     break;
   case 3:
-    give_premade_feat(ch, verbose, FEAT_CRAFT_WONDEROUS_ITEM, 0);
+    give_premade_feat(ch, verbose, FEAT_EMPOWER_SPELL, 0);
     break;
   case 4:
     set_premade_stats(ch, chclass, 4);

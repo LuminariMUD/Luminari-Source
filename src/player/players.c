@@ -3382,8 +3382,8 @@ bool save_char_checked(struct char_data *ch, int mode)
       BUFFER_WRITE(" %s\n", inv->keywords);
       BUFFER_WRITE(" %s\n", inv->short_description);
       BUFFER_WRITE(" %s\n", inv->long_description);
-      BUFFER_WRITE("%d %d %d %d %ld\n", inv->num_spells, inv->duration, inv->reliability, inv->uses,
-                   (long)inv->cooldown_expires);
+      BUFFER_WRITE("%d %d %d %d %ld %d %d\n", inv->num_spells, inv->duration, inv->reliability,
+                   inv->uses, (long)inv->cooldown_expires, inv->dc_penalty, inv->broken ? 1 : 0);
       /* Save spell effects */
       for (inner_j = 0; inner_j < inv->num_spells && inner_j < MAX_INVENTION_SPELLS; inner_j++)
         BUFFER_WRITE("%d\n", inv->spell_effects[inner_j]);
@@ -5319,11 +5319,17 @@ static void load_devices(FILE *fl, struct char_data *ch)
     get_line(fl, line);
     strlcpy(inv->long_description, line[0] == ' ' ? line + 1 : line, sizeof(inv->long_description));
 
-    /* Read num_spells, duration, reliability, and optionally uses, cooldown_expires */
+    /* Read num_spells, duration, reliability, and optionally uses, cooldown_expires, dc_penalty
+     * and broken; older files end the line earlier */
     get_line(fl, line);
     long cooldown_long = 0;
-    int scanned = strict_sscanf(line, "%d %d %d %d %ld", &inv->num_spells, &inv->duration,
-                                &inv->reliability, &inv->uses, &cooldown_long);
+    int broken = 0;
+    int scanned =
+        strict_sscanf(line, "%d %d %d %d %ld %d %d", &inv->num_spells, &inv->duration,
+                      &inv->reliability, &inv->uses, &cooldown_long, &inv->dc_penalty, &broken);
+    if (scanned < 6 || inv->dc_penalty < 0)
+      inv->dc_penalty = 0;
+    inv->broken = scanned >= 7 && broken != 0;
 
     /* do_device() reads num_spells entries of spell_effects */
     if (inv->num_spells < 0)

@@ -1159,7 +1159,8 @@ Beyond the veil of the mundane hide the secrets of absolute power through the fu
 - **Primary attribute**: Intelligence for device creation, Dexterity and Constitution for survivability
 - **Class skills**: Perception, Concentration, Spellcraft, Appraise, Ride, Sleight of Hand, Diplomacy, Disable Device, Sense Motive, Use Magic Device
 - **Cap bonus**: INT, DEX, CON +(level/4+1)
-- **Starting gear**: no class-specific gear (common kit only)
+- **Starting gear**: leather sleeves, leather leggings, slender iron mace, studded leather
+  armor, cloth sleeves, cloth pants, dagger, cloth robes (the alchemist kit)
 - **Premade build**: supported (`respec <class> premade`, or premade at creation)
 - **Magic**: weird science devices built from the wizard and cleric spell lists; device spell level 1 from 1, 2 at 3, 3 at 5, 4 at 11. Full list in Appendix A.
 
@@ -1178,8 +1179,8 @@ Feats granted by class level (a repeated feat adds a rank):
 - L12: craft staff
 - L13: improved jack of all trades
 - L14: forge ring
-- L20: exemplar; construct stone golem
-- L30: construct iron golem
+- L15: construct stone golem
+- L20: exemplar; construct iron golem
 
 Class-feat pool: combat casting, spell penetration, greater spell penetration, improved initiative, toughness, skill focus, magical aptitude, empower spell, enlarge spell, extend spell, heighten spell, maximize spell, quicken spell, silent spell, still spell, great intelligence, great dexterity, great constitution.
 
@@ -1812,11 +1813,14 @@ feats or perks are not, because they depend on the character's choices.
 ### Artificer (weird science devices)
 
 Artificers have no spell assignment rows. `weird science` builds devices from
-spells on the Wizard or Cleric lists whose assignment level fits the device
-spell level the artificer can reach: spell level 1 from artificer level 1, 2
-from 3, 3 from 5, and 4 from 11. The number of simultaneous devices per spell
-level follows `weird_science_table` (for example 1 at level 1, 3/1/1/0 at level
-5, 4/3/3/1 at level 11, and 5/5/5/5 at level 20).
+spells on the Wizard or Cleric lists whose circle (the lower list level, converted
+as `(level + 1) / 2`) fits the circle the artificer can reach: 1 from artificer
+level 1, 2 from 3, 3 from 5, and 4 from 11. `device create` and `device add`
+charge each spell to a circle's spell slots, which follow `weird_science_table`
+(for example 1 at level 1, 3/1/1/0 at level 5, 4/3/3/1 at level 11, and 5/5/5/5
+at level 20). A spell on both lists may take its higher circle when that lets
+the device fit. Artificer Item Creation lets the artificer brew any of these
+spells as a potion at its artificer level.
 
 ## Appendix B: class titles
 

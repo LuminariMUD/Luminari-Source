@@ -485,7 +485,8 @@ const char *skill_name(int num)
 int find_skill_num(char *name)
 {
   int skindex, ok;
-  char *temp, *temp2;
+  char *temp;
+  const char *temp2;
   char first[MEDIUM_STRING] = {'\0'}, first2[MEDIUM_STRING] = {'\0'},
        tempbuf[MEDIUM_STRING] = {'\0'};
 
@@ -506,13 +507,13 @@ int find_skill_num(char *name)
     ok = TRUE;
     strlcpy(tempbuf, spell_info[skindex].name, sizeof(tempbuf)); /* strlcpy: OK */
     temp = any_one_arg(tempbuf, first);
-    temp2 = any_one_arg(name, first2);
+    temp2 = any_one_arg_c(name, first2, sizeof(first2));
     while (*first && *first2 && ok)
     {
       if (!is_abbrev(first2, first))
         ok = FALSE;
       temp = any_one_arg(temp, first);
-      temp2 = any_one_arg(temp2, first2);
+      temp2 = any_one_arg_c(temp2, first2, sizeof(first2));
     }
 
     if (ok && !*first2 && !*first)
@@ -537,7 +538,8 @@ int find_skill_num(char *name)
 int find_ability_num(char *name)
 {
   int skindex, ok;
-  char *temp, *temp2;
+  char *temp;
+  const char *temp2;
   char first[MEDIUM_STRING] = {'\0'}, first2[MEDIUM_STRING] = {'\0'},
        tempbuf[MEDIUM_STRING] = {'\0'};
 
@@ -561,13 +563,13 @@ int find_ability_num(char *name)
     ok = TRUE;
     strlcpy(tempbuf, ability_names[skindex], sizeof(tempbuf));
     temp = any_one_arg(tempbuf, first);
-    temp2 = any_one_arg(name, first2);
+    temp2 = any_one_arg_c(name, first2, sizeof(first2));
     while (*first && *first2 && ok)
     {
       if (!is_abbrev(first2, first))
         ok = FALSE;
       temp = any_one_arg(temp, first);
-      temp2 = any_one_arg(temp2, first2);
+      temp2 = any_one_arg_c(temp2, first2, sizeof(first2));
     }
 
     if (ok && !*first2 && !*first)
@@ -1488,7 +1490,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   char metamagic_desc[MAX_INPUT_LENGTH] = {'\0'};
-  int i, k, metamagic = 0;
+  int i, k, metamagic = 0, charges_needed;
   struct char_data *tch = NULL, *next_tch;
   struct obj_data *tobj = NULL;
   int potion_level = GET_OBJ_VAL(obj, 0);
@@ -1534,11 +1536,10 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
         get_metamagic_description(metamagic, metamagic_desc, sizeof(metamagic_desc));
 
         /* For scrolls and potions, require Use Magic Device check */
-        int base_level = (GET_OBJ_TYPE(obj) == ITEM_SCROLL) ? GET_OBJ_VAL(obj, 0) : potion_level;
-        int umd_dc = calculate_metamagic_scroll_dc(base_level, metamagic);
-        int umd_check = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, umd_dc);
+        int umd_dc = calculate_metamagic_scroll_dc(consumable_spell_circle(ch, GET_OBJ_VAL(obj, 1)),
+                                                   metamagic);
 
-        if (umd_check < 0)
+        if (!skill_check(ch, ABILITY_USE_MAGIC_DEVICE, umd_dc))
         {
           send_to_char(ch,
                        "You fail to properly activate the metamagic effects (DC %d Use Magic "
@@ -1553,6 +1554,9 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
       }
     }
   }
+
+  /* Metamagic on a wand or staff spends one extra charge per level it adds */
+  charges_needed = 1 + calculate_metamagic_charge_cost(metamagic, 0);
 
   one_argument(temp_argument, arg, sizeof(arg));
 
@@ -1573,6 +1577,9 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
       send_to_char(ch, "It seems powerless.\r\n");
       act("Nothing seems to happen.", FALSE, ch, obj, 0, TO_ROOM);
     }
+    else if (GET_OBJ_VAL(obj, 2) < charges_needed && APOTHEOSIS_SLOTS(ch) < 3)
+      send_to_char(ch, "It does not hold enough charges for that (needs %d, has %d).\r\n",
+                   charges_needed, GET_OBJ_VAL(obj, 2));
     else
     {
       if (APOTHEOSIS_SLOTS(ch) >= 3)
@@ -1582,7 +1589,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
       }
       else
       {
-        GET_OBJ_VAL(obj, 2)--;
+        GET_OBJ_VAL(obj, 2) -= charges_needed;
       }
       USE_STANDARD_ACTION(ch);
 
@@ -1660,6 +1667,12 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
       act("Nothing seems to happen.", FALSE, ch, obj, 0, TO_ROOM);
       return;
     }
+    if (GET_OBJ_VAL(obj, 2) < charges_needed && APOTHEOSIS_SLOTS(ch) < 3)
+    {
+      send_to_char(ch, "It does not hold enough charges for that (needs %d, has %d).\r\n",
+                   charges_needed, GET_OBJ_VAL(obj, 2));
+      return;
+    }
     if (APOTHEOSIS_SLOTS(ch) >= 3)
     {
       APOTHEOSIS_SLOTS(ch) -= 3;
@@ -1667,8 +1680,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
     }
     else
     {
-      GET_OBJ_VAL(obj, 2)
-      --;
+      GET_OBJ_VAL(obj, 2) -= charges_needed;
     }
     USE_STANDARD_ACTION(ch);
 

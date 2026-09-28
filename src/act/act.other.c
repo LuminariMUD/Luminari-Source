@@ -3004,7 +3004,7 @@ ACMD(do_golemrepair)
   /* Make the Arcana skill check */
   dc = get_golem_repair_dc(golem_type, golem_size);
   roll = d20(ch);
-  skill = get_craft_skill_value(ch, ABILITY_ARCANA);
+  skill = get_craft_roll_value(ch, ABILITY_ARCANA);
 
   send_to_char(ch,
                "You begin carefully repairing %s. You rolled %d + %d Arcana = %d vs. DC %d.\r\n",
@@ -11853,6 +11853,209 @@ ACMD(do_pick_lock)
   door_state_finish(&operation);
 }
 
+/* Weird Science devices. A device spell's level is a class spell level from the wizard or cleric
+ * list (1-7 for circles 1-4); its circle is (level + 1) / 2. weird_science_table gives the spell
+ * slots per circle for artificer levels 1-20. */
+#define DEVICE_CIRCLES 4
+#define DEVICE_TABLE_LEVELS 20
+#define DEVICE_DESTROY_COOLDOWN_MINUTES 20
+
+/* The spell's level on one caster list, or 0 when it is not on that list. Skills share the
+ * number space but have no device effect. */
+static int device_list_level(int spellnum, int class_num)
+{
+  int level;
+
+  if (spellnum < 1 || spellnum >= NUM_SPELLS)
+    return 0;
+  level = spell_info[spellnum].min_level[class_num];
+  return (level >= 1 && level < LVL_IMMORT) ? level : 0;
+}
+
+/* The lower of a spell's wizard and cleric levels, or 0 when it is on neither list. */
+static int device_spell_level(int spellnum)
+{
+  int wizard = device_list_level(spellnum, CLASS_WIZARD);
+  int cleric = device_list_level(spellnum, CLASS_CLERIC);
+
+  if (wizard && cleric)
+    return MIN(wizard, cleric);
+  return wizard ? wizard : cleric;
+}
+
+static int device_level_circle(int level)
+{
+  return (level + 1) / 2;
+}
+
+/* Spell slots per circle for an artificer level; the table ends at level 20. */
+static void device_circle_limits(int artificer_level, int max_circles[DEVICE_CIRCLES])
+{
+  int row = MAX(1, MIN(artificer_level, DEVICE_TABLE_LEVELS)) - 1, i;
+
+  for (i = 0; i < DEVICE_CIRCLES; i++)
+    max_circles[i] = weird_science_table[row].devices[i];
+}
+
+/* Spell slots per circle taken by the character's devices, by each spell's assigned level. */
+static void device_circles_used(struct char_data *ch, int used[DEVICE_CIRCLES])
+{
+  int i, j, circle;
+
+  for (i = 0; i < DEVICE_CIRCLES; i++)
+    used[i] = 0;
+  for (i = 0; i < ch->player_specials->saved.num_inventions; i++)
+  {
+    struct player_invention *inv = &ch->player_specials->saved.inventions[i];
+
+    for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++)
+    {
+      circle =
+          device_level_circle(inv->spell_levels[j] > 0 ? inv->spell_levels[j]
+                                                       : device_spell_level(inv->spell_effects[j]));
+      if (circle >= 1 && circle <= DEVICE_CIRCLES)
+        used[circle - 1]++;
+    }
+  }
+}
+
+/* Choose a level for each new spell so every circle stays within its free slots. A spell on
+ * both lists at different levels may take either; the choice with the lowest total level wins,
+ * so a spell only moves up a circle when that frees the slot another spell needs. Returns FALSE
+ * when no choice fits. */
+static bool device_assign_levels(const int *spell_nums, int num_spells,
+                                 const int used[DEVICE_CIRCLES],
+                                 const int max_circles[DEVICE_CIRCLES], int *chosen_levels)
+{
+  int options[MAX_INVENTION_SPELLS][2], levels[MAX_INVENTION_SPELLS];
+  int mask, i, best_total = -1;
+
+  for (i = 0; i < num_spells; i++)
+  {
+    int wizard = device_list_level(spell_nums[i], CLASS_WIZARD);
+    int cleric = device_list_level(spell_nums[i], CLASS_CLERIC);
+
+    options[i][0] = device_spell_level(spell_nums[i]);
+    options[i][1] = MAX(wizard, cleric);
+  }
+
+  for (mask = 0; mask < (1 << num_spells); mask++)
+  {
+    int taken[DEVICE_CIRCLES] = {0, 0, 0, 0};
+    int total = 0, circle;
+    bool fits = TRUE;
+
+    for (i = 0; i < num_spells && fits; i++)
+    {
+      int higher = (mask >> i) & 1;
+
+      levels[i] = options[i][higher];
+      circle = device_level_circle(levels[i]);
+      /* A higher choice equal to the lower one repeats a combination already tried */
+      if ((higher && levels[i] == options[i][0]) || circle < 1 || circle > DEVICE_CIRCLES ||
+          used[circle - 1] + ++taken[circle - 1] > max_circles[circle - 1])
+        fits = FALSE;
+      total += levels[i];
+    }
+    if (fits && (best_total < 0 || total < best_total))
+    {
+      best_total = total;
+      for (i = 0; i < num_spells; i++)
+        chosen_levels[i] = levels[i];
+    }
+  }
+  return best_total >= 0;
+}
+
+/* The highest circle an artificer level can put in a device. */
+static int artificer_max_device_circle(int artificer_level)
+{
+  if (artificer_level >= 11)
+    return 4;
+  if (artificer_level >= 5)
+    return 3;
+  if (artificer_level >= 3)
+    return 2;
+  return artificer_level >= 1 ? 1 : 0;
+}
+
+/* Artificer Item Creation: brewing may emulate any spell the artificer could put in a device. */
+bool artificer_can_emulate_spell(struct char_data *ch, int spellnum)
+{
+  int circle = device_level_circle(device_spell_level(spellnum));
+
+  return HAS_FEAT(ch, FEAT_ARTIFICER_ITEM_CREATION) && circle >= 1 &&
+         circle <= artificer_max_device_circle(CLASS_LEVEL(ch, CLASS_ARTIFICER));
+}
+
+static const char *circle_ordinal(int circle)
+{
+  return circle == 1 ? "st" : circle == 2 ? "nd" : circle == 3 ? "rd" : "th";
+}
+
+/* Tell the player how full each circle is that one of the spells could use. */
+static void device_report_circles(struct char_data *ch, const int *spell_nums, int num_spells,
+                                  const int used[DEVICE_CIRCLES],
+                                  const int max_circles[DEVICE_CIRCLES])
+{
+  bool shown[DEVICE_CIRCLES] = {FALSE, FALSE, FALSE, FALSE};
+  int i, k, circle;
+
+  for (i = 0; i < num_spells; i++)
+    for (k = 0; k < 2; k++)
+    {
+      circle =
+          device_level_circle(device_list_level(spell_nums[i], k ? CLASS_CLERIC : CLASS_WIZARD));
+      if (circle >= 1 && circle <= DEVICE_CIRCLES)
+        shown[circle - 1] = TRUE;
+    }
+  for (i = 0; i < DEVICE_CIRCLES; i++)
+    if (shown[i])
+      send_to_char(ch, "  - %d%s circle: %d/%d used\r\n", i + 1, circle_ordinal(i + 1), used[i],
+                   max_circles[i]);
+}
+
+/* One victim of an exploding device: the damage, the position it leaves, and death. */
+static void device_explosion_hit(struct char_data *victim, struct char_data *artificer, int dam)
+{
+  combat_apply_raw_damage(victim, artificer, dam, DAM_FORCE, INT_MIN);
+  update_pos(victim);
+  send_char_pos(victim, dam);
+  if (GET_POS(victim) == POS_DEAD)
+    (void)combat_death_apply(victim, NULL, COMBAT_DEATH_UNSPECIFIED);
+}
+
+/* Brilliance and Blunder: a breaking device deals 1d6 force damage per spell circle to its maker
+ * and every grouped player in the room. */
+static void device_explode(struct char_data *ch, const struct player_invention *inv)
+{
+  struct char_data *tch, *next_tch;
+  int total_circles = 0, damage, j;
+
+  for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++)
+    total_circles +=
+        device_level_circle(inv->spell_levels[j] > 0 ? inv->spell_levels[j]
+                                                     : device_spell_level(inv->spell_effects[j]));
+  damage = dice(total_circles, 6);
+
+  send_to_char(ch, "\tRThe overloaded device EXPLODES in a burst of chaotic energy!\tn\r\n");
+  send_to_char(ch, "\tRYou take %d force damage from the explosion!\tn\r\n", damage);
+  act("$n's overloaded invention EXPLODES in a burst of chaotic energy!", TRUE, ch, 0, 0, TO_ROOM);
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+  {
+    next_tch = tch->next_in_room;
+    if (tch != ch && !IS_NPC(tch) && is_player_grouped(ch, tch))
+    {
+      send_to_char(tch, "\tRYou are caught in the explosion and take %d force damage!\tn\r\n",
+                   damage);
+      device_explosion_hit(tch, ch, damage);
+    }
+  }
+  /* The maker last, so a fatal blast does not move them before the room is searched */
+  device_explosion_hit(ch, ch, damage);
+}
+
 ACMDU(do_device)
 {
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
@@ -11861,9 +12064,8 @@ ACMDU(do_device)
   const char *remaining_args;
   int spell_num = -1, artificer_level = 0;
   int i = 0, j = 0, spell_level = 0;
-  int device_count_by_level[5] = {0, 0, 0, 0, 0};
-  int spell_assignment_level, max_spell_level;
-  /* char spell_list[MAX_STRING_LENGTH]; */ /* moved to event handler */
+  int max_spell_level;
+  int max_circles[DEVICE_CIRCLES], used_circles[DEVICE_CIRCLES];
 
   /* Clear any pending device destroy confirmation codes when using other commands */
   {
@@ -11897,61 +12099,13 @@ ACMDU(do_device)
     return;
   }
 
-  /* Determine max spell level available */
-  if (artificer_level >= 11)
-    max_spell_level = 4; /* 4th level spells (7th assignment level) */
-  else if (artificer_level >= 5)
-    max_spell_level = 3; /* 3rd level spells (5th assignment level) */
-  else if (artificer_level >= 3)
-    max_spell_level = 2; /* 2nd level spells (3rd assignment level) */
-  else
-    max_spell_level = 1; /* 1st level spells only */
+  max_spell_level = artificer_max_device_circle(artificer_level);
 
   remaining_args = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   one_argument(remaining_args, arg3, sizeof(arg3));
 
-  /* Count existing devices by spell level using player invention data */
-  for (i = 0; i < ch->player_specials->saved.num_inventions; i++)
-  {
-    struct player_invention *inv = &ch->player_specials->saved.inventions[i];
-    int highest_spell_level = 0;
-    for (j = 0; j < inv->num_spells; j++)
-    {
-      int spellnum = inv->spell_effects[j];
-      int wizard_level = spell_info[spellnum].min_level[CLASS_WIZARD];
-      int cleric_level = spell_info[spellnum].min_level[CLASS_CLERIC];
-
-      /* Use the lower of wizard or cleric level (if both are available) */
-      if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT)
-      {
-        spell_assignment_level = MIN(wizard_level, cleric_level);
-      }
-      else if (wizard_level < LVL_IMMORT)
-      {
-        spell_assignment_level = wizard_level;
-      }
-      else if (cleric_level < LVL_IMMORT)
-      {
-        spell_assignment_level = cleric_level;
-      }
-      else
-      {
-        spell_assignment_level = LVL_IMMORT; /* Not available */
-      }
-
-      if (spell_assignment_level < LVL_IMMORT && spell_assignment_level > highest_spell_level)
-      {
-        highest_spell_level = spell_assignment_level;
-      }
-    }
-    if (highest_spell_level >= 1 && highest_spell_level <= 7)
-    {
-      int device_level = (highest_spell_level + 1) / 2;
-      if (device_level > 4)
-        device_level = 4;
-      device_count_by_level[device_level]++;
-    }
-  }
+  device_circle_limits(artificer_level, max_circles);
+  device_circles_used(ch, used_circles);
 
   if (!*arg1)
   {
@@ -11983,11 +12137,7 @@ ACMDU(do_device)
         ch,
         "  device cooldown                         - Check device creation cooldown status\r\n");
     send_to_char(ch, "\r\nArtificers can access wizard and cleric spells up to %d%s level.\r\n",
-                 max_spell_level,
-                 (max_spell_level == 1)   ? "st"
-                 : (max_spell_level == 2) ? "nd"
-                 : (max_spell_level == 3) ? "rd"
-                                          : "th");
+                 max_spell_level, circle_ordinal(max_spell_level));
     send_to_char(ch,
                  "Devices can only contain either violent OR non-violent spells, not both.\r\n");
     send_to_char(ch, "For violent devices: must be fighting or specify a target to use.\r\n");
@@ -12037,36 +12187,15 @@ ACMDU(do_device)
       return;
     }
 
-    /* Check if we have available device slots (not under cooldown) */
+    /* Free spell slots in the circles open at this level; every device holds at least one. */
     int available_slots = 0;
-    int max_devices = 0;
+    for (i = 0; i < DEVICE_CIRCLES; i++)
+      available_slots += MAX(0, max_circles[i] - used_circles[i]);
 
-    /* Calculate max devices based on artificer level using weird_science_table */
-    for (i = 1; i <= max_spell_level; i++)
+    if (available_slots <= 0 || ch->player_specials->saved.num_inventions >= MAX_PLAYER_INVENTIONS)
     {
-      max_devices += weird_science_table[artificer_level - 1].devices[i - 1];
-    }
-
-    /* If we have fewer devices than max, we have empty slots */
-    if (ch->player_specials->saved.num_inventions < max_devices)
-    {
-      available_slots = max_devices - ch->player_specials->saved.num_inventions;
-    }
-
-    /* Also count devices that are not on cooldown (can be destroyed and replaced) */
-    for (i = 0; i < ch->player_specials->saved.num_inventions; i++)
-    {
-      struct player_invention *inv = &ch->player_specials->saved.inventions[i];
-      if (inv->cooldown_expires <= time(0))
-      {
-        available_slots++;
-      }
-    }
-
-    if (available_slots <= 0)
-    {
-      send_to_char(ch, "All your device slots are on cooldown. Use 'device cooldown' to check when "
-                       "slots become available.\r\n");
+      send_to_char(ch, "You have no free device slots. Use 'device usage' to see them, or "
+                       "'device destroy' to free some.\r\n");
       return;
     }
 
@@ -12077,7 +12206,7 @@ ACMDU(do_device)
           ch, "For multi-word spells, use quotes: device create \"cure light wounds\" shield\r\n");
       send_to_char(ch, "You can combine multiple spells: device create fireball shield \"cure "
                        "light wounds\"\r\n");
-      send_to_char(ch, "Available device slots: %d\r\n", available_slots);
+      send_to_char(ch, "Free spell slots: %d\r\n", available_slots);
       return;
     }
 
@@ -12088,7 +12217,6 @@ ACMDU(do_device)
     char spells[4][MAX_INPUT_LENGTH];
     int spell_nums[4] = {0, 0, 0, 0};
     int num_spells = 0;
-    int highest_device_level = 0;
 
     /* Parse spell arguments from the full argument string */
     const char *parse_ptr = argument;
@@ -12098,7 +12226,7 @@ ACMDU(do_device)
     parse_ptr = one_argument(parse_ptr, temp_word, sizeof(temp_word));
 
     /* Parse each spell name, handling quotes for multi-word spells */
-    while (*parse_ptr && num_spells < max_spells)
+    while (*parse_ptr)
     {
       char spell_name[MAX_INPUT_LENGTH] = {'\0'};
 
@@ -12135,6 +12263,11 @@ ACMDU(do_device)
 
       if (strlen(spell_name) > 0)
       {
+        if (num_spells >= max_spells)
+        {
+          send_to_char(ch, "A device can hold at most %d spells.\r\n", max_spells);
+          return;
+        }
         strlcpy(spells[num_spells], spell_name, sizeof(spells[num_spells]));
         num_spells++;
       }
@@ -12146,10 +12279,7 @@ ACMDU(do_device)
       return;
     }
 
-    /* Validate all spells and track available circles for each */
-    int spell_wizard_levels[4] = {0, 0, 0, 0};
-    int spell_cleric_levels[4] = {0, 0, 0, 0};
-
+    /* Validate all spells: each must be on the wizard or cleric list within the circle cap */
     for (i = 0; i < num_spells; i++)
     {
       spell_nums[i] = find_skill_num(spells[i]);
@@ -12159,55 +12289,14 @@ ACMDU(do_device)
         return;
       }
 
-      /* Check if spell is available to artificers (wizard or cleric lists) */
-      int wizard_level = spell_info[spell_nums[i]].min_level[CLASS_WIZARD];
-      int cleric_level = spell_info[spell_nums[i]].min_level[CLASS_CLERIC];
-
-      /* Store both wizard and cleric levels for this spell */
-      spell_wizard_levels[i] = (wizard_level < LVL_IMMORT) ? wizard_level : 0;
-      spell_cleric_levels[i] = (cleric_level < LVL_IMMORT) ? cleric_level : 0;
-
-      /* For initial validation, use the lower of wizard or cleric level */
-      if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT)
-      {
-        spell_assignment_level = MIN(wizard_level, cleric_level);
-      }
-      else if (wizard_level < LVL_IMMORT)
-      {
-        spell_assignment_level = wizard_level;
-      }
-      else if (cleric_level < LVL_IMMORT)
-      {
-        spell_assignment_level = cleric_level;
-      }
-      else
-      {
-        spell_assignment_level = LVL_IMMORT; /* Not available */
-      }
-
-      // Convert the assignment level to spell circle (1st, 2nd, 3rd level, etc)
-      int spell_circle = 0;
-      if (spell_assignment_level < LVL_IMMORT)
-      {
-        spell_circle = (spell_assignment_level + 1) / 2;
-      }
-
+      int spell_circle = device_level_circle(device_spell_level(spell_nums[i]));
       if (spell_circle <= 0 || spell_circle > max_spell_level)
       {
         send_to_char(ch, "The spell '%s' is not available to artificers of your level.\r\n",
                      spells[i]);
         send_to_char(ch, "Artificers can only use wizard/cleric spells up to %d%s level.\r\n",
-                     max_spell_level,
-                     (max_spell_level == 1)   ? "st"
-                     : (max_spell_level == 2) ? "nd"
-                     : (max_spell_level == 3) ? "rd"
-                                              : "th");
+                     max_spell_level, circle_ordinal(max_spell_level));
         return;
-      }
-
-      if (spell_assignment_level > highest_device_level)
-      {
-        highest_device_level = spell_assignment_level;
       }
     }
 
@@ -12224,244 +12313,20 @@ ACMDU(do_device)
       }
     }
 
-    /* Check total spell circles (levels) used across all inventions */
-    int max_circles[4] = {0, 0, 0, 0};
-    for (i = 0; weird_science_table[i].level != -1; i++)
+    /* Fit the new spells into the free slots of each circle */
+    int spell_chosen_levels[4] = {0, 0, 0, 0};
+    if (!device_assign_levels(spell_nums, num_spells, used_circles, max_circles,
+                              spell_chosen_levels))
     {
-      if (weird_science_table[i].level == artificer_level)
-      {
-        for (j = 0; j < 4; j++)
-          max_circles[j] = weird_science_table[i].devices[j];
-        break;
-      }
-      else if (weird_science_table[i].level > artificer_level)
-      {
-        if (i > 0)
-          for (j = 0; j < 4; j++)
-            max_circles[j] = weird_science_table[i - 1].devices[j];
-        break;
-      }
-    }
-    if (artificer_level >= 20 && max_circles[0] == 0)
-    {
-      for (j = 0; j < 4; j++)
-        max_circles[j] = weird_science_table[19].devices[j];
-    }
-    /* Count current spell circles used */
-    int used_circles[4] = {0, 0, 0, 0};
-    for (i = 0; i < ch->player_specials->saved.num_inventions; i++)
-    {
-      struct player_invention *inv = &ch->player_specials->saved.inventions[i];
-      for (j = 0; j < inv->num_spells; j++)
-      {
-        int spellnum = inv->spell_effects[j];
-        int inner_spell_level = 0;
-
-        /* Prefer persisted assigned level if available */
-        if (inv->spell_levels[j] > 0)
-        {
-          inner_spell_level = inv->spell_levels[j];
-        }
-        else
-        {
-          int wizard_level = spell_info[spellnum].min_level[CLASS_WIZARD];
-          int cleric_level = spell_info[spellnum].min_level[CLASS_CLERIC];
-          /* Use the lower of wizard or cleric level (if both are available) */
-          if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT)
-          {
-            inner_spell_level = MIN(wizard_level, cleric_level);
-          }
-          else if (wizard_level < LVL_IMMORT)
-          {
-            inner_spell_level = wizard_level;
-          }
-          else if (cleric_level < LVL_IMMORT)
-          {
-            inner_spell_level = cleric_level;
-          }
-          else
-          {
-            continue; /* Skip spells not available to artificers */
-          }
-        }
-
-        if (inner_spell_level >= 1 && inner_spell_level <= 7)
-        {
-          int circle = (inner_spell_level + 1) / 2 - 1;
-          if (circle >= 0 && circle < 4)
-            used_circles[circle]++;
-        }
-      }
-    }
-    /* Count new invention's spell circles - try lower circle first, use higher if needed */
-    int new_circles[4] = {0, 0, 0, 0};
-    int spell_chosen_levels[4] = {0, 0, 0, 0}; /* Track which level was chosen for each spell */
-
-    for (i = 0; i < num_spells; i++)
-    {
-      int wizard_level = spell_wizard_levels[i];
-      int cleric_level = spell_cleric_levels[i];
-
-      if (wizard_level == 0 && cleric_level == 0)
-      {
-        continue; /* Skip spells not available to artificers */
-      }
-
-      /* Determine which circles this spell could use */
-      int lower_circle = -1, higher_circle = -1;
-      int lower_level = 0, higher_level = 0;
-
-      if (wizard_level > 0 && cleric_level > 0)
-      {
-        /* Spell available on both lists - determine lower and higher */
-        if (wizard_level < cleric_level)
-        {
-          lower_level = wizard_level;
-          higher_level = cleric_level;
-        }
-        else if (cleric_level < wizard_level)
-        {
-          lower_level = cleric_level;
-          higher_level = wizard_level;
-        }
-        else
-        {
-          /* Same level on both lists - just use one */
-          lower_level = wizard_level;
-          higher_level = 0;
-        }
-      }
-      else if (wizard_level > 0)
-      {
-        lower_level = wizard_level;
-        higher_level = 0;
-      }
-      else
-      {
-        lower_level = cleric_level;
-        higher_level = 0;
-      }
-
-      /* Convert levels to circles */
-      if (lower_level >= 1 && lower_level <= 7)
-      {
-        lower_circle = (lower_level + 1) / 2 - 1;
-      }
-      if (higher_level >= 1 && higher_level <= 7)
-      {
-        higher_circle = (higher_level + 1) / 2 - 1;
-      }
-
-      /* Try to use the lower circle first, then higher if lower is full */
-      int chosen_circle = -1;
-      int chosen_level = 0;
-
-      if (lower_circle >= 0 && lower_circle < 4)
-      {
-        /* Check if lower circle has room */
-        if (used_circles[lower_circle] + new_circles[lower_circle] < max_circles[lower_circle])
-        {
-          chosen_circle = lower_circle;
-          chosen_level = lower_level;
-        }
-        else if (higher_circle >= 0 && higher_circle < 4)
-        {
-          /* Lower circle full, try higher circle */
-          if (used_circles[higher_circle] + new_circles[higher_circle] < max_circles[higher_circle])
-          {
-            chosen_circle = higher_circle;
-            chosen_level = higher_level;
-          }
-        }
-      }
-
-      if (chosen_circle >= 0)
-      {
-        new_circles[chosen_circle]++;
-        spell_chosen_levels[i] = chosen_level;
-      }
-      else
-      {
-        /* No available circle for this spell */
-        const char *spell_name = spell_info[spell_nums[i]].name;
-        send_to_char(ch, "Cannot create device: No available circle slots for spell '%s'.\r\n",
-                     spell_name);
-
-        if (lower_circle >= 0 && lower_circle < 4)
-        {
-          int circle_level = lower_circle + 1;
-          const char *ordinal = (circle_level == 1)   ? "st"
-                                : (circle_level == 2) ? "nd"
-                                : (circle_level == 3) ? "rd"
-                                                      : "th";
-          send_to_char(ch, "  - %d%s circle (level %d): %d/%d used\r\n", circle_level, ordinal,
-                       lower_level, used_circles[lower_circle] + new_circles[lower_circle],
-                       max_circles[lower_circle]);
-        }
-        if (higher_circle >= 0 && higher_circle < 4 && higher_circle != lower_circle)
-        {
-          int circle_level = higher_circle + 1;
-          const char *ordinal = (circle_level == 1)   ? "st"
-                                : (circle_level == 2) ? "nd"
-                                : (circle_level == 3) ? "rd"
-                                                      : "th";
-          send_to_char(ch, "  - %d%s circle (level %d): %d/%d used\r\n", circle_level, ordinal,
-                       higher_level, used_circles[higher_circle] + new_circles[higher_circle],
-                       max_circles[higher_circle]);
-        }
-        return;
-      }
-    }
-
-    /* Final check: verify total circles don't exceed limits */
-    for (i = 0; i < 4; i++)
-    {
-      if (used_circles[i] + new_circles[i] > max_circles[i])
-      {
-        int circle_level = i + 1;
-        const char *ordinal = (circle_level == 1)   ? "st"
-                              : (circle_level == 2) ? "nd"
-                              : (circle_level == 3) ? "rd"
-                                                    : "th";
-        send_to_char(ch,
-                     "You can't create this invention: it would exceed your allowed number of %d%s "
-                     "circle spells (%d max, you have %d).\r\n",
-                     circle_level, ordinal, max_circles[i], used_circles[i]);
-        /* Build spell list for user feedback */
-        char spell_list_o[MAX_STRING_LENGTH * 4];
-        strlcpy(spell_list_o, spell_info[spell_nums[0]].name, sizeof(spell_list_o));
-        for (j = 1; j < num_spells; j++)
-        {
-          strlcat(spell_list_o, "/", sizeof(spell_list_o));
-          strlcat(spell_list_o, spell_info[spell_nums[j]].name, sizeof(spell_list_o));
-        }
-        send_to_char(ch, "Spells attempted to add: %s\r\n", spell_list_o);
-        return;
-      }
-    }
-
-    /* Store invention in player data instead of creating an object */
-    if (ch->player_specials->saved.num_inventions >= MAX_PLAYER_INVENTIONS)
-    {
-      send_to_char(ch,
-                   "You have reached the maximum number of inventions (%d). Remove one before "
-                   "creating another.\r\n",
-                   MAX_PLAYER_INVENTIONS);
+      send_to_char(ch, "Cannot create device: not enough free circle slots for those spells.\r\n");
+      device_report_circles(ch, spell_nums, num_spells, used_circles, max_circles);
       return;
     }
 
-    /* Calculate creation time: 30 seconds per spell level */
+    /* Calculate creation time: 30 seconds per assigned spell level */
     int total_spell_levels = 0;
     for (i = 0; i < num_spells; i++)
-    {
-      int inner_spell_level = spell_info[spell_nums[i]].min_level[CLASS_WIZARD];
-      if (inner_spell_level >= LVL_IMMORT)
-        inner_spell_level = spell_info[spell_nums[i]].min_level[CLASS_CLERIC];
-      if (inner_spell_level < LVL_IMMORT && inner_spell_level >= 1)
-      {
-        total_spell_levels += inner_spell_level;
-      }
-    }
+      total_spell_levels += spell_chosen_levels[i];
 
     int creation_time = total_spell_levels * 30; /* 30 seconds per spell level */
 
@@ -12574,27 +12439,6 @@ ACMDU(do_device)
 
     struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
 
-    /* Check if this specific device is on cooldown */
-    if (inv->cooldown_expires > time(0))
-    {
-      int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
-      int minutes_left = (int)(((inv->cooldown_expires - time(0)) % 3600) / 60);
-      if (hours_left > 0)
-      {
-        send_to_char(
-            ch,
-            "Device %d is on cooldown and cannot be destroyed. Wait %d hour%s and %d minute%s.\r\n",
-            inv_idx + 1, hours_left, (hours_left == 1) ? "" : "s", minutes_left,
-            (minutes_left == 1) ? "" : "s");
-      }
-      else
-      {
-        send_to_char(ch, "Device %d is on cooldown and cannot be destroyed. Wait %d minute%s.\r\n",
-                     inv_idx + 1, minutes_left, (minutes_left == 1) ? "" : "s");
-      }
-      return;
-    }
-
     /* Generate a random confirmation code if none provided */
     if (!*arg3)
     {
@@ -12608,8 +12452,10 @@ ACMDU(do_device)
       send_to_char(ch, "WARNING: You are about to permanently destroy invention %d: %s\r\n",
                    inv_idx + 1, inv->short_description);
       send_to_char(ch, "This action CANNOT be undone! The invention will be lost forever.\r\n");
-      send_to_char(ch, "NOTE: You will be unable to create new devices for 30 minutes after "
-                       "destroying a device.\r\n");
+      send_to_char(ch,
+                   "NOTE: You will be unable to create new devices for %d minutes after "
+                   "destroying a device.\r\n",
+                   DEVICE_DESTROY_COOLDOWN_MINUTES);
       send_to_char(ch, "To confirm destruction, type: device destroy %d %s\r\n", inv_idx + 1,
                    confirm_code);
       send_to_char(
@@ -12649,9 +12495,10 @@ ACMDU(do_device)
                  inv->short_description);
     act("$n carefully dismantles a weird science invention.", TRUE, ch, 0, 0, TO_ROOM);
 
-    /* Set 20-minute cooldown on device creation */
-    ch->player_specials->saved.device_creation_cooldown = time(0) + ((time_t)20 * 60);
-    send_to_char(ch, "You must wait 20 minutes before creating another device.\r\n");
+    ch->player_specials->saved.device_creation_cooldown =
+        time(0) + ((time_t)DEVICE_DESTROY_COOLDOWN_MINUTES * 60);
+    send_to_char(ch, "You must wait %d minutes before creating another device.\r\n",
+                 DEVICE_DESTROY_COOLDOWN_MINUTES);
 
     /* Shift all inventions after this one down by one */
     {
@@ -12794,29 +12641,9 @@ ACMDU(do_device)
       return;
     }
 
-    /* Check if spell is available to artificers (wizard or cleric lists) */
-    int wizard_level = spell_info[spell_num].min_level[CLASS_WIZARD];
-    int cleric_level = spell_info[spell_num].min_level[CLASS_CLERIC];
-
-    /* Use the lower of wizard or cleric level (if both are available) */
-    if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT)
-    {
-      spell_assignment_level = MIN(wizard_level, cleric_level);
-    }
-    else if (wizard_level < LVL_IMMORT)
-    {
-      spell_assignment_level = wizard_level;
-    }
-    else if (cleric_level < LVL_IMMORT)
-    {
-      spell_assignment_level = cleric_level;
-    }
-    else
-    {
-      spell_assignment_level = LVL_IMMORT; /* Not available */
-    }
-
-    if (spell_assignment_level >= LVL_IMMORT || spell_assignment_level > max_spell_level)
+    /* The spell must be on the wizard or cleric list within the circle cap */
+    int spell_circle = device_level_circle(device_spell_level(spell_num));
+    if (spell_circle <= 0 || spell_circle > max_spell_level)
     {
       send_to_char(ch, "That spell is not available to artificers of your level.\r\n");
       return;
@@ -12836,7 +12663,17 @@ ACMDU(do_device)
       }
     }
 
+    /* The added spell takes a circle slot like the spells the device was built with */
+    int chosen_level = 0;
+    if (!device_assign_levels(&spell_num, 1, used_circles, max_circles, &chosen_level))
+    {
+      send_to_char(ch, "You have no free circle slot for %s.\r\n", spell_info[spell_num].name);
+      device_report_circles(ch, &spell_num, 1, used_circles, max_circles);
+      return;
+    }
+
     inv->spell_effects[inv->num_spells] = spell_num;
+    inv->spell_levels[inv->num_spells] = chosen_level;
     inv->num_spells++;
     send_to_char(ch, "You add %s to your invention, making it more complex and unstable.\r\n",
                  spell_info[spell_num].name);
@@ -12878,6 +12715,7 @@ ACMDU(do_device)
     {
       send_to_char(ch, "The device is broken and completely unusable until it is repaired.\r\n");
       act("$n tries to activate a broken invention, but nothing happens.", TRUE, ch, 0, 0, TO_ROOM);
+      USE_STANDARD_ACTION(ch);
       return;
     }
 
@@ -12965,76 +12803,15 @@ ACMDU(do_device)
           send_to_char(ch, "The invention sparks, sputters, and breaks down completely!\r\n");
           act("$n's invention sparks and breaks down!", TRUE, ch, 0, 0, TO_ROOM);
 
-          /* Brilliance and Blunder explosion logic */
-          if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
-          {
-            /* Calculate total spell circles for explosion damage */
-            int total_circles = 0;
-            int inner_j;
-            for (inner_j = 0; inner_j < inv->num_spells; inner_j++)
-            {
-              int spell_circle = compute_spells_circle(
-                  ch, CLASS_WIZARD, inv->spell_effects[inner_j], METAMAGIC_NONE, DOMAIN_UNDEFINED);
-              total_circles += spell_circle;
-            }
-
-            int damage = dice(total_circles, 6); /* 1d6 force damage per spell circle */
-
-            send_to_char(ch,
-                         "\tRThe overloaded device EXPLODES in a burst of chaotic energy!\tn\r\n");
-            send_to_char(ch, "\tRYou take %d force damage from the explosion!\tn\r\n", damage);
-            act("$n's overloaded invention EXPLODES in a burst of chaotic energy!", TRUE, ch, 0, 0,
-                TO_ROOM);
-
-            /* Apply damage to the creator */
-            combat_apply_raw_damage(ch, ch, damage, DAM_FORCE, INT_MIN);
-
-            /* Apply damage to all party members in the same room */
-            struct char_data *tch, *next_tch;
-            for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
-            {
-              next_tch = tch->next_in_room;
-              if (tch != ch && !IS_NPC(tch) && is_player_grouped(ch, tch))
-              {
-                send_to_char(tch,
-                             "\tRYou are caught in the explosion and take %d force damage!\tn\r\n",
-                             damage);
-                combat_apply_raw_damage(tch, ch, damage, DAM_FORCE, INT_MIN);
-
-                /* Check if anyone died from the explosion */
-                if (GET_HIT(tch) <= 0)
-                {
-                  send_to_char(tch, "\tRThe explosion proves fatal!\tn\r\n");
-                  act("$n is killed by the magical explosion!", TRUE, tch, 0, 0, TO_ROOM);
-                  /* Handle death appropriately for your MUD */
-                }
-              }
-            }
-
-            /* Check if the creator died from the explosion */
-            if (GET_HIT(ch) <= 0)
-            {
-              send_to_char(ch, "\tRYour own invention proves fatal!\tn\r\n");
-              act("$n is killed by $s own magical explosion!", TRUE, ch, 0, 0, TO_ROOM);
-              /* Handle death appropriately for your MUD */
-            }
-          }
-
           /* Device breaks - mark it as broken and unusable */
           inv->broken = TRUE;
           inv->uses = 0; /* Reset uses on destruction */
-          return;
+
+          /* Brilliance and Blunder explosion logic */
+          if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
+            device_explode(ch, inv);
         }
-        return; /* Device didn't break, just failed to activate */
-      }
-      if (total < dc)
-      {
-        /* Increase DC penalty by 4 even on successful attempts when out of charges */
-        inv->dc_penalty += 4;
-        send_to_char(ch, "The invention malfunctions and fails to activate.\r\n");
-        send_to_char(ch, "The device is becoming increasingly unstable! (DC penalty: +%d)\r\n",
-                     inv->dc_penalty);
-        act("$n's invention emits smoke but doesn't work.", TRUE, ch, 0, 0, TO_ROOM);
+        USE_STANDARD_ACTION(ch);
         return;
       }
       /* Success! But still increase DC penalty since device is out of charges */
@@ -13061,12 +12838,15 @@ ACMDU(do_device)
       act("$n activates $s invention at you.", TRUE, ch, 0, target, TO_VICT);
     }
 
+    /* Stop once the target dies or is moved away, as a potion stops once its drinker dies */
     for (i = 0; i < inv->num_spells; i++)
     {
       int inner_spell_num = inv->spell_effects[i];
       if (inner_spell_num > 0 && inner_spell_num < NUM_SPELLS)
       {
-        call_magic(ch, target, NULL, inner_spell_num, 0, artificer_level, CAST_DEVICE);
+        if (call_magic(ch, target, NULL, inner_spell_num, 0, artificer_level, CAST_DEVICE) < 0 ||
+            DEAD(target) || IN_ROOM(target) != IN_ROOM(ch))
+          break;
       }
     }
 
@@ -13157,26 +12937,9 @@ ACMDU(do_device)
           strlcat(circle_ind, "[", sizeof(circle_ind));
           for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++)
           {
-            int lvl = inv->spell_levels[j];
-            int circle = 0;
-            if (lvl > 0)
-            {
-              circle = (lvl + 1) / 2;
-            }
-            else
-            {
-              int wiz = spell_info[inv->spell_effects[j]].min_level[CLASS_WIZARD];
-              int clr = spell_info[inv->spell_effects[j]].min_level[CLASS_CLERIC];
-              int eff = 0;
-              if (wiz < LVL_IMMORT && clr < LVL_IMMORT)
-                eff = MIN(wiz, clr);
-              else if (wiz < LVL_IMMORT)
-                eff = wiz;
-              else if (clr < LVL_IMMORT)
-                eff = clr;
-              if (eff > 0)
-                circle = (eff + 1) / 2;
-            }
+            int circle = device_level_circle(inv->spell_levels[j] > 0
+                                                 ? inv->spell_levels[j]
+                                                 : device_spell_level(inv->spell_effects[j]));
             /* Append single-digit circle (1-4). Clamp to 0-9 to avoid snprintf warnings */
             int d = circle;
             if (d < 0)
@@ -13204,20 +12967,7 @@ ACMDU(do_device)
         if (uses_remaining < 0)
           uses_remaining = 0;
 
-        /* Determine status */
-        const char *status;
-        if (inv->broken)
-        {
-          status = "BROKEN";
-        }
-        else if (inv->cooldown_expires > time(0) && inv->uses == 0)
-        {
-          status = "COOLDOWN";
-        }
-        else
-        {
-          status = "OK";
-        }
+        const char *status = inv->broken ? "BROKEN" : "OK";
 
         /* Format the row */
         send_to_char(ch, "%-3d  %-34.34s  %-50.50s  %d/%-5d  +%-9d  %s  %s\r\n", i + 1,
@@ -13261,39 +13011,13 @@ ACMDU(do_device)
     for (i = 0; i < inv->num_spells; i++)
     {
       int spellnum = inv->spell_effects[i];
-      int assigned_level = inv->spell_levels[i];
-      int display_circle = 0;
-      const char *ordinal;
-
-      if (assigned_level > 0)
-      {
-        display_circle = (assigned_level + 1) / 2;
-      }
-      else
-      {
-        /* Fallback: compute minimum available class level */
-        int wiz = spell_info[spellnum].min_level[CLASS_WIZARD];
-        int clr = spell_info[spellnum].min_level[CLASS_CLERIC];
-        int lvl = 0;
-        if (wiz < LVL_IMMORT && clr < LVL_IMMORT)
-          lvl = MIN(wiz, clr);
-        else if (wiz < LVL_IMMORT)
-          lvl = wiz;
-        else if (clr < LVL_IMMORT)
-          lvl = clr;
-        if (lvl > 0)
-          display_circle = (lvl + 1) / 2;
-      }
-
-      ordinal = (display_circle == 1)   ? "st"
-                : (display_circle == 2) ? "nd"
-                : (display_circle == 3) ? "rd"
-                                        : "th";
+      int display_circle = device_level_circle(
+          inv->spell_levels[i] > 0 ? inv->spell_levels[i] : device_spell_level(spellnum));
 
       if (display_circle > 0)
       {
         send_to_char(ch, "    %s (assigned %d%s circle)\r\n", spell_info[spellnum].name,
-                     display_circle, ordinal);
+                     display_circle, circle_ordinal(display_circle));
       }
       else
       {
@@ -13302,42 +13026,8 @@ ACMDU(do_device)
     }
     send_to_char(ch, "  Uses: %d remaining out of %d total\r\n", uses_remaining, max_uses);
 
-    /* Check if device is broken */
-    if (inv->cooldown_expires > time(0) && inv->uses == 0)
-    {
-      int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
-      int minutes_left = (int)(((inv->cooldown_expires - time(0)) % 3600) / 60);
-      send_to_char(ch, "  Status: BROKEN - will be repaired in %d hours, %d minutes\r\n",
-                   hours_left, minutes_left);
-    }
-    else
-    {
-      send_to_char(ch, "  Status: Functional\r\n");
-    }
-
-    /* Show cooldown information */
-    if (inv->cooldown_expires > time(0))
-    {
-      int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
-      int minutes_left = (int)(((inv->cooldown_expires - time(0)) % 3600) / 60);
-      if (inv->uses == 0)
-      {
-        send_to_char(ch,
-                     "  Cooldown: Device cannot be destroyed for %d hours, %d minutes (broken)\r\n",
-                     hours_left, minutes_left);
-      }
-      else
-      {
-        send_to_char(
-            ch,
-            "  Cooldown: Device cannot be destroyed for %d hours, %d minutes (recently used)\r\n",
-            hours_left, minutes_left);
-      }
-    }
-    else
-    {
-      send_to_char(ch, "  Cooldown: Device can be destroyed immediately\r\n");
-    }
+    send_to_char(ch, "  Status: %s\r\n",
+                 inv->broken ? "BROKEN - use 'device repair' to fix it" : "Functional");
 
     /* Show Use Magic Device DC when charges run out */
     if (inv->uses >= max_uses)
@@ -13473,76 +13163,6 @@ ACMDU(do_device)
   {
     send_to_char(ch, "Artificer Spell Slot Usage (Level %d):\r\n\r\n", artificer_level);
 
-    /* Get max allowed circles for this artificer level */
-    int max_circles[4] = {0, 0, 0, 0};
-    for (i = 0; weird_science_table[i].level != -1; i++)
-    {
-      if (weird_science_table[i].level == artificer_level)
-      {
-        for (j = 0; j < 4; j++)
-          max_circles[j] = weird_science_table[i].devices[j];
-        break;
-      }
-      else if (weird_science_table[i].level > artificer_level)
-      {
-        if (i > 0)
-          for (j = 0; j < 4; j++)
-            max_circles[j] = weird_science_table[i - 1].devices[j];
-        break;
-      }
-    }
-    if (artificer_level >= 20 && max_circles[0] == 0)
-    {
-      for (j = 0; j < 4; j++)
-        max_circles[j] = weird_science_table[19].devices[j];
-    }
-
-    /* Count current spell circles used */
-    int used_circles[4] = {0, 0, 0, 0};
-    for (i = 0; i < ch->player_specials->saved.num_inventions; i++)
-    {
-      struct player_invention *inv = &ch->player_specials->saved.inventions[i];
-      for (j = 0; j < inv->num_spells; j++)
-      {
-        int spellnum = inv->spell_effects[j];
-        int inner_spell_level = 0;
-
-        if (inv->spell_levels[j] > 0)
-        {
-          inner_spell_level = inv->spell_levels[j];
-        }
-        else
-        {
-          int wizard_level = spell_info[spellnum].min_level[CLASS_WIZARD];
-          int cleric_level = spell_info[spellnum].min_level[CLASS_CLERIC];
-          /* Use the lower of wizard or cleric level (if both are available) */
-          if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT)
-          {
-            inner_spell_level = MIN(wizard_level, cleric_level);
-          }
-          else if (wizard_level < LVL_IMMORT)
-          {
-            inner_spell_level = wizard_level;
-          }
-          else if (cleric_level < LVL_IMMORT)
-          {
-            inner_spell_level = cleric_level;
-          }
-          else
-          {
-            continue; /* Skip spells not available to artificers */
-          }
-        }
-
-        if (inner_spell_level >= 1 && inner_spell_level <= 7)
-        {
-          int circle = (inner_spell_level + 1) / 2 - 1;
-          if (circle >= 0 && circle < 4)
-            used_circles[circle]++;
-        }
-      }
-    }
-
     /* Display usage by circle */
     const char *circle_names[4] = {"1st Circle", "2nd Circle", "3rd Circle", "4th Circle"};
 
@@ -13602,48 +13222,6 @@ ACMDU(do_device)
       send_to_char(ch, "  Device Creation Cooldown: You can create a new device now.\r\n");
     }
 
-    int found_any_cooldowns = 0;
-    for (i = 0; i < ch->player_specials->saved.num_inventions; i++)
-    {
-      struct player_invention *inv = &ch->player_specials->saved.inventions[i];
-      if (inv->cooldown_expires > time(0))
-      {
-        found_any_cooldowns = 1;
-        int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
-        int minutes_left = (int)(((inv->cooldown_expires - time(0)) % 3600) / 60);
-        int seconds_left = (int)((inv->cooldown_expires - time(0)) % 60);
-        if (hours_left > 0)
-        {
-          send_to_char(ch, "  [%d] %s - COOLDOWN: %d hour%s, %d minute%s, %d second%s\r\n", i + 1,
-                       inv->short_description, hours_left, (hours_left == 1) ? "" : "s",
-                       minutes_left, (minutes_left == 1) ? "" : "s", seconds_left,
-                       (seconds_left == 1) ? "" : "s");
-        }
-        else if (minutes_left > 0)
-        {
-          send_to_char(ch, "  [%d] %s - COOLDOWN: %d minute%s, %d second%s\r\n", i + 1,
-                       inv->short_description, minutes_left, (minutes_left == 1) ? "" : "s",
-                       seconds_left, (seconds_left == 1) ? "" : "s");
-        }
-        else
-        {
-          send_to_char(ch, "  [%d] %s - COOLDOWN: %d second%s\r\n", i + 1, inv->short_description,
-                       seconds_left, (seconds_left == 1) ? "" : "s");
-        }
-      }
-      else
-      {
-        send_to_char(ch, "  [%d] %s - READY\r\n", i + 1, inv->short_description);
-      }
-    }
-    if (ch->player_specials->saved.num_inventions == 0)
-    {
-      send_to_char(ch, "  You have no devices.\r\n");
-    }
-    else if (!found_any_cooldowns)
-    {
-      send_to_char(ch, "  All your devices are ready for use.\r\n");
-    }
     return;
   }
 

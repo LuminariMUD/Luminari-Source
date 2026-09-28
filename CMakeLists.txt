@@ -1228,6 +1228,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_native_event_integration.c
     unittests/CuTest/test_bardic_performance.c
     unittests/CuTest/test_rol_feats.c
+    unittests/CuTest/test_artificer_devices.c
     unittests/CuTest/test_racial_innate_feats.c
     unittests/CuTest/test_four_arms.c
     unittests/CuTest/test_who_command.c
