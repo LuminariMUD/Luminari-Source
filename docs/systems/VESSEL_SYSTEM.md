@@ -808,7 +808,7 @@ name through the authoritative player index rather than the unrelated
 | contractdeliver | Deliver at destination, collect | `contractdeliver <id>` |
 | contractabandon | Return a job to the board | `contractabandon <id>` |
 | plunder | Take cargo from a ship you've cleared | `plunder` |
-| bounty | Check a price on someone's head | `bounty [<player>]` |
+| bounty | Check a price on someone's head, or pay yours off at a lawful port | `bounty [<player>\|pay]` |
 | marque | Buy a letter of marque (dock only) | `marque` |
 | dockfees | Inspect or pay the current berth charge | `dockfees [pay]` |
 
@@ -876,6 +876,17 @@ pirate-cove port permits WANTED captains;
 cannot sell elsewhere. A letter of marque (`marque`) exempts the holder from
 positive regional bounties for one real day and is refused to captains already
 WANTED.
+
+Bounties decay and can be paid off. `vessel_bounties.last_offense_at` (Phase
+18\) records the latest offense; `vessel_get_bounty()` returns
+`vessel_bounty_after_decay()`, which holds the bounty for one full day and then
+removes 5% of it per further day, clearing it after 21 quiet days. Every
+offense path (plunder and NPC-merchant consequences) goes through
+`vessel_bounty_record_offense()`, which folds the decay into the stored amount
+before adding and restarts the clock. `bounty pay` in any port room outside a
+pirate cove clears the bounty for `vessel_bounty_payoff_cost()`, 125% rounded
+up; WANTED captains may pay. WANTED, HUNTED, port refusal, and hunter
+eligibility all read the decayed amount.
 
 NPC merchant shipping (`src/vessels/vessels_merchants.c`) is definition-driven rather
 than a special immortal hull. Each enabled `vessel_npc_merchants` row names a
@@ -1227,7 +1238,7 @@ historical measurements, and the limits of the current evidence.
 | `trade_commodities` | Commodity definitions and base values |
 | `port_commodities` | Per-port supply and local price state |
 | `freight_contracts` | Freight offer and acceptance lifecycle |
-| `vessel_bounties` | Piracy bounty and marque state |
+| `vessel_bounties` | Piracy bounty, decay clock (`last_offense_at`), and marque state |
 | `vessel_region_law` | Legal-water metadata keyed to canonical geographic regions |
 | `vessel_encounters` | Region-keyed encounter definitions |
 | `vessel_insurance_claims` | Pending, paid, or void offline insurance settlements |
@@ -2002,7 +2013,8 @@ Primary automated coverage lives in
 functions linked with all game sources. `test_vessel_gunnery.c` covers gunnery
 authorization, owner consent, harbor immunity, and the contact list;
 `test_vessel_shipyard.c` covers hull levels, the owned-hull cap, and the
-for-sale catalog (its catalog case needs `LUMINARI_TEST_MYSQL_ENABLE=1`). Manual world, command, persistence, OLC,
+for-sale catalog; `test_vessel_bounty.c` covers bounty decay and pay-off. Their
+database cases need `LUMINARI_TEST_MYSQL_ENABLE=1`. Manual world, command, persistence, OLC,
 and copyover behavior is covered by
 [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md).
 

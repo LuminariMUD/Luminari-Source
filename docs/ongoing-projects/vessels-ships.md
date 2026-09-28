@@ -1157,12 +1157,13 @@ commit with tests, help in both places, and `VESSEL_SYSTEM.md`; later rows list 
 | L9 port immunity | Done | `vessel_ship_is_in_port()` gates player fire and `vessel_ai_return_fire()` |
 | L12 wage removal (D4) | Done | Payroll, walk-offs, and `shipwages` removed; 3.3.5 one-time hire prices in `vessel_crew_hire_cost()` (renown gates stay in S5); `wages_owed`/`wage_ticks` columns kept unread, zeroed by the Phase 18 SQL |
 | L11 `for_sale`, `min_level`, departure level, cap of 3 (D5) | Done | `ship_prototypes.for_sale`/`min_level` (Phase 18 SQL, `vessel_prototype_ensure_schema()` at boot); `vessel_helm_level_refused()` on `setsail` from port, `autopilot on`, `assignpilot`, `setschedule`; `vessel_owner_at_cap()` on `shipbuy`, `claimship`, `shipdeed`; `cedit` "Vessel Hulls Per Owner" (`CONFIG_VESSEL_OWNER_CAP`); frontier prototypes for sale |
-| L13 bounty pay-off and decay | Open |  |
+| L13 bounty pay-off and decay | Done | `vessel_bounties.last_offense_at` (Phase 18); `vessel_bounty_after_decay()`, `vessel_bounty_record_offense()` (plunder and merchant paths), `bounty pay` (125%, `vessel_bounty_payoff_cost()`); collection by victors stays in S7 |
 | Live gate in `scripts/vessels/` | Open |  |
 
 Notes for whoever continues:
 
-- Tests: `unittests/CuTest/test_vessel_gunnery.c` and `test_vessel_shipyard.c` (new); run
+- Tests: `unittests/CuTest/test_vessel_gunnery.c`, `test_vessel_shipyard.c`, and
+  `test_vessel_bounty.c` (new); run
   `CUTEST_FILTER=vessel LUMINARI_TEST_ROOT="$PWD" LUMINARI_TEST_SPEC_WORLD_ROOT="$PWD/unittests/CuTest/fixtures/spec_world_inventory" ./cutest`.
   The suite has no booted world: tests that reach `vessel_ship_is_in_port()` install a one-room
   fake `world` (see the duel harness), and `find_static_room_by_coordinates()` now returns

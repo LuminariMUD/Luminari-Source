@@ -782,6 +782,12 @@ ACMD_DECL(do_vesseldebug); /* Staff: focused runtime debug categories */
 /* Bounty earned per unit of cargo taken by force */
 #define BOUNTY_PER_CARGO_UNIT 15
 
+/* A bounty holds for a day after the last offense, then loses this share of
+ * its size per day; a lawful port clears it for this share of its size. */
+#define VESSEL_BOUNTY_DAY_SECONDS 86400
+#define VESSEL_BOUNTY_DECAY_PERCENT 5
+#define VESSEL_BOUNTY_PAYOFF_PERCENT 125
+
 /* Builder-authored REGION_GEOGRAPHIC waters may refine the default piracy
  * consequence without creating a vessel-private geography model. */
 #define VESSEL_WATERS_UNCLAIMED 0
@@ -807,9 +813,12 @@ void vessel_piracy_clear_laws(void);
 #ifdef LUMINARI_CUTEST
 size_t vessel_piracy_coordinate_cache_count(void);
 #endif
+int vessel_bounty_after_decay(int bounty, long long quiet_seconds);
+int vessel_bounty_payoff_cost(int bounty);
 int vessel_get_bounty(const char *player_name);
+bool vessel_bounty_record_offense(const char *player_name, int amount);
 void vessel_add_bounty(const char *player_name, int amount);
-void vessel_clear_bounty(const char *player_name);
+bool vessel_clear_bounty(const char *player_name);
 bool vessel_has_letter_of_marque(const char *player_name);
 const char *vessel_waters_type_name(int waters_type);
 int vessel_piracy_bounty_for_units(int cargo_units, int bounty_percent);

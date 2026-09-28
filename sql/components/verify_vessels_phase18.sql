@@ -24,6 +24,14 @@ SELECT
 FROM ship_prototypes
 WHERE min_level < 0 OR min_level > 30;
 
+SELECT COUNT(*) AS bounty_decay_column_present
+FROM information_schema.COLUMNS
+WHERE
+  TABLE_SCHEMA = DATABASE()
+  AND TABLE_NAME = 'vessel_bounties'
+  AND COLUMN_NAME = 'last_offense_at'
+  AND IS_NULLABLE = 'NO';
+
 SELECT COUNT(*) AS hulls_with_wage_debt
 FROM ship_interiors
 WHERE wages_owed <> 0;

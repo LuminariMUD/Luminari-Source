@@ -1243,6 +1243,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_vessel_boarding.c
     unittests/CuTest/test_vessel_gunnery.c
     unittests/CuTest/test_vessel_shipyard.c
+    unittests/CuTest/test_vessel_bounty.c
     unittests/CuTest/test_database_persistence.c
     unittests/CuTest/test_dg_scripts_production.c
     unittests/CuTest/test_ashenport_welcome_trigger.c

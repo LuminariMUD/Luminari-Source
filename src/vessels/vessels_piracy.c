@@ -205,11 +205,19 @@ void vessel_piracy_ensure_schema(void)
                         "  player_name VARCHAR(64) PRIMARY KEY,"
                         "  bounty INT NOT NULL DEFAULT 0,"
                         "  marque_until INT NOT NULL DEFAULT 0,"
+                        "  last_offense_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,"
                         "  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP "
                         "    ON UPDATE CURRENT_TIMESTAMP"
                         ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"))
   {
     log("SYSERR: vessel_bounties create failed: %s", mysql_error(conn));
+  }
+
+  /* Phase 18: the decay clock. Existing rows start it at migration time. */
+  if (mysql_query(conn, "ALTER TABLE vessel_bounties ADD COLUMN IF NOT EXISTS last_offense_at "
+                        "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER marque_until"))
+  {
+    log("SYSERR: vessel_bounties decay column failed: %s", mysql_error(conn));
   }
 
   if (mysql_query(conn, "CREATE TABLE IF NOT EXISTS vessel_region_law ("
@@ -549,7 +557,49 @@ void vessel_piracy_track_waters(struct greyhawk_ship_data *ship, bool announce)
 }
 
 /**
- * Read a player's outstanding bounty.
+ * What remains of a bounty after a quiet spell.
+ *
+ * A bounty holds for one full day after the last offense, then loses 5% of
+ * its size per further full day, so it is gone after 21 quiet days.
+ */
+int vessel_bounty_after_decay(int bounty, long long quiet_seconds)
+{
+  long long decay_days;
+
+  if (bounty <= 0)
+  {
+    return 0;
+  }
+
+  decay_days = quiet_seconds / VESSEL_BOUNTY_DAY_SECONDS - 1;
+  if (decay_days <= 0)
+  {
+    return bounty;
+  }
+  if (decay_days >= 100 / VESSEL_BOUNTY_DECAY_PERCENT)
+  {
+    return 0;
+  }
+  return bounty - (int)((long long)bounty * VESSEL_BOUNTY_DECAY_PERCENT * decay_days / 100);
+}
+
+/**
+ * Gold that clears a bounty at a lawful port: 125% of it.
+ */
+int vessel_bounty_payoff_cost(int bounty)
+{
+  long long cost;
+
+  if (bounty <= 0)
+  {
+    return 0;
+  }
+  cost = ((long long)bounty * VESSEL_BOUNTY_PAYOFF_PERCENT + 99) / 100;
+  return cost > INT_MAX ? INT_MAX : (int)cost;
+}
+
+/**
+ * Read a player's outstanding bounty, net of decay.
  *
  * @return Bounty in gold, 0 if none or on error
  */
@@ -567,7 +617,9 @@ int vessel_get_bounty(const char *player_name)
   }
 
   mysql_real_escape_string(conn, escaped, player_name, strlen(player_name));
-  snprintf(query, sizeof(query), "SELECT bounty FROM vessel_bounties WHERE player_name = '%s'",
+  snprintf(query, sizeof(query),
+           "SELECT bounty, TIMESTAMPDIFF(SECOND, last_offense_at, NOW()) "
+           "FROM vessel_bounties WHERE player_name = '%s'",
            escaped);
   if (mysql_query(conn, query))
   {
@@ -583,7 +635,7 @@ int vessel_get_bounty(const char *player_name)
   row = mysql_fetch_row(result);
   if (row != NULL && row[0] != NULL)
   {
-    bounty = parse_int(row[0]);
+    bounty = vessel_bounty_after_decay(parse_int(row[0]), row[1] ? parse_llong(row[1]) : 0);
   }
   mysql_free_result(result);
 
@@ -591,44 +643,69 @@ int vessel_get_bounty(const char *player_name)
 }
 
 /**
- * Add to a player's bounty (creating the record if needed).
+ * Add a new offense to a player's bounty and restart its decay clock.
+ *
+ * The standing bounty decays to its current value first, so a new offense
+ * never revives what time has already forgiven. Safe inside a caller's
+ * transaction: it issues no transaction statements of its own.
+ *
+ * @return TRUE when the bounty row was written
  */
-void vessel_add_bounty(const char *player_name, int amount)
+bool vessel_bounty_record_offense(const char *player_name, int amount)
 {
   char query[MAX_STRING_LENGTH];
   char escaped[130];
+  long long total;
 
   if (!mysql_available || conn == NULL || player_name == NULL || !*player_name || amount <= 0)
   {
-    return;
+    return FALSE;
+  }
+
+  total = (long long)vessel_get_bounty(player_name) + amount;
+  if (total > INT_MAX)
+  {
+    total = INT_MAX;
   }
 
   mysql_real_escape_string(conn, escaped, player_name, strlen(player_name));
   snprintf(query, sizeof(query),
-           "INSERT INTO vessel_bounties (player_name, bounty) VALUES ('%s', %d) "
-           "ON DUPLICATE KEY UPDATE bounty = LEAST(%d, "
-           "CAST(bounty AS DECIMAL(20,0)) + %d)",
-           escaped, amount, INT_MAX, amount);
+           "INSERT INTO vessel_bounties (player_name, bounty, last_offense_at) "
+           "VALUES ('%s', %lld, NOW()) "
+           "ON DUPLICATE KEY UPDATE bounty = %lld, last_offense_at = NOW()",
+           escaped, total, total);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: vessel_add_bounty failed: %s", mysql_error(conn));
-    return;
+    log("SYSERR: Could not record a vessel bounty for %s: %s", player_name, mysql_error(conn));
+    return FALSE;
   }
+  return TRUE;
+}
 
-  log("Info: %s bounty increased by %d gold", player_name, amount);
+/**
+ * Add to a player's bounty (creating the record if needed).
+ */
+void vessel_add_bounty(const char *player_name, int amount)
+{
+  if (vessel_bounty_record_offense(player_name, amount))
+  {
+    log("Info: %s bounty increased by %d gold", player_name, amount);
+  }
 }
 
 /**
  * Clear a player's bounty (pardon or paid off).
+ *
+ * @return TRUE when the database accepted the change
  */
-void vessel_clear_bounty(const char *player_name)
+bool vessel_clear_bounty(const char *player_name)
 {
   char query[MAX_STRING_LENGTH];
   char escaped[130];
 
   if (!mysql_available || conn == NULL || player_name == NULL || !*player_name)
   {
-    return;
+    return FALSE;
   }
 
   mysql_real_escape_string(conn, escaped, player_name, strlen(player_name));
@@ -637,7 +714,9 @@ void vessel_clear_bounty(const char *player_name)
   if (mysql_query(conn, query))
   {
     log("SYSERR: vessel_clear_bounty failed: %s", mysql_error(conn));
+    return FALSE;
   }
+  return TRUE;
 }
 
 /**
@@ -954,7 +1033,56 @@ ACMD(do_plunder)
 }
 
 /**
- * bounty [<player>] - check your bounty, or another's.
+ * bounty pay - settle your own bounty at a lawful port for 125% of it.
+ */
+static void vessel_bounty_pay(struct char_data *ch)
+{
+  struct vessel_piracy_law law;
+  room_rnum room;
+  int bounty;
+  int cost;
+
+  room = IN_ROOM(ch);
+  if (!vessel_room_is_port(room))
+  {
+    send_to_char(ch, "Bounties are settled at a lawful port's admiralty office.\r\n");
+    return;
+  }
+  if (vessel_piracy_law_at_coordinates(world[room].coords[0], world[room].coords[1], &law) &&
+      vessel_piracy_wanted_port_is_open(&law))
+  {
+    send_to_char(ch, "Pirate coves keep no admiralty office. Settle at a lawful port.\r\n");
+    return;
+  }
+
+  bounty = vessel_get_bounty(GET_NAME(ch));
+  if (bounty <= 0)
+  {
+    send_to_char(ch, "You carry no price.\r\n");
+    return;
+  }
+
+  cost = vessel_bounty_payoff_cost(bounty);
+  if (GET_GOLD(ch) < cost)
+  {
+    send_to_char(ch, "Settling your %d gold bounty costs %d gold; you have %d.\r\n", bounty, cost,
+                 GET_GOLD(ch));
+    return;
+  }
+  if (!vessel_clear_bounty(GET_NAME(ch)))
+  {
+    send_to_char(ch, "The clerk cannot record the settlement.\r\n");
+    return;
+  }
+
+  award_gold(ch, -cost);
+  send_to_char(ch, "You pay %d gold. The admiralty strikes the %d gold bounty from its rolls.\r\n",
+               cost, bounty);
+  log("Info: %s paid %d gold to clear a %d gold vessel bounty", GET_NAME(ch), cost, bounty);
+}
+
+/**
+ * bounty [<player>|pay] - check a bounty, or settle your own.
  */
 ACMD(do_bounty)
 {
@@ -969,6 +1097,11 @@ ACMD(do_bounty)
   }
 
   one_argument(argument, arg, sizeof(arg));
+  if (!str_cmp(arg, "pay"))
+  {
+    vessel_bounty_pay(ch);
+    return;
+  }
   target = *arg ? arg : GET_NAME(ch);
 
   bounty = vessel_get_bounty(target);
@@ -983,9 +1116,14 @@ ACMD(do_bounty)
       bounty >= BOUNTY_HUNTED ? " - HUNTED by the navy"
                               : (bounty >= BOUNTY_WANTED ? " - WANTED in lawful ports" : ""));
 
-  if (!*arg && vessel_has_letter_of_marque(GET_NAME(ch)))
+  if (!*arg)
   {
-    send_to_char(ch, "You hold a valid letter of marque.\r\n");
+    send_to_char(ch, "A lawful port's admiralty clears it for %d gold ('bounty pay').\r\n",
+                 vessel_bounty_payoff_cost(bounty));
+    if (vessel_has_letter_of_marque(GET_NAME(ch)))
+    {
+      send_to_char(ch, "You hold a valid letter of marque.\r\n");
+    }
   }
 }
 

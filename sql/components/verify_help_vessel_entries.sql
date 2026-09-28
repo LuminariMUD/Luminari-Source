@@ -157,8 +157,8 @@ AND CHAR_LENGTH(TRIM(entry)) > 0;
 SELECT
   'content_contracts' AS check_name,
   COUNT(*) AS actual,
-  18 AS expected,
-  IF(COUNT(*) = 18, 'PASS', 'FAIL') AS result
+  20 AS expected,
+  IF(COUNT(*) = 20, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
   SELECT 'VESSELS' AS tag, 'moving no faster than speed 2' AS required_pattern
@@ -175,6 +175,8 @@ JOIN (
   UNION ALL SELECT 'VEDIT', 'new[[:space:]]+prototypes are not for sale'
   UNION ALL SELECT 'SHIPBROWSE', 'need not be[[:space:]]+present'
   UNION ALL SELECT 'SHIPHIRE', 'draws no wages'
+  UNION ALL SELECT 'PLUNDER', 'clear your whole bounty for 125%'
+  UNION ALL SELECT 'PLUNDER', 'after 21 quiet days'
   UNION ALL SELECT 'SHIPLIST', 'evacuates occupants and loose objects'
   UNION ALL SELECT 'SHIPLIST', 'releases loaded[[:space:]]+vehicles'
   UNION ALL SELECT 'SHIPLIST', 'slots 0 and 1'

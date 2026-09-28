@@ -44,7 +44,7 @@ tables.
 | 15 | `vessels_phase15_schema.sql` | `verify_vessels_phase15.sql` | `vessels_phase15_rollback.sql` | HUNTED encounter policy and one durable bounty-hunter lifecycle per target |
 | 16 | `vessels_phase16_schema.sql` | `verify_vessels_phase16.sql` | `vessels_phase16_rollback.sql` | Showcase-event history, participant results, leaderboards, and temporary ghost ownership |
 | 17 | `vessels_phase17_schema.sql` | `verify_vessels_phase17.sql` | `vessels_phase17_rollback.sql` | Optional exterior paint and figurehead descriptions |
-| 18 | `vessels_phase18_schema.sql` | `verify_vessels_phase18.sql` | `vessels_phase18_rollback.sql` | Shipyard listing and hull level on prototypes; clears retired crew wage debt |
+| 18 | `vessels_phase18_schema.sql` | `verify_vessels_phase18.sql` | `vessels_phase18_rollback.sql` | Shipyard listing and hull level on prototypes, bounty decay clock; clears retired crew wage debt |
 | Campaign | `vessels_campaign_content.sql` | `verify_vessels_campaign_content.sql` | `vessels_campaign_content_rollback.sql` | Initial Vailand legal waters, route, merchant shipping, and iron markets |
 | Narrative | `vessels_narrative_content.sql` | `verify_vessels_narrative_content.sql` | `vessels_narrative_content_rollback.sql` | Eight geographic and severe-weather hints for canonical Vailand waters |
 | Derelict | `vessels_derelict_content.sql` | `verify_vessels_derelict_content.sql` | `vessels_derelict_content_rollback.sql` | Blackwake prototype and generated-room discovery trigger mappings |
@@ -78,10 +78,12 @@ Phase 17 extends Phase 02 vessel identities with optional appearance text. Its
 rollback permanently removes saved paint and figurehead descriptions but does
 not alter hull names, ownership, or runtime state.
 Phase 18 extends Phase 04 prototypes with `for_sale` and `min_level` (0 means
-the hull class minimum) and zeroes `ship_interiors.wages_owed`, which nothing
-reads since crew became a one-time hire. The frontier package marks its eight
-class prototypes for sale, so apply Phase 18 first. Its rollback removes both
-prototype columns, unlisting every hull; cleared wage debt is not restored.
+the hull class minimum), adds `vessel_bounties.last_offense_at` (existing
+bounties start their decay clock when the column is added), and zeroes
+`ship_interiors.wages_owed`, which nothing reads since crew became a one-time
+hire. The frontier package marks its eight class prototypes for sale, so apply
+Phase 18 first. Its rollback removes the three columns, unlisting every hull;
+cleared wage debt and decayed or paid bounties are not restored.
 The campaign package depends on Phases 7, 13, and 14 plus the existing North
 and Central Vailand wilderness seaports and pilot mobile 31810. It owns four
 region identities, their vessel-law rows, one route and waypoint set, one
@@ -345,9 +347,9 @@ Also verify:
   ghost runtime ownership.
 - Both Phase 17 appearance columns with non-null 80-character bounds and no
   oversized saved values.
-- Both Phase 18 prototype columns, the expected for-sale list (the eight
-  frontier class prototypes when that package is installed), no minimum level
-  outside 0-30, and no remaining wage debt.
+- Both Phase 18 prototype columns and the bounty decay column, the expected
+  for-sale list (the eight frontier class prototypes when that package is
+  installed), no minimum level outside 0-30, and no remaining wage debt.
 - All 80 vessel and vehicle command-keyword searches in the running game,
   requiring database `Help Tag` results rather than file fallback.
 - Database errors and slow queries during the manual regression.

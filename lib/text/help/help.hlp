@@ -25404,12 +25404,19 @@ BOUNTY [<player>]
   Check the price on your own head, or on someone else's.
     500 gold or more  - WANTED: lawful ports refuse you service
     2000 gold or more - HUNTED: the navy hunts you on sight
+  A bounty holds for a full day after your last offense, then shrinks by 5%
+  of its size for each further day; after 21 quiet days it is gone. Every
+  new offense restarts the clock.
+
+BOUNTY PAY
+  At a lawful port's admiralty office (any dock outside a pirate cove),
+  clear your whole bounty for 125% of it. Even a WANTED captain may pay.
 
 MARQUE
   At a port's admiralty office (any dock), buy a letter of marque. It makes
   your prizes lawful where an authority would otherwise post a bounty.
   Costs 2000 gold and lasts one day. The admiralty will not commission a
-  captain who is already WANTED - settle your affairs first.
+  captain who is already WANTED - settle your bounty first (BOUNTY PAY).
 
 Regional law comes from builder-authored wilderness geography. Territorial
 waters, free seas, and pirate coves can scale the standard 15-gold bounty per
