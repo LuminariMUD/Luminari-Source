@@ -2191,9 +2191,10 @@ bool vessel_autopilot_next_position(const struct greyhawk_ship_data *ship,
 /**
  * Steer toward the current waypoint; vessel_movement_tick_one() sails.
  *
- * Orders the heading on the waypoint's bearing and caps speed: steerage
- * speed while the bow is more than 45 degrees off, and a stopping speed when
- * approaching a waypoint where the hull must stop. Altitude or depth changes
+ * Orders the heading on the waypoint's bearing and caps speed: none while
+ * the bow is more than 90 degrees off, so she comes about where she lies,
+ * steerage speed while it is more than 45 degrees off, and a stopping speed
+ * when approaching a waypoint where the hull must stop. Altitude or depth changes
  * along the straight line to the waypoint, at least VESSEL_CLIMB_PER_TICK a
  * tick.
  *
@@ -2208,6 +2209,7 @@ bool vessel_autopilot_steer(struct greyhawk_ship_data *ship)
   double delta_x;
   double delta_y;
   double distance;
+  double error;
   double limit;
   double climb;
   bool stop_here;
@@ -2246,8 +2248,13 @@ bool vessel_autopilot_steer(struct greyhawk_ship_data *ship)
   if (distance >= 0.5)
   {
     ship->setheading = (short int)greyhawk_bearing(position_x, position_y, wp->x, wp->y);
+    error = fabs(vessel_heading_difference(ship->heading, (double)ship->setheading));
     limit = (double)VESSEL_SPEED_LIMIT;
-    if (fabs(vessel_heading_difference(ship->heading, (double)ship->setheading)) > 45.0)
+    if (error > 90.0)
+    {
+      limit = 0.0; /* come about where she lies */
+    }
+    else if (error > 45.0)
     {
       limit = (double)VESSEL_STEERAGE_SPEED;
     }

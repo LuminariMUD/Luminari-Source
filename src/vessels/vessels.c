@@ -581,7 +581,8 @@ static bool vessel_can_traverse_sector(enum vessel_class vessel_type, int sector
 }
 
 /**
- * Check coordinate terrain without allocating a dynamic wilderness room.
+ * Check coordinate terrain and draft without allocating a dynamic wilderness
+ * room.
  *
  * Route validation can inspect many cells. Resolving their effective sectors
  * directly avoids consuming the finite dynamic-room pool merely to reject a
@@ -605,7 +606,10 @@ bool vessel_can_occupy_coordinates(enum vessel_class vessel_type, int x, int y, 
   }
 
   sector_type = get_modified_sector_type(wild_zone, x, y);
-  return vessel_can_traverse_sector(vessel_type, sector_type, z);
+  return vessel_can_traverse_sector(vessel_type, sector_type, z) &&
+         (get_vessel_terrain_caps(vessel_type)->min_water_depth <= 0 ||
+          vessel_draft_allows(vessel_type, sector_type,
+                              wild_waterline - get_modified_elevation(x, y)));
 }
 
 /**

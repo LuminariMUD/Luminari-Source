@@ -547,6 +547,37 @@ void Test_vessel_autopilot_steers_turns_slow_and_stops_at_waypoints(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_autopilot_comes_about_before_sailing_astern(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct ship_route *route;
+  int ticks;
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  IN_ROOM(&fixture.hull) = NOWHERE;
+  route = route_create("astern");
+  CuAssertPtrNotNull(tc, route);
+  CuAssertPtrNotNull(tc, autopilot_init(ship));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, 0.0, -10.0, 0.0, "astern"));
+  CuAssertTrue(tc, autopilot_start(ship, route));
+
+  /* The waypoint lies astern: she turns where she lies before making way. */
+  movement_ticks(ship, 1);
+  CuAssertIntEquals(tc, 180, ship->setheading);
+  CuAssertDblEquals(tc, 0.0, ship->autopilot->speed_limit, 0.0001);
+  CuAssertDblEquals(tc, 0.0, ship->speed, 0.0001);
+  for (ticks = 0; ticks < 200 && ship->speed <= 0.0; ticks++)
+  {
+    movement_ticks(ship, 1);
+  }
+  CuAssertTrue(tc, ship->speed > 0.0);
+  CuAssertIntEquals(tc, 0, entered_count);
+  CuAssertTrue(tc, fabs(vessel_heading_difference(ship->heading, 180.0)) <= 90.0);
+
+  movement_end(&fixture);
+}
+
 void Test_vessel_autopilot_casts_off_before_following_its_route(CuTest *tc)
 {
   struct movement_fixture fixture;

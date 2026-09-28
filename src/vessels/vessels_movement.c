@@ -818,10 +818,15 @@ void vessel_movement_tick_one(struct greyhawk_ship_data *ship)
     }
   }
 
-  if (was_moving && ship->speed <= 0.0 && vessel_ship_is_in_port(ship))
+  /* A hull coming to rest records where she lies, berthed in port. */
+  if (was_moving && ship->speed <= 0.0)
   {
-    vessel_berth(ship);
-    send_to_ship(ship, "Lines go ashore; %s is made fast at the berth.", ship->name);
+    if (vessel_ship_is_in_port(ship))
+    {
+      vessel_berth(ship);
+      send_to_ship(ship, "Lines go ashore; %s is made fast at the berth.", ship->name);
+    }
+    vessel_db_save_runtime(ship);
   }
 }
 
