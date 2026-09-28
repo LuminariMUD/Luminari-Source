@@ -463,6 +463,22 @@ byte-restores both player files, and restarts the same executable. The passing
 transcript is `02-kohdee-vessel-boarding.log` inside
 `/tmp/luminari-vessel-boarding-check-1000/runs/20260802T124631Z-1797834`.
 
+## Fast Vessel Rules Check
+
+After the Starfall frontier prototype exists and the current clean candidate
+is built and installed, run:
+
+```bash
+./scripts/vessels/test_vessel_rules_in_game.sh
+```
+
+Kohdee and Vesselmate exercise the vessel rules from the DurisMUD study's S1
+step: the for-sale shipyard listing and its level column, shared contact IDs,
+the passenger gunnery refusal, a warship's level-22 command gate, the
+three-hull cap, and a WANTED bounty's 125% pay-off. Cleanup restores both
+player files and Vesselmate's bounty row. See
+[VESSEL_SYSTEM_TESTING.md](VESSEL_SYSTEM_TESTING.md#vessel-rules-check).
+
 ## Fast HUNTED Bounty-Hunter Check
 
 After installing and provisioning the current candidate, run:

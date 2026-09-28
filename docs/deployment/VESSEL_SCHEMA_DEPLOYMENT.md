@@ -82,8 +82,10 @@ the hull class minimum), adds `vessel_bounties.last_offense_at` (existing
 bounties start their decay clock when the column is added), and zeroes
 `ship_interiors.wages_owed`, which nothing reads since crew became a one-time
 hire. The frontier package marks its eight class prototypes for sale, so apply
-Phase 18 first. Its rollback removes the three columns, unlisting every hull;
-cleared wage debt and decayed or paid bounties are not restored.
+Phase 18 first. Phase 18 lists no hull by itself: re-apply the frontier package
+or run `vedit set <id> forsale yes` for each hull the shipyard should sell. Its
+rollback removes the three columns, unlisting every hull; cleared wage debt and
+decayed or paid bounties are not restored.
 The campaign package depends on Phases 7, 13, and 14 plus the existing North
 and Central Vailand wilderness seaports and pilot mobile 31810. It owns four
 region identities, their vessel-law rows, one route and waypoint set, one

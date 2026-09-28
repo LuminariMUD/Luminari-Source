@@ -1145,8 +1145,10 @@ actual-character gate in the `scripts/vessels/` pattern.
 
 ### Phase 1 (S1) progress
 
-Branch `feat/vessels-ships` (GitLab `gitlab/feat/vessels-ships`). Each row lands as its own
-commit with tests, help in both places, and `VESSEL_SYSTEM.md`; later rows list what remains.
+Branch `feat/vessels-ships` (GitLab `gitlab/feat/vessels-ships`). Each row landed as its own
+commit with tests, help in both places, and `VESSEL_SYSTEM.md`. S1 is complete; the next step is
+S2 (movement and pacing). The vessel help SQL was applied to the development database on
+2026-09-28; production help and the Phase 18 schema are not deployed.
 
 | Defect | State | Where |
 | -- | -- | -- |
@@ -1158,7 +1160,7 @@ commit with tests, help in both places, and `VESSEL_SYSTEM.md`; later rows list 
 | L12 wage removal (D4) | Done | Payroll, walk-offs, and `shipwages` removed; 3.3.5 one-time hire prices in `vessel_crew_hire_cost()` (renown gates stay in S5); `wages_owed`/`wage_ticks` columns kept unread, zeroed by the Phase 18 SQL |
 | L11 `for_sale`, `min_level`, departure level, cap of 3 (D5) | Done | `ship_prototypes.for_sale`/`min_level` (Phase 18 SQL, `vessel_prototype_ensure_schema()` at boot); `vessel_helm_level_refused()` on `setsail` from port, `autopilot on`, `assignpilot`, `setschedule`; `vessel_owner_at_cap()` on `shipbuy`, `claimship`, `shipdeed`; `cedit` "Vessel Hulls Per Owner" (`CONFIG_VESSEL_OWNER_CAP`); frontier prototypes for sale |
 | L13 bounty pay-off and decay | Done | `vessel_bounties.last_offense_at` (Phase 18); `vessel_bounty_after_decay()`, `vessel_bounty_record_offense()` (plunder and merchant paths), `bounty pay` (125%, `vessel_bounty_payoff_cost()`); collection by victors stays in S7 |
-| Live gate in `scripts/vessels/` | Open |  |
+| Live gate in `scripts/vessels/` | Done | `test_vessel_rules_in_game.sh` (tactical harness `--rules`, login helper `--vessel-rules-check`); passed 2026-09-28 with the tactical, events, boarding, lookout, and narrative gates (see `VESSEL_SYSTEM_TESTING.md`) |
 
 Notes for whoever continues:
 
@@ -1177,6 +1179,17 @@ Notes for whoever continues:
   key sentences (`content_contracts`).
 - `scripts/development/dev_kohdee_login_smoke.sh` expects the new "No contact in sight matches"
   refusal.
+- The live gates assume they own the development MUD on 4100 through a systemd user unit. When
+  the main checkout's MUD holds 4100, run them in a private namespace:
+  `unshare -r -n -m --pid --fork --mount-proc`, bring up `lo`, bind-mount a scratch directory over
+  `/run/mysqld`, then `unshare --map-user=1000 --map-group=1000` into a script that starts a
+  disposable `mariadbd` on that socket, loads a `mariadb-dump` of the development database
+  (create the `mysql_config` user and the `luminari_mud` trigger definer first), puts
+  `systemctl`/`systemd-run` stand-ins first on `PATH` (pid files; the launched server must not
+  inherit the gate's lock descriptors), and runs the gates. The dump lacks stored routines; the
+  server recreates them at boot.
+- Phase 1 verification (2026-09-28): `make test-all` passed with the database cases enabled
+  (1868 CuTest cases, isolated `.ci-runtime/lib` from `scripts/ci/prepare_test_runtime.sh`).
 
 ### Estimate
 

@@ -409,6 +409,41 @@ the before/restored Vesselmate hash is
 `8c10c5a2f0598d4f9f1762ab24594837361666dc11fc6a1d687a1d68d96ac471`.
 The warning-free production-linked suite passes 302 tests.
 
+## Vessel Rules Check
+
+After the Starfall frontier prototype exists and a clean candidate is built
+and installed, run:
+
+```bash
+./scripts/vessels/test_vessel_rules_in_game.sh
+```
+
+The wrapper runs the shared tactical harness in `--rules` mode with the same
+refusals as the boarding check. It also applies the Phase 18 schema, requires
+that Vesselmate owns no hull, snapshots Vesselmate's `vessel_bounties` row, and
+gives her a 600-gold WANTED (not HUNTED) bounty before the session.
+
+The `--vessel-rules-check` session must show, in order: a new `vedit`
+prototype absent from `shipbrowse` until `forsale yes`, then listed with its
+`minlevel` in the `Lvl` column; `shipwages` rejected as an unknown command;
+`contacts` and `tactical` listing the target under the same two-letter ID;
+`shipfire` refusing an unknown name and firing on the ID; Vesselmate, a
+passenger, refused the guns; Vesselmate refused `assignpilot` on a deeded
+warship below its level (22); a fourth deed refused at the three-hull cap; and
+`bounty` quoting the 750-gold (125%) pay-off that `bounty pay` refuses at sea.
+
+Cleanup returns both characters to room 1204, purges the five temporary
+hulls, deletes any leftover `Rulesraft` prototype, restores Vesselmate's bounty
+row, byte-restores both player files, and restarts the exact installed
+candidate. On 2026-09-28 the main checkout's development MUD held port 4100, so
+the gate ran inside a private user, network, mount, and PID namespace with a
+disposable MariaDB loaded from a dump of the development database on a private
+`/run/mysqld` (systemd user units were replaced by process stand-ins). Run
+`/tmp/claude-1000/vgate/tmp/luminari-vessel-rules-check-1000/runs/20260928T161206Z-739` passed in 40 seconds on source `b8c210a1` and installed SHA-256
+`60fac560242320d3f2b061258bc32e765b5bea9ed4fca3a6ed0526784bc6c6e0`, with zero
+related `SYSERR` rows. The tactical, events, boarding, lookout, and narrative
+gates passed in the same environment on the same binary.
+
 ## Shared Harbor Merchant Loss Check
 
 The provisioner validates but deliberately does not sink its NPC merchant.

@@ -1655,6 +1655,7 @@ and the trigger was removed.
 | `scripts/vessels/test_vessel_lookout_in_game.sh` | Reversible Kohdee lookout, cosmetics, contact, and coastal-sector gate |
 | `scripts/vessels/test_vessel_narrative_in_game.sh` | Reversible Kohdee at-sea and forced-ambient narrative gate |
 | `scripts/vessels/test_vessel_boarding_in_game.sh` | Boarding gate; delegates to the shared tactical acceptance harness |
+| `scripts/vessels/test_vessel_rules_in_game.sh` | Two-character shipyard, contact-ID, gunnery, hull-level, hull-cap, and bounty gate; delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_hunter_in_game.sh` | Reversible Kohdee HUNTED bounty-hunter encounter gate |
 | `scripts/vessels/test_vessel_merchant_in_game.sh` | Reversible NPC merchant shipping gate |
 | `scripts/vessels/run_vessel_ferry_soak.sh` | Development ferry soak runner with database, process, and Kohdee samples |
