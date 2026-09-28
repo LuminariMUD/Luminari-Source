@@ -6,7 +6,7 @@ events, and Phase 17 exterior customization implemented; wilderness tactical
 chart, lookout view, dynamic at-sea narrative, and cosmetics accepted;
 development preflight and schema rehearsal pass; player-data balance, human
 beta, and staged production rollout remain
-**Last Updated**: 2026-08-31
+**Last Updated**: 2026-09-28
 **Scope**: Current behavior reference. For the durable product contract see
 [Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md),
 including its
@@ -1026,8 +1026,6 @@ ship-class interiors.
 | vdismount | Dismount vehicle | `vdismount` |
 | drive | Drive vehicle | `drive <direction>` |
 | vstatus | Vehicle status | `vstatus` |
-| hitch | Hitch vehicles | `hitch <vehicle>` |
-| unhitch | Unhitch vehicles | `unhitch` |
 | loadvehicle | Load onto vessel | `loadvehicle <vehicle>` |
 | unloadvehicle | Unload from vessel | `unloadvehicle <vehicle>` |
 
@@ -1552,7 +1550,7 @@ and the trigger was removed.
 | -- | -- |
 | `src/vessels/vessels.h` | Structures, constants, prototypes (includes vehicle definitions) |
 | `src/vessels/vessels.c` | Core commands, wilderness movement, terrain system |
-| `src/vessels/vessel_periodic.c` | Bounded vessel owner/service deadlines and rollback selection |
+| `src/vessels/vessel_periodic.c`, `vessel_periodic.h` | Bounded vessel owner/service deadlines and rollback selection |
 | `src/vessels/vessels_tactical.c` | Canonical wilderness chart, range rings, regions, and damage-aware contacts |
 | `src/vessels/vessels_lookout.c` | Eight-bearing canonical wilderness lookout and visible-contact roster |
 | `src/vessels/vessels_narrative.c` | Class-, speed-, weather-, depth-, and region-aware at-sea prose |
@@ -1580,10 +1578,26 @@ and the trigger was removed.
 | `src/vessels/transport_unified.c` | Unified transport interface across all transport types |
 | `src/vessels/transport_unified.h` | Transport abstraction types and prototypes |
 
+### Legacy, Converted, and Fast-Travel Code
+
+| File | Purpose |
+| -- | -- |
+| `src/vessels/vessels_legacy.c`, `vessels_legacy.h` | Legacy route, ferry, and Greyhawk ship special procedures, including `greyhawk_ship_object` boarding |
+| `src/vessels/vessels_moving_rooms.c`, `vessels_moving_rooms.h` | Legacy world `M` moving-room loading, scheduling, and relocation |
+| `src/vessels/moving_room_events.c`, `moving_room_events.h` | Game-scheduler relocation events for moving rooms |
+| `src/vessels/vessels_rol.c`, `vessels_rol.h` | Converted Realms of Luminari fixed-interior ship procedures and their periodic owner |
+| `src/vessels/transport.c`, `transport.h` | Carriage, sailing, and overland-flight fast travel (`landmarks`) |
+| `src/vessels/routing.c`, `routing.h` | Fast-travel locale name and destination lookups |
+| `src/vessels/transport_jobs.c`, `transport_jobs.h` | Timed fast-travel trip arrival events and cancellation |
+
 ### Content and Development Acceptance
 
 | File | Purpose |
 | -- | -- |
+| `lib/world/vessel_harbor/` | Shared development harbor zone, rooms, mobiles, and triggers |
+| `scripts/vessels/provision_vessel_harbor.sh` | Development-only harbor provisioning and verification |
+| `lib/world/vessel_campaign/` | Vailand campaign waystones, passage boards, and resets |
+| `scripts/vessels/provision_vessel_campaign.sh` | Development-only campaign world/SQL provisioning and actual-Kohdee check |
 | `lib/world/vessel_derelict/700.obj` | Blackwake log, chart, and tidefinder objects |
 | `lib/world/vessel_derelict/700.trg` | Guarded room and object discovery-chain DG programs |
 | `scripts/vessels/provision_vessel_derelict.sh` | Development-only world/SQL provisioning and restart proof |
@@ -1593,6 +1607,15 @@ and the trigger was removed.
 | `scripts/vessels/test_vessel_tactical_in_game.sh` | Reversible Kohdee wilderness-chart, live-contact, and coastal-symbol gate |
 | `scripts/vessels/test_vessel_lookout_in_game.sh` | Reversible Kohdee lookout, cosmetics, contact, and coastal-sector gate |
 | `scripts/vessels/test_vessel_narrative_in_game.sh` | Reversible Kohdee at-sea and forced-ambient narrative gate |
+| `scripts/vessels/test_vessel_boarding_in_game.sh` | Boarding gate; delegates to the shared tactical acceptance harness |
+| `scripts/vessels/test_vessel_hunter_in_game.sh` | Reversible Kohdee HUNTED bounty-hunter encounter gate |
+| `scripts/vessels/test_vessel_merchant_in_game.sh` | Reversible NPC merchant shipping gate |
+| `scripts/vessels/run_vessel_ferry_soak.sh` | Development ferry soak runner with database, process, and Kohdee samples |
+| `scripts/vessels/test_vessel_ferry_soak_preflight.sh` | Ferry soak parser and preflight regression |
+| `scripts/vessels/run_vessel_scale_benchmark.sh` | Development-only 500-vessel scale workload and evidence runner |
+| `scripts/vessels/test_vessel_scale_benchmark_parsers.sh` | Scale benchmark output-parser regression |
+| `scripts/vessels/analyze_vessel_memory_samples.sh` | Process memory-sample regression analyzer |
+| `scripts/vessels/test_vessel_memory_analyzer.sh` | Fixture-driven memory analyzer regression |
 
 ### Database
 
@@ -1628,13 +1651,10 @@ and the trigger was removed.
 | `sql/components/vessels_narrative_content_rollback.sql` | Owner-scoped Vailand narrative rollback |
 | `sql/components/help_vessel_entries.sql` | Idempotent authoritative help migration |
 | `sql/components/verify_help_vessel_entries.sql` | Read-only help count, access, content, and duplicate checks |
-
-### Legacy (Disabled)
-
-| File | Purpose |
-| -- | -- |
-| `src/vessels_src.c` | Old CWG/Outcast code (#if 0) |
-| `src/vessels_src.h` | Old headers (#if 0) |
+| `sql/components/verify_vessels_schema.sql` | Phase 2 core schema verification |
+| `sql/components/verify_vessels_phase*.sql` | Read-only verification for Phases 4 and 6-17 |
+| `sql/components/test_vessels_integrity.sql` | Self-cleaning Phase 2 insert, update, delete, and foreign-key checks |
+| `sql/components/vessels_harbor_sandbox.sql` | Development-only shared harbor fixture rows |
 
 ---
 
