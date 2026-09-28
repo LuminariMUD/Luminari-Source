@@ -370,6 +370,21 @@ void Test_vessel_rest_in_port_berths_and_undock_casts_off(CuTest *tc)
   vessel_movement_tick_one(ship);
   CuAssertIntEquals(tc, 0, ship->dock);
 
+  /* The harbor makes good an unowned hull's rigging and rudder when it
+   * berths; an owner repairs their own. */
+  ship->dock = 0;
+  ship->mainsail = 1;
+  ship->turnrate = 1;
+  strlcpy(ship->owner, "Mara", sizeof(ship->owner));
+  vessel_berth(ship);
+  CuAssertIntEquals(tc, 1, ship->mainsail);
+  CuAssertIntEquals(tc, 1, ship->turnrate);
+  ship->owner[0] = '\0';
+  vessel_berth(ship);
+  CuAssertIntEquals(tc, ship->maxmainsail, ship->mainsail);
+  CuAssertIntEquals(tc, ship->maxturnrate, ship->turnrate);
+  ship->dock = 0;
+
   /* After a reboot a hull at rest in port berths, and a berth away from
    * port is stale. */
   REMOVE_BIT_AR(fixture.room.room_flags, ROOM_DOCKABLE);

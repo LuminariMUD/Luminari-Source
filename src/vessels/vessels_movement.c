@@ -321,12 +321,23 @@ static int vessel_port_room_vnum(const struct greyhawk_ship_data *ship)
   return ship->location > 0 ? ship->location : 1;
 }
 
-/** Make the hull fast at the port it rests in. */
+/**
+ * Make the hull fast at the port it rests in.
+ *
+ * Public and NPC hulls have no owner to repair them, so the harbor makes good
+ * their rigging and rudder whenever they berth; wear and weather would
+ * otherwise leave a scheduled hull crawling with its sail in rags.
+ */
 void vessel_berth(struct greyhawk_ship_data *ship)
 {
   if (ship == NULL)
   {
     return;
+  }
+  if (ship->owner[0] == '\0')
+  {
+    ship->mainsail = ship->maxmainsail;
+    ship->turnrate = ship->maxturnrate;
   }
   ship->dock = vessel_port_room_vnum(ship);
   ship->anchored = FALSE;

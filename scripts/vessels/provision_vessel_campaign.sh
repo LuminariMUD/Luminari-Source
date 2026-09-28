@@ -327,6 +327,8 @@ reset_campaign_runtime() {
            runtime.setheading = $heading,
            runtime.speed = $speed,
            runtime.setspeed = 12,
+           runtime.mainsail = runtime.maxmainsail,
+           runtime.turnrate = runtime.maxturnrate,
            runtime.dock_room = 0,
            runtime.autopilot_state = 1,
            runtime.current_route_id = route.route_id,
