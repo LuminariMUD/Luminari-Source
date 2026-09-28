@@ -606,7 +606,10 @@ grep -Fq "Aboard $target_prototype_name (slot $target_slot)." \
 post_restart_hunter_state=$(hunter_state)
 printf 'hunter_state_before=%s\nhunter_state_after=%s\n' "$initial_hunter_state" \
   "$post_restart_hunter_state" >>"$run_dir/metadata"
-[[ "$post_restart_hunter_state" == "$initial_hunter_state" ]] ||
+# last_attacker (the fifth field) is the hunter's live combat pointer: it
+# drops to 0 while the target's owner is offline and a hull coming to rest
+# saves it, so the reattached identity is compared without it.
+[[ $(cut -d'|' -f1-4,6- <<<"$post_restart_hunter_state") == $(cut -d'|' -f1-4,6- <<<"$initial_hunter_state") ]] ||
   fail "the same hunter generation, slot, pilot, and target did not reattach"
 
 database_execute "
