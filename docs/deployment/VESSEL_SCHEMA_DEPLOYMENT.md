@@ -81,8 +81,9 @@ Phase 18 extends Phase 04 prototypes with `for_sale` and `min_level` (0 means
 the hull class minimum), adds `vessel_bounties.last_offense_at` (existing
 bounties start their decay clock when the column is added), and zeroes
 `ship_interiors.wages_owed`, which nothing reads since crew became a one-time
-hire. The frontier package marks its eight class prototypes for sale, so apply
-Phase 18 first. Phase 18 lists no hull by itself: re-apply the frontier package
+hire. Like the server's boot DDL, it first creates the Phase 04 and 07 tables
+and the Phase 06 wage column if they are missing. The frontier package marks
+its eight class prototypes for sale, so apply Phase 18 first. Phase 18 lists no hull by itself: re-apply the frontier package
 or run `vedit set <id> forsale yes` for each hull the shipyard should sell. Its
 rollback removes the three columns, unlisting every hull; cleared wage debt and
 decayed or paid bounties are not restored.
