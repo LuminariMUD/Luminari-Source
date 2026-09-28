@@ -2944,6 +2944,7 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define CONFIG_ALLOW_CEXCHANGE config_info.extra.allow_cexchange
 #define CONFIG_WILDERNESS_SYSTEM config_info.extra.wilderness_system
 #define CONFIG_VESSEL_SYSTEM config_info.extra.vessel_system
+#define CONFIG_VESSEL_OWNER_CAP config_info.extra.vessel_owner_cap
 #define CONFIG_MELEE_EXP_OPTION config_info.extra.melee_exp_option
 #define CONFIG_SPELL_CAST_EXP_OPTION config_info.extra.spell_cast_exp_option
 #define CONFIG_SPELLCASTING_TIME_MODE config_info.extra.spellcasting_time_mode

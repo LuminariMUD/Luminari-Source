@@ -2809,6 +2809,11 @@ ACMD(do_greyhawk_setsail)
     return;
   }
 
+  if (vessel_ship_is_in_port(ship) && vessel_helm_level_refused(ch, ship))
+  {
+    return;
+  }
+
   ship->heading = (short int)vessel_direction_heading(direction, ship->heading);
   ship->setheading = ship->heading;
   if (move_ship_wilderness(ship->shipnum, direction, ch))

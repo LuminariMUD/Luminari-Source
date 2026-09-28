@@ -72,6 +72,54 @@ bool vessel_helm_permitted(struct char_data *ch, struct greyhawk_ship_data *ship
 }
 
 /**
+ * The configured owned-hull cap, held to its valid range.
+ */
+int vessel_owner_cap(void)
+{
+  return MAX(VESSEL_OWNER_CAP_MIN, MIN(VESSEL_OWNER_CAP_MAX, (int)CONFIG_VESSEL_OWNER_CAP));
+}
+
+/**
+ * How many active hulls does this player own?
+ */
+int vessel_owned_hull_count(const char *name)
+{
+  int count;
+  int i;
+
+  if (name == NULL || !*name)
+  {
+    return 0;
+  }
+
+  count = 0;
+  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+  {
+    if (is_valid_ship(&greyhawk_ships[i]) && !str_cmp(greyhawk_ships[i].owner, name))
+    {
+      count++;
+    }
+  }
+  return count;
+}
+
+/**
+ * Has this player reached the owned-hull cap?
+ *
+ * Public and NPC hulls have no owner and never count. Staff are exempt so
+ * builders can spawn and test freely. Owners already above a lowered cap
+ * keep their hulls but cannot acquire more.
+ */
+bool vessel_owner_at_cap(struct char_data *ch)
+{
+  if (ch == NULL || IS_NPC(ch) || GET_LEVEL(ch) >= LVL_IMMORT)
+  {
+    return FALSE;
+  }
+  return vessel_owned_hull_count(GET_NAME(ch)) >= vessel_owner_cap();
+}
+
+/**
  * Ensure the owner column exists on ship_interiors.
  * Called once at boot; mirrored by sql/components/vessels_phase6_schema.sql.
  */
@@ -654,6 +702,12 @@ ACMD(do_shipdeed)
   if (IS_NPC(target))
   {
     send_to_char(ch, "NPCs cannot hold a ship's deed.\r\n");
+    return;
+  }
+  if (vessel_owner_at_cap(target))
+  {
+    send_to_char(ch, "%s already owns %d hulls, the most one captain may hold.\r\n",
+                 GET_NAME(target), vessel_owned_hull_count(GET_NAME(target)));
     return;
   }
 

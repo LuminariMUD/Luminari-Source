@@ -1156,17 +1156,21 @@ commit with tests, help in both places, and `VESSEL_SYSTEM.md`; later rows list 
 | L8 contact list and IDs | Done | `vessel_collect_contacts()`, `vessel_find_contact()` in `vessels.c`; `contacts`, `tactical`, `shipfire` share them |
 | L9 port immunity | Done | `vessel_ship_is_in_port()` gates player fire and `vessel_ai_return_fire()` |
 | L12 wage removal (D4) | Done | Payroll, walk-offs, and `shipwages` removed; 3.3.5 one-time hire prices in `vessel_crew_hire_cost()` (renown gates stay in S5); `wages_owed`/`wage_ticks` columns kept unread, zeroed by the Phase 18 SQL |
-| L11 `for_sale`, `min_level`, departure level, cap of 3 (D5) | Open |  |
+| L11 `for_sale`, `min_level`, departure level, cap of 3 (D5) | Done | `ship_prototypes.for_sale`/`min_level` (Phase 18 SQL, `vessel_prototype_ensure_schema()` at boot); `vessel_helm_level_refused()` on `setsail` from port, `autopilot on`, `assignpilot`, `setschedule`; `vessel_owner_at_cap()` on `shipbuy`, `claimship`, `shipdeed`; `cedit` "Vessel Hulls Per Owner" (`CONFIG_VESSEL_OWNER_CAP`); frontier prototypes for sale |
 | L13 bounty pay-off and decay | Open |  |
 | Live gate in `scripts/vessels/` | Open |  |
 
 Notes for whoever continues:
 
-- Tests: `unittests/CuTest/test_vessel_gunnery.c` (new); run
+- Tests: `unittests/CuTest/test_vessel_gunnery.c` and `test_vessel_shipyard.c` (new); run
   `CUTEST_FILTER=vessel LUMINARI_TEST_ROOT="$PWD" LUMINARI_TEST_SPEC_WORLD_ROOT="$PWD/unittests/CuTest/fixtures/spec_world_inventory" ./cutest`.
   The suite has no booted world: tests that reach `vessel_ship_is_in_port()` install a one-room
   fake `world` (see the duel harness), and `find_static_room_by_coordinates()` now returns
   `NOWHERE` while the wilderness kd-tree is unbuilt.
+- DB-backed cases run only with `LUMINARI_TEST_MYSQL_ENABLE=1` plus the `LUMINARI_TEST_MYSQL_*`
+  connection variables. A disposable server:
+  `docker run -d --rm --name luminari-vessels-testdb -p 127.0.0.3:3306:3306 -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=luminari_test -e MARIADB_USER=luminari_test -e MARIADB_PASSWORD=test_password mariadb:10.11`,
+  then grant `luminari_test` all privileges and load `sql/master_schema.sql`.
 - Help: every text change goes to `lib/text/help/help.hlp` and
   `sql/components/help_vessel_entries.sql` identically; `verify_help_vessel_entries.sql` guards
   key sentences (`content_contracts`).

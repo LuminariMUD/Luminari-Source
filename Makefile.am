@@ -471,6 +471,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_vessel_narrative.c \
 	unittests/CuTest/test_vessel_boarding.c \
 	unittests/CuTest/test_vessel_gunnery.c \
+	unittests/CuTest/test_vessel_shipyard.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
 	unittests/CuTest/test_ashenport_welcome_trigger.c \
@@ -563,6 +564,7 @@ cutest_test_files = \
 	unittests/CuTest/test_vessel_narrative.c \
 	unittests/CuTest/test_vessel_boarding.c \
 	unittests/CuTest/test_vessel_gunnery.c \
+	unittests/CuTest/test_vessel_shipyard.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
 	unittests/CuTest/test_ashenport_welcome_trigger.c \
@@ -1091,6 +1093,7 @@ EXTRA_DIST = \
 	sql/components/verify_vessels_phase15.sql \
 	sql/components/verify_vessels_phase16.sql \
 	sql/components/verify_vessels_phase17.sql \
+	sql/components/verify_vessels_phase18.sql \
 	sql/components/verify_vessels_narrative_content.sql \
 	sql/components/vessels_harbor_sandbox.sql \
 	sql/components/vessels_narrative_content.sql \
@@ -1123,6 +1126,8 @@ EXTRA_DIST = \
 	sql/components/vessels_phase16_schema.sql \
 	sql/components/vessels_phase17_rollback.sql \
 	sql/components/vessels_phase17_schema.sql \
+	sql/components/vessels_phase18_rollback.sql \
+	sql/components/vessels_phase18_schema.sql \
 	sql/master_schema.sql \
 	README.md
 

@@ -1100,6 +1100,13 @@ ACMD(do_claimship)
     }
   }
 
+  if (vessel_owner_at_cap(ch))
+  {
+    send_to_char(ch, "You already own %d hulls, the most one captain may hold.\r\n",
+                 vessel_owned_hull_count(GET_NAME(ch)));
+    return;
+  }
+
   log("Info: %s captured ship %d '%s' (previous owner: %s)", GET_NAME(ch), ship->shipnum,
       ship->name, ship->owner[0] ? ship->owner : "none");
   if (!vessel_transfer_owner(ship, GET_NAME(ch)))

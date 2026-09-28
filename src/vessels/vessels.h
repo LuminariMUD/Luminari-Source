@@ -892,6 +892,9 @@ void vessel_db_save_crew(struct greyhawk_ship_data *ship);
 void vessel_db_load_crew(struct greyhawk_ship_data *ship);
 
 bool vessel_helm_permitted(struct char_data *ch, struct greyhawk_ship_data *ship);
+int vessel_owner_cap(void);
+int vessel_owned_hull_count(const char *name);
+bool vessel_owner_at_cap(struct char_data *ch);
 void vessel_ownership_ensure_schema(void);
 bool vessel_db_save_owner(struct greyhawk_ship_data *ship);
 void vessel_db_load_owner(struct greyhawk_ship_data *ship);
@@ -901,7 +904,12 @@ void vessel_db_load_permits(struct greyhawk_ship_data *ship);
 bool vessel_handle_player_removal(const char *player_name);
 
 /* Shipyard (Phase 06, vessels_edit.c) */
+bool vessel_prototype_ensure_schema(void);
 int vessel_prototype_price(int vclass, int max_speed, int armor);
+int vessel_class_min_level(int vclass);
+int vessel_prototype_min_level(int vclass, int min_level);
+int vessel_ship_min_level(const struct greyhawk_ship_data *ship);
+bool vessel_helm_level_refused(struct char_data *ch, const struct greyhawk_ship_data *ship);
 int vessel_spawn_from_prototype(struct char_data *ch, int id);
 int vessel_spawn_public_from_prototype_at(int id, const char *instance_name, int x, int y, int z);
 ACMD_DECL(do_shipbrowse);    /* Shipyard catalog with prices */
@@ -1393,6 +1401,11 @@ struct greyhawk_ship_data
 
   /* Phase 6: Ownership and permissions */
 #define MAX_HELM_PERMITS 10
+
+/* Owned hulls one player may hold at a time (cedit; decision D5) */
+#define VESSEL_OWNER_CAP_DEFAULT 3
+#define VESSEL_OWNER_CAP_MIN 1
+#define VESSEL_OWNER_CAP_MAX 10
   char helm_permits[MAX_HELM_PERMITS][21]; /* Player names cleared to helm */
   int num_permits;                         /* Active permit count */
 

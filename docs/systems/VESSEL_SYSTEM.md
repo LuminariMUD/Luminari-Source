@@ -904,8 +904,8 @@ the removed name's bounty.
 
 | Command | Description | Usage |
 | -- | -- | -- |
-| shipbrowse | Shipyard catalog with prices | `shipbrowse` |
-| shipbuy | Buy a hull at a dock, become owner | `shipbuy <id>` |
+| shipbrowse | Shipyard catalog: for-sale hulls with price and level | `shipbrowse` |
+| shipbuy | Buy a listed hull at a dock, become owner | `shipbuy <id>` |
 | shipchristen | Owner: rename the ship | `shipchristen <name>` |
 | shipcustomize | Owner: review, set, or clear exterior details | `shipcustomize [show]` or `shipcustomize <paint\|figurehead> <description\|clear>` |
 | shipdeed | Owner: transfer ownership | `shipdeed <player>` |
@@ -914,6 +914,19 @@ the removed name's bounty.
 | shiphire / shipdismiss | Hire or release crew (dock only) | `shiphire <position> <tier>` |
 | shipupgrade | List/install refits (dock only) | `shipupgrade [<refit>]` |
 | shipinsure | Buy sinking insurance (dock only) | `shipinsure <value>` |
+
+Only prototypes with `for_sale = 1` appear in `shipbrowse` or can be bought;
+merchant, hunter, derelict, event, harbor, and new `vedit` prototypes are
+unlisted. A player owns at most `CONFIG_VESSEL_OWNER_CAP` active hulls
+(`cedit` "Vessel Hulls Per Owner", 1-10, default 3; `vessel_owner_at_cap()`),
+enforced at `shipbuy`, `claimship`, and for the recipient of `shipdeed`.
+Immortals are exempt, ownerless public and NPC hulls never count, and owners
+above a lowered cap keep their hulls. `vessel_helm_level_refused()` holds a
+hull's departures to its level (`vessel_ship_min_level()`: the prototype's
+`min_level`, or the class minimum 1/1/16/22/24/23/21/25 for raft, boat, ship,
+warship, airship, submarine, transport, magical): `setsail` from a port,
+`autopilot on`, `assignpilot`, and `setschedule`. Immortals and NPC pilots are
+exempt.
 
 Owned ships restrict the helm (`is_pilot()`) to owner + permits + immortals
 (`src/vessels/vessels_ownership.c`). Owner persists in `ship_interiors.owner`
@@ -991,7 +1004,10 @@ command lag.
 | vedit | Ship prototype editor (LVL_BUILDER) | `vedit list/new/show/set/delete/spawn/spawnpublic` |
 
 `vedit new <class 0-7> <name>` creates a prototype in `ship_prototypes` with
-class defaults; `vedit set <id> name/class/speed/armor <value>` tunes it;
+class defaults; `vedit set <id> name/class/speed/armor <value>` tunes it,
+`vedit set <id> forsale yes|no` lists it in the shipyard, and
+`vedit set <id> minlevel <0-30>` sets its departure level (0 keeps the class
+minimum);
 `vedit spawn <id>` instantiates a live, boardable ship at the builder's
 location and assigns the builder as owner. `vedit spawnpublic <id>` uses the
 same atomic spawn path but leaves the ship unclaimed for an NPC or public
@@ -1195,7 +1211,7 @@ historical measurements, and the limits of the current evidence.
 
 | Table | Purpose |
 | -- | -- |
-| `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards |
+| `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards; `for_sale` and `min_level` since Phase 18 |
 | `ship_interiors` | Vessel identity, rooms, cosmetics, owner, upgrades, and insurance (retired `wages_owed` column unread) |
 | `ship_runtime_state` | Live hull, position, condition, room type, autopilot, PvP grace, and dock-fee snapshot |
 | `ship_weapons` | Normalized installed weapon slots, values, position, and reload state |
@@ -1657,6 +1673,7 @@ and the trigger was removed.
 | `sql/components/vessels_phase15_*` | Bounty-hunter policy/lifecycle schema, rollback, and verification |
 | `sql/components/vessels_phase16_*` | Showcase-event history, results, leaderboards, runtime ownership, and rollback |
 | `sql/components/vessels_phase17_*` | Exterior paint and figurehead persistence, verification, and rollback |
+| `sql/components/vessels_phase18_*` | Prototype shipyard listing and hull level, wage-debt clearing, verification, and rollback |
 | `sql/components/vessels_campaign_content.sql` | Initial Vailand regions, law, route, merchant, and iron markets |
 | `sql/components/verify_vessels_campaign_content.sql` | Read-only campaign topology and identity checks |
 | `sql/components/vessels_campaign_content_rollback.sql` | Guarded Vailand content rollback |
@@ -1982,7 +1999,10 @@ suite. Do not recreate the removed standalone mirror implementations.
 
 Primary automated coverage lives in
 `unittests/CuTest/test_transport_production.c` and exercises production
-functions linked with all game sources. Manual world, command, persistence, OLC,
+functions linked with all game sources. `test_vessel_gunnery.c` covers gunnery
+authorization, owner consent, harbor immunity, and the contact list;
+`test_vessel_shipyard.c` covers hull levels, the owned-hull cap, and the
+for-sale catalog (its catalog case needs `LUMINARI_TEST_MYSQL_ENABLE=1`). Manual world, command, persistence, OLC,
 and copyover behavior is covered by
 [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md).
 

@@ -2050,7 +2050,8 @@ the pilot will automatically operate the autopilot system when a route
 is set, without requiring manual 'autopilot on' commands.
 
 Requirements:
-- You must be the captain of the vessel
+- You must be the captain of the vessel and meet the hull's level
+  (see SHIPBROWSE)
 - The target must be an NPC (not a player)
 - The NPC must be present in the helm/bridge room
 - The vessel cannot already have a pilot assigned
@@ -2527,7 +2528,8 @@ Before using autopilot, you must:
   4. Assign the route to autopilot with 'setroute'
 
 You must be at the helm (bridge) or be the ship's owner to control autopilot.
-Anyone aboard can view autopilot status.
+Engaging it also needs the hull's level (see SHIPBROWSE). Anyone aboard can
+view autopilot status.
 
 Example:
   > autopilot status    - Check current autopilot state
@@ -31328,7 +31330,8 @@ Examples:
 
 Requirements:
   - You must be aboard a vessel with autopilot capability
-  - You must be the captain or at the helm
+  - You must be the captain or at the helm, and meet the hull's level
+    (see SHIPBROWSE)
   - The route must exist and have waypoints defined
 
 Notes:
@@ -31788,11 +31791,14 @@ SHIP-OWNERSHIP SHIPBROWSE SHIPBUY SHIPCHRISTEN SHIPCREW SHIPCUSTOMIZE SHIPDEED S
 Ship ownership commands:
 
 SHIPBROWSE
-  View the shipwright's catalog: every hull design with its price.
+  View the shipwright's catalog: every hull design offered for sale, with its
+  price and the level needed to take it out of port (Lvl).
 
 SHIPBUY <id>
-  Purchase a hull and take immediate delivery. Only works at a dock
-  (dockable room). You become the owner.
+  Purchase a listed hull and take immediate delivery. Only works at a dock
+  (dockable room). You become the owner. One captain may own at most three
+  hulls at a time (staff set the limit with CEDIT); unowned public and NPC
+  hulls do not count.
 
 SHIPCHRISTEN <name>
   Rename a ship you own (3-60 printable characters). An owner may christen the
@@ -31804,7 +31810,8 @@ SHIPCUSTOMIZE <paint|figurehead> <description|clear>
   3-80 printable characters and appear on the hull and in lookout reports.
 
 SHIPDEED <player>
-  Sign your ship over to another player. They must be in the same room as you.
+  Sign your ship over to another player. They must be in the same room as you
+  and own fewer hulls than the ownership limit.
 
 SHIPPERMIT <player> / SHIPREVOKE <player>
   Manage who may take the helm of your ship. Owned ships answer only to
@@ -31816,6 +31823,12 @@ SHIPPERMIT <player> / SHIPREVOKE <player>
 SHIPCREW
   List the ship's owner, NPC pilot, helm permits, and hired crew positions
   and quality tiers.
+
+Hull levels: taking a hull out of port, engaging its autopilot, or putting
+an NPC pilot or schedule to work needs the hull's level: 1 for rafts and
+boats, 16 for ships, 21 for transports, 22 for warships, 23 for submarines,
+24 for airships, and 25 for magical hulls, unless the design sets its own.
+Anyone may own a hull or ride aboard one.
 
 Ownership survives reboots. Losing your ship in combat is permanent -
 sail accordingly, or don't sail what you can't afford to lose.
@@ -31859,7 +31872,8 @@ SHIPREPAIR
 
 CLAIMSHIP
   Capture a ship: stand on its bridge with no other conscious character
-  present and claim it. Ownership transfers to you. Pairs with hostile
+  present and claim it. Ownership transfers to you, unless you already own
+  as many hulls as the ownership limit allows. Pairs with hostile
   boarding ('board_hostile <vessel>' from a nearby vessel).
 
 Running aground: deep-draft vessels that sail into water shallower than
@@ -31958,7 +31972,9 @@ SHIPLOAD
 The Vessel System option in CEDIT is a load-bearing kill switch: it blocks
 player and builder vessel/vehicle commands and pauses every vessel tick while
 leaving SHIPLIST, SHIPGOTO, SHIPFIX, SHIPPURGE, VEHICLEPURGE, and VESSELDEBUG
-available for staff recovery.
+available for staff recovery. Its Vessel Hulls Per Owner option (1-10,
+default 3) caps the hulls one player may own; owners above a lowered cap keep
+their hulls but cannot acquire more.
 
 See also: VEDIT, VMERCHANT, VESSELDEBUG, VEHICLE-ADMIN, SHIP-COMBAT, SEASTATE
 #31
@@ -41192,12 +41208,16 @@ prototypes in the database and spawn live, boardable ships from them
 without touching world files or recompiling.
 
 Subcommands:
-  list    - list all prototypes (id, class, speed, armor, name)
+  list    - list all prototypes (id, class, speed, armor, for sale, level,
+            name)
   new     - create a prototype with class-flavored defaults
   show    - inspect one prototype, including its fixed per-class cargo
             capacity in pounds
   set     - change a field; fields: name, class (0-7), speed (1-30),
-            armor (0-100, applied to all four sides at spawn)
+            armor (0-100, applied to all four sides at spawn), forsale
+            (yes/no: listed by SHIPBROWSE and sold by SHIPBUY; new
+            prototypes are not for sale), minlevel (0-30: level needed
+            to take the hull out of port; 0 uses the class minimum)
   delete  - remove a prototype (existing spawned ships are unaffected)
   spawn   - instantiate a live ship in your current room: allocates a
             ship slot, generates the interior from the room templates,
@@ -41396,8 +41416,8 @@ SETSAIL <direction>
   Set a cardinal, diagonal, up, or down heading and begin moving. The vessel
   must already have a positive speed. Each order covers a tenth of the speed
   in rooms (at least one); storms and gales shorten it by a quarter, while
-  clear, overcast, and squally weather do not. Surface hulls remain at
-  elevation zero.
+  clear, overcast, and squally weather do not. Leaving a port needs the
+  hull's level (see SHIPBROWSE). Surface hulls remain at elevation zero.
   Air-capable hulls cannot exceed their class ceiling, and submersible hulls
   can use negative depth only over water.
 

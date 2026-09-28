@@ -18,6 +18,7 @@
 #include "oasis.h"
 #include "improved-edit.h"
 #include "core/modify.h"
+#include "vessels/vessels.h"
 #include "vessels/vessel_periodic.h"
 
 #define CHECK_VAR(var) ((var == YES) ? "Yes" : "No")
@@ -197,6 +198,7 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->extra.allow_cexchange = CONFIG_ALLOW_CEXCHANGE;
   OLC_CONFIG(d)->extra.wilderness_system = CONFIG_WILDERNESS_SYSTEM;
   OLC_CONFIG(d)->extra.vessel_system = CONFIG_VESSEL_SYSTEM;
+  OLC_CONFIG(d)->extra.vessel_owner_cap = CONFIG_VESSEL_OWNER_CAP;
   OLC_CONFIG(d)->extra.melee_exp_option = CONFIG_MELEE_EXP_OPTION;
   OLC_CONFIG(d)->extra.spell_cast_exp_option = CONFIG_SPELL_CAST_EXP_OPTION;
   OLC_CONFIG(d)->extra.spellcasting_time_mode = CONFIG_SPELLCASTING_TIME_MODE;
@@ -380,6 +382,7 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_ALLOW_CEXCHANGE = OLC_CONFIG(d)->extra.allow_cexchange;
   CONFIG_WILDERNESS_SYSTEM = OLC_CONFIG(d)->extra.wilderness_system;
   CONFIG_VESSEL_SYSTEM = OLC_CONFIG(d)->extra.vessel_system;
+  CONFIG_VESSEL_OWNER_CAP = OLC_CONFIG(d)->extra.vessel_owner_cap;
   if (vessel_system_changed)
     vessel_periodic_feature_changed();
   CONFIG_MELEE_EXP_OPTION = OLC_CONFIG(d)->extra.melee_exp_option;
@@ -999,6 +1002,10 @@ int save_config(IDXTYPE nowhere __attribute__((unused)))
           "vessel_system = %d\n\n",
           CONFIG_VESSEL_SYSTEM);
   fprintf(fl,
+          "* How many hulls may one player own at a time (1-10)?\n"
+          "vessel_owner_cap = %d\n\n",
+          CONFIG_VESSEL_OWNER_CAP);
+  fprintf(fl,
           "* How much experience should be granted for melee hits?\n"
           "melee_exp_option = %d\n\n",
           CONFIG_MELEE_EXP_OPTION);
@@ -1375,6 +1382,7 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
                   "%sI%s) Spellcasting Time Mode         : %s%s\r\n"
                   "%sJ%s) Vessel System                  : %s%s\r\n"
                   "%sK%s) Auto-Download MUDlet Package?  : %s%s\r\n"
+                  "%sL%s) Vessel Hulls Per Owner         : %s%d\r\n"
                   "\r\n"
                   "%sQ%s) Exit To The Main Menu\r\n"
                   "Enter your choice : ",
@@ -1389,7 +1397,8 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
                   YESNO(OLC_CONFIG(d)->extra.arcane_moon_phases), grn, nrm, cyn,
                   spellcasting_time_options[OLC_CONFIG(d)->extra.spellcasting_time_mode], grn, nrm,
                   cyn, vessel_system_options[OLC_CONFIG(d)->extra.vessel_system], grn, nrm, cyn,
-                  auto_dl_mudlet_package_options[OLC_CONFIG(d)->extra.auto_dl_mudlet_package],
+                  auto_dl_mudlet_package_options[OLC_CONFIG(d)->extra.auto_dl_mudlet_package], grn,
+                  nrm, cyn, OLC_CONFIG(d)->extra.vessel_owner_cap,
 
                   grn, nrm);
 
@@ -2289,6 +2298,13 @@ void cedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "%d) %s\n", i + 1, auto_dl_mudlet_package_options[i]);
       }
       OLC_MODE(d) = CEDIT_SET_AUTO_DL_MUDLET_PACKAGE;
+      return;
+
+    case 'l':
+    case 'L':
+      write_to_output(d, "How many hulls may one player own at a time (%d-%d)? ",
+                      VESSEL_OWNER_CAP_MIN, VESSEL_OWNER_CAP_MAX);
+      OLC_MODE(d) = CEDIT_SET_VESSEL_OWNER_CAP;
       return;
 
     case 'q':
@@ -3492,6 +3508,15 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     {
       OLC_CONFIG(d)->extra.vessel_system =
           ((ubyte)(MIN(NUM_VESSEL_SYSTEM_OPTIONS, MAX(1, parse_int(arg))) - 1));
+    }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_VESSEL_OWNER_CAP:
+    if (*arg)
+    {
+      OLC_CONFIG(d)->extra.vessel_owner_cap =
+          (ubyte)MAX(VESSEL_OWNER_CAP_MIN, MIN(VESSEL_OWNER_CAP_MAX, parse_int(arg)));
     }
     cedit_disp_extra_game_play_options(d);
     break;
