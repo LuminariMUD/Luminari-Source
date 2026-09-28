@@ -439,9 +439,10 @@ Vesselmate's bounty row, byte-restores both player files, and restarts the
 exact installed candidate. On 2026-09-28 the main checkout's development MUD held port 4100, so
 the gate ran inside a private user, network, mount, and PID namespace with a
 disposable MariaDB loaded from a dump of the development database on a private
-`/run/mysqld` (systemd user units were replaced by process stand-ins). Run
-`/tmp/claude-1000/vgate/tmp/luminari-vessel-rules-check-1000/runs/20260928T161206Z-739` passed in 40 seconds on source `b8c210a1` and installed SHA-256
-`60fac560242320d3f2b061258bc32e765b5bea9ed4fca3a6ed0526784bc6c6e0`, with zero
+`/run/mysqld` (systemd user units were replaced by process stand-ins).
+`./scripts/vessels/test_vessel_rules_in_game.sh` passed in 44 seconds on source
+`5ce14ee7` and installed SHA-256
+`d5109a1e08ce6774e55752994e14a49e9e79b2388fc653841fb0d26b6ce0a452`, with zero
 related `SYSERR` rows. The tactical, events, boarding, lookout, and narrative
 gates passed in the same environment on the same binary.
 

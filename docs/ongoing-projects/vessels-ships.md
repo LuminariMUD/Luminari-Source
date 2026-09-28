@@ -1189,7 +1189,8 @@ Notes for whoever continues:
   inherit the gate's lock descriptors), and runs the gates. The dump lacks stored routines; the
   server recreates them at boot.
 - Phase 1 verification (2026-09-28): `make test-all` passed with the database cases enabled
-  (1868 CuTest cases, isolated `.ci-runtime/lib` from `scripts/ci/prepare_test_runtime.sh`).
+  (1868 CuTest cases, isolated `.ci-runtime/lib` from `scripts/ci/prepare_test_runtime.sh`), and
+  again with the MR !6 review fixes (1869 cases); all six live vessel gates passed on both.
 
 ### Estimate
 
