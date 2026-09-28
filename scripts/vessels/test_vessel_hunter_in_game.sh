@@ -604,6 +604,8 @@ grep -Fq "Aboard $target_prototype_name (slot $target_slot)." \
   fail "the target hull did not reconstruct after restart"
 
 post_restart_hunter_state=$(hunter_state)
+printf 'hunter_state_before=%s\nhunter_state_after=%s\n' "$initial_hunter_state" \
+  "$post_restart_hunter_state" >>"$run_dir/metadata"
 [[ "$post_restart_hunter_state" == "$initial_hunter_state" ]] ||
   fail "the same hunter generation, slot, pilot, and target did not reattach"
 
