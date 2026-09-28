@@ -64,7 +64,7 @@ static void gunnery_clear_ships(void)
   memset(&greyhawk_ships[GUNNERY_SHIP_C], 0, sizeof(greyhawk_ships[0]));
 }
 
-void Test_vessel_manual_move_distance_uses_storm_bands(CuTest *tc)
+void Test_vessel_speed_modifier_uses_storm_bands(CuTest *tc)
 {
   /* Clear and overcast skies are band 0; the old code read raw weather
    * above 50 of 255 as a storm. */
@@ -73,13 +73,6 @@ void Test_vessel_manual_move_distance_uses_storm_bands(CuTest *tc)
   CuAssertIntEquals(tc, 1, vessel_weather_severity_from_value(VESSEL_WEATHER_SQUALL));
   CuAssertIntEquals(tc, 2, vessel_weather_severity_from_value(VESSEL_WEATHER_STORM));
   CuAssertIntEquals(tc, 3, vessel_weather_severity_from_value(VESSEL_WEATHER_GALE));
-
-  CuAssertIntEquals(tc, 4, vessel_manual_move_distance(40, 0, 0));
-  CuAssertIntEquals(tc, 4, vessel_manual_move_distance(40, 0, 1));
-  CuAssertIntEquals(tc, 3, vessel_manual_move_distance(40, 0, 2));
-  CuAssertIntEquals(tc, 3, vessel_manual_move_distance(40, 0, 3));
-  CuAssertIntEquals(tc, 5, vessel_manual_move_distance(40, 1, 0));
-  CuAssertIntEquals(tc, 1, vessel_manual_move_distance(0, 0, 3));
 
   /* A squall costs 5% of speed, never the old 25% for clear weather. */
   CuAssertIntEquals(tc, get_terrain_speed_modifier(VESSEL_SHIP, SECT_OCEAN, 0) - 5,

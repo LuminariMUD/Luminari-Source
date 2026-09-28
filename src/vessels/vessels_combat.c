@@ -21,7 +21,6 @@
 #include "act/act.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern int wild_waterline;
 
 /* Repair amounts per shiprepair invocation (dockside pace lands in the
  * Phase 06 economy; this is the slow at-sea patch job). */
@@ -438,7 +437,7 @@ int greyhawk_getarc(int ship1, int ship2)
 
   bearing = greyhawk_bearing(greyhawk_ships[ship1].x, greyhawk_ships[ship1].y,
                              greyhawk_ships[ship2].x, greyhawk_ships[ship2].y);
-  relative = (bearing - greyhawk_ships[ship1].heading + 360) % 360;
+  relative = (bearing - vessel_display_heading(greyhawk_ships[ship1].heading) + 360) % 360;
 
   if (relative >= 315 || relative < 45)
   {
@@ -725,62 +724,6 @@ void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause)
 }
 
 /**
- * Check for grounding after a surface vessel moves.
- *
- * Uses real wilderness bathymetry: depth below the waterline at the ship's
- * coordinates, compared against the class's min_water_depth. Airborne and
- * submerged classes are exempt. A grounding stops the ship and damages the
- * bow.
- */
-void vessel_check_grounding(int shipnum)
-{
-  struct greyhawk_ship_data *ship;
-  const struct vessel_terrain_caps *caps;
-  int elevation;
-  int depth_units;
-  int sector;
-
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS || !is_valid_ship(&greyhawk_ships[shipnum]))
-  {
-    return;
-  }
-  ship = &greyhawk_ships[shipnum];
-
-  if (ship->vessel_type == VESSEL_AIRSHIP || ship->vessel_type == VESSEL_MAGICAL)
-  {
-    return;
-  }
-
-  caps = get_vessel_terrain_caps(ship->vessel_type);
-  if (caps == NULL || caps->min_water_depth <= 0)
-  {
-    return;
-  }
-
-  /* Only meaningful in water sectors */
-  sector = get_ship_terrain_type(shipnum);
-  if (sector != SECT_WATER_SWIM && sector != SECT_WATER_NOSWIM && sector != SECT_OCEAN &&
-      sector != SECT_UNDERWATER)
-  {
-    return;
-  }
-
-  /* Depth in raw wilderness elevation units below the waterline */
-  elevation = get_modified_elevation((int)ship->x, (int)ship->y);
-  depth_units = wild_waterline - elevation;
-
-  if (depth_units < caps->min_water_depth)
-  {
-    send_to_ship(ship, "The hull GRINDS across the shallows - you've run aground!");
-    ship->speed = 0;
-    ship->setspeed = 0;
-    vessel_apply_damage(shipnum, dice(2, 4), GREYHAWK_FORE, "The seabed");
-    log("Info: Ship %d '%s' ran aground at (%d,%d): depth %d < required %d", shipnum, ship->name,
-        (int)ship->x, (int)ship->y, depth_units, caps->min_water_depth);
-  }
-}
-
-/**
  * Auto-defense doctrine: an NPC-piloted ship returns fire at its last
  * attacker with every ready weapon that bears and is in range.
  */
@@ -839,7 +782,7 @@ static void vessel_ai_return_fire(int shipnum)
     target->last_attacker = shipnum;
 
     attack_roll = rand_number(1, 20) + ship->guncrew.gunadjust + 5; /* trained crews */
-    defense_dc = 10 + target->speed / 5;
+    defense_dc = 10 + vessel_display_speed(target->speed) / 5;
 
     if (ship->bounty_hunter)
     {
@@ -1012,7 +955,7 @@ ACMD(do_shipfire)
   /* Resolve the shot: d20 + gunnery vs a speed-based defense DC */
   vessel_merchant_note_attacker(ch, target);
   attack_roll = d20(ch) + GET_LEVEL(ch) / 2 + ship->guncrew.gunadjust;
-  defense_dc = 10 + target->speed / 5;
+  defense_dc = 10 + vessel_display_speed(target->speed) / 5;
 
   /* Mark the aggression so NPC-piloted victims return fire */
   target->last_attacker = ship->shipnum;

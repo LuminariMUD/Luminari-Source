@@ -480,13 +480,66 @@ int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type,
 bool vessel_region_feature_threshold_met(int region_type, int threshold, int z, int depth_units);
 bool vessel_region_feature_at_coordinates(int region_type, int x, int y, int z,
                                           struct vessel_region_feature *feature);
-/* Sep 2026 racial innate seadog: extra distance per move while piloting */
-int vessel_pilot_speed_bonus(struct char_data *ch);
-int vessel_manual_move_distance(int speed, int helm_bonus, int storm_severity);
 int get_vessel_position_speed_modifier(enum vessel_class vessel_type, int sector_type,
                                        int weather_conditions, int x, int y, int z,
                                        struct vessel_region_feature *lane);
-bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch);
+bool vessel_draft_allows(enum vessel_class vessel_type, int sector_type, int depth_units);
+
+/* ========================================================================= */
+/* MOVEMENT AND PACING (vessels_movement.c)                                  */
+/* ========================================================================= */
+
+/* A hull covers speed / VESSEL_SPEED_PER_ROOM rooms each 0.5 s vessel tick:
+ * speed 30 crosses a room in 1.5 s, speed 12 in 3.75 s (decision D1). */
+#define VESSEL_SPEED_PER_ROOM 90.0
+#define VESSEL_SPEED_LIMIT 30             /* Highest design or effective speed */
+#define VESSEL_MANEUVER_MAX_SPEED 6       /* setsail maneuvers only at or below this */
+#define VESSEL_MANEUVER_COOLDOWN_TICKS 10 /* 5 s between maneuvers */
+#define VESSEL_UNDOCK_TICKS 60            /* 30 s to cast off from a berth */
+#define VESSEL_WEIGH_ANCHOR_TICKS 26      /* 13 s to weigh anchor */
+#define VESSEL_STEERAGE_SPEED 2           /* Autopilot speed while turning hard */
+#define VESSEL_CLIMB_PER_TICK 1           /* Autopilot altitude change per tick */
+
+/* Per-class handling (vessels-ships study 3.3.1): Duris analog values with
+ * speeds times 0.3, accel and turn per 0.5 s tick, weights in Duris units. */
+struct vessel_class_handling
+{
+  int speed;       /* Default design speed */
+  double accel;    /* Speed gained or shed per tick */
+  double turn;     /* Degrees turned per tick at design speed */
+  int max_load;    /* Weight budget */
+  int free_fitout; /* Fit-out weight carried without penalty */
+  int full_hold;   /* Weight of a full hold */
+  int free_hold;   /* Hold weight carried without penalty */
+};
+
+const struct vessel_class_handling *vessel_class_handling(enum vessel_class vessel_type);
+int vessel_display_heading(double heading);
+int vessel_display_speed(double speed);
+double vessel_heading_difference(double from, double to);
+int vessel_pilot_speed_bonus(struct char_data *ch);
+int vessel_helm_speed_bonus(struct greyhawk_ship_data *ship);
+double vessel_sailmaster_multiplier(const struct greyhawk_ship_data *ship);
+double vessel_load_factor(const struct greyhawk_ship_data *ship);
+double vessel_max_speed_from(int design_speed, double sailmaster_multiplier, double load_factor,
+                             int mainsail, int maxmainsail, int position_percent, int helm_bonus);
+double vessel_max_speed(struct greyhawk_ship_data *ship);
+double vessel_acceleration(const struct greyhawk_ship_data *ship);
+double vessel_turn_rate(const struct greyhawk_ship_data *ship, double max_speed);
+bool vessel_is_moored(const struct greyhawk_ship_data *ship);
+void vessel_berth(struct greyhawk_ship_data *ship);
+void vessel_sync_berth(struct greyhawk_ship_data *ship);
+bool vessel_begin_departure(struct greyhawk_ship_data *ship, struct char_data *ch);
+bool vessel_maneuver(struct greyhawk_ship_data *ship, struct char_data *ch, int direction);
+bool vessel_change_altitude(struct greyhawk_ship_data *ship, int z);
+void vessel_movement_tick_one(struct greyhawk_ship_data *ship);
+ACMD_DECL(do_vessel_anchor); /* Drop anchor at sea */
+
+/* Enters one room; update_ship_wilderness_position() outside the tests. */
+typedef bool (*vessel_cell_entry_fn)(int shipnum, int x, int y, int z);
+#ifdef LUMINARI_CUTEST
+void vessel_movement_set_cell_entry_for_test(vessel_cell_entry_fn entry);
+#endif
 
 /* ========================================================================= */
 /* NAVAL COMBAT (Phase 05, vessels_combat.c)                                 */
@@ -517,7 +570,6 @@ void vessel_initialize_condition(struct greyhawk_ship_data *ship, int armor);
 const char *vessel_status_name(int status);
 void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause);
 void vessel_sink(int shipnum);
-void vessel_check_grounding(int shipnum);
 void vessel_combat_tick(void);
 void vessel_combat_tick_one(struct greyhawk_ship_data *ship);
 
@@ -1243,6 +1295,7 @@ struct autopilot_data
   int wait_remaining;               /* Seconds left at current waypoint */
   time_t last_update;               /* Timestamp of last state update */
   int pilot_mob_vnum;               /* VNUM of NPC pilot (-1 if none) */
+  double speed_limit;               /* Steering cap on speed, set each tick */
   uint64_t movement_steps;          /* Successful autonomous position updates */
   uint64_t waypoint_arrivals;       /* Waypoints reached since initialization */
   uint64_t route_completions;       /* Complete route traversals */
@@ -1313,10 +1366,11 @@ struct greyhawk_ship_data
   unsigned char mainsail, maxmainsail; /* Main sail HP/condition */
   unsigned char hullweight;            /* Weight of hull (in thousands) */
   unsigned char maxslots;              /* Maximum number of equipment slots */
+  short int position_speed_percent;    /* Terrain, weather, lane modifier; 0 = recompute */
 
   /* Position and Movement */
-  double x, y, z;    /* Current coordinates */
-  double dx, dy, dz; /* Delta movement vectors */
+  double x, y, z;    /* Current room coordinates (whole numbers) */
+  double dx, dy, dz; /* dx, dy: position inside the room, -0.5..0.5 from its centre */
 
   /* Crew */
   struct greyhawk_ship_crew sailcrew; /* Sailing crew */
@@ -1334,17 +1388,20 @@ struct greyhawk_ship_data
   int hull_object_vnum;     /* Object prototype used for the exterior hull */
 
   /* Location and Status */
-  int dock;     /* Docked room number */
-  int shiproom; /* Ship interior room vnum */
-  int shipnum;  /* Canonical fleet slot and persistent identity */
-  int location; /* Current world location */
-  bool active;  /* Slot occupancy; independent of shipnum */
+  int dock;      /* Port room vnum where the hull is berthed; 0 when not berthed */
+  int shiproom;  /* Ship interior room vnum */
+  int shipnum;   /* Canonical fleet slot and persistent identity */
+  int location;  /* Current world location */
+  bool active;   /* Slot occupancy; independent of shipnum */
+  bool anchored; /* Riding at anchor at sea (runtime only) */
 
-  /* Navigation */
-  short int heading;            /* Current heading (0-360) */
-  short int setheading;         /* Set heading (target) */
-  short int minspeed, maxspeed; /* Speed range */
-  short int speed, setspeed;    /* Current and target speed */
+  /* Navigation (vessels_movement.c). Orders set setheading and setspeed; each
+   * vessel tick turns and accelerates the hull toward them. */
+  double heading;               /* Current heading in degrees, 0 <= heading < 360 */
+  double speed;                 /* Current speed; the hull covers speed / 90 rooms a tick */
+  short int setheading;         /* Ordered heading */
+  short int minspeed, maxspeed; /* maxspeed is the design speed before sail, load, and crew */
+  short int setspeed;           /* Ordered speed */
 
   /* Events */
   struct event_runtime_handle periodic_event_handle;
@@ -1446,6 +1503,10 @@ struct greyhawk_ship_data
   /* Runtime-only player-message cooldowns; not written to vessel persistence. */
   uint64_t message_last_pulse[NUM_VESSEL_MESSAGE_KEYS];
   unsigned int message_seen_mask;
+
+  /* Runtime-only movement timers (vessels_movement.c), in vessel ticks. */
+  short int departure_ticks; /* Left on an undock or weigh-anchor order */
+  short int maneuver_ticks;  /* Before the next setsail maneuver */
 };
 
 /* One sighted vessel in a ship's contact list (vessel_collect_contacts()) */
@@ -1657,7 +1718,7 @@ int vessel_autopilot_grid_coordinate(double coordinate);
 bool vessel_autopilot_next_position(const struct greyhawk_ship_data *ship,
                                     const struct waypoint *wp, double speed, int *target_x,
                                     int *target_y, int *target_z);
-int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship);
+bool vessel_autopilot_steer(struct greyhawk_ship_data *ship);
 void process_waiting_vessel(struct greyhawk_ship_data *ship);
 void process_traveling_vessel(struct greyhawk_ship_data *ship);
 void autopilot_tick(void);

@@ -158,8 +158,10 @@ sql/components/help_vessel_entries.sql
 Core, persistence, and scheduling:
 
 - `src/vessels/vessels.h` - Structures, constants, and prototypes for vessels and vehicles
-- `src/vessels/vessels.c` - Core commands, wilderness movement, terrain (`shipstatus`, `speed`,
-  `heading`, `contacts`, `disembark`, `setsail`)
+- `src/vessels/vessels.c` - Core commands, wilderness position updates, terrain (`shipstatus`,
+  `speed`, `heading`, `contacts`, `disembark`, `setsail`)
+- `src/vessels/vessels_movement.c` - Movement and pacing (S2): class handling, maximum speed, the
+  movement tick, berths, departure, the `setsail` maneuver, and `anchor`
 - `src/vessels/vessels_rooms.c` - Multi-room interior generation and movement (`shiptalk`)
 - `src/vessels/vessels_docking.c` - Docking, boarding, ship-to-ship interaction (`dock`, `undock`,
   `board_hostile`, `ship_rooms`)
@@ -1191,6 +1193,68 @@ Notes for whoever continues:
 - Phase 1 verification (2026-09-28): `make test-all` passed with the database cases enabled
   (1868 CuTest cases, isolated `.ci-runtime/lib` from `scripts/ci/prepare_test_runtime.sh`), and
   again with the MR !6 review fixes (1869 cases); all six live vessel gates passed on both.
+
+### Phase 2 (S2) progress
+
+Branch `feat/vessels-s2` from merge commit `34dcbb34e` (annotated tag `vessels-s2-base`, pushed
+to `gitlab`). The review range will be `vessels-s2-base..vessels-s2`. Follow the step workflow
+recorded for S1: one branch, a merge commit at the end, never a squash.
+
+| Item | State | Where |
+| -- | -- | -- |
+| Class handling table (3.3.1 speed, accel, turn, weight budget, allowances) | Done | `vessel_class_handling()` in the new `src/vessels/vessels_movement.c`; `vedit new` takes the class speed |
+| Maximum speed: sailmaster, load, sail (L2), terrain/weather/lane, SEADOG +1 | Done | `vessel_max_speed()`, `vessel_max_speed_from()`, `vessel_load_factor()`, `vessel_helm_speed_bonus()` |
+| Momentum: accel, turn with sailmaster and rudder (L1), speed / 90 rooms per tick (L3) | Done | `vessel_movement_tick_one()` from `vessel_owner_event()` after the autopilot and hunter ticks |
+| Per-room validation; refused room stops the hull at its edge; draft | Done | `vessel_cross_room_edges()`; `vessel_draft_allows()` inside `update_ship_wilderness_position()` replaces `vessel_check_grounding()` |
+| Berth at rest in port, `undock` departure (30 s / 13 s), `anchor` | Done | `vessel_berth()`, `vessel_sync_berth()`, `vessel_begin_departure()`, `do_vessel_anchor()`; `do_undock()` departs when no hull is alongside |
+| `setsail` as the maneuver command | Done | `vessel_maneuver()`; the S1 departure level check moved from `setsail` to `undock` |
+| Automated movers rebased | Done | Autopilot steering `vessel_autopilot_steer()` with `autopilot_data.speed_limit`; hunters steer and shadow; merchants cruise at design speed; scheduled routes validated one room at a time |
+| Unit tests | Done | New `unittests/CuTest/test_vessel_movement.c` (14 cases); updates in `test_transport_production.c`, `test_vessel_gunnery.c`, `test_racial_innate_feats.c` |
+| Help in both places, `VESSEL_SYSTEM.md` | Done | VESSELS (SPEED, HEADING, SETSAIL, UNDOCK, new ANCHOR keyword), AUTOPILOT, SEADOG; "Movement and Pacing" section |
+| Existing live gates moved to the new model | Pending | `scripts/development/dev_kohdee_login_smoke.sh` and the `scripts/vessels/` gates (list below) |
+| New actual-character movement gate | Pending | Planned as `--vessel-movement-check` plus a `test_vessel_movement_in_game.sh` wrapper |
+| Ferry soak and scale re-baseline in `VESSEL_BENCHMARKS.md` | Pending | The fleet-heartbeat scale runner is retired (`run_vessel_scale_benchmark.sh` refuses `start`); measure native `vessel.greyhawk.agenda` events instead |
+
+Interpretations and deferrals decided while building S2:
+
+- "Class speed" in the maximum-speed formula is the hull's design speed (`maxspeed`, the
+  prototype's speed, which defaults to the class speed), so `vedit set speed` keeps its meaning.
+- The terrain, weather, and altitude-lane percentage (LuminariMUD-only) multiplies the maximum
+  speed; it is cached per room in `position_speed_percent` and refreshed on room entry and on
+  every hazard check.
+- Refit rescaling (rigging +10%, plating and reinforcement +20%) moves to S3 with the other
+  refits: rigging still adds 5 to the design speed. Per-class sail HP also stays for S3.
+- The crash check at battle stations (3.3.2) arrives with battle stations in S4; until then a
+  refused room, including water too shallow for the keel, only stops the hull. Grounding no
+  longer deals 2d4 bow damage.
+- The anchor is runtime-only; a reboot drops it. The berth persists in the existing `dock_room`
+  column, and `vessel_sync_berth()` berths any hull found at rest in port at load or spawn. No
+  schema change was needed; `dx`/`dy` (already persisted) hold the position inside the room.
+- `autopilot pause` holds the hull (speed cap 0); `autopilot off` leaves it on its ordered speed
+  and heading, as in DurisMUD. With no ordered speed the autopilot cruises at full speed.
+- `setsail up` and `down` are exempt from the speed-6 limit and keep the hull under way;
+  horizontal maneuvers stop it, as DurisMUD's `order maneuver` does.
+- Merchants cruise at their design speed instead of half of it; the study's 22-minute Vailand
+  voyage assumes the cog's speed 12.
+- Every scheduled route in the content loops, so schedule intervals only time the first
+  departure; no interval needed re-deriving.
+- `docked_to_ship > 0` marks a hull alongside in the new checks (fleet slot 0 is reserved and
+  zeroed test fixtures carry 0).
+- `speed` and `heading` are now `double`; `vessel_display_speed()` and `vessel_display_heading()`
+  round them for output, persistence, and integer rules. The new fields fit struct padding, so
+  `greyhawk_ship_data` stays at the 5 KiB budget (5,120 bytes); `autopilot_data` grew to 80.
+
+Live gates that assume the old model (from a survey of `scripts/`): the builder, frontier,
+regatta, narrative, and hunter checks in `dev_kohdee_login_smoke.sh` (instant speed, `speed`
+then multi-room `setsail` at speed 10, exact coordinates), the harbor provisioner's fare and
+crossing sessions (60 s and 45 s bounds at ferry speed 2), the campaign provisioner (arrival at
+the central port inside a 45 s window), and the ferry soak (one loop per 15-minute sample at
+speed 2, a paused ferry must not move). Hulls spawned at the (-66,92) seaport now start berthed.
+The retired scale runner's text checks in `test_vessel_scale_benchmark_parsers.sh` still pass
+unchanged.
+
+Verification so far (2026-09-29): `make` clean with the strict warning set, also with
+`-DVESSEL_SYSTEM_DEBUG=1` for the vessel sources; full CuTest suite 1885 of 1885 passing.
 
 ### Estimate
 

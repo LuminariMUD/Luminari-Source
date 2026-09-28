@@ -23,8 +23,8 @@ WHERE tag IN (
 SELECT
   'command_keywords' AS check_name,
   COUNT(*) AS actual,
-  80 AS expected,
-  IF(COUNT(*) = 80, 'PASS', 'FAIL') AS result
+  81 AS expected,
+  IF(COUNT(*) = 81, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE (help_tag, keyword) IN (
   ('VESSELS', 'BOARD'),
@@ -39,6 +39,7 @@ WHERE (help_tag, keyword) IN (
   ('VESSELS', 'DOCK'),
   ('VESSELS', 'DOCKFEES'),
   ('VESSELS', 'UNDOCK'),
+  ('VESSELS', 'ANCHOR'),
   ('VESSELS', 'LOOK_OUTSIDE'),
   ('VESSELS', 'LOOKOUT'),
   ('VESSELS', 'SHIP_ROOMS'),
@@ -157,13 +158,16 @@ AND CHAR_LENGTH(TRIM(entry)) > 0;
 SELECT
   'content_contracts' AS check_name,
   COUNT(*) AS actual,
-  20 AS expected,
-  IF(COUNT(*) = 20, 'PASS', 'FAIL') AS result
+  23 AS expected,
+  IF(COUNT(*) = 23, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
   SELECT 'VESSELS' AS tag, 'moving no faster than speed 2' AS required_pattern
   UNION ALL SELECT 'VESSELS', 'elevation or depth'
   UNION ALL SELECT 'VESSELS', 'two-letter ID that SHIPFIRE accepts'
+  UNION ALL SELECT 'VESSELS', 'covers 10[[:space:]]+rooms every 45 seconds'
+  UNION ALL SELECT 'VESSELS', 'needs speed 6 or less'
+  UNION ALL SELECT 'VESSELS', 'berth in 30 seconds or weigh anchor in 13'
   UNION ALL SELECT 'SHIPFIRE', 'five real[[:space:]]+minutes'
   UNION ALL SELECT 'SHIPFIRE', 'Harbors are neutral ground'
   UNION ALL SELECT 'SHIPFIRE', 'fights only with its owner.s consent'

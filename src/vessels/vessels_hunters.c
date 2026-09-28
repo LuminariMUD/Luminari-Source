@@ -26,6 +26,7 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 #define VESSEL_HUNTER_SPAWN_RETRY_SECONDS 60
 #define VESSEL_HUNTER_STATUS_LENGTH 16
 #define VESSEL_HUNTER_REASON_LENGTH 64
+#define VESSEL_HUNTER_SHADOW_RANGE 2.0 /* Rooms at which a hunter matches its target */
 
 struct vessel_hunter_boot_row
 {
@@ -265,7 +266,7 @@ bool vessel_hunter_target_is_eligible(const struct greyhawk_ship_data *target,
                                       const struct vessel_hunter_config *config, time_t now)
 {
   if (!mysql_available || conn == NULL || !is_valid_ship(target) ||
-      !vessel_hunter_config_is_valid(config) || !config->enabled || target->speed == 0 ||
+      !vessel_hunter_config_is_valid(config) || !config->enabled || target->speed <= 0.0 ||
       target->owner[0] == '\0' || vessel_hunter_online_owner_aboard(target) == NULL ||
       vessel_get_bounty(target->owner) < config->min_bounty)
   {
@@ -646,8 +647,9 @@ bool vessel_hunter_spawn(struct greyhawk_ship_data *target,
     return FALSE;
   }
 
-  hunter->speed = (short)MIN(config->pursuit_speed, MAX(1, hunter->maxspeed));
-  hunter->setspeed = hunter->speed;
+  /* The warship arrives already under way. */
+  hunter->setspeed = (short)MIN(config->pursuit_speed, MAX(1, hunter->maxspeed));
+  hunter->speed = (double)hunter->setspeed;
   vessel_hunter_attach_runtime(hunter, target_name, target->shipnum,
                                now + config->hunt_duration_seconds, config);
   if (!vessel_db_save_runtime(hunter) ||
@@ -831,8 +833,7 @@ void vessel_hunter_boot(void)
 
     vessel_hunter_attach_runtime(hunter, row->target_player, row->target_ship_id, row->expires_at,
                                  &row->config);
-    hunter->speed = (short)MIN(row->config.pursuit_speed, MAX(1, hunter->maxspeed));
-    hunter->setspeed = hunter->speed;
+    hunter->setspeed = (short)MIN(row->config.pursuit_speed, MAX(1, hunter->maxspeed));
     vessel_db_save_runtime(hunter);
     attached++;
   }
@@ -939,12 +940,13 @@ static bool vessel_hunter_finish_runtime(struct greyhawk_ship_data *hunter, cons
 void vessel_hunter_tick_one(struct greyhawk_ship_data *hunter)
 {
   struct greyhawk_ship_data *target;
-  struct waypoint waypoint;
   time_t now;
   bool target_changed;
-  int target_x;
-  int target_y;
-  int target_z;
+  double hunter_x;
+  double hunter_y;
+  double target_x;
+  double target_y;
+  double range;
   int speed;
 
   now = time(0);
@@ -972,7 +974,6 @@ void vessel_hunter_tick_one(struct greyhawk_ship_data *hunter)
   if (target == NULL)
   {
     hunter->last_attacker = 0;
-    hunter->speed = 0;
     hunter->setspeed = 0;
     if (hunter->hunter_target_missing_since == 0)
       hunter->hunter_target_missing_since = now;
@@ -985,21 +986,26 @@ void vessel_hunter_tick_one(struct greyhawk_ship_data *hunter)
   target_changed = hunter->hunter_target_ship_id != target->shipnum;
   hunter->hunter_target_ship_id = target->shipnum;
   hunter->last_attacker = target->shipnum;
-  speed = MIN(hunter->hunter_pursuit_speed, MAX(1, hunter->maxspeed));
-  hunter->speed = (short)speed;
-  hunter->setspeed = (short)speed;
-  hunter->setheading = (short int)greyhawk_bearing(hunter->x, hunter->y, target->x, target->y);
-  hunter->heading = hunter->setheading;
-
-  memset(&waypoint, 0, sizeof(waypoint));
-  waypoint.x = target->x;
-  waypoint.y = target->y;
-  waypoint.z = target->z;
-  if (vessel_autopilot_next_position(hunter, &waypoint, (double)speed, &target_x, &target_y,
-                                     &target_z) &&
-      (target_x != (int)hunter->x || target_y != (int)hunter->y || target_z != (int)hunter->z))
+  /* Steer for the target and let the movement tick sail; close aboard,
+   * match its speed instead of overrunning it. */
+  if (vessel_is_moored(hunter) && hunter->departure_ticks == 0 && hunter->docked_to_ship <= 0)
   {
-    update_ship_wilderness_position(hunter->shipnum, target_x, target_y, target_z);
+    vessel_begin_departure(hunter, NULL);
+  }
+  hunter_x = hunter->x + hunter->dx;
+  hunter_y = hunter->y + hunter->dy;
+  target_x = target->x + target->dx;
+  target_y = target->y + target->dy;
+  range = greyhawk_range(hunter_x, hunter_y, 0.0, target_x, target_y, 0.0);
+  speed = MIN(hunter->hunter_pursuit_speed, MAX(1, hunter->maxspeed));
+  if (range < VESSEL_HUNTER_SHADOW_RANGE)
+  {
+    speed = MIN(speed, vessel_display_speed(target->speed));
+  }
+  hunter->setspeed = (short)speed;
+  if (range >= 0.5)
+  {
+    hunter->setheading = (short int)greyhawk_bearing(hunter_x, hunter_y, target_x, target_y);
   }
 
   if (target_changed ||

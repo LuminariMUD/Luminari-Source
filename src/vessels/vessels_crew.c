@@ -140,8 +140,9 @@ int vessel_crew_hire_cost(int position, int tier)
 /**
  * Recompute the ship's crew effect fields from hired tiers.
  *
- * Bonuses land in the legacy sailcrew/guncrew structures so movement,
- * gunnery (vessels_combat.c), and repair read them without special cases.
+ * Gunnery (vessels_combat.c) and repair read the legacy sailcrew/guncrew
+ * fields; movement reads the sailmaster tier through
+ * vessel_sailmaster_multiplier().
  */
 void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship)
 {
@@ -150,7 +151,6 @@ void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship)
     return;
   }
 
-  ship->sailcrew.speedadjust = (char)(ship->crew_tier[CREW_SAILMASTER] * 2);
   ship->guncrew.gunadjust = (char)(ship->crew_tier[CREW_GUNNER] * 2);
   ship->sailcrew.repairspeed = (char)(ship->crew_tier[CREW_BOSUN] * 2);
 

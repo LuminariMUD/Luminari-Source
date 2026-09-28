@@ -698,8 +698,9 @@ ACMD(do_transportstatus)
     send_to_char(ch, "Owner: %s\r\n", vessel->owner);
     send_to_char(ch, "\r\n");
     send_to_char(ch, "Position: (%.1f, %.1f, %.1f)\r\n", vessel->x, vessel->y, vessel->z);
-    send_to_char(ch, "Heading: %d degrees\r\n", vessel->heading);
-    send_to_char(ch, "Speed: %d / %d\r\n", vessel->speed, vessel->maxspeed);
+    send_to_char(ch, "Heading: %d degrees\r\n", vessel_display_heading(vessel->heading));
+    send_to_char(ch, "Speed: %d / %d\r\n", vessel_display_speed(vessel->speed),
+                 vessel_display_speed(vessel_max_speed(vessel)));
     send_to_char(ch, "\r\n");
     send_to_char(ch, "Rooms: %d\r\n", vessel->num_rooms);
     send_to_char(ch, "Docked: %s\r\n", (vessel->dock > 0) ? "Yes" : "No");

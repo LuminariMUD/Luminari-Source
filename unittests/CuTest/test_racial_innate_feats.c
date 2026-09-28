@@ -1073,10 +1073,11 @@ void TestMinerRaisesMineralHarvestSkill(CuTest *tc)
   end_innate_fixture(&fixture);
 }
 
-/* Barter is worth ten points of charisma in the shop haggle, seadog one tile at the helm. */
+/* Barter is worth ten points of charisma in the shop haggle, seadog one knot at the helm. */
 void TestBarterAndSeadogBonuses(CuTest *tc)
 {
   struct innate_fixture fixture;
+  struct greyhawk_ship_data ship;
   int base_score;
 
   begin_innate_fixture(&fixture);
@@ -1086,8 +1087,16 @@ void TestBarterAndSeadogBonuses(CuTest *tc)
 
   CuAssertIntEquals(tc, 0, vessel_pilot_speed_bonus(NULL));
   CuAssertIntEquals(tc, 0, vessel_pilot_speed_bonus(&fixture.ch));
+
+  /* The bonus counts only for a seadog on the hull's bridge. */
+  memset(&ship, 0, sizeof(ship));
+  ship.bridge_room = fixture.rooms[0].number;
+  CuAssertIntEquals(tc, 0, vessel_helm_speed_bonus(&ship));
   SET_FEAT(&fixture.ch, FEAT_SEADOG, 1);
   CuAssertIntEquals(tc, 1, vessel_pilot_speed_bonus(&fixture.ch));
+  CuAssertIntEquals(tc, 1, vessel_helm_speed_bonus(&ship));
+  ship.bridge_room = fixture.rooms[1].number;
+  CuAssertIntEquals(tc, 0, vessel_helm_speed_bonus(&ship));
 
   end_innate_fixture(&fixture);
 }

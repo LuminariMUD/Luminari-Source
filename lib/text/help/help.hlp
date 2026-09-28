@@ -2515,10 +2515,16 @@ The autopilot command controls automated vessel navigation. When enabled,
 your vessel will automatically follow the assigned route, moving from
 waypoint to waypoint without manual intervention.
 
+The autopilot steers and the hull sails under the same rules as a
+helmsman's orders (see VESSELS). It casts off from a berth or weighs anchor
+first, cruises at the ordered speed (full speed when none is ordered), slows
+to steerage speed while it comes about, and slows to a stop at a waypoint
+where it waits.
+
 Subcommands:
   on     - Enable autopilot and begin navigating the assigned route
-  off    - Disable autopilot and stop navigation
-  pause  - Temporarily pause navigation (can be resumed with 'on')
+  off    - Disable autopilot; the hull keeps her ordered speed and heading
+  pause  - Hold the hull where she lies (can be resumed with 'on')
   status - Display current autopilot state, route, and progress (default)
 
 Before using autopilot, you must:
@@ -30737,8 +30743,8 @@ Seadog
 
 Requires: the seadog feat (racial innate)
 
-Born to the waves, you coax more out of any vessel you pilot: every move you
-steer carries the ship one extra map tile.
+Born to the waves, you coax more out of any vessel you pilot: while you are
+at the helm, her maximum speed is one higher.
 
 See also: FEAT INFO SEADOG, VESSELS
 #0
@@ -41385,7 +41391,7 @@ VTRADECHECK [trades]
 
 See also: SHIPLIST, SHIP-ADMIN, VMERCHANT, VEDIT
 #31
-BOARD BOARDING BOARDING-SKILL BOARD_HOSTILE CAPTAIN CONTACTS DISEMBARK DOCK DOCKFEES HEADING LOOKOUT LOOK_OUTSIDE NAVIGATION RAFT SEA-VESSEL SEA-VESSELS SETSAIL SHIPS SHIPSTATUS SHIPTALK SHIP_ROOMS SKILL-BOARDING SPEED TACTICAL UNDOCK VESSEL VESSELS
+ANCHOR BOARD BOARDING BOARDING-SKILL BOARD_HOSTILE CAPTAIN CONTACTS DISEMBARK DOCK DOCKFEES HEADING LOOKOUT LOOK_OUTSIDE NAVIGATION RAFT SEA-VESSEL SEA-VESSELS SETSAIL SHIPS SHIPSTATUS SHIPTALK SHIP_ROOMS SKILL-BOARDING SPEED TACTICAL UNDOCK VESSEL VESSELS
 
 Vessel navigation and boarding:
 
@@ -41394,8 +41400,9 @@ BOARD [vessel]
   continues to operate that board instead.
 
 DISEMBARK
-  Leave a stopped vessel. Docked ships return you safely to the dock or linked
-  ship. Away from shore, you must be able to swim and will enter the water.
+  Leave a stopped vessel. Berthed and docked ships return you safely to the
+  dock or linked ship. Away from shore, you must be able to swim and will
+  enter the water.
 
 TACTICAL
   Show a 21-by-21 canonical wilderness chart with terrain, public region
@@ -41403,30 +41410,41 @@ TACTICAL
   contact roster below the chart is the CONTACTS list, with the same IDs.
 
 SHIPSTATUS
-  Show position, terrain, elevation or depth, heading, speed, and armor on all
-  four sides. Merchant registry and unpaid dock-fee details appear when they
-  apply.
+  Show position, terrain, elevation or depth, heading, speed, moorings, and
+  armor on all four sides. Heading and speed show any order the hull is still
+  answering, and speed shows the most she can make under present conditions.
+  Merchant registry and unpaid dock-fee details appear when they apply.
 
 SHIPTALK <message>
   Speak over the captain's channel to awake, hearing occupants in every room
   aboard your current vessel. The channel identifies both the vessel and
   speaker; it cannot be used ashore or while silenced.
 
-SPEED [0-max]
-  Set desired speed at an authorized helm. Zero is all stop.
+SPEED [0-30]
+  Order a speed at an authorized helm; zero is all stop. The hull gathers or
+  loses way every half second at her class rate, quicker with a sailmaster,
+  and sails on her heading until ordered otherwise: at speed 10 she covers 10
+  rooms every 45 seconds. She can make at most her design speed, scaled by
+  the sailmaster, the weight of her fit-out and cargo, her remaining sail, and
+  the terrain, weather, and any high-altitude lane; a seadog at the helm adds
+  one. She checks every room she enters: land, water too shallow for her
+  keel, or unpaid dock fees stop her at its edge. A berthed or anchored hull
+  takes no speed order until UNDOCK completes.
 
 HEADING [0-360]
-  Set an absolute compass heading at an authorized helm. North is 0, east 90,
-  south 180, and west 270.
+  Order an absolute compass heading at an authorized helm. North is 0, east
+  90, south 180, and west 270. The hull comes about at her class turn rate,
+  slower at low speed and with a damaged rudder; a smashed rudder cannot
+  turn.
 
 SETSAIL <direction>
-  Set a cardinal, diagonal, up, or down heading and begin moving. The vessel
-  must already have a positive speed. Each order covers a tenth of the speed
-  in rooms (at least one); storms and gales shorten it by a quarter, while
-  clear, overcast, and squally weather do not. Leaving a port needs the
-  hull's level (see SHIPBROWSE). Surface hulls remain at elevation zero.
-  Air-capable hulls cannot exceed their class ceiling, and submersible hulls
-  can use negative depth only over water.
+  Maneuver one room north, south, east, west, or diagonally, or climb or dive
+  ten units. Across the map a maneuver needs speed 6 or less and leaves the
+  hull stopped on the new heading; maneuvering into a port berths her.
+  Climbing and diving keep her under way. The crew needs 5 seconds between
+  maneuvers. Surface hulls remain at elevation zero. Air-capable hulls cannot
+  exceed their class ceiling, and submersible hulls can use negative depth
+  only over water.
 
 CONTACTS
   List the vessels within your visibility, nearest first, with the
@@ -41445,7 +41463,16 @@ DOCKFEES [pay]
   economy. Unowned public and NPC hulls are exempt.
 
 UNDOCK
-  Remove the gangway to the vessel currently alongside.
+  With a vessel alongside, remove the gangway. Otherwise cast off from a
+  berth in 30 seconds or weigh anchor in 13. A hull that comes to rest in a
+  port is berthed and holds there until her crew reports her ready. Casting
+  off needs a whole sail, settled dock fees, and a captain of the hull's
+  level (see SHIPBROWSE).
+
+ANCHOR
+  Drop anchor where the hull lies stopped on the surface away from a berth.
+  An anchored hull holds position and takes no speed order or maneuver until
+  UNDOCK weighs anchor. Anchoring disengages the autopilot.
 
 LOOKOUT (legacy alias: LOOK_OUTSIDE)
   From an interior room with an outside view, scan canonical wilderness

@@ -691,23 +691,24 @@ void Test_vessel_autopilot_wait_stops_and_resumes_cruise_speed(CuTest *tc)
   route->waypoints[0].wait_time = 5;
   CuAssertTrue(tc, autopilot_start(&ship, route));
 
+  /* The autopilot heaves to (the movement tick brings the hull to rest)
+   * and keeps the cruise order for the next leg. */
   handle_waypoint_arrival(&ship);
   CuAssertIntEquals(tc, AUTOPILOT_WAITING, ship.autopilot->state);
-  CuAssertIntEquals(tc, 0, ship.speed);
+  CuAssertDblEquals(tc, 0.0, ship.autopilot->speed_limit, 0.0001);
   CuAssertIntEquals(tc, 6, ship.setspeed);
   CuAssertIntEquals(tc, 5, ship.autopilot->wait_remaining);
 
-  ship.speed = 4;
+  ship.autopilot->speed_limit = 4.0;
   ship.autopilot->last_update = time(0);
   process_waiting_vessel(&ship);
   CuAssertIntEquals(tc, AUTOPILOT_WAITING, ship.autopilot->state);
-  CuAssertIntEquals(tc, 0, ship.speed);
+  CuAssertDblEquals(tc, 0.0, ship.autopilot->speed_limit, 0.0001);
   CuAssertIntEquals(tc, 6, ship.setspeed);
 
   ship.autopilot->last_update = time(0) - 6;
   process_waiting_vessel(&ship);
   CuAssertIntEquals(tc, AUTOPILOT_TRAVELING, ship.autopilot->state);
-  CuAssertIntEquals(tc, 6, ship.speed);
   CuAssertIntEquals(tc, 6, ship.setspeed);
   CuAssertIntEquals(tc, 1, ship.autopilot->current_waypoint_index);
 
@@ -784,7 +785,7 @@ void Test_vessel_autopilot_pauses_after_untraversable_waypoint(CuTest *tc)
   process_traveling_vessel(&ship);
 
   CuAssertIntEquals(tc, AUTOPILOT_PAUSED, ship.autopilot->state);
-  CuAssertIntEquals(tc, 0, ship.speed);
+  CuAssertDblEquals(tc, 0.0, ship.speed, 0.0001);
   CuAssertIntEquals(tc, 0, ship.setspeed);
 
   autopilot_cleanup(&ship);
@@ -1296,7 +1297,7 @@ void Test_vessel_crew_costs_and_bonuses(CuTest *tc)
   ship.crew_tier[CREW_BOSUN] = CREW_TIER_GREEN;
   vessel_apply_crew_bonuses(&ship);
   CuAssertTrue(tc, ship.guncrew.gunadjust > 0);
-  CuAssertTrue(tc, ship.sailcrew.speedadjust > 0);
+  CuAssertDblEquals(tc, 1.2, vessel_sailmaster_multiplier(&ship), 0.0001);
   CuAssertTrue(tc, ship.sailcrew.repairspeed > 0);
   CuAssertTrue(tc, ship.guncrew.gunadjust > ship.sailcrew.repairspeed); /* veteran > green */
 

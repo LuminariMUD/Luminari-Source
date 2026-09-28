@@ -288,8 +288,8 @@ void vessel_msdp_update(struct char_data *ch)
   MSDPSetNumber(d, eMSDP_SHIP_X, (int)ship->x);
   MSDPSetNumber(d, eMSDP_SHIP_Y, (int)ship->y);
   MSDPSetNumber(d, eMSDP_SHIP_Z, (int)ship->z);
-  MSDPSetNumber(d, eMSDP_SHIP_HEADING, ship->heading);
-  MSDPSetNumber(d, eMSDP_SHIP_SPEED, ship->speed);
+  MSDPSetNumber(d, eMSDP_SHIP_HEADING, vessel_display_heading(ship->heading));
+  MSDPSetNumber(d, eMSDP_SHIP_SPEED, vessel_display_speed(ship->speed));
   MSDPSetNumber(d, eMSDP_SHIP_HULL, vessel_total_internal(ship));
   MSDPSetNumber(d, eMSDP_SHIP_HULL_MAX, vessel_max_internal(ship));
   MSDPSetString(d, eMSDP_SHIP_STATUS, vessel_status_name(vessel_status(ship)));
@@ -368,8 +368,8 @@ ACMD(do_shiplist)
       }
       send_to_char(ch, "%4d %-25.25s %-10.10s (%5d,%5d) %3d %3d %3d/%-3d %s\r\n", i, ship->name,
                    get_vessel_type_name(ship->vessel_type), (int)ship->x, (int)ship->y,
-                   ship->heading, ship->speed, vessel_total_internal(ship),
-                   vessel_max_internal(ship), registry);
+                   vessel_display_heading(ship->heading), vessel_display_speed(ship->speed),
+                   vessel_total_internal(ship), vessel_max_internal(ship), registry);
     }
     listed++;
   }

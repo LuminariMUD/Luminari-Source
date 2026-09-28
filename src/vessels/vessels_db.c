@@ -799,10 +799,10 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            ship->shipnum, ship->prototype_id,
            ship->hull_object_vnum > 0 ? ship->hull_object_vnum : VESSEL_BASE_HULL_OBJ_VNUM,
            escaped_id, location_vnum, ship->x, ship->y, ship->z, ship->dx, ship->dy, ship->dz,
-           ship->heading, ship->setheading, ship->minspeed, ship->maxspeed, ship->speed,
-           ship->setspeed, ship->dock, ship->docked_to_ship, ship->docking_room,
-           ship->max_docked_ships, ship->maxfarmor, ship->maxrarmor, ship->maxparmor,
-           ship->maxsarmor, ship->farmor, ship->rarmor, ship->parmor, ship->sarmor,
+           vessel_display_heading(ship->heading), ship->setheading, ship->minspeed, ship->maxspeed,
+           vessel_display_speed(ship->speed), ship->setspeed, ship->dock, ship->docked_to_ship,
+           ship->docking_room, ship->max_docked_ships, ship->maxfarmor, ship->maxrarmor,
+           ship->maxparmor, ship->maxsarmor, ship->farmor, ship->rarmor, ship->parmor, ship->sarmor,
            ship->maxfinternal, ship->maxrinternal, ship->maxpinternal, ship->maxsinternal,
            ship->finternal, ship->rinternal, ship->pinternal, ship->sinternal, ship->maxturnrate,
            ship->turnrate, ship->maxmainsail, ship->mainsail, ship->hullweight, ship->maxslots,
@@ -904,7 +904,7 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
   column++;
   ship->dz = row[column] ? strtod(row[column], NULL) : 0.0;
   column++;
-  ship->heading = row[column] ? (short int)parse_int(row[column]) : 0;
+  ship->heading = row[column] ? (double)parse_int(row[column]) : 0.0;
   column++;
   ship->setheading = row[column] ? (short int)parse_int(row[column]) : 0;
   column++;
@@ -912,7 +912,7 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
   column++;
   ship->maxspeed = row[column] ? (short int)parse_int(row[column]) : 0;
   column++;
-  ship->speed = row[column] ? (short int)parse_int(row[column]) : 0;
+  ship->speed = row[column] ? (double)parse_int(row[column]) : 0.0;
   column++;
   ship->setspeed = row[column] ? (short int)parse_int(row[column]) : 0;
   column++;
@@ -1723,6 +1723,7 @@ void load_all_ship_interiors(void)
       log("SYSERR: Legacy ship %d exterior hull could not be reconstructed", shipnum);
     }
 
+    vessel_sync_berth(ship);
     vessel_db_load_owner(ship);
     vessel_db_load_permits(ship);
     vessel_db_load_crew(ship);

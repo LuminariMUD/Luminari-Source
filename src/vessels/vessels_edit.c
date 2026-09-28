@@ -23,7 +23,6 @@
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
 /* Bounds for editable prototype fields */
-#define VEDIT_MAX_SPEED_LIMIT 30
 #define VEDIT_MAX_ARMOR_LIMIT 100
 #define VEDIT_MAX_MIN_LEVEL (LVL_IMMORT - 1)
 
@@ -265,37 +264,29 @@ static void vedit_new(struct char_data *ch, const char *class_arg, const char *n
     return;
   }
 
-  /* Class-flavored defaults; all tunable afterward via 'vedit set'. */
+  /* Class defaults; all tunable afterward via 'vedit set'. */
+  max_speed = vessel_class_handling((enum vessel_class)vclass)->speed;
   switch ((enum vessel_class)vclass)
   {
   case VESSEL_RAFT:
-    max_speed = 5;
     armor = 2;
     break;
   case VESSEL_BOAT:
-    max_speed = 10;
     armor = 5;
     break;
   case VESSEL_WARSHIP:
-    max_speed = 20;
     armor = 40;
     break;
   case VESSEL_AIRSHIP:
-    max_speed = 25;
     armor = 15;
     break;
   case VESSEL_SUBMARINE:
-    max_speed = 8;
     armor = 25;
-    break;
-  case VESSEL_TRANSPORT:
-    max_speed = 8;
-    armor = 20;
     break;
   case VESSEL_MAGICAL:
   case VESSEL_SHIP:
+  case VESSEL_TRANSPORT:
   default:
-    max_speed = 15;
     armor = 20;
     break;
   }
@@ -463,9 +454,9 @@ static void vedit_set(struct char_data *ch, int id, const char *field, const cha
   else if (!str_cmp(field, "speed"))
   {
     ivalue = parse_int(value);
-    if (ivalue < 1 || ivalue > VEDIT_MAX_SPEED_LIMIT)
+    if (ivalue < 1 || ivalue > VESSEL_SPEED_LIMIT)
     {
-      send_to_char(ch, "Speed must be 1-%d.\r\n", VEDIT_MAX_SPEED_LIMIT);
+      send_to_char(ch, "Speed must be 1-%d.\r\n", VESSEL_SPEED_LIMIT);
       return;
     }
     snprintf(query, sizeof(query), "UPDATE ship_prototypes SET max_speed=%d WHERE prototype_id=%d",
@@ -655,8 +646,8 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
   armor = parse_int(row[4]);
   spawn_name = instance_name != NULL && *instance_name ? instance_name : row[1];
 
-  if (vclass < 0 || vclass >= NUM_VESSEL_TYPES || max_speed < 1 ||
-      max_speed > VEDIT_MAX_SPEED_LIMIT || armor < 0 || armor > VEDIT_MAX_ARMOR_LIMIT)
+  if (vclass < 0 || vclass >= NUM_VESSEL_TYPES || max_speed < 1 || max_speed > VESSEL_SPEED_LIMIT ||
+      armor < 0 || armor > VEDIT_MAX_ARMOR_LIMIT)
   {
     mysql_free_result(result);
     if (ch != NULL)
@@ -825,6 +816,9 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
     }
     return -1;
   }
+
+  /* A hull launched in port starts berthed. */
+  vessel_sync_berth(ship);
 
   /* Persist immediately so both the interior and the live instance survive
    * reboot/copyover. Abort the spawn if either half cannot be committed. */
