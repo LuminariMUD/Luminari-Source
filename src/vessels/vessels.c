@@ -591,6 +591,7 @@ static bool vessel_can_traverse_sector(enum vessel_class vessel_type, int sector
 bool vessel_can_occupy_coordinates(enum vessel_class vessel_type, int x, int y, int z)
 {
   zone_rnum wild_zone;
+  room_rnum static_room;
   int sector_type;
 
   if (x < -1024 || x > 1024 || y < -1024 || y > 1024 ||
@@ -605,7 +606,11 @@ bool vessel_can_occupy_coordinates(enum vessel_class vessel_type, int x, int y, 
     return FALSE;
   }
 
-  sector_type = get_modified_sector_type(wild_zone, x, y);
+  /* A static room placed on the map, such as a port, overrides the
+   * generated sector exactly as the hull's position update will find it. */
+  static_room = find_static_room_by_coordinates(x, y);
+  sector_type = static_room != NOWHERE ? world[static_room].sector_type
+                                       : get_modified_sector_type(wild_zone, x, y);
   return vessel_can_traverse_sector(vessel_type, sector_type, z) &&
          (get_vessel_terrain_caps(vessel_type)->min_water_depth <= 0 ||
           vessel_draft_allows(vessel_type, sector_type,
