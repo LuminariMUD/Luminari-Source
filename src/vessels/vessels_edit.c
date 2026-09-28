@@ -119,9 +119,7 @@ int vessel_prototype_min_level(int vclass, int min_level)
  */
 int vessel_ship_min_level(const struct greyhawk_ship_data *ship)
 {
-  char query[MAX_STRING_LENGTH];
-  MYSQL_RES *result;
-  MYSQL_ROW row;
+  PREPARED_STMT *statement;
   int level;
 
   if (ship == NULL)
@@ -135,24 +133,22 @@ int vessel_ship_min_level(const struct greyhawk_ship_data *ship)
     return level;
   }
 
-  snprintf(query, sizeof(query), "SELECT min_level FROM ship_prototypes WHERE prototype_id = %d",
-           ship->prototype_id);
-  if (mysql_query(conn, query))
+  statement = mysql_stmt_create(conn);
+  if (statement == NULL ||
+      !mysql_stmt_prepare_query(statement,
+                                "SELECT min_level FROM ship_prototypes WHERE prototype_id = ?") ||
+      !mysql_stmt_bind_param_int(statement, 0, ship->prototype_id) ||
+      !mysql_stmt_execute_prepared(statement))
   {
-    log("SYSERR: vessel_ship_min_level query failed: %s", mysql_error(conn));
+    log("SYSERR: Could not read the minimum level of ship prototype %d", ship->prototype_id);
+    mysql_stmt_cleanup(statement);
     return level;
   }
-  result = mysql_store_result(conn);
-  if (result == NULL)
+  if (mysql_stmt_fetch_row(statement) && mysql_stmt_get_int(statement, 0) > 0)
   {
-    return level;
+    level = mysql_stmt_get_int(statement, 0);
   }
-  row = mysql_fetch_row(result);
-  if (row != NULL && row[0] != NULL && parse_int(row[0]) > 0)
-  {
-    level = parse_int(row[0]);
-  }
-  mysql_free_result(result);
+  mysql_stmt_cleanup(statement);
   return level;
 }
 
@@ -380,12 +376,31 @@ static void vedit_show(struct char_data *ch, int id)
 }
 
 /**
+ * Store one integer prototype field through a bound statement.
+ *
+ * @return TRUE when the update ran
+ */
+static bool vedit_update_int_field(const char *sql, int value, int id)
+{
+  PREPARED_STMT *statement;
+  bool updated;
+
+  statement = mysql_stmt_create(conn);
+  updated = statement != NULL && mysql_stmt_prepare_query(statement, sql) &&
+            mysql_stmt_bind_param_int(statement, 0, value) &&
+            mysql_stmt_bind_param_int(statement, 1, id) && mysql_stmt_execute_prepared(statement);
+  mysql_stmt_cleanup(statement);
+  return updated;
+}
+
+/**
  * Set a field on a prototype.
  */
 static void vedit_set(struct char_data *ch, int id, const char *field, const char *value)
 {
   char query[MAX_STRING_LENGTH];
   char escaped_name[256];
+  const char *update_sql;
   MYSQL_RES *result;
   MYSQL_ROW row;
   int ivalue;
@@ -442,34 +457,43 @@ static void vedit_set(struct char_data *ch, int id, const char *field, const cha
     snprintf(query, sizeof(query), "UPDATE ship_prototypes SET armor=%d WHERE prototype_id=%d",
              ivalue, id);
   }
-  else if (!str_cmp(field, "forsale"))
+  else if (!str_cmp(field, "forsale") || !str_cmp(field, "minlevel"))
   {
-    if (!str_cmp(value, "yes") || !str_cmp(value, "1"))
+    if (!str_cmp(field, "forsale"))
     {
-      ivalue = 1;
-    }
-    else if (!str_cmp(value, "no") || !str_cmp(value, "0"))
-    {
-      ivalue = 0;
+      if (!str_cmp(value, "yes") || !str_cmp(value, "1"))
+      {
+        ivalue = 1;
+      }
+      else if (!str_cmp(value, "no") || !str_cmp(value, "0"))
+      {
+        ivalue = 0;
+      }
+      else
+      {
+        send_to_char(ch, "For sale must be yes or no.\r\n");
+        return;
+      }
+      update_sql = "UPDATE ship_prototypes SET for_sale = ? WHERE prototype_id = ?";
     }
     else
     {
-      send_to_char(ch, "For sale must be yes or no.\r\n");
-      return;
+      ivalue = parse_int(value);
+      if (!isdigit((unsigned char)*value) || ivalue < 0 || ivalue > VEDIT_MAX_MIN_LEVEL)
+      {
+        send_to_char(ch, "Minimum level must be 0 (class minimum) to %d.\r\n", VEDIT_MAX_MIN_LEVEL);
+        return;
+      }
+      update_sql = "UPDATE ship_prototypes SET min_level = ? WHERE prototype_id = ?";
     }
-    snprintf(query, sizeof(query), "UPDATE ship_prototypes SET for_sale=%d WHERE prototype_id=%d",
-             ivalue, id);
-  }
-  else if (!str_cmp(field, "minlevel"))
-  {
-    ivalue = parse_int(value);
-    if (!isdigit((unsigned char)*value) || ivalue < 0 || ivalue > VEDIT_MAX_MIN_LEVEL)
+    if (!vedit_update_int_field(update_sql, ivalue, id))
     {
-      send_to_char(ch, "Minimum level must be 0 (class minimum) to %d.\r\n", VEDIT_MAX_MIN_LEVEL);
+      log("SYSERR: vedit_set could not update %s on prototype %d", field, id);
+      send_to_char(ch, "Database error updating prototype.\r\n");
       return;
     }
-    snprintf(query, sizeof(query), "UPDATE ship_prototypes SET min_level=%d WHERE prototype_id=%d",
-             ivalue, id);
+    send_to_char(ch, "Prototype %d updated: %s = %s.\r\n", id, field, value);
+    return;
   }
   else
   {

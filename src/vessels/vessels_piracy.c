@@ -605,10 +605,7 @@ int vessel_bounty_payoff_cost(int bounty)
  */
 int vessel_get_bounty(const char *player_name)
 {
-  char query[MAX_STRING_LENGTH];
-  char escaped[130];
-  MYSQL_RES *result;
-  MYSQL_ROW row;
+  PREPARED_STMT *statement;
   int bounty = 0;
 
   if (!mysql_available || conn == NULL || player_name == NULL || !*player_name)
@@ -616,28 +613,23 @@ int vessel_get_bounty(const char *player_name)
     return 0;
   }
 
-  mysql_real_escape_string(conn, escaped, player_name, strlen(player_name));
-  snprintf(query, sizeof(query),
-           "SELECT bounty, TIMESTAMPDIFF(SECOND, last_offense_at, NOW()) "
-           "FROM vessel_bounties WHERE player_name = '%s'",
-           escaped);
-  if (mysql_query(conn, query))
+  statement = mysql_stmt_create(conn);
+  if (statement == NULL ||
+      !mysql_stmt_prepare_query(statement,
+                                "SELECT bounty, TIMESTAMPDIFF(SECOND, last_offense_at, NOW()) "
+                                "FROM vessel_bounties WHERE player_name = ?") ||
+      !mysql_stmt_bind_param_string(statement, 0, player_name) ||
+      !mysql_stmt_execute_prepared(statement))
   {
+    mysql_stmt_cleanup(statement);
     return 0;
   }
-
-  result = mysql_store_result(conn);
-  if (result == NULL)
+  if (mysql_stmt_fetch_row(statement))
   {
-    return 0;
+    bounty = vessel_bounty_after_decay(mysql_stmt_get_int(statement, 0),
+                                       mysql_stmt_get_long(statement, 1));
   }
-
-  row = mysql_fetch_row(result);
-  if (row != NULL && row[0] != NULL)
-  {
-    bounty = vessel_bounty_after_decay(parse_int(row[0]), row[1] ? parse_llong(row[1]) : 0);
-  }
-  mysql_free_result(result);
+  mysql_stmt_cleanup(statement);
 
   return bounty;
 }
@@ -653,9 +645,9 @@ int vessel_get_bounty(const char *player_name)
  */
 bool vessel_bounty_record_offense(const char *player_name, int amount)
 {
-  char query[MAX_STRING_LENGTH];
-  char escaped[130];
+  PREPARED_STMT *statement;
   long long total;
+  bool recorded;
 
   if (!mysql_available || conn == NULL || player_name == NULL || !*player_name || amount <= 0)
   {
@@ -668,18 +660,22 @@ bool vessel_bounty_record_offense(const char *player_name, int amount)
     total = INT_MAX;
   }
 
-  mysql_real_escape_string(conn, escaped, player_name, strlen(player_name));
-  snprintf(query, sizeof(query),
-           "INSERT INTO vessel_bounties (player_name, bounty, last_offense_at) "
-           "VALUES ('%s', %lld, NOW()) "
-           "ON DUPLICATE KEY UPDATE bounty = %lld, last_offense_at = NOW()",
-           escaped, total, total);
-  if (mysql_query(conn, query))
+  statement = mysql_stmt_create(conn);
+  recorded = statement != NULL &&
+             mysql_stmt_prepare_query(statement,
+                                      "INSERT INTO vessel_bounties "
+                                      "(player_name, bounty, last_offense_at) VALUES (?, ?, NOW()) "
+                                      "ON DUPLICATE KEY UPDATE bounty = VALUES(bounty), "
+                                      "last_offense_at = NOW()") &&
+             mysql_stmt_bind_param_string(statement, 0, player_name) &&
+             mysql_stmt_bind_param_int(statement, 1, (int)total) &&
+             mysql_stmt_execute_prepared(statement);
+  mysql_stmt_cleanup(statement);
+  if (!recorded)
   {
-    log("SYSERR: Could not record a vessel bounty for %s: %s", player_name, mysql_error(conn));
-    return FALSE;
+    log("SYSERR: Could not record a vessel bounty for %s", player_name);
   }
-  return TRUE;
+  return recorded;
 }
 
 /**
@@ -700,23 +696,26 @@ void vessel_add_bounty(const char *player_name, int amount)
  */
 bool vessel_clear_bounty(const char *player_name)
 {
-  char query[MAX_STRING_LENGTH];
-  char escaped[130];
+  PREPARED_STMT *statement;
+  bool cleared;
 
   if (!mysql_available || conn == NULL || player_name == NULL || !*player_name)
   {
     return FALSE;
   }
 
-  mysql_real_escape_string(conn, escaped, player_name, strlen(player_name));
-  snprintf(query, sizeof(query), "UPDATE vessel_bounties SET bounty = 0 WHERE player_name = '%s'",
-           escaped);
-  if (mysql_query(conn, query))
+  statement = mysql_stmt_create(conn);
+  cleared = statement != NULL &&
+            mysql_stmt_prepare_query(
+                statement, "UPDATE vessel_bounties SET bounty = 0 WHERE player_name = ?") &&
+            mysql_stmt_bind_param_string(statement, 0, player_name) &&
+            mysql_stmt_execute_prepared(statement);
+  mysql_stmt_cleanup(statement);
+  if (!cleared)
   {
-    log("SYSERR: vessel_clear_bounty failed: %s", mysql_error(conn));
-    return FALSE;
+    log("SYSERR: vessel_clear_bounty failed for %s", player_name);
   }
-  return TRUE;
+  return cleared;
 }
 
 /**
