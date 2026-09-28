@@ -131,6 +131,7 @@ void Test_vessel_class_handling_follows_the_study_table(CuTest *tc)
 {
   const struct vessel_class_handling *warship = vessel_class_handling(VESSEL_WARSHIP);
   const struct vessel_class_handling *transport = vessel_class_handling(VESSEL_TRANSPORT);
+  const struct vessel_class_handling *unknown;
 
   CuAssertIntEquals(tc, 17, warship->speed);
   CuAssertDblEquals(tc, 1.5, warship->accel, 0.0001);
@@ -147,8 +148,9 @@ void Test_vessel_class_handling_follows_the_study_table(CuTest *tc)
   CuAssertIntEquals(tc, 5, vessel_class_handling(VESSEL_RAFT)->speed);
 
   /* An unknown class handles like a ship. */
-  CuAssertTrue(tc,
-               vessel_class_handling(VESSEL_SHIP) == vessel_class_handling((enum vessel_class)99));
+  /* NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange) -- tests the invalid-value path */
+  unknown = vessel_class_handling((enum vessel_class)99);
+  CuAssertTrue(tc, vessel_class_handling(VESSEL_SHIP) == unknown);
 }
 
 void Test_vessel_max_speed_combines_crew_load_sail_position_and_helm(CuTest *tc)
