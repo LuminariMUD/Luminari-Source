@@ -10,6 +10,7 @@
 #include "../../src/core/comm.h"
 #include "../../src/core/db.h"
 #include "../../src/core/interpreter.h"
+#include "../../src/database/mysql.h"
 #include "../../src/vessels/vessels.h"
 
 #include <string.h>
@@ -190,6 +191,80 @@ void Test_vessel_fire_needs_the_hull_owners_consent(CuTest *tc)
   CuAssertTrue(tc, vessel_fire_permitted(&gunner.ch, ship, target, FALSE));
   CuAssertTrue(tc, vessel_fire_permitted(&owner.ch, ship, target, FALSE));
 
+  CONFIG_PK_ALLOWED = saved_pk_allowed;
+  character_list = saved_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  gunnery_clear_ships();
+}
+
+void Test_vessel_fire_records_grace_for_the_gunner_only(CuTest *tc)
+{
+  struct greyhawk_ship_data *ship = &greyhawk_ships[GUNNERY_SHIP_A];
+  struct greyhawk_ship_data *target = &greyhawk_ships[GUNNERY_SHIP_B];
+  struct gunnery_player owner;
+  struct gunnery_player gunner;
+  struct gunnery_player rival;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  struct char_data *saved_list;
+  int saved_pk_allowed;
+  bool saved_mysql_available;
+
+  gunnery_player_init(&owner, "Corr");
+  gunnery_player_init(&gunner, "Mira");
+  gunnery_player_init(&rival, "Vex");
+  memset(&room, 0, sizeof(room));
+  room.number = 100;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_list = character_list;
+  saved_pk_allowed = CONFIG_PK_ALLOWED;
+  saved_mysql_available = mysql_available;
+  mysql_available = FALSE;
+  world = &room;
+  top_of_world = 0;
+  IN_ROOM(&owner.ch) = 0;
+  IN_ROOM(&gunner.ch) = 0;
+  IN_ROOM(&rival.ch) = 0;
+  CONFIG_PK_ALLOWED = TRUE;
+  SET_BIT_AR(PRF_FLAGS(&gunner.ch), PRF_PVP);
+  SET_BIT_AR(PRF_FLAGS(&rival.ch), PRF_PVP);
+  character_list = &gunner.ch;
+  gunner.ch.next = &rival.ch;
+  rival.ch.next = &owner.ch;
+
+  gunnery_arm_ship(GUNNERY_SHIP_A, "the Gull", "SA", 0.0, 0.0);
+  gunnery_arm_ship(GUNNERY_SHIP_B, "the Tern", "SB", 0.0, 10.0);
+  strlcpy(ship->owner, "Corr", sizeof(ship->owner));
+  strlcpy(target->owner, "Vex", sizeof(target->owner));
+  room.ship = ship; /* the gunner stands aboard the Gull */
+
+  /* A shot the hull owner refuses leaves no grace on either hull. */
+  CuAssertTrue(tc, !vessel_fire_permitted(&gunner.ch, ship, target, FALSE));
+  CuAssertStrEquals(tc, "", target->pvp_grace_attacker);
+  CuAssertTrue(tc, target->pvp_grace_until == 0);
+  CuAssertStrEquals(tc, "", ship->pvp_grace_attacker);
+  CuAssertTrue(tc, ship->pvp_grace_until == 0);
+
+  /* An approved shot records the gunner, not the consenting hull owner. */
+  SET_BIT_AR(PRF_FLAGS(&owner.ch), PRF_PVP);
+  CuAssertTrue(tc, vessel_fire_permitted(&gunner.ch, ship, target, FALSE));
+  CuAssertStrEquals(tc, "Mira", target->pvp_grace_attacker);
+  CuAssertTrue(tc, target->pvp_grace_until > 0);
+  CuAssertStrEquals(tc, "Vex", ship->pvp_grace_attacker);
+
+  /* With the target's owner gone, only that gunner fights on, and only
+   * while the hull owner stays PvP-enabled. */
+  gunner.ch.next = &owner.ch;
+  CuAssertTrue(tc, vessel_fire_permitted(&gunner.ch, ship, target, FALSE));
+  CuAssertStrEquals(tc, "Mira", target->pvp_grace_attacker);
+  CuAssertTrue(tc, !vessel_fire_permitted(&owner.ch, ship, target, FALSE));
+  REMOVE_BIT_AR(PRF_FLAGS(&owner.ch), PRF_PVP);
+  CuAssertTrue(tc, !vessel_fire_permitted(&gunner.ch, ship, target, FALSE));
+
+  mysql_available = saved_mysql_available;
   CONFIG_PK_ALLOWED = saved_pk_allowed;
   character_list = saved_list;
   world = saved_world;

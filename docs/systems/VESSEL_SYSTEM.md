@@ -1004,6 +1004,11 @@ guns to the owner, helm permit holders, members of the online owner's group,
 and immortals; unowned hulls fire only through NPC return fire.
 `vessel_fire_permitted()` adds the firing hull owner's own consent whenever a
 non-owner fires on another player's hull, so retaliation is always lawful.
+The gunner and owner consent checks have no side effects. Only a shot that
+clears range, arc, and consent records the engagement, once and for the
+actual gunner, so a refused shot leaves no grace behind. If the target's owner
+logs out, that gunner may keep firing while the hull owner stays online with
+PvP enabled.
 Harbors are neutral: `vessel_ship_is_in_port()` refuses player and NPC fire
 into or out of a port. Every shot, hit or miss, costs `PULSE_VIOLENCE` of
 command lag.

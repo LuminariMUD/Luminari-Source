@@ -125,30 +125,18 @@ static void vessel_record_pvp_engagement(struct char_data *ch, struct greyhawk_s
 }
 
 /**
- * May this character take a hostile action against this vessel?
+ * The consent half of vessel_pvp_permitted(), with no side effects.
  *
- * Ship-level aggression (gunfire, plunder, hostile boarding) can destroy
- * another player's property, drown their crew, and take their cargo, so it
- * must answer to the same consent rules as any other PvP action. This
- * routes the ship's owner through pvp_ok(), which requires both parties to
- * have PVP enabled (arena excepted) when pk_allowed is on, and forbids PvP
- * outright when it is off.
- *
- * Unowned hulls (test vessels, unclaimed NPC ferries) are fair game - there
- * is no player behind them. An owner who is not logged in cannot consent,
- * so their ship is protected while they are away.
- *
- * @param ch The aggressor
- * @param target The vessel being acted against
- * @param display TRUE to explain the refusal to ch
- * @return TRUE if the action is permitted
+ * @param engaged Set TRUE when both players consented live, which starts an
+ *        engagement the caller should record
  */
-bool vessel_pvp_permitted(struct char_data *ch, struct greyhawk_ship_data *target, bool display)
+static bool vessel_pvp_consented(struct char_data *ch, struct greyhawk_ship_data *target,
+                                 bool display, bool *engaged)
 {
   struct char_data *aggressor;
   struct char_data *owner;
-  bool permitted;
 
+  *engaged = FALSE;
   if (ch == NULL || target == NULL)
   {
     return FALSE; /* Fail closed */
@@ -208,12 +196,42 @@ bool vessel_pvp_permitted(struct char_data *ch, struct greyhawk_ship_data *targe
   }
 
   aggressor = vessel_effective_aggressor(ch);
-  permitted = pvp_ok(aggressor, owner, display);
-  if (permitted)
+  *engaged = pvp_ok(aggressor, owner, display);
+  return *engaged;
+}
+
+/**
+ * May this character take a hostile action against this vessel?
+ *
+ * Ship-level aggression (gunfire, plunder, hostile boarding) can destroy
+ * another player's property, drown their crew, and take their cargo, so it
+ * must answer to the same consent rules as any other PvP action. This
+ * routes the ship's owner through pvp_ok(), which requires both parties to
+ * have PVP enabled (arena excepted) when pk_allowed is on, and forbids PvP
+ * outright when it is off.
+ *
+ * Unowned hulls (test vessels, unclaimed NPC ferries) are fair game - there
+ * is no player behind them. An owner who is not logged in cannot consent,
+ * so their ship is protected while they are away.
+ *
+ * @param ch The aggressor
+ * @param target The vessel being acted against
+ * @param display TRUE to explain the refusal to ch
+ * @return TRUE if the action is permitted
+ */
+bool vessel_pvp_permitted(struct char_data *ch, struct greyhawk_ship_data *target, bool display)
+{
+  bool engaged;
+
+  if (!vessel_pvp_consented(ch, target, display, &engaged))
   {
-    vessel_record_pvp_engagement(aggressor, target);
+    return FALSE;
   }
-  return permitted;
+  if (engaged)
+  {
+    vessel_record_pvp_engagement(ch, target);
+  }
+  return TRUE;
 }
 
 /**
@@ -258,42 +276,68 @@ bool vessel_gunnery_permitted(struct char_data *ch, const struct greyhawk_ship_d
 }
 
 /**
+ * Does a hull's online owner consent to her fighting target?
+ *
+ * With the target's owner online, both must consent as for any PvP. Once
+ * that owner has logged out, the gunner passed only on their own logout
+ * grace, so the hull owner need only still be PvP-enabled.
+ */
+static bool vessel_hull_owner_consents(const struct greyhawk_ship_data *ship,
+                                       struct greyhawk_ship_data *target)
+{
+  struct char_data *owner;
+  bool engaged;
+
+  owner = vessel_find_online_player(ship->owner);
+  if (owner == NULL)
+  {
+    return FALSE;
+  }
+  if (vessel_find_online_player(target->owner) == NULL)
+  {
+    return CONFIG_PK_ALLOWED && pvp_ok_single(owner, FALSE);
+  }
+  return vessel_pvp_consented(owner, target, FALSE, &engaged);
+}
+
+/**
  * May ch turn this hull's guns on target?
  *
  * The gunner must pass the consent gate, and so must the hull's owner when
  * someone else fires her: a hull fights only with its owner's consent, so
- * the target can always answer in kind.
+ * the target can always answer in kind. A permitted shot records one
+ * engagement for the gunner, so call this after every other firing check.
  */
 bool vessel_fire_permitted(struct char_data *ch, struct greyhawk_ship_data *ship,
                            struct greyhawk_ship_data *target, bool display)
 {
-  struct char_data *owner;
+  bool engaged;
 
   if (ch == NULL || ship == NULL || target == NULL)
   {
     return FALSE;
   }
-  if (!vessel_pvp_permitted(ch, target, display))
+  if (!vessel_pvp_consented(ch, target, display, &engaged))
   {
     return FALSE;
   }
-  if (target->owner[0] == '\0' || ship->owner[0] == '\0' || IS_NPC(ch) ||
-      !str_cmp(ship->owner, GET_NAME(ch)) || GET_LEVEL(ch) >= LVL_IMMORT)
+  if (target->owner[0] != '\0' && ship->owner[0] != '\0' && !IS_NPC(ch) &&
+      str_cmp(ship->owner, GET_NAME(ch)) && GET_LEVEL(ch) < LVL_IMMORT &&
+      !vessel_hull_owner_consents(ship, target))
   {
-    return TRUE;
+    if (display)
+    {
+      send_to_char(ch, "%s's owner, %s, has not consented to fight %s. The guns stay silent.\r\n",
+                   ship->name, ship->owner, target->name);
+    }
+    return FALSE;
   }
 
-  owner = vessel_find_online_player(ship->owner);
-  if (owner != NULL && vessel_pvp_permitted(owner, target, FALSE))
+  if (engaged)
   {
-    return TRUE;
+    vessel_record_pvp_engagement(ch, target);
   }
-  if (display)
-  {
-    send_to_char(ch, "%s's owner, %s, has not consented to fight %s. The guns stay silent.\r\n",
-                 ship->name, ship->owner, target->name);
-  }
-  return FALSE;
+  return TRUE;
 }
 
 /**
@@ -940,13 +984,6 @@ ACMD(do_shipfire)
     return;
   }
 
-  /* Consent gate: sinking a hull drowns her crew and destroys her cargo, so
-   * it answers to the same PvP rules as drawing a blade. */
-  if (!vessel_fire_permitted(ch, ship, target, TRUE))
-  {
-    return;
-  }
-
   /* Range gate: use the weapon's long range (val0) */
   range = greyhawk_range(ship->x, ship->y, ship->z, target->x, target->y, target->z);
   if (weapon->val0 > 0 && range > (double)weapon->val0)
@@ -961,6 +998,14 @@ ACMD(do_shipfire)
   if (weapon->position != fire_arc)
   {
     send_to_char(ch, "That weapon cannot bear - the target lies off a different arc.\r\n");
+    return;
+  }
+
+  /* Consent gate, last because a permitted shot records the engagement:
+   * sinking a hull drowns her crew and destroys her cargo, so it answers to
+   * the same PvP rules as drawing a blade. */
+  if (!vessel_fire_permitted(ch, ship, target, TRUE))
+  {
     return;
   }
 
