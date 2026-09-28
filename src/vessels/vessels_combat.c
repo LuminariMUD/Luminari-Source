@@ -322,7 +322,7 @@ bool vessel_fire_permitted(struct char_data *ch, struct greyhawk_ship_data *ship
     return FALSE;
   }
   if (target->owner[0] != '\0' && ship->owner[0] != '\0' && !IS_NPC(ch) &&
-      str_cmp(ship->owner, GET_NAME(ch)) && GET_LEVEL(ch) < LVL_IMMORT &&
+      str_cmp(ship->owner, GET_NAME(ch)) != 0 && GET_LEVEL(ch) < LVL_IMMORT &&
       !vessel_hull_owner_consents(ship, target))
   {
     if (display)
