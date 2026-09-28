@@ -1413,6 +1413,7 @@ void boot_db(void)
   log("Loading ship room templates from database...");
   load_ship_room_templates_from_db();
   vessel_ownership_ensure_schema();
+  vessel_prototype_ensure_schema();
   vessel_trade_ensure_schema();
   vessel_contracts_ensure_schema();
   vessel_piracy_ensure_schema();
@@ -8402,6 +8403,7 @@ static void load_default_config(void)
   CONFIG_ALLOW_CEXCHANGE = 0;
   CONFIG_WILDERNESS_SYSTEM = 0;
   CONFIG_VESSEL_SYSTEM = 0;
+  CONFIG_VESSEL_OWNER_CAP = VESSEL_OWNER_CAP_DEFAULT;
   CONFIG_MELEE_EXP_OPTION = 0;       /* 0 = Full */
   CONFIG_SPELL_CAST_EXP_OPTION = 0;  /* 0 = Full */
   CONFIG_SPELLCASTING_TIME_MODE = 0; /* 0 = Standard action */
@@ -8833,6 +8835,8 @@ void load_config_stream(FILE *fl)
     case 'v':
       if (!str_cmp(tag, "vessel_system"))
         CONFIG_VESSEL_SYSTEM = (ubyte)num;
+      else if (!str_cmp(tag, "vessel_owner_cap"))
+        CONFIG_VESSEL_OWNER_CAP = (ubyte)MAX(VESSEL_OWNER_CAP_MIN, MIN(VESSEL_OWNER_CAP_MAX, num));
       break;
 
     case 'w':

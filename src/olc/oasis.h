@@ -618,6 +618,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define CEDIT_SET_SPELLCASTING_TIME_MODE 128
 #define CEDIT_SET_VESSEL_SYSTEM 129
 #define CEDIT_SET_AUTO_DL_MUDLET_PACKAGE 130
+#define CEDIT_SET_VESSEL_OWNER_CAP 131
 
 /* Hedit Submodes of connectedness. */
 #define HEDIT_CONFIRM_SAVESTRING 0

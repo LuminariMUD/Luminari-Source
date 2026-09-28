@@ -29,7 +29,8 @@ SELECT
   name,
   vessel_class,
   max_speed,
-  armor
+  armor,
+  for_sale
 FROM ship_prototypes
 WHERE
   name IN (

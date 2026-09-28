@@ -23,8 +23,8 @@ WHERE tag IN (
 SELECT
   'command_keywords' AS check_name,
   COUNT(*) AS actual,
-  81 AS expected,
-  IF(COUNT(*) = 81, 'PASS', 'FAIL') AS result
+  80 AS expected,
+  IF(COUNT(*) = 80, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE (help_tag, keyword) IN (
   ('VESSELS', 'BOARD'),
@@ -57,7 +57,6 @@ WHERE (help_tag, keyword) IN (
   ('SHIPBROWSE', 'SHIPCREW'),
   ('SHIPHIRE', 'SHIPHIRE'),
   ('SHIPHIRE', 'SHIPDISMISS'),
-  ('SHIPHIRE', 'SHIPWAGES'),
   ('SHIPHIRE', 'SHIPUPGRADE'),
   ('SHIPHIRE', 'SHIPINSURE'),
   ('MARKET', 'MARKET'),
@@ -158,18 +157,26 @@ AND CHAR_LENGTH(TRIM(entry)) > 0;
 SELECT
   'content_contracts' AS check_name,
   COUNT(*) AS actual,
-  12 AS expected,
-  IF(COUNT(*) = 12, 'PASS', 'FAIL') AS result
+  20 AS expected,
+  IF(COUNT(*) = 20, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
   SELECT 'VESSELS' AS tag, 'moving no faster than speed 2' AS required_pattern
   UNION ALL SELECT 'VESSELS', 'elevation or depth'
+  UNION ALL SELECT 'VESSELS', 'two-letter ID that SHIPFIRE accepts'
   UNION ALL SELECT 'SHIPFIRE', 'five real[[:space:]]+minutes'
+  UNION ALL SELECT 'SHIPFIRE', 'Harbors are neutral ground'
+  UNION ALL SELECT 'SHIPFIRE', 'fights only with its owner.s consent'
   UNION ALL SELECT 'SHIPBROWSE', 'christen the[[:space:]]+ship again later'
   UNION ALL SELECT 'SHIPBROWSE', 'same room as you'
   UNION ALL SELECT 'SHIPBROWSE', 'hired crew positions'
+  UNION ALL SELECT 'SHIPBROWSE', 'at most three[[:space:]]+hulls'
+  UNION ALL SELECT 'SHIPBROWSE', '22 for warships'
+  UNION ALL SELECT 'VEDIT', 'new[[:space:]]+prototypes are not for sale'
   UNION ALL SELECT 'SHIPBROWSE', 'need not be[[:space:]]+present'
-  UNION ALL SELECT 'SHIPHIRE', 'SHIPDISMISS and[[:space:]]+SHIPWAGES'
+  UNION ALL SELECT 'SHIPHIRE', 'draws no wages'
+  UNION ALL SELECT 'PLUNDER', 'clear your whole bounty for 125%'
+  UNION ALL SELECT 'PLUNDER', 'after 21 quiet days'
   UNION ALL SELECT 'SHIPLIST', 'evacuates occupants and loose objects'
   UNION ALL SELECT 'SHIPLIST', 'releases loaded[[:space:]]+vehicles'
   UNION ALL SELECT 'SHIPLIST', 'slots 0 and 1'
@@ -190,4 +197,5 @@ WHERE
   OR (BINARY help_tag = 'look_outside' AND UPPER(keyword) = 'LOOK_OUTSIDE')
   OR (BINARY help_tag = 'ship_rooms' AND UPPER(keyword) = 'SHIP_ROOMS')
   OR (BINARY help_tag = 'speed' AND UPPER(keyword) = 'SPEED')
+  OR (BINARY help_tag = 'SHIPHIRE' AND UPPER(keyword) = 'SHIPWAGES')
   OR (BINARY help_tag = 'undock' AND UPPER(keyword) = 'UNDOCK');

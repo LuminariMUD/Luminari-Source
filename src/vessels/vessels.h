@@ -482,6 +482,7 @@ bool vessel_region_feature_at_coordinates(int region_type, int x, int y, int z,
                                           struct vessel_region_feature *feature);
 /* Sep 2026 racial innate seadog: extra distance per move while piloting */
 int vessel_pilot_speed_bonus(struct char_data *ch);
+int vessel_manual_move_distance(int speed, int helm_bonus, int storm_severity);
 int get_vessel_position_speed_modifier(enum vessel_class vessel_type, int sector_type,
                                        int weather_conditions, int x, int y, int z,
                                        struct vessel_region_feature *lane);
@@ -503,6 +504,9 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch);
 #define VESSEL_PVP_LOGOUT_GRACE 300
 
 bool vessel_pvp_permitted(struct char_data *ch, struct greyhawk_ship_data *target, bool display);
+bool vessel_gunnery_permitted(struct char_data *ch, const struct greyhawk_ship_data *ship);
+bool vessel_fire_permitted(struct char_data *ch, struct greyhawk_ship_data *ship,
+                           struct greyhawk_ship_data *target, bool display);
 bool vessel_pvp_grace_active(const struct greyhawk_ship_data *target, const char *attacker_name,
                              time_t now);
 void vessel_clear_pvp_grace(struct greyhawk_ship_data *ship);
@@ -567,11 +571,6 @@ ACMD_DECL(do_vevent);
 #define CREW_TIER_GREEN 1
 #define CREW_TIER_ABLE 2
 #define CREW_TIER_VETERAN 3
-
-/* Wage accrual: one payday per this many combat ticks. Due payroll is spread
- * across 100 batches, bounding a full fleet to five ships per tick. */
-#define CREW_WAGE_INTERVAL 600
-#define CREW_WAGE_BATCH_COUNT 100
 
 /* Installable upgrades (greyhawk_ship_data.upgrades bitfield) */
 #define SHIP_UPGRADE_PLATING (1 << 0)    /* +50% max armor all sides */
@@ -783,6 +782,12 @@ ACMD_DECL(do_vesseldebug); /* Staff: focused runtime debug categories */
 /* Bounty earned per unit of cargo taken by force */
 #define BOUNTY_PER_CARGO_UNIT 15
 
+/* A bounty holds for a day after the last offense, then loses this share of
+ * its size per day; a lawful port clears it for this share of its size. */
+#define VESSEL_BOUNTY_DAY_SECONDS 86400
+#define VESSEL_BOUNTY_DECAY_PERCENT 5
+#define VESSEL_BOUNTY_PAYOFF_PERCENT 125
+
 /* Builder-authored REGION_GEOGRAPHIC waters may refine the default piracy
  * consequence without creating a vessel-private geography model. */
 #define VESSEL_WATERS_UNCLAIMED 0
@@ -808,9 +813,12 @@ void vessel_piracy_clear_laws(void);
 #ifdef LUMINARI_CUTEST
 size_t vessel_piracy_coordinate_cache_count(void);
 #endif
+int vessel_bounty_after_decay(int bounty, long long quiet_seconds);
+int vessel_bounty_payoff_cost(int bounty);
 int vessel_get_bounty(const char *player_name);
+bool vessel_bounty_record_offense(const char *player_name, int amount);
 void vessel_add_bounty(const char *player_name, int amount);
-void vessel_clear_bounty(const char *player_name);
+bool vessel_clear_bounty(const char *player_name);
 bool vessel_has_letter_of_marque(const char *player_name);
 const char *vessel_waters_type_name(int waters_type);
 int vessel_piracy_bounty_for_units(int cargo_units, int bounty_percent);
@@ -888,19 +896,14 @@ bool vessel_collect_passenger_fare(struct char_data *ch, struct greyhawk_ship_da
 const char *vessel_crew_position_name(int position);
 const char *vessel_crew_tier_name(int tier);
 int vessel_crew_hire_cost(int position, int tier);
-int vessel_crew_wage(int position, int tier);
-int vessel_crew_wage_batch_for_slot(int ship_slot);
-int vessel_crew_departure_delete_query(char *query, size_t query_size, const int *ship_slots,
-                                       const int *positions, int count);
 void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship);
-void vessel_crew_wage_tick(void);
-int vessel_crew_wage_begin_tick(void);
-int vessel_crew_wage_tick_one(struct greyhawk_ship_data *ship, int current_batch);
-void vessel_crew_delete_departure(int ship_slot, int position);
 void vessel_db_save_crew(struct greyhawk_ship_data *ship);
 void vessel_db_load_crew(struct greyhawk_ship_data *ship);
 
 bool vessel_helm_permitted(struct char_data *ch, struct greyhawk_ship_data *ship);
+int vessel_owner_cap(void);
+int vessel_owned_hull_count(const char *name);
+bool vessel_owner_at_cap(struct char_data *ch);
 void vessel_ownership_ensure_schema(void);
 bool vessel_db_save_owner(struct greyhawk_ship_data *ship);
 void vessel_db_load_owner(struct greyhawk_ship_data *ship);
@@ -910,7 +913,13 @@ void vessel_db_load_permits(struct greyhawk_ship_data *ship);
 bool vessel_handle_player_removal(const char *player_name);
 
 /* Shipyard (Phase 06, vessels_edit.c) */
+#define VESSEL_MIN_LEVEL_UNKNOWN (-1) /* A prototype's level could not be read */
+bool vessel_prototype_ensure_schema(void);
 int vessel_prototype_price(int vclass, int max_speed, int armor);
+int vessel_class_min_level(int vclass);
+int vessel_prototype_min_level(int vclass, int min_level);
+int vessel_ship_min_level(const struct greyhawk_ship_data *ship);
+bool vessel_helm_level_refused(struct char_data *ch, const struct greyhawk_ship_data *ship);
 int vessel_spawn_from_prototype(struct char_data *ch, int id);
 int vessel_spawn_public_from_prototype_at(int id, const char *instance_name, int x, int y, int z);
 ACMD_DECL(do_shipbrowse);    /* Shipyard catalog with prices */
@@ -923,7 +932,6 @@ ACMD_DECL(do_shiprevoke);  /* Owner: revoke a helm permit */
 ACMD_DECL(do_shipcrew);    /* List owner, permits, crew, and NPC pilot */
 ACMD_DECL(do_shiphire);    /* Owner: hire crew at a dock */
 ACMD_DECL(do_shipdismiss); /* Owner: dismiss hired crew */
-ACMD_DECL(do_shipwages);   /* Owner: pay accrued wages */
 ACMD_DECL(do_shipdeed);    /* Owner: transfer ownership */
 
 /* Vessel type accessor functions */
@@ -1403,14 +1411,17 @@ struct greyhawk_ship_data
 
   /* Phase 6: Ownership and permissions */
 #define MAX_HELM_PERMITS 10
+
+/* Owned hulls one player may hold at a time (cedit; decision D5) */
+#define VESSEL_OWNER_CAP_DEFAULT 3
+#define VESSEL_OWNER_CAP_MIN 1
+#define VESSEL_OWNER_CAP_MAX 10
   char helm_permits[MAX_HELM_PERMITS][21]; /* Player names cleared to helm */
   int num_permits;                         /* Active permit count */
 
   /* Phase 6: Hired crew. Tier 0 = position unfilled; 1-3 = green/able/
    * veteran. Bonuses are mirrored into sailcrew/guncrew on hire. */
   int crew_tier[4]; /* Indexed by CREW_SAILMASTER..CREW_QUARTERMASTER */
-  int wages_owed;   /* Accrued unpaid wages in gold */
-  int wage_ticks;   /* Ticks since last wage accrual */
 
   /* Phase 6: Upgrades, upkeep, and insurance */
   int upgrades;    /* SHIP_UPGRADE_* bitfield */
@@ -1437,15 +1448,16 @@ struct greyhawk_ship_data
   unsigned int message_seen_mask;
 };
 
-/* Greyhawk Contact Data Structure (for radar/sensors) */
-struct greyhawk_contact_data
+/* One sighted vessel in a ship's contact list (vessel_collect_contacts()) */
+struct vessel_contact
 {
-  int shipnum;  /* Ship number being tracked */
-  int x, y, z;  /* Contact coordinates */
-  int bearing;  /* Bearing to contact */
-  double range; /* Range to contact */
-  char arc[3];  /* Firing arc (F/P/R/S) */
+  int shipnum;  /* Fleet slot of the contact */
+  double range; /* 3D range in rooms */
+  int bearing;  /* Compass bearing from the observer */
 };
+
+/* The contacts command lists this many of the nearest contacts */
+#define VESSEL_CONTACT_DISPLAY_LIMIT 20
 
 /* ========================================================================= */
 /* FUNCTION PROTOTYPES - GREYHAWK SHIP SYSTEM                              */
@@ -1472,9 +1484,9 @@ double greyhawk_range(double x1, double y1, double z1, double x2, double y2, dou
 int greyhawk_weaprange(int shipnum, int slot, char range);
 
 /* Contact and Radar Functions */
-void greyhawk_dispcontact(int i);
-int greyhawk_getcontacts(int shipnum);
-void greyhawk_setcontact(int i, struct obj_data *obj, int shipnum, int xoffset, int yoffset);
+int vessel_collect_contacts(const struct greyhawk_ship_data *ship, struct vessel_contact *contacts,
+                            int max_contacts);
+int vessel_find_contact(const struct greyhawk_ship_data *ship, const char *arg);
 int greyhawk_getarc(int ship1, int ship2);
 
 /* ========================================================================= */

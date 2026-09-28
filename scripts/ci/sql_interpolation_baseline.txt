@@ -26,14 +26,14 @@ src/quest/quest.c 15
 src/vessels/vehicles.c 3
 src/vessels/vessels_autopilot.c 17
 src/vessels/vessels_contracts.c 11
-src/vessels/vessels_crew.c 3
+src/vessels/vessels_crew.c 2
 src/vessels/vessels_db.c 25
 src/vessels/vessels_edit.c 7
 src/vessels/vessels_events.c 10
 src/vessels/vessels_hunters.c 9
-src/vessels/vessels_merchants.c 13
+src/vessels/vessels_merchants.c 12
 src/vessels/vessels_ownership.c 13
-src/vessels/vessels_piracy.c 5
+src/vessels/vessels_piracy.c 2
 src/vessels/vessels_rooms.c 1
 src/vessels/vessels_trade.c 7
 src/vessels/vessels_upgrades.c 6

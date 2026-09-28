@@ -83,7 +83,7 @@ and operator controls in one system.
 | Persistence | Database save/load operations | vessels_db.c |
 | Builder and Shipyard | Prototypes, spawning, hull purchase | vessels_edit.c |
 | Combat | Damage, weapons, grounding, sinking | vessels_combat.c |
-| Ownership and Crew | Owners, permits, hires, wages | vessels_ownership.c, vessels_crew.c |
+| Ownership and Crew | Owners, permits, one-time crew hires | vessels_ownership.c, vessels_crew.c |
 | Upgrades | Refits, wear, insurance | vessels_upgrades.c |
 | Economy | Cargo, markets, freight, piracy | vessels_trade.c, vessels_contracts.c, vessels_piracy.c |
 | NPC Merchant Fleet | Durable definitions, assembly, consequences, respawn | vessels_merchants.c |
@@ -416,7 +416,8 @@ struct vessel_data *find_vessel_by_id(int id);        // Find by ID
 bool update_ship_wilderness_position(int ship, int x, int y, int z);
 bool move_ship_wilderness(int ship, int dir, struct char_data *ch);
 bool can_vessel_traverse_terrain(enum vessel_class type, int x, int y, int z);
-int get_terrain_speed_modifier(enum vessel_class type, int sector, int weather);
+int get_terrain_speed_modifier(enum vessel_class type, int sector, int storm_band);
+int vessel_manual_move_distance(int speed, int helm_bonus, int storm_band);
 ```
 
 ### Cargo and Template Functions (Phase 04)
@@ -515,13 +516,17 @@ bathymetric, altitude-lane, and sky-island polygons. Encounter and sector
 regions remain hidden so tactical presentation does not reveal private spawn
 or transform metadata.
 
-Contacts use `vessel_sight_range()`, including the production weather penalty
-and posted-lookout bonus. `V`, `B`, `C`, and `X` report sound, battered,
-crippled, and sinking vessels; `M` marks multiple contacts in one cell. A
-nearest-first roster below the chart includes fleet slot, vessel name,
-condition, three-dimensional range, bearing, compass direction, and relative
-Z. The header reports position, heading, weather, visibility, and the current
-vessel's aggregate internal hull condition.
+Contacts come from `vessel_collect_contacts()`, the one contact list that
+`contacts`, `tactical`, and `shipfire` targeting share: every other vessel
+within `vessel_sight_range()` (production weather penalty and posted-lookout
+bonus included), nearest first, ties in fleet-slot order. `V`, `B`, `C`, and
+`X` report sound, battered, crippled, and sinking vessels; `M` marks multiple
+contacts in one cell. A nearest-first roster below the chart includes the
+two-letter vessel ID, vessel name, condition, three-dimensional range,
+bearing, compass direction, and relative Z. `contacts` prints the nearest 20
+of the same list with their IDs. The header reports position, heading,
+weather, visibility, and the current vessel's aggregate internal hull
+condition.
 
 #### Wilderness Lookout View
 
@@ -699,7 +704,7 @@ reset the normal 120-second cadence.
 `vesseldebug balance [duels]` is read-only and remains available when debug
 logging is compiled out. It runs a private deterministic equal-warship duel
 sample without consuming the live random stream or creating hulls, invokes
-the production 1,000-trade simulation, reports class cost and crew-wage
+the production 1,000-trade simulation, reports class cost and crew-hire
 anchors, and reads only anonymized aggregate persistence totals. Its
 mechanical verdict uses a provisional 45-120 second median and 180-second p95
 equal-warship target. The final line always requires human beta feedback; the
@@ -719,7 +724,9 @@ signals - no vessel-private geography:
   rain/squall, 200..224 storm, and 225..255 gale/thunder. Squall, storm, and
   gale degrade rigging; a gale with neither a sailmaster nor the assigned
   pilot at the bridge damages the hull. Narrative, visibility, lookout,
-  tactical, and hazard logic share these thresholds. Submerged submarines are
+  tactical, hazard, and manual `setsail` logic share these thresholds:
+  `setsail` reads `vessel_storm_severity()`, loses a quarter of its distance
+  in a storm or gale, and loses 5% of speed per band (15% for airships). Submerged submarines are
   sheltered.
 - **Crush depth**: submarines diving past the seabed depth at their
   coordinate (`get_modified_elevation()` vs `wild_waterline`) take damage.
@@ -801,7 +808,7 @@ name through the authoritative player index rather than the unrelated
 | contractdeliver | Deliver at destination, collect | `contractdeliver <id>` |
 | contractabandon | Return a job to the board | `contractabandon <id>` |
 | plunder | Take cargo from a ship you've cleared | `plunder` |
-| bounty | Check a price on someone's head | `bounty [<player>]` |
+| bounty | Check a price on someone's head, or pay yours off at a lawful port | `bounty [<player>\|pay]` |
 | marque | Buy a letter of marque (dock only) | `marque` |
 | dockfees | Inspect or pay the current berth charge | `dockfees [pay]` |
 
@@ -870,6 +877,17 @@ cannot sell elsewhere. A letter of marque (`marque`) exempts the holder from
 positive regional bounties for one real day and is refused to captains already
 WANTED.
 
+Bounties decay and can be paid off. `vessel_bounties.last_offense_at` (Phase
+18\) records the latest offense; `vessel_get_bounty()` returns
+`vessel_bounty_after_decay()`, which holds the bounty for one full day and then
+removes 5% of it per further day, clearing it after 21 quiet days. Every
+offense path (plunder and NPC-merchant consequences) goes through
+`vessel_bounty_record_offense()`, which folds the decay into the stored amount
+before adding and restarts the clock. `bounty pay` in any port room outside a
+pirate cove clears the bounty for `vessel_bounty_payoff_cost()`, 125% rounded
+up; WANTED captains may pay. WANTED, HUNTED, port refusal, and hunter
+eligibility all read the decayed amount.
+
 NPC merchant shipping (`src/vessels/vessels_merchants.c`) is definition-driven rather
 than a special immortal hull. Each enabled `vessel_npc_merchants` row names a
 builder prototype, route, pilot mobile, spawn coordinate, faction, commodity,
@@ -897,17 +915,32 @@ the removed name's bounty.
 
 | Command | Description | Usage |
 | -- | -- | -- |
-| shipbrowse | Shipyard catalog with prices | `shipbrowse` |
-| shipbuy | Buy a hull at a dock, become owner | `shipbuy <id>` |
+| shipbrowse | Shipyard catalog: for-sale hulls with price and level | `shipbrowse` |
+| shipbuy | Buy a listed hull at a dock, become owner | `shipbuy <id>` |
 | shipchristen | Owner: rename the ship | `shipchristen <name>` |
 | shipcustomize | Owner: review, set, or clear exterior details | `shipcustomize [show]` or `shipcustomize <paint\|figurehead> <description\|clear>` |
 | shipdeed | Owner: transfer ownership | `shipdeed <player>` |
 | shippermit / shiprevoke | Owner: manage helm clearances | `shippermit <player>` |
 | shipcrew | List owner, pilot, permits, crew | `shipcrew` |
 | shiphire / shipdismiss | Hire or release crew (dock only) | `shiphire <position> <tier>` |
-| shipwages | Review and settle payroll | `shipwages` |
 | shipupgrade | List/install refits (dock only) | `shipupgrade [<refit>]` |
 | shipinsure | Buy sinking insurance (dock only) | `shipinsure <value>` |
+
+Only prototypes with `for_sale = 1` appear in `shipbrowse` or can be bought;
+merchant, hunter, derelict, event, harbor, and new `vedit` prototypes are
+unlisted. A player owns at most `CONFIG_VESSEL_OWNER_CAP` active hulls
+(`cedit` "Vessel Hulls Per Owner", 1-10, default 3; `vessel_owner_at_cap()`),
+enforced at `shipbuy`, `claimship`, and for the recipient of `shipdeed`.
+Immortals are exempt, ownerless public and NPC hulls never count, and owners
+above a lowered cap keep their hulls. `vessel_helm_level_refused()` holds a
+hull's departures to its level (`vessel_ship_min_level()`: the prototype's
+`min_level`, or the class minimum 1/1/16/22/24/23/21/25 for raft, boat, ship,
+warship, airship, submarine, transport, magical): `setsail` from a port,
+`autopilot on`, `assignpilot`, and `setschedule`. Immortals and NPC pilots are
+exempt. When a prototype-backed hull's level cannot be read, the departure is
+refused rather than held to the lower class minimum. These checks only read
+`ship_prototypes`; `vessel_prototype_ensure_schema()` creates and migrates the
+table at boot, never on a command.
 
 Owned ships restrict the helm (`is_pilot()`) to owner + permits + immortals
 (`src/vessels/vessels_ownership.c`). Owner persists in `ship_interiors.owner`
@@ -926,9 +959,13 @@ commit, player removal is deferred instead of orphaning property.
 Crew (`src/vessels/vessels_crew.c`): four positions (sailmaster, gunner, bosun,
 quartermaster) at three tiers (green/able/veteran). Bonuses are mirrored
 into the legacy `sailcrew`/`guncrew` fields so movement, gunnery, and
-repair consume them without special cases. Wages accrue on the vessel tick
-(`vessel_crew_wage_tick()`); three unpaid paydays and a crew member walks.
-Crew rows live in `ship_crew_roster` with `npc_vnum <= -100`.
+repair consume them without special cases. Hiring is a one-time price
+(`vessel_crew_hire_cost()`: sailmaster 1,600/6,000/15,000, gunner
+2,400/8,000/18,000, bosun 2,000/7,000/16,000, quartermaster 1,200/4,500/11,000
+gold by tier); crew draw no wages and never walk off. The retired
+`ship_interiors.wages_owed` and `ship_runtime_state.wage_ticks` columns remain
+in the schema, unread, so a rollback needs no data migration. Crew rows live
+in `ship_crew_roster` with `npc_vnum <= -100`.
 
 Upgrades, wear, insurance (`src/vessels/vessels_upgrades.c`): four one-time refits
 (plating, rigging, hold, reinforcement) raise hull ceilings at install
@@ -944,7 +981,7 @@ the character and closing the database claim.
 
 | Command | Description | Usage |
 | -- | -- | -- |
-| shipfire | Fire a weapon slot at another ship | `shipfire <slot> <target>` |
+| shipfire | Fire a weapon slot at a contact | `shipfire <slot> <contact ID or name>` |
 | shiprepair | Slow at-sea repairs (stationary only) | `shiprepair` |
 | claimship | Capture from an uncontested bridge | `claimship` |
 
@@ -964,6 +1001,21 @@ window. If an owner logs out, only the original still-PvP-enabled aggressor may
 continue during that window; other players and expired snapshots fail closed.
 Ownership changes and permanent owner removal clear inherited consent.
 
+`shipfire` targets only contacts (`vessel_find_contact()`: exact two-letter ID
+first, then the nearest name prefix). `vessel_gunnery_permitted()` limits the
+guns to the owner, helm permit holders, members of the online owner's group,
+and immortals; unowned hulls fire only through NPC return fire.
+`vessel_fire_permitted()` adds the firing hull owner's own consent whenever a
+non-owner fires on another player's hull, so retaliation is always lawful.
+The gunner and owner consent checks have no side effects. Only a shot that
+clears range, arc, and consent records the engagement, once and for the
+actual gunner, so a refused shot leaves no grace behind. If the target's owner
+logs out, that gunner may keep firing while the hull owner stays online with
+PvP enabled.
+Harbors are neutral: `vessel_ship_is_in_port()` refuses player and NPC fire
+into or out of a port. Every shot, hit or miss, costs `PULSE_VIOLENCE` of
+command lag.
+
 ### Builder Commands (Phase 04)
 
 | Command | Description | Usage |
@@ -971,7 +1023,10 @@ Ownership changes and permanent owner removal clear inherited consent.
 | vedit | Ship prototype editor (LVL_BUILDER) | `vedit list/new/show/set/delete/spawn/spawnpublic` |
 
 `vedit new <class 0-7> <name>` creates a prototype in `ship_prototypes` with
-class defaults; `vedit set <id> name/class/speed/armor <value>` tunes it;
+class defaults; `vedit set <id> name/class/speed/armor <value>` tunes it,
+`vedit set <id> forsale yes|no` lists it in the shipyard, and
+`vedit set <id> minlevel <0-30>` sets its departure level (0 keeps the class
+minimum);
 `vedit spawn <id>` instantiates a live, boardable ship at the builder's
 location and assigns the builder as owner. `vedit spawnpublic <id>` uses the
 same atomic spawn path but leaves the ship unclaimed for an NPC or public
@@ -1175,8 +1230,8 @@ historical measurements, and the limits of the current evidence.
 
 | Table | Purpose |
 | -- | -- |
-| `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards |
-| `ship_interiors` | Vessel identity, rooms, cosmetics, owner, upgrades, insurance, and wage state |
+| `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards; `for_sale` and `min_level` since Phase 18 |
+| `ship_interiors` | Vessel identity, rooms, cosmetics, owner, upgrades, and insurance (retired `wages_owed` column unread) |
 | `ship_runtime_state` | Live hull, position, condition, room type, autopilot, PvP grace, and dock-fee snapshot |
 | `ship_weapons` | Normalized installed weapon slots, values, position, and reload state |
 | `ship_docking` | Active and historical docking relationships |
@@ -1191,7 +1246,7 @@ historical measurements, and the limits of the current evidence.
 | `trade_commodities` | Commodity definitions and base values |
 | `port_commodities` | Per-port supply and local price state |
 | `freight_contracts` | Freight offer and acceptance lifecycle |
-| `vessel_bounties` | Piracy bounty and marque state |
+| `vessel_bounties` | Piracy bounty, decay clock (`last_offense_at`), and marque state |
 | `vessel_region_law` | Legal-water metadata keyed to canonical geographic regions |
 | `vessel_encounters` | Region-keyed encounter definitions |
 | `vessel_insurance_claims` | Pending, paid, or void offline insurance settlements |
@@ -1561,7 +1616,7 @@ and the trigger was removed.
 | `src/vessels/vessels_edit.c` | vedit ship prototype editor, spawner, shipyard (Phase 04/06) |
 | `src/vessels/vessels_combat.c` | Naval combat: damage, weapons, sinking, groundings (Phase 05) |
 | `src/vessels/vessels_ownership.c` | Ownership, helm permits, deed transfer (Phase 06) |
-| `src/vessels/vessels_crew.c` | Hired crew positions, tiers, wages (Phase 06) |
+| `src/vessels/vessels_crew.c` | Hired crew positions, tiers, one-time hire prices (Phase 06) |
 | `src/vessels/vessels_upgrades.c` | Refits, hull wear, insurance (Phase 06) |
 | `src/vessels/vessels_trade.c` | Commodities, port pricing, bulk cargo (Phase 07) |
 | `src/vessels/vessels_contracts.c` | Freight boards and contract lifecycle (Phase 07) |
@@ -1608,6 +1663,7 @@ and the trigger was removed.
 | `scripts/vessels/test_vessel_lookout_in_game.sh` | Reversible Kohdee lookout, cosmetics, contact, and coastal-sector gate |
 | `scripts/vessels/test_vessel_narrative_in_game.sh` | Reversible Kohdee at-sea and forced-ambient narrative gate |
 | `scripts/vessels/test_vessel_boarding_in_game.sh` | Boarding gate; delegates to the shared tactical acceptance harness |
+| `scripts/vessels/test_vessel_rules_in_game.sh` | Two-character shipyard, contact-ID, gunnery, hull-level, hull-cap, and bounty gate; delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_hunter_in_game.sh` | Reversible Kohdee HUNTED bounty-hunter encounter gate |
 | `scripts/vessels/test_vessel_merchant_in_game.sh` | Reversible NPC merchant shipping gate |
 | `scripts/vessels/run_vessel_ferry_soak.sh` | Development ferry soak runner with database, process, and Kohdee samples |
@@ -1637,6 +1693,7 @@ and the trigger was removed.
 | `sql/components/vessels_phase15_*` | Bounty-hunter policy/lifecycle schema, rollback, and verification |
 | `sql/components/vessels_phase16_*` | Showcase-event history, results, leaderboards, runtime ownership, and rollback |
 | `sql/components/vessels_phase17_*` | Exterior paint and figurehead persistence, verification, and rollback |
+| `sql/components/vessels_phase18_*` | Prototype shipyard listing and hull level, wage-debt clearing, verification, and rollback |
 | `sql/components/vessels_campaign_content.sql` | Initial Vailand regions, law, route, merchant, and iron markets |
 | `sql/components/verify_vessels_campaign_content.sql` | Read-only campaign topology and identity checks |
 | `sql/components/vessels_campaign_content_rollback.sql` | Guarded Vailand content rollback |
@@ -1893,7 +1950,7 @@ or keyword count is insufficient once later phases extend the system.
   rows or any `vessel_event_runtimes` row whose hull identity is missing.
 - Vessel debug categories provide focused development diagnostics. Candidate
   and production builds must report that support is compiled out.
-- Monitor database errors, orphan cleanup, wage and trade ticks, encounter spawn
+- Monitor database errors, orphan cleanup, trade ticks, encounter spawn
   volume, and game-loop latency.
 - Treat room-pool pressure over 80%, tick time over 25 ms, or repeated
   persistence errors as rollout-stop conditions.
@@ -1962,7 +2019,11 @@ suite. Do not recreate the removed standalone mirror implementations.
 
 Primary automated coverage lives in
 `unittests/CuTest/test_transport_production.c` and exercises production
-functions linked with all game sources. Manual world, command, persistence, OLC,
+functions linked with all game sources. `test_vessel_gunnery.c` covers gunnery
+authorization, owner consent, harbor immunity, and the contact list;
+`test_vessel_shipyard.c` covers hull levels, the owned-hull cap, and the
+for-sale catalog; `test_vessel_bounty.c` covers bounty decay and pay-off. Their
+database cases need `LUMINARI_TEST_MYSQL_ENABLE=1`. Manual world, command, persistence, OLC,
 and copyover behavior is covered by
 [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md).
 

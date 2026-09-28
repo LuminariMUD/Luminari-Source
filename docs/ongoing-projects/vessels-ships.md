@@ -1143,6 +1143,55 @@ actual-character gate in the `scripts/vessels/` pattern.
    Control, contraband and customs, and the trade modifiers.
 8. S8 Client: the MSDP additions.
 
+### Phase 1 (S1) progress
+
+Branch `feat/vessels-ships` (GitLab `gitlab/feat/vessels-ships`). Each row landed as its own
+commit with tests, help in both places, and `VESSEL_SYSTEM.md`. S1 is complete; the next step is
+S2 (movement and pacing). The vessel help SQL was applied to the development database on
+2026-09-28; production help and the Phase 18 schema are not deployed.
+
+| Defect | State | Where |
+| -- | -- | -- |
+| L4 weather bands | Done | `vessel_manual_move_distance()` and `vessel_storm_severity()` in `move_ship_wilderness()` |
+| L5 gunnery authorization, owner consent | Done | `vessel_gunnery_permitted()`, `vessel_fire_permitted()` in `vessels_combat.c` |
+| L7 miss lag | Done | `WAIT_STATE` before the hit roll in `do_shipfire()` |
+| L8 contact list and IDs | Done | `vessel_collect_contacts()`, `vessel_find_contact()` in `vessels.c`; `contacts`, `tactical`, `shipfire` share them |
+| L9 port immunity | Done | `vessel_ship_is_in_port()` gates player fire and `vessel_ai_return_fire()` |
+| L12 wage removal (D4) | Done | Payroll, walk-offs, and `shipwages` removed; 3.3.5 one-time hire prices in `vessel_crew_hire_cost()` (renown gates stay in S5); `wages_owed`/`wage_ticks` columns kept unread, zeroed by the Phase 18 SQL |
+| L11 `for_sale`, `min_level`, departure level, cap of 3 (D5) | Done | `ship_prototypes.for_sale`/`min_level` (Phase 18 SQL, `vessel_prototype_ensure_schema()` at boot); `vessel_helm_level_refused()` on `setsail` from port, `autopilot on`, `assignpilot`, `setschedule`; `vessel_owner_at_cap()` on `shipbuy`, `claimship`, `shipdeed`; `cedit` "Vessel Hulls Per Owner" (`CONFIG_VESSEL_OWNER_CAP`); frontier prototypes for sale |
+| L13 bounty pay-off and decay | Done | `vessel_bounties.last_offense_at` (Phase 18); `vessel_bounty_after_decay()`, `vessel_bounty_record_offense()` (plunder and merchant paths), `bounty pay` (125%, `vessel_bounty_payoff_cost()`); collection by victors stays in S7 |
+| Live gate in `scripts/vessels/` | Done | `test_vessel_rules_in_game.sh` (tactical harness `--rules`, login helper `--vessel-rules-check`); passed 2026-09-28 with the tactical, events, boarding, lookout, and narrative gates (see `VESSEL_SYSTEM_TESTING.md`) |
+
+Notes for whoever continues:
+
+- Tests: `unittests/CuTest/test_vessel_gunnery.c`, `test_vessel_shipyard.c`, and
+  `test_vessel_bounty.c` (new); run
+  `CUTEST_FILTER=vessel LUMINARI_TEST_ROOT="$PWD" LUMINARI_TEST_SPEC_WORLD_ROOT="$PWD/unittests/CuTest/fixtures/spec_world_inventory" ./cutest`.
+  The suite has no booted world: tests that reach `vessel_ship_is_in_port()` install a one-room
+  fake `world` (see the duel harness), and `find_static_room_by_coordinates()` now returns
+  `NOWHERE` while the wilderness kd-tree is unbuilt.
+- DB-backed cases run only with `LUMINARI_TEST_MYSQL_ENABLE=1` plus the `LUMINARI_TEST_MYSQL_*`
+  connection variables. A disposable server:
+  `docker run -d --rm --name luminari-vessels-testdb -p 127.0.0.3:3306:3306 -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=luminari_test -e MARIADB_USER=luminari_test -e MARIADB_PASSWORD=test_password mariadb:10.11`,
+  then grant `luminari_test` all privileges and load `sql/master_schema.sql`.
+- Help: every text change goes to `lib/text/help/help.hlp` and
+  `sql/components/help_vessel_entries.sql` identically; `verify_help_vessel_entries.sql` guards
+  key sentences (`content_contracts`).
+- `scripts/development/dev_kohdee_login_smoke.sh` expects the new "No contact in sight matches"
+  refusal.
+- The live gates assume they own the development MUD on 4100 through a systemd user unit. When
+  the main checkout's MUD holds 4100, run them in a private namespace:
+  `unshare -r -n -m --pid --fork --mount-proc`, bring up `lo`, bind-mount a scratch directory over
+  `/run/mysqld`, then `unshare --map-user=1000 --map-group=1000` into a script that starts a
+  disposable `mariadbd` on that socket, loads a `mariadb-dump` of the development database
+  (create the `mysql_config` user and the `luminari_mud` trigger definer first), puts
+  `systemctl`/`systemd-run` stand-ins first on `PATH` (pid files; the launched server must not
+  inherit the gate's lock descriptors), and runs the gates. The dump lacks stored routines; the
+  server recreates them at boot.
+- Phase 1 verification (2026-09-28): `make test-all` passed with the database cases enabled
+  (1868 CuTest cases, isolated `.ci-runtime/lib` from `scripts/ci/prepare_test_runtime.sh`), and
+  again with the MR !6 review fixes (1869 cases); all six live vessel gates passed on both.
+
 ### Estimate
 
 Working days of focused implementation per step, each including its tests, help in both places,

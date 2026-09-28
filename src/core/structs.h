@@ -8169,7 +8169,8 @@ struct extra_game_data
   ubyte landmarks_system;
   ubyte allow_cexchange;
   ubyte wilderness_system;
-  ubyte vessel_system; /**< Enable unified vessel system (0=off, 1=on) */
+  ubyte vessel_system;    /**< Enable unified vessel system (0=off, 1=on) */
+  ubyte vessel_owner_cap; /**< Owned hulls one player may hold (1-10) */
   ubyte melee_exp_option;
   ubyte spell_cast_exp_option;
   ubyte spellcasting_time_mode; /**< 0: Standard action, 1: Per-spell seconds */

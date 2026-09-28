@@ -44,11 +44,12 @@ tables.
 | 15 | `vessels_phase15_schema.sql` | `verify_vessels_phase15.sql` | `vessels_phase15_rollback.sql` | HUNTED encounter policy and one durable bounty-hunter lifecycle per target |
 | 16 | `vessels_phase16_schema.sql` | `verify_vessels_phase16.sql` | `vessels_phase16_rollback.sql` | Showcase-event history, participant results, leaderboards, and temporary ghost ownership |
 | 17 | `vessels_phase17_schema.sql` | `verify_vessels_phase17.sql` | `vessels_phase17_rollback.sql` | Optional exterior paint and figurehead descriptions |
+| 18 | `vessels_phase18_schema.sql` | `verify_vessels_phase18.sql` | `vessels_phase18_rollback.sql` | Shipyard listing and hull level on prototypes, bounty decay clock; clears retired crew wage debt |
 | Campaign | `vessels_campaign_content.sql` | `verify_vessels_campaign_content.sql` | `vessels_campaign_content_rollback.sql` | Initial Vailand legal waters, route, merchant shipping, and iron markets |
 | Narrative | `vessels_narrative_content.sql` | `verify_vessels_narrative_content.sql` | `vessels_narrative_content_rollback.sql` | Eight geographic and severe-weather hints for canonical Vailand waters |
 | Derelict | `vessels_derelict_content.sql` | `verify_vessels_derelict_content.sql` | `vessels_derelict_content_rollback.sql` | Blackwake prototype and generated-room discovery trigger mappings |
-| Frontier | `vessels_frontier_content.sql` | `verify_vessels_frontier_content.sql` | `vessels_frontier_content_rollback.sql` | Starfall trench, Sablebranch river, Aetherwind lane, Shardspire island, and eight class prototypes |
-| Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 33 authoritative vessel and vehicle help entries covering 81 command keywords |
+| Frontier | `vessels_frontier_content.sql` | `verify_vessels_frontier_content.sql` | `vessels_frontier_content_rollback.sql` | Starfall trench, Sablebranch river, Aetherwind lane, Shardspire island, and eight class prototypes for sale in the shipyard |
+| Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 33 authoritative vessel and vehicle help entries covering 80 command keywords |
 
 `test_vessels_integrity.sql` inserts and removes fixed test identifiers. Run it
 only on an isolated rehearsal database where ship id 99999 is known to be free,
@@ -76,6 +77,16 @@ results, aggregate leaderboards, and runtime ownership rows.
 Phase 17 extends Phase 02 vessel identities with optional appearance text. Its
 rollback permanently removes saved paint and figurehead descriptions but does
 not alter hull names, ownership, or runtime state.
+Phase 18 extends Phase 04 prototypes with `for_sale` and `min_level` (0 means
+the hull class minimum), adds `vessel_bounties.last_offense_at` (existing
+bounties start their decay clock when the column is added), and zeroes
+`ship_interiors.wages_owed`, which nothing reads since crew became a one-time
+hire. Like the server's boot DDL, it first creates the Phase 04 and 07 tables
+and the Phase 06 wage column if they are missing. The frontier package marks
+its eight class prototypes for sale, so apply Phase 18 first. Phase 18 lists no hull by itself: re-apply the frontier package
+or run `vedit set <id> forsale yes` for each hull the shipyard should sell. Its
+rollback removes the three columns, unlisting every hull; cleared wage debt and
+decayed or paid bounties are not restored.
 The campaign package depends on Phases 7, 13, and 14 plus the existing North
 and Central Vailand wilderness seaports and pilot mobile 31810. It owns four
 region identities, their vessel-law rows, one route and waypoint set, one
@@ -255,6 +266,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase17_schema.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase18_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_campaign_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_narrative_content.sql
@@ -303,6 +316,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_phase17.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_phase18.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_campaign_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_narrative_content.sql
@@ -328,13 +343,17 @@ Also verify:
 - Exact Blackwake prototype attributes, three room-trigger mappings, zero or
   one ownerless runtime, and the corresponding reviewed world records.
 - Exact frontier region thresholds and polygons, the 79-cell Sablebranch
-  geometry plus spatial-index mirror, and eight spawnable prototype records.
+  geometry plus spatial-index mirror, and eight spawnable, for-sale prototype
+  records.
 - Four Phase 16 tables, all 29 required core columns, valid event lifecycle
   values, valid participants, valid leaderboard aggregates, and no orphaned
   ghost runtime ownership.
 - Both Phase 17 appearance columns with non-null 80-character bounds and no
   oversized saved values.
-- All 81 vessel and vehicle command-keyword searches in the running game,
+- Both Phase 18 prototype columns and the bounty decay column, the expected
+  for-sale list (the eight frontier class prototypes when that package is
+  installed), no minimum level outside 0-30, and no remaining wage debt.
+- All 80 vessel and vehicle command-keyword searches in the running game,
   requiring database `Help Tag` results rather than file fallback.
 - Database errors and slow queries during the manual regression.
 
@@ -390,6 +409,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_narrative_content_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_campaign_content_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase18_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase17_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \

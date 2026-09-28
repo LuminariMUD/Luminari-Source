@@ -31,7 +31,6 @@
 
 /* Global variables for Greyhawk ship system */
 struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-struct greyhawk_contact_data greyhawk_contacts[30];
 extern int wild_waterline;
 
 struct vessel_customization_data
@@ -1368,7 +1367,6 @@ void greyhawk_initialize_ships(void)
   memset(greyhawk_ships, 0, sizeof(greyhawk_ships));
 
   /* Clear contact array */
-  memset(greyhawk_contacts, 0, sizeof(greyhawk_contacts));
 
   /* Initialize the legacy zone-700 test vessel. */
   {
@@ -1717,7 +1715,7 @@ bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, in
  *
  * @param vessel_type The vessel_class enum value (VESSEL_RAFT through VESSEL_MAGICAL)
  * @param sector_type Terrain sector type
- * @param weather_conditions Current weather (0=clear, higher=worse)
+ * @param weather_conditions Storm band from vessel_storm_severity() (0 calm .. 3 gale)
  * @return Speed modifier as percentage (100 = normal speed, 0 = impassable)
  */
 int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type,
@@ -1887,6 +1885,24 @@ int vessel_pilot_speed_bonus(struct char_data *ch)
 }
 
 /**
+ * Rooms one manual `setsail` order covers.
+ *
+ * The storm band is vessel_storm_severity(), not the raw 0..255 weather
+ * value: only storms and gales (band 2 and up) shorten the move.
+ */
+int vessel_manual_move_distance(int speed, int helm_bonus, int storm_severity)
+{
+  int distance;
+
+  distance = MAX(1, speed / 10) + MAX(0, helm_bonus);
+  if (storm_severity >= 2)
+  {
+    distance = MAX(1, distance * 75 / 100);
+  }
+  return distance;
+}
+
+/**
  * Move ship in given direction using wilderness coordinates
  * @param shipnum Ship index number
  * @param direction Direction to move (NORTH, SOUTH, EAST, WEST, etc.)
@@ -1899,7 +1915,7 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
   int new_x, new_y, new_z;
   int speed_modifier;
   int terrain_type;
-  int weather_conditions;
+  int storm_severity;
   int move_distance;
   enum vessel_class vessel_type;
 
@@ -1917,24 +1933,18 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
   new_y = (int)greyhawk_ships[shipnum].y;
   new_z = (int)greyhawk_ships[shipnum].z;
 
-  /* Get weather conditions at current position */
-  weather_conditions = get_weather(new_x, new_y);
+  /* Storm band (0 calm .. 3 gale) at the current position */
+  storm_severity = vessel_storm_severity(&greyhawk_ships[shipnum]);
 
-  VSSL_DEBUG_MOVE("Ship %d moving dir %d from (%d,%d,%d) speed %d weather %d", shipnum, direction,
-                  new_x, new_y, new_z, greyhawk_ships[shipnum].speed, weather_conditions);
+  VSSL_DEBUG_MOVE("Ship %d moving dir %d from (%d,%d,%d) speed %d storm %d", shipnum, direction,
+                  new_x, new_y, new_z, greyhawk_ships[shipnum].speed, storm_severity);
 
-  /* Calculate new position based on direction and speed */
-  move_distance = MAX(1, greyhawk_ships[shipnum].speed / 10);
-  move_distance += vessel_pilot_speed_bonus(ch);
-
-  /* Weather affects movement distance */
-  if (weather_conditions > 50)
-  {                                                   /* Stormy weather */
-    move_distance = MAX(1, move_distance * 75 / 100); /* 25% reduction */
-    if (ch)
-    {
-      send_to_char(ch, "The harsh weather conditions slow your progress!\r\n");
-    }
+  /* Calculate new position based on direction, speed, and weather */
+  move_distance = vessel_manual_move_distance(greyhawk_ships[shipnum].speed,
+                                              vessel_pilot_speed_bonus(ch), storm_severity);
+  if (storm_severity >= 2 && ch)
+  {
+    send_to_char(ch, "The harsh weather conditions slow your progress!\r\n");
   }
 
   switch (direction)
@@ -2050,8 +2060,8 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
 
   /* Get terrain at new position and calculate speed modifier including weather */
   terrain_type = get_ship_terrain_type(shipnum);
-  speed_modifier = get_vessel_position_speed_modifier(
-      vessel_type, terrain_type, weather_conditions / 25, new_x, new_y, new_z, &altitude_lane);
+  speed_modifier = get_vessel_position_speed_modifier(vessel_type, terrain_type, storm_severity,
+                                                      new_x, new_y, new_z, &altitude_lane);
 
   /* Adjust ship speed based on terrain and weather, then credit the
    * sailmaster's handling bonus (see vessels_crew.c) */
@@ -2084,17 +2094,17 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
     }
 
     /* Weather-specific messages */
-    if (weather_conditions > 75)
+    if (storm_severity >= 3)
     {
       send_to_char(ch, "The vessel struggles against the severe storm!\r\n");
       act("The ship rocks violently in the storm!", FALSE, ch, 0, 0, TO_ROOM);
     }
-    else if (weather_conditions > 50)
+    else if (storm_severity == 2)
     {
       send_to_char(ch, "Strong winds and rain buffet the vessel.\r\n");
       act("The ship sways in the rough weather.", FALSE, ch, 0, 0, TO_ROOM);
     }
-    else if (weather_conditions > 25)
+    else if (storm_severity == 1)
     {
       send_to_char(ch, "Light rain patters against the deck.\r\n");
     }
@@ -2113,10 +2123,6 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
 /* ========================================================================= */
 /* EXTERNAL VIEW DISPLAY CONSTANTS AND HELPERS                              */
 /* ========================================================================= */
-
-/* Contact detection constants */
-#define CONTACT_DETECTION_RANGE 50 /* Default detection range in units */
-#define CONTACT_MAX_DISPLAY 20     /* Maximum contacts to display */
 
 /* Bearing direction strings (8 cardinal/ordinal directions) */
 static const char *bearing_direction_str(int bearing)
@@ -2455,112 +2461,155 @@ ACMD(do_greyhawk_heading)
   act("$n adjusts the vessel's heading.", FALSE, ch, 0, 0, TO_ROOM);
 }
 
-/* Structure for sorting contacts by distance */
-struct contact_entry
+/**
+ * Collect the vessels this ship can see, nearest first.
+ *
+ * This is the one contact list: `contacts`, `tactical`, and weapon targeting
+ * all read it. It holds every other active vessel within
+ * vessel_sight_range(), ordered by range and then fleet slot. When more
+ * contacts are in sight than the array holds, the nearest are kept.
+ *
+ * @return The number of contacts in sight, which may exceed max_contacts
+ */
+int vessel_collect_contacts(const struct greyhawk_ship_data *ship, struct vessel_contact *contacts,
+                            int max_contacts)
 {
-  int shipnum;
+  const struct greyhawk_ship_data *other;
+  struct vessel_contact entry;
   double range;
-  int bearing;
-};
+  int sight_range;
+  int stored;
+  int total;
+  int position;
+  int i;
 
-/* Comparison function for qsort - sort by range ascending */
-static int compare_contacts(const void *a, const void *b)
+  if (ship == NULL || contacts == NULL || max_contacts <= 0)
+  {
+    return 0;
+  }
+
+  sight_range = vessel_sight_range(ship);
+  stored = 0;
+  total = 0;
+  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+  {
+    other = &greyhawk_ships[i];
+    if (other == ship || !is_valid_ship(other))
+    {
+      continue;
+    }
+
+    range = greyhawk_range(ship->x, ship->y, ship->z, other->x, other->y, other->z);
+    if (range > sight_range)
+    {
+      continue;
+    }
+    total++;
+
+    /* Slots rise with i, so equal ranges stay in slot order. */
+    if (stored == max_contacts && range >= contacts[stored - 1].range)
+    {
+      continue;
+    }
+    entry.shipnum = i;
+    entry.range = range;
+    entry.bearing = greyhawk_bearing(ship->x, ship->y, other->x, other->y);
+    position = stored < max_contacts ? stored++ : stored - 1;
+    while (position > 0 && contacts[position - 1].range > range)
+    {
+      contacts[position] = contacts[position - 1];
+      position--;
+    }
+    contacts[position] = entry;
+  }
+
+  return total;
+}
+
+/**
+ * Resolve a contact by two-letter ID or name prefix.
+ *
+ * Only vessels in this ship's contact list qualify. An exact ID wins over a
+ * name; among names the nearest match wins.
+ *
+ * @return The contact's fleet slot, or -1 when no contact matches
+ */
+int vessel_find_contact(const struct greyhawk_ship_data *ship, const char *arg)
 {
-  const struct contact_entry *ca = (const struct contact_entry *)a;
-  const struct contact_entry *cb = (const struct contact_entry *)b;
-  if (ca->range < cb->range)
+  struct vessel_contact contacts[GREYHAWK_ACTIVE_SHIP_CAPACITY];
+  int count;
+  int i;
+
+  if (ship == NULL || arg == NULL || !*arg)
+  {
     return -1;
-  if (ca->range > cb->range)
-    return 1;
-  return 0;
+  }
+
+  count = MIN(vessel_collect_contacts(ship, contacts, GREYHAWK_ACTIVE_SHIP_CAPACITY),
+              GREYHAWK_ACTIVE_SHIP_CAPACITY);
+  for (i = 0; i < count; i++)
+  {
+    if (!str_cmp(arg, greyhawk_ships[contacts[i].shipnum].id))
+    {
+      return contacts[i].shipnum;
+    }
+  }
+  for (i = 0; i < count; i++)
+  {
+    if (is_abbrev(arg, greyhawk_ships[contacts[i].shipnum].name))
+    {
+      return contacts[i].shipnum;
+    }
+  }
+
+  return -1;
 }
 
 /* Contacts display command */
 ACMD(do_greyhawk_contacts)
 {
-  room_rnum ship_room;
-  int shipnum;
-  int ship_x, ship_y, ship_z;
+  struct greyhawk_ship_data *ship;
+  struct vessel_contact contacts[VESSEL_CONTACT_DISPLAY_LIMIT];
+  const struct greyhawk_ship_data *contact_ship;
+  int contact_count;
+  int shown;
   int i;
-  int contact_count = 0;
-  struct contact_entry contacts[CONTACT_MAX_DISPLAY];
 
-  ship_room = IN_ROOM(ch);
-
-  /* Check if character is on a ship */
-  if (!world[ship_room].ship)
+  ship = get_ship_from_room(IN_ROOM(ch));
+  if (!is_valid_ship(ship))
   {
     send_to_char(ch, "You must be aboard a vessel to check contacts.\r\n");
     return;
   }
 
-  shipnum = world[ship_room].ship->shipnum;
+  contact_count = vessel_collect_contacts(ship, contacts, VESSEL_CONTACT_DISPLAY_LIMIT);
+  shown = MIN(contact_count, VESSEL_CONTACT_DISPLAY_LIMIT);
 
-  /* Validate ship number */
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
-  {
-    send_to_char(ch, "Error: Invalid vessel data.\r\n");
-    return;
-  }
-
-  /* Get our ship position */
-  ship_x = (int)greyhawk_ships[shipnum].x;
-  ship_y = (int)greyhawk_ships[shipnum].y;
-  ship_z = (int)greyhawk_ships[shipnum].z;
-
-  /* Scan for other vessels in range */
-  for (i = 0; i < GREYHAWK_MAXSHIPS && contact_count < CONTACT_MAX_DISPLAY; i++)
-  {
-    if (is_valid_ship(&greyhawk_ships[i]) && i != shipnum)
-    {
-      double range = greyhawk_range(ship_x, ship_y, ship_z, greyhawk_ships[i].x,
-                                    greyhawk_ships[i].y, greyhawk_ships[i].z);
-
-      if (range <= CONTACT_DETECTION_RANGE)
-      {
-        contacts[contact_count].shipnum = i;
-        contacts[contact_count].range = range;
-        contacts[contact_count].bearing =
-            greyhawk_bearing(ship_x, ship_y, (int)greyhawk_ships[i].x, (int)greyhawk_ships[i].y);
-        contact_count++;
-      }
-    }
-  }
-
-  /* Sort contacts by distance */
-  if (contact_count > 1)
-  {
-    qsort(contacts, contact_count, sizeof(struct contact_entry), compare_contacts);
-  }
-
-  /* Display header */
   send_to_char(ch, "\r\n");
   send_to_char(ch, "       CONTACT LIST\r\n");
-  send_to_char(ch, "   Our Position: [%d, %d]\r\n", ship_x, ship_y);
-  send_to_char(ch, "   Detection Range: %d units\r\n", CONTACT_DETECTION_RANGE);
+  send_to_char(ch, "   Our Position: [%d, %d]\r\n", (int)ship->x, (int)ship->y);
+  send_to_char(ch, "   Visibility: %d rooms\r\n", vessel_sight_range(ship));
   send_to_char(ch, "\r\n");
 
   if (contact_count == 0)
   {
     send_to_char(ch, "   No contacts detected within range.\r\n");
+    return;
   }
-  else
+
+  send_to_char(ch, "   %-3s %-20s  %8s  %7s  %4s\r\n", "ID", "VESSEL", "RANGE", "BEARING", "DIR");
+  send_to_char(ch, "   -----------------------------------------------\r\n");
+  for (i = 0; i < shown; i++)
   {
-    send_to_char(ch, "   %-20s  %8s  %7s  %4s\r\n", "VESSEL", "RANGE", "BEARING", "DIR");
-    send_to_char(ch, "   -------------------------------------------\r\n");
-
-    for (i = 0; i < contact_count; i++)
-    {
-      int idx = contacts[i].shipnum;
-      const char *name = greyhawk_ships[idx].name[0] ? greyhawk_ships[idx].name : "Unknown Vessel";
-
-      send_to_char(ch, "   %-20s  %6.1f u  %5d deg  %s\r\n", name, contacts[i].range,
-                   contacts[i].bearing, bearing_direction_str(contacts[i].bearing));
-    }
-
-    send_to_char(ch, "\r\n");
-    send_to_char(ch, "   Total contacts: %d\r\n", contact_count);
+    contact_ship = &greyhawk_ships[contacts[i].shipnum];
+    send_to_char(ch, "   %-3s %-20.20s  %6.1f u  %5d deg  %s\r\n", contact_ship->id,
+                 contact_ship->name[0] ? contact_ship->name : "Unknown Vessel", contacts[i].range,
+                 contacts[i].bearing, bearing_direction_str(contacts[i].bearing));
   }
+
+  send_to_char(ch, "\r\n");
+  send_to_char(ch, "   Total contacts: %d%s\r\n", contact_count,
+               contact_count > shown ? " (nearest 20 shown)" : "");
 }
 
 /* Disembark command - leave vessel */
@@ -2757,6 +2806,11 @@ ACMD(do_greyhawk_setsail)
   if (ship->speed <= 0)
   {
     send_to_char(ch, "Set a positive speed before setting sail.\r\n");
+    return;
+  }
+
+  if (vessel_ship_is_in_port(ship) && vessel_helm_level_refused(ch, ship))
+  {
     return;
   }
 

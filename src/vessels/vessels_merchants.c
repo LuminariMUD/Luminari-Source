@@ -722,30 +722,6 @@ static struct char_data *vessel_merchant_online_player(const char *name)
   return NULL;
 }
 
-static bool vessel_merchant_add_bounty_in_transaction(const char *player_name, int amount)
-{
-  char escaped_name[MAX_NAME_LENGTH * 2 + 1];
-  char query[MAX_STRING_LENGTH];
-
-  if (player_name == NULL || !*player_name || amount <= 0)
-  {
-    return TRUE;
-  }
-
-  mysql_real_escape_string(conn, escaped_name, player_name, strlen(player_name));
-  snprintf(query, sizeof(query),
-           "INSERT INTO vessel_bounties (player_name, bounty) "
-           "VALUES ('%s', %d) ON DUPLICATE KEY UPDATE "
-           "bounty = LEAST(%d, CAST(bounty AS DECIMAL(20,0)) + %d)",
-           escaped_name, amount, INT_MAX, amount);
-  if (mysql_query(conn, query))
-  {
-    log("SYSERR: Could not add durable merchant bounty for %s: %s", player_name, mysql_error(conn));
-    return FALSE;
-  }
-  return TRUE;
-}
-
 static bool vessel_merchant_queue_consequence(const struct vessel_merchant_profile *profile,
                                               const char *player_name, const char *event_type,
                                               int cargo_units, int bounty_delta,
@@ -830,8 +806,8 @@ static bool vessel_merchant_queue_consequence(const struct vessel_merchant_profi
   }
 
   consequence_id = mysql_insert_id(conn);
-  if (!bounty_already_applied &&
-      !vessel_merchant_add_bounty_in_transaction(player_name, bounty_delta))
+  if (!bounty_already_applied && bounty_delta > 0 &&
+      !vessel_bounty_record_offense(player_name, bounty_delta))
   {
     mysql_query(conn, "ROLLBACK");
     return FALSE;

@@ -2722,6 +2722,11 @@ ACMD(do_autopilot)
       return;
     }
 
+    if (vessel_helm_level_refused(ch, ship))
+    {
+      return;
+    }
+
     if (ap->state == AUTOPILOT_PAUSED)
     {
       autopilot_snapshot_state(ap, &snapshot);
@@ -3552,6 +3557,12 @@ ACMD(do_assignpilot)
     return;
   }
 
+  /* A pilot sails the hull out of port on its own authority. */
+  if (vessel_helm_level_refused(ch, ship))
+  {
+    return;
+  }
+
   /* Initialize autopilot if needed */
   if (ship->autopilot == NULL)
   {
@@ -4233,6 +4244,12 @@ ACMD(do_setschedule)
 
   /* Check captain permission */
   if (!check_vessel_captain(ch, ship))
+  {
+    return;
+  }
+
+  /* A schedule sails the hull out of port on its own authority. */
+  if (vessel_helm_level_refused(ch, ship))
   {
     return;
   }

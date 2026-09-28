@@ -17,16 +17,7 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
 #define VESSEL_TACTICAL_SIZE 21
 #define VESSEL_TACTICAL_RADIUS ((VESSEL_TACTICAL_SIZE - 1) / 2)
-#define VESSEL_TACTICAL_CONTACT_LIMIT 20
 #define VESSEL_TACTICAL_REGION_LIMIT 32
-
-struct vessel_tactical_contact
-{
-  int shipnum;
-  double range;
-  int bearing;
-  int delta_z;
-};
 
 bool vessel_tactical_sector_is_water(int sector_type)
 {
@@ -330,24 +321,6 @@ static bool vessel_tactical_is_coastal(struct wild_map_tile **map, int x, int y)
   return FALSE;
 }
 
-static int vessel_tactical_compare_contacts(const void *first, const void *second)
-{
-  const struct vessel_tactical_contact *first_contact;
-  const struct vessel_tactical_contact *second_contact;
-
-  first_contact = first;
-  second_contact = second;
-  if (first_contact->range < second_contact->range)
-  {
-    return -1;
-  }
-  if (first_contact->range > second_contact->range)
-  {
-    return 1;
-  }
-  return first_contact->shipnum - second_contact->shipnum;
-}
-
 static bool vessel_tactical_region_recorded(const region_rnum *regions_value, int count,
                                             region_rnum rnum)
 {
@@ -395,58 +368,32 @@ static int vessel_tactical_collect_regions(struct wild_map_tile **map, region_rn
   return count;
 }
 
+/* Plot the shared contact list on the chart; returns the number in sight. */
 static int
 vessel_tactical_collect_contacts(const struct greyhawk_ship_data *ship,
-                                 struct vessel_tactical_contact *contacts,
+                                 struct vessel_contact *contacts,
                                  int contact_counts[VESSEL_TACTICAL_SIZE][VESSEL_TACTICAL_SIZE],
                                  int contact_status[VESSEL_TACTICAL_SIZE][VESSEL_TACTICAL_SIZE])
 {
   const struct greyhawk_ship_data *other;
-  double range;
-  int sight_range;
   int ship_x;
   int ship_y;
-  int ship_z;
-  int other_x;
-  int other_y;
-  int other_z;
   int map_x;
   int map_y;
   int status;
   int count;
   int i;
 
-  sight_range = vessel_sight_range(ship);
   ship_x = vessel_autopilot_grid_coordinate(ship->x);
   ship_y = vessel_autopilot_grid_coordinate(ship->y);
-  ship_z = vessel_autopilot_grid_coordinate(ship->z);
-  count = 0;
+  count = MIN(vessel_collect_contacts(ship, contacts, GREYHAWK_ACTIVE_SHIP_CAPACITY),
+              GREYHAWK_ACTIVE_SHIP_CAPACITY);
 
-  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+  for (i = 0; i < count; i++)
   {
-    other = &greyhawk_ships[i];
-    if (other == ship || !is_valid_ship(other))
-    {
-      continue;
-    }
-
-    range = greyhawk_range(ship->x, ship->y, ship->z, other->x, other->y, other->z);
-    if (range > sight_range)
-    {
-      continue;
-    }
-
-    other_x = vessel_autopilot_grid_coordinate(other->x);
-    other_y = vessel_autopilot_grid_coordinate(other->y);
-    other_z = vessel_autopilot_grid_coordinate(other->z);
-    contacts[count].shipnum = i;
-    contacts[count].range = range;
-    contacts[count].bearing = greyhawk_bearing(ship->x, ship->y, other->x, other->y);
-    contacts[count].delta_z = other_z - ship_z;
-    count++;
-
-    map_x = other_x - ship_x + VESSEL_TACTICAL_RADIUS;
-    map_y = other_y - ship_y + VESSEL_TACTICAL_RADIUS;
+    other = &greyhawk_ships[contacts[i].shipnum];
+    map_x = vessel_autopilot_grid_coordinate(other->x) - ship_x + VESSEL_TACTICAL_RADIUS;
+    map_y = vessel_autopilot_grid_coordinate(other->y) - ship_y + VESSEL_TACTICAL_RADIUS;
     if (map_x < 0 || map_x >= VESSEL_TACTICAL_SIZE || map_y < 0 || map_y >= VESSEL_TACTICAL_SIZE)
     {
       continue;
@@ -458,11 +405,6 @@ vessel_tactical_collect_contacts(const struct greyhawk_ship_data *ship,
     {
       contact_status[map_x][map_y] = status;
     }
-  }
-
-  if (count > 1)
-  {
-    qsort(contacts, count, sizeof(*contacts), vessel_tactical_compare_contacts);
   }
   return count;
 }
@@ -489,11 +431,13 @@ static void vessel_tactical_render_regions(struct char_data *ch, const region_rn
 }
 
 static void vessel_tactical_render_contacts(struct char_data *ch,
-                                            const struct vessel_tactical_contact *contacts,
+                                            const struct greyhawk_ship_data *ship,
+                                            const struct vessel_contact *contacts,
                                             int contact_count)
 {
   const struct greyhawk_ship_data *contact_ship;
   const char *name;
+  int delta_z;
   int shown;
   int i;
 
@@ -503,7 +447,7 @@ static void vessel_tactical_render_contacts(struct char_data *ch,
     return;
   }
 
-  shown = MIN(contact_count, VESSEL_TACTICAL_CONTACT_LIMIT);
+  shown = MIN(contact_count, VESSEL_CONTACT_DISPLAY_LIMIT);
   send_to_char(ch, "\r\n   CONTACTS (nearest first)\r\n");
   send_to_char(ch, "   ID   VESSEL                   STATE       RANGE  BRG DIR   DZ\r\n");
   send_to_char(ch, "   ---------------------------------------------------------------\r\n");
@@ -511,10 +455,11 @@ static void vessel_tactical_render_contacts(struct char_data *ch,
   {
     contact_ship = &greyhawk_ships[contacts[i].shipnum];
     name = contact_ship->name[0] ? contact_ship->name : "Unknown Vessel";
-    send_to_char(ch, "   %-4d %-24.24s %-9s %6.1f %4d %-3s %+4d\r\n", contacts[i].shipnum, name,
+    delta_z = vessel_autopilot_grid_coordinate(contact_ship->z) -
+              vessel_autopilot_grid_coordinate(ship->z);
+    send_to_char(ch, "   %-4s %-24.24s %-9s %6.1f %4d %-3s %+4d\r\n", contact_ship->id, name,
                  vessel_status_name(vessel_status(contact_ship)), contacts[i].range,
-                 contacts[i].bearing, vessel_tactical_direction(contacts[i].bearing),
-                 contacts[i].delta_z);
+                 contacts[i].bearing, vessel_tactical_direction(contacts[i].bearing), delta_z);
   }
   send_to_char(ch, "   Detected: %d%s\r\n", contact_count,
                contact_count > shown ? " (nearest 20 shown)" : "");
@@ -525,7 +470,7 @@ ACMD(do_greyhawk_tactical)
   struct greyhawk_ship_data *ship;
   struct wild_map_tile map_data[VESSEL_TACTICAL_SIZE * VESSEL_TACTICAL_SIZE];
   struct wild_map_tile *map[VESSEL_TACTICAL_SIZE];
-  struct vessel_tactical_contact contacts[GREYHAWK_ACTIVE_SHIP_CAPACITY];
+  struct vessel_contact contacts[GREYHAWK_ACTIVE_SHIP_CAPACITY];
   region_rnum regions_value[VESSEL_TACTICAL_REGION_LIMIT];
   char display[VESSEL_TACTICAL_SIZE][VESSEL_TACTICAL_SIZE];
   int contact_counts[VESSEL_TACTICAL_SIZE][VESSEL_TACTICAL_SIZE];
@@ -633,5 +578,5 @@ ACMD(do_greyhawk_tactical)
   send_to_char(ch, "   Overlays: + Region edge  o 5u ring  O 10u ring  @ Your vessel\r\n");
   send_to_char(ch, "   Contacts: V Sound  B Battered  C Crippled  X Sinking  M Multiple\r\n");
   vessel_tactical_render_regions(ch, regions_value, region_count);
-  vessel_tactical_render_contacts(ch, contacts, contact_count);
+  vessel_tactical_render_contacts(ch, ship, contacts, contact_count);
 }

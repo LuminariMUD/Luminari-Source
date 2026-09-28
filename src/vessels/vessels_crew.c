@@ -1,9 +1,10 @@
 /* ************************************************************************
  *      File:   vessels_crew.c                        Part of LuminariMUD  *
- *   Purpose:   Hired crew and wages (Phase 06, Session 03).               *
- *              Crew fill four positions at three quality tiers; their     *
- *              bonuses feed the existing sailcrew/guncrew fields that     *
- *              movement, gunnery, and repair already read.                *
+ *   Purpose:   Hired crew (Phase 06, Session 03).                         *
+ *              Crew fill four positions at three quality tiers for a      *
+ *              one-time hire price; their bonuses feed the existing       *
+ *              sailcrew/guncrew fields that movement, gunnery, and repair *
+ *              already read.                                              *
  * ********************************************************************** */
 
 #include "conf.h"
@@ -24,10 +25,6 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
  * they never collide with the pilot record or the helm permits
  * (npc_vnum -1). */
 #define CREW_ROW_VNUM_BASE (-100)
-#define CREW_WAGE_MAX_BATCH_SHIPS                                                                  \
-  ((GREYHAWK_ACTIVE_SHIP_CAPACITY + CREW_WAGE_BATCH_COUNT - 1) / CREW_WAGE_BATCH_COUNT)
-
-static int crew_wage_batch_cursor = 0;
 
 /**
  * Display name for a hireable position.
@@ -118,11 +115,18 @@ static int vessel_crew_tier_by_name(const char *name)
 }
 
 /**
- * Signing bonus to hire a crew member.
+ * One-time price to hire a crew member; crew draw no wages.
+ *
+ * DurisMUD chief prices at 2 gold per platinum (vessels-ships study 3.3.5).
  */
 int vessel_crew_hire_cost(int position, int tier)
 {
-  static const int base_cost[NUM_CREW_POSITIONS] = {400, 600, 350, 300};
+  static const int hire_cost[NUM_CREW_POSITIONS][CREW_TIER_VETERAN] = {
+      {1600, 6000, 15000}, /* sailmaster */
+      {2400, 8000, 18000}, /* gunner */
+      {2000, 7000, 16000}, /* bosun */
+      {1200, 4500, 11000}  /* quartermaster */
+  };
 
   if (position < 0 || position >= NUM_CREW_POSITIONS || tier < CREW_TIER_GREEN ||
       tier > CREW_TIER_VETERAN)
@@ -130,21 +134,7 @@ int vessel_crew_hire_cost(int position, int tier)
     return 0;
   }
 
-  return base_cost[position] * tier;
-}
-
-/**
- * Per-payday wage for a crew member.
- */
-int vessel_crew_wage(int position, int tier)
-{
-  if (position < 0 || position >= NUM_CREW_POSITIONS || tier < CREW_TIER_GREEN ||
-      tier > CREW_TIER_VETERAN)
-  {
-    return 0;
-  }
-
-  return vessel_crew_hire_cost(position, tier) / 10;
+  return hire_cost[position][tier - CREW_TIER_GREEN];
 }
 
 /**
@@ -280,185 +270,6 @@ void vessel_db_load_crew(struct greyhawk_ship_data *ship)
 }
 
 /**
- * Build one atomic delete for crew members who leave during a payroll batch.
- */
-int vessel_crew_departure_delete_query(char *query, size_t query_size, const int *ship_slots,
-                                       const int *positions, int count)
-{
-  int length;
-  int i;
-
-  if (query == NULL || query_size == 0 || ship_slots == NULL || positions == NULL || count <= 0 ||
-      count > CREW_WAGE_MAX_BATCH_SHIPS)
-  {
-    return -1;
-  }
-
-  length = snprintf(query, query_size, "DELETE FROM ship_crew_roster WHERE ");
-  if (length < 0 || (size_t)length >= query_size)
-  {
-    return -1;
-  }
-
-  for (i = 0; i < count; i++)
-  {
-    if (ship_slots[i] <= 0 || ship_slots[i] >= GREYHAWK_MAXSHIPS || positions[i] < 0 ||
-        positions[i] >= NUM_CREW_POSITIONS)
-    {
-      return -1;
-    }
-    length =
-        snprintf_append(query, query_size, length, "%s(ship_id = %d AND npc_vnum = %d)",
-                        i == 0 ? "" : " OR ", ship_slots[i], CREW_ROW_VNUM_BASE - positions[i]);
-    if (length < 0 || (size_t)length >= query_size - 1)
-    {
-      return -1;
-    }
-  }
-
-  return length;
-}
-
-static void vessel_db_delete_departed_crew(const int *ship_slots, const int *positions, int count)
-{
-  char query[MAX_STRING_LENGTH];
-
-  if (!mysql_available || conn == NULL || count <= 0)
-  {
-    return;
-  }
-  if (vessel_crew_departure_delete_query(query, sizeof(query), ship_slots, positions, count) < 0)
-  {
-    log("SYSERR: Could not build the crew-departure payroll delete");
-    return;
-  }
-  if (mysql_query(conn, query))
-  {
-    log("SYSERR: Could not persist %d crew payroll departure%s: %s", count, count == 1 ? "" : "s",
-        mysql_error(conn));
-  }
-}
-
-void vessel_crew_delete_departure(int ship_slot, int position)
-{
-  vessel_db_delete_departed_crew(&ship_slot, &position, 1);
-}
-
-/**
- * Total wage bill per payday for a ship.
- */
-static int vessel_crew_payroll(struct greyhawk_ship_data *ship)
-{
-  int total = 0;
-  int i;
-
-  for (i = 0; i < NUM_CREW_POSITIONS; i++)
-  {
-    total += vessel_crew_wage(i, ship->crew_tier[i]);
-  }
-
-  return total;
-}
-
-/**
- * Assign one active fleet slot to a stable payroll batch.
- *
- * Slot zero is reserved. The 500 player-facing slots divide evenly across
- * the 100 batches, limiting a synchronized payday to five ships per tick.
- */
-int vessel_crew_wage_batch_for_slot(int ship_slot)
-{
-  if (ship_slot <= 0 || ship_slot >= GREYHAWK_MAXSHIPS)
-  {
-    return -1;
-  }
-
-  return (ship_slot - 1) % CREW_WAGE_BATCH_COUNT;
-}
-
-int vessel_crew_wage_begin_tick(void)
-{
-  int current_batch = crew_wage_batch_cursor;
-
-  crew_wage_batch_cursor = (crew_wage_batch_cursor + 1) % CREW_WAGE_BATCH_COUNT;
-  return current_batch;
-}
-
-int vessel_crew_wage_tick_one(struct greyhawk_ship_data *ship, int current_batch)
-{
-  int payroll;
-  int pos;
-
-  if (!is_valid_ship(ship))
-    return -1;
-  payroll = vessel_crew_payroll(ship);
-  if (payroll <= 0)
-    return -1;
-  ship->wage_ticks++;
-  if (ship->wage_ticks < CREW_WAGE_INTERVAL)
-    return -1;
-
-  ship->wage_ticks = CREW_WAGE_INTERVAL;
-  if (vessel_crew_wage_batch_for_slot(ship->shipnum) != current_batch)
-    return -1;
-
-  ship->wage_ticks = 0;
-  ship->wages_owed += payroll;
-  send_to_ship(ship, "The crew's wages come due: %d gold owed (use 'shipwages').",
-               ship->wages_owed);
-  if (ship->wages_owed <= payroll * 3)
-    return -1;
-
-  for (pos = NUM_CREW_POSITIONS - 1; pos >= 0; pos--)
-  {
-    if (ship->crew_tier[pos] == CREW_TIER_NONE)
-      continue;
-    send_to_ship(ship, "The %s has had enough of empty promises and walks off!",
-                 vessel_crew_position_name(pos));
-    log("Info: Ship %d '%s' lost %s to unpaid wages (%d owed)", ship->shipnum, ship->name,
-        vessel_crew_position_name(pos), ship->wages_owed);
-    ship->crew_tier[pos] = CREW_TIER_NONE;
-    ship->wages_owed -= payroll;
-    vessel_apply_crew_bonuses(ship);
-    return pos;
-  }
-  return -1;
-}
-
-/**
- * Wage accrual tick. Runs on the vessel combat/autopilot cadence; every
- * CREW_WAGE_INTERVAL ticks the payroll comes due. Crew whose wages go
- * badly unpaid walk off, taking their bonuses with them.
- */
-void vessel_crew_wage_tick(void)
-{
-  struct greyhawk_ship_data *ship;
-  int departed_ships[CREW_WAGE_MAX_BATCH_SHIPS];
-  int departed_positions[CREW_WAGE_MAX_BATCH_SHIPS];
-  int departed_count;
-  int current_batch;
-  int i;
-  int pos;
-
-  departed_count = 0;
-  current_batch = vessel_crew_wage_begin_tick();
-
-  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
-  {
-    ship = &greyhawk_ships[i];
-    pos = vessel_crew_wage_tick_one(ship, current_batch);
-    if (pos >= 0 && departed_count < CREW_WAGE_MAX_BATCH_SHIPS)
-    {
-      departed_ships[departed_count] = ship->shipnum;
-      departed_positions[departed_count] = pos;
-      departed_count++;
-    }
-  }
-
-  vessel_db_delete_departed_crew(departed_ships, departed_positions, departed_count);
-}
-
-/**
  * Owner gate shared by the crew commands.
  *
  * @return The ship if ch owns it and is aboard, else NULL
@@ -482,7 +293,7 @@ static struct greyhawk_ship_data *crew_command_ship(struct char_data *ch)
 
   if (str_cmp(ship->owner, GET_NAME(ch)) != 0 && GET_LEVEL(ch) < LVL_IMMORT)
   {
-    send_to_char(ch, "Only %s's owner (%s) hires and pays the crew.\r\n", ship->name, ship->owner);
+    send_to_char(ch, "Only %s's owner (%s) hires the crew.\r\n", ship->name, ship->owner);
     return NULL;
   }
 
@@ -524,14 +335,13 @@ ACMD(do_shiphire)
   if (!*arg1 || !*arg2)
   {
     send_to_char(ch, "Usage: shiphire <position> <tier>\r\n");
-    send_to_char(ch, "Positions and rates (hire / per payday):\r\n");
+    send_to_char(ch, "One-time hire prices (crew draw no wages):\r\n");
     for (i = 0; i < NUM_CREW_POSITIONS; i++)
     {
-      send_to_char(ch, "  %-14s green %d/%d  able %d/%d  veteran %d/%d\r\n",
-                   vessel_crew_position_name(i), vessel_crew_hire_cost(i, CREW_TIER_GREEN),
-                   vessel_crew_wage(i, CREW_TIER_GREEN), vessel_crew_hire_cost(i, CREW_TIER_ABLE),
-                   vessel_crew_wage(i, CREW_TIER_ABLE), vessel_crew_hire_cost(i, CREW_TIER_VETERAN),
-                   vessel_crew_wage(i, CREW_TIER_VETERAN));
+      send_to_char(ch, "  %-14s green %6d  able %6d  veteran %6d\r\n", vessel_crew_position_name(i),
+                   vessel_crew_hire_cost(i, CREW_TIER_GREEN),
+                   vessel_crew_hire_cost(i, CREW_TIER_ABLE),
+                   vessel_crew_hire_cost(i, CREW_TIER_VETERAN));
     }
     return;
   }
@@ -572,9 +382,8 @@ ACMD(do_shiphire)
   vessel_apply_crew_bonuses(ship);
   vessel_db_save_crew(ship);
 
-  send_to_char(ch, "You sign on a %s %s for %d gold (%d per payday).\r\n",
-               vessel_crew_tier_name(tier), vessel_crew_position_name(position), cost,
-               vessel_crew_wage(position, tier));
+  send_to_char(ch, "You sign on a %s %s for %d gold.\r\n", vessel_crew_tier_name(tier),
+               vessel_crew_position_name(position), cost);
   send_to_ship(ship, "A %s %s reports aboard %s.", vessel_crew_tier_name(tier),
                vessel_crew_position_name(position), ship->name);
   log("Info: %s hired a %s %s for ship %d (%d gold)", GET_NAME(ch), vessel_crew_tier_name(tier),
@@ -616,40 +425,4 @@ ACMD(do_shipdismiss)
   vessel_apply_crew_bonuses(ship);
   vessel_db_save_crew(ship);
   send_to_char(ch, "You dismiss the %s.\r\n", vessel_crew_position_name(position));
-}
-
-/**
- * shipwages - settle the accrued payroll.
- */
-ACMD(do_shipwages)
-{
-  struct greyhawk_ship_data *ship;
-  int payroll;
-
-  ship = crew_command_ship(ch);
-  if (ship == NULL)
-  {
-    return;
-  }
-
-  payroll = vessel_crew_payroll(ship);
-  send_to_char(ch, "%s's payroll: %d gold per payday.\r\n", ship->name, payroll);
-
-  if (ship->wages_owed <= 0)
-  {
-    send_to_char(ch, "The crew is paid up.\r\n");
-    return;
-  }
-
-  if (GET_GOLD(ch) < ship->wages_owed)
-  {
-    send_to_char(ch, "You owe %d gold in back wages but carry only %d.\r\n", ship->wages_owed,
-                 GET_GOLD(ch));
-    return;
-  }
-
-  award_gold(ch, -ship->wages_owed);
-  send_to_char(ch, "You pay out %d gold in wages.\r\n", ship->wages_owed);
-  send_to_ship(ship, "Wages paid - the crew's mood improves considerably.");
-  ship->wages_owed = 0;
 }

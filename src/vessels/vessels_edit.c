@@ -25,28 +25,32 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 /* Bounds for editable prototype fields */
 #define VEDIT_MAX_SPEED_LIMIT 30
 #define VEDIT_MAX_ARMOR_LIMIT 100
+#define VEDIT_MAX_MIN_LEVEL (LVL_IMMORT - 1)
 
 static const char *VEDIT_USAGE =
     "Usage:\r\n"
     "  vedit list                      - list all ship prototypes\r\n"
     "  vedit new <class> <name>        - create a prototype (class 0-7)\r\n"
     "  vedit show <id>                 - show one prototype\r\n"
-    "  vedit set <id> <field> <value>  - fields: name, class, speed, armor\r\n"
+    "  vedit set <id> <field> <value>  - fields: name, class, speed, armor,\r\n"
+    "                                    forsale (yes/no), minlevel (0 = class)\r\n"
     "  vedit delete <id>               - delete a prototype\r\n"
     "  vedit spawn <id>                - spawn a live ship here from a prototype\r\n"
     "  vedit spawnpublic <id>          - spawn an unclaimed NPC/public ship\r\n"
     "Classes: 0=Raft 1=Boat 2=Ship 3=Warship 4=Airship 5=Submarine 6=Transport 7=Magical\r\n";
 
 /**
- * Ensure the ship_prototypes table exists.
+ * Ensure the ship_prototypes table exists with its Phase 18 columns.
  *
  * Follows the vessel-system convention of auto-creating tables so a fresh
  * database works without manual schema steps. Mirrored by
- * sql/components/vessels_phase4_schema.sql.
+ * sql/components/vessels_phase4_schema.sql and vessels_phase18_schema.sql.
+ * Boot only: the ALTER can wait on another transaction's metadata lock, so
+ * command paths check vessel_prototype_db_ready() instead.
  *
  * @return TRUE if the table is available, FALSE otherwise
  */
-static bool vedit_ensure_table(void)
+bool vessel_prototype_ensure_schema(void)
 {
   const char *create_sql = "CREATE TABLE IF NOT EXISTS ship_prototypes ("
                            "  prototype_id INT AUTO_INCREMENT PRIMARY KEY,"
@@ -54,20 +58,151 @@ static bool vedit_ensure_table(void)
                            "  vessel_class INT NOT NULL DEFAULT 2,"
                            "  max_speed INT NOT NULL DEFAULT 10,"
                            "  armor INT NOT NULL DEFAULT 10,"
+                           "  for_sale TINYINT(1) NOT NULL DEFAULT 0,"
+                           "  min_level INT NOT NULL DEFAULT 0,"
                            "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
                            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+  const char *alter_sql = "ALTER TABLE ship_prototypes "
+                          "ADD COLUMN IF NOT EXISTS for_sale TINYINT(1) NOT NULL DEFAULT 0 "
+                          "AFTER armor, "
+                          "ADD COLUMN IF NOT EXISTS min_level INT NOT NULL DEFAULT 0 "
+                          "AFTER for_sale";
 
   if (!mysql_available || conn == NULL)
   {
     return FALSE;
   }
 
-  if (mysql_query(conn, create_sql))
+  if (mysql_query(conn, create_sql) || mysql_query(conn, alter_sql))
   {
-    log("SYSERR: vedit_ensure_table failed: %s", mysql_error(conn));
+    log("SYSERR: vessel_prototype_ensure_schema failed: %s", mysql_error(conn));
     return FALSE;
   }
 
+  return TRUE;
+}
+
+/**
+ * Can command paths read the prototype table? Its schema is migrated at boot.
+ */
+static bool vessel_prototype_db_ready(void)
+{
+  return mysql_available && conn != NULL;
+}
+
+/**
+ * Lowest character level that may take a hull of this class out of port.
+ *
+ * DurisMUD hull levels scaled to the 30 mortal levels (vessels-ships study
+ * 3.3.1); airship and submarine placements are LuminariMUD's own.
+ */
+int vessel_class_min_level(int vclass)
+{
+  static const int class_min_level[NUM_VESSEL_TYPES] = {
+      1,  /* RAFT */
+      1,  /* BOAT */
+      16, /* SHIP */
+      22, /* WARSHIP */
+      24, /* AIRSHIP */
+      23, /* SUBMARINE */
+      21, /* TRANSPORT */
+      25  /* MAGICAL */
+  };
+
+  if (vclass < 0 || vclass >= NUM_VESSEL_TYPES)
+  {
+    vclass = VESSEL_SHIP;
+  }
+  return class_min_level[vclass];
+}
+
+/**
+ * A prototype's minimum level: its own setting, or the class minimum when 0.
+ */
+int vessel_prototype_min_level(int vclass, int min_level)
+{
+  return min_level > 0 ? min_level : vessel_class_min_level(vclass);
+}
+
+/**
+ * Minimum level for this hull: its prototype's setting, else its class minimum.
+ *
+ * @return The level, or VESSEL_MIN_LEVEL_UNKNOWN when the hull's prototype
+ *         cannot be read, since its own setting may be higher than the class
+ */
+int vessel_ship_min_level(const struct greyhawk_ship_data *ship)
+{
+  PREPARED_STMT *statement;
+  int level;
+
+  if (ship == NULL)
+  {
+    return 1;
+  }
+
+  level = vessel_class_min_level(ship->vessel_type);
+  if (ship->prototype_id <= 0)
+  {
+    return level;
+  }
+  if (!vessel_prototype_db_ready())
+  {
+    return VESSEL_MIN_LEVEL_UNKNOWN;
+  }
+
+  statement = mysql_stmt_create(conn);
+  if (statement == NULL ||
+      !mysql_stmt_prepare_query(statement,
+                                "SELECT min_level FROM ship_prototypes WHERE prototype_id = ?") ||
+      !mysql_stmt_bind_param_int(statement, 0, ship->prototype_id) ||
+      !mysql_stmt_execute_prepared(statement))
+  {
+    log("SYSERR: Could not read the minimum level of ship prototype %d", ship->prototype_id);
+    mysql_stmt_cleanup(statement);
+    return VESSEL_MIN_LEVEL_UNKNOWN;
+  }
+  if (mysql_stmt_fetch_row(statement) && mysql_stmt_get_int(statement, 0) > 0)
+  {
+    level = mysql_stmt_get_int(statement, 0);
+  }
+  mysql_stmt_cleanup(statement);
+  return level;
+}
+
+/**
+ * Is ch too junior to command this hull's departures?
+ *
+ * The hull's minimum level applies to whoever takes her out of port by hand,
+ * engages her autopilot, or puts an NPC pilot or schedule to work. Staff and
+ * NPC pilots are exempt.
+ *
+ * @return TRUE when refused (the reason is sent to ch)
+ */
+bool vessel_helm_level_refused(struct char_data *ch, const struct greyhawk_ship_data *ship)
+{
+  int required;
+
+  if (ch == NULL || ship == NULL || IS_NPC(ch) || GET_LEVEL(ch) >= LVL_IMMORT)
+  {
+    return FALSE;
+  }
+
+  required = vessel_ship_min_level(ship);
+  if (required == VESSEL_MIN_LEVEL_UNKNOWN)
+  {
+    send_to_char(ch,
+                 "The harbor records cannot confirm who may command %s just now. Try again "
+                 "shortly.\r\n",
+                 ship->name);
+    return TRUE;
+  }
+  if (GET_LEVEL(ch) >= required)
+  {
+    return FALSE;
+  }
+
+  send_to_char(ch, "Only a captain of level %d or higher may command %s (%s).\r\n", required,
+               ship->name, get_vessel_type_name(ship->vessel_type));
   return TRUE;
 }
 
@@ -79,8 +214,8 @@ static void vedit_list(struct char_data *ch)
   MYSQL_RES *result;
   MYSQL_ROW row;
 
-  if (mysql_query(conn, "SELECT prototype_id, name, vessel_class, max_speed, armor "
-                        "FROM ship_prototypes ORDER BY prototype_id"))
+  if (mysql_query(conn, "SELECT prototype_id, name, vessel_class, max_speed, armor, for_sale, "
+                        "min_level FROM ship_prototypes ORDER BY prototype_id"))
   {
     log("SYSERR: vedit_list query failed: %s", mysql_error(conn));
     send_to_char(ch, "Database error listing prototypes.\r\n");
@@ -94,13 +229,14 @@ static void vedit_list(struct char_data *ch)
     return;
   }
 
-  send_to_char(ch, "ID    Class      Speed Armor Name\r\n");
-  send_to_char(ch, "----- ---------- ----- ----- ----------------------------\r\n");
+  send_to_char(ch, "ID    Class      Speed Armor Sale Lvl Name\r\n");
+  send_to_char(ch, "----- ---------- ----- ----- ---- --- ----------------------------\r\n");
   while ((row = mysql_fetch_row(result)) != NULL)
   {
-    send_to_char(ch, "%-5s %-10s %-5s %-5s %s\r\n", row[0],
+    send_to_char(ch, "%-5s %-10s %-5s %-5s %-4s %-3d %s\r\n", row[0],
                  get_vessel_type_name((enum vessel_class)parse_int(row[2])), row[3], row[4],
-                 row[1]);
+                 parse_int(row[5]) ? "yes" : "no",
+                 vessel_prototype_min_level(parse_int(row[2]), parse_int(row[6])), row[1]);
   }
   mysql_free_result(result);
 }
@@ -195,7 +331,7 @@ static MYSQL_RES *vedit_fetch(struct char_data *ch, int id, MYSQL_ROW *out_row)
   MYSQL_ROW row;
 
   snprintf(query, sizeof(query),
-           "SELECT prototype_id, name, vessel_class, max_speed, armor "
+           "SELECT prototype_id, name, vessel_class, max_speed, armor, for_sale, min_level "
            "FROM ship_prototypes WHERE prototype_id = %d",
            id);
 
@@ -253,10 +389,33 @@ static void vedit_show(struct char_data *ch, int id)
                "  Class : %s (%s)\r\n"
                "  Speed : %s\r\n"
                "  Armor : %s (all four sides at spawn)\r\n"
-               "  Cargo : %d lbs (fixed per class)\r\n",
+               "  Cargo : %d lbs (fixed per class)\r\n"
+               "  Sale  : %s\r\n"
+               "  Level : %d to take her out of port%s\r\n",
                row[0], row[1], row[2], get_vessel_type_name((enum vessel_class)parse_int(row[2])),
-               row[3], row[4], get_vessel_cargo_capacity((enum vessel_class)parse_int(row[2])));
+               row[3], row[4], get_vessel_cargo_capacity((enum vessel_class)parse_int(row[2])),
+               parse_int(row[5]) ? "listed in the shipyard" : "not for sale",
+               vessel_prototype_min_level(parse_int(row[2]), parse_int(row[6])),
+               parse_int(row[6]) > 0 ? "" : " (class minimum)");
   mysql_free_result(result);
+}
+
+/**
+ * Store one integer prototype field through a bound statement.
+ *
+ * @return TRUE when the update ran
+ */
+static bool vedit_update_int_field(const char *sql, int value, int id)
+{
+  PREPARED_STMT *statement;
+  bool updated;
+
+  statement = mysql_stmt_create(conn);
+  updated = statement != NULL && mysql_stmt_prepare_query(statement, sql) &&
+            mysql_stmt_bind_param_int(statement, 0, value) &&
+            mysql_stmt_bind_param_int(statement, 1, id) && mysql_stmt_execute_prepared(statement);
+  mysql_stmt_cleanup(statement);
+  return updated;
 }
 
 /**
@@ -266,6 +425,7 @@ static void vedit_set(struct char_data *ch, int id, const char *field, const cha
 {
   char query[MAX_STRING_LENGTH];
   char escaped_name[256];
+  const char *update_sql;
   MYSQL_RES *result;
   MYSQL_ROW row;
   int ivalue;
@@ -322,9 +482,48 @@ static void vedit_set(struct char_data *ch, int id, const char *field, const cha
     snprintf(query, sizeof(query), "UPDATE ship_prototypes SET armor=%d WHERE prototype_id=%d",
              ivalue, id);
   }
+  else if (!str_cmp(field, "forsale") || !str_cmp(field, "minlevel"))
+  {
+    if (!str_cmp(field, "forsale"))
+    {
+      if (!str_cmp(value, "yes") || !str_cmp(value, "1"))
+      {
+        ivalue = 1;
+      }
+      else if (!str_cmp(value, "no") || !str_cmp(value, "0"))
+      {
+        ivalue = 0;
+      }
+      else
+      {
+        send_to_char(ch, "For sale must be yes or no.\r\n");
+        return;
+      }
+      update_sql = "UPDATE ship_prototypes SET for_sale = ? WHERE prototype_id = ?";
+    }
+    else
+    {
+      ivalue = parse_int(value);
+      if (!isdigit((unsigned char)*value) || ivalue < 0 || ivalue > VEDIT_MAX_MIN_LEVEL)
+      {
+        send_to_char(ch, "Minimum level must be 0 (class minimum) to %d.\r\n", VEDIT_MAX_MIN_LEVEL);
+        return;
+      }
+      update_sql = "UPDATE ship_prototypes SET min_level = ? WHERE prototype_id = ?";
+    }
+    if (!vedit_update_int_field(update_sql, ivalue, id))
+    {
+      log("SYSERR: vedit_set could not update %s on prototype %d", field, id);
+      send_to_char(ch, "Database error updating prototype.\r\n");
+      return;
+    }
+    send_to_char(ch, "Prototype %d updated: %s = %s.\r\n", id, field, value);
+    return;
+  }
   else
   {
-    send_to_char(ch, "Unknown field '%s'. Fields: name, class, speed, armor.\r\n", field);
+    send_to_char(
+        ch, "Unknown field '%s'. Fields: name, class, speed, armor, forsale, minlevel.\r\n", field);
     return;
   }
 
@@ -728,14 +927,14 @@ ACMD(do_shipbrowse)
   MYSQL_RES *result;
   MYSQL_ROW row;
 
-  if (!vedit_ensure_table())
+  if (!vessel_prototype_db_ready())
   {
     send_to_char(ch, "The shipwright's records are unavailable.\r\n");
     return;
   }
 
-  if (mysql_query(conn, "SELECT prototype_id, name, vessel_class, max_speed, armor "
-                        "FROM ship_prototypes ORDER BY prototype_id"))
+  if (mysql_query(conn, "SELECT prototype_id, name, vessel_class, max_speed, armor, min_level "
+                        "FROM ship_prototypes WHERE for_sale = 1 ORDER BY prototype_id"))
   {
     send_to_char(ch, "The shipwright's records are unavailable.\r\n");
     return;
@@ -749,17 +948,18 @@ ACMD(do_shipbrowse)
   }
 
   send_to_char(ch, "The shipwright's catalog:\r\n");
-  send_to_char(ch, "ID    Class      Speed Armor Price      Name\r\n");
-  send_to_char(ch, "----- ---------- ----- ----- ---------- ----------------------------\r\n");
+  send_to_char(ch, "ID    Class      Speed Armor Price      Lvl Name\r\n");
+  send_to_char(ch, "----- ---------- ----- ----- ---------- --- ----------------------------\r\n");
   while ((row = mysql_fetch_row(result)) != NULL)
   {
-    send_to_char(ch, "%-5s %-10s %-5s %-5s %-10d %s\r\n", row[0],
+    send_to_char(ch, "%-5s %-10s %-5s %-5s %-10d %-3d %s\r\n", row[0],
                  get_vessel_type_name((enum vessel_class)parse_int(row[2])), row[3], row[4],
                  vessel_prototype_price(parse_int(row[2]), parse_int(row[3]), parse_int(row[4])),
-                 row[1]);
+                 vessel_prototype_min_level(parse_int(row[2]), parse_int(row[5])), row[1]);
   }
   mysql_free_result(result);
-  send_to_char(ch, "Purchase with 'shipbuy <id>' at any dock.\r\n");
+  send_to_char(ch, "Purchase with 'shipbuy <id>' at any dock. Lvl is the level needed to take "
+                   "her out of port.\r\n");
 }
 
 /**
@@ -770,6 +970,7 @@ ACMD(do_shipbuy)
   MYSQL_RES *result;
   MYSQL_ROW row;
   char arg[MAX_INPUT_LENGTH];
+  bool for_sale;
   int id;
   int price;
   int slot;
@@ -799,7 +1000,7 @@ ACMD(do_shipbuy)
   }
   id = parse_int(arg);
 
-  if (!vedit_ensure_table())
+  if (!vessel_prototype_db_ready())
   {
     send_to_char(ch, "The shipwright's records are unavailable.\r\n");
     return;
@@ -811,7 +1012,21 @@ ACMD(do_shipbuy)
     return;
   }
   price = vessel_prototype_price(parse_int(row[2]), parse_int(row[3]), parse_int(row[4]));
+  for_sale = parse_int(row[5]) != 0;
   mysql_free_result(result);
+
+  if (!for_sale)
+  {
+    send_to_char(ch, "The shipwright does not sell that hull. See 'shipbrowse'.\r\n");
+    return;
+  }
+
+  if (vessel_owner_at_cap(ch))
+  {
+    send_to_char(ch, "You already own %d hulls, the most one captain may hold.\r\n",
+                 vessel_owned_hull_count(GET_NAME(ch)));
+    return;
+  }
 
   if (GET_GOLD(ch) < price)
   {
@@ -1041,7 +1256,7 @@ ACMD(do_vedit)
     return;
   }
 
-  if (!vedit_ensure_table())
+  if (!vessel_prototype_db_ready())
   {
     send_to_char(ch, "The ship prototype database is unavailable.\r\n");
     return;
