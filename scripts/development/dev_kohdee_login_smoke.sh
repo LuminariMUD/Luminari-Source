@@ -1380,9 +1380,10 @@ proc run_vessel_movement_check {warship_id} {
   set workflow_started_at [clock milliseconds]
   set prototype_name "Movecheck Boat [clock seconds]"
 
-  # A hull launched in port is berthed until her crew casts off.
-  set output [run_game_command "goto -66 92"]
-  require_game_output $output "Current Location  : (-66, 92)" "harbor staging"
+  # A hull launched in port (the harbor's east dock) is berthed until her
+  # crew casts off.
+  set output [run_game_command "goto 1000390"]
+  require_game_output $output "Current Location  : (-62, 82)" "harbor staging"
   set output [run_game_command "vedit new 1 $prototype_name"]
   if {![regexp {Created Boat prototype ([0-9]+):} $output ignored prototype_id]} {
     fail "could not read the movement-check boat prototype id"
@@ -1395,6 +1396,7 @@ proc run_vessel_movement_check {warship_id} {
   set output [run_game_command "shipgoto $boat_slot"]
   require_game_output $output "Aboard $prototype_name (slot $boat_slot)." "boat teleport"
   set output [run_game_command "shipstatus"]
+  require_game_output $output "Coordinates: (-62, 82)" "launched boat position"
   require_game_output $output "Moorings: Berthed" "launched boat moorings"
   set output [run_game_command "speed 2"]
   require_game_output $output "is berthed; order 'undock' to cast off first." \
@@ -1411,7 +1413,7 @@ proc run_vessel_movement_check {warship_id} {
   # setsail is a one-room maneuver, five seconds apart, that berths in port.
   set output [run_game_command "setsail west"]
   require_game_output $output "The vessel maneuvers west." "harbor maneuver"
-  require_game_output $output "Current position: (-67, 92, 0)" "harbor maneuver position"
+  require_game_output $output "Current position: (-63, 82, 0)" "harbor maneuver position"
   set output [run_game_command "setsail east"]
   require_game_output $output "The crew is not ready to maneuver again yet." \
     "maneuver cooldown"
@@ -1419,7 +1421,7 @@ proc run_vessel_movement_check {warship_id} {
   set output [run_game_command "setsail east"]
   require_game_output $output "made fast at the berth" "maneuver into port"
   set output [run_game_command "shipstatus"]
-  require_game_output $output "Coordinates: (-66, 92)" "berthed boat position"
+  require_game_output $output "Coordinates: (-62, 82)" "berthed boat position"
   require_game_output $output "Moorings: Berthed" "re-berthed boat moorings"
   set output [run_game_command "shippurge $boat_slot"]
   require_game_output $output "Purged ship $boat_slot '$prototype_name'" "boat cleanup"
