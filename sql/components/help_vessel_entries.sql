@@ -694,8 +694,8 @@ waypoint to waypoint without manual intervention.
 The autopilot steers and the hull sails under the same rules as a
 helmsman\'s orders (see VESSELS). It casts off from a berth or weighs anchor
 first, cruises at the ordered speed (full speed when none is ordered), slows
-to steerage speed while it comes about, and slows to a stop at a waypoint
-where it waits.
+to steerage speed while it comes about, turns where she lies when the next
+waypoint is astern, and slows to a stop at a waypoint where it waits.
 
 Subcommands:
   on     - Enable autopilot and begin navigating the assigned route

@@ -164,8 +164,12 @@ and every 0.5-second vessel tick converges on them:
   terrain, weather, and lane percentage is cached per room and refreshed on
   every room entered and every hazard check.
 - A hull that comes to rest in a port room is berthed: `dock` holds the port
-  room vnum. A berthed hull, a hull at anchor (`anchored`, runtime only), and a
-  hull made fast alongside another hold position and take no speed order.
+  room vnum. A hull coming to rest also saves its runtime row, so the berth and
+  the position a paused autopilot holds survive a restart. Public and NPC hulls
+  have no owner to repair them, so the harbor restores their sail and rudder
+  whenever they berth. A berthed hull, a hull at anchor (`anchored`, runtime
+  only), and a hull made fast alongside another hold position and take no
+  speed order.
   `undock` casts off in 30 seconds (60 ticks) or weighs anchor in 13 (26
   ticks); casting off needs a whole sail, settled dock fees, and a captain of
   the hull's minimum level. `anchor` needs a stopped hull on the surface and
@@ -177,7 +181,8 @@ and every 0.5-second vessel tick converges on them:
   10 under way. The crew needs 5 seconds between maneuvers.
 - Every automated mover sails through the same tick. The autopilot
   (`vessel_autopilot_steer()`) orders the bearing to its waypoint and caps
-  speed through `autopilot_data.speed_limit`: steerage speed 2 while the bow
+  speed through `autopilot_data.speed_limit`: zero while the bow is more than
+  90 degrees off, so she comes about where she lies, steerage speed 2 while it
   is more than 45 degrees off, and `sqrt(180 * accel * distance)` approaching a
   waypoint where the hull stops, so it comes to rest inside a 0.5-room
   tolerance. It cruises at the ordered speed, or at full speed when none is
