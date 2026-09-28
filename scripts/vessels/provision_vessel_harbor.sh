@@ -647,7 +647,7 @@ if [[ "$ferry_was_created" == true || "$pilot_count" != 1 ||
   ferry_commands=(
     "shipgoto $ferry_slot"
     "setroute harbor_ferry_loop"
-    "speed 2"
+    "speed 10"
     "setschedule harbor_ferry_loop 1 $ferry_passenger_fare"
   )
   if [[ "$pilot_count" == 0 ]]; then
@@ -767,7 +767,7 @@ expected_after_fare=$((kohdee_gold - ferry_passenger_fare))
 set +e
 fare_output=$("$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --commands \
   "shipgoto $ferry_slot" \
-  "speed 2" \
+  "speed 10" \
   "autopilot on" \
   "@wait-vessel-west-dock" \
   "autopilot pause" \
@@ -781,7 +781,7 @@ fare_output=$("$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --comma
   "gold" \
   "disembark" \
   "shipgoto $ferry_slot" \
-  "speed 2" \
+  "speed 10" \
   "autopilot on" \
   "goto 1000389")
 fare_status=$?
@@ -806,7 +806,7 @@ fi
 if [[ -n "$fare_failure" ]]; then
   "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --commands \
     "shipgoto $ferry_slot" \
-    "speed 2" \
+    "speed 10" \
     "autopilot on" \
     "set Kohdee gold $kohdee_gold" \
     "goto 1000389" >/dev/null 2>&1 || true

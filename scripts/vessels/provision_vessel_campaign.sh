@@ -298,7 +298,17 @@ start_development_mud() {
   restart_needed=false
 }
 
+# Place the merchant on its route. At the Duris pacing the 359-room passage
+# takes about 22 minutes, so the actual-character windows watch the last leg:
+# the merchant starts at the harbor offing under way toward the central port.
+# The final baseline returns it, at rest and berthed, to the north port.
 reset_campaign_runtime() {
+  local x=$1
+  local y=$2
+  local location=$3
+  local waypoint=$4
+  local speed=$5
+  local heading=$6
   local reset_valid
 
   database_execute "
@@ -306,20 +316,21 @@ reset_campaign_runtime() {
     JOIN vessel_npc_merchants AS merchant
       ON merchant.active_ship_id = runtime.ship_id
     JOIN ship_routes AS route ON route.route_id = merchant.route_id
-       SET runtime.location_vnum = 1000360,
-           runtime.x = -599,
-           runtime.y = 455,
+       SET runtime.location_vnum = $location,
+           runtime.x = $x,
+           runtime.y = $y,
            runtime.z = 0,
            runtime.dx = 0,
            runtime.dy = 0,
            runtime.dz = 0,
-           runtime.heading = 0,
-           runtime.setheading = 0,
-           runtime.speed = 6,
-           runtime.setspeed = 6,
+           runtime.heading = $heading,
+           runtime.setheading = $heading,
+           runtime.speed = $speed,
+           runtime.setspeed = 12,
+           runtime.dock_room = 0,
            runtime.autopilot_state = 1,
            runtime.current_route_id = route.route_id,
-           runtime.current_waypoint_index = 0,
+           runtime.current_waypoint_index = $waypoint,
            runtime.autopilot_tick_counter = 0,
            runtime.wait_remaining = 0,
            runtime.last_update = UNIX_TIMESTAMP()
@@ -329,12 +340,11 @@ reset_campaign_runtime() {
     SELECT IF(
       COUNT(*) = 0 OR
       (COUNT(*) = 1
-       AND MIN(runtime.location_vnum) = 1000360
-       AND ROUND(MIN(runtime.x)) = -599
-       AND ROUND(MIN(runtime.y)) = 455
+       AND ROUND(MIN(runtime.x)) = $x
+       AND ROUND(MIN(runtime.y)) = $y
        AND MIN(runtime.autopilot_state) = 1
        AND MIN(runtime.current_route_id) = MIN(merchant.route_id)
-       AND MIN(runtime.current_waypoint_index) = 0),
+       AND MIN(runtime.current_waypoint_index) = $waypoint),
       1, 0)
       FROM vessel_npc_merchants AS merchant
       JOIN ship_runtime_state AS runtime
@@ -450,7 +460,7 @@ provision_campaign_world
 apply_database_file "$repo_root/sql/components/vessels_phase13_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase14_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_campaign_content.sql"
-reset_campaign_runtime
+reset_campaign_runtime -480 191 0 9 12 45
 start_development_mud "$run_dir/01-boot.log"
 
 merchant_slot=
@@ -659,7 +669,7 @@ persisted_after_restart=$(database_scalar "
 [[ "$persisted_after_restart" != "$restart_before_position" ]] ||
   fail "the resumed campaign movement did not persist during shutdown"
 
-reset_campaign_runtime
+reset_campaign_runtime -599 455 1000360 0 0 0
 start_development_mud "$run_dir/07-final-boot.log"
 
 final_state=$(database_scalar "

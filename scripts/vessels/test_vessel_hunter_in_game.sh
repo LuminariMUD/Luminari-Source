@@ -545,16 +545,19 @@ target_valid=$(database_query "
 [[ "$target_valid" == 1 ]] ||
   fail "the temporary target hull did not persist with Kohdee ownership"
 
+# The hull launches berthed in port: cast off, then get under way before the
+# forced encounter check, which considers only moving hulls.
 run_kohdee_commands "$run_dir/02-encounter.log" \
   "shipgoto $target_slot" \
+  "undock" \
+  "@wait 31" \
   "speed 2" \
   "vesseldebug encounter" \
   "shipstatus" ||
   fail "the real Kohdee encounter session failed"
-grep -Fq "Effective speed after terrain modifiers: 1" \
-  "$run_dir/02-encounter.log" ||
-  fail "the target hull's requested speed rounded down to zero"
-grep -Fq "Speed: 1 / 5" "$run_dir/02-encounter.log" ||
+grep -Fq "ready to get under way" "$run_dir/02-encounter.log" ||
+  fail "the target hull did not cast off from its berth"
+grep -Fq "Speed: 2 /" "$run_dir/02-encounter.log" ||
   fail "the target hull was not moving"
 grep -Fq "A Harbor Admiralty warship bears down" \
   "$run_dir/02-encounter.log" ||
