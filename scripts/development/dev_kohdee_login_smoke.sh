@@ -72,8 +72,11 @@ if [[ $# -gt 0 ]]; then
     --vessel-boarding-check)
       mode="vessel-boarding-check"
       ;;
+    --vessel-rules-check)
+      mode="vessel-rules-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id> | --vessel-boarding-check <warship-id> [<defender-character>]]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id> | --vessel-boarding-check <warship-id> [<defender-character>] | --vessel-rules-check <warship-id> [<crew-character>]]"
       ;;
   esac
   shift
@@ -152,6 +155,13 @@ if [[ $# -gt 0 ]]; then
       [[ "$2" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
         fail "--vessel-boarding-check defender must be a valid character name"
     fi
+  elif [[ "$mode" == "vessel-rules-check" ]]; then
+    [[ ($# -eq 1 || $# -eq 2) && "$1" =~ ^[1-9][0-9]*$ ]] ||
+      fail "--vessel-rules-check requires a positive warship prototype id and an optional crew character"
+    if [[ $# -eq 2 ]]; then
+      [[ "$2" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
+        fail "--vessel-rules-check crew character must be a valid character name"
+    fi
   else
     [[ $# -gt 0 ]] || fail "$mode mode requires at least one input line"
   fi
@@ -208,7 +218,7 @@ smoke_password="${DEV_MUD_ACCOUNT_PASSWORD:-${GAME_MASTER_ACCOUNT_PASSWORD:-}}"
 [[ -n "$smoke_password" ]] ||
   fail "DEV_MUD_ACCOUNT_PASSWORD or GAME_MASTER_ACCOUNT_PASSWORD is not set"
 if [[ ("$mode" == "vessel-channel-check" ||
-  "$mode" == "vessel-boarding-check") && $# -eq 2 ]]; then
+  "$mode" == "vessel-boarding-check" || "$mode" == "vessel-rules-check") && $# -eq 2 ]]; then
   if [[ "${2,,}" == "${smoke_character,,}" ]]; then
     fail "$mode requires two different character names"
   fi
@@ -2066,6 +2076,122 @@ proc run_vessel_boarding_check {warship_id requested_character} {
   puts "PASS: both temporary hulls were purged after the two-character check in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }
 
+proc run_vessel_rules_check {warship_id requested_character} {
+  global smoke_character
+
+  set workflow_started_at [clock milliseconds]
+  set primary_session $::spawn_id
+  set name_seed [clock seconds]
+
+  # The shipyard lists a prototype only once it is marked for sale.
+  set listed_name "Rulesraft$name_seed"
+  set output [run_game_command "vedit new 0 $listed_name"]
+  if {![regexp {prototype ([0-9]+): } $output ignored listed_id]} {
+    fail "could not read the shipyard test prototype id"
+  }
+  set output [run_game_command "shipbrowse"]
+  require_game_output $output "Lvl Name" "shipyard level column"
+  if {[string first $listed_name $output] >= 0} {
+    fail "a prototype that is not for sale appeared in the shipyard catalog"
+  }
+  set output [run_game_command "vedit set $listed_id forsale yes"]
+  require_game_output $output "forsale = yes" "shipyard listing"
+  set output [run_game_command "vedit set $listed_id minlevel 7"]
+  require_game_output $output "minlevel = 7" "shipyard departure level"
+  set output [run_game_command "shipbrowse"]
+  if {![regexp "Raft +\[0-9\]+ +\[0-9\]+ +\[0-9\]+ +7 +$listed_name" $output]} {
+    fail "the listed test prototype did not appear with its departure level"
+  }
+  set output [run_game_command "vedit delete $listed_id"]
+  require_game_output $output "Prototype $listed_id deleted." "shipyard test prototype cleanup"
+  set output [run_game_command "shipwages"]
+  require_game_output $output "Huh!?!" "retired crew wage command"
+
+  # contacts, tactical, and shipfire share one list of two-letter IDs.
+  set output [run_game_command "goto 902 225"]
+  require_game_output $output "Current Location  : (902, 225)" "rules target staging"
+  set target_slot \
+    [spawn_frontier_vessel_at_exterior $warship_id "Starfall Bastion"]
+  set target_id [vessel_slot_id $target_slot]
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" "rules bridge staging"
+  set gun_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+  set output [run_game_command "contacts"]
+  require_game_output $output "ID  VESSEL" "contact list header"
+  if {![regexp "$target_id +Starfall Bastion +2\\.0 u" $output]} {
+    fail "the contact list did not show $target_id at range 2.0"
+  }
+  set output [run_game_command "tactical"]
+  if {![regexp "$target_id +Starfall Bastion +sound" $output]} {
+    fail "the tactical roster did not show contact $target_id"
+  }
+  set output [run_game_command "shipfire 2 Nocontact$name_seed"]
+  require_game_output $output "No contact in sight matches" "unknown contact refusal"
+  set output [run_game_command "shipfire 2 $target_id"]
+  require_game_output $output "FIRES at Starfall Bastion!" "contact fire by ID"
+
+  # A passenger cannot work the guns.
+  lassign [open_secondary_character $requested_character] secondary_session crew_character
+  set ::spawn_id $primary_session
+  run_game_command "trans $crew_character"
+  set ::spawn_id $secondary_session
+  set output [run_game_command "shipfire 2 $target_id"]
+  require_game_output $output "guns answer to her owner" "passenger gunnery refusal"
+
+  # A deeded warship still needs its level before a pilot may sail her.
+  set ::spawn_id $primary_session
+  set output [run_game_command "shipdeed $crew_character"]
+  require_game_output $output "You sign over" "first hull deed"
+  set ::spawn_id $secondary_session
+  set output [run_game_command "assignpilot helmsman"]
+  if {![regexp {Only a captain of level ([0-9]+) or higher may command} $output \
+      ignored required_level]} {
+    fail "$crew_character was not refused command of the warship"
+  }
+
+  # The third deeded hull reaches the cap; a fourth is refused.
+  set ::spawn_id $primary_session
+  set extra_slots {}
+  for {set deed 2} {$deed <= 4} {incr deed} {
+    set extra_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+    lappend extra_slots $extra_slot
+    run_game_command "trans $crew_character"
+    set output [run_game_command "shipdeed $crew_character"]
+    if {$deed < 4} {
+      require_game_output $output "You sign over" "hull deed $deed"
+    } else {
+      require_game_output $output "$crew_character already owns 3 hulls" "hull cap refusal"
+    }
+  }
+
+  # A WANTED captain sees the pay-off price, payable only in a lawful port.
+  set ::spawn_id $secondary_session
+  set output [run_game_command "bounty"]
+  require_game_output $output "600 gold on your head - WANTED" "$crew_character bounty"
+  require_game_output $output "clears it for 750 gold ('bounty pay')" "$crew_character pay-off"
+  set output [run_game_command "bounty pay"]
+  require_game_output $output "settled at a lawful port's admiralty office" "at-sea pay-off refusal"
+
+  set ::spawn_id $primary_session
+  run_game_command "goto 1204"
+  run_game_command "trans $crew_character"
+  foreach ship_slot [concat [list $gun_slot] $extra_slots [list $target_slot]] {
+    set output [run_game_command "shippurge $ship_slot"]
+    require_game_output $output "Purged ship $ship_slot 'Starfall Bastion'" "rules hull cleanup"
+  }
+
+  logout_character_session $secondary_session $crew_character
+  set ::spawn_id $primary_session
+  set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
+  puts "\nPASS: the shipyard listed only for-sale prototypes, with their departure level."
+  puts "PASS: contacts and tactical shared two-letter IDs, and shipfire targeted a contact by ID."
+  puts "PASS: $crew_character could not fire the weapons of another captain's warship."
+  puts "PASS: $crew_character was refused command of a level-$required_level warship."
+  puts "PASS: a fourth deed to $crew_character was refused at the three-hull cap."
+  puts "PASS: $crew_character saw the WANTED bounty's 125% pay-off, refused away from port."
+  puts "PASS: the vessel rules check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
+}
+
 proc run_vessel_channel_check {ship_slot requested_character} {
   global smoke_character
 
@@ -2238,7 +2364,8 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     $mode eq "vessel-message-check" || $mode eq "vessel-crossing-check" ||
     $mode eq "vessel-frontier-check" || $mode eq "vessel-event-check" ||
     $mode eq "vessel-tactical-check" || $mode eq "vessel-lookout-check" ||
-    $mode eq "vessel-narrative-check" || $mode eq "vessel-boarding-check"} {
+    $mode eq "vessel-narrative-check" || $mode eq "vessel-boarding-check" ||
+    $mode eq "vessel-rules-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -2304,6 +2431,9 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
       run_vessel_narrative_check [lindex $game_commands 0]
     } elseif {$mode eq "vessel-boarding-check"} {
       run_vessel_boarding_check [lindex $game_commands 0] \
+        [lindex $game_commands 1]
+    } elseif {$mode eq "vessel-rules-check"} {
+      run_vessel_rules_check [lindex $game_commands 0] \
         [lindex $game_commands 1]
     } else {
       run_vessel_msdp_check [lindex $game_commands 0]
@@ -2397,6 +2527,9 @@ elif [[ "$mode" == "vessel-narrative-check" ]]; then
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-boarding-check" ]]; then
   printf 'PASS: %s completed the two-character vessel-boarding check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-rules-check" ]]; then
+  printf 'PASS: %s completed the two-character vessel-rules check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 else
   printf 'PASS: %s entered the world, left the character, and logged out of the account (%ss).\n' \

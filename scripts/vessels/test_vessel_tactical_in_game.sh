@@ -7,7 +7,7 @@ repo_root=${LUMINARI_PROJECT_ROOT:-$(cd "$script_dir/../.." && pwd)}
 acceptance_mode=tactical
 if [[ $# -gt 0 ]]; then
   [[ $# -eq 1 ]] || {
-    printf 'usage: %s [--lookout|--narrative|--boarding]\n' "$0" >&2
+    printf 'usage: %s [--lookout|--narrative|--boarding|--rules]\n' "$0" >&2
     exit 2
   }
   case "$1" in
@@ -20,8 +20,11 @@ if [[ $# -gt 0 ]]; then
     --boarding)
       acceptance_mode=boarding
       ;;
+    --rules)
+      acceptance_mode=rules
+      ;;
     *)
-      printf 'usage: %s [--lookout|--narrative|--boarding]\n' "$0" >&2
+      printf 'usage: %s [--lookout|--narrative|--boarding|--rules]\n' "$0" >&2
       exit 2
       ;;
   esac
@@ -45,6 +48,7 @@ candidate_sha256=
 source_commit=
 baseline_player_sha256=
 baseline_secondary_player_sha256=
+baseline_secondary_bounty=
 warship_prototype_id=
 snapshot_ready=false
 cleanup_needed=false
@@ -57,6 +61,10 @@ mkdir -p "$run_dir"
 fail() {
   printf 'vessel %s in-game check: %s\n' "$acceptance_mode" "$*" >&2
   exit 1
+}
+
+uses_secondary_player() {
+  [[ "$acceptance_mode" == boarding || "$acceptance_mode" == rules ]]
 }
 
 config_value() {
@@ -240,6 +248,33 @@ retire_test_runtime() {
   [[ -z $(tactical_runtime_slots) ]]
 }
 
+restore_secondary_rules_state() {
+  local bounty
+  local marque_until
+  local last_offense
+
+  if [[ "$baseline_secondary_bounty" == absent ]]; then
+    database_query "
+      DELETE FROM vessel_bounties
+       WHERE player_name = '$secondary_player';" || return 1
+  elif [[ -n "$baseline_secondary_bounty" ]]; then
+    IFS='|' read -r bounty marque_until last_offense <<<"$baseline_secondary_bounty"
+    database_query "
+      UPDATE vessel_bounties
+         SET bounty = $bounty,
+             marque_until = $marque_until,
+             last_offense_at = FROM_UNIXTIME($last_offense)
+       WHERE player_name = '$secondary_player';" || return 1
+  fi
+  database_query "
+    DELETE FROM ship_prototypes
+     WHERE name LIKE 'Rulesraft%'
+       AND NOT EXISTS (
+         SELECT 1
+           FROM ship_runtime_state AS runtime
+          WHERE runtime.prototype_id = ship_prototypes.prototype_id);"
+}
+
 restore_baseline() {
   local cleanup_status=0
   local restored_sha256
@@ -259,7 +294,7 @@ restore_baseline() {
   else
     cleanup_status=1
   fi
-  if [[ "$acceptance_mode" == boarding ]]; then
+  if uses_secondary_player; then
     if cp --preserve=mode,ownership,timestamps \
       "$run_dir/vesselmate.plr.before" "$secondary_restore_tmp" &&
       mv -f "$secondary_restore_tmp" "$secondary_player_file"; then
@@ -270,6 +305,9 @@ restore_baseline() {
     else
       cleanup_status=1
     fi
+  fi
+  if [[ "$acceptance_mode" == rules ]]; then
+    restore_secondary_rules_state || cleanup_status=1
   fi
 
   if [[ "$cleanup_status" == 0 ]]; then
@@ -324,6 +362,10 @@ finish() {
       printf 'PASS: Kohdee and Vesselmate validated opposed grappling, crossing, '
       printf 'breach warnings, and exact two-character restoration (%ss).\n' \
         "$elapsed_seconds"
+    elif [[ "$acceptance_mode" == rules ]]; then
+      printf 'PASS: Kohdee and Vesselmate validated the shipyard listing, contact IDs, '
+      printf 'gunnery authorization, hull level, hull cap, and bounty pay-off with exact '
+      printf 'two-character restoration (%ss).\n' "$elapsed_seconds"
     else
       printf 'PASS: Kohdee validated regional at-sea prose and contextual ambience '
       printf 'with exact character restoration (%ss).\n' "$elapsed_seconds"
@@ -365,7 +407,7 @@ flock -n 8 || fail "another vessel view acceptance check is running"
   fail "the Kohdee player file is missing or unsafe to replace"
 grep -Fqx "Name: $target_player" "$player_file" ||
   fail "the expected Kohdee identity is not in $player_file"
-if [[ "$acceptance_mode" == boarding ]]; then
+if uses_secondary_player; then
   [[ -f "$secondary_player_file" && ! -L "$secondary_player_file" ]] ||
     fail "the Vesselmate player file is missing or unsafe to replace"
   grep -Fqx "Name: $secondary_player" "$secondary_player_file" ||
@@ -444,11 +486,25 @@ if [[ "$acceptance_mode" == narrative ]]; then
   [[ "$narrative_content_state" == '8|4|4|4|0' ]] ||
     fail "the Vailand narrative content is incomplete: $narrative_content_state"
 fi
+if [[ "$acceptance_mode" == rules ]]; then
+  database_apply_file "$repo_root/sql/components/vessels_phase18_schema.sql"
+  secondary_hull_count=$(database_query "
+    SELECT COUNT(*)
+      FROM ship_interiors
+     WHERE owner = '$secondary_player';")
+  [[ "$secondary_hull_count" == 0 ]] ||
+    fail "Vesselmate already owns $secondary_hull_count hulls"
+  baseline_secondary_bounty=$(database_query "
+    SELECT CONCAT(bounty, '|', marque_until, '|', UNIX_TIMESTAMP(last_offense_at))
+      FROM vessel_bounties
+     WHERE player_name = '$secondary_player';")
+  [[ -n "$baseline_secondary_bounty" ]] || baseline_secondary_bounty=absent
+fi
 cp --preserve=mode,ownership,timestamps "$player_file" \
   "$run_dir/kohdee.plr.before"
 baseline_player_sha256=$(sha256sum "$run_dir/kohdee.plr.before" |
   awk '{ print $1 }')
-if [[ "$acceptance_mode" == boarding ]]; then
+if uses_secondary_player; then
   cp --preserve=mode,ownership,timestamps "$secondary_player_file" \
     "$run_dir/vesselmate.plr.before"
   baseline_secondary_player_sha256=$(
@@ -457,13 +513,20 @@ if [[ "$acceptance_mode" == boarding ]]; then
 fi
 snapshot_ready=true
 cleanup_needed=true
+if [[ "$acceptance_mode" == rules ]]; then
+  # A WANTED (not HUNTED) bounty, so no bounty hunter is drawn.
+  database_query "
+    INSERT INTO vessel_bounties (player_name, bounty, last_offense_at)
+    VALUES ('$secondary_player', 600, NOW())
+    ON DUPLICATE KEY UPDATE bounty = 600, last_offense_at = NOW();"
+fi
 
 {
   printf 'source_commit=%s\n' "$source_commit"
   printf 'binary_sha256=%s\n' "$candidate_sha256"
   printf 'warship_prototype_id=%s\n' "$warship_prototype_id"
   printf 'baseline_player_sha256=%s\n' "$baseline_player_sha256"
-  if [[ "$acceptance_mode" == boarding ]]; then
+  if uses_secondary_player; then
     printf 'baseline_secondary_player_sha256=%s\n' \
       "$baseline_secondary_player_sha256"
   fi
@@ -579,6 +642,47 @@ elif [[ "$acceptance_mode" == boarding ]]; then
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-boarding.log" ||
       fail "the boarding transcript did not contain '$expected_text'"
   done
+elif [[ "$acceptance_mode" == rules ]]; then
+  timeout 120 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --help-check \
+    SHIPFIRE BOUNTY SHIPBROWSE >"$run_dir/01-rules-help.log" 2>&1 ||
+    fail "Kohdee could not read the authoritative vessel rules help"
+  rules_help_state=$(database_query "
+    SELECT COUNT(*)
+      FROM help_entries
+     WHERE (BINARY tag = 'SHIPFIRE' AND entry LIKE '%Harbors are neutral ground%')
+        OR (BINARY tag = 'PLUNDER' AND entry LIKE '%BOUNTY PAY%')
+        OR (BINARY tag = 'SHIPBROWSE' AND entry LIKE '%at most three%');")
+  [[ "$rules_help_state" == 3 ]] ||
+    fail "the authoritative vessel rules help is stale"
+
+  timeout 300 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --vessel-rules-check \
+    "$warship_prototype_id" "$secondary_player" \
+    >"$run_dir/02-kohdee-vessel-rules.log" 2>&1 ||
+    fail "the actual Kohdee and Vesselmate vessel-rules session failed"
+
+  for expected_text in \
+    'PASS: the shipyard listed only for-sale prototypes, with their departure level.' \
+    'PASS: contacts and tactical shared two-letter IDs, and shipfire targeted a contact by ID.' \
+    "PASS: Vesselmate could not fire the weapons of another captain's warship." \
+    'PASS: Vesselmate was refused command of a level-' \
+    'PASS: a fourth deed to Vesselmate was refused at the three-hull cap.' \
+    "PASS: Vesselmate saw the WANTED bounty's 125% pay-off, refused away from port." \
+    'PASS: the vessel rules check completed and purged all temporary hulls'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-rules.log" ||
+      fail "the rules session did not report '$expected_text'"
+  done
+
+  for expected_text in \
+    'CONTACT LIST' \
+    'No contact in sight matches' \
+    'guns answer to her owner' \
+    'Vesselmate already owns 3 hulls' \
+    "clears it for 750 gold ('bounty pay')"; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-rules.log" ||
+      fail "the rules transcript did not contain '$expected_text'"
+  done
 else
   timeout 120 env DEV_MUD_CHARACTER="$target_player" \
     "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --help-check LOOKOUT VESSELDEBUG \
@@ -635,11 +739,18 @@ fi
   fail "a temporary Starfall Bastion runtime remained"
 grep -Fqx 'Room: 1204' "$player_file" ||
   fail "Kohdee did not return to room 1204"
-if [[ "$acceptance_mode" == boarding ]]; then
+if uses_secondary_player; then
   grep -Fqx 'Room: 1204' "$secondary_player_file" ||
     fail "Vesselmate did not return to room 1204"
 fi
-if grep -E 'SYSERR:.*(tactical|lookout|narrative|boarding|Boardatk|Boarddef|Starfall Bastion|Starfall Trench|Vailand)' \
+if [[ "$acceptance_mode" == rules ]]; then
+  [[ $(database_query "
+    SELECT COUNT(*)
+      FROM ship_prototypes
+     WHERE name LIKE 'Rulesraft%';") == 0 ]] ||
+    fail "a temporary shipyard test prototype remained"
+fi
+if grep -E 'SYSERR:.*(tactical|lookout|narrative|boarding|Boardatk|Boarddef|Rulesraft|bounty|Starfall Bastion|Starfall Trench|Vailand)' \
   "$server_log" >"$run_dir/04-related-syserr.log"; then
   fail "the server logged a vessel-view SYSERR"
 fi

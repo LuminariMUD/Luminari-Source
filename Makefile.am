@@ -1011,6 +1011,7 @@ EXTRA_DIST = \
 	scripts/vessels/test_vessel_memory_analyzer.sh \
 	scripts/vessels/test_vessel_merchant_in_game.sh \
 	scripts/vessels/test_vessel_narrative_in_game.sh \
+	scripts/vessels/test_vessel_rules_in_game.sh \
 	scripts/vessels/test_vessel_scale_benchmark_parsers.sh \
 	scripts/vessels/test_vessel_tactical_in_game.sh \
 	scripts/world/populate_zone8000_from_south_of_waterdeep.py \
