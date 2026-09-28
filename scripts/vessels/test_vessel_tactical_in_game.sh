@@ -248,10 +248,19 @@ retire_test_runtime() {
   [[ -z $(tactical_runtime_slots) ]]
 }
 
+# The shipyard prototype the rules session reported creating, if any.
+rules_prototype_id() {
+  local rules_log="$run_dir/02-kohdee-vessel-rules.log"
+
+  [[ -f "$rules_log" ]] || return 0
+  sed -n 's/^rules_prototype_id=\([1-9][0-9]*\)\r\{0,1\}$/\1/p' "$rules_log" | head -n 1
+}
+
 restore_secondary_rules_state() {
   local bounty
   local marque_until
   local last_offense
+  local prototype_id
 
   if [[ "$baseline_secondary_bounty" == absent ]]; then
     database_query "
@@ -266,9 +275,12 @@ restore_secondary_rules_state() {
              last_offense_at = FROM_UNIXTIME($last_offense)
        WHERE player_name = '$secondary_player';" || return 1
   fi
+  prototype_id=$(rules_prototype_id) || return 1
+  [[ -n "$prototype_id" ]] || return 0
   database_query "
     DELETE FROM ship_prototypes
-     WHERE name LIKE 'Rulesraft%'
+     WHERE prototype_id = $prototype_id
+       AND name LIKE 'Rulesraft%'
        AND NOT EXISTS (
          SELECT 1
            FROM ship_runtime_state AS runtime
@@ -744,11 +756,14 @@ if uses_secondary_player; then
     fail "Vesselmate did not return to room 1204"
 fi
 if [[ "$acceptance_mode" == rules ]]; then
+  rules_prototype=$(rules_prototype_id)
+  [[ -n "$rules_prototype" ]] ||
+    fail "the rules session did not report its shipyard test prototype"
   [[ $(database_query "
     SELECT COUNT(*)
       FROM ship_prototypes
-     WHERE name LIKE 'Rulesraft%';") == 0 ]] ||
-    fail "a temporary shipyard test prototype remained"
+     WHERE prototype_id = $rules_prototype;") == 0 ]] ||
+    fail "the temporary shipyard test prototype $rules_prototype remained"
 fi
 if grep -E 'SYSERR:.*(tactical|lookout|narrative|boarding|Boardatk|Boarddef|Rulesraft|bounty|Starfall Bastion|Starfall Trench|Vailand)' \
   "$server_log" >"$run_dir/04-related-syserr.log"; then

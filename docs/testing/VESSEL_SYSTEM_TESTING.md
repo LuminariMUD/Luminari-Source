@@ -433,9 +433,10 @@ warship below its level (22); a fourth deed refused at the three-hull cap; and
 `bounty` quoting the 750-gold (125%) pay-off that `bounty pay` refuses at sea.
 
 Cleanup returns both characters to room 1204, purges the five temporary
-hulls, deletes any leftover `Rulesraft` prototype, restores Vesselmate's bounty
-row, byte-restores both player files, and restarts the exact installed
-candidate. On 2026-09-28 the main checkout's development MUD held port 4100, so
+hulls, deletes the one `Rulesraft` prototype whose ID the session reported (if
+no runtime hull uses it; other prototypes are never touched), restores
+Vesselmate's bounty row, byte-restores both player files, and restarts the
+exact installed candidate. On 2026-09-28 the main checkout's development MUD held port 4100, so
 the gate ran inside a private user, network, mount, and PID namespace with a
 disposable MariaDB loaded from a dump of the development database on a private
 `/run/mysqld` (systemd user units were replaced by process stand-ins). Run

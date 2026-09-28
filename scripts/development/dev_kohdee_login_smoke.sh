@@ -2089,6 +2089,9 @@ proc run_vessel_rules_check {warship_id requested_character} {
   if {![regexp {prototype ([0-9]+): } $output ignored listed_id]} {
     fail "could not read the shipyard test prototype id"
   }
+  # The acceptance harness deletes exactly this prototype if the run fails.
+  puts "\nrules_prototype_id=$listed_id"
+  flush stdout
   set output [run_game_command "shipbrowse"]
   require_game_output $output "Lvl Name" "shipyard level column"
   if {[string first $listed_name $output] >= 0} {
