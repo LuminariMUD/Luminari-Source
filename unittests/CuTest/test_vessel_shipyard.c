@@ -14,8 +14,11 @@
 #include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
@@ -182,6 +185,48 @@ void Test_vessel_owner_cap_counts_owned_hulls(CuTest *tc)
 
   CONFIG_VESSEL_OWNER_CAP = (ubyte)saved_cap;
   shipyard_own_ships("", 0);
+}
+
+/* Parse one configuration text and report the hull cap it leaves. */
+static int shipyard_config_cap(const char *text)
+{
+  char buffer[64];
+  FILE *stream;
+
+  strlcpy(buffer, text, sizeof(buffer));
+  stream = fmemopen(buffer, strlen(buffer), "r");
+  if (stream == NULL)
+  {
+    return -1;
+  }
+  load_config_stream(stream);
+  fclose(stream);
+  return CONFIG_VESSEL_OWNER_CAP;
+}
+
+void Test_vessel_owner_cap_config_is_clamped(CuTest *tc)
+{
+  pid_t child;
+  int status;
+
+  /* load_config_stream() resets every option first, so parse in a child. */
+  child = fork();
+  CuAssertTrue(tc, child >= 0);
+  if (child == 0)
+  {
+    if (shipyard_config_cap("vessel_owner_cap = 5\n") != 5)
+      CuTestChildExit(1);
+    if (shipyard_config_cap("vessel_owner_cap = 99\n") != VESSEL_OWNER_CAP_MAX)
+      CuTestChildExit(2);
+    if (shipyard_config_cap("vessel_owner_cap = 0\n") != VESSEL_OWNER_CAP_MIN)
+      CuTestChildExit(3);
+    if (shipyard_config_cap("vessel_system = 1\n") != VESSEL_OWNER_CAP_DEFAULT)
+      CuTestChildExit(4);
+    CuTestChildExit(0);
+  }
+  CuAssertTrue(tc, waitpid(child, &status, 0) == child);
+  CuAssertTrue(tc, WIFEXITED(status));
+  CuAssertIntEquals(tc, 0, WEXITSTATUS(status));
 }
 
 void Test_vessel_shipyard_sells_only_listed_hulls(CuTest *tc)
