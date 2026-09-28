@@ -550,7 +550,7 @@ target_valid=$(database_query "
 run_kohdee_commands "$run_dir/02-encounter.log" \
   "shipgoto $target_slot" \
   "undock" \
-  "@wait 31" \
+  "@wait 33" \
   "speed 2" \
   "vesseldebug encounter" \
   "shipstatus" ||

@@ -682,7 +682,7 @@ proc run_vessel_builder_check {} {
     "berthed vessel speed order"
   set output [run_game_command "undock"]
   require_game_output $output "The crew begins casting off." "vessel departure"
-  run_game_command "@wait 31"
+  run_game_command "@wait 33"
   set output [run_game_command "setsail west"]
   require_game_output $output "The vessel maneuvers west." "vessel maneuver"
 
@@ -1405,7 +1405,7 @@ proc run_vessel_movement_check {warship_id} {
   require_game_output $output "The crew begins casting off." "casting off"
   set output [run_game_command "shipstatus"]
   require_game_output $output "Moorings: Casting off" "casting-off moorings"
-  set output [run_game_command "@wait 31"]
+  set output [run_game_command "@wait 33"]
   require_game_output $output "ready to get under way" "departure report"
   set output [run_game_command "shipstatus"]
   require_game_output $output "Moorings: Under way" "departed boat moorings"
