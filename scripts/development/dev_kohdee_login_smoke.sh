@@ -746,10 +746,18 @@ proc spawn_frontier_vessel {prototype_id vessel_name} {
   return $ship_slot
 }
 
-# setsail maneuvers need five seconds between them.
+# setsail maneuvers need five seconds (ten vessel ticks) between them; a
+# loaded host can stretch that, so retry until the crew is ready.
 proc frontier_maneuver {direction} {
-  run_game_command "@wait 6"
-  return [run_game_command "setsail $direction"]
+  run_game_command "@wait 5"
+  for {set attempt 0} {$attempt < 10} {incr attempt} {
+    set output [run_game_command "setsail $direction"]
+    if {[string first "not ready to maneuver" $output] < 0} {
+      return $output
+    }
+    run_game_command "@wait 1"
+  }
+  fail "the crew never became ready to maneuver $direction"
 }
 
 proc purge_frontier_vessel {ship_slot vessel_name} {
@@ -1417,8 +1425,7 @@ proc run_vessel_movement_check {warship_id} {
   set output [run_game_command "setsail east"]
   require_game_output $output "The crew is not ready to maneuver again yet." \
     "maneuver cooldown"
-  run_game_command "@wait 6"
-  set output [run_game_command "setsail east"]
+  set output [frontier_maneuver east]
   require_game_output $output "made fast at the berth" "maneuver into port"
   set output [run_game_command "shipstatus"]
   require_game_output $output "Coordinates: (-62, 82)" "berthed boat position"

@@ -553,7 +553,9 @@ run_kohdee_commands "$run_dir/02-encounter.log" \
   "undock" \
   "@wait 33" \
   "speed 2" \
+  "@wait 2" \
   "vesseldebug encounter" \
+  "@wait 2" \
   "shipstatus" ||
   fail "the real Kohdee encounter session failed"
 grep -Fq "Speed: 2 /" "$run_dir/02-encounter.log" ||
