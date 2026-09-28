@@ -1213,9 +1213,9 @@ recorded for S1: one branch, a merge commit at the end, never a squash.
 | Automated movers rebased | Done | Autopilot steering `vessel_autopilot_steer()` with `autopilot_data.speed_limit`; hunters steer and shadow; merchants cruise at design speed; scheduled routes validated one room at a time |
 | Unit tests | Done | New `unittests/CuTest/test_vessel_movement.c` (14 cases); updates in `test_transport_production.c`, `test_vessel_gunnery.c`, `test_racial_innate_feats.c` |
 | Help in both places, `VESSEL_SYSTEM.md` | Done | VESSELS (SPEED, HEADING, SETSAIL, UNDOCK, new ANCHOR keyword), AUTOPILOT, SEADOG; "Movement and Pacing" section |
-| Existing live gates moved to the new model | Pending | `scripts/development/dev_kohdee_login_smoke.sh` and the `scripts/vessels/` gates (list below) |
-| New actual-character movement gate | Pending | Planned as `--vessel-movement-check` plus a `test_vessel_movement_in_game.sh` wrapper |
-| Ferry soak and scale re-baseline in `VESSEL_BENCHMARKS.md` | Pending | The fleet-heartbeat scale runner is retired (`run_vessel_scale_benchmark.sh` refuses `start`); measure native `vessel.greyhawk.agenda` events instead |
+| Existing live gates moved to the new model | Done | `scripts/development/dev_kohdee_login_smoke.sh` and the `scripts/vessels/` gates (list below); all pass (see Live gate results) |
+| New actual-character movement gate | Done | `--vessel-movement-check <warship-id>` in the login helper, `scripts/vessels/test_vessel_movement_in_game.sh` (tactical harness `--movement` mode) |
+| Ferry soak and scale re-baseline in `VESSEL_BENCHMARKS.md` | Done | "S2 Momentum Re-baseline": ferry soak PASS (2,736 s, 11 loops, exact restart); native 500-hull measurement (the fleet-heartbeat runner is retired), mean 500-hull tick 1.34 ms, no pulse over 100 ms |
 
 Interpretations and deferrals decided while building S2:
 
@@ -1261,6 +1261,38 @@ unchanged.
 
 Verification so far (2026-09-29): `make` clean with the strict warning set, also with
 `-DVESSEL_SYSTEM_DEBUG=1` for the vessel sources; full CuTest suite 1885 of 1885 passing.
+
+Live gate results (2026-09-28/29). The main checkout's development MUD holds port 4100, so every
+gate ran inside a private user, network, mount, and PID namespace (`unshare -r -n -m --pid`)
+with a disposable MariaDB loaded from a dump of the development database on a private
+`/run/mysqld`, and process stand-ins for `systemctl --user` and `systemd-run`. All passed:
+builder 39 s, tactical 98 s, lookout 25 s, boarding 49 s, narrative 25 s, rules 36 s, events
+42 s, movement 108 s, frontier 229 s, derelict 39 s, campaign 141 s, merchant 31 s, hunter 77 s.
+The harbor provisioner cannot run in this checkout: the west Testing Dock (room 1000389) is
+absent from the world files, so the builder and movement checks stage at the east dock
+(1000390, at (-62,82)) instead. Fixes the gates forced, all committed on the branch:
+
+- NPC and public hulls wear sail and rudder down to 1 of 20 over a long soak; with the new
+  sail and rudder factors they barely moved. An unowned hull now has its rigging made good
+  when it berths (the harbor service), until S5 crew repairs replace it.
+- A per-axis room step refused diagonal courses; the crossing now enters the room the
+  position lies in, diagonally when both edges are crossed in one tick (DurisMUD rule).
+- The draft barrier closed every seaport (see the water-depth deferral above).
+- A waypoint astern made the autopilot circle; it now comes about in place (speed cap 0
+  above 90 degrees of heading error, steerage 2 above 45).
+- A hull coming to rest now saves its runtime row, so a restart finds it where it stopped.
+- `reglist type 5` and `pathlist` had been broken since `500019db1` (zone/VNUM bound parsing
+  ran for them); `src/olc/oasis_list.c` skips it for those two lists.
+- The hunter, derelict, and campaign gates needed waits sized for undock and acceleration,
+  `--skip-tz-utc` for the derelict snapshot, and the hunter's reattach comparison excludes
+  the live `last_attacker` combat pointer (saved as 0 when the hull comes to rest).
+
+Found during S2 and outside its scope (not fixed): the hub-and-spoke interior generator in
+`src/vessels/vessels_rooms.c` cycles the bridge's spokes through only eight directions, so a
+hull with ten interior rooms (nine spokes) overwrites the bridge's north exit and persists two
+connections in that direction; at the next boot `restore_ship_connection()` logs
+`SYSERR: Ship N persistence has conflicting connection` and drops one. One of the 500 hulls
+spawned for the scale measurement (a 10-room Sablebranch Grand Freighter) hit it.
 
 ### Estimate
 

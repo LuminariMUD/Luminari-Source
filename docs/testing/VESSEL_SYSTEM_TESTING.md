@@ -446,6 +446,44 @@ disposable MariaDB loaded from a dump of the development database on a private
 related `SYSERR` rows. The tactical, events, boarding, lookout, and narrative
 gates passed in the same environment on the same binary.
 
+## Vessel Movement Check
+
+After the Starfall frontier prototype exists and a clean candidate is built
+and installed, run:
+
+```bash
+./scripts/vessels/test_vessel_movement_in_game.sh
+```
+
+The wrapper runs the shared tactical harness in `--movement` mode, which calls
+`--vessel-movement-check <warship-id>` in the login helper with the same
+refusals, snapshots, and restoration as the other tactical-harness gates. The
+session has two parts.
+
+At the harbor east dock (room 1000390, at (-62,82)) Kohdee creates a
+temporary boat prototype and spawns it. The new hull must show `Moorings: Berthed`, refuse `speed` until cast off, report `The crew begins casting off.`
+and `Moorings: Casting off` after `undock`, and be `Under way` with the first
+officer's ready report 30 seconds later. `setsail west` must move exactly one
+room to (-63,82), refuse an immediate second maneuver (five-second cooldown),
+and a maneuver back into the port room must make the hull fast at the berth
+again.
+
+At (900,225) a Starfall Bastion under way must accept `speed 12`, show
+`(ordered 12)` while it gathers way, cover one or two rooms in six seconds,
+accept `heading 90`, show `(coming about to 90)`, and refuse `setsail` at
+that speed. After `speed 0` it must lose way, `anchor`, refuse `speed` while
+at anchor, and be under way again 13 seconds after `undock` weighs anchor.
+Cleanup purges both hulls and the temporary prototype and returns Kohdee to
+room 1204.
+
+The west Testing Dock (room 1000389) that the harbor provisioner expects is
+absent from the current world files, so the harbor provisioner cannot run in
+this checkout; the builder and movement checks stage at the east dock instead.
+On 2026-09-29 the gate passed in 108 seconds inside the private namespace
+described under the Vessel Rules Check, together with the builder, tactical,
+lookout, boarding, narrative, rules, events, frontier, derelict, campaign,
+merchant, and hunter gates.
+
 ## Shared Harbor Merchant Loss Check
 
 The provisioner validates but deliberately does not sink its NPC merchant.
