@@ -647,8 +647,8 @@ proc run_vessel_builder_check {} {
   require_game_output $output "vedit new <class> <name>" "vedit usage"
   require_game_output $output "vedit spawn <id>" "vedit usage"
 
-  set output [run_game_command "goto -66 92"]
-  require_game_output $output "Current Location  : (-66, 92)" "builder staging teleport"
+  set output [run_game_command "goto 1000390"]
+  require_game_output $output "Current Location  : (-62, 82)" "builder staging teleport"
 
   set output [run_game_command "vedit new 1 $prototype_name"]
   if {![regexp {Created Boat prototype ([0-9]+):} $output ignored prototype_id]} {
