@@ -259,6 +259,27 @@ void Test_vessel_hull_gathers_way_and_sails_speed_over_90_rooms_a_tick(CuTest *t
   movement_end(&fixture);
 }
 
+void Test_vessel_hull_crossing_a_corner_enters_the_diagonal_room(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+
+  /* Due northeast from the room's centre she crosses both edges at once and
+   * enters the diagonal room, as the eight-direction grid allows. */
+  ship = movement_begin(&fixture, VESSEL_BOAT);
+  IN_ROOM(&fixture.hull) = NOWHERE;
+  ship->heading = 45.0;
+  ship->setheading = 45;
+  ship->speed = 30.0;
+  ship->setspeed = 30;
+  movement_ticks(ship, 3);
+  CuAssertIntEquals(tc, 1, entered_count);
+  CuAssertIntEquals(tc, 1, entered_x[0]);
+  CuAssertIntEquals(tc, 1, entered_y[0]);
+
+  movement_end(&fixture);
+}
+
 void Test_vessel_hull_comes_about_at_its_turn_rate(CuTest *tc)
 {
   struct movement_fixture fixture;
@@ -648,14 +669,4 @@ void Test_vessel_paused_autopilot_holds_and_a_finished_route_stops(CuTest *tc)
   CuAssertIntEquals(tc, 0, ship->setspeed);
 
   movement_end(&fixture);
-}
-
-void Test_vessel_draft_keeps_deep_hulls_out_of_shallows(CuTest *tc)
-{
-  CuAssertTrue(tc, !vessel_draft_allows(VESSEL_SHIP, SECT_OCEAN, 1));
-  CuAssertTrue(tc, vessel_draft_allows(VESSEL_SHIP, SECT_OCEAN, 2));
-  CuAssertTrue(tc, !vessel_draft_allows(VESSEL_TRANSPORT, SECT_WATER_SWIM, 0));
-  CuAssertTrue(tc, vessel_draft_allows(VESSEL_SHIP, SECT_SEAPORT, 0));
-  CuAssertTrue(tc, vessel_draft_allows(VESSEL_RAFT, SECT_WATER_SWIM, 0));
-  CuAssertTrue(tc, vessel_draft_allows(VESSEL_AIRSHIP, SECT_OCEAN, 0));
 }

@@ -483,7 +483,6 @@ bool vessel_region_feature_at_coordinates(int region_type, int x, int y, int z,
 int get_vessel_position_speed_modifier(enum vessel_class vessel_type, int sector_type,
                                        int weather_conditions, int x, int y, int z,
                                        struct vessel_region_feature *lane);
-bool vessel_draft_allows(enum vessel_class vessel_type, int sector_type, int depth_units);
 
 /* ========================================================================= */
 /* MOVEMENT AND PACING (vessels_movement.c)                                  */

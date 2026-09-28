@@ -12,8 +12,9 @@
  * class turn rate, both scaled by the sailmaster, and the rudder scales the
  * turn. The hull then covers speed / 90 rooms along its heading. Its place
  * inside the current room lives in dx/dy; crossing a room edge enters the next
- * room through update_ship_wilderness_position(), which validates terrain and
- * draft for every room entered. A refused room stops the hull at its edge.
+ * room (diagonally when both edges are crossed together) through
+ * update_ship_wilderness_position(), which validates every room entered. A
+ * refused room stops the hull at its edge.
  *
  * A hull at rest in a port room is berthed (dock holds the port room vnum).
  * A berthed or anchored hull holds position until `undock` completes: 30 s
@@ -681,8 +682,9 @@ static void vessel_stop_at_edge(struct greyhawk_ship_data *ship, int step_x, int
 }
 
 /**
- * Carry the hull across the edges of its room that its position has passed,
- * one room and one axis at a time so every room entered is checked.
+ * Carry the hull into the room its position has passed into, as DurisMUD
+ * does: across one edge, or diagonally when it crossed both in the same
+ * tick. Every room entered is checked.
  *
  * @return FALSE when a room refused the hull
  */
@@ -690,24 +692,13 @@ static bool vessel_cross_room_edges(struct greyhawk_ship_data *ship)
 {
   int step_x;
   int step_y;
-  int x;
-  int y;
 
   while (ship->dx > 0.5 || ship->dx < -0.5 || ship->dy > 0.5 || ship->dy < -0.5)
   {
-    step_x = 0;
-    step_y = 0;
-    if (fabs(ship->dx) - 0.5 >= fabs(ship->dy) - 0.5)
-    {
-      step_x = ship->dx > 0.0 ? 1 : -1;
-    }
-    else
-    {
-      step_y = ship->dy > 0.0 ? 1 : -1;
-    }
-    x = (int)ship->x + step_x;
-    y = (int)ship->y + step_y;
-    if (!vessel_enter_cell(ship->shipnum, x, y, (int)ship->z))
+    step_x = ship->dx > 0.5 ? 1 : (ship->dx < -0.5 ? -1 : 0);
+    step_y = ship->dy > 0.5 ? 1 : (ship->dy < -0.5 ? -1 : 0);
+    if (!vessel_enter_cell(ship->shipnum, (int)ship->x + step_x, (int)ship->y + step_y,
+                           (int)ship->z))
     {
       vessel_stop_at_edge(ship, step_x, step_y);
       return FALSE;

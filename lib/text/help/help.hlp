@@ -41427,9 +41427,9 @@ SPEED [0-30]
   rooms every 45 seconds. She can make at most her design speed, scaled by
   the sailmaster, the weight of her fit-out and cargo, her remaining sail, and
   the terrain, weather, and any high-altitude lane; a seadog at the helm adds
-  one. She checks every room she enters: land, water too shallow for her
-  keel, or unpaid dock fees stop her at its edge. A berthed or anchored hull
-  takes no speed order until UNDOCK completes.
+  one. She checks every room she enters: land or unpaid dock fees stop her
+  at its edge. A berthed or anchored hull takes no speed order until UNDOCK
+  completes.
 
 HEADING [0-360]
   Order an absolute compass heading at an authorized helm. North is 0, east

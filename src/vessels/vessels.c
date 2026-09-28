@@ -581,8 +581,7 @@ static bool vessel_can_traverse_sector(enum vessel_class vessel_type, int sector
 }
 
 /**
- * Check coordinate terrain and draft without allocating a dynamic wilderness
- * room.
+ * Check coordinate terrain without allocating a dynamic wilderness room.
  *
  * Route validation can inspect many cells. Resolving their effective sectors
  * directly avoids consuming the finite dynamic-room pool merely to reject a
@@ -611,10 +610,7 @@ bool vessel_can_occupy_coordinates(enum vessel_class vessel_type, int x, int y, 
   static_room = find_static_room_by_coordinates(x, y);
   sector_type = static_room != NOWHERE ? world[static_room].sector_type
                                        : get_modified_sector_type(wild_zone, x, y);
-  return vessel_can_traverse_sector(vessel_type, sector_type, z) &&
-         (get_vessel_terrain_caps(vessel_type)->min_water_depth <= 0 ||
-          vessel_draft_allows(vessel_type, sector_type,
-                              wild_waterline - get_modified_elevation(x, y)));
+  return vessel_can_traverse_sector(vessel_type, sector_type, z);
 }
 
 /**
@@ -1564,14 +1560,6 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
     return FALSE;
   }
 
-  if (get_vessel_terrain_caps(greyhawk_ships[shipnum].vessel_type)->min_water_depth > 0 &&
-      !vessel_draft_allows(greyhawk_ships[shipnum].vessel_type, world[wilderness_room].sector_type,
-                           wild_waterline - get_modified_elevation(new_x, new_y)))
-  {
-    VSSL_DEBUG_MOVE("Ship %d draws too much water for (%d, %d)", shipnum, new_x, new_y);
-    return FALSE;
-  }
-
   old_room = NOWHERE;
   old_x = (int)greyhawk_ships[shipnum].x;
   old_y = (int)greyhawk_ships[shipnum].y;
@@ -1867,39 +1855,6 @@ bool vessel_region_feature_at_coordinates(int region_type, int x, int y, int z,
   strlcpy(feature->name, best_region->name ? best_region->name : "Unnamed feature",
           sizeof(feature->name));
   return TRUE;
-}
-
-/**
- * Does the water here float this hull?
- *
- * Deep-draft surface classes need their minimum depth below the waterline in
- * open-water sectors; a room too shallow for the keel cannot be entered.
- * Flying classes and classes without a minimum depth are exempt.
- */
-bool vessel_draft_allows(enum vessel_class vessel_type, int sector_type, int depth_units)
-{
-  const struct vessel_terrain_caps *caps;
-
-  if (vessel_type == VESSEL_AIRSHIP || vessel_type == VESSEL_MAGICAL)
-  {
-    return TRUE;
-  }
-  caps = get_vessel_terrain_caps(vessel_type);
-  if (caps == NULL || caps->min_water_depth <= 0)
-  {
-    return TRUE;
-  }
-
-  switch (sector_type)
-  {
-  case SECT_WATER_SWIM:
-  case SECT_WATER_NOSWIM:
-  case SECT_OCEAN:
-  case SECT_UNDERWATER:
-    return depth_units >= caps->min_water_depth;
-  default:
-    return TRUE;
-  }
 }
 
 /**

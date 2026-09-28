@@ -1131,10 +1131,12 @@ actual-character gate in the `scripts/vessels/` pattern.
    re-baselined in `docs/testing/VESSEL_BENCHMARKS.md`.
 3. S3 Damage model: Duris arcs and armor profiles with the 229 armor limit, sail HP, breach
    states and sink timers, criticals, weapon damage, knockdown saves, cargo spill and `salvage`,
-   and the D6 capture, plunder and boarding rules with `strikecolors`.
+   and the D6 capture, plunder and boarding rules with `strikecolors`; also the 3.3.1 refit
+   rescaling (plating and reinforcement +20%, rigging +10% speed), moved here from S2.
 4. S4 Weapons and gunnery: the weapon and equipment tables, 16 slots, fitting, ammo and resupply
    commands, `lock`, battle stations, arc fire, the geometry DC hit model, `sight`, `scan`,
-   crew-stun and flight rules; the duel harness moved to the D2 bounds.
+   crew-stun and flight rules; the duel harness moved to the D2 bounds; and, with battle
+   stations, the 3.3.2 crash check for refused rooms and shallows, moved here from S2.
 5. S5 Crew, repair and loss: one-time hire prices and gates, crew experience, promotion and
    casualties, stamina, the repair stock and dock repairs, the D3 wreck registry with automatic
    insurance, `shipsummon`, trade-in and the rename fee.
@@ -1205,7 +1207,7 @@ recorded for S1: one branch, a merge commit at the end, never a squash.
 | Class handling table (3.3.1 speed, accel, turn, weight budget, allowances) | Done | `vessel_class_handling()` in the new `src/vessels/vessels_movement.c`; `vedit new` takes the class speed |
 | Maximum speed: sailmaster, load, sail (L2), terrain/weather/lane, SEADOG +1 | Done | `vessel_max_speed()`, `vessel_max_speed_from()`, `vessel_load_factor()`, `vessel_helm_speed_bonus()` |
 | Momentum: accel, turn with sailmaster and rudder (L1), speed / 90 rooms per tick (L3) | Done | `vessel_movement_tick_one()` from `vessel_owner_event()` after the autopilot and hunter ticks |
-| Per-room validation; refused room stops the hull at its edge; draft | Done | `vessel_cross_room_edges()`; `vessel_draft_allows()` inside `update_ship_wilderness_position()` replaces `vessel_check_grounding()` |
+| Per-room validation; refused room stops the hull at its edge | Done | `vessel_cross_room_edges()` enters the room the position lies in (diagonal when both edges cross in one tick); `vessel_check_grounding()` is removed (see the grounding deferral below) |
 | Berth at rest in port, `undock` departure (30 s / 13 s), `anchor` | Done | `vessel_berth()`, `vessel_sync_berth()`, `vessel_begin_departure()`, `do_vessel_anchor()`; `do_undock()` departs when no hull is alongside |
 | `setsail` as the maneuver command | Done | `vessel_maneuver()`; the S1 departure level check moved from `setsail` to `undock` |
 | Automated movers rebased | Done | Autopilot steering `vessel_autopilot_steer()` with `autopilot_data.speed_limit`; hunters steer and shadow; merchants cruise at design speed; scheduled routes validated one room at a time |
@@ -1224,9 +1226,13 @@ Interpretations and deferrals decided while building S2:
   every hazard check.
 - Refit rescaling (rigging +10%, plating and reinforcement +20%) moves to S3 with the other
   refits: rigging still adds 5 to the design speed. Per-class sail HP also stays for S3.
-- The crash check at battle stations (3.3.2) arrives with battle stations in S4; until then a
-  refused room, including water too shallow for the keel, only stops the hull. Grounding no
-  longer deals 2d4 bow damage.
+- Water depth does not block movement in S2. 3.3.2 made shallows a barrier ("Bathymetry
+  grounding uses the same rule"), but a live survey showed the Central Vailand Sea Port
+  (-467,204) and its approach at elevation 127, one unit of water: a draft barrier closes every
+  seaport to ship-class hulls, and the old autopilot never checked depth. The old manual
+  `setsail` grounding (2d4 bow damage) is removed with it. S4 brings grounding back as the
+  battle-stations crash check for land and shallows alike; until then a refused room (land,
+  dock-fee clearance) only stops the hull.
 - The anchor is runtime-only; a reboot drops it. The berth persists in the existing `dock_room`
   column, and `vessel_sync_berth()` berths any hull found at rest in port at load or spawn. No
   schema change was needed; `dx`/`dy` (already persisted) hold the position inside the room.

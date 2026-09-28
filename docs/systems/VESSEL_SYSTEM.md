@@ -144,14 +144,15 @@ and every 0.5-second vessel tick converges on them:
 - A hull covers `speed / 90` rooms per tick along its heading: speed 30
   crosses a room in 1.5 seconds and speed 12 in 3.75 seconds. `dx` and `dy`
   hold the position inside the current room (-0.5 to 0.5 from its centre).
-  Crossing a room edge enters the next room through
-  `update_ship_wilderness_position()`, one axis at a time, so every room
-  entered is checked for class terrain, altitude or depth, draft
-  (`vessel_draft_allows()`: open water shallower than the class minimum
-  refuses a surface hull), dock-fee clearance, and room-pool capacity. A
-  refused room stops the hull at its edge, cancels the speed order, and
-  pauses a travelling autopilot. The crash check at battle stations arrives
-  with battle stations in step S4.
+  Crossing a room edge enters the room the position now lies in (diagonally
+  when both edges are crossed in one tick, as DurisMUD does) through
+  `update_ship_wilderness_position()`, so every room entered is checked for
+  class terrain, altitude or depth, dock-fee clearance, and room-pool
+  capacity. A refused room stops the hull at its edge, cancels the speed
+  order, and pauses a travelling autopilot. Water depth does not stop a hull:
+  seaports sit on water one unit deep, so a draft barrier would close every
+  port to ship-class hulls. Grounding in shallows, like the crash on a
+  refused room, is the battle-stations crash check that arrives in step S4.
 - `vessel_max_speed()` is the design speed (`maxspeed`, the prototype's speed)
   times the sailmaster multiplier, the load factor, the sail fraction
   (`mainsail / maxmainsail`), and the terrain, weather, and altitude-lane
@@ -224,7 +225,7 @@ floor. The autopilot rejects an invalid waypoint Z before steering toward it.
 Every room a hull enters is resolved and validated once inside
 `update_ship_wilderness_position()`; movement does not run the allocating
 `can_vessel_traverse_terrain()` probe beforehand. If that central move rejects
-terrain, draft, or Z, the hull stops at the room's edge, and a travelling
+terrain or Z, the hull stops at the room's edge, and a travelling
 autopilot enters `PAUSED`, persists the runtime state, and tells occupants
 which waypoint is unreachable. It does not retry the same invalid room every
 heartbeat. Correct the route and resume autopilot.
@@ -237,7 +238,7 @@ Vessels extend the wilderness system; they do not create a separate geography.
 | -- | -- |
 | Dynamic room pool | Characters and exterior hulls keep their coordinate room occupied; co-located hulls share it |
 | Generated sector | The central position update gates every room entered; maximum speed consumes the resulting sector |
-| Bathymetry | Draft (open water too shallow for the keel refuses a surface hull) and submarine crush depth |
+| Bathymetry | Submarine crush depth; grounding in shallows arrives with the battle-stations crash check (S4) |
 | Weather field | Maximum speed, visibility, helm risk, and storm damage |
 | `REGION_ENCOUNTER` | Builder-authored encounter selection |
 | Sector regions | Magical or transformed waters through the generated sector |
@@ -506,7 +507,6 @@ struct vessel_data *find_vessel_by_id(int id);        // Find by ID
 /* Movement (vessels_movement.c) */
 bool update_ship_wilderness_position(int ship, int x, int y, int z); /* enters one room */
 bool can_vessel_traverse_terrain(enum vessel_class type, int x, int y, int z);
-bool vessel_draft_allows(enum vessel_class type, int sector, int depth_units);
 int get_terrain_speed_modifier(enum vessel_class type, int sector, int storm_band);
 const struct vessel_class_handling *vessel_class_handling(enum vessel_class type);
 double vessel_max_speed(struct greyhawk_ship_data *ship);
