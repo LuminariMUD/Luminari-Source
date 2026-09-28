@@ -86,7 +86,8 @@ static void brew_resolve(struct char_data *ch, struct brew_context *brew)
   }
   for (i = 0; brew->verify_spells && i < num_spells; i++)
   {
-    if (spell_nums[i] > 0 && spell_prep_gen_check(ch, spell_nums[i], 0) == CLASS_UNDEFINED)
+    if (spell_nums[i] > 0 && !artificer_can_emulate_spell(ch, spell_nums[i]) &&
+        spell_prep_gen_check(ch, spell_nums[i], 0) == CLASS_UNDEFINED)
     {
       send_to_char(ch, "Your brewing comes to nothing: you can no longer cast %s.\r\n",
                    spell_info[spell_nums[i]].name);
@@ -190,7 +191,12 @@ static void brew_resolve(struct char_data *ch, struct brew_context *brew)
   send_to_char(ch, "Spell components consumed:\r\n");
   for (i = 0; i < num_spells; i++)
   {
-    if (spell_nums[i] > 0)
+    if (spell_nums[i] > 0 && artificer_can_emulate_spell(ch, spell_nums[i]))
+    {
+      /* Artificer Item Creation: the alchemy check is the emulation, no slot is spent */
+      send_to_char(ch, "  %s emulated (no spell slot used)\r\n", spell_info[spell_nums[i]].name);
+    }
+    else if (spell_nums[i] > 0)
     {
       int casting_class = spell_prep_gen_extract(ch, spell_nums[i], 0);
       if (casting_class != CLASS_UNDEFINED)
@@ -574,6 +580,10 @@ static bool can_brew_spell(struct char_data *ch, int spell_num)
     return FALSE;
   }
 
+  /* Artificer Item Creation brews any device spell, whatever the other classes allow */
+  if (artificer_can_emulate_spell(ch, spell_num))
+    return TRUE;
+
   /* Check if character is an alchemist or can cast the spell */
   if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) > 0)
   {
@@ -587,7 +597,7 @@ static bool can_brew_spell(struct char_data *ch, int spell_num)
       return FALSE;
     }
   }
-  else if (!artificer_can_emulate_spell(ch, spell_num))
+  else
   {
     /* Non-alchemists must be able to cast the spell */
     bool can_cast = FALSE;
@@ -732,7 +742,7 @@ struct obj_data *create_potion(int spell_num, struct char_data *ch)
   }
 
   /* An artificer emulating the spell brews at its artificer level, as its devices cast */
-  if (HAS_FEAT(ch, FEAT_ARTIFICER_ITEM_CREATION))
+  if (artificer_can_emulate_spell(ch, spell_num))
     caster_level = MAX(caster_level, CLASS_LEVEL(ch, CLASS_ARTIFICER));
 
   /* Create a new object */
@@ -818,9 +828,11 @@ struct obj_data *create_multi_spell_potion(int *spell_nums, int num_spells, stru
     caster_level = CLASS_LEVEL(ch, CLASS_ALCHEMIST);
   }
 
-  /* An artificer emulating the spell brews at its artificer level, as its devices cast */
-  if (HAS_FEAT(ch, FEAT_ARTIFICER_ITEM_CREATION))
-    caster_level = MAX(caster_level, CLASS_LEVEL(ch, CLASS_ARTIFICER));
+  /* An artificer emulating a spell in the potion brews at its artificer level, as its devices
+   * cast */
+  for (i = 0; i < num_spells; i++)
+    if (spell_nums[i] > 0 && artificer_can_emulate_spell(ch, spell_nums[i]))
+      caster_level = MAX(caster_level, CLASS_LEVEL(ch, CLASS_ARTIFICER));
 
   /* Create a new object */
   potion = create_obj();
@@ -1082,7 +1094,11 @@ ACMD(do_brew)
   send_to_char(ch, "Checking spell availability...\r\n");
   for (i = 0; i < num_spells; i++)
   {
-    if (spell_nums[i] > 0)
+    if (spell_nums[i] > 0 && artificer_can_emulate_spell(ch, spell_nums[i]))
+    {
+      send_to_char(ch, "--%s is emulated\r\n", spell_info[spell_nums[i]].name);
+    }
+    else if (spell_nums[i] > 0)
     {
       if (spell_prep_gen_check(ch, spell_nums[i], 0) == CLASS_UNDEFINED)
       {

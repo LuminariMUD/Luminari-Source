@@ -80,5 +80,10 @@ defect with file and line; item numbers below are the work item's.
   were fixed.
 - Full local matrix (`scripts/ci/local/run.py --base gitlab/master`, 33 jobs) passed at
   `a814d7cdc` after a GCC `-Wformat-truncation` fix in the test (`2eb1c6563`).
+- MR !5 review (3 threads, all valid, 2026-09-28): an emulated brew no longer needs or spends a
+  spell slot (`do_brew()` and `brew_resolve()`), emulation is checked before the alchemist level
+  cap in `can_brew_spell()`, and a potion takes the artificer level only when one of its spells
+  is emulated (`create_potion()`, `create_multi_spell_potion()`). Three tests, each failing on
+  the old code.
 - Remaining: merge the MR. Production help is not synced; run the help-sync skill after merge if
   wanted. Existing gnomes get Brilliance and Blunder only on respec.

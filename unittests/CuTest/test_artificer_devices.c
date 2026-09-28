@@ -20,6 +20,8 @@
 #include "../../src/craft/crafting_new.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/events/actions.h"
+#include "../../src/events/activity_manager.h"
+#include "../../src/events/domain_event_runtime.h"
 #include "../../src/events/mud_event.h"
 #include "../../src/magic/spells.h"
 #include "../../src/net/protocol.h"
@@ -597,6 +599,130 @@ void Test_artificer_item_creation_brews_device_spells(CuTest *tc)
   CuAssertTrue(tc, !skill);
   CuAssertTrue(tc, !armor_refused);
   CuAssertTrue(tc, stoneskin_refused);
+}
+
+/* Start one brew with plenty of motes and gold; report whether the activity began. */
+static bool artificer_starts_brew(struct artificer_fixture *f, int spellnum)
+{
+  struct char_data *ch = &f->ch;
+  struct primary_activity_snapshot snapshot;
+  char command[MAX_INPUT_LENGTH];
+  bool started;
+  int i;
+
+  for (i = 0; i < NUM_CRAFT_MOTES; i++)
+    GET_CRAFT_MOTES(ch, i) = 1000;
+  GET_GOLD(ch) = 1000000;
+  event_free_all();
+  (void)event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER);
+  event_init();
+  (void)domain_event_runtime_init();
+  snprintf(command, sizeof(command), "'%s'", spell_info[spellnum].name);
+  clear_output(f);
+  do_brew(ch, command, 0, 0);
+  started = primary_activity_snapshot(ch, &snapshot);
+  primary_activity_cancel(ch, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false);
+  (void)domain_event_runtime_shutdown();
+  return started;
+}
+
+/* An artificer has no spell slots, so brewing an emulated spell stopped at the prepared-spell
+ * check; one alchemist level also put the alchemist brewing cap in front of emulation. */
+void Test_artificer_brews_emulated_spells_without_slots(CuTest *tc)
+{
+  struct artificer_fixture f;
+  struct char_data *ch = &f.ch;
+  bool armor_started, armor_wanted_slot, haste_started, haste_too_high;
+
+  begin_artificer(&f, 11);
+  SET_FEAT(ch, FEAT_ARTIFICER_ITEM_CREATION, 1);
+  armor_started = artificer_starts_brew(&f, SPELL_MAGE_ARMOR);
+  armor_wanted_slot = strstr(f.descriptor.output, "prepared") != NULL;
+  end_artificer(&f);
+
+  begin_artificer(&f, 20);
+  SET_FEAT(ch, FEAT_ARTIFICER_ITEM_CREATION, 1);
+  CLASS_LEVEL(ch, CLASS_ALCHEMIST) = 1;
+  GET_LEVEL(ch) = 21;
+  haste_started = artificer_starts_brew(&f, SPELL_HASTE);
+  haste_too_high = strstr(f.descriptor.output, "too high level") != NULL;
+  end_artificer(&f);
+
+  CuAssertTrue(tc, !armor_wanted_slot);
+  CuAssertTrue(tc, armor_started);
+  CuAssertTrue(tc, !haste_too_high);
+  CuAssertTrue(tc, haste_started);
+}
+
+/* The completed brew rechecked spell slots too, so an emulated potion always came to nothing. */
+void Test_artificer_brew_completion_needs_no_slot(CuTest *tc)
+{
+  struct artificer_fixture f;
+  struct char_data *ch = &f.ch;
+  unsigned long seed;
+  bool no_longer_cast, emulated;
+  int potions;
+
+  begin_artificer(&f, 11);
+  SET_FEAT(ch, FEAT_ARTIFICER_ITEM_CREATION, 1);
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_USE_STORED_CONSUMABLES);
+  GET_CRAFT_MOTES(ch, CRAFTING_MOTE_WATER) = 10;
+  GET_GOLD(ch) = 100;
+  /* Skill 40 beats DC 5 on any die but a natural 1. */
+  for (seed = 1;; seed++)
+  {
+    circle_srandom(seed);
+    if (d20(ch) != 1)
+      break;
+  }
+  circle_srandom(seed);
+  clear_output(&f);
+  test_brew_resolve(ch, SPELL_MAGE_ARMOR, 1, 40, 5, true, CRAFTING_MOTE_WATER, 4, 20);
+  no_longer_cast = strstr(f.descriptor.output, "no longer cast") != NULL;
+  emulated = strstr(f.descriptor.output, "emulated") != NULL;
+  potions = STORED_POTIONS(ch, SPELL_MAGE_ARMOR);
+  end_artificer(&f);
+
+  CuAssertTrue(tc, !no_longer_cast);
+  CuAssertTrue(tc, emulated);
+  CuAssertTrue(tc, potions >= 1);
+}
+
+/* Any artificer with Artificer Item Creation brewed at its artificer level, even a spell it only
+ * brews through another class: a wizard 9 / artificer 20 heal undead potion came out level 20. */
+void Test_artificer_level_brews_only_emulated_potions(CuTest *tc)
+{
+  struct artificer_fixture f;
+  struct char_data *ch = &f.ch;
+  struct obj_data *potion;
+  int undead = SPELL_HEAL_UNDEAD, armor = SPELL_MAGE_ARMOR;
+  int multi_undead, multi_armor, single_undead, single_armor;
+  bool undead_emulated;
+
+  begin_artificer(&f, 20);
+  SET_FEAT(ch, FEAT_ARTIFICER_ITEM_CREATION, 1);
+  CLASS_LEVEL(ch, CLASS_WIZARD) = 9;
+  GET_LEVEL(ch) = 29;
+  undead_emulated = artificer_can_emulate_spell(ch, SPELL_HEAL_UNDEAD);
+  potion = create_multi_spell_potion(&undead, 1, ch);
+  multi_undead = GET_OBJ_VAL(potion, 0);
+  extract_obj(potion);
+  potion = create_multi_spell_potion(&armor, 1, ch);
+  multi_armor = GET_OBJ_VAL(potion, 0);
+  extract_obj(potion);
+  potion = create_potion(SPELL_HEAL_UNDEAD, ch);
+  single_undead = GET_OBJ_VAL(potion, 0);
+  extract_obj(potion);
+  potion = create_potion(SPELL_MAGE_ARMOR, ch);
+  single_armor = GET_OBJ_VAL(potion, 0);
+  extract_obj(potion);
+  end_artificer(&f);
+
+  CuAssertTrue(tc, !undead_emulated);
+  CuAssertIntEquals(tc, 9, multi_undead);
+  CuAssertIntEquals(tc, 20, multi_armor);
+  CuAssertIntEquals(tc, 9, single_undead);
+  CuAssertIntEquals(tc, 20, single_armor);
 }
 
 /** An isolated player directory, so saves never touch lib/plrfiles. */
