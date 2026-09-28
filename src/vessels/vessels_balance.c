@@ -27,7 +27,6 @@
 struct vessel_balance_observed_data
 {
   long long owned_hulls;
-  long long wages_owed;
   long long insured_value;
   long long dock_fees;
   long long completed_freight;
@@ -223,7 +222,7 @@ static bool vessel_balance_load_observed(struct vessel_balance_observed_data *da
   const char *query;
   MYSQL_RES *query_result;
   MYSQL_ROW row;
-  long long *fields[7];
+  long long *fields[6];
   int i;
 
   if (data == NULL || !mysql_available || conn == NULL)
@@ -234,7 +233,6 @@ static bool vessel_balance_load_observed(struct vessel_balance_observed_data *da
   memset(data, 0, sizeof(*data));
   query = "SELECT "
           "(SELECT COUNT(*) FROM ship_interiors WHERE owner <> ''), "
-          "(SELECT COALESCE(SUM(wages_owed), 0) FROM ship_interiors WHERE owner <> ''), "
           "(SELECT COALESCE(SUM(insured_for), 0) FROM ship_interiors WHERE owner <> ''), "
           "(SELECT COALESCE(SUM(r.dock_fee_balance), 0) "
           "FROM ship_runtime_state r JOIN ship_interiors i ON i.ship_id = r.ship_id "
@@ -261,13 +259,12 @@ static bool vessel_balance_load_observed(struct vessel_balance_observed_data *da
   }
 
   fields[0] = &data->owned_hulls;
-  fields[1] = &data->wages_owed;
-  fields[2] = &data->insured_value;
-  fields[3] = &data->dock_fees;
-  fields[4] = &data->completed_freight;
-  fields[5] = &data->freight_payout;
-  fields[6] = &data->showcase_entries;
-  for (i = 0; i < 7; i++)
+  fields[1] = &data->insured_value;
+  fields[2] = &data->dock_fees;
+  fields[3] = &data->completed_freight;
+  fields[4] = &data->freight_payout;
+  fields[5] = &data->showcase_entries;
+  for (i = 0; i < 6; i++)
   {
     *fields[i] = row[i] == NULL ? 0 : parse_llong(row[i]);
   }
@@ -291,9 +288,7 @@ bool vessel_balance_report(struct char_data *ch, int duel_count)
   int p95_tenths;
   int minimum_tenths;
   int maximum_tenths;
-  int crew_wages[3];
-  int payday_seconds;
-  int payday_deferral_seconds;
+  int crew_hires[3];
   int price;
   int refit;
   int tier;
@@ -317,16 +312,14 @@ bool vessel_balance_report(struct char_data *ch, int duel_count)
                     p95_tenths <= VESSEL_BALANCE_P95_MAX_TENTHS &&
                     minimum_tenths >= VESSEL_BALANCE_MINIMUM_TENTHS;
 
-  memset(crew_wages, 0, sizeof(crew_wages));
+  memset(crew_hires, 0, sizeof(crew_hires));
   for (tier = CREW_TIER_GREEN; tier <= CREW_TIER_VETERAN; tier++)
   {
     for (position = 0; position < NUM_CREW_POSITIONS; position++)
     {
-      crew_wages[tier - CREW_TIER_GREEN] += vessel_crew_wage(position, tier);
+      crew_hires[tier - CREW_TIER_GREEN] += vessel_crew_hire_cost(position, tier);
     }
   }
-  payday_seconds = CREW_WAGE_INTERVAL * AUTOPILOT_TICK_INTERVAL / PASSES_PER_SEC;
-  payday_deferral_seconds = CREW_WAGE_BATCH_COUNT * AUTOPILOT_TICK_INTERVAL / PASSES_PER_SEC;
 
   send_to_char(ch, "Vessel mechanical balance diagnostic: %s\r\n",
                mechanical_pass ? "PASS" : "FAIL");
@@ -346,10 +339,9 @@ bool vessel_balance_report(struct char_data *ch, int duel_count)
                trade.finite_route_profit, trade.adversarial_profit, trade.restocked_source_supply,
                trade.restocked_destination_supply);
   send_to_char(ch,
-               "Full-roster wages per payday: green %d, able %d, veteran %d "
-               "gold; cadence %d seconds plus <= %d batch deferral.\r\n",
-               crew_wages[0], crew_wages[1], crew_wages[2], payday_seconds,
-               payday_deferral_seconds);
+               "Full-roster one-time hire: green %d, able %d, veteran %d gold; no "
+               "wages.\r\n",
+               crew_hires[0], crew_hires[1], crew_hires[2]);
   send_to_char(ch, "Class cost anchors (speed 10, armor 10): hull / one refit / "
                    "20%% insurance premium / dock.\r\n");
   for (vessel_type = 0; vessel_type < NUM_VESSEL_TYPES; vessel_type++)
@@ -364,10 +356,9 @@ bool vessel_balance_report(struct char_data *ch, int duel_count)
   if (observed_ok)
   {
     send_to_char(ch,
-                 "Persisted sample: %lld owned hulls, %lld wages owed, %lld "
-                 "insured value, %lld dock fees.\r\n",
-                 observed.owned_hulls, observed.wages_owed, observed.insured_value,
-                 observed.dock_fees);
+                 "Persisted sample: %lld owned hulls, %lld insured value, %lld dock "
+                 "fees.\r\n",
+                 observed.owned_hulls, observed.insured_value, observed.dock_fees);
     send_to_char(ch,
                  "  Completed freight: %lld contracts / %lld gold; showcase "
                  "entries: %lld.\r\n",

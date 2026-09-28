@@ -23,8 +23,8 @@ WHERE tag IN (
 SELECT
   'command_keywords' AS check_name,
   COUNT(*) AS actual,
-  81 AS expected,
-  IF(COUNT(*) = 81, 'PASS', 'FAIL') AS result
+  80 AS expected,
+  IF(COUNT(*) = 80, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE (help_tag, keyword) IN (
   ('VESSELS', 'BOARD'),
@@ -57,7 +57,6 @@ WHERE (help_tag, keyword) IN (
   ('SHIPBROWSE', 'SHIPCREW'),
   ('SHIPHIRE', 'SHIPHIRE'),
   ('SHIPHIRE', 'SHIPDISMISS'),
-  ('SHIPHIRE', 'SHIPWAGES'),
   ('SHIPHIRE', 'SHIPUPGRADE'),
   ('SHIPHIRE', 'SHIPINSURE'),
   ('MARKET', 'MARKET'),
@@ -172,7 +171,7 @@ JOIN (
   UNION ALL SELECT 'SHIPBROWSE', 'same room as you'
   UNION ALL SELECT 'SHIPBROWSE', 'hired crew positions'
   UNION ALL SELECT 'SHIPBROWSE', 'need not be[[:space:]]+present'
-  UNION ALL SELECT 'SHIPHIRE', 'SHIPDISMISS and[[:space:]]+SHIPWAGES'
+  UNION ALL SELECT 'SHIPHIRE', 'draws no wages'
   UNION ALL SELECT 'SHIPLIST', 'evacuates occupants and loose objects'
   UNION ALL SELECT 'SHIPLIST', 'releases loaded[[:space:]]+vehicles'
   UNION ALL SELECT 'SHIPLIST', 'slots 0 and 1'
@@ -193,4 +192,5 @@ WHERE
   OR (BINARY help_tag = 'look_outside' AND UPPER(keyword) = 'LOOK_OUTSIDE')
   OR (BINARY help_tag = 'ship_rooms' AND UPPER(keyword) = 'SHIP_ROOMS')
   OR (BINARY help_tag = 'speed' AND UPPER(keyword) = 'SPEED')
+  OR (BINARY help_tag = 'SHIPHIRE' AND UPPER(keyword) = 'SHIPWAGES')
   OR (BINARY help_tag = 'undock' AND UPPER(keyword) = 'UNDOCK');

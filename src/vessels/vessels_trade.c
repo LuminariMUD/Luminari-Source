@@ -153,7 +153,7 @@ bool vessel_collect_passenger_fare(struct char_data *ch, struct greyhawk_ship_da
 /**
  * One-time berthing charge for a vessel entering a port.
  *
- * The values are intentionally small beside hull, cargo, wage, and refit
+ * The values are intentionally small beside hull, cargo, crew, and refit
  * prices. They are a baseline for the economy simulation, not final balance.
  */
 int vessel_dock_fee_for_class(enum vessel_class vessel_type)

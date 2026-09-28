@@ -261,8 +261,8 @@ SHIPPERMIT <player> / SHIPREVOKE <player>
   previous permits.
 
 SHIPCREW
-  List the ship\'s owner, NPC pilot, helm permits, hired crew positions and
-  quality tiers, and any back wages owed.
+  List the ship\'s owner, NPC pilot, helm permits, and hired crew positions
+  and quality tiers.
 
 Ownership survives reboots. Losing your ship in combat is permanent -
 sail accordingly, or don\'t sail what you can\'t afford to lose.
@@ -282,8 +282,8 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIP
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('SHIPHIRE', 'Crew, refits, and insurance for a ship owner. SHIPHIRE,
-SHIPUPGRADE, and SHIPINSURE require the ship to be in port. SHIPDISMISS and
-SHIPWAGES can be used by the owner anywhere aboard, including while underway.
+SHIPUPGRADE, and SHIPINSURE require the ship to be in port. SHIPDISMISS can
+be used by the owner anywhere aboard, including while underway.
 
 SHIPHIRE <position> <tier>
   Take on crew. Positions and what they do:
@@ -291,17 +291,13 @@ SHIPHIRE <position> <tier>
     gunner         - improved gunnery accuracy in combat
     bosun          - faster repairs (see SHIPREPAIR)
     quartermaster  - more cargo capacity
-  Quality tiers: green, able, veteran. Better hands cost more to sign and
-  more per payday. Type \'shiphire\' with no arguments for current rates.
+  Quality tiers: green, able, veteran. Each hand costs a one-time hire
+  price and draws no wages; better hands cost more. Type \'shiphire\' with no
+  arguments for the prices.
 
 SHIPDISMISS <position>
   Let a crew member go. Their bonus leaves with them. This does not require a
   port.
-
-SHIPWAGES
-  Review the payroll and settle back wages. Wages accrue on their own
-  schedule; leave them unpaid too long and your best-paid hand walks off
-  at the next opportunity. Reviewing or paying wages does not require a port.
 
 SHIPUPGRADE [<refit>]
   With no argument, list available refits and prices. Refits:
@@ -324,7 +320,6 @@ ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPHIRE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPDISMISS');
-INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPWAGES');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPUPGRADE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPINSURE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIP-CREW');
@@ -1248,3 +1243,9 @@ DELETE FROM help_entries
 WHERE BINARY tag IN (
   'board_hostile', 'disembark', 'dock', 'look_outside', 'ship_rooms', 'undock'
 );
+
+-- SHIPWAGES was retired when crew became a one-time hire.
+DELETE FROM help_keywords
+WHERE
+  BINARY help_tag = 'SHIPHIRE'
+  AND UPPER(keyword) = 'SHIPWAGES';

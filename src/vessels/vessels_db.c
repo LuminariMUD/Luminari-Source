@@ -785,7 +785,7 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, "
            "last_attacker, pvp_grace_until, pvp_grace_attacker, "
            "dock_fee_balance, dock_fee_port, dock_fee_clan, "
-           "wear_ticks, wage_ticks, room_types, slot_data, "
+           "wear_ticks, room_types, slot_data, "
            "autopilot_state, current_route_id, current_waypoint_index, "
            "autopilot_tick_counter, wait_remaining, last_update) VALUES ("
            "%d, 1, %d, %d, '%s', %d, "
@@ -794,7 +794,7 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            "%u, %u, %u, %u, %u, %u, %u, %u, "
            "%u, %u, %u, %u, %u, %u, %u, %u, "
            "%u, %u, %u, %u, %u, %u, "
-           "%d, %lld, '%s', %d, %d, %d, %d, %d, '%s', '%s', "
+           "%d, %lld, '%s', %d, %d, %d, %d, '%s', '%s', "
            "%d, %d, %d, %d, %d, %lld)",
            ship->shipnum, ship->prototype_id,
            ship->hull_object_vnum > 0 ? ship->hull_object_vnum : VESSEL_BASE_HULL_OBJ_VNUM,
@@ -808,8 +808,8 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            ship->turnrate, ship->maxmainsail, ship->mainsail, ship->hullweight, ship->maxslots,
            ship->last_attacker, (long long)ship->pvp_grace_until, escaped_pvp_attacker,
            ship->dock_fee_balance, ship->dock_fee_port, ship->dock_fee_clan, ship->wear_ticks,
-           ship->wage_ticks, room_types, escaped_slot_data, autopilot_state, route_id,
-           current_waypoint_index, autopilot_tick_counter, wait_remaining, last_update);
+           room_types, escaped_slot_data, autopilot_state, route_id, current_waypoint_index,
+           autopilot_tick_counter, wait_remaining, last_update);
 
   if (mysql_query(conn, query))
   {
@@ -834,7 +834,7 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
       "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, "
       "last_attacker, pvp_grace_until, pvp_grace_attacker, "
       "dock_fee_balance, dock_fee_port, dock_fee_clan, "
-      "wear_ticks, wage_ticks, room_types, slot_data, "
+      "wear_ticks, room_types, slot_data, "
       "autopilot_state, current_route_id, current_waypoint_index, "
       "autopilot_tick_counter, wait_remaining, last_update "
       "FROM ship_runtime_state WHERE ship_id = %d";
@@ -971,8 +971,6 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
   ship->dock_fee_clan = row[column] ? parse_int(row[column]) : 0;
   column++;
   ship->wear_ticks = row[column] ? parse_int(row[column]) : 0;
-  column++;
-  ship->wage_ticks = row[column] ? parse_int(row[column]) : 0;
   column++;
 
   memset(ship->room_templates, 0xff, sizeof(ship->room_templates));

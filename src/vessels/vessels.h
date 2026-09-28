@@ -572,11 +572,6 @@ ACMD_DECL(do_vevent);
 #define CREW_TIER_ABLE 2
 #define CREW_TIER_VETERAN 3
 
-/* Wage accrual: one payday per this many combat ticks. Due payroll is spread
- * across 100 batches, bounding a full fleet to five ships per tick. */
-#define CREW_WAGE_INTERVAL 600
-#define CREW_WAGE_BATCH_COUNT 100
-
 /* Installable upgrades (greyhawk_ship_data.upgrades bitfield) */
 #define SHIP_UPGRADE_PLATING (1 << 0)    /* +50% max armor all sides */
 #define SHIP_UPGRADE_RIGGING (1 << 1)    /* +5 max speed */
@@ -892,15 +887,7 @@ bool vessel_collect_passenger_fare(struct char_data *ch, struct greyhawk_ship_da
 const char *vessel_crew_position_name(int position);
 const char *vessel_crew_tier_name(int tier);
 int vessel_crew_hire_cost(int position, int tier);
-int vessel_crew_wage(int position, int tier);
-int vessel_crew_wage_batch_for_slot(int ship_slot);
-int vessel_crew_departure_delete_query(char *query, size_t query_size, const int *ship_slots,
-                                       const int *positions, int count);
 void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship);
-void vessel_crew_wage_tick(void);
-int vessel_crew_wage_begin_tick(void);
-int vessel_crew_wage_tick_one(struct greyhawk_ship_data *ship, int current_batch);
-void vessel_crew_delete_departure(int ship_slot, int position);
 void vessel_db_save_crew(struct greyhawk_ship_data *ship);
 void vessel_db_load_crew(struct greyhawk_ship_data *ship);
 
@@ -927,7 +914,6 @@ ACMD_DECL(do_shiprevoke);  /* Owner: revoke a helm permit */
 ACMD_DECL(do_shipcrew);    /* List owner, permits, crew, and NPC pilot */
 ACMD_DECL(do_shiphire);    /* Owner: hire crew at a dock */
 ACMD_DECL(do_shipdismiss); /* Owner: dismiss hired crew */
-ACMD_DECL(do_shipwages);   /* Owner: pay accrued wages */
 ACMD_DECL(do_shipdeed);    /* Owner: transfer ownership */
 
 /* Vessel type accessor functions */
@@ -1413,8 +1399,6 @@ struct greyhawk_ship_data
   /* Phase 6: Hired crew. Tier 0 = position unfilled; 1-3 = green/able/
    * veteran. Bonuses are mirrored into sailcrew/guncrew on hire. */
   int crew_tier[4]; /* Indexed by CREW_SAILMASTER..CREW_QUARTERMASTER */
-  int wages_owed;   /* Accrued unpaid wages in gold */
-  int wage_ticks;   /* Ticks since last wage accrual */
 
   /* Phase 6: Upgrades, upkeep, and insurance */
   int upgrades;    /* SHIP_UPGRADE_* bitfield */

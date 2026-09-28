@@ -621,10 +621,6 @@ ACMD(do_shipcrew)
     send_to_char(ch, "    %-14s %s\r\n", vessel_crew_position_name(i),
                  vessel_crew_tier_name(ship->crew_tier[i]));
   }
-  if (ship->wages_owed > 0)
-  {
-    send_to_char(ch, "  Back wages owed: %d gold\r\n", ship->wages_owed);
-  }
 }
 
 /**

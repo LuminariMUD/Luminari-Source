@@ -41,7 +41,6 @@ static unsigned int narrative_ticks;
 static unsigned int hazard_ticks;
 static unsigned int encounter_ticks;
 static unsigned long prepared_pulse = ULONG_MAX;
-static int current_wage_batch;
 static bool narrative_due;
 static bool hazard_due;
 static bool encounter_due;
@@ -200,7 +199,6 @@ static void prepare_tick(void)
   if (prepared_pulse == pulse)
     return;
   prepared_pulse = pulse;
-  current_wage_batch = vessel_crew_wage_begin_tick();
   narrative_due = ++narrative_ticks >= VESSEL_NARRATIVE_INTERVAL;
   hazard_due = ++hazard_ticks >= VESSEL_HAZARD_INTERVAL;
   encounter_due = ++encounter_ticks >= VESSEL_ENCOUNTER_INTERVAL;
@@ -223,7 +221,6 @@ static bool callback_owner_still_live(struct greyhawk_ship_data *ship)
 static struct game_event_result vessel_owner_event(const struct game_event_context *context)
 {
   struct greyhawk_ship_data *ship = context != NULL ? context->payload : NULL;
-  int departed_position;
 
   if (ship == NULL)
     return game_event_result_complete();
@@ -252,12 +249,6 @@ static struct game_event_result vessel_owner_event(const struct game_event_conte
       vessel_hunter_tick_one(ship);
     if (callback_owner_still_live(ship))
       vessel_combat_tick_one(ship);
-    if (callback_owner_still_live(ship))
-    {
-      departed_position = vessel_crew_wage_tick_one(ship, current_wage_batch);
-      if (departed_position >= 0)
-        vessel_crew_delete_departure(ship->shipnum, departed_position);
-    }
     if (callback_owner_still_live(ship))
       vessel_upkeep_tick_one(ship);
     if (callback_owner_still_live(ship) && narrative_due)
@@ -616,7 +607,6 @@ void vessel_periodic_reset_for_test(void)
   hazard_ticks = 0U;
   encounter_ticks = 0U;
   prepared_pulse = ULONG_MAX;
-  current_wage_batch = 0;
   narrative_due = false;
   hazard_due = false;
   encounter_due = false;

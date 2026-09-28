@@ -257,9 +257,8 @@ void vessel_db_save_extras(struct greyhawk_ship_data *ship)
   }
 
   snprintf(query, sizeof(query),
-           "UPDATE ship_interiors SET upgrades = %d, insured_for = %d, wages_owed = %d "
-           "WHERE ship_id = %d",
-           ship->upgrades, ship->insured_for, ship->wages_owed, ship->shipnum);
+           "UPDATE ship_interiors SET upgrades = %d, insured_for = %d WHERE ship_id = %d",
+           ship->upgrades, ship->insured_for, ship->shipnum);
 
   if (mysql_query(conn, query))
   {
@@ -268,7 +267,7 @@ void vessel_db_save_extras(struct greyhawk_ship_data *ship)
 }
 
 /**
- * Load upgrades, insurance, and wage debt.
+ * Load upgrades and insurance.
  */
 void vessel_db_load_extras(struct greyhawk_ship_data *ship)
 {
@@ -282,8 +281,7 @@ void vessel_db_load_extras(struct greyhawk_ship_data *ship)
   }
 
   snprintf(query, sizeof(query),
-           "SELECT upgrades, insured_for, wages_owed FROM ship_interiors WHERE ship_id = %d",
-           ship->shipnum);
+           "SELECT upgrades, insured_for FROM ship_interiors WHERE ship_id = %d", ship->shipnum);
   if (mysql_query(conn, query))
   {
     return;
@@ -300,7 +298,6 @@ void vessel_db_load_extras(struct greyhawk_ship_data *ship)
   {
     ship->upgrades = row[0] ? parse_int(row[0]) : 0;
     ship->insured_for = row[1] ? parse_int(row[1]) : 0;
-    ship->wages_owed = row[2] ? parse_int(row[2]) : 0;
   }
   mysql_free_result(result);
 }

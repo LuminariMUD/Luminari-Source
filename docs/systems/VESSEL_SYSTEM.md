@@ -83,7 +83,7 @@ and operator controls in one system.
 | Persistence | Database save/load operations | vessels_db.c |
 | Builder and Shipyard | Prototypes, spawning, hull purchase | vessels_edit.c |
 | Combat | Damage, weapons, grounding, sinking | vessels_combat.c |
-| Ownership and Crew | Owners, permits, hires, wages | vessels_ownership.c, vessels_crew.c |
+| Ownership and Crew | Owners, permits, one-time crew hires | vessels_ownership.c, vessels_crew.c |
 | Upgrades | Refits, wear, insurance | vessels_upgrades.c |
 | Economy | Cargo, markets, freight, piracy | vessels_trade.c, vessels_contracts.c, vessels_piracy.c |
 | NPC Merchant Fleet | Durable definitions, assembly, consequences, respawn | vessels_merchants.c |
@@ -704,7 +704,7 @@ reset the normal 120-second cadence.
 `vesseldebug balance [duels]` is read-only and remains available when debug
 logging is compiled out. It runs a private deterministic equal-warship duel
 sample without consuming the live random stream or creating hulls, invokes
-the production 1,000-trade simulation, reports class cost and crew-wage
+the production 1,000-trade simulation, reports class cost and crew-hire
 anchors, and reads only anonymized aggregate persistence totals. Its
 mechanical verdict uses a provisional 45-120 second median and 180-second p95
 equal-warship target. The final line always requires human beta feedback; the
@@ -912,7 +912,6 @@ the removed name's bounty.
 | shippermit / shiprevoke | Owner: manage helm clearances | `shippermit <player>` |
 | shipcrew | List owner, pilot, permits, crew | `shipcrew` |
 | shiphire / shipdismiss | Hire or release crew (dock only) | `shiphire <position> <tier>` |
-| shipwages | Review and settle payroll | `shipwages` |
 | shipupgrade | List/install refits (dock only) | `shipupgrade [<refit>]` |
 | shipinsure | Buy sinking insurance (dock only) | `shipinsure <value>` |
 
@@ -933,9 +932,13 @@ commit, player removal is deferred instead of orphaning property.
 Crew (`src/vessels/vessels_crew.c`): four positions (sailmaster, gunner, bosun,
 quartermaster) at three tiers (green/able/veteran). Bonuses are mirrored
 into the legacy `sailcrew`/`guncrew` fields so movement, gunnery, and
-repair consume them without special cases. Wages accrue on the vessel tick
-(`vessel_crew_wage_tick()`); three unpaid paydays and a crew member walks.
-Crew rows live in `ship_crew_roster` with `npc_vnum <= -100`.
+repair consume them without special cases. Hiring is a one-time price
+(`vessel_crew_hire_cost()`: sailmaster 1,600/6,000/15,000, gunner
+2,400/8,000/18,000, bosun 2,000/7,000/16,000, quartermaster 1,200/4,500/11,000
+gold by tier); crew draw no wages and never walk off. The retired
+`ship_interiors.wages_owed` and `ship_runtime_state.wage_ticks` columns remain
+in the schema, unread, so a rollback needs no data migration. Crew rows live
+in `ship_crew_roster` with `npc_vnum <= -100`.
 
 Upgrades, wear, insurance (`src/vessels/vessels_upgrades.c`): four one-time refits
 (plating, rigging, hold, reinforcement) raise hull ceilings at install
@@ -1193,7 +1196,7 @@ historical measurements, and the limits of the current evidence.
 | Table | Purpose |
 | -- | -- |
 | `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards |
-| `ship_interiors` | Vessel identity, rooms, cosmetics, owner, upgrades, insurance, and wage state |
+| `ship_interiors` | Vessel identity, rooms, cosmetics, owner, upgrades, and insurance (retired `wages_owed` column unread) |
 | `ship_runtime_state` | Live hull, position, condition, room type, autopilot, PvP grace, and dock-fee snapshot |
 | `ship_weapons` | Normalized installed weapon slots, values, position, and reload state |
 | `ship_docking` | Active and historical docking relationships |
@@ -1578,7 +1581,7 @@ and the trigger was removed.
 | `src/vessels/vessels_edit.c` | vedit ship prototype editor, spawner, shipyard (Phase 04/06) |
 | `src/vessels/vessels_combat.c` | Naval combat: damage, weapons, sinking, groundings (Phase 05) |
 | `src/vessels/vessels_ownership.c` | Ownership, helm permits, deed transfer (Phase 06) |
-| `src/vessels/vessels_crew.c` | Hired crew positions, tiers, wages (Phase 06) |
+| `src/vessels/vessels_crew.c` | Hired crew positions, tiers, one-time hire prices (Phase 06) |
 | `src/vessels/vessels_upgrades.c` | Refits, hull wear, insurance (Phase 06) |
 | `src/vessels/vessels_trade.c` | Commodities, port pricing, bulk cargo (Phase 07) |
 | `src/vessels/vessels_contracts.c` | Freight boards and contract lifecycle (Phase 07) |
@@ -1910,7 +1913,7 @@ or keyword count is insufficient once later phases extend the system.
   rows or any `vessel_event_runtimes` row whose hull identity is missing.
 - Vessel debug categories provide focused development diagnostics. Candidate
   and production builds must report that support is compiled out.
-- Monitor database errors, orphan cleanup, wage and trade ticks, encounter spawn
+- Monitor database errors, orphan cleanup, trade ticks, encounter spawn
   volume, and game-loop latency.
 - Treat room-pool pressure over 80%, tick time over 25 ms, or repeated
   persistence errors as rollout-stop conditions.

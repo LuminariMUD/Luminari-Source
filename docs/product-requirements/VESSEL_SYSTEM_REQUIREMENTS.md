@@ -271,7 +271,7 @@ for human beta evidence.
 | -- | -- | -- | -- |
 | Development mechanics and final preflight | Complete | Engineering | The 306-test suite, strict Memcheck, protocol/tooling gates, kill switch, debug-off, help, lifecycle recovery, and 500-vessel run pass; see [VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md) and [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md). |
 | Production-snapshot schema rehearsal | Complete | Database operator | Forward, verification, idempotence, rollback, full restore, reapply, and database checks pass without production writes; see [VESSEL_SCHEMA_DEPLOYMENT.md](../deployment/VESSEL_SCHEMA_DEPLOYMENT.md#august-2-2026-production-snapshot-record). |
-| Player-data balance | Open | Product owner | Collect real beta data, then tune combat time-to-kill, crew wages, freight margins, refit costs, insurance, and dock fees. The deterministic duel/economy report is mechanical evidence only. |
+| Player-data balance | Open | Product owner | Collect real beta data, then tune combat time-to-kill, crew hire prices, freight margins, refit costs, insurance, and dock fees. The deterministic duel/economy report is mechanical evidence only. |
 | Structured human beta | Open | Product owner | Validate first-hour discovery, multiplayer roles, builder independence, a supervised NPC-shipping sample within one hour, and at least 70% `fun` combat feedback. |
 | Staged production rollout | Blocked | Product owner and operator | After balance and beta sign-off, roll out to staff, then a beta cohort, then all players. Retain rollback authority, monitor every stage, publish the announcement, and record the postmortem. Update the permanent behavior and evidence records before declaring vessel system 3.0. |
 

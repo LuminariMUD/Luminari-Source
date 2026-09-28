@@ -1155,7 +1155,7 @@ commit with tests, help in both places, and `VESSEL_SYSTEM.md`; later rows list 
 | L7 miss lag | Done | `WAIT_STATE` before the hit roll in `do_shipfire()` |
 | L8 contact list and IDs | Done | `vessel_collect_contacts()`, `vessel_find_contact()` in `vessels.c`; `contacts`, `tactical`, `shipfire` share them |
 | L9 port immunity | Done | `vessel_ship_is_in_port()` gates player fire and `vessel_ai_return_fire()` |
-| L12 wage removal (D4) | Open |  |
+| L12 wage removal (D4) | Done | Payroll, walk-offs, and `shipwages` removed; 3.3.5 one-time hire prices in `vessel_crew_hire_cost()` (renown gates stay in S5); `wages_owed`/`wage_ticks` columns kept unread, zeroed by the Phase 18 SQL |
 | L11 `for_sale`, `min_level`, departure level, cap of 3 (D5) | Open |  |
 | L13 bounty pay-off and decay | Open |  |
 | Live gate in `scripts/vessels/` | Open |  |

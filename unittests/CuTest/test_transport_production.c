@@ -1272,17 +1272,18 @@ void Test_vessel_crew_costs_and_bonuses(CuTest *tc)
 {
   struct greyhawk_ship_data ship;
 
-  /* Better crews cost more to hire and to keep */
+  /* One-time hire prices (study 3.3.5); better crews cost more */
+  CuAssertIntEquals(tc, 1600, vessel_crew_hire_cost(CREW_SAILMASTER, CREW_TIER_GREEN));
+  CuAssertIntEquals(tc, 18000, vessel_crew_hire_cost(CREW_GUNNER, CREW_TIER_VETERAN));
+  CuAssertIntEquals(tc, 7000, vessel_crew_hire_cost(CREW_BOSUN, CREW_TIER_ABLE));
+  CuAssertIntEquals(tc, 11000, vessel_crew_hire_cost(CREW_QUARTERMASTER, CREW_TIER_VETERAN));
   CuAssertTrue(tc, vessel_crew_hire_cost(CREW_GUNNER, CREW_TIER_VETERAN) >
-                       vessel_crew_hire_cost(CREW_GUNNER, CREW_TIER_GREEN));
-  CuAssertTrue(tc, vessel_crew_wage(CREW_GUNNER, CREW_TIER_VETERAN) >
-                       vessel_crew_wage(CREW_GUNNER, CREW_TIER_GREEN));
-  /* Wages are a fraction of the signing cost, never larger */
-  CuAssertTrue(tc, vessel_crew_wage(CREW_BOSUN, CREW_TIER_ABLE) <
-                       vessel_crew_hire_cost(CREW_BOSUN, CREW_TIER_ABLE));
-  /* Unfilled positions cost nothing */
-  CuAssertIntEquals(tc, 0, vessel_crew_wage(CREW_BOSUN, CREW_TIER_NONE));
+                       vessel_crew_hire_cost(CREW_GUNNER, CREW_TIER_ABLE));
+  /* Unfilled or unknown positions cost nothing */
+  CuAssertIntEquals(tc, 0, vessel_crew_hire_cost(CREW_BOSUN, CREW_TIER_NONE));
   CuAssertIntEquals(tc, 0, vessel_crew_hire_cost(-1, CREW_TIER_ABLE));
+  CuAssertIntEquals(tc, 0, vessel_crew_hire_cost(NUM_CREW_POSITIONS, CREW_TIER_ABLE));
+  CuAssertIntEquals(tc, 0, vessel_crew_hire_cost(CREW_BOSUN, CREW_TIER_VETERAN + 1));
 
   /* Hiring feeds the legacy crew-effect fields the game already reads */
   memset(&ship, 0, sizeof(ship));
@@ -1304,56 +1305,6 @@ void Test_vessel_crew_costs_and_bonuses(CuTest *tc)
                     vessel_effective_cargo_capacity(&ship));
   ship.crew_tier[CREW_QUARTERMASTER] = CREW_TIER_VETERAN;
   CuAssertTrue(tc, vessel_effective_cargo_capacity(&ship) > get_vessel_cargo_capacity(VESSEL_SHIP));
-}
-
-void Test_vessel_crew_payroll_batches_bound_full_fleet_work(CuTest *tc)
-{
-  int batch_counts[CREW_WAGE_BATCH_COUNT];
-  int batch;
-  int ship_slot;
-
-  memset(batch_counts, 0, sizeof(batch_counts));
-  for (ship_slot = 1; ship_slot < GREYHAWK_MAXSHIPS; ship_slot++)
-  {
-    batch = vessel_crew_wage_batch_for_slot(ship_slot);
-    CuAssertTrue(tc, batch >= 0 && batch < CREW_WAGE_BATCH_COUNT);
-    batch_counts[batch]++;
-  }
-
-  for (batch = 0; batch < CREW_WAGE_BATCH_COUNT; batch++)
-  {
-    CuAssertIntEquals(tc, 5, batch_counts[batch]);
-  }
-
-  CuAssertIntEquals(tc, -1, vessel_crew_wage_batch_for_slot(0));
-  CuAssertIntEquals(tc, -1, vessel_crew_wage_batch_for_slot(GREYHAWK_MAXSHIPS));
-}
-
-void Test_vessel_crew_payroll_departures_share_one_delete(CuTest *tc)
-{
-  const int ship_slots[] = {1, 101, 201, 301, 401};
-  const int positions[] = {CREW_SAILMASTER, CREW_GUNNER, CREW_BOSUN, CREW_QUARTERMASTER,
-                           CREW_GUNNER};
-  const int invalid_positions[] = {CREW_SAILMASTER, CREW_GUNNER, CREW_BOSUN, CREW_QUARTERMASTER,
-                                   NUM_CREW_POSITIONS};
-  char query[MAX_STRING_LENGTH];
-  int length;
-
-  length = vessel_crew_departure_delete_query(query, sizeof(query), ship_slots, positions, 5);
-
-  CuAssertTrue(tc, length > 0);
-  CuAssertStrEquals(tc,
-                    "DELETE FROM ship_crew_roster WHERE "
-                    "(ship_id = 1 AND npc_vnum = -100) OR "
-                    "(ship_id = 101 AND npc_vnum = -101) OR "
-                    "(ship_id = 201 AND npc_vnum = -102) OR "
-                    "(ship_id = 301 AND npc_vnum = -103) OR "
-                    "(ship_id = 401 AND npc_vnum = -101)",
-                    query);
-  CuAssertIntEquals(
-      tc, -1,
-      vessel_crew_departure_delete_query(query, sizeof(query), ship_slots, invalid_positions, 5));
-  CuAssertIntEquals(tc, -1, vessel_crew_departure_delete_query(query, 8, ship_slots, positions, 5));
 }
 
 void Test_vessel_upgrade_effects(CuTest *tc)
