@@ -140,11 +140,6 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[PLAYER_RACES_REFERENCE.md](guides/PLAYER_RACES_REFERENCE.md)** - Playable race
   reference center: stats, innate feats, tiers, unlock costs, acquisition paths, and
   links to every race-related document
-- **[RACIAL_FEAT_LOGIN_REPAIR_PLAN.md](ongoing-projects/RACIAL_FEAT_LOGIN_REPAIR_PLAN.md)** - Plan
-  to grant saved characters the single-rank racial feats they are missing when they log in
-- **[EXTRA_LIMB_MECHANICS.md](ongoing-projects/EXTRA_LIMB_MECHANICS.md)** - The arm count that
-  drives hands, wear slots, attacks, and monk strikes (extra arms, four arms, race adjustment,
-  vestigial arm), capped at four arms of equipment, and its open pricing work
 - **[PLAYER_CLASSES_REFERENCE.md](guides/PLAYER_CLASSES_REFERENCE.md)** - Playable class
   reference center: base and prestige classes, unlock costs, prerequisites,
   progression, class skills, feats by level, casting models, spell lists, and links

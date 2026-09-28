@@ -1,5 +1,5 @@
 /* Production-linked tests for the artificer class and its Weird Science devices (GitLab work
- * item 4, docs/ongoing-projects/ARTIFICER_DEVICE_FIXES.md). */
+ * item 4; device rules in docs/guides/PLAYER_CLASSES_REFERENCE.md, Appendix A). */
 
 #include "CuTest.h"
 

@@ -1391,7 +1391,7 @@ void TestFourArmsDeferredRestoreHonorsBagSort(CuTest *tc)
   end_four_arm_fixture(&fixture);
 }
 
-/* ---- Arm count (docs/ongoing-projects/EXTRA_LIMB_MECHANICS.md) ---- */
+/* ---- Arm count (docs/systems/GAME_MECHANICS_SYSTEMS.md, racial innate feats) ---- */
 
 /* the fixture PC is human: its count is 2 plus the human arm adjustment */
 static void set_human_arms(int count)

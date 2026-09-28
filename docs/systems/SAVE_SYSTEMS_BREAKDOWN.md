@@ -36,6 +36,15 @@ These systems use file-based storage exclusively for persistence.
   - The crafting consolidation marker `CrMg: <stage>` (1 legacy skills, 2 room-370 supply
     orders, 3 old wilderness holdings); see
     [CRAFTING_SYSTEM_NOTES.md](../world_game-data/CRAFTING_SYSTEM_NOTES.md#persistence-and-migration).
+  - Artificer devices, written only while the character has one: `Dvis:`, the device count, then
+    for each device its index, keywords, short and long description (each after a leading space),
+    a numbers line
+    `<spells> <duration> <reliability> <uses> <cooldown expiry> <DC penalty> <broken>`, one spell
+    number per device slot padded with -1, and `Lvls:` with each spell's assigned class level
+    padded with 0; a `-1` line ends the block. Older files end the numbers
+    line early or omit `Lvls:`, and the missing fields load as 0. `duration` and the cooldown
+    expiry are saved but not used. The rename scanner in `src/player/player_rename.c` counts
+    these lines, so a layout change must update it too. `DvCD:` is the device creation cooldown.
 
 **Example Structure:**
 
@@ -66,7 +75,7 @@ Levl: 1
 Positions 44..50 (`WEAR_WIELD_3` .. `WEAR_WRIST_L2`) exist since the Four
 Arms feature; `Loc` 44 is still the tail. Every hand, arm, wrist and ring
 position needs a number of arms (`wear_slot_arms_needed()`, described in
-[EXTRA_LIMB_MECHANICS.md](../ongoing-projects/EXTRA_LIMB_MECHANICS.md)).
+[GAME_MECHANICS_SYSTEMS.md](GAME_MECHANICS_SYSTEMS.md#racial-innate-feats-and-spell-like-abilities)).
 `auto_equip()` holds any otherwise valid saved position that the character's
 current arm count closes, keeping the item and its contents in inventory and
 out of its bag. `crash_restore_records()` in `src/obj/objsave.c` retries

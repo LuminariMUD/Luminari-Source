@@ -659,7 +659,7 @@ players route around drawbacks and keep the power.
 | Uncontrolled rage below half hit points (no casting, no fleeing) | Bloodlust | -2 |
 
 Arms are a count (see
-[EXTRA_LIMB_MECHANICS.md](../ongoing-projects/EXTRA_LIMB_MECHANICS.md)).
+[GAME_MECHANICS_SYSTEMS.md](../systems/GAME_MECHANICS_SYSTEMS.md#racial-innate-feats-and-spell-like-abilities)).
 Extra Arms is the general trait: one more full arm per rank, so its third
 arm opens the third hand, lower sleeves and gloves and a third wrist, and its
 fourth the rest of the lower pair. It no longer adds a swing of its own, so

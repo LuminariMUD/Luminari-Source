@@ -468,8 +468,12 @@ intrinsic count already opens: an item never sustains its own position or
 unlocks one for another provider. Each item adds at most one Extra Arms
 rank, and Four Arms adds its two arms once across every source. Extra Arms
 adds no attack of its own. `hands_have()` (exported from `src/act/act.h`) is
-the count plus one for the alchemist's vestigial arm, which holds an item but
-opens no position and makes no attack.
+the count plus one for the vestigial arm (an alchemist discovery from
+alchemist level 9), which holds an item but opens no position and makes no
+attack. Two Extra Arms ranks and Four Arms each give a two-armed race four
+arms, and both together give six, so a race describes an extra pair with one
+of them, never both. Thri-Kreen, through its level-one Four Arms, is the only
+race with more than two arms, and no injury or arm-loss mechanic exists.
 
 `wear_slot_arms_needed()` gives each position's requirement: one arm for the
 primary weapon, both held positions, shield, gloves, sleeves, right wrist and
@@ -481,6 +485,12 @@ hands and wrist wear flags. `character_wear_slot_restriction()` checks the
 count for NPCs too, reporting "You do not have enough arms to use that
 equipment slot.", then applies the base position's race anatomy
 (`four_arm_slot_base()`). Arms past four open nothing; they only add hands.
+Fewer than two arms follow the same requirements: one arm opens only the
+one-arm positions and its single hand holds one item, so a shield or held
+item replaces the weapon (the vestigial arm allows a weapon and a shield or
+two held items there, never an offhand weapon or two-hand position); with no
+arms the character fights with the unarmed or natural routine, and a monk
+keeps its unarmed attacks and flurry.
 `hands_used()` charges every hand position, a bow or crossbow two hands even
 in a one-hand position. Weapons form two pairs; from three arms up a pair
 holds its one-handers or its two-hander, never both
@@ -521,7 +531,9 @@ strength, power attack, the spare-hand bonus, two-weapon penalties via
 weapon's own pair through `attack_pair_two_hand_slot()`; the first pair's
 two-hander no longer rewrites a THIRD or FOURTH attack. In
 `perform_attacks()`, `perform_second_pair_attacks()` runs from three arms up
-after every ordinary attack of the round: it mirrors the planned base,
+after every ordinary attack of the round (Vital Strike, wild shapes and
+polymorphs plan no second-pair candidates in `plan_second_pair()`, and the
+ranged routines return before it): it mirrors the planned base,
 offhand, haste, bonus and trained-offhand opportunities with stable ordinals
 and iterative penalties, rolls each once in its own phase (50 percent, +25
 with two-weapon training, +25 with improved training, `is_skilled_dualer()`),
