@@ -937,7 +937,10 @@ hull's departures to its level (`vessel_ship_min_level()`: the prototype's
 `min_level`, or the class minimum 1/1/16/22/24/23/21/25 for raft, boat, ship,
 warship, airship, submarine, transport, magical): `setsail` from a port,
 `autopilot on`, `assignpilot`, and `setschedule`. Immortals and NPC pilots are
-exempt.
+exempt. When a prototype-backed hull's level cannot be read, the departure is
+refused rather than held to the lower class minimum. These checks only read
+`ship_prototypes`; `vessel_prototype_ensure_schema()` creates and migrates the
+table at boot, never on a command.
 
 Owned ships restrict the helm (`is_pilot()`) to owner + permits + immortals
 (`src/vessels/vessels_ownership.c`). Owner persists in `ship_interiors.owner`

@@ -113,10 +113,9 @@ void Test_vessel_departures_need_the_hull_level(CuTest *tc)
   bool saved_mysql_available;
 
   saved_mysql_available = mysql_available;
-  mysql_available = FALSE; /* the class minimum applies without a prototype row */
+  mysql_available = FALSE;
   memset(&ship, 0, sizeof(ship));
   ship.vessel_type = VESSEL_WARSHIP;
-  ship.prototype_id = 7;
   strlcpy(ship.name, "the Gull", sizeof(ship.name));
   shipyard_player_init(&junior, "Mira", 21);
   shipyard_player_init(&senior, "Corr", 22);
@@ -133,6 +132,15 @@ void Test_vessel_departures_need_the_hull_level(CuTest *tc)
   ship.vessel_type = VESSEL_RAFT;
   junior.ch.player.level = 1;
   CuAssertTrue(tc, !vessel_helm_level_refused(&junior.ch, &ship));
+
+  /* A prototype's own level may exceed the class, so an unreadable one
+   * refuses every mortal departure instead of falling back to the class. */
+  ship.prototype_id = 7;
+  CuAssertIntEquals(tc, VESSEL_MIN_LEVEL_UNKNOWN, vessel_ship_min_level(&ship));
+  CuAssertTrue(tc, vessel_helm_level_refused(&junior.ch, &ship));
+  CuAssertTrue(tc, vessel_helm_level_refused(&senior.ch, &ship));
+  CuAssertTrue(tc, !vessel_helm_level_refused(&staff.ch, &ship));
+  CuAssertTrue(tc, !vessel_helm_level_refused(&npc, &ship));
 
   mysql_available = saved_mysql_available;
 }
@@ -186,6 +194,7 @@ void Test_vessel_shipyard_sells_only_listed_hulls(CuTest *tc)
   struct room_data *saved_world;
   struct greyhawk_ship_data ship;
   room_rnum saved_top_of_world;
+  MYSQL_RES *result;
   MYSQL *saved_conn;
   MYSQL *connection;
   bool saved_mysql_available;
@@ -284,6 +293,22 @@ void Test_vessel_shipyard_sells_only_listed_hulls(CuTest *tc)
   CuAssertIntEquals(tc, 16, vessel_ship_min_level(&ship));
   ship.prototype_id = 999;
   CuAssertIntEquals(tc, 16, vessel_ship_min_level(&ship));
+
+  /* A failed read refuses the departure, and the command path runs no DDL
+   * that would restore the missing column. */
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "ALTER TABLE ship_prototypes DROP COLUMN "
+                                            "min_level"));
+  ship.prototype_id = 3;
+  CuAssertIntEquals(tc, VESSEL_MIN_LEVEL_UNKNOWN, vessel_ship_min_level(&ship));
+  CuAssertTrue(tc, vessel_helm_level_refused(&buyer.ch, &ship));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "SHOW COLUMNS FROM ship_prototypes LIKE "
+                                            "'min_level'"));
+  result = mysql_store_result(connection);
+  CuAssertPtrNotNull(tc, result);
+  CuAssertIntEquals(tc, 0, (int)mysql_num_rows(result));
+  mysql_free_result(result);
 
   ProtocolDestroy(descriptor.pProtocol);
   shipyard_own_ships("", 0);

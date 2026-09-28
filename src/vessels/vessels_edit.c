@@ -40,11 +40,13 @@ static const char *VEDIT_USAGE =
     "Classes: 0=Raft 1=Boat 2=Ship 3=Warship 4=Airship 5=Submarine 6=Transport 7=Magical\r\n";
 
 /**
- * Ensure the ship_prototypes table exists.
+ * Ensure the ship_prototypes table exists with its Phase 18 columns.
  *
  * Follows the vessel-system convention of auto-creating tables so a fresh
  * database works without manual schema steps. Mirrored by
  * sql/components/vessels_phase4_schema.sql and vessels_phase18_schema.sql.
+ * Boot only: the ALTER can wait on another transaction's metadata lock, so
+ * command paths check vessel_prototype_db_ready() instead.
  *
  * @return TRUE if the table is available, FALSE otherwise
  */
@@ -78,6 +80,14 @@ bool vessel_prototype_ensure_schema(void)
   }
 
   return TRUE;
+}
+
+/**
+ * Can command paths read the prototype table? Its schema is migrated at boot.
+ */
+static bool vessel_prototype_db_ready(void)
+{
+  return mysql_available && conn != NULL;
 }
 
 /**
@@ -116,6 +126,9 @@ int vessel_prototype_min_level(int vclass, int min_level)
 
 /**
  * Minimum level for this hull: its prototype's setting, else its class minimum.
+ *
+ * @return The level, or VESSEL_MIN_LEVEL_UNKNOWN when the hull's prototype
+ *         cannot be read, since its own setting may be higher than the class
  */
 int vessel_ship_min_level(const struct greyhawk_ship_data *ship)
 {
@@ -128,9 +141,13 @@ int vessel_ship_min_level(const struct greyhawk_ship_data *ship)
   }
 
   level = vessel_class_min_level(ship->vessel_type);
-  if (ship->prototype_id <= 0 || !vessel_prototype_ensure_schema())
+  if (ship->prototype_id <= 0)
   {
     return level;
+  }
+  if (!vessel_prototype_db_ready())
+  {
+    return VESSEL_MIN_LEVEL_UNKNOWN;
   }
 
   statement = mysql_stmt_create(conn);
@@ -142,7 +159,7 @@ int vessel_ship_min_level(const struct greyhawk_ship_data *ship)
   {
     log("SYSERR: Could not read the minimum level of ship prototype %d", ship->prototype_id);
     mysql_stmt_cleanup(statement);
-    return level;
+    return VESSEL_MIN_LEVEL_UNKNOWN;
   }
   if (mysql_stmt_fetch_row(statement) && mysql_stmt_get_int(statement, 0) > 0)
   {
@@ -171,6 +188,14 @@ bool vessel_helm_level_refused(struct char_data *ch, const struct greyhawk_ship_
   }
 
   required = vessel_ship_min_level(ship);
+  if (required == VESSEL_MIN_LEVEL_UNKNOWN)
+  {
+    send_to_char(ch,
+                 "The harbor records cannot confirm who may command %s just now. Try again "
+                 "shortly.\r\n",
+                 ship->name);
+    return TRUE;
+  }
   if (GET_LEVEL(ch) >= required)
   {
     return FALSE;
@@ -902,7 +927,7 @@ ACMD(do_shipbrowse)
   MYSQL_RES *result;
   MYSQL_ROW row;
 
-  if (!vessel_prototype_ensure_schema())
+  if (!vessel_prototype_db_ready())
   {
     send_to_char(ch, "The shipwright's records are unavailable.\r\n");
     return;
@@ -975,7 +1000,7 @@ ACMD(do_shipbuy)
   }
   id = parse_int(arg);
 
-  if (!vessel_prototype_ensure_schema())
+  if (!vessel_prototype_db_ready())
   {
     send_to_char(ch, "The shipwright's records are unavailable.\r\n");
     return;
@@ -1231,7 +1256,7 @@ ACMD(do_vedit)
     return;
   }
 
-  if (!vessel_prototype_ensure_schema())
+  if (!vessel_prototype_db_ready())
   {
     send_to_char(ch, "The ship prototype database is unavailable.\r\n");
     return;

@@ -913,6 +913,7 @@ void vessel_db_load_permits(struct greyhawk_ship_data *ship);
 bool vessel_handle_player_removal(const char *player_name);
 
 /* Shipyard (Phase 06, vessels_edit.c) */
+#define VESSEL_MIN_LEVEL_UNKNOWN (-1) /* A prototype's level could not be read */
 bool vessel_prototype_ensure_schema(void);
 int vessel_prototype_price(int vclass, int max_speed, int armor);
 int vessel_class_min_level(int vclass);
