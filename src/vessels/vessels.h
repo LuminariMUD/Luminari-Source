@@ -482,6 +482,7 @@ bool vessel_region_feature_at_coordinates(int region_type, int x, int y, int z,
                                           struct vessel_region_feature *feature);
 /* Sep 2026 racial innate seadog: extra distance per move while piloting */
 int vessel_pilot_speed_bonus(struct char_data *ch);
+int vessel_manual_move_distance(int speed, int helm_bonus, int storm_severity);
 int get_vessel_position_speed_modifier(enum vessel_class vessel_type, int sector_type,
                                        int weather_conditions, int x, int y, int z,
                                        struct vessel_region_feature *lane);
@@ -503,6 +504,9 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch);
 #define VESSEL_PVP_LOGOUT_GRACE 300
 
 bool vessel_pvp_permitted(struct char_data *ch, struct greyhawk_ship_data *target, bool display);
+bool vessel_gunnery_permitted(struct char_data *ch, const struct greyhawk_ship_data *ship);
+bool vessel_fire_permitted(struct char_data *ch, struct greyhawk_ship_data *ship,
+                           struct greyhawk_ship_data *target, bool display);
 bool vessel_pvp_grace_active(const struct greyhawk_ship_data *target, const char *attacker_name,
                              time_t now);
 void vessel_clear_pvp_grace(struct greyhawk_ship_data *ship);
@@ -1437,15 +1441,16 @@ struct greyhawk_ship_data
   unsigned int message_seen_mask;
 };
 
-/* Greyhawk Contact Data Structure (for radar/sensors) */
-struct greyhawk_contact_data
+/* One sighted vessel in a ship's contact list (vessel_collect_contacts()) */
+struct vessel_contact
 {
-  int shipnum;  /* Ship number being tracked */
-  int x, y, z;  /* Contact coordinates */
-  int bearing;  /* Bearing to contact */
-  double range; /* Range to contact */
-  char arc[3];  /* Firing arc (F/P/R/S) */
+  int shipnum;  /* Fleet slot of the contact */
+  double range; /* 3D range in rooms */
+  int bearing;  /* Compass bearing from the observer */
 };
+
+/* The contacts command lists this many of the nearest contacts */
+#define VESSEL_CONTACT_DISPLAY_LIMIT 20
 
 /* ========================================================================= */
 /* FUNCTION PROTOTYPES - GREYHAWK SHIP SYSTEM                              */
@@ -1472,9 +1477,9 @@ double greyhawk_range(double x1, double y1, double z1, double x2, double y2, dou
 int greyhawk_weaprange(int shipnum, int slot, char range);
 
 /* Contact and Radar Functions */
-void greyhawk_dispcontact(int i);
-int greyhawk_getcontacts(int shipnum);
-void greyhawk_setcontact(int i, struct obj_data *obj, int shipnum, int xoffset, int yoffset);
+int vessel_collect_contacts(const struct greyhawk_ship_data *ship, struct vessel_contact *contacts,
+                            int max_contacts);
+int vessel_find_contact(const struct greyhawk_ship_data *ship, const char *arg);
 int greyhawk_getarc(int ship1, int ship2);
 
 /* ========================================================================= */

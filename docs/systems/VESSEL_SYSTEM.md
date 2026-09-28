@@ -416,7 +416,8 @@ struct vessel_data *find_vessel_by_id(int id);        // Find by ID
 bool update_ship_wilderness_position(int ship, int x, int y, int z);
 bool move_ship_wilderness(int ship, int dir, struct char_data *ch);
 bool can_vessel_traverse_terrain(enum vessel_class type, int x, int y, int z);
-int get_terrain_speed_modifier(enum vessel_class type, int sector, int weather);
+int get_terrain_speed_modifier(enum vessel_class type, int sector, int storm_band);
+int vessel_manual_move_distance(int speed, int helm_bonus, int storm_band);
 ```
 
 ### Cargo and Template Functions (Phase 04)
@@ -515,13 +516,17 @@ bathymetric, altitude-lane, and sky-island polygons. Encounter and sector
 regions remain hidden so tactical presentation does not reveal private spawn
 or transform metadata.
 
-Contacts use `vessel_sight_range()`, including the production weather penalty
-and posted-lookout bonus. `V`, `B`, `C`, and `X` report sound, battered,
-crippled, and sinking vessels; `M` marks multiple contacts in one cell. A
-nearest-first roster below the chart includes fleet slot, vessel name,
-condition, three-dimensional range, bearing, compass direction, and relative
-Z. The header reports position, heading, weather, visibility, and the current
-vessel's aggregate internal hull condition.
+Contacts come from `vessel_collect_contacts()`, the one contact list that
+`contacts`, `tactical`, and `shipfire` targeting share: every other vessel
+within `vessel_sight_range()` (production weather penalty and posted-lookout
+bonus included), nearest first, ties in fleet-slot order. `V`, `B`, `C`, and
+`X` report sound, battered, crippled, and sinking vessels; `M` marks multiple
+contacts in one cell. A nearest-first roster below the chart includes the
+two-letter vessel ID, vessel name, condition, three-dimensional range,
+bearing, compass direction, and relative Z. `contacts` prints the nearest 20
+of the same list with their IDs. The header reports position, heading,
+weather, visibility, and the current vessel's aggregate internal hull
+condition.
 
 #### Wilderness Lookout View
 
@@ -719,7 +724,9 @@ signals - no vessel-private geography:
   rain/squall, 200..224 storm, and 225..255 gale/thunder. Squall, storm, and
   gale degrade rigging; a gale with neither a sailmaster nor the assigned
   pilot at the bridge damages the hull. Narrative, visibility, lookout,
-  tactical, and hazard logic share these thresholds. Submerged submarines are
+  tactical, hazard, and manual `setsail` logic share these thresholds:
+  `setsail` reads `vessel_storm_severity()`, loses a quarter of its distance
+  in a storm or gale, and loses 5% of speed per band (15% for airships). Submerged submarines are
   sheltered.
 - **Crush depth**: submarines diving past the seabed depth at their
   coordinate (`get_modified_elevation()` vs `wild_waterline`) take damage.
@@ -944,7 +951,7 @@ the character and closing the database claim.
 
 | Command | Description | Usage |
 | -- | -- | -- |
-| shipfire | Fire a weapon slot at another ship | `shipfire <slot> <target>` |
+| shipfire | Fire a weapon slot at a contact | `shipfire <slot> <contact ID or name>` |
 | shiprepair | Slow at-sea repairs (stationary only) | `shiprepair` |
 | claimship | Capture from an uncontested bridge | `claimship` |
 
@@ -963,6 +970,16 @@ consented engagement records a persisted, opponent-specific five-minute
 window. If an owner logs out, only the original still-PvP-enabled aggressor may
 continue during that window; other players and expired snapshots fail closed.
 Ownership changes and permanent owner removal clear inherited consent.
+
+`shipfire` targets only contacts (`vessel_find_contact()`: exact two-letter ID
+first, then the nearest name prefix). `vessel_gunnery_permitted()` limits the
+guns to the owner, helm permit holders, members of the online owner's group,
+and immortals; unowned hulls fire only through NPC return fire.
+`vessel_fire_permitted()` adds the firing hull owner's own consent whenever a
+non-owner fires on another player's hull, so retaliation is always lawful.
+Harbors are neutral: `vessel_ship_is_in_port()` refuses player and NPC fire
+into or out of a port. Every shot, hit or miss, costs `PULSE_VIOLENCE` of
+command lag.
 
 ### Builder Commands (Phase 04)
 

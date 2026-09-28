@@ -822,14 +822,14 @@ proc run_frontier_warship {prototype_id target_prototype_id} {
   require_frontier_cargo $vessel_name 6000
 
   set output [run_game_command "shipfire 0 NoFrontierTarget"]
-  require_game_output $output "No such ship in the fleet registry." \
+  require_game_output $output "No contact in sight matches" \
     "$vessel_name bow weapon"
   set output [run_game_command "shipfire 1 Starfall"]
   require_game_output $output \
     "That weapon cannot bear - the target lies off a different arc." \
     "$vessel_name port weapon"
   set output [run_game_command "shipfire 2 NoFrontierTarget"]
-  require_game_output $output "No such ship in the fleet registry." \
+  require_game_output $output "No contact in sight matches" \
     "$vessel_name starboard weapon"
 
   purge_frontier_vessel $ship_slot $vessel_name

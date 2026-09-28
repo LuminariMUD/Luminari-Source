@@ -1131,7 +1131,18 @@ static void duel_arm_ship(struct greyhawk_ship_data *ship, int shipnum, const ch
 void Test_vessel_combat_npc_duel_harness(CuTest *tc)
 {
   const int A = 493, B = 494;
+  struct room_data sea_room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
   int ticks;
+
+  /* Return fire checks the harbor through the room table. */
+  memset(&sea_room, 0, sizeof(sea_room));
+  sea_room.number = 100;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &sea_room;
+  top_of_world = 0;
 
   duel_arm_ship(&greyhawk_ships[A], A, "duelist alpha");
   duel_arm_ship(&greyhawk_ships[B], B, "duelist beta");
@@ -1171,6 +1182,8 @@ void Test_vessel_combat_npc_duel_harness(CuTest *tc)
     autopilot_cleanup(&greyhawk_ships[B]);
     memset(&greyhawk_ships[B], 0, sizeof(greyhawk_ships[B]));
   }
+  world = saved_world;
+  top_of_world = saved_top_of_world;
 }
 
 void Test_vessel_balance_duel_simulation(CuTest *tc)

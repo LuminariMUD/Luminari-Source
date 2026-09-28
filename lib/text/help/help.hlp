@@ -31826,13 +31826,22 @@ CLAIMSHIP NAVAL-COMBAT SHIP-COMBAT SHIPFIRE SHIPREPAIR
 
 Naval combat commands (usable from anywhere aboard your vessel):
 
-SHIPFIRE <slot> <target>
-  Fire the weapon in the given slot (0-9) at another ship, addressed by
-  name or two-letter fleet ID. The shot must be in range of the weapon
-  and the weapon's mounted side (fore/port/rear/starboard) must face the
-  target. Attack roll: d20 + half level + gunnery crew bonus against a
-  defense value based on the target's speed. Weapons reload over several
-  seconds after firing.
+SHIPFIRE <slot> <contact>
+  Fire the weapon in the given slot (0-9) at a contact, addressed by the
+  two-letter ID that CONTACTS and TACTICAL show or by the start of its name
+  (the nearest match wins). Only vessels within your visibility can be
+  targeted. The shot must be in range of the weapon and the weapon's
+  mounted side (fore/port/rear/starboard) must face the target. Attack
+  roll: d20 + half level + gunnery crew bonus against a defense value based
+  on the target's speed. Every shot, hit or miss, costs a combat round, and
+  the weapon reloads over several seconds.
+
+  Only the ship's owner, the owner's helm permit holders, members of the
+  owner's group while the owner is online, and staff may fire a ship's
+  weapons. Unowned hulls fire only through their NPC crews.
+
+  Harbors are neutral ground: a vessel in a port can neither fire nor be
+  fired upon, by players or by NPC crews.
 
   Damage strikes the target's facing side: armor absorbs first, then the
   section's internal structure. Structural hits degrade subsystems - bow
@@ -31864,6 +31873,10 @@ mutually consenting fight begins, however, logging out does not immediately
 shield the vessel from that same opponent: the opponent retains five real
 minutes of attack grace. Other attackers remain blocked while the owner is
 offline.
+
+A ship fights only with its owner's consent. When a permit holder or group
+member fires on another player's ship, the firing ship's owner must also be
+online with PVP enabled, so the target can always answer in kind.
 
 See also: BOARD, DOCK, TACTICAL, SHIPSTATUS, AUTOPILOT
 #0
@@ -41363,7 +41376,8 @@ DISEMBARK
 
 TACTICAL
   Show a 21-by-21 canonical wilderness chart with terrain, public region
-  edges, range rings, weather visibility, and damage-aware contacts.
+  edges, range rings, weather visibility, and damage-aware contacts. The
+  contact roster below the chart is the CONTACTS list, with the same IDs.
 
 SHIPSTATUS
   Show position, terrain, elevation or depth, heading, speed, and armor on all
@@ -41384,12 +41398,17 @@ HEADING [0-360]
 
 SETSAIL <direction>
   Set a cardinal, diagonal, up, or down heading and begin moving. The vessel
-  must already have a positive speed. Surface hulls remain at elevation zero.
+  must already have a positive speed. Each order covers a tenth of the speed
+  in rooms (at least one); storms and gales shorten it by a quarter, while
+  clear, overcast, and squally weather do not. Surface hulls remain at
+  elevation zero.
   Air-capable hulls cannot exceed their class ceiling, and submersible hulls
   can use negative depth only over water.
 
 CONTACTS
-  List other vessels within detection range, nearest first.
+  List the vessels within your visibility, nearest first, with the
+  two-letter ID that SHIPFIRE accepts. Fog closes the horizon and a posted
+  lookout extends it. The nearest 20 contacts are shown.
 
 DOCK [vessel]
   With no target, list vessels in docking range. With a name or fleet ID,

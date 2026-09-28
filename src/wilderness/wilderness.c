@@ -862,6 +862,12 @@ room_rnum find_static_room_by_coordinates(int x, int y)
   void *set;
   room_rnum *room;
 
+  /* Before the wilderness index is built there are no static rooms to find. */
+  if (kd_wilderness_rooms == NULL)
+  {
+    return NOWHERE;
+  }
+
   /* use the kd_wilderness_rooms kd-tree index to look up the room at (x, y) */
   loc[0] = (double)x;
   loc[1] = (double)y;

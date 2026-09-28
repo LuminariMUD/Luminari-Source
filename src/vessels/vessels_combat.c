@@ -217,6 +217,86 @@ bool vessel_pvp_permitted(struct char_data *ch, struct greyhawk_ship_data *targe
 }
 
 /**
+ * May this character work the ship's guns?
+ *
+ * Gunnery answers to the owner, the owner's helm permit holders, members of
+ * the online owner's group, and staff. Passengers cannot turn a hull's
+ * weapons, and unowned hulls fire only through their NPC crews
+ * (vessel_ai_return_fire()).
+ */
+bool vessel_gunnery_permitted(struct char_data *ch, const struct greyhawk_ship_data *ship)
+{
+  struct char_data *owner;
+  int i;
+
+  if (ch == NULL || ship == NULL || IS_NPC(ch))
+  {
+    return FALSE;
+  }
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+  {
+    return TRUE;
+  }
+  if (ship->owner[0] == '\0')
+  {
+    return FALSE;
+  }
+  if (!str_cmp(ship->owner, GET_NAME(ch)))
+  {
+    return TRUE;
+  }
+  for (i = 0; i < ship->num_permits && i < MAX_HELM_PERMITS; i++)
+  {
+    if (!str_cmp(ship->helm_permits[i], GET_NAME(ch)))
+    {
+      return TRUE;
+    }
+  }
+
+  owner = vessel_find_online_player(ship->owner);
+  return owner != NULL && GROUP(ch) != NULL && GROUP(ch) == GROUP(owner);
+}
+
+/**
+ * May ch turn this hull's guns on target?
+ *
+ * The gunner must pass the consent gate, and so must the hull's owner when
+ * someone else fires her: a hull fights only with its owner's consent, so
+ * the target can always answer in kind.
+ */
+bool vessel_fire_permitted(struct char_data *ch, struct greyhawk_ship_data *ship,
+                           struct greyhawk_ship_data *target, bool display)
+{
+  struct char_data *owner;
+
+  if (ch == NULL || ship == NULL || target == NULL)
+  {
+    return FALSE;
+  }
+  if (!vessel_pvp_permitted(ch, target, display))
+  {
+    return FALSE;
+  }
+  if (target->owner[0] == '\0' || ship->owner[0] == '\0' || IS_NPC(ch) ||
+      !str_cmp(ship->owner, GET_NAME(ch)) || GET_LEVEL(ch) >= LVL_IMMORT)
+  {
+    return TRUE;
+  }
+
+  owner = vessel_find_online_player(ship->owner);
+  if (owner != NULL && vessel_pvp_permitted(owner, target, FALSE))
+  {
+    return TRUE;
+  }
+  if (display)
+  {
+    send_to_char(ch, "%s's owner, %s, has not consented to fight %s. The guns stay silent.\r\n",
+                 ship->name, ship->owner, target->name);
+  }
+  return FALSE;
+}
+
+/**
  * Sum of a ship's current internal structure across all four sections.
  */
 int vessel_total_internal(const struct greyhawk_ship_data *ship)
@@ -690,6 +770,12 @@ static void vessel_ai_return_fire(int shipnum)
     return;
   }
 
+  /* Harbors are neutral ground: no fire into or out of a port. */
+  if (vessel_ship_is_in_port(ship) || vessel_ship_is_in_port(target))
+  {
+    return;
+  }
+
   fire_arc = greyhawk_getarc(shipnum, target_num);
   range = greyhawk_range(ship->x, ship->y, ship->z, target->x, target->y, target->z);
 
@@ -774,40 +860,7 @@ void vessel_combat_tick(void)
 }
 
 /**
- * Find a target ship by name or two-letter ID, excluding the given index.
- *
- * @return Target ship index, or -1 if not found
- */
-static int vessel_find_target(const char *arg, int exclude_shipnum)
-{
-  int i;
-
-  if (arg == NULL || !*arg)
-  {
-    return -1;
-  }
-
-  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
-  {
-    if (i == exclude_shipnum)
-    {
-      continue;
-    }
-    if (!is_valid_ship(&greyhawk_ships[i]))
-    {
-      continue;
-    }
-    if (!str_cmp(arg, greyhawk_ships[i].id) || is_abbrev(arg, greyhawk_ships[i].name))
-    {
-      return i;
-    }
-  }
-
-  return -1;
-}
-
-/**
- * shipfire <slot> <target> - fire a weapon slot at another ship.
+ * shipfire <slot> <target> - fire a weapon slot at a contact.
  */
 ACMD(do_shipfire)
 {
@@ -832,10 +885,19 @@ ACMD(do_shipfire)
     return;
   }
 
+  if (!vessel_gunnery_permitted(ch, ship))
+  {
+    send_to_char(ch,
+                 "%s's guns answer to her owner, the helm permit holders, and the owner's "
+                 "group.\r\n",
+                 ship->name);
+    return;
+  }
+
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   if (!*arg1 || !*arg2)
   {
-    send_to_char(ch, "Usage: shipfire <slot 0-%d> <target ship>\r\n", GREYHAWK_MAXSLOTS - 1);
+    send_to_char(ch, "Usage: shipfire <slot 0-%d> <contact ID or name>\r\n", GREYHAWK_MAXSLOTS - 1);
     return;
   }
 
@@ -858,17 +920,29 @@ ACMD(do_shipfire)
     return;
   }
 
-  target_num = vessel_find_target(arg2, ship->shipnum);
+  target_num = vessel_find_contact(ship, arg2);
   if (target_num < 0)
   {
-    send_to_char(ch, "No such ship in the fleet registry.\r\n");
+    send_to_char(ch, "No contact in sight matches '%s'. See 'contacts'.\r\n", arg2);
     return;
   }
   target = &greyhawk_ships[target_num];
 
+  /* Harbors are neutral ground: no fire into or out of a port. */
+  if (vessel_ship_is_in_port(ship))
+  {
+    send_to_char(ch, "The harbor watch forbids gunfire from a berth - put to sea first.\r\n");
+    return;
+  }
+  if (vessel_ship_is_in_port(target))
+  {
+    send_to_char(ch, "%s lies in harbor, under the port's protection.\r\n", target->name);
+    return;
+  }
+
   /* Consent gate: sinking a hull drowns her crew and destroys her cargo, so
    * it answers to the same PvP rules as drawing a blade. */
-  if (!vessel_pvp_permitted(ch, target, TRUE))
+  if (!vessel_fire_permitted(ch, ship, target, TRUE))
   {
     return;
   }
@@ -899,6 +973,7 @@ ACMD(do_shipfire)
   target->last_attacker = ship->shipnum;
 
   weapon->timer = VESSEL_WEAPON_RELOAD_TICKS;
+  WAIT_STATE(ch, PULSE_VIOLENCE);
 
   send_to_ship(ship, "%s FIRES at %s!", weapon->desc[0] ? weapon->desc : "A weapon", target->name);
 
@@ -914,8 +989,6 @@ ACMD(do_shipfire)
   send_to_ship(ship, "Direct hit on %s!", target->name);
   vessel_event_record_damage(ship->shipnum, target_num, dmg);
   vessel_apply_damage(target_num, dmg, struck_arc, "Incoming fire");
-
-  WAIT_STATE(ch, PULSE_VIOLENCE);
 }
 
 /**
