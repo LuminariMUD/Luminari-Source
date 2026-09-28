@@ -280,8 +280,8 @@ cleanup_test_state() {
     SELECT COALESCE(hunter_ship_id, 0)
       FROM vessel_bounty_hunts
      WHERE target_player = '$target_player';")
-  if [[ "$current_hunter_slot" =~ ^[2-9][0-9]*$ &&
-    "$current_hunter_slot" -le 500 ]]; then
+  if [[ "$current_hunter_slot" =~ ^[1-9][0-9]*$ &&
+    "$current_hunter_slot" -ge 2 && "$current_hunter_slot" -le 500 ]]; then
     hunter_identity_count=$(database_query "
       SELECT COUNT(*)
         FROM vessel_bounty_hunts AS hunt
@@ -297,8 +297,8 @@ cleanup_test_state() {
     fi
   fi
 
-  if [[ "$target_slot" =~ ^[2-9][0-9]*$ &&
-    "$target_slot" -le 500 &&
+  if [[ "$target_slot" =~ ^[1-9][0-9]*$ &&
+    "$target_slot" -ge 2 && "$target_slot" -le 500 &&
     "$target_prototype_id" =~ ^[1-9][0-9]*$ ]]; then
     target_identity_count=$(database_query "
       SELECT COUNT(*)
@@ -529,7 +529,7 @@ run_kohdee_commands "$run_dir/01-target-spawn.log" \
 target_slot=$(sed -n \
   "s/.*as ship \([0-9][0-9]*\):.*/\1/p" \
   "$run_dir/01-target-spawn.log" | tail -n 1)
-[[ "$target_slot" =~ ^[2-9][0-9]*$ && "$target_slot" -le 500 ]] ||
+[[ "$target_slot" =~ ^[1-9][0-9]*$ && "$target_slot" -ge 2 && "$target_slot" -le 500 ]] ||
   fail "could not read the temporary target fleet slot"
 
 target_valid=$(database_query "
@@ -578,7 +578,7 @@ initial_hunter_state=$(hunter_state)
 IFS='|' read -r hunter_slot hunter_generation hunter_target_slot \
   hunter_name_hex hunter_last_attacker hunter_prototype_id hunter_class \
   hunter_pilot_count hunter_unowned <<<"$initial_hunter_state"
-[[ "$hunter_slot" =~ ^[2-9][0-9]*$ && "$hunter_slot" -le 500 &&
+[[ "$hunter_slot" =~ ^[1-9][0-9]*$ && "$hunter_slot" -ge 2 && "$hunter_slot" -le 500 &&
   "$hunter_slot" != "$target_slot" ]] ||
   fail "the active lifecycle has an invalid hunter fleet slot"
 [[ "$hunter_generation" == 1 &&
