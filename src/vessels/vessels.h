@@ -604,6 +604,23 @@ void vessel_damage_weapon(struct greyhawk_ship_data *attacker, struct greyhawk_s
 void vessel_knockdown_aboard(struct greyhawk_ship_data *ship);
 void vessel_update_condition(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *attacker);
 
+/* Breaches and sinking (study 3.3.3); sink timers in vessel ticks */
+#define VESSEL_SINK_TICKS_OWNED_MIN 150    /* 75 s: a player-owned hull */
+#define VESSEL_SINK_TICKS_OWNED_MAX 300    /* 150 s */
+#define VESSEL_SINK_TICKS_UNOWNED_MIN 2000 /* 1000 s: public and NPC hulls, to board and loot */
+#define VESSEL_SINK_TICKS_UNOWNED_MAX 3000 /* 1500 s */
+#define VESSEL_SALVAGE_CRATE_MARK 7317     /* Object value 2 of a floating salvage crate */
+#define VESSEL_SALVAGE_CRATE_HOURS 24      /* MUD hours a salvage crate floats */
+
+int vessel_breached_arcs(const struct greyhawk_ship_data *ship);
+bool vessel_is_sinking(const struct greyhawk_ship_data *ship);
+void vessel_begin_sinking(struct greyhawk_ship_data *ship);
+void vessel_damage_tick_one(struct greyhawk_ship_data *ship);
+int vessel_spill_cargo(struct greyhawk_ship_data *ship, room_rnum room);
+bool vessel_is_salvage_crate(const struct obj_data *obj);
+int vessel_salvage_crates(struct greyhawk_ship_data *ship, room_rnum room);
+ACMD_DECL(do_shipsalvage);
+
 /* ========================================================================= */
 /* NAVAL COMBAT (Phase 05, vessels_combat.c)                                 */
 /* ========================================================================= */
@@ -756,6 +773,8 @@ struct vessel_balance_duel_result
 
 void vessel_trade_ensure_schema(void);
 int vessel_cargo_weight(const struct greyhawk_ship_data *ship);
+const char *vessel_commodity_name(int commodity_id);
+int vessel_stow_cargo(struct greyhawk_ship_data *ship, int commodity_id, int units);
 int vessel_commodity_price(int base_price, int supply);
 int vessel_trade_adjusted_supply(int supply, int delta);
 int vessel_trade_restocked_supply(int supply);
@@ -1504,6 +1523,10 @@ struct greyhawk_ship_data
    * runtime-only and prevents duplicate named-water crossing messages. */
   int waters_region_vnum;
   bool waters_region_initialized;
+
+  /* S3 damage model (vessels_damage.c), runtime only, in vessel ticks */
+  short int sink_ticks;          /* Left before a sinking hull goes down; 0 = afloat */
+  short int colors_struck_ticks; /* Left while her colors are struck; 0 = flying */
 
   /* Phase 5: Naval combat */
   int last_attacker;           /* Fleet index of last ship to fire on us (0 = none) */

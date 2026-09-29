@@ -906,7 +906,9 @@ void Test_vessel_combat_status_bands(CuTest *tc)
   ship.rinternal = ship.pinternal = ship.sinternal = 0; /* 20% */
   CuAssertIntEquals(tc, VESSEL_STATUS_CRIPPLED, vessel_status(&ship));
 
-  ship.finternal = 0; /* 0% */
+  ship.finternal = 0; /* 0%: gutted, but only a sink timer means sinking */
+  CuAssertIntEquals(tc, VESSEL_STATUS_CRIPPLED, vessel_status(&ship));
+  ship.sink_ticks = 10;
   CuAssertIntEquals(tc, VESSEL_STATUS_SINKING, vessel_status(&ship));
 
   CuAssertStrEquals(tc, "battered", vessel_status_name(VESSEL_STATUS_BATTERED));
@@ -1064,12 +1066,20 @@ void Test_vessel_combat_damage_and_sinking(CuTest *tc)
   vessel_apply_damage(S, 8, GREYHAWK_REAR, "test shot");
   CuAssertTrue(tc, ship->turnrate < 20);
 
-  /* Burn down all internal structure -> ship sinks, slot cleared */
+  /* Holed on two sides she starts sinking; an unowned hull stays afloat long
+   * enough to board, then goes down and her slot is cleared. */
   vessel_apply_damage(S, 100, GREYHAWK_FORE, "test shot");
+  CuAssertTrue(tc, !vessel_is_sinking(ship));
   vessel_apply_damage(S, 100, GREYHAWK_REAR, "test shot");
-  vessel_apply_damage(S, 100, GREYHAWK_PORT, "test shot");
-  vessel_apply_damage(S, 100, GREYHAWK_STARBOARD, "test shot");
-  CuAssertIntEquals(tc, 0, vessel_total_internal(ship));
+  CuAssertTrue(tc, vessel_is_sinking(ship));
+  CuAssertIntEquals(tc, VESSEL_STATUS_SINKING, vessel_status(ship));
+  CuAssertTrue(tc, ship->sink_ticks >= VESSEL_SINK_TICKS_UNOWNED_MIN);
+  while (ship->sink_ticks > 1)
+  {
+    vessel_combat_tick_one(ship);
+  }
+  CuAssertTrue(tc, ship->name[0] != '\0');
+  vessel_combat_tick_one(ship);
   CuAssertTrue(tc, ship->name[0] == '\0'); /* slot memset by vessel_sink */
 }
 
@@ -1133,21 +1143,30 @@ void Test_vessel_combat_npc_duel_harness(CuTest *tc)
   greyhawk_ships[A].last_attacker = B;
   greyhawk_ships[B].last_attacker = A;
 
-  /* A duel between evenly matched hulls must end decisively within a
-   * bounded number of ticks (balance smoke test: no stalemate, no
-   * instant kill). 120 internal per hull, ~7 avg damage per hit. */
+  /* Evenly matched hulls lying abeam hole each other's facing side within a
+   * bounded number of ticks (no stalemate, no instant kill). Shot from one
+   * side only, neither is holed on a second side, so neither sinks: in the
+   * Duris model deflected hits reach only the other sides' structure. */
   for (ticks = 0; ticks < 2000; ticks++)
   {
     vessel_combat_tick();
-    if (greyhawk_ships[A].name[0] == '\0' || greyhawk_ships[B].name[0] == '\0')
+    if (vessel_breached_arcs(&greyhawk_ships[A]) > 0 ||
+        vessel_breached_arcs(&greyhawk_ships[B]) > 0)
     {
       break;
     }
   }
 
-  CuAssertTrue(tc, ticks < 2000); /* someone sank */
+  CuAssertTrue(tc, ticks < 2000); /* a facing side is holed */
   CuAssertTrue(tc, ticks > 5);    /* but not instantly */
-  CuAssertTrue(tc, greyhawk_ships[A].name[0] == '\0' || greyhawk_ships[B].name[0] == '\0');
+  for (ticks = 0; ticks < 1000; ticks++)
+  {
+    vessel_combat_tick();
+  }
+  CuAssertTrue(tc, !vessel_is_sinking(&greyhawk_ships[A]));
+  CuAssertTrue(tc, !vessel_is_sinking(&greyhawk_ships[B]));
+  CuAssertTrue(tc, vessel_breached_arcs(&greyhawk_ships[A]) <= 1);
+  CuAssertTrue(tc, vessel_breached_arcs(&greyhawk_ships[B]) <= 1);
 
   /* Cleanup whichever survived (autopilot memory) */
   if (greyhawk_ships[A].name[0] != '\0')

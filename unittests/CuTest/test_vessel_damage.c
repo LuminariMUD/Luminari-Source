@@ -275,3 +275,91 @@ void Test_vessel_hull_blast_knocks_the_unsure_footed_down(CuTest *tc)
   top_of_world = saved_top_of_world;
   damage_clear();
 }
+
+void Test_vessel_one_breach_immobilizes_and_two_sink(CuTest *tc)
+{
+  struct greyhawk_ship_data *ship;
+
+  ship = damage_warship(DAMAGE_TARGET_SLOT, "TG");
+  ship->maxspeed = 17;
+  ship->position_speed_percent = 100;
+  CuAssertDblEquals(tc, 17.0, vessel_max_speed(ship), 0.0001);
+
+  /* One breached arc: dead in the water, or half speed aloft. */
+  ship->rarmor = 0;
+  vessel_damage_hull(NULL, ship, 30, GREYHAWK_REAR, FALSE);
+  CuAssertIntEquals(tc, 1, vessel_breached_arcs(ship));
+  CuAssertDblEquals(tc, 0.0, vessel_max_speed(ship), 0.0001);
+  ship->z = 100.0;
+  CuAssertDblEquals(tc, 8.5, vessel_max_speed(ship), 0.0001);
+  ship->z = 0.0;
+  vessel_update_condition(ship, NULL);
+  CuAssertTrue(tc, !vessel_is_sinking(ship));
+
+  /* A second breach starts the owned hull's 75-150 s sink timer. */
+  strlcpy(ship->owner, "Mara", sizeof(ship->owner));
+  ship->setspeed = 12;
+  ship->parmor = 0;
+  ship->pinternal = 0;
+  vessel_update_condition(ship, NULL);
+  CuAssertTrue(tc, vessel_is_sinking(ship));
+  CuAssertTrue(tc, ship->sink_ticks >= VESSEL_SINK_TICKS_OWNED_MIN &&
+                       ship->sink_ticks <= VESSEL_SINK_TICKS_OWNED_MAX);
+  CuAssertIntEquals(tc, 0, ship->setspeed);
+  CuAssertIntEquals(tc, VESSEL_STATUS_SINKING, vessel_status(ship));
+  CuAssertDblEquals(tc, 0.0, vessel_max_speed(ship), 0.0001);
+
+  /* Structure gone while the armor holds is crippled, not sinking. */
+  ship = damage_warship(DAMAGE_TARGET_SLOT, "TG");
+  ship->finternal = ship->pinternal = ship->rinternal = ship->sinternal = 0;
+  CuAssertIntEquals(tc, 0, vessel_breached_arcs(ship));
+  CuAssertIntEquals(tc, VESSEL_STATUS_CRIPPLED, vessel_status(ship));
+
+  damage_clear();
+}
+
+void Test_vessel_cargo_spills_as_crates_that_can_be_salvaged(CuTest *tc)
+{
+  struct greyhawk_ship_data *wreck;
+  struct greyhawk_ship_data *salvor;
+  struct room_data sea;
+  struct room_data *saved_world;
+  struct obj_data *crate;
+  room_rnum saved_top_of_world;
+  int crates;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  memset(&sea, 0, sizeof(sea));
+  sea.number = DAMAGE_ROOM_VNUM;
+  world = &sea;
+  top_of_world = 0;
+
+  /* Half of each lot floats off; a single unit goes down with the hull. */
+  wreck = damage_warship(DAMAGE_TARGET_SLOT, "TG");
+  wreck->cargo[0].commodity_id = 7;
+  wreck->cargo[0].quantity = 9;
+  wreck->cargo[1].commodity_id = 8;
+  wreck->cargo[1].quantity = 1;
+  crates = vessel_spill_cargo(wreck, 0);
+  CuAssertIntEquals(tc, 1, crates);
+  crate = sea.contents;
+  CuAssertPtrNotNull(tc, crate);
+  CuAssertTrue(tc, vessel_is_salvage_crate(crate));
+  CuAssertIntEquals(tc, 7, GET_OBJ_VAL(crate, 0));
+  CuAssertIntEquals(tc, 4, GET_OBJ_VAL(crate, 1));
+  CuAssertTrue(tc, !CAN_WEAR(crate, ITEM_WEAR_TAKE));
+  CuAssertTrue(tc, OBJ_FLAGGED(crate, ITEM_DECAY));
+
+  /* A salvor hauls the crate into her hold and the crate is gone. */
+  salvor = damage_warship(DAMAGE_ATTACKER_SLOT, "AT");
+  CuAssertIntEquals(tc, 4, vessel_salvage_crates(salvor, 0));
+  CuAssertIntEquals(tc, 7, salvor->cargo[0].commodity_id);
+  CuAssertIntEquals(tc, 4, salvor->cargo[0].quantity);
+  CuAssertPtrEquals(tc, NULL, sea.contents);
+  CuAssertIntEquals(tc, 0, vessel_salvage_crates(salvor, 0));
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  damage_clear();
+}

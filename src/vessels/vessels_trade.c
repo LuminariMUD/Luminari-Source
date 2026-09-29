@@ -509,6 +509,74 @@ static struct commodity_def *commodity_by_id(int id)
 }
 
 /**
+ * A commodity's name, or "cargo" when the id is unknown.
+ */
+const char *vessel_commodity_name(int commodity_id)
+{
+  struct commodity_def *def = commodity_by_id(commodity_id);
+
+  return def != NULL ? def->name : "cargo";
+}
+
+/**
+ * Stow up to `units` of a commodity in the hold, unit by unit so the weight
+ * limit stops the load exactly at capacity.
+ *
+ * @return units stowed
+ */
+int vessel_stow_cargo(struct greyhawk_ship_data *ship, int commodity_id, int units)
+{
+  int capacity;
+  int stowed;
+  int lot;
+
+  if (ship == NULL || commodity_id <= 0 || units <= 0)
+  {
+    return 0;
+  }
+
+  for (lot = 0; lot < MAX_CARGO_LOTS; lot++)
+  {
+    if (ship->cargo[lot].commodity_id == commodity_id)
+    {
+      break;
+    }
+  }
+  if (lot >= MAX_CARGO_LOTS)
+  {
+    for (lot = 0; lot < MAX_CARGO_LOTS; lot++)
+    {
+      if (ship->cargo[lot].commodity_id == 0)
+      {
+        break;
+      }
+    }
+  }
+  if (lot >= MAX_CARGO_LOTS)
+  {
+    return 0; /* No bay free for this kind of goods */
+  }
+
+  capacity = vessel_effective_cargo_capacity(ship);
+  ship->cargo[lot].commodity_id = commodity_id;
+  for (stowed = 0; stowed < units; stowed++)
+  {
+    ship->cargo[lot].quantity++;
+    if (vessel_cargo_weight(ship) > capacity)
+    {
+      ship->cargo[lot].quantity--;
+      break;
+    }
+  }
+  if (ship->cargo[lot].quantity <= 0)
+  {
+    ship->cargo[lot].quantity = 0;
+    ship->cargo[lot].commodity_id = 0;
+  }
+  return stowed;
+}
+
+/**
  * Look up a cached commodity by (abbreviated) name.
  */
 static struct commodity_def *commodity_by_name(const char *name)

@@ -223,12 +223,25 @@ SHIPFIRE <slot> <contact>
   and may damage a weapon mounted there. On a gutted side, hits can glance
   into another section and always damage a weapon. Stern structure hits
   foul the rudder (turning). A structural hit can knock everyone aboard off
-  their feet: Reflex DC 15, or prone for two rounds. A hull
-  with no structure left SINKS: everyone aboard is thrown into the water
-  and the ship becomes salvageable wreckage.
+  their feet: Reflex DC 15, or prone for two rounds.
+
+  A side with neither armor nor structure left is holed. One holed side
+  leaves her dead in the water (an airship aloft keeps half speed); two
+  start her SINKING. A player\'s hull goes down in 75-150 seconds, an
+  unowned hull in 17-25 minutes, time enough to board and plunder her. A
+  sinking hull cannot move, fire, or be repaired. When she goes down,
+  everyone aboard is thrown into the water, half of each cargo lot floats
+  off as salvage crates, and the hull becomes wreckage. A hull shot from
+  one side only is holed there but cannot sink until a second side is
+  holed, so maneuver to bring a fresh side under your guns.
 
   Ships with an assigned NPC pilot automatically return fire at their
   attacker with every weapon that bears.
+
+SHIPSALVAGE
+  From the helm of a stopped vessel, haul the salvage crates floating
+  alongside into the hold, as much as she can carry. Crates float for about
+  half an hour.
 
 SHIPREPAIR
   Slow at-sea repairs. The ship must be stationary. Each use patches a
@@ -241,9 +254,6 @@ CLAIMSHIP
   present and claim it. Ownership transfers to you, unless you already own
   as many hulls as the ownership limit allows. Pairs with hostile
   boarding (\'board_hostile <vessel>\' from a nearby vessel).
-
-Running aground: deep-draft vessels that sail into water shallower than
-their draft grind to a halt and take bow damage. Check your charts.
 
 PvP: firing on, boarding, plundering, or claiming another player\'s ship all
 require that you and the ship\'s owner both have PVP enabled (type \'pvp\'),
@@ -264,6 +274,7 @@ ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'SHIPFIRE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'SHIPREPAIR');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'CLAIMSHIP');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'SHIPSALVAGE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'SHIP-COMBAT');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'NAVAL-COMBAT');
 

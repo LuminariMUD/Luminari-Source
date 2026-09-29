@@ -538,6 +538,7 @@ ACMD(do_shipfix)
   {
     ship->slot[s].damage = 0;
   }
+  ship->sink_ticks = 0;
   if (!vessel_db_save_weapons(ship))
   {
     log("SYSERR: %s could not persist the weapon repair for ship %d", GET_NAME(ch), slot);

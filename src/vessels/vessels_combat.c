@@ -375,14 +375,14 @@ int vessel_status(const struct greyhawk_ship_data *ship)
   int cur = vessel_total_internal(ship);
   int pct;
 
+  if (vessel_is_sinking(ship))
+  {
+    return VESSEL_STATUS_SINKING;
+  }
+
   if (max <= 0)
   {
     return VESSEL_STATUS_SOUND; /* No damage model data - treat as sound */
-  }
-
-  if (cur <= 0)
-  {
-    return VESSEL_STATUS_SINKING;
   }
 
   pct = cur * 100 / max;
@@ -625,9 +625,9 @@ static void vessel_ai_return_fire(int shipnum)
   int dmg;
   int s;
 
-  if (ship->autopilot == NULL || ship->autopilot->pilot_mob_vnum == -1)
+  if (ship->autopilot == NULL || ship->autopilot->pilot_mob_vnum == -1 || vessel_is_sinking(ship))
   {
-    return; /* No NPC pilot - players fight their own battles */
+    return; /* No NPC pilot - players fight their own battles; a sinking hull is lost */
   }
 
   target_num = ship->last_attacker;
@@ -726,6 +726,7 @@ void vessel_combat_tick_one(struct greyhawk_ship_data *ship)
     }
   }
   vessel_ai_return_fire(ship->shipnum);
+  vessel_damage_tick_one(ship);
 }
 
 void vessel_combat_tick(void)
@@ -768,6 +769,11 @@ ACMD(do_shipfire)
                  "%s's guns answer to her owner, the helm permit holders, and the owner's "
                  "group.\r\n",
                  ship->name);
+    return;
+  }
+  if (vessel_is_sinking(ship))
+  {
+    send_to_char(ch, "She is going down - the gun crews are abandoning ship!\r\n");
     return;
   }
 
@@ -896,6 +902,12 @@ ACMD(do_shiprepair)
   if (ship == NULL)
   {
     send_to_char(ch, "You must be aboard a ship to make repairs.\r\n");
+    return;
+  }
+
+  if (vessel_is_sinking(ship))
+  {
+    send_to_char(ch, "She is holed on two sides and going down - no patch will save her.\r\n");
     return;
   }
 

@@ -23,8 +23,8 @@ WHERE tag IN (
 SELECT
   'command_keywords' AS check_name,
   COUNT(*) AS actual,
-  81 AS expected,
-  IF(COUNT(*) = 81, 'PASS', 'FAIL') AS result
+  82 AS expected,
+  IF(COUNT(*) = 82, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE (help_tag, keyword) IN (
   ('VESSELS', 'BOARD'),
@@ -48,6 +48,7 @@ WHERE (help_tag, keyword) IN (
   ('SHIPFIRE', 'SHIPFIRE'),
   ('SHIPFIRE', 'SHIPREPAIR'),
   ('SHIPFIRE', 'CLAIMSHIP'),
+  ('SHIPFIRE', 'SHIPSALVAGE'),
   ('SHIPBROWSE', 'SHIPBROWSE'),
   ('SHIPBROWSE', 'SHIPBUY'),
   ('SHIPBROWSE', 'SHIPCHRISTEN'),

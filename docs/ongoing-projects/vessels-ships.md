@@ -1353,8 +1353,8 @@ D6 (Part 5, step 3). The damage model lives in the new `src/vessels/vessels_dama
 | Duris arcs (fore 320-40, starboard 40-140, rear 140-220, port 220-320) | Done | `vessel_arc_for_relative_bearing()` behind `greyhawk_getarc()` |
 | Refit rescaling: plating and reinforcement +20%, rigging +10% maximum speed (at least 1, at most 30), hold +25%; each 20% of the class price | Done | `do_shipupgrade()`, `vessel_upgrade_cost()`, `vessel_rigged_speed()` in `vessels_upgrades.c` |
 | Damage resolution per fragment: sail hits (warship sails take 85%), spread across arcs, armor then internals, confirmed criticals past armor, deflection on gutted arcs, weapon damage (disabled at 1, destroyed at 100), knockdown (Reflex DC 15) | Done | `vessel_resolve_hit()`, `vessel_damage_hull()`, `vessel_damage_sail()`, `vessel_damage_weapon()`, `vessel_knockdown_aboard()` in `vessels_damage.c`; `ship_weapons.weapon_damage`; `shipfire`, NPC return fire, and hazards call them |
-| Breach states: one breached arc immobile (airborne hulls half speed), two sinking on a timer (150-300 ticks owned, 2000-3000 unowned); a sinking hull cannot move, fire, or be repaired | Planned |  |
-| Going down: half of each bulk cargo lot spills as salvage crates; `shipsalvage` hauls crates into a stopped hull's hold | Planned |  |
+| Breach states: one breached arc immobile (airborne hulls half speed), two sinking on a timer (150-300 ticks owned, 2000-3000 unowned); a sinking hull cannot move, fire, or be repaired | Done | `vessel_breached_arcs()`, `vessel_update_condition()`, `vessel_begin_sinking()`, `vessel_damage_tick_one()` (combat tick); `vessel_max_speed()`; `sink_ticks` |
+| Going down: half of each bulk cargo lot spills as salvage crates; `shipsalvage` hauls crates into a stopped hull's hold | Done | `vessel_spill_cargo()`, `vessel_salvage_crates()`, `do_shipsalvage()`; `vessel_stow_cargo()` shared with `plunder` |
 | D6: `strikecolors`; capture and plunder only of disabled prizes; hostile boarding only at speed 3 or less or disabled | Planned |  |
 | Migration: prototype armor rescaled once by class (armor-scale flag), live hulls converted keeping their damage fractions (condition-model flag), weapon damage column; Phase 19 SQL with rollback and verifier | Planned |  |
 | Status display (structure, sail, rudder, breaches, sinking, colors, weapons), help in both places, `VESSEL_SYSTEM.md` | Planned |  |
@@ -1378,6 +1378,11 @@ Interpretations decided while planning S3:
 - A sinking hull can be boarded and plundered but not captured.
 - "Abandoned" means no conscious character (player or mobile, the pilot included) aboard other
   than the claimant; hired crew positions are abstract and do not defend.
+- Found while testing: a hull shot from one side only cannot sink. Deflected hits reach only
+  another arc's structure, never its armor, so only the facing arc is ever holed (Duris behaves
+  the same). S4's duel harness and S6's NPC AI must maneuver to bring a second arc to bear.
+- The stale "Running aground" help paragraph (grounding was removed in S2) is dropped with the
+  S3 help rewrite.
 
 ### Estimate
 

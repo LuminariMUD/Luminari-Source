@@ -376,6 +376,7 @@ int vessel_damage_hull(struct greyhawk_ship_data *attacker, struct greyhawk_ship
   unsigned char *armor;
   unsigned char *internal;
   int weapon_chance;
+  int breaches;
   int dealt;
   int other;
 
@@ -385,6 +386,7 @@ int vessel_damage_hull(struct greyhawk_ship_data *attacker, struct greyhawk_ship
   }
   damage = MAX(1, damage);
   dealt = damage;
+  breaches = vessel_breached_arcs(target);
 
   if (attacker != NULL)
   {
@@ -436,6 +438,20 @@ int vessel_damage_hull(struct greyhawk_ship_data *attacker, struct greyhawk_ship
     weapon_chance = 100;
   }
   *internal = (unsigned char)MAX(0, (int)*internal - damage);
+  if (*vessel_arc_armor(target, arc) == 0 && *internal == 0 &&
+      vessel_breached_arcs(target) > breaches)
+  {
+    send_to_ship(target, "The %s is holed through!", vessel_arc_side_name(arc));
+    if (breaches == 0)
+    {
+      send_to_ship(target, target->z > 0.0 ? "She can make only half speed aloft!"
+                                           : "She is too damaged to move!");
+    }
+    if (attacker != NULL)
+    {
+      send_to_ship(attacker, "You hole %s's %s!", target->name, vessel_arc_side_name(arc));
+    }
+  }
 
   if (arc == GREYHAWK_REAR && target->turnrate > 0)
   {
@@ -502,14 +518,253 @@ int vessel_resolve_hit(struct greyhawk_ship_data *attacker, struct greyhawk_ship
   return total;
 }
 
+/** Arcs with neither armor nor structure left (study 3.3.3). */
+int vessel_breached_arcs(const struct greyhawk_ship_data *ship)
+{
+  if (ship == NULL)
+  {
+    return 0;
+  }
+  return (ship->farmor == 0 && ship->finternal == 0) + (ship->parmor == 0 && ship->pinternal == 0) +
+         (ship->rarmor == 0 && ship->rinternal == 0) + (ship->sarmor == 0 && ship->sinternal == 0);
+}
+
+bool vessel_is_sinking(const struct greyhawk_ship_data *ship)
+{
+  return ship != NULL && ship->sink_ticks > 0;
+}
+
 /**
- * Reconcile a hull's state after damage: a hull with no structure left sinks.
+ * Start the sink timer: 75-150 s for a player-owned hull, 1000-1500 s for a
+ * public or NPC hull so it can be boarded and looted. The hull stops, drops
+ * her autopilot, and can neither move nor fire until she goes down.
+ */
+void vessel_begin_sinking(struct greyhawk_ship_data *ship)
+{
+  if (!is_valid_ship(ship) || vessel_is_sinking(ship))
+  {
+    return;
+  }
+
+  ship->sink_ticks =
+      (short int)(ship->owner[0] != '\0'
+                      ? rand_number(VESSEL_SINK_TICKS_OWNED_MIN, VESSEL_SINK_TICKS_OWNED_MAX)
+                      : rand_number(VESSEL_SINK_TICKS_UNOWNED_MIN, VESSEL_SINK_TICKS_UNOWNED_MAX));
+  ship->setspeed = 0;
+  ship->anchored = FALSE;
+  ship->colors_struck_ticks = 0;
+  if (ship->autopilot != NULL && (ship->autopilot->state == AUTOPILOT_TRAVELING ||
+                                  ship->autopilot->state == AUTOPILOT_WAITING))
+  {
+    autopilot_pause(ship);
+  }
+  send_to_ship(ship, "%s is holed on two sides - she is SINKING! Abandon ship!", ship->name);
+  log("Info: Ship %d '%s' started sinking at (%d,%d); %d ticks", ship->shipnum, ship->name,
+      (int)ship->x, (int)ship->y, ship->sink_ticks);
+}
+
+/**
+ * Reconcile a hull's state after damage (Duris update_ship_status()): one
+ * breached arc immobilizes her (vessel_max_speed()), two start her sinking.
  */
 void vessel_update_condition(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *attacker)
 {
   (void)attacker;
-  if (is_valid_ship(ship) && vessel_total_internal(ship) <= 0)
+  if (is_valid_ship(ship) && !vessel_is_sinking(ship) && vessel_breached_arcs(ship) >= 2)
   {
-    vessel_sink(ship->shipnum);
+    vessel_begin_sinking(ship);
   }
+}
+
+/**
+ * Float half of each bulk cargo lot off as salvage crates in `room` (study
+ * 3.3.3); the other half goes down with the hull. A crate floats for
+ * VESSEL_SALVAGE_CRATE_HOURS and cannot be carried off by hand.
+ *
+ * @return crates set afloat
+ */
+int vessel_spill_cargo(struct greyhawk_ship_data *ship, room_rnum room)
+{
+  struct obj_data *crate;
+  char buf[MAX_STRING_LENGTH];
+  const char *goods;
+  int crates;
+  int units;
+  int i;
+
+  if (ship == NULL || room == NOWHERE)
+  {
+    return 0;
+  }
+
+  crates = 0;
+  for (i = 0; i < MAX_CARGO_LOTS; i++)
+  {
+    units = ship->cargo[i].quantity / 2;
+    if (ship->cargo[i].commodity_id <= 0 || units <= 0)
+    {
+      continue;
+    }
+
+    goods = vessel_commodity_name(ship->cargo[i].commodity_id);
+    crate = create_obj();
+    GET_OBJ_TYPE(crate) = ITEM_OTHER;
+    GET_OBJ_VAL(crate, 0) = ship->cargo[i].commodity_id;
+    GET_OBJ_VAL(crate, 1) = units;
+    GET_OBJ_VAL(crate, 2) = VESSEL_SALVAGE_CRATE_MARK;
+    GET_OBJ_TIMER(crate) = VESSEL_SALVAGE_CRATE_HOURS;
+    GET_OBJ_COST(crate) = 0;
+    GET_OBJ_RENT(crate) = 0;
+    GET_OBJ_WEIGHT(crate) = 0;
+    snprintf(buf, sizeof(buf), "crate salvage floating %s", goods);
+    crate->name = strdup(buf);
+    snprintf(buf, sizeof(buf), "a floating crate of %s", goods);
+    crate->short_description = strdup(buf);
+    snprintf(buf, sizeof(buf), "A salvage crate of %s (%d unit%s) bobs among the waves here.",
+             goods, units, units == 1 ? "" : "s");
+    crate->description = strdup(buf);
+    SET_BIT_AR(GET_OBJ_EXTRA(crate), ITEM_DECAY);
+    SET_BIT_AR(GET_OBJ_EXTRA(crate), ITEM_NORENT);
+    SET_BIT_AR(GET_OBJ_EXTRA(crate), ITEM_NOSELL);
+    obj_to_room(crate, room);
+    crates++;
+  }
+  return crates;
+}
+
+/** A floating salvage crate made by vessel_spill_cargo(). */
+bool vessel_is_salvage_crate(const struct obj_data *obj)
+{
+  return obj != NULL && GET_OBJ_TYPE(obj) == ITEM_OTHER &&
+         GET_OBJ_VAL(obj, 2) == VESSEL_SALVAGE_CRATE_MARK && GET_OBJ_VAL(obj, 0) > 0 &&
+         GET_OBJ_VAL(obj, 1) > 0;
+}
+
+/**
+ * Haul the salvage crates floating in `room` into ship's hold, as much as it
+ * will carry; a crate that does not fit keeps the rest.
+ *
+ * @return units hauled aboard
+ */
+int vessel_salvage_crates(struct greyhawk_ship_data *ship, room_rnum room)
+{
+  struct obj_data *obj;
+  struct obj_data *next_obj;
+  int hauled;
+  int stowed;
+
+  if (ship == NULL || room == NOWHERE)
+  {
+    return 0;
+  }
+
+  hauled = 0;
+  for (obj = world[room].contents; obj != NULL; obj = next_obj)
+  {
+    next_obj = obj->next_content;
+    if (!vessel_is_salvage_crate(obj))
+    {
+      continue;
+    }
+    stowed = vessel_stow_cargo(ship, GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1));
+    hauled += stowed;
+    GET_OBJ_VAL(obj, 1) -= stowed;
+    if (GET_OBJ_VAL(obj, 1) <= 0)
+    {
+      extract_obj(obj);
+    }
+  }
+  if (hauled > 0)
+  {
+    vessel_db_save_cargo(ship);
+  }
+  return hauled;
+}
+
+/** The sinking hull goes down: her cargo spills, then vessel_sink(). */
+static void vessel_finish_sinking(struct greyhawk_ship_data *ship)
+{
+  room_rnum water;
+
+  water = ship->shipobj != NULL ? IN_ROOM(ship->shipobj) : NOWHERE;
+  if (vessel_spill_cargo(ship, water) > 0)
+  {
+    send_to_room(water, "Crates of cargo burst from the hold and bob to the surface.\r\n");
+  }
+  vessel_sink(ship->shipnum);
+}
+
+/**
+ * Damage-model tick: count a sinking hull down to her end, and haul struck
+ * colors back up when she moves or their time runs out.
+ */
+void vessel_damage_tick_one(struct greyhawk_ship_data *ship)
+{
+  if (!is_valid_ship(ship))
+  {
+    return;
+  }
+
+  if (ship->colors_struck_ticks > 0)
+  {
+    ship->colors_struck_ticks--;
+    if (ship->colors_struck_ticks == 0 || ship->speed > 0.0)
+    {
+      ship->colors_struck_ticks = 0;
+      send_to_ship(ship, "%s's colors fly again.", ship->name);
+    }
+  }
+
+  if (ship->sink_ticks > 0)
+  {
+    ship->sink_ticks--;
+    if (ship->sink_ticks == 0)
+    {
+      vessel_finish_sinking(ship);
+    }
+  }
+}
+
+/**
+ * shipsalvage - haul floating salvage crates into the hold from the helm of
+ * a stopped hull.
+ */
+ACMD(do_shipsalvage)
+{
+  struct greyhawk_ship_data *ship;
+  room_rnum water;
+  int hauled;
+
+  ship = get_ship_from_room(IN_ROOM(ch));
+  if (!is_valid_ship(ship))
+  {
+    send_to_char(ch, "You must be aboard a vessel to haul in salvage.\r\n");
+    return;
+  }
+  if (!is_pilot(ch, ship))
+  {
+    send_to_char(ch, "You must be at an authorized helm to order salvage.\r\n");
+    return;
+  }
+  if (vessel_is_sinking(ship))
+  {
+    send_to_char(ch, "She is going down - there is no time for salvage.\r\n");
+    return;
+  }
+  if (ship->speed > 0.0)
+  {
+    send_to_char(ch, "Bring her to a stop before hauling in salvage.\r\n");
+    return;
+  }
+
+  water = ship->shipobj != NULL ? IN_ROOM(ship->shipobj) : NOWHERE;
+  hauled = vessel_salvage_crates(ship, water);
+  if (hauled <= 0)
+  {
+    send_to_char(ch, "There is no salvage alongside that the hold can take.\r\n");
+    return;
+  }
+  send_to_ship(ship, "The crew hauls %d unit%s of floating salvage into the hold.", hauled,
+               hauled == 1 ? "" : "s");
+  WAIT_STATE(ch, PULSE_VIOLENCE);
 }

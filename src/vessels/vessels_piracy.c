@@ -829,16 +829,14 @@ bool vessel_port_refuses(struct char_data *ch)
 int vessel_plunder_cargo(struct char_data *ch, struct greyhawk_ship_data *prize,
                          struct greyhawk_ship_data *raider)
 {
-  int capacity;
   int taken = 0;
-  int i, j;
+  int stowed;
+  int i;
 
   if (ch == NULL || prize == NULL || raider == NULL || prize == raider)
   {
     return 0;
   }
-
-  capacity = vessel_effective_cargo_capacity(raider);
 
   for (i = 0; i < MAX_CARGO_LOTS; i++)
   {
@@ -847,43 +845,12 @@ int vessel_plunder_cargo(struct char_data *ch, struct greyhawk_ship_data *prize,
       continue;
     }
 
-    /* Find or claim a bay in the raider's hold for this commodity */
-    for (j = 0; j < MAX_CARGO_LOTS; j++)
-    {
-      if (raider->cargo[j].commodity_id == prize->cargo[i].commodity_id ||
-          raider->cargo[j].commodity_id == 0)
-      {
-        break;
-      }
-    }
-    if (j >= MAX_CARGO_LOTS)
-    {
-      continue; /* No room for this kind of goods */
-    }
-
-    raider->cargo[j].commodity_id = prize->cargo[i].commodity_id;
-
-    /* Move units one at a time so the weight limit stops us exactly at
-     * capacity rather than overshooting. */
-    while (prize->cargo[i].quantity > 0)
-    {
-      raider->cargo[j].quantity++;
-      if (vessel_cargo_weight(raider) > capacity)
-      {
-        raider->cargo[j].quantity--;
-        break;
-      }
-      prize->cargo[i].quantity--;
-      taken++;
-    }
-
+    stowed = vessel_stow_cargo(raider, prize->cargo[i].commodity_id, prize->cargo[i].quantity);
+    prize->cargo[i].quantity -= stowed;
+    taken += stowed;
     if (prize->cargo[i].quantity <= 0)
     {
       prize->cargo[i].commodity_id = 0;
-    }
-    if (raider->cargo[j].quantity <= 0)
-    {
-      raider->cargo[j].commodity_id = 0;
     }
   }
 

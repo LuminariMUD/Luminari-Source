@@ -1096,6 +1096,7 @@ the character and closing the database claim.
 | -- | -- | -- |
 | shipfire | Fire a weapon slot at a contact | `shipfire <slot> <contact ID or name>` |
 | shiprepair | Slow at-sea repairs (stationary only) | `shiprepair` |
+| shipsalvage | Haul floating salvage crates into the hold (helm, stopped) | `shipsalvage` |
 | claimship | Capture from an uncontested bridge | `claimship` |
 
 Combat model (`src/vessels/vessels_combat.c`): a hit resolves through the
@@ -1183,6 +1184,27 @@ study 3.3.1, 3.3.3).
 - Knockdown (`vessel_knockdown_aboard()`): one structural hit in nine makes
   everyone aboard but staff roll Reflex (d20 plus their Reflex save) against
   DC 15 or sit, prone, with two combat rounds of lag.
+- Breaches (`vessel_breached_arcs()`): an arc with neither armor nor structure
+  is holed. One holed arc makes `vessel_max_speed()` 0, or half for a hull
+  aloft (z above 0); two start the sink timer (`vessel_update_condition()`,
+  `vessel_begin_sinking()`). Deflected hits reach only another arc's structure,
+  so a hull shot from one side is holed once and cannot sink until a second
+  side is holed: maneuvering decides fights.
+- Sinking (`sink_ticks`, runtime only; a hull saved holed on two sides starts
+  again at boot): 150-300 ticks (75-150 s) for a player-owned hull,
+  2000-3000 ticks (1000-1500 s) for an unowned hull so it can be boarded and
+  looted. A sinking hull has no maximum speed, drops her autopilot, and
+  cannot fire, maneuver, or `shiprepair`; she can still be boarded and
+  plundered. `vessel_damage_tick_one()`, from the combat tick, counts down;
+  at zero half of each bulk cargo lot floats off as salvage crates
+  (`vessel_spill_cargo()`) and `vessel_sink()` evacuates the hull as before.
+  `vessel_status()` reports SINKING only for a sinking hull; a gutted hull
+  whose armor holds is crippled.
+- Salvage crates are prototype-less `ITEM_OTHER` objects (value 0 the
+  commodity, 1 the units, 2 `VESSEL_SALVAGE_CRATE_MARK`), not takeable, that
+  decay after `VESSEL_SALVAGE_CRATE_HOURS` (24) MUD hours. `shipsalvage` from
+  the helm of a stopped hull stows them through `vessel_stow_cargo()`, the
+  capacity-bounded stowage that `plunder` also uses.
 
 ### Builder Commands (Phase 04)
 

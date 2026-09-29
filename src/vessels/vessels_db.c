@@ -1735,6 +1735,7 @@ void load_all_ship_interiors(void)
     }
 
     vessel_db_restore_berth(ship);
+    vessel_update_condition(ship, NULL); /* a hull saved holed on two sides sinks again */
     vessel_db_load_permits(ship);
     vessel_db_load_crew(ship);
     vessel_db_load_extras(ship);
