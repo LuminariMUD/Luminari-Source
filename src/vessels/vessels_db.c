@@ -143,6 +143,7 @@ void vessel_persistence_ensure_schema(void)
                         "slot_x TINYINT UNSIGNED NOT NULL DEFAULT 0, "
                         "slot_y TINYINT UNSIGNED NOT NULL DEFAULT 0, "
                         "reload_timer SMALLINT NOT NULL DEFAULT 0, "
+                        "weapon_damage TINYINT UNSIGNED NOT NULL DEFAULT 0, "
                         "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP "
                         "ON UPDATE CURRENT_TIMESTAMP, "
                         "PRIMARY KEY (ship_id, slot_index), "
@@ -151,6 +152,13 @@ void vessel_persistence_ensure_schema(void)
                         ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"))
   {
     log("SYSERR: Unable to create ship_weapons: %s", mysql_error(conn));
+  }
+
+  if (mysql_query(conn, "ALTER TABLE ship_weapons "
+                        "ADD COLUMN IF NOT EXISTS weapon_damage TINYINT UNSIGNED NOT NULL "
+                        "DEFAULT 0 AFTER reload_timer"))
+  {
+    log("SYSERR: Unable to add vessel S3 weapon damage: %s", mysql_error(conn));
   }
 
   if (mysql_query(conn, "CREATE TABLE IF NOT EXISTS vessel_insurance_claims ("
@@ -603,12 +611,13 @@ bool vessel_db_save_weapons(struct greyhawk_ship_data *ship)
     snprintf(query, sizeof(query),
              "INSERT INTO ship_weapons "
              "(ship_id, slot_index, slot_type, position, equipment_weight, "
-             "description, val0, val1, val2, val3, slot_x, slot_y, reload_timer) "
-             "VALUES (%d, %d, %d, %d, %u, '%s', %d, %d, %d, %d, %u, %u, %d)",
+             "description, val0, val1, val2, val3, slot_x, slot_y, reload_timer, "
+             "weapon_damage) "
+             "VALUES (%d, %d, %d, %d, %u, '%s', %d, %d, %d, %d, %u, %u, %d, %u)",
              ship->shipnum, i, (int)(unsigned char)slot->type, (int)(unsigned char)slot->position,
              (unsigned int)slot->weight, escaped_description, (int)slot->val0, (int)slot->val1,
              (int)slot->val2, (int)slot->val3, (unsigned int)slot->x, (unsigned int)slot->y,
-             (int)slot->timer);
+             (int)slot->timer, (unsigned int)slot->damage);
     if (mysql_query(conn, query))
     {
       goto rollback;
@@ -648,7 +657,7 @@ bool vessel_db_load_weapons(struct greyhawk_ship_data *ship)
 
   snprintf(query, sizeof(query),
            "SELECT slot_index, slot_type, position, equipment_weight, description, "
-           "val0, val1, val2, val3, slot_x, slot_y, reload_timer "
+           "val0, val1, val2, val3, slot_x, slot_y, reload_timer, weapon_damage "
            "FROM ship_weapons WHERE ship_id = %d ORDER BY slot_index",
            ship->shipnum);
   if (mysql_query(conn, query))
@@ -703,6 +712,8 @@ bool vessel_db_load_weapons(struct greyhawk_ship_data *ship)
     slot->x = (unsigned char)(row[9] ? parse_int(row[9]) : 0);
     slot->y = (unsigned char)(row[10] ? parse_int(row[10]) : 0);
     slot->timer = (short int)(row[11] ? parse_int(row[11]) : 0);
+    slot->damage =
+        (unsigned char)MIN(VESSEL_WEAPON_DESTROYED, MAX(0, row[12] ? parse_int(row[12]) : 0));
   }
   mysql_free_result(result);
   return TRUE;

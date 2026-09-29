@@ -1098,11 +1098,8 @@ the character and closing the database claim.
 | shiprepair | Slow at-sea repairs (stationary only) | `shiprepair` |
 | claimship | Capture from an uncontested bridge | `claimship` |
 
-Combat model (`src/vessels/vessels_combat.c`): per-side armor absorbs, spill hits
-section internal structure and bleeds through destroyed sections; fore hits
-degrade rigging (mainsail -> speed), stern hits degrade the rudder
-(turnrate); zero total structure sinks the ship (crew ejected to the water,
-object becomes wreckage, fleet slot freed). Weapon arcs derive from
+Combat model (`src/vessels/vessels_combat.c`): a hit resolves through the
+damage model (Damage Model (S3) below). Weapon arcs derive from
 heading-relative bearing (`greyhawk_getarc()`), reloads tick on the
 heartbeat (`vessel_combat_tick()`), and NPC-piloted ships return fire
 automatically. Deep-draft hulls ground on real wilderness bathymetry
@@ -1159,6 +1156,33 @@ study 3.3.1, 3.3.3).
 - Shipyard price (`vessel_prototype_price()`): class price times
   `0.5 + 0.25 * armor / class armor + 0.25 * speed / class speed`, so a
   default hull costs the class price.
+- A hit (`vessel_resolve_hit()`, from `shipfire` and NPC return fire) runs the
+  weapon's fragments. Until S4 seeds the weapon table every weapon resolves as
+  one Duris ballista bolt (`vessel_weapon_profile()`): spread 10 degrees, 14%
+  sail hit at half damage, 10% armor pierce. Each fragment rolls the slot's
+  damage dice and strikes the sails (`vessel_damage_sail()`; warships take 85%)
+  or the arc facing the shooter, scattered across the spread
+  (`vessel_damage_hull()`).
+- Hull damage (Duris `damage_hull()`): armor absorbs first. A hit it holds
+  stops there unless the shot is a confirmed critical, which carries half the
+  damage into the structure with a 50% weapon-damage chance; overkill spills
+  into the structure with a 15% chance. On a gutted arc one hit in three
+  deflects into another arc that still has structure, and every hit there
+  damages a weapon. Stern structure hits also foul the rudder. Every hit lands
+  at least one point. Hazards use the same path (`vessel_apply_damage()`).
+- Criticals: the natural d20 must reach the weapon's threat
+  (`vessel_critical_threat()`: 20 for 2-3% pierce, 19-20 for 10%, 18-20 for
+  15%, never for 0%) and a second roll with the same bonus must meet the same
+  target number.
+- Weapon damage (`vessel_damage_weapon()`, a random surviving weapon on the
+  struck arc, five times the structural damage) accumulates in the slot's
+  `damage`, persisted in `ship_weapons.weapon_damage`: 1 or more disables the
+  weapon (`vessel_weapon_ready()`), 100 destroys it. `shiprepair` mends
+  damaged weapons, and restores a destroyed one while berthed, until S4 and
+  S5 bring weapon sales and priced repairs; `shipfix` clears all damage.
+- Knockdown (`vessel_knockdown_aboard()`): one structural hit in nine makes
+  everyone aboard but staff roll Reflex (d20 plus their Reflex save) against
+  DC 15 or sit, prone, with two combat rounds of lag.
 
 ### Builder Commands (Phase 04)
 

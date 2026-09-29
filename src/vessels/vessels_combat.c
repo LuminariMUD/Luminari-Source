@@ -570,25 +570,17 @@ void vessel_sink(int shipnum)
 }
 
 /**
- * Apply damage to one arc of a ship.
- *
- * Side armor absorbs first; overflow hits that section's internal
- * structure. Section damage degrades subsystems: fore hits tear rigging
- * (mainsail - speed), rear hits foul the rudder (turnrate). Total internal
- * reaching zero sinks the ship.
+ * Apply damage with no ship behind it (pressure, weather) to one arc,
+ * through the same armor-then-structure rules as gunfire.
  *
  * @param shipnum Target ship index
  * @param amount Raw damage
  * @param arc GREYHAWK_FORE/PORT/REAR/STARBOARD - which side is struck
- * @param cause Short description for messages/logs (e.g. "a ballista bolt")
+ * @param cause Short description for messages (e.g. "The gale")
  */
 void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause)
 {
   struct greyhawk_ship_data *ship;
-  unsigned char *armor;
-  unsigned char *internal_hp;
-  int spill;
-  const char *side_name;
 
   if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS || !is_valid_ship(&greyhawk_ships[shipnum]) ||
       amount <= 0)
@@ -597,118 +589,22 @@ void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause)
   }
   ship = &greyhawk_ships[shipnum];
 
-  switch (arc)
-  {
-  case GREYHAWK_PORT:
-    armor = &ship->parmor;
-    internal_hp = &ship->pinternal;
-    side_name = "port side";
-    break;
-  case GREYHAWK_REAR:
-    armor = &ship->rarmor;
-    internal_hp = &ship->rinternal;
-    side_name = "stern";
-    break;
-  case GREYHAWK_STARBOARD:
-    armor = &ship->sarmor;
-    internal_hp = &ship->sinternal;
-    side_name = "starboard side";
-    break;
-  case GREYHAWK_FORE:
-  default:
-    armor = &ship->farmor;
-    internal_hp = &ship->finternal;
-    side_name = "bow";
-    break;
-  }
+  send_to_ship(ship, "%s strikes the hull!", cause ? cause : "Something");
+  vessel_damage_hull(NULL, ship, amount, arc, FALSE);
+  VSSL_DEBUG("Ship %d took %d damage on arc %d", shipnum, amount, arc);
+  vessel_update_condition(ship, NULL);
+}
 
-  spill = amount - (int)*armor;
-  if (spill < 0)
-  {
-    spill = 0;
-  }
-  if ((int)*armor >= amount)
-  {
-    *armor -= (unsigned char)amount;
-  }
-  else
-  {
-    *armor = 0;
-  }
-
-  if (spill > 0)
-  {
-    int breach = 0;
-
-    if ((int)*internal_hp > spill)
-    {
-      *internal_hp -= (unsigned char)spill;
-    }
-    else
-    {
-      /* Section destroyed - the remainder tears through into the rest of
-       * the hull, so a pounded side eventually takes the whole ship down. */
-      breach = spill - (int)*internal_hp;
-      *internal_hp = 0;
-    }
-
-    if (breach > 0)
-    {
-      unsigned char *sections[4] = {&ship->finternal, &ship->rinternal, &ship->pinternal,
-                                    &ship->sinternal};
-      int sec;
-
-      for (sec = 0; sec < 4 && breach > 0; sec++)
-      {
-        if (sections[sec] == internal_hp || *sections[sec] == 0)
-        {
-          continue;
-        }
-        if ((int)*sections[sec] > breach)
-        {
-          *sections[sec] -= (unsigned char)breach;
-          breach = 0;
-        }
-        else
-        {
-          breach -= (int)*sections[sec];
-          *sections[sec] = 0;
-        }
-      }
-    }
-
-    /* Subsystem degradation from structural hits */
-    if (arc == GREYHAWK_FORE && ship->mainsail > 0)
-    {
-      ship->mainsail = (ship->mainsail > spill) ? (unsigned char)(ship->mainsail - spill) : 0;
-      if (ship->mainsail == 0)
-      {
-        send_to_ship(ship, "The rigging collapses! The ship is dead in the water.");
-        ship->speed = 0;
-        ship->setspeed = 0;
-      }
-    }
-    if (arc == GREYHAWK_REAR && ship->turnrate > 0)
-    {
-      ship->turnrate = (ship->turnrate > spill) ? (unsigned char)(ship->turnrate - spill) : 0;
-      if (ship->turnrate == 0)
-      {
-        send_to_ship(ship, "The rudder is smashed! The helm no longer answers.");
-      }
-    }
-  }
-
-  send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_DAMAGE, VESSEL_COMBAT_MESSAGE_COOLDOWN,
-                         "%s strikes the %s! (%s: armor %d, structure %d)",
-                         cause ? cause : "Something", side_name, side_name, (int)*armor,
-                         (int)*internal_hp);
-  VSSL_DEBUG("Ship %d took %d damage on arc %d (%s): armor %d internal %d", shipnum, amount, arc,
-             side_name, (int)*armor, (int)*internal_hp);
-
-  if (vessel_total_internal(ship) <= 0)
-  {
-    vessel_sink(shipnum);
-  }
+/**
+ * Whether a shot is a confirmed critical: the natural roll falls in the
+ * weapon's threat range and a second roll with the same bonus meets the
+ * same target number (study 3.3.4).
+ */
+static bool vessel_shot_critical(const struct greyhawk_ship_slot *weapon, int natural_roll,
+                                 int confirm_roll, int bonus, int target_number)
+{
+  return natural_roll >= vessel_critical_threat(vessel_weapon_profile(weapon)->pierce) &&
+         confirm_roll + bonus >= target_number;
 }
 
 /**
@@ -723,7 +619,8 @@ static void vessel_ai_return_fire(int shipnum)
   double range;
   int target_num;
   int fire_arc;
-  int attack_roll;
+  int natural_roll;
+  int attack_bonus;
   int defense_dc;
   int dmg;
   int s;
@@ -757,7 +654,7 @@ static void vessel_ai_return_fire(int shipnum)
   for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
   {
     weapon = &ship->slot[s];
-    if (weapon->type != 1 || weapon->timer > 0 || weapon->position != fire_arc)
+    if (!vessel_weapon_ready(weapon) || weapon->position != fire_arc)
     {
       continue;
     }
@@ -769,7 +666,8 @@ static void vessel_ai_return_fire(int shipnum)
     weapon->timer = VESSEL_WEAPON_RELOAD_TICKS;
     target->last_attacker = shipnum;
 
-    attack_roll = rand_number(1, 20) + ship->guncrew.gunadjust + 5; /* trained crews */
+    natural_roll = rand_number(1, 20);
+    attack_bonus = ship->guncrew.gunadjust + 5; /* trained crews */
     defense_dc = 10 + vessel_display_speed(target->speed) / 5;
 
     if (ship->bounty_hunter)
@@ -784,7 +682,7 @@ static void vessel_ai_return_fire(int shipnum)
                              VESSEL_COMBAT_MESSAGE_COOLDOWN, "The crew RETURNS FIRE at %s!",
                              target->name);
     }
-    if (attack_roll < defense_dc)
+    if (natural_roll + attack_bonus < defense_dc)
     {
       send_to_ship_throttled(target, VESSEL_MESSAGE_COMBAT_RETURN_FIRE_MISS,
                              VESSEL_COMBAT_MESSAGE_COOLDOWN, "%s from %s splashes wide!",
@@ -792,11 +690,15 @@ static void vessel_ai_return_fire(int shipnum)
       continue;
     }
 
-    dmg = (weapon->val2 > 0 && weapon->val3 > 0) ? dice(weapon->val2, weapon->val3) : dice(2, 6);
+    dmg = vessel_resolve_hit(
+        ship, target, weapon,
+        vessel_shot_critical(weapon, natural_roll, rand_number(1, 20), attack_bonus, defense_dc));
     vessel_event_record_damage(shipnum, target_num, dmg);
-    vessel_apply_damage(target_num, dmg, greyhawk_getarc(target_num, shipnum),
-                        ship->bounty_hunter ? "Navy fire" : "Return fire");
     VSSL_DEBUG("AI ship %d return-fired slot %d at ship %d for %d", shipnum, s, target_num, dmg);
+    if (!is_valid_ship(target))
+    {
+      break; /* She went down */
+    }
   }
 }
 
@@ -848,8 +750,8 @@ ACMD(do_shipfire)
   int slot_num;
   int target_num;
   int fire_arc;
-  int struck_arc;
-  int attack_roll;
+  int natural_roll;
+  int attack_bonus;
   int defense_dc;
   int dmg;
 
@@ -887,6 +789,16 @@ ACMD(do_shipfire)
   if (weapon->type != 1)
   {
     send_to_char(ch, "Slot %d holds no weapon.\r\n", slot_num);
+    return;
+  }
+  if (weapon->damage >= VESSEL_WEAPON_DESTROYED)
+  {
+    send_to_char(ch, "That weapon has been destroyed.\r\n");
+    return;
+  }
+  if (weapon->damage > 0)
+  {
+    send_to_char(ch, "That weapon is damaged and cannot fire until it is repaired.\r\n");
     return;
   }
   if (weapon->timer > 0)
@@ -942,7 +854,8 @@ ACMD(do_shipfire)
 
   /* Resolve the shot: d20 + gunnery vs a speed-based defense DC */
   vessel_merchant_note_attacker(ch, target);
-  attack_roll = d20(ch) + GET_LEVEL(ch) / 2 + ship->guncrew.gunadjust;
+  natural_roll = d20(ch);
+  attack_bonus = GET_LEVEL(ch) / 2 + ship->guncrew.gunadjust;
   defense_dc = 10 + vessel_display_speed(target->speed) / 5;
 
   /* Mark the aggression so NPC-piloted victims return fire */
@@ -953,18 +866,18 @@ ACMD(do_shipfire)
 
   send_to_ship(ship, "%s FIRES at %s!", weapon->desc[0] ? weapon->desc : "A weapon", target->name);
 
-  if (attack_roll < defense_dc)
+  if (natural_roll + attack_bonus < defense_dc)
   {
     send_to_ship(ship, "The shot goes wide, splashing harmlessly.");
     send_to_ship(target, "A projectile from %s splashes into the water nearby!", ship->name);
     return;
   }
 
-  dmg = (weapon->val2 > 0 && weapon->val3 > 0) ? dice(weapon->val2, weapon->val3) : dice(2, 6);
-  struck_arc = greyhawk_getarc(target_num, ship->shipnum);
   send_to_ship(ship, "Direct hit on %s!", target->name);
+  dmg = vessel_resolve_hit(
+      ship, target, weapon,
+      vessel_shot_critical(weapon, natural_roll, d20(ch), attack_bonus, defense_dc));
   vessel_event_record_damage(ship->shipnum, target_num, dmg);
-  vessel_apply_damage(target_num, dmg, struck_arc, "Incoming fire");
 }
 
 /**
@@ -977,6 +890,7 @@ ACMD(do_shiprepair)
   int armor_amt;
   int internal_amt;
   int subsys_amt;
+  int s;
 
   ship = get_ship_from_room(IN_ROOM(ch));
   if (ship == NULL)
@@ -1018,6 +932,26 @@ ACMD(do_shiprepair)
   VESSEL_REPAIR_FIELD(ship->turnrate, ship->maxturnrate, subsys_amt);
 
 #undef VESSEL_REPAIR_FIELD
+
+  /* Damaged weapons mend a little each time; a destroyed one is refitted only
+   * by the port's shipwrights, until S4 sells weapons and S5 prices repairs. */
+  for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
+  {
+    if (ship->slot[s].type != 1 || ship->slot[s].damage == 0)
+    {
+      continue;
+    }
+    if (ship->slot[s].damage < VESSEL_WEAPON_DESTROYED)
+    {
+      ship->slot[s].damage = (unsigned char)MAX(0, ship->slot[s].damage - subsys_amt);
+      repaired = 1;
+    }
+    else if (ship->dock > 0)
+    {
+      ship->slot[s].damage = 0;
+      repaired = 1;
+    }
+  }
 
   if (!repaired)
   {

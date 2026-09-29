@@ -1053,11 +1053,12 @@ void Test_vessel_combat_damage_and_sinking(CuTest *tc)
   CuAssertIntEquals(tc, 4, ship->farmor);
   CuAssertIntEquals(tc, 20, ship->finternal);
 
-  /* Spill past armor: 10 damage vs 4 armor -> 6 into internal + rigging */
+  /* Spill past armor: 10 damage vs 4 armor -> 6 into internal. Sails are
+   * struck only by a weapon's sail hits, never by hull damage. */
   vessel_apply_damage(S, 10, GREYHAWK_FORE, "test shot");
   CuAssertIntEquals(tc, 0, ship->farmor);
   CuAssertIntEquals(tc, 14, ship->finternal);
-  CuAssertTrue(tc, ship->mainsail < 20); /* fore structural hits tear rigging */
+  CuAssertIntEquals(tc, 20, ship->mainsail);
 
   /* Stern hit fouls the rudder */
   vessel_apply_damage(S, 8, GREYHAWK_REAR, "test shot");

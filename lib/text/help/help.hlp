@@ -31857,10 +31857,12 @@ SHIPFIRE <slot> <contact>
   two-letter ID that CONTACTS and TACTICAL show or by the start of its name
   (the nearest match wins). Only vessels within your visibility can be
   targeted. The shot must be in range of the weapon and the weapon's
-  mounted side (fore/port/rear/starboard) must face the target. Attack
-  roll: d20 + half level + gunnery crew bonus against a defense value based
-  on the target's speed. Every shot, hit or miss, costs a combat round, and
-  the weapon reloads over several seconds.
+  mounted side must face the target. Arcs run from the bow: fore 320-40
+  degrees, starboard 40-140, rear 140-220, port 220-320. Attack roll: d20 +
+  half level + gunnery crew bonus against a defense value based on the
+  target's speed. Every shot, hit or miss, costs a combat round, and the
+  weapon reloads over several seconds. A damaged weapon cannot fire until
+  it is repaired; a destroyed one is gone.
 
   Only the ship's owner, the owner's helm permit holders, members of the
   owner's group while the owner is online, and staff may fire a ship's
@@ -31869,9 +31871,14 @@ SHIPFIRE <slot> <contact>
   Harbors are neutral ground: a vessel in a port can neither fire nor be
   fired upon, by players or by NPC crews.
 
-  Damage strikes the target's facing side: armor absorbs first, then the
-  section's internal structure. Structural hits degrade subsystems - bow
-  hits tear rigging (speed), stern hits foul the rudder (turning). A hull
+  Each hit strikes the sails (costing speed) or the side facing the shooter.
+  Armor absorbs first; a hit it holds stops there unless it is a critical (a
+  natural 19-20, confirmed by a second roll), which carries half its damage
+  into the structure. Damage past the armor strikes that side's structure
+  and may damage a weapon mounted there. On a gutted side, hits can glance
+  into another section and always damage a weapon. Stern structure hits
+  foul the rudder (turning). A structural hit can knock everyone aboard off
+  their feet: Reflex DC 15, or prone for two rounds. A hull
   with no structure left SINKS: everyone aboard is thrown into the water
   and the ship becomes salvageable wreckage.
 
@@ -31880,8 +31887,9 @@ SHIPFIRE <slot> <contact>
 
 SHIPREPAIR
   Slow at-sea repairs. The ship must be stationary. Each use patches a
-  little armor, structure, rigging, and rudder. Dockside repair (faster,
-  for gold) arrives with the shipyard system.
+  little armor, structure, rigging, and rudder, and mends damaged weapons.
+  A destroyed weapon is refitted only while berthed in port. Dockside
+  repair (faster, for gold) arrives with the shipyard system.
 
 CLAIMSHIP
   Capture a ship: stand on its bridge with no other conscious character

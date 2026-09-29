@@ -471,6 +471,7 @@ ACMD(do_shipfix)
   unsigned char old_mainsail;
   unsigned char old_turnrate;
   int slot;
+  int s;
 
   one_argument(argument, arg, sizeof(arg));
   if (!*arg)
@@ -531,6 +532,15 @@ ACMD(do_shipfix)
     log("SYSERR: %s could not persist force-repair for ship %d '%s'", GET_NAME(ch), slot,
         ship->name);
     return;
+  }
+
+  for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
+  {
+    ship->slot[s].damage = 0;
+  }
+  if (!vessel_db_save_weapons(ship))
+  {
+    log("SYSERR: %s could not persist the weapon repair for ship %d", GET_NAME(ch), slot);
   }
 
   send_to_char(ch, "%s (slot %d) restored to full condition.\r\n", ship->name, slot);

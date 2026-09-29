@@ -550,6 +550,8 @@ void vessel_movement_set_cell_entry_for_test(vessel_cell_entry_fn entry);
 /* DAMAGE MODEL (vessels-ships study S3, vessels_damage.c)                   */
 /* ========================================================================= */
 
+struct greyhawk_ship_slot;
+
 #define VESSEL_NUM_ARCS 4              /* GREYHAWK_FORE..GREYHAWK_STARBOARD */
 #define VESSEL_MAX_PROTOTYPE_ARMOR 229 /* Largest Duris armor value (beam armor) */
 #define VESSEL_RUDDER_MAX 20           /* Rudder condition (LuminariMUD-only) */
@@ -572,6 +574,35 @@ unsigned char *vessel_arc_max_armor(struct greyhawk_ship_data *ship, int arc);
 unsigned char *vessel_arc_internal(struct greyhawk_ship_data *ship, int arc);
 unsigned char *vessel_arc_max_internal(struct greyhawk_ship_data *ship, int arc);
 int vessel_arc_for_relative_bearing(int relative);
+
+#define VESSEL_WEAPON_DESTROYED 100 /* Weapon damage at which a weapon is gone */
+#define VESSEL_KNOCKDOWN_DC 15      /* Reflex save against a hull hit's blast */
+
+/* One weapon's fragment behavior (Duris weapon_data). Until S4 seeds the
+ * weapon table every mounted weapon resolves as a ballista. */
+struct vessel_weapon_profile
+{
+  int fragments;    /* Separate hits per shot */
+  int spread;       /* Degrees each fragment scatters across (whole spread) */
+  int sail_hit;     /* Percent chance a fragment strikes the sails */
+  int hull_percent; /* Share of damage dealt to the hull */
+  int sail_percent; /* Share of damage dealt to the sails */
+  int pierce;       /* Duris armor pierce percent; sets the critical threat */
+};
+
+const struct vessel_weapon_profile *vessel_weapon_profile(const struct greyhawk_ship_slot *slot);
+int vessel_critical_threat(int pierce);
+bool vessel_weapon_ready(const struct greyhawk_ship_slot *slot);
+int vessel_resolve_hit(struct greyhawk_ship_data *attacker, struct greyhawk_ship_data *target,
+                       const struct greyhawk_ship_slot *weapon, bool critical);
+int vessel_damage_sail(struct greyhawk_ship_data *attacker, struct greyhawk_ship_data *target,
+                       int damage);
+int vessel_damage_hull(struct greyhawk_ship_data *attacker, struct greyhawk_ship_data *target,
+                       int damage, int arc, bool critical);
+void vessel_damage_weapon(struct greyhawk_ship_data *attacker, struct greyhawk_ship_data *target,
+                          int arc, int damage);
+void vessel_knockdown_aboard(struct greyhawk_ship_data *ship);
+void vessel_update_condition(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *attacker);
 
 /* ========================================================================= */
 /* NAVAL COMBAT (Phase 05, vessels_combat.c)                                 */
@@ -1227,6 +1258,7 @@ struct greyhawk_ship_slot
   char desc[256];              /* Description of slot equipment */
   char val0, val1, val2, val3; /* Equipment values (range, damage, etc.) */
   unsigned char x, y;          /* Slot x,y position on ship room */
+  unsigned char damage;        /* Weapon damage: disabled at 1, destroyed at 100 (S3) */
   short int timer;             /* Reload/action timer */
 };
 
