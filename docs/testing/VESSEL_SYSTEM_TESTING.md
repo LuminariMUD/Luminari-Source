@@ -276,12 +276,13 @@ One actual Kohdee session creates two Bastions in Starfall waters. The first
 chart must contain canonical wilderness terrain, both range rings, a Starfall
 Trench edge and region listing, and a sound contact in the map and roster.
 Kohdee then fires the production weapon path until a hit changes the other
-hull to battered or worse; a second chart must show that damage state in both
-places. The session purges those hulls, creates a separate Ashenport fixture,
-and requires real shoal `.`, beach `:`, coastline `#`, and public region-edge
-`+` cells before purging it and returning Kohdee to room 1204. The wrapper
-also resolves authoritative `TACTICAL` help and rejects related server
-`SYSERR` rows.
+hull to battered or worse; since S4 two more Bastions join as gunners and the
+three volley their starboard ballistae at the reload cadence. A second chart
+must show that damage state in both places. The session purges those hulls,
+creates a separate Ashenport fixture, and requires real shoal `.`, beach `:`,
+coastline `#`, and public region-edge `+` cells before purging it and
+returning Kohdee to room 1204. The wrapper also resolves authoritative
+`TACTICAL` help and rejects related server `SYSERR` rows.
 
 Run
 `/tmp/luminari-vessel-tactical-check-1000/runs/20260802T104219Z-1540531`
@@ -503,22 +504,23 @@ authoritative help rows, and calls `--vessel-damage-check <warship-id>` in the
 login helper with the same refusals, snapshots, and restoration as the other
 tactical-harness gates.
 
-Kohdee spawns three Starfall Bastions: the target at (902,225) heading north,
-one shooter off her port side at (900,225), and one off her stern at
-(902,223). A new hull must show the warship profile at the prototype's S3
-armor 95 (`Forward: 76/76`, `Port: 95/95`, `Rear: 57/57`, structure
-33/41/41/20, 140 sail, 20 rudder) and every weapon ready. `strikecolors` on
-the stopped port shooter must show `Colors: struck` until `speed 1` gets her
-under way and her colors fly again. The port shooter's starboard battery fires
-until the target shows `Holed: port side. She cannot move.` and `Speed: 0 / 0`
-without sinking; the stern shooter's bow chaser then fires until she shows
+Kohdee spawns the target Starfall Bastion at (902,225) heading north, three
+shooters off her port side at (900,225), and three off her stern at (902,223);
+since S4 each group volleys at the reload cadence. A new hull must show the
+warship profile at the prototype's S3 armor 95 (`Forward: 76/76`,
+`Port: 95/95`, `Rear: 57/57`, structure 33/41/41/20, 140 sail, 20 rudder) and
+every weapon ready. `strikecolors` on the stopped port shooter must show
+`Colors: struck` until `speed 1` gets her under way and her colors fly again.
+The port shooters' starboard batteries fire until the target shows
+`Holed: port side. She cannot move.` and `Speed: 0 / 0` without sinking; the
+stern shooters' bow chasers then fire until she shows
 `Holed: port side and stern. SINKING`. Aboard the sinking hull `shipfire`,
 `shiprepair`, and `shipsalvage` are refused. The target must leave the fleet
 within three minutes (the owned-hull timer is 75-150 seconds), after which
 `shipsalvage` on the stopped stern shooter finds nothing afloat. Cleanup
-purges both shooters and returns Kohdee to room 1204; the harness then
-requires the prototype at armor 95 with `armor_scale` 1. Cargo spill and
-salvage hauling are covered by the production-linked
+purges the shooters and returns Kohdee to room 1204; the harness then requires
+the prototype at armor 95 with `armor_scale` 1. Cargo spill and salvage
+hauling are covered by the production-linked
 `Test_vessel_cargo_spills_as_crates_that_can_be_salvaged`, since loading bulk
 cargo needs a market port.
 
@@ -531,6 +533,57 @@ target's port battery was disabled at 45% damage. The builder, tactical,
 lookout, boarding, narrative, rules, events, movement, frontier, derelict, and
 hunter gates passed in the same batch on the same binary, and the campaign and
 merchant gates on a fresh reload.
+
+Under the S4 weapons (reload 20 seconds, three shooters per side) the gate
+passed in 630 seconds on source `bd8bfba96`: the port side was holed in 24
+shots and the stern in 15, and the sink timer read 98 seconds.
+
+## Vessel Gunnery Check
+
+After the Starfall frontier prototype exists and a clean candidate is built
+and installed, run:
+
+```bash
+./scripts/vessels/test_vessel_gunnery_in_game.sh
+```
+
+The wrapper runs the shared tactical harness in `--gunnery` mode, which reads
+the SHIPFIRE and SHIPWEAPON help as Kohdee, checks the authoritative help rows,
+and calls `--vessel-gunnery-check <warship-id>` in the login helper with the
+same refusals, snapshots, and restoration as the other tactical-harness gates.
+
+Kohdee's purse is set to 50,000 gold (the harness restores the player file).
+The session leaves a Starfall Bastion at `(-63, 82)` off the harbor's east
+dock and launches a second at the dock itself, where she lies berthed.
+`shipweapon list` must show the catalogue and her arcs:
+`fore 1/2, 10/31; port 1/3, 10/44; rear 0/2, 0/31; starboard 1/3, 10/44`. A
+large ballista is mounted on the port arc, a Long Tom there is refused, a
+heavy beamcannon is refused without a veteran gunner, and a ram (570 gold) is
+fitted. `shipstatus`
+must list `Slot 3: Large Ballista (port), 30/30 rounds: ready` and
+`Slot 4: Ram` with no shipwrights at work (staff skip them), `shiprearm all`
+finds nothing to rearm, and both items sell back at 90%. She casts off,
+maneuvers west, and locks the waiting hull: the crew goes to battle stations,
+and the maneuver back into the harbor must be refused with
+`The harbor will not admit a crew at battle stations.`
+
+At `(900, 225)` the target lies two rooms off the gun ship's starboard beam.
+`contacts` must show her `starboard`, `shipscan` her armor and structure by
+side and her three ballistae, and `shipsight` must refuse without a lock.
+After `shiplock`, `contacts` marks her `(locked)`, `shipsight` reports
+`Slot 2, starboard Large Ballista: DC 1, 95% to hit` and that the fore
+ballista cannot bear, and `shipfire starboard` fires with
+`Chance to hit: 95%`, spending a round (`29/30 rounds: reloading`); an
+immediate second shot is refused while reloading. Cleanup purges all four hulls and returns Kohdee
+to room 1204.
+
+On 2026-09-30 the gate passed in 71 seconds inside the private namespace
+described under the Vessel Rules Check, on source `bd8bfba96`, and again in 75
+seconds on `fca2b30a7`. In the same batch on `bd8bfba96` the builder (49 s),
+tactical (455 s), lookout, boarding, narrative, rules, events, movement (116
+s), damage, derelict, and hunter gates passed; the frontier (235 s), movement,
+and campaign gates passed on `fca2b30a7`, and the campaign and both merchant
+gates on `cee7dcdcb`, each on a fresh reload of the development dump.
 
 ## Shared Harbor Merchant Loss Check
 
@@ -557,6 +610,14 @@ loss, a 510-gold bounty, 25 units of spice, pilot 70001, route 4, and the
 replacement's active schedule and registry identity. The stopped database
 dumps and Kohdee player files compared byte-for-byte before the no-login
 restart launched the same installed executable.
+
+On 2026-09-30 (S4) both merchant gates passed on fresh reloads of the
+development dump, on source `cee7dcdcb`: the Vailand trader after provisioning
+in 18 seconds, and the harbor merchant in 30 seconds after its schedule was
+re-enabled in the disposable copy (an earlier stall with its rudder at 1/20 had
+disabled it in the development database). Before `cee7dcdcb` every Vailand
+replacement failed to enter service: a new hull faced north, and the route
+check sailed it east onto the beach beside the north port.
 
 The same provisioner now validates the Phase 15 HUNTED raft, Admiralty
 warship, captain mobile 70002, encounter region 7000004, and deterministic

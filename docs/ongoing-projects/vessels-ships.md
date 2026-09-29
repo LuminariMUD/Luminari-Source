@@ -1459,7 +1459,24 @@ shipyard live in the new `src/vessels/vessels_weapons.c`, the gunnery in the new
 | Flight: one room per 10 Z in every vessel range, x1.5 miss against a flyer, an airborne hull boarded only within 10 Z; submerged hulls neither fire nor are targeted | Done | `greyhawk_range()`; `vessel_range_between()`, `vessel_bearing_between()` (exact positions) for contacts, arcs, and gunnery; `can_attempt_boarding()`; `vessel_hull_fire_problem()`, `vessel_target_problem()` |
 | Battle stations block entering a port (L9); the crash check for land and shallows at battle stations (3.3.2, moved from S2) | Done | `vessel_enter_cell_default()` (`vessel_cell_is_port()`, `vessel_cell_is_shallow()`), `vessel_crash_check()` from `vessel_movement_tick_one()`; `vessel_maneuver()` explains a refused harbor |
 | Duel harness on the S4 rules and the D2 bounds | Done | `vessel_balance_run_duels()`, `vessel_balance_captain()`; 200 duels: median 431 s, p95 590 s, minimum 262 s, 1 draw (1,000: 434/604/249 s, 5 draws) |
-| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character gunnery gate, the existing gates, local CI | Planned |  |
+| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character gunnery gate, the existing gates, local CI | Done | SHIPFIRE (with SHIPLOCK, SHIPSIGHT, SHIPSCAN), SHIPHIRE (with SHIPWEAPON, SHIPEQUIP, SHIPREARM), SHIPSTATUS, CONTACTS, BOARD_HOSTILE, SPEED, UNDOCK and VESSELDEBUG in `help.hlp` and `help_vessel_entries.sql` (verifier: 89 keywords, 26 content checks); `test_vessel_weapons.c`, `test_vessel_gunnery.c`; `scripts/vessels/test_vessel_gunnery_in_game.sh` (tactical harness `--gunnery`, login helper `--vessel-gunnery-check`); results below |
+
+Verification (2026-09-30, namespace harness on a reloaded dump of the development database): the
+first boot converted every pre-S4 weapon row (none left with `catalog_id` 0: nine medium and three
+large ballistae) and the Phase 20 verifier passes. All 15 live gates pass. On `bd8bfba96` in one
+batch: builder 49 s, the new gunnery gate 71 s, tactical 455 s (three shooters volleying at the
+20-second reload), lookout 21 s, boarding 52 s, narrative 20 s, rules 35 s, events 46 s,
+movement 116 s, damage 630 s (port side holed in 24 shots, stern in 15, sink timer 98 s),
+derelict 33 s, hunter 82 s. On `fca2b30a7`: frontier 235 s (its arc refusal now names the
+weapon and the arc), gunnery 75 s, movement 116 s, campaign 136 s. On `cee7dcdcb`, each on a
+fresh reload: campaign 136 s and the merchant loss gate for both merchants.
+
+The Vailand merchant gate found a defect older than S4 (the S3 base binary refuses the same
+route): a replacement hull spawned facing north at the north port, and the S2 momentum route
+check sailed it east through its steerage turn onto the beach at (-598,455), so no replacement
+Ironwind Trader could enter service. `cee7dcdcb` builds a merchant on the bearing of its first
+leg. The harbor merchant gate needs that merchant's schedule enabled; the development database
+has it disabled since the stall recorded under S3, so the run enabled it in the disposable copy.
 
 Interpretations decided while planning S4:
 
