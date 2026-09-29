@@ -75,8 +75,11 @@ if [[ $# -gt 0 ]]; then
     --vessel-rules-check)
       mode="vessel-rules-check"
       ;;
+    --vessel-movement-check)
+      mode="vessel-movement-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id> | --vessel-boarding-check <warship-id> [<defender-character>] | --vessel-rules-check <warship-id> [<crew-character>]]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id> | --vessel-boarding-check <warship-id> [<defender-character>] | --vessel-rules-check <warship-id> [<crew-character>] | --vessel-movement-check <warship-id>]"
       ;;
   esac
   shift
@@ -155,6 +158,9 @@ if [[ $# -gt 0 ]]; then
       [[ "$2" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
         fail "--vessel-boarding-check defender must be a valid character name"
     fi
+  elif [[ "$mode" == "vessel-movement-check" ]]; then
+    [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ ]] ||
+      fail "--vessel-movement-check requires one positive warship prototype id"
   elif [[ "$mode" == "vessel-rules-check" ]]; then
     [[ ($# -eq 1 || $# -eq 2) && "$1" =~ ^[1-9][0-9]*$ ]] ||
       fail "--vessel-rules-check requires a positive warship prototype id and an optional crew character"
@@ -440,7 +446,7 @@ proc run_game_command {command} {
   global command_index last_game_command_raw mode smoke_character
 
   if {$command eq "@wait-vessel-dock" || $command eq "@wait-vessel-west-dock"} {
-    set deadline [expr {[clock seconds] + 60}]
+    set deadline [expr {[clock seconds] + 300}]
     set output ""
     set require_west [expr {$command eq "@wait-vessel-west-dock"}]
 
@@ -470,7 +476,7 @@ proc run_game_command {command} {
       set ::timeout $prior_timeout
     }
 
-    fail "the vessel did not reach the required boardable seaport within 60 seconds"
+    fail "the vessel did not reach the required boardable seaport within 300 seconds"
   }
 
   if {[regexp {^@wait ([0-9]+)$} $command ignored wait_seconds]} {
@@ -633,6 +639,16 @@ proc require_game_output {output expected context} {
   }
 }
 
+# Wait out a timed crew order. The report is due at the end of the window, so
+# a server that runs slightly behind gets one short grace wait.
+proc wait_for_game_output {seconds expected} {
+  set output [run_game_command "@wait $seconds"]
+  if {[string first $expected $output] < 0} {
+    append output [run_game_command "@wait 10"]
+  }
+  return $output
+}
+
 proc run_vessel_builder_check {} {
   set workflow_started_at [clock milliseconds]
   set prototype_name "Builder Timing Cutter [clock seconds]"
@@ -641,8 +657,8 @@ proc run_vessel_builder_check {} {
   require_game_output $output "vedit new <class> <name>" "vedit usage"
   require_game_output $output "vedit spawn <id>" "vedit usage"
 
-  set output [run_game_command "goto -66 92"]
-  require_game_output $output "Current Location  : (-66, 92)" "builder staging teleport"
+  set output [run_game_command "goto 1000390"]
+  require_game_output $output "Current Location  : (-62, 82)" "builder staging teleport"
 
   set output [run_game_command "vedit new 1 $prototype_name"]
   if {![regexp {Created Boat prototype ([0-9]+):} $output ignored prototype_id]} {
@@ -672,8 +688,13 @@ proc run_vessel_builder_check {} {
   }
 
   set output [run_game_command "speed 2"]
-  require_game_output $output "Speed set to 2." "vessel speed command"
-  run_game_command "setsail west"
+  require_game_output $output "is berthed; order 'undock' to cast off first." \
+    "berthed vessel speed order"
+  set output [run_game_command "undock"]
+  require_game_output $output "The crew begins casting off." "vessel departure"
+  wait_for_game_output 33 "ready to get under way"
+  set output [run_game_command "setsail west"]
+  require_game_output $output "The vessel maneuvers west." "vessel maneuver"
 
   set output [run_game_command "shipstatus"]
   if {![regexp {Coordinates: \((-?[0-9]+), (-?[0-9]+)\)} $output ignored after_x after_y]} {
@@ -735,6 +756,20 @@ proc spawn_frontier_vessel {prototype_id vessel_name} {
   return $ship_slot
 }
 
+# setsail maneuvers need five seconds (ten vessel ticks) between them; a
+# loaded host can stretch that, so retry until the crew is ready.
+proc frontier_maneuver {direction} {
+  run_game_command "@wait 5"
+  for {set attempt 0} {$attempt < 10} {incr attempt} {
+    set output [run_game_command "setsail $direction"]
+    if {[string first "not ready to maneuver" $output] < 0} {
+      return $output
+    }
+    run_game_command "@wait 1"
+  }
+  fail "the crew never became ready to maneuver $direction"
+}
+
 proc purge_frontier_vessel {ship_slot vessel_name} {
   run_game_command "speed 0"
   set output [run_game_command "shippurge $ship_slot"]
@@ -771,8 +806,6 @@ proc run_frontier_river_vessel {prototype_id vessel_name class_id class_name car
   set output [run_game_command "seastate"]
   require_game_output $output "Water     : River" "$vessel_name sea state"
 
-  set output [run_game_command "speed 2"]
-  require_game_output $output "Speed set to 2." "$vessel_name speed"
   set output [run_game_command "setsail east"]
   require_game_output $output "Current position: (-809, 480, 0)" \
     "$vessel_name river movement"
@@ -803,8 +836,6 @@ proc run_frontier_ship {prototype_id} {
     "$vessel_name deck"
   require_frontier_cargo $vessel_name 12000
 
-  set output [run_game_command "speed 2"]
-  require_game_output $output "Speed set to 2." "$vessel_name speed"
   set output [run_game_command "setsail east"]
   require_game_output $output "Current position: (901, 225, 0)" \
     "$vessel_name ocean movement"
@@ -872,10 +903,9 @@ proc run_frontier_submarine {prototype_id} {
     "Trench    : Starfall Trench (natural depth 104; threshold 96)" \
     "$vessel_name surface trench"
 
-  set output [run_game_command "speed 10"]
-  require_game_output $output "Speed set to 10." "$vessel_name speed"
-  for {set depth_step 0} {$depth_step < 9} {incr depth_step} {
-    run_game_command "setsail down"
+  run_game_command "setsail down"
+  for {set depth_step 1} {$depth_step < 9} {incr depth_step} {
+    frontier_maneuver down
   }
 
   set output [run_game_command "shipstatus"]
@@ -913,11 +943,9 @@ proc run_frontier_airship {prototype_id} {
     fail "$vessel_name exposed an altitude feature at ground level"
   }
 
-  set output [run_game_command "speed 10"]
-  require_game_output $output "Speed set to 10." "$vessel_name ascent speed"
-  set ascent_output ""
-  for {set altitude_step 0} {$altitude_step < 10} {incr altitude_step} {
-    set ascent_output [run_game_command "setsail up"]
+  set ascent_output [run_game_command "setsail up"]
+  for {set altitude_step 1} {$altitude_step < 10} {incr altitude_step} {
+    set ascent_output [frontier_maneuver up]
   }
   require_game_output $ascent_output \
     "The high currents of Aetherwind Skyway lend speed to the vessel." \
@@ -930,11 +958,8 @@ proc run_frontier_airship {prototype_id} {
     "Sky lane  : Aetherwind Skyway (active above 100)" \
     "$vessel_name lane state"
 
-  set output [run_game_command "speed 10"]
-  require_game_output $output "Effective speed after terrain modifiers: 12" \
-    "$vessel_name lane speed"
   for {set altitude_step 0} {$altitude_step < 10} {incr altitude_step} {
-    run_game_command "setsail up"
+    frontier_maneuver up
   }
 
   set output [run_game_command "shipstatus"]
@@ -944,11 +969,8 @@ proc run_frontier_airship {prototype_id} {
     fail "$vessel_name reached the sky island outside its polygon"
   }
 
-  set output [run_game_command "speed 10"]
-  require_game_output $output "Effective speed after terrain modifiers: 12" \
-    "$vessel_name island approach speed"
-  run_game_command "setsail east"
-  run_game_command "setsail east"
+  frontier_maneuver east
+  frontier_maneuver east
 
   set output [run_game_command "shipstatus"]
   require_frontier_ship_position $output 469 0 200 "$vessel_name island position"
@@ -1001,37 +1023,35 @@ proc run_frontier_magical {prototype_id} {
     "$vessel_name cargo room"
   require_frontier_cargo $vessel_name 12000
 
-  set output [run_game_command "speed 10"]
-  require_game_output $output "Speed set to 10." "$vessel_name speed"
   set output [run_game_command "setsail north"]
   require_game_output $output "Current position: (-810, 480, 0)" \
     "$vessel_name river entry"
   set output [run_game_command "shipstatus"]
   require_game_output $output "Terrain: River" "$vessel_name river terrain"
 
-  set output [run_game_command "setsail down"]
-  require_game_output $output "Current position: (-810, 480, -10)" \
+  set output [frontier_maneuver down]
+  require_game_output $output "The vessel descends to -10." \
     "$vessel_name submerged movement"
   set output [run_game_command "shipstatus"]
   require_frontier_ship_position $output -810 480 -10 \
     "$vessel_name submerged position"
   require_game_output $output "Terrain: River" "$vessel_name submerged terrain"
 
-  set output [run_game_command "setsail up"]
-  require_game_output $output "Current position: (-810, 480, 0)" \
+  set output [frontier_maneuver up]
+  require_game_output $output "The vessel climbs to 0." \
     "$vessel_name resurfacing"
-  set output [run_game_command "setsail south"]
+  set output [frontier_maneuver south]
   require_game_output $output "Current position: (-810, 479, 0)" \
     "$vessel_name plains return"
-  set output [run_game_command "setsail up"]
-  require_game_output $output "Current position: (-810, 479, 10)" \
+  set output [frontier_maneuver up]
+  require_game_output $output "The vessel climbs to 10." \
     "$vessel_name ascent"
   set output [run_game_command "shipstatus"]
   require_frontier_ship_position $output -810 479 10 \
     "$vessel_name airborne position"
   require_game_output $output "Terrain: Plains" "$vessel_name airborne terrain"
-  set output [run_game_command "setsail down"]
-  require_game_output $output "Current position: (-810, 479, 0)" \
+  set output [frontier_maneuver down]
+  require_game_output $output "The vessel descends to 0." \
     "$vessel_name landing"
   purge_frontier_vessel $ship_slot $vessel_name
 }
@@ -1081,7 +1101,6 @@ proc run_vessel_event_check {raft_id warship_id} {
   require_game_output $output "Started vessel regatta event #" "regatta start"
   set output [run_game_command "vevent join"]
   require_game_output $output "Entered Sablebranch Raft" "regatta entry"
-  run_game_command "speed 2"
   set output [run_game_command "setsail east"]
   require_game_output $output "REGATTA FINISH: place 1" "regatta finish"
   set output [run_game_command "vevent status"]
@@ -1365,6 +1384,142 @@ proc run_vessel_lookout_check {warship_id} {
   puts "PASS: the vessel lookout check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }
 
+# Read the whole-number fields of the navigation block of shipstatus.
+proc read_vessel_navigation {output context} {
+  if {![regexp {Coordinates: \((-?[0-9]+), (-?[0-9]+)\)} $output ignored x y] ||
+      ![regexp {Heading: (-?[0-9]+) degrees} $output ignored heading] ||
+      ![regexp {Speed: (-?[0-9]+) /} $output ignored speed]} {
+    fail "$context: could not read the vessel's position, heading, and speed"
+  }
+  return [list $x $y $heading $speed]
+}
+
+proc run_vessel_movement_check {warship_id} {
+  set workflow_started_at [clock milliseconds]
+  set prototype_name "Movecheck Boat [clock seconds]"
+
+  # A hull launched in port (the harbor's east dock) is berthed until her
+  # crew casts off.
+  set output [run_game_command "goto 1000390"]
+  require_game_output $output "Current Location  : (-62, 82)" "harbor staging"
+  set output [run_game_command "vedit new 1 $prototype_name"]
+  if {![regexp {Created Boat prototype ([0-9]+):} $output ignored prototype_id]} {
+    fail "could not read the movement-check boat prototype id"
+  }
+  puts "movement_prototype_id=$prototype_id"
+  set output [run_game_command "vedit spawn $prototype_id"]
+  if {![regexp {as ship ([0-9]+):} $output ignored boat_slot]} {
+    fail "could not read the movement-check boat slot"
+  }
+  set output [run_game_command "shipgoto $boat_slot"]
+  require_game_output $output "Aboard $prototype_name (slot $boat_slot)." "boat teleport"
+  set output [run_game_command "shipstatus"]
+  require_game_output $output "Coordinates: (-62, 82)" "launched boat position"
+  require_game_output $output "Moorings: Berthed" "launched boat moorings"
+  set output [run_game_command "speed 2"]
+  require_game_output $output "is berthed; order 'undock' to cast off first." \
+    "berthed speed order"
+  set output [run_game_command "undock"]
+  require_game_output $output "The crew begins casting off." "casting off"
+  set output [run_game_command "shipstatus"]
+  require_game_output $output "Moorings: Casting off" "casting-off moorings"
+  set output [wait_for_game_output 33 "ready to get under way"]
+  require_game_output $output "ready to get under way" "departure report"
+  set output [run_game_command "shipstatus"]
+  require_game_output $output "Moorings: Under way" "departed boat moorings"
+
+  # setsail is a one-room maneuver, five seconds apart, that berths in port.
+  set output [run_game_command "setsail west"]
+  require_game_output $output "The vessel maneuvers west." "harbor maneuver"
+  require_game_output $output "Current position: (-63, 82, 0)" "harbor maneuver position"
+  set output [run_game_command "setsail east"]
+  require_game_output $output "The crew is not ready to maneuver again yet." \
+    "maneuver cooldown"
+  set output [frontier_maneuver east]
+  require_game_output $output "made fast at the berth" "maneuver into port"
+  set output [run_game_command "shipstatus"]
+  require_game_output $output "Coordinates: (-62, 82)" "berthed boat position"
+  require_game_output $output "Moorings: Berthed" "re-berthed boat moorings"
+  set output [run_game_command "shippurge $boat_slot"]
+  require_game_output $output "Purged ship $boat_slot '$prototype_name'" "boat cleanup"
+  set output [run_game_command "vedit delete $prototype_id"]
+  require_game_output $output "Prototype $prototype_id deleted." "boat prototype cleanup"
+
+  # At sea the warship gathers way, sails speed / 90 rooms a tick, and comes
+  # about at her turn rate.
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" "open-sea staging"
+  set ship_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+  set output [run_game_command "shipstatus"]
+  require_game_output $output "Moorings: Under way" "open-sea moorings"
+  lassign [read_vessel_navigation $output "launched warship"] start_x start_y start_heading \
+    start_speed
+  if {$start_speed != 0 || $start_heading != 0} {
+    fail "the launched warship was not at rest heading north"
+  }
+  set output [run_game_command "speed 12"]
+  require_game_output $output "Speed set to 12." "speed order"
+  set output [run_game_command "shipstatus"]
+  require_game_output $output "(ordered 12)" "accelerating warship"
+  run_game_command "@wait 6"
+  set output [run_game_command "shipstatus"]
+  lassign [read_vessel_navigation $output "warship under way"] x y heading speed
+  if {$speed != 12} {
+    fail "the warship did not reach its ordered speed 12 (speed $speed)"
+  }
+  if {$x != $start_x || $y < $start_y + 1 || $y > $start_y + 2} {
+    fail "six seconds at up to speed 12 should cover one or two rooms north: ($start_x,$start_y) to ($x,$y)"
+  }
+
+  set output [run_game_command "heading 90"]
+  require_game_output $output "Heading set to 90 degrees (E)." "heading order"
+  set output [run_game_command "shipstatus"]
+  require_game_output $output "(coming about to 90)" "turning warship"
+  run_game_command "@wait 15"
+  set output [run_game_command "shipstatus"]
+  lassign [read_vessel_navigation $output "warship after turning"] x y heading speed
+  if {$heading != 90} {
+    fail "the warship did not come about to 90 degrees (heading $heading)"
+  }
+
+  set output [run_game_command "setsail east"]
+  require_game_output $output "You're coming in too fast!" "maneuver at speed"
+  set output [run_game_command "speed 0"]
+  require_game_output $output "All stop! The crew takes in sail." "all stop"
+  run_game_command "@wait 6"
+  set output [run_game_command "shipstatus"]
+  lassign [read_vessel_navigation $output "stopped warship"] x y heading speed
+  if {$speed != 0} {
+    fail "the warship did not lose way after all stop (speed $speed)"
+  }
+
+  # Anchoring holds her until the anchor is weighed.
+  set output [run_game_command "anchor"]
+  require_game_output $output "drops anchor." "anchoring"
+  set output [run_game_command "speed 5"]
+  require_game_output $output "rides at anchor; order 'undock' to weigh anchor first." \
+    "anchored speed order"
+  set output [run_game_command "shipstatus"]
+  require_game_output $output "Moorings: Anchored" "anchored moorings"
+  set output [run_game_command "undock"]
+  require_game_output $output "The crew begins weighing anchor." "weighing anchor"
+  set output [wait_for_game_output 14 "ready to get under way"]
+  require_game_output $output "ready to get under way" "anchor weighed"
+  set output [run_game_command "shipstatus"]
+  require_game_output $output "Moorings: Under way" "weighed moorings"
+
+  purge_frontier_vessel $ship_slot "Starfall Bastion"
+  set output [run_game_command "goto 1204"]
+  require_game_output $output "Staff Board Room" "movement safe-room return"
+  set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
+  puts "\nPASS: a hull launched in port was berthed, refused speed, and cast off in 30 seconds."
+  puts "PASS: setsail maneuvered one room, waited five seconds, and berthed back in port."
+  puts "PASS: the warship gathered way to speed 12 and covered one or two rooms in six seconds."
+  puts "PASS: the warship came about to 90 degrees and refused a maneuver at speed."
+  puts "PASS: the warship lost way, anchored, refused speed, and weighed anchor in 13 seconds."
+  puts "PASS: the vessel movement check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
+}
+
 proc run_vessel_narrative_check {warship_id} {
   set workflow_started_at [clock milliseconds]
 
@@ -1373,8 +1528,9 @@ proc run_vessel_narrative_check {warship_id} {
     "narrative Vailand Passage staging"
   set vessel_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
 
-  set output [run_game_command "speed 10"]
-  require_game_output $output "Speed set to 10." "narrative speed setup"
+  set output [run_game_command "speed 6"]
+  require_game_output $output "Speed set to 6." "narrative speed setup"
+  run_game_command "@wait 3"
 
   set output [run_game_command "lookout"]
   require_game_output $output "LOOKOUT VIEW FROM Starfall Bastion" \
@@ -1661,7 +1817,7 @@ proc wait_for_named_water_crossing {context initial_output} {
     return $crossing
   }
 
-  set ::timeout 45
+  set ::timeout 150
 
   expect {
     -re $crossing_pattern {
@@ -1692,7 +1848,7 @@ proc run_vessel_crossing_check {ship_slot} {
   set output [run_game_command "autopilot on"]
   set crossing [wait_for_named_water_crossing $ship_name $output]
   if {[llength $crossing] != 3} {
-    set failure "no harbor named-water crossing arrived within 45 seconds"
+    set failure "no harbor named-water crossing arrived within 150 seconds"
   } else {
     lassign $crossing region waters_type authority
     if {$region eq "Harbor Sandbox Territorial Waters"} {
@@ -2368,7 +2524,7 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     $mode eq "vessel-frontier-check" || $mode eq "vessel-event-check" ||
     $mode eq "vessel-tactical-check" || $mode eq "vessel-lookout-check" ||
     $mode eq "vessel-narrative-check" || $mode eq "vessel-boarding-check" ||
-    $mode eq "vessel-rules-check"} {
+    $mode eq "vessel-rules-check" || $mode eq "vessel-movement-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -2438,6 +2594,8 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     } elseif {$mode eq "vessel-rules-check"} {
       run_vessel_rules_check [lindex $game_commands 0] \
         [lindex $game_commands 1]
+    } elseif {$mode eq "vessel-movement-check"} {
+      run_vessel_movement_check [lindex $game_commands 0]
     } else {
       run_vessel_msdp_check [lindex $game_commands 0]
     }
@@ -2530,6 +2688,9 @@ elif [[ "$mode" == "vessel-narrative-check" ]]; then
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-boarding-check" ]]; then
   printf 'PASS: %s completed the two-character vessel-boarding check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-movement-check" ]]; then
+  printf 'PASS: %s completed the vessel-movement check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-rules-check" ]]; then
   printf 'PASS: %s completed the two-character vessel-rules check and logged out cleanly (%ss total).\n' \

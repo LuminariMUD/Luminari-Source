@@ -19,7 +19,8 @@
 #include "wilderness/wilderness.h"
 #include "core/utils.h" /* after <math.h>: it defines log() as a macro */
 
-#define SCHEDULE_ROUTE_VALIDATION_MAX_STEPS 10000
+/* 10,000 rooms at speed 1, the slowest a hull with any sail makes */
+#define SCHEDULE_ROUTE_VALIDATION_MAX_TICKS 900000
 
 /* External MySQL connection variables */
 
@@ -275,7 +276,7 @@ int waypoint_add(struct ship_route *route, double x, double y, double z, const c
   route->waypoints[idx].x = x;
   route->waypoints[idx].y = y;
   route->waypoints[idx].z = z;
-  route->waypoints[idx].tolerance = 5.0;
+  route->waypoints[idx].tolerance = AUTOPILOT_ARRIVAL_TOLERANCE;
   route->waypoints[idx].wait_time = 0;
   route->waypoints[idx].flags = 0;
 
@@ -1988,11 +1989,11 @@ int check_waypoint_arrival(const struct greyhawk_ship_data *ship, const struct w
     return FALSE;
   }
 
-  /* Use waypoint tolerance, default to 5.0 if not set */
+  /* Use waypoint tolerance, default to the waypoint's own room if not set */
   tolerance = wp->tolerance;
   if (tolerance <= 0.0)
   {
-    tolerance = 5.0;
+    tolerance = AUTOPILOT_ARRIVAL_TOLERANCE;
   }
 
   return (distance <= tolerance) ? TRUE : FALSE;
@@ -2053,8 +2054,9 @@ int advance_to_next_waypoint(struct greyhawk_ship_data *ship)
     }
     else
     {
-      /* Non-loop route: mark complete */
+      /* Non-loop route: mark complete and bring the hull to a stop */
       ap->state = AUTOPILOT_COMPLETE;
+      ship->setspeed = 0;
       VSSL_DEBUG_AUTO("Ship %d completed route '%s'", ship->shipnum, route->name);
       return 0;
     }
@@ -2112,13 +2114,9 @@ void handle_waypoint_arrival(struct greyhawk_ship_data *ship)
   /* Check if we need to wait at this waypoint */
   if (wp->wait_time > 0)
   {
-    /* A waiting vessel is physically stopped at the waypoint. Preserve its
-     * requested cruise speed so it can resume after the scheduled pause. */
-    if (ship->setspeed <= 0 && ship->speed > 0)
-    {
-      ship->setspeed = ship->speed;
-    }
-    ship->speed = 0;
+    /* The hull heaves to at the waypoint; its ordered cruise speed stays
+     * set for the next leg. */
+    ap->speed_limit = 0.0;
     ap->state = AUTOPILOT_WAITING;
     ap->wait_remaining = wp->wait_time;
     ap->last_update = time(0);
@@ -2145,95 +2143,101 @@ int vessel_autopilot_grid_coordinate(double coordinate)
 }
 
 /**
- * Calculate one bounded three-dimensional autopilot step.
- *
- * The old movement path normalized only X/Y even though waypoint arrival used
- * X/Y/Z distance. A waypoint directly above or below a ship therefore could
- * never be reached. Clamp the step to the remaining distance so high-speed
- * vessels also cannot overshoot and oscillate around a waypoint.
+ * Order the heading on the waypoint's bearing and return the autopilot's
+ * speed cap: none while the bow is more than 90 degrees off, so she comes
+ * about where she lies, steerage speed while it is more than 45 degrees off,
+ * and a stopping speed approaching a waypoint where the hull must stop.
+ * distance receives the horizontal distance to the waypoint.
  */
-bool vessel_autopilot_next_position(const struct greyhawk_ship_data *ship,
-                                    const struct waypoint *wp, double speed, int *target_x,
-                                    int *target_y, int *target_z)
+static double autopilot_order_heading(struct greyhawk_ship_data *ship, const struct waypoint *wp,
+                                      bool stop_here, double *distance)
 {
-  double dx;
-  double dy;
-  double dz;
-  double distance;
-  double travel;
-  double scale;
+  double position_x;
+  double position_y;
+  double delta_x;
+  double delta_y;
+  double error;
+  double limit;
 
-  if (ship == NULL || wp == NULL || target_x == NULL || target_y == NULL || target_z == NULL)
+  position_x = ship->x + ship->dx;
+  position_y = ship->y + ship->dy;
+  delta_x = wp->x - position_x;
+  delta_y = wp->y - position_y;
+  *distance = sqrt(delta_x * delta_x + delta_y * delta_y);
+  if (*distance < 0.5)
   {
-    return FALSE;
+    return 0.0;
   }
 
-  if (speed <= 0.0)
+  ship->setheading = (short int)greyhawk_bearing(position_x, position_y, wp->x, wp->y);
+  error = fabs(vessel_heading_difference(ship->heading, (double)ship->setheading));
+  limit = (double)VESSEL_SPEED_LIMIT;
+  if (error > 90.0)
   {
-    speed = 1.0;
+    limit = 0.0; /* come about where she lies */
   }
-
-  dx = wp->x - ship->x;
-  dy = wp->y - ship->y;
-  dz = wp->z - ship->z;
-  distance = (double)sqrt((double)(dx * dx + dy * dy + dz * dz));
-  if (distance < 0.001)
+  else if (error > 45.0)
   {
-    return FALSE;
+    limit = (double)VESSEL_STEERAGE_SPEED;
   }
-
-  travel = speed < distance ? speed : distance;
-  scale = travel / distance;
-  *target_x = vessel_autopilot_grid_coordinate(ship->x + dx * scale);
-  *target_y = vessel_autopilot_grid_coordinate(ship->y + dy * scale);
-  *target_z = vessel_autopilot_grid_coordinate(ship->z + dz * scale);
-
-  return TRUE;
+  if (stop_here)
+  {
+    limit =
+        fmin(limit,
+             fmax(1.0, sqrt(2.0 * VESSEL_SPEED_PER_ROOM * vessel_acceleration(ship) * *distance)));
+  }
+  return limit;
 }
 
 /**
- * Move a vessel toward its current waypoint.
- *
- * Calculates movement direction and distance, validates terrain,
- * and updates ship position. Uses the wilderness room allocation
- * pattern for terrain validation.
- *
- * @param ship The ship to move
- * @return 1 if moved successfully, 0 if movement failed
+ * The altitude or depth to take this tick toward target_z: along the straight
+ * line to a waypoint distance rooms off, at least VESSEL_CLIMB_PER_TICK.
  */
-int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
+static int autopilot_climb_toward(const struct greyhawk_ship_data *ship, int target_z,
+                                  double distance)
+{
+  double climb;
+  int z;
+  int step;
+
+  z = (int)ship->z;
+  climb = (double)VESSEL_CLIMB_PER_TICK;
+  if (distance >= 0.5 && ship->speed > 0.0)
+  {
+    climb = fmax(
+        climb, ceil(fabs((double)(target_z - z)) * ship->speed / VESSEL_SPEED_PER_ROOM / distance));
+  }
+  step = (int)fmin(climb, fabs((double)(target_z - z)));
+  return target_z > z ? z + step : z - step;
+}
+
+/**
+ * Steer toward the current waypoint; vessel_movement_tick_one() sails.
+ *
+ * Orders the heading and caps speed through autopilot_order_heading(), and
+ * climbs or dives through autopilot_climb_toward().
+ *
+ * @return FALSE when the hull cannot reach the waypoint's altitude or depth
+ */
+bool vessel_autopilot_steer(struct greyhawk_ship_data *ship)
 {
   struct autopilot_data *ap;
   struct waypoint *wp;
-  double speed;
-  int target_x;
-  int target_y;
+  double distance;
+  bool stop_here;
   int target_z;
 
-  if (ship == NULL)
+  if (ship == NULL || ship->autopilot == NULL)
   {
-    log("SYSERR: move_vessel_toward_waypoint called with NULL ship");
-    return 0;
+    return FALSE;
   }
-
   ap = ship->autopilot;
-  if (ap == NULL)
-  {
-    return 0;
-  }
 
   wp = waypoint_get_current(ship);
   if (wp == NULL)
   {
-    log("SYSERR: move_vessel_toward_waypoint - no current waypoint");
-    return 0;
-  }
-
-  /* Get ship speed (use current_speed or a default) */
-  speed = (double)ship->speed;
-  if (speed <= 0.0)
-  {
-    speed = 1.0; /* Minimum movement speed */
+    log("SYSERR: vessel_autopilot_steer - no current waypoint");
+    return FALSE;
   }
 
   target_z = vessel_autopilot_grid_coordinate(wp->z);
@@ -2241,36 +2245,23 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
   {
     log("Info: Autopilot ship %d - waypoint '%s' has invalid class Z %d", ship->shipnum, wp->name,
         target_z);
-    return 0;
+    return FALSE;
   }
 
-  if (!vessel_autopilot_next_position(ship, wp, speed, &target_x, &target_y, &target_z))
+  stop_here =
+      wp->wait_time > 0 || (ap->current_route != NULL && !ap->current_route->loop &&
+                            ap->current_waypoint_index >= ap->current_route->num_waypoints - 1);
+  ap->speed_limit = autopilot_order_heading(ship, wp, stop_here, &distance);
+
+  if (target_z != (int)ship->z &&
+      !vessel_change_altitude(ship, autopilot_climb_toward(ship, target_z, distance)))
   {
-    return 0;
+    log("Info: Autopilot ship %d cannot change altitude toward waypoint '%s'", ship->shipnum,
+        wp->name);
+    return FALSE;
   }
 
-  /* Update ship position using the centralized wilderness position function.
-   * It resolves the target room and enforces class terrain and Z limits in one
-   * pass. Do not probe with can_vessel_traverse_terrain() first: that function
-   * also configures a dynamic wilderness room, duplicating the room and
-   * spatial-query work when the target coordinate is not already occupied.
-   *
-   * This handles:
-   * - Coordinate updates (ship->x, ship->y, ship->z)
-   * - Dynamic wilderness room allocation via get_or_allocate_wilderness_room()
-   * - Class terrain and altitude/depth validation
-   * - Updating ship->location to the new room vnum
-   * - Moving ship object via obj_from_room()/obj_to_room() to allow room recycling
-   */
-  if (!update_ship_wilderness_position(ship->shipnum, target_x, target_y, target_z))
-  {
-    log("SYSERR: Autopilot ship %d - failed to update position to (%d, %d, %d)", ship->shipnum,
-        target_x, target_y, target_z);
-    return 0;
-  }
-
-  ap->movement_steps++;
-  return 1;
+  return TRUE;
 }
 
 /**
@@ -2298,13 +2289,8 @@ void process_waiting_vessel(struct greyhawk_ship_data *ship)
     return;
   }
 
-  /* Enforce the physical stop after boot or copyover as well as on the
-   * original arrival tick. Older persisted waits may still carry speed. */
-  if (ship->setspeed <= 0 && ship->speed > 0)
-  {
-    ship->setspeed = ship->speed;
-  }
-  ship->speed = 0;
+  /* The hull holds at the waypoint, also after boot or copyover. */
+  ap->speed_limit = 0.0;
 
   /* Calculate elapsed time since last update */
   now = time(0);
@@ -2318,7 +2304,6 @@ void process_waiting_vessel(struct greyhawk_ship_data *ship)
   {
     /* Wait complete, advance to next waypoint */
     ap->wait_remaining = 0;
-    ship->speed = (short)MIN(MAX(0, ship->setspeed), ship->maxspeed);
     ap->state = AUTOPILOT_TRAVELING;
     VSSL_DEBUG_AUTO("Ship %d wait complete, advancing to next waypoint", ship->shipnum);
     advance_to_next_waypoint(ship);
@@ -2350,17 +2335,29 @@ void process_traveling_vessel(struct greyhawk_ship_data *ship)
   {
     return;
   }
+  ap->speed_limit = 0.0;
 
   if (ship->dock_fee_balance > 0)
   {
     ap->state = AUTOPILOT_PAUSED;
-    ship->speed = 0;
     ship->setspeed = 0;
     send_to_ship(ship,
                  "Autopilot pauses: the harbor requires %d gold in dock fees "
                  "before departure.",
                  ship->dock_fee_balance);
     vessel_db_save_runtime(ship);
+    return;
+  }
+
+  /* A berthed or anchored hull casts off before it can follow the route. */
+  if (vessel_is_moored(ship))
+  {
+    if (ship->departure_ticks == 0 && ship->docked_to_ship <= 0 &&
+        !vessel_begin_departure(ship, NULL))
+    {
+      autopilot_pause(ship);
+      send_to_ship(ship, "Autopilot pauses: %s cannot get under way.", ship->name);
+    }
     return;
   }
 
@@ -2380,11 +2377,11 @@ void process_traveling_vessel(struct greyhawk_ship_data *ship)
     return;
   }
 
-  /* Not arrived yet, move toward waypoint */
+  /* Not arrived yet, steer toward the waypoint */
   VSSL_DEBUG_AUTO("Ship %d traveling toward waypoint %d '%s' at (%.1f,%.1f) from (%.1f,%.1f)",
                   ship->shipnum, ap->current_waypoint_index, wp->name, wp->x, wp->y, ship->x,
                   ship->y);
-  if (!move_vessel_toward_waypoint(ship))
+  if (!vessel_autopilot_steer(ship))
   {
     autopilot_pause(ship);
     ship->speed = 0;
@@ -2853,7 +2850,7 @@ ACMD(do_setwaypoint)
   wp.x = ship->x;
   wp.y = ship->y;
   wp.z = ship->z;
-  wp.tolerance = 5.0;
+  wp.tolerance = AUTOPILOT_ARRIVAL_TOLERANCE;
   wp.wait_time = 0;
   wp.flags = 0;
   strncpy(wp.name, arg, AUTOPILOT_NAME_LENGTH - 1);
@@ -3735,25 +3732,49 @@ static void schedule_route_validation_failure(const struct waypoint *wp, int x, 
 }
 
 /**
- * Simulate one complete scheduled route without allocating wilderness rooms.
- * Loop routes include the final leg back to their first waypoint.
+ * One tick of route validation for the probe hull; FALSE when the probe
+ * cannot make way or a room refused it, with x and y naming the room.
  */
-static bool scheduled_route_is_traversable(const struct greyhawk_ship_data *ship,
-                                           const struct route_node *route_node,
-                                           const char **bad_waypoint, int *bad_x, int *bad_y)
+static bool autopilot_probe_tick(struct greyhawk_ship_data *probe, double max_speed, int *ticks,
+                                 int *x, int *y)
+{
+  *x = (int)probe->x;
+  *y = (int)probe->y;
+  if (max_speed <= 0.0 || (*ticks)++ >= SCHEDULE_ROUTE_VALIDATION_MAX_TICKS)
+  {
+    return FALSE;
+  }
+  return vessel_sail_tick(probe, max_speed, vessel_chart_cell, x, y);
+}
+
+/**
+ * Sail a copy of the hull over one complete scheduled route and check every
+ * room it would enter, without allocating wilderness rooms.
+ *
+ * The copy steers as the autopilot does and sails through vessel_sail_tick(),
+ * so it takes the same line through every turn, at the hull's present
+ * maximum speed with her rigging and rudder whole. A loop route sails on to
+ * its second waypoint, so the turn after the closing leg is checked too.
+ */
+bool scheduled_route_is_traversable(const struct greyhawk_ship_data *ship,
+                                    const struct route_node *route_node, const char **bad_waypoint,
+                                    int *bad_x, int *bad_y)
 {
   struct greyhawk_ship_data probe;
+  struct autopilot_data probe_autopilot;
   struct waypoint_node *wp_node;
   const struct waypoint *wp;
-  double speed;
-  int target_x;
-  int target_y;
+  double max_speed;
+  double distance;
+  bool last;
   int target_z;
-  int previous_x;
-  int previous_y;
-  int previous_z;
+  int next_z;
   int legs;
-  int steps;
+  int ticks;
+  int hold;
+  int held;
+  int x;
+  int y;
   int i;
 
   if (bad_waypoint != NULL)
@@ -3767,54 +3788,81 @@ static bool scheduled_route_is_traversable(const struct greyhawk_ship_data *ship
   }
 
   probe = *ship;
-  speed = probe.speed > 0 ? (double)probe.speed : 1.0;
-  legs = route_node->num_waypoints + (route_node->loop ? 1 : 0);
-  steps = 0;
+  memset(&probe_autopilot, 0, sizeof(probe_autopilot));
+  probe.autopilot = &probe_autopilot;
+  probe.mainsail = probe.maxmainsail;
+  probe.turnrate = probe.maxturnrate;
+  max_speed = vessel_max_speed(&probe);
+  legs = route_node->num_waypoints + (route_node->loop ? 2 : 0);
+  ticks = 0;
 
   for (i = 0; i < legs; i++)
   {
     wp_node = waypoint_cache_find(route_node->waypoint_ids[i % route_node->num_waypoints]);
     if (wp_node == NULL)
     {
-      schedule_route_validation_failure(NULL, vessel_autopilot_grid_coordinate(probe.x),
-                                        vessel_autopilot_grid_coordinate(probe.y), bad_waypoint,
-                                        bad_x, bad_y);
+      schedule_route_validation_failure(NULL, (int)probe.x, (int)probe.y, bad_waypoint, bad_x,
+                                        bad_y);
       return FALSE;
     }
     wp = &wp_node->data;
-
-    while (!check_waypoint_arrival(&probe, wp))
+    last = !route_node->loop && i == route_node->num_waypoints - 1;
+    target_z = vessel_autopilot_grid_coordinate(wp->z);
+    if (!vessel_z_within_class_limits(probe.vessel_type, target_z))
     {
-      if (steps++ >= SCHEDULE_ROUTE_VALIDATION_MAX_STEPS ||
-          !vessel_autopilot_next_position(&probe, wp, speed, &target_x, &target_y, &target_z))
-      {
-        schedule_route_validation_failure(wp, vessel_autopilot_grid_coordinate(probe.x),
-                                          vessel_autopilot_grid_coordinate(probe.y), bad_waypoint,
-                                          bad_x, bad_y);
-        return FALSE;
-      }
-
-      previous_x = vessel_autopilot_grid_coordinate(probe.x);
-      previous_y = vessel_autopilot_grid_coordinate(probe.y);
-      previous_z = vessel_autopilot_grid_coordinate(probe.z);
-      if ((target_x == previous_x && target_y == previous_y && target_z == previous_z) ||
-          !vessel_can_occupy_coordinates(probe.vessel_type, target_x, target_y, target_z))
-      {
-        schedule_route_validation_failure(wp, target_x, target_y, bad_waypoint, bad_x, bad_y);
-        return FALSE;
-      }
-
-      probe.x = (double)target_x;
-      probe.y = (double)target_y;
-      probe.z = (double)target_z;
+      schedule_route_validation_failure(wp, (int)probe.x, (int)probe.y, bad_waypoint, bad_x, bad_y);
+      return FALSE;
     }
 
-    if (wp->wait_time > 0 && probe.setspeed > 0)
+    probe_autopilot.state = AUTOPILOT_TRAVELING;
+    while (!check_waypoint_arrival(&probe, wp))
     {
-      speed = (double)MIN(probe.setspeed, probe.maxspeed);
-      if (speed <= 0.0)
+      probe_autopilot.speed_limit =
+          autopilot_order_heading(&probe, wp, wp->wait_time > 0 || last, &distance);
+      if (target_z != (int)probe.z)
       {
-        speed = 1.0;
+        next_z = autopilot_climb_toward(&probe, target_z, distance);
+        if (!vessel_chart_cell(&probe, (int)probe.x, (int)probe.y, next_z))
+        {
+          schedule_route_validation_failure(wp, (int)probe.x, (int)probe.y, bad_waypoint, bad_x,
+                                            bad_y);
+          return FALSE;
+        }
+        probe.z = (double)next_z;
+      }
+      if (!autopilot_probe_tick(&probe, max_speed, &ticks, &x, &y))
+      {
+        schedule_route_validation_failure(wp, x, y, bad_waypoint, bad_x, bad_y);
+        return FALSE;
+      }
+    }
+
+    /* On arrival the autopilot orders no speed for a tick while it takes the
+     * next leg; a wait holds the hull while she loses way and comes round,
+     * and the end of a one-way route stops her. */
+    probe_autopilot.speed_limit = 0.0;
+    hold = 1;
+    if (last)
+    {
+      probe_autopilot.state = AUTOPILOT_COMPLETE;
+      probe.setspeed = 0;
+    }
+    else if (wp->wait_time > 0)
+    {
+      probe_autopilot.state = AUTOPILOT_WAITING;
+      hold = wp->wait_time * PASSES_PER_SEC / AUTOPILOT_TICK_INTERVAL;
+    }
+    for (held = 0; last || held < hold; held++)
+    {
+      if (!autopilot_probe_tick(&probe, max_speed, &ticks, &x, &y))
+      {
+        schedule_route_validation_failure(wp, x, y, bad_waypoint, bad_x, bad_y);
+        return FALSE;
+      }
+      if (probe.speed <= 0.0 &&
+          fabs(vessel_heading_difference(probe.heading, (double)probe.setheading)) < 0.001)
+      {
+        break;
       }
     }
   }

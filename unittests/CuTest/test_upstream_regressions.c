@@ -1411,6 +1411,59 @@ void Test_uint32_indices_parse_and_render_high_stat_vnums(CuTest *tc)
   CuAssertTrue(tc, object_stat_valid);
 }
 
+/* reglist and pathlist parse their own distance or type arguments; the zone
+ * and VNUM bounds of the other list commands must not reject them. */
+void Test_region_and_path_lists_accept_their_own_arguments(CuTest *tc)
+{
+  struct descriptor_data descriptor;
+  struct char_data staff;
+  struct player_special_data staff_specials;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  bool region_type_reached;
+  bool path_distance_reached;
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&staff, 0, sizeof(staff));
+  memset(&staff_specials, 0, sizeof(staff_specials));
+  memset(&room, 0, sizeof(room));
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  room.number = 1204;
+  world = &room;
+  top_of_world = 0;
+
+  reset_test_descriptor_output(&descriptor);
+  descriptor.character = &staff;
+  descriptor.connected = CON_PLAYING;
+  descriptor.pProtocol = ProtocolCreate();
+  staff.desc = &descriptor;
+  staff.player_specials = &staff_specials;
+  staff.player.name = CuMutableString("listbuilder");
+  GET_LEVEL(&staff) = LVL_IMPL;
+  GET_POS(&staff) = POS_STANDING;
+  IN_ROOM(&staff) = 0;
+
+  /* Outside the wilderness both commands reach their own argument handling. */
+  do_oasis_list(&staff, "type 5", 0, SCMD_OASIS_REGLIST);
+  region_type_reached = strstr(descriptor.output, "only available while in the wilderness") != NULL;
+  reset_test_descriptor_output(&descriptor);
+  do_oasis_list(&staff, "50", 0, SCMD_OASIS_PATHLIST);
+  path_distance_reached =
+      strstr(descriptor.output, "only available while in the wilderness") != NULL;
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  staff.desc = NULL;
+  if (descriptor.pProtocol != NULL)
+    ProtocolDestroy(descriptor.pProtocol);
+  reset_test_descriptor_output(&descriptor);
+
+  CuAssertTrue(tc, region_type_reached);
+  CuAssertTrue(tc, path_distance_reached);
+}
+
 void Test_zone_export_filename_rejects_shell_and_path_metacharacters(CuTest *tc)
 {
   const char *allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-";

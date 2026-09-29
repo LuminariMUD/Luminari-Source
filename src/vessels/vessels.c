@@ -590,6 +590,7 @@ static bool vessel_can_traverse_sector(enum vessel_class vessel_type, int sector
 bool vessel_can_occupy_coordinates(enum vessel_class vessel_type, int x, int y, int z)
 {
   zone_rnum wild_zone;
+  room_rnum static_room;
   int sector_type;
 
   if (x < -1024 || x > 1024 || y < -1024 || y > 1024 ||
@@ -604,7 +605,11 @@ bool vessel_can_occupy_coordinates(enum vessel_class vessel_type, int x, int y, 
     return FALSE;
   }
 
-  sector_type = get_modified_sector_type(wild_zone, x, y);
+  /* A static room placed on the map, such as a port, overrides the
+   * generated sector exactly as the hull's position update will find it. */
+  static_room = find_static_room_by_coordinates(x, y);
+  sector_type = static_room != NOWHERE ? world[static_room].sector_type
+                                       : get_modified_sector_type(wild_zone, x, y);
   return vessel_can_traverse_sector(vessel_type, sector_type, z);
 }
 
@@ -1590,6 +1595,7 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
 
   /* Update ship's location to the wilderness room */
   greyhawk_ships[shipnum].location = world[wilderness_room].number;
+  greyhawk_ships[shipnum].position_speed_percent = 0;
 
   /* If ship object exists, move it to new location.
    * ROOM LIFECYCLE: obj_from_room() removes the ship object from the old room's
@@ -1876,250 +1882,6 @@ int get_vessel_position_speed_modifier(enum vessel_class vessel_type, int sector
   return modifier;
 }
 
-/* seadog (Sep 2026 racial innate): one extra tile per move while at the helm */
-int vessel_pilot_speed_bonus(struct char_data *ch)
-{
-  if (ch == NULL || !HAS_FEAT(ch, FEAT_SEADOG))
-    return 0;
-  return 1;
-}
-
-/**
- * Rooms one manual `setsail` order covers.
- *
- * The storm band is vessel_storm_severity(), not the raw 0..255 weather
- * value: only storms and gales (band 2 and up) shorten the move.
- */
-int vessel_manual_move_distance(int speed, int helm_bonus, int storm_severity)
-{
-  int distance;
-
-  distance = MAX(1, speed / 10) + MAX(0, helm_bonus);
-  if (storm_severity >= 2)
-  {
-    distance = MAX(1, distance * 75 / 100);
-  }
-  return distance;
-}
-
-/**
- * Move ship in given direction using wilderness coordinates
- * @param shipnum Ship index number
- * @param direction Direction to move (NORTH, SOUTH, EAST, WEST, etc.)
- * @param ch Character piloting the ship (for messages)
- * @return TRUE if movement successful, FALSE otherwise
- */
-bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
-{
-  struct vessel_region_feature altitude_lane;
-  int new_x, new_y, new_z;
-  int speed_modifier;
-  int terrain_type;
-  int storm_severity;
-  int move_distance;
-  enum vessel_class vessel_type;
-
-  /* Validate ship number */
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS || !is_valid_ship(&greyhawk_ships[shipnum]))
-  {
-    return FALSE;
-  }
-
-  /* Get actual vessel type from ship data */
-  vessel_type = get_vessel_type_from_ship(shipnum);
-
-  /* Get current position */
-  new_x = (int)greyhawk_ships[shipnum].x;
-  new_y = (int)greyhawk_ships[shipnum].y;
-  new_z = (int)greyhawk_ships[shipnum].z;
-
-  /* Storm band (0 calm .. 3 gale) at the current position */
-  storm_severity = vessel_storm_severity(&greyhawk_ships[shipnum]);
-
-  VSSL_DEBUG_MOVE("Ship %d moving dir %d from (%d,%d,%d) speed %d storm %d", shipnum, direction,
-                  new_x, new_y, new_z, greyhawk_ships[shipnum].speed, storm_severity);
-
-  /* Calculate new position based on direction, speed, and weather */
-  move_distance = vessel_manual_move_distance(greyhawk_ships[shipnum].speed,
-                                              vessel_pilot_speed_bonus(ch), storm_severity);
-  if (storm_severity >= 2 && ch)
-  {
-    send_to_char(ch, "The harsh weather conditions slow your progress!\r\n");
-  }
-
-  switch (direction)
-  {
-  case NORTH:
-    new_y += move_distance;
-    break;
-  case SOUTH:
-    new_y -= move_distance;
-    break;
-  case EAST:
-    new_x += move_distance;
-    break;
-  case WEST:
-    new_x -= move_distance;
-    break;
-  case NORTHEAST:
-    new_x += move_distance;
-    new_y += move_distance;
-    break;
-  case NORTHWEST:
-    new_x -= move_distance;
-    new_y += move_distance;
-    break;
-  case SOUTHEAST:
-    new_x += move_distance;
-    new_y -= move_distance;
-    break;
-  case SOUTHWEST:
-    new_x -= move_distance;
-    new_y -= move_distance;
-    break;
-  case UP: /* For airships/submarines */
-    new_z += 10;
-    break;
-  case DOWN: /* For airships/submarines */
-    new_z -= 10;
-    break;
-  default:
-    return FALSE;
-  }
-
-  /* Check if vessel can traverse the target terrain */
-  if (!can_vessel_traverse_terrain(vessel_type, new_x, new_y, new_z))
-  {
-    VSSL_DEBUG_MOVE("Ship %d MOVE BLOCKED: type %d cannot enter (%d,%d,%d)", shipnum, vessel_type,
-                    new_x, new_y, new_z);
-    if (ch)
-    {
-      /* Send vessel-type-specific denial message */
-      switch (vessel_type)
-      {
-      case VESSEL_RAFT:
-        send_to_char(ch, "Your raft cannot navigate these waters! It's only suitable for rivers "
-                         "and shallow water.\r\n");
-        break;
-      case VESSEL_BOAT:
-        send_to_char(
-            ch,
-            "Your boat cannot handle these conditions! It's designed for coastal waters only.\r\n");
-        break;
-      case VESSEL_SHIP:
-      case VESSEL_WARSHIP:
-        send_to_char(ch,
-                     "The ship cannot navigate this terrain! It requires deep water to sail.\r\n");
-        break;
-      case VESSEL_AIRSHIP:
-        if (new_z < 100)
-        {
-          send_to_char(ch, "The airship cannot fly through this terrain at low altitude! Gain more "
-                           "altitude.\r\n");
-        }
-        else
-        {
-          send_to_char(ch, "The airship cannot fly here - perhaps it's underground or the altitude "
-                           "is too extreme.\r\n");
-        }
-        break;
-      case VESSEL_SUBMARINE:
-        if (new_z >= 0)
-        {
-          send_to_char(ch, "The submarine must dive to navigate underwater terrain! Use 'heading "
-                           "down' to submerge.\r\n");
-        }
-        else
-        {
-          send_to_char(ch, "The submarine cannot traverse this area while submerged!\r\n");
-        }
-        break;
-      case VESSEL_TRANSPORT:
-        send_to_char(ch, "The transport vessel draws too much water for this area!\r\n");
-        break;
-      case VESSEL_MAGICAL:
-        send_to_char(ch, "Even magical forces cannot penetrate this barrier!\r\n");
-        break;
-      default:
-        send_to_char(ch, "The vessel cannot navigate that terrain!\r\n");
-        break;
-      }
-    }
-    return FALSE;
-  }
-
-  /* Update ship position */
-  if (!update_ship_wilderness_position(shipnum, new_x, new_y, new_z))
-  {
-    if (ch)
-    {
-      send_to_char(ch, "Movement failed - unable to update position.\r\n");
-    }
-    return FALSE;
-  }
-
-  /* Get terrain at new position and calculate speed modifier including weather */
-  terrain_type = get_ship_terrain_type(shipnum);
-  speed_modifier = get_vessel_position_speed_modifier(vessel_type, terrain_type, storm_severity,
-                                                      new_x, new_y, new_z, &altitude_lane);
-
-  /* Adjust ship speed based on terrain and weather, then credit the
-   * sailmaster's handling bonus (see vessels_crew.c) */
-  greyhawk_ships[shipnum].speed =
-      (short)((greyhawk_ships[shipnum].setspeed * speed_modifier) / 100);
-  greyhawk_ships[shipnum].speed =
-      (short)(greyhawk_ships[shipnum].speed + greyhawk_ships[shipnum].sailcrew.speedadjust);
-  if (greyhawk_ships[shipnum].speed > greyhawk_ships[shipnum].maxspeed &&
-      greyhawk_ships[shipnum].maxspeed > 0)
-  {
-    greyhawk_ships[shipnum].speed = greyhawk_ships[shipnum].maxspeed;
-  }
-  if (greyhawk_ships[shipnum].speed < 0)
-  {
-    greyhawk_ships[shipnum].speed = 0;
-  }
-
-  /* Send movement messages */
-  if (ch)
-  {
-    send_to_char(ch, "The vessel moves %s across the wilderness.\r\n", dirs[direction]);
-    send_to_char(ch, "Current position: (%d, %d, %d)\r\n", new_x, new_y, new_z);
-    if (speed_modifier != 100)
-    {
-      send_to_char(ch, "Speed affected by terrain and weather: %d%%\r\n", speed_modifier);
-    }
-    if (altitude_lane.region_vnum > 0)
-    {
-      send_to_char(ch, "The high currents of %s lend speed to the vessel.\r\n", altitude_lane.name);
-    }
-
-    /* Weather-specific messages */
-    if (storm_severity >= 3)
-    {
-      send_to_char(ch, "The vessel struggles against the severe storm!\r\n");
-      act("The ship rocks violently in the storm!", FALSE, ch, 0, 0, TO_ROOM);
-    }
-    else if (storm_severity == 2)
-    {
-      send_to_char(ch, "Strong winds and rain buffet the vessel.\r\n");
-      act("The ship sways in the rough weather.", FALSE, ch, 0, 0, TO_ROOM);
-    }
-    else if (storm_severity == 1)
-    {
-      send_to_char(ch, "Light rain patters against the deck.\r\n");
-    }
-    else
-    {
-      send_to_char(ch, "The weather is clear for sailing.\r\n");
-    }
-  }
-
-  /* Bathymetry check: deep-draft hulls ground out in the shallows */
-  vessel_check_grounding(shipnum);
-
-  return TRUE;
-}
-
 /* ========================================================================= */
 /* EXTERNAL VIEW DISPLAY CONSTANTS AND HELPERS                              */
 /* ========================================================================= */
@@ -2161,6 +1923,48 @@ ACMD(do_board_vessel)
   send_to_char(ch, "You need to be near a ship to board it.\r\n");
   /* The actual boarding is handled by the greyhawk_ship_object special procedure */
   /* This command exists just so 'board' is recognized as a valid command */
+}
+
+/**
+ * Heading, speed, and moorings as orders and the hull's response to them.
+ */
+static void vessel_show_navigation(struct char_data *ch, struct greyhawk_ship_data *ship)
+{
+  int heading;
+  int speed;
+
+  heading = vessel_display_heading(ship->heading);
+  speed = vessel_display_speed(ship->speed);
+  send_to_char(ch, "Heading: %d degrees", heading);
+  if (heading != ship->setheading)
+  {
+    send_to_char(ch, " (coming about to %d)", ship->setheading);
+  }
+  send_to_char(ch, "\r\nSpeed: %d / %d", speed, vessel_display_speed(vessel_max_speed(ship)));
+  if (speed != ship->setspeed)
+  {
+    send_to_char(ch, " (ordered %d)", ship->setspeed);
+  }
+  send_to_char(ch, "\r\nMoorings: ");
+  if (ship->docked_to_ship > 0)
+  {
+    send_to_char(ch, "Made fast alongside another vessel\r\n");
+  }
+  else if (ship->dock > 0)
+  {
+    send_to_char(ch, ship->departure_ticks > 0 ? "Casting off (%d seconds)\r\n" : "Berthed\r\n",
+                 (ship->departure_ticks + 1) / 2);
+  }
+  else if (ship->anchored)
+  {
+    send_to_char(ch,
+                 ship->departure_ticks > 0 ? "Weighing anchor (%d seconds)\r\n" : "Anchored\r\n",
+                 (ship->departure_ticks + 1) / 2);
+  }
+  else
+  {
+    send_to_char(ch, "Under way\r\n");
+  }
 }
 
 ACMD(do_greyhawk_status)
@@ -2249,9 +2053,7 @@ ACMD(do_greyhawk_status)
   send_to_char(ch, "Terrain: %s\r\n", terrain_name);
   send_to_char(ch, "\r\n");
   send_to_char(ch, "== Navigation ==\r\n");
-  send_to_char(ch, "Heading: %d degrees\r\n", greyhawk_ships[shipnum].heading);
-  send_to_char(ch, "Speed: %d / %d\r\n", greyhawk_ships[shipnum].speed,
-               greyhawk_ships[shipnum].maxspeed);
+  vessel_show_navigation(ch, &greyhawk_ships[shipnum]);
   if (greyhawk_ships[shipnum].dock_fee_balance > 0)
   {
     send_to_char(ch, "Dock Fees: %d gold due at port %d\r\n",
@@ -2270,15 +2072,35 @@ ACMD(do_greyhawk_status)
   send_to_char(ch, "\r\n");
 }
 
+/* Tell the helm why its orders cannot take effect yet. */
+static bool vessel_refuse_moored_order(struct char_data *ch, const struct greyhawk_ship_data *ship)
+{
+  if (ship->docked_to_ship > 0)
+  {
+    send_to_char(ch, "%s is made fast alongside another vessel; 'undock' first.\r\n", ship->name);
+    return TRUE;
+  }
+  if (ship->dock > 0)
+  {
+    send_to_char(ch, "%s is berthed; order 'undock' to cast off first.\r\n", ship->name);
+    return TRUE;
+  }
+  if (ship->anchored)
+  {
+    send_to_char(ch, "%s rides at anchor; order 'undock' to weigh anchor first.\r\n", ship->name);
+    return TRUE;
+  }
+  return FALSE;
+}
+
 ACMD(do_greyhawk_speed)
 {
   char arg[MAX_INPUT_LENGTH];
-  room_rnum ship_room = IN_ROOM(ch);
   struct greyhawk_ship_data *ship;
-  int shipnum;
   int new_speed;
+  int max_speed;
 
-  ship = get_ship_from_room(ship_room);
+  ship = get_ship_from_room(IN_ROOM(ch));
   if (ship == NULL)
   {
     send_to_char(ch, "You must be in a ship's control room to adjust speed!\r\n");
@@ -2291,74 +2113,55 @@ ACMD(do_greyhawk_speed)
     return;
   }
 
-  shipnum = ship->shipnum;
-
   one_argument(argument, arg, sizeof(arg));
+  max_speed = vessel_display_speed(vessel_max_speed(ship));
 
   if (!*arg)
   {
-    send_to_char(ch, "Current speed: %d / %d\r\n", greyhawk_ships[shipnum].speed,
-                 greyhawk_ships[shipnum].maxspeed);
-    send_to_char(ch, "Usage: speed <0-%d>\r\n", greyhawk_ships[shipnum].maxspeed);
+    send_to_char(ch, "Current speed: %d, ordered %d; she can make %d under present conditions.\r\n",
+                 vessel_display_speed(ship->speed), ship->setspeed, max_speed);
+    send_to_char(ch, "Usage: speed <0-%d>\r\n", VESSEL_SPEED_LIMIT);
     return;
   }
 
   new_speed = parse_int(arg);
-
-  /* Validate speed */
-  if (new_speed < 0)
+  if (new_speed < 0 || new_speed > VESSEL_SPEED_LIMIT)
   {
-    send_to_char(ch, "Speed cannot be negative!\r\n");
+    send_to_char(ch, "Speed must be from 0 to %d.\r\n", VESSEL_SPEED_LIMIT);
     return;
   }
 
-  if (new_speed > greyhawk_ships[shipnum].maxspeed)
+  if (new_speed > 0 && vessel_refuse_moored_order(ch, ship))
   {
-    send_to_char(ch, "Maximum speed is %d!\r\n", greyhawk_ships[shipnum].maxspeed);
     return;
   }
 
-  /* Set the new speed */
-  greyhawk_ships[shipnum].setspeed = (short)new_speed;
-  greyhawk_ships[shipnum].speed = (short)new_speed;
-
-  /* Apply terrain modifiers using actual vessel type */
+  /* The order stands; the hull gathers or loses way at its class rate. */
+  ship->setspeed = (short)new_speed;
+  if (new_speed == 0)
   {
-    struct vessel_region_feature altitude_lane;
-    enum vessel_class vtype = get_vessel_type_from_ship(shipnum);
-    int terrain_type = get_ship_terrain_type(shipnum);
-    int speed_modifier = get_vessel_position_speed_modifier(
-        vtype, terrain_type, 0, (int)greyhawk_ships[shipnum].x, (int)greyhawk_ships[shipnum].y,
-        (int)greyhawk_ships[shipnum].z, &altitude_lane);
-    greyhawk_ships[shipnum].speed = (short)((new_speed * speed_modifier) / 100);
+    send_to_char(ch, "All stop! The crew takes in sail.\r\n");
+    act("$n brings the vessel to a stop.", FALSE, ch, 0, 0, TO_ROOM);
+  }
+  else if (new_speed < ship->maxspeed / 3)
+  {
+    send_to_char(ch, "Slow ahead. Speed set to %d.\r\n", new_speed);
+    act("$n reduces the vessel's speed.", FALSE, ch, 0, 0, TO_ROOM);
+  }
+  else if (new_speed < (ship->maxspeed * 2) / 3)
+  {
+    send_to_char(ch, "Half speed. Speed set to %d.\r\n", new_speed);
+    act("$n sets the vessel to half speed.", FALSE, ch, 0, 0, TO_ROOM);
+  }
+  else
+  {
+    send_to_char(ch, "Full speed ahead! Speed set to %d.\r\n", new_speed);
+    act("$n sets the vessel to full speed!", FALSE, ch, 0, 0, TO_ROOM);
+  }
 
-    /* Send feedback */
-    if (new_speed == 0)
-    {
-      send_to_char(ch, "All stop! The vessel comes to a halt.\r\n");
-      act("$n brings the vessel to a stop.", FALSE, ch, 0, 0, TO_ROOM);
-    }
-    else if (new_speed < greyhawk_ships[shipnum].maxspeed / 3)
-    {
-      send_to_char(ch, "Slow ahead. Speed set to %d.\r\n", new_speed);
-      act("$n reduces the vessel's speed.", FALSE, ch, 0, 0, TO_ROOM);
-    }
-    else if (new_speed < (greyhawk_ships[shipnum].maxspeed * 2) / 3)
-    {
-      send_to_char(ch, "Half speed. Speed set to %d.\r\n", new_speed);
-      act("$n sets the vessel to half speed.", FALSE, ch, 0, 0, TO_ROOM);
-    }
-    else
-    {
-      send_to_char(ch, "Full speed ahead! Speed set to %d.\r\n", new_speed);
-      act("$n sets the vessel to full speed!", FALSE, ch, 0, 0, TO_ROOM);
-    }
-
-    if (speed_modifier != 100)
-    {
-      send_to_char(ch, "Effective speed after terrain modifiers: %d\r\n",
-                   greyhawk_ships[shipnum].speed);
-    }
+  if (new_speed > max_speed)
+  {
+    send_to_char(ch, "Under present conditions she can make only %d.\r\n", max_speed);
   }
 }
 
@@ -2388,40 +2191,14 @@ static int parse_vessel_direction(const char *arg)
   return -1;
 }
 
-static int vessel_direction_heading(int direction, int current_heading)
-{
-  switch (direction)
-  {
-  case NORTH:
-    return 0;
-  case NORTHEAST:
-    return 45;
-  case EAST:
-    return 90;
-  case SOUTHEAST:
-    return 135;
-  case SOUTH:
-    return 180;
-  case SOUTHWEST:
-    return 225;
-  case WEST:
-    return 270;
-  case NORTHWEST:
-    return 315;
-  default:
-    return current_heading;
-  }
-}
-
 ACMD(do_greyhawk_heading)
 {
   char arg[MAX_INPUT_LENGTH];
   char *end;
   struct greyhawk_ship_data *ship;
   long heading;
-  room_rnum ship_room = IN_ROOM(ch);
 
-  ship = get_ship_from_room(ship_room);
+  ship = get_ship_from_room(IN_ROOM(ch));
   if (ship == NULL)
   {
     send_to_char(ch, "You must be in a ship's control room to set heading!\r\n");
@@ -2438,8 +2215,9 @@ ACMD(do_greyhawk_heading)
 
   if (!*arg)
   {
-    send_to_char(ch, "Current heading: %d degrees (%s).\r\n", ship->heading,
-                 bearing_direction_str(ship->heading));
+    send_to_char(ch, "Current heading: %d degrees (%s), ordered %d.\r\n",
+                 vessel_display_heading(ship->heading),
+                 bearing_direction_str(vessel_display_heading(ship->heading)), ship->setheading);
     send_to_char(ch, "Usage: heading <0-360>\r\n");
     return;
   }
@@ -2454,10 +2232,14 @@ ACMD(do_greyhawk_heading)
   if (heading == 360)
     heading = 0;
 
+  /* The helm turns toward the order at the class rate, scaled by the rudder. */
   ship->setheading = (short int)heading;
-  ship->heading = (short int)heading;
-  send_to_char(ch, "Heading set to %d degrees (%s).\r\n", ship->heading,
-               bearing_direction_str(ship->heading));
+  send_to_char(ch, "Heading set to %ld degrees (%s).\r\n", heading,
+               bearing_direction_str((int)heading));
+  if (ship->maxturnrate > 0 && ship->turnrate == 0)
+  {
+    send_to_char(ch, "The rudder is smashed; she will not answer the helm.\r\n");
+  }
   act("$n adjusts the vessel's heading.", FALSE, ch, 0, 0, TO_ROOM);
 }
 
@@ -2803,21 +2585,8 @@ ACMD(do_greyhawk_setsail)
     return;
   }
 
-  if (ship->speed <= 0)
+  if (vessel_maneuver(ship, ch, direction))
   {
-    send_to_char(ch, "Set a positive speed before setting sail.\r\n");
-    return;
-  }
-
-  if (vessel_ship_is_in_port(ship) && vessel_helm_level_refused(ch, ship))
-  {
-    return;
-  }
-
-  ship->heading = (short int)vessel_direction_heading(direction, ship->heading);
-  ship->setheading = ship->heading;
-  if (move_ship_wilderness(ship->shipnum, direction, ch))
-  {
-    act("$n holds the vessel on its new course.", FALSE, ch, 0, 0, TO_ROOM);
+    act("$n maneuvers the vessel.", FALSE, ch, 0, 0, TO_ROOM);
   }
 }

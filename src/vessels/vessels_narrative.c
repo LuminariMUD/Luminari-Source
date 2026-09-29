@@ -255,7 +255,7 @@ char *vessel_create_at_sea_description(struct char_data *ch, const struct greyha
   ship_y = vessel_autopilot_grid_coordinate(ship->y);
   ship_z = vessel_autopilot_grid_coordinate(ship->z);
   weather = get_weather(ship_x, ship_y);
-  speed_description = vessel_description_speed(ship->speed, ship->maxspeed);
+  speed_description = vessel_description_speed(vessel_display_speed(ship->speed), ship->maxspeed);
   weather_name = vessel_weather_condition_name(weather);
   article = ship->vessel_type == VESSEL_AIRSHIP ? "An" : "A";
 
@@ -308,8 +308,8 @@ static bool vessel_narrative_broadcast(struct greyhawk_ship_data *ship)
   ship_y = vessel_autopilot_grid_coordinate(ship->y);
   ship_z = vessel_autopilot_grid_coordinate(ship->z);
   weather = get_weather(ship_x, ship_y);
-  if (!vessel_build_ambient_message(ship->vessel_type, weather, ship->speed, ship->maxspeed, ship_z,
-                                    message, sizeof(message)))
+  if (!vessel_build_ambient_message(ship->vessel_type, weather, vessel_display_speed(ship->speed),
+                                    ship->maxspeed, ship_z, message, sizeof(message)))
   {
     return FALSE;
   }

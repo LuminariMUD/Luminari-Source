@@ -351,7 +351,8 @@ ACMD(do_look_outside)
     send_to_char(ch, "%s\r\n", appearance);
   }
   send_to_char(ch, "Position: (%d, %d, %d)   Heading: %d deg %s\r\n", ship_x, ship_y, ship_z,
-               ship->heading, vessel_lookout_compass_direction(ship->heading));
+               vessel_display_heading(ship->heading),
+               vessel_lookout_compass_direction(vessel_display_heading(ship->heading)));
   send_to_char(ch, "Conditions: %s (%d/255); visibility %d units%s.\r\n",
                vessel_weather_condition_name(weather), weather, visibility,
                vessel_lookout_bonus(ship) > 0 ? " with a posted lookout" : "");

@@ -65,7 +65,7 @@ and operator controls in one system.
 
 | Tier | Type | Memory | Interior | Use Case |
 | -- | -- | -- | -- | -- |
-| **Vessel** | Ships, airships, submarines | 5,104-byte base struct | Multi-room | Exploration, cargo, combat |
+| **Vessel** | Ships, airships, submarines | 5,120-byte base struct | Multi-room | Exploration, cargo, combat |
 | **Vehicle** | Carts, wagons, mounts | 152-byte base struct | None | Land travel, cargo, transport |
 
 ### System Components
@@ -77,12 +77,13 @@ and operator controls in one system.
 | Tactical Chart | Wilderness terrain, regions, range rings, contacts | vessels_tactical.c |
 | Lookout View | Eight-bearing wilderness samples and visible contacts | vessels_lookout.c |
 | At-Sea Narrative | Contextual descriptions and occupied-hull ambience | vessels_narrative.c |
+| Movement | Momentum sailing, per-room checks, berths, anchor, maneuvers | vessels_movement.c |
 | Autopilot | Waypoint navigation, route following | vessels_autopilot.c |
 | Interior Rooms | Multi-room ship interiors | vessels_rooms.c |
 | Docking | Ship-to-ship docking mechanics | vessels_docking.c |
 | Persistence | Database save/load operations | vessels_db.c |
 | Builder and Shipyard | Prototypes, spawning, hull purchase | vessels_edit.c |
-| Combat | Damage, weapons, grounding, sinking | vessels_combat.c |
+| Combat | Damage, weapons, sinking | vessels_combat.c |
 | Ownership and Crew | Owners, permits, one-time crew hires | vessels_ownership.c, vessels_crew.c |
 | Upgrades | Refits, wear, insurance | vessels_upgrades.c |
 | Economy | Cargo, markets, freight, piracy | vessels_trade.c, vessels_contracts.c, vessels_piracy.c |
@@ -100,8 +101,8 @@ and operator controls in one system.
 
 ### Memory Layout
 
-- **Vessel** (`greyhawk_ship_data`): 5,104 bytes, max 500 = about 2.43 MiB
-- **Autopilot** (`autopilot_data`): 72 bytes (optional, attached to vessel)
+- **Vessel** (`greyhawk_ship_data`): 5,120 bytes, max 500 = about 2.44 MiB
+- **Autopilot** (`autopilot_data`): 80 bytes (optional, attached to vessel)
 - **Schedule** (`vessel_schedule`): ~32 bytes (optional, attached to vessel)
 - **Vehicle** (`vehicle_data`): 152 bytes, max 1000 = about 148 KB
 
@@ -109,8 +110,8 @@ and operator controls in one system.
 
 The default `LUMINARI_VESSEL_EVENTS=scheduled` mode gives every valid
 Greyhawk vessel one generation-aware event. It wakes on the next aligned
-0.5-second boundary for autopilot, hunter, combat, crew, upkeep, narrative,
-weather, and encounter work, and also carries that vessel's aligned
+0.5-second boundary for autopilot, hunter, movement, combat, crew, upkeep,
+narrative, weather, and encounter work, and also carries that vessel's aligned
 75-second schedule deadline. One service-owned event retains genuinely global
 vessel event, trade-restock, MSDP, and merchant work. Fixed-interior RoL hulls
 receive their own 2.5-second events through direct object lifecycle hooks.
@@ -127,6 +128,100 @@ heartbeat paths as one exclusive rollback mode. A failed mandatory service
 event also selects that complete legacy mode; partial scheduled operation is
 not allowed.
 
+### Movement and Pacing
+
+`src/vessels/vessels_movement.c` implements DurisMUD's momentum sailing at
+decision D1's pacing (vessels-ships study, section 3.3.2). Orders set targets
+and every 0.5-second vessel tick converges on them:
+
+- `speed` sets `setspeed` and `heading` sets `setheading`. Each tick
+  `vessel_movement_tick_one()` changes `speed` by the class acceleration and
+  `heading` by the class turn rate the short way round, both times the
+  sailmaster multiplier (1.1, 1.2, or 1.3 by tier). The turn rate also scales
+  from three quarters at speed 3 to the full rate at the design speed, and by
+  the share of rudder left (`turnrate / maxturnrate`). A smashed rudder cannot
+  turn; a hull with no way possible turns one degree a tick.
+- A hull covers `speed / 90` rooms per tick along its heading: speed 30
+  crosses a room in 1.5 seconds and speed 12 in 3.75 seconds. `dx` and `dy`
+  hold the position inside the current room (-0.5 to 0.5 from its centre).
+  The hull crosses room edges in the order its track meets them, entering
+  the diagonal room only when the track runs through the corner (DurisMUD
+  steps diagonally whenever both edges fall in one tick, which lets a hull
+  slip past the corner of a land room unchecked). Each room is entered
+  through `update_ship_wilderness_position()`, so every room entered is
+  checked for class terrain, altitude or depth, dock-fee clearance, and
+  room-pool capacity. A refused room stops the hull where its track met the
+  edge, cancels the speed order, and pauses a travelling autopilot. Water depth does not stop a hull:
+  seaports sit on water one unit deep, so a draft barrier would close every
+  port to ship-class hulls. Grounding in shallows, like the crash on a
+  refused room, is the battle-stations crash check that arrives in step S4.
+- `vessel_max_speed()` is the design speed (`maxspeed`, the prototype's speed)
+  times the sailmaster multiplier, the load factor, the sail fraction
+  (`mainsail / maxmainsail`), and the terrain, weather, and altitude-lane
+  percentage, at least 1, plus 1 with a seadog helmsman on the bridge
+  (`vessel_helm_speed_bonus()`), at most `VESSEL_SPEED_LIMIT` (30). With the
+  sail shot away it is 0. The load factor is 1 minus the fit-out weight (the
+  weights of installed slots) above the class allowance plus the bulk-cargo
+  weight (its share of the class hold capacity times the weight of a full
+  hold) above the class allowance, divided by the class weight budget. The
+  terrain, weather, and lane percentage is cached per room and refreshed on
+  every room entered and every hazard check.
+- A hull that comes to rest in a port room is berthed: `dock` holds the port
+  room vnum. A hull coming to rest also saves its runtime row, so the berth and
+  the position a paused autopilot holds survive a restart. Public and NPC hulls
+  have no owner to repair them, so the harbor restores their sail and rudder
+  whenever they berth. A berthed hull, a hull at anchor (`anchored`, runtime
+  only), and a hull made fast alongside another hold position and take no
+  speed order.
+  `undock` casts off in 30 seconds (60 ticks) or weighs anchor in 13 (26
+  ticks); casting off needs a whole sail, settled dock fees, and a captain of
+  the hull's minimum level. `anchor` needs a stopped hull on the surface and
+  disengages the autopilot. `vessel_sync_berth()` reconciles the berth after a
+  spawn or reboot.
+- `setsail <direction>` is the harbor maneuver (`vessel_maneuver()`): one room
+  at speed 6 or less, leaving the hull stopped on the new heading and berthed
+  if the room is a port. `setsail up` and `down` change altitude or depth by
+  10 under way. The crew needs 5 seconds between maneuvers.
+- Every automated mover sails through the same tick. The autopilot
+  (`vessel_autopilot_steer()`) orders the bearing to its waypoint and caps
+  speed through `autopilot_data.speed_limit`: zero while the bow is more than
+  90 degrees off, so she comes about where she lies, steerage speed 2 while it
+  is more than 45 degrees off, and `sqrt(180 * accel * distance)` approaching a
+  waypoint where the hull stops, so it comes to rest inside a 0.5-room
+  tolerance. A waypoint counts as reached when the hull enters its room:
+  `setwaypoint` stores `AUTOPILOT_ARRIVAL_TOLERANCE` (0.5), and the boot
+  migration 2026092901 moved rows at the old five-room default to 0.5. It cruises at the ordered speed, or at full speed when none is
+  ordered, casts off first from a berth or anchorage, holds the hull while
+  waiting or paused, and stops the hull at the end of a one-way route. Altitude
+  or depth follows the straight line to the waypoint, at least one unit a
+  tick. Hunters steer for their target at their pursuit speed and match its
+  speed within two rooms. Merchants cruise at their design speed from a
+  standing start. `setschedule` and every scheduled departure validate the
+  route by sailing a copy of the hull over it through the same steering and
+  `vessel_sail_tick()`, at her present maximum speed with rigging and rudder
+  whole, checking each room she would enter with `vessel_chart_cell()`
+  (no room allocation); a loop route is sailed on to its second waypoint so
+  the turn after the closing leg is checked too.
+
+Per-class handling (`vessel_class_handling()`; Duris analog values, speeds
+times 0.3, weights in Duris units):
+
+| Class | Speed | Accel / tick | Turn / tick | Weight budget | Free fit-out | Full hold | Free hold |
+| -- | -: | -: | -: | -: | -: | -: | -: |
+| Raft | 5 | 5.0 | 25.0 | 5 | 0 | 2 | 0 |
+| Boat | 30 | 4.0 | 22.0 | 12 | 2 | 6 | 0 |
+| Ship | 20 | 2.0 | 6.5 | 100 | 13 | 70 | 12 |
+| Warship | 17 | 1.5 | 4.0 | 142 | 20 | 56 | 0 |
+| Airship | 22 | 3.0 | 10.0 | 82 | 13 | 32 | 0 |
+| Submarine | 12 | 2.0 | 6.5 | 110 | 16 | 44 | 0 |
+| Transport | 15 | 1.2 | 3.0 | 165 | 19 | 140 | 40 |
+| Magical | 14 | 1.2 | 2.5 | 200 | 25 | 80 | 0 |
+
+`vedit new` uses the class speed as the prototype default. Voyage times follow
+from the pacing: the 368-room Vailand Iron Passage takes about 23 minutes of
+sailing at the cog's speed 12, and the harbor ferry's 24-room loop about 2
+minutes at speed 10, before departures, waits, and turns.
+
 ### Wilderness Coordinates
 
 X/Y: -1024 to +1024; Z: altitude (airships) or depth (submarines)
@@ -135,15 +230,14 @@ The class Z contract is enforced before wilderness-room allocation. Surface
 hulls remain at Z 0; air-capable hulls may rise only to their configured
 ceiling; submersible hulls may use negative Z only in a water column. Submarine
 crush depth remains anchored to local bathymetry instead of a fixed class
-floor. Autopilot advances along X, Y, and Z together, clamps each step to the
-remaining three-dimensional distance, and rejects an invalid waypoint Z before
-moving toward it. Automated movement resolves and validates its target dynamic
-room once inside `update_ship_wilderness_position()`; it does not run the
-allocating `can_vessel_traverse_terrain()` probe immediately beforehand.
-If that central move rejects terrain or Z, autopilot stops the hull, enters
-`PAUSED`, persists the runtime state, and tells occupants which waypoint is
-unreachable. It does not retry the same invalid step every heartbeat. Correct
-the route, set the desired speed, and resume autopilot.
+floor. The autopilot rejects an invalid waypoint Z before steering toward it.
+Every room a hull enters is resolved and validated once inside
+`update_ship_wilderness_position()`; movement does not run the allocating
+`can_vessel_traverse_terrain()` probe beforehand. If that central move rejects
+terrain or Z, the hull stops at the room's edge, and a travelling
+autopilot enters `PAUSED`, persists the runtime state, and tells occupants
+which waypoint is unreachable. It does not retry the same invalid room every
+heartbeat. Correct the route and resume autopilot.
 
 ### Wilderness Integration Contract
 
@@ -152,15 +246,15 @@ Vessels extend the wilderness system; they do not create a separate geography.
 | Wilderness signal | Vessel behavior |
 | -- | -- |
 | Dynamic room pool | Characters and exterior hulls keep their coordinate room occupied; co-located hulls share it |
-| Generated sector | The central position update and direct-movement preflight gate traversal; speed rules consume the resulting sector |
-| Bathymetry | Draft, grounding, and submarine crush depth |
-| Weather field | Speed, visibility, helm risk, and storm damage |
+| Generated sector | The central position update gates every room entered; maximum speed consumes the resulting sector |
+| Bathymetry | Submarine crush depth; grounding in shallows arrives with the battle-stations crash check (S4) |
+| Weather field | Maximum speed, visibility, helm risk, and storm damage |
 | `REGION_ENCOUNTER` | Builder-authored encounter selection |
 | Sector regions | Magical or transformed waters through the generated sector |
 | Paths | Roads for vehicles; `PATH_RIVER` digitalizes canonical River travel cells for rafts and boats |
 | Geographic regions | Canonical source for named seas and territorial waters |
 | Bathymetric regions | Thresholded natural-depth trenches reported through `seastate` |
-| Altitude-lane regions | Thresholded high currents that multiply eligible airship speed by 125 percent |
+| Altitude-lane regions | Thresholded high currents that multiply eligible airship maximum speed by 125 percent |
 | Sky-island regions | Thresholded aerial destinations reported only inside their polygon and at altitude |
 
 Permanent invariants:
@@ -258,10 +352,16 @@ struct greyhawk_ship_data {
     int shipnum;              /* Ship index */
     struct obj_data *shipobj; /* Associated ship object (critical for coord sync) */
 
-    /* Position */
-    float x, y, z;            /* Wilderness coordinates */
-    short int heading;        /* Direction 0-360 */
-    short int speed;          /* Current speed */
+    /* Position and navigation (vessels_movement.c) */
+    double x, y, z;           /* Wilderness room coordinates */
+    double dx, dy;            /* Position inside the room, -0.5..0.5 */
+    double heading;           /* Current heading, 0 <= heading < 360 */
+    double speed;             /* Current speed; speed / 90 rooms per tick */
+    short int setheading;     /* Ordered heading */
+    short int setspeed;       /* Ordered speed */
+    short int maxspeed;       /* Design speed */
+    int dock;                 /* Berth: port room vnum, 0 when not berthed */
+    bool anchored;            /* At anchor (runtime only) */
 
     /* Armor (per side) */
     unsigned char farmor;     /* Fore armor */
@@ -324,6 +424,7 @@ struct autopilot_data {
     int current_waypoint_index;
     int wait_remaining;          /* Seconds at waypoint */
     int pilot_mob_vnum;          /* NPC pilot VNUM (-1 if none) */
+    double speed_limit;          /* Steering cap on speed, set each tick */
     uint64_t movement_steps;      /* Successful autonomous position updates */
     uint64_t waypoint_arrivals;
     uint64_t route_completions;
@@ -373,7 +474,7 @@ struct vessel_terrain_caps {
 | Shallow Water | 75% | 100% | 0% (blocked) |
 | Rivers | 50-100% (by type) | 100% | 0% (blocked) |
 | Land/Mountains | 0% (blocked) | 75-100% | 0% (blocked) |
-| Storm conditions | -25% | -50% | 0% |
+| Weather band (squall, storm, gale) | -5% per band | -15% per band | 0% submerged |
 
 ### Vehicle System
 
@@ -412,12 +513,17 @@ void load_vessels(void);                              // Load from database
 void save_vessels(void);                              // Save to database
 struct vessel_data *find_vessel_by_id(int id);        // Find by ID
 
-/* Movement */
-bool update_ship_wilderness_position(int ship, int x, int y, int z);
-bool move_ship_wilderness(int ship, int dir, struct char_data *ch);
+/* Movement (vessels_movement.c) */
+bool update_ship_wilderness_position(int ship, int x, int y, int z); /* enters one room */
 bool can_vessel_traverse_terrain(enum vessel_class type, int x, int y, int z);
 int get_terrain_speed_modifier(enum vessel_class type, int sector, int storm_band);
-int vessel_manual_move_distance(int speed, int helm_bonus, int storm_band);
+const struct vessel_class_handling *vessel_class_handling(enum vessel_class type);
+double vessel_max_speed(struct greyhawk_ship_data *ship);
+double vessel_turn_rate(const struct greyhawk_ship_data *ship, double max_speed);
+void vessel_movement_tick_one(struct greyhawk_ship_data *ship);  /* one 0.5 s tick */
+bool vessel_maneuver(struct greyhawk_ship_data *ship, struct char_data *ch, int dir);
+bool vessel_begin_departure(struct greyhawk_ship_data *ship, struct char_data *ch);
+bool vessel_autopilot_steer(struct greyhawk_ship_data *ship);
 ```
 
 ### Cargo and Template Functions (Phase 04)
@@ -447,9 +553,12 @@ void autopilot_tick(void);                            // Legacy rollback wrapper
 ```
 
 A timed waypoint is a physical stop, not only an autopilot state. Entering its
-wait sets live speed to 0 while preserving the requested cruise speed. A boot
-or copyover during the wait reconstructs the vessel stopped with the remaining
-wait intact; expiry resumes the preserved speed and advances the route.
+wait caps speed at 0, so the hull loses way at its class rate and comes to
+rest at the waypoint, while the requested cruise speed stays ordered. A boot or
+copyover during the wait reconstructs the vessel held with the remaining wait
+intact; expiry lifts the cap and advances the route. A paused autopilot holds
+the hull the same way; `autopilot off` leaves it on its ordered speed and
+heading.
 
 ### Vehicle Functions
 
@@ -485,10 +594,12 @@ void vehicle_save_all(void);      void vehicle_load_all(void);
 | greyhawk_tactical | Display tactical map | `tactical` |
 | greyhawk_status | Show ship status | `shipstatus` |
 | shiptalk | Speak across all rooms of the current vessel | `shiptalk <message>` |
-| greyhawk_speed | Set ship speed | `speed <0-30>` |
-| greyhawk_heading | Set ship heading | `heading <0-360>` |
+| greyhawk_speed | Order a speed; the hull gathers or loses way at its class rate | `speed <0-30>` |
+| greyhawk_heading | Order a heading; the hull comes about at its turn rate | `heading <0-360>` |
+| greyhawk_setsail | Harbor maneuver: one room at speed 6 or less, or climb or dive 10 | `setsail <direction>` |
 | dock | Dock with vessel | `dock <ship>` |
-| undock | Undock from vessel | `undock` |
+| undock | Remove a gangway, cast off from a berth (30 s), or weigh anchor (13 s) | `undock` |
+| vessel_anchor | Anchor a stopped surface hull | `anchor` |
 | lookout | View canonical surroundings from a bridge or deck | `lookout` (`look_outside` legacy alias) |
 | board_hostile | Grapple and cross to an enemy vessel | `board_hostile <vessel>` |
 
@@ -496,8 +607,9 @@ System-generated vessel messages use independent per-vessel cooldown classes.
 Repeated depth and weather messages are limited to one copy per class every
 120 seconds; a change from squall to storm or gale remains immediately
 visible. High-volume damage, NPC return-fire, miss, and reload messages are
-limited to one copy per class per half-second vessel tick. Sinking, grounding,
-rigging-collapse, and rudder-loss warnings remain immediate. Suppressed copies
+limited to one copy per class per half-second vessel tick. Sinking, a stop at
+the edge of a refused room, rigging-collapse, and rudder-loss warnings remain
+immediate. Suppressed copies
 increment the process-wide `vessel_messages_throttled` performance counter.
 
 #### Wilderness Tactical Chart
@@ -724,10 +836,9 @@ signals - no vessel-private geography:
   rain/squall, 200..224 storm, and 225..255 gale/thunder. Squall, storm, and
   gale degrade rigging; a gale with neither a sailmaster nor the assigned
   pilot at the bridge damages the hull. Narrative, visibility, lookout,
-  tactical, hazard, and manual `setsail` logic share these thresholds:
-  `setsail` reads `vessel_storm_severity()`, loses a quarter of its distance
-  in a storm or gale, and loses 5% of speed per band (15% for airships). Submerged submarines are
-  sheltered.
+  tactical, hazard, and maximum-speed logic share these thresholds: the
+  maximum speed reads `vessel_storm_severity()` and loses 5% per band (15% for
+  airships). Submerged submarines are sheltered.
 - **Crush depth**: submarines diving past the seabed depth at their
   coordinate (`get_modified_elevation()` vs `wild_waterline`) take damage.
 - **Visibility**: `vessel_sight_range()` shrinks in fog, extended by a
@@ -935,7 +1046,7 @@ Immortals are exempt, ownerless public and NPC hulls never count, and owners
 above a lowered cap keep their hulls. `vessel_helm_level_refused()` holds a
 hull's departures to its level (`vessel_ship_min_level()`: the prototype's
 `min_level`, or the class minimum 1/1/16/22/24/23/21/25 for raft, boat, ship,
-warship, airship, submarine, transport, magical): `setsail` from a port,
+warship, airship, submarine, transport, magical): `undock` from a berth,
 `autopilot on`, `assignpilot`, and `setschedule`. Immortals and NPC pilots are
 exempt. When a prototype-backed hull's level cannot be read, the departure is
 refused rather than held to the lower class minimum. These checks only read
@@ -1101,8 +1212,9 @@ ship-class interiors.
 
 1. **Create** - Load ship via OLC or admin command
 2. **Board** - Player boards vessel (`board ship`)
-3. **Navigate** - Set heading and speed (`heading 90`, `speed 15`)
-4. **Move** - Ship moves on wilderness grid
+3. **Navigate** - Cast off (`undock`), then order heading and speed
+   (`heading 90`, `speed 15`)
+4. **Move** - Ship gathers way and sails its heading across the wilderness grid
 5. **Dock** - Approach and dock with target (`dock pier`)
 6. **Interior** - Move through ship rooms
 7. **Undock** - Depart from dock (`undock`)
@@ -1133,7 +1245,7 @@ ship-class interiors.
 3. Assign route to vessel
 4. Enable autopilot
 5. Vessel follows route automatically
-6. If terrain rejects a step, correct the route, set speed, and resume
+6. If terrain rejects a room, correct the route and resume
 7. Optional: Assign NPC pilot for announcements
 
 ---
@@ -1174,20 +1286,20 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 | Component | Per unit | Maximum | Base total |
 | -- | -- | -- | -- |
-| Vessel | 5,104 bytes | 500 | About 2.43 MiB |
+| Vessel | 5,120 bytes | 500 | About 2.44 MiB |
 | Vehicle | 152 bytes | 1,000 | About 148 KB |
-| Autopilot | 72 bytes | Optional per vessel | Up to about 36 KB |
+| Autopilot | 80 bytes | Optional per vessel | Up to about 40 KB |
 | Schedule | About 32 bytes | Optional per vessel | Up to about 16 KB |
 
 ### Structure Sizes
 
 | Structure | Size |
 | -- | -- |
-| `struct greyhawk_ship_data` | 5,104 bytes |
+| `struct greyhawk_ship_data` | 5,120 bytes |
 | `struct vehicle_data` | 152 bytes |
 | `struct waypoint` | 88 bytes |
 | `struct ship_route` | 1840 bytes |
-| `struct autopilot_data` | 72 bytes |
+| `struct autopilot_data` | 80 bytes |
 | `struct waypoint_node` | 104 bytes |
 | `struct transport_data` | 16 bytes |
 
@@ -1215,6 +1327,12 @@ historical measurements, and the limits of the current evidence.
 | `GREYHAWK_ACTIVE_SHIP_CAPACITY` | 500 | Maximum concurrent active vessels |
 | `MAX_SHIP_ROOMS` | 20 | Maximum interior rooms per vessel |
 | `MAX_DOCKING_RANGE` | 2.0 | Maximum distance for docking |
+| `VESSEL_SPEED_PER_ROOM` | 90.0 | A hull covers speed / 90 rooms per 0.5 s tick |
+| `VESSEL_SPEED_LIMIT` | 30 | Highest design or maximum speed |
+| `VESSEL_MANEUVER_MAX_SPEED` | 6 | Highest speed for a `setsail` maneuver across the map |
+| `VESSEL_MANEUVER_COOLDOWN_TICKS` | 10 | Ticks (5 s) between maneuvers |
+| `VESSEL_UNDOCK_TICKS` | 60 | Ticks (30 s) to cast off from a berth |
+| `VESSEL_WEIGH_ANCHOR_TICKS` | 26 | Ticks (13 s) to weigh anchor |
 | `ABILITY_BOARDING` | 27 | Dedicated trained ability used on both sides of hostile boarding |
 | `BOARDING_CRITICAL_MARGIN` | 10 | Defeat margin that makes a failed crossing critical |
 | `BOARDING_DEFENSE_MIN` | -8 | Minimum target-vessel defense modifier |
@@ -1604,7 +1722,8 @@ and the trigger was removed.
 | File | Purpose |
 | -- | -- |
 | `src/vessels/vessels.h` | Structures, constants, prototypes (includes vehicle definitions) |
-| `src/vessels/vessels.c` | Core commands, wilderness movement, terrain system |
+| `src/vessels/vessels.c` | Core commands, wilderness position updates, terrain system |
+| `src/vessels/vessels_movement.c` | Movement and pacing: class handling, maximum speed, the movement tick, berths, departure, anchor, maneuvers |
 | `src/vessels/vessel_periodic.c`, `vessel_periodic.h` | Bounded vessel owner/service deadlines and rollback selection |
 | `src/vessels/vessels_tactical.c` | Canonical wilderness chart, range rings, regions, and damage-aware contacts |
 | `src/vessels/vessels_lookout.c` | Eight-bearing canonical wilderness lookout and visible-contact roster |
@@ -1614,7 +1733,7 @@ and the trigger was removed.
 | `src/vessels/vessels_db.c` | MySQL persistence layer |
 | `src/vessels/vessels_autopilot.c` | Autopilot, waypoints, routes, NPC pilots, schedules |
 | `src/vessels/vessels_edit.c` | vedit ship prototype editor, spawner, shipyard (Phase 04/06) |
-| `src/vessels/vessels_combat.c` | Naval combat: damage, weapons, sinking, groundings (Phase 05) |
+| `src/vessels/vessels_combat.c` | Naval combat: damage, weapons, sinking (Phase 05) |
 | `src/vessels/vessels_ownership.c` | Ownership, helm permits, deed transfer (Phase 06) |
 | `src/vessels/vessels_crew.c` | Hired crew positions, tiers, one-time hire prices (Phase 06) |
 | `src/vessels/vessels_upgrades.c` | Refits, hull wear, insurance (Phase 06) |
@@ -1859,7 +1978,7 @@ and state transitions (`VSSL_DEBUG_STATE`).
 Filter the syslog by prefix:
 
 ```bash
-grep "\[VESSEL_MOVE\]"   syslog   # movement, terrain, groundings
+grep "\[VESSEL_MOVE\]"   syslog   # movement, terrain, refused rooms
 grep "\[VESSEL_AUTO\]"   syslog   # autopilot
 grep "\[VESSEL_DOCK\]"   syslog   # docking and boarding
 grep "\[VESSEL_DB\]"     syslog   # persistence

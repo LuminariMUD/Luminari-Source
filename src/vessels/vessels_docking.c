@@ -258,10 +258,10 @@ void initiate_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
 
   VSSL_DEBUG_DOCK("=== DOCKING ATTEMPT: %s (%d) -> %s (%d) ===", ship1->name, ship1->shipnum,
                   ship2->name, ship2->shipnum);
-  VSSL_DEBUG_DOCK("Ship1 pos: (%.1f,%.1f,%.1f) speed=%d docked_to=%d", ship1->x, ship1->y, ship1->z,
-                  ship1->speed, ship1->docked_to_ship);
-  VSSL_DEBUG_DOCK("Ship2 pos: (%.1f,%.1f,%.1f) speed=%d docked_to=%d", ship2->x, ship2->y, ship2->z,
-                  ship2->speed, ship2->docked_to_ship);
+  VSSL_DEBUG_DOCK("Ship1 pos: (%.1f,%.1f,%.1f) speed=%.1f docked_to=%d", ship1->x, ship1->y,
+                  ship1->z, ship1->speed, ship1->docked_to_ship);
+  VSSL_DEBUG_DOCK("Ship2 pos: (%.1f,%.1f,%.1f) speed=%.1f docked_to=%d", ship2->x, ship2->y,
+                  ship2->z, ship2->speed, ship2->docked_to_ship);
 
   /* Ships must be close enough */
   if (!ships_in_docking_range(ship1, ship2))
@@ -274,7 +274,7 @@ void initiate_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
   /* Ships must be moving slowly */
   if (ship1->speed > MAX_DOCKING_SPEED || ship2->speed > MAX_DOCKING_SPEED)
   {
-    VSSL_DEBUG_DOCK("DOCKING FAILED: Speed too high (ship1=%d, ship2=%d, max=%d)", ship1->speed,
+    VSSL_DEBUG_DOCK("DOCKING FAILED: Speed too high (ship1=%.1f, ship2=%.1f, max=%d)", ship1->speed,
                     ship2->speed, MAX_DOCKING_SPEED);
     send_to_ship(ship1, "Ships must be nearly stationary to dock!");
     return;
@@ -513,7 +513,7 @@ int vessel_boarding_defense_modifier(const struct greyhawk_ship_data *target,
       modifier -= 2;
   }
 
-  speed = MAX(0, (int)target->speed);
+  speed = MAX(0, vessel_display_speed(target->speed));
   if (stage == VESSEL_BOARDING_GRAPPLE)
   {
     modifier += MIN(6, speed);
@@ -991,10 +991,10 @@ ACMD(do_undock)
     return;
   }
 
-  /* Check if docked */
+  /* Without a hull alongside, undock casts off from a berth or weighs anchor. */
   if (ship->docked_to_ship < 0)
   {
-    send_to_char(ch, "Your vessel is not docked.\r\n");
+    vessel_begin_departure(ship, ch);
     return;
   }
 

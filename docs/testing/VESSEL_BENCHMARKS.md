@@ -1,10 +1,10 @@
 # Vessel System Benchmarks
 
-**Version:** 3.28
+**Version:** 3.29
 
 **Evidence snapshot:** August 2, 2026
 
-**Last updated:** August 31, 2026
+**Last updated:** September 29, 2026
 
 This document records measured vessel-system evidence. It intentionally
 separates completed development performance and preflight acceptance from the
@@ -15,8 +15,8 @@ remaining real-player balance, human beta, and staged rollout gates.
 | Measure | Result | Status |
 | -- | -: | -- |
 | Configured fleet-array entries | 501 | Slot 0 is reserved; active maximum is 500 |
-| Base `greyhawk_ship_data` size | 5,104 bytes | Within 5 KiB budget |
-| Base storage for 501 array entries | 2,557,104 bytes (about 2.44 MiB) | Within about 3 MB budget |
+| Base `greyhawk_ship_data` size | 5,120 bytes | At the 5 KiB budget |
+| Base storage for 501 array entries | 2,565,120 bytes (about 2.45 MiB) | Within about 3 MB budget |
 | Phase 7F event-refactor suite on August 31, 2026 | 987 of 987 passing | Current owner/lifecycle gate; repeat 500-ship scale preflight |
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
@@ -50,6 +50,8 @@ remaining real-player balance, human beta, and staged rollout gates.
 | Tenth current 500-ship run on August 2, 2026 | 1,862 seconds; 3,655 ticks; p95 4,079 usec | Full performance and bounded-stability gate passes |
 | Final-preflight 500-ship run on August 2, 2026 | 1,843 seconds; 3,656 ticks; p95 4,018.75 usec | Current full performance and bounded-stability gate passes |
 | Complete current 500-ship live tick | p95 4,018.75 usec; maximum 7,263 usec | Full-window target passes |
+| S2 bounded ferry soak on September 29, 2026 | 2,736-second observation; 11 route completions; exact restart | Passing momentum-model baseline |
+| S2 native 500-hull measurement on September 29, 2026 | 892,000 owner events; 1.34 ms mean 500-hull tick; no pulse over 100 ms | Native baseline; see S2 Momentum Re-baseline |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
 ships and the production gameplay workload enabled. Navigation-only
@@ -59,7 +61,7 @@ microbenchmarks do not satisfy this target.
 
 ### Ship Structure
 
-The current measured `sizeof(struct greyhawk_ship_data)` is 5,104 bytes.
+The current measured `sizeof(struct greyhawk_ship_data)` is 5,120 bytes.
 
 | Component | Approximate bytes |
 | -- | -: |
@@ -70,27 +72,31 @@ The current measured `sizeof(struct greyhawk_ship_data)` is 5,104 bytes.
 | Helm permits | 210 |
 | Cargo data | 80 |
 | Crew tiers | 16 |
-| Runtime counters, periodic ownership, other fields, and padding | 800 |
-| **Total** | **5,104** |
+| Runtime counters, periodic ownership, movement state, other fields, and padding | 816 |
+| **Total** | **5,120** |
 
 The Phase 7F owner pointer, generation, registry links, and flag are included
-in this measurement. Older measurements of 4,928 bytes and the still older
-1,016-byte claim are obsolete for the current tree.
+in this measurement, as are the S2 movement fields (floating-point speed and
+heading, the anchor flag, the cached position speed percent, and the departure
+and maneuver countdowns), which fit existing padding. The older measurements
+of 5,104 and 4,928 bytes and the still older 1,016-byte claim are obsolete for
+the current tree.
 
 ### Fleet Projection
 
 | Ships | Base bytes | Approximate size |
 | -: | -: | -: |
-| 100 | 510,400 | 498.4 KiB |
-| 250 | 1,276,000 | 1.22 MiB |
-| 500 | 2,552,000 | 2.43 MiB |
-| Fixed 501-entry array | 2,557,104 | 2.44 MiB |
+| 100 | 512,000 | 500.0 KiB |
+| 250 | 1,280,000 | 1.22 MiB |
+| 500 | 2,560,000 | 2.44 MiB |
+| Fixed 501-entry array | 2,565,120 | 2.45 MiB |
 
 The separate vehicle array has a measured element size of 152 bytes. At 1,000
 vehicles, its base storage is 152,000 bytes, or about 148.4 KiB.
 
-Optional autopilot state is 72 bytes, including three 64-bit runtime progress
-counters. At 500 attached autopilots this is 36,000 bytes, about 35.2 KiB.
+Optional autopilot state is 80 bytes, including three 64-bit runtime progress
+counters and the S2 steering speed cap. At 500 attached autopilots this is
+40,000 bytes, about 39.1 KiB.
 
 Optional allocations, strings, routes, encounter data, and database result
 buffers add runtime memory beyond these base arrays. Those allocations must be
@@ -101,9 +107,9 @@ budget.
 
 | Structure | Size |
 | -- | -: |
-| `greyhawk_ship_data` | 5,104 bytes |
+| `greyhawk_ship_data` | 5,120 bytes |
 | `vehicle_data` | 152 bytes |
-| Autopilot state | 72 bytes |
+| Autopilot state | 80 bytes |
 | Route data | 1,840 bytes |
 | Waypoint data | 88 bytes |
 | Route node | 104 bytes |
@@ -1017,13 +1023,135 @@ The completed release evidence now demonstrates:
   lifecycle events.
 - Useful diagnostics without production debug spam.
 
+## S2 Momentum Re-baseline
+
+S2 (DurisMUD movement and pacing, see
+[vessels-ships.md](../ongoing-projects/vessels-ships.md)) replaced the old
+one-room-per-tick movement with momentum sailing: a hull covers speed / 90
+rooms per 0.5-second vessel tick, so speed 10 crosses a room every 4.5
+seconds, and it accelerates, turns, casts off, and comes to rest over time.
+Both bounded gates were re-run on that model on September 28-29, 2026. The
+main checkout's development MUD held port 4100, so both ran inside a private
+user, network, mount, and PID namespace with a disposable MariaDB loaded from
+a dump of the development database (see
+[VESSEL_SYSTEM_TESTING.md](VESSEL_SYSTEM_TESTING.md)). The world is larger
+than in August (91,770 rooms and about 60,000 mobiles), so absolute RSS is not
+comparable with the August figures.
+
+### S2 Ferry Soak
+
+`./scripts/vessels/run_vessel_ferry_soak.sh start 2700 60 900` produced run
+`20260928T224232Z-24517`, terminal `PASS`. It pinned source `2c07e01e5`,
+installed SHA-256
+`cc03643a90eb26d496185632829686ce474ebeec7bbda8da48af868324a6737f`, ferry 5,
+and route 4 (four waypoints with two 15-second dock stops), with the ferry at
+design speed 10 (the harbor provisioner's ferry prototype moved from speed 2
+to 10 for the new pacing).
+
+| Measure | Result |
+| -- | -: |
+| Requested / observed window | 2,700 / 2,736 seconds |
+| Movement steps / waypoint arrivals / route completions | 308 / 44 / 11 |
+| Route completions per 900-second live interval | 4, 3, 4 |
+| Live / database / process samples | 5 / 46 / 46 |
+| Fleet count | 12 |
+| Dynamic wilderness rooms initial / maximum / final | 7 / 92 / 5 of 2,000 |
+| World lists initial / maximum / final | 662 / 772 / 772 |
+| Movement trails | 0 / 0 / 0 |
+| Buffer overflows, copyovers, ferry errors | 0, 0, none |
+| MUD PID, threads, descriptors | one PID (24305), 2, 17 |
+| RSS initial / maximum / final | 1,610,128 / 1,636,116 / 1,636,116 KiB |
+| RSS slope (`memory-analysis.kv`, `REPORT_ONLY`) | 32,945 KiB/hour (2.03%/hour) |
+
+The soak was repeated on the MR !7 review fixes (time-ordered edge crossing,
+the momentum-path schedule check, room-scale waypoint arrival) with source
+`808d1edc9`, installed SHA-256
+`1ca7d59c927e08bbaac65df25e99cb3c719e8d4234c726e17ab8dd0d6d539da3`, the same
+ferry and route, and a fresh copy of the development database: run
+`20260929T060940Z-21908`, terminal `PASS`, 2,735 of 2,700 seconds, 280 movement
+steps, 40 waypoint arrivals, 10 route completions, 0 copyovers, the paused
+position exact across the final restart, dynamic rooms 2 / 123 / 8 of 2,000,
+and RSS 1,608,388 / 1,632,656 / 1,632,656 KiB.
+
+A loop now takes about four minutes (two crossings of about twelve rooms at
+speed 10, the 30-second cast-off from the east dock berth, and two 15-second
+stops); the August model, which moved one room per tick at speed 2, completed
+62 loops in 2,740 seconds. The monitor's per-interval contract (at least one
+step, arrival, and completion between 900-second live samples) holds with a
+margin of three loops. At the terminal checkpoint Kohdee paused the ferry, a
+hard restart (PID 29240) restored its exact paused coordinates and route, and
+Kohdee resumed it.
+
+### S2 Native 500-Hull Measurement
+
+The fleet-heartbeat scale runner is retired (`run_vessel_scale_benchmark.sh`
+refuses `start`), so the S2 figure is a native measurement of the
+`vessel.greyhawk.agenda` owner events, which run each hull's autopilot,
+hunter, and movement ticks every five pulses (0.5 seconds). Every owner event
+is aligned to the same cadence boundary, so all 500 fire in the same pulse.
+The procedure, on the same installed binary as the ferry soak:
+
+1. With 12 hulls in the database, one Kohdee session at (900,225), in open
+   ocean, ran `vedit spawnpublic` 488 times, cycling the eight Starfall
+   frontier prototypes (61 of each class), and `shiplist summary` reported
+   `500 of 500 active fleet slots in use.`
+2. With the MUD stopped, SQL added four waypoints at (895,220), (905,220),
+   (905,230), and (895,230) (tolerance 1.0, no wait) as one looping route,
+   and set each spawned hull's runtime row to autopilot state 1 (traveling)
+   on that route, starting at waypoint `ship_id % 4`, with no ordered speed
+   (so each cruises at its full speed).
+3. After a boot, one Kohdee session ran `perfmon reset` (which also zeroes the
+   event profiles). After 900 seconds, sessions read `perfmon summ`,
+   `perfmon top total 12`, and `eventdebug types 4 0` / `eventdebug types 4 4`
+   (after `toggle pagelength 255`; longer listings lose their top rows in the
+   login helper's capture). A 30-second RSS series came from `/proc`.
+4. Cleanup purged the 488 hulls with `shippurge`, deleted the route and its
+   waypoints, and returned Kohdee's page length to the default 40: the setting
+   is saved in the player file, and at 255 the gate helpers lose the header of
+   long help entries and fail their help checks.
+
+The 122 rafts and riverboats paused at once: their classes are refused deep
+ocean, as designed. The other 366 spawned hulls sailed the square for the
+whole window (an airship checked mid-window was at 25/25 with five waypoint
+arrivals), with the 12 baseline hulls, including the soak ferry, on their own
+routes.
+
+| Measure | Result |
+| -- | -: |
+| Active hulls / sailing the square / paused by terrain | 500 / 366 / 122 |
+| Vessel owner events (1,784 fleet ticks) | 892,000 |
+| Total vessel owner-event time | 2,381,906 usec |
+| Mean per hull event / per 500-hull tick | 2.67 usec / 1.34 ms |
+| Largest single hull event | 20,978 usec |
+| Owner-event lateness p50 / p95 / p99 / max | 0 / 0 / 0 / 1 tick |
+| First 70 seconds after boot: mean per tick / largest event | 3.70 ms / 4,722 usec |
+| Main loop over the window: p95 / p99 / max | 5,035 / 12,032 / 86,806 usec |
+| Pulses over 10 / 30 / 50 / 100 ms (of 8,736) | 313 / 18 / 6 / 0 |
+| RSS start / end / high-water mark | 1,612,672 / 1,621,396 / 1,638,068 KiB |
+| MUD PID, threads, `SYSERR` rows | one PID, 2, 2 (see below) |
+
+The retired gate's threshold was a complete vessel tick at or below 25 ms at
+p95. The native profiler keeps per-event, not per-tick, percentiles, so that
+figure is not measured directly. It is bounded: a vessel tick runs inside one
+pulse, only 18 of the window's pulses exceeded 30 ms, so at most 1.0% of the
+1,784 fleet ticks could have. The mean 500-hull tick is 1.34 ms, and 3.70 ms
+in the first 70 seconds while the whole fleet gathers way and fans out from
+one room. The largest single hull event (21 ms) and the pulse maximum
+(86.8 ms) belong with the other systems' spikes in the same window
+(`dg.trigger.wait` 63.7 ms, `mobile.autonomous.agenda` 34.2 ms); no pulse
+exceeded the 100 ms budget. The two `SYSERR` rows are a pre-existing interior
+defect on one 10-room hull (ship 203), unrelated to movement and recorded in
+[vessels-ships.md](../ongoing-projects/vessels-ships.md).
+
 ## Current Verdict
 
 The fixed-memory foundation and historical automated-test snapshot are within
 their stated budgets. The one-hour-bounded actual-character ferry stability
 gate and the complete 500-ship performance and bounded-stability gate pass on
 development. The production-snapshot rehearsal and final release-candidate
-preflight also pass. Broad release still requires real-player balance data, a
+preflight also pass. On the S2 momentum model the ferry soak passes again and
+the native 500-hull measurement is the new scale baseline; a native per-tick
+threshold replacing the retired runner's 25 ms p95 gate is not yet defined. Broad release still requires real-player balance data, a
 structured human beta with the required fun score, and authorized staged
 rollout. Automated actual-character sessions do not substitute for those
 human gates.

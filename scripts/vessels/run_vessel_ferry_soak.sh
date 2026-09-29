@@ -950,6 +950,7 @@ run_monitor() {
     if ! "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --commands \
       "shipgoto $ferry_slot" \
       "autopilot pause" \
+      "@wait 5" \
       "autopilot status" \
       "shipstatus" \
       "shiplist" >"$pause_output" 2>&1; then

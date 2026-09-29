@@ -377,7 +377,7 @@ done
 grep -Fqx 'Room: 1204' "$repo_root/lib/plrfiles/K-O/kohdee.plr" ||
   fail "Kohdee did not return to room 1204"
 
-timeout 300 "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" \
+timeout 600 "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" \
   --vessel-frontier-check \
   "$raft_prototype_id" "$boat_prototype_id" \
   "$ship_prototype_id" "$warship_prototype_id" \

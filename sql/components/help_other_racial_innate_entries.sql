@@ -350,8 +350,8 @@ VALUES ('SEADOG', 'Seadog
 
 Requires: the seadog feat (racial innate)
 
-Born to the waves, you coax more out of any vessel you pilot: every move you
-steer carries the ship one extra map tile.
+Born to the waves, you coax more out of any vessel you pilot: while you are
+at the helm, her maximum speed is one higher.
 
 See also: FEAT INFO SEADOG, VESSELS', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES (entry), min_level = VALUES (min_level),

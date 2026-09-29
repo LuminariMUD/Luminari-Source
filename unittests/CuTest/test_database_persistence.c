@@ -1035,6 +1035,13 @@ static bool create_legacy_table_temporary_schema(MYSQL *connection)
       "id INT AUTO_INCREMENT PRIMARY KEY, region_vnum INT NOT NULL, "
       "hint_id INT NOT NULL, used_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP, "
       "context VARCHAR(255) DEFAULT NULL) ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE ship_waypoints ("
+      "waypoint_id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(64) DEFAULT '', "
+      "x FLOAT NOT NULL, y FLOAT NOT NULL, z FLOAT NOT NULL DEFAULT 0, "
+      "tolerance FLOAT NOT NULL DEFAULT 5.0, wait_time INT NOT NULL DEFAULT 0, "
+      "flags INT NOT NULL DEFAULT 0) ENGINE=InnoDB",
+      "INSERT INTO ship_waypoints (name, x, y, tolerance) "
+      "VALUES ('player_port', 1, 2, 5.0), ('wide_buoy', 3, 4, 2.0)",
       "INSERT INTO weather_cache "
       "(zone_vnum, x_coord, y_coord, weather_type, weather_value) "
       "VALUES (30, 1, 2, 1, 40)",
@@ -1063,6 +1070,8 @@ void Test_legacy_table_migrations_repair_old_shapes_idempotently(CuTest *tc)
   int wind_speed;
   int name_index_columns;
   int hint_rows;
+  int legacy_tolerance_rows;
+  int wide_tolerance_rows;
   int migration_count;
 
   enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
@@ -1112,10 +1121,20 @@ void Test_legacy_table_migrations_repair_old_shapes_idempotently(CuTest *tc)
     }
   }
   hint_rows = query_single_int(connection, "SELECT COUNT(*) FROM hint_usage_log", -1);
+  legacy_tolerance_rows =
+      query_single_int(connection,
+                       "SELECT COUNT(*) FROM ship_waypoints WHERE name = 'player_port' "
+                       "AND tolerance = 0.5",
+                       -1);
+  wide_tolerance_rows =
+      query_single_int(connection,
+                       "SELECT COUNT(*) FROM ship_waypoints WHERE name = 'wide_buoy' "
+                       "AND tolerance = 2.0",
+                       -1);
   migration_count =
       query_single_int(connection,
-                       "SELECT COUNT(*) FROM schema_migrations WHERE version BETWEEN 2026092701 "
-                       "AND 2026092703",
+                       "SELECT COUNT(*) FROM schema_migrations WHERE version IN (2026092701, "
+                       "2026092702, 2026092703, 2026092901)",
                        -1);
   conn = saved_conn;
   mysql_available = saved_available;
@@ -1129,7 +1148,9 @@ void Test_legacy_table_migrations_repair_old_shapes_idempotently(CuTest *tc)
   CuAssertIntEquals(tc, 5, wind_speed);
   CuAssertIntEquals(tc, 1, name_index_columns);
   CuAssertIntEquals(tc, 2, hint_rows);
-  CuAssertIntEquals(tc, 3, migration_count);
+  CuAssertIntEquals(tc, 1, legacy_tolerance_rows);
+  CuAssertIntEquals(tc, 1, wide_tolerance_rows);
+  CuAssertIntEquals(tc, 4, migration_count);
 }
 
 void Test_pet_restore_failure_blocks_snapshot_replacement(CuTest *tc)

@@ -446,6 +446,47 @@ disposable MariaDB loaded from a dump of the development database on a private
 related `SYSERR` rows. The tactical, events, boarding, lookout, and narrative
 gates passed in the same environment on the same binary.
 
+## Vessel Movement Check
+
+After the Starfall frontier prototype exists and a clean candidate is built
+and installed, run:
+
+```bash
+./scripts/vessels/test_vessel_movement_in_game.sh
+```
+
+The wrapper runs the shared tactical harness in `--movement` mode, which calls
+`--vessel-movement-check <warship-id>` in the login helper with the same
+refusals, snapshots, and restoration as the other tactical-harness gates. The
+session has two parts.
+
+At the harbor east dock (room 1000390, at (-62,82)) Kohdee creates a
+temporary boat prototype and spawns it. The new hull must show `Moorings: Berthed`, refuse `speed` until cast off, report `The crew begins casting off.`
+and `Moorings: Casting off` after `undock`, and be `Under way` with the first
+officer's ready report 30 seconds later. `setsail west` must move exactly one
+room to (-63,82), refuse an immediate second maneuver (five-second cooldown),
+and a maneuver back into the port room must make the hull fast at the berth
+again.
+
+At (900,225) a Starfall Bastion under way must accept `speed 12`, show
+`(ordered 12)` while it gathers way, cover one or two rooms in six seconds,
+accept `heading 90`, show `(coming about to 90)`, and refuse `setsail` at
+that speed. After `speed 0` it must lose way, `anchor`, refuse `speed` while
+at anchor, and be under way again 13 seconds after `undock` weighs anchor.
+Cleanup purges both hulls and the temporary prototype and returns Kohdee to
+room 1204.
+
+The west Testing Dock (room 1000389) that the harbor provisioner expects is
+absent from the current world files, so the harbor provisioner cannot run in
+this checkout; the builder and movement checks stage at the east dock instead.
+On 2026-09-29 the gate passed in 107 seconds inside the private namespace
+described under the Vessel Rules Check, on source `9a8757fce` and installed
+SHA-256 `62418bedfd4072598e7a3b727ce4da3c80f0ccb8beb924393ec8bb118c1e1097`,
+together with the builder, tactical, lookout, boarding, narrative, rules, and
+events gates on the same binary. The frontier, derelict, campaign, merchant,
+and hunter gates passed on the preceding install from identical server
+sources (`92fc0b27f`).
+
 ## Shared Harbor Merchant Loss Check
 
 The provisioner validates but deliberately does not sink its NPC merchant.
@@ -790,7 +831,8 @@ field, `shiproom`, and `world[room].ship` all identify the same ship, and that
 10. `goto -66 92`, then `vedit spawn N` - "Spawned 'The Gull' (Ship) as
     ship S: R interior rooms, entrance E, bridge B." A Ship has at least four
     rooms and may gain discovery rooms; object "The Gull" is moored in the
-    room.
+    room, and `shipstatus` shows `Moorings: Berthed` because the dock is a
+    port.
 11. `board gull` - you enter the generated entrance room. Its name and
     description match the active `ship_room_templates` database row (the
     default is "Crew Quarters"); edited database text appears instead of the
@@ -798,27 +840,34 @@ field, `shiproom`, and `world[room].ship` all identify the same ship, and that
 12. Move through every listed interior exit, including diagonals when
     discovery rooms exist - all generated rooms connect and every spoke
     returns to the bridge; no dead end traps you.
-13. From the bridge: `speed 5`, then `heading 90` - status output reflects
-    the values; `shipstatus` shows position (-66, 92).
-14. `setsail west` - the ship moves from (-66, 92) to (-67, 92);
-    `shipstatus` reflects the new coordinates. An explicit debug build shows
-    `[VESSEL_MOVE]` lines only after `vdebug on move`. East of Testing Dock is
-    land and must remain non-navigable to this hull.
-15. `speed 0`, `disembark` - you exit to the wilderness room at the ship's
-    current coordinates.
+13. From the bridge: `speed 5` - refused because the ship is berthed.
+    `undock` - the crew casts off; about 30 seconds later the first officer
+    reports her ready to get under way and `shipstatus` shows
+    `Moorings: Under way` at (-66, 92). `heading 270` - `shipstatus` shows
+    `(coming about to 270)` until she has turned.
+14. `setsail west` - the ship maneuvers one room from (-66, 92) to (-67, 92)
+    and stops on heading 270; `shipstatus` reflects the new coordinates. A
+    second `setsail` at once is refused until the crew is ready (5 seconds).
+    An explicit debug build shows `[VESSEL_MOVE]` lines only after
+    `vdebug on move`. East of Testing Dock is land and must remain
+    non-navigable to this hull: a maneuver east from the dock is refused.
+15. `disembark` - you exit to the wilderness room at the ship's current
+    coordinates.
 
 ## D. Autopilot round-trip
 
 16. On the bridge: `setwaypoint dockpoint` - waypoint created at current
     position.
-17. Sail west a few steps (repeat step 14), then `setwaypoint westpoint`.
+17. Maneuver west a few rooms (repeat step 14, five seconds apart), then
+    `setwaypoint westpoint`.
 18. `createroute testrun`, `addtoroute testrun dockpoint`,
     `addtoroute testrun westpoint` - both additions confirmed.
-19. `setroute testrun`, `autopilot on` - ship begins moving toward the
-    first waypoint. In an explicit debug build, `vdebug on auto` enables
+19. `setroute testrun`, `autopilot on` - the autopilot comes about and the
+    ship gathers way toward the first waypoint. In an explicit debug build, `vdebug on auto` enables
     `[VESSEL_AUTO]` lines in syslog.
 20. `autopilot status` - shows TRAVELING with waypoint index.
-21. `autopilot off` - ship stops; state OFF.
+21. `autopilot off` - the helm has her again; with no speed ordered she
+    loses way and stops; state OFF.
 22. Reboot the server (copyover or full restart). `listroutes` - route
     "testrun" persists with both waypoints (route DB round-trip).
 
@@ -829,7 +878,7 @@ field, `shiproom`, and `world[room].ship` all identify the same ship, and that
     (-65, 92), and `vstatus` agrees. `drive west` returns both to the dock;
     `vdismount`. The other adjacent cells are water and are not a valid cart
     movement test.
-24. With The Gull present at the dock and speed 0: board it, move to the
+24. With The Gull present at the dock and stopped: board it, move to the
     bridge, then `loadvehicle regression_cart` - "You load regression_cart
     onto The Gull." `unloadvehicle` lists it by name.
 25. At the dock, create six wagons named `heavy_1` through `heavy_6`. Load
@@ -838,12 +887,13 @@ field, `shiproom`, and `world[room].ship` all identify the same ship, and that
     `loadvehicle heavy_6` is refused with "The vessel cannot carry any more
     vehicles." This is the actual boundary; a single second wagon does not
     exceed this hull's capacity.
-26. On the bridge, `speed 5`, then `unloadvehicle 1` - refused because the
-    vessel is moving. `setsail west`, `shipstatus` - position becomes
-    (-67, 92), and loaded vehicle coordinates follow it. `speed 0`, then
-    `unloadvehicle 1` - refused because shallow water is unsuitable for a
-    cart. Return with `speed 5`, `setsail east`, `speed 0`; at the seaport,
-    `unloadvehicle 1` succeeds at (-66, 92).
+26. On the bridge, `undock` and wait for the ready report, then `speed 2`
+    and, once `shipstatus` shows her moving, `unloadvehicle 1` - refused
+    because the vessel is moving. `speed 0`; when she has stopped,
+    `setsail` her to (-67, 92) with `shipstatus` confirming, and loaded
+    vehicle coordinates follow her. `unloadvehicle 1` - refused because
+    shallow water is unsuitable for a cart. `setsail east` back into the
+    seaport, where she berths; `unloadvehicle 1` succeeds at (-66, 92).
 
 ## F. Docking and boarding defense smoke
 

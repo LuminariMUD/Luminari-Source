@@ -906,41 +906,45 @@ ACMD(do_oasis_list)
 
   two_arguments(argument, smin, sizeof(smin), smax, sizeof(smax));
 
-  if (!*smin || *smin == '.')
+  /* reglist and pathlist take a distance or a type, not a zone or VNUM bounds. */
+  if (subcmd != SCMD_OASIS_REGLIST && subcmd != SCMD_OASIS_PATHLIST)
   {
-    rzone = world[IN_ROOM(ch)].zone;
-  }
-  else if (!*smax)
-  {
-    rzone = real_zone(atoidx(smin));
+    if (!*smin || *smin == '.')
+    {
+      rzone = world[IN_ROOM(ch)].zone;
+    }
+    else if (!*smax)
+    {
+      rzone = real_zone(atoidx(smin));
 
-    if ((rzone == NOWHERE || rzone == 0) && subcmd == SCMD_OASIS_ZLIST && !isdigit(*smin))
-    {
-      /* Must be zlist, with builder name as arg */
-      use_name = TRUE;
+      if ((rzone == NOWHERE || rzone == 0) && subcmd == SCMD_OASIS_ZLIST && !isdigit(*smin))
+      {
+        /* Must be zlist, with builder name as arg */
+        use_name = TRUE;
+      }
+      else if (rzone == NOWHERE)
+      {
+        send_to_char(ch, "Sorry, there's no zone with that number\r\n");
+        return;
+      }
     }
-    else if (rzone == NOWHERE)
+    else
     {
-      send_to_char(ch, "Sorry, there's no zone with that number\r\n");
-      return;
-    }
-  }
-  else
-  {
-    /* Listing by min vnum / max vnum.  Retrieve the numeric values. */
-    vmin = atoidx(smin);
-    vmax = atoidx(smax);
+      /* Listing by min vnum / max vnum.  Retrieve the numeric values. */
+      vmin = atoidx(smin);
+      vmax = atoidx(smax);
 
-    if (vmin == NOWHERE || vmax == NOWHERE)
-    {
-      send_to_char(ch, "Both VNUM bounds must be unsigned 32-bit integers.\r\n");
-      return;
-    }
-    if (vmin > vmax)
-    {
-      send_to_char(ch, "List from %" PRI_IDX " to %" PRI_IDX " - Aren't we funny today!\r\n", vmin,
-                   vmax);
-      return;
+      if (vmin == NOWHERE || vmax == NOWHERE)
+      {
+        send_to_char(ch, "Both VNUM bounds must be unsigned 32-bit integers.\r\n");
+        return;
+      }
+      if (vmin > vmax)
+      {
+        send_to_char(ch, "List from %" PRI_IDX " to %" PRI_IDX " - Aren't we funny today!\r\n",
+                     vmin, vmax);
+        return;
+      }
     }
   }
 

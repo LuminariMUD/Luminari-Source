@@ -644,8 +644,10 @@ void vessel_weather_tick_one(struct greyhawk_ship_data *ship)
     }
   }
 
+  /* Weather changes the hull's maximum speed; read it afresh. */
+  ship->position_speed_percent = 0;
   severity = vessel_storm_severity(ship);
-  if (severity == 0 || ship->speed == 0)
+  if (severity == 0 || ship->speed <= 0.0)
     return;
 
   switch (severity)
@@ -774,7 +776,7 @@ void vessel_encounter_tick_one(struct greyhawk_ship_data *ship)
   int recipient_count;
   bool in_region;
 
-  if (!vessel_encounter_config_loaded || !is_valid_ship(ship) || ship->speed == 0)
+  if (!vessel_encounter_config_loaded || !is_valid_ship(ship) || ship->speed <= 0.0)
     return;
 
   ship_room = ship->shipobj != NULL ? IN_ROOM(ship->shipobj) : NOWHERE;

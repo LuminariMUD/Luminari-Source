@@ -7,7 +7,7 @@ repo_root=${LUMINARI_PROJECT_ROOT:-$(cd "$script_dir/../.." && pwd)}
 acceptance_mode=tactical
 if [[ $# -gt 0 ]]; then
   [[ $# -eq 1 ]] || {
-    printf 'usage: %s [--lookout|--narrative|--boarding|--rules]\n' "$0" >&2
+    printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement]\n' "$0" >&2
     exit 2
   }
   case "$1" in
@@ -23,8 +23,11 @@ if [[ $# -gt 0 ]]; then
     --rules)
       acceptance_mode=rules
       ;;
+    --movement)
+      acceptance_mode=movement
+      ;;
     *)
-      printf 'usage: %s [--lookout|--narrative|--boarding|--rules]\n' "$0" >&2
+      printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement]\n' "$0" >&2
       exit 2
       ;;
   esac
@@ -211,7 +214,10 @@ tactical_runtime_slots() {
   database_query "
     SELECT COALESCE(GROUP_CONCAT(ship_id ORDER BY ship_id SEPARATOR ','), '')
       FROM ship_runtime_state
-     WHERE prototype_id = $warship_prototype_id;"
+     WHERE prototype_id = $warship_prototype_id
+        OR prototype_id IN (
+          SELECT prototype_id FROM ship_prototypes WHERE name LIKE 'Movecheck Boat%'
+        );"
 }
 
 run_kohdee_commands() {
@@ -287,6 +293,17 @@ restore_secondary_rules_state() {
           WHERE runtime.prototype_id = ship_prototypes.prototype_id);"
 }
 
+# Remove any temporary boat prototype a movement session left behind.
+restore_movement_state() {
+  database_query "
+    DELETE FROM ship_prototypes
+     WHERE name LIKE 'Movecheck Boat%'
+       AND NOT EXISTS (
+         SELECT 1
+           FROM ship_runtime_state AS runtime
+          WHERE runtime.prototype_id = ship_prototypes.prototype_id);"
+}
+
 restore_baseline() {
   local cleanup_status=0
   local restored_sha256
@@ -320,6 +337,9 @@ restore_baseline() {
   fi
   if [[ "$acceptance_mode" == rules ]]; then
     restore_secondary_rules_state || cleanup_status=1
+  fi
+  if [[ "$acceptance_mode" == movement ]]; then
+    restore_movement_state || cleanup_status=1
   fi
 
   if [[ "$cleanup_status" == 0 ]]; then
@@ -374,6 +394,9 @@ finish() {
       printf 'PASS: Kohdee and Vesselmate validated opposed grappling, crossing, '
       printf 'breach warnings, and exact two-character restoration (%ss).\n' \
         "$elapsed_seconds"
+    elif [[ "$acceptance_mode" == movement ]]; then
+      printf 'PASS: Kohdee validated berths, departure, momentum, turning, maneuvers, '
+      printf 'and anchoring with exact character restoration (%ss).\n' "$elapsed_seconds"
     elif [[ "$acceptance_mode" == rules ]]; then
       printf 'PASS: Kohdee and Vesselmate validated the shipyard listing, contact IDs, '
       printf 'gunnery authorization, hull level, hull cap, and bounty pay-off with exact '
@@ -654,6 +677,45 @@ elif [[ "$acceptance_mode" == boarding ]]; then
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-boarding.log" ||
       fail "the boarding transcript did not contain '$expected_text'"
   done
+elif [[ "$acceptance_mode" == movement ]]; then
+  timeout 120 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --help-check \
+    SETSAIL ANCHOR UNDOCK >"$run_dir/01-movement-help.log" 2>&1 ||
+    fail "Kohdee could not read the authoritative vessel movement help"
+  movement_help_state=$(database_query "
+    SELECT COUNT(*)
+      FROM help_entries
+     WHERE BINARY tag = 'VESSELS'
+       AND entry LIKE '%needs speed 6 or less%'
+       AND entry LIKE '%weigh anchor in 13%';")
+  [[ "$movement_help_state" == 1 ]] ||
+    fail "the authoritative vessel movement help is stale"
+
+  timeout 300 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --vessel-movement-check \
+    "$warship_prototype_id" >"$run_dir/02-kohdee-vessel-movement.log" 2>&1 ||
+    fail "the actual Kohdee vessel-movement session failed"
+
+  for expected_text in \
+    'PASS: a hull launched in port was berthed, refused speed, and cast off in 30 seconds.' \
+    'PASS: setsail maneuvered one room, waited five seconds, and berthed back in port.' \
+    'PASS: the warship gathered way to speed 12 and covered one or two rooms in six seconds.' \
+    'PASS: the warship came about to 90 degrees and refused a maneuver at speed.' \
+    'PASS: the warship lost way, anchored, refused speed, and weighed anchor in 13 seconds.' \
+    'PASS: the vessel movement check completed and purged all temporary hulls'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-movement.log" ||
+      fail "the movement session did not report '$expected_text'"
+  done
+
+  for expected_text in \
+    'Moorings: Berthed' \
+    'Moorings: Casting off' \
+    'Moorings: Anchored' \
+    '(coming about to 90)' \
+    'Lines go ashore; Movecheck Boat'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-movement.log" ||
+      fail "the movement transcript did not contain '$expected_text'"
+  done
 elif [[ "$acceptance_mode" == rules ]]; then
   timeout 120 env DEV_MUD_CHARACTER="$target_player" \
     "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --help-check \
@@ -755,6 +817,13 @@ if uses_secondary_player; then
   grep -Fqx 'Room: 1204' "$secondary_player_file" ||
     fail "Vesselmate did not return to room 1204"
 fi
+if [[ "$acceptance_mode" == movement ]]; then
+  [[ $(database_query "
+    SELECT COUNT(*)
+      FROM ship_prototypes
+     WHERE name LIKE 'Movecheck Boat%';") == 0 ]] ||
+    fail "the temporary movement-check boat prototype remained"
+fi
 if [[ "$acceptance_mode" == rules ]]; then
   rules_prototype=$(rules_prototype_id)
   [[ -n "$rules_prototype" ]] ||
@@ -765,7 +834,7 @@ if [[ "$acceptance_mode" == rules ]]; then
      WHERE prototype_id = $rules_prototype;") == 0 ]] ||
     fail "the temporary shipyard test prototype $rules_prototype remained"
 fi
-if grep -E 'SYSERR:.*(tactical|lookout|narrative|boarding|Boardatk|Boarddef|Rulesraft|bounty|Starfall Bastion|Starfall Trench|Vailand)' \
+if grep -E 'SYSERR:.*(tactical|lookout|narrative|boarding|Boardatk|Boarddef|Rulesraft|Movecheck|bounty|Starfall Bastion|Starfall Trench|Vailand)' \
   "$server_log" >"$run_dir/04-related-syserr.log"; then
   fail "the server logged a vessel-view SYSERR"
 fi

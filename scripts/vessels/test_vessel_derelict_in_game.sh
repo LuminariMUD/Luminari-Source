@@ -121,7 +121,7 @@ database_dump_player_objects() {
   MYSQL_PWD="$database_password" mariadb-dump --no-defaults \
     --host="$database_host" --user="$database_user" \
     --no-create-info --skip-comments --skip-dump-date --skip-lock-tables \
-    --compact --complete-insert --hex-blob \
+    --compact --complete-insert --hex-blob --skip-tz-utc \
     --where="BINARY name = '$target_player'" \
     "$database_name" player_save_objs
 }

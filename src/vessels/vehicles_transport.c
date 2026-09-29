@@ -54,13 +54,13 @@ static int is_vessel_stationary_or_docked(struct greyhawk_ship_data *vessel)
   }
 
   /* Check if speed is zero */
-  if (vessel->speed == 0)
+  if (vessel->speed <= 0.0)
   {
     VHCL_DEBUG_XPORT("Vessel %s is stationary (speed=0)", vessel->name);
     return TRUE;
   }
 
-  VHCL_DEBUG_XPORT("Vessel %s is moving (speed=%d)", vessel->name, vessel->speed);
+  VHCL_DEBUG_XPORT("Vessel %s is moving (speed=%.1f)", vessel->name, vessel->speed);
   return FALSE;
 }
 

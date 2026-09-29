@@ -303,7 +303,7 @@ that is already recorded, runs its single statement, and records it:
 | `run_database_migrations()` | help content contract, 2026082401-08 | boot stops |
 | `run_pet_persistence_migrations()` | pet tables, 2026080501-2026091007 | boot stops |
 | `run_account_migrations()` | account password width, 2026091101 | boot stops |
-| `run_legacy_table_migrations()` | `weather_cache`, `player_save_objs`, `hint_usage_log`, 2026092701-03 | logged, retried next boot |
+| `run_legacy_table_migrations()` | `weather_cache`, `player_save_objs`, `hint_usage_log`, 2026092701-03; `ship_waypoints` arrival tolerance, 2026092901 | logged, retried next boot |
 
 `CREATE TABLE IF NOT EXISTS` never changes a table that already exists, so a
 column or index added to a create statement reaches existing databases only

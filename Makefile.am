@@ -383,6 +383,7 @@ luminari_SOURCES = \
 	src/vessels/vessels_hazards.c \
 	src/vessels/vessels_hunters.c \
 	src/vessels/vessels_merchants.c \
+	src/vessels/vessels_movement.c \
 	src/vessels/vessels_events.c \
 	src/vessels/vessels_db.c \
 	src/vessels/vessels_docking.c \
@@ -468,6 +469,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_vessel_events.c \
 	unittests/CuTest/test_vessel_tactical.c \
 	unittests/CuTest/test_vessel_lookout.c \
+	unittests/CuTest/test_vessel_movement.c \
 	unittests/CuTest/test_vessel_narrative.c \
 	unittests/CuTest/test_vessel_boarding.c \
 	unittests/CuTest/test_vessel_gunnery.c \
@@ -562,6 +564,7 @@ cutest_test_files = \
 	unittests/CuTest/test_vessel_events.c \
 	unittests/CuTest/test_vessel_tactical.c \
 	unittests/CuTest/test_vessel_lookout.c \
+	unittests/CuTest/test_vessel_movement.c \
 	unittests/CuTest/test_vessel_narrative.c \
 	unittests/CuTest/test_vessel_boarding.c \
 	unittests/CuTest/test_vessel_gunnery.c \
@@ -1010,6 +1013,7 @@ EXTRA_DIST = \
 	scripts/vessels/test_vessel_lookout_in_game.sh \
 	scripts/vessels/test_vessel_memory_analyzer.sh \
 	scripts/vessels/test_vessel_merchant_in_game.sh \
+	scripts/vessels/test_vessel_movement_in_game.sh \
 	scripts/vessels/test_vessel_narrative_in_game.sh \
 	scripts/vessels/test_vessel_rules_in_game.sh \
 	scripts/vessels/test_vessel_scale_benchmark_parsers.sh \

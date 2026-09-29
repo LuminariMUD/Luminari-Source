@@ -553,7 +553,8 @@ ACMD(do_greyhawk_tactical)
 
   send_to_char(ch, "\r\n              WILDERNESS TACTICAL CHART\r\n");
   send_to_char(ch, "   Position: (%d, %d, %d)   Heading: %d deg %s\r\n", ship_x, ship_y, ship_z,
-               ship->heading, vessel_tactical_direction(ship->heading));
+               vessel_display_heading(ship->heading),
+               vessel_tactical_direction(vessel_display_heading(ship->heading)));
   send_to_char(ch, "   Weather: %s (%d/255)   Visibility: %d units\r\n",
                vessel_tactical_weather_name(weather), weather, sight_range);
   send_to_char(ch, "   Hull: %s, %d/%d internal (%d%%)\r\n",
