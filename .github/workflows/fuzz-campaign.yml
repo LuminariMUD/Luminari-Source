@@ -59,9 +59,9 @@ jobs:
           --max-len 65536 --artifacts fuzz-artifacts
 
       - name: Run the standalone protocol and binary format fuzzers
-        run: |
-          make -C unittests/CuTest protocol-fuzz FUZZ_SECONDS=300
-          make -C unittests/CuTest binary-formats-fuzz FUZZ_SECONDS=300
+        run: >-
+          make -C unittests/CuTest -j2 --output-sync=target
+          protocol-fuzz binary-formats-fuzz FUZZ_SECONDS=300
 
       - name: Upload reproducers and fuzzer logs
         if: always()

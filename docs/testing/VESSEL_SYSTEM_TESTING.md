@@ -578,17 +578,17 @@ The August 2 current candidate passed this full sequence in 57 seconds under
 proved effective speed 1 after terrain adjustment; the same hunter identity
 survived PID 299248 to 302590; pardon and cleanup restored the exact baseline.
 
-Run the bounded ferry release gate through its supervised monitor. The
-45-minute observation leaves 15 minutes for restart, review, and cleanup so
-the complete task stays within one hour:
+Run the bounded ferry release gate through its supervised monitor. Its
+defaults observe for 450 seconds, which covers the four-minute ferry loop with
+a margin, so the complete task takes about ten minutes:
 
 ```bash
-./scripts/vessels/run_vessel_ferry_soak.sh start 2700 60 900
+./scripts/vessels/run_vessel_ferry_soak.sh start
 ./scripts/vessels/run_vessel_ferry_soak.sh status
 ```
 
-The runner retains a historical longer default. Never omit the explicit
-bounded arguments above and never restart the retired long-duration gate.
+A longer window (`start <duration> <database_interval> <live_interval>`) only
+repeats the same checks. Never restart the retired long-duration gate.
 
 This keeps the otherwise idle game loop awake without occupying a character.
 It submits a generated, nonexistent account name but never confirms it, so the
@@ -598,8 +598,9 @@ seconds and fails if the server reports that it went to sleep. A copyover
 drops that non-playing descriptor by design; the monitor accepts only a
 log-proven same-PID, same-binary copyover, waits for boot, reconnects the
 descriptor, and records the recovery. Any other socket loss remains a hard
-failure. It checks unchanged process and database invariants every minute and
-uses the existing account and Kohdee for live checks every 15 minutes. Launch
+failure. It checks unchanged process and database invariants every 30 seconds
+and uses the existing account and Kohdee for live checks at both ends of the
+window. Launch
 metadata records the source commit and installed executable SHA-256; a changed binary
 fingerprint fails the run. A failure writes terminal status before cleanup.
 After the requested duration, it pauses through the game, hard-restarts local

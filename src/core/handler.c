@@ -658,6 +658,21 @@ static int calculate_best_mod(struct char_data *ch, int location, int bonus_type
   return best - penalty;
 }
 
+/* Whether any affect or worn object can contribute a non-stacking modifier.
+ * Without one every calculate_best_mod() result is zero, which is the case for
+ * each mobile prototype parsed at boot. */
+static bool has_modifier_sources(struct char_data *ch)
+{
+  int i = 0;
+
+  if (ch->affected)
+    return TRUE;
+  for (i = 0; i < NUM_WEARS; i++)
+    if (GET_EQ(ch, i))
+      return TRUE;
+  return FALSE;
+}
+
 /* this will take a character's modified 'points' and reset it
  to their 'real points' */
 void reset_char_points(struct char_data *ch)
@@ -1051,6 +1066,7 @@ int affect_total_sub(struct char_data *ch)
   struct affected_type *af;
   int i, j, at_armor = 100;
   int modifier = 0, temp_mod = 0;
+  bool sources = has_modifier_sources(ch);
 
   /* subtract affects with gear */
   for (i = 0; i < NUM_WEARS; i++)
@@ -1091,7 +1107,7 @@ int affect_total_sub(struct char_data *ch)
   for (i = 0; i < NUM_APPLIES; i++)
   {
     modifier = 0;
-    for (j = 0; j < NUM_BONUS_TYPES; j++)
+    for (j = 0; sources && j < NUM_BONUS_TYPES; j++)
     {
       modifier += calculate_best_mod(ch, i, j, -1, -1);
     }
@@ -1115,6 +1131,7 @@ void affect_total_plus(struct char_data *ch, int at_armor)
   struct affected_type *af;
   int i, j, temp_mod;
   int modifier = 0;
+  bool sources = has_modifier_sources(ch);
 
   /* restore stored stats */
   if (!(IS_NPC(ch)))
@@ -1159,7 +1176,7 @@ void affect_total_plus(struct char_data *ch, int at_armor)
   for (i = 0; i < NUM_APPLIES; i++)
   {
     modifier = 0;
-    for (j = 0; j < NUM_BONUS_TYPES; j++)
+    for (j = 0; sources && j < NUM_BONUS_TYPES; j++)
       modifier += calculate_best_mod(ch, i, j, -1, -1);
     aff_apply_modify(ch, (byte)i, (sh_int)modifier, "affect_total_plus");
     // affect_modify_ar(ch, i, modifier, empty_bits, TRUE);

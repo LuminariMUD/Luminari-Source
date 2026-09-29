@@ -1689,12 +1689,12 @@ path, and region identities after checking exact names. Retire any dependent
 runtime hull before rollback and stop application writes. It does not undo
 unrelated wilderness paths or regions.
 
-The supervised ferry gate has a one-hour total execution budget, including its
-final restart and cleanup. The runner retains its historical long default, so
-always pass the bounded duration explicitly:
+The supervised ferry gate takes about ten minutes, including its final restart
+and cleanup. Its defaults observe for 450 seconds, which covers the four-minute
+ferry loop with a margin:
 
 ```bash
-./scripts/vessels/run_vessel_ferry_soak.sh start 2700 60 900
+./scripts/vessels/run_vessel_ferry_soak.sh start
 ./scripts/vessels/run_vessel_ferry_soak.sh status
 ```
 
@@ -1707,8 +1707,8 @@ non-playing descriptors by design; when the log proves copyover mode, the
 monitor requires the same PID and installed binary, waits for boot, reconnects
 the hold descriptor, and records the recovery. A missing socket without that
 copyover evidence remains a hard failure. The bounded invocation samples
-database and process invariants every minute and serializes Kohdee checks every
-15 minutes through the shared login-helper lock. It also fails on a PID change,
+database and process invariants every 30 seconds and serializes its Kohdee
+checks through the shared login-helper lock. It also fails on a PID change,
 route/room/pilot/schedule drift, structure loss, out-of-corridor coordinates,
 an installed-binary fingerprint change, or a ferry-specific
 movement/persistence error. Launch metadata records the source commit and

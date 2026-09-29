@@ -6710,10 +6710,14 @@ static char *fread_tilde_string(FILE *fl, const char *error, bool *failed)
 {
   /* buf will store our complete final string (up to MAX_STRING_LENGTH)
    * tmp is a smaller buffer with room to append CRLF and a null terminator. */
-  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[514] = {'\0'};
+  char buf[MAX_STRING_LENGTH], tmp[514] = {'\0'};
   bool done = FALSE;
   size_t length = 0;
   size_t templength = 0;
+
+  /* Every append below copies its terminator, so only the first byte needs
+   * clearing; zeroing the whole buffer per string dominated world loading. */
+  buf[0] = '\0';
 
   /* Keep reading lines from the file until we find our '~' terminator */
   do

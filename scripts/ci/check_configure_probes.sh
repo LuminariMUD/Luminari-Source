@@ -41,6 +41,13 @@ defines() {
   grep -E '^#(define|undef) (HAVE_|socklen_t|CIRCLE_)' "$1" | sort
 }
 
+# The CMake pair builds outside the tree, so it runs beside the Autotools pair.
+cmake -S . -B "$work/cmake-strict" -DCMAKE_C_COMPILER="$cc" -DCMAKE_C_FLAGS="$strict" \
+  >"$work/cmake-strict.log" 2>&1 &
+cmake_strict_pid=$!
+cmake -S . -B "$work/cmake-plain" -DCMAKE_C_COMPILER="$cc" >"$work/cmake-plain.log" 2>&1 &
+cmake_plain_pid=$!
+
 autoreconf -fvi >"$work/autoreconf.log" 2>&1 || {
   cat "$work/autoreconf.log"
   exit 1
@@ -70,15 +77,14 @@ grep -q '^#define HAVE_STRUCT_IN_ADDR 1' conf.h ||
     exit 1
   }
 
-cmake -S . -B "$work/cmake-strict" -DCMAKE_C_COMPILER="$cc" -DCMAKE_C_FLAGS="$strict" \
-  >"$work/cmake-strict.log" 2>&1 ||
+wait "$cmake_strict_pid" ||
   {
     cat "$work/cmake-strict.log"
     echo 'cmake failed with strict C flags' >&2
     exit 1
   }
 defines "$work/cmake-strict/conf.h" >"$work/cmake-strict.txt"
-cmake -S . -B "$work/cmake-plain" -DCMAKE_C_COMPILER="$cc" >"$work/cmake-plain.log" 2>&1 ||
+wait "$cmake_plain_pid" ||
   {
     cat "$work/cmake-plain.log"
     echo 'plain cmake failed' >&2

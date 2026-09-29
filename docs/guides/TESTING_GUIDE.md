@@ -627,11 +627,13 @@ The GitHub Actions coverage job:
   size, so rerunning the job at one commit measures identical totals (the world registries and the
   domain-event bus hash entity addresses, and address layout decides which collision paths run);
 - runs the covered protocol parser harness;
-- creates HTML details, Cobertura XML, and a JSON summary with gcovr, measuring only
+- creates Cobertura XML and a JSON summary with gcovr, measuring only
   `src/` (test sources, the vendored CuTest harness, and generated files are outside it, and no
   file under `src/` is excluded);
 - enforces `scripts/ci/coverage_policy.json` with `scripts/ci/check_coverage.py` and saves the
   result as `coverage-policy.txt`;
+- writes the line-by-line HTML pages only when a floor fails, because they take longer to write
+  than the suite takes to build and run;
 - uploads every report as the `coverage-report` artifact, including when a check fails.
 
 The policy holds three kinds of floor, all percentages measured by this job:
@@ -825,7 +827,8 @@ LUMINARI_FUZZ_TARGET=world ./luminari_fuzz fuzz-artifacts/world/crash-<sha>   # 
 ```
 
 `scripts/ci/run_fuzz_targets.sh` copies the seeds to a scratch corpus, runs
-each target with its dictionary and regression directory, writes every
+the targets side by side, one per processor, each with its dictionary and
+regression directory, writes every
 reproducer and the fuzzer log under `--artifacts` (default `fuzz-artifacts/`),
 minimizes each reproducer with `-minimize_crash=1`, and exits 1 after all
 requested targets have run. The CI job uploads that directory on failure. The
@@ -1068,8 +1071,12 @@ configuration changes):
 docker build -t luminari-ci:local-fast -f scripts/ci/local/Dockerfile .
 docker build -t luminari-ci:local-gcc-16.2 -f scripts/ci/local/Dockerfile.gcc-16.2 .
 python3 scripts/ci/local/run.py --list
-python3 scripts/ci/local/run.py --jobs 3 --cpus 4
+python3 scripts/ci/local/run.py
 ```
+
+The runner fills the host's processors with two-core containers, which suits jobs that spend
+a warm run in serial steps; `--jobs` and `--cpus` override the split. The clang-tidy job runs
+first, alone, on all of those processors: whole-tree analysis is parallel and has no cache.
 
 A job that GitHub runs inside a compiler container (`container: gcc:16.2`)
 runs locally in `luminari-ci:local-gcc-16.2`; every other job uses the
@@ -1077,14 +1084,14 @@ runs locally in `luminari-ci:local-gcc-16.2`; every other job uses the
 
 The runner exports committed HEAD, executes the actual build/integration/format/hygiene/security-scan
 workflow shell commands in separate containers, and keeps the local world and credentials
-outside those containers. Each database job gets its own disposable MariaDB. Every game
+outside those containers. Each database job gets its own disposable MariaDB, kept in memory. Every game
 smoke test uses port 4100 inside its container; no host port is published. The image includes
 the workflow dependencies, the pre-commit hooks, and the PHP and PowerShell runtimes their
-formatters need. A shared compiler cache defaults to
+formatters need. A shared compiler cache of up to 12 GiB defaults to
 `~/.cache/luminari-ci/ccache`; `--cache` overrides it. Jobs use a stable `/workspace` path.
 
-`--job NAME` selects one name from `--list`. `--results DIR` retains per-job logs, coverage
-artifacts, and a timed `summary.json`; failures produce a nonzero exit. Each snapshot's parent
+`--job NAME` selects one name from `--list`. `--results DIR` retains per-job logs, which time
+every step, coverage artifacts, and a timed `summary.json`; failures produce a nonzero exit. Each snapshot's parent
 commit is the merge base with `--base` (default `origin/master`), so a job that diffs against
 `HEAD^1`, such as the clang-tidy baseline, sees the branch's changes as it does on GitHub. Run the complete
 matrix on the final commit after iterating with the host suite. GitHub action downloads,

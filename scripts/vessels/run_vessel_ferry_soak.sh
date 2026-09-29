@@ -20,8 +20,9 @@ Usage:
   ./scripts/vessels/run_vessel_ferry_soak.sh start [duration [database_interval [live_interval]]]
   ./scripts/vessels/run_vessel_ferry_soak.sh status
 
-Defaults are a 24-hour run, 60-second database/process samples, and hourly
-actual-Kohdee samples. Durations are in seconds.
+Defaults are a 450-second run, 30-second database/process samples, and
+actual-Kohdee samples 450 seconds apart. Durations are in seconds. The ferry
+loop takes about four minutes, and every live interval must see one completed.
 USAGE
   exit 1
 }
@@ -111,9 +112,9 @@ ensure_local_mud_available() {
 }
 
 start_run() {
-  local duration=${1:-86400}
-  local database_interval=${2:-60}
-  local live_interval=${3:-3600}
+  local duration=${1:-450}
+  local database_interval=${2:-30}
+  local live_interval=${3:-450}
   local existing_dir
   local existing_metadata
   local existing_unit

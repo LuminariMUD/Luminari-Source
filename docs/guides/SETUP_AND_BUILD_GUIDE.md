@@ -59,7 +59,9 @@ Put the `PATH` export in your shell profile so every build and test shell sees i
 configure with `CC="ccache gcc"`: the test gates run `$CC` as a single program name, so
 `make test` fails with `ccache gcc: command not found`. The ccache masquerade directory
 keeps `CC=gcc` and is what CI uses. Clean once when switching an existing build's compiler
-or flags. CI retains its optimized
+or flags. ccache keys each object on the directory it was compiled in, so a second worktree
+recompiles everything; `ccache --set-config=hash_dir=false` shares the cache between worktrees
+that use the same local configuration headers. CI retains its optimized
 and instrumented profiles. For CMake, add `-DCMAKE_C_COMPILER_LAUNCHER=ccache` to configure;
 `cmake --preset dev` already selects a debug build.
 

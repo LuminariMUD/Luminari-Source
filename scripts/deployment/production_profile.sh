@@ -159,8 +159,11 @@ try_build() {
 "$cc" $base_cflags -o "$work_dir/probe" "$trivial_source" >"$work_dir/probe.log" 2>&1 ||
   fail "$cc cannot build a trivial program: $(tr '\n' ' ' <"$work_dir/probe.log")"
 
+# The macro dump is read whole first.  In a pipeline, grep -q leaves at its
+# first match, the compiler can then die of SIGPIPE, and pipefail reports a
+# busy machine's Clang as GCC.
 is_clang=0
-if "$cc" -dM -E - </dev/null 2>/dev/null | grep -q '__clang__'; then
+if grep -q '__clang__' <<<"$("$cc" -dM -E - </dev/null 2>/dev/null)"; then
   is_clang=1
 fi
 

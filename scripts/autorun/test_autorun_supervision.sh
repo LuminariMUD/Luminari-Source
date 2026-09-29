@@ -473,6 +473,8 @@ EOF
 }
 
 test_watchdog_transient_killscript() {
+  local attempt
+  local deferrals
   local guard_dir="$test_root/killscript-guard"
   local now
   local supervisor_pid
@@ -530,7 +532,14 @@ EOF
   kill -0 "$watchdog_pid" 2>/dev/null ||
     fail "watchdog did not survive successful MUD startup"
 
+  # The watchdog must see the marker before autorun stops: a pass that began
+  # without it would find autorun gone and restart it.
+  deferrals=$(grep -Fc -- "deferring shutdown" "$guard_dir/log/watchdog.log")
   touch "$guard_dir/.killscript"
+  for ((attempt = 0; attempt < 100; attempt++)); do
+    (($(grep -Fc -- "deferring shutdown" "$guard_dir/log/watchdog.log") > deferrals)) && break
+    sleep 0.1
+  done
   kill -TERM "$supervisor_pid"
   wait "$supervisor_pid" 2>/dev/null || true
   wait_for_pattern "$guard_dir/log/watchdog.log" \
@@ -1018,17 +1027,26 @@ test_deployment_requires_supported_game_port() {
     fail "fresh deployment did not select game port 4100"
 }
 
-test_compatibility_links
-test_planned_reboot_exit
-test_autorun_startup_and_locking
-test_watchdog_startup_grace
-test_watchdog_transient_killscript
-test_watchdog_pid_verification
-test_watchdog_stale_verified_supervisor
-test_watchdog_daemon_recovery
-test_copyover_identity_refresh
-test_systemd_unit_installation
-test_world_initialization_verifies_indexes
-test_deployment_requires_supported_game_port
+# Each case works in its own directory under test_root, so they run together.
+case_pids=()
+for test_case in \
+  test_compatibility_links \
+  test_planned_reboot_exit \
+  test_autorun_startup_and_locking \
+  test_watchdog_startup_grace \
+  test_watchdog_transient_killscript \
+  test_watchdog_pid_verification \
+  test_watchdog_stale_verified_supervisor \
+  test_watchdog_daemon_recovery \
+  test_copyover_identity_refresh \
+  test_systemd_unit_installation \
+  test_world_initialization_verifies_indexes \
+  test_deployment_requires_supported_game_port; do
+  "$test_case" &
+  case_pids+=("$!")
+done
+for case_pid in "${case_pids[@]}"; do
+  wait "$case_pid" || fail "a supervision case failed"
+done
 
 echo "autorun supervision test: PASS"
