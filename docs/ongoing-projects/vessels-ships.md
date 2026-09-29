@@ -1358,9 +1358,9 @@ D6 (Part 5, step 3). The damage model lives in the new `src/vessels/vessels_dama
 | D6: `strikecolors`; capture and plunder only of disabled prizes; hostile boarding only at speed 3 or less or disabled | Done | `vessel_prize_disabled()`, `vessel_abandoned_at_sea()`, `do_strikecolors()` in `vessels_damage.c`; `do_claimship()`, `do_plunder()`, `can_attempt_boarding()` (L14) |
 | Migration: prototype armor rescaled once by class (armor-scale flag), live hulls converted keeping their damage fractions (condition-model flag), weapon damage column; Phase 19 SQL with rollback and verifier | Done | `vessel_prototype_ensure_schema()` (`armor_scale`), `vessel_rescale_legacy_armor()`, `vessel_convert_legacy_condition()` from `vessel_db_load_runtime()` (`condition_model`); `vessels_phase19_schema.sql`, `_rollback.sql`, `verify_vessels_phase19.sql`; content packages at S3 scale with `armor_scale = 1`, and their provisioners apply Phase 19 first |
 | Status display (structure, sail, rudder, breaches, sinking, colors, weapons), help in both places, `VESSEL_SYSTEM.md` | Done | `vessel_show_condition()` in `shipstatus` after the four armor lines, which keep their format for the ferry soak; SHIPSTATUS help |
-| Unit tests, actual-character damage gate, existing gates, local CI | In progress | `test_vessel_damage.c` (production-linked, DB cases on); `scripts/vessels/test_vessel_damage_in_game.sh` (tactical harness `--damage`, login helper `--vessel-damage-check`); results below |
+| Unit tests, actual-character damage gate, existing gates, local CI | Done | `test_vessel_damage.c` (production-linked, DB cases on); `scripts/vessels/test_vessel_damage_in_game.sh` (tactical harness `--damage`, login helper `--vessel-damage-check`); results below |
 
-Verification so far (2026-09-29, namespace harness on a reloaded pre-S3 dump of the development
+Verification (2026-09-29, namespace harness on a reloaded pre-S3 dump of the development
 database, binary `d150e041`): the first boot rescaled all 18 prototypes to the content-package
 values and converted all 12 saved hulls (warship slot 3's bow 37/40 became 80/87; the reinforced
 transport's structure 52/66; worn hulls kept armor 0 with full structure, none holed). All 14
@@ -1373,7 +1373,13 @@ arrival from under way, `48472c515`, which then passed), and the Harbor Sandbox 
 the dump with its rudder at 1/20, stalled on the coast and had its schedule disabled at its next
 departure (S2 behavior) before the longer batch reached the merchant gate. `make test-all` with
 the DB cases passes its 1909 CuTest cases; its SQL interpolation check caught a new formatted
-query, now a prepared statement.
+query, now a prepared statement. All 33 jobs of the local CI matrix pass: 30 in the matrix on
+`0379065c5`, then alone on `d384e444b` the clang-tidy gate (after replacing an `atoi` it flagged in
+the new test) and the gcc-14 autotools and clang CMake production-profile jobs, which had failed
+on timing under four parallel containers (the autorun watchdog test and a compiler flag probe).
+The ferry soak was not rerun: S3 does not change ferry movement, and its one changed check (the
+per-arc armor maximums of the ship-class ferry) was run against S3 status output. The vessel help
+is applied to the development database and its verifier passes.
 
 Interpretations decided while planning S3:
 
