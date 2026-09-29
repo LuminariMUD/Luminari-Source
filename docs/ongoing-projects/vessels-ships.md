@@ -1203,10 +1203,8 @@ to `gitlab`). The review range is `vessels-s2-base..vessels-s2`; review fixes go
 (`vessels-s2..feat/vessels-s2`). Follow the step workflow recorded for S1: one branch, a merge
 commit at the end, never a squash. S2 is complete and handed to review as the annotated tag
 `vessels-s2` with GitLab merge request !7 from `feat/vessels-s2`; the fixes for its first review
-round are `vessels-s2..feat/vessels-s2` (see "MR !7 review fixes" below). The next step is S3
-(damage model) on `feat/vessels-s3`, stacked on the reviewed S2 head while !7 is open (annotated
-tag `vessels-s3-base` at that head, pushed), never committed onto `feat/vessels-s2` itself.
-Further S2 review fixes go on `feat/vessels-s2` and are merged into `feat/vessels-s3`.
+round are `vessels-s2..feat/vessels-s2` (see "MR !7 review fixes" below). MR !7 merged on
+2026-09-29 as merge commit `89cfabcbe`; S3 continues on `feat/vessels-s3` (Phase 3 below).
 
 | Item | State | Where |
 | -- | -- | -- |
@@ -1339,6 +1337,47 @@ hull with ten interior rooms (nine spokes) overwrites the bridge's north exit an
 connections in that direction; at the next boot `restore_ship_connection()` logs
 `SYSERR: Ship N persistence has conflicting connection` and drops one. One of the 500 hulls
 spawned for the scale measurement (a 10-room Sablebranch Grand Freighter) hit it.
+
+### Phase 3 (S3) progress
+
+Branch `feat/vessels-s3` from the S2 merge commit `89cfabcbe` (MR !7). The annotated tag
+`vessels-s3-base` marks `788f1ad67`, the reviewed S2 head, whose tree is identical to the merge,
+so `git log vessels-s3-base..vessels-s3` also lists that merge commit (no changes). Hand-off:
+annotated tag `vessels-s3` at the head given to review and a GitLab merge request from
+`feat/vessels-s3`; review fixes go on top. Scope: 3.3.3, the S3 parts of 3.3.1 and 3.3.10, and
+D6 (Part 5, step 3). The damage model lives in the new `src/vessels/vessels_damage.c`.
+
+| Item | State | Where |
+| -- | -- | -- |
+| Class condition profiles (3.3.1 per-arc armor and internal at the beam armor, sail HP), `vedit` armor limit 229, class prices and the prototype price formula | Planned |  |
+| Duris arcs (fore 320-40, starboard 40-140, rear 140-220, port 220-320) | Planned |  |
+| Refit rescaling: plating and reinforcement +20%, rigging +10% maximum speed (at least 1, at most 30), hold +25%; each 20% of the class price | Planned |  |
+| Damage resolution per fragment: sail hits (warship sails take 85%), spread across arcs, armor then internals, confirmed criticals past armor, deflection on gutted arcs, weapon damage (disabled at 1, destroyed at 100), knockdown (Reflex DC 15) | Planned |  |
+| Breach states: one breached arc immobile (airborne hulls half speed), two sinking on a timer (150-300 ticks owned, 2000-3000 unowned); a sinking hull cannot move, fire, or be repaired | Planned |  |
+| Going down: half of each bulk cargo lot spills as salvage crates; `shipsalvage` hauls crates into a stopped hull's hold | Planned |  |
+| D6: `strikecolors`; capture and plunder only of disabled prizes; hostile boarding only at speed 3 or less or disabled | Planned |  |
+| Migration: prototype armor rescaled once by class (armor-scale flag), live hulls converted keeping their damage fractions (condition-model flag), weapon damage column; Phase 19 SQL with rollback and verifier | Planned |  |
+| Status display (structure, sail, rudder, breaches, sinking, colors, weapons), help in both places, `VESSEL_SYSTEM.md` | Planned |  |
+| Unit tests, actual-character damage gate, existing gates, local CI | Planned |  |
+
+Interpretations decided while planning S3:
+
+- Weapon rows arrive in S4. Until then every mounted weapon resolves as one Duris ballista
+  fragment: spread 10, sail hit 14%, hull/sail 100/50%, pierce 10% (critical threat 19-20,
+  confirmed by a second roll against the same target number). Damage stays the slot's dice.
+- The hit roll stays the S1 rule (`d20 + level / 2 + gunnery` against `10 + speed / 5`) until
+  the S4 geometry DC.
+- "NPC hulls" for the sink timer are unowned hulls (public ferries, merchants, hunters,
+  derelicts, events).
+- Wear and weather keep their absolute sail and hull points, so against the larger Duris sails and
+  hulls they matter proportionally less.
+- The balance duel harness keeps its own constants until S4 moves it to the D2 bounds.
+- The salvage command is `shipsalvage`: `salvage` is the item-salvage craft command.
+- Until S4 sells weapons and S5 prices repairs, `shiprepair` also mends damaged weapons, and
+  restores a destroyed one while berthed in port.
+- A sinking hull can be boarded and plundered but not captured.
+- "Abandoned" means no conscious character (player or mobile, the pilot included) aboard other
+  than the claimant; hired crew positions are abstract and do not defend.
 
 ### Estimate
 
