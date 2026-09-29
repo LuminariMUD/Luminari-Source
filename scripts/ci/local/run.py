@@ -133,6 +133,9 @@ def container_job():
         GITHUB_WORKSPACE="/workspace",
         CCACHE_DIR="/ccache",
         CCACHE_BASEDIR="/workspace",
+        # Every job's build profile has to fit at once, or each run evicts
+        # what the next one needs; the 5 GiB default held about half of them.
+        CCACHE_MAXSIZE="12G",
         RUNNER_TEMP="/tmp",
         LUMINARI_LOCAL_CI="1",
     )
