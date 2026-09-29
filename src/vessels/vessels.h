@@ -638,6 +638,7 @@ ACMD_DECL(do_shiprearm);  /* Owner: refill ammunition in port */
 /* GUNNERY (vessels-ships study S4, vessels_gunnery.c)                       */
 /* ========================================================================= */
 
+#define VESSEL_DURIS_SPEED_SCALE 0.3     /* LuminariMUD speeds are Duris speeds times 0.3 */
 #define VESSEL_BATTLE_STATIONS_TICKS 360 /* 180 s after the lock clears or the last shot */
 #define VESSEL_GUNNERY_BONUS_MAX 7       /* The Duris elite-crew ceiling */
 #define VESSEL_NPC_GUNNERY_BONUS 5       /* NPC crews fire as trained crews */
@@ -648,6 +649,7 @@ double vessel_range_between(const struct greyhawk_ship_data *from,
                             const struct greyhawk_ship_data *to);
 double vessel_bearing_between(const struct greyhawk_ship_data *from,
                               const struct greyhawk_ship_data *to);
+bool vessel_open_water(struct greyhawk_ship_data *ship, int x, int y, int z);
 double vessel_volley_chance(int sight);
 int vessel_gunnery_dc(struct greyhawk_ship_data *ship, const struct vessel_weapon_type *type,
                       struct greyhawk_ship_data *target);

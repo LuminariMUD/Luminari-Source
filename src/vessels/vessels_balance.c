@@ -41,15 +41,6 @@ struct vessel_balance_observed_data
   long long showcase_entries;
 };
 
-static bool vessel_balance_open_water(struct greyhawk_ship_data *ship, int x, int y, int z)
-{
-  (void)ship;
-  (void)x;
-  (void)y;
-  (void)z;
-  return TRUE;
-}
-
 /**
  * A default warship with Duris's frigate combat fit (study 1.13d): three
  * large ballistae on each beam and a heavy beamcannon on the bow, sailing
@@ -120,7 +111,7 @@ static void vessel_balance_captain(struct greyhawk_ship_data *ship,
       vessel_fire_weapon(ship, s, enemy, NULL);
     }
   }
-  vessel_sail_tick(ship, vessel_max_speed(ship), vessel_balance_open_water, NULL, NULL);
+  vessel_sail_tick(ship, vessel_max_speed(ship), vessel_open_water, NULL, NULL);
 }
 
 static int vessel_balance_compare_ints(const void *left, const void *right)

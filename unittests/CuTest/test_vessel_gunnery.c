@@ -646,15 +646,6 @@ void Test_vessel_sight_and_scan_read_the_contact(CuTest *tc)
   gunnery_deck_end(&deck);
 }
 
-static bool gunnery_open_sea(struct greyhawk_ship_data *ship, int x, int y, int z)
-{
-  (void)ship;
-  (void)x;
-  (void)y;
-  (void)z;
-  return TRUE;
-}
-
 void Test_vessel_mind_blast_stuns_the_crew(CuTest *tc)
 {
   struct gunnery_deck deck;
@@ -684,7 +675,7 @@ void Test_vessel_mind_blast_stuns_the_crew(CuTest *tc)
   CuAssertIntEquals(tc, 10, target->slot[0].timer);
   CuAssertIntEquals(tc, 33, target->stun_ticks);
   target->setspeed = 17;
-  vessel_sail_tick(target, 17.0, gunnery_open_sea, NULL, NULL);
+  vessel_sail_tick(target, 17.0, vessel_open_water, NULL, NULL);
   CuAssertDblEquals(tc, 0.0, target->speed, 0.0001);
 
   /* Nor fires or repairs. */

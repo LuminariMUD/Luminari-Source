@@ -807,7 +807,7 @@ static void vessel_crash_check(struct greyhawk_ship_data *ship, double impact_sp
   else
   {
     send_to_ship(ship, "The crew fights to keep her off!");
-    chance = (int)((impact_speed / 0.3 + 50.0) /
+    chance = (int)((impact_speed / VESSEL_DURIS_SPEED_SCALE + 50.0) /
                    (1.0 + 2.0 * (vessel_sailmaster_multiplier(ship) - 1.0)));
   }
   if (dice(2, 50) > chance)

@@ -878,7 +878,7 @@ proc run_frontier_warship {prototype_id target_prototype_id} {
   require_game_output $output "No contact in sight matches" \
     "$vessel_name bow weapon"
   set output [run_game_command "shipfire 1 Starfall"]
-  require_game_output $output "Large Ballista cannot bear - Starfall Bastion lies off" \
+  require_game_output $output "The port Large Ballista cannot bear - Starfall" \
     "$vessel_name port weapon"
   set output [run_game_command "shipfire 2 NoFrontierTarget"]
   require_game_output $output "No contact in sight matches" \

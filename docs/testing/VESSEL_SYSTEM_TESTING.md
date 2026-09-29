@@ -89,7 +89,8 @@ campaign content, rejects region or identity collisions, and verifies four
 named legal-water regions, the exact 18-link route, merchant prototype,
 faction, real iron cargo, pilot 31810, schedule, and two-port market gradient.
 It resets only the campaign merchant's runtime to its canonical start when an
-earlier route revision left that hull paused.
+earlier route revision left that hull paused, and re-enables her schedule when
+a server disabled it on that revision.
 
 Two actual Kohdee sessions then observe the merchant for 45 seconds each,
 with a hard server restart between them. The gate requires distinct live

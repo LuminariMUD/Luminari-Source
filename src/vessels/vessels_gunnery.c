@@ -32,13 +32,11 @@
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
-/* LuminariMUD speeds are Duris speeds times 0.3 (study 3.3.1). */
-#define VESSEL_DURIS_SPEED_SCALE 0.3
-
 /* Duris ship units per room: a hull at speed 150 crosses a room a second. */
 #define VESSEL_DURIS_UNITS_PER_ROOM 150.0
 
-static bool vessel_open_water(struct greyhawk_ship_data *ship, int x, int y, int z)
+/** A cell check that admits every room: for sailing a copy of a hull. */
+bool vessel_open_water(struct greyhawk_ship_data *ship, int x, int y, int z)
 {
   (void)ship;
   (void)x;
