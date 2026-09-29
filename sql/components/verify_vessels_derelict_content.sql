@@ -9,7 +9,8 @@ WHERE
   name = 'Blackwake Derelict'
   AND vessel_class = 2
   AND max_speed = 6
-  AND armor = 15;
+  AND armor = 50
+  AND armor_scale = 1;
 
 SELECT
   'blackwake_derelict_triggers' AS check_name,

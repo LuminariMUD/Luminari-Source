@@ -78,8 +78,11 @@ if [[ $# -gt 0 ]]; then
     --vessel-movement-check)
       mode="vessel-movement-check"
       ;;
+    --vessel-damage-check)
+      mode="vessel-damage-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id> | --vessel-boarding-check <warship-id> [<defender-character>] | --vessel-rules-check <warship-id> [<crew-character>] | --vessel-movement-check <warship-id>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id> | --vessel-boarding-check <warship-id> [<defender-character>] | --vessel-rules-check <warship-id> [<crew-character>] | --vessel-movement-check <warship-id> | --vessel-damage-check <warship-id>]"
       ;;
   esac
   shift
@@ -161,6 +164,9 @@ if [[ $# -gt 0 ]]; then
   elif [[ "$mode" == "vessel-movement-check" ]]; then
     [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ ]] ||
       fail "--vessel-movement-check requires one positive warship prototype id"
+  elif [[ "$mode" == "vessel-damage-check" ]]; then
+    [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ ]] ||
+      fail "--vessel-damage-check requires one positive warship prototype id"
   elif [[ "$mode" == "vessel-rules-check" ]]; then
     [[ ($# -eq 1 || $# -eq 2) && "$1" =~ ^[1-9][0-9]*$ ]] ||
       fail "--vessel-rules-check requires a positive warship prototype id and an optional crew character"
@@ -1520,6 +1526,145 @@ proc run_vessel_movement_check {warship_id} {
   puts "PASS: the vessel movement check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }
 
+# Read the target's condition aboard her, then return to the shooter.
+proc read_damage_target_status {target_slot shooter_slot context} {
+  set output [run_game_command "shipgoto $target_slot"]
+  require_game_output $output "Aboard Starfall Bastion (slot $target_slot)." \
+    "$context target boarding"
+  set status [run_game_command "shipstatus"]
+  set output [run_game_command "shipgoto $shooter_slot"]
+  require_game_output $output "Aboard Starfall Bastion (slot $shooter_slot)." \
+    "$context shooter boarding"
+  return $status
+}
+
+# Fire one weapon at the target until her status shows `expected`.
+proc fire_until_target_shows {shooter_slot weapon target_slot target_id expected context} {
+  for {set shot 1} {$shot <= 60} {incr shot} {
+    set output [run_game_command "shipfire $weapon $target_id"]
+    if {[string first "still reloading" $output] >= 0} {
+      run_game_command "@wait 1"
+      continue
+    }
+    require_game_output $output "FIRES at Starfall Bastion!" "$context shot $shot"
+    set status [read_damage_target_status $target_slot $shooter_slot $context]
+    if {[string first $expected $status] >= 0} {
+      return [list $shot $status]
+    }
+    run_game_command "@wait 3"
+  }
+  fail "$context: the target never showed '$expected' after 60 shots"
+}
+
+proc run_vessel_damage_check {warship_id} {
+  set workflow_started_at [clock milliseconds]
+
+  # The target lies at (902, 225) heading north, with one warship off her
+  # port side and one off her stern.
+  set output [run_game_command "goto 902 225"]
+  require_game_output $output "Current Location  : (902, 225)" "damage target staging"
+  set target_slot [spawn_frontier_vessel_at_exterior $warship_id "Starfall Bastion"]
+  set target_id [vessel_slot_id $target_slot]
+  set output [run_game_command "goto 902 223"]
+  require_game_output $output "Current Location  : (902, 223)" "stern shooter staging"
+  set stern_slot [spawn_frontier_vessel_at_exterior $warship_id "Starfall Bastion"]
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" "port shooter staging"
+  set port_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+
+  # Starfall Bastion's armor 95 (35 before S3) scales the warship profile.
+  set output [run_game_command "shipstatus"]
+  foreach expected {
+    "Forward: 76/76" "Port: 95/95" "Starboard: 95/95" "Rear: 57/57"
+    "Structure: bow 33/33, port 41/41, starboard 41/41, stern 20/20"
+    "Sails: 140/140" "Rudder: 20/20" "== Weapons =="
+    "the bow chaser ballista (bow): ready"
+    "the starboard ballista battery (starboard side): ready"
+  } {
+    require_game_output $output $expected "new warship status"
+  }
+  if {[string first "Holed:" $output] >= 0} {
+    fail "a new warship reported a holed side"
+  }
+
+  # Struck colors hold while she lies stopped and fly again under way.
+  set output [run_game_command "strikecolors"]
+  require_game_output $output "strikes Starfall Bastion's colors: she yields." "strikecolors"
+  set output [run_game_command "shipstatus"]
+  require_game_output $output "Colors: struck, for about" "struck colors status"
+  set output [run_game_command "speed 1"]
+  require_game_output $output "Speed set to 1." "getting under way"
+  set output [wait_for_game_output 3 "colors fly again"]
+  require_game_output $output "Starfall Bastion's colors fly again." "colors hoisted"
+  run_game_command "speed 0"
+  run_game_command "@wait 3"
+
+  # Broadsides from the west hole her port side; one hole stops her.
+  lassign [fire_until_target_shows $port_slot 2 $target_slot $target_id \
+    "Holed: port side." "port-side gunnery"] port_shots status
+  require_game_output $status "Holed: port side. She cannot move." "holed target"
+  require_game_output $status "Speed: 0 / 0" "immobile target"
+  if {[string first "SINKING" $status] >= 0} {
+    fail "one holed side started the target sinking"
+  }
+
+  # The bow chaser from the south holes her stern: two holes sink her.
+  set output [run_game_command "shipgoto $stern_slot"]
+  require_game_output $output "Aboard Starfall Bastion (slot $stern_slot)." \
+    "stern shooter boarding"
+  lassign [fire_until_target_shows $stern_slot 0 $target_slot $target_id \
+    "SINKING: she goes down in about" "stern gunnery"] stern_shots status
+  require_game_output $status "Holed: port side and stern. SINKING: she goes down in about" \
+    "sinking target"
+
+  # Aboard a sinking hull the crews abandon the guns, patches, and salvage.
+  set output [run_game_command "shipgoto $target_slot"]
+  require_game_output $output "Aboard Starfall Bastion (slot $target_slot)." \
+    "sinking target boarding"
+  set output [run_game_command "shipfire 1 [vessel_slot_id $port_slot]"]
+  require_game_output $output "She is going down - the gun crews are abandoning ship!" \
+    "sinking gunnery"
+  set output [run_game_command "shiprepair"]
+  require_game_output $output "going down - no patch will save her." "sinking repair"
+  set output [run_game_command "shipsalvage"]
+  require_game_output $output "She is going down - there is no time for salvage." \
+    "sinking salvage"
+  set output [run_game_command "shipgoto $stern_slot"]
+  require_game_output $output "Aboard Starfall Bastion (slot $stern_slot)." \
+    "stern shooter return"
+
+  # An owned hull goes down within 150 seconds of the second hole.
+  set sunk 0
+  set target_pattern [format {^[[:space:]]*%d[[:space:]]+Starfall Bastion} $target_slot]
+  for {set attempt 0} {$attempt < 36} {incr attempt} {
+    set output [run_game_command "shiplist"]
+    if {![regexp -line $target_pattern $output]} {
+      set sunk 1
+      break
+    }
+    run_game_command "@wait 5"
+  }
+  if {!$sunk} {
+    fail "the sinking target was still afloat three minutes after her second hole"
+  }
+  set output [run_game_command "shipsalvage"]
+  require_game_output $output "There is no salvage alongside that the hold can take." \
+    "salvage with nothing afloat"
+
+  purge_frontier_vessel $stern_slot "Starfall Bastion"
+  set output [run_game_command "shippurge $port_slot"]
+  require_game_output $output "Purged ship $port_slot 'Starfall Bastion'" "port shooter cleanup"
+  set output [run_game_command "goto 1204"]
+  require_game_output $output "Staff Board Room" "damage safe-room return"
+  set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
+  puts "\nPASS: a new Starfall Bastion showed the rescaled warship armor, structure, sails, rudder, and ready weapons."
+  puts "PASS: struck colors showed on shipstatus and flew again when she got under way."
+  puts "PASS: gunnery from one side holed her port side in $port_shots shots and left her unable to move."
+  puts "PASS: a second hole in her stern ($stern_shots shots) started her sinking; she refused gunnery, repair, and salvage."
+  puts "PASS: she went down on her sink timer and left the fleet."
+  puts "PASS: the vessel damage check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
+}
+
 proc run_vessel_narrative_check {warship_id} {
   set workflow_started_at [clock milliseconds]
 
@@ -2524,7 +2669,8 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     $mode eq "vessel-frontier-check" || $mode eq "vessel-event-check" ||
     $mode eq "vessel-tactical-check" || $mode eq "vessel-lookout-check" ||
     $mode eq "vessel-narrative-check" || $mode eq "vessel-boarding-check" ||
-    $mode eq "vessel-rules-check" || $mode eq "vessel-movement-check"} {
+    $mode eq "vessel-rules-check" || $mode eq "vessel-movement-check" ||
+    $mode eq "vessel-damage-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -2596,6 +2742,8 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
         [lindex $game_commands 1]
     } elseif {$mode eq "vessel-movement-check"} {
       run_vessel_movement_check [lindex $game_commands 0]
+    } elseif {$mode eq "vessel-damage-check"} {
+      run_vessel_damage_check [lindex $game_commands 0]
     } else {
       run_vessel_msdp_check [lindex $game_commands 0]
     }
@@ -2691,6 +2839,9 @@ elif [[ "$mode" == "vessel-boarding-check" ]]; then
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-movement-check" ]]; then
   printf 'PASS: %s completed the vessel-movement check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-damage-check" ]]; then
+  printf 'PASS: %s completed the vessel-damage check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-rules-check" ]]; then
   printf 'PASS: %s completed the two-character vessel-rules check and logged out cleanly (%ss total).\n' \

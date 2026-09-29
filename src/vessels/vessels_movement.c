@@ -263,15 +263,27 @@ static int vessel_position_speed_percent(struct greyhawk_ship_data *ship)
   return ship->position_speed_percent;
 }
 
+/**
+ * The hull's maximum speed now: vessel_max_speed_from() with her present
+ * parts, none while sinking, and none with a breached arc unless she is
+ * aloft, when she keeps half (study 3.3.3).
+ */
 double vessel_max_speed(struct greyhawk_ship_data *ship)
 {
-  if (ship == NULL)
+  double speed;
+
+  if (ship == NULL || vessel_is_sinking(ship))
   {
     return 0.0;
   }
-  return vessel_max_speed_from(ship->maxspeed, vessel_sailmaster_multiplier(ship),
-                               vessel_load_factor(ship), ship->mainsail, ship->maxmainsail,
-                               vessel_position_speed_percent(ship), vessel_helm_speed_bonus(ship));
+  speed = vessel_max_speed_from(ship->maxspeed, vessel_sailmaster_multiplier(ship),
+                                vessel_load_factor(ship), ship->mainsail, ship->maxmainsail,
+                                vessel_position_speed_percent(ship), vessel_helm_speed_bonus(ship));
+  if (vessel_breached_arcs(ship) > 0)
+  {
+    speed = ship->z > 0.0 ? speed / 2.0 : 0.0;
+  }
+  return speed;
 }
 
 /** Speed gained or shed per tick. */

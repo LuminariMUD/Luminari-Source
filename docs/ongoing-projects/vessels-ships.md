@@ -1203,10 +1203,8 @@ to `gitlab`). The review range is `vessels-s2-base..vessels-s2`; review fixes go
 (`vessels-s2..feat/vessels-s2`). Follow the step workflow recorded for S1: one branch, a merge
 commit at the end, never a squash. S2 is complete and handed to review as the annotated tag
 `vessels-s2` with GitLab merge request !7 from `feat/vessels-s2`; the fixes for its first review
-round are `vessels-s2..feat/vessels-s2` (see "MR !7 review fixes" below). The next step is S3
-(damage model) on `feat/vessels-s3`, stacked on the reviewed S2 head while !7 is open (annotated
-tag `vessels-s3-base` at that head, pushed), never committed onto `feat/vessels-s2` itself.
-Further S2 review fixes go on `feat/vessels-s2` and are merged into `feat/vessels-s3`.
+round are `vessels-s2..feat/vessels-s2` (see "MR !7 review fixes" below). MR !7 merged on
+2026-09-29 as merge commit `89cfabcbe`; S3 continues on `feat/vessels-s3` (Phase 3 below).
 
 | Item | State | Where |
 | -- | -- | -- |
@@ -1339,6 +1337,100 @@ hull with ten interior rooms (nine spokes) overwrites the bridge's north exit an
 connections in that direction; at the next boot `restore_ship_connection()` logs
 `SYSERR: Ship N persistence has conflicting connection` and drops one. One of the 500 hulls
 spawned for the scale measurement (a 10-room Sablebranch Grand Freighter) hit it.
+
+### Phase 3 (S3) progress
+
+Branch `feat/vessels-s3` from the S2 merge commit `89cfabcbe` (MR !7). The annotated tag
+`vessels-s3-base` marks `788f1ad67`, the reviewed S2 head, whose tree is identical to the merge,
+so `git log vessels-s3-base..vessels-s3` also lists that merge commit (no changes). Hand-off:
+annotated tag `vessels-s3` at the head given to review and a GitLab merge request from
+`feat/vessels-s3`; review fixes go on top. Scope: 3.3.3, the S3 parts of 3.3.1 and 3.3.10, and
+D6 (Part 5, step 3). The damage model lives in the new `src/vessels/vessels_damage.c`.
+
+| Item | State | Where |
+| -- | -- | -- |
+| Class condition profiles (3.3.1 per-arc armor and internal at the beam armor, sail HP), `vedit` armor limit 229, class prices and the prototype price formula | Done | `vessel_class_condition()`, `vessel_initialize_condition()` (moved from `vessels.c`) in `vessels_damage.c`; `vessel_prototype_price()`; `vedit new` takes the class beam armor |
+| Duris arcs (fore 320-40, starboard 40-140, rear 140-220, port 220-320) | Done | `vessel_arc_for_relative_bearing()` behind `greyhawk_getarc()` |
+| Refit rescaling: plating and reinforcement +20%, rigging +10% maximum speed (at least 1, at most 30), hold +25%; each 20% of the class price | Done | `do_shipupgrade()`, `vessel_upgrade_cost()`, `vessel_rigged_speed()` in `vessels_upgrades.c` |
+| Damage resolution per fragment: sail hits (warship sails take 85%), spread across arcs, armor then internals, confirmed criticals past armor, deflection on gutted arcs, weapon damage (disabled at 1, destroyed at 100), knockdown (Reflex DC 15) | Done | `vessel_resolve_hit()`, `vessel_damage_hull()`, `vessel_damage_sail()`, `vessel_damage_weapon()`, `vessel_knockdown_aboard()` in `vessels_damage.c`; `ship_weapons.weapon_damage`; `shipfire`, NPC return fire, and hazards call them |
+| Breach states: one breached arc immobile (airborne hulls half speed), two sinking on a timer (150-300 ticks owned, 2000-3000 unowned); a sinking hull cannot move, fire, or be repaired | Done | `vessel_breached_arcs()`, `vessel_update_condition()` (stops a holed or sinking hull dead), `vessel_begin_sinking()`, `vessel_damage_tick_one()` (combat tick); `vessel_max_speed()`; `sink_ticks`, saved in `ship_runtime_state` (MR !8 review) |
+| Going down: half of each bulk cargo lot spills as salvage crates; `shipsalvage` hauls crates into a stopped hull's hold | Done | `vessel_spill_cargo()`, `vessel_salvage_crates()`, `do_shipsalvage()`; `vessel_stow_cargo()` shared with `plunder` |
+| D6: `strikecolors`; capture and plunder only of disabled prizes; hostile boarding only at speed 3 or less or disabled | Done | `vessel_prize_disabled()`, `vessel_abandoned_at_sea()`, `do_strikecolors()` in `vessels_damage.c`; `do_claimship()`, `do_plunder()`, `can_attempt_boarding()` (L14) |
+| Migration: prototype armor rescaled once by class (armor-scale flag), live hulls converted keeping their damage fractions (condition-model flag), weapon damage column; Phase 19 SQL with rollback and verifier | Done | `vessel_prototype_ensure_schema()` (`armor_scale`), `vessel_rescale_legacy_armor()`, `vessel_convert_legacy_condition()` from `vessel_db_load_runtime()` (`condition_model`); `vessels_phase19_schema.sql`, `_rollback.sql`, `verify_vessels_phase19.sql`; content packages at S3 scale with `armor_scale = 1`, and their provisioners apply Phase 19 first |
+| Status display (structure, sail, rudder, breaches, sinking, colors, weapons), help in both places, `VESSEL_SYSTEM.md` | Done | `vessel_show_condition()` in `shipstatus` after the four armor lines, which keep their format for the ferry soak; SHIPSTATUS help |
+| Unit tests, actual-character damage gate, existing gates, local CI | Done | `test_vessel_damage.c` (production-linked, DB cases on); `scripts/vessels/test_vessel_damage_in_game.sh` (tactical harness `--damage`, login helper `--vessel-damage-check`); results below |
+
+Verification (2026-09-29, namespace harness on a reloaded pre-S3 dump of the development
+database, binary `d150e041`): the first boot rescaled all 18 prototypes to the content-package
+values and converted all 12 saved hulls (warship slot 3's bow 37/40 became 80/87; the reinforced
+transport's structure 52/66; worn hulls kept armor 0 with full structure, none holed). All 14
+live gates pass: builder, tactical, lookout, boarding, narrative, rules, events, movement, the new
+damage gate (507 s: port side holed in 21 shots, stern in 13, sink timer 126 s, the target's port
+battery disabled at 45%), frontier, derelict, and hunter in one batch on `6507fbfc5`; campaign and
+merchant on a fresh reload. In the batch those two lost timing races: the campaign merchant was
+restored inside its port room and berthed without changing rooms (the gate now accepts that
+arrival from under way, `48472c515`, which then passed), and the Harbor Sandbox Merchant, left in
+the dump with its rudder at 1/20, stalled on the coast and had its schedule disabled at its next
+departure (S2 behavior) before the longer batch reached the merchant gate. `make test-all` with
+the DB cases passes its 1909 CuTest cases; its SQL interpolation check caught a new formatted
+query, now a prepared statement. All 33 jobs of the local CI matrix pass: 30 in the matrix on
+`0379065c5`, then alone on `d384e444b` the clang-tidy gate (after replacing an `atoi` it flagged in
+the new test) and the gcc-14 autotools and clang CMake production-profile jobs, which had failed
+on timing under four parallel containers (the autorun watchdog test and a compiler flag probe).
+The ferry soak was not rerun: S3 does not change ferry movement, and its one changed check (the
+per-arc armor maximums of the ship-class ferry) was run against S3 status output. The vessel help
+is applied to the development database and its verifier passes.
+
+Interpretations decided while planning S3:
+
+- Weapon rows arrive in S4. Until then every mounted weapon resolves as one Duris ballista
+  fragment: spread 10, sail hit 14%, hull/sail 100/50%, pierce 10% (critical threat 19-20,
+  confirmed by a second roll against the same target number). Damage stays the slot's dice.
+- The hit roll stays the S1 rule (`d20 + level / 2 + gunnery` against `10 + speed / 5`) until
+  the S4 geometry DC.
+- "NPC hulls" for the sink timer are unowned hulls (public ferries, merchants, hunters,
+  derelicts, events).
+- Wear and weather keep their absolute sail and hull points, so against the larger Duris sails and
+  hulls they matter proportionally less.
+- The balance duel harness keeps its own constants until S4 moves it to the D2 bounds.
+- The salvage command is `shipsalvage`: `salvage` is the item-salvage craft command.
+- Until S4 sells weapons and S5 prices repairs, `shiprepair` also mends damaged weapons, and
+  restores a destroyed one while berthed in port.
+- A sinking hull can be boarded and plundered but not captured.
+- "Abandoned" means no conscious character (player or mobile, the pilot included) aboard other
+  than the claimant; a sleeper is not conscious, and hired crew positions are abstract and do not
+  defend.
+- Found while testing: a hull shot from one side only cannot sink. Deflected hits reach only
+  another arc's structure, never its armor, so only the facing arc is ever holed (Duris behaves
+  the same). S4's duel harness and S6's NPC AI must maneuver to bring a second arc to bear.
+- The stale "Running aground" help paragraph (grounding was removed in S2) is dropped with the
+  S3 help rewrite.
+- Migration: the ratio is the class beam armor over the old `vedit new` default (raft 2, boat 5,
+  ship 20, warship 40, airship 15, submarine 25, transport 20, magical 20), capped at 229. A
+  legacy hull's prototype armor is read back from its saved arc maximum (undoing the old +50%
+  plating), so hulls without a prototype convert too. The old model left shot-out sections
+  afloat and had no holes, so a converted arc keeps at least 1 structure: no hull comes back
+  holed or sinking. Default ballistae, wages and insurance refunds in 3.3.10 belong to S4 and S5.
+- The content packages write S3-scale armor with `armor_scale = 1`, so they fail loudly on a
+  database without Phase 19 instead of being rescaled twice.
+- The Phase 19 rollback returns prototype armor to the old scale (rounded) so older code does not
+  run S3-strength prototypes; converted hulls keep their S3 values.
+
+MR !8 review fixes (2026-09-29), one commit each on `feat/vessels-s3`:
+
+| Finding | Fix | Commit |
+| -- | -- | -- |
+| A hole did not stop a hull at once: the helm shed way at the class acceleration, so a warship holed at speed 17 crossed several rooms, and a hull holed on two sides moved while her sink timer ran | `vessel_update_condition()` zeroes the speed of a sinking hull and of one holed afloat; a hull aloft with one hole keeps half speed | `55d883020` |
+| The sink timer was runtime only, so a restart rerolled a full countdown for a hull saved holed on two sides | `ship_runtime_state.sink_ticks` (Phase 19, with its rollback and verifier) saves the remaining ticks and the load restores them | `05b40a93b` |
+| A sleeper counted as conscious (sleeping ranks above stunned): a stopped hull whose only hand was asleep was no prize, and a sleeper on the bridge blocked `claimship` and `plunder` | The abandoned check and both bridge checks use `AWAKE()` | `48d69e6a4` |
+| A failed knockdown save sat the sailor down instead of leaving them prone | `POS_RECLINING`, which `fight.c` penalizes as prone | `390fd54fd` |
+
+Review-round verification (2026-09-29): `make test-all` with the database cases on (1910 CuTest
+cases, including the new sleeper case and a save-and-reload of a sinking hull's timer, which fails
+with a rerolled timer without the fix); the boot `ALTER`, the Phase 19 schema, rollback (twice),
+and verifier on the isolated test database; all 33 local CI jobs on `02729c19b` (622 s). No live
+gate covers the changed paths (the damage gate stops its target before holing it), so none was
+rerun.
 
 ### Estimate
 

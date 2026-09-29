@@ -547,6 +547,99 @@ void vessel_movement_set_cell_entry_for_test(vessel_cell_entry_fn entry);
 #endif
 
 /* ========================================================================= */
+/* DAMAGE MODEL (vessels-ships study S3, vessels_damage.c)                   */
+/* ========================================================================= */
+
+struct greyhawk_ship_slot;
+
+#define VESSEL_NUM_ARCS 4              /* GREYHAWK_FORE..GREYHAWK_STARBOARD */
+#define VESSEL_MAX_PROTOTYPE_ARMOR 229 /* Largest Duris armor value (beam armor) */
+#define VESSEL_RUDDER_MAX 20           /* Rudder condition (LuminariMUD-only) */
+
+/* A class's hull condition at its beam armor (study 3.3.1, the Duris analog's
+ * per-arc armor and internal structure); arrays follow GREYHAWK_FORE.. */
+struct vessel_class_condition
+{
+  int beam_armor;                /* Prototype armor the profile is stated at */
+  int armor[VESSEL_NUM_ARCS];    /* Armor by arc */
+  int internal[VESSEL_NUM_ARCS]; /* Internal structure by arc */
+  int sail;                      /* Sail hit points */
+  int price;                     /* Gold price of a default hull */
+};
+
+const struct vessel_class_condition *vessel_class_condition(enum vessel_class vessel_type);
+void vessel_initialize_condition(struct greyhawk_ship_data *ship, int armor);
+void vessel_refit_arcs(struct greyhawk_ship_data *ship, bool structure);
+
+/* Saved condition model (ship_runtime_state.condition_model): 0 is the pre-S3
+ * model, converted once at load (study 3.3.10) */
+#define VESSEL_CONDITION_MODEL 1
+
+int vessel_rescale_legacy_armor(int vclass, int armor);
+void vessel_convert_legacy_condition(struct greyhawk_ship_data *ship, int upgrades);
+unsigned char *vessel_arc_armor(struct greyhawk_ship_data *ship, int arc);
+unsigned char *vessel_arc_max_armor(struct greyhawk_ship_data *ship, int arc);
+unsigned char *vessel_arc_internal(struct greyhawk_ship_data *ship, int arc);
+unsigned char *vessel_arc_max_internal(struct greyhawk_ship_data *ship, int arc);
+int vessel_arc_for_relative_bearing(int relative);
+
+#define VESSEL_WEAPON_DESTROYED 100 /* Weapon damage at which a weapon is gone */
+#define VESSEL_KNOCKDOWN_DC 15      /* Reflex save against a hull hit's blast */
+
+/* One weapon's fragment behavior (Duris weapon_data). Until S4 seeds the
+ * weapon table every mounted weapon resolves as a ballista. */
+struct vessel_weapon_profile
+{
+  int fragments;    /* Separate hits per shot */
+  int spread;       /* Degrees each fragment scatters across (whole spread) */
+  int sail_hit;     /* Percent chance a fragment strikes the sails */
+  int hull_percent; /* Share of damage dealt to the hull */
+  int sail_percent; /* Share of damage dealt to the sails */
+  int pierce;       /* Duris armor pierce percent; sets the critical threat */
+};
+
+const struct vessel_weapon_profile *vessel_weapon_profile(const struct greyhawk_ship_slot *slot);
+int vessel_critical_threat(int pierce);
+bool vessel_weapon_ready(const struct greyhawk_ship_slot *slot);
+int vessel_resolve_hit(struct greyhawk_ship_data *attacker, struct greyhawk_ship_data *target,
+                       const struct greyhawk_ship_slot *weapon, bool critical);
+int vessel_damage_sail(struct greyhawk_ship_data *attacker, struct greyhawk_ship_data *target,
+                       int damage);
+int vessel_damage_hull(struct greyhawk_ship_data *attacker, struct greyhawk_ship_data *target,
+                       int damage, int arc, bool critical);
+void vessel_damage_weapon(struct greyhawk_ship_data *attacker, struct greyhawk_ship_data *target,
+                          int arc, int damage);
+void vessel_knockdown_aboard(struct greyhawk_ship_data *ship);
+void vessel_update_condition(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *attacker);
+void vessel_show_condition(struct char_data *ch, struct greyhawk_ship_data *ship);
+
+/* Breaches and sinking (study 3.3.3); sink timers in vessel ticks */
+#define VESSEL_SINK_TICKS_OWNED_MIN 150    /* 75 s: a player-owned hull */
+#define VESSEL_SINK_TICKS_OWNED_MAX 300    /* 150 s */
+#define VESSEL_SINK_TICKS_UNOWNED_MIN 2000 /* 1000 s: public and NPC hulls, to board and loot */
+#define VESSEL_SINK_TICKS_UNOWNED_MAX 3000 /* 1500 s */
+#define VESSEL_SALVAGE_CRATE_MARK 7317     /* Object value 2 of a floating salvage crate */
+#define VESSEL_SALVAGE_CRATE_HOURS 24      /* MUD hours a salvage crate floats */
+
+int vessel_breached_arcs(const struct greyhawk_ship_data *ship);
+bool vessel_is_sinking(const struct greyhawk_ship_data *ship);
+void vessel_begin_sinking(struct greyhawk_ship_data *ship);
+void vessel_damage_tick_one(struct greyhawk_ship_data *ship);
+int vessel_spill_cargo(struct greyhawk_ship_data *ship, room_rnum room);
+bool vessel_is_salvage_crate(const struct obj_data *obj);
+int vessel_salvage_crates(struct greyhawk_ship_data *ship, room_rnum room);
+ACMD_DECL(do_shipsalvage);
+
+/* Prizes (decision D6): capture, plunder, and hostile boarding */
+#define VESSEL_COLORS_STRUCK_TICKS 1200 /* 10 minutes */
+#define VESSEL_BOARDING_MAX_SPEED 3     /* Fastest hull a boarding party can grapple */
+
+bool vessel_colors_struck(const struct greyhawk_ship_data *ship);
+bool vessel_abandoned_at_sea(struct greyhawk_ship_data *ship, const struct char_data *except);
+bool vessel_prize_disabled(struct greyhawk_ship_data *ship, const struct char_data *except);
+ACMD_DECL(do_strikecolors);
+
+/* ========================================================================= */
 /* NAVAL COMBAT (Phase 05, vessels_combat.c)                                 */
 /* ========================================================================= */
 
@@ -571,7 +664,6 @@ void vessel_clear_pvp_grace(struct greyhawk_ship_data *ship);
 int vessel_total_internal(const struct greyhawk_ship_data *ship);
 int vessel_max_internal(const struct greyhawk_ship_data *ship);
 int vessel_status(const struct greyhawk_ship_data *ship);
-void vessel_initialize_condition(struct greyhawk_ship_data *ship, int armor);
 const char *vessel_status_name(int status);
 void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause);
 void vessel_sink(int shipnum);
@@ -630,10 +722,10 @@ ACMD_DECL(do_vevent);
 #define CREW_TIER_VETERAN 3
 
 /* Installable upgrades (greyhawk_ship_data.upgrades bitfield) */
-#define SHIP_UPGRADE_PLATING (1 << 0)    /* +50% max armor all sides */
-#define SHIP_UPGRADE_RIGGING (1 << 1)    /* +5 max speed */
+#define SHIP_UPGRADE_PLATING (1 << 0)    /* +20% max armor all sides */
+#define SHIP_UPGRADE_RIGGING (1 << 1)    /* +10% design speed, at least 1 */
 #define SHIP_UPGRADE_HOLD (1 << 2)       /* +25% cargo capacity */
-#define SHIP_UPGRADE_REINFORCED (1 << 3) /* +50% max internal structure */
+#define SHIP_UPGRADE_REINFORCED (1 << 3) /* +20% max internal structure */
 #define NUM_SHIP_UPGRADES 4
 
 /* Hull wear: one wear event per this many ticks while under way */
@@ -642,6 +734,7 @@ ACMD_DECL(do_vevent);
 const char *vessel_upgrade_name(int index);
 int vessel_upgrade_bit(int index);
 int vessel_upgrade_cost(int index, enum vessel_class vessel_type);
+short int vessel_rigged_speed(int design_speed);
 void vessel_upkeep_tick(void);
 void vessel_upkeep_tick_one(struct greyhawk_ship_data *ship);
 void vessel_db_save_extras(struct greyhawk_ship_data *ship);
@@ -698,6 +791,8 @@ struct vessel_balance_duel_result
 
 void vessel_trade_ensure_schema(void);
 int vessel_cargo_weight(const struct greyhawk_ship_data *ship);
+const char *vessel_commodity_name(int commodity_id);
+int vessel_stow_cargo(struct greyhawk_ship_data *ship, int commodity_id, int units);
 int vessel_commodity_price(int base_price, int supply);
 int vessel_trade_adjusted_supply(int supply, int delta);
 int vessel_trade_restocked_supply(int supply);
@@ -1200,6 +1295,7 @@ struct greyhawk_ship_slot
   char desc[256];              /* Description of slot equipment */
   char val0, val1, val2, val3; /* Equipment values (range, damage, etc.) */
   unsigned char x, y;          /* Slot x,y position on ship room */
+  unsigned char damage;        /* Weapon damage: disabled at 1, destroyed at 100 (S3) */
   short int timer;             /* Reload/action timer */
 };
 
@@ -1445,6 +1541,10 @@ struct greyhawk_ship_data
    * runtime-only and prevents duplicate named-water crossing messages. */
   int waters_region_vnum;
   bool waters_region_initialized;
+
+  /* S3 damage model (vessels_damage.c), runtime only, in vessel ticks */
+  short int sink_ticks;          /* Left before a sinking hull goes down; 0 = afloat */
+  short int colors_struck_ticks; /* Left while her colors are struck; 0 = flying */
 
   /* Phase 5: Naval combat */
   int last_attacker;           /* Fleet index of last ship to fire on us (0 = none) */

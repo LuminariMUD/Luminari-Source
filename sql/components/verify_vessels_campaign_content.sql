@@ -68,7 +68,8 @@ WHERE
   AND prototype.name = 'Vailand Merchant Cog'
   AND prototype.vessel_class = 2
   AND prototype.max_speed = 12
-  AND prototype.armor = 30
+  AND prototype.armor = 99
+  AND prototype.armor_scale = 1
   AND route.name = 'Vailand Iron Passage'
   AND commodity.name = 'iron';
 

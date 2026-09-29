@@ -25404,6 +25404,7 @@ PLUNDER
   what you take. Requirements:
     - You hold the bridge with nobody conscious to contest it
     - It is not your own ship
+    - She is beaten: holed or immobile, colors struck, or abandoned at sea
     - Your ship is alongside with hold space free
 
 BOUNTY [<player>]
@@ -31848,7 +31849,7 @@ sail accordingly, or don't sail what you can't afford to lose.
 
 See also: SHIP COMBAT, CLAIMSHIP, VEDIT, BOARD, DOCK
 #0
-CLAIMSHIP NAVAL-COMBAT SHIP-COMBAT SHIPFIRE SHIPREPAIR
+CLAIMSHIP NAVAL-COMBAT SHIP-COMBAT SHIPFIRE SHIPREPAIR SHIPSALVAGE STRIKECOLORS
 
 Naval combat commands (usable from anywhere aboard your vessel):
 
@@ -31857,10 +31858,12 @@ SHIPFIRE <slot> <contact>
   two-letter ID that CONTACTS and TACTICAL show or by the start of its name
   (the nearest match wins). Only vessels within your visibility can be
   targeted. The shot must be in range of the weapon and the weapon's
-  mounted side (fore/port/rear/starboard) must face the target. Attack
-  roll: d20 + half level + gunnery crew bonus against a defense value based
-  on the target's speed. Every shot, hit or miss, costs a combat round, and
-  the weapon reloads over several seconds.
+  mounted side must face the target. Arcs run from the bow: fore 320-40
+  degrees, starboard 40-140, rear 140-220, port 220-320. Attack roll: d20 +
+  half level + gunnery crew bonus against a defense value based on the
+  target's speed. Every shot, hit or miss, costs a combat round, and the
+  weapon reloads over several seconds. A damaged weapon cannot fire until
+  it is repaired; a destroyed one is gone.
 
   Only the ship's owner, the owner's helm permit holders, members of the
   owner's group while the owner is online, and staff may fire a ship's
@@ -31869,28 +31872,52 @@ SHIPFIRE <slot> <contact>
   Harbors are neutral ground: a vessel in a port can neither fire nor be
   fired upon, by players or by NPC crews.
 
-  Damage strikes the target's facing side: armor absorbs first, then the
-  section's internal structure. Structural hits degrade subsystems - bow
-  hits tear rigging (speed), stern hits foul the rudder (turning). A hull
-  with no structure left SINKS: everyone aboard is thrown into the water
-  and the ship becomes salvageable wreckage.
+  Each hit strikes the sails (costing speed) or the side facing the shooter.
+  Armor absorbs first; a hit it holds stops there unless it is a critical (a
+  natural 19-20, confirmed by a second roll), which carries half its damage
+  into the structure. Damage past the armor strikes that side's structure
+  and may damage a weapon mounted there. On a gutted side, hits can glance
+  into another section and always damage a weapon. Stern structure hits
+  foul the rudder (turning). A structural hit can knock everyone aboard off
+  their feet: Reflex DC 15, or prone for two rounds.
+
+  A side with neither armor nor structure left is holed. One holed side
+  leaves her dead in the water (an airship aloft keeps half speed); two
+  start her SINKING. A player's hull goes down in 75-150 seconds, an
+  unowned hull in 17-25 minutes, time enough to board and plunder her. A
+  sinking hull cannot move, fire, or be repaired. When she goes down,
+  everyone aboard is thrown into the water, half of each cargo lot floats
+  off as salvage crates, and the hull becomes wreckage. A hull shot from
+  one side only is holed there but cannot sink until a second side is
+  holed, so maneuver to bring a fresh side under your guns.
 
   Ships with an assigned NPC pilot automatically return fire at their
   attacker with every weapon that bears.
 
+SHIPSALVAGE
+  From the helm of a stopped vessel, haul the salvage crates floating
+  alongside into the hold, as much as she can carry. Crates float for about
+  half an hour.
+
 SHIPREPAIR
   Slow at-sea repairs. The ship must be stationary. Each use patches a
-  little armor, structure, rigging, and rudder. Dockside repair (faster,
-  for gold) arrives with the shipyard system.
+  little armor, structure, rigging, and rudder, and mends damaged weapons.
+  A destroyed weapon is refitted only while berthed in port. Dockside
+  repair (faster, for gold) arrives with the shipyard system.
 
 CLAIMSHIP
-  Capture a ship: stand on its bridge with no other conscious character
-  present and claim it. Ownership transfers to you, unless you already own
-  as many hulls as the ownership limit allows. Pairs with hostile
-  boarding ('board_hostile <vessel>' from a nearby vessel).
+  Capture a beaten ship: stand on its bridge with no other conscious
+  character present and claim it. Only a prize can be taken: a hull with a
+  holed side, one that cannot move, one whose colors are struck, or one
+  abandoned at sea with nobody conscious aboard but you. A sinking hull
+  cannot be claimed. Ownership transfers to you, unless you already own as
+  many hulls as the ownership limit allows. Pairs with hostile boarding
+  ('board_hostile <vessel>' from a nearby vessel).
 
-Running aground: deep-draft vessels that sail into water shallower than
-their draft grind to a halt and take bow damage. Check your charts.
+STRIKECOLORS
+  Yield: the owner or a helm permit holder of a stopped vessel strikes her
+  colors, making her a prize that may be boarded, plundered, and claimed.
+  The colors fly again when she gets under way or after ten minutes.
 
 PvP: firing on, boarding, plundering, or claiming another player's ship all
 require that you and the ship's owner both have PVP enabled (type 'pvp'),
@@ -31929,11 +31956,11 @@ SHIPDISMISS <position>
 
 SHIPUPGRADE [<refit>]
   With no argument, list available refits and prices. Refits:
-    plating        - +50% armor on all sides
-    rigging        - +5 maximum speed
+    plating        - +20% armor on all sides
+    rigging        - +10% maximum speed (at least 1, at most 30)
     hold           - +25% cargo capacity
-    reinforcement  - +50% hull structure
-  Each can be installed once. Cost scales with the hull's class.
+    reinforcement  - +20% hull structure
+  Each can be installed once and costs a fifth of the class price.
 
 SHIPINSURE [<value>]
   With no argument, show current coverage. Otherwise insure the ship for
@@ -41227,7 +41254,8 @@ Subcommands:
   show    - inspect one prototype, including its fixed per-class cargo
             capacity in pounds
   set     - change a field; fields: name, class (0-7), speed (1-30),
-            armor (0-100, applied to all four sides at spawn), forsale
+            armor (0-229, the beam armor; the class profile sets the
+            bow, stern, and structure in proportion), forsale
             (yes/no: listed by SHIPBROWSE and sold by SHIPBUY; new
             prototypes are not for sale), minlevel (0-30: level needed
             to take the hull out of port; 0 uses the class minimum)
@@ -41410,10 +41438,13 @@ TACTICAL
   contact roster below the chart is the CONTACTS list, with the same IDs.
 
 SHIPSTATUS
-  Show position, terrain, elevation or depth, heading, speed, moorings, and
-  armor on all four sides. Heading and speed show any order the hull is still
-  answering, and speed shows the most she can make under present conditions.
-  Merchant registry and unpaid dock-fee details appear when they apply.
+  Show position, terrain, elevation or depth, heading, speed, moorings, the
+  armor and structure of all four sides, sails, rudder, and every weapon
+  (ready, reloading, disabled with its damage, or destroyed). Heading and
+  speed show any order the hull is still answering, and speed shows the most
+  she can make under present conditions. Holed sides, the time left before a
+  sinking hull goes down, and struck colors appear when they apply, as do
+  merchant registry and unpaid dock-fee details.
 
 SHIPTALK <message>
   Speak over the captain's channel to awake, hearing occupants in every room
@@ -41484,7 +41515,9 @@ SHIP_ROOMS
   List the vessel interior and identify its bridge and entrance.
 
 BOARD_HOSTILE <vessel>
-  Launch a hostile transfer from one nearby vessel to another. The first
+  Launch a hostile transfer from one nearby vessel to another. Grappling
+  lines hold only on a vessel making speed 3 or less, or on a beaten one
+  (holed, immobile, colors struck, or abandoned). The first
   opposed Boarding check secures grappling lines; if they hold, a second
   opposed Boarding check resolves the crossing. Ties favor the defending
   vessel. Its strongest conscious, PvP-consenting occupant supplies the

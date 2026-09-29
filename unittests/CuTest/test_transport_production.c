@@ -261,7 +261,8 @@ void Test_vessel_msdp_state_clears_after_disembark(CuTest *tc)
   ship->heading = 3;
   ship->speed = 7;
   strlcpy(ship->name, "Protocol Cutter", sizeof(ship->name));
-  vessel_initialize_condition(ship, 60);
+  ship->vessel_type = VESSEL_WARSHIP;
+  vessel_initialize_condition(ship, 109);
 
   world = &test_room;
   top_of_world = 0;
@@ -290,8 +291,8 @@ void Test_vessel_msdp_state_clears_after_disembark(CuTest *tc)
       descriptor.pProtocol->pVariables[eMSDP_SHIP_Z]->ValueInt == 120 &&
       descriptor.pProtocol->pVariables[eMSDP_SHIP_HEADING]->ValueInt == 3 &&
       descriptor.pProtocol->pVariables[eMSDP_SHIP_SPEED]->ValueInt == 7 &&
-      descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL]->ValueInt == 160 &&
-      descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL_MAX]->ValueInt == 160 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL]->ValueInt == 155 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL_MAX]->ValueInt == 155 &&
       !strcmp(descriptor.pProtocol->pVariables[eMSDP_SHIP_STATUS]->pValueString, "sound");
 
   for (variable = eMSDP_SHIP_NAME; variable <= eMSDP_SHIP_STATUS; variable++)
@@ -905,7 +906,9 @@ void Test_vessel_combat_status_bands(CuTest *tc)
   ship.rinternal = ship.pinternal = ship.sinternal = 0; /* 20% */
   CuAssertIntEquals(tc, VESSEL_STATUS_CRIPPLED, vessel_status(&ship));
 
-  ship.finternal = 0; /* 0% */
+  ship.finternal = 0; /* 0%: gutted, but only a sink timer means sinking */
+  CuAssertIntEquals(tc, VESSEL_STATUS_CRIPPLED, vessel_status(&ship));
+  ship.sink_ticks = 10;
   CuAssertIntEquals(tc, VESSEL_STATUS_SINKING, vessel_status(&ship));
 
   CuAssertStrEquals(tc, "battered", vessel_status_name(VESSEL_STATUS_BATTERED));
@@ -915,24 +918,40 @@ void Test_vessel_condition_initialization_is_damage_complete(CuTest *tc)
 {
   struct greyhawk_ship_data ship;
 
+  /* A warship at its class beam armor takes the Duris frigate profile. */
   memset(&ship, 0, sizeof(ship));
-  vessel_initialize_condition(&ship, 100);
+  ship.vessel_type = VESSEL_WARSHIP;
+  vessel_initialize_condition(&ship, 109);
 
-  CuAssertIntEquals(tc, 100, ship.farmor);
-  CuAssertIntEquals(tc, 100, ship.rarmor);
-  CuAssertIntEquals(tc, 100, ship.parmor);
-  CuAssertIntEquals(tc, 100, ship.sarmor);
-  CuAssertIntEquals(tc, 240, vessel_total_internal(&ship));
-  CuAssertIntEquals(tc, 240, vessel_max_internal(&ship));
-  CuAssertIntEquals(tc, 20, ship.mainsail);
-  CuAssertIntEquals(tc, 20, ship.maxmainsail);
-  CuAssertIntEquals(tc, 20, ship.turnrate);
-  CuAssertIntEquals(tc, 20, ship.maxturnrate);
+  CuAssertIntEquals(tc, 87, ship.farmor);
+  CuAssertIntEquals(tc, 109, ship.parmor);
+  CuAssertIntEquals(tc, 65, ship.rarmor);
+  CuAssertIntEquals(tc, 109, ship.sarmor);
+  CuAssertIntEquals(tc, 109, ship.maxsarmor);
+  CuAssertIntEquals(tc, 38, ship.finternal);
+  CuAssertIntEquals(tc, 23, ship.rinternal);
+  CuAssertIntEquals(tc, 155, vessel_total_internal(&ship));
+  CuAssertIntEquals(tc, 155, vessel_max_internal(&ship));
+  CuAssertIntEquals(tc, 140, ship.mainsail);
+  CuAssertIntEquals(tc, 140, ship.maxmainsail);
+  CuAssertIntEquals(tc, VESSEL_RUDDER_MAX, ship.turnrate);
+  CuAssertIntEquals(tc, VESSEL_RUDDER_MAX, ship.maxturnrate);
 
+  /* A prototype's armor scales the whole profile. */
   memset(&ship, 0, sizeof(ship));
+  ship.vessel_type = VESSEL_WARSHIP;
+  vessel_initialize_condition(&ship, 40);
+  CuAssertIntEquals(tc, 32, ship.farmor);
+  CuAssertIntEquals(tc, 40, ship.parmor);
+  CuAssertIntEquals(tc, 17, ship.pinternal);
+
+  /* No armor still leaves one point of structure on every arc. */
+  memset(&ship, 0, sizeof(ship));
+  ship.vessel_type = VESSEL_WARSHIP;
   vessel_initialize_condition(&ship, 0);
-  CuAssertIntEquals(tc, 40, vessel_total_internal(&ship));
-  CuAssertIntEquals(tc, 40, vessel_max_internal(&ship));
+  CuAssertIntEquals(tc, 0, ship.parmor);
+  CuAssertIntEquals(tc, 4, vessel_total_internal(&ship));
+  CuAssertIntEquals(tc, 4, vessel_max_internal(&ship));
 }
 
 void Test_vessel_runtime_slot_state_round_trip(CuTest *tc)
@@ -1036,22 +1055,31 @@ void Test_vessel_combat_damage_and_sinking(CuTest *tc)
   CuAssertIntEquals(tc, 4, ship->farmor);
   CuAssertIntEquals(tc, 20, ship->finternal);
 
-  /* Spill past armor: 10 damage vs 4 armor -> 6 into internal + rigging */
+  /* Spill past armor: 10 damage vs 4 armor -> 6 into internal. Sails are
+   * struck only by a weapon's sail hits, never by hull damage. */
   vessel_apply_damage(S, 10, GREYHAWK_FORE, "test shot");
   CuAssertIntEquals(tc, 0, ship->farmor);
   CuAssertIntEquals(tc, 14, ship->finternal);
-  CuAssertTrue(tc, ship->mainsail < 20); /* fore structural hits tear rigging */
+  CuAssertIntEquals(tc, 20, ship->mainsail);
 
   /* Stern hit fouls the rudder */
   vessel_apply_damage(S, 8, GREYHAWK_REAR, "test shot");
   CuAssertTrue(tc, ship->turnrate < 20);
 
-  /* Burn down all internal structure -> ship sinks, slot cleared */
+  /* Holed on two sides she starts sinking; an unowned hull stays afloat long
+   * enough to board, then goes down and her slot is cleared. */
   vessel_apply_damage(S, 100, GREYHAWK_FORE, "test shot");
+  CuAssertTrue(tc, !vessel_is_sinking(ship));
   vessel_apply_damage(S, 100, GREYHAWK_REAR, "test shot");
-  vessel_apply_damage(S, 100, GREYHAWK_PORT, "test shot");
-  vessel_apply_damage(S, 100, GREYHAWK_STARBOARD, "test shot");
-  CuAssertIntEquals(tc, 0, vessel_total_internal(ship));
+  CuAssertTrue(tc, vessel_is_sinking(ship));
+  CuAssertIntEquals(tc, VESSEL_STATUS_SINKING, vessel_status(ship));
+  CuAssertTrue(tc, ship->sink_ticks >= VESSEL_SINK_TICKS_UNOWNED_MIN);
+  while (ship->sink_ticks > 1)
+  {
+    vessel_combat_tick_one(ship);
+  }
+  CuAssertTrue(tc, ship->name[0] != '\0');
+  vessel_combat_tick_one(ship);
   CuAssertTrue(tc, ship->name[0] == '\0'); /* slot memset by vessel_sink */
 }
 
@@ -1115,21 +1143,30 @@ void Test_vessel_combat_npc_duel_harness(CuTest *tc)
   greyhawk_ships[A].last_attacker = B;
   greyhawk_ships[B].last_attacker = A;
 
-  /* A duel between evenly matched hulls must end decisively within a
-   * bounded number of ticks (balance smoke test: no stalemate, no
-   * instant kill). 120 internal per hull, ~7 avg damage per hit. */
+  /* Evenly matched hulls lying abeam hole each other's facing side within a
+   * bounded number of ticks (no stalemate, no instant kill). Shot from one
+   * side only, neither is holed on a second side, so neither sinks: in the
+   * Duris model deflected hits reach only the other sides' structure. */
   for (ticks = 0; ticks < 2000; ticks++)
   {
     vessel_combat_tick();
-    if (greyhawk_ships[A].name[0] == '\0' || greyhawk_ships[B].name[0] == '\0')
+    if (vessel_breached_arcs(&greyhawk_ships[A]) > 0 ||
+        vessel_breached_arcs(&greyhawk_ships[B]) > 0)
     {
       break;
     }
   }
 
-  CuAssertTrue(tc, ticks < 2000); /* someone sank */
+  CuAssertTrue(tc, ticks < 2000); /* a facing side is holed */
   CuAssertTrue(tc, ticks > 5);    /* but not instantly */
-  CuAssertTrue(tc, greyhawk_ships[A].name[0] == '\0' || greyhawk_ships[B].name[0] == '\0');
+  for (ticks = 0; ticks < 1000; ticks++)
+  {
+    vessel_combat_tick();
+  }
+  CuAssertTrue(tc, !vessel_is_sinking(&greyhawk_ships[A]));
+  CuAssertTrue(tc, !vessel_is_sinking(&greyhawk_ships[B]));
+  CuAssertTrue(tc, vessel_breached_arcs(&greyhawk_ships[A]) <= 1);
+  CuAssertTrue(tc, vessel_breached_arcs(&greyhawk_ships[B]) <= 1);
 
   /* Cleanup whichever survived (autopilot memory) */
   if (greyhawk_ships[A].name[0] != '\0')
@@ -1277,9 +1314,15 @@ void Test_vessel_upgrade_effects(CuTest *tc)
   CuAssertTrue(tc, vessel_upgrade_bit(2) != vessel_upgrade_bit(3));
   CuAssertIntEquals(tc, 0, vessel_upgrade_bit(99));
 
-  /* Refits scale with hull value but never go free */
-  CuAssertTrue(tc, vessel_upgrade_cost(0, VESSEL_WARSHIP) > vessel_upgrade_cost(0, VESSEL_BOAT));
-  CuAssertTrue(tc, vessel_upgrade_cost(0, VESSEL_RAFT) >= 100);
+  /* Each refit costs a fifth of the class price (study 3.3.1) */
+  CuAssertIntEquals(tc, 8800, vessel_upgrade_cost(0, VESSEL_WARSHIP));
+  CuAssertIntEquals(tc, 40, vessel_upgrade_cost(3, VESSEL_RAFT));
+  CuAssertIntEquals(tc, 0, vessel_upgrade_cost(9, VESSEL_WARSHIP));
+
+  /* Rigging adds a tenth of the design speed, at least 1, at most 30 */
+  CuAssertIntEquals(tc, 19, vessel_rigged_speed(17));
+  CuAssertIntEquals(tc, 6, vessel_rigged_speed(5));
+  CuAssertIntEquals(tc, 30, vessel_rigged_speed(29));
 
   /* The hold refit raises capacity; it stacks with a quartermaster */
   memset(&ship, 0, sizeof(ship));

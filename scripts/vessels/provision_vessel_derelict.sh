@@ -465,7 +465,7 @@ prototype_collision=$(database_scalar "
     (SELECT COUNT(*)
        FROM ship_prototypes
       WHERE name = '$derelict_name'
-        AND (vessel_class <> 2 OR max_speed <> 6 OR armor <> 15));")
+        AND (vessel_class <> 2 OR max_speed <> 6 OR armor <> 50));")
 [[ "$prototype_collision" == 0 ]] ||
   fail "the Blackwake prototype name is duplicated or incompatible"
 
@@ -501,6 +501,7 @@ ensure_vessel_zone_range
 provision_world_file obj
 provision_world_file trg
 apply_database_file "$repo_root/sql/components/vessels_phase11_schema.sql"
+apply_database_file "$repo_root/sql/components/vessels_phase19_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_derelict_content.sql"
 
 prototype_id=$(database_scalar "

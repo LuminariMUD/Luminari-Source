@@ -2,23 +2,25 @@
 -- Idempotently adds or normalizes reserved fixture rows and leaves all other
 -- builder-authored rows unchanged.
 
-INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor, armor_scale)
 SELECT
   'Harbor Sandbox Raft',
   0,
   5,
-  5
+  8,
+  1
 WHERE NOT EXISTS (
   SELECT 1 FROM ship_prototypes
   WHERE name = 'Harbor Sandbox Raft'
 );
 
-INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor, armor_scale)
 SELECT
   'Harbor Sandbox Hunted Raft',
   0,
   5,
-  100
+  150,
+  1
 WHERE NOT EXISTS (
   SELECT 1
   FROM ship_prototypes
@@ -29,37 +31,41 @@ UPDATE ship_prototypes
 SET
   vessel_class = 0,
   max_speed = 5,
-  armor = 100
+  armor = 150,
+  armor_scale = 1
 WHERE name = 'Harbor Sandbox Hunted Raft';
 
-INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor, armor_scale)
 SELECT
   'Harbor Sandbox Ferry',
   2,
   10,
-  20
+  66,
+  1
 WHERE NOT EXISTS (
   SELECT 1 FROM ship_prototypes
   WHERE name = 'Harbor Sandbox Ferry'
 );
 
-INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor, armor_scale)
 SELECT
   'Harbor Sandbox Airship',
   4,
   25,
-  15
+  63,
+  1
 WHERE NOT EXISTS (
   SELECT 1 FROM ship_prototypes
   WHERE name = 'Harbor Sandbox Airship'
 );
 
-INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor, armor_scale)
 SELECT
   'Harbor Admiralty Hunter',
   3,
   8,
-  30
+  82,
+  1
 WHERE NOT EXISTS (
   SELECT 1
   FROM ship_prototypes

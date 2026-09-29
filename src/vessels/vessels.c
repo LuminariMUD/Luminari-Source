@@ -725,38 +725,6 @@ int vessel_effective_cargo_capacity(const struct greyhawk_ship_data *ship)
   return base + (base * ship->crew_tier[CREW_QUARTERMASTER]) / 10;
 }
 
-/**
- * Initialize every field consumed by the vessel damage model.
- *
- * A hull with armor but zero internal structure sinks on the first damaging
- * event, even when its armor absorbs the hit. Keep legacy and builder-spawned
- * vessels on the same complete condition baseline.
- */
-void vessel_initialize_condition(struct greyhawk_ship_data *ship, int armor)
-{
-  int bounded_armor;
-  int structure;
-
-  if (ship == NULL)
-  {
-    return;
-  }
-
-  bounded_armor = MAX(0, MIN(255, armor));
-  structure = MAX(10, bounded_armor / 2 + 10);
-
-  ship->maxfarmor = ship->farmor = (unsigned char)bounded_armor;
-  ship->maxrarmor = ship->rarmor = (unsigned char)bounded_armor;
-  ship->maxparmor = ship->parmor = (unsigned char)bounded_armor;
-  ship->maxsarmor = ship->sarmor = (unsigned char)bounded_armor;
-  ship->maxfinternal = ship->finternal = (unsigned char)structure;
-  ship->maxrinternal = ship->rinternal = (unsigned char)structure;
-  ship->maxpinternal = ship->pinternal = (unsigned char)structure;
-  ship->maxsinternal = ship->sinternal = (unsigned char)structure;
-  ship->maxmainsail = ship->mainsail = 20;
-  ship->maxturnrate = ship->turnrate = 20;
-}
-
 /* Forward declarations for Greyhawk functions */
 
 /* ========================================================================= */
@@ -2069,6 +2037,7 @@ ACMD(do_greyhawk_status)
                greyhawk_ships[shipnum].maxsarmor);
   send_to_char(ch, "Rear: %d/%d\r\n", greyhawk_ships[shipnum].rarmor,
                greyhawk_ships[shipnum].maxrarmor);
+  vessel_show_condition(ch, &greyhawk_ships[shipnum]);
   send_to_char(ch, "\r\n");
 }
 

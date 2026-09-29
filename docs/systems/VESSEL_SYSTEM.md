@@ -592,7 +592,7 @@ void vehicle_save_all(void);      void vehicle_load_all(void);
 | -- | -- | -- |
 | board | Board a vessel | `board <ship>` |
 | greyhawk_tactical | Display tactical map | `tactical` |
-| greyhawk_status | Show ship status | `shipstatus` |
+| greyhawk_status | Show ship status: position, navigation, armor and structure by side, sails, rudder, holes, sink timer, struck colors, weapons (`vessel_show_condition()`) | `shipstatus` |
 | shiptalk | Speak across all rooms of the current vessel | `shiptalk <message>` |
 | greyhawk_speed | Order a speed; the hull gathers or loses way at its class rate | `speed <0-30>` |
 | greyhawk_heading | Order a heading; the hull comes about at its turn rate | `heading <0-360>` |
@@ -1079,8 +1079,10 @@ in the schema, unread, so a rollback needs no data migration. Crew rows live
 in `ship_crew_roster` with `npc_vnum <= -100`.
 
 Upgrades, wear, insurance (`src/vessels/vessels_upgrades.c`): four one-time refits
-(plating, rigging, hold, reinforcement) raise hull ceilings at install
-time; `vessel_upkeep_tick()` grinds armor and subsystems down while under
+raise hull ceilings at install time (study 3.3.1): plating +20% armor and
+reinforcement +20% internal structure on every arc (at most 255), rigging +10%
+design speed (at least 1, at most 30, `vessel_rigged_speed()`), hold +25%
+cargo; each costs a fifth of the class price; `vessel_upkeep_tick()` grinds armor and subsystems down while under
 way (never below 1 structure per section). Sinking consumes the policy and
 creates one durable `vessel_insurance_claims` row plus a system-mail receipt in
 the same settlement flow. Online owners receive the gold immediately; offline
@@ -1094,13 +1096,12 @@ the character and closing the database claim.
 | -- | -- | -- |
 | shipfire | Fire a weapon slot at a contact | `shipfire <slot> <contact ID or name>` |
 | shiprepair | Slow at-sea repairs (stationary only) | `shiprepair` |
-| claimship | Capture from an uncontested bridge | `claimship` |
+| shipsalvage | Haul floating salvage crates into the hold (helm, stopped) | `shipsalvage` |
+| claimship | Capture a beaten prize from an uncontested bridge | `claimship` |
+| strikecolors | Yield: make a stopped hull a prize for ten minutes | `strikecolors` |
 
-Combat model (`src/vessels/vessels_combat.c`): per-side armor absorbs, spill hits
-section internal structure and bleeds through destroyed sections; fore hits
-degrade rigging (mainsail -> speed), stern hits degrade the rudder
-(turnrate); zero total structure sinks the ship (crew ejected to the water,
-object becomes wreckage, fleet slot freed). Weapon arcs derive from
+Combat model (`src/vessels/vessels_combat.c`): a hit resolves through the
+damage model (Damage Model (S3) below). Weapon arcs derive from
 heading-relative bearing (`greyhawk_getarc()`), reloads tick on the
 heartbeat (`vessel_combat_tick()`), and NPC-piloted ships return fire
 automatically. Deep-draft hulls ground on real wilderness bathymetry
@@ -1126,6 +1127,110 @@ PvP enabled.
 Harbors are neutral: `vessel_ship_is_in_port()` refuses player and NPC fire
 into or out of a port. Every shot, hit or miss, costs `PULSE_VIOLENCE` of
 command lag.
+
+### Damage Model (S3)
+
+`src/vessels/vessels_damage.c` holds the DurisMUD damage model (vessels-ships
+study 3.3.1, 3.3.3).
+
+- Class condition profiles (`vessel_class_condition()`): each class takes its
+  Duris analog's per-arc armor and internal structure at the class beam armor,
+  its sail hit points, and its price. A prototype's armor is its beam armor
+  (0-229, `VESSEL_MAX_PROTOTYPE_ARMOR`) and scales the eight numbers in
+  proportion (`vessel_initialize_condition()`, at least 1 structure per arc);
+  the rudder is 20 (LuminariMUD-only). A warship at 109 has armor 87/109/65/109
+  and structure 38/47/23/47 (fore/port/rear/starboard) and 140 sail.
+
+| Class | Beam armor | Armor F/P/R/S | Internal F/P/R/S | Sail | Price |
+| -- | -: | -- | -- | -: | -: |
+| Raft | 3 | 2/3/1/3 | 1/1/1/1 | 20 | 200 |
+| Boat | 8 | 6/8/4/8 | 3/4/2/4 | 40 | 600 |
+| Ship | 66 | 53/66/33/66 | 26/33/16/33 | 110 | 8,000 |
+| Warship | 109 | 87/109/65/109 | 38/47/23/47 | 140 | 44,000 |
+| Airship | 63 | 50/63/37/63 | 22/27/13/27 | 120 | 72,000 |
+| Submarine | 84 | 67/84/50/84 | 29/36/18/36 | 130 | 60,000 |
+| Transport | 110 | 88/110/55/110 | 44/55/27/55 | 130 | 24,000 |
+| Magical | 153 | 122/153/91/153 | 53/66/33/66 | 160 | 144,000 |
+
+- Arcs (`vessel_arc_for_relative_bearing()`, used by `greyhawk_getarc()`) are
+  relative to the heading, as in DurisMUD: fore 320-40 degrees, starboard
+  40-140, rear 140-220, port 220-320.
+- Shipyard price (`vessel_prototype_price()`): class price times
+  `0.5 + 0.25 * armor / class armor + 0.25 * speed / class speed`, so a
+  default hull costs the class price.
+- A hit (`vessel_resolve_hit()`, from `shipfire` and NPC return fire) runs the
+  weapon's fragments. Until S4 seeds the weapon table every weapon resolves as
+  one Duris ballista bolt (`vessel_weapon_profile()`): spread 10 degrees, 14%
+  sail hit at half damage, 10% armor pierce. Each fragment rolls the slot's
+  damage dice and strikes the sails (`vessel_damage_sail()`; warships take 85%)
+  or the arc facing the shooter, scattered across the spread
+  (`vessel_damage_hull()`).
+- Hull damage (Duris `damage_hull()`): armor absorbs first. A hit it holds
+  stops there unless the shot is a confirmed critical, which carries half the
+  damage into the structure with a 50% weapon-damage chance; overkill spills
+  into the structure with a 15% chance. On a gutted arc one hit in three
+  deflects into another arc that still has structure, and every hit there
+  damages a weapon. Stern structure hits also foul the rudder. Every hit lands
+  at least one point. Hazards use the same path (`vessel_apply_damage()`).
+- Criticals: the natural d20 must reach the weapon's threat
+  (`vessel_critical_threat()`: 20 for 2-3% pierce, 19-20 for 10%, 18-20 for
+  15%, never for 0%) and a second roll with the same bonus must meet the same
+  target number.
+- Weapon damage (`vessel_damage_weapon()`, a random surviving weapon on the
+  struck arc, five times the structural damage) accumulates in the slot's
+  `damage`, persisted in `ship_weapons.weapon_damage`: 1 or more disables the
+  weapon (`vessel_weapon_ready()`), 100 destroys it. `shiprepair` mends
+  damaged weapons, and restores a destroyed one while berthed, until S4 and
+  S5 bring weapon sales and priced repairs; `shipfix` clears all damage.
+- Knockdown (`vessel_knockdown_aboard()`): one structural hit in nine makes
+  everyone aboard but staff roll Reflex (d20 plus their Reflex save) against
+  DC 15 or fall prone (reclining) with two combat rounds of lag.
+- Breaches (`vessel_breached_arcs()`): an arc with neither armor nor structure
+  is holed. One holed arc makes `vessel_max_speed()` 0, or half for a hull
+  aloft (z above 0); two start the sink timer (`vessel_update_condition()`,
+  `vessel_begin_sinking()`). A hull holed afloat, or sinking, stops dead at
+  once: `vessel_update_condition()` zeroes her speed. Deflected hits reach only another arc's structure,
+  so a hull shot from one side is holed once and cannot sink until a second
+  side is holed: maneuvering decides fights.
+- Sinking (`sink_ticks`, saved in `ship_runtime_state` since Phase 19, so a
+  restart resumes the countdown): 150-300 ticks (75-150 s) for a player-owned hull,
+  2000-3000 ticks (1000-1500 s) for an unowned hull so it can be boarded and
+  looted. A sinking hull has no maximum speed, drops her autopilot, and
+  cannot fire, maneuver, or `shiprepair`; she can still be boarded and
+  plundered. `vessel_damage_tick_one()`, from the combat tick, counts down;
+  at zero half of each bulk cargo lot floats off as salvage crates
+  (`vessel_spill_cargo()`) and `vessel_sink()` evacuates the hull as before.
+  `vessel_status()` reports SINKING only for a sinking hull; a gutted hull
+  whose armor holds is crippled.
+- Prizes (decision D6, `vessel_prize_disabled()`): a hull is beaten when she
+  has a holed arc, cannot move (`vessel_max_speed()` 0), has struck her colors,
+  or is abandoned at sea (`vessel_abandoned_at_sea()`: not in port, nobody
+  awake aboard but the claimant; hired crew positions are abstract).
+  `claimship` and `plunder` take only a beaten prize from a bridge where
+  nobody else is awake, and `claimship` refuses a sinking one; hostile boarding (`can_attempt_boarding()`) holds only on a
+  hull at speed `VESSEL_BOARDING_MAX_SPEED` (3) or less or a beaten one.
+- `strikecolors`: the owner or a helm permit holder of an owned, stopped hull
+  strikes her colors (`colors_struck_ticks`, runtime only) for
+  `VESSEL_COLORS_STRUCK_TICKS` (1200, ten minutes); they fly again when she
+  gets under way.
+- Salvage crates are prototype-less `ITEM_OTHER` objects (value 0 the
+  commodity, 1 the units, 2 `VESSEL_SALVAGE_CRATE_MARK`), not takeable, that
+  decay after `VESSEL_SALVAGE_CRATE_HOURS` (24) MUD hours. `shipsalvage` from
+  the helm of a stopped hull stows them through `vessel_stow_cargo()`, the
+  capacity-bounded stowage that `plunder` also uses.
+- Migration (Phase 19, 3.3.10): `vessel_prototype_ensure_schema()` rescales
+  prototype armor once (`armor_scale` 0 to 1) by the class beam armor over the
+  old `vedit new` default (`vessel_rescale_legacy_armor()`: raft 2, boat 5,
+  ship 20, warship 40, airship 15, submarine 25, transport 20, magical 20); a
+  warship of 40 becomes 109. A runtime snapshot saved before S3
+  (`condition_model` 0) is converted once at load
+  (`vessel_convert_legacy_condition()`): the old model gave every arc the
+  prototype armor and structure of half that plus 10, each half again with
+  plating or reinforcement, 20 sail and 20 rudder, and rigging added 5 speed.
+  The hull takes the class profile at its rescaled armor, refits recomputed at
+  a fifth (`vessel_refit_arcs()`, `vessel_rigged_speed()`), and each arc, the
+  sails, and the rudder keep their damage fraction; the old model had no holes,
+  so every arc keeps at least 1 structure. Saves write `condition_model` 1.
 
 ### Builder Commands (Phase 04)
 
@@ -1348,10 +1453,10 @@ historical measurements, and the limits of the current evidence.
 
 | Table | Purpose |
 | -- | -- |
-| `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards; `for_sale` and `min_level` since Phase 18 |
+| `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards; `for_sale` and `min_level` since Phase 18, `armor_scale` since Phase 19 |
 | `ship_interiors` | Vessel identity, rooms, cosmetics, owner, upgrades, and insurance (retired `wages_owed` column unread) |
-| `ship_runtime_state` | Live hull, position, condition, room type, autopilot, PvP grace, and dock-fee snapshot |
-| `ship_weapons` | Normalized installed weapon slots, values, position, and reload state |
+| `ship_runtime_state` | Live hull, position, condition (`condition_model` and `sink_ticks` since Phase 19), room type, autopilot, PvP grace, and dock-fee snapshot |
+| `ship_weapons` | Normalized installed weapon slots, values, position, reload state, and `weapon_damage` (Phase 19) |
 | `ship_docking` | Active and historical docking relationships |
 | `ship_room_templates` | Builder-editable generated interior text |
 | `ship_room_template_triggers` | DG trigger VNUMs attached to generated room types |
@@ -1400,7 +1505,7 @@ make install
 The command refuses to run unless `lib/.env` contains
 `APP_ENV=development`. It merges only missing records into the ignored live
 world files, extends the reserved zone 700 upper bound from 79999 to 80019
-when needed, applies Phases 11-15 and the development seed, restarts the
+when needed, applies Phases 11-15 and 19 and the development seed, restarts the
 supervised local MUD, creates the ferry only when absent, and verifies the
 result through batched Kohdee sessions. It rejects conflicting zone or legal
 water region reservations instead of overwriting them. It is intentionally not

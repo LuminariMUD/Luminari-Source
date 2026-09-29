@@ -393,6 +393,7 @@ apply_database_file "$repo_root/sql/components/vessels_phase12_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase13_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase14_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase15_schema.sql"
+apply_database_file "$repo_root/sql/components/vessels_phase19_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_harbor_sandbox.sql"
 
 hunter_fixture_valid=$(database_scalar \
@@ -423,7 +424,7 @@ hunter_fixture_valid=$(database_scalar \
           WHERE name = 'Harbor Sandbox Hunted Raft'
             AND vessel_class = 0
             AND max_speed = 5
-            AND armor = 100
+            AND armor = 150
        ) = 1,
        1,
        0

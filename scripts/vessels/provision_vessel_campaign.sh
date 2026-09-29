@@ -461,6 +461,7 @@ restart_needed=true
 provision_campaign_world
 apply_database_file "$repo_root/sql/components/vessels_phase13_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase14_schema.sql"
+apply_database_file "$repo_root/sql/components/vessels_phase19_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_campaign_content.sql"
 reset_campaign_runtime -467 193 0 9 12 0
 start_development_mud "$run_dir/01-boot.log"
@@ -650,7 +651,12 @@ restart_position_count=${#restart_session_positions[@]}
   fail "Kohdee did not observe two merchant positions after restart"
 restart_before_position=${restart_session_positions[0]}
 restart_after_position=${restart_session_positions[restart_position_count - 1]}
-[[ "$restart_after_position" != "$restart_before_position" ]] ||
+# A merchant restored inside the port room berths without changing rooms;
+# under way there, its arrival (required above) shows it resumed.
+restart_first_moorings=$(awk '/^Moorings: / { print; exit }' \
+  "$run_dir/05-kohdee-after-restart.log")
+[[ "$restart_after_position" != "$restart_before_position" ||
+  "$restart_first_moorings" == "Moorings: Under way"* ]] ||
   fail "the campaign merchant did not resume movement after restart"
 
 if [[ -f "$server_log" ]] &&

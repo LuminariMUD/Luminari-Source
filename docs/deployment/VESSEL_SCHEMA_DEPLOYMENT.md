@@ -1,6 +1,6 @@
 # Vessel Schema Deployment
 
-**Last updated:** August 2, 2026
+**Last updated:** September 29, 2026
 
 This runbook covers controlled vessel-schema installation, verification,
 rollback rehearsal, and staged application rollout. The server can create and
@@ -45,6 +45,7 @@ tables.
 | 16 | `vessels_phase16_schema.sql` | `verify_vessels_phase16.sql` | `vessels_phase16_rollback.sql` | Showcase-event history, participant results, leaderboards, and temporary ghost ownership |
 | 17 | `vessels_phase17_schema.sql` | `verify_vessels_phase17.sql` | `vessels_phase17_rollback.sql` | Optional exterior paint and figurehead descriptions |
 | 18 | `vessels_phase18_schema.sql` | `verify_vessels_phase18.sql` | `vessels_phase18_rollback.sql` | Shipyard listing and hull level on prototypes, bounty decay clock; clears retired crew wage debt |
+| 19 | `vessels_phase19_schema.sql` | `verify_vessels_phase19.sql` | `vessels_phase19_rollback.sql` | S3 damage model: prototype armor rescaled once by class, hull condition model, sink timer, weapon damage |
 | Campaign | `vessels_campaign_content.sql` | `verify_vessels_campaign_content.sql` | `vessels_campaign_content_rollback.sql` | Initial Vailand legal waters, route, merchant shipping, and iron markets |
 | Narrative | `vessels_narrative_content.sql` | `verify_vessels_narrative_content.sql` | `vessels_narrative_content_rollback.sql` | Eight geographic and severe-weather hints for canonical Vailand waters |
 | Derelict | `vessels_derelict_content.sql` | `verify_vessels_derelict_content.sql` | `vessels_derelict_content_rollback.sql` | Blackwake prototype and generated-room discovery trigger mappings |
@@ -87,6 +88,21 @@ its eight class prototypes for sale, so apply Phase 18 first. Phase 18 lists no 
 or run `vedit set <id> forsale yes` for each hull the shipyard should sell. Its
 rollback removes the three columns, unlisting every hull; cleared wage debt and
 decayed or paid bounties are not restored.
+Phase 19 (study step S3) adds `ship_prototypes.armor_scale`: rows that predate
+it are rescaled once by the class beam armor over the class's old default armor
+(raft 2 to 3, boat 5 to 8, ship 20 to 66, warship 40 to 109, airship 15 to 63,
+submarine 25 to 84, transport 20 to 110, magical 20 to 153; at most 229), and
+later rows default to 1. `ship_runtime_state.condition_model` is 0 on hulls
+saved before S3; the server converts each such hull once at load (class profile
+at the rescaled armor, refits recomputed, each arc, the sails, and the rudder
+keeping their damage fraction, every arc left at least 1 structure) and writes
+1 when it saves. `ship_runtime_state.sink_ticks` keeps a sinking hull's
+remaining sink timer across a restart. `ship_weapons.weapon_damage` records
+disabled and destroyed weapons. The server's boot DDL makes the same changes. Like Phase 18 it creates
+the prototype table if it is missing; it needs Phases 09 and 10. The content
+packages write S3-scale armor with `armor_scale = 1`, so apply Phase 19 before
+them. Its rollback returns prototype armor to the old scale (rounded) and drops
+the four columns; converted hulls keep their S3 condition values.
 The campaign package depends on Phases 7, 13, and 14 plus the existing North
 and Central Vailand wilderness seaports and pilot mobile 31810. It owns four
 region identities, their vessel-law rows, one route and waypoint set, one
@@ -268,6 +284,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase18_schema.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase19_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_campaign_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_narrative_content.sql
@@ -317,6 +335,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_phase17.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_phase18.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_phase19.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_campaign_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
@@ -409,6 +429,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_narrative_content_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_campaign_content_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase19_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase18_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
