@@ -1079,8 +1079,10 @@ in the schema, unread, so a rollback needs no data migration. Crew rows live
 in `ship_crew_roster` with `npc_vnum <= -100`.
 
 Upgrades, wear, insurance (`src/vessels/vessels_upgrades.c`): four one-time refits
-(plating, rigging, hold, reinforcement) raise hull ceilings at install
-time; `vessel_upkeep_tick()` grinds armor and subsystems down while under
+raise hull ceilings at install time (study 3.3.1): plating +20% armor and
+reinforcement +20% internal structure on every arc (at most 255), rigging +10%
+design speed (at least 1, at most 30, `vessel_rigged_speed()`), hold +25%
+cargo; each costs a fifth of the class price; `vessel_upkeep_tick()` grinds armor and subsystems down while under
 way (never below 1 structure per section). Sinking consumes the policy and
 creates one durable `vessel_insurance_claims` row plus a system-mail receipt in
 the same settlement flow. Online owners receive the gold immediately; offline
@@ -1126,6 +1128,37 @@ PvP enabled.
 Harbors are neutral: `vessel_ship_is_in_port()` refuses player and NPC fire
 into or out of a port. Every shot, hit or miss, costs `PULSE_VIOLENCE` of
 command lag.
+
+### Damage Model (S3)
+
+`src/vessels/vessels_damage.c` holds the DurisMUD damage model (vessels-ships
+study 3.3.1, 3.3.3).
+
+- Class condition profiles (`vessel_class_condition()`): each class takes its
+  Duris analog's per-arc armor and internal structure at the class beam armor,
+  its sail hit points, and its price. A prototype's armor is its beam armor
+  (0-229, `VESSEL_MAX_PROTOTYPE_ARMOR`) and scales the eight numbers in
+  proportion (`vessel_initialize_condition()`, at least 1 structure per arc);
+  the rudder is 20 (LuminariMUD-only). A warship at 109 has armor 87/109/65/109
+  and structure 38/47/23/47 (fore/port/rear/starboard) and 140 sail.
+
+| Class | Beam armor | Armor F/P/R/S | Internal F/P/R/S | Sail | Price |
+| -- | -: | -- | -- | -: | -: |
+| Raft | 3 | 2/3/1/3 | 1/1/1/1 | 20 | 200 |
+| Boat | 8 | 6/8/4/8 | 3/4/2/4 | 40 | 600 |
+| Ship | 66 | 53/66/33/66 | 26/33/16/33 | 110 | 8,000 |
+| Warship | 109 | 87/109/65/109 | 38/47/23/47 | 140 | 44,000 |
+| Airship | 63 | 50/63/37/63 | 22/27/13/27 | 120 | 72,000 |
+| Submarine | 84 | 67/84/50/84 | 29/36/18/36 | 130 | 60,000 |
+| Transport | 110 | 88/110/55/110 | 44/55/27/55 | 130 | 24,000 |
+| Magical | 153 | 122/153/91/153 | 53/66/33/66 | 160 | 144,000 |
+
+- Arcs (`vessel_arc_for_relative_bearing()`, used by `greyhawk_getarc()`) are
+  relative to the heading, as in DurisMUD: fore 320-40 degrees, starboard
+  40-140, rear 140-220, port 220-320.
+- Shipyard price (`vessel_prototype_price()`): class price times
+  `0.5 + 0.25 * armor / class armor + 0.25 * speed / class speed`, so a
+  default hull costs the class price.
 
 ### Builder Commands (Phase 04)
 

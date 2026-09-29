@@ -421,7 +421,8 @@ const char *vessel_status_name(int status)
  * Determine which arc (side) of ship1 faces ship2.
  *
  * Computes the bearing from ship1 to ship2, offsets it by ship1's heading,
- * and buckets the relative bearing into the four firing arcs.
+ * and buckets the relative bearing into the Duris arcs
+ * (vessel_arc_for_relative_bearing()).
  *
  * @return GREYHAWK_FORE, GREYHAWK_STARBOARD, GREYHAWK_REAR, or GREYHAWK_PORT
  */
@@ -437,21 +438,8 @@ int greyhawk_getarc(int ship1, int ship2)
 
   bearing = greyhawk_bearing(greyhawk_ships[ship1].x, greyhawk_ships[ship1].y,
                              greyhawk_ships[ship2].x, greyhawk_ships[ship2].y);
-  relative = (bearing - vessel_display_heading(greyhawk_ships[ship1].heading) + 360) % 360;
-
-  if (relative >= 315 || relative < 45)
-  {
-    return GREYHAWK_FORE;
-  }
-  if (relative < 135)
-  {
-    return GREYHAWK_STARBOARD;
-  }
-  if (relative < 225)
-  {
-    return GREYHAWK_REAR;
-  }
-  return GREYHAWK_PORT;
+  relative = bearing - vessel_display_heading(greyhawk_ships[ship1].heading);
+  return vessel_arc_for_relative_bearing(relative);
 }
 
 /**

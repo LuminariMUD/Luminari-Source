@@ -23,7 +23,6 @@
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
 /* Bounds for editable prototype fields */
-#define VEDIT_MAX_ARMOR_LIMIT 100
 #define VEDIT_MAX_MIN_LEVEL (LVL_IMMORT - 1)
 
 static const char *VEDIT_USAGE =
@@ -266,30 +265,7 @@ static void vedit_new(struct char_data *ch, const char *class_arg, const char *n
 
   /* Class defaults; all tunable afterward via 'vedit set'. */
   max_speed = vessel_class_handling((enum vessel_class)vclass)->speed;
-  switch ((enum vessel_class)vclass)
-  {
-  case VESSEL_RAFT:
-    armor = 2;
-    break;
-  case VESSEL_BOAT:
-    armor = 5;
-    break;
-  case VESSEL_WARSHIP:
-    armor = 40;
-    break;
-  case VESSEL_AIRSHIP:
-    armor = 15;
-    break;
-  case VESSEL_SUBMARINE:
-    armor = 25;
-    break;
-  case VESSEL_MAGICAL:
-  case VESSEL_SHIP:
-  case VESSEL_TRANSPORT:
-  default:
-    armor = 20;
-    break;
-  }
+  armor = vessel_class_condition((enum vessel_class)vclass)->beam_armor;
 
   mysql_real_escape_string(conn, escaped_name, name_arg, strlen(name_arg));
   snprintf(query, sizeof(query),
@@ -379,7 +355,7 @@ static void vedit_show(struct char_data *ch, int id)
                "Prototype %s: %s\r\n"
                "  Class : %s (%s)\r\n"
                "  Speed : %s\r\n"
-               "  Armor : %s (all four sides at spawn)\r\n"
+               "  Armor : %s (beam; the class profile sets the other arcs and the structure)\r\n"
                "  Cargo : %d lbs (fixed per class)\r\n"
                "  Sale  : %s\r\n"
                "  Level : %d to take her out of port%s\r\n",
@@ -465,9 +441,9 @@ static void vedit_set(struct char_data *ch, int id, const char *field, const cha
   else if (!str_cmp(field, "armor"))
   {
     ivalue = parse_int(value);
-    if (ivalue < 0 || ivalue > VEDIT_MAX_ARMOR_LIMIT)
+    if (ivalue < 0 || ivalue > VESSEL_MAX_PROTOTYPE_ARMOR)
     {
-      send_to_char(ch, "Armor must be 0-%d.\r\n", VEDIT_MAX_ARMOR_LIMIT);
+      send_to_char(ch, "Armor must be 0-%d.\r\n", VESSEL_MAX_PROTOTYPE_ARMOR);
       return;
     }
     snprintf(query, sizeof(query), "UPDATE ship_prototypes SET armor=%d WHERE prototype_id=%d",
@@ -579,29 +555,28 @@ static int vedit_find_free_slot(void)
 }
 
 /**
- * Price a prototype for shipyard sale: class base scaled by armor and
- * speed investment.
+ * Price a prototype for shipyard sale (study 3.3.1): the class price times
+ * 0.5 + 0.25 * armor / class armor + 0.25 * speed / class speed, so a
+ * default hull costs the class price.
  */
 int vessel_prototype_price(int vclass, int max_speed, int armor)
 {
-  static const int class_base[NUM_VESSEL_TYPES] = {
-      50,    /* RAFT */
-      500,   /* BOAT */
-      5000,  /* SHIP */
-      20000, /* WARSHIP */
-      50000, /* AIRSHIP */
-      40000, /* SUBMARINE */
-      15000, /* TRANSPORT */
-      100000 /* MAGICAL */
-  };
-  int base;
+  const struct vessel_class_condition *condition;
+  long long class_armor;
+  long long class_speed;
+  long long price;
 
   if (vclass < 0 || vclass >= NUM_VESSEL_TYPES)
   {
     vclass = VESSEL_SHIP;
   }
-  base = class_base[vclass];
-  return base + (base * armor) / 50 + (base * max_speed) / 60;
+  condition = vessel_class_condition((enum vessel_class)vclass);
+  class_armor = MAX(1, condition->beam_armor);
+  class_speed = MAX(1, vessel_class_handling((enum vessel_class)vclass)->speed);
+  price =
+      (long long)condition->price * (2 * class_armor * class_speed + MAX(0, armor) * class_speed +
+                                     MAX(0, max_speed) * class_armor);
+  return (int)((price + 2 * class_armor * class_speed) / (4 * class_armor * class_speed));
 }
 
 /**
@@ -647,7 +622,7 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
   spawn_name = instance_name != NULL && *instance_name ? instance_name : row[1];
 
   if (vclass < 0 || vclass >= NUM_VESSEL_TYPES || max_speed < 1 || max_speed > VESSEL_SPEED_LIMIT ||
-      armor < 0 || armor > VEDIT_MAX_ARMOR_LIMIT)
+      armor < 0 || armor > VESSEL_MAX_PROTOTYPE_ARMOR)
   {
     mysql_free_result(result);
     if (ch != NULL)

@@ -1349,9 +1349,9 @@ D6 (Part 5, step 3). The damage model lives in the new `src/vessels/vessels_dama
 
 | Item | State | Where |
 | -- | -- | -- |
-| Class condition profiles (3.3.1 per-arc armor and internal at the beam armor, sail HP), `vedit` armor limit 229, class prices and the prototype price formula | Planned |  |
-| Duris arcs (fore 320-40, starboard 40-140, rear 140-220, port 220-320) | Planned |  |
-| Refit rescaling: plating and reinforcement +20%, rigging +10% maximum speed (at least 1, at most 30), hold +25%; each 20% of the class price | Planned |  |
+| Class condition profiles (3.3.1 per-arc armor and internal at the beam armor, sail HP), `vedit` armor limit 229, class prices and the prototype price formula | Done | `vessel_class_condition()`, `vessel_initialize_condition()` (moved from `vessels.c`) in `vessels_damage.c`; `vessel_prototype_price()`; `vedit new` takes the class beam armor |
+| Duris arcs (fore 320-40, starboard 40-140, rear 140-220, port 220-320) | Done | `vessel_arc_for_relative_bearing()` behind `greyhawk_getarc()` |
+| Refit rescaling: plating and reinforcement +20%, rigging +10% maximum speed (at least 1, at most 30), hold +25%; each 20% of the class price | Done | `do_shipupgrade()`, `vessel_upgrade_cost()`, `vessel_rigged_speed()` in `vessels_upgrades.c` |
 | Damage resolution per fragment: sail hits (warship sails take 85%), spread across arcs, armor then internals, confirmed criticals past armor, deflection on gutted arcs, weapon damage (disabled at 1, destroyed at 100), knockdown (Reflex DC 15) | Planned |  |
 | Breach states: one breached arc immobile (airborne hulls half speed), two sinking on a timer (150-300 ticks owned, 2000-3000 unowned); a sinking hull cannot move, fire, or be repaired | Planned |  |
 | Going down: half of each bulk cargo lot spills as salvage crates; `shipsalvage` hauls crates into a stopped hull's hold | Planned |  |

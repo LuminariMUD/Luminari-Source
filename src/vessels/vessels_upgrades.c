@@ -165,13 +165,13 @@ static const char *vessel_upgrade_effect(int index)
   switch (index)
   {
   case 0:
-    return "+50% armor on all sides";
+    return "+20% armor on all sides";
   case 1:
-    return "+5 maximum speed";
+    return "+10% maximum speed";
   case 2:
     return "+25% cargo capacity";
   case 3:
-    return "+50% hull structure";
+    return "+20% hull structure";
   default:
     return "no effect";
   }
@@ -223,25 +223,22 @@ static int vessel_upgrade_by_name(const char *name)
 }
 
 /**
- * Installation cost, scaled to hull class so a warship refit costs more
- * than a rowboat's.
+ * Installation cost: a fifth of the class price (study 3.3.1).
  */
 int vessel_upgrade_cost(int index, enum vessel_class vessel_type)
 {
-  int base;
-
   if (index < 0 || index >= NUM_SHIP_UPGRADES)
   {
     return 0;
   }
 
-  base = vessel_prototype_price((int)vessel_type, 10, 10) / 4;
-  if (base < 100)
-  {
-    base = 100;
-  }
+  return vessel_class_condition(vessel_type)->price / 5;
+}
 
-  return base;
+/** Design speed with the rigging refit: +10%, at least 1, at most the speed limit. */
+short int vessel_rigged_speed(int design_speed)
+{
+  return (short int)MIN(VESSEL_SPEED_LIMIT, design_speed + MAX(1, (design_speed + 5) / 10));
 }
 
 /**
@@ -531,10 +528,12 @@ static struct greyhawk_ship_data *refit_command_ship(struct char_data *ch)
 ACMD(do_shipupgrade)
 {
   struct greyhawk_ship_data *ship;
+  unsigned char *ceiling;
   char arg[MAX_INPUT_LENGTH];
   int index;
   int cost;
   int bit;
+  int arc;
   int i;
 
   ship = refit_command_ship(ch);
@@ -581,36 +580,22 @@ ACMD(do_shipupgrade)
   award_gold(ch, -cost);
   SET_BIT(ship->upgrades, bit);
 
-  /* Raise the relevant ceilings once, at install time */
+  /* Raise the relevant ceilings once, at install time (study 3.3.1) */
   switch (index)
   {
   case 0: /* plating */
-    ship->maxfarmor += ship->maxfarmor / 2;
-    ship->maxrarmor += ship->maxrarmor / 2;
-    ship->maxparmor += ship->maxparmor / 2;
-    ship->maxsarmor += ship->maxsarmor / 2;
-    ship->farmor = ship->maxfarmor;
-    ship->rarmor = ship->maxrarmor;
-    ship->parmor = ship->maxparmor;
-    ship->sarmor = ship->maxsarmor;
+  case 3: /* reinforcement */
+    for (arc = 0; arc < VESSEL_NUM_ARCS; arc++)
+    {
+      ceiling = index == 0 ? vessel_arc_max_armor(ship, arc) : vessel_arc_max_internal(ship, arc);
+      *ceiling = (unsigned char)MIN(255, *ceiling + *ceiling / 5);
+      *(index == 0 ? vessel_arc_armor(ship, arc) : vessel_arc_internal(ship, arc)) = *ceiling;
+    }
     break;
   case 1: /* rigging */
-    ship->maxspeed += 5;
-    ship->maxmainsail += 5;
-    ship->mainsail = ship->maxmainsail;
+    ship->maxspeed = vessel_rigged_speed(ship->maxspeed);
     break;
   case 2: /* hold - read by vessel_effective_cargo_capacity */
-    break;
-  case 3: /* reinforcement */
-    ship->maxfinternal += ship->maxfinternal / 2;
-    ship->maxrinternal += ship->maxrinternal / 2;
-    ship->maxpinternal += ship->maxpinternal / 2;
-    ship->maxsinternal += ship->maxsinternal / 2;
-    ship->finternal = ship->maxfinternal;
-    ship->rinternal = ship->maxrinternal;
-    ship->pinternal = ship->maxpinternal;
-    ship->sinternal = ship->maxsinternal;
-    break;
   default:
     break;
   }
@@ -666,7 +651,7 @@ ACMD(do_shipinsure)
 
   /* Cap the payout at the hull's market value so insurance is a hedge, not
    * a business model. */
-  premium = vessel_prototype_price((int)ship->vessel_type, ship->maxspeed, ship->maxfarmor);
+  premium = vessel_prototype_price((int)ship->vessel_type, ship->maxspeed, ship->maxparmor);
   if (value > premium)
   {
     send_to_char(ch, "The underwriters will not insure %s above her value of %d gold.\r\n",

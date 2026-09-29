@@ -547,6 +547,33 @@ void vessel_movement_set_cell_entry_for_test(vessel_cell_entry_fn entry);
 #endif
 
 /* ========================================================================= */
+/* DAMAGE MODEL (vessels-ships study S3, vessels_damage.c)                   */
+/* ========================================================================= */
+
+#define VESSEL_NUM_ARCS 4              /* GREYHAWK_FORE..GREYHAWK_STARBOARD */
+#define VESSEL_MAX_PROTOTYPE_ARMOR 229 /* Largest Duris armor value (beam armor) */
+#define VESSEL_RUDDER_MAX 20           /* Rudder condition (LuminariMUD-only) */
+
+/* A class's hull condition at its beam armor (study 3.3.1, the Duris analog's
+ * per-arc armor and internal structure); arrays follow GREYHAWK_FORE.. */
+struct vessel_class_condition
+{
+  int beam_armor;                /* Prototype armor the profile is stated at */
+  int armor[VESSEL_NUM_ARCS];    /* Armor by arc */
+  int internal[VESSEL_NUM_ARCS]; /* Internal structure by arc */
+  int sail;                      /* Sail hit points */
+  int price;                     /* Gold price of a default hull */
+};
+
+const struct vessel_class_condition *vessel_class_condition(enum vessel_class vessel_type);
+void vessel_initialize_condition(struct greyhawk_ship_data *ship, int armor);
+unsigned char *vessel_arc_armor(struct greyhawk_ship_data *ship, int arc);
+unsigned char *vessel_arc_max_armor(struct greyhawk_ship_data *ship, int arc);
+unsigned char *vessel_arc_internal(struct greyhawk_ship_data *ship, int arc);
+unsigned char *vessel_arc_max_internal(struct greyhawk_ship_data *ship, int arc);
+int vessel_arc_for_relative_bearing(int relative);
+
+/* ========================================================================= */
 /* NAVAL COMBAT (Phase 05, vessels_combat.c)                                 */
 /* ========================================================================= */
 
@@ -571,7 +598,6 @@ void vessel_clear_pvp_grace(struct greyhawk_ship_data *ship);
 int vessel_total_internal(const struct greyhawk_ship_data *ship);
 int vessel_max_internal(const struct greyhawk_ship_data *ship);
 int vessel_status(const struct greyhawk_ship_data *ship);
-void vessel_initialize_condition(struct greyhawk_ship_data *ship, int armor);
 const char *vessel_status_name(int status);
 void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause);
 void vessel_sink(int shipnum);
@@ -630,10 +656,10 @@ ACMD_DECL(do_vevent);
 #define CREW_TIER_VETERAN 3
 
 /* Installable upgrades (greyhawk_ship_data.upgrades bitfield) */
-#define SHIP_UPGRADE_PLATING (1 << 0)    /* +50% max armor all sides */
-#define SHIP_UPGRADE_RIGGING (1 << 1)    /* +5 max speed */
+#define SHIP_UPGRADE_PLATING (1 << 0)    /* +20% max armor all sides */
+#define SHIP_UPGRADE_RIGGING (1 << 1)    /* +10% design speed, at least 1 */
 #define SHIP_UPGRADE_HOLD (1 << 2)       /* +25% cargo capacity */
-#define SHIP_UPGRADE_REINFORCED (1 << 3) /* +50% max internal structure */
+#define SHIP_UPGRADE_REINFORCED (1 << 3) /* +20% max internal structure */
 #define NUM_SHIP_UPGRADES 4
 
 /* Hull wear: one wear event per this many ticks while under way */
@@ -642,6 +668,7 @@ ACMD_DECL(do_vevent);
 const char *vessel_upgrade_name(int index);
 int vessel_upgrade_bit(int index);
 int vessel_upgrade_cost(int index, enum vessel_class vessel_type);
+short int vessel_rigged_speed(int design_speed);
 void vessel_upkeep_tick(void);
 void vessel_upkeep_tick_one(struct greyhawk_ship_data *ship);
 void vessel_db_save_extras(struct greyhawk_ship_data *ship);

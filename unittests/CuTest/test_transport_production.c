@@ -261,7 +261,8 @@ void Test_vessel_msdp_state_clears_after_disembark(CuTest *tc)
   ship->heading = 3;
   ship->speed = 7;
   strlcpy(ship->name, "Protocol Cutter", sizeof(ship->name));
-  vessel_initialize_condition(ship, 60);
+  ship->vessel_type = VESSEL_WARSHIP;
+  vessel_initialize_condition(ship, 109);
 
   world = &test_room;
   top_of_world = 0;
@@ -290,8 +291,8 @@ void Test_vessel_msdp_state_clears_after_disembark(CuTest *tc)
       descriptor.pProtocol->pVariables[eMSDP_SHIP_Z]->ValueInt == 120 &&
       descriptor.pProtocol->pVariables[eMSDP_SHIP_HEADING]->ValueInt == 3 &&
       descriptor.pProtocol->pVariables[eMSDP_SHIP_SPEED]->ValueInt == 7 &&
-      descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL]->ValueInt == 160 &&
-      descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL_MAX]->ValueInt == 160 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL]->ValueInt == 155 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL_MAX]->ValueInt == 155 &&
       !strcmp(descriptor.pProtocol->pVariables[eMSDP_SHIP_STATUS]->pValueString, "sound");
 
   for (variable = eMSDP_SHIP_NAME; variable <= eMSDP_SHIP_STATUS; variable++)
@@ -915,24 +916,40 @@ void Test_vessel_condition_initialization_is_damage_complete(CuTest *tc)
 {
   struct greyhawk_ship_data ship;
 
+  /* A warship at its class beam armor takes the Duris frigate profile. */
   memset(&ship, 0, sizeof(ship));
-  vessel_initialize_condition(&ship, 100);
+  ship.vessel_type = VESSEL_WARSHIP;
+  vessel_initialize_condition(&ship, 109);
 
-  CuAssertIntEquals(tc, 100, ship.farmor);
-  CuAssertIntEquals(tc, 100, ship.rarmor);
-  CuAssertIntEquals(tc, 100, ship.parmor);
-  CuAssertIntEquals(tc, 100, ship.sarmor);
-  CuAssertIntEquals(tc, 240, vessel_total_internal(&ship));
-  CuAssertIntEquals(tc, 240, vessel_max_internal(&ship));
-  CuAssertIntEquals(tc, 20, ship.mainsail);
-  CuAssertIntEquals(tc, 20, ship.maxmainsail);
-  CuAssertIntEquals(tc, 20, ship.turnrate);
-  CuAssertIntEquals(tc, 20, ship.maxturnrate);
+  CuAssertIntEquals(tc, 87, ship.farmor);
+  CuAssertIntEquals(tc, 109, ship.parmor);
+  CuAssertIntEquals(tc, 65, ship.rarmor);
+  CuAssertIntEquals(tc, 109, ship.sarmor);
+  CuAssertIntEquals(tc, 109, ship.maxsarmor);
+  CuAssertIntEquals(tc, 38, ship.finternal);
+  CuAssertIntEquals(tc, 23, ship.rinternal);
+  CuAssertIntEquals(tc, 155, vessel_total_internal(&ship));
+  CuAssertIntEquals(tc, 155, vessel_max_internal(&ship));
+  CuAssertIntEquals(tc, 140, ship.mainsail);
+  CuAssertIntEquals(tc, 140, ship.maxmainsail);
+  CuAssertIntEquals(tc, VESSEL_RUDDER_MAX, ship.turnrate);
+  CuAssertIntEquals(tc, VESSEL_RUDDER_MAX, ship.maxturnrate);
 
+  /* A prototype's armor scales the whole profile. */
   memset(&ship, 0, sizeof(ship));
+  ship.vessel_type = VESSEL_WARSHIP;
+  vessel_initialize_condition(&ship, 40);
+  CuAssertIntEquals(tc, 32, ship.farmor);
+  CuAssertIntEquals(tc, 40, ship.parmor);
+  CuAssertIntEquals(tc, 17, ship.pinternal);
+
+  /* No armor still leaves one point of structure on every arc. */
+  memset(&ship, 0, sizeof(ship));
+  ship.vessel_type = VESSEL_WARSHIP;
   vessel_initialize_condition(&ship, 0);
-  CuAssertIntEquals(tc, 40, vessel_total_internal(&ship));
-  CuAssertIntEquals(tc, 40, vessel_max_internal(&ship));
+  CuAssertIntEquals(tc, 0, ship.parmor);
+  CuAssertIntEquals(tc, 4, vessel_total_internal(&ship));
+  CuAssertIntEquals(tc, 4, vessel_max_internal(&ship));
 }
 
 void Test_vessel_runtime_slot_state_round_trip(CuTest *tc)
@@ -1277,9 +1294,15 @@ void Test_vessel_upgrade_effects(CuTest *tc)
   CuAssertTrue(tc, vessel_upgrade_bit(2) != vessel_upgrade_bit(3));
   CuAssertIntEquals(tc, 0, vessel_upgrade_bit(99));
 
-  /* Refits scale with hull value but never go free */
-  CuAssertTrue(tc, vessel_upgrade_cost(0, VESSEL_WARSHIP) > vessel_upgrade_cost(0, VESSEL_BOAT));
-  CuAssertTrue(tc, vessel_upgrade_cost(0, VESSEL_RAFT) >= 100);
+  /* Each refit costs a fifth of the class price (study 3.3.1) */
+  CuAssertIntEquals(tc, 8800, vessel_upgrade_cost(0, VESSEL_WARSHIP));
+  CuAssertIntEquals(tc, 40, vessel_upgrade_cost(3, VESSEL_RAFT));
+  CuAssertIntEquals(tc, 0, vessel_upgrade_cost(9, VESSEL_WARSHIP));
+
+  /* Rigging adds a tenth of the design speed, at least 1, at most 30 */
+  CuAssertIntEquals(tc, 19, vessel_rigged_speed(17));
+  CuAssertIntEquals(tc, 6, vessel_rigged_speed(5));
+  CuAssertIntEquals(tc, 30, vessel_rigged_speed(29));
 
   /* The hold refit raises capacity; it stacks with a quartermaster */
   memset(&ship, 0, sizeof(ship));

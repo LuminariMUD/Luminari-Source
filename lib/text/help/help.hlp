@@ -31929,11 +31929,11 @@ SHIPDISMISS <position>
 
 SHIPUPGRADE [<refit>]
   With no argument, list available refits and prices. Refits:
-    plating        - +50% armor on all sides
-    rigging        - +5 maximum speed
+    plating        - +20% armor on all sides
+    rigging        - +10% maximum speed (at least 1, at most 30)
     hold           - +25% cargo capacity
-    reinforcement  - +50% hull structure
-  Each can be installed once. Cost scales with the hull's class.
+    reinforcement  - +20% hull structure
+  Each can be installed once and costs a fifth of the class price.
 
 SHIPINSURE [<value>]
   With no argument, show current coverage. Otherwise insure the ship for
@@ -41227,7 +41227,8 @@ Subcommands:
   show    - inspect one prototype, including its fixed per-class cargo
             capacity in pounds
   set     - change a field; fields: name, class (0-7), speed (1-30),
-            armor (0-100, applied to all four sides at spawn), forsale
+            armor (0-229, the beam armor; the class profile sets the
+            bow, stern, and structure in proportion), forsale
             (yes/no: listed by SHIPBROWSE and sold by SHIPBUY; new
             prototypes are not for sale), minlevel (0-30: level needed
             to take the hull out of port; 0 uses the class minimum)
