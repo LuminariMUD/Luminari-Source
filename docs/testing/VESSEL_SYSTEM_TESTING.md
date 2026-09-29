@@ -521,6 +521,16 @@ salvage hauling are covered by the production-linked
 `Test_vessel_cargo_spills_as_crates_that_can_be_salvaged`, since loading bulk
 cargo needs a market port.
 
+On 2026-09-29 the gate passed in 507 seconds inside the private namespace
+described under the Vessel Rules Check, on source `6507fbfc5` and installed
+SHA-256 `d150e041431fae9efca5e95342477f906df6e67a1d692de0749a064b6f81291a`,
+against a reloaded pre-S3 dump that the first boot migrated: the port side was
+holed in 21 shots and the stern in 13, the sink timer read 126 seconds, and the
+target's port battery was disabled at 45% damage. The builder, tactical,
+lookout, boarding, narrative, rules, events, movement, frontier, derelict, and
+hunter gates passed in the same batch on the same binary, and the campaign and
+merchant gates on a fresh reload.
+
 ## Shared Harbor Merchant Loss Check
 
 The provisioner validates but deliberately does not sink its NPC merchant.
