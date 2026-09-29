@@ -668,7 +668,7 @@ static int damage_query_int(MYSQL *connection, const char *query)
     return -1;
   }
   row = mysql_fetch_row(result);
-  value = row != NULL && row[0] != NULL ? atoi(row[0]) : -1;
+  value = row != NULL && row[0] != NULL ? (int)strtol(row[0], NULL, 10) : -1;
   mysql_free_result(result);
   return value;
 }
