@@ -845,32 +845,24 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
  */
 static void vessel_db_convert_legacy_condition(struct greyhawk_ship_data *ship)
 {
-  char query[MAX_STRING_LENGTH];
-  MYSQL_RES *result;
-  MYSQL_ROW row;
+  PREPARED_STMT *statement;
   int upgrades;
 
   upgrades = 0;
-  result = NULL;
-  snprintf(query, sizeof(query), "SELECT upgrades FROM ship_interiors WHERE ship_id = %d",
-           ship->shipnum);
-  if (mysql_query(conn, query) == 0)
+  statement = mysql_stmt_create(conn);
+  if (statement == NULL ||
+      !mysql_stmt_prepare_query(statement,
+                                "SELECT upgrades FROM ship_interiors WHERE ship_id = ?") ||
+      !mysql_stmt_bind_param_int(statement, 0, ship->shipnum) ||
+      !mysql_stmt_execute_prepared(statement))
   {
-    result = mysql_store_result(conn);
+    log("SYSERR: Unable to read refits for legacy ship %d", ship->shipnum);
   }
-  if (result == NULL)
+  else if (mysql_stmt_fetch_row(statement))
   {
-    log("SYSERR: Unable to read refits for legacy ship %d: %s", ship->shipnum, mysql_error(conn));
+    upgrades = mysql_stmt_get_int(statement, 0);
   }
-  else
-  {
-    row = mysql_fetch_row(result);
-    if (row != NULL && row[0] != NULL)
-    {
-      upgrades = parse_int(row[0]);
-    }
-    mysql_free_result(result);
-  }
+  mysql_stmt_cleanup(statement);
 
   vessel_convert_legacy_condition(ship, upgrades);
   log("Info: Ship %d condition converted to the S3 damage model", ship->shipnum);

@@ -7,7 +7,7 @@ repo_root=${LUMINARI_PROJECT_ROOT:-$(cd "$script_dir/../.." && pwd)}
 acceptance_mode=tactical
 if [[ $# -gt 0 ]]; then
   [[ $# -eq 1 ]] || {
-    printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement]\n' "$0" >&2
+    printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage]\n' "$0" >&2
     exit 2
   }
   case "$1" in
@@ -26,8 +26,11 @@ if [[ $# -gt 0 ]]; then
     --movement)
       acceptance_mode=movement
       ;;
+    --damage)
+      acceptance_mode=damage
+      ;;
     *)
-      printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement]\n' "$0" >&2
+      printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage]\n' "$0" >&2
       exit 2
       ;;
   esac
@@ -397,6 +400,10 @@ finish() {
     elif [[ "$acceptance_mode" == movement ]]; then
       printf 'PASS: Kohdee validated berths, departure, momentum, turning, maneuvers, '
       printf 'and anchoring with exact character restoration (%ss).\n' "$elapsed_seconds"
+    elif [[ "$acceptance_mode" == damage ]]; then
+      printf 'PASS: Kohdee validated the hull condition display, struck colors, holing, '
+      printf 'sinking, and its refusals with exact character restoration (%ss).\n' \
+        "$elapsed_seconds"
     elif [[ "$acceptance_mode" == rules ]]; then
       printf 'PASS: Kohdee and Vesselmate validated the shipyard listing, contact IDs, '
       printf 'gunnery authorization, hull level, hull cap, and bounty pay-off with exact '
@@ -716,6 +723,53 @@ elif [[ "$acceptance_mode" == movement ]]; then
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-movement.log" ||
       fail "the movement transcript did not contain '$expected_text'"
   done
+elif [[ "$acceptance_mode" == damage ]]; then
+  timeout 120 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --help-check \
+    SHIPSTATUS SHIPSALVAGE STRIKECOLORS >"$run_dir/01-damage-help.log" 2>&1 ||
+    fail "Kohdee could not read the authoritative vessel damage help"
+  damage_help_state=$(database_query "
+    SELECT COUNT(*)
+      FROM help_entries
+     WHERE (BINARY tag = 'VESSELS'
+            AND entry LIKE '%before a%sinking hull goes down%')
+        OR (BINARY tag = 'SHIPFIRE'
+            AND entry LIKE '%SHIPSALVAGE%'
+            AND entry LIKE '%STRIKECOLORS%');")
+  [[ "$damage_help_state" == 2 ]] ||
+    fail "the authoritative vessel damage help is stale"
+
+  timeout 900 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --vessel-damage-check \
+    "$warship_prototype_id" >"$run_dir/02-kohdee-vessel-damage.log" 2>&1 ||
+    fail "the actual Kohdee vessel-damage session failed"
+
+  for expected_text in \
+    'PASS: a new Starfall Bastion showed the rescaled warship armor, structure, sails, rudder, and ready weapons.' \
+    'PASS: struck colors showed on shipstatus and flew again when she got under way.' \
+    'PASS: gunnery from one side holed her port side in ' \
+    'started her sinking; she refused gunnery, repair, and salvage.' \
+    'PASS: she went down on her sink timer and left the fleet.' \
+    'PASS: the vessel damage check completed and purged all temporary hulls'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-damage.log" ||
+      fail "the damage session did not report '$expected_text'"
+  done
+
+  for expected_text in \
+    'Structure: bow 33/33, port 41/41, starboard 41/41, stern 20/20' \
+    'Holed: port side. She cannot move.' \
+    'Holed: port side and stern. SINKING: she goes down in about' \
+    'Direct hit on Starfall Bastion!'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-damage.log" ||
+      fail "the damage transcript did not contain '$expected_text'"
+  done
+
+  # Boot migrated the prototype to the S3 scale (35 to 95).
+  [[ $(database_query "
+    SELECT CONCAT(armor, '|', armor_scale)
+      FROM ship_prototypes
+     WHERE prototype_id = $warship_prototype_id;") == '95|1' ]] ||
+    fail "the Starfall Bastion prototype is not on the S3 armor scale"
 elif [[ "$acceptance_mode" == rules ]]; then
   timeout 120 env DEV_MUD_CHARACTER="$target_player" \
     "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --help-check \
@@ -834,7 +888,7 @@ if [[ "$acceptance_mode" == rules ]]; then
      WHERE prototype_id = $rules_prototype;") == 0 ]] ||
     fail "the temporary shipyard test prototype $rules_prototype remained"
 fi
-if grep -E 'SYSERR:.*(tactical|lookout|narrative|boarding|Boardatk|Boarddef|Rulesraft|Movecheck|bounty|Starfall Bastion|Starfall Trench|Vailand)' \
+if grep -E 'SYSERR:.*(tactical|lookout|narrative|boarding|Boardatk|Boarddef|Rulesraft|Movecheck|bounty|refits|Starfall Bastion|Starfall Trench|Vailand)' \
   "$server_log" >"$run_dir/04-related-syserr.log"; then
   fail "the server logged a vessel-view SYSERR"
 fi

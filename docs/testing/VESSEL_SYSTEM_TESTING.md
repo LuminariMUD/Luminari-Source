@@ -487,6 +487,40 @@ events gates on the same binary. The frontier, derelict, campaign, merchant,
 and hunter gates passed on the preceding install from identical server
 sources (`92fc0b27f`).
 
+## Vessel Damage Check
+
+After the Starfall frontier prototype exists and a clean candidate is built
+and installed, run:
+
+```bash
+./scripts/vessels/test_vessel_damage_in_game.sh
+```
+
+The wrapper runs the shared tactical harness in `--damage` mode, which reads
+the SHIPSTATUS, SHIPSALVAGE, and STRIKECOLORS help as Kohdee, checks the
+authoritative help rows, and calls `--vessel-damage-check <warship-id>` in the
+login helper with the same refusals, snapshots, and restoration as the other
+tactical-harness gates.
+
+Kohdee spawns three Starfall Bastions: the target at (902,225) heading north,
+one shooter off her port side at (900,225), and one off her stern at
+(902,223). A new hull must show the warship profile at the prototype's S3
+armor 95 (`Forward: 76/76`, `Port: 95/95`, `Rear: 57/57`, structure
+33/41/41/20, 140 sail, 20 rudder) and every weapon ready. `strikecolors` on
+the stopped port shooter must show `Colors: struck` until `speed 1` gets her
+under way and her colors fly again. The port shooter's starboard battery fires
+until the target shows `Holed: port side. She cannot move.` and `Speed: 0 / 0`
+without sinking; the stern shooter's bow chaser then fires until she shows
+`Holed: port side and stern. SINKING`. Aboard the sinking hull `shipfire`,
+`shiprepair`, and `shipsalvage` are refused. The target must leave the fleet
+within three minutes (the owned-hull timer is 75-150 seconds), after which
+`shipsalvage` on the stopped stern shooter finds nothing afloat. Cleanup
+purges both shooters and returns Kohdee to room 1204; the harness then
+requires the prototype at armor 95 with `armor_scale` 1. Cargo spill and
+salvage hauling are covered by the production-linked
+`Test_vessel_cargo_spills_as_crates_that_can_be_salvaged`, since loading bulk
+cargo needs a market port.
+
 ## Shared Harbor Merchant Loss Check
 
 The provisioner validates but deliberately does not sink its NPC merchant.
