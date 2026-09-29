@@ -724,47 +724,6 @@ void Test_vessel_autopilot_rounds_signed_wilderness_coordinates(CuTest *tc)
   CuAssertIntEquals(tc, -64, vessel_autopilot_grid_coordinate(-63.50));
 }
 
-void Test_vessel_autopilot_moves_on_all_three_axes_without_overshoot(CuTest *tc)
-{
-  struct greyhawk_ship_data ship;
-  struct waypoint waypoint;
-  int target_x;
-  int target_y;
-  int target_z;
-
-  memset(&ship, 0, sizeof(ship));
-  memset(&waypoint, 0, sizeof(waypoint));
-
-  waypoint.z = 50.0;
-  CuAssertTrue(
-      tc, vessel_autopilot_next_position(&ship, &waypoint, 10.0, &target_x, &target_y, &target_z));
-  CuAssertIntEquals(tc, 0, target_x);
-  CuAssertIntEquals(tc, 0, target_y);
-  CuAssertIntEquals(tc, 10, target_z);
-
-  waypoint.x = 3.0;
-  waypoint.y = 4.0;
-  waypoint.z = 0.0;
-  CuAssertTrue(
-      tc, vessel_autopilot_next_position(&ship, &waypoint, 2.0, &target_x, &target_y, &target_z));
-  CuAssertIntEquals(tc, 1, target_x);
-  CuAssertIntEquals(tc, 2, target_y);
-  CuAssertIntEquals(tc, 0, target_z);
-
-  CuAssertTrue(
-      tc, vessel_autopilot_next_position(&ship, &waypoint, 10.0, &target_x, &target_y, &target_z));
-  CuAssertIntEquals(tc, 3, target_x);
-  CuAssertIntEquals(tc, 4, target_y);
-  CuAssertIntEquals(tc, 0, target_z);
-
-  waypoint.z = 12.0;
-  CuAssertTrue(
-      tc, vessel_autopilot_next_position(&ship, &waypoint, 13.0, &target_x, &target_y, &target_z));
-  CuAssertIntEquals(tc, 3, target_x);
-  CuAssertIntEquals(tc, 4, target_y);
-  CuAssertIntEquals(tc, 12, target_z);
-}
-
 void Test_vessel_autopilot_pauses_after_untraversable_waypoint(CuTest *tc)
 {
   struct greyhawk_ship_data ship;

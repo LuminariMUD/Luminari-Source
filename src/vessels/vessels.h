@@ -534,11 +534,14 @@ void vessel_sync_berth(struct greyhawk_ship_data *ship);
 bool vessel_begin_departure(struct greyhawk_ship_data *ship, struct char_data *ch);
 bool vessel_maneuver(struct greyhawk_ship_data *ship, struct char_data *ch, int direction);
 bool vessel_change_altitude(struct greyhawk_ship_data *ship, int z);
-void vessel_movement_tick_one(struct greyhawk_ship_data *ship);
-ACMD_DECL(do_vessel_anchor); /* Drop anchor at sea */
 
 /* Enters one room; update_ship_wilderness_position() outside the tests. */
-typedef bool (*vessel_cell_entry_fn)(int shipnum, int x, int y, int z);
+typedef bool (*vessel_cell_entry_fn)(struct greyhawk_ship_data *ship, int x, int y, int z);
+bool vessel_chart_cell(struct greyhawk_ship_data *ship, int x, int y, int z);
+bool vessel_sail_tick(struct greyhawk_ship_data *ship, double max_speed, vessel_cell_entry_fn entry,
+                      int *refused_x, int *refused_y);
+void vessel_movement_tick_one(struct greyhawk_ship_data *ship);
+ACMD_DECL(do_vessel_anchor); /* Drop anchor at sea */
 #ifdef LUMINARI_CUTEST
 void vessel_movement_set_cell_entry_for_test(vessel_cell_entry_fn entry);
 #endif
@@ -1718,9 +1721,6 @@ int check_waypoint_arrival(const struct greyhawk_ship_data *ship, const struct w
 int advance_to_next_waypoint(struct greyhawk_ship_data *ship);
 void handle_waypoint_arrival(struct greyhawk_ship_data *ship);
 int vessel_autopilot_grid_coordinate(double coordinate);
-bool vessel_autopilot_next_position(const struct greyhawk_ship_data *ship,
-                                    const struct waypoint *wp, double speed, int *target_x,
-                                    int *target_y, int *target_z);
 bool vessel_autopilot_steer(struct greyhawk_ship_data *ship);
 void process_waiting_vessel(struct greyhawk_ship_data *ship);
 void process_traveling_vessel(struct greyhawk_ship_data *ship);
@@ -1773,6 +1773,9 @@ int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval,
 int schedule_clear(struct greyhawk_ship_data *ship);
 int schedule_is_enabled(struct greyhawk_ship_data *ship);
 struct vessel_schedule *schedule_get(struct greyhawk_ship_data *ship);
+bool scheduled_route_is_traversable(const struct greyhawk_ship_data *ship,
+                                    const struct route_node *route_node, const char **bad_waypoint,
+                                    int *bad_x, int *bad_y);
 
 /* Schedule Persistence Functions */
 int schedule_save(struct greyhawk_ship_data *ship);

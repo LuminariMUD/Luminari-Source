@@ -14,7 +14,9 @@
  * inside the current room lives in dx/dy; it crosses room edges in the order
  * its track meets them (diagonally only through a corner) and enters each room
  * through update_ship_wilderness_position(), which validates every room
- * entered. A refused room stops the hull at its edge.
+ * entered. A refused room stops the hull at its edge. Scheduled-route
+ * validation sails a copy of the hull through the same vessel_sail_tick(),
+ * checking rooms with vessel_chart_cell() instead of entering them.
  *
  * A hull at rest in a port room is berthed (dock holds the port room vnum).
  * A berthed or anchored hull holds position until `undock` completes: 30 s
@@ -53,19 +55,35 @@ static const struct vessel_class_handling class_handling[NUM_VESSEL_TYPES] = {
  * crossing through its corner. */
 #define VESSEL_CORNER_TOLERANCE 1e-9
 
-static bool vessel_enter_cell_default(int shipnum, int x, int y, int z)
+static bool vessel_enter_cell_default(struct greyhawk_ship_data *ship, int x, int y, int z)
 {
-  return update_ship_wilderness_position(shipnum, x, y, z);
+  return update_ship_wilderness_position(ship->shipnum, x, y, z);
+}
+
+static bool vessel_chart_cell_default(struct greyhawk_ship_data *ship, int x, int y, int z)
+{
+  return vessel_can_occupy_coordinates(ship->vessel_type, x, y, z);
 }
 
 static vessel_cell_entry_fn vessel_enter_cell = vessel_enter_cell_default;
+static vessel_cell_entry_fn vessel_chart_check = vessel_chart_cell_default;
 
 #ifdef LUMINARI_CUTEST
 void vessel_movement_set_cell_entry_for_test(vessel_cell_entry_fn entry)
 {
   vessel_enter_cell = entry != NULL ? entry : vessel_enter_cell_default;
+  vessel_chart_check = entry != NULL ? entry : vessel_chart_cell_default;
 }
 #endif
+
+/**
+ * Whether the hull could enter a room, checked without allocating or
+ * entering it; the cell check for route validation.
+ */
+bool vessel_chart_cell(struct greyhawk_ship_data *ship, int x, int y, int z)
+{
+  return vessel_chart_check(ship, x, y, z);
+}
 
 const struct vessel_class_handling *vessel_class_handling(enum vessel_class vessel_type)
 {
@@ -617,7 +635,7 @@ bool vessel_maneuver(struct greyhawk_ship_data *ship, struct char_data *ch, int 
     return FALSE;
   }
 
-  if (!vessel_enter_cell(ship->shipnum, x, y, z))
+  if (!vessel_enter_cell(ship, x, y, z))
   {
     send_to_char(ch, "%s\r\n", vessel_blocked_text(ship->vessel_type, z));
     return FALSE;
@@ -686,20 +704,23 @@ static double vessel_time_past_edge(double offset, double move)
 
 /**
  * Carry the hull across the room edges its position has passed this tick,
- * in the order its track met them, checking every room it enters; it crosses
- * into the diagonal room only when the track runs through the corner. move_x
- * and move_y are this tick's travel.
+ * in the order its track met them, checking every room it enters with
+ * entry(); it crosses into the diagonal room only when the track runs through
+ * the corner. move_x and move_y are this tick's travel.
  *
  * @return FALSE when a room refused the hull, which then lies where its track
- *         met that room's edge
+ *         met that room's edge; refused_x and refused_y name the room
  */
-static bool vessel_cross_room_edges(struct greyhawk_ship_data *ship, double move_x, double move_y)
+static bool vessel_cross_room_edges(struct greyhawk_ship_data *ship, double move_x, double move_y,
+                                    vessel_cell_entry_fn entry, int *refused_x, int *refused_y)
 {
   double past_x;
   double past_y;
   double back;
   int step_x;
   int step_y;
+  int x;
+  int y;
 
   while (ship->dx > 0.5 || ship->dx < -0.5 || ship->dy > 0.5 || ship->dy < -0.5)
   {
@@ -720,15 +741,25 @@ static bool vessel_cross_room_edges(struct greyhawk_ship_data *ship, double move
       }
     }
 
-    if (!vessel_enter_cell(ship->shipnum, (int)ship->x + step_x, (int)ship->y + step_y,
-                           (int)ship->z))
+    x = (int)ship->x + step_x;
+    y = (int)ship->y + step_y;
+    if (!entry(ship, x, y, (int)ship->z))
     {
       back = fmax(step_x != 0 ? past_x : 0.0, step_y != 0 ? past_y : 0.0);
       ship->dx = fmax(-0.5, fmin(0.5, ship->dx - move_x * back));
       ship->dy = fmax(-0.5, fmin(0.5, ship->dy - move_y * back));
-      vessel_stop_at_edge(ship);
+      if (refused_x != NULL)
+      {
+        *refused_x = x;
+      }
+      if (refused_y != NULL)
+      {
+        *refused_y = y;
+      }
       return FALSE;
     }
+    ship->x = (double)x;
+    ship->y = (double)y;
     ship->dx -= (double)step_x;
     ship->dy -= (double)step_y;
     if (ship->autopilot != NULL)
@@ -746,7 +777,7 @@ static bool vessel_cross_room_edges(struct greyhawk_ship_data *ship, double move
  */
 bool vessel_change_altitude(struct greyhawk_ship_data *ship, int z)
 {
-  return is_valid_ship(ship) && vessel_enter_cell(ship->shipnum, (int)ship->x, (int)ship->y, z);
+  return is_valid_ship(ship) && vessel_enter_cell(ship, (int)ship->x, (int)ship->y, z);
 }
 
 static bool vessel_autopilot_steering(const struct greyhawk_ship_data *ship)
@@ -761,12 +792,19 @@ static bool vessel_autopilot_paused(const struct greyhawk_ship_data *ship)
 }
 
 /**
- * Advance one hull by one vessel tick: finish departures, converge speed and
- * heading on their orders, and sail along the heading.
+ * One tick of the helm, for every mover and for route validation.
+ *
+ * Speed converges on its order at the class acceleration and the heading on
+ * its order at the turn rate; the hull then covers speed / 90 rooms along
+ * its heading, entering each room through entry(). An autopilot cruises at
+ * the ordered speed, or at full speed when none is ordered, within its
+ * steering cap; a paused autopilot holds the hull.
+ *
+ * @return FALSE when entry() refused a room (see vessel_cross_room_edges())
  */
-void vessel_movement_tick_one(struct greyhawk_ship_data *ship)
+bool vessel_sail_tick(struct greyhawk_ship_data *ship, double max_speed, vessel_cell_entry_fn entry,
+                      int *refused_x, int *refused_y)
 {
-  double max_speed;
   double target;
   double change;
   double limit;
@@ -774,6 +812,56 @@ void vessel_movement_tick_one(struct greyhawk_ship_data *ship)
   double distance;
   double move_x;
   double move_y;
+
+  target = fmin((double)MAX(0, ship->setspeed), max_speed);
+  if (vessel_autopilot_steering(ship))
+  {
+    if (ship->setspeed <= 0)
+    {
+      target = max_speed;
+    }
+    target = fmin(target, ship->autopilot->speed_limit);
+  }
+  else if (vessel_autopilot_paused(ship))
+  {
+    target = 0.0;
+  }
+  target = fmax(0.0, target);
+
+  limit = vessel_acceleration(ship);
+  change = target - ship->speed;
+  ship->speed = fabs(change) <= limit ? target : ship->speed + copysign(limit, change);
+
+  change = vessel_heading_difference(ship->heading, (double)ship->setheading);
+  limit = vessel_turn_rate(ship, max_speed);
+  if (fabs(change) <= limit)
+  {
+    ship->heading = vessel_normalize_heading((double)ship->setheading);
+  }
+  else
+  {
+    ship->heading = vessel_normalize_heading(ship->heading + copysign(limit, change));
+  }
+
+  if (ship->speed <= 0.0)
+  {
+    return TRUE;
+  }
+  radians = ship->heading * M_PI / 180.0;
+  distance = ship->speed / VESSEL_SPEED_PER_ROOM;
+  move_x = distance * sin(radians);
+  move_y = distance * cos(radians);
+  ship->dx += move_x;
+  ship->dy += move_y;
+  return vessel_cross_room_edges(ship, move_x, move_y, entry, refused_x, refused_y);
+}
+
+/**
+ * Advance one hull by one vessel tick: finish departures, converge speed and
+ * heading on their orders, and sail along the heading.
+ */
+void vessel_movement_tick_one(struct greyhawk_ship_data *ship)
+{
   bool was_moving;
 
   if (!is_valid_ship(ship))
@@ -802,52 +890,11 @@ void vessel_movement_tick_one(struct greyhawk_ship_data *ship)
     return;
   }
 
-  /* An autopilot cruises at the ordered speed, or at full speed when none
-   * is ordered, within its steering cap; a paused autopilot holds the hull. */
-  max_speed = vessel_max_speed(ship);
-  target = fmin((double)MAX(0, ship->setspeed), max_speed);
-  if (vessel_autopilot_steering(ship))
-  {
-    if (ship->setspeed <= 0)
-    {
-      target = max_speed;
-    }
-    target = fmin(target, ship->autopilot->speed_limit);
-  }
-  else if (vessel_autopilot_paused(ship))
-  {
-    target = 0.0;
-  }
-  target = fmax(0.0, target);
-
   was_moving = ship->speed > 0.0;
-  limit = vessel_acceleration(ship);
-  change = target - ship->speed;
-  ship->speed = fabs(change) <= limit ? target : ship->speed + copysign(limit, change);
-
-  change = vessel_heading_difference(ship->heading, (double)ship->setheading);
-  limit = vessel_turn_rate(ship, max_speed);
-  if (fabs(change) <= limit)
+  if (!vessel_sail_tick(ship, vessel_max_speed(ship), vessel_enter_cell, NULL, NULL))
   {
-    ship->heading = vessel_normalize_heading((double)ship->setheading);
-  }
-  else
-  {
-    ship->heading = vessel_normalize_heading(ship->heading + copysign(limit, change));
-  }
-
-  if (ship->speed > 0.0)
-  {
-    radians = ship->heading * M_PI / 180.0;
-    distance = ship->speed / VESSEL_SPEED_PER_ROOM;
-    move_x = distance * sin(radians);
-    move_y = distance * cos(radians);
-    ship->dx += move_x;
-    ship->dy += move_y;
-    if (!vessel_cross_room_edges(ship, move_x, move_y))
-    {
-      was_moving = TRUE;
-    }
+    vessel_stop_at_edge(ship);
+    was_moving = TRUE;
   }
 
   /* A hull coming to rest records where she lies, berthed in port. */

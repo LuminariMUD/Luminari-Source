@@ -1,7 +1,8 @@
 /* Vessel movement and pacing (vessels-ships study S2): class handling, the
  * maximum-speed formula, acceleration and turning, speed / 90 rooms per tick
  * with every room entered checked, berths, departures, anchoring, the setsail
- * maneuver, and autopilot steering through the same physics. */
+ * maneuver, autopilot steering through the same physics, and scheduled-route
+ * validation along the line the hull will sail. */
 
 #include "CuTest.h"
 
@@ -27,6 +28,7 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 #define MOVEMENT_SHIP 470
 #define MOVEMENT_ROOM_VNUM 169950
 #define MOVEMENT_MAX_ENTRIES 64
+#define MOVEMENT_WAYPOINT_ID 916001
 
 struct movement_fixture
 {
@@ -52,10 +54,8 @@ static struct room_data *port_room;
 static int port_x;
 static int port_y;
 
-static bool movement_enter_cell(int shipnum, int x, int y, int z)
+static bool movement_enter_cell(struct greyhawk_ship_data *ship, int x, int y, int z)
 {
-  struct greyhawk_ship_data *ship = &greyhawk_ships[shipnum];
-
   if (refuse_room && x == refused_x && y == refused_y)
   {
     return FALSE;
@@ -74,9 +74,9 @@ static bool movement_enter_cell(int shipnum, int x, int y, int z)
 }
 
 /* The fixture's single room is a port only while the hull lies at the port. */
-static bool movement_enter_port(int shipnum, int x, int y, int z)
+static bool movement_enter_port(struct greyhawk_ship_data *ship, int x, int y, int z)
 {
-  if (!movement_enter_cell(shipnum, x, y, z))
+  if (!movement_enter_cell(ship, x, y, z))
   {
     return FALSE;
   }
@@ -773,6 +773,116 @@ void Test_vessel_created_route_reaches_and_berths_at_its_port(CuTest *tc)
   CuAssertIntEquals(tc, 12, (int)ship->y);
   CuAssertIntEquals(tc, MOVEMENT_ROOM_VNUM, ship->dock);
 
+  movement_end(&fixture);
+}
+
+void Test_vessel_schedule_check_sails_the_turn_the_hull_will_make(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct waypoint_node buoy;
+  struct waypoint_node cape;
+  struct waypoint_node *saved_waypoints;
+  struct route_node sound;
+  struct ship_route *route;
+  const char *bad_waypoint;
+  int waypoint_ids[2];
+  int probe_x[MOVEMENT_MAX_ENTRIES];
+  int probe_y[MOVEMENT_MAX_ENTRIES];
+  int probe_count;
+  int bad_x;
+  int bad_y;
+  bool overshoot;
+  int ticks;
+  int i;
+
+  /* A frigate running east at full speed for a buoy at (10,0), then north
+   * for a cape at (10,10): she carries her way past the buoy while she comes
+   * round. */
+  ship = movement_begin(&fixture, VESSEL_WARSHIP);
+  IN_ROOM(&fixture.hull) = NOWHERE;
+  ship->heading = 90.0;
+  ship->setheading = 90;
+  ship->speed = 17.0;
+
+  memset(&buoy, 0, sizeof(buoy));
+  memset(&cape, 0, sizeof(cape));
+  memset(&sound, 0, sizeof(sound));
+  buoy.waypoint_id = MOVEMENT_WAYPOINT_ID;
+  buoy.data.x = 10.0;
+  buoy.data.tolerance = AUTOPILOT_ARRIVAL_TOLERANCE;
+  strlcpy(buoy.data.name, "buoy", sizeof(buoy.data.name));
+  cape.waypoint_id = MOVEMENT_WAYPOINT_ID + 1;
+  cape.data.x = 10.0;
+  cape.data.y = 10.0;
+  cape.data.tolerance = AUTOPILOT_ARRIVAL_TOLERANCE;
+  strlcpy(cape.data.name, "cape", sizeof(cape.data.name));
+  waypoint_ids[0] = buoy.waypoint_id;
+  waypoint_ids[1] = cape.waypoint_id;
+  sound.route_id = MOVEMENT_WAYPOINT_ID;
+  strlcpy(sound.name, "sound", sizeof(sound.name));
+  sound.active = TRUE;
+  sound.num_waypoints = 2;
+  sound.waypoint_ids = waypoint_ids;
+  saved_waypoints = waypoint_list;
+  cape.next = saved_waypoints;
+  buoy.next = &cape;
+  waypoint_list = &buoy;
+
+  /* The check follows her wide of the buoy into (11,0), and leaves the hull
+   * itself where she lies. */
+  CuAssertTrue(tc, scheduled_route_is_traversable(ship, &sound, &bad_waypoint, &bad_x, &bad_y));
+  probe_count = entered_count;
+  overshoot = FALSE;
+  for (i = 0; i < probe_count; i++)
+  {
+    probe_x[i] = entered_x[i];
+    probe_y[i] = entered_y[i];
+    overshoot = overshoot || (probe_x[i] == 11 && probe_y[i] == 0);
+  }
+  CuAssertTrue(tc, overshoot);
+  CuAssertDblEquals(tc, 0.0, ship->x, 0.0001);
+  CuAssertDblEquals(tc, 17.0, ship->speed, 0.0001);
+  CuAssertDblEquals(tc, 90.0, ship->heading, 0.0001);
+
+  /* The live autopilot on the same route enters the same rooms. */
+  route = route_create("sound");
+  CuAssertPtrNotNull(tc, route);
+  CuAssertPtrNotNull(tc, autopilot_init(ship));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, 10.0, 0.0, 0.0, "buoy"));
+  CuAssertIntEquals(tc, 1, waypoint_add(route, 10.0, 10.0, 0.0, "cape"));
+  CuAssertTrue(tc, autopilot_start(ship, route));
+  entered_count = 0;
+  for (ticks = 0;
+       ticks < 2000 && (ship->autopilot->state != AUTOPILOT_COMPLETE || ship->speed > 0.0); ticks++)
+  {
+    movement_ticks(ship, 1);
+  }
+  CuAssertIntEquals(tc, AUTOPILOT_COMPLETE, ship->autopilot->state);
+  CuAssertIntEquals(tc, probe_count, entered_count);
+  for (i = 0; i < probe_count && i < entered_count; i++)
+  {
+    CuAssertIntEquals(tc, probe_x[i], entered_x[i]);
+    CuAssertIntEquals(tc, probe_y[i], entered_y[i]);
+  }
+
+  /* With land at (11,0) the check refuses the route at that room. */
+  ship->x = 0.0;
+  ship->y = 0.0;
+  ship->dx = 0.0;
+  ship->dy = 0.0;
+  ship->heading = 90.0;
+  ship->setheading = 90;
+  ship->speed = 17.0;
+  refuse_room = TRUE;
+  refused_x = 11;
+  refused_y = 0;
+  CuAssertTrue(tc, !scheduled_route_is_traversable(ship, &sound, &bad_waypoint, &bad_x, &bad_y));
+  CuAssertPtrNotNull(tc, bad_waypoint);
+  CuAssertIntEquals(tc, 11, bad_x);
+  CuAssertIntEquals(tc, 0, bad_y);
+
+  waypoint_list = saved_waypoints;
   movement_end(&fixture);
 }
 

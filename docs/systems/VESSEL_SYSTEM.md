@@ -196,7 +196,12 @@ and every 0.5-second vessel tick converges on them:
   or depth follows the straight line to the waypoint, at least one unit a
   tick. Hunters steer for their target at their pursuit speed and match its
   speed within two rooms. Merchants cruise at their design speed from a
-  standing start. Scheduled routes are validated one room at a time.
+  standing start. `setschedule` and every scheduled departure validate the
+  route by sailing a copy of the hull over it through the same steering and
+  `vessel_sail_tick()`, at her present maximum speed with rigging and rudder
+  whole, checking each room she would enter with `vessel_chart_cell()`
+  (no room allocation); a loop route is sailed on to its second waypoint so
+  the turn after the closing leg is checked too.
 
 Per-class handling (`vessel_class_handling()`; Duris analog values, speeds
 times 0.3, weights in Duris units):
