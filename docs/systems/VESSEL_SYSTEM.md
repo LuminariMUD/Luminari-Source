@@ -816,13 +816,22 @@ and invokes the production narrative broadcaster once. It does not advance or
 reset the normal 120-second cadence.
 
 `vesseldebug balance [duels]` is read-only and remains available when debug
-logging is compiled out. It runs a private deterministic equal-warship duel
-sample without consuming the live random stream or creating hulls, invokes
-the production 1,000-trade simulation, reports class cost and crew-hire
-anchors, and reads only anonymized aggregate persistence totals. Its
-mechanical verdict uses a provisional 45-120 second median and 180-second p95
-equal-warship target. The final line always requires human beta feedback; the
-command cannot manufacture a fun rating or authorize rollout.
+logging is compiled out. It runs a deterministic equal-warship duel sample
+(`vessel_balance_run_duels()`, default 200, at most 1,000) without creating
+fleet hulls: two default warships with Duris's frigate combat fit (three large
+ballistae on each beam, a heavy beamcannon on the bow, NPC-crew gunnery at +5)
+start 8 rooms apart on parallel courses and sail through the production
+`vessel_sail_tick()`, `vessel_fire_weapon()`, damage, and reload code under a
+simple captain who holds the healthier beam at about 7.5 rooms, until one is
+holed on a second side. The duels draw on the live random stream from a fixed
+seed and restore it afterward. A duel with no kill in an hour is a draw (a
+smashed rudder cannot come about). The report also invokes the production
+1,000-trade simulation, reports class cost and crew-hire anchors, and reads
+only anonymized aggregate persistence totals. Its mechanical verdict uses
+decision D2: a 3-8 minute median, a 12 minute p95, nothing under 90 seconds,
+and at most 2% drawn; weapon reload times are the tuning lever. The final line
+always requires human beta feedback; the command cannot manufacture a fun
+rating or authorize rollout.
 
 ### Living World Commands (Phase 08)
 
@@ -1112,7 +1121,7 @@ Combat model (`src/vessels/vessels_combat.c`, gunnery in
 `src/vessels/vessels_gunnery.c`): a shot resolves through the gunnery model
 (Weapons and Gunnery (S4) below) and a hit through the damage model (Damage Model (S3)
 below). Weapon arcs derive from the heading-relative bearing between exact
-positions (`greyhawk_getarc()`), reloads tick on the heartbeat
+positions (`vessel_arc_toward()`), reloads tick on the heartbeat
 (`vessel_combat_tick()`, `vessel_gunnery_tick_one()`), and NPC-piloted ships
 return fire automatically. At battle stations a hull keeps off harbors and
 shallows and may run aground (Weapons and Gunnery (S4) below).
@@ -1162,7 +1171,7 @@ study 3.3.1, 3.3.3).
 | Transport | 110 | 88/110/55/110 | 44/55/27/55 | 130 | 24,000 |
 | Magical | 153 | 122/153/91/153 | 53/66/33/66 | 160 | 144,000 |
 
-- Arcs (`vessel_arc_for_relative_bearing()`, used by `greyhawk_getarc()`) are
+- Arcs (`vessel_arc_for_relative_bearing()`, used by `vessel_arc_toward()`) are
   relative to the heading, as in DurisMUD: fore 320-40 degrees, starboard
   40-140, rear 140-220, port 220-320.
 - Shipyard price (`vessel_prototype_price()`): class price times
@@ -1246,22 +1255,24 @@ study 3.3.1, 3.3.3).
 
 `src/vessels/vessels_weapons.c` holds the DurisMUD weapon and equipment
 catalogue (vessels-ships study 3.3.4), static tables like the class profiles.
-Prices are 2 gold per Duris platinum and reloads are in 0.5 s vessel ticks.
+Prices are 2 gold per Duris platinum. Reloads are in 0.5 s vessel ticks: Duris's
+30 s and 45 s, tuned to decision D2 with the duel harness, became 20 s (40
+ticks) and 30 s (60 ticks).
 
 | Weapon | Price | Weight | Ammo | Range | Damage | Fragments | Spread | Sail hit | Hull/sail % | Pierce | Reload | Arcs |
 | -- | -: | -: | -: | -- | -- | -: | -: | -: | -- | -: | -: | -- |
-| Small Ballista | 100 | 3 | 60 | 0-8 | 2-4 | 1 | 10 | 12% | 100/50 | 10% | 60 | all |
-| Medium Ballista | 200 | 6 | 50 | 0-10 | 4-6 | 1 | 10 | 14% | 100/50 | 10% | 60 | all |
-| Large Ballista | 1,000 | 10 | 30 | 0-12 | 6-9 | 1 | 10 | 16% | 100/50 | 10% | 60 | all |
-| Small Catapult | 1,000 | 10 | 30 | 4-15 | 2-3 | 4 | 160 | 20% | 100/100 | 2% | 60 | fore, rear |
-| Medium Catapult | 1,600 | 13 | 20 | 5-20 | 2-4 | 5 | 260 | 20% | 100/100 | 2% | 60 | fore, rear |
-| Large Catapult | 2,400 | 17 | 12 | 6-25 | 2-5 | 6 | 360 | 20% | 100/100 | 2% | 60 | fore, rear |
-| Heavy Ballista | 2,000 | 15 | 6 | 0-4 | 15-22 | 1 | 10 | 0% | 100/0 | 15% | 60 | port, starboard |
-| Light Beamcannon | 8,000 | 7 | 40 | 0-20 | 16 to 4 | 1 | 10 | 10% | 100/30 | 15% | 90 | all |
-| Heavy Beamcannon | 10,000 | 9 | 40 | 0-23 | 22 to 5 | 1 | 10 | 10% | 100/30 | 15% | 90 | all |
-| Mind Blast Cannon | 8,000 | 5 | 50 | 0-20 | crew stun | 1 | 360 | - | - | - | 90 | all |
-| Fragmentation Cannon | 10,000 | 7 | 20 | 0-16 | 4-6 | 5 | 90 | 50% | 50/100 | 0% | 90 | fore, rear |
-| Long Tom Catapult | 10,000 | 9 | 6 | 12-32 | 3-6 | 8 | 360 | 20% | 100/100 | 3% | 90 | fore, rear |
+| Small Ballista | 100 | 3 | 60 | 0-8 | 2-4 | 1 | 10 | 12% | 100/50 | 10% | 40 | all |
+| Medium Ballista | 200 | 6 | 50 | 0-10 | 4-6 | 1 | 10 | 14% | 100/50 | 10% | 40 | all |
+| Large Ballista | 1,000 | 10 | 30 | 0-12 | 6-9 | 1 | 10 | 16% | 100/50 | 10% | 40 | all |
+| Small Catapult | 1,000 | 10 | 30 | 4-15 | 2-3 | 4 | 160 | 20% | 100/100 | 2% | 40 | fore, rear |
+| Medium Catapult | 1,600 | 13 | 20 | 5-20 | 2-4 | 5 | 260 | 20% | 100/100 | 2% | 40 | fore, rear |
+| Large Catapult | 2,400 | 17 | 12 | 6-25 | 2-5 | 6 | 360 | 20% | 100/100 | 2% | 40 | fore, rear |
+| Heavy Ballista | 2,000 | 15 | 6 | 0-4 | 15-22 | 1 | 10 | 0% | 100/0 | 15% | 40 | port, starboard |
+| Light Beamcannon | 8,000 | 7 | 40 | 0-20 | 16 to 4 | 1 | 10 | 10% | 100/30 | 15% | 60 | all |
+| Heavy Beamcannon | 10,000 | 9 | 40 | 0-23 | 22 to 5 | 1 | 10 | 10% | 100/30 | 15% | 60 | all |
+| Mind Blast Cannon | 8,000 | 5 | 50 | 0-20 | crew stun | 1 | 360 | - | - | - | 60 | all |
+| Fragmentation Cannon | 10,000 | 7 | 20 | 0-16 | 4-6 | 5 | 90 | 50% | 50/100 | 0% | 60 | fore, rear |
+| Long Tom Catapult | 10,000 | 9 | 6 | 12-32 | 3-6 | 8 | 360 | 20% | 100/100 | 3% | 60 | fore, rear |
 
 - The beam cannons' damage falls from its maximum at minimum range to its
   minimum at maximum range (`VESSEL_WEAPON_RANGE_DAMAGE`); the Mind Blast

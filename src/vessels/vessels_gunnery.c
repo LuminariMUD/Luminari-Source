@@ -367,8 +367,8 @@ static void vessel_mental_blast(struct greyhawk_ship_data *ship, struct greyhawk
  * @param ch The gunner, or NULL for the hull's NPC crew
  * @return damage dealt (0 on a miss)
  */
-static int vessel_fire_weapon(struct greyhawk_ship_data *ship, int slot,
-                              struct greyhawk_ship_data *target, struct char_data *ch)
+int vessel_fire_weapon(struct greyhawk_ship_data *ship, int slot, struct greyhawk_ship_data *target,
+                       struct char_data *ch)
 {
   struct greyhawk_ship_slot *weapon;
   const struct vessel_weapon_type *type;
@@ -449,8 +449,8 @@ static int vessel_fire_weapon(struct greyhawk_ship_data *ship, int slot,
  * and reloaded unless check_reload is FALSE. The buffer holds the answer
  * until the next call.
  */
-static const char *vessel_weapon_fire_problem(struct greyhawk_ship_data *ship, int slot,
-                                              struct greyhawk_ship_data *target, bool check_reload)
+const char *vessel_weapon_fire_problem(struct greyhawk_ship_data *ship, int slot,
+                                       struct greyhawk_ship_data *target, bool check_reload)
 {
   static char problem[MAX_STRING_LENGTH];
   const struct greyhawk_ship_slot *weapon;
@@ -483,11 +483,11 @@ static const char *vessel_weapon_fire_problem(struct greyhawk_ship_data *ship, i
     snprintf(problem, sizeof(problem), "The %s in slot %d is still reloading (%d seconds).",
              type->name, slot, (weapon->timer + 1) / 2);
   }
-  else if (weapon->position != greyhawk_getarc(ship->shipnum, target->shipnum))
+  else if (weapon->position != vessel_arc_toward(ship, target))
   {
     snprintf(problem, sizeof(problem), "The %s %s cannot bear - %s lies off your %s arc.",
              vessel_arc_name(weapon->position), type->name, target->name,
-             vessel_arc_name(greyhawk_getarc(ship->shipnum, target->shipnum)));
+             vessel_arc_name(vessel_arc_toward(ship, target)));
   }
   else
   {
@@ -819,7 +819,7 @@ ACMD(do_shipsight)
 
   send_to_char(ch, "Sighting [%s] %s, %.1f rooms off your %s arc:\r\n", target->id, target->name,
                vessel_range_between(ship, target),
-               vessel_arc_name(greyhawk_getarc(ship->shipnum, target->shipnum)));
+               vessel_arc_name(vessel_arc_toward(ship, target)));
   for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
   {
     type = vessel_slot_weapon(&ship->slot[s]);

@@ -656,6 +656,10 @@ int vessel_gunnery_bonus(const struct greyhawk_ship_data *ship, struct char_data
 int vessel_hit_percent(int dc, int bonus);
 bool vessel_at_battle_stations(const struct greyhawk_ship_data *ship);
 bool vessel_crew_stunned(const struct greyhawk_ship_data *ship);
+const char *vessel_weapon_fire_problem(struct greyhawk_ship_data *ship, int slot,
+                                       struct greyhawk_ship_data *target, bool check_reload);
+int vessel_fire_weapon(struct greyhawk_ship_data *ship, int slot, struct greyhawk_ship_data *target,
+                       struct char_data *ch);
 void vessel_gunnery_tick_one(struct greyhawk_ship_data *ship);
 ACMD_DECL(do_shipfire);  /* Fire a weapon or an arc at the locked contact */
 ACMD_DECL(do_shiplock);  /* Lock the guns onto a contact */
@@ -872,14 +876,16 @@ struct vessel_trade_simulation_result
   long long finite_route_profit;
 };
 
-#define VESSEL_BALANCE_DEFAULT_DUELS 1000
-#define VESSEL_BALANCE_MAX_DUELS 5000
+/* Each duel sails the production rules for up to an hour of vessel ticks;
+ * 200 duels take about half a second. */
+#define VESSEL_BALANCE_DEFAULT_DUELS 200
+#define VESSEL_BALANCE_MAX_DUELS 1000
 
 struct vessel_balance_duel_result
 {
   int requested_duels;
   int completed_duels;
-  int unresolved_duels;
+  int unresolved_duels; /* Draws: no hull holed twice within an hour */
   int first_wins;
   int second_wins;
   int minimum_ticks;
@@ -1751,7 +1757,7 @@ double greyhawk_range(double x1, double y1, double z1, double x2, double y2, dou
 int vessel_collect_contacts(const struct greyhawk_ship_data *ship, struct vessel_contact *contacts,
                             int max_contacts);
 int vessel_find_contact(const struct greyhawk_ship_data *ship, const char *arg);
-int greyhawk_getarc(int ship1, int ship2);
+int vessel_arc_toward(const struct greyhawk_ship_data *from, const struct greyhawk_ship_data *to);
 
 /* ========================================================================= */
 /* PHASE 2: MULTI-ROOM FUNCTIONS                                            */

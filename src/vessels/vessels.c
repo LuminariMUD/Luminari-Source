@@ -2279,7 +2279,7 @@ ACMD(do_greyhawk_contacts)
     send_to_char(ch, "   %-3s %-20.20s  %6.1f u  %5d deg  %-4s  %s%s\r\n", contact_ship->id,
                  contact_ship->name[0] ? contact_ship->name : "Unknown Vessel", contacts[i].range,
                  contacts[i].bearing, bearing_direction_str(contacts[i].bearing),
-                 vessel_arc_name(greyhawk_getarc(ship->shipnum, contacts[i].shipnum)),
+                 vessel_arc_name(vessel_arc_toward(ship, &greyhawk_ships[contacts[i].shipnum])),
                  ship->lock_target == contacts[i].shipnum ? " (locked)" : "");
   }
 

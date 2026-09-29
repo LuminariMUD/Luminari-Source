@@ -224,7 +224,7 @@ SHIPFIRE <slot | fore | port | rear | starboard> [<contact>]
   220-320), the target lies inside its range band, and it is sound, loaded,
   and reloaded. Your hull cannot fire from a berth, at anchor, submerged,
   or while going down. Every volley costs a combat round and each shot a
-  round of ammunition; each weapon then reloads for 30 seconds (45 for the
+  round of ammunition; each weapon then reloads for 20 seconds (30 for the
   capital weapons), a little faster with a better gunner.
 
   A shot hits on d20 + gunnery bonus against a DC set by the geometry: the
@@ -782,10 +782,13 @@ ambient line used by the periodic narrative heartbeat. It changes no vessel
 state and is intended for acceptance testing.
 
 BALANCE remains available in every build. It runs a read-only mechanical
-report combining a deterministic equal-warship duel sample, the production
-1,000-trade simulation, crew/refit/insurance/dock cost anchors, and anonymized
-persisted usage totals. It does not replace human beta feedback or authorize
-production rollout.
+report combining a deterministic equal-warship duel sample (default 200,
+at most 1,000 duels, sailed and fought through the production rules and held
+to a 3-8 minute median, a 12 minute p95, nothing under 90 seconds, and at
+most 2% drawn), the production 1,000-trade simulation,
+crew/refit/insurance/dock cost anchors, and anonymized persisted usage
+totals. It does not replace human beta feedback or authorize production
+rollout.
 
 For an explicit development diagnostic build,
 compile with -DVESSEL_SYSTEM_DEBUG=1; every category still starts disabled and

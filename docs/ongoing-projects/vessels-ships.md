@@ -887,9 +887,9 @@ proportion.
 #### 3.3.4 Weapons, fitting and gunnery
 
 - The twelve Duris weapons (1.3) are seeded as data rows with Duris ranges, damage, fragments,
-  spread, sail hit, hull/sail percentages, ammo and reloads (60 and 90 ticks). Prices are twice
-  the platinum price; selling returns 90% (10% if damaged). Installing takes `weight * 75` s of
-  maintenance, which blocks departure.
+  spread, sail hit, hull/sail percentages, ammo and reloads (60 and 90 ticks; S4 tuned them to
+  40 and 60 for D2, see Phase 4). Prices are twice the platinum price; selling returns 90% (10%
+  if damaged). Installing takes `weight * 75` s of maintenance, which blocks departure.
 - Mounts and arc weight caps come from 3.3.1; each weapon keeps its Duris arcs; a class may mount
   what its analog may mount in `ship_allowed_weapons[]`. One capital weapon per hull, needing
   renown of 1,600 (light beam), 1,800 (heavy beam), 1,700 (mind blast), 1,900 (fragmentation) or
@@ -1448,7 +1448,7 @@ shipyard live in the new `src/vessels/vessels_weapons.c`, the gunnery in the new
 
 | Item | State | Where |
 | -- | -- | -- |
-| Catalogue: the twelve Duris weapons (1.3; 2 gold per pp; reloads 60 and 90 ticks), the ram and neutral colors | Done | `weapon_types[]`, `vessel_weapon_type()`, `vessel_slot_weapon()`, `vessel_slot_name()`, `vessel_slot_weight()` in `vessels_weapons.c`; `vessel_resolve_hit()` reads the row (range damage for beams) |
+| Catalogue: the twelve Duris weapons (1.3; 2 gold per pp; reloads tuned from 60 and 90 ticks to 40 and 60 by the duel harness), the ram and neutral colors | Done | `weapon_types[]`, `vessel_weapon_type()`, `vessel_slot_weapon()`, `vessel_slot_name()`, `vessel_slot_weight()` in `vessels_weapons.c`; `vessel_resolve_hit()` reads the row (range damage for beams) |
 | Class fitting (3.3.1): hull weight, mounts and arc weight caps, the analog's allowed weapons | Done | Hull weight in `vessel_class_handling()`; `class_fitting[]` and `vessel_fitout_problem()` in `vessels_weapons.c` |
 | 16 slots within the 5 KiB `greyhawk_ship_data` budget | Done | `struct greyhawk_ship_slot` (type, arc, catalogue row, ammo, damage, timer: 8 bytes); `GREYHAWK_MAXSLOTS` 16 |
 | Persistence and migration (3.3.10): every slot is a `ship_weapons` row; legacy weapons become large ballistae (warship) or medium ballistae with full ammo; new hulls get the same class fit | Done | `vessel_db_save_weapons()`, `vessel_db_load_weapons()`, `vessel_fit_default_weapons()`; Phase 20 SQL (`catalog_id`, `ammo`) with rollback and verifier; the slot blob and its hex codec are gone |
@@ -1458,7 +1458,7 @@ shipyard live in the new `src/vessels/vessels_weapons.c`, the gunnery in the new
 | Crew stun weapon (Mind Blast Cannon) | Done | `vessel_mental_blast()`, `vessel_crew_stunned()`, `stun_ticks`; `vessel_sail_tick()`, the gunnery tick, `vessel_hull_fire_problem()`, and `do_shiprepair()` honor it; `vessel_knockdown_aboard()` takes the save type (Will here, Reflex for hull hits) |
 | Flight: one room per 10 Z in every vessel range, x1.5 miss against a flyer, an airborne hull boarded only within 10 Z; submerged hulls neither fire nor are targeted | Done | `greyhawk_range()`; `vessel_range_between()`, `vessel_bearing_between()` (exact positions) for contacts, arcs, and gunnery; `can_attempt_boarding()`; `vessel_hull_fire_problem()`, `vessel_target_problem()` |
 | Battle stations block entering a port (L9); the crash check for land and shallows at battle stations (3.3.2, moved from S2) | Done | `vessel_enter_cell_default()` (`vessel_cell_is_port()`, `vessel_cell_is_shallow()`), `vessel_crash_check()` from `vessel_movement_tick_one()`; `vessel_maneuver()` explains a refused harbor |
-| Duel harness on the S4 rules and the D2 bounds | Planned | `vessels_balance.c` |
+| Duel harness on the S4 rules and the D2 bounds | Done | `vessel_balance_run_duels()`, `vessel_balance_captain()`; 200 duels: median 431 s, p95 590 s, minimum 262 s, 1 draw (1,000: 434/604/249 s, 5 draws) |
 | Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character gunnery gate, the existing gates, local CI | Planned |  |
 
 Interpretations decided while planning S4:
@@ -1498,6 +1498,22 @@ Interpretations decided while planning S4:
   ballistae on each beam and a heavy beamcannon fore, an able gunner) through the production
   movement, hit, damage and reload code, with a captain that holds the healthier beam at two
   thirds of ballista range. It seeds the random stream for the duels and restores it after.
+
+Decided while building S4:
+
+- Reload times are D2's tuning lever. With Duris's 30 s and 45 s the harness gave a 9-minute
+  median (1,000 duels: 538 s, p95 725 s). 20 s and 30 s give 434 s, p95 604 s, minimum 249 s,
+  steady across five seeds; 15 s and 22.5 s shortened the median only another 10% (maneuvering
+  dominates the time) and drew 2-3% of duels.
+- A duel with no kill in an hour is a draw, allowed up to 2%: stern hits foul the rudder, and a
+  hull that cannot come about can limp off, or both lie immobile with nothing bearing.
+- The harness captain steers proportionally, abeam at 7.5 rooms and 20 degrees toward the enemy
+  per room beyond (bow on by 12), away inside it; a banded captain that held 6-9 rooms with
+  30-degree tacks let 6% of duels separate for good.
+- The duels run on the game loop, so the default is 200 (about 0.3 s) and the most 1,000.
+- `greyhawk_getarc()` became `vessel_arc_toward()` on hull pointers, so harness hulls outside the
+  fleet array get their arcs; they use fleet slot 0, which is never live, so they are never in
+  port.
 
 Ablation (planning): dropped a database weapon table and its loader, the slot blob, persisted
 maintenance, lock and stun timers (runtime, like departures), and separate purchase and departure

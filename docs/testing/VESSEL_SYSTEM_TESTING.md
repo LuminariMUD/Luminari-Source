@@ -979,10 +979,13 @@ through actual Kohdee:
 ./scripts/development/dev_kohdee_login_smoke.sh --commands "vesseldebug balance 1000"
 ```
 
-The equal-warship sample uses armor 40, speed 20, an able gunner, one bearing
-2d8 battery, and the production six-tick reload cadence. All duels must
-resolve; the provisional mechanical band is a 45-120 second median and no
-more than 180 seconds at p95. The same report runs the production 1,000-trade
+Since study step S4 the equal-warship sample sails two default warships with
+Duris's frigate combat fit (three large ballistae on each beam and a heavy
+beamcannon on the bow, NPC-crew gunnery at +5) through the production
+movement, gunnery, damage, and reload code (see `VESSEL_SYSTEM.md`). The
+mechanical band is decision D2: a 3-8 minute median, no more than 12 minutes
+at p95, nothing under 90 seconds, and at most 2% of duels drawn (no kill in an
+hour). The default sample is 200 duels and the most is 1,000. The same report runs the production 1,000-trade
 simulation, lists crew payroll plus class hull/refit/insurance/dock anchors,
 and reads anonymized aggregate hull, freight, and event totals. It does not
 change live hulls, the game random stream, port supply, cargo, or character

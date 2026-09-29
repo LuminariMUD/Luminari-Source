@@ -5,6 +5,7 @@
 
 #include "conf.h"
 #include "core/sysdep.h"
+#include <math.h>
 #include "core/structs.h"
 #include "core/utils.h"
 #include "core/comm.h"
@@ -12,18 +13,23 @@
 #include "database/mysql.h"
 
 
-#define VESSEL_BALANCE_DUEL_ARMOR 40
-#define VESSEL_BALANCE_DUEL_SPEED 20
-#define VESSEL_BALANCE_DUEL_GUN_BONUS 9
-#define VESSEL_BALANCE_DUEL_DAMAGE_DICE 2
-#define VESSEL_BALANCE_DUEL_DAMAGE_SIDES 8
-#define VESSEL_BALANCE_DUEL_RELOAD_TICKS 6
-#define VESSEL_BALANCE_DUEL_MAX_TICKS 2000
+/* The duel harness (study D2, 3.3.4): equal warships with Duris's frigate
+ * combat fit fight through the production movement, gunnery, damage, and
+ * reload code. */
+#define VESSEL_BALANCE_DUEL_RANGE 8        /* Rooms apart at the start */
+#define VESSEL_BALANCE_DUEL_HOLD 7.5       /* Range held abeam */
+#define VESSEL_BALANCE_DUEL_TURN 20.0      /* Degrees toward her per room beyond it */
+#define VESSEL_BALANCE_DUEL_MAX_TICKS 7200 /* An hour */
+#define VESSEL_BALANCE_DUEL_SEED 0x5eed1234UL
 
-#define VESSEL_BALANCE_MEDIAN_MIN_TENTHS 450
-#define VESSEL_BALANCE_MEDIAN_MAX_TENTHS 1200
-#define VESSEL_BALANCE_P95_MAX_TENTHS 1800
-#define VESSEL_BALANCE_MINIMUM_TENTHS 150
+/* D2: a 3-8 minute median, a 12 minute p95, nothing under 90 s. A duel
+ * with no kill in an hour is a draw: a hull whose rudder is smashed cannot
+ * come about, and one can limp off or both lie still with nothing bearing. */
+#define VESSEL_BALANCE_MEDIAN_MIN_TENTHS 1800
+#define VESSEL_BALANCE_MEDIAN_MAX_TENTHS 4800
+#define VESSEL_BALANCE_P95_MAX_TENTHS 7200
+#define VESSEL_BALANCE_MINIMUM_TENTHS 900
+#define VESSEL_BALANCE_MAX_DRAW_PERCENT 2
 
 struct vessel_balance_observed_data
 {
@@ -35,47 +41,86 @@ struct vessel_balance_observed_data
   long long showcase_entries;
 };
 
-/**
- * Advance the diagnostic's private deterministic random stream.
- */
-static unsigned int vessel_balance_random(unsigned int *state, unsigned int limit)
+static bool vessel_balance_open_water(struct greyhawk_ship_data *ship, int x, int y, int z)
 {
-  *state = *state * 1664525U + 1013904223U;
-  return *state % limit + 1U;
+  (void)ship;
+  (void)x;
+  (void)y;
+  (void)z;
+  return TRUE;
 }
 
 /**
- * Roll damage without consuming the live game's random stream.
+ * A default warship with Duris's frigate combat fit (study 1.13d): three
+ * large ballistae on each beam and a heavy beamcannon on the bow, sailing
+ * east at her best speed. Fleet slot 0 is reserved, so she is never in port.
  */
-static int vessel_balance_dice(unsigned int *state, int count, int sides)
+static void vessel_balance_warship(struct greyhawk_ship_data *ship, double y)
 {
-  int total;
   int i;
 
-  total = 0;
-  for (i = 0; i < count; i++)
+  memset(ship, 0, sizeof(*ship));
+  ship->vessel_type = VESSEL_WARSHIP;
+  ship->maxspeed = (short int)vessel_class_handling(VESSEL_WARSHIP)->speed;
+  ship->position_speed_percent = 100;
+  ship->docked_to_ship = -1;
+  vessel_initialize_condition(ship, vessel_class_condition(VESSEL_WARSHIP)->beam_armor);
+  vessel_set_weapon(&ship->slot[0], VESSEL_WEAPON_HEAVY_BEAMCANNON, GREYHAWK_FORE);
+  for (i = 1; i <= 3; i++)
   {
-    total += (int)vessel_balance_random(state, (unsigned int)sides);
+    vessel_set_weapon(&ship->slot[i], VESSEL_WEAPON_LARGE_BALLISTA, GREYHAWK_PORT);
+    vessel_set_weapon(&ship->slot[i + 3], VESSEL_WEAPON_LARGE_BALLISTA, GREYHAWK_STARBOARD);
   }
-  return total;
+  ship->y = y;
+  ship->heading = 90.0;
+  ship->setheading = 90;
+  ship->setspeed = ship->maxspeed;
+  ship->speed = vessel_max_speed(ship);
+}
+
+/** A side's remaining armor and structure. */
+static int vessel_balance_side(struct greyhawk_ship_data *ship, int arc)
+{
+  return *vessel_arc_armor(ship, arc) + *vessel_arc_internal(ship, arc);
 }
 
 /**
- * Apply one same-arc hit using the production armor-before-structure rule.
+ * One tick of a duelling captain: bring the healthier beam to bear, turning
+ * toward the enemy 20 degrees for each room beyond 7.5 (bow on by 12) or
+ * away inside it (at most 45), fire everything that bears, and sail on.
  */
-static void vessel_balance_damage(int *armor, int *structure, int damage)
+static void vessel_balance_captain(struct greyhawk_ship_data *ship,
+                                   struct greyhawk_ship_data *enemy)
 {
-  int spill;
+  double toward;
+  double relative;
+  int s;
 
-  spill = damage - *armor;
-  if (spill <= 0)
+  toward = fmax(-45.0, fmin(90.0, (vessel_range_between(ship, enemy) - VESSEL_BALANCE_DUEL_HOLD) *
+                                      VESSEL_BALANCE_DUEL_TURN));
+  if (vessel_balance_side(ship, GREYHAWK_PORT) >= vessel_balance_side(ship, GREYHAWK_STARBOARD))
   {
-    *armor -= damage;
-    return;
+    relative = 270.0 + toward;
   }
+  else
+  {
+    relative = 90.0 - toward;
+  }
+  ship->setheading =
+      (short int)vessel_display_heading(vessel_bearing_between(ship, enemy) - relative);
 
-  *armor = 0;
-  *structure -= spill;
+  for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
+  {
+    if (ship->slot[s].timer > 0)
+    {
+      ship->slot[s].timer--;
+    }
+    if (vessel_weapon_fire_problem(ship, s, enemy, TRUE) == NULL)
+    {
+      vessel_fire_weapon(ship, s, enemy, NULL);
+    }
+  }
+  vessel_sail_tick(ship, vessel_max_speed(ship), vessel_balance_open_water, NULL, NULL);
 }
 
 static int vessel_balance_compare_ints(const void *left, const void *right)
@@ -105,20 +150,19 @@ static int vessel_balance_tick_tenths(int ticks)
 }
 
 /**
- * Run equal representative warships through the production hit, damage, and
- * reload formulas without creating hulls or touching the live random stream.
+ * Duel equal warships through the production rules until one is holed on a
+ * second side and would sink, or an hour passes (a draw). The duels draw on
+ * the live random stream from a fixed seed, so the report repeats, and the
+ * live stream resumes where it was.
+ *
+ * @return FALSE for a bad request or when no duel was decided
  */
 bool vessel_balance_run_duels(int duel_count, struct vessel_balance_duel_result *result)
 {
+  struct greyhawk_ship_data first;
+  struct greyhawk_ship_data second;
   int durations[VESSEL_BALANCE_MAX_DUELS];
-  unsigned int random_state;
-  int structure;
-  int first_armor;
-  int first_structure;
-  int first_timer;
-  int second_armor;
-  int second_structure;
-  int second_timer;
+  unsigned long live_seed;
   int duel;
   int tick;
   int p95_index;
@@ -130,61 +174,27 @@ bool vessel_balance_run_duels(int duel_count, struct vessel_balance_duel_result 
 
   memset(result, 0, sizeof(*result));
   result->requested_duels = duel_count;
-  random_state = 0x5eed1234U;
-  structure = 4 * MAX(10, VESSEL_BALANCE_DUEL_ARMOR / 2 + 10);
+  live_seed = circle_random();
+  circle_srandom(VESSEL_BALANCE_DUEL_SEED);
 
   for (duel = 0; duel < duel_count; duel++)
   {
-    first_armor = VESSEL_BALANCE_DUEL_ARMOR;
-    first_structure = structure;
-    first_timer = 0;
-    second_armor = VESSEL_BALANCE_DUEL_ARMOR;
-    second_structure = structure;
-    second_timer = 0;
-
+    /* Parallel courses, the first with the second off her port beam. */
+    vessel_balance_warship(&first, 0.0);
+    vessel_balance_warship(&second, (double)VESSEL_BALANCE_DUEL_RANGE);
     for (tick = 1; tick <= VESSEL_BALANCE_DUEL_MAX_TICKS; tick++)
     {
-      if (first_timer > 0)
+      vessel_balance_captain(&first, &second);
+      vessel_balance_captain(&second, &first);
+      if (vessel_breached_arcs(&second) >= 2)
       {
-        first_timer--;
+        result->first_wins++;
+        break;
       }
-      if (second_timer > 0)
+      if (vessel_breached_arcs(&first) >= 2)
       {
-        second_timer--;
-      }
-
-      if (first_timer == 0)
-      {
-        first_timer = VESSEL_BALANCE_DUEL_RELOAD_TICKS;
-        if ((int)vessel_balance_random(&random_state, 20U) + VESSEL_BALANCE_DUEL_GUN_BONUS >=
-            10 + VESSEL_BALANCE_DUEL_SPEED / 5)
-        {
-          vessel_balance_damage(&second_armor, &second_structure,
-                                vessel_balance_dice(&random_state, VESSEL_BALANCE_DUEL_DAMAGE_DICE,
-                                                    VESSEL_BALANCE_DUEL_DAMAGE_SIDES));
-        }
-        if (second_structure <= 0)
-        {
-          result->first_wins++;
-          break;
-        }
-      }
-
-      if (second_timer == 0)
-      {
-        second_timer = VESSEL_BALANCE_DUEL_RELOAD_TICKS;
-        if ((int)vessel_balance_random(&random_state, 20U) + VESSEL_BALANCE_DUEL_GUN_BONUS >=
-            10 + VESSEL_BALANCE_DUEL_SPEED / 5)
-        {
-          vessel_balance_damage(&first_armor, &first_structure,
-                                vessel_balance_dice(&random_state, VESSEL_BALANCE_DUEL_DAMAGE_DICE,
-                                                    VESSEL_BALANCE_DUEL_DAMAGE_SIDES));
-        }
-        if (first_structure <= 0)
-        {
-          result->second_wins++;
-          break;
-        }
+        result->second_wins++;
+        break;
       }
     }
 
@@ -197,6 +207,7 @@ bool vessel_balance_run_duels(int duel_count, struct vessel_balance_duel_result 
       result->unresolved_duels++;
     }
   }
+  circle_srandom(live_seed);
 
   if (result->completed_duels == 0)
   {
@@ -211,7 +222,7 @@ bool vessel_balance_run_duels(int duel_count, struct vessel_balance_duel_result 
   result->p95_ticks = durations[p95_index];
   result->maximum_ticks = durations[result->completed_duels - 1];
 
-  return result->completed_duels == duel_count && result->unresolved_duels == 0;
+  return TRUE;
 }
 
 /**
@@ -311,7 +322,8 @@ bool vessel_balance_report(struct char_data *ch, int duel_count)
   mechanical_pass = duel_ok && trade_ok && median_tenths >= VESSEL_BALANCE_MEDIAN_MIN_TENTHS &&
                     median_tenths <= VESSEL_BALANCE_MEDIAN_MAX_TENTHS &&
                     p95_tenths <= VESSEL_BALANCE_P95_MAX_TENTHS &&
-                    minimum_tenths >= VESSEL_BALANCE_MINIMUM_TENTHS;
+                    minimum_tenths >= VESSEL_BALANCE_MINIMUM_TENTHS &&
+                    duel.unresolved_duels * 100 <= duel_count * VESSEL_BALANCE_MAX_DRAW_PERCENT;
 
   memset(crew_hires, 0, sizeof(crew_hires));
   for (tier = CREW_TIER_GREEN; tier <= CREW_TIER_VETERAN; tier++)
@@ -324,15 +336,19 @@ bool vessel_balance_report(struct char_data *ch, int duel_count)
 
   send_to_char(ch, "Vessel mechanical balance diagnostic: %s\r\n",
                mechanical_pass ? "PASS" : "FAIL");
-  send_to_char(ch, "Equal-warship duels: %d/%d resolved; first/second wins %d/%d.\r\n",
-               duel.completed_duels, duel.requested_duels, duel.first_wins, duel.second_wins);
+  send_to_char(ch,
+               "Equal-warship duels: %d/%d decided, %d drawn (at most %d%%); first/second wins "
+               "%d/%d.\r\n",
+               duel.completed_duels, duel.requested_duels, duel.unresolved_duels,
+               VESSEL_BALANCE_MAX_DRAW_PERCENT, duel.first_wins, duel.second_wins);
   send_to_char(ch,
                "  TTK min/median/p95/max: %d.%d/%d.%d/%d.%d/%d.%d seconds "
-               "(target median 45-120, p95 <= 180).\r\n",
+               "(target median 180-480, p95 <= 720, minimum >= 90).\r\n",
                minimum_tenths / 10, minimum_tenths % 10, median_tenths / 10, median_tenths % 10,
                p95_tenths / 10, p95_tenths % 10, maximum_tenths / 10, maximum_tenths % 10);
-  send_to_char(ch, "  Model: armor 40, speed 20, able gunner, one bearing 2d8 "
-                   "battery, six-tick reload.\r\n");
+  send_to_char(ch, "  Model: default warships with three large ballistae a beam and a heavy "
+                   "beamcannon, NPC-crew gunnery (+5), holding the healthier beam at 6-9 "
+                   "rooms.\r\n");
   send_to_char(ch,
                "Economy: %d/%d trades, route %d trips/%lld gold, reversal "
                "%lld gold, restock %d/%d.\r\n",

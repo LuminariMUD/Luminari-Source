@@ -1086,10 +1086,11 @@ Use one actual Kohdee session for the read-only duel, economy, and cost report:
 ./scripts/development/dev_kohdee_login_smoke.sh --commands "vesseldebug balance 1000"
 ```
 
-The command simulates 1,000 representative equal-warship duels without
-creating hulls or consuming the live random stream. It requires every duel to
-resolve, a provisional median time-to-kill of 45-120 seconds, and p95 no more
-than 180 seconds. It also runs the production 1,000-trade model, prints all
+The command fights 1,000 equal-warship duels through the production movement
+and gunnery rules without creating fleet hulls, restoring the live random
+stream afterward. It requires decision D2: a median time-to-kill of 3-8
+minutes, p95 no more than 12 minutes, nothing under 90 seconds, and at most 2%
+of duels drawn. It also runs the production 1,000-trade model, prints all
 eight class hull/refit/insurance/dock anchors and full-roster wage tiers, and
 shows anonymized persisted usage totals. Its final line deliberately says
 human beta sign-off is still required.

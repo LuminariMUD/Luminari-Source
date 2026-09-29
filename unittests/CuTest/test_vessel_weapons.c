@@ -50,18 +50,19 @@ void Test_vessel_catalogue_keeps_the_duris_weapons(CuTest *tc)
   CuAssertTrue(tc, vessel_weapon_type(VESSEL_WEAPON_NONE) == NULL);
   CuAssertTrue(tc, vessel_weapon_type(NUM_VESSEL_WEAPONS) == NULL);
 
-  /* Prices at 2 gold per pp; reloads of 30 s and 45 s in 0.5 s ticks. */
+  /* Prices at 2 gold per pp; Duris's 30 s and 45 s reloads, tuned to the
+   * D2 time to kill, are 20 s and 30 s in 0.5 s ticks. */
   weapon = vessel_weapon_type(VESSEL_WEAPON_LARGE_BALLISTA);
   CuAssertStrEquals(tc, "Large Ballista", weapon->name);
   CuAssertIntEquals(tc, 1000, weapon->price);
   CuAssertIntEquals(tc, 10, weapon->weight);
   CuAssertIntEquals(tc, 30, weapon->ammo);
   CuAssertIntEquals(tc, 12, weapon->max_range);
-  CuAssertIntEquals(tc, 60, weapon->reload);
+  CuAssertIntEquals(tc, 40, weapon->reload);
   CuAssertIntEquals(tc, 0xF, weapon->arcs);
   weapon = vessel_weapon_type(VESSEL_WEAPON_HEAVY_BEAMCANNON);
   CuAssertIntEquals(tc, 10000, weapon->price);
-  CuAssertIntEquals(tc, 90, weapon->reload);
+  CuAssertIntEquals(tc, 60, weapon->reload);
   CuAssertIntEquals(tc, VESSEL_WEAPON_RANGE_DAMAGE | VESSEL_WEAPON_CAPITAL, weapon->flags);
 
   /* Catapults fire from the ends, heavy ballistae from the beams. */

@@ -968,25 +968,26 @@ void Test_vessel_combat_firing_arcs(CuTest *tc)
 
   greyhawk_ships[B].x = 0.0;
   greyhawk_ships[B].y = 10.0; /* due north */
-  CuAssertIntEquals(tc, GREYHAWK_FORE, greyhawk_getarc(A, B));
+  CuAssertIntEquals(tc, GREYHAWK_FORE, vessel_arc_toward(&greyhawk_ships[A], &greyhawk_ships[B]));
 
   greyhawk_ships[B].x = 10.0;
   greyhawk_ships[B].y = 0.0; /* due east */
-  CuAssertIntEquals(tc, GREYHAWK_STARBOARD, greyhawk_getarc(A, B));
+  CuAssertIntEquals(tc, GREYHAWK_STARBOARD,
+                    vessel_arc_toward(&greyhawk_ships[A], &greyhawk_ships[B]));
 
   greyhawk_ships[B].x = -10.0;
   greyhawk_ships[B].y = 0.0; /* due west */
-  CuAssertIntEquals(tc, GREYHAWK_PORT, greyhawk_getarc(A, B));
+  CuAssertIntEquals(tc, GREYHAWK_PORT, vessel_arc_toward(&greyhawk_ships[A], &greyhawk_ships[B]));
 
   greyhawk_ships[B].x = 0.0;
   greyhawk_ships[B].y = -10.0; /* due south */
-  CuAssertIntEquals(tc, GREYHAWK_REAR, greyhawk_getarc(A, B));
+  CuAssertIntEquals(tc, GREYHAWK_REAR, vessel_arc_toward(&greyhawk_ships[A], &greyhawk_ships[B]));
 
   /* Heading east flips north to the port arc */
   greyhawk_ships[A].heading = 90;
   greyhawk_ships[B].x = 0.0;
   greyhawk_ships[B].y = 10.0;
-  CuAssertIntEquals(tc, GREYHAWK_PORT, greyhawk_getarc(A, B));
+  CuAssertIntEquals(tc, GREYHAWK_PORT, vessel_arc_toward(&greyhawk_ships[A], &greyhawk_ships[B]));
 
   memset(&greyhawk_ships[A], 0, sizeof(greyhawk_ships[A]));
   memset(&greyhawk_ships[B], 0, sizeof(greyhawk_ships[B]));
@@ -1141,21 +1142,36 @@ void Test_vessel_combat_npc_duel_harness(CuTest *tc)
 void Test_vessel_balance_duel_simulation(CuTest *tc)
 {
   struct vessel_balance_duel_result result;
+  unsigned long probe;
   int median_tenths;
   int p95_tenths;
+  int minimum_tenths;
 
-  CuAssertTrue(tc, vessel_balance_run_duels(1000, &result));
-  CuAssertIntEquals(tc, 1000, result.requested_duels);
-  CuAssertIntEquals(tc, 1000, result.completed_duels);
-  CuAssertIntEquals(tc, 0, result.unresolved_duels);
-  CuAssertIntEquals(tc, 1000, result.first_wins + result.second_wins);
+  /* Equal warships with Duris's frigate combat fit meet decision D2 through
+   * the production rules: a 3-8 minute median, a 12 minute p95, nothing
+   * under 90 s, and few draws. */
+  CuAssertTrue(tc, vessel_balance_run_duels(VESSEL_BALANCE_DEFAULT_DUELS, &result));
+  CuAssertIntEquals(tc, VESSEL_BALANCE_DEFAULT_DUELS, result.requested_duels);
+  CuAssertIntEquals(tc, result.completed_duels, result.first_wins + result.second_wins);
+  CuAssertIntEquals(tc, VESSEL_BALANCE_DEFAULT_DUELS,
+                    result.completed_duels + result.unresolved_duels);
+  CuAssertTrue(tc, result.unresolved_duels * 100 <= VESSEL_BALANCE_DEFAULT_DUELS * 2);
 
   median_tenths = result.median_ticks * AUTOPILOT_TICK_INTERVAL * 10 / PASSES_PER_SEC;
   p95_tenths = result.p95_ticks * AUTOPILOT_TICK_INTERVAL * 10 / PASSES_PER_SEC;
-  CuAssertTrue(tc, median_tenths >= 450 && median_tenths <= 1200);
-  CuAssertTrue(tc, p95_tenths <= 1800);
-  CuAssertTrue(tc, result.minimum_ticks > 5);
+  minimum_tenths = result.minimum_ticks * AUTOPILOT_TICK_INTERVAL * 10 / PASSES_PER_SEC;
+  CuAssertTrue(tc, median_tenths >= 1800 && median_tenths <= 4800);
+  CuAssertTrue(tc, p95_tenths <= 7200);
+  CuAssertTrue(tc, minimum_tenths >= 900);
   CuAssertTrue(tc, result.maximum_ticks >= result.p95_ticks);
+
+  /* The report repeats, and the live random stream resumes where it was. */
+  circle_srandom(4242UL);
+  vessel_balance_run_duels(1, &result);
+  probe = circle_random();
+  circle_srandom(4242UL);
+  circle_random();
+  CuAssertTrue(tc, probe == circle_random());
 
   CuAssertTrue(tc, !vessel_balance_run_duels(0, &result));
   CuAssertTrue(tc, !vessel_balance_run_duels(VESSEL_BALANCE_MAX_DUELS + 1, &result));

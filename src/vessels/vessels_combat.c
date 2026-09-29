@@ -418,25 +418,16 @@ const char *vessel_status_name(int status)
 }
 
 /**
- * Determine which arc (side) of ship1 faces ship2.
- *
- * Computes the bearing from ship1 to ship2 from their exact positions,
- * offsets it by ship1's heading, and buckets the relative bearing into the
- * Duris arcs
+ * The arc of `from` that `to` lies off: the bearing between their exact
+ * positions, relative to from's heading, in the Duris arcs
  * (vessel_arc_for_relative_bearing()).
  *
  * @return GREYHAWK_FORE, GREYHAWK_STARBOARD, GREYHAWK_REAR, or GREYHAWK_PORT
  */
-int greyhawk_getarc(int ship1, int ship2)
+int vessel_arc_toward(const struct greyhawk_ship_data *from, const struct greyhawk_ship_data *to)
 {
-  if (ship1 < 0 || ship1 >= GREYHAWK_MAXSHIPS || ship2 < 0 || ship2 >= GREYHAWK_MAXSHIPS)
-  {
-    return GREYHAWK_FORE;
-  }
-
   return vessel_arc_for_relative_bearing(
-      (int)lround(vessel_bearing_between(&greyhawk_ships[ship1], &greyhawk_ships[ship2]) -
-                  greyhawk_ships[ship1].heading));
+      (int)lround(vessel_bearing_between(from, to) - from->heading));
 }
 
 /**
