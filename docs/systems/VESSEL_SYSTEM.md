@@ -1347,6 +1347,14 @@ Prices are 2 gold per Duris platinum and reloads are in 0.5 s vessel ticks.
   down 180 s after the lock clears. `shipfire <arc>` fires every weapon on
   the arc that can. NPC return fire (`vessel_npc_return_fire()`) uses the same
   rules.
+- Crew stun (`vessel_mental_blast()`, the Mind Blast Cannon): a hit sets the
+  target's `stun_ticks` (runtime only) to `2 * (5 + 15 * closeness)`, where
+  closeness runs from 0 at the weapon's maximum range to 1 at its minimum, so
+  5-20 s. A stunned crew (`vessel_crew_stunned()`) cannot steer
+  (`vessel_sail_tick()` holds speed and heading), fire, reload (the gunnery
+  tick freezes the timers), or `shiprepair`. Inside mid-range everyone aboard
+  saves (Will, `VESSEL_KNOCKDOWN_DC` 15) or falls prone for two rounds
+  (`vessel_knockdown_aboard()`, which takes the save type).
 - Flight: `greyhawk_range()` counts one room per 10 Z, so every vessel range
   (weapons, contacts, docking, boarding, sight) does; `vessel_range_between()`
   and `vessel_bearing_between()` use exact positions (room plus offset). A

@@ -264,10 +264,19 @@ void Test_vessel_hull_blast_knocks_the_unsure_footed_down(CuTest *tc)
   deck.people = &sailor;
   sailor.next_in_room = &bosun;
 
-  vessel_knockdown_aboard(ship);
+  vessel_knockdown_aboard(ship, SAVING_REFL);
   CuAssertIntEquals(tc, POS_RECLINING, GET_POS(&sailor));
   CuAssertIntEquals(tc, PULSE_VIOLENCE * 2, GET_WAIT_STATE(&sailor));
   CuAssertIntEquals(tc, POS_STANDING, GET_POS(&bosun));
+
+  /* A mental blast calls for a Will save instead. */
+  GET_POS(&sailor) = POS_STANDING;
+  GET_WAIT_STATE(&sailor) = 0;
+  GET_SAVE(&sailor, SAVING_WILL) = 100;
+  GET_SAVE(&bosun, SAVING_WILL) = -100;
+  vessel_knockdown_aboard(ship, SAVING_WILL);
+  CuAssertIntEquals(tc, POS_STANDING, GET_POS(&sailor));
+  CuAssertIntEquals(tc, POS_RECLINING, GET_POS(&bosun));
 
   deck.people = NULL;
   world = saved_world;

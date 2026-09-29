@@ -637,6 +637,12 @@ ACMD(do_shiprepair)
     return;
   }
 
+  if (vessel_crew_stunned(ship))
+  {
+    send_to_char(ch, "The crew reels from a mental blast; nobody can hold a tool steady.\r\n");
+    return;
+  }
+
   if (ship->speed > 0)
   {
     send_to_char(ch, "Repairs require the ship to be stationary.\r\n");

@@ -645,3 +645,60 @@ void Test_vessel_sight_and_scan_read_the_contact(CuTest *tc)
 
   gunnery_deck_end(&deck);
 }
+
+static bool gunnery_open_sea(struct greyhawk_ship_data *ship, int x, int y, int z)
+{
+  (void)ship;
+  (void)x;
+  (void)y;
+  (void)z;
+  return TRUE;
+}
+
+void Test_vessel_mind_blast_stuns_the_crew(CuTest *tc)
+{
+  struct gunnery_deck deck;
+  struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data *target = &greyhawk_ships[GUNNERY_SHIP_B];
+  const char *output;
+  int shot;
+
+  /* The Gull's bow blast cannon fires on the Tern 4 rooms ahead until it
+   * lands: (20 - 4) / 20 of the way from its 20-room maximum to point blank
+   * stuns her crew for 5 + 15 * 0.8 = 17 s. */
+  ship = gunnery_deck_begin(tc, &deck);
+  vessel_set_weapon(&ship->slot[0], VESSEL_WEAPON_MIND_BLAST, GREYHAWK_FORE);
+  target->x = 0.0;
+  target->y = 4.0;
+  for (shot = 0; shot < 20 && target->stun_ticks == 0; shot++)
+  {
+    ship->slot[0].timer = 0;
+    gunnery_deck_command(&deck, do_shipfire, "0 SB");
+  }
+  CuAssertIntEquals(tc, 34, target->stun_ticks);
+  CuAssertIntEquals(tc, vessel_max_internal(target), vessel_total_internal(target));
+
+  /* A stunned crew neither reloads nor answers the helm. */
+  target->slot[0].timer = 10;
+  vessel_gunnery_tick_one(target);
+  CuAssertIntEquals(tc, 10, target->slot[0].timer);
+  CuAssertIntEquals(tc, 33, target->stun_ticks);
+  target->setspeed = 17;
+  vessel_sail_tick(target, 17.0, gunnery_open_sea, NULL, NULL);
+  CuAssertDblEquals(tc, 0.0, target->speed, 0.0001);
+
+  /* Nor fires or repairs. */
+  ship->stun_ticks = 2;
+  output = gunnery_deck_command(&deck, do_shipfire, "port SB");
+  CuAssertTrue(tc, strstr(output, "reels from a mental blast and cannot work the guns") != NULL);
+  output = gunnery_deck_command(&deck, do_shiprepair, "");
+  CuAssertTrue(tc, strstr(output, "nobody can hold a tool steady") != NULL);
+
+  /* The shock passes and the reload resumes. */
+  target->stun_ticks = 1;
+  vessel_gunnery_tick_one(target);
+  CuAssertIntEquals(tc, 0, target->stun_ticks);
+  CuAssertIntEquals(tc, 9, target->slot[0].timer);
+
+  gunnery_deck_end(&deck);
+}

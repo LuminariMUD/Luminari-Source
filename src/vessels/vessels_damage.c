@@ -435,13 +435,15 @@ void vessel_damage_weapon(struct greyhawk_ship_data *attacker, struct greyhawk_s
 }
 
 /**
- * A hull hit knocks everyone aboard off their feet unless they make a Reflex
- * save (DC 15); the fallen are prone for two combat rounds. Staff are exempt.
+ * Knock everyone aboard off their feet unless they make the save (DC 15):
+ * Reflex against a hull hit's blast, Will against a mental blast. The fallen
+ * are prone for two combat rounds. Staff are exempt.
  */
-void vessel_knockdown_aboard(struct greyhawk_ship_data *ship)
+void vessel_knockdown_aboard(struct greyhawk_ship_data *ship, int save)
 {
   struct char_data *ch;
   room_rnum room;
+  bool mental;
   int i;
 
   if (ship == NULL)
@@ -449,7 +451,7 @@ void vessel_knockdown_aboard(struct greyhawk_ship_data *ship)
     return;
   }
 
-  send_to_ship(ship, "The blast shakes the whole hull!");
+  mental = save == SAVING_WILL;
   for (i = 0; i < ship->num_rooms && i < MAX_SHIP_ROOMS; i++)
   {
     room = real_room(ship->room_vnums[i]);
@@ -463,12 +465,14 @@ void vessel_knockdown_aboard(struct greyhawk_ship_data *ship)
       {
         continue;
       }
-      if (d20(ch) + compute_mag_saves(ch, SAVING_REFL, 0) >= VESSEL_KNOCKDOWN_DC)
+      if (d20(ch) + compute_mag_saves(ch, save, 0) >= VESSEL_KNOCKDOWN_DC)
       {
-        send_to_char(ch, "You keep your footing.\r\n");
+        send_to_char(ch, mental ? "You shake off the blast.\r\n" : "You keep your footing.\r\n");
         continue;
       }
-      send_to_char(ch, "The blast knocks you off your feet!\r\n");
+      send_to_char(ch, mental
+                           ? "Your mind reels from the blast; you huddle on the deck in pain!\r\n"
+                           : "The blast knocks you off your feet!\r\n");
       if (GET_POS(ch) > POS_RECLINING)
       {
         change_position(ch, POS_RECLINING);
@@ -589,7 +593,8 @@ int vessel_damage_hull(struct greyhawk_ship_data *attacker, struct greyhawk_ship
   }
   if (rand_number(1, 9) == 9)
   {
-    vessel_knockdown_aboard(target);
+    send_to_ship(target, "The blast shakes the whole hull!");
+    vessel_knockdown_aboard(target, SAVING_REFL);
   }
   return dealt;
 }

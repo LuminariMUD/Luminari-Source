@@ -654,6 +654,7 @@ int vessel_gunnery_bonus(const struct greyhawk_ship_data *ship, struct char_data
                          const struct vessel_weapon_type *type);
 int vessel_hit_percent(int dc, int bonus);
 bool vessel_at_battle_stations(const struct greyhawk_ship_data *ship);
+bool vessel_crew_stunned(const struct greyhawk_ship_data *ship);
 void vessel_gunnery_tick_one(struct greyhawk_ship_data *ship);
 ACMD_DECL(do_shipfire);  /* Fire a weapon or an arc at the locked contact */
 ACMD_DECL(do_shiplock);  /* Lock the guns onto a contact */
@@ -696,7 +697,7 @@ unsigned char *vessel_arc_max_internal(struct greyhawk_ship_data *ship, int arc)
 int vessel_arc_for_relative_bearing(int relative);
 
 #define VESSEL_WEAPON_DESTROYED 100 /* Weapon damage at which a weapon is gone */
-#define VESSEL_KNOCKDOWN_DC 15      /* Reflex save against a hull hit's blast */
+#define VESSEL_KNOCKDOWN_DC 15      /* Save against a hull hit's or a mental blast */
 
 int vessel_critical_threat(int pierce);
 bool vessel_weapon_ready(const struct greyhawk_ship_slot *slot);
@@ -708,7 +709,7 @@ int vessel_damage_hull(struct greyhawk_ship_data *attacker, struct greyhawk_ship
                        int damage, int arc, bool critical);
 void vessel_damage_weapon(struct greyhawk_ship_data *attacker, struct greyhawk_ship_data *target,
                           int arc, int damage);
-void vessel_knockdown_aboard(struct greyhawk_ship_data *ship);
+void vessel_knockdown_aboard(struct greyhawk_ship_data *ship, int save);
 void vessel_update_condition(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *attacker);
 void vessel_show_condition(struct char_data *ch, struct greyhawk_ship_data *ship);
 
@@ -1645,6 +1646,7 @@ struct greyhawk_ship_data
   /* S4 gunnery (vessels_gunnery.c), runtime only */
   int lock_target;        /* Fleet slot of the locked contact; 0 = none */
   short int battle_ticks; /* Vessel ticks left at battle stations; 0 = stood down */
+  short int stun_ticks;   /* Vessel ticks the crew reels from a mental blast */
 
   /* Phase 5: Naval combat */
   int last_attacker;           /* Fleet index of last ship to fire on us (0 = none) */

@@ -31884,6 +31884,12 @@ SHIPFIRE <slot | fore | port | rear | starboard> [<contact>]
   10 of altitude or depth, so a hull far above or below is out of reach,
   and a submerged hull can be neither locked nor fired upon.
 
+  The Mind Blast Cannon does no damage. A hit stuns the target's crew for 5
+  seconds at the cannon's 20-room reach, rising to 20 seconds at point
+  blank: a stunned crew cannot steer (the hull carries on as she was),
+  fire, reload, or repair. Inside 10 rooms everyone aboard also makes a
+  Will save (DC 15) or falls prone for two rounds.
+
 SHIPSIGHT [<slot>]
   For the locked contact, each weapon's DC and chance to hit, or why it
   cannot fire.

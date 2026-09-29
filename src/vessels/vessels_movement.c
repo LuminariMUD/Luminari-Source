@@ -868,19 +868,24 @@ bool vessel_sail_tick(struct greyhawk_ship_data *ship, double max_speed, vessel_
   }
   target = fmax(0.0, target);
 
-  limit = vessel_acceleration(ship);
-  change = target - ship->speed;
-  ship->speed = fabs(change) <= limit ? target : ship->speed + copysign(limit, change);
+  /* A crew reeling from a mental blast cannot answer the helm; she carries
+   * on as she was. */
+  if (!vessel_crew_stunned(ship))
+  {
+    limit = vessel_acceleration(ship);
+    change = target - ship->speed;
+    ship->speed = fabs(change) <= limit ? target : ship->speed + copysign(limit, change);
 
-  change = vessel_heading_difference(ship->heading, (double)ship->setheading);
-  limit = vessel_turn_rate(ship, max_speed);
-  if (fabs(change) <= limit)
-  {
-    ship->heading = vessel_normalize_heading((double)ship->setheading);
-  }
-  else
-  {
-    ship->heading = vessel_normalize_heading(ship->heading + copysign(limit, change));
+    change = vessel_heading_difference(ship->heading, (double)ship->setheading);
+    limit = vessel_turn_rate(ship, max_speed);
+    if (fabs(change) <= limit)
+    {
+      ship->heading = vessel_normalize_heading((double)ship->setheading);
+    }
+    else
+    {
+      ship->heading = vessel_normalize_heading(ship->heading + copysign(limit, change));
+    }
   }
 
   if (ship->speed <= 0.0)

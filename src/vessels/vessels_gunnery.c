@@ -27,6 +27,7 @@
 #include "core/db.h"
 #include "core/handler.h"
 #include "core/interpreter.h"
+#include "magic/spells.h"
 #include "vessels.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
@@ -218,6 +219,12 @@ bool vessel_at_battle_stations(const struct greyhawk_ship_data *ship)
   return ship != NULL && ship->battle_ticks > 0;
 }
 
+/** A crew reeling from a mental blast can neither steer, fire, reload, nor repair. */
+bool vessel_crew_stunned(const struct greyhawk_ship_data *ship)
+{
+  return ship != NULL && ship->stun_ticks > 0;
+}
+
 static void vessel_battle_stations(struct greyhawk_ship_data *ship)
 {
   if (ship->battle_ticks == 0)
@@ -248,6 +255,10 @@ static const char *vessel_hull_fire_problem(struct greyhawk_ship_data *ship)
   if (ship->z < 0.0)
   {
     return "She must surface before her guns can fire.";
+  }
+  if (vessel_crew_stunned(ship))
+  {
+    return "The crew reels from a mental blast and cannot work the guns.";
   }
   return NULL;
 }
@@ -328,6 +339,27 @@ vessel_lock_contact(struct char_data *ch, struct greyhawk_ship_data *ship, const
 }
 
 /**
+ * A mental blast (study 3.3.4): the target's crew is stunned for 5 s at the
+ * weapon's maximum range to 20 s at its minimum, and inside mid-range
+ * everyone aboard makes a Will save or falls prone for two rounds.
+ */
+static void vessel_mental_blast(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *target,
+                                const struct vessel_weapon_type *type, double range)
+{
+  double closeness;
+
+  closeness = fmax(0.0, fmin(1.0, ((double)type->max_range - range) /
+                                      (double)(type->max_range - type->min_range)));
+  target->stun_ticks = (short int)(2 * (5 + (int)(15.0 * closeness)));
+  send_to_ship(ship, "You hit [%s] %s with a powerful mental blast!", target->id, target->name);
+  send_to_ship(target, "A powerful mental wave hits the ship! The crew is completely disoriented.");
+  if (range <= (double)(type->max_range + type->min_range) / 2.0)
+  {
+    vessel_knockdown_aboard(target, SAVING_WILL);
+  }
+}
+
+/**
  * Fire one ready weapon at target: spend a round, start the reload, put
  * both crews at battle stations, and resolve the shot against the geometry
  * DC.
@@ -403,6 +435,10 @@ static int vessel_fire_weapon(struct greyhawk_ship_data *ship, int slot,
   dealt =
       vessel_resolve_hit(ship, target, weapon, range,
                          natural >= vessel_critical_threat(type->pierce) && confirm + bonus >= dc);
+  if (IS_SET(type->flags, VESSEL_WEAPON_CREW_STUN))
+  {
+    vessel_mental_blast(ship, target, type, range);
+  }
   vessel_event_record_damage(ship->shipnum, target->shipnum, dealt);
   return dealt;
 }
@@ -517,9 +553,9 @@ static void vessel_npc_return_fire(struct greyhawk_ship_data *ship)
 }
 
 /**
- * Gunnery tick: reload, keep a lock only on a contact the guns may still
- * engage, hold battle stations while locked and stand down 180 s after,
- * and run NPC return fire.
+ * Gunnery tick: recover from a mental blast, reload unless stunned, keep a
+ * lock only on a contact the guns may still engage, hold battle stations
+ * while locked and stand down 180 s after, and run NPC return fire.
  */
 void vessel_gunnery_tick_one(struct greyhawk_ship_data *ship)
 {
@@ -531,7 +567,11 @@ void vessel_gunnery_tick_one(struct greyhawk_ship_data *ship)
     return;
   }
 
-  for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
+  if (ship->stun_ticks > 0 && --ship->stun_ticks == 0)
+  {
+    send_to_ship(ship, "The crew recovers from the mental shock.");
+  }
+  for (s = 0; s < GREYHAWK_MAXSLOTS && !vessel_crew_stunned(ship); s++)
   {
     if (ship->slot[s].timer > 0 && --ship->slot[s].timer == 0 &&
         ship->slot[s].type == VESSEL_SLOT_WEAPON)
