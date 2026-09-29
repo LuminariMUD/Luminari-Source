@@ -1202,20 +1202,22 @@ Branch `feat/vessels-s2` from merge commit `34dcbb34e` (annotated tag `vessels-s
 to `gitlab`). The review range is `vessels-s2-base..vessels-s2`; review fixes go on top
 (`vessels-s2..feat/vessels-s2`). Follow the step workflow recorded for S1: one branch, a merge
 commit at the end, never a squash. S2 is complete and handed to review as the annotated tag
-`vessels-s2` with a GitLab merge request from `feat/vessels-s2`. The next step is S3 (damage
-model): branch `feat/vessels-s3` from the S2 merge, or stacked on `feat/vessels-s2` while its
-merge request is open, never committed onto `feat/vessels-s2` itself.
+`vessels-s2` with GitLab merge request !7 from `feat/vessels-s2`; the fixes for its first review
+round are `vessels-s2..feat/vessels-s2` (see "MR !7 review fixes" below). The next step is S3
+(damage model) on `feat/vessels-s3`, stacked on the reviewed S2 head while !7 is open (annotated
+tag `vessels-s3-base` at that head, pushed), never committed onto `feat/vessels-s2` itself.
+Further S2 review fixes go on `feat/vessels-s2` and are merged into `feat/vessels-s3`.
 
 | Item | State | Where |
 | -- | -- | -- |
 | Class handling table (3.3.1 speed, accel, turn, weight budget, allowances) | Done | `vessel_class_handling()` in the new `src/vessels/vessels_movement.c`; `vedit new` takes the class speed |
 | Maximum speed: sailmaster, load, sail (L2), terrain/weather/lane, SEADOG +1 | Done | `vessel_max_speed()`, `vessel_max_speed_from()`, `vessel_load_factor()`, `vessel_helm_speed_bonus()` |
 | Momentum: accel, turn with sailmaster and rudder (L1), speed / 90 rooms per tick (L3) | Done | `vessel_movement_tick_one()` from `vessel_owner_event()` after the autopilot and hunter ticks |
-| Per-room validation; refused room stops the hull at its edge | Done | `vessel_cross_room_edges()` enters the room the position lies in (diagonal when both edges cross in one tick); `vessel_check_grounding()` is removed (see the grounding deferral below) |
+| Per-room validation; refused room stops the hull at its edge | Done | `vessel_cross_room_edges()` crosses edges in the order the track meets them, diagonally only through a corner (MR !7 review); `vessel_check_grounding()` is removed (see the grounding deferral below) |
 | Berth at rest in port, `undock` departure (30 s / 13 s), `anchor` | Done | `vessel_berth()`, `vessel_sync_berth()`, `vessel_begin_departure()`, `do_vessel_anchor()`; `do_undock()` departs when no hull is alongside |
 | `setsail` as the maneuver command | Done | `vessel_maneuver()`; the S1 departure level check moved from `setsail` to `undock` |
-| Automated movers rebased | Done | Autopilot steering `vessel_autopilot_steer()` with `autopilot_data.speed_limit`; hunters steer and shadow; merchants cruise at design speed; scheduled routes validated one room at a time |
-| Unit tests | Done | New `unittests/CuTest/test_vessel_movement.c` (14 cases); updates in `test_transport_production.c`, `test_vessel_gunnery.c`, `test_racial_innate_feats.c` |
+| Automated movers rebased | Done | Autopilot steering `vessel_autopilot_steer()` with `autopilot_data.speed_limit`; hunters steer and shadow; merchants cruise at design speed; scheduled routes validated by sailing a copy of the hull through the same steering and `vessel_sail_tick()` (MR !7 review) |
+| Unit tests | Done | New `unittests/CuTest/test_vessel_movement.c` (20 cases with the MR !7 review); updates in `test_transport_production.c`, `test_vessel_gunnery.c`, `test_racial_innate_feats.c` |
 | Help in both places, `VESSEL_SYSTEM.md` | Done | VESSELS (SPEED, HEADING, SETSAIL, UNDOCK, new ANCHOR keyword), AUTOPILOT, SEADOG; "Movement and Pacing" section |
 | Existing live gates moved to the new model | Done | `scripts/development/dev_kohdee_login_smoke.sh` and the `scripts/vessels/` gates (list below); all pass (see Live gate results) |
 | New actual-character movement gate | Done | `--vessel-movement-check <warship-id>` in the login helper, `scripts/vessels/test_vessel_movement_in_game.sh` (tactical harness `--movement` mode) |
@@ -1284,7 +1286,8 @@ absent from the world files, so the builder and movement checks stage at the eas
   sail and rudder factors they barely moved. An unowned hull now has its rigging made good
   when it berths (the harbor service), until S5 crew repairs replace it.
 - A per-axis room step refused diagonal courses; the crossing now enters the room the
-  position lies in, diagonally when both edges are crossed in one tick (DurisMUD rule).
+  position lies in, diagonally when both edges are crossed in one tick (DurisMUD rule). The
+  MR !7 review replaced this with time-ordered crossing (below).
 - The draft barrier closed every seaport (see the water-depth deferral above).
 - A waypoint astern made the autopilot circle; it now comes about in place (speed cap 0
   above 90 degrees of heading error, steerage 2 above 45).
@@ -1294,6 +1297,41 @@ absent from the world files, so the builder and movement checks stage at the eas
 - The hunter, derelict, and campaign gates needed waits sized for undock and acceleration,
   `--skip-tz-utc` for the derelict snapshot, and the hunter's reattach comparison excludes
   the live `last_attacker` combat pointer (saved as 0 when the hull comes to rest).
+
+MR !7 review fixes (2026-09-29), one commit each on `feat/vessels-s2`:
+
+| Finding | Fix | Commit |
+| -- | -- | -- |
+| High: an off-axis tick could skip an impassable room (both edges past in one tick stepped diagonally) | Edges are crossed in the order the track meets them; only a track through the corner enters the diagonal room; a refused room leaves the hull where its track met the edge. This departs from DurisMUD, which steps diagonally whenever both edges fall in one tick | `f58e6083c` |
+| Medium: schedule preflight ignored momentum (a hull carrying its way through a turn entered rooms the room-step check never saw) | `scheduled_route_is_traversable()` sails a copy of the hull through `vessel_sail_tick()` and the shared autopilot steering, checking rooms with `vessel_chart_cell()`; loops run on to their second waypoint; `vessel_autopilot_next_position()` is removed | `e74d18928` |
+| Medium: `setwaypoint` stored a five-room arrival radius, so a created route stopped short of its port | `AUTOPILOT_ARRIVAL_TOLERANCE` (0.5) for new waypoints and the arrival fallback; legacy migration 2026092901 moves rows at 5.0 to 0.5 (the development dump had three, all July test rows) | `bcc9435e0` |
+| Medium: boot reconciled the berth before loading the owner, so an owned hull at rest in port got the free harbor repair | `vessel_db_restore_berth()` loads the owner first | `f6eb99cc8` |
+
+The corrected schedule check then rejected the Vailand Iron Passage. Sailed through the momentum
+physics, its southwest leg clipped the beach at (-508,215), the approach to the central port
+clipped the beach corner at (-468,204), and the northwest leg from the central offing turned into
+the spit at (-501,192). The S2 gate runs had already logged the merchant refused at (-509,214)
+without a gate noticing, because the campaign gate sails only the last leg. `808d1edc9` moves the
+southwest turn to (-513,215), the central offing to (-504,191), and the harbor offing to
+(-467,193), so the last leg runs due north into the port; `setschedule` on a copy of the loop from
+the north port accepts it, and the passage is 368 rooms. Deploy: re-apply
+`sql/components/vessels_campaign_content.sql` with this code; migration 2026092901 runs at boot.
+`571ec69d0` gives the login helper's timed crew reports (cast off, weigh anchor) one ten-second
+grace wait: the S2 movement pass caught the cast-off report at the end of its 33-second window, and
+a review-round run missed it.
+
+Review-round verification (2026-09-29): `make test-all` with the database cases on (1890 CuTest
+cases); all 33 local CI jobs on `e74d18928`, and again on the final review head; the live gates on
+the installed review-fix binary (SHA-256 `1ca7d59c...`) against a fresh copy of the development
+database with the updated campaign content applied: campaign 153 s, builder 39 s, tactical 101 s,
+lookout 25 s, boarding 53 s, narrative 25 s, rules 38 s, events 45 s, movement 109 s, frontier 232
+s, derelict 42 s, merchant 31 s, hunter 87 s, and movement 111 s and builder 63 s again on the
+helper fix `571ec69d0`. The ferry soak passed again (`run_vessel_ferry_soak.sh start 2700 60 900`,
+source `808d1edc9`, same binary): 2,735 s, 10 route completions, 280 movement steps, 40 arrivals,
+the paused position exact across the final restart, and no ferry errors; the three Vailand hulls
+sailed the new route throughout with their schedules enabled. An earlier batch on the old Vailand
+coordinates failed the campaign gate (the merchant's schedule had been disabled) and once the
+movement gate (the report timing above).
 
 Found during S2 and outside its scope (not fixed): the hub-and-spoke interior generator in
 `src/vessels/vessels_rooms.c` cycles the bridge's spokes through only eight directions, so a

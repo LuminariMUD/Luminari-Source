@@ -1063,6 +1063,16 @@ to 10 for the new pacing).
 | RSS initial / maximum / final | 1,610,128 / 1,636,116 / 1,636,116 KiB |
 | RSS slope (`memory-analysis.kv`, `REPORT_ONLY`) | 32,945 KiB/hour (2.03%/hour) |
 
+The soak was repeated on the MR !7 review fixes (time-ordered edge crossing,
+the momentum-path schedule check, room-scale waypoint arrival) with source
+`808d1edc9`, installed SHA-256
+`1ca7d59c927e08bbaac65df25e99cb3c719e8d4234c726e17ab8dd0d6d539da3`, the same
+ferry and route, and a fresh copy of the development database: run
+`20260929T060940Z-21908`, terminal `PASS`, 2,735 of 2,700 seconds, 280 movement
+steps, 40 waypoint arrivals, 10 route completions, 0 copyovers, the paused
+position exact across the final restart, dynamic rooms 2 / 123 / 8 of 2,000,
+and RSS 1,608,388 / 1,632,656 / 1,632,656 KiB.
+
 A loop now takes about four minutes (two crossings of about twelve rooms at
 speed 10, the 30-second cast-off from the east dock berth, and two 15-second
 stops); the August model, which moved one room per tick at speed 2, completed
