@@ -892,7 +892,6 @@ jobs:
             --print-summary \
             --xml coverage.xml \
             --xml-pretty \
-            --html-details coverage.html \
             --json-summary coverage-summary.json \
             --json-summary-pretty \
             src unittests/CuTest/build
@@ -908,6 +907,18 @@ jobs:
             args+=(--base 'HEAD^1')
           fi
           python3 scripts/ci/check_coverage.py "${args[@]}" 2>&1 | tee coverage-policy.txt
+
+      # The line-by-line pages take longer to write than the suite takes to
+      # build and run, so they are written only when a floor has failed.
+      - name: Generate the line-by-line report
+        if: failure()
+        run: |
+          gcovr \
+            -j "$(nproc)" \
+            --root . \
+            --filter '^src/' \
+            --html-details coverage.html \
+            src unittests/CuTest/build
 
       - name: Upload coverage artifact
         if: always()

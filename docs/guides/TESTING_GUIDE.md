@@ -627,11 +627,13 @@ The GitHub Actions coverage job:
   size, so rerunning the job at one commit measures identical totals (the world registries and the
   domain-event bus hash entity addresses, and address layout decides which collision paths run);
 - runs the covered protocol parser harness;
-- creates HTML details, Cobertura XML, and a JSON summary with gcovr, measuring only
+- creates Cobertura XML and a JSON summary with gcovr, measuring only
   `src/` (test sources, the vendored CuTest harness, and generated files are outside it, and no
   file under `src/` is excluded);
 - enforces `scripts/ci/coverage_policy.json` with `scripts/ci/check_coverage.py` and saves the
   result as `coverage-policy.txt`;
+- writes the line-by-line HTML pages only when a floor fails, because they take longer to write
+  than the suite takes to build and run;
 - uploads every report as the `coverage-report` artifact, including when a check fails.
 
 The policy holds three kinds of floor, all percentages measured by this job:
@@ -1073,7 +1075,8 @@ python3 scripts/ci/local/run.py
 ```
 
 The runner fills the host's processors with two-core containers, which suits jobs that spend
-a warm run in serial steps; `--jobs` and `--cpus` override the split.
+a warm run in serial steps; `--jobs` and `--cpus` override the split. The clang-tidy job runs
+first, alone, on all of those processors: whole-tree analysis is parallel and has no cache.
 
 A job that GitHub runs inside a compiler container (`container: gcc:16.2`)
 runs locally in `luminari-ci:local-gcc-16.2`; every other job uses the
