@@ -1723,8 +1723,7 @@ void load_all_ship_interiors(void)
       log("SYSERR: Legacy ship %d exterior hull could not be reconstructed", shipnum);
     }
 
-    vessel_sync_berth(ship);
-    vessel_db_load_owner(ship);
+    vessel_db_restore_berth(ship);
     vessel_db_load_permits(ship);
     vessel_db_load_crew(ship);
     vessel_db_load_extras(ship);
@@ -1738,6 +1737,17 @@ void load_all_ship_interiors(void)
 
   log("Info: Reconstructed %d persisted vessel instance%s", loaded_count,
       loaded_count == 1 ? "" : "s");
+}
+
+/**
+ * Restore a reloaded hull's owner, then reconcile its berth. The harbor makes
+ * good only an unowned hull's rigging when it berths, so the owner must be
+ * known before a hull found at rest in port is berthed.
+ */
+void vessel_db_restore_berth(struct greyhawk_ship_data *ship)
+{
+  vessel_db_load_owner(ship);
+  vessel_sync_berth(ship);
 }
 
 /**

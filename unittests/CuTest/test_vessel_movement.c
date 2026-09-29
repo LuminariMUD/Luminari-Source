@@ -13,8 +13,11 @@
 #include "../../src/core/comm.h"
 #include "../../src/core/db.h"
 #include "../../src/core/interpreter.h"
+#include "../../src/database/mysql.h"
 #include "../../src/vessels/vessels.h"
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
@@ -669,6 +672,92 @@ void Test_vessel_paused_autopilot_holds_and_a_finished_route_stops(CuTest *tc)
   movement_ticks(ship, 1);
   CuAssertIntEquals(tc, AUTOPILOT_COMPLETE, ship->autopilot->state);
   CuAssertIntEquals(tc, 0, ship->setspeed);
+
+  movement_end(&fixture);
+}
+
+static MYSQL *movement_open_test_database(void)
+{
+  const char *port_text;
+  MYSQL *connection;
+
+  if (getenv("LUMINARI_TEST_MYSQL_HOST") == NULL || getenv("LUMINARI_TEST_MYSQL_USER") == NULL ||
+      getenv("LUMINARI_TEST_MYSQL_PASSWORD") == NULL ||
+      getenv("LUMINARI_TEST_MYSQL_DATABASE") == NULL)
+  {
+    return NULL;
+  }
+  port_text = getenv("LUMINARI_TEST_MYSQL_PORT");
+  connection = mysql_init(NULL);
+  if (connection == NULL)
+  {
+    return NULL;
+  }
+  if (mysql_real_connect(
+          connection, getenv("LUMINARI_TEST_MYSQL_HOST"), getenv("LUMINARI_TEST_MYSQL_USER"),
+          getenv("LUMINARI_TEST_MYSQL_PASSWORD"), getenv("LUMINARI_TEST_MYSQL_DATABASE"),
+          port_text != NULL ? (unsigned int)strtoul(port_text, NULL, 10) : 3306, NULL, 0) == NULL)
+  {
+    mysql_close(connection);
+    return NULL;
+  }
+  return connection;
+}
+
+void Test_vessel_restart_keeps_an_owned_hull_damaged_in_port(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  char query[256];
+  MYSQL *saved_conn;
+  MYSQL *connection;
+  bool saved_mysql_available;
+  bool prepared;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    return;
+  }
+
+  connection = movement_open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  snprintf(query, sizeof(query), "INSERT INTO ship_interiors (ship_id, owner) VALUES (%d, 'Mara')",
+           MOVEMENT_SHIP);
+  prepared = mysql_query(connection, "CREATE TEMPORARY TABLE ship_interiors ("
+                                     "ship_id INT NOT NULL PRIMARY KEY, "
+                                     "owner VARCHAR(64) NOT NULL DEFAULT '')") == 0 &&
+             mysql_query(connection, query) == 0;
+  if (!prepared)
+  {
+    mysql_close(connection);
+    CuFail(tc, "could not create the isolated ship interior fixture");
+    return;
+  }
+
+  /* A restart finds an owned hull at rest in port, sail and rudder shot
+   * about, with her owner not yet loaded: the harbor must not repair her. */
+  ship = movement_begin(&fixture, VESSEL_WARSHIP);
+  SET_BIT_AR(fixture.room.room_flags, ROOM_DOCKABLE);
+  ship->mainsail = 1;
+  ship->turnrate = 1;
+  saved_conn = conn;
+  saved_mysql_available = mysql_available;
+  conn = connection;
+  mysql_available = TRUE;
+  vessel_db_restore_berth(ship);
+  conn = saved_conn;
+  mysql_available = saved_mysql_available;
+  mysql_close(connection);
+
+  CuAssertStrEquals(tc, "Mara", ship->owner);
+  CuAssertIntEquals(tc, MOVEMENT_ROOM_VNUM, ship->dock);
+  CuAssertIntEquals(tc, 1, ship->mainsail);
+  CuAssertIntEquals(tc, 1, ship->turnrate);
 
   movement_end(&fixture);
 }

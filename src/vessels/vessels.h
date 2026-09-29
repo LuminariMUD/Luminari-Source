@@ -1622,6 +1622,7 @@ void load_ship_interior(struct greyhawk_ship_data *ship);
 void serialize_ship_rooms(struct greyhawk_ship_data *ship, char *buffer);
 bool vessel_db_save_runtime(struct greyhawk_ship_data *ship);
 bool vessel_db_load_runtime(struct greyhawk_ship_data *ship);
+void vessel_db_restore_berth(struct greyhawk_ship_data *ship);
 bool vessel_db_save_weapons(struct greyhawk_ship_data *ship);
 bool vessel_db_load_weapons(struct greyhawk_ship_data *ship);
 bool vessel_place_hull_object(struct greyhawk_ship_data *ship, struct obj_data *obj);
