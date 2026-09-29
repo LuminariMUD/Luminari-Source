@@ -1828,6 +1828,10 @@ static void vessel_show_navigation(struct char_data *ch, struct greyhawk_ship_da
   {
     send_to_char(ch, "Under way\r\n");
   }
+  if (ship->maintenance_ticks > 0)
+  {
+    send_to_char(ch, "Shipwrights: %d seconds of work left\r\n", (ship->maintenance_ticks + 1) / 2);
+  }
 }
 
 ACMD(do_greyhawk_status)

@@ -23,8 +23,8 @@ WHERE tag IN (
 SELECT
   'command_keywords' AS check_name,
   COUNT(*) AS actual,
-  83 AS expected,
-  IF(COUNT(*) = 83, 'PASS', 'FAIL') AS result
+  86 AS expected,
+  IF(COUNT(*) = 86, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE (help_tag, keyword) IN (
   ('VESSELS', 'BOARD'),
@@ -62,6 +62,9 @@ WHERE (help_tag, keyword) IN (
   ('SHIPHIRE', 'SHIPDISMISS'),
   ('SHIPHIRE', 'SHIPUPGRADE'),
   ('SHIPHIRE', 'SHIPINSURE'),
+  ('SHIPHIRE', 'SHIPWEAPON'),
+  ('SHIPHIRE', 'SHIPEQUIP'),
+  ('SHIPHIRE', 'SHIPREARM'),
   ('MARKET', 'MARKET'),
   ('MARKET', 'CARGOBUY'),
   ('MARKET', 'CARGOSELL'),
@@ -160,8 +163,8 @@ AND CHAR_LENGTH(TRIM(entry)) > 0;
 SELECT
   'content_contracts' AS check_name,
   COUNT(*) AS actual,
-  23 AS expected,
-  IF(COUNT(*) = 23, 'PASS', 'FAIL') AS result
+  24 AS expected,
+  IF(COUNT(*) = 24, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
   SELECT 'VESSELS' AS tag, 'moving no faster than speed 2' AS required_pattern
@@ -181,6 +184,7 @@ JOIN (
   UNION ALL SELECT 'VEDIT', 'new[[:space:]]+prototypes are not for sale'
   UNION ALL SELECT 'SHIPBROWSE', 'need not be[[:space:]]+present'
   UNION ALL SELECT 'SHIPHIRE', 'draws no wages'
+  UNION ALL SELECT 'SHIPHIRE', 'one per hull, served only by a veteran gunner'
   UNION ALL SELECT 'PLUNDER', 'clear your whole bounty for 125%'
   UNION ALL SELECT 'PLUNDER', 'after 21 quiet days'
   UNION ALL SELECT 'SHIPLIST', 'evacuates occupants and loose objects'

@@ -619,6 +619,19 @@ const char *vessel_arc_name(int arc);
 int vessel_default_weapon(enum vessel_class vessel_type);
 void vessel_set_weapon(struct greyhawk_ship_slot *slot, int weapon, int arc);
 void vessel_fit_default_weapons(struct greyhawk_ship_data *ship);
+int vessel_arc_by_name(const char *arg);
+
+/* The shipyard (3.3.4); the shipwrights' work in vessel ticks */
+#define VESSEL_INSTALL_TICKS_PER_WEIGHT 150 /* 75 s per weight point installed */
+#define VESSEL_REARM_TICKS 150              /* 75 s per weapon rearmed */
+#define VESSEL_ROUND_PRICE 2                /* Gold per round of ammunition */
+
+int vessel_equipment_price(int equipment, enum vessel_class vessel_type);
+const char *vessel_fitout_problem(const struct greyhawk_ship_data *ship);
+void vessel_add_maintenance(struct greyhawk_ship_data *ship, struct char_data *ch, int ticks);
+ACMD_DECL(do_shipweapon); /* Owner: buy, sell, and arrange weapons in port */
+ACMD_DECL(do_shipequip);  /* Owner: fit or remove the ram and neutral colors */
+ACMD_DECL(do_shiprearm);  /* Owner: refill ammunition in port */
 
 /* ========================================================================= */
 /* DAMAGE MODEL (vessels-ships study S3, vessels_damage.c)                   */
@@ -799,6 +812,7 @@ void vessel_db_load_extras(struct greyhawk_ship_data *ship);
 void vessel_pay_insurance(struct greyhawk_ship_data *ship);
 int vessel_deliver_pending_insurance(struct char_data *ch);
 
+struct greyhawk_ship_data *vessel_refit_ship(struct char_data *ch);
 ACMD_DECL(do_shipupgrade); /* Owner: install upgrades at a dock */
 ACMD_DECL(do_shipinsure);  /* Owner: buy sinking insurance */
 
@@ -1666,8 +1680,9 @@ struct greyhawk_ship_data
   unsigned int message_seen_mask;
 
   /* Runtime-only movement timers (vessels_movement.c), in vessel ticks. */
-  short int departure_ticks; /* Left on an undock or weigh-anchor order */
-  short int maneuver_ticks;  /* Before the next setsail maneuver */
+  short int departure_ticks;   /* Left on an undock or weigh-anchor order */
+  short int maneuver_ticks;    /* Before the next setsail maneuver */
+  short int maintenance_ticks; /* Shipwrights' work left; she cannot depart */
 };
 
 /* One sighted vessel in a ship's contact list (vessel_collect_contacts()) */

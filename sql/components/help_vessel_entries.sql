@@ -92,8 +92,9 @@ UNDOCK
   With a vessel alongside, remove the gangway. Otherwise cast off from a
   berth in 30 seconds or weigh anchor in 13. A hull that comes to rest in a
   port is berthed and holds there until her crew reports her ready. Casting
-  off needs a whole sail, settled dock fees, and a captain of the hull\'s
-  level (see SHIPBROWSE).
+  off needs a whole sail, settled dock fees, the shipwrights finished with
+  her, a legal fit-out (see SHIPWEAPON), and a captain of the hull\'s level
+  (see SHIPBROWSE).
 
 ANCHOR
   Drop anchor where the hull lies stopped on the surface away from a berth.
@@ -355,9 +356,10 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIP
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIP-OWNERSHIP');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
-VALUES ('SHIPHIRE', 'Crew, refits, and insurance for a ship owner. SHIPHIRE,
-SHIPUPGRADE, and SHIPINSURE require the ship to be in port. SHIPDISMISS can
-be used by the owner anywhere aboard, including while underway.
+VALUES ('SHIPHIRE', 'Crew, refits, weapons, and insurance for a ship owner. SHIPHIRE,
+SHIPUPGRADE, SHIPWEAPON, SHIPEQUIP, SHIPREARM, and SHIPINSURE require the
+ship to be in port. SHIPDISMISS can be used by the owner anywhere aboard,
+including while underway.
 
 SHIPHIRE <position> <tier>
   Take on crew. Positions and what they do:
@@ -381,6 +383,35 @@ SHIPUPGRADE [<refit>]
     reinforcement  - +20% hull structure
   Each can be installed once and costs a fifth of the class price.
 
+SHIPWEAPON [list]
+  List the shipyard\'s twelve weapons with price, weight, rounds, range band
+  in rooms, damage, reload, and the arcs each may mount on, then how full
+  each of your arcs is. A hull mounts only the weapons her class allows,
+  up to a number of weapons and a weight on each arc (fore, port, rear,
+  starboard), and her whole fit-out, equipment included, may not weigh
+  more than she can carry. Heavier fits cost speed (see SPEED).
+SHIPWEAPON buy <weapon number or name> <fore|port|rear|starboard>
+  Buy and mount a weapon, fully loaded. Catapults and the capital Long Tom
+  and fragmentation cannon fit only fore or rear, the heavy ballista only
+  on the beams. The beam, blast, and fragmentation cannons and the Long
+  Tom are capital weapons: one per hull, served only by a veteran gunner.
+  The shipwrights need 75 seconds per point of weight, and she cannot sail
+  until they finish.
+SHIPWEAPON sell <slot>
+  Sell a weapon back for 90% of its price, 10% if it is damaged.
+SHIPWEAPON swap <slot> <slot>
+  Exchange two slots, to put the weapons you fire most in easy numbers.
+
+SHIPEQUIP [list | buy <ram|colors> | sell <ram|colors>]
+  Fit one ram (2 gold per point of hull weight, and heavy) or neutral colors
+  (free, and weightless); sold back at 90%. Rafts and boats carry no ram.
+  Neutral colors stay up while there is cargo aboard.
+
+SHIPREARM [<slot> | all]
+  Refill ammunition at 2 gold a round; the shipwrights need 75 seconds per
+  weapon. A weapon with no rounds left cannot fire. A destroyed weapon is
+  not rearmed.
+
 SHIPINSURE [<value>]
   With no argument, show current coverage. Otherwise insure the ship for
   the given payout, up to her market value; the premium is one fifth of
@@ -396,6 +427,9 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPHI
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPDISMISS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPUPGRADE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPINSURE');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPWEAPON');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPEQUIP');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPREARM');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIP-CREW');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIP-REFIT');
 

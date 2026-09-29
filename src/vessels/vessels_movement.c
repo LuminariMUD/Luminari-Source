@@ -356,12 +356,16 @@ static int vessel_port_room_vnum(const struct greyhawk_ship_data *ship)
 /**
  * Make the hull fast at the port it rests in.
  *
- * Public and NPC hulls have no owner to repair them, so the harbor makes good
- * their rigging and rudder whenever they berth; wear and weather would
- * otherwise leave a scheduled hull crawling with its sail in rags.
+ * Public and NPC hulls have no owner to repair or rearm them, so the harbor
+ * makes good their rigging and rudder and refills their weapons whenever
+ * they berth; wear and weather would otherwise leave a scheduled hull
+ * crawling with its sail in rags, and one fight would empty her guns.
  */
 void vessel_berth(struct greyhawk_ship_data *ship)
 {
+  const struct vessel_weapon_type *weapon;
+  int i;
+
   if (ship == NULL)
   {
     return;
@@ -370,6 +374,14 @@ void vessel_berth(struct greyhawk_ship_data *ship)
   {
     ship->mainsail = ship->maxmainsail;
     ship->turnrate = ship->maxturnrate;
+    for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
+    {
+      weapon = vessel_slot_weapon(&ship->slot[i]);
+      if (weapon != NULL)
+      {
+        ship->slot[i].ammo = (unsigned char)weapon->ammo;
+      }
+    }
   }
   ship->dock = vessel_port_room_vnum(ship);
   ship->anchored = FALSE;
@@ -407,13 +419,14 @@ void vessel_sync_berth(struct greyhawk_ship_data *ship)
  * Start casting off from a berth or weighing anchor.
  *
  * ch is the character giving the order, or NULL for a pilot. Departure from
- * a berth needs a whole sail, settled dock fees, and a captain of the hull's
- * minimum level.
+ * a berth needs a whole sail, settled dock fees, the shipwrights finished, a
+ * legal fit-out, and a captain of the hull's minimum level.
  *
  * @return TRUE when the crew set to work
  */
 bool vessel_begin_departure(struct greyhawk_ship_data *ship, struct char_data *ch)
 {
+  const char *problem;
   bool berthed;
 
   if (!is_valid_ship(ship))
@@ -455,6 +468,24 @@ bool vessel_begin_departure(struct greyhawk_ship_data *ship, struct char_data *c
         send_to_char(ch,
                      "The harbor master withholds clearance: %d gold in dock fees remains due.\r\n",
                      ship->dock_fee_balance);
+      }
+      return FALSE;
+    }
+    if (ship->maintenance_ticks > 0)
+    {
+      if (ch != NULL)
+      {
+        send_to_char(ch, "The shipwrights are still at work on %s: %d seconds.\r\n", ship->name,
+                     (ship->maintenance_ticks + 1) / 2);
+      }
+      return FALSE;
+    }
+    problem = vessel_fitout_problem(ship);
+    if (problem != NULL)
+    {
+      if (ch != NULL)
+      {
+        send_to_char(ch, "The harbor master withholds clearance: %s\r\n", problem);
       }
       return FALSE;
     }
@@ -880,6 +911,10 @@ void vessel_movement_tick_one(struct greyhawk_ship_data *ship)
   if (ship->maneuver_ticks > 0)
   {
     ship->maneuver_ticks--;
+  }
+  if (ship->maintenance_ticks > 0 && --ship->maintenance_ticks == 0)
+  {
+    send_to_ship(ship, "The shipwrights finish their work on %s.", ship->name);
   }
   if (ship->departure_ticks > 0)
   {

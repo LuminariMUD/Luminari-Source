@@ -488,9 +488,10 @@ void vessel_upkeep_tick(void)
 }
 
 /**
- * Owner gate for refit commands: must own the ship and be moored at a dock.
+ * Owner gate for shipyard commands: must own the ship and be moored at a
+ * dock.
  */
-static struct greyhawk_ship_data *refit_command_ship(struct char_data *ch)
+struct greyhawk_ship_data *vessel_refit_ship(struct char_data *ch)
 {
   struct greyhawk_ship_data *ship;
 
@@ -534,7 +535,7 @@ ACMD(do_shipupgrade)
   int bit;
   int i;
 
-  ship = refit_command_ship(ch);
+  ship = vessel_refit_ship(ch);
   if (ship == NULL)
   {
     return;
@@ -613,7 +614,7 @@ ACMD(do_shipinsure)
   int value;
   int premium;
 
-  ship = refit_command_ship(ch);
+  ship = vessel_refit_ship(ch);
   if (ship == NULL)
   {
     return;

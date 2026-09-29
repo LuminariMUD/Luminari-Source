@@ -169,13 +169,15 @@ and every 0.5-second vessel tick converges on them:
 - A hull that comes to rest in a port room is berthed: `dock` holds the port
   room vnum. A hull coming to rest also saves its runtime row, so the berth and
   the position a paused autopilot holds survive a restart. Public and NPC hulls
-  have no owner to repair them, so the harbor restores their sail and rudder
-  whenever they berth. A berthed hull, a hull at anchor (`anchored`, runtime
+  have no owner to repair or rearm them, so the harbor restores their sail and
+  rudder and refills their weapons whenever they berth. A berthed hull, a hull
+  at anchor (`anchored`, runtime
   only), and a hull made fast alongside another hold position and take no
   speed order.
   `undock` casts off in 30 seconds (60 ticks) or weighs anchor in 13 (26
-  ticks); casting off needs a whole sail, settled dock fees, and a captain of
-  the hull's minimum level. `anchor` needs a stopped hull on the surface and
+  ticks); casting off needs a whole sail, settled dock fees, the shipwrights
+  finished, a legal fit-out (Weapons (S4) below), and a captain of the hull's
+  minimum level. `anchor` needs a stopped hull on the surface and
   disengages the autopilot. `vessel_sync_berth()` reconciles the berth after a
   spawn or reboot.
 - `setsail <direction>` is the harbor maneuver (`vessel_maneuver()`): one room
@@ -1035,6 +1037,9 @@ the removed name's bounty.
 | shipcrew | List owner, pilot, permits, crew | `shipcrew` |
 | shiphire / shipdismiss | Hire or release crew (dock only) | `shiphire <position> <tier>` |
 | shipupgrade | List/install refits (dock only) | `shipupgrade [<refit>]` |
+| shipweapon | List, buy, sell, or rearrange weapons (dock only) | `shipweapon [list \| buy <weapon> <arc> \| sell <slot> \| swap <slot> <slot>]` |
+| shipequip | Fit or remove the ram and neutral colors (dock only) | `shipequip [list \| buy <ram\|colors> \| sell <ram\|colors>]` |
+| shiprearm | Refill ammunition (dock only) | `shiprearm [<slot> \| all]` |
 | shipinsure | Buy sinking insurance (dock only) | `shipinsure <value>` |
 
 Only prototypes with `for_sale = 1` appear in `shipbrowse` or can be bought;
@@ -1272,6 +1277,39 @@ Prices are 2 gold per Duris platinum and reloads are in 0.5 s vessel ticks.
   boat.
 - Firing spends a round and starts the weapon's reload; a weapon fires only at
   a target inside its range band.
+- Class fitting (`class_fitting[]`, 3.3.1): the Duris analog's mounts and
+  weapon weight cap per arc and its allowed weapons (`ship_allowed_weapons[]`).
+
+| Class | Mounts F/P/R/S | Arc weight caps F/P/R/S | Weapons | Weight budget |
+| -- | -- | -- | -- | -: |
+| Raft | 0/0/0/0 | 0/0/0/0 | none | 5 |
+| Boat | 1/1/1/1 | 3/5/3/5 | small ballista | 12 |
+| Ship | 1/3/1/3 | 17/26/17/26 | all but the heavy beamcannon and Long Tom | 100 |
+| Warship | 2/3/2/3 | 31/44/31/44 | all | 142 |
+| Airship | 1/3/1/3 | 13/32/13/32 | small, medium, and large ballistae; small and medium catapults; light beamcannon; mind blast; fragmentation cannon | 82 |
+| Submarine | 2/0/1/0 | 27/0/27/0 | all but the Long Tom | 110 |
+| Transport | 2/3/1/3 | 26/35/26/35 | all | 165 |
+| Magical | 2/4/2/4 | 35/50/35/50 | all | 200 |
+
+- A fit-out is legal (`vessel_fitout_problem()`) when every weapon is allowed
+  on the class and on its arc, no arc exceeds its mounts or weight cap, at
+  most one weapon is capital, rafts and boats carry no ram, each equipment
+  item is fitted once, and the whole fit-out (a ram included) weighs no more
+  than the class weight budget. The same check refuses a purchase and a
+  departure from a berth (`vessel_begin_departure()`).
+- Shipyard (`vessel_refit_ship()`: the owner, in port, not refused by the
+  port): `shipweapon buy` mounts a loaded weapon in the first free slot; a
+  capital weapon also needs a veteran gunner (renown arrives in S7).
+  `shipweapon sell` pays 90%, or 10% for a damaged weapon; `swap` exchanges
+  two slots whole. `shipequip` fits one ram (2 gold per hull weight) or
+  neutral colors (free), sold back at 90%; colors stay while cargo is aboard.
+  `shiprearm` refills at `VESSEL_ROUND_PRICE` (2) gold a round and skips
+  destroyed weapons.
+- Maintenance (`maintenance_ticks`, runtime only, like the departure timers):
+  installing takes `VESSEL_INSTALL_TICKS_PER_WEIGHT` (75 s) per weight point
+  and rearming `VESSEL_REARM_TICKS` (75 s) per weapon
+  (`vessel_add_maintenance()`; immortals skip it). It counts down in the
+  movement tick, shows in `shipstatus`, and blocks departure from a berth.
 - Persistence (Phase 20): every weapon and equipment slot is a `ship_weapons`
   row with its `catalog_id` and `ammo` (`vessel_db_save_weapons()`,
   `vessel_db_load_weapons()`); `ship_runtime_state.slot_data` is no longer
@@ -1886,9 +1924,8 @@ and the trigger was removed.
 | `src/vessels/vessels_autopilot.c` | Autopilot, waypoints, routes, NPC pilots, schedules |
 | `src/vessels/vessels_edit.c` | vedit ship prototype editor, spawner, shipyard (Phase 04/06) |
 | `src/vessels/vessels_combat.c` | Naval combat: gunnery consent, firing, NPC return fire, sinking (Phase 05) |
-| `src/vessels/vessels_movement.c` | Momentum sailing, per-room movement, berths, departures, anchoring (S2) |
 | `src/vessels/vessels_damage.c` | Class condition profiles, arcs, hull and sail damage, breaches, sinking, salvage, prizes (S3) |
-| `src/vessels/vessels_weapons.c` | Weapon and equipment catalogue and class armament (S4) |
+| `src/vessels/vessels_weapons.c` | Weapon and equipment catalogue, class fitting, and the shipyard weapon commands (S4) |
 | `src/vessels/vessels_ownership.c` | Ownership, helm permits, deed transfer (Phase 06) |
 | `src/vessels/vessels_crew.c` | Hired crew positions, tiers, one-time hire prices (Phase 06) |
 | `src/vessels/vessels_upgrades.c` | Refits, hull wear, insurance (Phase 06) |
