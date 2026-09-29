@@ -1353,7 +1353,7 @@ D6 (Part 5, step 3). The damage model lives in the new `src/vessels/vessels_dama
 | Duris arcs (fore 320-40, starboard 40-140, rear 140-220, port 220-320) | Done | `vessel_arc_for_relative_bearing()` behind `greyhawk_getarc()` |
 | Refit rescaling: plating and reinforcement +20%, rigging +10% maximum speed (at least 1, at most 30), hold +25%; each 20% of the class price | Done | `do_shipupgrade()`, `vessel_upgrade_cost()`, `vessel_rigged_speed()` in `vessels_upgrades.c` |
 | Damage resolution per fragment: sail hits (warship sails take 85%), spread across arcs, armor then internals, confirmed criticals past armor, deflection on gutted arcs, weapon damage (disabled at 1, destroyed at 100), knockdown (Reflex DC 15) | Done | `vessel_resolve_hit()`, `vessel_damage_hull()`, `vessel_damage_sail()`, `vessel_damage_weapon()`, `vessel_knockdown_aboard()` in `vessels_damage.c`; `ship_weapons.weapon_damage`; `shipfire`, NPC return fire, and hazards call them |
-| Breach states: one breached arc immobile (airborne hulls half speed), two sinking on a timer (150-300 ticks owned, 2000-3000 unowned); a sinking hull cannot move, fire, or be repaired | Done | `vessel_breached_arcs()`, `vessel_update_condition()`, `vessel_begin_sinking()`, `vessel_damage_tick_one()` (combat tick); `vessel_max_speed()`; `sink_ticks` |
+| Breach states: one breached arc immobile (airborne hulls half speed), two sinking on a timer (150-300 ticks owned, 2000-3000 unowned); a sinking hull cannot move, fire, or be repaired | Done | `vessel_breached_arcs()`, `vessel_update_condition()` (stops a holed or sinking hull dead), `vessel_begin_sinking()`, `vessel_damage_tick_one()` (combat tick); `vessel_max_speed()`; `sink_ticks`, saved in `ship_runtime_state` (MR !8 review) |
 | Going down: half of each bulk cargo lot spills as salvage crates; `shipsalvage` hauls crates into a stopped hull's hold | Done | `vessel_spill_cargo()`, `vessel_salvage_crates()`, `do_shipsalvage()`; `vessel_stow_cargo()` shared with `plunder` |
 | D6: `strikecolors`; capture and plunder only of disabled prizes; hostile boarding only at speed 3 or less or disabled | Done | `vessel_prize_disabled()`, `vessel_abandoned_at_sea()`, `do_strikecolors()` in `vessels_damage.c`; `do_claimship()`, `do_plunder()`, `can_attempt_boarding()` (L14) |
 | Migration: prototype armor rescaled once by class (armor-scale flag), live hulls converted keeping their damage fractions (condition-model flag), weapon damage column; Phase 19 SQL with rollback and verifier | Done | `vessel_prototype_ensure_schema()` (`armor_scale`), `vessel_rescale_legacy_armor()`, `vessel_convert_legacy_condition()` from `vessel_db_load_runtime()` (`condition_model`); `vessels_phase19_schema.sql`, `_rollback.sql`, `verify_vessels_phase19.sql`; content packages at S3 scale with `armor_scale = 1`, and their provisioners apply Phase 19 first |
@@ -1398,7 +1398,8 @@ Interpretations decided while planning S3:
   restores a destroyed one while berthed in port.
 - A sinking hull can be boarded and plundered but not captured.
 - "Abandoned" means no conscious character (player or mobile, the pilot included) aboard other
-  than the claimant; hired crew positions are abstract and do not defend.
+  than the claimant; a sleeper is not conscious, and hired crew positions are abstract and do not
+  defend.
 - Found while testing: a hull shot from one side only cannot sink. Deflected hits reach only
   another arc's structure, never its armor, so only the facing arc is ever holed (Duris behaves
   the same). S4's duel harness and S6's NPC AI must maneuver to bring a second arc to bear.
@@ -1414,6 +1415,21 @@ Interpretations decided while planning S3:
   database without Phase 19 instead of being rescaled twice.
 - The Phase 19 rollback returns prototype armor to the old scale (rounded) so older code does not
   run S3-strength prototypes; converted hulls keep their S3 values.
+
+MR !8 review fixes (2026-09-29), one commit each on `feat/vessels-s3`:
+
+| Finding | Fix | Commit |
+| -- | -- | -- |
+| A hole did not stop a hull at once: the helm shed way at the class acceleration, so a warship holed at speed 17 crossed several rooms, and a hull holed on two sides moved while her sink timer ran | `vessel_update_condition()` zeroes the speed of a sinking hull and of one holed afloat; a hull aloft with one hole keeps half speed | `55d883020` |
+| The sink timer was runtime only, so a restart rerolled a full countdown for a hull saved holed on two sides | `ship_runtime_state.sink_ticks` (Phase 19, with its rollback and verifier) saves the remaining ticks and the load restores them | `05b40a93b` |
+| A sleeper counted as conscious (sleeping ranks above stunned): a stopped hull whose only hand was asleep was no prize, and a sleeper on the bridge blocked `claimship` and `plunder` | The abandoned check and both bridge checks use `AWAKE()` | `48d69e6a4` |
+| A failed knockdown save sat the sailor down instead of leaving them prone | `POS_RECLINING`, which `fight.c` penalizes as prone | `390fd54fd` |
+
+Review-round verification (2026-09-29): `make test-all` with the database cases on (1910 CuTest
+cases, including the new sleeper case and a save-and-reload of a sinking hull's timer, which fails
+with a rerolled timer without the fix); the boot `ALTER`, the Phase 19 schema, rollback (twice),
+and verifier on the isolated test database. No live gate covers the changed paths (the damage
+gate stops its target before holing it), so none was rerun.
 
 ### Estimate
 
