@@ -1184,7 +1184,7 @@ study 3.3.1, 3.3.3).
   S5 bring weapon sales and priced repairs; `shipfix` clears all damage.
 - Knockdown (`vessel_knockdown_aboard()`): one structural hit in nine makes
   everyone aboard but staff roll Reflex (d20 plus their Reflex save) against
-  DC 15 or sit, prone, with two combat rounds of lag.
+  DC 15 or fall prone (reclining) with two combat rounds of lag.
 - Breaches (`vessel_breached_arcs()`): an arc with neither armor nor structure
   is holed. One holed arc makes `vessel_max_speed()` 0, or half for a hull
   aloft (z above 0); two start the sink timer (`vessel_update_condition()`,

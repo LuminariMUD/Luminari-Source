@@ -269,7 +269,7 @@ void Test_vessel_hull_blast_knocks_the_unsure_footed_down(CuTest *tc)
   sailor.next_in_room = &bosun;
 
   vessel_knockdown_aboard(ship);
-  CuAssertIntEquals(tc, POS_SITTING, GET_POS(&sailor));
+  CuAssertIntEquals(tc, POS_RECLINING, GET_POS(&sailor));
   CuAssertIntEquals(tc, PULSE_VIOLENCE * 2, GET_WAIT_STATE(&sailor));
   CuAssertIntEquals(tc, POS_STANDING, GET_POS(&bosun));
 

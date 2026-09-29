@@ -476,9 +476,9 @@ void vessel_knockdown_aboard(struct greyhawk_ship_data *ship)
         continue;
       }
       send_to_char(ch, "The blast knocks you off your feet!\r\n");
-      if (GET_POS(ch) > POS_SITTING)
+      if (GET_POS(ch) > POS_RECLINING)
       {
-        change_position(ch, POS_SITTING);
+        change_position(ch, POS_RECLINING);
       }
       WAIT_STATE(ch, PULSE_VIOLENCE * 2);
     }
