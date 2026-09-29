@@ -153,8 +153,9 @@ and every 0.5-second vessel tick converges on them:
   room-pool capacity. A refused room stops the hull where its track met the
   edge, cancels the speed order, and pauses a travelling autopilot. Water depth does not stop a hull:
   seaports sit on water one unit deep, so a draft barrier would close every
-  port to ship-class hulls. Grounding in shallows, like the crash on a
-  refused room, is the battle-stations crash check that arrives in step S4.
+  port to ship-class hulls. Shallows refuse a hull only at battle stations,
+  where a refused room also rolls the crash check (Weapons and Gunnery (S4)
+  below).
 - `vessel_max_speed()` is the design speed (`maxspeed`, the prototype's speed)
   times the sailmaster multiplier, the load factor, the sail fraction
   (`mainsail / maxmainsail`), and the terrain, weather, and altitude-lane
@@ -249,7 +250,7 @@ Vessels extend the wilderness system; they do not create a separate geography.
 | -- | -- |
 | Dynamic room pool | Characters and exterior hulls keep their coordinate room occupied; co-located hulls share it |
 | Generated sector | The central position update gates every room entered; maximum speed consumes the resulting sector |
-| Bathymetry | Submarine crush depth; grounding in shallows arrives with the battle-stations crash check (S4) |
+| Bathymetry | Submarine crush depth; shallows refuse a hull at battle stations (S4) |
 | Weather field | Maximum speed, visibility, helm risk, and storm damage |
 | `REGION_ENCOUNTER` | Builder-authored encounter selection |
 | Sector regions | Magical or transformed waters through the generated sector |
