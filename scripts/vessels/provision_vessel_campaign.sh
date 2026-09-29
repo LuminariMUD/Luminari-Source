@@ -651,7 +651,12 @@ restart_position_count=${#restart_session_positions[@]}
   fail "Kohdee did not observe two merchant positions after restart"
 restart_before_position=${restart_session_positions[0]}
 restart_after_position=${restart_session_positions[restart_position_count - 1]}
-[[ "$restart_after_position" != "$restart_before_position" ]] ||
+# A merchant restored inside the port room berths without changing rooms;
+# under way there, its arrival (required above) shows it resumed.
+restart_first_moorings=$(awk '/^Moorings: / { print; exit }' \
+  "$run_dir/05-kohdee-after-restart.log")
+[[ "$restart_after_position" != "$restart_before_position" ||
+  "$restart_first_moorings" == "Moorings: Under way"* ]] ||
   fail "the campaign merchant did not resume movement after restart"
 
 if [[ -f "$server_log" ]] &&
