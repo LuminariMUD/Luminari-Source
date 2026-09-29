@@ -308,6 +308,51 @@ void Test_vessel_hull_crossing_a_corner_enters_the_diagonal_room(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_hull_crosses_edges_in_the_order_her_track_meets_them(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+
+  /* From near the northeast corner on heading 60 at speed 30 her track meets
+   * the east edge before the north edge: she enters (1,0), then (1,1). */
+  ship = movement_begin(&fixture, VESSEL_BOAT);
+  IN_ROOM(&fixture.hull) = NOWHERE;
+  ship->dx = 0.49;
+  ship->dy = 0.49;
+  ship->heading = 60.0;
+  ship->setheading = 60;
+  ship->speed = 30.0;
+  ship->setspeed = 30;
+  vessel_movement_tick_one(ship);
+  CuAssertIntEquals(tc, 2, entered_count);
+  CuAssertIntEquals(tc, 1, entered_x[0]);
+  CuAssertIntEquals(tc, 0, entered_y[0]);
+  CuAssertIntEquals(tc, 1, entered_x[1]);
+  CuAssertIntEquals(tc, 1, entered_y[1]);
+
+  /* Land to the east stops her where her track met its edge, short of the
+   * north edge; she never passes it to reach (1,1). */
+  ship->x = 0.0;
+  ship->y = 0.0;
+  ship->dx = 0.49;
+  ship->dy = 0.49;
+  ship->speed = 30.0;
+  ship->setspeed = 30;
+  entered_count = 0;
+  refuse_room = TRUE;
+  refused_x = 1;
+  refused_y = 0;
+  vessel_movement_tick_one(ship);
+  CuAssertIntEquals(tc, 0, entered_count);
+  CuAssertIntEquals(tc, 0, (int)ship->x);
+  CuAssertIntEquals(tc, 0, (int)ship->y);
+  CuAssertDblEquals(tc, 0.5, ship->dx, 0.0001);
+  CuAssertTrue(tc, ship->dy > 0.49 && ship->dy < 0.5);
+  CuAssertDblEquals(tc, 0.0, ship->speed, 0.0001);
+
+  movement_end(&fixture);
+}
+
 void Test_vessel_hull_comes_about_at_its_turn_rate(CuTest *tc)
 {
   struct movement_fixture fixture;

@@ -144,12 +144,14 @@ and every 0.5-second vessel tick converges on them:
 - A hull covers `speed / 90` rooms per tick along its heading: speed 30
   crosses a room in 1.5 seconds and speed 12 in 3.75 seconds. `dx` and `dy`
   hold the position inside the current room (-0.5 to 0.5 from its centre).
-  Crossing a room edge enters the room the position now lies in (diagonally
-  when both edges are crossed in one tick, as DurisMUD does) through
-  `update_ship_wilderness_position()`, so every room entered is checked for
-  class terrain, altitude or depth, dock-fee clearance, and room-pool
-  capacity. A refused room stops the hull at its edge, cancels the speed
-  order, and pauses a travelling autopilot. Water depth does not stop a hull:
+  The hull crosses room edges in the order its track meets them, entering
+  the diagonal room only when the track runs through the corner (DurisMUD
+  steps diagonally whenever both edges fall in one tick, which lets a hull
+  slip past the corner of a land room unchecked). Each room is entered
+  through `update_ship_wilderness_position()`, so every room entered is
+  checked for class terrain, altitude or depth, dock-fee clearance, and
+  room-pool capacity. A refused room stops the hull where its track met the
+  edge, cancels the speed order, and pauses a travelling autopilot. Water depth does not stop a hull:
   seaports sit on water one unit deep, so a draft barrier would close every
   port to ship-class hulls. Grounding in shallows, like the crash on a
   refused room, is the battle-stations crash check that arrives in step S4.
