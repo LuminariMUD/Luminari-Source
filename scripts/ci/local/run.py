@@ -237,8 +237,10 @@ def main():
         help="image for jobs without a container: key; a job with container: "
         "IMAGE uses luminari-ci:local-IMAGE (colon replaced by a dash)",
     )
-    parser.add_argument("--jobs", type=int, default=3, help="concurrent containers")
-    parser.add_argument("--cpus", type=int, default=4, help="cores per container")
+    parser.add_argument(
+        "--jobs", type=int, help="concurrent containers (default: as many as the CPUs allow)"
+    )
+    parser.add_argument("--cpus", type=int, default=2, help="cores per container")
     parser.add_argument("--cache", type=Path, default=Path.home() / ".cache/luminari-ci/ccache")
     parser.add_argument("--results", type=Path)
     parser.add_argument("--timeout", type=int, default=45, help="minutes per container")
@@ -316,9 +318,13 @@ def main():
         jobs = [job for job in jobs if job["name"] == args.job]
         if not jobs:
             parser.error("Unknown job; see --list")
+    cpus = sorted(os.sched_getaffinity(0))
+    # Warm jobs spend their time in serial steps, so many narrow containers
+    # finish the matrix sooner than a few wide ones.
+    if args.jobs is None:
+        args.jobs = max(1, len(cpus) // max(args.cpus, 1))
     if args.jobs < 1 or args.cpus < 1:
         parser.error("--jobs and --cpus must be positive")
-    cpus = sorted(os.sched_getaffinity(0))
     if args.jobs * args.cpus > len(cpus):
         parser.error("Requested concurrency exceeds available CPUs")
     args.cache.mkdir(parents=True, exist_ok=True)
