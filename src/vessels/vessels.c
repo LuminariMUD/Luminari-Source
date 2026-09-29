@@ -2037,6 +2037,7 @@ ACMD(do_greyhawk_status)
                greyhawk_ships[shipnum].maxsarmor);
   send_to_char(ch, "Rear: %d/%d\r\n", greyhawk_ships[shipnum].rarmor,
                greyhawk_ships[shipnum].maxrarmor);
+  vessel_show_condition(ch, &greyhawk_ships[shipnum]);
   send_to_char(ch, "\r\n");
 }
 

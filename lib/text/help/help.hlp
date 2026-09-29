@@ -41438,10 +41438,13 @@ TACTICAL
   contact roster below the chart is the CONTACTS list, with the same IDs.
 
 SHIPSTATUS
-  Show position, terrain, elevation or depth, heading, speed, moorings, and
-  armor on all four sides. Heading and speed show any order the hull is still
-  answering, and speed shows the most she can make under present conditions.
-  Merchant registry and unpaid dock-fee details appear when they apply.
+  Show position, terrain, elevation or depth, heading, speed, moorings, the
+  armor and structure of all four sides, sails, rudder, and every weapon
+  (ready, reloading, disabled with its damage, or destroyed). Heading and
+  speed show any order the hull is still answering, and speed shows the most
+  she can make under present conditions. Holed sides, the time left before a
+  sinking hull goes down, and struck colors appear when they apply, as do
+  merchant registry and unpaid dock-fee details.
 
 SHIPTALK <message>
   Speak over the captain's channel to awake, hearing occupants in every room

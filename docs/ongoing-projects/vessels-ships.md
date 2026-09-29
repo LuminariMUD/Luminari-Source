@@ -1357,7 +1357,7 @@ D6 (Part 5, step 3). The damage model lives in the new `src/vessels/vessels_dama
 | Going down: half of each bulk cargo lot spills as salvage crates; `shipsalvage` hauls crates into a stopped hull's hold | Done | `vessel_spill_cargo()`, `vessel_salvage_crates()`, `do_shipsalvage()`; `vessel_stow_cargo()` shared with `plunder` |
 | D6: `strikecolors`; capture and plunder only of disabled prizes; hostile boarding only at speed 3 or less or disabled | Done | `vessel_prize_disabled()`, `vessel_abandoned_at_sea()`, `do_strikecolors()` in `vessels_damage.c`; `do_claimship()`, `do_plunder()`, `can_attempt_boarding()` (L14) |
 | Migration: prototype armor rescaled once by class (armor-scale flag), live hulls converted keeping their damage fractions (condition-model flag), weapon damage column; Phase 19 SQL with rollback and verifier | Done | `vessel_prototype_ensure_schema()` (`armor_scale`), `vessel_rescale_legacy_armor()`, `vessel_convert_legacy_condition()` from `vessel_db_load_runtime()` (`condition_model`); `vessels_phase19_schema.sql`, `_rollback.sql`, `verify_vessels_phase19.sql`; content packages at S3 scale with `armor_scale = 1`, and their provisioners apply Phase 19 first |
-| Status display (structure, sail, rudder, breaches, sinking, colors, weapons), help in both places, `VESSEL_SYSTEM.md` | Planned |  |
+| Status display (structure, sail, rudder, breaches, sinking, colors, weapons), help in both places, `VESSEL_SYSTEM.md` | Done | `vessel_show_condition()` in `shipstatus` after the four armor lines, which keep their format for the ferry soak; SHIPSTATUS help |
 | Unit tests, actual-character damage gate, existing gates, local CI | Planned |  |
 
 Interpretations decided while planning S3:

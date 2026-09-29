@@ -13,6 +13,7 @@
 #include "../../src/core/db.h"
 #include "../../src/database/mysql.h"
 #include "../../src/magic/spells.h"
+#include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"
 
 #include <stdlib.h>
@@ -858,4 +859,83 @@ void Test_vessel_legacy_snapshot_converts_once_at_load(CuTest *tc)
   mysql_query(connection, "DROP TEMPORARY TABLE ship_runtime_state");
   mysql_query(connection, "DROP TEMPORARY TABLE ship_interiors");
   mysql_close(connection);
+}
+
+/* Clear the captured output before the next command. */
+static void damage_reset_output(struct descriptor_data *descriptor, char *output, size_t size)
+{
+  memset(output, 0, size);
+  descriptor->bufptr = 0;
+  descriptor->bufspace = (int)(size - 1);
+}
+
+void Test_vessel_status_shows_damage_and_weapons(CuTest *tc)
+{
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  struct char_data captain;
+  struct player_special_data specials;
+  char output[4096];
+
+  memset(&captain, 0, sizeof(captain));
+  memset(&specials, 0, sizeof(specials));
+  memset(&descriptor, 0, sizeof(descriptor));
+  captain.player_specials = &specials;
+  captain.player.name = CuMutableString("Mara");
+  captain.desc = &descriptor;
+  descriptor.character = &captain;
+  descriptor.output = output;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+
+  /* Holed on two sides and going down, colors struck, weapons knocked about. */
+  ship = damage_warship(DAMAGE_TARGET_SLOT, "TG");
+  ship->parmor = ship->pinternal = 0;
+  ship->rarmor = ship->rinternal = 0;
+  ship->sink_ticks = 179;
+  ship->colors_struck_ticks = VESSEL_COLORS_STRUCK_TICKS;
+  ship->slot[0].damage = 35;
+  ship->slot[1].timer = 3;
+  ship->slot[2] = ship->slot[0];
+  ship->slot[2].position = GREYHAWK_FORE;
+  ship->slot[2].damage = VESSEL_WEAPON_DESTROYED;
+  strlcpy(ship->slot[2].desc, "the bow chaser", sizeof(ship->slot[2].desc));
+  damage_reset_output(&descriptor, output, sizeof(output));
+  vessel_show_condition(&captain, ship);
+  CuAssertTrue(tc, strstr(output, "Structure: bow 38/38, port 0/47, starboard 47/47, "
+                                  "stern 0/23\r\n") != NULL);
+  CuAssertTrue(tc, strstr(output, "Sails: 140/140\r\nRudder: 20/20\r\n") != NULL);
+  CuAssertTrue(tc, strstr(output, "Holed: port side and stern. SINKING: she goes down in about "
+                                  "90 seconds.\r\n") != NULL);
+  CuAssertTrue(tc, strstr(output, "Colors: struck, for about 600 more seconds.") != NULL);
+  CuAssertTrue(tc, strstr(output, "the port battery (port side): disabled, 35% damaged") != NULL);
+  CuAssertTrue(tc, strstr(output, "the starboard battery (starboard side): reloading") != NULL);
+  CuAssertTrue(tc, strstr(output, "the bow chaser (bow): destroyed") != NULL);
+
+  /* One hole stops a hull afloat and halves one aloft. */
+  ship->sink_ticks = 0;
+  ship->colors_struck_ticks = 0;
+  ship->rarmor = 65;
+  ship->slot[0].damage = 0;
+  ship->slot[1].timer = 0;
+  damage_reset_output(&descriptor, output, sizeof(output));
+  vessel_show_condition(&captain, ship);
+  CuAssertTrue(tc, strstr(output, "Holed: port side. She cannot move.\r\n") != NULL);
+  CuAssertTrue(tc, strstr(output, "Colors:") == NULL);
+  CuAssertTrue(tc, strstr(output, "the port battery (port side): ready") != NULL);
+  ship->z = 5.0;
+  damage_reset_output(&descriptor, output, sizeof(output));
+  vessel_show_condition(&captain, ship);
+  CuAssertTrue(tc, strstr(output, "Holed: port side. She makes half speed aloft.") != NULL);
+
+  /* A sound, unarmed hull. */
+  vessel_initialize_condition(ship, 109);
+  memset(ship->slot, 0, sizeof(ship->slot));
+  damage_reset_output(&descriptor, output, sizeof(output));
+  vessel_show_condition(&captain, ship);
+  CuAssertTrue(tc, strstr(output, "Holed:") == NULL);
+  CuAssertTrue(tc, strstr(output, "== Weapons ==\r\nNone mounted.\r\n") != NULL);
+
+  ProtocolDestroy(descriptor.pProtocol);
+  damage_clear();
 }

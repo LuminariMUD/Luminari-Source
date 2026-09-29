@@ -592,7 +592,7 @@ void vehicle_save_all(void);      void vehicle_load_all(void);
 | -- | -- | -- |
 | board | Board a vessel | `board <ship>` |
 | greyhawk_tactical | Display tactical map | `tactical` |
-| greyhawk_status | Show ship status | `shipstatus` |
+| greyhawk_status | Show ship status: position, navigation, armor and structure by side, sails, rudder, holes, sink timer, struck colors, weapons (`vessel_show_condition()`) | `shipstatus` |
 | shiptalk | Speak across all rooms of the current vessel | `shiptalk <message>` |
 | greyhawk_speed | Order a speed; the hull gathers or loses way at its class rate | `speed <0-30>` |
 | greyhawk_heading | Order a heading; the hull comes about at its turn rate | `heading <0-360>` |

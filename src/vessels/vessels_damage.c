@@ -988,3 +988,105 @@ ACMD(do_strikecolors)
   }
   log("Info: %s struck the colors of ship %d '%s'", GET_NAME(ch), ship->shipnum, ship->name);
 }
+
+/**
+ * The damage-model part of `shipstatus`: structure, sails, rudder, holes,
+ * the sink timer, struck colors, and each weapon's state.
+ */
+void vessel_show_condition(struct char_data *ch, struct greyhawk_ship_data *ship)
+{
+  /* The order of the armor lines above: bow, port, starboard, stern */
+  static const int display_arc[VESSEL_NUM_ARCS] = {GREYHAWK_FORE, GREYHAWK_PORT, GREYHAWK_STARBOARD,
+                                                   GREYHAWK_REAR};
+  static const char *const structure_name[VESSEL_NUM_ARCS] = {"bow", "port", "starboard", "stern"};
+  const struct greyhawk_ship_slot *slot;
+  char holes[128];
+  int breaches;
+  int holed;
+  int arc;
+  int i;
+  bool armed;
+
+  if (ch == NULL || ship == NULL)
+  {
+    return;
+  }
+
+  send_to_char(ch, "Structure:");
+  for (i = 0; i < VESSEL_NUM_ARCS; i++)
+  {
+    arc = display_arc[i];
+    send_to_char(ch, "%s %s %d/%d", i > 0 ? "," : "", structure_name[i],
+                 *vessel_arc_internal(ship, arc), *vessel_arc_max_internal(ship, arc));
+  }
+  send_to_char(ch, "\r\nSails: %d/%d\r\nRudder: %d/%d\r\n", ship->mainsail, ship->maxmainsail,
+               ship->turnrate, ship->maxturnrate);
+
+  breaches = vessel_breached_arcs(ship);
+  holes[0] = '\0';
+  holed = 0;
+  for (i = 0; i < VESSEL_NUM_ARCS; i++)
+  {
+    arc = display_arc[i];
+    if (*vessel_arc_armor(ship, arc) == 0 && *vessel_arc_internal(ship, arc) == 0)
+    {
+      holed++;
+      if (holed > 1)
+      {
+        strlcat(holes, holed == breaches ? " and " : ", ", sizeof(holes));
+      }
+      strlcat(holes, vessel_arc_side_name(arc), sizeof(holes));
+    }
+  }
+  if (breaches > 0)
+  {
+    send_to_char(ch, "Holed: %s. ", holes);
+  }
+  if (vessel_is_sinking(ship))
+  {
+    send_to_char(ch, "SINKING: she goes down in about %d seconds.\r\n", (ship->sink_ticks + 1) / 2);
+  }
+  else if (breaches > 0)
+  {
+    send_to_char(ch, ship->z > 0 ? "She makes half speed aloft.\r\n" : "She cannot move.\r\n");
+  }
+  if (vessel_colors_struck(ship))
+  {
+    send_to_char(ch, "Colors: struck, for about %d more seconds.\r\n",
+                 (ship->colors_struck_ticks + 1) / 2);
+  }
+
+  send_to_char(ch, "\r\n== Weapons ==\r\n");
+  armed = FALSE;
+  for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
+  {
+    slot = &ship->slot[i];
+    if (slot->type != 1)
+    {
+      continue;
+    }
+    armed = TRUE;
+    send_to_char(ch, "%s (%s): ", slot->desc[0] ? slot->desc : "a weapon",
+                 vessel_arc_side_name(slot->position));
+    if (slot->damage >= VESSEL_WEAPON_DESTROYED)
+    {
+      send_to_char(ch, "destroyed\r\n");
+    }
+    else if (slot->damage > 0)
+    {
+      send_to_char(ch, "disabled, %d%% damaged\r\n", slot->damage);
+    }
+    else if (slot->timer > 0)
+    {
+      send_to_char(ch, "reloading\r\n");
+    }
+    else
+    {
+      send_to_char(ch, "ready\r\n");
+    }
+  }
+  if (!armed)
+  {
+    send_to_char(ch, "None mounted.\r\n");
+  }
+}

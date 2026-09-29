@@ -611,6 +611,7 @@ void vessel_damage_weapon(struct greyhawk_ship_data *attacker, struct greyhawk_s
                           int arc, int damage);
 void vessel_knockdown_aboard(struct greyhawk_ship_data *ship);
 void vessel_update_condition(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *attacker);
+void vessel_show_condition(struct char_data *ch, struct greyhawk_ship_data *ship);
 
 /* Breaches and sinking (study 3.3.3); sink timers in vessel ticks */
 #define VESSEL_SINK_TICKS_OWNED_MIN 150    /* 75 s: a player-owned hull */
