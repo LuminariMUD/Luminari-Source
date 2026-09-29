@@ -318,8 +318,9 @@ void *i3_client_thread(void *arg)
     {
       FD_ZERO(&read_set);
       FD_SET(i3_client->socket_fd, &read_set);
-      timeout.tv_sec = 1;
-      timeout.tv_usec = 0;
+      /* The poll bounds how long a queued command or a shutdown waits. */
+      timeout.tv_sec = 0;
+      timeout.tv_usec = 100000;
 
       result = select(i3_client->socket_fd + 1, &read_set, NULL, NULL, &timeout);
       if (result > 0 && FD_ISSET(i3_client->socket_fd, &read_set))
