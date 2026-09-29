@@ -1018,17 +1018,26 @@ test_deployment_requires_supported_game_port() {
     fail "fresh deployment did not select game port 4100"
 }
 
-test_compatibility_links
-test_planned_reboot_exit
-test_autorun_startup_and_locking
-test_watchdog_startup_grace
-test_watchdog_transient_killscript
-test_watchdog_pid_verification
-test_watchdog_stale_verified_supervisor
-test_watchdog_daemon_recovery
-test_copyover_identity_refresh
-test_systemd_unit_installation
-test_world_initialization_verifies_indexes
-test_deployment_requires_supported_game_port
+# Each case works in its own directory under test_root, so they run together.
+case_pids=()
+for test_case in \
+  test_compatibility_links \
+  test_planned_reboot_exit \
+  test_autorun_startup_and_locking \
+  test_watchdog_startup_grace \
+  test_watchdog_transient_killscript \
+  test_watchdog_pid_verification \
+  test_watchdog_stale_verified_supervisor \
+  test_watchdog_daemon_recovery \
+  test_copyover_identity_refresh \
+  test_systemd_unit_installation \
+  test_world_initialization_verifies_indexes \
+  test_deployment_requires_supported_game_port; do
+  "$test_case" &
+  case_pids+=("$!")
+done
+for case_pid in "${case_pids[@]}"; do
+  wait "$case_pid" || fail "a supervision case failed"
+done
 
 echo "autorun supervision test: PASS"

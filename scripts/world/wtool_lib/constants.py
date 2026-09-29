@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 from dataclasses import dataclass
+import functools
 import json
 import os
 from pathlib import Path
@@ -277,6 +278,8 @@ def default_manifest_path(repo_root: Path | None = None) -> Path:
     return root / "scripts/world/wtool_constants.json"
 
 
+# Dozens of limits come from the same few headers.
+@functools.lru_cache(maxsize=None)
 def _strip_c_comments(text: str) -> str:
     output: list[str] = []
     index = 0
