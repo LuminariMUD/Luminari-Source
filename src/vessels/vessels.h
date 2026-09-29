@@ -621,6 +621,15 @@ bool vessel_is_salvage_crate(const struct obj_data *obj);
 int vessel_salvage_crates(struct greyhawk_ship_data *ship, room_rnum room);
 ACMD_DECL(do_shipsalvage);
 
+/* Prizes (decision D6): capture, plunder, and hostile boarding */
+#define VESSEL_COLORS_STRUCK_TICKS 1200 /* 10 minutes */
+#define VESSEL_BOARDING_MAX_SPEED 3     /* Fastest hull a boarding party can grapple */
+
+bool vessel_colors_struck(const struct greyhawk_ship_data *ship);
+bool vessel_abandoned_at_sea(struct greyhawk_ship_data *ship, const struct char_data *except);
+bool vessel_prize_disabled(struct greyhawk_ship_data *ship, const struct char_data *except);
+ACMD_DECL(do_strikecolors);
+
 /* ========================================================================= */
 /* NAVAL COMBAT (Phase 05, vessels_combat.c)                                 */
 /* ========================================================================= */

@@ -1004,6 +1004,22 @@ ACMD(do_claimship)
     return;
   }
 
+  if (vessel_is_sinking(ship))
+  {
+    send_to_char(ch, "%s is going down - there is nothing left to claim.\r\n", ship->name);
+    return;
+  }
+
+  /* Decision D6: only a beaten prize changes hands. */
+  if (!vessel_prize_disabled(ship, ch))
+  {
+    send_to_char(ch,
+                 "%s is not beaten. Only a holed or immobile hull, one that has struck her "
+                 "colors, or one abandoned at sea can be taken.\r\n",
+                 ship->name);
+    return;
+  }
+
   /* Seizing a hull takes it from its owner outright, so it answers to the
    * same consent rules as sinking it. Without this, anyone could board a
    * moored ship, walk to the bridge, and claim it while the owner slept. */

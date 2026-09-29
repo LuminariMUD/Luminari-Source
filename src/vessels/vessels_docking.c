@@ -618,6 +618,18 @@ bool can_attempt_boarding(struct char_data *ch, struct greyhawk_ship_data *targe
     return FALSE;
   }
 
+  /* Decision D6: grappling lines hold only on a slow or beaten hull. */
+  if (vessel_display_speed(target->speed) > VESSEL_BOARDING_MAX_SPEED &&
+      !vessel_prize_disabled(target, NULL))
+  {
+    VSSL_DEBUG_DOCK("BOARDING CHECK FAILED: Target too fast");
+    send_to_char(ch,
+                 "%s is making way too fast to grapple. Only a hull at speed %d or less, or a "
+                 "beaten one, can be boarded.\r\n",
+                 target->name, VESSEL_BOARDING_MAX_SPEED);
+    return FALSE;
+  }
+
   VSSL_DEBUG_DOCK("Boarding check passed for %s", GET_NAME(ch));
   return TRUE;
 }

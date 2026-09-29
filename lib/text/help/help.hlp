@@ -25404,6 +25404,7 @@ PLUNDER
   what you take. Requirements:
     - You hold the bridge with nobody conscious to contest it
     - It is not your own ship
+    - She is beaten: holed or immobile, colors struck, or abandoned at sea
     - Your ship is alongside with hold space free
 
 BOUNTY [<player>]
@@ -31848,7 +31849,7 @@ sail accordingly, or don't sail what you can't afford to lose.
 
 See also: SHIP COMBAT, CLAIMSHIP, VEDIT, BOARD, DOCK
 #0
-CLAIMSHIP NAVAL-COMBAT SHIP-COMBAT SHIPFIRE SHIPREPAIR SHIPSALVAGE
+CLAIMSHIP NAVAL-COMBAT SHIP-COMBAT SHIPFIRE SHIPREPAIR SHIPSALVAGE STRIKECOLORS
 
 Naval combat commands (usable from anywhere aboard your vessel):
 
@@ -31905,10 +31906,18 @@ SHIPREPAIR
   repair (faster, for gold) arrives with the shipyard system.
 
 CLAIMSHIP
-  Capture a ship: stand on its bridge with no other conscious character
-  present and claim it. Ownership transfers to you, unless you already own
-  as many hulls as the ownership limit allows. Pairs with hostile
-  boarding ('board_hostile <vessel>' from a nearby vessel).
+  Capture a beaten ship: stand on its bridge with no other conscious
+  character present and claim it. Only a prize can be taken: a hull with a
+  holed side, one that cannot move, one whose colors are struck, or one
+  abandoned at sea with nobody conscious aboard but you. A sinking hull
+  cannot be claimed. Ownership transfers to you, unless you already own as
+  many hulls as the ownership limit allows. Pairs with hostile boarding
+  ('board_hostile <vessel>' from a nearby vessel).
+
+STRIKECOLORS
+  Yield: the owner or a helm permit holder of a stopped vessel strikes her
+  colors, making her a prize that may be boarded, plundered, and claimed.
+  The colors fly again when she gets under way or after ten minutes.
 
 PvP: firing on, boarding, plundering, or claiming another player's ship all
 require that you and the ship's owner both have PVP enabled (type 'pvp'),
@@ -41503,7 +41512,9 @@ SHIP_ROOMS
   List the vessel interior and identify its bridge and entrance.
 
 BOARD_HOSTILE <vessel>
-  Launch a hostile transfer from one nearby vessel to another. The first
+  Launch a hostile transfer from one nearby vessel to another. Grappling
+  lines hold only on a vessel making speed 3 or less, or on a beaten one
+  (holed, immobile, colors struck, or abandoned). The first
   opposed Boarding check secures grappling lines; if they hold, a second
   opposed Boarding check resolves the crossing. Ties favor the defending
   vessel. Its strongest conscious, PvP-consenting occupant supplies the

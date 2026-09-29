@@ -363,3 +363,159 @@ void Test_vessel_cargo_spills_as_crates_that_can_be_salvaged(CuTest *tc)
   top_of_world = saved_top_of_world;
   damage_clear();
 }
+
+/* Two ship rooms (bridge, hold) and two characters for the prize rules. */
+struct prize_fixture
+{
+  struct room_data rooms[2];
+  struct char_data captain;
+  struct player_special_data captain_specials;
+  struct char_data hand;
+  struct player_special_data hand_specials;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+};
+
+static struct greyhawk_ship_data *prize_begin(struct prize_fixture *fixture)
+{
+  struct greyhawk_ship_data *ship;
+
+  memset(fixture, 0, sizeof(*fixture));
+  fixture->saved_world = world;
+  fixture->saved_top_of_world = top_of_world;
+  world = fixture->rooms;
+  top_of_world = 1;
+  fixture->rooms[0].number = DAMAGE_ROOM_VNUM;
+  fixture->rooms[1].number = DAMAGE_ROOM_VNUM + 1;
+
+  ship = damage_warship(DAMAGE_TARGET_SLOT, "TG");
+  ship->num_rooms = 2;
+  ship->room_vnums[0] = DAMAGE_ROOM_VNUM;
+  ship->room_vnums[1] = DAMAGE_ROOM_VNUM + 1;
+  ship->bridge_room = DAMAGE_ROOM_VNUM;
+  ship->maxspeed = 17;
+  ship->position_speed_percent = 100;
+  fixture->rooms[0].ship = ship;
+  fixture->rooms[1].ship = ship;
+
+  /* The captain stands on the bridge, a hand in the hold. */
+  fixture->captain.player_specials = &fixture->captain_specials;
+  fixture->captain.player.name = CuMutableString("Mara");
+  GET_LEVEL(&fixture->captain) = 20;
+  GET_POS(&fixture->captain) = POS_STANDING;
+  IN_ROOM(&fixture->captain) = 0;
+  fixture->rooms[0].people = &fixture->captain;
+  fixture->hand.player_specials = &fixture->hand_specials;
+  SET_BIT_AR(MOB_FLAGS(&fixture->hand), MOB_ISNPC);
+  GET_POS(&fixture->hand) = POS_STANDING;
+  IN_ROOM(&fixture->hand) = 1;
+  fixture->rooms[1].people = &fixture->hand;
+  return ship;
+}
+
+static void prize_end(struct prize_fixture *fixture)
+{
+  world = fixture->saved_world;
+  top_of_world = fixture->saved_top_of_world;
+  damage_clear();
+}
+
+void Test_vessel_only_a_beaten_prize_can_be_taken(CuTest *tc)
+{
+  struct prize_fixture fixture;
+  struct greyhawk_ship_data *ship;
+
+  /* A sound hull with a hand aboard is no prize, even to her captain. */
+  ship = prize_begin(&fixture);
+  CuAssertTrue(tc, !vessel_prize_disabled(ship, &fixture.captain));
+
+  /* Holed, immobile, or struck colors make her one. */
+  ship->rarmor = ship->rinternal = 0;
+  CuAssertTrue(tc, vessel_prize_disabled(ship, &fixture.captain));
+  ship->rarmor = 65;
+  ship->rinternal = 23;
+  ship->mainsail = 0;
+  CuAssertTrue(tc, vessel_prize_disabled(ship, &fixture.captain));
+  ship->mainsail = 140;
+  ship->colors_struck_ticks = 5;
+  CuAssertTrue(tc, vessel_prize_disabled(ship, &fixture.captain));
+  ship->colors_struck_ticks = 0;
+
+  /* Abandoned at sea: nobody conscious aboard but the claimant. */
+  GET_POS(&fixture.hand) = POS_STUNNED;
+  CuAssertTrue(tc, vessel_abandoned_at_sea(ship, &fixture.captain));
+  CuAssertTrue(tc, vessel_prize_disabled(ship, &fixture.captain));
+  CuAssertTrue(tc, !vessel_abandoned_at_sea(ship, NULL));
+  GET_POS(&fixture.hand) = POS_STANDING;
+
+  /* The claimant on a sound, manned, unowned hull is refused outright. */
+  do_claimship(&fixture.captain, "", 0, 0);
+  CuAssertStrEquals(tc, "", ship->owner);
+
+  prize_end(&fixture);
+}
+
+void Test_vessel_struck_colors_hold_until_she_moves_or_time_runs_out(CuTest *tc)
+{
+  struct prize_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  int ticks;
+
+  /* An unowned hull has no captain to strike her colors. */
+  ship = prize_begin(&fixture);
+  do_strikecolors(&fixture.captain, "", 0, 0);
+  CuAssertTrue(tc, !vessel_colors_struck(ship));
+
+  /* Her owner strikes them only once she is stopped. */
+  strlcpy(ship->owner, "Mara", sizeof(ship->owner));
+  ship->speed = 4.0;
+  do_strikecolors(&fixture.captain, "", 0, 0);
+  CuAssertTrue(tc, !vessel_colors_struck(ship));
+  ship->speed = 0.0;
+  do_strikecolors(&fixture.captain, "", 0, 0);
+  CuAssertTrue(tc, vessel_colors_struck(ship));
+  CuAssertIntEquals(tc, VESSEL_COLORS_STRUCK_TICKS, ship->colors_struck_ticks);
+
+  /* Ten minutes later they fly again. */
+  for (ticks = 0; ticks < VESSEL_COLORS_STRUCK_TICKS; ticks++)
+  {
+    vessel_damage_tick_one(ship);
+  }
+  CuAssertTrue(tc, !vessel_colors_struck(ship));
+
+  /* Getting under way hoists them at once. */
+  do_strikecolors(&fixture.captain, "", 0, 0);
+  CuAssertTrue(tc, vessel_colors_struck(ship));
+  ship->speed = 1.0;
+  vessel_damage_tick_one(ship);
+  CuAssertTrue(tc, !vessel_colors_struck(ship));
+
+  prize_end(&fixture);
+}
+
+void Test_vessel_boarding_needs_a_slow_or_beaten_hull(CuTest *tc)
+{
+  struct prize_fixture fixture;
+  struct greyhawk_ship_data *raider;
+  struct greyhawk_ship_data *prize;
+
+  /* The captain stands aboard the raider; the prize lies alongside. */
+  raider = prize_begin(&fixture);
+  prize = damage_warship(DAMAGE_ATTACKER_SLOT, "AT");
+  prize->x = 1.0;
+  prize->maxspeed = 17;
+  prize->position_speed_percent = 100;
+  prize->num_rooms = 1;
+  prize->room_vnums[0] = DAMAGE_ROOM_VNUM + 1; /* the hand crews her */
+  (void)raider;
+
+  prize->speed = 5.0;
+  CuAssertTrue(tc, !can_attempt_boarding(&fixture.captain, prize));
+  prize->speed = 3.0;
+  CuAssertTrue(tc, can_attempt_boarding(&fixture.captain, prize));
+  prize->speed = 5.0;
+  prize->sarmor = prize->sinternal = 0;
+  CuAssertTrue(tc, can_attempt_boarding(&fixture.captain, prize));
+
+  prize_end(&fixture);
+}

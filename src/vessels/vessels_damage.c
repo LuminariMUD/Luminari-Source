@@ -768,3 +768,95 @@ ACMD(do_shipsalvage)
                hauled == 1 ? "" : "s");
   WAIT_STATE(ch, PULSE_VIOLENCE);
 }
+
+bool vessel_colors_struck(const struct greyhawk_ship_data *ship)
+{
+  return ship != NULL && ship->colors_struck_ticks > 0;
+}
+
+/**
+ * At sea with no conscious character aboard but `except` (a claimant). Hired
+ * crew positions are abstract and defend nothing.
+ */
+bool vessel_abandoned_at_sea(struct greyhawk_ship_data *ship, const struct char_data *except)
+{
+  struct char_data *ch;
+  room_rnum room;
+  int i;
+
+  if (!is_valid_ship(ship) || vessel_ship_is_in_port(ship))
+  {
+    return FALSE;
+  }
+
+  for (i = 0; i < ship->num_rooms && i < MAX_SHIP_ROOMS; i++)
+  {
+    room = real_room(ship->room_vnums[i]);
+    if (room == NOWHERE)
+    {
+      continue;
+    }
+    for (ch = world[room].people; ch != NULL; ch = ch->next_in_room)
+    {
+      if (ch != except && GET_POS(ch) > POS_STUNNED)
+      {
+        return FALSE;
+      }
+    }
+  }
+  return TRUE;
+}
+
+/**
+ * A beaten prize (decision D6): holed, immobile, colors struck, or abandoned
+ * at sea. Only such a hull can be captured or plundered, or boarded at speed.
+ */
+bool vessel_prize_disabled(struct greyhawk_ship_data *ship, const struct char_data *except)
+{
+  return is_valid_ship(ship) &&
+         (vessel_breached_arcs(ship) > 0 || vessel_max_speed(ship) <= 0.0 ||
+          vessel_colors_struck(ship) || vessel_abandoned_at_sea(ship, except));
+}
+
+/**
+ * strikecolors - yield: the owner or a permit holder strikes the colors of a
+ * stopped hull, making her a prize until she moves or ten minutes pass.
+ */
+ACMD(do_strikecolors)
+{
+  struct greyhawk_ship_data *ship;
+
+  ship = get_ship_from_room(IN_ROOM(ch));
+  if (!is_valid_ship(ship))
+  {
+    send_to_char(ch, "You must be aboard a vessel to strike her colors.\r\n");
+    return;
+  }
+  if (ship->owner[0] == '\0' || !vessel_helm_permitted(ch, ship))
+  {
+    send_to_char(ch, "Only her owner or a helm permit holder can strike %s's colors.\r\n",
+                 ship->name);
+    return;
+  }
+  if (vessel_colors_struck(ship))
+  {
+    send_to_char(ch, "%s's colors are already struck.\r\n", ship->name);
+    return;
+  }
+  if (ship->speed > 0.0)
+  {
+    send_to_char(ch, "Bring her to a stop before striking her colors.\r\n");
+    return;
+  }
+
+  ship->colors_struck_ticks = VESSEL_COLORS_STRUCK_TICKS;
+  send_to_ship(ship,
+               "%s strikes %s's colors: she yields. They fly again when she gets under way "
+               "or in ten minutes.",
+               GET_NAME(ch), ship->name);
+  if (ship->shipobj != NULL && IN_ROOM(ship->shipobj) != NOWHERE)
+  {
+    send_to_room(IN_ROOM(ship->shipobj), "%s strikes her colors.\r\n", ship->name);
+  }
+  log("Info: %s struck the colors of ship %d '%s'", GET_NAME(ch), ship->shipnum, ship->name);
+}

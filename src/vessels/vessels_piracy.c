@@ -897,6 +897,16 @@ ACMD(do_plunder)
     return;
   }
 
+  /* Decision D6: only a beaten prize is stripped. */
+  if (!vessel_prize_disabled(prize, ch))
+  {
+    send_to_char(ch,
+                 "%s is not beaten. Only a holed or immobile hull, one that has struck her "
+                 "colors, or one abandoned at sea can be plundered.\r\n",
+                 prize->name);
+    return;
+  }
+
   /* Taking another player's cargo is a hostile act against them, so it
    * answers to the same consent rules as attacking them directly. */
   if (!vessel_pvp_permitted(ch, prize, TRUE))

@@ -1097,7 +1097,8 @@ the character and closing the database claim.
 | shipfire | Fire a weapon slot at a contact | `shipfire <slot> <contact ID or name>` |
 | shiprepair | Slow at-sea repairs (stationary only) | `shiprepair` |
 | shipsalvage | Haul floating salvage crates into the hold (helm, stopped) | `shipsalvage` |
-| claimship | Capture from an uncontested bridge | `claimship` |
+| claimship | Capture a beaten prize from an uncontested bridge | `claimship` |
+| strikecolors | Yield: make a stopped hull a prize for ten minutes | `strikecolors` |
 
 Combat model (`src/vessels/vessels_combat.c`): a hit resolves through the
 damage model (Damage Model (S3) below). Weapon arcs derive from
@@ -1200,6 +1201,17 @@ study 3.3.1, 3.3.3).
   (`vessel_spill_cargo()`) and `vessel_sink()` evacuates the hull as before.
   `vessel_status()` reports SINKING only for a sinking hull; a gutted hull
   whose armor holds is crippled.
+- Prizes (decision D6, `vessel_prize_disabled()`): a hull is beaten when she
+  has a holed arc, cannot move (`vessel_max_speed()` 0), has struck her colors,
+  or is abandoned at sea (`vessel_abandoned_at_sea()`: not in port, nobody
+  conscious aboard but the claimant; hired crew positions are abstract).
+  `claimship` and `plunder` take only a beaten prize, and `claimship` refuses
+  a sinking one; hostile boarding (`can_attempt_boarding()`) holds only on a
+  hull at speed `VESSEL_BOARDING_MAX_SPEED` (3) or less or a beaten one.
+- `strikecolors`: the owner or a helm permit holder of an owned, stopped hull
+  strikes her colors (`colors_struck_ticks`, runtime only) for
+  `VESSEL_COLORS_STRUCK_TICKS` (1200, ten minutes); they fly again when she
+  gets under way.
 - Salvage crates are prototype-less `ITEM_OTHER` objects (value 0 the
   commodity, 1 the units, 2 `VESSEL_SALVAGE_CRATE_MARK`), not takeable, that
   decay after `VESSEL_SALVAGE_CRATE_HOURS` (24) MUD hours. `shipsalvage` from
