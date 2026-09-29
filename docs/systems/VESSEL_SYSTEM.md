@@ -218,7 +218,7 @@ times 0.3, weights in Duris units):
 | Magical | 14 | 1.2 | 2.5 | 200 | 25 | 80 | 0 |
 
 `vedit new` uses the class speed as the prototype default. Voyage times follow
-from the pacing: the 359-room Vailand Iron Passage takes about 22 minutes of
+from the pacing: the 368-room Vailand Iron Passage takes about 23 minutes of
 sailing at the cog's speed 12, and the harbor ferry's 24-room loop about 2
 minutes at speed 10, before departures, waits, and turns.
 

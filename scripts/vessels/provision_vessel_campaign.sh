@@ -298,8 +298,8 @@ start_development_mud() {
   restart_needed=false
 }
 
-# Place the merchant on its route. At the Duris pacing the 359-room passage
-# takes about 22 minutes, so the actual-character windows watch the last leg:
+# Place the merchant on its route. At the Duris pacing the 368-room passage
+# takes about 23 minutes, so the actual-character windows watch the last leg:
 # the merchant starts at the harbor offing under way toward the central port.
 # The final baseline returns it, at rest and berthed, to the north port.
 reset_campaign_runtime() {
@@ -462,7 +462,7 @@ provision_campaign_world
 apply_database_file "$repo_root/sql/components/vessels_phase13_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase14_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_campaign_content.sql"
-reset_campaign_runtime -480 191 0 9 12 45
+reset_campaign_runtime -467 193 0 9 12 0
 start_development_mud "$run_dir/01-boot.log"
 
 merchant_slot=

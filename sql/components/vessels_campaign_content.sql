@@ -260,8 +260,8 @@ INSERT INTO ship_waypoints
 (name, x, y, z, tolerance, wait_time, flags)
 SELECT
   'vailand_southwest_turn',
-  -511,
-  213,
+  -513,
+  215,
   0,
   0.5,
   0,
@@ -288,7 +288,7 @@ INSERT INTO ship_waypoints
 (name, x, y, z, tolerance, wait_time, flags)
 SELECT
   'vailand_central_offing',
-  -501,
+  -504,
   191,
   0,
   0.5,
@@ -302,8 +302,8 @@ INSERT INTO ship_waypoints
 (name, x, y, z, tolerance, wait_time, flags)
 SELECT
   'vailand_harbor_offing',
-  -480,
-  191,
+  -467,
+  193,
   0,
   0.5,
   0,
@@ -354,7 +354,7 @@ SET
 WHERE name = 'vailand_coast_turn';
 UPDATE ship_waypoints
 SET
-  x = -511, y = 213, z = 0, tolerance = 0.5,
+  x = -513, y = 215, z = 0, tolerance = 0.5,
   wait_time = 0, flags = 0
 WHERE name = 'vailand_southwest_turn';
 UPDATE ship_waypoints
@@ -364,12 +364,12 @@ SET
 WHERE name = 'vailand_southern_turn';
 UPDATE ship_waypoints
 SET
-  x = -501, y = 191, z = 0, tolerance = 0.5,
+  x = -504, y = 191, z = 0, tolerance = 0.5,
   wait_time = 0, flags = 0
 WHERE name = 'vailand_central_offing';
 UPDATE ship_waypoints
 SET
-  x = -480, y = 191, z = 0, tolerance = 0.5,
+  x = -467, y = 193, z = 0, tolerance = 0.5,
   wait_time = 0, flags = 0
 WHERE name = 'vailand_harbor_offing';
 UPDATE ship_waypoints
