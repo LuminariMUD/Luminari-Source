@@ -258,12 +258,17 @@ static struct greyhawk_ship_data *weapons_berth_begin(CuTest *tc, struct weapons
 }
 
 /* Run a command and return what it printed. */
-static const char *weapons_berth_command(struct weapons_berth *berth, ACMD_DECL((*command)),
-                                         const char *argument)
+static void weapons_berth_clear_output(struct weapons_berth *berth)
 {
   memset(berth->output, 0, sizeof(berth->output));
   berth->descriptor.bufptr = 0;
   berth->descriptor.bufspace = sizeof(berth->output) - 1;
+}
+
+static const char *weapons_berth_command(struct weapons_berth *berth, ACMD_DECL((*command)),
+                                         const char *argument)
+{
+  weapons_berth_clear_output(berth);
   command(&berth->captain, argument, 0, 0);
   return berth->output;
 }
@@ -305,7 +310,7 @@ void Test_vessel_shipyard_fits_weapons_and_equipment(CuTest *tc)
   CuAssertIntEquals(tc, VESSEL_SLOT_EMPTY, ship->slot[4].type);
   CuAssertIntEquals(tc, 99000, GET_GOLD(&berth.captain));
   ship->crew_tier[CREW_GUNNER] = CREW_TIER_VETERAN;
-  output = weapons_berth_command(&berth, do_shipweapon, "buy 9 fore");
+  weapons_berth_command(&berth, do_shipweapon, "buy 9 fore");
   CuAssertIntEquals(tc, VESSEL_WEAPON_HEAVY_BEAMCANNON, ship->slot[4].item);
   CuAssertIntEquals(tc, 89000, GET_GOLD(&berth.captain));
   output = weapons_berth_command(&berth, do_shipweapon, "buy long tom rear");
@@ -362,7 +367,7 @@ void Test_vessel_shipyard_fits_weapons_and_equipment(CuTest *tc)
   vessel_movement_tick_one(ship);
   CuAssertIntEquals(tc, 0, ship->maintenance_ticks);
   vessel_set_weapon(&ship->slot[6], VESSEL_WEAPON_LONG_TOM, GREYHAWK_PORT);
-  output = weapons_berth_command(&berth, do_shipweapon, "list");
+  weapons_berth_clear_output(&berth);
   CuAssertTrue(tc, !vessel_begin_departure(ship, &berth.captain));
   CuAssertTrue(tc, strstr(berth.output, "withholds clearance: A Long Tom Catapult cannot be "
                                         "mounted on the port arc") != NULL);

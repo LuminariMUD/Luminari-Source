@@ -1022,9 +1022,13 @@ void vessel_movement_tick_one(struct greyhawk_ship_data *ship)
   {
     ship->maneuver_ticks--;
   }
-  if (ship->maintenance_ticks > 0 && --ship->maintenance_ticks == 0)
+  if (ship->maintenance_ticks > 0)
   {
-    send_to_ship(ship, "The shipwrights finish their work on %s.", ship->name);
+    ship->maintenance_ticks--;
+    if (ship->maintenance_ticks == 0)
+    {
+      send_to_ship(ship, "The shipwrights finish their work on %s.", ship->name);
+    }
   }
   if (ship->departure_ticks > 0)
   {
@@ -1051,7 +1055,8 @@ void vessel_movement_tick_one(struct greyhawk_ship_data *ship)
     if (vessel_at_battle_stations(ship) && vessel_cell_is_port(refused_x, refused_y))
     {
       ship->speed = 0.0;
-      send_to_ship_throttled(ship, VESSEL_MESSAGE_HARBOR_REFUSED, VESSEL_AMBIENT_MESSAGE_COOLDOWN,
+      send_to_ship_throttled(ship, VESSEL_MESSAGE_HARBOR_REFUSED,
+                             (uint64_t)VESSEL_AMBIENT_MESSAGE_COOLDOWN,
                              "The harbor will not admit a crew at battle stations; she lies off "
                              "until they stand down.");
       return;

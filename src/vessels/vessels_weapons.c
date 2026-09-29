@@ -218,7 +218,7 @@ void vessel_set_weapon(struct greyhawk_ship_slot *slot, int weapon, int arc)
   }
   slot->type = VESSEL_SLOT_WEAPON;
   slot->item = (unsigned char)weapon;
-  slot->position = (char)arc;
+  slot->position = (unsigned char)arc;
   slot->ammo = (unsigned char)weapon_types[weapon].ammo;
 }
 
@@ -839,7 +839,7 @@ ACMD(do_shiprearm)
   struct greyhawk_ship_data *ship;
   const struct vessel_weapon_type *weapon;
   char arg[MAX_INPUT_LENGTH];
-  bool chosen[GREYHAWK_MAXSLOTS];
+  int full[GREYHAWK_MAXSLOTS]; /* rounds each chosen weapon is refilled to; 0 if not chosen */
   int weapons;
   int cost;
   int slot;
@@ -864,10 +864,11 @@ ACMD(do_shiprearm)
   for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
   {
     weapon = vessel_slot_weapon(&ship->slot[i]);
-    chosen[i] = weapon != NULL && (slot < 0 || slot == i) && ship->slot[i].ammo < weapon->ammo &&
-                ship->slot[i].damage < VESSEL_WEAPON_DESTROYED;
-    if (chosen[i])
+    full[i] = 0;
+    if (weapon != NULL && (slot < 0 || slot == i) && ship->slot[i].ammo < weapon->ammo &&
+        ship->slot[i].damage < VESSEL_WEAPON_DESTROYED)
     {
+      full[i] = weapon->ammo;
       weapons++;
       cost += (weapon->ammo - ship->slot[i].ammo) * VESSEL_ROUND_PRICE;
     }
@@ -886,9 +887,9 @@ ACMD(do_shiprearm)
   award_gold(ch, -cost);
   for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
   {
-    if (chosen[i])
+    if (full[i] > 0)
     {
-      ship->slot[i].ammo = (unsigned char)vessel_slot_weapon(&ship->slot[i])->ammo;
+      ship->slot[i].ammo = (unsigned char)full[i];
     }
   }
   vessel_add_maintenance(ship, ch, weapons * VESSEL_REARM_TICKS);

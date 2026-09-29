@@ -1397,12 +1397,12 @@ int outcast_ship_look_out_room(int room, struct char_data *ch, int cmd, char *ar
  * what it holds. */
 struct greyhawk_ship_slot
 {
-  char type;            /* VESSEL_SLOT_EMPTY, VESSEL_SLOT_WEAPON or VESSEL_SLOT_EQUIPMENT */
-  char position;        /* Arc a weapon is mounted on: GREYHAWK_FORE.. */
-  unsigned char item;   /* Catalogue row: enum vessel_weapon_id or vessel_equipment_id */
-  unsigned char ammo;   /* Rounds left in a weapon */
-  unsigned char damage; /* Weapon damage: disabled at 1, destroyed at 100 (S3) */
-  short int timer;      /* Reload timer, in vessel ticks */
+  char type;              /* VESSEL_SLOT_EMPTY, VESSEL_SLOT_WEAPON or VESSEL_SLOT_EQUIPMENT */
+  unsigned char position; /* Arc a weapon is mounted on: GREYHAWK_FORE.. */
+  unsigned char item;     /* Catalogue row: enum vessel_weapon_id or vessel_equipment_id */
+  unsigned char ammo;     /* Rounds left in a weapon */
+  unsigned char damage;   /* Weapon damage: disabled at 1, destroyed at 100 (S3) */
+  short int timer;        /* Reload timer, in vessel ticks */
 };
 
 /* Greyhawk Ship Crew Structure */

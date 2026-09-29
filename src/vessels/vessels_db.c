@@ -491,7 +491,7 @@ bool vessel_db_load_weapons(struct greyhawk_ship_data *ship)
 
     slot = &ship->slot[slot_index];
     slot->type = (char)(row[1] ? parse_int(row[1]) : VESSEL_SLOT_WEAPON);
-    slot->position = (char)(row[2] ? parse_int(row[2]) : GREYHAWK_FORE);
+    slot->position = (unsigned char)(row[2] ? parse_int(row[2]) : GREYHAWK_FORE);
     slot->item = (unsigned char)(row[3] ? parse_int(row[3]) : 0);
     slot->ammo = (unsigned char)MIN(255, MAX(0, row[4] ? parse_int(row[4]) : 0));
     if (slot->type == VESSEL_SLOT_WEAPON && slot->item == VESSEL_WEAPON_NONE)

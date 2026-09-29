@@ -183,6 +183,7 @@ int vessel_gunnery_bonus(const struct greyhawk_ship_data *ship, struct char_data
   {
     return 0;
   }
+  /* NOLINTNEXTLINE(bugprone-signed-char-misuse) -- a gunnery modifier, not a character */
   bonus = ship->guncrew.gunadjust;
   if (ch == NULL)
   {
@@ -565,14 +566,22 @@ void vessel_gunnery_tick_one(struct greyhawk_ship_data *ship)
     return;
   }
 
-  if (ship->stun_ticks > 0 && --ship->stun_ticks == 0)
+  if (ship->stun_ticks > 0)
   {
-    send_to_ship(ship, "The crew recovers from the mental shock.");
+    ship->stun_ticks--;
+    if (ship->stun_ticks == 0)
+    {
+      send_to_ship(ship, "The crew recovers from the mental shock.");
+    }
   }
   for (s = 0; s < GREYHAWK_MAXSLOTS && !vessel_crew_stunned(ship); s++)
   {
-    if (ship->slot[s].timer > 0 && --ship->slot[s].timer == 0 &&
-        ship->slot[s].type == VESSEL_SLOT_WEAPON)
+    if (ship->slot[s].timer <= 0)
+    {
+      continue;
+    }
+    ship->slot[s].timer--;
+    if (ship->slot[s].timer == 0 && ship->slot[s].type == VESSEL_SLOT_WEAPON)
     {
       send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RELOAD, VESSEL_COMBAT_MESSAGE_COOLDOWN,
                              "The %s %s is reloaded and ready.",
@@ -581,9 +590,13 @@ void vessel_gunnery_tick_one(struct greyhawk_ship_data *ship)
     }
   }
 
-  if (ship->battle_ticks > 0 && --ship->battle_ticks == 0)
+  if (ship->battle_ticks > 0)
   {
-    send_to_ship(ship, "The crew stands down from battle stations.");
+    ship->battle_ticks--;
+    if (ship->battle_ticks == 0)
+    {
+      send_to_ship(ship, "The crew stands down from battle stations.");
+    }
   }
   if (ship->lock_target != 0)
   {
