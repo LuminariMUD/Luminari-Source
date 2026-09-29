@@ -522,17 +522,16 @@ script restored Kohdee's exact original rows.
 ## Bounded Vessel Ferry Validation
 
 The entire supervised ferry gate, including setup, final restart, evidence
-review, and cleanup, must finish within one hour. Use a 45-minute observation
-to reserve 15 minutes for the terminal work:
+review, and cleanup, takes about ten minutes. Its defaults observe for 450
+seconds, long enough for the four-minute ferry loop with a margin:
 
 ```bash
-./scripts/vessels/run_vessel_ferry_soak.sh start 2700 60 900
+./scripts/vessels/run_vessel_ferry_soak.sh start
 ./scripts/vessels/run_vessel_ferry_soak.sh status
 ```
 
-The script retains a historical longer default; do not invoke `start` without
-the explicit bounded arguments above and do not launch a replacement
-long-duration service. Before starting, use `status` to ensure no legacy ferry
+Do not launch a replacement long-duration service; a longer window only
+repeats the same checks. Before starting, use `status` to ensure no legacy ferry
 monitor owns the development server. Preserve any old run directory only as
 historical evidence.
 
@@ -688,7 +687,7 @@ steps, 22 waypoint arrivals, five route completions, four live checks, 25
 database/process samples, zero buffer overflows, a valid continuous
 detailed-memory series, and exact-state recovery and resume after the final
 hard restart. Use the short form only to verify harness changes; it does not
-close the bounded 45-minute release gate.
+close the bounded release gate.
 
 ## Fast Post-Validation Finish
 

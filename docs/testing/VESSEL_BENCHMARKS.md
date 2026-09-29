@@ -1082,6 +1082,14 @@ margin of three loops. At the terminal checkpoint Kohdee paused the ferry, a
 hard restart (PID 29240) restored its exact paused coordinates and route, and
 Kohdee resumed it.
 
+The gate now defaults to a 450-second window with 30-second database and
+process samples (`run_vessel_ferry_soak.sh start`), which still holds one
+whole loop between its live samples. Run `20260929T125640Z-1009498` on source
+`9cf85a337` is terminal `PASS`: 486 of 450 seconds, 53 movement steps, 6
+waypoint arrivals, 2 route completions, 3 live and 16 database and process
+samples, 0 copyovers, and the paused position exact across the final restart
+(PID 1009797 to 1276081).
+
 ### S2 Native 500-Hull Measurement
 
 The fleet-heartbeat scale runner is retired (`run_vessel_scale_benchmark.sh`
