@@ -47,6 +47,11 @@ static int refused_x;
 static int refused_y;
 static bool refuse_room;
 
+/* The port room for movement_enter_port(). */
+static struct room_data *port_room;
+static int port_x;
+static int port_y;
+
 static bool movement_enter_cell(int shipnum, int x, int y, int z)
 {
   struct greyhawk_ship_data *ship = &greyhawk_ships[shipnum];
@@ -65,6 +70,24 @@ static bool movement_enter_cell(int shipnum, int x, int y, int z)
   ship->x = (double)x;
   ship->y = (double)y;
   ship->z = (double)z;
+  return TRUE;
+}
+
+/* The fixture's single room is a port only while the hull lies at the port. */
+static bool movement_enter_port(int shipnum, int x, int y, int z)
+{
+  if (!movement_enter_cell(shipnum, x, y, z))
+  {
+    return FALSE;
+  }
+  if (x == port_x && y == port_y)
+  {
+    SET_BIT_AR(port_room->room_flags, ROOM_DOCKABLE);
+  }
+  else
+  {
+    REMOVE_BIT_AR(port_room->room_flags, ROOM_DOCKABLE);
+  }
   return TRUE;
 }
 
@@ -552,9 +575,7 @@ void Test_vessel_autopilot_steers_turns_slow_and_stops_at_waypoints(CuTest *tc)
   CuAssertPtrNotNull(tc, autopilot_init(ship));
   CuAssertIntEquals(tc, 0, waypoint_add(route, 10.0, 0.0, 0.0, "buoy"));
   CuAssertIntEquals(tc, 1, waypoint_add(route, 10.0, 10.0, 0.0, "cape"));
-  route->waypoints[0].tolerance = 0.5;
   route->waypoints[0].wait_time = 5;
-  route->waypoints[1].tolerance = 0.5;
   CuAssertTrue(tc, autopilot_start(ship, route));
 
   /* Bow 90 degrees off: steerage speed until she has come about. */
@@ -672,6 +693,40 @@ void Test_vessel_paused_autopilot_holds_and_a_finished_route_stops(CuTest *tc)
   movement_ticks(ship, 1);
   CuAssertIntEquals(tc, AUTOPILOT_COMPLETE, ship->autopilot->state);
   CuAssertIntEquals(tc, 0, ship->setspeed);
+
+  movement_end(&fixture);
+}
+
+void Test_vessel_created_route_reaches_and_berths_at_its_port(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct ship_route *route;
+  int ticks;
+
+  /* A new waypoint is reached on entering its own room, so a one-way route
+   * to a port brings the hull to rest there, berthed. */
+  ship = movement_begin(&fixture, VESSEL_WARSHIP);
+  port_room = &fixture.room;
+  port_x = 0;
+  port_y = 12;
+  vessel_movement_set_cell_entry_for_test(movement_enter_port);
+  route = route_create("homeward");
+  CuAssertPtrNotNull(tc, route);
+  CuAssertPtrNotNull(tc, autopilot_init(ship));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, 0.0, 12.0, 0.0, "home"));
+  CuAssertDblEquals(tc, AUTOPILOT_ARRIVAL_TOLERANCE, route->waypoints[0].tolerance, 0.0001);
+  CuAssertTrue(tc, autopilot_start(ship, route));
+
+  for (ticks = 0;
+       ticks < 1000 && (ship->autopilot->state != AUTOPILOT_COMPLETE || ship->speed > 0.0); ticks++)
+  {
+    movement_ticks(ship, 1);
+  }
+  CuAssertIntEquals(tc, AUTOPILOT_COMPLETE, ship->autopilot->state);
+  CuAssertIntEquals(tc, 0, (int)ship->x);
+  CuAssertIntEquals(tc, 12, (int)ship->y);
+  CuAssertIntEquals(tc, MOVEMENT_ROOM_VNUM, ship->dock);
 
   movement_end(&fixture);
 }

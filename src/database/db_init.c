@@ -1716,6 +1716,13 @@ int run_legacy_table_migrations(void)
                        "ADD COLUMN IF NOT EXISTS resource_state JSON DEFAULT NULL"))
     return FALSE;
 
+  /* setwaypoint stored a five-room arrival radius, so an autopilot stopped
+   * that far short of a player's port or wait waypoint; a waypoint is now
+   * reached on entering its own room (AUTOPILOT_ARRIVAL_TOLERANCE). */
+  if (!apply_migration(2026092901, "Reach autopilot waypoints within their own room",
+                       "UPDATE ship_waypoints SET tolerance = 0.5 WHERE tolerance = 5.0"))
+    return FALSE;
+
   return TRUE;
 }
 

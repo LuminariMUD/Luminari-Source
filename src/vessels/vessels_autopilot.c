@@ -275,7 +275,7 @@ int waypoint_add(struct ship_route *route, double x, double y, double z, const c
   route->waypoints[idx].x = x;
   route->waypoints[idx].y = y;
   route->waypoints[idx].z = z;
-  route->waypoints[idx].tolerance = 5.0;
+  route->waypoints[idx].tolerance = AUTOPILOT_ARRIVAL_TOLERANCE;
   route->waypoints[idx].wait_time = 0;
   route->waypoints[idx].flags = 0;
 
@@ -1988,11 +1988,11 @@ int check_waypoint_arrival(const struct greyhawk_ship_data *ship, const struct w
     return FALSE;
   }
 
-  /* Use waypoint tolerance, default to 5.0 if not set */
+  /* Use waypoint tolerance, default to the waypoint's own room if not set */
   tolerance = wp->tolerance;
   if (tolerance <= 0.0)
   {
-    tolerance = 5.0;
+    tolerance = AUTOPILOT_ARRIVAL_TOLERANCE;
   }
 
   return (distance <= tolerance) ? TRUE : FALSE;
@@ -2877,7 +2877,7 @@ ACMD(do_setwaypoint)
   wp.x = ship->x;
   wp.y = ship->y;
   wp.z = ship->z;
-  wp.tolerance = 5.0;
+  wp.tolerance = AUTOPILOT_ARRIVAL_TOLERANCE;
   wp.wait_time = 0;
   wp.flags = 0;
   strncpy(wp.name, arg, AUTOPILOT_NAME_LENGTH - 1);

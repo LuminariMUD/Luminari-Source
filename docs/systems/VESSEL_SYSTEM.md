@@ -186,7 +186,9 @@ and every 0.5-second vessel tick converges on them:
   90 degrees off, so she comes about where she lies, steerage speed 2 while it
   is more than 45 degrees off, and `sqrt(180 * accel * distance)` approaching a
   waypoint where the hull stops, so it comes to rest inside a 0.5-room
-  tolerance. It cruises at the ordered speed, or at full speed when none is
+  tolerance. A waypoint counts as reached when the hull enters its room:
+  `setwaypoint` stores `AUTOPILOT_ARRIVAL_TOLERANCE` (0.5), and the boot
+  migration 2026092901 moved rows at the old five-room default to 0.5. It cruises at the ordered speed, or at full speed when none is
   ordered, casts off first from a berth or anchorage, holds the hull while
   waiting or paused, and stops the hull at the end of a one-way route. Altitude
   or depth follows the straight line to the waypoint, at least one unit a

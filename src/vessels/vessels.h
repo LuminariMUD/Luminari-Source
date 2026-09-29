@@ -115,6 +115,9 @@ struct vessel_region_feature
 #define VESSEL_AMBIENT_MESSAGE_COOLDOWN (120 RL_SEC)
 #define VESSEL_COMBAT_MESSAGE_COOLDOWN AUTOPILOT_TICK_INTERVAL
 
+/* A waypoint is reached on entering its own room. */
+#define AUTOPILOT_ARRIVAL_TOLERANCE 0.5
+
 /* Crew Role Constants (matches ship_crew_roster.crew_role ENUM) */
 #define CREW_ROLE_PILOT "pilot" /* NPC vessel pilot */
 
