@@ -79,6 +79,8 @@ permissions:
 
 env:
   LUMINARI_TEST_SPEC_WORLD_ROOT: ${{ github.workspace }}/unittests/CuTest/fixtures/spec_world_inventory
+  # The pinned compilers have no /usr/lib/ccache link, so CMake names the cache itself.
+  CMAKE_C_COMPILER_LAUNCHER: ccache
 
 jobs:
   world-tools:
@@ -739,11 +741,10 @@ jobs:
       - name: Run each trust-boundary target for 15 seconds
         run: scripts/ci/run_fuzz_targets.sh --seconds 15 --artifacts fuzz-artifacts
 
-      - name: Run bounded protocol parser fuzzing
-        run: make -C unittests/CuTest protocol-fuzz FUZZ_SECONDS=15
-
-      - name: Run bounded binary file format fuzzing
-        run: make -C unittests/CuTest binary-formats-fuzz FUZZ_SECONDS=15
+      - name: Run bounded protocol parser and binary file format fuzzing
+        run: >-
+          make -C unittests/CuTest -j2 --output-sync=target
+          protocol-fuzz binary-formats-fuzz FUZZ_SECONDS=15
 
       - name: Upload reproducers and fuzzer logs
         if: failure()

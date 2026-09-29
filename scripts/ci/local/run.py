@@ -195,6 +195,7 @@ def container_job():
             )
         for step in job["steps"]:
             print(f"==> {step['name']}", flush=True)
+            begin = time.monotonic()
             if step.get("setup"):
                 for header in ("campaign", "mud_options", "vnums"):
                     target = Path(f"src/config/{header}.h")
@@ -212,6 +213,7 @@ def container_job():
                 check=True,
                 env=dict(env, **step.get("env", {})),
             )
+            print(f"<== {step['name']}: {time.monotonic() - begin:.1f} s", flush=True)
         subprocess.run(["ccache", "--show-stats"], env=env, check=True)
     finally:
         if database:
@@ -381,8 +383,18 @@ def main():
                 "-v",
                 f"{job_dir}:/results",
                 # The service runs inside the job container; GitHub container jobs
-                # reach it as 'mariadb', so resolve that name to loopback.
-                *(["--add-host", "mariadb:127.0.0.1"] if job["database"] else []),
+                # reach it as 'mariadb', so resolve that name to loopback. Its
+                # disposable data lives in memory: schema loads are all fsync.
+                *(
+                    [
+                        "--add-host",
+                        "mariadb:127.0.0.1",
+                        "--tmpfs",
+                        f"/tmp/mysql:mode=0700,uid={os.getuid()},gid={os.getgid()}",
+                    ]
+                    if job["database"]
+                    else []
+                ),
                 job["image"] or args.image,
                 "python3",
                 "/input/run.py",

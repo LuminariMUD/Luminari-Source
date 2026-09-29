@@ -8,7 +8,8 @@
 #
 # Each target runs for --seconds (default 15) in its own scratch corpus so the
 # repository never gains generated inputs; --seconds 0 only replays the seeds
-# and regression inputs once. A finding is written under
+# and regression inputs once. Targets run side by side, one per processor, so
+# each keeps a whole core for its time budget. A finding is written under
 # --artifacts/<target>/ together with the fuzzer log and a minimized copy, and
 # the script exits 1 after every requested target has run. Targets that end
 # the process on a rejected file (see FUZZ_TARGET_MAY_EXIT in
@@ -93,16 +94,21 @@ export UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1:${UBSAN_OPTIONS:-}"
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/luminari-fuzz-run.XXXXXX")
 trap 'rm -rf "$scratch"' EXIT
 
-failed=()
 for target in "${targets[@]}"; do
-  seeds="$corpus_root/$target"
-  [[ -d "$seeds" ]] || {
-    echo "fuzz: unknown target $target (no $seeds)" >&2
+  [[ -d "$corpus_root/$target" ]] || {
+    echo "fuzz: unknown target $target (no $corpus_root/$target)" >&2
     exit 2
   }
-  work="$scratch/$target"
-  mkdir -p "$work/corpus" "$artifacts/$target"
-  cp "$seeds"/* "$work/corpus/"
+done
+
+run_target() {
+  local target=$1
+  local seeds="$corpus_root/$target"
+  local work="$scratch/$target"
+  local args inputs leak_options reproducer
+
+  mkdir -p "$work/corpus" "$artifacts/$target" || return 1
+  cp "$seeds"/* "$work/corpus/" || return 1
   args=(-timeout=10 -max_len="$max_len" -print_final_stats=1
     -artifact_prefix="$artifacts/$target/")
   if [[ "$seconds" -gt 0 ]]; then
@@ -123,10 +129,9 @@ for target in "${targets[@]}"; do
   if (cd "$work" && LUMINARI_FUZZ_TARGET="$target" ASAN_OPTIONS="$leak_options$ASAN_OPTIONS" \
     "$binary" "${args[@]}" "${inputs[@]}" 2>&1 | tee "$artifacts/$target/fuzzer.log"); then
     echo "::endgroup::"
-    continue
+    return 0
   fi
   echo "::endgroup::"
-  failed+=("$target")
   echo "::error::fuzz target $target found a defect; reproducers are under $artifacts/$target"
   # Minimize every reproducer the run wrote so the regression input is small.
   for reproducer in "$artifacts/$target"/crash-* "$artifacts/$target"/leak-* \
@@ -137,6 +142,21 @@ for target in "${targets[@]}"; do
       -max_total_time=120 -exact_artifact_path="$reproducer.min" "$reproducer" \
       >"$reproducer.minimize.log" 2>&1) || true
   done
+  return 1
+}
+
+# Each target's output is held back and printed whole once all have finished.
+for target in "${targets[@]}"; do
+  while (($(jobs -rp | wc -l) >= $(nproc))); do
+    wait -n || true
+  done
+  (run_target "$target" >"$scratch/$target.out" 2>&1 || touch "$scratch/$target.failed") &
+done
+wait
+failed=()
+for target in "${targets[@]}"; do
+  cat "$scratch/$target.out"
+  [[ ! -e "$scratch/$target.failed" ]] || failed+=("$target")
 done
 
 # Empty artifact directories are removed so an upload step sees only findings.
