@@ -6,6 +6,7 @@
 
 #include "conf.h"
 #include "core/sysdep.h"
+#include <math.h>
 #include "core/structs.h"
 #include "core/utils.h"
 #include "movement/door_state.h"
@@ -601,6 +602,15 @@ bool can_attempt_boarding(struct char_data *ch, struct greyhawk_ship_data *targe
   {
     VSSL_DEBUG_DOCK("BOARDING CHECK FAILED: Target out of range");
     send_to_char(ch, "The target vessel is too far away!\r\n");
+    return FALSE;
+  }
+
+  /* A hull aloft can be grappled only from close beside her (study 3.3.4). */
+  if ((ch_ship->z > 0.0 || target->z > 0.0) &&
+      fabs(ch_ship->z - target->z) > (double)VESSEL_BOARDING_MAX_ALTITUDE)
+  {
+    send_to_char(ch, "%s flies too far %s you to grapple.\r\n", target->name,
+                 target->z > ch_ship->z ? "above" : "below");
     return FALSE;
   }
 

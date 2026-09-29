@@ -534,7 +534,8 @@ void Test_vessel_production_geometry_and_type_data(CuTest *tc)
   CuAssertIntEquals(tc, 90, greyhawk_bearing(0.0, 0.0, 1.0, 0.0));
   CuAssertIntEquals(tc, 180, greyhawk_bearing(0.0, 1.0, 0.0, 0.0));
   CuAssertIntEquals(tc, 270, greyhawk_bearing(1.0, 0.0, 0.0, 0.0));
-  CuAssertDblEquals(tc, 13.0, greyhawk_range(0.0, 0.0, 0.0, 3.0, 4.0, 12.0), 0.001);
+  /* One room per 10 Z (vessels-ships study 3.3.4). */
+  CuAssertDblEquals(tc, 13.0, greyhawk_range(0.0, 0.0, 0.0, 3.0, 4.0, 120.0), 0.001);
 
   CuAssertStrEquals(tc, "Airship", get_vessel_type_name(VESSEL_AIRSHIP));
   /* NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange) -- tests the invalid-value path */

@@ -524,6 +524,12 @@ void Test_vessel_boarding_needs_a_slow_or_beaten_hull(CuTest *tc)
   prize->sarmor = prize->sinternal = 0;
   CuAssertTrue(tc, can_attempt_boarding(&fixture.captain, prize));
 
+  /* A hull aloft is grappled only from within 10 Z (study 3.3.4). */
+  prize->z = 15.0;
+  CuAssertTrue(tc, !can_attempt_boarding(&fixture.captain, prize));
+  prize->z = 10.0;
+  CuAssertTrue(tc, can_attempt_boarding(&fixture.captain, prize));
+
   prize_end(&fixture);
 }
 

@@ -634,6 +634,33 @@ ACMD_DECL(do_shipequip);  /* Owner: fit or remove the ram and neutral colors */
 ACMD_DECL(do_shiprearm);  /* Owner: refill ammunition in port */
 
 /* ========================================================================= */
+/* GUNNERY (vessels-ships study S4, vessels_gunnery.c)                       */
+/* ========================================================================= */
+
+#define VESSEL_BATTLE_STATIONS_TICKS 360 /* 180 s after the lock clears or the last shot */
+#define VESSEL_GUNNERY_BONUS_MAX 7       /* The Duris elite-crew ceiling */
+#define VESSEL_NPC_GUNNERY_BONUS 5       /* NPC crews fire as trained crews */
+#define VESSEL_SCAN_RANGE 20             /* Rooms; 2 more with a posted lookout */
+#define VESSEL_BOARDING_MAX_ALTITUDE 10  /* Z between an airborne hull and her boarders */
+
+double vessel_range_between(const struct greyhawk_ship_data *from,
+                            const struct greyhawk_ship_data *to);
+double vessel_bearing_between(const struct greyhawk_ship_data *from,
+                              const struct greyhawk_ship_data *to);
+double vessel_volley_chance(int sight);
+int vessel_gunnery_dc(struct greyhawk_ship_data *ship, const struct vessel_weapon_type *type,
+                      struct greyhawk_ship_data *target);
+int vessel_gunnery_bonus(const struct greyhawk_ship_data *ship, struct char_data *ch,
+                         const struct vessel_weapon_type *type);
+int vessel_hit_percent(int dc, int bonus);
+bool vessel_at_battle_stations(const struct greyhawk_ship_data *ship);
+void vessel_gunnery_tick_one(struct greyhawk_ship_data *ship);
+ACMD_DECL(do_shipfire);  /* Fire a weapon or an arc at the locked contact */
+ACMD_DECL(do_shiplock);  /* Lock the guns onto a contact */
+ACMD_DECL(do_shipsight); /* Each weapon's chance against the locked contact */
+ACMD_DECL(do_shipscan);  /* A close look at a contact's hull, guns, and owner */
+
+/* ========================================================================= */
 /* DAMAGE MODEL (vessels-ships study S3, vessels_damage.c)                   */
 /* ========================================================================= */
 
@@ -740,7 +767,6 @@ void vessel_sink(int shipnum);
 void vessel_combat_tick(void);
 void vessel_combat_tick_one(struct greyhawk_ship_data *ship);
 
-ACMD_DECL(do_shipfire);   /* Fire a weapon slot at another ship */
 ACMD_DECL(do_shiprepair); /* Slow at-sea repairs while stationary */
 ACMD_DECL(do_claimship);  /* Capture a ship from an uncontested bridge */
 
@@ -1615,6 +1641,10 @@ struct greyhawk_ship_data
   /* S3 damage model (vessels_damage.c), runtime only, in vessel ticks */
   short int sink_ticks;          /* Left before a sinking hull goes down; 0 = afloat */
   short int colors_struck_ticks; /* Left while her colors are struck; 0 = flying */
+
+  /* S4 gunnery (vessels_gunnery.c), runtime only */
+  int lock_target;        /* Fleet slot of the locked contact; 0 = none */
+  short int battle_ticks; /* Vessel ticks left at battle stations; 0 = stood down */
 
   /* Phase 5: Naval combat */
   int last_attacker;           /* Fleet index of last ship to fire on us (0 = none) */

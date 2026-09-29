@@ -803,6 +803,7 @@ set(SRC_C_FILES
     src/vessels/vessels_piracy.c
     src/vessels/vessels_trade.c
     src/vessels/vessels_upgrades.c
+    src/vessels/vessels_gunnery.c
     src/vessels/vessels_weapons.c
     src/core/weather.c
     src/wilderness/wilderness.c

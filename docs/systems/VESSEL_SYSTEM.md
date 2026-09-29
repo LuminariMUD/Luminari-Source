@@ -176,7 +176,7 @@ and every 0.5-second vessel tick converges on them:
   speed order.
   `undock` casts off in 30 seconds (60 ticks) or weighs anchor in 13 (26
   ticks); casting off needs a whole sail, settled dock fees, the shipwrights
-  finished, a legal fit-out (Weapons (S4) below), and a captain of the hull's
+  finished, a legal fit-out (Weapons and Gunnery (S4) below), and a captain of the hull's
   minimum level. `anchor` needs a stopped hull on the surface and
   disengages the autopilot. `vessel_sync_berth()` reconciles the berth after a
   spawn or reboot.
@@ -1099,17 +1099,22 @@ the character and closing the database claim.
 
 | Command | Description | Usage |
 | -- | -- | -- |
-| shipfire | Fire a weapon slot at a contact | `shipfire <slot> <contact ID or name>` |
+| shiplock | Lock the guns onto a contact (battle stations) or clear the lock | `shiplock [<contact ID or name> \| off]` |
+| shipfire | Fire a weapon slot, or every weapon on an arc that can, at the locked contact | `shipfire <slot \| fore \| port \| rear \| starboard> [<contact>]` |
+| shipsight | Each weapon's DC and chance to hit against the locked contact | `shipsight [<slot>]` |
+| shipscan | Armor, structure, weapons, condition, and the owner's law standing of a contact within 20 rooms | `shipscan <contact>` |
 | shiprepair | Slow at-sea repairs (stationary only) | `shiprepair` |
 | shipsalvage | Haul floating salvage crates into the hold (helm, stopped) | `shipsalvage` |
 | claimship | Capture a beaten prize from an uncontested bridge | `claimship` |
 | strikecolors | Yield: make a stopped hull a prize for ten minutes | `strikecolors` |
 
-Combat model (`src/vessels/vessels_combat.c`): a hit resolves through the
-damage model (Damage Model (S3) below). Weapon arcs derive from
-heading-relative bearing (`greyhawk_getarc()`), reloads tick on the
-heartbeat (`vessel_combat_tick()`), and NPC-piloted ships return fire
-automatically. Deep-draft hulls ground on real wilderness bathymetry
+Combat model (`src/vessels/vessels_combat.c`, gunnery in
+`src/vessels/vessels_gunnery.c`): a shot resolves through the gunnery model
+(Weapons and Gunnery (S4) below) and a hit through the damage model (Damage Model (S3)
+below). Weapon arcs derive from the heading-relative bearing between exact
+positions (`greyhawk_getarc()`), reloads tick on the heartbeat
+(`vessel_combat_tick()`, `vessel_gunnery_tick_one()`), and NPC-piloted ships
+return fire automatically. Deep-draft hulls ground on real wilderness bathymetry
 (elevation vs waterline against class `min_water_depth`).
 
 Every player-driven hostile entry point uses `vessel_pvp_permitted()`. A
@@ -1118,8 +1123,8 @@ window. If an owner logs out, only the original still-PvP-enabled aggressor may
 continue during that window; other players and expired snapshots fail closed.
 Ownership changes and permanent owner removal clear inherited consent.
 
-`shipfire` targets only contacts (`vessel_find_contact()`: exact two-letter ID
-first, then the nearest name prefix). `vessel_gunnery_permitted()` limits the
+`shiplock` and `shipfire` target only contacts (`vessel_find_contact()`: exact
+two-letter ID first, then the nearest name prefix). `vessel_gunnery_permitted()` limits the
 guns to the owner, helm permit holders, members of the online owner's group,
 and immortals; unowned hulls fire only through NPC return fire.
 `vessel_fire_permitted()` adds the firing hull owner's own consent whenever a
@@ -1130,7 +1135,7 @@ actual gunner, so a refused shot leaves no grace behind. If the target's owner
 logs out, that gunner may keep firing while the hull owner stays online with
 PvP enabled.
 Harbors are neutral: `vessel_ship_is_in_port()` refuses player and NPC fire
-into or out of a port. Every shot, hit or miss, costs `PULSE_VIOLENCE` of
+into or out of a port. Every volley, hit or miss, costs `PULSE_VIOLENCE` of
 command lag.
 
 ### Damage Model (S3)
@@ -1164,7 +1169,7 @@ study 3.3.1, 3.3.3).
   `0.5 + 0.25 * armor / class armor + 0.25 * speed / class speed`, so a
   default hull costs the class price.
 - A hit (`vessel_resolve_hit()`, from `shipfire` and NPC return fire) runs the
-  catalogue weapon's fragments (Weapons (S4) below). Each fragment rolls the
+  catalogue weapon's fragments (Weapons and Gunnery (S4) below). Each fragment rolls the
   weapon's damage, or for a beam weapon takes it from the range, and strikes
   the sails at the weapon's sail-hit chance and sail share
   (`vessel_damage_sail()`; warships take 85%) or the arc facing the shooter,
@@ -1237,7 +1242,7 @@ study 3.3.1, 3.3.3).
   sails, and the rudder keep their damage fraction; the old model had no holes,
   so every arc keeps at least 1 structure. Saves write `condition_model` 1.
 
-### Weapons (S4)
+### Weapons and Gunnery (S4)
 
 `src/vessels/vessels_weapons.c` holds the DurisMUD weapon and equipment
 catalogue (vessels-ships study 3.3.4), static tables like the class profiles.
@@ -1310,6 +1315,46 @@ Prices are 2 gold per Duris platinum and reloads are in 0.5 s vessel ticks.
   and rearming `VESSEL_REARM_TICKS` (75 s) per weapon
   (`vessel_add_maintenance()`; immortals skip it). It counts down in the
   movement tick, shows in `shipstatus`, and blocks departure from a berth.
+- Gunnery (S4, `vessels_gunnery.c`): a shot hits on `d20 + bonus >= DC`, a
+  natural 1 missing and a natural 20 hitting (`vessel_hit_percent()`). The DC
+  (`vessel_gunnery_dc()`) is `21 - round(20 * h)`, where `h` is Duris's
+  `weaponsight()` chance for an untrained crew with full stamina after its
+  2d50 roll (`vessel_volley_chance()`): a motion term from the target's
+  crossing speed (LuminariMUD speed / 0.3 in Duris units), the swing of the
+  relative bearing, and the closing speed, both hulls projected one second
+  ahead by sailing copies through `vessel_sail_tick()` (direct fire weighs
+  `crossing + 4 * swing + closing / 4`, ballistic weapons
+  `crossing / 2 + 3 * swing + closing`); the base chance 0.5 divided by
+  `1 + motion / 50`, plus `(sqrt(hull weight) - 3) / 100` for target size;
+  the miss chance shrinking from its maximum at maximum range to
+  `(miss - 0.05)^4` inside a quarter of it; and x1.5 miss against a hull
+  aloft. A stopped frigate is DC 1 inside a quarter of the large ballista's
+  range and DC 6 at its maximum.
+- The gunnery bonus (`vessel_gunnery_bonus()`) is the gunner tier (+2/+4/+6)
+  plus the firing character's Dexterity modifier, or Intelligence for a
+  ballistic weapon, at most `VESSEL_GUNNERY_BONUS_MAX` (7); NPC crews fire at
+  the gunner tier plus `VESSEL_NPC_GUNNERY_BONUS` (5). Criticals threaten by
+  the weapon's pierce and confirm against the same DC. Reload is the
+  catalogue reload times `1 - 0.15 * gunner mod` (0.15 a tier).
+- A weapon fires (`vessel_weapon_fire_problem()`) only when sound, loaded,
+  reloaded, on the arc facing the target, and with the target inside its
+  band; the hull may not be in port, anchored, submerged, or sinking
+  (`vessel_hull_fire_problem()`), and the target may not be in port or
+  submerged. Locks (`lock_target`) and battle stations (`battle_ticks`,
+  `VESSEL_BATTLE_STATIONS_TICKS` 360, 180 s) are runtime only: a lock or a
+  shot, fired or received, puts a crew at battle stations; the lock drops
+  when the contact leaves sight, enters port, dives, or sinks; the crew stands
+  down 180 s after the lock clears. `shipfire <arc>` fires every weapon on
+  the arc that can. NPC return fire (`vessel_npc_return_fire()`) uses the same
+  rules.
+- Flight: `greyhawk_range()` counts one room per 10 Z, so every vessel range
+  (weapons, contacts, docking, boarding, sight) does; `vessel_range_between()`
+  and `vessel_bearing_between()` use exact positions (room plus offset). A
+  hull aloft is boarded only from within `VESSEL_BOARDING_MAX_ALTITUDE` (10) Z.
+- `shipsight` prints each weapon's DC and chance against the locked contact;
+  `shipscan` reads a contact within `VESSEL_SCAN_RANGE` (20) rooms, 22 with a
+  posted lookout; `contacts` shows the arc each contact lies off and marks the
+  lock.
 - Persistence (Phase 20): every weapon and equipment slot is a `ship_weapons`
   row with its `catalog_id` and `ammo` (`vessel_db_save_weapons()`,
   `vessel_db_load_weapons()`); `ship_runtime_state.slot_data` is no longer
@@ -1926,6 +1971,7 @@ and the trigger was removed.
 | `src/vessels/vessels_combat.c` | Naval combat: gunnery consent, firing, NPC return fire, sinking (Phase 05) |
 | `src/vessels/vessels_damage.c` | Class condition profiles, arcs, hull and sail damage, breaches, sinking, salvage, prizes (S3) |
 | `src/vessels/vessels_weapons.c` | Weapon and equipment catalogue, class fitting, and the shipyard weapon commands (S4) |
+| `src/vessels/vessels_gunnery.c` | Geometry hit model, locks, battle stations, arc fire, sighting, scanning, NPC return fire (S4) |
 | `src/vessels/vessels_ownership.c` | Ownership, helm permits, deed transfer (Phase 06) |
 | `src/vessels/vessels_crew.c` | Hired crew positions, tiers, one-time hire prices (Phase 06) |
 | `src/vessels/vessels_upgrades.c` | Refits, hull wear, insurance (Phase 06) |

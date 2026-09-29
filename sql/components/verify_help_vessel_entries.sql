@@ -23,8 +23,8 @@ WHERE tag IN (
 SELECT
   'command_keywords' AS check_name,
   COUNT(*) AS actual,
-  86 AS expected,
-  IF(COUNT(*) = 86, 'PASS', 'FAIL') AS result
+  89 AS expected,
+  IF(COUNT(*) = 89, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE (help_tag, keyword) IN (
   ('VESSELS', 'BOARD'),
@@ -50,6 +50,9 @@ WHERE (help_tag, keyword) IN (
   ('SHIPFIRE', 'CLAIMSHIP'),
   ('SHIPFIRE', 'SHIPSALVAGE'),
   ('SHIPFIRE', 'STRIKECOLORS'),
+  ('SHIPFIRE', 'SHIPLOCK'),
+  ('SHIPFIRE', 'SHIPSIGHT'),
+  ('SHIPFIRE', 'SHIPSCAN'),
   ('SHIPBROWSE', 'SHIPBROWSE'),
   ('SHIPBROWSE', 'SHIPBUY'),
   ('SHIPBROWSE', 'SHIPCHRISTEN'),
@@ -163,8 +166,8 @@ AND CHAR_LENGTH(TRIM(entry)) > 0;
 SELECT
   'content_contracts' AS check_name,
   COUNT(*) AS actual,
-  24 AS expected,
-  IF(COUNT(*) = 24, 'PASS', 'FAIL') AS result
+  26 AS expected,
+  IF(COUNT(*) = 26, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
   SELECT 'VESSELS' AS tag, 'moving no faster than speed 2' AS required_pattern
@@ -175,6 +178,8 @@ JOIN (
   UNION ALL SELECT 'VESSELS', 'berth in 30 seconds or weigh anchor in 13'
   UNION ALL SELECT 'SHIPFIRE', 'five real[[:space:]]+minutes'
   UNION ALL SELECT 'SHIPFIRE', 'Harbors are neutral ground'
+  UNION ALL SELECT 'SHIPFIRE', 'at most [+]7'
+  UNION ALL SELECT 'SHIPFIRE', 'within 20 rooms [(]22 with a posted lookout[)]'
   UNION ALL SELECT 'SHIPFIRE', 'fights only with its owner.s consent'
   UNION ALL SELECT 'SHIPBROWSE', 'christen the[[:space:]]+ship again later'
   UNION ALL SELECT 'SHIPBROWSE', 'same room as you'

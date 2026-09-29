@@ -1,13 +1,13 @@
 /* ************************************************************************
  *      File:   vessels_combat.c                      Part of LuminariMUD  *
- *   Purpose:   Naval combat (Phase 05): ship damage model, weapon fire,   *
- *              sinking, groundings, repair, and capture.                  *
- *              Builds on the greyhawk per-side armor/internal fields and  *
- *              weapon slot data already present in greyhawk_ship_data.    *
+ *   Purpose:   Naval combat (Phase 05): hostile-act consent, the combat   *
+ *              tick, sinking, repair, and capture. Gunnery lives in       *
+ *              vessels_gunnery.c and the damage model in vessels_damage.c *
  * ********************************************************************** */
 
 #include "conf.h"
 #include "core/sysdep.h"
+#include <math.h>
 #include "core/structs.h"
 #include "core/utils.h"
 #include "core/comm.h"
@@ -239,7 +239,7 @@ bool vessel_pvp_permitted(struct char_data *ch, struct greyhawk_ship_data *targe
  * Gunnery answers to the owner, the owner's helm permit holders, members of
  * the online owner's group, and staff. Passengers cannot turn a hull's
  * weapons, and unowned hulls fire only through their NPC crews
- * (vessel_ai_return_fire()).
+ * (vessel_npc_return_fire() in vessels_gunnery.c).
  */
 bool vessel_gunnery_permitted(struct char_data *ch, const struct greyhawk_ship_data *ship)
 {
@@ -420,26 +420,23 @@ const char *vessel_status_name(int status)
 /**
  * Determine which arc (side) of ship1 faces ship2.
  *
- * Computes the bearing from ship1 to ship2, offsets it by ship1's heading,
- * and buckets the relative bearing into the Duris arcs
+ * Computes the bearing from ship1 to ship2 from their exact positions,
+ * offsets it by ship1's heading, and buckets the relative bearing into the
+ * Duris arcs
  * (vessel_arc_for_relative_bearing()).
  *
  * @return GREYHAWK_FORE, GREYHAWK_STARBOARD, GREYHAWK_REAR, or GREYHAWK_PORT
  */
 int greyhawk_getarc(int ship1, int ship2)
 {
-  int bearing;
-  int relative;
-
   if (ship1 < 0 || ship1 >= GREYHAWK_MAXSHIPS || ship2 < 0 || ship2 >= GREYHAWK_MAXSHIPS)
   {
     return GREYHAWK_FORE;
   }
 
-  bearing = greyhawk_bearing(greyhawk_ships[ship1].x, greyhawk_ships[ship1].y,
-                             greyhawk_ships[ship2].x, greyhawk_ships[ship2].y);
-  relative = bearing - vessel_display_heading(greyhawk_ships[ship1].heading);
-  return vessel_arc_for_relative_bearing(relative);
+  return vessel_arc_for_relative_bearing(
+      (int)lround(vessel_bearing_between(&greyhawk_ships[ship1], &greyhawk_ships[ship2]) -
+                  greyhawk_ships[ship1].heading));
 }
 
 /**
@@ -596,137 +593,14 @@ void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause)
 }
 
 /**
- * Whether a shot is a confirmed critical: the natural roll falls in the
- * weapon's threat range and a second roll with the same bonus meets the
- * same target number (study 3.3.4).
- */
-static bool vessel_shot_critical(const struct greyhawk_ship_slot *weapon, int natural_roll,
-                                 int confirm_roll, int bonus, int target_number)
-{
-  return natural_roll >= vessel_critical_threat(vessel_slot_weapon(weapon)->pierce) &&
-         confirm_roll + bonus >= target_number;
-}
-
-/**
- * Auto-defense doctrine: an NPC-piloted ship returns fire at its last
- * attacker with every ready weapon that bears and is in range.
- */
-static void vessel_ai_return_fire(int shipnum)
-{
-  struct greyhawk_ship_data *ship = &greyhawk_ships[shipnum];
-  struct greyhawk_ship_data *target;
-  struct greyhawk_ship_slot *weapon;
-  const struct vessel_weapon_type *type;
-  double range;
-  int target_num;
-  int fire_arc;
-  int natural_roll;
-  int attack_bonus;
-  int defense_dc;
-  int dmg;
-  int s;
-
-  if (ship->autopilot == NULL || ship->autopilot->pilot_mob_vnum == -1 || vessel_is_sinking(ship))
-  {
-    return; /* No NPC pilot - players fight their own battles; a sinking hull is lost */
-  }
-
-  target_num = ship->last_attacker;
-  if (target_num <= 0 || target_num >= GREYHAWK_MAXSHIPS)
-  {
-    return;
-  }
-  target = &greyhawk_ships[target_num];
-  if (!is_valid_ship(target))
-  {
-    ship->last_attacker = 0; /* Attacker sank or despawned */
-    return;
-  }
-
-  /* Harbors are neutral ground: no fire into or out of a port. */
-  if (vessel_ship_is_in_port(ship) || vessel_ship_is_in_port(target))
-  {
-    return;
-  }
-
-  fire_arc = greyhawk_getarc(shipnum, target_num);
-  range = greyhawk_range(ship->x, ship->y, ship->z, target->x, target->y, target->z);
-
-  for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
-  {
-    weapon = &ship->slot[s];
-    type = vessel_slot_weapon(weapon);
-    if (!vessel_weapon_ready(weapon) || weapon->position != fire_arc ||
-        range < (double)type->min_range || range > (double)type->max_range)
-    {
-      continue;
-    }
-
-    weapon->timer = (short int)type->reload;
-    weapon->ammo--;
-    target->last_attacker = shipnum;
-
-    natural_roll = rand_number(1, 20);
-    attack_bonus = ship->guncrew.gunadjust + 5; /* trained crews */
-    defense_dc = 10 + vessel_display_speed(target->speed) / 5;
-
-    if (ship->bounty_hunter)
-    {
-      send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RETURN_FIRE,
-                             VESSEL_COMBAT_MESSAGE_COOLDOWN, "The navy crew OPENS FIRE on %s!",
-                             target->name);
-    }
-    else
-    {
-      send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RETURN_FIRE,
-                             VESSEL_COMBAT_MESSAGE_COOLDOWN, "The crew RETURNS FIRE at %s!",
-                             target->name);
-    }
-    if (natural_roll + attack_bonus < defense_dc)
-    {
-      send_to_ship_throttled(target, VESSEL_MESSAGE_COMBAT_RETURN_FIRE_MISS,
-                             VESSEL_COMBAT_MESSAGE_COOLDOWN, "%s from %s splashes wide!",
-                             ship->bounty_hunter ? "Navy fire" : "Return fire", ship->name);
-      continue;
-    }
-
-    dmg = vessel_resolve_hit(
-        ship, target, weapon, range,
-        vessel_shot_critical(weapon, natural_roll, rand_number(1, 20), attack_bonus, defense_dc));
-    vessel_event_record_damage(shipnum, target_num, dmg);
-    VSSL_DEBUG("AI ship %d return-fired slot %d at ship %d for %d", shipnum, s, target_num, dmg);
-    if (!is_valid_ship(target))
-    {
-      break; /* She went down */
-    }
-  }
-}
-
-/**
- * Combat tick: count down weapon reload timers for every active ship and
- * run NPC return-fire doctrine. Shares the autopilot tick cadence in comm.c.
+ * Combat tick: gunnery (reloads, locks, battle stations, NPC return fire)
+ * and the damage model's sink and colors timers. Runs on the vessel tick.
  */
 void vessel_combat_tick_one(struct greyhawk_ship_data *ship)
 {
-  int s;
-
   if (!is_valid_ship(ship))
     return;
-  for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
-  {
-    if (ship->slot[s].timer > 0)
-    {
-      ship->slot[s].timer--;
-      if (ship->slot[s].timer == 0 && ship->slot[s].type == VESSEL_SLOT_WEAPON)
-      {
-        send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RELOAD, VESSEL_COMBAT_MESSAGE_COOLDOWN,
-                               "The %s %s is reloaded and ready.",
-                               vessel_arc_name(ship->slot[s].position),
-                               vessel_slot_name(&ship->slot[s]));
-      }
-    }
-  }
-  vessel_ai_return_fire(ship->shipnum);
+  vessel_gunnery_tick_one(ship);
   vessel_damage_tick_one(ship);
 }
 
@@ -736,164 +610,6 @@ void vessel_combat_tick(void)
 
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
     vessel_combat_tick_one(&greyhawk_ships[i]);
-}
-
-/**
- * shipfire <slot> <target> - fire a weapon slot at a contact.
- */
-ACMD(do_shipfire)
-{
-  struct greyhawk_ship_data *ship;
-  struct greyhawk_ship_data *target;
-  struct greyhawk_ship_slot *weapon;
-  const struct vessel_weapon_type *type;
-  char arg1[MAX_INPUT_LENGTH];
-  char arg2[MAX_INPUT_LENGTH];
-  double range;
-  int slot_num;
-  int target_num;
-  int fire_arc;
-  int natural_roll;
-  int attack_bonus;
-  int defense_dc;
-  int dmg;
-
-  ship = get_ship_from_room(IN_ROOM(ch));
-  if (ship == NULL)
-  {
-    send_to_char(ch, "You must be aboard a ship to fire its weapons.\r\n");
-    return;
-  }
-
-  if (!vessel_gunnery_permitted(ch, ship))
-  {
-    send_to_char(ch,
-                 "%s's guns answer to her owner, the helm permit holders, and the owner's "
-                 "group.\r\n",
-                 ship->name);
-    return;
-  }
-  if (vessel_is_sinking(ship))
-  {
-    send_to_char(ch, "She is going down - the gun crews are abandoning ship!\r\n");
-    return;
-  }
-
-  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
-  if (!*arg1 || !*arg2)
-  {
-    send_to_char(ch, "Usage: shipfire <slot 0-%d> <contact ID or name>\r\n", GREYHAWK_MAXSLOTS - 1);
-    return;
-  }
-
-  slot_num = parse_int(arg1);
-  if (!isdigit((unsigned char)*arg1) || slot_num < 0 || slot_num >= GREYHAWK_MAXSLOTS)
-  {
-    send_to_char(ch, "Weapon slots run 0-%d.\r\n", GREYHAWK_MAXSLOTS - 1);
-    return;
-  }
-
-  weapon = &ship->slot[slot_num];
-  type = vessel_slot_weapon(weapon);
-  if (type == NULL)
-  {
-    send_to_char(ch, "Slot %d holds no weapon.\r\n", slot_num);
-    return;
-  }
-  if (weapon->damage >= VESSEL_WEAPON_DESTROYED)
-  {
-    send_to_char(ch, "That weapon has been destroyed.\r\n");
-    return;
-  }
-  if (weapon->damage > 0)
-  {
-    send_to_char(ch, "That weapon is damaged and cannot fire until it is repaired.\r\n");
-    return;
-  }
-  if (weapon->ammo == 0)
-  {
-    send_to_char(ch, "That weapon is out of ammunition; rearm it at a shipyard.\r\n");
-    return;
-  }
-  if (weapon->timer > 0)
-  {
-    send_to_char(ch, "That weapon is still reloading (%d).\r\n", weapon->timer);
-    return;
-  }
-
-  target_num = vessel_find_contact(ship, arg2);
-  if (target_num < 0)
-  {
-    send_to_char(ch, "No contact in sight matches '%s'. See 'contacts'.\r\n", arg2);
-    return;
-  }
-  target = &greyhawk_ships[target_num];
-
-  /* Harbors are neutral ground: no fire into or out of a port. */
-  if (vessel_ship_is_in_port(ship))
-  {
-    send_to_char(ch, "The harbor watch forbids gunfire from a berth - put to sea first.\r\n");
-    return;
-  }
-  if (vessel_ship_is_in_port(target))
-  {
-    send_to_char(ch, "%s lies in harbor, under the port's protection.\r\n", target->name);
-    return;
-  }
-
-  /* Range gate: the weapon's band */
-  range = greyhawk_range(ship->x, ship->y, ship->z, target->x, target->y, target->z);
-  if (range < (double)type->min_range || range > (double)type->max_range)
-  {
-    send_to_char(ch, "%s is outside the %s's %d-%d room band (%.1f).\r\n", target->name, type->name,
-                 type->min_range, type->max_range, range);
-    return;
-  }
-
-  /* Arc gate: the weapon's mounted side must face the target */
-  fire_arc = greyhawk_getarc(ship->shipnum, target_num);
-  if (weapon->position != fire_arc)
-  {
-    send_to_char(ch, "That weapon cannot bear - the target lies off a different arc.\r\n");
-    return;
-  }
-
-  /* Consent gate, last because a permitted shot records the engagement:
-   * sinking a hull drowns her crew and destroys her cargo, so it answers to
-   * the same PvP rules as drawing a blade. */
-  if (!vessel_fire_permitted(ch, ship, target, TRUE))
-  {
-    return;
-  }
-
-  /* Resolve the shot: d20 + gunnery vs a speed-based defense DC */
-  vessel_merchant_note_attacker(ch, target);
-  natural_roll = d20(ch);
-  attack_bonus = GET_LEVEL(ch) / 2 + ship->guncrew.gunadjust;
-  defense_dc = 10 + vessel_display_speed(target->speed) / 5;
-
-  /* Mark the aggression so NPC-piloted victims return fire */
-  target->last_attacker = ship->shipnum;
-
-  weapon->timer = (short int)type->reload;
-  weapon->ammo--;
-  WAIT_STATE(ch, PULSE_VIOLENCE);
-
-  send_to_ship(ship, "The %s %s FIRES at %s!", vessel_arc_name(weapon->position), type->name,
-               target->name);
-
-  if (natural_roll + attack_bonus < defense_dc)
-  {
-    send_to_ship(ship, "The shot goes wide, splashing harmlessly.");
-    send_to_ship(target, "A projectile from %s splashes into the water nearby!", ship->name);
-    return;
-  }
-
-  send_to_ship(ship, "Direct hit on %s!", target->name);
-  dmg = vessel_resolve_hit(
-      ship, target, weapon, range,
-      vessel_shot_critical(weapon, natural_roll, d20(ch), attack_bonus, defense_dc));
-  vessel_event_record_damage(ship->shipnum, target_num, dmg);
 }
 
 /**

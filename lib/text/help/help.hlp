@@ -31849,23 +31849,53 @@ sail accordingly, or don't sail what you can't afford to lose.
 
 See also: SHIP COMBAT, CLAIMSHIP, VEDIT, BOARD, DOCK
 #0
-CLAIMSHIP NAVAL-COMBAT SHIP-COMBAT SHIPFIRE SHIPREPAIR SHIPSALVAGE STRIKECOLORS
+BATTLE-STATIONS CLAIMSHIP NAVAL-COMBAT SHIP-COMBAT SHIPFIRE SHIPLOCK SHIPREPAIR SHIPSALVAGE SHIPSCAN SHIPSIGHT STRIKECOLORS
 
 Naval combat commands (usable from anywhere aboard your vessel):
 
-SHIPFIRE <slot> <contact>
-  Fire the weapon in the given slot (0-15, as SHIPSTATUS lists them) at a
-  contact, addressed by the two-letter ID that CONTACTS and TACTICAL show or
-  by the start of its name (the nearest match wins). Only vessels within
-  your visibility can be targeted. The target must lie inside the weapon's
-  range band, and the weapon's mounted side must face the target. Arcs run
+SHIPLOCK <contact> | SHIPLOCK off
+  Lock the guns onto a contact, addressed by the two-letter ID that
+  CONTACTS and TACTICAL show or by the start of its name (the nearest match
+  wins); only vessels within your visibility qualify. Locking calls the
+  crew to battle stations. The lock drops when the contact passes out of
+  sight, enters a port, dives, or goes down. With no argument SHIPLOCK
+  shows the current lock.
+
+SHIPFIRE <slot | fore | port | rear | starboard> [<contact>]
+  Fire one weapon slot (0-15, as SHIPSTATUS lists them), or every weapon on
+  an arc that can fire, at the locked contact; naming a contact locks onto
+  it first. A weapon fires only when its arc faces the target (arcs run
   from the bow: fore 320-40 degrees, starboard 40-140, rear 140-220, port
-  220-320. Attack roll: d20 + half level + gunnery crew bonus against a
-  defense value based on the target's speed. Every shot, hit or miss, costs
-  a combat round and a round of ammunition, and the weapon reloads for 30
-  seconds (45 for the beam, blast, and fragmentation cannons and the Long
-  Tom). A weapon out of ammunition, damaged, or reloading cannot fire; a
-  destroyed one is gone.
+  220-320), the target lies inside its range band, and it is sound, loaded,
+  and reloaded. Your hull cannot fire from a berth, at anchor, submerged,
+  or while going down. Every volley costs a combat round and each shot a
+  round of ammunition; each weapon then reloads for 30 seconds (45 for the
+  capital weapons), a little faster with a better gunner.
+
+  A shot hits on d20 + gunnery bonus against a DC set by the geometry: the
+  range (much better inside three quarters of the weapon's reach), how
+  fast the target crosses your line of fire, how fast the bearing swings
+  (your own turning counts), and how fast the range opens or closes, which
+  matters most to lofted catapult shots. A bigger target is easier to hit,
+  and a hull aloft is half again as hard. The gunnery bonus is your
+  gunner's +2/+4/+6 plus your Dexterity modifier (Intelligence for
+  catapults and the Long Tom), at most +7. A natural 1 misses and a 20
+  hits. Every shot shows its chance to hit. Ranges count one room for every
+  10 of altitude or depth, so a hull far above or below is out of reach,
+  and a submerged hull can be neither locked nor fired upon.
+
+SHIPSIGHT [<slot>]
+  For the locked contact, each weapon's DC and chance to hit, or why it
+  cannot fire.
+
+SHIPSCAN <contact>
+  A close look at a contact within 20 rooms (22 with a posted lookout):
+  armor and structure on each side, weapons with the destroyed ones
+  marked, condition, and whether her owner is WANTED, HUNTED, or sails
+  under a letter of marque.
+
+  Battle stations last until 180 seconds after the lock clears, your last
+  shot, or the last shot at you.
 
   Only the ship's owner, the owner's helm permit holders, members of the
   owner's group while the owner is online, and staff may fire a ship's
@@ -31874,10 +31904,12 @@ SHIPFIRE <slot> <contact>
   Harbors are neutral ground: a vessel in a port can neither fire nor be
   fired upon, by players or by NPC crews.
 
-  Each hit strikes the sails (costing speed) or the side facing the shooter.
-  Armor absorbs first; a hit it holds stops there unless it is a critical (a
-  natural 19-20, confirmed by a second roll), which carries half its damage
-  into the structure. Damage past the armor strikes that side's structure
+  Each hit strikes the sails (costing speed) or the side facing the shooter,
+  scattered by the weapon's spread; catapults and the Long Tom throw several
+  fragments. Armor absorbs first; a hit it holds stops there unless it is a
+  critical (a natural 20, 19-20, or 18-20 as the weapon pierces armor,
+  confirmed by a second roll), which carries half its damage into the
+  structure. Damage past the armor strikes that side's structure
   and may damage a weapon mounted there. On a gutted side, hits can glance
   into another section and always damage a weapon. Stern structure hits
   foul the rudder (turning). A structural hit can knock everyone aboard off
@@ -41512,8 +41544,10 @@ SETSAIL <direction>
 
 CONTACTS
   List the vessels within your visibility, nearest first, with the
-  two-letter ID that SHIPFIRE accepts. Fog closes the horizon and a posted
-  lookout extends it. The nearest 20 contacts are shown.
+  two-letter ID that SHIPFIRE accepts, and the arc of your hull each one
+  lies off; the locked contact is marked. Fog closes the horizon and a
+  posted lookout extends it. The nearest 20 contacts are shown. Ranges
+  count one room for every 10 of altitude or depth.
 
 DOCK [vessel]
   With no target, list vessels in docking range. With a name or fleet ID,
@@ -41551,7 +41585,8 @@ SHIP_ROOMS
 BOARD_HOSTILE <vessel>
   Launch a hostile transfer from one nearby vessel to another. Grappling
   lines hold only on a vessel making speed 3 or less, or on a beaten one
-  (holed, immobile, colors struck, or abandoned). The first
+  (holed, immobile, colors struck, or abandoned), and a hull aloft only
+  from within 10 of her altitude. The first
   opposed Boarding check secures grappling lines; if they hold, a second
   opposed Boarding check resolves the crossing. Ties favor the defending
   vessel. Its strongest conscious, PvP-consenting occupant supplies the
