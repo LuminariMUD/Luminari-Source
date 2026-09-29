@@ -1428,8 +1428,9 @@ MR !8 review fixes (2026-09-29), one commit each on `feat/vessels-s3`:
 Review-round verification (2026-09-29): `make test-all` with the database cases on (1910 CuTest
 cases, including the new sleeper case and a save-and-reload of a sinking hull's timer, which fails
 with a rerolled timer without the fix); the boot `ALTER`, the Phase 19 schema, rollback (twice),
-and verifier on the isolated test database. No live gate covers the changed paths (the damage
-gate stops its target before holing it), so none was rerun.
+and verifier on the isolated test database; all 33 local CI jobs on `02729c19b` (622 s). No live
+gate covers the changed paths (the damage gate stops its target before holing it), so none was
+rerun.
 
 ### Estimate
 
