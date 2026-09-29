@@ -1188,7 +1188,8 @@ study 3.3.1, 3.3.3).
 - Breaches (`vessel_breached_arcs()`): an arc with neither armor nor structure
   is holed. One holed arc makes `vessel_max_speed()` 0, or half for a hull
   aloft (z above 0); two start the sink timer (`vessel_update_condition()`,
-  `vessel_begin_sinking()`). Deflected hits reach only another arc's structure,
+  `vessel_begin_sinking()`). A hull holed afloat, or sinking, stops dead at
+  once: `vessel_update_condition()` zeroes her speed. Deflected hits reach only another arc's structure,
   so a hull shot from one side is holed once and cannot sink until a second
   side is holed: maneuvering decides fights.
 - Sinking (`sink_ticks`, runtime only; a hull saved holed on two sides starts

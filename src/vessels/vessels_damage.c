@@ -694,13 +694,22 @@ void vessel_begin_sinking(struct greyhawk_ship_data *ship)
 /**
  * Reconcile a hull's state after damage (Duris update_ship_status()): one
  * breached arc immobilizes her (vessel_max_speed()), two start her sinking.
+ * Either stops her dead at once; a hull aloft with one hole keeps half speed.
  */
 void vessel_update_condition(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *attacker)
 {
   (void)attacker;
-  if (is_valid_ship(ship) && !vessel_is_sinking(ship) && vessel_breached_arcs(ship) >= 2)
+  if (!is_valid_ship(ship))
+  {
+    return;
+  }
+  if (!vessel_is_sinking(ship) && vessel_breached_arcs(ship) >= 2)
   {
     vessel_begin_sinking(ship);
+  }
+  if (vessel_is_sinking(ship) || (vessel_breached_arcs(ship) > 0 && ship->z <= 0.0))
+  {
+    ship->speed = 0.0;
   }
 }
 

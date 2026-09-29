@@ -288,18 +288,24 @@ void Test_vessel_one_breach_immobilizes_and_two_sink(CuTest *tc)
   ship->position_speed_percent = 100;
   CuAssertDblEquals(tc, 17.0, vessel_max_speed(ship), 0.0001);
 
-  /* One breached arc: dead in the water, or half speed aloft. */
+  /* One breached arc stops her dead at once, not by shedding way; aloft
+   * she keeps half speed. */
   ship->rarmor = 0;
+  ship->speed = 17.0;
   vessel_damage_hull(NULL, ship, 30, GREYHAWK_REAR, FALSE);
-  CuAssertIntEquals(tc, 1, vessel_breached_arcs(ship));
-  CuAssertDblEquals(tc, 0.0, vessel_max_speed(ship), 0.0001);
-  ship->z = 100.0;
-  CuAssertDblEquals(tc, 8.5, vessel_max_speed(ship), 0.0001);
-  ship->z = 0.0;
   vessel_update_condition(ship, NULL);
+  CuAssertIntEquals(tc, 1, vessel_breached_arcs(ship));
   CuAssertTrue(tc, !vessel_is_sinking(ship));
+  CuAssertDblEquals(tc, 0.0, vessel_max_speed(ship), 0.0001);
+  CuAssertDblEquals(tc, 0.0, ship->speed, 0.0001);
+  ship->z = 100.0;
+  ship->speed = 17.0;
+  vessel_update_condition(ship, NULL);
+  CuAssertDblEquals(tc, 8.5, vessel_max_speed(ship), 0.0001);
+  CuAssertDblEquals(tc, 17.0, ship->speed, 0.0001);
 
-  /* A second breach starts the owned hull's 75-150 s sink timer. */
+  /* A second breach starts the owned hull's 75-150 s sink timer and stops
+   * her even aloft. */
   strlcpy(ship->owner, "Mara", sizeof(ship->owner));
   ship->setspeed = 12;
   ship->parmor = 0;
@@ -309,6 +315,7 @@ void Test_vessel_one_breach_immobilizes_and_two_sink(CuTest *tc)
   CuAssertTrue(tc, ship->sink_ticks >= VESSEL_SINK_TICKS_OWNED_MIN &&
                        ship->sink_ticks <= VESSEL_SINK_TICKS_OWNED_MAX);
   CuAssertIntEquals(tc, 0, ship->setspeed);
+  CuAssertDblEquals(tc, 0.0, ship->speed, 0.0001);
   CuAssertIntEquals(tc, VESSEL_STATUS_SINKING, vessel_status(ship));
   CuAssertDblEquals(tc, 0.0, vessel_max_speed(ship), 0.0001);
 
