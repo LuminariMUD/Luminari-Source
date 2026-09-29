@@ -1469,7 +1469,12 @@ batch: builder 49 s, the new gunnery gate 71 s, tactical 455 s (three shooters v
 movement 116 s, damage 630 s (port side holed in 24 shots, stern in 15, sink timer 98 s),
 derelict 33 s, hunter 82 s. On `fca2b30a7`: frontier 235 s (its arc refusal now names the
 weapon and the arc), gunnery 75 s, movement 116 s, campaign 136 s. On `cee7dcdcb`, each on a
-fresh reload: campaign 136 s and the merchant loss gate for both merchants.
+fresh reload: campaign 136 s and the merchant loss gate for both merchants. `make test-all` with
+the DB cases on passes 1921 CuTest cases. The first local CI run (on `e5aba4294`) failed two jobs:
+clang-tidy (decrements inside conditions, the signed `char` slot arc and gunner modifier, an
+unwidened cooldown, two unread test stores) and the gcc-16 warning budget (a possible null
+lookup in `shiprearm`). `75ebf39a1` clears them without changing behavior; all 33 jobs pass on it
+(565 s), and the gunnery gate passes again on it (104 s).
 
 The Vailand merchant gate found a defect older than S4 (the S3 base binary refuses the same
 route): a replacement hull spawned facing north at the north port, and the S2 momentum route
