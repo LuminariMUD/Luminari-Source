@@ -479,10 +479,13 @@ room 1204.
 The west Testing Dock (room 1000389) that the harbor provisioner expects is
 absent from the current world files, so the harbor provisioner cannot run in
 this checkout; the builder and movement checks stage at the east dock instead.
-On 2026-09-29 the gate passed in 108 seconds inside the private namespace
-described under the Vessel Rules Check, together with the builder, tactical,
-lookout, boarding, narrative, rules, events, frontier, derelict, campaign,
-merchant, and hunter gates.
+On 2026-09-29 the gate passed in 107 seconds inside the private namespace
+described under the Vessel Rules Check, on source `9a8757fce` and installed
+SHA-256 `62418bedfd4072598e7a3b727ce4da3c80f0ccb8beb924393ec8bb118c1e1097`,
+together with the builder, tactical, lookout, boarding, narrative, rules, and
+events gates on the same binary. The frontier, derelict, campaign, merchant,
+and hunter gates passed on the preceding install from identical server
+sources (`92fc0b27f`).
 
 ## Shared Harbor Merchant Loss Check
 

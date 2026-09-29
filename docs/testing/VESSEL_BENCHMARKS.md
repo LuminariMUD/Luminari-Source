@@ -1095,8 +1095,10 @@ The procedure, on the same installed binary as the ferry soak:
    `perfmon top total 12`, and `eventdebug types 4 0` / `eventdebug types 4 4`
    (after `toggle pagelength 255`; longer listings lose their top rows in the
    login helper's capture). A 30-second RSS series came from `/proc`.
-4. Cleanup purged the 488 hulls with `shippurge` and deleted the route and its
-   waypoints.
+4. Cleanup purged the 488 hulls with `shippurge`, deleted the route and its
+   waypoints, and returned Kohdee's page length to the default 40: the setting
+   is saved in the player file, and at 255 the gate helpers lose the header of
+   long help entries and fail their help checks.
 
 The 122 rafts and riverboats paused at once: their classes are refused deep
 ocean, as designed. The other 366 spawned hulls sailed the square for the

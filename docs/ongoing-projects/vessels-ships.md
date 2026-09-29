@@ -1199,8 +1199,12 @@ Notes for whoever continues:
 ### Phase 2 (S2) progress
 
 Branch `feat/vessels-s2` from merge commit `34dcbb34e` (annotated tag `vessels-s2-base`, pushed
-to `gitlab`). The review range will be `vessels-s2-base..vessels-s2`. Follow the step workflow
-recorded for S1: one branch, a merge commit at the end, never a squash.
+to `gitlab`). The review range is `vessels-s2-base..vessels-s2`; review fixes go on top
+(`vessels-s2..feat/vessels-s2`). Follow the step workflow recorded for S1: one branch, a merge
+commit at the end, never a squash. S2 is complete and handed to review as the annotated tag
+`vessels-s2` with a GitLab merge request from `feat/vessels-s2`. The next step is S3 (damage
+model): branch `feat/vessels-s3` from the S2 merge, or stacked on `feat/vessels-s2` while its
+merge request is open, never committed onto `feat/vessels-s2` itself.
 
 | Item | State | Where |
 | -- | -- | -- |
@@ -1259,15 +1263,19 @@ speed 2, a paused ferry must not move). Hulls spawned at the (-66,92) seaport no
 The retired scale runner's text checks in `test_vessel_scale_benchmark_parsers.sh` still pass
 unchanged.
 
-Verification so far (2026-09-29): `make` clean with the strict warning set, also with
-`-DVESSEL_SYSTEM_DEBUG=1` for the vessel sources; full CuTest suite 1885 of 1885 passing.
+Verification (2026-09-29): `make` clean with the strict warning set, also with
+`-DVESSEL_SYSTEM_DEBUG=1` for the vessel sources; `make test-all` with the database cases on
+(1887 CuTest cases); live gates, ferry soak, and scale measurement as below.
 
 Live gate results (2026-09-28/29). The main checkout's development MUD holds port 4100, so every
 gate ran inside a private user, network, mount, and PID namespace (`unshare -r -n -m --pid`)
 with a disposable MariaDB loaded from a dump of the development database on a private
-`/run/mysqld`, and process stand-ins for `systemctl --user` and `systemd-run`. All passed:
-builder 39 s, tactical 98 s, lookout 25 s, boarding 49 s, narrative 25 s, rules 36 s, events
-42 s, movement 108 s, frontier 229 s, derelict 39 s, campaign 141 s, merchant 31 s, hunter 77 s.
+`/run/mysqld`, and process stand-ins for `systemctl --user` and `systemd-run`. All passed. On
+the final binary (source `9a8757fce`, SHA-256 `62418bed...`): builder 50 s, tactical 99 s,
+lookout 24 s, boarding 52 s, narrative 25 s, rules 39 s, events 46 s, movement 107 s. On the
+preceding install from identical server sources (`92fc0b27f`): frontier 229 s, derelict 39 s,
+campaign 141 s, merchant 31 s, hunter 77 s. `make test-all` passed with the database cases on
+(1887 CuTest cases) and the `quality-clang-tidy` local CI job is clean.
 The harbor provisioner cannot run in this checkout: the west Testing Dock (room 1000389) is
 absent from the world files, so the builder and movement checks stage at the east dock
 (1000390, at (-62,82)) instead. Fixes the gates forced, all committed on the branch:
