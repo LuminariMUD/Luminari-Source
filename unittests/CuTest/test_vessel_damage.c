@@ -11,9 +11,11 @@
 #include "../../src/core/utils.h"
 #include "../../src/core/comm.h"
 #include "../../src/core/db.h"
+#include "../../src/database/mysql.h"
 #include "../../src/magic/spells.h"
 #include "../../src/vessels/vessels.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 void Test_vessel_arcs_follow_the_duris_bands(CuTest *tc)
@@ -518,4 +520,342 @@ void Test_vessel_boarding_needs_a_slow_or_beaten_hull(CuTest *tc)
   CuAssertTrue(tc, can_attempt_boarding(&fixture.captain, prize));
 
   prize_end(&fixture);
+}
+
+void Test_vessel_legacy_prototype_armor_rescales_by_class(CuTest *tc)
+{
+  /* The class beam armor over the old default armor, rounded, at most 229. */
+  CuAssertIntEquals(tc, 8, vessel_rescale_legacy_armor(VESSEL_RAFT, 5));
+  CuAssertIntEquals(tc, 150, vessel_rescale_legacy_armor(VESSEL_RAFT, 100));
+  CuAssertIntEquals(tc, 13, vessel_rescale_legacy_armor(VESSEL_BOAT, 8));
+  CuAssertIntEquals(tc, 66, vessel_rescale_legacy_armor(VESSEL_SHIP, 20));
+  CuAssertIntEquals(tc, 50, vessel_rescale_legacy_armor(VESSEL_SHIP, 15));
+  CuAssertIntEquals(tc, 109, vessel_rescale_legacy_armor(VESSEL_WARSHIP, 40));
+  CuAssertIntEquals(tc, 95, vessel_rescale_legacy_armor(VESSEL_WARSHIP, 35));
+  CuAssertIntEquals(tc, 63, vessel_rescale_legacy_armor(VESSEL_AIRSHIP, 15));
+  CuAssertIntEquals(tc, 84, vessel_rescale_legacy_armor(VESSEL_SUBMARINE, 25));
+  CuAssertIntEquals(tc, 110, vessel_rescale_legacy_armor(VESSEL_TRANSPORT, 20));
+  CuAssertIntEquals(tc, 153, vessel_rescale_legacy_armor(VESSEL_MAGICAL, 20));
+  CuAssertIntEquals(tc, 229, vessel_rescale_legacy_armor(VESSEL_WARSHIP, 200));
+  CuAssertIntEquals(tc, 0, vessel_rescale_legacy_armor(VESSEL_WARSHIP, -5));
+  CuAssertIntEquals(tc, 50, vessel_rescale_legacy_armor(99, 15));
+}
+
+/* A pre-S3 warship of prototype armor 40 with every refit: plating made her
+ * arcs 60, reinforcement her structure 45, rigging her speed 15 + 5. */
+static void damage_legacy_warship(struct greyhawk_ship_data *ship)
+{
+  memset(ship, 0, sizeof(*ship));
+  ship->vessel_type = VESSEL_WARSHIP;
+  ship->maxspeed = 20;
+  ship->maxfarmor = ship->maxparmor = ship->maxrarmor = ship->maxsarmor = 60;
+  ship->maxfinternal = ship->maxpinternal = ship->maxrinternal = ship->maxsinternal = 45;
+  ship->farmor = 30;
+  ship->finternal = 30;
+  ship->parmor = 0;
+  ship->pinternal = 0; /* the old model left a shot-out section afloat */
+  ship->rarmor = 60;
+  ship->rinternal = 45;
+  ship->sarmor = 15;
+  ship->sinternal = 20;
+  ship->maxmainsail = 20;
+  ship->mainsail = 10;
+  ship->maxturnrate = 20;
+  ship->turnrate = 5;
+}
+
+void Test_vessel_legacy_hull_keeps_its_damage_fractions(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+
+  damage_legacy_warship(&ship);
+  vessel_convert_legacy_condition(&ship, SHIP_UPGRADE_PLATING | SHIP_UPGRADE_REINFORCED |
+                                             SHIP_UPGRADE_RIGGING);
+
+  /* The warship profile at armor 109, each refit a fifth larger. */
+  CuAssertIntEquals(tc, 104, ship.maxfarmor);
+  CuAssertIntEquals(tc, 130, ship.maxparmor);
+  CuAssertIntEquals(tc, 78, ship.maxrarmor);
+  CuAssertIntEquals(tc, 130, ship.maxsarmor);
+  CuAssertIntEquals(tc, 45, ship.maxfinternal);
+  CuAssertIntEquals(tc, 56, ship.maxpinternal);
+  CuAssertIntEquals(tc, 27, ship.maxrinternal);
+  CuAssertIntEquals(tc, 56, ship.maxsinternal);
+  CuAssertIntEquals(tc, 17, ship.maxspeed);
+  CuAssertIntEquals(tc, 140, ship.maxmainsail);
+  CuAssertIntEquals(tc, VESSEL_RUDDER_MAX, ship.maxturnrate);
+
+  /* Each arc, the sails, and the rudder keep their share. */
+  CuAssertIntEquals(tc, 52, ship.farmor);
+  CuAssertIntEquals(tc, 30, ship.finternal);
+  CuAssertIntEquals(tc, 0, ship.parmor);
+  CuAssertIntEquals(tc, 78, ship.rarmor);
+  CuAssertIntEquals(tc, 27, ship.rinternal);
+  CuAssertIntEquals(tc, 33, ship.sarmor);
+  CuAssertIntEquals(tc, 25, ship.sinternal);
+  CuAssertIntEquals(tc, 70, ship.mainsail);
+  CuAssertIntEquals(tc, 5, ship.turnrate);
+
+  /* The old model had no holes: a shot-out section comes back afloat. */
+  CuAssertIntEquals(tc, 1, ship.pinternal);
+  CuAssertIntEquals(tc, 0, vessel_breached_arcs(&ship));
+
+  /* Without refits a whole raft of armor 5 becomes a whole raft of 8. */
+  memset(&ship, 0, sizeof(ship));
+  ship.vessel_type = VESSEL_RAFT;
+  ship.maxspeed = 10;
+  ship.maxfarmor = ship.farmor = ship.maxparmor = ship.parmor = 5;
+  ship.maxrarmor = ship.rarmor = ship.maxsarmor = ship.sarmor = 5;
+  ship.maxfinternal = ship.finternal = ship.maxpinternal = ship.pinternal = 12;
+  ship.maxrinternal = ship.rinternal = ship.maxsinternal = ship.sinternal = 12;
+  ship.maxmainsail = ship.mainsail = 20;
+  ship.maxturnrate = ship.turnrate = 20;
+  vessel_convert_legacy_condition(&ship, 0);
+  CuAssertIntEquals(tc, 5, ship.maxfarmor);
+  CuAssertIntEquals(tc, 5, ship.farmor);
+  CuAssertIntEquals(tc, 8, ship.maxparmor);
+  CuAssertIntEquals(tc, 8, ship.parmor);
+  CuAssertIntEquals(tc, 3, ship.rarmor);
+  CuAssertIntEquals(tc, 3, ship.finternal);
+  CuAssertIntEquals(tc, 3, ship.maxsinternal);
+  CuAssertIntEquals(tc, 20, ship.mainsail);
+  CuAssertIntEquals(tc, 10, ship.maxspeed);
+}
+
+static MYSQL *damage_open_test_database(void)
+{
+  const char *port_text;
+  MYSQL *connection;
+
+  if (getenv("LUMINARI_TEST_MYSQL_HOST") == NULL || getenv("LUMINARI_TEST_MYSQL_USER") == NULL ||
+      getenv("LUMINARI_TEST_MYSQL_PASSWORD") == NULL ||
+      getenv("LUMINARI_TEST_MYSQL_DATABASE") == NULL)
+  {
+    return NULL;
+  }
+  port_text = getenv("LUMINARI_TEST_MYSQL_PORT");
+  connection = mysql_init(NULL);
+  if (connection == NULL)
+  {
+    return NULL;
+  }
+  if (mysql_real_connect(
+          connection, getenv("LUMINARI_TEST_MYSQL_HOST"), getenv("LUMINARI_TEST_MYSQL_USER"),
+          getenv("LUMINARI_TEST_MYSQL_PASSWORD"), getenv("LUMINARI_TEST_MYSQL_DATABASE"),
+          port_text != NULL ? (unsigned int)strtoul(port_text, NULL, 10) : 3306, NULL, 0) == NULL)
+  {
+    mysql_close(connection);
+    return NULL;
+  }
+  return connection;
+}
+
+/* The first row of a one-value query, or -1. */
+static int damage_query_int(MYSQL *connection, const char *query)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int value;
+
+  if (mysql_query(connection, query))
+  {
+    return -1;
+  }
+  result = mysql_store_result(connection);
+  if (result == NULL)
+  {
+    return -1;
+  }
+  row = mysql_fetch_row(result);
+  value = row != NULL && row[0] != NULL ? atoi(row[0]) : -1;
+  mysql_free_result(result);
+  return value;
+}
+
+void Test_vessel_prototype_armor_is_rescaled_once(CuTest *tc)
+{
+  static const int legacy_armor[NUM_VESSEL_TYPES] = {5, 8, 20, 35, 15, 25, 20, 20};
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  char query[256];
+  MYSQL *saved_conn;
+  MYSQL *connection;
+  bool saved_mysql_available;
+  bool had_base_table;
+  bool prepared;
+  int vessel_type;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    return;
+  }
+
+  connection = damage_open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  /* A prototype table from before S3, shadowing any real one. The schema
+   * guard's CREATE TABLE IF NOT EXISTS does not see a temporary table, so
+   * note whether it will leave a base table behind. */
+  had_base_table = damage_query_int(connection, "SELECT COUNT(*) FROM information_schema.TABLES "
+                                                "WHERE TABLE_SCHEMA = DATABASE() "
+                                                "AND TABLE_NAME = 'ship_prototypes'") > 0;
+  prepared = mysql_query(connection, "CREATE TEMPORARY TABLE ship_prototypes ("
+                                     "prototype_id INT AUTO_INCREMENT PRIMARY KEY, "
+                                     "name VARCHAR(127) NOT NULL, "
+                                     "vessel_class INT NOT NULL DEFAULT 2, "
+                                     "max_speed INT NOT NULL DEFAULT 10, "
+                                     "armor INT NOT NULL DEFAULT 10, "
+                                     "for_sale TINYINT(1) NOT NULL DEFAULT 0, "
+                                     "min_level INT NOT NULL DEFAULT 0, "
+                                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)") == 0;
+  for (vessel_type = 0; prepared && vessel_type < NUM_VESSEL_TYPES; vessel_type++)
+  {
+    snprintf(query, sizeof(query),
+             "INSERT INTO ship_prototypes (prototype_id, name, vessel_class, armor) "
+             "VALUES (%d, 'Legacy', %d, %d)",
+             vessel_type + 1, vessel_type, legacy_armor[vessel_type]);
+    prepared = mysql_query(connection, query) == 0;
+  }
+  if (!prepared)
+  {
+    mysql_close(connection);
+    CuFail(tc, "could not create the isolated ship prototype fixture");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_mysql_available = mysql_available;
+  conn = connection;
+  mysql_available = TRUE;
+
+  /* The first boot rescales every class; later boots change nothing. */
+  CuAssertTrue(tc, vessel_prototype_ensure_schema());
+  CuAssertTrue(tc, vessel_prototype_ensure_schema());
+  for (vessel_type = 0; vessel_type < NUM_VESSEL_TYPES; vessel_type++)
+  {
+    snprintf(query, sizeof(query),
+             "SELECT armor FROM ship_prototypes WHERE prototype_id = %d AND armor_scale = 1",
+             vessel_type + 1);
+    CuAssertIntEquals(tc, vessel_rescale_legacy_armor(vessel_type, legacy_armor[vessel_type]),
+                      damage_query_int(connection, query));
+  }
+
+  /* A prototype written afterwards is already on the new scale. */
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "INSERT INTO ship_prototypes (prototype_id, name, "
+                                            "vessel_class, armor) VALUES (20, 'New', 3, 109)"));
+  CuAssertTrue(tc, vessel_prototype_ensure_schema());
+  CuAssertIntEquals(tc, 109,
+                    damage_query_int(connection, "SELECT armor FROM ship_prototypes "
+                                                 "WHERE prototype_id = 20 AND armor_scale = 1"));
+
+  conn = saved_conn;
+  mysql_available = saved_mysql_available;
+  mysql_query(connection, "DROP TEMPORARY TABLE ship_prototypes");
+  if (!had_base_table)
+  {
+    mysql_query(connection, "DROP TABLE IF EXISTS ship_prototypes");
+  }
+  mysql_close(connection);
+}
+
+void Test_vessel_legacy_snapshot_converts_once_at_load(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data legacy;
+  char query[1024];
+  MYSQL *saved_conn;
+  MYSQL *connection;
+  bool saved_mysql_available;
+  bool prepared;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    return;
+  }
+
+  connection = damage_open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  /* A snapshot saved before S3, shadowing the real tables. */
+  damage_legacy_warship(&legacy);
+  snprintf(query, sizeof(query),
+           "INSERT INTO ship_runtime_state (ship_id, maxspeed, "
+           "maxfarmor, maxrarmor, maxparmor, maxsarmor, farmor, rarmor, parmor, sarmor, "
+           "maxfinternal, maxrinternal, maxpinternal, maxsinternal, "
+           "finternal, rinternal, pinternal, sinternal, "
+           "maxturnrate, turnrate, maxmainsail, mainsail, condition_model) VALUES "
+           "(%d, %d, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, "
+           "%u, %u, %u, %u, 0)",
+           DAMAGE_TARGET_SLOT, legacy.maxspeed, legacy.maxfarmor, legacy.maxrarmor,
+           legacy.maxparmor, legacy.maxsarmor, legacy.farmor, legacy.rarmor, legacy.parmor,
+           legacy.sarmor, legacy.maxfinternal, legacy.maxrinternal, legacy.maxpinternal,
+           legacy.maxsinternal, legacy.finternal, legacy.rinternal, legacy.pinternal,
+           legacy.sinternal, legacy.maxturnrate, legacy.turnrate, legacy.maxmainsail,
+           legacy.mainsail);
+  prepared = mysql_query(connection, "CREATE TEMPORARY TABLE ship_runtime_state "
+                                     "(PRIMARY KEY (ship_id)) "
+                                     "SELECT * FROM ship_runtime_state LIMIT 0") == 0 &&
+             mysql_query(connection, "CREATE TEMPORARY TABLE ship_interiors ("
+                                     "ship_id INT NOT NULL PRIMARY KEY, "
+                                     "upgrades INT NOT NULL DEFAULT 0)") == 0 &&
+             mysql_query(connection, query) == 0;
+  snprintf(query, sizeof(query), "INSERT INTO ship_interiors (ship_id, upgrades) VALUES (%d, %d)",
+           DAMAGE_TARGET_SLOT,
+           SHIP_UPGRADE_PLATING | SHIP_UPGRADE_REINFORCED | SHIP_UPGRADE_RIGGING);
+  prepared = prepared && mysql_query(connection, query) == 0;
+  if (!prepared)
+  {
+    mysql_close(connection);
+    CuFail(tc, "could not create the isolated runtime snapshot fixture");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_mysql_available = mysql_available;
+  conn = connection;
+  mysql_available = TRUE;
+
+  /* The load converts her with her refits, as the unit case does. */
+  ship = &greyhawk_ships[DAMAGE_TARGET_SLOT];
+  memset(ship, 0, sizeof(*ship));
+  ship->active = TRUE;
+  ship->shipnum = DAMAGE_TARGET_SLOT;
+  ship->vessel_type = VESSEL_WARSHIP;
+  CuAssertTrue(tc, vessel_db_load_runtime(ship));
+  CuAssertIntEquals(tc, 104, ship->maxfarmor);
+  CuAssertIntEquals(tc, 52, ship->farmor);
+  CuAssertIntEquals(tc, 1, ship->pinternal);
+  CuAssertIntEquals(tc, 17, ship->maxspeed);
+  CuAssertIntEquals(tc, 70, ship->mainsail);
+
+  /* The save records the model, so the next boot loads her as she is. */
+  ship->farmor = 40;
+  CuAssertTrue(tc, vessel_db_save_runtime(ship));
+  snprintf(query, sizeof(query),
+           "SELECT condition_model FROM ship_runtime_state WHERE ship_id = %d", DAMAGE_TARGET_SLOT);
+  CuAssertIntEquals(tc, VESSEL_CONDITION_MODEL, damage_query_int(connection, query));
+  memset(ship, 0, sizeof(*ship));
+  ship->active = TRUE;
+  ship->shipnum = DAMAGE_TARGET_SLOT;
+  ship->vessel_type = VESSEL_WARSHIP;
+  CuAssertTrue(tc, vessel_db_load_runtime(ship));
+  CuAssertIntEquals(tc, 104, ship->maxfarmor);
+  CuAssertIntEquals(tc, 40, ship->farmor);
+  CuAssertIntEquals(tc, 17, ship->maxspeed);
+
+  conn = saved_conn;
+  mysql_available = saved_mysql_available;
+  damage_clear();
+  mysql_query(connection, "DROP TEMPORARY TABLE ship_runtime_state");
+  mysql_query(connection, "DROP TEMPORARY TABLE ship_interiors");
+  mysql_close(connection);
 }

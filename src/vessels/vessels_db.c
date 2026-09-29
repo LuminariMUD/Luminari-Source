@@ -78,6 +78,7 @@ void vessel_persistence_ensure_schema(void)
       "mainsail TINYINT UNSIGNED NOT NULL DEFAULT 0, "
       "hullweight TINYINT UNSIGNED NOT NULL DEFAULT 0, "
       "maxslots TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "condition_model TINYINT UNSIGNED NOT NULL DEFAULT 0, "
       "last_attacker INT NOT NULL DEFAULT 0, "
       "pvp_grace_until BIGINT NOT NULL DEFAULT 0, "
       "pvp_grace_attacker VARCHAR(64) NOT NULL DEFAULT '', "
@@ -127,6 +128,14 @@ void vessel_persistence_ensure_schema(void)
                         "AFTER dock_fee_port"))
   {
     log("SYSERR: Unable to add vessel Phase 10 runtime fields: %s", mysql_error(conn));
+  }
+
+  /* Snapshots saved before S3 read 0 and are converted once at load. */
+  if (mysql_query(conn, "ALTER TABLE ship_runtime_state "
+                        "ADD COLUMN IF NOT EXISTS condition_model TINYINT UNSIGNED NOT NULL "
+                        "DEFAULT 0 AFTER maxslots"))
+  {
+    log("SYSERR: Unable to add vessel Phase 19 runtime fields: %s", mysql_error(conn));
   }
 
   if (mysql_query(conn, "CREATE TABLE IF NOT EXISTS ship_weapons ("
@@ -793,7 +802,7 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            "maxfarmor, maxrarmor, maxparmor, maxsarmor, farmor, rarmor, parmor, sarmor, "
            "maxfinternal, maxrinternal, maxpinternal, maxsinternal, "
            "finternal, rinternal, pinternal, sinternal, "
-           "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, "
+           "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, condition_model, "
            "last_attacker, pvp_grace_until, pvp_grace_attacker, "
            "dock_fee_balance, dock_fee_port, dock_fee_clan, "
            "wear_ticks, room_types, slot_data, "
@@ -804,7 +813,7 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            "%d, %d, %d, %d, "
            "%u, %u, %u, %u, %u, %u, %u, %u, "
            "%u, %u, %u, %u, %u, %u, %u, %u, "
-           "%u, %u, %u, %u, %u, %u, "
+           "%u, %u, %u, %u, %u, %u, %d, "
            "%d, %lld, '%s', %d, %d, %d, %d, '%s', '%s', "
            "%d, %d, %d, %d, %d, %lld)",
            ship->shipnum, ship->prototype_id,
@@ -817,10 +826,10 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            ship->maxfinternal, ship->maxrinternal, ship->maxpinternal, ship->maxsinternal,
            ship->finternal, ship->rinternal, ship->pinternal, ship->sinternal, ship->maxturnrate,
            ship->turnrate, ship->maxmainsail, ship->mainsail, ship->hullweight, ship->maxslots,
-           ship->last_attacker, (long long)ship->pvp_grace_until, escaped_pvp_attacker,
-           ship->dock_fee_balance, ship->dock_fee_port, ship->dock_fee_clan, ship->wear_ticks,
-           room_types, escaped_slot_data, autopilot_state, route_id, current_waypoint_index,
-           autopilot_tick_counter, wait_remaining, last_update);
+           VESSEL_CONDITION_MODEL, ship->last_attacker, (long long)ship->pvp_grace_until,
+           escaped_pvp_attacker, ship->dock_fee_balance, ship->dock_fee_port, ship->dock_fee_clan,
+           ship->wear_ticks, room_types, escaped_slot_data, autopilot_state, route_id,
+           current_waypoint_index, autopilot_tick_counter, wait_remaining, last_update);
 
   if (mysql_query(conn, query))
   {
@@ -828,6 +837,43 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
     return FALSE;
   }
   return TRUE;
+}
+
+/**
+ * Convert a snapshot saved under the pre-S3 condition model. Its refits are
+ * read here because the extras load later; the next save writes the model.
+ */
+static void vessel_db_convert_legacy_condition(struct greyhawk_ship_data *ship)
+{
+  char query[MAX_STRING_LENGTH];
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int upgrades;
+
+  upgrades = 0;
+  result = NULL;
+  snprintf(query, sizeof(query), "SELECT upgrades FROM ship_interiors WHERE ship_id = %d",
+           ship->shipnum);
+  if (mysql_query(conn, query) == 0)
+  {
+    result = mysql_store_result(conn);
+  }
+  if (result == NULL)
+  {
+    log("SYSERR: Unable to read refits for legacy ship %d: %s", ship->shipnum, mysql_error(conn));
+  }
+  else
+  {
+    row = mysql_fetch_row(result);
+    if (row != NULL && row[0] != NULL)
+    {
+      upgrades = parse_int(row[0]);
+    }
+    mysql_free_result(result);
+  }
+
+  vessel_convert_legacy_condition(ship, upgrades);
+  log("Info: Ship %d condition converted to the S3 damage model", ship->shipnum);
 }
 
 /**
@@ -842,7 +888,7 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
       "maxfarmor, maxrarmor, maxparmor, maxsarmor, farmor, rarmor, parmor, sarmor, "
       "maxfinternal, maxrinternal, maxpinternal, maxsinternal, "
       "finternal, rinternal, pinternal, sinternal, "
-      "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, "
+      "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, condition_model, "
       "last_attacker, pvp_grace_until, pvp_grace_attacker, "
       "dock_fee_balance, dock_fee_port, dock_fee_clan, "
       "wear_ticks, room_types, slot_data, "
@@ -863,6 +909,7 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
   int autopilot_tick_counter;
   int wait_remaining;
   long long last_update;
+  int condition_model;
   int column;
   int room_count;
   int i;
@@ -965,6 +1012,8 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
   LOAD_UCHAR(hullweight);
   LOAD_UCHAR(maxslots);
 #undef LOAD_UCHAR
+  condition_model = row[column] ? parse_int(row[column]) : 0;
+  column++;
 
   ship->last_attacker = row[column] ? parse_int(row[column]) : 0;
   column++;
@@ -1058,6 +1107,11 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
     ship->hull_object_vnum = VESSEL_BASE_HULL_OBJ_VNUM;
   }
   mysql_free_result(result);
+
+  if (condition_model < VESSEL_CONDITION_MODEL)
+  {
+    vessel_db_convert_legacy_condition(ship);
+  }
   return TRUE;
 }
 

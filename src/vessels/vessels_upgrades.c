@@ -528,12 +528,10 @@ static struct greyhawk_ship_data *refit_command_ship(struct char_data *ch)
 ACMD(do_shipupgrade)
 {
   struct greyhawk_ship_data *ship;
-  unsigned char *ceiling;
   char arg[MAX_INPUT_LENGTH];
   int index;
   int cost;
   int bit;
-  int arc;
   int i;
 
   ship = refit_command_ship(ch);
@@ -585,12 +583,7 @@ ACMD(do_shipupgrade)
   {
   case 0: /* plating */
   case 3: /* reinforcement */
-    for (arc = 0; arc < VESSEL_NUM_ARCS; arc++)
-    {
-      ceiling = index == 0 ? vessel_arc_max_armor(ship, arc) : vessel_arc_max_internal(ship, arc);
-      *ceiling = (unsigned char)MIN(255, *ceiling + *ceiling / 5);
-      *(index == 0 ? vessel_arc_armor(ship, arc) : vessel_arc_internal(ship, arc)) = *ceiling;
-    }
+    vessel_refit_arcs(ship, index == 3);
     break;
   case 1: /* rigging */
     ship->maxspeed = vessel_rigged_speed(ship->maxspeed);

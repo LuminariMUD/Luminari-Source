@@ -30,6 +30,7 @@ SELECT
   vessel_class,
   max_speed,
   armor,
+  armor_scale,
   for_sale
 FROM ship_prototypes
 WHERE

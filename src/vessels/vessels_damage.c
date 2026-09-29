@@ -88,6 +88,134 @@ void vessel_initialize_condition(struct greyhawk_ship_data *ship, int armor)
   ship->maxturnrate = ship->turnrate = VESSEL_RUDDER_MAX;
 }
 
+/**
+ * Raise every arc's armor ceiling, or its structure ceiling, by a fifth for
+ * the plating or reinforcement refit (3.3.1), and make the arc good to it.
+ */
+void vessel_refit_arcs(struct greyhawk_ship_data *ship, bool structure)
+{
+  unsigned char *ceiling;
+  int arc;
+
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  for (arc = 0; arc < VESSEL_NUM_ARCS; arc++)
+  {
+    ceiling = structure ? vessel_arc_max_internal(ship, arc) : vessel_arc_max_armor(ship, arc);
+    *ceiling = (unsigned char)MIN(255, *ceiling + *ceiling / 5);
+    *(structure ? vessel_arc_internal(ship, arc) : vessel_arc_armor(ship, arc)) = *ceiling;
+  }
+}
+
+/**
+ * A pre-S3 prototype armor on the S3 scale: the class beam armor over the
+ * class's old default armor (3.3.10). Mirrors the one-time rescale in
+ * vessel_prototype_ensure_schema() and vessels_phase19_schema.sql.
+ */
+int vessel_rescale_legacy_armor(int vclass, int armor)
+{
+  /* The old `vedit new` defaults, in enum vessel_class order */
+  static const int legacy_default_armor[NUM_VESSEL_TYPES] = {2, 5, 20, 40, 15, 25, 20, 20};
+  int legacy;
+
+  if (vclass < 0 || vclass >= NUM_VESSEL_TYPES)
+  {
+    vclass = VESSEL_SHIP;
+  }
+  legacy = legacy_default_armor[vclass];
+  armor = MAX(0, armor);
+  return MIN(VESSEL_MAX_PROTOTYPE_ARMOR,
+             (armor * vessel_class_condition((enum vessel_class)vclass)->beam_armor + legacy / 2) /
+                 legacy);
+}
+
+/** `current` of `old_max` carried to `new_max`, rounded. A 0 maximum was whole. */
+static int vessel_carry_fraction(int current, int old_max, int new_max)
+{
+  if (old_max <= 0)
+  {
+    return new_max;
+  }
+  current = MAX(0, MIN(old_max, current));
+  return (new_max * current + old_max / 2) / old_max;
+}
+
+/**
+ * Convert a hull saved under the pre-S3 condition model (3.3.10): the class
+ * profile at its rescaled armor, refits recomputed at the S3 sizes, and each
+ * arc, the sails, and the rudder keeping their damage fraction.
+ *
+ * The old model gave every arc the prototype armor (half again with
+ * plating), structure of half that plus 10 (half again with reinforcement),
+ * 20 sail and 20 rudder, and rigging added 5 speed. It had no holes, so a
+ * converted arc keeps at least 1 point of structure.
+ */
+void vessel_convert_legacy_condition(struct greyhawk_ship_data *ship, int upgrades)
+{
+  int old_armor[VESSEL_NUM_ARCS];
+  int old_max_armor[VESSEL_NUM_ARCS];
+  int old_internal[VESSEL_NUM_ARCS];
+  int old_max_internal[VESSEL_NUM_ARCS];
+  int old_sail;
+  int old_max_sail;
+  int old_rudder;
+  int old_max_rudder;
+  int base_armor;
+  int arc;
+
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  for (arc = 0; arc < VESSEL_NUM_ARCS; arc++)
+  {
+    old_armor[arc] = *vessel_arc_armor(ship, arc);
+    old_max_armor[arc] = *vessel_arc_max_armor(ship, arc);
+    old_internal[arc] = *vessel_arc_internal(ship, arc);
+    old_max_internal[arc] = *vessel_arc_max_internal(ship, arc);
+  }
+  old_sail = ship->mainsail;
+  old_max_sail = ship->maxmainsail;
+  old_rudder = ship->turnrate;
+  old_max_rudder = ship->maxturnrate;
+
+  /* Undo the old plating's +50% (x + x / 2) to find the prototype armor. */
+  base_armor = ship->maxfarmor;
+  if (IS_SET(upgrades, SHIP_UPGRADE_PLATING))
+  {
+    base_armor = (base_armor * 2 + 2) / 3;
+  }
+  vessel_initialize_condition(ship, vessel_rescale_legacy_armor(ship->vessel_type, base_armor));
+  if (IS_SET(upgrades, SHIP_UPGRADE_PLATING))
+  {
+    vessel_refit_arcs(ship, FALSE);
+  }
+  if (IS_SET(upgrades, SHIP_UPGRADE_REINFORCED))
+  {
+    vessel_refit_arcs(ship, TRUE);
+  }
+  if (IS_SET(upgrades, SHIP_UPGRADE_RIGGING))
+  {
+    ship->maxspeed = vessel_rigged_speed(MAX(1, ship->maxspeed - 5));
+  }
+
+  for (arc = 0; arc < VESSEL_NUM_ARCS; arc++)
+  {
+    *vessel_arc_armor(ship, arc) = (unsigned char)vessel_carry_fraction(
+        old_armor[arc], old_max_armor[arc], *vessel_arc_max_armor(ship, arc));
+    *vessel_arc_internal(ship, arc) =
+        (unsigned char)MAX(1, vessel_carry_fraction(old_internal[arc], old_max_internal[arc],
+                                                    *vessel_arc_max_internal(ship, arc)));
+  }
+  ship->mainsail = (unsigned char)vessel_carry_fraction(old_sail, old_max_sail, ship->maxmainsail);
+  ship->turnrate =
+      (unsigned char)vessel_carry_fraction(old_rudder, old_max_rudder, ship->maxturnrate);
+}
+
 /* Arc field accessors, indexed GREYHAWK_FORE..GREYHAWK_STARBOARD. */
 unsigned char *vessel_arc_armor(struct greyhawk_ship_data *ship, int arc)
 {

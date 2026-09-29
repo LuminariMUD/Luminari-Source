@@ -569,6 +569,14 @@ struct vessel_class_condition
 
 const struct vessel_class_condition *vessel_class_condition(enum vessel_class vessel_type);
 void vessel_initialize_condition(struct greyhawk_ship_data *ship, int armor);
+void vessel_refit_arcs(struct greyhawk_ship_data *ship, bool structure);
+
+/* Saved condition model (ship_runtime_state.condition_model): 0 is the pre-S3
+ * model, converted once at load (study 3.3.10) */
+#define VESSEL_CONDITION_MODEL 1
+
+int vessel_rescale_legacy_armor(int vclass, int armor);
+void vessel_convert_legacy_condition(struct greyhawk_ship_data *ship, int upgrades);
 unsigned char *vessel_arc_armor(struct greyhawk_ship_data *ship, int arc);
 unsigned char *vessel_arc_max_armor(struct greyhawk_ship_data *ship, int arc);
 unsigned char *vessel_arc_internal(struct greyhawk_ship_data *ship, int arc);

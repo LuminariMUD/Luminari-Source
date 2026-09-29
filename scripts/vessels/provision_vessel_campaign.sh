@@ -461,6 +461,7 @@ restart_needed=true
 provision_campaign_world
 apply_database_file "$repo_root/sql/components/vessels_phase13_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase14_schema.sql"
+apply_database_file "$repo_root/sql/components/vessels_phase19_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_campaign_content.sql"
 reset_campaign_runtime -467 193 0 9 12 0
 start_development_mud "$run_dir/01-boot.log"

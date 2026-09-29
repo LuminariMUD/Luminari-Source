@@ -200,6 +200,8 @@ flock -n 8 || fail "another frontier provisioner is already running"
   fail "the local character login helper is unavailable"
 [[ -r "$repo_root/sql/components/vessels_frontier_content.sql" ]] ||
   fail "the frontier SQL package is unavailable"
+[[ -r "$repo_root/sql/components/vessels_phase19_schema.sql" ]] ||
+  fail "the Phase 19 schema is unavailable"
 
 app_environment=$(config_value "$repo_root/lib/.env" APP_ENV)
 [[ "$app_environment" == development ]] ||
@@ -266,6 +268,7 @@ frontier_cleanup_authorized=true
 
 stop_development_mud
 restart_needed=true
+apply_database_file "$repo_root/sql/components/vessels_phase19_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_frontier_content.sql"
 start_development_mud "$run_dir/01-boot.log"
 
@@ -302,21 +305,21 @@ content_valid=$(database_scalar "
     AND (SELECT COUNT(*)
            FROM ship_prototypes
           WHERE (name = 'Sablebranch Raft' AND vessel_class = 0
-                 AND max_speed = 10 AND armor = 5)
-             OR (name = 'Sablebranch Riverboat' AND vessel_class = 1
                  AND max_speed = 10 AND armor = 8)
+             OR (name = 'Sablebranch Riverboat' AND vessel_class = 1
+                 AND max_speed = 10 AND armor = 13)
              OR (name = 'Starfall Survey Ship' AND vessel_class = 2
-                 AND max_speed = 12 AND armor = 20)
+                 AND max_speed = 12 AND armor = 66)
              OR (name = 'Starfall Bastion' AND vessel_class = 3
-                 AND max_speed = 15 AND armor = 35)
+                 AND max_speed = 15 AND armor = 95)
              OR (name = 'Aetherwind Courier' AND vessel_class = 4
-                 AND max_speed = 25 AND armor = 15)
+                 AND max_speed = 25 AND armor = 63)
              OR (name = 'Starfall Bathyscaphe' AND vessel_class = 5
-                 AND max_speed = 10 AND armor = 25)
+                 AND max_speed = 10 AND armor = 84)
              OR (name = 'Sablebranch Grand Freighter' AND vessel_class = 6
-                 AND max_speed = 8 AND armor = 20)
+                 AND max_speed = 8 AND armor = 110)
              OR (name = 'Liminal Wayfarer' AND vessel_class = 7
-                 AND max_speed = 15 AND armor = 20)) = 8,
+                 AND max_speed = 15 AND armor = 153)) = 8,
     1, 0);")
 [[ "$content_valid" == 1 ]] ||
   fail "frontier regions, spatial indexes, path, or prototypes are invalid"

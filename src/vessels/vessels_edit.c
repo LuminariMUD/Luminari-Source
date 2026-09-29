@@ -58,20 +58,41 @@ bool vessel_prototype_ensure_schema(void)
                            "  armor INT NOT NULL DEFAULT 10,"
                            "  for_sale TINYINT(1) NOT NULL DEFAULT 0,"
                            "  min_level INT NOT NULL DEFAULT 0,"
+                           "  armor_scale TINYINT(1) NOT NULL DEFAULT 1,"
                            "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
                            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+  /* Rows that predate armor_scale get 0 and are rescaled once below; rows
+   * written afterwards default to 1, the S3 scale. */
   const char *alter_sql = "ALTER TABLE ship_prototypes "
                           "ADD COLUMN IF NOT EXISTS for_sale TINYINT(1) NOT NULL DEFAULT 0 "
                           "AFTER armor, "
                           "ADD COLUMN IF NOT EXISTS min_level INT NOT NULL DEFAULT 0 "
-                          "AFTER for_sale";
+                          "AFTER for_sale, "
+                          "ADD COLUMN IF NOT EXISTS armor_scale TINYINT(1) NOT NULL DEFAULT 0 "
+                          "AFTER min_level";
+  /* vessel_rescale_legacy_armor(): class beam armor over the old default */
+  const char *rescale_sql =
+      "UPDATE ship_prototypes AS prototype "
+      "INNER JOIN ("
+      "SELECT 0 AS vessel_class, 2 AS legacy_armor, 3 AS beam_armor "
+      "UNION ALL SELECT 1, 5, 8 UNION ALL SELECT 2, 20, 66 UNION ALL SELECT 3, 40, 109 "
+      "UNION ALL SELECT 4, 15, 63 UNION ALL SELECT 5, 25, 84 UNION ALL SELECT 6, 20, 110 "
+      "UNION ALL SELECT 7, 20, 153"
+      ") AS scale ON scale.vessel_class = "
+      "IF(prototype.vessel_class BETWEEN 0 AND 7, prototype.vessel_class, 2) "
+      "SET prototype.armor = LEAST(229, (GREATEST(0, prototype.armor) * scale.beam_armor "
+      "+ scale.legacy_armor DIV 2) DIV scale.legacy_armor), "
+      "prototype.armor_scale = 1 "
+      "WHERE prototype.armor_scale = 0";
+  const char *default_sql = "ALTER TABLE ship_prototypes ALTER COLUMN armor_scale SET DEFAULT 1";
 
   if (!mysql_available || conn == NULL)
   {
     return FALSE;
   }
 
-  if (mysql_query(conn, create_sql) || mysql_query(conn, alter_sql))
+  if (mysql_query(conn, create_sql) || mysql_query(conn, alter_sql) ||
+      mysql_query(conn, rescale_sql) || mysql_query(conn, default_sql))
   {
     log("SYSERR: vessel_prototype_ensure_schema failed: %s", mysql_error(conn));
     return FALSE;

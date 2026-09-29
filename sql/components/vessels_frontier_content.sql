@@ -155,116 +155,124 @@ WHERE
   vnum = @sablebranch_river_vnum
   AND name = 'Sablebranch River';
 
-INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor, armor_scale)
 SELECT
   'Sablebranch Raft',
   0,
   10,
-  5
+  8,
+  1
 WHERE NOT EXISTS (
   SELECT 1 FROM ship_prototypes
   WHERE name = 'Sablebranch Raft'
 );
 UPDATE ship_prototypes
-SET vessel_class = 0, max_speed = 10, armor = 5, for_sale = 1
+SET vessel_class = 0, max_speed = 10, armor = 8, armor_scale = 1, for_sale = 1
 WHERE name = 'Sablebranch Raft';
 
-INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor, armor_scale)
 SELECT
   'Sablebranch Riverboat',
   1,
   10,
-  8
+  13,
+  1
 WHERE NOT EXISTS (
   SELECT 1 FROM ship_prototypes
   WHERE name = 'Sablebranch Riverboat'
 );
 UPDATE ship_prototypes
-SET vessel_class = 1, max_speed = 10, armor = 8, for_sale = 1
+SET vessel_class = 1, max_speed = 10, armor = 13, armor_scale = 1, for_sale = 1
 WHERE name = 'Sablebranch Riverboat';
 
-INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor, armor_scale)
 SELECT
   'Starfall Survey Ship',
   2,
   12,
-  20
+  66,
+  1
 WHERE NOT EXISTS (
   SELECT 1 FROM ship_prototypes
   WHERE name = 'Starfall Survey Ship'
 );
 UPDATE ship_prototypes
-SET vessel_class = 2, max_speed = 12, armor = 20, for_sale = 1
+SET vessel_class = 2, max_speed = 12, armor = 66, armor_scale = 1, for_sale = 1
 WHERE name = 'Starfall Survey Ship';
 
-INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor, armor_scale)
 SELECT
   'Starfall Bastion',
   3,
   15,
-  35
+  95,
+  1
 WHERE NOT EXISTS (
   SELECT 1 FROM ship_prototypes
   WHERE name = 'Starfall Bastion'
 );
 UPDATE ship_prototypes
-SET vessel_class = 3, max_speed = 15, armor = 35, for_sale = 1
+SET vessel_class = 3, max_speed = 15, armor = 95, armor_scale = 1, for_sale = 1
 WHERE name = 'Starfall Bastion';
 
-INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor, armor_scale)
 SELECT
   'Aetherwind Courier',
   4,
   25,
-  15
+  63,
+  1
 WHERE NOT EXISTS (
   SELECT 1 FROM ship_prototypes
   WHERE name = 'Aetherwind Courier'
 );
 UPDATE ship_prototypes
-SET vessel_class = 4, max_speed = 25, armor = 15, for_sale = 1
+SET vessel_class = 4, max_speed = 25, armor = 63, armor_scale = 1, for_sale = 1
 WHERE name = 'Aetherwind Courier';
 
-INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor, armor_scale)
 SELECT
   'Starfall Bathyscaphe',
   5,
   10,
-  25
+  84,
+  1
 WHERE NOT EXISTS (
   SELECT 1 FROM ship_prototypes
   WHERE name = 'Starfall Bathyscaphe'
 );
 UPDATE ship_prototypes
-SET vessel_class = 5, max_speed = 10, armor = 25, for_sale = 1
+SET vessel_class = 5, max_speed = 10, armor = 84, armor_scale = 1, for_sale = 1
 WHERE name = 'Starfall Bathyscaphe';
 
-INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor, armor_scale)
 SELECT
   'Sablebranch Grand Freighter',
   6,
   8,
-  20
+  110,
+  1
 WHERE NOT EXISTS (
   SELECT 1 FROM ship_prototypes
   WHERE name = 'Sablebranch Grand Freighter'
 );
 UPDATE ship_prototypes
-SET vessel_class = 6, max_speed = 8, armor = 20, for_sale = 1
+SET vessel_class = 6, max_speed = 8, armor = 110, armor_scale = 1, for_sale = 1
 WHERE name = 'Sablebranch Grand Freighter';
 
-INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor, armor_scale)
 SELECT
   'Liminal Wayfarer',
   7,
   15,
-  20
+  153,
+  1
 WHERE NOT EXISTS (
   SELECT 1 FROM ship_prototypes
   WHERE name = 'Liminal Wayfarer'
 );
 UPDATE ship_prototypes
-SET vessel_class = 7, max_speed = 15, armor = 20, for_sale = 1
+SET vessel_class = 7, max_speed = 15, armor = 153, armor_scale = 1, for_sale = 1
 WHERE name = 'Liminal Wayfarer';
 
 COMMIT;

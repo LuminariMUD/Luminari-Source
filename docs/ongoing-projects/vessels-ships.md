@@ -1356,7 +1356,7 @@ D6 (Part 5, step 3). The damage model lives in the new `src/vessels/vessels_dama
 | Breach states: one breached arc immobile (airborne hulls half speed), two sinking on a timer (150-300 ticks owned, 2000-3000 unowned); a sinking hull cannot move, fire, or be repaired | Done | `vessel_breached_arcs()`, `vessel_update_condition()`, `vessel_begin_sinking()`, `vessel_damage_tick_one()` (combat tick); `vessel_max_speed()`; `sink_ticks` |
 | Going down: half of each bulk cargo lot spills as salvage crates; `shipsalvage` hauls crates into a stopped hull's hold | Done | `vessel_spill_cargo()`, `vessel_salvage_crates()`, `do_shipsalvage()`; `vessel_stow_cargo()` shared with `plunder` |
 | D6: `strikecolors`; capture and plunder only of disabled prizes; hostile boarding only at speed 3 or less or disabled | Done | `vessel_prize_disabled()`, `vessel_abandoned_at_sea()`, `do_strikecolors()` in `vessels_damage.c`; `do_claimship()`, `do_plunder()`, `can_attempt_boarding()` (L14) |
-| Migration: prototype armor rescaled once by class (armor-scale flag), live hulls converted keeping their damage fractions (condition-model flag), weapon damage column; Phase 19 SQL with rollback and verifier | Planned |  |
+| Migration: prototype armor rescaled once by class (armor-scale flag), live hulls converted keeping their damage fractions (condition-model flag), weapon damage column; Phase 19 SQL with rollback and verifier | Done | `vessel_prototype_ensure_schema()` (`armor_scale`), `vessel_rescale_legacy_armor()`, `vessel_convert_legacy_condition()` from `vessel_db_load_runtime()` (`condition_model`); `vessels_phase19_schema.sql`, `_rollback.sql`, `verify_vessels_phase19.sql`; content packages at S3 scale with `armor_scale = 1`, and their provisioners apply Phase 19 first |
 | Status display (structure, sail, rudder, breaches, sinking, colors, weapons), help in both places, `VESSEL_SYSTEM.md` | Planned |  |
 | Unit tests, actual-character damage gate, existing gates, local CI | Planned |  |
 
@@ -1383,6 +1383,16 @@ Interpretations decided while planning S3:
   the same). S4's duel harness and S6's NPC AI must maneuver to bring a second arc to bear.
 - The stale "Running aground" help paragraph (grounding was removed in S2) is dropped with the
   S3 help rewrite.
+- Migration: the ratio is the class beam armor over the old `vedit new` default (raft 2, boat 5,
+  ship 20, warship 40, airship 15, submarine 25, transport 20, magical 20), capped at 229. A
+  legacy hull's prototype armor is read back from its saved arc maximum (undoing the old +50%
+  plating), so hulls without a prototype convert too. The old model left shot-out sections
+  afloat and had no holes, so a converted arc keeps at least 1 structure: no hull comes back
+  holed or sinking. Default ballistae, wages and insurance refunds in 3.3.10 belong to S4 and S5.
+- The content packages write S3-scale armor with `armor_scale = 1`, so they fail loudly on a
+  database without Phase 19 instead of being rescaled twice.
+- The Phase 19 rollback returns prototype armor to the old scale (rounded) so older code does not
+  run S3-strength prototypes; converted hulls keep their S3 values.
 
 ### Estimate
 

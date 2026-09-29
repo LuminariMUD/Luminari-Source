@@ -1217,6 +1217,19 @@ study 3.3.1, 3.3.3).
   decay after `VESSEL_SALVAGE_CRATE_HOURS` (24) MUD hours. `shipsalvage` from
   the helm of a stopped hull stows them through `vessel_stow_cargo()`, the
   capacity-bounded stowage that `plunder` also uses.
+- Migration (Phase 19, 3.3.10): `vessel_prototype_ensure_schema()` rescales
+  prototype armor once (`armor_scale` 0 to 1) by the class beam armor over the
+  old `vedit new` default (`vessel_rescale_legacy_armor()`: raft 2, boat 5,
+  ship 20, warship 40, airship 15, submarine 25, transport 20, magical 20); a
+  warship of 40 becomes 109. A runtime snapshot saved before S3
+  (`condition_model` 0) is converted once at load
+  (`vessel_convert_legacy_condition()`): the old model gave every arc the
+  prototype armor and structure of half that plus 10, each half again with
+  plating or reinforcement, 20 sail and 20 rudder, and rigging added 5 speed.
+  The hull takes the class profile at its rescaled armor, refits recomputed at
+  a fifth (`vessel_refit_arcs()`, `vessel_rigged_speed()`), and each arc, the
+  sails, and the rudder keep their damage fraction; the old model had no holes,
+  so every arc keeps at least 1 structure. Saves write `condition_model` 1.
 
 ### Builder Commands (Phase 04)
 
@@ -1439,10 +1452,10 @@ historical measurements, and the limits of the current evidence.
 
 | Table | Purpose |
 | -- | -- |
-| `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards; `for_sale` and `min_level` since Phase 18 |
+| `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards; `for_sale` and `min_level` since Phase 18, `armor_scale` since Phase 19 |
 | `ship_interiors` | Vessel identity, rooms, cosmetics, owner, upgrades, and insurance (retired `wages_owed` column unread) |
-| `ship_runtime_state` | Live hull, position, condition, room type, autopilot, PvP grace, and dock-fee snapshot |
-| `ship_weapons` | Normalized installed weapon slots, values, position, and reload state |
+| `ship_runtime_state` | Live hull, position, condition (`condition_model` since Phase 19), room type, autopilot, PvP grace, and dock-fee snapshot |
+| `ship_weapons` | Normalized installed weapon slots, values, position, reload state, and `weapon_damage` (Phase 19) |
 | `ship_docking` | Active and historical docking relationships |
 | `ship_room_templates` | Builder-editable generated interior text |
 | `ship_room_template_triggers` | DG trigger VNUMs attached to generated room types |
@@ -1491,7 +1504,7 @@ make install
 The command refuses to run unless `lib/.env` contains
 `APP_ENV=development`. It merges only missing records into the ignored live
 world files, extends the reserved zone 700 upper bound from 79999 to 80019
-when needed, applies Phases 11-15 and the development seed, restarts the
+when needed, applies Phases 11-15 and 19 and the development seed, restarts the
 supervised local MUD, creates the ferry only when absent, and verifies the
 result through batched Kohdee sessions. It rejects conflicting zone or legal
 water region reservations instead of overwriting them. It is intentionally not

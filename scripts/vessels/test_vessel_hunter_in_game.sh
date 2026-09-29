@@ -461,7 +461,7 @@ fixture_valid=$(database_query "
               WHERE name = '$target_prototype_name'
                 AND vessel_class = 0
                 AND max_speed = 5
-                AND armor = 100
+                AND armor = 150
            ) = 1,
            1,
            0
@@ -481,7 +481,7 @@ target_prototype_id=$(database_query "
    WHERE name = '$target_prototype_name'
      AND vessel_class = 0
      AND max_speed = 5
-     AND armor = 100;")
+     AND armor = 150;")
 [[ "$target_prototype_id" =~ ^[1-9][0-9]*$ ]] ||
   fail "could not identify the durable HUNTED target prototype"
 

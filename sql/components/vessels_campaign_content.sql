@@ -468,12 +468,13 @@ WHERE
     WHERE link.waypoint_id = ship_waypoints.waypoint_id
   );
 
-INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor, armor_scale)
 SELECT
   @vailand_prototype_name,
   2,
   12,
-  30
+  99,
+  1
 WHERE NOT EXISTS (
   SELECT 1 FROM ship_prototypes
   WHERE name = @vailand_prototype_name
@@ -483,7 +484,9 @@ SET @vailand_prototype_id = (
   WHERE name = @vailand_prototype_name
 );
 UPDATE ship_prototypes
-SET vessel_class = 2, max_speed = 12, armor = 30
+SET
+  vessel_class = 2, max_speed = 12, armor = 99,
+  armor_scale = 1
 WHERE prototype_id = @vailand_prototype_id;
 
 SET @iron_commodity_id = (

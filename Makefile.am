@@ -1104,6 +1104,7 @@ EXTRA_DIST = \
 	sql/components/verify_vessels_phase16.sql \
 	sql/components/verify_vessels_phase17.sql \
 	sql/components/verify_vessels_phase18.sql \
+	sql/components/verify_vessels_phase19.sql \
 	sql/components/verify_vessels_narrative_content.sql \
 	sql/components/vessels_harbor_sandbox.sql \
 	sql/components/vessels_narrative_content.sql \
@@ -1138,6 +1139,8 @@ EXTRA_DIST = \
 	sql/components/vessels_phase17_schema.sql \
 	sql/components/vessels_phase18_rollback.sql \
 	sql/components/vessels_phase18_schema.sql \
+	sql/components/vessels_phase19_rollback.sql \
+	sql/components/vessels_phase19_schema.sql \
 	sql/master_schema.sql \
 	README.md
 

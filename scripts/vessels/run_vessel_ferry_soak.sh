@@ -559,6 +559,7 @@ run_monitor() {
     local armor_name
     local armor_value
     local armor_maximum
+    local expected_armor_maximum
     local fleet_count
     local dynamic_room_row
     local dynamic_rooms
@@ -690,7 +691,13 @@ run_monitor() {
     [[ $(wc -l <<<"$armor_rows") -eq 4 ]] ||
       fail_run "could not read all four armor arcs during $label"
     while read -r armor_name armor_value armor_maximum; do
-      [[ "$armor_value" =~ ^[0-9]+$ && "$armor_maximum" == 20 ]] ||
+      # The ferry's ship-class profile at its armor 66 (vessels_damage.c).
+      case $armor_name in
+        Forward) expected_armor_maximum=53 ;;
+        Rear) expected_armor_maximum=33 ;;
+        *) expected_armor_maximum=66 ;;
+      esac
+      [[ "$armor_value" =~ ^[0-9]+$ && "$armor_maximum" == "$expected_armor_maximum" ]] ||
         fail_run "invalid $armor_name armor during $label"
       ((armor_value >= 0 && armor_value <= armor_maximum)) ||
         fail_run "out-of-range $armor_name armor during $label"
