@@ -40,15 +40,15 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
 /* Class order follows enum vessel_class. */
 static const struct vessel_class_handling class_handling[NUM_VESSEL_TYPES] = {
-    /* speed accel turn  load free  hold free */
-    {5, 5.0, 25.0, 5, 0, 2, 0},       /* RAFT: Duris sloop */
-    {30, 4.0, 22.0, 12, 2, 6, 0},     /* BOAT: yacht */
-    {20, 2.0, 6.5, 100, 13, 70, 12},  /* SHIP: caravel */
-    {17, 1.5, 4.0, 142, 20, 56, 0},   /* WARSHIP: frigate */
-    {22, 3.0, 10.0, 82, 13, 32, 0},   /* AIRSHIP: corvette */
-    {12, 2.0, 6.5, 110, 16, 44, 0},   /* SUBMARINE: destroyer */
-    {15, 1.2, 3.0, 165, 19, 140, 40}, /* TRANSPORT: galleon */
-    {14, 1.2, 2.5, 200, 25, 80, 0}    /* MAGICAL: cruiser */
+    /* hull speed accel turn  load free  hold free */
+    {10, 5, 5.0, 25.0, 5, 0, 2, 0},        /* RAFT: Duris sloop */
+    {25, 30, 4.0, 22.0, 12, 2, 6, 0},      /* BOAT: yacht */
+    {200, 20, 2.0, 6.5, 100, 13, 70, 12},  /* SHIP: caravel */
+    {285, 17, 1.5, 4.0, 142, 20, 56, 0},   /* WARSHIP: frigate */
+    {165, 22, 3.0, 10.0, 82, 13, 32, 0},   /* AIRSHIP: corvette */
+    {220, 12, 2.0, 6.5, 110, 16, 44, 0},   /* SUBMARINE: destroyer */
+    {330, 15, 1.2, 3.0, 165, 19, 140, 40}, /* TRANSPORT: galleon */
+    {400, 14, 1.2, 2.5, 200, 25, 80, 0}    /* MAGICAL: cruiser */
 };
 
 /* Crossings of a room's two edges this close together (in ticks) are one
@@ -210,10 +210,7 @@ double vessel_load_factor(const struct greyhawk_ship_data *ship)
   fitout_weight = 0;
   for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
   {
-    if (ship->slot[i].type != 0)
-    {
-      fitout_weight += ship->slot[i].weight;
-    }
+    fitout_weight += vessel_slot_weight(ship, &ship->slot[i]);
   }
 
   capacity = get_vessel_cargo_capacity(ship->vessel_type);

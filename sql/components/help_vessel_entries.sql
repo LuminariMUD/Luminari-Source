@@ -33,12 +33,13 @@ TACTICAL
 
 SHIPSTATUS
   Show position, terrain, elevation or depth, heading, speed, moorings, the
-  armor and structure of all four sides, sails, rudder, and every weapon
-  (ready, reloading, disabled with its damage, or destroyed). Heading and
-  speed show any order the hull is still answering, and speed shows the most
-  she can make under present conditions. Holed sides, the time left before a
-  sinking hull goes down, and struck colors appear when they apply, as do
-  merchant registry and unpaid dock-fee details.
+  armor and structure of all four sides, sails, rudder, and every slot by
+  number: each weapon with its arc and rounds left (ready, reloading, out of
+  ammunition, disabled with its damage, or destroyed), and any equipment.
+  Heading and speed show any order the hull is still answering, and speed
+  shows the most she can make under present conditions. Holed sides, the
+  time left before a sinking hull goes down, and struck colors appear when
+  they apply, as do merchant registry and unpaid dock-fee details.
 
 SHIPTALK <message>
   Speak over the captain\'s channel to awake, hearing occupants in every room
@@ -203,16 +204,18 @@ INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('SHIPFIRE', 'Naval combat commands (usable from anywhere aboard your vessel):
 
 SHIPFIRE <slot> <contact>
-  Fire the weapon in the given slot (0-9) at a contact, addressed by the
-  two-letter ID that CONTACTS and TACTICAL show or by the start of its name
-  (the nearest match wins). Only vessels within your visibility can be
-  targeted. The shot must be in range of the weapon and the weapon\'s
-  mounted side must face the target. Arcs run from the bow: fore 320-40
-  degrees, starboard 40-140, rear 140-220, port 220-320. Attack roll: d20 +
-  half level + gunnery crew bonus against a defense value based on the
-  target\'s speed. Every shot, hit or miss, costs a combat round, and the
-  weapon reloads over several seconds. A damaged weapon cannot fire until
-  it is repaired; a destroyed one is gone.
+  Fire the weapon in the given slot (0-15, as SHIPSTATUS lists them) at a
+  contact, addressed by the two-letter ID that CONTACTS and TACTICAL show or
+  by the start of its name (the nearest match wins). Only vessels within
+  your visibility can be targeted. The target must lie inside the weapon\'s
+  range band, and the weapon\'s mounted side must face the target. Arcs run
+  from the bow: fore 320-40 degrees, starboard 40-140, rear 140-220, port
+  220-320. Attack roll: d20 + half level + gunnery crew bonus against a
+  defense value based on the target\'s speed. Every shot, hit or miss, costs
+  a combat round and a round of ammunition, and the weapon reloads for 30
+  seconds (45 for the beam, blast, and fragmentation cannons and the Long
+  Tom). A weapon out of ammunition, damaged, or reloading cannot fire; a
+  destroyed one is gone.
 
   Only the ship\'s owner, the owner\'s helm permit holders, members of the
   owner\'s group while the owner is online, and staff may fire a ship\'s

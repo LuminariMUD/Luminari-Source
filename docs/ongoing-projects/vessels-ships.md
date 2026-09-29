@@ -1448,10 +1448,10 @@ shipyard live in the new `src/vessels/vessels_weapons.c`, the gunnery in the new
 
 | Item | State | Where |
 | -- | -- | -- |
-| Catalogue: the twelve Duris weapons (1.3; 2 gold per pp; reloads 60 and 90 ticks), the ram and neutral colors | Planned | Static tables in `vessels_weapons.c`, like S3's class profiles |
-| Class fitting (3.3.1): hull weight, mounts and arc weight caps, the analog's allowed weapons | Planned | `vessel_class_handling()` gains the hull weight; a class fitting table in `vessels_weapons.c` |
-| 16 slots within the 5 KiB `greyhawk_ship_data` budget | Planned | A slot holds its catalogue row, arc, ammo, damage and reload timer; `GREYHAWK_MAXSLOTS` 16 |
-| Persistence and migration (3.3.10): every slot is a `ship_weapons` row; legacy weapons become large ballistae (warship) or medium ballistae with full ammo; new hulls get the same class fit | Planned | Phase 20 SQL (`catalog_id`, `ammo`) with rollback and verifier; conversion in `vessel_db_load_weapons()` |
+| Catalogue: the twelve Duris weapons (1.3; 2 gold per pp; reloads 60 and 90 ticks), the ram and neutral colors | Done | `weapon_types[]`, `vessel_weapon_type()`, `vessel_slot_weapon()`, `vessel_slot_name()`, `vessel_slot_weight()` in `vessels_weapons.c`; `vessel_resolve_hit()` reads the row (range damage for beams) |
+| Class fitting (3.3.1): hull weight, mounts and arc weight caps, the analog's allowed weapons | In progress | Hull weight in `vessel_class_handling()` (done); mounts, caps and allowed weapons with the shipyard |
+| 16 slots within the 5 KiB `greyhawk_ship_data` budget | Done | `struct greyhawk_ship_slot` (type, arc, catalogue row, ammo, damage, timer: 8 bytes); `GREYHAWK_MAXSLOTS` 16 |
+| Persistence and migration (3.3.10): every slot is a `ship_weapons` row; legacy weapons become large ballistae (warship) or medium ballistae with full ammo; new hulls get the same class fit | Done | `vessel_db_save_weapons()`, `vessel_db_load_weapons()`, `vessel_fit_default_weapons()`; Phase 20 SQL (`catalog_id`, `ammo`) with rollback and verifier; the slot blob and its hex codec are gone |
 | Shipyard: `shipweapon list\|buy\|sell\|swap`, `shipequip list\|buy\|sell`, `shiprearm [slot\|all]`; installation and rearm maintenance blocks departure; departure checks a legal fit-out | Planned | `vessels_weapons.c`; `vessel_begin_departure()` |
 | Gunnery: `shiplock`, battle stations, `shipfire <slot\|arc> [id]`, the geometry DC (L6), criticals by pierce, reload by gunner tier, ammo; NPC return fire on the same rules | Planned | `vessels_gunnery.c`; `do_shipfire()`, `vessel_ai_return_fire()` |
 | `shipsight`, `shipscan`; `contacts` shows the arc each contact lies in | Planned | `vessels_gunnery.c`; `do_greyhawk_contacts()` |

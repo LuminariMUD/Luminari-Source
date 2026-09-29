@@ -1305,6 +1305,8 @@ void init_vessel_system_tables(void)
         "slot_y TINYINT UNSIGNED NOT NULL DEFAULT 0, "
         "reload_timer SMALLINT NOT NULL DEFAULT 0, "
         "weapon_damage TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "catalog_id TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "ammo SMALLINT UNSIGNED NOT NULL DEFAULT 0, "
         "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
         "PRIMARY KEY (ship_id, slot_index), "
         "CONSTRAINT fk_ship_weapons_interior FOREIGN KEY (ship_id) "

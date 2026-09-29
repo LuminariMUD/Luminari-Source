@@ -954,48 +954,6 @@ void Test_vessel_condition_initialization_is_damage_complete(CuTest *tc)
   CuAssertIntEquals(tc, 4, vessel_max_internal(&ship));
 }
 
-void Test_vessel_runtime_slot_state_round_trip(CuTest *tc)
-{
-  struct greyhawk_ship_data source;
-  struct greyhawk_ship_data restored;
-  char serialized[8192];
-
-  memset(&source, 0, sizeof(source));
-  memset(&restored, 0, sizeof(restored));
-  source.shipnum = 42;
-  source.slot[0].type = 1;
-  source.slot[0].position = GREYHAWK_PORT;
-  source.slot[0].weight = 37;
-  source.slot[0].val0 = 50;
-  source.slot[0].val1 = 4;
-  source.slot[0].val2 = 2;
-  source.slot[0].val3 = 8;
-  source.slot[0].x = 11;
-  source.slot[0].y = 19;
-  source.slot[0].timer = 5;
-  strlcpy(source.slot[0].desc, "port battery | loaded:yes", sizeof(source.slot[0].desc));
-  source.slot[GREYHAWK_MAXSLOTS - 1].type = 3;
-  source.slot[GREYHAWK_MAXSLOTS - 1].timer = -2;
-  strlcpy(source.slot[GREYHAWK_MAXSLOTS - 1].desc, "reserve bolts",
-          sizeof(source.slot[GREYHAWK_MAXSLOTS - 1].desc));
-
-  CuAssertTrue(tc, vessel_serialize_slot_state(&source, serialized, sizeof(serialized)) > 0);
-  CuAssertIntEquals(tc, GREYHAWK_MAXSLOTS, vessel_deserialize_slot_state(&restored, serialized));
-  CuAssertIntEquals(tc, source.slot[0].type, restored.slot[0].type);
-  CuAssertIntEquals(tc, source.slot[0].position, restored.slot[0].position);
-  CuAssertIntEquals(tc, source.slot[0].weight, restored.slot[0].weight);
-  CuAssertIntEquals(tc, source.slot[0].val0, restored.slot[0].val0);
-  CuAssertIntEquals(tc, source.slot[0].val1, restored.slot[0].val1);
-  CuAssertIntEquals(tc, source.slot[0].val2, restored.slot[0].val2);
-  CuAssertIntEquals(tc, source.slot[0].val3, restored.slot[0].val3);
-  CuAssertIntEquals(tc, source.slot[0].x, restored.slot[0].x);
-  CuAssertIntEquals(tc, source.slot[0].y, restored.slot[0].y);
-  CuAssertIntEquals(tc, source.slot[0].timer, restored.slot[0].timer);
-  CuAssertStrEquals(tc, source.slot[0].desc, restored.slot[0].desc);
-  CuAssertIntEquals(tc, -2, restored.slot[GREYHAWK_MAXSLOTS - 1].timer);
-  CuAssertStrEquals(tc, "reserve bolts", restored.slot[GREYHAWK_MAXSLOTS - 1].desc);
-}
-
 void Test_vessel_combat_firing_arcs(CuTest *tc)
 {
   /* Use high fleet slots so nothing else in the suite collides. */
@@ -1105,11 +1063,7 @@ static void duel_arm_ship(struct greyhawk_ship_data *ship, int shipnum, const ch
   /* One weapon per arc so bearing never stalls the duel */
   for (arc = 0; arc < 4; arc++)
   {
-    ship->slot[arc].type = 1;
-    ship->slot[arc].position = (char)arc;
-    ship->slot[arc].val0 = 50;
-    ship->slot[arc].val2 = 2;
-    ship->slot[arc].val3 = 6;
+    vessel_set_weapon(&ship->slot[arc], VESSEL_WEAPON_MEDIUM_BALLISTA, arc);
   }
 
   autopilot_init(ship);

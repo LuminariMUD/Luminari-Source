@@ -1159,11 +1159,11 @@ study 3.3.1, 3.3.3).
   `0.5 + 0.25 * armor / class armor + 0.25 * speed / class speed`, so a
   default hull costs the class price.
 - A hit (`vessel_resolve_hit()`, from `shipfire` and NPC return fire) runs the
-  weapon's fragments. Until S4 seeds the weapon table every weapon resolves as
-  one Duris ballista bolt (`vessel_weapon_profile()`): spread 10 degrees, 14%
-  sail hit at half damage, 10% armor pierce. Each fragment rolls the slot's
-  damage dice and strikes the sails (`vessel_damage_sail()`; warships take 85%)
-  or the arc facing the shooter, scattered across the spread
+  catalogue weapon's fragments (Weapons (S4) below). Each fragment rolls the
+  weapon's damage, or for a beam weapon takes it from the range, and strikes
+  the sails at the weapon's sail-hit chance and sail share
+  (`vessel_damage_sail()`; warships take 85%) or the arc facing the shooter,
+  scattered across the weapon's spread, at its hull share
   (`vessel_damage_hull()`).
 - Hull damage (Duris `damage_hull()`): armor absorbs first. A hit it holds
   stops there unless the shot is a confirmed critical, which carries half the
@@ -1180,8 +1180,8 @@ study 3.3.1, 3.3.3).
   struck arc, five times the structural damage) accumulates in the slot's
   `damage`, persisted in `ship_weapons.weapon_damage`: 1 or more disables the
   weapon (`vessel_weapon_ready()`), 100 destroys it. `shiprepair` mends
-  damaged weapons, and restores a destroyed one while berthed, until S4 and
-  S5 bring weapon sales and priced repairs; `shipfix` clears all damage.
+  damaged weapons, and restores a destroyed one while berthed, until S5
+  prices repairs; `shipfix` clears all damage.
 - Knockdown (`vessel_knockdown_aboard()`): one structural hit in nine makes
   everyone aboard but staff roll Reflex (d20 plus their Reflex save) against
   DC 15 or fall prone (reclining) with two combat rounds of lag.
@@ -1231,6 +1231,53 @@ study 3.3.1, 3.3.3).
   a fifth (`vessel_refit_arcs()`, `vessel_rigged_speed()`), and each arc, the
   sails, and the rudder keep their damage fraction; the old model had no holes,
   so every arc keeps at least 1 structure. Saves write `condition_model` 1.
+
+### Weapons (S4)
+
+`src/vessels/vessels_weapons.c` holds the DurisMUD weapon and equipment
+catalogue (vessels-ships study 3.3.4), static tables like the class profiles.
+Prices are 2 gold per Duris platinum and reloads are in 0.5 s vessel ticks.
+
+| Weapon | Price | Weight | Ammo | Range | Damage | Fragments | Spread | Sail hit | Hull/sail % | Pierce | Reload | Arcs |
+| -- | -: | -: | -: | -- | -- | -: | -: | -: | -- | -: | -: | -- |
+| Small Ballista | 100 | 3 | 60 | 0-8 | 2-4 | 1 | 10 | 12% | 100/50 | 10% | 60 | all |
+| Medium Ballista | 200 | 6 | 50 | 0-10 | 4-6 | 1 | 10 | 14% | 100/50 | 10% | 60 | all |
+| Large Ballista | 1,000 | 10 | 30 | 0-12 | 6-9 | 1 | 10 | 16% | 100/50 | 10% | 60 | all |
+| Small Catapult | 1,000 | 10 | 30 | 4-15 | 2-3 | 4 | 160 | 20% | 100/100 | 2% | 60 | fore, rear |
+| Medium Catapult | 1,600 | 13 | 20 | 5-20 | 2-4 | 5 | 260 | 20% | 100/100 | 2% | 60 | fore, rear |
+| Large Catapult | 2,400 | 17 | 12 | 6-25 | 2-5 | 6 | 360 | 20% | 100/100 | 2% | 60 | fore, rear |
+| Heavy Ballista | 2,000 | 15 | 6 | 0-4 | 15-22 | 1 | 10 | 0% | 100/0 | 15% | 60 | port, starboard |
+| Light Beamcannon | 8,000 | 7 | 40 | 0-20 | 16 to 4 | 1 | 10 | 10% | 100/30 | 15% | 90 | all |
+| Heavy Beamcannon | 10,000 | 9 | 40 | 0-23 | 22 to 5 | 1 | 10 | 10% | 100/30 | 15% | 90 | all |
+| Mind Blast Cannon | 8,000 | 5 | 50 | 0-20 | crew stun | 1 | 360 | - | - | - | 90 | all |
+| Fragmentation Cannon | 10,000 | 7 | 20 | 0-16 | 4-6 | 5 | 90 | 50% | 50/100 | 0% | 90 | fore, rear |
+| Long Tom Catapult | 10,000 | 9 | 6 | 12-32 | 3-6 | 8 | 360 | 20% | 100/100 | 3% | 90 | fore, rear |
+
+- The beam cannons' damage falls from its maximum at minimum range to its
+  minimum at maximum range (`VESSEL_WEAPON_RANGE_DAMAGE`); the Mind Blast
+  Cannon does no damage (`VESSEL_WEAPON_CREW_STUN`). Catapults and the Long Tom
+  are ballistic (`VESSEL_WEAPON_BALLISTIC`). The beam, blast, fragmentation,
+  and Long Tom weapons are capital (`VESSEL_WEAPON_CAPITAL`).
+- Equipment: a ram (weight `(hull weight + 10) / 24`) and neutral colors
+  (weight 0).
+- Slots (`struct greyhawk_ship_slot`, `GREYHAWK_MAXSLOTS` 16): a slot holds
+  its type (`VESSEL_SLOT_WEAPON` or `VESSEL_SLOT_EQUIPMENT`), its catalogue row
+  (`item`), a weapon's arc, rounds left, damage, and reload timer; the
+  catalogue supplies the rest (`vessel_slot_weapon()`, `vessel_slot_name()`,
+  `vessel_slot_weight()`). Slot weights count toward the load factor
+  (`vessel_load_factor()`).
+- A new hull (`vessel_fit_default_weapons()`) carries its class armament with
+  full ammunition: large ballistae on a warship's bow and both beams, one
+  medium ballista on the bow of the other armed classes, none on a raft or
+  boat.
+- Firing spends a round and starts the weapon's reload; a weapon fires only at
+  a target inside its range band.
+- Persistence (Phase 20): every weapon and equipment slot is a `ship_weapons`
+  row with its `catalog_id` and `ammo` (`vessel_db_save_weapons()`,
+  `vessel_db_load_weapons()`); `ship_runtime_state.slot_data` is no longer
+  written or read. A weapon row saved before S4 (`catalog_id` 0) loads as the
+  class default weapon on the same arc with full ammunition, keeping its
+  damage.
 
 ### Builder Commands (Phase 04)
 
@@ -1456,7 +1503,7 @@ historical measurements, and the limits of the current evidence.
 | `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards; `for_sale` and `min_level` since Phase 18, `armor_scale` since Phase 19 |
 | `ship_interiors` | Vessel identity, rooms, cosmetics, owner, upgrades, and insurance (retired `wages_owed` column unread) |
 | `ship_runtime_state` | Live hull, position, condition (`condition_model` and `sink_ticks` since Phase 19), room type, autopilot, PvP grace, and dock-fee snapshot |
-| `ship_weapons` | Normalized installed weapon slots, values, position, reload state, and `weapon_damage` (Phase 19) |
+| `ship_weapons` | Every weapon and equipment slot: type, arc, reload state, `weapon_damage` (Phase 19), and `catalog_id` and `ammo` (Phase 20) |
 | `ship_docking` | Active and historical docking relationships |
 | `ship_room_templates` | Builder-editable generated interior text |
 | `ship_room_template_triggers` | DG trigger VNUMs attached to generated room types |
@@ -1838,7 +1885,10 @@ and the trigger was removed.
 | `src/vessels/vessels_db.c` | MySQL persistence layer |
 | `src/vessels/vessels_autopilot.c` | Autopilot, waypoints, routes, NPC pilots, schedules |
 | `src/vessels/vessels_edit.c` | vedit ship prototype editor, spawner, shipyard (Phase 04/06) |
-| `src/vessels/vessels_combat.c` | Naval combat: damage, weapons, sinking (Phase 05) |
+| `src/vessels/vessels_combat.c` | Naval combat: gunnery consent, firing, NPC return fire, sinking (Phase 05) |
+| `src/vessels/vessels_movement.c` | Momentum sailing, per-room movement, berths, departures, anchoring (S2) |
+| `src/vessels/vessels_damage.c` | Class condition profiles, arcs, hull and sail damage, breaches, sinking, salvage, prizes (S3) |
+| `src/vessels/vessels_weapons.c` | Weapon and equipment catalogue and class armament (S4) |
 | `src/vessels/vessels_ownership.c` | Ownership, helm permits, deed transfer (Phase 06) |
 | `src/vessels/vessels_crew.c` | Hired crew positions, tiers, one-time hire prices (Phase 06) |
 | `src/vessels/vessels_upgrades.c` | Refits, hull wear, insurance (Phase 06) |
@@ -1918,6 +1968,8 @@ and the trigger was removed.
 | `sql/components/vessels_phase16_*` | Showcase-event history, results, leaderboards, runtime ownership, and rollback |
 | `sql/components/vessels_phase17_*` | Exterior paint and figurehead persistence, verification, and rollback |
 | `sql/components/vessels_phase18_*` | Prototype shipyard listing and hull level, wage-debt clearing, verification, and rollback |
+| `sql/components/vessels_phase19_*` | S3 damage model: armor rescale flag, condition model, sink timer, weapon damage, verification, and rollback |
+| `sql/components/vessels_phase20_*` | S4 weapons: catalogue row and ammunition per slot row, verification, and rollback |
 | `sql/components/vessels_campaign_content.sql` | Initial Vailand regions, law, route, merchant, and iron markets |
 | `sql/components/verify_vessels_campaign_content.sql` | Read-only campaign topology and identity checks |
 | `sql/components/vessels_campaign_content_rollback.sql` | Guarded Vailand content rollback |

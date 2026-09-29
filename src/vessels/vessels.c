@@ -41,10 +41,6 @@ struct vessel_customization_data
 
 static struct vessel_customization_data vessel_customizations[GREYHAWK_MAXSHIPS];
 
-/* Global string buffers for Greyhawk system */
-static char greyhawk_status[20];
-static char greyhawk_position[20];
-static char greyhawk_weapon[320];
 #define VESSEL_DYNAMIC_ROOM_CACHE_SIZE                                                             \
   (WILD_DYNAMIC_ROOM_VNUM_END - WILD_DYNAMIC_ROOM_VNUM_START + 1)
 static bool vessel_dynamic_room_configured[VESSEL_DYNAMIC_ROOM_CACHE_SIZE];
@@ -1166,107 +1162,6 @@ bool vessel_hull_is_managed(const struct obj_data *obj)
 /* ========================================================================= */
 /* GREYHAWK SHIP UTILITY FUNCTIONS                                         */
 /* ========================================================================= */
-
-/**
- * Get weapon status string for display
- * @param slot Weapon slot number
- * @param rnum Room number containing ship
- */
-void greyhawk_getstatus(int slot, int rnum)
-{
-  if (world[rnum].ship->slot[slot].timer > 0)
-    snprintf(greyhawk_status, sizeof(greyhawk_status), "&+R%-6d",
-             world[rnum].ship->slot[slot].timer);
-  else if (world[rnum].ship->slot[slot].timer == 0)
-    strlcpy(greyhawk_status, "Ready", sizeof(greyhawk_status));
-  else if (world[rnum].ship->slot[slot].timer < 0)
-    strlcpy(greyhawk_status, "&+L***   ", sizeof(greyhawk_status));
-
-  if (world[rnum].ship->slot[slot].desc[0] == '\0')
-    strlcpy(greyhawk_status, "", sizeof(greyhawk_status));
-}
-
-/**
- * Get weapon position string for display
- * @param slot Weapon slot number
- * @param rnum Room number containing ship
- */
-void greyhawk_getposition(int slot, int rnum)
-{
-  switch (world[rnum].ship->slot[slot].position)
-  {
-  case GREYHAWK_FORE:
-    strlcpy(greyhawk_position, "Forward", sizeof(greyhawk_position));
-    break;
-  case GREYHAWK_REAR:
-    strlcpy(greyhawk_position, "Rear", sizeof(greyhawk_position));
-    break;
-  case GREYHAWK_PORT:
-    strlcpy(greyhawk_position, "Port", sizeof(greyhawk_position));
-    break;
-  case GREYHAWK_STARBOARD:
-    strlcpy(greyhawk_position, "Starboard", sizeof(greyhawk_position));
-    break;
-  default:
-    strlcpy(greyhawk_position, "ERROR", sizeof(greyhawk_position));
-    break;
-  }
-
-  if (world[rnum].ship->slot[slot].desc[0] == '\0')
-    strlcpy(greyhawk_position, "", sizeof(greyhawk_position));
-}
-
-/**
- * Format weapon display string
- * @param slot Weapon slot number
- * @param rnum Room number containing ship
- */
-void greyhawk_dispweapon(int slot, int rnum)
-{
-  if (world[rnum].ship->slot[slot].type != 1)
-  {
-    strlcpy(greyhawk_weapon, " ", sizeof(greyhawk_weapon));
-  }
-  else
-  {
-    greyhawk_getstatus(slot, rnum);
-    greyhawk_getposition(slot, rnum);
-    snprintf(greyhawk_weapon, sizeof(greyhawk_weapon), "%-20s &N%-6s  &+W%-9s  %d",
-             world[rnum].ship->slot[slot].desc, greyhawk_status, greyhawk_position,
-             world[rnum].ship->slot[slot].val3);
-  }
-}
-
-/**
- * Calculate weapon range based on type
- * @param shipnum Ship index
- * @param slot Weapon slot
- * @param range Range type (SHORT/MED/LONG)
- * @return Calculated range value
- */
-int greyhawk_weaprange(int shipnum, int slot, char range)
-{
-  if (greyhawk_ships[shipnum].slot[slot].type != 1)
-    return 0;
-
-  switch (range)
-  {
-  case GREYHAWK_SHRTRANGE:
-    return (int)((double)(greyhawk_ships[shipnum].slot[slot].val0 -
-                          greyhawk_ships[shipnum].slot[slot].val1) /
-                     3 +
-                 greyhawk_ships[shipnum].slot[slot].val1);
-  case GREYHAWK_MEDRANGE:
-    return (int)((double)(greyhawk_ships[shipnum].slot[slot].val0 -
-                          greyhawk_ships[shipnum].slot[slot].val1) /
-                     3 * 2 +
-                 greyhawk_ships[shipnum].slot[slot].val1);
-  case GREYHAWK_LNGRANGE:
-    return greyhawk_ships[shipnum].slot[slot].val0;
-  default:
-    return 0;
-  }
-}
 
 /**
  * Calculate bearing between two points

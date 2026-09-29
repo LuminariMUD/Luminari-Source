@@ -50,11 +50,7 @@ static void gunnery_arm_ship(int shipnum, const char *name, const char *id, doub
   strlcpy(ship->name, name, sizeof(ship->name));
   strlcpy(ship->id, id, sizeof(ship->id));
   vessel_initialize_condition(ship, 40);
-  ship->slot[0].type = 1;
-  ship->slot[0].position = GREYHAWK_FORE;
-  ship->slot[0].val0 = 50;
-  ship->slot[0].val2 = 2;
-  ship->slot[0].val3 = 8;
+  vessel_set_weapon(&ship->slot[0], VESSEL_WEAPON_LARGE_BALLISTA, GREYHAWK_FORE);
 }
 
 static void gunnery_clear_ships(void)
@@ -327,7 +323,8 @@ void Test_vessel_shipfire_lags_on_a_miss(CuTest *tc)
   bridge.ship = ship;
 
   do_shipfire(&gunner.ch, "0 SB", 0, 0);
-  CuAssertIntEquals(tc, VESSEL_WEAPON_RELOAD_TICKS, ship->slot[0].timer);
+  CuAssertIntEquals(tc, vessel_weapon_type(VESSEL_WEAPON_LARGE_BALLISTA)->reload,
+                    ship->slot[0].timer);
   CuAssertIntEquals(tc, PULSE_VIOLENCE, GET_WAIT_STATE(&gunner.ch));
   CuAssertIntEquals(tc, vessel_max_internal(target), vessel_total_internal(target));
 
@@ -385,7 +382,8 @@ void Test_vessel_harbor_hulls_neither_fire_nor_take_fire(CuTest *tc)
   /* At sea the crew fires. */
   ship->shipobj = NULL;
   vessel_combat_tick_one(ship);
-  CuAssertIntEquals(tc, VESSEL_WEAPON_RELOAD_TICKS, ship->slot[0].timer);
+  CuAssertIntEquals(tc, vessel_weapon_type(VESSEL_WEAPON_LARGE_BALLISTA)->reload,
+                    ship->slot[0].timer);
 
   world = saved_world;
   top_of_world = saved_top_of_world;

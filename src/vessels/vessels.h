@@ -84,7 +84,7 @@ struct vessel_region_feature
 #define VESSEL_CUSTOMIZATION_LENGTH 81 /* 80 printable characters plus NUL */
 
 #ifndef GREYHAWK_MAXSLOTS
-#define GREYHAWK_MAXSLOTS 10 /* Maximum equipment slots per ship */
+#define GREYHAWK_MAXSLOTS 16 /* Weapon and equipment slots per ship (Duris MAXSLOTS) */
 #endif
 
 /* Ship Position Constants */
@@ -92,11 +92,6 @@ struct vessel_region_feature
 #define GREYHAWK_PORT 1      /* Port (left) position */
 #define GREYHAWK_REAR 2      /* Rear position */
 #define GREYHAWK_STARBOARD 3 /* Starboard (right) position */
-
-/* Weapon Range Types */
-#define GREYHAWK_SHRTRANGE 0 /* Short range */
-#define GREYHAWK_MEDRANGE 1  /* Medium range */
-#define GREYHAWK_LNGRANGE 2  /* Long range */
 
 /* Item Type for Greyhawk Ships */
 #define GREYHAWK_ITEM_SHIP 56 /* Greyhawk ship object type (moved to avoid conflict) */
@@ -506,6 +501,7 @@ int get_vessel_position_speed_modifier(enum vessel_class vessel_type, int sector
  * speeds times 0.3, accel and turn per 0.5 s tick, weights in Duris units. */
 struct vessel_class_handling
 {
+  int hull_weight; /* Duris hull weight: target size, ram, crash damage */
   int speed;       /* Default design speed */
   double accel;    /* Speed gained or shed per tick */
   double turn;     /* Degrees turned per tick at design speed */
@@ -547,10 +543,86 @@ void vessel_movement_set_cell_entry_for_test(vessel_cell_entry_fn entry);
 #endif
 
 /* ========================================================================= */
-/* DAMAGE MODEL (vessels-ships study S3, vessels_damage.c)                   */
+/* WEAPONS AND FITTING (vessels-ships study S4, vessels_weapons.c)           */
 /* ========================================================================= */
 
 struct greyhawk_ship_slot;
+
+/* What a slot holds */
+#define VESSEL_SLOT_EMPTY 0
+#define VESSEL_SLOT_WEAPON 1
+#define VESSEL_SLOT_EQUIPMENT 2
+
+/* Weapon catalogue rows, in Duris weapon_data order. A weapon slot holding
+ * VESSEL_WEAPON_NONE is a pre-S4 weapon, converted at load (3.3.10). */
+enum vessel_weapon_id
+{
+  VESSEL_WEAPON_NONE,
+  VESSEL_WEAPON_SMALL_BALLISTA,
+  VESSEL_WEAPON_MEDIUM_BALLISTA,
+  VESSEL_WEAPON_LARGE_BALLISTA,
+  VESSEL_WEAPON_SMALL_CATAPULT,
+  VESSEL_WEAPON_MEDIUM_CATAPULT,
+  VESSEL_WEAPON_LARGE_CATAPULT,
+  VESSEL_WEAPON_HEAVY_BALLISTA,
+  VESSEL_WEAPON_LIGHT_BEAMCANNON,
+  VESSEL_WEAPON_HEAVY_BEAMCANNON,
+  VESSEL_WEAPON_MIND_BLAST,
+  VESSEL_WEAPON_FRAGMENTATION,
+  VESSEL_WEAPON_LONG_TOM,
+  NUM_VESSEL_WEAPONS
+};
+
+/* Equipment catalogue rows */
+enum vessel_equipment_id
+{
+  VESSEL_EQUIPMENT_NONE,
+  VESSEL_EQUIPMENT_RAM,
+  VESSEL_EQUIPMENT_COLORS, /* Neutral colors (3.3.8) */
+  NUM_VESSEL_EQUIPMENT
+};
+
+/* vessel_weapon_type.flags */
+#define VESSEL_WEAPON_BALLISTIC (1 << 0)    /* Lofted: aimed by closing speed and Intelligence */
+#define VESSEL_WEAPON_RANGE_DAMAGE (1 << 1) /* Damage falls from maximum to minimum over range */
+#define VESSEL_WEAPON_CAPITAL (1 << 2)      /* One per hull, and gated */
+#define VESSEL_WEAPON_CREW_STUN (1 << 3)    /* Stuns the target's crew instead of damaging */
+
+/* One catalogue weapon (Duris weapon_data, prices at 2 gold per pp) */
+struct vessel_weapon_type
+{
+  const char *name;
+  int price;        /* Gold */
+  int weight;       /* Against the arc weight cap and the class weight budget */
+  int ammo;         /* Rounds in a full load */
+  int min_range;    /* Rooms */
+  int max_range;    /* Rooms */
+  int min_damage;   /* Per fragment */
+  int max_damage;   /* Per fragment; 0 does no damage */
+  int fragments;    /* Separate hits per shot */
+  int spread;       /* Degrees each fragment scatters across (whole spread) */
+  int sail_hit;     /* Percent chance a fragment strikes the sails */
+  int hull_percent; /* Share of damage dealt to the hull */
+  int sail_percent; /* Share of damage dealt to the sails */
+  int pierce;       /* Duris armor pierce percent; sets the critical threat */
+  int reload;       /* Vessel ticks */
+  int arcs;         /* Bit (1 << arc) for each arc it may mount on */
+  int flags;        /* VESSEL_WEAPON_* */
+};
+
+const struct vessel_weapon_type *vessel_weapon_type(int weapon);
+const struct vessel_weapon_type *vessel_slot_weapon(const struct greyhawk_ship_slot *slot);
+const char *vessel_slot_name(const struct greyhawk_ship_slot *slot);
+int vessel_slot_weight(const struct greyhawk_ship_data *ship,
+                       const struct greyhawk_ship_slot *slot);
+const char *vessel_arc_name(int arc);
+int vessel_default_weapon(enum vessel_class vessel_type);
+void vessel_set_weapon(struct greyhawk_ship_slot *slot, int weapon, int arc);
+void vessel_fit_default_weapons(struct greyhawk_ship_data *ship);
+
+/* ========================================================================= */
+/* DAMAGE MODEL (vessels-ships study S3, vessels_damage.c)                   */
+/* ========================================================================= */
 
 #define VESSEL_NUM_ARCS 4              /* GREYHAWK_FORE..GREYHAWK_STARBOARD */
 #define VESSEL_MAX_PROTOTYPE_ARMOR 229 /* Largest Duris armor value (beam armor) */
@@ -586,23 +658,10 @@ int vessel_arc_for_relative_bearing(int relative);
 #define VESSEL_WEAPON_DESTROYED 100 /* Weapon damage at which a weapon is gone */
 #define VESSEL_KNOCKDOWN_DC 15      /* Reflex save against a hull hit's blast */
 
-/* One weapon's fragment behavior (Duris weapon_data). Until S4 seeds the
- * weapon table every mounted weapon resolves as a ballista. */
-struct vessel_weapon_profile
-{
-  int fragments;    /* Separate hits per shot */
-  int spread;       /* Degrees each fragment scatters across (whole spread) */
-  int sail_hit;     /* Percent chance a fragment strikes the sails */
-  int hull_percent; /* Share of damage dealt to the hull */
-  int sail_percent; /* Share of damage dealt to the sails */
-  int pierce;       /* Duris armor pierce percent; sets the critical threat */
-};
-
-const struct vessel_weapon_profile *vessel_weapon_profile(const struct greyhawk_ship_slot *slot);
 int vessel_critical_threat(int pierce);
 bool vessel_weapon_ready(const struct greyhawk_ship_slot *slot);
 int vessel_resolve_hit(struct greyhawk_ship_data *attacker, struct greyhawk_ship_data *target,
-                       const struct greyhawk_ship_slot *weapon, bool critical);
+                       const struct greyhawk_ship_slot *weapon, double range, bool critical);
 int vessel_damage_sail(struct greyhawk_ship_data *attacker, struct greyhawk_ship_data *target,
                        int damage);
 int vessel_damage_hull(struct greyhawk_ship_data *attacker, struct greyhawk_ship_data *target,
@@ -648,8 +707,6 @@ ACMD_DECL(do_strikecolors);
 #define VESSEL_STATUS_BATTERED 1
 #define VESSEL_STATUS_CRIPPLED 2
 #define VESSEL_STATUS_SINKING 3
-
-#define VESSEL_WEAPON_RELOAD_TICKS 6
 
 /* An owner cannot end an already-consented vessel fight by logging out. */
 #define VESSEL_PVP_LOGOUT_GRACE 300
@@ -1286,17 +1343,16 @@ int outcast_ship_look_out_room(int room, struct char_data *ch, int cmd, char *ar
 /* GREYHAWK SHIP DATA STRUCTURES                                            */
 /* ========================================================================= */
 
-/* Greyhawk Ship Equipment Slot Structure */
+/* A weapon or equipment slot; the catalogue (vessels_weapons.c) describes
+ * what it holds. */
 struct greyhawk_ship_slot
 {
-  char type;                   /* Type of slot (1=weapon, 2=oarsman, 3=ammo) */
-  char position;               /* Position: FORE/PORT/REAR/STARBOARD */
-  unsigned char weight;        /* Weight of equipment */
-  char desc[256];              /* Description of slot equipment */
-  char val0, val1, val2, val3; /* Equipment values (range, damage, etc.) */
-  unsigned char x, y;          /* Slot x,y position on ship room */
-  unsigned char damage;        /* Weapon damage: disabled at 1, destroyed at 100 (S3) */
-  short int timer;             /* Reload/action timer */
+  char type;            /* VESSEL_SLOT_EMPTY, VESSEL_SLOT_WEAPON or VESSEL_SLOT_EQUIPMENT */
+  char position;        /* Arc a weapon is mounted on: GREYHAWK_FORE.. */
+  unsigned char item;   /* Catalogue row: enum vessel_weapon_id or vessel_equipment_id */
+  unsigned char ammo;   /* Rounds left in a weapon */
+  unsigned char damage; /* Weapon damage: disabled at 1, destroyed at 100 (S3) */
+  short int timer;      /* Reload timer, in vessel ticks */
 };
 
 /* Greyhawk Ship Crew Structure */
@@ -1639,15 +1695,9 @@ int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_c
 void greyhawk_nameship(char *name, int shipnum);
 bool greyhawk_setsail(int class, int shipnum);
 
-/* Ship Status and Information Functions */
-void greyhawk_getstatus(int slot, int rnum);
-void greyhawk_getposition(int slot, int rnum);
-void greyhawk_dispweapon(int slot, int rnum);
-
 /* Navigation and Movement Functions */
 int greyhawk_bearing(double x1, double y1, double x2, double y2);
 double greyhawk_range(double x1, double y1, double z1, double x2, double y2, double z2);
-int greyhawk_weaprange(int shipnum, int slot, char range);
 
 /* Contact and Radar Functions */
 int vessel_collect_contacts(const struct greyhawk_ship_data *ship, struct vessel_contact *contacts,
@@ -1733,9 +1783,6 @@ bool vessel_db_save_weapons(struct greyhawk_ship_data *ship);
 bool vessel_db_load_weapons(struct greyhawk_ship_data *ship);
 bool vessel_place_hull_object(struct greyhawk_ship_data *ship, struct obj_data *obj);
 void vessel_persistence_ensure_schema(void);
-int vessel_serialize_slot_state(const struct greyhawk_ship_data *ship, char *buffer,
-                                size_t buffer_size);
-int vessel_deserialize_slot_state(struct greyhawk_ship_data *ship, const char *data);
 bool vessel_delete_persistence(int shipnum);
 
 /* NPC Pilot Persistence */

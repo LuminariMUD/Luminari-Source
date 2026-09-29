@@ -206,17 +206,19 @@ void Test_vessel_load_factor_counts_fitout_above_its_allowance(CuTest *tc)
   ship.vessel_type = VESSEL_WARSHIP;
   CuAssertDblEquals(tc, 1.0, vessel_load_factor(&ship), 0.0001);
 
-  /* The frigate carries 20 weight of fit-out free; 71 weighs 51 over. */
-  ship.slot[0].type = 1;
-  ship.slot[0].weight = 20;
+  /* The frigate carries 20 weight of fit-out free: two large ballistae. */
+  vessel_set_weapon(&ship.slot[0], VESSEL_WEAPON_LARGE_BALLISTA, GREYHAWK_PORT);
+  vessel_set_weapon(&ship.slot[1], VESSEL_WEAPON_LARGE_BALLISTA, GREYHAWK_STARBOARD);
   CuAssertDblEquals(tc, 1.0, vessel_load_factor(&ship), 0.0001);
-  ship.slot[1].type = 1;
-  ship.slot[1].weight = 51;
-  CuAssertDblEquals(tc, 1.0 - 51.0 / 142.0, vessel_load_factor(&ship), 0.0001);
+  vessel_set_weapon(&ship.slot[2], VESSEL_WEAPON_HEAVY_BALLISTA, GREYHAWK_PORT);
+  CuAssertDblEquals(tc, 1.0 - 15.0 / 142.0, vessel_load_factor(&ship), 0.0001);
 
-  /* An empty slot weighs nothing, whatever it records. */
-  ship.slot[2].weight = 100;
-  CuAssertDblEquals(tc, 1.0 - 51.0 / 142.0, vessel_load_factor(&ship), 0.0001);
+  /* A ram weighs (hull weight + 10) / 24, 12 on a frigate; colors nothing. */
+  ship.slot[3].type = VESSEL_SLOT_EQUIPMENT;
+  ship.slot[3].item = VESSEL_EQUIPMENT_RAM;
+  ship.slot[4].type = VESSEL_SLOT_EQUIPMENT;
+  ship.slot[4].item = VESSEL_EQUIPMENT_COLORS;
+  CuAssertDblEquals(tc, 1.0 - 27.0 / 142.0, vessel_load_factor(&ship), 0.0001);
 
   ship.crew_tier[CREW_SAILMASTER] = CREW_TIER_VETERAN;
   CuAssertDblEquals(tc, 1.3, vessel_sailmaster_multiplier(&ship), 0.0001);

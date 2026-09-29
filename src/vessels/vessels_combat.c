@@ -603,7 +603,7 @@ void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause)
 static bool vessel_shot_critical(const struct greyhawk_ship_slot *weapon, int natural_roll,
                                  int confirm_roll, int bonus, int target_number)
 {
-  return natural_roll >= vessel_critical_threat(vessel_weapon_profile(weapon)->pierce) &&
+  return natural_roll >= vessel_critical_threat(vessel_slot_weapon(weapon)->pierce) &&
          confirm_roll + bonus >= target_number;
 }
 
@@ -616,6 +616,7 @@ static void vessel_ai_return_fire(int shipnum)
   struct greyhawk_ship_data *ship = &greyhawk_ships[shipnum];
   struct greyhawk_ship_data *target;
   struct greyhawk_ship_slot *weapon;
+  const struct vessel_weapon_type *type;
   double range;
   int target_num;
   int fire_arc;
@@ -654,16 +655,15 @@ static void vessel_ai_return_fire(int shipnum)
   for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
   {
     weapon = &ship->slot[s];
-    if (!vessel_weapon_ready(weapon) || weapon->position != fire_arc)
-    {
-      continue;
-    }
-    if (weapon->val0 > 0 && range > (double)weapon->val0)
+    type = vessel_slot_weapon(weapon);
+    if (!vessel_weapon_ready(weapon) || weapon->position != fire_arc ||
+        range < (double)type->min_range || range > (double)type->max_range)
     {
       continue;
     }
 
-    weapon->timer = VESSEL_WEAPON_RELOAD_TICKS;
+    weapon->timer = (short int)type->reload;
+    weapon->ammo--;
     target->last_attacker = shipnum;
 
     natural_roll = rand_number(1, 20);
@@ -691,7 +691,7 @@ static void vessel_ai_return_fire(int shipnum)
     }
 
     dmg = vessel_resolve_hit(
-        ship, target, weapon,
+        ship, target, weapon, range,
         vessel_shot_critical(weapon, natural_roll, rand_number(1, 20), attack_bonus, defense_dc));
     vessel_event_record_damage(shipnum, target_num, dmg);
     VSSL_DEBUG("AI ship %d return-fired slot %d at ship %d for %d", shipnum, s, target_num, dmg);
@@ -717,11 +717,12 @@ void vessel_combat_tick_one(struct greyhawk_ship_data *ship)
     if (ship->slot[s].timer > 0)
     {
       ship->slot[s].timer--;
-      if (ship->slot[s].timer == 0 && ship->slot[s].type == 1)
+      if (ship->slot[s].timer == 0 && ship->slot[s].type == VESSEL_SLOT_WEAPON)
       {
         send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RELOAD, VESSEL_COMBAT_MESSAGE_COOLDOWN,
-                               "%s is reloaded and ready.",
-                               ship->slot[s].desc[0] ? ship->slot[s].desc : "A weapon");
+                               "The %s %s is reloaded and ready.",
+                               vessel_arc_name(ship->slot[s].position),
+                               vessel_slot_name(&ship->slot[s]));
       }
     }
   }
@@ -745,6 +746,7 @@ ACMD(do_shipfire)
   struct greyhawk_ship_data *ship;
   struct greyhawk_ship_data *target;
   struct greyhawk_ship_slot *weapon;
+  const struct vessel_weapon_type *type;
   char arg1[MAX_INPUT_LENGTH];
   char arg2[MAX_INPUT_LENGTH];
   double range;
@@ -792,7 +794,8 @@ ACMD(do_shipfire)
   }
 
   weapon = &ship->slot[slot_num];
-  if (weapon->type != 1)
+  type = vessel_slot_weapon(weapon);
+  if (type == NULL)
   {
     send_to_char(ch, "Slot %d holds no weapon.\r\n", slot_num);
     return;
@@ -805,6 +808,11 @@ ACMD(do_shipfire)
   if (weapon->damage > 0)
   {
     send_to_char(ch, "That weapon is damaged and cannot fire until it is repaired.\r\n");
+    return;
+  }
+  if (weapon->ammo == 0)
+  {
+    send_to_char(ch, "That weapon is out of ammunition; rearm it at a shipyard.\r\n");
     return;
   }
   if (weapon->timer > 0)
@@ -833,12 +841,12 @@ ACMD(do_shipfire)
     return;
   }
 
-  /* Range gate: use the weapon's long range (val0) */
+  /* Range gate: the weapon's band */
   range = greyhawk_range(ship->x, ship->y, ship->z, target->x, target->y, target->z);
-  if (weapon->val0 > 0 && range > (double)weapon->val0)
+  if (range < (double)type->min_range || range > (double)type->max_range)
   {
-    send_to_char(ch, "%s is out of range (%.1f vs %d).\r\n", target->name, range,
-                 (int)weapon->val0);
+    send_to_char(ch, "%s is outside the %s's %d-%d room band (%.1f).\r\n", target->name, type->name,
+                 type->min_range, type->max_range, range);
     return;
   }
 
@@ -867,10 +875,12 @@ ACMD(do_shipfire)
   /* Mark the aggression so NPC-piloted victims return fire */
   target->last_attacker = ship->shipnum;
 
-  weapon->timer = VESSEL_WEAPON_RELOAD_TICKS;
+  weapon->timer = (short int)type->reload;
+  weapon->ammo--;
   WAIT_STATE(ch, PULSE_VIOLENCE);
 
-  send_to_ship(ship, "%s FIRES at %s!", weapon->desc[0] ? weapon->desc : "A weapon", target->name);
+  send_to_ship(ship, "The %s %s FIRES at %s!", vessel_arc_name(weapon->position), type->name,
+               target->name);
 
   if (natural_roll + attack_bonus < defense_dc)
   {
@@ -881,7 +891,7 @@ ACMD(do_shipfire)
 
   send_to_ship(ship, "Direct hit on %s!", target->name);
   dmg = vessel_resolve_hit(
-      ship, target, weapon,
+      ship, target, weapon, range,
       vessel_shot_critical(weapon, natural_roll, d20(ch), attack_bonus, defense_dc));
   vessel_event_record_damage(ship->shipnum, target_num, dmg);
 }
@@ -949,7 +959,7 @@ ACMD(do_shiprepair)
    * by the port's shipwrights, until S4 sells weapons and S5 prices repairs. */
   for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
   {
-    if (ship->slot[s].type != 1 || ship->slot[s].damage == 0)
+    if (ship->slot[s].type != VESSEL_SLOT_WEAPON || ship->slot[s].damage == 0)
     {
       continue;
     }

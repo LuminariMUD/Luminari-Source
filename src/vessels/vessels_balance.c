@@ -17,6 +17,7 @@
 #define VESSEL_BALANCE_DUEL_GUN_BONUS 9
 #define VESSEL_BALANCE_DUEL_DAMAGE_DICE 2
 #define VESSEL_BALANCE_DUEL_DAMAGE_SIDES 8
+#define VESSEL_BALANCE_DUEL_RELOAD_TICKS 6
 #define VESSEL_BALANCE_DUEL_MAX_TICKS 2000
 
 #define VESSEL_BALANCE_MEDIAN_MIN_TENTHS 450
@@ -154,7 +155,7 @@ bool vessel_balance_run_duels(int duel_count, struct vessel_balance_duel_result 
 
       if (first_timer == 0)
       {
-        first_timer = VESSEL_WEAPON_RELOAD_TICKS;
+        first_timer = VESSEL_BALANCE_DUEL_RELOAD_TICKS;
         if ((int)vessel_balance_random(&random_state, 20U) + VESSEL_BALANCE_DUEL_GUN_BONUS >=
             10 + VESSEL_BALANCE_DUEL_SPEED / 5)
         {
@@ -171,7 +172,7 @@ bool vessel_balance_run_duels(int duel_count, struct vessel_balance_duel_result 
 
       if (second_timer == 0)
       {
-        second_timer = VESSEL_WEAPON_RELOAD_TICKS;
+        second_timer = VESSEL_BALANCE_DUEL_RELOAD_TICKS;
         if ((int)vessel_balance_random(&random_state, 20U) + VESSEL_BALANCE_DUEL_GUN_BONUS >=
             10 + VESSEL_BALANCE_DUEL_SPEED / 5)
         {

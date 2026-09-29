@@ -1,0 +1,256 @@
+/* Vessel weapons (vessels-ships study S4): the Duris weapon catalogue, class
+ * armament, and weapon rows. */
+
+#include "CuTest.h"
+
+#include "conf.h"
+#include "../../src/core/sysdep.h"
+#include "../../src/core/structs.h"
+#include "../../src/core/utils.h"
+#include "../../src/database/mysql.h"
+#include "../../src/vessels/vessels.h"
+
+#include <stdlib.h>
+#include <string.h>
+
+extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
+
+/* High fleet slots keep these fixtures clear of the rest of the suite. */
+#define WEAPONS_SHIP 483
+#define WEAPONS_ATTACKER 484
+
+static struct greyhawk_ship_data *weapons_hull(int slot, enum vessel_class vessel_type)
+{
+  struct greyhawk_ship_data *ship = &greyhawk_ships[slot];
+
+  memset(ship, 0, sizeof(*ship));
+  ship->active = TRUE;
+  ship->shipnum = slot;
+  ship->vessel_type = vessel_type;
+  ship->docked_to_ship = -1;
+  strlcpy(ship->id, "WP", sizeof(ship->id));
+  strlcpy(ship->name, "the Weapons Test", sizeof(ship->name));
+  vessel_initialize_condition(ship, vessel_class_condition(vessel_type)->beam_armor);
+  return ship;
+}
+
+static void weapons_clear(void)
+{
+  memset(&greyhawk_ships[WEAPONS_SHIP], 0, sizeof(greyhawk_ships[0]));
+  memset(&greyhawk_ships[WEAPONS_ATTACKER], 0, sizeof(greyhawk_ships[0]));
+}
+
+void Test_vessel_catalogue_keeps_the_duris_weapons(CuTest *tc)
+{
+  const struct vessel_weapon_type *weapon;
+
+  CuAssertTrue(tc, vessel_weapon_type(VESSEL_WEAPON_NONE) == NULL);
+  CuAssertTrue(tc, vessel_weapon_type(NUM_VESSEL_WEAPONS) == NULL);
+
+  /* Prices at 2 gold per pp; reloads of 30 s and 45 s in 0.5 s ticks. */
+  weapon = vessel_weapon_type(VESSEL_WEAPON_LARGE_BALLISTA);
+  CuAssertStrEquals(tc, "Large Ballista", weapon->name);
+  CuAssertIntEquals(tc, 1000, weapon->price);
+  CuAssertIntEquals(tc, 10, weapon->weight);
+  CuAssertIntEquals(tc, 30, weapon->ammo);
+  CuAssertIntEquals(tc, 12, weapon->max_range);
+  CuAssertIntEquals(tc, 60, weapon->reload);
+  CuAssertIntEquals(tc, 0xF, weapon->arcs);
+  weapon = vessel_weapon_type(VESSEL_WEAPON_HEAVY_BEAMCANNON);
+  CuAssertIntEquals(tc, 10000, weapon->price);
+  CuAssertIntEquals(tc, 90, weapon->reload);
+  CuAssertIntEquals(tc, VESSEL_WEAPON_RANGE_DAMAGE | VESSEL_WEAPON_CAPITAL, weapon->flags);
+
+  /* Catapults fire from the ends, heavy ballistae from the beams. */
+  weapon = vessel_weapon_type(VESSEL_WEAPON_LONG_TOM);
+  CuAssertIntEquals(tc, (1 << GREYHAWK_FORE) | (1 << GREYHAWK_REAR), weapon->arcs);
+  CuAssertIntEquals(tc, 12, weapon->min_range);
+  CuAssertIntEquals(tc, 32, weapon->max_range);
+  CuAssertTrue(tc, IS_SET(weapon->flags, VESSEL_WEAPON_BALLISTIC));
+  weapon = vessel_weapon_type(VESSEL_WEAPON_HEAVY_BALLISTA);
+  CuAssertIntEquals(tc, (1 << GREYHAWK_PORT) | (1 << GREYHAWK_STARBOARD), weapon->arcs);
+  CuAssertTrue(
+      tc, IS_SET(vessel_weapon_type(VESSEL_WEAPON_MIND_BLAST)->flags, VESSEL_WEAPON_CREW_STUN));
+}
+
+void Test_vessel_new_hulls_carry_the_class_armament(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+  int i;
+
+  /* A warship: large ballistae on the bow and both beams, fully loaded. */
+  memset(&ship, 0, sizeof(ship));
+  ship.vessel_type = VESSEL_WARSHIP;
+  vessel_fit_default_weapons(&ship);
+  CuAssertIntEquals(tc, VESSEL_WEAPON_LARGE_BALLISTA, ship.slot[0].item);
+  CuAssertIntEquals(tc, GREYHAWK_FORE, ship.slot[0].position);
+  CuAssertIntEquals(tc, GREYHAWK_PORT, ship.slot[1].position);
+  CuAssertIntEquals(tc, GREYHAWK_STARBOARD, ship.slot[2].position);
+  CuAssertIntEquals(tc, 30, ship.slot[2].ammo);
+  CuAssertIntEquals(tc, VESSEL_SLOT_EMPTY, ship.slot[3].type);
+  CuAssertTrue(tc, vessel_weapon_ready(&ship.slot[1]));
+
+  /* Other armed classes: one medium ballista on the bow. */
+  memset(&ship, 0, sizeof(ship));
+  ship.vessel_type = VESSEL_TRANSPORT;
+  vessel_fit_default_weapons(&ship);
+  CuAssertIntEquals(tc, VESSEL_WEAPON_MEDIUM_BALLISTA, ship.slot[0].item);
+  CuAssertIntEquals(tc, 50, ship.slot[0].ammo);
+  CuAssertIntEquals(tc, VESSEL_SLOT_EMPTY, ship.slot[1].type);
+
+  /* Rafts and boats sail unarmed. */
+  ship.vessel_type = VESSEL_BOAT;
+  vessel_fit_default_weapons(&ship);
+  for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
+  {
+    CuAssertIntEquals(tc, VESSEL_SLOT_EMPTY, ship.slot[i].type);
+  }
+
+  /* A weapon without a round cannot fire. */
+  ship.vessel_type = VESSEL_WARSHIP;
+  vessel_fit_default_weapons(&ship);
+  ship.slot[0].ammo = 0;
+  CuAssertTrue(tc, !vessel_weapon_ready(&ship.slot[0]));
+}
+
+void Test_vessel_beam_damage_falls_with_range(CuTest *tc)
+{
+  struct greyhawk_ship_data *target;
+  struct greyhawk_ship_data *attacker;
+
+  /* Due east of a stripped target heading north, every beam shot strikes
+   * her starboard side: 22 at point blank, 5 at the 23-room maximum. */
+  target = weapons_hull(WEAPONS_SHIP, VESSEL_WARSHIP);
+  attacker = weapons_hull(WEAPONS_ATTACKER, VESSEL_WARSHIP);
+  vessel_set_weapon(&attacker->slot[0], VESSEL_WEAPON_HEAVY_BEAMCANNON, GREYHAWK_PORT);
+  attacker->x = 5.0;
+  target->mainsail = 0;
+  CuAssertIntEquals(tc, 22, vessel_resolve_hit(attacker, target, &attacker->slot[0], 0.0, FALSE));
+  CuAssertIntEquals(tc, 5, vessel_resolve_hit(attacker, target, &attacker->slot[0], 23.0, FALSE));
+  CuAssertIntEquals(tc, 109 - 27, target->sarmor);
+
+  /* A crew-stun weapon does no damage. */
+  vessel_set_weapon(&attacker->slot[1], VESSEL_WEAPON_MIND_BLAST, GREYHAWK_PORT);
+  CuAssertIntEquals(tc, 0, vessel_resolve_hit(attacker, target, &attacker->slot[1], 0.0, FALSE));
+  CuAssertIntEquals(tc, 109 - 27, target->sarmor);
+
+  weapons_clear();
+}
+
+static MYSQL *weapons_open_test_database(void)
+{
+  const char *port_text;
+  MYSQL *connection;
+
+  if (getenv("LUMINARI_TEST_MYSQL_HOST") == NULL || getenv("LUMINARI_TEST_MYSQL_USER") == NULL ||
+      getenv("LUMINARI_TEST_MYSQL_PASSWORD") == NULL ||
+      getenv("LUMINARI_TEST_MYSQL_DATABASE") == NULL)
+  {
+    return NULL;
+  }
+  port_text = getenv("LUMINARI_TEST_MYSQL_PORT");
+  connection = mysql_init(NULL);
+  if (connection == NULL)
+  {
+    return NULL;
+  }
+  if (mysql_real_connect(
+          connection, getenv("LUMINARI_TEST_MYSQL_HOST"), getenv("LUMINARI_TEST_MYSQL_USER"),
+          getenv("LUMINARI_TEST_MYSQL_PASSWORD"), getenv("LUMINARI_TEST_MYSQL_DATABASE"),
+          port_text != NULL ? (unsigned int)strtoul(port_text, NULL, 10) : 3306, NULL, 0) == NULL)
+  {
+    mysql_close(connection);
+    return NULL;
+  }
+  return connection;
+}
+
+void Test_vessel_weapon_rows_keep_every_slot_and_convert_old_weapons(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct greyhawk_ship_data *ship;
+  char query[512];
+  MYSQL *saved_conn;
+  MYSQL *connection;
+  bool saved_mysql_available;
+  bool prepared;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    return;
+  }
+
+  connection = weapons_open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  /* Weapon rows shadowing the real table: one saved before S4 (no catalogue
+   * row, a damaged starboard ballista) and one unknown leftover slot. */
+  prepared = mysql_query(connection, "CREATE TEMPORARY TABLE ship_weapons ("
+                                     "ship_id INT NOT NULL, "
+                                     "slot_index TINYINT UNSIGNED NOT NULL, "
+                                     "slot_type TINYINT UNSIGNED NOT NULL DEFAULT 1, "
+                                     "position TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+                                     "reload_timer SMALLINT NOT NULL DEFAULT 0, "
+                                     "weapon_damage TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+                                     "catalog_id TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+                                     "ammo SMALLINT UNSIGNED NOT NULL DEFAULT 0, "
+                                     "PRIMARY KEY (ship_id, slot_index))") == 0;
+  snprintf(query, sizeof(query),
+           "INSERT INTO ship_weapons (ship_id, slot_index, slot_type, position, reload_timer, "
+           "weapon_damage) VALUES (%d, 2, 1, %d, 4, 35)",
+           WEAPONS_SHIP, GREYHAWK_STARBOARD);
+  prepared = prepared && mysql_query(connection, query) == 0;
+  if (!prepared)
+  {
+    mysql_close(connection);
+    CuFail(tc, "could not create the isolated weapon row fixture");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_mysql_available = mysql_available;
+  conn = connection;
+  mysql_available = TRUE;
+
+  /* The old weapon becomes a warship's large ballista on the same arc, fully
+   * loaded, keeping its damage and reload. */
+  ship = weapons_hull(WEAPONS_SHIP, VESSEL_WARSHIP);
+  vessel_set_weapon(&ship->slot[5], VESSEL_WEAPON_SMALL_BALLISTA, GREYHAWK_REAR);
+  CuAssertTrue(tc, vessel_db_load_weapons(ship));
+  CuAssertIntEquals(tc, VESSEL_SLOT_WEAPON, ship->slot[2].type);
+  CuAssertIntEquals(tc, VESSEL_WEAPON_LARGE_BALLISTA, ship->slot[2].item);
+  CuAssertIntEquals(tc, GREYHAWK_STARBOARD, ship->slot[2].position);
+  CuAssertIntEquals(tc, 30, ship->slot[2].ammo);
+  CuAssertIntEquals(tc, 35, ship->slot[2].damage);
+  CuAssertIntEquals(tc, 4, ship->slot[2].timer);
+  CuAssertIntEquals(tc, VESSEL_SLOT_EMPTY, ship->slot[5].type); /* rows are the whole fit */
+
+  /* Weapons and equipment survive a save and reload as they are. */
+  ship->slot[2].ammo = 7;
+  vessel_set_weapon(&ship->slot[GREYHAWK_MAXSLOTS - 1], VESSEL_WEAPON_LONG_TOM, GREYHAWK_REAR);
+  ship->slot[GREYHAWK_MAXSLOTS - 1].timer = 11;
+  ship->slot[3].type = VESSEL_SLOT_EQUIPMENT;
+  ship->slot[3].item = VESSEL_EQUIPMENT_RAM;
+  CuAssertTrue(tc, vessel_db_save_weapons(ship));
+  memset(ship->slot, 0, sizeof(ship->slot));
+  CuAssertTrue(tc, vessel_db_load_weapons(ship));
+  CuAssertIntEquals(tc, 7, ship->slot[2].ammo);
+  CuAssertIntEquals(tc, 35, ship->slot[2].damage);
+  CuAssertIntEquals(tc, VESSEL_WEAPON_LONG_TOM, ship->slot[GREYHAWK_MAXSLOTS - 1].item);
+  CuAssertIntEquals(tc, GREYHAWK_REAR, ship->slot[GREYHAWK_MAXSLOTS - 1].position);
+  CuAssertIntEquals(tc, 6, ship->slot[GREYHAWK_MAXSLOTS - 1].ammo);
+  CuAssertIntEquals(tc, 11, ship->slot[GREYHAWK_MAXSLOTS - 1].timer);
+  CuAssertIntEquals(tc, VESSEL_SLOT_EQUIPMENT, ship->slot[3].type);
+  CuAssertIntEquals(tc, VESSEL_EQUIPMENT_RAM, ship->slot[3].item);
+  CuAssertIntEquals(tc, VESSEL_SLOT_EMPTY, ship->slot[0].type);
+
+  conn = saved_conn;
+  mysql_available = saved_mysql_available;
+  weapons_clear();
+  mysql_query(connection, "DROP TEMPORARY TABLE ship_weapons");
+  mysql_close(connection);
+}
