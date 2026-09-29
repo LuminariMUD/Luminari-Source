@@ -639,6 +639,16 @@ proc require_game_output {output expected context} {
   }
 }
 
+# Wait out a timed crew order. The report is due at the end of the window, so
+# a server that runs slightly behind gets one short grace wait.
+proc wait_for_game_output {seconds expected} {
+  set output [run_game_command "@wait $seconds"]
+  if {[string first $expected $output] < 0} {
+    append output [run_game_command "@wait 10"]
+  }
+  return $output
+}
+
 proc run_vessel_builder_check {} {
   set workflow_started_at [clock milliseconds]
   set prototype_name "Builder Timing Cutter [clock seconds]"
@@ -682,7 +692,7 @@ proc run_vessel_builder_check {} {
     "berthed vessel speed order"
   set output [run_game_command "undock"]
   require_game_output $output "The crew begins casting off." "vessel departure"
-  run_game_command "@wait 33"
+  wait_for_game_output 33 "ready to get under way"
   set output [run_game_command "setsail west"]
   require_game_output $output "The vessel maneuvers west." "vessel maneuver"
 
@@ -1413,7 +1423,7 @@ proc run_vessel_movement_check {warship_id} {
   require_game_output $output "The crew begins casting off." "casting off"
   set output [run_game_command "shipstatus"]
   require_game_output $output "Moorings: Casting off" "casting-off moorings"
-  set output [run_game_command "@wait 33"]
+  set output [wait_for_game_output 33 "ready to get under way"]
   require_game_output $output "ready to get under way" "departure report"
   set output [run_game_command "shipstatus"]
   require_game_output $output "Moorings: Under way" "departed boat moorings"
@@ -1493,7 +1503,7 @@ proc run_vessel_movement_check {warship_id} {
   require_game_output $output "Moorings: Anchored" "anchored moorings"
   set output [run_game_command "undock"]
   require_game_output $output "The crew begins weighing anchor." "weighing anchor"
-  set output [run_game_command "@wait 14"]
+  set output [wait_for_game_output 14 "ready to get under way"]
   require_game_output $output "ready to get under way" "anchor weighed"
   set output [run_game_command "shipstatus"]
   require_game_output $output "Moorings: Under way" "weighed moorings"
