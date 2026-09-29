@@ -1432,6 +1432,80 @@ and verifier on the isolated test database; all 33 local CI jobs on `02729c19b` 
 gate covers the changed paths (the damage gate stops its target before holing it), so none was
 rerun.
 
+MR !8 merged on 2026-09-29 as merge commit `a85e97d9f` (branch kept); S4 continues on
+`feat/vessels-s4` (Phase 4 below). The S3 vessel help still needs its production help sync.
+
+### Phase 4 (S4) progress
+
+Branch `feat/vessels-s4` from the S3 merge commit `a85e97d9f`. The annotated tag `vessels-s4-base`
+(pushed) marks that merge commit, so `git log vessels-s4-base..vessels-s4` lists only S4 commits.
+Hand-off: annotated tag `vessels-s4` at the head given to review and a GitLab merge request from
+`feat/vessels-s4`; review fixes go on top. Scope: 3.3.4, the S4 parts of 3.3.1 (hull weight,
+mounts, arc weight caps) and 3.3.2 (the crash check, a legal fit-out at departure), the default
+ballistae of 3.3.10, and L6 and the S4 half of L9 (Part 5, step 4). The catalogue and the
+shipyard live in the new `src/vessels/vessels_weapons.c`, the gunnery in the new
+`src/vessels/vessels_gunnery.c`.
+
+| Item | State | Where |
+| -- | -- | -- |
+| Catalogue: the twelve Duris weapons (1.3; 2 gold per pp; reloads 60 and 90 ticks), the ram and neutral colors | Planned | Static tables in `vessels_weapons.c`, like S3's class profiles |
+| Class fitting (3.3.1): hull weight, mounts and arc weight caps, the analog's allowed weapons | Planned | `vessel_class_handling()` gains the hull weight; a class fitting table in `vessels_weapons.c` |
+| 16 slots within the 5 KiB `greyhawk_ship_data` budget | Planned | A slot holds its catalogue row, arc, ammo, damage and reload timer; `GREYHAWK_MAXSLOTS` 16 |
+| Persistence and migration (3.3.10): every slot is a `ship_weapons` row; legacy weapons become large ballistae (warship) or medium ballistae with full ammo; new hulls get the same class fit | Planned | Phase 20 SQL (`catalog_id`, `ammo`) with rollback and verifier; conversion in `vessel_db_load_weapons()` |
+| Shipyard: `shipweapon list\|buy\|sell\|swap`, `shipequip list\|buy\|sell`, `shiprearm [slot\|all]`; installation and rearm maintenance blocks departure; departure checks a legal fit-out | Planned | `vessels_weapons.c`; `vessel_begin_departure()` |
+| Gunnery: `shiplock`, battle stations, `shipfire <slot\|arc> [id]`, the geometry DC (L6), criticals by pierce, reload by gunner tier, ammo; NPC return fire on the same rules | Planned | `vessels_gunnery.c`; `do_shipfire()`, `vessel_ai_return_fire()` |
+| `shipsight`, `shipscan`; `contacts` shows the arc each contact lies in | Planned | `vessels_gunnery.c`; `do_greyhawk_contacts()` |
+| Crew stun weapon (Mind Blast Cannon) | Planned | Stunned crews neither steer, fire, reload nor repair |
+| Flight: one room per 10 Z in every vessel range, x1.5 miss against a flyer, an airborne hull boarded only within 10 Z; submerged hulls neither fire nor are targeted | Planned | `greyhawk_range()`, the hit model, boarding |
+| Battle stations block entering a port (L9); the crash check for land and shallows at battle stations (3.3.2, moved from S2) | Planned | `vessels_movement.c` |
+| Duel harness on the S4 rules and the D2 bounds | Planned | `vessels_balance.c` |
+| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character gunnery gate, the existing gates, local CI | Planned |  |
+
+Interpretations decided while planning S4:
+
+- The weapon and equipment rows are static tables in code, as S3's class profiles are: nothing
+  edits them in play, and a code table needs no loader, schema or content package. Slots and
+  `ship_weapons` rows store the row number (`catalog_id`).
+- A slot drops its description, range, dice, weight and map position fields; the catalogue
+  supplies them. Sixteen of the old 272-byte slots would break the 5 KiB struct budget
+  (`test_transport_production.c`).
+- Every slot, weapons and equipment alike, persists as a `ship_weapons` row. The `slot_data`
+  blob, written beside the rows since both arrived in `3d58cedb9`, has no other consumer and is
+  no longer written or read. A weapon row with `catalog_id` 0 is a pre-S4 weapon, converted at
+  load.
+- `lock` and `scan` are taken (door locks, the character `scan`), so the commands are
+  `shiplock`, `shipscan` and, for consistency, `shipsight`, as S3 made `salvage` `shipsalvage`.
+- Renown arrives in S7; until then a capital weapon needs a veteran gunner.
+- Equipment has only its weight and slot in S4: the ram rams in S6 and neutral colors act on
+  raiders (S6) and sales (S7). Colors cannot come off with cargo aboard (3.3.8).
+- A fit-out is legal when every weapon is allowed on the class and on its arc, no arc exceeds its
+  mounts or weight cap, at most one weapon is capital, and the fit-out weighs no more than the
+  class max load (Duris's available-weight check). One check refuses both a purchase and a
+  departure.
+- Installation and rearm maintenance is runtime only, like the departure timers: a restart ends
+  it. Immortals skip it, as Duris's trusted characters do.
+- Battle stations last 180 s after the lock clears, the hull fires, or a shot is fired at her
+  (Duris sets them on firing and on a volley's arrival). A lock or a shot is refused in port, so
+  battle stations never start in one. `shipsummon` (S5) and the repair odds (S5) read them later.
+- The hit model uses exact positions (room plus offset) and projects both hulls one second ahead
+  by sailing copies through `vessel_sail_tick()`, so turning and accelerating count as in Duris.
+  Stamina arrives in S5; its modifier is 1 until then.
+- Crash check: the sail mod is 0.1 per sailmaster tier. Shallows (water shallower than the class
+  minimum depth, the pre-S2 grounding test) refuse a hull only at battle stations, so seaports
+  stay open; a refused port room stops the hull without a crash roll.
+- Unowned hulls rearm when they berth, as S2 made them re-rig.
+- The duel harness sails two default warships with Duris's frigate combat fit (1.13d: three large
+  ballistae on each beam and a heavy beamcannon fore, an able gunner) through the production
+  movement, hit, damage and reload code, with a captain that holds the healthier beam at two
+  thirds of ballista range. It seeds the random stream for the duels and restores it after.
+
+Ablation (planning): dropped a database weapon table and its loader, the slot blob, persisted
+maintenance, lock and stun timers (runtime, like departures), and separate purchase and departure
+checks (one legality check). Kept the equipment although it acts in S6 and S7 (it is S4's fitting
+scope and its weight slows the hull now), the maximum-load check (without it a legal-looking fit
+leaves a warship at speed 1), and unowned hulls rearming at berth (their ammo would otherwise run
+out for good).
+
 ### Estimate
 
 Working days of focused implementation per step, each including its tests, help in both places,
