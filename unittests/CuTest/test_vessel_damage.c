@@ -860,6 +860,19 @@ void Test_vessel_legacy_snapshot_converts_once_at_load(CuTest *tc)
   CuAssertIntEquals(tc, 40, ship->farmor);
   CuAssertIntEquals(tc, 17, ship->maxspeed);
 
+  /* A hull going down resumes her sink timer after a restart. */
+  ship->parmor = ship->pinternal = 0;
+  ship->rarmor = ship->rinternal = 0;
+  ship->sink_ticks = 3;
+  CuAssertTrue(tc, vessel_db_save_runtime(ship));
+  memset(ship, 0, sizeof(*ship));
+  ship->active = TRUE;
+  ship->shipnum = DAMAGE_TARGET_SLOT;
+  ship->vessel_type = VESSEL_WARSHIP;
+  CuAssertTrue(tc, vessel_db_load_runtime(ship));
+  vessel_update_condition(ship, NULL);
+  CuAssertIntEquals(tc, 3, ship->sink_ticks);
+
   conn = saved_conn;
   mysql_available = saved_mysql_available;
   damage_clear();

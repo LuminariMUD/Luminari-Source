@@ -45,7 +45,7 @@ tables.
 | 16 | `vessels_phase16_schema.sql` | `verify_vessels_phase16.sql` | `vessels_phase16_rollback.sql` | Showcase-event history, participant results, leaderboards, and temporary ghost ownership |
 | 17 | `vessels_phase17_schema.sql` | `verify_vessels_phase17.sql` | `vessels_phase17_rollback.sql` | Optional exterior paint and figurehead descriptions |
 | 18 | `vessels_phase18_schema.sql` | `verify_vessels_phase18.sql` | `vessels_phase18_rollback.sql` | Shipyard listing and hull level on prototypes, bounty decay clock; clears retired crew wage debt |
-| 19 | `vessels_phase19_schema.sql` | `verify_vessels_phase19.sql` | `vessels_phase19_rollback.sql` | S3 damage model: prototype armor rescaled once by class, hull condition model, weapon damage |
+| 19 | `vessels_phase19_schema.sql` | `verify_vessels_phase19.sql` | `vessels_phase19_rollback.sql` | S3 damage model: prototype armor rescaled once by class, hull condition model, sink timer, weapon damage |
 | Campaign | `vessels_campaign_content.sql` | `verify_vessels_campaign_content.sql` | `vessels_campaign_content_rollback.sql` | Initial Vailand legal waters, route, merchant shipping, and iron markets |
 | Narrative | `vessels_narrative_content.sql` | `verify_vessels_narrative_content.sql` | `vessels_narrative_content_rollback.sql` | Eight geographic and severe-weather hints for canonical Vailand waters |
 | Derelict | `vessels_derelict_content.sql` | `verify_vessels_derelict_content.sql` | `vessels_derelict_content_rollback.sql` | Blackwake prototype and generated-room discovery trigger mappings |
@@ -96,12 +96,13 @@ later rows default to 1. `ship_runtime_state.condition_model` is 0 on hulls
 saved before S3; the server converts each such hull once at load (class profile
 at the rescaled armor, refits recomputed, each arc, the sails, and the rudder
 keeping their damage fraction, every arc left at least 1 structure) and writes
-1 when it saves. `ship_weapons.weapon_damage` records disabled and destroyed
-weapons. The server's boot DDL makes the same changes. Like Phase 18 it creates
+1 when it saves. `ship_runtime_state.sink_ticks` keeps a sinking hull's
+remaining sink timer across a restart. `ship_weapons.weapon_damage` records
+disabled and destroyed weapons. The server's boot DDL makes the same changes. Like Phase 18 it creates
 the prototype table if it is missing; it needs Phases 09 and 10. The content
 packages write S3-scale armor with `armor_scale = 1`, so apply Phase 19 before
 them. Its rollback returns prototype armor to the old scale (rounded) and drops
-the three columns; converted hulls keep their S3 condition values.
+the four columns; converted hulls keep their S3 condition values.
 The campaign package depends on Phases 7, 13, and 14 plus the existing North
 and Central Vailand wilderness seaports and pilot mobile 31810. It owns four
 region identities, their vessel-law rows, one route and waypoint set, one

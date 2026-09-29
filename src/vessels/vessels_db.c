@@ -79,6 +79,7 @@ void vessel_persistence_ensure_schema(void)
       "hullweight TINYINT UNSIGNED NOT NULL DEFAULT 0, "
       "maxslots TINYINT UNSIGNED NOT NULL DEFAULT 0, "
       "condition_model TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "sink_ticks SMALLINT UNSIGNED NOT NULL DEFAULT 0, "
       "last_attacker INT NOT NULL DEFAULT 0, "
       "pvp_grace_until BIGINT NOT NULL DEFAULT 0, "
       "pvp_grace_attacker VARCHAR(64) NOT NULL DEFAULT '', "
@@ -130,10 +131,13 @@ void vessel_persistence_ensure_schema(void)
     log("SYSERR: Unable to add vessel Phase 10 runtime fields: %s", mysql_error(conn));
   }
 
-  /* Snapshots saved before S3 read 0 and are converted once at load. */
+  /* Snapshots saved before S3 read 0 and are converted once at load; a
+   * sinking hull keeps her sink timer across a restart. */
   if (mysql_query(conn, "ALTER TABLE ship_runtime_state "
                         "ADD COLUMN IF NOT EXISTS condition_model TINYINT UNSIGNED NOT NULL "
-                        "DEFAULT 0 AFTER maxslots"))
+                        "DEFAULT 0 AFTER maxslots, "
+                        "ADD COLUMN IF NOT EXISTS sink_ticks SMALLINT UNSIGNED NOT NULL "
+                        "DEFAULT 0 AFTER condition_model"))
   {
     log("SYSERR: Unable to add vessel Phase 19 runtime fields: %s", mysql_error(conn));
   }
@@ -803,7 +807,7 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            "maxfinternal, maxrinternal, maxpinternal, maxsinternal, "
            "finternal, rinternal, pinternal, sinternal, "
            "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, condition_model, "
-           "last_attacker, pvp_grace_until, pvp_grace_attacker, "
+           "sink_ticks, last_attacker, pvp_grace_until, pvp_grace_attacker, "
            "dock_fee_balance, dock_fee_port, dock_fee_clan, "
            "wear_ticks, room_types, slot_data, "
            "autopilot_state, current_route_id, current_waypoint_index, "
@@ -813,7 +817,7 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            "%d, %d, %d, %d, "
            "%u, %u, %u, %u, %u, %u, %u, %u, "
            "%u, %u, %u, %u, %u, %u, %u, %u, "
-           "%u, %u, %u, %u, %u, %u, %d, "
+           "%u, %u, %u, %u, %u, %u, %d, %d, "
            "%d, %lld, '%s', %d, %d, %d, %d, '%s', '%s', "
            "%d, %d, %d, %d, %d, %lld)",
            ship->shipnum, ship->prototype_id,
@@ -826,10 +830,11 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            ship->maxfinternal, ship->maxrinternal, ship->maxpinternal, ship->maxsinternal,
            ship->finternal, ship->rinternal, ship->pinternal, ship->sinternal, ship->maxturnrate,
            ship->turnrate, ship->maxmainsail, ship->mainsail, ship->hullweight, ship->maxslots,
-           VESSEL_CONDITION_MODEL, ship->last_attacker, (long long)ship->pvp_grace_until,
-           escaped_pvp_attacker, ship->dock_fee_balance, ship->dock_fee_port, ship->dock_fee_clan,
-           ship->wear_ticks, room_types, escaped_slot_data, autopilot_state, route_id,
-           current_waypoint_index, autopilot_tick_counter, wait_remaining, last_update);
+           VESSEL_CONDITION_MODEL, ship->sink_ticks, ship->last_attacker,
+           (long long)ship->pvp_grace_until, escaped_pvp_attacker, ship->dock_fee_balance,
+           ship->dock_fee_port, ship->dock_fee_clan, ship->wear_ticks, room_types,
+           escaped_slot_data, autopilot_state, route_id, current_waypoint_index,
+           autopilot_tick_counter, wait_remaining, last_update);
 
   if (mysql_query(conn, query))
   {
@@ -881,7 +886,7 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
       "maxfinternal, maxrinternal, maxpinternal, maxsinternal, "
       "finternal, rinternal, pinternal, sinternal, "
       "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, condition_model, "
-      "last_attacker, pvp_grace_until, pvp_grace_attacker, "
+      "sink_ticks, last_attacker, pvp_grace_until, pvp_grace_attacker, "
       "dock_fee_balance, dock_fee_port, dock_fee_clan, "
       "wear_ticks, room_types, slot_data, "
       "autopilot_state, current_route_id, current_waypoint_index, "
@@ -1005,6 +1010,8 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
   LOAD_UCHAR(maxslots);
 #undef LOAD_UCHAR
   condition_model = row[column] ? parse_int(row[column]) : 0;
+  column++;
+  ship->sink_ticks = row[column] ? (short int)parse_int(row[column]) : 0;
   column++;
 
   ship->last_attacker = row[column] ? parse_int(row[column]) : 0;
@@ -1781,7 +1788,7 @@ void load_all_ship_interiors(void)
     }
 
     vessel_db_restore_berth(ship);
-    vessel_update_condition(ship, NULL); /* a hull saved holed on two sides sinks again */
+    vessel_update_condition(ship, NULL); /* holed on two sides with no saved timer: sink */
     vessel_db_load_permits(ship);
     vessel_db_load_crew(ship);
     vessel_db_load_extras(ship);

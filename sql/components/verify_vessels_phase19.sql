@@ -8,6 +8,7 @@ WHERE
   AND (
     (TABLE_NAME = 'ship_prototypes' AND COLUMN_NAME = 'armor_scale')
     OR (TABLE_NAME = 'ship_runtime_state' AND COLUMN_NAME = 'condition_model')
+    OR (TABLE_NAME = 'ship_runtime_state' AND COLUMN_NAME = 'sink_ticks')
     OR (TABLE_NAME = 'ship_weapons' AND COLUMN_NAME = 'weapon_damage')
   );
 

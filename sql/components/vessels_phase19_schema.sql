@@ -89,9 +89,13 @@ ALTER COLUMN armor_scale SET DEFAULT 1;
 -- Live hull snapshots. condition_model 0 marks a hull saved under the pre-S3
 -- condition model; the server converts it once at load, keeping each arc's,
 -- the sails', and the rudder's damage fraction, and writes 1 when it saves.
+-- sink_ticks is a sinking hull's remaining sink timer (0 afloat), restored at
+-- load so a restart does not restart the countdown.
 ALTER TABLE ship_runtime_state
 ADD COLUMN IF NOT EXISTS condition_model TINYINT UNSIGNED NOT NULL DEFAULT 0
-AFTER maxslots;
+AFTER maxslots,
+ADD COLUMN IF NOT EXISTS sink_ticks SMALLINT UNSIGNED NOT NULL DEFAULT 0
+AFTER condition_model;
 
 -- Weapon damage: 1 or more disables a weapon until repaired, 100 destroys it.
 ALTER TABLE ship_weapons

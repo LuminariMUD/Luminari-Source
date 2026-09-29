@@ -1192,8 +1192,8 @@ study 3.3.1, 3.3.3).
   once: `vessel_update_condition()` zeroes her speed. Deflected hits reach only another arc's structure,
   so a hull shot from one side is holed once and cannot sink until a second
   side is holed: maneuvering decides fights.
-- Sinking (`sink_ticks`, runtime only; a hull saved holed on two sides starts
-  again at boot): 150-300 ticks (75-150 s) for a player-owned hull,
+- Sinking (`sink_ticks`, saved in `ship_runtime_state` since Phase 19, so a
+  restart resumes the countdown): 150-300 ticks (75-150 s) for a player-owned hull,
   2000-3000 ticks (1000-1500 s) for an unowned hull so it can be boarded and
   looted. A sinking hull has no maximum speed, drops her autopilot, and
   cannot fire, maneuver, or `shiprepair`; she can still be boarded and
@@ -1455,7 +1455,7 @@ historical measurements, and the limits of the current evidence.
 | -- | -- |
 | `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards; `for_sale` and `min_level` since Phase 18, `armor_scale` since Phase 19 |
 | `ship_interiors` | Vessel identity, rooms, cosmetics, owner, upgrades, and insurance (retired `wages_owed` column unread) |
-| `ship_runtime_state` | Live hull, position, condition (`condition_model` since Phase 19), room type, autopilot, PvP grace, and dock-fee snapshot |
+| `ship_runtime_state` | Live hull, position, condition (`condition_model` and `sink_ticks` since Phase 19), room type, autopilot, PvP grace, and dock-fee snapshot |
 | `ship_weapons` | Normalized installed weapon slots, values, position, reload state, and `weapon_damage` (Phase 19) |
 | `ship_docking` | Active and historical docking relationships |
 | `ship_room_templates` | Builder-editable generated interior text |

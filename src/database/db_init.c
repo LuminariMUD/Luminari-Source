@@ -1262,6 +1262,7 @@ void init_vessel_system_tables(void)
         "hullweight TINYINT UNSIGNED NOT NULL DEFAULT 0, "
         "maxslots TINYINT UNSIGNED NOT NULL DEFAULT 0, "
         "condition_model TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "sink_ticks SMALLINT UNSIGNED NOT NULL DEFAULT 0, "
         "last_attacker INT NOT NULL DEFAULT 0, "
         "pvp_grace_until BIGINT NOT NULL DEFAULT 0, "
         "pvp_grace_attacker VARCHAR(64) NOT NULL DEFAULT '', "

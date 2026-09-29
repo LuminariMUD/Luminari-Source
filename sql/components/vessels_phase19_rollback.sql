@@ -1,7 +1,8 @@
 -- Vessel System Phase 19 rollback.
 -- Returns prototype armor to the pre-S3 scale (rounded) and removes the
--- armor-scale flag, the hull condition model, and weapon damage. Live hulls
--- keep their S3 condition values; weapon damage is not restored.
+-- armor-scale flag, the hull condition model, the sink timer, and weapon
+-- damage. Live hulls keep their S3 condition values; weapon damage and sink
+-- timers are not restored.
 
 -- A repeated rollback finds no flag; the placeholder flags no row as S3.
 ALTER TABLE ship_prototypes
@@ -64,7 +65,8 @@ ALTER TABLE ship_prototypes
 DROP COLUMN IF EXISTS armor_scale;
 
 ALTER TABLE ship_runtime_state
-DROP COLUMN IF EXISTS condition_model;
+DROP COLUMN IF EXISTS condition_model,
+DROP COLUMN IF EXISTS sink_ticks;
 
 ALTER TABLE ship_weapons
 DROP COLUMN IF EXISTS weapon_damage;
