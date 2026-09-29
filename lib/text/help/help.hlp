@@ -31901,7 +31901,12 @@ SHIPSCAN <contact>
   under a letter of marque.
 
   Battle stations last until 180 seconds after the lock clears, your last
-  shot, or the last shot at you.
+  shot, or the last shot at you. At battle stations no harbor admits her,
+  she keeps off water too shallow for her draft as well as land, and when
+  either stops her she may run aground: the faster she was going the
+  likelier, a better sailmaster helps, and a crew stunned by a mental blast
+  cannot save her. Running aground lands several hits, the first on the
+  bow.
 
   Only the ship's owner, the owner's helm permit holders, members of the
   owner's group while the owner is online, and staff may fire a ship's
@@ -41530,7 +41535,8 @@ SPEED [0-30]
   the sailmaster, the weight of her fit-out and cargo, her remaining sail, and
   the terrain, weather, and any high-altitude lane; a seadog at the helm adds
   one. She checks every room she enters: land or unpaid dock fees stop her
-  at its edge. A berthed or anchored hull takes no speed order until UNDOCK
+  at its edge, and at battle stations so do harbors and shallows (see
+  SHIPFIRE). A berthed or anchored hull takes no speed order until UNDOCK
   completes.
 
 HEADING [0-360]

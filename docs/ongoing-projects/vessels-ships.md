@@ -1457,7 +1457,7 @@ shipyard live in the new `src/vessels/vessels_weapons.c`, the gunnery in the new
 | `shipsight`, `shipscan`; `contacts` shows the arc each contact lies in | Done | `do_shipsight()`, `do_shipscan()`; `do_greyhawk_contacts()` shows the arc and marks the lock |
 | Crew stun weapon (Mind Blast Cannon) | Done | `vessel_mental_blast()`, `vessel_crew_stunned()`, `stun_ticks`; `vessel_sail_tick()`, the gunnery tick, `vessel_hull_fire_problem()`, and `do_shiprepair()` honor it; `vessel_knockdown_aboard()` takes the save type (Will here, Reflex for hull hits) |
 | Flight: one room per 10 Z in every vessel range, x1.5 miss against a flyer, an airborne hull boarded only within 10 Z; submerged hulls neither fire nor are targeted | Done | `greyhawk_range()`; `vessel_range_between()`, `vessel_bearing_between()` (exact positions) for contacts, arcs, and gunnery; `can_attempt_boarding()`; `vessel_hull_fire_problem()`, `vessel_target_problem()` |
-| Battle stations block entering a port (L9); the crash check for land and shallows at battle stations (3.3.2, moved from S2) | Planned | `vessels_movement.c` |
+| Battle stations block entering a port (L9); the crash check for land and shallows at battle stations (3.3.2, moved from S2) | Done | `vessel_enter_cell_default()` (`vessel_cell_is_port()`, `vessel_cell_is_shallow()`), `vessel_crash_check()` from `vessel_movement_tick_one()`; `vessel_maneuver()` explains a refused harbor |
 | Duel harness on the S4 rules and the D2 bounds | Planned | `vessels_balance.c` |
 | Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character gunnery gate, the existing gates, local CI | Planned |  |
 

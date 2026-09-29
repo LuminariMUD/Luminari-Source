@@ -978,3 +978,45 @@ void Test_vessel_restart_keeps_an_owned_hull_damaged_in_port(CuTest *tc)
 
   movement_end(&fixture);
 }
+
+void Test_vessel_battle_stations_risk_a_grounding(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  int bow;
+
+  /* Refused the land ahead, she stops at its edge unharmed. */
+  ship = movement_begin(&fixture, VESSEL_WARSHIP);
+  bow = ship->farmor;
+  ship->speed = 17.0;
+  ship->setspeed = 17;
+  refuse_room = TRUE;
+  refused_x = 0;
+  refused_y = 1;
+  movement_ticks(ship, 4);
+  CuAssertDblEquals(tc, 0.0, ship->speed, 0.0001);
+  CuAssertIntEquals(tc, bow, ship->farmor);
+
+  /* At battle stations a frigate at full speed (57 in Duris units) runs
+   * aground whenever 2d50 <= 107, always: 285 / 25 + 1 hits of 1-9, the
+   * first on the bow. */
+  ship->dy = 0.0;
+  ship->speed = 17.0;
+  ship->setspeed = 17;
+  ship->battle_ticks = VESSEL_BATTLE_STATIONS_TICKS;
+  movement_ticks(ship, 4);
+  CuAssertDblEquals(tc, 0.0, ship->speed, 0.0001);
+  CuAssertTrue(tc, ship->farmor < bow);
+
+  /* A stunned crew cannot save her even at steerage way. */
+  vessel_initialize_condition(ship, 40);
+  ship->battle_ticks = 0;
+  ship->stun_ticks = 100;
+  ship->dy = 0.0;
+  ship->speed = 2.0;
+  movement_ticks(ship, 30);
+  CuAssertDblEquals(tc, 0.0, ship->speed, 0.0001);
+  CuAssertTrue(tc, ship->farmor < bow);
+
+  movement_end(&fixture);
+}

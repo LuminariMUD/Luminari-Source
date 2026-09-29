@@ -1114,8 +1114,8 @@ Combat model (`src/vessels/vessels_combat.c`, gunnery in
 below). Weapon arcs derive from the heading-relative bearing between exact
 positions (`greyhawk_getarc()`), reloads tick on the heartbeat
 (`vessel_combat_tick()`, `vessel_gunnery_tick_one()`), and NPC-piloted ships
-return fire automatically. Deep-draft hulls ground on real wilderness bathymetry
-(elevation vs waterline against class `min_water_depth`).
+return fire automatically. At battle stations a hull keeps off harbors and
+shallows and may run aground (Weapons and Gunnery (S4) below).
 
 Every player-driven hostile entry point uses `vessel_pvp_permitted()`. A
 consented engagement records a persisted, opponent-specific five-minute
@@ -1347,6 +1347,18 @@ Prices are 2 gold per Duris platinum and reloads are in 0.5 s vessel ticks.
   down 180 s after the lock clears. `shipfire <arc>` fires every weapon on
   the arc that can. NPC return fire (`vessel_npc_return_fire()`) uses the same
   rules.
+- Battle stations bar harbors and shallows (`vessel_enter_cell_default()`,
+  L9): a hull at battle stations is refused a port room and water shallower
+  than her class `min_water_depth` (surface hulls; the pre-S2 grounding test),
+  so seaports stay open to every other hull. Barred from a harbor she lies
+  off it, her orders kept, until the crew stands down; an autopilot keeps its
+  route. Any other refused room at battle stations, or with a stunned crew,
+  rolls Duris's crash check (`vessel_crash_check()`): 2d50 against
+  `(speed / 0.3 + 50) / (1 + 2 * sail mod)` (sail mod 0.1 per sailmaster
+  tier; 100 when stunned), and a grounding lands `hull weight / 25 + 1` hits
+  of 1-9, the first on the bow and each later one half the time on a random
+  side or the sails. `setsail` into a harbor at battle stations is refused
+  without a roll.
 - Crew stun (`vessel_mental_blast()`, the Mind Blast Cannon): a hit sets the
   target's `stun_ticks` (runtime only) to `2 * (5 + 15 * closeness)`, where
   closeness runs from 0 at the weapon's maximum range to 1 at its minimum, so
