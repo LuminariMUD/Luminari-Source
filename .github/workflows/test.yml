@@ -886,6 +886,7 @@ jobs:
       - name: Generate coverage reports
         run: |
           gcovr \
+            -j "$(nproc)" \
             --root . \
             --filter '^src/' \
             --print-summary \
