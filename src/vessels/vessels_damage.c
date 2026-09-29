@@ -935,7 +935,7 @@ bool vessel_abandoned_at_sea(struct greyhawk_ship_data *ship, const struct char_
     }
     for (ch = world[room].people; ch != NULL; ch = ch->next_in_room)
     {
-      if (ch != except && GET_POS(ch) > POS_STUNNED)
+      if (ch != except && AWAKE(ch))
       {
         return FALSE;
       }

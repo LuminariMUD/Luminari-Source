@@ -451,8 +451,9 @@ void Test_vessel_only_a_beaten_prize_can_be_taken(CuTest *tc)
   CuAssertTrue(tc, vessel_prize_disabled(ship, &fixture.captain));
   ship->colors_struck_ticks = 0;
 
-  /* Abandoned at sea: nobody conscious aboard but the claimant. */
-  GET_POS(&fixture.hand) = POS_STUNNED;
+  /* Abandoned at sea: nobody conscious aboard but the claimant; a sleeper
+   * does not count. */
+  GET_POS(&fixture.hand) = POS_SLEEPING;
   CuAssertTrue(tc, vessel_abandoned_at_sea(ship, &fixture.captain));
   CuAssertTrue(tc, vessel_prize_disabled(ship, &fixture.captain));
   CuAssertTrue(tc, !vessel_abandoned_at_sea(ship, NULL));
@@ -958,4 +959,50 @@ void Test_vessel_status_shows_damage_and_weapons(CuTest *tc)
 
   ProtocolDestroy(descriptor.pProtocol);
   damage_clear();
+}
+
+/* A sleeper on the bridge neither defends a prize nor contests it. */
+void Test_vessel_a_sleeper_does_not_hold_the_bridge(CuTest *tc)
+{
+  struct prize_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  char output[4096];
+
+  ship = prize_begin(&fixture);
+  memset(&descriptor, 0, sizeof(descriptor));
+  fixture.captain.desc = &descriptor;
+  descriptor.character = &fixture.captain;
+  descriptor.output = output;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+
+  /* A holed prize; the hand stands the bridge watch with the claimant. */
+  ship->rarmor = ship->rinternal = 0;
+  fixture.hand.player.short_descr = CuMutableString("a deckhand");
+  IN_ROOM(&fixture.hand) = 0;
+  fixture.rooms[1].people = NULL;
+  fixture.captain.next_in_room = &fixture.hand;
+
+  damage_reset_output(&descriptor, output, sizeof(output));
+  do_claimship(&fixture.captain, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "The bridge is still contested") != NULL);
+  damage_reset_output(&descriptor, output, sizeof(output));
+  do_plunder(&fixture.captain, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "still holds the bridge against you") != NULL);
+
+  /* Asleep, she leaves the bridge open: the claim then fails only at the
+   * registry, which has no database here, and the plunder only for want of
+   * a ship alongside. */
+  GET_POS(&fixture.hand) = POS_SLEEPING;
+  damage_reset_output(&descriptor, output, sizeof(output));
+  do_claimship(&fixture.captain, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "The ship's registry rejects your claim") != NULL);
+  damage_reset_output(&descriptor, output, sizeof(output));
+  do_plunder(&fixture.captain, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "You need your own ship alongside") != NULL);
+
+  ProtocolDestroy(descriptor.pProtocol);
+  fixture.captain.desc = NULL;
+  prize_end(&fixture);
 }

@@ -1031,7 +1031,7 @@ ACMD(do_claimship)
   /* The bridge must be uncontested: no other conscious characters. */
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
   {
-    if (tch != ch && GET_POS(tch) > POS_STUNNED)
+    if (tch != ch && AWAKE(tch))
     {
       send_to_char(ch, "The bridge is still contested - deal with %s first.\r\n", PERS(tch, ch));
       return;

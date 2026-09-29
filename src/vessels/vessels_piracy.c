@@ -917,7 +917,7 @@ ACMD(do_plunder)
   /* The bridge must be uncontested */
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
   {
-    if (tch != ch && GET_POS(tch) > POS_STUNNED)
+    if (tch != ch && AWAKE(tch))
     {
       send_to_char(ch, "%s still holds the bridge against you.\r\n", PERS(tch, ch));
       return;

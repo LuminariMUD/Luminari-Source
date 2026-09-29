@@ -1205,9 +1205,9 @@ study 3.3.1, 3.3.3).
 - Prizes (decision D6, `vessel_prize_disabled()`): a hull is beaten when she
   has a holed arc, cannot move (`vessel_max_speed()` 0), has struck her colors,
   or is abandoned at sea (`vessel_abandoned_at_sea()`: not in port, nobody
-  conscious aboard but the claimant; hired crew positions are abstract).
-  `claimship` and `plunder` take only a beaten prize, and `claimship` refuses
-  a sinking one; hostile boarding (`can_attempt_boarding()`) holds only on a
+  awake aboard but the claimant; hired crew positions are abstract).
+  `claimship` and `plunder` take only a beaten prize from a bridge where
+  nobody else is awake, and `claimship` refuses a sinking one; hostile boarding (`can_attempt_boarding()`) holds only on a
   hull at speed `VESSEL_BOARDING_MAX_SPEED` (3) or less or a beaten one.
 - `strikecolors`: the owner or a helm permit holder of an owned, stopped hull
   strikes her colors (`colors_struck_ticks`, runtime only) for
