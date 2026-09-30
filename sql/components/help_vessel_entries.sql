@@ -257,6 +257,20 @@ SHIPSCAN <contact>
   marked, condition, and whether her owner is WANTED, HUNTED, or sails
   under a letter of marque.
 
+SHIPRAM [off]
+  Brace the crew to ram the locked contact; she needs speed 6 or more. She
+  rams when the contact comes within a room, inside a 120-degree cone off
+  her bow and at her altitude. The heavier and faster the two hulls, the
+  harder the blow is to land; a stopped target is ten times easier, and a
+  better sailmaster helps. Both hulls take crash damage. A ram (SHIPEQUIP)
+  strikes first and halves the crash damage to its own bow. The heavier
+  hull slews the lighter about and both slow to speed 3, and everyone
+  aboard both makes a Reflex save (DC 15) or falls prone. She cannot ram
+  again for 50 seconds (25 after a miss), and her guns are silent for 25
+  seconds after a hit. A braced crew does not reload; losing the lock or
+  slowing to speed 3 stands it down, and SHIPRAM OFF stands it down at
+  once.
+
   Battle stations last until 180 seconds after the lock clears, your last
   shot, or the last shot at you. At battle stations no harbor admits her,
   she keeps off water too shallow for her draft as well as land, and when
@@ -295,7 +309,24 @@ SHIPSCAN <contact>
   so maneuver to bring a fresh side under your guns.
 
   Ships with an assigned NPC pilot automatically return fire at their
-  attacker with every weapon that bears.
+  attacker with every weapon that bears, and NPC merchants under fire run
+  from their attacker until their crew stands down.
+
+  Raiders prey on player vessels bigger than a boat under way on open
+  water: an ambush comes about once in 17 minutes of sailing, twice as
+  often in a pirate cove, half as often in territorial waters, and sixty
+  times more rarely under neutral colors (SHIPEQUIP), which no raider
+  picks as prey. A ship or transport is ambushed at most once a voyage,
+  until she next berths. The bigger the hull, the stronger the raider:
+  four tiers, from corsairs in light ships to dread sea-lords in heavy
+  warships. A raider appears beyond sight off your bow and closes to
+  fight: she turns her guns to bear, rams, runs when her ammunition is
+  spent or she is holed, and boards a hull slowed to speed 3 (a warship
+  that has stopped) through the boarding contest. Pirates who board carry
+  off part of the hold and leave; hunters stay to fight. Kill a raider\'s
+  captain on her bridge and she stops dead; the captain carries the key to
+  her strongbox. A raider that has lost her prey sails off and is gone five
+  minutes later, once nobody is watching. Raiders cannot be claimed.
 
 SHIPSALVAGE
   From the helm of a stopped vessel, haul the salvage crates floating
@@ -360,6 +391,9 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'SHIPSC
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'BATTLE-STATIONS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'SHIP-COMBAT');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'NAVAL-COMBAT');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'SHIPRAM');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'RAMMING');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'RAIDERS');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('SHIPBROWSE', 'Ship ownership commands:
@@ -516,7 +550,9 @@ SHIPWEAPON swap <slot> <slot>
 SHIPEQUIP [list | buy <ram|colors> | sell <ram|colors>]
   Fit one ram (2 gold per point of hull weight, and heavy) or neutral colors
   (free, and weightless); sold back at 90%. Rafts and boats carry no ram.
-  Neutral colors stay up while there is cargo aboard.
+  Neutral colors stay up while there is cargo aboard. A ram strikes first
+  and guards her bow when she rams (SHIPRAM); raiders seldom ambush a hull
+  under neutral colors and never pick one as prey (SHIPFIRE).
 
 SHIPREARM [<slot> | all]
   Refill ammunition at 2 gold a round; the shipwrights need 75 seconds per
@@ -809,6 +845,7 @@ VALUES ('VESSELDEBUG', 'Usage: vesseldebug status
        vesseldebug encounter
        vesseldebug ambient
        vesseldebug balance [duels]
+       vesseldebug raider <0-3> [hunter]
        vtradecheck [trades]
 
 Staff runtime control for focused vessel diagnostics. VDEBUG is an alias.
@@ -851,6 +888,11 @@ compile with -DVESSEL_SYSTEM_DEBUG=1; every category still starts disabled and
 must be enabled at runtime.
 
 VESSELDEBUG OFF with no category disables the entire runtime mask.
+
+RAIDER remains available in every build while staff are aboard a player\'s
+vessel at sea. It launches a raider of the given tier, a pirate or with
+HUNTER a hunter, against that vessel through the normal ambush path, as if
+the ambush roll had come up (see RAIDERS).
 
 VTRADECHECK [trades]
   Run the deterministic, non-mutating vessel-economy release gate. The default
