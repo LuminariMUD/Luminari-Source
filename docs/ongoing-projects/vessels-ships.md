@@ -1707,6 +1707,87 @@ and a rerun adds no second claim. The vessel help verifier passes (89 keywords, 
 checks). On a fresh reload of the development dump the loss (79 s) and damage (614 s) gates pass
 on this code; the damage gate's wreck settles her 20,646-gold claim through the new transaction.
 
+MR !10 merged on 2026-09-30 as merge commit `23a0726e4` (branch kept); the S5 vessel help was
+synced to production the same day (plan `ac945fec9d52`, 5 updates). S6 continues on
+`feat/vessels-s6` (Phase 6 below).
+
+### Phase 6 (S6) progress
+
+Branch `feat/vessels-s6` from the S5 merge commit `23a0726e4`. The annotated tag `vessels-s6-base`
+(pushed) marks that merge commit, so `git log vessels-s6-base..vessels-s6` lists only S6 commits.
+Hand-off: annotated tag `vessels-s6` at the head given to review and a GitLab merge request from
+`feat/vessels-s6`; review fixes go on top. Scope: 3.3.8 without the neutral-colors sale penalty
+and the renown a raider carries (S7), ramming (1.6, the 3.2 checklist row, and the sailmaster's
+ram training gain of 3.3.5, moved here from S5), and NPC merchants that run (Part 5, step 6). The
+raiders and their AI live in the new `src/vessels/vessels_raiders.c`, ramming in the new
+`src/vessels/vessels_ramming.c`.
+
+| Item | State | Where |
+| -- | -- | -- |
+| Ambush roll: eligible hulls, 1 in 2002 per tick, pirate cove x2, territorial /2, neutral colors /60, ships and transports once per voyage (reset on berthing) | Planned | `vessel_raider_ambush_odds()`, `vessel_raider_tick_one()`; `raided` (runtime) |
+| Tier roll and spawn: `random(0, hull weight)` (renown in S7), the tier's prototype at least as fast as the target's design speed minus 3, sight range plus 10 rooms off her bow within 45 degrees, headed at her at full speed | Planned | `vessel_raider_pick_tier()`, `vessel_raider_spawn()` through `vessel_spawn_public_from_prototype_at()` |
+| Tier content: a tier table in code (crew count, advanced-AI chance, crew tier, one fit-out, chest gold); `vessel_raider_tiers` rows tie prototypes to tiers; zone 700 captains, crew, chest and key | Planned | `raider_tiers[]`; Phase 22 SQL; `vessels_raider_content.sql`; `lib/world/vessel_raiders/700.mob`, `700.obj` |
+| The captain on the bridge (the NPC pilot), crew mobiles aboard, the chest in the hold with its key on the captain; killing the captain stops the AI and the guns | Planned | `vessel_assign_npc_pilot()` (was the hunter's), `vessel_npc_return_fire()` needs the pilot on the bridge |
+| AI modes: engaging (basic: rank the arcs, turn the best onto the target, open or close to the band; advanced: project both hulls, pick the target's weakest side and a broadside), running (no ammo or a breached arc), cruising, leaving; land braking | Planned | `vessel_raider_engage()`, `vessel_raider_basic()`, `vessel_raider_advanced()`, `vessel_raider_run()`, `vessel_raider_set_course()` |
+| Boarding (target at speed 3 or less, merchant classes, or 0) through the boarding contest; boarders on the bridge and three quarters or half of the rooms; pirates loot the hold and leave, hunters fight on | Planned | `vessel_raider_board()`, `vessel_raider_loot()`; `vessel_best_boarding_defender()` shared |
+| Despawn 600 ticks after losing the target, 20 more while a player hull is in sight or a player is aboard; never saved: a restored raider is retired at boot; raiders cannot be captured | Planned | `vessel_raider_tick_one()`, `vessel_raider_boot()`, `vessel_retire_npc_hull()` (was the hunter's), `do_claimship()` |
+| Ramming: `shipram [off]` with a lock at speed 6 or more, the Duris bow cone, closing speed, hull weights, the fitted ram, knockdowns, 100/50-tick cooldowns and a 50-tick gun lock; the AI rams too | Planned | `vessel_ram()`, `vessel_ram_tick_one()`, `do_shipram()` in `vessels_ramming.c` |
+| NPC merchants under fire run from the attacker while returning fire | Planned | `vessel_raider_tick_one()` |
+| Neutral colors: raiders do not pick the hull, ambushes 60 times rarer | Planned | `vessel_fitted_with()` |
+| Staff: `vesseldebug raider <tier> [hunter]` forces an ambush on the hull you are aboard | Planned | `do_vesseldebug()` |
+| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character raider gate, the existing gates, local CI | Planned | SHIPRAM, SHIPEQUIP, VESSELS, VESSELDEBUG; `test_vessel_raiders.c`; `scripts/vessels/test_vessel_raider_in_game.sh` |
+
+Interpretations decided while planning S6:
+
+- The tier values (crew count, advanced-AI chance, crew tier, fit-out, chest gold) are a static
+  table in code, as S4 made the weapon catalogue: nothing edits them in play. The data are the
+  raider prototypes (ordinary `ship_prototypes` rows, not for sale) and `vessel_raider_tiers`,
+  which ties each to one or more tiers, since Duris's hulls recur across tiers with different
+  fits: tier 0 the clipper, ketch and caravel (ship class at speeds 26, 23, 20 and beam armor 36,
+  50, 66), tier 1 the ketch, caravel and corvette (warship class, 22 and 63), tier 2 the corvette
+  and destroyer (19 and 84), tier 3 the destroyer and frigate (17 and 109).
+- One fit-out per tier after Duris's typical fits, each weapon skipped where the class cannot
+  legally mount it: tier 0 a small catapult fore and a small ballista on each other arc; tier 1 a
+  small catapult fore and two medium ballistae a beam; tier 2 two medium catapults fore and two
+  large ballistae a beam; tier 3 a large catapult fore, two large ballistae a beam, and a small
+  catapult aft. Crews are green, green, able and veteran (Duris 200, 400, 1,500, 3,000-4,000
+  skill), chest gold twice Duris's platinum (800-1,600, 1,200-2,000, 2,400-3,000, 3,000-6,000).
+- Merchant classes are the raft, boat, ship and transport (Duris's merchant hulls); the others
+  are warship classes. Only surface hulls (Z 0) are ambushed.
+- Mobiles are 70020-70023 (captains, tiers 0-3) and 70024-70027 (crew); objects 70020 (the chest)
+  and 70021 (its key). Boarders are fresh crew mobiles, as Duris loads its boarding grunts.
+- A raider keeps its target within its sight range plus the 10-room spawn margin, so it can close
+  from the spawn point. A target in port, submerged, sinking, or behind land is lost.
+- Both AIs fire through NPC return fire at the target: whatever bears inside its band. Duris's
+  advanced fire restraint and multi-target fire are dropped. Its turn braking is dropped too:
+  LuminariMUD hulls turn faster at speed (3.3.2), so slowing down would not help.
+- The land brake is Duris's: along the new and the current heading, land or a port within 2
+  rooms limits the speed (0.1 room: 1, 0.3: 2, 0.5: 3, 1: 6, 2: 12, the Duris speeds times 0.3);
+  running and cruising turn away from land within 10 and 5 rooms. Duris's path search around land
+  is dropped: a target behind land is lost.
+- Boarding is one attempt per target, as Duris boards a ship once: the raider's captain is the
+  attacker in the grapple and crossing contests. A repelled pirate leaves as a successful one does;
+  a hunter fights on either way. Looting (Duris's empty mode) is the pirate's boarding step: each
+  lot loses a random 40-60% share of what is taken in the transfer and keeps a 40-60% share, and
+  the raider's hold takes what fits.
+- Ramming speeds are Duris's times 0.3: arming needs speed 6, a ram fails at speed 3 or less, and
+  the rammed hull slows to 4. Duris ticks are seconds, so the cooldowns are 100 ticks after a hit
+  and 50 after a miss, less 15% per crew mod, and the guns lock for 50 ticks. An armed ram pauses
+  reloading, as Duris's does. The crew mods are the tiers (Duris's 0-3).
+- A raider without its captain heaves to and runs the despawn countdown.
+- A merchant under fire (at battle stations with its attacker in sight) runs from it until the
+  crew stands down, then the autopilot takes her back to her route.
+
+Ablation (planning): dropped a tier table in the database (the values are design constants), the
+renown a raider carries and the renown in the tier roll (S7), Duris's 45 fit-outs (one per tier),
+escorts, the unique ships, jettison under fire, NPC repair and resupply while cruising (raiders
+are short-lived), persisted raider state (a restart retires them, as Duris never saves them), and
+capture of a raider (it would be retired at the next boot). Kept the land brake (without it a
+raider at battle stations crashes on every coast), the pilot check for all NPC return fire
+(killing the captain must silence the guns), the staff command (an ambush comes once per 17
+minutes of sailing), and the player-aboard despawn check (a despawn would drop boarders into the
+sea).
+
 ### Estimate
 
 Working days of focused implementation per step, each including its tests, help in both places,
