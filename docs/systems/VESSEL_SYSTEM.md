@@ -1468,7 +1468,8 @@ until then no hull has any.
   pass her by), has no exterior object and nobody aboard, and is saved with
   `stowed = 1`. `vedit_find_free_slot()`, `vessel_owned_hull_count()`,
   `shiplist`, and `shippurge` still see her; permanent removal of her owner
-  purges her. Boot restores her in the world at her saved location and
+  purges her, and removes the player's helm permits from other owners' stowed
+  hulls. Boot restores her in the world at her saved location and
   `vessel_restow()` takes her out again. The runtime and weapon saves accept
   her, and `save_all_vessels()` saves stowed hulls with the fleet, so a
   failed save when she is stowed is retried at the next full save.

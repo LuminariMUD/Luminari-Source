@@ -392,7 +392,8 @@ bool vessel_handle_player_removal(const char *player_name)
       memset(ship, 0, sizeof(*ship));
       continue;
     }
-    if (!is_valid_ship(ship))
+    /* Another owner's stowed hull still carries the player's helm permit. */
+    if (!is_valid_ship(ship) && !ship->stowed)
     {
       continue;
     }

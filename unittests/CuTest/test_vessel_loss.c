@@ -387,6 +387,7 @@ void Test_vessel_removed_players_stowed_hulls_are_purged(CuTest *tc)
 {
   const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
   struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data *other;
   MYSQL *saved_conn;
   MYSQL *connection;
   bool saved_mysql_available;
@@ -410,15 +411,27 @@ void Test_vessel_removed_players_stowed_hulls_are_purged(CuTest *tc)
   vessel_ownership_ensure_schema();
 
   /* A wreck in the registry whose owner is deleted could never be
-   * summoned again: her slot is freed. */
+   * summoned again: her slot is freed. Another owner's stowed hull keeps
+   * her slot but loses the deleted player's helm permit. */
   ship = loss_ship(VESSEL_BOAT, "Lossremoved");
   ship->active = FALSE;
   ship->stowed = TRUE;
+  other = &greyhawk_ships[LOSS_SHIP + 1];
+  memset(other, 0, sizeof(*other));
+  other->shipnum = LOSS_SHIP + 1;
+  other->stowed = TRUE;
+  strlcpy(other->owner, "Losskeeper", sizeof(other->owner));
+  strlcpy(other->helm_permits[0], "Lossremoved", sizeof(other->helm_permits[0]));
+  other->num_permits = 1;
   CuAssertIntEquals(tc, 1, vessel_owned_hull_count("Lossremoved"));
   CuAssertTrue(tc, vessel_handle_player_removal("Lossremoved"));
   CuAssertTrue(tc, !ship->stowed);
   CuAssertIntEquals(tc, 0, ship->shipnum);
   CuAssertIntEquals(tc, 0, vessel_owned_hull_count("Lossremoved"));
+  CuAssertTrue(tc, other->stowed);
+  CuAssertIntEquals(tc, 0, other->num_permits);
+  CuAssertStrEquals(tc, "", other->helm_permits[0]);
+  memset(other, 0, sizeof(*other));
 
   conn = saved_conn;
   mysql_available = saved_mysql_available;
