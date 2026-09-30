@@ -1483,6 +1483,22 @@ Ironwind Trader could enter service. `cee7dcdcb` builds a merchant on the bearin
 leg. The harbor merchant gate needs that merchant's schedule enabled; the development database
 has it disabled since the stall recorded under S3, so the run enabled it in the disposable copy.
 
+MR !9 review round 1 (2026-09-30), one commit per finding on `feat/vessels-s4` (range
+`vessels-s4..feat/vessels-s4`):
+
+| Finding | Fix | Commit |
+| -- | -- | -- |
+| P2: a refit bought while the crew cast off, or after, in port, sailed with its work unfinished | `vessel_refit_ship()` takes work only from a berthed hull with no departure under way | `838f58824` |
+| P2: `setsail` (a room, or up and down) still steered a stunned hull | `vessel_maneuver()` refuses a stunned crew | `e479ab1bd` |
+| P2: a shot through a lock before the next tick could hit a contact that had dived, entered port, or left sight | `vessel_locked_target()` drops such a lock wherever it is read: the tick, `shipfire`, `shipsight`, `shiplock` | `132abac00` |
+| Found tracing finding 2: the schedule route check sailed a stunned hull's copy, whose stun never wore off, so a Mind Blast hit at departure disabled her schedule | The copy sails with her crew fit | `56e96cb00` |
+
+Review-round verification: `make test-all` with the DB cases on passes 1921 CuTest cases, and
+each new assertion fails on the code before its fix. All 33 local CI jobs pass on `56e96cb00`
+(390 s). On a fresh reload of the development dump the gunnery (87 s), rules (39 s), events
+(88 s), and movement (119 s) gates pass on this code. The vessel help is applied to the
+development database and its verifier passes.
+
 Interpretations decided while planning S4:
 
 - The weapon and equipment rows are static tables in code, as S3's class profiles are: nothing
