@@ -1811,6 +1811,29 @@ Decided while building S6:
 - The development dump's harbor merchant (ship 11) has had her schedule disabled since the S3
   stall, so `provision_vessel_harbor.sh` stops at its NPC merchant check on a fresh reload; the
   raider content is installed before that check.
+- Found by the local CI matrix: clang-tidy wanted the land probe counted in whole half-room steps,
+  the course swing's and the ram's integer divisions kept out of floating-point expressions, one
+  arc-turn branch in the basic brain instead of two, and the raider tick to engage only with a
+  quarry in hand; the coverage gate's changed-line floor for `boot_db()` refused the two boot
+  calls no test runs, so the raider table and boot retirement run from the hunter lifecycle's
+  schema and boot calls (`39d2c4035`).
+
+Verification (2026-09-30): `make test-all` with the database cases on (isolated `.ci-runtime/lib`,
+test MariaDB rebuilt from `master_schema.sql` plus every `apply` component, Phase 22 included)
+passes 1,955 CuTest cases and the protocol harness. The Phase 22 schema, rollback, and verifier
+and the raider content, its rollback, and its verifier apply to the test database, and the content
+reapplies to the same six prototypes and ten tier rows. The vessel help verifier passes (90
+keywords, 34 content checks). All 18 live gates pass inside the private namespace on the installed
+build of `aec02dcaa`: harbor merchant 45 s, campaign 130 s, Vailand merchant 18 s (the campaign and
+merchant runs each on a fresh reload of the development dump), builder 45 s, gunnery 72 s,
+tactical 283 s, lookout 22 s, boarding 51 s, narrative 24 s, rules 36 s, events 42 s, movement
+105 s, loss 76 s, damage 629 s, derelict 33 s, hunter 84 s, frontier 229 s, and the new raider
+gate 196 s (with the raider content applied). In the raider gate Kohdee's frigate rams a stopped
+warship at 99%; a Corsair raider launched with `vesseldebug raider 0` closes from beyond sight in
+under two minutes, rams (and in the earlier runs opened fire first), and grapples, her boarders are
+beaten off, and with her captain purged she heaves to; the restart retires her. The local CI matrix
+(`scripts/ci/local/run.py --base gitlab/master`) passes all 33 jobs on `39d2c4035` (608 s) and
+again on `465a7c7e4` (355 s), the head's code after a return-type tidy-up.
 
 ### Estimate
 
