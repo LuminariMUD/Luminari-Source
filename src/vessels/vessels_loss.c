@@ -230,6 +230,24 @@ void vessel_restow(struct greyhawk_ship_data *ship)
   vessel_periodic_forget(ship);
 }
 
+/** Delete a hull's rows with one statement that binds her fleet slot. */
+static void vessel_delete_hull_rows(const char *sql, int shipnum)
+{
+  PREPARED_STMT *statement;
+
+  if (!mysql_available || conn == NULL)
+  {
+    return;
+  }
+  statement = mysql_stmt_create(conn);
+  if (statement == NULL || !mysql_stmt_prepare_query(statement, sql) ||
+      !mysql_stmt_bind_param_int(statement, 0, shipnum) || !mysql_stmt_execute_prepared(statement))
+  {
+    log("SYSERR: Could not clear rows of lost ship %d", shipnum);
+  }
+  mysql_stmt_cleanup(statement);
+}
+
 /**
  * A player's hull has gone down (decision D3). Her crew takes its casualties,
  * 10% to a player's hull, 5% plus 1% per 100 hull weight otherwise; she is
@@ -241,7 +259,6 @@ void vessel_restow(struct greyhawk_ship_data *ship)
  */
 bool vessel_wreck_hull(struct greyhawk_ship_data *ship, const struct greyhawk_ship_data *victor)
 {
-  char query[MAX_STRING_LENGTH];
   int old_weight;
   int id;
   int vclass;
@@ -267,23 +284,9 @@ bool vessel_wreck_hull(struct greyhawk_ship_data *ship, const struct greyhawk_sh
   ship->summon_due = 0;
 
   /* Legacy cargo objects and NPC crew went down with her. */
-  if (mysql_available && conn != NULL)
-  {
-    snprintf(query, sizeof(query), "DELETE FROM ship_cargo_manifest WHERE ship_id = %d",
-             ship->shipnum);
-    if (mysql_query(conn, query))
-    {
-      log("SYSERR: Could not clear the cargo of lost ship %d: %s", ship->shipnum,
-          mysql_error(conn));
-    }
-    snprintf(query, sizeof(query),
-             "DELETE FROM ship_crew_roster WHERE ship_id = %d AND npc_vnum >= 0", ship->shipnum);
-    if (mysql_query(conn, query))
-    {
-      log("SYSERR: Could not clear the NPC crew of lost ship %d: %s", ship->shipnum,
-          mysql_error(conn));
-    }
-  }
+  vessel_delete_hull_rows("DELETE FROM ship_cargo_manifest WHERE ship_id = ?", ship->shipnum);
+  vessel_delete_hull_rows("DELETE FROM ship_crew_roster WHERE ship_id = ? AND npc_vnum >= 0",
+                          ship->shipnum);
   vessel_stow(ship);
   log("Info: Ship %d '%s' of %s waits in the wreck registry as a %s", ship->shipnum, ship->name,
       ship->owner, get_vessel_type_name(ship->vessel_type));
