@@ -103,7 +103,8 @@ static void vessel_debug_status(struct char_data *ch)
 }
 
 /**
- * vesseldebug [status|on <category>|off [category]|encounter|ambient|balance]
+ * vesseldebug [status|on <category>|off [category]|encounter|ambient|balance|
+ *              raider <tier> [hunter]]
  *
  * Runtime category control is available only in an explicit development
  * build compiled with -DVESSEL_SYSTEM_DEBUG=1. Production builds retain no
@@ -129,6 +130,34 @@ ACMD(do_vesseldebug)
   {
     vessel_encounter_force_check();
     send_to_char(ch, "Forced the next normal vessel encounter check.\r\n");
+    return;
+  }
+  if (!strcasecmp(action, "raider"))
+  {
+    char kind[MAX_INPUT_LENGTH];
+    int slot;
+
+    any_one_arg_c(any_one_arg_c(remainder, category, sizeof(category)), kind, sizeof(kind));
+    ship = get_ship_from_room(IN_ROOM(ch));
+    if (!is_valid_ship(ship) || ship->owner[0] == '\0')
+    {
+      send_to_char(ch, "Board a player's hull at sea to have raiders ambush her.\r\n");
+      return;
+    }
+    if (strlen(category) != 1 || category[0] < '0' || category[0] >= '0' + VESSEL_RAIDER_TIERS ||
+        (*kind && strcasecmp(kind, "hunter") != 0))
+    {
+      send_to_char(ch, "Usage: vesseldebug raider <0-%d> [hunter]\r\n", VESSEL_RAIDER_TIERS - 1);
+      return;
+    }
+    slot = vessel_raider_spawn(ship, category[0] - '0', *kind != '\0');
+    if (slot < 0)
+    {
+      send_to_char(ch, "No raider could be launched; see the syslog.\r\n");
+      return;
+    }
+    send_to_char(ch, "Raider %d [%s] %s comes for %s.\r\n", slot, greyhawk_ships[slot].id,
+                 greyhawk_ships[slot].name, ship->name);
     return;
   }
   if (!strcasecmp(action, "ambient"))
@@ -209,8 +238,8 @@ ACMD(do_vesseldebug)
     else
     {
       send_to_char(
-          ch,
-          "Usage: vesseldebug [status|on <category>|off [category]|encounter|ambient|balance]\r\n");
+          ch, "Usage: vesseldebug [status|on <category>|off [category]|encounter|ambient|balance|"
+              "raider <tier> [hunter]]\r\n");
       return;
     }
   }

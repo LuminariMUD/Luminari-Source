@@ -1,0 +1,137 @@
+#70020
+corsair captain raider pirate~
+the corsair captain~
+The corsair captain bawls orders from the helm.
+~
+Weathered and scarred, the raider captain keeps a hand on the wheel and
+the key to the ship's strongbox on a cord at the belt.
+~
+42 0 0 0 0 0 0 0 -400 E
+12 12 2 1d12+180 1d8+3
+0 11520
+9 9 1
+BareHandAttack: 0
+Race: 1
+Class: 1
+Size: 5
+E
+#70021
+buccaneer captain raider pirate~
+the buccaneer captain~
+The buccaneer captain bawls orders from the helm.
+~
+Weathered and scarred, the raider captain keeps a hand on the wheel and
+the key to the ship's strongbox on a cord at the belt.
+~
+42 0 0 0 0 0 0 0 -400 E
+16 16 0 1d16+300 1d10+4
+0 20480
+9 9 1
+BareHandAttack: 0
+Race: 1
+Class: 1
+Size: 5
+E
+#70022
+reaver captain raider pirate~
+the reaver captain~
+The reaver captain bawls orders from the helm.
+~
+Weathered and scarred, the raider captain keeps a hand on the wheel and
+the key to the ship's strongbox on a cord at the belt.
+~
+42 0 0 0 0 0 0 0 -400 E
+22 22 -3 1d22+560 1d12+5
+0 38720
+9 9 1
+BareHandAttack: 0
+Race: 1
+Class: 1
+Size: 5
+E
+#70023
+dread sea-lord raider pirate~
+the dread sea-lord~
+The dread sea-lord bawls orders from the helm.
+~
+Weathered and scarred, the raider captain keeps a hand on the wheel and
+the key to the ship's strongbox on a cord at the belt.
+~
+42 0 0 0 0 0 0 0 -400 E
+28 28 -6 1d28+950 2d8+6
+0 62720
+9 9 1
+BareHandAttack: 0
+Race: 1
+Class: 1
+Size: 5
+E
+#70024
+corsair deckhand raider pirate crew~
+a corsair deckhand~
+A corsair deckhand stands ready with a boarding axe.
+~
+A hard-bitten raider in salt-stained leathers, eager for plunder and
+quick to cross a grappling line.
+~
+42 0 0 0 0 0 0 0 -400 E
+8 8 4 1d8+80 1d6+2
+0 5120
+9 9 1
+BareHandAttack: 0
+Race: 1
+Class: 1
+Size: 5
+E
+#70025
+buccaneer raider pirate crew~
+a buccaneer~
+A buccaneer stands ready with a boarding axe.
+~
+A hard-bitten raider in salt-stained leathers, eager for plunder and
+quick to cross a grappling line.
+~
+42 0 0 0 0 0 0 0 -400 E
+12 12 2 1d12+150 1d8+3
+0 11520
+9 9 1
+BareHandAttack: 0
+Race: 1
+Class: 1
+Size: 5
+E
+#70026
+reaver raider pirate crew~
+a reaver~
+A reaver stands ready with a boarding axe.
+~
+A hard-bitten raider in salt-stained leathers, eager for plunder and
+quick to cross a grappling line.
+~
+42 0 0 0 0 0 0 0 -400 E
+18 18 0 1d18+330 1d10+4
+0 25920
+9 9 1
+BareHandAttack: 0
+Race: 1
+Class: 1
+Size: 5
+E
+#70027
+dread marauder raider pirate crew~
+a dread marauder~
+A dread marauder stands ready with a boarding axe.
+~
+A hard-bitten raider in salt-stained leathers, eager for plunder and
+quick to cross a grappling line.
+~
+42 0 0 0 0 0 0 0 -400 E
+24 24 -4 1d24+600 1d12+5
+0 46080
+9 9 1
+BareHandAttack: 0
+Race: 1
+Class: 1
+Size: 5
+E
+$

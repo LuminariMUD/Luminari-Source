@@ -41,7 +41,8 @@ struct vessel_hunter_boot_row
 };
 
 /**
- * Create the encounter policy and durable lifecycle tables.
+ * Create the encounter policy and durable lifecycle tables, and the raider
+ * tier table of the NPC warships that share this lifecycle (S6).
  *
  * The policy extends a normal vessel_encounters row without owning geography.
  * The lifecycle deliberately has no fleet-slot foreign key: public hull slots
@@ -99,6 +100,7 @@ void vessel_hunter_ensure_schema(void)
   {
     log("SYSERR: Could not create vessel_bounty_hunts: %s", mysql_error(conn));
   }
+  vessel_raider_ensure_schema();
 }
 
 /**
@@ -411,7 +413,12 @@ static bool vessel_hunter_set_cooldown(const char *target_name, unsigned long lo
   return mysql_affected_rows(conn) == 1;
 }
 
-static bool vessel_hunter_assign_pilot(struct greyhawk_ship_data *ship, int pilot_mob_vnum)
+/**
+ * Put an NPC pilot of the given mobile on the hull's bridge and save the
+ * assignment; shared by bounty hunters and raiders. A pilot already there is
+ * kept.
+ */
+bool vessel_assign_npc_pilot(struct greyhawk_ship_data *ship, int pilot_mob_vnum)
 {
   struct char_data *pilot;
   mob_rnum pilot_rnum;
@@ -507,7 +514,12 @@ static void vessel_hunter_attach_runtime(struct greyhawk_ship_data *hunter, cons
   hunter->last_attacker = target_ship_id;
 }
 
-static bool vessel_hunter_retire_runtime_ship(int shipnum, const char *message)
+/**
+ * Remove an NPC hull from the world and its persistence: her pilot, her
+ * interior (everyone aboard goes to her exterior room), her hull, and every
+ * other hull's reference to her. Shared by bounty hunters and raiders.
+ */
+bool vessel_retire_npc_hull(int shipnum, const char *message)
 {
   struct greyhawk_ship_data *ship;
   struct char_data *pilot;
@@ -523,7 +535,7 @@ static bool vessel_hunter_retire_runtime_ship(int shipnum, const char *message)
 
   if (!vessel_delete_persistence(shipnum))
   {
-    log("SYSERR: Could not retire bounty-hunter ship %d", shipnum);
+    log("SYSERR: Could not retire NPC ship %d", shipnum);
     return FALSE;
   }
 
@@ -573,7 +585,7 @@ static bool vessel_hunter_retire_runtime_ship(int shipnum, const char *message)
     }
   }
 
-  log("Info: Retired bounty-hunter ship %d '%s'", shipnum, ship->name);
+  log("Info: Retired NPC ship %d '%s'", shipnum, ship->name);
   vessel_periodic_forget(ship);
   memset(ship, 0, sizeof(*ship));
   return TRUE;
@@ -639,11 +651,11 @@ bool vessel_hunter_spawn(struct greyhawk_ship_data *target,
 
   hunter = &greyhawk_ships[slot];
   if (hunter->vessel_type != VESSEL_WARSHIP ||
-      !vessel_hunter_assign_pilot(hunter, config->pilot_mob_vnum))
+      !vessel_assign_npc_pilot(hunter, config->pilot_mob_vnum))
   {
     vessel_hunter_set_cooldown(target_name, generation, slot, "invalid warship or pilot",
                                VESSEL_HUNTER_SPAWN_RETRY_SECONDS);
-    vessel_hunter_retire_runtime_ship(slot, NULL);
+    vessel_retire_npc_hull(slot, NULL);
     return FALSE;
   }
 
@@ -657,7 +669,7 @@ bool vessel_hunter_spawn(struct greyhawk_ship_data *target,
   {
     vessel_hunter_set_cooldown(target_name, generation, slot, "activation failed",
                                VESSEL_HUNTER_SPAWN_RETRY_SECONDS);
-    vessel_hunter_retire_runtime_ship(slot, NULL);
+    vessel_retire_npc_hull(slot, NULL);
     return FALSE;
   }
 
@@ -757,7 +769,8 @@ static int vessel_hunter_collect_boot_rows(struct vessel_hunter_boot_row *rows, 
 }
 
 /**
- * Reattach active public warships after vessel persistence restoration.
+ * Reattach active public warships after vessel persistence restoration, and
+ * retire the raiders a restart restored (vessel_raider_boot()).
  */
 void vessel_hunter_boot(void)
 {
@@ -790,7 +803,7 @@ void vessel_hunter_boot(void)
                                  "configuration unavailable", VESSEL_HUNTER_SPAWN_RETRY_SECONDS);
       if (vessel_hunter_ship_identity_matches(hunter_ship_id, row->hunter_name, 0))
       {
-        vessel_hunter_retire_runtime_ship(hunter_ship_id, NULL);
+        vessel_retire_npc_hull(hunter_ship_id, NULL);
       }
       continue;
     }
@@ -803,7 +816,7 @@ void vessel_hunter_boot(void)
       {
         vessel_hunter_set_cooldown(row->target_player, row->generation, 0,
                                    "restart activation failed", VESSEL_HUNTER_SPAWN_RETRY_SECONDS);
-        vessel_hunter_retire_runtime_ship(hunter_ship_id, NULL);
+        vessel_retire_npc_hull(hunter_ship_id, NULL);
         continue;
       }
     }
@@ -815,19 +828,19 @@ void vessel_hunter_boot(void)
                                  "hunter missing after restart", row->config.cooldown_seconds);
       if (vessel_hunter_ship_identity_matches(hunter_ship_id, row->hunter_name, 0))
       {
-        vessel_hunter_retire_runtime_ship(hunter_ship_id, NULL);
+        vessel_retire_npc_hull(hunter_ship_id, NULL);
       }
       continue;
     }
 
     hunter = &greyhawk_ships[hunter_ship_id];
-    if (row->expires_at <= now || !vessel_hunter_assign_pilot(hunter, row->config.pilot_mob_vnum))
+    if (row->expires_at <= now || !vessel_assign_npc_pilot(hunter, row->config.pilot_mob_vnum))
     {
       vessel_hunter_set_cooldown(row->target_player, row->generation, hunter_ship_id,
                                  row->expires_at <= now ? "hunt expired during restart"
                                                         : "pilot unavailable after restart",
                                  row->config.cooldown_seconds);
-      vessel_hunter_retire_runtime_ship(hunter_ship_id, NULL);
+      vessel_retire_npc_hull(hunter_ship_id, NULL);
       continue;
     }
 
@@ -839,6 +852,7 @@ void vessel_hunter_boot(void)
   }
 
   log("Info: Reattached %d active bounty-hunter warship%s", attached, attached == 1 ? "" : "s");
+  vessel_raider_boot();
 }
 
 static struct greyhawk_ship_data *vessel_hunter_find_target(struct greyhawk_ship_data *hunter)
@@ -927,8 +941,7 @@ static bool vessel_hunter_finish_runtime(struct greyhawk_ship_data *hunter, cons
   vessel_hunter_clear_runtime(hunter);
   if (retire)
   {
-    return vessel_hunter_retire_runtime_ship(shipnum,
-                                             "The navy breaks off the hunt and turns for home.");
+    return vessel_retire_npc_hull(shipnum, "The navy breaks off the hunt and turns for home.");
   }
   return !save_runtime || vessel_db_save_runtime(hunter);
 }
@@ -1150,7 +1163,7 @@ void vessel_hunter_handle_player_removal(const char *player_name)
         !str_cmp(greyhawk_ships[i].hunter_target_name, player_name))
     {
       vessel_hunter_clear_runtime(&greyhawk_ships[i]);
-      vessel_hunter_retire_runtime_ship(i, NULL);
+      vessel_retire_npc_hull(i, NULL);
     }
   }
 }

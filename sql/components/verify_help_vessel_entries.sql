@@ -23,8 +23,8 @@ WHERE tag IN (
 SELECT
   'command_keywords' AS check_name,
   COUNT(*) AS actual,
-  89 AS expected,
-  IF(COUNT(*) = 89, 'PASS', 'FAIL') AS result
+  90 AS expected,
+  IF(COUNT(*) = 90, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE (help_tag, keyword) IN (
   ('VESSELS', 'BOARD'),
@@ -53,6 +53,7 @@ WHERE (help_tag, keyword) IN (
   ('SHIPFIRE', 'SHIPLOCK'),
   ('SHIPFIRE', 'SHIPSIGHT'),
   ('SHIPFIRE', 'SHIPSCAN'),
+  ('SHIPFIRE', 'SHIPRAM'),
   ('SHIPBROWSE', 'SHIPBROWSE'),
   ('SHIPBROWSE', 'SHIPBUY'),
   ('SHIPBROWSE', 'SHIPCHRISTEN'),
@@ -166,8 +167,8 @@ AND CHAR_LENGTH(TRIM(entry)) > 0;
 SELECT
   'content_contracts' AS check_name,
   COUNT(*) AS actual,
-  31 AS expected,
-  IF(COUNT(*) = 31, 'PASS', 'FAIL') AS result
+  34 AS expected,
+  IF(COUNT(*) = 34, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
   SELECT 'VESSELS' AS tag, 'moving no faster than speed 2' AS required_pattern
@@ -192,6 +193,9 @@ JOIN (
   UNION ALL SELECT 'SHIPHIRE', 'one per hull, served only by a veteran gunner'
   UNION ALL SELECT 'SHIPHIRE', 'green hands earn promotion at sea'
   UNION ALL SELECT 'SHIPFIRE', 'one Craft [(]woodworking[)] check, DC 15'
+  UNION ALL SELECT 'SHIPFIRE', 'she needs speed 6 or more'
+  UNION ALL SELECT 'SHIPFIRE', 'about once in 17 minutes of sailing'
+  UNION ALL SELECT 'VESSELDEBUG', 'vesseldebug raider <0-3> [[]hunter[]]'
   UNION ALL SELECT 'SHIPBROWSE', 'waits in the[[:space:]]+wreck registry'
   UNION ALL SELECT 'SHIPBROWSE', 'never more than 75 minutes'
   UNION ALL SELECT 'SHIPBROWSE', 'whose insurance has paid for her, earns nothing'

@@ -248,6 +248,8 @@ static struct game_event_result vessel_owner_event(const struct game_event_conte
     if (callback_owner_still_live(ship))
       vessel_hunter_tick_one(ship);
     if (callback_owner_still_live(ship))
+      vessel_raider_tick_one(ship);
+    if (callback_owner_still_live(ship))
       vessel_movement_tick_one(ship);
     if (callback_owner_still_live(ship))
       vessel_combat_tick_one(ship);

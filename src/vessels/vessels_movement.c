@@ -403,7 +403,7 @@ static int vessel_port_room_vnum(const struct greyhawk_ship_data *ship)
 
 /**
  * Make the hull fast at the port it rests in, where her repair stores are
- * refilled.
+ * refilled and her voyage ends (a new one may be ambushed again).
  *
  * Public and NPC hulls have no owner to repair or rearm them, so the harbor
  * makes good their rigging and rudder and refills their weapons whenever
@@ -434,6 +434,7 @@ void vessel_berth(struct greyhawk_ship_data *ship)
   }
   ship->dock = vessel_port_room_vnum(ship);
   ship->repair_used = 0;
+  ship->raided = FALSE;
   ship->anchored = FALSE;
   ship->departure_ticks = 0;
   ship->speed = 0.0;

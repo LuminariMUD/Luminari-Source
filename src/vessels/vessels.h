@@ -632,6 +632,8 @@ int vessel_slot_sale_value(const struct greyhawk_ship_slot *slot, enum vessel_cl
 int vessel_carry_fitout(struct greyhawk_ship_data *ship, const struct greyhawk_ship_slot *old_slots,
                         enum vessel_class old_class);
 bool vessel_has_cargo(const struct greyhawk_ship_data *ship);
+int vessel_free_slot(const struct greyhawk_ship_data *ship);
+int vessel_equipment_slot(const struct greyhawk_ship_data *ship, int equipment);
 const char *vessel_fitout_problem(const struct greyhawk_ship_data *ship);
 void vessel_add_maintenance(struct greyhawk_ship_data *ship, struct char_data *ch, int ticks);
 ACMD_DECL(do_shipweapon); /* Owner: buy, sell, and arrange weapons in port */
@@ -672,6 +674,61 @@ ACMD_DECL(do_shipfire);  /* Fire a weapon or an arc at the locked contact */
 ACMD_DECL(do_shiplock);  /* Lock the guns onto a contact */
 ACMD_DECL(do_shipsight); /* Each weapon's chance against the locked contact */
 ACMD_DECL(do_shipscan);  /* A close look at a contact's hull, guns, and owner */
+const char *vessel_hull_fire_problem(struct greyhawk_ship_data *ship);
+const char *vessel_target_problem(struct greyhawk_ship_data *target);
+struct greyhawk_ship_data *vessel_locked_target(struct greyhawk_ship_data *ship);
+void vessel_battle_stations(struct greyhawk_ship_data *ship);
+struct autopilot_data;
+void vessel_project(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *next,
+                    struct autopilot_data *pilot, int ticks);
+
+/* ========================================================================= */
+/* RAMMING (vessels-ships study S6, vessels_ramming.c)                       */
+/* ========================================================================= */
+
+/* Duris's ram (1.6) in LuminariMUD speeds (Duris times 0.3) and 0.5 s ticks */
+#define VESSEL_RAM_MIN_SPEED 6   /* Speed to brace for a ram (Duris 20) */
+#define VESSEL_RAM_CONE 120      /* Degrees of bow in which a ram connects */
+#define VESSEL_RAM_HIT_TICKS 100 /* Before she may ram again after a hit */
+#define VESSEL_RAM_MISS_TICKS 50 /* After a miss */
+#define VESSEL_RAM_GUN_TICKS 50  /* Her guns are locked after a hit */
+
+int vessel_ram_chance(const struct greyhawk_ship_data *ship,
+                      const struct greyhawk_ship_data *target);
+bool vessel_ram(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *target);
+void vessel_ram_tick_one(struct greyhawk_ship_data *ship);
+ACMD_DECL(do_shipram); /* Brace to ram the locked contact */
+
+/* ========================================================================= */
+/* NPC RAIDERS (vessels-ships study S6, vessels_raiders.c)                   */
+/* ========================================================================= */
+
+#define VESSEL_RAIDER_TIERS 4
+#define VESSEL_RAIDER_CAPTAIN_VNUM 70020 /* Plus the tier */
+#define VESSEL_RAIDER_CREW_VNUM 70024    /* Plus the tier */
+#define VESSEL_RAIDER_CHEST_VNUM 70020
+#define VESSEL_RAIDER_KEY_VNUM 70021
+#define VESSEL_RAIDER_AMBUSH_ODDS 2002  /* One ambush in this many ticks of sailing */
+#define VESSEL_RAIDER_SPAWN_MARGIN 10   /* Rooms beyond sight at which a raider appears */
+#define VESSEL_RAIDER_DESPAWN_TICKS 600 /* After she loses her quarry */
+#define VESSEL_RAIDER_WITNESS_TICKS 20  /* Longer while a player hull is in sight */
+
+/* Raider AI modes (study 3.3.8); 0 means the hull is no raider */
+#define VESSEL_RAIDER_ENGAGING 1
+#define VESSEL_RAIDER_RUNNING 2
+#define VESSEL_RAIDER_CRUISING 3
+#define VESSEL_RAIDER_LEAVING 4
+
+bool vessel_merchant_class(enum vessel_class vessel_type);
+void vessel_raider_ensure_schema(void);
+void vessel_raider_boot(void);
+int vessel_raider_ambush_odds(struct greyhawk_ship_data *ship);
+int vessel_raider_pick_tier(const struct greyhawk_ship_data *target, bool *hunter);
+bool vessel_raider_pick_prototype(int tier, int quarry_speed, int *prototype_id, char *name,
+                                  size_t name_size);
+int vessel_raider_spawn(struct greyhawk_ship_data *target, int tier, bool hunter);
+void vessel_raider_tick_one(struct greyhawk_ship_data *ship);
+void vessel_raider_handle_sink(struct greyhawk_ship_data *ship);
 
 /* ========================================================================= */
 /* DAMAGE MODEL (vessels-ships study S3, vessels_damage.c)                   */
@@ -765,6 +822,7 @@ ACMD_DECL(do_strikecolors);
 /* An owner cannot end an already-consented vessel fight by logging out. */
 #define VESSEL_PVP_LOGOUT_GRACE 300
 
+struct char_data *vessel_find_online_player(const char *name);
 bool vessel_pvp_permitted(struct char_data *ch, struct greyhawk_ship_data *target, bool display);
 bool vessel_gunnery_permitted(struct char_data *ch, const struct greyhawk_ship_data *ship);
 bool vessel_fire_permitted(struct char_data *ch, struct greyhawk_ship_data *ship,
@@ -1052,6 +1110,8 @@ void vessel_hunter_handle_capture(struct char_data *ch, struct greyhawk_ship_dat
 void vessel_hunter_handle_purge(struct greyhawk_ship_data *ship, const char *staff_name);
 void vessel_hunter_handle_player_rename(const char *old_name, const char *new_name);
 void vessel_hunter_handle_player_removal(const char *player_name);
+bool vessel_assign_npc_pilot(struct greyhawk_ship_data *ship, int pilot_mob_vnum);
+bool vessel_retire_npc_hull(int shipnum, const char *message);
 
 ACMD_DECL(do_seastate); /* Report weather, sea state, and sight range */
 
@@ -1715,6 +1775,21 @@ struct greyhawk_ship_data
   bool wreck_hull;   /* Rebuilt from a lost hull: carries no insurance */
   time_t summon_due; /* When she reaches the shipyard that summoned her; 0 = not summoned */
 
+  /* S6 ramming (vessels_ramming.c), runtime only; timers in vessel ticks */
+  char ram_order[MAX_NAME_LENGTH + 1]; /* Who braced her to ram the lock; "" = not braced */
+  short int ram_ticks;                 /* Before she may ram again */
+  short int ram_gun_ticks;             /* The gun crews recover from a ram */
+
+  /* S6 raiders (vessels_raiders.c), runtime only: a restart retires them */
+  bool raided;               /* Ambushed this voyage; berthing clears it */
+  unsigned char raider_mode; /* VESSEL_RAIDER_*; 0 = not a raider */
+  unsigned char raider_tier; /* 0-3 */
+  bool raider_hunter;        /* Fights on after boarding; a pirate leaves */
+  bool raider_advanced;      /* The advanced AI */
+  int raider_target;         /* Fleet slot of her quarry; 0 = none */
+  int raider_boarded;        /* Fleet slot she boarded, never twice */
+  short int raider_ticks;    /* Despawn countdown; 0 = not counting */
+
   /* Phase 5: Naval combat */
   int last_attacker;           /* Fleet index of last ship to fire on us (0 = none) */
   time_t pvp_grace_until;      /* End of the bounded combat-logout window */
@@ -1884,6 +1959,8 @@ int vessel_boarding_defense_modifier(const struct greyhawk_ship_data *target,
 bool vessel_resolve_boarding_contest(int attacker_skill, int attacker_roll, int defender_skill,
                                      int defender_roll, int vessel_modifier,
                                      struct vessel_boarding_contest *result);
+struct char_data *vessel_best_boarding_defender(struct char_data *attacker,
+                                                struct greyhawk_ship_data *target, int *best_skill);
 void vessel_abort_docking(struct greyhawk_ship_data *ship);
 
 /* Ship Persistence */

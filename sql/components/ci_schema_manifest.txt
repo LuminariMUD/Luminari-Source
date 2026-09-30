@@ -104,7 +104,9 @@ skip verify_vessels_phase18.sql
 skip verify_vessels_phase19.sql
 skip verify_vessels_phase20.sql
 skip verify_vessels_phase21.sql
+skip verify_vessels_phase22.sql
 skip verify_vessels_narrative_content.sql
+skip verify_vessels_raider_content.sql
 skip verify_vessels_schema.sql
 skip vessels_campaign_content.sql
 skip vessels_campaign_content_rollback.sql
@@ -115,6 +117,8 @@ skip vessels_frontier_content_rollback.sql
 skip vessels_harbor_sandbox.sql
 skip vessels_narrative_content.sql
 skip vessels_narrative_content_rollback.sql
+skip vessels_raider_content.sql
+skip vessels_raider_content_rollback.sql
 skip vessels_phase2_rollback.sql
 apply vessels_phase2_schema.sql
 skip vessels_phase4_rollback.sql
@@ -151,3 +155,5 @@ skip vessels_phase20_rollback.sql
 apply vessels_phase20_schema.sql
 skip vessels_phase21_rollback.sql
 apply vessels_phase21_schema.sql
+skip vessels_phase22_rollback.sql
+apply vessels_phase22_schema.sql
