@@ -31,8 +31,10 @@ ADD COLUMN IF NOT EXISTS insured_for INT NOT NULL DEFAULT 0;
 
 -- The premium of every policy bought before, a fifth of its value and at
 -- least 1 gold, is refunded as a claim the settlement path delivers at the
--- owner's next login; clearing the policy makes the refund run once. The
--- server does the same at boot.
+-- owner's next login; clearing the policy in the same transaction makes the
+-- refund run once. The server does the same at boot.
+START TRANSACTION;
+
 INSERT INTO vessel_insurance_claims (ship_id, owner, ship_name, amount)
 SELECT
   ship_id,
@@ -44,3 +46,5 @@ WHERE insured_for > 0 AND owner <> '';
 
 UPDATE ship_interiors SET insured_for = 0
 WHERE insured_for > 0;
+
+COMMIT;
