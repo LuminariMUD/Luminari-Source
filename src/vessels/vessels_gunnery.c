@@ -581,22 +581,26 @@ void vessel_reload_tick(struct greyhawk_ship_data *ship)
 
   for (s = 0; s < GREYHAWK_MAXSLOTS && !vessel_crew_stunned(ship); s++)
   {
-    type = vessel_slot_weapon(&ship->slot[s]);
-    if (type == NULL || ship->slot[s].timer <= 0)
+    if (ship->slot[s].timer <= 0)
     {
       continue;
     }
     ship->slot[s].timer--;
-    ship->stamina_spent += (double)type->weight / vessel_hull_effort(ship) / 20.0;
+    type = vessel_slot_weapon(&ship->slot[s]);
+    if (type != NULL)
+    {
+      ship->stamina_spent += (double)type->weight / vessel_hull_effort(ship) / 20.0;
+    }
     if (ship->lock_target != 0)
     {
       vessel_crew_gain(ship, CREW_GUNNER, 0.0015);
     }
-    if (ship->slot[s].timer == 0)
+    if (ship->slot[s].timer == 0 && ship->slot[s].type == VESSEL_SLOT_WEAPON)
     {
       send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RELOAD, VESSEL_COMBAT_MESSAGE_COOLDOWN,
                              "The %s %s is reloaded and ready.",
-                             vessel_arc_name(ship->slot[s].position), type->name);
+                             vessel_arc_name(ship->slot[s].position),
+                             vessel_slot_name(&ship->slot[s]));
     }
   }
 }
