@@ -1686,7 +1686,8 @@ boarding 49 s, narrative 24 s, rules 37 s, events 42 s, movement 106 s, the new 
 damage 556 s (wreck registry, summons, dock repair), derelict 33 s, hunter 81 s, frontier 218 s,
 and, with the shortened first watch, campaign (126 s and 137 s) and the Vailand merchant, each
 campaign and merchant run on a fresh reload of the development dump. The ferry soak was not
-rerun: S5 does not change ferry movement, and her crews rest and repair as any hull's do.
+rerun: S5 does not change ferry movement, and her crews rest and repair as any hull's do. The local
+CI matrix (`scripts/ci/local/run.py --base gitlab/master`) passes all 33 jobs on `1aa67494c`.
 
 ### Estimate
 
