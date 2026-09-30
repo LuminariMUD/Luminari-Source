@@ -329,6 +329,31 @@ void Test_vessel_shipyard_sells_only_listed_hulls(CuTest *tc)
   CuAssertTrue(tc, strstr(output, "You already own 3 hulls") != NULL);
   CuAssertIntEquals(tc, 1000000, GET_GOLD(&buyer.ch));
 
+  /* A trade-in needs the buyer's own hull berthed at this dock with an empty
+   * hold, and nothing is charged otherwise. */
+  shipyard_own_ships("Corr", 1);
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  do_shipbuy(&buyer.ch, "1 trade", 0, 0);
+  CuAssertTrue(tc, strstr(output, "You have no hull berthed here to trade in.") != NULL);
+  greyhawk_ships[SHIPYARD_FIRST_SLOT].dock = 100;
+  greyhawk_ships[SHIPYARD_FIRST_SLOT].cargo[0].commodity_id = 3;
+  greyhawk_ships[SHIPYARD_FIRST_SLOT].cargo[0].quantity = 5;
+  strlcpy(greyhawk_ships[SHIPYARD_FIRST_SLOT].name, "the Auk",
+          sizeof(greyhawk_ships[SHIPYARD_FIRST_SLOT].name));
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  do_shipbuy(&buyer.ch, "1 trade", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Empty the Auk's hold before you trade her in.") != NULL);
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  do_shipbuy(&buyer.ch, "1 barter", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Usage: shipbuy <id> [trade]") != NULL);
+  CuAssertIntEquals(tc, 1000000, GET_GOLD(&buyer.ch));
+
   /* A prototype's own level overrides its class minimum. */
   memset(&ship, 0, sizeof(ship));
   ship.vessel_type = VESSEL_SHIP;

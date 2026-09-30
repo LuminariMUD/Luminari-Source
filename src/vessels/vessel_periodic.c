@@ -295,6 +295,7 @@ static struct game_event_result vessel_service_event(const struct game_event_con
     vessel_event_tick();
     vessel_trade_restock_tick();
     vessel_msdp_tick();
+    vessel_summon_tick();
     if (pulse % (unsigned long)VESSEL_PERIODIC_SCHEDULE_CADENCE == 0U)
       vessel_merchant_tick();
   }

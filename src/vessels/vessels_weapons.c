@@ -649,8 +649,7 @@ ACMD(do_shipweapon)
       send_to_char(ch, "Usage: shipweapon sell <slot holding a weapon>\r\n");
       return;
     }
-    /* Duris pays 90% for a sound weapon, 10% for a damaged one. */
-    value = ship->slot[slot].damage > 0 ? weapon->price / 10 : weapon->price * 9 / 10;
+    value = vessel_slot_sale_value(&ship->slot[slot], ship->vessel_type);
     award_gold(ch, value);
     memset(&ship->slot[slot], 0, sizeof(ship->slot[slot]));
     vessel_db_save_weapons(ship);
@@ -695,8 +694,64 @@ static int vessel_equipment_slot(const struct greyhawk_ship_data *ship, int equi
   return -1;
 }
 
+/**
+ * What the shipwrights pay for a slot's weapon or equipment aboard a hull of
+ * this class: 90% of the price, and 10% for a damaged weapon (Duris).
+ */
+int vessel_slot_sale_value(const struct greyhawk_ship_slot *slot, enum vessel_class vessel_type)
+{
+  const struct vessel_weapon_type *weapon;
+
+  weapon = vessel_slot_weapon(slot);
+  if (weapon != NULL)
+  {
+    return slot->damage > 0 ? weapon->price / 10 : weapon->price * 9 / 10;
+  }
+  if (slot->type == VESSEL_SLOT_EQUIPMENT)
+  {
+    return vessel_equipment_price(slot->item, vessel_type) * 9 / 10;
+  }
+  return 0;
+}
+
+/**
+ * Carry a traded-in hull's weapons and equipment aboard her new hull (study
+ * 3.3.7): each goes into a free slot if the fit-out stays legal, and the
+ * shipwrights buy the rest.
+ *
+ * @return gold paid for what the new hull cannot take
+ */
+int vessel_carry_fitout(struct greyhawk_ship_data *ship, const struct greyhawk_ship_slot *old_slots,
+                        enum vessel_class old_class)
+{
+  int paid;
+  int slot;
+  int i;
+
+  paid = 0;
+  for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
+  {
+    if (old_slots[i].type == VESSEL_SLOT_EMPTY)
+    {
+      continue;
+    }
+    slot = vessel_free_slot(ship);
+    if (slot >= 0)
+    {
+      ship->slot[slot] = old_slots[i];
+      if (vessel_fitout_problem(ship) == NULL)
+      {
+        continue;
+      }
+      memset(&ship->slot[slot], 0, sizeof(ship->slot[slot]));
+    }
+    paid += vessel_slot_sale_value(&old_slots[i], old_class);
+  }
+  return paid;
+}
+
 /** Whether any bulk cargo lot aboard holds units. */
-static bool vessel_has_cargo(const struct greyhawk_ship_data *ship)
+bool vessel_has_cargo(const struct greyhawk_ship_data *ship)
 {
   int i;
 
@@ -779,11 +834,12 @@ ACMD(do_shipequip)
       send_to_char(ch, "Her neutral colors stay up while she has cargo aboard.\r\n");
       return;
     }
+    price = vessel_slot_sale_value(&ship->slot[slot], ship->vessel_type);
     memset(&ship->slot[slot], 0, sizeof(ship->slot[slot]));
-    award_gold(ch, price * 9 / 10);
+    award_gold(ch, price);
     vessel_db_save_weapons(ship);
     send_to_char(ch, "The shipwrights remove the %s and pay you %d gold.\r\n",
-                 equipment_names[equipment], price * 9 / 10);
+                 equipment_names[equipment], price);
     return;
   }
 

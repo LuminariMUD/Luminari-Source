@@ -30,15 +30,15 @@
 /* Class order follows enum vessel_class; arcs follow GREYHAWK_FORE (0),
  * GREYHAWK_PORT (1), GREYHAWK_REAR (2), GREYHAWK_STARBOARD (3). */
 static const struct vessel_class_condition class_condition[NUM_VESSEL_TYPES] = {
-    /* beam  armor F/P/R/S         internal F/P/R/S   sail  price */
-    {3, {2, 3, 1, 3}, {1, 1, 1, 1}, 20, 200},                 /* RAFT: Duris sloop */
-    {8, {6, 8, 4, 8}, {3, 4, 2, 4}, 40, 600},                 /* BOAT: yacht */
-    {66, {53, 66, 33, 66}, {26, 33, 16, 33}, 110, 8000},      /* SHIP: caravel */
-    {109, {87, 109, 65, 109}, {38, 47, 23, 47}, 140, 44000},  /* WARSHIP: frigate */
-    {63, {50, 63, 37, 63}, {22, 27, 13, 27}, 120, 72000},     /* AIRSHIP: corvette */
-    {84, {67, 84, 50, 84}, {29, 36, 18, 36}, 130, 60000},     /* SUBMARINE: destroyer */
-    {110, {88, 110, 55, 110}, {44, 55, 27, 55}, 130, 24000},  /* TRANSPORT: galleon */
-    {153, {122, 153, 91, 153}, {53, 66, 33, 66}, 160, 144000} /* MAGICAL: cruiser */
+    /* beam  armor F/P/R/S         internal F/P/R/S   sail  price  insurance % */
+    {3, {2, 3, 1, 3}, {1, 1, 1, 1}, 20, 200, 0},                  /* RAFT: Duris sloop */
+    {8, {6, 8, 4, 8}, {3, 4, 2, 4}, 40, 600, 75},                 /* BOAT: yacht */
+    {66, {53, 66, 33, 66}, {26, 33, 16, 33}, 110, 8000, 75},      /* SHIP: caravel */
+    {109, {87, 109, 65, 109}, {38, 47, 23, 47}, 140, 44000, 50},  /* WARSHIP: frigate */
+    {63, {50, 63, 37, 63}, {22, 27, 13, 27}, 120, 72000, 50},     /* AIRSHIP: corvette */
+    {84, {67, 84, 50, 84}, {29, 36, 18, 36}, 130, 60000, 50},     /* SUBMARINE: destroyer */
+    {110, {88, 110, 55, 110}, {44, 55, 27, 55}, 130, 24000, 75},  /* TRANSPORT: galleon */
+    {153, {122, 153, 91, 153}, {53, 66, 33, 66}, 160, 144000, 50} /* MAGICAL: cruiser */
 };
 
 const struct vessel_class_condition *vessel_class_condition(enum vessel_class vessel_type)

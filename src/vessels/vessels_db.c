@@ -80,6 +80,9 @@ void vessel_persistence_ensure_schema(void)
       "maxslots TINYINT UNSIGNED NOT NULL DEFAULT 0, "
       "condition_model TINYINT UNSIGNED NOT NULL DEFAULT 0, "
       "sink_ticks SMALLINT UNSIGNED NOT NULL DEFAULT 0, "
+      "stowed TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "wreck_hull TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "summon_due BIGINT NOT NULL DEFAULT 0, "
       "last_attacker INT NOT NULL DEFAULT 0, "
       "pvp_grace_until BIGINT NOT NULL DEFAULT 0, "
       "pvp_grace_attacker VARCHAR(64) NOT NULL DEFAULT '', "
@@ -186,6 +189,19 @@ void vessel_persistence_ensure_schema(void)
     log("SYSERR: Unable to add vessel Phase 20 weapon fields: %s", mysql_error(conn));
   }
 
+  /* A stowed hull is out of the world, in the wreck registry or on her way to
+   * a summoning shipyard (S5). */
+  if (mysql_query(conn, "ALTER TABLE ship_runtime_state "
+                        "ADD COLUMN IF NOT EXISTS stowed TINYINT UNSIGNED NOT NULL DEFAULT 0 "
+                        "AFTER sink_ticks, "
+                        "ADD COLUMN IF NOT EXISTS wreck_hull TINYINT UNSIGNED NOT NULL "
+                        "DEFAULT 0 AFTER stowed, "
+                        "ADD COLUMN IF NOT EXISTS summon_due BIGINT NOT NULL DEFAULT 0 "
+                        "AFTER wreck_hull"))
+  {
+    log("SYSERR: Unable to add vessel Phase 21 runtime fields: %s", mysql_error(conn));
+  }
+
   /* Crew hired before S5 read 0 and start at the floor of their tier. */
   if (mysql_query(conn, "ALTER TABLE ship_crew_roster "
                         "ADD COLUMN IF NOT EXISTS experience DOUBLE NOT NULL DEFAULT 0 "
@@ -209,6 +225,7 @@ void vessel_persistence_ensure_schema(void)
   {
     log("SYSERR: Unable to create vessel_insurance_claims: %s", mysql_error(conn));
   }
+  vessel_refund_insurance_premiums();
 
   ensure_schedule_table_exists();
 }
@@ -591,8 +608,8 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            "maxfinternal, maxrinternal, maxpinternal, maxsinternal, "
            "finternal, rinternal, pinternal, sinternal, "
            "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, condition_model, "
-           "sink_ticks, last_attacker, pvp_grace_until, pvp_grace_attacker, "
-           "dock_fee_balance, dock_fee_port, dock_fee_clan, "
+           "sink_ticks, stowed, wreck_hull, summon_due, last_attacker, pvp_grace_until, "
+           "pvp_grace_attacker, dock_fee_balance, dock_fee_port, dock_fee_clan, "
            "wear_ticks, room_types, "
            "autopilot_state, current_route_id, current_waypoint_index, "
            "autopilot_tick_counter, wait_remaining, last_update) VALUES ("
@@ -601,7 +618,7 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            "%d, %d, %d, %d, "
            "%u, %u, %u, %u, %u, %u, %u, %u, "
            "%u, %u, %u, %u, %u, %u, %u, %u, "
-           "%u, %u, %u, %u, %u, %u, %d, %d, "
+           "%u, %u, %u, %u, %u, %u, %d, %d, %d, %d, %lld, "
            "%d, %lld, '%s', %d, %d, %d, %d, '%s', "
            "%d, %d, %d, %d, %d, %lld)",
            ship->shipnum, ship->prototype_id,
@@ -614,10 +631,11 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            ship->maxfinternal, ship->maxrinternal, ship->maxpinternal, ship->maxsinternal,
            ship->finternal, ship->rinternal, ship->pinternal, ship->sinternal, ship->maxturnrate,
            ship->turnrate, ship->maxmainsail, ship->mainsail, ship->hullweight, ship->maxslots,
-           VESSEL_CONDITION_MODEL, ship->sink_ticks, ship->last_attacker,
-           (long long)ship->pvp_grace_until, escaped_pvp_attacker, ship->dock_fee_balance,
-           ship->dock_fee_port, ship->dock_fee_clan, ship->wear_ticks, room_types, autopilot_state,
-           route_id, current_waypoint_index, autopilot_tick_counter, wait_remaining, last_update);
+           VESSEL_CONDITION_MODEL, ship->sink_ticks, ship->stowed, ship->wreck_hull,
+           (long long)ship->summon_due, ship->last_attacker, (long long)ship->pvp_grace_until,
+           escaped_pvp_attacker, ship->dock_fee_balance, ship->dock_fee_port, ship->dock_fee_clan,
+           ship->wear_ticks, room_types, autopilot_state, route_id, current_waypoint_index,
+           autopilot_tick_counter, wait_remaining, last_update);
 
   if (mysql_query(conn, query))
   {
@@ -669,8 +687,8 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
       "maxfinternal, maxrinternal, maxpinternal, maxsinternal, "
       "finternal, rinternal, pinternal, sinternal, "
       "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, condition_model, "
-      "sink_ticks, last_attacker, pvp_grace_until, pvp_grace_attacker, "
-      "dock_fee_balance, dock_fee_port, dock_fee_clan, "
+      "sink_ticks, stowed, wreck_hull, summon_due, last_attacker, pvp_grace_until, "
+      "pvp_grace_attacker, dock_fee_balance, dock_fee_port, dock_fee_clan, "
       "wear_ticks, room_types, "
       "autopilot_state, current_route_id, current_waypoint_index, "
       "autopilot_tick_counter, wait_remaining, last_update "
@@ -795,6 +813,12 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
   condition_model = row[column] ? parse_int(row[column]) : 0;
   column++;
   ship->sink_ticks = row[column] ? (short int)parse_int(row[column]) : 0;
+  column++;
+  ship->stowed = row[column] != NULL && parse_int(row[column]) != 0;
+  column++;
+  ship->wreck_hull = row[column] != NULL && parse_int(row[column]) != 0;
+  column++;
+  ship->summon_due = row[column] ? (time_t)parse_llong(row[column]) : 0;
   column++;
 
   ship->last_attacker = row[column] ? parse_int(row[column]) : 0;
@@ -964,9 +988,10 @@ bool vessel_place_hull_object(struct greyhawk_ship_data *ship, struct obj_data *
 }
 
 /**
- * Instantiate the generic exterior object for a database-restored ship.
+ * Instantiate the generic exterior object for a database-restored ship, or
+ * for a stowed hull that reaches the shipyard that summoned her.
  */
-static bool vessel_create_runtime_hull(struct greyhawk_ship_data *ship)
+bool vessel_create_runtime_hull(struct greyhawk_ship_data *ship)
 {
   struct obj_data *obj;
   char buffer[MAX_STRING_LENGTH];
@@ -1574,6 +1599,10 @@ void load_all_ship_interiors(void)
     load_crew_roster(ship);
     vessel_db_load_pilot(ship);
     schedule_load(ship);
+    if (ship->stowed)
+    {
+      vessel_restow(ship);
+    }
     loaded_count++;
   }
 
@@ -1593,11 +1622,32 @@ void vessel_db_restore_berth(struct greyhawk_ship_data *ship)
 }
 
 /**
+ * Save one vessel's complete state.
+ *
+ * @return FALSE when any part could not be saved
+ */
+bool vessel_save_one(struct greyhawk_ship_data *ship)
+{
+  bool saved;
+
+  if (!save_ship_interior(ship) || !vessel_db_save_runtime(ship) || !vessel_db_save_weapons(ship))
+  {
+    return FALSE;
+  }
+  vessel_db_save_owner(ship);
+  vessel_db_save_permits(ship);
+  vessel_db_save_crew(ship);
+  vessel_db_save_extras(ship);
+  vessel_db_save_cargo(ship);
+  saved = vessel_db_save_pilot(ship);
+  return schedule_save(ship) && saved;
+}
+
+/**
  * Save all vessel states to database.
  *
- * Iterates through the greyhawk_ships array and saves interior
- * configurations for all valid ships. Should be called at shutdown
- * and periodically during auto-save.
+ * Iterates through the greyhawk_ships array and saves every valid ship.
+ * Should be called at shutdown and periodically during auto-save.
  */
 bool save_all_vessels(void)
 {
@@ -1620,28 +1670,17 @@ bool save_all_vessels(void)
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
     ship = &greyhawk_ships[i];
-    if (is_valid_ship(ship))
+    if (!is_valid_ship(ship))
     {
-      if (!save_ship_interior(ship) || !vessel_db_save_runtime(ship) ||
-          !vessel_db_save_weapons(ship))
-      {
-        failure_count++;
-        continue;
-      }
-      vessel_db_save_owner(ship);
-      vessel_db_save_permits(ship);
-      vessel_db_save_crew(ship);
-      vessel_db_save_extras(ship);
-      vessel_db_save_cargo(ship);
-      if (!vessel_db_save_pilot(ship))
-      {
-        failure_count++;
-      }
-      if (!schedule_save(ship))
-      {
-        failure_count++;
-      }
+      continue;
+    }
+    if (vessel_save_one(ship))
+    {
       saved_count++;
+    }
+    else
+    {
+      failure_count++;
     }
   }
 

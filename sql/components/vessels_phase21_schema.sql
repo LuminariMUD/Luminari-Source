@@ -1,10 +1,38 @@
 -- Vessel System Phase 21: DurisMUD study step S5, crew, repair and loss
 -- (docs/ongoing-projects/vessels-ships.md 3.3.5-3.3.7 and 3.3.10). Mirrors the
 -- runtime DDL in vessel_persistence_ensure_schema() (src/vessels/vessels_db.c);
--- it requires Phases 6 and 10.
+-- it requires Phases 6, 10 and 19.
 
 -- Each hired crew position's experience, in Duris skill points. Crew hired
 -- before S5 read 0 and start at the floor of their tier.
 ALTER TABLE ship_crew_roster
 ADD COLUMN IF NOT EXISTS experience DOUBLE NOT NULL DEFAULT 0
 AFTER loyalty_rating;
+
+-- A stowed hull is out of the world: in the wreck registry, or on her way to
+-- the shipyard that summoned her until summon_due (Unix time; 0 = not
+-- summoned). wreck_hull marks a hull rebuilt from a lost one, which carries
+-- no insurance.
+ALTER TABLE ship_runtime_state
+ADD COLUMN IF NOT EXISTS stowed TINYINT UNSIGNED NOT NULL DEFAULT 0
+AFTER sink_ticks,
+ADD COLUMN IF NOT EXISTS wreck_hull TINYINT UNSIGNED NOT NULL DEFAULT 0
+AFTER stowed,
+ADD COLUMN IF NOT EXISTS summon_due BIGINT NOT NULL DEFAULT 0
+AFTER wreck_hull;
+
+-- Insurance is automatic. The premium of every policy bought before, a fifth
+-- of its value and at least 1 gold, is refunded as a claim the settlement
+-- path delivers at the owner's next login; clearing the policy makes the
+-- refund run once. The server does the same at boot.
+INSERT INTO vessel_insurance_claims (ship_id, owner, ship_name, amount)
+SELECT
+  ship_id,
+  owner,
+  vessel_name,
+  GREATEST(1, insured_for DIV 5)
+FROM ship_interiors
+WHERE insured_for > 0 AND owner <> '';
+
+UPDATE ship_interiors SET insured_for = 0
+WHERE insured_for > 0;

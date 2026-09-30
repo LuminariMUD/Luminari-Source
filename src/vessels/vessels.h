@@ -628,6 +628,10 @@ int vessel_arc_by_name(const char *arg);
 #define VESSEL_ROUND_PRICE 2                /* Gold per round of ammunition */
 
 int vessel_equipment_price(int equipment, enum vessel_class vessel_type);
+int vessel_slot_sale_value(const struct greyhawk_ship_slot *slot, enum vessel_class vessel_type);
+int vessel_carry_fitout(struct greyhawk_ship_data *ship, const struct greyhawk_ship_slot *old_slots,
+                        enum vessel_class old_class);
+bool vessel_has_cargo(const struct greyhawk_ship_data *ship);
 const char *vessel_fitout_problem(const struct greyhawk_ship_data *ship);
 void vessel_add_maintenance(struct greyhawk_ship_data *ship, struct char_data *ch, int ticks);
 ACMD_DECL(do_shipweapon); /* Owner: buy, sell, and arrange weapons in port */
@@ -686,6 +690,7 @@ struct vessel_class_condition
   int internal[VESSEL_NUM_ARCS]; /* Internal structure by arc */
   int sail;                      /* Sail hit points */
   int price;                     /* Gold price of a default hull */
+  int insurance;                 /* Percent of the hull price paid out when she is lost */
 };
 
 const struct vessel_class_condition *vessel_class_condition(enum vessel_class vessel_type);
@@ -856,12 +861,33 @@ void vessel_upkeep_tick(void);
 void vessel_upkeep_tick_one(struct greyhawk_ship_data *ship);
 void vessel_db_save_extras(struct greyhawk_ship_data *ship);
 void vessel_db_load_extras(struct greyhawk_ship_data *ship);
-void vessel_pay_insurance(struct greyhawk_ship_data *ship);
+void vessel_pay_insurance(struct greyhawk_ship_data *ship, int amount);
+void vessel_refund_insurance_premiums(void);
 int vessel_deliver_pending_insurance(struct char_data *ch);
 
 struct greyhawk_ship_data *vessel_refit_ship(struct char_data *ch);
 ACMD_DECL(do_shipupgrade); /* Owner: install upgrades at a dock */
-ACMD_DECL(do_shipinsure);  /* Owner: buy sinking insurance */
+
+/* ========================================================================= */
+/* LOSS AND RECOVERY (vessels-ships study S5, vessels_loss.c)                */
+/* ========================================================================= */
+
+#define VESSEL_NPC_KILL_INSURANCE 90   /* Percent of the hull price when an NPC sank her */
+#define VESSEL_TRADE_IN_PERCENT 90     /* Of the old hull's price, and of weapons sold */
+#define VESSEL_RENAME_FEE_PERCENT 10   /* Of the hull price */
+#define VESSEL_SUMMON_MAX_MUD_HOURS 60 /* The longest summons, 75 minutes */
+
+int vessel_hull_price(const struct greyhawk_ship_data *ship);
+int vessel_insurance_payout(const struct greyhawk_ship_data *ship, bool npc_kill);
+int vessel_summon_fee(const struct greyhawk_ship_data *ship);
+int vessel_summon_seconds(struct greyhawk_ship_data *ship);
+bool vessel_rebuild_hull(struct greyhawk_ship_data *ship, int prototype_id, int vclass,
+                         int max_speed, int armor);
+void vessel_wreck_prototype(int *id, int *vclass, int *speed, int *armor);
+bool vessel_wreck_hull(struct greyhawk_ship_data *ship, const struct greyhawk_ship_data *victor);
+void vessel_restow(struct greyhawk_ship_data *ship);
+void vessel_summon_tick(void);
+ACMD_DECL(do_shipsummon); /* Owner: call a hull, or her wreck, to this shipyard */
 
 /* ========================================================================= */
 /* CARGO AND TRADE (Phase 07, vessels_trade.c)                               */
@@ -1683,6 +1709,12 @@ struct greyhawk_ship_data
   double stamina_spent;  /* Spent since fully rested; beyond the maximum, a deficit */
   short int repair_used; /* Repair stock used since she last berthed */
 
+  /* S5 loss (vessels_loss.c). A stowed hull is out of the world: not active,
+   * so is_valid_ship() passes her by, but her fleet slot stays reserved. */
+  bool stowed;       /* In the wreck registry, or on her way to a summoning shipyard */
+  bool wreck_hull;   /* Rebuilt from a lost hull: carries no insurance */
+  time_t summon_due; /* When she reaches the shipyard that summoned her; 0 = not summoned */
+
   /* Phase 5: Naval combat */
   int last_attacker;           /* Fleet index of last ship to fire on us (0 = none) */
   time_t pvp_grace_until;      /* End of the bounded combat-logout window */
@@ -1724,9 +1756,8 @@ struct greyhawk_ship_data
   double crew_xp[4]; /* S5 experience per position, in Duris skill points */
 
   /* Phase 6: Upgrades, upkeep, and insurance */
-  int upgrades;    /* SHIP_UPGRADE_* bitfield */
-  int wear_ticks;  /* Ticks since last hull wear */
-  int insured_for; /* Payout value if sunk (0 = uninsured) */
+  int upgrades;   /* SHIP_UPGRADE_* bitfield */
+  int wear_ticks; /* Ticks since last hull wear */
 
   /* Phase 7: Bulk cargo lots (trade goods, distinct from loaded vehicles) */
 #define MAX_CARGO_LOTS 10
@@ -1865,6 +1896,8 @@ void vessel_db_restore_berth(struct greyhawk_ship_data *ship);
 bool vessel_db_save_weapons(struct greyhawk_ship_data *ship);
 bool vessel_db_load_weapons(struct greyhawk_ship_data *ship);
 bool vessel_place_hull_object(struct greyhawk_ship_data *ship, struct obj_data *obj);
+bool vessel_create_runtime_hull(struct greyhawk_ship_data *ship);
+bool vessel_save_one(struct greyhawk_ship_data *ship);
 void vessel_persistence_ensure_schema(void);
 bool vessel_delete_persistence(int shipnum);
 

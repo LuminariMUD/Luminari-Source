@@ -806,6 +806,7 @@ set(SRC_C_FILES
     src/vessels/vessels_gunnery.c
     src/vessels/vessels_weapons.c
     src/vessels/vessels_repair.c
+    src/vessels/vessels_loss.c
     src/core/weather.c
     src/wilderness/wilderness.c
     src/wilderness/wilderness_kb.c
@@ -1253,6 +1254,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_vessel_shipyard.c
     unittests/CuTest/test_vessel_bounty.c
     unittests/CuTest/test_vessel_crew.c
+    unittests/CuTest/test_vessel_loss.c
     unittests/CuTest/test_database_persistence.c
     unittests/CuTest/test_dg_scripts_production.c
     unittests/CuTest/test_ashenport_welcome_trigger.c

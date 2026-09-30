@@ -441,7 +441,9 @@ static struct greyhawk_ship_data *vessel_sink_victor(const struct greyhawk_ship_
 
 /**
  * Sink a ship: evacuate everyone aboard into the water, convert the ship
- * object into inert wreckage, and free the fleet slot.
+ * object into inert wreckage, and settle her owner's insurance. A player's
+ * hull is rebuilt and waits in the wreck registry (decision D3); any other
+ * frees the fleet slot.
  */
 void vessel_sink(int shipnum)
 {
@@ -535,7 +537,8 @@ void vessel_sink(int shipnum)
   }
 
   /* Settle insurance before the record is gone */
-  vessel_pay_insurance(ship);
+  vessel_pay_insurance(ship,
+                       vessel_insurance_payout(ship, victor != NULL && victor->owner[0] == '\0'));
   vessel_abort_docking(ship);
   vehicle_release_all_from_vessel(ship, water_room);
 
@@ -559,6 +562,13 @@ void vessel_sink(int shipnum)
   }
 
   vessel_reclaim_interior_rooms(ship, water_room);
+
+  /* The hull object is wreckage now; a player's ship lives on as a wreck. */
+  ship->shipobj = NULL;
+  if (ship->owner[0] != '\0' && vessel_wreck_hull(ship, victor))
+  {
+    return;
+  }
   if (!vessel_delete_persistence(shipnum))
   {
     log("SYSERR: Could not remove persistence for sunk ship %d", shipnum);

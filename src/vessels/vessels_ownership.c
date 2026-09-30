@@ -80,7 +80,8 @@ int vessel_owner_cap(void)
 }
 
 /**
- * How many active hulls does this player own?
+ * How many hulls does this player own, in the world or stowed (a wreck in
+ * the registry, or a hull under summons)?
  */
 int vessel_owned_hull_count(const char *name)
 {
@@ -95,7 +96,8 @@ int vessel_owned_hull_count(const char *name)
   count = 0;
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
-    if (is_valid_ship(&greyhawk_ships[i]) && !str_cmp(greyhawk_ships[i].owner, name))
+    if ((is_valid_ship(&greyhawk_ships[i]) || greyhawk_ships[i].stowed) &&
+        !str_cmp(greyhawk_ships[i].owner, name))
     {
       count++;
     }
@@ -379,6 +381,17 @@ bool vessel_handle_player_removal(const char *player_name)
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
     ship = &greyhawk_ships[i];
+    /* A stowed hull without her owner could never be summoned again. */
+    if (ship->stowed && !str_cmp(ship->owner, player_name))
+    {
+      if (!vessel_delete_persistence(i))
+      {
+        log("SYSERR: Could not remove stowed ship %d of removed player %s", i, player_name);
+      }
+      vessel_reclaim_interior_rooms(ship, NOWHERE);
+      memset(ship, 0, sizeof(*ship));
+      continue;
+    }
     if (!is_valid_ship(ship))
     {
       continue;

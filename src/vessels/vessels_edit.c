@@ -557,6 +557,7 @@ static void vedit_delete(struct char_data *ch, int id)
  *
  * Slot 1 is reserved for the legacy world-file test vessel. Slot 0 remains
  * reserved because older vehicle and combat relationships use zero for none.
+ * A stowed hull keeps her slot.
  *
  * @return Free slot index, or -1 if the fleet is full
  */
@@ -566,7 +567,7 @@ static int vedit_find_free_slot(void)
 
   for (i = 2; i < GREYHAWK_MAXSHIPS; i++)
   {
-    if (!greyhawk_ships[i].active)
+    if (!greyhawk_ships[i].active && !greyhawk_ships[i].stowed)
     {
       return i;
     }
@@ -908,22 +909,113 @@ ACMD(do_shipbrowse)
                  vessel_prototype_min_level(parse_int(row[2]), parse_int(row[5])), row[1]);
   }
   mysql_free_result(result);
-  send_to_char(ch, "Purchase with 'shipbuy <id>' at any dock. Lvl is the level needed to take "
-                   "her out of port.\r\n");
+  send_to_char(ch, "Purchase with 'shipbuy <id>' at any dock, or 'shipbuy <id> trade' to trade "
+                   "in your hull berthed there. Lvl is the level needed to take her out of "
+                   "port.\r\n");
 }
 
 /**
- * shipbuy <id> - purchase and take delivery of a hull at a dock.
+ * Trade in the owner's hull berthed at this dock for a new hull from a
+ * prototype (study 3.3.7): 90% of her value comes off the price, and more
+ * is paid out. She is rebuilt in place keeping her name, crew, cosmetics,
+ * and permits; the new hull comes with her class armament, takes aboard
+ * what of the old fit-out she legally can, and the shipwrights buy the rest.
+ */
+static void vessel_trade_in(struct char_data *ch, int id, int vclass, int max_speed, int armor,
+                            int price)
+{
+  struct greyhawk_ship_slot old_slots[GREYHAWK_MAXSLOTS];
+  struct greyhawk_ship_data *ship;
+  enum vessel_class old_class;
+  room_rnum dock;
+  int credit;
+  int sold;
+  int net;
+  int i;
+
+  dock = IN_ROOM(ch);
+  ship = NULL;
+  for (i = 2; i < GREYHAWK_MAXSHIPS && ship == NULL; i++)
+  {
+    if (is_valid_ship(&greyhawk_ships[i]) && !str_cmp(greyhawk_ships[i].owner, GET_NAME(ch)) &&
+        greyhawk_ships[i].dock == (int)world[dock].number)
+    {
+      ship = &greyhawk_ships[i];
+    }
+  }
+  if (ship == NULL)
+  {
+    send_to_char(ch, "You have no hull berthed here to trade in.\r\n");
+    return;
+  }
+  if (vessel_has_cargo(ship))
+  {
+    send_to_char(ch, "Empty %s's hold before you trade her in.\r\n", ship->name);
+    return;
+  }
+  if (ship->departure_ticks > 0 || ship->docked_to_ship > 0)
+  {
+    send_to_char(ch,
+                 "%s is casting off or has a hull alongside; the shipwrights cannot take her.\r\n",
+                 ship->name);
+    return;
+  }
+
+  credit = vessel_hull_price(ship) * VESSEL_TRADE_IN_PERCENT / 100;
+  if (price - credit > GET_GOLD(ch))
+  {
+    send_to_char(ch, "With %d gold for %s the new hull costs %d more; you have %d.\r\n", credit,
+                 ship->name, price - credit, GET_GOLD(ch));
+    return;
+  }
+
+  memcpy(old_slots, ship->slot, sizeof(old_slots));
+  old_class = ship->vessel_type;
+  vessel_reclaim_interior_rooms(ship, dock);
+  if (!vessel_rebuild_hull(ship, id, vclass, max_speed, armor))
+  {
+    log("SYSERR: Ship %d lost her interior in a trade-in", ship->shipnum);
+    send_to_char(ch, "The shipwrights botch the work; tell the staff.\r\n");
+    return;
+  }
+  vessel_fit_default_weapons(ship);
+  sold = vessel_carry_fitout(ship, old_slots, old_class);
+  vessel_place_hull_object(ship, ship->shipobj);
+  vessel_refresh_hull_strings(ship, FALSE);
+  if (!vessel_save_one(ship))
+  {
+    log("SYSERR: Traded-in ship %d could not be saved completely", ship->shipnum);
+  }
+
+  net = credit + sold - price;
+  award_gold(ch, net);
+  send_to_char(ch,
+               "The shipwrights take %s in trade for %d gold%s and rebuild her as a %s. You %s "
+               "%d gold.\r\n",
+               ship->name, credit, sold > 0 ? " (and buy the fittings she cannot carry)" : "",
+               get_vessel_type_name(ship->vessel_type), net < 0 ? "pay" : "receive",
+               net < 0 ? -net : net);
+  log("Info: %s traded ship %d in for prototype %d (%d gold)", GET_NAME(ch), ship->shipnum, id,
+      net);
+}
+
+/**
+ * shipbuy <id> [trade] - purchase and take delivery of a hull at a dock, or
+ * trade in your hull berthed there for it.
  */
 ACMD(do_shipbuy)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
   char arg[MAX_INPUT_LENGTH];
+  char mode[MAX_INPUT_LENGTH];
   bool for_sale;
   int id;
   int price;
   int slot;
+  int vclass;
+  int max_speed;
+  int armor;
 
   if (IS_NPC(ch))
   {
@@ -942,10 +1034,10 @@ ACMD(do_shipbuy)
     return;
   }
 
-  one_argument(argument, arg, sizeof(arg));
-  if (!*arg)
+  two_arguments(argument, arg, sizeof(arg), mode, sizeof(mode));
+  if (!*arg || (*mode && str_cmp(mode, "trade")))
   {
-    send_to_char(ch, "Buy which hull? See 'shipbrowse' for the catalog.\r\n");
+    send_to_char(ch, "Usage: shipbuy <id> [trade]. See 'shipbrowse' for the catalog.\r\n");
     return;
   }
   id = parse_int(arg);
@@ -961,13 +1053,22 @@ ACMD(do_shipbuy)
   {
     return;
   }
-  price = vessel_prototype_price(parse_int(row[2]), parse_int(row[3]), parse_int(row[4]));
+  vclass = parse_int(row[2]);
+  max_speed = parse_int(row[3]);
+  armor = parse_int(row[4]);
+  price = vessel_prototype_price(vclass, max_speed, armor);
   for_sale = parse_int(row[5]) != 0;
   mysql_free_result(result);
 
   if (!for_sale)
   {
     send_to_char(ch, "The shipwright does not sell that hull. See 'shipbrowse'.\r\n");
+    return;
+  }
+
+  if (*mode)
+  {
+    vessel_trade_in(ch, id, vclass, max_speed, armor, price);
     return;
   }
 
@@ -999,13 +1100,39 @@ ACMD(do_shipbuy)
 }
 
 /**
- * shipchristen <name> - rename a ship you own.
+ * Whether a hull still bears the name of the prototype she was built from:
+ * her first christening is free.
+ */
+static bool vessel_bears_prototype_name(const struct greyhawk_ship_data *ship)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  bool same;
+
+  if (ship->prototype_id <= 0 || !vessel_prototype_db_ready())
+  {
+    return FALSE;
+  }
+  result = vedit_fetch(NULL, ship->prototype_id, &row);
+  if (result == NULL)
+  {
+    return FALSE;
+  }
+  same = row[1] != NULL && !str_cmp(row[1], ship->name);
+  mysql_free_result(result);
+  return same;
+}
+
+/**
+ * shipchristen <name> - rename a ship you own. The first christening is
+ * free; a rename costs a tenth of her value (study 3.3.7).
  */
 ACMD(do_shipchristen)
 {
   struct greyhawk_ship_data *ship;
   const char *name;
   size_t i;
+  int fee;
 
   ship = get_ship_from_room(IN_ROOM(ch));
   if (ship == NULL)
@@ -1036,7 +1163,25 @@ ACMD(do_shipchristen)
     }
   }
 
-  log("Info: %s christened ship %d '%s' as '%s'", GET_NAME(ch), ship->shipnum, ship->name, name);
+  fee = 0;
+  if (GET_LEVEL(ch) < LVL_IMMORT && !vessel_bears_prototype_name(ship))
+  {
+    fee = vessel_hull_price(ship) * VESSEL_RENAME_FEE_PERCENT / 100;
+  }
+  if (GET_GOLD(ch) < fee)
+  {
+    send_to_char(ch, "The registry charges %d gold to rename %s; you have %d.\r\n", fee, ship->name,
+                 GET_GOLD(ch));
+    return;
+  }
+  if (fee > 0)
+  {
+    award_gold(ch, -fee);
+    send_to_char(ch, "You pay the registry %d gold.\r\n", fee);
+  }
+
+  log("Info: %s christened ship %d '%s' as '%s' (%d gold)", GET_NAME(ch), ship->shipnum, ship->name,
+      name, fee);
   strlcpy(ship->name, name, sizeof(ship->name));
 
   vessel_refresh_hull_strings(ship, TRUE);

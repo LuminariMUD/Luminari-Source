@@ -2,7 +2,7 @@
  *      File:   vessels_upgrades.c                    Part of LuminariMUD  *
  *   Purpose:   Upgrades, upkeep, and insurance (Phase 06, Sessions 04-05).*
  *              Upgrades raise a hull's ceilings; wear grinds them down    *
- *              under way; insurance softens a total loss.                 *
+ *              under way; insurance, automatic since S5, softens a loss.  *
  * ********************************************************************** */
 
 #include "conf.h"
@@ -19,9 +19,6 @@
 #include "comms/new_mail.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-
-/* Insurance premium is a fraction of the insured value */
-#define INSURANCE_PREMIUM_DIVISOR 5
 
 /**
  * Ensure the durable insurance claim queue exists.
@@ -54,13 +51,10 @@ static bool vessel_insurance_ensure_schema(void)
 }
 
 /**
- * Convert an insured loss into one durable claim and one system mail.
- *
- * Clearing ship_interiors.insured_for and inserting the claim share a
- * transaction. A reboot after the commit therefore cannot queue the same loss
- * again even if the sinking ship has not yet been purged.
+ * Queue one durable claim for a lost hull's owner with its system mail, in
+ * one transaction.
  */
-static bool vessel_queue_insurance_claim(struct greyhawk_ship_data *ship)
+static bool vessel_queue_insurance_claim(struct greyhawk_ship_data *ship, int amount)
 {
   char escaped_owner[sizeof(ship->owner) * 2 + 1];
   char escaped_name[sizeof(ship->name) * 2 + 1];
@@ -68,33 +62,18 @@ static bool vessel_queue_insurance_claim(struct greyhawk_ship_data *ship)
   char subject[256];
   char message[1024];
   unsigned long long claim_id;
-  int amount;
 
-  if (ship == NULL || ship->insured_for <= 0 || ship->owner[0] == '\0' ||
-      !vessel_insurance_ensure_schema())
+  if (ship == NULL || amount <= 0 || ship->owner[0] == '\0' || !vessel_insurance_ensure_schema())
   {
     return FALSE;
   }
 
-  amount = ship->insured_for;
   mysql_real_escape_string(conn, escaped_owner, ship->owner, strlen(ship->owner));
   mysql_real_escape_string(conn, escaped_name, ship->name, strlen(ship->name));
 
   if (mysql_query(conn, "START TRANSACTION"))
   {
     log("SYSERR: Could not begin insurance claim transaction: %s", mysql_error(conn));
-    return FALSE;
-  }
-
-  snprintf(query, sizeof(query),
-           "UPDATE ship_interiors SET insured_for = 0 "
-           "WHERE ship_id = %d AND insured_for > 0",
-           ship->shipnum);
-  if (mysql_query(conn, query) || mysql_affected_rows(conn) != 1)
-  {
-    log("SYSERR: Could not consume insurance policy for ship %d: %s", ship->shipnum,
-        mysql_error(conn));
-    mysql_query(conn, "ROLLBACK");
     return FALSE;
   }
 
@@ -113,9 +92,10 @@ static bool vessel_queue_insurance_claim(struct greyhawk_ship_data *ship)
 
   snprintf(subject, sizeof(subject), "Insurance settlement for %s", ship->name);
   snprintf(message, sizeof(message),
-           "The underwriters confirm the total loss of %s. Claim #%llu is approved "
-           "for %d gold. The settlement is delivered automatically when you enter "
-           "the game; this letter is your receipt.",
+           "The underwriters confirm the loss of %s. Claim #%llu is approved for %d "
+           "gold. The settlement is delivered automatically when you enter the game; "
+           "this letter is your receipt. What could be saved of her waits in the wreck "
+           "registry: summon her at any shipyard with SHIPSUMMON.",
            ship->name, claim_id, amount);
   if (!new_mail_send_system(ship->owner, subject, message))
   {
@@ -131,10 +111,37 @@ static bool vessel_queue_insurance_claim(struct greyhawk_ship_data *ship)
     return FALSE;
   }
 
-  ship->insured_for = 0;
   log("Info: Queued insurance claim %llu for %s: ship %d '%s', %d gold", claim_id, ship->owner,
       ship->shipnum, ship->name, amount);
   return TRUE;
+}
+
+/**
+ * Insurance became automatic in S5 (study 3.3.10): refund the premium of
+ * every policy bought before, a fifth of its value and at least 1 gold, as a
+ * claim the settlement path delivers. Clearing the policies in the same
+ * transaction makes the refund run once.
+ */
+void vessel_refund_insurance_premiums(void)
+{
+  if (!mysql_available || conn == NULL)
+  {
+    return;
+  }
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: Could not begin the insurance premium refund: %s", mysql_error(conn));
+    return;
+  }
+  if (mysql_query(conn, "INSERT INTO vessel_insurance_claims (ship_id, owner, ship_name, amount) "
+                        "SELECT ship_id, owner, vessel_name, GREATEST(1, insured_for DIV 5) "
+                        "FROM ship_interiors WHERE insured_for > 0 AND owner <> ''") ||
+      mysql_query(conn, "UPDATE ship_interiors SET insured_for = 0 WHERE insured_for > 0") ||
+      mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: Could not refund vessel insurance premiums: %s", mysql_error(conn));
+    mysql_query(conn, "ROLLBACK");
+  }
 }
 
 /**
@@ -242,7 +249,7 @@ short int vessel_rigged_speed(int design_speed)
 }
 
 /**
- * Persist upgrades, insurance, and wear counters.
+ * Persist upgrades.
  */
 void vessel_db_save_extras(struct greyhawk_ship_data *ship)
 {
@@ -253,9 +260,8 @@ void vessel_db_save_extras(struct greyhawk_ship_data *ship)
     return;
   }
 
-  snprintf(query, sizeof(query),
-           "UPDATE ship_interiors SET upgrades = %d, insured_for = %d WHERE ship_id = %d",
-           ship->upgrades, ship->insured_for, ship->shipnum);
+  snprintf(query, sizeof(query), "UPDATE ship_interiors SET upgrades = %d WHERE ship_id = %d",
+           ship->upgrades, ship->shipnum);
 
   if (mysql_query(conn, query))
   {
@@ -264,7 +270,7 @@ void vessel_db_save_extras(struct greyhawk_ship_data *ship)
 }
 
 /**
- * Load upgrades and insurance.
+ * Load upgrades.
  */
 void vessel_db_load_extras(struct greyhawk_ship_data *ship)
 {
@@ -277,8 +283,8 @@ void vessel_db_load_extras(struct greyhawk_ship_data *ship)
     return;
   }
 
-  snprintf(query, sizeof(query),
-           "SELECT upgrades, insured_for FROM ship_interiors WHERE ship_id = %d", ship->shipnum);
+  snprintf(query, sizeof(query), "SELECT upgrades FROM ship_interiors WHERE ship_id = %d",
+           ship->shipnum);
   if (mysql_query(conn, query))
   {
     return;
@@ -294,7 +300,6 @@ void vessel_db_load_extras(struct greyhawk_ship_data *ship)
   if (row != NULL)
   {
     ship->upgrades = row[0] ? parse_int(row[0]) : 0;
-    ship->insured_for = row[1] ? parse_int(row[1]) : 0;
   }
   mysql_free_result(result);
 }
@@ -423,16 +428,18 @@ int vessel_deliver_pending_insurance(struct char_data *ch)
  * Both online and offline owners use the same durable queue. Online owners
  * receive it immediately; offline owners receive it automatically on login.
  */
-void vessel_pay_insurance(struct greyhawk_ship_data *ship)
+void vessel_pay_insurance(struct greyhawk_ship_data *ship, int amount)
 {
   struct descriptor_data *d;
 
-  if (!vessel_queue_insurance_claim(ship))
+  if (amount <= 0)
   {
-    if (ship != NULL && ship->insured_for > 0)
-    {
-      log("SYSERR: Insurance for lost ship %d '%s' could not be queued", ship->shipnum, ship->name);
-    }
+    return;
+  }
+  if (!vessel_queue_insurance_claim(ship, amount))
+  {
+    log("SYSERR: Insurance for lost ship %d could not be queued",
+        ship != NULL ? ship->shipnum : -1);
     return;
   }
 
@@ -609,75 +616,4 @@ ACMD(do_shipupgrade)
   send_to_ship(ship, "%s has been refitted: %s.", ship->name, vessel_upgrade_effect(index));
   log("Info: %s installed %s on ship %d for %d gold", GET_NAME(ch), vessel_upgrade_name(index),
       ship->shipnum, cost);
-}
-
-/**
- * shipinsure [<value>] - buy or review sinking insurance.
- */
-ACMD(do_shipinsure)
-{
-  struct greyhawk_ship_data *ship;
-  char arg[MAX_INPUT_LENGTH];
-  int value;
-  int premium;
-
-  ship = vessel_refit_ship(ch);
-  if (ship == NULL)
-  {
-    return;
-  }
-
-  one_argument(argument, arg, sizeof(arg));
-
-  if (!*arg)
-  {
-    if (ship->insured_for > 0)
-    {
-      send_to_char(ch, "%s is insured for %d gold.\r\n", ship->name, ship->insured_for);
-    }
-    else
-    {
-      send_to_char(ch, "%s carries no insurance.\r\n", ship->name);
-    }
-    send_to_char(ch, "Usage: shipinsure <payout value> - premium is one fifth of the payout.\r\n");
-    return;
-  }
-
-  value = parse_int(arg);
-  if (value <= 0)
-  {
-    send_to_char(ch, "Insure her for how much?\r\n");
-    return;
-  }
-
-  /* Cap the payout at the hull's market value so insurance is a hedge, not
-   * a business model. */
-  premium = vessel_prototype_price((int)ship->vessel_type, ship->maxspeed, ship->maxparmor);
-  if (value > premium)
-  {
-    send_to_char(ch, "The underwriters will not insure %s above her value of %d gold.\r\n",
-                 ship->name, premium);
-    return;
-  }
-
-  premium = value / INSURANCE_PREMIUM_DIVISOR;
-  if (premium < 1)
-  {
-    premium = 1;
-  }
-
-  if (GET_GOLD(ch) < premium)
-  {
-    send_to_char(ch, "The premium is %d gold; you have %d.\r\n", premium, GET_GOLD(ch));
-    return;
-  }
-
-  award_gold(ch, -premium);
-  ship->insured_for = value;
-  vessel_db_save_extras(ship);
-
-  send_to_char(ch, "You pay %d gold. %s is insured for %d gold against total loss.\r\n", premium,
-               ship->name, value);
-  log("Info: %s insured ship %d for %d gold (premium %d)", GET_NAME(ch), ship->shipnum, value,
-      premium);
 }
