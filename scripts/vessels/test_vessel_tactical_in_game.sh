@@ -7,7 +7,7 @@ repo_root=${LUMINARI_PROJECT_ROOT:-$(cd "$script_dir/../.." && pwd)}
 acceptance_mode=tactical
 if [[ $# -gt 0 ]]; then
   [[ $# -eq 1 ]] || {
-    printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery]\n' "$0" >&2
+    printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery|--loss]\n' "$0" >&2
     exit 2
   }
   case "$1" in
@@ -32,8 +32,11 @@ if [[ $# -gt 0 ]]; then
     --gunnery)
       acceptance_mode=gunnery
       ;;
+    --loss)
+      acceptance_mode=loss
+      ;;
     *)
-      printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery]\n' "$0" >&2
+      printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery|--loss]\n' "$0" >&2
       exit 2
       ;;
   esac
@@ -73,7 +76,8 @@ fail() {
 }
 
 uses_secondary_player() {
-  [[ "$acceptance_mode" == boarding || "$acceptance_mode" == rules ]]
+  [[ "$acceptance_mode" == boarding || "$acceptance_mode" == rules ||
+    "$acceptance_mode" == loss ]]
 }
 
 config_value() {
@@ -222,7 +226,9 @@ tactical_runtime_slots() {
       FROM ship_runtime_state
      WHERE prototype_id = $warship_prototype_id
         OR prototype_id IN (
-          SELECT prototype_id FROM ship_prototypes WHERE name LIKE 'Movecheck Boat%'
+          SELECT prototype_id
+            FROM ship_prototypes
+           WHERE name LIKE 'Movecheck Boat%' OR name LIKE 'Losscheck Boat%'
         );"
 }
 
@@ -299,11 +305,11 @@ restore_secondary_rules_state() {
           WHERE runtime.prototype_id = ship_prototypes.prototype_id);"
 }
 
-# Remove any temporary boat prototype a movement session left behind.
+# Remove any temporary boat prototype a movement or loss session left behind.
 restore_movement_state() {
   database_query "
     DELETE FROM ship_prototypes
-     WHERE name LIKE 'Movecheck Boat%'
+     WHERE (name LIKE 'Movecheck Boat%' OR name LIKE 'Losscheck Boat%')
        AND NOT EXISTS (
          SELECT 1
            FROM ship_runtime_state AS runtime
@@ -344,7 +350,7 @@ restore_baseline() {
   if [[ "$acceptance_mode" == rules ]]; then
     restore_secondary_rules_state || cleanup_status=1
   fi
-  if [[ "$acceptance_mode" == movement ]]; then
+  if [[ "$acceptance_mode" == movement || "$acceptance_mode" == loss ]]; then
     restore_movement_state || cleanup_status=1
   fi
 
@@ -405,8 +411,13 @@ finish() {
       printf 'and anchoring with exact character restoration (%ss).\n' "$elapsed_seconds"
     elif [[ "$acceptance_mode" == damage ]]; then
       printf 'PASS: Kohdee validated the hull condition display, struck colors, holing, '
-      printf 'sinking, and its refusals with exact character restoration (%ss).\n' \
+      printf 'sinking and its refusals, the wreck registry, a summons, and a dock repair '
+      printf 'with exact character restoration (%ss).\n' \
         "$elapsed_seconds"
+    elif [[ "$acceptance_mode" == loss ]]; then
+      printf 'PASS: Kohdee and Vesselmate validated the retired insurance command, the crew '
+      printf 'hiring gate and experience, the rename fee, a summons, and a trade-in with '
+      printf 'exact two-character restoration (%ss).\n' "$elapsed_seconds"
     elif [[ "$acceptance_mode" == gunnery ]]; then
       printf 'PASS: Kohdee validated the shipyard, locks, battle stations, the harbor '
       printf 'refusal, scanning, sighting, and arc fire with exact character restoration (%ss).\n' \
@@ -535,14 +546,16 @@ if [[ "$acceptance_mode" == narrative ]]; then
   [[ "$narrative_content_state" == '8|4|4|4|0' ]] ||
     fail "the Vailand narrative content is incomplete: $narrative_content_state"
 fi
-if [[ "$acceptance_mode" == rules ]]; then
-  database_apply_file "$repo_root/sql/components/vessels_phase18_schema.sql"
+if [[ "$acceptance_mode" == rules || "$acceptance_mode" == loss ]]; then
   secondary_hull_count=$(database_query "
     SELECT COUNT(*)
       FROM ship_interiors
      WHERE owner = '$secondary_player';")
   [[ "$secondary_hull_count" == 0 ]] ||
     fail "Vesselmate already owns $secondary_hull_count hulls"
+fi
+if [[ "$acceptance_mode" == rules ]]; then
+  database_apply_file "$repo_root/sql/components/vessels_phase18_schema.sql"
   baseline_secondary_bounty=$(database_query "
     SELECT CONCAT(bounty, '|', marque_until, '|', UNIX_TIMESTAMP(last_offense_at))
       FROM vessel_bounties
@@ -756,7 +769,8 @@ elif [[ "$acceptance_mode" == damage ]]; then
     'PASS: struck colors showed on shipstatus and flew again when she got under way.' \
     'PASS: gunnery from one side holed her port side in ' \
     'started her sinking; she refused gunnery, repair, and salvage.' \
-    'PASS: she went down on her sink timer and left the fleet.' \
+    'PASS: she went down on her sink timer and waits in the wreck registry as a boat.' \
+    'PASS: summoned from the registry, she made port as a boat without sails and bought new ones.' \
     'PASS: the vessel damage check completed and purged all temporary hulls'; do
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-damage.log" ||
       fail "the damage session did not report '$expected_text'"
@@ -806,6 +820,37 @@ elif [[ "$acceptance_mode" == gunnery ]]; then
     'PASS: the vessel gunnery check completed and purged all temporary hulls'; do
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-gunnery.log" ||
       fail "the gunnery session did not report '$expected_text'"
+  done
+elif [[ "$acceptance_mode" == loss ]]; then
+  timeout 120 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --help-check \
+    SHIPSUMMON SHIPREPAIR >"$run_dir/01-loss-help.log" 2>&1 ||
+    fail "Kohdee could not read the authoritative vessel loss help"
+  loss_help_state=$(database_query "
+    SELECT COUNT(*)
+      FROM help_entries
+     WHERE (BINARY tag = 'SHIPBROWSE'
+            AND entry LIKE '%SHIPSUMMON%'
+            AND entry LIKE '%wreck registry%')
+        OR (BINARY tag = 'SHIPFIRE'
+            AND entry LIKE '%Craft (woodworking) check, DC 15%');")
+  [[ "$loss_help_state" == 2 ]] ||
+    fail "the authoritative vessel loss help is stale"
+
+  timeout 300 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --vessel-loss-check \
+    "$warship_prototype_id" "$secondary_player" >"$run_dir/02-kohdee-vessel-loss.log" 2>&1 ||
+    fail "the actual Kohdee and Vesselmate vessel-loss session failed"
+
+  for expected_text in \
+    'PASS: the retired SHIPINSURE command is gone.' \
+    'was refused an able gunner and hired a green bosun' \
+    'PASS: the first christening was free and the rename cost 60 gold.' \
+    'PASS: summoned from the seaport, the boat left the east dock at once' \
+    'PASS: traded in at the seaport, she became the warship design' \
+    'PASS: the vessel loss check completed and purged all temporary hulls'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-loss.log" ||
+      fail "the loss session did not report '$expected_text'"
   done
 elif [[ "$acceptance_mode" == rules ]]; then
   timeout 120 env DEV_MUD_CHARACTER="$target_player" \
@@ -908,12 +953,12 @@ if uses_secondary_player; then
   grep -Fqx 'Room: 1204' "$secondary_player_file" ||
     fail "Vesselmate did not return to room 1204"
 fi
-if [[ "$acceptance_mode" == movement ]]; then
+if [[ "$acceptance_mode" == movement || "$acceptance_mode" == loss ]]; then
   [[ $(database_query "
     SELECT COUNT(*)
       FROM ship_prototypes
-     WHERE name LIKE 'Movecheck Boat%';") == 0 ]] ||
-    fail "the temporary movement-check boat prototype remained"
+     WHERE name LIKE 'Movecheck Boat%' OR name LIKE 'Losscheck Boat%';") == 0 ]] ||
+    fail "a temporary check boat prototype remained"
 fi
 if [[ "$acceptance_mode" == rules ]]; then
   rules_prototype=$(rules_prototype_id)
@@ -925,7 +970,7 @@ if [[ "$acceptance_mode" == rules ]]; then
      WHERE prototype_id = $rules_prototype;") == 0 ]] ||
     fail "the temporary shipyard test prototype $rules_prototype remained"
 fi
-if grep -E 'SYSERR:.*(tactical|lookout|narrative|boarding|Boardatk|Boarddef|Rulesraft|Movecheck|bounty|refits|Starfall Bastion|Starfall Trench|Vailand)' \
+if grep -E 'SYSERR:.*(tactical|lookout|narrative|boarding|Boardatk|Boarddef|Rulesraft|Movecheck|Losscheck|bounty|refits|Starfall Bastion|Starfall Trench|Vailand)' \
   "$server_log" >"$run_dir/04-related-syserr.log"; then
   fail "the server logged a vessel-view SYSERR"
 fi
