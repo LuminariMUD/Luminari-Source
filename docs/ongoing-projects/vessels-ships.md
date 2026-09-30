@@ -1560,6 +1560,79 @@ scope and its weight slows the hull now), the maximum-load check (without it a l
 leaves a warship at speed 1), and unowned hulls rearming at berth (their ammo would otherwise run
 out for good).
 
+MR !9 merged on 2026-09-30 as merge commit `c8bab4576` (branch kept); the S3 and S4 vessel help
+was synced to production the same day. S5 continues on `feat/vessels-s5` (Phase 5 below).
+
+### Phase 5 (S5) progress
+
+Branch `feat/vessels-s5` from the S4 merge commit `c8bab4576`. The annotated tag `vessels-s5-base`
+(pushed) marks that merge commit, so `git log vessels-s5-base..vessels-s5` lists only S5 commits.
+Hand-off: annotated tag `vessels-s5` at the head given to review and a GitLab merge request from
+`feat/vessels-s5`; review fixes go on top. Scope: 3.3.5, 3.3.6, 3.3.7 without renown, rewards and
+damage control (S7), the summon of 3.3.9, the insurance refund of 3.3.10, and L10 (Part 5, step
+5). New code lives in `src/vessels/vessels_repair.c` (repair stock, crew and character repairs,
+dock repairs) and `src/vessels/vessels_loss.c` (stowed hulls, the wreck registry, automatic
+insurance, `shipsummon`, the hull rebuild shared with trade-in); crew experience and stamina join
+`vessels_crew.c`.
+
+| Item | State | Where |
+| -- | -- | -- |
+| Crew experience per position from the tier floor, the 3.3.5 gains, promotion at a floor, casualties when the hull sinks; able and veteran hires refused to mortals until renown exists | Planned | `vessels_crew.c`; `ship_crew_roster.experience` (Phase 21) |
+| Crew stamina: maximum, regeneration, Duris costs for helm, gunnery and repairs; the modifier on accel, turn, reload, hit chance, crash check and repair odds | Planned | `vessels_crew.c`, `vessels_movement.c`, `vessels_gunnery.c` |
+| Repair stock, crew repairs at Duris odds and caps, `shiprepair` at sea (Craft (woodworking) DC 15) and at a shipyard (priced dock repairs with maintenance); refits no longer repair (L10) | Planned | `vessels_repair.c`; `vessel_refit_arcs()` |
+| Stowed hulls (out of the world, fleet slot kept) and `shipsummon` (fee, passage time, empty hold, survives reboot) | Planned | `vessels_loss.c`; `ship_runtime_state.stowed`, `summon_due` (Phase 21) |
+| D3 loss: an owned hull that goes down is rebuilt as the replacement boat and waits in the wreck registry; automatic insurance through the claim queue; `shipinsure` retired and active premiums refunded | Planned | `vessels_loss.c`, `vessel_sink()`; `wreck_hull` (Phase 21) |
+| Trade-in (`shipbuy <id> trade`) and the rename fee | Planned | `do_shipbuy()`, `do_shipchristen()` |
+| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character gate, the existing gates, local CI | Planned |  |
+
+Interpretations decided while planning S5:
+
+- Renown arrives in S7. Until then no hull has any, so able and veteran crew reach a hull only by
+  promotion (staff may still hire them), and a player kill costs the crew the flat 10%.
+- A green crew member never drops below green: casualties floor at the green threshold.
+- "Hostile" for the gunner and bosun gains means a locked contact. The sailmaster gains per room
+  entered; the cargo gains per 2,000 gold of `cargosell` revenue, pro rata.
+- Stamina and the repair stock are runtime only, like the S4 timers: a restart rests the crew and
+  refills the stock. Both are kept as amounts spent (0 = rested, full), so a new or reloaded hull
+  needs no initialization. Costs are Duris's, per 0.5 s tick where Duris charges per second:
+  helm changes, each shot and each reload tick (weapon weight over the square root of the hull
+  weight), and repairs. The sail mod is 0.1 per sailmaster tier, as in the S4 crash check.
+- The route preflight sails its copy with a rested crew, as S4 made it sail with a fit one.
+- Crew repairs run everywhere the hull is afloat, as in Duris; the rudder (LuminariMUD-only)
+  repairs like the sails and prices like them at the shipyard (4 gold a point).
+- A character repair at sea mends one point (structure, then sails, rudder, a damaged weapon)
+  for one point of stock; the old "stationary" rule goes (not in 3.3.6).
+- Dock repairs are ordered by kind: `shiprepair armor|structure|sails|rudder|weapons|all`; each
+  kind's maintenance adds up. The harbor service for unowned hulls (rigging, rudder, ammunition at
+  berth) stays: crew repairs cannot restore sails above their cap.
+- A stowed hull keeps its fleet slot, interior and persistence but has no exterior object and
+  nobody aboard, and `is_valid_ship()` is FALSE for it, so contacts, ticks, targeting and
+  commands pass it by through one check. Its saved location is where it will appear: the
+  summoning shipyard, or the wreck site while it waits in the registry. `shiplist`, `shippurge`
+  and the ownership cap still see it.
+- Summoning puts everyone aboard, and loaded vehicles, into the hull's exterior room (Duris
+  `kick_everyone_off()`), empties the bulk hold, stops the autopilot, and casts off anything
+  alongside. Passage time is wall-clock, so it runs on across a reboot.
+- The wreck is rebuilt in place (same slot, display ID, name, owner, cosmetics, permits, crew) from
+  the replacement prototype with no weapons, equipment or refits. It keeps its sails only when an
+  unowned (NPC) hull made the kill and the lost hull outweighed the boat. The kill belongs to the
+  hull's `last_attacker`.
+- Hull price (insurance, trade-in, rename fee) is `vessel_prototype_price()` of her class, design
+  speed and beam armor, the value the old `shipinsure` cap used.
+- Trade-in: the new hull comes with its class armament, as a purchase does; each old weapon and
+  equipment piece then goes aboard if the fit-out stays legal, else sells at 90%. A credit above
+  the new price is paid out.
+- The first christening is free while the hull still bears her prototype's name; staff rename free.
+- The premium refund (a fifth of `insured_for`, at least 1) is queued as an insurance claim, so it
+  is delivered by the existing settlement path; it sends no mail receipt.
+
+Ablation (planning): dropped a separate wreck table and its identity copy (a wreck is a stowed
+hull in its own slot, so one mechanism serves the registry and summon transit), a summon
+destination column (the saved location is the destination), persisted stamina and stock, a renown
+field with nothing to earn it, the ram training gain (S6), and mail receipts for refunds. Kept the
+rudder in crew and dock repairs (without it a smashed rudder is permanent at sea) and the harbor
+service for unowned hulls.
+
 ### Estimate
 
 Working days of focused implementation per step, each including its tests, help in both places,
