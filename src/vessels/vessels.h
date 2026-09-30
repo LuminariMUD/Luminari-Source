@@ -1155,6 +1155,12 @@ bool vessel_collect_passenger_fare(struct char_data *ch, struct greyhawk_ship_da
 const char *vessel_crew_position_name(int position);
 const char *vessel_crew_tier_name(int tier);
 int vessel_crew_hire_cost(int position, int tier);
+double vessel_crew_floor(int position, int tier);
+void vessel_crew_gain(struct greyhawk_ship_data *ship, int position, double amount);
+void vessel_crew_credit_kill(struct greyhawk_ship_data *victor,
+                             const struct greyhawk_ship_data *target);
+void vessel_crew_sale_gain(struct greyhawk_ship_data *ship, long long revenue);
+void vessel_crew_casualties(struct greyhawk_ship_data *ship, double percent);
 void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship);
 void vessel_db_save_crew(struct greyhawk_ship_data *ship);
 void vessel_db_load_crew(struct greyhawk_ship_data *ship);
@@ -1694,7 +1700,8 @@ struct greyhawk_ship_data
 
   /* Phase 6: Hired crew. Tier 0 = position unfilled; 1-3 = green/able/
    * veteran. Bonuses are mirrored into sailcrew/guncrew on hire. */
-  int crew_tier[4]; /* Indexed by CREW_SAILMASTER..CREW_QUARTERMASTER */
+  int crew_tier[4];  /* Indexed by CREW_SAILMASTER..CREW_QUARTERMASTER */
+  double crew_xp[4]; /* S5 experience per position, in Duris skill points */
 
   /* Phase 6: Upgrades, upkeep, and insurance */
   int upgrades;    /* SHIP_UPGRADE_* bitfield */

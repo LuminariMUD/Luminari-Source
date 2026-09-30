@@ -399,6 +399,10 @@ int vessel_fire_weapon(struct greyhawk_ship_data *ship, int slot, struct greyhaw
 
   weapon->ammo--;
   weapon->timer = vessel_reload_ticks(ship, type);
+  if (ship->lock_target == target->shipnum)
+  {
+    vessel_crew_gain(ship, CREW_GUNNER, 0.1);
+  }
   target->last_attacker = ship->shipnum;
   vessel_battle_stations(ship);
   vessel_battle_stations(target);
@@ -565,9 +569,10 @@ static void vessel_npc_return_fire(struct greyhawk_ship_data *ship)
 }
 
 /**
- * Gunnery tick: recover from a mental blast, reload unless stunned, keep a
- * lock only on a contact the guns may still engage, hold battle stations
- * while locked and stand down 180 s after, and run NPC return fire.
+ * Gunnery tick: recover from a mental blast, reload unless stunned (the
+ * gunner learns from reloading with a contact locked), keep a lock only on a
+ * contact the guns may still engage, hold battle stations while locked and
+ * stand down 180 s after, and run NPC return fire.
  */
 void vessel_gunnery_tick_one(struct greyhawk_ship_data *ship)
 {
@@ -593,6 +598,10 @@ void vessel_gunnery_tick_one(struct greyhawk_ship_data *ship)
       continue;
     }
     ship->slot[s].timer--;
+    if (ship->lock_target != 0)
+    {
+      vessel_crew_gain(ship, CREW_GUNNER, 0.0015);
+    }
     if (ship->slot[s].timer == 0 && ship->slot[s].type == VESSEL_SLOT_WEAPON)
     {
       send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RELOAD, VESSEL_COMBAT_MESSAGE_COOLDOWN,

@@ -1452,6 +1452,7 @@ void init_vessel_system_tables(void)
       "assigned_room INT DEFAULT 0, "
       "duty_station INT DEFAULT 0, "
       "loyalty_rating INT DEFAULT 50, "
+      "experience DOUBLE NOT NULL DEFAULT 0, "
       "status ENUM('active','injured','awol','dead') DEFAULT 'active', "
       "hired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
       "last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "

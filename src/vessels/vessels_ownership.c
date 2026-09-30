@@ -666,8 +666,18 @@ ACMD(do_shipcrew)
   send_to_char(ch, "  Hired crew:\r\n");
   for (i = 0; i < NUM_CREW_POSITIONS; i++)
   {
-    send_to_char(ch, "    %-14s %s\r\n", vessel_crew_position_name(i),
+    send_to_char(ch, "    %-14s %s", vessel_crew_position_name(i),
                  vessel_crew_tier_name(ship->crew_tier[i]));
+    if (ship->crew_tier[i] != CREW_TIER_NONE)
+    {
+      send_to_char(ch, ", %d experience", (int)ship->crew_xp[i]);
+    }
+    if (ship->crew_tier[i] != CREW_TIER_NONE && ship->crew_tier[i] < CREW_TIER_VETERAN)
+    {
+      send_to_char(ch, " (%s at %d)", vessel_crew_tier_name(ship->crew_tier[i] + 1),
+                   (int)vessel_crew_floor(i, ship->crew_tier[i] + 1));
+    }
+    send_to_char(ch, "\r\n");
   }
 }
 

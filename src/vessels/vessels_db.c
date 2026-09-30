@@ -186,6 +186,14 @@ void vessel_persistence_ensure_schema(void)
     log("SYSERR: Unable to add vessel Phase 20 weapon fields: %s", mysql_error(conn));
   }
 
+  /* Crew hired before S5 read 0 and start at the floor of their tier. */
+  if (mysql_query(conn, "ALTER TABLE ship_crew_roster "
+                        "ADD COLUMN IF NOT EXISTS experience DOUBLE NOT NULL DEFAULT 0 "
+                        "AFTER loyalty_rating"))
+  {
+    log("SYSERR: Unable to add vessel Phase 21 crew experience: %s", mysql_error(conn));
+  }
+
   if (mysql_query(conn, "CREATE TABLE IF NOT EXISTS vessel_insurance_claims ("
                         "claim_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, "
                         "ship_id INT NOT NULL, "

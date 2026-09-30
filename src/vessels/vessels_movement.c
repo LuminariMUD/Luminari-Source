@@ -1017,6 +1017,8 @@ void vessel_movement_tick_one(struct greyhawk_ship_data *ship)
   double impact_speed;
   int refused_x;
   int refused_y;
+  int from_x;
+  int from_y;
   bool was_moving;
 
   if (!is_valid_ship(ship))
@@ -1054,6 +1056,8 @@ void vessel_movement_tick_one(struct greyhawk_ship_data *ship)
   }
 
   was_moving = ship->speed > 0.0;
+  from_x = (int)ship->x;
+  from_y = (int)ship->y;
   if (!vessel_sail_tick(ship, vessel_max_speed(ship), vessel_enter_cell, &refused_x, &refused_y))
   {
     /* Barred from a harbor, she lies off it until the crew stands down. */
@@ -1073,6 +1077,13 @@ void vessel_movement_tick_one(struct greyhawk_ship_data *ship)
       vessel_crash_check(ship, impact_speed);
     }
     was_moving = TRUE;
+  }
+
+  /* The sailmaster learns from every room sailed, but not in a raft or boat. */
+  if (((int)ship->x != from_x || (int)ship->y != from_y) && ship->vessel_type != VESSEL_RAFT &&
+      ship->vessel_type != VESSEL_BOAT)
+  {
+    vessel_crew_gain(ship, CREW_SAILMASTER, 0.003);
   }
 
   /* A hull coming to rest records where she lies, berthed in port. */

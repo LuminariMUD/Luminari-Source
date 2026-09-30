@@ -430,6 +430,20 @@ int vessel_arc_toward(const struct greyhawk_ship_data *from, const struct greyha
       (int)lround(vessel_bearing_between(from, to) - from->heading));
 }
 
+/** The hull that sank ship: her last attacker, while still afloat. */
+static struct greyhawk_ship_data *vessel_sink_victor(const struct greyhawk_ship_data *ship)
+{
+  struct greyhawk_ship_data *victor;
+
+  if (ship->last_attacker <= 0 || ship->last_attacker >= GREYHAWK_MAXSHIPS ||
+      ship->last_attacker == ship->shipnum)
+  {
+    return NULL;
+  }
+  victor = &greyhawk_ships[ship->last_attacker];
+  return is_valid_ship(victor) ? victor : NULL;
+}
+
 /**
  * Sink a ship: evacuate everyone aboard into the water, convert the ship
  * object into inert wreckage, and free the fleet slot.
@@ -437,6 +451,7 @@ int vessel_arc_toward(const struct greyhawk_ship_data *from, const struct greyha
 void vessel_sink(int shipnum)
 {
   struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data *victor;
   struct char_data *tch;
   struct char_data *next_tch;
   room_rnum interior;
@@ -452,6 +467,8 @@ void vessel_sink(int shipnum)
 
   log("Info: Ship %d '%s' is sinking at (%d,%d)", shipnum, ship->name, (int)ship->x, (int)ship->y);
   send_to_ship(ship, "The hull gives way - %s is SINKING!", ship->name);
+  victor = vessel_sink_victor(ship);
+  vessel_crew_credit_kill(victor, ship);
   vessel_event_handle_sink(shipnum);
 
   /* Merchant definitions outlive their killable hulls. Record the responsible
