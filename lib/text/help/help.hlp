@@ -31936,9 +31936,11 @@ SHIPRAM [off]
   hull slews the lighter about and both slow to speed 3, and everyone
   aboard both makes a Reflex save (DC 15) or falls prone. She cannot ram
   again for 50 seconds (25 after a miss), and her guns are silent for 25
-  seconds after a hit. A braced crew does not reload; losing the lock or
+  seconds after a hit. A braced crew does not reload. Losing the lock or
   slowing to speed 3 stands it down, and SHIPRAM OFF stands it down at
-  once.
+  once. So does an order that no longer stands when she reaches the
+  contact: whoever gave it must still be in the game and free to fight the
+  hull she is then locked on.
 
   Battle stations last until 180 seconds after the lock clears, your last
   shot, or the last shot at you. At battle stations no harbor admits her,

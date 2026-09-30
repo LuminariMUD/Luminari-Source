@@ -28,7 +28,7 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
  *
  * @return The character, or NULL if not currently in the game
  */
-static struct char_data *vessel_find_online_player(const char *name)
+struct char_data *vessel_find_online_player(const char *name)
 {
   struct char_data *tch;
 

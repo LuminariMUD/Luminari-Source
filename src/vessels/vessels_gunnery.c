@@ -590,7 +590,7 @@ void vessel_reload_tick(struct greyhawk_ship_data *ship)
   const struct vessel_weapon_type *type;
   int s;
 
-  for (s = 0; s < GREYHAWK_MAXSLOTS && !vessel_crew_stunned(ship) && !ship->ramming &&
+  for (s = 0; s < GREYHAWK_MAXSLOTS && !vessel_crew_stunned(ship) && !*ship->ram_order &&
               ship->ram_gun_ticks == 0;
        s++)
   {

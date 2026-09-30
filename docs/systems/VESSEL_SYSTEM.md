@@ -1579,9 +1579,12 @@ neutral-colors sale penalty arrive in S7.
   sight run from it at design speed; the autopilot takes over again when the
   crew stands down.
 - Ramming (`vessels_ramming.c`): `shipram` (gunnery permission, a lock, speed
-  6, the ram cooldown clear, the consent gate) braces the crew;
-  `vessel_ram_tick_one()` (combat tick) rams the locked contact within a room
-  and stands the crew down when the lock drops or she slows to 3. `vessel_ram()`
+  6, the ram cooldown clear, the consent gate) braces the crew and records who
+  gave the order (`ram_order`); `vessel_ram_tick_one()` (combat tick) rams the
+  locked contact within a room and stands the crew down when the lock drops,
+  she slows to 3, or at the impact the order's giver is offline or fails the
+  consent gate against the hull then locked (a lock may change after the
+  order). `vessel_ram()`
   is Duris's `try_ram_ship()`: a 120-degree bow cone at one altitude, speed
   above 3, the sailmaster's 1-3 gain, the target's speed along her heading
   taken off the blow (refused if she outruns it), `vessel_ram_chance()`, then

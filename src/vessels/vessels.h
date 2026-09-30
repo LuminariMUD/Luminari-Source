@@ -822,6 +822,7 @@ ACMD_DECL(do_strikecolors);
 /* An owner cannot end an already-consented vessel fight by logging out. */
 #define VESSEL_PVP_LOGOUT_GRACE 300
 
+struct char_data *vessel_find_online_player(const char *name);
 bool vessel_pvp_permitted(struct char_data *ch, struct greyhawk_ship_data *target, bool display);
 bool vessel_gunnery_permitted(struct char_data *ch, const struct greyhawk_ship_data *ship);
 bool vessel_fire_permitted(struct char_data *ch, struct greyhawk_ship_data *ship,
@@ -1774,10 +1775,10 @@ struct greyhawk_ship_data
   bool wreck_hull;   /* Rebuilt from a lost hull: carries no insurance */
   time_t summon_due; /* When she reaches the shipyard that summoned her; 0 = not summoned */
 
-  /* S6 ramming (vessels_ramming.c), runtime only, in vessel ticks */
-  bool ramming;            /* Braced to ram the locked contact */
-  short int ram_ticks;     /* Before she may ram again */
-  short int ram_gun_ticks; /* The gun crews recover from a ram */
+  /* S6 ramming (vessels_ramming.c), runtime only; timers in vessel ticks */
+  char ram_order[MAX_NAME_LENGTH + 1]; /* Who braced her to ram the lock; "" = not braced */
+  short int ram_ticks;                 /* Before she may ram again */
+  short int ram_gun_ticks;             /* The gun crews recover from a ram */
 
   /* S6 raiders (vessels_raiders.c), runtime only: a restart retires them */
   bool raided;               /* Ambushed this voyage; berthing clears it */

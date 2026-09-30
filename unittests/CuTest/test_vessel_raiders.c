@@ -438,9 +438,9 @@ void Test_vessel_ram_strikes_and_waits(CuTest *tc)
   target = &greyhawk_ships[QUARRY_SHIP];
   target->vessel_type = VESSEL_SHIP;
   ship->speed = 10.0;
-  ship->ramming = TRUE;
+  strlcpy(ship->ram_order, "Corr", sizeof(ship->ram_order));
   CuAssertTrue(tc, !vessel_ram(ship, target));
-  CuAssertTrue(tc, !ship->ramming);
+  CuAssertTrue(tc, !*ship->ram_order);
   target->y = 0.5;
   target->z = 10.0;
   CuAssertTrue(tc, !vessel_ram(ship, target));
@@ -494,33 +494,71 @@ void Test_vessel_ram_strikes_and_waits(CuTest *tc)
 
 void Test_vessel_ram_tick_rams_the_locked_contact(CuTest *tc)
 {
+  struct player_special_data specials;
   struct raider_sea sea;
   struct greyhawk_ship_data *ship;
   struct greyhawk_ship_data *target;
+  struct char_data *saved_character_list;
+  struct char_data orderer;
+  int before;
 
-  /* Braced and locked, she rams once within a room; the reload waits. */
+  /* Corr, online, braces her own frigate to ram a locked NPC hull; while
+   * the crew is braced the reload waits. */
   ship = raider_sea_begin(&sea, 0.0, 2.0, 0.0, 0.0);
   sea.rooms[0].people = NULL; /* Nobody aboard to be knocked down */
   target = &greyhawk_ships[QUARRY_SHIP];
+  target->owner[0] = '\0';
+  strlcpy(ship->owner, "Corr", sizeof(ship->owner));
+  memset(&orderer, 0, sizeof(orderer));
+  memset(&specials, 0, sizeof(specials));
+  orderer.player_specials = &specials;
+  orderer.player.name = CuMutableString("Corr");
+  IN_ROOM(&orderer) = NOWHERE;
+  GET_POS(&orderer) = POS_STANDING;
+  saved_character_list = character_list;
+  orderer.next = character_list;
+  character_list = &orderer;
   vessel_set_weapon(&ship->slot[0], VESSEL_WEAPON_LARGE_BALLISTA, GREYHAWK_FORE);
   ship->slot[0].timer = 10;
   ship->speed = 10.0;
   ship->lock_target = QUARRY_SHIP;
-  ship->ramming = TRUE;
+  strlcpy(ship->ram_order, "Corr", sizeof(ship->ram_order));
   vessel_reload_tick(ship);
   CuAssertIntEquals(tc, 10, ship->slot[0].timer);
   vessel_ram_tick_one(ship);
-  CuAssertTrue(tc, ship->ramming);
+  CuAssertTrue(tc, *ship->ram_order);
+
+  /* Her lock now on a hull whose owner is away, the order no longer stands
+   * at the impact: the crew stands down and no blow is struck. */
+  strlcpy(target->owner, "Tern", sizeof(target->owner));
   target->y = 0.5;
+  before = raider_hull_points(target);
   vessel_ram_tick_one(ship);
-  CuAssertTrue(tc, !ship->ramming);
+  CuAssertTrue(tc, !*ship->ram_order);
+  CuAssertIntEquals(tc, before, raider_hull_points(target));
+  CuAssertIntEquals(tc, 0, ship->ram_ticks);
+
+  /* On the NPC hull she rams within a room. */
+  target->owner[0] = '\0';
+  strlcpy(ship->ram_order, "Corr", sizeof(ship->ram_order));
+  vessel_ram_tick_one(ship);
+  CuAssertTrue(tc, !*ship->ram_order);
   CuAssertTrue(tc, ship->ram_ticks > 0);
 
+  /* The order lapses with its giver gone from the game. */
+  character_list = saved_character_list;
+  ship->ram_ticks = 0;
+  ship->speed = 10.0;
+  strlcpy(ship->ram_order, "Corr", sizeof(ship->ram_order));
+  vessel_ram_tick_one(ship);
+  CuAssertTrue(tc, !*ship->ram_order);
+  CuAssertIntEquals(tc, 0, ship->ram_ticks);
+
   /* Slowed to speed 3, the crew stands down. */
-  ship->ramming = TRUE;
+  strlcpy(ship->ram_order, "Corr", sizeof(ship->ram_order));
   ship->speed = 3.0;
   vessel_ram_tick_one(ship);
-  CuAssertTrue(tc, !ship->ramming);
+  CuAssertTrue(tc, !*ship->ram_order);
 
   raider_sea_end(&sea);
 }

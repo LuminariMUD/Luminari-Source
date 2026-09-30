@@ -5,14 +5,15 @@
  * ********************************************************************** */
 
 /*
- * A braced hull rams her locked contact once it comes within a room. The
- * ram connects inside a 120-degree bow cone at the same altitude, with a
- * chance set by the hulls' weights and by how fast each sails against her
- * class speed. Both hulls take crash damage in 2-6 point hits; a fitted ram
- * strikes first and halves the crash damage its bow takes. The heavier hull
- * spins the lighter one about, both crews are knocked down, and the rammer
- * waits out a cooldown with her guns locked. Speeds are Duris's times 0.3
- * and cooldowns are in 0.5 s ticks (Duris counts seconds).
+ * A braced hull rams her locked contact once it comes within a room, if the
+ * player who gave the order may still fight that hull. The ram connects
+ * inside a 120-degree bow cone at the same altitude, with a chance set by
+ * the hulls' weights and by how fast each sails against her class speed.
+ * Both hulls take crash damage in 2-6 point hits; a fitted ram strikes first
+ * and halves the crash damage its bow takes. The heavier hull spins the
+ * lighter one about, both crews are knocked down, and the rammer waits out a
+ * cooldown with her guns locked. Speeds are Duris's times 0.3 and cooldowns
+ * are in 0.5 s ticks (Duris counts seconds).
  */
 
 #include "conf.h"
@@ -114,7 +115,7 @@ bool vessel_ram(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *targ
   int tarc;
   int ram;
 
-  ship->ramming = FALSE;
+  ship->ram_order[0] = '\0';
   if (fabs(vessel_heading_difference(ship->heading, vessel_bearing_between(ship, target))) >
       VESSEL_RAM_CONE / 2.0)
   {
@@ -245,12 +246,15 @@ bool vessel_ram(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *targ
 
 /**
  * Ram tick: count the cooldowns down, and ram the locked contact once a
- * braced hull comes within a room of her. The crew stands down when the
- * lock is lost or the hull slows to speed 3.
+ * braced hull comes within a room of her. Whoever gave the order must still
+ * be online with consent to fight the hull she is locked on at the impact,
+ * which a changed lock may have made another. The crew stands down
+ * otherwise, and when the lock is lost or the hull slows to speed 3.
  */
 void vessel_ram_tick_one(struct greyhawk_ship_data *ship)
 {
   struct greyhawk_ship_data *target;
+  struct char_data *actor;
 
   if (ship->ram_ticks > 0)
   {
@@ -264,7 +268,7 @@ void vessel_ram_tick_one(struct greyhawk_ship_data *ship)
       send_to_ship(ship, "The gun crews have recovered from the ram.");
     }
   }
-  if (!ship->ramming)
+  if (!*ship->ram_order)
   {
     return;
   }
@@ -272,23 +276,31 @@ void vessel_ram_tick_one(struct greyhawk_ship_data *ship)
   target = vessel_locked_target(ship);
   if (target == NULL)
   {
-    ship->ramming = FALSE;
+    ship->ram_order[0] = '\0';
     send_to_ship(ship, "The crew stands down from ramming: there is no target.");
   }
   else if (vessel_display_speed(ship->speed) <= VESSEL_BOARDING_MAX_SPEED)
   {
-    ship->ramming = FALSE;
+    ship->ram_order[0] = '\0';
     send_to_ship(ship, "The crew stands down from ramming: she has lost way.");
   }
   else if (!vessel_crew_stunned(ship) && vessel_range_between(ship, target) < 1.0)
   {
+    actor = vessel_find_online_player(ship->ram_order);
+    if (actor == NULL || !vessel_fire_permitted(actor, ship, target, TRUE))
+    {
+      ship->ram_order[0] = '\0';
+      send_to_ship(ship, "The crew stands down from ramming: the order no longer stands.");
+      return;
+    }
     vessel_ram(ship, target);
   }
 }
 
 /**
  * shipram [off] - brace the crew to ram the locked contact at speed 6 or
- * more; she rams when the contact comes within a room.
+ * more; she rams when the contact comes within a room and the order still
+ * stands (vessel_ram_tick_one()).
  */
 ACMD(do_shipram)
 {
@@ -315,12 +327,12 @@ ACMD(do_shipram)
   one_argument(argument, arg, sizeof(arg));
   if (!str_cmp(arg, "off"))
   {
-    if (!ship->ramming)
+    if (!*ship->ram_order)
     {
       send_to_char(ch, "The crew is not braced to ram.\r\n");
       return;
     }
-    ship->ramming = FALSE;
+    ship->ram_order[0] = '\0';
     send_to_ship(ship, "The crew returns to battle stations.");
     return;
   }
@@ -330,7 +342,7 @@ ACMD(do_shipram)
     return;
   }
 
-  if (ship->ramming)
+  if (*ship->ram_order)
   {
     send_to_char(ch, "The crew is already braced to ram.\r\n");
     return;
@@ -361,6 +373,6 @@ ACMD(do_shipram)
   {
     return;
   }
-  ship->ramming = TRUE;
+  strlcpy(ship->ram_order, GET_NAME(ch), sizeof(ship->ram_order));
   send_to_ship(ship, "The crew braces to ram [%s] %s!", target->id, target->name);
 }
