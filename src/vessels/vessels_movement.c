@@ -662,6 +662,11 @@ bool vessel_maneuver(struct greyhawk_ship_data *ship, struct char_data *ch, int 
     send_to_char(ch, "%s rides at anchor; order 'undock' to weigh anchor first.\r\n", ship->name);
     return FALSE;
   }
+  if (vessel_crew_stunned(ship))
+  {
+    send_to_char(ch, "The crew reels from a mental blast and cannot answer the helm.\r\n");
+    return FALSE;
+  }
   if (ship->maneuver_ticks > 0)
   {
     send_to_char(ch, "The crew is not ready to maneuver again yet.\r\n");

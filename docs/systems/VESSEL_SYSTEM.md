@@ -1375,8 +1375,9 @@ ticks) and 30 s (60 ticks).
   target's `stun_ticks` (runtime only) to `2 * (5 + 15 * closeness)`, where
   closeness runs from 0 at the weapon's maximum range to 1 at its minimum, so
   5-20 s. A stunned crew (`vessel_crew_stunned()`) cannot steer
-  (`vessel_sail_tick()` holds speed and heading), fire, reload (the gunnery
-  tick freezes the timers), or `shiprepair`. Inside mid-range everyone aboard
+  (`vessel_sail_tick()` holds speed and heading), maneuver
+  (`vessel_maneuver()`, `setsail`), fire, reload (the gunnery tick freezes
+  the timers), or `shiprepair`. Inside mid-range everyone aboard
   saves (Will, `VESSEL_KNOCKDOWN_DC` 15) or falls prone for two rounds
   (`vessel_knockdown_aboard()`, which takes the save type).
 - Flight: `greyhawk_range()` counts one room per 10 Z, so every vessel range

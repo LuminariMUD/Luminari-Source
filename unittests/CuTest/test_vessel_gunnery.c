@@ -678,12 +678,18 @@ void Test_vessel_mind_blast_stuns_the_crew(CuTest *tc)
   vessel_sail_tick(target, 17.0, vessel_open_water, NULL, NULL);
   CuAssertDblEquals(tc, 0.0, target->speed, 0.0001);
 
-  /* Nor fires or repairs. */
+  /* Nor fires, repairs, or maneuvers. */
   ship->stun_ticks = 2;
   output = gunnery_deck_command(&deck, do_shipfire, "port SB");
   CuAssertTrue(tc, strstr(output, "reels from a mental blast and cannot work the guns") != NULL);
   output = gunnery_deck_command(&deck, do_shiprepair, "");
   CuAssertTrue(tc, strstr(output, "nobody can hold a tool steady") != NULL);
+  CuAssertTrue(tc, !vessel_maneuver(ship, &deck.gunner.ch, WEST));
+  CuAssertTrue(tc, !vessel_maneuver(ship, &deck.gunner.ch, UP));
+  CuAssertTrue(tc,
+               strstr(deck.output, "reels from a mental blast and cannot answer the helm") != NULL);
+  CuAssertDblEquals(tc, 0.0, ship->x, 0.0001);
+  CuAssertDblEquals(tc, 0.0, ship->z, 0.0001);
 
   /* The shock passes and the reload resumes. */
   target->stun_ticks = 1;

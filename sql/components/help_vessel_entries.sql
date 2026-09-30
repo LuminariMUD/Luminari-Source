@@ -241,8 +241,8 @@ SHIPFIRE <slot | fore | port | rear | starboard> [<contact>]
 
   The Mind Blast Cannon does no damage. A hit stuns the target\'s crew for 5
   seconds at the cannon\'s 20-room reach, rising to 20 seconds at point
-  blank: a stunned crew cannot steer (the hull carries on as she was),
-  fire, reload, or repair. Inside 10 rooms everyone aboard also makes a
+  blank: a stunned crew cannot steer or maneuver (the hull carries on as
+  she was), fire, reload, or repair. Inside 10 rooms everyone aboard also makes a
   Will save (DC 15) or falls prone for two rounds.
 
 SHIPSIGHT [<slot>]
