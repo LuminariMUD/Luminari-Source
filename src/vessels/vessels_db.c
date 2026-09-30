@@ -225,7 +225,6 @@ void vessel_persistence_ensure_schema(void)
   {
     log("SYSERR: Unable to create vessel_insurance_claims: %s", mysql_error(conn));
   }
-  vessel_refund_insurance_premiums();
 
   ensure_schedule_table_exists();
 }
@@ -1483,6 +1482,7 @@ void load_all_ship_interiors(void)
 
   log("Info: Loading ship interiors from database...");
   vessel_persistence_ensure_schema();
+  vessel_refund_insurance_premiums();
 
   snprintf(query, sizeof(query), "SELECT ship_id FROM ship_interiors ORDER BY ship_id");
   if (mysql_query(conn, query))
