@@ -1,7 +1,9 @@
 -- Vessel System Phase 21: DurisMUD study step S5, crew, repair and loss
 -- (docs/ongoing-projects/vessels-ships.md 3.3.5-3.3.7 and 3.3.10). Mirrors the
--- runtime DDL in vessel_persistence_ensure_schema() (src/vessels/vessels_db.c);
--- it requires Phases 6, 10 and 19.
+-- runtime DDL in vessel_persistence_ensure_schema() (src/vessels/vessels_db.c)
+-- and, for the premium refund, vessel_ownership_ensure_schema()
+-- (src/vessels/vessels_ownership.c), so it also applies to a database that
+-- Phase 06 has not reached.
 
 -- Each hired crew position's experience, in Duris skill points. Crew hired
 -- before S5 read 0 and start at the floor of their tier.
@@ -21,10 +23,16 @@ AFTER stowed,
 ADD COLUMN IF NOT EXISTS summon_due BIGINT NOT NULL DEFAULT 0
 AFTER wreck_hull;
 
--- Insurance is automatic. The premium of every policy bought before, a fifth
--- of its value and at least 1 gold, is refunded as a claim the settlement
--- path delivers at the owner's next login; clearing the policy makes the
--- refund run once. The server does the same at boot.
+-- Insurance is automatic. The owner and the retired policy are Phase 06
+-- columns on ship_interiors.
+ALTER TABLE ship_interiors
+ADD COLUMN IF NOT EXISTS owner VARCHAR(64) NOT NULL DEFAULT '',
+ADD COLUMN IF NOT EXISTS insured_for INT NOT NULL DEFAULT 0;
+
+-- The premium of every policy bought before, a fifth of its value and at
+-- least 1 gold, is refunded as a claim the settlement path delivers at the
+-- owner's next login; clearing the policy makes the refund run once. The
+-- server does the same at boot.
 INSERT INTO vessel_insurance_claims (ship_id, owner, ship_name, amount)
 SELECT
   ship_id,
