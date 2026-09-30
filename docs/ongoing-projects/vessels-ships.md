@@ -1831,7 +1831,8 @@ tactical 283 s, lookout 22 s, boarding 51 s, narrative 24 s, rules 36 s, events 
 gate 196 s (with the raider content applied). In the raider gate Kohdee's frigate rams a stopped
 warship at 99%; a Corsair raider launched with `vesseldebug raider 0` closes from beyond sight in
 under two minutes, rams (and in the earlier runs opened fire first), and grapples, her boarders are
-beaten off, and with her captain purged she heaves to; the restart retires her. The local CI matrix
+beaten off, and with her captain purged she heaves to; the restart retires her. The raider gate
+passes again on the installed build of `465a7c7e4` (133 s). The local CI matrix
 (`scripts/ci/local/run.py --base gitlab/master`) passes all 33 jobs on `39d2c4035` (608 s) and
 again on `465a7c7e4` (355 s), the head's code after a return-type tidy-up.
 
