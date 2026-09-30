@@ -2323,7 +2323,7 @@ and the trigger was removed.
 | `sql/components/vessels_phase22_*` | S6 raider tier table, verification, and rollback |
 | `sql/components/vessels_raider_content.sql` | Six Corsair raider prototypes (not for sale) and their ten tier rows |
 | `sql/components/verify_vessels_raider_content.sql` | Read-only raider prototype and tier inventory |
-| `sql/components/vessels_raider_content_rollback.sql` | Guarded raider content rollback |
+| `sql/components/vessels_raider_content_rollback.sql` | Guarded raider content rollback; a prototype still sailing keeps its tier rows so the restart retires her; rerun after it |
 | `sql/components/vessels_campaign_content.sql` | Initial Vailand regions, law, route, merchant, and iron markets |
 | `sql/components/verify_vessels_campaign_content.sql` | Read-only campaign topology and identity checks |
 | `sql/components/vessels_campaign_content_rollback.sql` | Guarded Vailand content rollback |
