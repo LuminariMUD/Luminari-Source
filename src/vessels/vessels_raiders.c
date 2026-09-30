@@ -1101,11 +1101,9 @@ static bool vessel_raider_witnessed(struct greyhawk_ship_data *ship)
 /**
  * Count down to her leaving the sea, 600 ticks after she lost her quarry,
  * 20 more at a time while she is watched. She takes her crew and whatever
- * is aboard with her.
- *
- * @return TRUE once she has gone
+ * is aboard with her; her slot is free once she has gone.
  */
-static bool vessel_raider_countdown(struct greyhawk_ship_data *ship)
+static void vessel_raider_countdown(struct greyhawk_ship_data *ship)
 {
   if (ship->raider_ticks == 0)
   {
@@ -1114,17 +1112,16 @@ static bool vessel_raider_countdown(struct greyhawk_ship_data *ship)
   ship->raider_ticks--;
   if (ship->raider_ticks > 0)
   {
-    return FALSE;
+    return;
   }
   if (vessel_raider_witnessed(ship))
   {
     ship->raider_ticks = VESSEL_RAIDER_WITNESS_TICKS;
-    return FALSE;
+    return;
   }
   log("Info: Raider %d '%s' leaves the sea", ship->shipnum, ship->name);
   vessel_raider_clear(ship, TRUE);
   vessel_retire_npc_hull(ship->shipnum, NULL);
-  return TRUE;
 }
 
 /**
