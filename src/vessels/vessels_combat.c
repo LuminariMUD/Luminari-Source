@@ -473,6 +473,7 @@ void vessel_sink(int shipnum)
    * still available. */
   vessel_hunter_handle_sink(ship);
   vessel_merchant_handle_sink(ship);
+  vessel_raider_handle_sink(ship);
 
   if (ship->shipobj != NULL && IN_ROOM(ship->shipobj) != NOWHERE)
   {
@@ -606,14 +607,16 @@ void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause)
 }
 
 /**
- * Combat tick: gunnery (reloads, locks, battle stations, NPC return fire)
- * and the damage model's sink and colors timers. Runs on the vessel tick.
+ * Combat tick: gunnery (reloads, locks, battle stations, NPC return fire),
+ * ramming, and the damage model's sink and colors timers. Runs on the
+ * vessel tick.
  */
 void vessel_combat_tick_one(struct greyhawk_ship_data *ship)
 {
   if (!is_valid_ship(ship))
     return;
   vessel_gunnery_tick_one(ship);
+  vessel_ram_tick_one(ship);
   vessel_damage_tick_one(ship);
 }
 
@@ -655,6 +658,13 @@ ACMD(do_claimship)
   if (vessel_is_sinking(ship))
   {
     send_to_char(ch, "%s is going down - there is nothing left to claim.\r\n", ship->name);
+    return;
+  }
+
+  /* A raider is never kept: the next restart would retire her. */
+  if (ship->raider_mode != 0)
+  {
+    send_to_char(ch, "No registry will enter a raider's hull; plunder her and let her go.\r\n");
     return;
   }
 

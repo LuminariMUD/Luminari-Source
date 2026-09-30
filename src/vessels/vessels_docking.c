@@ -807,9 +807,8 @@ void setup_boarding_defenses(struct greyhawk_ship_data *ship)
 }
 
 /** Find the strongest conscious, consenting defender anywhere aboard. */
-static struct char_data *vessel_best_boarding_defender(struct char_data *attacker,
-                                                       struct greyhawk_ship_data *target,
-                                                       int *best_skill)
+struct char_data *vessel_best_boarding_defender(struct char_data *attacker,
+                                                struct greyhawk_ship_data *target, int *best_skill)
 {
   struct char_data *best = NULL;
   struct char_data *vict;

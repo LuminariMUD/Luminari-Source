@@ -5,6 +5,7 @@ set -euo pipefail
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_root=${LUMINARI_PROJECT_ROOT:-$(cd "$script_dir/../.." && pwd)}
 package_dir="$repo_root/lib/world/vessel_harbor"
+raider_package_dir="$repo_root/lib/world/vessel_raiders"
 temporary_dir=$(mktemp -d /tmp/luminari-vessel-harbor.XXXXXX)
 server_unit=luminari-dev-login-smoke.service
 ferry_passenger_fare=10
@@ -176,8 +177,9 @@ merge_missing_records() {
 provision_world_file() {
   local kind=$1
   local filename=$2
+  local source_dir=${3:-$package_dir}
   local destination_dir="$repo_root/lib/world/$kind"
-  local package_file="$package_dir/$filename"
+  local package_file="$source_dir/$filename"
   local live_file="$destination_dir/$filename"
 
   [[ -f "$package_file" ]] || fail "missing package file: $package_file"
@@ -387,6 +389,8 @@ ensure_vessel_zone_range
 provision_world_file wld 10000.wld
 provision_world_file mob 700.mob
 provision_world_file trg 700.trg
+provision_world_file mob 700.mob "$raider_package_dir"
+provision_world_file obj 700.obj "$raider_package_dir"
 
 apply_database_file "$repo_root/sql/components/vessels_phase11_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase12_schema.sql"
@@ -394,6 +398,8 @@ apply_database_file "$repo_root/sql/components/vessels_phase13_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase14_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase15_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase19_schema.sql"
+apply_database_file "$repo_root/sql/components/vessels_phase22_schema.sql"
+apply_database_file "$repo_root/sql/components/vessels_raider_content.sql"
 apply_database_file "$repo_root/sql/components/vessels_harbor_sandbox.sql"
 
 hunter_fixture_valid=$(database_scalar \

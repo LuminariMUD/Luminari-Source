@@ -46,11 +46,11 @@ bool vessel_open_water(struct greyhawk_ship_data *ship, int x, int y, int z)
 }
 
 /**
- * Where a hull will be in one second: a copy sailed two vessel ticks on her
- * present orders, turning and accelerating as she will.
+ * Where a hull will be in `ticks` vessel ticks: a copy sailed on her present
+ * orders, turning and accelerating as she will.
  */
-static void vessel_project_one_second(struct greyhawk_ship_data *ship,
-                                      struct greyhawk_ship_data *next, struct autopilot_data *pilot)
+void vessel_project(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *next,
+                    struct autopilot_data *pilot, int ticks)
 {
   double max_speed;
   int tick;
@@ -66,7 +66,7 @@ static void vessel_project_one_second(struct greyhawk_ship_data *ship,
   {
     return;
   }
-  for (tick = 0; tick < 2; tick++)
+  for (tick = 0; tick < ticks; tick++)
   {
     vessel_sail_tick(next, max_speed, vessel_open_water, NULL, NULL);
   }
@@ -121,8 +121,8 @@ static int vessel_weapon_sight(struct greyhawk_ship_data *ship,
   crossing = fabs(sin((target->heading - bearing) * M_PI / 180.0)) * target->speed /
              VESSEL_DURIS_SPEED_SCALE;
 
-  vessel_project_one_second(ship, &ship_next, &ship_pilot);
-  vessel_project_one_second(target, &target_next, &target_pilot);
+  vessel_project(ship, &ship_next, &ship_pilot, 2);
+  vessel_project(target, &target_next, &target_pilot, 2);
   closing =
       fabs(vessel_range_between(&ship_next, &target_next) - range) * VESSEL_DURIS_UNITS_PER_ROOM;
   turning = fabs(vessel_heading_difference(bearing - ship->heading,
@@ -224,7 +224,7 @@ bool vessel_crew_stunned(const struct greyhawk_ship_data *ship)
   return ship != NULL && ship->stun_ticks > 0;
 }
 
-static void vessel_battle_stations(struct greyhawk_ship_data *ship)
+void vessel_battle_stations(struct greyhawk_ship_data *ship)
 {
   if (ship->battle_ticks == 0)
   {
@@ -235,9 +235,9 @@ static void vessel_battle_stations(struct greyhawk_ship_data *ship)
 
 /**
  * Why this hull cannot fire, or NULL: not berthed in port, anchored,
- * submerged, or going down.
+ * submerged, going down, stunned, or reeling from a ram.
  */
-static const char *vessel_hull_fire_problem(struct greyhawk_ship_data *ship)
+const char *vessel_hull_fire_problem(struct greyhawk_ship_data *ship)
 {
   if (vessel_is_sinking(ship))
   {
@@ -259,6 +259,10 @@ static const char *vessel_hull_fire_problem(struct greyhawk_ship_data *ship)
   {
     return "The crew reels from a mental blast and cannot work the guns.";
   }
+  if (ship->ram_gun_ticks > 0)
+  {
+    return "The gun crews are still picking themselves up from the ram.";
+  }
   return NULL;
 }
 
@@ -267,7 +271,7 @@ static const char *vessel_hull_fire_problem(struct greyhawk_ship_data *ship)
  * harbor's protection and a submerged one is beyond the guns. The buffer
  * holds the answer until the next call.
  */
-static const char *vessel_target_problem(struct greyhawk_ship_data *target)
+const char *vessel_target_problem(struct greyhawk_ship_data *target)
 {
   static char problem[MAX_STRING_LENGTH];
 
@@ -290,7 +294,7 @@ static const char *vessel_target_problem(struct greyhawk_ship_data *target)
  * the harbor's protection, dived, or left sight is lost here, so no shot or
  * sighting uses it.
  */
-static struct greyhawk_ship_data *vessel_locked_target(struct greyhawk_ship_data *ship)
+struct greyhawk_ship_data *vessel_locked_target(struct greyhawk_ship_data *ship)
 {
   struct greyhawk_ship_data *target;
 
@@ -410,10 +414,12 @@ int vessel_fire_weapon(struct greyhawk_ship_data *ship, int slot, struct greyhaw
 
   if (ch == NULL)
   {
-    send_to_ship_throttled(
-        ship, VESSEL_MESSAGE_COMBAT_RETURN_FIRE, VESSEL_COMBAT_MESSAGE_COOLDOWN, "%s %s at %s!",
-        ship->bounty_hunter ? "The navy crew OPENS FIRE" : "The crew RETURNS FIRE",
-        ship->bounty_hunter ? "on" : "at", target->name);
+    send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RETURN_FIRE, VESSEL_COMBAT_MESSAGE_COOLDOWN,
+                           "%s %s!",
+                           ship->bounty_hunter ? "The navy crew OPENS FIRE on"
+                           : ship->raider_mode ? "The raiders OPEN FIRE on"
+                                               : "The crew RETURNS FIRE at",
+                           target->name);
   }
   else
   {
@@ -434,7 +440,10 @@ int vessel_fire_weapon(struct greyhawk_ship_data *ship, int slot, struct greyhaw
     {
       send_to_ship_throttled(target, VESSEL_MESSAGE_COMBAT_RETURN_FIRE_MISS,
                              VESSEL_COMBAT_MESSAGE_COOLDOWN, "%s from %s splashes wide!",
-                             ship->bounty_hunter ? "Navy fire" : "Return fire", ship->name);
+                             ship->bounty_hunter ? "Navy fire"
+                             : ship->raider_mode ? "Raider fire"
+                                                 : "Return fire",
+                             ship->name);
     }
     else
     {
@@ -524,7 +533,8 @@ const char *vessel_weapon_fire_problem(struct greyhawk_ship_data *ship, int slot
 
 /**
  * Auto-defense doctrine: an NPC-piloted ship returns fire at its last
- * attacker with every ready weapon that bears inside its band.
+ * attacker with every ready weapon that bears inside its band. A raider
+ * marks her quarry as her attacker.
  */
 static void vessel_npc_return_fire(struct greyhawk_ship_data *ship)
 {
@@ -570,16 +580,19 @@ static void vessel_npc_return_fire(struct greyhawk_ship_data *ship)
 }
 
 /**
- * Count each weapon's reload down a tick, unless the crew is stunned. A
- * reloading weapon tires the gun crew by its weight over ten times the hull
- * effort per Duris second, and teaches the gunner while a contact is locked.
+ * Count each weapon's reload down a tick, unless the crew is stunned, braced
+ * to ram, or reeling from a ram (Duris). A reloading weapon tires the gun
+ * crew by its weight over ten times the hull effort per Duris second, and
+ * teaches the gunner while a contact is locked.
  */
 void vessel_reload_tick(struct greyhawk_ship_data *ship)
 {
   const struct vessel_weapon_type *type;
   int s;
 
-  for (s = 0; s < GREYHAWK_MAXSLOTS && !vessel_crew_stunned(ship); s++)
+  for (s = 0; s < GREYHAWK_MAXSLOTS && !vessel_crew_stunned(ship) && !ship->ramming &&
+              ship->ram_gun_ticks == 0;
+       s++)
   {
     if (ship->slot[s].timer <= 0)
     {

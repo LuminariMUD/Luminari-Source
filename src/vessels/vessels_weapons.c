@@ -384,7 +384,7 @@ void vessel_add_maintenance(struct greyhawk_ship_data *ship, struct char_data *c
 }
 
 /** The first empty slot, or -1. */
-static int vessel_free_slot(const struct greyhawk_ship_data *ship)
+int vessel_free_slot(const struct greyhawk_ship_data *ship)
 {
   int i;
 
@@ -680,7 +680,7 @@ ACMD(do_shipweapon)
 }
 
 /** The slot holding an equipment item, or -1. */
-static int vessel_equipment_slot(const struct greyhawk_ship_data *ship, int equipment)
+int vessel_equipment_slot(const struct greyhawk_ship_data *ship, int equipment)
 {
   int i;
 

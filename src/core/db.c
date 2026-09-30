@@ -1419,6 +1419,7 @@ void boot_db(void)
   vessel_piracy_ensure_schema();
   vessel_hazard_ensure_schema();
   vessel_hunter_ensure_schema();
+  vessel_raider_ensure_schema();
   vessel_encounter_reload_config();
   vessel_merchant_ensure_schema();
   vessel_event_ensure_schema();
@@ -1432,6 +1433,7 @@ void boot_db(void)
   vessel_hunter_boot();
   vessel_merchant_boot();
   vessel_event_boot();
+  vessel_raider_boot();
   vessel_periodic_rebuild();
 
   log("Loading vehicles from database...");
