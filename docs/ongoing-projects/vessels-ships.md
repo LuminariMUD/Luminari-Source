@@ -1658,6 +1658,35 @@ Decided while building S5:
   port in the current world for characters or hulls; the gate uses the east Testing Dock (1000390)
   and the water one room west of it. The Starfall Bastion prototype is not for sale in the
   development database, so the gate lists its own temporary warship design for the trade-in.
+- Found by the campaign gate: the provisioner stages the Vailand merchant 11 rooms south of the
+  central port and watched her for 45 seconds before the restart, about a room of margin. When the
+  weather let her sail faster she was restored inside the port room, arrived on her first tick
+  (before the next session), and was still casting off at the second shutdown, so the gate failed
+  twice; runs since S3 had all restored her at (-467, 203). The first watch is now 30 seconds
+  (`5a027dc4f`), which restores her at (-467, 201).
+- Found by review: a summons put the hull's own NPC pilot over the side, and a trade-in would have
+  moved the pilot to the dock and left loaded vehicles tied to the old interior; the pilot now
+  stays aboard a summoned hull, a trade-in is refused while one is assigned and releases vehicles
+  first, and a kill's or sale's crew experience is saved at once (`316b7db2b`). The premium refund
+  ran on every schema check; it runs once at boot (`398e23a7f`). The shared reload tick briefly
+  skipped a slot without a catalogue weapon (`c601b83ca`, caught by the periodic scheduler test).
+- Found by the local CI matrix: the Phase 21 SQL now adds the Phase 06 `owner` and `insured_for`
+  columns if missing before the refund, so it applies alone to a fresh `master_schema.sql`, as the
+  migration job requires; the stowed-hull removal test adds the owner column itself, because the
+  CI test database starts from the master schema alone; and clang-tidy wanted `shipbuy`'s mode
+  compared with `!= 0`.
+
+Verification (2026-09-30): `make test-all` with the database cases on (isolated
+`.ci-runtime/lib`, test MariaDB rebuilt from `master_schema.sql` plus every `apply` component)
+passes 1,942 CuTest cases. The vessel help SQL and its verifier pass on that database (89
+keywords, 30 content checks), and Phase 21 applies alone to a fresh master schema, rolls back,
+and verifies. All 17 live gates pass inside the private namespace on the installed build of
+`398e23a7f`: harbor merchant, builder 73 s, gunnery 72 s, tactical 279 s, lookout 28 s,
+boarding 49 s, narrative 24 s, rules 37 s, events 42 s, movement 106 s, the new loss gate 79 s,
+damage 556 s (wreck registry, summons, dock repair), derelict 33 s, hunter 81 s, frontier 218 s,
+and, with the shortened first watch, campaign (126 s and 137 s) and the Vailand merchant, each
+campaign and merchant run on a fresh reload of the development dump. The ferry soak was not
+rerun: S5 does not change ferry movement, and her crews rest and repair as any hull's do.
 
 ### Estimate
 

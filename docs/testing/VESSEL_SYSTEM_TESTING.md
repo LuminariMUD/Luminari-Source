@@ -92,8 +92,11 @@ It resets only the campaign merchant's runtime to its canonical start when an
 earlier route revision left that hull paused, and re-enables her schedule when
 a server disabled it on that revision.
 
-Two actual Kohdee sessions then observe the merchant for 45 seconds each,
-with a hard server restart between them. The gate requires distinct live
+Two actual Kohdee sessions then observe the merchant for 30 and 45 seconds,
+with a hard server restart between them. The shorter first watch leaves her a
+few rooms short of the Central port at the restart, whatever the weather does
+to her speed; a 45-second first watch restored her inside the port room, where
+she arrived before the second session began. The gate requires distinct live
 `shipstatus` positions, shutdown-persisted movement, the same slot and
 generation, active autopilot after restart, named legal waters, the exact
 route, and arrival at the Central port. It rejects any campaign-related
@@ -515,10 +518,16 @@ The port shooters' starboard batteries fire until the target shows
 `Holed: port side. She cannot move.` and `Speed: 0 / 0` without sinking; the
 stern shooters' bow chasers then fire until she shows
 `Holed: port side and stern. SINKING`. Aboard the sinking hull `shipfire`,
-`shiprepair`, and `shipsalvage` are refused. The target must leave the fleet
-within three minutes (the owned-hull timer is 75-150 seconds), after which
-`shipsalvage` on the stopped stern shooter finds nothing afloat. Cleanup
-purges the shooters and returns Kohdee to room 1204; the harness then requires
+`shiprepair`, and `shipsalvage` are refused. Within three minutes (the
+owned-hull timer is 75-150 seconds) she goes down and `shiplist` must show her
+slot as `Starfall Bastion`, a `Boat` in the `wreck registry`, after which
+`shipsalvage` on the stopped stern shooter finds nothing afloat. Kohdee then
+summons the wreck to the harbor's east dock (a staff summons takes a second):
+`shipsummon` lists her in the wreck registry, she arrives at port, and
+`shipstatus` aboard shows her berthed with `Sails: 0/40`,
+`Repair stores: 25/25`, and no weapons; `shiprepair` quotes 160 gold for her 40
+points of sail and `shiprepair sails` restores `Sails: 40/40`. Cleanup purges
+the wreck and the shooters and returns Kohdee to room 1204; the harness then requires
 the prototype at armor 95 with `armor_scale` 1. Cargo spill and salvage
 hauling are covered by the production-linked
 `Test_vessel_cargo_spills_as_crates_that_can_be_salvaged`, since loading bulk
@@ -537,6 +546,10 @@ merchant gates on a fresh reload.
 Under the S4 weapons (reload 20 seconds, three shooters per side) the gate
 passed in 630 seconds on source `bd8bfba96`: the port side was holed in 24
 shots and the stern in 15, and the sink timer read 98 seconds.
+
+Under S5 (reload 17 seconds, crew stamina and repairs, the wreck registry) the
+gate passed in 556 seconds on source `398e23a7f`: the port side was holed in 21
+shots and the stern in 12, and the wreck made port and took her new sails.
 
 ## Vessel Gunnery Check
 
@@ -584,6 +597,45 @@ tactical (455 s), lookout, boarding, narrative, rules, events, movement (116
 s), damage, derelict, and hunter gates passed; the frontier (235 s), movement,
 and campaign gates passed on `fca2b30a7`, and the campaign and both merchant
 gates on `cee7dcdcb`, each on a fresh reload of the development dump.
+
+## Vessel Loss Check
+
+After a clean candidate is built and installed, run:
+
+```bash
+./scripts/vessels/test_vessel_loss_in_game.sh
+```
+
+The wrapper runs the shared tactical harness in `--loss` mode, which reads the
+SHIPSUMMON and SHIPREPAIR help as Kohdee, checks the authoritative help rows,
+refuses to start if Vesselmate already owns a hull, and calls
+`--vessel-loss-check Vesselmate` in the login helper with the same snapshots
+and two-character restoration as the rules gate.
+
+`shipinsure` must be unknown (`Huh!?!`). Kohdee launches a `Losscheck Boat`
+prototype at sea at `(-63, 82)`, one room west of the harbor's east dock, sets
+Vesselmate's purse to 60,000 gold, and deeds her over. Vesselmate's first
+`shipchristen` is free and the second costs `60 gold` (a tenth of the boat's
+600). From the east dock `shipsummon` lists
+`1. Losscheck Tern (Boat): at sea; 2 gold, 37 seconds.`; the order leaves her
+`summoned` in `shiplist`, she arrives at port within 50 seconds, and a second
+order finds her already there. Aboard, `shiphire gunner able` is refused for a
+hull of no renown, a green bosun signs on for 2,000 gold, and `shipcrew` shows
+`bosun          green, 220 experience (able at 900)`. Kohdee lists a temporary
+`Losscheck Frigate` warship design for sale; from the dock Vesselmate trades
+the boat in for 540 gold of credit, and she is rebuilt as a warship with a
+large ballista on the bow, berthed, keeping her owner and her bosun. Cleanup
+purges the hull, deletes both prototypes, and returns both characters to
+room 1204.
+
+On 2026-09-30 the gate passed in 79 seconds inside the private namespace
+described under the Vessel Rules Check, on source `398e23a7f`. In the same
+batch on the same binary the builder (73 s), gunnery (72 s), tactical (279 s),
+lookout (28 s), boarding (49 s), narrative (24 s), rules (37 s), events (42 s),
+movement (106 s), damage (556 s), derelict (33 s), hunter (81 s), frontier
+(218 s), and harbor merchant gates passed, and the campaign (126 s and 137 s)
+and Vailand merchant gates on a fresh reload with the shortened first watch
+(`5a027dc4f`).
 
 ## Shared Harbor Merchant Loss Check
 
