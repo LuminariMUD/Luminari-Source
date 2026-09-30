@@ -1494,8 +1494,8 @@ until then no hull has any.
   shipyard, berthed, saved, and scheduled again.
 - Trade-in and rename: `shipbuy <id> trade` rebuilds the owner's hull berthed
   at that dock (empty hold, not casting off or alongside) in place as the new
-  prototype for its price less 90% of her `vessel_hull_price()`, a credit above
-  the price paid out. The new hull gets her class armament
+  prototype for its price less 90% of her `vessel_hull_price()` (nothing for a
+  `wreck_hull`), a credit above the price paid out. The new hull gets her class armament
   (`vessel_fit_default_weapons()`), then `vessel_carry_fitout()` takes aboard
   each old weapon and equipment piece the fit-out can legally hold and pays
   `vessel_slot_sale_value()` for the rest. `shipchristen` is free while the

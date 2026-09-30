@@ -31814,9 +31814,10 @@ SHIPBUY <id> [trade]
   hulls at a time (staff set the limit with CEDIT), counting wrecks and
   hulls under summons; unowned public and NPC hulls do not count. With
   TRADE, trade in your hull berthed at this dock with an empty hold: 90%
-  of her value comes off the price (any excess is paid to you), and the
-  shipwrights rebuild her as the new hull under her name, with her crew,
-  paint, and permits. The new hull comes with her class armament and
+  of her value comes off the price (any excess is paid to you; a wreck,
+  whose insurance has paid for her, earns nothing), and the shipwrights
+  rebuild her as the new hull under her name, with her crew, paint, and
+  permits. The new hull comes with her class armament and
   takes aboard whatever of the old weapons and equipment she can legally
   carry; the shipwrights buy the rest (see SHIPWEAPON sell).
 

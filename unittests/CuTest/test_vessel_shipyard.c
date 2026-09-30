@@ -357,6 +357,24 @@ void Test_vessel_shipyard_sells_only_listed_hulls(CuTest *tc)
   do_shipbuy(&buyer.ch, "1 trade", 0, 0);
   CuAssertTrue(tc, strstr(output, "Unassign the Auk's NPC pilot before you trade her in.") != NULL);
   autopilot_cleanup(&greyhawk_ships[SHIPYARD_FIRST_SLOT]);
+
+  /* As a Listed Sloop the Auk is worth 90% of one; as a wreck her
+   * insurance has paid for her, and she is worth nothing. */
+  greyhawk_ships[SHIPYARD_FIRST_SLOT].maxspeed = 5;
+  vessel_initialize_condition(&greyhawk_ships[SHIPYARD_FIRST_SLOT], 2);
+  GET_GOLD(&buyer.ch) = 0;
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  do_shipbuy(&buyer.ch, "1 trade", 0, 0);
+  CuAssertTrue(tc, strstr(output, "With 164 gold for the Auk the new hull costs 19 more") != NULL);
+  greyhawk_ships[SHIPYARD_FIRST_SLOT].wreck_hull = TRUE;
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  do_shipbuy(&buyer.ch, "1 trade", 0, 0);
+  CuAssertTrue(tc, strstr(output, "With 0 gold for the Auk the new hull costs 183 more") != NULL);
+  GET_GOLD(&buyer.ch) = 1000000;
   memset(output, 0, sizeof(output));
   descriptor.bufptr = 0;
   descriptor.bufspace = sizeof(output) - 1;

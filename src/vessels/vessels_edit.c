@@ -966,7 +966,8 @@ static void vessel_trade_in(struct char_data *ch, int id, int vclass, int max_sp
     return;
   }
 
-  credit = vessel_hull_price(ship) * VESSEL_TRADE_IN_PERCENT / 100;
+  /* Her insurance already paid for a lost hull, so a wreck earns nothing. */
+  credit = ship->wreck_hull ? 0 : vessel_hull_price(ship) * VESSEL_TRADE_IN_PERCENT / 100;
   if (price - credit > GET_GOLD(ch))
   {
     send_to_char(ch, "With %d gold for %s the new hull costs %d more; you have %d.\r\n", credit,
