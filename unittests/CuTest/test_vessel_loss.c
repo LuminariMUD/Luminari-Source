@@ -297,6 +297,23 @@ static MYSQL *loss_open_test_database(void)
   return connection;
 }
 
+/* Assert the one row of the last query on `connection`. */
+static void loss_assert_row(CuTest *tc, MYSQL *connection, const char *first, const char *second,
+                            const char *third)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+
+  result = mysql_store_result(connection);
+  CuAssertPtrNotNull(tc, result);
+  row = mysql_fetch_row(result);
+  CuAssertPtrNotNull(tc, row);
+  CuAssertStrEquals(tc, first, row[0]);
+  CuAssertStrEquals(tc, second, row[1]);
+  CuAssertStrEquals(tc, third, row[2]);
+  mysql_free_result(result);
+}
+
 void Test_vessel_wreck_is_rebuilt_as_the_cheapest_boat_for_sale(CuTest *tc)
 {
   const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
@@ -403,6 +420,68 @@ void Test_vessel_removed_players_stowed_hulls_are_purged(CuTest *tc)
   CuAssertIntEquals(tc, 0, ship->shipnum);
   CuAssertIntEquals(tc, 0, vessel_owned_hull_count("Lossremoved"));
 
+  conn = saved_conn;
+  mysql_available = saved_mysql_available;
+  mysql_close(connection);
+}
+
+void Test_vessel_insurance_claim_marks_the_loss_paid(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct greyhawk_ship_data *ship;
+  MYSQL *saved_conn;
+  MYSQL *connection;
+  bool saved_mysql_available;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    return;
+  }
+  connection = loss_open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  if (mysql_query(connection, "CREATE TEMPORARY TABLE vessel_insurance_claims ("
+                              "claim_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, "
+                              "ship_id INT NOT NULL, owner VARCHAR(64) NOT NULL, "
+                              "ship_name VARCHAR(128) NOT NULL, amount INT NOT NULL, "
+                              "status VARCHAR(16) NOT NULL DEFAULT 'pending', "
+                              "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+                              "paid_at TIMESTAMP NULL DEFAULT NULL) ENGINE=InnoDB") != 0 ||
+      mysql_query(connection, "CREATE TEMPORARY TABLE player_mail ("
+                              "mail_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, "
+                              "sender VARCHAR(255) NOT NULL, receiver VARCHAR(255) NOT NULL, "
+                              "subject VARCHAR(255) NOT NULL, message TEXT NOT NULL, "
+                              "date_sent DATE DEFAULT NULL) ENGINE=InnoDB") != 0 ||
+      mysql_query(connection,
+                  "CREATE TEMPORARY TABLE ship_runtime_state ("
+                  "ship_id INT PRIMARY KEY, "
+                  "wreck_hull TINYINT UNSIGNED NOT NULL DEFAULT 0) ENGINE=InnoDB") != 0 ||
+      mysql_query(connection, "INSERT INTO ship_runtime_state VALUES (485, 0)") != 0)
+  {
+    mysql_close(connection);
+    CuFail(tc, "could not create the isolated insurance fixture");
+    return;
+  }
+  saved_conn = conn;
+  saved_mysql_available = mysql_available;
+  conn = connection;
+  mysql_available = TRUE;
+
+  /* The claim and the mark that her loss is paid commit together, so a hull
+   * saved while sinking and restored by a crash goes down again for nothing. */
+  ship = loss_ship(VESSEL_BOAT, "Lossclaim");
+  vessel_pay_insurance(ship, 450);
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "SELECT (SELECT COUNT(*) FROM vessel_insurance_claims "
+                                            "WHERE ship_id = 485 AND amount = 450), "
+                                            "(SELECT COUNT(*) FROM player_mail), "
+                                            "wreck_hull FROM ship_runtime_state"));
+  loss_assert_row(tc, connection, "1", "1", "1");
+
+  memset(ship, 0, sizeof(*ship));
   conn = saved_conn;
   mysql_available = saved_mysql_available;
   mysql_close(connection);

@@ -1473,7 +1473,9 @@ until then no hull has any.
 - Loss (decision D3): `vessel_sink()` credits the victor's crew, settles
   `vessel_insurance_payout()` (the class share of `vessel_hull_price()`, 75%
   for ship, transport, and boat and 50% for the rest, 90% when an unowned
-  hull made the kill, nothing for a raft or a `wreck_hull`), and for an owned
+  hull made the kill, nothing for a raft or a `wreck_hull`; the claim sets
+  `ship_runtime_state.wreck_hull` in its transaction, so a hull restored
+  mid-sink by a crash is not paid twice), and for an owned
   hull calls `vessel_wreck_hull()`: casualties, then
   `vessel_rebuild_hull()` from `vessel_wreck_prototype()` (the cheapest boat
   for sale, else the cheapest hull for sale, else a boat to the `vedit`

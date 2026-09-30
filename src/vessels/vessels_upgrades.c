@@ -51,8 +51,8 @@ static bool vessel_insurance_ensure_schema(void)
 }
 
 /**
- * Queue one durable claim for a lost hull's owner with its system mail, in
- * one transaction.
+ * Queue one durable claim for a lost hull's owner with its system mail, and
+ * mark her loss paid, in one transaction.
  */
 static bool vessel_queue_insurance_claim(struct greyhawk_ship_data *ship, int amount)
 {
@@ -62,6 +62,8 @@ static bool vessel_queue_insurance_claim(struct greyhawk_ship_data *ship, int am
   char subject[256];
   char message[1024];
   unsigned long long claim_id;
+  PREPARED_STMT *statement;
+  bool marked;
 
   if (ship == NULL || amount <= 0 || ship->owner[0] == '\0' || !vessel_insurance_ensure_schema())
   {
@@ -89,6 +91,22 @@ static bool vessel_queue_insurance_claim(struct greyhawk_ship_data *ship, int am
     return FALSE;
   }
   claim_id = mysql_insert_id(conn);
+
+  /* Mark the loss paid with the claim: a hull saved while sinking and
+   * restored before her wreck was saved goes down again without paying. */
+  statement = mysql_stmt_create(conn);
+  marked = statement != NULL &&
+           mysql_stmt_prepare_query(
+               statement, "UPDATE ship_runtime_state SET wreck_hull = 1 WHERE ship_id = ?") &&
+           mysql_stmt_bind_param_int(statement, 0, ship->shipnum) &&
+           mysql_stmt_execute_prepared(statement);
+  mysql_stmt_cleanup(statement);
+  if (!marked)
+  {
+    log("SYSERR: Could not mark the loss of ship %d paid", ship->shipnum);
+    mysql_query(conn, "ROLLBACK");
+    return FALSE;
+  }
 
   snprintf(subject, sizeof(subject), "Insurance settlement for %s", ship->name);
   snprintf(message, sizeof(message),
