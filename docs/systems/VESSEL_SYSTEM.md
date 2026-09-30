@@ -1573,8 +1573,8 @@ neutral-colors sale penalty arrive in S7.
   the bridge) stops the AI: she heaves to, clears her pilot so return fire
   stops, and counts down. `vessel_raider_handle_sink()` takes her crew down
   with her. Raiders are persisted like any public hull, and
-  `vessel_raider_boot()` retires every unowned hull restored from a raider
-  prototype; `claimship` refuses a raider.
+  `vessel_raider_boot()` (from `vessel_hunter_boot()`) retires every unowned
+  hull restored from a raider prototype; `claimship` refuses a raider.
 - NPC merchants (`merchant_id`) at battle stations with their attacker in
   sight run from it at design speed; the autopilot takes over again when the
   crew stands down.
@@ -1595,7 +1595,8 @@ neutral-colors sale penalty arrive in S7.
   not reload (`vessel_reload_tick()`).
 - Staff: `vesseldebug raider <0-3> [hunter]` launches a raider against the
   player's hull the staff member is aboard.
-- Persistence (Phase 22): `vessel_raider_tiers (tier, prototype_id)`; all
+- Persistence (Phase 22): `vessel_raider_tiers (tier, prototype_id)`, created
+  by `vessel_raider_ensure_schema()` from `vessel_hunter_ensure_schema()`; all
   raider and ram state is runtime only.
 
 ### Builder Commands (Phase 04)
@@ -2120,7 +2121,9 @@ Maximum: 500 active vessels * 20 rooms = 10,000 rooms
    reconciliation reattaches matching live generations and assembles
    definitions that are due. Hunter reconciliation accepts only the exact
    target, unique generation name, prototype, fleet slot, and active pilot;
-   stale or expired rows retire safely.
+   stale or expired rows retire safely. The hunter boot then retires every
+   raider the restart restored (S6), so raiders never outlive a restart or a
+   copyover.
 2. **Create**: A spawned or purchased vessel receives a fleet slot, object,
    interior, and immediate database record.
 3. **Operate**: Docking, route, cargo, trade, ownership, crew, upgrade, and
@@ -2133,7 +2136,8 @@ Maximum: 500 active vessels * 20 rooms = 10,000 rooms
    applies the applicable persistence policy, and closes any matching merchant
    or bounty-hunter lifecycle. A sunk player hull is rebuilt and stowed in the
    wreck registry instead of deleted (S5). Capturing a hunter removes its configured pilot
-   and leaves the ordinary captured hull.
+   and leaves the ordinary captured hull; a raider cannot be captured, and one
+   that leaves the sea takes her crew and everything aboard with her.
 5. **Copyover**: Complete vessel state is committed before descriptor handoff.
    Boot reconstructs dynamic interiors and exterior hull objects before player
    descriptors return to their saved rooms.
