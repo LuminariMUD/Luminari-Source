@@ -1583,7 +1583,7 @@ insurance, `shipsummon`, the hull rebuild shared with trade-in); crew experience
 | Stowed hulls (out of the world, fleet slot kept) and `shipsummon` (fee, passage time, empty hold, survives reboot) | Done | `vessels_loss.c`: `vessel_stow()`, `vessel_restow()`, `vessel_summon_seconds()`, `vessel_summon_fee()`, `vessel_summon_tick()`, `do_shipsummon()`; `ship_runtime_state.stowed`, `summon_due` (Phase 21); `shiplist`, `shippurge`, owner count, player removal |
 | D3 loss: an owned hull that goes down is rebuilt as the replacement boat and waits in the wreck registry; automatic insurance through the claim queue; `shipinsure` retired and active premiums refunded | Done | `vessel_wreck_hull()`, `vessel_wreck_prototype()`, `vessel_rebuild_hull()`, `vessel_insurance_payout()`, `vessel_hull_price()` in `vessels_loss.c`; `vessel_sink()`; `vessel_refund_insurance_premiums()`; `wreck_hull` (Phase 21) |
 | Trade-in (`shipbuy <id> trade`) and the rename fee | Done | `vessel_trade_in()`, `do_shipchristen()` in `vessels_edit.c`; `vessel_carry_fitout()`, `vessel_slot_sale_value()` in `vessels_weapons.c` |
-| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character gate, the existing gates, local CI | Done | SHIPHIRE, SHIPFIRE (SHIPREPAIR), SHIPBROWSE (SHIPSUMMON), VESSELS, SHIPLIST (verifier: 89 keywords, 30 content checks); new `test_vessel_crew.c`, `test_vessel_loss.c`; `scripts/vessels/test_vessel_loss_in_game.sh` (tactical harness `--loss`, login helper `--vessel-loss-check`), and the damage gate now summons her wreck; results below |
+| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character gate, the existing gates, local CI | Done | SHIPHIRE, SHIPFIRE (SHIPREPAIR), SHIPBROWSE (SHIPSUMMON), VESSELS, SHIPLIST (verifier: 89 keywords, 31 content checks); new `test_vessel_crew.c`, `test_vessel_loss.c`; `scripts/vessels/test_vessel_loss_in_game.sh` (tactical harness `--loss`, login helper `--vessel-loss-check`), and the damage gate now summons her wreck; results below |
 
 Interpretations decided while planning S5:
 
@@ -1688,6 +1688,24 @@ and, with the shortened first watch, campaign (126 s and 137 s) and the Vailand 
 campaign and merchant run on a fresh reload of the development dump. The ferry soak was not
 rerun: S5 does not change ferry movement, and her crews rest and repair as any hull's do. The local
 CI matrix (`scripts/ci/local/run.py --base gitlab/master`) passes all 33 jobs on `1aa67494c`.
+
+MR !10 review round 1 (2026-09-30), one commit per finding on `feat/vessels-s5` (range
+`vessels-s5..feat/vessels-s5`):
+
+| Finding | Fix | Commit |
+| -- | -- | -- |
+| P2: trading in a rebuilt wreck for 90% of the replacement boat renewed an insured boat for a tenth of its price after every loss | A `wreck_hull` earns no trade-in credit: her insurance paid for her | `29c13048d` |
+| P2: with policies gone, nothing durable stopped a hull saved while sinking, and restored by a crash before her wreck was saved, from queuing a second claim | The claim transaction sets `ship_runtime_state.wreck_hull`, the existing "insurance spent" flag, so she goes down again without paying | `d6597399f` |
+| P2: a stowed hull whose save failed was never retried: `save_all_vessels()` skipped inactive hulls | The runtime and weapon saves accept a stowed hull, the full save includes stowed hulls, and `vessel_stow()` no longer raises `active` for one attempt | `64f0a70d3` |
+| P2: permanent removal left the player's helm permit on other owners' stowed hulls, written back at their next save | Permit pruning covers stowed hulls | `4f722a3bc` |
+| P2: the Phase 21 refund and the policy reset were separate autocommits, so an interrupted migration could refund twice | Both run in one transaction after the ALTERs | `cbcdc85e2` |
+
+Review-round verification: `make test-all` with the DB cases on passes 1,944 CuTest cases and the
+protocol harness, and each new assertion fails on the code before its fix. All 33 local CI jobs
+pass on `cbcdc85e2` (723 s). Phase 21 applied to a database with a live policy refunds it once,
+and a rerun adds no second claim. The vessel help verifier passes (89 keywords, 31 content
+checks). On a fresh reload of the development dump the loss (79 s) and damage (614 s) gates pass
+on this code; the damage gate's wreck settles her 20,646-gold claim through the new transaction.
 
 ### Estimate
 
