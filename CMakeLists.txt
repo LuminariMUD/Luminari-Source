@@ -803,6 +803,8 @@ set(SRC_C_FILES
     src/vessels/vessels_piracy.c
     src/vessels/vessels_trade.c
     src/vessels/vessels_upgrades.c
+    src/vessels/vessels_gunnery.c
+    src/vessels/vessels_weapons.c
     src/core/weather.c
     src/wilderness/wilderness.c
     src/wilderness/wilderness_kb.c
@@ -1242,6 +1244,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_vessel_tactical.c
     unittests/CuTest/test_vessel_lookout.c
     unittests/CuTest/test_vessel_damage.c
+    unittests/CuTest/test_vessel_weapons.c
     unittests/CuTest/test_vessel_movement.c
     unittests/CuTest/test_vessel_narrative.c
     unittests/CuTest/test_vessel_boarding.c

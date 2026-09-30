@@ -887,9 +887,9 @@ proportion.
 #### 3.3.4 Weapons, fitting and gunnery
 
 - The twelve Duris weapons (1.3) are seeded as data rows with Duris ranges, damage, fragments,
-  spread, sail hit, hull/sail percentages, ammo and reloads (60 and 90 ticks). Prices are twice
-  the platinum price; selling returns 90% (10% if damaged). Installing takes `weight * 75` s of
-  maintenance, which blocks departure.
+  spread, sail hit, hull/sail percentages, ammo and reloads (60 and 90 ticks; S4 tuned them to
+  40 and 60 for D2, see Phase 4). Prices are twice the platinum price; selling returns 90% (10%
+  if damaged). Installing takes `weight * 75` s of maintenance, which blocks departure.
 - Mounts and arc weight caps come from 3.3.1; each weapon keeps its Duris arcs; a class may mount
   what its analog may mount in `ship_allowed_weapons[]`. One capital weapon per hull, needing
   renown of 1,600 (light beam), 1,800 (heavy beam), 1,700 (mind blast), 1,900 (fragmentation) or
@@ -1431,6 +1431,134 @@ with a rerolled timer without the fix); the boot `ALTER`, the Phase 19 schema, r
 and verifier on the isolated test database; all 33 local CI jobs on `02729c19b` (622 s). No live
 gate covers the changed paths (the damage gate stops its target before holing it), so none was
 rerun.
+
+MR !8 merged on 2026-09-29 as merge commit `a85e97d9f` (branch kept); S4 continues on
+`feat/vessels-s4` (Phase 4 below). The S3 vessel help still needs its production help sync.
+
+### Phase 4 (S4) progress
+
+Branch `feat/vessels-s4` from the S3 merge commit `a85e97d9f`. The annotated tag `vessels-s4-base`
+(pushed) marks that merge commit, so `git log vessels-s4-base..vessels-s4` lists only S4 commits.
+Hand-off: annotated tag `vessels-s4` at the head given to review and a GitLab merge request from
+`feat/vessels-s4`; review fixes go on top. Scope: 3.3.4, the S4 parts of 3.3.1 (hull weight,
+mounts, arc weight caps) and 3.3.2 (the crash check, a legal fit-out at departure), the default
+ballistae of 3.3.10, and L6 and the S4 half of L9 (Part 5, step 4). The catalogue and the
+shipyard live in the new `src/vessels/vessels_weapons.c`, the gunnery in the new
+`src/vessels/vessels_gunnery.c`.
+
+| Item | State | Where |
+| -- | -- | -- |
+| Catalogue: the twelve Duris weapons (1.3; 2 gold per pp; reloads tuned from 60 and 90 ticks to 40 and 60 by the duel harness), the ram and neutral colors | Done | `weapon_types[]`, `vessel_weapon_type()`, `vessel_slot_weapon()`, `vessel_slot_name()`, `vessel_slot_weight()` in `vessels_weapons.c`; `vessel_resolve_hit()` reads the row (range damage for beams) |
+| Class fitting (3.3.1): hull weight, mounts and arc weight caps, the analog's allowed weapons | Done | Hull weight in `vessel_class_handling()`; `class_fitting[]` and `vessel_fitout_problem()` in `vessels_weapons.c` |
+| 16 slots within the 5 KiB `greyhawk_ship_data` budget | Done | `struct greyhawk_ship_slot` (type, arc, catalogue row, ammo, damage, timer: 8 bytes); `GREYHAWK_MAXSLOTS` 16 |
+| Persistence and migration (3.3.10): every slot is a `ship_weapons` row; legacy weapons become large ballistae (warship) or medium ballistae with full ammo; new hulls get the same class fit | Done | `vessel_db_save_weapons()`, `vessel_db_load_weapons()`, `vessel_fit_default_weapons()`; Phase 20 SQL (`catalog_id`, `ammo`) with rollback and verifier; the slot blob and its hex codec are gone |
+| Shipyard: `shipweapon list\|buy\|sell\|swap`, `shipequip list\|buy\|sell`, `shiprearm [slot\|all]`; installation and rearm maintenance blocks departure; departure checks a legal fit-out | Done | `do_shipweapon()`, `do_shipequip()`, `do_shiprearm()`, `vessel_add_maintenance()` in `vessels_weapons.c` behind `vessel_refit_ship()` (was `refit_command_ship()`); `maintenance_ticks` counted down in `vessel_movement_tick_one()`; `vessel_begin_departure()`; unowned hulls rearm in `vessel_berth()` |
+| Gunnery: `shiplock`, battle stations, `shipfire <slot\|arc> [id]`, the geometry DC (L6), criticals by pierce, reload by gunner tier, ammo; NPC return fire on the same rules | Done | `vessel_gunnery_dc()` (`vessel_weapon_sight()`, `vessel_volley_chance()`), `vessel_gunnery_bonus()`, `vessel_fire_weapon()`, `vessel_gunnery_tick_one()`, `do_shiplock()`, `do_shipfire()` and `vessel_npc_return_fire()` (moved from `vessels_combat.c`) in `vessels_gunnery.c`; `lock_target`, `battle_ticks` |
+| `shipsight`, `shipscan`; `contacts` shows the arc each contact lies in | Done | `do_shipsight()`, `do_shipscan()`; `do_greyhawk_contacts()` shows the arc and marks the lock |
+| Crew stun weapon (Mind Blast Cannon) | Done | `vessel_mental_blast()`, `vessel_crew_stunned()`, `stun_ticks`; `vessel_sail_tick()`, the gunnery tick, `vessel_hull_fire_problem()`, and `do_shiprepair()` honor it; `vessel_knockdown_aboard()` takes the save type (Will here, Reflex for hull hits) |
+| Flight: one room per 10 Z in every vessel range, x1.5 miss against a flyer, an airborne hull boarded only within 10 Z; submerged hulls neither fire nor are targeted | Done | `greyhawk_range()`; `vessel_range_between()`, `vessel_bearing_between()` (exact positions) for contacts, arcs, and gunnery; `can_attempt_boarding()`; `vessel_hull_fire_problem()`, `vessel_target_problem()` |
+| Battle stations block entering a port (L9); the crash check for land and shallows at battle stations (3.3.2, moved from S2) | Done | `vessel_enter_cell_default()` (`vessel_cell_is_port()`, `vessel_cell_is_shallow()`), `vessel_crash_check()` from `vessel_movement_tick_one()`; `vessel_maneuver()` explains a refused harbor |
+| Duel harness on the S4 rules and the D2 bounds | Done | `vessel_balance_run_duels()`, `vessel_balance_captain()`; 200 duels: median 431 s, p95 590 s, minimum 262 s, 1 draw (1,000: 434/604/249 s, 5 draws) |
+| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character gunnery gate, the existing gates, local CI | Done | SHIPFIRE (with SHIPLOCK, SHIPSIGHT, SHIPSCAN), SHIPHIRE (with SHIPWEAPON, SHIPEQUIP, SHIPREARM), SHIPSTATUS, CONTACTS, BOARD_HOSTILE, SPEED, UNDOCK and VESSELDEBUG in `help.hlp` and `help_vessel_entries.sql` (verifier: 89 keywords, 26 content checks); `test_vessel_weapons.c`, `test_vessel_gunnery.c`; `scripts/vessels/test_vessel_gunnery_in_game.sh` (tactical harness `--gunnery`, login helper `--vessel-gunnery-check`); results below |
+
+Verification (2026-09-30, namespace harness on a reloaded dump of the development database): the
+first boot converted every pre-S4 weapon row (none left with `catalog_id` 0: nine medium and three
+large ballistae) and the Phase 20 verifier passes. All 15 live gates pass. On `bd8bfba96` in one
+batch: builder 49 s, the new gunnery gate 71 s, tactical 455 s (three shooters volleying at the
+20-second reload), lookout 21 s, boarding 52 s, narrative 20 s, rules 35 s, events 46 s,
+movement 116 s, damage 630 s (port side holed in 24 shots, stern in 15, sink timer 98 s),
+derelict 33 s, hunter 82 s. On `fca2b30a7`: frontier 235 s (its arc refusal now names the
+weapon and the arc), gunnery 75 s, movement 116 s, campaign 136 s. On `cee7dcdcb`, each on a
+fresh reload: campaign 136 s and the merchant loss gate for both merchants. `make test-all` with
+the DB cases on passes 1921 CuTest cases. The first local CI run (on `e5aba4294`) failed two jobs:
+clang-tidy (decrements inside conditions, the signed `char` slot arc and gunner modifier, an
+unwidened cooldown, two unread test stores) and the gcc-16 warning budget (a possible null
+lookup in `shiprearm`). `75ebf39a1` clears them without changing behavior; all 33 jobs pass on it
+(565 s), and the gunnery gate passes again on it (104 s).
+
+The Vailand merchant gate found a defect older than S4 (the S3 base binary refuses the same
+route): a replacement hull spawned facing north at the north port, and the S2 momentum route
+check sailed it east through its steerage turn onto the beach at (-598,455), so no replacement
+Ironwind Trader could enter service. `cee7dcdcb` builds a merchant on the bearing of its first
+leg. The harbor merchant gate needs that merchant's schedule enabled; the development database
+has it disabled since the stall recorded under S3, so the run enabled it in the disposable copy.
+
+MR !9 review round 1 (2026-09-30), one commit per finding on `feat/vessels-s4` (range
+`vessels-s4..feat/vessels-s4`):
+
+| Finding | Fix | Commit |
+| -- | -- | -- |
+| P2: a refit bought while the crew cast off, or after, in port, sailed with its work unfinished | `vessel_refit_ship()` takes work only from a berthed hull with no departure under way | `838f58824` |
+| P2: `setsail` (a room, or up and down) still steered a stunned hull | `vessel_maneuver()` refuses a stunned crew | `e479ab1bd` |
+| P2: a shot through a lock before the next tick could hit a contact that had dived, entered port, or left sight | `vessel_locked_target()` drops such a lock wherever it is read: the tick, `shipfire`, `shipsight`, `shiplock` | `132abac00` |
+| Found tracing finding 2: the schedule route check sailed a stunned hull's copy, whose stun never wore off, so a Mind Blast hit at departure disabled her schedule | The copy sails with her crew fit | `56e96cb00` |
+
+Review-round verification: `make test-all` with the DB cases on passes 1921 CuTest cases, and
+each new assertion fails on the code before its fix. All 33 local CI jobs pass on `56e96cb00`
+(390 s). On a fresh reload of the development dump the gunnery (87 s), rules (39 s), events
+(88 s), and movement (119 s) gates pass on this code. The vessel help is applied to the
+development database and its verifier passes.
+
+Interpretations decided while planning S4:
+
+- The weapon and equipment rows are static tables in code, as S3's class profiles are: nothing
+  edits them in play, and a code table needs no loader, schema or content package. Slots and
+  `ship_weapons` rows store the row number (`catalog_id`).
+- A slot drops its description, range, dice, weight and map position fields; the catalogue
+  supplies them. Sixteen of the old 272-byte slots would break the 5 KiB struct budget
+  (`test_transport_production.c`).
+- Every slot, weapons and equipment alike, persists as a `ship_weapons` row. The `slot_data`
+  blob, written beside the rows since both arrived in `3d58cedb9`, has no other consumer and is
+  no longer written or read. A weapon row with `catalog_id` 0 is a pre-S4 weapon, converted at
+  load.
+- `lock` and `scan` are taken (door locks, the character `scan`), so the commands are
+  `shiplock`, `shipscan` and, for consistency, `shipsight`, as S3 made `salvage` `shipsalvage`.
+- Renown arrives in S7; until then a capital weapon needs a veteran gunner.
+- Equipment has only its weight and slot in S4: the ram rams in S6 and neutral colors act on
+  raiders (S6) and sales (S7). Colors cannot come off with cargo aboard (3.3.8).
+- A fit-out is legal when every weapon is allowed on the class and on its arc, no arc exceeds its
+  mounts or weight cap, at most one weapon is capital, and the fit-out weighs no more than the
+  class max load (Duris's available-weight check). One check refuses both a purchase and a
+  departure.
+- Installation and rearm maintenance is runtime only, like the departure timers: a restart ends
+  it. Immortals skip it, as Duris's trusted characters do.
+- Battle stations last 180 s after the lock clears, the hull fires, or a shot is fired at her
+  (Duris sets them on firing and on a volley's arrival). A lock or a shot is refused in port, so
+  battle stations never start in one. `shipsummon` (S5) and the repair odds (S5) read them later.
+- The hit model uses exact positions (room plus offset) and projects both hulls one second ahead
+  by sailing copies through `vessel_sail_tick()`, so turning and accelerating count as in Duris.
+  Stamina arrives in S5; its modifier is 1 until then.
+- Crash check: the sail mod is 0.1 per sailmaster tier. Shallows (water shallower than the class
+  minimum depth, the pre-S2 grounding test) refuse a hull only at battle stations, so seaports
+  stay open; a refused port room stops the hull without a crash roll.
+- Unowned hulls rearm when they berth, as S2 made them re-rig.
+- The duel harness sails two default warships with Duris's frigate combat fit (1.13d: three large
+  ballistae on each beam and a heavy beamcannon fore, an able gunner) through the production
+  movement, hit, damage and reload code, with a captain that holds the healthier beam at two
+  thirds of ballista range. It seeds the random stream for the duels and restores it after.
+
+Decided while building S4:
+
+- Reload times are D2's tuning lever. With Duris's 30 s and 45 s the harness gave a 9-minute
+  median (1,000 duels: 538 s, p95 725 s). 20 s and 30 s give 434 s, p95 604 s, minimum 249 s,
+  steady across five seeds; 15 s and 22.5 s shortened the median only another 10% (maneuvering
+  dominates the time) and drew 2-3% of duels.
+- A duel with no kill in an hour is a draw, allowed up to 2%: stern hits foul the rudder, and a
+  hull that cannot come about can limp off, or both lie immobile with nothing bearing.
+- The harness captain steers proportionally, abeam at 7.5 rooms and 20 degrees toward the enemy
+  per room beyond (bow on by 12), away inside it; a banded captain that held 6-9 rooms with
+  30-degree tacks let 6% of duels separate for good.
+- The duels run on the game loop, so the default is 200 (about 0.3 s) and the most 1,000.
+- `greyhawk_getarc()` became `vessel_arc_toward()` on hull pointers, so harness hulls outside the
+  fleet array get their arcs; they use fleet slot 0, which is never live, so they are never in
+  port.
+
+Ablation (planning): dropped a database weapon table and its loader, the slot blob, persisted
+maintenance, lock and stun timers (runtime, like departures), and separate purchase and departure
+checks (one legality check). Kept the equipment although it acts in S6 and S7 (it is S4's fitting
+scope and its weight slows the hull now), the maximum-load check (without it a legal-looking fit
+leaves a warship at speed 1), and unowned hulls rearming at berth (their ammo would otherwise run
+out for good).
 
 ### Estimate
 

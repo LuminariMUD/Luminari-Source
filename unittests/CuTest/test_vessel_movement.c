@@ -206,17 +206,19 @@ void Test_vessel_load_factor_counts_fitout_above_its_allowance(CuTest *tc)
   ship.vessel_type = VESSEL_WARSHIP;
   CuAssertDblEquals(tc, 1.0, vessel_load_factor(&ship), 0.0001);
 
-  /* The frigate carries 20 weight of fit-out free; 71 weighs 51 over. */
-  ship.slot[0].type = 1;
-  ship.slot[0].weight = 20;
+  /* The frigate carries 20 weight of fit-out free: two large ballistae. */
+  vessel_set_weapon(&ship.slot[0], VESSEL_WEAPON_LARGE_BALLISTA, GREYHAWK_PORT);
+  vessel_set_weapon(&ship.slot[1], VESSEL_WEAPON_LARGE_BALLISTA, GREYHAWK_STARBOARD);
   CuAssertDblEquals(tc, 1.0, vessel_load_factor(&ship), 0.0001);
-  ship.slot[1].type = 1;
-  ship.slot[1].weight = 51;
-  CuAssertDblEquals(tc, 1.0 - 51.0 / 142.0, vessel_load_factor(&ship), 0.0001);
+  vessel_set_weapon(&ship.slot[2], VESSEL_WEAPON_HEAVY_BALLISTA, GREYHAWK_PORT);
+  CuAssertDblEquals(tc, 1.0 - 15.0 / 142.0, vessel_load_factor(&ship), 0.0001);
 
-  /* An empty slot weighs nothing, whatever it records. */
-  ship.slot[2].weight = 100;
-  CuAssertDblEquals(tc, 1.0 - 51.0 / 142.0, vessel_load_factor(&ship), 0.0001);
+  /* A ram weighs (hull weight + 10) / 24, 12 on a frigate; colors nothing. */
+  ship.slot[3].type = VESSEL_SLOT_EQUIPMENT;
+  ship.slot[3].item = VESSEL_EQUIPMENT_RAM;
+  ship.slot[4].type = VESSEL_SLOT_EQUIPMENT;
+  ship.slot[4].item = VESSEL_EQUIPMENT_COLORS;
+  CuAssertDblEquals(tc, 1.0 - 27.0 / 142.0, vessel_load_factor(&ship), 0.0001);
 
   ship.crew_tier[CREW_SAILMASTER] = CREW_TIER_VETERAN;
   CuAssertDblEquals(tc, 1.3, vessel_sailmaster_multiplier(&ship), 0.0001);
@@ -464,19 +466,24 @@ void Test_vessel_rest_in_port_berths_and_undock_casts_off(CuTest *tc)
   vessel_movement_tick_one(ship);
   CuAssertIntEquals(tc, 0, ship->dock);
 
-  /* The harbor makes good an unowned hull's rigging and rudder when it
-   * berths; an owner repairs their own. */
+  /* The harbor makes good an unowned hull's rigging and rudder and refills
+   * her ammunition when she berths; an owner sees to their own. */
   ship->dock = 0;
   ship->mainsail = 1;
   ship->turnrate = 1;
+  vessel_set_weapon(&ship->slot[0], VESSEL_WEAPON_LARGE_BALLISTA, GREYHAWK_FORE);
+  ship->slot[0].ammo = 2;
   strlcpy(ship->owner, "Mara", sizeof(ship->owner));
   vessel_berth(ship);
   CuAssertIntEquals(tc, 1, ship->mainsail);
   CuAssertIntEquals(tc, 1, ship->turnrate);
+  CuAssertIntEquals(tc, 2, ship->slot[0].ammo);
   ship->owner[0] = '\0';
   vessel_berth(ship);
   CuAssertIntEquals(tc, ship->maxmainsail, ship->mainsail);
   CuAssertIntEquals(tc, ship->maxturnrate, ship->turnrate);
+  CuAssertIntEquals(tc, 30, ship->slot[0].ammo);
+  memset(&ship->slot[0], 0, sizeof(ship->slot[0]));
   ship->dock = 0;
 
   /* After a reboot a hull at rest in port berths, and a berth away from
@@ -882,6 +889,12 @@ void Test_vessel_schedule_check_sails_the_turn_the_hull_will_make(CuTest *tc)
   CuAssertIntEquals(tc, 11, bad_x);
   CuAssertIntEquals(tc, 0, bad_y);
 
+  /* A crew stunned for the moment does not fail the route: the check sails
+   * her as her crew will, fit. */
+  refuse_room = FALSE;
+  ship->stun_ticks = 100;
+  CuAssertTrue(tc, scheduled_route_is_traversable(ship, &sound, &bad_waypoint, &bad_x, &bad_y));
+
   waypoint_list = saved_waypoints;
   movement_end(&fixture);
 }
@@ -968,6 +981,48 @@ void Test_vessel_restart_keeps_an_owned_hull_damaged_in_port(CuTest *tc)
   CuAssertIntEquals(tc, MOVEMENT_ROOM_VNUM, ship->dock);
   CuAssertIntEquals(tc, 1, ship->mainsail);
   CuAssertIntEquals(tc, 1, ship->turnrate);
+
+  movement_end(&fixture);
+}
+
+void Test_vessel_battle_stations_risk_a_grounding(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  int bow;
+
+  /* Refused the land ahead, she stops at its edge unharmed. */
+  ship = movement_begin(&fixture, VESSEL_WARSHIP);
+  bow = ship->farmor;
+  ship->speed = 17.0;
+  ship->setspeed = 17;
+  refuse_room = TRUE;
+  refused_x = 0;
+  refused_y = 1;
+  movement_ticks(ship, 4);
+  CuAssertDblEquals(tc, 0.0, ship->speed, 0.0001);
+  CuAssertIntEquals(tc, bow, ship->farmor);
+
+  /* At battle stations a frigate at full speed (57 in Duris units) runs
+   * aground whenever 2d50 <= 107, always: 285 / 25 + 1 hits of 1-9, the
+   * first on the bow. */
+  ship->dy = 0.0;
+  ship->speed = 17.0;
+  ship->setspeed = 17;
+  ship->battle_ticks = VESSEL_BATTLE_STATIONS_TICKS;
+  movement_ticks(ship, 4);
+  CuAssertDblEquals(tc, 0.0, ship->speed, 0.0001);
+  CuAssertTrue(tc, ship->farmor < bow);
+
+  /* A stunned crew cannot save her even at steerage way. */
+  vessel_initialize_condition(ship, 40);
+  ship->battle_ticks = 0;
+  ship->stun_ticks = 100;
+  ship->dy = 0.0;
+  ship->speed = 2.0;
+  movement_ticks(ship, 30);
+  CuAssertDblEquals(tc, 0.0, ship->speed, 0.0001);
+  CuAssertTrue(tc, ship->farmor < bow);
 
   movement_end(&fixture);
 }

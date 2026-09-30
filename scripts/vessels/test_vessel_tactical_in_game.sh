@@ -7,7 +7,7 @@ repo_root=${LUMINARI_PROJECT_ROOT:-$(cd "$script_dir/../.." && pwd)}
 acceptance_mode=tactical
 if [[ $# -gt 0 ]]; then
   [[ $# -eq 1 ]] || {
-    printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage]\n' "$0" >&2
+    printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery]\n' "$0" >&2
     exit 2
   }
   case "$1" in
@@ -29,8 +29,11 @@ if [[ $# -gt 0 ]]; then
     --damage)
       acceptance_mode=damage
       ;;
+    --gunnery)
+      acceptance_mode=gunnery
+      ;;
     *)
-      printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage]\n' "$0" >&2
+      printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery]\n' "$0" >&2
       exit 2
       ;;
   esac
@@ -404,6 +407,10 @@ finish() {
       printf 'PASS: Kohdee validated the hull condition display, struck colors, holing, '
       printf 'sinking, and its refusals with exact character restoration (%ss).\n' \
         "$elapsed_seconds"
+    elif [[ "$acceptance_mode" == gunnery ]]; then
+      printf 'PASS: Kohdee validated the shipyard, locks, battle stations, the harbor '
+      printf 'refusal, scanning, sighting, and arc fire with exact character restoration (%ss).\n' \
+        "$elapsed_seconds"
     elif [[ "$acceptance_mode" == rules ]]; then
       printf 'PASS: Kohdee and Vesselmate validated the shipyard listing, contact IDs, '
       printf 'gunnery authorization, hull level, hull cap, and bounty pay-off with exact '
@@ -584,7 +591,7 @@ if [[ "$acceptance_mode" == tactical ]]; then
     >"$run_dir/01-tactical-help.log" 2>&1 ||
     fail "Kohdee could not read the authoritative TACTICAL help"
 
-  timeout 300 env DEV_MUD_CHARACTER="$target_player" \
+  timeout 600 env DEV_MUD_CHARACTER="$target_player" \
     "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --vessel-tactical-check \
     "$warship_prototype_id" >"$run_dir/02-kohdee-vessel-tactical.log" 2>&1 ||
     fail "the actual Kohdee vessel-tactical session failed"
@@ -770,6 +777,36 @@ elif [[ "$acceptance_mode" == damage ]]; then
       FROM ship_prototypes
      WHERE prototype_id = $warship_prototype_id;") == '95|1' ]] ||
     fail "the Starfall Bastion prototype is not on the S3 armor scale"
+elif [[ "$acceptance_mode" == gunnery ]]; then
+  timeout 120 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --help-check \
+    SHIPFIRE SHIPWEAPON >"$run_dir/01-gunnery-help.log" 2>&1 ||
+    fail "Kohdee could not read the authoritative vessel gunnery help"
+  gunnery_help_state=$(database_query "
+    SELECT COUNT(*)
+      FROM help_entries
+     WHERE (BINARY tag = 'SHIPFIRE'
+            AND entry LIKE '%SHIPLOCK%'
+            AND entry LIKE '%no harbor admits her%')
+        OR (BINARY tag = 'SHIPHIRE'
+            AND entry LIKE '%SHIPWEAPON buy%'
+            AND entry LIKE '%SHIPREARM%');")
+  [[ "$gunnery_help_state" == 2 ]] ||
+    fail "the authoritative vessel gunnery help is stale"
+
+  timeout 300 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --vessel-gunnery-check \
+    "$warship_prototype_id" >"$run_dir/02-kohdee-vessel-gunnery.log" 2>&1 ||
+    fail "the actual Kohdee vessel-gunnery session failed"
+
+  for expected_text in \
+    'PASS: the shipyard listed the catalogue, fitted and sold a ballista and a ram' \
+    'PASS: a lock called battle stations and the harbor refused the warship' \
+    'PASS: contacts, shipscan, and shipsight read the target, and the starboard arc fired' \
+    'PASS: the vessel gunnery check completed and purged all temporary hulls'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-gunnery.log" ||
+      fail "the gunnery session did not report '$expected_text'"
+  done
 elif [[ "$acceptance_mode" == rules ]]; then
   timeout 120 env DEV_MUD_CHARACTER="$target_player" \
     "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --help-check \

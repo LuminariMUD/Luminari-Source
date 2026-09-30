@@ -157,6 +157,8 @@ void vessel_persistence_ensure_schema(void)
                         "slot_y TINYINT UNSIGNED NOT NULL DEFAULT 0, "
                         "reload_timer SMALLINT NOT NULL DEFAULT 0, "
                         "weapon_damage TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+                        "catalog_id TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+                        "ammo SMALLINT UNSIGNED NOT NULL DEFAULT 0, "
                         "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP "
                         "ON UPDATE CURRENT_TIMESTAMP, "
                         "PRIMARY KEY (ship_id, slot_index), "
@@ -172,6 +174,16 @@ void vessel_persistence_ensure_schema(void)
                         "DEFAULT 0 AFTER reload_timer"))
   {
     log("SYSERR: Unable to add vessel S3 weapon damage: %s", mysql_error(conn));
+  }
+
+  /* Rows saved before S4 read catalog_id 0 and are converted at load. */
+  if (mysql_query(conn, "ALTER TABLE ship_weapons "
+                        "ADD COLUMN IF NOT EXISTS catalog_id TINYINT UNSIGNED NOT NULL "
+                        "DEFAULT 0 AFTER weapon_damage, "
+                        "ADD COLUMN IF NOT EXISTS ammo SMALLINT UNSIGNED NOT NULL DEFAULT 0 "
+                        "AFTER catalog_id"))
+  {
+    log("SYSERR: Unable to add vessel Phase 20 weapon fields: %s", mysql_error(conn));
   }
 
   if (mysql_query(conn, "CREATE TABLE IF NOT EXISTS vessel_insurance_claims ("
@@ -371,225 +383,10 @@ void load_ship_interior(struct greyhawk_ship_data *ship)
 }
 
 /**
- * Hex-encode a bounded string so slot descriptions cannot collide with the
- * compact delimiter-based numeric format.
- */
-static void vessel_hex_encode(char *dest, size_t dest_size, const char *source, size_t source_size)
-{
-  static const char digits[] = "0123456789ABCDEF";
-  size_t length;
-  size_t i;
-
-  if (dest == NULL || dest_size == 0)
-  {
-    return;
-  }
-
-  length = strnlen(source, source_size);
-  if (length == 0)
-  {
-    strlcpy(dest, "-", dest_size);
-    return;
-  }
-  if (length > (dest_size - 1) / 2)
-  {
-    length = (dest_size - 1) / 2;
-  }
-
-  for (i = 0; i < length; i++)
-  {
-    dest[i * 2] = digits[((unsigned char)source[i] >> 4) & 0x0f];
-    dest[i * 2 + 1] = digits[(unsigned char)source[i] & 0x0f];
-  }
-  dest[length * 2] = '\0';
-}
-
-/**
- * Convert one hexadecimal character to its numeric value.
- */
-static int vessel_hex_value(char value)
-{
-  if (value >= '0' && value <= '9')
-  {
-    return value - '0';
-  }
-  if (value >= 'a' && value <= 'f')
-  {
-    return value - 'a' + 10;
-  }
-  if (value >= 'A' && value <= 'F')
-  {
-    return value - 'A' + 10;
-  }
-  return -1;
-}
-
-/**
- * Decode a slot description produced by vessel_hex_encode().
- */
-static bool vessel_hex_decode(char *dest, size_t dest_size, const char *source)
-{
-  size_t length;
-  size_t bytes;
-  size_t i;
-  int high;
-  int low;
-
-  if (dest == NULL || dest_size == 0 || source == NULL)
-  {
-    return FALSE;
-  }
-  if (!strcmp(source, "-"))
-  {
-    dest[0] = '\0';
-    return TRUE;
-  }
-
-  length = strlen(source);
-  if ((length % 2) != 0)
-  {
-    dest[0] = '\0';
-    return FALSE;
-  }
-  bytes = length / 2;
-  if (bytes >= dest_size)
-  {
-    bytes = dest_size - 1;
-  }
-
-  for (i = 0; i < bytes; i++)
-  {
-    high = vessel_hex_value(source[i * 2]);
-    low = vessel_hex_value(source[i * 2 + 1]);
-    if (high < 0 || low < 0)
-    {
-      dest[0] = '\0';
-      return FALSE;
-    }
-    dest[i] = (char)((high << 4) | low);
-  }
-  dest[bytes] = '\0';
-  return TRUE;
-}
-
-/**
- * Serialize equipment slots, including reload timers, for combat recovery.
- *
- * @return Number of bytes written, excluding the terminator
- */
-int vessel_serialize_slot_state(const struct greyhawk_ship_data *ship, char *buffer,
-                                size_t buffer_size)
-{
-  char encoded_description[sizeof(ship->slot[0].desc) * 2 + 1];
-  const struct greyhawk_ship_slot *slot;
-  int length;
-  int i;
-
-  if (ship == NULL || buffer == NULL || buffer_size == 0)
-  {
-    return 0;
-  }
-
-  length = snprintf(buffer, buffer_size, "%d", GREYHAWK_MAXSLOTS);
-  for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
-  {
-    slot = &ship->slot[i];
-    vessel_hex_encode(encoded_description, sizeof(encoded_description), slot->desc,
-                      sizeof(slot->desc));
-    length = snprintf_append(buffer, buffer_size, length, "|%d,%d,%u,%d,%d,%d,%d,%u,%u,%d,%s",
-                             (int)(unsigned char)slot->type, (int)(unsigned char)slot->position,
-                             (unsigned int)slot->weight, (int)(unsigned char)slot->val0,
-                             (int)(unsigned char)slot->val1, (int)(unsigned char)slot->val2,
-                             (int)(unsigned char)slot->val3, (unsigned int)slot->x,
-                             (unsigned int)slot->y, (int)slot->timer, encoded_description);
-  }
-  return length;
-}
-
-/**
- * Restore equipment slots serialized by vessel_serialize_slot_state().
- *
- * @return Number of slots restored
- */
-int vessel_deserialize_slot_state(struct greyhawk_ship_data *ship, const char *data)
-{
-  char data_copy[8192];
-  char encoded_description[sizeof(ship->slot[0].desc) * 2 + 1];
-  char *save_pointer;
-  char *token;
-  struct greyhawk_ship_slot *slot;
-  int declared_count;
-  int type;
-  int position;
-  int weight;
-  int val0;
-  int val1;
-  int val2;
-  int val3;
-  int x;
-  int y;
-  int timer;
-  int parsed;
-
-  if (ship == NULL || data == NULL || !*data)
-  {
-    return 0;
-  }
-
-  strlcpy(data_copy, data, sizeof(data_copy));
-  save_pointer = NULL;
-  token = strtok_r(data_copy, "|", &save_pointer);
-  if (token == NULL)
-  {
-    return 0;
-  }
-
-  declared_count = parse_int(token);
-  declared_count = MIN(GREYHAWK_MAXSLOTS, MAX(0, declared_count));
-  memset(ship->slot, 0, sizeof(ship->slot));
-  parsed = 0;
-
-  while (parsed < declared_count && (token = strtok_r(NULL, "|", &save_pointer)) != NULL)
-  {
-    encoded_description[0] = '\0';
-    if (strict_sscanf(token, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%512s", &type, &position, &weight,
-                      &val0, &val1, &val2, &val3, &x, &y, &timer, encoded_description) != 11)
-    {
-      break;
-    }
-
-    slot = &ship->slot[parsed];
-    slot->type = (char)type;
-    slot->position = (char)position;
-    slot->weight = (unsigned char)MAX(0, MIN(255, weight));
-    slot->val0 = (char)val0;
-    slot->val1 = (char)val1;
-    slot->val2 = (char)val2;
-    slot->val3 = (char)val3;
-    slot->x = (unsigned char)MAX(0, MIN(255, x));
-    slot->y = (unsigned char)MAX(0, MIN(255, y));
-    slot->timer = (short int)timer;
-    if (!vessel_hex_decode(slot->desc, sizeof(slot->desc), encoded_description))
-    {
-      log("SYSERR: Invalid persisted equipment description for ship %d slot %d", ship->shipnum,
-          parsed);
-    }
-    parsed++;
-  }
-
-  return parsed;
-}
-
-/**
- * Persist installed weapons in normalized rows.
- *
- * The runtime slot blob remains a complete recovery snapshot for legacy slot
- * types. Weapon rows are the durable, inspectable authority for installed
- * armament and override their matching blob slots when present.
+ * Persist every weapon and equipment slot as a row.
  */
 bool vessel_db_save_weapons(struct greyhawk_ship_data *ship)
 {
-  char escaped_description[sizeof(ship->slot[0].desc) * 2 + 1];
   char query[MAX_STRING_LENGTH];
   struct greyhawk_ship_slot *slot;
   int i;
@@ -614,23 +411,18 @@ bool vessel_db_save_weapons(struct greyhawk_ship_data *ship)
   for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
   {
     slot = &ship->slot[i];
-    if (slot->type != 1)
+    if (slot->type == VESSEL_SLOT_EMPTY)
     {
       continue;
     }
 
-    mysql_real_escape_string(conn, escaped_description, slot->desc,
-                             strnlen(slot->desc, sizeof(slot->desc)));
     snprintf(query, sizeof(query),
              "INSERT INTO ship_weapons "
-             "(ship_id, slot_index, slot_type, position, equipment_weight, "
-             "description, val0, val1, val2, val3, slot_x, slot_y, reload_timer, "
-             "weapon_damage) "
-             "VALUES (%d, %d, %d, %d, %u, '%s', %d, %d, %d, %d, %u, %u, %d, %u)",
-             ship->shipnum, i, (int)(unsigned char)slot->type, (int)(unsigned char)slot->position,
-             (unsigned int)slot->weight, escaped_description, (int)slot->val0, (int)slot->val1,
-             (int)slot->val2, (int)slot->val3, (unsigned int)slot->x, (unsigned int)slot->y,
-             (int)slot->timer, (unsigned int)slot->damage);
+             "(ship_id, slot_index, slot_type, position, catalog_id, ammo, reload_timer, "
+             "weapon_damage) VALUES (%d, %d, %d, %d, %u, %u, %d, %u)",
+             ship->shipnum, i, (int)slot->type, (int)(unsigned char)slot->position,
+             (unsigned int)slot->item, (unsigned int)slot->ammo, (int)slot->timer,
+             (unsigned int)slot->damage);
     if (mysql_query(conn, query))
     {
       goto rollback;
@@ -652,7 +444,9 @@ rollback:
 }
 
 /**
- * Restore normalized weapon rows over the compatibility runtime snapshot.
+ * Restore the slots from their rows. A weapon row without a catalogue row
+ * was saved before S4 and becomes the class default weapon on the same arc,
+ * fully loaded, keeping its damage (study 3.3.10); the next save writes it.
  */
 bool vessel_db_load_weapons(struct greyhawk_ship_data *ship)
 {
@@ -661,7 +455,7 @@ bool vessel_db_load_weapons(struct greyhawk_ship_data *ship)
   MYSQL_ROW row;
   struct greyhawk_ship_slot *slot;
   int slot_index;
-  int i;
+  int converted;
 
   if (!mysql_available || conn == NULL || ship == NULL)
   {
@@ -669,9 +463,8 @@ bool vessel_db_load_weapons(struct greyhawk_ship_data *ship)
   }
 
   snprintf(query, sizeof(query),
-           "SELECT slot_index, slot_type, position, equipment_weight, description, "
-           "val0, val1, val2, val3, slot_x, slot_y, reload_timer, weapon_damage "
-           "FROM ship_weapons WHERE ship_id = %d ORDER BY slot_index",
+           "SELECT slot_index, slot_type, position, catalog_id, ammo, reload_timer, "
+           "weapon_damage FROM ship_weapons WHERE ship_id = %d ORDER BY slot_index",
            ship->shipnum);
   if (mysql_query(conn, query))
   {
@@ -685,21 +478,8 @@ bool vessel_db_load_weapons(struct greyhawk_ship_data *ship)
     return FALSE;
   }
 
-  /* An empty table is also the upgrade path from the phase-9 slot blob. */
-  if (mysql_num_rows(result) == 0)
-  {
-    mysql_free_result(result);
-    return TRUE;
-  }
-
-  for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
-  {
-    if (ship->slot[i].type == 1)
-    {
-      memset(&ship->slot[i], 0, sizeof(ship->slot[i]));
-    }
-  }
-
+  memset(ship->slot, 0, sizeof(ship->slot));
+  converted = 0;
   while ((row = mysql_fetch_row(result)) != NULL)
   {
     slot_index = row[0] ? parse_int(row[0]) : -1;
@@ -710,25 +490,25 @@ bool vessel_db_load_weapons(struct greyhawk_ship_data *ship)
     }
 
     slot = &ship->slot[slot_index];
-    memset(slot, 0, sizeof(*slot));
-    slot->type = (char)(row[1] ? parse_int(row[1]) : 1);
-    slot->position = (char)(row[2] ? parse_int(row[2]) : 0);
-    slot->weight = (unsigned char)(row[3] ? parse_int(row[3]) : 0);
-    if (row[4] != NULL)
+    slot->type = (char)(row[1] ? parse_int(row[1]) : VESSEL_SLOT_WEAPON);
+    slot->position = (unsigned char)(row[2] ? parse_int(row[2]) : GREYHAWK_FORE);
+    slot->item = (unsigned char)(row[3] ? parse_int(row[3]) : 0);
+    slot->ammo = (unsigned char)MIN(255, MAX(0, row[4] ? parse_int(row[4]) : 0));
+    if (slot->type == VESSEL_SLOT_WEAPON && slot->item == VESSEL_WEAPON_NONE)
     {
-      strlcpy(slot->desc, row[4], sizeof(slot->desc));
+      vessel_set_weapon(slot, vessel_default_weapon(ship->vessel_type), slot->position);
+      converted++;
     }
-    slot->val0 = (char)(row[5] ? parse_int(row[5]) : 0);
-    slot->val1 = (char)(row[6] ? parse_int(row[6]) : 0);
-    slot->val2 = (char)(row[7] ? parse_int(row[7]) : 0);
-    slot->val3 = (char)(row[8] ? parse_int(row[8]) : 0);
-    slot->x = (unsigned char)(row[9] ? parse_int(row[9]) : 0);
-    slot->y = (unsigned char)(row[10] ? parse_int(row[10]) : 0);
-    slot->timer = (short int)(row[11] ? parse_int(row[11]) : 0);
+    slot->timer = (short int)(row[5] ? parse_int(row[5]) : 0);
     slot->damage =
-        (unsigned char)MIN(VESSEL_WEAPON_DESTROYED, MAX(0, row[12] ? parse_int(row[12]) : 0));
+        (unsigned char)MIN(VESSEL_WEAPON_DESTROYED, MAX(0, row[6] ? parse_int(row[6]) : 0));
   }
   mysql_free_result(result);
+  if (converted > 0)
+  {
+    log("Info: Ship %d: %d pre-S4 weapon%s converted to catalogue weapons", ship->shipnum,
+        converted, converted == 1 ? "" : "s");
+  }
   return TRUE;
 }
 
@@ -739,8 +519,6 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
 {
   char query[MAX_STRING_LENGTH];
   char room_types[512];
-  char slot_data[8192];
-  char escaped_slot_data[sizeof(slot_data) * 2 + 1];
   char escaped_id[sizeof(ship->id) * 2 + 1];
   char escaped_pvp_attacker[sizeof(ship->pvp_grace_attacker) * 2 + 1];
   int location_vnum;
@@ -790,8 +568,6 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
         snprintf_append(room_types, sizeof(room_types), length, ",%d", ship->room_templates[i]);
   }
 
-  vessel_serialize_slot_state(ship, slot_data, sizeof(slot_data));
-  mysql_real_escape_string(conn, escaped_slot_data, slot_data, strlen(slot_data));
   mysql_real_escape_string(conn, escaped_id, ship->id, strlen(ship->id));
   mysql_real_escape_string(conn, escaped_pvp_attacker, ship->pvp_grace_attacker,
                            strlen(ship->pvp_grace_attacker));
@@ -809,7 +585,7 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, condition_model, "
            "sink_ticks, last_attacker, pvp_grace_until, pvp_grace_attacker, "
            "dock_fee_balance, dock_fee_port, dock_fee_clan, "
-           "wear_ticks, room_types, slot_data, "
+           "wear_ticks, room_types, "
            "autopilot_state, current_route_id, current_waypoint_index, "
            "autopilot_tick_counter, wait_remaining, last_update) VALUES ("
            "%d, 1, %d, %d, '%s', %d, "
@@ -818,7 +594,7 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            "%u, %u, %u, %u, %u, %u, %u, %u, "
            "%u, %u, %u, %u, %u, %u, %u, %u, "
            "%u, %u, %u, %u, %u, %u, %d, %d, "
-           "%d, %lld, '%s', %d, %d, %d, %d, '%s', '%s', "
+           "%d, %lld, '%s', %d, %d, %d, %d, '%s', "
            "%d, %d, %d, %d, %d, %lld)",
            ship->shipnum, ship->prototype_id,
            ship->hull_object_vnum > 0 ? ship->hull_object_vnum : VESSEL_BASE_HULL_OBJ_VNUM,
@@ -832,9 +608,8 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            ship->turnrate, ship->maxmainsail, ship->mainsail, ship->hullweight, ship->maxslots,
            VESSEL_CONDITION_MODEL, ship->sink_ticks, ship->last_attacker,
            (long long)ship->pvp_grace_until, escaped_pvp_attacker, ship->dock_fee_balance,
-           ship->dock_fee_port, ship->dock_fee_clan, ship->wear_ticks, room_types,
-           escaped_slot_data, autopilot_state, route_id, current_waypoint_index,
-           autopilot_tick_counter, wait_remaining, last_update);
+           ship->dock_fee_port, ship->dock_fee_clan, ship->wear_ticks, room_types, autopilot_state,
+           route_id, current_waypoint_index, autopilot_tick_counter, wait_remaining, last_update);
 
   if (mysql_query(conn, query))
   {
@@ -888,7 +663,7 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
       "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, condition_model, "
       "sink_ticks, last_attacker, pvp_grace_until, pvp_grace_attacker, "
       "dock_fee_balance, dock_fee_port, dock_fee_clan, "
-      "wear_ticks, room_types, slot_data, "
+      "wear_ticks, room_types, "
       "autopilot_state, current_route_id, current_waypoint_index, "
       "autopilot_tick_counter, wait_remaining, last_update "
       "FROM ship_runtime_state WHERE ship_id = %d";
@@ -1048,12 +823,6 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
       }
       ship->room_templates[i] = parse_int(token);
     }
-  }
-  column++;
-
-  if (row[column] != NULL)
-  {
-    vessel_deserialize_slot_state(ship, row[column]);
   }
   column++;
 

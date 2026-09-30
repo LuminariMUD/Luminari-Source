@@ -725,48 +725,8 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
   vessel_initialize_condition(ship, armor);
   ship->docked_to_ship = -1;
 
-  /* Default armament by class (slot layout: type 1 = weapon; val0 = long
-   * range, val2/val3 = damage dice). Warships get a broadside pair plus a
-   * bow chaser; other armed hulls carry a single fore ballista. */
-  switch (ship->vessel_type)
-  {
-  case VESSEL_WARSHIP:
-    ship->slot[0].type = 1;
-    ship->slot[0].position = GREYHAWK_FORE;
-    ship->slot[0].val0 = 50;
-    ship->slot[0].val2 = 2;
-    ship->slot[0].val3 = 8;
-    strlcpy(ship->slot[0].desc, "the bow chaser ballista", sizeof(ship->slot[0].desc));
-    ship->slot[1].type = 1;
-    ship->slot[1].position = GREYHAWK_PORT;
-    ship->slot[1].val0 = 50;
-    ship->slot[1].val2 = 2;
-    ship->slot[1].val3 = 8;
-    strlcpy(ship->slot[1].desc, "the port ballista battery", sizeof(ship->slot[1].desc));
-    ship->slot[2].type = 1;
-    ship->slot[2].position = GREYHAWK_STARBOARD;
-    ship->slot[2].val0 = 50;
-    ship->slot[2].val2 = 2;
-    ship->slot[2].val3 = 8;
-    strlcpy(ship->slot[2].desc, "the starboard ballista battery", sizeof(ship->slot[2].desc));
-    break;
-  case VESSEL_SHIP:
-  case VESSEL_TRANSPORT:
-  case VESSEL_AIRSHIP:
-  case VESSEL_SUBMARINE:
-  case VESSEL_MAGICAL:
-    ship->slot[0].type = 1;
-    ship->slot[0].position = GREYHAWK_FORE;
-    ship->slot[0].val0 = 40;
-    ship->slot[0].val2 = 1;
-    ship->slot[0].val3 = 8;
-    strlcpy(ship->slot[0].desc, "a light ballista", sizeof(ship->slot[0].desc));
-    break;
-  case VESSEL_RAFT:
-  case VESSEL_BOAT:
-  default:
-    break; /* Unarmed */
-  }
+  /* Default armament by class (3.3.10) */
+  vessel_fit_default_weapons(ship);
 
   /* Anchor the ship at the supplied location; wilderness rooms provide real
    * coordinates while authored rooms retain their stable room VNUM. */

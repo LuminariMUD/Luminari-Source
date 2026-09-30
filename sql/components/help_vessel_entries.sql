@@ -33,12 +33,13 @@ TACTICAL
 
 SHIPSTATUS
   Show position, terrain, elevation or depth, heading, speed, moorings, the
-  armor and structure of all four sides, sails, rudder, and every weapon
-  (ready, reloading, disabled with its damage, or destroyed). Heading and
-  speed show any order the hull is still answering, and speed shows the most
-  she can make under present conditions. Holed sides, the time left before a
-  sinking hull goes down, and struck colors appear when they apply, as do
-  merchant registry and unpaid dock-fee details.
+  armor and structure of all four sides, sails, rudder, and every slot by
+  number: each weapon with its arc and rounds left (ready, reloading, out of
+  ammunition, disabled with its damage, or destroyed), and any equipment.
+  Heading and speed show any order the hull is still answering, and speed
+  shows the most she can make under present conditions. Holed sides, the
+  time left before a sinking hull goes down, and struck colors appear when
+  they apply, as do merchant registry and unpaid dock-fee details.
 
 SHIPTALK <message>
   Speak over the captain\'s channel to awake, hearing occupants in every room
@@ -53,7 +54,8 @@ SPEED [0-30]
   the sailmaster, the weight of her fit-out and cargo, her remaining sail, and
   the terrain, weather, and any high-altitude lane; a seadog at the helm adds
   one. She checks every room she enters: land or unpaid dock fees stop her
-  at its edge. A berthed or anchored hull takes no speed order until UNDOCK
+  at its edge, and at battle stations so do harbors and shallows (see
+  SHIPFIRE). A berthed or anchored hull takes no speed order until UNDOCK
   completes.
 
 HEADING [0-360]
@@ -73,8 +75,10 @@ SETSAIL <direction>
 
 CONTACTS
   List the vessels within your visibility, nearest first, with the
-  two-letter ID that SHIPFIRE accepts. Fog closes the horizon and a posted
-  lookout extends it. The nearest 20 contacts are shown.
+  two-letter ID that SHIPFIRE accepts, and the arc of your hull each one
+  lies off; the locked contact is marked. Fog closes the horizon and a
+  posted lookout extends it. The nearest 20 contacts are shown. Ranges
+  count one room for every 10 of altitude or depth.
 
 DOCK [vessel]
   With no target, list vessels in docking range. With a name or fleet ID,
@@ -91,8 +95,9 @@ UNDOCK
   With a vessel alongside, remove the gangway. Otherwise cast off from a
   berth in 30 seconds or weigh anchor in 13. A hull that comes to rest in a
   port is berthed and holds there until her crew reports her ready. Casting
-  off needs a whole sail, settled dock fees, and a captain of the hull\'s
-  level (see SHIPBROWSE).
+  off needs a whole sail, settled dock fees, the shipwrights finished with
+  her, a legal fit-out (see SHIPWEAPON), and a captain of the hull\'s level
+  (see SHIPBROWSE).
 
 ANCHOR
   Drop anchor where the hull lies stopped on the surface away from a berth.
@@ -111,7 +116,8 @@ SHIP_ROOMS
 BOARD_HOSTILE <vessel>
   Launch a hostile transfer from one nearby vessel to another. Grappling
   lines hold only on a vessel making speed 3 or less, or on a beaten one
-  (holed, immobile, colors struck, or abandoned). The first
+  (holed, immobile, colors struck, or abandoned), and a hull aloft only
+  from within 10 of her altitude. The first
   opposed Boarding check secures grappling lines; if they hold, a second
   opposed Boarding check resolves the crossing. Ties favor the defending
   vessel. Its strongest conscious, PvP-consenting occupant supplies the
@@ -202,17 +208,60 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VEDIT', 'VEDIT');
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('SHIPFIRE', 'Naval combat commands (usable from anywhere aboard your vessel):
 
-SHIPFIRE <slot> <contact>
-  Fire the weapon in the given slot (0-9) at a contact, addressed by the
-  two-letter ID that CONTACTS and TACTICAL show or by the start of its name
-  (the nearest match wins). Only vessels within your visibility can be
-  targeted. The shot must be in range of the weapon and the weapon\'s
-  mounted side must face the target. Arcs run from the bow: fore 320-40
-  degrees, starboard 40-140, rear 140-220, port 220-320. Attack roll: d20 +
-  half level + gunnery crew bonus against a defense value based on the
-  target\'s speed. Every shot, hit or miss, costs a combat round, and the
-  weapon reloads over several seconds. A damaged weapon cannot fire until
-  it is repaired; a destroyed one is gone.
+SHIPLOCK <contact> | SHIPLOCK off
+  Lock the guns onto a contact, addressed by the two-letter ID that
+  CONTACTS and TACTICAL show or by the start of its name (the nearest match
+  wins); only vessels within your visibility qualify. Locking calls the
+  crew to battle stations. The lock drops when the contact passes out of
+  sight, enters a port, dives, or goes down. With no argument SHIPLOCK
+  shows the current lock.
+
+SHIPFIRE <slot | fore | port | rear | starboard> [<contact>]
+  Fire one weapon slot (0-15, as SHIPSTATUS lists them), or every weapon on
+  an arc that can fire, at the locked contact; naming a contact locks onto
+  it first. A weapon fires only when its arc faces the target (arcs run
+  from the bow: fore 320-40 degrees, starboard 40-140, rear 140-220, port
+  220-320), the target lies inside its range band, and it is sound, loaded,
+  and reloaded. Your hull cannot fire from a berth, at anchor, submerged,
+  or while going down. Every volley costs a combat round and each shot a
+  round of ammunition; each weapon then reloads for 20 seconds (30 for the
+  capital weapons), a little faster with a better gunner.
+
+  A shot hits on d20 + gunnery bonus against a DC set by the geometry: the
+  range (much better inside three quarters of the weapon\'s reach), how
+  fast the target crosses your line of fire, how fast the bearing swings
+  (your own turning counts), and how fast the range opens or closes, which
+  matters most to lofted catapult shots. A bigger target is easier to hit,
+  and a hull aloft is half again as hard. The gunnery bonus is your
+  gunner\'s +2/+4/+6 plus your Dexterity modifier (Intelligence for
+  catapults and the Long Tom), at most +7. A natural 1 misses and a 20
+  hits. Every shot shows its chance to hit. Ranges count one room for every
+  10 of altitude or depth, so a hull far above or below is out of reach,
+  and a submerged hull can be neither locked nor fired upon.
+
+  The Mind Blast Cannon does no damage. A hit stuns the target\'s crew for 5
+  seconds at the cannon\'s 20-room reach, rising to 20 seconds at point
+  blank: a stunned crew cannot steer or maneuver (the hull carries on as
+  she was), fire, reload, or repair. Inside 10 rooms everyone aboard also makes a
+  Will save (DC 15) or falls prone for two rounds.
+
+SHIPSIGHT [<slot>]
+  For the locked contact, each weapon\'s DC and chance to hit, or why it
+  cannot fire.
+
+SHIPSCAN <contact>
+  A close look at a contact within 20 rooms (22 with a posted lookout):
+  armor and structure on each side, weapons with the destroyed ones
+  marked, condition, and whether her owner is WANTED, HUNTED, or sails
+  under a letter of marque.
+
+  Battle stations last until 180 seconds after the lock clears, your last
+  shot, or the last shot at you. At battle stations no harbor admits her,
+  she keeps off water too shallow for her draft as well as land, and when
+  either stops her she may run aground: the faster she was going the
+  likelier, a better sailmaster helps, and a crew stunned by a mental blast
+  cannot save her. Running aground lands several hits, the first on the
+  bow.
 
   Only the ship\'s owner, the owner\'s helm permit holders, members of the
   owner\'s group while the owner is online, and staff may fire a ship\'s
@@ -221,10 +270,12 @@ SHIPFIRE <slot> <contact>
   Harbors are neutral ground: a vessel in a port can neither fire nor be
   fired upon, by players or by NPC crews.
 
-  Each hit strikes the sails (costing speed) or the side facing the shooter.
-  Armor absorbs first; a hit it holds stops there unless it is a critical (a
-  natural 19-20, confirmed by a second roll), which carries half its damage
-  into the structure. Damage past the armor strikes that side\'s structure
+  Each hit strikes the sails (costing speed) or the side facing the shooter,
+  scattered by the weapon\'s spread; catapults and the Long Tom throw several
+  fragments. Armor absorbs first; a hit it holds stops there unless it is a
+  critical (a natural 20, 19-20, or 18-20 as the weapon pierces armor,
+  confirmed by a second roll), which carries half its damage into the
+  structure. Damage past the armor strikes that side\'s structure
   and may damage a weapon mounted there. On a gutted side, hits can glance
   into another section and always damage a weapon. Stern structure hits
   foul the rudder (turning). A structural hit can knock everyone aboard off
@@ -289,6 +340,10 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'SHIPRE
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'CLAIMSHIP');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'SHIPSALVAGE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'STRIKECOLORS');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'SHIPLOCK');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'SHIPSIGHT');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'SHIPSCAN');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'BATTLE-STATIONS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'SHIP-COMBAT');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'NAVAL-COMBAT');
 
@@ -352,9 +407,10 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIP
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIP-OWNERSHIP');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
-VALUES ('SHIPHIRE', 'Crew, refits, and insurance for a ship owner. SHIPHIRE,
-SHIPUPGRADE, and SHIPINSURE require the ship to be in port. SHIPDISMISS can
-be used by the owner anywhere aboard, including while underway.
+VALUES ('SHIPHIRE', 'Crew, refits, weapons, and insurance for a ship owner. SHIPHIRE requires
+the ship to be in port; SHIPUPGRADE, SHIPWEAPON, SHIPEQUIP, SHIPREARM, and
+SHIPINSURE require her berthed and not casting off. SHIPDISMISS can be used
+by the owner anywhere aboard, including while underway.
 
 SHIPHIRE <position> <tier>
   Take on crew. Positions and what they do:
@@ -378,6 +434,35 @@ SHIPUPGRADE [<refit>]
     reinforcement  - +20% hull structure
   Each can be installed once and costs a fifth of the class price.
 
+SHIPWEAPON [list]
+  List the shipyard\'s twelve weapons with price, weight, rounds, range band
+  in rooms, damage, reload, and the arcs each may mount on, then how full
+  each of your arcs is. A hull mounts only the weapons her class allows,
+  up to a number of weapons and a weight on each arc (fore, port, rear,
+  starboard), and her whole fit-out, equipment included, may not weigh
+  more than she can carry. Heavier fits cost speed (see SPEED).
+SHIPWEAPON buy <weapon number or name> <fore|port|rear|starboard>
+  Buy and mount a weapon, fully loaded. Catapults and the capital Long Tom
+  and fragmentation cannon fit only fore or rear, the heavy ballista only
+  on the beams. The beam, blast, and fragmentation cannons and the Long
+  Tom are capital weapons: one per hull, served only by a veteran gunner.
+  The shipwrights need 75 seconds per point of weight, and she cannot sail
+  until they finish.
+SHIPWEAPON sell <slot>
+  Sell a weapon back for 90% of its price, 10% if it is damaged.
+SHIPWEAPON swap <slot> <slot>
+  Exchange two slots, to put the weapons you fire most in easy numbers.
+
+SHIPEQUIP [list | buy <ram|colors> | sell <ram|colors>]
+  Fit one ram (2 gold per point of hull weight, and heavy) or neutral colors
+  (free, and weightless); sold back at 90%. Rafts and boats carry no ram.
+  Neutral colors stay up while there is cargo aboard.
+
+SHIPREARM [<slot> | all]
+  Refill ammunition at 2 gold a round; the shipwrights need 75 seconds per
+  weapon. A weapon with no rounds left cannot fire. A destroyed weapon is
+  not rearmed.
+
 SHIPINSURE [<value>]
   With no argument, show current coverage. Otherwise insure the ship for
   the given payout, up to her market value; the premium is one fifth of
@@ -393,6 +478,9 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPHI
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPDISMISS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPUPGRADE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPINSURE');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPWEAPON');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPEQUIP');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPREARM');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIP-CREW');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIP-REFIT');
 
@@ -694,10 +782,13 @@ ambient line used by the periodic narrative heartbeat. It changes no vessel
 state and is intended for acceptance testing.
 
 BALANCE remains available in every build. It runs a read-only mechanical
-report combining a deterministic equal-warship duel sample, the production
-1,000-trade simulation, crew/refit/insurance/dock cost anchors, and anonymized
-persisted usage totals. It does not replace human beta feedback or authorize
-production rollout.
+report combining a deterministic equal-warship duel sample (default 200,
+at most 1,000 duels, sailed and fought through the production rules and held
+to a 3-8 minute median, a 12 minute p95, nothing under 90 seconds, and at
+most 2% drawn), the production 1,000-trade simulation,
+crew/refit/insurance/dock cost anchors, and anonymized persisted usage
+totals. It does not replace human beta feedback or authorize production
+rollout.
 
 For an explicit development diagnostic build,
 compile with -DVESSEL_SYSTEM_DEBUG=1; every category still starts disabled and

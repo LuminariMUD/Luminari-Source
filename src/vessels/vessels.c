@@ -41,10 +41,6 @@ struct vessel_customization_data
 
 static struct vessel_customization_data vessel_customizations[GREYHAWK_MAXSHIPS];
 
-/* Global string buffers for Greyhawk system */
-static char greyhawk_status[20];
-static char greyhawk_position[20];
-static char greyhawk_weapon[320];
 #define VESSEL_DYNAMIC_ROOM_CACHE_SIZE                                                             \
   (WILD_DYNAMIC_ROOM_VNUM_END - WILD_DYNAMIC_ROOM_VNUM_START + 1)
 static bool vessel_dynamic_room_configured[VESSEL_DYNAMIC_ROOM_CACHE_SIZE];
@@ -1168,107 +1164,6 @@ bool vessel_hull_is_managed(const struct obj_data *obj)
 /* ========================================================================= */
 
 /**
- * Get weapon status string for display
- * @param slot Weapon slot number
- * @param rnum Room number containing ship
- */
-void greyhawk_getstatus(int slot, int rnum)
-{
-  if (world[rnum].ship->slot[slot].timer > 0)
-    snprintf(greyhawk_status, sizeof(greyhawk_status), "&+R%-6d",
-             world[rnum].ship->slot[slot].timer);
-  else if (world[rnum].ship->slot[slot].timer == 0)
-    strlcpy(greyhawk_status, "Ready", sizeof(greyhawk_status));
-  else if (world[rnum].ship->slot[slot].timer < 0)
-    strlcpy(greyhawk_status, "&+L***   ", sizeof(greyhawk_status));
-
-  if (world[rnum].ship->slot[slot].desc[0] == '\0')
-    strlcpy(greyhawk_status, "", sizeof(greyhawk_status));
-}
-
-/**
- * Get weapon position string for display
- * @param slot Weapon slot number
- * @param rnum Room number containing ship
- */
-void greyhawk_getposition(int slot, int rnum)
-{
-  switch (world[rnum].ship->slot[slot].position)
-  {
-  case GREYHAWK_FORE:
-    strlcpy(greyhawk_position, "Forward", sizeof(greyhawk_position));
-    break;
-  case GREYHAWK_REAR:
-    strlcpy(greyhawk_position, "Rear", sizeof(greyhawk_position));
-    break;
-  case GREYHAWK_PORT:
-    strlcpy(greyhawk_position, "Port", sizeof(greyhawk_position));
-    break;
-  case GREYHAWK_STARBOARD:
-    strlcpy(greyhawk_position, "Starboard", sizeof(greyhawk_position));
-    break;
-  default:
-    strlcpy(greyhawk_position, "ERROR", sizeof(greyhawk_position));
-    break;
-  }
-
-  if (world[rnum].ship->slot[slot].desc[0] == '\0')
-    strlcpy(greyhawk_position, "", sizeof(greyhawk_position));
-}
-
-/**
- * Format weapon display string
- * @param slot Weapon slot number
- * @param rnum Room number containing ship
- */
-void greyhawk_dispweapon(int slot, int rnum)
-{
-  if (world[rnum].ship->slot[slot].type != 1)
-  {
-    strlcpy(greyhawk_weapon, " ", sizeof(greyhawk_weapon));
-  }
-  else
-  {
-    greyhawk_getstatus(slot, rnum);
-    greyhawk_getposition(slot, rnum);
-    snprintf(greyhawk_weapon, sizeof(greyhawk_weapon), "%-20s &N%-6s  &+W%-9s  %d",
-             world[rnum].ship->slot[slot].desc, greyhawk_status, greyhawk_position,
-             world[rnum].ship->slot[slot].val3);
-  }
-}
-
-/**
- * Calculate weapon range based on type
- * @param shipnum Ship index
- * @param slot Weapon slot
- * @param range Range type (SHORT/MED/LONG)
- * @return Calculated range value
- */
-int greyhawk_weaprange(int shipnum, int slot, char range)
-{
-  if (greyhawk_ships[shipnum].slot[slot].type != 1)
-    return 0;
-
-  switch (range)
-  {
-  case GREYHAWK_SHRTRANGE:
-    return (int)((double)(greyhawk_ships[shipnum].slot[slot].val0 -
-                          greyhawk_ships[shipnum].slot[slot].val1) /
-                     3 +
-                 greyhawk_ships[shipnum].slot[slot].val1);
-  case GREYHAWK_MEDRANGE:
-    return (int)((double)(greyhawk_ships[shipnum].slot[slot].val0 -
-                          greyhawk_ships[shipnum].slot[slot].val1) /
-                     3 * 2 +
-                 greyhawk_ships[shipnum].slot[slot].val1);
-  case GREYHAWK_LNGRANGE:
-    return greyhawk_ships[shipnum].slot[slot].val0;
-  default:
-    return 0;
-  }
-}
-
-/**
  * Calculate bearing between two points
  * @param x1 Source X coordinate
  * @param y1 Source Y coordinate
@@ -1316,9 +1211,32 @@ double greyhawk_range(double x1, double y1, double z1, double x2, double y2, dou
 {
   double dx = x2 - x1;
   double dy = y2 - y1;
-  double dz = z2 - z1;
+  double dz = (z2 - z1) / 10.0; /* One room per 10 Z (study 3.3.4) */
 
   return sqrt((dx * dx) + (dy * dy) + (dz * dz));
+}
+
+/**
+ * Range between two hulls in rooms, from their exact positions (room plus
+ * offset), one room per 10 Z.
+ */
+double vessel_range_between(const struct greyhawk_ship_data *from,
+                            const struct greyhawk_ship_data *to)
+{
+  return greyhawk_range(from->x + from->dx, from->y + from->dy, from->z, to->x + to->dx,
+                        to->y + to->dy, to->z);
+}
+
+/** Compass bearing from one hull to another, 0 <= bearing < 360, from exact positions. */
+double vessel_bearing_between(const struct greyhawk_ship_data *from,
+                              const struct greyhawk_ship_data *to)
+{
+  double bearing;
+
+  bearing =
+      atan2((to->x + to->dx) - (from->x + from->dx), (to->y + to->dy) - (from->y + from->dy)) *
+      180.0 / M_PI;
+  return bearing < 0.0 ? bearing + 360.0 : bearing;
 }
 
 /* Placeholder for remaining Greyhawk functions - to be implemented */
@@ -1933,6 +1851,10 @@ static void vessel_show_navigation(struct char_data *ch, struct greyhawk_ship_da
   {
     send_to_char(ch, "Under way\r\n");
   }
+  if (ship->maintenance_ticks > 0)
+  {
+    send_to_char(ch, "Shipwrights: %d seconds of work left\r\n", (ship->maintenance_ticks + 1) / 2);
+  }
 }
 
 ACMD(do_greyhawk_status)
@@ -2250,7 +2172,7 @@ int vessel_collect_contacts(const struct greyhawk_ship_data *ship, struct vessel
       continue;
     }
 
-    range = greyhawk_range(ship->x, ship->y, ship->z, other->x, other->y, other->z);
+    range = vessel_range_between(ship, other);
     if (range > sight_range)
     {
       continue;
@@ -2264,7 +2186,7 @@ int vessel_collect_contacts(const struct greyhawk_ship_data *ship, struct vessel
     }
     entry.shipnum = i;
     entry.range = range;
-    entry.bearing = greyhawk_bearing(ship->x, ship->y, other->x, other->y);
+    entry.bearing = (int)lround(vessel_bearing_between(ship, other)) % 360;
     position = stored < max_contacts ? stored++ : stored - 1;
     while (position > 0 && contacts[position - 1].range > range)
     {
@@ -2348,14 +2270,17 @@ ACMD(do_greyhawk_contacts)
     return;
   }
 
-  send_to_char(ch, "   %-3s %-20s  %8s  %7s  %4s\r\n", "ID", "VESSEL", "RANGE", "BEARING", "DIR");
-  send_to_char(ch, "   -----------------------------------------------\r\n");
+  send_to_char(ch, "   %-3s %-20s  %8s  %7s  %4s  %s\r\n", "ID", "VESSEL", "RANGE", "BEARING",
+               "DIR", "ARC");
+  send_to_char(ch, "   ----------------------------------------------------------\r\n");
   for (i = 0; i < shown; i++)
   {
     contact_ship = &greyhawk_ships[contacts[i].shipnum];
-    send_to_char(ch, "   %-3s %-20.20s  %6.1f u  %5d deg  %s\r\n", contact_ship->id,
+    send_to_char(ch, "   %-3s %-20.20s  %6.1f u  %5d deg  %-4s  %s%s\r\n", contact_ship->id,
                  contact_ship->name[0] ? contact_ship->name : "Unknown Vessel", contacts[i].range,
-                 contacts[i].bearing, bearing_direction_str(contacts[i].bearing));
+                 contacts[i].bearing, bearing_direction_str(contacts[i].bearing),
+                 vessel_arc_name(vessel_arc_toward(ship, &greyhawk_ships[contacts[i].shipnum])),
+                 ship->lock_target == contacts[i].shipnum ? " (locked)" : "");
   }
 
   send_to_char(ch, "\r\n");

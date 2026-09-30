@@ -395,6 +395,8 @@ luminari_SOURCES = \
 	src/vessels/vessels_piracy.c \
 	src/vessels/vessels_trade.c \
 	src/vessels/vessels_upgrades.c \
+	src/vessels/vessels_gunnery.c \
+	src/vessels/vessels_weapons.c \
 	src/vessels/vessels_autopilot.c \
 	src/core/weather.c \
 	src/wilderness/wilderness.c \
@@ -471,6 +473,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_vessel_tactical.c \
 	unittests/CuTest/test_vessel_lookout.c \
 	unittests/CuTest/test_vessel_damage.c \
+	unittests/CuTest/test_vessel_weapons.c \
 	unittests/CuTest/test_vessel_movement.c \
 	unittests/CuTest/test_vessel_narrative.c \
 	unittests/CuTest/test_vessel_boarding.c \
@@ -567,6 +570,7 @@ cutest_test_files = \
 	unittests/CuTest/test_vessel_tactical.c \
 	unittests/CuTest/test_vessel_lookout.c \
 	unittests/CuTest/test_vessel_damage.c \
+	unittests/CuTest/test_vessel_weapons.c \
 	unittests/CuTest/test_vessel_movement.c \
 	unittests/CuTest/test_vessel_narrative.c \
 	unittests/CuTest/test_vessel_boarding.c \
@@ -1105,6 +1109,7 @@ EXTRA_DIST = \
 	sql/components/verify_vessels_phase17.sql \
 	sql/components/verify_vessels_phase18.sql \
 	sql/components/verify_vessels_phase19.sql \
+	sql/components/verify_vessels_phase20.sql \
 	sql/components/verify_vessels_narrative_content.sql \
 	sql/components/vessels_harbor_sandbox.sql \
 	sql/components/vessels_narrative_content.sql \
@@ -1141,6 +1146,8 @@ EXTRA_DIST = \
 	sql/components/vessels_phase18_schema.sql \
 	sql/components/vessels_phase19_rollback.sql \
 	sql/components/vessels_phase19_schema.sql \
+	sql/components/vessels_phase20_rollback.sql \
+	sql/components/vessels_phase20_schema.sql \
 	sql/master_schema.sql \
 	README.md
 

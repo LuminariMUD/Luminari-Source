@@ -338,6 +338,16 @@ reset_campaign_runtime() {
            runtime.last_update = UNIX_TIMESTAMP()
      WHERE merchant.name = 'Vailand Ironwind Trader';"
 
+  # A server that found an earlier route revision untraversable disabled the
+  # merchant's schedule; the re-applied route serves it again.
+  database_execute "
+    UPDATE ship_schedules AS schedule
+    JOIN vessel_npc_merchants AS merchant
+      ON merchant.active_ship_id = schedule.ship_id
+       SET schedule.enabled = 1
+     WHERE merchant.name = 'Vailand Ironwind Trader'
+       AND schedule.route_id = merchant.route_id;"
+
   reset_valid=$(database_scalar "
     SELECT IF(
       COUNT(*) = 0 OR

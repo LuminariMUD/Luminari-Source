@@ -85,7 +85,8 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 #define DAMAGE_ATTACKER_SLOT 481
 #define DAMAGE_ROOM_VNUM 169960
 
-/* A default warship at (0,0) heading north, with a ballista on each beam. */
+/* A default warship at (0,0) heading north, with a large ballista on each
+ * beam. */
 static struct greyhawk_ship_data *damage_warship(int slot, const char *id)
 {
   struct greyhawk_ship_data *ship = &greyhawk_ships[slot];
@@ -98,14 +99,8 @@ static struct greyhawk_ship_data *damage_warship(int slot, const char *id)
   strlcpy(ship->id, id, sizeof(ship->id));
   strlcpy(ship->name, id, sizeof(ship->name));
   vessel_initialize_condition(ship, 109);
-  ship->slot[0].type = 1;
-  ship->slot[0].position = GREYHAWK_PORT;
-  ship->slot[0].val2 = 2;
-  ship->slot[0].val3 = 8;
-  strlcpy(ship->slot[0].desc, "the port battery", sizeof(ship->slot[0].desc));
-  ship->slot[1] = ship->slot[0];
-  ship->slot[1].position = GREYHAWK_STARBOARD;
-  strlcpy(ship->slot[1].desc, "the starboard battery", sizeof(ship->slot[1].desc));
+  vessel_set_weapon(&ship->slot[0], VESSEL_WEAPON_LARGE_BALLISTA, GREYHAWK_PORT);
+  vessel_set_weapon(&ship->slot[1], VESSEL_WEAPON_LARGE_BALLISTA, GREYHAWK_STARBOARD);
   return ship;
 }
 
@@ -210,8 +205,8 @@ void Test_vessel_hit_lands_on_the_arc_facing_the_shooter(CuTest *tc)
   attacker = damage_warship(DAMAGE_ATTACKER_SLOT, "AT");
   attacker->x = 5.0;
   target->mainsail = 0;
-  dealt = vessel_resolve_hit(attacker, target, &attacker->slot[1], FALSE);
-  CuAssertTrue(tc, dealt >= 2 && dealt <= 16);
+  dealt = vessel_resolve_hit(attacker, target, &attacker->slot[1], 5.0, FALSE);
+  CuAssertTrue(tc, dealt >= 6 && dealt <= 9);
   CuAssertIntEquals(tc, 109 - dealt, target->sarmor);
   CuAssertIntEquals(tc, 109, target->parmor);
   CuAssertIntEquals(tc, 87, target->farmor);
@@ -226,7 +221,8 @@ void Test_vessel_critical_threat_follows_armor_pierce(CuTest *tc)
   CuAssertIntEquals(tc, 20, vessel_critical_threat(3));
   CuAssertIntEquals(tc, 19, vessel_critical_threat(10));
   CuAssertIntEquals(tc, 18, vessel_critical_threat(15));
-  CuAssertIntEquals(tc, 19, vessel_critical_threat(vessel_weapon_profile(NULL)->pierce));
+  CuAssertIntEquals(
+      tc, 19, vessel_critical_threat(vessel_weapon_type(VESSEL_WEAPON_LARGE_BALLISTA)->pierce));
 }
 
 void Test_vessel_hull_blast_knocks_the_unsure_footed_down(CuTest *tc)
@@ -268,10 +264,19 @@ void Test_vessel_hull_blast_knocks_the_unsure_footed_down(CuTest *tc)
   deck.people = &sailor;
   sailor.next_in_room = &bosun;
 
-  vessel_knockdown_aboard(ship);
+  vessel_knockdown_aboard(ship, SAVING_REFL);
   CuAssertIntEquals(tc, POS_RECLINING, GET_POS(&sailor));
   CuAssertIntEquals(tc, PULSE_VIOLENCE * 2, GET_WAIT_STATE(&sailor));
   CuAssertIntEquals(tc, POS_STANDING, GET_POS(&bosun));
+
+  /* A mental blast calls for a Will save instead. */
+  GET_POS(&sailor) = POS_STANDING;
+  GET_WAIT_STATE(&sailor) = 0;
+  GET_SAVE(&sailor, SAVING_WILL) = 100;
+  GET_SAVE(&bosun, SAVING_WILL) = -100;
+  vessel_knockdown_aboard(ship, SAVING_WILL);
+  CuAssertIntEquals(tc, POS_STANDING, GET_POS(&sailor));
+  CuAssertIntEquals(tc, POS_RECLINING, GET_POS(&bosun));
 
   deck.people = NULL;
   world = saved_world;
@@ -526,6 +531,12 @@ void Test_vessel_boarding_needs_a_slow_or_beaten_hull(CuTest *tc)
   CuAssertTrue(tc, can_attempt_boarding(&fixture.captain, prize));
   prize->speed = 5.0;
   prize->sarmor = prize->sinternal = 0;
+  CuAssertTrue(tc, can_attempt_boarding(&fixture.captain, prize));
+
+  /* A hull aloft is grappled only from within 10 Z (study 3.3.4). */
+  prize->z = 15.0;
+  CuAssertTrue(tc, !can_attempt_boarding(&fixture.captain, prize));
+  prize->z = 10.0;
   CuAssertTrue(tc, can_attempt_boarding(&fixture.captain, prize));
 
   prize_end(&fixture);
@@ -920,7 +931,11 @@ void Test_vessel_status_shows_damage_and_weapons(CuTest *tc)
   ship->slot[2] = ship->slot[0];
   ship->slot[2].position = GREYHAWK_FORE;
   ship->slot[2].damage = VESSEL_WEAPON_DESTROYED;
-  strlcpy(ship->slot[2].desc, "the bow chaser", sizeof(ship->slot[2].desc));
+  ship->slot[3] = ship->slot[1];
+  ship->slot[3].ammo = 0;
+  ship->slot[3].timer = 0;
+  ship->slot[4].type = VESSEL_SLOT_EQUIPMENT;
+  ship->slot[4].item = VESSEL_EQUIPMENT_RAM;
   damage_reset_output(&descriptor, output, sizeof(output));
   vessel_show_condition(&captain, ship);
   CuAssertTrue(tc, strstr(output, "Structure: bow 38/38, port 0/47, starboard 47/47, "
@@ -929,9 +944,15 @@ void Test_vessel_status_shows_damage_and_weapons(CuTest *tc)
   CuAssertTrue(tc, strstr(output, "Holed: port side and stern. SINKING: she goes down in about "
                                   "90 seconds.\r\n") != NULL);
   CuAssertTrue(tc, strstr(output, "Colors: struck, for about 600 more seconds.") != NULL);
-  CuAssertTrue(tc, strstr(output, "the port battery (port side): disabled, 35% damaged") != NULL);
-  CuAssertTrue(tc, strstr(output, "the starboard battery (starboard side): reloading") != NULL);
-  CuAssertTrue(tc, strstr(output, "the bow chaser (bow): destroyed") != NULL);
+  CuAssertTrue(tc, strstr(output, "Slot 0: Large Ballista (port), 30/30 rounds: disabled, 35% "
+                                  "damaged\r\n") != NULL);
+  CuAssertTrue(tc, strstr(output, "Slot 1: Large Ballista (starboard), 30/30 rounds: "
+                                  "reloading\r\n") != NULL);
+  CuAssertTrue(tc,
+               strstr(output, "Slot 2: Large Ballista (fore), 30/30 rounds: destroyed") != NULL);
+  CuAssertTrue(tc, strstr(output, "Slot 3: Large Ballista (starboard), 0/30 rounds: out of "
+                                  "ammunition") != NULL);
+  CuAssertTrue(tc, strstr(output, "Slot 4: Ram\r\n") != NULL);
 
   /* One hole stops a hull afloat and halves one aloft. */
   ship->sink_ticks = 0;
@@ -943,7 +964,7 @@ void Test_vessel_status_shows_damage_and_weapons(CuTest *tc)
   vessel_show_condition(&captain, ship);
   CuAssertTrue(tc, strstr(output, "Holed: port side. She cannot move.\r\n") != NULL);
   CuAssertTrue(tc, strstr(output, "Colors:") == NULL);
-  CuAssertTrue(tc, strstr(output, "the port battery (port side): ready") != NULL);
+  CuAssertTrue(tc, strstr(output, "Slot 0: Large Ballista (port), 30/30 rounds: ready") != NULL);
   ship->z = 5.0;
   damage_reset_output(&descriptor, output, sizeof(output));
   vessel_show_condition(&captain, ship);

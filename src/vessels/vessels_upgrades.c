@@ -488,9 +488,11 @@ void vessel_upkeep_tick(void)
 }
 
 /**
- * Owner gate for refit commands: must own the ship and be moored at a dock.
+ * Owner gate for shipyard commands: must own the ship and be berthed at a
+ * dock, with no departure under way, so work the shipwrights start keeps her
+ * at the berth until it is done.
  */
-static struct greyhawk_ship_data *refit_command_ship(struct char_data *ch)
+struct greyhawk_ship_data *vessel_refit_ship(struct char_data *ch)
 {
   struct greyhawk_ship_data *ship;
 
@@ -508,9 +510,15 @@ static struct greyhawk_ship_data *refit_command_ship(struct char_data *ch)
     return NULL;
   }
 
-  if (!vessel_ship_is_in_port(ship))
+  if (!vessel_ship_is_in_port(ship) || ship->dock <= 0)
   {
     send_to_char(ch, "Refits happen at a shipyard - moor at a dock first.\r\n");
+    return NULL;
+  }
+
+  if (ship->departure_ticks > 0)
+  {
+    send_to_char(ch, "The crew is casting off; the shipwrights cannot work on her now.\r\n");
     return NULL;
   }
 
@@ -534,7 +542,7 @@ ACMD(do_shipupgrade)
   int bit;
   int i;
 
-  ship = refit_command_ship(ch);
+  ship = vessel_refit_ship(ch);
   if (ship == NULL)
   {
     return;
@@ -613,7 +621,7 @@ ACMD(do_shipinsure)
   int value;
   int premium;
 
-  ship = refit_command_ship(ch);
+  ship = vessel_refit_ship(ch);
   if (ship == NULL)
   {
     return;

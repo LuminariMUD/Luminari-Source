@@ -509,9 +509,12 @@ static bool vessel_merchant_activate_profile(const struct vessel_merchant_profil
   char query[MAX_STRING_LENGTH];
   struct greyhawk_ship_data *ship;
   struct ship_route *route;
+  const struct waypoint *wp;
   time_t now;
   unsigned int generation;
+  int heading;
   int slot;
+  int i;
 
   if (profile == NULL)
   {
@@ -530,6 +533,19 @@ static bool vessel_merchant_activate_profile(const struct vessel_merchant_profil
     vessel_merchant_set_error(profile->merchant_id, "route is missing, inactive, or empty",
                               time(0) + VESSEL_MERCHANT_RETRY_SECONDS);
     return FALSE;
+  }
+  /* The new hull lies bow-on to her first leg, so she need not come about
+   * beside the quay before she makes way. */
+  heading = 0;
+  for (i = 0; i < route->num_waypoints; i++)
+  {
+    wp = &route->waypoints[i];
+    if (vessel_autopilot_grid_coordinate(wp->x) != profile->spawn_x ||
+        vessel_autopilot_grid_coordinate(wp->y) != profile->spawn_y)
+    {
+      heading = greyhawk_bearing(profile->spawn_x, profile->spawn_y, wp->x, wp->y);
+      break;
+    }
   }
   route_destroy(route);
 
@@ -550,6 +566,8 @@ static bool vessel_merchant_activate_profile(const struct vessel_merchant_profil
   }
 
   ship = &greyhawk_ships[slot];
+  ship->heading = (double)heading;
+  ship->setheading = (short int)heading;
   if (!vessel_merchant_load_cargo(ship, profile) || !vessel_merchant_assign_pilot(ship, profile))
   {
     vessel_merchant_abort_spawn(ship);

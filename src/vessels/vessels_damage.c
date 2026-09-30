@@ -301,16 +301,6 @@ int vessel_arc_for_relative_bearing(int relative)
   return GREYHAWK_PORT;
 }
 
-/* The Duris ballista family (1.3): one bolt, a 10-degree scatter, a 14% sail
- * hit at half damage, and 10% armor pierce. */
-static const struct vessel_weapon_profile ballista_profile = {1, 10, 14, 100, 50, 10};
-
-const struct vessel_weapon_profile *vessel_weapon_profile(const struct greyhawk_ship_slot *slot)
-{
-  (void)slot;
-  return &ballista_profile;
-}
-
 /**
  * Lowest natural d20 that threatens a critical for a weapon's armor pierce:
  * 20 for 2-3%, 19-20 for 10%, 18-20 for 15%, never for 0% (study 3.3.4).
@@ -332,10 +322,11 @@ int vessel_critical_threat(int pierce)
   return 18;
 }
 
-/** A mounted weapon that is neither damaged nor reloading. */
+/** A mounted weapon that is undamaged, reloaded, and has a round left. */
 bool vessel_weapon_ready(const struct greyhawk_ship_slot *slot)
 {
-  return slot != NULL && slot->type == 1 && slot->damage == 0 && slot->timer <= 0;
+  return vessel_slot_weapon(slot) != NULL && slot->damage == 0 && slot->timer <= 0 &&
+         slot->ammo > 0;
 }
 
 static const char *vessel_arc_side_name(int arc)
@@ -408,7 +399,7 @@ void vessel_damage_weapon(struct greyhawk_ship_data *attacker, struct greyhawk_s
   count = 0;
   for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
   {
-    if (target->slot[i].type == 1 && target->slot[i].position == arc &&
+    if (target->slot[i].type == VESSEL_SLOT_WEAPON && target->slot[i].position == arc &&
         target->slot[i].damage < VESSEL_WEAPON_DESTROYED)
     {
       candidates[count++] = i;
@@ -423,32 +414,36 @@ void vessel_damage_weapon(struct greyhawk_ship_data *attacker, struct greyhawk_s
   weapon->damage = (unsigned char)MIN(VESSEL_WEAPON_DESTROYED, weapon->damage + damage);
   if (weapon->damage >= VESSEL_WEAPON_DESTROYED)
   {
-    send_to_ship(target, "%s has been destroyed!", weapon->desc[0] ? weapon->desc : "A weapon");
+    send_to_ship(target, "The %s %s has been destroyed!", vessel_arc_name(arc),
+                 vessel_slot_name(weapon));
     if (attacker != NULL)
     {
-      send_to_ship(attacker, "You destroy %s aboard %s!",
-                   weapon->desc[0] ? weapon->desc : "a weapon", target->name);
+      send_to_ship(attacker, "You destroy the %s %s aboard %s!", vessel_arc_name(arc),
+                   vessel_slot_name(weapon), target->name);
     }
   }
   else
   {
-    send_to_ship(target, "%s has been damaged!", weapon->desc[0] ? weapon->desc : "A weapon");
+    send_to_ship(target, "The %s %s has been damaged!", vessel_arc_name(arc),
+                 vessel_slot_name(weapon));
     if (attacker != NULL)
     {
-      send_to_ship(attacker, "You damage %s aboard %s!",
-                   weapon->desc[0] ? weapon->desc : "a weapon", target->name);
+      send_to_ship(attacker, "You damage the %s %s aboard %s!", vessel_arc_name(arc),
+                   vessel_slot_name(weapon), target->name);
     }
   }
 }
 
 /**
- * A hull hit knocks everyone aboard off their feet unless they make a Reflex
- * save (DC 15); the fallen are prone for two combat rounds. Staff are exempt.
+ * Knock everyone aboard off their feet unless they make the save (DC 15):
+ * Reflex against a hull hit's blast, Will against a mental blast. The fallen
+ * are prone for two combat rounds. Staff are exempt.
  */
-void vessel_knockdown_aboard(struct greyhawk_ship_data *ship)
+void vessel_knockdown_aboard(struct greyhawk_ship_data *ship, int save)
 {
   struct char_data *ch;
   room_rnum room;
+  bool mental;
   int i;
 
   if (ship == NULL)
@@ -456,7 +451,7 @@ void vessel_knockdown_aboard(struct greyhawk_ship_data *ship)
     return;
   }
 
-  send_to_ship(ship, "The blast shakes the whole hull!");
+  mental = save == SAVING_WILL;
   for (i = 0; i < ship->num_rooms && i < MAX_SHIP_ROOMS; i++)
   {
     room = real_room(ship->room_vnums[i]);
@@ -470,12 +465,14 @@ void vessel_knockdown_aboard(struct greyhawk_ship_data *ship)
       {
         continue;
       }
-      if (d20(ch) + compute_mag_saves(ch, SAVING_REFL, 0) >= VESSEL_KNOCKDOWN_DC)
+      if (d20(ch) + compute_mag_saves(ch, save, 0) >= VESSEL_KNOCKDOWN_DC)
       {
-        send_to_char(ch, "You keep your footing.\r\n");
+        send_to_char(ch, mental ? "You shake off the blast.\r\n" : "You keep your footing.\r\n");
         continue;
       }
-      send_to_char(ch, "The blast knocks you off your feet!\r\n");
+      send_to_char(ch, mental
+                           ? "Your mind reels from the blast; you huddle on the deck in pain!\r\n"
+                           : "The blast knocks you off your feet!\r\n");
       if (GET_POS(ch) > POS_RECLINING)
       {
         change_position(ch, POS_RECLINING);
@@ -596,7 +593,8 @@ int vessel_damage_hull(struct greyhawk_ship_data *attacker, struct greyhawk_ship
   }
   if (rand_number(1, 9) == 9)
   {
-    vessel_knockdown_aboard(target);
+    send_to_ship(target, "The blast shakes the whole hull!");
+    vessel_knockdown_aboard(target, SAVING_REFL);
   }
   return dealt;
 }
@@ -604,43 +602,56 @@ int vessel_damage_hull(struct greyhawk_ship_data *attacker, struct greyhawk_ship
 /**
  * Resolve a weapon's hit on target (Duris volley_hit_event()): each fragment
  * strikes the sails or the arc facing the shooter, scattered across the
- * weapon's spread.
+ * weapon's spread. A beam weapon's damage falls from its maximum at minimum
+ * range to its minimum at maximum range; a crew-stun weapon does none.
  *
  * @param attacker Firing hull (the bearing's origin)
+ * @param range Range the shot was fired at, in rooms
  * @param critical A confirmed critical for the shot
  * @return total damage dealt
  */
 int vessel_resolve_hit(struct greyhawk_ship_data *attacker, struct greyhawk_ship_data *target,
-                       const struct greyhawk_ship_slot *weapon, bool critical)
+                       const struct greyhawk_ship_slot *weapon, double range, bool critical)
 {
-  const struct vessel_weapon_profile *profile;
+  const struct vessel_weapon_type *type;
+  double closeness;
   int bearing;
   int damage;
   int total;
   int arc;
   int i;
 
-  if (attacker == NULL || target == NULL || weapon == NULL)
+  type = vessel_slot_weapon(weapon);
+  if (attacker == NULL || target == NULL || type == NULL || type->max_damage <= 0)
   {
     return 0;
   }
 
-  profile = vessel_weapon_profile(weapon);
+  closeness = type->max_range > type->min_range
+                  ? ((double)type->max_range - range) / (double)(type->max_range - type->min_range)
+                  : 1.0;
+  closeness = fmax(0.0, fmin(1.0, closeness));
   bearing = greyhawk_bearing(target->x, target->y, attacker->x, attacker->y);
   total = 0;
-  for (i = 0; i < profile->fragments; i++)
+  for (i = 0; i < type->fragments; i++)
   {
-    damage = (weapon->val2 > 0 && weapon->val3 > 0) ? dice(weapon->val2, weapon->val3) : dice(2, 6);
-    if (target->mainsail > 0 && rand_number(0, 99) < profile->sail_hit)
+    if (IS_SET(type->flags, VESSEL_WEAPON_RANGE_DAMAGE))
     {
-      total += vessel_damage_sail(attacker, target, damage * profile->sail_percent / 100);
+      damage = type->min_damage + (int)((type->max_damage - type->min_damage) * closeness);
+    }
+    else
+    {
+      damage = rand_number(type->min_damage, type->max_damage);
+    }
+    if (target->mainsail > 0 && rand_number(0, 99) < type->sail_hit)
+    {
+      total += vessel_damage_sail(attacker, target, damage * type->sail_percent / 100);
       continue;
     }
     arc = vessel_arc_for_relative_bearing(bearing +
-                                          rand_number(-(profile->spread / 2), profile->spread / 2) -
+                                          rand_number(-(type->spread / 2), type->spread / 2) -
                                           vessel_display_heading(target->heading));
-    total +=
-        vessel_damage_hull(attacker, target, damage * profile->hull_percent / 100, arc, critical);
+    total += vessel_damage_hull(attacker, target, damage * type->hull_percent / 100, arc, critical);
   }
   vessel_update_condition(target, attacker);
   return total;
@@ -1009,6 +1020,7 @@ void vessel_show_condition(struct char_data *ch, struct greyhawk_ship_data *ship
                                                    GREYHAWK_REAR};
   static const char *const structure_name[VESSEL_NUM_ARCS] = {"bow", "port", "starboard", "stern"};
   const struct greyhawk_ship_slot *slot;
+  const struct vessel_weapon_type *weapon;
   char holes[128];
   int breaches;
   int holed;
@@ -1070,13 +1082,19 @@ void vessel_show_condition(struct char_data *ch, struct greyhawk_ship_data *ship
   for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
   {
     slot = &ship->slot[i];
-    if (slot->type != 1)
+    weapon = vessel_slot_weapon(slot);
+    if (slot->type == VESSEL_SLOT_EMPTY)
     {
       continue;
     }
     armed = TRUE;
-    send_to_char(ch, "%s (%s): ", slot->desc[0] ? slot->desc : "a weapon",
-                 vessel_arc_side_name(slot->position));
+    if (weapon == NULL)
+    {
+      send_to_char(ch, "Slot %d: %s\r\n", i, vessel_slot_name(slot));
+      continue;
+    }
+    send_to_char(ch, "Slot %d: %s (%s), %d/%d rounds: ", i, weapon->name,
+                 vessel_arc_name(slot->position), slot->ammo, weapon->ammo);
     if (slot->damage >= VESSEL_WEAPON_DESTROYED)
     {
       send_to_char(ch, "destroyed\r\n");
@@ -1084,6 +1102,10 @@ void vessel_show_condition(struct char_data *ch, struct greyhawk_ship_data *ship
     else if (slot->damage > 0)
     {
       send_to_char(ch, "disabled, %d%% damaged\r\n", slot->damage);
+    }
+    else if (slot->ammo == 0)
+    {
+      send_to_char(ch, "out of ammunition\r\n");
     }
     else if (slot->timer > 0)
     {

@@ -22,6 +22,10 @@
  * A berthed or anchored hull holds position until `undock` completes: 30 s
  * from a berth, 13 s from anchor. `setsail` is the harbor maneuver: one room
  * at speed 6 or less, every 5 s.
+ *
+ * At battle stations (vessels_gunnery.c) no harbor admits her and the crew
+ * keeps her off the shallows as well as land; running into either then
+ * risks Duris's crash check (study 3.3.2).
  */
 
 #include "conf.h"
@@ -37,26 +41,69 @@
 #include "wilderness/wilderness.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
+extern int wild_waterline;
 
 /* Class order follows enum vessel_class. */
 static const struct vessel_class_handling class_handling[NUM_VESSEL_TYPES] = {
-    /* speed accel turn  load free  hold free */
-    {5, 5.0, 25.0, 5, 0, 2, 0},       /* RAFT: Duris sloop */
-    {30, 4.0, 22.0, 12, 2, 6, 0},     /* BOAT: yacht */
-    {20, 2.0, 6.5, 100, 13, 70, 12},  /* SHIP: caravel */
-    {17, 1.5, 4.0, 142, 20, 56, 0},   /* WARSHIP: frigate */
-    {22, 3.0, 10.0, 82, 13, 32, 0},   /* AIRSHIP: corvette */
-    {12, 2.0, 6.5, 110, 16, 44, 0},   /* SUBMARINE: destroyer */
-    {15, 1.2, 3.0, 165, 19, 140, 40}, /* TRANSPORT: galleon */
-    {14, 1.2, 2.5, 200, 25, 80, 0}    /* MAGICAL: cruiser */
+    /* hull speed accel turn  load free  hold free */
+    {10, 5, 5.0, 25.0, 5, 0, 2, 0},        /* RAFT: Duris sloop */
+    {25, 30, 4.0, 22.0, 12, 2, 6, 0},      /* BOAT: yacht */
+    {200, 20, 2.0, 6.5, 100, 13, 70, 12},  /* SHIP: caravel */
+    {285, 17, 1.5, 4.0, 142, 20, 56, 0},   /* WARSHIP: frigate */
+    {165, 22, 3.0, 10.0, 82, 13, 32, 0},   /* AIRSHIP: corvette */
+    {220, 12, 2.0, 6.5, 110, 16, 44, 0},   /* SUBMARINE: destroyer */
+    {330, 15, 1.2, 3.0, 165, 19, 140, 40}, /* TRANSPORT: galleon */
+    {400, 14, 1.2, 2.5, 200, 25, 80, 0}    /* MAGICAL: cruiser */
 };
 
 /* Crossings of a room's two edges this close together (in ticks) are one
  * crossing through its corner. */
 #define VESSEL_CORNER_TOLERANCE 1e-9
 
+/** A harbor room at these coordinates. */
+static bool vessel_cell_is_port(int x, int y)
+{
+  return vessel_room_is_port(get_or_allocate_wilderness_room(x, y));
+}
+
+/**
+ * Water too shallow for the hull's draft (the pre-S2 grounding test): a
+ * hull on the surface whose class needs depth, over water shallower than
+ * that.
+ */
+static bool vessel_cell_is_shallow(const struct greyhawk_ship_data *ship, int x, int y, int z)
+{
+  const struct vessel_terrain_caps *caps;
+  room_rnum room;
+  int sector;
+
+  caps = get_vessel_terrain_caps(ship->vessel_type);
+  if (z != 0 || caps == NULL || caps->min_water_depth <= 0)
+  {
+    return FALSE;
+  }
+  room = get_or_allocate_wilderness_room(x, y);
+  if (room == NOWHERE)
+  {
+    return FALSE;
+  }
+  sector = world[room].sector_type;
+  return (sector == SECT_WATER_SWIM || sector == SECT_WATER_NOSWIM || sector == SECT_OCEAN ||
+          sector == SECT_UNDERWATER) &&
+         wild_waterline - get_modified_elevation(x, y) < caps->min_water_depth;
+}
+
+/**
+ * Enter a room: at battle stations the harbor refuses her and the crew keeps
+ * her off the shallows.
+ */
 static bool vessel_enter_cell_default(struct greyhawk_ship_data *ship, int x, int y, int z)
 {
+  if (vessel_at_battle_stations(ship) &&
+      (vessel_cell_is_port(x, y) || vessel_cell_is_shallow(ship, x, y, z)))
+  {
+    return FALSE;
+  }
   return update_ship_wilderness_position(ship->shipnum, x, y, z);
 }
 
@@ -210,10 +257,7 @@ double vessel_load_factor(const struct greyhawk_ship_data *ship)
   fitout_weight = 0;
   for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
   {
-    if (ship->slot[i].type != 0)
-    {
-      fitout_weight += ship->slot[i].weight;
-    }
+    fitout_weight += vessel_slot_weight(ship, &ship->slot[i]);
   }
 
   capacity = get_vessel_cargo_capacity(ship->vessel_type);
@@ -359,12 +403,16 @@ static int vessel_port_room_vnum(const struct greyhawk_ship_data *ship)
 /**
  * Make the hull fast at the port it rests in.
  *
- * Public and NPC hulls have no owner to repair them, so the harbor makes good
- * their rigging and rudder whenever they berth; wear and weather would
- * otherwise leave a scheduled hull crawling with its sail in rags.
+ * Public and NPC hulls have no owner to repair or rearm them, so the harbor
+ * makes good their rigging and rudder and refills their weapons whenever
+ * they berth; wear and weather would otherwise leave a scheduled hull
+ * crawling with its sail in rags, and one fight would empty her guns.
  */
 void vessel_berth(struct greyhawk_ship_data *ship)
 {
+  const struct vessel_weapon_type *weapon;
+  int i;
+
   if (ship == NULL)
   {
     return;
@@ -373,6 +421,14 @@ void vessel_berth(struct greyhawk_ship_data *ship)
   {
     ship->mainsail = ship->maxmainsail;
     ship->turnrate = ship->maxturnrate;
+    for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
+    {
+      weapon = vessel_slot_weapon(&ship->slot[i]);
+      if (weapon != NULL)
+      {
+        ship->slot[i].ammo = (unsigned char)weapon->ammo;
+      }
+    }
   }
   ship->dock = vessel_port_room_vnum(ship);
   ship->anchored = FALSE;
@@ -410,13 +466,14 @@ void vessel_sync_berth(struct greyhawk_ship_data *ship)
  * Start casting off from a berth or weighing anchor.
  *
  * ch is the character giving the order, or NULL for a pilot. Departure from
- * a berth needs a whole sail, settled dock fees, and a captain of the hull's
- * minimum level.
+ * a berth needs a whole sail, settled dock fees, the shipwrights finished, a
+ * legal fit-out, and a captain of the hull's minimum level.
  *
  * @return TRUE when the crew set to work
  */
 bool vessel_begin_departure(struct greyhawk_ship_data *ship, struct char_data *ch)
 {
+  const char *problem;
   bool berthed;
 
   if (!is_valid_ship(ship))
@@ -458,6 +515,24 @@ bool vessel_begin_departure(struct greyhawk_ship_data *ship, struct char_data *c
         send_to_char(ch,
                      "The harbor master withholds clearance: %d gold in dock fees remains due.\r\n",
                      ship->dock_fee_balance);
+      }
+      return FALSE;
+    }
+    if (ship->maintenance_ticks > 0)
+    {
+      if (ch != NULL)
+      {
+        send_to_char(ch, "The shipwrights are still at work on %s: %d seconds.\r\n", ship->name,
+                     (ship->maintenance_ticks + 1) / 2);
+      }
+      return FALSE;
+    }
+    problem = vessel_fitout_problem(ship);
+    if (problem != NULL)
+    {
+      if (ch != NULL)
+      {
+        send_to_char(ch, "The harbor master withholds clearance: %s\r\n", problem);
       }
       return FALSE;
     }
@@ -587,6 +662,11 @@ bool vessel_maneuver(struct greyhawk_ship_data *ship, struct char_data *ch, int 
     send_to_char(ch, "%s rides at anchor; order 'undock' to weigh anchor first.\r\n", ship->name);
     return FALSE;
   }
+  if (vessel_crew_stunned(ship))
+  {
+    send_to_char(ch, "The crew reels from a mental blast and cannot answer the helm.\r\n");
+    return FALSE;
+  }
   if (ship->maneuver_ticks > 0)
   {
     send_to_char(ch, "The crew is not ready to maneuver again yet.\r\n");
@@ -649,7 +729,10 @@ bool vessel_maneuver(struct greyhawk_ship_data *ship, struct char_data *ch, int 
 
   if (!vessel_enter_cell(ship, x, y, z))
   {
-    send_to_char(ch, "%s\r\n", vessel_blocked_text(ship->vessel_type, z));
+    send_to_char(ch, "%s\r\n",
+                 vessel_at_battle_stations(ship) && vessel_cell_is_port(x, y)
+                     ? "The harbor will not admit a crew at battle stations."
+                     : vessel_blocked_text(ship->vessel_type, z));
     return FALSE;
   }
 
@@ -705,6 +788,58 @@ static void vessel_stop_at_edge(struct greyhawk_ship_data *ship)
       log("SYSERR: Ship %d could not persist the movement-failure pause", ship->shipnum);
     }
   }
+}
+
+/**
+ * Duris's crash check (study 3.3.2): a hull refused a room of land or
+ * shallows while her crew is at battle stations may run aground, the chance
+ * (speed + 50) / (1 + 2 * sail mod) against 2d50, speed in Duris units; a
+ * stunned crew cannot save her. A grounding lands hull weight / 25 + 1 hits
+ * of 1-9: the first on the bow, each later one half the time on a random
+ * side or the sails. Stamina (S5) will divide the chance further.
+ */
+static void vessel_crash_check(struct greyhawk_ship_data *ship, double impact_speed)
+{
+  int chance;
+  int hits;
+  int hit;
+  int arc;
+
+  if (vessel_crew_stunned(ship))
+  {
+    chance = 100;
+  }
+  else
+  {
+    send_to_ship(ship, "The crew fights to keep her off!");
+    chance = (int)((impact_speed / VESSEL_DURIS_SPEED_SCALE + 50.0) /
+                   (1.0 + 2.0 * (vessel_sailmaster_multiplier(ship) - 1.0)));
+  }
+  if (dice(2, 50) > chance)
+  {
+    send_to_ship(ship, "The crew keeps her from running aground.");
+    return;
+  }
+
+  send_to_ship(ship, "CRUNCH! %s runs hard aground!", ship->name);
+  hits = vessel_class_handling(ship->vessel_type)->hull_weight / 25 + 1;
+  for (hit = 0; hit < hits; hit++)
+  {
+    if (hit > 0 && rand_number(1, 2) == 1)
+    {
+      continue;
+    }
+    arc = hit == 0 ? GREYHAWK_FORE : rand_number(0, VESSEL_NUM_ARCS + 1);
+    if (arc < VESSEL_NUM_ARCS)
+    {
+      vessel_damage_hull(NULL, ship, rand_number(1, 9), arc, FALSE);
+    }
+    else
+    {
+      vessel_damage_sail(NULL, ship, rand_number(1, 9));
+    }
+  }
+  vessel_update_condition(ship, NULL);
 }
 
 /* How many ticks ago the track, covering move each tick, passed the room
@@ -840,19 +975,24 @@ bool vessel_sail_tick(struct greyhawk_ship_data *ship, double max_speed, vessel_
   }
   target = fmax(0.0, target);
 
-  limit = vessel_acceleration(ship);
-  change = target - ship->speed;
-  ship->speed = fabs(change) <= limit ? target : ship->speed + copysign(limit, change);
+  /* A crew reeling from a mental blast cannot answer the helm; she carries
+   * on as she was. */
+  if (!vessel_crew_stunned(ship))
+  {
+    limit = vessel_acceleration(ship);
+    change = target - ship->speed;
+    ship->speed = fabs(change) <= limit ? target : ship->speed + copysign(limit, change);
 
-  change = vessel_heading_difference(ship->heading, (double)ship->setheading);
-  limit = vessel_turn_rate(ship, max_speed);
-  if (fabs(change) <= limit)
-  {
-    ship->heading = vessel_normalize_heading((double)ship->setheading);
-  }
-  else
-  {
-    ship->heading = vessel_normalize_heading(ship->heading + copysign(limit, change));
+    change = vessel_heading_difference(ship->heading, (double)ship->setheading);
+    limit = vessel_turn_rate(ship, max_speed);
+    if (fabs(change) <= limit)
+    {
+      ship->heading = vessel_normalize_heading((double)ship->setheading);
+    }
+    else
+    {
+      ship->heading = vessel_normalize_heading(ship->heading + copysign(limit, change));
+    }
   }
 
   if (ship->speed <= 0.0)
@@ -874,6 +1014,9 @@ bool vessel_sail_tick(struct greyhawk_ship_data *ship, double max_speed, vessel_
  */
 void vessel_movement_tick_one(struct greyhawk_ship_data *ship)
 {
+  double impact_speed;
+  int refused_x;
+  int refused_y;
   bool was_moving;
 
   if (!is_valid_ship(ship))
@@ -883,6 +1026,14 @@ void vessel_movement_tick_one(struct greyhawk_ship_data *ship)
   if (ship->maneuver_ticks > 0)
   {
     ship->maneuver_ticks--;
+  }
+  if (ship->maintenance_ticks > 0)
+  {
+    ship->maintenance_ticks--;
+    if (ship->maintenance_ticks == 0)
+    {
+      send_to_ship(ship, "The shipwrights finish their work on %s.", ship->name);
+    }
   }
   if (ship->departure_ticks > 0)
   {
@@ -903,9 +1054,24 @@ void vessel_movement_tick_one(struct greyhawk_ship_data *ship)
   }
 
   was_moving = ship->speed > 0.0;
-  if (!vessel_sail_tick(ship, vessel_max_speed(ship), vessel_enter_cell, NULL, NULL))
+  if (!vessel_sail_tick(ship, vessel_max_speed(ship), vessel_enter_cell, &refused_x, &refused_y))
   {
+    /* Barred from a harbor, she lies off it until the crew stands down. */
+    if (vessel_at_battle_stations(ship) && vessel_cell_is_port(refused_x, refused_y))
+    {
+      ship->speed = 0.0;
+      send_to_ship_throttled(ship, VESSEL_MESSAGE_HARBOR_REFUSED,
+                             (uint64_t)VESSEL_AMBIENT_MESSAGE_COOLDOWN,
+                             "The harbor will not admit a crew at battle stations; she lies off "
+                             "until they stand down.");
+      return;
+    }
+    impact_speed = ship->speed;
     vessel_stop_at_edge(ship);
+    if (vessel_at_battle_stations(ship) || vessel_crew_stunned(ship))
+    {
+      vessel_crash_check(ship, impact_speed);
+    }
     was_moving = TRUE;
   }
 
