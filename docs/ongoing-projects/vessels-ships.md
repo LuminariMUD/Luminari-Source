@@ -888,7 +888,7 @@ proportion.
 
 - The twelve Duris weapons (1.3) are seeded as data rows with Duris ranges, damage, fragments,
   spread, sail hit, hull/sail percentages, ammo and reloads (60 and 90 ticks; S4 tuned them to
-  40 and 60 for D2, see Phase 4). Prices are twice the platinum price; selling returns 90% (10%
+  40 and 60 for D2, and S5 to 34 and 51 once crews tire, see Phases 4 and 5). Prices are twice the platinum price; selling returns 90% (10%
   if damaged). Installing takes `weight * 75` s of maintenance, which blocks departure.
 - Mounts and arc weight caps come from 3.3.1; each weapon keeps its Duris arcs; a class may mount
   what its analog may mount in `ship_allowed_weapons[]`. One capital weapon per hull, needing
@@ -1577,13 +1577,13 @@ insurance, `shipsummon`, the hull rebuild shared with trade-in); crew experience
 
 | Item | State | Where |
 | -- | -- | -- |
-| Crew experience per position from the tier floor, the 3.3.5 gains, promotion at a floor, casualties when the hull sinks; able and veteran hires refused to mortals until renown exists | Planned | `vessels_crew.c`; `ship_crew_roster.experience` (Phase 21) |
-| Crew stamina: maximum, regeneration, Duris costs for helm, gunnery and repairs; the modifier on accel, turn, reload, hit chance, crash check and repair odds | Planned | `vessels_crew.c`, `vessels_movement.c`, `vessels_gunnery.c` |
-| Repair stock, crew repairs at Duris odds and caps, `shiprepair` at sea (Craft (woodworking) DC 15) and at a shipyard (priced dock repairs with maintenance); refits no longer repair (L10) | Planned | `vessels_repair.c`; `vessel_refit_arcs()` |
-| Stowed hulls (out of the world, fleet slot kept) and `shipsummon` (fee, passage time, empty hold, survives reboot) | Planned | `vessels_loss.c`; `ship_runtime_state.stowed`, `summon_due` (Phase 21) |
-| D3 loss: an owned hull that goes down is rebuilt as the replacement boat and waits in the wreck registry; automatic insurance through the claim queue; `shipinsure` retired and active premiums refunded | Planned | `vessels_loss.c`, `vessel_sink()`; `wreck_hull` (Phase 21) |
-| Trade-in (`shipbuy <id> trade`) and the rename fee | Planned | `do_shipbuy()`, `do_shipchristen()` |
-| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character gate, the existing gates, local CI | Planned |  |
+| Crew experience per position from the tier floor, the 3.3.5 gains, promotion at a floor, casualties when the hull sinks; able and veteran hires refused to mortals until renown exists | Done | `vessel_crew_floor()`, `vessel_crew_gain()`, `vessel_crew_credit_kill()`, `vessel_crew_sale_gain()`, `vessel_crew_casualties()`, `do_shiphire()`, `do_shipcrew()`; `ship_crew_roster.experience` (Phase 21) |
+| Crew stamina: maximum, regeneration, Duris costs for helm, gunnery and repairs; the modifier on accel, turn, reload, hit chance, crash check and repair odds | Done | `vessel_stamina_max()`, `vessel_stamina_modifier()`, `vessel_hull_effort()`, `vessel_crew_tick_one()` in `vessels_crew.c`; `vessel_helm_stamina()` in `vessel_sail_tick()`; `vessel_reload_tick()` and `vessel_fire_weapon()`; `shipstatus` |
+| Repair stock, crew repairs at Duris odds and caps, `shiprepair` at sea (Craft (woodworking) DC 15) and at a shipyard (priced dock repairs with maintenance); refits no longer repair (L10) | Done | `vessels_repair.c`: `vessel_repair_stock()`, `vessel_repair_tick_one()`, `do_shiprepair()`; `vessel_berth()` refills; `vessel_refit_arcs()` |
+| Stowed hulls (out of the world, fleet slot kept) and `shipsummon` (fee, passage time, empty hold, survives reboot) | Done | `vessels_loss.c`: `vessel_stow()`, `vessel_restow()`, `vessel_summon_seconds()`, `vessel_summon_fee()`, `vessel_summon_tick()`, `do_shipsummon()`; `ship_runtime_state.stowed`, `summon_due` (Phase 21); `shiplist`, `shippurge`, owner count, player removal |
+| D3 loss: an owned hull that goes down is rebuilt as the replacement boat and waits in the wreck registry; automatic insurance through the claim queue; `shipinsure` retired and active premiums refunded | Done | `vessel_wreck_hull()`, `vessel_wreck_prototype()`, `vessel_rebuild_hull()`, `vessel_insurance_payout()`, `vessel_hull_price()` in `vessels_loss.c`; `vessel_sink()`; `vessel_refund_insurance_premiums()`; `wreck_hull` (Phase 21) |
+| Trade-in (`shipbuy <id> trade`) and the rename fee | Done | `vessel_trade_in()`, `do_shipchristen()` in `vessels_edit.c`; `vessel_carry_fitout()`, `vessel_slot_sale_value()` in `vessels_weapons.c` |
+| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character gate, the existing gates, local CI | Done | SHIPHIRE, SHIPFIRE (SHIPREPAIR), SHIPBROWSE (SHIPSUMMON), VESSELS, SHIPLIST (verifier: 89 keywords, 30 content checks); new `test_vessel_crew.c`, `test_vessel_loss.c`; `scripts/vessels/test_vessel_loss_in_game.sh` (tactical harness `--loss`, login helper `--vessel-loss-check`), and the damage gate now summons her wreck; results below |
 
 Interpretations decided while planning S5:
 
@@ -1632,6 +1632,32 @@ destination column (the saved location is the destination), persisted stamina an
 field with nothing to earn it, the ram training gain (S6), and mail receipts for refunds. Kept the
 rudder in crew and dock repairs (without it a smashed rudder is permanent at sea) and the harbor
 service for unowned hulls.
+
+Decided while building S5:
+
+- A stowed hull is `stowed` with `active` FALSE rather than a new check inside
+  `is_valid_ship()`: every contact, tick, target, and command already passes an inactive slot by,
+  while `vedit_find_free_slot()` skips a stowed one so her slot stays hers. Saving goes through the
+  in-world path (`vessel_save_one()`, now shared with `save_all_vessels()`), with `active` raised
+  for the save.
+- D2 retune. Stamina lengthened the duel: the harness captain circles her enemy at 7.5 rooms, which
+  needs about 70% of a frigate's turn rate every tick (as in Duris), so an untrained crew (500
+  stamina) runs a deficit within minutes. With S4's reloads the median rose from 431 s to 521 s
+  (p95 729 s). Shorter reloads alone brought draws (a hull whose rudder is shot away cannot come
+  about) above 2%. Crew repairs, which mend a rudder at sea, took the draws back down, so the
+  harness now reloads, tires, rests, and repairs through the production ticks, and the reload
+  lever moved to 34 and 51 ticks (17 s and 25.5 s): 1,000 duels give a 437 s median, 636 s p95,
+  208 s minimum, 0.7% drawn, and 437-443 s medians on four other seeds.
+- The harness duels ran their own reload countdown; `vessel_reload_tick()` now serves both the
+  gunnery tick and the harness, so reload stamina and gunner training cannot drift apart.
+- The summons of a hull under way puts anyone aboard over the side at her position, as Duris does;
+  a hull in port puts them on the dock.
+- The trade-in credit and the rename fee use `vessel_hull_price()` of the current design speed and
+  beam armor, so a rigged or plated hull is worth a little more, as the old `shipinsure` cap was.
+- Found by the loss gate: the (-66, 92) wilderness spot called a seaport in the S2 notes is not a
+  port in the current world for characters or hulls; the gate uses the east Testing Dock (1000390)
+  and the water one room west of it. The Starfall Bastion prototype is not for sale in the
+  development database, so the gate lists its own temporary warship design for the trade-in.
 
 ### Estimate
 
