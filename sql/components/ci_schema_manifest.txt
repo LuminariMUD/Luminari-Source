@@ -85,6 +85,7 @@ skip verify_help_thrown_weapons_entries.sql
 skip verify_help_vessel_entries.sql
 skip verify_help_worship_entries.sql
 skip verify_vessels_campaign_content.sql
+skip verify_vessels_contraband_content.sql
 skip verify_vessels_derelict_content.sql
 skip verify_vessels_frontier_content.sql
 skip verify_vessels_phase4.sql
@@ -105,11 +106,14 @@ skip verify_vessels_phase19.sql
 skip verify_vessels_phase20.sql
 skip verify_vessels_phase21.sql
 skip verify_vessels_phase22.sql
+skip verify_vessels_phase23.sql
 skip verify_vessels_narrative_content.sql
 skip verify_vessels_raider_content.sql
 skip verify_vessels_schema.sql
 skip vessels_campaign_content.sql
 skip vessels_campaign_content_rollback.sql
+skip vessels_contraband_content.sql
+skip vessels_contraband_content_rollback.sql
 skip vessels_derelict_content.sql
 skip vessels_derelict_content_rollback.sql
 skip vessels_frontier_content.sql
@@ -157,3 +161,5 @@ skip vessels_phase21_rollback.sql
 apply vessels_phase21_schema.sql
 skip vessels_phase22_rollback.sql
 apply vessels_phase22_schema.sql
+skip vessels_phase23_rollback.sql
+apply vessels_phase23_schema.sql

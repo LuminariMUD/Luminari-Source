@@ -138,6 +138,28 @@ int vessel_crew_hire_cost(int position, int tier)
 }
 
 /**
+ * Renown a hull needs before a hand of this tier signs on (study 3.3.5);
+ * green hands need none.
+ */
+int vessel_crew_hire_renown(int position, int tier)
+{
+  static const int hire_renown[NUM_CREW_POSITIONS][CREW_TIER_VETERAN - CREW_TIER_GREEN] = {
+      {540, 1350}, /* sailmaster */
+      {700, 1640}, /* gunner */
+      {640, 1480}, /* bosun */
+      {540, 1350}  /* quartermaster */
+  };
+
+  if (position < 0 || position >= NUM_CREW_POSITIONS || tier <= CREW_TIER_GREEN ||
+      tier > CREW_TIER_VETERAN)
+  {
+    return 0;
+  }
+
+  return hire_renown[position][tier - CREW_TIER_ABLE];
+}
+
+/**
  * Experience at which a position reaches a tier, in Duris skill points
  * (study 3.3.5); a hand starts at the floor of the tier hired.
  */
@@ -520,17 +542,18 @@ ACMD(do_shiphire)
   if (!*arg1 || !*arg2)
   {
     send_to_char(ch, "Usage: shiphire <position> <tier>\r\n");
-    send_to_char(ch, "One-time hire prices (crew draw no wages):\r\n");
+    send_to_char(ch, "One-time hire prices (crew draw no wages), and the renown a hull needs:\r\n");
     for (i = 0; i < NUM_CREW_POSITIONS; i++)
     {
-      send_to_char(ch, "  %-14s green %6d  able %6d  veteran %6d\r\n", vessel_crew_position_name(i),
-                   vessel_crew_hire_cost(i, CREW_TIER_GREEN),
+      send_to_char(ch, "  %-14s green %6d  able %6d (%4d)  veteran %6d (%4d)\r\n",
+                   vessel_crew_position_name(i), vessel_crew_hire_cost(i, CREW_TIER_GREEN),
                    vessel_crew_hire_cost(i, CREW_TIER_ABLE),
-                   vessel_crew_hire_cost(i, CREW_TIER_VETERAN));
+                   vessel_crew_hire_renown(i, CREW_TIER_ABLE),
+                   vessel_crew_hire_cost(i, CREW_TIER_VETERAN),
+                   vessel_crew_hire_renown(i, CREW_TIER_VETERAN));
     }
-    send_to_char(ch,
-                 "Able and veteran hands sign on only with a hull of renown; green hands earn\r\n"
-                 "promotion at sea (see 'shipcrew').\r\n");
+    send_to_char(ch, "%s has %d renown; green hands earn promotion at sea (see 'shipcrew').\r\n",
+                 ship->name, ship->renown);
     return;
   }
 
@@ -548,13 +571,13 @@ ACMD(do_shiphire)
     return;
   }
 
-  /* Renown arrives with S7; until then only promotion brings better hands. */
-  if (tier > CREW_TIER_GREEN && GET_LEVEL(ch) < LVL_IMMORT)
+  if (ship->renown < vessel_crew_hire_renown(position, tier) && GET_LEVEL(ch) < LVL_IMMORT)
   {
     send_to_char(ch,
-                 "No %s %s will sign on with a hull of no renown. Hire a green hand and let the "
-                 "sea promote them.\r\n",
-                 vessel_crew_tier_name(tier), vessel_crew_position_name(position));
+                 "No %s %s will sign on with a hull of less than %d renown, and %s has %d. Hire "
+                 "a green hand and let the sea promote them.\r\n",
+                 vessel_crew_tier_name(tier), vessel_crew_position_name(position),
+                 vessel_crew_hire_renown(position, tier), ship->name, ship->renown);
     return;
   }
 

@@ -32,28 +32,28 @@
 /* Indexed by enum vessel_weapon_id; row 0 is the unconverted pre-S4 weapon. */
 static const struct vessel_weapon_type weapon_types[NUM_VESSEL_WEAPONS] = {
     /* name, price, weight, ammo, range, damage, fragments, spread, sail hit,
-     * hull/sail percent, pierce, reload, arcs, flags */
-    {"Unknown Weapon", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {"Small Ballista", 100, 3, 60, 0, 8, 2, 4, 1, 10, 12, 100, 50, 10, 34, ARCS_ALL, 0},
-    {"Medium Ballista", 200, 6, 50, 0, 10, 4, 6, 1, 10, 14, 100, 50, 10, 34, ARCS_ALL, 0},
-    {"Large Ballista", 1000, 10, 30, 0, 12, 6, 9, 1, 10, 16, 100, 50, 10, 34, ARCS_ALL, 0},
+     * hull/sail percent, pierce, reload, arcs, flags, capital renown */
+    {"Unknown Weapon", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {"Small Ballista", 100, 3, 60, 0, 8, 2, 4, 1, 10, 12, 100, 50, 10, 34, ARCS_ALL, 0, 0},
+    {"Medium Ballista", 200, 6, 50, 0, 10, 4, 6, 1, 10, 14, 100, 50, 10, 34, ARCS_ALL, 0, 0},
+    {"Large Ballista", 1000, 10, 30, 0, 12, 6, 9, 1, 10, 16, 100, 50, 10, 34, ARCS_ALL, 0, 0},
     {"Small Catapult", 1000, 10, 30, 4, 15, 2, 3, 4, 160, 20, 100, 100, 2, 34, ARCS_ENDS,
-     VESSEL_WEAPON_BALLISTIC},
+     VESSEL_WEAPON_BALLISTIC, 0},
     {"Medium Catapult", 1600, 13, 20, 5, 20, 2, 4, 5, 260, 20, 100, 100, 2, 34, ARCS_ENDS,
-     VESSEL_WEAPON_BALLISTIC},
+     VESSEL_WEAPON_BALLISTIC, 0},
     {"Large Catapult", 2400, 17, 12, 6, 25, 2, 5, 6, 360, 20, 100, 100, 2, 34, ARCS_ENDS,
-     VESSEL_WEAPON_BALLISTIC},
-    {"Heavy Ballista", 2000, 15, 6, 0, 4, 15, 22, 1, 10, 0, 100, 0, 15, 34, ARCS_BEAMS, 0},
+     VESSEL_WEAPON_BALLISTIC, 0},
+    {"Heavy Ballista", 2000, 15, 6, 0, 4, 15, 22, 1, 10, 0, 100, 0, 15, 34, ARCS_BEAMS, 0, 0},
     {"Light Beamcannon", 8000, 7, 40, 0, 20, 4, 16, 1, 10, 10, 100, 30, 15, 51, ARCS_ALL,
-     VESSEL_WEAPON_RANGE_DAMAGE | VESSEL_WEAPON_CAPITAL},
+     VESSEL_WEAPON_RANGE_DAMAGE | VESSEL_WEAPON_CAPITAL, 1600},
     {"Heavy Beamcannon", 10000, 9, 40, 0, 23, 5, 22, 1, 10, 10, 100, 30, 15, 51, ARCS_ALL,
-     VESSEL_WEAPON_RANGE_DAMAGE | VESSEL_WEAPON_CAPITAL},
+     VESSEL_WEAPON_RANGE_DAMAGE | VESSEL_WEAPON_CAPITAL, 1800},
     {"Mind Blast Cannon", 8000, 5, 50, 0, 20, 0, 0, 1, 360, 0, 0, 0, 0, 51, ARCS_ALL,
-     VESSEL_WEAPON_CREW_STUN | VESSEL_WEAPON_CAPITAL},
+     VESSEL_WEAPON_CREW_STUN | VESSEL_WEAPON_CAPITAL, 1700},
     {"Fragmentation Cannon", 10000, 7, 20, 0, 16, 4, 6, 5, 90, 50, 50, 100, 0, 51, ARCS_ENDS,
-     VESSEL_WEAPON_CAPITAL},
+     VESSEL_WEAPON_CAPITAL, 1900},
     {"Long Tom Catapult", 10000, 9, 6, 12, 32, 3, 6, 8, 360, 20, 100, 100, 3, 51, ARCS_ENDS,
-     VESSEL_WEAPON_BALLISTIC | VESSEL_WEAPON_CAPITAL}};
+     VESSEL_WEAPON_BALLISTIC | VESSEL_WEAPON_CAPITAL, 2000}};
 
 static const char *const equipment_names[NUM_VESSEL_EQUIPMENT] = {"Unknown Equipment", "Ram",
                                                                   "Neutral Colors"};
@@ -459,6 +459,7 @@ static void vessel_show_weapon_catalogue(struct char_data *ch, struct greyhawk_s
   const struct vessel_class_fitting *fitting;
   const struct vessel_weapon_type *weapon;
   char damage[32];
+  char capital[32];
   int count[VESSEL_NUM_ARCS];
   int weight[VESSEL_NUM_ARCS];
   int total;
@@ -490,12 +491,16 @@ static void vessel_show_weapon_catalogue(struct char_data *ch, struct greyhawk_s
     {
       snprintf(damage, sizeof(damage), "%d-%d", weapon->min_damage, weapon->max_damage);
     }
+    *capital = '\0';
+    if (IS_SET(weapon->flags, VESSEL_WEAPON_CAPITAL))
+    {
+      snprintf(capital, sizeof(capital), ", capital %d", weapon->renown);
+    }
     send_to_char(ch, "%2d  %-20s %6d %3d %4d %2d-%-2d %-8s %5ds  %s%s%s\r\n", i, weapon->name,
                  weapon->price, weapon->weight, weapon->ammo, weapon->min_range, weapon->max_range,
                  damage, weapon->reload / 2,
                  weapon->arcs == ARCS_ALL ? "all" : (weapon->arcs == ARCS_ENDS ? "ends" : "beams"),
-                 IS_SET(weapon->flags, VESSEL_WEAPON_CAPITAL) ? ", capital" : "",
-                 IS_SET(fitting->weapons, WEAPON_BIT(i)) ? "" : " (not on this hull)");
+                 capital, IS_SET(fitting->weapons, WEAPON_BIT(i)) ? "" : " (not on this hull)");
   }
 
   memset(count, 0, sizeof(count));
@@ -519,9 +524,9 @@ static void vessel_show_weapon_catalogue(struct char_data *ch, struct greyhawk_s
                  fitting->mounts[arc], weight[arc], fitting->arc_weight[arc]);
   }
   send_to_char(ch,
-               "\r\nFit-out weight %d of %d. Capital weapons: one per hull, served by a "
-               "veteran gunner.\r\n",
-               total, vessel_class_handling(ship->vessel_type)->max_load);
+               "\r\nFit-out weight %d of %d. Capital weapons: one per hull, with the renown "
+               "shown (%s has %d) or a veteran gunner.\r\n",
+               total, vessel_class_handling(ship->vessel_type)->max_load, ship->name, ship->renown);
 }
 
 static void vessel_buy_weapon(struct char_data *ch, struct greyhawk_ship_data *ship,
@@ -530,6 +535,7 @@ static void vessel_buy_weapon(struct char_data *ch, struct greyhawk_ship_data *s
   const struct vessel_weapon_type *weapon;
   const char *problem;
   char name[MAX_INPUT_LENGTH];
+  char capital[128];
   char *arc_word;
   int weapon_id;
   int slot;
@@ -570,9 +576,12 @@ static void vessel_buy_weapon(struct char_data *ch, struct greyhawk_ship_data *s
   vessel_set_weapon(&ship->slot[slot], weapon_id, arc);
   problem = vessel_fitout_problem(ship);
   if (problem == NULL && IS_SET(weapon->flags, VESSEL_WEAPON_CAPITAL) &&
-      ship->crew_tier[CREW_GUNNER] < CREW_TIER_VETERAN)
+      ship->renown < weapon->renown && ship->crew_tier[CREW_GUNNER] < CREW_TIER_VETERAN)
   {
-    problem = "Only a veteran gunner can serve a capital weapon.";
+    snprintf(capital, sizeof(capital),
+             "A %s is mounted only on a hull of %d renown or with a veteran gunner.", weapon->name,
+             weapon->renown);
+    problem = capital;
   }
   if (problem == NULL && GET_GOLD(ch) < weapon->price)
   {

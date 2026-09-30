@@ -3098,11 +3098,14 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
  * lower-arm slots (WEAR_WIELD_3 .. WEAR_WRIST_L2) */
 #define FEAT_FOUR_ARMS 1321
 #define FEAT_PSIONIC_RESISTANCE 1322
+/* Ship damage control (vessels-ships study S7): an epic feat of 5 ranks that
+ * spares the owner's hull 4 + 4 * rank percent of each blow */
+#define FEAT_SHIP_DAMAGE_CONTROL 1323
 
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1323
+#define FEAT_LAST_FEAT 1324
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1324
+#define NUM_FEATS 1325
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/

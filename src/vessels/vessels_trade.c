@@ -9,6 +9,7 @@
 
 #include "conf.h"
 #include "core/sysdep.h"
+#include <math.h>
 #include "core/structs.h"
 #include "core/utils.h"
 #include "core/comm.h"
@@ -34,6 +35,7 @@ struct commodity_def
   char name[64];
   int base_price;
   int unit_weight;
+  int contraband_renown; /* Renown to buy it; 0 = lawful goods (study 3.3.9) */
 };
 
 #define MAX_COMMODITIES 32
@@ -233,6 +235,7 @@ bool vessel_clear_departed_berth(struct greyhawk_ship_data *ship, room_rnum old_
  * A port is owned by the clan that owns its containing zone. Fees assessed
  * while a clan owns the port remain payable to that clan even if territory
  * changes hands before settlement. Unclaimed-port revenue leaves the economy.
+ * A hull sailing in from outside the port faces its customs.
  */
 void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_room,
                               room_rnum new_room, bool old_is_port)
@@ -265,6 +268,10 @@ void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_roo
       log("Info: Port %" PRI_IDX " assessed ship %d '%s' %d gold for clan %d",
           world[new_room].number, ship->shipnum, ship->name, fee, ship->dock_fee_clan);
       changed = TRUE;
+    }
+    if (old_room != NOWHERE && !old_is_port)
+    {
+      vessel_customs_inspection(ship, new_room);
     }
   }
 
@@ -412,6 +419,14 @@ void vessel_trade_ensure_schema(void)
     return;
   }
 
+  /* Contraband (S7): the renown a hull needs to buy it; 0 marks lawful goods. */
+  if (mysql_query(conn, "ALTER TABLE trade_commodities "
+                        "ADD COLUMN IF NOT EXISTS contraband_renown INT NOT NULL DEFAULT 0"))
+  {
+    log("SYSERR: trade_commodities contraband column failed: %s", mysql_error(conn));
+    return;
+  }
+
   if (mysql_query(conn, "CREATE TABLE IF NOT EXISTS port_commodities ("
                         "  port_vnum INT NOT NULL,"
                         "  commodity_id INT NOT NULL,"
@@ -463,7 +478,7 @@ void vessel_trade_ensure_schema(void)
 
   /* Cache the commodity list for the run */
   num_commodities = 0;
-  if (mysql_query(conn, "SELECT commodity_id, name, base_price, unit_weight "
+  if (mysql_query(conn, "SELECT commodity_id, name, base_price, unit_weight, contraband_renown "
                         "FROM trade_commodities ORDER BY base_price"))
   {
     return;
@@ -484,6 +499,7 @@ void vessel_trade_ensure_schema(void)
             sizeof(commodity_cache[num_commodities].name));
     commodity_cache[num_commodities].base_price = MAX(1, row[2] ? parse_int(row[2]) : 10);
     commodity_cache[num_commodities].unit_weight = MAX(1, row[3] ? parse_int(row[3]) : 10);
+    commodity_cache[num_commodities].contraband_renown = row[4] ? parse_int(row[4]) : 0;
     num_commodities++;
   }
   mysql_free_result(result);
@@ -901,10 +917,42 @@ ACMD(do_vtradecheck)
 }
 
 /**
+ * Does the port stock this commodity: has it a supply row? Content alone
+ * stocks contraband (study 3.3.9).
+ */
+static bool port_stocks(int port_vnum, int commodity_id)
+{
+  char query[MAX_STRING_LENGTH];
+  MYSQL_RES *result;
+  bool stocked;
+
+  if (!mysql_available || conn == NULL)
+  {
+    return FALSE;
+  }
+  snprintf(query, sizeof(query),
+           "SELECT 1 FROM port_commodities WHERE port_vnum = %d AND commodity_id = %d", port_vnum,
+           commodity_id);
+  if (mysql_query(conn, query))
+  {
+    return FALSE;
+  }
+  result = mysql_store_result(conn);
+  if (result == NULL)
+  {
+    return FALSE;
+  }
+  stocked = mysql_num_rows(result) > 0;
+  mysql_free_result(result);
+  return stocked;
+}
+
+/**
  * Read a port's supply for a commodity, creating the row on first contact.
  */
 static int port_supply(int port_vnum, int commodity_id)
 {
+  struct commodity_def *def;
   char query[MAX_STRING_LENGTH];
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -937,6 +985,14 @@ static int port_supply(int port_vnum, int commodity_id)
     return supply;
   }
   mysql_free_result(result);
+
+  /* Contraband a port does not stock is scarce there, and stays so: only
+   * content stocks it. */
+  def = commodity_by_id(commodity_id);
+  if (def != NULL && def->contraband_renown > 0)
+  {
+    return TRADE_SUPPLY_MIN;
+  }
 
   /* First visit: seed this port/commodity pair with a deterministic
    * variation from the vnum so ports differ without random drift. */
@@ -1171,6 +1227,97 @@ void vessel_trade_restock_tick(void)
 }
 
 /**
+ * The percent chance customs confiscate each unit of a contraband lot (study
+ * 3.3.9, Duris check_contraband()): c = 35 + units / 2 - sqrt(renown) / 5,
+ * raised by (100 - c) * (1 - load), load being the hold's fill by weight, so
+ * contraband hides in a full hold; at most 100, and 5 when negative.
+ */
+int vessel_customs_chance(int units, int renown, double load)
+{
+  double chance;
+
+  chance = 35.0 + units / 2.0 - sqrt((double)MAX(0, renown)) / 5.0;
+  chance += (100.0 - chance) * (1.0 - load);
+  if (chance > 100.0)
+  {
+    return 100;
+  }
+  return chance < 0.0 ? 5 : (int)chance;
+}
+
+/**
+ * Customs: a lawful port, one outside pirate-cove waters, searches a
+ * player's hull arriving from sea for the contraband it does not stock, and
+ * confiscates each unit with vessel_customs_chance().
+ */
+void vessel_customs_inspection(struct greyhawk_ship_data *ship, room_rnum port_room)
+{
+  struct vessel_piracy_law law;
+  struct commodity_def *def;
+  double load;
+  int chance;
+  bool searched;
+  int units;
+  int taken;
+  int lot;
+  int i;
+
+  if (ship->owner[0] == '\0' ||
+      (vessel_piracy_law_for_ship(ship, &law) && vessel_piracy_wanted_port_is_open(&law)))
+  {
+    return;
+  }
+
+  load = (double)vessel_cargo_weight(ship) / (double)MAX(1, vessel_effective_cargo_capacity(ship));
+  searched = FALSE;
+  for (lot = 0; lot < MAX_CARGO_LOTS; lot++)
+  {
+    def = commodity_by_id(ship->cargo[lot].commodity_id);
+    units = ship->cargo[lot].quantity;
+    if (def == NULL || def->contraband_renown <= 0 || units <= 0 ||
+        port_stocks(world[port_room].number, def->id))
+    {
+      continue;
+    }
+    if (!searched)
+    {
+      send_to_ship(ship, "The port authorities come aboard %s in search of contraband.",
+                   ship->name);
+      searched = TRUE;
+    }
+
+    chance = vessel_customs_chance(units, ship->renown, load);
+    taken = 0;
+    for (i = 0; i < units; i++)
+    {
+      if (rand_number(0, 99) < chance)
+      {
+        taken++;
+      }
+    }
+    if (taken == 0)
+    {
+      continue;
+    }
+
+    ship->cargo[lot].quantity -= taken;
+    if (ship->cargo[lot].quantity == 0)
+    {
+      ship->cargo[lot].commodity_id = 0;
+    }
+    send_to_ship(ship, "Customs confiscate %d of %d units of %s!", taken, units, def->name);
+    log("Info: Customs at port %" PRI_IDX " took %d of %d %s from ship %d '%s' of %s",
+        world[port_room].number, taken, units, def->name, ship->shipnum, ship->name, ship->owner);
+  }
+
+  if (!searched)
+  {
+    return;
+  }
+  vessel_db_save_cargo(ship);
+}
+
+/**
  * Resolve the trading context: the player's ship, moored at a dock.
  *
  * @param port_vnum Out: the dock room's vnum
@@ -1214,6 +1361,7 @@ static struct greyhawk_ship_data *trade_context(struct char_data *ch, int *port_
 ACMD(do_market)
 {
   struct greyhawk_ship_data *ship;
+  bool contraband;
   int port_vnum;
   int supply;
   int price;
@@ -1232,12 +1380,63 @@ ACMD(do_market)
   {
     supply = port_supply(port_vnum, commodity_cache[i].id);
     price = vessel_commodity_price(commodity_cache[i].base_price, supply);
-    send_to_char(ch, "%-16s %7d %6d %6d  %s\r\n", commodity_cache[i].name,
+    contraband = commodity_cache[i].contraband_renown > 0;
+    if (contraband && !port_stocks(port_vnum, commodity_cache[i].id))
+    {
+      send_to_char(ch, "%-16s %7d %6s %6d  none (contraband)\r\n", commodity_cache[i].name,
+                   commodity_cache[i].unit_weight, "-", price * TRADE_SELL_PERCENT / 100);
+      continue;
+    }
+    send_to_char(ch, "%-16s %7d %6d %6d  %s%s\r\n", commodity_cache[i].name,
                  commodity_cache[i].unit_weight, price, price * TRADE_SELL_PERCENT / 100,
-                 supply < 60 ? "scarce" : (supply > 160 ? "glutted" : "steady"));
+                 supply < 60 ? "scarce" : (supply > 160 ? "glutted" : "steady"),
+                 contraband ? " (contraband)" : "");
   }
   send_to_char(ch, "Hold: %d of %d lbs used.\r\n", vessel_cargo_weight(ship),
                vessel_effective_cargo_capacity(ship));
+}
+
+/**
+ * Will the smugglers sell her this contraband (study 3.3.9)? Only a port that
+ * stocks it sells it, and then, staff aside, only to a hull of its renown or
+ * with an able sailmaster and quartermaster, never to a warship, and never
+ * to a buyer at the height of goodness.
+ *
+ * @return TRUE if sold; else FALSE with the refusal sent to ch
+ */
+static bool vessel_contraband_sold_to(struct char_data *ch, const struct greyhawk_ship_data *ship,
+                                      const struct commodity_def *def, int port_vnum)
+{
+  if (!port_stocks(port_vnum, def->id))
+  {
+    send_to_char(ch, "Nobody here will sell you %s.\r\n", def->name);
+    return FALSE;
+  }
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+  {
+    return TRUE;
+  }
+  if (ship->vessel_type == VESSEL_WARSHIP)
+  {
+    send_to_char(ch, "No smuggler will load %s into a warship.\r\n", def->name);
+    return FALSE;
+  }
+  if (GET_ALIGNMENT(ch) >= VESSEL_CONTRABAND_ALIGNMENT)
+  {
+    send_to_char(ch, "The smugglers will not deal with anyone as upright as you.\r\n");
+    return FALSE;
+  }
+  if (ship->renown < def->contraband_renown &&
+      (ship->crew_tier[CREW_SAILMASTER] < CREW_TIER_ABLE ||
+       ship->crew_tier[CREW_QUARTERMASTER] < CREW_TIER_ABLE))
+  {
+    send_to_char(ch,
+                 "The smugglers sell %s only to a hull of %d renown, or one with an able "
+                 "sailmaster and quartermaster; %s has %d renown.\r\n",
+                 def->name, def->contraband_renown, ship->name, ship->renown);
+    return FALSE;
+  }
+  return TRUE;
 }
 
 /**
@@ -1283,6 +1482,10 @@ ACMD(do_cargobuy)
   if (def == NULL)
   {
     send_to_char(ch, "No such commodity here. Check 'market'.\r\n");
+    return;
+  }
+  if (def->contraband_renown > 0 && !vessel_contraband_sold_to(ch, ship, def, port_vnum))
+  {
     return;
   }
 
@@ -1335,6 +1538,30 @@ ACMD(do_cargobuy)
                def->name, cost, average_price);
   log("Info: %s bought %d %s at port %d for %lld gold", GET_NAME(ch), quantity, def->name,
       port_vnum, cost);
+}
+
+/**
+ * What a sale fetches against the port's price (study 3.3.9, Duris
+ * sell_cargo()): a seller with the SEADOG feat gets a tenth more, a hull
+ * under neutral colors a tenth less, and a warship four tenths less.
+ */
+double vessel_cargo_sale_factor(struct char_data *ch, const struct greyhawk_ship_data *ship)
+{
+  double factor = 1.0;
+
+  if (HAS_FEAT(ch, FEAT_SEADOG))
+  {
+    factor *= 1.1;
+  }
+  if (vessel_equipment_slot(ship, VESSEL_EQUIPMENT_COLORS) >= 0)
+  {
+    factor *= 0.9;
+  }
+  if (ship->vessel_type == VESSEL_WARSHIP)
+  {
+    factor *= 0.6;
+  }
+  return factor;
 }
 
 /**
@@ -1419,6 +1646,10 @@ ACMD(do_cargosell)
 
   supply = port_supply(port_vnum, def->id);
   revenue = vessel_trade_sell_revenue(def->base_price, supply, quantity);
+  if (revenue != LLONG_MAX)
+  {
+    revenue = (long long)((double)revenue * vessel_cargo_sale_factor(ch, ship));
+  }
   if (revenue == LLONG_MAX || revenue > (long long)MAX_GOLD - GET_GOLD(ch))
   {
     send_to_char(ch, "That sale would exceed the %d-gold carrying limit. Bank some gold first.\r\n",
@@ -1438,6 +1669,19 @@ ACMD(do_cargosell)
   port_adjust_supply(port_vnum, def->id, quantity);
   vessel_db_save_cargo(ship);
 
+  if (HAS_FEAT(ch, FEAT_SEADOG))
+  {
+    send_to_char(ch, "Your seafaring heritage earns you a tenth more.\r\n");
+  }
+  if (vessel_equipment_slot(ship, VESSEL_EQUIPMENT_COLORS) >= 0)
+  {
+    send_to_char(ch, "The merchants pay a tenth less to a hull under neutral colors.\r\n");
+  }
+  if (ship->vessel_type == VESSEL_WARSHIP)
+  {
+    send_to_char(ch,
+                 "Taking a warship's cargo for stolen, the merchants pay four tenths less.\r\n");
+  }
   average_price = (int)(revenue / quantity);
   send_to_char(ch, "You sell %d units of %s for %lld gold (%d average each).\r\n", quantity,
                def->name, revenue, average_price);

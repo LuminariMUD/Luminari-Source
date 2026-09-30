@@ -947,7 +947,8 @@ name through the authoritative player index rather than the unrelated
 Economy model (`src/vessels/vessels_trade.c`): commodities live in
 `trade_commodities` (seeded with 9 goods, builder-editable); per-port stock
 lives in `port_commodities`, seeded deterministically from the port vnum so
-ports differ without randomness. Price = base scaled by scarcity, clamped to
+ports differ without randomness (lawful goods only: contraband stock comes from
+content, S7). Price = base scaled by scarcity, clamped to
 +/- `TRADE_MAX_DRIFT` (60%) - the anti-arbitrage bound, unit-tested across
 the whole supply domain. A batch is priced one unit at a time across every
 supply level it moves through; quoting the whole batch at its first unit's
@@ -1051,6 +1052,7 @@ the removed name's bounty.
 | shipbuy | Buy a listed hull at a dock, become owner; or trade in your hull berthed there | `shipbuy <id> [trade]` |
 | shipchristen | Owner: rename the ship (first christening free, then 10% of her value) | `shipchristen <name>` |
 | shipsummon | Owner at a shipyard: list your hulls, or call one (or her wreck) here | `shipsummon [<number \| name>]` |
+| shiprenown | The ten players' hulls with the most renown (S7) | `shiprenown` |
 | shipcustomize | Owner: review, set, or clear exterior details | `shipcustomize [show]` or `shipcustomize <paint\|figurehead> <description\|clear>` |
 | shipdeed | Owner: transfer ownership | `shipdeed <player>` |
 | shippermit / shiprevoke | Owner: manage helm clearances | `shippermit <player>` |
@@ -1416,8 +1418,8 @@ Prices are 2 gold per Duris platinum. Reloads are in 0.5 s vessel ticks: Duris's
 
 ### Crew, Repair and Loss (S5)
 
-Study sections 3.3.5-3.3.7 and the summons of 3.3.9. Renown arrives in S7;
-until then no hull has any.
+Study sections 3.3.5-3.3.7 and the summons of 3.3.9; renown, rewards, and the
+renown gates came in S7 (Rewards, Renown and Contraband below).
 
 - Crew experience (`vessels_crew.c`): each hired position carries experience
   in Duris skill points, starting at its tier floor (`vessel_crew_floor()`:
@@ -1431,11 +1433,11 @@ until then no hull has any.
   (`vessel_crew_sale_gain()`). The hull that sank another
   (`vessel_crew_credit_kill()`, her `last_attacker`) trains every hand by the
   target's hull weight, a tenth of it for an unowned target. A lost hull's
-  crew gives up 10% of its experience to a player's hull, else 5% plus 1% per
-  100 hull weight (`vessel_crew_casualties()`), dropping a tier below its
-  floor but never below green. Able and veteran hires are refused to mortals
-  until renown exists; staff may still hire them. `shipcrew` shows each
-  hand's experience and next floor.
+  crew gives up 10% of its experience to a player's hull (plus 1% per 30
+  renown lost, S7), else 5% plus 1% per 100 hull weight
+  (`vessel_crew_casualties()`), dropping a tier below its floor but never
+  below green. Able and veteran hires need the hull's renown (S7); staff may
+  hire them freely. `shipcrew` shows each hand's experience and next floor.
 - Stamina (runtime only, `stamina_spent`, 0 = rested): the maximum is 500 plus
   100 a tier (`vessel_stamina_max()`); `vessel_crew_tick_one()` returns 1.5 a
   tick, 6 berthed or anchored. The helm (`vessel_sail_tick()`) spends a
@@ -1515,7 +1517,7 @@ until then no hull has any.
 
 Study section 3.3.8, ramming (1.6), and the sailmaster's ram training gain of
 3.3.5. Renown (the tier roll's second term and what a raider carries) and the
-neutral-colors sale penalty arrive in S7.
+neutral-colors sale penalty came in S7 (below).
 
 - Ambushes (`vessels_raiders.c`): `vessel_raider_tick_one()` rolls one in
   `vessel_raider_ambush_odds()` each tick for a player's hull under way at the
@@ -1524,7 +1526,7 @@ neutral-colors sale penalty arrive in S7.
   times 60 under neutral colors. A merchant class (raft, boat, ship, transport,
   `vessel_merchant_class()`) is ambushed once a voyage: `raided` (runtime) is
   set by the roll and cleared by `vessel_berth()`. `vessel_raider_pick_tier()`
-  draws `n = random(0, hull weight)`: merchant classes tier 0 below 250, 1
+  draws `n = random(0, hull weight) + renown`: merchant classes tier 0 below 250, 1
   below 1,200, 2 three times in four (a hunter one time in three), else a tier
   3 hunter; the rest are noticed when `n >= random(1, 1000)`, and draw a tier
   2 hunter, or tier 3 one time in three.
@@ -1536,8 +1538,9 @@ neutral-colors sale penalty arrive in S7.
   table in code (`raider_tiers[]`) gives the crew (8-12, 9-12, 12-15, 12-18
   mobiles, the captain included), the advanced-AI chance (0, 20, 50, 100%),
   the crew tier (green, green, able, veteran), the fit-out (each weapon
-  mounted only while the fit-out stays legal), and the chest's gold (800-1,600
-  up to 3,000-6,000). The captain (mobile 70020 plus the tier) is her NPC
+  mounted only while the fit-out stays legal), the chest's gold (800-1,600
+  up to 3,000-6,000), and her renown (150-300, 500-600, 700-1,000,
+  2,000-3,000, S7). The captain (mobile 70020 plus the tier) is her NPC
   pilot (`vessel_assign_npc_pilot()`), the crew (70024 plus the tier) stand in
   random rooms, and the strongbox (object 70020) lies in the hold, or on the
   bridge, with its key (object 70021) on the captain.
@@ -1601,6 +1604,67 @@ neutral-colors sale penalty arrive in S7.
 - Persistence (Phase 22): `vessel_raider_tiers (tier, prototype_id)`, created
   by `vessel_raider_ensure_schema()` from `vessel_hunter_ensure_schema()`; all
   raider and ram state is runtime only.
+
+### Rewards, Renown and Contraband (S7)
+
+Study sections 3.3.7 (rewards, renown, Ship Damage Control) and 3.3.9
+(contraband, customs, cargo sales), with the renown carry-overs of S4-S6.
+
+- Renown (`vessels_rewards.c`): `renown` on the hull, persisted in
+  `ship_runtime_state` and untouched by `vessel_rebuild_hull()`, so it survives
+  the wreck registry and a trade-in. `shipcrew` shows it; `shiprenown` lists
+  the ten players' hulls with the most, afloat or stowed.
+- Sinking rewards: `vessel_sink()` calls `vessel_settle_sinking()` with her
+  victor (`last_attacker`) before evacuating her. A victor that is a player's
+  hull of another owner shares with every player's hull afloat within the
+  sinking hull's `vessel_sight_range()` whose owner is online and in the
+  victor's online owner's group; hulls of the target's owner never share. The sharers split, equally, salvage
+  (`vessel_salvage_value()`: `vessel_hull_price()` times armor and structure
+  left over their maximum, plus half the price of each weapon below
+  `VESSEL_WEAPON_DESTROYED`, divided by 8), the renown bounty (2.5 gold a
+  point above 100 renown, raiders included), and the target owner's bounty
+  (`vessel_get_bounty()` of 500 or more, when the owner is aboard;
+  `vessel_clear_bounty()` collects it). Each share goes to the sharing hull's
+  owner through `vessel_pay_prize()`: the claim queue
+  (`vessel_insurance_claims`) with a mail receipt, delivered at once to an
+  online owner or at login. When the target is a player's hull, each sharer
+  gains her class hull weight divided among them (saved at once) and she
+  loses it, floored at 0; `vessel_wreck_hull()` then takes 10% plus 1% per 30
+  of it from her crew. NPC kills move no renown.
+- Renown gates: `vessel_crew_hire_renown()` (able 540/700/640/540, veteran
+  1,350/1,640/1,480/1,350 for sailmaster, gunner, bosun, quartermaster) in
+  `shiphire`; a capital weapon's `renown` (1,600 light beam, 1,700 mind blast,
+  1,800 heavy beam, 1,900 fragmentation, 2,000 Long Tom) or a veteran gunner
+  in `shipweapon buy`.
+- Raiders carry a random renown of their tier and the tier roll adds the
+  quarry's renown (Raiders and Ramming above).
+- Ship Damage Control: `FEAT_SHIP_DAMAGE_CONTROL`, an epic general feat of 5
+  ranks. `vessel_damage_hull()` and `vessel_damage_sail()` take
+  `4 + 4 * rank` percent off each blow while the owner is aboard with it
+  (`vessel_owner_aboard()`), the fraction as the chance of one more point,
+  never below 1 (Duris `epic_ship_damage_control()`).
+- Contraband (`vessels_trade.c`): `trade_commodities.contraband_renown` above
+  0 marks a good and is the renown needed to buy it. A port stocks it only
+  with a `port_commodities` row, which only content creates: `port_supply()`
+  answers `TRADE_SUPPLY_MIN` (the scarce price) without seeding a row, and a
+  sale there leaves none. `market` shows `-` to buy and `none (contraband)`
+  where it is not stocked; `cargobuy` sells it only where stocked
+  (`port_stocks()`), and, staff aside, only to a hull of its renown or with an
+  able sailmaster and quartermaster, never to a warship or a buyer at
+  alignment `VESSEL_CONTRABAND_ALIGNMENT` (1,000).
+- Customs: `vessel_update_port_berth()` calls `vessel_customs_inspection()`
+  when a hull sails into a port room from outside one. At a lawful port (not
+  `vessel_piracy_wanted_port_is_open()`), for a player's hull, each lot of
+  contraband the port does not stock loses each unit with
+  `vessel_customs_chance()` (`35 + units / 2 - sqrt(renown) / 5`, raised by
+  `(100 - c) * (1 - load)`, at most 100, 5 when negative), load being cargo
+  weight over capacity; the hold is then saved.
+- Cargo sales: `vessel_cargo_sale_factor()` multiplies `cargosell` revenue by
+  1.1 for a seller with SEADOG, 0.9 under neutral colors, and 0.6 for a
+  warship, on every good.
+- Persistence (Phase 23): `ship_runtime_state.renown` and
+  `trade_commodities.contraband_renown`. Contraband content: see Contraband
+  Content below.
 
 ### Builder Commands (Phase 04)
 
@@ -1825,7 +1889,7 @@ historical measurements, and the limits of the current evidence.
 | -- | -- |
 | `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards; `for_sale` and `min_level` since Phase 18, `armor_scale` since Phase 19 |
 | `ship_interiors` | Vessel identity, rooms, cosmetics, owner, and upgrades (retired `wages_owed` and `insured_for` columns unread) |
-| `ship_runtime_state` | Live hull, position, condition (`condition_model` and `sink_ticks` since Phase 19), stowed state (`stowed`, `wreck_hull`, `summon_due` since Phase 21), room type, autopilot, PvP grace, and dock-fee snapshot |
+| `ship_runtime_state` | Live hull, position, condition (`condition_model` and `sink_ticks` since Phase 19), stowed state (`stowed`, `wreck_hull`, `summon_due` since Phase 21), `renown` (Phase 23), room type, autopilot, PvP grace, and dock-fee snapshot |
 | `ship_weapons` | Every weapon and equipment slot: type, arc, reload state, `weapon_damage` (Phase 19), and `catalog_id` and `ammo` (Phase 20) |
 | `ship_docking` | Active and historical docking relationships |
 | `ship_room_templates` | Builder-editable generated interior text |
@@ -1836,13 +1900,13 @@ historical measurements, and the limits of the current evidence.
 | `ship_routes` | Persistent route identities |
 | `ship_route_waypoints` | Ordered waypoint membership for routes |
 | `ship_schedules` | NPC-pilot and ferry schedule state, including passenger fare |
-| `trade_commodities` | Commodity definitions and base values |
-| `port_commodities` | Per-port supply and local price state |
+| `trade_commodities` | Commodity definitions and base values; `contraband_renown` (Phase 23) marks contraband |
+| `port_commodities` | Per-port supply and local price state; a contraband row is the port's stock |
 | `freight_contracts` | Freight offer and acceptance lifecycle |
 | `vessel_bounties` | Piracy bounty, decay clock (`last_offense_at`), and marque state |
 | `vessel_region_law` | Legal-water metadata keyed to canonical geographic regions |
 | `vessel_encounters` | Region-keyed encounter definitions |
-| `vessel_insurance_claims` | Pending, paid, or void insurance settlements and S5 premium refunds |
+| `vessel_insurance_claims` | Pending, paid, or void settlements: insurance, S5 premium refunds, and S7 prize money |
 | `vessel_npc_merchants` | NPC merchant prototype, route, cargo, faction, schedule, and live generation |
 | `vessel_merchant_consequences` | Deduplicated faction and bounty events with delivery state |
 | `vessel_hunter_encounters` | Hunter warship, pilot, bounty, pursuit, duration, grace, and cooldown policy |
@@ -2105,6 +2169,18 @@ object records into the live zone 700 files, as `provision_vessel_harbor.sh`
 does on a development server. Without them an ambush comes to
 nothing (a missing captain is logged).
 
+### Contraband Content
+
+`sql/components/vessels_contraband_content.sql` (after Phase 23) seeds the
+three contraband goods of study 3.3.9 and stocks each at one sea port of the
+shipped world: forbidden tomes (190 gold, 4 lbs, 150 renown) at Selerish
+Slateharbor (1000337), rare poisons (210, 1, 200) at Southwest Quechian
+(1000351), and dragon eggs (310, 10, 250) at Koorvik (1000278). Builders may
+stock them elsewhere with more `port_commodities` rows. Its rollback removes the
+goods, their stock, and any lot of them in a hold; run it before the Phase 23
+rollback. The development harbor fixture also stocks forbidden tomes at the
+Harbor Sandbox East Dock (1000390) for the economy gate.
+
 ### Interior VNUM Allocation
 
 ```
@@ -2234,10 +2310,11 @@ and the trigger was removed.
 | `src/vessels/vessels_gunnery.c` | Geometry hit model, locks, battle stations, arc fire, sighting, scanning, NPC return fire (S4) |
 | `src/vessels/vessels_ownership.c` | Ownership, helm permits, deed transfer (Phase 06) |
 | `src/vessels/vessels_crew.c` | Hired crew positions, tiers, one-time hire prices (Phase 06); experience, promotion, casualties, stamina (S5) |
-| `src/vessels/vessels_upgrades.c` | Refits, hull wear, insurance settlement (Phase 06) |
+| `src/vessels/vessels_upgrades.c` | Refits, hull wear, the settlement queue for insurance and prize money (Phase 06, S7) |
 | `src/vessels/vessels_repair.c` | Repair stores, crew repairs, character and dock repairs (S5) |
 | `src/vessels/vessels_loss.c` | Hull value, automatic insurance, stowed hulls, wreck registry, summons, in-place rebuild (S5) |
-| `src/vessels/vessels_trade.c` | Commodities, port pricing, bulk cargo (Phase 07) |
+| `src/vessels/vessels_trade.c` | Commodities, port pricing, bulk cargo (Phase 07); contraband, customs, sale modifiers (S7) |
+| `src/vessels/vessels_rewards.c` | Renown, the rewards of a sinking, and the renown board (S7) |
 | `src/vessels/vessels_contracts.c` | Freight boards and contract lifecycle (Phase 07) |
 | `src/vessels/vessels_piracy.c` | Plunder, bounty, letters of marque (Phase 07) |
 | `src/vessels/vessels_merchants.c` | NPC merchant definitions, assembly, consequences, and respawn (Phase 14) |
@@ -2271,7 +2348,7 @@ and the trigger was removed.
 | File | Purpose |
 | -- | -- |
 | `lib/world/vessel_harbor/` | Shared development harbor zone, rooms, mobiles, and triggers |
-| `scripts/vessels/provision_vessel_harbor.sh` | Development-only harbor provisioning and verification; also installs the raider package and content |
+| `scripts/vessels/provision_vessel_harbor.sh` | Development-only harbor provisioning and verification; also installs the raider package and content, Phase 23, and the contraband content |
 | `lib/world/vessel_raiders/` | Raider captains and crews (mobiles 70020-70027), strongbox and key (objects 70020-70021) |
 | `lib/world/vessel_campaign/` | Vailand campaign waystones, passage boards, and resets |
 | `scripts/vessels/provision_vessel_campaign.sh` | Development-only campaign world/SQL provisioning and actual-Kohdee check |
@@ -2287,6 +2364,7 @@ and the trigger was removed.
 | `scripts/vessels/test_vessel_boarding_in_game.sh` | Boarding gate; delegates to the shared tactical acceptance harness |
 | `scripts/vessels/test_vessel_rules_in_game.sh` | Two-character shipyard, contact-ID, gunnery, hull-level, hull-cap, and bounty gate; delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_loss_in_game.sh` | Two-character crew hiring, rename fee, summons, and trade-in gate; delegates to the shared tactical harness |
+| `scripts/vessels/test_vessel_economy_in_game.sh` | Two-character contraband, customs, sale modifier, prize money, and renown gate; delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_hunter_in_game.sh` | Reversible Kohdee HUNTED bounty-hunter encounter gate |
 | `scripts/vessels/test_vessel_merchant_in_game.sh` | Reversible NPC merchant shipping gate |
 | `scripts/vessels/run_vessel_ferry_soak.sh` | Development ferry soak runner with database, process, and Kohdee samples |
@@ -2321,6 +2399,10 @@ and the trigger was removed.
 | `sql/components/vessels_phase20_*` | S4 weapons: catalogue row and ammunition per slot row, verification, and rollback |
 | `sql/components/vessels_phase21_*` | S5 crew experience, stowed-hull state, insurance premium refund, verification, and rollback |
 | `sql/components/vessels_phase22_*` | S6 raider tier table, verification, and rollback |
+| `sql/components/vessels_phase23_*` | S7 hull renown and the contraband flag, verification, and rollback |
+| `sql/components/vessels_contraband_content.sql` | Three contraband goods, each stocked at one sea port |
+| `sql/components/verify_vessels_contraband_content.sql` | Read-only contraband goods and stock checks |
+| `sql/components/vessels_contraband_content_rollback.sql` | Contraband goods, stock, and hold lots removal |
 | `sql/components/vessels_raider_content.sql` | Six Corsair raider prototypes (not for sale) and their ten tier rows |
 | `sql/components/verify_vessels_raider_content.sql` | Read-only raider prototype and tier inventory |
 | `sql/components/vessels_raider_content_rollback.sql` | Guarded raider content rollback; a prototype still sailing keeps its tier rows so the restart retires her; rerun after it |

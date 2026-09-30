@@ -609,6 +609,7 @@ struct vessel_weapon_type
   int reload;       /* Vessel ticks */
   int arcs;         /* Bit (1 << arc) for each arc it may mount on */
   int flags;        /* VESSEL_WEAPON_* */
+  int renown;       /* A capital weapon's hull renown, unless a veteran gunner serves it */
 };
 
 const struct vessel_weapon_type *vessel_weapon_type(int weapon);
@@ -920,6 +921,7 @@ void vessel_upkeep_tick_one(struct greyhawk_ship_data *ship);
 void vessel_db_save_extras(struct greyhawk_ship_data *ship);
 void vessel_db_load_extras(struct greyhawk_ship_data *ship);
 void vessel_pay_insurance(struct greyhawk_ship_data *ship, int amount);
+void vessel_pay_prize(struct greyhawk_ship_data *ship, int amount, const char *letter);
 void vessel_refund_insurance_premiums(void);
 int vessel_deliver_pending_insurance(struct char_data *ch);
 
@@ -942,10 +944,24 @@ int vessel_summon_seconds(struct greyhawk_ship_data *ship);
 bool vessel_rebuild_hull(struct greyhawk_ship_data *ship, int prototype_id, int vclass,
                          int max_speed, int armor);
 void vessel_wreck_prototype(int *id, int *vclass, int *speed, int *armor);
-bool vessel_wreck_hull(struct greyhawk_ship_data *ship, const struct greyhawk_ship_data *victor);
+bool vessel_wreck_hull(struct greyhawk_ship_data *ship, const struct greyhawk_ship_data *victor,
+                       int renown_lost);
 void vessel_restow(struct greyhawk_ship_data *ship);
 void vessel_summon_tick(void);
 ACMD_DECL(do_shipsummon); /* Owner: call a hull, or her wreck, to this shipyard */
+
+/* ========================================================================= */
+/* REWARDS AND RENOWN (vessels-ships study S7, vessels_rewards.c)            */
+/* ========================================================================= */
+
+#define VESSEL_SALVAGE_DIVIDER 8       /* Duris ship.sinking.rewardDivider */
+#define VESSEL_RENOWN_BOUNTY_FLOOR 100 /* Renown above which her sinking pays a bounty */
+#define VESSEL_RENOWN_BOARD_ROWS 10
+
+struct char_data *vessel_owner_aboard(const struct greyhawk_ship_data *ship);
+int vessel_salvage_value(const struct greyhawk_ship_data *ship);
+int vessel_settle_sinking(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *victor);
+ACMD_DECL(do_shiprenown); /* The hulls with the most renown */
 
 /* ========================================================================= */
 /* CARGO AND TRADE (Phase 07, vessels_trade.c)                               */
@@ -1232,6 +1248,13 @@ ACMD_DECL(do_contractaccept);  /* Take a freight contract */
 ACMD_DECL(do_contractdeliver); /* Deliver and collect payment */
 ACMD_DECL(do_contractabandon); /* Drop a contract you cannot finish */
 
+/* Contraband, customs and cargo sales (vessels-ships study S7, 3.3.9) */
+#define VESSEL_CONTRABAND_ALIGNMENT 1000 /* A buyer this good is refused contraband */
+
+int vessel_customs_chance(int units, int renown, double load);
+void vessel_customs_inspection(struct greyhawk_ship_data *ship, room_rnum port_room);
+double vessel_cargo_sale_factor(struct char_data *ch, const struct greyhawk_ship_data *ship);
+
 ACMD_DECL(do_market);        /* At a dock: list commodity prices */
 ACMD_DECL(do_cargobuy);      /* At a dock: buy bulk cargo into the hold */
 ACMD_DECL(do_cargosell);     /* At a dock: sell bulk cargo from the hold */
@@ -1254,6 +1277,7 @@ bool vessel_collect_passenger_fare(struct char_data *ch, struct greyhawk_ship_da
 const char *vessel_crew_position_name(int position);
 const char *vessel_crew_tier_name(int tier);
 int vessel_crew_hire_cost(int position, int tier);
+int vessel_crew_hire_renown(int position, int tier);
 double vessel_crew_floor(int position, int tier);
 void vessel_crew_gain(struct greyhawk_ship_data *ship, int position, double amount);
 void vessel_crew_credit_kill(struct greyhawk_ship_data *victor,
@@ -1774,6 +1798,9 @@ struct greyhawk_ship_data
   bool stowed;       /* In the wreck registry, or on her way to a summoning shipyard */
   bool wreck_hull;   /* Rebuilt from a lost hull: carries no insurance */
   time_t summon_due; /* When she reaches the shipyard that summoned her; 0 = not summoned */
+
+  /* S7 renown (vessels_rewards.c): won sinking other players' hulls, kept through her loss */
+  int renown;
 
   /* S6 ramming (vessels_ramming.c), runtime only; timers in vessel ticks */
   char ram_order[MAX_NAME_LENGTH + 1]; /* Who braced her to ram the lock; "" = not braced */

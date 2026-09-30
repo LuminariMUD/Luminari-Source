@@ -209,7 +209,7 @@ void TestSep2026InnateFeatsAreRegisteredAsInnates(CuTest *tc)
 
   begin_innate_fixture(&fixture);
 
-  for (feat = FEAT_SUN_VULNERABILITY; feat < FEAT_LAST_FEAT; feat++)
+  for (feat = FEAT_SUN_VULNERABILITY; feat <= FEAT_PSIONIC_RESISTANCE; feat++)
   {
     if (feat == FEAT_FAST_CASTING || feat == FEAT_SLOW_CASTING)
       continue; /* the stacking pair is checked below */
@@ -230,7 +230,9 @@ void TestSep2026InnateFeatsAreRegisteredAsInnates(CuTest *tc)
     CuAssertTrue(tc, feat_list[feat].can_stack);
     CuAssertIntEquals(tc, FEAT_TYPE_INNATE_ABILITY, feat_list[feat].feat_type);
   }
-  CuAssertIntEquals(tc, FEAT_PSIONIC_RESISTANCE + 1, FEAT_LAST_FEAT);
+  /* only the vessel epic feat follows them */
+  CuAssertIntEquals(tc, FEAT_PSIONIC_RESISTANCE + 1, FEAT_SHIP_DAMAGE_CONTROL);
+  CuAssertIntEquals(tc, FEAT_SHIP_DAMAGE_CONTROL + 1, FEAT_LAST_FEAT);
 
   /* the repurposed haste feat follows the same rules */
   CuAssertTrue(tc, feat_list[FEAT_HASTE].in_game);

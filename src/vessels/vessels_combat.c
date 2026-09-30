@@ -440,10 +440,10 @@ static struct greyhawk_ship_data *vessel_sink_victor(const struct greyhawk_ship_
 }
 
 /**
- * Sink a ship: evacuate everyone aboard into the water, convert the ship
- * object into inert wreckage, and settle her owner's insurance. A player's
- * hull is rebuilt and waits in the wreck registry (decision D3); any other
- * frees the fleet slot.
+ * Sink a ship: pay out her rewards, evacuate everyone aboard into the water,
+ * convert the ship object into inert wreckage, and settle her owner's
+ * insurance. A player's hull is rebuilt and waits in the wreck registry
+ * (decision D3); any other frees the fleet slot.
  */
 void vessel_sink(int shipnum)
 {
@@ -454,6 +454,7 @@ void vessel_sink(int shipnum)
   room_rnum interior;
   room_rnum water_room = NOWHERE;
   char buf[MAX_STRING_LENGTH];
+  int renown_lost;
   int i;
 
   if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS || !is_valid_ship(&greyhawk_ships[shipnum]))
@@ -466,6 +467,7 @@ void vessel_sink(int shipnum)
   send_to_ship(ship, "The hull gives way - %s is SINKING!", ship->name);
   victor = vessel_sink_victor(ship);
   vessel_crew_credit_kill(victor, ship);
+  renown_lost = vessel_settle_sinking(ship, victor);
   vessel_event_handle_sink(shipnum);
 
   /* Merchant definitions outlive their killable hulls. Record the responsible
@@ -566,7 +568,7 @@ void vessel_sink(int shipnum)
 
   /* The hull object is wreckage now; a player's ship lives on as a wreck. */
   ship->shipobj = NULL;
-  if (ship->owner[0] != '\0' && vessel_wreck_hull(ship, victor))
+  if (ship->owner[0] != '\0' && vessel_wreck_hull(ship, victor, renown_lost))
   {
     return;
   }

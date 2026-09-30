@@ -401,6 +401,7 @@ luminari_SOURCES = \
 	src/vessels/vessels_loss.c \
 	src/vessels/vessels_raiders.c \
 	src/vessels/vessels_ramming.c \
+	src/vessels/vessels_rewards.c \
 	src/vessels/vessels_autopilot.c \
 	src/core/weather.c \
 	src/wilderness/wilderness.c \
@@ -487,6 +488,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_vessel_crew.c \
 	unittests/CuTest/test_vessel_loss.c \
 	unittests/CuTest/test_vessel_raiders.c \
+	unittests/CuTest/test_vessel_rewards.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
 	unittests/CuTest/test_ashenport_welcome_trigger.c \
@@ -587,6 +589,7 @@ cutest_test_files = \
 	unittests/CuTest/test_vessel_crew.c \
 	unittests/CuTest/test_vessel_loss.c \
 	unittests/CuTest/test_vessel_raiders.c \
+	unittests/CuTest/test_vessel_rewards.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
 	unittests/CuTest/test_ashenport_welcome_trigger.c \

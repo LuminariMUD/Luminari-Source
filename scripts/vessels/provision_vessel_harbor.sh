@@ -400,6 +400,8 @@ apply_database_file "$repo_root/sql/components/vessels_phase15_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase19_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase22_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_raider_content.sql"
+apply_database_file "$repo_root/sql/components/vessels_phase23_schema.sql"
+apply_database_file "$repo_root/sql/components/vessels_contraband_content.sql"
 apply_database_file "$repo_root/sql/components/vessels_harbor_sandbox.sql"
 
 hunter_fixture_valid=$(database_scalar \

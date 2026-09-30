@@ -1647,7 +1647,8 @@ proc run_vessel_gunnery_check {warship_id} {
   require_game_output $output "Long Tom Catapult cannot be mounted on the port arc" \
     "weapon arc refusal"
   set output [run_game_command "shipweapon buy heavy beamcannon fore"]
-  require_game_output $output "Only a veteran gunner can serve a capital weapon." \
+  require_game_output $output \
+    "A Heavy Beamcannon is mounted only on a hull of 1800 renown or with a veteran gunner." \
     "capital weapon refusal"
   set output [run_game_command "shipequip buy ram"]
   require_game_output $output "with a Ram for 570 gold" "ram purchase"
@@ -2915,7 +2916,8 @@ proc run_vessel_loss_check {requested_character} {
   run_game_command "trans $captain"
   set ::spawn_id $secondary_session
   set output [run_game_command "shiphire gunner able"]
-  require_game_output $output "No able gunner will sign on with a hull of no renown." \
+  require_game_output $output \
+    "No able gunner will sign on with a hull of less than 700 renown, and Losscheck Tern has 0." \
     "able hire refusal"
   set output [run_game_command "shiphire bosun green"]
   require_game_output $output "You sign on a green bosun for 2000 gold." "green hire"

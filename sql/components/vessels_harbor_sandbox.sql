@@ -515,3 +515,13 @@ UPDATE ship_schedules AS schedule
   JOIN ship_routes AS route ON route.route_id = schedule.route_id
 SET schedule.passenger_fare = 10
 WHERE route.name = 'harbor_ferry_loop';
+
+-- The economy gate's smuggling port: the East Dock stocks forbidden tomes
+-- (vessels_contraband_content.sql), which the West Dock's customs seize.
+INSERT IGNORE INTO port_commodities (port_vnum, commodity_id, supply)
+SELECT
+  1000390,
+  commodity_id,
+  100
+FROM trade_commodities
+WHERE name = 'forbidden tomes';
