@@ -193,20 +193,21 @@ new `src/vessels/vessels_rewards.c`; contraband, customs and the sale modifiers 
 
 | Item | State | Where |
 | -- | -- | -- |
-| Renown on the hull: kept through the wreck registry and trade-in, persisted, shown by `shipcrew`; `shiprenown` lists the ten player hulls with the most | Planned | `renown` on the hull and `ship_runtime_state.renown` (Phase 23); `do_shiprenown()` |
-| Sinking rewards: the victor and allied hulls in sight split salvage, the renown bounty and the target owner's WANTED or HUNTED bounty, paid to their owners through the claim queue; renown moves between players' hulls; the crew casualty share for a player kill | Planned | `vessel_settle_sinking()` from `vessel_sink()`; the claim queue in `vessels_upgrades.c`; `vessel_wreck_hull()` |
-| Renown gates: able and veteran hires (the 3.3.5 table) and capital weapons (3.3.4, or a veteran gunner) | Planned | `do_shiphire()`, `vessel_buy_weapon()` and the weapon table |
-| Raiders carry their tier's renown, and the quarry's renown joins the tier roll | Planned | `raider_tiers[]`, `vessel_raider_spawn()`, `vessel_raider_pick_tier()` |
-| Ship Damage Control, an epic feat of 5 ranks | Planned | `FEAT_SHIP_DAMAGE_CONTROL`; `vessel_damage_hull()`, `vessel_damage_sail()` |
-| Contraband: the flag and buying renown on `trade_commodities`, three goods each stocked at one port, the buying gates; customs at lawful ports on arrival | Planned | `trade_commodities.contraband_renown` (Phase 23); `vessels_contraband_content.sql`; `do_market()`, `do_cargobuy()`, `vessel_customs_inspection()` from `vessel_update_port_berth()` |
-| Cargo sales: SEADOG +10%, neutral colors -10%, warships -40% | Planned | `do_cargosell()` |
-| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character economy gate, the existing gates, local CI | Planned | SHIPRENOWN (new), SHIPHIRE, MARKET, PLUNDER; `test_vessel_rewards.c`; `scripts/vessels/test_vessel_economy_in_game.sh` (tactical harness `--economy`) |
+| Renown on the hull: kept through the wreck registry and trade-in, persisted, shown by `shipcrew`; `shiprenown` lists the ten player hulls with the most | Done | `renown` on the hull and `ship_runtime_state.renown` (Phase 23); `do_shiprenown()` in `vessels_rewards.c` |
+| Sinking rewards: the victor and allied hulls in sight split salvage, the renown bounty and the target owner's WANTED or HUNTED bounty, paid to their owners through the claim queue; renown moves between players' hulls; the crew casualty share for a player kill | Done | `vessel_settle_sinking()`, `vessel_salvage_value()`, `vessel_owner_aboard()` from `vessel_sink()`; `vessel_pay_prize()` and the shared `vessel_queue_claim()` in `vessels_upgrades.c`; `vessel_wreck_hull()` |
+| Renown gates: able and veteran hires (the 3.3.5 table) and capital weapons (3.3.4, or a veteran gunner) | Done | `vessel_crew_hire_renown()` in `do_shiphire()`; the weapon table's `renown` in `vessel_buy_weapon()` |
+| Raiders carry their tier's renown, and the quarry's renown joins the tier roll | Done | `raider_tiers[]`, `vessel_raider_spawn()`, `vessel_raider_pick_tier()` |
+| Ship Damage Control, an epic feat of 5 ranks | Done | `FEAT_SHIP_DAMAGE_CONTROL`; `vessel_damage_control()` in `vessel_damage_hull()` and `vessel_damage_sail()` |
+| Contraband: the flag and buying renown on `trade_commodities`, three goods each stocked at one port, the buying gates; customs at lawful ports on arrival | Done | `trade_commodities.contraband_renown` (Phase 23); `vessels_contraband_content.sql`; `do_market()`, `do_cargobuy()`, `vessel_customs_inspection()` from `vessel_update_port_berth()` |
+| Cargo sales: SEADOG +10%, neutral colors -10%, warships -40% | Done | `vessel_cargo_sale_factor()` in `do_cargosell()` |
+| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character economy gate, the existing gates, local CI | In progress | SHIPRENOWN (new), SHIPHIRE, MARKET (CONTRABAND, CUSTOMS, SMUGGLING), PLUNDER, SHIPBROWSE, SHIPFIRE (verifier: 34 entries, 91 keywords, 40 content checks); `test_vessel_rewards.c`; `scripts/vessels/test_vessel_economy_in_game.sh` (tactical harness `--economy`, login helper `--vessel-economy-check` and `--vessel-customs-check`); results below |
 
 Interpretations decided while planning S7:
 
 - The victor is the hull that sank her, her `last_attacker`, as for crew training and insurance.
-  Rewards need a player's hull as victor. Her allies are player's hulls afloat within the sinking
-  hull's sight range whose owners are online and in the online victor owner's group. Hulls owned
+  Rewards need a player's hull as victor. Her allies are player's hulls afloat and out of port
+  within the sinking hull's sight range whose owners are online and in the online victor owner's
+  group (the port rule was added while building, below). Hulls owned
   by the target's owner never share, and a hull sunk by her own owner's other hull earns nothing:
   "a consenting player's hull" is one sunk by another player, since gunfire and rams against a
   player's hull already demand consent.
@@ -257,9 +258,29 @@ columns or a home-port column (a stock row is the stocking), persisting demand a
 ports (the source port's supply already throttles smuggling), the Duris crew-skill thresholds
 for contraband (the design value's able crew), a staff command to set renown (the gate earns it
 in a fight), the 20-renown epic progress (LuminariMUD has no epic skill track), and fleet-size
-rules for docked hulls and sloops (the design value's sight-and-group rule). Kept a new rewards
-file (renown, rewards and the board are one unit used by the sink path) and the contraband
-content in its own SQL file with rollback and verifier, as S6 kept its raider content.
+rules for docked hulls and sloops (the design value's sight-and-group rule; the gate later
+brought the docked-hull rule back, below). Kept a new rewards file (renown, rewards and the board
+are one unit used by the sink path) and the contraband content in its own SQL file with rollback
+and verifier, as S6 kept its raider content.
+
+Decided while building S7:
+
+- The claim queue now carries insurance, the S5 premium refunds, and prize money, so its receipt
+  line and delivery message are shared ("The harbor office delivers N gold from K vessel
+  settlements"); each letter keeps its own opening (`vessel_queue_claim()`).
+- Freight boards picked their goods from every commodity, and the content's stock rows make its
+  three ports known trading ports, so a lawful board would have offered contraband freight.
+  Freight contracts now carry lawful goods only.
+- The Harbor Sandbox has one port: its "west dock" waypoint at (-66, 92) is open water. The
+  economy gate therefore runs in two sessions, and the harness lifts the East Dock's stock of
+  tomes between them so that customs meet the tomes the dock sold.
+- The weapon catalogue marks a capital weapon with its renown (", capital 1800").
+- Found by the economy gate: Kohdee's hulls berthed at the East Dock, in sight of the sinking,
+  took shares of the renown and prize money. Duris's `sink_ship()` passes over docked ships, and
+  so does the settlement now (`9bc23e5a1`). Every LuminariMUD player enters the game in a group
+  of one, so an owner's other hulls at sea in sight share with the victor, as a grouped Duris
+  captain's ships in contact would; the gate's Kohdee leaves his group before the fight so that
+  only the victor shares.
 
 ## Estimate (remaining)
 
