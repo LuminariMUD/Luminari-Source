@@ -22,11 +22,11 @@ here records the merge.
 | S4 Weapons and gunnery | Merged `c8bab4576` (MR !9) | [Phase 4](vessels-ships-history.md#phase-4-s4-progress) |
 | S5 Crew, repair and loss | Merged `23a0726e4` (MR !10) | [Phase 5](vessels-ships-history.md#phase-5-s5-progress) |
 | S6 NPC raiders and AI | Merged `85914a03d` (MR !11) | [Phase 6](vessels-ships-history.md#phase-6-s6-progress) |
-| S7 Rewards and economy | Not started: branch `feat/vessels-s7`, tag `vessels-s7-base` = `85914a03d` | [Still to build](#design-values-still-to-build-s7-s8) |
+| S7 Rewards and economy | In progress on `feat/vessels-s7` (tag `vessels-s7-base` = `85914a03d`) | [Phase 7](#phase-7-s7-progress) |
 | S8 Client data | Not started | [Still to build](#design-values-still-to-build-s7-s8) |
 
-Production help is current through S6 (help sync plan `e067e0f57ed1`, 2026-10-01). Next: S7 on
-`feat/vessels-s7`, starting with its plan commit.
+Production help is current through S6 (help sync plan `e067e0f57ed1`, 2026-10-01). S7 is in
+progress on `feat/vessels-s7` ([Phase 7](#phase-7-s7-progress)).
 
 ## Working a step
 
@@ -178,8 +178,88 @@ Carried forward to S7 from the built steps:
 
 ## Active step
 
-None yet. S7 is next: its first commit on `feat/vessels-s7` adds its "Phase 7 (S7) progress"
-section here.
+### Phase 7 (S7) progress
+
+Branch `feat/vessels-s7` from the S6 merge commit `85914a03d`. The annotated tag `vessels-s7-base`
+(pushed) marks that merge commit, so `git log vessels-s7-base..vessels-s7` lists only S7 commits.
+Hand-off: annotated tag `vessels-s7` at the head given to review and a GitLab merge request from
+`feat/vessels-s7`; review fixes go on top. Scope: the S7 design values above (3.3.7 rewards,
+renown and Ship Damage Control; 3.3.9 contraband, customs and cargo sales) and the carry-overs
+from S4-S6 (renown gates on hires and capital weapons, the renown term in the crew casualty
+share, raider renown and the renown term of the tier roll, the neutral-colors sale penalty, and
+bounty collection by victors). Renown, the sinking rewards and the `shiprenown` board live in the
+new `src/vessels/vessels_rewards.c`; contraband, customs and the sale modifiers join
+`vessels_trade.c`.
+
+| Item | State | Where |
+| -- | -- | -- |
+| Renown on the hull: kept through the wreck registry and trade-in, persisted, shown by `shipcrew`; `shiprenown` lists the ten player hulls with the most | Planned | `renown` on the hull and `ship_runtime_state.renown` (Phase 23); `do_shiprenown()` |
+| Sinking rewards: the victor and allied hulls in sight split salvage, the renown bounty and the target owner's WANTED or HUNTED bounty, paid to their owners through the claim queue; renown moves between players' hulls; the crew casualty share for a player kill | Planned | `vessel_settle_sinking()` from `vessel_sink()`; the claim queue in `vessels_upgrades.c`; `vessel_wreck_hull()` |
+| Renown gates: able and veteran hires (the 3.3.5 table) and capital weapons (3.3.4, or a veteran gunner) | Planned | `do_shiphire()`, `vessel_buy_weapon()` and the weapon table |
+| Raiders carry their tier's renown, and the quarry's renown joins the tier roll | Planned | `raider_tiers[]`, `vessel_raider_spawn()`, `vessel_raider_pick_tier()` |
+| Ship Damage Control, an epic feat of 5 ranks | Planned | `FEAT_SHIP_DAMAGE_CONTROL`; `vessel_damage_hull()`, `vessel_damage_sail()` |
+| Contraband: the flag and buying renown on `trade_commodities`, three goods each stocked at one port, the buying gates; customs at lawful ports on arrival | Planned | `trade_commodities.contraband_renown` (Phase 23); `vessels_contraband_content.sql`; `do_market()`, `do_cargobuy()`, `vessel_customs_inspection()` from `vessel_update_port_berth()` |
+| Cargo sales: SEADOG +10%, neutral colors -10%, warships -40% | Planned | `do_cargosell()` |
+| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character economy gate, the existing gates, local CI | Planned | SHIPRENOWN (new), SHIPHIRE, MARKET, PLUNDER; `test_vessel_rewards.c`; `scripts/vessels/test_vessel_economy_in_game.sh` (tactical harness `--economy`) |
+
+Interpretations decided while planning S7:
+
+- The victor is the hull that sank her, her `last_attacker`, as for crew training and insurance.
+  Rewards need a player's hull as victor. Her allies are player's hulls afloat within the sinking
+  hull's sight range whose owners are online and in the online victor owner's group. Hulls owned
+  by the target's owner never share, and a hull sunk by her own owner's other hull earns nothing:
+  "a consenting player's hull" is one sunk by another player, since gunfire and rams against a
+  player's hull already demand consent.
+- Salvage is `vessel_hull_price()` times the fraction of armor and structure left, plus half the
+  price of each weapon not destroyed, divided by 8, for any hull sunk, NPC hulls included (Duris
+  `calc_salvage()`). The renown bounty is `2.5 gold * renown` of any hull above 100 renown, so
+  raiders pay it. The owner's bounty is her owner's current WANTED or HUNTED bounty (500 gold or
+  more after decay) when the owner is aboard at the sinking; it is collected and cleared.
+- Each sharing hull's owner gets one settlement, the hull's equal share of the three, through the
+  existing claim queue (`vessel_insurance_claims`) with a mail receipt: at once to an online owner,
+  at next login otherwise.
+- Renown moves only between players' hulls: each sharing hull gains the target's hull weight (the
+  class table's) divided among them; the loser drops the whole hull weight, floored at zero, as
+  Duris's `ship_loss_on_sink()` does, and her crew's casualty share becomes `10 + weight / 30`
+  percent. NPC kills train the crew only.
+- `shiprenown` lists the ten player's hulls with the most renown, afloat or stowed, with owner,
+  class and renown. Duris keeps a 20-row table to show 10; a sort at display time needs none.
+- Hire and capital weapon gates read the hull's renown; staff still hire freely. A capital weapon
+  needs her renown to reach its gate or a veteran gunner aboard.
+- Raider renown is a random value in the tier's range at spawn (150-300, 500-600, 700-1,000,
+  2,000-3,000); the tier roll adds the quarry's renown to `random(0, hull weight)`.
+- Ship Damage Control: while the hull's owner is aboard and holds the feat, each blow to her hull
+  or sails loses `4 + 4 * rank` percent, the fraction of a point as the chance of one more, never
+  below 1 point (Duris `epic_ship_damage_control()`). Duris applies it inside `damage_hull()` and
+  `damage_sail()`, groundings included; "from other ships" in the design value marks Duris's line
+  against a character's blows, so S7 applies it in `vessel_damage_hull()` and
+  `vessel_damage_sail()` to every blow. An epic general feat with no other prerequisite.
+- Contraband: `trade_commodities.contraband_renown` above 0 marks a good as contraband and is the
+  renown needed to buy it. A port stocks a contraband good when `port_commodities` holds its row;
+  only content creates those rows (the first-visit seeding covers lawful goods only). Elsewhere
+  the good is not stocked: the market quotes the scarce price (`TRADE_SUPPLY_MIN`) and a sale
+  leaves no row behind, so smuggling pays while the source port's own supply throttles it, and
+  customs spares units a port stocks (Duris: a port never confiscates its own contraband). The
+  content seeds the three goods (forbidden tomes, rare poisons and dragon eggs, at 4, 1 and 10 lbs
+  a unit) at three real sea ports; the harbor fixture also stocks forbidden tomes at the Harbor
+  Sandbox East Dock for the gate.
+- Buying contraband needs the hull's renown or an able (or better) sailmaster and quartermaster;
+  warships cannot buy it, nor a buyer at alignment 1,000; staff are exempt.
+- Customs runs when an owned hull enters a lawful port (not in pirate-cove waters) from outside
+  it, once per arrival: for each contraband lot the port does not stock, each unit is confiscated
+  with the 3.3.9 chance, with `units` the lot's size and load over capacity by weight.
+- The sale modifiers multiply (Duris): the seller's SEADOG feat x1.1, neutral colors x0.9, a
+  warship x0.6, on every sale, contraband included.
+
+Ablation (planning): dropped Duris's 20-row renown table (a sort at display time), a separate
+reward queue (the claim queue already settles for online and offline owners), per-port contraband
+columns or a home-port column (a stock row is the stocking), persisting demand at non-stocking
+ports (the source port's supply already throttles smuggling), the Duris crew-skill thresholds
+for contraband (the design value's able crew), a staff command to set renown (the gate earns it
+in a fight), the 20-renown epic progress (LuminariMUD has no epic skill track), and fleet-size
+rules for docked hulls and sloops (the design value's sight-and-group rule). Kept a new rewards
+file (renown, rewards and the board are one unit used by the sink path) and the contraband
+content in its own SQL file with rollback and verifier, as S6 kept its raider content.
 
 ## Estimate (remaining)
 
