@@ -542,6 +542,9 @@ merchant_generation=$(database_scalar "
 [[ "$merchant_generation" =~ ^[1-9][0-9]*$ ]] ||
   fail "the campaign merchant generation is invalid"
 
+# A 30-second watch leaves the merchant a few rooms short of the port at the
+# restart, whatever the weather does to her speed, so the next session sees
+# her arrive.
 timeout 150 "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --commands \
   "vmerchant list" \
   "shipgoto $merchant_slot" \
@@ -549,7 +552,7 @@ timeout 150 "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --command
   "cargomanifest" \
   "showschedule" \
   "seastate" \
-  "@wait 45" \
+  "@wait 30" \
   "shipstatus" \
   "seastate" \
   "goto 1204" \
