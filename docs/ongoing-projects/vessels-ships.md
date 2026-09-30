@@ -21,12 +21,12 @@ here records the merge.
 | S3 Damage model | Merged `a85e97d9f` (MR !8) | [Phase 3](vessels-ships-history.md#phase-3-s3-progress) |
 | S4 Weapons and gunnery | Merged `c8bab4576` (MR !9) | [Phase 4](vessels-ships-history.md#phase-4-s4-progress) |
 | S5 Crew, repair and loss | Merged `23a0726e4` (MR !10) | [Phase 5](vessels-ships-history.md#phase-5-s5-progress) |
-| S6 NPC raiders and AI | In review: MR !11 from `feat/vessels-s6`, tag `vessels-s6` = `32f513ab3` | [Phase 6 below](#phase-6-s6-progress) |
+| S6 NPC raiders and AI | In review: MR !11 from `feat/vessels-s6`, tag `vessels-s6` = `32f513ab3`, review fixes on top | [Phase 6 below](#phase-6-s6-progress) |
 | S7 Rewards and economy | Not started | [Still to build](#design-values-still-to-build-s7-s8) |
 | S8 Client data | Not started | [Still to build](#design-values-still-to-build-s7-s8) |
 
-Production help is current through S5 (help sync plan `ac945fec9d52`, 2026-09-30). Next: answer the
-MR !11 review, merge S6, sync its help, then start S7 from the S6 merge.
+Production help is current through S5 (help sync plan `ac945fec9d52`, 2026-09-30). Next: merge S6
+(the MR !11 review is answered), sync its help, then start S7 from the S6 merge.
 
 ## Working a step
 
@@ -302,6 +302,20 @@ beaten off, and with her captain purged she heaves to; the restart retires her. 
 passes again on the installed build of `465a7c7e4` (133 s). The local CI matrix
 (`scripts/ci/local/run.py --base gitlab/master`) passes all 33 jobs on `39d2c4035` (608 s) and
 again on `465a7c7e4` (355 s), the head's code after a return-type tidy-up.
+
+Review (MR !11, 2026-10-01): two findings, both fixed on top of `vessels-s6`.
+
+| Finding | Fix | Commit |
+| -- | -- | -- |
+| P1: a ram braced against an NPC hull struck whatever hull was locked at the impact, so relocking onto a protected player's hull skipped the consent gate | The crew records who gave the order (`ram_order` replaces the `ramming` flag); at the impact that player must be online and pass `vessel_fire_permitted()` against the hull then locked, or the crew stands down; SHIPRAM help and `VESSEL_SYSTEM.md` say so, and the ram tick test relocks onto an absent owner's hull | `64c0b4884` |
+| P2: the raider content rollback deleted a sailing raider's tier rows, so the restart could not retire her and she stayed an ordinary public hull | The tier rows take the prototypes' persisted-hull guard: a prototype still sailing keeps them until the restart retires her, and a rerun removes the rest; the Phase 22 rollback waits for that | `a6b17da0f` |
+
+Review verification: `make test-all` with the database cases on passes 1,955 CuTest cases and the
+protocol harness; the rollback on the test database keeps a sailing Corsair Frigate's prototype
+and tier row, removes the rest, clears them on a rerun once her runtime row is gone, and the
+content reapplies to six prototypes and ten tier rows; the vessel help verifier passes. The
+raider gate passes on the installed build of `a6b17da0f` (182 s), and the local CI matrix passes
+all 33 jobs on `a6b17da0f` (610 s).
 
 ## Estimate (remaining)
 
