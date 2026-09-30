@@ -372,6 +372,17 @@ void Test_vessel_shipyard_fits_weapons_and_equipment(CuTest *tc)
   CuAssertTrue(tc, strstr(berth.output, "withholds clearance: A Long Tom Catapult cannot be "
                                         "mounted on the port arc") != NULL);
 
+  /* The shipwrights take no work once the crew is casting off, nor from a
+   * hull cast off in the harbor, so none of it can sail with her. */
+  ship->departure_ticks = VESSEL_UNDOCK_TICKS;
+  output = weapons_berth_command(&berth, do_shiprearm, "all");
+  CuAssertTrue(tc, strstr(output, "The crew is casting off") != NULL);
+  ship->departure_ticks = 0;
+  ship->dock = 0;
+  output = weapons_berth_command(&berth, do_shipweapon, "buy small ballista fore");
+  CuAssertTrue(tc, strstr(output, "moor at a dock first") != NULL);
+  CuAssertIntEquals(tc, 0, ship->maintenance_ticks);
+
   /* Staff skip the shipwrights' time. */
   berth.captain.player.level = LVL_IMMORT;
   vessel_add_maintenance(ship, &berth.captain, 100);

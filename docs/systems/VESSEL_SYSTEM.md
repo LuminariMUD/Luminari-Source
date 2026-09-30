@@ -1314,8 +1314,8 @@ ticks) and 30 s (60 ticks).
   item is fitted once, and the whole fit-out (a ram included) weighs no more
   than the class weight budget. The same check refuses a purchase and a
   departure from a berth (`vessel_begin_departure()`).
-- Shipyard (`vessel_refit_ship()`: the owner, in port, not refused by the
-  port): `shipweapon buy` mounts a loaded weapon in the first free slot; a
+- Shipyard (`vessel_refit_ship()`: the owner, berthed in port with no
+  departure under way, not refused by the port): `shipweapon buy` mounts a loaded weapon in the first free slot; a
   capital weapon also needs a veteran gunner (renown arrives in S7).
   `shipweapon sell` pays 90%, or 10% for a damaged weapon; `swap` exchanges
   two slots whole. `shipequip` fits one ram (2 gold per hull weight) or

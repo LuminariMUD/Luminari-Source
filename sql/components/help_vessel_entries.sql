@@ -407,10 +407,10 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIP
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIP-OWNERSHIP');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
-VALUES ('SHIPHIRE', 'Crew, refits, weapons, and insurance for a ship owner. SHIPHIRE,
-SHIPUPGRADE, SHIPWEAPON, SHIPEQUIP, SHIPREARM, and SHIPINSURE require the
-ship to be in port. SHIPDISMISS can be used by the owner anywhere aboard,
-including while underway.
+VALUES ('SHIPHIRE', 'Crew, refits, weapons, and insurance for a ship owner. SHIPHIRE requires
+the ship to be in port; SHIPUPGRADE, SHIPWEAPON, SHIPEQUIP, SHIPREARM, and
+SHIPINSURE require her berthed and not casting off. SHIPDISMISS can be used
+by the owner anywhere aboard, including while underway.
 
 SHIPHIRE <position> <tier>
   Take on crew. Positions and what they do:
