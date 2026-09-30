@@ -408,10 +408,11 @@ Renown belongs to a hull, not to her captain, and she keeps it through the
 wreck registry, a trade-in, and a new name; SHIPCREW shows it. A player\'s
 hull wins renown only by sinking another player\'s hull: the hull weight of
 the ship sunk (a boat 25, a ship 200, a warship 285), shared equally by the
-hull that sank her and her allies in sight, the hulls whose owners are in
-the game and grouped with her owner. The hull sunk loses that much, though
-never below none, and her crew lose a further 1% of their experience for
-every 30 of it. Sinking NPC vessels trains the crew but wins no renown.
+hull that sank her and her allies in sight, the hulls out of port whose
+owners are in the game and grouped with her owner. The hull sunk loses that
+much, though never below none, and her crew lose a further 1% of their
+experience for every 30 of it. Sinking NPC vessels trains the crew but wins no
+renown.
 
 Renown lets able and veteran hands sign on (SHIPHIRE), capital weapons be
 mounted (SHIPWEAPON), and smugglers deal with her (CONTRABAND). It also

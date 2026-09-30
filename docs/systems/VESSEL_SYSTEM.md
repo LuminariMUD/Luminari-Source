@@ -1616,9 +1616,12 @@ Study sections 3.3.7 (rewards, renown, Ship Damage Control) and 3.3.9
   the ten players' hulls with the most, afloat or stowed.
 - Sinking rewards: `vessel_sink()` calls `vessel_settle_sinking()` with her
   victor (`last_attacker`) before evacuating her. A victor that is a player's
-  hull of another owner shares with every player's hull afloat within the
-  sinking hull's `vessel_sight_range()` whose owner is online and in the
-  victor's online owner's group; hulls of the target's owner never share. The sharers split, equally, salvage
+  hull of another owner shares with every player's hull afloat and out of
+  port (`vessel_ship_is_in_port()`, as Duris passes over docked ships) within
+  the sinking hull's `vessel_sight_range()` whose owner is online and in the
+  victor's online owner's group; hulls of the target's owner never share.
+  Every player enters the game in a group of one, so the victor's owner's
+  other hulls at sea in sight share too. The sharers split, equally, salvage
   (`vessel_salvage_value()`: `vessel_hull_price()` times armor and structure
   left over their maximum, plus half the price of each weapon below
   `VESSEL_WEAPON_DESTROYED`, divided by 8), the renown bounty (2.5 gold a

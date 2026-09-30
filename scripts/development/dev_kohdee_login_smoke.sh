@@ -3079,8 +3079,10 @@ proc run_vessel_economy_check {warship_id requested_character} {
   set port_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
   set boat_id [vessel_slot_id $boat_slot]
 
-  # They hole her stern and port side; she sinks, and Kohdee's warship wins
-  # her hull weight in renown and prize money.
+  # They hole her stern and port side; she sinks, and the warship that sank
+  # her wins her hull weight in renown and prize money. Out of his group of
+  # one, Kohdee shares none of it with his other hulls.
+  run_game_command "group leave"
   set transcript ""
   set sinking 0
   for {set round 1} {$round <= 12 && !$sinking} {incr round} {

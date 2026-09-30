@@ -26,6 +26,7 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 #define REWARDS_STRANGER 493
 #define REWARDS_FAR_ALLY 494
 #define REWARDS_SISTER 495
+#define REWARDS_BERTHED 496
 
 static struct greyhawk_ship_data *rewards_hull(int slot, enum vessel_class vessel_type,
                                                const char *name, const char *owner, double x)
@@ -50,7 +51,7 @@ static void rewards_clear(void)
 {
   int slot;
 
-  for (slot = REWARDS_TARGET; slot <= REWARDS_SISTER; slot++)
+  for (slot = REWARDS_TARGET; slot <= REWARDS_BERTHED; slot++)
   {
     memset(&greyhawk_ships[slot], 0, sizeof(greyhawk_ships[0]));
   }
@@ -222,12 +223,17 @@ void Test_vessel_sinking_shares_renown_among_allies(CuTest *tc)
   struct rewards_player ash;
   struct rewards_player tern;
   struct group_data fleet;
+  struct room_data harbor;
+  struct obj_data berthed_hull;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
   struct char_data *saved_character_list;
   struct greyhawk_ship_data *target;
   struct greyhawk_ship_data *victor;
   struct greyhawk_ship_data *ally;
   struct greyhawk_ship_data *stranger;
   struct greyhawk_ship_data *far_ally;
+  struct greyhawk_ship_data *berthed;
   struct greyhawk_ship_data *sister;
 
   saved_character_list = character_list;
@@ -241,8 +247,16 @@ void Test_vessel_sinking_shares_renown_among_allies(CuTest *tc)
   tern.ch.group = &fleet;
 
   /* Corr's frigate sinks Tern's with 400 renown. Wren's hull in sight shares
-   * the frigate's 285 renown; Ash is not in the group, Wren's other hull is
-   * out of sight, and Tern's own sister hull never shares. */
+   * the frigate's 285 renown; Ash is not in the group, Wren's other hulls are
+   * out of sight or berthed in port, and Tern's own sister hull never
+   * shares. */
+  memset(&harbor, 0, sizeof(harbor));
+  memset(&berthed_hull, 0, sizeof(berthed_hull));
+  SET_BIT_AR(harbor.room_flags, ROOM_DOCKABLE);
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &harbor;
+  top_of_world = 0;
   target = rewards_hull(REWARDS_TARGET, VESSEL_WARSHIP, "the Tern", "Tern", 0.0);
   target->renown = 400;
   victor = rewards_hull(REWARDS_VICTOR, VESSEL_WARSHIP, "the Gull", "Corr", 5.0);
@@ -250,11 +264,15 @@ void Test_vessel_sinking_shares_renown_among_allies(CuTest *tc)
   stranger = rewards_hull(REWARDS_STRANGER, VESSEL_SHIP, "the Ash", "Ash", 3.0);
   far_ally = rewards_hull(REWARDS_FAR_ALLY, VESSEL_SHIP, "the Far Wren", "Wren", 400.0);
   sister = rewards_hull(REWARDS_SISTER, VESSEL_SHIP, "the Sister", "Tern", 2.0);
+  berthed = rewards_hull(REWARDS_BERTHED, VESSEL_SHIP, "the Berthed Wren", "Wren", 4.0);
+  berthed->shipobj = &berthed_hull;
+  IN_ROOM(&berthed_hull) = 0;
   CuAssertIntEquals(tc, 285, vessel_settle_sinking(target, victor));
   CuAssertIntEquals(tc, 142, victor->renown);
   CuAssertIntEquals(tc, 142, ally->renown);
   CuAssertIntEquals(tc, 0, stranger->renown);
   CuAssertIntEquals(tc, 0, far_ally->renown);
+  CuAssertIntEquals(tc, 0, berthed->renown);
   CuAssertIntEquals(tc, 0, sister->renown);
   CuAssertIntEquals(tc, 115, target->renown);
 
@@ -279,6 +297,8 @@ void Test_vessel_sinking_shares_renown_among_allies(CuTest *tc)
   CuAssertIntEquals(tc, 2000, target->renown);
 
   character_list = saved_character_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
   rewards_clear();
 }
 

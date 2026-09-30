@@ -64,8 +64,9 @@ int vessel_salvage_value(const struct greyhawk_ship_data *ship)
 
 /**
  * Settle a sinking (study 3.3.7). The victor, when another player's hull,
- * and her allies in sight (players' hulls whose online owners share the
- * victor's owner's group) split the salvage, the bounty on her renown, and
+ * and her allies in sight (players' hulls out of port whose online owners
+ * share the victor's owner's group, as Duris's sink_ship() passes over
+ * docked ships) split the salvage, the bounty on her renown, and
  * the bounty on her owner if the owner is aboard, which is then cleared.
  * When she is a player's hull the sharers also split her hull weight in
  * renown, and she loses it.
@@ -103,7 +104,8 @@ int vessel_settle_sinking(struct greyhawk_ship_data *ship, struct greyhawk_ship_
   {
     other = &greyhawk_ships[i];
     if (other == victor || other == ship || !is_valid_ship(other) || other->owner[0] == '\0' ||
-        !str_cmp(other->owner, ship->owner) || vessel_range_between(ship, other) > sight)
+        !str_cmp(other->owner, ship->owner) || vessel_range_between(ship, other) > sight ||
+        vessel_ship_is_in_port(other))
     {
       continue;
     }
