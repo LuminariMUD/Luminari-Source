@@ -889,6 +889,12 @@ void Test_vessel_schedule_check_sails_the_turn_the_hull_will_make(CuTest *tc)
   CuAssertIntEquals(tc, 11, bad_x);
   CuAssertIntEquals(tc, 0, bad_y);
 
+  /* A crew stunned for the moment does not fail the route: the check sails
+   * her as her crew will, fit. */
+  refuse_room = FALSE;
+  ship->stun_ticks = 100;
+  CuAssertTrue(tc, scheduled_route_is_traversable(ship, &sound, &bad_waypoint, &bad_x, &bad_y));
+
   waypoint_list = saved_waypoints;
   movement_end(&fixture);
 }

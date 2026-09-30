@@ -3753,8 +3753,9 @@ static bool autopilot_probe_tick(struct greyhawk_ship_data *probe, double max_sp
  *
  * The copy steers as the autopilot does and sails through vessel_sail_tick(),
  * so it takes the same line through every turn, at the hull's present
- * maximum speed with her rigging and rudder whole. A loop route sails on to
- * its second waypoint, so the turn after the closing leg is checked too.
+ * maximum speed with her rigging and rudder whole and her crew unstunned. A
+ * loop route sails on to its second waypoint, so the turn after the closing
+ * leg is checked too.
  */
 bool scheduled_route_is_traversable(const struct greyhawk_ship_data *ship,
                                     const struct route_node *route_node, const char **bad_waypoint,
@@ -3792,6 +3793,7 @@ bool scheduled_route_is_traversable(const struct greyhawk_ship_data *ship,
   probe.autopilot = &probe_autopilot;
   probe.mainsail = probe.maxmainsail;
   probe.turnrate = probe.maxturnrate;
+  probe.stun_ticks = 0;
   max_speed = vessel_max_speed(&probe);
   legs = route_node->num_waypoints + (route_node->loop ? 2 : 0);
   ticks = 0;
