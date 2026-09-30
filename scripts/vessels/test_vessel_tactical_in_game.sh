@@ -228,7 +228,7 @@ tactical_runtime_slots() {
         OR prototype_id IN (
           SELECT prototype_id
             FROM ship_prototypes
-           WHERE name LIKE 'Movecheck Boat%' OR name LIKE 'Losscheck Boat%'
+           WHERE name LIKE 'Movecheck Boat%' OR name LIKE 'Losscheck %'
         );"
 }
 
@@ -309,7 +309,7 @@ restore_secondary_rules_state() {
 restore_movement_state() {
   database_query "
     DELETE FROM ship_prototypes
-     WHERE (name LIKE 'Movecheck Boat%' OR name LIKE 'Losscheck Boat%')
+     WHERE (name LIKE 'Movecheck Boat%' OR name LIKE 'Losscheck %')
        AND NOT EXISTS (
          SELECT 1
            FROM ship_runtime_state AS runtime
@@ -839,7 +839,7 @@ elif [[ "$acceptance_mode" == loss ]]; then
 
   timeout 300 env DEV_MUD_CHARACTER="$target_player" \
     "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --vessel-loss-check \
-    "$warship_prototype_id" "$secondary_player" >"$run_dir/02-kohdee-vessel-loss.log" 2>&1 ||
+    "$secondary_player" >"$run_dir/02-kohdee-vessel-loss.log" 2>&1 ||
     fail "the actual Kohdee and Vesselmate vessel-loss session failed"
 
   for expected_text in \
@@ -847,7 +847,7 @@ elif [[ "$acceptance_mode" == loss ]]; then
     'was refused an able gunner and hired a green bosun' \
     'PASS: the first christening was free and the rename cost 60 gold.' \
     'PASS: summoned from sea to the east dock, the boat made port in 37 seconds.' \
-    'PASS: traded in at the east dock, she became the warship design' \
+    'PASS: traded in at the east dock, she became a warship design' \
     'PASS: the vessel loss check completed and purged all temporary hulls'; do
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-loss.log" ||
       fail "the loss session did not report '$expected_text'"
@@ -957,7 +957,7 @@ if [[ "$acceptance_mode" == movement || "$acceptance_mode" == loss ]]; then
   [[ $(database_query "
     SELECT COUNT(*)
       FROM ship_prototypes
-     WHERE name LIKE 'Movecheck Boat%' OR name LIKE 'Losscheck Boat%';") == 0 ]] ||
+     WHERE name LIKE 'Movecheck Boat%' OR name LIKE 'Losscheck %';") == 0 ]] ||
     fail "a temporary check boat prototype remained"
 fi
 if [[ "$acceptance_mode" == rules ]]; then
