@@ -278,23 +278,18 @@ bool vessel_raider_pick_prototype(int tier, int quarry_speed, int *prototype_id,
   return *prototype_id > 0;
 }
 
-/** Load a raider mobile into a room of a hull; NULL when either is missing. */
-static struct char_data *vessel_raider_load_mobile(int vnum, int room_number)
+/** Load a raider mobile into a room of a hull, when both exist. */
+static void vessel_raider_load_mobile(int vnum, int room_number)
 {
   struct char_data *mob;
   room_rnum room;
 
   room = real_room(room_number);
-  if (room == NOWHERE)
-  {
-    return NULL;
-  }
-  mob = read_mobile_reason(vnum, VIRTUAL, PERF_ENTITY_VESSEL);
+  mob = room != NOWHERE ? read_mobile_reason(vnum, VIRTUAL, PERF_ENTITY_VESSEL) : NULL;
   if (mob != NULL)
   {
     char_to_room(mob, room);
   }
-  return mob;
 }
 
 /** Stow her chest of gold in the hold (the bridge on a hull without one), its key on her captain. */
@@ -932,24 +927,27 @@ static void vessel_raider_board(struct greyhawk_ship_data *ship, struct greyhawk
   int skill;
   int count;
   int i;
+  bool won;
 
   ship->raider_boarded = target->shipnum;
   captain = get_pilot_from_ship(ship);
   skill = MAX(0, compute_ability(captain, ABILITY_BOARDING));
   defender = vessel_best_boarding_defender(captain, target, &defender_skill);
   send_to_ship(target, "WARNING: %s throws grappling lines across!", ship->name);
-  for (i = 0; i < 2; i++)
+  won = TRUE;
+  for (i = 0; i < 2 && won; i++)
   {
-    vessel_resolve_boarding_contest(skill, d20(captain), defender_skill, d20(defender),
-                                    vessel_boarding_defense_modifier(target, stages[i]), &contest);
-    if (!contest.attacker_wins)
-    {
-      send_to_ship(target, "The crew beats off %s's boarders!", ship->name);
-      break;
-    }
+    won = vessel_resolve_boarding_contest(skill, d20(captain), defender_skill, d20(defender),
+                                          vessel_boarding_defense_modifier(target, stages[i]),
+                                          &contest) &&
+          contest.attacker_wins;
   }
 
-  if (contest.attacker_wins)
+  if (!won)
+  {
+    send_to_ship(target, "The crew beats off %s's boarders!", ship->name);
+  }
+  else
   {
     send_to_ship(target, "Raiders from %s swarm aboard%s!", ship->name,
                  ship->raider_hunter ? "" : " in search of plunder");
