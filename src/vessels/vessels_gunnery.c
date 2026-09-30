@@ -91,10 +91,10 @@ double vessel_volley_chance(int sight)
 }
 
 /**
- * Duris weaponsight() for an untrained crew with full stamina: the percent
- * chance, 1-100, of a hit from the range, the target's size, and the motion
- * of the firing solution over the next second. The target must lie inside
- * the weapon's band.
+ * Duris weaponsight() for an untrained crew: the percent chance, 1-100, of a
+ * hit from the range, the target's size, the motion of the firing solution
+ * over the next second, and the gun crew's fatigue. The target must lie
+ * inside the weapon's band.
  */
 static int vessel_weapon_sight(struct greyhawk_ship_data *ship,
                                const struct vessel_weapon_type *type,
@@ -154,7 +154,7 @@ static int vessel_weapon_sight(struct greyhawk_ship_data *ship,
   {
     miss = fmin(miss * 1.5, 0.99);
   }
-  hit = fmax(0.01, fmin(1.0, 1.0 - miss));
+  hit = fmax(0.01, fmin(1.0, 1.0 - miss) * vessel_stamina_modifier(ship));
   return (int)(hit * 100.0);
 }
 
@@ -204,13 +204,13 @@ int vessel_hit_percent(int dc, int bonus)
 
 /**
  * A weapon's reload in vessel ticks: the catalogue reload less 15% of the
- * gunner mod (0.15 a tier).
+ * gunner mod (0.15 a tier), lengthened by the crew's fatigue.
  */
 static short int vessel_reload_ticks(const struct greyhawk_ship_data *ship,
                                      const struct vessel_weapon_type *type)
 {
-  return (short int)MAX(1,
-                        (int)(type->reload * (1.0 - 0.15 * 0.15 * ship->crew_tier[CREW_GUNNER])));
+  return (short int)MAX(1, (int)(type->reload * (1.0 - 0.15 * 0.15 * ship->crew_tier[CREW_GUNNER]) /
+                                 vessel_stamina_modifier(ship)));
 }
 
 bool vessel_at_battle_stations(const struct greyhawk_ship_data *ship)
@@ -372,9 +372,9 @@ static void vessel_mental_blast(struct greyhawk_ship_data *ship, struct greyhawk
 }
 
 /**
- * Fire one ready weapon at target: spend a round, start the reload, put
- * both crews at battle stations, and resolve the shot against the geometry
- * DC.
+ * Fire one ready weapon at target: spend a round and the gun crew's stamina
+ * (the weapon's weight over the hull effort), start the reload, put both
+ * crews at battle stations, and resolve the shot against the geometry DC.
  *
  * @param ch The gunner, or NULL for the hull's NPC crew
  * @return damage dealt (0 on a miss)
@@ -399,6 +399,11 @@ int vessel_fire_weapon(struct greyhawk_ship_data *ship, int slot, struct greyhaw
 
   weapon->ammo--;
   weapon->timer = vessel_reload_ticks(ship, type);
+  ship->stamina_spent += (double)type->weight / vessel_hull_effort(ship);
+  if (ship->lock_target == target->shipnum)
+  {
+    vessel_crew_gain(ship, CREW_GUNNER, 0.1);
+  }
   target->last_attacker = ship->shipnum;
   vessel_battle_stations(ship);
   vessel_battle_stations(target);
@@ -565,14 +570,48 @@ static void vessel_npc_return_fire(struct greyhawk_ship_data *ship)
 }
 
 /**
- * Gunnery tick: recover from a mental blast, reload unless stunned, keep a
- * lock only on a contact the guns may still engage, hold battle stations
- * while locked and stand down 180 s after, and run NPC return fire.
+ * Count each weapon's reload down a tick, unless the crew is stunned. A
+ * reloading weapon tires the gun crew by its weight over ten times the hull
+ * effort per Duris second, and teaches the gunner while a contact is locked.
+ */
+void vessel_reload_tick(struct greyhawk_ship_data *ship)
+{
+  const struct vessel_weapon_type *type;
+  int s;
+
+  for (s = 0; s < GREYHAWK_MAXSLOTS && !vessel_crew_stunned(ship); s++)
+  {
+    if (ship->slot[s].timer <= 0)
+    {
+      continue;
+    }
+    ship->slot[s].timer--;
+    type = vessel_slot_weapon(&ship->slot[s]);
+    if (type != NULL)
+    {
+      ship->stamina_spent += (double)type->weight / vessel_hull_effort(ship) / 20.0;
+    }
+    if (ship->lock_target != 0)
+    {
+      vessel_crew_gain(ship, CREW_GUNNER, 0.0015);
+    }
+    if (ship->slot[s].timer == 0 && ship->slot[s].type == VESSEL_SLOT_WEAPON)
+    {
+      send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RELOAD, VESSEL_COMBAT_MESSAGE_COOLDOWN,
+                             "The %s %s is reloaded and ready.",
+                             vessel_arc_name(ship->slot[s].position),
+                             vessel_slot_name(&ship->slot[s]));
+    }
+  }
+}
+
+/**
+ * Gunnery tick: recover from a mental blast, reload, keep a lock only on a
+ * contact the guns may still engage, hold battle stations while locked and
+ * stand down 180 s after, and run NPC return fire.
  */
 void vessel_gunnery_tick_one(struct greyhawk_ship_data *ship)
 {
-  int s;
-
   if (!is_valid_ship(ship))
   {
     return;
@@ -586,21 +625,7 @@ void vessel_gunnery_tick_one(struct greyhawk_ship_data *ship)
       send_to_ship(ship, "The crew recovers from the mental shock.");
     }
   }
-  for (s = 0; s < GREYHAWK_MAXSLOTS && !vessel_crew_stunned(ship); s++)
-  {
-    if (ship->slot[s].timer <= 0)
-    {
-      continue;
-    }
-    ship->slot[s].timer--;
-    if (ship->slot[s].timer == 0 && ship->slot[s].type == VESSEL_SLOT_WEAPON)
-    {
-      send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RELOAD, VESSEL_COMBAT_MESSAGE_COOLDOWN,
-                             "The %s %s is reloaded and ready.",
-                             vessel_arc_name(ship->slot[s].position),
-                             vessel_slot_name(&ship->slot[s]));
-    }
-  }
+  vessel_reload_tick(ship);
 
   if (ship->battle_ticks > 0)
   {

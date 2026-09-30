@@ -31800,7 +31800,7 @@ FORMS & PROGRESSION:
 
 See also: DRUID, SHIFTER, WILDSHAPE, FORMS
 #0
-SHIP-OWNERSHIP SHIPBROWSE SHIPBUY SHIPCHRISTEN SHIPCREW SHIPCUSTOMIZE SHIPDEED SHIPPERMIT SHIPREVOKE
+SHIP-OWNERSHIP SHIPBROWSE SHIPBUY SHIPCHRISTEN SHIPCREW SHIPCUSTOMIZE SHIPDEED SHIPPERMIT SHIPREVOKE SHIPSUMMON
 
 Ship ownership commands:
 
@@ -31808,15 +31808,23 @@ SHIPBROWSE
   View the shipwright's catalog: every hull design offered for sale, with its
   price and the level needed to take it out of port (Lvl).
 
-SHIPBUY <id>
+SHIPBUY <id> [trade]
   Purchase a listed hull and take immediate delivery. Only works at a dock
   (dockable room). You become the owner. One captain may own at most three
-  hulls at a time (staff set the limit with CEDIT); unowned public and NPC
-  hulls do not count.
+  hulls at a time (staff set the limit with CEDIT), counting wrecks and
+  hulls under summons; unowned public and NPC hulls do not count. With
+  TRADE, trade in your hull berthed at this dock with an empty hold: 90%
+  of her value comes off the price (any excess is paid to you; a wreck,
+  whose insurance has paid for her, earns nothing), and the shipwrights
+  rebuild her as the new hull under her name, with her crew, paint, and
+  permits. The new hull comes with her class armament and
+  takes aboard whatever of the old weapons and equipment she can legally
+  carry; the shipwrights buy the rest (see SHIPWEAPON sell).
 
 SHIPCHRISTEN <name>
-  Rename a ship you own (3-60 printable characters). An owner may christen the
-  ship again later; the current name appears in port and fleet reports.
+  Rename a ship you own (3-60 printable characters). The first christening
+  of a new hull is free; an owner may christen the ship again later for a
+  tenth of her value. The current name appears in port and fleet reports.
 
 SHIPCUSTOMIZE [show]
 SHIPCUSTOMIZE <paint|figurehead> <description|clear>
@@ -31835,8 +31843,18 @@ SHIPPERMIT <player> / SHIPREVOKE <player>
   previous permits.
 
 SHIPCREW
-  List the ship's owner, NPC pilot, helm permits, and hired crew positions
-  and quality tiers.
+  List the ship's owner, NPC pilot, helm permits, and hired crew positions,
+  with each hand's tier, experience, and the threshold for the next tier.
+
+SHIPSUMMON [<number | name>]
+  At a shipyard, list the hulls you own with where they are, the fee, and
+  how long each would take to reach you; with a number or the start of a
+  name, send for one. She leaves at once with her hold emptied, anyone
+  aboard put over the side, and nothing alongside, and makes port here
+  after her passage: quicker for a faster hull, twice as long from the
+  wreck registry, never more than 75 minutes. The fee is a tenth of a gold
+  piece per point of hull weight. A hull at battle stations or going down
+  will not answer. A summons survives a reboot.
 
 Hull levels: taking a hull out of port, engaging its autopilot, or putting
 an NPC pilot or schedule to work needs the hull's level: 1 for rafts and
@@ -31844,8 +31862,15 @@ boats, 16 for ships, 21 for transports, 22 for warships, 23 for submarines,
 24 for airships, and 25 for magical hulls, unless the design sets its own.
 Anyone may own a hull or ride aboard one.
 
-Ownership survives reboots. Losing your ship in combat is permanent -
-sail accordingly, or don't sail what you can't afford to lose.
+Ownership survives reboots. When a player's hull goes down, her crew lose
+some of their experience and she is rebuilt as the shipyard's cheapest boat,
+with no weapons, equipment, or refits and, unless an NPC vessel sank a larger
+hull, no sails. She keeps her name, crew, paint, and permits, and waits in the
+wreck registry until you summon her. Insurance is automatic: the underwriters
+pay three quarters of a lost ship's, transport's, or boat's value and half of
+any other's, nine tenths when an NPC vessel sank her, and nothing for a raft
+or a rebuilt wreck. The settlement arrives at once if you are in the game,
+else when you next enter it.
 
 See also: SHIP COMBAT, CLAIMSHIP, VEDIT, BOARD, DOCK
 #0
@@ -31869,8 +31894,9 @@ SHIPFIRE <slot | fore | port | rear | starboard> [<contact>]
   220-320), the target lies inside its range band, and it is sound, loaded,
   and reloaded. Your hull cannot fire from a berth, at anchor, submerged,
   or while going down. Every volley costs a combat round and each shot a
-  round of ammunition; each weapon then reloads for 20 seconds (30 for the
-  capital weapons), a little faster with a better gunner.
+  round of ammunition; each weapon then reloads for 17 seconds (25 and a
+  half for the capital weapons), a little faster with a better gunner and
+  slower with a tired crew (see SHIPHIRE).
 
   A shot hits on d20 + gunnery bonus against a DC set by the geometry: the
   range (much better inside three quarters of the weapon's reach), how
@@ -31932,9 +31958,10 @@ SHIPSCAN <contact>
   unowned hull in 17-25 minutes, time enough to board and plunder her. A
   sinking hull cannot move, fire, or be repaired. When she goes down,
   everyone aboard is thrown into the water, half of each cargo lot floats
-  off as salvage crates, and the hull becomes wreckage. A hull shot from
-  one side only is holed there but cannot sink until a second side is
-  holed, so maneuver to bring a fresh side under your guns.
+  off as salvage crates, and the hull becomes wreckage; a player's ship
+  lives on in the wreck registry (see SHIPSUMMON). A hull shot from one
+  side only is holed there but cannot sink until a second side is holed,
+  so maneuver to bring a fresh side under your guns.
 
   Ships with an assigned NPC pilot automatically return fire at their
   attacker with every weapon that bears.
@@ -31944,11 +31971,22 @@ SHIPSALVAGE
   alongside into the hold, as much as she can carry. Crates float for about
   half an hour.
 
-SHIPREPAIR
-  Slow at-sea repairs. The ship must be stationary. Each use patches a
-  little armor, structure, rigging, and rudder, and mends damaged weapons.
-  A destroyed weapon is refitted only while berthed in port. Dockside
-  repair (faster, for gold) arrives with the shipyard system.
+SHIPREPAIR [armor | structure | sails | rudder | weapons | all]
+  At sea the crew mends what it can on its own, from repair stores equal to
+  the hull's weight and refilled whenever she berths (SHIPSTATUS shows what
+  is left). A holed or battered side is shored up only to a tenth of its
+  structure and the sails and rudder to two fifths, more with a better
+  bosun; damaged weapons come back in full, but armor is never mended at
+  sea. The crew works fastest at anchor and slowly under way, and cannot
+  replace rigging shot away while she is under way. Anyone aboard may lend
+  a hand: SHIPREPAIR at sea is one Craft (woodworking) check, DC 15, that
+  patches one point of the worst damage from the stores.
+
+  At a shipyard, with the hull berthed, her owner buys the rest: armor and
+  structure at 2 gold a point, sails and rudder at 4, a damaged weapon at
+  2 gold a point of damage, and a destroyed one for half its price. Each
+  order keeps her at the berth 75 seconds plus a second a point (75 for a
+  weapon, 150 rebuilt). SHIPREPAIR alone shows the shipwrights' quote.
 
 CLAIMSHIP
   Capture a beaten ship: stand on its bridge with no other conscious
@@ -31979,12 +32017,12 @@ online with PVP enabled, so the target can always answer in kind.
 
 See also: BOARD, DOCK, TACTICAL, SHIPSTATUS, AUTOPILOT
 #0
-SHIP-CREW SHIP-REFIT SHIPDISMISS SHIPEQUIP SHIPHIRE SHIPINSURE SHIPREARM SHIPUPGRADE SHIPWEAPON
+SHIP-CREW SHIP-REFIT SHIPDISMISS SHIPEQUIP SHIPHIRE SHIPREARM SHIPUPGRADE SHIPWEAPON
 
-Crew, refits, weapons, and insurance for a ship owner. SHIPHIRE requires
-the ship to be in port; SHIPUPGRADE, SHIPWEAPON, SHIPEQUIP, SHIPREARM, and
-SHIPINSURE require her berthed and not casting off. SHIPDISMISS can be used
-by the owner anywhere aboard, including while underway.
+Crew, refits, and weapons for a ship owner. SHIPHIRE requires the ship to be
+in port; SHIPUPGRADE, SHIPWEAPON, SHIPEQUIP, and SHIPREARM require her
+berthed and not casting off. SHIPDISMISS can be used by the owner anywhere
+aboard, including while underway.
 
 SHIPHIRE <position> <tier>
   Take on crew. Positions and what they do:
@@ -31994,7 +32032,25 @@ SHIPHIRE <position> <tier>
     quartermaster  - more cargo capacity
   Quality tiers: green, able, veteran. Each hand costs a one-time hire
   price and draws no wages; better hands cost more. Type 'shiphire' with no
-  arguments for the prices.
+  arguments for the prices. Able and veteran hands sign on only with a
+  hull of renown; green hands earn promotion at sea.
+
+  Every hand learns from the work: the sailmaster from each room sailed
+  (not in a raft or boat), the gunner from reloading and firing at a
+  locked contact, the bosun from repairs, and the sailmaster, bosun, and
+  quartermaster from cargo sold. All of them learn from a hull their ship
+  sinks, far more from a player's. Enough experience promotes a hand to
+  the next tier for free; SHIPCREW shows how far each has to go. When
+  their ship is lost the crew give up a tenth or so of their experience,
+  and a hand who falls below their tier's threshold drops a tier, though
+  never below green.
+
+  A crew has stamina: 500, and 100 more for each tier aboard. Working the
+  helm, every shot and reload, and every repair spend it; it returns
+  slowly at sea and four times as fast berthed or at anchor. A crew worked
+  past empty is exhausted: it turns and gathers way more slowly, reloads
+  and repairs more slowly, and shoots less straight, the more so the
+  deeper the deficit. SHIPSTATUS shows it.
 
 SHIPDISMISS <position>
   Let a crew member go. Their bonus leaves with them. This does not require a
@@ -32006,7 +32062,9 @@ SHIPUPGRADE [<refit>]
     rigging        - +10% maximum speed (at least 1, at most 30)
     hold           - +25% cargo capacity
     reinforcement  - +20% hull structure
-  Each can be installed once and costs a fifth of the class price.
+  Each can be installed once and costs a fifth of the class price. The new
+  plates or frames add their points to what she has left; a refit repairs
+  nothing.
 
 SHIPWEAPON [list]
   List the shipyard's twelve weapons with price, weight, rounds, range band
@@ -32037,11 +32095,6 @@ SHIPREARM [<slot> | all]
   weapon. A weapon with no rounds left cannot fire. A destroyed weapon is
   not rearmed.
 
-SHIPINSURE [<value>]
-  With no argument, show current coverage. Otherwise insure the ship for
-  the given payout, up to her market value; the premium is one fifth of
-  the payout. If the ship sinks, the underwriters pay the owner.
-
 Wear: hulls under way slowly lose armor and subsystem condition. Put in
 for repairs before a fight, not after.
 
@@ -32053,7 +32106,9 @@ Staff commands for operating the vessel system.
 
 SHIPLIST [summary]
   Fleet overview: every active vessel with its slot, name, class, position,
-  heading, speed, hull structure, and owner. Ends with two health figures:
+  heading, speed, hull structure, and owner. A hull in the wreck registry
+  or under summons shows that in place of her position. Ends with two
+  health figures:
     - fleet slots in use out of the maximum
     - wilderness dynamic room pool utilization
 
@@ -41517,9 +41572,10 @@ TACTICAL
 
 SHIPSTATUS
   Show position, terrain, elevation or depth, heading, speed, moorings, the
-  armor and structure of all four sides, sails, rudder, and every slot by
-  number: each weapon with its arc and rounds left (ready, reloading, out of
-  ammunition, disabled with its damage, or destroyed), and any equipment.
+  armor and structure of all four sides, sails, rudder, crew stamina, repair
+  stores, and every slot by number: each weapon with its arc and rounds left
+  (ready, reloading, out of ammunition, disabled with its damage, or
+  destroyed), and any equipment.
   Heading and speed show any order the hull is still answering, and speed
   shows the most she can make under present conditions. Holed sides, the
   time left before a sinking hull goes down, and struck colors appear when

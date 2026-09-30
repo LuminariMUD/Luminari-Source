@@ -34,7 +34,6 @@
 struct vessel_balance_observed_data
 {
   long long owned_hulls;
-  long long insured_value;
   long long dock_fees;
   long long completed_freight;
   long long freight_payout;
@@ -78,7 +77,8 @@ static int vessel_balance_side(struct greyhawk_ship_data *ship, int arc)
 /**
  * One tick of a duelling captain: bring the healthier beam to bear, turning
  * toward the enemy 20 degrees for each room beyond 7.5 (bow on by 12) or
- * away inside it (at most 45), fire everything that bears, and sail on.
+ * away inside it (at most 45), fire everything that bears, and sail on; her
+ * crew reloads, tires, rests, and repairs as a live crew does.
  */
 static void vessel_balance_captain(struct greyhawk_ship_data *ship,
                                    struct greyhawk_ship_data *enemy)
@@ -100,12 +100,11 @@ static void vessel_balance_captain(struct greyhawk_ship_data *ship,
   ship->setheading =
       (short int)vessel_display_heading(vessel_bearing_between(ship, enemy) - relative);
 
+  vessel_reload_tick(ship);
+  vessel_crew_tick_one(ship);
+  vessel_repair_tick_one(ship);
   for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
   {
-    if (ship->slot[s].timer > 0)
-    {
-      ship->slot[s].timer--;
-    }
     if (vessel_weapon_fire_problem(ship, s, enemy, TRUE) == NULL)
     {
       vessel_fire_weapon(ship, s, enemy, NULL);
@@ -225,7 +224,7 @@ static bool vessel_balance_load_observed(struct vessel_balance_observed_data *da
   const char *query;
   MYSQL_RES *query_result;
   MYSQL_ROW row;
-  long long *fields[6];
+  long long *fields[5];
   int i;
 
   if (data == NULL || !mysql_available || conn == NULL)
@@ -236,7 +235,6 @@ static bool vessel_balance_load_observed(struct vessel_balance_observed_data *da
   memset(data, 0, sizeof(*data));
   query = "SELECT "
           "(SELECT COUNT(*) FROM ship_interiors WHERE owner <> ''), "
-          "(SELECT COALESCE(SUM(insured_for), 0) FROM ship_interiors WHERE owner <> ''), "
           "(SELECT COALESCE(SUM(r.dock_fee_balance), 0) "
           "FROM ship_runtime_state r JOIN ship_interiors i ON i.ship_id = r.ship_id "
           "WHERE i.owner <> ''), "
@@ -262,12 +260,11 @@ static bool vessel_balance_load_observed(struct vessel_balance_observed_data *da
   }
 
   fields[0] = &data->owned_hulls;
-  fields[1] = &data->insured_value;
-  fields[2] = &data->dock_fees;
-  fields[3] = &data->completed_freight;
-  fields[4] = &data->freight_payout;
-  fields[5] = &data->showcase_entries;
-  for (i = 0; i < 6; i++)
+  fields[1] = &data->dock_fees;
+  fields[2] = &data->completed_freight;
+  fields[3] = &data->freight_payout;
+  fields[4] = &data->showcase_entries;
+  for (i = 0; i < 5; i++)
   {
     *fields[i] = row[i] == NULL ? 0 : parse_llong(row[i]);
   }
@@ -351,22 +348,21 @@ bool vessel_balance_report(struct char_data *ch, int duel_count)
                "wages.\r\n",
                crew_hires[0], crew_hires[1], crew_hires[2]);
   send_to_char(ch, "Class cost anchors (speed 10, armor 10): hull / one refit / "
-                   "20%% insurance premium / dock.\r\n");
+                   "insurance payout / dock.\r\n");
   for (vessel_type = 0; vessel_type < NUM_VESSEL_TYPES; vessel_type++)
   {
     price = vessel_prototype_price(vessel_type, 10, 10);
     refit = vessel_upgrade_cost(0, (enum vessel_class)vessel_type);
     send_to_char(ch, "  %-16s %7d / %6d / %6d / %3d gold\r\n",
                  get_vessel_type_name((enum vessel_class)vessel_type), price, refit,
-                 MAX(1, price / 5), vessel_dock_fee_for_class((enum vessel_class)vessel_type));
+                 price * vessel_class_condition((enum vessel_class)vessel_type)->insurance / 100,
+                 vessel_dock_fee_for_class((enum vessel_class)vessel_type));
   }
 
   if (observed_ok)
   {
-    send_to_char(ch,
-                 "Persisted sample: %lld owned hulls, %lld insured value, %lld dock "
-                 "fees.\r\n",
-                 observed.owned_hulls, observed.insured_value, observed.dock_fees);
+    send_to_char(ch, "Persisted sample: %lld owned hulls, %lld dock fees.\r\n",
+                 observed.owned_hulls, observed.dock_fees);
     send_to_char(ch,
                  "  Completed freight: %lld contracts / %lld gold; showcase "
                  "entries: %lld.\r\n",

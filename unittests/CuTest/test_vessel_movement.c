@@ -289,6 +289,34 @@ void Test_vessel_hull_gathers_way_and_sails_speed_over_90_rooms_a_tick(CuTest *t
   movement_end(&fixture);
 }
 
+void Test_vessel_sailmaster_learns_from_the_rooms_she_sails(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+
+  /* Seventeen rooms at speed 17 teach a green sailmaster 0.003 each. */
+  ship = movement_begin(&fixture, VESSEL_WARSHIP);
+  ship->crew_tier[CREW_SAILMASTER] = CREW_TIER_GREEN;
+  ship->crew_xp[CREW_SAILMASTER] = 200.0;
+  ship->speed = 17.0;
+  ship->setspeed = 17;
+  movement_ticks(ship, 90);
+  CuAssertIntEquals(tc, 17, (int)ship->y);
+  CuAssertDblEquals(tc, 200.051, ship->crew_xp[CREW_SAILMASTER], 0.000001);
+  movement_end(&fixture);
+
+  /* A boat's sailmaster learns nothing from sailing. */
+  ship = movement_begin(&fixture, VESSEL_BOAT);
+  ship->crew_tier[CREW_SAILMASTER] = CREW_TIER_GREEN;
+  ship->crew_xp[CREW_SAILMASTER] = 200.0;
+  ship->speed = 30.0;
+  ship->setspeed = 30;
+  movement_ticks(ship, 90);
+  CuAssertIntEquals(tc, 30, (int)ship->y);
+  CuAssertDblEquals(tc, 200.0, ship->crew_xp[CREW_SAILMASTER], 0.0);
+  movement_end(&fixture);
+}
+
 void Test_vessel_hull_crossing_a_corner_enters_the_diagonal_room(CuTest *tc)
 {
   struct movement_fixture fixture;

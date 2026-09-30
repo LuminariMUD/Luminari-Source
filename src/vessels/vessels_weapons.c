@@ -34,25 +34,25 @@ static const struct vessel_weapon_type weapon_types[NUM_VESSEL_WEAPONS] = {
     /* name, price, weight, ammo, range, damage, fragments, spread, sail hit,
      * hull/sail percent, pierce, reload, arcs, flags */
     {"Unknown Weapon", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {"Small Ballista", 100, 3, 60, 0, 8, 2, 4, 1, 10, 12, 100, 50, 10, 40, ARCS_ALL, 0},
-    {"Medium Ballista", 200, 6, 50, 0, 10, 4, 6, 1, 10, 14, 100, 50, 10, 40, ARCS_ALL, 0},
-    {"Large Ballista", 1000, 10, 30, 0, 12, 6, 9, 1, 10, 16, 100, 50, 10, 40, ARCS_ALL, 0},
-    {"Small Catapult", 1000, 10, 30, 4, 15, 2, 3, 4, 160, 20, 100, 100, 2, 40, ARCS_ENDS,
+    {"Small Ballista", 100, 3, 60, 0, 8, 2, 4, 1, 10, 12, 100, 50, 10, 34, ARCS_ALL, 0},
+    {"Medium Ballista", 200, 6, 50, 0, 10, 4, 6, 1, 10, 14, 100, 50, 10, 34, ARCS_ALL, 0},
+    {"Large Ballista", 1000, 10, 30, 0, 12, 6, 9, 1, 10, 16, 100, 50, 10, 34, ARCS_ALL, 0},
+    {"Small Catapult", 1000, 10, 30, 4, 15, 2, 3, 4, 160, 20, 100, 100, 2, 34, ARCS_ENDS,
      VESSEL_WEAPON_BALLISTIC},
-    {"Medium Catapult", 1600, 13, 20, 5, 20, 2, 4, 5, 260, 20, 100, 100, 2, 40, ARCS_ENDS,
+    {"Medium Catapult", 1600, 13, 20, 5, 20, 2, 4, 5, 260, 20, 100, 100, 2, 34, ARCS_ENDS,
      VESSEL_WEAPON_BALLISTIC},
-    {"Large Catapult", 2400, 17, 12, 6, 25, 2, 5, 6, 360, 20, 100, 100, 2, 40, ARCS_ENDS,
+    {"Large Catapult", 2400, 17, 12, 6, 25, 2, 5, 6, 360, 20, 100, 100, 2, 34, ARCS_ENDS,
      VESSEL_WEAPON_BALLISTIC},
-    {"Heavy Ballista", 2000, 15, 6, 0, 4, 15, 22, 1, 10, 0, 100, 0, 15, 40, ARCS_BEAMS, 0},
-    {"Light Beamcannon", 8000, 7, 40, 0, 20, 4, 16, 1, 10, 10, 100, 30, 15, 60, ARCS_ALL,
+    {"Heavy Ballista", 2000, 15, 6, 0, 4, 15, 22, 1, 10, 0, 100, 0, 15, 34, ARCS_BEAMS, 0},
+    {"Light Beamcannon", 8000, 7, 40, 0, 20, 4, 16, 1, 10, 10, 100, 30, 15, 51, ARCS_ALL,
      VESSEL_WEAPON_RANGE_DAMAGE | VESSEL_WEAPON_CAPITAL},
-    {"Heavy Beamcannon", 10000, 9, 40, 0, 23, 5, 22, 1, 10, 10, 100, 30, 15, 60, ARCS_ALL,
+    {"Heavy Beamcannon", 10000, 9, 40, 0, 23, 5, 22, 1, 10, 10, 100, 30, 15, 51, ARCS_ALL,
      VESSEL_WEAPON_RANGE_DAMAGE | VESSEL_WEAPON_CAPITAL},
-    {"Mind Blast Cannon", 8000, 5, 50, 0, 20, 0, 0, 1, 360, 0, 0, 0, 0, 60, ARCS_ALL,
+    {"Mind Blast Cannon", 8000, 5, 50, 0, 20, 0, 0, 1, 360, 0, 0, 0, 0, 51, ARCS_ALL,
      VESSEL_WEAPON_CREW_STUN | VESSEL_WEAPON_CAPITAL},
-    {"Fragmentation Cannon", 10000, 7, 20, 0, 16, 4, 6, 5, 90, 50, 50, 100, 0, 60, ARCS_ENDS,
+    {"Fragmentation Cannon", 10000, 7, 20, 0, 16, 4, 6, 5, 90, 50, 50, 100, 0, 51, ARCS_ENDS,
      VESSEL_WEAPON_CAPITAL},
-    {"Long Tom Catapult", 10000, 9, 6, 12, 32, 3, 6, 8, 360, 20, 100, 100, 3, 60, ARCS_ENDS,
+    {"Long Tom Catapult", 10000, 9, 6, 12, 32, 3, 6, 8, 360, 20, 100, 100, 3, 51, ARCS_ENDS,
      VESSEL_WEAPON_BALLISTIC | VESSEL_WEAPON_CAPITAL}};
 
 static const char *const equipment_names[NUM_VESSEL_EQUIPMENT] = {"Unknown Equipment", "Ram",
@@ -649,8 +649,7 @@ ACMD(do_shipweapon)
       send_to_char(ch, "Usage: shipweapon sell <slot holding a weapon>\r\n");
       return;
     }
-    /* Duris pays 90% for a sound weapon, 10% for a damaged one. */
-    value = ship->slot[slot].damage > 0 ? weapon->price / 10 : weapon->price * 9 / 10;
+    value = vessel_slot_sale_value(&ship->slot[slot], ship->vessel_type);
     award_gold(ch, value);
     memset(&ship->slot[slot], 0, sizeof(ship->slot[slot]));
     vessel_db_save_weapons(ship);
@@ -695,8 +694,64 @@ static int vessel_equipment_slot(const struct greyhawk_ship_data *ship, int equi
   return -1;
 }
 
+/**
+ * What the shipwrights pay for a slot's weapon or equipment aboard a hull of
+ * this class: 90% of the price, and 10% for a damaged weapon (Duris).
+ */
+int vessel_slot_sale_value(const struct greyhawk_ship_slot *slot, enum vessel_class vessel_type)
+{
+  const struct vessel_weapon_type *weapon;
+
+  weapon = vessel_slot_weapon(slot);
+  if (weapon != NULL)
+  {
+    return slot->damage > 0 ? weapon->price / 10 : weapon->price * 9 / 10;
+  }
+  if (slot->type == VESSEL_SLOT_EQUIPMENT)
+  {
+    return vessel_equipment_price(slot->item, vessel_type) * 9 / 10;
+  }
+  return 0;
+}
+
+/**
+ * Carry a traded-in hull's weapons and equipment aboard her new hull (study
+ * 3.3.7): each goes into a free slot if the fit-out stays legal, and the
+ * shipwrights buy the rest.
+ *
+ * @return gold paid for what the new hull cannot take
+ */
+int vessel_carry_fitout(struct greyhawk_ship_data *ship, const struct greyhawk_ship_slot *old_slots,
+                        enum vessel_class old_class)
+{
+  int paid;
+  int slot;
+  int i;
+
+  paid = 0;
+  for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
+  {
+    if (old_slots[i].type == VESSEL_SLOT_EMPTY)
+    {
+      continue;
+    }
+    slot = vessel_free_slot(ship);
+    if (slot >= 0)
+    {
+      ship->slot[slot] = old_slots[i];
+      if (vessel_fitout_problem(ship) == NULL)
+      {
+        continue;
+      }
+      memset(&ship->slot[slot], 0, sizeof(ship->slot[slot]));
+    }
+    paid += vessel_slot_sale_value(&old_slots[i], old_class);
+  }
+  return paid;
+}
+
 /** Whether any bulk cargo lot aboard holds units. */
-static bool vessel_has_cargo(const struct greyhawk_ship_data *ship)
+bool vessel_has_cargo(const struct greyhawk_ship_data *ship)
 {
   int i;
 
@@ -779,11 +834,12 @@ ACMD(do_shipequip)
       send_to_char(ch, "Her neutral colors stay up while she has cargo aboard.\r\n");
       return;
     }
+    price = vessel_slot_sale_value(&ship->slot[slot], ship->vessel_type);
     memset(&ship->slot[slot], 0, sizeof(ship->slot[slot]));
-    award_gold(ch, price * 9 / 10);
+    award_gold(ch, price);
     vessel_db_save_weapons(ship);
     send_to_char(ch, "The shipwrights remove the %s and pay you %d gold.\r\n",
-                 equipment_names[equipment], price * 9 / 10);
+                 equipment_names[equipment], price);
     return;
   }
 

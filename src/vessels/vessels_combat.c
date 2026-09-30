@@ -1,8 +1,9 @@
 /* ************************************************************************
  *      File:   vessels_combat.c                      Part of LuminariMUD  *
  *   Purpose:   Naval combat (Phase 05): hostile-act consent, the combat   *
- *              tick, sinking, repair, and capture. Gunnery lives in       *
- *              vessels_gunnery.c and the damage model in vessels_damage.c *
+ *              tick, sinking, and capture. Gunnery lives in               *
+ *              vessels_gunnery.c, the damage model in vessels_damage.c,   *
+ *              and repair in vessels_repair.c                             *
  * ********************************************************************** */
 
 #include "conf.h"
@@ -21,12 +22,6 @@
 #include "act/act.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-
-/* Repair amounts per shiprepair invocation (dockside pace lands in the
- * Phase 06 economy; this is the slow at-sea patch job). */
-#define SHIP_REPAIR_ARMOR 5
-#define SHIP_REPAIR_INTERNAL 2
-#define SHIP_REPAIR_SUBSYS 5
 
 /**
  * Find an online player by exact name.
@@ -430,13 +425,30 @@ int vessel_arc_toward(const struct greyhawk_ship_data *from, const struct greyha
       (int)lround(vessel_bearing_between(from, to) - from->heading));
 }
 
+/** The hull that sank ship: her last attacker, while still afloat. */
+static struct greyhawk_ship_data *vessel_sink_victor(const struct greyhawk_ship_data *ship)
+{
+  struct greyhawk_ship_data *victor;
+
+  if (ship->last_attacker <= 0 || ship->last_attacker >= GREYHAWK_MAXSHIPS ||
+      ship->last_attacker == ship->shipnum)
+  {
+    return NULL;
+  }
+  victor = &greyhawk_ships[ship->last_attacker];
+  return is_valid_ship(victor) ? victor : NULL;
+}
+
 /**
  * Sink a ship: evacuate everyone aboard into the water, convert the ship
- * object into inert wreckage, and free the fleet slot.
+ * object into inert wreckage, and settle her owner's insurance. A player's
+ * hull is rebuilt and waits in the wreck registry (decision D3); any other
+ * frees the fleet slot.
  */
 void vessel_sink(int shipnum)
 {
   struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data *victor;
   struct char_data *tch;
   struct char_data *next_tch;
   room_rnum interior;
@@ -452,6 +464,8 @@ void vessel_sink(int shipnum)
 
   log("Info: Ship %d '%s' is sinking at (%d,%d)", shipnum, ship->name, (int)ship->x, (int)ship->y);
   send_to_ship(ship, "The hull gives way - %s is SINKING!", ship->name);
+  victor = vessel_sink_victor(ship);
+  vessel_crew_credit_kill(victor, ship);
   vessel_event_handle_sink(shipnum);
 
   /* Merchant definitions outlive their killable hulls. Record the responsible
@@ -523,7 +537,8 @@ void vessel_sink(int shipnum)
   }
 
   /* Settle insurance before the record is gone */
-  vessel_pay_insurance(ship);
+  vessel_pay_insurance(ship,
+                       vessel_insurance_payout(ship, victor != NULL && victor->owner[0] == '\0'));
   vessel_abort_docking(ship);
   vehicle_release_all_from_vessel(ship, water_room);
 
@@ -547,6 +562,13 @@ void vessel_sink(int shipnum)
   }
 
   vessel_reclaim_interior_rooms(ship, water_room);
+
+  /* The hull object is wreckage now; a player's ship lives on as a wreck. */
+  ship->shipobj = NULL;
+  if (ship->owner[0] != '\0' && vessel_wreck_hull(ship, victor))
+  {
+    return;
+  }
   if (!vessel_delete_persistence(shipnum))
   {
     log("SYSERR: Could not remove persistence for sunk ship %d", shipnum);
@@ -601,103 +623,6 @@ void vessel_combat_tick(void)
 
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
     vessel_combat_tick_one(&greyhawk_ships[i]);
-}
-
-/**
- * shiprepair - slow at-sea repairs while stationary.
- */
-ACMD(do_shiprepair)
-{
-  struct greyhawk_ship_data *ship;
-  int repaired = 0;
-  int armor_amt;
-  int internal_amt;
-  int subsys_amt;
-  int s;
-
-  ship = get_ship_from_room(IN_ROOM(ch));
-  if (ship == NULL)
-  {
-    send_to_char(ch, "You must be aboard a ship to make repairs.\r\n");
-    return;
-  }
-
-  if (vessel_is_sinking(ship))
-  {
-    send_to_char(ch, "She is holed on two sides and going down - no patch will save her.\r\n");
-    return;
-  }
-
-  if (vessel_crew_stunned(ship))
-  {
-    send_to_char(ch, "The crew reels from a mental blast; nobody can hold a tool steady.\r\n");
-    return;
-  }
-
-  if (ship->speed > 0)
-  {
-    send_to_char(ch, "Repairs require the ship to be stationary.\r\n");
-    return;
-  }
-
-  /* The bosun's crew works faster (vessels_crew.c sets repairspeed) */
-  armor_amt = SHIP_REPAIR_ARMOR + ship->sailcrew.repairspeed;
-  internal_amt = SHIP_REPAIR_INTERNAL + ship->sailcrew.repairspeed / 2;
-  subsys_amt = SHIP_REPAIR_SUBSYS + ship->sailcrew.repairspeed;
-
-#define VESSEL_REPAIR_FIELD(cur, max, amt)                                                         \
-  do                                                                                               \
-  {                                                                                                \
-    if ((cur) < (max))                                                                             \
-    {                                                                                              \
-      (cur) = (typeof(cur))(((max) - (cur) > (amt)) ? (cur) + (amt) : (max));                      \
-      repaired = 1;                                                                                \
-    }                                                                                              \
-  } while (0)
-
-  VESSEL_REPAIR_FIELD(ship->farmor, ship->maxfarmor, armor_amt);
-  VESSEL_REPAIR_FIELD(ship->rarmor, ship->maxrarmor, armor_amt);
-  VESSEL_REPAIR_FIELD(ship->parmor, ship->maxparmor, armor_amt);
-  VESSEL_REPAIR_FIELD(ship->sarmor, ship->maxsarmor, armor_amt);
-  VESSEL_REPAIR_FIELD(ship->finternal, ship->maxfinternal, internal_amt);
-  VESSEL_REPAIR_FIELD(ship->rinternal, ship->maxrinternal, internal_amt);
-  VESSEL_REPAIR_FIELD(ship->pinternal, ship->maxpinternal, internal_amt);
-  VESSEL_REPAIR_FIELD(ship->sinternal, ship->maxsinternal, internal_amt);
-  VESSEL_REPAIR_FIELD(ship->mainsail, ship->maxmainsail, subsys_amt);
-  VESSEL_REPAIR_FIELD(ship->turnrate, ship->maxturnrate, subsys_amt);
-
-#undef VESSEL_REPAIR_FIELD
-
-  /* Damaged weapons mend a little each time; a destroyed one is refitted only
-   * by the port's shipwrights, until S4 sells weapons and S5 prices repairs. */
-  for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
-  {
-    if (ship->slot[s].type != VESSEL_SLOT_WEAPON || ship->slot[s].damage == 0)
-    {
-      continue;
-    }
-    if (ship->slot[s].damage < VESSEL_WEAPON_DESTROYED)
-    {
-      ship->slot[s].damage = (unsigned char)MAX(0, ship->slot[s].damage - subsys_amt);
-      repaired = 1;
-    }
-    else if (ship->dock > 0)
-    {
-      ship->slot[s].damage = 0;
-      repaired = 1;
-    }
-  }
-
-  if (!repaired)
-  {
-    send_to_char(ch, "%s is already in fine trim.\r\n", ship->name);
-    return;
-  }
-
-  act("$n works on the ship's repairs.", TRUE, ch, 0, 0, TO_ROOM);
-  send_to_char(ch, "You patch armor and shore up timbers. The ship is %s.\r\n",
-               vessel_status_name(vessel_status(ship)));
-  WAIT_STATE(ch, PULSE_VIOLENCE * 2);
 }
 
 /**

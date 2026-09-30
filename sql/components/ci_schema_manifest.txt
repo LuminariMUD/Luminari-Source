@@ -103,6 +103,7 @@ skip verify_vessels_phase17.sql
 skip verify_vessels_phase18.sql
 skip verify_vessels_phase19.sql
 skip verify_vessels_phase20.sql
+skip verify_vessels_phase21.sql
 skip verify_vessels_narrative_content.sql
 skip verify_vessels_schema.sql
 skip vessels_campaign_content.sql
@@ -148,3 +149,5 @@ skip vessels_phase19_rollback.sql
 apply vessels_phase19_schema.sql
 skip vessels_phase20_rollback.sql
 apply vessels_phase20_schema.sql
+skip vessels_phase21_rollback.sql
+apply vessels_phase21_schema.sql

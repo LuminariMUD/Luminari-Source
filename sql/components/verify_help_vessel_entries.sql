@@ -61,10 +61,10 @@ WHERE (help_tag, keyword) IN (
   ('SHIPBROWSE', 'SHIPPERMIT'),
   ('SHIPBROWSE', 'SHIPREVOKE'),
   ('SHIPBROWSE', 'SHIPCREW'),
+  ('SHIPBROWSE', 'SHIPSUMMON'),
   ('SHIPHIRE', 'SHIPHIRE'),
   ('SHIPHIRE', 'SHIPDISMISS'),
   ('SHIPHIRE', 'SHIPUPGRADE'),
-  ('SHIPHIRE', 'SHIPINSURE'),
   ('SHIPHIRE', 'SHIPWEAPON'),
   ('SHIPHIRE', 'SHIPEQUIP'),
   ('SHIPHIRE', 'SHIPREARM'),
@@ -166,8 +166,8 @@ AND CHAR_LENGTH(TRIM(entry)) > 0;
 SELECT
   'content_contracts' AS check_name,
   COUNT(*) AS actual,
-  26 AS expected,
-  IF(COUNT(*) = 26, 'PASS', 'FAIL') AS result
+  31 AS expected,
+  IF(COUNT(*) = 31, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
   SELECT 'VESSELS' AS tag, 'moving no faster than speed 2' AS required_pattern
@@ -190,6 +190,11 @@ JOIN (
   UNION ALL SELECT 'SHIPBROWSE', 'need not be[[:space:]]+present'
   UNION ALL SELECT 'SHIPHIRE', 'draws no wages'
   UNION ALL SELECT 'SHIPHIRE', 'one per hull, served only by a veteran gunner'
+  UNION ALL SELECT 'SHIPHIRE', 'green hands earn promotion at sea'
+  UNION ALL SELECT 'SHIPFIRE', 'one Craft [(]woodworking[)] check, DC 15'
+  UNION ALL SELECT 'SHIPBROWSE', 'waits in the[[:space:]]+wreck registry'
+  UNION ALL SELECT 'SHIPBROWSE', 'never more than 75 minutes'
+  UNION ALL SELECT 'SHIPBROWSE', 'whose insurance has paid for her, earns nothing'
   UNION ALL SELECT 'PLUNDER', 'clear your whole bounty for 125%'
   UNION ALL SELECT 'PLUNDER', 'after 21 quiet days'
   UNION ALL SELECT 'SHIPLIST', 'evacuates occupants and loose objects'
@@ -213,4 +218,5 @@ WHERE
   OR (BINARY help_tag = 'ship_rooms' AND UPPER(keyword) = 'SHIP_ROOMS')
   OR (BINARY help_tag = 'speed' AND UPPER(keyword) = 'SPEED')
   OR (BINARY help_tag = 'SHIPHIRE' AND UPPER(keyword) = 'SHIPWAGES')
+  OR (BINARY help_tag = 'SHIPHIRE' AND UPPER(keyword) = 'SHIPINSURE')
   OR (BINARY help_tag = 'undock' AND UPPER(keyword) = 'UNDOCK');

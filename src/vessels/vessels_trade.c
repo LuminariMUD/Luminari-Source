@@ -1432,6 +1432,7 @@ ACMD(do_cargosell)
     ship->cargo[lot].commodity_id = 0;
   }
   award_gold(ch, (int)revenue);
+  vessel_crew_sale_gain(ship, revenue);
 
   /* Selling floods the local market, nudging its price down */
   port_adjust_supply(port_vnum, def->id, quantity);

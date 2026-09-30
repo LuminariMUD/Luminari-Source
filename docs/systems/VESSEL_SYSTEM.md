@@ -84,8 +84,10 @@ and operator controls in one system.
 | Persistence | Database save/load operations | vessels_db.c |
 | Builder and Shipyard | Prototypes, spawning, hull purchase | vessels_edit.c |
 | Combat | Damage, weapons, sinking | vessels_combat.c |
-| Ownership and Crew | Owners, permits, one-time crew hires | vessels_ownership.c, vessels_crew.c |
-| Upgrades | Refits, wear, insurance | vessels_upgrades.c |
+| Ownership and Crew | Owners, permits, one-time crew hires, experience, stamina | vessels_ownership.c, vessels_crew.c |
+| Upgrades | Refits, wear, insurance settlement | vessels_upgrades.c |
+| Repair | Repair stores, crew and character repairs, dock repairs | vessels_repair.c |
+| Loss and Recovery | Wreck registry, automatic insurance, summons, trade-in rebuild | vessels_loss.c |
 | Economy | Cargo, markets, freight, piracy | vessels_trade.c, vessels_contracts.c, vessels_piracy.c |
 | NPC Merchant Fleet | Durable definitions, assembly, consequences, respawn | vessels_merchants.c |
 | Bounty Hunters | HUNTED encounter policy, pursuit, durable lifecycle | vessels_hunters.c |
@@ -101,7 +103,7 @@ and operator controls in one system.
 
 ### Memory Layout
 
-- **Vessel** (`greyhawk_ship_data`): 5,120 bytes, max 500 = about 2.44 MiB
+- **Vessel** (`greyhawk_ship_data`): 2,648 bytes, max 500 = about 1.26 MiB
 - **Autopilot** (`autopilot_data`): 80 bytes (optional, attached to vessel)
 - **Schedule** (`vessel_schedule`): ~32 bytes (optional, attached to vessel)
 - **Vehicle** (`vehicle_data`): 152 bytes, max 1000 = about 148 KB
@@ -110,10 +112,12 @@ and operator controls in one system.
 
 The default `LUMINARI_VESSEL_EVENTS=scheduled` mode gives every valid
 Greyhawk vessel one generation-aware event. It wakes on the next aligned
-0.5-second boundary for autopilot, hunter, movement, combat, crew, upkeep,
-narrative, weather, and encounter work, and also carries that vessel's aligned
-75-second schedule deadline. One service-owned event retains genuinely global
-vessel event, trade-restock, MSDP, and merchant work. Fixed-interior RoL hulls
+0.5-second boundary for autopilot, hunter, movement, combat, upkeep, crew
+stamina, crew repair, narrative, weather, and encounter work, and also carries
+that vessel's aligned 75-second schedule deadline. One service-owned event
+retains genuinely global vessel event, trade-restock, MSDP, summons arrival,
+and merchant work. A stowed hull (in the wreck registry or under summons) is
+not active and has no owner event. Fixed-interior RoL hulls
 receive their own 2.5-second events through direct object lifecycle hooks.
 
 Vessels remain eligible without players aboard. Spawn, persistence load,
@@ -824,9 +828,11 @@ ballistae on each beam, a heavy beamcannon on the bow, NPC-crew gunnery at +5)
 start 8 rooms apart on parallel courses and sail through the production
 `vessel_sail_tick()`, `vessel_fire_weapon()`, damage, and reload code under a
 simple captain who holds the healthier beam at about 7.5 rooms, until one is
-holed on a second side. The duels draw on the live random stream from a fixed
-seed and restore it afterward. A duel with no kill in an hour is a draw (a
-smashed rudder cannot come about). The report also invokes the production
+holed on a second side. Their crews reload, tire, rest, and repair through the
+production `vessel_reload_tick()`, `vessel_crew_tick_one()`, and
+`vessel_repair_tick_one()` (S5). The duels draw on the live random stream from
+a fixed seed and restore it afterward. A duel with no kill in an hour is a
+draw (a smashed rudder cannot come about until the crew mends it). The report also invokes the production
 1,000-trade simulation, reports class cost and crew-hire anchors, and reads
 only anonymized aggregate persistence totals. Its mechanical verdict uses
 decision D2: a 3-8 minute median, a 12 minute p95, nothing under 90 seconds,
@@ -1039,8 +1045,9 @@ the removed name's bounty.
 | Command | Description | Usage |
 | -- | -- | -- |
 | shipbrowse | Shipyard catalog: for-sale hulls with price and level | `shipbrowse` |
-| shipbuy | Buy a listed hull at a dock, become owner | `shipbuy <id>` |
-| shipchristen | Owner: rename the ship | `shipchristen <name>` |
+| shipbuy | Buy a listed hull at a dock, become owner; or trade in your hull berthed there | `shipbuy <id> [trade]` |
+| shipchristen | Owner: rename the ship (first christening free, then 10% of her value) | `shipchristen <name>` |
+| shipsummon | Owner at a shipyard: list your hulls, or call one (or her wreck) here | `shipsummon [<number \| name>]` |
 | shipcustomize | Owner: review, set, or clear exterior details | `shipcustomize [show]` or `shipcustomize <paint\|figurehead> <description\|clear>` |
 | shipdeed | Owner: transfer ownership | `shipdeed <player>` |
 | shippermit / shiprevoke | Owner: manage helm clearances | `shippermit <player>` |
@@ -1050,11 +1057,11 @@ the removed name's bounty.
 | shipweapon | List, buy, sell, or rearrange weapons (dock only) | `shipweapon [list \| buy <weapon> <arc> \| sell <slot> \| swap <slot> <slot>]` |
 | shipequip | Fit or remove the ram and neutral colors (dock only) | `shipequip [list \| buy <ram\|colors> \| sell <ram\|colors>]` |
 | shiprearm | Refill ammunition (dock only) | `shiprearm [<slot> \| all]` |
-| shipinsure | Buy sinking insurance (dock only) | `shipinsure <value>` |
 
 Only prototypes with `for_sale = 1` appear in `shipbrowse` or can be bought;
 merchant, hunter, derelict, event, harbor, and new `vedit` prototypes are
-unlisted. A player owns at most `CONFIG_VESSEL_OWNER_CAP` active hulls
+unlisted. A player owns at most `CONFIG_VESSEL_OWNER_CAP` hulls, stowed ones
+(wrecks and hulls under summons) included,
 (`cedit` "Vessel Hulls Per Owner", 1-10, default 3; `vessel_owner_at_cap()`),
 enforced at `shipbuy`, `claimship`, and for the recipient of `shipdeed`.
 Immortals are exempt, ownerless public and NPC hulls never count, and owners
@@ -1083,27 +1090,35 @@ retired through the normal vessel cleanup path. If that transaction cannot
 commit, player removal is deferred instead of orphaning property.
 
 Crew (`src/vessels/vessels_crew.c`): four positions (sailmaster, gunner, bosun,
-quartermaster) at three tiers (green/able/veteran). Bonuses are mirrored
-into the legacy `sailcrew`/`guncrew` fields so movement, gunnery, and
-repair consume them without special cases. Hiring is a one-time price
+quartermaster) at three tiers (green/able/veteran). The gunner's tier is
+mirrored into the legacy `guncrew` field; movement and repair read the
+sailmaster and bosun tiers directly. Hiring is a one-time price
 (`vessel_crew_hire_cost()`: sailmaster 1,600/6,000/15,000, gunner
 2,400/8,000/18,000, bosun 2,000/7,000/16,000, quartermaster 1,200/4,500/11,000
 gold by tier); crew draw no wages and never walk off. The retired
 `ship_interiors.wages_owed` and `ship_runtime_state.wage_ticks` columns remain
 in the schema, unread, so a rollback needs no data migration. Crew rows live
-in `ship_crew_roster` with `npc_vnum <= -100`.
+in `ship_crew_roster` with `npc_vnum <= -100`; the tier is `loyalty_rating`
+and the experience `experience` (Phase 21). Experience, promotion, casualties,
+and stamina are under Crew, Repair and Loss (S5) below.
 
 Upgrades, wear, insurance (`src/vessels/vessels_upgrades.c`): four one-time refits
 raise hull ceilings at install time (study 3.3.1): plating +20% armor and
 reinforcement +20% internal structure on every arc (at most 255), rigging +10%
 design speed (at least 1, at most 30, `vessel_rigged_speed()`), hold +25%
-cargo; each costs a fifth of the class price; `vessel_upkeep_tick()` grinds armor and subsystems down while under
-way (never below 1 structure per section). Sinking consumes the policy and
-creates one durable `vessel_insurance_claims` row plus a system-mail receipt in
-the same settlement flow. Online owners receive the gold immediately; offline
-owners receive pending settlements on their next login. A player-file
+cargo; each costs a fifth of the class price. A plating or reinforcement refit
+adds its points to the arc's current value as well as its ceiling, so it
+repairs nothing (L10). `vessel_upkeep_tick()` grinds armor and subsystems down
+while under way (never below 1 structure per section). Insurance is automatic
+(S5): a lost owned hull's payout (`vessel_insurance_payout()`) becomes one
+durable `vessel_insurance_claims` row plus a system-mail receipt
+(`vessel_pay_insurance()`). Online owners receive the gold immediately;
+offline owners receive pending settlements on their next login. A player-file
 high-water mark prevents duplicate credit if recovery occurs between saving
-the character and closing the database claim.
+the character and closing the database claim. `shipinsure` is retired:
+`vessel_refund_insurance_premiums()` (boot, and the Phase 21 SQL) queues a
+fifth of every remaining `ship_interiors.insured_for`, at least 1 gold, as a
+claim for the owner and zeroes the column, which is otherwise unread.
 
 ### Naval Combat Commands (Phase 05)
 
@@ -1113,7 +1128,7 @@ the character and closing the database claim.
 | shipfire | Fire a weapon slot, or every weapon on an arc that can, at the locked contact | `shipfire <slot \| fore \| port \| rear \| starboard> [<contact>]` |
 | shipsight | Each weapon's DC and chance to hit against the locked contact | `shipsight [<slot>]` |
 | shipscan | Armor, structure, weapons, condition, and the owner's law standing of a contact within 20 rooms | `shipscan <contact>` |
-| shiprepair | Slow at-sea repairs (stationary only) | `shiprepair` |
+| shiprepair | At sea: one Craft (woodworking) patch from the stores; at a shipyard: the owner buys dock repairs | `shiprepair [armor \| structure \| sails \| rudder \| weapons \| all]` |
 | shipsalvage | Haul floating salvage crates into the hold (helm, stopped) | `shipsalvage` |
 | claimship | Capture a beaten prize from an uncontested bridge | `claimship` |
 | strikecolors | Yield: make a stopped hull a prize for ten minutes | `strikecolors` |
@@ -1257,23 +1272,23 @@ study 3.3.1, 3.3.3).
 `src/vessels/vessels_weapons.c` holds the DurisMUD weapon and equipment
 catalogue (vessels-ships study 3.3.4), static tables like the class profiles.
 Prices are 2 gold per Duris platinum. Reloads are in 0.5 s vessel ticks: Duris's
-30 s and 45 s, tuned to decision D2 with the duel harness, became 20 s (40
-ticks) and 30 s (60 ticks).
+30 s and 45 s, tuned to decision D2 with the duel harness, became 20 s and
+30 s in S4, and 17 s (34 ticks) and 25.5 s (51 ticks) in S5 once crews tire.
 
 | Weapon | Price | Weight | Ammo | Range | Damage | Fragments | Spread | Sail hit | Hull/sail % | Pierce | Reload | Arcs |
 | -- | -: | -: | -: | -- | -- | -: | -: | -: | -- | -: | -: | -- |
-| Small Ballista | 100 | 3 | 60 | 0-8 | 2-4 | 1 | 10 | 12% | 100/50 | 10% | 40 | all |
-| Medium Ballista | 200 | 6 | 50 | 0-10 | 4-6 | 1 | 10 | 14% | 100/50 | 10% | 40 | all |
-| Large Ballista | 1,000 | 10 | 30 | 0-12 | 6-9 | 1 | 10 | 16% | 100/50 | 10% | 40 | all |
-| Small Catapult | 1,000 | 10 | 30 | 4-15 | 2-3 | 4 | 160 | 20% | 100/100 | 2% | 40 | fore, rear |
-| Medium Catapult | 1,600 | 13 | 20 | 5-20 | 2-4 | 5 | 260 | 20% | 100/100 | 2% | 40 | fore, rear |
-| Large Catapult | 2,400 | 17 | 12 | 6-25 | 2-5 | 6 | 360 | 20% | 100/100 | 2% | 40 | fore, rear |
-| Heavy Ballista | 2,000 | 15 | 6 | 0-4 | 15-22 | 1 | 10 | 0% | 100/0 | 15% | 40 | port, starboard |
-| Light Beamcannon | 8,000 | 7 | 40 | 0-20 | 16 to 4 | 1 | 10 | 10% | 100/30 | 15% | 60 | all |
-| Heavy Beamcannon | 10,000 | 9 | 40 | 0-23 | 22 to 5 | 1 | 10 | 10% | 100/30 | 15% | 60 | all |
-| Mind Blast Cannon | 8,000 | 5 | 50 | 0-20 | crew stun | 1 | 360 | - | - | - | 60 | all |
-| Fragmentation Cannon | 10,000 | 7 | 20 | 0-16 | 4-6 | 5 | 90 | 50% | 50/100 | 0% | 60 | fore, rear |
-| Long Tom Catapult | 10,000 | 9 | 6 | 12-32 | 3-6 | 8 | 360 | 20% | 100/100 | 3% | 60 | fore, rear |
+| Small Ballista | 100 | 3 | 60 | 0-8 | 2-4 | 1 | 10 | 12% | 100/50 | 10% | 34 | all |
+| Medium Ballista | 200 | 6 | 50 | 0-10 | 4-6 | 1 | 10 | 14% | 100/50 | 10% | 34 | all |
+| Large Ballista | 1,000 | 10 | 30 | 0-12 | 6-9 | 1 | 10 | 16% | 100/50 | 10% | 34 | all |
+| Small Catapult | 1,000 | 10 | 30 | 4-15 | 2-3 | 4 | 160 | 20% | 100/100 | 2% | 34 | fore, rear |
+| Medium Catapult | 1,600 | 13 | 20 | 5-20 | 2-4 | 5 | 260 | 20% | 100/100 | 2% | 34 | fore, rear |
+| Large Catapult | 2,400 | 17 | 12 | 6-25 | 2-5 | 6 | 360 | 20% | 100/100 | 2% | 34 | fore, rear |
+| Heavy Ballista | 2,000 | 15 | 6 | 0-4 | 15-22 | 1 | 10 | 0% | 100/0 | 15% | 34 | port, starboard |
+| Light Beamcannon | 8,000 | 7 | 40 | 0-20 | 16 to 4 | 1 | 10 | 10% | 100/30 | 15% | 51 | all |
+| Heavy Beamcannon | 10,000 | 9 | 40 | 0-23 | 22 to 5 | 1 | 10 | 10% | 100/30 | 15% | 51 | all |
+| Mind Blast Cannon | 8,000 | 5 | 50 | 0-20 | crew stun | 1 | 360 | - | - | - | 51 | all |
+| Fragmentation Cannon | 10,000 | 7 | 20 | 0-16 | 4-6 | 5 | 90 | 50% | 50/100 | 0% | 51 | fore, rear |
+| Long Tom Catapult | 10,000 | 9 | 6 | 12-32 | 3-6 | 8 | 360 | 20% | 100/100 | 3% | 51 | fore, rear |
 
 - The beam cannons' damage falls from its maximum at minimum range to its
   minimum at maximum range (`VESSEL_WEAPON_RANGE_DAMAGE`); the Mind Blast
@@ -1395,6 +1410,103 @@ ticks) and 30 s (60 ticks).
   written or read. A weapon row saved before S4 (`catalog_id` 0) loads as the
   class default weapon on the same arc with full ammunition, keeping its
   damage.
+
+### Crew, Repair and Loss (S5)
+
+Study sections 3.3.5-3.3.7 and the summons of 3.3.9. Renown arrives in S7;
+until then no hull has any.
+
+- Crew experience (`vessels_crew.c`): each hired position carries experience
+  in Duris skill points, starting at its tier floor (`vessel_crew_floor()`:
+  sailmaster and quartermaster 200/800/2,000, gunner 250/1,000/2,500, bosun
+  220/900/2,200). `vessel_crew_gain()` trains a filled position and promotes it
+  on reaching the next floor: the sailmaster 0.003 a room sailed (not a raft or
+  boat, `vessel_movement_tick_one()`), the gunner 0.0015 a reload tick and 0.1
+  a shot with a contact locked, the bosun 0.1 a repair at battle stations with
+  a lock and 0.01 otherwise, and the sailmaster 1.5, bosun 0.5, and
+  quartermaster 1.5 per 2,000 gold of `cargosell` revenue
+  (`vessel_crew_sale_gain()`). The hull that sank another
+  (`vessel_crew_credit_kill()`, her `last_attacker`) trains every hand by the
+  target's hull weight, a tenth of it for an unowned target. A lost hull's
+  crew gives up 10% of its experience to a player's hull, else 5% plus 1% per
+  100 hull weight (`vessel_crew_casualties()`), dropping a tier below its
+  floor but never below green. Able and veteran hires are refused to mortals
+  until renown exists; staff may still hire them. `shipcrew` shows each
+  hand's experience and next floor.
+- Stamina (runtime only, `stamina_spent`, 0 = rested): the maximum is 500 plus
+  100 a tier (`vessel_stamina_max()`); `vessel_crew_tick_one()` returns 1.5 a
+  tick, 6 berthed or anchored. The helm (`vessel_sail_tick()`) spends a
+  change's share of the class accel times (2 + hull effort) and of the class
+  turn times (3 + hull effort), five times that warping an immobile hull
+  round, divided by the sailmaster multiplier and halved per tick; each shot
+  the weapon's weight over the hull effort; each reload tick
+  (`vessel_reload_tick()`) a twentieth of that; repairs 1-3. The hull effort
+  (`vessel_hull_effort()`) is the square root of the class hull weight over 10.
+  Past empty, `vessel_stamina_modifier()` (`1 / (1 + deficit / max / 3)`)
+  scales accel, turn, the reload, the hit chance, the crash save, and repair
+  odds. The route preflight sails its copy with a rested crew. `shipstatus`
+  shows it.
+- Repair (`vessels_repair.c`): the stores are the class hull weight less
+  `repair_used` (runtime only), refilled by `vessel_berth()`.
+  `vessel_repair_tick_one()` makes crew repairs at Duris's per-mille odds
+  halved per tick, times `(1 + bosun mod) * stamina modifier` (bosun mod 0.15
+  a tier): sails and rudder below `max * (bosun mod + 0.4)` (anchored 250,
+  shot away 50 or 15 at battle stations, under way 15 and nothing shot away),
+  damaged weapons (100, one store in five), and structure below
+  `max * (bosun mod + 0.1)` (anchored 125, holed 50, at battle stations 50 or
+  5, under way 15), one point a success and never armor, never while sinking
+  or stunned, all below 90% of the maximum. `shiprepair` away from a berth is
+  a character repair: Craft (woodworking) DC 15, one point of stores, one point
+  on the weakest structure below the cap, else the sails, rudder, or a damaged
+  weapon, 12 s lag. Berthed, the owner buys dock repairs through
+  `vessel_refit_ship()`: armor and structure 2 gold a point, sails and rudder 4,
+  a damaged weapon 2 a damage point, a destroyed one half its price; each
+  order `75 + points` s (75 s a weapon, 150 s rebuilt) of maintenance.
+- Stowed hulls (`vessels_loss.c`): a hull in the wreck registry or under
+  summons keeps her fleet slot, interior, and persistence but is not active
+  (so `is_valid_ship()` is FALSE and contacts, ticks, targeting, and commands
+  pass her by), has no exterior object and nobody aboard, and is saved with
+  `stowed = 1`. `vedit_find_free_slot()`, `vessel_owned_hull_count()`,
+  `shiplist`, and `shippurge` still see her; permanent removal of her owner
+  purges her, and removes the player's helm permits from other owners' stowed
+  hulls. Boot restores her in the world at her saved location and
+  `vessel_restow()` takes her out again. The runtime and weapon saves accept
+  her, and `save_all_vessels()` saves stowed hulls with the fleet, so a
+  failed save when she is stowed is retried at the next full save.
+- Loss (decision D3): `vessel_sink()` credits the victor's crew, settles
+  `vessel_insurance_payout()` (the class share of `vessel_hull_price()`, 75%
+  for ship, transport, and boat and 50% for the rest, 90% when an unowned
+  hull made the kill, nothing for a raft or a `wreck_hull`; the claim sets
+  `ship_runtime_state.wreck_hull` in its transaction, so a hull restored
+  mid-sink by a crash is not paid twice), and for an owned
+  hull calls `vessel_wreck_hull()`: casualties, then
+  `vessel_rebuild_hull()` from `vessel_wreck_prototype()` (the cheapest boat
+  for sale, else the cheapest hull for sale, else a boat to the `vedit`
+  defaults) with no weapons, equipment, refits, or cargo, sails only when an
+  unowned hull sank a heavier one, `wreck_hull` set, and stowed at the wreck
+  site with `summon_due` 0. Legacy cargo objects and NPC crew rows go; name,
+  owner, display ID, cosmetics, permits, and crew stay.
+- Summons: `shipsummon` at a port room lists the owner's hulls and orders one
+  for `vessel_summon_fee()` (a tenth of a gold per hull weight point) after
+  `vessel_summon_seconds()`: Duris's 50 (raft, boat) or 70 mud hours over the
+  empty-hold maximum speed in Duris units (less 20 for the rest, at least 2),
+  doubled from the registry, at most 60 mud hours; staff take a second. It is
+  refused while sinking, at battle stations, or already summoned. The hull
+  empties her hold, puts everyone aboard into her exterior room, casts off
+  anything alongside, releases vehicles, stops her autopilot, saves the
+  shipyard as her location with `summon_due`, and stows. `vessel_summon_tick()`
+  (service event) brings a due hull in: `vessel_create_runtime_hull()` at the
+  shipyard, berthed, saved, and scheduled again.
+- Trade-in and rename: `shipbuy <id> trade` rebuilds the owner's hull berthed
+  at that dock (empty hold, not casting off or alongside) in place as the new
+  prototype for its price less 90% of her `vessel_hull_price()` (nothing for a
+  `wreck_hull`), a credit above the price paid out. The new hull gets her class armament
+  (`vessel_fit_default_weapons()`), then `vessel_carry_fitout()` takes aboard
+  each old weapon and equipment piece the fit-out can legally hold and pays
+  `vessel_slot_sale_value()` for the rest. `shipchristen` is free while the
+  hull bears her prototype's name and for staff, else 10% of her value.
+- Persistence (Phase 21): `ship_crew_roster.experience`, and
+  `ship_runtime_state.stowed`, `wreck_hull`, and `summon_due`.
 
 ### Builder Commands (Phase 04)
 
@@ -1555,7 +1667,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 | Component | Per unit | Maximum | Base total |
 | -- | -- | -- | -- |
-| Vessel | 5,120 bytes | 500 | About 2.44 MiB |
+| Vessel | 2,648 bytes | 500 | About 1.26 MiB |
 | Vehicle | 152 bytes | 1,000 | About 148 KB |
 | Autopilot | 80 bytes | Optional per vessel | Up to about 40 KB |
 | Schedule | About 32 bytes | Optional per vessel | Up to about 16 KB |
@@ -1564,7 +1676,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 | Structure | Size |
 | -- | -- |
-| `struct greyhawk_ship_data` | 5,120 bytes |
+| `struct greyhawk_ship_data` | 2,648 bytes |
 | `struct vehicle_data` | 152 bytes |
 | `struct waypoint` | 88 bytes |
 | `struct ship_route` | 1840 bytes |
@@ -1618,14 +1730,14 @@ historical measurements, and the limits of the current evidence.
 | Table | Purpose |
 | -- | -- |
 | `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards; `for_sale` and `min_level` since Phase 18, `armor_scale` since Phase 19 |
-| `ship_interiors` | Vessel identity, rooms, cosmetics, owner, upgrades, and insurance (retired `wages_owed` column unread) |
-| `ship_runtime_state` | Live hull, position, condition (`condition_model` and `sink_ticks` since Phase 19), room type, autopilot, PvP grace, and dock-fee snapshot |
+| `ship_interiors` | Vessel identity, rooms, cosmetics, owner, and upgrades (retired `wages_owed` and `insured_for` columns unread) |
+| `ship_runtime_state` | Live hull, position, condition (`condition_model` and `sink_ticks` since Phase 19), stowed state (`stowed`, `wreck_hull`, `summon_due` since Phase 21), room type, autopilot, PvP grace, and dock-fee snapshot |
 | `ship_weapons` | Every weapon and equipment slot: type, arc, reload state, `weapon_damage` (Phase 19), and `catalog_id` and `ammo` (Phase 20) |
 | `ship_docking` | Active and historical docking relationships |
 | `ship_room_templates` | Builder-editable generated interior text |
 | `ship_room_template_triggers` | DG trigger VNUMs attached to generated room types |
 | `ship_cargo_manifest` | Object cargo and bulk commodity lots |
-| `ship_crew_roster` | Hired crew and helm permits |
+| `ship_crew_roster` | Hired crew (with `experience` since Phase 21) and helm permits |
 | `ship_waypoints` | Persistent named navigation points |
 | `ship_routes` | Persistent route identities |
 | `ship_route_waypoints` | Ordered waypoint membership for routes |
@@ -1636,7 +1748,7 @@ historical measurements, and the limits of the current evidence.
 | `vessel_bounties` | Piracy bounty, decay clock (`last_offense_at`), and marque state |
 | `vessel_region_law` | Legal-water metadata keyed to canonical geographic regions |
 | `vessel_encounters` | Region-keyed encounter definitions |
-| `vessel_insurance_claims` | Pending, paid, or void offline insurance settlements |
+| `vessel_insurance_claims` | Pending, paid, or void insurance settlements and S5 premium refunds |
 | `vessel_npc_merchants` | NPC merchant prototype, route, cargo, faction, schedule, and live generation |
 | `vessel_merchant_consequences` | Deduplicated faction and bounty events with delivery state |
 | `vessel_hunter_encounters` | Hunter warship, pilot, bounty, pursuit, duration, grace, and cooldown policy |
@@ -1913,7 +2025,8 @@ Maximum: 500 active vessels * 20 rooms = 10,000 rooms
    any earlier write in the operation.
 4. **Destroy**: Sinking or deletion evacuates occupants, clears live references,
    applies the applicable persistence policy, and closes any matching merchant
-   or bounty-hunter lifecycle. Capturing a hunter removes its configured pilot
+   or bounty-hunter lifecycle. A sunk player hull is rebuilt and stowed in the
+   wreck registry instead of deleted (S5). Capturing a hunter removes its configured pilot
    and leaves the ordinary captured hull.
 5. **Copyover**: Complete vessel state is committed before descriptor handoff.
    Boot reconstructs dynamic interiors and exterior hull objects before player
@@ -2007,8 +2120,10 @@ and the trigger was removed.
 | `src/vessels/vessels_weapons.c` | Weapon and equipment catalogue, class fitting, and the shipyard weapon commands (S4) |
 | `src/vessels/vessels_gunnery.c` | Geometry hit model, locks, battle stations, arc fire, sighting, scanning, NPC return fire (S4) |
 | `src/vessels/vessels_ownership.c` | Ownership, helm permits, deed transfer (Phase 06) |
-| `src/vessels/vessels_crew.c` | Hired crew positions, tiers, one-time hire prices (Phase 06) |
-| `src/vessels/vessels_upgrades.c` | Refits, hull wear, insurance (Phase 06) |
+| `src/vessels/vessels_crew.c` | Hired crew positions, tiers, one-time hire prices (Phase 06); experience, promotion, casualties, stamina (S5) |
+| `src/vessels/vessels_upgrades.c` | Refits, hull wear, insurance settlement (Phase 06) |
+| `src/vessels/vessels_repair.c` | Repair stores, crew repairs, character and dock repairs (S5) |
+| `src/vessels/vessels_loss.c` | Hull value, automatic insurance, stowed hulls, wreck registry, summons, in-place rebuild (S5) |
 | `src/vessels/vessels_trade.c` | Commodities, port pricing, bulk cargo (Phase 07) |
 | `src/vessels/vessels_contracts.c` | Freight boards and contract lifecycle (Phase 07) |
 | `src/vessels/vessels_piracy.c` | Plunder, bounty, letters of marque (Phase 07) |
@@ -2055,6 +2170,7 @@ and the trigger was removed.
 | `scripts/vessels/test_vessel_narrative_in_game.sh` | Reversible Kohdee at-sea and forced-ambient narrative gate |
 | `scripts/vessels/test_vessel_boarding_in_game.sh` | Boarding gate; delegates to the shared tactical acceptance harness |
 | `scripts/vessels/test_vessel_rules_in_game.sh` | Two-character shipyard, contact-ID, gunnery, hull-level, hull-cap, and bounty gate; delegates to the shared tactical harness |
+| `scripts/vessels/test_vessel_loss_in_game.sh` | Two-character crew hiring, rename fee, summons, and trade-in gate; delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_hunter_in_game.sh` | Reversible Kohdee HUNTED bounty-hunter encounter gate |
 | `scripts/vessels/test_vessel_merchant_in_game.sh` | Reversible NPC merchant shipping gate |
 | `scripts/vessels/run_vessel_ferry_soak.sh` | Development ferry soak runner with database, process, and Kohdee samples |
@@ -2087,6 +2203,7 @@ and the trigger was removed.
 | `sql/components/vessels_phase18_*` | Prototype shipyard listing and hull level, wage-debt clearing, verification, and rollback |
 | `sql/components/vessels_phase19_*` | S3 damage model: armor rescale flag, condition model, sink timer, weapon damage, verification, and rollback |
 | `sql/components/vessels_phase20_*` | S4 weapons: catalogue row and ammunition per slot row, verification, and rollback |
+| `sql/components/vessels_phase21_*` | S5 crew experience, stowed-hull state, insurance premium refund, verification, and rollback |
 | `sql/components/vessels_campaign_content.sql` | Initial Vailand regions, law, route, merchant, and iron markets |
 | `sql/components/verify_vessels_campaign_content.sql` | Read-only campaign topology and identity checks |
 | `sql/components/vessels_campaign_content_rollback.sql` | Guarded Vailand content rollback |
