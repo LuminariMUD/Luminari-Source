@@ -91,6 +91,8 @@ and operator controls in one system.
 | Economy | Cargo, markets, freight, piracy | vessels_trade.c, vessels_contracts.c, vessels_piracy.c |
 | NPC Merchant Fleet | Durable definitions, assembly, consequences, respawn | vessels_merchants.c |
 | Bounty Hunters | HUNTED encounter policy, pursuit, durable lifecycle | vessels_hunters.c |
+| NPC Raiders | Ambushes, raider tiers, raider AI, boarding and looting, running merchants | vessels_raiders.c |
+| Ramming | `shipram`, the ram impact, cooldowns | vessels_ramming.c |
 | Living World | Weather hazards and region encounters | vessels_hazards.c |
 | Operations | Fleet tools, room-pool monitoring, MSDP | vessels_admin.c |
 | Vehicles | Land-based transport | vehicles.c |
@@ -103,7 +105,7 @@ and operator controls in one system.
 
 ### Memory Layout
 
-- **Vessel** (`greyhawk_ship_data`): 2,648 bytes, max 500 = about 1.26 MiB
+- **Vessel** (`greyhawk_ship_data`): 2,672 bytes, max 500 = about 1.27 MiB
 - **Autopilot** (`autopilot_data`): 80 bytes (optional, attached to vessel)
 - **Schedule** (`vessel_schedule`): ~32 bytes (optional, attached to vessel)
 - **Vehicle** (`vehicle_data`): 152 bytes, max 1000 = about 148 KB
@@ -112,8 +114,9 @@ and operator controls in one system.
 
 The default `LUMINARI_VESSEL_EVENTS=scheduled` mode gives every valid
 Greyhawk vessel one generation-aware event. It wakes on the next aligned
-0.5-second boundary for autopilot, hunter, movement, combat, upkeep, crew
-stamina, crew repair, narrative, weather, and encounter work, and also carries
+0.5-second boundary for autopilot, hunter, raider (ambush rolls, raider AI,
+merchants running), movement, combat (with ramming), upkeep, crew stamina, crew
+repair, narrative, weather, and encounter work, and also carries
 that vessel's aligned 75-second schedule deadline. One service-owned event
 retains genuinely global vessel event, trade-restock, MSDP, summons arrival,
 and merchant work. A stowed hull (in the wreck registry or under summons) is
@@ -1508,6 +1511,93 @@ until then no hull has any.
 - Persistence (Phase 21): `ship_crew_roster.experience`, and
   `ship_runtime_state.stowed`, `wreck_hull`, and `summon_due`.
 
+### Raiders and Ramming (S6)
+
+Study section 3.3.8, ramming (1.6), and the sailmaster's ram training gain of
+3.3.5. Renown (the tier roll's second term and what a raider carries) and the
+neutral-colors sale penalty arrive in S7.
+
+- Ambushes (`vessels_raiders.c`): `vessel_raider_tick_one()` rolls one in
+  `vessel_raider_ambush_odds()` each tick for a player's hull under way at the
+  surface, bigger than a boat, out of port, with no lock set: 2002, halved in a
+  pirate cove, doubled in territorial waters (`vessel_piracy_law_for_ship()`),
+  times 60 under neutral colors. A merchant class (raft, boat, ship, transport,
+  `vessel_merchant_class()`) is ambushed once a voyage: `raided` (runtime) is
+  set by the roll and cleared by `vessel_berth()`. `vessel_raider_pick_tier()`
+  draws `n = random(0, hull weight)`: merchant classes tier 0 below 250, 1
+  below 1,200, 2 three times in four (a hunter one time in three), else a tier
+  3 hunter; the rest are noticed when `n >= random(1, 1000)`, and draw a tier
+  2 hunter, or tier 3 one time in three.
+- Launch: `vessel_raider_spawn()` takes one of the tier's prototypes
+  (`vessel_raider_tiers`; `vessel_raider_pick_prototype()` prefers those at
+  least as fast as the quarry's design speed less 3) and spawns it through
+  `vessel_spawn_public_from_prototype_at()` her sight range plus 10 rooms off
+  the quarry's bow within 45 degrees, headed at her at full speed. The tier
+  table in code (`raider_tiers[]`) gives the crew (8-12, 9-12, 12-15, 12-18
+  mobiles, the captain included), the advanced-AI chance (0, 20, 50, 100%),
+  the crew tier (green, green, able, veteran), the fit-out (each weapon
+  mounted only while the fit-out stays legal), and the chest's gold (800-1,600
+  up to 3,000-6,000). The captain (mobile 70020 plus the tier) is her NPC
+  pilot (`vessel_assign_npc_pilot()`), the crew (70024 plus the tier) stand in
+  random rooms, and the strongbox (object 70020) lies in the hold, or on the
+  bridge, with its key (object 70021) on the captain.
+- AI: engaging, a raider marks her quarry as `last_attacker`, so NPC return
+  fire works her guns. The basic brain works round a quarry whose facing side
+  is shot away, else turns the arc ready within 4 s onto her (the least turn),
+  opens the range when a ready gun is too close, turns the arc ready soonest,
+  or leads her (`vessel_raider_intercept()`). A weapon's good band is its
+  minimum range to a quarter of its maximum, at least a room past the minimum.
+  The advanced brain chases beyond 10 rooms; closer it projects both hulls 3 s
+  ahead (`vessel_project()`), takes the quarry's weakest side still standing
+  and its own arc that reloads soonest (beams first), and turns that arc on
+  her once off that side, else steers for a point off it at the arc's range.
+  `vessel_raider_set_course()` swings a heading that meets land within the
+  lookout (2 rooms engaging, 5 cruising, 10 running) 30 degrees at a time to
+  open water, and brakes for land within 2 rooms (speed 1, 6, or 12). Out of
+  ammunition or holed she runs; she rams when `vessel_raider_rams()` allows
+  (Duris's worth and check tests; a basic brain rams a quarry it cannot board
+  one time in three); and she boards a quarry at speed 3 or less (a merchant
+  class) or stopped, once: her captain leads the grapple and crossing against
+  `vessel_best_boarding_defender()`, and boarders (fresh crew mobiles) take
+  the bridge and three quarters (tiers 0-1) or half (tiers 2-3) of the rooms.
+  A pirate loots (`vessel_raider_loot()`: of each lot a 40-60% share of what
+  is taken is lost and a 40-60% share left, her hold taking what fits) and
+  leaves, repelled or not; a hunter fights on. A raider keeps her quarry
+  within her sight plus 10 rooms while it is a player's hull afloat, out of
+  port, and above water; cruising, she takes the player's hull that last
+  fired on her, else the nearest in sight not under neutral colors.
+- Leaving: 600 ticks after she loses her quarry (and while leaving after a
+  boarding), 20 more at a time while a player is aboard or a player's hull
+  is in sight, she takes her crew and everything aboard out of the world and
+  `vessel_retire_npc_hull()` removes her. Killing her captain (no pilot on
+  the bridge) stops the AI: she heaves to, clears her pilot so return fire
+  stops, and counts down. `vessel_raider_handle_sink()` takes her crew down
+  with her. Raiders are persisted like any public hull, and
+  `vessel_raider_boot()` retires every unowned hull restored from a raider
+  prototype; `claimship` refuses a raider.
+- NPC merchants (`merchant_id`) at battle stations with their attacker in
+  sight run from it at design speed; the autopilot takes over again when the
+  crew stands down.
+- Ramming (`vessels_ramming.c`): `shipram` (gunnery permission, a lock, speed
+  6, the ram cooldown clear, the consent gate) braces the crew;
+  `vessel_ram_tick_one()` (combat tick) rams the locked contact within a room
+  and stands the crew down when the lock drops or she slows to 3. `vessel_ram()`
+  is Duris's `try_ram_ship()`: a 120-degree bow cone at one altitude, speed
+  above 3, the sailmaster's 1-3 gain, the target's speed along her heading
+  taken off the blow (refused if she outruns it), `vessel_ram_chance()`, then
+  `(hull + 100) / 10` crash damage each way scaled by the speeds and 1.2 on a
+  bow, a fitted ram's own weight first (80-120%, 60-100% back from a rammed
+  ram), 2-6 point hits shared in proportion (a tenth on the sails of the
+  lighter hull, half on a ram-fitted bow), the lighter hull slewed and both
+  slowed to 3 (a lighter rammer stops), Reflex knockdowns on both, and
+  cooldowns of 100 ticks after a hit, 50 after a miss, less 15% of the crew
+  mod, with guns silent 50 ticks after a hit. A braced or reeling crew does
+  not reload (`vessel_reload_tick()`).
+- Staff: `vesseldebug raider <0-3> [hunter]` launches a raider against the
+  player's hull the staff member is aboard.
+- Persistence (Phase 22): `vessel_raider_tiers (tier, prototype_id)`; all
+  raider and ram state is runtime only.
+
 ### Builder Commands (Phase 04)
 
 | Command | Description | Usage |
@@ -1667,7 +1757,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 | Component | Per unit | Maximum | Base total |
 | -- | -- | -- | -- |
-| Vessel | 2,648 bytes | 500 | About 1.26 MiB |
+| Vessel | 2,672 bytes | 500 | About 1.27 MiB |
 | Vehicle | 152 bytes | 1,000 | About 148 KB |
 | Autopilot | 80 bytes | Optional per vessel | Up to about 40 KB |
 | Schedule | About 32 bytes | Optional per vessel | Up to about 16 KB |
@@ -1676,7 +1766,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 | Structure | Size |
 | -- | -- |
-| `struct greyhawk_ship_data` | 2,648 bytes |
+| `struct greyhawk_ship_data` | 2,672 bytes |
 | `struct vehicle_data` | 152 bytes |
 | `struct waypoint` | 88 bytes |
 | `struct ship_route` | 1840 bytes |
@@ -1757,6 +1847,7 @@ historical measurements, and the limits of the current evidence.
 | `vessel_event_participants` | Per-event hull, captain, team, score, finish, placement, and status |
 | `vessel_event_leaderboards` | Durable entries, wins, points, and best regatta time per captain and type |
 | `vessel_event_runtimes` | Temporary ghost-hull ownership used by cleanup and boot recovery |
+| `vessel_raider_tiers` | The raider prototypes each raider tier sails (Phase 22) |
 
 ### Room Templates (19 default types)
 
@@ -1995,6 +2086,21 @@ executable hash, then resumes the ferry. Artifacts live in the run directory
 printed by `start`. A failure writes terminal status before cleanup so an
 interrupted cleanup cannot leave a stale `RUNNING` result.
 
+### NPC Raider Content
+
+Raiders (S6) sail six prototypes after Duris's raider hulls, none for sale:
+the Corsair Clipper, Ketch, and Caravel (ship class) and the Corsair Corvette,
+Destroyer, and Frigate (warship class). `vessel_raider_tiers` sets the tiers
+each sails: the clipper, ketch, and caravel tier 0; the ketch, caravel, and
+corvette tier 1; the corvette and destroyer tier 2; the destroyer and frigate
+tier 3. Their captains, crews, strongbox, and key are zone 700 records in
+`lib/world/vessel_raiders/`. A server needs all three before any raider sails:
+apply `sql/components/vessels_phase22_schema.sql` (boot also creates the
+table) and `sql/components/vessels_raider_content.sql`, and merge the mobile and
+object records into the live zone 700 files, as `provision_vessel_harbor.sh`
+does on a development server. Without them an ambush comes to
+nothing (a missing captain is logged).
+
 ### Interior VNUM Allocation
 
 ```
@@ -2128,7 +2234,9 @@ and the trigger was removed.
 | `src/vessels/vessels_contracts.c` | Freight boards and contract lifecycle (Phase 07) |
 | `src/vessels/vessels_piracy.c` | Plunder, bounty, letters of marque (Phase 07) |
 | `src/vessels/vessels_merchants.c` | NPC merchant definitions, assembly, consequences, and respawn (Phase 14) |
-| `src/vessels/vessels_hunters.c` | HUNTED encounter policy, pursuit, lifecycle, and reconciliation (Phase 15) |
+| `src/vessels/vessels_hunters.c` | HUNTED encounter policy, pursuit, lifecycle, and reconciliation (Phase 15); the shared NPC pilot and retire helpers |
+| `src/vessels/vessels_raiders.c` | Ambushes, raider tiers and launch, raider AI, boarding and looting, running merchants, boot retirement (S6) |
+| `src/vessels/vessels_ramming.c` | `shipram`, the ram impact, and its cooldowns (S6) |
 | `src/vessels/vessels_events.c` | Regattas, skirmishes, ghost fleets, leaderboards, and recovery (Phase 16) |
 | `src/vessels/vessels_hazards.c` | Weather hazards, encounters, seastate (Phase 08) |
 | `src/vessels/vessels_admin.c` | Operator tooling, room pool monitor, MSDP (Phase 09) |
@@ -2156,7 +2264,8 @@ and the trigger was removed.
 | File | Purpose |
 | -- | -- |
 | `lib/world/vessel_harbor/` | Shared development harbor zone, rooms, mobiles, and triggers |
-| `scripts/vessels/provision_vessel_harbor.sh` | Development-only harbor provisioning and verification |
+| `scripts/vessels/provision_vessel_harbor.sh` | Development-only harbor provisioning and verification; also installs the raider package and content |
+| `lib/world/vessel_raiders/` | Raider captains and crews (mobiles 70020-70027), strongbox and key (objects 70020-70021) |
 | `lib/world/vessel_campaign/` | Vailand campaign waystones, passage boards, and resets |
 | `scripts/vessels/provision_vessel_campaign.sh` | Development-only campaign world/SQL provisioning and actual-Kohdee check |
 | `lib/world/vessel_derelict/700.obj` | Blackwake log, chart, and tidefinder objects |
@@ -2204,6 +2313,10 @@ and the trigger was removed.
 | `sql/components/vessels_phase19_*` | S3 damage model: armor rescale flag, condition model, sink timer, weapon damage, verification, and rollback |
 | `sql/components/vessels_phase20_*` | S4 weapons: catalogue row and ammunition per slot row, verification, and rollback |
 | `sql/components/vessels_phase21_*` | S5 crew experience, stowed-hull state, insurance premium refund, verification, and rollback |
+| `sql/components/vessels_phase22_*` | S6 raider tier table, verification, and rollback |
+| `sql/components/vessels_raider_content.sql` | Six Corsair raider prototypes (not for sale) and their ten tier rows |
+| `sql/components/verify_vessels_raider_content.sql` | Read-only raider prototype and tier inventory |
+| `sql/components/vessels_raider_content_rollback.sql` | Guarded raider content rollback |
 | `sql/components/vessels_campaign_content.sql` | Initial Vailand regions, law, route, merchant, and iron markets |
 | `sql/components/verify_vessels_campaign_content.sql` | Read-only campaign topology and identity checks |
 | `sql/components/vessels_campaign_content_rollback.sql` | Guarded Vailand content rollback |
