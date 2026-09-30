@@ -87,8 +87,11 @@ if [[ $# -gt 0 ]]; then
     --vessel-loss-check)
       mode="vessel-loss-check"
       ;;
+    --vessel-raider-check)
+      mode="vessel-raider-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id> | --vessel-boarding-check <warship-id> [<defender-character>] | --vessel-rules-check <warship-id> [<crew-character>] | --vessel-movement-check <warship-id> | --vessel-damage-check <warship-id> | --vessel-gunnery-check <warship-id> | --vessel-loss-check <owner-character>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id> | --vessel-boarding-check <warship-id> [<defender-character>] | --vessel-rules-check <warship-id> [<crew-character>] | --vessel-movement-check <warship-id> | --vessel-damage-check <warship-id> | --vessel-gunnery-check <warship-id> | --vessel-loss-check <owner-character> | --vessel-raider-check <warship-id>]"
       ;;
   esac
   shift
@@ -179,6 +182,9 @@ if [[ $# -gt 0 ]]; then
   elif [[ "$mode" == "vessel-loss-check" ]]; then
     [[ $# -eq 1 && "$1" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
       fail "--vessel-loss-check requires one owner character name"
+  elif [[ "$mode" == "vessel-raider-check" ]]; then
+    [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ ]] ||
+      fail "--vessel-raider-check requires one positive warship prototype id"
   elif [[ "$mode" == "vessel-rules-check" ]]; then
     [[ ($# -eq 1 || $# -eq 2) && "$1" =~ ^[1-9][0-9]*$ ]] ||
       fail "--vessel-rules-check requires a positive warship prototype id and an optional crew character"
@@ -1739,6 +1745,111 @@ proc run_vessel_gunnery_check {warship_id} {
   puts "PASS: the vessel gunnery check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }
 
+# Launch a raider of the tier against the hull aboard, again where her spawn
+# point off the bow falls on land. Returns her slot, ID, and name.
+proc launch_raider {tier} {
+  for {set attempt 1} {$attempt <= 5} {incr attempt} {
+    set output [run_game_command "vesseldebug raider $tier"]
+    if {[regexp {Raider ([0-9]+) \[([A-Z]+)\] ([^\r\n]+) comes for} $output ignored slot id name]} {
+      return [list $slot $id $name]
+    }
+    require_game_output $output "No raider could be launched" "raider launch $attempt"
+  }
+  fail "no raider could be launched in five tries"
+}
+
+proc run_vessel_raider_check {warship_id} {
+  global smoke_character
+
+  set workflow_started_at [clock milliseconds]
+
+  # Ramming: a hull lies three rooms north of the warship at sea.
+  set output [run_game_command "goto 900 228"]
+  require_game_output $output "Current Location  : (900, 228)" "ram target staging"
+  set target_slot [spawn_frontier_vessel_at_exterior $warship_id "Starfall Bastion"]
+  set target_id [vessel_slot_id $target_slot]
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" "ram staging"
+  set ship_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+  set output [run_game_command "shipram"]
+  require_game_output $output "Lock onto a contact to ram first" "unlocked ram refusal"
+  set output [run_game_command "shiplock $target_id"]
+  require_game_output $output "The guns lock onto \[$target_id\] Starfall Bastion." "ram lock"
+  set output [run_game_command "shipram"]
+  require_game_output $output "She is too slow to ram; she needs speed 6." "slow ram refusal"
+  run_game_command "speed 10"
+  run_game_command "@wait 5"
+  set output [run_game_command "shipram"]
+  require_game_output $output "The crew braces to ram \[$target_id\] Starfall Bastion!" "ram order"
+  set output [wait_for_game_output 20 "You attempt to ram"]
+  require_game_output $output \
+    "You attempt to ram \[$target_id\] Starfall Bastion! Chance to hit:" "ram attempt"
+  if {[string first "Timbers crunch and crack as you crash into" $output] < 0 &&
+      [string first "You miss \[$target_id\]" $output] < 0} {
+    fail "the ram neither connected nor missed"
+  }
+  set output [run_game_command "shipram"]
+  require_game_output $output "She is not ready to ram again" "ram cooldown"
+  run_game_command "shiplock off"
+  purge_frontier_vessel $ship_slot "Starfall Bastion"
+  set output [run_game_command "shippurge $target_slot"]
+  require_game_output $output "Purged ship $target_slot 'Starfall Bastion'" "ram target cleanup"
+
+  # A tier 0 raider comes for a stopped warship: her captain on the bridge,
+  # her crew, the tier's fit-out, and her strongbox key on the captain.
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" "raider staging"
+  set ship_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+  lassign [launch_raider 0] raider_slot raider_id raider_name
+  set output [run_game_command "shipgoto $raider_slot"]
+  require_game_output $output "Aboard $raider_name (slot $raider_slot)." "raider visit"
+  require_game_output $output "corsair captain" "raider captain"
+  set output [run_game_command "shipstatus"]
+  require_game_output $output "Slot 0: Small Catapult (fore)" "raider fit-out"
+  require_game_output $output "Crew stamina: 800/800" "raider crew"
+  set output [run_game_command "where strongbox"]
+  require_game_output $output "a brass strongbox key     - carried by \[70020\] the corsair captain" \
+    "raider strongbox key"
+  set output [run_game_command "shipgoto $ship_slot"]
+  require_game_output $output "Aboard Starfall Bastion (slot $ship_slot)." "return aboard"
+
+  # She closes from beyond sight and grapples the stopped warship.
+  set transcript ""
+  for {set round 1} {$round <= 12} {incr round} {
+    append transcript [run_game_command "@wait 20"]
+    if {[string first "throws grappling lines across!" $transcript] >= 0} {
+      break
+    }
+  }
+  require_game_output $transcript "WARNING: $raider_name throws grappling lines across!" \
+    "raider boarding"
+  if {[string first "The crew beats off ${raider_name}'s boarders!" $transcript] < 0 &&
+      [string first "Raiders from $raider_name swarm aboard" $transcript] < 0} {
+    fail "the raider's boarding contest had no outcome"
+  }
+
+  # With her captain dead she heaves to.
+  set output [run_game_command "shipgoto $raider_slot"]
+  require_game_output $output "Aboard $raider_name (slot $raider_slot)." "raider return"
+  set output [run_game_command "purge captain"]
+  run_game_command "@wait 15"
+  set output [run_game_command "shipstatus"]
+  require_game_output $output "Speed: 0 /" "captainless raider"
+
+  # Leave her at sea for the restart; any boarders go with the warship.
+  set output [run_game_command "shipgoto $ship_slot"]
+  purge_frontier_vessel $ship_slot "Starfall Bastion"
+  run_game_command "goto 900 225"
+  run_game_command "purge"
+  set output [run_game_command "goto 1204"]
+  require_game_output $output "Staff Board Room" "raider safe-room return"
+  set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
+  puts "\nPASS: shipram refused without a lock and below speed 6, rammed the locked hull within a room, and held its cooldown."
+  puts "PASS: a tier 0 raider launched with her captain, crew, fit-out, and strongbox key, closed from beyond sight, and grappled the stopped warship."
+  puts "PASS: with her captain dead the raider hove to."
+  puts "PASS: the vessel raider check completed in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds and left raider $raider_slot at sea."
+}
+
 proc run_vessel_damage_check {warship_id} {
   global smoke_character
 
@@ -3035,7 +3146,7 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     $mode eq "vessel-narrative-check" || $mode eq "vessel-boarding-check" ||
     $mode eq "vessel-rules-check" || $mode eq "vessel-movement-check" ||
     $mode eq "vessel-damage-check" || $mode eq "vessel-gunnery-check" ||
-    $mode eq "vessel-loss-check"} {
+    $mode eq "vessel-loss-check" || $mode eq "vessel-raider-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -3113,6 +3224,8 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
       run_vessel_gunnery_check [lindex $game_commands 0]
     } elseif {$mode eq "vessel-loss-check"} {
       run_vessel_loss_check [lindex $game_commands 0]
+    } elseif {$mode eq "vessel-raider-check"} {
+      run_vessel_raider_check [lindex $game_commands 0]
     } else {
       run_vessel_msdp_check [lindex $game_commands 0]
     }
@@ -3217,6 +3330,9 @@ elif [[ "$mode" == "vessel-gunnery-check" ]]; then
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-loss-check" ]]; then
   printf 'PASS: %s completed the two-character vessel-loss check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-raider-check" ]]; then
+  printf 'PASS: %s completed the vessel-raider check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-rules-check" ]]; then
   printf 'PASS: %s completed the two-character vessel-rules check and logged out cleanly (%ss total).\n' \

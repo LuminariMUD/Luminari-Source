@@ -7,7 +7,7 @@ repo_root=${LUMINARI_PROJECT_ROOT:-$(cd "$script_dir/../.." && pwd)}
 acceptance_mode=tactical
 if [[ $# -gt 0 ]]; then
   [[ $# -eq 1 ]] || {
-    printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery|--loss]\n' "$0" >&2
+    printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery|--loss|--raider]\n' "$0" >&2
     exit 2
   }
   case "$1" in
@@ -35,8 +35,11 @@ if [[ $# -gt 0 ]]; then
     --loss)
       acceptance_mode=loss
       ;;
+    --raider)
+      acceptance_mode=raider
+      ;;
     *)
-      printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery|--loss]\n' "$0" >&2
+      printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery|--loss|--raider]\n' "$0" >&2
       exit 2
       ;;
   esac
@@ -418,6 +421,10 @@ finish() {
       printf 'PASS: Kohdee and Vesselmate validated the retired insurance command, the crew '
       printf 'hiring gate and experience, the rename fee, a summons, and a trade-in with '
       printf 'exact two-character restoration (%ss).\n' "$elapsed_seconds"
+    elif [[ "$acceptance_mode" == raider ]]; then
+      printf 'PASS: Kohdee validated ramming, a raider launch, her approach and boarding '
+      printf 'attempt, her dead captain, and her retirement at restart with exact '
+      printf 'character restoration (%ss).\n' "$elapsed_seconds"
     elif [[ "$acceptance_mode" == gunnery ]]; then
       printf 'PASS: Kohdee validated the shipyard, locks, battle stations, the harbor '
       printf 'refusal, scanning, sighting, and arc fire with exact character restoration (%ss).\n' \
@@ -545,6 +552,14 @@ if [[ "$acceptance_mode" == narrative ]]; then
        AND agent_id = 'vessel_narrative_v1';")
   [[ "$narrative_content_state" == '8|4|4|4|0' ]] ||
     fail "the Vailand narrative content is incomplete: $narrative_content_state"
+fi
+if [[ "$acceptance_mode" == raider ]]; then
+  raider_tier_rows=$(database_query "SELECT COUNT(*) FROM vessel_raider_tiers;") ||
+    raider_tier_rows=0
+  [[ "$raider_tier_rows" -ge 10 ]] &&
+    grep -Fqx '#70020' "$repo_root/lib/world/mob/700.mob" &&
+    grep -Fqx '#70021' "$repo_root/lib/world/obj/700.obj" ||
+    fail "the raider content is not installed; run scripts/vessels/provision_vessel_harbor.sh"
 fi
 if [[ "$acceptance_mode" == rules || "$acceptance_mode" == loss ]]; then
   secondary_hull_count=$(database_query "
@@ -852,6 +867,45 @@ elif [[ "$acceptance_mode" == loss ]]; then
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-loss.log" ||
       fail "the loss session did not report '$expected_text'"
   done
+elif [[ "$acceptance_mode" == raider ]]; then
+  timeout 120 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --help-check \
+    SHIPRAM RAIDERS >"$run_dir/01-raider-help.log" 2>&1 ||
+    fail "Kohdee could not read the authoritative vessel raider help"
+  raider_help_state=$(database_query "
+    SELECT COUNT(*)
+      FROM help_entries
+     WHERE BINARY tag = 'SHIPFIRE'
+       AND entry LIKE '%she needs speed 6 or more%'
+       AND entry LIKE '%about once in 17 minutes of sailing%';")
+  [[ "$raider_help_state" == 1 ]] ||
+    fail "the authoritative vessel raider help is stale"
+
+  timeout 600 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --vessel-raider-check \
+    "$warship_prototype_id" >"$run_dir/02-kohdee-vessel-raider.log" 2>&1 ||
+    fail "the actual Kohdee vessel-raider session failed"
+
+  for expected_text in \
+    'PASS: shipram refused without a lock and below speed 6, rammed the locked hull' \
+    'PASS: a tier 0 raider launched with her captain, crew, fit-out, and strongbox key' \
+    'PASS: with her captain dead the raider hove to.' \
+    'PASS: the vessel raider check completed'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-raider.log" ||
+      fail "the raider session did not report '$expected_text'"
+  done
+
+  # Raiders are never kept: the restart retires the one left at sea.
+  stop_development_mud || fail "the development MUD did not stop"
+  start_server_without_login || fail "the development MUD did not restart"
+  grep -Fq 'Retired 1 raider restored by the restart' "$server_log" ||
+    fail "the restart did not retire the raider left at sea"
+  raider_runtime_count=$(database_query "
+    SELECT COUNT(*)
+      FROM ship_runtime_state
+     WHERE prototype_id IN (SELECT prototype_id FROM vessel_raider_tiers);")
+  [[ "$raider_runtime_count" == 0 ]] ||
+    fail "$raider_runtime_count raider hulls survived the restart"
 elif [[ "$acceptance_mode" == rules ]]; then
   timeout 120 env DEV_MUD_CHARACTER="$target_player" \
     "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --help-check \
