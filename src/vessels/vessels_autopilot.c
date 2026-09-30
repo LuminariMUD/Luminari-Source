@@ -3744,6 +3744,7 @@ static bool autopilot_probe_tick(struct greyhawk_ship_data *probe, double max_sp
   {
     return FALSE;
   }
+  probe->stamina_spent = 0.0;
   return vessel_sail_tick(probe, max_speed, vessel_chart_cell, x, y);
 }
 
@@ -3753,7 +3754,8 @@ static bool autopilot_probe_tick(struct greyhawk_ship_data *probe, double max_sp
  *
  * The copy steers as the autopilot does and sails through vessel_sail_tick(),
  * so it takes the same line through every turn, at the hull's present
- * maximum speed with her rigging and rudder whole and her crew unstunned. A
+ * maximum speed with her rigging and rudder whole and her crew unstunned and
+ * rested. A
  * loop route sails on to its second waypoint, so the turn after the closing
  * leg is checked too.
  */

@@ -1265,8 +1265,7 @@ void Test_vessel_crew_costs_and_bonuses(CuTest *tc)
   vessel_apply_crew_bonuses(&ship);
   CuAssertTrue(tc, ship.guncrew.gunadjust > 0);
   CuAssertDblEquals(tc, 1.2, vessel_sailmaster_multiplier(&ship), 0.0001);
-  CuAssertTrue(tc, ship.sailcrew.repairspeed > 0);
-  CuAssertTrue(tc, ship.guncrew.gunadjust > ship.sailcrew.repairspeed); /* veteran > green */
+  CuAssertDblEquals(tc, 0.15, vessel_bosun_mod(&ship), 0.0001);
 
   /* Quartermaster stows more cargo */
   CuAssertIntEquals(tc, get_vessel_cargo_capacity(VESSEL_SHIP),

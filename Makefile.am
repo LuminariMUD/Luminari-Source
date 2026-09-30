@@ -397,6 +397,7 @@ luminari_SOURCES = \
 	src/vessels/vessels_upgrades.c \
 	src/vessels/vessels_gunnery.c \
 	src/vessels/vessels_weapons.c \
+	src/vessels/vessels_repair.c \
 	src/vessels/vessels_autopilot.c \
 	src/core/weather.c \
 	src/wilderness/wilderness.c \

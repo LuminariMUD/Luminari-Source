@@ -78,7 +78,8 @@ static int vessel_balance_side(struct greyhawk_ship_data *ship, int arc)
 /**
  * One tick of a duelling captain: bring the healthier beam to bear, turning
  * toward the enemy 20 degrees for each room beyond 7.5 (bow on by 12) or
- * away inside it (at most 45), fire everything that bears, and sail on.
+ * away inside it (at most 45), fire everything that bears, and sail on; her
+ * crew reloads, tires, rests, and repairs as a live crew does.
  */
 static void vessel_balance_captain(struct greyhawk_ship_data *ship,
                                    struct greyhawk_ship_data *enemy)
@@ -100,12 +101,11 @@ static void vessel_balance_captain(struct greyhawk_ship_data *ship,
   ship->setheading =
       (short int)vessel_display_heading(vessel_bearing_between(ship, enemy) - relative);
 
+  vessel_reload_tick(ship);
+  vessel_crew_tick_one(ship);
+  vessel_repair_tick_one(ship);
   for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
   {
-    if (ship->slot[s].timer > 0)
-    {
-      ship->slot[s].timer--;
-    }
     if (vessel_weapon_fire_problem(ship, s, enemy, TRUE) == NULL)
     {
       vessel_fire_weapon(ship, s, enemy, NULL);

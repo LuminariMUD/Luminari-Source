@@ -253,6 +253,10 @@ static struct game_event_result vessel_owner_event(const struct game_event_conte
       vessel_combat_tick_one(ship);
     if (callback_owner_still_live(ship))
       vessel_upkeep_tick_one(ship);
+    if (callback_owner_still_live(ship))
+      vessel_crew_tick_one(ship);
+    if (callback_owner_still_live(ship))
+      vessel_repair_tick_one(ship);
     if (callback_owner_still_live(ship) && narrative_due)
       vessel_narrative_tick_one(ship);
     if (callback_owner_still_live(ship) && hazard_due)

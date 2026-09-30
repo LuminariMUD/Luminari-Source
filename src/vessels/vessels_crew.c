@@ -261,12 +261,67 @@ void vessel_crew_casualties(struct greyhawk_ship_data *ship, double percent)
   vessel_apply_crew_bonuses(ship);
 }
 
+/** The crew's stamina when rested: 500, and 100 for each tier aboard (study 3.3.5). */
+int vessel_stamina_max(const struct greyhawk_ship_data *ship)
+{
+  int tiers;
+  int i;
+
+  tiers = 0;
+  for (i = 0; ship != NULL && i < NUM_CREW_POSITIONS; i++)
+  {
+    tiers += ship->crew_tier[i];
+  }
+  return 500 + 100 * tiers;
+}
+
+/**
+ * Fatigue: 1 while the crew has stamina left, then 1 / (1 + deficit / max /
+ * 3). It scales accel, turn, reload, repair odds, and the hit chance.
+ */
+double vessel_stamina_modifier(const struct greyhawk_ship_data *ship)
+{
+  double max;
+  double deficit;
+
+  if (ship == NULL)
+  {
+    return 1.0;
+  }
+  max = (double)vessel_stamina_max(ship);
+  deficit = ship->stamina_spent - max;
+  return deficit <= 0.0 ? 1.0 : 1.0 / (1.0 + deficit / max / 3.0);
+}
+
+/**
+ * Duris's work divisor for a hull: the square root of her class hull weight
+ * over 10. A heavier hull's gun crews tire less per shot and her helm more
+ * per maneuver.
+ */
+double vessel_hull_effort(const struct greyhawk_ship_data *ship)
+{
+  return sqrt((double)vessel_class_handling(ship->vessel_type)->hull_weight) / 10.0;
+}
+
+/**
+ * Crew tick: stamina returns 1.5 a tick, four times as fast berthed or at
+ * anchor.
+ */
+void vessel_crew_tick_one(struct greyhawk_ship_data *ship)
+{
+  if (ship == NULL || ship->stamina_spent <= 0.0)
+  {
+    return;
+  }
+  ship->stamina_spent =
+      fmax(0.0, ship->stamina_spent - (ship->dock > 0 || ship->anchored ? 6.0 : 1.5));
+}
+
 /**
  * Recompute the ship's crew effect fields from hired tiers.
  *
- * Gunnery (vessels_combat.c) and repair read the legacy sailcrew/guncrew
- * fields; movement reads the sailmaster tier through
- * vessel_sailmaster_multiplier().
+ * Gunnery reads the legacy guncrew field; movement and repair read the
+ * sailmaster and bosun tiers directly.
  */
 void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship)
 {
@@ -276,7 +331,6 @@ void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship)
   }
 
   ship->guncrew.gunadjust = (char)(ship->crew_tier[CREW_GUNNER] * 2);
-  ship->sailcrew.repairspeed = (char)(ship->crew_tier[CREW_BOSUN] * 2);
 
   snprintf(ship->sailcrew.crewname, sizeof(ship->sailcrew.crewname), "%s deck crew",
            vessel_crew_tier_name(ship->crew_tier[CREW_SAILMASTER]));

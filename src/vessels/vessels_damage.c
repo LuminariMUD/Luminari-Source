@@ -90,11 +90,14 @@ void vessel_initialize_condition(struct greyhawk_ship_data *ship, int armor)
 
 /**
  * Raise every arc's armor ceiling, or its structure ceiling, by a fifth for
- * the plating or reinforcement refit (3.3.1), and make the arc good to it.
+ * the plating or reinforcement refit (3.3.1). The new plates or frames add
+ * the same points to the arc, so damage stays damage (L10).
  */
 void vessel_refit_arcs(struct greyhawk_ship_data *ship, bool structure)
 {
   unsigned char *ceiling;
+  unsigned char *current;
+  int added;
   int arc;
 
   if (ship == NULL)
@@ -105,8 +108,10 @@ void vessel_refit_arcs(struct greyhawk_ship_data *ship, bool structure)
   for (arc = 0; arc < VESSEL_NUM_ARCS; arc++)
   {
     ceiling = structure ? vessel_arc_max_internal(ship, arc) : vessel_arc_max_armor(ship, arc);
-    *ceiling = (unsigned char)MIN(255, *ceiling + *ceiling / 5);
-    *(structure ? vessel_arc_internal(ship, arc) : vessel_arc_armor(ship, arc)) = *ceiling;
+    current = structure ? vessel_arc_internal(ship, arc) : vessel_arc_armor(ship, arc);
+    added = MIN(255, *ceiling + *ceiling / 5) - *ceiling;
+    *ceiling = (unsigned char)(*ceiling + added);
+    *current = (unsigned char)(*current + added);
   }
 }
 
@@ -1010,8 +1015,9 @@ ACMD(do_strikecolors)
 }
 
 /**
- * The damage-model part of `shipstatus`: structure, sails, rudder, holes,
- * the sink timer, struck colors, and each weapon's state.
+ * The damage-model part of `shipstatus`: structure, sails, rudder, crew
+ * stamina, repair stores, holes, the sink timer, struck colors, and each
+ * weapon's state.
  */
 void vessel_show_condition(struct char_data *ch, struct greyhawk_ship_data *ship)
 {
@@ -1042,6 +1048,10 @@ void vessel_show_condition(struct char_data *ch, struct greyhawk_ship_data *ship
   }
   send_to_char(ch, "\r\nSails: %d/%d\r\nRudder: %d/%d\r\n", ship->mainsail, ship->maxmainsail,
                ship->turnrate, ship->maxturnrate);
+  send_to_char(ch, "Crew stamina: %d/%d%s\r\nRepair stores: %d/%d\r\n",
+               vessel_stamina_max(ship) - (int)ceil(ship->stamina_spent), vessel_stamina_max(ship),
+               vessel_stamina_modifier(ship) < 1.0 ? " (exhausted)" : "", vessel_repair_stock(ship),
+               vessel_class_handling(ship->vessel_type)->hull_weight);
 
   breaches = vessel_breached_arcs(ship);
   holes[0] = '\0';

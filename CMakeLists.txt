@@ -805,6 +805,7 @@ set(SRC_C_FILES
     src/vessels/vessels_upgrades.c
     src/vessels/vessels_gunnery.c
     src/vessels/vessels_weapons.c
+    src/vessels/vessels_repair.c
     src/core/weather.c
     src/wilderness/wilderness.c
     src/wilderness/wilderness_kb.c

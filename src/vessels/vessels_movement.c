@@ -330,14 +330,15 @@ double vessel_max_speed(struct greyhawk_ship_data *ship)
   return speed;
 }
 
-/** Speed gained or shed per tick. */
+/** Speed gained or shed per tick; a tired crew is slower about it. */
 double vessel_acceleration(const struct greyhawk_ship_data *ship)
 {
   if (ship == NULL)
   {
     return 0.0;
   }
-  return vessel_class_handling(ship->vessel_type)->accel * vessel_sailmaster_multiplier(ship);
+  return vessel_class_handling(ship->vessel_type)->accel * vessel_sailmaster_multiplier(ship) *
+         vessel_stamina_modifier(ship);
 }
 
 /**
@@ -345,8 +346,8 @@ double vessel_acceleration(const struct greyhawk_ship_data *ship)
  *
  * The class turn rate, times the sailmaster, times three quarters at
  * steerage speed rising to the full rate at design speed, times the share of
- * rudder left. A smashed rudder cannot turn; an immobile hull warps round
- * one degree a tick.
+ * rudder left and the crew's fatigue. A smashed rudder cannot turn; an
+ * immobile hull warps round one degree a tick.
  */
 double vessel_turn_rate(const struct greyhawk_ship_data *ship, double max_speed)
 {
@@ -376,7 +377,7 @@ double vessel_turn_rate(const struct greyhawk_ship_data *ship, double max_speed)
   rudder = ship->maxturnrate > 0 ? (double)ship->turnrate / (double)ship->maxturnrate : 1.0;
 
   return vessel_class_handling(ship->vessel_type)->turn * vessel_sailmaster_multiplier(ship) *
-         speed_factor * rudder;
+         speed_factor * rudder * vessel_stamina_modifier(ship);
 }
 
 /**
@@ -401,7 +402,8 @@ static int vessel_port_room_vnum(const struct greyhawk_ship_data *ship)
 }
 
 /**
- * Make the hull fast at the port it rests in.
+ * Make the hull fast at the port it rests in, where her repair stores are
+ * refilled.
  *
  * Public and NPC hulls have no owner to repair or rearm them, so the harbor
  * makes good their rigging and rudder and refills their weapons whenever
@@ -431,6 +433,7 @@ void vessel_berth(struct greyhawk_ship_data *ship)
     }
   }
   ship->dock = vessel_port_room_vnum(ship);
+  ship->repair_used = 0;
   ship->anchored = FALSE;
   ship->departure_ticks = 0;
   ship->speed = 0.0;
@@ -793,10 +796,10 @@ static void vessel_stop_at_edge(struct greyhawk_ship_data *ship)
 /**
  * Duris's crash check (study 3.3.2): a hull refused a room of land or
  * shallows while her crew is at battle stations may run aground, the chance
- * (speed + 50) / (1 + 2 * sail mod) against 2d50, speed in Duris units; a
- * stunned crew cannot save her. A grounding lands hull weight / 25 + 1 hits
- * of 1-9: the first on the bow, each later one half the time on a random
- * side or the sails. Stamina (S5) will divide the chance further.
+ * (speed + 50) / ((1 + 2 * sail mod) * stamina modifier) against 2d50,
+ * speed in Duris units; a stunned crew cannot save her. A grounding lands
+ * hull weight / 25 + 1 hits of 1-9: the first on the bow, each later one half
+ * the time on a random side or the sails.
  */
 static void vessel_crash_check(struct greyhawk_ship_data *ship, double impact_speed)
 {
@@ -813,7 +816,8 @@ static void vessel_crash_check(struct greyhawk_ship_data *ship, double impact_sp
   {
     send_to_ship(ship, "The crew fights to keep her off!");
     chance = (int)((impact_speed / VESSEL_DURIS_SPEED_SCALE + 50.0) /
-                   (1.0 + 2.0 * (vessel_sailmaster_multiplier(ship) - 1.0)));
+                   ((1.0 + 2.0 * (vessel_sailmaster_multiplier(ship) - 1.0)) *
+                    vessel_stamina_modifier(ship)));
   }
   if (dice(2, 50) > chance)
   {
@@ -927,6 +931,33 @@ bool vessel_change_altitude(struct greyhawk_ship_data *ship, int z)
   return is_valid_ship(ship) && vessel_enter_cell(ship, (int)ship->x, (int)ship->y, z);
 }
 
+/**
+ * Charge the crew for working the helm (Duris ship_activity()): a change of
+ * speed costs its share of the class accel times 2 plus the hull effort, a
+ * change of heading its share of the class turn times 3 plus the hull effort
+ * (five times that warping an immobile hull round), less the sail mod. Duris
+ * charges per second; a tick costs half.
+ */
+static void vessel_helm_stamina(struct greyhawk_ship_data *ship, double speed_change,
+                                double heading_change, bool immobile)
+{
+  const struct vessel_class_handling *handling;
+  double cost;
+
+  handling = vessel_class_handling(ship->vessel_type);
+  cost = 0.0;
+  if (handling->accel > 0.0)
+  {
+    cost += speed_change / handling->accel * (2.0 + vessel_hull_effort(ship));
+  }
+  if (handling->turn > 0.0)
+  {
+    cost +=
+        heading_change / handling->turn * (3.0 + vessel_hull_effort(ship)) * (immobile ? 5.0 : 1.0);
+  }
+  ship->stamina_spent += cost / vessel_sailmaster_multiplier(ship) / 2.0;
+}
+
 static bool vessel_autopilot_steering(const struct greyhawk_ship_data *ship)
 {
   return ship->autopilot != NULL && (ship->autopilot->state == AUTOPILOT_TRAVELING ||
@@ -943,9 +974,10 @@ static bool vessel_autopilot_paused(const struct greyhawk_ship_data *ship)
  *
  * Speed converges on its order at the class acceleration and the heading on
  * its order at the turn rate; the hull then covers speed / 90 rooms along
- * its heading, entering each room through entry(). An autopilot cruises at
- * the ordered speed, or at full speed when none is ordered, within its
- * steering cap; a paused autopilot holds the hull.
+ * its heading, entering each room through entry(). Working the helm tires
+ * the crew. An autopilot cruises at the ordered speed, or at full speed when
+ * none is ordered, within its steering cap; a paused autopilot holds the
+ * hull.
  *
  * @return FALSE when entry() refused a room (see vessel_cross_room_edges())
  */
@@ -955,6 +987,8 @@ bool vessel_sail_tick(struct greyhawk_ship_data *ship, double max_speed, vessel_
   double target;
   double change;
   double limit;
+  double old_speed;
+  double old_heading;
   double radians;
   double distance;
   double move_x;
@@ -979,6 +1013,8 @@ bool vessel_sail_tick(struct greyhawk_ship_data *ship, double max_speed, vessel_
    * on as she was. */
   if (!vessel_crew_stunned(ship))
   {
+    old_speed = ship->speed;
+    old_heading = ship->heading;
     limit = vessel_acceleration(ship);
     change = target - ship->speed;
     ship->speed = fabs(change) <= limit ? target : ship->speed + copysign(limit, change);
@@ -993,6 +1029,9 @@ bool vessel_sail_tick(struct greyhawk_ship_data *ship, double max_speed, vessel_
     {
       ship->heading = vessel_normalize_heading(ship->heading + copysign(limit, change));
     }
+    vessel_helm_stamina(ship, fabs(ship->speed - old_speed),
+                        fabs(vessel_heading_difference(old_heading, ship->heading)),
+                        max_speed <= 0.0);
   }
 
   if (ship->speed <= 0.0)

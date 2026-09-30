@@ -662,6 +662,7 @@ const char *vessel_weapon_fire_problem(struct greyhawk_ship_data *ship, int slot
                                        struct greyhawk_ship_data *target, bool check_reload);
 int vessel_fire_weapon(struct greyhawk_ship_data *ship, int slot, struct greyhawk_ship_data *target,
                        struct char_data *ch);
+void vessel_reload_tick(struct greyhawk_ship_data *ship);
 void vessel_gunnery_tick_one(struct greyhawk_ship_data *ship);
 ACMD_DECL(do_shipfire);  /* Fire a weapon or an arc at the locked contact */
 ACMD_DECL(do_shiplock);  /* Lock the guns onto a contact */
@@ -775,8 +776,20 @@ void vessel_sink(int shipnum);
 void vessel_combat_tick(void);
 void vessel_combat_tick_one(struct greyhawk_ship_data *ship);
 
-ACMD_DECL(do_shiprepair); /* Slow at-sea repairs while stationary */
-ACMD_DECL(do_claimship);  /* Capture a ship from an uncontested bridge */
+ACMD_DECL(do_claimship); /* Capture a ship from an uncontested bridge */
+
+/* ========================================================================= */
+/* REPAIR (vessels-ships study S5, vessels_repair.c)                         */
+/* ========================================================================= */
+
+#define VESSEL_REPAIR_DC 15               /* Craft (woodworking) for a repair at sea */
+#define VESSEL_DOCK_REPAIR_POINT_PRICE 2  /* Gold per armor, structure, or weapon damage point */
+#define VESSEL_DOCK_RIGGING_POINT_PRICE 4 /* Gold per sail or rudder point */
+
+int vessel_repair_stock(const struct greyhawk_ship_data *ship);
+double vessel_bosun_mod(const struct greyhawk_ship_data *ship);
+void vessel_repair_tick_one(struct greyhawk_ship_data *ship);
+ACMD_DECL(do_shiprepair); /* Dock repairs at a shipyard, one patch at sea */
 
 /* ========================================================================= */
 /* SHOWCASE EVENTS AND LEADERBOARDS (Phase 16, vessels_events.c)              */
@@ -1161,6 +1174,10 @@ void vessel_crew_credit_kill(struct greyhawk_ship_data *victor,
                              const struct greyhawk_ship_data *target);
 void vessel_crew_sale_gain(struct greyhawk_ship_data *ship, long long revenue);
 void vessel_crew_casualties(struct greyhawk_ship_data *ship, double percent);
+int vessel_stamina_max(const struct greyhawk_ship_data *ship);
+double vessel_stamina_modifier(const struct greyhawk_ship_data *ship);
+double vessel_hull_effort(const struct greyhawk_ship_data *ship);
+void vessel_crew_tick_one(struct greyhawk_ship_data *ship);
 void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship);
 void vessel_db_save_crew(struct greyhawk_ship_data *ship);
 void vessel_db_load_crew(struct greyhawk_ship_data *ship);
@@ -1417,7 +1434,6 @@ struct greyhawk_ship_crew
   char crewname[256]; /* Crew description */
   char speedadjust;   /* Speed adjustment modifier */
   char gunadjust;     /* Gunnery adjustment modifier */
-  char repairspeed;   /* Repair speed modifier */
 };
 
 /* Maximum ships rooms and connections for Phase 2 */
@@ -1662,6 +1678,10 @@ struct greyhawk_ship_data
   int lock_target;        /* Fleet slot of the locked contact; 0 = none */
   short int battle_ticks; /* Vessel ticks left at battle stations; 0 = stood down */
   short int stun_ticks;   /* Vessel ticks the crew reels from a mental blast */
+
+  /* S5 crew stamina and repair stock (vessels_crew.c, vessels_repair.c), runtime only */
+  double stamina_spent;  /* Spent since fully rested; beyond the maximum, a deficit */
+  short int repair_used; /* Repair stock used since she last berthed */
 
   /* Phase 5: Naval combat */
   int last_attacker;           /* Fleet index of last ship to fire on us (0 = none) */

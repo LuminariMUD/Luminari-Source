@@ -539,7 +539,7 @@ void Test_vessel_arc_fire_answers_the_lock(CuTest *tc)
   CuAssertTrue(tc, strstr(output, "The port Large Ballista FIRES at the Tern! Chance to hit: ") !=
                        NULL);
   CuAssertIntEquals(tc, 29, ship->slot[1].ammo);
-  CuAssertIntEquals(tc, 40, ship->slot[1].timer);
+  CuAssertIntEquals(tc, 34, ship->slot[1].timer);
   CuAssertIntEquals(tc, 30, ship->slot[0].ammo);
   CuAssertIntEquals(tc, 30, ship->slot[2].ammo);
   CuAssertIntEquals(tc, PULSE_VIOLENCE, GET_WAIT_STATE(&deck.gunner.ch));
@@ -547,7 +547,7 @@ void Test_vessel_arc_fire_answers_the_lock(CuTest *tc)
   CuAssertIntEquals(tc, GUNNERY_SHIP_A, target->last_attacker);
 
   output = gunnery_deck_command(&deck, do_shipfire, "1");
-  CuAssertTrue(tc, strstr(output, "still reloading (20 seconds)") != NULL);
+  CuAssertTrue(tc, strstr(output, "still reloading (17 seconds)") != NULL);
   output = gunnery_deck_command(&deck, do_shipfire, "0");
   CuAssertTrue(tc, strstr(output, "fore Large Ballista cannot bear - the Tern lies off your port "
                                   "arc") != NULL);
@@ -556,7 +556,7 @@ void Test_vessel_arc_fire_answers_the_lock(CuTest *tc)
   ship->slot[1].timer = 0;
   ship->crew_tier[CREW_GUNNER] = CREW_TIER_VETERAN;
   gunnery_deck_command(&deck, do_shipfire, "1");
-  CuAssertIntEquals(tc, 37, ship->slot[1].timer);
+  CuAssertIntEquals(tc, 31, ship->slot[1].timer);
 
   /* A lock on a contact that dives is lost before the next shot. */
   ship->slot[1].timer = 0;
