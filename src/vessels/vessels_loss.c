@@ -293,14 +293,19 @@ bool vessel_wreck_hull(struct greyhawk_ship_data *ship, const struct greyhawk_sh
   return TRUE;
 }
 
-/** Put everyone aboard into `room`: the crew makes sail without them. */
+/**
+ * Put everyone aboard but her NPC pilot into `room`: the crew makes sail
+ * without them.
+ */
 static void vessel_put_ashore(struct greyhawk_ship_data *ship, room_rnum room)
 {
+  struct char_data *pilot;
   struct char_data *tch;
   struct char_data *next_tch;
   room_rnum interior;
   int i;
 
+  pilot = get_pilot_from_ship(ship);
   for (i = 0; i < ship->num_rooms && i < MAX_SHIP_ROOMS; i++)
   {
     interior = real_room(ship->room_vnums[i]);
@@ -311,6 +316,10 @@ static void vessel_put_ashore(struct greyhawk_ship_data *ship, room_rnum room)
     for (tch = world[interior].people; tch != NULL; tch = next_tch)
     {
       next_tch = tch->next_in_room;
+      if (tch == pilot)
+      {
+        continue;
+      }
       send_to_char(tch, "%s is answering a summons; you are put over the side.\r\n", ship->name);
       char_from_room(tch);
       /* A wilderness room takes the character to their coordinates. */

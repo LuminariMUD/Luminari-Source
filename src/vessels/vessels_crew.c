@@ -194,7 +194,9 @@ void vessel_crew_gain(struct greyhawk_ship_data *ship, int position, double amou
 
 /**
  * Every hand aboard the hull that sank target learns from it: the target's
- * hull weight for a player's hull, a tenth of that for an NPC hull.
+ * hull weight for a player's hull, a tenth of that for an NPC hull. Such
+ * gains are saved at once; the small ones of sailing and gunnery wait for the
+ * next save.
  */
 void vessel_crew_credit_kill(struct greyhawk_ship_data *victor,
                              const struct greyhawk_ship_data *target)
@@ -216,6 +218,7 @@ void vessel_crew_credit_kill(struct greyhawk_ship_data *victor,
   {
     vessel_crew_gain(victor, i, gain);
   }
+  vessel_db_save_crew(victor);
 }
 
 /**
@@ -229,6 +232,7 @@ void vessel_crew_sale_gain(struct greyhawk_ship_data *ship, long long revenue)
   vessel_crew_gain(ship, CREW_SAILMASTER, 1.5 * lots);
   vessel_crew_gain(ship, CREW_BOSUN, 0.5 * lots);
   vessel_crew_gain(ship, CREW_QUARTERMASTER, 1.5 * lots);
+  vessel_db_save_crew(ship);
 }
 
 /**

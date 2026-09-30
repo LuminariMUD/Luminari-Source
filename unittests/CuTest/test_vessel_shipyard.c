@@ -347,6 +347,16 @@ void Test_vessel_shipyard_sells_only_listed_hulls(CuTest *tc)
   descriptor.bufspace = sizeof(output) - 1;
   do_shipbuy(&buyer.ch, "1 trade", 0, 0);
   CuAssertTrue(tc, strstr(output, "Empty the Auk's hold before you trade her in.") != NULL);
+  memset(greyhawk_ships[SHIPYARD_FIRST_SLOT].cargo, 0,
+         sizeof(greyhawk_ships[SHIPYARD_FIRST_SLOT].cargo));
+  autopilot_init(&greyhawk_ships[SHIPYARD_FIRST_SLOT]);
+  greyhawk_ships[SHIPYARD_FIRST_SLOT].autopilot->pilot_mob_vnum = 31810;
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  do_shipbuy(&buyer.ch, "1 trade", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Unassign the Auk's NPC pilot before you trade her in.") != NULL);
+  autopilot_cleanup(&greyhawk_ships[SHIPYARD_FIRST_SLOT]);
   memset(output, 0, sizeof(output));
   descriptor.bufptr = 0;
   descriptor.bufspace = sizeof(output) - 1;

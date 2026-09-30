@@ -960,6 +960,11 @@ static void vessel_trade_in(struct char_data *ch, int id, int vclass, int max_sp
                  ship->name);
     return;
   }
+  if (ship->autopilot != NULL && ship->autopilot->pilot_mob_vnum != -1)
+  {
+    send_to_char(ch, "Unassign %s's NPC pilot before you trade her in.\r\n", ship->name);
+    return;
+  }
 
   credit = vessel_hull_price(ship) * VESSEL_TRADE_IN_PERCENT / 100;
   if (price - credit > GET_GOLD(ch))
@@ -971,6 +976,7 @@ static void vessel_trade_in(struct char_data *ch, int id, int vclass, int max_sp
 
   memcpy(old_slots, ship->slot, sizeof(old_slots));
   old_class = ship->vessel_type;
+  vehicle_release_all_from_vessel(ship, dock);
   vessel_reclaim_interior_rooms(ship, dock);
   if (!vessel_rebuild_hull(ship, id, vclass, max_speed, armor))
   {
