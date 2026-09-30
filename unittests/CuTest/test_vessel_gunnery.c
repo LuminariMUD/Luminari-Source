@@ -558,6 +558,17 @@ void Test_vessel_arc_fire_answers_the_lock(CuTest *tc)
   gunnery_deck_command(&deck, do_shipfire, "1");
   CuAssertIntEquals(tc, 37, ship->slot[1].timer);
 
+  /* A lock on a contact that dives is lost before the next shot. */
+  ship->slot[1].timer = 0;
+  target->z = -20.0;
+  output = gunnery_deck_command(&deck, do_shipfire, "1");
+  CuAssertTrue(tc, strstr(output, "The guns lose their lock.") != NULL);
+  CuAssertIntEquals(tc, 0, ship->lock_target);
+  CuAssertIntEquals(tc, 28, ship->slot[1].ammo);
+  target->z = 0.0;
+  gunnery_deck_command(&deck, do_shiplock, "SB");
+  CuAssertIntEquals(tc, GUNNERY_SHIP_B, ship->lock_target);
+
   /* With the lock cleared there is nothing to fire at. */
   gunnery_deck_command(&deck, do_shiplock, "off");
   CuAssertIntEquals(tc, 0, ship->lock_target);

@@ -285,15 +285,28 @@ static const char *vessel_target_problem(struct greyhawk_ship_data *target)
   return NULL;
 }
 
-/** The locked contact, or NULL. */
+/**
+ * The locked contact, or NULL. A lock on a contact that has gone, come under
+ * the harbor's protection, dived, or left sight is lost here, so no shot or
+ * sighting uses it.
+ */
 static struct greyhawk_ship_data *vessel_locked_target(struct greyhawk_ship_data *ship)
 {
-  if (ship->lock_target <= 0 || ship->lock_target >= GREYHAWK_MAXSHIPS ||
-      !is_valid_ship(&greyhawk_ships[ship->lock_target]))
+  struct greyhawk_ship_data *target;
+
+  if (ship->lock_target == 0)
   {
     return NULL;
   }
-  return &greyhawk_ships[ship->lock_target];
+  target = &greyhawk_ships[ship->lock_target];
+  if (!is_valid_ship(target) || vessel_target_problem(target) != NULL ||
+      vessel_range_between(ship, target) > (double)vessel_sight_range(ship))
+  {
+    ship->lock_target = 0;
+    send_to_ship(ship, "The guns lose their lock.");
+    return NULL;
+  }
+  return target;
 }
 
 /**
@@ -558,7 +571,6 @@ static void vessel_npc_return_fire(struct greyhawk_ship_data *ship)
  */
 void vessel_gunnery_tick_one(struct greyhawk_ship_data *ship)
 {
-  struct greyhawk_ship_data *target;
   int s;
 
   if (!is_valid_ship(ship))
@@ -598,19 +610,9 @@ void vessel_gunnery_tick_one(struct greyhawk_ship_data *ship)
       send_to_ship(ship, "The crew stands down from battle stations.");
     }
   }
-  if (ship->lock_target != 0)
+  if (vessel_locked_target(ship) != NULL)
   {
-    target = vessel_locked_target(ship);
-    if (target == NULL || vessel_target_problem(target) != NULL ||
-        vessel_range_between(ship, target) > (double)vessel_sight_range(ship))
-    {
-      ship->lock_target = 0;
-      send_to_ship(ship, "The guns lose their lock.");
-    }
-    else
-    {
-      ship->battle_ticks = VESSEL_BATTLE_STATIONS_TICKS;
-    }
+    ship->battle_ticks = VESSEL_BATTLE_STATIONS_TICKS;
   }
 
   vessel_npc_return_fire(ship);

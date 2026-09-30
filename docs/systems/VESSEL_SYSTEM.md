@@ -1355,8 +1355,9 @@ ticks) and 30 s (60 ticks).
   submerged. Locks (`lock_target`) and battle stations (`battle_ticks`,
   `VESSEL_BATTLE_STATIONS_TICKS` 360, 180 s) are runtime only: a lock or a
   shot, fired or received, puts a crew at battle stations; the lock drops
-  when the contact leaves sight, enters port, dives, or sinks; the crew stands
-  down 180 s after the lock clears. `shipfire <arc>` fires every weapon on
+  when the contact leaves sight, enters port, dives, or sinks, checked each
+  tick and at every shot and sighting (`vessel_locked_target()`); the crew
+  stands down 180 s after the lock clears. `shipfire <arc>` fires every weapon on
   the arc that can. NPC return fire (`vessel_npc_return_fire()`) uses the same
   rules.
 - Battle stations bar harbors and shallows (`vessel_enter_cell_default()`,
