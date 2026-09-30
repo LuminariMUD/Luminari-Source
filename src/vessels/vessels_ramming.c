@@ -177,11 +177,13 @@ bool vessel_ram(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *targ
   theirs = vessel_class_handling(target->vessel_type);
   sarc = vessel_arc_toward(ship, target);
   tarc = vessel_arc_toward(target, ship);
-  ram_damage = (int)((own->hull_weight + 100) / 10 *
-                     (0.1 + 0.4 * ship->speed / own->speed + 0.5 * ram_speed / own->speed) *
-                     (sarc == GREYHAWK_FORE ? 1.2 : 1.0));
+  ram_damage = (own->hull_weight + 100) / 10;
+  ram_damage =
+      (int)(ram_damage * (0.1 + 0.4 * ship->speed / own->speed + 0.5 * ram_speed / own->speed) *
+            (sarc == GREYHAWK_FORE ? 1.2 : 1.0));
+  counter_damage = (theirs->hull_weight + 100) / 10;
   counter_damage =
-      (int)((theirs->hull_weight + 100) / 10 *
+      (int)(counter_damage *
             (0.1 + 0.3 * ship->speed / own->speed + 0.4 * counter_speed / theirs->speed) *
             (tarc == GREYHAWK_FORE ? 1.2 : 1.0)) +
       theirs->hull_weight / own->hull_weight;

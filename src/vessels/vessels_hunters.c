@@ -41,7 +41,8 @@ struct vessel_hunter_boot_row
 };
 
 /**
- * Create the encounter policy and durable lifecycle tables.
+ * Create the encounter policy and durable lifecycle tables, and the raider
+ * tier table of the NPC warships that share this lifecycle (S6).
  *
  * The policy extends a normal vessel_encounters row without owning geography.
  * The lifecycle deliberately has no fleet-slot foreign key: public hull slots
@@ -99,6 +100,7 @@ void vessel_hunter_ensure_schema(void)
   {
     log("SYSERR: Could not create vessel_bounty_hunts: %s", mysql_error(conn));
   }
+  vessel_raider_ensure_schema();
 }
 
 /**
@@ -767,7 +769,8 @@ static int vessel_hunter_collect_boot_rows(struct vessel_hunter_boot_row *rows, 
 }
 
 /**
- * Reattach active public warships after vessel persistence restoration.
+ * Reattach active public warships after vessel persistence restoration, and
+ * retire the raiders a restart restored (vessel_raider_boot()).
  */
 void vessel_hunter_boot(void)
 {
@@ -849,6 +852,7 @@ void vessel_hunter_boot(void)
   }
 
   log("Info: Reattached %d active bounty-hunter warship%s", attached, attached == 1 ? "" : "s");
+  vessel_raider_boot();
 }
 
 static struct greyhawk_ship_data *vessel_hunter_find_target(struct greyhawk_ship_data *hunter)

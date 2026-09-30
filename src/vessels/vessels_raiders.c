@@ -423,10 +423,12 @@ static double vessel_raider_open_water(struct greyhawk_ship_data *ship, double h
 {
   double radians;
   double distance;
+  int step;
 
   radians = heading * M_PI / 180.0;
-  for (distance = 0.5; distance <= limit; distance += 0.5)
+  for (step = 1; step * 0.5 <= limit; step++)
   {
+    distance = step * 0.5;
     if (!vessel_chart_cell(ship, (int)lround(ship->x + ship->dx + sin(radians) * distance),
                            (int)lround(ship->y + ship->dy + cos(radians) * distance), (int)ship->z))
     {
@@ -448,12 +450,14 @@ static void vessel_raider_set_course(struct greyhawk_ship_data *ship, double hea
 {
   double course;
   double open;
+  int swing;
   int i;
 
   course = heading;
   for (i = 1; i <= 10 && vessel_raider_open_water(ship, course, lookout) < lookout; i++)
   {
-    course = heading + (i % 2 == 1 ? 30.0 : -30.0) * ((i + 1) / 2);
+    swing = 30 * ((i + 1) / 2);
+    course = heading + (i % 2 == 1 ? swing : -swing);
   }
   if (i > 10)
   {
@@ -707,6 +711,7 @@ static void vessel_raider_basic(struct greyhawk_ship_data *ship, struct greyhawk
   double bearing;
   double range;
   double heading;
+  bool close;
   bool soon;
   int facing;
   int arc;
@@ -715,23 +720,20 @@ static void vessel_raider_basic(struct greyhawk_ship_data *ship, struct greyhawk
   range = vessel_range_between(ship, target);
   facing = vessel_arc_toward(target, ship);
   arc = vessel_raider_best_arc(ship, range, bearing, &soon);
+  close = vessel_raider_too_close(ship, range);
   if (*vessel_arc_armor(target, facing) == 0 && *vessel_arc_internal(target, facing) == 0)
   {
     heading = range >= 8.0 ? bearing
                            : vessel_raider_heading_to_side(ship, target,
                                                            vessel_raider_weakest_side(target), 3.0);
   }
-  else if (arc >= 0 && soon)
+  else if (arc >= 0 && (soon || !close))
   {
     heading = bearing - arc_bearing[arc];
   }
-  else if (vessel_raider_too_close(ship, range))
+  else if (close)
   {
     heading = bearing + 180.0;
-  }
-  else if (arc >= 0)
-  {
-    heading = bearing - arc_bearing[arc];
   }
   else
   {
@@ -1223,20 +1225,21 @@ void vessel_raider_tick_one(struct greyhawk_ship_data *ship)
     }
   }
 
-  switch (ship->raider_mode)
+  if (target == NULL)
   {
-  case VESSEL_RAIDER_ENGAGING:
-    ship->raider_ticks = 0;
-    vessel_raider_engage(ship, target);
-    break;
-  case VESSEL_RAIDER_RUNNING:
-    ship->raider_ticks = 0;
-    vessel_raider_set_course(ship, vessel_bearing_between(target, ship), ship->maxspeed, 10.0);
-    break;
-  default: /* Cruising or leaving: she sails on, clear of land */
+    /* Cruising or leaving: she sails on, clear of land */
     vessel_raider_set_course(ship, ship->heading, ship->maxspeed, 5.0);
     vessel_raider_countdown(ship);
-    break;
+    return;
+  }
+  ship->raider_ticks = 0;
+  if (ship->raider_mode == VESSEL_RAIDER_RUNNING)
+  {
+    vessel_raider_set_course(ship, vessel_bearing_between(target, ship), ship->maxspeed, 10.0);
+  }
+  else
+  {
+    vessel_raider_engage(ship, target);
   }
 }
 
