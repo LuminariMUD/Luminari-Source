@@ -199,7 +199,8 @@ void vessel_wreck_prototype(int *id, int *vclass, int *speed, int *armor)
 /**
  * Take a hull out of the world with her state saved: she keeps her fleet slot,
  * interior, and persistence, but no exterior object and no ticks. A hull
- * already stowed has her new state saved.
+ * already stowed has her new state saved. A failed save is retried by
+ * save_all_vessels(), which saves stowed hulls too.
  */
 static void vessel_stow(struct greyhawk_ship_data *ship)
 {
@@ -209,12 +210,11 @@ static void vessel_stow(struct greyhawk_ship_data *ship)
     ship->shipobj = NULL;
   }
   ship->stowed = TRUE;
-  ship->active = TRUE; /* vessel_save_one() saves only a hull in the world */
+  ship->active = FALSE;
   if (!vessel_save_one(ship))
   {
     log("SYSERR: Stowed ship %d could not be saved completely", ship->shipnum);
   }
-  ship->active = FALSE;
   vessel_periodic_forget(ship);
 }
 

@@ -487,6 +487,52 @@ void Test_vessel_insurance_claim_marks_the_loss_paid(CuTest *tc)
   mysql_close(connection);
 }
 
+void Test_vessel_stowed_hulls_are_saved_with_the_fleet(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct greyhawk_ship_data *ship;
+  MYSQL *saved_conn;
+  MYSQL *connection;
+  bool saved_mysql_available;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    return;
+  }
+  connection = loss_open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  saved_conn = conn;
+  saved_mysql_available = mysql_available;
+  conn = connection;
+  mysql_available = TRUE;
+  vessel_ownership_ensure_schema();
+
+  /* A stowed hull whose save failed is saved again with the fleet, at an
+   * autosave or the shutdown. */
+  ship = loss_ship(VESSEL_BOAT, "Lossstowed");
+  ship->active = FALSE;
+  ship->stowed = TRUE;
+  ship->wreck_hull = TRUE;
+  save_all_vessels();
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "SELECT runtime.stowed, runtime.wreck_hull, "
+                                            "interior.owner FROM ship_runtime_state AS runtime "
+                                            "JOIN ship_interiors AS interior "
+                                            "ON interior.ship_id = runtime.ship_id "
+                                            "WHERE runtime.ship_id = 485"));
+  loss_assert_row(tc, connection, "1", "1", "Lossstowed");
+
+  CuAssertTrue(tc, vessel_delete_persistence(LOSS_SHIP));
+  memset(ship, 0, sizeof(*ship));
+  conn = saved_conn;
+  mysql_available = saved_mysql_available;
+  mysql_close(connection);
+}
+
 void Test_vessel_rename_costs_a_tenth_of_her_value(CuTest *tc)
 {
   struct loss_harbor harbor;

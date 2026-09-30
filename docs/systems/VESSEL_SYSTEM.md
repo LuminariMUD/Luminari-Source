@@ -1469,7 +1469,9 @@ until then no hull has any.
   `stowed = 1`. `vedit_find_free_slot()`, `vessel_owned_hull_count()`,
   `shiplist`, and `shippurge` still see her; permanent removal of her owner
   purges her. Boot restores her in the world at her saved location and
-  `vessel_restow()` takes her out again.
+  `vessel_restow()` takes her out again. The runtime and weapon saves accept
+  her, and `save_all_vessels()` saves stowed hulls with the fleet, so a
+  failed save when she is stowed is retried at the next full save.
 - Loss (decision D3): `vessel_sink()` credits the victor's crew, settles
   `vessel_insurance_payout()` (the class share of `vessel_hull_price()`, 75%
   for ship, transport, and boat and 50% for the rest, 90% when an unowned

@@ -1638,8 +1638,8 @@ Decided while building S5:
 - A stowed hull is `stowed` with `active` FALSE rather than a new check inside
   `is_valid_ship()`: every contact, tick, target, and command already passes an inactive slot by,
   while `vedit_find_free_slot()` skips a stowed one so her slot stays hers. Saving goes through the
-  in-world path (`vessel_save_one()`, now shared with `save_all_vessels()`), with `active` raised
-  for the save.
+  in-world path (`vessel_save_one()`, now shared with `save_all_vessels()`, which saves stowed
+  hulls too).
 - D2 retune. Stamina lengthened the duel: the harness captain circles her enemy at 7.5 rooms, which
   needs about 70% of a frigate's turn rate every tick (as in Duris), so an untrained crew (500
   stamina) runs a deficit within minutes. With S4's reloads the median rose from 431 s to 521 s

@@ -415,7 +415,7 @@ bool vessel_db_save_weapons(struct greyhawk_ship_data *ship)
   struct greyhawk_ship_slot *slot;
   int i;
 
-  if (!mysql_available || conn == NULL || !is_valid_ship(ship))
+  if (!mysql_available || conn == NULL || (!is_valid_ship(ship) && !ship->stowed))
   {
     return FALSE;
   }
@@ -555,7 +555,7 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
   int length;
   int i;
 
-  if (!mysql_available || conn == NULL || !is_valid_ship(ship))
+  if (!mysql_available || conn == NULL || (!is_valid_ship(ship) && !ship->stowed))
   {
     return FALSE;
   }
@@ -1646,8 +1646,9 @@ bool vessel_save_one(struct greyhawk_ship_data *ship)
 /**
  * Save all vessel states to database.
  *
- * Iterates through the greyhawk_ships array and saves every valid ship.
- * Should be called at shutdown and periodically during auto-save.
+ * Iterates through the greyhawk_ships array and saves every valid ship and
+ * every stowed hull, so a failed save is retried. Should be called at
+ * shutdown and periodically during auto-save.
  */
 bool save_all_vessels(void)
 {
@@ -1670,7 +1671,7 @@ bool save_all_vessels(void)
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
     ship = &greyhawk_ships[i];
-    if (!is_valid_ship(ship))
+    if (!is_valid_ship(ship) && !ship->stowed)
     {
       continue;
     }
