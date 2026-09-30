@@ -895,9 +895,14 @@ elif [[ "$acceptance_mode" == raider ]]; then
       fail "the raider session did not report '$expected_text'"
   done
 
-  # Raiders are never kept: the restart retires the one left at sea.
+  # Raiders are never kept: the restart retires the one left at sea. The
+  # port opens before the world has loaded, so wait for boot to report it.
   stop_development_mud || fail "the development MUD did not stop"
   start_server_without_login || fail "the development MUD did not restart"
+  for ((attempt = 0; attempt < 600; attempt++)); do
+    grep -Fq 'Retired 1 raider restored by the restart' "$server_log" && break
+    sleep 0.1
+  done
   grep -Fq 'Retired 1 raider restored by the restart' "$server_log" ||
     fail "the restart did not retire the raider left at sea"
   raider_runtime_count=$(database_query "
