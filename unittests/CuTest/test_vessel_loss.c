@@ -388,6 +388,9 @@ void Test_vessel_removed_players_stowed_hulls_are_purged(CuTest *tc)
   saved_mysql_available = mysql_available;
   conn = connection;
   mysql_available = TRUE;
+  /* Boot adds the owner column; the CI test database starts from the
+   * master schema alone. */
+  vessel_ownership_ensure_schema();
 
   /* A wreck in the registry whose owner is deleted could never be
    * summoned again: her slot is freed. */

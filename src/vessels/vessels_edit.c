@@ -1041,7 +1041,7 @@ ACMD(do_shipbuy)
   }
 
   two_arguments(argument, arg, sizeof(arg), mode, sizeof(mode));
-  if (!*arg || (*mode && str_cmp(mode, "trade")))
+  if (!*arg || (*mode && str_cmp(mode, "trade") != 0))
   {
     send_to_char(ch, "Usage: shipbuy <id> [trade]. See 'shipbrowse' for the catalog.\r\n");
     return;
