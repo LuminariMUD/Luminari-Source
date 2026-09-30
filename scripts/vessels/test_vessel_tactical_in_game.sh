@@ -846,8 +846,8 @@ elif [[ "$acceptance_mode" == loss ]]; then
     'PASS: the retired SHIPINSURE command is gone.' \
     'was refused an able gunner and hired a green bosun' \
     'PASS: the first christening was free and the rename cost 60 gold.' \
-    'PASS: summoned from the seaport, the boat left the east dock at once' \
-    'PASS: traded in at the seaport, she became the warship design' \
+    'PASS: summoned to the east dock, the boat left the seaport at once' \
+    'PASS: traded in at the east dock, she became the warship design' \
     'PASS: the vessel loss check completed and purged all temporary hulls'; do
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-loss.log" ||
       fail "the loss session did not report '$expected_text'"

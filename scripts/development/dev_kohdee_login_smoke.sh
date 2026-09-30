@@ -2736,9 +2736,10 @@ proc run_vessel_loss_check {warship_id requested_character} {
   set output [run_game_command "shipinsure"]
   require_game_output $output "Huh!?!" "retired insurance command"
 
-  # A boat launched at the harbor's east dock and deeded to a mortal captain.
-  set output [run_game_command "goto 1000390"]
-  require_game_output $output "Current Location  : (-62, 82)" "harbor staging"
+  # A boat launched at the (-66, 92) seaport, berthed, and deeded to a
+  # mortal captain.
+  set output [run_game_command "goto -66 92"]
+  require_game_output $output "Current Location  : (-66, 92)" "seaport staging"
   set output [run_game_command "vedit new 1 $boat_name"]
   if {![regexp {Created Boat prototype ([0-9]+):} $output ignored prototype_id]} {
     fail "could not read the loss-check boat prototype id"
@@ -2779,11 +2780,11 @@ proc run_vessel_loss_check {warship_id requested_character} {
   set output [run_game_command "shipchristen Losscheck Tern"]
   require_game_output $output "You pay the registry 60 gold." "rename fee"
 
-  # From the (-66, 92) seaport her captain summons her; she leaves the east
-  # dock at once and makes port after a boat's half mud hour.
+  # From the harbor's east dock her captain summons her; she leaves the
+  # seaport at once and makes port after a boat's half mud hour.
   set ::spawn_id $primary_session
-  set output [run_game_command "goto -66 92"]
-  require_game_output $output "Current Location  : (-66, 92)" "seaport staging"
+  set output [run_game_command "goto 1000390"]
+  require_game_output $output "Current Location  : (-62, 82)" "harbor staging"
   run_game_command "trans $captain"
   set ::spawn_id $secondary_session
   set output [run_game_command "shipsummon"]
@@ -2804,8 +2805,8 @@ proc run_vessel_loss_check {warship_id requested_character} {
   set output [wait_for_game_output 50 "Losscheck Tern arrives at port."]
   require_game_output $output "Losscheck Tern arrives at port." "summoned arrival"
 
-  # Traded in at the seaport, she is rebuilt as the warship design and keeps
-  # her name and crew.
+  # Traded in at the east dock, she is rebuilt as the warship design and
+  # keeps her name and crew.
   set output [run_game_command "shipbuy $warship_id trade"]
   require_game_output $output "The shipwrights take Losscheck Tern in trade for 540 gold" \
     "trade-in credit"
@@ -2835,8 +2836,8 @@ proc run_vessel_loss_check {warship_id requested_character} {
   puts "\nPASS: the retired SHIPINSURE command is gone."
   puts "PASS: $captain was refused an able gunner and hired a green bosun, whose experience SHIPCREW showed."
   puts "PASS: the first christening was free and the rename cost 60 gold."
-  puts "PASS: summoned from the seaport, the boat left the east dock at once and made port in 37 seconds."
-  puts "PASS: traded in at the seaport, she became the warship design with her name, owner, and crew."
+  puts "PASS: summoned to the east dock, the boat left the seaport at once and made port in 37 seconds."
+  puts "PASS: traded in at the east dock, she became the warship design with her name, owner, and crew."
   puts "PASS: the vessel loss check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }
 
