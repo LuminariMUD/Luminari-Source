@@ -137,6 +137,29 @@ Each room table contains:
 - `c`: optional directional connector bitmask, ordered N/E/S/W/NW/NE/SE/SW
 - `sp`: optional special-exit markers string using `u`, `d`, `i`, `o`
 
+### Vessel State
+
+Set only while the character is aboard a vessel; ashore every string, table, and array is empty
+and every number zero. The formats are in
+[VESSEL_SYSTEM.md](VESSEL_SYSTEM.md#operator-commands-phases-09-14-15-and-16).
+
+| Variable | Type | Description |
+| -- | -- | -- |
+| `SHIP_NAME` | String | Vessel name |
+| `SHIP_ID` | String | Two-letter contact ID |
+| `SHIP_X`, `SHIP_Y`, `SHIP_Z` | Number | Wilderness coordinates and altitude or depth |
+| `SHIP_HEADING` | Number | Heading in degrees |
+| `SHIP_SPEED` | Number | Speed |
+| `SHIP_HULL`, `SHIP_HULL_MAX` | Number | Internal structure, summed over the four arcs |
+| `SHIP_STATUS` | String | `sound`, `battered`, `crippled`, or `sinking` |
+| `SHIP_ARMOR`, `SHIP_INTERNAL` | Table | Armor and internal structure by arc, current and maximum |
+| `SHIP_SAIL`, `SHIP_SAIL_MAX` | Number | Sail condition |
+| `SHIP_RUDDER`, `SHIP_RUDDER_MAX` | Number | Rudder condition |
+| `SHIP_STAMINA`, `SHIP_STAMINA_MAX` | Number | Crew stamina |
+| `SHIP_TARGET` | String | ID of the locked contact, or empty |
+| `SHIP_WEAPONS` | Array | Mounted weapons: slot, name, arc, ammo, ready, damage |
+| `SHIP_CONTACTS` | Array | Nearest contacts: ID, name, range, bearing, arc |
+
 ### Client Configuration and Capabilities
 
 | Variable | Type | Description |

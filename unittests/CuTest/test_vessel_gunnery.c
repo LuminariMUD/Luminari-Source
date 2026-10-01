@@ -710,3 +710,109 @@ void Test_vessel_mind_blast_stuns_the_crew(CuTest *tc)
 
   gunnery_deck_end(&deck);
 }
+
+/* MSDP structure markers, for the client data a gunner's client expects */
+#define MSDP_V "\001"
+#define MSDP_L "\002"
+#define MSDP_TO "\003"
+#define MSDP_TC "\004"
+#define MSDP_AO "\005"
+#define MSDP_AC "\006"
+
+void Test_vessel_msdp_reports_condition_weapons_and_contacts(CuTest *tc)
+{
+  struct gunnery_deck deck;
+  struct greyhawk_ship_data *ship;
+  MSDP_t **msdp;
+  int variable;
+
+  /* The Gull is locked on the Tern with her bow armor and port structure
+   * battered, her sails and rudder hurt, and her crew tiring; her port
+   * ballista has fired, her starboard one is disabled, and she carries a
+   * ram, which is no weapon. */
+  ship = gunnery_deck_begin(tc, &deck);
+  msdp = deck.descriptor.pProtocol->pVariables;
+  ship->lock_target = GUNNERY_SHIP_B;
+  ship->farmor = 20;
+  ship->pinternal = 9;
+  ship->mainsail = 100;
+  ship->turnrate = 15;
+  ship->stamina_spent = 120.5;
+  ship->slot[1].ammo = 29;
+  ship->slot[1].timer = 10;
+  ship->slot[2].damage = 30;
+  ship->slot[3].type = VESSEL_SLOT_EQUIPMENT;
+  ship->slot[3].item = VESSEL_EQUIPMENT_RAM;
+
+  vessel_msdp_update(&deck.gunner.ch);
+  CuAssertStrEquals(tc, "SA", msdp[eMSDP_SHIP_ID]->pValueString);
+  CuAssertStrEquals(tc, "SB", msdp[eMSDP_SHIP_TARGET]->pValueString);
+  CuAssertStrEquals(tc,
+                    MSDP_TO MSDP_V
+                    "fore" MSDP_L MSDP_TO MSDP_V "CURRENT" MSDP_L "20" MSDP_V "MAX" MSDP_L
+                    "32" MSDP_TC MSDP_V "port" MSDP_L MSDP_TO MSDP_V "CURRENT" MSDP_L "40" MSDP_V
+                    "MAX" MSDP_L "40" MSDP_TC MSDP_V "rear" MSDP_L MSDP_TO MSDP_V "CURRENT" MSDP_L
+                    "24" MSDP_V "MAX" MSDP_L "24" MSDP_TC MSDP_V "starboard" MSDP_L MSDP_TO MSDP_V
+                    "CURRENT" MSDP_L "40" MSDP_V "MAX" MSDP_L "40" MSDP_TC MSDP_TC,
+                    msdp[eMSDP_SHIP_ARMOR]->pValueString);
+  CuAssertStrEquals(tc,
+                    MSDP_TO MSDP_V "fore" MSDP_L MSDP_TO MSDP_V "CURRENT" MSDP_L "14" MSDP_V
+                                   "MAX" MSDP_L "14" MSDP_TC MSDP_V "port" MSDP_L MSDP_TO MSDP_V
+                                   "CURRENT" MSDP_L "9" MSDP_V "MAX" MSDP_L "17" MSDP_TC MSDP_V
+                                   "rear" MSDP_L MSDP_TO MSDP_V "CURRENT" MSDP_L "8" MSDP_V
+                                   "MAX" MSDP_L "8" MSDP_TC MSDP_V "starboard" MSDP_L MSDP_TO MSDP_V
+                                   "CURRENT" MSDP_L "17" MSDP_V "MAX" MSDP_L "17" MSDP_TC MSDP_TC,
+                    msdp[eMSDP_SHIP_INTERNAL]->pValueString);
+  CuAssertIntEquals(tc, 100, msdp[eMSDP_SHIP_SAIL]->ValueInt);
+  CuAssertIntEquals(tc, 140, msdp[eMSDP_SHIP_SAIL_MAX]->ValueInt);
+  CuAssertIntEquals(tc, 15, msdp[eMSDP_SHIP_RUDDER]->ValueInt);
+  CuAssertIntEquals(tc, 20, msdp[eMSDP_SHIP_RUDDER_MAX]->ValueInt);
+  CuAssertIntEquals(tc, 379, msdp[eMSDP_SHIP_STAMINA]->ValueInt);
+  CuAssertIntEquals(tc, 500, msdp[eMSDP_SHIP_STAMINA_MAX]->ValueInt);
+  CuAssertStrEquals(tc,
+                    MSDP_AO MSDP_L MSDP_TO MSDP_V
+                    "SLOT" MSDP_L "0" MSDP_V "NAME" MSDP_L "Large Ballista" MSDP_V "ARC" MSDP_L
+                    "fore" MSDP_V "AMMO" MSDP_L "30" MSDP_V "READY" MSDP_L "1" MSDP_V
+                    "DAMAGE" MSDP_L "0" MSDP_TC MSDP_L MSDP_TO MSDP_V "SLOT" MSDP_L "1" MSDP_V
+                    "NAME" MSDP_L "Large Ballista" MSDP_V "ARC" MSDP_L "port" MSDP_V "AMMO" MSDP_L
+                    "29" MSDP_V "READY" MSDP_L "0" MSDP_V "DAMAGE" MSDP_L
+                    "0" MSDP_TC MSDP_L MSDP_TO MSDP_V "SLOT" MSDP_L "2" MSDP_V "NAME" MSDP_L
+                    "Large Ballista" MSDP_V "ARC" MSDP_L "starboard" MSDP_V "AMMO" MSDP_L
+                    "30" MSDP_V "READY" MSDP_L "0" MSDP_V "DAMAGE" MSDP_L "30" MSDP_TC MSDP_AC,
+                    msdp[eMSDP_SHIP_WEAPONS]->pValueString);
+  CuAssertStrEquals(tc,
+                    MSDP_AO MSDP_L MSDP_TO MSDP_V
+                    "ID" MSDP_L "SB" MSDP_V "NAME" MSDP_L "the Tern" MSDP_V "RANGE" MSDP_L
+                    "8.0" MSDP_V "BEARING" MSDP_L "270" MSDP_V "ARC" MSDP_L "port" MSDP_TC MSDP_AC,
+                    msdp[eMSDP_SHIP_CONTACTS]->pValueString);
+
+  /* A GMCP-only client gets the same contacts as JSON in the MSDP package. */
+  deck.descriptor.pProtocol->bGMCP = bool_t_true;
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, MSDPSend(&deck.descriptor, eMSDP_SHIP_CONTACTS));
+  CuAssertTrue(tc, strstr(deck.output, "MSDP {\"SHIP_CONTACTS\":[{\"ID\":\"SB\",\"NAME\":"
+                                       "\"the Tern\",\"RANGE\":\"8.0\",\"BEARING\":\"270\","
+                                       "\"ARC\":\"port\"}]}") != NULL);
+
+  /* Ashore, each of them empties and goes out to the client (the older
+   * position and hull variables are tested in test_transport_production.c). */
+  for (variable = eMSDP_SHIP_ID; variable <= eMSDP_SHIP_CONTACTS; variable++)
+  {
+    msdp[variable]->bDirty = false;
+  }
+  IN_ROOM(&deck.gunner.ch) = NOWHERE;
+  vessel_msdp_update(&deck.gunner.ch);
+  for (variable = eMSDP_SHIP_ID; variable <= eMSDP_SHIP_CONTACTS; variable++)
+  {
+    CuAssertTrue(tc, msdp[variable]->bDirty);
+    if (msdp[variable]->pValueString != NULL)
+    {
+      CuAssertStrEquals(tc, "", msdp[variable]->pValueString);
+    }
+    else
+    {
+      CuAssertIntEquals(tc, 0, msdp[variable]->ValueInt);
+    }
+  }
+
+  gunnery_deck_end(&deck);
+}

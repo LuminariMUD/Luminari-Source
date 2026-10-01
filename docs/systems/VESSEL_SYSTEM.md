@@ -795,23 +795,37 @@ runtime write fails, it restores the prior condition instead of presenting a
 RAM-only repair.
 
 Native MSDP is the vessel client contract for this release. A client enables
-Telnet option 69 and uses `REPORT` for `SHIP_NAME`, `SHIP_X`, `SHIP_Y`,
-`SHIP_Z`, `SHIP_HEADING`, `SHIP_SPEED`, `SHIP_HULL`, `SHIP_HULL_MAX`, and
-`SHIP_STATUS`. `src/vessels/vessels_admin.c` refreshes them on the vessel tick, and
-the normal MSDP update sends each reported value when it changes. Clients can
-render gauges without polling.
+Telnet option 69 and uses `REPORT` for any of the vessel variables below.
+`src/vessels/vessels_admin.c` refreshes them on the vessel tick, and the normal
+MSDP update sends each reported value when it changes, so a client can draw
+gauges, a weapons panel, and a contact plot without polling.
 
-When a character leaves a vessel, the server sends an explicit empty state:
-the two strings become empty and all seven numbers become zero. This prevents
-a client from continuing to display a stale vessel. `SHIP_HULL` and
-`SHIP_HULL_MAX` are the sums of the four internal-structure sections, while
-`SHIP_STATUS` is `sound`, `battered`, `crippled`, or `sinking`.
+| Variable | Value |
+| -- | -- |
+| `SHIP_NAME`, `SHIP_ID` | The vessel's name and two-letter contact ID |
+| `SHIP_X`, `SHIP_Y`, `SHIP_Z` | Wilderness coordinates and altitude or depth |
+| `SHIP_HEADING`, `SHIP_SPEED` | Heading in degrees and speed, as `shipstatus` shows them |
+| `SHIP_HULL`, `SHIP_HULL_MAX` | The sums of the four internal-structure sections |
+| `SHIP_STATUS` | `sound`, `battered`, `crippled`, or `sinking` |
+| `SHIP_ARMOR`, `SHIP_INTERNAL` | Tables keyed `fore`, `port`, `rear`, and `starboard`, each holding `CURRENT` and `MAX` |
+| `SHIP_SAIL`, `SHIP_SAIL_MAX`, `SHIP_RUDDER`, `SHIP_RUDDER_MAX` | Sail and rudder condition |
+| `SHIP_STAMINA`, `SHIP_STAMINA_MAX` | Crew stamina left (negative in deficit) and when rested |
+| `SHIP_TARGET` | The ID of the contact the guns are locked on, or empty |
+| `SHIP_WEAPONS` | One table per mounted weapon, in slot order: `SLOT`, `NAME`, `ARC`, `AMMO`, `READY` (1 when `shipstatus` says ready: undamaged, rounds left, reloaded), and `DAMAGE` (0-100: disabled from 1, destroyed at 100) |
+| `SHIP_CONTACTS` | The `contacts` list, the nearest 20 first: one table each with `ID`, `NAME`, `RANGE` (rooms, one decimal), `BEARING` (degrees), and `ARC` |
 
-The general protocol layer contains experimental GMCP support, but it is not
-an equivalent vessel interface and is not part of this release contract.
-Future GMCP vessel work must define and test a valid JSON package or
-standards-compliant MSDP-over-GMCP mapping; the old unquoted
-`MSDP.<variable> <value>` fallback is not accepted as vessel support.
+An `ARC` value is one of the arc tables' keys, so a client can show the armor
+a weapon or contact faces. An empty array (an unarmed hull, an empty sea) is
+an empty string, as `GROUP` is. When a character leaves a vessel, the server
+sends an explicit empty state: every string, table, and array becomes empty
+and every number zero, so a client does not go on displaying a stale vessel.
+
+A client that negotiates GMCP but not native MSDP receives the same values as
+strict JSON in the `MSDP` GMCP package (see
+[MSDP Variables](MSDP_VARIABLES.md#wire-encodings)): tables become objects and
+arrays become arrays. The old unquoted `MSDP.<variable> <value>` fallback is
+not accepted as vessel support, and a separate GMCP ship package is not part
+of this release contract.
 
 `vesseldebug encounter` is an acceptance hook, not a parallel spawner. It
 advances the cadence counter and immediately invokes the same production
@@ -2374,6 +2388,7 @@ and the trigger was removed.
 | `scripts/vessels/test_vessel_rules_in_game.sh` | Two-character shipyard, contact-ID, gunnery, hull-level, hull-cap, and bounty gate; delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_loss_in_game.sh` | Two-character crew hiring, rename fee, summons, and trade-in gate; delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_economy_in_game.sh` | Two-character contraband, customs, sale modifier, prize money, and renown gate; delegates to the shared tactical harness |
+| `scripts/vessels/test_vessel_client_in_game.sh` | Native MSDP client-data gate at sea and ashore; delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_hunter_in_game.sh` | Reversible Kohdee HUNTED bounty-hunter encounter gate |
 | `scripts/vessels/test_vessel_merchant_in_game.sh` | Reversible NPC merchant shipping gate |
 | `scripts/vessels/run_vessel_ferry_soak.sh` | Development ferry soak runner with database, process, and Kohdee samples |

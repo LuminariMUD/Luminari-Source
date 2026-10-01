@@ -565,15 +565,27 @@ typedef enum
   eMSDP_WILDERNESS_GRAPHIC_MAP, /**< Structured wilderness map data for graphical clients */
 
   /* Vessel state (vessels system; only set while aboard a ship) */
-  eMSDP_SHIP_NAME,     /**< Name of the vessel the character is aboard */
-  eMSDP_SHIP_X,        /**< Vessel wilderness X coordinate */
-  eMSDP_SHIP_Y,        /**< Vessel wilderness Y coordinate */
-  eMSDP_SHIP_Z,        /**< Vessel altitude/depth */
-  eMSDP_SHIP_HEADING,  /**< Vessel heading in degrees */
-  eMSDP_SHIP_SPEED,    /**< Vessel current speed */
-  eMSDP_SHIP_HULL,     /**< Vessel remaining hull structure */
-  eMSDP_SHIP_HULL_MAX, /**< Vessel maximum hull structure */
-  eMSDP_SHIP_STATUS,   /**< Vessel damage band (sound/battered/crippled/sinking) */
+  eMSDP_SHIP_NAME,        /**< Name of the vessel the character is aboard */
+  eMSDP_SHIP_X,           /**< Vessel wilderness X coordinate */
+  eMSDP_SHIP_Y,           /**< Vessel wilderness Y coordinate */
+  eMSDP_SHIP_Z,           /**< Vessel altitude/depth */
+  eMSDP_SHIP_HEADING,     /**< Vessel heading in degrees */
+  eMSDP_SHIP_SPEED,       /**< Vessel current speed */
+  eMSDP_SHIP_HULL,        /**< Vessel remaining hull structure */
+  eMSDP_SHIP_HULL_MAX,    /**< Vessel maximum hull structure */
+  eMSDP_SHIP_STATUS,      /**< Vessel damage band (sound/battered/crippled/sinking) */
+  eMSDP_SHIP_ID,          /**< Vessel two-letter contact ID */
+  eMSDP_SHIP_TARGET,      /**< ID of the contact the guns are locked on, or empty */
+  eMSDP_SHIP_ARMOR,       /**< Armor by arc, current and maximum (table) */
+  eMSDP_SHIP_INTERNAL,    /**< Internal structure by arc, current and maximum (table) */
+  eMSDP_SHIP_SAIL,        /**< Sail condition */
+  eMSDP_SHIP_SAIL_MAX,    /**< Maximum sail condition */
+  eMSDP_SHIP_RUDDER,      /**< Rudder condition */
+  eMSDP_SHIP_RUDDER_MAX,  /**< Maximum rudder condition */
+  eMSDP_SHIP_STAMINA,     /**< Crew stamina left; negative in deficit */
+  eMSDP_SHIP_STAMINA_MAX, /**< Crew stamina when rested */
+  eMSDP_SHIP_WEAPONS,     /**< Mounted weapons (array of tables) */
+  eMSDP_SHIP_CONTACTS,    /**< The nearest contacts, as the contacts command (array of tables) */
 
   /* Client configuration and capabilities */
   eMSDP_CLIENT_ID,      /**< Client software name (configurable) */
