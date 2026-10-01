@@ -22,11 +22,11 @@ here records the merge.
 | S4 Weapons and gunnery | Merged `c8bab4576` (MR !9) | [Phase 4](vessels-ships-history.md#phase-4-s4-progress) |
 | S5 Crew, repair and loss | Merged `23a0726e4` (MR !10) | [Phase 5](vessels-ships-history.md#phase-5-s5-progress) |
 | S6 NPC raiders and AI | Merged `85914a03d` (MR !11) | [Phase 6](vessels-ships-history.md#phase-6-s6-progress) |
-| S7 Rewards and economy | In progress on `feat/vessels-s7` (tag `vessels-s7-base` = `85914a03d`) | [Phase 7](#phase-7-s7-progress) |
+| S7 Rewards and economy | In review: MR from `feat/vessels-s7`, tag `vessels-s7` | [Phase 7](#phase-7-s7-progress) |
 | S8 Client data | Not started | [Still to build](#design-values-still-to-build-s7-s8) |
 
 Production help is current through S6 (help sync plan `e067e0f57ed1`, 2026-10-01). S7 is in
-progress on `feat/vessels-s7` ([Phase 7](#phase-7-s7-progress)).
+review from `feat/vessels-s7` ([Phase 7](#phase-7-s7-progress)); its help syncs after the merge.
 
 ## Working a step
 
@@ -200,7 +200,7 @@ new `src/vessels/vessels_rewards.c`; contraband, customs and the sale modifiers 
 | Ship Damage Control, an epic feat of 5 ranks | Done | `FEAT_SHIP_DAMAGE_CONTROL`; `vessel_damage_control()` in `vessel_damage_hull()` and `vessel_damage_sail()` |
 | Contraband: the flag and buying renown on `trade_commodities`, three goods each stocked at one port, the buying gates; customs at lawful ports on arrival | Done | `trade_commodities.contraband_renown` (Phase 23); `vessels_contraband_content.sql`; `do_market()`, `do_cargobuy()`, `vessel_customs_inspection()` from `vessel_update_port_berth()` |
 | Cargo sales: SEADOG +10%, neutral colors -10%, warships -40% | Done | `vessel_cargo_sale_factor()` in `do_cargosell()` |
-| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character economy gate, the existing gates, local CI | In progress | SHIPRENOWN (new), SHIPHIRE, MARKET (CONTRABAND, CUSTOMS, SMUGGLING), PLUNDER, SHIPBROWSE, SHIPFIRE (verifier: 34 entries, 91 keywords, 40 content checks); `test_vessel_rewards.c`; `scripts/vessels/test_vessel_economy_in_game.sh` (tactical harness `--economy`, login helper `--vessel-economy-check` and `--vessel-customs-check`); results below |
+| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character economy gate, the existing gates, local CI | Done | SHIPRENOWN (new), SHIPHIRE, MARKET (CONTRABAND, CUSTOMS, SMUGGLING), PLUNDER, SHIPBROWSE, SHIPFIRE (verifier: 34 entries, 91 keywords, 40 content checks); `test_vessel_rewards.c`; `scripts/vessels/test_vessel_economy_in_game.sh` (tactical harness `--economy`, login helper `--vessel-economy-check` and `--vessel-customs-check`); results below |
 
 Interpretations decided while planning S7:
 
@@ -281,6 +281,30 @@ Decided while building S7:
   of one, so an owner's other hulls at sea in sight share with the victor, as a grouped Duris
   captain's ships in contact would; the gate's Kohdee leaves his group before the fight so that
   only the victor shares.
+- Found by `make test-all`: the SQL interpolation check counted the new formatted stock lookup
+  over `vessels_trade.c`'s baseline; it is a prepared statement now (`a2e8bb218`).
+- Found by the local CI matrix: CI's test database starts from `master_schema.sql`, whose
+  `ship_runtime_state` lacked `renown`, so the legacy snapshot load test failed in every test job;
+  the column is in the master schema now, as S5 added its own. clang-tidy read
+  `vessel_crew_hire_renown()`'s defensive range check as a hint that `shiphire`'s validated
+  position might be out of range, and flagged `atoi` in the rewards test (`c404b1690`).
+
+Verification (2026-10-01): `make test-all` with the database cases on (test MariaDB rebuilt from
+`master_schema.sql` plus every `apply` component) passes 1,963 CuTest cases (8 new in
+`test_vessel_rewards.c`, and new cases in the raider, weapon, crew, and innate-feat tests) and the
+protocol harness; the legacy snapshot test also passes on a database built from the master schema
+alone, as CI's is. Phase 23 applies alone to a fresh master schema, verifies, rolls back, and
+reapplies; the contraband content applies twice to the same three goods and three stock rows,
+verifies, and rolls back. The vessel help verifier passes (34 entries, 91 keywords, 40 content
+checks). All 19 live gates pass inside the private namespace on the installed build of
+`9bc23e5a1`, each campaign and merchant run on a fresh reload of the development dump: harbor
+merchant 27 s, campaign 116 s, Vailand merchant 18 s, builder 45 s, gunnery 72 s, tactical 324 s,
+lookout 22 s, boarding 49 s, narrative 21 s, rules 34 s, events 42 s, movement 104 s, loss 75 s,
+damage 622 s, derelict 31 s, hunter 80 s, frontier 223 s, raider 176 s, and the new economy gate
+226 s (customs took all four tomes; Kohdee's warship won 25 renown and 40 gold of prize money). On
+the final build of `c404b1690` the loss (78 s) and economy (302 s) gates pass again after a fresh
+reload, and the local CI matrix (`scripts/ci/local/run.py --base gitlab/master`) passes all 33
+jobs (347 s).
 
 ## Estimate (remaining)
 
