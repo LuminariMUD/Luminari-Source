@@ -1117,6 +1117,38 @@ static bool restore_ship_connection(struct greyhawk_ship_data *ship,
 }
 
 /**
+ * Re-render each interior room's name and description from its template with
+ * the hull's current name, as a restore after a reboot would.
+ */
+void vessel_rename_interior(struct greyhawk_ship_data *ship)
+{
+  const struct room_template *template;
+  char text[MAX_STRING_LENGTH];
+  room_rnum room;
+  int i;
+
+  if (ship == NULL)
+  {
+    return;
+  }
+  for (i = 0; i < ship->num_rooms && i < MAX_SHIP_ROOMS; i++)
+  {
+    room = real_room(ship->room_vnums[i]);
+    template = resolve_room_template((enum ship_room_type)ship->room_templates[i]);
+    if (room == NOWHERE || template == NULL)
+    {
+      continue;
+    }
+    format_room_string(text, sizeof(text), template->name_format, ship->name);
+    free(world[room].name);
+    world[room].name = strdup(text);
+    format_room_string(text, sizeof(text), template->description_format, ship->name);
+    free(world[room].description);
+    world[room].description = strdup(text);
+  }
+}
+
+/**
  * Recreate a persisted dynamic interior in the runtime world array.
  *
  * The database stores stable VNUMs, room types, special-room assignments,

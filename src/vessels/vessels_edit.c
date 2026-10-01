@@ -1206,6 +1206,7 @@ ACMD(do_shipchristen)
   strlcpy(ship->name, name, sizeof(ship->name));
 
   vessel_refresh_hull_strings(ship, TRUE);
+  vessel_rename_interior(ship);
 
   save_ship_interior(ship);
   vessel_db_save_owner(ship);

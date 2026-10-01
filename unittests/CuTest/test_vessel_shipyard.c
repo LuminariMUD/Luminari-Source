@@ -290,6 +290,42 @@ void Test_vessel_hull_object_drops_fixture_glow_and_hum(CuTest *tc)
   top_of_zone_table = saved_top_of_zone_table;
 }
 
+void Test_vessel_rename_interior_follows_her_name(CuTest *tc)
+{
+  struct room_data rooms[1]; /* the bridge */
+  struct room_data *saved_world;
+  struct greyhawk_ship_data *ship;
+  room_rnum saved_top_of_world;
+
+  memset(rooms, 0, sizeof(rooms));
+  rooms[0].number = 300;
+  rooms[0].name = strdup("Starfall Survey Ship's Bridge");
+  rooms[0].description = strdup("The command center of Starfall Survey Ship.");
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = rooms;
+  top_of_world = 0;
+
+  shipyard_own_ships("Mira", 1);
+  ship = &greyhawk_ships[SHIPYARD_FIRST_SLOT];
+  ship->num_rooms = 1;
+  ship->room_vnums[0] = 300;
+  ship->room_templates[0] = ROOM_TYPE_BRIDGE;
+  strlcpy(ship->name, "Sea Wren", sizeof(ship->name));
+
+  /* Christened, her rooms carry her new name, not her old one. */
+  vessel_rename_interior(ship);
+  CuAssertTrue(tc, strstr(world[0].name, "Sea Wren") != NULL);
+  CuAssertTrue(tc, strstr(world[0].name, "Starfall") == NULL);
+  CuAssertTrue(tc, strstr(world[0].description, "Starfall") == NULL);
+
+  free(rooms[0].name);
+  free(rooms[0].description);
+  shipyard_own_ships("", 0);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+}
+
 void Test_vessel_owner_cap_config_is_clamped(CuTest *tc)
 {
   pid_t child;
