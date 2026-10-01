@@ -481,10 +481,10 @@ at anchor, and be under way again 13 seconds after `undock` weighs anchor.
 Cleanup purges both hulls and the temporary prototype and returns Kohdee to
 room 1204.
 
-The west Testing Dock (room 1000389) that the harbor provisioner expects is
-absent from the current world files, so the harbor provisioner cannot run in
-this checkout; the builder and movement checks stage at the east dock instead.
-On 2026-09-29 the gate passed in 107 seconds inside the private namespace
+The builder and movement checks stage at the east dock. Until 2026-10-01 the
+west Testing Dock (room 1000389) was missing from the development world files,
+so the harbor provisioner could not run; the harbor package now carries it
+beside the east dock and the provisioner restores it. On 2026-09-29 the gate passed in 107 seconds inside the private namespace
 described under the Vessel Rules Check, on source `9a8757fce` and installed
 SHA-256 `62418bedfd4072598e7a3b727ce4da3c80f0ccb8beb924393ec8bb118c1e1097`,
 together with the builder, tactical, lookout, boarding, narrative, rules, and
