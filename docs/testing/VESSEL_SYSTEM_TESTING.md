@@ -662,6 +662,10 @@ and `SHIP_CONTACTS` must begin with the target at range `2.0`, bearing `90`,
 on the `starboard` arc. In room 1204 every one of them must be sent empty or
 zero. Cleanup purges both hulls.
 
+On 2026-10-01 the gate passed in 43 seconds inside the private namespace
+described under the Vessel Rules Check, on source `1159a0e52`, and again in 28
+seconds in a batch where every other vessel gate passed on the same binary.
+
 ## Shared Harbor Merchant Loss Check
 
 The provisioner validates but deliberately does not sink its NPC merchant.
