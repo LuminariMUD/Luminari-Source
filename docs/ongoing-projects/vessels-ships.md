@@ -24,7 +24,7 @@ here records the merge.
 | S6 NPC raiders and AI | Merged `85914a03d` (MR !11) | [Phase 6](vessels-ships-history.md#phase-6-s6-progress) |
 | S7 Rewards and economy | Merged `cce9ff323` (MR !12) | [Phase 7](vessels-ships-history.md#phase-7-s7-progress) |
 | S8 Client data | Merged `2a4815b1a` (MR !13) | [Phase 8](vessels-ships-history.md#phase-8-s8-progress) |
-| S-immediate Luminari Web for S9 | Built and checked live; verification running | [S-immediate](#s-immediate-progress) |
+| S-immediate Luminari Web for S9 | In review: MR !14, tag `vessels-s-immediate` (base `vessels-s9-base` = `1e0f2f64c`) | [S-immediate](#s-immediate-progress) |
 | S9 Claude Code play tests | Not started: planned | [Phase 9](#phase-9-s9-progress) |
 | S10 Player guide | Not started | [Part 5](#part-5-implementation-sequence) |
 
@@ -145,7 +145,7 @@ ship data panel among them.
 
 ### S-immediate progress
 
-Built and checked live 2026-10-01; verification below. S-immediate makes sure the local Luminari
+In review (2026-10-01). S-immediate makes sure the local Luminari
 Web (`LOCAL_WEBCLIENT_PATH`: `/home/aiwithapex/projects/luminariweb`) has every client feature
 S9's chapters need, checks each one against the real game, and builds the ones missing. The client
 work is committed on the local branch `feat/ship-panel` in that checkout, from `main` at
@@ -266,7 +266,31 @@ the idle and connection limits are settings, not code. Kept: the not-aboard stat
 the tab would show a ship the character has left, and the fixtures, which the client's checklist
 requires before it claims a protocol feature.
 
-Verification: running.
+Verification (2026-10-01):
+
+- Client, `feat/ship-panel` at `70b80df`: `npm run lint` clean, `npm test` 352 passed,
+  `npm run build` passed.
+- Source: S-immediate changes no C, SQL or help, so `make test-all`, the SQL checks and the help
+  verifier were not rerun; the CI matrix's build and test jobs cover the code. On a fresh reload
+  of the development dump the harbor provisioner passed with the west dock restored (ferry fare
+  collected, named-water crossing, captain's channel, merchant), as did the Vailand campaign
+  provisioner and the test-character creation.
+- All 21 live gates passed in the namespace harness on the installed build (`bin/luminari`
+  SHA-256 `830a367d38e71761...`): merchant 41 s, campaign 149 s, Vailand merchant 168 s, builder
+  58 s, gunnery 82 s, tactical 371 s, lookout 22 s, boarding 53 s, narrative 21 s, rules 41 s,
+  events 71 s, movement 108 s, loss 79 s, damage 587 s, derelict 39 s, hunter 86 s, frontier
+  234 s, raider 202 s, economy 227 s, client 25 s. The hunter gate first failed: it stages its
+  target at the Testing Dock, which now berths the hull, and its 33-second wait for the 30-second
+  cast-off ran out on a host loaded by the CI matrix. It now waits 43 seconds, the Tcl checks'
+  grace (`e70d0f106`), and passed on the rerun.
+- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`, 33 jobs) passed on
+  `1726b48f2` in 298 s and again on the head handed to review.
+
+Hand-off: tag `vessels-s-immediate` and MR !14 from `feat/vessels-s9` (the plan commit
+`13679d5f6` and S-immediate's commits; range `vessels-s9-base..vessels-s-immediate`); the client
+branch is reviewed in its local checkout (`git log -p 41ced8a..feat/ship-panel`). Review fixes go
+on top, one commit each. S9 continues on `feat/vessels-s9` after the merge, with the S9 server,
+bridge and client left running as described above.
 
 ### Phase 9 (S9) progress
 
