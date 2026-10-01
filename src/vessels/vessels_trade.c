@@ -922,28 +922,21 @@ ACMD(do_vtradecheck)
  */
 static bool port_stocks(int port_vnum, int commodity_id)
 {
-  char query[MAX_STRING_LENGTH];
-  MYSQL_RES *result;
+  PREPARED_STMT *statement;
   bool stocked;
 
   if (!mysql_available || conn == NULL)
   {
     return FALSE;
   }
-  snprintf(query, sizeof(query),
-           "SELECT 1 FROM port_commodities WHERE port_vnum = %d AND commodity_id = %d", port_vnum,
-           commodity_id);
-  if (mysql_query(conn, query))
-  {
-    return FALSE;
-  }
-  result = mysql_store_result(conn);
-  if (result == NULL)
-  {
-    return FALSE;
-  }
-  stocked = mysql_num_rows(result) > 0;
-  mysql_free_result(result);
+  statement = mysql_stmt_create(conn);
+  stocked = statement != NULL &&
+            mysql_stmt_prepare_query(statement, "SELECT 1 FROM port_commodities "
+                                                "WHERE port_vnum = ? AND commodity_id = ?") &&
+            mysql_stmt_bind_param_int(statement, 0, port_vnum) &&
+            mysql_stmt_bind_param_int(statement, 1, commodity_id) &&
+            mysql_stmt_execute_prepared(statement) && mysql_stmt_fetch_row(statement);
+  mysql_stmt_cleanup(statement);
   return stocked;
 }
 
