@@ -2493,7 +2493,7 @@ and the trigger was removed.
 
 | VNUM | Purpose |
 | -- | -- |
-| Object 70002 | Current broken fixture (ITEM_GREYHAWK_SHIP, ship_index=0; see Known Issues) |
+| Object 70002 | Generic hull prototype: every hull is an instance, given its name, descriptions and ITEM_GREYHAWK_SHIP type at spawn and restore, without the fixture's glow and hum |
 | Room 70003 | Test vessel interior room |
 | Room 1000389 | Wilderness dock location at (-66, 92) |
 

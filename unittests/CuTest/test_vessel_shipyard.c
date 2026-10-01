@@ -240,6 +240,56 @@ void Test_vessel_spawn_report_is_staff_only(CuTest *tc)
   ProtocolDestroy(descriptor.pProtocol);
 }
 
+void Test_vessel_hull_object_drops_fixture_glow_and_hum(CuTest *tc)
+{
+  struct room_data rooms[2]; /* the dock, the hull's entrance */
+  struct zone_data zone;
+  struct room_data *saved_world;
+  struct zone_data *saved_zone_table;
+  struct greyhawk_ship_data *ship;
+  struct obj_data *hull;
+  room_rnum saved_top_of_world;
+  zone_rnum saved_top_of_zone_table;
+
+  memset(rooms, 0, sizeof(rooms));
+  memset(&zone, 0, sizeof(zone));
+  rooms[0].number = 100;
+  rooms[1].number = 200;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  world = rooms;
+  top_of_world = 1;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+
+  shipyard_own_ships("Mira", 1);
+  ship = &greyhawk_ships[SHIPYARD_FIRST_SLOT];
+  ship->location = 100;
+  ship->entrance_room = 200;
+  hull = create_obj();
+  SET_BIT_AR(GET_OBJ_EXTRA(hull), ITEM_GLOW);
+  SET_BIT_AR(GET_OBJ_EXTRA(hull), ITEM_HUM);
+  SET_BIT_AR(GET_OBJ_EXTRA(hull), ITEM_NORENT);
+
+  /* Placed, the hull is a boardable ship at her dock, without the generic
+   * object's glow and hum; its other flags stand. */
+  CuAssertTrue(tc, vessel_place_hull_object(ship, hull));
+  CuAssertIntEquals(tc, 0, IN_ROOM(hull));
+  CuAssertIntEquals(tc, ITEM_GREYHAWK_SHIP, GET_OBJ_TYPE(hull));
+  CuAssertTrue(tc, !OBJ_FLAGGED(hull, ITEM_GLOW));
+  CuAssertTrue(tc, !OBJ_FLAGGED(hull, ITEM_HUM));
+  CuAssertTrue(tc, OBJ_FLAGGED(hull, ITEM_NORENT));
+
+  extract_obj(hull);
+  shipyard_own_ships("", 0);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+}
+
 void Test_vessel_owner_cap_config_is_clamped(CuTest *tc)
 {
   pid_t child;
