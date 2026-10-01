@@ -1662,7 +1662,8 @@ Study sections 3.3.7 (rewards, renown, Ship Damage Control) and 3.3.9
 - Customs: `vessel_update_port_berth()` calls `vessel_customs_inspection()`
   when a hull sails into a port room from outside one. At a lawful port (not
   `vessel_piracy_wanted_port_is_open()`), for a player's hull, each lot of
-  contraband the port does not stock loses each unit with
+  contraband the port is known not to stock (a failed `port_stocks()` lookup
+  lets the lot pass) loses each unit with
   `vessel_customs_chance()` (`35 + units / 2 - sqrt(renown) / 5`, raised by
   `(100 - c) * (1 - load)`, at most 100, 5 when negative), load being cargo
   weight over capacity; the hold is then saved.

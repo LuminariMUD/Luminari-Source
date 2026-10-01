@@ -919,23 +919,29 @@ ACMD(do_vtradecheck)
 /**
  * Does the port stock this commodity: has it a supply row? Content alone
  * stocks contraband (study 3.3.9).
+ *
+ * @return 1 if it does, 0 if it does not, -1 if the lookup failed
  */
-static bool port_stocks(int port_vnum, int commodity_id)
+static int port_stocks(int port_vnum, int commodity_id)
 {
   PREPARED_STMT *statement;
-  bool stocked;
+  int stocked;
 
   if (!mysql_available || conn == NULL)
   {
-    return FALSE;
+    return -1;
   }
+  stocked = -1;
   statement = mysql_stmt_create(conn);
-  stocked = statement != NULL &&
-            mysql_stmt_prepare_query(statement, "SELECT 1 FROM port_commodities "
-                                                "WHERE port_vnum = ? AND commodity_id = ?") &&
-            mysql_stmt_bind_param_int(statement, 0, port_vnum) &&
-            mysql_stmt_bind_param_int(statement, 1, commodity_id) &&
-            mysql_stmt_execute_prepared(statement) && mysql_stmt_fetch_row(statement);
+  if (statement != NULL &&
+      mysql_stmt_prepare_query(statement, "SELECT COUNT(*) FROM port_commodities "
+                                          "WHERE port_vnum = ? AND commodity_id = ?") &&
+      mysql_stmt_bind_param_int(statement, 0, port_vnum) &&
+      mysql_stmt_bind_param_int(statement, 1, commodity_id) &&
+      mysql_stmt_execute_prepared(statement) && mysql_stmt_fetch_row(statement))
+  {
+    stocked = mysql_stmt_get_int(statement, 0) > 0 ? 1 : 0;
+  }
   mysql_stmt_cleanup(statement);
   return stocked;
 }
@@ -1241,7 +1247,8 @@ int vessel_customs_chance(int units, int renown, double load)
 /**
  * Customs: a lawful port, one outside pirate-cove waters, searches a
  * player's hull arriving from sea for the contraband it does not stock, and
- * confiscates each unit with vessel_customs_chance().
+ * confiscates each unit with vessel_customs_chance(). A lot whose stock
+ * lookup fails is let pass.
  */
 void vessel_customs_inspection(struct greyhawk_ship_data *ship, room_rnum port_room)
 {
@@ -1268,7 +1275,7 @@ void vessel_customs_inspection(struct greyhawk_ship_data *ship, room_rnum port_r
     def = commodity_by_id(ship->cargo[lot].commodity_id);
     units = ship->cargo[lot].quantity;
     if (def == NULL || def->contraband_renown <= 0 || units <= 0 ||
-        port_stocks(world[port_room].number, def->id))
+        port_stocks(world[port_room].number, def->id) != 0)
     {
       continue;
     }
@@ -1374,7 +1381,7 @@ ACMD(do_market)
     supply = port_supply(port_vnum, commodity_cache[i].id);
     price = vessel_commodity_price(commodity_cache[i].base_price, supply);
     contraband = commodity_cache[i].contraband_renown > 0;
-    if (contraband && !port_stocks(port_vnum, commodity_cache[i].id))
+    if (contraband && port_stocks(port_vnum, commodity_cache[i].id) != 1)
     {
       send_to_char(ch, "%-16s %7d %6s %6d  none (contraband)\r\n", commodity_cache[i].name,
                    commodity_cache[i].unit_weight, "-", price * TRADE_SELL_PERCENT / 100);
@@ -1400,7 +1407,7 @@ ACMD(do_market)
 static bool vessel_contraband_sold_to(struct char_data *ch, const struct greyhawk_ship_data *ship,
                                       const struct commodity_def *def, int port_vnum)
 {
-  if (!port_stocks(port_vnum, def->id))
+  if (port_stocks(port_vnum, def->id) != 1)
   {
     send_to_char(ch, "Nobody here will sell you %s.\r\n", def->name);
     return FALSE;

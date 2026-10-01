@@ -635,7 +635,8 @@ void Test_vessel_contraband_is_sold_where_stocked_and_seized_elsewhere(CuTest *t
   CuAssertStrEquals(tc, "0", value);
 
   /* Customs take every one of 140 forbidden tomes the port does not stock,
-   * and leave the poisons it does. */
+   * and leave the poisons it does; when its stock cannot be looked up, they
+   * take nothing. */
   ship->cargo[0].commodity_id = (int)strtol(tomes, NULL, 10);
   ship->cargo[0].quantity = 140;
   ship->cargo[1].commodity_id = (int)strtol(poisons, NULL, 10);
@@ -644,6 +645,14 @@ void Test_vessel_contraband_is_sold_where_stocked_and_seized_elsewhere(CuTest *t
            "INSERT INTO port_commodities (port_vnum, commodity_id, supply) VALUES (100, %s, 100)",
            poisons);
   CuAssertIntEquals(tc, 0, mysql_query(connection, query));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "ALTER TABLE port_commodities "
+                                            "CHANGE port_vnum port INT NOT NULL"));
+  vessel_customs_inspection(ship, 0);
+  CuAssertIntEquals(tc, 140, ship->cargo[0].quantity);
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "ALTER TABLE port_commodities "
+                                            "CHANGE port port_vnum INT NOT NULL"));
   vessel_customs_inspection(ship, 0);
   CuAssertIntEquals(tc, 0, ship->cargo[0].quantity);
   CuAssertIntEquals(tc, 0, ship->cargo[0].commodity_id);
