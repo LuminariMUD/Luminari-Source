@@ -571,9 +571,9 @@ void Test_vessel_contraband_is_sold_where_stocked_and_seized_elsewhere(CuTest *t
 
   /* Customs take every one of 140 forbidden tomes the port does not stock,
    * and leave the poisons it does. */
-  ship->cargo[0].commodity_id = atoi(tomes);
+  ship->cargo[0].commodity_id = (int)strtol(tomes, NULL, 10);
   ship->cargo[0].quantity = 140;
-  ship->cargo[1].commodity_id = atoi(poisons);
+  ship->cargo[1].commodity_id = (int)strtol(poisons, NULL, 10);
   ship->cargo[1].quantity = 3;
   snprintf(query, sizeof(query),
            "INSERT INTO port_commodities (port_vnum, commodity_id, supply) VALUES (100, %s, 100)",

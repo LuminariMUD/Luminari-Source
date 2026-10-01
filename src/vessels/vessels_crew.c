@@ -138,8 +138,8 @@ int vessel_crew_hire_cost(int position, int tier)
 }
 
 /**
- * Renown a hull needs before a hand of this tier signs on (study 3.3.5);
- * green hands need none.
+ * Renown a hull needs before a hand of this tier, of a known position, signs
+ * on (study 3.3.5); green hands need none.
  */
 int vessel_crew_hire_renown(int position, int tier)
 {
@@ -150,13 +150,7 @@ int vessel_crew_hire_renown(int position, int tier)
       {540, 1350}  /* quartermaster */
   };
 
-  if (position < 0 || position >= NUM_CREW_POSITIONS || tier <= CREW_TIER_GREEN ||
-      tier > CREW_TIER_VETERAN)
-  {
-    return 0;
-  }
-
-  return hire_renown[position][tier - CREW_TIER_ABLE];
+  return tier > CREW_TIER_GREEN ? hire_renown[position][tier - CREW_TIER_ABLE] : 0;
 }
 
 /**
