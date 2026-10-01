@@ -1049,8 +1049,10 @@ Calibration reference, DC for an untrained crew against a warship (frigate) targ
   `c = 35 + units / 2 - sqrt(renown) / 5`, raised by `(100 - c) * (1 - load / capacity)`, capped
   at 100, 5 if negative.
 - Cargo sales: SEADOG +10%, neutral colors -10%, warships -40%.
-- The MSDP additions (S8) are still to build: see
-  [vessels-ships.md](vessels-ships.md#design-values-still-to-build-s8).
+- MSDP adds `SHIP_ID`, `SHIP_TARGET`, `SHIP_ARMOR`, `SHIP_INTERNAL` (fore/port/rear/starboard,
+  current and maximum), `SHIP_SAIL`, `SHIP_SAIL_MAX`, `SHIP_RUDDER`, `SHIP_RUDDER_MAX`,
+  `SHIP_STAMINA`, `SHIP_STAMINA_MAX`, `SHIP_WEAPONS` (slot, name, arc, ammo, ready, damage) and
+  `SHIP_CONTACTS` (the contact list fields), keeping the existing variables.
 - Summon: `shipsummon` at a shipyard costs `0.1 gold * hull weight` and takes
   `50 / max(speed, 2)` mud hours for rafts and boats or `70 / max(speed - 20, 2)` for the rest,
   with the empty-hold maximum speed in Duris units, doubled from the wreck registry, capped at 60
@@ -1967,6 +1969,88 @@ MR !12 merged on 2026-10-01 as merge commit `cce9ff323` (branch kept); the S7 ve
 synced to production the same day (plan `83ce5db82aad`, 1 addition and 5 updates; its layer repair
 moved SHIPRENOWN to the catalog's place in `help.hlp`). S8 continues on `feat/vessels-s8` from the
 tag `vessels-s8-base` on that merge ([status in vessels-ships.md](vessels-ships.md#status)).
+
+### Phase 8 (S8) progress
+
+Branch `feat/vessels-s8` from the S7 merge commit `cce9ff323`. The annotated tag `vessels-s8-base`
+(pushed) marks that merge commit, so `git log vessels-s8-base..vessels-s8` lists only S8 commits;
+the first two close S7 (`8f8382f6f` regenerates `help.hlp` in the catalog's order, `a5849feb1`
+moves the Phase 7 record to the history). Hand-off: annotated tag `vessels-s8` at the head given
+to review and a GitLab merge request from `feat/vessels-s8`; review fixes go on top. Scope: the
+3.3.9 MSDP additions above. They join the nine existing vessel variables in `src/net/protocol.h`
+and `protocol.c`, and `vessel_msdp_update()` in `src/vessels/vessels_admin.c` fills them on the
+vessel tick.
+
+| Item | State | Where |
+| -- | -- | -- |
+| `SHIP_ID`, `SHIP_TARGET`, `SHIP_SAIL`, `SHIP_SAIL_MAX`, `SHIP_RUDDER`, `SHIP_RUDDER_MAX`, `SHIP_STAMINA`, `SHIP_STAMINA_MAX` | Done | `protocol.h`, `protocol.c`, `vessel_msdp_update()` |
+| `SHIP_ARMOR` and `SHIP_INTERNAL`: per arc, current and maximum | Done | as above, with `vessel_msdp_arcs()` |
+| `SHIP_WEAPONS` and `SHIP_CONTACTS`: one table per weapon and per contact | Done | as above, with `vessel_msdp_weapons()` and `vessel_msdp_contacts()` |
+| The explicit empty state ashore covers every new variable | Done | `vessel_msdp_update()` |
+| Help (MSDP) in `help.hlp` now and in the development database at merge, `VESSEL_SYSTEM.md`, `MSDP_VARIABLES.md`, unit tests, an actual-character client gate, the existing gates, local CI | Done (the database at merge) | MSDP in `help.hlp`; `Test_vessel_msdp_reports_condition_weapons_and_contacts` in `test_vessel_gunnery.c`; `scripts/vessels/test_vessel_client_in_game.sh` (tactical harness `--client`, login helper `--vessel-client-check`); results below |
+
+Interpretations decided while planning S8:
+
+- `SHIP_ID` is the hull's two-letter contact ID. `SHIP_TARGET` is the ID of the contact her guns
+  are locked on, empty when none. The gunnery tick already drops a lost lock, so the client data
+  reads the lock as `contacts` marks it, without `vessel_locked_target()`'s side effects.
+- `SHIP_ARMOR` and `SHIP_INTERNAL` are tables keyed by the arc names the game prints (`fore`,
+  `port`, `rear`, `starboard`, from `vessel_arc_name()`), each holding `CURRENT` and `MAX`, so a
+  client can look up the arc a weapon or contact names.
+- `SHIP_SAIL` and `SHIP_RUDDER` are the sail and rudder condition and their maximums, and
+  `SHIP_STAMINA` the crew stamina left, all as `shipstatus` shows them (stamina is negative in
+  deficit).
+- `SHIP_WEAPONS` holds one table per mounted weapon in slot order: `SLOT`, `NAME`, `ARC`, `AMMO`,
+  `READY`, and `DAMAGE`. `READY` is 1 exactly when `shipstatus` says ready (undamaged, rounds
+  left, reloaded); `DAMAGE` is the weapon's 0-100 (disabled from 1, destroyed at 100). Equipment
+  (ram, colors) is not a weapon.
+- `SHIP_CONTACTS` is the `contacts` list, the nearest 20 from the same `vessel_collect_contacts()`
+  call: `ID`, `NAME`, `RANGE` (rooms, one decimal), `BEARING` (degrees), and `ARC`.
+- An empty array is sent as an empty string, as `GROUP` is. Ashore, every new string, table, and
+  array is empty and every number 0, like the nine. All are refreshed on the 0.5 s vessel tick and
+  sent only when they change.
+
+Ablation (planning): dropped Duris's per-contact heading, speed, race, status, and targeting
+flags (the design value is the contact list's fields, and LuminariMUD's list has none of them),
+the list's direction column (it is the bearing) and locked mark (`SHIP_TARGET` carries it), the
+weapons' full magazines, equipment, cargo, and the crew sheet (outside the design value;
+`shipstatus`, `shipcrew` and the cargo commands show them), Duris's change hash (the MSDP setters
+already send only changed values), a GMCP ship package (requirement 4.6: native MSDP is the
+release contract, and the MSDP-over-GMCP mapping carries the same values), and a new source file
+(the update grows in place). Kept a live client gate, because only a real connection proves the
+tables' wire encoding; it reuses the gunnery gate's staging (a Starfall Bastion pair at
+(900, 225)) in a new login-helper mode on the raw MSDP connection.
+
+Decided while building S8:
+
+- The MSDP help entry covers the whole protocol, so the vessel help component
+  (`help_vessel_entries.sql`) does not own it. S8 changes it in `help.hlp` only; at merge its
+  body goes into the development database the way HEDIT writes it (an archive row in
+  `help_versions`, then the `help_entries` update), before the help sync.
+- `VESSEL_SYSTEM.md` said GMCP was no vessel interface. The protocol layer has carried the
+  standard MSDP-over-GMCP mapping since August (`MSDP_VARIABLES.md`, Wire Encodings), so a
+  GMCP-only client gets the same vessel variables as JSON in the `MSDP` package; the document
+  says so now, and the unit test checks `SHIP_CONTACTS` there. `MSDP_VARIABLES.md` had never
+  listed the vessel variables; it does now.
+- The unit test uses the gunnery deck fixture (an armed warship with a contact in sight); the
+  nine older variables keep their test in `test_transport_production.c`.
+
+Verification (2026-10-01): `make test-all` with the database cases on passes 1,964 CuTest cases
+(the new client-data case) and the protocol harness (32 cases). No SQL changed, and the vessel
+help component is unchanged. All 20 live gates pass inside the private namespace on the
+installed build of `1159a0e52`, the campaign and both merchant gates each on a fresh reload of
+the development dump and the rest after a further reload: harbor merchant 35 s, campaign 123 s, Vailand
+merchant 21 s, builder 49 s, gunnery 79 s, tactical 286 s, lookout 25 s, boarding 55 s,
+narrative 25 s, rules 37 s, events 46 s, movement 117 s, loss 79 s, damage 592 s, derelict
+35 s, hunter 81 s, frontier 231 s, raider 196 s, economy 222 s, and the new client gate 28 s
+(43 s on its first run, alone after a reload). The local CI matrix
+(`scripts/ci/local/run.py --base gitlab/master`) passes all 33 jobs on `1159a0e52` (1,784 s on a
+loaded host), the last code commit; only documentation follows it.
+
+MR !13 merged on 2026-10-01 as merge commit `2a4815b1a` (branch kept); its review found nothing
+actionable. The MSDP help body went into the development database the HEDIT way and was synced
+to production the same day (plan `86c842c5a62a`, 1 update). Every study step is merged
+([status in vessels-ships.md](vessels-ships.md#status)).
 
 ## Original estimate
 
