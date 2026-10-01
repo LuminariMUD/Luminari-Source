@@ -7,6 +7,7 @@
 
 #include "conf.h"
 #include "core/sysdep.h"
+#include <math.h> /* before utils.h, which defines log() as a macro */
 #include "core/structs.h"
 #include "core/utils.h"
 #include "core/comm.h"
@@ -281,17 +282,95 @@ static void wilderness_pool_usage(int *in_use, int *total)
   *total = size;
 }
 
+/* MSDP table content for one condition by arc: each arc name holds its CURRENT and MAX. */
+static void vessel_msdp_arcs(struct greyhawk_ship_data *ship,
+                             unsigned char *(*current)(struct greyhawk_ship_data *, int),
+                             unsigned char *(*maximum)(struct greyhawk_ship_data *, int),
+                             char *buffer, size_t size)
+{
+  char entry[128];
+  int arc;
+
+  buffer[0] = '\0';
+  for (arc = 0; arc < VESSEL_NUM_ARCS; arc++)
+  {
+    snprintf(entry, sizeof(entry), "%c%s%c%c%cCURRENT%c%d%cMAX%c%d%c", (char)MSDP_VAR,
+             vessel_arc_name(arc), (char)MSDP_VAL, (char)MSDP_TABLE_OPEN, (char)MSDP_VAR,
+             (char)MSDP_VAL, *current(ship, arc), (char)MSDP_VAR, (char)MSDP_VAL,
+             *maximum(ship, arc), (char)MSDP_TABLE_CLOSE);
+    strlcat(buffer, entry, size);
+  }
+}
+
+/* MSDP array content: one table per mounted weapon, in slot order. READY
+ * means what shipstatus calls ready: undamaged, rounds left, reloaded. */
+static void vessel_msdp_weapons(const struct greyhawk_ship_data *ship, char *buffer, size_t size)
+{
+  const struct greyhawk_ship_slot *slot;
+  const struct vessel_weapon_type *weapon;
+  char entry[256];
+  int i;
+
+  buffer[0] = '\0';
+  for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
+  {
+    slot = &ship->slot[i];
+    weapon = vessel_slot_weapon(slot);
+    if (weapon == NULL)
+    {
+      continue;
+    }
+    snprintf(entry, sizeof(entry),
+             "%c%c%cSLOT%c%d%cNAME%c%s%cARC%c%s%cAMMO%c%d%cREADY%c%d%cDAMAGE%c%d%c", (char)MSDP_VAL,
+             (char)MSDP_TABLE_OPEN, (char)MSDP_VAR, (char)MSDP_VAL, i, (char)MSDP_VAR,
+             (char)MSDP_VAL, weapon->name, (char)MSDP_VAR, (char)MSDP_VAL,
+             vessel_arc_name(slot->position), (char)MSDP_VAR, (char)MSDP_VAL, slot->ammo,
+             (char)MSDP_VAR, (char)MSDP_VAL,
+             slot->damage == 0 && slot->ammo > 0 && slot->timer <= 0, (char)MSDP_VAR,
+             (char)MSDP_VAL, slot->damage, (char)MSDP_TABLE_CLOSE);
+    strlcat(buffer, entry, size);
+  }
+}
+
+/* MSDP array content: the contacts list, one table per contact, nearest first. */
+static void vessel_msdp_contacts(const struct greyhawk_ship_data *ship, char *buffer, size_t size)
+{
+  struct vessel_contact contacts[VESSEL_CONTACT_DISPLAY_LIMIT];
+  const struct greyhawk_ship_data *contact_ship;
+  char entry[512];
+  int count;
+  int i;
+
+  buffer[0] = '\0';
+  count = MIN(vessel_collect_contacts(ship, contacts, VESSEL_CONTACT_DISPLAY_LIMIT),
+              VESSEL_CONTACT_DISPLAY_LIMIT);
+  for (i = 0; i < count; i++)
+  {
+    contact_ship = &greyhawk_ships[contacts[i].shipnum];
+    snprintf(entry, sizeof(entry), "%c%c%cID%c%s%cNAME%c%s%cRANGE%c%.1f%cBEARING%c%d%cARC%c%s%c",
+             (char)MSDP_VAL, (char)MSDP_TABLE_OPEN, (char)MSDP_VAR, (char)MSDP_VAL,
+             contact_ship->id, (char)MSDP_VAR, (char)MSDP_VAL,
+             contact_ship->name[0] ? contact_ship->name : "Unknown Vessel", (char)MSDP_VAR,
+             (char)MSDP_VAL, contacts[i].range, (char)MSDP_VAR, (char)MSDP_VAL, contacts[i].bearing,
+             (char)MSDP_VAR, (char)MSDP_VAL, vessel_arc_name(vessel_arc_toward(ship, contact_ship)),
+             (char)MSDP_TABLE_CLOSE);
+    strlcat(buffer, entry, size);
+  }
+}
+
 /**
  * Publish the character's vessel state to their client via native MSDP.
  *
  * Called from the vessel tick for every playing character. Client gauges
- * track position, heading, speed, and hull without polling, and receive an
- * explicit empty state after the character leaves a vessel.
+ * track position, heading, speed, condition by arc, sails, rudder, crew
+ * stamina, the weapons, the contacts, and the lock without polling, and
+ * receive an explicit empty state after the character leaves a vessel.
  */
 void vessel_msdp_update(struct char_data *ch)
 {
   struct greyhawk_ship_data *ship;
   struct descriptor_data *d;
+  char buffer[MAX_VARIABLE_LENGTH];
 
   if (ch == NULL || IS_NPC(ch) || (d = ch->desc) == NULL)
   {
@@ -310,6 +389,18 @@ void vessel_msdp_update(struct char_data *ch)
     MSDPSetNumber(d, eMSDP_SHIP_HULL, 0);
     MSDPSetNumber(d, eMSDP_SHIP_HULL_MAX, 0);
     MSDPSetString(d, eMSDP_SHIP_STATUS, "");
+    MSDPSetString(d, eMSDP_SHIP_ID, "");
+    MSDPSetString(d, eMSDP_SHIP_TARGET, "");
+    MSDPSetString(d, eMSDP_SHIP_ARMOR, "");
+    MSDPSetString(d, eMSDP_SHIP_INTERNAL, "");
+    MSDPSetNumber(d, eMSDP_SHIP_SAIL, 0);
+    MSDPSetNumber(d, eMSDP_SHIP_SAIL_MAX, 0);
+    MSDPSetNumber(d, eMSDP_SHIP_RUDDER, 0);
+    MSDPSetNumber(d, eMSDP_SHIP_RUDDER_MAX, 0);
+    MSDPSetNumber(d, eMSDP_SHIP_STAMINA, 0);
+    MSDPSetNumber(d, eMSDP_SHIP_STAMINA_MAX, 0);
+    MSDPSetString(d, eMSDP_SHIP_WEAPONS, "");
+    MSDPSetString(d, eMSDP_SHIP_CONTACTS, "");
     return;
   }
 
@@ -322,6 +413,24 @@ void vessel_msdp_update(struct char_data *ch)
   MSDPSetNumber(d, eMSDP_SHIP_HULL, vessel_total_internal(ship));
   MSDPSetNumber(d, eMSDP_SHIP_HULL_MAX, vessel_max_internal(ship));
   MSDPSetString(d, eMSDP_SHIP_STATUS, vessel_status_name(vessel_status(ship)));
+  MSDPSetString(d, eMSDP_SHIP_ID, ship->id);
+  /* The gunnery tick drops a lost lock; contacts marks the lock the same way. */
+  MSDPSetString(d, eMSDP_SHIP_TARGET,
+                ship->lock_target != 0 ? greyhawk_ships[ship->lock_target].id : "");
+  vessel_msdp_arcs(ship, vessel_arc_armor, vessel_arc_max_armor, buffer, sizeof(buffer));
+  MSDPSetTable(d, eMSDP_SHIP_ARMOR, buffer);
+  vessel_msdp_arcs(ship, vessel_arc_internal, vessel_arc_max_internal, buffer, sizeof(buffer));
+  MSDPSetTable(d, eMSDP_SHIP_INTERNAL, buffer);
+  MSDPSetNumber(d, eMSDP_SHIP_SAIL, ship->mainsail);
+  MSDPSetNumber(d, eMSDP_SHIP_SAIL_MAX, ship->maxmainsail);
+  MSDPSetNumber(d, eMSDP_SHIP_RUDDER, ship->turnrate);
+  MSDPSetNumber(d, eMSDP_SHIP_RUDDER_MAX, ship->maxturnrate);
+  MSDPSetNumber(d, eMSDP_SHIP_STAMINA, vessel_stamina_max(ship) - (int)ceil(ship->stamina_spent));
+  MSDPSetNumber(d, eMSDP_SHIP_STAMINA_MAX, vessel_stamina_max(ship));
+  vessel_msdp_weapons(ship, buffer, sizeof(buffer));
+  MSDPSetArray(d, eMSDP_SHIP_WEAPONS, buffer);
+  vessel_msdp_contacts(ship, buffer, sizeof(buffer));
+  MSDPSetArray(d, eMSDP_SHIP_CONTACTS, buffer);
 }
 
 /**

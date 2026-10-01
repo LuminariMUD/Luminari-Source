@@ -84,6 +84,9 @@ if [[ $# -gt 0 ]]; then
     --vessel-gunnery-check)
       mode="vessel-gunnery-check"
       ;;
+    --vessel-client-check)
+      mode="vessel-client-check"
+      ;;
     --vessel-loss-check)
       mode="vessel-loss-check"
       ;;
@@ -97,7 +100,7 @@ if [[ $# -gt 0 ]]; then
       mode="vessel-customs-check"
       ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id> | --vessel-boarding-check <warship-id> [<defender-character>] | --vessel-rules-check <warship-id> [<crew-character>] | --vessel-movement-check <warship-id> | --vessel-damage-check <warship-id> | --vessel-gunnery-check <warship-id> | --vessel-loss-check <owner-character> | --vessel-raider-check <warship-id> | --vessel-economy-check <warship-id> <crew-character> | --vessel-customs-check <ship-slot> <prototype-id>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id> | --vessel-boarding-check <warship-id> [<defender-character>] | --vessel-rules-check <warship-id> [<crew-character>] | --vessel-movement-check <warship-id> | --vessel-damage-check <warship-id> | --vessel-gunnery-check <warship-id> | --vessel-client-check <warship-id> | --vessel-loss-check <owner-character> | --vessel-raider-check <warship-id> | --vessel-economy-check <warship-id> <crew-character> | --vessel-customs-check <ship-slot> <prototype-id>]"
       ;;
   esac
   shift
@@ -185,6 +188,9 @@ if [[ $# -gt 0 ]]; then
   elif [[ "$mode" == "vessel-gunnery-check" ]]; then
     [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ ]] ||
       fail "--vessel-gunnery-check requires one positive warship prototype id"
+  elif [[ "$mode" == "vessel-client-check" ]]; then
+    [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ ]] ||
+      fail "--vessel-client-check requires one positive warship prototype id"
   elif [[ "$mode" == "vessel-loss-check" ]]; then
     [[ $# -eq 1 && "$1" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
       fail "--vessel-loss-check requires one owner character name"
@@ -573,7 +579,7 @@ proc run_game_command {command} {
     eof { fail "connection closed while submitting game command $command_index" }
   }
 
-  if {$mode ne "vessel-msdp-check"} {
+  if {$mode ne "vessel-msdp-check" && $mode ne "vessel-client-check"} {
     # The second marker is delivered by the in-game say command. It proves
     # the preceding command completed on the game loop. The raw MSDP client
     # disables local PTY echo, so its first marker is already the game echo.
@@ -670,6 +676,110 @@ proc run_vessel_msdp_check {ship_slot} {
 
   puts "\nPASS: native MSDP reported all nine vessel variables aboard slot $ship_slot."
   puts "PASS: native MSDP cleared all nine vessel variables after leaving the vessel."
+}
+
+# An MSDP table or array value as text: VAR is a space, VAL is '=', and
+# tables and arrays are braces and brackets.
+proc msdp_readable {value} {
+  return [string map [list \x01 " " \x02 "=" \x03 "\{" \x04 "\}" \x05 "\[" \x06 "\]"] $value]
+}
+
+proc require_msdp_structure {raw variable expected context} {
+  lassign [extract_msdp_value $raw $variable] found actual
+  if {!$found} {
+    fail "$context did not receive $variable"
+  }
+  set actual [msdp_readable $actual]
+  if {[string first $expected $actual] != 0} {
+    fail "$context received $variable='$actual', expected it to begin '$expected'"
+  }
+}
+
+proc run_vessel_client_check {warship_id} {
+  global last_game_command_raw smoke_character
+
+  set client_variables {
+    SHIP_ID SHIP_TARGET SHIP_ARMOR SHIP_INTERNAL SHIP_SAIL SHIP_SAIL_MAX
+    SHIP_RUDDER SHIP_RUDDER_MAX SHIP_STAMINA SHIP_STAMINA_MAX SHIP_WEAPONS SHIP_CONTACTS
+  }
+  set workflow_started_at [clock milliseconds]
+
+  # The target lies two rooms off the starboard beam. The warship locks her
+  # and fires the starboard ballista, which then reloads a spent round.
+  set output [run_game_command "goto 902 225"]
+  require_game_output $output "Current Location  : (902, 225)" "client target staging"
+  set target_slot [spawn_frontier_vessel_at_exterior $warship_id "Starfall Bastion"]
+  set target_id [vessel_slot_id $target_slot]
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" "client staging"
+  set ship_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+  set output [run_game_command "shiplock $target_id"]
+  require_game_output $output "The guns lock onto \[$target_id\] Starfall Bastion." "client lock"
+  set output [run_game_command "shipfire starboard"]
+  require_game_output $output "The starboard Large Ballista FIRES at Starfall Bastion!" \
+    "client fire"
+  set output [run_game_command "shipstatus"]
+  if {![regexp {Sails: ([0-9]+)/([0-9]+)} $output ignored sail sail_max] ||
+      ![regexp {Rudder: ([0-9]+)/([0-9]+)} $output ignored rudder rudder_max] ||
+      ![regexp {Crew stamina: -?[0-9]+/([0-9]+)} $output ignored stamina_max]} {
+    fail "could not read the sails, rudder, and crew stamina from shipstatus"
+  }
+
+  set output [run_game_command "whois $smoke_character"]
+  if {[string first "MSDP:    Yes" $output] < 0} {
+    fail "native MSDP negotiation was not enabled"
+  }
+  foreach variable $client_variables {
+    send_msdp_report $variable
+  }
+  set aboard_raw [collect_msdp_frames "CLIENT"]
+
+  require_msdp_value $aboard_raw SHIP_ID [vessel_slot_id $ship_slot] "client data"
+  require_msdp_value $aboard_raw SHIP_TARGET $target_id "client data"
+  require_msdp_structure $aboard_raw SHIP_ARMOR \
+    "\{ fore=\{ CURRENT=76 MAX=76\} port=\{ CURRENT=95 MAX=95\} rear=\{ CURRENT=57 MAX=57\} starboard=\{ CURRENT=95 MAX=95\}\}" \
+    "client data"
+  require_msdp_structure $aboard_raw SHIP_INTERNAL \
+    "\{ fore=\{ CURRENT=33 MAX=33\} port=\{ CURRENT=41 MAX=41\} rear=\{ CURRENT=20 MAX=20\} starboard=\{ CURRENT=41 MAX=41\}\}" \
+    "client data"
+  require_msdp_value $aboard_raw SHIP_SAIL $sail "client data"
+  require_msdp_value $aboard_raw SHIP_SAIL_MAX $sail_max "client data"
+  require_msdp_value $aboard_raw SHIP_RUDDER $rudder "client data"
+  require_msdp_value $aboard_raw SHIP_RUDDER_MAX $rudder_max "client data"
+  require_msdp_value $aboard_raw SHIP_STAMINA_MAX $stamina_max "client data"
+  set stamina [require_msdp_number $aboard_raw SHIP_STAMINA "client data"]
+  if {$stamina > $stamina_max} {
+    fail "client data received SHIP_STAMINA $stamina above its maximum $stamina_max"
+  }
+  require_msdp_structure $aboard_raw SHIP_WEAPONS \
+    "\[=\{ SLOT=0 NAME=Large Ballista ARC=fore AMMO=30 READY=1 DAMAGE=0\}=\{ SLOT=1 NAME=Large Ballista ARC=port AMMO=30 READY=1 DAMAGE=0\}=\{ SLOT=2 NAME=Large Ballista ARC=starboard AMMO=29 READY=0 DAMAGE=0\}\]" \
+    "client data"
+  # Her target is the nearest contact.
+  require_msdp_structure $aboard_raw SHIP_CONTACTS \
+    "\[=\{ ID=$target_id NAME=Starfall Bastion RANGE=2.0 BEARING=90 ARC=starboard\}" \
+    "client data"
+
+  run_game_command "goto 1204"
+  set ashore_raw [collect_msdp_frames "CLIENT_ASHORE"]
+  set clear_raw "$last_game_command_raw$ashore_raw"
+  foreach variable {SHIP_ID SHIP_TARGET SHIP_ARMOR SHIP_INTERNAL SHIP_WEAPONS SHIP_CONTACTS} {
+    require_msdp_cleared $aboard_raw $clear_raw $variable "" "ashore state"
+  }
+  foreach variable {
+    SHIP_SAIL SHIP_SAIL_MAX SHIP_RUDDER SHIP_RUDDER_MAX SHIP_STAMINA SHIP_STAMINA_MAX
+  } {
+    require_msdp_cleared $aboard_raw $clear_raw $variable 0 "ashore state"
+  }
+
+  set output [run_game_command "shippurge $ship_slot"]
+  require_game_output $output "Purged ship $ship_slot 'Starfall Bastion'" "client warship cleanup"
+  set output [run_game_command "shippurge $target_slot"]
+  require_game_output $output "Purged ship $target_slot 'Starfall Bastion'" "client target cleanup"
+
+  set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
+  puts "\nPASS: native MSDP reported the identity, lock, condition, weapons, and contacts of slot $ship_slot."
+  puts "PASS: native MSDP emptied the client data after leaving the vessel."
+  puts "PASS: the vessel client check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }
 
 proc require_game_output {output expected context} {
@@ -3254,7 +3364,7 @@ if {![info exists env(MUD_SMOKE_ACCOUNT)] ||
 }
 set smoke_character $env(MUD_SMOKE_CHARACTER)
 
-if {$mode eq "vessel-msdp-check"} {
+if {$mode eq "vessel-msdp-check" || $mode eq "vessel-client-check"} {
   spawn -noecho sh -c "stty raw -echo; exec nc 127.0.0.1 $env(MUD_SMOKE_PORT)"
   fconfigure $spawn_id -translation binary -encoding binary
   # Complete the server's TTYPE-first negotiation before accepting MSDP.
@@ -3352,6 +3462,7 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     $mode eq "vessel-narrative-check" || $mode eq "vessel-boarding-check" ||
     $mode eq "vessel-rules-check" || $mode eq "vessel-movement-check" ||
     $mode eq "vessel-damage-check" || $mode eq "vessel-gunnery-check" ||
+    $mode eq "vessel-client-check" ||
     $mode eq "vessel-loss-check" || $mode eq "vessel-raider-check" ||
     $mode eq "vessel-economy-check" || $mode eq "vessel-customs-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
@@ -3429,6 +3540,8 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
       run_vessel_damage_check [lindex $game_commands 0]
     } elseif {$mode eq "vessel-gunnery-check"} {
       run_vessel_gunnery_check [lindex $game_commands 0]
+    } elseif {$mode eq "vessel-client-check"} {
+      run_vessel_client_check [lindex $game_commands 0]
     } elseif {$mode eq "vessel-loss-check"} {
       run_vessel_loss_check [lindex $game_commands 0]
     } elseif {$mode eq "vessel-raider-check"} {
@@ -3538,6 +3651,9 @@ elif [[ "$mode" == "vessel-damage-check" ]]; then
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-gunnery-check" ]]; then
   printf 'PASS: %s completed the vessel-gunnery check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-client-check" ]]; then
+  printf 'PASS: %s completed the native MSDP vessel client check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-loss-check" ]]; then
   printf 'PASS: %s completed the two-character vessel-loss check and logged out cleanly (%ss total).\n' \
