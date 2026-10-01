@@ -1494,8 +1494,8 @@ proc run_vessel_lookout_check {warship_id} {
   }
   require_game_output $output "Visible vessels (nearest first):" \
     "open-water lookout contact heading"
-  require_game_output $output "Starfall Bastion" \
-    "open-water lookout live contact"
+  require_game_output $output "\[[vessel_slot_id $target_slot]\] Starfall Bastion" \
+    "open-water lookout live contact with its contact ID"
   require_game_output $output "sound" "open-water lookout contact condition"
 
   set output [run_game_command "goto 900 225"]

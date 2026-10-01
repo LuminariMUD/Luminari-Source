@@ -109,7 +109,8 @@ LOOKOUT (legacy alias: LOOK_OUTSIDE)
   From an interior room with an outside view, scan canonical wilderness
   sectors in eight compass directions out to the weather- and lookout-limited
   horizon. Also show current elevation and water depth plus nearest-first
-  visible vessels with condition, bearing, range, and relative altitude.
+  visible vessels with their contact IDs (as CONTACTS shows them),
+  condition, bearing, range, and relative altitude.
 
 SHIP_ROOMS
   List the vessel interior and identify its bridge and entrance.
