@@ -24,7 +24,7 @@ here records the merge.
 | S6 NPC raiders and AI | Merged `85914a03d` (MR !11) | [Phase 6](vessels-ships-history.md#phase-6-s6-progress) |
 | S7 Rewards and economy | Merged `cce9ff323` (MR !12) | [Phase 7](vessels-ships-history.md#phase-7-s7-progress) |
 | S8 Client data | Merged `2a4815b1a` (MR !13) | [Phase 8](vessels-ships-history.md#phase-8-s8-progress) |
-| S-immediate Luminari Web for S9 | Not started: planned | [S-immediate](#s-immediate-progress) |
+| S-immediate Luminari Web for S9 | Built and checked live; verification running | [S-immediate](#s-immediate-progress) |
 | S9 Claude Code play tests | Not started: planned | [Phase 9](#phase-9-s9-progress) |
 | S10 Player guide | Not started | [Part 5](#part-5-implementation-sequence) |
 
@@ -145,37 +145,110 @@ ship data panel among them.
 
 ### S-immediate progress
 
-Not started. S-immediate makes sure the local Luminari Web (`LOCAL_WEBCLIENT_PATH`:
-`/home/aiwithapex/projects/luminariweb`, `main` at `41ced8a` when planned) has every client
-feature S9's chapters need, checks each one against the real game, and builds the ones missing.
-The client work is committed on a branch in that local checkout under its own checks
-(`npm run lint`, `npm run build`, `npm test`) and is not pushed or deployed; this document records
-it on `feat/vessels-s9`, after the plan commit. For the live checks S-immediate brings up S9's
-server (Setup, Server, below) and the bridge; S9 continues on them.
+Built and checked live 2026-10-01; verification below. S-immediate makes sure the local Luminari
+Web (`LOCAL_WEBCLIENT_PATH`: `/home/aiwithapex/projects/luminariweb`) has every client feature
+S9's chapters need, checks each one against the real game, and builds the ones missing. The client
+work is committed on the local branch `feat/ship-panel` in that checkout, from `main` at
+`41ced8a`, under its own checks (`npm run lint`, `npm run build`, `npm test`); it is not pushed or
+deployed. This document records it on `feat/vessels-s9`, after the plan commit. The live checks
+ran S9's server (Setup, Server, below) and the bridge; S9 continues on them.
 
-| # | S9 needs | Luminari Web today | Work | State |
+| # | S9 needs | Luminari Web before | Work | State |
 | -- | -- | -- | -- | -- |
-| 1 | To reach the namespaced MUD on 127.0.0.1:4100 | A local preset behind the documented development opt-in (`PROXY_PUBLIC_MODE=false`, `PROXY_ALLOW_LOCAL_DESTINATIONS=true`, `LOCAL_MUD_PORT=4100`) | Check live | Not started |
-| 2 | Kohdee and Vesselmate from the master account's character menu, and a new character on a test account | Structured onboarding v1 with the existing-character menu (merged into `main`) | Check live | Not started |
-| 3 | Three sessions at once | The proxy allows 4 WebSocket connections per IP | Check live | Not started |
-| 4 | Sessions that stay up through staging and long passages | Idle connections close after 5 minutes; `PROXY_IDLE_TIMEOUT_MS` goes to 1 hour | Run at the 1-hour maximum; check live | Not started |
-| 5 | Vessel output drawn as the game draws it: `tactical`, `lookout`, `shipstatus`, `contacts`, the wilderness map, colors, wide lines | The terminal renders ANSI and Luminari color codes and asks for 256 colors | Check each live aboard a hull; fix what renders wrong | Not started |
-| 6 | The ship data: the 21 vessel MSDP variables (`SHIP_NAME`, `SHIP_X`, `SHIP_Y`, `SHIP_Z`, `SHIP_HEADING`, `SHIP_SPEED`, `SHIP_HULL`, `SHIP_HULL_MAX`, `SHIP_STATUS`, and S8's twelve) | Not requested, mapped, or shown | Build a Ship panel | Not started |
+| 1 | To reach the namespaced MUD on 127.0.0.1:4100 | A local preset behind the documented development opt-in (`PROXY_PUBLIC_MODE=false`, `PROXY_ALLOW_LOCAL_DESTINATIONS=true`, `LOCAL_MUD_PORT=4100`) | Checked live | Done: with the opt-in the dev server offers "Local development MUD" (127.0.0.1:4100) as its default, and it connects through the bridge |
+| 2 | Kohdee and Vesselmate from the master account's character menu, and a new character on a test account | Structured onboarding v1 with the existing-character menu (merged into `main`) | Checked live | Done: onboarding signed in to the master account, listed its five characters, and entered Vesselmate and Kohdee; Brinewick, made on the new account Sailtest, entered the same way |
+| 3 | Three sessions at once | The proxy allows 4 WebSocket connections per IP | Checked live | Done: `who` showed 3 players from 2 accounts |
+| 4 | Sessions that stay up through staging and long passages | Idle connections close after 5 minutes; `PROXY_IDLE_TIMEOUT_MS` goes to 1 hour | Ran at the 1-hour maximum; checked live | Done: the proxy runs with `PROXY_IDLE_TIMEOUT_MS=3600000`, and Brinewick sat idle 11 minutes and stayed connected. The page's 30-second heartbeat also re-arms the idle timer, so the limit closes only a stalled page; the MUD's own idle limits (`idle_void` 610 and `idle_rent_time` 600 ticks, mortals below level 2) are hours long |
+| 5 | Vessel output drawn as the game draws it: `tactical`, `lookout`, `shipstatus`, `contacts`, the wilderness map, colors, wide lines | The terminal renders ANSI and Luminari color codes and asks for 256 colors | Checked each live aboard a hull; fixed what rendered wrong | Done after three renderer fixes (Defects, below) |
+| 6 | The ship data: the 21 vessel MSDP variables | Not requested, mapped, or shown | Built a Ship panel | Done: the Ship tab, below |
 
-The Ship panel follows the client's existing panels: the 21 names join the variable map in
-`shared/mud.ts`, so the session asks the server to report them like the rest; their mapping goes
-in `shared/msdp-state.ts`; a display model, `shared/msdp-ship-display.ts`, groups them (the ship's
-name, contact ID and locked target; position, heading and speed; hull, sails, rudder and crew
-stamina as current of maximum; armor and internal structure per arc; the weapons; the contacts);
-and a Ship tab joins the inspector (`INSPECTOR_TAB_IDS`, `src/App.tsx`). Ashore, where the server
-empties every variable, and on a server that never sends them, the tab says the character is not
-aboard instead of showing old numbers. Tests: MSDP fixtures in the S8 wire format (tables keyed by
-arc, arrays of tables, empty values ashore) with mapping and display-model cases in `tests/`, and
-the vessel variables' row in the client's protocol feature checklist.
+Built on `feat/ship-panel`:
 
-Proof: lint, build and the test suite pass in the client, and a live session aboard a hull in the
-S9 harness shows the Ship tab following her as she sails and fights a tier 0 raider and clearing
-when the character goes ashore.
+- `shared/mud.ts`: the 21 names join the default variable map and the source-confirmed list, so
+  the session REPORTs them; `shared/msdp-state.ts` maps them, the arc tables and the weapon and
+  contact arrays as sent.
+- `shared/msdp-ship-display.ts`, the display model: `[ID] name`, condition, lock, position
+  `(x, y, z)`, heading and speed; hull, sails, rudder and crew stamina as current of maximum; armor
+  and structure per arc in `shipstatus` order (fore, port, starboard, rear); each weapon with the
+  `shipstatus` words for its state (ready, reloading, out of ammunition, disabled with its damage,
+  destroyed); and the contacts with range, bearing and arc, the locked one marked. A ship without
+  a contact ID is "not aboard": ashore the server empties `SHIP_ID`, an older server never sends
+  it, and the client clears its state on any disconnect.
+- `src/App.tsx` and `src/App.css`: the Ship tab after Combat, with an Arc / Armor / Structure table
+  (one row per arc fits the narrow inspector; text rows wrapped).
+- Tests: `tests/fixtures/msdp/ship-data.json`, five fixtures in the S8 wire format (the scalars
+  with crew stamina in deficit, the arc tables, the weapon and contact arrays of tables, the empty
+  state ashore), feed the existing parser and mapping tests; `tests/msdp-ship-display.test.ts`
+  covers the model. The protocol checklist (`shared/protocol-feature-status.ts`,
+  `docs/protocol-feature-checklist.md`) lists the vessel variables as supported.
+
+| Client commit | Change |
+| -- | -- |
+| `39df437` | Lint ignores `.kilo/`: a Kilo Code worktree there held a second copy of the sources, so `npm run lint` failed on `main` itself |
+| `74d0317` | The 21 variables, the display model, the Ship tab, fixtures and tests, the checklist row |
+| `01752ac`, `8292ef7` | Split color sequences (Defects) |
+| `e899a57` | Line breaks at chunk boundaries (Defects) |
+| `8b08195` | The arc table |
+| `70b80df` | Zero-padded 256-color codes (Defects) |
+
+Decisions while building:
+
+- A value that has not arrived shows `-`: the server sends the variables one state message each,
+  so just after boarding `SHIP_ID` can arrive before the rest.
+- The weapon states read the `shipstatus` words off `AMMO`, `READY` and `DAMAGE` as the S8 contract
+  defines them, rather than new labels.
+- Ablation (building): dropped a settings-editor group for the ship names (the defaults return on
+  every load, and S9 needs no override), offline, loading and error states for the tab (the client
+  clears its state on any disconnect, so "not aboard" covers them), and new styles beyond the arc
+  table (the gauges and rows reuse the group and inventory styles). Added from evidence: the
+  `.kilo` lint ignore.
+
+Defects found and fixed:
+
+| Finding | Fix | Commit |
+| -- | -- | -- |
+| The harbor provisioner failed its ferry fare check on a fresh dump. Room 1000389, the Testing Dock at (-66, 92), lived only in the untracked development world file and was lost when that file was replaced on 2026-08-19, so the ferry's west stop was shallow water (known since S2, which staged at the east dock instead) | The harbor package carries the room beside the east dock, and the provisioner merges it back in; `VESSEL_SYSTEM_TESTING.md` updated | `9f49b3f1f` |
+| Luminari Web: a reply the proxy split inside a color sequence printed the sequence's tail (`830/830[0;33mV` after `lookout`) | The stream converter holds an unfinished escape until the next chunk completes it | client `01752ac`, `8292ef7` |
+| Luminari Web: in stream mode ansi-to-html 0.7.2 replays each chunk's `<br/>` tokens at the start of the next chunk, so blank lines piled up and a `contacts` row split between two chunks broke in two | Line breaks stay text, which the terminal's `white-space: pre-wrap` shows | client `e899a57` |
+| Luminari Web: LuminariMUD zero-pads 256-color codes (`ESC[38;5;018m`), which rendered `color:undefined`, losing every wilderness terrain color | The renderers drop the padding before conversion | client `70b80df` |
+
+Live check (2026-10-01, S9's server on the namespace harness, three browser sessions): Kohdee
+spawned Starfall Bastion (prototype 27) at (900, 225) and transferred Vesselmate aboard. His Ship
+tab showed `[AN] Starfall Bastion`, sound, no lock, (900, 225, 0), hull 135/135, sails 140/140,
+rudder 20/20, crew stamina 500/500, armor 76/95/95/57 over structure 33/41/41/20, and three ready
+Large Ballistas; at speed 6 on heading 90 it followed her to (902, 226). `vesseldebug raider 0`
+launched three Corsair Clippers in turn. The tab tracked each one in from about 45 rooms, their
+rams and grapples (fore armor 76, then 53, then 34; sails 136/140; rudder 19/20), Kohdee's lock
+(`Locked on [AO]`, the contact marked locked), and the starboard volley (a direct hit; 29 rounds,
+reloading, then ready). Transferred ashore, Vesselmate's tab said "Not aboard a vessel".
+`tactical`, `lookout`, `shipstatus`, `contacts` and the wilderness map rendered as sent once the
+fixes were in.
+
+For S9:
+
+- Editing the client while sessions are open hot-reloads `App.tsx`, which closes every session's
+  link; make client fixes between chapters and log the characters back in.
+- The server prints a second, bare prompt (with IAC GA) when a command waits a pulse in the action
+  queue, so a reply follows two prompts; Luminari Web ignores GA and shows both on one line. The
+  gate transcripts show the same: it is core prompt behavior, not vessel or client behavior.
+- The dump's harbor merchant (ship 11) is battered (armor 0, sails 7/110, rudder 1/20, top speed
+  1); `shipfix 11` before chapter 6 if she is needed.
+- The harbor provisioner's channel check logs in Accessprobe; that is its established behavior.
+- Kohdee's and Vesselmate's pfiles and the player index were copied before the live check to
+  `/tmp/claude-1000/s9/pfiles-before/`; S9's cleanup restores them from there.
+- How it runs: the harness `/tmp/claude-1000/vs4` (start with `rm stop` and
+  `setsid nohup unshare -rn --pid --fork --mount-proc bash stage1.sh &`; jobs go in `jobs/`); the
+  MUD is the stand-in unit `luminari-dev-login-smoke`. The setup job (`running/x02-setup.sh`)
+  reloads the dump, enables ship 11's schedule, runs both provisioners, creates Brinewick on
+  Sailtest, and starts the namespace end of the bridge (unit `s9-bridge`, unix socket
+  `/tmp/claude-1000/s9/mud.sock`). The host end is
+  `socat TCP-LISTEN:4100,bind=127.0.0.1,fork,reuseaddr UNIX-CONNECT:/tmp/claude-1000/s9/mud.sock`,
+  and the client runs in its checkout as `PROXY_PUBLIC_MODE=false PROXY_ALLOW_LOCAL_DESTINATIONS=true LOCAL_MUD_PORT=4100 PROXY_IDLE_TIMEOUT_MS=3600000 npm run dev`
+  (page http://localhost:5190, log `/tmp/claude-1000/s9/client.log`).
+- Helpers in `/tmp/claude-1000/s9/`: `login.sh <session> <master|account> <character>` signs a
+  browser session in through onboarding (the password comes from `lib/.env` and is never printed),
+  and `cmd.sh <session> <wait-ms> <command>` types a command and prints the terminal's tail.
+  S-immediate's screenshots are there as `shot-NN-moment.png`; S9 takes its own.
 
 Interpretations decided while planning S-immediate:
 
@@ -192,6 +265,8 @@ specs for the panel (the fixtures prove the mapping, and the live session the re
 the idle and connection limits are settings, not code. Kept: the not-aboard state, without which
 the tab would show a ship the character has left, and the fixtures, which the client's checklist
 requires before it claims a protocol feature.
+
+Verification: running.
 
 ### Phase 9 (S9) progress
 
