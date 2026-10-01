@@ -168,8 +168,8 @@ AND CHAR_LENGTH(TRIM(entry)) > 0;
 SELECT
   'content_contracts' AS check_name,
   COUNT(*) AS actual,
-  40 AS expected,
-  IF(COUNT(*) = 40, 'PASS', 'FAIL') AS result
+  41 AS expected,
+  IF(COUNT(*) = 41, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
   SELECT 'VESSELS' AS tag, 'moving no faster than speed 2' AS required_pattern
@@ -184,6 +184,7 @@ JOIN (
   UNION ALL SELECT 'SHIPFIRE', 'within 20 rooms [(]22 with a posted lookout[)]'
   UNION ALL SELECT 'SHIPFIRE', 'fights only with its owner.s consent'
   UNION ALL SELECT 'SHIPBROWSE', 'christen the[[:space:]]+ship again later'
+  UNION ALL SELECT 'SHIPBROWSE', 'Aboard a ship you own, rename her'
   UNION ALL SELECT 'SHIPBROWSE', 'same room as you'
   UNION ALL SELECT 'SHIPBROWSE', 'hired crew positions'
   UNION ALL SELECT 'SHIPBROWSE', 'at most three[[:space:]]+hulls'

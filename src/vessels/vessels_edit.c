@@ -1115,7 +1115,7 @@ ACMD(do_shipbuy)
   award_gold(ch, -price);
   send_to_char(ch,
                "The shipwrights hand over %s, moored here. You pay %d gold coins. Fair winds, "
-               "captain - christen her with 'shipchristen <name>'.\r\n",
+               "captain - board her and christen her with 'shipchristen <name>'.\r\n",
                greyhawk_ships[slot].name, price);
   log("Info: %s bought ship %d for %d gold", GET_NAME(ch), slot, price);
 }

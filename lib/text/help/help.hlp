@@ -31838,14 +31838,16 @@ SHIPBUY <id> [trade]
   carry; the shipwrights buy the rest (see SHIPWEAPON sell).
 
 SHIPCHRISTEN <name>
-  Rename a ship you own (3-60 printable characters). The first christening
-  of a new hull is free; an owner may christen the ship again later for a
-  tenth of her value. The current name appears in port and fleet reports.
+  Aboard a ship you own, rename her (3-60 printable characters). The first
+  christening of a new hull is free; an owner may christen the
+  ship again later for a tenth of her value. The current name appears on
+  her rooms and in port and fleet reports.
 
 SHIPCUSTOMIZE [show]
 SHIPCUSTOMIZE <paint|figurehead> <description|clear>
-  Review or change your ship's optional exterior details. Descriptions run
-  3-80 printable characters and appear on the hull and in lookout reports.
+  Aboard, review or change your ship's optional exterior details.
+  Descriptions run 3-80 printable characters and appear on the hull and in
+  lookout reports.
 
 SHIPDEED <player>
   Sign your ship over to another player. They must be in the same room as you
