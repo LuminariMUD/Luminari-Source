@@ -2203,8 +2203,8 @@ bridge and client left running as described above.
 
 MR !14 merged on 2026-10-02 as merge commit `1c7e4bffb` (branch kept); its review found nothing.
 S-immediate changed no help, so there was nothing to sync. The client branch `feat/ship-panel`
-stays local in the client checkout, not merged into its `main`, which tracks the upstream
-remotes; S9's client fixes go on top of it. The second local copy, `webclient-luminari`, was
+was published by the owner to the client's GitLab remote (`max757/luminariweb`) on 2026-10-02
+and is not merged into the client's `main`; S9's client fixes go on top of it. The second local copy, `webclient-luminari`, was
 deleted at the owner's request. S9 continues on `feat/vessels-s9` from the merge
 ([status in vessels-ships.md](vessels-ships.md#status)).
 
