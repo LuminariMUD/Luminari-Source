@@ -545,13 +545,14 @@ target_valid=$(database_query "
 [[ "$target_valid" == 1 ]] ||
   fail "the temporary target hull did not persist with Kohdee ownership"
 
-# A hull launched in port is berthed: cast off (a harmless refusal where the
-# dock is not a port), then get under way before the forced encounter check,
-# which considers only moving hulls.
+# The Testing Dock is a port, so the hull launches berthed: cast off, then get
+# under way before the forced encounter check, which considers only moving
+# hulls. Casting off takes 30 seconds of vessel ticks; a loaded server runs
+# behind, so wait with the 10-second grace the Tcl checks give.
 run_kohdee_commands "$run_dir/02-encounter.log" \
   "shipgoto $target_slot" \
   "undock" \
-  "@wait 33" \
+  "@wait 43" \
   "speed 2" \
   "@wait 2" \
   "vesseldebug encounter" \
