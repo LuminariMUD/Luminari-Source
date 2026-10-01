@@ -899,11 +899,12 @@ ACMD(do_shipbrowse)
   }
 
   send_to_char(ch, "The shipwright's catalog:\r\n");
-  send_to_char(ch, "ID    Class      Speed Armor Price      Lvl Name\r\n");
-  send_to_char(ch, "----- ---------- ----- ----- ---------- --- ----------------------------\r\n");
+  send_to_char(ch, "ID    Class          Speed Armor Price      Lvl Name\r\n");
+  send_to_char(ch,
+               "----- -------------- ----- ----- ---------- --- ----------------------------\r\n");
   while ((row = mysql_fetch_row(result)) != NULL)
   {
-    send_to_char(ch, "%-5s %-10s %-5s %-5s %-10d %-3d %s\r\n", row[0],
+    send_to_char(ch, "%-5s %-14s %-5s %-5s %-10d %-3d %s\r\n", row[0],
                  get_vessel_type_name((enum vessel_class)parse_int(row[2])), row[3], row[4],
                  vessel_prototype_price(parse_int(row[2]), parse_int(row[3]), parse_int(row[4])),
                  vessel_prototype_min_level(parse_int(row[2]), parse_int(row[5])), row[1]);

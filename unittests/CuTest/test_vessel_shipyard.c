@@ -271,7 +271,8 @@ void Test_vessel_shipyard_sells_only_listed_hulls(CuTest *tc)
                                      "for_sale, min_level) VALUES "
                                      "(1, 'Listed Sloop', 0, 5, 2, 1, 0), "
                                      "(2, 'Navy Frigate', 3, 20, 40, 0, 0), "
-                                     "(3, 'Elite Cutter', 2, 15, 20, 1, 28)") == 0;
+                                     "(3, 'Elite Cutter', 2, 15, 20, 1, 28), "
+                                     "(4, 'Wayfarer', 7, 15, 153, 1, 0)") == 0;
   if (!prepared)
   {
     mysql_close(connection);
@@ -311,6 +312,9 @@ void Test_vessel_shipyard_sells_only_listed_hulls(CuTest *tc)
   CuAssertTrue(tc, strstr(output, "Elite Cutter") != NULL);
   CuAssertTrue(tc, strstr(output, "Navy Frigate") == NULL);
   CuAssertTrue(tc, strstr(output, " 28 ") != NULL);
+  /* The shortest and longest class names line up under the same columns. */
+  CuAssertTrue(tc, strstr(output, "1     Raft           5     2     ") != NULL);
+  CuAssertTrue(tc, strstr(output, "4     Magical Vessel 15    153   ") != NULL);
 
   /* An unlisted hull is refused and nothing is charged. */
   memset(output, 0, sizeof(output));
