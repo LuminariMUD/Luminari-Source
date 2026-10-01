@@ -32066,46 +32066,6 @@ online with PVP enabled, so the target can always answer in kind.
 
 See also: BOARD, DOCK, TACTICAL, SHIPSTATUS, AUTOPILOT, SHIPRENOWN
 #0
-PRIZE-MONEY RENOWN SHIP-RENOWN SHIPRENOWN
-
-Renown, prize money, and ship damage control.
-
-SHIPRENOWN
-  List the ten hulls with the most renown, with their class and owner.
-
-Renown belongs to a hull, not to her captain, and she keeps it through the
-wreck registry, a trade-in, and a new name; SHIPCREW shows it. A player's
-hull wins renown only by sinking another player's hull: the hull weight of
-the ship sunk (a boat 25, a ship 200, a warship 285), shared equally by the
-hull that sank her and her allies in sight, the hulls out of port whose
-owners are in the game and grouped with her owner. The hull sunk loses that
-much, though never below none, and her crew lose a further 1% of their
-experience for every 30 of it. Sinking NPC vessels trains the crew but wins no
-renown.
-
-Renown lets able and veteran hands sign on (SHIPHIRE), capital weapons be
-mounted (SHIPWEAPON), and smugglers deal with her (CONTRABAND). It also
-draws stronger raiders (RAIDERS).
-
-Prize money: whenever a player's hull sinks another vessel, the same hulls
-share out what she was worth, each share paid to the hull's owner at once,
-or at their next login, with a receipt by mail:
-  salvage       - an eighth of her value, scaled by the armor and structure
-                  she had left, plus half the price of each weapon not
-                  destroyed
-  renown bounty - 2.5 gold for each point of her renown when she has more
-                  than 100, as raiders do
-  bounty        - the whole bounty of her owner, if WANTED or HUNTED and
-                  aboard when she went down; it is then cleared (BOUNTY)
-A hull sunk by another of her owner's hulls earns nothing.
-
-Ship damage control: an epic feat of up to five ranks. While you are aboard
-a vessel you own, every blow to her hull or sails is cut by 8 percent at
-the first rank and 4 more at each rank after, 24 percent at the fifth,
-never below 1 point.
-
-See also: SHIP COMBAT, SHIPHIRE, MARKET, BOUNTY
-#0
 SHIP-CREW SHIP-REFIT SHIPDISMISS SHIPEQUIP SHIPHIRE SHIPREARM SHIPUPGRADE SHIPWEAPON
 
 Crew, refits, and weapons for a ship owner. SHIPHIRE requires the ship to be
@@ -32242,6 +32202,46 @@ their hulls but cannot acquire more.
 
 See also: VEDIT, VMERCHANT, VESSELDEBUG, VEHICLE-ADMIN, SHIP-COMBAT, SEASTATE
 #31
+PRIZE-MONEY RENOWN SHIP-RENOWN SHIPRENOWN
+
+Renown, prize money, and ship damage control.
+
+SHIPRENOWN
+  List the ten hulls with the most renown, with their class and owner.
+
+Renown belongs to a hull, not to her captain, and she keeps it through the
+wreck registry, a trade-in, and a new name; SHIPCREW shows it. A player's
+hull wins renown only by sinking another player's hull: the hull weight of
+the ship sunk (a boat 25, a ship 200, a warship 285), shared equally by the
+hull that sank her and her allies in sight, the hulls out of port whose
+owners are in the game and grouped with her owner. The hull sunk loses that
+much, though never below none, and her crew lose a further 1% of their
+experience for every 30 of it. Sinking NPC vessels trains the crew but wins no
+renown.
+
+Renown lets able and veteran hands sign on (SHIPHIRE), capital weapons be
+mounted (SHIPWEAPON), and smugglers deal with her (CONTRABAND). It also
+draws stronger raiders (RAIDERS).
+
+Prize money: whenever a player's hull sinks another vessel, the same hulls
+share out what she was worth, each share paid to the hull's owner at once,
+or at their next login, with a receipt by mail:
+  salvage       - an eighth of her value, scaled by the armor and structure
+                  she had left, plus half the price of each weapon not
+                  destroyed
+  renown bounty - 2.5 gold for each point of her renown when she has more
+                  than 100, as raiders do
+  bounty        - the whole bounty of her owner, if WANTED or HUNTED and
+                  aboard when she went down; it is then cleared (BOUNTY)
+A hull sunk by another of her owner's hulls earns nothing.
+
+Ship damage control: an epic feat of up to five ranks. While you are aboard
+a vessel you own, every blow to her hull or sails is cut by 8 percent at
+the first rank and 4 more at each rank after, 24 percent at the fifth,
+never below 1 point.
+
+See also: SHIP COMBAT, SHIPHIRE, MARKET, BOUNTY
+#0
 SHOCKING-GRASP SPELL-SHOCKING-GRASP
 
 	D-----------------------------------------------------------------	n
