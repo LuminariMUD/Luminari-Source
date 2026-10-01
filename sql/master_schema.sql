@@ -862,6 +862,7 @@ CREATE TABLE IF NOT EXISTS ship_runtime_state (
   stowed TINYINT UNSIGNED NOT NULL DEFAULT 0,
   wreck_hull TINYINT UNSIGNED NOT NULL DEFAULT 0,
   summon_due BIGINT NOT NULL DEFAULT 0,
+  renown INT NOT NULL DEFAULT 0,
   last_attacker INT NOT NULL DEFAULT 0,
   pvp_grace_until BIGINT NOT NULL DEFAULT 0,
   pvp_grace_attacker VARCHAR(64) NOT NULL DEFAULT '',

@@ -7,7 +7,7 @@ repo_root=${LUMINARI_PROJECT_ROOT:-$(cd "$script_dir/../.." && pwd)}
 acceptance_mode=tactical
 if [[ $# -gt 0 ]]; then
   [[ $# -eq 1 ]] || {
-    printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery|--loss|--raider]\n' "$0" >&2
+    printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery|--loss|--raider|--economy]\n' "$0" >&2
     exit 2
   }
   case "$1" in
@@ -38,8 +38,11 @@ if [[ $# -gt 0 ]]; then
     --raider)
       acceptance_mode=raider
       ;;
+    --economy)
+      acceptance_mode=economy
+      ;;
     *)
-      printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery|--loss|--raider]\n' "$0" >&2
+      printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery|--loss|--raider|--economy]\n' "$0" >&2
       exit 2
       ;;
   esac
@@ -65,6 +68,7 @@ baseline_player_sha256=
 baseline_secondary_player_sha256=
 baseline_secondary_bounty=
 warship_prototype_id=
+contraband_unstocked=false
 snapshot_ready=false
 cleanup_needed=false
 acceptance_complete=false
@@ -80,7 +84,7 @@ fail() {
 
 uses_secondary_player() {
   [[ "$acceptance_mode" == boarding || "$acceptance_mode" == rules ||
-    "$acceptance_mode" == loss ]]
+    "$acceptance_mode" == loss || "$acceptance_mode" == economy ]]
 }
 
 config_value() {
@@ -232,6 +236,12 @@ tactical_runtime_slots() {
           SELECT prototype_id
             FROM ship_prototypes
            WHERE name LIKE 'Movecheck Boat%' OR name LIKE 'Losscheck %'
+              OR name LIKE 'Econcheck %'
+        )
+        OR ship_id IN (
+          SELECT ship_id
+            FROM ship_interiors
+           WHERE owner = '$secondary_player'
         );"
 }
 
@@ -267,6 +277,37 @@ retire_test_runtime() {
   run_kohdee_commands "$run_dir/recovery-ships.log" \
     "${cleanup_commands[@]}" || return 1
   [[ -z $(tactical_runtime_slots) ]]
+}
+
+# The harbor East Dock stocks forbidden tomes (vessels_harbor_sandbox.sql);
+# the economy check lifts that stock so customs meet the tomes it sold.
+set_east_dock_tomes_stock() {
+  local stocked=$1
+
+  if [[ "$stocked" == true ]]; then
+    database_query "
+      INSERT IGNORE INTO port_commodities (port_vnum, commodity_id, supply)
+      SELECT 1000390, commodity_id, 100
+        FROM trade_commodities
+       WHERE name = 'forbidden tomes';"
+  else
+    database_query "
+      DELETE stock
+        FROM port_commodities AS stock
+        JOIN trade_commodities AS commodity
+          ON commodity.commodity_id = stock.commodity_id
+       WHERE stock.port_vnum = 1000390
+         AND commodity.name = 'forbidden tomes';"
+  fi
+}
+
+# A value the economy session reported, if any.
+economy_value() {
+  local key=$1
+  local economy_log="$run_dir/02-kohdee-vessel-economy.log"
+
+  [[ -f "$economy_log" ]] || return 0
+  sed -n "s/^${key}=\([1-9][0-9]*\)\r\{0,1\}\$/\1/p" "$economy_log" | head -n 1
 }
 
 # The shipyard prototype the rules session reported creating, if any.
@@ -308,11 +349,13 @@ restore_secondary_rules_state() {
           WHERE runtime.prototype_id = ship_prototypes.prototype_id);"
 }
 
-# Remove any temporary boat prototype a movement or loss session left behind.
+# Remove any temporary prototype a movement, loss, or economy session left
+# behind.
 restore_movement_state() {
   database_query "
     DELETE FROM ship_prototypes
-     WHERE (name LIKE 'Movecheck Boat%' OR name LIKE 'Losscheck %')
+     WHERE (name LIKE 'Movecheck Boat%' OR name LIKE 'Losscheck %'
+            OR name LIKE 'Econcheck %')
        AND NOT EXISTS (
          SELECT 1
            FROM ship_runtime_state AS runtime
@@ -353,8 +396,12 @@ restore_baseline() {
   if [[ "$acceptance_mode" == rules ]]; then
     restore_secondary_rules_state || cleanup_status=1
   fi
-  if [[ "$acceptance_mode" == movement || "$acceptance_mode" == loss ]]; then
+  if [[ "$acceptance_mode" == movement || "$acceptance_mode" == loss ||
+    "$acceptance_mode" == economy ]]; then
     restore_movement_state || cleanup_status=1
+  fi
+  if [[ "$contraband_unstocked" == true ]]; then
+    set_east_dock_tomes_stock true || cleanup_status=1
   fi
 
   if [[ "$cleanup_status" == 0 ]]; then
@@ -421,6 +468,10 @@ finish() {
       printf 'PASS: Kohdee and Vesselmate validated the retired insurance command, the crew '
       printf 'hiring gate and experience, the rename fee, a summons, and a trade-in with '
       printf 'exact two-character restoration (%ss).\n' "$elapsed_seconds"
+    elif [[ "$acceptance_mode" == economy ]]; then
+      printf 'PASS: Kohdee and Vesselmate validated contraband buying, the neutral-colors '
+      printf 'sale, customs, prize money, and renown with exact two-character restoration (%ss).\n' \
+        "$elapsed_seconds"
     elif [[ "$acceptance_mode" == raider ]]; then
       printf 'PASS: Kohdee validated ramming, a raider launch, her approach and boarding '
       printf 'attempt, her dead captain, and her retirement at restart with exact '
@@ -561,7 +612,20 @@ if [[ "$acceptance_mode" == raider ]]; then
     grep -Fqx '#70021' "$repo_root/lib/world/obj/700.obj" ||
     fail "the raider content is not installed; run scripts/vessels/provision_vessel_harbor.sh"
 fi
-if [[ "$acceptance_mode" == rules || "$acceptance_mode" == loss ]]; then
+if [[ "$acceptance_mode" == economy ]]; then
+  economy_stock_state=$(database_query "
+    SELECT COUNT(*)
+      FROM port_commodities AS stock
+      JOIN trade_commodities AS commodity
+        ON commodity.commodity_id = stock.commodity_id
+     WHERE stock.port_vnum = 1000390
+       AND commodity.name = 'forbidden tomes'
+       AND commodity.contraband_renown = 150;") || economy_stock_state=0
+  [[ "$economy_stock_state" == 1 ]] ||
+    fail "the contraband content is not installed; run scripts/vessels/provision_vessel_harbor.sh"
+fi
+if [[ "$acceptance_mode" == rules || "$acceptance_mode" == loss ||
+  "$acceptance_mode" == economy ]]; then
   secondary_hull_count=$(database_query "
     SELECT COUNT(*)
       FROM ship_interiors
@@ -866,6 +930,56 @@ elif [[ "$acceptance_mode" == loss ]]; then
     'PASS: the vessel loss check completed and purged all temporary hulls'; do
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-loss.log" ||
       fail "the loss session did not report '$expected_text'"
+  done
+elif [[ "$acceptance_mode" == economy ]]; then
+  timeout 120 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --help-check \
+    SHIPRENOWN CONTRABAND >"$run_dir/01-economy-help.log" 2>&1 ||
+    fail "Kohdee could not read the authoritative vessel economy help"
+  economy_help_state=$(database_query "
+    SELECT COUNT(*)
+      FROM help_entries
+     WHERE (BINARY tag = 'SHIPRENOWN' AND entry LIKE '%2.5 gold for each point%')
+        OR (BINARY tag = 'MARKET' AND entry LIKE '%contraband it does not stock%');")
+  [[ "$economy_help_state" == 2 ]] ||
+    fail "the authoritative vessel economy help is stale"
+
+  timeout 600 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --vessel-economy-check \
+    "$warship_prototype_id" "$secondary_player" \
+    >"$run_dir/02-kohdee-vessel-economy.log" 2>&1 ||
+    fail "the actual Kohdee and Vesselmate vessel-economy session failed"
+  for expected_text in \
+    'PASS: the East Dock refused its forbidden tomes to a hull of no renown and sold them to an able crew.' \
+    'PASS: under neutral colors the merchants paid a tenth less.' \
+    "PASS: Kohdee's warship sank Vesselmate's boat, won her 25 renown, and was paid prize money." \
+    'PASS: the vessel economy check completed and left the smuggler a room off the East Dock'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-economy.log" ||
+      fail "the economy session did not report '$expected_text'"
+  done
+
+  # With the dock's own stock of tomes lifted, its customs meet the ones
+  # she carries back in.
+  economy_ship_slot=$(economy_value economy_ship_slot)
+  economy_ship_prototype_id=$(economy_value economy_ship_prototype_id)
+  [[ -n "$economy_ship_slot" && -n "$economy_ship_prototype_id" ]] ||
+    fail "the economy session did not report its smuggler"
+  contraband_unstocked=true
+  set_east_dock_tomes_stock false ||
+    fail "could not lift the East Dock's stock of forbidden tomes"
+  timeout 300 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --vessel-customs-check \
+    "$economy_ship_slot" "$economy_ship_prototype_id" \
+    >"$run_dir/03-kohdee-vessel-customs.log" 2>&1 ||
+    fail "the actual Kohdee vessel-customs session failed"
+  set_east_dock_tomes_stock true ||
+    fail "could not restore the East Dock's stock of forbidden tomes"
+  contraband_unstocked=false
+  for expected_text in \
+    'PASS: sailing into the East Dock, customs seized forbidden tomes it does not stock.' \
+    'PASS: the vessel customs check completed and purged the smuggler'; do
+    grep -Fq "$expected_text" "$run_dir/03-kohdee-vessel-customs.log" ||
+      fail "the customs session did not report '$expected_text'"
   done
 elif [[ "$acceptance_mode" == raider ]]; then
   timeout 120 env DEV_MUD_CHARACTER="$target_player" \

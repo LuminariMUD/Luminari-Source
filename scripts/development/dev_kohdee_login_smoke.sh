@@ -90,8 +90,14 @@ if [[ $# -gt 0 ]]; then
     --vessel-raider-check)
       mode="vessel-raider-check"
       ;;
+    --vessel-economy-check)
+      mode="vessel-economy-check"
+      ;;
+    --vessel-customs-check)
+      mode="vessel-customs-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id> | --vessel-boarding-check <warship-id> [<defender-character>] | --vessel-rules-check <warship-id> [<crew-character>] | --vessel-movement-check <warship-id> | --vessel-damage-check <warship-id> | --vessel-gunnery-check <warship-id> | --vessel-loss-check <owner-character> | --vessel-raider-check <warship-id>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id> | --vessel-boarding-check <warship-id> [<defender-character>] | --vessel-rules-check <warship-id> [<crew-character>] | --vessel-movement-check <warship-id> | --vessel-damage-check <warship-id> | --vessel-gunnery-check <warship-id> | --vessel-loss-check <owner-character> | --vessel-raider-check <warship-id> | --vessel-economy-check <warship-id> <crew-character> | --vessel-customs-check <ship-slot> <prototype-id>]"
       ;;
   esac
   shift
@@ -185,6 +191,12 @@ if [[ $# -gt 0 ]]; then
   elif [[ "$mode" == "vessel-raider-check" ]]; then
     [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ ]] ||
       fail "--vessel-raider-check requires one positive warship prototype id"
+  elif [[ "$mode" == "vessel-economy-check" ]]; then
+    [[ $# -eq 2 && "$1" =~ ^[1-9][0-9]*$ && "$2" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
+      fail "--vessel-economy-check requires a positive warship prototype id and a crew character"
+  elif [[ "$mode" == "vessel-customs-check" ]]; then
+    [[ $# -eq 2 && "$1" =~ ^[1-9][0-9]*$ && "$2" =~ ^[1-9][0-9]*$ ]] ||
+      fail "--vessel-customs-check requires a positive ship slot and prototype id"
   elif [[ "$mode" == "vessel-rules-check" ]]; then
     [[ ($# -eq 1 || $# -eq 2) && "$1" =~ ^[1-9][0-9]*$ ]] ||
       fail "--vessel-rules-check requires a positive warship prototype id and an optional crew character"
@@ -247,8 +259,8 @@ smoke_password="${DEV_MUD_ACCOUNT_PASSWORD:-${GAME_MASTER_ACCOUNT_PASSWORD:-}}"
   fail "DEV_MUD_ACCOUNT or GAME_MASTER_ACCOUNT is not set"
 [[ -n "$smoke_password" ]] ||
   fail "DEV_MUD_ACCOUNT_PASSWORD or GAME_MASTER_ACCOUNT_PASSWORD is not set"
-if [[ ("$mode" == "vessel-channel-check" ||
-  "$mode" == "vessel-boarding-check" || "$mode" == "vessel-rules-check") && $# -eq 2 ]]; then
+if [[ ("$mode" == "vessel-channel-check" || "$mode" == "vessel-boarding-check" ||
+  "$mode" == "vessel-rules-check" || "$mode" == "vessel-economy-check") && $# -eq 2 ]]; then
   if [[ "${2,,}" == "${smoke_character,,}" ]]; then
     fail "$mode requires two different character names"
   fi
@@ -1647,7 +1659,8 @@ proc run_vessel_gunnery_check {warship_id} {
   require_game_output $output "Long Tom Catapult cannot be mounted on the port arc" \
     "weapon arc refusal"
   set output [run_game_command "shipweapon buy heavy beamcannon fore"]
-  require_game_output $output "Only a veteran gunner can serve a capital weapon." \
+  require_game_output $output \
+    "A Heavy Beamcannon is mounted only on a hull of 1800 renown or with a veteran gunner." \
     "capital weapon refusal"
   set output [run_game_command "shipequip buy ram"]
   require_game_output $output "with a Ram for 570 gold" "ram purchase"
@@ -2915,7 +2928,8 @@ proc run_vessel_loss_check {requested_character} {
   run_game_command "trans $captain"
   set ::spawn_id $secondary_session
   set output [run_game_command "shiphire gunner able"]
-  require_game_output $output "No able gunner will sign on with a hull of no renown." \
+  require_game_output $output \
+    "No able gunner will sign on with a hull of less than 700 renown, and Losscheck Tern has 0." \
     "able hire refusal"
   set output [run_game_command "shiphire bosun green"]
   require_game_output $output "You sign on a green bosun for 2000 gold." "green hire"
@@ -2969,6 +2983,198 @@ proc run_vessel_loss_check {requested_character} {
   puts "PASS: $captain was refused an able gunner and hired a green bosun, whose experience SHIPCREW showed."
   puts "PASS: traded in at the east dock, she became a warship design with her name, owner, and crew."
   puts "PASS: the vessel loss check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
+}
+
+proc run_vessel_economy_check {warship_id requested_character} {
+  set workflow_started_at [clock milliseconds]
+  set primary_session $::spawn_id
+  set name_seed [clock seconds]
+  set ship_name "Econcheck Ship $name_seed"
+  set boat_name "Econcheck Boat $name_seed"
+
+  # A ship berthed at the harbor's East Dock, which stocks forbidden tomes,
+  # deeded to a mortal captain.
+  set output [run_game_command "goto 1000390"]
+  require_game_output $output "Current Location  : (-62, 82)" "harbor staging"
+  set output [run_game_command "vedit new 2 $ship_name"]
+  if {![regexp {Created Ship prototype ([0-9]+):} $output ignored ship_prototype_id]} {
+    fail "could not read the economy-check ship prototype id"
+  }
+  # The acceptance harness takes the ship through customs after this session.
+  puts "economy_ship_prototype_id=$ship_prototype_id"
+  flush stdout
+  set output [run_game_command "vedit spawn $ship_prototype_id"]
+  if {![regexp {as ship ([0-9]+):} $output ignored ship_slot]} {
+    fail "could not read the economy-check ship slot"
+  }
+  puts "economy_ship_slot=$ship_slot"
+  flush stdout
+  set output [run_game_command "shipgoto $ship_slot"]
+  require_game_output $output "Aboard $ship_name (slot $ship_slot)." "ship boarding"
+  lassign [open_secondary_character $requested_character] secondary_session captain
+  set ::spawn_id $primary_session
+  run_game_command "trans $captain"
+  set output [run_game_command "set $captain gold 60000"]
+  require_game_output $output "gold set to 60000." "captain purse"
+  set output [run_game_command "shipdeed $captain"]
+  require_game_output $output "You sign over $ship_name to $captain." "ship deed"
+
+  # The dock sells its tomes only to a hull of renown or with an able
+  # sailmaster and quartermaster.
+  set ::spawn_id $secondary_session
+  set output [run_game_command "market"]
+  if {![regexp {forbidden tomes +4 +[0-9]+ +[0-9]+  [a-z]+ \(contraband\)} $output]} {
+    fail "the East Dock market did not offer its forbidden tomes as contraband"
+  }
+  require_game_output $output "none (contraband)" "unstocked contraband listing"
+  set output [run_game_command "cargobuy forbidden 5"]
+  require_game_output $output \
+    "The smugglers sell forbidden tomes only to a hull of 150 renown, or one with an able" \
+    "renown refusal"
+  set ::spawn_id $primary_session
+  foreach position {sailmaster quartermaster} {
+    set output [run_game_command "shiphire $position able"]
+    require_game_output $output "You sign on a able $position" "able $position"
+  }
+  set ::spawn_id $secondary_session
+  set output [run_game_command "cargobuy forbidden 5"]
+  require_game_output $output "You load 5 units of forbidden tomes" "contraband purchase"
+
+  # Under neutral colors the merchants pay a tenth less.
+  set output [run_game_command "shipequip buy colors"]
+  require_game_output $output "with a Neutral Colors for 0 gold" "neutral colors"
+  set output [run_game_command "cargosell forbidden 1"]
+  require_game_output $output \
+    "The merchants pay a tenth less to a hull under neutral colors." "colors sale"
+  require_game_output $output "You sell 1 units of forbidden tomes for" "contraband sale"
+
+  # She casts off and lies a room west of the dock until customs.
+  set ::spawn_id $primary_session
+  set output [run_game_command "undock"]
+  require_game_output $output "The crew begins casting off." "casting off"
+  set output [wait_for_game_output 33 "ready to get under way"]
+  require_game_output $output "ready to get under way" "departure"
+  set output [frontier_maneuver west]
+  require_game_output $output "Current position: (-63, 82, 0)" "smuggler offing"
+
+  # Vesselmate's boat lies in the harbor heading north, with a warship of
+  # Kohdee's off her port side and one off her stern.
+  set output [run_game_command "goto -67 88"]
+  require_game_output $output "Current Location  : (-67, 88)" "boat staging"
+  set output [run_game_command "vedit new 1 $boat_name"]
+  if {![regexp {Created Boat prototype ([0-9]+):} $output ignored boat_prototype_id]} {
+    fail "could not read the economy-check boat prototype id"
+  }
+  set boat_slot [spawn_frontier_vessel $boat_prototype_id $boat_name]
+  run_game_command "trans $captain"
+  set output [run_game_command "shipdeed $captain"]
+  require_game_output $output "You sign over $boat_name to $captain." "boat deed"
+  run_game_command "goto 1204"
+  run_game_command "trans $captain"
+  set output [run_game_command "goto -67 86"]
+  require_game_output $output "Current Location  : (-67, 86)" "stern shooter staging"
+  set stern_slot [spawn_frontier_vessel_at_exterior $warship_id "Starfall Bastion"]
+  set output [run_game_command "goto -69 88"]
+  require_game_output $output "Current Location  : (-69, 88)" "port shooter staging"
+  set port_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+  set boat_id [vessel_slot_id $boat_slot]
+
+  # They hole her stern and port side; she sinks, and the warship that sank
+  # her wins her hull weight in renown and prize money. Out of his group of
+  # one, Kohdee shares none of it with his other hulls.
+  run_game_command "group leave"
+  set transcript ""
+  set sinking 0
+  for {set round 1} {$round <= 12 && !$sinking} {incr round} {
+    volley [list $port_slot] 2 $boat_id "port broadside $round"
+    volley [list $stern_slot] 0 $boat_id "bow chaser $round"
+    set output [run_game_command "shipgoto $boat_slot"]
+    set status [run_game_command "shipstatus"]
+    set sinking [expr {[string first "SINKING" $status] >= 0}]
+    append transcript [run_game_command "shipgoto $port_slot"]
+    if {!$sinking} {
+      append transcript [run_game_command "@wait 18"]
+    }
+  }
+  if {!$sinking} {
+    fail "the boat was not sinking after twelve rounds of fire"
+  }
+  set sunk 0
+  set wreck_pattern [format {^[[:space:]]*%d[[:space:]]+%s[[:space:]]+Boat[[:space:]]+wreck registry} \
+    $boat_slot $boat_name]
+  for {set attempt 0} {$attempt < 36 && !$sunk} {incr attempt} {
+    set output [run_game_command "shiplist"]
+    append transcript $output
+    if {[regexp -line $wreck_pattern $output]} {
+      set sunk 1
+    } else {
+      append transcript [run_game_command "@wait 5"]
+    }
+  }
+  if {!$sunk} {
+    fail "the sinking boat was not in the wreck registry three minutes later"
+  }
+  require_game_output $transcript "The harbor office delivers" "prize money"
+  set output [run_game_command "shiprenown"]
+  if {![regexp {Starfall Bastion +Warship +Kohdee +25 renown} $output]} {
+    fail "shiprenown did not show Kohdee's warship with 25 renown"
+  }
+
+  purge_frontier_vessel $port_slot "Starfall Bastion"
+  set output [run_game_command "shippurge $stern_slot"]
+  require_game_output $output "Purged ship $stern_slot 'Starfall Bastion'" "shooter cleanup"
+  set output [run_game_command "shippurge $boat_slot"]
+  require_game_output $output "Purged ship $boat_slot '$boat_name'" "wreck cleanup"
+  set output [run_game_command "vedit delete $boat_prototype_id"]
+  require_game_output $output "Prototype $boat_prototype_id deleted." "boat prototype cleanup"
+  set output [run_game_command "goto 1204"]
+  require_game_output $output "Staff Board Room" "economy safe-room return"
+
+  logout_character_session $secondary_session $captain
+  set ::spawn_id $primary_session
+  set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
+  puts "\nPASS: the East Dock refused its forbidden tomes to a hull of no renown and sold them to an able crew."
+  puts "PASS: under neutral colors the merchants paid a tenth less."
+  puts "PASS: Kohdee's warship sank ${captain}'s boat, won her 25 renown, and was paid prize money."
+  puts "PASS: the vessel economy check completed and left the smuggler a room off the East Dock in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
+}
+
+proc run_vessel_customs_check {ship_slot prototype_id} {
+  set workflow_started_at [clock milliseconds]
+
+  set output [run_game_command "shipgoto $ship_slot"]
+  if {![regexp "Aboard (Econcheck Ship \[0-9\]+) \\(slot $ship_slot\\)\\." $output ignored ship_name]} {
+    fail "could not board the smuggler in slot $ship_slot"
+  }
+  set output [run_game_command "cargomanifest"]
+  if {![regexp {forbidden tomes +4 units} $output]} {
+    fail "the smuggler did not carry her four forbidden tomes"
+  }
+
+  # Sailing in from sea, she meets the customs of a port that stocks no tomes.
+  set output [frontier_maneuver east]
+  require_game_output $output "made fast at the berth" "customs arrival"
+  require_game_output $output \
+    "The port authorities come aboard $ship_name in search of contraband." "customs search"
+  if {![regexp {Customs confiscate ([1-4]) of 4 units of forbidden tomes!} $output ignored taken]} {
+    fail "customs seized none of the forbidden tomes"
+  }
+  set output [run_game_command "cargomanifest"]
+  if {$taken == 4} {
+    require_game_output $output "(empty)" "seized hold"
+  } elseif {![regexp [format {forbidden tomes +%d units} [expr {4 - $taken}]] $output]} {
+    fail "the hold did not keep the [expr {4 - $taken}] tomes customs missed"
+  }
+
+  set output [run_game_command "shippurge $ship_slot"]
+  require_game_output $output "Purged ship $ship_slot '$ship_name'" "smuggler cleanup"
+  set output [run_game_command "vedit delete $prototype_id"]
+  require_game_output $output "Prototype $prototype_id deleted." "smuggler prototype cleanup"
+  set output [run_game_command "goto 1204"]
+  require_game_output $output "Staff Board Room" "customs safe-room return"
+  set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
+  puts "\nPASS: sailing into the East Dock, customs seized forbidden tomes it does not stock."
+  puts "PASS: the vessel customs check completed and purged the smuggler in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }
 
 proc run_vessel_channel_check {ship_slot requested_character} {
@@ -3146,7 +3352,8 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     $mode eq "vessel-narrative-check" || $mode eq "vessel-boarding-check" ||
     $mode eq "vessel-rules-check" || $mode eq "vessel-movement-check" ||
     $mode eq "vessel-damage-check" || $mode eq "vessel-gunnery-check" ||
-    $mode eq "vessel-loss-check" || $mode eq "vessel-raider-check"} {
+    $mode eq "vessel-loss-check" || $mode eq "vessel-raider-check" ||
+    $mode eq "vessel-economy-check" || $mode eq "vessel-customs-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -3226,6 +3433,10 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
       run_vessel_loss_check [lindex $game_commands 0]
     } elseif {$mode eq "vessel-raider-check"} {
       run_vessel_raider_check [lindex $game_commands 0]
+    } elseif {$mode eq "vessel-economy-check"} {
+      run_vessel_economy_check [lindex $game_commands 0] [lindex $game_commands 1]
+    } elseif {$mode eq "vessel-customs-check"} {
+      run_vessel_customs_check [lindex $game_commands 0] [lindex $game_commands 1]
     } else {
       run_vessel_msdp_check [lindex $game_commands 0]
     }
@@ -3333,6 +3544,12 @@ elif [[ "$mode" == "vessel-loss-check" ]]; then
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-raider-check" ]]; then
   printf 'PASS: %s completed the vessel-raider check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-economy-check" ]]; then
+  printf 'PASS: %s completed the two-character vessel-economy check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-customs-check" ]]; then
+  printf 'PASS: %s completed the vessel-customs check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-rules-check" ]]; then
   printf 'PASS: %s completed the two-character vessel-rules check and logged out cleanly (%ss total).\n' \

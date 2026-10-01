@@ -6,11 +6,11 @@
 SELECT
   'entry_count' AS check_name,
   COUNT(*) AS actual,
-  33 AS expected,
-  IF(COUNT(*) = 33, 'PASS', 'FAIL') AS result
+  34 AS expected,
+  IF(COUNT(*) = 34, 'PASS', 'FAIL') AS result
 FROM help_entries
 WHERE tag IN (
-  'VESSELS', 'VEDIT', 'SHIPFIRE', 'SHIPBROWSE', 'SHIPHIRE',
+  'VESSELS', 'VEDIT', 'SHIPFIRE', 'SHIPRENOWN', 'SHIPBROWSE', 'SHIPHIRE',
   'MARKET', 'CONTRACTS', 'PLUNDER', 'SEASTATE', 'SHIPLIST',
   'VMERCHANT', 'VESSELDEBUG', 'AUTOPILOT', 'SETWAYPOINT', 'LISTWAYPOINTS',
   'DELWAYPOINT', 'CREATEROUTE', 'ADDTOROUTE', 'DELROUTE',
@@ -23,8 +23,8 @@ WHERE tag IN (
 SELECT
   'command_keywords' AS check_name,
   COUNT(*) AS actual,
-  90 AS expected,
-  IF(COUNT(*) = 90, 'PASS', 'FAIL') AS result
+  91 AS expected,
+  IF(COUNT(*) = 91, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE (help_tag, keyword) IN (
   ('VESSELS', 'BOARD'),
@@ -54,6 +54,7 @@ WHERE (help_tag, keyword) IN (
   ('SHIPFIRE', 'SHIPSIGHT'),
   ('SHIPFIRE', 'SHIPSCAN'),
   ('SHIPFIRE', 'SHIPRAM'),
+  ('SHIPRENOWN', 'SHIPRENOWN'),
   ('SHIPBROWSE', 'SHIPBROWSE'),
   ('SHIPBROWSE', 'SHIPBUY'),
   ('SHIPBROWSE', 'SHIPCHRISTEN'),
@@ -122,8 +123,8 @@ WHERE (help_tag, keyword) IN (
 SELECT
   'access_levels' AS check_name,
   COUNT(*) AS actual,
-  33 AS expected,
-  IF(COUNT(*) = 33, 'PASS', 'FAIL') AS result
+  34 AS expected,
+  IF(COUNT(*) = 34, 'PASS', 'FAIL') AS result
 FROM help_entries
 WHERE
   (
@@ -133,7 +134,7 @@ WHERE
   OR
   (
     tag IN (
-      'VESSELS', 'SHIPFIRE', 'SHIPBROWSE', 'SHIPHIRE', 'MARKET',
+      'VESSELS', 'SHIPFIRE', 'SHIPRENOWN', 'SHIPBROWSE', 'SHIPHIRE', 'MARKET',
       'CONTRACTS', 'PLUNDER', 'SEASTATE', 'AUTOPILOT', 'SETWAYPOINT',
       'LISTWAYPOINTS', 'DELWAYPOINT', 'CREATEROUTE', 'ADDTOROUTE',
       'DELROUTE', 'LISTROUTES', 'SETROUTE', 'SETSCHEDULE',
@@ -147,11 +148,11 @@ WHERE
 SELECT
   'nonempty_entries' AS check_name,
   COUNT(*) AS actual,
-  33 AS expected,
-  IF(COUNT(*) = 33, 'PASS', 'FAIL') AS result
+  34 AS expected,
+  IF(COUNT(*) = 34, 'PASS', 'FAIL') AS result
 FROM help_entries
 WHERE tag IN (
-  'VESSELS', 'VEDIT', 'SHIPFIRE', 'SHIPBROWSE', 'SHIPHIRE',
+  'VESSELS', 'VEDIT', 'SHIPFIRE', 'SHIPRENOWN', 'SHIPBROWSE', 'SHIPHIRE',
   'MARKET', 'CONTRACTS', 'PLUNDER', 'SEASTATE', 'SHIPLIST',
   'VMERCHANT', 'VESSELDEBUG', 'AUTOPILOT', 'SETWAYPOINT', 'LISTWAYPOINTS',
   'DELWAYPOINT', 'CREATEROUTE', 'ADDTOROUTE', 'DELROUTE',
@@ -167,8 +168,8 @@ AND CHAR_LENGTH(TRIM(entry)) > 0;
 SELECT
   'content_contracts' AS check_name,
   COUNT(*) AS actual,
-  34 AS expected,
-  IF(COUNT(*) = 34, 'PASS', 'FAIL') AS result
+  40 AS expected,
+  IF(COUNT(*) = 40, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
   SELECT 'VESSELS' AS tag, 'moving no faster than speed 2' AS required_pattern
@@ -190,7 +191,13 @@ JOIN (
   UNION ALL SELECT 'VEDIT', 'new[[:space:]]+prototypes are not for sale'
   UNION ALL SELECT 'SHIPBROWSE', 'need not be[[:space:]]+present'
   UNION ALL SELECT 'SHIPHIRE', 'draws no wages'
-  UNION ALL SELECT 'SHIPHIRE', 'one per hull, served only by a veteran gunner'
+  UNION ALL SELECT 'SHIPHIRE', 'one per hull, mounted only on a hull of the[[:space:]]+renown the list shows'
+  UNION ALL SELECT 'SHIPHIRE', '540 to 700 renown'
+  UNION ALL SELECT 'SHIPRENOWN', '2.5 gold for each point'
+  UNION ALL SELECT 'SHIPRENOWN', 'cut by 8 percent'
+  UNION ALL SELECT 'MARKET', 'contraband it does not stock'
+  UNION ALL SELECT 'MARKET', 'warship four tenths less'
+  UNION ALL SELECT 'PLUNDER', 'pays the whole bounty to those who sank her'
   UNION ALL SELECT 'SHIPHIRE', 'green hands earn promotion at sea'
   UNION ALL SELECT 'SHIPFIRE', 'one Craft [(]woodworking[)] check, DC 15'
   UNION ALL SELECT 'SHIPFIRE', 'she needs speed 6 or more'

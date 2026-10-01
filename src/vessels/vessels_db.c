@@ -83,6 +83,7 @@ void vessel_persistence_ensure_schema(void)
       "stowed TINYINT UNSIGNED NOT NULL DEFAULT 0, "
       "wreck_hull TINYINT UNSIGNED NOT NULL DEFAULT 0, "
       "summon_due BIGINT NOT NULL DEFAULT 0, "
+      "renown INT NOT NULL DEFAULT 0, "
       "last_attacker INT NOT NULL DEFAULT 0, "
       "pvp_grace_until BIGINT NOT NULL DEFAULT 0, "
       "pvp_grace_attacker VARCHAR(64) NOT NULL DEFAULT '', "
@@ -200,6 +201,13 @@ void vessel_persistence_ensure_schema(void)
                         "AFTER wreck_hull"))
   {
     log("SYSERR: Unable to add vessel Phase 21 runtime fields: %s", mysql_error(conn));
+  }
+
+  /* A hull's renown (S7), won sinking other players' hulls. */
+  if (mysql_query(conn, "ALTER TABLE ship_runtime_state "
+                        "ADD COLUMN IF NOT EXISTS renown INT NOT NULL DEFAULT 0"))
+  {
+    log("SYSERR: Unable to add vessel Phase 23 renown: %s", mysql_error(conn));
   }
 
   /* Crew hired before S5 read 0 and start at the floor of their tier. */
@@ -607,7 +615,7 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            "maxfinternal, maxrinternal, maxpinternal, maxsinternal, "
            "finternal, rinternal, pinternal, sinternal, "
            "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, condition_model, "
-           "sink_ticks, stowed, wreck_hull, summon_due, last_attacker, pvp_grace_until, "
+           "sink_ticks, stowed, wreck_hull, summon_due, renown, last_attacker, pvp_grace_until, "
            "pvp_grace_attacker, dock_fee_balance, dock_fee_port, dock_fee_clan, "
            "wear_ticks, room_types, "
            "autopilot_state, current_route_id, current_waypoint_index, "
@@ -617,7 +625,7 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            "%d, %d, %d, %d, "
            "%u, %u, %u, %u, %u, %u, %u, %u, "
            "%u, %u, %u, %u, %u, %u, %u, %u, "
-           "%u, %u, %u, %u, %u, %u, %d, %d, %d, %d, %lld, "
+           "%u, %u, %u, %u, %u, %u, %d, %d, %d, %d, %lld, %d, "
            "%d, %lld, '%s', %d, %d, %d, %d, '%s', "
            "%d, %d, %d, %d, %d, %lld)",
            ship->shipnum, ship->prototype_id,
@@ -631,10 +639,10 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
            ship->finternal, ship->rinternal, ship->pinternal, ship->sinternal, ship->maxturnrate,
            ship->turnrate, ship->maxmainsail, ship->mainsail, ship->hullweight, ship->maxslots,
            VESSEL_CONDITION_MODEL, ship->sink_ticks, ship->stowed, ship->wreck_hull,
-           (long long)ship->summon_due, ship->last_attacker, (long long)ship->pvp_grace_until,
-           escaped_pvp_attacker, ship->dock_fee_balance, ship->dock_fee_port, ship->dock_fee_clan,
-           ship->wear_ticks, room_types, autopilot_state, route_id, current_waypoint_index,
-           autopilot_tick_counter, wait_remaining, last_update);
+           (long long)ship->summon_due, ship->renown, ship->last_attacker,
+           (long long)ship->pvp_grace_until, escaped_pvp_attacker, ship->dock_fee_balance,
+           ship->dock_fee_port, ship->dock_fee_clan, ship->wear_ticks, room_types, autopilot_state,
+           route_id, current_waypoint_index, autopilot_tick_counter, wait_remaining, last_update);
 
   if (mysql_query(conn, query))
   {
@@ -686,7 +694,7 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
       "maxfinternal, maxrinternal, maxpinternal, maxsinternal, "
       "finternal, rinternal, pinternal, sinternal, "
       "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, condition_model, "
-      "sink_ticks, stowed, wreck_hull, summon_due, last_attacker, pvp_grace_until, "
+      "sink_ticks, stowed, wreck_hull, summon_due, renown, last_attacker, pvp_grace_until, "
       "pvp_grace_attacker, dock_fee_balance, dock_fee_port, dock_fee_clan, "
       "wear_ticks, room_types, "
       "autopilot_state, current_route_id, current_waypoint_index, "
@@ -818,6 +826,8 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
   ship->wreck_hull = row[column] != NULL && parse_int(row[column]) != 0;
   column++;
   ship->summon_due = row[column] ? (time_t)parse_llong(row[column]) : 0;
+  column++;
+  ship->renown = row[column] ? parse_int(row[column]) : 0;
   column++;
 
   ship->last_attacker = row[column] ? parse_int(row[column]) : 0;

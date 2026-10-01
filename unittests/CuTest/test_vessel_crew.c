@@ -276,7 +276,8 @@ void Test_vessel_hire_takes_green_hands_at_their_floor(CuTest *tc)
 
   /* Without renown only green hands sign on, and nothing is charged. */
   output = crew_harbor_command(&harbor, do_shiphire, "gunner able");
-  CuAssertTrue(tc, strstr(output, "No able gunner will sign on with a hull of no renown") != NULL);
+  CuAssertTrue(tc, strstr(output, "No able gunner will sign on with a hull of less than 700 "
+                                  "renown") != NULL);
   CuAssertIntEquals(tc, CREW_TIER_NONE, ship->crew_tier[CREW_GUNNER]);
   CuAssertIntEquals(tc, 100000, GET_GOLD(&harbor.captain));
 

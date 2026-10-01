@@ -52,6 +52,8 @@ struct vessel_raider_tier
   int crew_tier; /* Of her sailmaster, gunner, and bosun */
   int gold_min;  /* In her chest: twice Duris's platinum */
   int gold_max;
+  int renown_min; /* The renown she carries */
+  int renown_max;
   struct
   {
     int weapon;
@@ -66,6 +68,8 @@ static const struct vessel_raider_tier raider_tiers[VESSEL_RAIDER_TIERS] = {
      CREW_TIER_GREEN,
      800,
      1600,
+     150,
+     300,
      {{VESSEL_WEAPON_SMALL_CATAPULT, 1},
       {VESSEL_WEAPON_SMALL_BALLISTA, 1},
       {VESSEL_WEAPON_SMALL_BALLISTA, 1},
@@ -76,6 +80,8 @@ static const struct vessel_raider_tier raider_tiers[VESSEL_RAIDER_TIERS] = {
      CREW_TIER_GREEN,
      1200,
      2000,
+     500,
+     600,
      {{VESSEL_WEAPON_SMALL_CATAPULT, 1},
       {VESSEL_WEAPON_MEDIUM_BALLISTA, 2},
       {VESSEL_WEAPON_NONE, 0},
@@ -86,6 +92,8 @@ static const struct vessel_raider_tier raider_tiers[VESSEL_RAIDER_TIERS] = {
      CREW_TIER_ABLE,
      2400,
      3000,
+     700,
+     1000,
      {{VESSEL_WEAPON_MEDIUM_CATAPULT, 2},
       {VESSEL_WEAPON_LARGE_BALLISTA, 2},
       {VESSEL_WEAPON_NONE, 0},
@@ -96,6 +104,8 @@ static const struct vessel_raider_tier raider_tiers[VESSEL_RAIDER_TIERS] = {
      CREW_TIER_VETERAN,
      3000,
      6000,
+     2000,
+     3000,
      {{VESSEL_WEAPON_LARGE_CATAPULT, 1},
       {VESSEL_WEAPON_LARGE_BALLISTA, 2},
       {VESSEL_WEAPON_SMALL_CATAPULT, 1},
@@ -167,7 +177,7 @@ int vessel_raider_ambush_odds(struct greyhawk_ship_data *ship)
 
 /**
  * The tier a quarry draws (Duris try_load_pirate_ship()) from
- * n = random(0, hull weight), to which renown adds in S7. A merchant class
+ * n = random(0, hull weight) + her renown. A merchant class
  * draws tier 0 below 250 and tier 1 below 1,200, then tier 2 three times in
  * four (a hunter one time in three), else a tier 3 hunter. Any other class
  * is noticed only when n >= random(1, 1000), and then draws a tier 2 hunter,
@@ -179,7 +189,7 @@ int vessel_raider_pick_tier(const struct greyhawk_ship_data *target, bool *hunte
 {
   int n;
 
-  n = rand_number(0, vessel_class_handling(target->vessel_type)->hull_weight);
+  n = rand_number(0, vessel_class_handling(target->vessel_type)->hull_weight) + target->renown;
   *hunter = FALSE;
   if (vessel_merchant_class(target->vessel_type))
   {
@@ -323,7 +333,7 @@ static void vessel_raider_stow_chest(struct greyhawk_ship_data *raider, struct c
 /**
  * Launch a raider of `tier` against target: one of the tier's prototypes,
  * her sight range plus 10 rooms off target's bow within 45 degrees, fitted,
- * crewed, and sailing at her at full speed.
+ * crewed, carrying the tier's renown, and sailing at her at full speed.
  *
  * @return the raider's fleet slot, or -1
  */
@@ -401,6 +411,7 @@ int vessel_raider_spawn(struct greyhawk_ship_data *target, int tier, bool hunter
 
   raider->raider_mode = VESSEL_RAIDER_ENGAGING;
   raider->raider_tier = (unsigned char)tier;
+  raider->renown = rand_number(stats->renown_min, stats->renown_max);
   raider->raider_hunter = hunter;
   raider->raider_advanced = rand_number(1, 100) <= stats->advanced;
   raider->raider_target = target->shipnum;

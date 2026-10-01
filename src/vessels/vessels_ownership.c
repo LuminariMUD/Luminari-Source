@@ -644,7 +644,7 @@ ACMD(do_shiprevoke)
 }
 
 /**
- * shipcrew - list ownership, permits, and NPC pilot.
+ * shipcrew - list ownership, renown, permits, NPC pilot, and hired crew.
  */
 ACMD(do_shipcrew)
 {
@@ -660,6 +660,7 @@ ACMD(do_shipcrew)
 
   send_to_char(ch, "%s [%s]\r\n", ship->name, ship->id);
   send_to_char(ch, "  Owner : %s\r\n", ship->owner[0] ? ship->owner : "unclaimed");
+  send_to_char(ch, "  Renown: %d\r\n", ship->renown);
   send_to_char(ch, "  Pilot : %s\r\n",
                (ship->autopilot != NULL && ship->autopilot->pilot_mob_vnum != -1)
                    ? "NPC pilot assigned"

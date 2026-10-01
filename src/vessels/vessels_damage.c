@@ -350,8 +350,29 @@ static const char *vessel_arc_side_name(int arc)
 }
 
 /**
+ * Ship Damage Control (study 3.3.7; Duris epic_ship_damage_control()): while
+ * her owner is aboard with the feat, a blow loses 4 + 4 * rank percent, the
+ * fraction of a point as the chance of one more, and never falls below 1.
+ */
+static int vessel_damage_control(const struct greyhawk_ship_data *ship, int damage)
+{
+  struct char_data *owner;
+  int cut;
+
+  owner = damage > 1 ? vessel_owner_aboard(ship) : NULL;
+  if (owner == NULL || !HAS_FEAT(owner, FEAT_SHIP_DAMAGE_CONTROL))
+  {
+    return damage;
+  }
+  cut = damage * (4 + 4 * HAS_FEAT(owner, FEAT_SHIP_DAMAGE_CONTROL));
+  damage -= cut / 100 + (rand_number(0, 99) < cut % 100 ? 1 : 0);
+  return MAX(1, damage);
+}
+
+/**
  * Put one fragment's sail damage on target's sails. A warship's rigging takes
- * 85% (Duris warship.sails.damage.reduction); at least 1 point lands.
+ * 85% (Duris warship.sails.damage.reduction), and Ship Damage Control spares
+ * her more; at least 1 point lands.
  *
  * @return damage dealt
  */
@@ -366,7 +387,7 @@ int vessel_damage_sail(struct greyhawk_ship_data *attacker, struct greyhawk_ship
   {
     damage = damage * 85 / 100;
   }
-  damage = MAX(1, damage);
+  damage = MAX(1, vessel_damage_control(target, damage));
 
   if (attacker != NULL)
   {
@@ -490,13 +511,13 @@ void vessel_knockdown_aboard(struct greyhawk_ship_data *ship, int save)
 /**
  * Put one fragment's hull damage on the target's arc (Duris damage_hull()).
  *
- * Armor absorbs first. A hit it holds stops there unless it is a confirmed
- * critical, which carries half the damage into the structure with a 50%
- * chance to damage a weapon; overkill spills into the structure with a 15%
- * chance. On a gutted arc one hit in three deflects into another arc that
- * still has structure, and every hit there damages a weapon. Stern hits foul
- * the rudder (LuminariMUD-only), and one structural hit in nine knocks the
- * crew down.
+ * Ship Damage Control spares her part of the blow. Armor absorbs first. A hit
+ * it holds stops there unless it is a confirmed critical, which carries half
+ * the damage into the structure with a 50% chance to damage a weapon;
+ * overkill spills into the structure with a 15% chance. On a gutted arc one
+ * hit in three deflects into another arc that still has structure, and every
+ * hit there damages a weapon. Stern hits foul the rudder (LuminariMUD-only),
+ * and one structural hit in nine knocks the crew down.
  *
  * @return damage dealt to armor and structure
  */
@@ -514,7 +535,7 @@ int vessel_damage_hull(struct greyhawk_ship_data *attacker, struct greyhawk_ship
   {
     return 0;
   }
-  damage = MAX(1, damage);
+  damage = MAX(1, vessel_damage_control(target, damage));
   dealt = damage;
   breaches = vessel_breached_arcs(target);
 

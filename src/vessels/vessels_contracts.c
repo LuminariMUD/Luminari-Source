@@ -182,9 +182,10 @@ void vessel_contracts_refresh_port(int port_vnum)
     return; /* Nowhere to ship to yet */
   }
 
-  /* Goods to ship */
+  /* Lawful goods to ship: no consignee contracts for contraband (S7) */
   snprintf(query, sizeof(query),
-           "SELECT commodity_id, base_price FROM trade_commodities ORDER BY commodity_id LIMIT %d",
+           "SELECT commodity_id, base_price FROM trade_commodities WHERE contraband_renown = 0 "
+           "ORDER BY commodity_id LIMIT %d",
            MAX_CONTRACT_OFFERS);
   if (mysql_query(conn, query))
   {

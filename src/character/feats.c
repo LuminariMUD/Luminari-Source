@@ -1660,6 +1660,11 @@ void assign_feats(void)
 
   feato(FEAT_EPIC_PROWESS, "epic prowess", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
         "+1 to all attacks per rank", "+1 to all attacks per rank");
+  feato(FEAT_SHIP_DAMAGE_CONTROL, "ship damage control", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+        "cuts damage to a hull you own by 4% plus 4% per rank",
+        "While you are aboard a vessel you own, every blow to her hull or sails is reduced by 4 "
+        "percent plus 4 percent per rank of this feat (24 percent at rank 5, the most), never "
+        "below 1 point. See SHIPRENOWN.");
   /* two weapon fighting feats, epic */
   feato(FEAT_PERFECT_TWO_WEAPON_FIGHTING, "perfect two weapon fighting", TRUE, TRUE, FALSE,
         FEAT_TYPE_COMBAT, "Extra attack with offhand weapon",
@@ -6259,6 +6264,7 @@ void assign_feats(void)
   epicfeat(FEAT_BANE_OF_ENEMIES);
   epicfeat(FEAT_EPIC_WEAPON_SPECIALIZATION);
   epicfeat(FEAT_EPIC_PROWESS);
+  epicfeat(FEAT_SHIP_DAMAGE_CONTROL);
   epicfeat(FEAT_SWARM_OF_ARROWS);
   epicfeat(FEAT_SELF_CONCEALMENT);
   epicfeat(FEAT_EPIC_SHIELD_USER);
@@ -6835,6 +6841,11 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg,
 
     case FEAT_EPIC_PROWESS:
       if (has_feat_requirement_check(ch, FEAT_EPIC_PROWESS) >= 5)
+        return FALSE;
+      return TRUE;
+
+    case FEAT_SHIP_DAMAGE_CONTROL:
+      if (has_feat_requirement_check(ch, FEAT_SHIP_DAMAGE_CONTROL) >= 5)
         return FALSE;
       return TRUE;
 

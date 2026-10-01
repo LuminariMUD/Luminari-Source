@@ -304,12 +304,15 @@ void Test_vessel_shipyard_fits_weapons_and_equipment(CuTest *tc)
   CuAssertIntEquals(tc, 99000, GET_GOLD(&berth.captain));
   CuAssertIntEquals(tc, 10 * VESSEL_INSTALL_TICKS_PER_WEIGHT, ship->maintenance_ticks);
 
-  /* A capital weapon needs a veteran gunner, and a hull carries one. */
+  /* A capital weapon needs the hull's renown or a veteran gunner, and a hull
+   * carries one. */
+  ship->renown = 1799;
   output = weapons_berth_command(&berth, do_shipweapon, "buy heavy beam fore");
-  CuAssertTrue(tc, strstr(output, "Only a veteran gunner") != NULL);
+  CuAssertTrue(tc,
+               strstr(output, "only on a hull of 1800 renown or with a veteran gunner") != NULL);
   CuAssertIntEquals(tc, VESSEL_SLOT_EMPTY, ship->slot[4].type);
   CuAssertIntEquals(tc, 99000, GET_GOLD(&berth.captain));
-  ship->crew_tier[CREW_GUNNER] = CREW_TIER_VETERAN;
+  ship->renown = 1800;
   weapons_berth_command(&berth, do_shipweapon, "buy 9 fore");
   CuAssertIntEquals(tc, VESSEL_WEAPON_HEAVY_BEAMCANNON, ship->slot[4].item);
   CuAssertIntEquals(tc, 89000, GET_GOLD(&berth.captain));
@@ -325,6 +328,14 @@ void Test_vessel_shipyard_fits_weapons_and_equipment(CuTest *tc)
   weapons_berth_command(&berth, do_shipweapon, "sell 4");
   CuAssertIntEquals(tc, 90900, GET_GOLD(&berth.captain));
 
+  /* A veteran gunner serves one on a hull of no renown. */
+  ship->renown = 0;
+  ship->crew_tier[CREW_GUNNER] = CREW_TIER_VETERAN;
+  weapons_berth_command(&berth, do_shipweapon, "buy mind blast fore");
+  CuAssertIntEquals(tc, VESSEL_WEAPON_MIND_BLAST, ship->slot[3].item);
+  weapons_berth_command(&berth, do_shipweapon, "sell 3");
+  CuAssertIntEquals(tc, 90100, GET_GOLD(&berth.captain));
+
   /* Slots trade places whole. */
   weapons_berth_command(&berth, do_shipweapon, "swap 0 1");
   CuAssertIntEquals(tc, GREYHAWK_PORT, ship->slot[0].position);
@@ -336,7 +347,7 @@ void Test_vessel_shipyard_fits_weapons_and_equipment(CuTest *tc)
   output = weapons_berth_command(&berth, do_shiprearm, "all");
   CuAssertTrue(tc, strstr(output, "rearm 1 weapon for 40 gold") != NULL);
   CuAssertIntEquals(tc, 30, ship->slot[0].ammo);
-  CuAssertIntEquals(tc, 90860, GET_GOLD(&berth.captain));
+  CuAssertIntEquals(tc, 90060, GET_GOLD(&berth.captain));
   CuAssertIntEquals(tc, VESSEL_REARM_TICKS, ship->maintenance_ticks);
   output = weapons_berth_command(&berth, do_shiprearm, "");
   CuAssertTrue(tc, strstr(output, "nothing to rearm") != NULL);
@@ -345,7 +356,7 @@ void Test_vessel_shipyard_fits_weapons_and_equipment(CuTest *tc)
    * while cargo is aboard. */
   ship->maintenance_ticks = 0;
   weapons_berth_command(&berth, do_shipequip, "buy ram");
-  CuAssertIntEquals(tc, 90290, GET_GOLD(&berth.captain));
+  CuAssertIntEquals(tc, 89490, GET_GOLD(&berth.captain));
   CuAssertIntEquals(tc, 12 * VESSEL_INSTALL_TICKS_PER_WEIGHT, ship->maintenance_ticks);
   output = weapons_berth_command(&berth, do_shipequip, "buy ram");
   CuAssertTrue(tc, strstr(output, "already carries a Ram") != NULL);

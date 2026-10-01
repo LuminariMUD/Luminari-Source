@@ -21,12 +21,12 @@ here records the merge.
 | S3 Damage model | Merged `a85e97d9f` (MR !8) | [Phase 3](vessels-ships-history.md#phase-3-s3-progress) |
 | S4 Weapons and gunnery | Merged `c8bab4576` (MR !9) | [Phase 4](vessels-ships-history.md#phase-4-s4-progress) |
 | S5 Crew, repair and loss | Merged `23a0726e4` (MR !10) | [Phase 5](vessels-ships-history.md#phase-5-s5-progress) |
-| S6 NPC raiders and AI | In review: MR !11 from `feat/vessels-s6`, tag `vessels-s6` = `32f513ab3`, review fixes on top | [Phase 6 below](#phase-6-s6-progress) |
-| S7 Rewards and economy | Not started | [Still to build](#design-values-still-to-build-s7-s8) |
+| S6 NPC raiders and AI | Merged `85914a03d` (MR !11) | [Phase 6](vessels-ships-history.md#phase-6-s6-progress) |
+| S7 Rewards and economy | In review: MR from `feat/vessels-s7`, tag `vessels-s7` | [Phase 7](#phase-7-s7-progress) |
 | S8 Client data | Not started | [Still to build](#design-values-still-to-build-s7-s8) |
 
-Production help is current through S5 (help sync plan `ac945fec9d52`, 2026-09-30). Next: merge S6
-(the MR !11 review is answered), sync its help, then start S7 from the S6 merge.
+Production help is current through S6 (help sync plan `e067e0f57ed1`, 2026-10-01). S7 is in
+review from `feat/vessels-s7` ([Phase 7](#phase-7-s7-progress)); its help syncs after the merge.
 
 ## Working a step
 
@@ -178,144 +178,148 @@ Carried forward to S7 from the built steps:
 
 ## Active step
 
-### Phase 6 (S6) progress
+### Phase 7 (S7) progress
 
-Branch `feat/vessels-s6` from the S5 merge commit `23a0726e4`. The annotated tag `vessels-s6-base`
-(pushed) marks that merge commit, so `git log vessels-s6-base..vessels-s6` lists only S6 commits.
-Hand-off: annotated tag `vessels-s6` at the head given to review and a GitLab merge request from
-`feat/vessels-s6`; review fixes go on top. Scope: 3.3.8 without the neutral-colors sale penalty
-and the renown a raider carries (S7), ramming (1.6, the 3.2 checklist row, and the sailmaster's
-ram training gain of 3.3.5, moved here from S5), and NPC merchants that run (Part 5, step 6). The
-raiders and their AI live in the new `src/vessels/vessels_raiders.c`, ramming in the new
-`src/vessels/vessels_ramming.c`.
+Branch `feat/vessels-s7` from the S6 merge commit `85914a03d`. The annotated tag `vessels-s7-base`
+(pushed) marks that merge commit, so `git log vessels-s7-base..vessels-s7` lists only S7 commits.
+Hand-off: annotated tag `vessels-s7` at the head given to review and a GitLab merge request from
+`feat/vessels-s7`; review fixes go on top. Scope: the S7 design values above (3.3.7 rewards,
+renown and Ship Damage Control; 3.3.9 contraband, customs and cargo sales) and the carry-overs
+from S4-S6 (renown gates on hires and capital weapons, the renown term in the crew casualty
+share, raider renown and the renown term of the tier roll, the neutral-colors sale penalty, and
+bounty collection by victors). Renown, the sinking rewards and the `shiprenown` board live in the
+new `src/vessels/vessels_rewards.c`; contraband, customs and the sale modifiers join
+`vessels_trade.c`.
 
 | Item | State | Where |
 | -- | -- | -- |
-| Ambush roll: eligible hulls, 1 in 2002 per tick, pirate cove x2, territorial /2, neutral colors /60, ships and transports once per voyage (reset on berthing) | Done | `vessel_raider_ambush_odds()`, `vessel_raider_tick_one()` (the periodic owner event, after the autopilot and hunter ticks); `raided` (runtime), cleared by `vessel_berth()` |
-| Tier roll and spawn: `random(0, hull weight)` (renown in S7), the tier's prototype at least as fast as the target's design speed minus 3, sight range plus 10 rooms off her bow within 45 degrees, headed at her at full speed | Done | `vessel_raider_pick_tier()`, `vessel_raider_pick_prototype()`, `vessel_raider_spawn()` through `vessel_spawn_public_from_prototype_at()` |
-| Tier content: a tier table in code (crew count, advanced-AI chance, crew tier, one fit-out, chest gold); `vessel_raider_tiers` rows tie prototypes to tiers; zone 700 captains, crew, chest and key | Done | `raider_tiers[]`; Phase 22 SQL; `vessels_raider_content.sql` (six Corsair prototypes, ten tier rows) with rollback and verifier; `lib/world/vessel_raiders/700.mob`, `700.obj`, installed by `provision_vessel_harbor.sh` |
-| The captain on the bridge (the NPC pilot), crew mobiles aboard, the chest in the hold with its key on the captain; killing the captain stops the AI and the guns | Done | `vessel_assign_npc_pilot()` (was the hunter's), `vessel_raider_stow_chest()`; a raider without her captain clears her pilot assignment, which silences NPC return fire |
-| AI modes: engaging (basic: rank the arcs, turn the best onto the target, open or close to the band; advanced: project both hulls, pick the target's weakest side and a broadside), running (no ammo or a breached arc), cruising, leaving; land braking | Done | `vessel_raider_engage()`, `vessel_raider_basic()`, `vessel_raider_advanced()` (`vessel_project()`, was the gunnery's one-second projection), `vessel_raider_set_course()`; her guns are NPC return fire at her quarry |
-| Boarding (target at speed 3 or less, merchant classes, or 0) through the boarding contest; boarders on the bridge and three quarters or half of the rooms; pirates loot the hold and leave, hunters fight on | Done | `vessel_raider_board()`, `vessel_raider_loot()`; `vessel_best_boarding_defender()` shared |
-| Despawn 600 ticks after losing the target, 20 more while a player hull is in sight or a player is aboard; never kept: a restored raider is retired at boot; raiders cannot be captured | Done | `vessel_raider_countdown()`, `vessel_raider_boot()`, `vessel_retire_npc_hull()` (was the hunter's), `vessel_raider_handle_sink()`, `do_claimship()` |
-| Ramming: `shipram [off]` with a lock at speed 6 or more, the Duris bow cone, closing speed, hull weights, the fitted ram, knockdowns, 100/50-tick cooldowns and a 50-tick gun lock; the AI rams too | Done | `vessel_ram_chance()`, `vessel_ram()`, `vessel_ram_tick_one()` (combat tick), `do_shipram()` in `vessels_ramming.c`; `vessel_reload_tick()` and `vessel_hull_fire_problem()` honor the ram |
-| NPC merchants under fire run from the attacker while returning fire | Done | `vessel_raider_merchant_run()` |
-| Neutral colors: raiders do not pick the hull, ambushes 60 times rarer | Done | `vessel_raider_ambush_odds()`, `vessel_raider_find_quarry()` (`vessel_equipment_slot()`, now shared) |
-| Staff: `vesseldebug raider <tier> [hunter]` forces an ambush on the hull you are aboard | Done | `do_vesseldebug()` |
-| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character raider gate, the existing gates, local CI | Done | SHIPFIRE (SHIPRAM, RAMMING, RAIDERS), SHIPEQUIP, VESSELDEBUG (verifier: 90 keywords, 34 content checks); `test_vessel_raiders.c`; `scripts/vessels/test_vessel_raider_in_game.sh` (tactical harness `--raider`, login helper `--vessel-raider-check`); results below |
+| Renown on the hull: kept through the wreck registry and trade-in, persisted, shown by `shipcrew`; `shiprenown` lists the ten player hulls with the most | Done | `renown` on the hull and `ship_runtime_state.renown` (Phase 23); `do_shiprenown()` in `vessels_rewards.c` |
+| Sinking rewards: the victor and allied hulls in sight split salvage, the renown bounty and the target owner's WANTED or HUNTED bounty, paid to their owners through the claim queue; renown moves between players' hulls; the crew casualty share for a player kill | Done | `vessel_settle_sinking()`, `vessel_salvage_value()`, `vessel_owner_aboard()` from `vessel_sink()`; the shared `vessel_queue_claim()` in `vessels_upgrades.c`; `vessel_wreck_hull()` |
+| Renown gates: able and veteran hires (the 3.3.5 table) and capital weapons (3.3.4, or a veteran gunner) | Done | `vessel_crew_hire_renown()` in `do_shiphire()`; the weapon table's `renown` in `vessel_buy_weapon()` |
+| Raiders carry their tier's renown, and the quarry's renown joins the tier roll | Done | `raider_tiers[]`, `vessel_raider_spawn()`, `vessel_raider_pick_tier()` |
+| Ship Damage Control, an epic feat of 5 ranks | Done | `FEAT_SHIP_DAMAGE_CONTROL`; `vessel_damage_control()` in `vessel_damage_hull()` and `vessel_damage_sail()` |
+| Contraband: the flag and buying renown on `trade_commodities`, three goods each stocked at one port, the buying gates; customs at lawful ports on arrival | Done | `trade_commodities.contraband_renown` (Phase 23); `vessels_contraband_content.sql`; `do_market()`, `do_cargobuy()`, `vessel_customs_inspection()` from `vessel_update_port_berth()` |
+| Cargo sales: SEADOG +10%, neutral colors -10%, warships -40% | Done | `vessel_cargo_sale_factor()` in `do_cargosell()` |
+| Help in both places, `VESSEL_SYSTEM.md`, unit tests, an actual-character economy gate, the existing gates, local CI | Done | SHIPRENOWN (new), SHIPHIRE, MARKET (CONTRABAND, CUSTOMS, SMUGGLING), PLUNDER, SHIPBROWSE, SHIPFIRE (verifier: 34 entries, 91 keywords, 40 content checks); `test_vessel_rewards.c`; `scripts/vessels/test_vessel_economy_in_game.sh` (tactical harness `--economy`, login helper `--vessel-economy-check` and `--vessel-customs-check`); results below |
 
-Interpretations decided while planning S6:
+Interpretations decided while planning S7:
 
-- The tier values (crew count, advanced-AI chance, crew tier, fit-out, chest gold) are a static
-  table in code, as S4 made the weapon catalogue: nothing edits them in play. The data are the
-  raider prototypes (ordinary `ship_prototypes` rows, not for sale) and `vessel_raider_tiers`,
-  which ties each to one or more tiers, since Duris's hulls recur across tiers with different
-  fits: tier 0 the clipper, ketch and caravel (ship class at speeds 26, 23, 20 and beam armor 36,
-  50, 66), tier 1 the ketch, caravel and corvette (warship class, 22 and 63), tier 2 the corvette
-  and destroyer (19 and 84), tier 3 the destroyer and frigate (17 and 109).
-- One fit-out per tier after Duris's typical fits, each weapon skipped where the class cannot
-  legally mount it: tier 0 a small catapult fore and a small ballista on each other arc; tier 1 a
-  small catapult fore and two medium ballistae a beam; tier 2 two medium catapults fore and two
-  large ballistae a beam; tier 3 a large catapult fore, two large ballistae a beam, and a small
-  catapult aft. Crews are green, green, able and veteran (Duris 200, 400, 1,500, 3,000-4,000
-  skill), chest gold twice Duris's platinum (800-1,600, 1,200-2,000, 2,400-3,000, 3,000-6,000).
-- Merchant classes are the raft, boat, ship and transport (Duris's merchant hulls); the others
-  are warship classes. Only surface hulls (Z 0) are ambushed.
-- Mobiles are 70020-70023 (captains, tiers 0-3) and 70024-70027 (crew); objects 70020 (the chest)
-  and 70021 (its key). Boarders are fresh crew mobiles, as Duris loads its boarding grunts.
-- A raider keeps her target within her sight range plus the 10-room spawn margin, so she can
-  close from the spawn point. A target in port, submerged, or sinking is lost.
-- Both AIs fire through NPC return fire at the target: whatever bears inside its band. Duris's
-  advanced fire restraint and multi-target fire are dropped. Its turn braking is dropped too:
-  LuminariMUD hulls turn faster at speed (3.3.2), so slowing down would not help.
-- The land brake is Duris's at the half-room resolution of the probe: along the new and the
-  current heading, land within half a room holds her to speed 1, within a room to 6, within 2
-  rooms to 12 (Duris's 5, 20, and 40 times 0.3). A course that meets land within the lookout (2
-  rooms engaging, 5 cruising, 10 running) swings 30 degrees at a time, to each side in turn, to
-  open water, as Duris's cruise and run do. Duris's path search around land is dropped: the
-  swing slides her along a coast toward her quarry.
-- Boarding is one attempt per target, as Duris boards a ship once: the raider's captain is the
-  attacker in the grapple and crossing contests. A repelled pirate leaves as a successful one does;
-  a hunter fights on either way. Looting (Duris's empty mode) is the pirate's boarding step: each
-  lot loses a random 40-60% share of what is taken in the transfer and keeps a 40-60% share, and
-  the raider's hold takes what fits.
-- Ramming speeds are Duris's times 0.3: arming needs speed 6, a ram fails at speed 3 or less, and
-  the rammed hull slows to 4. Duris ticks are seconds, so the cooldowns are 100 ticks after a hit
-  and 50 after a miss, less 15% per crew mod, and the guns lock for 50 ticks. An armed ram pauses
-  reloading, as Duris's does. The crew mods are the tiers (Duris's 0-3).
-- A raider without its captain heaves to and runs the despawn countdown.
-- A merchant under fire (at battle stations with its attacker in sight) runs from it until the
-  crew stands down, then the autopilot takes her back to her route.
+- The victor is the hull that sank her, her `last_attacker`, as for crew training and insurance.
+  Rewards need a player's hull as victor. Her allies are player's hulls afloat and out of port
+  within the sinking hull's sight range whose owners are online and in the online victor owner's
+  group (the port rule was added while building, below). Hulls owned
+  by the target's owner never share, and a hull sunk by her own owner's other hull earns nothing:
+  "a consenting player's hull" is one sunk by another player, since gunfire and rams against a
+  player's hull already demand consent.
+- Salvage is `vessel_hull_price()` times the fraction of armor and structure left, plus half the
+  price of each weapon not destroyed, divided by 8, for any hull sunk, NPC hulls included (Duris
+  `calc_salvage()`). The renown bounty is `2.5 gold * renown` of any hull above 100 renown, so
+  raiders pay it. The owner's bounty is her owner's current WANTED or HUNTED bounty (500 gold or
+  more after decay) when the owner is aboard at the sinking; it is collected and cleared.
+- Each sharing hull's owner gets one settlement, the hull's equal share of the three, through the
+  existing claim queue (`vessel_insurance_claims`) with a mail receipt: at once to an online owner,
+  at next login otherwise.
+- Renown moves only between players' hulls: each sharing hull gains the target's hull weight (the
+  class table's) divided among them; the loser drops the whole hull weight, floored at zero, as
+  Duris's `ship_loss_on_sink()` does, and her crew's casualty share becomes `10 + weight / 30`
+  percent. NPC kills train the crew only.
+- `shiprenown` lists the ten player's hulls with the most renown, afloat or stowed, with owner,
+  class and renown. Duris keeps a 20-row table to show 10; a sort at display time needs none.
+- Hire and capital weapon gates read the hull's renown; staff still hire freely. A capital weapon
+  needs her renown to reach its gate or a veteran gunner aboard.
+- Raider renown is a random value in the tier's range at spawn (150-300, 500-600, 700-1,000,
+  2,000-3,000); the tier roll adds the quarry's renown to `random(0, hull weight)`.
+- Ship Damage Control: while the hull's owner is aboard and holds the feat, each blow to her hull
+  or sails loses `4 + 4 * rank` percent, the fraction of a point as the chance of one more, never
+  below 1 point (Duris `epic_ship_damage_control()`). Duris applies it inside `damage_hull()` and
+  `damage_sail()`, groundings included; "from other ships" in the design value marks Duris's line
+  against a character's blows, so S7 applies it in `vessel_damage_hull()` and
+  `vessel_damage_sail()` to every blow. An epic general feat with no other prerequisite.
+- Contraband: `trade_commodities.contraband_renown` above 0 marks a good as contraband and is the
+  renown needed to buy it. A port stocks a contraband good when `port_commodities` holds its row;
+  only content creates those rows (the first-visit seeding covers lawful goods only). Elsewhere
+  the good is not stocked: the market quotes the scarce price (`TRADE_SUPPLY_MIN`) and a sale
+  leaves no row behind, so smuggling pays while the source port's own supply throttles it, and
+  customs spares units a port stocks (Duris: a port never confiscates its own contraband). The
+  content seeds the three goods (forbidden tomes, rare poisons and dragon eggs, at 4, 1 and 10 lbs
+  a unit) at three real sea ports; the harbor fixture also stocks forbidden tomes at the Harbor
+  Sandbox East Dock for the gate.
+- Buying contraband needs the hull's renown or an able (or better) sailmaster and quartermaster;
+  warships cannot buy it, nor a buyer at alignment 1,000; staff are exempt.
+- Customs runs when an owned hull enters a lawful port (not in pirate-cove waters) from outside
+  it, once per arrival: for each contraband lot the port does not stock, each unit is confiscated
+  with the 3.3.9 chance, with `units` the lot's size and load over capacity by weight.
+- The sale modifiers multiply (Duris): the seller's SEADOG feat x1.1, neutral colors x0.9, a
+  warship x0.6, on every sale, contraband included.
 
-Ablation (planning): dropped a tier table in the database (the values are design constants), the
-renown a raider carries and the renown in the tier roll (S7), Duris's 45 fit-outs (one per tier),
-escorts, the unique ships, jettison under fire, NPC repair and resupply while cruising (raiders
-are short-lived), persisted raider state (a restart retires them, as Duris never saves them), and
-capture of a raider (it would be retired at the next boot). Kept the land brake (without it a
-raider at battle stations crashes on every coast), silencing a captainless raider's guns, the
-staff command (an ambush comes once per 17 minutes of sailing), and the player-aboard despawn
-check (a despawn would drop boarders into the sea).
+Ablation (planning): dropped Duris's 20-row renown table (a sort at display time), a separate
+reward queue (the claim queue already settles for online and offline owners), per-port contraband
+columns or a home-port column (a stock row is the stocking), persisting demand at non-stocking
+ports (the source port's supply already throttles smuggling), the Duris crew-skill thresholds
+for contraband (the design value's able crew), a staff command to set renown (the gate earns it
+in a fight), the 20-renown epic progress (LuminariMUD has no epic skill track), and fleet-size
+rules for docked hulls and sloops (the design value's sight-and-group rule; the gate later
+brought the docked-hull rule back, below). Kept a new rewards file (renown, rewards and the board
+are one unit used by the sink path) and the contraband content in its own SQL file with rollback
+and verifier, as S6 kept its raider content.
 
-Decided while building S6:
+Decided while building S7:
 
-- Raiders are persisted as any public hull is (the constructor saves every hull it launches), and
-  `vessel_raider_boot()` retires every unowned hull restored from a raider prototype. Keeping them
-  out of persistence would have meant guarding every save path, and a crash would still have left
-  rows behind for the next hull in the slot.
-- A raider whose captain is gone clears her pilot assignment (`pilot_mob_vnum` -1), which is what
-  silences NPC return fire. Making return fire look for the pilot on the bridge for every NPC hull
-  would have changed merchants, ferries, and hunters too.
-- Duris halves crash damage on a bow only when that ship's ram struck; here a ram halves it on
-  its own bow whenever it is fitted (the 1.6 wording). The rammer does not move onto the target's
-  position, as Duris's does: within a room is close enough to board.
-- The raider's captain is the attacker in the boarding contest (the captain's Boarding ability)
-  against the best defender aboard (`vessel_best_boarding_defender()`, now shared).
-- The advanced brain projects both hulls 6 ticks (Duris's 3 seconds) by sailing copies on their
-  orders, as the gunnery DC projects one second, rather than extrapolating the target's last turn.
-- Found by the raider gate: a restarted server opens its port before the world has loaded, so the
-  harness waits for boot to log the retirement (`31f3045c1`). Mobiles knocked down by a ram stay
-  prone until they next fight, as any knocked-down mobile does.
-- The development dump's harbor merchant (ship 11) has had her schedule disabled since the S3
-  stall, so `provision_vessel_harbor.sh` stops at its NPC merchant check on a fresh reload; the
-  raider content is installed before that check.
-- Found by the local CI matrix: clang-tidy wanted the land probe counted in whole half-room steps,
-  the course swing's and the ram's integer divisions kept out of floating-point expressions, one
-  arc-turn branch in the basic brain instead of two, and the raider tick to engage only with a
-  quarry in hand; the coverage gate's changed-line floor for `boot_db()` refused the two boot
-  calls no test runs, so the raider table and boot retirement run from the hunter lifecycle's
-  schema and boot calls (`39d2c4035`).
+- The claim queue now carries insurance, the S5 premium refunds, and prize money, so its receipt
+  line and delivery message are shared ("The harbor office delivers N gold from K vessel
+  settlements"); each letter keeps its own opening (`vessel_queue_claim()`).
+- Freight boards picked their goods from every commodity, and the content's stock rows make its
+  three ports known trading ports, so a lawful board would have offered contraband freight.
+  Freight contracts now carry lawful goods only.
+- The Harbor Sandbox has one port: its "west dock" waypoint at (-66, 92) is open water. The
+  economy gate therefore runs in two sessions, and the harness lifts the East Dock's stock of
+  tomes between them so that customs meet the tomes the dock sold.
+- The weapon catalogue marks a capital weapon with its renown (", capital 1800").
+- Found by the economy gate: Kohdee's hulls berthed at the East Dock, in sight of the sinking,
+  took shares of the renown and prize money. Duris's `sink_ship()` passes over docked ships, and
+  so does the settlement now (`9bc23e5a1`). Every LuminariMUD player enters the game in a group
+  of one, so an owner's other hulls at sea in sight share with the victor, as a grouped Duris
+  captain's ships in contact would; the gate's Kohdee leaves his group before the fight so that
+  only the victor shares.
+- Found by `make test-all`: the SQL interpolation check counted the new formatted stock lookup
+  over `vessels_trade.c`'s baseline; it is a prepared statement now (`a2e8bb218`).
+- Found by the local CI matrix: CI's test database starts from `master_schema.sql`, whose
+  `ship_runtime_state` lacked `renown`, so the legacy snapshot load test failed in every test job;
+  the column is in the master schema now, as S5 added its own. clang-tidy read
+  `vessel_crew_hire_renown()`'s defensive range check as a hint that `shiphire`'s validated
+  position might be out of range, and flagged `atoi` in the rewards test (`c404b1690`).
 
-Verification (2026-09-30): `make test-all` with the database cases on (isolated `.ci-runtime/lib`,
-test MariaDB rebuilt from `master_schema.sql` plus every `apply` component, Phase 22 included)
-passes 1,955 CuTest cases and the protocol harness. The Phase 22 schema, rollback, and verifier
-and the raider content, its rollback, and its verifier apply to the test database, and the content
-reapplies to the same six prototypes and ten tier rows. The vessel help verifier passes (90
-keywords, 34 content checks). All 18 live gates pass inside the private namespace on the installed
-build of `aec02dcaa`: harbor merchant 45 s, campaign 130 s, Vailand merchant 18 s (the campaign and
-merchant runs each on a fresh reload of the development dump), builder 45 s, gunnery 72 s,
-tactical 283 s, lookout 22 s, boarding 51 s, narrative 24 s, rules 36 s, events 42 s, movement
-105 s, loss 76 s, damage 629 s, derelict 33 s, hunter 84 s, frontier 229 s, and the new raider
-gate 196 s (with the raider content applied). In the raider gate Kohdee's frigate rams a stopped
-warship at 99%; a Corsair raider launched with `vesseldebug raider 0` closes from beyond sight in
-under two minutes, rams (and in the earlier runs opened fire first), and grapples, her boarders are
-beaten off, and with her captain purged she heaves to; the restart retires her. The raider gate
-passes again on the installed build of `465a7c7e4` (133 s). The local CI matrix
-(`scripts/ci/local/run.py --base gitlab/master`) passes all 33 jobs on `39d2c4035` (608 s) and
-again on `465a7c7e4` (355 s), the head's code after a return-type tidy-up.
+Verification (2026-10-01): `make test-all` with the database cases on (test MariaDB rebuilt from
+`master_schema.sql` plus every `apply` component) passes 1,963 CuTest cases (8 new in
+`test_vessel_rewards.c`, and new cases in the raider, weapon, crew, and innate-feat tests) and the
+protocol harness; the legacy snapshot test also passes on a database built from the master schema
+alone, as CI's is. Phase 23 applies alone to a fresh master schema, verifies, rolls back, and
+reapplies; the contraband content applies twice to the same three goods and three stock rows,
+verifies, and rolls back. The vessel help verifier passes (34 entries, 91 keywords, 40 content
+checks). All 19 live gates pass inside the private namespace on the installed build of
+`9bc23e5a1`, each campaign and merchant run on a fresh reload of the development dump: harbor
+merchant 27 s, campaign 116 s, Vailand merchant 18 s, builder 45 s, gunnery 72 s, tactical 324 s,
+lookout 22 s, boarding 49 s, narrative 21 s, rules 34 s, events 42 s, movement 104 s, loss 75 s,
+damage 622 s, derelict 31 s, hunter 80 s, frontier 223 s, raider 176 s, and the new economy gate
+226 s (customs took all four tomes; Kohdee's warship won 25 renown and 40 gold of prize money). On
+the final build of `c404b1690` the loss (78 s) and economy (302 s) gates pass again after a fresh
+reload, and the local CI matrix (`scripts/ci/local/run.py --base gitlab/master`) passes all 33
+jobs (347 s).
 
-Review (MR !11, 2026-10-01): two findings, both fixed on top of `vessels-s6`.
+Review (MR !12, 2026-10-01): three findings, all fixed on top of `vessels-s7`, one commit each.
 
 | Finding | Fix | Commit |
 | -- | -- | -- |
-| P1: a ram braced against an NPC hull struck whatever hull was locked at the impact, so relocking onto a protected player's hull skipped the consent gate | The crew records who gave the order (`ram_order` replaces the `ramming` flag); at the impact that player must be online and pass `vessel_fire_permitted()` against the hull then locked, or the crew stands down; SHIPRAM help and `VESSEL_SYSTEM.md` say so, and the ram tick test relocks onto an absent owner's hull | `64c0b4884` |
-| P2: the raider content rollback deleted a sailing raider's tier rows, so the restart could not retire her and she stayed an ordinary public hull | The tier rows take the prototypes' persisted-hull guard: a prototype still sailing keeps them until the restart retires her, and a rerun removes the rest; the Phase 22 rollback waits for that | `a6b17da0f` |
+| P2: a hull saved during her sinking countdown and restored before her wreck was saved sank again and paid her renown, prize money and bounty a second time, and her owner's bounty was cleared before any prize claim committed | `vessel_settle_sinking()` records the bounty's collection, each sharer's renown and prize claim, and the sunk hull's renown with her `last_attacker` set to 0 in one transaction, so a restored hull goes down with no victor; if it fails, nothing is paid. `vessel_queue_claim()` now writes inside its caller's transaction (insurance keeps its own, and `vessel_pay_prize()` is gone), and `vessel_sink()` settles before it trains the victor's crew | `9c8876360` |
+| P2: where a contraband good is not stocked, a batch sale walked up a supply no row kept, so 100 forbidden tomes sold together paid 19,942 gold and one at a time 24,800 | Every unit there fetches the scarce price, however the hold is split (`do_cargosell()`) | `e1ffd9005` |
+| P2: `port_stocks()` answered no for a failed lookup as for a missing row, so a database error let customs seize contraband the port itself stocks | `port_stocks()` counts the rows and reports a failed lookup apart; customs let such a lot pass, and the market and the smugglers treat it as unstocked | `d2a1c4a22` |
 
-Review verification: `make test-all` with the database cases on passes 1,955 CuTest cases and the
-protocol harness; the rollback on the test database keeps a sailing Corsair Frigate's prototype
-and tier row, removes the rest, clears them on a rerun once her runtime row is gone, and the
-content reapplies to six prototypes and ten tier rows; the vessel help verifier passes. The
-raider gate passes on the installed build of `a6b17da0f` (182 s), and the local CI matrix passes
-all 33 jobs on `a6b17da0f` (610 s).
+Review verification: `make test-all` with the database cases on passes 1,963 CuTest cases and the
+protocol harness (the sinking tests now run against the test database; the new settlement and sale cases fail on
+`vessels-s7`'s code); the clang-tidy gate respects its baseline; after a fresh reload of the
+development dump the loss gate (82 s) and the economy gate (249 s) pass on the installed build
+of `e1ffd9005`, and the local CI matrix (`scripts/ci/local/run.py --base gitlab/master`) passes
+all 33 jobs (632 s).
 
 ## Estimate (remaining)
 

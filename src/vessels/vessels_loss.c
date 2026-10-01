@@ -250,14 +250,16 @@ static void vessel_delete_hull_rows(const char *sql, int shipnum)
 
 /**
  * A player's hull has gone down (decision D3). Her crew takes its casualties,
- * 10% to a player's hull, 5% plus 1% per 100 hull weight otherwise; she is
- * rebuilt from the wreck prototype with her sails gone, unless an NPC hull
- * sank her and she outweighed the boat; and she waits in the wreck registry
- * at the wreck site. Her interior must already be reclaimed.
+ * 10% plus 1% per 30 renown lost to a player's hull, 5% plus 1% per 100 hull
+ * weight otherwise; she is rebuilt from the wreck prototype with her sails
+ * gone, unless an NPC hull sank her and she outweighed the boat; and she
+ * waits in the wreck registry at the wreck site. Her interior must already
+ * be reclaimed.
  *
  * @return FALSE when she could not be rebuilt and is lost outright
  */
-bool vessel_wreck_hull(struct greyhawk_ship_data *ship, const struct greyhawk_ship_data *victor)
+bool vessel_wreck_hull(struct greyhawk_ship_data *ship, const struct greyhawk_ship_data *victor,
+                       int renown_lost)
 {
   int old_weight;
   int id;
@@ -266,8 +268,9 @@ bool vessel_wreck_hull(struct greyhawk_ship_data *ship, const struct greyhawk_sh
   int armor;
 
   old_weight = vessel_class_handling(ship->vessel_type)->hull_weight;
-  vessel_crew_casualties(
-      ship, victor != NULL && victor->owner[0] != '\0' ? 10.0 : 5.0 + (double)old_weight / 100.0);
+  vessel_crew_casualties(ship, victor != NULL && victor->owner[0] != '\0'
+                                   ? 10.0 + (double)renown_lost / 30.0
+                                   : 5.0 + (double)old_weight / 100.0);
 
   vessel_wreck_prototype(&id, &vclass, &speed, &armor);
   if (!vessel_rebuild_hull(ship, id, vclass, speed, armor))

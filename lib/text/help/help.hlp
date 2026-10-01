@@ -20581,7 +20581,7 @@ able to apply death attack benefits from using the backstab ability.
 See Also: BACKSTAB, DEATH-ATTACK, QUIET-DEATH, SWIFT-DEATH, TRUE-DEATH,
 HIDDEN-WEAPONS, ANGEL-OF-DEATH
 #0
-CARGO CARGOBUY CARGOMANIFEST CARGOSELL MARKET SHIP-TRADE
+CARGO CARGOBUY CARGOMANIFEST CARGOSELL CONTRABAND CUSTOMS MARKET SHIP-TRADE SMUGGLING
 
 Bulk trading. Buy cheap in one port, sell dear in another - the sailing in
 between is where the risk lives.
@@ -20600,7 +20600,9 @@ CARGOSELL <commodity> [<quantity>|all]
   Sell goods from the hold at the local price. Ports buy below their
   asking price, so buying and selling in the same port always loses money.
   Each unit in a large batch receives the price at its resulting supply
-  level rather than the first unit's quote.
+  level rather than the first unit's quote. A seller with the seadog feat
+  gets a tenth more, a hull under neutral colors a tenth less, and a
+  warship four tenths less: the merchants take her cargo for stolen.
 
 CARGOMANIFEST
   List the bulk goods aboard and how much of the hold they occupy.
@@ -20612,10 +20614,21 @@ work hard cools off and later recovers. Price swings are bounded, so no
 route ever pays without limit - the profit is in finding the gradient and
 surviving the voyage.
 
+Contraband: forbidden tomes, rare poisons, and dragon eggs are each stocked
+at only one port, and MARKET marks them. Only that port sells them, and
+only to a hull of 150, 200, or 250 renown or with an able sailmaster and
+quartermaster, never to a warship or a captain of perfect virtue. Every
+other port pays their scarce price. Each lawful port (any outside a pirate
+cove) searches a player's hull sailing in, and its customs seize each unit
+of contraband it does not stock with a chance of 35 percent plus half a
+percent for each unit of the lot, less a fifth of the square root of her
+renown, and raised the emptier her hold: contraband hides best among a
+full hold of honest cargo. The chance is never below 5 percent.
+
 Cargo is part of the ship, not your inventory: it survives reboots, it
 counts against capacity, and it can be lost with the ship.
 
-See also: SHIP OWNERSHIP, SHIP CREW, SHIP COMBAT, LOADVEHICLE
+See also: SHIP OWNERSHIP, SHIP CREW, SHIP COMBAT, LOADVEHICLE, SHIPRENOWN
 #0
 MASS-CHARISMA
 
@@ -25413,7 +25426,9 @@ BOUNTY [<player>]
     2000 gold or more - HUNTED: the navy hunts you on sight
   A bounty holds for a full day after your last offense, then shrinks by 5%
   of its size for each further day; after 21 quiet days it is gone. Every
-  new offense restarts the clock.
+  new offense restarts the clock. A WANTED or HUNTED captain who goes
+  down aboard their own hull pays the whole bounty to those who sank her
+  (SHIPRENOWN), and it is cleared.
 
 BOUNTY PAY
   At a lawful port's admiralty office (any dock outside a pirate cove),
@@ -31862,15 +31877,15 @@ boats, 16 for ships, 21 for transports, 22 for warships, 23 for submarines,
 24 for airships, and 25 for magical hulls, unless the design sets its own.
 Anyone may own a hull or ride aboard one.
 
-Ownership survives reboots. When a player's hull goes down, her crew lose
-some of their experience and she is rebuilt as the shipyard's cheapest boat,
-with no weapons, equipment, or refits and, unless an NPC vessel sank a larger
-hull, no sails. She keeps her name, crew, paint, and permits, and waits in the
-wreck registry until you summon her. Insurance is automatic: the underwriters
-pay three quarters of a lost ship's, transport's, or boat's value and half of
-any other's, nine tenths when an NPC vessel sank her, and nothing for a raft
-or a rebuilt wreck. The settlement arrives at once if you are in the game,
-else when you next enter it.
+Ownership survives reboots. When a player's hull goes down, her crew lose some
+of their experience and she is rebuilt as the shipyard's cheapest boat, with
+no weapons, equipment, or refits and, unless an NPC vessel sank a larger hull,
+no sails. She keeps her name, crew, paint, permits, and what renown she has
+left, and waits in the wreck registry until you summon her. Insurance is
+automatic: the underwriters pay three quarters of a lost ship's, transport's,
+or boat's value and half of any other's, nine tenths when an NPC vessel sank
+her, and nothing for a raft or a rebuilt wreck. The settlement arrives at once
+if you are in the game, else when you next enter it.
 
 See also: SHIP COMBAT, CLAIMSHIP, VEDIT, BOARD, DOCK
 #0
@@ -31988,16 +32003,17 @@ SHIPRAM [off]
   often in a pirate cove, half as often in territorial waters, and sixty
   times more rarely under neutral colors (SHIPEQUIP), which no raider
   picks as prey. A ship or transport is ambushed at most once a voyage,
-  until she next berths. The bigger the hull, the stronger the raider:
-  four tiers, from corsairs in light ships to dread sea-lords in heavy
-  warships. A raider appears beyond sight off your bow and closes to
-  fight: she turns her guns to bear, rams, runs when her ammunition is
-  spent or she is holed, and boards a hull slowed to speed 3 (a warship
-  that has stopped) through the boarding contest. Pirates who board carry
-  off part of the hold and leave; hunters stay to fight. Kill a raider's
-  captain on her bridge and she stops dead; the captain carries the key to
-  her strongbox. A raider that has lost her prey sails off and is gone five
-  minutes later, once nobody is watching. Raiders cannot be claimed.
+  until she next berths. The bigger and more renowned the hull, the
+  stronger the raider: four tiers, from corsairs in light ships to dread
+  sea-lords in heavy warships, each carrying more renown (SHIPRENOWN). A
+  raider appears beyond sight off your bow and closes to fight: she turns
+  her guns to bear, rams, runs when her ammunition is spent or she is
+  holed, and boards a hull slowed to speed 3 (a warship that has stopped)
+  through the boarding contest. Pirates who board carry off part of the
+  hold and leave; hunters stay to fight. Kill a raider's captain on her
+  bridge and she stops dead; the captain carries the key to her strongbox.
+  A raider that has lost her prey sails off and is gone five minutes
+  later, once nobody is watching. Raiders cannot be claimed.
 
 SHIPSALVAGE
   From the helm of a stopped vessel, haul the salvage crates floating
@@ -32048,7 +32064,47 @@ A ship fights only with its owner's consent. When a permit holder or group
 member fires on another player's ship, the firing ship's owner must also be
 online with PVP enabled, so the target can always answer in kind.
 
-See also: BOARD, DOCK, TACTICAL, SHIPSTATUS, AUTOPILOT
+See also: BOARD, DOCK, TACTICAL, SHIPSTATUS, AUTOPILOT, SHIPRENOWN
+#0
+PRIZE-MONEY RENOWN SHIP-RENOWN SHIPRENOWN
+
+Renown, prize money, and ship damage control.
+
+SHIPRENOWN
+  List the ten hulls with the most renown, with their class and owner.
+
+Renown belongs to a hull, not to her captain, and she keeps it through the
+wreck registry, a trade-in, and a new name; SHIPCREW shows it. A player's
+hull wins renown only by sinking another player's hull: the hull weight of
+the ship sunk (a boat 25, a ship 200, a warship 285), shared equally by the
+hull that sank her and her allies in sight, the hulls out of port whose
+owners are in the game and grouped with her owner. The hull sunk loses that
+much, though never below none, and her crew lose a further 1% of their
+experience for every 30 of it. Sinking NPC vessels trains the crew but wins no
+renown.
+
+Renown lets able and veteran hands sign on (SHIPHIRE), capital weapons be
+mounted (SHIPWEAPON), and smugglers deal with her (CONTRABAND). It also
+draws stronger raiders (RAIDERS).
+
+Prize money: whenever a player's hull sinks another vessel, the same hulls
+share out what she was worth, each share paid to the hull's owner at once,
+or at their next login, with a receipt by mail:
+  salvage       - an eighth of her value, scaled by the armor and structure
+                  she had left, plus half the price of each weapon not
+                  destroyed
+  renown bounty - 2.5 gold for each point of her renown when she has more
+                  than 100, as raiders do
+  bounty        - the whole bounty of her owner, if WANTED or HUNTED and
+                  aboard when she went down; it is then cleared (BOUNTY)
+A hull sunk by another of her owner's hulls earns nothing.
+
+Ship damage control: an epic feat of up to five ranks. While you are aboard
+a vessel you own, every blow to her hull or sails is cut by 8 percent at
+the first rank and 4 more at each rank after, 24 percent at the fifth,
+never below 1 point.
+
+See also: SHIP COMBAT, SHIPHIRE, MARKET, BOUNTY
 #0
 SHIP-CREW SHIP-REFIT SHIPDISMISS SHIPEQUIP SHIPHIRE SHIPREARM SHIPUPGRADE SHIPWEAPON
 
@@ -32065,8 +32121,9 @@ SHIPHIRE <position> <tier>
     quartermaster  - more cargo capacity
   Quality tiers: green, able, veteran. Each hand costs a one-time hire
   price and draws no wages; better hands cost more. Type 'shiphire' with no
-  arguments for the prices. Able and veteran hands sign on only with a
-  hull of renown; green hands earn promotion at sea.
+  arguments for the prices and the renown each quality asks of a hull:
+  able hands sign on only with a hull of 540 to 700 renown, veteran hands
+  1,350 to 1,640 (SHIPRENOWN); green hands earn promotion at sea.
 
   Every hand learns from the work: the sailmaster from each room sailed
   (not in a raft or boat), the gunner from reloading and firing at a
@@ -32075,8 +32132,8 @@ SHIPHIRE <position> <tier>
   sinks, far more from a player's. Enough experience promotes a hand to
   the next tier for free; SHIPCREW shows how far each has to go. When
   their ship is lost the crew give up a tenth or so of their experience,
-  and a hand who falls below their tier's threshold drops a tier, though
-  never below green.
+  more when a player sinks a hull of renown, and a hand who falls below
+  their tier's threshold drops a tier, though never below green.
 
   A crew has stamina: 500, and 100 more for each tier aboard. Working the
   helm, every shot and reload, and every repair spend it; it returns
@@ -32110,7 +32167,8 @@ SHIPWEAPON buy <weapon number or name> <fore|port|rear|starboard>
   Buy and mount a weapon, fully loaded. Catapults and the capital Long Tom
   and fragmentation cannon fit only fore or rear, the heavy ballista only
   on the beams. The beam, blast, and fragmentation cannons and the Long
-  Tom are capital weapons: one per hull, served only by a veteran gunner.
+  Tom are capital weapons: one per hull, mounted only on a hull of the
+  renown the list shows (1,600 to 2,000) or with a veteran gunner aboard.
   The shipwrights need 75 seconds per point of weight, and she cannot sail
   until they finish.
 SHIPWEAPON sell <slot>
@@ -32123,7 +32181,8 @@ SHIPEQUIP [list | buy <ram|colors> | sell <ram|colors>]
   (free, and weightless); sold back at 90%. Rafts and boats carry no ram.
   Neutral colors stay up while there is cargo aboard. A ram strikes first
   and guards her bow when she rams (SHIPRAM); raiders seldom ambush a hull
-  under neutral colors and never pick one as prey (SHIPFIRE).
+  under neutral colors and never pick one as prey (SHIPFIRE), but the
+  merchants pay a tenth less for her cargo (MARKET).
 
 SHIPREARM [<slot> | all]
   Refill ammunition at 2 gold a round; the shipwrights need 75 seconds per

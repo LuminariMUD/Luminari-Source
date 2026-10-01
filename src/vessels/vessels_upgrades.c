@@ -51,34 +51,20 @@ static bool vessel_insurance_ensure_schema(void)
 }
 
 /**
- * Queue one durable claim for a lost hull's owner with its system mail, and
- * mark her loss paid, in one transaction.
+ * Queue one durable settlement for a hull's owner with its mail receipt,
+ * inside the caller's transaction.
  */
-static bool vessel_queue_insurance_claim(struct greyhawk_ship_data *ship, int amount)
+bool vessel_queue_claim(struct greyhawk_ship_data *ship, int amount, const char *subject,
+                        const char *letter)
 {
   char escaped_owner[sizeof(ship->owner) * 2 + 1];
   char escaped_name[sizeof(ship->name) * 2 + 1];
   char query[MAX_STRING_LENGTH];
-  char subject[256];
-  char message[1024];
+  char message[2048];
   unsigned long long claim_id;
-  PREPARED_STMT *statement;
-  bool marked;
-
-  if (ship == NULL || amount <= 0 || ship->owner[0] == '\0' || !vessel_insurance_ensure_schema())
-  {
-    return FALSE;
-  }
 
   mysql_real_escape_string(conn, escaped_owner, ship->owner, strlen(ship->owner));
   mysql_real_escape_string(conn, escaped_name, ship->name, strlen(ship->name));
-
-  if (mysql_query(conn, "START TRANSACTION"))
-  {
-    log("SYSERR: Could not begin insurance claim transaction: %s", mysql_error(conn));
-    return FALSE;
-  }
-
   snprintf(query, sizeof(query),
            "INSERT INTO vessel_insurance_claims "
            "(ship_id, owner, ship_name, amount) "
@@ -86,51 +72,22 @@ static bool vessel_queue_insurance_claim(struct greyhawk_ship_data *ship, int am
            ship->shipnum, escaped_owner, escaped_name, amount);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not queue insurance for ship %d: %s", ship->shipnum, mysql_error(conn));
-    mysql_query(conn, "ROLLBACK");
+    log("SYSERR: Could not queue a settlement for ship %d: %s", ship->shipnum, mysql_error(conn));
     return FALSE;
   }
   claim_id = mysql_insert_id(conn);
 
-  /* Mark the loss paid with the claim: a hull saved while sinking and
-   * restored before her wreck was saved goes down again without paying. */
-  statement = mysql_stmt_create(conn);
-  marked = statement != NULL &&
-           mysql_stmt_prepare_query(
-               statement, "UPDATE ship_runtime_state SET wreck_hull = 1 WHERE ship_id = ?") &&
-           mysql_stmt_bind_param_int(statement, 0, ship->shipnum) &&
-           mysql_stmt_execute_prepared(statement);
-  mysql_stmt_cleanup(statement);
-  if (!marked)
-  {
-    log("SYSERR: Could not mark the loss of ship %d paid", ship->shipnum);
-    mysql_query(conn, "ROLLBACK");
-    return FALSE;
-  }
-
-  snprintf(subject, sizeof(subject), "Insurance settlement for %s", ship->name);
   snprintf(message, sizeof(message),
-           "The underwriters confirm the loss of %s. Claim #%llu is approved for %d "
-           "gold. The settlement is delivered automatically when you enter the game; "
-           "this letter is your receipt. What could be saved of her waits in the wreck "
-           "registry: summon her at any shipyard with SHIPSUMMON.",
-           ship->name, claim_id, amount);
+           "%s Settlement #%llu, %d gold, is delivered automatically when you enter the game; "
+           "this letter is your receipt.",
+           letter, claim_id, amount);
   if (!new_mail_send_system(ship->owner, subject, message))
   {
-    mysql_query(conn, "ROLLBACK");
     return FALSE;
   }
 
-  if (mysql_query(conn, "COMMIT"))
-  {
-    log("SYSERR: Could not commit insurance claim for ship %d: %s", ship->shipnum,
-        mysql_error(conn));
-    mysql_query(conn, "ROLLBACK");
-    return FALSE;
-  }
-
-  log("Info: Queued insurance claim %llu for %s: ship %d '%s', %d gold", claim_id, ship->owner,
-      ship->shipnum, ship->name, amount);
+  log("Info: Queued settlement %llu for %s: ship %d '%s', %d gold (%s)", claim_id, ship->owner,
+      ship->shipnum, ship->name, amount, subject);
   return TRUE;
 }
 
@@ -402,7 +359,7 @@ int vessel_deliver_pending_insurance(struct char_data *ch)
   if (total > award_capacity(ch, AWARD_GOLD))
   {
     send_to_char(ch,
-                 "The vessel underwriters hold %lld gold in insurance settlements for you, "
+                 "The harbor office holds %lld gold in vessel settlements for you, "
                  "more than you can carry. Bank some gold to collect it.\r\n",
                  total);
     return 0;
@@ -431,8 +388,8 @@ int vessel_deliver_pending_insurance(struct char_data *ch)
   if (credited > 0)
   {
     send_to_char(ch,
-                 "The vessel underwriters deliver %lld gold from %d settled "
-                 "insurance claim%s. Check your mail for the receipt%s.\r\n",
+                 "The harbor office delivers %lld gold from %d vessel "
+                 "settlement%s. Check your mail for the receipt%s.\r\n",
                  total, credited, credited == 1 ? "" : "s", credited == 1 ? "" : "s");
     log("Info: Delivered %lld insurance gold to %s from %d claim%s", total, GET_NAME(ch), credited,
         credited == 1 ? "" : "s");
@@ -440,26 +397,10 @@ int vessel_deliver_pending_insurance(struct char_data *ch)
   return credited;
 }
 
-/**
- * Settle insurance when a ship is lost.
- *
- * Both online and offline owners use the same durable queue. Online owners
- * receive it immediately; offline owners receive it automatically on login.
- */
-void vessel_pay_insurance(struct greyhawk_ship_data *ship, int amount)
+/** Deliver a hull owner's settlements now, if the owner is in the game. */
+void vessel_deliver_to_online_owner(const struct greyhawk_ship_data *ship)
 {
   struct descriptor_data *d;
-
-  if (amount <= 0)
-  {
-    return;
-  }
-  if (!vessel_queue_insurance_claim(ship, amount))
-  {
-    log("SYSERR: Insurance for lost ship %d could not be queued",
-        ship != NULL ? ship->shipnum : -1);
-    return;
-  }
 
   for (d = descriptor_list; d; d = d->next)
   {
@@ -470,6 +411,51 @@ void vessel_pay_insurance(struct greyhawk_ship_data *ship, int amount)
       return;
     }
   }
+}
+
+/**
+ * Settle insurance when a ship is lost.
+ *
+ * Both online and offline owners use the same durable queue. Online owners
+ * receive it immediately; offline owners receive it automatically on login.
+ */
+void vessel_pay_insurance(struct greyhawk_ship_data *ship, int amount)
+{
+  char subject[256];
+  PREPARED_STMT *statement;
+  bool paid;
+
+  if (amount <= 0 || !vessel_insurance_ensure_schema())
+  {
+    return;
+  }
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: Could not begin the insurance settlement: %s", mysql_error(conn));
+    return;
+  }
+
+  /* Mark the loss paid with the claim: a hull saved while sinking and
+   * restored before her wreck was saved goes down again without paying. */
+  snprintf(subject, sizeof(subject), "Insurance settlement for %s", ship->name);
+  statement = mysql_stmt_create(conn);
+  paid = vessel_queue_claim(ship, amount, subject,
+                            "The underwriters confirm the loss of your hull. What could be saved "
+                            "of her waits in the wreck registry: summon her at any shipyard with "
+                            "SHIPSUMMON.") &&
+         statement != NULL &&
+         mysql_stmt_prepare_query(
+             statement, "UPDATE ship_runtime_state SET wreck_hull = 1 WHERE ship_id = ?") &&
+         mysql_stmt_bind_param_int(statement, 0, ship->shipnum) &&
+         mysql_stmt_execute_prepared(statement);
+  mysql_stmt_cleanup(statement);
+  if (!paid || mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: Insurance for lost ship %d could not be queued", ship->shipnum);
+    mysql_query(conn, "ROLLBACK");
+    return;
+  }
+  vessel_deliver_to_online_owner(ship);
 }
 
 /**

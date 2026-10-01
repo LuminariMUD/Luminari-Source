@@ -198,7 +198,8 @@ void Test_vessel_raider_tier_follows_the_quarry(CuTest *tc)
   int tier;
   int i;
 
-  /* A ship (hull 200) always draws a tier 0 pirate until renown (S7). */
+  /* A ship (hull 200) of no renown always draws a tier 0 pirate; with 900
+   * renown, a tier 1 pirate. */
   ship = raider_hull(QUARRY_SHIP, "the Tern", "Corr", 0.0, 0.0, 0.0);
   ship->vessel_type = VESSEL_SHIP;
   for (i = 0; i < 200; i++)
@@ -206,6 +207,13 @@ void Test_vessel_raider_tier_follows_the_quarry(CuTest *tc)
     CuAssertIntEquals(tc, 0, vessel_raider_pick_tier(ship, &hunter));
     CuAssertTrue(tc, !hunter);
   }
+  ship->renown = 900;
+  for (i = 0; i < 200; i++)
+  {
+    CuAssertIntEquals(tc, 1, vessel_raider_pick_tier(ship, &hunter));
+    CuAssertTrue(tc, !hunter);
+  }
+  ship->renown = 0;
 
   /* A transport (330) draws tier 0 below 250, else tier 1. */
   ship->vessel_type = VESSEL_TRANSPORT;
