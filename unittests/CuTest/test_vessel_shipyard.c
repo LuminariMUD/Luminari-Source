@@ -204,6 +204,42 @@ static int shipyard_config_cap(const char *text)
   return CONFIG_VESSEL_OWNER_CAP;
 }
 
+void Test_vessel_spawn_report_is_staff_only(CuTest *tc)
+{
+  struct shipyard_player buyer;
+  struct greyhawk_ship_data ship;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+
+  memset(&ship, 0, sizeof(ship));
+  strlcpy(ship.name, "Starfall Survey Ship", sizeof(ship.name));
+  ship.vessel_type = VESSEL_SHIP;
+  ship.num_rooms = 4;
+  ship.entrance_room = 70261;
+  ship.bridge_room = 70260;
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+
+  /* A buyer is not shown the fleet slot or interior room numbers. */
+  shipyard_player_init(&buyer, "Mira", 16);
+  buyer.ch.desc = &descriptor;
+  descriptor.character = &buyer.ch;
+  vessel_report_spawn(&buyer.ch, &ship, 13);
+  CuAssertStrEquals(tc, "", output);
+
+  /* Staff spawning a hull see what they build with. */
+  buyer.ch.player.level = LVL_IMMORT;
+  vessel_report_spawn(&buyer.ch, &ship, 13);
+  CuAssertTrue(tc, strstr(output, "Spawned 'Starfall Survey Ship' (Ship) as ship 13: 4 interior "
+                                  "rooms, entrance 70261, bridge 70260.") != NULL);
+
+  ProtocolDestroy(descriptor.pProtocol);
+}
+
 void Test_vessel_owner_cap_config_is_clamped(CuTest *tc)
 {
   pid_t child;

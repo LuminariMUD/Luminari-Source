@@ -1314,6 +1314,7 @@ int vessel_class_min_level(int vclass);
 int vessel_prototype_min_level(int vclass, int min_level);
 int vessel_ship_min_level(const struct greyhawk_ship_data *ship);
 bool vessel_helm_level_refused(struct char_data *ch, const struct greyhawk_ship_data *ship);
+void vessel_report_spawn(struct char_data *ch, const struct greyhawk_ship_data *ship, int slot);
 int vessel_spawn_from_prototype(struct char_data *ch, int id);
 int vessel_spawn_public_from_prototype_at(int id, const char *instance_name, int x, int y, int z);
 ACMD_DECL(do_shipbrowse);    /* Shipyard catalog with prices */

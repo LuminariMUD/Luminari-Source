@@ -602,6 +602,21 @@ int vessel_prototype_price(int vclass, int max_speed, int armor)
 }
 
 /**
+ * Tell staff who spawned a hull the fleet slot and interior they build with;
+ * a buyer hears of the purchase from SHIPBUY instead.
+ */
+void vessel_report_spawn(struct char_data *ch, const struct greyhawk_ship_data *ship, int slot)
+{
+  if (ch == NULL || ship == NULL || GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    return;
+  }
+  send_to_char(ch, "Spawned '%s' (%s) as ship %d: %d interior rooms, entrance %d, bridge %d.\r\n",
+               ship->name, get_vessel_type_name(ship->vessel_type), slot, ship->num_rooms,
+               ship->entrance_room, ship->bridge_room);
+}
+
+/**
  * Spawn a live ship from a prototype into one resolved exterior room.
  *
  * Shared implementation for builder, public/NPC, and player shipyard spawns.
@@ -802,9 +817,7 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
 
   if (ch != NULL)
   {
-    send_to_char(ch, "Spawned '%s' (%s) as ship %d: %d interior rooms, entrance %d, bridge %d.\r\n",
-                 ship->name, get_vessel_type_name(ship->vessel_type), slot, ship->num_rooms,
-                 ship->entrance_room, ship->bridge_room);
+    vessel_report_spawn(ch, ship, slot);
     act("$p materializes, ready to sail.", FALSE, ch, obj, 0, TO_ROOM);
     log("Info: %s spawned ship %d '%s' from prototype %d at (%d,%d,%d)", GET_NAME(ch), slot,
         ship->name, id, (int)ship->x, (int)ship->y, (int)ship->z);
@@ -1101,9 +1114,9 @@ ACMD(do_shipbuy)
 
   award_gold(ch, -price);
   send_to_char(ch,
-               "You pay %d gold coins. Fair winds, captain - christen her with "
-               "'shipchristen <name>'.\r\n",
-               price);
+               "The shipwrights hand over %s, moored here. You pay %d gold coins. Fair winds, "
+               "captain - christen her with 'shipchristen <name>'.\r\n",
+               greyhawk_ships[slot].name, price);
   log("Info: %s bought ship %d for %d gold", GET_NAME(ch), slot, price);
 }
 
