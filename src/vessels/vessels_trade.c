@@ -1645,7 +1645,16 @@ ACMD(do_cargosell)
   }
 
   supply = port_supply(port_vnum, def->id);
-  revenue = vessel_trade_sell_revenue(def->base_price, supply, quantity);
+  /* Contraband stays scarce where it is not stocked: every unit fetches the
+   * scarce price, however the hold is split. */
+  if (def->contraband_renown > 0 && port_stocks(port_vnum, def->id) != 1)
+  {
+    revenue = vessel_trade_sell_revenue(def->base_price, supply, 1) * quantity;
+  }
+  else
+  {
+    revenue = vessel_trade_sell_revenue(def->base_price, supply, quantity);
+  }
   if (revenue != LLONG_MAX)
   {
     revenue = (long long)((double)revenue * vessel_cargo_sale_factor(ch, ship));

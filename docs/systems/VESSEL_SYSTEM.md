@@ -1653,8 +1653,9 @@ Study sections 3.3.7 (rewards, renown, Ship Damage Control) and 3.3.9
 - Contraband (`vessels_trade.c`): `trade_commodities.contraband_renown` above
   0 marks a good and is the renown needed to buy it. A port stocks it only
   with a `port_commodities` row, which only content creates: `port_supply()`
-  answers `TRADE_SUPPLY_MIN` (the scarce price) without seeding a row, and a
-  sale there leaves none. `market` shows `-` to buy and `none (contraband)`
+  answers `TRADE_SUPPLY_MIN` (the scarce price) without seeding a row, and
+  `cargosell` pays that price for every unit, however the hold is split,
+  leaving no row. `market` shows `-` to buy and `none (contraband)`
   where it is not stocked; `cargobuy` sells it only where stocked
   (`port_stocks()`), and, staff aside, only to a hull of its renown or with an
   able sailmaster and quartermaster, never to a warship or a buyer at

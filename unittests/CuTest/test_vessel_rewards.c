@@ -634,6 +634,12 @@ void Test_vessel_contraband_is_sold_where_stocked_and_seized_elsewhere(CuTest *t
   rewards_query_value(tc, connection, query, value, sizeof(value));
   CuAssertStrEquals(tc, "0", value);
 
+  /* Every unit fetches that scarce price, so a hold sold whole fetches what
+   * it would a unit at a time. */
+  ship->cargo[0].quantity = 100;
+  output = rewards_berth_command(&berth, do_cargosell, "forbidden all");
+  CuAssertTrue(tc, strstr(output, "You sell 100 units of forbidden tomes for 24800 gold") != NULL);
+
   /* Customs take every one of 140 forbidden tomes the port does not stock,
    * and leave the poisons it does; when its stock cannot be looked up, they
    * take nothing. */
