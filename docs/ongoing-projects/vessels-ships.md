@@ -25,7 +25,7 @@ here records the merge.
 | S7 Rewards and economy | Merged `cce9ff323` (MR !12) | [Phase 7](vessels-ships-history.md#phase-7-s7-progress) |
 | S8 Client data | Merged `2a4815b1a` (MR !13) | [Phase 8](vessels-ships-history.md#phase-8-s8-progress) |
 | S-immediate Luminari Web for S9 | Merged `1c7e4bffb` (MR !14) | [S-immediate](vessels-ships-history.md#s-immediate-progress) |
-| S9 Claude Code play tests | Not started: next | [Phase 9](#phase-9-s9-progress) |
+| S9 Claude Code play tests | In progress | [Phase 9](#phase-9-s9-progress) |
 | S10 Player guide | Not started | [Part 5](#part-5-implementation-sequence) |
 
 Production help is current through S8 (help sync plan `86c842c5a62a`, 2026-10-01); S-immediate
@@ -146,7 +146,7 @@ ship data panel among them.
 
 ### Phase 9 (S9) progress
 
-Not started. This plan, with S-immediate's, was the first commit on `feat/vessels-s9`, branched
+In progress (started 2026-10-02). This plan, with S-immediate's, was the first commit on `feat/vessels-s9`, branched
 from master `1e0f2f64c` (the S8 merge and its close-out) with the annotated tag `vessels-s9-base`
 there. S-immediate merged from the same branch as `1c7e4bffb` (MR !14), and the branch was
 fast-forwarded onto that merge, so S9's own commits are `git log 1c7e4bffb..vessels-s9`
@@ -243,7 +243,31 @@ dump and provisioning are the gates' own. Kept: a second mortal, without whom pe
 renown, allies and the loss of a player's hull cannot be played; the fixes with their tests; and the
 screenshot size limit, which the commit hook enforces.
 
-Defects found: none yet.
+Progress log (2026-10-02, kept current as play goes):
+
+- Setup, rerun fresh for S9 (harness job `x04-s9setup`): the server stopped, Kohdee's and
+  Vesselmate's pfiles restored from `pfiles-before`, the dump reloaded, ship 11's schedule
+  enabled, both provisioners run. Brinewick's re-creation then failed ("character-name
+  confirmation timeout") because the previous Brinewick's pfile and index line still held the
+  name; job `x05-brinewick` removed them with the server stopped and recreated him on Sailtest.
+- Setup amended from play (the plan's content list missed what chapters 1, 14 and 15 need): the
+  dump's help predates S4, so `help_vessel_entries.sql` is applied to the disposable database
+  (production help is current through S8); the dump lists no hull for sale (the frontier content
+  that sets `for_sale` is not in it), so `provision_vessel_frontier.sh`,
+  `provision_vessel_derelict.sh` and `vessels_narrative_content.sql` join the setup (job
+  `x06-content`). The provisioners refuse a dirty tree, so they run before play leaves
+  uncommitted notes or screenshots.
+- Client: the owner merged `feat/ship-panel` into the client's `main` (`be28d96`); S9's client
+  fixes, if any, go on a branch from that `main`.
+
+Ablation (starting play): chapter 17 reuses the Ship-tab screenshots that chapters 2, 4 and 8 take
+at sea and in a fight, plus one ashore, instead of replaying them; the rest of the plan stands.
+
+Defects found: none fixed yet. Open:
+
+- `help ships` shows the 2014 `boats` entry (keywords BOATS FERRY SHIPS TRANSPORTSS; "enter
+  <boatname>", a literal `\"look out\"`, a staff script pointer) instead of VESSELS, which also
+  claims SHIPS: two entries share the keyword, and the old one wins the tie.
 
 ## Estimate (remaining)
 
