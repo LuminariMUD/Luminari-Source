@@ -326,6 +326,109 @@ void Test_vessel_rename_interior_follows_her_name(CuTest *tc)
   top_of_world = saved_top_of_world;
 }
 
+/* Map step of each level direction; up and down have none. */
+static bool shipyard_dir_step(int dir, int *dx, int *dy)
+{
+  static const int step_x[NUM_OF_DIRS] = {0, 1, 0, -1, 0, 0, -1, 1, 1, -1};
+  static const int step_y[NUM_OF_DIRS] = {1, 0, -1, 0, 0, 0, 1, 1, -1, -1};
+
+  *dx = step_x[dir];
+  *dy = step_y[dir];
+  return dir != UP && dir != DOWN;
+}
+
+void Test_vessel_interior_exits_agree_with_her_layout(CuTest *tc)
+{
+  struct room_data rooms[MAX_SHIP_ROOMS];
+  struct room_data *saved_world;
+  struct greyhawk_ship_data *ship;
+  room_rnum saved_top_of_world;
+  room_rnum target;
+  int queue[MAX_SHIP_ROOMS];
+  int x[MAX_SHIP_ROOMS];
+  int y[MAX_SHIP_ROOMS];
+  bool placed[MAX_SHIP_ROOMS];
+  int count;
+  int head;
+  int tail;
+  int room;
+  int dir;
+  int dx;
+  int dy;
+  int i;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  shipyard_own_ships("Mira", 1);
+  ship = &greyhawk_ships[SHIPYARD_FIRST_SLOT];
+
+  for (count = 4; count <= MAX_SHIP_ROOMS; count++)
+  {
+    memset(rooms, 0, sizeof(rooms));
+    world = rooms;
+    top_of_world = count - 1;
+    ship->num_rooms = count;
+    for (i = 0; i < count; i++)
+    {
+      rooms[i].number = 1000 + i;
+      ship->room_vnums[i] = 1000 + i;
+    }
+    generate_room_connections(ship);
+
+    /* Walk out from the bridge, placing each room where its exits say. */
+    memset(placed, 0, sizeof(placed));
+    placed[0] = TRUE;
+    x[0] = 0;
+    y[0] = 0;
+    queue[0] = 0;
+    head = 0;
+    tail = 1;
+    while (head < tail)
+    {
+      room = queue[head++];
+      for (dir = 0; dir < NUM_OF_DIRS; dir++)
+      {
+        if (rooms[room].dir_option[dir] == NULL)
+          continue;
+        CuAssertTrue(tc, shipyard_dir_step(dir, &dx, &dy));
+        target = rooms[room].dir_option[dir]->to_room;
+        CuAssertTrue(tc, target >= 0 && target < count);
+        /* Every passage leads back the way it came. */
+        CuAssertPtrNotNull(tc, rooms[target].dir_option[rev_dir[dir]]);
+        CuAssertIntEquals(tc, room, rooms[target].dir_option[rev_dir[dir]]->to_room);
+        if (!placed[target])
+        {
+          placed[target] = TRUE;
+          x[target] = x[room] + dx;
+          y[target] = y[room] + dy;
+          queue[tail++] = target;
+        }
+        /* One room, one place: no exit contradicts another. */
+        CuAssertIntEquals(tc, x[room] + dx, x[target]);
+        CuAssertIntEquals(tc, y[room] + dy, y[target]);
+      }
+    }
+    /* Every room can be reached from the bridge. */
+    CuAssertIntEquals(tc, count, tail);
+
+    for (i = 0; i < count; i++)
+    {
+      for (dir = 0; dir < NUM_OF_DIRS; dir++)
+      {
+        if (rooms[i].dir_option[dir] != NULL)
+        {
+          free(rooms[i].dir_option[dir]->general_description);
+          free(rooms[i].dir_option[dir]);
+        }
+      }
+    }
+  }
+
+  shipyard_own_ships("", 0);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+}
+
 void Test_vessel_owner_cap_config_is_clamped(CuTest *tc)
 {
   pid_t child;

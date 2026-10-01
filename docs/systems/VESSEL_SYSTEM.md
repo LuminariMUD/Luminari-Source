@@ -1722,7 +1722,16 @@ independence budget.
 Interior room text comes from `ship_room_templates`. DG trigger attachments
 come from `ship_room_template_triggers`, keyed by generated room type. Changes
 to either table take effect on the next boot; compiled-in room templates
-remain the MySQL-unavailable fallback.
+remain the MySQL-unavailable fallback. The text carries the hull's name, and
+`shipchristen` renders it again with the new one.
+
+A hull of up to three rooms is a line running north from the bridge. A larger
+hull puts each room on one of eight level rays out from the bridge (north,
+east, south, west, then the diagonals): the first eight beside it, any more one
+room further out along the same rays. Side passages join only rooms that lie
+next to each other, so every exit agrees with where its rooms lie and the
+minimap draws the interior as built. Interiors persisted before this layout
+keep their stored passages.
 
 Generated-room trigger mappings are shared by room type, so content-specific
 DG programs must prove that the generated room belongs to their intended hull
