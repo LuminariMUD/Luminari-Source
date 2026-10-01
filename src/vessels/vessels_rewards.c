@@ -20,6 +20,7 @@
 #include "core/utils.h"
 #include "core/comm.h"
 #include "core/interpreter.h"
+#include "database/mysql.h"
 #include "vessels.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
@@ -62,6 +63,21 @@ int vessel_salvage_value(const struct greyhawk_ship_data *ship)
   return (int)(value / VESSEL_SALVAGE_DIVIDER);
 }
 
+/** Inside a sinking's settlement, save a hull's renown with `sql`. */
+static bool vessel_save_renown(const char *sql, int renown, int shipnum)
+{
+  PREPARED_STMT *statement;
+  bool saved;
+
+  statement = mysql_stmt_create(conn);
+  saved = statement != NULL && mysql_stmt_prepare_query(statement, sql) &&
+          mysql_stmt_bind_param_int(statement, 0, renown) &&
+          mysql_stmt_bind_param_int(statement, 1, shipnum) &&
+          mysql_stmt_execute_prepared(statement);
+  mysql_stmt_cleanup(statement);
+  return saved;
+}
+
 /**
  * Settle a sinking (study 3.3.7). The victor, when another player's hull,
  * and her allies in sight (players' hulls out of port whose online owners
@@ -71,8 +87,13 @@ int vessel_salvage_value(const struct greyhawk_ship_data *ship)
  * When she is a player's hull the sharers also split her hull weight in
  * renown, and she loses it.
  *
+ * One transaction records the prize claims, the bounty's collection, the
+ * renown that moves, and her last attacker, consumed: a hull saved while
+ * sinking and restored before her wreck was saved goes down again with no
+ * victor and pays nothing twice. If it fails, nothing is paid.
+ *
  * @return the renown she loses, her hull weight, when another player's hull
- *         sank her; else 0
+ *         sank her and the settlement was recorded; else 0
  */
 int vessel_settle_sinking(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *victor)
 {
@@ -80,8 +101,10 @@ int vessel_settle_sinking(struct greyhawk_ship_data *ship, struct greyhawk_ship_
   struct greyhawk_ship_data *other;
   struct char_data *captain;
   struct char_data *owner;
+  char subject[256];
   char letter[MAX_STRING_LENGTH];
   bool player_hull;
+  bool settled;
   int renown_bounty;
   int salvage;
   int bounty;
@@ -116,12 +139,13 @@ int vessel_settle_sinking(struct greyhawk_ship_data *ship, struct greyhawk_ship_
     }
   }
 
+  /* Renown moves only between players' hulls. */
   player_hull = ship->owner[0] != '\0';
-  weight = vessel_class_handling(ship->vessel_type)->hull_weight;
+  weight = player_hull ? vessel_class_handling(ship->vessel_type)->hull_weight : 0;
   salvage = vessel_salvage_value(ship);
   renown_bounty = ship->renown > VESSEL_RENOWN_BOUNTY_FLOOR ? ship->renown * 5 / 2 : 0;
   bounty = player_hull && vessel_owner_aboard(ship) != NULL ? vessel_get_bounty(ship->owner) : 0;
-  if (bounty < BOUNTY_WANTED || !vessel_clear_bounty(ship->owner))
+  if (bounty < BOUNTY_WANTED)
   {
     bounty = 0;
   }
@@ -132,6 +156,30 @@ int vessel_settle_sinking(struct greyhawk_ship_data *ship, struct greyhawk_ship_
            "gold.",
            ship->name, salvage, renown_bounty, bounty, count, count == 1 ? "" : "s", share);
 
+  if (!mysql_available || conn == NULL || mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: Could not begin the settlement of ship %d's sinking", ship->shipnum);
+    return 0;
+  }
+  settled = (bounty == 0 || vessel_clear_bounty(ship->owner)) &&
+            vessel_save_renown(
+                "UPDATE ship_runtime_state SET renown = ?, last_attacker = 0 WHERE ship_id = ?",
+                MAX(0, ship->renown - weight), ship->shipnum);
+  for (i = 0; i < count && settled; i++)
+  {
+    snprintf(subject, sizeof(subject), "Prize money for %s", sharers[i]->name);
+    settled = vessel_save_renown("UPDATE ship_runtime_state SET renown = ? WHERE ship_id = ?",
+                                 sharers[i]->renown + weight / count, sharers[i]->shipnum) &&
+              (share <= 0 || vessel_queue_claim(sharers[i], share, subject, letter));
+  }
+  if (!settled || mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: The sinking of ship %d could not be settled; nothing was paid", ship->shipnum);
+    mysql_query(conn, "ROLLBACK");
+    return 0;
+  }
+
+  ship->renown = MAX(0, ship->renown - weight);
   for (i = 0; i < count; i++)
   {
     if (player_hull)
@@ -139,19 +187,15 @@ int vessel_settle_sinking(struct greyhawk_ship_data *ship, struct greyhawk_ship_
       sharers[i]->renown += weight / count;
       send_to_ship(sharers[i], "%s wins %d renown for sinking %s.", sharers[i]->name,
                    weight / count, ship->name);
-      vessel_db_save_runtime(sharers[i]);
     }
-    vessel_pay_prize(sharers[i], share, letter);
+    if (share > 0)
+    {
+      vessel_deliver_to_online_owner(sharers[i]);
+    }
   }
   log("Info: Ship %d '%s' sunk by ship %d: %d salvage, %d renown bounty, %d bounty, %d sharer%s",
       ship->shipnum, ship->name, victor->shipnum, salvage, renown_bounty, bounty, count,
       count == 1 ? "" : "s");
-
-  if (!player_hull)
-  {
-    return 0;
-  }
-  ship->renown = MAX(0, ship->renown - weight);
   return weight;
 }
 

@@ -193,6 +193,32 @@ static void rewards_query_value(CuTest *tc, MYSQL *connection, const char *query
   mysql_free_result(result);
 }
 
+/* The tables a sinking's settlement writes, shadowing any real ones. */
+static bool rewards_prize_tables(MYSQL *connection)
+{
+  return mysql_query(connection, "CREATE TEMPORARY TABLE vessel_insurance_claims ("
+                                 "claim_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, "
+                                 "ship_id INT NOT NULL, owner VARCHAR(64) NOT NULL, "
+                                 "ship_name VARCHAR(128) NOT NULL, amount INT NOT NULL, "
+                                 "status VARCHAR(16) NOT NULL DEFAULT 'pending', "
+                                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+                                 "paid_at TIMESTAMP NULL DEFAULT NULL) ENGINE=InnoDB") == 0 &&
+         mysql_query(connection, "CREATE TEMPORARY TABLE player_mail ("
+                                 "mail_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, "
+                                 "sender VARCHAR(255) NOT NULL, receiver VARCHAR(255) NOT NULL, "
+                                 "subject VARCHAR(255) NOT NULL, message TEXT NOT NULL, "
+                                 "date_sent DATE DEFAULT NULL) ENGINE=InnoDB") == 0 &&
+         mysql_query(connection, "CREATE TEMPORARY TABLE vessel_bounties ("
+                                 "player_name VARCHAR(64) PRIMARY KEY, "
+                                 "bounty INT NOT NULL DEFAULT 0, "
+                                 "marque_until INT NOT NULL DEFAULT 0, "
+                                 "last_offense_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP) "
+                                 "ENGINE=InnoDB") == 0 &&
+         mysql_query(connection, "CREATE TEMPORARY TABLE ship_runtime_state ("
+                                 "ship_id INT PRIMARY KEY, renown INT NOT NULL DEFAULT 0, "
+                                 "last_attacker INT NOT NULL DEFAULT 0) ENGINE=InnoDB") == 0;
+}
+
 void Test_vessel_salvage_counts_what_is_left(CuTest *tc)
 {
   struct greyhawk_ship_data *ship;
@@ -235,6 +261,30 @@ void Test_vessel_sinking_shares_renown_among_allies(CuTest *tc)
   struct greyhawk_ship_data *far_ally;
   struct greyhawk_ship_data *berthed;
   struct greyhawk_ship_data *sister;
+  MYSQL *saved_conn;
+  MYSQL *connection;
+  bool saved_mysql_available;
+
+  if (!rewards_database_enabled())
+  {
+    return;
+  }
+  connection = rewards_open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  if (!rewards_prize_tables(connection))
+  {
+    mysql_close(connection);
+    CuFail(tc, "could not create the isolated settlement fixture");
+    return;
+  }
+  saved_conn = conn;
+  saved_mysql_available = mysql_available;
+  conn = connection;
+  mysql_available = TRUE;
 
   saved_character_list = character_list;
   rewards_player_online(&corr, "Corr");
@@ -300,6 +350,9 @@ void Test_vessel_sinking_shares_renown_among_allies(CuTest *tc)
   world = saved_world;
   top_of_world = saved_top_of_world;
   rewards_clear();
+  conn = saved_conn;
+  mysql_available = saved_mysql_available;
+  mysql_close(connection);
 }
 
 void Test_vessel_sinking_pays_prize_money_and_the_bounty(CuTest *tc)
@@ -322,26 +375,9 @@ void Test_vessel_sinking_pays_prize_money_and_the_bounty(CuTest *tc)
     CuFail(tc, "could not connect to the explicitly configured test database");
     return;
   }
-  if (mysql_query(connection, "CREATE TEMPORARY TABLE vessel_insurance_claims ("
-                              "claim_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, "
-                              "ship_id INT NOT NULL, owner VARCHAR(64) NOT NULL, "
-                              "ship_name VARCHAR(128) NOT NULL, amount INT NOT NULL, "
-                              "status VARCHAR(16) NOT NULL DEFAULT 'pending', "
-                              "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-                              "paid_at TIMESTAMP NULL DEFAULT NULL) ENGINE=InnoDB") != 0 ||
-      mysql_query(connection, "CREATE TEMPORARY TABLE player_mail ("
-                              "mail_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, "
-                              "sender VARCHAR(255) NOT NULL, receiver VARCHAR(255) NOT NULL, "
-                              "subject VARCHAR(255) NOT NULL, message TEXT NOT NULL, "
-                              "date_sent DATE DEFAULT NULL) ENGINE=InnoDB") != 0 ||
-      mysql_query(connection, "CREATE TEMPORARY TABLE vessel_bounties ("
-                              "player_name VARCHAR(64) PRIMARY KEY, "
-                              "bounty INT NOT NULL DEFAULT 0, "
-                              "marque_until INT NOT NULL DEFAULT 0, "
-                              "last_offense_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP) "
-                              "ENGINE=InnoDB") != 0 ||
-      mysql_query(connection, "CREATE TEMPORARY TABLE ship_runtime_state ("
-                              "ship_id INT PRIMARY KEY) ENGINE=InnoDB") != 0 ||
+  if (!rewards_prize_tables(connection) ||
+      mysql_query(connection, "INSERT INTO ship_runtime_state (ship_id, renown, last_attacker) "
+                              "VALUES (490, 400, 491), (491, 0, 0)") != 0 ||
       mysql_query(connection, "INSERT INTO vessel_bounties (player_name, bounty) "
                               "VALUES ('Tern', 2000)") != 0)
   {
@@ -372,11 +408,40 @@ void Test_vessel_sinking_pays_prize_money_and_the_bounty(CuTest *tc)
   CuAssertStrEquals(tc, "1", value);
   CuAssertIntEquals(tc, 0, vessel_get_bounty("Tern"));
 
+  /* The same settlement saved the renown that moved and consumed her last
+   * attacker: restored mid-sinking, she goes down with no victor and pays
+   * nothing twice. */
+  rewards_query_value(tc, connection,
+                      "SELECT GROUP_CONCAT(ship_id, ':', renown, ':', last_attacker "
+                      "ORDER BY ship_id) FROM ship_runtime_state",
+                      value, sizeof(value));
+  CuAssertStrEquals(tc, "490:115:0,491:285:0", value);
+
   /* Ashore, her owner's bounty stands. */
   CuAssertIntEquals(tc, 0, mysql_query(connection, "UPDATE vessel_bounties SET bounty = 2000"));
   IN_ROOM(&berth.captain) = NOWHERE;
   vessel_settle_sinking(target, victor);
   CuAssertIntEquals(tc, 2000, vessel_get_bounty("Tern"));
+
+  /* A settlement that cannot record its claim pays nothing: the bounty is
+   * not collected and no renown moves. */
+  IN_ROOM(&berth.captain) = 0;
+  target->renown = 400;
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "UPDATE ship_runtime_state SET renown = 400, "
+                                            "last_attacker = 491 WHERE ship_id = 490"));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "ALTER TABLE vessel_insurance_claims "
+                                            "CHANGE amount gold INT NOT NULL"));
+  CuAssertIntEquals(tc, 0, vessel_settle_sinking(target, victor));
+  CuAssertIntEquals(tc, 2000, vessel_get_bounty("Tern"));
+  CuAssertIntEquals(tc, 400, target->renown);
+  CuAssertIntEquals(tc, 570, victor->renown);
+  rewards_query_value(tc, connection,
+                      "SELECT GROUP_CONCAT(ship_id, ':', renown, ':', last_attacker "
+                      "ORDER BY ship_id) FROM ship_runtime_state",
+                      value, sizeof(value));
+  CuAssertStrEquals(tc, "490:400:491,491:570:0", value);
 
   rewards_berth_end(&berth);
   conn = saved_conn;

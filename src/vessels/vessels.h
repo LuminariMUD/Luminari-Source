@@ -921,7 +921,9 @@ void vessel_upkeep_tick_one(struct greyhawk_ship_data *ship);
 void vessel_db_save_extras(struct greyhawk_ship_data *ship);
 void vessel_db_load_extras(struct greyhawk_ship_data *ship);
 void vessel_pay_insurance(struct greyhawk_ship_data *ship, int amount);
-void vessel_pay_prize(struct greyhawk_ship_data *ship, int amount, const char *letter);
+bool vessel_queue_claim(struct greyhawk_ship_data *ship, int amount, const char *subject,
+                        const char *letter);
+void vessel_deliver_to_online_owner(const struct greyhawk_ship_data *ship);
 void vessel_refund_insurance_premiums(void);
 int vessel_deliver_pending_insurance(struct char_data *ch);
 

@@ -466,8 +466,10 @@ void vessel_sink(int shipnum)
   log("Info: Ship %d '%s' is sinking at (%d,%d)", shipnum, ship->name, (int)ship->x, (int)ship->y);
   send_to_ship(ship, "The hull gives way - %s is SINKING!", ship->name);
   victor = vessel_sink_victor(ship);
-  vessel_crew_credit_kill(victor, ship);
+  /* Her settlement consumes her last attacker, so it goes first: a hull
+   * restored mid-sinking trains no crew twice either. */
   renown_lost = vessel_settle_sinking(ship, victor);
+  vessel_crew_credit_kill(victor, ship);
   vessel_event_handle_sink(shipnum);
 
   /* Merchant definitions outlive their killable hulls. Record the responsible

@@ -1628,12 +1628,16 @@ Study sections 3.3.7 (rewards, renown, Ship Damage Control) and 3.3.9
   point above 100 renown, raiders included), and the target owner's bounty
   (`vessel_get_bounty()` of 500 or more, when the owner is aboard;
   `vessel_clear_bounty()` collects it). Each share goes to the sharing hull's
-  owner through `vessel_pay_prize()`: the claim queue
-  (`vessel_insurance_claims`) with a mail receipt, delivered at once to an
-  online owner or at login. When the target is a player's hull, each sharer
-  gains her class hull weight divided among them (saved at once) and she
-  loses it, floored at 0; `vessel_wreck_hull()` then takes 10% plus 1% per 30
-  of it from her crew. NPC kills move no renown.
+  owner as a claim (`vessel_queue_claim()`: `vessel_insurance_claims` with a
+  mail receipt), delivered at once to an online owner or at login. When the
+  target is a player's hull, each sharer gains her class hull weight divided
+  among them and she loses it, floored at 0; `vessel_wreck_hull()` then takes
+  10% plus 1% per 30 of it from her crew. NPC kills move no renown. One
+  transaction records the claims, the bounty's collection, the renown, and
+  her `last_attacker` set to 0, so a hull saved while sinking and restored
+  before her wreck was saved sinks again with no victor and pays nothing
+  twice; if it fails, nothing is paid. For the same reason `vessel_sink()`
+  settles before `vessel_crew_credit_kill()` trains the victor's crew.
 - Renown gates: `vessel_crew_hire_renown()` (able 540/700/640/540, veteran
   1,350/1,640/1,480/1,350 for sailmaster, gunner, bosun, quartermaster) in
   `shiphire`; a capital weapon's `renown` (1,600 light beam, 1,700 mind blast,
