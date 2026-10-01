@@ -2,10 +2,10 @@
 
 Companion to [vessels-ships.md](vessels-ships.md), the entry point, which holds where the work
 stands, how a step is worked, the rules and units and the 3.4 owner decisions still in force, the
-Part 5 sequence, the design values not yet built, the active step, and what remains. This document
-keeps the rest unabridged: where the code and documents are, the 2026-09-28 study (Parts 0-4 with
-its section numbers, which the code, the SQL, and `VESSEL_SYSTEM.md` cite as "study 3.3.x"), each
-merged step's progress record, and the original estimate.
+Part 5 sequence, the active step, and what remains. This document keeps the rest unabridged:
+where the code and documents are, the 2026-09-28 study (Parts 0-4 with its section numbers, which
+the code, the SQL, and `VESSEL_SYSTEM.md` cite as "study 3.3.x"), each merged step's progress
+record, and the original estimate.
 
 ## DurisMUD Vessel / Ship Code
 
