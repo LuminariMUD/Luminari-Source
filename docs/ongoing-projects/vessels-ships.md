@@ -194,7 +194,7 @@ new `src/vessels/vessels_rewards.c`; contraband, customs and the sale modifiers 
 | Item | State | Where |
 | -- | -- | -- |
 | Renown on the hull: kept through the wreck registry and trade-in, persisted, shown by `shipcrew`; `shiprenown` lists the ten player hulls with the most | Done | `renown` on the hull and `ship_runtime_state.renown` (Phase 23); `do_shiprenown()` in `vessels_rewards.c` |
-| Sinking rewards: the victor and allied hulls in sight split salvage, the renown bounty and the target owner's WANTED or HUNTED bounty, paid to their owners through the claim queue; renown moves between players' hulls; the crew casualty share for a player kill | Done | `vessel_settle_sinking()`, `vessel_salvage_value()`, `vessel_owner_aboard()` from `vessel_sink()`; `vessel_pay_prize()` and the shared `vessel_queue_claim()` in `vessels_upgrades.c`; `vessel_wreck_hull()` |
+| Sinking rewards: the victor and allied hulls in sight split salvage, the renown bounty and the target owner's WANTED or HUNTED bounty, paid to their owners through the claim queue; renown moves between players' hulls; the crew casualty share for a player kill | Done | `vessel_settle_sinking()`, `vessel_salvage_value()`, `vessel_owner_aboard()` from `vessel_sink()`; the shared `vessel_queue_claim()` in `vessels_upgrades.c`; `vessel_wreck_hull()` |
 | Renown gates: able and veteran hires (the 3.3.5 table) and capital weapons (3.3.4, or a veteran gunner) | Done | `vessel_crew_hire_renown()` in `do_shiphire()`; the weapon table's `renown` in `vessel_buy_weapon()` |
 | Raiders carry their tier's renown, and the quarry's renown joins the tier roll | Done | `raider_tiers[]`, `vessel_raider_spawn()`, `vessel_raider_pick_tier()` |
 | Ship Damage Control, an epic feat of 5 ranks | Done | `FEAT_SHIP_DAMAGE_CONTROL`; `vessel_damage_control()` in `vessel_damage_hull()` and `vessel_damage_sail()` |
@@ -305,6 +305,21 @@ damage 622 s, derelict 31 s, hunter 80 s, frontier 223 s, raider 176 s, and the 
 the final build of `c404b1690` the loss (78 s) and economy (302 s) gates pass again after a fresh
 reload, and the local CI matrix (`scripts/ci/local/run.py --base gitlab/master`) passes all 33
 jobs (347 s).
+
+Review (MR !12, 2026-10-01): three findings, all fixed on top of `vessels-s7`, one commit each.
+
+| Finding | Fix | Commit |
+| -- | -- | -- |
+| P2: a hull saved during her sinking countdown and restored before her wreck was saved sank again and paid her renown, prize money and bounty a second time, and her owner's bounty was cleared before any prize claim committed | `vessel_settle_sinking()` records the bounty's collection, each sharer's renown and prize claim, and the sunk hull's renown with her `last_attacker` set to 0 in one transaction, so a restored hull goes down with no victor; if it fails, nothing is paid. `vessel_queue_claim()` now writes inside its caller's transaction (insurance keeps its own, and `vessel_pay_prize()` is gone), and `vessel_sink()` settles before it trains the victor's crew | `9c8876360` |
+| P2: where a contraband good is not stocked, a batch sale walked up a supply no row kept, so 100 forbidden tomes sold together paid 19,942 gold and one at a time 24,800 | Every unit there fetches the scarce price, however the hold is split (`do_cargosell()`) | `e1ffd9005` |
+| P2: `port_stocks()` answered no for a failed lookup as for a missing row, so a database error let customs seize contraband the port itself stocks | `port_stocks()` counts the rows and reports a failed lookup apart; customs let such a lot pass, and the market and the smugglers treat it as unstocked | `d2a1c4a22` |
+
+Review verification: `make test-all` with the database cases on passes 1,963 CuTest cases and the
+protocol harness (the sinking tests now run against the test database; the new settlement and sale cases fail on
+`vessels-s7`'s code); the clang-tidy gate respects its baseline; after a fresh reload of the
+development dump the loss gate (82 s) and the economy gate (249 s) pass on the installed build
+of `e1ffd9005`, and the local CI matrix (`scripts/ci/local/run.py --base gitlab/master`) passes
+all 33 jobs (632 s).
 
 ## Estimate (remaining)
 
