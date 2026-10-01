@@ -7,7 +7,7 @@ repo_root=${LUMINARI_PROJECT_ROOT:-$(cd "$script_dir/../.." && pwd)}
 acceptance_mode=tactical
 if [[ $# -gt 0 ]]; then
   [[ $# -eq 1 ]] || {
-    printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery|--loss|--raider|--economy]\n' "$0" >&2
+    printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery|--loss|--raider|--economy|--client]\n' "$0" >&2
     exit 2
   }
   case "$1" in
@@ -41,8 +41,11 @@ if [[ $# -gt 0 ]]; then
     --economy)
       acceptance_mode=economy
       ;;
+    --client)
+      acceptance_mode=client
+      ;;
     *)
-      printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery|--loss|--raider|--economy]\n' "$0" >&2
+      printf 'usage: %s [--lookout|--narrative|--boarding|--rules|--movement|--damage|--gunnery|--loss|--raider|--economy|--client]\n' "$0" >&2
       exit 2
       ;;
   esac
@@ -480,6 +483,9 @@ finish() {
       printf 'PASS: Kohdee validated the shipyard, locks, battle stations, the harbor '
       printf 'refusal, scanning, sighting, and arc fire with exact character restoration (%ss).\n' \
         "$elapsed_seconds"
+    elif [[ "$acceptance_mode" == client ]]; then
+      printf 'PASS: Kohdee validated the native MSDP client data at sea and its empty '
+      printf 'state ashore with exact character restoration (%ss).\n' "$elapsed_seconds"
     elif [[ "$acceptance_mode" == rules ]]; then
       printf 'PASS: Kohdee and Vesselmate validated the shipyard listing, contact IDs, '
       printf 'gunnery authorization, hull level, hull cap, and bounty pay-off with exact '
@@ -899,6 +905,19 @@ elif [[ "$acceptance_mode" == gunnery ]]; then
     'PASS: the vessel gunnery check completed and purged all temporary hulls'; do
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-gunnery.log" ||
       fail "the gunnery session did not report '$expected_text'"
+  done
+elif [[ "$acceptance_mode" == client ]]; then
+  timeout 300 env DEV_MUD_CHARACTER="$target_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --vessel-client-check \
+    "$warship_prototype_id" >"$run_dir/01-kohdee-vessel-client.log" 2>&1 ||
+    fail "the actual Kohdee vessel-client session failed"
+
+  for expected_text in \
+    'PASS: native MSDP reported the identity, lock, condition, weapons, and contacts' \
+    'PASS: native MSDP emptied the client data after leaving the vessel.' \
+    'PASS: the vessel client check completed and purged all temporary hulls'; do
+    grep -Fq "$expected_text" "$run_dir/01-kohdee-vessel-client.log" ||
+      fail "the client session did not report '$expected_text'"
   done
 elif [[ "$acceptance_mode" == loss ]]; then
   timeout 120 env DEV_MUD_CHARACTER="$target_player" \

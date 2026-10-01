@@ -637,6 +637,31 @@ movement (106 s), damage (556 s), derelict (33 s), hunter (81 s), frontier
 and Vailand merchant gates on a fresh reload with the shortened first watch
 (`5a027dc4f`).
 
+## Vessel Client Check
+
+After the Starfall frontier prototype exists and a clean candidate is built
+and installed, run:
+
+```bash
+./scripts/vessels/test_vessel_client_in_game.sh
+```
+
+The wrapper runs the shared tactical harness in `--client` mode, which calls
+`--vessel-client-check <warship-id>` in the login helper with the same
+refusals, snapshots, and restoration as the other tactical-harness gates. The
+helper connects as a raw native MSDP client, like `--vessel-msdp-check`.
+
+At `(900, 225)` the target lies two rooms off the gun ship's starboard beam.
+Kohdee locks her and fires the starboard ballista, then reports the twelve S8
+variables. `SHIP_ID` and `SHIP_TARGET` must be the two hulls' IDs; the armor
+and structure tables must hold the warship's full arcs (fore 76 and 33, port
+95 and 41, rear 57 and 20, starboard 95 and 41); sails, rudder, and the
+stamina maximum must match `shipstatus`; `SHIP_WEAPONS` must list the fore and
+port ballistae ready with 30 rounds and the starboard one reloading with 29;
+and `SHIP_CONTACTS` must begin with the target at range `2.0`, bearing `90`,
+on the `starboard` arc. In room 1204 every one of them must be sent empty or
+zero. Cleanup purges both hulls.
+
 ## Shared Harbor Merchant Loss Check
 
 The provisioner validates but deliberately does not sink its NPC merchant.
