@@ -201,7 +201,38 @@ changes code, help or SQL.
 Progress log (2026-10-02, kept current as the work goes):
 
 - Plan committed. Screenshot audit (four lanes, 01-79) and fact check (chapters 1-7, 8-17)
-  started.
+  done. The fact check found about 30 notes that the code contradicts or that state a special
+  case as a rule (the guide states the code's rule; the notes stay as S9 recorded them), and the
+  defects below. The audit found no account name, password or address in any shot, and no shot
+  that needs a new play session: 21 duplicates 20 and 42 shows a refused shot rather than the
+  group forfeit, so the guide describes those two in text and does not use them; 35 shows a ram
+  rather than gunfire and is captioned as what it shows; about twenty need a crop or a
+  redaction (pre-fix text in 02, 10, 19, 31 and 38, the staff character's staging lines in 17,
+  25, 29, 30, 31, 68 and 79, interiors persisted before `49ab1fb55` drawing several "you are
+  here" markers in 18, 66 and 67) or a caption limited to what is visible.
+- Draft guide written (`docs/guides/VESSEL_PLAYER_GUIDE.md`, uncommitted until the corrections
+  and the screenshot move land with it). The master index and `VESSEL_SYSTEM.md` links to it
+  are in the working tree with it.
+
+Defects found and fixed (each with a production-linked test where behavior changed; help in
+both places where it changed):
+
+| Finding | Fix | Commit |
+| -- | -- | -- |
+| `unassignpilot` on a hull sailing a route freed the route while the autopilot still held it: `autopilot status` read freed memory, and `setroute`, `autopilot on` or cleanup freed it again (a crash) | Relieving the pilot disengages the autopilot as `autopilot off` does and keeps the route; DB-backed test | `3ad7f52f3` |
+| A ship steered at the shore, in shoal water she may sail, was told "It requires deep water to sail" | "Your ship cannot go there! She keeps to the water's surface, clear of beach and land." | `73bae886a` |
+| `tenter [target]` ignored its target and entered the first vehicle in the room | It finds the vehicle as `vmount` does and refuses a name that matches none | `7d26fb597` |
+| `tgo` hinted "Usage: go ..." and "Try 'enter' ...", other commands | The hints name `tgo` and `tenter` | `6cae7a8c9` |
+| `vevent` showed players fleet slots ("Entered Sea Wren (slot 13)", "slot 16 Wren Skiff", "Ghost contact: slot 33") | Entry, roster and ghost contacts show the contact ID; DB-backed test | `32e11bbfb` |
+| Every hull's room line read "is moored here", at sea and sinking too | Look builds the line as she lies: moored, at anchor, sinking, hovering overhead, or here; the lookout gate's open-water hull reads "is here" | `4d4607aec` |
+| `shiplist` cut "Magical Vessel" to "Magical Ve" and names to 25 letters | Class 14 and Name 30 wide | `01c79ad70` |
+| Customs could seize at 0-4% though help promised never below 5 (Duris floors only a negative chance, against its own comment) | Never under 5 | `aa03131db` |
+| Help said otherwise than the code: SEASTATE (grounding), VESSELS (a pilotless unowned hull answers anyone), SETSCHEDULE, ASSIGNPILOT (engages only with the autopilot off), SHIPRAM (the slew rule), SHIPFIRE (in port, stunned, after a ram), SHIPFIX (weapons, sinking) | Corrected in both places | `fe8d054b8` |
+| `VESSEL_SYSTEM.md`'s vehicle table, terrain flags and speeds, `unloadvehicle` syntax, and a workflow that mounts a vehicle before loading it | Corrected to the code | `2f1adf001` |
+
+Left: move and crop the screenshots, finish the guide from the corrected facts, commit it, then
+the routine's verification (S10 changed code, help and SQL): `make test-all` with the database,
+the help verifier, every live gate, and the local CI matrix; then tag and merge request.
 
 ## Estimate (remaining)
 
