@@ -27,7 +27,7 @@ here records the merge.
 | S-immediate Luminari Web for S9 | Merged `1c7e4bffb` (MR !14) | [S-immediate](vessels-ships-history.md#s-immediate-progress) |
 | S9 Claude Code play tests | Merged `a6adb46a8` (MR !15) | [Phase 9](vessels-ships-history.md#phase-9-s9-progress) |
 | S10 Player guide | Merged `60ef66ad1` (MR !16) | [Phase 10](vessels-ships-history.md#phase-10-s10-progress) |
-| S11 Checked cargo trades (work item #10) | Not started: next | [Part 5](#part-5-implementation-sequence) |
+| S11 Checked cargo trades (work item #10) | In progress | [Phase 11](#phase-11-s11-progress) |
 | S12 Owned waypoints and routes (work item #11) | Not started | [Part 5](#part-5-implementation-sequence) |
 
 Production help is current through S10 (help sync plan `78cccae490f9`, 2026-10-02). S1-S10 are
@@ -163,16 +163,81 @@ ship data panel among them.
 
 ## Active step
 
-None in progress. S11 is next: branch `feat/vessels-s11` from master `88495e08a` (the S10 merge
-and its close-out, tag `vessels-s11-base`); its first commit is the S11 plan, as a "Phase 11 (S11)
-progress" section here. S12 follows from S11's merge, on `feat/vessels-s12` with
-`vessels-s12-base`. Each step's merge request says `Closes #10` or `Closes #11`, which lists it
-on its work item and closes the item when it merges.
+S11 is in progress, below. S12 follows from S11's merge, on `feat/vessels-s12` with
+`vessels-s12-base`. Each step's merge request says `Closes #10` or `Closes #11`, which lists it on
+its work item and closes the item when it merges.
 
 Still open outside these steps: the production deploy of S9's world-data notes and S10's code, the
 Open player-data balance and human beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`, and closing these
 study documents once S12 merges: `docs/ongoing-projects/` is temporary, and their enduring content
 lives in `VESSEL_SYSTEM.md` and the guide.
+
+### Phase 11 (S11) progress
+
+In progress (2026-10-02). Branch `feat/vessels-s11` from master `88495e08a` (the S10 merge and its
+close-out), where the annotated tag `vessels-s11-base` stands, so
+`git log vessels-s11-base..vessels-s11` lists only S11. The first commit after `264469692` (which
+added S11 and S12) is this plan. Hand-off as in the routine: tag `vessels-s11` and a merge request
+that says `Closes #10`; review fixes go on top. Scope: GitLab work item #10, `cargobuy` and
+`cargosell` moving gold without a checked save.
+
+The defect, traced in `src/vessels/vessels_trade.c`: `do_cargobuy()` debits the gold in memory
+(`award_gold()`), then `port_adjust_supply()` and `vessel_db_save_cargo()` write the port's
+supply and the manifest, each unchecked and outside any transaction; `do_cargosell()` does the
+same with the revenue. No player save follows, so a crash before the captain's next routine save
+returns a buyer's gold with the cargo recorded aboard, or loses a seller's gold with the cargo
+gone; and a failed manifest write leaves sold cargo recorded aboard, to be sold again after a
+reboot.
+
+Items:
+
+1. One helper in `vessels_trade.c` records a trade: the port's supply and the ship's manifest in
+   one transaction, rolled back if either write fails. It replaces `port_adjust_supply()`, whose
+   only callers are these two commands and which re-read the supply the caller had just read; its
+   UPDATE becomes a `PREPARED_STMT`, so `vessels_trade.c`'s formatted-SQL baseline drops from 7
+   to 6.
+2. `cargobuy` and `cargosell` take the shape `a703572e3` gave freight acceptance: change the hold
+   in memory and record the trade; on a refused record, put the hold back and move no gold;
+   after the commit, move the gold and save it with `save_char_checked()`; if that save fails,
+   restore the gold and the hold and record the pre-trade supply and manifest again. The crew's
+   sale experience is earned only once the sale is saved.
+3. DB-backed tests in `test_vessel_rewards.c`, beside `Test_vessel_freight_bond_pays_for_the_goods`:
+   for each command a refused manifest write and a failed character save leave the gold, the
+   hold, the manifest rows and the port's supply as they were; a saved trade moves all four. The
+   contraband test's trades now save the captain, so it gets the scratch player files the freight
+   test uses.
+4. `VESSEL_SYSTEM.md`'s trade paragraph says how a trade is recorded, as the freight paragraph
+   does.
+
+Interpretations decided while planning S11:
+
+- The compensation after a failed save records the pre-trade state with the same helper, so it
+  is as atomic as the trade; if it fails too, a `SYSERR` is logged, as freight acceptance does.
+- The hold is restored from a copy of the one lot the trade touched, which puts back both the
+  quantity and a lot emptied by a sale.
+- No database (or an NPC, whose save always fails) means no trade, as freight acceptance and
+  passenger fares already refuse; MySQL is required to run the server.
+- The refusal messages name what did not happen: "The harbor office cannot record that trade;
+  no gold changed hands." and "Your gold could not be recorded, so the trade is undone."
+
+Ablation (planning): dropped help changes (usage, prices and rules are unchanged; only the two
+failure messages are new), new schema SQL with its rollback and verifier (no table changes), the
+vessel help verifier (no help change), and the 19 live gates that never run `cargobuy` or
+`cargosell` (the changed code is reachable only through those two commands). Simplified: one
+helper records both the trade and its undo, instead of separate undo writes; a lot copy restores
+the hold instead of moving `contract_unload()` out of `vessels_contracts.c` for reuse. Kept: the
+DB-backed failure tests for both commands, the economy gate (it buys and sells contraband with a
+real logged-in captain, whose saves go to disk), `make test-all` with the database cases, and the
+local CI matrix.
+
+Verification: `make test-all` with the database cases on (the `luminari-vessels-testdb` container,
+environment as in S9's `testenv.sh`); `scripts/ci/check_sql_interpolation.py`; the economy gate
+`test_vessel_economy_in_game.sh` in the namespace harness on a reload of the development dump;
+and `scripts/ci/local/run.py --base gitlab/master`.
+
+Progress log (2026-10-02, kept current as the work goes):
+
+- Plan committed.
 
 ## Estimate (remaining)
 
