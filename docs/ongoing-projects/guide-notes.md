@@ -388,3 +388,60 @@ aboard a hull had left rows for an interior room); trade and freight keyed the p
 object's room even when she lay in port by her coordinates; accepting and abandoning a contract
 handed out its freight for nothing, again and again (the freight now takes a bond); "fit Sea Wren
 with a Neutral Colors".
+
+## 8. Gunnery against a raider
+
+Staging: with the Sea Wren under way in open water south-west of the harbor ((-82, 79), "Unnamed
+open waters"), Kohdee went aboard, ran `vesseldebug raider 0` ("Raider 15 [AP] Corsair Clipper
+comes for Sea Wren.") and left. A Corsair Ketch [AO] joined the attack on her own: a raider
+ambush. Vesselmate fought with a green gunner, a Medium Ballista fore, Large Ballistas port and
+starboard, and a ram.
+
+- `34-gunnery-tactical.png` (Vesselmate, `tactical` after `shiplock AP`, Ship tab): the raiders
+  on the chart and in the roster.
+- `35-gunnery-fire.png` (Vesselmate, `shipfire port AO` and `shipfire fore AP`): "The guns lock
+  onto [AO] Corsair Ketch. The port Large Ballista FIRES at Corsair Ketch! Chance to hit: 95%
+  Direct hit on Corsair Ketch! You hit [AO] Corsair Ketch for 6 points on the stern!"
+- `36-gunnery-scan.png` (Vesselmate, `shipscan AO`): "[AO] Corsair Ketch, a Ship, heading 11 at
+  speed 0, 7.6 rooms off. Armor/structure: fore 0/40 0/20, port 18/50 25/25, starboard 24/50
+  18/25, rear 0/25 0/12. Condition: sinking, holed on 2 sides. Weapons: fore Small Catapult, port
+  Small Ballista, rear Small Ballista, starboard Small Ballista."
+
+The fight, in order (about ten minutes):
+
+1. The Clipper appeared 40 rooms off the bow ("AP Corsair Clipper 40.1 u 259 deg W fore" in
+   `contacts`). `shiplock AP`: "The guns lock onto [AP] Corsair Clipper. The crew scrambles to
+   battle stations!"
+2. `shipsight` lists each weapon's chance or why it cannot fire: "Corsair Clipper is outside the
+   Medium Ballista's 0-10 room band (20.8)." / "The port Large Ballista cannot bear - Corsair
+   Clipper lies off your fore arc." (`shipsight` takes a weapon slot, not a contact.)
+3. Both raiders closed fast and rammed: "[AP] Corsair Clipper attempts to ram you! Timbers crunch
+   and crack as [AP] Corsair Clipper crashes into your ship! The sails are hit for 3 points! The
+   port side is hit for 4 points!" A ram slews the lighter hull about: the Sea Wren's heading went
+   from 230 to 71. Then grapples: "WARNING: Corsair Ketch throws grappling lines across!" "The
+   crew beats off Corsair Ketch's boarders!" Raider fire: "Raider fire from Corsair Ketch splashes
+   wide!" or "The bow is hit for 4 points!"
+4. Hits knock the crew down: "You can't do that while reclining..." until you `stand`.
+5. `shipfire <arc> <contact>` locks and fires every weapon on the arc that bears; "No weapon on
+   the starboard arc can fire at Corsair Ketch now. See 'shipsight'." when none does. Each weapon
+   reloads in 17 seconds: "The port Large Ballista is reloaded and ready." Each shot spends a
+   round (the port ballista went from 30 to 25 rounds). Hits land on the side facing you; a hit
+   through the armor can damage a weapon mounted there: "You damage the rear Small Ballista
+   aboard Corsair Ketch!"
+6. `shipram` (speed 6 or more, locked): "The crew braces to ram [AO] Corsair Ketch!" In shallow
+   water at battle stations she would not go on: "The crew keeps her from running aground." "The
+   crew stands down from ramming: she has lost way."
+7. The raiders' rams holed their own bows, and our stern hits holed the Ketch's rear: two holed
+   sides set her sinking (an unowned hull takes 17-25 minutes to go down: time to board and
+   plunder). The Clipper, holed at the bow only, lay dead in the water.
+8. `shiplock off`: "The guns come off their target; the crew stands down in 180 seconds."
+
+Our damage: armor fore 29/63, port 65/79, starboard 53/79, rear 31/39 (structure untouched),
+sails 89/110, rudder 18/20.
+
+Tips: at battle stations a hull keeps off water too shallow for her draft and no harbor admits
+her; fight in deep water. Keep the target on a beam: the Large Ballistas on port and starboard
+did the work. Stand up after every knock-down before firing.
+
+Defects found here and fixed: a holed raider dead in the water read "sound" (condition now ranks
+any holed hull crippled).
