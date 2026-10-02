@@ -608,5 +608,8 @@ void Test_vessel_rename_costs_a_tenth_of_her_value(CuTest *tc)
   CuAssertStrEquals(tc, "Gray Petrel", ship->name);
   CuAssertIntEquals(tc, 600, GET_GOLD(&harbor.captain));
 
+  /* Christening wrote the bridge's name and description. */
+  free(harbor.rooms[2].name);
+  free(harbor.rooms[2].description);
   loss_harbor_end(&harbor);
 }

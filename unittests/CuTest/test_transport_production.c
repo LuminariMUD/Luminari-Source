@@ -7,6 +7,7 @@
 #include "../../src/core/comm.h"
 #include "../../src/core/db.h"
 #include "../../src/core/handler.h"
+#include "../../src/events/mud_event.h"
 #include "../../src/movement/graph.h"
 #include "../../src/core/perfmon.h"
 #include "../../src/net/protocol.h"
@@ -553,6 +554,9 @@ void Test_transport_go_carries_the_rider_with_the_vehicle(CuTest *tc)
   unregister_player_mount(&rider);
   char_from_room(&rider);
   vehicle_destroy(vehicle);
+  /* Entering a dynamic wilderness room scheduled its occupancy check. */
+  clear_room_event_list(&rooms[0]);
+  clear_room_event_list(&rooms[1]);
   world = saved_world;
   top_of_world = saved_top_of_world;
   zone_table = saved_zone_table;
