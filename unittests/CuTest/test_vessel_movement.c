@@ -769,6 +769,61 @@ void Test_vessel_autopilot_arrives_in_a_port_she_owes_a_fee(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_pilot_announces_arrivals_by_name(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  struct char_data pilot;
+  struct index_data pilot_index;
+  struct index_data *saved_mob_index;
+  struct waypoint wp;
+  char output[MAX_STRING_LENGTH];
+  mob_rnum saved_top_of_mobt;
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  ship->num_rooms = 1;
+  ship->room_vnums[0] = MOVEMENT_ROOM_VNUM;
+  saved_mob_index = mob_index;
+  saved_top_of_mobt = top_of_mobt;
+  memset(&pilot_index, 0, sizeof(pilot_index));
+  pilot_index.vnum = 70001;
+  mob_index = &pilot_index;
+  top_of_mobt = 0;
+  clear_char(&pilot);
+  SET_BIT_AR(MOB_FLAGS(&pilot), MOB_ISNPC);
+  pilot.nr = 0;
+  pilot.player.short_descr = CuMutableString("the harbor ferrymaster");
+  IN_ROOM(&pilot) = 0;
+  fixture.room.people = &fixture.helm;
+  fixture.helm.next_in_room = &pilot;
+  CuAssertPtrNotNull(tc, autopilot_init(ship));
+  ship->autopilot->pilot_mob_vnum = 70001;
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+
+  /* Everyone aboard hears the pilot, named as a sentence begins, once. */
+  memset(&wp, 0, sizeof(wp));
+  strlcpy(wp.name, "buoy", sizeof(wp.name));
+  pilot_announce_waypoint(ship, &wp);
+  CuAssertStrEquals(tc, "The harbor ferrymaster announces, 'Arriving at buoy!'\r\n", output);
+
+  fixture.helm.desc = NULL;
+  fixture.helm.next_in_room = NULL;
+  fixture.room.people = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  mob_index = saved_mob_index;
+  top_of_mobt = saved_top_of_mobt;
+  movement_end(&fixture);
+}
+
 void Test_vessel_target_speed_is_the_order_she_answers(CuTest *tc)
 {
   struct movement_fixture fixture;

@@ -2387,7 +2387,7 @@ void process_traveling_vessel(struct greyhawk_ship_data *ship)
     autopilot_pause(ship);
     ship->speed = 0;
     ship->setspeed = 0;
-    send_to_ship(ship, "Autopilot pauses: the route to '%s' is not traversable from here.\r\n",
+    send_to_ship(ship, "Autopilot pauses: the route to '%s' is not traversable from here.",
                  wp->name);
     if (is_valid_ship(ship) && !vessel_db_save_runtime(ship))
     {
@@ -2428,7 +2428,7 @@ bool autopilot_tick_one(struct greyhawk_ship_data *ship)
       if (get_pilot_from_ship(ship) != NULL)
       {
         autopilot_start(ship, ap->current_route);
-        send_to_ship(ship, "The pilot engages autopilot.\r\n");
+        send_to_ship(ship, "The pilot engages autopilot.");
         return true;
       }
     }
@@ -2733,7 +2733,7 @@ ACMD(do_autopilot)
         return;
       }
       send_to_char(ch, "Autopilot resumed.\r\n");
-      send_to_ship(ship, "The vessel's autopilot has been resumed.\r\n");
+      send_to_ship(ship, "The vessel's autopilot has been resumed.");
     }
     else
     {
@@ -2744,7 +2744,7 @@ ACMD(do_autopilot)
         return;
       }
       send_to_char(ch, "Autopilot engaged on route '%s'.\r\n", ap->current_route->name);
-      send_to_ship(ship, "The vessel's autopilot has been engaged.\r\n");
+      send_to_ship(ship, "The vessel's autopilot has been engaged.");
     }
     return;
   }
@@ -2764,7 +2764,7 @@ ACMD(do_autopilot)
       return;
     }
     send_to_char(ch, "Autopilot disengaged.\r\n");
-    send_to_ship(ship, "The vessel's autopilot has been disengaged.\r\n");
+    send_to_ship(ship, "The vessel's autopilot has been disengaged.");
     return;
   }
 
@@ -2783,7 +2783,7 @@ ACMD(do_autopilot)
       return;
     }
     send_to_char(ch, "Autopilot paused.\r\n");
-    send_to_ship(ship, "The vessel's autopilot has been paused.\r\n");
+    send_to_ship(ship, "The vessel's autopilot has been paused.");
     return;
   }
 
@@ -3499,6 +3499,7 @@ void pilot_announce_waypoint(struct greyhawk_ship_data *ship, struct waypoint *w
   if (pilot != NULL)
   {
     snprintf(pilot_name, sizeof(pilot_name), "%s", GET_NAME(pilot));
+    CAP(pilot_name);
   }
   else
   {
@@ -3508,11 +3509,11 @@ void pilot_announce_waypoint(struct greyhawk_ship_data *ship, struct waypoint *w
   /* Announce to all aboard */
   if (wp->name[0] != '\0')
   {
-    send_to_ship(ship, "%s announces, 'Arriving at %s!'\r\n", pilot_name, wp->name);
+    send_to_ship(ship, "%s announces, 'Arriving at %s!'", pilot_name, wp->name);
   }
   else
   {
-    send_to_ship(ship, "%s announces, 'Arriving at waypoint!'\r\n", pilot_name);
+    send_to_ship(ship, "%s announces, 'Arriving at waypoint!'", pilot_name);
   }
 }
 
@@ -3531,6 +3532,7 @@ ACMD(do_assignpilot)
   struct char_data *npc;
   struct autopilot_state_snapshot snapshot;
   char arg[MAX_INPUT_LENGTH];
+  char pilot_name[128];
   bool engaged;
   int num;
 
@@ -3614,11 +3616,13 @@ ACMD(do_assignpilot)
   }
 
   send_to_char(ch, "You assign %s as the vessel's pilot.\r\n", GET_NAME(npc));
-  send_to_ship(ship, "%s has been assigned as the vessel's pilot.\r\n", GET_NAME(npc));
+  snprintf(pilot_name, sizeof(pilot_name), "%s", GET_NAME(npc));
+  CAP(pilot_name);
+  send_to_ship(ship, "%s has been assigned as the vessel's pilot.", pilot_name);
   if (engaged)
   {
-    send_to_char(ch, "%s takes the helm and engages autopilot.\r\n", GET_NAME(npc));
-    send_to_ship(ship, "The vessel's autopilot has been engaged.\r\n");
+    send_to_char(ch, "%s takes the helm and engages autopilot.\r\n", pilot_name);
+    send_to_ship(ship, "The vessel's autopilot has been engaged.");
   }
 }
 
@@ -3700,14 +3704,15 @@ ACMD(do_unassignpilot)
   }
 
   send_to_char(ch, "You relieve %s of pilot duties.\r\n", pilot_name);
-  send_to_ship(ship, "%s has been relieved of pilot duties.\r\n", pilot_name);
+  CAP(pilot_name);
+  send_to_ship(ship, "%s has been relieved of pilot duties.", pilot_name);
   if (stopped)
   {
     if (snapshot.current_route != NULL)
     {
       route_destroy(snapshot.current_route);
     }
-    send_to_ship(ship, "The vessel's autopilot has been disengaged.\r\n");
+    send_to_ship(ship, "The vessel's autopilot has been disengaged.");
   }
 }
 
@@ -4394,7 +4399,7 @@ ACMD(do_setschedule)
   {
     send_to_char(ch, "Passenger fare: free.\r\n");
   }
-  send_to_ship(ship, "A departure schedule has been set for this vessel.\r\n");
+  send_to_ship(ship, "A departure schedule has been set for this vessel.");
 }
 
 /**
@@ -4433,7 +4438,7 @@ ACMD(do_clearschedule)
   }
 
   send_to_char(ch, "Vessel schedule has been cleared.\r\n");
-  send_to_ship(ship, "The departure schedule for this vessel has been cancelled.\r\n");
+  send_to_ship(ship, "The departure schedule for this vessel has been cancelled.");
 }
 
 /**
