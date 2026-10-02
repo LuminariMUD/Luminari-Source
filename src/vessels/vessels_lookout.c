@@ -28,14 +28,6 @@ struct vessel_lookout_direction
   int delta_y;
 };
 
-struct vessel_lookout_contact
-{
-  int shipnum;
-  double range;
-  int bearing;
-  int delta_z;
-};
-
 static const struct vessel_lookout_direction vessel_lookout_directions[] = {
     {"North", 0, 1},  {"Northeast", 1, 1},   {"East", 1, 0},  {"Southeast", 1, -1},
     {"South", 0, -1}, {"Southwest", -1, -1}, {"West", -1, 0}, {"Northwest", -1, 1}};
@@ -211,66 +203,11 @@ static void vessel_lookout_render_direction(struct char_data *ch, int center_x, 
                vessel_lookout_sector_name(bands[band_count - 1].sector_type), visibility);
 }
 
-static int vessel_lookout_compare_contacts(const void *first, const void *second)
-{
-  const struct vessel_lookout_contact *first_contact;
-  const struct vessel_lookout_contact *second_contact;
-
-  first_contact = first;
-  second_contact = second;
-  if (first_contact->range < second_contact->range)
-  {
-    return -1;
-  }
-  if (first_contact->range > second_contact->range)
-  {
-    return 1;
-  }
-  return first_contact->shipnum - second_contact->shipnum;
-}
-
-static int vessel_lookout_collect_contacts(const struct greyhawk_ship_data *ship, int visibility,
-                                           struct vessel_lookout_contact *contacts)
-{
-  const struct greyhawk_ship_data *other;
-  double range;
-  int ship_z;
-  int count;
-  int i;
-
-  ship_z = vessel_autopilot_grid_coordinate(ship->z);
-  count = 0;
-  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
-  {
-    other = &greyhawk_ships[i];
-    if (other == ship || !is_valid_ship(other))
-    {
-      continue;
-    }
-
-    range = greyhawk_range(ship->x, ship->y, ship->z, other->x, other->y, other->z);
-    if (range > visibility)
-    {
-      continue;
-    }
-
-    contacts[count].shipnum = i;
-    contacts[count].range = range;
-    contacts[count].bearing = greyhawk_bearing(ship->x, ship->y, other->x, other->y);
-    contacts[count].delta_z = vessel_autopilot_grid_coordinate(other->z) - ship_z;
-    count++;
-  }
-
-  if (count > 1)
-  {
-    qsort(contacts, count, sizeof(*contacts), vessel_lookout_compare_contacts);
-  }
-  return count;
-}
-
+/* The nearest of the ship's contacts (vessel_collect_contacts()), as CONTACTS
+ * shows them, with each one's height above or below her. */
 static void vessel_lookout_render_contacts(struct char_data *ch,
-                                           const struct vessel_lookout_contact *contacts,
-                                           int contact_count)
+                                           const struct greyhawk_ship_data *ship,
+                                           const struct vessel_contact *contacts, int contact_count)
 {
   const struct greyhawk_ship_data *contact_ship;
   const char *name;
@@ -293,7 +230,8 @@ static void vessel_lookout_render_contacts(struct char_data *ch,
     send_to_char(ch, "  [%s] %-24.24s %-9s %5.1fu %s (%d deg), dz %+d\r\n", contact_ship->id, name,
                  vessel_status_name(vessel_status(contact_ship)), contacts[i].range,
                  vessel_lookout_compass_direction(contacts[i].bearing), contacts[i].bearing,
-                 contacts[i].delta_z);
+                 vessel_autopilot_grid_coordinate(contact_ship->z) -
+                     vessel_autopilot_grid_coordinate(ship->z));
     if (vessel_format_appearance(appearance, sizeof(appearance), contact_ship))
     {
       send_to_char(ch, "       %s\r\n", appearance);
@@ -308,7 +246,7 @@ static void vessel_lookout_render_contacts(struct char_data *ch,
 
 ACMD(do_look_outside)
 {
-  struct vessel_lookout_contact contacts[GREYHAWK_ACTIVE_SHIP_CAPACITY];
+  struct vessel_contact contacts[VESSEL_LOOKOUT_CONTACT_LIMIT];
   struct greyhawk_ship_data *ship;
   int ship_x;
   int ship_y;
@@ -343,7 +281,7 @@ ACMD(do_look_outside)
   depth_units = MAX(0, wild_waterline - elevation);
   weather = get_weather(ship_x, ship_y);
   visibility = vessel_sight_range(ship);
-  contact_count = vessel_lookout_collect_contacts(ship, visibility, contacts);
+  contact_count = vessel_collect_contacts(ship, contacts, VESSEL_LOOKOUT_CONTACT_LIMIT);
 
   send_to_char(ch, "\r\nLOOKOUT VIEW FROM %s\r\n", ship->name);
   if (vessel_format_appearance(appearance, sizeof(appearance), ship))
@@ -369,5 +307,5 @@ ACMD(do_look_outside)
   {
     vessel_lookout_render_direction(ch, ship_x, ship_y, visibility, i);
   }
-  vessel_lookout_render_contacts(ch, contacts, contact_count);
+  vessel_lookout_render_contacts(ch, ship, contacts, contact_count);
 }
