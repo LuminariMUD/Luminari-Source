@@ -2552,7 +2552,7 @@ static struct waypoint_node *autopilot_find_waypoint(struct char_data *ch, const
 
   for (node = waypoint_list; node != NULL; node = node->next)
   {
-    if (str_cmp(node->data.name, name))
+    if (str_cmp(node->data.name, name) != 0)
     {
       continue;
     }
@@ -2578,7 +2578,7 @@ static struct route_node *autopilot_find_route(struct char_data *ch, const char 
 
   for (node = route_list; node != NULL; node = node->next)
   {
-    if (str_cmp(node->name, name))
+    if (str_cmp(node->name, name) != 0)
     {
       continue;
     }
