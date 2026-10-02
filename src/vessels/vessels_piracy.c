@@ -1090,7 +1090,14 @@ ACMD(do_bounty)
   bounty = vessel_get_bounty(target);
   if (bounty <= 0)
   {
-    send_to_char(ch, "%s carries no price.\r\n", *arg ? CAP(arg) : "You");
+    if (*arg)
+    {
+      send_to_char(ch, "%s carries no price.\r\n", CAP(arg));
+    }
+    else
+    {
+      send_to_char(ch, "You carry no price.\r\n");
+    }
     return;
   }
 
