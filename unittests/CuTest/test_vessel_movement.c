@@ -780,6 +780,44 @@ void Test_vessel_target_speed_is_the_order_she_answers(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_disembark_under_way_tells_a_passenger_to_wait(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  ship->speed = 6.0;
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+
+  /* A passenger cannot stop her, so is told to wait. */
+  strlcpy(ship->owner, "Corr", sizeof(ship->owner));
+  do_greyhawk_disembark(&fixture.helm, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "You can't disembark while the vessel is moving!") != NULL);
+  CuAssertTrue(tc, strstr(output, "Wait until she stops.") != NULL);
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.helm));
+
+  /* Her captain at the helm can. */
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  strlcpy(ship->owner, "Mara", sizeof(ship->owner));
+  do_greyhawk_disembark(&fixture.helm, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Bring the vessel to a stop first.") != NULL);
+
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
 void Test_vessel_paused_autopilot_holds_and_a_finished_route_stops(CuTest *tc)
 {
   struct movement_fixture fixture;

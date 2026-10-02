@@ -2326,7 +2326,9 @@ ACMD(do_greyhawk_disembark)
   if (greyhawk_ships[shipnum].speed > 0)
   {
     send_to_char(ch, "You can't disembark while the vessel is moving!\r\n");
-    send_to_char(ch, "Bring the vessel to a stop first.\r\n");
+    send_to_char(ch, is_pilot(ch, &greyhawk_ships[shipnum])
+                         ? "Bring the vessel to a stop first.\r\n"
+                         : "Wait until she stops.\r\n");
     return;
   }
 
