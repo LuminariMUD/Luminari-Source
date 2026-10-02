@@ -431,7 +431,8 @@ The autopilot sails a route of waypoints for you. Route commands work on the bri
 
 1. `setwaypoint <name>` marks her present position: "Waypoint 'wren_home' created at position
    (-66.0, 92.0, 0.0)." Names are letters, numbers, `_` and `-`. `listwaypoints` lists every
-   waypoint in the world; any captain may use any of them. `delwaypoint <name>` removes one of yours.
+   waypoint in the world; any captain may use any of them. `delwaypoint <name>` removes one of
+   yours.
 2. `createroute <name>` starts a route ("Route 'wren_run' created (ID: 6).") and
    `addtoroute <route> <waypoint>` appends a waypoint ("Waypoint 'harbor_channel_turn' added to
    route 'wren_run' at position 1."); up to 20 a route. `listroutes` lists every route with its
