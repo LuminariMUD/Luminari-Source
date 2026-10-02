@@ -2627,6 +2627,148 @@ production deploy of S9's world-data notes and S10's code, the Open player-data 
 beta gates, GitLab work items #10 and #11, and closing these study documents
 ([status in vessels-ships.md](vessels-ships.md#status)).
 
+### Phase 11 (S11) progress
+
+In review (2026-10-02). Branch `feat/vessels-s11` from master `88495e08a` (the S10 merge and its
+close-out), where the annotated tag `vessels-s11-base` stands, so
+`git log vessels-s11-base..vessels-s11` lists only S11. The first commit after `264469692` (which
+added S11 and S12) is this plan. Hand-off as in the routine: tag `vessels-s11` and a merge request
+that says `Closes #10`; review fixes go on top. Scope: GitLab work item #10, `cargobuy` and
+`cargosell` moving gold without a checked save.
+
+The defect, traced in `src/vessels/vessels_trade.c`: `do_cargobuy()` debits the gold in memory
+(`award_gold()`), then `port_adjust_supply()` and `vessel_db_save_cargo()` write the port's
+supply and the manifest, each unchecked and outside any transaction; `do_cargosell()` does the
+same with the revenue. No player save follows, so a crash before the captain's next routine save
+returns a buyer's gold with the cargo recorded aboard, or loses a seller's gold with the cargo
+gone; and a failed manifest write leaves sold cargo recorded aboard, to be sold again after a
+reboot.
+
+Items:
+
+1. One helper in `vessels_trade.c` records a trade: the port's supply and the ship's manifest in
+   one transaction, rolled back if either write fails. It replaces `port_adjust_supply()`, whose
+   only callers are these two commands and which re-read the supply the caller had just read; its
+   UPDATE becomes a `PREPARED_STMT`, so `vessels_trade.c`'s formatted-SQL baseline drops from 7
+   to 6.
+2. `cargobuy` and `cargosell` take the shape `a703572e3` gave freight acceptance: change the hold
+   in memory and record the trade; on a refused record, put the hold back and move no gold;
+   after the commit, move the gold and save it with `save_char_checked()`; if that save fails,
+   restore the gold and the hold and record the pre-trade supply and manifest again. The crew's
+   sale experience is earned only once the sale is saved.
+3. DB-backed tests in `test_vessel_rewards.c`, beside `Test_vessel_freight_bond_pays_for_the_goods`:
+   for each command a refused manifest write and a failed character save leave the gold, the
+   hold, the manifest rows and the port's supply as they were; a saved trade moves all four. The
+   contraband test's trades now save the captain, so it gets the scratch player files the freight
+   test uses.
+4. `VESSEL_SYSTEM.md`'s trade paragraph says how a trade is recorded, as the freight paragraph
+   does.
+
+Interpretations decided while planning S11:
+
+- The compensation after a failed save records the pre-trade state with the same helper, so it
+  is as atomic as the trade; if it fails too, a `SYSERR` is logged, as freight acceptance does.
+- The hold is restored from a copy of the one lot the trade touched, which puts back both the
+  quantity and a lot emptied by a sale.
+- No database (or an NPC, whose save always fails) means no trade, as freight acceptance and
+  passenger fares already refuse; MySQL is required to run the server.
+- The refusal messages name what did not happen: "The harbor office cannot record that trade;
+  no gold changed hands." and "Your gold could not be recorded, so the trade is undone."
+
+Ablation (planning): dropped help changes (usage, prices and rules are unchanged; only the two
+failure messages are new), new schema SQL with its rollback and verifier (no table changes), the
+vessel help verifier (no help change), and the 19 live gates that never run `cargobuy` or
+`cargosell` (the changed code is reachable only through those two commands). Simplified: one
+helper records both the trade and its undo, instead of separate undo writes; a lot copy restores
+the hold instead of moving `contract_unload()` out of `vessels_contracts.c` for reuse. Kept: the
+DB-backed failure tests for both commands, the economy gate (it buys and sells contraband with a
+real logged-in captain, whose saves go to disk), `make test-all` with the database cases, and the
+local CI matrix.
+
+Verification: `make test-all` with the database cases on (the `luminari-vessels-testdb` container,
+environment as in S9's `testenv.sh`); `scripts/ci/check_sql_interpolation.py`; the economy gate
+`test_vessel_economy_in_game.sh` in the namespace harness on a reload of the development dump;
+and `scripts/ci/local/run.py --base gitlab/master`.
+
+Progress log (2026-10-02, kept current as the work goes):
+
+- Plan committed (`3299aaa25`).
+- The fix, `c2888ec8f`: `trade_record()` replaces `port_adjust_supply()`; both commands record
+  the trade before the gold moves and save the gold checked, as planned; the crew's sale
+  experience follows the save; `VESSEL_SYSTEM.md`'s economy paragraph says how a trade is
+  recorded; `vessels_trade.c`'s interpolation baseline is 6. The new
+  `Test_vessel_cargo_trades_record_the_gold_with_the_goods` covers both commands' refused write
+  and failed save (a whole-hold sale's emptied lot included) and a saved trade; the contraband
+  test got the scratch player files.
+- Notes for whoever continues: a CHECK constraint cannot be added over rows that break it, so
+  the sale's refused write uses `CHECK (item_count >= 10)` over the bought lot of 10;
+  `check_sql_interpolation.py --update` also lowers other files' counts and re-sorts the baseline,
+  so only S11's line was edited by hand. S10's batch economy job (`y20-economy.sh`) relied on
+  earlier gates' boots for the Phase 19-21 columns: alone after a dump reload it stops on
+  `armor_scale`, so S11's job applies `vessels_phase19_schema.sql` through
+  `vessels_phase23_schema.sql` first.
+
+Ablation (building): the third copy of the trade tests' temporary tables became one fixture
+helper that the freight and contraband tests use too. `save_char_checked()` can still fail after
+its rename only when the character is missing from the player index, which a logged-in player
+is not; freight acceptance accepts the same window, so S11 adds nothing for it. No help, schema or
+player-guide change was needed.
+
+Verification (2026-10-02, on `c2888ec8f`):
+
+- `make test-all` with the database cases (the `luminari-vessels-testdb` container, S9's
+  `testenv.sh`): 1,995 CuTest cases OK (seed 1; the new test's trades are in the log), the
+  protocol harness's 32, and the Python suites (542, 37 skipped).
+- `scripts/ci/check_sql_interpolation.py`: within baseline, 317 sites.
+- The economy gate in the namespace harness (`/tmp/claude-1000/vs4`, jobs `s11b2-reload` and
+  `s11c-economy`) on a fresh reload of the development dump: passed in 208 s, buying and selling
+  contraband with a real logged-in captain whose saves go to disk.
+- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`): all 33 jobs
+  passed in 487 s.
+
+Cleanup: the harness is stopped (its disposable database stops with its namespace); no
+characters, pfiles or scratch files were left in the worktree.
+
+Hand-off: tag `vessels-s11` and MR !17 from `feat/vessels-s11`, which says `Closes #10` (range
+`vessels-s11-base..vessels-s11`). Review fixes go on top, one commit each.
+
+Review round 1 (2026-10-02, range `vessels-s11..feat/vessels-s11`): one [P2] finding, fixed.
+
+- Failed compensation reported as undone (`a1f08bc7b`). When the save failed and the undo could
+  not be recorded either, both commands still restored the gold and the hold in memory and said
+  "the trade is undone" while the database kept the trade. This was reproduced on `50ca77f2d` by
+  a CHECK constraint added with `check_constraint_checks` off, which refuses only the supply the
+  undo writes back. `trade_settle()` now holds the gold, the save and the undo for both commands
+  and reports "undone" only after the undo commits. If the undo fails too, the trade stands as
+  recorded, in memory too, and the persistence service's minute save (`save_char_checked()` for
+  every connected player, a failed save retried after a second) stores the gold. This replaces
+  the planning interpretation that a failed undo only logs a `SYSERR`.
+- Ablation: the reviewer's persisted undo intent was not added here. A record kept only in the
+  database cannot tell recovery whether a later save carried the gold, so it would move the
+  crash window to its mirror case. Closing that window needs a settlement table, a marker in the
+  player file and a login reconcile. The owner asked for that as a new work item:
+  [#12](https://gitlab.com/max757/Luminari-Source/-/work_items/12), which also names freight
+  acceptance and dock-fee payment, which share the shape. `PLR_CRASH` was dropped from the fix:
+  the minute save already covers every connected player. A block on further trades was dropped too:
+  the next trade's own checked save carries the pending gold.
+- Verification: the extended `Test_vessel_cargo_trades_record_the_gold_with_the_goods` (a sale
+  and a purchase whose undo is refused: the message, no "undone", and the gold, hold, manifest
+  and supply of the standing trade) failed on `50ca77f2d` and passes now. `make test-all` with
+  the database cases: 1,995 CuTest cases OK, the protocol harness's 32, and the Python suites
+  (542, 37 skipped). `check_sql_interpolation.py`: within baseline. The local CI matrix
+  (`run.py --base gitlab/master`): all 33 jobs passed. The economy gate was not rerun: the
+  success path moved into the helper unchanged, and the DB-backed test drives both commands with
+  real saves.
+
+After the merge: no help to sync (S11 changes none); the fix goes with the next production deploy;
+move this section to the history, set the status row, and branch S12 from the merge
+(`feat/vessels-s12`, tag `vessels-s12-base`).
+
+MR !17 merged on 2026-10-02 as merge commit `f18208549` (branch kept); its review's one finding is
+fixed above, and the merge closed work item #10. S11 changed no help, so there was nothing to
+sync. The fix goes with the next production deploy. S12 is next, on `feat/vessels-s12` from the
+merge ([status in vessels-ships.md](vessels-ships.md#status)).
+
 ## Original estimate
 
 Working days of focused implementation per step, each including its tests, help in both places,
