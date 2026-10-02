@@ -195,6 +195,31 @@ static void rewards_query_value(CuTest *tc, MYSQL *connection, const char *query
   mysql_free_result(result);
 }
 
+/* The tables a cargo trade reads and writes, shadowing any real ones. */
+static bool rewards_trade_tables(MYSQL *connection)
+{
+  return mysql_query(connection, "CREATE TEMPORARY TABLE trade_commodities ("
+                                 "commodity_id INT AUTO_INCREMENT PRIMARY KEY, "
+                                 "name VARCHAR(63) NOT NULL UNIQUE, "
+                                 "base_price INT NOT NULL DEFAULT 10, "
+                                 "unit_weight INT NOT NULL DEFAULT 10) ENGINE=InnoDB") == 0 &&
+         mysql_query(connection, "CREATE TEMPORARY TABLE port_commodities ("
+                                 "port_vnum INT NOT NULL, commodity_id INT NOT NULL, "
+                                 "supply INT NOT NULL DEFAULT 100, "
+                                 "PRIMARY KEY (port_vnum, commodity_id)) ENGINE=InnoDB") == 0 &&
+         mysql_query(connection, "CREATE TEMPORARY TABLE ship_cargo_manifest ("
+                                 "ship_id INT NOT NULL, cargo_room INT NOT NULL, "
+                                 "item_vnum INT NOT NULL, item_name VARCHAR(128) NOT NULL, "
+                                 "item_count INT NOT NULL, item_weight INT NOT NULL) "
+                                 "ENGINE=InnoDB") == 0 &&
+         mysql_query(connection, "CREATE TEMPORARY TABLE vessel_bounties ("
+                                 "player_name VARCHAR(64) PRIMARY KEY, "
+                                 "bounty INT NOT NULL DEFAULT 0, "
+                                 "marque_until INT NOT NULL DEFAULT 0, "
+                                 "last_offense_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP) "
+                                 "ENGINE=InnoDB") == 0;
+}
+
 /* The tables a sinking's settlement writes, shadowing any real ones. */
 static bool rewards_prize_tables(MYSQL *connection)
 {
@@ -596,26 +621,7 @@ void Test_vessel_freight_bond_pays_for_the_goods(CuTest *tc)
     CuFail(tc, "could not connect to the explicitly configured test database");
     return;
   }
-  if (mysql_query(connection, "CREATE TEMPORARY TABLE trade_commodities ("
-                              "commodity_id INT AUTO_INCREMENT PRIMARY KEY, "
-                              "name VARCHAR(63) NOT NULL UNIQUE, "
-                              "base_price INT NOT NULL DEFAULT 10, "
-                              "unit_weight INT NOT NULL DEFAULT 10) ENGINE=InnoDB") != 0 ||
-      mysql_query(connection, "CREATE TEMPORARY TABLE port_commodities ("
-                              "port_vnum INT NOT NULL, commodity_id INT NOT NULL, "
-                              "supply INT NOT NULL DEFAULT 100, "
-                              "PRIMARY KEY (port_vnum, commodity_id)) ENGINE=InnoDB") != 0 ||
-      mysql_query(connection, "CREATE TEMPORARY TABLE ship_cargo_manifest ("
-                              "ship_id INT NOT NULL, cargo_room INT NOT NULL, "
-                              "item_vnum INT NOT NULL, item_name VARCHAR(128) NOT NULL, "
-                              "item_count INT NOT NULL, item_weight INT NOT NULL) "
-                              "ENGINE=InnoDB") != 0 ||
-      mysql_query(connection, "CREATE TEMPORARY TABLE vessel_bounties ("
-                              "player_name VARCHAR(64) PRIMARY KEY, "
-                              "bounty INT NOT NULL DEFAULT 0, "
-                              "marque_until INT NOT NULL DEFAULT 0, "
-                              "last_offense_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP) "
-                              "ENGINE=InnoDB") != 0 ||
+  if (!rewards_trade_tables(connection) ||
       mysql_query(connection, "CREATE TEMPORARY TABLE freight_contracts ("
                               "contract_id INT AUTO_INCREMENT PRIMARY KEY, "
                               "origin_vnum INT NOT NULL, destination_vnum INT NOT NULL, "
@@ -713,9 +719,149 @@ void Test_vessel_freight_bond_pays_for_the_goods(CuTest *tc)
   mysql_close(connection);
 }
 
+/* The captain's gold, the units in the hold's first lot, and what the
+ * manifest and the port's stock record. */
+static void rewards_assert_trade(CuTest *tc, MYSQL *connection, struct rewards_berth *berth,
+                                 int gold, int units, int manifest, int supply)
+{
+  char value[64];
+
+  CuAssertIntEquals(tc, gold, GET_GOLD(&berth->captain));
+  CuAssertIntEquals(tc, units, greyhawk_ships[REWARDS_TARGET].cargo[0].quantity);
+  rewards_query_value(tc, connection,
+                      "SELECT COALESCE(SUM(item_count), 0) FROM ship_cargo_manifest", value,
+                      sizeof(value));
+  CuAssertIntEquals(tc, manifest, (int)strtol(value, NULL, 10));
+  rewards_query_value(tc, connection, "SELECT supply FROM port_commodities WHERE port_vnum = 100",
+                      value, sizeof(value));
+  CuAssertIntEquals(tc, supply, (int)strtol(value, NULL, 10));
+}
+
+/* A cargo trade and its gold are recorded together: a refused manifest
+ * write or a failed save leaves the gold, the hold, the manifest and the
+ * port's stock as they were, so no crash or failed write gives free cargo
+ * or cargo sold twice. */
+void Test_vessel_cargo_trades_record_the_gold_with_the_goods(CuTest *tc)
+{
+  struct rewards_berth berth;
+  struct rewards_pfiles pfiles;
+  struct greyhawk_ship_data *ship;
+  const char *output;
+  MYSQL *saved_conn;
+  MYSQL *connection;
+  bool saved_mysql_available;
+  char salt[16];
+  char query[256];
+  char expected[128];
+  long long cost;
+  long long revenue;
+  int salt_id;
+  int base_price;
+  int gold;
+
+  if (!rewards_database_enabled())
+  {
+    return;
+  }
+  connection = rewards_open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  if (!rewards_trade_tables(connection))
+  {
+    mysql_close(connection);
+    CuFail(tc, "could not create the isolated trade fixture");
+    return;
+  }
+  saved_conn = conn;
+  saved_mysql_available = mysql_available;
+  conn = connection;
+  mysql_available = TRUE;
+  vessel_trade_ensure_schema();
+  rewards_query_value(tc, connection,
+                      "SELECT commodity_id FROM trade_commodities WHERE name = 'salt'", salt,
+                      sizeof(salt));
+  salt_id = (int)strtol(salt, NULL, 10);
+  base_price = vessel_commodity_base_price(salt_id);
+  snprintf(query, sizeof(query),
+           "INSERT INTO port_commodities (port_vnum, commodity_id, supply) VALUES (100, %d, 100)",
+           salt_id);
+  CuAssertIntEquals(tc, 0, mysql_query(connection, query));
+
+  ship = rewards_berth_begin(tc, &berth, VESSEL_SHIP);
+  GET_GOLD(&berth.captain) = 1000;
+
+  /* The cargo cannot be written: nothing is loaded and no gold is taken. */
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "ALTER TABLE ship_cargo_manifest ADD CONSTRAINT "
+                                            "trade_refused CHECK (item_count < 0)"));
+  output = rewards_berth_command(&berth, do_cargobuy, "salt 10");
+  CuAssertTrue(tc, strstr(output, "cannot record that trade; no gold changed hands") != NULL);
+  rewards_assert_trade(tc, connection, &berth, 1000, 0, 0, 100);
+  CuAssertIntEquals(tc, 0, ship->cargo[0].commodity_id);
+  CuAssertIntEquals(
+      tc, 0,
+      mysql_query(connection, "ALTER TABLE ship_cargo_manifest DROP CONSTRAINT trade_refused"));
+
+  /* The captain cannot be saved: the purchase is undone. */
+  GET_PFILEPOS(&berth.captain) = -1;
+  output = rewards_berth_command(&berth, do_cargobuy, "salt 10");
+  CuAssertTrue(tc,
+               strstr(output, "Your gold could not be recorded, so the trade is undone.") != NULL);
+  rewards_assert_trade(tc, connection, &berth, 1000, 0, 0, 100);
+  CuAssertIntEquals(tc, 0, ship->cargo[0].commodity_id);
+
+  /* Saved, the purchase moves the gold, the hold, the manifest and the
+   * port's stock. */
+  rewards_pfiles_begin(tc, &pfiles, &berth.captain);
+  cost = vessel_trade_buy_cost(base_price, 100, 10);
+  gold = 1000 - (int)cost;
+  output = rewards_berth_command(&berth, do_cargobuy, "salt 10");
+  snprintf(expected, sizeof(expected), "You load 10 units of salt for %lld gold", cost);
+  CuAssertTrue(tc, strstr(output, expected) != NULL);
+  rewards_assert_trade(tc, connection, &berth, gold, 10, 10, 90);
+
+  /* A sale whose cargo cannot be written keeps the goods and pays nothing:
+   * the manifest refuses a lot of fewer than ten units. */
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "ALTER TABLE ship_cargo_manifest ADD CONSTRAINT "
+                                            "trade_refused CHECK (item_count >= 10)"));
+  output = rewards_berth_command(&berth, do_cargosell, "salt 4");
+  CuAssertTrue(tc, strstr(output, "cannot record that trade; no gold changed hands") != NULL);
+  rewards_assert_trade(tc, connection, &berth, gold, 10, 10, 90);
+  CuAssertIntEquals(
+      tc, 0,
+      mysql_query(connection, "ALTER TABLE ship_cargo_manifest DROP CONSTRAINT trade_refused"));
+
+  /* A sale of the whole hold that cannot be saved puts the goods back. */
+  GET_PFILEPOS(&berth.captain) = -1;
+  output = rewards_berth_command(&berth, do_cargosell, "salt all");
+  CuAssertTrue(tc,
+               strstr(output, "Your gold could not be recorded, so the trade is undone.") != NULL);
+  rewards_assert_trade(tc, connection, &berth, gold, 10, 10, 90);
+  CuAssertIntEquals(tc, salt_id, ship->cargo[0].commodity_id);
+  GET_PFILEPOS(&berth.captain) = 0;
+
+  /* Saved, the sale pays and records what remains. */
+  revenue = vessel_trade_sell_revenue(base_price, 90, 4);
+  output = rewards_berth_command(&berth, do_cargosell, "salt 4");
+  snprintf(expected, sizeof(expected), "You sell 4 units of salt for %lld gold", revenue);
+  CuAssertTrue(tc, strstr(output, expected) != NULL);
+  rewards_assert_trade(tc, connection, &berth, gold + (int)revenue, 6, 6, 94);
+  rewards_pfiles_end(tc, &pfiles, &berth.captain);
+
+  rewards_berth_end(&berth);
+  conn = saved_conn;
+  mysql_available = saved_mysql_available;
+  mysql_close(connection);
+}
+
 void Test_vessel_contraband_is_sold_where_stocked_and_seized_elsewhere(CuTest *tc)
 {
   struct rewards_berth berth;
+  struct rewards_pfiles pfiles;
   struct greyhawk_ship_data *ship;
   const char *output;
   MYSQL *saved_conn;
@@ -736,26 +882,7 @@ void Test_vessel_contraband_is_sold_where_stocked_and_seized_elsewhere(CuTest *t
     CuFail(tc, "could not connect to the explicitly configured test database");
     return;
   }
-  if (mysql_query(connection, "CREATE TEMPORARY TABLE trade_commodities ("
-                              "commodity_id INT AUTO_INCREMENT PRIMARY KEY, "
-                              "name VARCHAR(63) NOT NULL UNIQUE, "
-                              "base_price INT NOT NULL DEFAULT 10, "
-                              "unit_weight INT NOT NULL DEFAULT 10) ENGINE=InnoDB") != 0 ||
-      mysql_query(connection, "CREATE TEMPORARY TABLE port_commodities ("
-                              "port_vnum INT NOT NULL, commodity_id INT NOT NULL, "
-                              "supply INT NOT NULL DEFAULT 100, "
-                              "PRIMARY KEY (port_vnum, commodity_id)) ENGINE=InnoDB") != 0 ||
-      mysql_query(connection, "CREATE TEMPORARY TABLE ship_cargo_manifest ("
-                              "ship_id INT NOT NULL, cargo_room INT NOT NULL, "
-                              "item_vnum INT NOT NULL, item_name VARCHAR(128) NOT NULL, "
-                              "item_count INT NOT NULL, item_weight INT NOT NULL) "
-                              "ENGINE=InnoDB") != 0 ||
-      mysql_query(connection, "CREATE TEMPORARY TABLE vessel_bounties ("
-                              "player_name VARCHAR(64) PRIMARY KEY, "
-                              "bounty INT NOT NULL DEFAULT 0, "
-                              "marque_until INT NOT NULL DEFAULT 0, "
-                              "last_offense_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP) "
-                              "ENGINE=InnoDB") != 0)
+  if (!rewards_trade_tables(connection))
   {
     mysql_close(connection);
     CuFail(tc, "could not create the isolated contraband fixture");
@@ -785,6 +912,7 @@ void Test_vessel_contraband_is_sold_where_stocked_and_seized_elsewhere(CuTest *t
   /* A port that does not stock it will not sell it, and pays 85% of its
    * scarce price for it (190 raised to 292). */
   ship = rewards_berth_begin(tc, &berth, VESSEL_SHIP);
+  rewards_pfiles_begin(tc, &pfiles, &berth.captain);
   output = rewards_berth_command(&berth, do_market, "");
   CuAssertTrue(tc,
                strstr(output, "forbidden tomes        4      -    248  none (contraband)") != NULL);
@@ -856,6 +984,7 @@ void Test_vessel_contraband_is_sold_where_stocked_and_seized_elsewhere(CuTest *t
   CuAssertIntEquals(tc, 0, ship->cargo[0].quantity);
   CuAssertIntEquals(tc, 0, ship->cargo[0].commodity_id);
   CuAssertIntEquals(tc, 3, ship->cargo[1].quantity);
+  rewards_pfiles_end(tc, &pfiles, &berth.captain);
 
   rewards_berth_end(&berth);
   conn = saved_conn;

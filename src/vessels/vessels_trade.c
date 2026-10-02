@@ -1039,27 +1039,45 @@ static int port_supply(int port_vnum, int commodity_id)
 }
 
 /**
- * Shift a port's supply after a trade, clamped to the configured band.
+ * Record a trade: the port's supply of the commodity and the ship's
+ * manifest commit together or not at all. A port with no row for the
+ * commodity (contraband it does not stock) keeps none.
+ *
+ * @return FALSE when nothing was recorded (or there is no database)
  */
-static void port_adjust_supply(int port_vnum, int commodity_id, int delta)
+static bool trade_record(struct greyhawk_ship_data *ship, int port_vnum, int commodity_id,
+                         int supply)
 {
-  char query[MAX_STRING_LENGTH];
-  int supply;
+  PREPARED_STMT *statement;
+  bool recorded;
 
-  if (!mysql_available || conn == NULL || delta == 0)
+  if (!mysql_available || conn == NULL)
   {
-    return;
+    return FALSE;
+  }
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: Could not begin a trade at port %d: %s", port_vnum, mysql_error(conn));
+    return FALSE;
   }
 
-  supply = vessel_trade_adjusted_supply(port_supply(port_vnum, commodity_id), delta);
+  statement = mysql_stmt_create(conn);
+  recorded = statement != NULL &&
+             mysql_stmt_prepare_query(statement, "UPDATE port_commodities SET supply = ? "
+                                                 "WHERE port_vnum = ? AND commodity_id = ?") &&
+             mysql_stmt_bind_param_int(statement, 0, supply) &&
+             mysql_stmt_bind_param_int(statement, 1, port_vnum) &&
+             mysql_stmt_bind_param_int(statement, 2, commodity_id) &&
+             mysql_stmt_execute_prepared(statement);
+  mysql_stmt_cleanup(statement);
 
-  snprintf(query, sizeof(query),
-           "UPDATE port_commodities SET supply = %d WHERE port_vnum = %d AND commodity_id = %d",
-           supply, port_vnum, commodity_id);
-  if (mysql_query(conn, query))
+  if (!recorded || !vessel_db_save_cargo(ship) || mysql_query(conn, "COMMIT"))
   {
-    log("SYSERR: port_adjust_supply failed: %s", mysql_error(conn));
+    log("SYSERR: Could not record a trade by ship %d at port %d", ship->shipnum, port_vnum);
+    mysql_query(conn, "ROLLBACK");
+    return FALSE;
   }
+  return TRUE;
 }
 
 /**
@@ -1489,6 +1507,7 @@ ACMD(do_cargobuy)
   char *end;
   long parsed_quantity;
   long long added_weight;
+  struct cargo_lot saved_lot;
   long long cost;
   int port_vnum;
   int quantity;
@@ -1496,6 +1515,7 @@ ACMD(do_cargobuy)
   int average_price;
   int lot;
   int capacity;
+  int old_gold;
 
   ship = trade_context(ch, &port_vnum);
   if (ship == NULL)
@@ -1563,13 +1583,32 @@ ACMD(do_cargobuy)
     return;
   }
 
-  award_gold(ch, -(int)cost);
+  /* The cargo and the port's stock are recorded before the gold moves, and
+   * put back if the captain's save then fails. Buying drains the port's
+   * stock, nudging its price up. */
+  saved_lot = ship->cargo[lot];
   ship->cargo[lot].commodity_id = def->id;
   ship->cargo[lot].quantity += quantity;
+  if (!trade_record(ship, port_vnum, def->id, vessel_trade_adjusted_supply(supply, -quantity)))
+  {
+    ship->cargo[lot] = saved_lot;
+    send_to_char(ch, "The harbor office cannot record that trade; no gold changed hands.\r\n");
+    return;
+  }
 
-  /* Buying drains the port's stock, nudging its price up */
-  port_adjust_supply(port_vnum, def->id, -quantity);
-  vessel_db_save_cargo(ship);
+  old_gold = GET_GOLD(ch);
+  award_gold(ch, -(int)cost);
+  if (!save_char_checked(ch, 0))
+  {
+    award_set_points(ch, AWARD_GOLD, old_gold);
+    ship->cargo[lot] = saved_lot;
+    if (!trade_record(ship, port_vnum, def->id, supply))
+    {
+      log("SYSERR: Could not undo %s's purchase aboard ship %d", GET_NAME(ch), ship->shipnum);
+    }
+    send_to_char(ch, "Your gold could not be recorded, so the trade is undone.\r\n");
+    return;
+  }
 
   average_price = (int)(cost / quantity);
   send_to_char(ch, "You load %d units of %s for %lld gold (%d average each).\r\n", quantity,
@@ -1613,12 +1652,14 @@ ACMD(do_cargosell)
   char arg2[MAX_INPUT_LENGTH];
   char *end;
   long parsed_quantity;
+  struct cargo_lot saved_lot;
   long long revenue;
   int port_vnum;
   int quantity;
   int supply;
   int average_price;
   int lot;
+  int old_gold;
 
   ship = trade_context(ch, &port_vnum);
   if (ship == NULL)
@@ -1704,17 +1745,35 @@ ACMD(do_cargosell)
     return;
   }
 
+  /* As for a purchase: recorded before the gold moves, and put back if the
+   * save fails. Selling floods the local market, nudging its price down. */
+  saved_lot = ship->cargo[lot];
   ship->cargo[lot].quantity -= quantity;
   if (ship->cargo[lot].quantity == 0)
   {
     ship->cargo[lot].commodity_id = 0;
   }
-  award_gold(ch, (int)revenue);
-  vessel_crew_sale_gain(ship, revenue);
+  if (!trade_record(ship, port_vnum, def->id, vessel_trade_adjusted_supply(supply, quantity)))
+  {
+    ship->cargo[lot] = saved_lot;
+    send_to_char(ch, "The harbor office cannot record that trade; no gold changed hands.\r\n");
+    return;
+  }
 
-  /* Selling floods the local market, nudging its price down */
-  port_adjust_supply(port_vnum, def->id, quantity);
-  vessel_db_save_cargo(ship);
+  old_gold = GET_GOLD(ch);
+  award_gold(ch, (int)revenue);
+  if (!save_char_checked(ch, 0))
+  {
+    award_set_points(ch, AWARD_GOLD, old_gold);
+    ship->cargo[lot] = saved_lot;
+    if (!trade_record(ship, port_vnum, def->id, supply))
+    {
+      log("SYSERR: Could not undo %s's sale aboard ship %d", GET_NAME(ch), ship->shipnum);
+    }
+    send_to_char(ch, "Your gold could not be recorded, so the trade is undone.\r\n");
+    return;
+  }
+  vessel_crew_sale_gain(ship, revenue);
 
   if (HAS_FEAT(ch, FEAT_SEADOG))
   {
