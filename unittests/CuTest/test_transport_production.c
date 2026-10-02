@@ -614,6 +614,49 @@ void Test_transport_enter_takes_the_vehicle_named(CuTest *tc)
   character_list = saved_character_list;
 }
 
+void Test_transport_go_names_the_unified_commands(CuTest *tc)
+{
+  struct room_data field;
+  struct room_data *saved_world;
+  struct char_data walker;
+  struct player_special_data walker_specials;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+  room_rnum saved_top_of_world;
+
+  memset(&field, 0, sizeof(field));
+  field.number = 1000100;
+  field.sector_type = SECT_FIELD;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &field;
+  top_of_world = 0;
+  clear_char(&walker);
+  memset(&walker_specials, 0, sizeof(walker_specials));
+  walker.player_specials = &walker_specials;
+  walker.player.name = CuMutableString("Mara");
+  IN_ROOM(&walker) = 0;
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &walker;
+  walker.desc = &descriptor;
+
+  /* The hints name 'tgo' and 'tenter', not the unrelated 'go' and 'enter'. */
+  do_transport_go(&walker, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Usage: tgo <north|") != NULL);
+  do_transport_go(&walker, "north", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Try 'tenter' to board a transport first.") != NULL);
+
+  walker.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+}
+
 void Test_vehicle_loads_and_unloads_only_at_the_surface(CuTest *tc)
 {
   const int slot = 497;

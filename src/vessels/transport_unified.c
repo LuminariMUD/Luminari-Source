@@ -430,7 +430,7 @@ ACMD(do_transport_go)
   if (!*arg)
   {
     send_to_char(ch, "Go in which direction?\r\n");
-    send_to_char(ch, "Usage: go <north|south|east|west|ne|nw|se|sw>\r\n");
+    send_to_char(ch, "Usage: tgo <north|south|east|west|ne|nw|se|sw>\r\n");
     return;
   }
 
@@ -438,7 +438,7 @@ ACMD(do_transport_go)
   if (!get_character_transport(ch, &td))
   {
     send_to_char(ch, "You need to be in a transport to use this command.\r\n");
-    send_to_char(ch, "Try 'enter' to board a transport first.\r\n");
+    send_to_char(ch, "Try 'tenter' to board a transport first.\r\n");
     return;
   }
 
