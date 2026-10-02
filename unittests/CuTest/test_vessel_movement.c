@@ -29,6 +29,9 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 #define MOVEMENT_ROOM_VNUM 169950
 #define MOVEMENT_MAX_ENTRIES 64
 #define MOVEMENT_WAYPOINT_ID 916001
+/* Player IDs for the helm and another captain. */
+#define MOVEMENT_CAPTAIN_ID 41001
+#define MOVEMENT_RIVAL_ID 41002
 
 struct movement_fixture
 {
@@ -1287,6 +1290,27 @@ static MYSQL *movement_open_test_database(void)
   return connection;
 }
 
+static int movement_query_int(MYSQL *connection, const char *query)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int value;
+
+  if (mysql_query(connection, query))
+  {
+    return -1;
+  }
+  result = mysql_store_result(connection);
+  if (result == NULL)
+  {
+    return -1;
+  }
+  row = mysql_fetch_row(result);
+  value = row != NULL && row[0] != NULL ? (int)strtol(row[0], NULL, 10) : -1;
+  mysql_free_result(result);
+  return value;
+}
+
 void Test_vessel_port_room_is_her_berth(CuTest *tc)
 {
   struct movement_fixture fixture;
@@ -1655,9 +1679,12 @@ void Test_vessel_shared_waypoints_and_routes_in_use_stay(CuTest *tc)
   route_list = &loop;
   schedule.route_id = loop.route_id;
   ship->schedule = &schedule;
+  GET_IDNUM(&fixture.helm) = MOVEMENT_CAPTAIN_ID;
+  buoy.creator_id = MOVEMENT_CAPTAIN_ID;
+  loop.creator_id = MOVEMENT_CAPTAIN_ID;
 
-  /* Any captain may use them, so no captain may pull them out from under
-   * the ship that sails them. */
+  /* Any captain may use them, so not even their creator may pull them out
+   * from under the ship that sails them. */
   do_delwaypoint(&fixture.helm, "buoy", 0, 0);
   CuAssertTrue(tc, strstr(output, "Waypoint 'buoy' is on route 'ferry_loop'") != NULL);
   do_delroute(&fixture.helm, "ferry_loop", 0, 0);
@@ -1666,6 +1693,239 @@ void Test_vessel_shared_waypoints_and_routes_in_use_stay(CuTest *tc)
   ship->schedule = NULL;
   waypoint_list = saved_waypoints;
   route_list = saved_routes;
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
+static void movement_clear_output(struct descriptor_data *descriptor, char *output, size_t size)
+{
+  memset(output, 0, size);
+  descriptor->bufptr = 0;
+  descriptor->bufspace = (int)size - 1;
+}
+
+void Test_vessel_waypoints_and_routes_answer_to_their_creator(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct descriptor_data descriptor;
+  struct waypoint_node buoy;
+  struct waypoint_node *saved_waypoints;
+  struct route_node ferry;
+  struct route_node rival_home;
+  struct route_node own_home;
+  struct route_node *saved_routes;
+  char output[MAX_STRING_LENGTH];
+
+  /* Another captain's buoy, a content ferry route, and two routes named
+   * home: another captain's first, then the helm's own. */
+  movement_begin(&fixture, VESSEL_SHIP);
+  GET_IDNUM(&fixture.helm) = MOVEMENT_CAPTAIN_ID;
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.output = output;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+  memset(&buoy, 0, sizeof(buoy));
+  memset(&ferry, 0, sizeof(ferry));
+  memset(&rival_home, 0, sizeof(rival_home));
+  memset(&own_home, 0, sizeof(own_home));
+  buoy.waypoint_id = MOVEMENT_WAYPOINT_ID;
+  buoy.creator_id = MOVEMENT_RIVAL_ID;
+  strlcpy(buoy.data.name, "buoy", sizeof(buoy.data.name));
+  ferry.route_id = MOVEMENT_WAYPOINT_ID;
+  strlcpy(ferry.name, "ferry_loop", sizeof(ferry.name));
+  rival_home.route_id = MOVEMENT_WAYPOINT_ID + 1;
+  rival_home.creator_id = MOVEMENT_RIVAL_ID;
+  strlcpy(rival_home.name, "home", sizeof(rival_home.name));
+  own_home.route_id = MOVEMENT_WAYPOINT_ID + 2;
+  own_home.creator_id = MOVEMENT_CAPTAIN_ID;
+  strlcpy(own_home.name, "home", sizeof(own_home.name));
+  saved_waypoints = waypoint_list;
+  saved_routes = route_list;
+  buoy.next = saved_waypoints;
+  ferry.next = &rival_home;
+  rival_home.next = &own_home;
+  own_home.next = saved_routes;
+  waypoint_list = &buoy;
+  route_list = &ferry;
+
+  /* A mortal captain may neither delete nor extend what another captain
+   * or the content made. */
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_delwaypoint(&fixture.helm, "buoy", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Waypoint 'buoy' is not yours: only the captain who set it, "
+                                  "or the staff, may delete it.") != NULL);
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_delroute(&fixture.helm, "ferry_loop", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Route 'ferry_loop' is not yours: only the captain who "
+                                  "created it, or the staff, may change it.") != NULL);
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_addtoroute(&fixture.helm, "ferry_loop buoy", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Route 'ferry_loop' is not yours") != NULL);
+  CuAssertIntEquals(tc, 0, ferry.num_waypoints);
+
+  /* home is the helm's own route, though another captain's comes first;
+   * with no database the change itself then fails. */
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_addtoroute(&fixture.helm, "home buoy", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Failed to add waypoint to route.") != NULL);
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_delroute(&fixture.helm, "home", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Failed to delete route 'home'.") != NULL);
+
+  /* The staff may change anything. */
+  GET_LEVEL(&fixture.helm) = LVL_IMMORT;
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_delwaypoint(&fixture.helm, "buoy", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Failed to delete waypoint 'buoy'.") != NULL);
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_delroute(&fixture.helm, "ferry_loop", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Failed to delete route 'ferry_loop'.") != NULL);
+
+  waypoint_list = saved_waypoints;
+  route_list = saved_routes;
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
+void Test_vessel_waypoints_and_routes_record_their_creator(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct movement_fixture fixture;
+  struct descriptor_data descriptor;
+  struct waypoint_node *saved_waypoints;
+  struct waypoint_node *waypoint;
+  struct route_node *saved_routes;
+  char output[MAX_STRING_LENGTH];
+  MYSQL *saved_conn;
+  MYSQL *connection;
+  bool saved_mysql_available;
+  long old_creator;
+  long mark_creator;
+  int mark_rows;
+  int run_rows;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    return;
+  }
+  connection = movement_open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  /* The tables as they stood before S12, with a content buoy. */
+  if (mysql_query(connection,
+                  "CREATE TEMPORARY TABLE ship_waypoints ("
+                  "waypoint_id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(64) DEFAULT '', "
+                  "x FLOAT NOT NULL, y FLOAT NOT NULL, z FLOAT NOT NULL DEFAULT 0, "
+                  "tolerance FLOAT NOT NULL DEFAULT 5.0, wait_time INT NOT NULL DEFAULT 0, "
+                  "flags INT NOT NULL DEFAULT 0) ENGINE=InnoDB") != 0 ||
+      mysql_query(connection, "CREATE TEMPORARY TABLE ship_routes ("
+                              "route_id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(64) NOT NULL, "
+                              "loop_route TINYINT(1) NOT NULL DEFAULT 0, "
+                              "active TINYINT(1) NOT NULL DEFAULT 1) ENGINE=InnoDB") != 0 ||
+      mysql_query(connection, "CREATE TEMPORARY TABLE ship_route_waypoints ("
+                              "id INT AUTO_INCREMENT PRIMARY KEY, route_id INT NOT NULL, "
+                              "waypoint_id INT NOT NULL, sequence_num INT NOT NULL) "
+                              "ENGINE=InnoDB") != 0 ||
+      mysql_query(connection, "INSERT INTO ship_waypoints (name, x, y) VALUES ('old_buoy', 1, 2)"))
+  {
+    mysql_close(connection);
+    CuFail(tc, "could not create the pre-S12 waypoint and route tables");
+    return;
+  }
+  saved_conn = conn;
+  saved_mysql_available = mysql_available;
+  saved_waypoints = waypoint_list;
+  saved_routes = route_list;
+  conn = connection;
+  mysql_available = TRUE;
+  waypoint_list = NULL;
+  route_list = NULL;
+
+  /* Boot adds the creator column; the old buoy belongs to no player. */
+  vessel_ownership_ensure_schema();
+  CuAssertIntEquals(tc, 0, mysql_query(connection, "SELECT creator_id FROM ship_routes LIMIT 0"));
+  mysql_free_result(mysql_store_result(connection));
+
+  movement_begin(&fixture, VESSEL_SHIP);
+  GET_IDNUM(&fixture.helm) = MOVEMENT_CAPTAIN_ID;
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.output = output;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+
+  /* The helm's waypoint and route are recorded as the helm's. */
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_setwaypoint(&fixture.helm, "mara_mark", 0, 0);
+  do_createroute(&fixture.helm, "mara_run", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Route 'mara_run' created") != NULL);
+  CuAssertIntEquals(
+      tc, MOVEMENT_CAPTAIN_ID,
+      movement_query_int(connection,
+                         "SELECT creator_id FROM ship_waypoints WHERE name = 'mara_mark'"));
+  CuAssertIntEquals(
+      tc, MOVEMENT_CAPTAIN_ID,
+      movement_query_int(connection, "SELECT creator_id FROM ship_routes WHERE name = 'mara_run'"));
+
+  /* A restart reads the creators back. */
+  load_all_waypoints();
+  load_all_routes();
+  old_creator = -1;
+  mark_creator = -1;
+  for (waypoint = waypoint_list; waypoint != NULL; waypoint = waypoint->next)
+  {
+    if (!strcmp(waypoint->data.name, "old_buoy"))
+    {
+      old_creator = waypoint->creator_id;
+    }
+    else if (!strcmp(waypoint->data.name, "mara_mark"))
+    {
+      mark_creator = waypoint->creator_id;
+    }
+  }
+  CuAssertIntEquals(tc, 0, (int)old_creator);
+  CuAssertIntEquals(tc, MOVEMENT_CAPTAIN_ID, (int)mark_creator);
+  CuAssertPtrNotNull(tc, route_list);
+  CuAssertIntEquals(tc, MOVEMENT_CAPTAIN_ID, (int)route_list->creator_id);
+
+  /* Another captain is refused; the old buoy is the staff's. */
+  GET_IDNUM(&fixture.helm) = MOVEMENT_RIVAL_ID;
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_delroute(&fixture.helm, "mara_run", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Route 'mara_run' is not yours") != NULL);
+  GET_IDNUM(&fixture.helm) = MOVEMENT_CAPTAIN_ID;
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_delwaypoint(&fixture.helm, "old_buoy", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Waypoint 'old_buoy' is not yours") != NULL);
+
+  /* The creator deletes both. */
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_delwaypoint(&fixture.helm, "mara_mark", 0, 0);
+  do_delroute(&fixture.helm, "mara_run", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Waypoint 'mara_mark' deleted.") != NULL);
+  CuAssertTrue(tc, strstr(output, "Route 'mara_run' deleted.") != NULL);
+  mark_rows = movement_query_int(connection,
+                                 "SELECT COUNT(*) FROM ship_waypoints WHERE name = 'mara_mark'");
+  run_rows = movement_query_int(connection, "SELECT COUNT(*) FROM ship_routes");
+  CuAssertIntEquals(tc, 0, mark_rows);
+  CuAssertIntEquals(tc, 0, run_rows);
+
+  waypoint_cache_clear();
+  route_cache_clear();
+  waypoint_list = saved_waypoints;
+  route_list = saved_routes;
+  conn = saved_conn;
+  mysql_available = saved_mysql_available;
+  mysql_close(connection);
   fixture.helm.desc = NULL;
   ProtocolDestroy(descriptor.pProtocol);
   movement_end(&fixture);

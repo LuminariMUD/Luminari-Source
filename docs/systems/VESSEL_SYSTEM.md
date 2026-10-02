@@ -782,16 +782,23 @@ restored exactly. The production-linked suite passes 302 tests.
 | autopilot | Engage, pause, disengage, or read the autopilot | `autopilot [on\|off\|pause\|status]` |
 | setwaypoint | Create waypoint | `setwaypoint <name>` |
 | listwaypoints | List waypoints | `listwaypoints` |
-| delwaypoint | Delete a waypoint no route sails through | `delwaypoint <name>` |
+| delwaypoint | Delete one's own waypoint that no route sails through | `delwaypoint <name>` |
 | createroute | Create route | `createroute <name>` |
-| addtoroute | Add waypoint to route | `addtoroute <route> <waypoint>` |
+| addtoroute | Add a waypoint to one's own route | `addtoroute <route> <waypoint>` |
 | listroutes | List routes | `listroutes` |
-| delroute | Delete a route no hull runs on a schedule or is sailing | `delroute <name>` |
+| delroute | Delete one's own route that no hull runs on a schedule or is sailing | `delroute <name>` |
 | setroute | Assign route | `setroute <route>` |
 
-Waypoints and routes are shared by every captain and record no creator, so
-`delwaypoint` and `delroute` refuse only what a hull depends on (GitLab work
-item #11 tracks ownership).
+Every captain may use every waypoint and route, and each records its creator
+(`creator_id`, the player's ID; Phase 24, which boot adds in
+`vessel_ownership_ensure_schema()`). Only the creator or an immortal may
+`delwaypoint`, `delroute`, or `addtoroute` it: a scheduled hull rebuilds her
+route from the shared cache at each departure, so an open `addtoroute` would let
+any captain change a public ferry's course. Rows no player made (content, and
+rows made before Phase 24) have creator 0, and only immortals change them. A
+waypoint that any route sails through, and a route a hull runs on a schedule or
+is sailing, stay even for their creator. Where names repeat, every route and
+waypoint command takes the caller's own row of that name, otherwise the first.
 
 ### Operator Commands (Phases 09, 14, 15, and 16)
 
@@ -1979,8 +1986,8 @@ historical measurements, and the limits of the current evidence.
 | `ship_room_template_triggers` | DG trigger VNUMs attached to generated room types |
 | `ship_cargo_manifest` | Object cargo and bulk commodity lots |
 | `ship_crew_roster` | Hired crew (with `experience` since Phase 21) and helm permits |
-| `ship_waypoints` | Persistent named navigation points |
-| `ship_routes` | Persistent route identities |
+| `ship_waypoints` | Persistent named navigation points; `creator_id` (Phase 24) |
+| `ship_routes` | Persistent route identities; `creator_id` (Phase 24) |
 | `ship_route_waypoints` | Ordered waypoint membership for routes |
 | `ship_schedules` | NPC-pilot and ferry schedule state, including passenger fare |
 | `trade_commodities` | Commodity definitions and base values; `contraband_renown` (Phase 23) marks contraband |
@@ -2448,7 +2455,7 @@ and the trigger was removed.
 | `scripts/vessels/test_vessel_lookout_in_game.sh` | Reversible Kohdee lookout, cosmetics, contact, and coastal-sector gate |
 | `scripts/vessels/test_vessel_narrative_in_game.sh` | Reversible Kohdee at-sea and forced-ambient narrative gate |
 | `scripts/vessels/test_vessel_boarding_in_game.sh` | Boarding gate; delegates to the shared tactical acceptance harness |
-| `scripts/vessels/test_vessel_rules_in_game.sh` | Two-character shipyard, contact-ID, gunnery, hull-level, hull-cap, and bounty gate; delegates to the shared tactical harness |
+| `scripts/vessels/test_vessel_rules_in_game.sh` | Two-character shipyard, contact-ID, gunnery, hull-level, route-ownership, hull-cap, and bounty gate; delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_loss_in_game.sh` | Two-character crew hiring, rename fee, summons, and trade-in gate; delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_economy_in_game.sh` | Two-character contraband, customs, sale modifier, prize money, and renown gate; delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_client_in_game.sh` | Native MSDP client-data gate at sea and ashore; delegates to the shared tactical harness |
@@ -2487,6 +2494,7 @@ and the trigger was removed.
 | `sql/components/vessels_phase21_*` | S5 crew experience, stowed-hull state, insurance premium refund, verification, and rollback |
 | `sql/components/vessels_phase22_*` | S6 raider tier table, verification, and rollback |
 | `sql/components/vessels_phase23_*` | S7 hull renown and the contraband flag, verification, and rollback |
+| `sql/components/vessels_phase24_*` | S12 waypoint and route creators, verification, and rollback |
 | `sql/components/vessels_contraband_content.sql` | Three contraband goods, each stocked at one sea port |
 | `sql/components/verify_vessels_contraband_content.sql` | Read-only contraband goods and stock checks |
 | `sql/components/vessels_contraband_content_rollback.sql` | Contraband goods, stock, and hold lots removal |
