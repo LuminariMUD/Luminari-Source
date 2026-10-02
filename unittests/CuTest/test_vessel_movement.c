@@ -1102,6 +1102,47 @@ void Test_vessel_created_route_reaches_and_berths_at_its_port(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_schedule_departs_on_time_across_midnight(CuTest *tc)
+{
+  struct time_info_data saved_time = time_info;
+  struct greyhawk_ship_data ship;
+  struct vessel_schedule schedule;
+
+  memset(&ship, 0, sizeof(ship));
+  memset(&schedule, 0, sizeof(schedule));
+  schedule.flags = SCHEDULE_FLAG_ENABLED;
+  ship.schedule = &schedule;
+  time_info.year = 100;
+  time_info.month = 3;
+  time_info.day = 7;
+
+  /* Set at hour 20 for every 6 hours, she waits through midnight for 2. */
+  time_info.hours = 20;
+  schedule.interval_hours = 6;
+  schedule_calculate_next_departure(&schedule);
+  CuAssertIntEquals(tc, 2, schedule.next_departure % 24);
+  CuAssertIntEquals(tc, 0, schedule_check_trigger(&ship));
+  time_info.hours = 23;
+  CuAssertIntEquals(tc, 0, schedule_check_trigger(&ship));
+  time_info.day = 8;
+  time_info.hours = 1;
+  CuAssertIntEquals(tc, 0, schedule_check_trigger(&ship));
+  time_info.hours = 2;
+  CuAssertIntEquals(tc, 1, schedule_check_trigger(&ship));
+
+  /* Every 24 hours means tomorrow at this hour, not now. */
+  schedule.interval_hours = 24;
+  schedule_calculate_next_departure(&schedule);
+  CuAssertIntEquals(tc, 0, schedule_check_trigger(&ship));
+  time_info.day = 9;
+  time_info.hours = 1;
+  CuAssertIntEquals(tc, 0, schedule_check_trigger(&ship));
+  time_info.hours = 2;
+  CuAssertIntEquals(tc, 1, schedule_check_trigger(&ship));
+
+  time_info = saved_time;
+}
+
 void Test_vessel_schedule_check_sails_the_turn_the_hull_will_make(CuTest *tc)
 {
   struct movement_fixture fixture;

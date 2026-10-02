@@ -1007,6 +1007,10 @@ both the character and balance ashore. NPC crew are exempt. Privately owned
 vessels do not collect this automatic fee because owner revenue and
 player-to-player settlement are outside the public-ferry contract. The fare
 lives in `ship_schedules`, appears in `showschedule`, and survives reboot.
+`ship_schedules.next_departure` is an absolute MUD hour (`schedule_mud_hour()`,
+the hour of the day modulo 24), so a departure past midnight, or an interval of
+24, is not taken for one already due; a row saved as an hour of the day before
+this reads as overdue and departs once.
 
 Freight contracts (`src/vessels/vessels_contracts.c`): each port's board offers runs
 to other *known trading* ports (any with `port_commodities` rows that is a port

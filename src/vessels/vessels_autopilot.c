@@ -3878,27 +3878,29 @@ bool scheduled_route_is_traversable(const struct greyhawk_ship_data *ship,
 }
 
 /**
+ * The game clock in whole MUD hours since its epoch; the hour of the day is
+ * this modulo 24.
+ */
+int schedule_mud_hour(void)
+{
+  return ((time_info.year * 17 + time_info.month) * 35 + time_info.day) * 24 + time_info.hours;
+}
+
+/**
  * Calculate the next departure MUD hour based on current time and interval.
  *
  * @param sched The schedule to update
  */
 void schedule_calculate_next_departure(struct vessel_schedule *sched)
 {
-  int current_hour;
-
   if (sched == NULL)
   {
     return;
   }
 
-  current_hour = time_info.hours;
-  sched->next_departure = current_hour + sched->interval_hours;
-
-  /* Wrap around 24-hour day */
-  if (sched->next_departure >= 24)
-  {
-    sched->next_departure = sched->next_departure % 24;
-  }
+  /* An absolute MUD hour, so a departure past midnight (or a whole day
+   * away) is not taken for one already due. */
+  sched->next_departure = schedule_mud_hour() + sched->interval_hours;
 }
 
 /**
@@ -4073,8 +4075,6 @@ struct vessel_schedule *schedule_get(struct greyhawk_ship_data *ship)
  */
 int schedule_check_trigger(struct greyhawk_ship_data *ship)
 {
-  int current_hour;
-
   if (ship == NULL || ship->schedule == NULL)
   {
     return 0;
@@ -4093,10 +4093,8 @@ int schedule_check_trigger(struct greyhawk_ship_data *ship)
     return 0;
   }
 
-  current_hour = time_info.hours;
-
-  /* Use >= comparison for timer precision */
-  if (current_hour >= ship->schedule->next_departure)
+  /* Due once the departure hour has come; a late hull departs at once. */
+  if (schedule_mud_hour() >= ship->schedule->next_departure)
   {
     return 1;
   }
@@ -4386,7 +4384,7 @@ ACMD(do_setschedule)
   }
 
   send_to_char(ch, "Schedule set: Route '%s' every %d MUD hours.\r\n", route_arg, interval);
-  send_to_char(ch, "Next departure: MUD hour %d\r\n", ship->schedule->next_departure);
+  send_to_char(ch, "Next departure: MUD hour %d\r\n", ship->schedule->next_departure % 24);
   if (passenger_fare > 0)
   {
     send_to_char(ch, "Passenger fare: %d gold per boarding on a public vessel.\r\n",
@@ -4491,7 +4489,7 @@ ACMD(do_showschedule)
   send_to_char(ch, "Route: %s\r\n", route_node ? route_node->name : "(unknown)");
   send_to_char(ch, "Interval: Every %d MUD hour%s\r\n", sched->interval_hours,
                sched->interval_hours == 1 ? "" : "s");
-  send_to_char(ch, "Next Departure: MUD hour %d\r\n", sched->next_departure);
+  send_to_char(ch, "Next Departure: MUD hour %d\r\n", sched->next_departure % 24);
   send_to_char(ch, "Current Time: MUD hour %d\r\n", time_info.hours);
   if (sched->passenger_fare > 0)
   {

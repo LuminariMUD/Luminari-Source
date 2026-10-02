@@ -1659,7 +1659,7 @@ struct vessel_schedule
   int ship_id;        /* Ship index this schedule belongs to */
   int route_id;       /* Route to start when triggered */
   int interval_hours; /* MUD hours between departures */
-  int next_departure; /* MUD hour for next departure */
+  int next_departure; /* Absolute MUD hour of the next departure (schedule_mud_hour()) */
   int passenger_fare; /* Gold charged by an unowned public vessel at boarding */
   int flags;          /* SCHEDULE_FLAG_* bits */
 };
@@ -2169,6 +2169,7 @@ void schedule_tick_one(struct greyhawk_ship_data *ship);
 int schedule_check_trigger(struct greyhawk_ship_data *ship);
 int schedule_trigger_departure(struct greyhawk_ship_data *ship);
 void schedule_calculate_next_departure(struct vessel_schedule *sched);
+int schedule_mud_hour(void);
 
 /* Database Table Management */
 void ensure_schedule_table_exists(void);
