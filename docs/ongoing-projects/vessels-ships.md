@@ -205,12 +205,12 @@ Chapters, in play order:
 
 | # | Chapter | Played by | Kohdee stages | Covers | State |
 | -- | -- | -- | -- | -- | -- |
-| 1 | Finding a ship | Vesselmate | His level and gold for a hull; the Testing Dock | `help vessels` and the ship help entries, `shipbrowse` | Not started |
-| 2 | Buying and knowing her | Vesselmate | - | `shipbuy`, `shipchristen`, `shipcustomize`, `board`, `disembark`, `ship_rooms`, `shipstatus`, `shipcrew` | Not started |
-| 3 | Crew, weapons and refits | Vesselmate | Gold as needed | `shiphire`, `shipdismiss`, `shipweapon` buy and sell, `shipequip`, `shiprearm`, `shipupgrade` | Not started |
+| 1 | Finding a ship | Vesselmate | His level and gold for a hull; the Testing Dock | `help vessels` and the ship help entries, `shipbrowse` | Played |
+| 2 | Buying and knowing her | Vesselmate | - | `shipbuy`, `shipchristen`, `shipcustomize`, `board`, `disembark`, `ship_rooms`, `shipstatus`, `shipcrew` | Played |
+| 3 | Crew, weapons and refits | Vesselmate | Gold as needed | `shiphire`, `shipdismiss`, `shipweapon` buy and sell, `shipequip`, `shiprearm`, `shipupgrade` | Played |
 | 4 | Sailing | Vesselmate | - | `undock`, `setsail`, `heading`, `speed`, `anchor`, `tactical`, `lookout`, `contacts`, `seastate`, `shiptalk`, at-sea narrative and weather, legal waters, `dock`, `dockfees` | Not started |
 | 5 | Routes, autopilot and schedules | Vesselmate | - | `setwaypoint`, `listwaypoints`, `delwaypoint`, `createroute`, `addtoroute`, `delroute`, `listroutes`, `setroute`, `autopilot`, `setschedule`, `showschedule`, `clearschedule`, `assignpilot`, `unassignpilot` | Not started |
-| 6 | Passage on public ships | Vesselmate | - | The harbor ferry and its fare, the Vailand merchant | Not started |
+| 6 | Passage on public ships | Vesselmate | - | The harbor ferry and its fare, the Vailand merchant | Played |
 | 7 | Trade and freight | Vesselmate | - | `market`, `cargobuy`, `cargomanifest`, `cargosell` and its modifiers, `contracts`, `contractaccept`, `contractdeliver`, `contractabandon` | Not started |
 | 8 | Gunnery against a raider | Vesselmate | `vesseldebug raider 0` from aboard his hull | `shipsight`, `shipscan`, `shiplock`, battle stations, `shipfire` by arc, reloads and ammunition, raider tactics and boarding, `shipram` | Not started |
 | 9 | Damage, repair and salvage | Vesselmate | `shipfix` between runs when needed | Arcs, breaches, sails and rudder, criticals, the sink timer, `shiprepair` at sea and at a dock, cargo spill and `shipsalvage` | Not started |
@@ -263,11 +263,57 @@ Progress log (2026-10-02, kept current as play goes):
 Ablation (starting play): chapter 17 reuses the Ship-tab screenshots that chapters 2, 4 and 8 take
 at sea and in a fight, plus one ashore, instead of replaying them; the rest of the plan stands.
 
-Defects found: none fixed yet. Open:
+Chapter state is in the table above; `guide-notes.md` has each played chapter's screenshots and
+notes. Played so far: 1, 2, 3 and 6 (6 while the shipwrights worked on chapter 3's refit).
+
+How play runs (for a session taking over): the harness, bridge and client run as S-immediate
+left them (history, For S9). Helpers in `/tmp/claude-1000/s9/`: `login.sh <session> master <Character>`, `cmd.sh <session> <wait-ms> <command>` (types a command, prints the terminal's
+tail; `LINES=n` for more), `shot.sh <session> <file.png> [<inspector tab>]` (saves into
+`guide-screenshots/`), and `testenv.sh` (source it for DB-backed CuTest runs against the
+`luminari-vessels-testdb` container on 127.0.0.3). Database queries go through harness jobs
+(`/tmp/claude-1000/vs4/jobs/qNN-*.sh`, `mariadb "$(cat /tmp/claude-1000/vs4/dbname)"`). To put a
+fix in play: `make -j$(nproc) && make install`, then a restart job (copy
+`/tmp/claude-1000/vs4/running/r01-restart.sh` into `jobs/`), wait for a new "Entering game loop"
+in `/tmp/luminari-dev-login-smoke.log`, and log the sessions back in. A restart drops a player to
+the tutorial start (the harness kills the server without a quit), so Kohdee transfers them back.
+The harness's `systemctl` stand-in learned `show -p MainPID` for the derelict provisioner.
+
+Staging so far: Vesselmate level 16, gold set to 60,000 before chapter 2, a lantern (play
+started at night). He owns the Sea Wren (slot 13, Starfall Survey Ship, prototype 26) at the
+Testing Dock with four green hands, a Medium Ballista fore, Large Ballistas port and starboard, a
+ram, plating and rigging. The first Sea Wren, bought before the interior fix, was purged and
+bought again.
+
+Defects found and fixed (each with a production-linked test; help in both places where it
+changed):
+
+| Finding | Fix | Commit |
+| -- | -- | -- |
+| `shipbrowse`: the 14-letter "Magical Vessel" overflowed the 10-wide Class column | Column widened to 14 | `fbeed236c` |
+| `shipbuy` showed a player the builders' spawn line (fleet slot, interior room numbers) | The spawn report is staff-only; the purchase names the hull handed over | `7955887f5` |
+| Every hull read "It has a soft glowing aura! ..It emits a faint humming sound!": hulls are instances of object 70002, a builder's fixture flagged GLOW and HUM (world data outside the repository) | Placing a hull drops those two flags, as it already sets the type | `b821585ca` |
+| After `shipchristen`, the bridge kept the old name ("Starfall Survey Ship's Bridge" aboard the Sea Wren) until a reboot | Christening re-renders the interior from its templates | `6504c9b82` |
+| The purchase said to christen her; christening and customizing work only aboard, and their help did not say so | The purchase says to board her; SHIPCHRISTEN and SHIPCUSTOMIZE help say aboard | `61aed49c7` |
+| A new ship's interior contradicted itself (the hold two rooms north of the bridge and also one east), so the minimap drew three "you are here" markers; larger hulls used up and down as spokes, and past nine rooms the spokes wrapped and overwrote the bridge's first exit | Rooms lie on eight level rays out from the bridge; side passages join only neighbors. Interiors persisted earlier keep their stored passages | `49ab1fb55`, test fix `b1f90991e` |
+| `lookout` named vessels by fleet slot ([13]) while every other command uses the contact ID ([AN]) | Lookout prints the contact ID; help and the lookout gate say so | `e7018c0a3` |
+| A piloted merchant under way read "Speed: 9 / 9 (ordered 0)" in `shipstatus` (and `speed`), as if stopping | Both show the speed the helm is converging on, from the helm tick's own function | `6ca2b5a71` |
+| A passenger trying to step off a ship under way was told to "Bring the vessel to a stop first" | Only someone at the helm is told that; others are told to wait | `3d9ddfa3d` |
+| Any passenger on a public ferry's or merchant's bridge could set her heading and speed, anchor her, reroute her, clear her schedule, or unassign her NPC pilot (unowned hulls were open to anyone) | An unowned hull with an NPC pilot answers only to NPCs and immortals; help and `VESSEL_SYSTEM.md` say so | `9a3be3361` |
+
+Open:
 
 - `help ships` shows the 2014 `boats` entry (keywords BOATS FERRY SHIPS TRANSPORTSS; "enter
   <boatname>", a literal `\"look out\"`, a staff script pointer) instead of VESSELS, which also
-  claims SHIPS: two entries share the keyword, and the old one wins the tie.
+  claims SHIPS: two entries share the keyword, and the old one wins the tie. To fix with the
+  passenger facts from chapter 6.
+
+Observed, not reproduced: on the first ferry ride (boarded at the Testing Dock 02:19, rode a full
+loop, disembarked at the east dock while she was casting off) Vesselmate landed in the Testing
+Dock (west) with the east dock's coordinates on his map. `disembark` puts a passenger in the
+hull object's room; three targeted replays (berthed, casting off, after a full loop, from the
+bridge and the quarters) all landed at the east dock, and tracking showed the hull object
+following the ferry every step. No log line marks it. If it recurs, record the hull's room
+(`where ferry`) and `world[room].ship` of the room disembarked from.
 
 ## Estimate (remaining)
 
