@@ -281,3 +281,57 @@ Defects found here and fixed: the chart lost its land cells and left the rest of
 orange in Luminari Web (the client read the `^` land glyph as a color code); orders given while
 casting off were told to order `undock`; lookout's ranges disagreed with contacts' for a hull
 stopped part-way through a room; dock fees named the port by room number.
+
+## 5. Routes, autopilot and schedules
+
+Staging: an NPC to pilot her. Any NPC standing on the bridge can be assigned (a player brings a
+follower or hireling); Kohdee loaded the harbor ferrymaster (mob 70001) onto the bridge for
+`assignpilot` and purged it afterwards. Everything else is the owner's own work, on the bridge.
+
+- `26-routes-autopilot-on.png` (Vesselmate, `setroute wren_run`, `autopilot on`, `autopilot status`): "Route 'wren_run' assigned to autopilot (2 waypoints)." "Autopilot engaged on route
+  'wren_run'." The status: Traveling, Waypoint 1 of 2, the current target and its distance,
+  position, movement steps, arrivals and completions.
+- `27-routes-schedule.png` (Vesselmate, `setschedule wren_run 2`, `showschedule`): "Schedule
+  set: Route 'wren_run' every 2 MUD hours. Next departure: MUD hour 10. Passenger fare: free."
+  and the schedule card (Status: Active; "Pilot: None (silent departures)").
+- `28-routes-pilot-arrives.png` (Vesselmate, `assignpilot ferrymaster` with the route
+  `wren_home_run` set): the pilot casts off and sails her home, announcing each waypoint: "The
+  harbor ferrymaster announces, 'Arriving at wren_home!'"; she berths, the fee is assessed, and
+  `autopilot status` reads "State: Route Complete", Route Completions 1.
+
+Commands, in the order played:
+
+- `setwaypoint wren_home` (berthed): "Waypoint 'wren_home' created at position (-66.0, 92.0,
+  0.0)." A waypoint is the ship's present position; names are letters, numbers, `_` and `-`.
+- `listwaypoints`: every waypoint in the world, with ID and coordinates (17 here, including the
+  ferry's `harbor_west_dock`, `harbor_channel_turn` and `harbor_east_dock`); any captain may use
+  any of them in a route.
+- `createroute wren_run`: "Route 'wren_run' created (ID: 6)."; `addtoroute wren_run harbor_channel_turn`: "Waypoint 'harbor_channel_turn' added to route 'wren_run' at position
+  1." Up to 20 waypoints a route.
+- `listroutes`: ID, name, waypoints, loop and active, for every route (the ferry's
+  `harbor_ferry_loop` and the `Vailand Iron Passage` among them).
+- `setroute`, `autopilot on`: the autopilot casts off from a berth (30 seconds), sails at full
+  speed when no speed is ordered (steerage speed while coming about), and stops at the last
+  waypoint of a one-way route; she berths if it is a port. `autopilot pause` holds her,
+  `autopilot on` resumes, `autopilot off`: "Autopilot disengaged."
+- The autopilot will not leave a port with dock fees unpaid: "Autopilot pauses: the harbor
+  requires 25 gold in dock fees before departure." Pay with `dockfees pay` and `autopilot on`.
+- `setwaypoint scratch_mark` / `delwaypoint scratch_mark` ("Waypoint 'scratch_mark' deleted."),
+  `createroute scratch_run` / `delroute scratch_run` ("Route 'scratch_run' deleted.").
+- `setschedule <route> <hours> [fare]`: departures every 1-24 MUD hours (a MUD hour is about 75
+  seconds); a fare applies only to unowned public hulls. `clearschedule`: "Vessel schedule has
+  been cleared." `showschedule` with none: "This vessel has no schedule configured."
+- `assignpilot <npc>`: "You assign the harbor ferrymaster as the vessel's pilot." To all aboard:
+  "The harbor ferrymaster has been assigned as the vessel's pilot." With a route set the pilot
+  engages at once: "The harbor ferrymaster takes the helm and engages autopilot."
+  `unassignpilot`: "You relieve the harbor ferrymaster of pilot duties."
+- Engaging the autopilot, assigning a pilot and setting a schedule need the hull's level (16 for
+  a ship).
+
+The run: east dock (-62, 82) to the channel turn (-64, 82) and home to the Testing Dock (-66,
+92), 14 rooms in about 90 seconds after casting off.
+
+Defects found here and fixed: a one-way route ending in a port paused "before departure"
+instead of completing (the unpaid berthing fee was checked before the arrival); the pilot's lines
+began in lower case and each autopilot announcement left a blank line; ADDTOROUTE's help example
+numbered positions from 0.
