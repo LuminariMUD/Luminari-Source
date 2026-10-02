@@ -447,6 +447,35 @@ void Test_vessel_refused_room_stops_the_hull_at_its_edge(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_boat_refused_room_names_the_waters_she_keeps(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+
+  ship = movement_begin(&fixture, VESSEL_BOAT);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+  refuse_room = TRUE;
+  refused_x = 0;
+  refused_y = 1;
+
+  /* A riverboat steered onto the bank is not told she is for the coast only. */
+  CuAssertTrue(tc, !vessel_maneuver(ship, &fixture.helm, NORTH));
+  CuAssertTrue(tc, strstr(output, "She keeps to rivers and shallow coastal water.") != NULL);
+
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
 void Test_vessel_rest_in_port_berths_and_undock_casts_off(CuTest *tc)
 {
   struct movement_fixture fixture;

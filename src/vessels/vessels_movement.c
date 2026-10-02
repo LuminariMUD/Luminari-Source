@@ -571,7 +571,7 @@ static const char *vessel_blocked_text(enum vessel_class vessel_type, int z)
     return "Your raft cannot navigate these waters! It's only suitable for rivers and shallow "
            "water.";
   case VESSEL_BOAT:
-    return "Your boat cannot handle these conditions! It's designed for coastal waters only.";
+    return "Your boat cannot go there! She keeps to rivers and shallow coastal water.";
   case VESSEL_SHIP:
   case VESSEL_WARSHIP:
     return "The ship cannot navigate this terrain! It requires deep water to sail.";
