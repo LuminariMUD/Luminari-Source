@@ -380,7 +380,8 @@ offline.
 
 A ship fights only with its owner\'s consent. When a permit holder or group
 member fires on another player\'s ship, the firing ship\'s owner must also be
-online with PVP enabled, so the target can always answer in kind.
+online with PVP enabled, so the target can always answer in kind. As in
+person, turning on a groupmate\'s ship costs you your place in the group.
 
 See also: BOARD, DOCK, TACTICAL, SHIPSTATUS, AUTOPILOT, SHIPRENOWN', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),

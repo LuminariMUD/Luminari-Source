@@ -1183,7 +1183,9 @@ and immortals; unowned hulls fire only through NPC return fire.
 non-owner fires on another player's hull, so retaliation is always lawful.
 The gunner and owner consent checks have no side effects. Only a shot that
 clears range, arc, and consent records the engagement, once and for the
-actual gunner, so a refused shot leaves no grace behind. If the target's owner
+actual gunner, so a refused shot leaves no grace behind. Recording it also
+takes the aggressor out of the target owner's group, as attacking a groupmate
+in person does (`leave_group()` in `fight.c`). If the target's owner
 logs out, that gunner may keep firing while the hull owner stays online with
 PvP enabled.
 Harbors are neutral: `vessel_ship_is_in_port()` refuses player and NPC fire

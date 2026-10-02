@@ -93,6 +93,7 @@ void vessel_clear_pvp_grace(struct greyhawk_ship_data *ship)
 static void vessel_record_pvp_engagement(struct char_data *ch, struct greyhawk_ship_data *target)
 {
   struct char_data *aggressor;
+  struct char_data *owner;
   struct greyhawk_ship_data *aggressor_ship;
   time_t until;
 
@@ -101,6 +102,15 @@ static void vessel_record_pvp_engagement(struct char_data *ch, struct greyhawk_s
       target->owner[0] == '\0')
   {
     return;
+  }
+
+  /* As in person (fight.c), turning on a groupmate costs your place in the
+   * group: a groupmate may work your guns and shares your prizes. */
+  owner = vessel_find_online_player(target->owner);
+  if (owner != NULL && owner != aggressor && GROUP(aggressor) != NULL &&
+      GROUP(aggressor) == GROUP(owner))
+  {
+    leave_group(aggressor);
   }
 
   until = time(0) + VESSEL_PVP_LOGOUT_GRACE;

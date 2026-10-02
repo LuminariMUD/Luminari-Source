@@ -143,6 +143,7 @@ void Test_vessel_fire_needs_the_hull_owners_consent(CuTest *tc)
   struct room_data *saved_world;
   room_rnum saved_top_of_world;
   struct char_data *saved_list;
+  struct group_data *group;
   int saved_pk_allowed;
 
   gunnery_player_init(&owner, "Corr");
@@ -185,6 +186,14 @@ void Test_vessel_fire_needs_the_hull_owners_consent(CuTest *tc)
   SET_BIT_AR(PRF_FLAGS(&owner.ch), PRF_PVP);
   CuAssertTrue(tc, vessel_fire_permitted(&gunner.ch, ship, target, FALSE));
   CuAssertTrue(tc, vessel_fire_permitted(&owner.ch, ship, target, FALSE));
+
+  /* As in person, firing on a groupmate's hull costs the shooter the group. */
+  group = create_group(&owner.ch);
+  join_group(&rival.ch, group);
+  CuAssertTrue(tc, vessel_fire_permitted(&owner.ch, ship, target, FALSE));
+  CuAssertPtrEquals(tc, NULL, owner.ch.group);
+  CuAssertPtrEquals(tc, group, rival.ch.group);
+  leave_group(&rival.ch);
 
   CONFIG_PK_ALLOWED = saved_pk_allowed;
   character_list = saved_list;
