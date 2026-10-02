@@ -952,7 +952,14 @@ ACMD(do_plunder)
   taken = vessel_plunder_cargo(ch, prize, raider);
   if (taken == 0)
   {
-    send_to_char(ch, "There is nothing worth taking, or no room to take it.\r\n");
+    if (vessel_has_cargo(prize))
+    {
+      send_to_char(ch, "%s has no room for any of %s's cargo.\r\n", raider->name, prize->name);
+    }
+    else
+    {
+      send_to_char(ch, "%s's hold is empty: there is nothing to take.\r\n", prize->name);
+    }
     return;
   }
 
