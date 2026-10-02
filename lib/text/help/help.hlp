@@ -31884,7 +31884,8 @@ SHIPSUMMON [<number | name>]
   after her passage: quicker for a faster hull, twice as long from the
   wreck registry, never more than 75 minutes. The fee is a tenth of a gold
   piece per point of hull weight. A hull at battle stations or going down
-  will not answer. A summons survives a reboot.
+  will not answer. A summons survives a reboot. Word reaches you wherever
+  you are when she makes port.
 
 Hull levels: taking a hull out of port, engaging its autopilot, or putting
 an NPC pilot or schedule to work needs the hull's level: 1 for rafts and

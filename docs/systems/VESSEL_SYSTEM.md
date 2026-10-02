@@ -1534,7 +1534,8 @@ renown gates came in S7 (Rewards, Renown and Contraband below).
   anything alongside, releases vehicles, stops her autopilot, saves the
   shipyard as her location with `summon_due`, and stows. `vessel_summon_tick()`
   (service event) brings a due hull in: `vessel_create_runtime_hull()` at the
-  shipyard, berthed, saved, and scheduled again.
+  shipyard, berthed, saved, and scheduled again. `vessel_summon_announce()`
+  tells the dock, and sends word to her owner if online elsewhere.
 - Trade-in and rename: `shipbuy <id> trade` rebuilds the owner's hull berthed
   at that dock (empty hold, not casting off or alongside) in place as the new
   prototype for its price less 90% of her `vessel_hull_price()` (nothing for a

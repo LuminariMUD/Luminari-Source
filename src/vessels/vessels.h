@@ -952,6 +952,7 @@ bool vessel_wreck_hull(struct greyhawk_ship_data *ship, const struct greyhawk_sh
                        int renown_lost);
 void vessel_restow(struct greyhawk_ship_data *ship);
 void vessel_summon_tick(void);
+void vessel_summon_announce(const struct greyhawk_ship_data *ship);
 ACMD_DECL(do_shipsummon); /* Owner: call a hull, or her wreck, to this shipyard */
 
 /* ========================================================================= */

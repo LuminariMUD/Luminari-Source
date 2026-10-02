@@ -244,6 +244,39 @@ void Test_vessel_summons_sends_a_hull_out_of_the_world(CuTest *tc)
   loss_harbor_end(&harbor);
 }
 
+void Test_vessel_summoned_hull_sends_word_to_her_owner(CuTest *tc)
+{
+  struct loss_harbor harbor;
+  struct greyhawk_ship_data *ship;
+  struct char_data *saved_character_list;
+
+  ship = loss_harbor_begin(tc, &harbor);
+  saved_character_list = character_list;
+  character_list = &harbor.captain;
+  harbor.rooms[1].name = CuMutableString("Testing Dock");
+
+  /* Her captain walked off while she sailed: word reaches him. */
+  vessel_summon_announce(ship);
+  CuAssertTrue(tc, strstr(harbor.output,
+                          "Word comes from the harbor: the Petrel has made port at Testing "
+                          "Dock.") != NULL);
+
+  /* Waiting on the dock, he sees her come in. */
+  memset(harbor.output, 0, sizeof(harbor.output));
+  harbor.descriptor.bufptr = 0;
+  harbor.descriptor.bufspace = sizeof(harbor.output) - 1;
+  harbor.rooms[0].people = NULL;
+  harbor.rooms[1].people = &harbor.captain;
+  IN_ROOM(&harbor.captain) = 1;
+  vessel_summon_announce(ship);
+  CuAssertTrue(tc, strstr(harbor.output, "the Petrel arrives at port.") != NULL);
+  CuAssertTrue(tc, strstr(harbor.output, "Word comes") == NULL);
+
+  harbor.rooms[1].people = NULL;
+  character_list = saved_character_list;
+  loss_harbor_end(&harbor);
+}
+
 void Test_vessel_summons_is_refused_to_a_hull_in_action(CuTest *tc)
 {
   struct loss_harbor harbor;
