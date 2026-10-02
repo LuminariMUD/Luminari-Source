@@ -3152,7 +3152,7 @@ proc run_vessel_economy_check {warship_id requested_character} {
 
   # Under neutral colors the merchants pay a tenth less.
   set output [run_game_command "shipequip buy colors"]
-  require_game_output $output "with a Neutral Colors for 0 gold" "neutral colors"
+  require_game_output $output "with Neutral Colors for 0 gold" "neutral colors"
   set output [run_game_command "cargosell forbidden 1"]
   require_game_output $output \
     "The merchants pay a tenth less to a hull under neutral colors." "colors sale"
