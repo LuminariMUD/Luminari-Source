@@ -1263,7 +1263,8 @@ study 3.3.1, 3.3.3).
   at zero half of each bulk cargo lot floats off as salvage crates
   (`vessel_spill_cargo()`) and `vessel_sink()` evacuates the hull as before.
   `vessel_status()` reports SINKING only for a sinking hull; a gutted hull
-  whose armor holds is crippled.
+  whose armor holds is crippled, and so is a holed one whatever structure she
+  has left.
 - Prizes (decision D6, `vessel_prize_disabled()`): a hull is beaten when she
   has a holed arc, cannot move (`vessel_max_speed()` 0), has struck her colors,
   or is abandoned at sea (`vessel_abandoned_at_sea()`: not in port, nobody

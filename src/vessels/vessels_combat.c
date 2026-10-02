@@ -375,6 +375,12 @@ int vessel_status(const struct greyhawk_ship_data *ship)
     return VESSEL_STATUS_SINKING;
   }
 
+  /* A holed side leaves her dead in the water whatever structure is left. */
+  if (vessel_breached_arcs(ship) > 0)
+  {
+    return VESSEL_STATUS_CRIPPLED;
+  }
+
   if (max <= 0)
   {
     return VESSEL_STATUS_SOUND; /* No damage model data - treat as sound */

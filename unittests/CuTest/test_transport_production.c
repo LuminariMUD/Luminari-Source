@@ -895,9 +895,18 @@ void Test_vessel_combat_status_bands(CuTest *tc)
 
   memset(&ship, 0, sizeof(ship));
   ship.maxfinternal = ship.maxrinternal = ship.maxpinternal = ship.maxsinternal = 25; /* 100 */
+  ship.farmor = ship.rarmor = ship.parmor = ship.sarmor = 10;
 
   ship.finternal = ship.rinternal = ship.pinternal = ship.sinternal = 25;
   CuAssertIntEquals(tc, VESSEL_STATUS_SOUND, vessel_status(&ship));
+
+  /* A holed bow leaves her dead in the water: crippled, though most of her
+   * structure stands. */
+  ship.farmor = 0;
+  ship.finternal = 0;
+  CuAssertIntEquals(tc, 1, vessel_breached_arcs(&ship));
+  CuAssertIntEquals(tc, VESSEL_STATUS_CRIPPLED, vessel_status(&ship));
+  ship.farmor = 10;
 
   ship.finternal = ship.rinternal = 25;
   ship.pinternal = ship.sinternal = 0; /* 50% */
