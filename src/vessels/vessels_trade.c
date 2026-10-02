@@ -1129,17 +1129,21 @@ static int vessel_cargo_lot(struct greyhawk_ship_data *ship, int commodity_id, b
  *
  * Bulk lots ride in ship_cargo_manifest with item_vnum = commodity id and
  * cargo_room = 0, distinguishing them from crated object cargo.
+ *
+ * @return FALSE when a write failed (or there is no database), so a caller
+ *         inside a transaction can roll back
  */
-void vessel_db_save_cargo(struct greyhawk_ship_data *ship)
+bool vessel_db_save_cargo(struct greyhawk_ship_data *ship)
 {
   char query[MAX_STRING_LENGTH];
   char escaped[130];
   struct commodity_def *def;
+  bool saved = TRUE;
   int i;
 
   if (!mysql_available || conn == NULL || ship == NULL)
   {
-    return;
+    return FALSE;
   }
 
   snprintf(query, sizeof(query),
@@ -1148,7 +1152,7 @@ void vessel_db_save_cargo(struct greyhawk_ship_data *ship)
   {
     log("SYSERR: vessel_db_save_cargo (clear) failed for ship %d: %s", ship->shipnum,
         mysql_error(conn));
-    return;
+    return FALSE;
   }
 
   for (i = 0; i < MAX_CARGO_LOTS; i++)
@@ -1169,8 +1173,10 @@ void vessel_db_save_cargo(struct greyhawk_ship_data *ship)
     {
       log("SYSERR: vessel_db_save_cargo (insert) failed for ship %d: %s", ship->shipnum,
           mysql_error(conn));
+      saved = FALSE;
     }
   }
+  return saved;
 }
 
 /**

@@ -1014,7 +1014,11 @@ room), with quantity and payout scaled from real wilderness distance between the
 dock rooms. The payout is the goods' base worth plus a distance premium.
 Accepting takes the goods' base worth as a bond (refused without the gold),
 loads the cargo (capacity-checked), and claims the row with a conditional
-UPDATE, so two captains racing for the same job cannot both win it. Abandoning
+UPDATE, so two captains racing for the same job cannot both win it. The claim
+and the manifest commit in one transaction before the bond is debited, and the
+debit is saved with `save_char_checked()`; if that save fails the gold is
+restored, the job reopened and the freight unloaded, so the record never keeps
+the freight without the bond or the bond without the freight. Abandoning
 returns the job to the board and leaves the bought freight aboard, so taking
 and dropping a job gains nothing. Delivering requires the freight still aboard.
 Boards refresh on a TTL; accepted contracts are never cleared by a refresh.

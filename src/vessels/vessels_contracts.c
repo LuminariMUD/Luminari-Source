@@ -427,6 +427,37 @@ static bool contract_fetch(int contract_id, int *commodity_id, int *quantity, in
   return found;
 }
 
+/* Put a contract back on the board after its taker's bond failed to save. */
+static bool contract_reopen(int contract_id, const char *taker)
+{
+  PREPARED_STMT *statement;
+  bool reopened;
+
+  statement = mysql_stmt_create(conn);
+  reopened = statement != NULL &&
+             mysql_stmt_prepare_query(statement,
+                                      "UPDATE freight_contracts SET status = ?, taken_by = '' "
+                                      "WHERE contract_id = ? AND status = ? AND taken_by = ?") &&
+             mysql_stmt_bind_param_int(statement, 0, CONTRACT_STATUS_OPEN) &&
+             mysql_stmt_bind_param_int(statement, 1, contract_id) &&
+             mysql_stmt_bind_param_int(statement, 2, CONTRACT_STATUS_TAKEN) &&
+             mysql_stmt_bind_param_string(statement, 3, taker) &&
+             mysql_stmt_execute_prepared(statement);
+  mysql_stmt_cleanup(statement);
+  return reopened;
+}
+
+/* Take freight back out of a hold bay: the acceptance did not go through. */
+static void contract_unload(struct greyhawk_ship_data *ship, int lot, int quantity)
+{
+  ship->cargo[lot].quantity -= quantity;
+  if (ship->cargo[lot].quantity <= 0)
+  {
+    ship->cargo[lot].quantity = 0;
+    ship->cargo[lot].commodity_id = 0;
+  }
+}
+
 /**
  * contractaccept <id> - take a job and receive the cargo aboard.
  */
@@ -441,6 +472,7 @@ ACMD(do_contractaccept)
   int contract_id;
   int commodity_id, quantity, payout, destination, status;
   int bond;
+  int old_gold;
   int lot = -1;
   int i;
   int empty = -1;
@@ -522,11 +554,7 @@ ACMD(do_contractaccept)
     ship->cargo[lot].quantity += quantity;
     if (vessel_cargo_weight(ship) > capacity)
     {
-      ship->cargo[lot].quantity -= quantity;
-      if (ship->cargo[lot].quantity <= 0)
-      {
-        ship->cargo[lot].commodity_id = 0;
-      }
+      contract_unload(ship, lot, quantity);
       send_to_char(ch,
                    "That freight will not fit: the hold holds %d lbs and %d lbs are "
                    "already stowed.\r\n",
@@ -535,25 +563,63 @@ ACMD(do_contractaccept)
     }
   }
 
+  /* The contract, the freight and the bond stand or fall together: the job
+   * is taken and the freight stowed in one transaction, and the bond is
+   * debited only once that commits. If the captain's save then fails, the
+   * job and the freight are put back. */
   mysql_real_escape_string(conn, escaped, GET_NAME(ch), strlen(GET_NAME(ch)));
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: Could not begin accepting contract %d: %s", contract_id, mysql_error(conn));
+    contract_unload(ship, lot, quantity);
+    send_to_char(ch, "The shipping office cannot record contracts just now.\r\n");
+    return;
+  }
   snprintf(query, sizeof(query),
            "UPDATE freight_contracts SET status = %d, taken_by = '%s' "
            "WHERE contract_id = %d AND status = %d",
            CONTRACT_STATUS_TAKEN, escaped, contract_id, CONTRACT_STATUS_OPEN);
-  if (mysql_query(conn, query) || mysql_affected_rows(conn) == 0)
+  if (mysql_query(conn, query))
   {
-    /* Someone else took it between our read and write - roll the cargo back */
-    ship->cargo[lot].quantity -= quantity;
-    if (ship->cargo[lot].quantity <= 0)
-    {
-      ship->cargo[lot].commodity_id = 0;
-    }
+    log("SYSERR: Could not take contract %d: %s", contract_id, mysql_error(conn));
+    mysql_query(conn, "ROLLBACK");
+    contract_unload(ship, lot, quantity);
+    send_to_char(ch, "The shipping office cannot record contracts just now.\r\n");
+    return;
+  }
+  if (mysql_affected_rows(conn) == 0)
+  {
+    /* Someone else took it between our read and write */
+    mysql_query(conn, "ROLLBACK");
+    contract_unload(ship, lot, quantity);
     send_to_char(ch, "Another captain just took that contract.\r\n");
     return;
   }
+  if (!vessel_db_save_cargo(ship) || mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: Could not stow the freight of contract %d aboard ship %d", contract_id,
+        ship->shipnum);
+    mysql_query(conn, "ROLLBACK");
+    contract_unload(ship, lot, quantity);
+    send_to_char(ch, "The shipping office cannot record that freight; no gold was taken.\r\n");
+    return;
+  }
 
+  old_gold = GET_GOLD(ch);
   award_gold(ch, -bond);
-  vessel_db_save_cargo(ship);
+  if (!save_char_checked(ch, 0))
+  {
+    award_set_points(ch, AWARD_GOLD, old_gold);
+    contract_unload(ship, lot, quantity);
+    if (!contract_reopen(contract_id, GET_NAME(ch)) || !vessel_db_save_cargo(ship))
+    {
+      log("SYSERR: Could not reopen contract %d and unload ship %d after %s's save failed",
+          contract_id, ship->shipnum, GET_NAME(ch));
+    }
+    send_to_char(ch, "Your bond could not be recorded; no gold was taken.\r\n");
+    return;
+  }
+
   send_to_char(ch,
                "Contract %d accepted: you post a %d-gold bond, %d units are loaded, and %d gold "
                "is paid on delivery to %s.\r\n",

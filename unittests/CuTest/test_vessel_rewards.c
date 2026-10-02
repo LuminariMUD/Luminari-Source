@@ -16,6 +16,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
@@ -524,9 +526,55 @@ void Test_vessel_customs_chance_follows_duris(CuTest *tc)
   CuAssertIntEquals(tc, 5, vessel_customs_chance(0, 1000000, 1.0));
 }
 
+/* A scratch player directory and index, so the captain's saves succeed. */
+struct rewards_pfiles
+{
+  char scratch[64];
+  char home[PATH_MAX];
+  struct player_index_element index[1];
+  struct player_index_element *saved_table;
+  int saved_top;
+};
+
+static void rewards_pfiles_begin(CuTest *tc, struct rewards_pfiles *pfiles, struct char_data *ch)
+{
+  memset(pfiles, 0, sizeof(*pfiles));
+  strlcpy(pfiles->scratch, "/tmp/luminari-freight-bond-XXXXXX", sizeof(pfiles->scratch));
+  CuAssertPtrNotNull(tc, getcwd(pfiles->home, sizeof(pfiles->home)));
+  CuAssertPtrNotNull(tc, mkdtemp(pfiles->scratch));
+  CuAssertIntEquals(tc, 0, chdir(pfiles->scratch));
+  CuAssertIntEquals(tc, 0, mkdir("plrfiles", 0700));
+  CuAssertIntEquals(tc, 0, mkdir("plrfiles/P-T", 0700));
+  pfiles->index[0].name = GET_NAME(ch);
+  pfiles->index[0].id = 4249;
+  pfiles->saved_table = player_table;
+  pfiles->saved_top = top_of_p_table;
+  player_table = pfiles->index;
+  top_of_p_table = 0;
+  GET_PFILEPOS(ch) = 0;
+}
+
+static void rewards_pfiles_end(CuTest *tc, struct rewards_pfiles *pfiles, struct char_data *ch)
+{
+  char filename[MAX_FILEPATH];
+
+  if (get_filename(filename, sizeof(filename), PLR_FILE, GET_NAME(ch)))
+  {
+    unlink(filename);
+  }
+  unlink("plrfiles/index");
+  rmdir("plrfiles/P-T");
+  rmdir("plrfiles");
+  player_table = pfiles->saved_table;
+  top_of_p_table = pfiles->saved_top;
+  CuAssertIntEquals(tc, 0, chdir(pfiles->home));
+  rmdir(pfiles->scratch);
+}
+
 void Test_vessel_freight_bond_pays_for_the_goods(CuTest *tc)
 {
   struct rewards_berth berth;
+  struct rewards_pfiles pfiles;
   struct greyhawk_ship_data *ship;
   const char *output;
   MYSQL *saved_conn;
@@ -534,6 +582,7 @@ void Test_vessel_freight_bond_pays_for_the_goods(CuTest *tc)
   bool saved_mysql_available;
   char salt[16];
   char query[512];
+  char value[64];
 
   if (!rewards_database_enabled())
   {
@@ -606,12 +655,47 @@ void Test_vessel_freight_bond_pays_for_the_goods(CuTest *tc)
                    NULL);
   CuAssertIntEquals(tc, 0, ship->cargo[0].quantity);
 
-  /* Taking the job posts the bond; abandoning it keeps the goods the bond
-   * bought, so taking and dropping the job again gains nothing. */
+  /* The freight cannot be written: the job stays open and no gold is taken. */
   GET_GOLD(&berth.captain) = 1000;
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "ALTER TABLE ship_cargo_manifest ADD CONSTRAINT "
+                                            "freight_refused CHECK (item_count < 0)"));
+  output = rewards_berth_command(&berth, do_contractaccept, "1");
+  CuAssertTrue(tc, strstr(output, "cannot record that freight; no gold was taken") != NULL);
+  CuAssertIntEquals(tc, 1000, GET_GOLD(&berth.captain));
+  CuAssertIntEquals(tc, 0, ship->cargo[0].quantity);
+  rewards_query_value(tc, connection, "SELECT status FROM freight_contracts WHERE contract_id = 1",
+                      value, sizeof(value));
+  CuAssertStrEquals(tc, "0", value);
+  CuAssertIntEquals(
+      tc, 0,
+      mysql_query(connection, "ALTER TABLE ship_cargo_manifest DROP CONSTRAINT freight_refused"));
+
+  /* The captain cannot be saved: the bond is not taken, so neither is the
+   * job, and the freight comes back out of the hold. */
+  GET_PFILEPOS(&berth.captain) = -1;
+  output = rewards_berth_command(&berth, do_contractaccept, "1");
+  CuAssertTrue(tc, strstr(output, "Your bond could not be recorded; no gold was taken.") != NULL);
+  CuAssertIntEquals(tc, 1000, GET_GOLD(&berth.captain));
+  CuAssertIntEquals(tc, 0, ship->cargo[0].quantity);
+  rewards_query_value(tc, connection, "SELECT status FROM freight_contracts WHERE contract_id = 1",
+                      value, sizeof(value));
+  CuAssertStrEquals(tc, "0", value);
+  rewards_query_value(tc, connection, "SELECT COUNT(*) FROM ship_cargo_manifest", value,
+                      sizeof(value));
+  CuAssertStrEquals(tc, "0", value);
+
+  /* Taking the job posts the bond, saved with the captain; abandoning it
+   * keeps the goods the bond bought, so taking and dropping the job again
+   * gains nothing. */
+  rewards_pfiles_begin(tc, &pfiles, &berth.captain);
   output = rewards_berth_command(&berth, do_contractaccept, "1");
   CuAssertTrue(tc, strstr(output, "you post a 140-gold bond, 10 units are loaded") != NULL);
   CuAssertIntEquals(tc, 860, GET_GOLD(&berth.captain));
+  rewards_query_value(tc, connection,
+                      "SELECT item_count FROM ship_cargo_manifest WHERE cargo_room = 0", value,
+                      sizeof(value));
+  CuAssertStrEquals(tc, "10", value);
   output = rewards_berth_command(&berth, do_contractabandon, "1");
   CuAssertTrue(tc, strstr(output, "The freight your bond paid for remains in your hold.") != NULL);
   CuAssertIntEquals(tc, 10, ship->cargo[0].quantity);
@@ -619,6 +703,7 @@ void Test_vessel_freight_bond_pays_for_the_goods(CuTest *tc)
   CuAssertTrue(tc, strstr(output, "you post a 140-gold bond, 10 units are loaded") != NULL);
   CuAssertIntEquals(tc, 720, GET_GOLD(&berth.captain));
   CuAssertIntEquals(tc, 20, ship->cargo[0].quantity);
+  rewards_pfiles_end(tc, &pfiles, &berth.captain);
 
   rewards_berth_end(&berth);
   conn = saved_conn;

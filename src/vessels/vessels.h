@@ -1028,7 +1028,7 @@ bool vessel_trade_run_simulation(int trade_count, struct vessel_trade_simulation
 bool vessel_balance_run_duels(int duel_count, struct vessel_balance_duel_result *result);
 bool vessel_balance_report(struct char_data *ch, int duel_count);
 void vessel_trade_restock_tick(void);
-void vessel_db_save_cargo(struct greyhawk_ship_data *ship);
+bool vessel_db_save_cargo(struct greyhawk_ship_data *ship);
 void vessel_db_load_cargo(struct greyhawk_ship_data *ship);
 
 /* ========================================================================= */
