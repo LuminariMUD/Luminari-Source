@@ -6,13 +6,14 @@ events, and Phase 17 exterior customization implemented; wilderness tactical
 chart, lookout view, dynamic at-sea narrative, and cosmetics accepted;
 development preflight and schema rehearsal pass; player-data balance, human
 beta, and staged production rollout remain
-**Last Updated**: 2026-09-28
+**Last Updated**: 2026-10-02
 **Scope**: Current behavior reference. For the durable product contract see
 [Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md),
 including its
 [release-gate state](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md#release-gate-state);
 for what shipped when see
-[the archived changelogs](../previous_changelogs/).
+[the archived changelogs](../previous_changelogs/); for the player's view, with
+screenshots, see the [Vessel Player Guide](../guides/VESSEL_PLAYER_GUIDE.md).
 
 ---
 
