@@ -392,7 +392,7 @@ void Test_vessel_interior_exits_agree_with_her_layout(CuTest *tc)
           continue;
         CuAssertTrue(tc, shipyard_dir_step(dir, &dx, &dy));
         target = rooms[room].dir_option[dir]->to_room;
-        CuAssertTrue(tc, target >= 0 && target < count);
+        CuAssertTrue(tc, target < (room_rnum)count);
         /* Every passage leads back the way it came. */
         CuAssertPtrNotNull(tc, rooms[target].dir_option[rev_dir[dir]]);
         CuAssertIntEquals(tc, room, rooms[target].dir_option[rev_dir[dir]]->to_room);
