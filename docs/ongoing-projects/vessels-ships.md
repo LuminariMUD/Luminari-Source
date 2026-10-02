@@ -28,7 +28,7 @@ here records the merge.
 | S9 Claude Code play tests | Merged `a6adb46a8` (MR !15) | [Phase 9](vessels-ships-history.md#phase-9-s9-progress) |
 | S10 Player guide | Merged `60ef66ad1` (MR !16) | [Phase 10](vessels-ships-history.md#phase-10-s10-progress) |
 | S11 Checked cargo trades (work item #10) | Merged `f18208549` (MR !17) | [Phase 11](vessels-ships-history.md#phase-11-s11-progress) |
-| S12 Owned waypoints and routes (work item #11) | In progress on `feat/vessels-s12` | [Phase 12](#phase-12-s12-progress) |
+| S12 Owned waypoints and routes (work item #11) | In review (MR !18) | [Phase 12](#phase-12-s12-progress) |
 
 Production help is current through S10 (help sync plan `78cccae490f9`, 2026-10-02); S11 changed
 no help. S1-S11 are merged: the study's steps, S1-S8; S-immediate, which readied the local
@@ -36,7 +36,7 @@ Luminari Web client for S9; S9, which played the whole system in game and record
 turned that record into the [Vessel Player Guide](../guides/VESSEL_PLAYER_GUIDE.md) and fixed what
 checking its facts against the code found; and S11, which made `cargobuy` and `cargosell` record a
 trade before the gold moves and save the gold checked (GitLab work item #10). S12, for work item
-#11, is in progress.
+#11, is in review (MR !18).
 
 ## Working a step
 
@@ -166,7 +166,7 @@ ship data panel among them.
 
 ### Phase 12 (S12) progress
 
-In progress (2026-10-02). Branch `feat/vessels-s12` from master `f18208549` (the S11 merge), where
+In review (2026-10-03). Branch `feat/vessels-s12` from master `f18208549` (the S11 merge), where
 the annotated tag `vessels-s12-base` stands, so `git log vessels-s12-base..vessels-s12` lists only
 S12; the S11 close-out `a16fe7a64` comes first, then this plan. Hand-off as in the routine: tag
 `vessels-s12` and a merge request that says `Closes #11`; review fixes go on top. Scope: GitLab work
@@ -250,12 +250,78 @@ gate and, because scheduled hulls load their routes through the changed loader, 
 in the namespace harness on a reload of the development dump; and the local CI matrix
 `scripts/ci/local/run.py --base gitlab/master`.
 
-Progress log (2026-10-02, kept current as the work goes):
+Progress log (2026-10-02 to 2026-10-03, kept current as the work goes):
 
-- Plan committed.
+- Plan committed (`b163c621d`).
+- The fix, `0b6dcae85`, as planned: `creator_id` on both cache nodes, `waypoint_db_create()` and
+  `route_db_create()` take it, the four loaders read it; `autopilot_created_by()`,
+  `autopilot_find_waypoint()` and `autopilot_find_route()` in `vessels_autopilot.c`; the rule in
+  `delwaypoint`, `delroute` and `addtoroute`; the two `ALTER`s in
+  `vessel_ownership_ensure_schema()`; Phase 24 SQL, its manifest lines and `master_schema.sql`;
+  the three help entries in both places and three verifier patterns (52 to 55 content contracts);
+  `VESSEL_SYSTEM.md` and the player guide. New tests
+  `Test_vessel_waypoints_and_routes_answer_to_their_creator` and the DB-backed
+  `Test_vessel_waypoints_and_routes_record_their_creator`; S10's
+  `Test_vessel_shared_waypoints_and_routes_in_use_stay` runs as the creator.
+- The gate, `a2a5ad1b6` and `625d71ec2`: the rules session prints `rules_route_seed`, plays the
+  rule (Kohdee sets `rulesmark<seed>` and creates `rulesrun<seed>`; Vesselmate is refused
+  `delwaypoint`, `addtoroute` and `delroute` on them, then creates `rulesown<seed>` twice, adds
+  Kohdee's waypoint to that route and deletes that waypoint; Kohdee deletes Vesselmate's route
+  and Kohdee's own two rows); the harness's cleanup deletes those names, its final check fails
+  if any remain, and its help check reads DELROUTE. `rules_prototype_id()` became
+  `rules_value <key>`.
+  The testing docs describe the steps.
+- Local CI's clang-tidy job found two `bugprone-suspicious-string-compare` sites: the lookups
+  tested `str_cmp()` for truth. `e23b6a5cd` compares with `!= 0`.
+- Notes for whoever continues: the rule runs before S10's in-use refusals, so a fixture that
+  wants an in-use message must make the helm the creator (the movement fixture's helm has idnum
+  0, which matches nothing: 0 is no player). Mobiles have idnum -1 and record 0. A temporary
+  table shadows the real one for `ALTER TABLE` too, so the DB-backed test's ensure call alters
+  only its pre-S12 temporary tables (and `ship_interiors`, as `test_vessel_loss.c` already
+  does). The commit hook's shfmt joins a `]]` continuation into one long line; compute
+  the value first.
 
-Still open outside these steps: the production deploy of S9's world-data notes and S10's and
-S11's code, the Open player-data balance and human beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`,
+Ablation (building): nothing was added beyond the plan, and the gate reuses one reader,
+`rules_value`, for both values the rules session reports instead of a second copy. The dropped
+`db_init.c` edits stayed dropped: the merchant gate's boots added both columns to the pre-S12
+development dump.
+
+Verification (2026-10-03; the final source is `e23b6a5cd`, which differs from `a2a5ad1b6` only in
+the two explicit compares):
+
+- `make test-all` with the database cases (S9's `testenv.sh`, the `luminari-vessels-testdb`
+  container) on `a2a5ad1b6`: 1,997 CuTest cases OK (seed 1; the DB-backed test created,
+  reloaded and deleted `mara_mark` and `mara_run`), the protocol harness's 32, and the Python
+  suites (542, 37 skipped); `check_sql_interpolation.py` within baseline (317 sites).
+- Phase 24 SQL on the test database: the verifier read 0 columns before, 2 after the schema; the
+  schema re-ran cleanly; a new route row read creator 0; the rollback brought it to 0 and re-ran
+  cleanly; re-applied, 2. sqlfluff passed in the commit hook.
+- The namespace harness (`/tmp/claude-1000/vs4`, jobs `s12a` to `s12d`) on a fresh reload of the
+  development dump, whose tables predate Phase 24 (verifier 0): the merchant gate passed in 36 s
+  (a scheduled merchant sails a route loaded through the changed loaders); after its boots the
+  verifier read 2 and the dump's 3 routes and 16 waypoints all read creator 0;
+  `help_vessel_entries.sql` applied and `verify_help_vessel_entries.sql` passed all seven checks
+  (34 entries, 91 keywords, 55 content contracts); the rules gate passed in 37 s on `a2a5ad1b6`
+  and 38 s on `625d71ec2`, with no related `SYSERR`, its transcript showing each refusal and
+  deletion.
+- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`): on `625d71ec2`, 32 of 33
+  jobs passed and clang-tidy failed (the two compares above); on `e23b6a5cd`, all 33 jobs passed
+  in 336 s, clang-tidy with 0 findings.
+
+Cleanup: the harness is stopped (its disposable database stops with its namespace); the gates
+restored both player files and deleted their waypoints, routes, prototype and hulls; no scratch
+files were left in the worktree.
+
+Hand-off: tag `vessels-s12` and MR !18 from `feat/vessels-s12`, which says `Closes #11` (range
+`vessels-s12-base..vessels-s12`; squash and remove-source off). Review fixes go on top, one
+commit each. After the merge: sync DELWAYPOINT, DELROUTE and ADDTOROUTE to production (apply
+`help_vessel_entries.sql` to the development database first, then run
+`help_sync.py sync --authorize-production`); Phase 24 goes with the next production deploy (boot
+adds the columns); move this section to the history and close these study documents (see below).
+
+Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's
+and S12's code (S12's with Phase 24), the Open player-data balance and human beta gates in
+`VESSEL_SYSTEM_REQUIREMENTS.md`,
 [work item #12](https://gitlab.com/max757/Luminari-Source/-/work_items/12) (two-phase vessel
 settlements, from MR !17's review), and closing these study documents once S12 merges:
 `docs/ongoing-projects/` is temporary, and their enduring content lives in `VESSEL_SYSTEM.md` and
