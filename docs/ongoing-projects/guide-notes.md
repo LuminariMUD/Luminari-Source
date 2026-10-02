@@ -215,3 +215,69 @@ passage between the ports is roughly 20 minutes.
 
 Tips: stay aboard through a stop and the ferry carries you round the loop again; step off while
 she is berthed or casting off. Passengers may walk to the bridge to watch from the lookout.
+
+## 4. Sailing
+
+Staging: none for play. (A server restart for a fix left the Sea Wren at sea at (-78, 63) in
+shoal water, where she had sailed unattended on her last orders; Kohdee put Vesselmate back
+aboard and the chapter sails her home.) All helm commands work only on the bridge, by the owner
+or a permitted helmsman.
+
+- `20-sailing-tactical.png` (Vesselmate, `tactical` at (-78, 63)): the 21-by-21 chart around
+  her: `@` the ship, `.` shoal, `:` beach, `^` land, `o` and `O` the 5- and 10-room range rings,
+  `+` region edges; position, heading, weather and visibility, hull; then the legend, the charted
+  regions, and the contact roster with IDs, state, range, bearing and height.
+- `21-sailing-contacts-seastate.png` (Vesselmate, `contacts`, `seastate`): contacts nearest first
+  with ID, range, bearing, compass direction and the arc of her hull each lies off; `seastate`:
+  water (Water (Swim)), depth ("shallow - watch your draft"), weather (fair), visibility (55
+  units, lookout posted), hull, and the waters' law ("Unnamed open waters (standard maritime
+  law)").
+- `22-sailing-lookout.png` (Vesselmate, `lookout` berthed at the Testing Dock): the lookout view
+  with the same contact IDs and ranges as `contacts`.
+- `23-sailing-dock-alongside.png` (Vesselmate, `dock T1` in port): "Docking complete with Test
+  Vessel." `shipstatus` reads "Moorings: Made fast alongside another vessel". A gangway joins the
+  two: from the Sea Wren's Crew Quarters, north leads to the Test Vessel's bridge. `undock`:
+  "Undocking complete. You have successfully undocked from Test Vessel."
+- `24-sailing-anchored.png` (Vesselmate, `shipstatus` at anchor one room off the dock, Ship tab).
+- `25-sailing-dockfees.png` (Vesselmate, `dockfees` after berthing): "Sea Wren owes 25 gold for
+  its berth at Testing Dock. This is a public-port charge; the payment leaves the economy. Use
+  'dockfees pay' to settle the balance before departure."
+
+The voyage, in order:
+
+01. `undock` (berthed): "The crew begins casting off." 30 seconds later: "The first officer
+    reports Sea Wren ready to get under way." Orders given meanwhile are refused: "Sea Wren is
+    still casting off (27 seconds)."
+02. `heading 23`: "Heading set to 23 degrees (NE)." She comes about at her turn rate; stopped she
+    warps round a degree a tick (about 2 degrees a second). `shipstatus` shows "Heading: 151
+    degrees (coming about to 23)" meanwhile.
+03. `speed 8` in port: "Under present conditions she can make only 6." (port halves her). At sea
+    with a green sailmaster and rigging she makes 8; `speed 6`: "Half speed. Speed set to 6."
+    Speed 6 covers a room about every 7.5 seconds: 31 rooms took four minutes.
+04. Ordering speed while her bow points at shoal or land: "The ship cannot navigate this terrain!
+    It requires deep water to sail. The crew brings her up short." A ship needs deep water; stop
+    (`speed 0`), come about, then order speed.
+05. On the way: the narrative ("The ship's timbers work with the sea. It holds a steady pace.
+    Clear light runs cleanly to the horizon.") and the waters she enters ("The charts mark our
+    crossing into Harbor Sandbox Territorial Waters (territorial waters), under Harbor Admiralty
+    authority.").
+06. `speed 0` near the port: "All stop! The crew takes in sail." A hull that comes to rest in a
+    port berths: "Lines go ashore; Sea Wren is made fast at the berth." and "The harbor master
+    records a 25-gold berthing fee. Use 'dockfees pay' before departure."
+07. `dockfees pay`: "You settle 25 gold in dock fees. Sea Wren may now depart." She cannot leave
+    until it is paid; each berthing in a port is charged once.
+08. `setsail south` (under way, speed 6 or less): "The vessel maneuvers south. Current position:
+    (-66, 91, 0)"; she stops on the new heading. The crew needs 5 seconds between maneuvers.
+    `setsail north` into the port berths her (and the fee is assessed again).
+09. `anchor` (stopped, off a berth): "Sea Wren drops anchor." She takes no speed order or
+    maneuver until `undock`: "The crew begins weighing anchor." (13 seconds).
+10. `shiptalk All hands, we sail for the Testing Dock.`: "[Captain's channel - Sea Wren]
+    Vesselmate: All hands, we sail for the Testing Dock." heard in every room aboard.
+
+Tips: a hull keeps sailing on her last orders; bring her to rest before leaving the bridge. Check
+`seastate` for depth before running inshore. Pay dock fees before ordering `undock`.
+
+Defects found here and fixed: the chart lost its land cells and left the rest of the output
+orange in Luminari Web (the client read the `^` land glyph as a color code); orders given while
+casting off were told to order `undock`; lookout's ranges disagreed with contacts' for a hull
+stopped part-way through a room; dock fees named the port by room number.
