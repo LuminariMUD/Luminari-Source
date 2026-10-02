@@ -281,10 +281,18 @@ ACMD(do_transport_enter)
     return;
   }
 
-  /* Find transport in room */
-  if (!get_transport_in_room(IN_ROOM(ch), &td))
+  /* The vehicle named, found as VMOUNT finds it, or the transport here */
+  vehicle = vehicle_find_in_room_named(IN_ROOM(ch), arg);
+  if (vehicle != NULL)
   {
-    send_to_char(ch, "There is no transport here to enter.\r\n");
+    td.type = TRANSPORT_VEHICLE;
+    td.data.vehicle = vehicle;
+  }
+  else if (!get_transport_in_room(IN_ROOM(ch), &td) || td.type == TRANSPORT_VEHICLE)
+  {
+    send_to_char(ch, "%s\r\n",
+                 *arg ? "There is no vehicle here by that name."
+                      : "There is no transport here to enter.");
     return;
   }
 

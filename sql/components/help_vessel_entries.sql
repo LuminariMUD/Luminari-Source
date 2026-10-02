@@ -1428,8 +1428,9 @@ UNLOADVEHICLE [number]
   suitable.
 
 TENTER [target]
-  Enter the transport present in the room. For a land vehicle this is the
-  unified equivalent of VMOUNT; vessel boarding still directs you to BOARD.
+  Enter the vehicle named, or the transport present in the room. For a land
+  vehicle this is the unified equivalent of VMOUNT; vessel boarding still
+  directs you to BOARD.
 
 TEXIT
   Exit the current transport. For a land vehicle this is the unified equivalent

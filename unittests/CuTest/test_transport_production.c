@@ -565,6 +565,55 @@ void Test_transport_go_carries_the_rider_with_the_vehicle(CuTest *tc)
   kd_wilderness_rooms = saved_kd_wilderness_rooms;
 }
 
+void Test_transport_enter_takes_the_vehicle_named(CuTest *tc)
+{
+  struct room_data field;
+  struct room_data *saved_world;
+  struct char_data *saved_character_list;
+  struct vehicle_data *cart;
+  struct vehicle_data *wagon;
+  struct char_data rider;
+  struct player_special_data rider_specials;
+  room_rnum saved_top_of_world;
+
+  memset(&field, 0, sizeof(field));
+  field.number = 1000100;
+  field.sector_type = SECT_FIELD;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_character_list = character_list;
+  world = &field;
+  top_of_world = 0;
+
+  cart = vehicle_create(VEHICLE_CART, "River Cart");
+  wagon = vehicle_create(VEHICLE_WAGON, "Ox Wagon");
+  CuAssertPtrNotNull(tc, cart);
+  CuAssertPtrNotNull(tc, wagon);
+  cart->location = 0;
+  wagon->location = 0;
+  clear_char(&rider);
+  memset(&rider_specials, 0, sizeof(rider_specials));
+  rider.player_specials = &rider_specials;
+  rider.player.name = CuMutableString("Mara");
+  GET_IDNUM(&rider) = 424243;
+  IN_ROOM(&rider) = 0;
+  character_list = &rider;
+
+  /* With a cart and a wagon side by side, 'tenter wagon' takes the wagon,
+   * and a name that matches neither takes nothing. */
+  do_transport_enter(&rider, "nothing", 0, 0);
+  CuAssertPtrEquals(tc, NULL, get_player_vehicle(&rider));
+  do_transport_enter(&rider, "wagon", 0, 0);
+  CuAssertPtrEquals(tc, wagon, get_player_vehicle(&rider));
+
+  unregister_player_mount(&rider);
+  vehicle_destroy(cart);
+  vehicle_destroy(wagon);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  character_list = saved_character_list;
+}
+
 void Test_vehicle_loads_and_unloads_only_at_the_surface(CuTest *tc)
 {
   const int slot = 497;
