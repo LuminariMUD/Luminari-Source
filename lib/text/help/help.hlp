@@ -20602,9 +20602,10 @@ MARKET
   scarce, steady, or glutted. Scarce goods cost more and sell for more.
 
 CARGOBUY <commodity> <quantity>
-  Load bulk goods into the hold. Limited by your cargo capacity, which
-  depends on hull class, the hold refit, and your quartermaster. Large
-  batches cross supply levels, so the reported per-unit value is an average.
+  Load bulk goods into the hold; any word of the commodity's name will
+  do. Limited by your cargo capacity, which depends on hull class, the hold
+  refit, and your quartermaster. Large batches cross supply levels, so the
+  reported per-unit value is an average.
 
 CARGOSELL <commodity> [<quantity>|all]
   Sell goods from the hold at the local price. Ports buy below their
@@ -25442,13 +25443,14 @@ BOUNTY [<player>]
   (SHIPRENOWN), and it is cleared.
 
 BOUNTY PAY
-  At a lawful port's admiralty office (any dock outside a pirate cove),
-  clear your whole bounty for 125% of it. Even a WANTED captain may pay.
+  Ashore at a lawful port's admiralty office (any dock outside a pirate
+  cove), clear your whole bounty for 125% of it. Even a WANTED captain may
+  pay.
 
 MARQUE
-  At a port's admiralty office (any dock), buy a letter of marque. It makes
-  your prizes lawful where an authority would otherwise post a bounty.
-  Costs 2000 gold and lasts one day. The admiralty will not commission a
+  Ashore at a port's admiralty office (any dock), buy a letter of
+  marque. It makes your prizes lawful where an authority would otherwise
+  post a bounty. Costs 2000 gold and lasts one day. The admiralty will not commission a
   captain who is already WANTED - settle your bounty first (BOUNTY PAY).
 
 Regional law comes from builder-authored wilderness geography. Territorial

@@ -725,6 +725,10 @@ void Test_vessel_contraband_is_sold_where_stocked_and_seized_elsewhere(CuTest *t
   ship->vessel_type = VESSEL_SHIP;
   output = rewards_berth_command(&berth, do_cargobuy, "forbidden 2");
   CuAssertTrue(tc, strstr(output, "You load 2 units of forbidden tomes") != NULL);
+  /* Any word of the name finds the goods. */
+  output = rewards_berth_command(&berth, do_cargobuy, "tomes 1");
+  CuAssertTrue(tc, strstr(output, "You load 1 units of forbidden tomes") != NULL);
+  ship->cargo[0].quantity = 2;
 
   /* A sale where it is not stocked leaves no stock behind. */
   CuAssertIntEquals(tc, 0, mysql_query(connection, "DELETE FROM port_commodities"));

@@ -1028,7 +1028,7 @@ static void vessel_bounty_pay(struct char_data *ch)
   room = IN_ROOM(ch);
   if (!vessel_room_is_port(room))
   {
-    send_to_char(ch, "Bounties are settled at a lawful port's admiralty office.\r\n");
+    send_to_char(ch, "Bounties are settled ashore, at a lawful port's admiralty office.\r\n");
     return;
   }
   if (vessel_piracy_law_at_coordinates(world[room].coords[0], world[room].coords[1], &law) &&
@@ -1134,7 +1134,7 @@ ACMD(do_marque)
 
   if (!vessel_room_is_port(IN_ROOM(ch)))
   {
-    send_to_char(ch, "Letters of marque are issued at a port's admiralty office.\r\n");
+    send_to_char(ch, "Letters of marque are issued ashore, at a port's admiralty office.\r\n");
     return;
   }
 

@@ -632,9 +632,10 @@ static struct commodity_def *commodity_by_name(const char *name)
     return NULL;
   }
 
+  /* Any word of the name will do: "tomes" finds "forbidden tomes". */
   for (i = 0; i < num_commodities; i++)
   {
-    if (is_abbrev(name, commodity_cache[i].name))
+    if (is_abbrev(name, commodity_cache[i].name) || isname(name, commodity_cache[i].name))
     {
       return &commodity_cache[i];
     }
