@@ -4,7 +4,7 @@ Ships, airships, submarines, river craft and carts: how to ride them, buy them, 
 them, trade with them, fight them, lose them and get them back.
 
 The guide follows a new captain through the vessel system in the order a player meets it. The
-screenshots were taken in play, in the Luminari Web client with its Ship tab open, on a
+screenshots were taken in play, in the Luminari Web client, most with its Ship tab open, on a
 development world whose test harbor has a west pier (the Testing Dock) and an east pier (the
 Harbor Sandbox East Dock) ten rooms apart. Some are cropped to the lines that matter, and lines
 from the staff who staged the play are blanked. The names of ports, hull designs and goods, and
@@ -60,13 +60,14 @@ costs 10 gold; you have 4."). Some merchants carry passengers free.
 
 Aboard, the commands that read the ship work for passengers too. From the bridge, `lookout`
 shows the view from her deck: the weather, the water, the eight compass sectors to the horizon,
-and the vessels in sight, nearest first, each with its two-letter contact ID.
+and the ten nearest vessels in sight, each with its two-letter contact ID (`tactical` lists the
+rest).
 
 ![The lookout view](vessel-guide/13-passage-lookout.png)
 
-*`lookout` off the harbor: position, heading, weather and visibility, the water column, the
-compass sectors, and "[AP] Kestrel sound 0.6u E (86 deg), dz +0": contact AP, sound, 0.6 rooms
-to the east, at the same height.*
+*`lookout` from a ship off the harbor (a ferry passenger's reads the same): position, heading,
+weather and visibility, the water column, the compass sectors, and "[AP] Kestrel sound 0.6u E (86
+deg), dz +0": contact AP, sound, 0.6 rooms to the east, at the same height.*
 
 ![Ship status read by a passenger](vessel-guide/14-passage-ferry-status.png)
 
@@ -105,8 +106,8 @@ fast-travel service between ports; it is not the vessel command `setsail`.*
 
 ![Open water in the Vailand Passage](vessel-guide/18-passage-merchant-lookout.png)
 
-*`lookout` in the Vailand Passage. At sea the lookout adds a line on the hull, the weather and
-the waters: "A ship is running near full speed under overcast skies."*
+*`lookout` in the Vailand Passage. The lookout adds a line on the hull, the weather and the
+waters: "A ship is running near full speed under overcast skies."*
 
 On the way you hear the ship's life: the pilot at the helm ("The harbor ferrymaster studies the
 route from the helm."), the crew casting off, and the waters she crosses ("The charts mark our
@@ -213,7 +214,8 @@ hulls moored at the dock, at range 0.0.*
 
 ## 4. Crew, weapons and refits
 
-Hiring, fitting and refitting need her berthed in port; dismissing a hand works anywhere aboard.
+Hiring needs her in port; fitting weapons and equipment, rearming and refitting need her berthed
+and not casting off; dismissing a hand works anywhere aboard.
 One help entry covers all of it: `help shiphire` (also found as `help shipweapon`,
 `help shipupgrade`, `help ship-crew` and `help ship-refit`).
 
@@ -269,7 +271,7 @@ shown or a veteran gunner, and a hull carries only one; a Ship cannot mount the 
 or the Long Tom. Reloads are the base times: a better gunner shortens them and a tired crew
 lengthens them. The list ends with each arc's mounts and weight against its cap (a Ship: fore and
 rear one mount and 17 weight each, port and starboard three mounts and 26 each) and her total
-fit-out weight.
+fit-out weight. The capital weapons reload in 25 and a half seconds.
 
 ```text
 shipweapon buy 3 starboard
@@ -310,7 +312,8 @@ refits installed.*
 
 *`shipstatus` after the refit: armor up a fifth (fore 63, port 79, starboard 79, rear 39), crew
 stamina 900, "Shipwrights: 2210 seconds of work left", and the weapons: slot 0 Medium Ballista
-fore, slots 1 and 2 Large Ballistas port and starboard, slot 3 the ram.*
+fore, slots 1 and 2 Large Ballistas port and starboard (after `shipweapon swap 1 2`), slot 3 the
+ram.*
 
 ## 5. Sailing
 
@@ -373,8 +376,8 @@ watch your draft"), the weather, visibility, her hull, and the waters' law ("Unn
 *`lookout` at the Testing Dock gives the same contacts and ranges as a view from the deck.*
 
 The contact ID (AN, AP, T1) is how every command names another vessel: `contacts`, `tactical`,
-`lookout`, `shipscan`, `shiplock`, `shipfire` and the event roster all use it. A word of her name
-works too.
+`lookout`, `shipscan`, `shiplock`, `shipfire`, `dock`, `board_hostile` and the event roster all
+use it. A word of her name works too, the nearest such hull first.
 
 At sea you hear the ship and the weather ("The ship's timbers work with the sea. It holds a steady
 pace. Clear light runs cleanly to the horizon.") and the waters you enter ("The charts mark our
@@ -395,8 +398,10 @@ Lines go ashore; Sea Wren is made fast at the berth.
 ![Dock fees](vessel-guide/25-sailing-dockfees.png)
 
 *`dockfees`: "Sea Wren owes 25 gold for its berth at Testing Dock. This is a public-port charge;
-the payment leaves the economy." `dockfees pay` settles it: "You settle 25 gold in dock fees. Sea
-Wren may now depart."*
+the payment leaves the economy. Use 'dockfees pay' to settle the balance before departure."*
+
+`dockfees pay` settles it: "You settle 25 gold in dock fees. Sea Wren may now depart." The fee is
+due only before she leaves; trading and freight in port do not wait for it.
 
 ### Harbor maneuvers and anchoring
 
@@ -412,13 +417,13 @@ maneuver until `undock` weighs it ("The crew begins weighing anchor.", 13 second
 
 *`shipstatus` at anchor one room off the dock: "Moorings: Anchored".*
 
-`dock <contact>` lays her alongside another hull in port and runs a gangway between them ("Docking
-complete with Test Vessel."); `undock` takes it in again ("Undocking complete."):
+`dock <contact>` lays her alongside another hull within two rooms, both at speed 2 or less, and
+runs a gangway between them ("Docking complete with Test Vessel."); `undock` takes it in again
+("Undocking complete."):
 
 ![Made fast alongside](vessel-guide/23-sailing-dock-alongside.png)
 
-*`shipstatus` after `dock T1`: "Moorings: Made fast alongside another vessel". The gangway leads
-from her to the other ship.*
+*`shipstatus` after `dock T1`: "Moorings: Made fast alongside another vessel".*
 
 ## 6. Routes, autopilot and schedules
 
@@ -430,7 +435,8 @@ The autopilot sails a route of waypoints for you. Route commands work on the bri
 2. `createroute <name>` starts a route ("Route 'wren_run' created (ID: 6).") and
    `addtoroute <route> <waypoint>` appends a waypoint ("Waypoint 'harbor_channel_turn' added to
    route 'wren_run' at position 1."); up to 20 a route. `listroutes` lists every route with its
-   waypoints, whether it loops, and whether it is active; `delroute <name>` removes one.
+   number of waypoints; a route you create sails once through and does not loop.
+   `delroute <name>` removes one.
 3. `setroute <route>` gives it to the autopilot, and `autopilot on` engages it.
 
 ![The autopilot engaged](vessel-guide/26-routes-autopilot-on.png)
@@ -440,13 +446,14 @@ to autopilot (2 waypoints)." "Autopilot engaged on route 'wren_run'." The status
 state, the waypoint she sails for and its distance, and her counts of steps, arrivals and
 completed routes.*
 
-The autopilot casts off from a berth (30 seconds) and sails at full speed unless you order a
-slower one. More than 45 degrees off her waypoint she slows to steerage way, and more than 90 off
-she stops and comes about where she lies. She stops at the last waypoint of a one-way route,
-berthing if that is a port. `autopilot pause` holds her, `autopilot on` resumes (or sails a
-finished route again), and `autopilot off` disengages it. It will not leave a port with dock fees
-unpaid ("Autopilot pauses: the harbor requires 25 gold in dock fees before departure."): pay,
-then `autopilot on`.
+The autopilot casts off from a berth (30 seconds) and sails at full speed unless you order a slower
+one. More than 45 degrees off her waypoint she slows to steerage way, and more than 90 off she stops
+and comes about where she lies. She stops at the last waypoint of a one-way route, berthing if that
+is a port. `autopilot pause` holds her and `autopilot on` resumes; after `autopilot off`, or a
+finished route, `autopilot on` starts again from the first waypoint. With an NPC pilot assigned,
+`off` is refused: pause her, or relieve the pilot. It will not leave a port with dock fees unpaid
+("Autopilot pauses: the harbor requires 25 gold in dock fees before departure."): pay, then
+`autopilot on`.
 
 `setschedule <route> <hours> [fare]` sails the route every 1 to 24 MUD hours; a fare applies only
 to unowned public hulls. `showschedule` shows it, `clearschedule` ends it.
@@ -464,16 +471,21 @@ waypoint. `unassignpilot` relieves them and disengages the autopilot; the route 
 
 ![A pilot brings her home](vessel-guide/28-routes-pilot-arrives.png)
 
-*The ferrymaster brings her home on the route `wren_home_run`: "The harbor ferrymaster announces,
-'Arriving at wren_home!'" She berths, and `shipstatus` shows the berthing fee due.*
+*The ferrymaster brings her home: "The harbor ferrymaster announces, 'Arriving at wren_home!'"
+She berths, and `shipstatus` shows the berthing fee due.*
 
 Engaging the autopilot, assigning a pilot and setting a schedule are departures, so they need the
-hull's level (16 for a ship).
+hull's level (16 for a ship). The owner may give these orders anywhere aboard; a captain on a
+helm permit gives them on the bridge.
+
+Waypoints and routes are shared by every captain, and any captain may delete one, but not a
+waypoint that a route sails through, nor a route that a ship runs on a schedule or is sailing.
 
 ## 7. Trade and freight
 
-Each port has a market and a freight board. Trading is done aboard a hull in a port room; buying,
-selling and taking freight need the owner or a captain cleared for her helm.
+Each port has a market and a freight board. Trading is done aboard a hull in a port room;
+buying, selling and taking freight need the owner or a captain cleared for her helm. The manifest
+and abandoning a contract work anywhere aboard.
 
 ### The market
 
@@ -498,15 +510,15 @@ money. Look for a port where your goods are scarce.
 
 Some things change the price you are paid. Merchants pay a tenth less to a hull under neutral
 colors and four tenths less to a warship, and a tenth more to a seller with the Seadog feat.
-Neutral colors cannot be struck while cargo is aboard ("Her neutral colors stay up while she has
-cargo aboard.").
+Neutral colors cannot be taken down (`shipequip sell colors`) while cargo is aboard ("Her neutral
+colors stay up while she has cargo aboard.").
 
 ### Freight contracts
 
 ![The freight board](vessel-guide/30-trade-contracts.png)
 
 *`contracts` at the east pier: each job's ID, cargo, quantity, the bond the shipper asks, the
-payout, and the destination. Your active contracts are listed below the board.*
+payout, and the destination. Your active contracts, if any, are listed below the board.*
 
 `contractaccept <id>` posts the bond and loads the freight:
 
@@ -516,8 +528,8 @@ delivery to Harbor Sandbox East Dock.
 ```
 
 The bond is the goods' worth, and the payout repays it. Without the gold the shipper says so
-("The shipper asks a 140-gold bond for that freight; you have 100."). Sail to the destination,
-settle the dock fee, and `contractdeliver <id>`:
+("The shipper asks a 140-gold bond for that freight; you have 100."). Sail to the destination
+and `contractdeliver <id>`:
 
 ![Freight delivered and grain sold](vessel-guide/32-trade-deliver-sell.png)
 
@@ -527,7 +539,8 @@ units of grain for 272 gold (5 average each)."*
 
 ![Another delivery](vessel-guide/33-trade-delivered.png)
 
-*A delivery at the Testing Dock repays a 350-gold bond with 370, and the hold is empty again.*
+*A delivery at the Testing Dock pays 370 gold and empties the hold; the berthing fee shown is
+still owed, due before she leaves.*
 
 `contractabandon <id>`, anywhere, gives a job up: "You abandon contract 14. The freight your bond
 paid for remains in your hold." The job goes back on the board until the board next refreshes
@@ -539,7 +552,9 @@ pays.
 
 Fight in deep water. At battle stations no harbor admits her, the crew keeps her out of water too
 shallow for her draft, and a hull run at the shallows or the shore may go aground (see
-[Damage, repair and salvage](#9-damage-repair-and-salvage)).
+[Damage, repair and salvage](#9-damage-repair-and-salvage)). The owner, a captain on a helm permit
+and the owner's group may work the guns from anywhere aboard; anyone aboard may read `shipsight`
+and `shipscan`.
 
 ![Raiders on the chart](vessel-guide/34-gunnery-tactical.png)
 
@@ -550,10 +565,11 @@ tab shows the lock on AP.*
    bearing 259, west, off the bow.
 2. `shiplock <contact>` locks the guns and calls battle stations: "The guns lock onto [AP]
    Corsair Clipper. The crew scrambles to battle stations!"
-3. `shipsight <slot>` gives a weapon's chance to hit, or why it cannot fire: "Corsair Clipper is
-   outside the Medium Ballista's 0-10 room band (20.8)." or "The port Large Ballista cannot bear -
-   Corsair Clipper lies off your fore arc."
-4. `shipfire <arc> <contact>` fires every weapon on that arc that bears:
+3. `shipsight [slot]` gives each weapon's chance to hit (or one weapon's), or why it cannot fire:
+   "Corsair Clipper is outside the Medium Ballista's 0-10 room band (20.8)." or "The port Large
+   Ballista cannot bear - Corsair Clipper lies off your fore arc."
+4. `shipfire <arc|slot> [contact]` fires every weapon on that arc that bears, or the one weapon in
+   that slot, at the locked contact (naming a contact locks onto it first):
 
 ```text
 The guns lock onto [AO] Corsair Ketch.
@@ -565,7 +581,7 @@ You hit [AO] Corsair Ketch for 6 points on the stern!
 When none can, you are told so: "No weapon on the starboard arc can fire at Corsair Ketch now. See
 'shipsight'." Each shot spends a round, and each weapon then reloads ("The port Large Ballista is
 reloaded and ready."). Your hull cannot fire in port, at anchor, submerged, while she goes down,
-with her crew stunned, or while she reels from a ram.
+with her crew stunned, or for about 25 seconds after she rams.
 
 Hits land on the side facing the shooter, so keep the target on a beam, where the heaviest
 battery is: the Large Ballistas on port and starboard did the work here. A hit through the armor
@@ -582,11 +598,14 @@ Condition: sinking, holed on 2 sides." and her weapons by arc.*
 
 ### Ramming
 
-With a ram fitted, locked on, and at speed 6 or more, `shipram` braces the crew to ram: "The crew
-braces to ram [AO] Corsair Ketch!" A rammer as heavy as her target or heavier slews it about and
-both slow to speed 3; a lighter rammer is stopped dead. Every ram knocks people down aboard both
-hulls (a Reflex save, DC 15, keeps you on your feet), and so do one hit in nine that gets past the
-armor and a mind blast; stand up (`stand`) before your next order.
+Locked on and at speed 6 or more, `shipram` braces the crew to ram: "The crew braces to ram [AO]
+Corsair Ketch!" She rams when the target comes within a room, inside a 120-degree cone off her bow
+and at her height, while she still makes more than speed 3. Both hulls take crash damage; a ram
+(`shipequip buy ram`) strikes first and halves the damage to her own bow. A rammer as heavy as her
+target or heavier slews it about and both slow to speed 3; a lighter rammer is ordered to stop.
+Every ram knocks people down aboard both hulls unless they make a Reflex save (DC 15), and so does
+one hit in nine that gets past the armor; a mind blast fired from inside the middle of its range
+knocks the crew down on a failed Will save (DC 15). Stand up (`stand`) before your next order.
 
 ![Rammed](vessel-guide/35-gunnery-fire.png)
 
@@ -598,9 +617,10 @@ reclining..."*
 ### Raiders
 
 Corsair raiders hunt ships at sea, often in pairs. They close fast, ram, throw grappling lines
-("WARNING: Corsair Ketch throws grappling lines across!") and send boarders, whom your crew beats
-off ("The crew beats off Corsair Ketch's boarders!"). Their fire splashes wide or finds you ("The
-bow is hit for 4 points!").
+("WARNING: Corsair Ketch throws grappling lines across!") and try to board, in the same two
+contests a player boards by. Beaten off, they withdraw ("The crew beats off Corsair Ketch's
+boarders!"); winning, they swarm aboard and carry off cargo. Their fire splashes wide or finds you
+("The bow is hit for 4 points!").
 
 `shiplock off` stands the guns down: "The guns come off their target; the crew stands down in 180
 seconds."
@@ -611,9 +631,10 @@ A hull has armor and, under it, structure on each of four sides (fore, port, sta
 plus sails and a rudder. Hits land on the side facing the shooter, on the sails, and through the
 armor into structure and the weapons mounted there.
 
-- A side with neither armor nor structure left is holed. One holed side leaves her dead in the
-  water; two set her sinking. `shipscan` and `tactical` show it ("Condition: sinking, holed on 2
-  sides"; `X` on the chart), and any holed hull reads at least crippled.
+- A side with neither armor nor structure left is holed. One holed side leaves her dead in the water
+  (a hull aloft keeps half her speed); two set her sinking. `shipscan` and `tactical` show it
+  ("Condition: sinking, holed on 2 sides"; `X` on the chart), and any holed hull reads at least
+  crippled.
 - A stern full of hits fouls her rudder, and she cannot turn.
 - A sinking player's hull goes down in 75 to 150 seconds; an unowned hull takes 17 to 25 minutes,
   time enough to board and plunder her. `shipstatus` counts it down ("SINKING: she goes down in
@@ -621,15 +642,18 @@ armor into structure and the weapons mounted there.
 - A sunk hull leaves wreckage ("The shattered wreckage of Corsair Ketch floats here."), and half
   of each cargo lot floats free in salvage crates for about half an hour.
 - At battle stations, a hull run at the shallows or the shore may go aground. The crew fights to
-  keep her off ("The crew keeps her from running aground."), and a stunned crew cannot: "CRUNCH!
-  Sea Wren runs hard aground!", with several hits, the first on the bow.
+  keep her off ("The crew fights to keep her off!") and often fails, the more so the faster she
+  goes; a stunned crew cannot try. "CRUNCH! Sea Wren runs hard aground!" brings several hits, the
+  first on the bow.
 
 ### Repairs at sea
 
-`shiprepair` at sea is a crew patch from her repair stores (200 on a ship): structure, sails,
-rudder and damaged weapons, up to a limit her bosun raises. Without a bosun the crew mends
-structure to a tenth and sails and rudder to two fifths; each tier of bosun adds 15 points to
-both (a green bosun: a quarter and 55%), never past 90%. Armor is made good only at a shipyard:
+At sea the crew mends her on its own from her repair stores (200 on a ship): structure, sails,
+rudder and damaged weapons, up to a limit her bosun raises. Without a bosun they mend structure to
+a tenth and sails and rudder to two fifths; each tier of bosun adds 15 points to both (a green
+bosun: a quarter and 55%), never past 90%. They work far faster at anchor; under way they cannot
+patch a holed side or shot-away sails. `shiprepair` at sea is your own patch: one point, on a Craft
+(woodworking) check against DC 15, for two combat rounds. Armor is made good only at a shipyard:
 
 ```text
 Nothing aboard needs a patch the stores can make at sea; armor, and the rest of her, are made
@@ -654,8 +678,8 @@ time only keeps her at the berth, and `shipstatus` counts it down.
 
 ### Salvage
 
-`shipsalvage`, with your hull stopped on the wreck, hauls the floating crates aboard: "The crew
-hauls 50 units of floating salvage into the hold."
+`shipsalvage`, at the helm with your hull stopped on the wreck, hauls the floating crates aboard:
+"The crew hauls 50 units of floating salvage into the hold."
 
 ![Salvage](vessel-guide/46-salvage.png)
 
@@ -680,9 +704,10 @@ christening her is free.*
 ### Boarding a defended hull
 
 `board_hostile <vessel>` crosses from a deck to a hull within two rooms, neither of them docked,
-moving at speed 3 or less or beaten. Two contests decide it, the grapple and the crossing: each is
-your Boarding skill plus a d20 against the best defender's Boarding plus a d20 plus the hull's
-modifier (her class, her damage, her speed and her crew), ties to the defender.
+moving at speed 3 or less or beaten; name her by contact ID or a word of her name. Two contests
+decide it, the grapple and the crossing: each is your Boarding skill plus a d20 against the best
+defender's Boarding plus a d20 plus the hull's modifier (her class, her damage, her speed and her
+crew), ties to the defender.
 
 ```text
 Grapple contest: Boarding 4 + d20 19 = 23; the corsair captain Boarding 9 + d20 11 + vessel
@@ -708,10 +733,11 @@ in her hold:
 *`unlock chest`, `open chest`, `look in chest`, `get all chest` in the raider's hold: "*Click*"
 ... "You get a big pile of gold coins from an iron-bound strongbox. There were 1048 coins."*
 
-`plunder` on her bridge, with nobody conscious left aboard, moves her cargo into your hold. When
-nothing moves you are told why: her hold is empty ("Corsair Ketch's hold is empty: there is
-nothing to take."), or yours has no room. Plunder is piracy wherever an authority claims the
-waters (see [Two captains](#11-two-captains)).
+`plunder` on a beaten prize's bridge, with nobody else awake there and your own hull docked to her
+or within two rooms ("You need your own ship alongside to carry off the cargo."), moves her cargo
+into your hold. When nothing moves you are told why: her hold is empty ("Corsair Ketch's hold is
+empty: there is nothing to take."), or yours has no room. Plunder is piracy (see
+[Two captains](#11-two-captains)).
 
 ## 11. Two captains
 
@@ -725,9 +751,9 @@ Wren to Brinewick." Everyone aboard hears "Sea Wren is under new ownership: Brin
 
 A permit lets another captain take your helm: heading, speed and the rest ("Brinewick adjusts the
 vessel's heading."). Revoked, they are told "You must be at an authorized helm to set heading."
-`shipdeed <player>` gives her away for good; both captains must stand in the same room and the
-receiver must be under the ownership cap. An unowned hull with no pilot answers to anyone at her
-helm.
+`shipdeed <player>` gives her away for good; both captains must stand in the same room aboard her,
+and the receiver must be under the ownership cap. An unowned hull with no pilot answers to anyone at
+her helm.
 
 ### Fighting another captain
 
@@ -739,9 +765,9 @@ Firing on, boarding or claiming a groupmate's hull costs the aggressor the group
 them in person does: a shot that clears range, arc and consent leaves the shooter's group
 ("[Group] Vesselmate has left the group."). A shot that cannot bear records nothing.
 
-A captain who yields strikes her colors with `strikecolors` (the owner or a permit holder, on a
-stopped hull): "She yields. They fly again when she gets under way or in ten minutes." A hull
-under struck colors is a prize.
+A captain who yields strikes her colors with `strikecolors` (the owner or a permit holder, aboard
+a stopped hull): "Brinewick strikes Kestrel's colors: she yields. They fly again when she gets
+under way or in ten minutes." A hull under struck colors is a prize.
 
 ![Colors struck](vessel-guide/41-captains-colors-struck.png)
 
@@ -763,24 +789,25 @@ about 77 seconds."*
 
 When your hull sinks another, the prize court pays: the salvage value of what is left of her, 2.5
 gold a point of her renown if she had more than 100, and the bounty on her captain if they were
-aboard and wanted. Sinking a player's hull also wins renown: her hull weight (200 for a ship)
-passes from her to you.
+aboard and wanted. Sinking a player's hull also wins renown: her hull weight (200 for a ship),
+which she loses (never below 0).
 
 ![Renown and prize money](vessel-guide/44-captains-renown.png)
 
 *"Sea Wren wins 200 renown for sinking Kestrel." "The harbor office delivers 462 gold from 1
 vessel settlement. Check your mail for the receipt."*
 
-The gold goes into your purse (at your next login if you are away), and a letter brings the
-receipt. Allies share the prize and the renown: hulls in sight and out of port whose owners are
+The gold goes into your purse (at your next login if you are away), and a letter brings the receipt.
+Allies share the prize and the renown equally: hulls in sight and out of port whose owners are
 online and grouped with yours. `shiprenown` is the board of the most renowned hulls ("1. Sea Wren
 Ship Vesselmate 200 renown"). Renown opens able and veteran crew, capital weapons and contraband.
 
 ### Bounties and letters of marque
 
-Sinking a consenting captain's ship is not piracy. Plunder is, where an authority claims the
-waters: each unit taken adds to your bounty (15 gold a unit, more or less by the waters' law). At
-500 gold you are WANTED, and lawful ports refuse you all business; at 2,000 you are HUNTED, and
+Sinking a consenting captain's ship is not piracy. Plunder is: each unit taken adds to your
+bounty, 15 gold a unit by ordinary maritime law, more or less where a regional law rules, nothing
+in waters that waive it. Sinking or seizing an NPC merchant posts at least 510. At 500 gold you
+are WANTED, and lawful ports refuse you all business; at 2,000 you are HUNTED, and
 the navy sends warships after you (see [The living world](#15-the-living-world)). A bounty holds
 for a day after your last offense, then fades by a twentieth a day.
 
@@ -788,8 +815,8 @@ for a day after your last offense, then fades by a twentieth a day.
 yours for 125% of it at a lawful port's admiralty office. `marque` buys a letter of marque there,
 good for a day: "You pay 2000 gold. The admiralty commissions you as a privateer - prizes taken
 now are lawful." Plunder under a letter adds no bounty, but the admiralty does not commission a
-captain who is already wanted. Both are done ashore, on the dock ("Letters of marque are issued
-ashore, at a port's admiralty office.").
+captain who is already wanted. Both are done ashore, on a port's dock ("Letters of marque are
+issued ashore, at a port's admiralty office.").
 
 ## 12. Contraband and customs
 
@@ -842,11 +869,14 @@ can be sent for, and `shipsummon <n>` sends for one:
 
 ![Summoning a wreck](vessel-guide/49-loss-shipsummon-list.png)
 
-*`shipsummon`: " 1. Kestrel (Boat): in the wreck registry; 2 gold, about 63 minutes."
-`shipsummon 1` then pays: "You pay 2 gold. Word goes out to Kestrel; she should make port here in
-about 63 minutes."*
+*`shipsummon`: " 1. Kestrel (Boat): in the wreck registry; 2 gold, about 63 minutes."*
 
-When she makes port the harbor sends word to her owner, wherever they are. To turn her back into
+`shipsummon 1` pays: "You pay 2 gold. Word goes out to Kestrel; she should make port here in about
+63 minutes." A hull summoned from afloat puts everyone aboard over the side and empties her hold
+as she goes; none is summoned at battle stations.
+
+When she makes port the harbor sends word to her owner, wherever they are. A rebuilt wreck usually
+comes back with no sails, so she cannot sail until a shipyard repairs them; to turn her back into
 a real ship, trade her in at a dock: `shipbuy <id> trade`.
 
 ![Trade-in](vessel-guide/64-loss-trade-in.png)
@@ -878,8 +908,9 @@ magical hulls add `setsail up` and `setsail down`, ten units at a time, five sec
 
 *The Sablebranch Riverboat on a river: `shipstatus` reads "Terrain: River".*
 
-A riverboat keeps to rivers and shallow coastal water. Steered onto the bank: "Your boat cannot go
-there! She keeps to rivers and shallow coastal water."
+A boat keeps off the open ocean and the land: rivers, shallows, marsh and beach water are hers.
+Steered onto the bank: "Your boat cannot go there! She keeps to rivers and shallow coastal
+water."
 
 ![An airship in a sky lane](vessel-guide/53-hulls-airship-skyway.png)
 
@@ -894,7 +925,7 @@ Skyway (active above 100)".*
 
 ![A submarine](vessel-guide/55-hulls-submarine.png)
 
-*The Starfall Bathyscaphe after three `setsail down` ("The vessel descends to -30."):
+*The Starfall Bathyscaphe after three `setsail down`, each "The vessel descends ...":
 `shipstatus` reads "Elevation/Depth: -30", over the Starfall Trench.*
 
 ![A magical hull](vessel-guide/56-hulls-magical.png)
@@ -919,8 +950,9 @@ Carts, wagons, carriages and mounts travel the land. `look` lists them in the ro
   condition.
 - `vmount <vehicle>` climbs aboard ("You climb onto River Cart."), `drive <direction>` drives it
   ("You drive the cart west."), `vdismount` gets off.
-- The transport commands work for every vehicle and vessel alike: `tstatus`, `tenter [vehicle]`,
-  `tgo <direction>` (on a vehicle, the same as `drive`, carrying its riders) and `texit`.
+- The transport commands: `tstatus` reads any vehicle or vessel; `tenter [vehicle]`,
+  `tgo <direction>` (the same as `drive`, carrying the riders) and `texit` are for vehicles, and
+  on a vessel point you to `board`, `heading` and `speed`, and `disembark`.
 
 | Vehicle | Passengers | Cargo | Goes on |
 | -- | -: | -: | -- |
@@ -930,8 +962,9 @@ Carts, wagons, carriages and mounts travel the land. `look` lists them in the ro
 | mount | 1 | 200 lbs | roads, plains, forest and hills |
 
 No vehicle crosses water, but a hull can carry one. From aboard a stopped hull at the surface,
-`loadvehicle <vehicle>` loads an empty vehicle beside her, if her hold has room for its cargo
-rating and load (a raft cannot take a cart; no hull takes more than ten). `unloadvehicle` lists
+`loadvehicle <vehicle>` loads a sound vehicle beside her with nobody riding it, if her vehicle
+room (her hold's capacity, less the vehicles already aboard) takes its cargo rating and load (a
+raft cannot take a cart; no hull takes more than ten). `unloadvehicle` lists
 what she carries, and `unloadvehicle <number>` unloads one where the ground suits it ("The terrain
 here is not suitable for River Cart." on a river).
 
@@ -945,8 +978,9 @@ at 0, "You unload River Cart from Liminal Wayfarer."*
 ### Events
 
 Staff run vessel events: regattas, ghost fleets and team skirmishes, one at a time. `vevent status`
-shows the event, `vevent join` (or `vevent join red` or `blue` in a skirmish) enters the hull you
-are at the helm of, and `vevent leaderboard [regatta|skirmish|ghost]` shows the standings.
+shows the event, `vevent join` (`vevent join red` or `blue` in a skirmish, which needs a team)
+enters the hull you are at the helm of, and `vevent leaderboard [regatta|skirmish|ghost]` shows the
+standings.
 
 ![A regatta](vessel-guide/60-world-regatta-status.png)
 
@@ -965,7 +999,7 @@ the finish is the exact coordinate.*
 best 137s". Places score 100, 90, 80 and so on, never under 10.*
 
 In a ghost fleet every hit on a ghost scores; in a skirmish every hit on the other team's hulls
-does, and a sinking adds 100:
+does; and in both a sinking adds 100:
 
 ![Fighting a ghost ship](vessel-guide/63-world-ghost-score.png)
 
@@ -1071,23 +1105,26 @@ The full protocol reference is [MSDP_VARIABLES.md](../systems/MSDP_VARIABLES.md)
 | `tactical`, `contacts`, `lookout`, `seastate` | Aboard | The sea around her |
 | `shiptalk <message>` | Aboard | Speak to every room aboard |
 | `dockfees [pay]` | Aboard | Berthing fees |
-| `setwaypoint`, `listwaypoints`, `delwaypoint` | Bridge | Waypoints |
-| `createroute`, `addtoroute`, `listroutes`, `delroute`, `setroute` | Bridge | Routes |
-| `autopilot [on\|off\|pause\|status]` | Bridge | The autopilot |
-| `setschedule`, `showschedule`, `clearschedule` | Bridge | Scheduled departures |
-| `assignpilot <npc>`, `unassignpilot` | Bridge | An NPC pilot |
-| `market`, `cargobuy`, `cargosell`, `cargomanifest` | In port | Trade |
-| `contracts`, `contractaccept`, `contractdeliver`, `contractabandon` | In port | Freight |
-| `shiplock`, `shipsight`, `shipfire`, `shipscan`, `shipram` | Bridge | Gunnery |
-| `shiprepair`, `shipsalvage` | At sea / berthed | Repairs and salvage |
+| `setwaypoint`, `listwaypoints`, `delwaypoint` | Aboard (owner) / bridge | Waypoints |
+| `createroute`, `addtoroute`, `listroutes`, `delroute`, `setroute` | Aboard (owner) / bridge | Routes |
+| `autopilot [on\|off\|pause\|status]` | Aboard (owner) / bridge | The autopilot |
+| `setschedule`, `showschedule`, `clearschedule` | Aboard (owner) / bridge | Scheduled departures |
+| `assignpilot <npc>`, `unassignpilot` | Aboard (owner) / bridge | An NPC pilot |
+| `market`, `cargobuy`, `cargosell` | In port | Trade |
+| `contracts`, `contractaccept`, `contractdeliver` | In port | Freight |
+| `cargomanifest`, `contractabandon` | Aboard | The hold, giving up a job |
+| `shiplock`, `shipfire`, `shipram` | Aboard | Gunnery |
+| `shipsight`, `shipscan` | Aboard | Reading the guns and the enemy |
+| `shiprepair`, `shipsalvage` | At sea or berthed / helm | Repairs and salvage |
 | `board_hostile <vessel>`, `claimship`, `plunder` | Deck / prize's bridge | Boarding and prizes |
-| `strikecolors` | Bridge | Yield |
+| `strikecolors` | Aboard, stopped | Yield |
 | `shippermit`, `shiprevoke`, `shipdeed` | Aboard | Share or give away the helm |
 | `shiprenown`, `bounty`, `marque` | Anywhere / ashore | Renown, bounties, letters of marque |
 | `shipsummon [n]` | Dock | Send for a wreck or a distant hull |
-| `vmount`, `drive`, `vstatus`, `vdismount` | Beside a vehicle | Vehicles |
+| `vmount`, `vstatus` | Beside a vehicle | Mount it, read it |
+| `drive`, `vdismount` | Riding it | Drive it, get off |
 | `loadvehicle`, `unloadvehicle` | Aboard, stopped | Carry a vehicle |
-| `tenter`, `tgo`, `tstatus`, `texit` | Any transport | The unified transport commands |
+| `tenter`, `tgo`, `texit`, `tstatus` | Vehicles (`tstatus` any transport) | The unified transport commands |
 | `vevent status\|join\|leaderboard` | Anywhere / helm | Vessel events |
 
 ## Appendix: Staff tools
@@ -1112,7 +1149,7 @@ wider now than in this screenshot.)*
 
 ![shipfix](vessel-guide/74-staff-shipfix.png)
 
-*`shipfix <slot>` restores armor, structure, rigging, rudder and weapons, and stops a sinking (not
+*`shipfix <slot>` restores armor, structure, sails, rudder and weapons, and stops a sinking (not
 ammunition): "Sea Wren (slot 13) restored to full condition." Her crew read "A divine hand mends
 every timber and line."*
 
@@ -1123,9 +1160,9 @@ released 0 vehicles."*
 
 ![vesseldebug balance](vessel-guide/76-staff-vesseldebug-balance.png)
 
-*`vesseldebug balance`: per class, the hull price, one refit, the insurance payout and the dock
-fee, then the persisted sample (owned hulls, fees, completed freight, showcase entries) and the
-sign-off still needed.*
+*`vesseldebug balance`: per class, the price of an anchor design (speed 10, armor 10), one refit,
+its insurance payout and its dock fee, then the persisted sample (owned hulls, fees, completed
+freight, showcase entries) and the sign-off still needed.*
 
 ![cedit vessel options](vessel-guide/77-staff-cedit-vessels.png)
 
