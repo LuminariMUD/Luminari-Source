@@ -28,7 +28,7 @@ here records the merge.
 | S9 Claude Code play tests | Merged `a6adb46a8` (MR !15) | [Phase 9](vessels-ships-history.md#phase-9-s9-progress) |
 | S10 Player guide | Merged `60ef66ad1` (MR !16) | [Phase 10](vessels-ships-history.md#phase-10-s10-progress) |
 | S11 Checked cargo trades (work item #10) | Merged `f18208549` (MR !17) | [Phase 11](vessels-ships-history.md#phase-11-s11-progress) |
-| S12 Owned waypoints and routes (work item #11) | Not started: next | [Part 5](#part-5-implementation-sequence) |
+| S12 Owned waypoints and routes (work item #11) | In progress on `feat/vessels-s12` | [Phase 12](#phase-12-s12-progress) |
 
 Production help is current through S10 (help sync plan `78cccae490f9`, 2026-10-02); S11 changed
 no help. S1-S11 are merged: the study's steps, S1-S8; S-immediate, which readied the local
@@ -36,7 +36,7 @@ Luminari Web client for S9; S9, which played the whole system in game and record
 turned that record into the [Vessel Player Guide](../guides/VESSEL_PLAYER_GUIDE.md) and fixed what
 checking its facts against the code found; and S11, which made `cargobuy` and `cargosell` record a
 trade before the gold moves and save the gold checked (GitLab work item #10). S12, for work item
-#11, is next.
+#11, is in progress.
 
 ## Working a step
 
@@ -164,10 +164,95 @@ ship data panel among them.
 
 ## Active step
 
-S12 is next, not started. Branch `feat/vessels-s12` from the S11 merge `f18208549`, where the
-annotated tag `vessels-s12-base` stands; the first commit after the S11 close-out is the S12 plan,
-a "Phase 12 (S12) progress" section here. Its merge request says `Closes #11`, which lists it on
-the work item and closes the item when it merges.
+### Phase 12 (S12) progress
+
+In progress (2026-10-02). Branch `feat/vessels-s12` from master `f18208549` (the S11 merge), where
+the annotated tag `vessels-s12-base` stands, so `git log vessels-s12-base..vessels-s12` lists only
+S12; the S11 close-out `a16fe7a64` comes first, then this plan. Hand-off as in the routine: tag
+`vessels-s12` and a merge request that says `Closes #11`; review fixes go on top. Scope: GitLab work
+item #11, waypoints and routes that record no creator.
+
+The defect, traced in `src/vessels/vessels_autopilot.c`: `ship_waypoints` and `ship_routes` have
+no creator column, and the cache nodes (`struct waypoint_node`, `struct route_node` in
+`vessels.h`) none either. `do_delwaypoint()` and `do_delroute()` let any captain (anyone on a helm,
+or a hull's owner anywhere aboard her) delete any waypoint or route that S10's guards do not
+protect: a waypoint on no route, a route no hull runs on a schedule or is sailing. Found while
+tracing: `do_addtoroute()` lets any captain append a waypoint to any route, and a scheduled hull
+rebuilds her route from that cache at every departure (`schedule_trigger_departure()`), so a
+rival can change a public ferry's or merchant's course, or disable her schedule by appending a
+waypoint her route check cannot reach. Name lookups take the first match in the shared pool, so
+once ownership refuses a rival's row, a captain whose route shares a rival's name could not reach
+their own.
+
+Items:
+
+1. Schema Phase 24: `creator_id INT UNSIGNED NOT NULL DEFAULT 0` on `ship_waypoints` and
+   `ship_routes` (the player's ID, as `player_data.player_idnum`; 0 is no player: content and
+   rows made before S12). `vessels_phase24_schema.sql`, `vessels_phase24_rollback.sql`,
+   `verify_vessels_phase24.sql`, their `ci_schema_manifest.txt` lines, the two `CREATE TABLE`s in
+   `master_schema.sql`, and the same two `ALTER`s at boot in `vessel_ownership_ensure_schema()`,
+   which already runs before `load_all_waypoints()` and `load_all_routes()`.
+2. The cache nodes carry `creator_id`; `waypoint_db_create()` and `route_db_create()` take it and
+   write it; the boot and single-row loaders read it. `setwaypoint` and `createroute` record the
+   player (an NPC records 0); `route_save()`, which has no callers, records 0.
+3. One rule for changing a row: its creator or an immortal (`LVL_IMMORT`). `delwaypoint` and
+   `delroute` apply it before S10's in-use refusals, which stay; `addtoroute` applies it to the
+   route (any captain may still put any waypoint on their own route).
+4. Two lookups replace the six inline name loops (`delwaypoint`, `addtoroute` twice, `delroute`,
+   `setroute`, `setschedule`): the caller's own row of that name if he has one, otherwise the
+   first.
+5. Production-linked tests in `test_vessel_movement.c`: a mortal captain is refused deleting
+   another captain's or a content waypoint and route and adding to them, reaches their own
+   same-named route, and an immortal is not refused; S10's in-use test runs as the creator. A
+   DB-backed test: the boot ensure adds the column to a pre-S12 table, `setwaypoint` and
+   `createroute` record the player, a reload reads the creator back, and the creator's
+   `delwaypoint` and `delroute` remove the rows.
+6. Help in both places (`help.hlp`, `help_vessel_entries.sql`): DELWAYPOINT, DELROUTE and
+   ADDTOROUTE state the rule; three new `verify_help_vessel_entries.sql` patterns. Docs:
+   `VESSEL_SYSTEM.md` (autopilot commands, Phase 24 in the SQL table) and the player guide's
+   routes section.
+7. The rules gate (`test_vessel_rules_in_game.sh`, Kohdee an immortal and Vesselmate a mortal
+   owner on her bridge) gains the rule with real characters: Vesselmate is refused Kohdee's
+   waypoint and route, deletes their own waypoint, and Kohdee deletes Vesselmate's route; DELROUTE
+   joins its help check.
+
+Interpretations decided while planning S12:
+
+- Rows that predate the column keep `creator_id` 0: nothing records who made them (no column, and
+  the creation log lines name no player), and on the development database all three routes are
+  content on schedules. A player who wants a pre-S12 row removed asks the staff.
+- The creator is the player's ID, not their name: a rename keeps their rows without a
+  `player_rename.c` key (numeric-ID ownership needs none), and IDs are not reused.
+- Using a route stays open to every captain (`setroute`, `setschedule`, `listroutes`, and a
+  rival's waypoint on one's own route); only changing or deleting a row needs its creator.
+- Refusals name the rule: "Route 'x' is not yours: only the captain who created it, or the staff,
+  may change it." and "Waypoint 'x' is not yours: only the captain who set it, or the staff, may
+  delete it."
+
+Ablation (planning): dropped a creator column in `listroutes`/`listwaypoints` (the refusal says
+whose a row is not, and nothing needs the list to say more), the `db_init.c` `CREATE TABLE` edits
+and a Phase 24 line in `provision_vessel_harbor.sh` (the boot ensure adds the column to every
+database, fresh or old, before anything reads it, and no content needs it earlier), cleanup of a
+deleted player's rows (they stay harmless and staff-deletable), help changes to SETWAYPOINT and
+CREATEROUTE (the rule lives where it refuses), and converting the two INSERTs to prepared
+statements (the new value is an integer from the character, and the interpolation baseline does
+not rise). Simplified: one ownership check and two lookups instead of per-command code, and the
+boot `ALTER`s go in the existing ownership ensure function instead of a new hook in `boot_db()`.
+Kept: Phase 24 SQL with rollback and verifier (work item, CI migration job), `master_schema.sql`
+(CI's test database is built from it), the `addtoroute` rule (traced defect against public
+ferries), the lookups (without them ownership would lock a captain out of their own same-named
+route), the DB-backed test, and the rules gate.
+
+Verification: `make test-all` with the database cases on (S9's `testenv.sh`, the
+`luminari-vessels-testdb` container); Phase 24 schema, verifier, rollback and re-apply on the test
+database, with sqlfluff; `verify_help_vessel_entries.sql` on the development database; the rules
+gate and, because scheduled hulls load their routes through the changed loader, the merchant gate,
+in the namespace harness on a reload of the development dump; and the local CI matrix
+`scripts/ci/local/run.py --base gitlab/master`.
+
+Progress log (2026-10-02, kept current as the work goes):
+
+- Plan committed.
 
 Still open outside these steps: the production deploy of S9's world-data notes and S10's and
 S11's code, the Open player-data balance and human beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`,
