@@ -2185,7 +2185,8 @@ int vessel_collect_contacts(const struct greyhawk_ship_data *ship, struct vessel
 }
 
 /**
- * Resolve a contact by two-letter ID or name prefix.
+ * Resolve a contact by two-letter ID, or by the start of her name or of any
+ * word in it ("wraith" finds "Ghost Fleet Wraith 2-1").
  *
  * Only vessels in this ship's contact list qualify. An exact ID wins over a
  * name; among names the nearest match wins.
@@ -2214,7 +2215,8 @@ int vessel_find_contact(const struct greyhawk_ship_data *ship, const char *arg)
   }
   for (i = 0; i < count; i++)
   {
-    if (is_abbrev(arg, greyhawk_ships[contacts[i].shipnum].name))
+    if (is_abbrev(arg, greyhawk_ships[contacts[i].shipnum].name) ||
+        isname(arg, greyhawk_ships[contacts[i].shipnum].name))
     {
       return contacts[i].shipnum;
     }

@@ -302,6 +302,8 @@ void Test_vessel_contact_list_is_nearest_first_within_sight(CuTest *tc)
   CuAssertIntEquals(tc, GUNNERY_SHIP_B, vessel_find_contact(ship, "sb"));
   CuAssertIntEquals(tc, GUNNERY_SHIP_C, vessel_find_contact(ship, "Tern"));
   CuAssertIntEquals(tc, GUNNERY_SHIP_B, vessel_find_contact(ship, "Tern R"));
+  /* Any word of a name will do. */
+  CuAssertIntEquals(tc, GUNNERY_SHIP_B, vessel_find_contact(ship, "runner"));
   CuAssertIntEquals(tc, -1, vessel_find_contact(ship, "the Gull"));
   CuAssertIntEquals(tc, -1, vessel_find_contact(ship, ""));
 

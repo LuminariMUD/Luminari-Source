@@ -1183,7 +1183,8 @@ continue during that window; other players and expired snapshots fail closed.
 Ownership changes and permanent owner removal clear inherited consent.
 
 `shiplock` and `shipfire` target only contacts (`vessel_find_contact()`: exact
-two-letter ID first, then the nearest name prefix). `vessel_gunnery_permitted()` limits the
+two-letter ID first, then the nearest hull whose name, or a word of it,
+starts with the argument). `vessel_gunnery_permitted()` limits the
 guns to the owner, helm permit holders, members of the online owner's group,
 and immortals; unowned hulls fire only through NPC return fire.
 `vessel_fire_permitted()` adds the firing hull owner's own consent whenever a

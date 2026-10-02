@@ -31910,8 +31910,8 @@ Naval combat commands (usable from anywhere aboard your vessel):
 
 SHIPLOCK <contact> | SHIPLOCK off
   Lock the guns onto a contact, addressed by the two-letter ID that
-  CONTACTS and TACTICAL show or by the start of its name (the nearest match
-  wins); only vessels within your visibility qualify. Locking calls the
+  CONTACTS and TACTICAL show or by the start of its name or of any word in
+  it (the nearest match wins); only vessels within your visibility qualify. Locking calls the
   crew to battle stations. The lock drops when the contact passes out of
   sight, enters a port, dives, or goes down. With no argument SHIPLOCK
   shows the current lock.
