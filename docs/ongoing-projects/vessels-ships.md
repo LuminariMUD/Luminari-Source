@@ -27,7 +27,7 @@ here records the merge.
 | S-immediate Luminari Web for S9 | Merged `1c7e4bffb` (MR !14) | [S-immediate](vessels-ships-history.md#s-immediate-progress) |
 | S9 Claude Code play tests | Merged `a6adb46a8` (MR !15) | [Phase 9](vessels-ships-history.md#phase-9-s9-progress) |
 | S10 Player guide | Merged `60ef66ad1` (MR !16) | [Phase 10](vessels-ships-history.md#phase-10-s10-progress) |
-| S11 Checked cargo trades (work item #10) | In progress | [Phase 11](#phase-11-s11-progress) |
+| S11 Checked cargo trades (work item #10) | In review (MR !17) | [Phase 11](#phase-11-s11-progress) |
 | S12 Owned waypoints and routes (work item #11) | Not started | [Part 5](#part-5-implementation-sequence) |
 
 Production help is current through S10 (help sync plan `78cccae490f9`, 2026-10-02). S1-S10 are
@@ -163,7 +163,7 @@ ship data panel among them.
 
 ## Active step
 
-S11 is in progress, below. S12 follows from S11's merge, on `feat/vessels-s12` with
+S11 is in review, below. S12 follows from S11's merge, on `feat/vessels-s12` with
 `vessels-s12-base`. Each step's merge request says `Closes #10` or `Closes #11`, which lists it on
 its work item and closes the item when it merges.
 
@@ -174,7 +174,7 @@ lives in `VESSEL_SYSTEM.md` and the guide.
 
 ### Phase 11 (S11) progress
 
-In progress (2026-10-02). Branch `feat/vessels-s11` from master `88495e08a` (the S10 merge and its
+In review (2026-10-02). Branch `feat/vessels-s11` from master `88495e08a` (the S10 merge and its
 close-out), where the annotated tag `vessels-s11-base` stands, so
 `git log vessels-s11-base..vessels-s11` lists only S11. The first commit after `264469692` (which
 added S11 and S12) is this plan. Hand-off as in the routine: tag `vessels-s11` and a merge request
@@ -237,7 +237,48 @@ and `scripts/ci/local/run.py --base gitlab/master`.
 
 Progress log (2026-10-02, kept current as the work goes):
 
-- Plan committed.
+- Plan committed (`3299aaa25`).
+- The fix, `c2888ec8f`: `trade_record()` replaces `port_adjust_supply()`; both commands record
+  the trade before the gold moves and save the gold checked, as planned; the crew's sale
+  experience follows the save; `VESSEL_SYSTEM.md`'s economy paragraph says how a trade is
+  recorded; `vessels_trade.c`'s interpolation baseline is 6. The new
+  `Test_vessel_cargo_trades_record_the_gold_with_the_goods` covers both commands' refused write
+  and failed save (a whole-hold sale's emptied lot included) and a saved trade; the contraband
+  test got the scratch player files.
+- Notes for whoever continues: a CHECK constraint cannot be added over rows that break it, so
+  the sale's refused write uses `CHECK (item_count >= 10)` over the bought lot of 10;
+  `check_sql_interpolation.py --update` also lowers other files' counts and re-sorts the baseline,
+  so only S11's line was edited by hand. S10's batch economy job (`y20-economy.sh`) relied on
+  earlier gates' boots for the Phase 19-21 columns: alone after a dump reload it stops on
+  `armor_scale`, so S11's job applies `vessels_phase19_schema.sql` through
+  `vessels_phase23_schema.sql` first.
+
+Ablation (building): the third copy of the trade tests' temporary tables became one fixture
+helper that the freight and contraband tests use too. `save_char_checked()` can still fail after
+its rename only when the character is missing from the player index, which a logged-in player
+is not; freight acceptance accepts the same window, so S11 adds nothing for it. No help, schema or
+player-guide change was needed.
+
+Verification (2026-10-02, on `c2888ec8f`):
+
+- `make test-all` with the database cases (the `luminari-vessels-testdb` container, S9's
+  `testenv.sh`): 1,995 CuTest cases OK (seed 1; the new test's trades are in the log), the
+  protocol harness's 32, and the Python suites (542, 37 skipped).
+- `scripts/ci/check_sql_interpolation.py`: within baseline, 317 sites.
+- The economy gate in the namespace harness (`/tmp/claude-1000/vs4`, jobs `s11b2-reload` and
+  `s11c-economy`) on a fresh reload of the development dump: passed in 208 s, buying and selling
+  contraband with a real logged-in captain whose saves go to disk.
+- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`): all 33 jobs
+  passed in 487 s.
+
+Cleanup: the harness is stopped (its disposable database stops with its namespace); no
+characters, pfiles or scratch files were left in the worktree.
+
+Hand-off: tag `vessels-s11` and MR !17 from `feat/vessels-s11`, which says `Closes #10` (range
+`vessels-s11-base..vessels-s11`). Review fixes go on top, one commit each. After the
+merge: no help to sync (S11 changes none); the fix goes with the next production deploy; move
+this section to the history, set the status row, and branch S12 from the merge
+(`feat/vessels-s12`, tag `vessels-s12-base`).
 
 ## Estimate (remaining)
 
