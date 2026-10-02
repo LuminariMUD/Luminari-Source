@@ -335,3 +335,56 @@ Defects found here and fixed: a one-way route ending in a port paused "before de
 instead of completing (the unpaid berthing fee was checked before the arrival); the pilot's lines
 began in lower case and each autopilot announcement left a blank line; ADDTOROUTE's help example
 numbered positions from 0.
+
+## 7. Trade and freight
+
+Staging: none for play; one database update expired the Testing Dock's freight board after a
+fix so it would regenerate (boards otherwise refresh hourly). All of these work aboard, moored at
+a port.
+
+- `29-trade-market.png` (Vesselmate, `market` at the Testing Dock): each commodity's weight per
+  unit, buying and selling price, and local supply (scarce, steady, glutted); contraband marked;
+  the hold's use ("Hold: 0 of 13200 lbs used.").
+- `30-trade-contracts.png` (Vesselmate, `contracts` at the Harbor Sandbox East Dock): the freight
+  board: ID, cargo, quantity, the bond the shipper asks, the payout, and the destination.
+- `31-trade-manifest.png` (Vesselmate, `cargomanifest` after loading): each lot with units and
+  weight, and the hold's use.
+- `32-trade-deliver-sell.png` (Vesselmate, at the east dock: `contractdeliver 12`, `cargosell grain all`, `cargosell cloth all`): "Freight delivered. The consignee pays 370 gold." and the
+  sales. (Retake pending: this run predates the freight bond.)
+- `33-trade-delivered.png` (Vesselmate, `contractdeliver 18` at the Testing Dock): the delivery
+  that repaid the 350-gold bond with 370.
+
+The market at the Testing Dock (gold): timber 6/5, grain 10/8 (scarce), salt 16/13, cloth 33/28
+(scarce), iron 25/21, wine 40/34, spice 88/74, silk 95/80, gemstones 330/280 (scarce); forbidden
+tomes, rare poisons and dragon eggs not sold here (sell 248, 274, 405). The east dock stocks
+forbidden tomes (190 to buy).
+
+Played:
+
+- `cargobuy grain 50`: "You load 50 units of grain for 562 gold (11 average each)." Big lots
+  push the price as they go; the average is reported. `cargobuy cloth 40`: 1,410 gold.
+- At the east dock `cargosell grain all`: 344 gold (6 each); `cargosell cloth all`: 967 (24
+  each). The two harbor docks price alike, so buying in one and selling in the other lost money:
+  profit needs ports with different supply, which means longer voyages.
+- `contractaccept 18` (wine, 10 units, to the Testing Dock): "Contract 18 accepted: you post a
+  350-gold bond, 10 units are loaded, and 370 gold is paid on delivery to Testing Dock." Without
+  the gold: "The shipper asks a 140-gold bond for that freight; you have 100."
+- `contracts` lists your active contracts under the board ("Your active contracts: 14 salt 75
+  5100 deliver to Selerish Slateharbor Sea Port").
+- `contractabandon 14`: "You abandon contract 14. The freight your bond paid for remains in your
+  hold." The job goes back on the board.
+- `contractdeliver 18` at the destination: "Freight delivered. The consignee pays 370 gold."
+  "Dockhands unload 10 units of freight from Sea Wren."
+- Sale modifiers: under neutral colors "The merchants pay a tenth less to a hull under neutral
+  colors." (10 salt: 50 gold before, 45 under colors). A seadog captain gets a tenth more, a
+  warship four tenths less. Colors cannot be struck while cargo is aboard: "Her neutral colors
+  stay up while she has cargo aboard."
+- The board's long hauls (100 units to Koorvik, North Vailand, Southwest Quechian or Central
+  Vailand, payouts 10,000-18,600 against bonds of 600-3,000) are where freight pays; the two harbor
+  docks are 10 rooms apart and pay a 20-gold premium.
+
+Defects found here and fixed: the board offered "10 grain to an unknown port" (a market once read
+aboard a hull had left rows for an interior room); trade and freight keyed the port by the hull
+object's room even when she lay in port by her coordinates; accepting and abandoning a contract
+handed out its freight for nothing, again and again (the freight now takes a bond); "fit Sea Wren
+with a Neutral Colors".

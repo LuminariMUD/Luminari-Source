@@ -208,10 +208,10 @@ Chapters, in play order:
 | 1 | Finding a ship | Vesselmate | His level and gold for a hull; the Testing Dock | `help vessels` and the ship help entries, `shipbrowse` | Played |
 | 2 | Buying and knowing her | Vesselmate | - | `shipbuy`, `shipchristen`, `shipcustomize`, `board`, `disembark`, `ship_rooms`, `shipstatus`, `shipcrew` | Played |
 | 3 | Crew, weapons and refits | Vesselmate | Gold as needed | `shiphire`, `shipdismiss`, `shipweapon` buy and sell, `shipequip`, `shiprearm`, `shipupgrade` | Played |
-| 4 | Sailing | Vesselmate | - | `undock`, `setsail`, `heading`, `speed`, `anchor`, `tactical`, `lookout`, `contacts`, `seastate`, `shiptalk`, at-sea narrative and weather, legal waters, `dock`, `dockfees` | Not started |
-| 5 | Routes, autopilot and schedules | Vesselmate | - | `setwaypoint`, `listwaypoints`, `delwaypoint`, `createroute`, `addtoroute`, `delroute`, `listroutes`, `setroute`, `autopilot`, `setschedule`, `showschedule`, `clearschedule`, `assignpilot`, `unassignpilot` | Not started |
+| 4 | Sailing | Vesselmate | - | `undock`, `setsail`, `heading`, `speed`, `anchor`, `tactical`, `lookout`, `contacts`, `seastate`, `shiptalk`, at-sea narrative and weather, legal waters, `dock`, `dockfees` | Played |
+| 5 | Routes, autopilot and schedules | Vesselmate | - | `setwaypoint`, `listwaypoints`, `delwaypoint`, `createroute`, `addtoroute`, `delroute`, `listroutes`, `setroute`, `autopilot`, `setschedule`, `showschedule`, `clearschedule`, `assignpilot`, `unassignpilot` | Played |
 | 6 | Passage on public ships | Vesselmate | - | The harbor ferry and its fare, the Vailand merchant | Played |
-| 7 | Trade and freight | Vesselmate | - | `market`, `cargobuy`, `cargomanifest`, `cargosell` and its modifiers, `contracts`, `contractaccept`, `contractdeliver`, `contractabandon` | Not started |
+| 7 | Trade and freight | Vesselmate | - | `market`, `cargobuy`, `cargomanifest`, `cargosell` and its modifiers, `contracts`, `contractaccept`, `contractdeliver`, `contractabandon` | Played |
 | 8 | Gunnery against a raider | Vesselmate | `vesseldebug raider 0` from aboard his hull | `shipsight`, `shipscan`, `shiplock`, battle stations, `shipfire` by arc, reloads and ammunition, raider tactics and boarding, `shipram` | Not started |
 | 9 | Damage, repair and salvage | Vesselmate | `shipfix` between runs when needed | Arcs, breaches, sails and rudder, criticals, the sink timer, `shiprepair` at sea and at a dock, cargo spill and `shipsalvage` | Not started |
 | 10 | Boarding and taking a prize | Vesselmate | A raider to disable | `boardcheck`, `board_hostile`, `claimship`, `plunder`, the D6 prize rules | Not started |
@@ -264,7 +264,7 @@ Ablation (starting play): chapter 17 reuses the Ship-tab screenshots that chapte
 at sea and in a fight, plus one ashore, instead of replaying them; the rest of the plan stands.
 
 Chapter state is in the table above; `guide-notes.md` has each played chapter's screenshots and
-notes. Played so far: 1, 2, 3 and 6 (6 while the shipwrights worked on chapter 3's refit).
+notes. Played so far: 1-7 (6 while the shipwrights worked on chapter 3's refit).
 
 How play runs (for a session taking over): the harness, bridge and client run as S-immediate
 left them (history, For S9). Helpers in `/tmp/claude-1000/s9/`: `login.sh <session> master <Character>`, `cmd.sh <session> <wait-ms> <command>` (types a command, prints the terminal's
@@ -299,13 +299,18 @@ changed):
 | A piloted merchant under way read "Speed: 9 / 9 (ordered 0)" in `shipstatus` (and `speed`), as if stopping | Both show the speed the helm is converging on, from the helm tick's own function | `6ca2b5a71` |
 | A passenger trying to step off a ship under way was told to "Bring the vessel to a stop first" | Only someone at the helm is told that; others are told to wait | `3d9ddfa3d` |
 | Any passenger on a public ferry's or merchant's bridge could set her heading and speed, anchor her, reroute her, clear her schedule, or unassign her NPC pilot (unowned hulls were open to anyone) | An unowned hull with an NPC pilot answers only to NPCs and immortals; help and `VESSEL_SYSTEM.md` say so | `9a3be3361` |
-
-Open:
-
-- `help ships` shows the 2014 `boats` entry (keywords BOATS FERRY SHIPS TRANSPORTSS; "enter
-  <boatname>", a literal `\"look out\"`, a staff script pointer) instead of VESSELS, which also
-  claims SHIPS: two entries share the keyword, and the old one wins the tie. To fix with the
-  passenger facts from chapter 6.
+| `help ships` showed the 2014 `boats` entry (SHIPS claimed by it and VESSELS; "enter <boatname>", a staff script pointer, a stray backslash, the keyword TRANSPORTSS) | SHIPS belongs to VESSELS; `boats` (BOATS FERRY FERRIES PASSAGE) is a passenger's guide to public ships; its old alternate keywords cleared | `a9c3ad413`, `753344f9a` |
+| Luminari Web: the tactical chart lost its land cells and left the rest of the output orange (the client read the chart's `^` as a color code; the server sends ANSI and compiles out `^` codes) | The terminal stream keeps carets literal (client branch `fix/literal-carets` from `main`, commit `bb7c707`, local) | client `bb7c707` |
+| An order given while casting off was told to "order 'undock' to cast off first" | The helm hears how long casting off or weighing anchor has left; the two copies of the refusal are one | `2a3809ee8` |
+| `lookout` measured from whole rooms while contacts, tactical and gunnery use exact positions (32.0 vs 31.4 rooms for the same hull) | Lookout reads the one contact list | `a641246e0` |
+| Dock fees named the port by room number ("due at port 1000389") | `shipstatus` and `dockfees` name the port | `5a70fdc3d` |
+| A one-way route ending in a port paused "before departure" at her last waypoint instead of completing (the berthing fee was checked before arrival) | Arrival is checked first | `548d41cf2` |
+| The pilot's lines began in lower case and every autopilot announcement left a blank line | Sentence-start names capitalized; the doubled line breaks dropped | `530fdd072` |
+| ADDTOROUTE's help numbered positions from 0; the game numbers from 1 | Help example corrected | `1aba0729c` |
+| The freight board offered "10 grain to an unknown port" (room 70000, a ship interior, had market rows) | The board offers only rooms that are ports | `d293b3774` |
+| Market, cargo and freight keyed the port by the hull object's room though "in port" was judged by coordinates (and a missing hull object would read past the world) | `vessel_port_room()` serves both | `bf8af8153` |
+| Accepting and abandoning a contract loaded its freight for nothing, repeatedly: two rounds sold for 1,218 gold without leaving the dock | Accepting takes the goods' worth as a bond, shown on the board; the payout repays it | `862c944a3` |
+| "fit Sea Wren with a Neutral Colors" | No article before Neutral Colors | `aa8c42649` |
 
 Observed, not reproduced: on the first ferry ride (boarded at the Testing Dock 02:19, rode a full
 loop, disembarked at the east dock while she was casting off) Vesselmate landed in the Testing
