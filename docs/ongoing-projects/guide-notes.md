@@ -180,11 +180,12 @@ content.)
 
 - `12-passage-ferry-berthed.png` (Vesselmate, `look` at the Testing Dock): the ferry and the
   merchants moored beside the Sea Wren.
-- `13-passage-lookout.png` (Vesselmate, `board ferry`, `south` to the bridge, `lookout` under
-  way): position, heading, weather and visibility, the water column, the eight compass sectors
-  to the horizon, and the vessels in sight nearest first with their contact IDs, condition,
-  range, bearing and height difference; a customized hull's paint and figurehead show under her
-  line. (Retake pending: this capture predates the contact-ID fix and shows slot numbers.)
+- `13-passage-lookout.png` (retaken after the contact-ID fix, from the Sea Wren under way at
+  speed 2 off the harbor; a ferry passenger's `lookout` reads the same): "LOOKOUT VIEW FROM Sea
+  Wren", her paint and figurehead, position, heading, weather and visibility, the water column,
+  the eight compass sectors to the horizon, and the vessels in sight nearest first with their
+  contact IDs, condition, range, bearing and height difference ("[AP] Kestrel sound 0.6u E (86
+  deg), dz +0"), then "2 more contacts are visible; use TACTICAL for the full roster."
 - `14-passage-ferry-status.png` (Vesselmate, `shipstatus` at the east dock, Ship tab): a
   passenger can read the status: "Moorings: Casting off (25 seconds)" after the stop.
 - `15-passage-east-dock.png` (Vesselmate, `north`, `disembark` at the east dock): "You step off
@@ -349,8 +350,12 @@ a port.
   board: ID, cargo, quantity, the bond the shipper asks, the payout, and the destination.
 - `31-trade-manifest.png` (Vesselmate, `cargomanifest` after loading): each lot with units and
   weight, and the hold's use.
-- `32-trade-deliver-sell.png` (Vesselmate, at the east dock: `contractdeliver 12`, `cargosell grain all`, `cargosell cloth all`): "Freight delivered. The consignee pays 370 gold." and the
-  sales. (Retake pending: this run predates the freight bond.)
+- `32-trade-deliver-sell.png` (retaken with the freight bond: Vesselmate accepted contract 24 at
+  the Testing Dock - "Contract 24 accepted: you post a 350-gold bond, 10 units are loaded, and
+  370 gold is paid on delivery to Harbor Sandbox East Dock." - sailed `wren_run` to the east
+  dock, `dockfees pay`, `contractdeliver 24`, `cargosell grain all`): "Freight delivered. The
+  consignee pays 370 gold." "Dockhands unload 10 units of freight from Sea Wren." "You sell 50
+  units of grain for 272 gold (5 average each)."
 - `33-trade-delivered.png` (Vesselmate, `contractdeliver 18` at the Testing Dock): the delivery
   that repaid the 350-gold bond with 370.
 
