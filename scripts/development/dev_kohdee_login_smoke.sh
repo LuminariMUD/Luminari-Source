@@ -2939,7 +2939,8 @@ proc run_vessel_rules_check {warship_id requested_character} {
   require_game_output $output "600 gold on your head - WANTED" "$crew_character bounty"
   require_game_output $output "clears it for 750 gold ('bounty pay')" "$crew_character pay-off"
   set output [run_game_command "bounty pay"]
-  require_game_output $output "settled at a lawful port's admiralty office" "at-sea pay-off refusal"
+  require_game_output $output "settled ashore, at a lawful port's admiralty office" \
+    "at-sea pay-off refusal"
 
   set ::spawn_id $primary_session
   run_game_command "goto 1204"
