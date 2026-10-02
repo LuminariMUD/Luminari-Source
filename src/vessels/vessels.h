@@ -1271,6 +1271,7 @@ bool vessel_room_is_fee_berth(const struct greyhawk_ship_data *ship, room_rnum r
 bool vessel_ship_is_in_port(const struct greyhawk_ship_data *ship);
 int vessel_dock_fee_for_class(enum vessel_class vessel_type);
 int vessel_assess_dock_fee(struct greyhawk_ship_data *ship, int port_vnum, int owner_clan_vnum);
+const char *vessel_dock_fee_port_name(const struct greyhawk_ship_data *ship);
 bool vessel_clear_departed_berth(struct greyhawk_ship_data *ship, room_rnum old_room,
                                  bool old_is_port);
 void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_room,

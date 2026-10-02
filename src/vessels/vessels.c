@@ -1950,8 +1950,8 @@ ACMD(do_greyhawk_status)
   vessel_show_navigation(ch, &greyhawk_ships[shipnum]);
   if (greyhawk_ships[shipnum].dock_fee_balance > 0)
   {
-    send_to_char(ch, "Dock Fees: %d gold due at port %d\r\n",
-                 greyhawk_ships[shipnum].dock_fee_balance, greyhawk_ships[shipnum].dock_fee_port);
+    send_to_char(ch, "Dock Fees: %d gold due at %s\r\n", greyhawk_ships[shipnum].dock_fee_balance,
+                 vessel_dock_fee_port_name(&greyhawk_ships[shipnum]));
   }
   send_to_char(ch, "\r\n");
   send_to_char(ch, "== Hull Integrity ==\r\n");

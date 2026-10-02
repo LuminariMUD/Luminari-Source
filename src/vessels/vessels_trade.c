@@ -152,6 +152,15 @@ bool vessel_collect_passenger_fare(struct char_data *ch, struct greyhawk_ship_da
   return TRUE;
 }
 
+/** The port where a hull owes her dock fee, by name, for players. */
+const char *vessel_dock_fee_port_name(const struct greyhawk_ship_data *ship)
+{
+  room_rnum room;
+
+  room = real_room(ship->dock_fee_port);
+  return room != NOWHERE && world[room].name != NULL ? world[room].name : "an unknown port";
+}
+
 /**
  * One-time berthing charge for a vessel entering a port.
  *
@@ -308,8 +317,8 @@ ACMD(do_dockfees)
   }
 
   owner_clan = real_clan(ship->dock_fee_clan);
-  send_to_char(ch, "%s owes %d gold for its berth at port %d.\r\n", ship->name,
-               ship->dock_fee_balance, ship->dock_fee_port);
+  send_to_char(ch, "%s owes %d gold for its berth at %s.\r\n", ship->name, ship->dock_fee_balance,
+               vessel_dock_fee_port_name(ship));
   if (owner_clan == NO_CLAN)
   {
     send_to_char(ch, "This is a public-port charge; the payment leaves the economy.\r\n");

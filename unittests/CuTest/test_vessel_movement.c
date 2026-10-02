@@ -867,6 +867,37 @@ void Test_vessel_moored_orders_say_what_she_is_doing(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_dock_fees_name_the_port(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  fixture.room.name = CuMutableString("Testing Dock");
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+
+  /* The owner reads where the fee is owed by the port's name. */
+  ship->dock_fee_balance = 25;
+  ship->dock_fee_port = MOVEMENT_ROOM_VNUM;
+  do_dockfees(&fixture.helm, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "the Heron owes 25 gold for its berth at Testing Dock.") != NULL);
+  ship->dock_fee_port = MOVEMENT_ROOM_VNUM + 1;
+  CuAssertStrEquals(tc, "an unknown port", vessel_dock_fee_port_name(ship));
+
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
 void Test_vessel_paused_autopilot_holds_and_a_finished_route_stops(CuTest *tc)
 {
   struct movement_fixture fixture;
