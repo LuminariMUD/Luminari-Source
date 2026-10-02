@@ -492,12 +492,12 @@ struct vessel_terrain_caps {
 
 ### Vehicle System
 
-| Type | Capacity | Base Speed | Terrain |
-| -- | -- | -- | -- |
-| `VEHICLE_CART` | 1 pass, 200 lbs | 80% | Road, plains |
-| `VEHICLE_WAGON` | 4 pass, 1000 lbs | 60% | Road, plains, forest |
-| `VEHICLE_MOUNT` | 1 pass, 100 lbs | 120% | Most terrain |
-| `VEHICLE_CARRIAGE` | 6 pass, 500 lbs | 70% | Road, plains |
+| Type | Passengers | Cargo | Base speed | Terrain |
+| -- | -: | -: | -: | -- |
+| `VEHICLE_CART` | 2 | 500 lbs | 2 | Road, plains |
+| `VEHICLE_WAGON` | 6 | 2,000 lbs | 1 | Road, plains |
+| `VEHICLE_MOUNT` | 1 | 200 lbs | 4 | Road, plains, forest, hills |
+| `VEHICLE_CARRIAGE` | 4 | 800 lbs | 2 | Road |
 
 **States**: `IDLE`, `MOVING`, `LOADED`, `HITCHED`, `DAMAGED`, `ON_VESSEL`
 
@@ -508,18 +508,13 @@ loaded aboard a hull is in no room (`location` is `NOWHERE`).
 stopped or docked and at the surface (`z` 0): aloft or submerged she has no
 ground beside her.
 
-**Terrain Flags**: `ROAD`, `PLAINS`, `FOREST`, `HILLS`, `MOUNTAIN`, `DESERT`, `WATER_SHALLOW`
+**Terrain Flags** (`VTERRAIN_*`): `ROAD`, `PLAINS`, `FOREST`, `HILLS`, `MOUNTAIN`, `DESERT`,
+`SWAMP`; water is impassable to every vehicle.
 
-**Speed Modifiers by Terrain**:
-
-| Terrain | Cart | Wagon | Mount | Carriage |
-| -- | -- | -- | -- | -- |
-| Road | 150% | 150% | 150% | 150% |
-| Plains | 100% | 100% | 100% | 100% |
-| Forest | 50% | 75% | 100% | 50% |
-| Hills | 50% | 50% | 75% | 50% |
-| Mountain | - | - | 50% | - |
-| Swamp | - | - | 50% | - |
+**Speed Modifiers by Terrain** (`get_vehicle_speed_modifier()`, the same for every type on the
+terrain it can enter): road 150%, plains 100%, forest, hills and desert 75%, mountain and swamp
+50%. `vehicle_get_speed()` takes 50% in poor condition and 75% when the load passes three
+quarters of capacity or every seat is taken.
 
 ---
 
@@ -1796,13 +1791,13 @@ ship-class interiors.
 | drive | Drive vehicle | `drive <direction>` |
 | vstatus | Vehicle status | `vstatus` |
 | loadvehicle | Load onto vessel | `loadvehicle <vehicle>` |
-| unloadvehicle | Unload from vessel | `unloadvehicle <vehicle>` |
+| unloadvehicle | List the vehicles aboard, or unload one by its list number | `unloadvehicle [<number>]` |
 
 ### Unified Transport Commands
 
 | Command | Description | Usage |
 | -- | -- | -- |
-| transport_enter | Enter any transport | `tenter <transport>` |
+| transport_enter | Enter the vehicle named, or the transport here | `tenter [<vehicle>]` |
 | exit_transport | Exit transport | `texit` |
 | transport_go | Move transport | `tgo <direction>` |
 | transportstatus | Transport status | `tstatus` |
@@ -1837,12 +1832,11 @@ it carries every rider along with the vehicle.
 
 1. Create vessel and vehicle
 2. Board vessel
-3. Navigate vessel to port
-4. Mount vehicle
-5. Load vehicle onto vessel (`loadvehicle wagon`)
-6. Sail to destination
-7. Unload vehicle (`unloadvehicle wagon`)
-8. Drive vehicle ashore
+3. Bring the vessel to rest at the surface beside the empty vehicle
+4. Load vehicle onto vessel from aboard (`loadvehicle wagon`)
+5. Sail to destination and stop at the surface
+6. Unload vehicle by its list number (`unloadvehicle`, then `unloadvehicle 1`)
+7. Mount and drive the vehicle ashore (`vmount wagon`, `drive north`)
 
 ### Autopilot Workflow
 
