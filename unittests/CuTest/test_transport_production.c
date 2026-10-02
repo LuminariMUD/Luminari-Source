@@ -561,6 +561,83 @@ void Test_transport_go_carries_the_rider_with_the_vehicle(CuTest *tc)
   kd_wilderness_rooms = saved_kd_wilderness_rooms;
 }
 
+void Test_vehicle_loads_and_unloads_only_at_the_surface(CuTest *tc)
+{
+  const int slot = 497;
+  struct greyhawk_ship_data saved_ship;
+  struct greyhawk_ship_data *vessel;
+  struct room_data field;
+  struct room_data *saved_world;
+  struct obj_data hull;
+  struct vehicle_data *vehicle;
+  struct char_data loader;
+  struct player_special_data loader_specials;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+  room_rnum saved_top_of_world;
+
+  saved_ship = greyhawk_ships[slot];
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  memset(&field, 0, sizeof(field));
+  field.number = 1000100;
+  field.sector_type = SECT_FIELD;
+  world = &field;
+  top_of_world = 0;
+  memset(&hull, 0, sizeof(hull));
+  IN_ROOM(&hull) = 0;
+  vessel = &greyhawk_ships[slot];
+  memset(vessel, 0, sizeof(*vessel));
+  vessel->active = TRUE;
+  vessel->shipnum = slot;
+  vessel->vessel_type = VESSEL_MAGICAL;
+  vessel->docked_to_ship = -1;
+  vessel->shipobj = &hull;
+  strlcpy(vessel->name, "the Wayfarer", sizeof(vessel->name));
+  vehicle = vehicle_create(VEHICLE_CART, "River Cart");
+  CuAssertPtrNotNull(tc, vehicle);
+  vehicle->location = 0;
+
+  clear_char(&loader);
+  memset(&loader_specials, 0, sizeof(loader_specials));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  loader.player_specials = &loader_specials;
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &loader;
+  loader.desc = &descriptor;
+
+  /* Hovering over the field, she cannot take the cart aboard. */
+  vessel->z = 10;
+  CuAssertTrue(tc, !load_vehicle_onto_vessel(&loader, vehicle, vessel));
+  CuAssertTrue(tc, strstr(output, "the Wayfarer must be at the surface to load vehicles.") != NULL);
+  CuAssertIntEquals(tc, 0, vehicle->parent_vessel_id);
+
+  /* Down on the ground she can. */
+  vessel->z = 0;
+  CuAssertTrue(tc, load_vehicle_onto_vessel(&loader, vehicle, vessel));
+  CuAssertIntEquals(tc, slot, vehicle->parent_vessel_id);
+
+  /* Submerged, the cart stays aboard; surfaced, it rolls off beside her. */
+  vessel->z = -10;
+  CuAssertTrue(tc, !unload_vehicle_from_vessel(&loader, vehicle));
+  CuAssertIntEquals(tc, slot, vehicle->parent_vessel_id);
+  vessel->z = 0;
+  CuAssertTrue(tc, unload_vehicle_from_vessel(&loader, vehicle));
+  CuAssertIntEquals(tc, 0, vehicle->parent_vessel_id);
+  CuAssertIntEquals(tc, 0, vehicle->location);
+
+  loader.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  vehicle_destroy(vehicle);
+  greyhawk_ships[slot] = saved_ship;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+}
+
 void Test_vehicle_production_capacity_and_state_transitions(CuTest *tc)
 {
   struct vehicle_data *vehicle;

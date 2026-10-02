@@ -167,7 +167,7 @@ int check_vessel_vehicle_capacity(struct greyhawk_ship_data *vessel, struct vehi
  * Load a vehicle onto a vessel.
  *
  * Validates all preconditions:
- * - Vessel must be stationary or docked
+ * - Vessel must be stationary or docked, and at the surface
  * - Vehicle must not be occupied (no passengers)
  * - Vessel must have capacity for the vehicle
  * - Vehicle must not already be loaded on a vessel
@@ -198,6 +198,14 @@ int load_vehicle_onto_vessel(struct char_data *ch, struct vehicle_data *vehicle,
   {
     VHCL_DEBUG_XPORT("LOAD FAILED: Vessel %s is moving", vessel->name);
     send_to_char(ch, "The vessel must be stationary or docked to load vehicles.\r\n");
+    VSSL_DEBUG_EXIT_VAL("load_vehicle_onto_vessel", FALSE);
+    return FALSE;
+  }
+
+  /* Aloft or submerged, she has no ground beside her. */
+  if ((int)vessel->z != 0)
+  {
+    send_to_char(ch, "%s must be at the surface to load vehicles.\r\n", vessel->name);
     VSSL_DEBUG_EXIT_VAL("load_vehicle_onto_vessel", FALSE);
     return FALSE;
   }
@@ -271,7 +279,7 @@ int load_vehicle_onto_vessel(struct char_data *ch, struct vehicle_data *vehicle,
  *
  * Validates all preconditions:
  * - Vehicle must be loaded on a vessel
- * - Vessel must be stationary or docked
+ * - Vessel must be stationary or docked, and at the surface
  * - Current location must have valid terrain for the vehicle
  *
  * @param ch The character performing the action
@@ -329,6 +337,14 @@ int unload_vehicle_from_vessel(struct char_data *ch, struct vehicle_data *vehicl
   {
     VHCL_DEBUG_XPORT("UNLOAD FAILED: Vessel %s is moving", vessel->name);
     send_to_char(ch, "The vessel must be stationary or docked to unload vehicles.\r\n");
+    VSSL_DEBUG_EXIT_VAL("unload_vehicle_from_vessel", FALSE);
+    return FALSE;
+  }
+
+  /* Aloft or submerged, she has no ground beside her. */
+  if ((int)vessel->z != 0)
+  {
+    send_to_char(ch, "%s must be at the surface to unload vehicles.\r\n", vessel->name);
     VSSL_DEBUG_EXIT_VAL("unload_vehicle_from_vessel", FALSE);
     return FALSE;
   }

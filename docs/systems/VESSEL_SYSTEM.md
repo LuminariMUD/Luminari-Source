@@ -500,6 +500,9 @@ struct vessel_terrain_caps {
 Vehicles are not objects: `look_at_room()` lists those standing in the room
 through `vehicle_list_to_char()` ("River Cart, a cart, stands here."). A vehicle
 loaded aboard a hull is in no room (`location` is `NOWHERE`).
+`load_vehicle_onto_vessel()` and `unload_vehicle_from_vessel()` need the hull
+stopped or docked and at the surface (`z` 0): aloft or submerged she has no
+ground beside her.
 
 **Terrain Flags**: `ROAD`, `PLAINS`, `FOREST`, `HILLS`, `MOUNTAIN`, `DESERT`, `WATER_SHALLOW`
 

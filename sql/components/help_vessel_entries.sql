@@ -1418,10 +1418,13 @@ VALUES ('VEHICLE-TRANSPORT', 'Vehicle and unified transport commands:
 LOADVEHICLE [vehicle]
   From aboard a stopped vessel, load a named vehicle waiting beside the hull.
   The vehicle must be empty and the vessel must have enough vehicle capacity.
+  An airship or submarine must be at the surface: aloft or submerged she has
+  no ground beside her.
 
 UNLOADVEHICLE [number]
   With no number, list vehicles carried by the vessel. Select a list number to
-  unload it beside the stopped vessel when the terrain is suitable.
+  unload it beside the stopped vessel, at the surface, when the terrain is
+  suitable.
 
 TENTER [target]
   Enter the transport present in the room. For a land vehicle this is the
