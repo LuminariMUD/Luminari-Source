@@ -1,7 +1,7 @@
 #70010
 Blackwake bridge log discovery~
 2 c 100
-searchashlog~
+search~
 if %self.name% /= Blackwake Derelict
   if !%actor.varexists(blackwake_log_found)%
     %send% %actor% Beneath the collapsed chart table, your hand closes around an ash-stained captain's log.
