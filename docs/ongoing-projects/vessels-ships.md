@@ -311,14 +311,12 @@ changed):
 | Market, cargo and freight keyed the port by the hull object's room though "in port" was judged by coordinates (and a missing hull object would read past the world) | `vessel_port_room()` serves both | `bf8af8153` |
 | Accepting and abandoning a contract loaded its freight for nothing, repeatedly: two rounds sold for 1,218 gold without leaving the dock | Accepting takes the goods' worth as a bond, shown on the board; the payout repays it | `862c944a3` |
 | "fit Sea Wren with a Neutral Colors" | No article before Neutral Colors | `aa8c42649` |
+| A holed raider dead in the water read "sound" in contacts, tactical, lookout, seastate and shipscan | Any holed hull is at least crippled | `a973e22d2` |
+| People put off a hull landed at the coordinates they last stood ashore: a ferry passenger stepping off at the east dock landed at the west dock, and a boarder thrown into the sea at (-91, 77) came up at (-66, 91) (`char_to_room()` uses the character's coordinates; disembark set them after the move, the boarding fall and sinking not at all) | `vessel_char_to_room()` sets them first, for every place that puts people off a hull | `d97a724bd` |
 
-Observed, not reproduced: on the first ferry ride (boarded at the Testing Dock 02:19, rode a full
-loop, disembarked at the east dock while she was casting off) Vesselmate landed in the Testing
-Dock (west) with the east dock's coordinates on his map. `disembark` puts a passenger in the
-hull object's room; three targeted replays (berthed, casting off, after a full loop, from the
-bridge and the quarters) all landed at the east dock, and tracking showed the hull object
-following the ferry every step. No log line marks it. If it recurs, record the hull's room
-(`where ferry`) and `world[room].ship` of the room disembarked from.
+The first ferry ride's mis-landing (in the Testing Dock with the east dock's coordinates) was
+explained in chapter 10: `char_to_room()` enters a wilderness room at the character's own
+coordinates, which `disembark` set only after the move (fixed in `d97a724bd`, below).
 
 ## Estimate (remaining)
 
