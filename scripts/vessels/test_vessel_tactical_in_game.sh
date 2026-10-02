@@ -499,8 +499,8 @@ finish() {
       printf 'state ashore with exact character restoration (%ss).\n' "$elapsed_seconds"
     elif [[ "$acceptance_mode" == rules ]]; then
       printf 'PASS: Kohdee and Vesselmate validated the shipyard listing, contact IDs, '
-      printf 'gunnery authorization, hull level, hull cap, and bounty pay-off with exact '
-      printf 'two-character restoration (%ss).\n' "$elapsed_seconds"
+      printf 'gunnery authorization, hull level, route ownership, hull cap, and bounty '
+      printf 'pay-off with exact two-character restoration (%ss).\n' "$elapsed_seconds"
     else
       printf 'PASS: Kohdee validated regional at-sea prose and contextual ambience '
       printf 'with exact character restoration (%ss).\n' "$elapsed_seconds"
