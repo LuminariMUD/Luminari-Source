@@ -1005,7 +1005,8 @@ waypoint is astern, and slows to a stop at a waypoint where it waits.
 
 Subcommands:
   on     - Enable autopilot and begin navigating the assigned route
-  off    - Disable autopilot; the hull keeps her ordered speed and heading
+  off    - Disable autopilot; the hull keeps her ordered speed and heading.
+           Refused while an NPC pilot is assigned (see UNASSIGNPILOT)
   pause  - Hold the hull where she lies (can be resumed with \'on\')
   status - Display current autopilot state, route, and progress (default)
 

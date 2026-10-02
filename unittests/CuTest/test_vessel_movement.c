@@ -1577,6 +1577,43 @@ void Test_vessel_relieved_pilot_leaves_the_route_set(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_autopilot_off_is_refused_under_a_pilot(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  struct ship_route *route;
+  char output[MAX_STRING_LENGTH];
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  strlcpy(ship->owner, "Mara", sizeof(ship->owner));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+  route = route_create("errand");
+  CuAssertPtrNotNull(tc, route);
+  CuAssertPtrNotNull(tc, autopilot_init(ship));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, 0.0, 30.0, 0.0, "far"));
+  CuAssertTrue(tc, autopilot_start(ship, route));
+  ship->autopilot->pilot_mob_vnum = 31810;
+
+  /* The pilot would engage the route again at once, so 'off' is refused
+   * with the two orders that do hold. */
+  do_autopilot(&fixture.helm, "off", 0, 0);
+  CuAssertTrue(tc, strstr(output, "'autopilot pause'") != NULL);
+  CuAssertTrue(tc, strstr(output, "'unassignpilot'") != NULL);
+  CuAssertIntEquals(tc, AUTOPILOT_TRAVELING, ship->autopilot->state);
+
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
 void Test_vessel_battle_stations_risk_a_grounding(CuTest *tc)
 {
   struct movement_fixture fixture;

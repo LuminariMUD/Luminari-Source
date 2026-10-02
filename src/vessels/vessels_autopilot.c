@@ -2758,6 +2758,15 @@ ACMD(do_autopilot)
       return;
     }
 
+    /* An assigned pilot engages a route the autopilot is off on (see
+     * autopilot_tick_one()), so 'off' would not hold. */
+    if (ap->pilot_mob_vnum != -1)
+    {
+      send_to_char(ch, "Her pilot would only take her on again. Use 'autopilot pause' to hold "
+                       "her, or 'unassignpilot' to relieve the pilot.\r\n");
+      return;
+    }
+
     autopilot_snapshot_state(ap, &snapshot);
     if (!autopilot_stop(ship) || !autopilot_commit_player_change(ch, ship, &snapshot))
     {
