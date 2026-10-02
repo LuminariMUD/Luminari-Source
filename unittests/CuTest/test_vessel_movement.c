@@ -476,6 +476,38 @@ void Test_vessel_boat_refused_room_names_the_waters_she_keeps(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_ship_refused_room_names_the_water_she_needs(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+  refuse_room = TRUE;
+  refused_x = 0;
+  refused_y = 1;
+
+  /* A ship in shoal water steered at the shore is not told she needs deep
+   * water: shoal water is open to her, the shore is not. */
+  CuAssertTrue(tc, !vessel_maneuver(ship, &fixture.helm, NORTH));
+  CuAssertTrue(tc, strstr(output, "Your ship cannot go there! She keeps to the water's surface, "
+                                  "clear of beach and land.") != NULL);
+  CuAssertTrue(tc, strstr(output, "deep water") == NULL);
+
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
 void Test_vessel_rest_in_port_berths_and_undock_casts_off(CuTest *tc)
 {
   struct movement_fixture fixture;

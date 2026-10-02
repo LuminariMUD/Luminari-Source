@@ -1503,7 +1503,7 @@ SQL
     "$verification_output"; then
     benchmark_fail "a vertical traversal probe did not reach the terrain gate"
   fi
-  grep -Fq "The ship cannot navigate this terrain!" "$verification_output" ||
+  grep -Fq "Your ship cannot go there!" "$verification_output" ||
     benchmark_fail "surface hull did not reject positive Z through Kohdee"
   grep -Fq "the altitude is too extreme." "$verification_output" ||
     benchmark_fail "airship did not reject Z above its ceiling through Kohdee"
