@@ -315,6 +315,53 @@ void Test_vessel_contact_list_is_nearest_first_within_sight(CuTest *tc)
   gunnery_clear_ships();
 }
 
+void Test_vessel_board_hostile_takes_the_nearest_hull_named(CuTest *tc)
+{
+  struct greyhawk_ship_data *ship = &greyhawk_ships[GUNNERY_SHIP_A];
+  struct gunnery_player boarder;
+  struct descriptor_data descriptor;
+  struct room_data deck;
+  struct room_data *saved_world;
+  char output[MAX_STRING_LENGTH];
+  room_rnum saved_top_of_world;
+
+  /* Two corsairs share a name: one far beyond sight, earlier in the fleet,
+   * and one a room off her bow, made fast to another hull. */
+  gunnery_arm_ship(GUNNERY_SHIP_A, "the Gull", "SA", 0.0, 0.0);
+  gunnery_arm_ship(GUNNERY_SHIP_B, "Corsair Ketch", "SB", 0.0,
+                   (double)(vessel_sight_range(ship) + 50));
+  gunnery_arm_ship(GUNNERY_SHIP_C, "Corsair Ketch", "SC", 0.0, 1.0);
+  greyhawk_ships[GUNNERY_SHIP_C].docked_to_ship = GUNNERY_SHIP_B;
+  gunnery_player_init(&boarder, "Mira");
+  memset(&deck, 0, sizeof(deck));
+  deck.number = 100;
+  deck.ship = ship;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &deck;
+  top_of_world = 0;
+  IN_ROOM(&boarder.ch) = 0;
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &boarder.ch;
+  boarder.ch.desc = &descriptor;
+
+  /* 'board_hostile ketch' goes for the one alongside, as shiplock would. */
+  do_board_hostile(&boarder.ch, "ketch", 0, 0);
+  CuAssertTrue(tc, strstr(output, "already secured alongside another hull") != NULL);
+  CuAssertTrue(tc, strstr(output, "too far away") == NULL);
+
+  boarder.ch.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  gunnery_clear_ships();
+}
+
 void Test_vessel_shipfire_lags_on_a_miss(CuTest *tc)
 {
   struct greyhawk_ship_data *ship = &greyhawk_ships[GUNNERY_SHIP_A];

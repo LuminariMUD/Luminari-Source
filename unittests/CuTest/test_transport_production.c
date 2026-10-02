@@ -869,25 +869,6 @@ void Test_vessel_production_geometry_and_type_data(CuTest *tc)
   CuAssertIntEquals(tc, 0, get_terrain_speed_modifier(VESSEL_SHIP, -1, 0));
 }
 
-void Test_vessel_name_lookup_accepts_player_facing_identifiers(CuTest *tc)
-{
-  const int slot = 488;
-  struct greyhawk_ship_data *ship = &greyhawk_ships[slot];
-
-  memset(ship, 0, sizeof(*ship));
-  ship->active = TRUE;
-  ship->shipnum = slot;
-  strlcpy(ship->name, "The Tern", sizeof(ship->name));
-  strlcpy(ship->id, "SU", sizeof(ship->id));
-
-  CuAssertPtrEquals(tc, ship, find_ship_by_name("The Tern"));
-  CuAssertPtrEquals(tc, ship, find_ship_by_name("tern"));
-  CuAssertPtrEquals(tc, ship, find_ship_by_name("SU"));
-  CuAssertPtrEquals(tc, ship, find_ship_by_name("488"));
-
-  memset(ship, 0, sizeof(*ship));
-}
-
 void Test_vessel_slot_identity_and_occupancy_are_separate(CuTest *tc)
 {
   const int slot = 497;

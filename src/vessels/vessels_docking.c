@@ -923,6 +923,19 @@ static void vessel_boarding_fall_into_water(struct char_data *ch)
   }
 }
 
+/**
+ * The nearby hull a player names, found as shiplock finds her: by contact ID
+ * or a word of her name, nearest first. NULL when no contact matches.
+ */
+static struct greyhawk_ship_data *vessel_named_contact(const struct greyhawk_ship_data *ship,
+                                                       const char *name)
+{
+  int slot;
+
+  slot = vessel_find_contact(ship, name);
+  return slot >= 0 ? &greyhawk_ships[slot] : NULL;
+}
+
 /* COMMAND: Dock with another vessel */
 ACMD(do_dock)
 {
@@ -974,16 +987,10 @@ ACMD(do_dock)
   }
 
   /* Find target vessel */
-  target = find_ship_by_name(arg);
+  target = vessel_named_contact(ship, arg);
   if (!target)
   {
     send_to_char(ch, "No vessel by that name is nearby.\r\n");
-    return;
-  }
-
-  if (target == ship)
-  {
-    send_to_char(ch, "You cannot dock a vessel with itself.\r\n");
     return;
   }
 
@@ -1082,7 +1089,12 @@ ACMD(do_board_hostile)
   }
 
   /* Find target vessel */
-  target = find_ship_by_name(arg);
+  if (get_ship_from_room(IN_ROOM(ch)) == NULL)
+  {
+    send_to_char(ch, "You must be on a ship to board another vessel!\r\n");
+    return;
+  }
+  target = vessel_named_contact(get_ship_from_room(IN_ROOM(ch)), arg);
   if (!target)
   {
     send_to_char(ch, "No vessel by that name is nearby.\r\n");

@@ -729,7 +729,9 @@ all eight classes, speed bands, submarine depth, and invalid inputs.
 #### Hostile Boarding
 
 `board_hostile <vessel>` requires the attacker to be aboard a different hull,
-within normal docking range, with neither hull already docked. Player-owned
+within normal docking range, with neither hull already docked. It and `dock`
+find the target as `shiplock` does (`vessel_find_contact()`: contact ID, then
+a word of the name, nearest first). Player-owned
 targets pass through the shared PvP-consent gate before defenses or rolls are
 resolved. The attempt alerts the target and moves idle NPC crew from other
 interior rooms to its entrance and bridge chokepoints.

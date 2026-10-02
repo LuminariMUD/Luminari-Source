@@ -2044,7 +2044,6 @@ const char *vessel_paint_scheme(const struct greyhawk_ship_data *ship);
 void vessel_set_figurehead(struct greyhawk_ship_data *ship, const char *value);
 void vessel_set_paint_scheme(struct greyhawk_ship_data *ship, const char *value);
 void vessel_reset_customization(struct greyhawk_ship_data *ship);
-struct greyhawk_ship_data *find_ship_by_name(const char *name);
 struct greyhawk_ship_data *get_ship_by_id(int id);
 bool is_pilot(struct char_data *ch, struct greyhawk_ship_data *ship);
 void send_to_ship(struct greyhawk_ship_data *ship, const char *format, ...)
