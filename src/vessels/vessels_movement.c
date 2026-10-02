@@ -632,6 +632,39 @@ static void vessel_report_lane(struct greyhawk_ship_data *ship, struct char_data
 }
 
 /**
+ * Tell the helm why its orders cannot take effect yet: she is made fast
+ * alongside, berthed, or at anchor, or still casting off or weighing anchor.
+ *
+ * @return TRUE when the order was refused
+ */
+bool vessel_refuse_moored_order(struct char_data *ch, const struct greyhawk_ship_data *ship)
+{
+  if (ship->docked_to_ship > 0)
+  {
+    send_to_char(ch, "%s is made fast alongside another vessel; 'undock' first.\r\n", ship->name);
+    return TRUE;
+  }
+  if (ship->departure_ticks > 0)
+  {
+    send_to_char(ch, "%s is still %s (%d seconds).\r\n", ship->name,
+                 ship->anchored ? "weighing anchor" : "casting off",
+                 (ship->departure_ticks + 1) / 2);
+    return TRUE;
+  }
+  if (ship->dock > 0)
+  {
+    send_to_char(ch, "%s is berthed; order 'undock' to cast off first.\r\n", ship->name);
+    return TRUE;
+  }
+  if (ship->anchored)
+  {
+    send_to_char(ch, "%s rides at anchor; order 'undock' to weigh anchor first.\r\n", ship->name);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
  * setsail: move the hull one room in a direction, or ten units up or down.
  *
  * The harbor maneuver: once every VESSEL_MANEUVER_COOLDOWN_TICKS, and across
@@ -647,23 +680,8 @@ bool vessel_maneuver(struct greyhawk_ship_data *ship, struct char_data *ch, int 
   int y;
   int z;
 
-  if (!is_valid_ship(ship) || ch == NULL)
+  if (!is_valid_ship(ship) || ch == NULL || vessel_refuse_moored_order(ch, ship))
   {
-    return FALSE;
-  }
-  if (ship->docked_to_ship > 0)
-  {
-    send_to_char(ch, "%s is made fast alongside another vessel; 'undock' first.\r\n", ship->name);
-    return FALSE;
-  }
-  if (ship->dock > 0)
-  {
-    send_to_char(ch, "%s is berthed; order 'undock' to cast off first.\r\n", ship->name);
-    return FALSE;
-  }
-  if (ship->anchored)
-  {
-    send_to_char(ch, "%s rides at anchor; order 'undock' to weigh anchor first.\r\n", ship->name);
     return FALSE;
   }
   if (vessel_crew_stunned(ship))

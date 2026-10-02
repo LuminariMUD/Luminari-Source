@@ -1967,27 +1967,6 @@ ACMD(do_greyhawk_status)
   send_to_char(ch, "\r\n");
 }
 
-/* Tell the helm why its orders cannot take effect yet. */
-static bool vessel_refuse_moored_order(struct char_data *ch, const struct greyhawk_ship_data *ship)
-{
-  if (ship->docked_to_ship > 0)
-  {
-    send_to_char(ch, "%s is made fast alongside another vessel; 'undock' first.\r\n", ship->name);
-    return TRUE;
-  }
-  if (ship->dock > 0)
-  {
-    send_to_char(ch, "%s is berthed; order 'undock' to cast off first.\r\n", ship->name);
-    return TRUE;
-  }
-  if (ship->anchored)
-  {
-    send_to_char(ch, "%s rides at anchor; order 'undock' to weigh anchor first.\r\n", ship->name);
-    return TRUE;
-  }
-  return FALSE;
-}
-
 ACMD(do_greyhawk_speed)
 {
   char arg[MAX_INPUT_LENGTH];

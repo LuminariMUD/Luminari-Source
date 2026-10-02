@@ -818,6 +818,55 @@ void Test_vessel_disembark_under_way_tells_a_passenger_to_wait(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_moored_orders_say_what_she_is_doing(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.output = output;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+
+  /* Berthed, she waits for the order to cast off. */
+  ship->dock = MOVEMENT_ROOM_VNUM;
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  CuAssertTrue(tc, vessel_refuse_moored_order(&fixture.helm, ship));
+  CuAssertTrue(tc,
+               strstr(output, "the Heron is berthed; order 'undock' to cast off first.") != NULL);
+
+  /* Once ordered, the helm hears how long the crew needs. */
+  ship->departure_ticks = 20;
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  CuAssertTrue(tc, vessel_refuse_moored_order(&fixture.helm, ship));
+  CuAssertTrue(tc, strstr(output, "the Heron is still casting off (10 seconds).") != NULL);
+  ship->dock = 0;
+  ship->anchored = TRUE;
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  CuAssertTrue(tc, vessel_refuse_moored_order(&fixture.helm, ship));
+  CuAssertTrue(tc, strstr(output, "the Heron is still weighing anchor (10 seconds).") != NULL);
+
+  /* Under way, nothing is refused. */
+  ship->departure_ticks = 0;
+  ship->anchored = FALSE;
+  CuAssertTrue(tc, !vessel_refuse_moored_order(&fixture.helm, ship));
+
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
 void Test_vessel_paused_autopilot_holds_and_a_finished_route_stops(CuTest *tc)
 {
   struct movement_fixture fixture;
