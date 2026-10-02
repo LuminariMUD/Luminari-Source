@@ -6,11 +6,13 @@
 #include "../../src/core/utils.h"
 #include "../../src/core/comm.h"
 #include "../../src/core/db.h"
+#include "../../src/core/handler.h"
 #include "../../src/movement/graph.h"
 #include "../../src/core/perfmon.h"
 #include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"
 #include "../../src/vessels/transport.h"
+#include "../../src/vessels/transport_unified.h"
 #include "../../src/wilderness/wilderness.h"
 
 #include <limits.h>
@@ -491,6 +493,72 @@ void Test_vehicle_standing_in_a_room_is_listed_to_a_looker(CuTest *tc)
 
   ProtocolDestroy(descriptor.pProtocol);
   vehicle_destroy(vehicle);
+}
+
+void Test_transport_go_carries_the_rider_with_the_vehicle(CuTest *tc)
+{
+  struct room_data rooms[2]; /* the field the cart stands in, and the one north */
+  struct zone_data zone;
+  struct room_data *saved_world;
+  struct zone_data *saved_zone_table;
+  struct char_data *saved_character_list;
+  struct kdtree *saved_kd_wilderness_rooms;
+  struct vehicle_data *vehicle;
+  struct char_data rider;
+  struct player_special_data rider_specials;
+  room_rnum saved_top_of_world;
+  zone_rnum saved_top_of_zone_table;
+  int i;
+
+  memset(rooms, 0, sizeof(rooms));
+  memset(&zone, 0, sizeof(zone));
+  SET_BIT_AR(zone.zone_flags, ZONE_WILDERNESS);
+  for (i = 0; i < 2; i++)
+  {
+    rooms[i].number = WILD_DYNAMIC_ROOM_VNUM_START + i;
+    rooms[i].sector_type = SECT_FIELD;
+    rooms[i].coords[1] = i;
+    SET_BIT_AR(rooms[i].room_flags, ROOM_OCCUPIED);
+  }
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  saved_character_list = character_list;
+  saved_kd_wilderness_rooms = kd_wilderness_rooms;
+  world = rooms;
+  top_of_world = 1;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+  kd_wilderness_rooms = NULL;
+
+  vehicle = vehicle_create(VEHICLE_CART, "River Cart");
+  CuAssertPtrNotNull(tc, vehicle);
+  vehicle->location = 0;
+  clear_char(&rider);
+  memset(&rider_specials, 0, sizeof(rider_specials));
+  rider.player_specials = &rider_specials;
+  rider.player.name = CuMutableString("Mara");
+  GET_IDNUM(&rider) = 424242;
+  char_to_room(&rider, 0);
+  character_list = &rider;
+  CuAssertTrue(tc, register_player_mount(&rider, vehicle));
+
+  /* 'tgo' is 'drive' by another name: the rider goes along. */
+  do_transport_go(&rider, "north", 0, 0);
+  CuAssertIntEquals(tc, 1, vehicle->location);
+  CuAssertIntEquals(tc, 1, IN_ROOM(&rider));
+  CuAssertIntEquals(tc, 1, Y_LOC(&rider));
+
+  unregister_player_mount(&rider);
+  char_from_room(&rider);
+  vehicle_destroy(vehicle);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+  character_list = saved_character_list;
+  kd_wilderness_rooms = saved_kd_wilderness_rooms;
 }
 
 void Test_vehicle_production_capacity_and_state_transitions(CuTest *tc)

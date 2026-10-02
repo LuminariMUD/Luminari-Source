@@ -1790,6 +1790,9 @@ ship-class interiors.
 | transport_go | Move transport | `tgo <direction>` |
 | transportstatus | Transport status | `tstatus` |
 
+On a land vehicle `tgo` is `drive` (`do_transport_go()` calls `do_drive()`), so
+it carries every rider along with the vehicle.
+
 ---
 
 ## Integration Testing Workflows
