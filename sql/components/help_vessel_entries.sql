@@ -1571,8 +1571,8 @@ ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VEVENT', 'VEVENT');
 
-INSERT INTO help_entries (tag, entry, min_level, auto_generated)
-VALUES ('boats', 'Passage on ferries and other public ships:
+INSERT INTO help_entries (tag, alternate_keywords, entry, min_level, auto_generated)
+VALUES ('boats', NULL, 'Passage on ferries and other public ships:
 
 Public ships, the ferries and merchant hulls an NPC pilot sails on a
 schedule, carry passengers between ports. Wait on the dock until she is
@@ -1590,7 +1590,8 @@ leaves a hull under way; away from shore, leaving a stopped hull puts you in
 the water.
 
 See also: VESSELS, SHOWSCHEDULE, VEHICLE-TRANSPORT', 1, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+ON DUPLICATE KEY UPDATE alternate_keywords = VALUES(alternate_keywords),
+  entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('boats', 'BOATS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('boats', 'FERRY');
@@ -1622,7 +1623,8 @@ WHERE BINARY tag IN (
   'board_hostile', 'disembark', 'dock', 'look_outside', 'ship_rooms', 'undock'
 );
 
--- The passenger entry gave SHIPS to VESSELS and lost a misspelled keyword.
+-- The passenger entry gave SHIPS to VESSELS and lost a misspelled keyword;
+-- its old alternate keywords are cleared above.
 DELETE FROM help_keywords
 WHERE
   BINARY help_tag = 'boats'

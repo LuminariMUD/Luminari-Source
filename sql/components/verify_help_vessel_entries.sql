@@ -236,3 +236,11 @@ WHERE
   OR (BINARY help_tag = 'SHIPHIRE' AND UPPER(keyword) = 'SHIPINSURE')
   OR (BINARY help_tag = 'undock' AND UPPER(keyword) = 'UNDOCK')
   OR (BINARY help_tag = 'boats' AND UPPER(keyword) IN ('SHIPS', 'TRANSPORTSS'));
+
+SELECT
+  'retired_aliases' AS check_name,
+  COUNT(*) AS actual,
+  0 AS expected,
+  IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
+FROM help_entries
+WHERE BINARY tag = 'boats' AND COALESCE(alternate_keywords, '') <> '';
