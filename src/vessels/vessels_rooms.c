@@ -658,6 +658,52 @@ void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
   }
 }
 
+/**
+ * The room a crew discovers aboard a hull of this class: weapons bays on a
+ * warship and holds on a transport more often, else a common room, but never
+ * one a hull her size lacks (min_vessel_size): a raft finds only a hold.
+ */
+enum ship_room_type vessel_discovered_room_type(enum vessel_class vessel_type)
+{
+  enum ship_room_type new_type;
+
+  do
+  {
+    if (vessel_type == VESSEL_WARSHIP && rand_number(1, 3) == 1)
+    {
+      new_type = ROOM_TYPE_WEAPONS;
+    }
+    else if (vessel_type == VESSEL_TRANSPORT && rand_number(1, 2) == 1)
+    {
+      new_type = ROOM_TYPE_CARGO;
+    }
+    else
+    {
+      /* Random selection from common room types */
+      switch (rand_number(1, 5))
+      {
+      case 1:
+        new_type = ROOM_TYPE_QUARTERS;
+        break;
+      case 2:
+        new_type = ROOM_TYPE_CORRIDOR;
+        break;
+      case 3:
+        new_type = ROOM_TYPE_CARGO;
+        break;
+      case 4:
+        new_type = ROOM_TYPE_MESS_HALL;
+        break;
+      default:
+        new_type = ROOM_TYPE_MEDICAL;
+        break;
+      }
+    }
+  } while (room_templates[new_type].min_vessel_size > (int)vessel_type);
+
+  return new_type;
+}
+
 /* Generate complete ship interior based on vessel type */
 void generate_ship_interior(struct greyhawk_ship_data *ship)
 {
@@ -760,45 +806,7 @@ void generate_ship_interior(struct greyhawk_ship_data *ship)
   {
     if (rand_number(1, 100) <= ship->discovery_chance)
     {
-      /* Select appropriate room type based on what's missing */
-      enum ship_room_type new_type;
-
-      if (ship->vessel_type == VESSEL_WARSHIP && rand_number(1, 3) == 1)
-      {
-        new_type = ROOM_TYPE_WEAPONS;
-      }
-      else if (ship->vessel_type == VESSEL_TRANSPORT && rand_number(1, 2) == 1)
-      {
-        new_type = ROOM_TYPE_CARGO;
-      }
-      else
-      {
-        /* Random selection from common room types */
-        int roll = rand_number(1, 5);
-        switch (roll)
-        {
-        case 1:
-          new_type = ROOM_TYPE_QUARTERS;
-          break;
-        case 2:
-          new_type = ROOM_TYPE_CORRIDOR;
-          break;
-        case 3:
-          new_type = ROOM_TYPE_CARGO;
-          break;
-        case 4:
-          new_type = ROOM_TYPE_MESS_HALL;
-          break;
-        case 5:
-          new_type = ROOM_TYPE_MEDICAL;
-          break;
-        default:
-          new_type = ROOM_TYPE_CORRIDOR;
-          break;
-        }
-      }
-
-      add_ship_room(ship, new_type);
+      add_ship_room(ship, vessel_discovered_room_type(ship->vessel_type));
     }
     else
     {

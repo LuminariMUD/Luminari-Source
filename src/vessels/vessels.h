@@ -1936,6 +1936,7 @@ int vessel_arc_toward(const struct greyhawk_ship_data *from, const struct greyha
 
 /* Room Generation and Management */
 void generate_ship_interior(struct greyhawk_ship_data *ship);
+enum ship_room_type vessel_discovered_room_type(enum vessel_class vessel_type);
 bool restore_ship_interior(struct greyhawk_ship_data *ship);
 void vessel_rename_interior(struct greyhawk_ship_data *ship);
 void vessel_char_to_room(struct char_data *ch, room_rnum room);

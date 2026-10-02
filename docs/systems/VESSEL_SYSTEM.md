@@ -463,6 +463,10 @@ per-movement logging.
 | TRANSPORT | Ocean | Slow | 6-20 | Bridge, Large Cargo, Passenger Quarters |
 | MAGICAL | Any | Variable | 1-5 | Custom configuration |
 
+Rooms beyond these are discovered at random (`vessel_discovered_room_type()`),
+never one the class is too small for (the template's `min_vessel_size`): a
+raft's only extra room is a hold, and medical bays begin at ship size.
+
 ### Terrain Capabilities
 
 ```c
@@ -2111,8 +2115,8 @@ chart, study the chart before opening the cargo panel, and can award each
 object only once. It begins with a plain `search` on the derelict's bridge
 (trigger 70010 answers `search` and anything it begins, such as
 `searchashlog`; elsewhere it returns 0 and the ordinary search runs); the log
-and chart then name the next commands. Five player DG variables persist discovery state in the
-ASCII player file. The ordinary `salvage` command values the tidefinder at 180
+and chart then name the next commands. Five player DG variables persist
+discovery state in the ASCII player file. The ordinary `salvage` command values the tidefinder at 180
 gold; the DG program does not implement a parallel reward path.
 
 The SQL package owns the `Blackwake Derelict` ship-class prototype and the

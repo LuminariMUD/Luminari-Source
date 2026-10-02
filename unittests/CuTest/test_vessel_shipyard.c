@@ -337,6 +337,25 @@ static bool shipyard_dir_step(int dir, int *dx, int *dy)
   return dir != UP && dir != DOWN;
 }
 
+void Test_vessel_discovered_rooms_fit_the_hull(CuTest *tc)
+{
+  bool medical_found;
+  int i;
+
+  /* A raft has room only for a hold; a boat has no medical bay; a ship can. */
+  medical_found = FALSE;
+  for (i = 0; i < 200; i++)
+  {
+    CuAssertIntEquals(tc, ROOM_TYPE_CARGO, vessel_discovered_room_type(VESSEL_RAFT));
+    CuAssertTrue(tc, vessel_discovered_room_type(VESSEL_BOAT) != ROOM_TYPE_MEDICAL);
+    if (vessel_discovered_room_type(VESSEL_SHIP) == ROOM_TYPE_MEDICAL)
+    {
+      medical_found = TRUE;
+    }
+  }
+  CuAssertTrue(tc, medical_found);
+}
+
 void Test_vessel_interior_exits_agree_with_her_layout(CuTest *tc)
 {
   struct room_data rooms[MAX_SHIP_ROOMS];
