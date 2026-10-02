@@ -746,6 +746,29 @@ void Test_vessel_autopilot_casts_off_before_following_its_route(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_autopilot_arrives_in_a_port_she_owes_a_fee(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct ship_route *route;
+
+  /* Her one-way route ends where she lies, in a port that has charged her:
+   * she has arrived, and the fee waits for her next departure. */
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  route = route_create("homeward");
+  CuAssertPtrNotNull(tc, route);
+  CuAssertPtrNotNull(tc, autopilot_init(ship));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, ship->x, ship->y, 0.0, "home"));
+  CuAssertTrue(tc, autopilot_start(ship, route));
+  ship->dock_fee_balance = 25;
+
+  movement_ticks(ship, 1);
+  CuAssertIntEquals(tc, AUTOPILOT_COMPLETE, ship->autopilot->state);
+  CuAssertIntEquals(tc, 25, ship->dock_fee_balance);
+
+  movement_end(&fixture);
+}
+
 void Test_vessel_target_speed_is_the_order_she_answers(CuTest *tc)
 {
   struct movement_fixture fixture;

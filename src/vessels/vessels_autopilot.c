@@ -2337,6 +2337,23 @@ void process_traveling_vessel(struct greyhawk_ship_data *ship)
   }
   ap->speed_limit = 0.0;
 
+  /* Get current waypoint */
+  wp = waypoint_get_current(ship);
+  if (wp == NULL)
+  {
+    log("SYSERR: process_traveling_vessel - no current waypoint for ship %d", ship->shipnum);
+    ap->state = AUTOPILOT_OFF;
+    return;
+  }
+
+  /* A hull at her waypoint has arrived, even in a port whose fee she owes:
+   * the fee only stops her leaving. */
+  if (check_waypoint_arrival(ship, wp))
+  {
+    handle_waypoint_arrival(ship);
+    return;
+  }
+
   if (ship->dock_fee_balance > 0)
   {
     ap->state = AUTOPILOT_PAUSED;
@@ -2358,22 +2375,6 @@ void process_traveling_vessel(struct greyhawk_ship_data *ship)
       autopilot_pause(ship);
       send_to_ship(ship, "Autopilot pauses: %s cannot get under way.", ship->name);
     }
-    return;
-  }
-
-  /* Get current waypoint */
-  wp = waypoint_get_current(ship);
-  if (wp == NULL)
-  {
-    log("SYSERR: process_traveling_vessel - no current waypoint for ship %d", ship->shipnum);
-    ap->state = AUTOPILOT_OFF;
-    return;
-  }
-
-  /* Check if we've arrived at the waypoint */
-  if (check_waypoint_arrival(ship, wp))
-  {
-    handle_waypoint_arrival(ship);
     return;
   }
 
