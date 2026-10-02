@@ -395,6 +395,10 @@ void Test_vessel_harbor_hulls_neither_fire_nor_take_fire(CuTest *tc)
   ship->shipobj = &hull;
   vessel_combat_tick_one(ship);
   CuAssertIntEquals(tc, 0, ship->slot[0].timer);
+  /* Under way in the harbor she is not berthed, and is not told she is. */
+  CuAssertIntEquals(tc, 0, ship->dock);
+  CuAssertStrEquals(tc, "The harbor watch forbids gunfire in port - put to sea first.",
+                    vessel_hull_fire_problem(ship));
 
   /* At sea the crew fires. */
   ship->shipobj = NULL;

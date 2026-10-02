@@ -234,7 +234,7 @@ void vessel_battle_stations(struct greyhawk_ship_data *ship)
 }
 
 /**
- * Why this hull cannot fire, or NULL: not berthed in port, anchored,
+ * Why this hull cannot fire, or NULL: in port (berthed or not), anchored,
  * submerged, going down, stunned, or reeling from a ram.
  */
 const char *vessel_hull_fire_problem(struct greyhawk_ship_data *ship)
@@ -245,7 +245,7 @@ const char *vessel_hull_fire_problem(struct greyhawk_ship_data *ship)
   }
   if (vessel_ship_is_in_port(ship))
   {
-    return "The harbor watch forbids gunfire from a berth - put to sea first.";
+    return "The harbor watch forbids gunfire in port - put to sea first.";
   }
   if (ship->anchored)
   {
