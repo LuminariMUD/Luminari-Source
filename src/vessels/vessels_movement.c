@@ -574,7 +574,8 @@ static const char *vessel_blocked_text(enum vessel_class vessel_type, int z)
     return "Your boat cannot go there! She keeps to rivers and shallow coastal water.";
   case VESSEL_SHIP:
   case VESSEL_WARSHIP:
-    return "The ship cannot navigate this terrain! It requires deep water to sail.";
+    return "Your ship cannot go there! She keeps to the water's surface, clear of beach and "
+           "land.";
   case VESSEL_AIRSHIP:
     return z < 100 ? "The airship cannot fly through this terrain at low altitude! Gain more "
                      "altitude."

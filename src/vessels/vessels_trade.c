@@ -1264,7 +1264,8 @@ void vessel_trade_restock_tick(void)
  * The percent chance customs confiscate each unit of a contraband lot (study
  * 3.3.9, Duris check_contraband()): c = 35 + units / 2 - sqrt(renown) / 5,
  * raised by (100 - c) * (1 - load), load being the hold's fill by weight, so
- * contraband hides in a full hold; at most 100, and 5 when negative.
+ * contraband hides in a full hold; at most 100 and never under 5 (Duris
+ * means "always a small chance" but floors only a negative chance).
  */
 int vessel_customs_chance(int units, int renown, double load)
 {
@@ -1276,7 +1277,7 @@ int vessel_customs_chance(int units, int renown, double load)
   {
     return 100;
   }
-  return chance < 0.0 ? 5 : (int)chance;
+  return chance < 5.0 ? 5 : (int)chance;
 }
 
 /**

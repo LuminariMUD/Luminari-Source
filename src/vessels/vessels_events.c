@@ -1080,7 +1080,7 @@ static void vessel_event_join(struct char_data *ch, const char *team_arg)
     send_to_char(ch, "That captain or vessel is already entered, or the roster is full.\r\n");
     return;
   }
-  send_to_char(ch, "Entered %s (slot %d) in %s event #%llu%s%s.\r\n", ship->name, ship->shipnum,
+  send_to_char(ch, "Entered %s [%s] in %s event #%llu%s%s.\r\n", ship->name, ship->id,
                vessel_event_type_name(vessel_event.type), vessel_event.event_id,
                team != VESSEL_EVENT_TEAM_NONE ? " on team " : "",
                team != VESSEL_EVENT_TEAM_NONE ? vessel_event_team_name(team) : "");
@@ -1122,7 +1122,7 @@ static void vessel_event_enlist(struct char_data *ch, const char *arguments)
 static void vessel_event_show_status(struct char_data *ch)
 {
   struct vessel_event_participant *participant;
-  const char *ship_name;
+  struct greyhawk_ship_data *entrant;
   int red_score;
   int blue_score;
   int active_ghosts;
@@ -1159,13 +1159,14 @@ static void vessel_event_show_status(struct char_data *ch)
   for (i = 0; i < vessel_event.participant_count; i++)
   {
     participant = &vessel_event.participants[i];
-    ship_name = participant->ship_id >= 0 && participant->ship_id < GREYHAWK_MAXSHIPS &&
-                        is_valid_ship(&greyhawk_ships[participant->ship_id])
-                    ? greyhawk_ships[participant->ship_id].name
-                    : "retired vessel";
-    send_to_char(ch, "  slot %-3d %-24s captain %-12s team %-4s score %-4d", participant->ship_id,
-                 ship_name, participant->captain_name, vessel_event_team_name(participant->team),
-                 participant->score);
+    entrant = participant->ship_id >= 0 && participant->ship_id < GREYHAWK_MAXSHIPS &&
+                      is_valid_ship(&greyhawk_ships[participant->ship_id])
+                  ? &greyhawk_ships[participant->ship_id]
+                  : NULL;
+    send_to_char(ch, "  [%-2s] %-24s captain %-12s team %-4s score %-4d",
+                 entrant != NULL ? entrant->id : "--",
+                 entrant != NULL ? entrant->name : "retired vessel", participant->captain_name,
+                 vessel_event_team_name(participant->team), participant->score);
     if (participant->finished)
     {
       send_to_char(ch, " FINISHED #%d in %ds", participant->placement, participant->finish_seconds);
@@ -1197,7 +1198,8 @@ static void vessel_event_show_status(struct char_data *ch)
           is_valid_ship(&greyhawk_ships[vessel_event.ghost_slots[i]]))
       {
         active_ghosts++;
-        send_to_char(ch, "  Ghost contact: slot %d, %s\r\n", vessel_event.ghost_slots[i],
+        send_to_char(ch, "  Ghost contact: [%s] %s\r\n",
+                     greyhawk_ships[vessel_event.ghost_slots[i]].id,
                      greyhawk_ships[vessel_event.ghost_slots[i]].name);
       }
     }

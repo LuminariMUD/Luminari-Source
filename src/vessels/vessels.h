@@ -1659,7 +1659,7 @@ struct vessel_schedule
   int ship_id;        /* Ship index this schedule belongs to */
   int route_id;       /* Route to start when triggered */
   int interval_hours; /* MUD hours between departures */
-  int next_departure; /* MUD hour for next departure */
+  int next_departure; /* Absolute MUD hour of the next departure (schedule_mud_hour()) */
   int passenger_fare; /* Gold charged by an unowned public vessel at boarding */
   int flags;          /* SCHEDULE_FLAG_* bits */
 };
@@ -2035,6 +2035,7 @@ void end_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_d
 /* Utility Functions */
 void vessel_build_hull_description(char *buffer, size_t buffer_size,
                                    const struct greyhawk_ship_data *ship);
+bool vessel_hull_room_description(const struct obj_data *obj, char *buffer, size_t buffer_size);
 bool vessel_format_appearance(char *buffer, size_t buffer_size,
                               const struct greyhawk_ship_data *ship);
 bool vessel_refresh_hull_strings(struct greyhawk_ship_data *ship, bool refresh_identity);
@@ -2043,7 +2044,6 @@ const char *vessel_paint_scheme(const struct greyhawk_ship_data *ship);
 void vessel_set_figurehead(struct greyhawk_ship_data *ship, const char *value);
 void vessel_set_paint_scheme(struct greyhawk_ship_data *ship, const char *value);
 void vessel_reset_customization(struct greyhawk_ship_data *ship);
-struct greyhawk_ship_data *find_ship_by_name(const char *name);
 struct greyhawk_ship_data *get_ship_by_id(int id);
 bool is_pilot(struct char_data *ch, struct greyhawk_ship_data *ship);
 void send_to_ship(struct greyhawk_ship_data *ship, const char *format, ...)
@@ -2168,6 +2168,7 @@ void schedule_tick_one(struct greyhawk_ship_data *ship);
 int schedule_check_trigger(struct greyhawk_ship_data *ship);
 int schedule_trigger_departure(struct greyhawk_ship_data *ship);
 void schedule_calculate_next_departure(struct vessel_schedule *sched);
+int schedule_mud_hour(void);
 
 /* Database Table Management */
 void ensure_schedule_table_exists(void);

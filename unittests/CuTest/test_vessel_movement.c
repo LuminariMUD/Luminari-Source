@@ -476,6 +476,38 @@ void Test_vessel_boat_refused_room_names_the_waters_she_keeps(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_ship_refused_room_names_the_water_she_needs(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+  refuse_room = TRUE;
+  refused_x = 0;
+  refused_y = 1;
+
+  /* A ship in shoal water steered at the shore is not told she needs deep
+   * water: shoal water is open to her, the shore is not. */
+  CuAssertTrue(tc, !vessel_maneuver(ship, &fixture.helm, NORTH));
+  CuAssertTrue(tc, strstr(output, "Your ship cannot go there! She keeps to the water's surface, "
+                                  "clear of beach and land.") != NULL);
+  CuAssertTrue(tc, strstr(output, "deep water") == NULL);
+
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
 void Test_vessel_rest_in_port_berths_and_undock_casts_off(CuTest *tc)
 {
   struct movement_fixture fixture;
@@ -1070,6 +1102,47 @@ void Test_vessel_created_route_reaches_and_berths_at_its_port(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_schedule_departs_on_time_across_midnight(CuTest *tc)
+{
+  struct time_info_data saved_time = time_info;
+  struct greyhawk_ship_data ship;
+  struct vessel_schedule schedule;
+
+  memset(&ship, 0, sizeof(ship));
+  memset(&schedule, 0, sizeof(schedule));
+  schedule.flags = SCHEDULE_FLAG_ENABLED;
+  ship.schedule = &schedule;
+  time_info.year = 100;
+  time_info.month = 3;
+  time_info.day = 7;
+
+  /* Set at hour 20 for every 6 hours, she waits through midnight for 2. */
+  time_info.hours = 20;
+  schedule.interval_hours = 6;
+  schedule_calculate_next_departure(&schedule);
+  CuAssertIntEquals(tc, 2, schedule.next_departure % 24);
+  CuAssertIntEquals(tc, 0, schedule_check_trigger(&ship));
+  time_info.hours = 23;
+  CuAssertIntEquals(tc, 0, schedule_check_trigger(&ship));
+  time_info.day = 8;
+  time_info.hours = 1;
+  CuAssertIntEquals(tc, 0, schedule_check_trigger(&ship));
+  time_info.hours = 2;
+  CuAssertIntEquals(tc, 1, schedule_check_trigger(&ship));
+
+  /* Every 24 hours means tomorrow at this hour, not now. */
+  schedule.interval_hours = 24;
+  schedule_calculate_next_departure(&schedule);
+  CuAssertIntEquals(tc, 0, schedule_check_trigger(&ship));
+  time_info.day = 9;
+  time_info.hours = 1;
+  CuAssertIntEquals(tc, 0, schedule_check_trigger(&ship));
+  time_info.hours = 2;
+  CuAssertIntEquals(tc, 1, schedule_check_trigger(&ship));
+
+  time_info = saved_time;
+}
+
 void Test_vessel_schedule_check_sails_the_turn_the_hull_will_make(CuTest *tc)
 {
   struct movement_fixture fixture;
@@ -1422,6 +1495,179 @@ void Test_vessel_restart_keeps_an_owned_hull_damaged_in_port(CuTest *tc)
   CuAssertIntEquals(tc, 1, ship->mainsail);
   CuAssertIntEquals(tc, 1, ship->turnrate);
 
+  movement_end(&fixture);
+}
+
+void Test_vessel_relieved_pilot_leaves_the_route_set(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  struct ship_route *route;
+  char output[MAX_STRING_LENGTH];
+  char query[256];
+  char insert[256];
+  MYSQL *saved_conn;
+  MYSQL *connection;
+  bool saved_mysql_available;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    return;
+  }
+
+  connection = movement_open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  /* Her saved rows hang off her interior row; removing it clears them. */
+  snprintf(query, sizeof(query), "DELETE FROM ship_interiors WHERE ship_id = %d", MOVEMENT_SHIP);
+  CuAssertIntEquals(tc, 0, mysql_query(connection, query));
+  snprintf(insert, sizeof(insert), "INSERT INTO ship_interiors (ship_id) VALUES (%d)",
+           MOVEMENT_SHIP);
+  CuAssertIntEquals(tc, 0, mysql_query(connection, insert));
+
+  /* The owner's hull sails a route under an NPC pilot. */
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  strlcpy(ship->owner, "Mara", sizeof(ship->owner));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+  route = route_create("errand");
+  CuAssertPtrNotNull(tc, route);
+  CuAssertPtrNotNull(tc, autopilot_init(ship));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, 0.0, 30.0, 0.0, "far"));
+  CuAssertTrue(tc, autopilot_start(ship, route));
+  ship->autopilot->pilot_mob_vnum = 31810;
+
+  /* Relieving the pilot disengages the autopilot but keeps the route,
+   * which the cleanup below frees exactly once. */
+  saved_conn = conn;
+  saved_mysql_available = mysql_available;
+  conn = connection;
+  mysql_available = TRUE;
+  do_unassignpilot(&fixture.helm, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "of pilot duties.") != NULL);
+  CuAssertIntEquals(tc, AUTOPILOT_OFF, ship->autopilot->state);
+  CuAssertIntEquals(tc, -1, ship->autopilot->pilot_mob_vnum);
+  CuAssertPtrEquals(tc, route, ship->autopilot->current_route);
+
+  /* The captain can take her on along it. */
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  do_autopilot(&fixture.helm, "on", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Autopilot engaged on route 'errand'.") != NULL);
+  CuAssertIntEquals(tc, AUTOPILOT_TRAVELING, ship->autopilot->state);
+  conn = saved_conn;
+  mysql_available = saved_mysql_available;
+
+  CuAssertIntEquals(tc, 0, mysql_query(connection, query));
+  mysql_close(connection);
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
+void Test_vessel_autopilot_off_is_refused_under_a_pilot(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  struct ship_route *route;
+  char output[MAX_STRING_LENGTH];
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  strlcpy(ship->owner, "Mara", sizeof(ship->owner));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+  route = route_create("errand");
+  CuAssertPtrNotNull(tc, route);
+  CuAssertPtrNotNull(tc, autopilot_init(ship));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, 0.0, 30.0, 0.0, "far"));
+  CuAssertTrue(tc, autopilot_start(ship, route));
+  ship->autopilot->pilot_mob_vnum = 31810;
+
+  /* The pilot would engage the route again at once, so 'off' is refused
+   * with the two orders that do hold. */
+  do_autopilot(&fixture.helm, "off", 0, 0);
+  CuAssertTrue(tc, strstr(output, "'autopilot pause'") != NULL);
+  CuAssertTrue(tc, strstr(output, "'unassignpilot'") != NULL);
+  CuAssertIntEquals(tc, AUTOPILOT_TRAVELING, ship->autopilot->state);
+
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
+void Test_vessel_shared_waypoints_and_routes_in_use_stay(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  struct waypoint_node buoy;
+  struct waypoint_node *saved_waypoints;
+  struct route_node loop;
+  struct route_node *saved_routes;
+  struct vessel_schedule schedule;
+  char output[MAX_STRING_LENGTH];
+  int waypoint_ids[1];
+
+  /* A ferry's loop through a buoy, on her schedule. */
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+  memset(&buoy, 0, sizeof(buoy));
+  memset(&loop, 0, sizeof(loop));
+  memset(&schedule, 0, sizeof(schedule));
+  buoy.waypoint_id = MOVEMENT_WAYPOINT_ID;
+  strlcpy(buoy.data.name, "buoy", sizeof(buoy.data.name));
+  waypoint_ids[0] = buoy.waypoint_id;
+  loop.route_id = MOVEMENT_WAYPOINT_ID;
+  strlcpy(loop.name, "ferry_loop", sizeof(loop.name));
+  loop.num_waypoints = 1;
+  loop.waypoint_ids = waypoint_ids;
+  saved_waypoints = waypoint_list;
+  saved_routes = route_list;
+  buoy.next = saved_waypoints;
+  loop.next = saved_routes;
+  waypoint_list = &buoy;
+  route_list = &loop;
+  schedule.route_id = loop.route_id;
+  ship->schedule = &schedule;
+
+  /* Any captain may use them, so no captain may pull them out from under
+   * the ship that sails them. */
+  do_delwaypoint(&fixture.helm, "buoy", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Waypoint 'buoy' is on route 'ferry_loop'") != NULL);
+  do_delroute(&fixture.helm, "ferry_loop", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Route 'ferry_loop' is in use by the Heron") != NULL);
+
+  ship->schedule = NULL;
+  waypoint_list = saved_waypoints;
+  route_list = saved_routes;
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
   movement_end(&fixture);
 }
 

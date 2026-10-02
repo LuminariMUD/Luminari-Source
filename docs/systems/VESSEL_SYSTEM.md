@@ -6,13 +6,14 @@ events, and Phase 17 exterior customization implemented; wilderness tactical
 chart, lookout view, dynamic at-sea narrative, and cosmetics accepted;
 development preflight and schema rehearsal pass; player-data balance, human
 beta, and staged production rollout remain
-**Last Updated**: 2026-09-28
+**Last Updated**: 2026-10-02
 **Scope**: Current behavior reference. For the durable product contract see
 [Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md),
 including its
 [release-gate state](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md#release-gate-state);
 for what shipped when see
-[the archived changelogs](../previous_changelogs/).
+[the archived changelogs](../previous_changelogs/); for the player's view, with
+screenshots, see the [Vessel Player Guide](../guides/VESSEL_PLAYER_GUIDE.md).
 
 ---
 
@@ -492,12 +493,12 @@ struct vessel_terrain_caps {
 
 ### Vehicle System
 
-| Type | Capacity | Base Speed | Terrain |
-| -- | -- | -- | -- |
-| `VEHICLE_CART` | 1 pass, 200 lbs | 80% | Road, plains |
-| `VEHICLE_WAGON` | 4 pass, 1000 lbs | 60% | Road, plains, forest |
-| `VEHICLE_MOUNT` | 1 pass, 100 lbs | 120% | Most terrain |
-| `VEHICLE_CARRIAGE` | 6 pass, 500 lbs | 70% | Road, plains |
+| Type | Passengers | Cargo | Base speed | Terrain |
+| -- | -: | -: | -: | -- |
+| `VEHICLE_CART` | 2 | 500 lbs | 2 | Road, plains |
+| `VEHICLE_WAGON` | 6 | 2,000 lbs | 1 | Road, plains |
+| `VEHICLE_MOUNT` | 1 | 200 lbs | 4 | Road, plains, forest, hills |
+| `VEHICLE_CARRIAGE` | 4 | 800 lbs | 2 | Road |
 
 **States**: `IDLE`, `MOVING`, `LOADED`, `HITCHED`, `DAMAGED`, `ON_VESSEL`
 
@@ -508,18 +509,13 @@ loaded aboard a hull is in no room (`location` is `NOWHERE`).
 stopped or docked and at the surface (`z` 0): aloft or submerged she has no
 ground beside her.
 
-**Terrain Flags**: `ROAD`, `PLAINS`, `FOREST`, `HILLS`, `MOUNTAIN`, `DESERT`, `WATER_SHALLOW`
+**Terrain Flags** (`VTERRAIN_*`): `ROAD`, `PLAINS`, `FOREST`, `HILLS`, `MOUNTAIN`, `DESERT`,
+`SWAMP`; water is impassable to every vehicle.
 
-**Speed Modifiers by Terrain**:
-
-| Terrain | Cart | Wagon | Mount | Carriage |
-| -- | -- | -- | -- | -- |
-| Road | 150% | 150% | 150% | 150% |
-| Plains | 100% | 100% | 100% | 100% |
-| Forest | 50% | 75% | 100% | 50% |
-| Hills | 50% | 50% | 75% | 50% |
-| Mountain | - | - | 50% | - |
-| Swamp | - | - | 50% | - |
+**Speed Modifiers by Terrain** (`get_vehicle_speed_modifier()`, the same for every type on the
+terrain it can enter): road 150%, plains 100%, forest, hills and desert 75%, mountain and swamp
+50%. `vehicle_get_speed()` takes 50% in poor condition and 75% when the load passes three
+quarters of capacity or every seat is taken.
 
 ---
 
@@ -579,7 +575,9 @@ rest at the waypoint, while the requested cruise speed stays ordered. A boot or
 copyover during the wait reconstructs the vessel held with the remaining wait
 intact; expiry lifts the cap and advances the route. A paused autopilot holds
 the hull the same way; `autopilot off` leaves it on its ordered speed and
-heading.
+heading. An assigned NPC pilot engages a route the autopilot is off on
+(`autopilot_tick_one()`), so `autopilot off` is refused while one is assigned;
+`autopilot pause` or `unassignpilot`, which keeps the route set, holds her.
 
 ### Vehicle Functions
 
@@ -681,7 +679,11 @@ Owners use `shipcustomize` to set or clear optional paint and figurehead text,
 each limited to 80 printable characters. The current hull's appearance follows
 the lookout header, and visible contacts show their appearance below the
 nearest-first roster row. The same values build the exterior object's room
-description and persist in `ship_interiors` through Phase 17.
+description and persist in `ship_interiors` through Phase 17. Look builds a
+managed hull's room line as she lies at that moment
+(`vessel_hull_room_description()`): "is moored here" at a berth or alongside,
+"lies at anchor here", "is sinking here", "hovers overhead" aloft, and "is here"
+otherwise.
 
 Development acceptance run
 `/tmp/luminari-vessel-lookout-check-1000/runs/20260802T131015Z-1845762`
@@ -729,7 +731,9 @@ all eight classes, speed bands, submarine depth, and invalid inputs.
 #### Hostile Boarding
 
 `board_hostile <vessel>` requires the attacker to be aboard a different hull,
-within normal docking range, with neither hull already docked. Player-owned
+within normal docking range, with neither hull already docked. It and `dock`
+find the target as `shiplock` does (`vessel_find_contact()`: contact ID, then
+a word of the name, nearest first). Player-owned
 targets pass through the shared PvP-consent gate before defenses or rolls are
 resolved. The attempt alerts the target and moves idle NPC crew from other
 interior rooms to its entrance and bridge chokepoints.
@@ -775,14 +779,19 @@ restored exactly. The production-linked suite passes 302 tests.
 
 | Command | Description | Usage |
 | -- | -- | -- |
-| autopilot | Toggle autopilot | `autopilot on/off/status` |
+| autopilot | Engage, pause, disengage, or read the autopilot | `autopilot [on\|off\|pause\|status]` |
 | setwaypoint | Create waypoint | `setwaypoint <name>` |
 | listwaypoints | List waypoints | `listwaypoints` |
-| delwaypoint | Delete waypoint | `delwaypoint <id>` |
+| delwaypoint | Delete a waypoint no route sails through | `delwaypoint <name>` |
 | createroute | Create route | `createroute <name>` |
 | addtoroute | Add waypoint to route | `addtoroute <route> <waypoint>` |
 | listroutes | List routes | `listroutes` |
+| delroute | Delete a route no hull runs on a schedule or is sailing | `delroute <name>` |
 | setroute | Assign route | `setroute <route>` |
+
+Waypoints and routes are shared by every captain and record no creator, so
+`delwaypoint` and `delroute` refuse only what a hull depends on (GitLab work
+item #11 tracks ownership).
 
 ### Operator Commands (Phases 09, 14, 15, and 16)
 
@@ -1007,6 +1016,10 @@ both the character and balance ashore. NPC crew are exempt. Privately owned
 vessels do not collect this automatic fee because owner revenue and
 player-to-player settlement are outside the public-ferry contract. The fare
 lives in `ship_schedules`, appears in `showschedule`, and survives reboot.
+`ship_schedules.next_departure` is an absolute MUD hour (`schedule_mud_hour()`,
+the hour of the day modulo 24), so a departure past midnight, or an interval of
+24, is not taken for one already due; a row saved as an hour of the day before
+this reads as overdue and departs once.
 
 Freight contracts (`src/vessels/vessels_contracts.c`): each port's board offers runs
 to other *known trading* ports (any with `port_commodities` rows that is a port
@@ -1708,7 +1721,7 @@ Study sections 3.3.7 (rewards, renown, Ship Damage Control) and 3.3.9
   contraband the port is known not to stock (a failed `port_stocks()` lookup
   lets the lot pass) loses each unit with
   `vessel_customs_chance()` (`35 + units / 2 - sqrt(renown) / 5`, raised by
-  `(100 - c) * (1 - load)`, at most 100, 5 when negative), load being cargo
+  `(100 - c) * (1 - load)`, at most 100, never under 5), load being cargo
   weight over capacity; the hold is then saved.
 - Cargo sales: `vessel_cargo_sale_factor()` multiplies `cargosell` revenue by
   1.1 for a seller with SEADOG, 0.9 under neutral colors, and 0.6 for a
@@ -1792,13 +1805,13 @@ ship-class interiors.
 | drive | Drive vehicle | `drive <direction>` |
 | vstatus | Vehicle status | `vstatus` |
 | loadvehicle | Load onto vessel | `loadvehicle <vehicle>` |
-| unloadvehicle | Unload from vessel | `unloadvehicle <vehicle>` |
+| unloadvehicle | List the vehicles aboard, or unload one by its list number | `unloadvehicle [<number>]` |
 
 ### Unified Transport Commands
 
 | Command | Description | Usage |
 | -- | -- | -- |
-| transport_enter | Enter any transport | `tenter <transport>` |
+| transport_enter | Enter the vehicle named, or the transport here | `tenter [<vehicle>]` |
 | exit_transport | Exit transport | `texit` |
 | transport_go | Move transport | `tgo <direction>` |
 | transportstatus | Transport status | `tstatus` |
@@ -1833,12 +1846,11 @@ it carries every rider along with the vehicle.
 
 1. Create vessel and vehicle
 2. Board vessel
-3. Navigate vessel to port
-4. Mount vehicle
-5. Load vehicle onto vessel (`loadvehicle wagon`)
-6. Sail to destination
-7. Unload vehicle (`unloadvehicle wagon`)
-8. Drive vehicle ashore
+3. Bring the vessel to rest at the surface beside the empty vehicle
+4. Load vehicle onto vessel from aboard (`loadvehicle wagon`)
+5. Sail to destination and stop at the surface
+6. Unload vehicle by its list number (`unloadvehicle`, then `unloadvehicle 1`)
+7. Mount and drive the vehicle ashore (`vmount wagon`, `drive north`)
 
 ### Autopilot Workflow
 

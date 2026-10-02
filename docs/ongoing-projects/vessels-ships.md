@@ -25,13 +25,14 @@ here records the merge.
 | S7 Rewards and economy | Merged `cce9ff323` (MR !12) | [Phase 7](vessels-ships-history.md#phase-7-s7-progress) |
 | S8 Client data | Merged `2a4815b1a` (MR !13) | [Phase 8](vessels-ships-history.md#phase-8-s8-progress) |
 | S-immediate Luminari Web for S9 | Merged `1c7e4bffb` (MR !14) | [S-immediate](vessels-ships-history.md#s-immediate-progress) |
-| S9 Claude Code play tests | In review (tag `vessels-s9`, MR !15) | [Phase 9](#phase-9-s9-progress) |
-| S10 Player guide | Not started | [Part 5](#part-5-implementation-sequence) |
+| S9 Claude Code play tests | Merged `a6adb46a8` (MR !15) | [Phase 9](vessels-ships-history.md#phase-9-s9-progress) |
+| S10 Player guide | In review: tag `vessels-s10`, MR !16 | [Phase 10](#phase-10-s10-progress) |
 
-Production help is current through S8 (help sync plan `86c842c5a62a`, 2026-10-01); S-immediate
-changed no help; S9 changes help, synced after its merge. The study's steps, S1-S8, are merged,
-and so is S-immediate, which readied the local Luminari Web client for S9. S9 played the whole
-system in game and recorded it (in review), and S10 turns that record into a player guide.
+Production help is current through S9 (help sync plan `3b26c50a826f`, 2026-10-02). The study's
+steps, S1-S8, are merged, and so are S-immediate, which readied the local Luminari Web client for
+S9, and S9, which played the whole system in game and recorded it for S10. S10, in review, turns that
+record into the [Vessel Player Guide](../guides/VESSEL_PLAYER_GUIDE.md) and fixes what checking
+its facts against the code found.
 
 ## Working a step
 
@@ -144,268 +145,156 @@ ship data panel among them.
 
 ## Active step
 
-### Phase 9 (S9) progress
+### Phase 10 (S10) progress
 
-In review (played 2026-10-02). This plan, with S-immediate's, was the first commit on `feat/vessels-s9`, branched
-from master `1e0f2f64c` (the S8 merge and its close-out) with the annotated tag `vessels-s9-base`
-there. S-immediate merged from the same branch as `1c7e4bffb` (MR !14), and the branch was
-fast-forwarded onto that merge, so S9's own commits are `git log 1c7e4bffb..vessels-s9`
-(`vessels-s9-base..` also lists the plan and S-immediate). S-immediate left S9's server, the
-bridge and the client running; its [For S9 notes](vessels-ships-history.md#s-immediate-progress)
-say how they run and what it found.
-Hand-off as in the routine: tag `vessels-s9` and a merge request; review fixes go on top. Scope:
-play the whole vessel system in game, end to end, the way a new captain meets it, through a real
-client; capture the screenshots and notes from which S10 writes the player guide; fix every
-defect found on the way.
+In review (2026-10-02). Branch `feat/vessels-s10` from the S9 merge `a6adb46a8`, where the
+annotated tag `vessels-s10-base` stands, so `git log vessels-s10-base..vessels-s10` lists only
+S10. The first commit after the S9 close-out (`bf5e6bf64`) is this plan. Hand-off as in the
+routine: tag `vessels-s10` and a merge request; review fixes go on top. Scope: an illustrated
+player guide to the whole vessel system, written from `guide-notes.md` and the S9 screenshots.
 
-Setup:
+Items:
 
-- Server: the installed build of the branch in the private-namespace harness (the Phase 1 record
-  in the history; the S2-S8 copy is `/tmp/claude-1000/vs4`), on a fresh reload of the development
-  dump plus the content the gates apply: `provision_vessel_harbor.sh`,
-  `provision_vessel_campaign.sh`, the Phase 22 and 23 schemas, the raider, contraband and harbor
-  sandbox content SQL, and ship 11's schedule enabled. The disposable database keeps every
-  purchase, sinking and payout out of the shared development database.
-- Client: the local Luminari Web as S-immediate leaves it (branch `feat/ship-panel` in its
-  checkout; S9's client fixes go on top), the first-party browser client: ANSI
-  rendered in the page beside its MSDP panels and the Ship tab, started with `npm run dev` and its
-  development settings, at its local preset, 127.0.0.1:4100. A socat bridge joins host
-  127.0.0.1:4100 to the MUD inside the namespace through a unix socket. Host 4100 was free when
-  planned; if the main checkout's MUD holds it at the start, ask before stopping it. Chromium,
-  driven by `agent-browser`, holds one session per character.
-- Characters: Kohdee (staff, on the master account in `lib/.env`) stages; Vesselmate (the
-  existing level 1 mortal on the same account) plays; one new mortal, made with
-  `dev_create_test_character.sh <test-account> <name>` on its own test account, joins for the
-  chapters that need a second captain, so no account has more than two characters online.
-  Accessprobe, Accessrecs and Gizmotest belong to other work and stay untouched. Kohdee gets the
-  players into position with existing commands: `advance`, `set <player> gold`, `transfer`,
-  `goto`, `restore`, `vedit spawn` and `spawnpublic`, `vesseldebug raider <tier>` from aboard a
-  player's hull, `shipgoto`, `shipfix`, and `vevent start`.
-- Screenshots: PNG captures of the browser at one fixed viewport, from the player's session, in
-  play order under `docs/ongoing-projects/guide-screenshots/` as `NN-chapter-moment.png`, each
-  under the 500 KB commit limit (crop to the terminal and the panel that matters when larger).
-  None shows the master account's name or a password; a login screen, if the guide needs one,
-  comes from the new test account.
-- Notes: `docs/ongoing-projects/guide-notes.md`, ASCII, one section per chapter. For each
-  screenshot: the file, the character, the exact commands typed, what it shows, and what had to
-  be true first; then the prices, timings, refusals and tips met on the way. S10 writes from these
-  notes and the screenshots alone.
-- Defects: a crash, wrong behavior, a misleading message, or wrong or missing help is fixed in S9
-  to Part 5's standard (production-linked test, help in both places, `VESSEL_SYSTEM.md`), one
-  commit each, recorded below with the finding, the fix and the commit; then the namespaced MUD
-  restarts on the new build and the chapter is replayed, its screenshots retaken. A Luminari Web
-  defect is fixed in its local copy, as in S-immediate.
-- Verification: the play record. If S9 changes code, help or SQL, the routine's verification runs
-  once at the end.
-- Cleanup: Kohdee's and Vesselmate's pfiles restored from copies taken before play, the new
-  mortal's files removed, autorun's artifacts moved out of the worktree, and the harness, bridge
-  and client stopped.
+1. The guide: `docs/guides/VESSEL_PLAYER_GUIDE.md`, ASCII Markdown beside the existing
+   `NEW_PLAYER_GUIDE_LEVEL_1-5.md`, in the order a player meets the system: passage on public
+   ships, finding and buying a hull, crew and refits, sailing, routes, trade, gunnery, damage and
+   repair, prizes, other captains, contraband, loss and recovery, other hulls and vehicles, the
+   living world, client data; then a staff appendix. Each chapter shows the commands, what the
+   player sees (the screenshots with captions), the numbers that matter, the refusals a player
+   meets, and tips.
+2. The screenshots move from `docs/ongoing-projects/guide-screenshots/` to
+   `docs/guides/vessel-guide/` (`git mv`, unchanged files): `ongoing-projects/` is temporary, and
+   the guide is permanent documentation. `guide-notes.md` stays as S9's record (the history cites
+   it), its screenshot pointer updated.
+3. Accuracy: every screenshot audited against the current code (S9 fixed defects mid-play, so a
+   shot or a note can predate its fix), and every number and rule in the notes checked against
+   the source and help. A wrong note is corrected in the guide; a game or help defect found on the
+   way is fixed to Part 5's standard (production-linked test, help in both places,
+   `VESSEL_SYSTEM.md`), one commit each, recorded below. A screenshot that shows behavior since
+   changed is retaken or captioned.
+4. Links: the master index (`docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md`) and
+   `VESSEL_SYSTEM.md` point to the guide.
 
-Chapters, in play order:
+Interpretations decided while planning S10:
 
-| # | Chapter | Played by | Kohdee stages | Covers | State |
-| -- | -- | -- | -- | -- | -- |
-| 1 | Finding a ship | Vesselmate | His level and gold for a hull; the Testing Dock | `help vessels` and the ship help entries, `shipbrowse` | Played |
-| 2 | Buying and knowing her | Vesselmate | - | `shipbuy`, `shipchristen`, `shipcustomize`, `board`, `disembark`, `ship_rooms`, `shipstatus`, `shipcrew` | Played |
-| 3 | Crew, weapons and refits | Vesselmate | Gold as needed | `shiphire`, `shipdismiss`, `shipweapon` buy and sell, `shipequip`, `shiprearm`, `shipupgrade` | Played |
-| 4 | Sailing | Vesselmate | - | `undock`, `setsail`, `heading`, `speed`, `anchor`, `tactical`, `lookout`, `contacts`, `seastate`, `shiptalk`, at-sea narrative and weather, legal waters, `dock`, `dockfees` | Played |
-| 5 | Routes, autopilot and schedules | Vesselmate | - | `setwaypoint`, `listwaypoints`, `delwaypoint`, `createroute`, `addtoroute`, `delroute`, `listroutes`, `setroute`, `autopilot`, `setschedule`, `showschedule`, `clearschedule`, `assignpilot`, `unassignpilot` | Played |
-| 6 | Passage on public ships | Vesselmate | - | The harbor ferry and its fare, the Vailand merchant | Played |
-| 7 | Trade and freight | Vesselmate | - | `market`, `cargobuy`, `cargomanifest`, `cargosell` and its modifiers, `contracts`, `contractaccept`, `contractdeliver`, `contractabandon` | Played |
-| 8 | Gunnery against a raider | Vesselmate | `vesseldebug raider 0` from aboard his hull | `shipsight`, `shipscan`, `shiplock`, battle stations, `shipfire` by arc, reloads and ammunition, raider tactics and boarding, `shipram` | Played |
-| 9 | Damage, repair and salvage | Vesselmate | `shipfix` between runs when needed | Arcs, breaches, sails and rudder, criticals, the sink timer, `shiprepair` at sea and at a dock, cargo spill and `shipsalvage` | Played |
-| 10 | Boarding and taking a prize | Vesselmate | A raider to disable | `boardcheck`, `board_hostile`, `claimship`, `plunder`, the D6 prize rules | Played |
-| 11 | Two captains | Vesselmate and the new mortal | Both hulls at sea, PvP on, the pair grouped and then apart | `shippermit`, `shiprevoke`, `shipdeed`, a PvP fight to a sinking, `strikecolors`, renown and `shiprenown`, prize money and its mail, allies' shares, `bounty`, `marque` | Played |
-| 12 | Contraband and customs | Vesselmate | - | Contraband with the renown won in chapter 11, the smugglers' `market` listings, customs at a lawful port | Played |
-| 13 | Loss and recovery | The new mortal | - | The wreck registry, the insurance claim, `shipsummon`, trade-in (`shipbuy <id> trade`), the rename fee, the ownership cap | Played |
-| 14 | Other hulls and vehicles | Vesselmate | `vedit spawn` of the frontier classes where each can travel | River craft, airship altitude, submarine depth, transport, magical hulls; `vmount`, `drive`, `vstatus`, `vdismount`, `loadvehicle`, `unloadvehicle`, `tenter`, `tgo`, `tstatus`, `texit` | Played |
-| 15 | The living world | Vesselmate and the new mortal | `vevent start` | The Blackwake derelict, `vevent status`, `join`, `enlist` and `leaderboard`, encounters and bounty hunters | Played |
-| 16 | Staff tools | Kohdee | - | `vedit`, `vmerchant`, `shiplist`, `shipgoto`, `shipfix`, `shippurge`, `boardfind`, `vesseldebug`, `vevent end`, `cancel` and `recover`, the `cedit` vessel switch and ownership cap | Played |
-| 17 | Client data | Vesselmate | - | The Ship tab aboard, in a fight and ashore, and the 21 vessel MSDP variables behind it | Played |
+- The guide is for players; the development world's names (the Testing Dock, the Harbor Sandbox,
+  the Sea Wren) and its catalog and market prices are examples, said so once. Code-fixed values
+  (crew and weapon prices, fees, timings, shares, thresholds) are stated as the rules.
+- Passage on public ships comes first: a new character meets the ferries long before the level
+  for a hull of their own.
+- Staff tools are an appendix, as S9 played them, so the guide covers the whole system.
 
-Interpretations decided while planning S9:
+Ablation (planning): dropped an HTML copy in the web portal (`docs/web/`; the Markdown renders with
+its images on GitLab, and the existing player guide is Markdown), a new play session (S9's
+screenshots and notes are the source by plan; a retake only where a shot shows behavior since
+changed), an in-game help pointer to the guide (a game client cannot show its images, and the
+repository's public address is not settled), and the routine's `make test-all`, gates and help
+verifier unless S10 changes code, help or SQL (documentation cannot affect them). Simplified: the
+screenshots move instead of being copied. Kept: the screenshot audit and fact check, because the
+guide states numbers as facts and the notes were written while fixes landed; and the staff
+appendix.
 
-- End to end means every system and player command once, in the order a new captain meets them,
-  plus the staff tools as an appendix. The options of each command are the gates' work, not S9's.
-- The screenshots show what a player sees, so they come from the mortals' sessions; Kohdee's
-  staging appears only in the staff chapter.
-- Contraband comes after chapter 11's renown, as a player reaches it, instead of renown granted
-  by staff.
-- At sea the screenshots carry the Ship tab beside the terminal where the moment needs it; chapter
-  17 covers the client data itself, for players who script their clients.
+Verification: the commit hooks (mdformat, ASCII hygiene, 500 KB file limit), a check that every
+image and anchor in the guide resolves, and the local CI matrix
+(`scripts/ci/local/run.py --base gitlab/master`); plus the routine's full verification if S10
+changes code, help or SQL.
 
-Ablation (planning): dropped a new scripted gate or play automation (the 20 gates exist; S9 is
-interactive play), Mudlet and LuminariGUI (Mudlet is not installed here, and Luminari Web is the
-configured local client that a browser can drive and capture), play on the shared development or
-production database, writing the guide (S10), and re-running the gates when S9 changes nothing.
-Simplified: staging uses existing staff commands rather than pfile or SQL edits, and the harness,
-dump and provisioning are the gates' own. Kept: a second mortal, without whom permits, deeds, PvP
-renown, allies and the loss of a player's hull cannot be played; the fixes with their tests; and the
-screenshot size limit, which the commit hook enforces.
+Progress log (2026-10-02, kept current as the work goes):
 
-Progress log (2026-10-02, kept current as play goes):
+- Plan committed. Screenshot audit (four lanes, 01-79) and fact check (chapters 1-7, 8-17)
+  done. The fact check found about 30 notes that the code contradicts or that state a special
+  case as a rule (the guide states the code's rule; the notes stay as S9 recorded them), and the
+  defects below. The audit found no account name, password or address in any shot, and no shot
+  that needs a new play session: 21 duplicates 20 and 42 shows a refused shot rather than the
+  group forfeit, so the guide describes those two in text and does not use them; 35 shows a ram
+  rather than gunfire and is captioned as what it shows; about twenty need a crop or a
+  redaction (pre-fix text in 02, 10, 19, 31 and 38, the staff character's staging lines in 17,
+  25, 29, 30, 31, 68 and 79, interiors persisted before `49ab1fb55` drawing several "you are
+  here" markers in 18, 66 and 67) or a caption limited to what is visible.
+- The guide, `docs/guides/VESSEL_PLAYER_GUIDE.md` (`ea5a1da5c`): 17 chapters in the order a player
+  meets the system, a command summary and a staff appendix. The screenshots moved to
+  `docs/guides/vessel-guide/` (76 kept: ten cropped, five with staging lines or old interior
+  minimaps blanked; 21 and 72, copies of 20 and 71, and 42 removed). `guide-notes.md` stays as
+  S9's record with its pointer updated.
+- A second, fresh review of the finished guide against the code (`049f06aa7`) found about 30
+  statements put too broadly or wrongly and 13 captions claiming more than their image shows, all
+  corrected, and the four defects at the end of the table below. Its point that waypoints and
+  routes have no owner, so any captain can delete another's idle route, needs a schema change and
+  is GitLab work item #11.
 
-- Setup, rerun fresh for S9 (harness job `x04-s9setup`): the server stopped, Kohdee's and
-  Vesselmate's pfiles restored from `pfiles-before`, the dump reloaded, ship 11's schedule
-  enabled, both provisioners run. Brinewick's re-creation then failed ("character-name
-  confirmation timeout") because the previous Brinewick's pfile and index line still held the
-  name; job `x05-brinewick` removed them with the server stopped and recreated him on Sailtest.
-- Setup amended from play (the plan's content list missed what chapters 1, 14 and 15 need): the
-  dump's help predates S4, so `help_vessel_entries.sql` is applied to the disposable database
-  (production help is current through S8); the dump lists no hull for sale (the frontier content
-  that sets `for_sale` is not in it), so `provision_vessel_frontier.sh`,
-  `provision_vessel_derelict.sh` and `vessels_narrative_content.sql` join the setup (job
-  `x06-content`). The provisioners refuse a dirty tree, so they run before play leaves
-  uncommitted notes or screenshots.
-- Client: the owner merged `feat/ship-panel` into the client's `main` (`be28d96`); S9's client
-  fixes, if any, go on a branch from that `main`.
+Ablation (building): no new play session; the three shots that do not show what their notes
+say are dropped and their moments described in text, and stale lines are cropped or blanked
+rather than retaken. Each fix is the smallest that closes the defect: an in-use guard instead of
+a creator column for shared waypoints and routes (work item #11), the absolute MUD hour in the
+existing `next_departure` column instead of a new one, a refusal for `autopilot off` under a
+pilot instead of new pilot state, and the existing contact resolver for `board_hostile` and
+`dock`, which retired `find_ship_by_name()`.
 
-Ablation (starting play): chapter 17 reuses the Ship-tab screenshots that chapters 2, 4 and 8 take
-at sea and in a fight, plus one ashore, instead of replaying them; the rest of the plan stands.
-
-Chapter state is in the table above; `guide-notes.md` has each played chapter's screenshots and
-notes. All 17 chapters played (6 while the shipwrights worked on chapter 3's refit; 13 after 14,
-while the summoned Kestrel sailed). Left: the routine's verification, tag, push and merge
-request, and cleanup.
-
-Play findings that are not defects (recorded in the notes): `boardcheck` and `boardfind` are
-bulletin-board commands, not vessel ones (chapter 16 covers the board commands it names only as
-what they are); a wreck is rebuilt as the cheapest boat (decision D3) and is worth nothing in
-trade; the level gate holds departures only; the sandbox's only encounter row is the rafts-only
-Admiralty hunter patrol; a HUNTED captain is refused all business at lawful ports.
-
-How play runs (for a session taking over): the harness, bridge and client run as S-immediate
-left them (history, For S9). Helpers in `/tmp/claude-1000/s9/`: `login.sh <session> master <Character>`, `cmd.sh <session> <wait-ms> <command>` (types a command, prints the terminal's
-tail; `LINES=n` for more), `shot.sh <session> <file.png> [<inspector tab>]` (saves into
-`guide-screenshots/`), and `testenv.sh` (source it for DB-backed CuTest runs against the
-`luminari-vessels-testdb` container on 127.0.0.3). Database queries go through harness jobs
-(`/tmp/claude-1000/vs4/jobs/qNN-*.sh`, `mariadb "$(cat /tmp/claude-1000/vs4/dbname)"`). To put a
-fix in play: `make -j$(nproc) && make install`, then a restart job (copy
-`/tmp/claude-1000/vs4/running/r01-restart.sh` into `jobs/`), wait for a new "Entering game loop"
-in `/tmp/luminari-dev-login-smoke.log`, and log the sessions back in. A restart drops a player to
-the tutorial start (the harness kills the server without a quit), so Kohdee transfers them back.
-The harness's `systemctl` stand-in learned `show -p MainPID` for the derelict provisioner.
-
-Staging so far: Vesselmate level 16, gold set to 60,000 before chapter 2, a lantern (play
-started at night). He owns the Sea Wren (slot 13, Starfall Survey Ship, prototype 26) at the
-Testing Dock with four green hands, a Medium Ballista fore, Large Ballistas port and starboard, a
-ram, plating and rigging. The first Sea Wren, bought before the interior fix, was purged and
-bought again.
-
-Defects found and fixed (each with a production-linked test; help in both places where it
-changed):
+Defects found and fixed (each with a production-linked test where behavior changed; help in
+both places where it changed):
 
 | Finding | Fix | Commit |
 | -- | -- | -- |
-| `shipbrowse`: the 14-letter "Magical Vessel" overflowed the 10-wide Class column | Column widened to 14 | `fbeed236c` |
-| `shipbuy` showed a player the builders' spawn line (fleet slot, interior room numbers) | The spawn report is staff-only; the purchase names the hull handed over | `7955887f5` |
-| Every hull read "It has a soft glowing aura! ..It emits a faint humming sound!": hulls are instances of object 70002, a builder's fixture flagged GLOW and HUM (world data outside the repository) | Placing a hull drops those two flags, as it already sets the type | `b821585ca` |
-| After `shipchristen`, the bridge kept the old name ("Starfall Survey Ship's Bridge" aboard the Sea Wren) until a reboot | Christening re-renders the interior from its templates | `6504c9b82` |
-| The purchase said to christen her; christening and customizing work only aboard, and their help did not say so | The purchase says to board her; SHIPCHRISTEN and SHIPCUSTOMIZE help say aboard | `61aed49c7` |
-| A new ship's interior contradicted itself (the hold two rooms north of the bridge and also one east), so the minimap drew three "you are here" markers; larger hulls used up and down as spokes, and past nine rooms the spokes wrapped and overwrote the bridge's first exit | Rooms lie on eight level rays out from the bridge; side passages join only neighbors. Interiors persisted earlier keep their stored passages | `49ab1fb55`, test fix `b1f90991e` |
-| `lookout` named vessels by fleet slot ([13]) while every other command uses the contact ID ([AN]) | Lookout prints the contact ID; help and the lookout gate say so | `e7018c0a3` |
-| A piloted merchant under way read "Speed: 9 / 9 (ordered 0)" in `shipstatus` (and `speed`), as if stopping | Both show the speed the helm is converging on, from the helm tick's own function | `6ca2b5a71` |
-| A passenger trying to step off a ship under way was told to "Bring the vessel to a stop first" | Only someone at the helm is told that; others are told to wait | `3d9ddfa3d` |
-| Any passenger on a public ferry's or merchant's bridge could set her heading and speed, anchor her, reroute her, clear her schedule, or unassign her NPC pilot (unowned hulls were open to anyone) | An unowned hull with an NPC pilot answers only to NPCs and immortals; help and `VESSEL_SYSTEM.md` say so | `9a3be3361` |
-| `help ships` showed the 2014 `boats` entry (SHIPS claimed by it and VESSELS; "enter <boatname>", a staff script pointer, a stray backslash, the keyword TRANSPORTSS) | SHIPS belongs to VESSELS; `boats` (BOATS FERRY FERRIES PASSAGE) is a passenger's guide to public ships; its old alternate keywords cleared | `a9c3ad413`, `753344f9a` |
-| Luminari Web: the tactical chart lost its land cells and left the rest of the output orange (the client read the chart's `^` as a color code; the server sends ANSI and compiles out `^` codes) | The terminal stream keeps carets literal (client branch `fix/literal-carets` from `main`, commit `bb7c707`, local) | client `bb7c707` |
-| An order given while casting off was told to "order 'undock' to cast off first" | The helm hears how long casting off or weighing anchor has left; the two copies of the refusal are one | `2a3809ee8` |
-| `lookout` measured from whole rooms while contacts, tactical and gunnery use exact positions (32.0 vs 31.4 rooms for the same hull) | Lookout reads the one contact list | `a641246e0` |
-| Dock fees named the port by room number ("due at port 1000389") | `shipstatus` and `dockfees` name the port | `5a70fdc3d` |
-| A one-way route ending in a port paused "before departure" at her last waypoint instead of completing (the berthing fee was checked before arrival) | Arrival is checked first | `548d41cf2` |
-| The pilot's lines began in lower case and every autopilot announcement left a blank line | Sentence-start names capitalized; the doubled line breaks dropped | `530fdd072` |
-| ADDTOROUTE's help numbered positions from 0; the game numbers from 1 | Help example corrected | `1aba0729c` |
-| The freight board offered "10 grain to an unknown port" (room 70000, a ship interior, had market rows) | The board offers only rooms that are ports | `d293b3774` |
-| Market, cargo and freight keyed the port by the hull object's room though "in port" was judged by coordinates (and a missing hull object would read past the world) | `vessel_port_room()` serves both | `bf8af8153` |
-| Accepting and abandoning a contract loaded its freight for nothing, repeatedly: two rounds sold for 1,218 gold without leaving the dock | Accepting takes the goods' worth as a bond, shown on the board; the payout repays it | `862c944a3` |
-| "fit Sea Wren with a Neutral Colors" | No article before Neutral Colors | `aa8c42649` |
-| A holed raider dead in the water read "sound" in contacts, tactical, lookout, seastate and shipscan | Any holed hull is at least crippled | `a973e22d2` |
-| People put off a hull landed at the coordinates they last stood ashore: a ferry passenger stepping off at the east dock landed at the west dock, and a boarder thrown into the sea at (-91, 77) came up at (-66, 91) (`char_to_room()` uses the character's coordinates; disembark set them after the move, the boarding fall and sinking not at all) | `vessel_char_to_room()` sets them first, for every place that puts people off a hull | `d97a724bd` |
-| Boarding an empty hull and failing told the boarder "the defenders drive you back" | With nobody aboard the hull alone resists ("Your grappling lines fail to take hold.") | `c206f6140` |
-| A plunder that moved nothing said "nothing worth taking, or no room to take it" | It says the prize's hold is empty, or that her own hull has no room | `c4e795d6e` |
-| The raider's brass key answered to `strongbox`, so `unlock`, `open` and `get all strongbox` found the key ("A brass strongbox key is not a container.") | The key answers to key, brass and raider (world file `lib/world/vessel_raiders/700.obj`; production's live record needs the same keywords, as the raider provisioner adds only missing records) | `1182093b4` |
-| Grouped captains could fire on, board and claim each other's ships and stay grouped | A recorded hostile engagement against a groupmate's hull costs the aggressor the group, as in person (`fight.c`) | `a3e448e2c` |
-| `bounty` told a clean captain "You carries no price." | "You carry no price." | `420e8735b` |
-| `cargobuy tomes 10` found nothing (goods matched only from the start of "forbidden tomes"); `marque` and `bounty pay` aboard a berthed hull did not say the admiralty office is ashore | Any word of a commodity's name matches; the refusals and help say ashore | `ab2701d0b` |
-| A riverboat steered onto the bank was told she is "designed for coastal waters only" while sailing a river | "Your boat cannot go there! She keeps to rivers and shallow coastal water." | `6fc108a55` |
-| Vehicles were never listed in a room: a player beside a cart saw an empty field | `look` lists vehicles standing in the room ("River Cart, a cart, stands here.") | `03f6b6a76` |
-| `tgo` moved the cart and left its rider behind | On a land vehicle `tgo` is `drive`, which carries the riders | `1ad24f5df` |
-| A magical hull hovering over a field loaded and unloaded a cart from the ground; a submerged hull could too | Vehicles load and unload only with the hull at the surface | `b7681232e` |
-| A hull under way in the harbor was told "the harbor watch forbids gunfire from a berth" | "...forbids gunfire in port" | `c428116cf` |
-| `shiplock wraith` found nothing beside "Ghost Fleet Wraith 2-1": contacts matched only from the start of the name | Any word of a contact's name matches, nearest first | `d8fb17b16` |
-| A summoned hull made port after up to an hour with word only to the dock; her captain elsewhere never heard | The harbor sends word to an online owner elsewhere, naming the port | `34bfe9a51` |
-| The Blackwake derelict's chain began with `searchashlog`, a made-up word nothing in game mentions | The bridge trigger answers a plain `search` (`searchashlog` still works); the derelict gate types `search` | `68d3f1230` |
-| A new raft could come with a mess hall, medical bay or crew quarters (extra rooms ignored the templates' minimum hull size) | The draw re-rolls rooms the class is too small for: a raft's only extra room is a hold | `56295c437` |
-
-The first ferry ride's mis-landing (in the Testing Dock with the east dock's coordinates) was
-explained in chapter 10: `char_to_room()` enters a wilderness room at the character's own
-coordinates, which `disembark` set only after the move (fixed in `d97a724bd`, above).
+| `unassignpilot` on a hull sailing a route freed the route while the autopilot still held it: `autopilot status` read freed memory, and `setroute`, `autopilot on` or cleanup freed it again (a crash) | Relieving the pilot disengages the autopilot as `autopilot off` does and keeps the route; DB-backed test | `3ad7f52f3` |
+| A ship steered at the shore, in shoal water she may sail, was told "It requires deep water to sail" | "Your ship cannot go there! She keeps to the water's surface, clear of beach and land." | `73bae886a` |
+| `tenter [target]` ignored its target and entered the first vehicle in the room | It finds the vehicle as `vmount` does and refuses a name that matches none | `7d26fb597` |
+| `tgo` hinted "Usage: go ..." and "Try 'enter' ...", other commands | The hints name `tgo` and `tenter` | `6cae7a8c9` |
+| `vevent` showed players fleet slots ("Entered Sea Wren (slot 13)", "slot 16 Wren Skiff", "Ghost contact: slot 33") | Entry, roster and ghost contacts show the contact ID; DB-backed test | `32e11bbfb` |
+| Every hull's room line read "is moored here", at sea and sinking too | Look builds the line as she lies: moored, at anchor, sinking, hovering overhead, or here; the lookout gate's open-water hull reads "is here" | `4d4607aec` |
+| `shiplist` cut "Magical Vessel" to "Magical Ve" and names to 25 letters | Class 14 and Name 30 wide | `01c79ad70` |
+| Customs could seize at 0-4% though help promised never below 5 (Duris floors only a negative chance, against its own comment) | Never under 5 | `aa03131db` |
+| Help said otherwise than the code: SEASTATE (grounding), VESSELS (a pilotless unowned hull answers anyone), SETSCHEDULE, ASSIGNPILOT (engages only with the autopilot off), SHIPRAM (the slew rule), SHIPFIRE (in port, stunned, after a ram), SHIPFIX (weapons, sinking) | Corrected in both places | `fe8d054b8` |
+| `VESSEL_SYSTEM.md`'s vehicle table, terrain flags and speeds, `unloadvehicle` syntax, and a workflow that mounts a vehicle before loading it | Corrected to the code | `2f1adf001` |
+| A schedule's next departure was an hour of the day: one set at hour 20 for every 6 hours read hour 2 as passed and departed again at once, and an interval of 24 departed every hour | An absolute MUD hour (`schedule_mud_hour()`); a row saved in the old form departs once | `f51c34b55` |
+| `autopilot off` under an NPC pilot printed "Autopilot disengaged." and the pilot engaged her again half a second later | Refused with the orders that hold, `autopilot pause` and `unassignpilot`; AUTOPILOT help | `44bf37eaa` |
+| Any captain could delete any waypoint or route, the public ferry's loop included, which stopped her departures | `delwaypoint` keeps a waypoint a route uses, `delroute` a route a hull runs on a schedule or is sailing; help; ownership is work item #11 | `523417bbd`, `05a5ead8a` |
+| `board_hostile` and `dock` took the first hull anywhere whose name had the word, so a namesake out of sight answered "too far away" | They resolve contacts as `shiplock` does; `find_ship_by_name()`, left without a caller, is removed | `2d2ac9b8b` |
 
 Verification (2026-10-02):
 
-- `make test-all` with the database cases (the `luminari-vessels-testdb` container, see
-  `testenv.sh` above) at `29a05cd6f`: 1,984 CuTest cases OK (seed 1) and the protocol harness's
-  32; later commits change only gate scripts and tests, which the CI matrix ran.
+- `make test-all` with the database cases (the `luminari-vessels-testdb` container; environment as
+  in S9's `testenv.sh`) on the final code, `05a5ead8a`: 1,994 CuTest cases OK (seed 1) and the
+  protocol harness's 32. The first run, on `ea5a1da5c`, passed 1,991.
 - Help: on a fresh reload of the development dump, `help_vessel_entries.sql` applied and
   `verify_help_vessel_entries.sql` passed all seven checks (34 entries, 91 command keywords, 52
-  content contracts, no obsolete duplicates or retired aliases). S9 adds no schema SQL; its SQL
-  edits passed sqlfluff in the commit hook.
-- All 20 live gates of S8's run passed in the namespace harness on the installed build
-  (`bin/luminari` SHA-256 `4163357897054c0c...`, built at `29a05cd6f`): merchant 36 s,
-  campaign 129 s, Vailand merchant 146 s, builder 46 s, gunnery 70 s, tactical 356 s, lookout
-  23 s, boarding 47 s, narrative 22 s, rules 35 s, events 41 s, movement 104 s, loss 75 s,
-  damage 558 s, derelict 30 s, hunter 89 s, frontier 218 s, raider 196 s, economy 276 s, client
-  25 s. The tactical and rules gates first failed on S9's own rewording (the shot target now
-  reads crippled, as a holed hull does; the bounty pay-off refusal says ashore) and passed once
-  their expectations were updated (`53a1c603f`); the raider gate broke when that commit rewrote
-  the tactical script it was running, and passed on rerun.
-- Luminari Web, `fix/literal-carets` at `bb7c707`: `npm run lint` clean, `npm test` 353
-  passed, `npm run build` passed.
-- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`, 33 jobs) first ran on
-  `53a1c603f`: 29 passed. clang-tidy found a dead store in the freight bond test (its second
-  acceptance unchecked; `13305c989`), and both sanitizer jobs and the memory check found two
-  test-fixture leaks (the `tgo` test's room occupancy events, the rename fee test's bridge
-  strings; `fab5cb9ca`). The rerun on `fab5cb9ca` passed
-  all 33 jobs in 292 s; the head handed to review adds only this record.
+  content contracts), before and after the second round of fixes.
+- Live gates in the namespace harness (`/tmp/claude-1000/vs4`, batch jobs `w*` and `u*`), on the
+  installed build. On `ea5a1da5c` all 20 passed: merchant 36 s, campaign 128 s, Vailand merchant
+  148 s, builder 49 s, gunnery 71 s, tactical 359 s (with the open-water hull now reading "Azure
+  Watch is here"), lookout 25 s, boarding 49 s, narrative 23 s, rules 35 s, events 96 s,
+  movement 104 s, loss 77 s, damage 603 s, derelict 33 s, hunter 91 s, frontier 217 s, raider
+  179 s, economy 257 s, client 26 s. On the final code, `05a5ead8a` (batches `u*` and `t*`),
+  all 20 passed again: merchant 37 s, campaign 134 s, Vailand merchant 145 s, builder 48 s,
+  gunnery 71 s, tactical 279 s, lookout 22 s, boarding 48 s, narrative 21 s, rules 35 s, events
+  42 s, movement 104 s, loss 75 s, damage 597 s, derelict 31 s, hunter 97 s, frontier 222 s,
+  raider 157 s, economy 271 s, client 26 s. Twelve of them first refused to start ("source
+  worktree must be clean": an uncommitted edit to this record was in the tree) and passed when
+  rerun on a fresh reload with the tree clean. The gates refuse a dirty worktree, so no edit may
+  sit uncommitted while a batch runs.
+- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`, 33 jobs) on `ea5a1da5c`
+  passed 32; clang-tidy's analyzer flagged a second `getenv()` in the event test as a possible
+  null (`48e0a141b` reads it once; the job then passed alone). On the final code, `05a5ead8a`,
+  all 33 passed in 581 s.
 
-Cleanup: Kohdee's and Vesselmate's pfiles and the player index restored byte-identical from
-`/tmp/claude-1000/s9/pfiles-before` after the last gate; Brinewick's pfile and objects removed
-(his Sailtest account lived in the disposable database). S9 ran no autorun, so there were no
-autorun artifacts. The client (`npm run dev`), both ends of the socat bridge, and the harness are
-stopped; the harness's disposable database stopped with its namespace and is reloaded from the
-dump on next use.
+Cleanup: the harness is stopped (its disposable database stops with its namespace); S10 created
+no characters or pfiles, ran no autorun, and left no scratch files in the worktree.
 
-Hand-off: tag `vessels-s9` and MR !15 from `feat/vessels-s9` (range `1c7e4bffb..vessels-s9`; the
-plan commit is in S-immediate's range). The client fix is reviewed in its local checkout
-(`git log -p be28d96..fix/literal-carets` in `/home/aiwithapex/projects/luminariweb`). Review
-fixes go on top, one commit each. After the merge:
+Hand-off: tag `vessels-s10` and MR !16 from `feat/vessels-s10` (range
+`vessels-s10-base..vessels-s10`). Review fixes go on top, one commit each. After the merge:
 
-- Sync the help to production. Ten entries changed (by first keyword): ADDTOROUTE, ANCHOR (the
-  vessel commands), BATTLE-STATIONS, BOATS (SHIPS moved to VESSELS), BOUNTY, CARGO, CONTRACTS,
-  LAND-VEHICLES, LOADVEHICLE and SHIP-OWNERSHIP.
-- Production world data: the raider provisioner adds only missing records, so the live object
-  #70021 needs the keywords `key brass raider` (`1182093b4`); rerunning the derelict
-  provisioner replaces trigger 70010 with the `search` version (`68d3f1230`).
-- Then S10 writes the player guide from `guide-notes.md` and the screenshots.
-
-Review fixes (MR !15, on top of `vessels-s9`; range `vessels-s9..feat/vessels-s9`):
-
-| Finding | Fix | Commit |
-| -- | -- | -- |
-| [P2] Accepting freight debited the bond in memory only while the contract and cargo went straight to the database, so a crash before the next character save kept the freight and returned the bond; a failed manifest write was silent, so a later save could keep the debit without the freight | The contract claim and the manifest commit in one transaction, the bond is debited after it and saved with `save_char_checked()`, and a failed save restores the gold, reopens the contract and unloads the freight; `vessel_db_save_cargo()` reports failure. The DB-backed bond test covers a refused manifest write and a failed save | `a703572e3` |
-
-Review-fix verification: the bond test fails on the old acceptance and passes on
-the fix; the focused vessel suite (208 cases) passes; the local CI matrix passed all 33 jobs on
-`a703572e3` in 265 s. Its first run, on an earlier version of the fix, failed the SQL
-interpolation check (the contract reopen formatted its values into the query; it now binds them
-in a prepared statement). No live gate accepts freight.
+- Sync the help to production. Eleven entries changed (by first keyword): ANCHOR (the vessel
+  commands), ASSIGNPILOT, AUTOPILOT, BATTLE-STATIONS (SHIPFIRE and SHIPRAM), DELROUTE,
+  DELWAYPOINT, LOADVEH (the transport commands, TENTER), SEA-STATE, SETSCHEDULE, SHIP-ADMIN
+  (SHIPFIX) and UNASSIGNPILOT.
+- The code fixes go with the next production deploy. A production schedule row saved as an hour
+  of the day reads as overdue and departs once after that deploy.
+- Then close the study's documents: S10 is the last step of Part 5.
 
 ## Estimate (remaining)
 
 | Step | What drives the size | Days |
 | -- | -- | -: |
-| S9 Claude Code play tests | 17 chapters of live play at D1 pacing and D2 fight lengths, plus the defects found | 2-3 |
-| S10 Player guide | Writing from the notes and screenshots | 1 |
+| S10 Player guide | Review of MR !16 and the merge; nothing else remains in Part 5 | - |
 
 The Open player-data balance and human beta gates depend on player availability, not engineering
 time.

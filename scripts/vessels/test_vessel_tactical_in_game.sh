@@ -746,7 +746,7 @@ elif [[ "$acceptance_mode" == lookout ]]; then
   for expected_text in \
     'LOOKOUT VIEW FROM Azure Watch' \
     'Paint: midnight blue with silver trim; figurehead: a gilded sea dragon.' \
-    'Azure Watch is moored here, painted midnight blue with silver trim' \
+    'Azure Watch is here, painted midnight blue with silver trim' \
     'Surrounding wilderness (sampled to the visible horizon):' \
     'Visible vessels (nearest first):' \
     'Current sector: Ocean'; do

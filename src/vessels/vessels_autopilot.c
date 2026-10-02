@@ -2758,6 +2758,15 @@ ACMD(do_autopilot)
       return;
     }
 
+    /* An assigned pilot engages a route the autopilot is off on (see
+     * autopilot_tick_one()), so 'off' would not hold. */
+    if (ap->pilot_mob_vnum != -1)
+    {
+      send_to_char(ch, "Her pilot would only take her on again. Use 'autopilot pause' to hold "
+                       "her, or 'unassignpilot' to relieve the pilot.\r\n");
+      return;
+    }
+
     autopilot_snapshot_state(ap, &snapshot);
     if (!autopilot_stop(ship) || !autopilot_commit_player_change(ch, ship, &snapshot))
     {
@@ -2913,6 +2922,57 @@ ACMD(do_listwaypoints)
 }
 
 /**
+ * The first route that sails through a waypoint, or NULL. Waypoints and
+ * routes are shared by every captain, so one in use is not deleted.
+ */
+static const char *waypoint_route_in_use(int waypoint_id)
+{
+  struct route_node *route;
+  int i;
+
+  for (route = route_list; route != NULL; route = route->next)
+  {
+    for (i = 0; i < route->num_waypoints; i++)
+    {
+      if (route->waypoint_ids[i] == waypoint_id)
+      {
+        return route->name;
+      }
+    }
+  }
+  return NULL;
+}
+
+/**
+ * A hull that runs a route on a schedule or is sailing it now, or NULL:
+ * the public ferries and merchants run on schedules.
+ */
+static const char *route_hull_in_use(int route_id)
+{
+  const struct greyhawk_ship_data *other;
+  const struct autopilot_data *ap;
+  int i;
+
+  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+  {
+    other = &greyhawk_ships[i];
+    if (!is_valid_ship(other))
+    {
+      continue;
+    }
+    ap = other->autopilot;
+    if ((other->schedule != NULL && other->schedule->route_id == route_id) ||
+        (ap != NULL && ap->current_route != NULL && ap->current_route->route_id == route_id &&
+         (ap->state == AUTOPILOT_TRAVELING || ap->state == AUTOPILOT_WAITING ||
+          ap->state == AUTOPILOT_PAUSED)))
+    {
+      return other->name;
+    }
+  }
+  return NULL;
+}
+
+/**
  * ACMD handler for delwaypoint command.
  * Deletes a waypoint by name.
  * Usage: delwaypoint <name>
@@ -2921,6 +2981,7 @@ ACMD(do_delwaypoint)
 {
   struct greyhawk_ship_data *ship;
   struct waypoint_node *current;
+  const char *in_use;
   char arg[MAX_INPUT_LENGTH];
   int found_id;
 
@@ -2959,6 +3020,13 @@ ACMD(do_delwaypoint)
   if (found_id < 0)
   {
     send_to_char(ch, "Waypoint '%s' not found.\r\n", arg);
+    return;
+  }
+
+  if ((in_use = waypoint_route_in_use(found_id)) != NULL)
+  {
+    send_to_char(ch, "Waypoint '%s' is on route '%s'; it stays while the route does.\r\n", arg,
+                 in_use);
     return;
   }
 
@@ -3134,6 +3202,7 @@ ACMD(do_delroute)
 {
   struct greyhawk_ship_data *ship;
   struct route_node *route;
+  const char *in_use;
   char arg[MAX_INPUT_LENGTH];
   int route_id;
 
@@ -3168,6 +3237,15 @@ ACMD(do_delroute)
   if (route_id < 0)
   {
     send_to_char(ch, "Route '%s' not found.\r\n", arg);
+    return;
+  }
+
+  if ((in_use = route_hull_in_use(route_id)) != NULL)
+  {
+    send_to_char(ch,
+                 "Route '%s' is in use by %s, on a schedule or a voyage under way; it stays "
+                 "while she sails it.\r\n",
+                 arg, in_use);
     return;
   }
 
@@ -3706,12 +3784,9 @@ ACMD(do_unassignpilot)
   send_to_char(ch, "You relieve %s of pilot duties.\r\n", pilot_name);
   CAP(pilot_name);
   send_to_ship(ship, "%s has been relieved of pilot duties.", pilot_name);
+  /* As with 'autopilot off', the route stays set for 'autopilot on'. */
   if (stopped)
   {
-    if (snapshot.current_route != NULL)
-    {
-      route_destroy(snapshot.current_route);
-    }
     send_to_ship(ship, "The vessel's autopilot has been disengaged.");
   }
 }
@@ -3881,27 +3956,29 @@ bool scheduled_route_is_traversable(const struct greyhawk_ship_data *ship,
 }
 
 /**
+ * The game clock in whole MUD hours since its epoch; the hour of the day is
+ * this modulo 24.
+ */
+int schedule_mud_hour(void)
+{
+  return ((time_info.year * 17 + time_info.month) * 35 + time_info.day) * 24 + time_info.hours;
+}
+
+/**
  * Calculate the next departure MUD hour based on current time and interval.
  *
  * @param sched The schedule to update
  */
 void schedule_calculate_next_departure(struct vessel_schedule *sched)
 {
-  int current_hour;
-
   if (sched == NULL)
   {
     return;
   }
 
-  current_hour = time_info.hours;
-  sched->next_departure = current_hour + sched->interval_hours;
-
-  /* Wrap around 24-hour day */
-  if (sched->next_departure >= 24)
-  {
-    sched->next_departure = sched->next_departure % 24;
-  }
+  /* An absolute MUD hour, so a departure past midnight (or a whole day
+   * away) is not taken for one already due. */
+  sched->next_departure = schedule_mud_hour() + sched->interval_hours;
 }
 
 /**
@@ -4076,8 +4153,6 @@ struct vessel_schedule *schedule_get(struct greyhawk_ship_data *ship)
  */
 int schedule_check_trigger(struct greyhawk_ship_data *ship)
 {
-  int current_hour;
-
   if (ship == NULL || ship->schedule == NULL)
   {
     return 0;
@@ -4096,10 +4171,8 @@ int schedule_check_trigger(struct greyhawk_ship_data *ship)
     return 0;
   }
 
-  current_hour = time_info.hours;
-
-  /* Use >= comparison for timer precision */
-  if (current_hour >= ship->schedule->next_departure)
+  /* Due once the departure hour has come; a late hull departs at once. */
+  if (schedule_mud_hour() >= ship->schedule->next_departure)
   {
     return 1;
   }
@@ -4389,7 +4462,7 @@ ACMD(do_setschedule)
   }
 
   send_to_char(ch, "Schedule set: Route '%s' every %d MUD hours.\r\n", route_arg, interval);
-  send_to_char(ch, "Next departure: MUD hour %d\r\n", ship->schedule->next_departure);
+  send_to_char(ch, "Next departure: MUD hour %d\r\n", ship->schedule->next_departure % 24);
   if (passenger_fare > 0)
   {
     send_to_char(ch, "Passenger fare: %d gold per boarding on a public vessel.\r\n",
@@ -4494,7 +4567,7 @@ ACMD(do_showschedule)
   send_to_char(ch, "Route: %s\r\n", route_node ? route_node->name : "(unknown)");
   send_to_char(ch, "Interval: Every %d MUD hour%s\r\n", sched->interval_hours,
                sched->interval_hours == 1 ? "" : "s");
-  send_to_char(ch, "Next Departure: MUD hour %d\r\n", sched->next_departure);
+  send_to_char(ch, "Next Departure: MUD hour %d\r\n", sched->next_departure % 24);
   send_to_char(ch, "Current Time: MUD hour %d\r\n", time_info.hours);
   if (sched->passenger_fare > 0)
   {

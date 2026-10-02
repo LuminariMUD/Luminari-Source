@@ -8,6 +8,8 @@
 #include "../../src/vessels/vessels.h"
 #include "../../src/wilderness/wilderness.h"
 
+extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
+
 void Test_vessel_lookout_samples_near_mid_and_horizon(CuTest *tc)
 {
   int distances[6];
@@ -107,8 +109,26 @@ void Test_vessel_cosmetic_hull_descriptions_cover_optional_fields(CuTest *tc)
 
   memset(&ship, 0, sizeof(ship));
   ship.shipnum = 499;
+  ship.docked_to_ship = -1;
   vessel_reset_customization(&ship);
   strlcpy(ship.name, "The Test Gull", sizeof(ship.name));
+
+  /* The line follows how she lies: at sea, at anchor, aloft, sinking. */
+  vessel_build_hull_description(description, sizeof(description), &ship);
+  CuAssertStrEquals(tc, "The Test Gull is here.", description);
+  ship.anchored = TRUE;
+  vessel_build_hull_description(description, sizeof(description), &ship);
+  CuAssertStrEquals(tc, "The Test Gull lies at anchor here.", description);
+  ship.anchored = FALSE;
+  ship.z = 100.0;
+  vessel_build_hull_description(description, sizeof(description), &ship);
+  CuAssertStrEquals(tc, "The Test Gull hovers overhead.", description);
+  ship.z = 0.0;
+  ship.sink_ticks = 10;
+  vessel_build_hull_description(description, sizeof(description), &ship);
+  CuAssertStrEquals(tc, "The Test Gull is sinking here.", description);
+  ship.sink_ticks = 0;
+  ship.dock = 1000389;
   vessel_build_hull_description(description, sizeof(description), &ship);
   CuAssertStrEquals(tc, "The Test Gull is moored here.", description);
 
@@ -132,6 +152,42 @@ void Test_vessel_cosmetic_hull_descriptions_cover_optional_fields(CuTest *tc)
       "gilded sea dragon as a figurehead.",
       description);
   vessel_reset_customization(&ship);
+}
+
+void Test_vessel_hull_room_line_follows_her_state(CuTest *tc)
+{
+  const int slot = 483;
+  struct greyhawk_ship_data *ship = &greyhawk_ships[slot];
+  struct obj_data hull;
+  struct obj_data crate;
+  char line[256];
+
+  memset(ship, 0, sizeof(*ship));
+  memset(&hull, 0, sizeof(hull));
+  memset(&crate, 0, sizeof(crate));
+  ship->active = TRUE;
+  ship->shipnum = slot;
+  ship->docked_to_ship = -1;
+  ship->shipobj = &hull;
+  ship->dock = 1000389;
+  strlcpy(ship->name, "The Test Gull", sizeof(ship->name));
+  GET_OBJ_TYPE(&hull) = ITEM_GREYHAWK_SHIP;
+  GET_OBJ_VAL(&hull, 1) = slot;
+  hull.description = CuMutableString("The Test Gull is moored here.");
+
+  /* Her stored line was written at the berth; once she casts off and
+   * starts sinking, people in the water see her as she is now. */
+  CuAssertTrue(tc, vessel_hull_room_description(&hull, line, sizeof(line)));
+  CuAssertStrEquals(tc, "The Test Gull is moored here.", line);
+  ship->dock = 0;
+  ship->sink_ticks = 150;
+  CuAssertTrue(tc, vessel_hull_room_description(&hull, line, sizeof(line)));
+  CuAssertStrEquals(tc, "The Test Gull is sinking here.", line);
+
+  /* Anything else keeps its own description. */
+  CuAssertTrue(tc, !vessel_hull_room_description(&crate, line, sizeof(line)));
+
+  memset(ship, 0, sizeof(*ship));
 }
 
 void Test_vessel_cosmetic_appearance_is_optional_and_bounded(CuTest *tc)

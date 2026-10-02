@@ -1591,45 +1591,6 @@ ACMD(do_shiptalk)
   }
 }
 
-/* Find a ship by name */
-struct greyhawk_ship_data *find_ship_by_name(const char *name)
-{
-  char *end;
-  long shipnum;
-  int i;
-  bool numeric;
-
-  if (!name || !*name)
-    return NULL;
-
-  shipnum = strtol(name, &end, 10);
-  numeric = (*end == '\0' && shipnum >= 0 && shipnum < GREYHAWK_MAXSHIPS);
-
-  /* Prefer exact persistent identifiers and exact full names. */
-  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
-  {
-    if (!is_valid_ship(&greyhawk_ships[i]))
-      continue;
-
-    if (!str_cmp(name, greyhawk_ships[i].id) || !str_cmp(name, greyhawk_ships[i].name) ||
-        (numeric && greyhawk_ships[i].shipnum == (int)shipnum))
-    {
-      return &greyhawk_ships[i];
-    }
-  }
-
-  /* Then accept an unambiguous player-facing keyword such as "tern". */
-  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
-  {
-    if (is_valid_ship(&greyhawk_ships[i]) && isname(name, greyhawk_ships[i].name))
-    {
-      return &greyhawk_ships[i];
-    }
-  }
-
-  return NULL;
-}
-
 /* Get ship by ID */
 struct greyhawk_ship_data *get_ship_by_id(int id)
 {

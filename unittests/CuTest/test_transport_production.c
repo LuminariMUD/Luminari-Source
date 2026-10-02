@@ -333,6 +333,50 @@ void Test_vessel_msdp_state_clears_after_disembark(CuTest *tc)
   CuAssertTrue(tc, ashore_dirty);
 }
 
+void Test_shiplist_rows_fit_the_longest_class_and_names(CuTest *tc)
+{
+  struct greyhawk_ship_data *saved_ships;
+  struct room_data test_room;
+  struct room_data *saved_world;
+  struct descriptor_data descriptor;
+  struct char_data character;
+  char output[MAX_STRING_LENGTH];
+  room_rnum saved_top_of_world;
+
+  saved_ships = malloc(sizeof(greyhawk_ships));
+  CuAssertPtrNotNull(tc, saved_ships);
+  memcpy(saved_ships, greyhawk_ships, sizeof(greyhawk_ships));
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  memset(greyhawk_ships, 0, sizeof(greyhawk_ships));
+  memset(&test_room, 0, sizeof(test_room));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&character, 0, sizeof(character));
+  memset(output, 0, sizeof(output));
+  world = &test_room;
+  top_of_world = 0;
+  greyhawk_ships[7].active = TRUE;
+  greyhawk_ships[7].shipnum = 7;
+  greyhawk_ships[7].vessel_type = VESSEL_MAGICAL;
+  strlcpy(greyhawk_ships[7].name, "Sablebranch Grand Freighter", sizeof(greyhawk_ships[7].name));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.character = &character;
+  descriptor.pProtocol = ProtocolCreate();
+  character.desc = &descriptor;
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+
+  /* Staff read the whole class and a long design name, not "Magical Ve". */
+  do_shiplist(&character, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Sablebranch Grand Freighter    Magical Vessel ") != NULL);
+
+  ProtocolDestroy(descriptor.pProtocol);
+  memcpy(greyhawk_ships, saved_ships, sizeof(greyhawk_ships));
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  free(saved_ships);
+}
+
 void Test_shiplist_summary_remains_bounded_at_full_capacity(CuTest *tc)
 {
   struct greyhawk_ship_data *saved_ships;
@@ -565,6 +609,98 @@ void Test_transport_go_carries_the_rider_with_the_vehicle(CuTest *tc)
   kd_wilderness_rooms = saved_kd_wilderness_rooms;
 }
 
+void Test_transport_enter_takes_the_vehicle_named(CuTest *tc)
+{
+  struct room_data field;
+  struct room_data *saved_world;
+  struct char_data *saved_character_list;
+  struct vehicle_data *cart;
+  struct vehicle_data *wagon;
+  struct char_data rider;
+  struct player_special_data rider_specials;
+  room_rnum saved_top_of_world;
+
+  memset(&field, 0, sizeof(field));
+  field.number = 1000100;
+  field.sector_type = SECT_FIELD;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_character_list = character_list;
+  world = &field;
+  top_of_world = 0;
+
+  cart = vehicle_create(VEHICLE_CART, "River Cart");
+  wagon = vehicle_create(VEHICLE_WAGON, "Ox Wagon");
+  CuAssertPtrNotNull(tc, cart);
+  CuAssertPtrNotNull(tc, wagon);
+  cart->location = 0;
+  wagon->location = 0;
+  clear_char(&rider);
+  memset(&rider_specials, 0, sizeof(rider_specials));
+  rider.player_specials = &rider_specials;
+  rider.player.name = CuMutableString("Mara");
+  GET_IDNUM(&rider) = 424243;
+  IN_ROOM(&rider) = 0;
+  character_list = &rider;
+
+  /* With a cart and a wagon side by side, 'tenter wagon' takes the wagon,
+   * and a name that matches neither takes nothing. */
+  do_transport_enter(&rider, "nothing", 0, 0);
+  CuAssertPtrEquals(tc, NULL, get_player_vehicle(&rider));
+  do_transport_enter(&rider, "wagon", 0, 0);
+  CuAssertPtrEquals(tc, wagon, get_player_vehicle(&rider));
+
+  unregister_player_mount(&rider);
+  vehicle_destroy(cart);
+  vehicle_destroy(wagon);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  character_list = saved_character_list;
+}
+
+void Test_transport_go_names_the_unified_commands(CuTest *tc)
+{
+  struct room_data field;
+  struct room_data *saved_world;
+  struct char_data walker;
+  struct player_special_data walker_specials;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+  room_rnum saved_top_of_world;
+
+  memset(&field, 0, sizeof(field));
+  field.number = 1000100;
+  field.sector_type = SECT_FIELD;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &field;
+  top_of_world = 0;
+  clear_char(&walker);
+  memset(&walker_specials, 0, sizeof(walker_specials));
+  walker.player_specials = &walker_specials;
+  walker.player.name = CuMutableString("Mara");
+  IN_ROOM(&walker) = 0;
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &walker;
+  walker.desc = &descriptor;
+
+  /* The hints name 'tgo' and 'tenter', not the unrelated 'go' and 'enter'. */
+  do_transport_go(&walker, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Usage: tgo <north|") != NULL);
+  do_transport_go(&walker, "north", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Try 'tenter' to board a transport first.") != NULL);
+
+  walker.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+}
+
 void Test_vehicle_loads_and_unloads_only_at_the_surface(CuTest *tc)
 {
   const int slot = 497;
@@ -731,25 +867,6 @@ void Test_vessel_production_geometry_and_type_data(CuTest *tc)
   CuAssertTrue(tc, caps->can_traverse_underwater);
   CuAssertTrue(tc, get_terrain_speed_modifier(VESSEL_SUBMARINE, SECT_UNDERWATER, 4) > 0);
   CuAssertIntEquals(tc, 0, get_terrain_speed_modifier(VESSEL_SHIP, -1, 0));
-}
-
-void Test_vessel_name_lookup_accepts_player_facing_identifiers(CuTest *tc)
-{
-  const int slot = 488;
-  struct greyhawk_ship_data *ship = &greyhawk_ships[slot];
-
-  memset(ship, 0, sizeof(*ship));
-  ship->active = TRUE;
-  ship->shipnum = slot;
-  strlcpy(ship->name, "The Tern", sizeof(ship->name));
-  strlcpy(ship->id, "SU", sizeof(ship->id));
-
-  CuAssertPtrEquals(tc, ship, find_ship_by_name("The Tern"));
-  CuAssertPtrEquals(tc, ship, find_ship_by_name("tern"));
-  CuAssertPtrEquals(tc, ship, find_ship_by_name("SU"));
-  CuAssertPtrEquals(tc, ship, find_ship_by_name("488"));
-
-  memset(ship, 0, sizeof(*ship));
 }
 
 void Test_vessel_slot_identity_and_occupancy_are_separate(CuTest *tc)

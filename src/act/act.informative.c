@@ -413,6 +413,7 @@ static void show_obj_info(struct obj_data *obj, struct char_data *ch)
 void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int mxp_type)
 {
   char keyword[100], keyword1[128], sendcmd[20];
+  char hull_line[MAX_STRING_LENGTH];
   int found = 0, item_num = 0;
   struct char_data *temp;
   struct obj_data *temp_obj;
@@ -471,7 +472,14 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
       }
     }
     send_to_char(ch, "%s", CCGRN(ch, C_NRM));
-    send_to_char(ch, "%s", obj->description);
+    if (vessel_hull_room_description(obj, hull_line, sizeof(hull_line)))
+    {
+      send_to_char(ch, "%s", hull_line);
+    }
+    else
+    {
+      send_to_char(ch, "%s", obj->description);
+    }
     break;
 
   case SHOW_OBJ_SHORT:

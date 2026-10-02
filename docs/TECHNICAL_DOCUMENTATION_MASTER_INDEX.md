@@ -102,6 +102,7 @@ This master index provides a comprehensive guide to all technical documentation 
   registry, ownership, binding, progression, powers, persistence, deployment,
   and staff operations
 - **[VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md)** - Ships, airships, submarines, and land vehicles (carts, wagons, mounts) with wilderness navigation, multi-room interiors, and unified transport interface
+- **[VESSEL_PLAYER_GUIDE.md](guides/VESSEL_PLAYER_GUIDE.md)** - Illustrated player guide to the vessel system, from passage on a ferry to owning, crewing, sailing, trading and fighting a ship
 - **[VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md)** - Current and
   historical vessel performance, memory, and test evidence
 - **[CLAN_SYSTEM.md](systems/CLAN_SYSTEM.md)** - Guild and clan functionality
