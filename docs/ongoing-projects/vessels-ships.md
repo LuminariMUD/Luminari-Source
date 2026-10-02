@@ -220,8 +220,8 @@ Chapters, in play order:
 | 13 | Loss and recovery | The new mortal | - | The wreck registry, the insurance claim, `shipsummon`, trade-in (`shipbuy <id> trade`), the rename fee, the ownership cap | Played |
 | 14 | Other hulls and vehicles | Vesselmate | `vedit spawn` of the frontier classes where each can travel | River craft, airship altitude, submarine depth, transport, magical hulls; `vmount`, `drive`, `vstatus`, `vdismount`, `loadvehicle`, `unloadvehicle`, `tenter`, `tgo`, `tstatus`, `texit` | Played |
 | 15 | The living world | Vesselmate and the new mortal | `vevent start` | The Blackwake derelict, `vevent status`, `join`, `enlist` and `leaderboard`, encounters and bounty hunters | Played |
-| 16 | Staff tools | Kohdee | - | `vedit`, `vmerchant`, `shiplist`, `shipgoto`, `shipfix`, `shippurge`, `boardfind`, `vesseldebug`, `vevent end`, `cancel` and `recover`, the `cedit` vessel switch and ownership cap | Not started |
-| 17 | Client data | Vesselmate | - | The Ship tab aboard, in a fight and ashore, and the 21 vessel MSDP variables behind it | Not started |
+| 16 | Staff tools | Kohdee | - | `vedit`, `vmerchant`, `shiplist`, `shipgoto`, `shipfix`, `shippurge`, `boardfind`, `vesseldebug`, `vevent end`, `cancel` and `recover`, the `cedit` vessel switch and ownership cap | Played |
+| 17 | Client data | Vesselmate | - | The Ship tab aboard, in a fight and ashore, and the 21 vessel MSDP variables behind it | Played |
 
 Interpretations decided while planning S9:
 
@@ -264,9 +264,9 @@ Ablation (starting play): chapter 17 reuses the Ship-tab screenshots that chapte
 at sea and in a fight, plus one ashore, instead of replaying them; the rest of the plan stands.
 
 Chapter state is in the table above; `guide-notes.md` has each played chapter's screenshots and
-notes. Played so far: 1-15 (6 while the shipwrights worked on chapter 3's refit; 13 after 14,
-while the summoned Kestrel sailed). Left: 16 (staff tools) and 17 (client data), then the
-routine's verification, tag, push and merge request.
+notes. All 17 chapters played (6 while the shipwrights worked on chapter 3's refit; 13 after 14,
+while the summoned Kestrel sailed). Left: the routine's verification, tag, push and merge
+request, and cleanup.
 
 Play findings that are not defects (recorded in the notes): `boardcheck` and `boardfind` are
 bulletin-board commands, not vessel ones (chapter 16 covers the board commands it names only as

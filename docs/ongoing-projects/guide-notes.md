@@ -724,3 +724,81 @@ Defects found here and fixed: a hull under way in harbor was told gunfire is for
 berth"; `shiplock wraith` could not find "Ghost Fleet Wraith 2-1"; a summoned hull's owner was
 not told she had made port; the derelict's first clue needed an undiscoverable word; a new raft
 could come with a mess hall.
+
+## 16. Staff tools
+
+Played by Kohdee from the Staff Board Room (room 1204), with the hulls left by chapters 1-15.
+These screenshots are the only ones from a staff session.
+
+- `71-staff-vedit.png` (`vedit` with no argument): the usage list - `vedit list`, `new <class> <name>`, `show <id>`, `set <id> <field> <value>` (name, class, speed, armor, forsale,
+  minlevel), `delete`, `spawn` (a hull owned by the staff member, here), `spawnpublic` (an
+  unclaimed public hull) - and the class numbers 0-7. `vedit show 26`: "Prototype 26: Starfall
+  Survey Ship", class, speed 12, armor 66 (beam; the class profile sets the rest), cargo 12000
+  lbs, "listed in the shipyard", "Level : 16 to take her out of port (class minimum)".
+- `72-staff-vmerchant.png` (`vmerchant`): the two NPC merchants with generation, fleet slot,
+  state, faction, prototype, route, pilot, cargo and losses ("Harbor Sandbox Merchant",
+  "Vailand Ironwind Trader").
+- `73-staff-shiplist.png` (`shiplist`): every active hull with slot, name, class, position,
+  heading, speed, hull and owner, then "22 of 500 active fleet slots in use." and the wilderness
+  room pool. A stowed hull reads "summoned" in the position column.
+- `74-staff-shipfix.png` (`shipfix 13`): "Sea Wren (slot 13) restored to full condition."
+  (armor, structure, rigging, rudder; not ammunition). Aboard, her crew read "A divine hand mends
+  every timber and line."
+- `75-staff-shippurge.png` (`shippurge 17` ... `21`, the hulls staged for chapter 14): "Purged
+  ship 17 'Sablebranch Riverboat': reclaimed 2 rooms and released 0 vehicles."
+- `76-staff-vesseldebug-balance.png` (`vesseldebug balance`): per class, the hull price, one
+  refit, the insurance payout and the dock fee at speed 10 and armor 10 (raft 367 / 40 / 0 / 5
+  ... magical 100067 / 28800 / 50033 / 75), the persisted sample (owned hulls, fees, completed
+  freight, showcase entries), and "Human beta and player fun sign-off: REQUIRED".
+- `77-staff-cedit-vessels.png` (`cedit`, then `E`, Extra Game Play Options): "J) Vessel
+  System : On" (the kill switch) and "L) Vessel Hulls Per Owner : 3" (1-10). Left with `Q` and
+  `n`, so nothing was changed: "Game configuration not saved to memory."
+
+Also played:
+
+- `vesseldebug` and `vesseldebug status`: "Vessel debug support: compiled out (production-safe
+  default)." (the debug categories are a build option; `balance`, `ambient` and `encounter` work
+  in a normal build).
+- `vesseldebug ambient` aboard the Sea Wren: one at-sea ambience line ("The ship's timbers work
+  with the sea. It lies still. Clear light runs cleanly to the horizon.") and "Forced this
+  vessel's contextual ambient message."
+- `vesseldebug encounter` (chapter 15): "Forced the next normal vessel encounter check."
+- `shipgoto <slot>` puts the staff member on the hull's bridge; `transfer <player>` then brings
+  a player there.
+- `vevent start regatta -62 82` from the Sea Wren's helm, then `vevent cancel`: "[Vessel Event]
+  regatta event #4 ended: cancelled by staff" "Vessel event cancelled without leaderboard
+  changes." `vevent recover`: "Vessel event recovery pass completed; review the system log."
+  `vevent end` (chapter 15) records the leaderboard.
+- `vehiclecreate` and `vehiclepurge` (chapter 14): "Created vehicle #2: River Cart [cart] at
+  (-810, 478)." "Purged vehicle #1."
+- `boardfind` is the bulletin-board finder (it lists MySQL message boards, not hulls, and listed
+  none: the staff room's HELP board is an old-style board). It and `boardcheck` belong to the
+  board system, not the vessel system.
+
+## 17. Client data
+
+Luminari Web's inspector has a Ship tab fed by the server's vessel MSDP variables; most
+chapters show it beside the terminal (see the "Ship tab" shots: 07, 11, 14, 17, 24, 34, 43, 52,
+55).
+
+- `79-client-ship-tab-aboard.png` (Vesselmate on the Sea Wren's bridge at sea): "[AN] Sea Wren",
+  condition, locked target, position (x, y, z), heading, speed; bars for hull (108/108), sails,
+  rudder and crew stamina; armor and structure by arc; and each weapon with slot, arc, rounds
+  and state ("0 ROUNDS out of ammunition" for the emptied port ballista).
+- `34-gunnery-tactical.png` (chapter 8) shows the tab in a fight: the locked contact and the
+  contact list.
+- `78-client-ship-tab-ashore.png` (Brinewick on the Testing Dock): "Not aboard a vessel. Ship
+  data appears while your character is aboard a vessel."
+
+The 21 vessel variables (`docs/systems/MSDP_VARIABLES.md`), for players scripting their own
+client: `SHIP_NAME`, `SHIP_ID` (the two-letter contact ID), `SHIP_X`, `SHIP_Y`, `SHIP_Z`,
+`SHIP_HEADING`, `SHIP_SPEED`, `SHIP_HULL` and `SHIP_HULL_MAX` (internal structure summed over the
+four arcs), `SHIP_STATUS` (sound, battered, crippled or sinking), `SHIP_ARMOR` and
+`SHIP_INTERNAL` (tables by arc, current and maximum), `SHIP_SAIL`, `SHIP_SAIL_MAX`,
+`SHIP_RUDDER`, `SHIP_RUDDER_MAX`, `SHIP_STAMINA`, `SHIP_STAMINA_MAX`, `SHIP_TARGET` (the locked
+contact's ID, or empty), `SHIP_WEAPONS` (slot, name, arc, ammunition, ready, damage) and
+`SHIP_CONTACTS` (nearest contacts: ID, name, range, bearing, arc). A client must report them
+(`REPORT`); they clear when the character leaves the hull. A client that speaks GMCP but not
+MSDP gets the same values as JSON in the `MSDP` GMCP package.
+
+The client's "MSDP Vars" menu renames the variables it requests; it does not show their values.
