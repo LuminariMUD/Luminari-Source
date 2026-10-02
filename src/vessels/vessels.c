@@ -1816,20 +1816,24 @@ ACMD(do_board_vessel)
  */
 static void vessel_show_navigation(struct char_data *ch, struct greyhawk_ship_data *ship)
 {
+  double max_speed;
   int heading;
   int speed;
+  int ordered;
 
   heading = vessel_display_heading(ship->heading);
   speed = vessel_display_speed(ship->speed);
+  max_speed = vessel_max_speed(ship);
+  ordered = vessel_display_speed(vessel_target_speed(ship, max_speed));
   send_to_char(ch, "Heading: %d degrees", heading);
   if (heading != ship->setheading)
   {
     send_to_char(ch, " (coming about to %d)", ship->setheading);
   }
-  send_to_char(ch, "\r\nSpeed: %d / %d", speed, vessel_display_speed(vessel_max_speed(ship)));
-  if (speed != ship->setspeed)
+  send_to_char(ch, "\r\nSpeed: %d / %d", speed, vessel_display_speed(max_speed));
+  if (speed != ordered)
   {
-    send_to_char(ch, " (ordered %d)", ship->setspeed);
+    send_to_char(ch, " (ordered %d)", ordered);
   }
   send_to_char(ch, "\r\nMoorings: ");
   if (ship->docked_to_ship > 0)
@@ -2010,7 +2014,9 @@ ACMD(do_greyhawk_speed)
   if (!*arg)
   {
     send_to_char(ch, "Current speed: %d, ordered %d; she can make %d under present conditions.\r\n",
-                 vessel_display_speed(ship->speed), ship->setspeed, max_speed);
+                 vessel_display_speed(ship->speed),
+                 vessel_display_speed(vessel_target_speed(ship, vessel_max_speed(ship))),
+                 max_speed);
     send_to_char(ch, "Usage: speed <0-%d>\r\n", VESSEL_SPEED_LIMIT);
     return;
   }

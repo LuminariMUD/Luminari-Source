@@ -746,6 +746,40 @@ void Test_vessel_autopilot_casts_off_before_following_its_route(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_target_speed_is_the_order_she_answers(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct ship_route *route;
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+
+  /* At the helm she answers the order, up to the most she can make. */
+  ship->setspeed = 5;
+  CuAssertDblEquals(tc, 5.0, vessel_target_speed(ship, 9.0), 0.0001);
+  ship->setspeed = 20;
+  CuAssertDblEquals(tc, 9.0, vessel_target_speed(ship, 9.0), 0.0001);
+
+  /* On a route with no order of her own she makes all she can, within the
+   * route's limit, so a pilot's hull is not shown as ordered to stop. */
+  route = route_create("passage");
+  CuAssertPtrNotNull(tc, route);
+  CuAssertPtrNotNull(tc, autopilot_init(ship));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, 0.0, 30.0, 0.0, "far"));
+  CuAssertTrue(tc, autopilot_start(ship, route));
+  ship->setspeed = 0;
+  ship->autopilot->speed_limit = 100.0;
+  CuAssertDblEquals(tc, 9.0, vessel_target_speed(ship, 9.0), 0.0001);
+  ship->autopilot->speed_limit = 3.0;
+  CuAssertDblEquals(tc, 3.0, vessel_target_speed(ship, 9.0), 0.0001);
+
+  /* Paused, she answers nothing. */
+  CuAssertTrue(tc, autopilot_pause(ship));
+  CuAssertDblEquals(tc, 0.0, vessel_target_speed(ship, 9.0), 0.0001);
+
+  movement_end(&fixture);
+}
+
 void Test_vessel_paused_autopilot_holds_and_a_finished_route_stops(CuTest *tc)
 {
   struct movement_fixture fixture;

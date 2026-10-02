@@ -971,6 +971,31 @@ static bool vessel_autopilot_paused(const struct greyhawk_ship_data *ship)
 }
 
 /**
+ * The speed the hull is answering: her order, at most max_speed; on a route,
+ * the route's limit, or the most she can make when no speed is ordered; none
+ * while her autopilot is paused.
+ */
+double vessel_target_speed(const struct greyhawk_ship_data *ship, double max_speed)
+{
+  double target;
+
+  target = fmin((double)MAX(0, ship->setspeed), max_speed);
+  if (vessel_autopilot_steering(ship))
+  {
+    if (ship->setspeed <= 0)
+    {
+      target = max_speed;
+    }
+    target = fmin(target, ship->autopilot->speed_limit);
+  }
+  else if (vessel_autopilot_paused(ship))
+  {
+    target = 0.0;
+  }
+  return fmax(0.0, target);
+}
+
+/**
  * One tick of the helm, for every mover and for route validation.
  *
  * Speed converges on its order at the class acceleration and the heading on
@@ -995,20 +1020,7 @@ bool vessel_sail_tick(struct greyhawk_ship_data *ship, double max_speed, vessel_
   double move_x;
   double move_y;
 
-  target = fmin((double)MAX(0, ship->setspeed), max_speed);
-  if (vessel_autopilot_steering(ship))
-  {
-    if (ship->setspeed <= 0)
-    {
-      target = max_speed;
-    }
-    target = fmin(target, ship->autopilot->speed_limit);
-  }
-  else if (vessel_autopilot_paused(ship))
-  {
-    target = 0.0;
-  }
-  target = fmax(0.0, target);
+  target = vessel_target_speed(ship, max_speed);
 
   /* A crew reeling from a mental blast cannot answer the helm; she carries
    * on as she was. */

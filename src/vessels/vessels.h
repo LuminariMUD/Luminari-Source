@@ -523,6 +523,7 @@ double vessel_load_factor(const struct greyhawk_ship_data *ship);
 double vessel_max_speed_from(int design_speed, double sailmaster_multiplier, double load_factor,
                              int mainsail, int maxmainsail, int position_percent, int helm_bonus);
 double vessel_max_speed(struct greyhawk_ship_data *ship);
+double vessel_target_speed(const struct greyhawk_ship_data *ship, double max_speed);
 double vessel_acceleration(const struct greyhawk_ship_data *ship);
 double vessel_turn_rate(const struct greyhawk_ship_data *ship, double max_speed);
 bool vessel_is_moored(const struct greyhawk_ship_data *ship);
