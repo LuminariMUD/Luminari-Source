@@ -388,6 +388,18 @@ fixes go on top, one commit each. After the merge:
   provisioner replaces trigger 70010 with the `search` version (`68d3f1230`).
 - Then S10 writes the player guide from `guide-notes.md` and the screenshots.
 
+Review fixes (MR !15, on top of `vessels-s9`; range `vessels-s9..feat/vessels-s9`):
+
+| Finding | Fix | Commit |
+| -- | -- | -- |
+| [P2] Accepting freight debited the bond in memory only while the contract and cargo went straight to the database, so a crash before the next character save kept the freight and returned the bond; a failed manifest write was silent, so a later save could keep the debit without the freight | The contract claim and the manifest commit in one transaction, the bond is debited after it and saved with `save_char_checked()`, and a failed save restores the gold, reopens the contract and unloads the freight; `vessel_db_save_cargo()` reports failure. The DB-backed bond test covers a refused manifest write and a failed save | `a703572e3` |
+
+Review-fix verification: the bond test fails on the old acceptance and passes on
+the fix; the focused vessel suite (208 cases) passes; the local CI matrix passed all 33 jobs on
+`a703572e3` in 265 s. Its first run, on an earlier version of the fix, failed the SQL
+interpolation check (the contract reopen formatted its values into the query; it now binds them
+in a prepared statement). No live gate accepts freight.
+
 ## Estimate (remaining)
 
 | Step | What drives the size | Days |
