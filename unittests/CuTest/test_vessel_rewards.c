@@ -737,10 +737,24 @@ static void rewards_assert_trade(CuTest *tc, MYSQL *connection, struct rewards_b
   CuAssertIntEquals(tc, supply, (int)strtol(value, NULL, 10));
 }
 
+/* Make the port's stock refuse the value a trade's undo would write back,
+ * though the stock holds that value now. */
+static void rewards_refuse_undo(CuTest *tc, MYSQL *connection, const char *check)
+{
+  char query[256];
+
+  snprintf(query, sizeof(query),
+           "ALTER TABLE port_commodities ADD CONSTRAINT undo_refused CHECK (%s)", check);
+  CuAssertIntEquals(tc, 0, mysql_query(connection, "SET SESSION check_constraint_checks = 0"));
+  CuAssertIntEquals(tc, 0, mysql_query(connection, query));
+  CuAssertIntEquals(tc, 0, mysql_query(connection, "SET SESSION check_constraint_checks = 1"));
+}
+
 /* A cargo trade and its gold are recorded together: a refused manifest
  * write or a failed save leaves the gold, the hold, the manifest and the
  * port's stock as they were, so no crash or failed write gives free cargo
- * or cargo sold twice. */
+ * or cargo sold twice. If even the undo cannot be written, the trade stands
+ * as recorded. */
 void Test_vessel_cargo_trades_record_the_gold_with_the_goods(CuTest *tc)
 {
   struct rewards_berth berth;
@@ -850,6 +864,30 @@ void Test_vessel_cargo_trades_record_the_gold_with_the_goods(CuTest *tc)
   snprintf(expected, sizeof(expected), "You sell 4 units of salt for %lld gold", revenue);
   CuAssertTrue(tc, strstr(output, expected) != NULL);
   rewards_assert_trade(tc, connection, &berth, gold + (int)revenue, 6, 6, 94);
+  gold += (int)revenue;
+
+  /* The save fails and its undo cannot be written either: the sale stands
+   * as recorded, in memory too, for the persistence service to save. */
+  rewards_refuse_undo(tc, connection, "supply > 94");
+  GET_PFILEPOS(&berth.captain) = -1;
+  revenue = vessel_trade_sell_revenue(base_price, 94, 6);
+  output = rewards_berth_command(&berth, do_cargosell, "salt all");
+  CuAssertTrue(tc, strstr(output, "the trade stands and will be saved shortly") != NULL);
+  CuAssertTrue(tc, strstr(output, "undone") == NULL);
+  rewards_assert_trade(tc, connection, &berth, gold + (int)revenue, 0, 0, 100);
+  CuAssertIntEquals(
+      tc, 0, mysql_query(connection, "ALTER TABLE port_commodities DROP CONSTRAINT undo_refused"));
+  gold += (int)revenue;
+
+  /* So does a purchase. */
+  rewards_refuse_undo(tc, connection, "supply < 100");
+  cost = vessel_trade_buy_cost(base_price, 100, 10);
+  output = rewards_berth_command(&berth, do_cargobuy, "salt 10");
+  CuAssertTrue(tc, strstr(output, "the trade stands and will be saved shortly") != NULL);
+  CuAssertTrue(tc, strstr(output, "undone") == NULL);
+  rewards_assert_trade(tc, connection, &berth, gold - (int)cost, 10, 10, 90);
+  CuAssertIntEquals(
+      tc, 0, mysql_query(connection, "ALTER TABLE port_commodities DROP CONSTRAINT undo_refused"));
   rewards_pfiles_end(tc, &pfiles, &berth.captain);
 
   rewards_berth_end(&berth);

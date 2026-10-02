@@ -1081,6 +1081,46 @@ static bool trade_record(struct greyhawk_ship_data *ship, int port_vnum, int com
 }
 
 /**
+ * Pay for a recorded trade: move the gold and save it with the captain. If
+ * the save fails, the hold's lot goes back to saved_lot and the old supply
+ * is recorded again. If that undo cannot be recorded either, the trade
+ * stands as recorded, in memory too: the persistence service saves every
+ * player each minute, retrying a failed save until it holds.
+ *
+ * @return FALSE when the trade was undone
+ */
+static bool trade_settle(struct char_data *ch, struct greyhawk_ship_data *ship, int lot,
+                         struct cargo_lot saved_lot, int port_vnum, int commodity_id, int supply,
+                         int gold)
+{
+  struct cargo_lot traded_lot;
+  int old_gold;
+
+  old_gold = GET_GOLD(ch);
+  award_gold(ch, gold);
+  if (save_char_checked(ch, 0))
+  {
+    return TRUE;
+  }
+
+  traded_lot = ship->cargo[lot];
+  ship->cargo[lot] = saved_lot;
+  if (trade_record(ship, port_vnum, commodity_id, supply))
+  {
+    award_set_points(ch, AWARD_GOLD, old_gold);
+    send_to_char(ch, "Your gold could not be recorded, so the trade is undone.\r\n");
+    return FALSE;
+  }
+
+  ship->cargo[lot] = traded_lot;
+  log("SYSERR: Could not undo %s's unsaved trade aboard ship %d; it stands", GET_NAME(ch),
+      ship->shipnum);
+  send_to_char(ch, "Your gold could not be saved yet; the trade stands and will be saved "
+                   "shortly.\r\n");
+  return TRUE;
+}
+
+/**
  * Total weight of bulk cargo aboard.
  */
 int vessel_cargo_weight(const struct greyhawk_ship_data *ship)
@@ -1515,7 +1555,6 @@ ACMD(do_cargobuy)
   int average_price;
   int lot;
   int capacity;
-  int old_gold;
 
   ship = trade_context(ch, &port_vnum);
   if (ship == NULL)
@@ -1583,9 +1622,8 @@ ACMD(do_cargobuy)
     return;
   }
 
-  /* The cargo and the port's stock are recorded before the gold moves, and
-   * put back if the captain's save then fails. Buying drains the port's
-   * stock, nudging its price up. */
+  /* The cargo and the port's stock are recorded before the gold moves (see
+   * trade_settle()). Buying drains the port's stock, nudging its price up. */
   saved_lot = ship->cargo[lot];
   ship->cargo[lot].commodity_id = def->id;
   ship->cargo[lot].quantity += quantity;
@@ -1596,17 +1634,8 @@ ACMD(do_cargobuy)
     return;
   }
 
-  old_gold = GET_GOLD(ch);
-  award_gold(ch, -(int)cost);
-  if (!save_char_checked(ch, 0))
+  if (!trade_settle(ch, ship, lot, saved_lot, port_vnum, def->id, supply, -(int)cost))
   {
-    award_set_points(ch, AWARD_GOLD, old_gold);
-    ship->cargo[lot] = saved_lot;
-    if (!trade_record(ship, port_vnum, def->id, supply))
-    {
-      log("SYSERR: Could not undo %s's purchase aboard ship %d", GET_NAME(ch), ship->shipnum);
-    }
-    send_to_char(ch, "Your gold could not be recorded, so the trade is undone.\r\n");
     return;
   }
 
@@ -1659,7 +1688,6 @@ ACMD(do_cargosell)
   int supply;
   int average_price;
   int lot;
-  int old_gold;
 
   ship = trade_context(ch, &port_vnum);
   if (ship == NULL)
@@ -1745,8 +1773,8 @@ ACMD(do_cargosell)
     return;
   }
 
-  /* As for a purchase: recorded before the gold moves, and put back if the
-   * save fails. Selling floods the local market, nudging its price down. */
+  /* As for a purchase: recorded before the gold moves. Selling floods the
+   * local market, nudging its price down. */
   saved_lot = ship->cargo[lot];
   ship->cargo[lot].quantity -= quantity;
   if (ship->cargo[lot].quantity == 0)
@@ -1760,17 +1788,8 @@ ACMD(do_cargosell)
     return;
   }
 
-  old_gold = GET_GOLD(ch);
-  award_gold(ch, (int)revenue);
-  if (!save_char_checked(ch, 0))
+  if (!trade_settle(ch, ship, lot, saved_lot, port_vnum, def->id, supply, (int)revenue))
   {
-    award_set_points(ch, AWARD_GOLD, old_gold);
-    ship->cargo[lot] = saved_lot;
-    if (!trade_record(ship, port_vnum, def->id, supply))
-    {
-      log("SYSERR: Could not undo %s's sale aboard ship %d", GET_NAME(ch), ship->shipnum);
-    }
-    send_to_char(ch, "Your gold could not be recorded, so the trade is undone.\r\n");
     return;
   }
   vessel_crew_sale_gain(ship, revenue);

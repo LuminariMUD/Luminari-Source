@@ -993,10 +993,13 @@ ports back toward baseline. Ports buy at 85% of ask, so same-port round trips
 lose money. Bulk lots persist in `ship_cargo_manifest` with
 `cargo_room = 0`. `cargobuy` and `cargosell` record the port's new supply and
 the manifest in one transaction before any gold moves, then save the gold
-with `save_char_checked()`; if that save fails the gold and the hold are
-restored and the old supply and manifest recorded again, so the record never
-keeps cargo without its price or a price without its cargo. A refused write
-moves no gold, and without a database no trade is made.
+with `save_char_checked()`; if that save fails the old supply and manifest
+are recorded again and the gold and the hold restored. If even that undo
+cannot be recorded, the trade stands as recorded, in memory too, and the
+persistence service's minute save stores the gold once it can; only a crash
+before then leaves cargo recorded without its price or a price without its
+cargo (work item #12). A refused write moves no gold, and without a database
+no trade is made.
 
 Staff can run `vtradecheck 1000` to execute the deterministic sustained-market
 gate without changing live port or character state. It must report all 1,000
