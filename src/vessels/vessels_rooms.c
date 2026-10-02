@@ -658,6 +658,52 @@ void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
   }
 }
 
+/**
+ * The room a crew discovers aboard a hull of this class: weapons bays on a
+ * warship and holds on a transport more often, else a common room, but never
+ * one a hull her size lacks (min_vessel_size): a raft finds only a hold.
+ */
+enum ship_room_type vessel_discovered_room_type(enum vessel_class vessel_type)
+{
+  enum ship_room_type new_type;
+
+  do
+  {
+    if (vessel_type == VESSEL_WARSHIP && rand_number(1, 3) == 1)
+    {
+      new_type = ROOM_TYPE_WEAPONS;
+    }
+    else if (vessel_type == VESSEL_TRANSPORT && rand_number(1, 2) == 1)
+    {
+      new_type = ROOM_TYPE_CARGO;
+    }
+    else
+    {
+      /* Random selection from common room types */
+      switch (rand_number(1, 5))
+      {
+      case 1:
+        new_type = ROOM_TYPE_QUARTERS;
+        break;
+      case 2:
+        new_type = ROOM_TYPE_CORRIDOR;
+        break;
+      case 3:
+        new_type = ROOM_TYPE_CARGO;
+        break;
+      case 4:
+        new_type = ROOM_TYPE_MESS_HALL;
+        break;
+      default:
+        new_type = ROOM_TYPE_MEDICAL;
+        break;
+      }
+    }
+  } while (room_templates[new_type].min_vessel_size > (int)vessel_type);
+
+  return new_type;
+}
+
 /* Generate complete ship interior based on vessel type */
 void generate_ship_interior(struct greyhawk_ship_data *ship)
 {
@@ -760,45 +806,7 @@ void generate_ship_interior(struct greyhawk_ship_data *ship)
   {
     if (rand_number(1, 100) <= ship->discovery_chance)
     {
-      /* Select appropriate room type based on what's missing */
-      enum ship_room_type new_type;
-
-      if (ship->vessel_type == VESSEL_WARSHIP && rand_number(1, 3) == 1)
-      {
-        new_type = ROOM_TYPE_WEAPONS;
-      }
-      else if (ship->vessel_type == VESSEL_TRANSPORT && rand_number(1, 2) == 1)
-      {
-        new_type = ROOM_TYPE_CARGO;
-      }
-      else
-      {
-        /* Random selection from common room types */
-        int roll = rand_number(1, 5);
-        switch (roll)
-        {
-        case 1:
-          new_type = ROOM_TYPE_QUARTERS;
-          break;
-        case 2:
-          new_type = ROOM_TYPE_CORRIDOR;
-          break;
-        case 3:
-          new_type = ROOM_TYPE_CARGO;
-          break;
-        case 4:
-          new_type = ROOM_TYPE_MESS_HALL;
-          break;
-        case 5:
-          new_type = ROOM_TYPE_MEDICAL;
-          break;
-        default:
-          new_type = ROOM_TYPE_CORRIDOR;
-          break;
-        }
-      }
-
-      add_ship_room(ship, new_type);
+      add_ship_room(ship, vessel_discovered_room_type(ship->vessel_type));
     }
     else
     {
@@ -826,12 +834,60 @@ void generate_ship_interior(struct greyhawk_ship_data *ship)
   log("Generated %d rooms for %s (vessel type %u)", ship->num_rooms, ship->name, ship->vessel_type);
 }
 
+/* Join two interior rooms both ways and record the passage. */
+static void join_ship_rooms(struct greyhawk_ship_data *ship, int from, int to, int dir,
+                            const char *there, const char *back, bool hatch)
+{
+  struct room_direction_data *exit;
+  room_rnum from_room;
+  room_rnum to_room;
+
+  from_room = real_room(ship->room_vnums[from]);
+  to_room = real_room(ship->room_vnums[to]);
+  if (from_room == NOWHERE || to_room == NOWHERE)
+  {
+    return;
+  }
+
+  CREATE(exit, struct room_direction_data, 1);
+  exit->to_room = to_room;
+  exit->general_description = strdup(there);
+  world[from_room].dir_option[dir] = exit;
+
+  CREATE(exit, struct room_direction_data, 1);
+  exit->to_room = from_room;
+  exit->general_description = strdup(back);
+  world[to_room].dir_option[rev_dir[dir]] = exit;
+
+  if (ship->num_connections < MAX_SHIP_CONNECTIONS)
+  {
+    ship->connections[ship->num_connections].from_room = ship->room_vnums[from];
+    ship->connections[ship->num_connections].to_room = ship->room_vnums[to];
+    ship->connections[ship->num_connections].direction = dir;
+    ship->connections[ship->num_connections].is_hatch = hatch;
+    ship->connections[ship->num_connections].is_locked = FALSE;
+    ship->num_connections++;
+  }
+}
+
 /* Create connections between ship rooms */
 void generate_room_connections(struct greyhawk_ship_data *ship)
 {
-  int i, j;
-  room_rnum from_room, to_room;
-  struct room_direction_data *exit;
+  /* The eight level rays out from the bridge, with their map steps. */
+  static const int ray_dir[8] = {NORTH,     EAST,      SOUTH,     WEST,
+                                 NORTHEAST, SOUTHEAST, SOUTHWEST, NORTHWEST};
+  static const int ray_dx[8] = {0, 1, 0, -1, 1, 1, -1, -1};
+  static const int ray_dy[8] = {1, 0, -1, 0, 1, -1, -1, 1};
+  room_rnum from_room;
+  room_rnum to_room;
+  int x[MAX_SHIP_ROOMS];
+  int y[MAX_SHIP_ROOMS];
+  int ray;
+  int ring;
+  int dx;
+  int dy;
+  int dir;
+  int i;
 
   if (!ship || ship->num_rooms < 2)
   {
@@ -845,149 +901,52 @@ void generate_room_connections(struct greyhawk_ship_data *ship)
   {
     for (i = 0; i < ship->num_rooms - 1; i++)
     {
-      from_room = real_room(ship->room_vnums[i]);
-      to_room = real_room(ship->room_vnums[i + 1]);
-
-      if (from_room == NOWHERE || to_room == NOWHERE)
-        continue;
-
-      /* Create bidirectional connection (north/south) */
-      CREATE(exit, struct room_direction_data, 1);
-      exit->to_room = to_room;
-      exit->exit_info = 0;
-      exit->keyword = NULL;
-      exit->general_description = strdup("The passage continues.");
-      world[from_room].dir_option[NORTH] = exit;
-
-      CREATE(exit, struct room_direction_data, 1);
-      exit->to_room = from_room;
-      exit->exit_info = 0;
-      exit->keyword = NULL;
-      exit->general_description = strdup("The passage continues.");
-      world[to_room].dir_option[SOUTH] = exit;
-
-      /* Record connection */
-      if (ship->num_connections < MAX_SHIP_CONNECTIONS)
-      {
-        ship->connections[ship->num_connections].from_room = ship->room_vnums[i];
-        ship->connections[ship->num_connections].to_room = ship->room_vnums[i + 1];
-        ship->connections[ship->num_connections].direction = NORTH;
-        ship->connections[ship->num_connections].is_hatch = FALSE;
-        ship->connections[ship->num_connections].is_locked = FALSE;
-        ship->num_connections++;
-      }
+      join_ship_rooms(ship, i, i + 1, NORTH, "The passage continues.", "The passage continues.",
+                      FALSE);
     }
   }
   else
   {
-    /* More complex layout for larger ships */
-    /* Create a hub-and-spoke pattern with bridge at center */
-    room_rnum bridge = real_room(ship->bridge_room);
-
-    if (bridge != NOWHERE)
+    /* Larger hulls: every room after the bridge lies on one of eight rays
+     * out from it, the first eight beside it and the rest further out along
+     * the same rays, so every exit agrees with where its rooms lie. */
+    x[0] = 0;
+    y[0] = 0;
+    for (i = 1; i < ship->num_rooms && i < MAX_SHIP_ROOMS; i++)
     {
-      int dir = 0;
-      for (i = 0; i < ship->num_rooms; i++)
-      {
-        if (ship->room_vnums[i] == ship->bridge_room)
-          continue;
-
-        from_room = bridge;
-        to_room = real_room(ship->room_vnums[i]);
-
-        if (to_room == NOWHERE)
-          continue;
-
-        /* Assign directions in order: N, E, S, W, NE, SE, SW, NW */
-        if (dir >= NUM_OF_DIRS - 2)
-          dir = 0; /* Skip up/down */
-
-        /* Create connection from bridge to room */
-        CREATE(exit, struct room_direction_data, 1);
-        exit->to_room = to_room;
-        exit->exit_info = 0;
-        exit->keyword = NULL;
-        exit->general_description = strdup("A passage leads to another part of the ship.");
-        world[from_room].dir_option[dir] = exit;
-
-        /* Create return connection */
-        CREATE(exit, struct room_direction_data, 1);
-        exit->to_room = from_room;
-        exit->exit_info = 0;
-        exit->keyword = NULL;
-        exit->general_description = strdup("A passage leads back to the bridge.");
-        world[to_room].dir_option[rev_dir[dir]] = exit;
-
-        /* Record connection */
-        if (ship->num_connections < MAX_SHIP_CONNECTIONS)
-        {
-          ship->connections[ship->num_connections].from_room = ship->bridge_room;
-          ship->connections[ship->num_connections].to_room = ship->room_vnums[i];
-          ship->connections[ship->num_connections].direction = dir;
-          ship->connections[ship->num_connections].is_hatch = FALSE;
-          ship->connections[ship->num_connections].is_locked = FALSE;
-          ship->num_connections++;
-        }
-
-        dir++;
-      }
+      ray = (i - 1) % 8;
+      ring = (i - 1) / 8 + 1;
+      x[i] = ray_dx[ray] * ring;
+      y[i] = ray_dy[ray] * ring;
+      join_ship_rooms(ship, ring == 1 ? 0 : i - 8, i, ray_dir[ray],
+                      "A passage leads to another part of the ship.",
+                      ring == 1 ? "A passage leads back to the bridge."
+                                : "A passage leads back toward the bridge.",
+                      FALSE);
     }
 
-    /* Add some cross-connections between non-bridge rooms */
-    for (i = 1; i < ship->num_rooms - 1; i++)
+    /* Add some side passages between neighboring rooms off the bridge. */
+    for (i = 1; i < ship->num_rooms - 1 && i < MAX_SHIP_ROOMS - 1; i++)
     {
-      if (ship->room_vnums[i] == ship->bridge_room)
-        continue;
       if (rand_number(1, 100) > 40)
-        continue; /* 40% chance of cross-connection */
+        continue; /* 40% chance of a side passage */
 
+      dx = x[i + 1] - x[i];
+      dy = y[i + 1] - y[i];
+      if (dx < -1 || dx > 1 || dy < -1 || dy > 1)
+        continue; /* Not neighbors */
+
+      for (ray = 0; ray_dx[ray] != dx || ray_dy[ray] != dy; ray++)
+        ; /* Neighbors always lie on one of the eight steps */
+      dir = ray_dir[ray];
       from_room = real_room(ship->room_vnums[i]);
       to_room = real_room(ship->room_vnums[i + 1]);
-
-      if (from_room == NOWHERE || to_room == NOWHERE)
-        continue;
-      if (ship->room_vnums[i + 1] == ship->bridge_room)
+      if (from_room == NOWHERE || to_room == NOWHERE || world[from_room].dir_option[dir] != NULL ||
+          world[to_room].dir_option[rev_dir[dir]] != NULL)
         continue;
 
-      /* Find available direction */
-      int found_dir = -1;
-      for (j = 0; j < NUM_OF_DIRS - 2; j++)
-      {
-        if (world[from_room].dir_option[j] == NULL && world[to_room].dir_option[rev_dir[j]] == NULL)
-        {
-          found_dir = j;
-          break;
-        }
-      }
-
-      if (found_dir >= 0)
-      {
-        /* Create cross-connection */
-        CREATE(exit, struct room_direction_data, 1);
-        exit->to_room = to_room;
-        exit->exit_info = 0;
-        exit->keyword = NULL;
-        exit->general_description = strdup("A side passage connects to another area.");
-        world[from_room].dir_option[found_dir] = exit;
-
-        CREATE(exit, struct room_direction_data, 1);
-        exit->to_room = from_room;
-        exit->exit_info = 0;
-        exit->keyword = NULL;
-        exit->general_description = strdup("A side passage connects to another area.");
-        world[to_room].dir_option[rev_dir[found_dir]] = exit;
-
-        /* Record connection */
-        if (ship->num_connections < MAX_SHIP_CONNECTIONS)
-        {
-          ship->connections[ship->num_connections].from_room = ship->room_vnums[i];
-          ship->connections[ship->num_connections].to_room = ship->room_vnums[i + 1];
-          ship->connections[ship->num_connections].direction = found_dir;
-          ship->connections[ship->num_connections].is_hatch = (rand_number(1, 4) == 1);
-          ship->connections[ship->num_connections].is_locked = FALSE;
-          ship->num_connections++;
-        }
-      }
+      join_ship_rooms(ship, i, i + 1, dir, "A side passage connects to another area.",
+                      "A side passage connects to another area.", rand_number(1, 4) == 1);
     }
   }
 
@@ -1114,6 +1073,57 @@ static bool restore_ship_connection(struct greyhawk_ship_data *ship,
       strdup(connection->is_hatch ? "A fitted hatch leads back." : "A passage leads back.");
   world[to_room].dir_option[reverse] = exit;
   return TRUE;
+}
+
+/**
+ * Re-render each interior room's name and description from its template with
+ * the hull's current name, as a restore after a reboot would.
+ */
+void vessel_rename_interior(struct greyhawk_ship_data *ship)
+{
+  const struct room_template *template;
+  char text[MAX_STRING_LENGTH];
+  room_rnum room;
+  int i;
+
+  if (ship == NULL)
+  {
+    return;
+  }
+  for (i = 0; i < ship->num_rooms && i < MAX_SHIP_ROOMS; i++)
+  {
+    room = real_room(ship->room_vnums[i]);
+    template = resolve_room_template((enum ship_room_type)ship->room_templates[i]);
+    if (room == NOWHERE || template == NULL)
+    {
+      continue;
+    }
+    format_room_string(text, sizeof(text), template->name_format, ship->name);
+    free(world[room].name);
+    world[room].name = strdup(text);
+    format_room_string(text, sizeof(text), template->description_format, ship->name);
+    free(world[room].description);
+    world[room].description = strdup(text);
+  }
+}
+
+/**
+ * Put a character into a room off a vessel. char_to_room() enters a
+ * wilderness room at the character's own coordinates, so they are set to the
+ * room's first; aboard, they still hold wherever the character last stood
+ * ashore.
+ */
+void vessel_char_to_room(struct char_data *ch, room_rnum room)
+{
+  zone_rnum zone;
+
+  zone = GET_ROOM_ZONE(room);
+  if (zone != NOWHERE && zone <= top_of_zone_table && ZONE_FLAGGED(zone, ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[room].coords[0];
+    Y_LOC(ch) = world[room].coords[1];
+  }
+  char_to_room(ch, room);
 }
 
 /**
@@ -1358,12 +1368,7 @@ int vessel_reclaim_interior_rooms(struct greyhawk_ship_data *ship, room_rnum eva
     {
       next_tch = tch->next_in_room;
       char_from_room(tch);
-      if (ZONE_FLAGGED(GET_ROOM_ZONE(destination), ZONE_WILDERNESS))
-      {
-        X_LOC(tch) = world[destination].coords[0];
-        Y_LOC(tch) = world[destination].coords[1];
-      }
-      char_to_room(tch, destination);
+      vessel_char_to_room(tch, destination);
       send_to_char(tch, "The vessel is removed from service around you.\r\n");
       look_at_room(tch, 0);
     }

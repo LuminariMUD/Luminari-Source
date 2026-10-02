@@ -101,8 +101,8 @@ static int port_distance(int from_vnum, int to_vnum)
  * Regenerate a port's contract board when the current offers are stale.
  *
  * Destinations are drawn from other ports already known to the trade
- * system (they have port_commodities rows), so the board only ever offers
- * runs to places that actually exist and trade.
+ * system (they have port_commodities rows) that are ports in the world, so
+ * the board only ever offers runs to places that actually exist and trade.
  */
 void vessel_contracts_refresh_port(int port_vnum)
 {
@@ -156,10 +156,13 @@ void vessel_contracts_refresh_port(int port_vnum)
     return;
   }
 
-  /* Candidate destinations: other known trading ports */
-  snprintf(query, sizeof(query),
-           "SELECT DISTINCT port_vnum FROM port_commodities WHERE port_vnum <> %d LIMIT %d",
-           port_vnum, MAX_CONTRACT_OFFERS);
+  /* Candidate destinations: other known trading ports. A market read
+   * anywhere else leaves a row for a room that is no port, so only rooms
+   * that are ports now are offered. */
+  snprintf(
+      query, sizeof(query),
+      "SELECT DISTINCT port_vnum FROM port_commodities WHERE port_vnum <> %d ORDER BY port_vnum",
+      port_vnum);
   if (mysql_query(conn, query))
   {
     return;
@@ -169,7 +172,7 @@ void vessel_contracts_refresh_port(int port_vnum)
   {
     while ((row = mysql_fetch_row(result)) != NULL && num_destinations < MAX_CONTRACT_OFFERS)
     {
-      if (row[0] != NULL)
+      if (row[0] != NULL && vessel_room_is_port(real_room(parse_int(row[0]))))
       {
         destinations[num_destinations++] = parse_int(row[0]);
       }
@@ -252,6 +255,7 @@ void vessel_contracts_refresh_port(int port_vnum)
 static struct greyhawk_ship_data *contract_context(struct char_data *ch, int *port_vnum)
 {
   struct greyhawk_ship_data *ship;
+  room_rnum port_room;
 
   if (!mysql_available || conn == NULL)
   {
@@ -266,7 +270,8 @@ static struct greyhawk_ship_data *contract_context(struct char_data *ch, int *po
     return NULL;
   }
 
-  if (!vessel_ship_is_in_port(ship))
+  port_room = vessel_port_room(ship);
+  if (port_room == NOWHERE)
   {
     send_to_char(ch, "You must be moored at a port.\r\n");
     return NULL;
@@ -277,7 +282,7 @@ static struct greyhawk_ship_data *contract_context(struct char_data *ch, int *po
     return NULL;
   }
 
-  *port_vnum = world[IN_ROOM(ship->shipobj)].number;
+  *port_vnum = world[port_room].number;
   return ship;
 }
 
@@ -312,12 +317,13 @@ ACMD(do_contracts)
 
   vessel_contracts_refresh_port(port_vnum);
 
-  send_to_char(ch, "Freight board at %s:\r\n", world[IN_ROOM(ship->shipobj)].name);
-  send_to_char(ch, "ID     Cargo            Qty  Payout  Destination\r\n");
-  send_to_char(ch, "------ ---------------- ---- ------- ---------------------------\r\n");
+  send_to_char(ch, "Freight board at %s:\r\n", port_name(port_vnum));
+  send_to_char(ch, "ID     Cargo            Qty    Bond  Payout  Destination\r\n");
+  send_to_char(ch, "------ ---------------- ---- ------- ------- ---------------------------\r\n");
 
   snprintf(query, sizeof(query),
-           "SELECT fc.contract_id, tc.name, fc.quantity, fc.payout, fc.destination_vnum "
+           "SELECT fc.contract_id, tc.name, fc.quantity, fc.payout, fc.destination_vnum, "
+           "tc.base_price * fc.quantity "
            "FROM freight_contracts fc JOIN trade_commodities tc "
            "ON tc.commodity_id = fc.commodity_id "
            "WHERE fc.origin_vnum = %d AND fc.status = %d ORDER BY fc.payout DESC",
@@ -332,7 +338,7 @@ ACMD(do_contracts)
   {
     while ((row = mysql_fetch_row(result)) != NULL)
     {
-      send_to_char(ch, "%-6s %-16s %4s %7s  %s\r\n", row[0], row[1], row[2], row[3],
+      send_to_char(ch, "%-6s %-16s %4s %7s %7s  %s\r\n", row[0], row[1], row[2], row[5], row[3],
                    port_name(parse_int(row[4])));
       listed++;
     }
@@ -421,6 +427,37 @@ static bool contract_fetch(int contract_id, int *commodity_id, int *quantity, in
   return found;
 }
 
+/* Put a contract back on the board after its taker's bond failed to save. */
+static bool contract_reopen(int contract_id, const char *taker)
+{
+  PREPARED_STMT *statement;
+  bool reopened;
+
+  statement = mysql_stmt_create(conn);
+  reopened = statement != NULL &&
+             mysql_stmt_prepare_query(statement,
+                                      "UPDATE freight_contracts SET status = ?, taken_by = '' "
+                                      "WHERE contract_id = ? AND status = ? AND taken_by = ?") &&
+             mysql_stmt_bind_param_int(statement, 0, CONTRACT_STATUS_OPEN) &&
+             mysql_stmt_bind_param_int(statement, 1, contract_id) &&
+             mysql_stmt_bind_param_int(statement, 2, CONTRACT_STATUS_TAKEN) &&
+             mysql_stmt_bind_param_string(statement, 3, taker) &&
+             mysql_stmt_execute_prepared(statement);
+  mysql_stmt_cleanup(statement);
+  return reopened;
+}
+
+/* Take freight back out of a hold bay: the acceptance did not go through. */
+static void contract_unload(struct greyhawk_ship_data *ship, int lot, int quantity)
+{
+  ship->cargo[lot].quantity -= quantity;
+  if (ship->cargo[lot].quantity <= 0)
+  {
+    ship->cargo[lot].quantity = 0;
+    ship->cargo[lot].commodity_id = 0;
+  }
+}
+
 /**
  * contractaccept <id> - take a job and receive the cargo aboard.
  */
@@ -434,6 +471,8 @@ ACMD(do_contractaccept)
   int port_vnum;
   int contract_id;
   int commodity_id, quantity, payout, destination, status;
+  int bond;
+  int old_gold;
   int lot = -1;
   int i;
   int empty = -1;
@@ -471,6 +510,16 @@ ACMD(do_contractaccept)
     return;
   }
 
+  /* The shipper wants the goods' worth as a bond; the payout repays it, so
+   * the freight is never free cargo to sell or keep. */
+  bond = vessel_commodity_base_price(commodity_id) * quantity;
+  if (GET_GOLD(ch) < bond)
+  {
+    send_to_char(ch, "The shipper asks a %d-gold bond for that freight; you have %d.\r\n", bond,
+                 GET_GOLD(ch));
+    return;
+  }
+
   /* Find or claim a hold bay for the freight */
   for (i = 0; i < MAX_CARGO_LOTS; i++)
   {
@@ -505,11 +554,7 @@ ACMD(do_contractaccept)
     ship->cargo[lot].quantity += quantity;
     if (vessel_cargo_weight(ship) > capacity)
     {
-      ship->cargo[lot].quantity -= quantity;
-      if (ship->cargo[lot].quantity <= 0)
-      {
-        ship->cargo[lot].commodity_id = 0;
-      }
+      contract_unload(ship, lot, quantity);
       send_to_char(ch,
                    "That freight will not fit: the hold holds %d lbs and %d lbs are "
                    "already stowed.\r\n",
@@ -518,26 +563,67 @@ ACMD(do_contractaccept)
     }
   }
 
+  /* The contract, the freight and the bond stand or fall together: the job
+   * is taken and the freight stowed in one transaction, and the bond is
+   * debited only once that commits. If the captain's save then fails, the
+   * job and the freight are put back. */
   mysql_real_escape_string(conn, escaped, GET_NAME(ch), strlen(GET_NAME(ch)));
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: Could not begin accepting contract %d: %s", contract_id, mysql_error(conn));
+    contract_unload(ship, lot, quantity);
+    send_to_char(ch, "The shipping office cannot record contracts just now.\r\n");
+    return;
+  }
   snprintf(query, sizeof(query),
            "UPDATE freight_contracts SET status = %d, taken_by = '%s' "
            "WHERE contract_id = %d AND status = %d",
            CONTRACT_STATUS_TAKEN, escaped, contract_id, CONTRACT_STATUS_OPEN);
-  if (mysql_query(conn, query) || mysql_affected_rows(conn) == 0)
+  if (mysql_query(conn, query))
   {
-    /* Someone else took it between our read and write - roll the cargo back */
-    ship->cargo[lot].quantity -= quantity;
-    if (ship->cargo[lot].quantity <= 0)
-    {
-      ship->cargo[lot].commodity_id = 0;
-    }
+    log("SYSERR: Could not take contract %d: %s", contract_id, mysql_error(conn));
+    mysql_query(conn, "ROLLBACK");
+    contract_unload(ship, lot, quantity);
+    send_to_char(ch, "The shipping office cannot record contracts just now.\r\n");
+    return;
+  }
+  if (mysql_affected_rows(conn) == 0)
+  {
+    /* Someone else took it between our read and write */
+    mysql_query(conn, "ROLLBACK");
+    contract_unload(ship, lot, quantity);
     send_to_char(ch, "Another captain just took that contract.\r\n");
     return;
   }
+  if (!vessel_db_save_cargo(ship) || mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: Could not stow the freight of contract %d aboard ship %d", contract_id,
+        ship->shipnum);
+    mysql_query(conn, "ROLLBACK");
+    contract_unload(ship, lot, quantity);
+    send_to_char(ch, "The shipping office cannot record that freight; no gold was taken.\r\n");
+    return;
+  }
 
-  vessel_db_save_cargo(ship);
-  send_to_char(ch, "Contract %d accepted: %d units loaded, %d gold on delivery to %s.\r\n",
-               contract_id, quantity, payout, port_name(destination));
+  old_gold = GET_GOLD(ch);
+  award_gold(ch, -bond);
+  if (!save_char_checked(ch, 0))
+  {
+    award_set_points(ch, AWARD_GOLD, old_gold);
+    contract_unload(ship, lot, quantity);
+    if (!contract_reopen(contract_id, GET_NAME(ch)) || !vessel_db_save_cargo(ship))
+    {
+      log("SYSERR: Could not reopen contract %d and unload ship %d after %s's save failed",
+          contract_id, ship->shipnum, GET_NAME(ch));
+    }
+    send_to_char(ch, "Your bond could not be recorded; no gold was taken.\r\n");
+    return;
+  }
+
+  send_to_char(ch,
+               "Contract %d accepted: you post a %d-gold bond, %d units are loaded, and %d gold "
+               "is paid on delivery to %s.\r\n",
+               contract_id, bond, quantity, payout, port_name(destination));
   send_to_ship(ship, "Dockhands load %d units of freight aboard %s.", quantity, ship->name);
   log("Info: %s accepted freight contract %d (%d units to port %d)", GET_NAME(ch), contract_id,
       quantity, destination);
@@ -684,6 +770,8 @@ ACMD(do_contractabandon)
     return;
   }
 
-  send_to_char(ch, "You abandon contract %d. The cargo remains in your hold.\r\n", contract_id);
+  send_to_char(ch,
+               "You abandon contract %d. The freight your bond paid for remains in your hold.\r\n",
+               contract_id);
   log("Info: %s abandoned freight contract %d", GET_NAME(ch), contract_id);
 }

@@ -952,7 +952,14 @@ ACMD(do_plunder)
   taken = vessel_plunder_cargo(ch, prize, raider);
   if (taken == 0)
   {
-    send_to_char(ch, "There is nothing worth taking, or no room to take it.\r\n");
+    if (vessel_has_cargo(prize))
+    {
+      send_to_char(ch, "%s has no room for any of %s's cargo.\r\n", raider->name, prize->name);
+    }
+    else
+    {
+      send_to_char(ch, "%s's hold is empty: there is nothing to take.\r\n", prize->name);
+    }
     return;
   }
 
@@ -1021,7 +1028,7 @@ static void vessel_bounty_pay(struct char_data *ch)
   room = IN_ROOM(ch);
   if (!vessel_room_is_port(room))
   {
-    send_to_char(ch, "Bounties are settled at a lawful port's admiralty office.\r\n");
+    send_to_char(ch, "Bounties are settled ashore, at a lawful port's admiralty office.\r\n");
     return;
   }
   if (vessel_piracy_law_at_coordinates(world[room].coords[0], world[room].coords[1], &law) &&
@@ -1083,7 +1090,14 @@ ACMD(do_bounty)
   bounty = vessel_get_bounty(target);
   if (bounty <= 0)
   {
-    send_to_char(ch, "%s carries no price.\r\n", *arg ? CAP(arg) : "You");
+    if (*arg)
+    {
+      send_to_char(ch, "%s carries no price.\r\n", CAP(arg));
+    }
+    else
+    {
+      send_to_char(ch, "You carry no price.\r\n");
+    }
     return;
   }
 
@@ -1120,7 +1134,7 @@ ACMD(do_marque)
 
   if (!vessel_room_is_port(IN_ROOM(ch)))
   {
-    send_to_char(ch, "Letters of marque are issued at a port's admiralty office.\r\n");
+    send_to_char(ch, "Letters of marque are issued ashore, at a port's admiralty office.\r\n");
     return;
   }
 

@@ -6,11 +6,14 @@
 #include "../../src/core/utils.h"
 #include "../../src/core/comm.h"
 #include "../../src/core/db.h"
+#include "../../src/core/handler.h"
+#include "../../src/events/mud_event.h"
 #include "../../src/movement/graph.h"
 #include "../../src/core/perfmon.h"
 #include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"
 #include "../../src/vessels/transport.h"
+#include "../../src/vessels/transport_unified.h"
 #include "../../src/wilderness/wilderness.h"
 
 #include <limits.h>
@@ -457,6 +460,188 @@ void Test_vehicle_production_lifecycle_and_lookup(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, vehicle_find_by_id(vehicle_id));
 }
 
+void Test_vehicle_standing_in_a_room_is_listed_to_a_looker(CuTest *tc)
+{
+  struct vehicle_data *vehicle;
+  struct char_data viewer;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+
+  vehicle = vehicle_create(VEHICLE_CART, "River Cart");
+  CuAssertPtrNotNull(tc, vehicle);
+  memset(&viewer, 0, sizeof(viewer));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &viewer;
+  viewer.desc = &descriptor;
+
+  /* A cart beside you is seen, as an object on the ground is. */
+  vehicle->location = 0;
+  vehicle_list_to_char(&viewer, 0);
+  CuAssertTrue(tc, strstr(output, "River Cart, a cart, stands here.") != NULL);
+
+  /* Loaded aboard a hull, she stands in no room. */
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  vehicle->location = NOWHERE;
+  vehicle_list_to_char(&viewer, 0);
+  CuAssertStrEquals(tc, "", output);
+
+  ProtocolDestroy(descriptor.pProtocol);
+  vehicle_destroy(vehicle);
+}
+
+void Test_transport_go_carries_the_rider_with_the_vehicle(CuTest *tc)
+{
+  struct room_data rooms[2]; /* the field the cart stands in, and the one north */
+  struct zone_data zone;
+  struct room_data *saved_world;
+  struct zone_data *saved_zone_table;
+  struct char_data *saved_character_list;
+  struct kdtree *saved_kd_wilderness_rooms;
+  struct vehicle_data *vehicle;
+  struct char_data rider;
+  struct player_special_data rider_specials;
+  room_rnum saved_top_of_world;
+  zone_rnum saved_top_of_zone_table;
+  int i;
+
+  memset(rooms, 0, sizeof(rooms));
+  memset(&zone, 0, sizeof(zone));
+  SET_BIT_AR(zone.zone_flags, ZONE_WILDERNESS);
+  for (i = 0; i < 2; i++)
+  {
+    rooms[i].number = WILD_DYNAMIC_ROOM_VNUM_START + i;
+    rooms[i].sector_type = SECT_FIELD;
+    rooms[i].coords[1] = i;
+    SET_BIT_AR(rooms[i].room_flags, ROOM_OCCUPIED);
+  }
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  saved_character_list = character_list;
+  saved_kd_wilderness_rooms = kd_wilderness_rooms;
+  world = rooms;
+  top_of_world = 1;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+  kd_wilderness_rooms = NULL;
+
+  vehicle = vehicle_create(VEHICLE_CART, "River Cart");
+  CuAssertPtrNotNull(tc, vehicle);
+  vehicle->location = 0;
+  clear_char(&rider);
+  memset(&rider_specials, 0, sizeof(rider_specials));
+  rider.player_specials = &rider_specials;
+  rider.player.name = CuMutableString("Mara");
+  GET_IDNUM(&rider) = 424242;
+  char_to_room(&rider, 0);
+  character_list = &rider;
+  CuAssertTrue(tc, register_player_mount(&rider, vehicle));
+
+  /* 'tgo' is 'drive' by another name: the rider goes along. */
+  do_transport_go(&rider, "north", 0, 0);
+  CuAssertIntEquals(tc, 1, vehicle->location);
+  CuAssertIntEquals(tc, 1, IN_ROOM(&rider));
+  CuAssertIntEquals(tc, 1, Y_LOC(&rider));
+
+  unregister_player_mount(&rider);
+  char_from_room(&rider);
+  vehicle_destroy(vehicle);
+  /* Entering a dynamic wilderness room scheduled its occupancy check. */
+  clear_room_event_list(&rooms[0]);
+  clear_room_event_list(&rooms[1]);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+  character_list = saved_character_list;
+  kd_wilderness_rooms = saved_kd_wilderness_rooms;
+}
+
+void Test_vehicle_loads_and_unloads_only_at_the_surface(CuTest *tc)
+{
+  const int slot = 497;
+  struct greyhawk_ship_data saved_ship;
+  struct greyhawk_ship_data *vessel;
+  struct room_data field;
+  struct room_data *saved_world;
+  struct obj_data hull;
+  struct vehicle_data *vehicle;
+  struct char_data loader;
+  struct player_special_data loader_specials;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+  room_rnum saved_top_of_world;
+
+  saved_ship = greyhawk_ships[slot];
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  memset(&field, 0, sizeof(field));
+  field.number = 1000100;
+  field.sector_type = SECT_FIELD;
+  world = &field;
+  top_of_world = 0;
+  memset(&hull, 0, sizeof(hull));
+  IN_ROOM(&hull) = 0;
+  vessel = &greyhawk_ships[slot];
+  memset(vessel, 0, sizeof(*vessel));
+  vessel->active = TRUE;
+  vessel->shipnum = slot;
+  vessel->vessel_type = VESSEL_MAGICAL;
+  vessel->docked_to_ship = -1;
+  vessel->shipobj = &hull;
+  strlcpy(vessel->name, "the Wayfarer", sizeof(vessel->name));
+  vehicle = vehicle_create(VEHICLE_CART, "River Cart");
+  CuAssertPtrNotNull(tc, vehicle);
+  vehicle->location = 0;
+
+  clear_char(&loader);
+  memset(&loader_specials, 0, sizeof(loader_specials));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  loader.player_specials = &loader_specials;
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &loader;
+  loader.desc = &descriptor;
+
+  /* Hovering over the field, she cannot take the cart aboard. */
+  vessel->z = 10;
+  CuAssertTrue(tc, !load_vehicle_onto_vessel(&loader, vehicle, vessel));
+  CuAssertTrue(tc, strstr(output, "the Wayfarer must be at the surface to load vehicles.") != NULL);
+  CuAssertIntEquals(tc, 0, vehicle->parent_vessel_id);
+
+  /* Down on the ground she can. */
+  vessel->z = 0;
+  CuAssertTrue(tc, load_vehicle_onto_vessel(&loader, vehicle, vessel));
+  CuAssertIntEquals(tc, slot, vehicle->parent_vessel_id);
+
+  /* Submerged, the cart stays aboard; surfaced, it rolls off beside her. */
+  vessel->z = -10;
+  CuAssertTrue(tc, !unload_vehicle_from_vessel(&loader, vehicle));
+  CuAssertIntEquals(tc, slot, vehicle->parent_vessel_id);
+  vessel->z = 0;
+  CuAssertTrue(tc, unload_vehicle_from_vessel(&loader, vehicle));
+  CuAssertIntEquals(tc, 0, vehicle->parent_vessel_id);
+  CuAssertIntEquals(tc, 0, vehicle->location);
+
+  loader.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  vehicle_destroy(vehicle);
+  greyhawk_ships[slot] = saved_ship;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+}
+
 void Test_vehicle_production_capacity_and_state_transitions(CuTest *tc)
 {
   struct vehicle_data *vehicle;
@@ -895,9 +1080,18 @@ void Test_vessel_combat_status_bands(CuTest *tc)
 
   memset(&ship, 0, sizeof(ship));
   ship.maxfinternal = ship.maxrinternal = ship.maxpinternal = ship.maxsinternal = 25; /* 100 */
+  ship.farmor = ship.rarmor = ship.parmor = ship.sarmor = 10;
 
   ship.finternal = ship.rinternal = ship.pinternal = ship.sinternal = 25;
   CuAssertIntEquals(tc, VESSEL_STATUS_SOUND, vessel_status(&ship));
+
+  /* A holed bow leaves her dead in the water: crippled, though most of her
+   * structure stands. */
+  ship.farmor = 0;
+  ship.finternal = 0;
+  CuAssertIntEquals(tc, 1, vessel_breached_arcs(&ship));
+  CuAssertIntEquals(tc, VESSEL_STATUS_CRIPPLED, vessel_status(&ship));
+  ship.farmor = 10;
 
   ship.finternal = ship.rinternal = 25;
   ship.pinternal = ship.sinternal = 0; /* 50% */
@@ -1180,6 +1374,7 @@ void Test_vessel_balance_duel_simulation(CuTest *tc)
 
 void Test_vessel_ownership_helm_permission_matrix(CuTest *tc)
 {
+  struct autopilot_data autopilot;
   struct greyhawk_ship_data ship;
   struct char_data owner_ch;
   struct char_data crew_ch;
@@ -1195,6 +1390,22 @@ void Test_vessel_ownership_helm_permission_matrix(CuTest *tc)
 
   /* Unowned ships are free for anyone */
   CuAssertTrue(tc, vessel_helm_permitted(&stranger_ch, &ship));
+
+  /* ...but a public hull with an NPC pilot answers to her pilot and staff;
+   * her passengers ride. */
+  memset(&autopilot, 0, sizeof(autopilot));
+  autopilot.pilot_mob_vnum = 31810;
+  ship.autopilot = &autopilot;
+  CuAssertTrue(tc, !vessel_helm_permitted(&stranger_ch, &ship));
+  SET_BIT_AR(MOB_FLAGS(&crew_ch), MOB_ISNPC);
+  CuAssertTrue(tc, vessel_helm_permitted(&crew_ch, &ship));
+  REMOVE_BIT_AR(MOB_FLAGS(&crew_ch), MOB_ISNPC);
+  stranger_ch.player.level = LVL_IMMORT;
+  CuAssertTrue(tc, vessel_helm_permitted(&stranger_ch, &ship));
+  stranger_ch.player.level = 0;
+  autopilot.pilot_mob_vnum = -1;
+  CuAssertTrue(tc, vessel_helm_permitted(&stranger_ch, &ship));
+  ship.autopilot = NULL;
 
   /* Owned: only the owner... */
   strlcpy(ship.owner, "Corr", sizeof(ship.owner));

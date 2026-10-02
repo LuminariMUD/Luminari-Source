@@ -93,6 +93,7 @@ void vessel_clear_pvp_grace(struct greyhawk_ship_data *ship)
 static void vessel_record_pvp_engagement(struct char_data *ch, struct greyhawk_ship_data *target)
 {
   struct char_data *aggressor;
+  struct char_data *owner;
   struct greyhawk_ship_data *aggressor_ship;
   time_t until;
 
@@ -101,6 +102,15 @@ static void vessel_record_pvp_engagement(struct char_data *ch, struct greyhawk_s
       target->owner[0] == '\0')
   {
     return;
+  }
+
+  /* As in person (fight.c), turning on a groupmate costs your place in the
+   * group: a groupmate may work your guns and shares your prizes. */
+  owner = vessel_find_online_player(target->owner);
+  if (owner != NULL && owner != aggressor && GROUP(aggressor) != NULL &&
+      GROUP(aggressor) == GROUP(owner))
+  {
+    leave_group(aggressor);
   }
 
   until = time(0) + VESSEL_PVP_LOGOUT_GRACE;
@@ -375,6 +385,12 @@ int vessel_status(const struct greyhawk_ship_data *ship)
     return VESSEL_STATUS_SINKING;
   }
 
+  /* A holed side leaves her dead in the water whatever structure is left. */
+  if (vessel_breached_arcs(ship) > 0)
+  {
+    return VESSEL_STATUS_CRIPPLED;
+  }
+
   if (max <= 0)
   {
     return VESSEL_STATUS_SOUND; /* No damage model data - treat as sound */
@@ -501,7 +517,7 @@ void vessel_sink(int shipnum)
       {
         send_to_char(tch, "You are thrown into the water as the ship goes down!\r\n");
         char_from_room(tch);
-        char_to_room(tch, water_room);
+        vessel_char_to_room(tch, water_room);
         act("$n surfaces amid the wreckage, gasping.", TRUE, tch, 0, 0, TO_ROOM);
         look_at_room(tch, 0);
       }

@@ -602,6 +602,21 @@ int vessel_prototype_price(int vclass, int max_speed, int armor)
 }
 
 /**
+ * Tell staff who spawned a hull the fleet slot and interior they build with;
+ * a buyer hears of the purchase from SHIPBUY instead.
+ */
+void vessel_report_spawn(struct char_data *ch, const struct greyhawk_ship_data *ship, int slot)
+{
+  if (ch == NULL || ship == NULL || GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    return;
+  }
+  send_to_char(ch, "Spawned '%s' (%s) as ship %d: %d interior rooms, entrance %d, bridge %d.\r\n",
+               ship->name, get_vessel_type_name(ship->vessel_type), slot, ship->num_rooms,
+               ship->entrance_room, ship->bridge_room);
+}
+
+/**
  * Spawn a live ship from a prototype into one resolved exterior room.
  *
  * Shared implementation for builder, public/NPC, and player shipyard spawns.
@@ -802,9 +817,7 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
 
   if (ch != NULL)
   {
-    send_to_char(ch, "Spawned '%s' (%s) as ship %d: %d interior rooms, entrance %d, bridge %d.\r\n",
-                 ship->name, get_vessel_type_name(ship->vessel_type), slot, ship->num_rooms,
-                 ship->entrance_room, ship->bridge_room);
+    vessel_report_spawn(ch, ship, slot);
     act("$p materializes, ready to sail.", FALSE, ch, obj, 0, TO_ROOM);
     log("Info: %s spawned ship %d '%s' from prototype %d at (%d,%d,%d)", GET_NAME(ch), slot,
         ship->name, id, (int)ship->x, (int)ship->y, (int)ship->z);
@@ -899,11 +912,12 @@ ACMD(do_shipbrowse)
   }
 
   send_to_char(ch, "The shipwright's catalog:\r\n");
-  send_to_char(ch, "ID    Class      Speed Armor Price      Lvl Name\r\n");
-  send_to_char(ch, "----- ---------- ----- ----- ---------- --- ----------------------------\r\n");
+  send_to_char(ch, "ID    Class          Speed Armor Price      Lvl Name\r\n");
+  send_to_char(ch,
+               "----- -------------- ----- ----- ---------- --- ----------------------------\r\n");
   while ((row = mysql_fetch_row(result)) != NULL)
   {
-    send_to_char(ch, "%-5s %-10s %-5s %-5s %-10d %-3d %s\r\n", row[0],
+    send_to_char(ch, "%-5s %-14s %-5s %-5s %-10d %-3d %s\r\n", row[0],
                  get_vessel_type_name((enum vessel_class)parse_int(row[2])), row[3], row[4],
                  vessel_prototype_price(parse_int(row[2]), parse_int(row[3]), parse_int(row[4])),
                  vessel_prototype_min_level(parse_int(row[2]), parse_int(row[5])), row[1]);
@@ -1100,9 +1114,9 @@ ACMD(do_shipbuy)
 
   award_gold(ch, -price);
   send_to_char(ch,
-               "You pay %d gold coins. Fair winds, captain - christen her with "
-               "'shipchristen <name>'.\r\n",
-               price);
+               "The shipwrights hand over %s, moored here. You pay %d gold coins. Fair winds, "
+               "captain - board her and christen her with 'shipchristen <name>'.\r\n",
+               greyhawk_ships[slot].name, price);
   log("Info: %s bought ship %d for %d gold", GET_NAME(ch), slot, price);
 }
 
@@ -1192,6 +1206,7 @@ ACMD(do_shipchristen)
   strlcpy(ship->name, name, sizeof(ship->name));
 
   vessel_refresh_hull_strings(ship, TRUE);
+  vessel_rename_interior(ship);
 
   save_ship_interior(ship);
   vessel_db_save_owner(ship);

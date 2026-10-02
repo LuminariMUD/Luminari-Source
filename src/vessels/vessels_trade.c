@@ -64,28 +64,39 @@ bool vessel_room_is_fee_berth(const struct greyhawk_ship_data *ship, room_rnum r
 }
 
 /**
- * Return whether a vessel is at a port using both object and coordinate state.
+ * The port a vessel lies in: her exterior object's room when that is a port,
+ * else the port at her coordinates, else NOWHERE.
  *
- * The exterior object's dynamic room may be recycled during copyover, while
- * the vessel coordinates and mapped terrain remain authoritative.
+ * The exterior object's dynamic room may be recycled during copyover, and a
+ * hull loaded into a transport's hold lies in its interior, while the vessel
+ * coordinates and mapped terrain remain authoritative.
  */
-bool vessel_ship_is_in_port(const struct greyhawk_ship_data *ship)
+room_rnum vessel_port_room(const struct greyhawk_ship_data *ship)
 {
-  room_rnum exterior_room;
+  room_rnum room;
 
   if (ship == NULL)
   {
-    return FALSE;
+    return NOWHERE;
   }
 
-  exterior_room = ship->shipobj == NULL ? NOWHERE : IN_ROOM(ship->shipobj);
-  if (vessel_room_is_port(exterior_room))
+  room = ship->shipobj == NULL ? NOWHERE : IN_ROOM(ship->shipobj);
+  if (vessel_room_is_port(room))
   {
-    return TRUE;
+    return room;
   }
+  if (ship->shipnum < 0 || ship->shipnum >= GREYHAWK_MAXSHIPS ||
+      get_ship_terrain_type(ship->shipnum) != SECT_SEAPORT)
+  {
+    return NOWHERE;
+  }
+  return get_or_allocate_wilderness_room((int)ship->x, (int)ship->y);
+}
 
-  return ship->shipnum >= 0 && ship->shipnum < GREYHAWK_MAXSHIPS &&
-         get_ship_terrain_type(ship->shipnum) == SECT_SEAPORT;
+/** Return whether a vessel is at a port (vessel_port_room()). */
+bool vessel_ship_is_in_port(const struct greyhawk_ship_data *ship)
+{
+  return vessel_port_room(ship) != NOWHERE;
 }
 
 /**
@@ -150,6 +161,15 @@ bool vessel_collect_passenger_fare(struct char_data *ch, struct greyhawk_ship_da
   send_to_char(ch, "The purser collects %d gold for passage aboard %s.\r\n", fare, ship->name);
   log("Info: %s paid %d gold to board public vessel %d", GET_NAME(ch), fare, ship->shipnum);
   return TRUE;
+}
+
+/** The port where a hull owes her dock fee, by name, for players. */
+const char *vessel_dock_fee_port_name(const struct greyhawk_ship_data *ship)
+{
+  room_rnum room;
+
+  room = real_room(ship->dock_fee_port);
+  return room != NOWHERE && world[room].name != NULL ? world[room].name : "an unknown port";
 }
 
 /**
@@ -308,8 +328,8 @@ ACMD(do_dockfees)
   }
 
   owner_clan = real_clan(ship->dock_fee_clan);
-  send_to_char(ch, "%s owes %d gold for its berth at port %d.\r\n", ship->name,
-               ship->dock_fee_balance, ship->dock_fee_port);
+  send_to_char(ch, "%s owes %d gold for its berth at %s.\r\n", ship->name, ship->dock_fee_balance,
+               vessel_dock_fee_port_name(ship));
   if (owner_clan == NO_CLAN)
   {
     send_to_char(ch, "This is a public-port charge; the payment leaves the economy.\r\n");
@@ -534,6 +554,14 @@ const char *vessel_commodity_name(int commodity_id)
   return def != NULL ? def->name : "cargo";
 }
 
+/** A commodity's base price, or 0 when the id is unknown. */
+int vessel_commodity_base_price(int commodity_id)
+{
+  struct commodity_def *def = commodity_by_id(commodity_id);
+
+  return def != NULL ? def->base_price : 0;
+}
+
 /**
  * Stow up to `units` of a commodity in the hold, unit by unit so the weight
  * limit stops the load exactly at capacity.
@@ -604,9 +632,10 @@ static struct commodity_def *commodity_by_name(const char *name)
     return NULL;
   }
 
+  /* Any word of the name will do: "tomes" finds "forbidden tomes". */
   for (i = 0; i < num_commodities; i++)
   {
-    if (is_abbrev(name, commodity_cache[i].name))
+    if (is_abbrev(name, commodity_cache[i].name) || isname(name, commodity_cache[i].name))
     {
       return &commodity_cache[i];
     }
@@ -1100,17 +1129,21 @@ static int vessel_cargo_lot(struct greyhawk_ship_data *ship, int commodity_id, b
  *
  * Bulk lots ride in ship_cargo_manifest with item_vnum = commodity id and
  * cargo_room = 0, distinguishing them from crated object cargo.
+ *
+ * @return FALSE when a write failed (or there is no database), so a caller
+ *         inside a transaction can roll back
  */
-void vessel_db_save_cargo(struct greyhawk_ship_data *ship)
+bool vessel_db_save_cargo(struct greyhawk_ship_data *ship)
 {
   char query[MAX_STRING_LENGTH];
   char escaped[130];
   struct commodity_def *def;
+  bool saved = TRUE;
   int i;
 
   if (!mysql_available || conn == NULL || ship == NULL)
   {
-    return;
+    return FALSE;
   }
 
   snprintf(query, sizeof(query),
@@ -1119,7 +1152,7 @@ void vessel_db_save_cargo(struct greyhawk_ship_data *ship)
   {
     log("SYSERR: vessel_db_save_cargo (clear) failed for ship %d: %s", ship->shipnum,
         mysql_error(conn));
-    return;
+    return FALSE;
   }
 
   for (i = 0; i < MAX_CARGO_LOTS; i++)
@@ -1140,8 +1173,10 @@ void vessel_db_save_cargo(struct greyhawk_ship_data *ship)
     {
       log("SYSERR: vessel_db_save_cargo (insert) failed for ship %d: %s", ship->shipnum,
           mysql_error(conn));
+      saved = FALSE;
     }
   }
+  return saved;
 }
 
 /**
@@ -1326,6 +1361,7 @@ void vessel_customs_inspection(struct greyhawk_ship_data *ship, room_rnum port_r
 static struct greyhawk_ship_data *trade_context(struct char_data *ch, int *port_vnum)
 {
   struct greyhawk_ship_data *ship;
+  room_rnum port_room;
 
   ship = get_ship_from_room(IN_ROOM(ch));
   if (ship == NULL)
@@ -1334,7 +1370,8 @@ static struct greyhawk_ship_data *trade_context(struct char_data *ch, int *port_
     return NULL;
   }
 
-  if (!vessel_ship_is_in_port(ship))
+  port_room = vessel_port_room(ship);
+  if (port_room == NOWHERE)
   {
     send_to_char(ch, "You must be moored at a port to trade.\r\n");
     return NULL;
@@ -1351,7 +1388,7 @@ static struct greyhawk_ship_data *trade_context(struct char_data *ch, int *port_
     return NULL;
   }
 
-  *port_vnum = world[IN_ROOM(ship->shipobj)].number;
+  *port_vnum = world[port_room].number;
   return ship;
 }
 
@@ -1373,7 +1410,7 @@ ACMD(do_market)
     return;
   }
 
-  send_to_char(ch, "Market at %s:\r\n", world[IN_ROOM(ship->shipobj)].name);
+  send_to_char(ch, "Market at %s:\r\n", world[real_room(port_vnum)].name);
   send_to_char(ch, "Commodity        Wt/unit    Buy   Sell  Local supply\r\n");
   send_to_char(ch, "---------------- ------- ------ ------ ------------\r\n");
   for (i = 0; i < num_commodities; i++)

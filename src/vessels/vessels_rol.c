@@ -20,6 +20,7 @@
 #include "core/handler.h"
 #include "core/interpreter.h"
 #include "vessel_periodic.h"
+#include "vessels.h"
 #include "vessels_rol.h"
 
 #define ROL_SHIP_NONE (-1)
@@ -915,12 +916,7 @@ SPECIAL(rol_ship_exit)
 
   act("$n disembarks from the ship.", true, ch, NULL, NULL, TO_ROOM);
   char_from_room(ch);
-  char_to_room(ch, destination);
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(destination), ZONE_WILDERNESS))
-  {
-    X_LOC(ch) = world[destination].coords[0];
-    Y_LOC(ch) = world[destination].coords[1];
-  }
+  vessel_char_to_room(ch, destination);
   act("$n arrives from a ship.", true, ch, NULL, NULL, TO_ROOM);
   look_at_room(ch, 0);
   return true;

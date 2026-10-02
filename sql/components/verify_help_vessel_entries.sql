@@ -168,8 +168,8 @@ AND CHAR_LENGTH(TRIM(entry)) > 0;
 SELECT
   'content_contracts' AS check_name,
   COUNT(*) AS actual,
-  40 AS expected,
-  IF(COUNT(*) = 40, 'PASS', 'FAIL') AS result
+  52 AS expected,
+  IF(COUNT(*) = 52, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
   SELECT 'VESSELS' AS tag, 'moving no faster than speed 2' AS required_pattern
@@ -178,12 +178,15 @@ JOIN (
   UNION ALL SELECT 'VESSELS', 'covers 10[[:space:]]+rooms every 45 seconds'
   UNION ALL SELECT 'VESSELS', 'needs speed 6 or less'
   UNION ALL SELECT 'VESSELS', 'berth in 30 seconds or weigh anchor in 13'
+  UNION ALL SELECT 'VESSELS', 'contact IDs [(]as CONTACTS shows them[)]'
+  UNION ALL SELECT 'VESSELS', 'answers only to her pilot: her passengers ride'
   UNION ALL SELECT 'SHIPFIRE', 'five real[[:space:]]+minutes'
   UNION ALL SELECT 'SHIPFIRE', 'Harbors are neutral ground'
   UNION ALL SELECT 'SHIPFIRE', 'at most [+]7'
   UNION ALL SELECT 'SHIPFIRE', 'within 20 rooms [(]22 with a posted lookout[)]'
   UNION ALL SELECT 'SHIPFIRE', 'fights only with its owner.s consent'
   UNION ALL SELECT 'SHIPBROWSE', 'christen the[[:space:]]+ship again later'
+  UNION ALL SELECT 'SHIPBROWSE', 'Aboard a ship you own, rename her'
   UNION ALL SELECT 'SHIPBROWSE', 'same room as you'
   UNION ALL SELECT 'SHIPBROWSE', 'hired crew positions'
   UNION ALL SELECT 'SHIPBROWSE', 'at most three[[:space:]]+hulls'
@@ -212,6 +215,15 @@ JOIN (
   UNION ALL SELECT 'SHIPLIST', 'releases loaded[[:space:]]+vehicles'
   UNION ALL SELECT 'SHIPLIST', 'slots 0 and 1'
   UNION ALL SELECT 'VEHICLE-ADMIN', 'does[[:space:]]+not print its ID'
+  UNION ALL SELECT 'boats', 'BOARD her by a word of her name'
+  UNION ALL SELECT 'ADDTOROUTE', 'trade_run.{1,2} at position 2[.]'
+  UNION ALL SELECT 'CONTRACTS', 'repays the bond with a premium'
+  UNION ALL SELECT 'SHIPFIRE', 'costs you your place in the group'
+  UNION ALL SELECT 'MARKET', 'any word of the commodity.s name will'
+  UNION ALL SELECT 'VMOUNT', 'lists the vehicles standing in your room'
+  UNION ALL SELECT 'VEHICLE-TRANSPORT', 'no ground beside her'
+  UNION ALL SELECT 'SHIPFIRE', 'or of any word in'
+  UNION ALL SELECT 'SHIPBROWSE', 'Word reaches you wherever'
 ) AS expected_content ON BINARY h.tag = expected_content.tag
 WHERE h.entry REGEXP expected_content.required_pattern;
 
@@ -230,4 +242,13 @@ WHERE
   OR (BINARY help_tag = 'speed' AND UPPER(keyword) = 'SPEED')
   OR (BINARY help_tag = 'SHIPHIRE' AND UPPER(keyword) = 'SHIPWAGES')
   OR (BINARY help_tag = 'SHIPHIRE' AND UPPER(keyword) = 'SHIPINSURE')
-  OR (BINARY help_tag = 'undock' AND UPPER(keyword) = 'UNDOCK');
+  OR (BINARY help_tag = 'undock' AND UPPER(keyword) = 'UNDOCK')
+  OR (BINARY help_tag = 'boats' AND UPPER(keyword) IN ('SHIPS', 'TRANSPORTSS'));
+
+SELECT
+  'retired_aliases' AS check_name,
+  COUNT(*) AS actual,
+  0 AS expected,
+  IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
+FROM help_entries
+WHERE BINARY tag = 'boats' AND COALESCE(alternate_keywords, '') <> '';

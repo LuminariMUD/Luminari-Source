@@ -109,7 +109,8 @@ LOOKOUT (legacy alias: LOOK_OUTSIDE)
   From an interior room with an outside view, scan canonical wilderness
   sectors in eight compass directions out to the weather- and lookout-limited
   horizon. Also show current elevation and water depth plus nearest-first
-  visible vessels with condition, bearing, range, and relative altitude.
+  visible vessels with their contact IDs (as CONTACTS shows them),
+  condition, bearing, range, and relative altitude.
 
 SHIP_ROOMS
   List the vessel interior and identify its bridge and entrance.
@@ -132,8 +133,9 @@ BOARD_HOSTILE <vessel>
   to the shared PvP consent rules before either contest occurs.
 
 Navigation changes require the owner, a permitted helmsman, or the authorized
-NPC pilot at the helm. See the individual ownership and autopilot topics for
-longer-lived controls.
+NPC pilot at the helm. A public hull with an NPC pilot, such as a ferry or a
+merchant, answers only to her pilot: her passengers ride. See the individual
+ownership and autopilot topics for longer-lived controls.
 
 See also: AUTOPILOT, SHIP-COMBAT, SHIP-OWNERSHIP, SEASTATE, VEHICLES', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
@@ -211,8 +213,8 @@ VALUES ('SHIPFIRE', 'Naval combat commands (usable from anywhere aboard your ves
 
 SHIPLOCK <contact> | SHIPLOCK off
   Lock the guns onto a contact, addressed by the two-letter ID that
-  CONTACTS and TACTICAL show or by the start of its name (the nearest match
-  wins); only vessels within your visibility qualify. Locking calls the
+  CONTACTS and TACTICAL show or by the start of its name or of any word in
+  it (the nearest match wins); only vessels within your visibility qualify. Locking calls the
   crew to battle stations. The lock drops when the contact passes out of
   sight, enters a port, dives, or goes down. With no argument SHIPLOCK
   shows the current lock.
@@ -378,7 +380,8 @@ offline.
 
 A ship fights only with its owner\'s consent. When a permit holder or group
 member fires on another player\'s ship, the firing ship\'s owner must also be
-online with PVP enabled, so the target can always answer in kind.
+online with PVP enabled, so the target can always answer in kind. As in
+person, turning on a groupmate\'s ship costs you your place in the group.
 
 See also: BOARD, DOCK, TACTICAL, SHIPSTATUS, AUTOPILOT, SHIPRENOWN', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
@@ -464,14 +467,16 @@ SHIPBUY <id> [trade]
   carry; the shipwrights buy the rest (see SHIPWEAPON sell).
 
 SHIPCHRISTEN <name>
-  Rename a ship you own (3-60 printable characters). The first christening
-  of a new hull is free; an owner may christen the ship again later for a
-  tenth of her value. The current name appears in port and fleet reports.
+  Aboard a ship you own, rename her (3-60 printable characters). The first
+  christening of a new hull is free; an owner may christen the
+  ship again later for a tenth of her value. The current name appears on
+  her rooms and in port and fleet reports.
 
 SHIPCUSTOMIZE [show]
 SHIPCUSTOMIZE <paint|figurehead> <description|clear>
-  Review or change your ship\'s optional exterior details. Descriptions run
-  3-80 printable characters and appear on the hull and in lookout reports.
+  Aboard, review or change your ship\'s optional exterior details.
+  Descriptions run 3-80 printable characters and appear on the hull and in
+  lookout reports.
 
 SHIPDEED <player>
   Sign your ship over to another player. They must be in the same room as you
@@ -496,7 +501,8 @@ SHIPSUMMON [<number | name>]
   after her passage: quicker for a faster hull, twice as long from the
   wreck registry, never more than 75 minutes. The fee is a tenth of a gold
   piece per point of hull weight. A hull at battle stations or going down
-  will not answer. A summons survives a reboot.
+  will not answer. A summons survives a reboot. Word reaches you wherever
+  you are when she makes port.
 
 Hull levels: taking a hull out of port, engaging its autopilot, or putting
 an NPC pilot or schedule to work needs the hull\'s level: 1 for rafts and
@@ -635,9 +641,10 @@ MARKET
   scarce, steady, or glutted. Scarce goods cost more and sell for more.
 
 CARGOBUY <commodity> <quantity>
-  Load bulk goods into the hold. Limited by your cargo capacity, which
-  depends on hull class, the hold refit, and your quartermaster. Large
-  batches cross supply levels, so the reported per-unit value is an average.
+  Load bulk goods into the hold; any word of the commodity\'s name will
+  do. Limited by your cargo capacity, which depends on hull class, the hold
+  refit, and your quartermaster. Large batches cross supply levels, so the
+  reported per-unit value is an average.
 
 CARGOSELL <commodity> [<quantity>|all]
   Sell goods from the hold at the local price. Ports buy below their
@@ -691,20 +698,21 @@ speculative trading, and the pay is known before you sail.
 CONTRACTS
   Read the freight board at the port you are moored at, and list your own
   active contracts wherever you took them. Each offer shows the cargo,
-  quantity, payout, and destination.
+  quantity, bond, payout, and destination.
 
 CONTRACTACCEPT <id>
-  Take a job. The freight is loaded into your hold immediately, so you
-  need the capacity free before you accept. Payout is fixed at acceptance.
+  Take a job. You post the goods\' worth as a bond, and the freight is
+  loaded into your hold immediately, so you need the gold and the capacity
+  free before you accept. Payout is fixed at acceptance.
 
 CONTRACTDELIVER <id>
-  At the destination port, hand over the freight and collect. The cargo
-  must still be aboard - lose it to pirates or a sinking and there is
-  nothing to deliver.
+  At the destination port, hand over the freight and collect: the payout
+  repays the bond with a premium for the distance. The cargo must still be
+  aboard - lose it to pirates or a sinking and there is nothing to deliver.
 
 CONTRACTABANDON <id>
   Give up a job. It returns to the board for another captain. The freight
-  stays in your hold as ordinary cargo.
+  your bond paid for stays in your hold as ordinary cargo.
 
 Payouts scale with the goods\' value and the distance of the run, so long
 hauls of valuable cargo pay best - and those are exactly the runs pirates
@@ -744,13 +752,14 @@ BOUNTY [<player>]
   (SHIPRENOWN), and it is cleared.
 
 BOUNTY PAY
-  At a lawful port\'s admiralty office (any dock outside a pirate cove),
-  clear your whole bounty for 125% of it. Even a WANTED captain may pay.
+  Ashore at a lawful port\'s admiralty office (any dock outside a pirate
+  cove), clear your whole bounty for 125% of it. Even a WANTED captain may
+  pay.
 
 MARQUE
-  At a port\'s admiralty office (any dock), buy a letter of marque. It makes
-  your prizes lawful where an authority would otherwise post a bounty.
-  Costs 2000 gold and lasts one day. The admiralty will not commission a
+  Ashore at a port\'s admiralty office (any dock), buy a letter of
+  marque. It makes your prizes lawful where an authority would otherwise
+  post a bounty. Costs 2000 gold and lasts one day. The admiralty will not commission a
   captain who is already WANTED - settle your bounty first (BOUNTY PAY).
 
 Regional law comes from builder-authored wilderness geography. Territorial
@@ -1116,10 +1125,10 @@ You must be at the helm or be the ship\'s owner to modify routes.
 
 Example:
   > addtoroute trade_run harbor_entrance
-  Waypoint \'harbor_entrance\' added to route \'trade_run\' at position 0.
+  Waypoint \'harbor_entrance\' added to route \'trade_run\' at position 1.
 
   > addtoroute trade_run open_sea
-  Waypoint \'open_sea\' added to route \'trade_run\' at position 1.
+  Waypoint \'open_sea\' added to route \'trade_run\' at position 2.
 
 See also: CREATEROUTE, LISTROUTES, SETROUTE, SETWAYPOINT', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
@@ -1296,7 +1305,8 @@ carriages. Once mounted, you can use the DRIVE command to move the vehicle
 across the wilderness.
 
 The optional selector accepts a visible name, vehicle type, or numeric vehicle
-ID. With no selector, the first available vehicle in the room is used.
+ID. With no selector, the first available vehicle in the room is used. LOOK
+lists the vehicles standing in your room.
 
 Requirements:
   - A vehicle must be present in your current room
@@ -1409,10 +1419,13 @@ VALUES ('VEHICLE-TRANSPORT', 'Vehicle and unified transport commands:
 LOADVEHICLE [vehicle]
   From aboard a stopped vessel, load a named vehicle waiting beside the hull.
   The vehicle must be empty and the vessel must have enough vehicle capacity.
+  An airship or submarine must be at the surface: aloft or submerged she has
+  no ground beside her.
 
 UNLOADVEHICLE [number]
   With no number, list vehicles carried by the vessel. Select a list number to
-  unload it beside the stopped vessel when the terrain is suitable.
+  unload it beside the stopped vessel, at the surface, when the terrain is
+  suitable.
 
 TENTER [target]
   Enter the transport present in the room. For a land vehicle this is the
@@ -1567,6 +1580,33 @@ ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VEVENT', 'VEVENT');
 
+INSERT INTO help_entries (tag, alternate_keywords, entry, min_level, auto_generated)
+VALUES ('boats', NULL, 'Passage on ferries and other public ships:
+
+Public ships, the ferries and merchant hulls an NPC pilot sails on a
+schedule, carry passengers between ports. Wait on the dock until she is
+moored there, then BOARD her by a word of her name (BOARD FERRY). A
+scheduled ferry may charge a fare as you board; the purser takes it from
+the gold you carry.
+
+Aboard, walk to the bridge to watch the passage with LOOKOUT, or see where
+she is with SHIPSTATUS; SHOWSCHEDULE tells her next departure and fare. Her
+pilot holds the helm: passengers cannot steer, stop, or reroute her. Stay
+aboard through a stop and she carries you on round her route.
+
+Step off with DISEMBARK while she is moored or casting off at a dock. No one
+leaves a hull under way; away from shore, leaving a stopped hull puts you in
+the water.
+
+See also: VESSELS, SHOWSCHEDULE, VEHICLE-TRANSPORT', 1, FALSE)
+ON DUPLICATE KEY UPDATE alternate_keywords = VALUES(alternate_keywords),
+  entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('boats', 'BOATS');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('boats', 'FERRY');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('boats', 'FERRIES');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('boats', 'PASSAGE');
+
 -- Retire obsolete one-command vessel entries imported from old file help.
 -- search_help() displays only the first matching database row, so leaving these
 -- mappings in place makes the authoritative result nondeterministic. Preserve
@@ -1591,6 +1631,13 @@ DELETE FROM help_entries
 WHERE BINARY tag IN (
   'board_hostile', 'disembark', 'dock', 'look_outside', 'ship_rooms', 'undock'
 );
+
+-- The passenger entry gave SHIPS to VESSELS and lost a misspelled keyword;
+-- its old alternate keywords are cleared above.
+DELETE FROM help_keywords
+WHERE
+  BINARY help_tag = 'boats'
+  AND UPPER(keyword) IN ('SHIPS', 'TRANSPORTSS');
 
 -- SHIPWAGES was retired when crew became a one-time hire.
 DELETE FROM help_keywords

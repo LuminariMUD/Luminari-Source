@@ -1023,6 +1023,13 @@ void Test_vessel_a_sleeper_does_not_hold_the_bridge(CuTest *tc)
   do_plunder(&fixture.captain, "", 0, 0);
   CuAssertTrue(tc, strstr(output, "You need your own ship alongside") != NULL);
 
+  /* Alongside, an empty prize says so rather than blaming the hold. */
+  damage_warship(DAMAGE_ATTACKER_SLOT, "OW");
+  ship->docked_to_ship = DAMAGE_ATTACKER_SLOT;
+  damage_reset_output(&descriptor, output, sizeof(output));
+  do_plunder(&fixture.captain, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "TG's hold is empty: there is nothing to take.") != NULL);
+
   ProtocolDestroy(descriptor.pProtocol);
   fixture.captain.desc = NULL;
   prize_end(&fixture);

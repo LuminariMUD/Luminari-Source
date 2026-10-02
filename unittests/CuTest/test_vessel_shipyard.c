@@ -204,6 +204,250 @@ static int shipyard_config_cap(const char *text)
   return CONFIG_VESSEL_OWNER_CAP;
 }
 
+void Test_vessel_spawn_report_is_staff_only(CuTest *tc)
+{
+  struct shipyard_player buyer;
+  struct greyhawk_ship_data ship;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+
+  memset(&ship, 0, sizeof(ship));
+  strlcpy(ship.name, "Starfall Survey Ship", sizeof(ship.name));
+  ship.vessel_type = VESSEL_SHIP;
+  ship.num_rooms = 4;
+  ship.entrance_room = 70261;
+  ship.bridge_room = 70260;
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+
+  /* A buyer is not shown the fleet slot or interior room numbers. */
+  shipyard_player_init(&buyer, "Mira", 16);
+  buyer.ch.desc = &descriptor;
+  descriptor.character = &buyer.ch;
+  vessel_report_spawn(&buyer.ch, &ship, 13);
+  CuAssertStrEquals(tc, "", output);
+
+  /* Staff spawning a hull see what they build with. */
+  buyer.ch.player.level = LVL_IMMORT;
+  vessel_report_spawn(&buyer.ch, &ship, 13);
+  CuAssertTrue(tc, strstr(output, "Spawned 'Starfall Survey Ship' (Ship) as ship 13: 4 interior "
+                                  "rooms, entrance 70261, bridge 70260.") != NULL);
+
+  ProtocolDestroy(descriptor.pProtocol);
+}
+
+void Test_vessel_hull_object_drops_fixture_glow_and_hum(CuTest *tc)
+{
+  struct room_data rooms[2]; /* the dock, the hull's entrance */
+  struct zone_data zone;
+  struct room_data *saved_world;
+  struct zone_data *saved_zone_table;
+  struct greyhawk_ship_data *ship;
+  struct obj_data *hull;
+  room_rnum saved_top_of_world;
+  zone_rnum saved_top_of_zone_table;
+
+  memset(rooms, 0, sizeof(rooms));
+  memset(&zone, 0, sizeof(zone));
+  rooms[0].number = 100;
+  rooms[1].number = 200;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  world = rooms;
+  top_of_world = 1;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+
+  shipyard_own_ships("Mira", 1);
+  ship = &greyhawk_ships[SHIPYARD_FIRST_SLOT];
+  ship->location = 100;
+  ship->entrance_room = 200;
+  hull = create_obj();
+  SET_BIT_AR(GET_OBJ_EXTRA(hull), ITEM_GLOW);
+  SET_BIT_AR(GET_OBJ_EXTRA(hull), ITEM_HUM);
+  SET_BIT_AR(GET_OBJ_EXTRA(hull), ITEM_NORENT);
+
+  /* Placed, the hull is a boardable ship at her dock, without the generic
+   * object's glow and hum; its other flags stand. */
+  CuAssertTrue(tc, vessel_place_hull_object(ship, hull));
+  CuAssertIntEquals(tc, 0, IN_ROOM(hull));
+  CuAssertIntEquals(tc, ITEM_GREYHAWK_SHIP, GET_OBJ_TYPE(hull));
+  CuAssertTrue(tc, !OBJ_FLAGGED(hull, ITEM_GLOW));
+  CuAssertTrue(tc, !OBJ_FLAGGED(hull, ITEM_HUM));
+  CuAssertTrue(tc, OBJ_FLAGGED(hull, ITEM_NORENT));
+
+  extract_obj(hull);
+  shipyard_own_ships("", 0);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+}
+
+void Test_vessel_rename_interior_follows_her_name(CuTest *tc)
+{
+  struct room_data rooms[1]; /* the bridge */
+  struct room_data *saved_world;
+  struct greyhawk_ship_data *ship;
+  room_rnum saved_top_of_world;
+
+  memset(rooms, 0, sizeof(rooms));
+  rooms[0].number = 300;
+  rooms[0].name = strdup("Starfall Survey Ship's Bridge");
+  rooms[0].description = strdup("The command center of Starfall Survey Ship.");
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = rooms;
+  top_of_world = 0;
+
+  shipyard_own_ships("Mira", 1);
+  ship = &greyhawk_ships[SHIPYARD_FIRST_SLOT];
+  ship->num_rooms = 1;
+  ship->room_vnums[0] = 300;
+  ship->room_templates[0] = ROOM_TYPE_BRIDGE;
+  strlcpy(ship->name, "Sea Wren", sizeof(ship->name));
+
+  /* Christened, her rooms carry her new name, not her old one. */
+  vessel_rename_interior(ship);
+  CuAssertTrue(tc, strstr(world[0].name, "Sea Wren") != NULL);
+  CuAssertTrue(tc, strstr(world[0].name, "Starfall") == NULL);
+  CuAssertTrue(tc, strstr(world[0].description, "Starfall") == NULL);
+
+  free(rooms[0].name);
+  free(rooms[0].description);
+  shipyard_own_ships("", 0);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+}
+
+/* Map step of each level direction; up and down have none. */
+static bool shipyard_dir_step(int dir, int *dx, int *dy)
+{
+  static const int step_x[NUM_OF_DIRS] = {0, 1, 0, -1, 0, 0, -1, 1, 1, -1};
+  static const int step_y[NUM_OF_DIRS] = {1, 0, -1, 0, 0, 0, 1, 1, -1, -1};
+
+  *dx = step_x[dir];
+  *dy = step_y[dir];
+  return dir != UP && dir != DOWN;
+}
+
+void Test_vessel_discovered_rooms_fit_the_hull(CuTest *tc)
+{
+  bool medical_found;
+  int i;
+
+  /* A raft has room only for a hold; a boat has no medical bay; a ship can. */
+  medical_found = FALSE;
+  for (i = 0; i < 200; i++)
+  {
+    CuAssertIntEquals(tc, ROOM_TYPE_CARGO, vessel_discovered_room_type(VESSEL_RAFT));
+    CuAssertTrue(tc, vessel_discovered_room_type(VESSEL_BOAT) != ROOM_TYPE_MEDICAL);
+    if (vessel_discovered_room_type(VESSEL_SHIP) == ROOM_TYPE_MEDICAL)
+    {
+      medical_found = TRUE;
+    }
+  }
+  CuAssertTrue(tc, medical_found);
+}
+
+void Test_vessel_interior_exits_agree_with_her_layout(CuTest *tc)
+{
+  struct room_data rooms[MAX_SHIP_ROOMS];
+  struct room_data *saved_world;
+  struct greyhawk_ship_data *ship;
+  room_rnum saved_top_of_world;
+  room_rnum target;
+  int queue[MAX_SHIP_ROOMS];
+  int x[MAX_SHIP_ROOMS];
+  int y[MAX_SHIP_ROOMS];
+  bool placed[MAX_SHIP_ROOMS];
+  int count;
+  int head;
+  int tail;
+  int room;
+  int dir;
+  int dx;
+  int dy;
+  int i;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  shipyard_own_ships("Mira", 1);
+  ship = &greyhawk_ships[SHIPYARD_FIRST_SLOT];
+
+  for (count = 4; count <= MAX_SHIP_ROOMS; count++)
+  {
+    memset(rooms, 0, sizeof(rooms));
+    world = rooms;
+    top_of_world = count - 1;
+    ship->num_rooms = count;
+    for (i = 0; i < count; i++)
+    {
+      rooms[i].number = 1000 + i;
+      ship->room_vnums[i] = 1000 + i;
+    }
+    generate_room_connections(ship);
+
+    /* Walk out from the bridge, placing each room where its exits say. */
+    memset(placed, 0, sizeof(placed));
+    placed[0] = TRUE;
+    x[0] = 0;
+    y[0] = 0;
+    queue[0] = 0;
+    head = 0;
+    tail = 1;
+    while (head < tail)
+    {
+      room = queue[head++];
+      for (dir = 0; dir < NUM_OF_DIRS; dir++)
+      {
+        if (rooms[room].dir_option[dir] == NULL)
+          continue;
+        CuAssertTrue(tc, shipyard_dir_step(dir, &dx, &dy));
+        target = rooms[room].dir_option[dir]->to_room;
+        CuAssertTrue(tc, target < (room_rnum)count);
+        /* Every passage leads back the way it came. */
+        CuAssertPtrNotNull(tc, rooms[target].dir_option[rev_dir[dir]]);
+        CuAssertIntEquals(tc, room, rooms[target].dir_option[rev_dir[dir]]->to_room);
+        if (!placed[target])
+        {
+          placed[target] = TRUE;
+          x[target] = x[room] + dx;
+          y[target] = y[room] + dy;
+          queue[tail++] = target;
+        }
+        /* One room, one place: no exit contradicts another. */
+        CuAssertIntEquals(tc, x[room] + dx, x[target]);
+        CuAssertIntEquals(tc, y[room] + dy, y[target]);
+      }
+    }
+    /* Every room can be reached from the bridge. */
+    CuAssertIntEquals(tc, count, tail);
+
+    for (i = 0; i < count; i++)
+    {
+      for (dir = 0; dir < NUM_OF_DIRS; dir++)
+      {
+        if (rooms[i].dir_option[dir] != NULL)
+        {
+          free(rooms[i].dir_option[dir]->general_description);
+          free(rooms[i].dir_option[dir]);
+        }
+      }
+    }
+  }
+
+  shipyard_own_ships("", 0);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+}
+
 void Test_vessel_owner_cap_config_is_clamped(CuTest *tc)
 {
   pid_t child;
@@ -271,7 +515,8 @@ void Test_vessel_shipyard_sells_only_listed_hulls(CuTest *tc)
                                      "for_sale, min_level) VALUES "
                                      "(1, 'Listed Sloop', 0, 5, 2, 1, 0), "
                                      "(2, 'Navy Frigate', 3, 20, 40, 0, 0), "
-                                     "(3, 'Elite Cutter', 2, 15, 20, 1, 28)") == 0;
+                                     "(3, 'Elite Cutter', 2, 15, 20, 1, 28), "
+                                     "(4, 'Wayfarer', 7, 15, 153, 1, 0)") == 0;
   if (!prepared)
   {
     mysql_close(connection);
@@ -311,6 +556,9 @@ void Test_vessel_shipyard_sells_only_listed_hulls(CuTest *tc)
   CuAssertTrue(tc, strstr(output, "Elite Cutter") != NULL);
   CuAssertTrue(tc, strstr(output, "Navy Frigate") == NULL);
   CuAssertTrue(tc, strstr(output, " 28 ") != NULL);
+  /* The shortest and longest class names line up under the same columns. */
+  CuAssertTrue(tc, strstr(output, "1     Raft           5     2     ") != NULL);
+  CuAssertTrue(tc, strstr(output, "4     Magical Vessel 15    153   ") != NULL);
 
   /* An unlisted hull is refused and nothing is charged. */
   memset(output, 0, sizeof(output));

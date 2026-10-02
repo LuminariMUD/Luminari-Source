@@ -903,7 +903,7 @@ static void vessel_boarding_fall_into_water(struct char_data *ch)
   if (water_room != NOWHERE)
   {
     char_from_room(ch);
-    char_to_room(ch, water_room);
+    vessel_char_to_room(ch, water_room);
     act("$n plunges into the water beside the ship!", TRUE, ch, 0, 0, TO_ROOM);
     look_at_room(ch, 0);
   }
@@ -1123,7 +1123,9 @@ ACMD(do_board_hostile)
 
   if (!grapple_contest.attacker_wins)
   {
-    send_to_char(ch, "The defenders cast off your grappling lines before they take hold.\r\n");
+    send_to_char(ch, defender != NULL
+                         ? "The defenders cast off your grappling lines before they take hold.\r\n"
+                         : "Your grappling lines fail to take hold.\r\n");
     act("$n's grappling lines fall short of the enemy vessel.", TRUE, ch, 0, 0, TO_ROOM);
     send_to_ship(target, "%s's grappling lines are repelled.", GET_NAME(ch));
     return;
@@ -1147,7 +1149,9 @@ ACMD(do_board_hostile)
 
   if (!crossing_contest.attacker_wins)
   {
-    send_to_char(ch, "The defenders drive you back and the grappling lines are cut!\r\n");
+    send_to_char(ch, defender != NULL
+                         ? "The defenders drive you back and the grappling lines are cut!\r\n"
+                         : "The hull rolls away from you and the grappling lines part!\r\n");
     act("$n is driven back from the enemy vessel!", TRUE, ch, 0, 0, TO_ROOM);
     send_to_ship(target, "%s is driven back from the rail.", GET_NAME(ch));
     if (crossing_contest.critical_failure)

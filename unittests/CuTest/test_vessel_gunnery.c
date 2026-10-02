@@ -143,6 +143,7 @@ void Test_vessel_fire_needs_the_hull_owners_consent(CuTest *tc)
   struct room_data *saved_world;
   room_rnum saved_top_of_world;
   struct char_data *saved_list;
+  struct group_data *group;
   int saved_pk_allowed;
 
   gunnery_player_init(&owner, "Corr");
@@ -185,6 +186,14 @@ void Test_vessel_fire_needs_the_hull_owners_consent(CuTest *tc)
   SET_BIT_AR(PRF_FLAGS(&owner.ch), PRF_PVP);
   CuAssertTrue(tc, vessel_fire_permitted(&gunner.ch, ship, target, FALSE));
   CuAssertTrue(tc, vessel_fire_permitted(&owner.ch, ship, target, FALSE));
+
+  /* As in person, firing on a groupmate's hull costs the shooter the group. */
+  group = create_group(&owner.ch);
+  join_group(&rival.ch, group);
+  CuAssertTrue(tc, vessel_fire_permitted(&owner.ch, ship, target, FALSE));
+  CuAssertPtrEquals(tc, NULL, owner.ch.group);
+  CuAssertPtrEquals(tc, group, rival.ch.group);
+  leave_group(&rival.ch);
 
   CONFIG_PK_ALLOWED = saved_pk_allowed;
   character_list = saved_list;
@@ -293,6 +302,8 @@ void Test_vessel_contact_list_is_nearest_first_within_sight(CuTest *tc)
   CuAssertIntEquals(tc, GUNNERY_SHIP_B, vessel_find_contact(ship, "sb"));
   CuAssertIntEquals(tc, GUNNERY_SHIP_C, vessel_find_contact(ship, "Tern"));
   CuAssertIntEquals(tc, GUNNERY_SHIP_B, vessel_find_contact(ship, "Tern R"));
+  /* Any word of a name will do. */
+  CuAssertIntEquals(tc, GUNNERY_SHIP_B, vessel_find_contact(ship, "runner"));
   CuAssertIntEquals(tc, -1, vessel_find_contact(ship, "the Gull"));
   CuAssertIntEquals(tc, -1, vessel_find_contact(ship, ""));
 
@@ -386,6 +397,10 @@ void Test_vessel_harbor_hulls_neither_fire_nor_take_fire(CuTest *tc)
   ship->shipobj = &hull;
   vessel_combat_tick_one(ship);
   CuAssertIntEquals(tc, 0, ship->slot[0].timer);
+  /* Under way in the harbor she is not berthed, and is not told she is. */
+  CuAssertIntEquals(tc, 0, ship->dock);
+  CuAssertStrEquals(tc, "The harbor watch forbids gunfire in port - put to sea first.",
+                    vessel_hull_fire_problem(ship));
 
   /* At sea the crew fires. */
   ship->shipobj = NULL;

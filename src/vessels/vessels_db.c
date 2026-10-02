@@ -968,7 +968,11 @@ bool vessel_place_hull_object(struct greyhawk_ship_data *ship, struct obj_data *
     return FALSE;
   }
 
+  /* The generic hull object is a builder's fixture: its glow and hum would
+   * decorate every hull in the fleet. */
   GET_OBJ_TYPE(obj) = ITEM_GREYHAWK_SHIP;
+  REMOVE_OBJ_FLAG(obj, ITEM_GLOW);
+  REMOVE_OBJ_FLAG(obj, ITEM_HUM);
   GET_OBJ_VAL(obj, 0) = ship->entrance_room;
   GET_OBJ_VAL(obj, 1) = ship->shipnum;
   if (IN_ROOM(obj) != destination)

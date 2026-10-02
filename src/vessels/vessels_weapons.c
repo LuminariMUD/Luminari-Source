@@ -854,7 +854,8 @@ ACMD(do_shipequip)
 
   if (slot >= 0)
   {
-    send_to_char(ch, "%s already carries a %s.\r\n", ship->name, equipment_names[equipment]);
+    send_to_char(ch, "%s already carries %s%s.\r\n", ship->name,
+                 equipment == VESSEL_EQUIPMENT_COLORS ? "" : "a ", equipment_names[equipment]);
     return;
   }
   slot = vessel_free_slot(ship);
@@ -886,8 +887,8 @@ ACMD(do_shipequip)
       ship, ch, vessel_slot_weight(ship, &ship->slot[slot]) * VESSEL_INSTALL_TICKS_PER_WEIGHT);
   vessel_db_save_weapons(ship);
   vessel_db_save_runtime(ship);
-  send_to_char(ch, "The shipwrights fit %s with a %s for %d gold.\r\n", ship->name,
-               equipment_names[equipment], price);
+  send_to_char(ch, "The shipwrights fit %s with %s%s for %d gold.\r\n", ship->name,
+               equipment == VESSEL_EQUIPMENT_COLORS ? "" : "a ", equipment_names[equipment], price);
   if (ship->maintenance_ticks > 0)
   {
     send_to_char(ch, "She cannot sail for %d seconds while they work.\r\n",

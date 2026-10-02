@@ -447,6 +447,35 @@ void Test_vessel_refused_room_stops_the_hull_at_its_edge(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_boat_refused_room_names_the_waters_she_keeps(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+
+  ship = movement_begin(&fixture, VESSEL_BOAT);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+  refuse_room = TRUE;
+  refused_x = 0;
+  refused_y = 1;
+
+  /* A riverboat steered onto the bank is not told she is for the coast only. */
+  CuAssertTrue(tc, !vessel_maneuver(ship, &fixture.helm, NORTH));
+  CuAssertTrue(tc, strstr(output, "She keeps to rivers and shallow coastal water.") != NULL);
+
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
 void Test_vessel_rest_in_port_berths_and_undock_casts_off(CuTest *tc)
 {
   struct movement_fixture fixture;
@@ -746,6 +775,236 @@ void Test_vessel_autopilot_casts_off_before_following_its_route(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_autopilot_arrives_in_a_port_she_owes_a_fee(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct ship_route *route;
+
+  /* Her one-way route ends where she lies, in a port that has charged her:
+   * she has arrived, and the fee waits for her next departure. */
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  route = route_create("homeward");
+  CuAssertPtrNotNull(tc, route);
+  CuAssertPtrNotNull(tc, autopilot_init(ship));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, ship->x, ship->y, 0.0, "home"));
+  CuAssertTrue(tc, autopilot_start(ship, route));
+  ship->dock_fee_balance = 25;
+
+  movement_ticks(ship, 1);
+  CuAssertIntEquals(tc, AUTOPILOT_COMPLETE, ship->autopilot->state);
+  CuAssertIntEquals(tc, 25, ship->dock_fee_balance);
+
+  movement_end(&fixture);
+}
+
+void Test_vessel_pilot_announces_arrivals_by_name(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  struct char_data pilot;
+  struct index_data pilot_index;
+  struct index_data *saved_mob_index;
+  struct waypoint wp;
+  char output[MAX_STRING_LENGTH];
+  mob_rnum saved_top_of_mobt;
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  ship->num_rooms = 1;
+  ship->room_vnums[0] = MOVEMENT_ROOM_VNUM;
+  saved_mob_index = mob_index;
+  saved_top_of_mobt = top_of_mobt;
+  memset(&pilot_index, 0, sizeof(pilot_index));
+  pilot_index.vnum = 70001;
+  mob_index = &pilot_index;
+  top_of_mobt = 0;
+  clear_char(&pilot);
+  SET_BIT_AR(MOB_FLAGS(&pilot), MOB_ISNPC);
+  pilot.nr = 0;
+  pilot.player.short_descr = CuMutableString("the harbor ferrymaster");
+  IN_ROOM(&pilot) = 0;
+  fixture.room.people = &fixture.helm;
+  fixture.helm.next_in_room = &pilot;
+  CuAssertPtrNotNull(tc, autopilot_init(ship));
+  ship->autopilot->pilot_mob_vnum = 70001;
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+
+  /* Everyone aboard hears the pilot, named as a sentence begins, once. */
+  memset(&wp, 0, sizeof(wp));
+  strlcpy(wp.name, "buoy", sizeof(wp.name));
+  pilot_announce_waypoint(ship, &wp);
+  CuAssertStrEquals(tc, "The harbor ferrymaster announces, 'Arriving at buoy!'\r\n", output);
+
+  fixture.helm.desc = NULL;
+  fixture.helm.next_in_room = NULL;
+  fixture.room.people = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  mob_index = saved_mob_index;
+  top_of_mobt = saved_top_of_mobt;
+  movement_end(&fixture);
+}
+
+void Test_vessel_target_speed_is_the_order_she_answers(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct ship_route *route;
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+
+  /* At the helm she answers the order, up to the most she can make. */
+  ship->setspeed = 5;
+  CuAssertDblEquals(tc, 5.0, vessel_target_speed(ship, 9.0), 0.0001);
+  ship->setspeed = 20;
+  CuAssertDblEquals(tc, 9.0, vessel_target_speed(ship, 9.0), 0.0001);
+
+  /* On a route with no order of her own she makes all she can, within the
+   * route's limit, so a pilot's hull is not shown as ordered to stop. */
+  route = route_create("passage");
+  CuAssertPtrNotNull(tc, route);
+  CuAssertPtrNotNull(tc, autopilot_init(ship));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, 0.0, 30.0, 0.0, "far"));
+  CuAssertTrue(tc, autopilot_start(ship, route));
+  ship->setspeed = 0;
+  ship->autopilot->speed_limit = 100.0;
+  CuAssertDblEquals(tc, 9.0, vessel_target_speed(ship, 9.0), 0.0001);
+  ship->autopilot->speed_limit = 3.0;
+  CuAssertDblEquals(tc, 3.0, vessel_target_speed(ship, 9.0), 0.0001);
+
+  /* Paused, she answers nothing. */
+  CuAssertTrue(tc, autopilot_pause(ship));
+  CuAssertDblEquals(tc, 0.0, vessel_target_speed(ship, 9.0), 0.0001);
+
+  movement_end(&fixture);
+}
+
+void Test_vessel_disembark_under_way_tells_a_passenger_to_wait(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  ship->speed = 6.0;
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+
+  /* A passenger cannot stop her, so is told to wait. */
+  strlcpy(ship->owner, "Corr", sizeof(ship->owner));
+  do_greyhawk_disembark(&fixture.helm, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "You can't disembark while the vessel is moving!") != NULL);
+  CuAssertTrue(tc, strstr(output, "Wait until she stops.") != NULL);
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.helm));
+
+  /* Her captain at the helm can. */
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  strlcpy(ship->owner, "Mara", sizeof(ship->owner));
+  do_greyhawk_disembark(&fixture.helm, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Bring the vessel to a stop first.") != NULL);
+
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
+void Test_vessel_moored_orders_say_what_she_is_doing(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.output = output;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+
+  /* Berthed, she waits for the order to cast off. */
+  ship->dock = MOVEMENT_ROOM_VNUM;
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  CuAssertTrue(tc, vessel_refuse_moored_order(&fixture.helm, ship));
+  CuAssertTrue(tc,
+               strstr(output, "the Heron is berthed; order 'undock' to cast off first.") != NULL);
+
+  /* Once ordered, the helm hears how long the crew needs. */
+  ship->departure_ticks = 20;
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  CuAssertTrue(tc, vessel_refuse_moored_order(&fixture.helm, ship));
+  CuAssertTrue(tc, strstr(output, "the Heron is still casting off (10 seconds).") != NULL);
+  ship->dock = 0;
+  ship->anchored = TRUE;
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  CuAssertTrue(tc, vessel_refuse_moored_order(&fixture.helm, ship));
+  CuAssertTrue(tc, strstr(output, "the Heron is still weighing anchor (10 seconds).") != NULL);
+
+  /* Under way, nothing is refused. */
+  ship->departure_ticks = 0;
+  ship->anchored = FALSE;
+  CuAssertTrue(tc, !vessel_refuse_moored_order(&fixture.helm, ship));
+
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
+void Test_vessel_dock_fees_name_the_port(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  fixture.room.name = CuMutableString("Testing Dock");
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+
+  /* The owner reads where the fee is owed by the port's name. */
+  ship->dock_fee_balance = 25;
+  ship->dock_fee_port = MOVEMENT_ROOM_VNUM;
+  do_dockfees(&fixture.helm, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "the Heron owes 25 gold for its berth at Testing Dock.") != NULL);
+  ship->dock_fee_port = MOVEMENT_ROOM_VNUM + 1;
+  CuAssertStrEquals(tc, "an unknown port", vessel_dock_fee_port_name(ship));
+
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
 void Test_vessel_paused_autopilot_holds_and_a_finished_route_stops(CuTest *tc)
 {
   struct movement_fixture fixture;
@@ -953,6 +1212,159 @@ static MYSQL *movement_open_test_database(void)
     return NULL;
   }
   return connection;
+}
+
+void Test_vessel_port_room_is_her_berth(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+
+  /* Moored in a port, her object's room is the port she trades in. */
+  fixture.room.sector_type = SECT_SEAPORT;
+  CuAssertIntEquals(tc, 0, vessel_port_room(ship));
+  CuAssertTrue(tc, vessel_ship_is_in_port(ship));
+
+  /* Without a port under her or a hull to look from, there is none. */
+  fixture.room.sector_type = SECT_OCEAN;
+  ship->shipnum = -1;
+  CuAssertIntEquals(tc, NOWHERE, vessel_port_room(ship));
+  ship->shipnum = MOVEMENT_SHIP;
+  CuAssertIntEquals(tc, NOWHERE, vessel_port_room(NULL));
+
+  movement_end(&fixture);
+}
+
+void Test_vessel_char_to_room_lands_where_the_room_lies(CuTest *tc)
+{
+  struct room_data rooms[2]; /* the dock left long ago, the water beside the hull */
+  struct zone_data zone;
+  struct room_data *saved_world;
+  struct zone_data *saved_zone_table;
+  struct char_data swimmer;
+  struct player_special_data swimmer_specials;
+  room_rnum saved_top_of_world;
+  zone_rnum saved_top_of_zone_table;
+
+  memset(rooms, 0, sizeof(rooms));
+  memset(&zone, 0, sizeof(zone));
+  SET_BIT_AR(zone.zone_flags, ZONE_WILDERNESS);
+  rooms[0].number = 1000100;
+  rooms[0].coords[0] = -66;
+  rooms[0].coords[1] = 91;
+  rooms[1].number = 1000200;
+  rooms[1].coords[0] = -91;
+  rooms[1].coords[1] = 77;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  world = rooms;
+  top_of_world = 1;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+
+  /* Still holding the coordinates of the water she waded into hours ago,
+   * a sailor thrown over the side lands beside her own hull. */
+  clear_char(&swimmer);
+  memset(&swimmer_specials, 0, sizeof(swimmer_specials));
+  swimmer.player_specials = &swimmer_specials;
+  X_LOC(&swimmer) = -66;
+  Y_LOC(&swimmer) = 91;
+  vessel_char_to_room(&swimmer, 1);
+  CuAssertIntEquals(tc, 1, IN_ROOM(&swimmer));
+  CuAssertIntEquals(tc, -91, X_LOC(&swimmer));
+  CuAssertIntEquals(tc, 77, Y_LOC(&swimmer));
+
+  char_from_room(&swimmer);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+}
+
+void Test_vessel_freight_board_offers_only_ports(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct room_data rooms[2]; /* the origin dock and another port */
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  MYSQL *saved_conn;
+  MYSQL *connection;
+  bool saved_mysql_available;
+  bool prepared;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    return;
+  }
+
+  connection = movement_open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  /* Room 70000 is a hull's interior where a market was once read. */
+  prepared =
+      mysql_query(connection, "CREATE TEMPORARY TABLE freight_contracts ("
+                              "contract_id INT AUTO_INCREMENT PRIMARY KEY, "
+                              "origin_vnum INT NOT NULL, destination_vnum INT NOT NULL, "
+                              "commodity_id INT NOT NULL, quantity INT NOT NULL, "
+                              "payout INT NOT NULL, status INT NOT NULL DEFAULT 0, "
+                              "taken_by VARCHAR(64) NOT NULL DEFAULT '', "
+                              "offered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)") == 0 &&
+      mysql_query(connection, "CREATE TEMPORARY TABLE port_commodities ("
+                              "port_vnum INT NOT NULL, commodity_id INT NOT NULL, "
+                              "supply INT NOT NULL DEFAULT 100, "
+                              "PRIMARY KEY (port_vnum, commodity_id))") == 0 &&
+      mysql_query(connection, "INSERT INTO port_commodities (port_vnum, commodity_id) VALUES "
+                              "(100, 1), (101, 1), (70000, 1)") == 0 &&
+      mysql_query(connection, "CREATE TEMPORARY TABLE trade_commodities ("
+                              "commodity_id INT PRIMARY KEY, base_price INT NOT NULL, "
+                              "contraband_renown INT NOT NULL DEFAULT 0)") == 0 &&
+      mysql_query(connection, "INSERT INTO trade_commodities (commodity_id, base_price) "
+                              "VALUES (1, 10)") == 0;
+  if (!prepared)
+  {
+    mysql_close(connection);
+    CuFail(tc, "could not create the isolated freight fixture");
+    return;
+  }
+
+  memset(rooms, 0, sizeof(rooms));
+  rooms[0].number = 100;
+  rooms[0].sector_type = SECT_SEAPORT;
+  rooms[1].number = 101;
+  rooms[1].sector_type = SECT_SEAPORT;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = rooms;
+  top_of_world = 1;
+  saved_conn = conn;
+  saved_mysql_available = mysql_available;
+  conn = connection;
+  mysql_available = TRUE;
+
+  vessel_contracts_refresh_port(100);
+
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "SELECT destination_vnum FROM freight_contracts"));
+  result = mysql_store_result(connection);
+  CuAssertPtrNotNull(tc, result);
+  CuAssertIntEquals(tc, 1, (int)mysql_num_rows(result));
+  row = mysql_fetch_row(result);
+  CuAssertStrEquals(tc, "101", row[0]);
+  mysql_free_result(result);
+
+  conn = saved_conn;
+  mysql_available = saved_mysql_available;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  mysql_close(connection);
 }
 
 void Test_vessel_restart_keeps_an_owned_hull_damaged_in_port(CuTest *tc)

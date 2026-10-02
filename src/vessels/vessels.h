@@ -523,6 +523,8 @@ double vessel_load_factor(const struct greyhawk_ship_data *ship);
 double vessel_max_speed_from(int design_speed, double sailmaster_multiplier, double load_factor,
                              int mainsail, int maxmainsail, int position_percent, int helm_bonus);
 double vessel_max_speed(struct greyhawk_ship_data *ship);
+double vessel_target_speed(const struct greyhawk_ship_data *ship, double max_speed);
+bool vessel_refuse_moored_order(struct char_data *ch, const struct greyhawk_ship_data *ship);
 double vessel_acceleration(const struct greyhawk_ship_data *ship);
 double vessel_turn_rate(const struct greyhawk_ship_data *ship, double max_speed);
 bool vessel_is_moored(const struct greyhawk_ship_data *ship);
@@ -950,6 +952,7 @@ bool vessel_wreck_hull(struct greyhawk_ship_data *ship, const struct greyhawk_sh
                        int renown_lost);
 void vessel_restow(struct greyhawk_ship_data *ship);
 void vessel_summon_tick(void);
+void vessel_summon_announce(const struct greyhawk_ship_data *ship);
 ACMD_DECL(do_shipsummon); /* Owner: call a hull, or her wreck, to this shipyard */
 
 /* ========================================================================= */
@@ -1013,6 +1016,7 @@ struct vessel_balance_duel_result
 
 void vessel_trade_ensure_schema(void);
 int vessel_cargo_weight(const struct greyhawk_ship_data *ship);
+int vessel_commodity_base_price(int commodity_id);
 const char *vessel_commodity_name(int commodity_id);
 int vessel_stow_cargo(struct greyhawk_ship_data *ship, int commodity_id, int units);
 int vessel_commodity_price(int base_price, int supply);
@@ -1024,7 +1028,7 @@ bool vessel_trade_run_simulation(int trade_count, struct vessel_trade_simulation
 bool vessel_balance_run_duels(int duel_count, struct vessel_balance_duel_result *result);
 bool vessel_balance_report(struct char_data *ch, int duel_count);
 void vessel_trade_restock_tick(void);
-void vessel_db_save_cargo(struct greyhawk_ship_data *ship);
+bool vessel_db_save_cargo(struct greyhawk_ship_data *ship);
 void vessel_db_load_cargo(struct greyhawk_ship_data *ship);
 
 /* ========================================================================= */
@@ -1266,9 +1270,11 @@ ACMD_DECL(do_dockfees);      /* Inspect or settle the current berthing fee */
 
 bool vessel_room_is_port(room_rnum room);
 bool vessel_room_is_fee_berth(const struct greyhawk_ship_data *ship, room_rnum room);
+room_rnum vessel_port_room(const struct greyhawk_ship_data *ship);
 bool vessel_ship_is_in_port(const struct greyhawk_ship_data *ship);
 int vessel_dock_fee_for_class(enum vessel_class vessel_type);
 int vessel_assess_dock_fee(struct greyhawk_ship_data *ship, int port_vnum, int owner_clan_vnum);
+const char *vessel_dock_fee_port_name(const struct greyhawk_ship_data *ship);
 bool vessel_clear_departed_berth(struct greyhawk_ship_data *ship, room_rnum old_room,
                                  bool old_is_port);
 void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_room,
@@ -1314,6 +1320,7 @@ int vessel_class_min_level(int vclass);
 int vessel_prototype_min_level(int vclass, int min_level);
 int vessel_ship_min_level(const struct greyhawk_ship_data *ship);
 bool vessel_helm_level_refused(struct char_data *ch, const struct greyhawk_ship_data *ship);
+void vessel_report_spawn(struct char_data *ch, const struct greyhawk_ship_data *ship, int slot);
 int vessel_spawn_from_prototype(struct char_data *ch, int id);
 int vessel_spawn_public_from_prototype_at(int id, const char *instance_name, int x, int y, int z);
 ACMD_DECL(do_shipbrowse);    /* Shipyard catalog with prices */
@@ -1929,7 +1936,10 @@ int vessel_arc_toward(const struct greyhawk_ship_data *from, const struct greyha
 
 /* Room Generation and Management */
 void generate_ship_interior(struct greyhawk_ship_data *ship);
+enum ship_room_type vessel_discovered_room_type(enum vessel_class vessel_type);
 bool restore_ship_interior(struct greyhawk_ship_data *ship);
+void vessel_rename_interior(struct greyhawk_ship_data *ship);
+void vessel_char_to_room(struct char_data *ch, room_rnum room);
 void load_ship_room_templates_from_db(void); /* Boot: builder template overrides */
 int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type);
 void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type);
@@ -2512,6 +2522,7 @@ int vehicle_is_operational(struct vehicle_data *vehicle);
 struct vehicle_data *vehicle_find_by_id(int id);
 struct vehicle_data *vehicle_at_index(int index);
 struct vehicle_data *vehicle_find_in_room(room_rnum room);
+void vehicle_list_to_char(struct char_data *ch, room_rnum room);
 struct vehicle_data *vehicle_find_in_room_named(room_rnum room, const char *name);
 struct vehicle_data *vehicle_find_by_obj(struct obj_data *obj);
 void vehicle_reindex_room_insert(room_rnum inserted_room);

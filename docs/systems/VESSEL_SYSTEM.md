@@ -463,6 +463,10 @@ per-movement logging.
 | TRANSPORT | Ocean | Slow | 6-20 | Bridge, Large Cargo, Passenger Quarters |
 | MAGICAL | Any | Variable | 1-5 | Custom configuration |
 
+Rooms beyond these are discovered at random (`vessel_discovered_room_type()`),
+never one the class is too small for (the template's `min_vessel_size`): a
+raft's only extra room is a hold, and medical bays begin at ship size.
+
 ### Terrain Capabilities
 
 ```c
@@ -496,6 +500,13 @@ struct vessel_terrain_caps {
 | `VEHICLE_CARRIAGE` | 6 pass, 500 lbs | 70% | Road, plains |
 
 **States**: `IDLE`, `MOVING`, `LOADED`, `HITCHED`, `DAMAGED`, `ON_VESSEL`
+
+Vehicles are not objects: `look_at_room()` lists those standing in the room
+through `vehicle_list_to_char()` ("River Cart, a cart, stands here."). A vehicle
+loaded aboard a hull is in no room (`location` is `NOWHERE`).
+`load_vehicle_onto_vessel()` and `unload_vehicle_from_vessel()` need the hull
+stopped or docked and at the surface (`z` 0): aloft or submerged she has no
+ground beside her.
 
 **Terrain Flags**: `ROAD`, `PLAINS`, `FOREST`, `HILLS`, `MOUNTAIN`, `DESERT`, `WATER_SHALLOW`
 
@@ -950,7 +961,7 @@ name through the authoritative player index rather than the unrelated
 | cargosell | Sell bulk goods (dock only) | `cargosell <commodity> [qty\|all]` |
 | cargomanifest | Show bulk cargo aboard | `cargomanifest` |
 | contracts | Freight board + your active jobs | `contracts` |
-| contractaccept | Take a freight job (loads cargo) | `contractaccept <id>` |
+| contractaccept | Take a freight job (posts a bond, loads cargo) | `contractaccept <id>` |
 | contractdeliver | Deliver at destination, collect | `contractdeliver <id>` |
 | contractabandon | Return a job to the board | `contractabandon <id>` |
 | plunder | Take cargo from a ship you've cleared | `plunder` |
@@ -998,12 +1009,21 @@ player-to-player settlement are outside the public-ferry contract. The fare
 lives in `ship_schedules`, appears in `showschedule`, and survives reboot.
 
 Freight contracts (`src/vessels/vessels_contracts.c`): each port's board offers runs
-to other *known trading* ports (any with `port_commodities` rows), with
-quantity and payout scaled from real wilderness distance between the dock
-rooms. Accepting loads the cargo (capacity-checked) and claims the row with
-a conditional UPDATE, so two captains racing for the same job cannot both
-win it. Delivering requires the freight still aboard. Boards refresh on a
-TTL; accepted contracts are never cleared by a refresh.
+to other *known trading* ports (any with `port_commodities` rows that is a port
+room), with quantity and payout scaled from real wilderness distance between the
+dock rooms. The payout is the goods' base worth plus a distance premium.
+Accepting takes the goods' base worth as a bond (refused without the gold),
+loads the cargo (capacity-checked), and claims the row with a conditional
+UPDATE, so two captains racing for the same job cannot both win it. The claim
+and the manifest commit in one transaction before the bond is debited, and the
+debit is saved with `save_char_checked()`; if that save fails the gold is
+restored, the job reopened and the freight unloaded, so the record never keeps
+the freight without the bond or the bond without the freight. Abandoning
+returns the job to the board and leaves the bought freight aboard, so taking
+and dropping a job gains nothing. Delivering requires the freight still aboard.
+Boards refresh on a TTL; accepted contracts are never cleared by a refresh.
+Market, cargo and freight commands key the port by `vessel_port_room()`: the
+hull object's room when that is a port, else the port at her coordinates.
 
 Piracy (`src/vessels/vessels_piracy.c`): `plunder` moves cargo from a cleared prize
 into an alongside raider, unit by unit so the weight limit stops it exactly
@@ -1095,7 +1115,10 @@ refused rather than held to the lower class minimum. These checks only read
 table at boot, never on a command.
 
 Owned ships restrict the helm (`is_pilot()`) to owner + permits + immortals
-(`src/vessels/vessels_ownership.c`). Owner persists in `ship_interiors.owner`
+(`src/vessels/vessels_ownership.c`). An unowned hull with an NPC pilot (a
+public ferry or merchant) restricts it to NPCs and immortals, so passengers
+cannot steer, stop, anchor, or reroute her or dismiss her pilot; other unowned
+hulls stay open to anyone. Owner persists in `ship_interiors.owner`
 (auto-migrated); permits persist in `ship_crew_roster` (crew_role
 'captain', npc_vnum -1). Capture via `claimship` transfers ownership and
 voids old permits.
@@ -1168,14 +1191,17 @@ continue during that window; other players and expired snapshots fail closed.
 Ownership changes and permanent owner removal clear inherited consent.
 
 `shiplock` and `shipfire` target only contacts (`vessel_find_contact()`: exact
-two-letter ID first, then the nearest name prefix). `vessel_gunnery_permitted()` limits the
+two-letter ID first, then the nearest hull whose name, or a word of it,
+starts with the argument). `vessel_gunnery_permitted()` limits the
 guns to the owner, helm permit holders, members of the online owner's group,
 and immortals; unowned hulls fire only through NPC return fire.
 `vessel_fire_permitted()` adds the firing hull owner's own consent whenever a
 non-owner fires on another player's hull, so retaliation is always lawful.
 The gunner and owner consent checks have no side effects. Only a shot that
 clears range, arc, and consent records the engagement, once and for the
-actual gunner, so a refused shot leaves no grace behind. If the target's owner
+actual gunner, so a refused shot leaves no grace behind. Recording it also
+takes the aggressor out of the target owner's group, as attacking a groupmate
+in person does (`leave_group()` in `fight.c`). If the target's owner
 logs out, that gunner may keep firing while the hull owner stays online with
 PvP enabled.
 Harbors are neutral: `vessel_ship_is_in_port()` refuses player and NPC fire
@@ -1255,7 +1281,8 @@ study 3.3.1, 3.3.3).
   at zero half of each bulk cargo lot floats off as salvage crates
   (`vessel_spill_cargo()`) and `vessel_sink()` evacuates the hull as before.
   `vessel_status()` reports SINKING only for a sinking hull; a gutted hull
-  whose armor holds is crippled.
+  whose armor holds is crippled, and so is a holed one whatever structure she
+  has left.
 - Prizes (decision D6, `vessel_prize_disabled()`): a hull is beaten when she
   has a holed arc, cannot move (`vessel_max_speed()` 0), has struck her colors,
   or is abandoned at sea (`vessel_abandoned_at_sea()`: not in port, nobody
@@ -1515,7 +1542,8 @@ renown gates came in S7 (Rewards, Renown and Contraband below).
   anything alongside, releases vehicles, stops her autopilot, saves the
   shipyard as her location with `summon_due`, and stows. `vessel_summon_tick()`
   (service event) brings a due hull in: `vessel_create_runtime_hull()` at the
-  shipyard, berthed, saved, and scheduled again.
+  shipyard, berthed, saved, and scheduled again. `vessel_summon_announce()`
+  tells the dock, and sends word to her owner if online elsewhere.
 - Trade-in and rename: `shipbuy <id> trade` rebuilds the owner's hull berthed
   at that dock (empty hold, not casting off or alongside) in place as the new
   prototype for its price less 90% of her `vessel_hull_price()` (nothing for a
@@ -1722,7 +1750,16 @@ independence budget.
 Interior room text comes from `ship_room_templates`. DG trigger attachments
 come from `ship_room_template_triggers`, keyed by generated room type. Changes
 to either table take effect on the next boot; compiled-in room templates
-remain the MySQL-unavailable fallback.
+remain the MySQL-unavailable fallback. The text carries the hull's name, and
+`shipchristen` renders it again with the new one.
+
+A hull of up to three rooms is a line running north from the bridge. A larger
+hull puts each room on one of eight level rays out from the bridge (north,
+east, south, west, then the diagonals): the first eight beside it, any more one
+room further out along the same rays. Side passages join only rooms that lie
+next to each other, so every exit agrees with where its rooms lie and the
+minimap draws the interior as built. Interiors persisted before this layout
+keep their stored passages.
 
 Generated-room trigger mappings are shared by room type, so content-specific
 DG programs must prove that the generated room belongs to their intended hull
@@ -1765,6 +1802,9 @@ ship-class interiors.
 | exit_transport | Exit transport | `texit` |
 | transport_go | Move transport | `tgo <direction>` |
 | transportstatus | Transport status | `tstatus` |
+
+On a land vehicle `tgo` is `drive` (`do_transport_go()` calls `do_drive()`), so
+it carries every rider along with the vehicle.
 
 ---
 
@@ -2076,8 +2116,11 @@ salt-stiff chart, and a bronze tidefinder salvage object. Trigger VNUMs
 hold; object triggers 70013-70014 make the recovered log and chart readable.
 The chain requires the player to recover and read the log before finding the
 chart, study the chart before opening the cargo panel, and can award each
-object only once. Five player DG variables persist discovery state in the
-ASCII player file. The ordinary `salvage` command values the tidefinder at 180
+object only once. It begins with a plain `search` on the derelict's bridge
+(trigger 70010 answers `search` and anything it begins, such as
+`searchashlog`; elsewhere it returns 0 and the ordinary search runs); the log
+and chart then name the next commands. Five player DG variables persist
+discovery state in the ASCII player file. The ordinary `salvage` command values the tidefinder at 180
 gold; the DG program does not implement a parallel reward path.
 
 The SQL package owns the `Blackwake Derelict` ship-class prototype and the
@@ -2493,7 +2536,7 @@ and the trigger was removed.
 
 | VNUM | Purpose |
 | -- | -- |
-| Object 70002 | Current broken fixture (ITEM_GREYHAWK_SHIP, ship_index=0; see Known Issues) |
+| Object 70002 | Generic hull prototype: every hull is an instance, given its name, descriptions and ITEM_GREYHAWK_SHIP type at spawn and restore, without the fixture's glow and hum |
 | Room 70003 | Test vessel interior room |
 | Room 1000389 | Wilderness dock location at (-66, 92) |
 

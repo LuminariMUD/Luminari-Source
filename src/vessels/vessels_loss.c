@@ -325,12 +325,28 @@ static void vessel_put_ashore(struct greyhawk_ship_data *ship, room_rnum room)
       }
       send_to_char(tch, "%s is answering a summons; you are put over the side.\r\n", ship->name);
       char_from_room(tch);
-      /* A wilderness room takes the character to their coordinates. */
-      X_LOC(tch) = world[room].coords[0];
-      Y_LOC(tch) = world[room].coords[1];
-      char_to_room(tch, room);
+      vessel_char_to_room(tch, room);
       look_at_room(tch, 0);
     }
+  }
+}
+
+/**
+ * Tell the dock a summoned hull has made port, and her owner wherever they
+ * are: the passage can take an hour.
+ */
+void vessel_summon_announce(const struct greyhawk_ship_data *ship)
+{
+  struct char_data *owner;
+  room_rnum room;
+
+  room = IN_ROOM(ship->shipobj);
+  send_to_room(room, "%s arrives at port.\r\n", ship->name);
+  owner = vessel_find_online_player(ship->owner);
+  if (owner != NULL && IN_ROOM(owner) != room)
+  {
+    send_to_char(owner, "Word comes from the harbor: %s has made port at %s.\r\n", ship->name,
+                 world[room].name);
   }
 }
 
@@ -350,7 +366,7 @@ static void vessel_summon_arrive(struct greyhawk_ship_data *ship)
   vessel_sync_berth(ship);
   vessel_db_save_runtime(ship);
   vessel_periodic_sync(ship);
-  send_to_room(IN_ROOM(ship->shipobj), "%s arrives at port.\r\n", ship->name);
+  vessel_summon_announce(ship);
   log("Info: Summoned ship %d '%s' made port at room %d", ship->shipnum, ship->name,
       ship->location);
 }

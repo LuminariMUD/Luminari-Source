@@ -166,6 +166,13 @@ void Test_vessel_bounty_accrues_decays_and_pays_off(CuTest *tc)
   CuAssertIntEquals(tc, 0, vessel_get_bounty("Corr"));
   CuAssertIntEquals(tc, 1000 - 575, GET_GOLD(&pirate));
 
+  /* Cleared, the captain reads that in the second person. */
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  do_bounty(&pirate, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "You carry no price.") != NULL);
+
   ProtocolDestroy(descriptor.pProtocol);
   vessel_piracy_clear_laws();
   world = saved_world;

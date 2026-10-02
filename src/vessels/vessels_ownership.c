@@ -27,9 +27,10 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 /**
  * Is this character cleared to operate the ship's helm?
  *
- * Unowned ships are free for anyone (test vessels, ferries before claim).
- * Owned ships answer only to the owner, their permitted helmsmen, and
- * immortals.
+ * Unowned ships are free for anyone (test vessels, abandoned hulls), except
+ * a public hull with an NPC pilot, which answers to her pilot and immortals
+ * while her passengers ride. Owned ships answer only to the owner, their
+ * permitted helmsmen, and immortals.
  */
 bool vessel_helm_permitted(struct char_data *ch, struct greyhawk_ship_data *ship)
 {
@@ -42,7 +43,8 @@ bool vessel_helm_permitted(struct char_data *ch, struct greyhawk_ship_data *ship
 
   if (ship->owner[0] == '\0')
   {
-    return TRUE;
+    return IS_NPC(ch) || GET_LEVEL(ch) >= LVL_IMMORT || ship->autopilot == NULL ||
+           ship->autopilot->pilot_mob_vnum == -1;
   }
 
   if (IS_NPC(ch))

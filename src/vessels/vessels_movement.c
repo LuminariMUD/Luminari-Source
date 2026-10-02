@@ -571,7 +571,7 @@ static const char *vessel_blocked_text(enum vessel_class vessel_type, int z)
     return "Your raft cannot navigate these waters! It's only suitable for rivers and shallow "
            "water.";
   case VESSEL_BOAT:
-    return "Your boat cannot handle these conditions! It's designed for coastal waters only.";
+    return "Your boat cannot go there! She keeps to rivers and shallow coastal water.";
   case VESSEL_SHIP:
   case VESSEL_WARSHIP:
     return "The ship cannot navigate this terrain! It requires deep water to sail.";
@@ -632,6 +632,39 @@ static void vessel_report_lane(struct greyhawk_ship_data *ship, struct char_data
 }
 
 /**
+ * Tell the helm why its orders cannot take effect yet: she is made fast
+ * alongside, berthed, or at anchor, or still casting off or weighing anchor.
+ *
+ * @return TRUE when the order was refused
+ */
+bool vessel_refuse_moored_order(struct char_data *ch, const struct greyhawk_ship_data *ship)
+{
+  if (ship->docked_to_ship > 0)
+  {
+    send_to_char(ch, "%s is made fast alongside another vessel; 'undock' first.\r\n", ship->name);
+    return TRUE;
+  }
+  if (ship->departure_ticks > 0)
+  {
+    send_to_char(ch, "%s is still %s (%d seconds).\r\n", ship->name,
+                 ship->anchored ? "weighing anchor" : "casting off",
+                 (ship->departure_ticks + 1) / 2);
+    return TRUE;
+  }
+  if (ship->dock > 0)
+  {
+    send_to_char(ch, "%s is berthed; order 'undock' to cast off first.\r\n", ship->name);
+    return TRUE;
+  }
+  if (ship->anchored)
+  {
+    send_to_char(ch, "%s rides at anchor; order 'undock' to weigh anchor first.\r\n", ship->name);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
  * setsail: move the hull one room in a direction, or ten units up or down.
  *
  * The harbor maneuver: once every VESSEL_MANEUVER_COOLDOWN_TICKS, and across
@@ -647,23 +680,8 @@ bool vessel_maneuver(struct greyhawk_ship_data *ship, struct char_data *ch, int 
   int y;
   int z;
 
-  if (!is_valid_ship(ship) || ch == NULL)
+  if (!is_valid_ship(ship) || ch == NULL || vessel_refuse_moored_order(ch, ship))
   {
-    return FALSE;
-  }
-  if (ship->docked_to_ship > 0)
-  {
-    send_to_char(ch, "%s is made fast alongside another vessel; 'undock' first.\r\n", ship->name);
-    return FALSE;
-  }
-  if (ship->dock > 0)
-  {
-    send_to_char(ch, "%s is berthed; order 'undock' to cast off first.\r\n", ship->name);
-    return FALSE;
-  }
-  if (ship->anchored)
-  {
-    send_to_char(ch, "%s rides at anchor; order 'undock' to weigh anchor first.\r\n", ship->name);
     return FALSE;
   }
   if (vessel_crew_stunned(ship))
@@ -971,6 +989,31 @@ static bool vessel_autopilot_paused(const struct greyhawk_ship_data *ship)
 }
 
 /**
+ * The speed the hull is answering: her order, at most max_speed; on a route,
+ * the route's limit, or the most she can make when no speed is ordered; none
+ * while her autopilot is paused.
+ */
+double vessel_target_speed(const struct greyhawk_ship_data *ship, double max_speed)
+{
+  double target;
+
+  target = fmin((double)MAX(0, ship->setspeed), max_speed);
+  if (vessel_autopilot_steering(ship))
+  {
+    if (ship->setspeed <= 0)
+    {
+      target = max_speed;
+    }
+    target = fmin(target, ship->autopilot->speed_limit);
+  }
+  else if (vessel_autopilot_paused(ship))
+  {
+    target = 0.0;
+  }
+  return fmax(0.0, target);
+}
+
+/**
  * One tick of the helm, for every mover and for route validation.
  *
  * Speed converges on its order at the class acceleration and the heading on
@@ -995,20 +1038,7 @@ bool vessel_sail_tick(struct greyhawk_ship_data *ship, double max_speed, vessel_
   double move_x;
   double move_y;
 
-  target = fmin((double)MAX(0, ship->setspeed), max_speed);
-  if (vessel_autopilot_steering(ship))
-  {
-    if (ship->setspeed <= 0)
-    {
-      target = max_speed;
-    }
-    target = fmin(target, ship->autopilot->speed_limit);
-  }
-  else if (vessel_autopilot_paused(ship))
-  {
-    target = 0.0;
-  }
-  target = fmax(0.0, target);
+  target = vessel_target_speed(ship, max_speed);
 
   /* A crew reeling from a mental blast cannot answer the helm; she carries
    * on as she was. */

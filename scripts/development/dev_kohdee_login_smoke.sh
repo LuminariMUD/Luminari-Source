@@ -1494,8 +1494,8 @@ proc run_vessel_lookout_check {warship_id} {
   }
   require_game_output $output "Visible vessels (nearest first):" \
     "open-water lookout contact heading"
-  require_game_output $output "Starfall Bastion" \
-    "open-water lookout live contact"
+  require_game_output $output "\[[vessel_slot_id $target_slot]\] Starfall Bastion" \
+    "open-water lookout live contact with its contact ID"
   require_game_output $output "sound" "open-water lookout contact condition"
 
   set output [run_game_command "goto 900 225"]
@@ -1930,7 +1930,7 @@ proc run_vessel_raider_check {warship_id} {
   set output [run_game_command "shipstatus"]
   require_game_output $output "Slot 0: Small Catapult (fore)" "raider fit-out"
   require_game_output $output "Crew stamina: 800/800" "raider crew"
-  set output [run_game_command "where strongbox"]
+  set output [run_game_command "where raider-key"]
   require_game_output $output "a brass strongbox key     - carried by \[70020\] the corsair captain" \
     "raider strongbox key"
   set output [run_game_command "shipgoto $ship_slot"]
@@ -2939,7 +2939,8 @@ proc run_vessel_rules_check {warship_id requested_character} {
   require_game_output $output "600 gold on your head - WANTED" "$crew_character bounty"
   require_game_output $output "clears it for 750 gold ('bounty pay')" "$crew_character pay-off"
   set output [run_game_command "bounty pay"]
-  require_game_output $output "settled at a lawful port's admiralty office" "at-sea pay-off refusal"
+  require_game_output $output "settled ashore, at a lawful port's admiralty office" \
+    "at-sea pay-off refusal"
 
   set ::spawn_id $primary_session
   run_game_command "goto 1204"
@@ -3152,7 +3153,7 @@ proc run_vessel_economy_check {warship_id requested_character} {
 
   # Under neutral colors the merchants pay a tenth less.
   set output [run_game_command "shipequip buy colors"]
-  require_game_output $output "with a Neutral Colors for 0 gold" "neutral colors"
+  require_game_output $output "with Neutral Colors for 0 gold" "neutral colors"
   set output [run_game_command "cargosell forbidden 1"]
   require_game_output $output \
     "The merchants pay a tenth less to a hull under neutral colors." "colors sale"

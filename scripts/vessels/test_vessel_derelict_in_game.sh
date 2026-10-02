@@ -646,7 +646,7 @@ run_kohdee_commands "$run_dir/03-discovery-before-restart.log" \
   'north' \
   'searchashchart' \
   'south' \
-  'searchashlog' \
+  'search' \
   'inventory' \
   'readashlog' \
   'north' \

@@ -35,107 +35,6 @@
 /* From vehicles_commands.c - player-vehicle tracking */
 
 /* ========================================================================= */
-/* HELPER FUNCTIONS                                                          */
-/* ========================================================================= */
-
-/**
- * Parse a direction string for movement commands.
- *
- * Supports multiple formats:
- * - Full names: "north", "south", "east", "west", etc.
- * - Abbreviations: "n", "s", "e", "w", "ne", "nw", "se", "sw"
- *
- * @param arg The direction string to parse
- * @return Direction constant (NORTH, SOUTH, etc.) or -1 if invalid
- */
-static int parse_direction(const char *arg)
-{
-  if (arg == NULL || *arg == '\0')
-  {
-    return -1;
-  }
-
-  /* Check for string direction names */
-  if (!strcasecmp(arg, "north") || !strcasecmp(arg, "n"))
-  {
-    return NORTH;
-  }
-  if (!strcasecmp(arg, "south") || !strcasecmp(arg, "s"))
-  {
-    return SOUTH;
-  }
-  if (!strcasecmp(arg, "east") || !strcasecmp(arg, "e"))
-  {
-    return EAST;
-  }
-  if (!strcasecmp(arg, "west") || !strcasecmp(arg, "w"))
-  {
-    return WEST;
-  }
-  if (!strcasecmp(arg, "up") || !strcasecmp(arg, "u"))
-  {
-    return UP;
-  }
-  if (!strcasecmp(arg, "down") || !strcasecmp(arg, "d"))
-  {
-    return DOWN;
-  }
-  if (!strcasecmp(arg, "northeast") || !strcasecmp(arg, "ne"))
-  {
-    return NORTHEAST;
-  }
-  if (!strcasecmp(arg, "northwest") || !strcasecmp(arg, "nw"))
-  {
-    return NORTHWEST;
-  }
-  if (!strcasecmp(arg, "southeast") || !strcasecmp(arg, "se"))
-  {
-    return SOUTHEAST;
-  }
-  if (!strcasecmp(arg, "southwest") || !strcasecmp(arg, "sw"))
-  {
-    return SOUTHWEST;
-  }
-
-  return -1;
-}
-
-/**
- * Get direction name string for display.
- *
- * @param direction The direction constant
- * @return Static string with direction name
- */
-static const char *get_direction_name(int direction)
-{
-  switch (direction)
-  {
-  case NORTH:
-    return "north";
-  case SOUTH:
-    return "south";
-  case EAST:
-    return "east";
-  case WEST:
-    return "west";
-  case UP:
-    return "up";
-  case DOWN:
-    return "down";
-  case NORTHEAST:
-    return "northeast";
-  case NORTHWEST:
-    return "northwest";
-  case SOUTHEAST:
-    return "southeast";
-  case SOUTHWEST:
-    return "southwest";
-  default:
-    return "unknown";
-  }
-}
-
-/* ========================================================================= */
 /* TRANSPORT DETECTION FUNCTIONS                                              */
 /* ========================================================================= */
 
@@ -515,9 +414,7 @@ ACMD(do_exit_transport)
 ACMD(do_transport_go)
 {
   struct transport_data td;
-  struct vehicle_data *vehicle;
   char arg[MAX_INPUT_LENGTH];
-  int direction;
 
   /* Parse direction argument */
   one_argument(argument, arg, sizeof(arg));
@@ -537,47 +434,12 @@ ACMD(do_transport_go)
     return;
   }
 
-  /* Parse direction */
-  direction = parse_direction(arg);
-  if (direction < 0)
-  {
-    send_to_char(ch, "'%s' is not a valid direction.\r\n", arg);
-    send_to_char(ch, "Valid directions: north, south, east, west, ne, nw, se, sw\r\n");
-    return;
-  }
-
   /* Handle based on transport type */
   switch (td.type)
   {
   case TRANSPORT_VEHICLE:
-    vehicle = td.data.vehicle;
-
-    /* Check if vehicle is operational */
-    if (!vehicle_is_operational(vehicle))
-    {
-      send_to_char(ch, "The %s is too damaged to move.\r\n", vehicle_type_name(vehicle->type));
-      return;
-    }
-
-    /* Check if movement is possible */
-    if (!vehicle_can_move(vehicle, direction))
-    {
-      send_to_char(ch, "The %s cannot travel %s from here.\r\n", vehicle_type_name(vehicle->type),
-                   get_direction_name(direction));
-      return;
-    }
-
-    /* Attempt to move the vehicle */
-    if (!vehicle_move(vehicle, direction))
-    {
-      send_to_char(ch, "The %s fails to move.\r\n", vehicle_type_name(vehicle->type));
-      return;
-    }
-
-    /* Success messages */
-    send_to_char(ch, "You drive the %s %s.\r\n", vehicle_type_name(vehicle->type),
-                 get_direction_name(direction));
-    send_to_char(ch, "Current position: (%d, %d)\r\n", vehicle->x_coord, vehicle->y_coord);
+    /* The same move as 'drive', which carries the riders along. */
+    do_drive(ch, argument, cmd, subcmd);
     break;
 
   case TRANSPORT_VESSEL:

@@ -706,11 +706,14 @@ if [[ "$acceptance_mode" == tactical ]]; then
   for expected_text in \
     'WILDERNESS TACTICAL CHART' \
     'Starfall Trench (bathymetric)' \
-    'Starfall Bastion         sound' \
-    'Starfall Bastion         battered'; do
+    'Starfall Bastion         sound'; do
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-tactical.log" ||
       fail "the tactical transcript did not contain '$expected_text'"
   done
+  # A holed hull reads crippled, so the shot target may read either.
+  grep -Eq 'Starfall Bastion +(battered|crippled)' \
+    "$run_dir/02-kohdee-vessel-tactical.log" ||
+    fail "the tactical transcript did not show the target battered or crippled"
 elif [[ "$acceptance_mode" == lookout ]]; then
   timeout 120 env DEV_MUD_CHARACTER="$target_player" \
     "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --help-check LOOKOUT LOOK_OUTSIDE \

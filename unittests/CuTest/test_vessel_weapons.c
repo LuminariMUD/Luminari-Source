@@ -360,7 +360,8 @@ void Test_vessel_shipyard_fits_weapons_and_equipment(CuTest *tc)
   CuAssertIntEquals(tc, 12 * VESSEL_INSTALL_TICKS_PER_WEIGHT, ship->maintenance_ticks);
   output = weapons_berth_command(&berth, do_shipequip, "buy ram");
   CuAssertTrue(tc, strstr(output, "already carries a Ram") != NULL);
-  weapons_berth_command(&berth, do_shipequip, "buy colors");
+  output = weapons_berth_command(&berth, do_shipequip, "buy colors");
+  CuAssertTrue(tc, strstr(output, "fit the Weapons Test with Neutral Colors for 0 gold.") != NULL);
   ship->cargo[0].commodity_id = 1;
   ship->cargo[0].quantity = 5;
   output = weapons_berth_command(&berth, do_shipequip, "sell colors");

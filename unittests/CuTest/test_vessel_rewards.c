@@ -16,6 +16,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
@@ -524,6 +526,191 @@ void Test_vessel_customs_chance_follows_duris(CuTest *tc)
   CuAssertIntEquals(tc, 5, vessel_customs_chance(0, 1000000, 1.0));
 }
 
+/* A scratch player directory and index, so the captain's saves succeed. */
+struct rewards_pfiles
+{
+  char scratch[64];
+  char home[PATH_MAX];
+  struct player_index_element index[1];
+  struct player_index_element *saved_table;
+  int saved_top;
+};
+
+static void rewards_pfiles_begin(CuTest *tc, struct rewards_pfiles *pfiles, struct char_data *ch)
+{
+  memset(pfiles, 0, sizeof(*pfiles));
+  strlcpy(pfiles->scratch, "/tmp/luminari-freight-bond-XXXXXX", sizeof(pfiles->scratch));
+  CuAssertPtrNotNull(tc, getcwd(pfiles->home, sizeof(pfiles->home)));
+  CuAssertPtrNotNull(tc, mkdtemp(pfiles->scratch));
+  CuAssertIntEquals(tc, 0, chdir(pfiles->scratch));
+  CuAssertIntEquals(tc, 0, mkdir("plrfiles", 0700));
+  CuAssertIntEquals(tc, 0, mkdir("plrfiles/P-T", 0700));
+  pfiles->index[0].name = GET_NAME(ch);
+  pfiles->index[0].id = 4249;
+  pfiles->saved_table = player_table;
+  pfiles->saved_top = top_of_p_table;
+  player_table = pfiles->index;
+  top_of_p_table = 0;
+  GET_PFILEPOS(ch) = 0;
+}
+
+static void rewards_pfiles_end(CuTest *tc, struct rewards_pfiles *pfiles, struct char_data *ch)
+{
+  char filename[MAX_FILEPATH];
+
+  if (get_filename(filename, sizeof(filename), PLR_FILE, GET_NAME(ch)))
+  {
+    unlink(filename);
+  }
+  unlink("plrfiles/index");
+  rmdir("plrfiles/P-T");
+  rmdir("plrfiles");
+  player_table = pfiles->saved_table;
+  top_of_p_table = pfiles->saved_top;
+  CuAssertIntEquals(tc, 0, chdir(pfiles->home));
+  rmdir(pfiles->scratch);
+}
+
+void Test_vessel_freight_bond_pays_for_the_goods(CuTest *tc)
+{
+  struct rewards_berth berth;
+  struct rewards_pfiles pfiles;
+  struct greyhawk_ship_data *ship;
+  const char *output;
+  MYSQL *saved_conn;
+  MYSQL *connection;
+  bool saved_mysql_available;
+  char salt[16];
+  char query[512];
+  char value[64];
+
+  if (!rewards_database_enabled())
+  {
+    return;
+  }
+  connection = rewards_open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  if (mysql_query(connection, "CREATE TEMPORARY TABLE trade_commodities ("
+                              "commodity_id INT AUTO_INCREMENT PRIMARY KEY, "
+                              "name VARCHAR(63) NOT NULL UNIQUE, "
+                              "base_price INT NOT NULL DEFAULT 10, "
+                              "unit_weight INT NOT NULL DEFAULT 10) ENGINE=InnoDB") != 0 ||
+      mysql_query(connection, "CREATE TEMPORARY TABLE port_commodities ("
+                              "port_vnum INT NOT NULL, commodity_id INT NOT NULL, "
+                              "supply INT NOT NULL DEFAULT 100, "
+                              "PRIMARY KEY (port_vnum, commodity_id)) ENGINE=InnoDB") != 0 ||
+      mysql_query(connection, "CREATE TEMPORARY TABLE ship_cargo_manifest ("
+                              "ship_id INT NOT NULL, cargo_room INT NOT NULL, "
+                              "item_vnum INT NOT NULL, item_name VARCHAR(128) NOT NULL, "
+                              "item_count INT NOT NULL, item_weight INT NOT NULL) "
+                              "ENGINE=InnoDB") != 0 ||
+      mysql_query(connection, "CREATE TEMPORARY TABLE vessel_bounties ("
+                              "player_name VARCHAR(64) PRIMARY KEY, "
+                              "bounty INT NOT NULL DEFAULT 0, "
+                              "marque_until INT NOT NULL DEFAULT 0, "
+                              "last_offense_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP) "
+                              "ENGINE=InnoDB") != 0 ||
+      mysql_query(connection, "CREATE TEMPORARY TABLE freight_contracts ("
+                              "contract_id INT AUTO_INCREMENT PRIMARY KEY, "
+                              "origin_vnum INT NOT NULL, destination_vnum INT NOT NULL, "
+                              "commodity_id INT NOT NULL, quantity INT NOT NULL, "
+                              "payout INT NOT NULL, status INT NOT NULL DEFAULT 0, "
+                              "taken_by VARCHAR(64) NOT NULL DEFAULT '', "
+                              "offered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB") != 0)
+  {
+    mysql_close(connection);
+    CuFail(tc, "could not create the isolated freight fixture");
+    return;
+  }
+  saved_conn = conn;
+  saved_mysql_available = mysql_available;
+  conn = connection;
+  mysql_available = TRUE;
+  vessel_trade_ensure_schema();
+  rewards_query_value(tc, connection,
+                      "SELECT commodity_id FROM trade_commodities WHERE name = 'salt'", salt,
+                      sizeof(salt));
+  snprintf(
+      query, sizeof(query),
+      "INSERT INTO freight_contracts (contract_id, origin_vnum, destination_vnum, commodity_id, "
+      "quantity, payout, status) VALUES (1, 100, 101, %s, 10, 300, 0)",
+      salt);
+  CuAssertIntEquals(tc, 0, mysql_query(connection, query));
+
+  ship = rewards_berth_begin(tc, &berth, VESSEL_SHIP);
+
+  /* Salt is worth 14 a unit: the board shows the bond beside the payout. */
+  output = rewards_berth_command(&berth, do_contracts, "");
+  CuAssertTrue(tc, strstr(output, "1      salt               10     140     300") != NULL);
+
+  /* Too little gold for the bond, and nothing is loaded. */
+  GET_GOLD(&berth.captain) = 100;
+  output = rewards_berth_command(&berth, do_contractaccept, "1");
+  CuAssertTrue(tc,
+               strstr(output, "The shipper asks a 140-gold bond for that freight; you have 100.") !=
+                   NULL);
+  CuAssertIntEquals(tc, 0, ship->cargo[0].quantity);
+
+  /* The freight cannot be written: the job stays open and no gold is taken. */
+  GET_GOLD(&berth.captain) = 1000;
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "ALTER TABLE ship_cargo_manifest ADD CONSTRAINT "
+                                            "freight_refused CHECK (item_count < 0)"));
+  output = rewards_berth_command(&berth, do_contractaccept, "1");
+  CuAssertTrue(tc, strstr(output, "cannot record that freight; no gold was taken") != NULL);
+  CuAssertIntEquals(tc, 1000, GET_GOLD(&berth.captain));
+  CuAssertIntEquals(tc, 0, ship->cargo[0].quantity);
+  rewards_query_value(tc, connection, "SELECT status FROM freight_contracts WHERE contract_id = 1",
+                      value, sizeof(value));
+  CuAssertStrEquals(tc, "0", value);
+  CuAssertIntEquals(
+      tc, 0,
+      mysql_query(connection, "ALTER TABLE ship_cargo_manifest DROP CONSTRAINT freight_refused"));
+
+  /* The captain cannot be saved: the bond is not taken, so neither is the
+   * job, and the freight comes back out of the hold. */
+  GET_PFILEPOS(&berth.captain) = -1;
+  output = rewards_berth_command(&berth, do_contractaccept, "1");
+  CuAssertTrue(tc, strstr(output, "Your bond could not be recorded; no gold was taken.") != NULL);
+  CuAssertIntEquals(tc, 1000, GET_GOLD(&berth.captain));
+  CuAssertIntEquals(tc, 0, ship->cargo[0].quantity);
+  rewards_query_value(tc, connection, "SELECT status FROM freight_contracts WHERE contract_id = 1",
+                      value, sizeof(value));
+  CuAssertStrEquals(tc, "0", value);
+  rewards_query_value(tc, connection, "SELECT COUNT(*) FROM ship_cargo_manifest", value,
+                      sizeof(value));
+  CuAssertStrEquals(tc, "0", value);
+
+  /* Taking the job posts the bond, saved with the captain; abandoning it
+   * keeps the goods the bond bought, so taking and dropping the job again
+   * gains nothing. */
+  rewards_pfiles_begin(tc, &pfiles, &berth.captain);
+  output = rewards_berth_command(&berth, do_contractaccept, "1");
+  CuAssertTrue(tc, strstr(output, "you post a 140-gold bond, 10 units are loaded") != NULL);
+  CuAssertIntEquals(tc, 860, GET_GOLD(&berth.captain));
+  rewards_query_value(tc, connection,
+                      "SELECT item_count FROM ship_cargo_manifest WHERE cargo_room = 0", value,
+                      sizeof(value));
+  CuAssertStrEquals(tc, "10", value);
+  output = rewards_berth_command(&berth, do_contractabandon, "1");
+  CuAssertTrue(tc, strstr(output, "The freight your bond paid for remains in your hold.") != NULL);
+  CuAssertIntEquals(tc, 10, ship->cargo[0].quantity);
+  output = rewards_berth_command(&berth, do_contractaccept, "1");
+  CuAssertTrue(tc, strstr(output, "you post a 140-gold bond, 10 units are loaded") != NULL);
+  CuAssertIntEquals(tc, 720, GET_GOLD(&berth.captain));
+  CuAssertIntEquals(tc, 20, ship->cargo[0].quantity);
+  rewards_pfiles_end(tc, &pfiles, &berth.captain);
+
+  rewards_berth_end(&berth);
+  conn = saved_conn;
+  mysql_available = saved_mysql_available;
+  mysql_close(connection);
+}
+
 void Test_vessel_contraband_is_sold_where_stocked_and_seized_elsewhere(CuTest *tc)
 {
   struct rewards_berth berth;
@@ -624,6 +811,10 @@ void Test_vessel_contraband_is_sold_where_stocked_and_seized_elsewhere(CuTest *t
   ship->vessel_type = VESSEL_SHIP;
   output = rewards_berth_command(&berth, do_cargobuy, "forbidden 2");
   CuAssertTrue(tc, strstr(output, "You load 2 units of forbidden tomes") != NULL);
+  /* Any word of the name finds the goods. */
+  output = rewards_berth_command(&berth, do_cargobuy, "tomes 1");
+  CuAssertTrue(tc, strstr(output, "You load 1 units of forbidden tomes") != NULL);
+  ship->cargo[0].quantity = 2;
 
   /* A sale where it is not stocked leaves no stock behind. */
   CuAssertIntEquals(tc, 0, mysql_query(connection, "DELETE FROM port_commodities"));
