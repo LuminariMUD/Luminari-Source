@@ -616,6 +616,11 @@ The Kestrel sank in chapter 11; this chapter follows Brinewick.
 - `51-loss-rename-fee.png` (Vesselmate aboard the raft): the first christening is free ("By her
   owner's word, this vessel is christened Skiff!"); renaming her costs a tenth of her price:
   "You pay the registry 33 gold." "...christened Wren Skiff!"
+- `64-loss-trade-in.png` (Brinewick at the Testing Dock after the Kestrel made port, `shipbuy 26 trade`): "The shipwrights take Kestrel in trade for 0 gold and rebuild her as a Ship. You pay
+  7200 gold." A wreck is worth nothing in trade; a sound hull is credited 90% of her value. She
+  keeps her name, slot, crew and display ID.
+- The Kestrel made port about an hour after the order; her owner, at sea, heard nothing (fixed:
+  the harbor now sends word to an owner who is elsewhere).
 
 ## 14. Other hulls and vehicles
 
@@ -665,3 +670,57 @@ Notes:
 
 Defects found here and fixed: the riverboat's off-water refusal; vehicles missing from `look`;
 `tgo` leaving the rider behind; vehicles loading and unloading aloft or submerged.
+
+## 15. The living world
+
+Staging: Kohdee started each event (`vevent start ...` from a helm or surface water), placed
+Vesselmate aboard the Blackwake derelict (slot 8, (-533, 330)), set Brinewick's bounty to 2000
+in the database to make him HUNTED (lifting it for a moment so he could buy a raft), and forced
+the encounter check (`vesseldebug encounter`).
+
+- `60-world-regatta-status.png` (Vesselmate, `vevent status` after both captains' `vevent join`): "Vessel Event #1: regatta", "Course: (-66,92) -> (-62,82)", both entrants.
+  Kohdee opened it from the freighter's helm: `vevent start regatta -62 82`; the start is the
+  helm's own position, and entries must begin there.
+- `61-world-regatta-finish.png` (Brinewick): "FINISHED #1 in 137s" (the Wren Skiff, on
+  Vesselmate's helm permit) and "FINISHED #2 in 151s" (the Sea Wren under autopilot). The finish
+  is the exact coordinate; the broadcast reads "[Vessel Event] Vesselmate finished regatta #1 in
+  place 2 (151s)."
+- `62-world-leaderboard.png` (`vevent leaderboard regatta` after Kohdee's `vevent end`):
+  "1. Brinewick entries 1 wins 1 points 100 best 137s".
+- `63-world-ghost-score.png` (Vesselmate fighting "Ghost Fleet Wraith 2-1", raised with
+  `vevent start ghost 33 1`): "Event score: +8 damage (147 total)." The wraith fights back hard;
+  the Sea Wren broke off with her bow armor gone.
+- `65-world-skirmish-status.png` (`vevent start skirmish`, Kohdee's `vevent enlist 16 red`,
+  `vevent join red` and `vevent join blue`): three entrants and "Team score: red 0, blue 0";
+  each hit then scores ("Event score: +6 damage (6 total).").
+- `66-world-derelict-search.png` (Vesselmate on the derelict's bridge, `search`): "Beneath the
+  collapsed chart table, your hand closes around an ash-stained captain's log." (fixed: only
+  the made-up word `searchashlog` worked, and nothing hinted at it).
+- `67-world-derelict-salvage.png`: `readashlog` names the next step (SEARCHASHCHART in the crew
+  quarters), `studyashchart` the last (RECOVERASHSALVAGE in the cargo hold): "you pry open a
+  concealed panel and recover a corroded bronze gear."
+- `68-world-wanted-refused.png` (Brinewick, HUNTED, `shipbuy 18` at the Testing Dock): "The
+  harbourmaster knows your face - 2000 gold is posted for you here. No lawful business will be
+  done with you in this port."
+- `69-world-hunter.png` (Brinewick under way on a raft, after the forced check): "A Harbor
+  Admiralty warship bears down with its ballistae run out!" The hunter shot the raft's rigging
+  away within a minute ("Sablebranch Raft is immobile and cannot maneuver.").
+- `70-world-bounty-paid.png` (Brinewick, swum ashore to the dock, `bounty pay`): "You pay 2500
+  gold. The admiralty strikes the 2000 gold bounty from its rolls." The hunter is retired at the
+  next pardon check (ten seconds).
+
+Notes:
+
+- Only one event runs at a time; END records the leaderboard, CANCEL does not.
+- `bounty` while HUNTED: "You: 2000 gold on your head - HUNTED by the navy." "A lawful port's
+  admiralty clears it for 2500 gold ('bounty pay')."
+- A forced encounter needs a moving hull inside an encounter region. The sandbox's only row is
+  the Admiralty hunter patrol (region 7000004 around the harbor, rafts only, no creature), so an
+  ordinary creature encounter could not be shown here; builders author those per region.
+- `board <word>` takes the first hull whose name has that word: with the Wren Skiff and the Sea
+  Wren at one dock, `board wren` chose the skiff; `board sea` the Sea Wren.
+
+Defects found here and fixed: a hull under way in harbor was told gunfire is forbidden "from a
+berth"; `shiplock wraith` could not find "Ghost Fleet Wraith 2-1"; a summoned hull's owner was
+not told she had made port; the derelict's first clue needed an undiscoverable word; a new raft
+could come with a mess hall.
