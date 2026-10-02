@@ -445,3 +445,67 @@ did the work. Stand up after every knock-down before firing.
 
 Defects found here and fixed: a holed raider dead in the water read "sound" (condition now ranks
 any holed hull crippled).
+
+## 9. Damage, repair and salvage (at sea)
+
+Played during and after chapter 8's fight. The shipyard repair and salvage are at the end of
+this chapter's notes once played.
+
+- Hits land on the side facing the shooter (`The bow is hit for 4 points!`), on the sails (`The sails are hit for 3 points!`), and through the armor into structure and weapons. A side with
+  neither armor nor structure is holed; one holed side leaves her dead in the water, two set her
+  sinking. `shipscan` and `tactical` show it: "Condition: sinking, holed on 2 sides", `X` on the
+  chart. A raider holed at the bow by her own ram lay dead in the water ("crippled").
+- `shiprepair` at sea with only armor and light sail damage: "Nothing aboard needs a patch the
+  stores can make at sea; armor, and the rest of her, are made good only at a shipyard." The
+  crew patches structure (to a tenth), sails and rudder (to two fifths) and damaged weapons from
+  the repair stores (200 on a ship); armor only at a shipyard.
+- A sunk raider leaves "The shattered wreckage of Corsair Ketch floats here." in the water room.
+
+## 10. Boarding and taking a prize
+
+Staging: Kohdee spawned an unowned Starfall Survey Ship with nobody aboard beside the Sea Wren
+(`vedit spawnpublic 26`), and launched a second tier-0 raider; for the plunder he removed the
+raider's four deckhands after Vesselmate had died to them twice, and restored him once.
+
+- `37-prize-claimship.png` (Vesselmate on the abandoned hull's bridge, `claimship`): "Vesselmate
+  seizes control of Starfall Survey Ship! You take the helm - Starfall Survey Ship is yours
+  now." `shipcrew` lists him as owner; he christened her Gull Prize (free while she bears her
+  design's name).
+- `38-prize-strongbox.png` (Vesselmate in the raider's Main Cargo Hold, `unlock chest`, `open chest`, `look in chest`, `get all chest`): "*Click*" ... "You get a big pile of gold coins from
+  an iron-bound strongbox. There were 1048 coins."
+
+`board_hostile <vessel>`, from your own deck to a hull nearby (the raider was 1.5 rooms off):
+
+- The grapple contest, then the crossing contest, each your Boarding plus d20 against the best
+  defender's Boarding plus d20 plus the hull's modifier; ties go to the defender. "Grapple
+  contest: Boarding 4 + d20 19 = 23; the corsair captain Boarding 9 + d20 11 + vessel modifier
+  (+0) = 20. SUCCESS" "Your grappling lines bite home; you commit to the crossing!" then
+  "Crossing contest: ... FAILURE" "The defenders drive you back and the grappling lines are
+  cut!"
+- A bad crossing throws you in: "The grappling line snaps taut and throws you into the water!"
+  "Swimming: Athletics Skill (4) + d20 roll (12) = Total (16) vs. DC (15)" "You manage to stay
+  afloat." You come up beside your own hull; `board <hull>` from the water climbs back aboard.
+- An empty hull still resists (her motion): with nobody aboard, "Starfall Survey Ship Boarding 0
+  - d20 17". From the water you can simply `board` a hull moored in the same room.
+- Boarding is a class ability trained in the `study` menu (0 Skills, then type `boarding` once
+  per rank; `quit`, `q`, `y` to save): Vesselmate went from 4 to 23 with his unspent trains.
+- Once across you fight the crew. A tier-0 Corsair Ketch carries a level-12 corsair captain and
+  four level-8 deckhands, some of them casters ("A corsair deckhand directs a ray of negative
+  energy at you"); Vesselmate (level 16, his armor still in his pack the first time) died twice
+  boarding her: "You are dead! Sorry..." and woke at the tutorial beach. Wear your armor (`wear all`, `wield sword`) and bring friends.
+- `kill captain` on the raider's bridge: "The corsair captain is dead! R.I.P." His corpse holds
+  90 gold and "a brass strongbox key"; the strongbox is lashed in the hold.
+- `plunder` on the bridge with nobody conscious left: the raider's hold was empty ("Corsair
+  Ketch's hold is empty: there is nothing to take." after the fix).
+- `claimship` on a sinking raider: "Corsair Ketch is going down - there is nothing left to
+  claim." Raiders can never be claimed; an abandoned hull at sea can.
+
+D6 prize rules met: a hull is a prize when holed, unable to move, under struck colors, or
+abandoned at sea with nobody conscious aboard; hostile boarding needs her at speed 3 or less or
+beaten; a sinking hull cannot be claimed.
+
+Defects found here and fixed: a boarder thrown into the sea came up at the harbor, 30 rooms
+away (people put off a hull used their stale coordinates; the same bug landed a ferry passenger
+at the wrong dock in chapter 6); a failed boarding of an empty hull spoke of defenders; plunder's
+empty-handed message did not say whether the prize's hold was empty or her own was full; the
+raider's key answered to "strongbox", so `unlock strongbox` found the key in the boarder's pack.
