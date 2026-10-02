@@ -27,12 +27,15 @@ here records the merge.
 | S-immediate Luminari Web for S9 | Merged `1c7e4bffb` (MR !14) | [S-immediate](vessels-ships-history.md#s-immediate-progress) |
 | S9 Claude Code play tests | Merged `a6adb46a8` (MR !15) | [Phase 9](vessels-ships-history.md#phase-9-s9-progress) |
 | S10 Player guide | Merged `60ef66ad1` (MR !16) | [Phase 10](vessels-ships-history.md#phase-10-s10-progress) |
+| S11 Checked cargo trades (work item #10) | Not started: next | [Part 5](#part-5-implementation-sequence) |
+| S12 Owned waypoints and routes (work item #11) | Not started | [Part 5](#part-5-implementation-sequence) |
 
-Production help is current through S10 (help sync plan `78cccae490f9`, 2026-10-02). Every step
-of Part 5 is merged: the study's steps, S1-S8; S-immediate, which readied the local Luminari Web
+Production help is current through S10 (help sync plan `78cccae490f9`, 2026-10-02). S1-S10 are
+merged: the study's steps, S1-S8; S-immediate, which readied the local Luminari Web
 client for S9; S9, which played the whole system in game and recorded it; and S10, which turned
 that record into the [Vessel Player Guide](../guides/VESSEL_PLAYER_GUIDE.md) and fixed what
-checking its facts against the code found.
+checking its facts against the code found. Two follow-ups join the sequence, both resolved in this
+worktree: S11 for GitLab work item #10 and S12 for work item #11.
 
 ## Working a step
 
@@ -139,24 +142,47 @@ actual-character gate in the `scripts/vessels/` pattern.
     defect found is fixed to the standard above.
 10. S10 Player guide: an illustrated guide to the whole system, written from `guide-notes.md`
     and the S9 screenshots.
+11. S11 Checked cargo trades
+    ([work item #10](https://gitlab.com/max757/Luminari-Source/-/work_items/10)): `cargobuy` and
+    `cargosell` move gold in memory only and leave `vessel_db_save_cargo()`'s result unchecked, so a
+    crash or a failed write gives free cargo or sold cargo that sells again. Both take the shape
+    `a703572e3` gave freight acceptance: the manifest and port supply in one transaction, the gold
+    moved after it commits and saved with `save_char_checked()`, and a failed save undone; with
+    DB-backed tests for a refused manifest write and a failed save, and values bound with
+    `PREPARED_STMT`.
+12. S12 Owned waypoints and routes
+    ([work item #11](https://gitlab.com/max757/Luminari-Source/-/work_items/11)): waypoints and
+    routes record no creator, so any captain can delete another's idle route. A creator column on
+    `ship_waypoints` and `ship_routes` (schema Phase 24 with rollback and verifier SQL,
+    `master_schema.sql` and the boot ensure functions); `setwaypoint` and `createroute` record it;
+    `delwaypoint` and `delroute` allow the creator and immortals and keep S10's in-use refusals; a
+    decision on rows that predate the column; help in both places and `VESSEL_SYSTEM.md`.
 
 S-immediate runs before S9: it gives the local Luminari Web client every feature S9 needs, the
 ship data panel among them.
 
 ## Active step
 
-None: Part 5 is complete. S10 merged as `60ef66ad1` (MR !16); its record is in the
-[history](vessels-ships-history.md#phase-10-s10-progress). Still open outside Part 5: the
-production deploy of S9's world-data notes and S10's code, the Open player-data balance and human
-beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`, GitLab work items #10 (cargobuy and cargosell's
-gold save) and #11 (an owner for shared waypoints and routes), and closing these study documents:
-`docs/ongoing-projects/` is temporary, and their enduring content now lives in `VESSEL_SYSTEM.md`
-and the guide.
+None in progress. S11 is next: branch `feat/vessels-s11` from master `88495e08a` (the S10 merge
+and its close-out, tag `vessels-s11-base`); its first commit is the S11 plan, as a "Phase 11 (S11)
+progress" section here. S12 follows from S11's merge, on `feat/vessels-s12` with
+`vessels-s12-base`. Each step's merge request says `Closes #10` or `Closes #11`, which lists it
+on its work item and closes the item when it merges.
+
+Still open outside these steps: the production deploy of S9's world-data notes and S10's code, the
+Open player-data balance and human beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`, and closing these
+study documents once S12 merges: `docs/ongoing-projects/` is temporary, and their enduring content
+lives in `VESSEL_SYSTEM.md` and the guide.
 
 ## Estimate (remaining)
 
-Nothing remains in Part 5. The Open player-data balance and human beta gates depend on player
-availability, not engineering time.
+| Step | What drives the size | Days |
+| -- | -- | -: |
+| S11 Checked cargo trades | Two commands to the freight-bond shape, DB-backed failure tests | 0.5 |
+| S12 Owned waypoints and routes | Schema phase with rollback and verifier, legacy rows, tests, help | 1 |
+
+The Open player-data balance and human beta gates depend on player availability, not engineering
+time.
 
 ## Ablation record
 
