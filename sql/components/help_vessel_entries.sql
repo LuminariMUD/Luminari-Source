@@ -134,8 +134,9 @@ BOARD_HOSTILE <vessel>
 
 Navigation changes require the owner, a permitted helmsman, or the authorized
 NPC pilot at the helm. A public hull with an NPC pilot, such as a ferry or a
-merchant, answers only to her pilot: her passengers ride. See the individual
-ownership and autopilot topics for longer-lived controls.
+merchant, answers only to her pilot: her passengers ride. An unowned hull with
+no pilot, such as one abandoned at sea, answers to anyone at her helm. See the
+individual ownership and autopilot topics for longer-lived controls.
 
 See also: AUTOPILOT, SHIP-COMBAT, SHIP-OWNERSHIP, SEASTATE, VEHICLES', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
@@ -225,11 +226,12 @@ SHIPFIRE <slot | fore | port | rear | starboard> [<contact>]
   it first. A weapon fires only when its arc faces the target (arcs run
   from the bow: fore 320-40 degrees, starboard 40-140, rear 140-220, port
   220-320), the target lies inside its range band, and it is sound, loaded,
-  and reloaded. Your hull cannot fire from a berth, at anchor, submerged,
-  or while going down. Every volley costs a combat round and each shot a
-  round of ammunition; each weapon then reloads for 17 seconds (25 and a
-  half for the capital weapons), a little faster with a better gunner and
-  slower with a tired crew (see SHIPHIRE).
+  and reloaded. Your hull cannot fire in port, at anchor, submerged, while
+  going down, with her crew stunned, or while she reels from a ram. Every
+  volley costs a combat round and each shot a round of ammunition; each
+  weapon then reloads for 17 seconds (25 and a half for the capital
+  weapons), a little faster with a better gunner and slower with a tired
+  crew (see SHIPHIRE).
 
   A shot hits on d20 + gunnery bonus against a DC set by the geometry: the
   range (much better inside three quarters of the weapon\'s reach), how
@@ -265,9 +267,10 @@ SHIPRAM [off]
   her bow and at her altitude. The heavier and faster the two hulls, the
   harder the blow is to land; a stopped target is ten times easier, and a
   better sailmaster helps. Both hulls take crash damage. A ram (SHIPEQUIP)
-  strikes first and halves the crash damage to its own bow. The heavier
-  hull slews the lighter about and both slow to speed 3, and everyone
-  aboard both makes a Reflex save (DC 15) or falls prone. She cannot ram
+  strikes first and halves the crash damage to its own bow. A rammer as
+  heavy as her target or heavier slews the target about and both slow to
+  speed 3; a lighter rammer is stopped dead. Everyone aboard both makes a
+  Reflex save (DC 15) or falls prone. She cannot ram
   again for 50 seconds (25 after a miss), and her guns are silent for 25
   seconds after a hit. A braced crew does not reload. Losing the lock or
   slowing to speed 3 stands it down, and SHIPRAM OFF stands it down at
@@ -791,8 +794,8 @@ VALUES ('SEASTATE', 'Usage: seastate
 Reads the water, sky, and depth around your vessel:
 
   Water      - the sector you are floating in
-  Depth      - how much water is under the keel; shallow water grounds
-               deep-draft hulls
+  Depth      - how much water is under the keel; at battle stations or
+               with her crew stunned, shallow water can ground her
   Weather    - fair, fogbound, squally, storm, or gale
   Visibility - how far you can see; fog closes the horizon, a posted
                lookout opens it again
@@ -854,8 +857,9 @@ SHIPGOTO <slot>
   it floats in. Use the slot numbers from SHIPLIST.
 
 SHIPFIX <slot>
-  Restore a vessel to full condition: armor, hull structure, rigging, and
-  rudder. For repairing damage caused by bugs rather than by enemies.
+  Restore a vessel to full condition: armor, hull structure, rigging,
+  rudder, and weapon damage, and stop her sinking (not ammunition). For
+  repairing damage caused by bugs rather than by enemies.
 
 SHIPPURGE <slot>
   Permanently remove a dynamic vessel, its persisted records, boardable
@@ -1218,7 +1222,7 @@ Examples:
   setschedule PatrolRoute 6   - Depart every 6 hours, preserving its fare
 
 Requirements:
-  - You must be aboard a vessel with autopilot capability
+  - You must be aboard the vessel
   - You must be the captain or at the helm, and meet the hull\'s level
     (see SHIPBROWSE)
   - The route must exist and have waypoints defined
@@ -1497,9 +1501,10 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VEHICLE-ADMIN', 'V
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('ASSIGNPILOT', 'Usage: assignpilot <npc name>
 
-Assigns an NPC in the helm room as the vessel\'s pilot. Once assigned,
-the pilot will automatically operate the autopilot system when a route
-is set, without requiring manual \'autopilot on\' commands.
+Assigns an NPC in the helm room as the vessel\'s pilot. If a route is set
+and the autopilot is off, the pilot takes the helm at once and engages it,
+without a manual \'autopilot on\'. A route the autopilot has finished, or one
+it is paused on, waits for \'autopilot on\'.
 
 Requirements:
 - You must be the captain of the vessel and meet the hull\'s level
