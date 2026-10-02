@@ -1425,6 +1425,85 @@ void Test_vessel_restart_keeps_an_owned_hull_damaged_in_port(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_relieved_pilot_leaves_the_route_set(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  struct ship_route *route;
+  char output[MAX_STRING_LENGTH];
+  char query[256];
+  char insert[256];
+  MYSQL *saved_conn;
+  MYSQL *connection;
+  bool saved_mysql_available;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    return;
+  }
+
+  connection = movement_open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  /* Her saved rows hang off her interior row; removing it clears them. */
+  snprintf(query, sizeof(query), "DELETE FROM ship_interiors WHERE ship_id = %d", MOVEMENT_SHIP);
+  CuAssertIntEquals(tc, 0, mysql_query(connection, query));
+  snprintf(insert, sizeof(insert), "INSERT INTO ship_interiors (ship_id) VALUES (%d)",
+           MOVEMENT_SHIP);
+  CuAssertIntEquals(tc, 0, mysql_query(connection, insert));
+
+  /* The owner's hull sails a route under an NPC pilot. */
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  strlcpy(ship->owner, "Mara", sizeof(ship->owner));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+  route = route_create("errand");
+  CuAssertPtrNotNull(tc, route);
+  CuAssertPtrNotNull(tc, autopilot_init(ship));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, 0.0, 30.0, 0.0, "far"));
+  CuAssertTrue(tc, autopilot_start(ship, route));
+  ship->autopilot->pilot_mob_vnum = 31810;
+
+  /* Relieving the pilot disengages the autopilot but keeps the route,
+   * which the cleanup below frees exactly once. */
+  saved_conn = conn;
+  saved_mysql_available = mysql_available;
+  conn = connection;
+  mysql_available = TRUE;
+  do_unassignpilot(&fixture.helm, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "of pilot duties.") != NULL);
+  CuAssertIntEquals(tc, AUTOPILOT_OFF, ship->autopilot->state);
+  CuAssertIntEquals(tc, -1, ship->autopilot->pilot_mob_vnum);
+  CuAssertPtrEquals(tc, route, ship->autopilot->current_route);
+
+  /* The captain can take her on along it. */
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  do_autopilot(&fixture.helm, "on", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Autopilot engaged on route 'errand'.") != NULL);
+  CuAssertIntEquals(tc, AUTOPILOT_TRAVELING, ship->autopilot->state);
+  conn = saved_conn;
+  mysql_available = saved_mysql_available;
+
+  CuAssertIntEquals(tc, 0, mysql_query(connection, query));
+  mysql_close(connection);
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
 void Test_vessel_battle_stations_risk_a_grounding(CuTest *tc)
 {
   struct movement_fixture fixture;

@@ -3706,12 +3706,9 @@ ACMD(do_unassignpilot)
   send_to_char(ch, "You relieve %s of pilot duties.\r\n", pilot_name);
   CAP(pilot_name);
   send_to_ship(ship, "%s has been relieved of pilot duties.", pilot_name);
+  /* As with 'autopilot off', the route stays set for 'autopilot on'. */
   if (stopped)
   {
-    if (snapshot.current_route != NULL)
-    {
-      route_destroy(snapshot.current_route);
-    }
     send_to_ship(ship, "The vessel's autopilot has been disengaged.");
   }
 }

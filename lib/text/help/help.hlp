@@ -40715,7 +40715,7 @@ Requirements:
 
 After removing the pilot:
 - Autopilot will be disengaged if it was active
-- Manual autopilot control will be required to navigate
+- The route stays set: AUTOPILOT ON sails it without a pilot
 - The NPC will remain in the helm room but no longer controls the ship
 
 To assign a new pilot, use the ASSIGNPILOT command.
