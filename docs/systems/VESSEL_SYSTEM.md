@@ -575,7 +575,9 @@ rest at the waypoint, while the requested cruise speed stays ordered. A boot or
 copyover during the wait reconstructs the vessel held with the remaining wait
 intact; expiry lifts the cap and advances the route. A paused autopilot holds
 the hull the same way; `autopilot off` leaves it on its ordered speed and
-heading.
+heading. An assigned NPC pilot engages a route the autopilot is off on
+(`autopilot_tick_one()`), so `autopilot off` is refused while one is assigned;
+`autopilot pause` or `unassignpilot`, which keeps the route set, holds her.
 
 ### Vehicle Functions
 
@@ -777,14 +779,19 @@ restored exactly. The production-linked suite passes 302 tests.
 
 | Command | Description | Usage |
 | -- | -- | -- |
-| autopilot | Toggle autopilot | `autopilot on/off/status` |
+| autopilot | Engage, pause, disengage, or read the autopilot | `autopilot [on\|off\|pause\|status]` |
 | setwaypoint | Create waypoint | `setwaypoint <name>` |
 | listwaypoints | List waypoints | `listwaypoints` |
-| delwaypoint | Delete waypoint | `delwaypoint <id>` |
+| delwaypoint | Delete a waypoint no route sails through | `delwaypoint <name>` |
 | createroute | Create route | `createroute <name>` |
 | addtoroute | Add waypoint to route | `addtoroute <route> <waypoint>` |
 | listroutes | List routes | `listroutes` |
+| delroute | Delete a route no hull runs on a schedule or is sailing | `delroute <name>` |
 | setroute | Assign route | `setroute <route>` |
+
+Waypoints and routes are shared by every captain and record no creator, so
+`delwaypoint` and `delroute` refuse only what a hull depends on (GitLab work
+item #11 tracks ownership).
 
 ### Operator Commands (Phases 09, 14, 15, and 16)
 
