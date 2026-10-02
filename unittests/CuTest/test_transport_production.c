@@ -333,6 +333,50 @@ void Test_vessel_msdp_state_clears_after_disembark(CuTest *tc)
   CuAssertTrue(tc, ashore_dirty);
 }
 
+void Test_shiplist_rows_fit_the_longest_class_and_names(CuTest *tc)
+{
+  struct greyhawk_ship_data *saved_ships;
+  struct room_data test_room;
+  struct room_data *saved_world;
+  struct descriptor_data descriptor;
+  struct char_data character;
+  char output[MAX_STRING_LENGTH];
+  room_rnum saved_top_of_world;
+
+  saved_ships = malloc(sizeof(greyhawk_ships));
+  CuAssertPtrNotNull(tc, saved_ships);
+  memcpy(saved_ships, greyhawk_ships, sizeof(greyhawk_ships));
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  memset(greyhawk_ships, 0, sizeof(greyhawk_ships));
+  memset(&test_room, 0, sizeof(test_room));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&character, 0, sizeof(character));
+  memset(output, 0, sizeof(output));
+  world = &test_room;
+  top_of_world = 0;
+  greyhawk_ships[7].active = TRUE;
+  greyhawk_ships[7].shipnum = 7;
+  greyhawk_ships[7].vessel_type = VESSEL_MAGICAL;
+  strlcpy(greyhawk_ships[7].name, "Sablebranch Grand Freighter", sizeof(greyhawk_ships[7].name));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.character = &character;
+  descriptor.pProtocol = ProtocolCreate();
+  character.desc = &descriptor;
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+
+  /* Staff read the whole class and a long design name, not "Magical Ve". */
+  do_shiplist(&character, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Sablebranch Grand Freighter    Magical Vessel ") != NULL);
+
+  ProtocolDestroy(descriptor.pProtocol);
+  memcpy(greyhawk_ships, saved_ships, sizeof(greyhawk_ships));
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  free(saved_ships);
+}
+
 void Test_shiplist_summary_remains_bounded_at_full_capacity(CuTest *tc)
 {
   struct greyhawk_ship_data *saved_ships;

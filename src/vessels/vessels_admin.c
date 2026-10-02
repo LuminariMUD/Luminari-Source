@@ -475,10 +475,10 @@ ACMD(do_shiplist)
 
   if (!summary_only)
   {
-    send_to_char(ch, "Slot Name                      Class      Pos           Hdg Spd Hull    "
-                     "Owner\r\n");
-    send_to_char(ch, "---- ------------------------- ---------- ------------- --- --- ------- "
-                     "----------\r\n");
+    send_to_char(ch, "Slot Name                           Class          Pos           Hdg Spd "
+                     "Hull    Owner\r\n");
+    send_to_char(ch, "---- ------------------------------ -------------- ------------- --- --- "
+                     "------- ----------\r\n");
   }
 
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
@@ -506,14 +506,14 @@ ACMD(do_shiplist)
       }
       if (ship->stowed)
       {
-        send_to_char(ch, "%4d %-25.25s %-10.10s %-13s   -   - %3d/%-3d %s\r\n", i, ship->name,
+        send_to_char(ch, "%4d %-30.30s %-14.14s %-13s   -   - %3d/%-3d %s\r\n", i, ship->name,
                      get_vessel_type_name(ship->vessel_type),
                      ship->summon_due > 0 ? "summoned" : "wreck registry",
                      vessel_total_internal(ship), vessel_max_internal(ship), registry);
       }
       else
       {
-        send_to_char(ch, "%4d %-25.25s %-10.10s (%5d,%5d) %3d %3d %3d/%-3d %s\r\n", i, ship->name,
+        send_to_char(ch, "%4d %-30.30s %-14.14s (%5d,%5d) %3d %3d %3d/%-3d %s\r\n", i, ship->name,
                      get_vessel_type_name(ship->vessel_type), (int)ship->x, (int)ship->y,
                      vessel_display_heading(ship->heading), vessel_display_speed(ship->speed),
                      vessel_total_internal(ship), vessel_max_internal(ship), registry);
