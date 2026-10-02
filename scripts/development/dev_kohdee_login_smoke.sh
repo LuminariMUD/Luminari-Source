@@ -1930,7 +1930,7 @@ proc run_vessel_raider_check {warship_id} {
   set output [run_game_command "shipstatus"]
   require_game_output $output "Slot 0: Small Catapult (fore)" "raider fit-out"
   require_game_output $output "Crew stamina: 800/800" "raider crew"
-  set output [run_game_command "where strongbox"]
+  set output [run_game_command "where raider-key"]
   require_game_output $output "a brass strongbox key     - carried by \[70020\] the corsair captain" \
     "raider strongbox key"
   set output [run_game_command "shipgoto $ship_slot"]
