@@ -313,12 +313,14 @@ economy_value() {
   sed -n "s/^${key}=\([1-9][0-9]*\)\r\{0,1\}\$/\1/p" "$economy_log" | head -n 1
 }
 
-# The shipyard prototype the rules session reported creating, if any.
-rules_prototype_id() {
+# A value the rules session reported, if any: the shipyard prototype it
+# created, or the seed of its waypoint and route names.
+rules_value() {
+  local key=$1
   local rules_log="$run_dir/02-kohdee-vessel-rules.log"
 
   [[ -f "$rules_log" ]] || return 0
-  sed -n 's/^rules_prototype_id=\([1-9][0-9]*\)\r\{0,1\}$/\1/p' "$rules_log" | head -n 1
+  sed -n "s/^${key}=\([1-9][0-9]*\)\r\{0,1\}\$/\1/p" "$rules_log" | head -n 1
 }
 
 restore_secondary_rules_state() {
@@ -326,6 +328,7 @@ restore_secondary_rules_state() {
   local marque_until
   local last_offense
   local prototype_id
+  local route_seed
 
   if [[ "$baseline_secondary_bounty" == absent ]]; then
     database_query "
@@ -340,7 +343,15 @@ restore_secondary_rules_state() {
              last_offense_at = FROM_UNIXTIME($last_offense)
        WHERE player_name = '$secondary_player';" || return 1
   fi
-  prototype_id=$(rules_prototype_id) || return 1
+  route_seed=$(rules_value rules_route_seed) || return 1
+  if [[ -n "$route_seed" ]]; then
+    database_query "
+      DELETE FROM ship_routes
+       WHERE name IN ('rulesrun$route_seed', 'rulesown$route_seed');
+      DELETE FROM ship_waypoints
+       WHERE name IN ('rulesmark$route_seed', 'rulesown$route_seed');" || return 1
+  fi
+  prototype_id=$(rules_value rules_prototype_id) || return 1
   [[ -n "$prototype_id" ]] || return 0
   database_query "
     DELETE FROM ship_prototypes
@@ -1050,15 +1061,16 @@ elif [[ "$acceptance_mode" == raider ]]; then
 elif [[ "$acceptance_mode" == rules ]]; then
   timeout 120 env DEV_MUD_CHARACTER="$target_player" \
     "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --help-check \
-    SHIPFIRE BOUNTY SHIPBROWSE >"$run_dir/01-rules-help.log" 2>&1 ||
+    SHIPFIRE BOUNTY SHIPBROWSE DELROUTE >"$run_dir/01-rules-help.log" 2>&1 ||
     fail "Kohdee could not read the authoritative vessel rules help"
   rules_help_state=$(database_query "
     SELECT COUNT(*)
       FROM help_entries
      WHERE (BINARY tag = 'SHIPFIRE' AND entry LIKE '%Harbors are neutral ground%')
         OR (BINARY tag = 'PLUNDER' AND entry LIKE '%BOUNTY PAY%')
-        OR (BINARY tag = 'SHIPBROWSE' AND entry LIKE '%at most three%');")
-  [[ "$rules_help_state" == 3 ]] ||
+        OR (BINARY tag = 'SHIPBROWSE' AND entry LIKE '%at most three%')
+        OR (BINARY tag = 'DELROUTE' AND entry LIKE '%only the captain who created one%');")
+  [[ "$rules_help_state" == 4 ]] ||
     fail "the authoritative vessel rules help is stale"
 
   timeout 300 env DEV_MUD_CHARACTER="$target_player" \
@@ -1072,6 +1084,7 @@ elif [[ "$acceptance_mode" == rules ]]; then
     'PASS: contacts and tactical shared two-letter IDs, and shipfire targeted a contact by ID.' \
     "PASS: Vesselmate could not fire the weapons of another captain's warship." \
     'PASS: Vesselmate was refused command of a level-' \
+    "PASS: Vesselmate was refused another captain's waypoint and route, and kept their own." \
     'PASS: a fourth deed to Vesselmate was refused at the three-hull cap.' \
     "PASS: Vesselmate saw the WANTED bounty's 125% pay-off, refused away from port." \
     'PASS: the vessel rules check completed and purged all temporary hulls'; do
@@ -1083,6 +1096,7 @@ elif [[ "$acceptance_mode" == rules ]]; then
     'CONTACT LIST' \
     'No contact in sight matches' \
     'guns answer to her owner' \
+    'is not yours: only the captain who created it, or the staff, may' \
     'Vesselmate already owns 3 hulls' \
     "clears it for 750 gold ('bounty pay')"; do
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-rules.log" ||
@@ -1156,7 +1170,7 @@ if [[ "$acceptance_mode" == movement || "$acceptance_mode" == loss ]]; then
     fail "a temporary check boat prototype remained"
 fi
 if [[ "$acceptance_mode" == rules ]]; then
-  rules_prototype=$(rules_prototype_id)
+  rules_prototype=$(rules_value rules_prototype_id)
   [[ -n "$rules_prototype" ]] ||
     fail "the rules session did not report its shipyard test prototype"
   [[ $(database_query "
@@ -1164,6 +1178,14 @@ if [[ "$acceptance_mode" == rules ]]; then
       FROM ship_prototypes
      WHERE prototype_id = $rules_prototype;") == 0 ]] ||
     fail "the temporary shipyard test prototype $rules_prototype remained"
+  rules_route_seed=$(rules_value rules_route_seed)
+  [[ -n "$rules_route_seed" ]] ||
+    fail "the rules session did not report its waypoint and route names"
+  rules_route_rows=$(database_query "
+    SELECT (SELECT COUNT(*) FROM ship_routes WHERE name LIKE 'rules%$rules_route_seed')
+         + (SELECT COUNT(*) FROM ship_waypoints WHERE name LIKE 'rules%$rules_route_seed');")
+  [[ "$rules_route_rows" == 0 ]] ||
+    fail "a waypoint or route of the rules session remained"
 fi
 if grep -E 'SYSERR:.*(tactical|lookout|narrative|boarding|Boardatk|Boarddef|Rulesraft|Movecheck|Losscheck|bounty|refits|Starfall Bastion|Starfall Trench|Vailand)' \
   "$server_log" >"$run_dir/04-related-syserr.log"; then
