@@ -133,8 +133,9 @@ BOARD_HOSTILE <vessel>
   to the shared PvP consent rules before either contest occurs.
 
 Navigation changes require the owner, a permitted helmsman, or the authorized
-NPC pilot at the helm. See the individual ownership and autopilot topics for
-longer-lived controls.
+NPC pilot at the helm. A public hull with an NPC pilot, such as a ferry or a
+merchant, answers only to her pilot: her passengers ride. See the individual
+ownership and autopilot topics for longer-lived controls.
 
 See also: AUTOPILOT, SHIP-COMBAT, SHIP-OWNERSHIP, SEASTATE, VEHICLES', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),

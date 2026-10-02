@@ -1095,7 +1095,10 @@ refused rather than held to the lower class minimum. These checks only read
 table at boot, never on a command.
 
 Owned ships restrict the helm (`is_pilot()`) to owner + permits + immortals
-(`src/vessels/vessels_ownership.c`). Owner persists in `ship_interiors.owner`
+(`src/vessels/vessels_ownership.c`). An unowned hull with an NPC pilot (a
+public ferry or merchant) restricts it to NPCs and immortals, so passengers
+cannot steer, stop, anchor, or reroute her or dismiss her pilot; other unowned
+hulls stay open to anyone. Owner persists in `ship_interiors.owner`
 (auto-migrated); permits persist in `ship_crew_roster` (crew_role
 'captain', npc_vnum -1). Capture via `claimship` transfers ownership and
 voids old permits.

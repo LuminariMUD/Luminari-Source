@@ -1180,6 +1180,7 @@ void Test_vessel_balance_duel_simulation(CuTest *tc)
 
 void Test_vessel_ownership_helm_permission_matrix(CuTest *tc)
 {
+  struct autopilot_data autopilot;
   struct greyhawk_ship_data ship;
   struct char_data owner_ch;
   struct char_data crew_ch;
@@ -1195,6 +1196,22 @@ void Test_vessel_ownership_helm_permission_matrix(CuTest *tc)
 
   /* Unowned ships are free for anyone */
   CuAssertTrue(tc, vessel_helm_permitted(&stranger_ch, &ship));
+
+  /* ...but a public hull with an NPC pilot answers to her pilot and staff;
+   * her passengers ride. */
+  memset(&autopilot, 0, sizeof(autopilot));
+  autopilot.pilot_mob_vnum = 31810;
+  ship.autopilot = &autopilot;
+  CuAssertTrue(tc, !vessel_helm_permitted(&stranger_ch, &ship));
+  SET_BIT_AR(MOB_FLAGS(&crew_ch), MOB_ISNPC);
+  CuAssertTrue(tc, vessel_helm_permitted(&crew_ch, &ship));
+  REMOVE_BIT_AR(MOB_FLAGS(&crew_ch), MOB_ISNPC);
+  stranger_ch.player.level = LVL_IMMORT;
+  CuAssertTrue(tc, vessel_helm_permitted(&stranger_ch, &ship));
+  stranger_ch.player.level = 0;
+  autopilot.pilot_mob_vnum = -1;
+  CuAssertTrue(tc, vessel_helm_permitted(&stranger_ch, &ship));
+  ship.autopilot = NULL;
 
   /* Owned: only the owner... */
   strlcpy(ship.owner, "Corr", sizeof(ship.owner));
