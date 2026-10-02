@@ -2922,6 +2922,57 @@ ACMD(do_listwaypoints)
 }
 
 /**
+ * The first route that sails through a waypoint, or NULL. Waypoints and
+ * routes are shared by every captain, so one in use is not deleted.
+ */
+static const char *waypoint_route_in_use(int waypoint_id)
+{
+  struct route_node *route;
+  int i;
+
+  for (route = route_list; route != NULL; route = route->next)
+  {
+    for (i = 0; i < route->num_waypoints; i++)
+    {
+      if (route->waypoint_ids[i] == waypoint_id)
+      {
+        return route->name;
+      }
+    }
+  }
+  return NULL;
+}
+
+/**
+ * A hull that runs a route on a schedule or is sailing it now, or NULL:
+ * the public ferries and merchants run on schedules.
+ */
+static const char *route_hull_in_use(int route_id)
+{
+  const struct greyhawk_ship_data *other;
+  const struct autopilot_data *ap;
+  int i;
+
+  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+  {
+    other = &greyhawk_ships[i];
+    if (!is_valid_ship(other))
+    {
+      continue;
+    }
+    ap = other->autopilot;
+    if ((other->schedule != NULL && other->schedule->route_id == route_id) ||
+        (ap != NULL && ap->current_route != NULL && ap->current_route->route_id == route_id &&
+         (ap->state == AUTOPILOT_TRAVELING || ap->state == AUTOPILOT_WAITING ||
+          ap->state == AUTOPILOT_PAUSED)))
+    {
+      return other->name;
+    }
+  }
+  return NULL;
+}
+
+/**
  * ACMD handler for delwaypoint command.
  * Deletes a waypoint by name.
  * Usage: delwaypoint <name>
@@ -2930,6 +2981,7 @@ ACMD(do_delwaypoint)
 {
   struct greyhawk_ship_data *ship;
   struct waypoint_node *current;
+  const char *in_use;
   char arg[MAX_INPUT_LENGTH];
   int found_id;
 
@@ -2968,6 +3020,13 @@ ACMD(do_delwaypoint)
   if (found_id < 0)
   {
     send_to_char(ch, "Waypoint '%s' not found.\r\n", arg);
+    return;
+  }
+
+  if ((in_use = waypoint_route_in_use(found_id)) != NULL)
+  {
+    send_to_char(ch, "Waypoint '%s' is on route '%s'; it stays while the route does.\r\n", arg,
+                 in_use);
     return;
   }
 
@@ -3143,6 +3202,7 @@ ACMD(do_delroute)
 {
   struct greyhawk_ship_data *ship;
   struct route_node *route;
+  const char *in_use;
   char arg[MAX_INPUT_LENGTH];
   int route_id;
 
@@ -3177,6 +3237,15 @@ ACMD(do_delroute)
   if (route_id < 0)
   {
     send_to_char(ch, "Route '%s' not found.\r\n", arg);
+    return;
+  }
+
+  if ((in_use = route_hull_in_use(route_id)) != NULL)
+  {
+    send_to_char(ch,
+                 "Route '%s' is in use by %s, on a schedule or a voyage under way; it stays "
+                 "while she sails it.\r\n",
+                 arg, in_use);
     return;
   }
 

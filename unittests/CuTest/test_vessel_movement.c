@@ -1614,6 +1614,63 @@ void Test_vessel_autopilot_off_is_refused_under_a_pilot(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_shared_waypoints_and_routes_in_use_stay(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  struct descriptor_data descriptor;
+  struct waypoint_node buoy;
+  struct waypoint_node *saved_waypoints;
+  struct route_node loop;
+  struct route_node *saved_routes;
+  struct vessel_schedule schedule;
+  char output[MAX_STRING_LENGTH];
+  int waypoint_ids[1];
+
+  /* A ferry's loop through a buoy, on her schedule. */
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &fixture.helm;
+  fixture.helm.desc = &descriptor;
+  memset(&buoy, 0, sizeof(buoy));
+  memset(&loop, 0, sizeof(loop));
+  memset(&schedule, 0, sizeof(schedule));
+  buoy.waypoint_id = MOVEMENT_WAYPOINT_ID;
+  strlcpy(buoy.data.name, "buoy", sizeof(buoy.data.name));
+  waypoint_ids[0] = buoy.waypoint_id;
+  loop.route_id = MOVEMENT_WAYPOINT_ID;
+  strlcpy(loop.name, "ferry_loop", sizeof(loop.name));
+  loop.num_waypoints = 1;
+  loop.waypoint_ids = waypoint_ids;
+  saved_waypoints = waypoint_list;
+  saved_routes = route_list;
+  buoy.next = saved_waypoints;
+  loop.next = saved_routes;
+  waypoint_list = &buoy;
+  route_list = &loop;
+  schedule.route_id = loop.route_id;
+  ship->schedule = &schedule;
+
+  /* Any captain may use them, so no captain may pull them out from under
+   * the ship that sails them. */
+  do_delwaypoint(&fixture.helm, "buoy", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Waypoint 'buoy' is on route 'ferry_loop'") != NULL);
+  do_delroute(&fixture.helm, "ferry_loop", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Route 'ferry_loop' is in use by the Heron") != NULL);
+
+  ship->schedule = NULL;
+  waypoint_list = saved_waypoints;
+  route_list = saved_routes;
+  fixture.helm.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  movement_end(&fixture);
+}
+
 void Test_vessel_battle_stations_risk_a_grounding(CuTest *tc)
 {
   struct movement_fixture fixture;

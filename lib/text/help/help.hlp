@@ -9524,7 +9524,9 @@ DELROUTE
 Usage: delroute <name>
 
 Permanently deletes a navigation route and its ordered waypoint associations.
-The named waypoints themselves are not deleted.
+The named waypoints themselves are not deleted. Routes are shared by every
+captain: a route that a vessel runs on a schedule, or is sailing now (under
+way, waiting at a waypoint, or paused), cannot be deleted.
 
 You must be aboard the vessel and authorized as its captain. Route deletion is
 written to the database and the live route cache immediately.
@@ -9541,8 +9543,8 @@ Usage: delwaypoint <name>
 
 Deletes a navigation waypoint by name.
 
-WARNING: Deleting a waypoint that is part of an active route may cause
-navigation issues. Ensure the waypoint is not currently in use.
+Waypoints are shared by every captain. A waypoint that any route sails
+through cannot be deleted; delete the route first.
 
 You must be at the helm or be the ship's owner to delete waypoints.
 
