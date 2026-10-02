@@ -2473,6 +2473,160 @@ local client fix `fix/literal-carets` (`bb7c707`) stays on its local branch for 
 production world-data notes in Hand-off above go with the next production deploy. S10 is next, on
 `feat/vessels-s10` from the merge ([status in vessels-ships.md](vessels-ships.md#status)).
 
+### Phase 10 (S10) progress
+
+In review (2026-10-02). Branch `feat/vessels-s10` from the S9 merge `a6adb46a8`, where the
+annotated tag `vessels-s10-base` stands, so `git log vessels-s10-base..vessels-s10` lists only
+S10. The first commit after the S9 close-out (`bf5e6bf64`) is this plan. Hand-off as in the
+routine: tag `vessels-s10` and a merge request; review fixes go on top. Scope: an illustrated
+player guide to the whole vessel system, written from `guide-notes.md` and the S9 screenshots.
+
+Items:
+
+1. The guide: `docs/guides/VESSEL_PLAYER_GUIDE.md`, ASCII Markdown beside the existing
+   `NEW_PLAYER_GUIDE_LEVEL_1-5.md`, in the order a player meets the system: passage on public
+   ships, finding and buying a hull, crew and refits, sailing, routes, trade, gunnery, damage and
+   repair, prizes, other captains, contraband, loss and recovery, other hulls and vehicles, the
+   living world, client data; then a staff appendix. Each chapter shows the commands, what the
+   player sees (the screenshots with captions), the numbers that matter, the refusals a player
+   meets, and tips.
+2. The screenshots move from `docs/ongoing-projects/guide-screenshots/` to
+   `docs/guides/vessel-guide/` (`git mv`, unchanged files): `ongoing-projects/` is temporary, and
+   the guide is permanent documentation. `guide-notes.md` stays as S9's record (the history cites
+   it), its screenshot pointer updated.
+3. Accuracy: every screenshot audited against the current code (S9 fixed defects mid-play, so a
+   shot or a note can predate its fix), and every number and rule in the notes checked against
+   the source and help. A wrong note is corrected in the guide; a game or help defect found on the
+   way is fixed to Part 5's standard (production-linked test, help in both places,
+   `VESSEL_SYSTEM.md`), one commit each, recorded below. A screenshot that shows behavior since
+   changed is retaken or captioned.
+4. Links: the master index (`docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md`) and
+   `VESSEL_SYSTEM.md` point to the guide.
+
+Interpretations decided while planning S10:
+
+- The guide is for players; the development world's names (the Testing Dock, the Harbor Sandbox,
+  the Sea Wren) and its catalog and market prices are examples, said so once. Code-fixed values
+  (crew and weapon prices, fees, timings, shares, thresholds) are stated as the rules.
+- Passage on public ships comes first: a new character meets the ferries long before the level
+  for a hull of their own.
+- Staff tools are an appendix, as S9 played them, so the guide covers the whole system.
+
+Ablation (planning): dropped an HTML copy in the web portal (`docs/web/`; the Markdown renders with
+its images on GitLab, and the existing player guide is Markdown), a new play session (S9's
+screenshots and notes are the source by plan; a retake only where a shot shows behavior since
+changed), an in-game help pointer to the guide (a game client cannot show its images, and the
+repository's public address is not settled), and the routine's `make test-all`, gates and help
+verifier unless S10 changes code, help or SQL (documentation cannot affect them). Simplified: the
+screenshots move instead of being copied. Kept: the screenshot audit and fact check, because the
+guide states numbers as facts and the notes were written while fixes landed; and the staff
+appendix.
+
+Verification: the commit hooks (mdformat, ASCII hygiene, 500 KB file limit), a check that every
+image and anchor in the guide resolves, and the local CI matrix
+(`scripts/ci/local/run.py --base gitlab/master`); plus the routine's full verification if S10
+changes code, help or SQL.
+
+Progress log (2026-10-02, kept current as the work goes):
+
+- Plan committed. Screenshot audit (four lanes, 01-79) and fact check (chapters 1-7, 8-17)
+  done. The fact check found about 30 notes that the code contradicts or that state a special
+  case as a rule (the guide states the code's rule; the notes stay as S9 recorded them), and the
+  defects below. The audit found no account name, password or address in any shot, and no shot
+  that needs a new play session: 21 duplicates 20 and 42 shows a refused shot rather than the
+  group forfeit, so the guide describes those two in text and does not use them; 35 shows a ram
+  rather than gunfire and is captioned as what it shows; about twenty need a crop or a
+  redaction (pre-fix text in 02, 10, 19, 31 and 38, the staff character's staging lines in 17,
+  25, 29, 30, 31, 68 and 79, interiors persisted before `49ab1fb55` drawing several "you are
+  here" markers in 18, 66 and 67) or a caption limited to what is visible.
+- The guide, `docs/guides/VESSEL_PLAYER_GUIDE.md` (`ea5a1da5c`): 17 chapters in the order a player
+  meets the system, a command summary and a staff appendix. The screenshots moved to
+  `docs/guides/vessel-guide/` (76 kept: ten cropped, five with staging lines or old interior
+  minimaps blanked; 21 and 72, copies of 20 and 71, and 42 removed). `guide-notes.md` stays as
+  S9's record with its pointer updated.
+- A second, fresh review of the finished guide against the code (`049f06aa7`) found about 30
+  statements put too broadly or wrongly and 13 captions claiming more than their image shows, all
+  corrected, and the four defects at the end of the table below. Its point that waypoints and
+  routes have no owner, so any captain can delete another's idle route, needs a schema change and
+  is GitLab work item #11.
+
+Ablation (building): no new play session; the three shots that do not show what their notes
+say are dropped and their moments described in text, and stale lines are cropped or blanked
+rather than retaken. Each fix is the smallest that closes the defect: an in-use guard instead of
+a creator column for shared waypoints and routes (work item #11), the absolute MUD hour in the
+existing `next_departure` column instead of a new one, a refusal for `autopilot off` under a
+pilot instead of new pilot state, and the existing contact resolver for `board_hostile` and
+`dock`, which retired `find_ship_by_name()`.
+
+Defects found and fixed (each with a production-linked test where behavior changed; help in
+both places where it changed):
+
+| Finding | Fix | Commit |
+| -- | -- | -- |
+| `unassignpilot` on a hull sailing a route freed the route while the autopilot still held it: `autopilot status` read freed memory, and `setroute`, `autopilot on` or cleanup freed it again (a crash) | Relieving the pilot disengages the autopilot as `autopilot off` does and keeps the route; DB-backed test | `3ad7f52f3` |
+| A ship steered at the shore, in shoal water she may sail, was told "It requires deep water to sail" | "Your ship cannot go there! She keeps to the water's surface, clear of beach and land." | `73bae886a` |
+| `tenter [target]` ignored its target and entered the first vehicle in the room | It finds the vehicle as `vmount` does and refuses a name that matches none | `7d26fb597` |
+| `tgo` hinted "Usage: go ..." and "Try 'enter' ...", other commands | The hints name `tgo` and `tenter` | `6cae7a8c9` |
+| `vevent` showed players fleet slots ("Entered Sea Wren (slot 13)", "slot 16 Wren Skiff", "Ghost contact: slot 33") | Entry, roster and ghost contacts show the contact ID; DB-backed test | `32e11bbfb` |
+| Every hull's room line read "is moored here", at sea and sinking too | Look builds the line as she lies: moored, at anchor, sinking, hovering overhead, or here; the lookout gate's open-water hull reads "is here" | `4d4607aec` |
+| `shiplist` cut "Magical Vessel" to "Magical Ve" and names to 25 letters | Class 14 and Name 30 wide | `01c79ad70` |
+| Customs could seize at 0-4% though help promised never below 5 (Duris floors only a negative chance, against its own comment) | Never under 5 | `aa03131db` |
+| Help said otherwise than the code: SEASTATE (grounding), VESSELS (a pilotless unowned hull answers anyone), SETSCHEDULE, ASSIGNPILOT (engages only with the autopilot off), SHIPRAM (the slew rule), SHIPFIRE (in port, stunned, after a ram), SHIPFIX (weapons, sinking) | Corrected in both places | `fe8d054b8` |
+| `VESSEL_SYSTEM.md`'s vehicle table, terrain flags and speeds, `unloadvehicle` syntax, and a workflow that mounts a vehicle before loading it | Corrected to the code | `2f1adf001` |
+| A schedule's next departure was an hour of the day: one set at hour 20 for every 6 hours read hour 2 as passed and departed again at once, and an interval of 24 departed every hour | An absolute MUD hour (`schedule_mud_hour()`); a row saved in the old form departs once | `f51c34b55` |
+| `autopilot off` under an NPC pilot printed "Autopilot disengaged." and the pilot engaged her again half a second later | Refused with the orders that hold, `autopilot pause` and `unassignpilot`; AUTOPILOT help | `44bf37eaa` |
+| Any captain could delete any waypoint or route, the public ferry's loop included, which stopped her departures | `delwaypoint` keeps a waypoint a route uses, `delroute` a route a hull runs on a schedule or is sailing; help; ownership is work item #11 | `523417bbd`, `05a5ead8a` |
+| `board_hostile` and `dock` took the first hull anywhere whose name had the word, so a namesake out of sight answered "too far away" | They resolve contacts as `shiplock` does; `find_ship_by_name()`, left without a caller, is removed | `2d2ac9b8b` |
+
+Verification (2026-10-02):
+
+- `make test-all` with the database cases (the `luminari-vessels-testdb` container; environment as
+  in S9's `testenv.sh`) on the final code, `05a5ead8a`: 1,994 CuTest cases OK (seed 1) and the
+  protocol harness's 32. The first run, on `ea5a1da5c`, passed 1,991.
+- Help: on a fresh reload of the development dump, `help_vessel_entries.sql` applied and
+  `verify_help_vessel_entries.sql` passed all seven checks (34 entries, 91 command keywords, 52
+  content contracts), before and after the second round of fixes.
+- Live gates in the namespace harness (`/tmp/claude-1000/vs4`, batch jobs `w*` and `u*`), on the
+  installed build. On `ea5a1da5c` all 20 passed: merchant 36 s, campaign 128 s, Vailand merchant
+  148 s, builder 49 s, gunnery 71 s, tactical 359 s (with the open-water hull now reading "Azure
+  Watch is here"), lookout 25 s, boarding 49 s, narrative 23 s, rules 35 s, events 96 s,
+  movement 104 s, loss 77 s, damage 603 s, derelict 33 s, hunter 91 s, frontier 217 s, raider
+  179 s, economy 257 s, client 26 s. On the final code, `05a5ead8a` (batches `u*` and `t*`),
+  all 20 passed again: merchant 37 s, campaign 134 s, Vailand merchant 145 s, builder 48 s,
+  gunnery 71 s, tactical 279 s, lookout 22 s, boarding 48 s, narrative 21 s, rules 35 s, events
+  42 s, movement 104 s, loss 75 s, damage 597 s, derelict 31 s, hunter 97 s, frontier 222 s,
+  raider 157 s, economy 271 s, client 26 s. Twelve of them first refused to start ("source
+  worktree must be clean": an uncommitted edit to this record was in the tree) and passed when
+  rerun on a fresh reload with the tree clean. The gates refuse a dirty worktree, so no edit may
+  sit uncommitted while a batch runs.
+- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`, 33 jobs) on `ea5a1da5c`
+  passed 32; clang-tidy's analyzer flagged a second `getenv()` in the event test as a possible
+  null (`48e0a141b` reads it once; the job then passed alone). On the final code, `05a5ead8a`,
+  all 33 passed in 581 s.
+
+Cleanup: the harness is stopped (its disposable database stops with its namespace); S10 created
+no characters or pfiles, ran no autorun, and left no scratch files in the worktree.
+
+Hand-off: tag `vessels-s10` and MR !16 from `feat/vessels-s10` (range
+`vessels-s10-base..vessels-s10`). Review fixes go on top, one commit each. After the merge:
+
+- Sync the help to production. Eleven entries changed (by first keyword): ANCHOR (the vessel
+  commands), ASSIGNPILOT, AUTOPILOT, BATTLE-STATIONS (SHIPFIRE and SHIPRAM), DELROUTE,
+  DELWAYPOINT, LOADVEH (the transport commands, TENTER), SEA-STATE, SETSCHEDULE, SHIP-ADMIN
+  (SHIPFIX) and UNASSIGNPILOT.
+- The code fixes go with the next production deploy. A production schedule row saved as an hour
+  of the day reads as overdue and departs once after that deploy.
+- Then close the study's documents: S10 is the last step of Part 5.
+
+MR !16 merged on 2026-10-02 as merge commit `60ef66ad1` (branch kept); its review found no
+defects at the tagged head. S10's help was applied to the development database and synced to
+production the same day (plan `78cccae490f9`: 11 updates, no additions, deletions or renames, no
+layer repair; both endpoints verified at catalog `860077a11dd6`), and the advanced baseline was
+copied to the main checkout. With S10, every step of Part 5 is merged. Still open outside it: the
+production deploy of S9's world-data notes and S10's code, the Open player-data balance and human
+beta gates, GitLab work items #10 and #11, and closing these study documents
+([status in vessels-ships.md](vessels-ships.md#status)).
+
 ## Original estimate
 
 Working days of focused implementation per step, each including its tests, help in both places,
