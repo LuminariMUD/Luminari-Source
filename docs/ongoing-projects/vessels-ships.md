@@ -212,14 +212,14 @@ Chapters, in play order:
 | 5 | Routes, autopilot and schedules | Vesselmate | - | `setwaypoint`, `listwaypoints`, `delwaypoint`, `createroute`, `addtoroute`, `delroute`, `listroutes`, `setroute`, `autopilot`, `setschedule`, `showschedule`, `clearschedule`, `assignpilot`, `unassignpilot` | Played |
 | 6 | Passage on public ships | Vesselmate | - | The harbor ferry and its fare, the Vailand merchant | Played |
 | 7 | Trade and freight | Vesselmate | - | `market`, `cargobuy`, `cargomanifest`, `cargosell` and its modifiers, `contracts`, `contractaccept`, `contractdeliver`, `contractabandon` | Played |
-| 8 | Gunnery against a raider | Vesselmate | `vesseldebug raider 0` from aboard his hull | `shipsight`, `shipscan`, `shiplock`, battle stations, `shipfire` by arc, reloads and ammunition, raider tactics and boarding, `shipram` | Not started |
-| 9 | Damage, repair and salvage | Vesselmate | `shipfix` between runs when needed | Arcs, breaches, sails and rudder, criticals, the sink timer, `shiprepair` at sea and at a dock, cargo spill and `shipsalvage` | Not started |
-| 10 | Boarding and taking a prize | Vesselmate | A raider to disable | `boardcheck`, `board_hostile`, `claimship`, `plunder`, the D6 prize rules | Not started |
-| 11 | Two captains | Vesselmate and the new mortal | Both hulls at sea, PvP on, the pair grouped and then apart | `shippermit`, `shiprevoke`, `shipdeed`, a PvP fight to a sinking, `strikecolors`, renown and `shiprenown`, prize money and its mail, allies' shares, `bounty`, `marque` | Not started |
-| 12 | Contraband and customs | Vesselmate | - | Contraband with the renown won in chapter 11, the smugglers' `market` listings, customs at a lawful port | Not started |
-| 13 | Loss and recovery | The new mortal | - | The wreck registry, the insurance claim, `shipsummon`, trade-in (`shipbuy <id> trade`), the rename fee, the ownership cap | Not started |
-| 14 | Other hulls and vehicles | Vesselmate | `vedit spawn` of the frontier classes where each can travel | River craft, airship altitude, submarine depth, transport, magical hulls; `vmount`, `drive`, `vstatus`, `vdismount`, `loadvehicle`, `unloadvehicle`, `tenter`, `tgo`, `tstatus`, `texit` | Not started |
-| 15 | The living world | Vesselmate and the new mortal | `vevent start` | The Blackwake derelict, `vevent status`, `join`, `enlist` and `leaderboard`, encounters and bounty hunters | Not started |
+| 8 | Gunnery against a raider | Vesselmate | `vesseldebug raider 0` from aboard his hull | `shipsight`, `shipscan`, `shiplock`, battle stations, `shipfire` by arc, reloads and ammunition, raider tactics and boarding, `shipram` | Played |
+| 9 | Damage, repair and salvage | Vesselmate | `shipfix` between runs when needed | Arcs, breaches, sails and rudder, criticals, the sink timer, `shiprepair` at sea and at a dock, cargo spill and `shipsalvage` | Played |
+| 10 | Boarding and taking a prize | Vesselmate | A raider to disable | `boardcheck`, `board_hostile`, `claimship`, `plunder`, the D6 prize rules | Played |
+| 11 | Two captains | Vesselmate and the new mortal | Both hulls at sea, PvP on, the pair grouped and then apart | `shippermit`, `shiprevoke`, `shipdeed`, a PvP fight to a sinking, `strikecolors`, renown and `shiprenown`, prize money and its mail, allies' shares, `bounty`, `marque` | Played |
+| 12 | Contraband and customs | Vesselmate | - | Contraband with the renown won in chapter 11, the smugglers' `market` listings, customs at a lawful port | Played |
+| 13 | Loss and recovery | The new mortal | - | The wreck registry, the insurance claim, `shipsummon`, trade-in (`shipbuy <id> trade`), the rename fee, the ownership cap | Played |
+| 14 | Other hulls and vehicles | Vesselmate | `vedit spawn` of the frontier classes where each can travel | River craft, airship altitude, submarine depth, transport, magical hulls; `vmount`, `drive`, `vstatus`, `vdismount`, `loadvehicle`, `unloadvehicle`, `tenter`, `tgo`, `tstatus`, `texit` | Played |
+| 15 | The living world | Vesselmate and the new mortal | `vevent start` | The Blackwake derelict, `vevent status`, `join`, `enlist` and `leaderboard`, encounters and bounty hunters | Played |
 | 16 | Staff tools | Kohdee | - | `vedit`, `vmerchant`, `shiplist`, `shipgoto`, `shipfix`, `shippurge`, `boardfind`, `vesseldebug`, `vevent end`, `cancel` and `recover`, the `cedit` vessel switch and ownership cap | Not started |
 | 17 | Client data | Vesselmate | - | The Ship tab aboard, in a fight and ashore, and the 21 vessel MSDP variables behind it | Not started |
 
@@ -264,7 +264,15 @@ Ablation (starting play): chapter 17 reuses the Ship-tab screenshots that chapte
 at sea and in a fight, plus one ashore, instead of replaying them; the rest of the plan stands.
 
 Chapter state is in the table above; `guide-notes.md` has each played chapter's screenshots and
-notes. Played so far: 1-7 (6 while the shipwrights worked on chapter 3's refit).
+notes. Played so far: 1-15 (6 while the shipwrights worked on chapter 3's refit; 13 after 14,
+while the summoned Kestrel sailed). Left: 16 (staff tools) and 17 (client data), then the
+routine's verification, tag, push and merge request.
+
+Play findings that are not defects (recorded in the notes): `boardcheck` and `boardfind` are
+bulletin-board commands, not vessel ones (chapter 16 covers the board commands it names only as
+what they are); a wreck is rebuilt as the cheapest boat (decision D3) and is worth nothing in
+trade; the level gate holds departures only; the sandbox's only encounter row is the rafts-only
+Admiralty hunter patrol; a HUNTED captain is refused all business at lawful ports.
 
 How play runs (for a session taking over): the harness, bridge and client run as S-immediate
 left them (history, For S9). Helpers in `/tmp/claude-1000/s9/`: `login.sh <session> master <Character>`, `cmd.sh <session> <wait-ms> <command>` (types a command, prints the terminal's
@@ -313,10 +321,25 @@ changed):
 | "fit Sea Wren with a Neutral Colors" | No article before Neutral Colors | `aa8c42649` |
 | A holed raider dead in the water read "sound" in contacts, tactical, lookout, seastate and shipscan | Any holed hull is at least crippled | `a973e22d2` |
 | People put off a hull landed at the coordinates they last stood ashore: a ferry passenger stepping off at the east dock landed at the west dock, and a boarder thrown into the sea at (-91, 77) came up at (-66, 91) (`char_to_room()` uses the character's coordinates; disembark set them after the move, the boarding fall and sinking not at all) | `vessel_char_to_room()` sets them first, for every place that puts people off a hull | `d97a724bd` |
+| Boarding an empty hull and failing told the boarder "the defenders drive you back" | With nobody aboard the hull alone resists ("Your grappling lines fail to take hold.") | `c206f6140` |
+| A plunder that moved nothing said "nothing worth taking, or no room to take it" | It says the prize's hold is empty, or that her own hull has no room | `c4e795d6e` |
+| The raider's brass key answered to `strongbox`, so `unlock`, `open` and `get all strongbox` found the key ("A brass strongbox key is not a container.") | The key answers to key, brass and raider (world file `lib/world/vessel_raiders/700.obj`; production's live record needs the same keywords, as the raider provisioner adds only missing records) | `1182093b4` |
+| Grouped captains could fire on, board and claim each other's ships and stay grouped | A recorded hostile engagement against a groupmate's hull costs the aggressor the group, as in person (`fight.c`) | `a3e448e2c` |
+| `bounty` told a clean captain "You carries no price." | "You carry no price." | `420e8735b` |
+| `cargobuy tomes 10` found nothing (goods matched only from the start of "forbidden tomes"); `marque` and `bounty pay` aboard a berthed hull did not say the admiralty office is ashore | Any word of a commodity's name matches; the refusals and help say ashore | `ab2701d0b` |
+| A riverboat steered onto the bank was told she is "designed for coastal waters only" while sailing a river | "Your boat cannot go there! She keeps to rivers and shallow coastal water." | `6fc108a55` |
+| Vehicles were never listed in a room: a player beside a cart saw an empty field | `look` lists vehicles standing in the room ("River Cart, a cart, stands here.") | `03f6b6a76` |
+| `tgo` moved the cart and left its rider behind | On a land vehicle `tgo` is `drive`, which carries the riders | `1ad24f5df` |
+| A magical hull hovering over a field loaded and unloaded a cart from the ground; a submerged hull could too | Vehicles load and unload only with the hull at the surface | `b7681232e` |
+| A hull under way in the harbor was told "the harbor watch forbids gunfire from a berth" | "...forbids gunfire in port" | `c428116cf` |
+| `shiplock wraith` found nothing beside "Ghost Fleet Wraith 2-1": contacts matched only from the start of the name | Any word of a contact's name matches, nearest first | `d8fb17b16` |
+| A summoned hull made port after up to an hour with word only to the dock; her captain elsewhere never heard | The harbor sends word to an online owner elsewhere, naming the port | `34bfe9a51` |
+| The Blackwake derelict's chain began with `searchashlog`, a made-up word nothing in game mentions | The bridge trigger answers a plain `search` (`searchashlog` still works); the derelict gate types `search` | `68d3f1230` |
+| A new raft could come with a mess hall, medical bay or crew quarters (extra rooms ignored the templates' minimum hull size) | The draw re-rolls rooms the class is too small for: a raft's only extra room is a hold | `56295c437` |
 
 The first ferry ride's mis-landing (in the Testing Dock with the east dock's coordinates) was
 explained in chapter 10: `char_to_room()` enters a wilderness room at the character's own
-coordinates, which `disembark` set only after the move (fixed in `d97a724bd`, below).
+coordinates, which `disembark` set only after the move (fixed in `d97a724bd`, above).
 
 ## Estimate (remaining)
 
