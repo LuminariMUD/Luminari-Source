@@ -168,9 +168,11 @@ S11 is in review, below. S12 follows from S11's merge, on `feat/vessels-s12` wit
 its work item and closes the item when it merges.
 
 Still open outside these steps: the production deploy of S9's world-data notes and S10's code, the
-Open player-data balance and human beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`, and closing these
-study documents once S12 merges: `docs/ongoing-projects/` is temporary, and their enduring content
-lives in `VESSEL_SYSTEM.md` and the guide.
+Open player-data balance and human beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`,
+[work item #12](https://gitlab.com/max757/Luminari-Source/-/work_items/12) (two-phase vessel
+settlements, from MR !17's review), and closing these study documents once S12 merges:
+`docs/ongoing-projects/` is temporary, and their enduring content lives in `VESSEL_SYSTEM.md` and
+the guide.
 
 ### Phase 11 (S11) progress
 
@@ -275,9 +277,38 @@ Cleanup: the harness is stopped (its disposable database stops with its namespac
 characters, pfiles or scratch files were left in the worktree.
 
 Hand-off: tag `vessels-s11` and MR !17 from `feat/vessels-s11`, which says `Closes #10` (range
-`vessels-s11-base..vessels-s11`). Review fixes go on top, one commit each. After the
-merge: no help to sync (S11 changes none); the fix goes with the next production deploy; move
-this section to the history, set the status row, and branch S12 from the merge
+`vessels-s11-base..vessels-s11`). Review fixes go on top, one commit each.
+
+Review round 1 (2026-10-02, range `vessels-s11..feat/vessels-s11`): one [P2] finding, fixed.
+
+- Failed compensation reported as undone (`a1f08bc7b`). When the save failed and the undo could
+  not be recorded either, both commands still restored the gold and the hold in memory and said
+  "the trade is undone" while the database kept the trade. This was reproduced on `50ca77f2d` by
+  a CHECK constraint added with `check_constraint_checks` off, which refuses only the supply the
+  undo writes back. `trade_settle()` now holds the gold, the save and the undo for both commands
+  and reports "undone" only after the undo commits. If the undo fails too, the trade stands as
+  recorded, in memory too, and the persistence service's minute save (`save_char_checked()` for
+  every connected player, a failed save retried after a second) stores the gold. This replaces
+  the planning interpretation that a failed undo only logs a `SYSERR`.
+- Ablation: the reviewer's persisted undo intent was not added here. A record kept only in the
+  database cannot tell recovery whether a later save carried the gold, so it would move the
+  crash window to its mirror case. Closing that window needs a settlement table, a marker in the
+  player file and a login reconcile. The owner asked for that as a new work item:
+  [#12](https://gitlab.com/max757/Luminari-Source/-/work_items/12), which also names freight
+  acceptance and dock-fee payment, which share the shape. `PLR_CRASH` was dropped from the fix:
+  the minute save already covers every connected player. A block on further trades was dropped too:
+  the next trade's own checked save carries the pending gold.
+- Verification: the extended `Test_vessel_cargo_trades_record_the_gold_with_the_goods` (a sale
+  and a purchase whose undo is refused: the message, no "undone", and the gold, hold, manifest
+  and supply of the standing trade) failed on `50ca77f2d` and passes now. `make test-all` with
+  the database cases: 1,995 CuTest cases OK, the protocol harness's 32, and the Python suites
+  (542, 37 skipped). `check_sql_interpolation.py`: within baseline. The local CI matrix
+  (`run.py --base gitlab/master`): all 33 jobs passed. The economy gate was not rerun: the
+  success path moved into the helper unchanged, and the DB-backed test drives both commands with
+  real saves.
+
+After the merge: no help to sync (S11 changes none); the fix goes with the next production deploy;
+move this section to the history, set the status row, and branch S12 from the merge
 (`feat/vessels-s12`, tag `vessels-s12-base`).
 
 ## Estimate (remaining)
