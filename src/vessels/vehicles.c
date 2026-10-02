@@ -817,6 +817,32 @@ struct vehicle_data *vehicle_find_in_room(room_rnum room)
 }
 
 /**
+ * Show the vehicles standing in a room. They are not objects, so look lists
+ * them after the room's objects; one loaded aboard a hull is in no room.
+ *
+ * @param ch Character looking
+ * @param room Room to list
+ */
+void vehicle_list_to_char(struct char_data *ch, room_rnum room)
+{
+  int i;
+
+  if (ch == NULL || room == NOWHERE)
+  {
+    return;
+  }
+
+  for (i = 0; i < MAX_VEHICLES; i++)
+  {
+    if (vehicle_list[i] != NULL && vehicle_list[i]->location == room)
+    {
+      send_to_char(ch, "%s, a %s, stands here.\r\n", vehicle_list[i]->name,
+                   vehicle_type_name(vehicle_list[i]->type));
+    }
+  }
+}
+
+/**
  * Find a named, typed, or numbered vehicle in a room.
  *
  * An empty target preserves the legacy "first vehicle" behavior. Numeric

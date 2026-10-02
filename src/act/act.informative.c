@@ -14,6 +14,7 @@
 #include <time.h>
 #include "core/structs.h"
 #include "vessels/transport_jobs.h"
+#include "vessels/vessels.h"
 #include "core/utils.h"
 #include "core/comm.h"
 #include "core/interpreter.h"
@@ -1716,6 +1717,8 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   /* === LIST ROOM CONTENTS === */
   /* Show all objects on the ground */
   list_obj_to_char(world[IN_ROOM(ch)].contents, ch, SHOW_OBJ_LONG, FALSE, 0);
+  /* Show land vehicles standing here */
+  vehicle_list_to_char(ch, IN_ROOM(ch));
   /* Show all characters/NPCs in room */
   list_char_to_char(world[IN_ROOM(ch)].people, ch);
 

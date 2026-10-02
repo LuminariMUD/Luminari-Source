@@ -42011,7 +42011,8 @@ carriages. Once mounted, you can use the DRIVE command to move the vehicle
 across the wilderness.
 
 The optional selector accepts a visible name, vehicle type, or numeric vehicle
-ID. With no selector, the first available vehicle in the room is used.
+ID. With no selector, the first available vehicle in the room is used. LOOK
+lists the vehicles standing in your room.
 
 Requirements:
   - A vehicle must be present in your current room

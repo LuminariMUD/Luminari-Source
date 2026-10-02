@@ -457,6 +457,42 @@ void Test_vehicle_production_lifecycle_and_lookup(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, vehicle_find_by_id(vehicle_id));
 }
 
+void Test_vehicle_standing_in_a_room_is_listed_to_a_looker(CuTest *tc)
+{
+  struct vehicle_data *vehicle;
+  struct char_data viewer;
+  struct descriptor_data descriptor;
+  char output[MAX_STRING_LENGTH];
+
+  vehicle = vehicle_create(VEHICLE_CART, "River Cart");
+  CuAssertPtrNotNull(tc, vehicle);
+  memset(&viewer, 0, sizeof(viewer));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  descriptor.character = &viewer;
+  viewer.desc = &descriptor;
+
+  /* A cart beside you is seen, as an object on the ground is. */
+  vehicle->location = 0;
+  vehicle_list_to_char(&viewer, 0);
+  CuAssertTrue(tc, strstr(output, "River Cart, a cart, stands here.") != NULL);
+
+  /* Loaded aboard a hull, she stands in no room. */
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  vehicle->location = NOWHERE;
+  vehicle_list_to_char(&viewer, 0);
+  CuAssertStrEquals(tc, "", output);
+
+  ProtocolDestroy(descriptor.pProtocol);
+  vehicle_destroy(vehicle);
+}
+
 void Test_vehicle_production_capacity_and_state_transitions(CuTest *tc)
 {
   struct vehicle_data *vehicle;

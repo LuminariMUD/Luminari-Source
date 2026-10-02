@@ -2520,6 +2520,7 @@ int vehicle_is_operational(struct vehicle_data *vehicle);
 struct vehicle_data *vehicle_find_by_id(int id);
 struct vehicle_data *vehicle_at_index(int index);
 struct vehicle_data *vehicle_find_in_room(room_rnum room);
+void vehicle_list_to_char(struct char_data *ch, room_rnum room);
 struct vehicle_data *vehicle_find_in_room_named(room_rnum room, const char *name);
 struct vehicle_data *vehicle_find_by_obj(struct obj_data *obj);
 void vehicle_reindex_room_insert(room_rnum inserted_room);

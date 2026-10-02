@@ -497,6 +497,10 @@ struct vessel_terrain_caps {
 
 **States**: `IDLE`, `MOVING`, `LOADED`, `HITCHED`, `DAMAGED`, `ON_VESSEL`
 
+Vehicles are not objects: `look_at_room()` lists those standing in the room
+through `vehicle_list_to_char()` ("River Cart, a cart, stands here."). A vehicle
+loaded aboard a hull is in no room (`location` is `NOWHERE`).
+
 **Terrain Flags**: `ROAD`, `PLAINS`, `FOREST`, `HILLS`, `MOUNTAIN`, `DESERT`, `WATER_SHALLOW`
 
 **Speed Modifiers by Terrain**:
