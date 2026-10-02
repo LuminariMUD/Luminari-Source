@@ -2346,12 +2346,7 @@ ACMD(do_greyhawk_disembark)
 
     /* Move character to exit room */
     char_from_room(ch);
-    char_to_room(ch, exit_room);
-    if (ZONE_FLAGGED(GET_ROOM_ZONE(exit_room), ZONE_WILDERNESS))
-    {
-      X_LOC(ch) = world[exit_room].coords[0];
-      Y_LOC(ch) = world[exit_room].coords[1];
-    }
+    vessel_char_to_room(ch, exit_room);
 
     act("$n arrives from a nearby vessel.", TRUE, ch, 0, 0, TO_ROOM);
     look_at_room(ch, 0);
@@ -2423,12 +2418,7 @@ ACMD(do_greyhawk_disembark)
 
   /* Move character to water room */
   char_from_room(ch);
-  char_to_room(ch, exit_room);
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(exit_room), ZONE_WILDERNESS))
-  {
-    X_LOC(ch) = world[exit_room].coords[0];
-    Y_LOC(ch) = world[exit_room].coords[1];
-  }
+  vessel_char_to_room(ch, exit_room);
 
   act("$n surfaces nearby, having jumped from a vessel.", TRUE, ch, 0, 0, TO_ROOM);
   look_at_room(ch, 0);

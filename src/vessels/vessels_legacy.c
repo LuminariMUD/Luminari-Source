@@ -186,14 +186,7 @@ ACMD(do_disembark)
   // int was_in = ch->in_room;
   act("$n disembarks.", TRUE, ch, 0, 0, TO_ROOM);
   char_from_room(ch);
-
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(ship->in_room), ZONE_WILDERNESS))
-  {
-    X_LOC(ch) = world[ship->in_room].coords[0];
-    Y_LOC(ch) = world[ship->in_room].coords[1];
-  }
-
-  char_to_room(ch, ship->in_room);
+  vessel_char_to_room(ch, ship->in_room);
   act("$n disembarks from $p.", TRUE, ch, ship, 0, TO_ROOM);
   look_at_room(ch, 0);
 }

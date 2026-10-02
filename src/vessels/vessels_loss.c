@@ -325,10 +325,7 @@ static void vessel_put_ashore(struct greyhawk_ship_data *ship, room_rnum room)
       }
       send_to_char(tch, "%s is answering a summons; you are put over the side.\r\n", ship->name);
       char_from_room(tch);
-      /* A wilderness room takes the character to their coordinates. */
-      X_LOC(tch) = world[room].coords[0];
-      Y_LOC(tch) = world[room].coords[1];
-      char_to_room(tch, room);
+      vessel_char_to_room(tch, room);
       look_at_room(tch, 0);
     }
   }

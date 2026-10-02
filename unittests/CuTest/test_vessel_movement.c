@@ -1207,6 +1207,54 @@ void Test_vessel_port_room_is_her_berth(CuTest *tc)
   movement_end(&fixture);
 }
 
+void Test_vessel_char_to_room_lands_where_the_room_lies(CuTest *tc)
+{
+  struct room_data rooms[2]; /* the dock left long ago, the water beside the hull */
+  struct zone_data zone;
+  struct room_data *saved_world;
+  struct zone_data *saved_zone_table;
+  struct char_data swimmer;
+  struct player_special_data swimmer_specials;
+  room_rnum saved_top_of_world;
+  zone_rnum saved_top_of_zone_table;
+
+  memset(rooms, 0, sizeof(rooms));
+  memset(&zone, 0, sizeof(zone));
+  SET_BIT_AR(zone.zone_flags, ZONE_WILDERNESS);
+  rooms[0].number = 1000100;
+  rooms[0].coords[0] = -66;
+  rooms[0].coords[1] = 91;
+  rooms[1].number = 1000200;
+  rooms[1].coords[0] = -91;
+  rooms[1].coords[1] = 77;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  world = rooms;
+  top_of_world = 1;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+
+  /* Still holding the coordinates of the water she waded into hours ago,
+   * a sailor thrown over the side lands beside her own hull. */
+  clear_char(&swimmer);
+  memset(&swimmer_specials, 0, sizeof(swimmer_specials));
+  swimmer.player_specials = &swimmer_specials;
+  X_LOC(&swimmer) = -66;
+  Y_LOC(&swimmer) = 91;
+  vessel_char_to_room(&swimmer, 1);
+  CuAssertIntEquals(tc, 1, IN_ROOM(&swimmer));
+  CuAssertIntEquals(tc, -91, X_LOC(&swimmer));
+  CuAssertIntEquals(tc, 77, Y_LOC(&swimmer));
+
+  char_from_room(&swimmer);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+}
+
 void Test_vessel_freight_board_offers_only_ports(CuTest *tc)
 {
   const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");

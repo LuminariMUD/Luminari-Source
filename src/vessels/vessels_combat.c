@@ -507,7 +507,7 @@ void vessel_sink(int shipnum)
       {
         send_to_char(tch, "You are thrown into the water as the ship goes down!\r\n");
         char_from_room(tch);
-        char_to_room(tch, water_room);
+        vessel_char_to_room(tch, water_room);
         act("$n surfaces amid the wreckage, gasping.", TRUE, tch, 0, 0, TO_ROOM);
         look_at_room(tch, 0);
       }

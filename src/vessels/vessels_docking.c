@@ -903,7 +903,7 @@ static void vessel_boarding_fall_into_water(struct char_data *ch)
   if (water_room != NOWHERE)
   {
     char_from_room(ch);
-    char_to_room(ch, water_room);
+    vessel_char_to_room(ch, water_room);
     act("$n plunges into the water beside the ship!", TRUE, ch, 0, 0, TO_ROOM);
     look_at_room(ch, 0);
   }

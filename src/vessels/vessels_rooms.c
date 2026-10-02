@@ -1100,6 +1100,25 @@ void vessel_rename_interior(struct greyhawk_ship_data *ship)
 }
 
 /**
+ * Put a character into a room off a vessel. char_to_room() enters a
+ * wilderness room at the character's own coordinates, so they are set to the
+ * room's first; aboard, they still hold wherever the character last stood
+ * ashore.
+ */
+void vessel_char_to_room(struct char_data *ch, room_rnum room)
+{
+  zone_rnum zone;
+
+  zone = GET_ROOM_ZONE(room);
+  if (zone != NOWHERE && zone <= top_of_zone_table && ZONE_FLAGGED(zone, ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[room].coords[0];
+    Y_LOC(ch) = world[room].coords[1];
+  }
+  char_to_room(ch, room);
+}
+
+/**
  * Recreate a persisted dynamic interior in the runtime world array.
  *
  * The database stores stable VNUMs, room types, special-room assignments,
@@ -1341,12 +1360,7 @@ int vessel_reclaim_interior_rooms(struct greyhawk_ship_data *ship, room_rnum eva
     {
       next_tch = tch->next_in_room;
       char_from_room(tch);
-      if (ZONE_FLAGGED(GET_ROOM_ZONE(destination), ZONE_WILDERNESS))
-      {
-        X_LOC(tch) = world[destination].coords[0];
-        Y_LOC(tch) = world[destination].coords[1];
-      }
-      char_to_room(tch, destination);
+      vessel_char_to_room(tch, destination);
       send_to_char(tch, "The vessel is removed from service around you.\r\n");
       look_at_room(tch, 0);
     }
