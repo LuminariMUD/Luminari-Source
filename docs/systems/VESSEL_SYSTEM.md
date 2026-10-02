@@ -1712,7 +1712,7 @@ Study sections 3.3.7 (rewards, renown, Ship Damage Control) and 3.3.9
   contraband the port is known not to stock (a failed `port_stocks()` lookup
   lets the lot pass) loses each unit with
   `vessel_customs_chance()` (`35 + units / 2 - sqrt(renown) / 5`, raised by
-  `(100 - c) * (1 - load)`, at most 100, 5 when negative), load being cargo
+  `(100 - c) * (1 - load)`, at most 100, never under 5), load being cargo
   weight over capacity; the hold is then saved.
 - Cargo sales: `vessel_cargo_sale_factor()` multiplies `cargosell` revenue by
   1.1 for a seller with SEADOG, 0.9 under neutral colors, and 0.6 for a

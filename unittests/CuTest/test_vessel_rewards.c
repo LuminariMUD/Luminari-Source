@@ -524,6 +524,8 @@ void Test_vessel_customs_chance_follows_duris(CuTest *tc)
   CuAssertIntEquals(tc, 100, vessel_customs_chance(140, 0, 1.0));
   CuAssertIntEquals(tc, 100, vessel_customs_chance(10, 0, 0.0));
   CuAssertIntEquals(tc, 5, vessel_customs_chance(0, 1000000, 1.0));
+  /* 35 - 160 / 5 = 3 is under the floor too: always a small chance. */
+  CuAssertIntEquals(tc, 5, vessel_customs_chance(0, 25600, 1.0));
 }
 
 /* A scratch player directory and index, so the captain's saves succeed. */
