@@ -509,3 +509,58 @@ away (people put off a hull used their stale coordinates; the same bug landed a 
 at the wrong dock in chapter 6); a failed boarding of an empty hull spoke of defenders; plunder's
 empty-handed message did not say whether the prize's hold was empty or her own was full; the
 raider's key answered to "strongbox", so `unlock strongbox` found the key in the boarder's pack.
+
+## 11. Two captains
+
+Staging: Kohdee advanced Brinewick to level 16 and set his gold to 60,000 at the Testing Dock;
+after server restarts he returned both captains to their bridges. Brinewick bought a Starfall
+Survey Ship and christened her Kestrel.
+
+- `40-captains-permit-deed.png` (Vesselmate, `shippermit brinewick` ... `shiprevoke brinewick`,
+  `shipdeed brinewick`): "Brinewick is now cleared to take the helm of Sea Wren." / "...no
+  longer cleared for the helm of Sea Wren." / "You sign over Sea Wren to Brinewick." To all
+  aboard: "Sea Wren is under new ownership: Brinewick." Brinewick deeded her straight back.
+- `41-captains-colors-struck.png` (Vesselmate, `shipscan AP` after Brinewick's `strikecolors`):
+  "Condition: sound, colors struck". Brinewick saw: "Brinewick strikes Kestrel's colors: she
+  yields. They fly again when she gets under way or in ten minutes."
+- `42-captains-group-forfeit.png` (Vesselmate, `shiplock kestrel`, `shipfire port kestrel` while
+  grouped with Brinewick): "[Group] Vesselmate has left the group."
+- `43-captains-sinking.png` (Brinewick, `shipstatus` aboard the Kestrel, Ship tab): "Holed:
+  starboard side and stern. SINKING: she goes down in about 77 seconds."
+- `44-captains-renown.png` (Vesselmate, after she sank): "Sea Wren wins 200 renown for sinking
+  Kestrel." "The harbor office delivers 462 gold from 1 vessel settlement. Check your mail for
+  the receipt."
+- `45-loss-sunk.png` (Brinewick): "The hull gives way - Kestrel is SINKING!" ... "You are thrown
+  into the water as the ship goes down!" "A salvage crate of grain (50 units) bobs among the
+  waves here." "The wreckage of Kestrel settles into the water, breaking apart." "The harbor
+  office delivers 5400 gold from 1 vessel settlement." (Insurance: three quarters of her 7,200.)
+- `46-salvage.png` (Vesselmate, `setsail` to the wreck, `shipsalvage`): "The crew hauls 50 units
+  of floating salvage into the hold." Half of each cargo lot floats off; crates float about half
+  an hour.
+
+Played in order:
+
+1. Permits: with Vesselmate's permit Brinewick set the Sea Wren's heading from her bridge
+   ("Heading set to 90 degrees (E)."; aboard: "Brinewick adjusts the vessel's heading."); revoked,
+   "You must be at an authorized helm to set heading."
+2. `shipdeed <player>` needs both captains in the same room and the receiver under the ownership
+   cap.
+3. `pvp` (both): "PvP flag enabled. You are now eligible for player vs. player combat." The flag
+   cannot be turned off again for a while ("You must wait 4 more minutes before you can disable
+   your PvP flag.").
+4. Grouped (`group leave`, `group join vesselmate`), then apart: firing on a groupmate's ship
+   costs the shooter the group, as attacking them in person does.
+5. The fight: hits land on the side facing the shooter; a stern full of hits fouls her rudder so
+   she cannot turn; one holed side cannot sink her, so the Sea Wren maneuvered (`setsail northwest` twice) to bring the Kestrel's starboard under her port battery. Two holed sides:
+   "Condition: sinking, holed on 2 sides"; a player's hull goes down in 75-150 seconds.
+6. Two hulls on the same spot (range 0.0) cannot fire at each other unless a weapon faces north:
+   at range 0 the bearing defaults to north. Keep a room or two apart.
+7. `shiprenown`: "The most renowned hulls: 1. Sea Wren Ship Vesselmate 200 renown". Renown (the
+   sunk hull's weight: a ship 200) is shared with allies in sight: hulls out of port whose owners
+   are online and grouped with the sinker's owner (not played: it needs a third captain).
+8. `bounty`: "You carry no price." (sinking a consenting captain's ship is not piracy; plunder of
+   a player's cargo is). `bounty brinewick`: "Brinewick carries no price." `marque` at sea:
+   "Letters of marque are issued at a port's admiralty office." (bought in chapter 12.)
+
+Defects found here and fixed: grouped captains could fire on each other's ships and stay grouped;
+`bounty` told a clean captain "You carries no price."
