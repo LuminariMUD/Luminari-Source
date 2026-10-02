@@ -3856,17 +3856,26 @@ AFFECT-BLUR BLUR SPELL-BLUR
 	YSee also:	n SPELLS
 	n
 #0
-BOATS FERRY SHIPS TRANSPORTSS
+BOATS FERRIES FERRY PASSAGE
 
-For staff wishing to make a script, see this script for an example:
-	RTSTAT 13691	n
+Passage on ferries and other public ships:
 
-Some parts of the world require some sort of ship or ferry to cross
-to the other side.  To enter a ferry, just type:  enter <boatname>
-and to get out of the ferry, just type 'disembark.'  While on the
-ferry you can type "look out" to see where your ships is at.
+Public ships, the ferries and merchant hulls an NPC pilot sails on a
+schedule, carry passengers between ports. Wait on the dock until she is
+moored there, then BOARD her by a word of her name (BOARD FERRY). A
+scheduled ferry may charge a fare as you board; the purser takes it from
+the gold you carry.
 
-See Also:  LOOK, DISEMBARK, ENTER
+Aboard, walk to the bridge to watch the passage with LOOKOUT, or see where
+she is with SHIPSTATUS; SHOWSCHEDULE tells her next departure and fare. Her
+pilot holds the helm: passengers cannot steer, stop, or reroute her. Stay
+aboard through a stop and she carries you on round her route.
+
+Step off with DISEMBARK while she is moored or casting off at a dock. No one
+leaves a hull under way; away from shore, leaving a stopped hull puts you in
+the water.
+
+See also: VESSELS, SHOWSCHEDULE, VEHICLE-TRANSPORT
 #1
 BODY-ADJUSTMENT POWER-BODY-ADJUSTMENT PSIONIC-POWER-BODY-ADJUSTMENT
 

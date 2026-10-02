@@ -1571,6 +1571,32 @@ ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VEVENT', 'VEVENT');
 
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('boats', 'Passage on ferries and other public ships:
+
+Public ships, the ferries and merchant hulls an NPC pilot sails on a
+schedule, carry passengers between ports. Wait on the dock until she is
+moored there, then BOARD her by a word of her name (BOARD FERRY). A
+scheduled ferry may charge a fare as you board; the purser takes it from
+the gold you carry.
+
+Aboard, walk to the bridge to watch the passage with LOOKOUT, or see where
+she is with SHIPSTATUS; SHOWSCHEDULE tells her next departure and fare. Her
+pilot holds the helm: passengers cannot steer, stop, or reroute her. Stay
+aboard through a stop and she carries you on round her route.
+
+Step off with DISEMBARK while she is moored or casting off at a dock. No one
+leaves a hull under way; away from shore, leaving a stopped hull puts you in
+the water.
+
+See also: VESSELS, SHOWSCHEDULE, VEHICLE-TRANSPORT', 1, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('boats', 'BOATS');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('boats', 'FERRY');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('boats', 'FERRIES');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('boats', 'PASSAGE');
+
 -- Retire obsolete one-command vessel entries imported from old file help.
 -- search_help() displays only the first matching database row, so leaving these
 -- mappings in place makes the authoritative result nondeterministic. Preserve
@@ -1595,6 +1621,12 @@ DELETE FROM help_entries
 WHERE BINARY tag IN (
   'board_hostile', 'disembark', 'dock', 'look_outside', 'ship_rooms', 'undock'
 );
+
+-- The passenger entry gave SHIPS to VESSELS and lost a misspelled keyword.
+DELETE FROM help_keywords
+WHERE
+  BINARY help_tag = 'boats'
+  AND UPPER(keyword) IN ('SHIPS', 'TRANSPORTSS');
 
 -- SHIPWAGES was retired when crew became a one-time hire.
 DELETE FROM help_keywords
