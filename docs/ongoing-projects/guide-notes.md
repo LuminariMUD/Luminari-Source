@@ -564,3 +564,36 @@ Played in order:
 
 Defects found here and fixed: grouped captains could fire on each other's ships and stay grouped;
 `bounty` told a clean captain "You carries no price."
+
+## 12. Contraband and customs
+
+Staging: Kohdee gave Vesselmate a fresh lantern (the first had burned out, and in the dark he
+could not see his hull on the dock to board her). The Sea Wren had 200 renown from chapter 11.
+
+- `47-contraband-buy.png` (Vesselmate at the Harbor Sandbox East Dock, `cargobuy forbidden 10`,
+  `cargomanifest`): "You load 10 units of forbidden tomes for 1938 gold (193 average each)." with
+  50 grain from the salvage in the hold.
+- `48-contraband-customs.png` (Vesselmate, berthing at the Testing Dock): "The port authorities
+  come aboard Sea Wren in search of contraband." "Customs confiscate 10 of 10 units of forbidden
+  tomes!"
+
+Notes:
+
+- `market` marks contraband: the east dock lists "forbidden tomes 4 190 161 steady (contraband)"
+  (it stocks them); everywhere else they read "- 248 none (contraband)": not for sale, but every
+  other port pays the scarce price.
+- Each contraband good is stocked at one port and sold there only to a hull of 150 (tomes), 200
+  (poisons) or 250 (eggs) renown, or with an able sailmaster and quartermaster; never to a
+  warship or a captain of perfect virtue.
+- Every lawful port searches a player's hull sailing in. Each unit not stocked there is seized
+  with a chance of 35% plus half a percent a unit, less a fifth of the square root of her renown,
+  higher the emptier her hold, never under 5%: ten tomes among 50 grain in a 13,200-pound hold
+  were all taken. Fill the hold with honest cargo first.
+- `cargobuy` takes any word of the goods' name (`cargobuy tomes 10` after the fix; `forbidden`
+  before).
+- `marque` and `bounty pay` are done ashore on a dock: "You pay 2000 gold. The admiralty
+  commissions you as a privateer - prizes taken now are lawful." Aboard a berthed hull they were
+  refused with no hint to step ashore (fixed).
+
+Defects found here and fixed: `cargobuy tomes` found nothing; the admiralty refusals did not say
+the office is ashore.
