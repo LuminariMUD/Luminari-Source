@@ -26,12 +26,12 @@ here records the merge.
 | S8 Client data | Merged `2a4815b1a` (MR !13) | [Phase 8](vessels-ships-history.md#phase-8-s8-progress) |
 | S-immediate Luminari Web for S9 | Merged `1c7e4bffb` (MR !14) | [S-immediate](vessels-ships-history.md#s-immediate-progress) |
 | S9 Claude Code play tests | Merged `a6adb46a8` (MR !15) | [Phase 9](vessels-ships-history.md#phase-9-s9-progress) |
-| S10 Player guide | Not started: next | [Part 5](#part-5-implementation-sequence) |
+| S10 Player guide | In progress | [Phase 10](#phase-10-s10-progress) |
 
 Production help is current through S9 (help sync plan `3b26c50a826f`, 2026-10-02). The study's
 steps, S1-S8, are merged, and so are S-immediate, which readied the local Luminari Web client for
-S9, and S9, which played the whole system in game and recorded it for S10. S10 turns that record
-into a player guide.
+S9, and S9, which played the whole system in game and recorded it for S10. S10, in progress, turns that
+record into a player guide.
 
 ## Working a step
 
@@ -144,9 +144,64 @@ ship data panel among them.
 
 ## Active step
 
-None in progress. S10 is next: branch `feat/vessels-s10` from the S9 merge `a6adb46a8` (tag
-`vessels-s10-base`); its first commit is the S10 plan, as a "Phase 10 (S10) progress" section
-here.
+### Phase 10 (S10) progress
+
+In progress (2026-10-02). Branch `feat/vessels-s10` from the S9 merge `a6adb46a8`, where the
+annotated tag `vessels-s10-base` stands, so `git log vessels-s10-base..vessels-s10` lists only
+S10. The first commit after the S9 close-out (`bf5e6bf64`) is this plan. Hand-off as in the
+routine: tag `vessels-s10` and a merge request; review fixes go on top. Scope: an illustrated
+player guide to the whole vessel system, written from `guide-notes.md` and the S9 screenshots.
+
+Items:
+
+1. The guide: `docs/guides/VESSEL_PLAYER_GUIDE.md`, ASCII Markdown beside the existing
+   `NEW_PLAYER_GUIDE_LEVEL_1-5.md`, in the order a player meets the system: passage on public
+   ships, finding and buying a hull, crew and refits, sailing, routes, trade, gunnery, damage and
+   repair, prizes, other captains, contraband, loss and recovery, other hulls and vehicles, the
+   living world, client data; then a staff appendix. Each chapter shows the commands, what the
+   player sees (the screenshots with captions), the numbers that matter, the refusals a player
+   meets, and tips.
+2. The screenshots move from `docs/ongoing-projects/guide-screenshots/` to
+   `docs/guides/vessel-guide/` (`git mv`, unchanged files): `ongoing-projects/` is temporary, and
+   the guide is permanent documentation. `guide-notes.md` stays as S9's record (the history cites
+   it), its screenshot pointer updated.
+3. Accuracy: every screenshot audited against the current code (S9 fixed defects mid-play, so a
+   shot or a note can predate its fix), and every number and rule in the notes checked against
+   the source and help. A wrong note is corrected in the guide; a game or help defect found on the
+   way is fixed to Part 5's standard (production-linked test, help in both places,
+   `VESSEL_SYSTEM.md`), one commit each, recorded below. A screenshot that shows behavior since
+   changed is retaken or captioned.
+4. Links: the master index (`docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md`) and
+   `VESSEL_SYSTEM.md` point to the guide.
+
+Interpretations decided while planning S10:
+
+- The guide is for players; the development world's names (the Testing Dock, the Harbor Sandbox,
+  the Sea Wren) and its catalog and market prices are examples, said so once. Code-fixed values
+  (crew and weapon prices, fees, timings, shares, thresholds) are stated as the rules.
+- Passage on public ships comes first: a new character meets the ferries long before the level
+  for a hull of their own.
+- Staff tools are an appendix, as S9 played them, so the guide covers the whole system.
+
+Ablation (planning): dropped an HTML copy in the web portal (`docs/web/`; the Markdown renders with
+its images on GitLab, and the existing player guide is Markdown), a new play session (S9's
+screenshots and notes are the source by plan; a retake only where a shot shows behavior since
+changed), an in-game help pointer to the guide (a game client cannot show its images, and the
+repository's public address is not settled), and the routine's `make test-all`, gates and help
+verifier unless S10 changes code, help or SQL (documentation cannot affect them). Simplified: the
+screenshots move instead of being copied. Kept: the screenshot audit and fact check, because the
+guide states numbers as facts and the notes were written while fixes landed; and the staff
+appendix.
+
+Verification: the commit hooks (mdformat, ASCII hygiene, 500 KB file limit), a check that every
+image and anchor in the guide resolves, and the local CI matrix
+(`scripts/ci/local/run.py --base gitlab/master`); plus the routine's full verification if S10
+changes code, help or SQL.
+
+Progress log (2026-10-02, kept current as the work goes):
+
+- Plan committed. Screenshot audit (four lanes, 01-79) and fact check (chapters 1-7, 8-17)
+  started.
 
 ## Estimate (remaining)
 
