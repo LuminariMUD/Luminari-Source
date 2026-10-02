@@ -597,3 +597,71 @@ Notes:
 
 Defects found here and fixed: `cargobuy tomes` found nothing; the admiralty refusals did not say
 the office is ashore.
+
+## 13. Loss and recovery
+
+The Kestrel sank in chapter 11; this chapter follows Brinewick.
+
+- `45-loss-sunk.png` (chapter 11) carries the sinking and the insurance: "The harbor office
+  delivers 5400 gold from 1 vessel settlement." A player's sunk hull is insured for three quarters
+  of her value, paid by mail.
+- `49-loss-shipsummon-list.png` (Brinewick at the Testing Dock, `shipsummon`): " 1. Kestrel
+  (Boat): in the wreck registry; 2 gold, about 63 minutes." `shipsummon 1`: "You pay 2 gold.
+  Word goes out to Kestrel; she should make port here in about 63 minutes." A wreck keeps her
+  name and fleet slot but is rebuilt as the cheapest boat the shipyard sells, stripped
+  (decision D3).
+- `50-loss-ownership-cap.png` (Vesselmate, owning the Sea Wren and the Gull Prize, buys a
+  Sablebranch Raft, then tries another): "You already own 3 hulls, the most one captain may
+  hold."
+- `51-loss-rename-fee.png` (Vesselmate aboard the raft): the first christening is free ("By her
+  owner's word, this vessel is christened Skiff!"); renaming her costs a tenth of her price:
+  "You pay the registry 33 gold." "...christened Wren Skiff!"
+
+## 14. Other hulls and vehicles
+
+Staging: Kohdee spawned each frontier hull where it can travel (`vedit spawn <id>` with Kohdee
+standing there), granted Vesselmate a helm permit from aboard (`shippermit vesselmate`: a staff
+spawn belongs to the staff member), and transferred him to the bridge. Kohdee created the
+cart with `vehiclecreate cart River Cart` on the plains at (-810, 478).
+
+- `52-hulls-riverboat.png` (Vesselmate on the Sablebranch Riverboat at (-809, 480), Ship tab):
+  "Terrain: River". `setsail east` along the river; `setsail north` onto the bank: "Your boat
+  cannot go there! She keeps to rivers and shallow coastal water." (fixed: it read "cannot handle
+  these conditions! It's designed for coastal waters only.")
+- `53-hulls-airship-skyway.png` (the Aetherwind Courier at (467, 0)): ten `setsail up` (five
+  seconds apart) to altitude 100: "The vessel climbs to 100." "The high currents of Aetherwind
+  Skyway lend speed to the vessel." `seastate`: "Sky lane : Aetherwind Skyway (active above
+  100)".
+- `54-hulls-sky-island.png` (ten more climbs to 200, `setsail east` twice to (469, 0)):
+  `seastate`: "Sky island: Shardspire Sky Island (reachable above 200)". `shipstatus` shows
+  "Elevation/Depth: 200".
+- `55-hulls-submarine.png` (the Starfall Bathyscaphe at (900, 225), Ship tab): three `setsail down`: "The vessel descends to -30." "Elevation/Depth: -30"; `seastate` "Depth : deep". She
+  sails east submerged and climbs back to 0.
+- `56-hulls-magical.png` (the Liminal Wayfarer at (-810, 479)): on the plains ("Terrain:
+  Plains"), `setsail north` onto the river, `setsail down` under it to -10, back up, south onto
+  the plains and `setsail up` to 10 over them.
+- `57-vehicles-look.png` (Vesselmate beside the cart): `look` lists "River Cart, a cart, stands
+  here." (fixed: vehicles were not listed at all).
+- `58-vehicles-unload.png` (aboard the Wayfarer): hovering at 10, "Liminal Wayfarer must be at
+  the surface to unload vehicles."; `setsail down` to 0, "You unload River Cart from Liminal
+  Wayfarer." (fixed: she loaded and unloaded the cart while hovering).
+- `59-hulls-freighter.png` (aboard the Sablebranch Grand Freighter at the Testing Dock):
+  "Speed: 0 / 5", "Hold: 0 of 40000 lbs used."
+
+Vehicle play, in order: `vstatus` beside the cart (type, speed, "Passengers: 0 / 2", "Cargo: 0 /
+500 lbs", condition); `vmount` ("You climb onto River Cart."); `drive west`/`east` ("You drive
+the cart west." "Current position: (-811, 478)"); `vdismount`; the unified `tstatus`, `tenter cart`, `tgo north`, `texit` (fixed: `tgo` moved the cart and left the rider behind);
+`loadvehicle cart` from aboard the stopped Wayfarer ("You load River Cart onto Liminal
+Wayfarer."), `unloadvehicle` (lists "1. River Cart [cart]"), `unloadvehicle 1` on the river:
+"The terrain here is not suitable for River Cart.", on the plains it rolls off.
+
+Notes:
+
+- The level gate holds departures only (`undock` from a berth, `autopilot on`, `assignpilot`,
+  `setschedule`): a level-16 permit holder sails a level-24 airship already afloat.
+- The Testing Dock is a pier in open water: a cart created there cannot be driven anywhere.
+- A cart drives on roads and plains, not water; a hull carries a vehicle only if her hold takes
+  its weight (a raft cannot take a cart).
+
+Defects found here and fixed: the riverboat's off-water refusal; vehicles missing from `look`;
+`tgo` leaving the rider behind; vehicles loading and unloading aloft or submerged.
