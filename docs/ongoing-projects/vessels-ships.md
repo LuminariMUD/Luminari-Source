@@ -25,13 +25,13 @@ here records the merge.
 | S7 Rewards and economy | Merged `cce9ff323` (MR !12) | [Phase 7](vessels-ships-history.md#phase-7-s7-progress) |
 | S8 Client data | Merged `2a4815b1a` (MR !13) | [Phase 8](vessels-ships-history.md#phase-8-s8-progress) |
 | S-immediate Luminari Web for S9 | Merged `1c7e4bffb` (MR !14) | [S-immediate](vessels-ships-history.md#s-immediate-progress) |
-| S9 Claude Code play tests | In progress | [Phase 9](#phase-9-s9-progress) |
+| S9 Claude Code play tests | In review (tag `vessels-s9`, MR !15) | [Phase 9](#phase-9-s9-progress) |
 | S10 Player guide | Not started | [Part 5](#part-5-implementation-sequence) |
 
 Production help is current through S8 (help sync plan `86c842c5a62a`, 2026-10-01); S-immediate
-changed no help. The study's steps, S1-S8, are merged, and so is S-immediate, which readied the
-local Luminari Web client for S9. S9 plays the whole system in game and records it, and S10 turns
-that record into a player guide.
+changed no help; S9 changes help, synced after its merge. The study's steps, S1-S8, are merged,
+and so is S-immediate, which readied the local Luminari Web client for S9. S9 played the whole
+system in game and recorded it (in review), and S10 turns that record into a player guide.
 
 ## Working a step
 
@@ -146,7 +146,7 @@ ship data panel among them.
 
 ### Phase 9 (S9) progress
 
-In progress (started 2026-10-02). This plan, with S-immediate's, was the first commit on `feat/vessels-s9`, branched
+In review (played 2026-10-02). This plan, with S-immediate's, was the first commit on `feat/vessels-s9`, branched
 from master `1e0f2f64c` (the S8 merge and its close-out) with the annotated tag `vessels-s9-base`
 there. S-immediate merged from the same branch as `1c7e4bffb` (MR !14), and the branch was
 fast-forwarded onto that merge, so S9's own commits are `git log 1c7e4bffb..vessels-s9`
@@ -340,6 +340,53 @@ changed):
 The first ferry ride's mis-landing (in the Testing Dock with the east dock's coordinates) was
 explained in chapter 10: `char_to_room()` enters a wilderness room at the character's own
 coordinates, which `disembark` set only after the move (fixed in `d97a724bd`, above).
+
+Verification (2026-10-02):
+
+- `make test-all` with the database cases (the `luminari-vessels-testdb` container, see
+  `testenv.sh` above) at `29a05cd6f`: 1,984 CuTest cases OK (seed 1) and the protocol harness's
+  32; later commits change only gate scripts and tests, which the CI matrix ran.
+- Help: on a fresh reload of the development dump, `help_vessel_entries.sql` applied and
+  `verify_help_vessel_entries.sql` passed all seven checks (34 entries, 91 command keywords, 52
+  content contracts, no obsolete duplicates or retired aliases). S9 adds no schema SQL; its SQL
+  edits passed sqlfluff in the commit hook.
+- All 20 live gates of S8's run passed in the namespace harness on the installed build
+  (`bin/luminari` SHA-256 `4163357897054c0c...`, built at `29a05cd6f`): merchant 36 s,
+  campaign 129 s, Vailand merchant 146 s, builder 46 s, gunnery 70 s, tactical 356 s, lookout
+  23 s, boarding 47 s, narrative 22 s, rules 35 s, events 41 s, movement 104 s, loss 75 s,
+  damage 558 s, derelict 30 s, hunter 89 s, frontier 218 s, raider 196 s, economy 276 s, client
+  25 s. The tactical and rules gates first failed on S9's own rewording (the shot target now
+  reads crippled, as a holed hull does; the bounty pay-off refusal says ashore) and passed once
+  their expectations were updated (`53a1c603f`); the raider gate broke when that commit rewrote
+  the tactical script it was running, and passed on rerun.
+- Luminari Web, `fix/literal-carets` at `bb7c707`: `npm run lint` clean, `npm test` 353
+  passed, `npm run build` passed.
+- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`, 33 jobs) first ran on
+  `53a1c603f`: 29 passed. clang-tidy found a dead store in the freight bond test (its second
+  acceptance unchecked; `13305c989`), and both sanitizer jobs and the memory check found two
+  test-fixture leaks (the `tgo` test's room occupancy events, the rename fee test's bridge
+  strings; `fab5cb9ca`). The rerun on `fab5cb9ca` passed
+  all 33 jobs in 292 s; the head handed to review adds only this record.
+
+Cleanup: Kohdee's and Vesselmate's pfiles and the player index restored byte-identical from
+`/tmp/claude-1000/s9/pfiles-before` after the last gate; Brinewick's pfile and objects removed
+(his Sailtest account lived in the disposable database). S9 ran no autorun, so there were no
+autorun artifacts. The client (`npm run dev`), both ends of the socat bridge, and the harness are
+stopped; the harness's disposable database stopped with its namespace and is reloaded from the
+dump on next use.
+
+Hand-off: tag `vessels-s9` and MR !15 from `feat/vessels-s9` (range `1c7e4bffb..vessels-s9`; the
+plan commit is in S-immediate's range). The client fix is reviewed in its local checkout
+(`git log -p be28d96..fix/literal-carets` in `/home/aiwithapex/projects/luminariweb`). Review
+fixes go on top, one commit each. After the merge:
+
+- Sync the help to production. Ten entries changed (by first keyword): ADDTOROUTE, ANCHOR (the
+  vessel commands), BATTLE-STATIONS, BOATS (SHIPS moved to VESSELS), BOUNTY, CARGO, CONTRACTS,
+  LAND-VEHICLES, LOADVEHICLE and SHIP-OWNERSHIP.
+- Production world data: the raider provisioner adds only missing records, so the live object
+  #70021 needs the keywords `key brass raider` (`1182093b4`); rerunning the derelict
+  provisioner replaces trigger 70010 with the `search` version (`68d3f1230`).
+- Then S10 writes the player guide from `guide-notes.md` and the screenshots.
 
 ## Estimate (remaining)
 
