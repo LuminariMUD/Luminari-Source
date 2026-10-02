@@ -1120,10 +1120,10 @@ You must be at the helm or be the ship\'s owner to modify routes.
 
 Example:
   > addtoroute trade_run harbor_entrance
-  Waypoint \'harbor_entrance\' added to route \'trade_run\' at position 0.
+  Waypoint \'harbor_entrance\' added to route \'trade_run\' at position 1.
 
   > addtoroute trade_run open_sea
-  Waypoint \'open_sea\' added to route \'trade_run\' at position 1.
+  Waypoint \'open_sea\' added to route \'trade_run\' at position 2.
 
 See also: CREATEROUTE, LISTROUTES, SETROUTE, SETWAYPOINT', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
