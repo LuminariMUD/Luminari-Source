@@ -101,8 +101,8 @@ static int port_distance(int from_vnum, int to_vnum)
  * Regenerate a port's contract board when the current offers are stale.
  *
  * Destinations are drawn from other ports already known to the trade
- * system (they have port_commodities rows), so the board only ever offers
- * runs to places that actually exist and trade.
+ * system (they have port_commodities rows) that are ports in the world, so
+ * the board only ever offers runs to places that actually exist and trade.
  */
 void vessel_contracts_refresh_port(int port_vnum)
 {
@@ -156,10 +156,13 @@ void vessel_contracts_refresh_port(int port_vnum)
     return;
   }
 
-  /* Candidate destinations: other known trading ports */
-  snprintf(query, sizeof(query),
-           "SELECT DISTINCT port_vnum FROM port_commodities WHERE port_vnum <> %d LIMIT %d",
-           port_vnum, MAX_CONTRACT_OFFERS);
+  /* Candidate destinations: other known trading ports. A market read
+   * anywhere else leaves a row for a room that is no port, so only rooms
+   * that are ports now are offered. */
+  snprintf(
+      query, sizeof(query),
+      "SELECT DISTINCT port_vnum FROM port_commodities WHERE port_vnum <> %d ORDER BY port_vnum",
+      port_vnum);
   if (mysql_query(conn, query))
   {
     return;
@@ -169,7 +172,7 @@ void vessel_contracts_refresh_port(int port_vnum)
   {
     while ((row = mysql_fetch_row(result)) != NULL && num_destinations < MAX_CONTRACT_OFFERS)
     {
-      if (row[0] != NULL)
+      if (row[0] != NULL && vessel_room_is_port(real_room(parse_int(row[0]))))
       {
         destinations[num_destinations++] = parse_int(row[0]);
       }

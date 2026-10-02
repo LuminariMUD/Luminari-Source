@@ -1185,6 +1185,89 @@ static MYSQL *movement_open_test_database(void)
   return connection;
 }
 
+void Test_vessel_freight_board_offers_only_ports(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct room_data rooms[2]; /* the origin dock and another port */
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  MYSQL *saved_conn;
+  MYSQL *connection;
+  bool saved_mysql_available;
+  bool prepared;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    return;
+  }
+
+  connection = movement_open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  /* Room 70000 is a hull's interior where a market was once read. */
+  prepared =
+      mysql_query(connection, "CREATE TEMPORARY TABLE freight_contracts ("
+                              "contract_id INT AUTO_INCREMENT PRIMARY KEY, "
+                              "origin_vnum INT NOT NULL, destination_vnum INT NOT NULL, "
+                              "commodity_id INT NOT NULL, quantity INT NOT NULL, "
+                              "payout INT NOT NULL, status INT NOT NULL DEFAULT 0, "
+                              "taken_by VARCHAR(64) NOT NULL DEFAULT '', "
+                              "offered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)") == 0 &&
+      mysql_query(connection, "CREATE TEMPORARY TABLE port_commodities ("
+                              "port_vnum INT NOT NULL, commodity_id INT NOT NULL, "
+                              "supply INT NOT NULL DEFAULT 100, "
+                              "PRIMARY KEY (port_vnum, commodity_id))") == 0 &&
+      mysql_query(connection, "INSERT INTO port_commodities (port_vnum, commodity_id) VALUES "
+                              "(100, 1), (101, 1), (70000, 1)") == 0 &&
+      mysql_query(connection, "CREATE TEMPORARY TABLE trade_commodities ("
+                              "commodity_id INT PRIMARY KEY, base_price INT NOT NULL, "
+                              "contraband_renown INT NOT NULL DEFAULT 0)") == 0 &&
+      mysql_query(connection, "INSERT INTO trade_commodities (commodity_id, base_price) "
+                              "VALUES (1, 10)") == 0;
+  if (!prepared)
+  {
+    mysql_close(connection);
+    CuFail(tc, "could not create the isolated freight fixture");
+    return;
+  }
+
+  memset(rooms, 0, sizeof(rooms));
+  rooms[0].number = 100;
+  rooms[0].sector_type = SECT_SEAPORT;
+  rooms[1].number = 101;
+  rooms[1].sector_type = SECT_SEAPORT;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = rooms;
+  top_of_world = 1;
+  saved_conn = conn;
+  saved_mysql_available = mysql_available;
+  conn = connection;
+  mysql_available = TRUE;
+
+  vessel_contracts_refresh_port(100);
+
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "SELECT destination_vnum FROM freight_contracts"));
+  result = mysql_store_result(connection);
+  CuAssertPtrNotNull(tc, result);
+  CuAssertIntEquals(tc, 1, (int)mysql_num_rows(result));
+  row = mysql_fetch_row(result);
+  CuAssertStrEquals(tc, "101", row[0]);
+  mysql_free_result(result);
+
+  conn = saved_conn;
+  mysql_available = saved_mysql_available;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  mysql_close(connection);
+}
+
 void Test_vessel_restart_keeps_an_owned_hull_damaged_in_port(CuTest *tc)
 {
   const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
