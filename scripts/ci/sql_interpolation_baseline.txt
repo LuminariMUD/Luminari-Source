@@ -35,7 +35,7 @@ src/vessels/vessels_merchants.c 12
 src/vessels/vessels_ownership.c 13
 src/vessels/vessels_piracy.c 2
 src/vessels/vessels_rooms.c 1
-src/vessels/vessels_trade.c 7
+src/vessels/vessels_trade.c 6
 src/vessels/vessels_upgrades.c 5
 src/wilderness/narrative_weaver.c 4
 src/wilderness/region_hints.c 3
