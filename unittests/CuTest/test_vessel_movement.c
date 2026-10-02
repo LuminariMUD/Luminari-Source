@@ -1185,6 +1185,28 @@ static MYSQL *movement_open_test_database(void)
   return connection;
 }
 
+void Test_vessel_port_room_is_her_berth(CuTest *tc)
+{
+  struct movement_fixture fixture;
+  struct greyhawk_ship_data *ship;
+
+  ship = movement_begin(&fixture, VESSEL_SHIP);
+
+  /* Moored in a port, her object's room is the port she trades in. */
+  fixture.room.sector_type = SECT_SEAPORT;
+  CuAssertIntEquals(tc, 0, vessel_port_room(ship));
+  CuAssertTrue(tc, vessel_ship_is_in_port(ship));
+
+  /* Without a port under her or a hull to look from, there is none. */
+  fixture.room.sector_type = SECT_OCEAN;
+  ship->shipnum = -1;
+  CuAssertIntEquals(tc, NOWHERE, vessel_port_room(ship));
+  ship->shipnum = MOVEMENT_SHIP;
+  CuAssertIntEquals(tc, NOWHERE, vessel_port_room(NULL));
+
+  movement_end(&fixture);
+}
+
 void Test_vessel_freight_board_offers_only_ports(CuTest *tc)
 {
   const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");

@@ -255,6 +255,7 @@ void vessel_contracts_refresh_port(int port_vnum)
 static struct greyhawk_ship_data *contract_context(struct char_data *ch, int *port_vnum)
 {
   struct greyhawk_ship_data *ship;
+  room_rnum port_room;
 
   if (!mysql_available || conn == NULL)
   {
@@ -269,7 +270,8 @@ static struct greyhawk_ship_data *contract_context(struct char_data *ch, int *po
     return NULL;
   }
 
-  if (!vessel_ship_is_in_port(ship))
+  port_room = vessel_port_room(ship);
+  if (port_room == NOWHERE)
   {
     send_to_char(ch, "You must be moored at a port.\r\n");
     return NULL;
@@ -280,7 +282,7 @@ static struct greyhawk_ship_data *contract_context(struct char_data *ch, int *po
     return NULL;
   }
 
-  *port_vnum = world[IN_ROOM(ship->shipobj)].number;
+  *port_vnum = world[port_room].number;
   return ship;
 }
 
@@ -315,7 +317,7 @@ ACMD(do_contracts)
 
   vessel_contracts_refresh_port(port_vnum);
 
-  send_to_char(ch, "Freight board at %s:\r\n", world[IN_ROOM(ship->shipobj)].name);
+  send_to_char(ch, "Freight board at %s:\r\n", port_name(port_vnum));
   send_to_char(ch, "ID     Cargo            Qty  Payout  Destination\r\n");
   send_to_char(ch, "------ ---------------- ---- ------- ---------------------------\r\n");
 

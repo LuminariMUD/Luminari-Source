@@ -64,28 +64,39 @@ bool vessel_room_is_fee_berth(const struct greyhawk_ship_data *ship, room_rnum r
 }
 
 /**
- * Return whether a vessel is at a port using both object and coordinate state.
+ * The port a vessel lies in: her exterior object's room when that is a port,
+ * else the port at her coordinates, else NOWHERE.
  *
- * The exterior object's dynamic room may be recycled during copyover, while
- * the vessel coordinates and mapped terrain remain authoritative.
+ * The exterior object's dynamic room may be recycled during copyover, and a
+ * hull loaded into a transport's hold lies in its interior, while the vessel
+ * coordinates and mapped terrain remain authoritative.
  */
-bool vessel_ship_is_in_port(const struct greyhawk_ship_data *ship)
+room_rnum vessel_port_room(const struct greyhawk_ship_data *ship)
 {
-  room_rnum exterior_room;
+  room_rnum room;
 
   if (ship == NULL)
   {
-    return FALSE;
+    return NOWHERE;
   }
 
-  exterior_room = ship->shipobj == NULL ? NOWHERE : IN_ROOM(ship->shipobj);
-  if (vessel_room_is_port(exterior_room))
+  room = ship->shipobj == NULL ? NOWHERE : IN_ROOM(ship->shipobj);
+  if (vessel_room_is_port(room))
   {
-    return TRUE;
+    return room;
   }
+  if (ship->shipnum < 0 || ship->shipnum >= GREYHAWK_MAXSHIPS ||
+      get_ship_terrain_type(ship->shipnum) != SECT_SEAPORT)
+  {
+    return NOWHERE;
+  }
+  return get_or_allocate_wilderness_room((int)ship->x, (int)ship->y);
+}
 
-  return ship->shipnum >= 0 && ship->shipnum < GREYHAWK_MAXSHIPS &&
-         get_ship_terrain_type(ship->shipnum) == SECT_SEAPORT;
+/** Return whether a vessel is at a port (vessel_port_room()). */
+bool vessel_ship_is_in_port(const struct greyhawk_ship_data *ship)
+{
+  return vessel_port_room(ship) != NOWHERE;
 }
 
 /**
@@ -1335,6 +1346,7 @@ void vessel_customs_inspection(struct greyhawk_ship_data *ship, room_rnum port_r
 static struct greyhawk_ship_data *trade_context(struct char_data *ch, int *port_vnum)
 {
   struct greyhawk_ship_data *ship;
+  room_rnum port_room;
 
   ship = get_ship_from_room(IN_ROOM(ch));
   if (ship == NULL)
@@ -1343,7 +1355,8 @@ static struct greyhawk_ship_data *trade_context(struct char_data *ch, int *port_
     return NULL;
   }
 
-  if (!vessel_ship_is_in_port(ship))
+  port_room = vessel_port_room(ship);
+  if (port_room == NOWHERE)
   {
     send_to_char(ch, "You must be moored at a port to trade.\r\n");
     return NULL;
@@ -1360,7 +1373,7 @@ static struct greyhawk_ship_data *trade_context(struct char_data *ch, int *port_
     return NULL;
   }
 
-  *port_vnum = world[IN_ROOM(ship->shipobj)].number;
+  *port_vnum = world[port_room].number;
   return ship;
 }
 
@@ -1382,7 +1395,7 @@ ACMD(do_market)
     return;
   }
 
-  send_to_char(ch, "Market at %s:\r\n", world[IN_ROOM(ship->shipobj)].name);
+  send_to_char(ch, "Market at %s:\r\n", world[real_room(port_vnum)].name);
   send_to_char(ch, "Commodity        Wt/unit    Buy   Sell  Local supply\r\n");
   send_to_char(ch, "---------------- ------- ------ ------ ------------\r\n");
   for (i = 0; i < num_commodities; i++)
