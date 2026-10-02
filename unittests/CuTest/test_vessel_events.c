@@ -75,6 +75,7 @@ static MYSQL *events_open_test_database(void)
 
 void Test_vessel_event_names_entrants_by_contact_id(CuTest *tc)
 {
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
   struct greyhawk_ship_data *ship = &greyhawk_ships[EVENTS_SHIP];
   struct room_data bridge;
   struct room_data *saved_world;
@@ -87,8 +88,7 @@ void Test_vessel_event_names_entrants_by_contact_id(CuTest *tc)
   MYSQL *connection;
   bool saved_mysql_available;
 
-  if (getenv("LUMINARI_TEST_MYSQL_ENABLE") == NULL ||
-      strcmp(getenv("LUMINARI_TEST_MYSQL_ENABLE"), "1") != 0)
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
   {
     return;
   }
