@@ -616,6 +616,7 @@ void Test_vessel_freight_bond_pays_for_the_goods(CuTest *tc)
   CuAssertTrue(tc, strstr(output, "The freight your bond paid for remains in your hold.") != NULL);
   CuAssertIntEquals(tc, 10, ship->cargo[0].quantity);
   output = rewards_berth_command(&berth, do_contractaccept, "1");
+  CuAssertTrue(tc, strstr(output, "you post a 140-gold bond, 10 units are loaded") != NULL);
   CuAssertIntEquals(tc, 720, GET_GOLD(&berth.captain));
   CuAssertIntEquals(tc, 20, ship->cargo[0].quantity);
 
