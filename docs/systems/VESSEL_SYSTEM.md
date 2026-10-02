@@ -681,7 +681,11 @@ Owners use `shipcustomize` to set or clear optional paint and figurehead text,
 each limited to 80 printable characters. The current hull's appearance follows
 the lookout header, and visible contacts show their appearance below the
 nearest-first roster row. The same values build the exterior object's room
-description and persist in `ship_interiors` through Phase 17.
+description and persist in `ship_interiors` through Phase 17. Look builds a
+managed hull's room line as she lies at that moment
+(`vessel_hull_room_description()`): "is moored here" at a berth or alongside,
+"lies at anchor here", "is sinking here", "hovers overhead" aloft, and "is here"
+otherwise.
 
 Development acceptance run
 `/tmp/luminari-vessel-lookout-check-1000/runs/20260802T131015Z-1845762`

@@ -1500,7 +1500,7 @@ proc run_vessel_lookout_check {warship_id} {
 
   set output [run_game_command "goto 900 225"]
   require_game_output $output \
-    "Azure Watch is moored here, painted midnight blue with silver trim and bearing a gilded sea dragon as a figurehead." \
+    "Azure Watch is here, painted midnight blue with silver trim and bearing a gilded sea dragon as a figurehead." \
     "customized exterior hull description"
   set output [run_game_command "shipgoto $observer_slot"]
   require_game_output $output "Aboard Azure Watch (slot $observer_slot)." \

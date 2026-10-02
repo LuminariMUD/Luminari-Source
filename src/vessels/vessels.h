@@ -2035,6 +2035,7 @@ void end_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_d
 /* Utility Functions */
 void vessel_build_hull_description(char *buffer, size_t buffer_size,
                                    const struct greyhawk_ship_data *ship);
+bool vessel_hull_room_description(const struct obj_data *obj, char *buffer, size_t buffer_size);
 bool vessel_format_appearance(char *buffer, size_t buffer_size,
                               const struct greyhawk_ship_data *ship);
 bool vessel_refresh_hull_strings(struct greyhawk_ship_data *ship, bool refresh_identity);

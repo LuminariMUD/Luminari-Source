@@ -991,12 +991,37 @@ void vessel_reset_customization(struct greyhawk_ship_data *ship)
 }
 
 /**
- * Build the room description for a vessel's exterior hull.
+ * How a hull lies in her room, as people beside her see it.
+ */
+static const char *vessel_hull_presence(const struct greyhawk_ship_data *ship)
+{
+  if (vessel_is_sinking(ship))
+  {
+    return "is sinking here";
+  }
+  if (ship->dock != 0 || ship->docked_to_ship >= 0)
+  {
+    return "is moored here";
+  }
+  if (ship->anchored)
+  {
+    return "lies at anchor here";
+  }
+  if (ship->z > 0)
+  {
+    return "hovers overhead";
+  }
+  return "is here";
+}
+
+/**
+ * Build the room description for a vessel's exterior hull, as she lies now.
  */
 void vessel_build_hull_description(char *buffer, size_t buffer_size,
                                    const struct greyhawk_ship_data *ship)
 {
   const char *name;
+  const char *presence;
   const char *figurehead;
   const char *paint_scheme;
 
@@ -1012,25 +1037,25 @@ void vessel_build_hull_description(char *buffer, size_t buffer_size,
   }
 
   name = ship->name[0] ? ship->name : "An unnamed vessel";
+  presence = vessel_hull_presence(ship);
   figurehead = vessel_figurehead(ship);
   paint_scheme = vessel_paint_scheme(ship);
   if (*paint_scheme && *figurehead)
   {
-    snprintf(buffer, buffer_size, "%s is moored here, painted %s and bearing %s as a figurehead.",
-             name, paint_scheme, figurehead);
+    snprintf(buffer, buffer_size, "%s %s, painted %s and bearing %s as a figurehead.", name,
+             presence, paint_scheme, figurehead);
   }
   else if (*paint_scheme)
   {
-    snprintf(buffer, buffer_size, "%s is moored here, painted %s.", name, paint_scheme);
+    snprintf(buffer, buffer_size, "%s %s, painted %s.", name, presence, paint_scheme);
   }
   else if (*figurehead)
   {
-    snprintf(buffer, buffer_size, "%s is moored here, bearing %s as a figurehead.", name,
-             figurehead);
+    snprintf(buffer, buffer_size, "%s %s, bearing %s as a figurehead.", name, presence, figurehead);
   }
   else
   {
-    snprintf(buffer, buffer_size, "%s is moored here.", name);
+    snprintf(buffer, buffer_size, "%s %s.", name, presence);
   }
 }
 
@@ -1157,6 +1182,23 @@ bool vessel_hull_is_managed(const struct obj_data *obj)
   }
 
   return greyhawk_ships[shipnum].shipobj == obj;
+}
+
+/**
+ * The line a managed hull shows in her room's contents, built as she lies
+ * now (moored, at anchor, sinking, aloft or under way), since her stored
+ * description is written only when she is placed or renamed.
+ *
+ * @return FALSE when obj is not a managed hull
+ */
+bool vessel_hull_room_description(const struct obj_data *obj, char *buffer, size_t buffer_size)
+{
+  if (!vessel_hull_is_managed(obj))
+  {
+    return FALSE;
+  }
+  vessel_build_hull_description(buffer, buffer_size, &greyhawk_ships[GET_OBJ_VAL(obj, 1)]);
+  return TRUE;
 }
 
 /* ========================================================================= */
