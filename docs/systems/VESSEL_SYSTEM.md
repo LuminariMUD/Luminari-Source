@@ -950,7 +950,7 @@ name through the authoritative player index rather than the unrelated
 | cargosell | Sell bulk goods (dock only) | `cargosell <commodity> [qty\|all]` |
 | cargomanifest | Show bulk cargo aboard | `cargomanifest` |
 | contracts | Freight board + your active jobs | `contracts` |
-| contractaccept | Take a freight job (loads cargo) | `contractaccept <id>` |
+| contractaccept | Take a freight job (posts a bond, loads cargo) | `contractaccept <id>` |
 | contractdeliver | Deliver at destination, collect | `contractdeliver <id>` |
 | contractabandon | Return a job to the board | `contractabandon <id>` |
 | plunder | Take cargo from a ship you've cleared | `plunder` |
@@ -998,12 +998,17 @@ player-to-player settlement are outside the public-ferry contract. The fare
 lives in `ship_schedules`, appears in `showschedule`, and survives reboot.
 
 Freight contracts (`src/vessels/vessels_contracts.c`): each port's board offers runs
-to other *known trading* ports (any with `port_commodities` rows), with
-quantity and payout scaled from real wilderness distance between the dock
-rooms. Accepting loads the cargo (capacity-checked) and claims the row with
-a conditional UPDATE, so two captains racing for the same job cannot both
-win it. Delivering requires the freight still aboard. Boards refresh on a
-TTL; accepted contracts are never cleared by a refresh.
+to other *known trading* ports (any with `port_commodities` rows that is a port
+room), with quantity and payout scaled from real wilderness distance between the
+dock rooms. The payout is the goods' base worth plus a distance premium.
+Accepting takes the goods' base worth as a bond (refused without the gold),
+loads the cargo (capacity-checked), and claims the row with a conditional
+UPDATE, so two captains racing for the same job cannot both win it. Abandoning
+returns the job to the board and leaves the bought freight aboard, so taking
+and dropping a job gains nothing. Delivering requires the freight still aboard.
+Boards refresh on a TTL; accepted contracts are never cleared by a refresh.
+Market, cargo and freight commands key the port by `vessel_port_room()`: the
+hull object's room when that is a port, else the port at her coordinates.
 
 Piracy (`src/vessels/vessels_piracy.c`): `plunder` moves cargo from a cleared prize
 into an alongside raider, unit by unit so the weight limit stops it exactly

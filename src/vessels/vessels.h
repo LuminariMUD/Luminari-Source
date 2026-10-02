@@ -1015,6 +1015,7 @@ struct vessel_balance_duel_result
 
 void vessel_trade_ensure_schema(void);
 int vessel_cargo_weight(const struct greyhawk_ship_data *ship);
+int vessel_commodity_base_price(int commodity_id);
 const char *vessel_commodity_name(int commodity_id);
 int vessel_stow_cargo(struct greyhawk_ship_data *ship, int commodity_id, int units);
 int vessel_commodity_price(int base_price, int supply);

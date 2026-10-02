@@ -554,6 +554,14 @@ const char *vessel_commodity_name(int commodity_id)
   return def != NULL ? def->name : "cargo";
 }
 
+/** A commodity's base price, or 0 when the id is unknown. */
+int vessel_commodity_base_price(int commodity_id)
+{
+  struct commodity_def *def = commodity_by_id(commodity_id);
+
+  return def != NULL ? def->base_price : 0;
+}
+
 /**
  * Stow up to `units` of a commodity in the hold, unit by unit so the weight
  * limit stops the load exactly at capacity.

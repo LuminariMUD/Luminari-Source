@@ -318,11 +318,12 @@ ACMD(do_contracts)
   vessel_contracts_refresh_port(port_vnum);
 
   send_to_char(ch, "Freight board at %s:\r\n", port_name(port_vnum));
-  send_to_char(ch, "ID     Cargo            Qty  Payout  Destination\r\n");
-  send_to_char(ch, "------ ---------------- ---- ------- ---------------------------\r\n");
+  send_to_char(ch, "ID     Cargo            Qty    Bond  Payout  Destination\r\n");
+  send_to_char(ch, "------ ---------------- ---- ------- ------- ---------------------------\r\n");
 
   snprintf(query, sizeof(query),
-           "SELECT fc.contract_id, tc.name, fc.quantity, fc.payout, fc.destination_vnum "
+           "SELECT fc.contract_id, tc.name, fc.quantity, fc.payout, fc.destination_vnum, "
+           "tc.base_price * fc.quantity "
            "FROM freight_contracts fc JOIN trade_commodities tc "
            "ON tc.commodity_id = fc.commodity_id "
            "WHERE fc.origin_vnum = %d AND fc.status = %d ORDER BY fc.payout DESC",
@@ -337,7 +338,7 @@ ACMD(do_contracts)
   {
     while ((row = mysql_fetch_row(result)) != NULL)
     {
-      send_to_char(ch, "%-6s %-16s %4s %7s  %s\r\n", row[0], row[1], row[2], row[3],
+      send_to_char(ch, "%-6s %-16s %4s %7s %7s  %s\r\n", row[0], row[1], row[2], row[5], row[3],
                    port_name(parse_int(row[4])));
       listed++;
     }
@@ -439,6 +440,7 @@ ACMD(do_contractaccept)
   int port_vnum;
   int contract_id;
   int commodity_id, quantity, payout, destination, status;
+  int bond;
   int lot = -1;
   int i;
   int empty = -1;
@@ -473,6 +475,16 @@ ACMD(do_contractaccept)
   if (status != CONTRACT_STATUS_OPEN)
   {
     send_to_char(ch, "That contract has already been taken.\r\n");
+    return;
+  }
+
+  /* The shipper wants the goods' worth as a bond; the payout repays it, so
+   * the freight is never free cargo to sell or keep. */
+  bond = vessel_commodity_base_price(commodity_id) * quantity;
+  if (GET_GOLD(ch) < bond)
+  {
+    send_to_char(ch, "The shipper asks a %d-gold bond for that freight; you have %d.\r\n", bond,
+                 GET_GOLD(ch));
     return;
   }
 
@@ -540,9 +552,12 @@ ACMD(do_contractaccept)
     return;
   }
 
+  award_gold(ch, -bond);
   vessel_db_save_cargo(ship);
-  send_to_char(ch, "Contract %d accepted: %d units loaded, %d gold on delivery to %s.\r\n",
-               contract_id, quantity, payout, port_name(destination));
+  send_to_char(ch,
+               "Contract %d accepted: you post a %d-gold bond, %d units are loaded, and %d gold "
+               "is paid on delivery to %s.\r\n",
+               contract_id, bond, quantity, payout, port_name(destination));
   send_to_ship(ship, "Dockhands load %d units of freight aboard %s.", quantity, ship->name);
   log("Info: %s accepted freight contract %d (%d units to port %d)", GET_NAME(ch), contract_id,
       quantity, destination);
@@ -689,6 +704,8 @@ ACMD(do_contractabandon)
     return;
   }
 
-  send_to_char(ch, "You abandon contract %d. The cargo remains in your hold.\r\n", contract_id);
+  send_to_char(ch,
+               "You abandon contract %d. The freight your bond paid for remains in your hold.\r\n",
+               contract_id);
   log("Info: %s abandoned freight contract %d", GET_NAME(ch), contract_id);
 }

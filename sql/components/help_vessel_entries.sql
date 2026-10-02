@@ -695,20 +695,21 @@ speculative trading, and the pay is known before you sail.
 CONTRACTS
   Read the freight board at the port you are moored at, and list your own
   active contracts wherever you took them. Each offer shows the cargo,
-  quantity, payout, and destination.
+  quantity, bond, payout, and destination.
 
 CONTRACTACCEPT <id>
-  Take a job. The freight is loaded into your hold immediately, so you
-  need the capacity free before you accept. Payout is fixed at acceptance.
+  Take a job. You post the goods\' worth as a bond, and the freight is
+  loaded into your hold immediately, so you need the gold and the capacity
+  free before you accept. Payout is fixed at acceptance.
 
 CONTRACTDELIVER <id>
-  At the destination port, hand over the freight and collect. The cargo
-  must still be aboard - lose it to pirates or a sinking and there is
-  nothing to deliver.
+  At the destination port, hand over the freight and collect: the payout
+  repays the bond with a premium for the distance. The cargo must still be
+  aboard - lose it to pirates or a sinking and there is nothing to deliver.
 
 CONTRACTABANDON <id>
   Give up a job. It returns to the board for another captain. The freight
-  stays in your hold as ordinary cargo.
+  your bond paid for stays in your hold as ordinary cargo.
 
 Payouts scale with the goods\' value and the distance of the run, so long
 hauls of valuable cargo pay best - and those are exactly the runs pirates
