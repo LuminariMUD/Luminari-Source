@@ -1062,7 +1062,8 @@ enum trade_write_result
 /**
  * COMMIT the open trade transaction. A failure the server did not answer (a
  * client error, such as a connection lost while the reply was on its way)
- * says nothing of whether the server committed.
+ * says nothing of whether the server committed. Connector/C reports client
+ * errors in two ranges, 2000-2999 and 5000-5999.
  */
 static enum trade_write_result trade_commit(void)
 {
@@ -1080,8 +1081,10 @@ static enum trade_write_result trade_commit(void)
     return TRADE_WRITTEN;
   }
   error = mysql_errno(conn);
-  return error >= CR_MIN_ERROR && error <= CR_MAX_ERROR ? TRADE_WRITE_UNANSWERED
-                                                        : TRADE_NOT_WRITTEN;
+  return (error >= CR_MIN_ERROR && error <= CR_MAX_ERROR) ||
+                 (error >= CER_MIN_ERROR && error <= CER_MAX_ERROR)
+             ? TRADE_WRITE_UNANSWERED
+             : TRADE_NOT_WRITTEN;
 }
 
 /**
@@ -1151,8 +1154,8 @@ static bool trade_record(struct greyhawk_ship_data *ship, int port_vnum, int com
     result = trade_write(ship, port_vnum, commodity_id, supply);
     if (result != TRADE_WRITTEN)
     {
-      log("SYSERR: Could not settle an unanswered trade by ship %d at port %d; the database "
-          "may not match her hold until her manifest is next written",
+      log("SYSERR: Could not settle an unanswered trade by ship %d at port %d; the database's "
+          "manifest and port supply may not match her hold until they are next written",
           ship->shipnum, port_vnum);
     }
   }
