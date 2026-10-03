@@ -167,23 +167,29 @@ actual-character gate in the `scripts/vessels/` pattern.
     ([work item #13](https://gitlab.com/max757/Luminari-Source/-/work_items/13)): every database
     connection reconnects by itself (`MYSQL_OPT_RECONNECT`). When one drops inside a transaction,
     the server rolls the transaction back, one statement fails, and the statements after it run in
-    autocommit on a new session, a `COMMIT` among them reporting success; and a `COMMIT` whose
-    reply is lost is taken for a rollback when it may have committed. The step makes "after a lost
-    connection, nothing but `ROLLBACK`" a rule of the query layer. Only `src/database/mysql.c`
-    sends commands to the server (`luminari_mysql_query()`, which every `mysql_query()` expands
-    to, the prepared-statement wrappers, and the pings), so there a connection that lost its
-    transaction takes nothing more until it is rolled back. None of the audit's sites (object,
-    house and pet-gear saves, the help import and save, the bounty write) can then write outside
-    its transaction, and the writers themselves do not change. A shared `COMMIT` helper
+    autocommit on a new session, a `COMMIT` among them reporting success; and a `COMMIT` whose reply
+    is lost is taken for a rollback when it may have committed. The step makes "after a lost
+    connection, nothing but `ROLLBACK`" a rule of the query layer. Only `src/database/mysql.c` sends
+    commands to the server (`luminari_mysql_query()`, which every `mysql_query()` expands to, the
+    prepared-statement wrappers, and the pings), so there a connection that lost its transaction
+    takes nothing more until it is rolled back. None of the audit's sites (object, house and
+    pet-gear saves, the help import and save, the bounty write) can then write outside its
+    transaction, so no writer has to stop at its first failure for that. A shared `COMMIT` helper
     tells committed, refused and unanswered apart (`trade_commit()`'s test, moved to the database
     layer), and the sites that take an unanswered `COMMIT` for a rollback read the database back
     before choosing a state: pet store and retrieve, owner transfer, and event finish (freight
-    acceptance is S14's). The site fixes the rule does not reach: `Crash_idlesave` commits, a
-    failed object save keeps `PLR_CRASH` so the next pass retries it, a failed bounty read is not
-    read as no bounty, the pool stops freeing the handle the global `conn` points at, a lost
-    session's help-sync lock is noticed, and `hedit` deletes removed keywords (it reads a prepared
-    SELECT with `mysql_store_result()`). DB-backed tests for each fix, the drops real (the
-    statement sent, then the socket shut down) on persistent tables. The step reaches outside
+    acceptance is S14's). The site fixes the rule does not reach: `Crash_idlesave` commits, a failed
+    object save keeps `PLR_CRASH` so the next pass retries it, a failed bounty read is not read as
+    no bounty, the pool stops freeing the handle the global `conn` points at, a lost session's
+    help-sync lock is noticed, and `hedit` deletes removed keywords (it reads a prepared SELECT with
+    `mysql_store_result()`). One case is not a lost connection: a row that fails while the
+    connection is good. The object and house writers always report success, so the save commits
+    without that item and tells no one. They report the failed row; the save still commits the rest
+    but counts as incomplete, keeping `PLR_CRASH` or `ROOM_HOUSE_CRASH` so the next pass retries it,
+    and the staff are told whose item it was. The save does not fail as a whole: an item too long
+    for the writer's buffer fails every time and would stop that player's saves, and the rent save
+    rolls back only after worn gear has left memory. DB-backed tests for each fix, the drops real
+    (the statement sent, then the socket shut down) on persistent tables. The step reaches outside
     `src/vessels/` because the work item does.
 14. S14 Two-phase vessel settlements
     ([work item #12](https://gitlab.com/max757/Luminari-Source/-/work_items/12)): a cargo trade, a
@@ -238,7 +244,7 @@ lives in `VESSEL_SYSTEM.md` and the guide.
 
 | Step | What drives the size | Days |
 | -- | -- | -: |
-| S13 Transactions that survive a lost connection | The query-layer rule and the `COMMIT` helper, four unanswered-`COMMIT` sites and six site fixes across the server, real-drop DB tests | 2 |
+| S13 Transactions that survive a lost connection | The query-layer rule and the `COMMIT` helper, four unanswered-`COMMIT` sites, six site fixes and the incomplete-save report across the server, real-drop DB tests | 2.5 |
 | S14 Two-phase vessel settlements | Schema phase with rollback and verifier, player-file marker, login reconcile, four commands, crash-point tests, the economy gate | 2 |
 | S15 Checked vessel purchases and payouts | One shared helper, fifteen gold movements in twelve commands, failure tests per command family | 1.5 |
 
