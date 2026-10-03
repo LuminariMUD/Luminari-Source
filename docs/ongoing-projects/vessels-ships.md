@@ -28,16 +28,19 @@ here records the merge.
 | S9 Claude Code play tests | Merged `a6adb46a8` (MR !15) | [Phase 9](vessels-ships-history.md#phase-9-s9-progress) |
 | S10 Player guide | Merged `60ef66ad1` (MR !16) | [Phase 10](vessels-ships-history.md#phase-10-s10-progress) |
 | S11 Checked cargo trades (work item #10) | Merged `f18208549` (MR !17) | [Phase 11](vessels-ships-history.md#phase-11-s11-progress) |
-| S12 Owned waypoints and routes (work item #11) | Merged `e6881c1d1` (MR !18) | [Phase 12](vessels-ships-history.md#phase-12-s12-progress) |
+| S12 Owned waypoints and routes (work item #11) | Merged `e6881c1d1` (MR !18), review fixes `bde4a0f44` (MR !19) | [Phase 12](vessels-ships-history.md#phase-12-s12-progress) |
+| S13 Transactions that survive a lost connection (work item #13) | Not started: next | [Part 5](#part-5-implementation-sequence) |
+| S14 Two-phase vessel settlements (work item #12) | Not started | [Part 5](#part-5-implementation-sequence) |
 
 Production help is current through S12 and its review fixes (help sync plan `e0d8a08faa27`,
-2026-10-03). Every step
-of Part 5 is merged: the study's steps, S1-S8; S-immediate, which readied the local Luminari Web
-client for S9; S9, which played the whole system in game and recorded it; S10, which turned that
-record into the [Vessel Player Guide](../guides/VESSEL_PLAYER_GUIDE.md) and fixed what checking
-its facts against the code found; S11, which made `cargobuy` and `cargosell` record a trade
-before the gold moves and save the gold checked (GitLab work item #10); and S12, which gave
-waypoints and routes a creator who alone (with the staff) may change them (work item #11).
+2026-10-03). S1-S12 are merged: the study's steps, S1-S8; S-immediate, which readied the local
+Luminari Web client for S9; S9, which played the whole system in game and recorded it; S10, which
+turned that record into the [Vessel Player Guide](../guides/VESSEL_PLAYER_GUIDE.md) and fixed what
+checking its facts against the code found; S11, which made `cargobuy` and `cargosell` record a
+trade before the gold moves and save the gold checked (GitLab work item #10); and S12, which gave
+waypoints and routes a creator who alone (with the staff) may change them (work item #11). Two
+follow-ups join the sequence, both resolved in this worktree: S13 for work item #13 and S14 for
+work item #12, the two vessel work items still open.
 
 ## Working a step
 
@@ -159,29 +162,71 @@ actual-character gate in the `scripts/vessels/` pattern.
     `master_schema.sql` and the boot ensure functions); `setwaypoint` and `createroute` record it;
     `delwaypoint` and `delroute` allow the creator and immortals and keep S10's in-use refusals; a
     decision on rows that predate the column; help in both places and `VESSEL_SYSTEM.md`.
+13. S13 Transactions that survive a lost connection
+    ([work item #13](https://gitlab.com/max757/Luminari-Source/-/work_items/13)): every database
+    connection reconnects by itself (`MYSQL_OPT_RECONNECT`). When one drops inside a transaction,
+    the server rolls the transaction back, one statement fails, and the statements after it run in
+    autocommit on a new session, a `COMMIT` among them reporting success; and a `COMMIT` whose
+    reply is lost is taken for a rollback when it may have committed. The step makes "after a lost
+    connection, nothing but `ROLLBACK`" a rule of the query layer. Only `src/database/mysql.c`
+    sends commands to the server (`luminari_mysql_query()`, which every `mysql_query()` expands
+    to, the prepared-statement wrappers, and the pings), so there a connection that lost its
+    transaction takes nothing more until it is rolled back. None of the audit's sites (object,
+    house and pet-gear saves, the help import and save, the bounty write) can then write outside
+    its transaction, and the writers themselves do not change. A shared `COMMIT` helper
+    tells committed, refused and unanswered apart (`trade_commit()`'s test, moved to the database
+    layer), and the sites that take an unanswered `COMMIT` for a rollback read the database back
+    before choosing a state: pet store and retrieve, owner transfer, and event finish (freight
+    acceptance is S14's). The site fixes the rule does not reach: `Crash_idlesave` commits, a
+    failed object save keeps `PLR_CRASH` so the next pass retries it, a failed bounty read is not
+    read as no bounty, the pool stops freeing the handle the global `conn` points at, a lost
+    session's help-sync lock is noticed, and `hedit` deletes removed keywords (it reads a prepared
+    SELECT with `mysql_store_result()`). DB-backed tests for each fix, the drops real (the
+    statement sent, then the socket shut down) on persistent tables. The step reaches outside
+    `src/vessels/` because the work item does.
+14. S14 Two-phase vessel settlements
+    ([work item #12](https://gitlab.com/max757/Luminari-Source/-/work_items/12)): a cargo trade, a
+    freight acceptance and a dock-fee payment each write the ship's side to MariaDB and the
+    captain's gold to the player file, and nothing spans the two: after a failed gold save and a
+    failed undo, a crash leaves the trade in the database and the old gold in the file. Each
+    becomes two-phase. A settlement row (schema Phase 25 with rollback and verifier SQL,
+    `master_schema.sql` and the boot ensure function) is written in the ship-side transaction and
+    carries its undo as signed deltas. The player file records the newest settlement id whose gold
+    it holds, saved with the gold, as `VIns` and `VMer` do for insurance claims and merchant
+    consequences. A reconcile at login (beside those two deliveries) and before the ship's next
+    trade or cargo save deletes a row the file covers and undoes one it does not, and the ship's
+    trading is held while a row is open; "undone" is reported only after the undo commits.
+    `cargobuy`, `cargosell`, `contractaccept` and `dockfees pay` settle this way, and the row is
+    the durable marker that settles their unanswered `COMMIT` through S13's helper. DB-backed
+    tests at each crash point, the economy gate, and help and `VESSEL_SYSTEM.md` where the
+    messages change.
 
 S-immediate runs before S9: it gives the local Luminari Web client every feature S9 needs, the
 ship data panel among them.
 
 ## Active step
 
-None: Part 5 is complete. S12 merged as `e6881c1d1` (MR !18), with S11's post-merge review round
-2; their records are in the [history](vessels-ships-history.md#phase-12-s12-progress). MR !18
-merged unreviewed, so its range was reviewed privately afterwards; the six fixes merged as
-`bde4a0f44` (MR !19) and their help is synced (record in the history's Phase 12 section).
-Still open outside Part 5: the production deploy of S9's world-data notes and S10's, S11's and
+None in progress. S13 is next: branch `feat/vessels-s13` from master `ec8f55b26` (the S12 review
+fixes' merge and its record, tag `vessels-s13-base`); its first commit is the S13 plan, as a
+"Phase 13 (S13) progress" section here. S14 follows from S13's merge, on `feat/vessels-s14` with
+`vessels-s14-base`. Each step's merge request says `Closes #13` or `Closes #12`, which lists it on
+its work item and closes the item when it merges.
+
+Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's and
 S12's code (S12's with schema Phase 24, which boot adds) and the review fixes, the Open
-player-data balance and human beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`, GitLab work items
-[#12](https://gitlab.com/max757/Luminari-Source/-/work_items/12) (two-phase vessel settlements)
-and [#13](https://gitlab.com/max757/Luminari-Source/-/work_items/13) (database writes that can
-land outside their transaction after an auto-reconnect), and closing these study documents:
-`docs/ongoing-projects/` is temporary, and their enduring content now lives in `VESSEL_SYSTEM.md`
-and the guide.
+player-data balance and human beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`, and closing these
+study documents once S14 merges: `docs/ongoing-projects/` is temporary, and their enduring content
+lives in `VESSEL_SYSTEM.md` and the guide.
 
 ## Estimate (remaining)
 
-Nothing remains in Part 5. The Open player-data balance and human beta gates depend on player
-availability, not engineering time.
+| Step | What drives the size | Days |
+| -- | -- | -: |
+| S13 Transactions that survive a lost connection | The query-layer rule and the `COMMIT` helper, four unanswered-`COMMIT` sites and six site fixes across the server, real-drop DB tests | 2 |
+| S14 Two-phase vessel settlements | Schema phase with rollback and verifier, player-file marker, login reconcile, four commands, crash-point tests, the economy gate | 2 |
+
+The Open player-data balance and human beta gates depend on player availability, not engineering
+time.
 
 ## Ablation record
 
