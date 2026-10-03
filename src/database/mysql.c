@@ -118,10 +118,26 @@ static int mysql_test_dropped_query(MYSQL *mysql_conn, const char *query)
  * where each commits on its own and a COMMIT reports success. So a connection
  * that lost its transaction is marked here, and takes no statement until its
  * caller ends the transaction. The mark is kept on the handle: it survives
- * the reconnect, and a closed handle leaves none behind. */
+ * the reconnect, and a closed handle leaves none behind.
+ *
+ * The mark does not outlast the game pulse it was set in. All database work
+ * is done within the pulse that starts it, so in a later pulse the caller of
+ * a lost transaction has returned, and if the mark is still there it never
+ * ended the transaction. Refusing the statements of everyone after it would
+ * only spread that fault (a failed query stops the server when a player's
+ * objects load), so the transaction is rolled back for it and reported. */
 static char transaction_mark_key[] = "luminari.transaction";
 static char transaction_lost_mark; /* Only the addresses are used. */
 static char transaction_kept_mark;
+static unsigned long transaction_lost_pulse; /* the pulse of the newest mark */
+
+static void transaction_set_lost(MYSQL *mysql_conn, bool lost)
+{
+  mysql_optionsv(mysql_conn, MARIADB_OPT_USERDATA, transaction_mark_key,
+                 lost ? (void *)&transaction_lost_mark : (void *)&transaction_kept_mark);
+  if (lost)
+    transaction_lost_pulse = pulse;
+}
 
 static bool transaction_lost(MYSQL *mysql_conn)
 {
@@ -130,13 +146,17 @@ static bool transaction_lost(MYSQL *mysql_conn)
   if (mysql_conn == NULL)
     return FALSE;
   mysql_get_optionv(mysql_conn, MARIADB_OPT_USERDATA, transaction_mark_key, &mark);
-  return mark == &transaction_lost_mark;
-}
+  if (mark != &transaction_lost_mark)
+    return FALSE;
+  if (pulse == transaction_lost_pulse)
+    return TRUE;
 
-static void transaction_set_lost(MYSQL *mysql_conn, bool lost)
-{
-  mysql_optionsv(mysql_conn, MARIADB_OPT_USERDATA, transaction_mark_key,
-                 lost ? (void *)&transaction_lost_mark : (void *)&transaction_kept_mark);
+  transaction_set_lost(mysql_conn, FALSE);
+  mysql_conn->server_status &= ~SERVER_STATUS_IN_TRANS;
+  (mysql_query)(mysql_conn, "ROLLBACK");
+  log("SYSERR: A database transaction lost with its connection was never ended by the code "
+      "that opened it; it is rolled back now, a pulse later");
+  return FALSE;
 }
 
 /* A connection as it stood before a command was sent. */

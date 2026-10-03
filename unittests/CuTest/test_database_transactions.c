@@ -202,6 +202,21 @@ void Test_database_lost_transaction_takes_no_statement_until_it_ends(CuTest *tc)
   CuAssertIntEquals(tc, 0, mysql_query(conn, "COMMIT"));
   CuAssertIntEquals(tc, 8, transactions_row(conn));
 
+  /* A caller that ends nothing and is followed by no transaction cannot hold
+   * the connection: all database work ends within its game pulse, so at the
+   * next pulse the lost transaction is rolled back for it. */
+  CuAssertIntEquals(tc, 0, mysql_query(conn, "UPDATE " TRANSACTIONS_TABLE " SET v = 0"));
+  CuAssertIntEquals(tc, 0, mysql_query(conn, "START TRANSACTION"));
+  CuAssertIntEquals(tc, 0, mysql_query(conn, "UPDATE " TRANSACTIONS_TABLE " SET v = 11"));
+  mysql_test_drop_connection_at("UPDATE", 1, FALSE);
+  CuAssertTrue(tc, mysql_query(conn, "UPDATE " TRANSACTIONS_TABLE " SET v = 12") != 0);
+  CuAssertTrue(tc, mysql_query(conn, "UPDATE " TRANSACTIONS_TABLE " SET v = 13") != 0);
+  pulse++;
+  CuAssertIntEquals(tc, 0, transactions_row(conn));
+  CuAssertIntEquals(tc, 0, mysql_query(conn, "UPDATE " TRANSACTIONS_TABLE " SET v = 8"));
+  pulse--;
+  CuAssertIntEquals(tc, 8, transactions_row(conn));
+
   /* Outside a transaction a drop loses nothing: the statement is sent again
    * on a new session, as before. */
   transactions_drop_socket(conn);

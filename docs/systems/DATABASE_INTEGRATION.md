@@ -400,9 +400,13 @@ and a `COMMIT` would report success. The query layer prevents that for every cal
   `COMMIT` fails and is answered with a `ROLLBACK`. A new `START TRANSACTION` starts clean.
 
 So a writer inside a transaction needs no check of its own for this: after a lost connection
-every later statement fails, the `COMMIT` fails, and nothing of the transaction is stored. A
-function that opens a transaction must end it on every path, or the connection refuses the
-statements after it until the next transaction begins.
+every later statement fails, the `COMMIT` fails, and nothing of the transaction is stored.
+
+A function that opens a transaction must end it on every path. All database work is done within
+the game pulse that starts it, so a mark still there in a later pulse means its transaction was
+never ended. The layer then rolls it back itself and logs a `SYSERR`, so one missed `ROLLBACK`
+cannot leave the connection refusing everyone's statements; until that next pulse it does refuse
+them. At boot no pulse passes, and nothing heals.
 
 **A statement the server refuses** (a constraint, a missing table) loses nothing: the connection
 and the transaction go on, and the caller decides whether to roll back. The object and house

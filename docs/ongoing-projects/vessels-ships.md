@@ -270,7 +270,8 @@ Items:
     (on a new session if need be), a `COMMIT` is answered with a `ROLLBACK` and fails, and a new
     `START TRANSACTION` starts clean. The two pings (`ensure_mysql_connection()` and the pool's) and
     `mysql_stmt_cleanup()` mark as well. A failed `COMMIT` or `ROLLBACK` clears the library's stale
-    flag, so the statement after it is not refused for a transaction that is over.
+    flag, so the statement after it is not refused for a transaction that is over. The mark
+    does not outlast the game pulse it was set in (see "Found while building").
 02. `mysql_commit_transaction()`: committed, refused (the server said no, or the transaction was
     already lost) or unanswered (any client error, `trade_commit()`'s test); anything but committed
     is rolled back there. `trade_commit()` goes, and `trade_write()` calls the helper.
@@ -342,6 +343,23 @@ gone (`CONN_STATE_ERROR`, and `CONN_STATE_STALE`, which nothing set).
 `Test_database_pool_keeps_its_handles_and_never_waits_for_the_database` makes the database really
 unreachable.
 
+Found while building, in the rule itself: a caller that failed without ending its transaction
+would leave the connection marked, and it would refuse every statement, anyone's, until some later
+save began a transaction. The query that loads a player's objects at login stops the server when
+it fails (`exit(1)` in `Crash_load_objs()` and the object parsers), so one missed `ROLLBACK` and
+one dropped connection could have taken the game down. Two answers:
+
+- Every site was read for such a path. All 26 `START TRANSACTION` sites end their transaction on
+  every way out; `begin_account_character_removal()` leaves its transaction to its caller, which
+  ends it on both paths. No stored procedure call, `SET autocommit` or savepoint opens one
+  elsewhere.
+- The mark is limited to the pulse it was set in. All database work is done within the game pulse
+  that starts it, so a mark met in a later pulse belongs to code that has returned: the layer
+  rolls the transaction back itself, logs a `SYSERR`, and lets the statement through. A missed
+  `ROLLBACK` in code written later can then block the connection for the rest of one pulse at
+  most. At boot no pulse passes and nothing heals; a boot that loses its connection inside a
+  transaction fails loudly either way.
+
 Interpretations decided while planning S13:
 
 - Lost means the connection: 2006, 2013, or a changed session. Other client errors (a statement
@@ -352,6 +370,12 @@ Interpretations decided while planning S13:
   rollback has finished on the server.
 - If the read-back fails too, the site does what it did before (takes it for a rollback) and logs
   the row to check: two faults in a row, and the database is unreachable at that moment.
+- The locking read waits for the lost session's locks. The database here is local
+  (`mysql_host = localhost`), where a lost connection means the server closed the session and
+  freed them. With a remote database and a broken network, the server could keep the session, and
+  the read would wait out `innodb_lock_wait_timeout` (50 seconds) before the site takes the
+  transaction for rolled back; the cargo trade's second write has waited the same way since MR
+  !18.
 - An incomplete save reports progress to the persistence scheduler, so its retry is the next
   autosave pass. Reporting failure would retry the same player or house every second and hold the
   pass for everyone behind it.
