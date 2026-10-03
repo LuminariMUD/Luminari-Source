@@ -1006,7 +1006,13 @@ cannot be recorded, the trade stands as recorded, in memory too, and the
 persistence service's minute save stores the gold once it can; only a crash
 before then leaves cargo recorded without its price or a price without its
 cargo (work item #12). A refused write moves no gold, and without a database
-no trade is made.
+no trade is made. A COMMIT the server does not answer (a connection lost
+while its reply is on the way) may have taken effect or not; both writes set
+absolute values, so the trade or its undo is written again on a reconnected
+session, and once that commits it stands whichever way the first went. The
+manifest writer stops at its first failed write, since after a lost
+connection the next write would reconnect and commit outside the
+transaction.
 
 Staff can run `vtradecheck 1000` to execute the deterministic sustained-market
 gate without changing live port or character state. It must report all 1,000
