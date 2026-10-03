@@ -273,6 +273,11 @@ Progress log (2026-10-02 to 2026-10-03, kept current as the work goes):
   The testing docs describe the steps.
 - Local CI's clang-tidy job found two `bugprone-suspicious-string-compare` sites: the lookups
   tested `str_cmp()` for truth. `e23b6a5cd` compares with `!= 0`.
+- 2026-10-03: MR !17 (S11, merged) got a second review finding after its merge: a trade COMMIT
+  that goes unanswered was taken for a refused one. Fixed here, since this branch carries S11's
+  close-out, in `2ba35d6b1`; recorded in the history's
+  [Phase 11 section](vessels-ships-history.md#phase-11-s11-progress), review round 2. It changes
+  no S12 code.
 - Notes for whoever continues: the rule runs before S10's in-use refusals, so a fixture that
   wants an in-use message must make the helm the creator (the movement fixture's helm has idnum
   0, which matches nothing: 0 is no player). Mobiles have idnum -1 and record 0. A temporary

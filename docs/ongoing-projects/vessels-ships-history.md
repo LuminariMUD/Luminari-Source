@@ -2769,6 +2769,49 @@ fixed above, and the merge closed work item #10. S11 changed no help, so there w
 sync. The fix goes with the next production deploy. S12 is next, on `feat/vessels-s12` from the
 merge ([status in vessels-ships.md](vessels-ships.md#status)).
 
+Review round 2 (2026-10-03, posted on MR !17 after its merge; reviewed head `47a63c340`): one [P2]
+finding, fixed. MR !17 is merged, so the fix is on `feat/vessels-s12` (MR !18), which carries
+S11's close-out and this record.
+
+- Unanswered COMMIT taken for a refused one (`2ba35d6b1`). A COMMIT that fails without the
+  server's answer (MariaDB client error 2013: the connection lost while the reply was on its way)
+  may have taken effect, but `trade_record()` reported it as not recorded. A purchase then
+  restored the hold and kept the gold while the database held the cargo and the lower supply;
+  an undo kept the trade while the database had undone it. Reproduced on S11's logic with a real
+  lost connection (the COMMIT sent, then the socket shut down before its reply, on persistent
+  tables in the test database): the purchase said "cannot record that trade" with 0 units and
+  1,000 gold in memory against a manifest of 10 and a supply of 90, the reviewer's numbers.
+  `trade_commit()` now tells an unanswered COMMIT (any client error, 2000-2999) from a refused
+  one, and `trade_record()` then writes the same trade again on a reconnected session
+  (`MYSQL_PING_CONN()`). Both writes set absolute values (the supply, and the whole manifest from
+  memory), so once the second write commits, the trade or its undo stands whichever way the first
+  COMMIT went. Found on the way: `vessel_db_save_cargo()` went on after a failed write. Inside a
+  transaction, after a lost connection, the client library refuses one reconnect (2006) and the
+  next statement reconnects and commits on its own, so a later lot's row could land outside the
+  transaction. It now stops at its first failure.
+- Ablation: no durable trade identifier, because the absolute writes make the second write its
+  own resolution, and only this game process writes a ship's manifest and a port's supply, so
+  nothing changes them between the two writes. No pending-trade state on the ship either. If the
+  second write cannot commit (the database unreachable just after a lost reply), the command
+  keeps S11's behavior (a purchase is not made, an undo leaves the trade standing) and logs that
+  the database may not match the hold. The next manifest write and the minute save bring the
+  database back in line, and only a reload before then, work item #12's crash window, can let
+  the database's version win. Freight acceptance has the same COMMIT shape but a conditional
+  write (`status = OPEN`) that cannot simply be repeated; a note on #12, which already covers
+  freight and dock fees, records it.
+- Verification: the new DB-backed `Test_vessel_cargo_trades_settle_a_commit_without_a_reply` (a
+  purchase committed and a sale rolled back with their replies lost, then the undo of each after
+  a failed save, one committed and one rolled back) failed on S11's logic with only the test seam
+  added, and passes. A throwaway build with real lost connections on persistent tables (2013
+  after the COMMIT was sent, for a purchase and for an undo; 2006 when the connection was gone
+  before it, for a sale): memory and the database agreed in all three cases, the second write
+  on a new session (the thread ID changed). `make test-all` with the database cases: 1,998
+  CuTest cases OK (seed 1), the protocol harness's 32, the Python suites (542, 37 skipped);
+  `check_sql_interpolation.py` within baseline (317 sites). The local CI matrix
+  (`run.py --base gitlab/master`): all 33 jobs passed in 474 s. The economy gate, the only live
+  gate that trades, was not rerun: a trade whose COMMIT is answered takes the same path as
+  before, and the DB-backed tests drive both commands with real saves.
+
 ## Original estimate
 
 Working days of focused implementation per step, each including its tests, help in both places,
