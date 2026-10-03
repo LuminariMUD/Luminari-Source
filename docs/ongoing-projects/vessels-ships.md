@@ -165,10 +165,13 @@ ship data panel among them.
 ## Active step
 
 None: Part 5 is complete. S12 merged as `e6881c1d1` (MR !18), with S11's post-merge review round
-2; their records are in the [history](vessels-ships-history.md#phase-12-s12-progress). Still open
-outside Part 5: the production deploy of S9's world-data notes and S10's, S11's and S12's code
-(S12's with schema Phase 24, which boot adds), the Open player-data balance and human beta gates in
-`VESSEL_SYSTEM_REQUIREMENTS.md`, GitLab work items
+2; their records are in the [history](vessels-ships-history.md#phase-12-s12-progress). MR !18
+merged unreviewed, so its range was reviewed privately afterwards; six findings are fixed on
+`fix/vessels-s12-review`, in review as MR !19 (record in the history's Phase 12 section; its help
+needs a production sync after the merge). Still open outside Part 5: the production deploy of
+S9's world-data notes and S10's, S11's and S12's code (S12's with schema Phase 24, which boot
+adds), the Open player-data balance and human beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`,
+GitLab work items
 [#12](https://gitlab.com/max757/Luminari-Source/-/work_items/12) (two-phase vessel settlements)
 and [#13](https://gitlab.com/max757/Luminari-Source/-/work_items/13) (database writes that can
 land outside their transaction after an auto-reconnect), and closing these study documents:
