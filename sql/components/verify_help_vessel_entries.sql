@@ -224,8 +224,8 @@ JOIN (
   UNION ALL SELECT 'VEHICLE-TRANSPORT', 'no ground beside her'
   UNION ALL SELECT 'SHIPFIRE', 'or of any word in'
   UNION ALL SELECT 'SHIPBROWSE', 'Word reaches you wherever'
-  UNION ALL SELECT 'DELWAYPOINT', 'only the captain who set one, or'
-  UNION ALL SELECT 'DELROUTE', 'only the captain who created one, or the staff, may delete it'
+  UNION ALL SELECT 'DELWAYPOINT', 'Only the captain who set a waypoint, or the staff, may delete it'
+  UNION ALL SELECT 'DELROUTE', 'may sail, schedule, change, or delete it'
   UNION ALL SELECT 'ADDTOROUTE', 'Only the captain who created a route, or the staff, may add'
 ) AS expected_content ON BINARY h.tag = expected_content.tag
 WHERE h.entry REGEXP expected_content.required_pattern;

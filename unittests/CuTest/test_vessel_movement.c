@@ -1710,15 +1710,21 @@ void Test_vessel_waypoints_and_routes_answer_to_their_creator(CuTest *tc)
   struct movement_fixture fixture;
   struct descriptor_data descriptor;
   struct waypoint_node buoy;
+  struct waypoint_node mark;
+  struct waypoint_node rival_dock;
+  struct waypoint_node harbor_dock;
   struct waypoint_node *saved_waypoints;
   struct route_node ferry;
   struct route_node rival_home;
   struct route_node own_home;
+  struct route_node rival_run;
   struct route_node *saved_routes;
   char output[MAX_STRING_LENGTH];
+  ubyte saved_vessel_system;
 
-  /* Another captain's buoy, a content ferry route, and two routes named
-   * home: another captain's first, then the helm's own. */
+  /* Another captain's buoy and route, a harbor mark and ferry route, two
+   * waypoints named dock (another captain's first, then the harbor's), and
+   * two routes named home: another captain's first, then the helm's own. */
   movement_begin(&fixture, VESSEL_SHIP);
   GET_IDNUM(&fixture.helm) = MOVEMENT_CAPTAIN_ID;
   memset(&descriptor, 0, sizeof(descriptor));
@@ -1728,12 +1734,23 @@ void Test_vessel_waypoints_and_routes_answer_to_their_creator(CuTest *tc)
   descriptor.character = &fixture.helm;
   fixture.helm.desc = &descriptor;
   memset(&buoy, 0, sizeof(buoy));
+  memset(&mark, 0, sizeof(mark));
+  memset(&rival_dock, 0, sizeof(rival_dock));
+  memset(&harbor_dock, 0, sizeof(harbor_dock));
   memset(&ferry, 0, sizeof(ferry));
   memset(&rival_home, 0, sizeof(rival_home));
   memset(&own_home, 0, sizeof(own_home));
+  memset(&rival_run, 0, sizeof(rival_run));
   buoy.waypoint_id = MOVEMENT_WAYPOINT_ID;
   buoy.creator_id = MOVEMENT_RIVAL_ID;
   strlcpy(buoy.data.name, "buoy", sizeof(buoy.data.name));
+  mark.waypoint_id = MOVEMENT_WAYPOINT_ID + 1;
+  strlcpy(mark.data.name, "mark", sizeof(mark.data.name));
+  rival_dock.waypoint_id = MOVEMENT_WAYPOINT_ID + 2;
+  rival_dock.creator_id = MOVEMENT_RIVAL_ID;
+  strlcpy(rival_dock.data.name, "dock", sizeof(rival_dock.data.name));
+  harbor_dock.waypoint_id = MOVEMENT_WAYPOINT_ID + 3;
+  strlcpy(harbor_dock.data.name, "dock", sizeof(harbor_dock.data.name));
   ferry.route_id = MOVEMENT_WAYPOINT_ID;
   strlcpy(ferry.name, "ferry_loop", sizeof(ferry.name));
   rival_home.route_id = MOVEMENT_WAYPOINT_ID + 1;
@@ -1742,12 +1759,19 @@ void Test_vessel_waypoints_and_routes_answer_to_their_creator(CuTest *tc)
   own_home.route_id = MOVEMENT_WAYPOINT_ID + 2;
   own_home.creator_id = MOVEMENT_CAPTAIN_ID;
   strlcpy(own_home.name, "home", sizeof(own_home.name));
+  rival_run.route_id = MOVEMENT_WAYPOINT_ID + 3;
+  rival_run.creator_id = MOVEMENT_RIVAL_ID;
+  strlcpy(rival_run.name, "rival_run", sizeof(rival_run.name));
   saved_waypoints = waypoint_list;
   saved_routes = route_list;
-  buoy.next = saved_waypoints;
+  buoy.next = &mark;
+  mark.next = &rival_dock;
+  rival_dock.next = &harbor_dock;
+  harbor_dock.next = saved_waypoints;
   ferry.next = &rival_home;
   rival_home.next = &own_home;
-  own_home.next = saved_routes;
+  own_home.next = &rival_run;
+  rival_run.next = saved_routes;
   waypoint_list = &buoy;
   route_list = &ferry;
 
@@ -1766,10 +1790,46 @@ void Test_vessel_waypoints_and_routes_answer_to_their_creator(CuTest *tc)
   CuAssertTrue(tc, strstr(output, "Route 'ferry_loop' is not yours") != NULL);
   CuAssertIntEquals(tc, 0, ferry.num_waypoints);
 
-  /* home is the helm's own route, though another captain's comes first;
-   * with no database the change itself then fails. */
+  /* Nor sail, schedule, or route through what another captain made, so no
+   * hull or route of theirs can hold a rival's in place, and the lists show
+   * only what the helm may use. */
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_setroute(&fixture.helm, "rival_run", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Route 'rival_run' is another captain's: you may sail your "
+                                  "own routes and the harbors'.") != NULL);
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_setschedule(&fixture.helm, "rival_run 2", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Route 'rival_run' is another captain's") != NULL);
+  CuAssertPtrEquals(tc, NULL, greyhawk_ships[MOVEMENT_SHIP].schedule);
   movement_clear_output(&descriptor, output, sizeof(output));
   do_addtoroute(&fixture.helm, "home buoy", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Waypoint 'buoy' is another captain's: your routes may use "
+                                  "your own waypoints and the harbors'.") != NULL);
+  saved_vessel_system = CONFIG_VESSEL_SYSTEM;
+  CONFIG_VESSEL_SYSTEM = 1;
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_listroutes(&fixture.helm, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "ferry_loop") != NULL);
+  CuAssertTrue(tc, strstr(output, "rival_run") == NULL);
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_listwaypoints(&fixture.helm, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "mark") != NULL);
+  CuAssertTrue(tc, strstr(output, "buoy") == NULL);
+  CONFIG_VESSEL_SYSTEM = saved_vessel_system;
+
+  /* A harbor route may be sailed (this one has no waypoints yet). */
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_setroute(&fixture.helm, "ferry_loop", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Route 'ferry_loop' has no waypoints.") != NULL);
+
+  /* home is the helm's own route, though another captain's comes first, and
+   * dock the harbor's waypoint, though another captain's comes first; with
+   * no database the change itself then fails. */
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_addtoroute(&fixture.helm, "home mark", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Failed to add waypoint to route.") != NULL);
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_addtoroute(&fixture.helm, "home dock", 0, 0);
   CuAssertTrue(tc, strstr(output, "Failed to add waypoint to route.") != NULL);
   movement_clear_output(&descriptor, output, sizeof(output));
   do_delroute(&fixture.helm, "home", 0, 0);
@@ -1783,6 +1843,9 @@ void Test_vessel_waypoints_and_routes_answer_to_their_creator(CuTest *tc)
   movement_clear_output(&descriptor, output, sizeof(output));
   do_delroute(&fixture.helm, "ferry_loop", 0, 0);
   CuAssertTrue(tc, strstr(output, "Failed to delete route 'ferry_loop'.") != NULL);
+  movement_clear_output(&descriptor, output, sizeof(output));
+  do_setroute(&fixture.helm, "rival_run", 0, 0);
+  CuAssertTrue(tc, strstr(output, "Route 'rival_run' has no waypoints.") != NULL);
 
   waypoint_list = saved_waypoints;
   route_list = saved_routes;

@@ -1062,7 +1062,8 @@ enum trade_write_result
 /**
  * COMMIT the open trade transaction. A failure the server did not answer (a
  * client error, such as a connection lost while the reply was on its way)
- * says nothing of whether the server committed.
+ * says nothing of whether the server committed. Connector/C reports client
+ * errors in two ranges, 2000-2999 and 5000-5999.
  */
 static enum trade_write_result trade_commit(void)
 {
@@ -1080,8 +1081,10 @@ static enum trade_write_result trade_commit(void)
     return TRADE_WRITTEN;
   }
   error = mysql_errno(conn);
-  return error >= CR_MIN_ERROR && error <= CR_MAX_ERROR ? TRADE_WRITE_UNANSWERED
-                                                        : TRADE_NOT_WRITTEN;
+  return (error >= CR_MIN_ERROR && error <= CR_MAX_ERROR) ||
+                 (error >= CER_MIN_ERROR && error <= CER_MAX_ERROR)
+             ? TRADE_WRITE_UNANSWERED
+             : TRADE_NOT_WRITTEN;
 }
 
 /**
@@ -1151,8 +1154,8 @@ static bool trade_record(struct greyhawk_ship_data *ship, int port_vnum, int com
     result = trade_write(ship, port_vnum, commodity_id, supply);
     if (result != TRADE_WRITTEN)
     {
-      log("SYSERR: Could not settle an unanswered trade by ship %d at port %d; the database "
-          "may not match her hold until her manifest is next written",
+      log("SYSERR: Could not settle an unanswered trade by ship %d at port %d; the database's "
+          "manifest and port supply may not match her hold until they are next written",
           ship->shipnum, port_vnum);
     }
   }
@@ -1268,21 +1271,25 @@ static int vessel_cargo_lot(struct greyhawk_ship_data *ship, int commodity_id, b
  * cargo_room = 0, distinguishing them from crated object cargo.
  *
  * @return FALSE when a write failed (or there is no database), so a caller
- *         inside a transaction can roll back. It stops at the first failure:
- *         after a lost connection the next write would reconnect and commit
- *         on its own, outside the caller's transaction.
+ *         inside a transaction can roll back. Inside a transaction it stops
+ *         at the first failure: after a lost connection the next write would
+ *         reconnect and commit on its own, outside the caller's transaction.
+ *         Outside one it writes every lot it can.
  */
 bool vessel_db_save_cargo(struct greyhawk_ship_data *ship)
 {
   char query[MAX_STRING_LENGTH];
   char escaped[130];
   struct commodity_def *def;
+  bool in_transaction;
+  bool saved = TRUE;
   int i;
 
   if (!mysql_available || conn == NULL || ship == NULL)
   {
     return FALSE;
   }
+  in_transaction = (conn->server_status & SERVER_STATUS_IN_TRANS) != 0;
 
   snprintf(query, sizeof(query),
            "DELETE FROM ship_cargo_manifest WHERE ship_id = %d AND cargo_room = 0", ship->shipnum);
@@ -1311,10 +1318,14 @@ bool vessel_db_save_cargo(struct greyhawk_ship_data *ship)
     {
       log("SYSERR: vessel_db_save_cargo (insert) failed for ship %d: %s", ship->shipnum,
           mysql_error(conn));
-      return FALSE;
+      if (in_transaction)
+      {
+        return FALSE;
+      }
+      saved = FALSE;
     }
   }
-  return TRUE;
+  return saved;
 }
 
 /**

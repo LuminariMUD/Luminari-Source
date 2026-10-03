@@ -2982,6 +2982,56 @@ at catalog `9d93635b8d6f` and the same `help.hlp` hash, and the common baseline 
 the main checkout). Phase 24 and the code go with the next production deploy; boot adds the
 columns. Part 5 is complete ([status in vessels-ships.md](vessels-ships.md#status)).
 
+Review (2026-10-03, after the merge): MR !18 merged without a review, so its range
+(`vessels-s12-base..master`, S12 and S11's round 2) was reviewed privately on the worktree
+(`/code-review high`, not posted on GitLab). Ten candidate findings were checked against the code;
+six were fixed on `fix/vessels-s12-review` from master `b28b2af49`, one commit each.
+
+| Finding | Verdict | Fix |
+| -- | -- | -- |
+| A captain could put another captain's waypoint on a route, after which its creator could never delete it (S10's in-use refusal) | Confirmed | `3996cb84b` |
+| A route's creator could change the course of another captain's hull scheduled on that route: a scheduled hull rebuilds her route from the cache at each departure | Confirmed | `3996cb84b` |
+| `trade_commit()` took only client errors 2000-2999 as unanswered; Connector/C also reports network errors in 5000-5999 (5013, 5014) | Confirmed | `2ad435a40` |
+| `vessel_db_save_cargo()` stopping at its first failure lost every later lot for its callers outside a transaction (the DELETE already committed) | Confirmed regression from `2ba35d6b1` | `d2218eb25` |
+| A permanently removed player's ID is handed out again when it was the highest (boot sets `top_idnum` from the index), and the new character inherited their waypoints and routes | Confirmed | `9ab0bac74` |
+| `init_vessel_system_tables()` created both tables without `creator_id`; through the staff `init vessels` path after boot, every insert failed until a reboot | Confirmed | `905184ab4` |
+| An unanswered COMMIT whose second write also fails can leave the database's manifest and supply unlike the hold | Known residual, on #12 | log line names the supply (`2ad435a40`) |
+| Freight acceptance treats an unanswered COMMIT as refused | Known, on #12 and #13 | none here |
+| Staff cannot choose among same-named player rows (a name finds the newest) | Predates S12 | none |
+| The ownership test was copied three times | Cleanup | `3996cb84b` (two helpers) |
+
+- The two coupling findings have one cause: S12 let every captain use any row while only its
+  creator could change it. `3996cb84b` keeps a captain's rows to that captain. A captain may sail
+  (`setroute`), schedule (`setschedule`), list, and route through only their own waypoints and
+  routes and the harbors' (creator 0); immortals may use any. Name lookups take the caller's own
+  row, then the harbors', then the first, which they refuse. This replaces S12's planning
+  interpretation that "using a route stays open to every captain". An in-use guard on
+  `addtoroute` was weighed and dropped: it would have let a rival freeze a captain's route by
+  scheduling a hull on it, the same pin moved to routes.
+- `d2218eb25` reads the connection's `SERVER_STATUS_IN_TRANS` when the writer starts. Inside a
+  transaction it stops at the first failure; outside one it writes every lot it can, as before.
+- `9ab0bac74`: `vessel_handle_player_removal()` looks the ID up (the player is still in the
+  index when `remove_player()` calls it) and sets the player's rows to creator 0 in its cleanup
+  transaction (prepared statements) and in the caches. A first version passed the ID from
+  `remove_player()`; the local CI coverage job refused that changed line in the persistence
+  subsystem (no test runs `remove_player()`), so the hook looks it up instead and the branch was
+  rebuilt before its first push.
+- Help (DELWAYPOINT, DELROUTE, ADDTOROUTE, SETROUTE, SETSCHEDULE, LISTROUTES, LISTWAYPOINTS) in
+  both places with two verifier patterns updated, `VESSEL_SYSTEM.md`, the player guide, and the
+  rules gate, where Vesselmate is now also refused `setroute` on Kohdee's route and Kohdee's
+  waypoint on a route of their own.
+- Verification on `3996cb84b`: `make test-all` with the database cases (1,999 CuTest cases OK,
+  seed 1; the protocol harness's 32; the Python suites, 542 with 37 skipped);
+  `check_sql_interpolation.py` within baseline (317 sites). The new
+  `Test_vessel_cargo_save_stops_at_a_failure_only_inside_a_transaction` failed on master's writer
+  (`expected <7> but was <0>`) and passes; the creator-rule test now covers the use refusals, the
+  harbor-first lookup and the filtered lists, and the removal test the released rows. In the
+  namespace harness on a fresh reload of the development dump: `help_vessel_entries.sql` applied
+  and `verify_help_vessel_entries.sql` passed all seven checks; the rules gate passed in 38 s with
+  no related `SYSERR`, its transcript showing the four refusals (run on the pre-rebuild head,
+  whose route, waypoint, help and gate code is identical). The local CI matrix
+  (`run.py --base gitlab/master`): all 33 jobs passed on `3996cb84b` in 269 s.
+
 ## Original estimate
 
 Working days of focused implementation per step, each including its tests, help in both places,

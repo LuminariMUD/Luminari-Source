@@ -1056,8 +1056,9 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SETWAYPOINT', 'SET
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('LISTWAYPOINTS', 'Usage: listwaypoints
 
-Displays a list of all navigation waypoints in the database.
-Shows the waypoint ID, name, and coordinates (X, Y, Z) for each waypoint.
+Lists the navigation waypoints you may route through: your own and the
+harbors\' (the staff see every waypoint). Shows the waypoint ID, name, and
+coordinates (X, Y, Z) for each waypoint.
 
 This command can be used by anyone aboard a vessel.
 
@@ -1081,11 +1082,12 @@ VALUES ('DELWAYPOINT', 'Usage: delwaypoint <name>
 
 Deletes a navigation waypoint by name.
 
-Every captain may use every waypoint, but only the captain who set one, or
-the staff, may delete it. Waypoints no player set (the harbors\' own, and
-those set before waypoints had owners) are the staff\'s. A waypoint that any
-route sails through cannot be deleted; delete the route first. When
-waypoints share a name, yours is the one meant.
+Only the captain who set a waypoint, or the staff, may delete it or put it
+on a route. Waypoints no player set (the harbors\' own, and those set before
+waypoints had owners) are the staff\'s, and every captain may route through
+them. A waypoint that any route sails through cannot be deleted; delete the
+route first. When waypoints share a name, yours is the one meant, then the
+harbors\'.
 
 You must be at the helm or be the ship\'s owner to delete waypoints.
 
@@ -1127,9 +1129,9 @@ VALUES ('ADDTOROUTE', 'Usage: addtoroute <route> <waypoint>
 Adds an existing waypoint to a route. Waypoints are added to the end
 of the route in the order you add them.
 
-Only the captain who created a route, or the staff, may add to it; any
-waypoint may go on it, another captain\'s included. When routes or waypoints
-share a name, yours is the one meant.
+Only the captain who created a route, or the staff, may add to it, and
+only your own waypoints and the harbors\' may go on it. When routes or
+waypoints share a name, yours is the one meant, then the harbors\'.
 
 Each route can contain up to 20 waypoints.
 
@@ -1151,12 +1153,13 @@ INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('DELROUTE', 'Usage: delroute <name>
 
 Permanently deletes a navigation route and its ordered waypoint associations.
-The named waypoints themselves are not deleted. Every captain may sail every
-route, but only the captain who created one, or the staff, may delete it.
-Routes no player created (the ferries\' and merchants\', and those created
-before routes had owners) are the staff\'s. A route that a vessel runs on a
-schedule, or is sailing now (under way, waiting at a waypoint, or paused),
-cannot be deleted. When routes share a name, yours is the one meant.
+The named waypoints themselves are not deleted. Only the captain who created
+a route, or the staff, may sail, schedule, change, or delete it. Routes no
+player created (the ferries\' and merchants\', and those created before routes
+had owners) are the staff\'s, and every captain may sail them. A route that a
+vessel runs on a schedule, or is sailing now (under way, waiting at a
+waypoint, or paused), cannot be deleted. When routes share a name, yours is
+the one meant, then the harbors\'.
 
 You must be aboard the vessel and authorized as its captain. Route deletion is
 written to the database and the live route cache immediately.
@@ -1173,8 +1176,9 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('DELROUTE', 'DELROU
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('LISTROUTES', 'Usage: listroutes
 
-Displays a list of all navigation routes in the database.
-Shows the route ID, name, number of waypoints, and loop/active status.
+Lists the navigation routes you may sail: your own and the harbors\' (the
+staff see every route). Shows the route ID, name, number of waypoints, and
+loop/active status.
 
 This command can be used by anyone aboard a vessel.
 
@@ -1197,7 +1201,8 @@ INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('SETROUTE', 'Usage: setroute <name>
 
 Assigns a route to the vessel\'s autopilot system. The route must exist
-and contain at least one waypoint.
+and contain at least one waypoint. You may sail your own routes and the
+harbors\', not another captain\'s.
 
 After assigning a route, use \'autopilot on\' to begin navigation.
 
@@ -1225,7 +1230,8 @@ regular intervals measured in MUD hours. An optional fare is collected
 whenever a player boards an unowned public vessel on this schedule.
 
 Arguments:
-  route    - Name of an existing route (use \'listroutes\' to see available)
+  route    - Name of your own route or a harbor route (\'listroutes\' lists
+             them)
   interval - Number of MUD hours between departures (1-24)
   fare     - Optional boarding cost in gold (0-100000; omitted keeps the
              existing fare)
