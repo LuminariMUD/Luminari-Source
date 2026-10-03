@@ -31,6 +31,7 @@ here records the merge.
 | S12 Owned waypoints and routes (work item #11) | Merged `e6881c1d1` (MR !18), review fixes `bde4a0f44` (MR !19) | [Phase 12](vessels-ships-history.md#phase-12-s12-progress) |
 | S13 Transactions that survive a lost connection (work item #13) | Not started: next | [Part 5](#part-5-implementation-sequence) |
 | S14 Two-phase vessel settlements (work item #12) | Not started | [Part 5](#part-5-implementation-sequence) |
+| S15 Checked vessel purchases and payouts (work item #14) | Not started | [Part 5](#part-5-implementation-sequence) |
 
 Production help is current through S12 and its review fixes (help sync plan `e0d8a08faa27`,
 2026-10-03). S1-S12 are merged: the study's steps, S1-S8; S-immediate, which readied the local
@@ -38,9 +39,9 @@ Luminari Web client for S9; S9, which played the whole system in game and record
 turned that record into the [Vessel Player Guide](../guides/VESSEL_PLAYER_GUIDE.md) and fixed what
 checking its facts against the code found; S11, which made `cargobuy` and `cargosell` record a
 trade before the gold moves and save the gold checked (GitLab work item #10); and S12, which gave
-waypoints and routes a creator who alone (with the staff) may change them (work item #11). Two
-follow-ups join the sequence, both resolved in this worktree: S13 for work item #13 and S14 for
-work item #12, the two vessel work items still open.
+waypoints and routes a creator who alone (with the staff) may change them (work item #11). Three
+follow-ups join the sequence, all resolved in this worktree: S13 for work item #13, S14 for work
+item #12 and S15 for work item #14, the three vessel work items still open.
 
 ## Working a step
 
@@ -200,6 +201,20 @@ actual-character gate in the `scripts/vessels/` pattern.
     the durable marker that settles their unanswered `COMMIT` through S13's helper. DB-backed
     tests at each crash point, the economy gate, and help and `VESSEL_SYSTEM.md` where the
     messages change.
+15. S15 Checked vessel purchases and payouts
+    ([work item #14](https://gitlab.com/max757/Luminari-Source/-/work_items/14)): the vessel
+    commands S11 did not reach still write the ship's side to MariaDB at once and move the gold
+    in memory only, so a crash before the next per-minute save keeps a purchase and gives its gold
+    back, or takes a sold item or delivered freight and never pays. The purchases are `shipbuy`
+    and its trade-in, `shipchristen`, `shiphire`, `shipweapon` and `shipequip` buying,
+    `shiprearm`, `shiprepair`, `shipupgrade`, `shipsummon`, the bounty pay-off and `marque`; the
+    payouts are `shipweapon` and `shipequip` selling and `contractdeliver`. Each takes S11's level
+    in the shape the passenger fare has (`vessel_collect_passenger_fare()`), through one shared
+    helper: both stores written and checked inside the command, a purchase whose gold cannot be
+    saved refused, one whose ship-side write fails refunded, and a payout whose gold cannot be
+    saved put back. DB-backed tests per command family for a failed gold save and a refused
+    ship-side write, and help and `VESSEL_SYSTEM.md` where the messages change. Not S14's
+    settlement record: each command would need its own stored undo.
 
 S-immediate runs before S9: it gives the local Luminari Web client every feature S9 needs, the
 ship data panel among them.
@@ -209,13 +224,14 @@ ship data panel among them.
 None in progress. S13 is next: branch `feat/vessels-s13` from master `ec8f55b26` (the S12 review
 fixes' merge and its record, tag `vessels-s13-base`); its first commit is the S13 plan, as a
 "Phase 13 (S13) progress" section here. S14 follows from S13's merge, on `feat/vessels-s14` with
-`vessels-s14-base`. Each step's merge request says `Closes #13` or `Closes #12`, which lists it on
-its work item and closes the item when it merges.
+`vessels-s14-base`, and S15 from S14's, on `feat/vessels-s15` with `vessels-s15-base`. Each step's
+merge request says `Closes #13`, `Closes #12` or `Closes #14`, which lists it on its work item and
+closes the item when it merges.
 
 Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's and
 S12's code (S12's with schema Phase 24, which boot adds) and the review fixes, the Open
 player-data balance and human beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`, and closing these
-study documents once S14 merges: `docs/ongoing-projects/` is temporary, and their enduring content
+study documents once S15 merges: `docs/ongoing-projects/` is temporary, and their enduring content
 lives in `VESSEL_SYSTEM.md` and the guide.
 
 ## Estimate (remaining)
@@ -224,6 +240,7 @@ lives in `VESSEL_SYSTEM.md` and the guide.
 | -- | -- | -: |
 | S13 Transactions that survive a lost connection | The query-layer rule and the `COMMIT` helper, four unanswered-`COMMIT` sites and six site fixes across the server, real-drop DB tests | 2 |
 | S14 Two-phase vessel settlements | Schema phase with rollback and verifier, player-file marker, login reconcile, four commands, crash-point tests, the economy gate | 2 |
+| S15 Checked vessel purchases and payouts | One shared helper, fifteen gold movements in twelve commands, failure tests per command family | 1.5 |
 
 The Open player-data balance and human beta gates depend on player availability, not engineering
 time.
