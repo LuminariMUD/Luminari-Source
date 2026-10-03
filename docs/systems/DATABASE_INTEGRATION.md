@@ -393,8 +393,9 @@ and a `COMMIT` would report success. The query layer prevents that for every cal
 
 - Every command goes through it: `mysql_query()` (a macro for `luminari_mysql_query()`), the
   prepared-statement wrappers, and `ensure_mysql_connection()` (`MYSQL_PING_CONN`).
-- A command that fails with client error 2006 or 2013, or that reconnects (a ping does, and
-  reports success), while a transaction was open marks the connection.
+- A command marks the connection when, with a transaction open, it fails with client error 2006
+  or 2013, fails after the library gave the transaction up (a reconnect it refused or could not
+  make), or reconnects (a ping does, and reports success).
 - A marked connection sends nothing: queries and prepared statements fail at once.
 - The mark ends with the transaction. `ROLLBACK` is sent, on the new session if need be. A
   `COMMIT` fails and is answered with a `ROLLBACK`. A new `START TRANSACTION` starts clean.

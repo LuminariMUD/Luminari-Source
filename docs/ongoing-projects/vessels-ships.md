@@ -29,7 +29,7 @@ here records the merge.
 | S10 Player guide | Merged `60ef66ad1` (MR !16) | [Phase 10](vessels-ships-history.md#phase-10-s10-progress) |
 | S11 Checked cargo trades (work item #10) | Merged `f18208549` (MR !17) | [Phase 11](vessels-ships-history.md#phase-11-s11-progress) |
 | S12 Owned waypoints and routes (work item #11) | Merged `e6881c1d1` (MR !18), review fixes `bde4a0f44` (MR !19) | [Phase 12](vessels-ships-history.md#phase-12-s12-progress) |
-| S13 Transactions that survive a lost connection (work item #13) | In progress on `feat/vessels-s13` | [Phase 13](#phase-13-s13-progress) |
+| S13 Transactions that survive a lost connection (work item #13) | In review (MR !20) | [Phase 13](#phase-13-s13-progress) |
 | S14 Two-phase vessel settlements (work item #12) | Not started | [Part 5](#part-5-implementation-sequence) |
 | S15 Checked vessel purchases and payouts (work item #14) | Not started | [Part 5](#part-5-implementation-sequence) |
 
@@ -239,7 +239,7 @@ closes the item when it merges.
 
 ### Phase 13 (S13) progress
 
-In progress (2026-10-04). Branch `feat/vessels-s13` from master `ec8f55b26` (the S12 review fixes'
+In review (2026-10-04). Branch `feat/vessels-s13` from master `ec8f55b26` (the S12 review fixes'
 merge and its record), where the annotated tag `vessels-s13-base` stands. The four planning commits
 that put S13, S14 and S15 into Part 5 come first (`b15a8bc60`, `b1a42c2c3`, `5e4ee1425`,
 `92efc3d73`), then this plan. Hand-off as in the routine: tag `vessels-s13` and a merge request
@@ -277,7 +277,8 @@ Items:
     is rolled back there. `trade_commit()` goes, and `trade_write()` calls the helper.
 03. One test seam, `mysql_test_drop_connection_at()`: at the Nth statement that begins with a
     given text, a query or a prepared execution, the socket is really shut down, before the
-    statement or (plain queries) after it was sent. It replaces `vessel_trade_lose_commit_reply_for_test()`, and the trade test moves to real drops on
+    statement or (plain queries) after it was sent. It replaces
+    `vessel_trade_lose_commit_reply_for_test()`, and the trade test moves to real drops on
     persistent tables.
 04. Unanswered `COMMIT`, read back with a locking read before a state is chosen: `pet_store_pet()`
     (is the row stored), `pet_retrieve_stored()` (is it active), `vessel_transfer_owner()` (who
@@ -407,7 +408,75 @@ passes through the changed layer.
 
 Progress log (2026-10-04, kept current as the work goes):
 
-- Plan committed.
+- Plan committed (`0eae5efbe`).
+- The build, `f49fbbb30`, as planned, with these decisions made on the way:
+  - The mark is stored on the handle itself (`MARIADB_OPT_USERDATA`), read at every statement.
+  - A command also loses the transaction when it fails after the library gave the transaction
+    up: a ping that cannot reconnect fails with 2002 or 2003, not 2006, and leaves the flag
+    cleared, so the statement after it would have opened a session of its own once the database
+    was back.
+  - The seam names its statement by text instead of counting statements, so a test says which
+    statement loses the connection and a new query in the code under test does not shift it. For
+    a reply lost after the server ran the statement, the seam waits for the reply and throws it
+    away before it shuts the socket down: in the CI containers the reply arrived before the
+    shutdown, and three jobs of the first matrix run failed on that.
+  - `Crash_save()` and `House_save()` return the number of rows not written;
+    `objsave_commit_player_save()` commits for the four player saves and prints the staff line.
+  - `vessel_db_save_cargo()` lost the stop at its first failure inside a transaction (MR !19):
+    item 1 makes it unnecessary.
+  - The pet writer takes the extra-description rule too. Its other lines are built in buffers of
+    the record's size, and a pet save stays all or nothing, so a string that overfills a record
+    still fails it; the game enters those strings through one line of input.
+  - `Crash_cryosave()` is declared in `db.h` beside the other saves, for its test.
+  - The help import and delete check the lock like the save; no test drives them, since they
+    call the function the save's test covers.
+  - `sql_interpolation_baseline.txt`: `src/obj/objsave.c` from 11 to 8.
+- The pulse limit, `3eab48d60` (see "Found while building"): a mark does not outlast the game
+  pulse it was set in.
+- The migration met a database built from the old definitions: the test database came from
+  `master_schema.sql`, and the new house test failed there with "Duplicate entry '91399' for key
+  'vnum'" on a house's second object. The suite's boot test then applied `2026100401` to it (the
+  unique key gone, `idx_vnum` kept), and the test passed.
+- Filed, not S13's: [work item #15](https://gitlab.com/max757/Luminari-Source/-/work_items/15),
+  an object with no prototype leaks its arcane mark when freed (`free_object_strings()`), met
+  while writing the record test.
+
+Verification (2026-10-04, on `3eab48d60`, the final source):
+
+- `make test-all` with the database cases (S9's `testenv.sh`, the `luminari-vessels-testdb`
+  container): 2,015 CuTest cases OK (seed 1), the protocol harness's 32, and the Python suites
+  (542, 37 skipped); `check_sql_interpolation.py` within baseline (317 sites).
+- The boot migration on a database built from the old definitions (the test container):
+  `SHOW INDEX` read the unique key `vnum` before; the suite's boot test applied `2026100401`;
+  after it the key was gone, `idx_vnum` stayed, and `schema_migrations` held the version.
+  `Test_legacy_table_migrations_repair_old_shapes_idempotently` plays the same on a table of the
+  old shape, twice. sqlfluff passed `master_schema.sql` in the commit hook.
+- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`). The first build, since
+  amended, failed clang-tidy (two findings in the new tests) and three cmake jobs (the seam's
+  race, above). On `f49fbbb30` all 33 jobs passed in 1,557 s. On `3eab48d60` all 33 passed in 855
+  s, clang-tidy with 0 findings, the changed lines covered at 95.83% in `sql` (115 of 120) and
+  84.75% in `persistence` (100 of 118).
+- The namespace harness (`/tmp/claude-1000/vs4`, jobs `u01` to `u22`) on fresh reloads of the
+  development dump, on `3eab48d60`: all 20 gates and provisioners passed (merchant 45 s, campaign
+  167 s, Vailand merchant 157 s, builder 65 s, gunnery 80 s, tactical 331 s, lookout 28 s,
+  boarding 53 s, narrative 28 s, rules 40 s, events 48 s, movement 111 s, loss 77 s, damage 647
+  s, derelict 40 s, hunter 100 s, frontier 237 s, raider 253 s, economy 225 s, client 27 s).
+- A live check of the layer, job `u22`: the economy gate again while a second process killed the
+  server's database sessions, all three 20 seconds after they appeared and the one that had
+  reconnected 45 seconds later. The gate passed in 216 s, its trades included, and the server's
+  log has no `SYSERR`.
+
+Cleanup: the harness is stopped (its disposable database stops with its namespace); the gates
+restored their player files and rows; the tests removed their rows from the test database, whose
+`house_data` keeps the migrated shape; no scratch files were left in the worktree.
+
+Hand-off: tag `vessels-s13` and MR !20 from `feat/vessels-s13`, which says `Closes #13` (range
+`vessels-s13-base..vessels-s13`; squash and remove-source off). Review fixes go on top, one
+commit each. After the merge: no help to sync (no entry changed); production gets the code with
+its next deploy, and boot then applies `2026100401` (on the live `house_data`, which never had
+the key, it adds `idx_vnum`); move this section to the history; tag `vessels-s14-base` on the
+merge and branch `feat/vessels-s14` from it, whose first commit is the S14 plan. S14's freight
+acceptance reads its settlement row back through `mysql_commit_transaction()`.
 
 Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's and
 S12's code (S12's with schema Phase 24, which boot adds) and the review fixes, the Open
