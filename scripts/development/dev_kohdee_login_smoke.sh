@@ -2937,13 +2937,16 @@ proc run_vessel_rules_check {warship_id requested_character} {
   set output [run_game_command "delroute rulesrun$name_seed"]
   require_game_output $output "Route 'rulesrun$name_seed' is not yours" \
     "another captain's route refusal"
+  set output [run_game_command "setroute rulesrun$name_seed"]
+  require_game_output $output "Route 'rulesrun$name_seed' is another captain's" \
+    "another captain's route sailing refusal"
   set output [run_game_command "setwaypoint rulesown$name_seed"]
   require_game_output $output "Waypoint 'rulesown$name_seed' created" "captain waypoint"
   set output [run_game_command "createroute rulesown$name_seed"]
   require_game_output $output "Route 'rulesown$name_seed' created" "captain route"
   set output [run_game_command "addtoroute rulesown$name_seed rulesmark$name_seed"]
-  require_game_output $output "Waypoint 'rulesmark$name_seed' added to route 'rulesown$name_seed'" \
-    "another captain's waypoint on the captain's route"
+  require_game_output $output "Waypoint 'rulesmark$name_seed' is another captain's" \
+    "another captain's waypoint refused on the captain's route"
   set output [run_game_command "delwaypoint rulesown$name_seed"]
   require_game_output $output "Waypoint 'rulesown$name_seed' deleted." "captain waypoint deletion"
   set ::spawn_id $primary_session

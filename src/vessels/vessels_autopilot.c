@@ -2542,12 +2542,33 @@ static bool autopilot_created_by(struct char_data *ch, long creator_id)
 }
 
 /**
- * The waypoint of that name: ch's own if ch set one, otherwise the first.
- * Every captain's waypoints are one pool, so names repeat.
+ * Whether ch may change or delete a waypoint or route: its creator, or an
+ * immortal.
+ */
+static bool autopilot_may_change(struct char_data *ch, long creator_id)
+{
+  return GET_LEVEL(ch) >= LVL_IMMORT || autopilot_created_by(ch, creator_id);
+}
+
+/**
+ * Whether ch may sail, schedule, list, or route through a waypoint or route:
+ * their own and the harbors' (no creator), or any for an immortal. No hull or
+ * route of one captain depends on another's, so a creator's changes reach
+ * only their own hulls and none of theirs can be held in place by a rival.
+ */
+static bool autopilot_may_use(struct char_data *ch, long creator_id)
+{
+  return creator_id == 0 || autopilot_may_change(ch, creator_id);
+}
+
+/**
+ * The waypoint of that name: ch's own if ch set one, else the harbors', else
+ * the first (to refuse by name). Names repeat across captains.
  */
 static struct waypoint_node *autopilot_find_waypoint(struct char_data *ch, const char *name)
 {
   struct waypoint_node *node;
+  struct waypoint_node *harbor = NULL;
   struct waypoint_node *first = NULL;
 
   for (node = waypoint_list; node != NULL; node = node->next)
@@ -2560,20 +2581,25 @@ static struct waypoint_node *autopilot_find_waypoint(struct char_data *ch, const
     {
       return node;
     }
+    if (harbor == NULL && node->creator_id == 0)
+    {
+      harbor = node;
+    }
     if (first == NULL)
     {
       first = node;
     }
   }
-  return first;
+  return harbor != NULL ? harbor : first;
 }
 
 /**
- * The route of that name: ch's own if ch created one, otherwise the first.
+ * The route of that name: ch's own, else the harbors', else the first.
  */
 static struct route_node *autopilot_find_route(struct char_data *ch, const char *name)
 {
   struct route_node *node;
+  struct route_node *harbor = NULL;
   struct route_node *first = NULL;
 
   for (node = route_list; node != NULL; node = node->next)
@@ -2586,12 +2612,16 @@ static struct route_node *autopilot_find_route(struct char_data *ch, const char 
     {
       return node;
     }
+    if (harbor == NULL && node->creator_id == 0)
+    {
+      harbor = node;
+    }
     if (first == NULL)
     {
       first = node;
     }
   }
-  return first;
+  return harbor != NULL ? harbor : first;
 }
 
 /* ========================================================================= */
@@ -2974,6 +3004,10 @@ ACMD(do_listwaypoints)
   count = 0;
   for (current = waypoint_list; current != NULL; current = current->next)
   {
+    if (!autopilot_may_use(ch, current->creator_id))
+    {
+      continue;
+    }
     send_to_char(ch, "%-4d %-20s %10.1f %10.1f %10.1f\r\n", current->waypoint_id,
                  current->data.name[0] ? current->data.name : "(unnamed)", current->data.x,
                  current->data.y, current->data.z);
@@ -2992,8 +3026,8 @@ ACMD(do_listwaypoints)
 }
 
 /**
- * The first route that sails through a waypoint, or NULL. Any captain's
- * route may sail through another's waypoint, so one in use is not deleted.
+ * The first route that sails through a waypoint, or NULL: a harbor waypoint
+ * on any route, or a captain's own on theirs, is not deleted.
  */
 static const char *waypoint_route_in_use(int waypoint_id)
 {
@@ -3084,7 +3118,7 @@ ACMD(do_delwaypoint)
   }
   found_id = waypoint->waypoint_id;
 
-  if (GET_LEVEL(ch) < LVL_IMMORT && !autopilot_created_by(ch, waypoint->creator_id))
+  if (!autopilot_may_change(ch, waypoint->creator_id))
   {
     send_to_char(ch,
                  "Waypoint '%s' is not yours: only the captain who set it, or the staff, may "
@@ -3219,7 +3253,7 @@ ACMD(do_addtoroute)
   }
 
   /* A scheduled hull takes her route from here at every departure. */
-  if (GET_LEVEL(ch) < LVL_IMMORT && !autopilot_created_by(ch, route->creator_id))
+  if (!autopilot_may_change(ch, route->creator_id))
   {
     send_to_char(ch,
                  "Route '%s' is not yours: only the captain who created it, or the staff, may "
@@ -3232,6 +3266,14 @@ ACMD(do_addtoroute)
   if (waypoint == NULL)
   {
     send_to_char(ch, "Waypoint '%s' not found.\r\n", wp_arg);
+    return;
+  }
+  if (!autopilot_may_use(ch, waypoint->creator_id))
+  {
+    send_to_char(ch,
+                 "Waypoint '%s' is another captain's: your routes may use your own waypoints "
+                 "and the harbors'.\r\n",
+                 wp_arg);
     return;
   }
 
@@ -3294,7 +3336,7 @@ ACMD(do_delroute)
   }
   route_id = route->route_id;
 
-  if (GET_LEVEL(ch) < LVL_IMMORT && !autopilot_created_by(ch, route->creator_id))
+  if (!autopilot_may_change(ch, route->creator_id))
   {
     send_to_char(ch,
                  "Route '%s' is not yours: only the captain who created it, or the staff, may "
@@ -3348,6 +3390,10 @@ ACMD(do_listroutes)
   count = 0;
   for (current = route_list; current != NULL; current = current->next)
   {
+    if (!autopilot_may_use(ch, current->creator_id))
+    {
+      continue;
+    }
     send_to_char(ch, "%-4d %-20s %5d %6s %6s\r\n", current->route_id,
                  current->name[0] ? current->name : "(unnamed)", current->num_waypoints,
                  current->loop ? "Yes" : "No", current->active ? "Yes" : "No");
@@ -3407,6 +3453,14 @@ ACMD(do_setroute)
   if (route_node == NULL)
   {
     send_to_char(ch, "Route '%s' not found.\r\n", arg);
+    return;
+  }
+  if (!autopilot_may_use(ch, route_node->creator_id))
+  {
+    send_to_char(ch,
+                 "Route '%s' is another captain's: you may sail your own routes and the "
+                 "harbors'.\r\n",
+                 arg);
     return;
   }
 
@@ -4479,6 +4533,14 @@ ACMD(do_setschedule)
   if (route_node == NULL)
   {
     send_to_char(ch, "Route '%s' not found. Use 'listroutes' to see available routes.\r\n",
+                 route_arg);
+    return;
+  }
+  if (!autopilot_may_use(ch, route_node->creator_id))
+  {
+    send_to_char(ch,
+                 "Route '%s' is another captain's: you may sail your own routes and the "
+                 "harbors'.\r\n",
                  route_arg);
     return;
   }

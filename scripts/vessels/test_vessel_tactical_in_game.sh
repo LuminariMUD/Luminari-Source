@@ -1069,7 +1069,7 @@ elif [[ "$acceptance_mode" == rules ]]; then
      WHERE (BINARY tag = 'SHIPFIRE' AND entry LIKE '%Harbors are neutral ground%')
         OR (BINARY tag = 'PLUNDER' AND entry LIKE '%BOUNTY PAY%')
         OR (BINARY tag = 'SHIPBROWSE' AND entry LIKE '%at most three%')
-        OR (BINARY tag = 'DELROUTE' AND entry LIKE '%only the captain who created one%');")
+        OR (BINARY tag = 'DELROUTE' AND entry LIKE '%may sail, schedule, change, or delete it%');")
   [[ "$rules_help_state" == 4 ]] ||
     fail "the authoritative vessel rules help is stale"
 

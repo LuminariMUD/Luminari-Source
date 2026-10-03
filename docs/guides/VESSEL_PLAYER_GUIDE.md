@@ -430,13 +430,14 @@ runs a gangway between them ("Docking complete with Test Vessel."); `undock` tak
 The autopilot sails a route of waypoints for you. Route commands work on the bridge.
 
 1. `setwaypoint <name>` marks her present position: "Waypoint 'wren_home' created at position
-   (-66.0, 92.0, 0.0)." Names are letters, numbers, `_` and `-`. `listwaypoints` lists every
-   waypoint in the world; any captain may use any of them. `delwaypoint <name>` removes one of
+   (-66.0, 92.0, 0.0)." Names are letters, numbers, `_` and `-`. `listwaypoints` lists your
+   waypoints and the harbors', the ones your routes may use. `delwaypoint <name>` removes one of
    yours.
 2. `createroute <name>` starts a route ("Route 'wren_run' created (ID: 6).") and
    `addtoroute <route> <waypoint>` appends a waypoint ("Waypoint 'harbor_channel_turn' added to
-   route 'wren_run' at position 1."); up to 20 a route. `listroutes` lists every route with its
-   number of waypoints; a route you create sails once through and does not loop.
+   route 'wren_run' at position 1."); up to 20 a route. `listroutes` lists your routes and the
+   harbors' with their number of waypoints; a route you create sails once through and does not
+   loop.
    `delroute <name>` removes one of yours.
 3. `setroute <route>` gives it to the autopilot, and `autopilot on` engages it.
 
@@ -479,10 +480,12 @@ Engaging the autopilot, assigning a pilot and setting a schedule are departures,
 hull's level (16 for a ship). The owner may give these orders anywhere aboard; a captain on a
 helm permit gives them on the bridge.
 
-Every captain may use every waypoint and route, but only the captain who made one, or the staff,
-may delete it or add to a route; the harbors' own are the staff's. Even their maker cannot delete
-a waypoint that a route sails through, nor a route that a ship runs on a schedule or is sailing.
-When names repeat, your own waypoint or route of that name is the one meant.
+Your waypoints and routes are yours alone: only you, or the staff, may delete them, add to your
+routes, or sail and schedule them, and your routes may use only your own waypoints and the
+harbors'. The harbors' waypoints and routes are the staff's, and every captain may use them. Even
+their maker cannot delete a waypoint that a route sails through, nor a route that a ship runs on a
+schedule or is sailing. When names repeat, your own waypoint or route of that name is the one
+meant, then the harbors'.
 
 ## 7. Trade and freight
 

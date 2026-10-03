@@ -781,24 +781,30 @@ restored exactly. The production-linked suite passes 302 tests.
 | -- | -- | -- |
 | autopilot | Engage, pause, disengage, or read the autopilot | `autopilot [on\|off\|pause\|status]` |
 | setwaypoint | Create waypoint | `setwaypoint <name>` |
-| listwaypoints | List waypoints | `listwaypoints` |
+| listwaypoints | List one's own and the harbors' waypoints | `listwaypoints` |
 | delwaypoint | Delete one's own waypoint that no route sails through | `delwaypoint <name>` |
 | createroute | Create route | `createroute <name>` |
 | addtoroute | Add a waypoint to one's own route | `addtoroute <route> <waypoint>` |
-| listroutes | List routes | `listroutes` |
+| listroutes | List one's own and the harbors' routes | `listroutes` |
 | delroute | Delete one's own route that no hull runs on a schedule or is sailing | `delroute <name>` |
-| setroute | Assign route | `setroute <route>` |
+| setroute | Assign one's own or a harbor route | `setroute <route>` |
 
-Every captain may use every waypoint and route, and each records its creator
-(`creator_id`, the player's ID; Phase 24, which boot adds in
-`vessel_ownership_ensure_schema()`). Only the creator or an immortal may
-`delwaypoint`, `delroute`, or `addtoroute` it: a scheduled hull rebuilds her
-route from the shared cache at each departure, so an open `addtoroute` would let
-any captain change a public ferry's course. Rows no player made (content, and
-rows made before Phase 24) have creator 0, and only immortals change them. A
-waypoint that any route sails through, and a route a hull runs on a schedule or
-is sailing, stay even for their creator. Where names repeat, every route and
-waypoint command takes the caller's own row of that name, otherwise the first.
+Each waypoint and route records its creator (`creator_id`, the player's ID;
+Phase 24, which boot adds in `vessel_ownership_ensure_schema()` and
+`init_vessel_system_tables()` creates). Rows no player made (content, and rows
+made before Phase 24) have creator 0: every captain may use them and only
+immortals change them. A captain's own rows are theirs alone: only the creator
+or an immortal may `delwaypoint`, `delroute`, or `addtoroute` them, and only
+they may sail (`setroute`), schedule (`setschedule`), list, or route through
+them. A scheduled hull rebuilds her route from the cache at each departure, so
+if other captains could use a route, its creator could redirect their hulls,
+and their use could hold the creator's rows in place; keeping use to the
+creator closes both. A waypoint that any route sails through, and a route a hull
+runs on a schedule or is sailing, stay even for their creator. Where names
+repeat, the commands take the caller's own row of that name, then the harbors',
+otherwise the first (which they then refuse). Permanent player removal
+(`vessel_handle_player_removal()`) gives the player's rows to the staff
+(creator 0): a removed player's ID is handed out again when it was the highest.
 
 ### Operator Commands (Phases 09, 14, 15, and 16)
 

@@ -435,9 +435,9 @@ prototype absent from `shipbrowse` until `forsale yes`, then listed with its
 `shipfire` refusing an unknown name and firing on the ID; Vesselmate, a
 passenger, refused the guns; Vesselmate refused `assignpilot` on a deeded
 warship below its level (22); Vesselmate refused `delwaypoint`, `addtoroute`,
-and `delroute` on Kohdee's waypoint and route, then adding Kohdee's waypoint to
-a route of Vesselmate's own and deleting a waypoint of Vesselmate's own, and
-Kohdee, staff, deleting Vesselmate's route; a fourth deed refused at the
+`delroute`, and `setroute` on Kohdee's waypoint and route, refused adding
+Kohdee's waypoint to a route of Vesselmate's own, then deleting a waypoint of
+Vesselmate's own, and Kohdee, staff, deleting Vesselmate's route; a fourth deed refused at the
 three-hull cap; and `bounty` quoting the 750-gold (125%) pay-off that
 `bounty pay` refuses at sea.
 
