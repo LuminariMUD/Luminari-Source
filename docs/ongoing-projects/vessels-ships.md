@@ -30,7 +30,8 @@ here records the merge.
 | S11 Checked cargo trades (work item #10) | Merged `f18208549` (MR !17) | [Phase 11](vessels-ships-history.md#phase-11-s11-progress) |
 | S12 Owned waypoints and routes (work item #11) | Merged `e6881c1d1` (MR !18) | [Phase 12](vessels-ships-history.md#phase-12-s12-progress) |
 
-Production help is current through S12 (help sync plan `7d6d4a80acad`, 2026-10-03). Every step
+Production help is current through S12 and its review fixes (help sync plan `e0d8a08faa27`,
+2026-10-03). Every step
 of Part 5 is merged: the study's steps, S1-S8; S-immediate, which readied the local Luminari Web
 client for S9; S9, which played the whole system in game and recorded it; S10, which turned that
 record into the [Vessel Player Guide](../guides/VESSEL_PLAYER_GUIDE.md) and fixed what checking
@@ -166,12 +167,11 @@ ship data panel among them.
 
 None: Part 5 is complete. S12 merged as `e6881c1d1` (MR !18), with S11's post-merge review round
 2; their records are in the [history](vessels-ships-history.md#phase-12-s12-progress). MR !18
-merged unreviewed, so its range was reviewed privately afterwards; six findings are fixed on
-`fix/vessels-s12-review`, in review as MR !19 (record in the history's Phase 12 section; its help
-needs a production sync after the merge). Still open outside Part 5: the production deploy of
-S9's world-data notes and S10's, S11's and S12's code (S12's with schema Phase 24, which boot
-adds), the Open player-data balance and human beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`,
-GitLab work items
+merged unreviewed, so its range was reviewed privately afterwards; the six fixes merged as
+`bde4a0f44` (MR !19) and their help is synced (record in the history's Phase 12 section).
+Still open outside Part 5: the production deploy of S9's world-data notes and S10's, S11's and
+S12's code (S12's with schema Phase 24, which boot adds) and the review fixes, the Open
+player-data balance and human beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`, GitLab work items
 [#12](https://gitlab.com/max757/Luminari-Source/-/work_items/12) (two-phase vessel settlements)
 and [#13](https://gitlab.com/max757/Luminari-Source/-/work_items/13) (database writes that can
 land outside their transaction after an auto-reconnect), and closing these study documents:

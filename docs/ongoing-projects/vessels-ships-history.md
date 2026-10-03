@@ -3032,6 +3032,14 @@ six were fixed on `fix/vessels-s12-review` from master `b28b2af49`, one commit e
   whose route, waypoint, help and gate code is identical). The local CI matrix
   (`run.py --base gitlab/master`): all 33 jobs passed on `3996cb84b` in 269 s.
 
+MR !19 merged on 2026-10-03 as merge commit `bde4a0f44` (branch kept; no review notes). Help:
+`help_vessel_entries.sql` applied to the development database, then
+`help_sync.py sync --authorize-production` from the worktree: plan `e0d8a08faa27`, 7 production
+updates (DELWAYPOINT, DELROUTE, ADDTOROUTE, SETROUTE, SETSCHEDULE, LISTROUTES, LISTWAYPOINTS), no
+development changes, no layer repair, no deletions; both endpoints verified at catalog
+`e407d324e02f`, and the common baseline advanced (copied to the main checkout). The fixes go with
+the next production deploy.
+
 ## Original estimate
 
 Working days of focused implementation per step, each including its tests, help in both places,
