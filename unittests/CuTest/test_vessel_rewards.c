@@ -992,6 +992,77 @@ void Test_vessel_cargo_trades_settle_a_commit_without_a_reply(CuTest *tc)
   mysql_close(connection);
 }
 
+/* The manifest writer saves every lot it can on its own, but stops at the
+ * first failed write inside a transaction: after a lost connection the next
+ * write would reconnect and commit outside it. */
+void Test_vessel_cargo_save_stops_at_a_failure_only_inside_a_transaction(CuTest *tc)
+{
+  struct greyhawk_ship_data *ship;
+  MYSQL *saved_conn;
+  MYSQL *connection;
+  bool saved_mysql_available;
+  char value[64];
+  char salt[16];
+  char timber[16];
+
+  if (!rewards_database_enabled())
+  {
+    return;
+  }
+  connection = rewards_open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  if (!rewards_trade_tables(connection))
+  {
+    mysql_close(connection);
+    CuFail(tc, "could not create the isolated trade fixture");
+    return;
+  }
+  saved_conn = conn;
+  saved_mysql_available = mysql_available;
+  conn = connection;
+  mysql_available = TRUE;
+  vessel_trade_ensure_schema();
+  rewards_query_value(tc, connection,
+                      "SELECT commodity_id FROM trade_commodities WHERE name = 'salt'", salt,
+                      sizeof(salt));
+  rewards_query_value(tc, connection,
+                      "SELECT commodity_id FROM trade_commodities WHERE name = 'timber'", timber,
+                      sizeof(timber));
+
+  /* Two lots; the manifest refuses the first. */
+  ship = rewards_hull(REWARDS_TARGET, VESSEL_SHIP, "the Tern", "Tern", 0.0);
+  ship->cargo[0].commodity_id = (int)strtol(salt, NULL, 10);
+  ship->cargo[0].quantity = 5;
+  ship->cargo[1].commodity_id = (int)strtol(timber, NULL, 10);
+  ship->cargo[1].quantity = 7;
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "ALTER TABLE ship_cargo_manifest ADD CONSTRAINT "
+                                            "lot_refused CHECK (item_count <> 5)"));
+
+  CuAssertTrue(tc, !vessel_db_save_cargo(ship));
+  rewards_query_value(tc, connection,
+                      "SELECT COALESCE(SUM(item_count), 0) FROM ship_cargo_manifest", value,
+                      sizeof(value));
+  CuAssertStrEquals(tc, "7", value);
+
+  CuAssertIntEquals(tc, 0, mysql_query(connection, "DELETE FROM ship_cargo_manifest"));
+  CuAssertIntEquals(tc, 0, mysql_query(connection, "START TRANSACTION"));
+  CuAssertTrue(tc, !vessel_db_save_cargo(ship));
+  rewards_query_value(tc, connection, "SELECT COUNT(*) FROM ship_cargo_manifest", value,
+                      sizeof(value));
+  CuAssertStrEquals(tc, "0", value);
+  CuAssertIntEquals(tc, 0, mysql_query(connection, "ROLLBACK"));
+
+  rewards_clear();
+  conn = saved_conn;
+  mysql_available = saved_mysql_available;
+  mysql_close(connection);
+}
+
 void Test_vessel_contraband_is_sold_where_stocked_and_seized_elsewhere(CuTest *tc)
 {
   struct rewards_berth berth;
