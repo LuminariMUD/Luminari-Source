@@ -262,8 +262,9 @@ connection's socket) before planning:
 
 Items:
 
-01. The rule, in `src/database/mysql.c`. A connection is marked when a command fails with 2006 or
-    2013, or its session changes, while the library's in-transaction flag was set. A marked
+01. The rule, in `src/database/mysql.c`. A connection is marked when, with the library's
+    in-transaction flag set, a command fails with 2006 or 2013, fails with the flag cleared (how
+    the library leaves a reconnect it refused or could not make), or changes the session. A marked
     connection sends nothing: `luminari_mysql_query()`, `mysql_stmt_prepare_query()` and
     `mysql_stmt_execute_prepared()` refuse. The mark ends with the transaction: `ROLLBACK` is sent
     (on a new session if need be), a `COMMIT` is answered with a `ROLLBACK` and fails, and a new
@@ -273,9 +274,9 @@ Items:
 02. `mysql_commit_transaction()`: committed, refused (the server said no, or the transaction was
     already lost) or unanswered (any client error, `trade_commit()`'s test); anything but committed
     is rolled back there. `trade_commit()` goes, and `trade_write()` calls the helper.
-03. One test seam, `mysql_test_drop_connection_at()`: at the Nth statement through the layer the
-    socket is really shut down, before the statement or (plain queries) after it was sent. It
-    replaces `vessel_trade_lose_commit_reply_for_test()`, and the trade test moves to real drops on
+03. One test seam, `mysql_test_drop_connection_at()`: at the Nth statement that begins with a
+    given text, a query or a prepared execution, the socket is really shut down, before the
+    statement or (plain queries) after it was sent. It replaces `vessel_trade_lose_commit_reply_for_test()`, and the trade test moves to real drops on
     persistent tables.
 04. Unanswered `COMMIT`, read back with a locking read before a state is chosen: `pet_store_pet()`
     (is the row stored), `pet_retrieve_stored()` (is it active), `vessel_transfer_owner()` (who
@@ -301,7 +302,9 @@ Items:
     `vessel_get_bounty()` keeps returning 0 for its display and threshold callers.
 08. The pool reconnects a stale handle in place (`ensure_mysql_connection()`) instead of closing
     it: `conn`, `conn2` and `conn3` are those handles. `mysql_pool_health_check()` and
-    `mysql_pool_shrink()`, which close them too and have no callers, are removed.
+    `mysql_pool_shrink()`, which close them too and have no callers, are removed. With the
+    database away, `mysql_pool_acquire()` returns no connection instead of waiting for one (see
+    "Found while building").
 09. `help_sync_database_lock_held()` asks the server whether this session still holds the lock.
     `hedit`'s save and delete and the help import check it inside their transaction, where the
     session can no longer change unnoticed, and roll back without it; `helpgen`'s other writers,
@@ -324,6 +327,20 @@ Found while tracing, fixed here because the same lines change: `Crash_cryosave()
 with no transaction and without deleting the previous save's, so a frozen character's objects are
 stored twice; it takes the begin and commit the other saves use. It runs only where rent is not
 free (`free_rent` is YES by default).
+
+Found while building, fixed here because the same lines change: `mysql_pool_acquire()` could hold
+the game while the database was away. A pooled connection that failed its idle check was retired
+for good, and once all were retired the function tried to open a new one and, failing, tried
+again at once, with no way out. The game runs on that thread, so the first wilderness description,
+region hint or wind lookup of an outage would have stopped it for everyone until the database
+returned, an error line logged at each attempt; and each outage left the pool that many
+connections short. Read from the code, not seen in production; it predates S13. Now a failed check
+returns no connection, which the pool's one caller (`mysql_pool_query()`) already takes as a
+failed query; the entry stays free, since its handle reconnects by itself at its next use; and a
+pool that cannot open another connection says so instead of trying again. The retired state is
+gone (`CONN_STATE_ERROR`, and `CONN_STATE_STALE`, which nothing set).
+`Test_database_pool_keeps_its_handles_and_never_waits_for_the_database` makes the database really
+unreachable.
 
 Interpretations decided while planning S13:
 

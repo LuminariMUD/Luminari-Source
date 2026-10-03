@@ -155,6 +155,34 @@ bool help_sync_database_lock_acquire(unsigned int timeout_seconds)
   return acquired;
 }
 
+/* Does this session hold the lock? It belongs to the session, so a connection
+ * that reconnected by itself since acquiring it has lost it without being
+ * told. A writer asks inside its transaction: from there on the session
+ * cannot change unnoticed, so a lock held then is held until the transaction
+ * ends. */
+bool help_sync_database_lock_held(void)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  bool held = FALSE;
+
+  if (!conn || !mysql_available)
+    return FALSE;
+  if (mysql_query(conn, "SELECT IS_USED_LOCK('" HELP_SYNC_DB_LOCK_NAME "') = CONNECTION_ID()") != 0)
+  {
+    log("SYSERR: Unable to check the help synchronization database lock: %s", mysql_error(conn));
+    return FALSE;
+  }
+  result = mysql_store_result(conn);
+  if (result != NULL)
+  {
+    row = mysql_fetch_row(result);
+    held = row != NULL && row[0] != NULL && parse_int(row[0]) == 1;
+    mysql_free_result(result);
+  }
+  return held;
+}
+
 void help_sync_database_lock_release(void)
 {
   MYSQL_RES *result;

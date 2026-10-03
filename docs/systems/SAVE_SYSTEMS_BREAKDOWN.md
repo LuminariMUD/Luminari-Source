@@ -395,27 +395,28 @@ The copyover and restart acceptance run is recorded in
 
 These systems maintain data in both locations for redundancy or different purposes.
 
-#### 1. Player Object Storage (Optional Database Backup)
+#### 1. Player Object Storage
 
-- **Primary**: File-based (`.objs` files)
-- **Backup**: MySQL (`player_save_objs` table)
+- **File**: `.objs` files
+- **Database**: `player_save_objs`, one row for each object, and `player_save_objs_sheathed` for
+  a sheathed weapon. A character with an `obj_save_header` in `player_data` loads from the
+  database.
 - **Control**: `#ifdef OBJSAVE_DB` in `objsave.c`
-- **Purpose**: Database backup provides additional security and analytics
 
-**Implementation:**
+Every save (`Crash_crashsave()`, `Crash_rentsave()`, `Crash_idlesave()`, `Crash_cryosave()`) is
+one transaction: it deletes the character's rows, writes the header and a row for each object,
+and commits.
 
-```c
-#ifdef OBJSAVE_DB
-  // Database transaction for object saving
-  if (mysql_query(conn, "start transaction;")) {
-    // Handle error
-  }
-  // Save to database
-  if (mysql_query(conn, "commit;")) {
-    mysql_query(conn, "rollback;");
-  }
-#endif
-```
+- **A lost connection** loses the whole save, and the last save's rows stay as they were
+  (`docs/systems/DATABASE_INTEGRATION.md`, Transaction Management).
+- **A row the database refuses** on a good connection is left out. The rest is committed, since
+  rolling back would lose more; the staff see one line naming the owner and the count, and the
+  log names each object.
+- **Retry.** `Crash_crashsave()` returns whether the save was complete. `PLR_CRASH` stays set
+  after a failed or incomplete one, so the next crash-save pass saves the player again.
+- **Record size.** A record stays under 36,767 bytes; the live `serialized_obj` columns hold
+  65,535. Every bounded part of a record fits. Extra descriptions are the only part without a
+  bound, and one that does not fit is left out whole and logged, so no object is refused.
 
 #### 2. Player Character Data (Backup System)
 
@@ -423,11 +424,15 @@ These systems maintain data in both locations for redundancy or different purpos
 - **Backup**: MySQL (`player_data` table)
 - **Purpose**: Database provides backup and enables advanced queries
 
-#### 3. House Data (Partial Overlap)
+#### 3. House Data
 
-- **Files**: House contents and crash data
-- **Database**: House control information and indexes
-- **Tables**: `house_data`
+- **Files**: House control data and a contents file for each house
+- **Database**: `house_data`, one row for each object in a house (so `vnum` carries a plain index,
+  not a unique key)
+
+`House_crashsave()` saves a house the way a player's objects are saved: one transaction, lost
+whole with its connection. A refused row is left out and reported to the staff, and
+`ROOM_HOUSE_CRASH` stays set so the next house-save pass saves the house again.
 
 ---
 

@@ -44,10 +44,29 @@
 
 #define LOC_INVENTORY 0
 #define MAX_BAG_ROWS 5
-#define PET_OBJECT_BUFFER_SIZE 36767
+
+/* A saved object's record in player_save_objs, house_data and
+ * player_save_objs_sheathed. Its bounded parts come to 36,175 bytes at their
+ * longest: 25,599 ahead of the extra descriptions (five strings and the
+ * action description at a line each, the numeric lines), and the 10,576 the
+ * writers keep for the spellbook, special-ability and activation lines after
+ * them. So only extra descriptions, of which an object may carry any number,
+ * can overfill a record, and one that does not fit is left out. A string in
+ * one of the single-line fields is cut at a line, 4,088 bytes of text; the
+ * game enters those through one line of input, at most 512 bytes. The live
+ * serialized_obj columns are BLOBs: 65,535 bytes. */
+#define OBJSAVE_RECORD_SIZE 36767
+#define OBJSAVE_LINE_SIZE 4096
+
+/* A pet's objects are saved as the same records, in pet_save_objs. The pet
+ * writer builds its lines in buffers of the record's size, so only its extra
+ * descriptions are held to the record: a pet save is all or nothing, and a
+ * string that overfills a record still fails it. */
+#define PET_OBJECT_BUFFER_SIZE OBJSAVE_RECORD_SIZE
 
 /* local functions */
 static int Crash_save(struct obj_data *obj, struct char_data *ch, FILE *fp, int location);
+static int Crash_save_bags(struct char_data *ch, FILE *fp);
 static void Crash_extract_norent_eq(struct char_data *ch);
 static void auto_equip(struct char_data *ch, struct obj_data *obj, int location);
 static int Crash_offer_rent(struct char_data *ch, struct char_data *receptionist, int display,
@@ -66,7 +85,6 @@ static int Crash_is_unrentable(struct obj_data *obj);
 static void Crash_extract_norents(struct obj_data *obj);
 static void Crash_extract_expensive(struct obj_data *obj);
 static void Crash_calculate_rent(struct obj_data *obj, int *cost);
-static void Crash_cryosave(struct char_data *ch, int cost);
 static int Crash_load_objs(struct char_data *ch);
 static int handle_obj(struct obj_data *obj, struct char_data *ch, int locate,
                       struct obj_data **cont_rows);
@@ -134,12 +152,46 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   return objsave_save_obj_record_internal(obj, ch, house_vnum, fp, locate, TRUE);
 }
 
+#ifdef OBJSAVE_DB
+/* The room a record's extra descriptions must leave for the lines the writers
+ * put after them: a spellbook's, the special ability's and the activation's. */
+static size_t objsave_record_tail(const struct obj_data *obj)
+{
+  return (obj->sbinfo != NULL ? SPELLBOOK_SIZE * 32 : 0) +
+         (obj->special_abilities != NULL ? OBJSAVE_LINE_SIZE : 0) +
+         (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0 ? 80 : 0);
+}
+
+/* Append one extra description to an object's record; a '~' ends the keyword
+ * and the description, as it does when they load. One that does not fit ahead
+ * of the record's tail is left out whole: a record cut short would not load. */
+static void objsave_append_extra_description(char *record, const struct obj_data *obj,
+                                             const char *keyword, const char *description)
+{
+  size_t keyword_length = strcspn(keyword, "~");
+  size_t description_length = strcspn(description, "~");
+  size_t length = strlen(record);
+
+  /* "EDes:\n", the keyword, "~\n", the description, "~\n" and the terminator. */
+  if (length + keyword_length + description_length + 11 + objsave_record_tail(obj) >=
+      OBJSAVE_RECORD_SIZE)
+  {
+    log("SYSERR: An extra description of object %d does not fit its saved record and is left "
+        "out.",
+        (int)GET_OBJ_VNUM(obj));
+    return;
+  }
+  snprintf(record + length, OBJSAVE_RECORD_SIZE - length, "EDes:\n%.*s~\n%.*s~\n",
+           (int)keyword_length, keyword, (int)description_length, description);
+}
+#endif
+
 /* Writes one object record to FILE.  Old name: Obj_to_store() */
 
 /* this function will basically check if an individual object has been modified
  from its default state, if so we write those modifications to file, otherwise
  the vnum is adequate
- *note: this always will return 1
+ *note: this returns 0 when the object's database row could not be written
  *
  * If the char_data struct is NULL, this function uses the house_vnum instead.
  * This is mostly for inserting into the database and is a terribly hacky way
@@ -153,8 +205,8 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
                                             bool persist_database)
 {
 #ifdef OBJSAVE_DB
-  static char ins_buf[36767]; /* Serialized payload; bound separately from SQL. */
-  static char line_buf[4096]; /* For building MySQL insert statement - reduced size */
+  static char ins_buf[OBJSAVE_RECORD_SIZE]; /* Serialized payload; bound separately from SQL. */
+  static char line_buf[OBJSAVE_LINE_SIZE];  /* One line of it. */
 #endif
 
   int counter2, i = 0;
@@ -449,11 +501,6 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
     {
       for (ex_desc = obj->ex_description; ex_desc; ex_desc = ex_desc->next)
       {
-#ifdef OBJSAVE_DB
-        char *saved_description;
-        char *saved_keyword;
-#endif
-
         /*. Sanity check to prevent nasty protection faults . */
         if (!*ex_desc->keyword || !*ex_desc->description)
         {
@@ -467,26 +514,7 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
                 "%s~\n",
                 ex_desc->keyword, buf1);
 #ifdef OBJSAVE_DB
-        /* Bound temporary copies by the buffers that can actually be saved. */
-        saved_description = strndup(buf1, sizeof(buf1) - 1);
-        saved_keyword = strndup(ex_desc->keyword, sizeof(ins_buf) - 1);
-        if (saved_description == NULL || saved_keyword == NULL)
-        {
-          free(saved_description);
-          free(saved_keyword);
-          log("SYSERR: Unable to allocate saved object extra description.");
-          extract_obj(temp);
-          return 1;
-        }
-        saved_description[strcspn(saved_description, "~")] = '\0';
-        saved_keyword[strcspn(saved_keyword, "~")] = '\0';
-        strlcat(ins_buf, "EDes:\n", sizeof(ins_buf));
-        strlcat(ins_buf, saved_keyword, sizeof(ins_buf));
-        strlcat(ins_buf, "~\n", sizeof(ins_buf));
-        strlcat(ins_buf, saved_description, sizeof(ins_buf));
-        strlcat(ins_buf, "~\n", sizeof(ins_buf));
-        free(saved_description);
-        free(saved_keyword);
+        objsave_append_extra_description(ins_buf, obj, ex_desc->keyword, buf1);
 #endif
       }
     }
@@ -560,25 +588,38 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
             mysql_stmt_execute_prepared(statement);
     if (!saved)
     {
-      log("SYSERR: Unable to save complete object record to %s.",
-          ch != NULL ? "player_save_objs" : "house_data");
+      if (ch != NULL)
+        log("SYSERR: Unable to save object %d (%s) of %s to player_save_objs.",
+            (int)GET_OBJ_VNUM(obj), obj->short_description ? obj->short_description : "unnamed",
+            GET_NAME(ch));
+      else
+        log("SYSERR: Unable to save object %d (%s) of house %d to house_data.",
+            (int)GET_OBJ_VNUM(obj), obj->short_description ? obj->short_description : "unnamed",
+            (int)house_vnum);
       mysql_stmt_cleanup(statement);
       extract_obj(temp);
-      return 1;
+      return 0;
     }
     insert_id = (int)mysql_stmt_insert_id(statement->stmt);
     mysql_stmt_cleanup(statement);
 
     if (CAN_WEAR(obj, ITEM_WEAR_SHEATH))
     {
-      if (obj->sheath_primary)
+      if (obj->sheath_primary &&
+          !objsave_save_obj_record_db_sheath(obj->sheath_primary, ch, insert_id, 1))
       {
-        objsave_save_obj_record_db_sheath(obj->sheath_primary, ch, insert_id, 1);
+        saved = false;
       }
-      if (obj->sheath_secondary)
+      if (obj->sheath_secondary &&
+          !objsave_save_obj_record_db_sheath(obj->sheath_secondary, ch, insert_id, 2))
       {
-        objsave_save_obj_record_db_sheath(obj->sheath_secondary, ch, insert_id, 2);
+        saved = false;
       }
+    }
+    if (!saved)
+    {
+      extract_obj(temp);
+      return 0;
     }
   }
 #endif
@@ -1084,27 +1125,36 @@ static int Crash_load_transfer_impl(struct char_data *ch)
 }
 
 /* recursive function using linked lists to go through object lists to save
- all objects to file (like bag contents) */
+ all objects to file (like bag contents).  Returns how many of them could not
+ be written: the save goes on without those. */
 static int Crash_save(struct obj_data *obj, struct char_data *ch, FILE *fp, int location)
 {
   struct obj_data *tmp;
-  int result;
+  int unsaved;
 
-  if (obj)
-  {
-    Crash_save(obj->next_content, ch, fp, location);
-    Crash_save(obj->contains, ch, fp, MIN(0, location) - 1);
+  if (obj == NULL)
+    return 0;
 
-    /* save a single object to file */
-    result = objsave_save_obj_record(obj, ch, fp, location);
+  unsaved = Crash_save(obj->next_content, ch, fp, location);
+  unsaved += Crash_save(obj->contains, ch, fp, MIN(0, location) - 1);
 
-    for (tmp = obj->in_obj; tmp; tmp = tmp->in_obj)
-      GET_OBJ_WEIGHT(tmp) -= GET_OBJ_WEIGHT(obj);
+  /* save a single object to file */
+  if (!objsave_save_obj_record(obj, ch, fp, location))
+    unsaved++;
 
-    if (!result)
-      return FALSE;
-  }
-  return (TRUE);
+  for (tmp = obj->in_obj; tmp; tmp = tmp->in_obj)
+    GET_OBJ_WEIGHT(tmp) -= GET_OBJ_WEIGHT(obj);
+
+  return unsaved;
+}
+
+static int Crash_save_bags(struct char_data *ch, FILE *fp)
+{
+  return Crash_save(ch->bags->bag1, ch, fp, 0) + Crash_save(ch->bags->bag2, ch, fp, 0) +
+         Crash_save(ch->bags->bag3, ch, fp, 0) + Crash_save(ch->bags->bag4, ch, fp, 0) +
+         Crash_save(ch->bags->bag5, ch, fp, 0) + Crash_save(ch->bags->bag6, ch, fp, 0) +
+         Crash_save(ch->bags->bag7, ch, fp, 0) + Crash_save(ch->bags->bag8, ch, fp, 0) +
+         Crash_save(ch->bags->bag9, ch, fp, 0) + Crash_save(ch->bags->bag10, ch, fp, 0);
 }
 
 // Like crash save but for pets
@@ -1285,28 +1335,53 @@ static bool objsave_begin_player_save(struct char_data *ch)
   }
   return deleted;
 }
+
+/* Commit a player's object save. Objects whose rows the database refused are
+ * not in it: the rest is committed, since rolling back would lose more, and
+ * the staff are told whose they were.
+ *
+ * @return TRUE when the save was committed */
+static bool objsave_commit_player_save(struct char_data *ch, int unsaved)
+{
+  if (mysql_query(conn, "commit;"))
+  {
+    log("SYSERR: Unable to commit transaction for saving of player object data: %s",
+        mysql_error(conn));
+    mysql_query(conn, "rollback;");
+    return false;
+  }
+  if (unsaved > 0)
+    mudlog(BRF, LVL_STAFF, TRUE,
+           "SYSERR: %d of %s's objects could not be saved; the rest were. The log names them.",
+           unsaved, GET_NAME(ch));
+  return true;
+}
 #endif
 
-void Crash_crashsave(struct char_data *ch)
+/* Save a player's objects while they play. FALSE when the save failed or was
+ * incomplete: PLR_CRASH then stays set, so the next crash-save pass saves the
+ * player again. */
+bool Crash_crashsave(struct char_data *ch)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
+  int unsaved = 0;
   int j;
   FILE *fp;
 
   if (IS_NPC(ch))
-    return;
+    return false;
 
   if (!get_filename(buf, sizeof(buf), CRASH_FILE, GET_NAME(ch)))
-    return;
+    return false;
 
   if (!(fp = fopen_restricted(buf, "w")))
-    return;
+    return false;
 
 #ifdef OBJSAVE_DB
   if (!objsave_begin_player_save(ch))
   {
     fclose(fp);
-    return;
+    return false;
   }
 #endif
 
@@ -1317,46 +1392,22 @@ void Crash_crashsave(struct char_data *ch)
     mysql_query(conn, "rollback;");
 #endif
     fclose(fp);
-    return;
+    return false;
   }
 
   for (j = 0; j < NUM_WEARS; j++)
     if (GET_EQ(ch, j))
     {
       /* recursive write-to-file function (like bags) */
-      if (!Crash_save(GET_EQ(ch, j), ch, fp, j + 1))
-      {
-        fclose(fp);
-#ifdef OBJSAVE_DB
-        mysql_query(conn, "rollback;");
-#endif
-        return;
-      }
+      unsaved += Crash_save(GET_EQ(ch, j), ch, fp, j + 1);
       /* makes sure containers have proper weight for carrying objects with weight value */
       Crash_restore_weight(GET_EQ(ch, j));
     }
 
-  // bags
-  Crash_save(ch->bags->bag1, ch, fp, 0);
-  Crash_save(ch->bags->bag2, ch, fp, 0);
-  Crash_save(ch->bags->bag3, ch, fp, 0);
-  Crash_save(ch->bags->bag4, ch, fp, 0);
-  Crash_save(ch->bags->bag5, ch, fp, 0);
-  Crash_save(ch->bags->bag6, ch, fp, 0);
-  Crash_save(ch->bags->bag7, ch, fp, 0);
-  Crash_save(ch->bags->bag8, ch, fp, 0);
-  Crash_save(ch->bags->bag9, ch, fp, 0);
-  Crash_save(ch->bags->bag10, ch, fp, 0);
+  unsaved += Crash_save_bags(ch, fp);
 
   /* inventory: recursive write-to-file function (like bags) */
-  if (!Crash_save(ch->carrying, ch, fp, 0))
-  {
-    fclose(fp);
-#ifdef OBJSAVE_DB
-    mysql_query(conn, "rollback;");
-#endif
-    return;
-  }
+  unsaved += Crash_save(ch->carrying, ch, fp, 0);
 
   /* makes sure containers have proper weight for carrying objects with weight value */
   Crash_restore_weight(ch->carrying);
@@ -1365,20 +1416,17 @@ void Crash_crashsave(struct char_data *ch)
   fclose(fp);
 
 #ifdef OBJSAVE_DB
-  if (mysql_query(conn, "commit;"))
-  {
-    log("SYSERR: Unable to commit transaction for saving of player object data: %s",
-        mysql_error(conn));
-    mysql_query(conn, "rollback;");
-    return;
-  }
+  if (!objsave_commit_player_save(ch, unsaved) || unsaved > 0)
+    return false;
 #endif
   REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
+  return true;
 }
 
 void Crash_idlesave(struct char_data *ch)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
+  int unsaved = 0;
   int j;
   int cost, cost_eq;
   FILE *fp;
@@ -1433,11 +1481,11 @@ void Crash_idlesave(struct char_data *ch)
     for (j = 0; j < NUM_WEARS && GET_EQ(ch, j) == NULL; j++) /* Nothing */
       ;
     if (j == NUM_WEARS)
-    { /* No equipment or inventory. */
+    { /* No equipment or inventory: nothing is on file, and no row is kept. */
       fclose(fp);
       Crash_delete_file(GET_NAME(ch));
 #ifdef OBJSAVE_DB
-      mysql_query(conn, "rollback;");
+      objsave_commit_player_save(ch, 0);
 #endif
       return;
     }
@@ -1458,14 +1506,7 @@ void Crash_idlesave(struct char_data *ch)
     if (GET_EQ(ch, j))
     {
       /* recursive write-to-file function (like bags) */
-      if (!Crash_save(GET_EQ(ch, j), ch, fp, j + 1))
-      {
-        fclose(fp);
-#ifdef OBJSAVE_DB
-        mysql_query(conn, "rollback;");
-#endif
-        return;
-      }
+      unsaved += Crash_save(GET_EQ(ch, j), ch, fp, j + 1);
       /* makes sure containers have proper weight for carrying objects with weight value */
       Crash_restore_weight(GET_EQ(ch, j));
       /* recursively remove objects and their contents */
@@ -1473,29 +1514,17 @@ void Crash_idlesave(struct char_data *ch)
     }
   }
 
-  // bags
-  Crash_save(ch->bags->bag1, ch, fp, 0);
-  Crash_save(ch->bags->bag2, ch, fp, 0);
-  Crash_save(ch->bags->bag3, ch, fp, 0);
-  Crash_save(ch->bags->bag4, ch, fp, 0);
-  Crash_save(ch->bags->bag5, ch, fp, 0);
-  Crash_save(ch->bags->bag6, ch, fp, 0);
-  Crash_save(ch->bags->bag7, ch, fp, 0);
-  Crash_save(ch->bags->bag8, ch, fp, 0);
-  Crash_save(ch->bags->bag9, ch, fp, 0);
-  Crash_save(ch->bags->bag10, ch, fp, 0);
+  unsaved += Crash_save_bags(ch, fp);
 
   /* inventory: recursive write-to-file function (like bags) */
-  if (!Crash_save(ch->carrying, ch, fp, 0))
-  {
-    fclose(fp);
-#ifdef OBJSAVE_DB
-    mysql_query(conn, "rollback;");
-#endif
-    return;
-  }
+  unsaved += Crash_save(ch->carrying, ch, fp, 0);
   fprintf(fp, "$~\n");
   fclose(fp);
+
+#ifdef OBJSAVE_DB
+  if (!objsave_commit_player_save(ch, unsaved))
+    return;
+#endif
 
   /* recursively remove objects and their contents */
   Crash_extract_objs(ch->carrying);
@@ -1506,6 +1535,7 @@ void Crash_idlesave(struct char_data *ch)
 void Crash_rentsave(struct char_data *ch, int cost)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
+  int unsaved = 0;
   int j;
   FILE *fp;
 
@@ -1546,14 +1576,7 @@ void Crash_rentsave(struct char_data *ch, int cost)
     if (GET_EQ(ch, j))
     {
       /* recursive save function (like bags) */
-      if (!Crash_save(GET_EQ(ch, j), ch, fp, j + 1))
-      {
-        fclose(fp);
-#ifdef OBJSAVE_DB
-        mysql_query(conn, "rollback;");
-#endif
-        return;
-      }
+      unsaved += Crash_save(GET_EQ(ch, j), ch, fp, j + 1);
       /* makes sure containers have proper weight for carrying objects with weight value */
       Crash_restore_weight(GET_EQ(ch, j));
       /* recursively remove objects and their contents */
@@ -1561,40 +1584,18 @@ void Crash_rentsave(struct char_data *ch, int cost)
     }
   }
 
-  // bags
-  Crash_save(ch->bags->bag1, ch, fp, 0);
-  Crash_save(ch->bags->bag2, ch, fp, 0);
-  Crash_save(ch->bags->bag3, ch, fp, 0);
-  Crash_save(ch->bags->bag4, ch, fp, 0);
-  Crash_save(ch->bags->bag5, ch, fp, 0);
-  Crash_save(ch->bags->bag6, ch, fp, 0);
-  Crash_save(ch->bags->bag7, ch, fp, 0);
-  Crash_save(ch->bags->bag8, ch, fp, 0);
-  Crash_save(ch->bags->bag9, ch, fp, 0);
-  Crash_save(ch->bags->bag10, ch, fp, 0);
+  unsaved += Crash_save_bags(ch, fp);
 
   /* inventory: recursive save function (like bags) */
-  if (!Crash_save(ch->carrying, ch, fp, 0))
-  {
-    fclose(fp);
-#ifdef OBJSAVE_DB
-    mysql_query(conn, "rollback;");
-#endif
-    return;
-  }
+  unsaved += Crash_save(ch->carrying, ch, fp, 0);
 
   /* file terminating char and close */
   fprintf(fp, "$~\n");
   fclose(fp);
 
 #ifdef OBJSAVE_DB
-  if (mysql_query(conn, "commit;"))
-  {
-    log("SYSERR: Unable to commit transaction for saving of player object data: %s",
-        mysql_error(conn));
-    mysql_query(conn, "rollback;");
+  if (!objsave_commit_player_save(ch, unsaved))
     return;
-  }
 #endif
 
   /* recursively remove objects and their contents */
@@ -1635,9 +1636,10 @@ static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, stru
   return TRUE;
 }
 
-static void Crash_cryosave(struct char_data *ch, int cost)
+void Crash_cryosave(struct char_data *ch, int cost)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
+  int unsaved = 0;
   int j;
   FILE *fp;
 
@@ -1650,6 +1652,15 @@ static void Crash_cryosave(struct char_data *ch, int cost)
   if (!(fp = fopen_restricted(buf, "w")))
     return;
 
+#ifdef OBJSAVE_DB
+  /* The rows replace the last save's, as in every other save. */
+  if (!objsave_begin_player_save(ch))
+  {
+    fclose(fp);
+    return;
+  }
+#endif
+
   Crash_extract_norent_eq(ch);
   Crash_extract_norents(ch->carrying);
 
@@ -1657,17 +1668,19 @@ static void Crash_cryosave(struct char_data *ch, int cost)
 
   /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
   if (!objsave_write_rentcode(fp, RENT_CRYO, 0, ch))
+  {
+#ifdef OBJSAVE_DB
+    mysql_query(conn, "rollback;");
+#endif
+    fclose(fp);
     return;
+  }
 
   for (j = 0; j < NUM_WEARS; j++)
     if (GET_EQ(ch, j))
     {
       /* recursive save function (like bags) */
-      if (!Crash_save(GET_EQ(ch, j), ch, fp, j + 1))
-      {
-        fclose(fp);
-        return;
-      }
+      unsaved += Crash_save(GET_EQ(ch, j), ch, fp, j + 1);
       /* makes sure containers have proper weight for carrying objects with weight value */
       Crash_restore_weight(GET_EQ(ch, j));
       /* recursively remove objects and their contents */
@@ -1675,14 +1688,15 @@ static void Crash_cryosave(struct char_data *ch, int cost)
     }
 
   /* inventory: recursive save function (like bags) */
-  if (!Crash_save(ch->carrying, ch, fp, 0))
-  {
-    fclose(fp);
-    return;
-  }
+  unsaved += Crash_save(ch->carrying, ch, fp, 0);
 
   fprintf(fp, "$~\n");
   fclose(fp);
+
+#ifdef OBJSAVE_DB
+  if (!objsave_commit_player_save(ch, unsaved))
+    return;
+#endif
 
   /* recursively remove objects and their contents */
   Crash_extract_objs(ch->carrying);
@@ -1906,6 +1920,7 @@ int Crash_save_single(struct char_data *ch, uint64_t *obj_usec, uint64_t *char_u
   struct timeval t_start, t_mid, t_end;
   uint64_t o_time = 0, c_time = 0;
   enum perf_sql_category previous_sql_category;
+  bool objects_saved;
   bool character_saved;
 
   if (!ch || IS_NPC(ch))
@@ -1914,7 +1929,7 @@ int Crash_save_single(struct char_data *ch, uint64_t *obj_usec, uint64_t *char_u
   gettimeofday(&t_start, NULL);
   PERF_PROF_ENTER_SAMPLED(pr_crash_object_save_, "save.crash_object");
   previous_sql_category = PERF_sql_scope_set(PERF_SQL_CRASH_OBJECT);
-  Crash_crashsave(ch);
+  objects_saved = Crash_crashsave(ch);
   PERF_sql_scope_restore(previous_sql_category);
   PERF_PROF_EXIT(pr_crash_object_save_);
   gettimeofday(&t_mid, NULL);
@@ -1931,7 +1946,8 @@ int Crash_save_single(struct char_data *ch, uint64_t *obj_usec, uint64_t *char_u
   if (char_usec)
     *char_usec = c_time;
 
-  if (character_saved)
+  /* A failed or incomplete object save leaves the flag for the next pass. */
+  if (objects_saved && character_saved)
     REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
 
   if (o_time + c_time > 100000ULL) /* > 100ms */
@@ -3599,11 +3615,7 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj,
         }
         strlcpy(buf1, ex_desc->description, sizeof(buf1));
         strip_cr(buf1);
-        strlcat(ins_buf, "EDes:\n", sizeof(ins_buf));
-        strlcat(ins_buf, ex_desc->keyword, sizeof(ins_buf));
-        strlcat(ins_buf, "~\n", sizeof(ins_buf));
-        strlcat(ins_buf, buf1, sizeof(ins_buf));
-        strlcat(ins_buf, "~\n", sizeof(ins_buf));
+        objsave_append_extra_description(ins_buf, obj, ex_desc->keyword, buf1);
       }
     }
   }
@@ -4459,8 +4471,8 @@ decoded:
 int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch,
                                       long int sheath_idnum, int sheath_slot)
 {
-  static char ins_buf[36767]; /* For MySQL insert - static to avoid stack allocation */
-  static char line_buf[4096]; /* For building MySQL insert statement - reduced size */
+  static char ins_buf[OBJSAVE_RECORD_SIZE]; /* The record; static to keep it off the stack. */
+  static char line_buf[OBJSAVE_LINE_SIZE];  /* One line of it. */
 
   int counter2, i = 0;
   struct extra_descr_data *ex_desc;
@@ -4638,11 +4650,7 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
         }
         strlcpy(buf1, ex_desc->description, sizeof(buf1));
         strip_cr(buf1);
-        strlcat(ins_buf, "EDes:\n", sizeof(ins_buf));
-        strlcat(ins_buf, ex_desc->keyword, sizeof(ins_buf));
-        strlcat(ins_buf, "~\n", sizeof(ins_buf));
-        strlcat(ins_buf, buf1, sizeof(ins_buf));
-        strlcat(ins_buf, "~\n", sizeof(ins_buf));
+        objsave_append_extra_description(ins_buf, obj, ex_desc->keyword, buf1);
       }
     }
   }
@@ -4692,11 +4700,13 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
       mysql_stmt_bind_param_string(statement, 3, ins_buf) && mysql_stmt_execute_prepared(statement);
   mysql_stmt_cleanup(statement);
   if (!saved)
-    log("SYSERR: Unable to save sheathed object record for %s.", GET_NAME(ch));
+    log("SYSERR: Unable to save sheathed object %d (%s) of %s to player_save_objs_sheathed.",
+        (int)GET_OBJ_VNUM(obj), obj->short_description ? obj->short_description : "unnamed",
+        GET_NAME(ch));
 
   extract_obj(temp);
 
-  return 1;
+  return saved ? 1 : 0;
 }
 
 void load_sheath_contents(struct char_data *ch, struct obj_data *sheath, long int idnum)

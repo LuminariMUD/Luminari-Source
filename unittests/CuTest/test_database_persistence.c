@@ -34,6 +34,7 @@ extern int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data
                                           struct char_data *owner, long int pet_idnum, int locate);
 
 static int query_single_int(MYSQL *connection, const char *query, int fallback);
+static char *filled_string(char letter, size_t length);
 
 void Test_restored_pet_keeps_prototype_target_keywords(CuTest *tc)
 {
@@ -81,6 +82,7 @@ static MYSQL *open_test_database(void)
   const char *password;
   const char *database;
   const char *port_text;
+  my_bool reconnect = 1;
   MYSQL *connection;
   unsigned int port_value;
 
@@ -98,6 +100,8 @@ static MYSQL *open_test_database(void)
   if (connection == NULL)
     return NULL;
 
+  /* As the server's own connections are made. */
+  mysql_options(connection, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
   if (mysql_real_connect(connection, host, user, password, database, port_value, NULL, 0) == NULL)
   {
     mysql_close(connection);
@@ -1040,6 +1044,10 @@ static bool create_legacy_table_temporary_schema(MYSQL *connection)
       "x FLOAT NOT NULL, y FLOAT NOT NULL, z FLOAT NOT NULL DEFAULT 0, "
       "tolerance FLOAT NOT NULL DEFAULT 5.0, wait_time INT NOT NULL DEFAULT 0, "
       "flags INT NOT NULL DEFAULT 0) ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE house_data ("
+      "id INT AUTO_INCREMENT PRIMARY KEY, vnum INT NOT NULL, serialized_obj LONGTEXT, "
+      "UNIQUE KEY vnum (vnum)) ENGINE=InnoDB",
+      "INSERT INTO house_data (vnum, serialized_obj) VALUES (900, 'a chair')",
       "INSERT INTO ship_waypoints (name, x, y, tolerance) "
       "VALUES ('player_port', 1, 2, 5.0), ('wide_buoy', 3, 4, 2.0)",
       "INSERT INTO weather_cache "
@@ -1067,6 +1075,9 @@ void Test_legacy_table_migrations_repair_old_shapes_idempotently(CuTest *tc)
   bool second_migration;
   bool hint_rejected_before;
   bool hint_inserted;
+  bool second_object_rejected_before;
+  bool second_object_inserted;
+  int house_index_columns;
   int wind_speed;
   int name_index_columns;
   int hint_rows;
@@ -1098,7 +1109,14 @@ void Test_legacy_table_migrations_repair_old_shapes_idempotently(CuTest *tc)
                                                  "player_id, weather_condition, season, "
                                                  "time_of_day) VALUES (3, 1000, 0, 'clear', "
                                                  "'spring', 'day')") != 0;
+  /* A house made from the old create statements keeps one object. */
+  second_object_rejected_before =
+      fixture_created && mysql_query(connection, "INSERT INTO house_data (vnum, serialized_obj) "
+                                                 "VALUES (900, 'a table')") != 0;
   first_migration = fixture_created && run_legacy_table_migrations();
+  second_object_inserted =
+      first_migration && mysql_query(connection, "INSERT INTO house_data (vnum, serialized_obj) "
+                                                 "VALUES (900, 'a table')") == 0;
   /* The same statement log_hint_usage() issues now lands. */
   hint_inserted =
       first_migration && mysql_query(connection, "INSERT INTO hint_usage_log (hint_id, room_vnum, "
@@ -1131,10 +1149,21 @@ void Test_legacy_table_migrations_repair_old_shapes_idempotently(CuTest *tc)
                        "SELECT COUNT(*) FROM ship_waypoints WHERE name = 'wide_buoy' "
                        "AND tolerance = 2.0",
                        -1);
+  house_index_columns = -1;
+  if (mysql_query(connection, "SHOW INDEX FROM house_data WHERE Column_name = 'vnum'") == 0)
+  {
+    MYSQL_RES *result = mysql_store_result(connection);
+
+    if (result != NULL)
+    {
+      house_index_columns = (int)mysql_num_rows(result);
+      mysql_free_result(result);
+    }
+  }
   migration_count =
       query_single_int(connection,
                        "SELECT COUNT(*) FROM schema_migrations WHERE version IN (2026092701, "
-                       "2026092702, 2026092703, 2026092901)",
+                       "2026092702, 2026092703, 2026092901, 2026100401)",
                        -1);
   conn = saved_conn;
   mysql_available = saved_available;
@@ -1150,7 +1179,10 @@ void Test_legacy_table_migrations_repair_old_shapes_idempotently(CuTest *tc)
   CuAssertIntEquals(tc, 2, hint_rows);
   CuAssertIntEquals(tc, 1, legacy_tolerance_rows);
   CuAssertIntEquals(tc, 1, wide_tolerance_rows);
-  CuAssertIntEquals(tc, 4, migration_count);
+  CuAssertTrue(tc, second_object_rejected_before);
+  CuAssertTrue(tc, second_object_inserted);
+  CuAssertIntEquals(tc, 1, house_index_columns);
+  CuAssertIntEquals(tc, 5, migration_count);
 }
 
 void Test_pet_restore_failure_blocks_snapshot_replacement(CuTest *tc)
@@ -2113,6 +2145,277 @@ void Test_pet_lifetime_survives_snapshot_restore_and_keeper_release(CuTest *tc)
   CuAssertTrue(tc, live_stored_reclaimed);
 }
 
+/* The rows of the test owner in the real pet tables, for the tests that
+ * really lose their connection: a TEMPORARY table goes with its session. */
+static void remove_real_pet_rows(MYSQL *connection)
+{
+  mysql_query(connection, "DELETE FROM pet_save_objs WHERE owner_name = 'SnapshotOwner'");
+  mysql_query(connection, "DELETE FROM pet_data WHERE owner_name = 'SnapshotOwner'");
+}
+
+static int real_pet_state(MYSQL *connection, long int pet_id)
+{
+  char query[128];
+
+  snprintf(query, sizeof(query),
+           "SELECT pet_state FROM pet_data WHERE pet_data_id = %ld LOCK IN SHARE MODE", pet_id);
+  return query_single_int(connection, query, -1);
+}
+
+/* A pet save whose connection drops among its rows is lost whole: the rows
+ * after the drop are not written on their own beside the last snapshot. */
+void Test_pet_snapshot_save_is_lost_whole_with_its_connection(CuTest *tc)
+{
+  struct pet_save_fixture fixture;
+  MYSQL *connection;
+  MYSQL *observer;
+  MYSQL *saved_conn;
+  const char *enabled;
+  bool saved_available;
+  bool first_saved;
+  bool dropped_save_failed;
+  bool retry_saved;
+  int rows_before;
+  int objects_before;
+  int rows_after_drop;
+  int objects_after_drop;
+  int rows_after_retry;
+  int objects_after_retry;
+  int saved_hit;
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+  connection = open_test_database();
+  observer = open_test_database();
+  if (connection == NULL || observer == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+  initialize_pet_save_fixture(&fixture);
+  remove_real_pet_rows(connection);
+
+  first_saved = save_char_pets(&fixture.owner);
+  rows_before = query_single_int(
+      observer, "SELECT COUNT(*) FROM pet_data WHERE owner_name = 'SnapshotOwner'", -1);
+  objects_before = query_single_int(
+      observer, "SELECT COUNT(*) FROM pet_save_objs WHERE owner_name = 'SnapshotOwner'", -1);
+
+  /* The roster changed; the connection goes at the second of its three
+   * object rows. */
+  GET_HIT(&fixture.first_pet) = 33;
+  mysql_test_drop_connection_at("INSERT INTO pet_save_objs", 2, FALSE);
+  dropped_save_failed = !save_char_pets(&fixture.owner);
+  mysql_test_drop_connection_at(NULL, 0, FALSE);
+  rows_after_drop = query_single_int(observer,
+                                     "SELECT COUNT(*) FROM pet_data WHERE owner_name = "
+                                     "'SnapshotOwner' LOCK IN SHARE MODE",
+                                     -1);
+  objects_after_drop = query_single_int(observer,
+                                        "SELECT COUNT(*) FROM pet_save_objs WHERE owner_name = "
+                                        "'SnapshotOwner' LOCK IN SHARE MODE",
+                                        -1);
+
+  retry_saved = save_char_pets(&fixture.owner);
+  rows_after_retry = query_single_int(
+      observer, "SELECT COUNT(*) FROM pet_data WHERE owner_name = 'SnapshotOwner'", -1);
+  objects_after_retry = query_single_int(
+      observer, "SELECT COUNT(*) FROM pet_save_objs WHERE owner_name = 'SnapshotOwner'", -1);
+  saved_hit = query_single_int(
+      observer, "SELECT MIN(hp) FROM pet_data WHERE owner_name = 'SnapshotOwner'", -1);
+
+  remove_real_pet_rows(connection);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(observer);
+  mysql_close(connection);
+
+  CuAssertTrue(tc, first_saved);
+  CuAssertIntEquals(tc, 2, rows_before);
+  CuAssertIntEquals(tc, 3, objects_before);
+  CuAssertTrue(tc, dropped_save_failed);
+  CuAssertIntEquals(tc, 2, rows_after_drop);
+  CuAssertIntEquals(tc, 3, objects_after_drop);
+  CuAssertTrue(tc, retry_saved);
+  CuAssertIntEquals(tc, 2, rows_after_retry);
+  CuAssertIntEquals(tc, 3, objects_after_retry);
+  CuAssertIntEquals(tc, 33, saved_hit);
+}
+
+/* A pet's object keeps its record when an extra description does not fit
+ * it: the description is left out, as it is for a player's object, and the
+ * pet save goes through. */
+void Test_pet_object_record_leaves_out_an_extra_description_that_does_not_fit(CuTest *tc)
+{
+  struct pet_save_fixture fixture;
+  struct extra_descr_data extra = {0};
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  const char *enabled;
+  bool saved_available;
+  bool schema_created;
+  bool saved;
+  int object_rows;
+  int collar_rows;
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+  initialize_pet_save_fixture(&fixture);
+  extra.keyword = filled_string('k', 40000);
+  extra.description = CuMutableString("A description.");
+  fixture.equipped_object.ex_description = &extra;
+
+  schema_created = create_pet_snapshot_temporary_schema(connection);
+  saved = schema_created && save_char_pets(&fixture.owner);
+  object_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1);
+  collar_rows = query_single_int(connection,
+                                 "SELECT COUNT(*) FROM pet_save_objs WHERE serialized_obj LIKE "
+                                 "'%test collar%' AND serialized_obj NOT LIKE '%EDes:%'",
+                                 -1);
+
+  fixture.equipped_object.ex_description = NULL;
+  free(extra.keyword);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, schema_created);
+  CuAssertTrue(tc, saved);
+  CuAssertIntEquals(tc, 3, object_rows);
+  CuAssertIntEquals(tc, 1, collar_rows);
+}
+
+/* The keeper's COMMIT can go unanswered. The pet's row is read back before
+ * the pet leaves play or enters it, so a follower is never both stabled and
+ * following, or neither. */
+void Test_pet_keeper_reads_back_a_commit_without_a_reply(CuTest *tc)
+{
+  struct pet_save_fixture fixture;
+  struct pet_lifetime_world w;
+  struct char_data *saved_characters = character_list;
+  struct char_data *pet;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  const char *enabled;
+  const char *reason;
+  char query[512];
+  bool saved_available;
+  bool seeded;
+  bool reclaimed_after_lost_reply;
+  bool stored_after_lost_reply;
+  bool refused_after_rollback;
+  bool kept_after_rollback;
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+  begin_pet_lifetime_world(&w);
+  initialize_pet_save_fixture(&fixture);
+  fixture.owner.followers = NULL;
+  fixture.owner.desc = NULL;
+  fixture.descriptor.character = NULL;
+  IN_ROOM(&fixture.owner) = 0;
+  w.room.people = &fixture.owner;
+  GET_CHA(&fixture.owner) = 14;
+  remove_real_pet_rows(connection);
+  snprintf(query, sizeof(query),
+           "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, "
+           "dex, ac, intel, wis, cha, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, pet_state) VALUES "
+           "(913001, 'SnapshotOwner', 1, 1, 10, 10, 10, 10, 10, 10, 10, 10, 10, '', '', '', '', "
+           "%d)",
+           PET_STATE_STORED);
+  seeded = mysql_query(connection, query) == 0;
+
+  /* Reclaimed: the COMMIT landed and its reply was lost. The follower comes
+   * out, and its row is active. */
+  reason = NULL;
+  mysql_test_drop_connection_at("COMMIT", 1, TRUE);
+  pet = pet_retrieve_stored(&fixture.owner, 913001, &reason);
+  reclaimed_after_lost_reply = pet != NULL && pet->master == &fixture.owner &&
+                               count_followers(&fixture.owner) == 1 &&
+                               real_pet_state(connection, 913001) == PET_STATE_ACTIVE;
+
+  /* Stabled: the same, the other way. The follower leaves play. */
+  mysql_test_drop_connection_at("COMMIT", 1, TRUE);
+  stored_after_lost_reply = pet != NULL && pet_store_pet(&fixture.owner, pet);
+  extract_pending_chars();
+  stored_after_lost_reply = stored_after_lost_reply && count_followers(&fixture.owner) == 0 &&
+                            real_pet_state(connection, 913001) == PET_STATE_STORED;
+
+  /* The COMMIT never arrived, so the server rolled back: the follower stays
+   * with the keeper. */
+  reason = NULL;
+  mysql_test_drop_connection_at("COMMIT", 1, FALSE);
+  pet = pet_retrieve_stored(&fixture.owner, 913001, &reason);
+  extract_pending_chars();
+  refused_after_rollback = pet == NULL && count_followers(&fixture.owner) == 0 &&
+                           real_pet_state(connection, 913001) == PET_STATE_STORED;
+
+  /* And it stays in play when its stabling was rolled back. */
+  reason = NULL;
+  pet = pet_retrieve_stored(&fixture.owner, 913001, &reason);
+  mysql_test_drop_connection_at("COMMIT", 1, FALSE);
+  kept_after_rollback = pet != NULL && !pet_store_pet(&fixture.owner, pet) &&
+                        count_followers(&fixture.owner) == 1 &&
+                        real_pet_state(connection, 913001) == PET_STATE_ACTIVE;
+  mysql_test_drop_connection_at(NULL, 0, FALSE);
+
+  extract_all_followers(&fixture.owner);
+  fixture.owner.followers = NULL;
+  remove_real_pet_rows(connection);
+  domain_event_world_forget_character(&fixture.owner);
+  w.room.people = NULL;
+  character_list = saved_characters;
+  end_pet_lifetime_world(&w);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, seeded);
+  CuAssertTrue(tc, reclaimed_after_lost_reply);
+  CuAssertTrue(tc, stored_after_lost_reply);
+  CuAssertTrue(tc, refused_after_rollback);
+  CuAssertTrue(tc, kept_after_rollback);
+}
+
 void Test_follower_runtime_state_round_trip(CuTest *tc)
 {
   struct affected_type charm;
@@ -2354,6 +2657,49 @@ void Test_crash_save_single_and_incremental(CuTest *tc)
   free(ch.player.name);
 }
 
+/* The newest saved record of an object table, copied into a 64 KiB buffer. */
+static bool newest_object_record(MYSQL *connection, const char *table, char *record)
+{
+  char query[128];
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  bool found = false;
+
+  snprintf(query, sizeof(query), "SELECT serialized_obj FROM %s ORDER BY %s DESC LIMIT 1", table,
+           strcmp(table, "player_save_objs_sheathed") == 0 ? "id" : "idnum");
+  if (mysql_query(connection, query) != 0)
+    return false;
+  result = mysql_store_result(connection);
+  row = result != NULL ? mysql_fetch_row(result) : NULL;
+  if (row != NULL && row[0] != NULL)
+  {
+    strlcpy(record, row[0], 65536);
+    found = true;
+  }
+  if (result != NULL)
+    mysql_free_result(result);
+  return found;
+}
+
+static int count_occurrences(const char *text, const char *part)
+{
+  int count = 0;
+
+  for (text = strstr(text, part); text != NULL; text = strstr(text + 1, part))
+    count++;
+  return count;
+}
+
+static char *filled_string(char letter, size_t length)
+{
+  char *text;
+
+  /* NOLINTNEXTLINE(clang-analyzer-optin.portability.UnixAPI) -- at least the terminator */
+  CREATE(text, char, length + 1);
+  memset(text, letter, length);
+  return text;
+}
+
 void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
 {
   const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
@@ -2368,10 +2714,14 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
   MYSQL *saved_conn;
   MYSQL_RES *result;
   MYSQL_ROW row;
+  const char *record_tables[] = {"player_save_objs", "house_data", "player_save_objs_sheathed"};
+  struct obj_data *full;
   FILE *fixture;
+  static char record[65536];
   char serialized[8192];
   size_t length;
   size_t mode;
+  int kept;
   bool saved_available;
   bool matched = true;
 
@@ -2476,39 +2826,38 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
       mysql_free_result(result);
   }
 
-  /* Oversized keywords must not become valid but partial database records. */
+  /* An extra description too long for the record is left out, and the
+   * object is saved without it. */
   free(extra->keyword);
   CREATE(extra->keyword, char, 100001U);
   memset(extra->keyword, 'k', 100000U);
   extra->keyword[100000] = '\0';
-  objsave_save_obj_record_db(obj, &ch, NOWHERE, fixture, 3);
-  objsave_save_obj_record_db(obj, NULL, NOWHERE, fixture, 3);
-  objsave_save_obj_record_db_sheath(obj, &ch, 77, 2);
+  matched = matched && objsave_save_obj_record_db(obj, &ch, NOWHERE, fixture, 3) &&
+            objsave_save_obj_record_db(obj, NULL, NOWHERE, fixture, 3) &&
+            objsave_save_obj_record_db_sheath(obj, &ch, 77, 2);
   matched = matched &&
-            query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs", -1) == 1 &&
-            query_single_int(connection, "SELECT COUNT(*) FROM house_data", -1) == 1 &&
-            query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs_sheathed", -1) == 1;
+            query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs", -1) == 2 &&
+            query_single_int(connection, "SELECT COUNT(*) FROM house_data", -1) == 2 &&
+            query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs_sheathed", -1) == 2;
+  for (mode = 0; mode < 3U; mode++)
+    matched = matched && newest_object_record(connection, record_tables[mode], record) &&
+              strstr(record, "\nShrt: a 'quoted' blade\\edge\n") != NULL &&
+              strstr(record, "EDes:") == NULL;
 
   /* Delimiters still terminate both fields, even with an oversized suffix. */
   extra->keyword[4] = '~';
   free(extra->description);
   extra->description = strdup("visible~discarded");
   objsave_save_obj_record_db(obj, &ch, NOWHERE, fixture, 3);
-  if (mysql_query(connection,
-                  "SELECT serialized_obj FROM player_save_objs ORDER BY idnum DESC LIMIT 1") != 0)
-    matched = false;
-  result = mysql_store_result(connection);
-  row = result != NULL ? mysql_fetch_row(result) : NULL;
-  matched = matched && row != NULL && row[0] != NULL &&
-            strstr(row[0], "EDes:\nkkkk~\nvisible~\n") != NULL &&
-            strstr(row[0], "discarded") == NULL &&
-            query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs", -1) == 2;
-  if (result != NULL)
-    mysql_free_result(result);
+  matched = matched && newest_object_record(connection, "player_save_objs", record) &&
+            strstr(record, "EDes:\nkkkk~\nvisible~\n") != NULL &&
+            strstr(record, "discarded") == NULL &&
+            query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs", -1) == 3;
   matched = matched && mysql_query(connection,
                                    "DELETE FROM player_save_objs ORDER BY idnum DESC LIMIT 1") == 0;
 
-  /* A full payload buffer must not become a valid but partial database record. */
+  /* Of more extra descriptions than the record holds, those that fit are
+   * saved whole and the rest left out, a short one after a long one too. */
   for (mode = 0; mode < 10U; mode++)
   {
     CREATE(extra, struct extra_descr_data, 1);
@@ -2519,13 +2868,61 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
     extra->next = obj->ex_description;
     obj->ex_description = extra;
   }
-  objsave_save_obj_record_db(obj, &ch, NOWHERE, fixture, 3);
-  objsave_save_obj_record_db(obj, NULL, NOWHERE, fixture, 3);
-  objsave_save_obj_record_db_sheath(obj, &ch, 77, 2);
+  matched = matched && objsave_save_obj_record_db(obj, &ch, NOWHERE, fixture, 3) &&
+            objsave_save_obj_record_db(obj, NULL, NOWHERE, fixture, 3) &&
+            objsave_save_obj_record_db_sheath(obj, &ch, 77, 2);
   matched = matched &&
-            query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs", -1) == 1 &&
-            query_single_int(connection, "SELECT COUNT(*) FROM house_data", -1) == 1 &&
-            query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs_sheathed", -1) == 1;
+            query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs", -1) == 3 &&
+            query_single_int(connection, "SELECT COUNT(*) FROM house_data", -1) == 3 &&
+            query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs_sheathed", -1) == 3;
+  for (mode = 0; mode < 3U; mode++)
+  {
+    matched = matched && newest_object_record(connection, record_tables[mode], record);
+    length = strlen(record);
+    kept = count_occurrences(record, "EDes:\noverflow~\n");
+    matched = matched && kept >= 1 && kept <= 9 && length >= 2 &&
+              strcmp(record + length - 2, "~\n") == 0 &&
+              strstr(record, "EDes:\nkkkk~\nvisible~\n") != NULL;
+  }
+
+  /* The longest record there can be still has its last lines: five strings
+   * and the action description at a full line each, a full spellbook, a
+   * special ability and an activation. An extra description that would crowd
+   * them out is the part left out. */
+  full = create_obj();
+  full->name = filled_string('n', 4088);
+  full->arcane_mark = filled_string('m', 4088);
+  full->restring_identifier = filled_string('r', 4088);
+  full->short_description = filled_string('s', 4088);
+  full->description = filled_string('d', 4088);
+  full->action_description = filled_string('a', 4095);
+  CREATE(full->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+  for (mode = 0; mode < SPELLBOOK_SIZE; mode++)
+  {
+    full->sbinfo[mode].spellname = 65535;
+    full->sbinfo[mode].pages = 255;
+  }
+  CREATE(full->special_abilities, struct obj_special_ability, 1);
+  full->special_abilities->command_word = filled_string('c', 4000);
+  full->activate_spell[ACT_SPELL_SPELLNUM] = 1;
+  CREATE(extra, struct extra_descr_data, 1);
+  extra->keyword = strdup("large");
+  extra->description = filled_string('x', 2000);
+  full->ex_description = extra;
+  CREATE(extra, struct extra_descr_data, 1);
+  extra->keyword = strdup("small");
+  extra->description = filled_string('y', 500);
+  full->ex_description->next = extra;
+  matched = matched && objsave_save_obj_record_db(full, &ch, NOWHERE, fixture, 3) &&
+            newest_object_record(connection, "player_save_objs", record) &&
+            strstr(record, "\nName: nnnn") != NULL && strstr(record, "\nDesc: dddd") != NULL &&
+            count_occurrences(record, "\nSpbk: 65535 255") == SPELLBOOK_SIZE &&
+            strstr(record, "\nSpAb: 0 0 0 0 0 0 0 cccc") != NULL &&
+            strstr(record, "\nActv: ") != NULL && strstr(record, "EDes:\nlarge~") == NULL &&
+            strstr(record, "EDes:\nsmall~\nyyyy") != NULL;
+  free(full->arcane_mark);
+  full->arcane_mark = NULL;
+  extract_obj(full);
 
   free(obj->arcane_mark);
   obj->arcane_mark = NULL;

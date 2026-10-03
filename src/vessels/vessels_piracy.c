@@ -599,18 +599,18 @@ int vessel_bounty_payoff_cost(int bounty)
 }
 
 /**
- * Read a player's outstanding bounty, net of decay.
+ * Read a player's outstanding bounty, net of decay: 0 for a player with none.
  *
- * @return Bounty in gold, 0 if none or on error
+ * @return FALSE when the database could not be read; *bounty is then 0
  */
-int vessel_get_bounty(const char *player_name)
+static bool bounty_read(const char *player_name, int *bounty)
 {
   PREPARED_STMT *statement;
-  int bounty = 0;
 
+  *bounty = 0;
   if (!mysql_available || conn == NULL || player_name == NULL || !*player_name)
   {
-    return 0;
+    return FALSE;
   }
 
   statement = mysql_stmt_create(conn);
@@ -622,15 +622,28 @@ int vessel_get_bounty(const char *player_name)
       !mysql_stmt_execute_prepared(statement))
   {
     mysql_stmt_cleanup(statement);
-    return 0;
+    return FALSE;
   }
   if (mysql_stmt_fetch_row(statement))
   {
-    bounty = vessel_bounty_after_decay(mysql_stmt_get_int(statement, 0),
-                                       mysql_stmt_get_long(statement, 1));
+    *bounty = vessel_bounty_after_decay(mysql_stmt_get_int(statement, 0),
+                                        mysql_stmt_get_long(statement, 1));
   }
   mysql_stmt_cleanup(statement);
 
+  return TRUE;
+}
+
+/**
+ * A player's outstanding bounty, net of decay.
+ *
+ * @return Bounty in gold, 0 if none or on error
+ */
+int vessel_get_bounty(const char *player_name)
+{
+  int bounty;
+
+  bounty_read(player_name, &bounty);
   return bounty;
 }
 
@@ -639,7 +652,9 @@ int vessel_get_bounty(const char *player_name)
  *
  * The standing bounty decays to its current value first, so a new offense
  * never revives what time has already forgiven. Safe inside a caller's
- * transaction: it issues no transaction statements of its own.
+ * transaction: it issues no transaction statements of its own. The row holds
+ * the whole bounty, so nothing is written when the standing bounty could not
+ * be read: a bounty read as none would be overwritten with the offense alone.
  *
  * @return TRUE when the bounty row was written
  */
@@ -647,14 +662,20 @@ bool vessel_bounty_record_offense(const char *player_name, int amount)
 {
   PREPARED_STMT *statement;
   long long total;
+  int standing;
   bool recorded;
 
   if (!mysql_available || conn == NULL || player_name == NULL || !*player_name || amount <= 0)
   {
     return FALSE;
   }
+  if (!bounty_read(player_name, &standing))
+  {
+    log("SYSERR: Could not read the vessel bounty of %s; the offense is not recorded", player_name);
+    return FALSE;
+  }
 
-  total = (long long)vessel_get_bounty(player_name) + amount;
+  total = (long long)standing + amount;
   if (total > INT_MAX)
   {
     total = INT_MAX;

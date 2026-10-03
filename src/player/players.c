@@ -7785,11 +7785,36 @@ long int pet_stored_id_at(struct char_data *owner, int position)
   return pet_id;
 }
 
+/* Is the pet's row in this state?  The read locks the row, so after a COMMIT
+ * that got no reply it waits until the lost session's transaction has ended
+ * one way or the other. */
+static bool pet_row_state_is(long int pet_id, int pet_state)
+{
+  PREPARED_STMT *statement;
+  bool matches = false;
+
+  statement = mysql_stmt_create(conn);
+  if (statement != NULL &&
+      mysql_stmt_prepare_query(statement, "SELECT pet_state FROM pet_data WHERE pet_data_id = ? "
+                                          "LOCK IN SHARE MODE") &&
+      mysql_stmt_bind_param_long(statement, 0, pet_id) && mysql_stmt_execute_prepared(statement))
+    matches = mysql_stmt_fetch_row(statement) && mysql_stmt_get_int(statement, 0) == pet_state;
+  else
+    log("SYSERR: Could not read back pet row %ld after a COMMIT without a reply; it may be in "
+        "state %d",
+        pet_id, pet_state);
+  mysql_stmt_cleanup(statement);
+  return matches;
+}
+
 /* Hand one live pet to the keeper.  The pet only leaves play after its row and
- * items are committed, so a failed store keeps the original pet and gear. */
+ * items are committed, so a failed store keeps the original pet and gear.  A
+ * COMMIT that gets no reply may have taken effect, so the row is read back
+ * before the pet stays or goes. */
 bool pet_store_pet(struct char_data *owner, struct char_data *pet)
 {
   struct pet_save_record *record;
+  enum mysql_commit_result commit;
   char query[512];
   char *escaped_owner;
   const char *error_detail;
@@ -7889,13 +7914,17 @@ bool pet_store_pet(struct char_data *owner, struct char_data *pet)
     goto rollback;
   }
 
-  if (mysql_query(conn, "COMMIT"))
-  {
-    log_pet_save_failure(owner, record->pet_vnum, "commit transaction", mysql_errno(conn),
-                         mysql_error(conn));
-    goto rollback;
-  }
+  commit = mysql_commit_transaction(conn);
   transaction_started = false;
+  if (commit != MYSQL_COMMIT_DONE &&
+      !(commit == MYSQL_COMMIT_UNANSWERED && pet_row_state_is(insert_id, PET_STATE_STORED)))
+  {
+    log_pet_save_failure(owner, record->pet_vnum, "commit transaction", 0,
+                         commit == MYSQL_COMMIT_UNANSWERED
+                             ? "no reply to the COMMIT, and the row is not stored"
+                             : "the COMMIT was refused");
+    goto cleanup;
+  }
   pet->pet_data_id = insert_id;
   /* Keeper transitions change the active snapshot outside save_char_pets(). */
   pet_save_cache_entry(GET_IDNUM(owner))->used = false;
@@ -8001,11 +8030,14 @@ rollback:
 }
 
 /* Prepare one stored pet outside the world, commit its active state, then
- * publish it. Any publication failure restores the saved pet to storage. */
+ * publish it. Any publication failure restores the saved pet to storage. A
+ * COMMIT that gets no reply may have taken effect, so the row is read back
+ * before the pet is published or discarded. */
 struct char_data *pet_retrieve_stored(struct char_data *owner, long int pet_id, const char **reason)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
+  enum mysql_commit_result commit;
   struct char_data *mob = NULL;
   char query[640];
   char *escaped_owner;
@@ -8109,7 +8141,9 @@ struct char_data *pet_retrieve_stored(struct char_data *owner, long int pet_id, 
 
   snprintf(query, sizeof(query), "UPDATE pet_data SET pet_state = %d WHERE pet_data_id = %ld",
            PET_STATE_ACTIVE, pet_id);
-  if (mysql_query(conn, query) || mysql_query(conn, "COMMIT"))
+  commit = mysql_query(conn, query) ? MYSQL_COMMIT_REFUSED : mysql_commit_transaction(conn);
+  if (commit != MYSQL_COMMIT_DONE &&
+      !(commit == MYSQL_COMMIT_UNANSWERED && pet_row_state_is(pet_id, PET_STATE_ACTIVE)))
   {
     log("SYSERR: %s: Unable to activate stored pet %ld: %s", __func__, pet_id, mysql_error(conn));
     extract_char(mob);

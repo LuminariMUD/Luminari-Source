@@ -618,6 +618,14 @@ static bool hedit_save_to_db(struct descriptor_data *d)
   }
   transaction_started = 1;
 
+  if (!help_sync_database_lock_held())
+  {
+    write_to_output(d, "The help synchronization lock was lost with the database connection. "
+                       "Your edit remains open; try saving again.\r\n");
+    error_occurred = 1;
+    goto cleanup;
+  }
+
   /* === SAVE CURRENT VERSION TO HISTORY (if entry exists) === */
   /* First, check if the entry exists and save current version to history */
   pstmt = mysql_stmt_create(conn);
@@ -704,9 +712,6 @@ static bool hedit_save_to_db(struct descriptor_data *d)
 
   /* === DIFFERENTIAL KEYWORD UPDATE === */
   /* First, get existing keywords for this help entry using prepared statement */
-  MYSQL_RES *result;
-  MYSQL_ROW row;
-
   pstmt = mysql_stmt_create(conn);
   if (!pstmt)
   {
@@ -740,22 +745,21 @@ static bool hedit_save_to_db(struct descriptor_data *d)
     goto cleanup;
   }
 
-  mysql_stmt_cleanup(pstmt);
-
-  result = mysql_store_result(conn);
-  if (result)
+  /* The rows of a prepared statement are read through it. */
+  while (mysql_stmt_fetch_row(pstmt))
   {
-    while ((row = mysql_fetch_row(result)))
-    {
-      CREATE(temp_keyword, struct help_keyword_list, 1);
-      keyword_size = strlen(row[0]) + 1;
-      CREATE(temp_keyword->keyword, char, keyword_size);
-      strlcpy(temp_keyword->keyword, row[0], keyword_size);
-      temp_keyword->next = existing_keywords;
-      existing_keywords = temp_keyword;
-    }
-    mysql_free_result(result);
+    const char *stored_keyword = mysql_stmt_get_string(pstmt, 0);
+
+    if (stored_keyword == NULL)
+      continue;
+    CREATE(temp_keyword, struct help_keyword_list, 1);
+    keyword_size = strlen(stored_keyword) + 1;
+    CREATE(temp_keyword->keyword, char, keyword_size);
+    strlcpy(temp_keyword->keyword, stored_keyword, keyword_size);
+    temp_keyword->next = existing_keywords;
+    existing_keywords = temp_keyword;
   }
+  mysql_stmt_cleanup(pstmt);
 
   /* Delete keywords that are no longer in the list */
   pstmt = mysql_stmt_create(conn);
@@ -1243,7 +1247,8 @@ void hedit_parse(struct descriptor_data *d, char *arg)
         hedit_disp_menu(d);
         break;
       }
-      deleted = hedit_delete_entry(OLC_HELP(d), GET_NAME(d->character));
+      deleted =
+          help_sync_database_lock_held() && hedit_delete_entry(OLC_HELP(d), GET_NAME(d->character));
       if (!deleted || mysql_query(conn, "COMMIT") != 0)
       {
         mysql_query(conn, "ROLLBACK");
@@ -2230,6 +2235,16 @@ ACMD(do_helpgen)
     return;
   }
   perform_helpgen(ch, argument, cmd, subcmd);
+  /* The writers here that keep no transaction cannot be stopped by a lost
+   * lock, only reported. */
+  if (!help_sync_database_lock_held())
+  {
+    send_to_char(ch, "The help synchronization lock was lost with the database connection while "
+                     "this ran. A help synchronization may have run beside it: check the "
+                     "result.\r\n");
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: helpgen by %s lost the help synchronization lock.",
+           GET_NAME(ch));
+  }
   help_sync_database_lock_release();
   clear_help_cache();
 }
@@ -3568,6 +3583,15 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode)
     if (mysql_query(conn, "START TRANSACTION") != 0)
     {
       APPEND_TO_BUF("ERROR: Failed to start transaction: %s\r\n", mysql_error(conn));
+      fclose(fp);
+      free(output_buf);
+      return -1;
+    }
+    if (!help_sync_database_lock_held())
+    {
+      mysql_query(conn, "ROLLBACK");
+      send_to_char(ch, "ERROR: The help synchronization lock was lost with the database "
+                       "connection; nothing was imported.\r\n");
       fclose(fp);
       free(output_buf);
       return -1;

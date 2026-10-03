@@ -182,16 +182,51 @@ bool vessel_db_save_owner(struct greyhawk_ship_data *ship)
 }
 
 /**
+ * Does the database record this owner for the ship? The read locks the row,
+ * so after a COMMIT that got no reply it waits until the lost session's
+ * transaction has ended one way or the other.
+ */
+static bool owner_recorded(const struct greyhawk_ship_data *ship, const char *owner)
+{
+  PREPARED_STMT *statement;
+  const char *recorded_owner;
+  bool recorded = FALSE;
+
+  statement = mysql_stmt_create(conn);
+  if (statement != NULL &&
+      mysql_stmt_prepare_query(statement, "SELECT owner FROM ship_interiors WHERE ship_id = ? "
+                                          "LOCK IN SHARE MODE") &&
+      mysql_stmt_bind_param_int(statement, 0, ship->shipnum) &&
+      mysql_stmt_execute_prepared(statement))
+  {
+    recorded_owner = mysql_stmt_fetch_row(statement) ? mysql_stmt_get_string(statement, 0) : NULL;
+    recorded = recorded_owner != NULL && strcmp(recorded_owner, owner) == 0;
+  }
+  else
+  {
+    log("SYSERR: Could not read back the owner of ship %d after a COMMIT without a reply; "
+        "ship_interiors may hold %s",
+        ship->shipnum, owner);
+  }
+  mysql_stmt_cleanup(statement);
+  return recorded;
+}
+
+/**
  * Persist an ownership change and its consent reset as one transaction.
  *
  * A deed or capture must not leave the previous owner's PvP grace in the
  * runtime row. Otherwise a reboot can restore permission inherited from an
  * opponent who never consented to fight the new owner.
+ *
+ * A COMMIT that gets no reply may have taken effect, so the database is read
+ * back before the ship's owner in memory is chosen.
  */
 bool vessel_transfer_owner(struct greyhawk_ship_data *ship, const char *new_owner)
 {
   char old_owner[sizeof(ship->owner)];
   char old_attacker[sizeof(ship->pvp_grace_attacker)];
+  enum mysql_commit_result commit;
   time_t old_until;
 
   if (!mysql_available || conn == NULL || ship == NULL || new_owner == NULL)
@@ -212,21 +247,20 @@ bool vessel_transfer_owner(struct greyhawk_ship_data *ship, const char *new_owne
 
   strlcpy(ship->owner, new_owner, sizeof(ship->owner));
   vessel_clear_pvp_grace(ship);
-  if (!vessel_db_save_owner(ship) || !vessel_db_save_runtime(ship))
+  if (vessel_db_save_owner(ship) && vessel_db_save_runtime(ship))
   {
-    goto rollback;
+    commit = mysql_commit_transaction(conn);
+    if (commit == MYSQL_COMMIT_DONE ||
+        (commit == MYSQL_COMMIT_UNANSWERED && owner_recorded(ship, new_owner)))
+    {
+      return TRUE;
+    }
   }
-  if (mysql_query(conn, "COMMIT"))
+  else
   {
-    log("SYSERR: Could not commit ownership transfer for ship %d: %s", ship->shipnum,
-        mysql_error(conn));
-    goto rollback;
+    mysql_query(conn, "ROLLBACK");
   }
 
-  return TRUE;
-
-rollback:
-  mysql_query(conn, "ROLLBACK");
   strlcpy(ship->owner, old_owner, sizeof(ship->owner));
   strlcpy(ship->pvp_grace_attacker, old_attacker, sizeof(ship->pvp_grace_attacker));
   ship->pvp_grace_until = old_until;

@@ -604,8 +604,42 @@ static bool vessel_event_record_leaderboard(const struct vessel_event_participan
   return TRUE;
 }
 
+/**
+ * Does the event's row hold this status? The read locks the row, so after a
+ * COMMIT that got no reply it waits until the lost session's transaction has
+ * ended one way or the other.
+ */
+static bool vessel_event_database_status_is(const char *status)
+{
+  PREPARED_STMT *statement;
+  const char *recorded_status;
+  bool recorded = FALSE;
+
+  statement = mysql_stmt_create(conn);
+  if (statement != NULL &&
+      mysql_stmt_prepare_query(statement,
+                               "SELECT status FROM vessel_showcase_events WHERE event_id = ? "
+                               "LOCK IN SHARE MODE") &&
+      mysql_stmt_bind_param_long(statement, 0, (long)vessel_event.event_id) &&
+      mysql_stmt_execute_prepared(statement))
+  {
+    recorded_status = mysql_stmt_fetch_row(statement) ? mysql_stmt_get_string(statement, 0) : NULL;
+    recorded = recorded_status != NULL && strcmp(recorded_status, status) == 0;
+  }
+  else
+  {
+    log("SYSERR: Could not read back vessel event %llu after a COMMIT without a reply; its "
+        "scores may be recorded",
+        vessel_event.event_id);
+  }
+  mysql_stmt_cleanup(statement);
+  return recorded;
+}
+
 static bool vessel_event_finish(const char *reason, bool record_scores)
 {
+  enum mysql_commit_result commit;
+  const char *status;
   int red_score;
   int blue_score;
   int winning_team;
@@ -704,22 +738,31 @@ static bool vessel_event_finish(const char *reason, bool record_scores)
     }
   }
 
+  status = record_scores ? "completed" : "cancelled";
   if (records_saved)
   {
-    records_saved = vessel_event_set_database_status(record_scores ? "completed" : "cancelled",
-                                                     reason != NULL ? reason : "event ended");
+    records_saved =
+        vessel_event_set_database_status(status, reason != NULL ? reason : "event ended");
   }
-  if (records_saved && mysql_query(conn, "COMMIT"))
+  if (records_saved)
   {
-    log("SYSERR: Could not commit vessel event completion: %s", mysql_error(conn));
-    records_saved = FALSE;
+    /* A COMMIT that gets no reply may have taken effect: the event's row,
+     * written with the scores, says whether they are recorded. A retry over
+     * recorded scores would add them a second time. */
+    commit = mysql_commit_transaction(conn);
+    records_saved = commit == MYSQL_COMMIT_DONE ||
+                    (commit == MYSQL_COMMIT_UNANSWERED && vessel_event_database_status_is(status));
+    if (!records_saved)
+    {
+      log("SYSERR: Could not commit the completion of vessel event %llu", vessel_event.event_id);
+    }
+  }
+  else if (mysql_query(conn, "ROLLBACK"))
+  {
+    log("SYSERR: Could not roll back vessel event completion: %s", mysql_error(conn));
   }
   if (!records_saved)
   {
-    if (mysql_query(conn, "ROLLBACK"))
-    {
-      log("SYSERR: Could not roll back vessel event completion: %s", mysql_error(conn));
-    }
     vessel_event.pending_end = FALSE;
     vessel_event.recovery_required = TRUE;
     vessel_event_set_database_status("recovery_failed", "event score persistence failed");

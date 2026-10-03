@@ -965,7 +965,10 @@ interior, hull, weapon, and runtime persistence path. Damage and sinks score
 against those contacts, and the unique highest-scoring captain wins.
 
 Completion updates every leaderboard row and the terminal event status in one
-database transaction. A failed cleanup or score commit keeps the event in
+database transaction. When its COMMIT gets no reply (a connection lost while
+the reply is on its way), the event's row is read back: the terminal status
+there means the scores are recorded and the event ends, so a retry cannot add
+them a second time. A failed cleanup or score commit keeps the event in
 `recovery_failed` and blocks another start instead of repeating work each
 tick. Every event has a one-hour ceiling. Events do not resume after process
 restart: boot retires tracked ghost hulls and closes interrupted rows as
@@ -1015,10 +1018,11 @@ cargo (work item #12). A refused write moves no gold, and without a database
 no trade is made. A COMMIT the server does not answer (a connection lost
 while its reply is on the way) may have taken effect or not; both writes set
 absolute values, so the trade or its undo is written again on a reconnected
-session, and once that commits it stands whichever way the first went. The
-manifest writer stops at its first failed write, since after a lost
-connection the next write would reconnect and commit outside the
-transaction.
+session, and once that commits it stands whichever way the first went. A
+connection lost inside the transaction loses the whole of it: the database
+layer refuses the statements that follow until the transaction is rolled
+back, so none of them commits on its own on a new session
+(`docs/systems/DATABASE_INTEGRATION.md`, Transaction Management).
 
 Staff can run `vtradecheck 1000` to execute the deterministic sustained-market
 gate without changing live port or character state. It must report all 1,000
@@ -1090,7 +1094,9 @@ Bounties decay and can be paid off. `vessel_bounties.last_offense_at` (Phase
 removes 5% of it per further day, clearing it after 21 quiet days. Every
 offense path (plunder and NPC-merchant consequences) goes through
 `vessel_bounty_record_offense()`, which folds the decay into the stored amount
-before adding and restarts the clock. `bounty pay` in any port room outside a
+before adding and restarts the clock. The row holds the whole bounty, so the
+offense is not recorded when the standing bounty cannot be read: read as
+none, the offense alone would replace it. `bounty pay` in any port room outside a
 pirate cove clears the bounty for `vessel_bounty_payoff_cost()`, 125% rounded
 up; WANTED captains may pay. WANTED, HUNTED, port refusal, and hunter
 eligibility all read the decayed amount.
@@ -1161,7 +1167,11 @@ cannot steer, stop, anchor, or reroute her or dismiss her pilot; other unowned
 hulls stay open to anyone. Owner persists in `ship_interiors.owner`
 (auto-migrated); permits persist in `ship_crew_roster` (crew_role
 'captain', npc_vnum -1). Capture via `claimship` transfers ownership and
-voids old permits.
+voids old permits. A deed or capture writes the new owner and the reset of
+the old owner's PvP consent in one transaction (`vessel_transfer_owner()`);
+when its COMMIT gets no reply, the owner is read back from `ship_interiors`
+before the hull changes hands in memory, so memory and the database name
+the same owner.
 
 Soft-deleted characters retain their deeds so staff restoration is lossless.
 Before permanent player-file removal, one transaction makes their ships
