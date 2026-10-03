@@ -2918,6 +2918,42 @@ proc run_vessel_rules_check {warship_id requested_character} {
     fail "$crew_character was not refused command of the warship"
   }
 
+  # Waypoints and routes answer to the captain who made them, and the staff.
+  # The acceptance harness deletes these names if the run fails.
+  puts "\nrules_route_seed=$name_seed"
+  flush stdout
+  set ::spawn_id $primary_session
+  set output [run_game_command "setwaypoint rulesmark$name_seed"]
+  require_game_output $output "Waypoint 'rulesmark$name_seed' created" "staff waypoint"
+  set output [run_game_command "createroute rulesrun$name_seed"]
+  require_game_output $output "Route 'rulesrun$name_seed' created" "staff route"
+  set ::spawn_id $secondary_session
+  set output [run_game_command "delwaypoint rulesmark$name_seed"]
+  require_game_output $output "Waypoint 'rulesmark$name_seed' is not yours" \
+    "another captain's waypoint refusal"
+  set output [run_game_command "addtoroute rulesrun$name_seed rulesmark$name_seed"]
+  require_game_output $output "Route 'rulesrun$name_seed' is not yours" \
+    "another captain's route extension refusal"
+  set output [run_game_command "delroute rulesrun$name_seed"]
+  require_game_output $output "Route 'rulesrun$name_seed' is not yours" \
+    "another captain's route refusal"
+  set output [run_game_command "setwaypoint rulesown$name_seed"]
+  require_game_output $output "Waypoint 'rulesown$name_seed' created" "captain waypoint"
+  set output [run_game_command "createroute rulesown$name_seed"]
+  require_game_output $output "Route 'rulesown$name_seed' created" "captain route"
+  set output [run_game_command "addtoroute rulesown$name_seed rulesmark$name_seed"]
+  require_game_output $output "Waypoint 'rulesmark$name_seed' added to route 'rulesown$name_seed'" \
+    "another captain's waypoint on the captain's route"
+  set output [run_game_command "delwaypoint rulesown$name_seed"]
+  require_game_output $output "Waypoint 'rulesown$name_seed' deleted." "captain waypoint deletion"
+  set ::spawn_id $primary_session
+  set output [run_game_command "delroute rulesown$name_seed"]
+  require_game_output $output "Route 'rulesown$name_seed' deleted." "staff route deletion"
+  set output [run_game_command "delroute rulesrun$name_seed"]
+  require_game_output $output "Route 'rulesrun$name_seed' deleted." "staff route cleanup"
+  set output [run_game_command "delwaypoint rulesmark$name_seed"]
+  require_game_output $output "Waypoint 'rulesmark$name_seed' deleted." "staff waypoint cleanup"
+
   # The third deeded hull reaches the cap; a fourth is refused.
   set ::spawn_id $primary_session
   set extra_slots {}
@@ -2957,6 +2993,7 @@ proc run_vessel_rules_check {warship_id requested_character} {
   puts "PASS: contacts and tactical shared two-letter IDs, and shipfire targeted a contact by ID."
   puts "PASS: $crew_character could not fire the weapons of another captain's warship."
   puts "PASS: $crew_character was refused command of a level-$required_level warship."
+  puts "PASS: $crew_character was refused another captain's waypoint and route, and kept their own."
   puts "PASS: a fourth deed to $crew_character was refused at the three-hull cap."
   puts "PASS: $crew_character saw the WANTED bounty's 125% pay-off, refused away from port."
   puts "PASS: the vessel rules check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."

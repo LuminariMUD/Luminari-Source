@@ -27,15 +27,16 @@ here records the merge.
 | S-immediate Luminari Web for S9 | Merged `1c7e4bffb` (MR !14) | [S-immediate](vessels-ships-history.md#s-immediate-progress) |
 | S9 Claude Code play tests | Merged `a6adb46a8` (MR !15) | [Phase 9](vessels-ships-history.md#phase-9-s9-progress) |
 | S10 Player guide | Merged `60ef66ad1` (MR !16) | [Phase 10](vessels-ships-history.md#phase-10-s10-progress) |
-| S11 Checked cargo trades (work item #10) | In review (MR !17) | [Phase 11](#phase-11-s11-progress) |
-| S12 Owned waypoints and routes (work item #11) | Not started | [Part 5](#part-5-implementation-sequence) |
+| S11 Checked cargo trades (work item #10) | Merged `f18208549` (MR !17) | [Phase 11](vessels-ships-history.md#phase-11-s11-progress) |
+| S12 Owned waypoints and routes (work item #11) | In review (MR !18) | [Phase 12](#phase-12-s12-progress) |
 
-Production help is current through S10 (help sync plan `78cccae490f9`, 2026-10-02). S1-S10 are
-merged: the study's steps, S1-S8; S-immediate, which readied the local Luminari Web
-client for S9; S9, which played the whole system in game and recorded it; and S10, which turned
-that record into the [Vessel Player Guide](../guides/VESSEL_PLAYER_GUIDE.md) and fixed what
-checking its facts against the code found. Two follow-ups join the sequence, both resolved in this
-worktree: S11 for GitLab work item #10 and S12 for work item #11.
+Production help is current through S10 (help sync plan `78cccae490f9`, 2026-10-02); S11 changed
+no help. S1-S11 are merged: the study's steps, S1-S8; S-immediate, which readied the local
+Luminari Web client for S9; S9, which played the whole system in game and recorded it; S10, which
+turned that record into the [Vessel Player Guide](../guides/VESSEL_PLAYER_GUIDE.md) and fixed what
+checking its facts against the code found; and S11, which made `cargobuy` and `cargosell` record a
+trade before the gold moves and save the gold checked (GitLab work item #10). S12, for work item
+#11, is in review (MR !18).
 
 ## Working a step
 
@@ -163,159 +164,178 @@ ship data panel among them.
 
 ## Active step
 
-S11 is in review, below. S12 follows from S11's merge, on `feat/vessels-s12` with
-`vessels-s12-base`. Each step's merge request says `Closes #10` or `Closes #11`, which lists it on
-its work item and closes the item when it merges.
+### Phase 12 (S12) progress
 
-Still open outside these steps: the production deploy of S9's world-data notes and S10's code, the
-Open player-data balance and human beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`,
+In review (2026-10-03). Branch `feat/vessels-s12` from master `f18208549` (the S11 merge), where
+the annotated tag `vessels-s12-base` stands, so `git log vessels-s12-base..vessels-s12` lists only
+S12; the S11 close-out `a16fe7a64` comes first, then this plan. Hand-off as in the routine: tag
+`vessels-s12` and a merge request that says `Closes #11`; review fixes go on top. Scope: GitLab work
+item #11, waypoints and routes that record no creator.
+
+The defect, traced in `src/vessels/vessels_autopilot.c`: `ship_waypoints` and `ship_routes` have
+no creator column, and the cache nodes (`struct waypoint_node`, `struct route_node` in
+`vessels.h`) none either. `do_delwaypoint()` and `do_delroute()` let any captain (anyone on a helm,
+or a hull's owner anywhere aboard her) delete any waypoint or route that S10's guards do not
+protect: a waypoint on no route, a route no hull runs on a schedule or is sailing. Found while
+tracing: `do_addtoroute()` lets any captain append a waypoint to any route, and a scheduled hull
+rebuilds her route from that cache at every departure (`schedule_trigger_departure()`), so a
+rival can change a public ferry's or merchant's course, or disable her schedule by appending a
+waypoint her route check cannot reach. Name lookups take the first match in the shared pool, so
+once ownership refuses a rival's row, a captain whose route shares a rival's name could not reach
+their own.
+
+Items:
+
+1. Schema Phase 24: `creator_id INT UNSIGNED NOT NULL DEFAULT 0` on `ship_waypoints` and
+   `ship_routes` (the player's ID, as `player_data.player_idnum`; 0 is no player: content and
+   rows made before S12). `vessels_phase24_schema.sql`, `vessels_phase24_rollback.sql`,
+   `verify_vessels_phase24.sql`, their `ci_schema_manifest.txt` lines, the two `CREATE TABLE`s in
+   `master_schema.sql`, and the same two `ALTER`s at boot in `vessel_ownership_ensure_schema()`,
+   which already runs before `load_all_waypoints()` and `load_all_routes()`.
+2. The cache nodes carry `creator_id`; `waypoint_db_create()` and `route_db_create()` take it and
+   write it; the boot and single-row loaders read it. `setwaypoint` and `createroute` record the
+   player (an NPC records 0); `route_save()`, which has no callers, records 0.
+3. One rule for changing a row: its creator or an immortal (`LVL_IMMORT`). `delwaypoint` and
+   `delroute` apply it before S10's in-use refusals, which stay; `addtoroute` applies it to the
+   route (any captain may still put any waypoint on their own route).
+4. Two lookups replace the six inline name loops (`delwaypoint`, `addtoroute` twice, `delroute`,
+   `setroute`, `setschedule`): the caller's own row of that name if he has one, otherwise the
+   first.
+5. Production-linked tests in `test_vessel_movement.c`: a mortal captain is refused deleting
+   another captain's or a content waypoint and route and adding to them, reaches their own
+   same-named route, and an immortal is not refused; S10's in-use test runs as the creator. A
+   DB-backed test: the boot ensure adds the column to a pre-S12 table, `setwaypoint` and
+   `createroute` record the player, a reload reads the creator back, and the creator's
+   `delwaypoint` and `delroute` remove the rows.
+6. Help in both places (`help.hlp`, `help_vessel_entries.sql`): DELWAYPOINT, DELROUTE and
+   ADDTOROUTE state the rule; three new `verify_help_vessel_entries.sql` patterns. Docs:
+   `VESSEL_SYSTEM.md` (autopilot commands, Phase 24 in the SQL table) and the player guide's
+   routes section.
+7. The rules gate (`test_vessel_rules_in_game.sh`, Kohdee an immortal and Vesselmate a mortal
+   owner on her bridge) gains the rule with real characters: Vesselmate is refused Kohdee's
+   waypoint and route, deletes their own waypoint, and Kohdee deletes Vesselmate's route; DELROUTE
+   joins its help check.
+
+Interpretations decided while planning S12:
+
+- Rows that predate the column keep `creator_id` 0: nothing records who made them (no column, and
+  the creation log lines name no player), and on the development database all three routes are
+  content on schedules. A player who wants a pre-S12 row removed asks the staff.
+- The creator is the player's ID, not their name: a rename keeps their rows without a
+  `player_rename.c` key (numeric-ID ownership needs none), and IDs are not reused.
+- Using a route stays open to every captain (`setroute`, `setschedule`, `listroutes`, and a
+  rival's waypoint on one's own route); only changing or deleting a row needs its creator.
+- Refusals name the rule: "Route 'x' is not yours: only the captain who created it, or the staff,
+  may change it." and "Waypoint 'x' is not yours: only the captain who set it, or the staff, may
+  delete it."
+
+Ablation (planning): dropped a creator column in `listroutes`/`listwaypoints` (the refusal says
+whose a row is not, and nothing needs the list to say more), the `db_init.c` `CREATE TABLE` edits
+and a Phase 24 line in `provision_vessel_harbor.sh` (the boot ensure adds the column to every
+database, fresh or old, before anything reads it, and no content needs it earlier), cleanup of a
+deleted player's rows (they stay harmless and staff-deletable), help changes to SETWAYPOINT and
+CREATEROUTE (the rule lives where it refuses), and converting the two INSERTs to prepared
+statements (the new value is an integer from the character, and the interpolation baseline does
+not rise). Simplified: one ownership check and two lookups instead of per-command code, and the
+boot `ALTER`s go in the existing ownership ensure function instead of a new hook in `boot_db()`.
+Kept: Phase 24 SQL with rollback and verifier (work item, CI migration job), `master_schema.sql`
+(CI's test database is built from it), the `addtoroute` rule (traced defect against public
+ferries), the lookups (without them ownership would lock a captain out of their own same-named
+route), the DB-backed test, and the rules gate.
+
+Verification: `make test-all` with the database cases on (S9's `testenv.sh`, the
+`luminari-vessels-testdb` container); Phase 24 schema, verifier, rollback and re-apply on the test
+database, with sqlfluff; `verify_help_vessel_entries.sql` on the development database; the rules
+gate and, because scheduled hulls load their routes through the changed loader, the merchant gate,
+in the namespace harness on a reload of the development dump; and the local CI matrix
+`scripts/ci/local/run.py --base gitlab/master`.
+
+Progress log (2026-10-02 to 2026-10-03, kept current as the work goes):
+
+- Plan committed (`b163c621d`).
+- The fix, `0b6dcae85`, as planned: `creator_id` on both cache nodes, `waypoint_db_create()` and
+  `route_db_create()` take it, the four loaders read it; `autopilot_created_by()`,
+  `autopilot_find_waypoint()` and `autopilot_find_route()` in `vessels_autopilot.c`; the rule in
+  `delwaypoint`, `delroute` and `addtoroute`; the two `ALTER`s in
+  `vessel_ownership_ensure_schema()`; Phase 24 SQL, its manifest lines and `master_schema.sql`;
+  the three help entries in both places and three verifier patterns (52 to 55 content contracts);
+  `VESSEL_SYSTEM.md` and the player guide. New tests
+  `Test_vessel_waypoints_and_routes_answer_to_their_creator` and the DB-backed
+  `Test_vessel_waypoints_and_routes_record_their_creator`; S10's
+  `Test_vessel_shared_waypoints_and_routes_in_use_stay` runs as the creator.
+- The gate, `a2a5ad1b6` and `625d71ec2`: the rules session prints `rules_route_seed`, plays the
+  rule (Kohdee sets `rulesmark<seed>` and creates `rulesrun<seed>`; Vesselmate is refused
+  `delwaypoint`, `addtoroute` and `delroute` on them, then creates `rulesown<seed>` twice, adds
+  Kohdee's waypoint to that route and deletes that waypoint; Kohdee deletes Vesselmate's route
+  and Kohdee's own two rows); the harness's cleanup deletes those names, its final check fails
+  if any remain, and its help check reads DELROUTE. `rules_prototype_id()` became
+  `rules_value <key>`.
+  The testing docs describe the steps.
+- Local CI's clang-tidy job found two `bugprone-suspicious-string-compare` sites: the lookups
+  tested `str_cmp()` for truth. `e23b6a5cd` compares with `!= 0`.
+- 2026-10-03: MR !17 (S11, merged) got a second review finding after its merge: a trade COMMIT
+  that goes unanswered was taken for a refused one. Fixed here, since this branch carries S11's
+  close-out, in `2ba35d6b1`; recorded in the history's
+  [Phase 11 section](vessels-ships-history.md#phase-11-s11-progress), review round 2. It changes
+  no S12 code.
+- Notes for whoever continues: the rule runs before S10's in-use refusals, so a fixture that
+  wants an in-use message must make the helm the creator (the movement fixture's helm has idnum
+  0, which matches nothing: 0 is no player). Mobiles have idnum -1 and record 0. A temporary
+  table shadows the real one for `ALTER TABLE` too, so the DB-backed test's ensure call alters
+  only its pre-S12 temporary tables (and `ship_interiors`, as `test_vessel_loss.c` already
+  does). The commit hook's shfmt joins a `]]` continuation into one long line; compute
+  the value first.
+
+Ablation (building): nothing was added beyond the plan, and the gate reuses one reader,
+`rules_value`, for both values the rules session reports instead of a second copy. The dropped
+`db_init.c` edits stayed dropped: the merchant gate's boots added both columns to the pre-S12
+development dump.
+
+Verification (2026-10-03; the final source is `e23b6a5cd`, which differs from `a2a5ad1b6` only in
+the two explicit compares):
+
+- `make test-all` with the database cases (S9's `testenv.sh`, the `luminari-vessels-testdb`
+  container) on `a2a5ad1b6`: 1,997 CuTest cases OK (seed 1; the DB-backed test created,
+  reloaded and deleted `mara_mark` and `mara_run`), the protocol harness's 32, and the Python
+  suites (542, 37 skipped); `check_sql_interpolation.py` within baseline (317 sites).
+- Phase 24 SQL on the test database: the verifier read 0 columns before, 2 after the schema; the
+  schema re-ran cleanly; a new route row read creator 0; the rollback brought it to 0 and re-ran
+  cleanly; re-applied, 2. sqlfluff passed in the commit hook.
+- The namespace harness (`/tmp/claude-1000/vs4`, jobs `s12a` to `s12d`) on a fresh reload of the
+  development dump, whose tables predate Phase 24 (verifier 0): the merchant gate passed in 36 s
+  (a scheduled merchant sails a route loaded through the changed loaders); after its boots the
+  verifier read 2 and the dump's 3 routes and 16 waypoints all read creator 0;
+  `help_vessel_entries.sql` applied and `verify_help_vessel_entries.sql` passed all seven checks
+  (34 entries, 91 keywords, 55 content contracts); the rules gate passed in 37 s on `a2a5ad1b6`
+  and 38 s on `625d71ec2`, with no related `SYSERR`, its transcript showing each refusal and
+  deletion.
+- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`): on `625d71ec2`, 32 of 33
+  jobs passed and clang-tidy failed (the two compares above); on `e23b6a5cd`, all 33 jobs passed
+  in 336 s, clang-tidy with 0 findings.
+
+Cleanup: the harness is stopped (its disposable database stops with its namespace); the gates
+restored both player files and deleted their waypoints, routes, prototype and hulls; no scratch
+files were left in the worktree.
+
+Hand-off: tag `vessels-s12` and MR !18 from `feat/vessels-s12`, which says `Closes #11` (range
+`vessels-s12-base..vessels-s12`; squash and remove-source off). Review fixes go on top, one
+commit each. After the merge: sync DELWAYPOINT, DELROUTE and ADDTOROUTE to production (apply
+`help_vessel_entries.sql` to the development database first, then run
+`help_sync.py sync --authorize-production`); Phase 24 goes with the next production deploy (boot
+adds the columns); move this section to the history and close these study documents (see below).
+
+Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's
+and S12's code (S12's with Phase 24), the Open player-data balance and human beta gates in
+`VESSEL_SYSTEM_REQUIREMENTS.md`,
 [work item #12](https://gitlab.com/max757/Luminari-Source/-/work_items/12) (two-phase vessel
 settlements, from MR !17's review), and closing these study documents once S12 merges:
 `docs/ongoing-projects/` is temporary, and their enduring content lives in `VESSEL_SYSTEM.md` and
 the guide.
 
-### Phase 11 (S11) progress
-
-In review (2026-10-02). Branch `feat/vessels-s11` from master `88495e08a` (the S10 merge and its
-close-out), where the annotated tag `vessels-s11-base` stands, so
-`git log vessels-s11-base..vessels-s11` lists only S11. The first commit after `264469692` (which
-added S11 and S12) is this plan. Hand-off as in the routine: tag `vessels-s11` and a merge request
-that says `Closes #10`; review fixes go on top. Scope: GitLab work item #10, `cargobuy` and
-`cargosell` moving gold without a checked save.
-
-The defect, traced in `src/vessels/vessels_trade.c`: `do_cargobuy()` debits the gold in memory
-(`award_gold()`), then `port_adjust_supply()` and `vessel_db_save_cargo()` write the port's
-supply and the manifest, each unchecked and outside any transaction; `do_cargosell()` does the
-same with the revenue. No player save follows, so a crash before the captain's next routine save
-returns a buyer's gold with the cargo recorded aboard, or loses a seller's gold with the cargo
-gone; and a failed manifest write leaves sold cargo recorded aboard, to be sold again after a
-reboot.
-
-Items:
-
-1. One helper in `vessels_trade.c` records a trade: the port's supply and the ship's manifest in
-   one transaction, rolled back if either write fails. It replaces `port_adjust_supply()`, whose
-   only callers are these two commands and which re-read the supply the caller had just read; its
-   UPDATE becomes a `PREPARED_STMT`, so `vessels_trade.c`'s formatted-SQL baseline drops from 7
-   to 6.
-2. `cargobuy` and `cargosell` take the shape `a703572e3` gave freight acceptance: change the hold
-   in memory and record the trade; on a refused record, put the hold back and move no gold;
-   after the commit, move the gold and save it with `save_char_checked()`; if that save fails,
-   restore the gold and the hold and record the pre-trade supply and manifest again. The crew's
-   sale experience is earned only once the sale is saved.
-3. DB-backed tests in `test_vessel_rewards.c`, beside `Test_vessel_freight_bond_pays_for_the_goods`:
-   for each command a refused manifest write and a failed character save leave the gold, the
-   hold, the manifest rows and the port's supply as they were; a saved trade moves all four. The
-   contraband test's trades now save the captain, so it gets the scratch player files the freight
-   test uses.
-4. `VESSEL_SYSTEM.md`'s trade paragraph says how a trade is recorded, as the freight paragraph
-   does.
-
-Interpretations decided while planning S11:
-
-- The compensation after a failed save records the pre-trade state with the same helper, so it
-  is as atomic as the trade; if it fails too, a `SYSERR` is logged, as freight acceptance does.
-- The hold is restored from a copy of the one lot the trade touched, which puts back both the
-  quantity and a lot emptied by a sale.
-- No database (or an NPC, whose save always fails) means no trade, as freight acceptance and
-  passenger fares already refuse; MySQL is required to run the server.
-- The refusal messages name what did not happen: "The harbor office cannot record that trade;
-  no gold changed hands." and "Your gold could not be recorded, so the trade is undone."
-
-Ablation (planning): dropped help changes (usage, prices and rules are unchanged; only the two
-failure messages are new), new schema SQL with its rollback and verifier (no table changes), the
-vessel help verifier (no help change), and the 19 live gates that never run `cargobuy` or
-`cargosell` (the changed code is reachable only through those two commands). Simplified: one
-helper records both the trade and its undo, instead of separate undo writes; a lot copy restores
-the hold instead of moving `contract_unload()` out of `vessels_contracts.c` for reuse. Kept: the
-DB-backed failure tests for both commands, the economy gate (it buys and sells contraband with a
-real logged-in captain, whose saves go to disk), `make test-all` with the database cases, and the
-local CI matrix.
-
-Verification: `make test-all` with the database cases on (the `luminari-vessels-testdb` container,
-environment as in S9's `testenv.sh`); `scripts/ci/check_sql_interpolation.py`; the economy gate
-`test_vessel_economy_in_game.sh` in the namespace harness on a reload of the development dump;
-and `scripts/ci/local/run.py --base gitlab/master`.
-
-Progress log (2026-10-02, kept current as the work goes):
-
-- Plan committed (`3299aaa25`).
-- The fix, `c2888ec8f`: `trade_record()` replaces `port_adjust_supply()`; both commands record
-  the trade before the gold moves and save the gold checked, as planned; the crew's sale
-  experience follows the save; `VESSEL_SYSTEM.md`'s economy paragraph says how a trade is
-  recorded; `vessels_trade.c`'s interpolation baseline is 6. The new
-  `Test_vessel_cargo_trades_record_the_gold_with_the_goods` covers both commands' refused write
-  and failed save (a whole-hold sale's emptied lot included) and a saved trade; the contraband
-  test got the scratch player files.
-- Notes for whoever continues: a CHECK constraint cannot be added over rows that break it, so
-  the sale's refused write uses `CHECK (item_count >= 10)` over the bought lot of 10;
-  `check_sql_interpolation.py --update` also lowers other files' counts and re-sorts the baseline,
-  so only S11's line was edited by hand. S10's batch economy job (`y20-economy.sh`) relied on
-  earlier gates' boots for the Phase 19-21 columns: alone after a dump reload it stops on
-  `armor_scale`, so S11's job applies `vessels_phase19_schema.sql` through
-  `vessels_phase23_schema.sql` first.
-
-Ablation (building): the third copy of the trade tests' temporary tables became one fixture
-helper that the freight and contraband tests use too. `save_char_checked()` can still fail after
-its rename only when the character is missing from the player index, which a logged-in player
-is not; freight acceptance accepts the same window, so S11 adds nothing for it. No help, schema or
-player-guide change was needed.
-
-Verification (2026-10-02, on `c2888ec8f`):
-
-- `make test-all` with the database cases (the `luminari-vessels-testdb` container, S9's
-  `testenv.sh`): 1,995 CuTest cases OK (seed 1; the new test's trades are in the log), the
-  protocol harness's 32, and the Python suites (542, 37 skipped).
-- `scripts/ci/check_sql_interpolation.py`: within baseline, 317 sites.
-- The economy gate in the namespace harness (`/tmp/claude-1000/vs4`, jobs `s11b2-reload` and
-  `s11c-economy`) on a fresh reload of the development dump: passed in 208 s, buying and selling
-  contraband with a real logged-in captain whose saves go to disk.
-- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`): all 33 jobs
-  passed in 487 s.
-
-Cleanup: the harness is stopped (its disposable database stops with its namespace); no
-characters, pfiles or scratch files were left in the worktree.
-
-Hand-off: tag `vessels-s11` and MR !17 from `feat/vessels-s11`, which says `Closes #10` (range
-`vessels-s11-base..vessels-s11`). Review fixes go on top, one commit each.
-
-Review round 1 (2026-10-02, range `vessels-s11..feat/vessels-s11`): one [P2] finding, fixed.
-
-- Failed compensation reported as undone (`a1f08bc7b`). When the save failed and the undo could
-  not be recorded either, both commands still restored the gold and the hold in memory and said
-  "the trade is undone" while the database kept the trade. This was reproduced on `50ca77f2d` by
-  a CHECK constraint added with `check_constraint_checks` off, which refuses only the supply the
-  undo writes back. `trade_settle()` now holds the gold, the save and the undo for both commands
-  and reports "undone" only after the undo commits. If the undo fails too, the trade stands as
-  recorded, in memory too, and the persistence service's minute save (`save_char_checked()` for
-  every connected player, a failed save retried after a second) stores the gold. This replaces
-  the planning interpretation that a failed undo only logs a `SYSERR`.
-- Ablation: the reviewer's persisted undo intent was not added here. A record kept only in the
-  database cannot tell recovery whether a later save carried the gold, so it would move the
-  crash window to its mirror case. Closing that window needs a settlement table, a marker in the
-  player file and a login reconcile. The owner asked for that as a new work item:
-  [#12](https://gitlab.com/max757/Luminari-Source/-/work_items/12), which also names freight
-  acceptance and dock-fee payment, which share the shape. `PLR_CRASH` was dropped from the fix:
-  the minute save already covers every connected player. A block on further trades was dropped too:
-  the next trade's own checked save carries the pending gold.
-- Verification: the extended `Test_vessel_cargo_trades_record_the_gold_with_the_goods` (a sale
-  and a purchase whose undo is refused: the message, no "undone", and the gold, hold, manifest
-  and supply of the standing trade) failed on `50ca77f2d` and passes now. `make test-all` with
-  the database cases: 1,995 CuTest cases OK, the protocol harness's 32, and the Python suites
-  (542, 37 skipped). `check_sql_interpolation.py`: within baseline. The local CI matrix
-  (`run.py --base gitlab/master`): all 33 jobs passed. The economy gate was not rerun: the
-  success path moved into the helper unchanged, and the DB-backed test drives both commands with
-  real saves.
-
-After the merge: no help to sync (S11 changes none); the fix goes with the next production deploy;
-move this section to the history, set the status row, and branch S12 from the merge
-(`feat/vessels-s12`, tag `vessels-s12-base`).
-
 ## Estimate (remaining)
 
 | Step | What drives the size | Days |
 | -- | -- | -: |
-| S11 Checked cargo trades | Two commands to the freight-bond shape, DB-backed failure tests | 0.5 |
 | S12 Owned waypoints and routes | Schema phase with rollback and verifier, legacy rows, tests, help | 1 |
 
 The Open player-data balance and human beta gates depend on player availability, not engineering

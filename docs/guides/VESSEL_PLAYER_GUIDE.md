@@ -431,12 +431,13 @@ The autopilot sails a route of waypoints for you. Route commands work on the bri
 
 1. `setwaypoint <name>` marks her present position: "Waypoint 'wren_home' created at position
    (-66.0, 92.0, 0.0)." Names are letters, numbers, `_` and `-`. `listwaypoints` lists every
-   waypoint in the world; any captain may use any of them. `delwaypoint <name>` removes one.
+   waypoint in the world; any captain may use any of them. `delwaypoint <name>` removes one of
+   yours.
 2. `createroute <name>` starts a route ("Route 'wren_run' created (ID: 6).") and
    `addtoroute <route> <waypoint>` appends a waypoint ("Waypoint 'harbor_channel_turn' added to
    route 'wren_run' at position 1."); up to 20 a route. `listroutes` lists every route with its
    number of waypoints; a route you create sails once through and does not loop.
-   `delroute <name>` removes one.
+   `delroute <name>` removes one of yours.
 3. `setroute <route>` gives it to the autopilot, and `autopilot on` engages it.
 
 ![The autopilot engaged](vessel-guide/26-routes-autopilot-on.png)
@@ -478,8 +479,10 @@ Engaging the autopilot, assigning a pilot and setting a schedule are departures,
 hull's level (16 for a ship). The owner may give these orders anywhere aboard; a captain on a
 helm permit gives them on the bridge.
 
-Waypoints and routes are shared by every captain, and any captain may delete one, but not a
-waypoint that a route sails through, nor a route that a ship runs on a schedule or is sailing.
+Every captain may use every waypoint and route, but only the captain who made one, or the staff,
+may delete it or add to a route; the harbors' own are the staff's. Even their maker cannot delete
+a waypoint that a route sails through, nor a route that a ship runs on a schedule or is sailing.
+When names repeat, your own waypoint or route of that name is the one meant.
 
 ## 7. Trade and freight
 

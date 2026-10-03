@@ -546,7 +546,7 @@ int route_save(struct ship_route *route)
    * otherwise update it in place. */
   if (route->route_id <= 0)
   {
-    new_id = route_db_create(route->name, route->loop);
+    new_id = route_db_create(route->name, route->loop, 0);
     if (new_id < 0)
     {
       log("SYSERR: route_save - failed to create route '%s' in database", route->name);
@@ -569,7 +569,7 @@ int route_save(struct ship_route *route)
   /* Persist the inline waypoint array and relink in order. */
   for (i = 0; i < route->num_waypoints; i++)
   {
-    new_wp_ids[i] = waypoint_db_create(&route->waypoints[i]);
+    new_wp_ids[i] = waypoint_db_create(&route->waypoints[i], 0);
     if (new_wp_ids[i] < 0)
     {
       log("SYSERR: route_save - failed to save waypoint %d of route %d", i, route->route_id);
@@ -845,9 +845,10 @@ static void route_cache_remove(int route_id)
  * Create a new waypoint in the database.
  *
  * @param wp The waypoint data to insert
+ * @param creator_id The player who set it, 0 for none
  * @return The new waypoint_id on success, -1 on failure
  */
-int waypoint_db_create(const struct waypoint *wp)
+int waypoint_db_create(const struct waypoint *wp, long creator_id)
 {
   char query[MAX_STRING_LENGTH];
   char escaped_name[AUTOPILOT_NAME_LENGTH * 2 + 1];
@@ -871,9 +872,9 @@ int waypoint_db_create(const struct waypoint *wp)
 
   /* Build INSERT query */
   snprintf(query, sizeof(query),
-           "INSERT INTO ship_waypoints (name, x, y, z, tolerance, wait_time, flags) "
-           "VALUES ('%s', %.2f, %.2f, %.2f, %.2f, %d, %d)",
-           escaped_name, wp->x, wp->y, wp->z, wp->tolerance, wp->wait_time, wp->flags);
+           "INSERT INTO ship_waypoints (name, x, y, z, tolerance, wait_time, flags, creator_id) "
+           "VALUES ('%s', %.2f, %.2f, %.2f, %.2f, %d, %d, %ld)",
+           escaped_name, wp->x, wp->y, wp->z, wp->tolerance, wp->wait_time, wp->flags, creator_id);
 
   if (mysql_query(conn, query))
   {
@@ -889,6 +890,7 @@ int waypoint_db_create(const struct waypoint *wp)
   if (node != NULL)
   {
     node->waypoint_id = new_id;
+    node->creator_id = creator_id;
     node->data = *wp;
     waypoint_cache_add(node);
   }
@@ -926,7 +928,7 @@ struct waypoint_node *waypoint_db_load(int waypoint_id)
   }
 
   snprintf(query, sizeof(query),
-           "SELECT waypoint_id, name, x, y, z, tolerance, wait_time, flags "
+           "SELECT waypoint_id, name, x, y, z, tolerance, wait_time, flags, creator_id "
            "FROM ship_waypoints WHERE waypoint_id = %d",
            waypoint_id);
 
@@ -975,6 +977,7 @@ struct waypoint_node *waypoint_db_load(int waypoint_id)
   node->data.tolerance = (double)parse_double(row[5]);
   node->data.wait_time = parse_int(row[6]);
   node->data.flags = parse_int(row[7]);
+  node->creator_id = parse_long(row[8]);
   node->next = NULL;
 
   mysql_free_result(result);
@@ -1078,9 +1081,10 @@ int waypoint_db_delete(int waypoint_id)
  *
  * @param name The name of the route
  * @param loop_route Whether the route should loop
+ * @param creator_id The player who created it, 0 for none
  * @return The new route_id on success, -1 on failure
  */
-int route_db_create(const char *name, bool loop_route)
+int route_db_create(const char *name, bool loop_route, long creator_id)
 {
   char query[MAX_STRING_LENGTH];
   char escaped_name[AUTOPILOT_NAME_LENGTH * 2 + 1];
@@ -1104,9 +1108,9 @@ int route_db_create(const char *name, bool loop_route)
 
   /* Build INSERT query */
   snprintf(query, sizeof(query),
-           "INSERT INTO ship_routes (name, loop_route, active) "
-           "VALUES ('%s', %d, 1)",
-           escaped_name, loop_route ? 1 : 0);
+           "INSERT INTO ship_routes (name, loop_route, active, creator_id) "
+           "VALUES ('%s', %d, 1, %ld)",
+           escaped_name, loop_route ? 1 : 0, creator_id);
 
   if (mysql_query(conn, query))
   {
@@ -1122,6 +1126,7 @@ int route_db_create(const char *name, bool loop_route)
   if (node != NULL)
   {
     node->route_id = new_id;
+    node->creator_id = creator_id;
     strncpy(node->name, name, AUTOPILOT_NAME_LENGTH - 1);
     node->name[AUTOPILOT_NAME_LENGTH - 1] = '\0';
     node->loop = loop_route;
@@ -1163,7 +1168,7 @@ struct route_node *route_db_load(int route_id)
   }
 
   snprintf(query, sizeof(query),
-           "SELECT route_id, name, loop_route, active "
+           "SELECT route_id, name, loop_route, active, creator_id "
            "FROM ship_routes WHERE route_id = %d",
            route_id);
 
@@ -1208,6 +1213,7 @@ struct route_node *route_db_load(int route_id)
   }
   node->loop = parse_int(row[2]) ? TRUE : FALSE;
   node->active = parse_int(row[3]) ? TRUE : FALSE;
+  node->creator_id = parse_long(row[4]);
   node->num_waypoints = 0;
   node->waypoint_ids = NULL;
   node->next = NULL;
@@ -1684,7 +1690,7 @@ void load_all_waypoints(void)
   waypoint_cache_clear();
 
   snprintf(query, sizeof(query),
-           "SELECT waypoint_id, name, x, y, z, tolerance, wait_time, flags "
+           "SELECT waypoint_id, name, x, y, z, tolerance, wait_time, flags, creator_id "
            "FROM ship_waypoints ORDER BY waypoint_id");
 
   if (mysql_query(conn, query))
@@ -1726,6 +1732,7 @@ void load_all_waypoints(void)
     node->data.tolerance = (double)parse_double(row[5]);
     node->data.wait_time = parse_int(row[6]);
     node->data.flags = parse_int(row[7]);
+    node->creator_id = parse_long(row[8]);
     node->next = NULL;
 
     waypoint_cache_add(node);
@@ -1759,7 +1766,7 @@ void load_all_routes(void)
   route_cache_clear();
 
   snprintf(query, sizeof(query),
-           "SELECT route_id, name, loop_route, active "
+           "SELECT route_id, name, loop_route, active, creator_id "
            "FROM ship_routes ORDER BY route_id");
 
   if (mysql_query(conn, query))
@@ -1797,6 +1804,7 @@ void load_all_routes(void)
     }
     node->loop = parse_int(row[2]) ? TRUE : FALSE;
     node->active = parse_int(row[3]) ? TRUE : FALSE;
+    node->creator_id = parse_long(row[4]);
     node->num_waypoints = 0;
     node->waypoint_ids = NULL;
     node->next = NULL;
@@ -2524,6 +2532,68 @@ static int check_vessel_captain(struct char_data *ch, struct greyhawk_ship_data 
   return FALSE;
 }
 
+/**
+ * Whether ch created a waypoint or route. Rows with no creator (content,
+ * and rows made before S12) belong to no player.
+ */
+static bool autopilot_created_by(struct char_data *ch, long creator_id)
+{
+  return creator_id != 0 && !IS_NPC(ch) && creator_id == GET_IDNUM(ch);
+}
+
+/**
+ * The waypoint of that name: ch's own if ch set one, otherwise the first.
+ * Every captain's waypoints are one pool, so names repeat.
+ */
+static struct waypoint_node *autopilot_find_waypoint(struct char_data *ch, const char *name)
+{
+  struct waypoint_node *node;
+  struct waypoint_node *first = NULL;
+
+  for (node = waypoint_list; node != NULL; node = node->next)
+  {
+    if (str_cmp(node->data.name, name) != 0)
+    {
+      continue;
+    }
+    if (autopilot_created_by(ch, node->creator_id))
+    {
+      return node;
+    }
+    if (first == NULL)
+    {
+      first = node;
+    }
+  }
+  return first;
+}
+
+/**
+ * The route of that name: ch's own if ch created one, otherwise the first.
+ */
+static struct route_node *autopilot_find_route(struct char_data *ch, const char *name)
+{
+  struct route_node *node;
+  struct route_node *first = NULL;
+
+  for (node = route_list; node != NULL; node = node->next)
+  {
+    if (str_cmp(node->name, name) != 0)
+    {
+      continue;
+    }
+    if (autopilot_created_by(ch, node->creator_id))
+    {
+      return node;
+    }
+    if (first == NULL)
+    {
+      first = node;
+    }
+  }
+  return first;
+}
+
 /* ========================================================================= */
 /* AUTOPILOT STATE NAME HELPER                                                */
 /* ========================================================================= */
@@ -2867,7 +2937,7 @@ ACMD(do_setwaypoint)
   wp.name[AUTOPILOT_NAME_LENGTH - 1] = '\0';
 
   /* Create waypoint in database */
-  waypoint_id = waypoint_db_create(&wp);
+  waypoint_id = waypoint_db_create(&wp, IS_NPC(ch) ? 0 : GET_IDNUM(ch));
   if (waypoint_id < 0)
   {
     send_to_char(ch, "Failed to create waypoint.\r\n");
@@ -2922,8 +2992,8 @@ ACMD(do_listwaypoints)
 }
 
 /**
- * The first route that sails through a waypoint, or NULL. Waypoints and
- * routes are shared by every captain, so one in use is not deleted.
+ * The first route that sails through a waypoint, or NULL. Any captain's
+ * route may sail through another's waypoint, so one in use is not deleted.
  */
 static const char *waypoint_route_in_use(int waypoint_id)
 {
@@ -2980,7 +3050,7 @@ static const char *route_hull_in_use(int route_id)
 ACMD(do_delwaypoint)
 {
   struct greyhawk_ship_data *ship;
-  struct waypoint_node *current;
+  struct waypoint_node *waypoint;
   const char *in_use;
   char arg[MAX_INPUT_LENGTH];
   int found_id;
@@ -3006,20 +3076,20 @@ ACMD(do_delwaypoint)
     return;
   }
 
-  /* Find waypoint by name */
-  found_id = -1;
-  for (current = waypoint_list; current != NULL; current = current->next)
-  {
-    if (!str_cmp(current->data.name, arg))
-    {
-      found_id = current->waypoint_id;
-      break;
-    }
-  }
-
-  if (found_id < 0)
+  waypoint = autopilot_find_waypoint(ch, arg);
+  if (waypoint == NULL)
   {
     send_to_char(ch, "Waypoint '%s' not found.\r\n", arg);
+    return;
+  }
+  found_id = waypoint->waypoint_id;
+
+  if (GET_LEVEL(ch) < LVL_IMMORT && !autopilot_created_by(ch, waypoint->creator_id))
+  {
+    send_to_char(ch,
+                 "Waypoint '%s' is not yours: only the captain who set it, or the staff, may "
+                 "delete it.\r\n",
+                 arg);
     return;
   }
 
@@ -3097,7 +3167,7 @@ ACMD(do_createroute)
   }
 
   /* Create route in database */
-  route_id = route_db_create(arg, FALSE);
+  route_id = route_db_create(arg, FALSE, IS_NPC(ch) ? 0 : GET_IDNUM(ch));
   if (route_id < 0)
   {
     send_to_char(ch, "Failed to create route.\r\n");
@@ -3141,32 +3211,24 @@ ACMD(do_addtoroute)
     return;
   }
 
-  /* Find route by name */
-  route = NULL;
-  for (route = route_list; route != NULL; route = route->next)
-  {
-    if (!str_cmp(route->name, route_arg))
-    {
-      break;
-    }
-  }
-
+  route = autopilot_find_route(ch, route_arg);
   if (route == NULL)
   {
     send_to_char(ch, "Route '%s' not found.\r\n", route_arg);
     return;
   }
 
-  /* Find waypoint by name */
-  waypoint = NULL;
-  for (waypoint = waypoint_list; waypoint != NULL; waypoint = waypoint->next)
+  /* A scheduled hull takes her route from here at every departure. */
+  if (GET_LEVEL(ch) < LVL_IMMORT && !autopilot_created_by(ch, route->creator_id))
   {
-    if (!str_cmp(waypoint->data.name, wp_arg))
-    {
-      break;
-    }
+    send_to_char(ch,
+                 "Route '%s' is not yours: only the captain who created it, or the staff, may "
+                 "change it.\r\n",
+                 route_arg);
+    return;
   }
 
+  waypoint = autopilot_find_waypoint(ch, wp_arg);
   if (waypoint == NULL)
   {
     send_to_char(ch, "Waypoint '%s' not found.\r\n", wp_arg);
@@ -3224,19 +3286,20 @@ ACMD(do_delroute)
     return;
   }
 
-  route_id = -1;
-  for (route = route_list; route != NULL; route = route->next)
-  {
-    if (!str_cmp(route->name, arg))
-    {
-      route_id = route->route_id;
-      break;
-    }
-  }
-
-  if (route_id < 0)
+  route = autopilot_find_route(ch, arg);
+  if (route == NULL)
   {
     send_to_char(ch, "Route '%s' not found.\r\n", arg);
+    return;
+  }
+  route_id = route->route_id;
+
+  if (GET_LEVEL(ch) < LVL_IMMORT && !autopilot_created_by(ch, route->creator_id))
+  {
+    send_to_char(ch,
+                 "Route '%s' is not yours: only the captain who created it, or the staff, may "
+                 "change it.\r\n",
+                 arg);
     return;
   }
 
@@ -3340,16 +3403,7 @@ ACMD(do_setroute)
     return;
   }
 
-  /* Find route by name in cache */
-  route_node = NULL;
-  for (route_node = route_list; route_node != NULL; route_node = route_node->next)
-  {
-    if (!str_cmp(route_node->name, arg))
-    {
-      break;
-    }
-  }
-
+  route_node = autopilot_find_route(ch, arg);
   if (route_node == NULL)
   {
     send_to_char(ch, "Route '%s' not found.\r\n", arg);
@@ -4421,16 +4475,7 @@ ACMD(do_setschedule)
     passenger_fare = (int)parsed_fare;
   }
 
-  /* Find route by name */
-  route_node = NULL;
-  for (route_node = route_list; route_node != NULL; route_node = route_node->next)
-  {
-    if (!str_cmp(route_node->name, route_arg))
-    {
-      break;
-    }
-  }
-
+  route_node = autopilot_find_route(ch, route_arg);
   if (route_node == NULL)
   {
     send_to_char(ch, "Route '%s' not found. Use 'listroutes' to see available routes.\r\n",

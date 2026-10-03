@@ -1081,8 +1081,11 @@ VALUES ('DELWAYPOINT', 'Usage: delwaypoint <name>
 
 Deletes a navigation waypoint by name.
 
-Waypoints are shared by every captain. A waypoint that any route sails
-through cannot be deleted; delete the route first.
+Every captain may use every waypoint, but only the captain who set one, or
+the staff, may delete it. Waypoints no player set (the harbors\' own, and
+those set before waypoints had owners) are the staff\'s. A waypoint that any
+route sails through cannot be deleted; delete the route first. When
+waypoints share a name, yours is the one meant.
 
 You must be at the helm or be the ship\'s owner to delete waypoints.
 
@@ -1124,6 +1127,10 @@ VALUES ('ADDTOROUTE', 'Usage: addtoroute <route> <waypoint>
 Adds an existing waypoint to a route. Waypoints are added to the end
 of the route in the order you add them.
 
+Only the captain who created a route, or the staff, may add to it; any
+waypoint may go on it, another captain\'s included. When routes or waypoints
+share a name, yours is the one meant.
+
 Each route can contain up to 20 waypoints.
 
 You must be at the helm or be the ship\'s owner to modify routes.
@@ -1144,9 +1151,12 @@ INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('DELROUTE', 'Usage: delroute <name>
 
 Permanently deletes a navigation route and its ordered waypoint associations.
-The named waypoints themselves are not deleted. Routes are shared by every
-captain: a route that a vessel runs on a schedule, or is sailing now (under
-way, waiting at a waypoint, or paused), cannot be deleted.
+The named waypoints themselves are not deleted. Every captain may sail every
+route, but only the captain who created one, or the staff, may delete it.
+Routes no player created (the ferries\' and merchants\', and those created
+before routes had owners) are the staff\'s. A route that a vessel runs on a
+schedule, or is sailing now (under way, waiting at a waypoint, or paused),
+cannot be deleted. When routes share a name, yours is the one meant.
 
 You must be aboard the vessel and authorized as its captain. Route deletion is
 written to the database and the live route cache immediately.

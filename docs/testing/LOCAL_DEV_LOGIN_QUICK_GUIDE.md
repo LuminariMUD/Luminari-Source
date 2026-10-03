@@ -474,8 +474,9 @@ is built and installed, run:
 
 Kohdee and Vesselmate exercise the vessel rules from the DurisMUD study's S1
 step: the for-sale shipyard listing and its level column, shared contact IDs,
-the passenger gunnery refusal, a warship's level-22 command gate, the
-three-hull cap, and a WANTED bounty's 125% pay-off. Cleanup restores both
+the passenger gunnery refusal, a warship's level-22 command gate, waypoints and
+routes that only their creator or the staff may change (S12), the three-hull
+cap, and a WANTED bounty's 125% pay-off. Cleanup restores both
 player files and Vesselmate's bounty row. See
 [VESSEL_SYSTEM_TESTING.md](VESSEL_SYSTEM_TESTING.md#vessel-rules-check).
 

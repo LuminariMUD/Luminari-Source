@@ -124,8 +124,10 @@ bool vessel_owner_at_cap(struct char_data *ch)
 }
 
 /**
- * Ensure the owner column exists on ship_interiors.
- * Called once at boot; mirrored by sql/components/vessels_phase6_schema.sql.
+ * Ensure the owner column exists on ship_interiors, and the creator column on
+ * waypoints and routes. Called once at boot, before the waypoints and routes
+ * load; mirrored by sql/components/vessels_phase6_schema.sql and
+ * vessels_phase24_schema.sql.
  */
 void vessel_ownership_ensure_schema(void)
 {
@@ -141,6 +143,16 @@ void vessel_ownership_ensure_schema(void)
                         "ADD COLUMN IF NOT EXISTS wages_owed INT NOT NULL DEFAULT 0"))
   {
     log("SYSERR: vessel_ownership_ensure_schema failed: %s", mysql_error(conn));
+  }
+
+  /* 0 is no player: content, and rows made before S12. */
+  if (mysql_query(conn, "ALTER TABLE ship_waypoints "
+                        "ADD COLUMN IF NOT EXISTS creator_id INT UNSIGNED NOT NULL DEFAULT 0") ||
+      mysql_query(conn, "ALTER TABLE ship_routes "
+                        "ADD COLUMN IF NOT EXISTS creator_id INT UNSIGNED NOT NULL DEFAULT 0"))
+  {
+    log("SYSERR: vessel_ownership_ensure_schema failed on waypoint and route creators: %s",
+        mysql_error(conn));
   }
 }
 

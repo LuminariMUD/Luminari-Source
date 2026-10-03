@@ -1030,6 +1030,9 @@ bool vessel_balance_report(struct char_data *ch, int duel_count);
 void vessel_trade_restock_tick(void);
 bool vessel_db_save_cargo(struct greyhawk_ship_data *ship);
 void vessel_db_load_cargo(struct greyhawk_ship_data *ship);
+#ifdef LUMINARI_CUTEST
+void vessel_trade_lose_commit_reply_for_test(int commits_ahead, bool committed);
+#endif
 
 /* ========================================================================= */
 /* LIVING WORLD: WEATHER HAZARDS AND ENCOUNTERS (Phase 08)                   */
@@ -1675,6 +1678,7 @@ struct vessel_schedule
 struct waypoint_node
 {
   int waypoint_id;            /* Database ID */
+  long creator_id;            /* Player who set it; 0 for content and pre-S12 rows */
   struct waypoint data;       /* Waypoint data */
   struct waypoint_node *next; /* Next node in list */
 };
@@ -1686,6 +1690,7 @@ struct waypoint_node
 struct route_node
 {
   int route_id;                     /* Database ID */
+  long creator_id;                  /* Player who created it; 0 for content and pre-S12 rows */
   char name[AUTOPILOT_NAME_LENGTH]; /* Route name */
   bool loop;                        /* Repeat route when complete */
   bool active;                      /* Route is available */
@@ -2111,13 +2116,13 @@ bool autopilot_tick_one(struct greyhawk_ship_data *ship);
 /* ========================================================================= */
 
 /* Waypoint Database CRUD Functions */
-int waypoint_db_create(const struct waypoint *wp);
+int waypoint_db_create(const struct waypoint *wp, long creator_id);
 struct waypoint_node *waypoint_db_load(int waypoint_id);
 int waypoint_db_update(int waypoint_id, const struct waypoint *wp);
 int waypoint_db_delete(int waypoint_id);
 
 /* Route Database CRUD Functions */
-int route_db_create(const char *name, bool loop_route);
+int route_db_create(const char *name, bool loop_route, long creator_id);
 struct route_node *route_db_load(int route_id);
 int route_db_update(int route_id, const char *name, bool loop_route, bool active);
 int route_db_delete(int route_id);

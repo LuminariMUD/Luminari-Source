@@ -434,12 +434,17 @@ prototype absent from `shipbrowse` until `forsale yes`, then listed with its
 `contacts` and `tactical` listing the target under the same two-letter ID;
 `shipfire` refusing an unknown name and firing on the ID; Vesselmate, a
 passenger, refused the guns; Vesselmate refused `assignpilot` on a deeded
-warship below its level (22); a fourth deed refused at the three-hull cap; and
-`bounty` quoting the 750-gold (125%) pay-off that `bounty pay` refuses at sea.
+warship below its level (22); Vesselmate refused `delwaypoint`, `addtoroute`,
+and `delroute` on Kohdee's waypoint and route, then adding Kohdee's waypoint to
+a route of Vesselmate's own and deleting a waypoint of Vesselmate's own, and
+Kohdee, staff, deleting Vesselmate's route; a fourth deed refused at the
+three-hull cap; and `bounty` quoting the 750-gold (125%) pay-off that
+`bounty pay` refuses at sea.
 
 Cleanup returns both characters to room 1204, purges the five temporary
 hulls, deletes the one `Rulesraft` prototype whose ID the session reported (if
-no runtime hull uses it; other prototypes are never touched), restores
+no runtime hull uses it; other prototypes are never touched) and any waypoint
+or route left under the names the session reported, restores
 Vesselmate's bounty row, byte-restores both player files, and restarts the
 exact installed candidate. On 2026-09-28 the main checkout's development MUD held port 4100, so
 the gate ran inside a private user, network, mount, and PID namespace with a
