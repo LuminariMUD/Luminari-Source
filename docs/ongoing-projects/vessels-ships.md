@@ -183,14 +183,19 @@ actual-character gate in the `scripts/vessels/` pattern.
     no bounty, the pool stops freeing the handle the global `conn` points at, a lost session's
     help-sync lock is noticed, and `hedit` deletes removed keywords (it reads a prepared SELECT with
     `mysql_store_result()`). One case is not a lost connection: a row that fails while the
-    connection is good. The object and house writers always report success, so the save commits
-    without that item and tells no one. They report the failed row; the save still commits the rest
-    but counts as incomplete, keeping `PLR_CRASH` or `ROOM_HOUSE_CRASH` so the next pass retries it,
-    and the staff are told whose item it was. The save does not fail as a whole: an item too long
-    for the writer's buffer fails every time and would stop that player's saves, and the rent save
-    rolls back only after worn gear has left memory. DB-backed tests for each fix, the drops real
-    (the statement sent, then the socket shut down) on persistent tables. The step reaches outside
-    `src/vessels/` because the work item does.
+    connection is good. The object, sheath and house writers always report success, so the save
+    commits without that item and tells no one. No item is to be unsaveable, so the two causes that
+    lie in the item or the schema go. The writers' buffer is sized to hold every bounded part of a
+    record, and an extra description that does not fit (the only unbounded part) is left out instead
+    of the whole record refused. The fresh-install `house_data` definition (`master_schema.sql`,
+    `db_init.c`) loses the unique key on `vnum` that lets a house keep one object, with a migration
+    for databases created from it. What is left is a database fault: the writers report the failed
+    row, the save commits the rest but counts as incomplete, keeping `PLR_CRASH` or
+    `ROOM_HOUSE_CRASH` so the next pass retries it, and the staff are told whose item it was. The
+    save does not fail as a whole: committing the rest loses less, and the rent save rolls back only
+    after worn gear has left memory. DB-backed tests for each fix, the drops real (the statement
+    sent, then the socket shut down) on persistent tables. The step reaches outside `src/vessels/`
+    because the work item does.
 14. S14 Two-phase vessel settlements
     ([work item #12](https://gitlab.com/max757/Luminari-Source/-/work_items/12)): a cargo trade, a
     freight acceptance and a dock-fee payment each write the ship's side to MariaDB and the
@@ -244,7 +249,7 @@ lives in `VESSEL_SYSTEM.md` and the guide.
 
 | Step | What drives the size | Days |
 | -- | -- | -: |
-| S13 Transactions that survive a lost connection | The query-layer rule and the `COMMIT` helper, four unanswered-`COMMIT` sites, six site fixes and the incomplete-save report across the server, real-drop DB tests | 2.5 |
+| S13 Transactions that survive a lost connection | The query-layer rule and the `COMMIT` helper, four unanswered-`COMMIT` sites, six site fixes, and the object writers (record size, the `house_data` key and its migration, the incomplete-save report) across the server, real-drop DB tests | 3 |
 | S14 Two-phase vessel settlements | Schema phase with rollback and verifier, player-file marker, login reconcile, four commands, crash-point tests, the economy gate | 2 |
 | S15 Checked vessel purchases and payouts | One shared helper, fifteen gold movements in twelve commands, failure tests per command family | 1.5 |
 
