@@ -421,6 +421,14 @@ void Test_vessel_removed_players_stowed_hulls_are_purged(CuTest *tc)
   const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
   struct greyhawk_ship_data *ship;
   struct greyhawk_ship_data *other;
+  struct waypoint_node mark;
+  struct waypoint_node keep;
+  struct waypoint_node *saved_waypoints;
+  struct route_node run;
+  struct route_node *saved_routes;
+  struct player_index_element index[1];
+  struct player_index_element *saved_table;
+  int saved_top;
   MYSQL *saved_conn;
   MYSQL *connection;
   bool saved_mysql_available;
@@ -456,8 +464,51 @@ void Test_vessel_removed_players_stowed_hulls_are_purged(CuTest *tc)
   strlcpy(other->owner, "Losskeeper", sizeof(other->owner));
   strlcpy(other->helm_permits[0], "Lossremoved", sizeof(other->helm_permits[0]));
   other->num_permits = 1;
+
+  /* The player's waypoint and route pass to the staff, so a new character
+   * given the same ID inherits neither; another captain's stay theirs. */
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "CREATE TEMPORARY TABLE ship_waypoints ("
+                                            "waypoint_id INT AUTO_INCREMENT PRIMARY KEY, "
+                                            "name VARCHAR(64) DEFAULT '', "
+                                            "creator_id INT UNSIGNED NOT NULL DEFAULT 0)"));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "CREATE TEMPORARY TABLE ship_routes ("
+                                            "route_id INT AUTO_INCREMENT PRIMARY KEY, "
+                                            "name VARCHAR(64) NOT NULL, "
+                                            "creator_id INT UNSIGNED NOT NULL DEFAULT 0)"));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "INSERT INTO ship_waypoints (name, creator_id) "
+                                            "VALUES ('lossmark', 7001), ('keepmark', 7002)"));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "INSERT INTO ship_routes (name, creator_id) "
+                                            "VALUES ('lossrun', 7001)"));
+  memset(&mark, 0, sizeof(mark));
+  memset(&keep, 0, sizeof(keep));
+  memset(&run, 0, sizeof(run));
+  mark.creator_id = 7001;
+  keep.creator_id = 7002;
+  run.creator_id = 7001;
+  saved_waypoints = waypoint_list;
+  saved_routes = route_list;
+  mark.next = &keep;
+  keep.next = saved_waypoints;
+  run.next = saved_routes;
+  waypoint_list = &mark;
+  route_list = &run;
+  /* The player is still in the index when the hook runs. */
+  memset(index, 0, sizeof(index));
+  index[0].name = CuMutableString("Lossremoved");
+  index[0].id = 7001;
+  saved_table = player_table;
+  saved_top = top_of_p_table;
+  player_table = index;
+  top_of_p_table = 0;
+
   CuAssertIntEquals(tc, 1, vessel_owned_hull_count("Lossremoved"));
   CuAssertTrue(tc, vessel_handle_player_removal("Lossremoved"));
+  player_table = saved_table;
+  top_of_p_table = saved_top;
   CuAssertTrue(tc, !ship->stowed);
   CuAssertIntEquals(tc, 0, ship->shipnum);
   CuAssertIntEquals(tc, 0, vessel_owned_hull_count("Lossremoved"));
@@ -465,6 +516,18 @@ void Test_vessel_removed_players_stowed_hulls_are_purged(CuTest *tc)
   CuAssertIntEquals(tc, 0, other->num_permits);
   CuAssertStrEquals(tc, "", other->helm_permits[0]);
   memset(other, 0, sizeof(*other));
+  CuAssertIntEquals(tc, 0, (int)mark.creator_id);
+  CuAssertIntEquals(tc, 7002, (int)keep.creator_id);
+  CuAssertIntEquals(tc, 0, (int)run.creator_id);
+  waypoint_list = saved_waypoints;
+  route_list = saved_routes;
+  CuAssertIntEquals(
+      tc, 0,
+      mysql_query(connection,
+                  "SELECT (SELECT creator_id FROM ship_waypoints WHERE name = 'lossmark'), "
+                  "(SELECT creator_id FROM ship_waypoints WHERE name = 'keepmark'), "
+                  "(SELECT creator_id FROM ship_routes WHERE name = 'lossrun')"));
+  loss_assert_row(tc, connection, "0", "7002", "0");
 
   conn = saved_conn;
   mysql_available = saved_mysql_available;

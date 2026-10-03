@@ -270,16 +270,38 @@ void vessel_db_load_owner(struct greyhawk_ship_data *ship)
 }
 
 /**
+ * Give a removed player's waypoints or routes (query names the table) to the
+ * staff.
+ */
+static bool vessel_release_creator(const char *query, long player_id)
+{
+  PREPARED_STMT *statement;
+  bool released;
+
+  statement = mysql_stmt_create(conn);
+  released = statement != NULL && mysql_stmt_prepare_query(statement, query) &&
+             mysql_stmt_bind_param_long(statement, 0, player_id) &&
+             mysql_stmt_execute_prepared(statement);
+  mysql_stmt_cleanup(statement);
+  return released;
+}
+
+/**
  * Apply the permanent player-deletion policy.
  *
  * Soft-deleted characters retain their deeds so staff restoration is lossless.
  * Only remove_player() calls this hook, at the point the player files are about
  * to be destroyed. Permanent deletion makes every owned ship unclaimed,
- * removes the deleted name from helm permits, voids unpaid settlements, and
- * clears consent snapshots inherited from that owner.
+ * removes the deleted name from helm permits, voids unpaid settlements,
+ * clears consent snapshots inherited from that owner, and gives the player's
+ * waypoints and routes to the staff: a removed player's ID is handed out again
+ * when it was the highest, and the new character must not inherit them.
  */
 bool vessel_handle_player_removal(const char *player_name)
 {
+  struct waypoint_node *waypoint;
+  struct route_node *route;
+  long player_id;
   char escaped_name[129];
   char query[MAX_STRING_LENGTH];
   struct greyhawk_ship_data *ship;
@@ -300,6 +322,8 @@ bool vessel_handle_player_removal(const char *player_name)
     log("SYSERR: Permanent removal of %s deferred: vessel database unavailable", player_name);
     return FALSE;
   }
+  /* The player is still in the index: remove_player() calls this first. */
+  player_id = get_id_by_name(player_name);
 
   vessel_persistence_ensure_schema();
   vessel_piracy_ensure_schema();
@@ -381,6 +405,15 @@ bool vessel_handle_player_removal(const char *player_name)
     goto rollback;
   }
 
+  if (player_id > 0 &&
+      (!vessel_release_creator("UPDATE ship_waypoints SET creator_id = 0 WHERE creator_id = ?",
+                               player_id) ||
+       !vessel_release_creator("UPDATE ship_routes SET creator_id = 0 WHERE creator_id = ?",
+                               player_id)))
+  {
+    goto rollback;
+  }
+
   if (mysql_query(conn, "COMMIT"))
   {
     log("SYSERR: Could not commit vessel orphan cleanup for %s: %s", player_name,
@@ -390,6 +423,20 @@ bool vessel_handle_player_removal(const char *player_name)
   }
 
   vessel_hunter_handle_player_removal(player_name);
+  for (waypoint = waypoint_list; player_id > 0 && waypoint != NULL; waypoint = waypoint->next)
+  {
+    if (waypoint->creator_id == player_id)
+    {
+      waypoint->creator_id = 0;
+    }
+  }
+  for (route = route_list; player_id > 0 && route != NULL; route = route->next)
+  {
+    if (route->creator_id == player_id)
+    {
+      route->creator_id = 0;
+    }
+  }
   unowned = 0;
   permits_removed = 0;
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
