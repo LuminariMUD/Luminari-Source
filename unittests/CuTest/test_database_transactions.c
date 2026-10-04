@@ -884,6 +884,43 @@ void Test_idle_and_cryo_saves_commit_in_place_of_the_last_save(CuTest *tc)
   transactions_world_end(tc, &w);
 }
 
+/* What a player sorted into a bag is held nowhere else. The cryo save and
+ * the idle save replace the last save's rows, so they write the bags too. */
+void Test_cryo_and_idle_saves_keep_what_is_in_the_bags(CuTest *tc)
+{
+  struct transactions_world w;
+  struct obj_data *bagged;
+
+  if (!transactions_world_begin(tc, &w))
+    return;
+
+  saves_carry(&w, "a carried gem");
+  bagged = read_object(SAVES_OBJECT_VNUM, VIRTUAL);
+  bagged->short_description = strdup("a bagged gem");
+  GET_OBJ_SORT(bagged) = 1;
+  w.bags.bag1 = bagged;
+  CuAssertTrue(tc, Crash_crashsave(&w.owner));
+  CuAssertIntEquals(tc, 2, saves_player_rows(&w));
+
+  Crash_cryosave(&w.owner, 0);
+  REMOVE_BIT_AR(PLR_FLAGS(&w.owner), PLR_CRYO);
+  CuAssertPtrEquals(tc, NULL, w.owner.carrying);
+  CuAssertIntEquals(tc, 2, saves_player_rows(&w));
+
+  /* Nothing carried or worn, one gem in a bag. */
+  Crash_idlesave(&w.owner);
+  CuAssertIntEquals(tc, 1, saves_player_rows(&w));
+  CuAssertIntEquals(
+      tc, 1,
+      transactions_value(w.observer,
+                         "SELECT COUNT(*) FROM player_save_objs WHERE name = '" SAVES_OWNER
+                         "' AND serialized_obj LIKE '%a bagged gem%'"));
+
+  w.bags.bag1 = NULL;
+  extract_obj(bagged);
+  transactions_world_end(tc, &w);
+}
+
 /* ------------------------------------------------------------------------ */
 /* Vessel sites                                                             */
 /* ------------------------------------------------------------------------ */

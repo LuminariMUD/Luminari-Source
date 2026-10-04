@@ -1478,21 +1478,6 @@ void Crash_idlesave(struct char_data *ch)
     }
   }
 
-  if (ch->carrying == NULL)
-  {
-    for (j = 0; j < NUM_WEARS && GET_EQ(ch, j) == NULL; j++) /* Nothing */
-      ;
-    if (j == NUM_WEARS)
-    { /* No equipment or inventory: nothing is on file, and no row is kept. */
-      fclose(fp);
-      Crash_delete_file(GET_NAME(ch));
-#ifdef OBJSAVE_DB
-      objsave_commit_player_save(ch, 0);
-#endif
-      return;
-    }
-  }
-
   /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
   if (!objsave_write_rentcode(fp, RENT_TIMEDOUT, cost, ch))
   {
@@ -1688,6 +1673,8 @@ void Crash_cryosave(struct char_data *ch, int cost)
       /* recursively remove objects and their contents */
       Crash_extract_objs(GET_EQ(ch, j));
     }
+
+  unsaved += Crash_save_bags(ch, fp);
 
   /* inventory: recursive save function (like bags) */
   unsaved += Crash_save(ch->carrying, ch, fp, 0);
