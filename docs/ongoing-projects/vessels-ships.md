@@ -342,6 +342,7 @@ Interpretations:
   hull that does not exist yet.
 - What a failed summons leaves: a docking cast off, vehicles put off, the autopilot stopped.
   Those happen before the hull is stowed and are not undone; the hull, her cargo and the gold are.
+  (Not so in the end: a refused summons leaves all of it as it was, see "Found before hand-off".)
 - `contractdeliver` after a `COMMIT` without a reply: both writes of its transaction are absolute
   (the contract's status, the whole manifest), so the transaction is sent once more, as the
   query layer allows ("or writes again"). If that fails too, the delivery counts as not recorded
@@ -406,19 +407,20 @@ Decided while building:
 - `shipsummon` is saved before the hull leaves the world, so a summons that cannot be saved has
   no hull object to recreate: the undo is the copy of the hull. For that,
   `vessel_db_save_runtime()` saves a stowed hull's own location, not the room of a hull object
-  that still stands; the command writes `vessel_save_hull()` and the emptied manifest (checked,
-  which `vessel_save_one()` does not do for the manifest) and then takes her out with
+  that still stands; the command writes the emptied manifest (checked, which
+  `vessel_save_one()` does not do) and `vessel_save_hull()`, and then takes her out with
   `vessel_restow()`. `vessel_stow()` is left to the wreck registry.
-- A trade-in whose rebuild fails ("the shipwrights botch the work") returns the charge; the
-  hull is as broken as before S15.
 - The trade-in's undo and `shipbuy`'s refused hull write have no unit test: no unit world
   generates ship interiors (the room vnums come from the fleet slot, the rooms from the zone
   table and the runtime room list). `test_vessel_shipyard.c` covers the charge that cannot be
   saved for both, and the refund of a hull the yard cannot deliver. The refused write is played
-  in the loss gate instead: the harness adds a CHECK constraint to `ship_runtime_state` that
-  refuses one design's runtime row, Kohdee buys that design and trades his raft in for it, and
-  the gate checks the two messages, his player file's gold, the rows, and the same trade-in
-  once the constraint is dropped.
+  in the loss gate instead: Kohdee lists a design, the harness adds a CHECK constraint to
+  `ship_runtime_state` that refuses that design's runtime row, and in the two-character loss
+  session Vesselmate, who owns only the check's boat, buys a hull of the design and trades the
+  boat in for one. The session checks the two messages, his purse before and after, and that
+  she is still a boat with her owner and her bosun; then the session's real trade-in rebuilds
+  the same hull as a warship. The trade-in's payment that cannot be saved (the same undo) is
+  played nowhere: no test can make a player file unsaveable in the middle of a live command.
 - Help in the five entries that hold the commands, not only the overview entry item 11 named:
   a captain reads SHIPHIRE or CONTRACTS, not VESSELS, when a purchase is refused.
 - `scripts/ci/sql_interpolation_baseline.txt` drops by one: `contractdeliver`'s status update is
@@ -428,12 +430,61 @@ Decided while building:
   record that, so nothing was done and your N gold is returned." A sale: "... so nothing was
   sold." and "Your payment could not be recorded, so the sale is undone." `shipbuy`: the
   spawn's own message, then "Your N gold is returned." The trade-in: "The shipwrights cannot
-  record the trade, so it is undone: <ship> is put back as she was and no gold changes hands."
+  complete the trade, so it is undone: <ship> is rebuilt as she was and no gold changes hands."
   `shipsummon`: "The harbor master cannot record the summons, so <ship> stays where she is and
   your N gold is returned." The admiralty: "The clerk cannot record the settlement (complete
   the commission); your N gold is returned." `contractdeliver`: "The freight office cannot
-  record the delivery; the freight stays aboard." and "Your payment could not be recorded, so
-  the delivery is undone."
+  record the delivery; the freight stays aboard.", "Your payment could not be recorded, so the
+  delivery is undone.", and, when neither the delivery nor taking it back can be confirmed,
+  "The freight office cannot confirm whether the delivery was recorded. The freight stays
+  aboard, and the staff have been told."
+
+Found before hand-off, and fixed (`bc2a45b69`):
+
+- The loss gate's first version of the refused purchase ran as Kohdee alone, and his trade-in
+  took a harbor fixture: he owns `Persistence_Tern` and `Persistence_Goshawk`, berthed at the
+  two docks, and a trade-in takes the owner's first hull berthed there. On the disposable
+  database the undo put the fixture back and the gate passed without having tested the raft.
+  The check moved into the loss session (`77cc74137`), where the captain owns one hull.
+- An independent read of the build (a side agent, read-only, on `aec826b19`) found no path
+  where a single failed write loses or duplicates gold or an item, and these, all fixed:
+  - A refused summons had already cast off the hull alongside, put her vehicles off and
+    stopped her autopilot, while the captain was told she "stays where she is". The summons
+    now saves her as cast off and stopped first (her autopilot's two fields are remembered
+    beside the copy of the hull), and withdraws the gangway, releases the vehicles and puts
+    those aboard ashore only once it is saved.
+  - The summons wrote the stowed hull before the emptied manifest, so a crash between the two
+    brought her in with her cargo. The manifest goes first.
+  - `vessel_save_one()` had begun to stop at a failed owner, crew or refit write, skipping the
+    permits, manifest, pilot and schedule that shutdown's fleet save and the wreck registry
+    rely on. It attempts every part again and fails if any of the checked ones did;
+    `vessel_save_hull()` alone stops at the first.
+  - A trade-in whose rebuild failed returned the charge and left the hull without an interior.
+    It now takes the same undo as a trade that cannot be recorded. The undo no longer writes
+    a hull whose rooms could not be recreated (her rows would say she has none).
+  - A spawn wrote the runtime row second. When its rollback's purge failed too, the rows left
+    behind became a hull at the next boot, and `shipbuy` had returned the price. The runtime
+    row is written last: without it boot leaves the slot held (S14) and builds nothing.
+  - A sale that stands rewrote nothing, though a put-back that failed part way may have
+    written her weapons back. It writes the hull once more.
+  - A delivery whose transaction and whose put-back both fail (the database gone in
+    mid-command, after a `COMMIT` that may have been made) told the captain only that the
+    freight stays aboard. He and the staff are now told the books may be wrong.
+- Left as it is, on two faults: the bounty pay-off and `marque` return the fee when the write
+  reports a failure and the row cannot be read back. If the server had made the write before
+  it went away, the bounty is cleared or the letter issued unpaid. The other choice keeps the
+  fee of a captain whose write never arrived, which is the likelier case when the database
+  goes away; the failed write is in the log either way.
+- The same read named what no test ran. Added: a refused summons under autopilot with a hull
+  alongside, by the manifest's lost reply and by the runtime row's; the delivery's manifest
+  half lost, and both its transactions failing; `vessel_save_one()` writing the manifest
+  after a failed owner write; a mob's charge. Not testable in a unit world, or needing two
+  faults at once: the trade-in past its charge and `shipbuy` past its spawn (the loss gate
+  plays them), a lost reply on the prepared bounty statement, a refund whose own save fails,
+  and a write-back that fails after a sale's refused write.
+- The local CI matrix's first run (`77cc74137`) passed 32 of 33 jobs: clang-tidy refused the
+  tests' `memcmp()` of two hulls (a struct with padding has no unique representation). The
+  comparison is one helper with a suppression: both are whole copies of one fleet slot.
 
 ## Estimate (remaining)
 
