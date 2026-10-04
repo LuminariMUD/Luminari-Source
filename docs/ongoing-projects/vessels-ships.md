@@ -287,8 +287,9 @@ Items:
       the row deleted.
     - `vessel_settlements_reconcile()`: reads the open rows of a ship or a player (at most one
       each) and deletes or undoes each. It returns whether none is left.
-04. The reconcile runs at login beside the two deliveries (`src/core/interpreter.c`), where a
-    player whose settlement was undone is told; and as a gate at the start of `cargobuy`,
+04. The reconcile runs at login beside the two deliveries (`src/core/interpreter.c`; from inside
+    the first of them in the end, see "Decided while building"), where a player whose settlement
+    was undone is told; and as a gate at the start of `cargobuy`,
     `cargosell`, `contractaccept`, `contractdeliver`, `contractabandon` and `dockfees pay`, which
     refuse while a row of the ship or the player stays open. Delivering or abandoning a contract
     whose acceptance is unsettled would keep its freight or payout, so they wait too; they do
@@ -389,6 +390,13 @@ Decided while building:
   the settlement is open only its captain can hold the job, since delivering and abandoning wait.
 - `vessel_delete_persistence()` makes sure the table exists before its transaction, as it does
   for the tables it already clears.
+- The login reconcile is called from `vessel_deliver_pending_insurance()`, which
+  `enter_player_game()` already calls, not from a new line in `src/core/interpreter.c`: no unit
+  test runs the login path, and the coverage gate holds the changed lines of that file to its
+  subsystem's floor (S6 put its boot hook inside a vessel boot function for the same reason).
+  The delivery also runs when a claim is queued for an owner in the game, after that claim's
+  transaction is committed; a reconcile there reads one row at most. The settlement tests enter
+  through that function.
 - The verifier counts the columns and the unique keys and lists nothing: a query on the table
   fails after the rollback.
 - `GET_VESSEL_SETTLEMENT()` parenthesizes its argument; the two older marker macros do not, and
@@ -404,6 +412,31 @@ Decided while building:
   harbor office is still settling an earlier account. Try again shortly." Login or gate, to the
   captain whose settlement was undone: "The harbor office never recorded your gold for a cargo
   trade (freight contract, dock-fee payment) aboard <ship>, so it has been undone."
+
+Found before hand-off, and fixed:
+
+- An independent read of the build (a side agent, read-only, on `8ed5d8a3a`) found no way to
+  free cargo, a double sale or a lost bond or fee from a single fault, and two cases that need a
+  second, rare one:
+  - A `COMMIT` that got no reply and could not be read back may still be on its way (a stalled
+    server). A reconcile read no row, took the settlement for never recorded and forgot it; the
+    `COMMIT` then landed, and the undo changed a hold that no longer held the trade. A hull's
+    remembered settlement is now forgotten only after a locking read of its row, which waits
+    for the lost session.
+  - A hull that boot could not rebuild ("leaving persistence intact") was taken for gone: the
+    undo moved the port's stock, skipped her manifest and fee, and deleted the row. Her
+    settlement is now kept until she is loaded (or purged, which deletes it), and its captain's
+    accounts wait. Since a purge deletes the row, a settlement never outlives its hull's rows,
+    so "a lost ship" has no case left.
+- The same read named four things no test ran; each has one now: a mob's trade (undone in the
+  command), the manifest refused inside another transaction, a sale and a fee payment made right
+  after their gate undid an earlier settlement (unpaid goods cannot be sold; the fee is owed
+  again and then paid), and the two fixes above (a second session holds the row uncommitted; a
+  slot that is empty and then loaded). Ten tests in all.
+- The damage gate failed once in the batch on a race of its own: the tick that gets the hull
+  under way after `strikecolors` can land with the output of `speed 1`, and the check looked
+  for "colors fly again" only in what followed. It now accepts the line in either
+  (`scripts/development/dev_kohdee_login_smoke.sh`).
 
 Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's,
 S12's and S13's code (S12's with schema Phase 24, which boot adds, and S13's with migration
