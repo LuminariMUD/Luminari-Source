@@ -515,6 +515,11 @@ static void hedit_setup_new(struct descriptor_data *d)
   OLC_HELP(d)->last_updated = NULL;
   OLC_VAL(d) = 0;
 
+  /* Once the menu is open, the storage holds the tag of the entry the editor
+   * loaded, which is the one entry its save may replace: none here. */
+  free(OLC_STORAGE(d));
+  OLC_STORAGE(d) = NULL;
+
   hedit_disp_menu(d);
 }
 
@@ -624,6 +629,34 @@ static bool hedit_save_to_db(struct descriptor_data *d)
                        "Your edit remains open; try saving again.\r\n");
     error_occurred = 1;
     goto cleanup;
+  }
+
+  /* The save replaces an entry's text and removes the stored keywords that
+   * are not in the editor's list. That is right for the entry the editor
+   * loaded. Under any other tag (a new entry, or one retagged in the menu)
+   * an entry that exists is not the one being edited, and stays as it is. */
+  if (OLC_STORAGE(d) == NULL || str_cmp(OLC_STORAGE(d), tag_lower) != 0)
+  {
+    bool read, exists;
+
+    pstmt = mysql_stmt_create(conn);
+    read = pstmt != NULL &&
+           mysql_stmt_prepare_query(pstmt, "SELECT 1 FROM help_entries WHERE tag = ? FOR UPDATE") &&
+           mysql_stmt_bind_param_string(pstmt, 0, tag_lower) && mysql_stmt_execute_prepared(pstmt);
+    exists = read && mysql_stmt_fetch_row(pstmt);
+    mysql_stmt_cleanup(pstmt);
+    if (!read)
+      write_to_output(d, "Database error: Failed to check the help tag.\r\n");
+    else if (exists)
+      write_to_output(d,
+                      "A help entry tagged '%s' exists already, and it is not the one this "
+                      "editor opened. Give this entry another tag, or quit and edit that one.\r\n",
+                      tag_lower);
+    if (!read || exists)
+    {
+      error_occurred = 1;
+      goto cleanup;
+    }
   }
 
   /* === SAVE CURRENT VERSION TO HISTORY (if entry exists) === */
@@ -1161,6 +1194,9 @@ void hedit_parse(struct descriptor_data *d, char *arg)
     {
     case 'y':
     case 'Y':
+      /* The tag of the loaded entry: see hedit_setup_new(). */
+      free(OLC_STORAGE(d));
+      OLC_STORAGE(d) = strdup(OLC_HELP(d)->tag);
       hedit_disp_menu(d);
       break;
     case 'q':

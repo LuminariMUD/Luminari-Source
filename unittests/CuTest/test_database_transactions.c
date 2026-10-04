@@ -1325,8 +1325,10 @@ static void transactions_help_rows_end(void)
 
 /* The staff member edits the help entry to this text and these keywords, and
  * answers the save prompt with yes. Returns what the editor printed. */
-static const char *transactions_hedit_save(struct transactions_world *w, const char *text,
-                                           char **keywords)
+/* One save of the test entry from an editor that loaded the entry tagged
+ * `loaded`, NULL for an editor that is adding a new one. */
+static const char *transactions_hedit_save(struct transactions_world *w, const char *loaded,
+                                           const char *text, char **keywords)
 {
   struct descriptor_data *d = &w->staff_descriptor;
   struct help_keyword_list *node;
@@ -1337,6 +1339,7 @@ static const char *transactions_hedit_save(struct transactions_world *w, const c
   CREATE(OLC_HELP(d), struct help_entry_list, 1);
   OLC_HELP(d)->tag = strdup(TRANSACTIONS_HELP_TAG);
   OLC_HELP(d)->entry = strdup(text);
+  OLC_STORAGE(d) = loaded != NULL ? strdup(loaded) : NULL;
   for (i = 0; keywords[i] != NULL; i++)
   {
     CREATE(node, struct help_keyword_list, 1);
@@ -1383,12 +1386,12 @@ void Test_hedit_save_removes_keywords_and_is_whole_or_refused(CuTest *tc)
   transactions_help_rows_end();
   IN_ROOM(&w.staff) = 0;
 
-  heard = transactions_hedit_save(&w, "First text.\r\n", both);
+  heard = transactions_hedit_save(&w, NULL, "First text.\r\n", both);
   CuAssertTrue(tc, strstr(heard, "Help saved successfully.") != NULL);
   CuAssertIntEquals(tc, 2, transactions_help_keywords());
 
   /* The editor dropped a keyword: its row goes. */
-  heard = transactions_hedit_save(&w, "Second text.\r\n", one);
+  heard = transactions_hedit_save(&w, TRANSACTIONS_HELP_TAG, "Second text.\r\n", one);
   CuAssertTrue(tc, strstr(heard, "Help saved successfully.") != NULL);
   CuAssertIntEquals(tc, 1, transactions_help_keywords());
   CuAssertStrEquals(tc, "Second text.\n", transactions_help_text());
@@ -1396,7 +1399,7 @@ void Test_hedit_save_removes_keywords_and_is_whole_or_refused(CuTest *tc)
   /* The connection goes at the version history, whose result the save does
    * not check: nothing after it lands on its own. */
   mysql_test_drop_connection_at("INSERT INTO help_versions", 1, FALSE);
-  heard = transactions_hedit_save(&w, "Third text.\r\n", both);
+  heard = transactions_hedit_save(&w, TRANSACTIONS_HELP_TAG, "Third text.\r\n", both);
   CuAssertTrue(tc, strstr(heard, "All changes have been rolled back.") != NULL);
   CuAssertStrEquals(tc, "Second text.\n", transactions_help_text());
   CuAssertIntEquals(tc, 1, transactions_help_keywords());
@@ -1405,12 +1408,24 @@ void Test_hedit_save_removes_keywords_and_is_whole_or_refused(CuTest *tc)
    * and reconnects by itself: the session that saves no longer holds the
    * lock, and the save is refused. */
   mysql_test_drop_connection_at("START TRANSACTION", 1, FALSE);
-  heard = transactions_hedit_save(&w, "Fourth text.\r\n", both);
+  heard = transactions_hedit_save(&w, TRANSACTIONS_HELP_TAG, "Fourth text.\r\n", both);
   CuAssertTrue(tc, strstr(heard, "The help synchronization lock was lost") != NULL);
   CuAssertStrEquals(tc, "Second text.\n", transactions_help_text());
 
-  heard = transactions_hedit_save(&w, "Fifth text.\r\n", both);
+  heard = transactions_hedit_save(&w, TRANSACTIONS_HELP_TAG, "Fifth text.\r\n", both);
   CuAssertTrue(tc, strstr(heard, "Help saved successfully.") != NULL);
+  CuAssertStrEquals(tc, "Fifth text.\n", transactions_help_text());
+  CuAssertIntEquals(tc, 2, transactions_help_keywords());
+
+  /* An editor that did not load this entry saves under its tag: one adding a
+   * new entry, and one that retagged another. The entry keeps its text and
+   * its keywords. */
+  heard = transactions_hedit_save(&w, NULL, "Sixth text.\r\n", one);
+  CuAssertTrue(tc,
+               strstr(heard, "exists already, and it is not the one this editor opened") != NULL);
+  heard = transactions_hedit_save(&w, "sthirteenother", "Seventh text.\r\n", one);
+  CuAssertTrue(tc,
+               strstr(heard, "exists already, and it is not the one this editor opened") != NULL);
   CuAssertStrEquals(tc, "Fifth text.\n", transactions_help_text());
   CuAssertIntEquals(tc, 2, transactions_help_keywords());
 
