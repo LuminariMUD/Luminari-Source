@@ -603,7 +603,9 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
     insert_id = (int)mysql_stmt_insert_id(statement->stmt);
     mysql_stmt_cleanup(statement);
 
-    if (CAN_WEAR(obj, ITEM_WEAR_SHEATH))
+    /* Sheath rows are stored and loaded by their owner's name. A house has
+     * none: House_save() stores a sheath's weapons as the house's own. */
+    if (ch != NULL && CAN_WEAR(obj, ITEM_WEAR_SHEATH))
     {
       if (obj->sheath_primary &&
           !objsave_save_obj_record_db_sheath(obj->sheath_primary, ch, insert_id, 1))

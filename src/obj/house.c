@@ -131,6 +131,15 @@ int House_save(struct obj_data *obj, room_vnum vnum, FILE *fp, int location)
   if (!objsave_save_obj_record_db(obj, NULL, vnum, fp, location))
     unsaved++;
 
+  /* A sheath's weapons are stored under their owner's name, and a house has
+   * no owner: here they are the house's own objects, beside the sheath. */
+  if (obj->sheath_primary &&
+      !objsave_save_obj_record_db(obj->sheath_primary, NULL, vnum, fp, location))
+    unsaved++;
+  if (obj->sheath_secondary &&
+      !objsave_save_obj_record_db(obj->sheath_secondary, NULL, vnum, fp, location))
+    unsaved++;
+
   for (tmp = obj->in_obj; tmp; tmp = tmp->in_obj)
     GET_OBJ_WEIGHT(tmp) -= GET_OBJ_WEIGHT(obj);
 

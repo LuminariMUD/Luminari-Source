@@ -804,6 +804,41 @@ void Test_house_save_is_lost_whole_and_commits_around_a_refused_row(CuTest *tc)
   transactions_world_end(tc, &w);
 }
 
+/* A house has no owner to store a sheath's weapons under: they are saved as
+ * the house's own objects, beside the sheath. */
+void Test_house_save_stores_a_sheaths_weapons_as_its_own(CuTest *tc)
+{
+  struct transactions_world w;
+  struct obj_data *sheath;
+
+  if (!transactions_world_begin(tc, &w))
+    return;
+
+  sheath = saves_furnish(&w, "a sheath");
+  SET_BIT_AR(GET_OBJ_WEAR(sheath), ITEM_WEAR_SHEATH);
+  sheath->sheath_primary = read_object(SAVES_OBJECT_VNUM, VIRTUAL);
+  sheath->sheath_primary->short_description = strdup("a sheathed blade");
+  sheath->sheath_secondary = read_object(SAVES_OBJECT_VNUM, VIRTUAL);
+  sheath->sheath_secondary->short_description = strdup("a slung shield");
+
+  CuAssertTrue(tc, House_crashsave(SAVES_HOUSE_VNUM));
+  CuAssertIntEquals(tc, 3, saves_house_rows(&w));
+  CuAssertIntEquals(tc, 1,
+                    transactions_value(w.observer,
+                                       "SELECT COUNT(*) FROM house_data WHERE vnum = 91399 AND "
+                                       "serialized_obj LIKE '%a sheathed blade%'"));
+  CuAssertIntEquals(tc, 0,
+                    transactions_value(w.observer, "SELECT COUNT(*) FROM player_save_objs_sheathed "
+                                                   "WHERE owner_name = '" SAVES_OWNER "'"));
+  CuAssertStrEquals(tc, "", transactions_staff_heard(&w));
+
+  extract_obj(sheath->sheath_primary);
+  extract_obj(sheath->sheath_secondary);
+  sheath->sheath_primary = NULL;
+  sheath->sheath_secondary = NULL;
+  transactions_world_end(tc, &w);
+}
+
 /* The idle save and the cryo save commit what they write, in place of the
  * last save's rows. */
 void Test_idle_and_cryo_saves_commit_in_place_of_the_last_save(CuTest *tc)
