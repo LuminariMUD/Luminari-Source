@@ -1,5 +1,5 @@
 -- Vessel System Phase 21: DurisMUD study step S5, crew, repair and loss
--- (docs/ongoing-projects/vessels-ships.md 3.3.5-3.3.7 and 3.3.10). Mirrors the
+-- (docs/adr/0003-durismud-naval-model.md, 3.3.5-3.3.7 and 3.3.10). Mirrors the
 -- runtime DDL in vessel_persistence_ensure_schema() (src/vessels/vessels_db.c)
 -- and, for the premium refund, vessel_ownership_ensure_schema()
 -- (src/vessels/vessels_ownership.c), so it also applies to a database that

@@ -1,5 +1,5 @@
--- Vessels study S7 contraband (docs/ongoing-projects/vessels-ships.md,
--- Phase 7; study 3.3.9): three contraband goods, each stocked at one sea port.
+-- Vessels study S7 contraband (docs/adr/0003-durismud-naval-model.md,
+-- study 3.3.9): three contraband goods, each stocked at one sea port.
 -- Needs Phase 23. A port without a stock row for a good will not sell it and
 -- pays its scarce price for it, and a lawful one's customs seize it. Builders
 -- may stock the goods at other ports with more rows.

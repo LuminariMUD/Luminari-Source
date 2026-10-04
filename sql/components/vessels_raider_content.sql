@@ -1,5 +1,5 @@
 -- Vessel System 3.0: NPC raider content (DurisMUD study step S6,
--- docs/ongoing-projects/vessels-ships.md 3.3.8). Requires Phase 22.
+-- docs/adr/0003-durismud-naval-model.md, 3.3.8). Requires Phase 22.
 --
 -- Six raider hulls after Duris's clipper, ketch, caravel, corvette,
 -- destroyer, and frigate (speeds times 0.3, beam armor), none for sale, and

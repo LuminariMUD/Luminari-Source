@@ -650,6 +650,20 @@ session no runtime row may name the refused design; the harness drops the
 constraint, also when a run fails, and the session's cleanup deletes the
 design.
 
+A trade-in takes the character's first hull berthed at the dock, which is why
+Vesselmate plays it: a staff character who owns other hulls berthed there
+would trade in one of those instead.
+
+The gate plays a refused write whose undo succeeds. A write and its undo both
+refused has no gate and was checked by hand on 2026-10-04: the same CHECK
+constraint refused one owned hull's runtime row and a new warship design's,
+and a `BEFORE DELETE` trigger on `ship_interiors` refused every delete. The
+results to expect: `shiphire` signs the hand on and keeps the fee;
+`shipbuy <design> trade` reports that the records cannot be put right, keeps
+the charge, and writes the staff line to the log; `shipbuy <design>` hands
+over the hull and keeps the price; `shipsummon` stands and she makes port.
+With the refusals dropped, the hull's next shipyard job writes her rows.
+
 On 2026-10-04 the gate passed with this step in 84 seconds inside the private
 namespace described under the Vessel Rules Check, on source `bc3f39c30`:
 Vesselmate's purse was 57,938 gold before and after the two refused orders. In
@@ -667,6 +681,61 @@ movement (106 s), damage (556 s), derelict (33 s), hunter (81 s), frontier
 (218 s), and harbor merchant gates passed, and the campaign (126 s and 137 s)
 and Vailand merchant gates on a fresh reload with the shortened first watch
 (`5a027dc4f`).
+
+## Vessel Raider Check
+
+After the raider content is installed (`provision_vessel_harbor.sh` installs
+it; the harness refuses to start with fewer than ten `vessel_raider_tiers`
+rows) and a clean candidate is built and installed, run:
+
+```bash
+./scripts/vessels/test_vessel_raider_in_game.sh
+```
+
+The wrapper runs the shared tactical harness in `--raider` mode, which reads
+the SHIPRAM and RAIDERS help as Kohdee, checks the authoritative help rows,
+and calls `--vessel-raider-check <warship-id>` in the login helper with the
+same refusals, snapshots, and restoration as the other tactical-harness gates.
+
+Kohdee's warship rams a stopped hull. A tier 0 raider launched with
+`vesseldebug raider 0` then closes from beyond sight, rams, and grapples, and
+her boarders are beaten off. The session must report
+`PASS: a tier 0 raider launched with her captain, crew, fit-out, and strongbox key`
+and, once her captain is purged, `PASS: with her captain dead the raider hove to.`
+The harness then restarts the server and requires the log line
+`Retired 1 raider restored by the restart` and no runtime row left on a raider
+prototype. The server opens its port before the world has loaded, so the
+harness waits for that log line and not for the port.
+
+## Vessel Economy Check
+
+After the harbor fixture stocks forbidden tomes at the East Dock
+(`provision_vessel_harbor.sh`) and a clean candidate is built and installed,
+run:
+
+```bash
+./scripts/vessels/test_vessel_economy_in_game.sh
+```
+
+The wrapper runs the shared tactical harness in `--economy` mode, which reads
+the SHIPRENOWN and CONTRABAND help as Kohdee, checks the authoritative help
+rows, and plays three sessions:
+
+1. `--vessel-economy-check <warship-id> <second character>`. The East Dock
+   refuses its forbidden tomes to a hull of no renown and sells them to an able
+   crew; under neutral colors the merchants pay a tenth less; Kohdee's warship
+   sinks Vesselmate's boat, wins her 25 renown, and is paid prize money. Kohdee
+   leaves his group before the fight, so that only the victor shares.
+   Afterwards no `vessel_settlements` row may be open, and Vesselmate's player
+   file must carry a `VSet` line.
+2. A settlement the player file does not name. The harness plants a taken
+   freight contract and a `vessel_settlements` row for it, as the server would
+   leave them had it stopped before saving the bond. Vesselmate's next login
+   must delete the row and put the contract back on the board.
+3. `--vessel-customs-check`. Customs do not seize a good the port stocks, so
+   the harness lifts the East Dock's stock of tomes, the smuggler sails back
+   in, and customs must seize her tomes. The harness restores the stock
+   afterwards.
 
 ## Vessel Client Check
 

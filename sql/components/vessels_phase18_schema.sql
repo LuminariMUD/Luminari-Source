@@ -1,5 +1,5 @@
 -- Vessel System Phase 18: DurisMUD study step S1
--- (docs/ongoing-projects/vessels-ships.md). Mirrors the runtime DDL in
+-- (docs/adr/0003-durismud-naval-model.md). Mirrors the runtime DDL in
 -- vessel_prototype_ensure_schema() (src/vessels/vessels_edit.c),
 -- vessel_piracy_ensure_schema() (src/vessels/vessels_piracy.c), and
 -- vessel_ownership_ensure_schema() (src/vessels/vessels_ownership.c), so it

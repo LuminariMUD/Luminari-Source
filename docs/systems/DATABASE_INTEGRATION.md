@@ -428,17 +428,26 @@ endings apart and rolls back whatever is not confirmed:
 | `MYSQL_COMMIT_UNANSWERED` | No reply came | Writes again, or reads the database back |
 
 Use it wherever memory is changed, or left alone, on the strength of the commit. Where the writes
-set absolute values, write them again (cargo trades do, and the object save a character leaves
-the game with). Otherwise read a row the transaction wrote, with `LOCK IN SHARE MODE`: the
+set absolute values, write them again (a freight delivery does, and the object save a character
+leaves the game with). Otherwise read a row the transaction wrote, with `LOCK IN SHARE MODE`: the
 locking read waits until the lost session's transaction has ended on the server, so it sees the
-final state. Pet storage and retrieval, a hull's change of owner and the end of a vessel event do
-this.
+final state. Pet storage and retrieval, a hull's change of owner, the end of a vessel event, and
+a vessel settlement (a cargo trade, a freight acceptance, a dock-fee payment) do this.
 
 A reply is mostly lost to a server restart, and then the read-back cannot connect either. A site
 must not take that for a rollback. Either the work can be done again without harm (the vessel
 event's finish writes its scores only when its status write changed the event's row), or no state
 is chosen until the row can be read (the pet keeper puts the owner's roster back to "restore
-failed", and `pets restore` settles it from the rows).
+failed", and `pets restore` settles it from the rows; a ship whose settlement cannot be read
+holds her accounts until it can). The hull's change of owner is the one site that still takes an
+unreadable outcome for a rollback: `save_all_vessels()` writes the owner in memory again, as an
+absolute value, at shutdown and copyover, so the database converges on what the players were
+told, and only a crash before that save lets the database's owner stand.
+
+The locking read assumes a local database, where a lost connection means the server closed the
+session and freed its locks. With a remote database and a broken network the server can keep the
+lost session, and the read then waits out `innodb_lock_wait_timeout` (50 seconds by default) on
+the game thread before it fails as unreadable.
 
 **Session locks.** `GET_LOCK()` belongs to the session, so a reconnect drops it without telling
 the holder. `help_sync_database_lock_held()` asks the server; the help writers call it inside

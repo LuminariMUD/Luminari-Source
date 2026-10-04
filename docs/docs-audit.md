@@ -209,6 +209,7 @@ current evidence.
 | -- | -- |
 | Why the product exists and what release means | [Vessel System Product Requirements](product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md) |
 | Which architecture was chosen and why | [0001-unified-vessel-system.md](adr/0001-unified-vessel-system.md) |
+| Which naval combat model was chosen and why, and what "vessels-ships study" citations mean | [0003-durismud-naval-model.md](adr/0003-durismud-naval-model.md) |
 | What the current implementation does | [VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md) |
 | How to run the live command regression | [VESSEL_SYSTEM_TESTING.md](testing/VESSEL_SYSTEM_TESTING.md) |
 | What performance and test evidence exists | [VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md) |

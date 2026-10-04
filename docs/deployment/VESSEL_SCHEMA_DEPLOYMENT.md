@@ -48,11 +48,17 @@ tables.
 | 19 | `vessels_phase19_schema.sql` | `verify_vessels_phase19.sql` | `vessels_phase19_rollback.sql` | S3 damage model: prototype armor rescaled once by class, hull condition model, sink timer, weapon damage |
 | 20 | `vessels_phase20_schema.sql` | `verify_vessels_phase20.sql` | `vessels_phase20_rollback.sql` | S4 weapons: catalogue row and ammunition on every weapon and equipment row |
 | 21 | `vessels_phase21_schema.sql` | `verify_vessels_phase21.sql` | `vessels_phase21_rollback.sql` | S5 crew experience and stowed hulls (wreck registry, summons); refunds retired insurance premiums as claims |
+| 22 | `vessels_phase22_schema.sql` | `verify_vessels_phase22.sql` | `vessels_phase22_rollback.sql` | S6 raiders: the tiers each raider prototype sails |
+| 23 | `vessels_phase23_schema.sql` | `verify_vessels_phase23.sql` | `vessels_phase23_rollback.sql` | S7 rewards and economy: hull renown and the contraband flag on commodities |
+| 24 | `vessels_phase24_schema.sql` | `verify_vessels_phase24.sql` | `vessels_phase24_rollback.sql` | S12 owned waypoints and routes: the creator of each row |
+| 25 | `vessels_phase25_schema.sql` | `verify_vessels_phase25.sql` | `vessels_phase25_rollback.sql` | S14 two-phase settlements: one open settlement for a ship and one for a player |
 | Campaign | `vessels_campaign_content.sql` | `verify_vessels_campaign_content.sql` | `vessels_campaign_content_rollback.sql` | Initial Vailand legal waters, route, merchant shipping, and iron markets |
 | Narrative | `vessels_narrative_content.sql` | `verify_vessels_narrative_content.sql` | `vessels_narrative_content_rollback.sql` | Eight geographic and severe-weather hints for canonical Vailand waters |
 | Derelict | `vessels_derelict_content.sql` | `verify_vessels_derelict_content.sql` | `vessels_derelict_content_rollback.sql` | Blackwake prototype and generated-room discovery trigger mappings |
 | Frontier | `vessels_frontier_content.sql` | `verify_vessels_frontier_content.sql` | `vessels_frontier_content_rollback.sql` | Starfall trench, Sablebranch river, Aetherwind lane, Shardspire island, and eight class prototypes for sale in the shipyard |
-| Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 33 authoritative vessel and vehicle help entries covering 80 command keywords |
+| Raiders | `vessels_raider_content.sql` | `verify_vessels_raider_content.sql` | `vessels_raider_content_rollback.sql` | Six Corsair raider prototypes, none for sale, and the ten tier rows they sail |
+| Contraband | `vessels_contraband_content.sql` | `verify_vessels_contraband_content.sql` | `vessels_contraband_content_rollback.sql` | Three contraband goods, each stocked at one sea port |
+| Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 34 authoritative vessel and vehicle help entries covering 91 command keywords |
 
 `test_vessels_integrity.sql` inserts and removes fixed test identifiers. Run it
 only on an isolated rehearsal database where ship id 99999 is known to be free,
@@ -124,6 +130,30 @@ it run once. The server's boot DDL makes the same changes and the same refund;
 it needs Phases 6, 10, and 19. Its rollback drops the four columns and keeps the
 refunds. Purge stowed hulls with `shippurge` before rolling back: older code
 would put them back in the world where they were saved.
+Phase 22 (study step S6) creates `vessel_raider_tiers`: each row lets one ship
+prototype sail as a raider of one tier (0-3). The server's boot DDL creates the
+same table. It holds no rows until the raider package is applied. Roll that
+package back first, until it keeps no tier rows; the rollback then drops the
+table, and pre-S6 code launches no raiders.
+Phase 23 (study step S7) adds `ship_runtime_state.renown` (hulls saved before
+S7 read 0) and `trade_commodities.contraband_renown` (0 is a lawful good). The
+server's boot DDL makes the same changes. It needs the Phase 09 runtime table
+and, like the boot DDL, creates the commodity table if Phase 07 has not. Roll
+the contraband package back first: its rollback drops both columns, and pre-S7
+code would trade contraband as lawful goods at every port.
+Phase 24 (study step S12) adds `creator_id` to `ship_waypoints` and
+`ship_routes`; the server's boot DDL adds the same columns. Rows that predate
+it read 0, which is no player: only the staff may change or delete them. Its
+rollback drops both columns; pre-S12 code lets any captain delete or extend a
+waypoint or route that no hull depends on.
+Phase 25 (study step S14) creates `vessel_settlements`, the record of a cargo
+trade, freight acceptance, or dock-fee payment whose ship side is written and
+whose gold may not yet be in the captain's player file. The server's boot DDL
+creates the same table, so the component is for a database prepared before S14
+code first boots. Its unique keys on `ship_id` and `player_id` hold one open
+settlement for a ship and one for a player. The table is normally empty. Its
+rollback drops it: a settlement still open is then never undone, and its ship
+side stands whether or not its gold was saved.
 The campaign package depends on Phases 7, 13, and 14 plus the existing North
 and Central Vailand wilderness seaports and pilot mobile 31810. It owns four
 region identities, their vessel-law rows, one route and waypoint set, one
@@ -151,6 +181,23 @@ trigger digitalizes the sparse river line, so verification must compare the
 79-cell canonical geometry rather than the three authored vertices. The
 package owns one prototype for every class. Retire runtime hulls using its
 eight prototypes before guarded rollback.
+The raider package depends on Phases 19 and 22 and on the zone 700 mobile and
+object records in `lib/world/vessel_raiders/` (captains and crews 70020-70027,
+the strongbox 70020 and its key 70021). Its SQL owns six prototypes and ten
+tier rows; it does not install the world records, which must be merged into
+the live zone 700 files before a raider sails. Its rollback keeps the prototype
+and tier rows of a raider that still has a runtime row: the next restart
+retires her through those rows, so run the rollback again after that restart.
+The contraband package depends on Phase 23. It owns three commodities and one
+stock row for each, at the Selerish Slateharbor, Southwest Quechian, and
+Koorvik sea ports. Its rollback removes the goods, their stock, and any lot of
+them in a hold.
+
+A new phase mirrors the boot DDL of the code it ships with, and its tables and
+columns also go into `sql/master_schema.sql`: CI builds its test database from
+the master schema alone, and validates each component by applying it alone to a
+fresh master schema. Every file in `sql/components/` is classified in
+`ci_schema_manifest.txt`.
 
 ## Pre-Deployment Gate
 
@@ -311,6 +358,14 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase21_schema.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase22_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase23_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase24_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase25_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_campaign_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_narrative_content.sql
@@ -318,6 +373,10 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_derelict_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_frontier_content.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_raider_content.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_contraband_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/help_vessel_entries.sql
 ```
@@ -367,6 +426,14 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_phase21.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_phase22.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_phase23.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_phase24.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_phase25.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_campaign_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_narrative_content.sql
@@ -374,6 +441,10 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_derelict_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_frontier_content.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_raider_content.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_contraband_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_help_vessel_entries.sql
 ```
@@ -402,7 +473,13 @@ Also verify:
 - Both Phase 18 prototype columns and the bounty decay column, the expected
   for-sale list (the eight frontier class prototypes when that package is
   installed), no minimum level outside 0-30, and no remaining wage debt.
-- All 80 vessel and vehicle command-keyword searches in the running game,
+- Both Phase 22 tier-table columns, both Phase 23 columns, and both Phase 24
+  creator columns, with no tier outside 0-3, no tier row without a prototype,
+  and no negative renown.
+- All 12 Phase 25 settlement columns and both unique keys.
+- Six raider prototypes, none for sale, sailing ten tier rows, and three
+  contraband goods, each stocked at its sea port.
+- All 91 vessel and vehicle command-keyword searches in the running game,
   requiring database `Help Tag` results rather than file fallback.
 - Database errors and slow queries during the manual regression.
 
@@ -451,6 +528,10 @@ restore, run them in reverse dependency order:
 
 ```bash
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_contraband_content_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_raider_content_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_frontier_content_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_derelict_content_rollback.sql
@@ -458,6 +539,14 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_narrative_content_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_campaign_content_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase25_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase24_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase23_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase22_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase21_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
@@ -496,7 +585,9 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase2_rollback.sql
 ```
 
-These scripts delete frontier content, derelict mappings and unreferenced
+These scripts delete contraband goods and their stock, raider prototypes and
+tiers, open settlements, waypoint and route creators, hull renown, frontier
+content, derelict mappings and unreferenced
 definitions, owned Vailand narrative hints, showcase-event results and
 leaderboards, hunter policy and
 lifecycle history, merchant definitions and consequences,

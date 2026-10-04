@@ -544,6 +544,9 @@ does to a transaction, and they lose it for real:
   next statement that begins with that text, a query or a prepared execution, inside the code
   under test. With `FALSE` the socket goes before the statement is sent (the server never sees
   it); with `TRUE` after the server has run it, and its reply is thrown away unread.
+- Outside a transaction `FALSE` does not make a statement fail: the client library reconnects
+  and sends it again. Use `TRUE` for a single-statement write, and `FALSE` only inside a
+  transaction.
 - Connect as the server does, with `MYSQL_OPT_RECONNECT`, or the test proves nothing about the
   reconnect.
 - A TEMPORARY table goes with its session, so these tests write the real tables with rows under

@@ -204,11 +204,11 @@ object rows together. Stored rows remain intact. Existing `pet_data_id` values
 survive replacement; `owner_id` and `owner_created` bind them to the pfile owner,
 including across a rename. SQL player IDs are not interchangeable with pfile IDs.
 A known query failure rolls back the replacement. A COMMIT that reports an
-error is treated as a failure: `save_char_pets()` and the keeper store both
-issue a ROLLBACK, but the server may already have applied the commit, so the
-rollback's effect is uncertain. The live pets stay in play and the next
-snapshot replaces the active rows again, so the worst case is a stale active
-row until then. A transaction does not make pfiles, world items, and SQL
+error is treated as a failure: `save_char_pets()` issues a ROLLBACK, but the
+server may already have applied the commit, so the rollback's effect is
+uncertain. The live pets stay in play and the next snapshot replaces the
+active rows again, so the worst case is a stale active row until then. The
+keeper's store and reclaim read the pet's row back instead (see below). A transaction does not make pfiles, world items, and SQL
 jointly crash-atomic; pet data is not treated as critical, and no cross-store
 reconciliation is attempted.
 
@@ -346,14 +346,12 @@ Accepted durability limits:
 - When a timed follower's deadline fires, live or during an offline restore,
   its equipment and inventory are destroyed with it. Nothing is returned to
   the owner or the room.
-- A keeper store whose COMMIT reports an error keeps the live pet and gear in
-  play. If the commit had in fact applied, a stored copy also exists until the
-  owner reclaims or a staff member removes it.
-- A keeper reclaim whose activation COMMIT reports an error discards the
-  roomless copy. If the commit had in fact applied, the row is now active and
-  the owner's next login restores it; otherwise it stays with the keeper.
-- Uncertain outcomes are not reconciled against pfiles or live objects. Losing
-  or duplicating a pet in these windows is accepted.
+- A keeper store or reclaim whose COMMIT is refused keeps the pet where it
+  was: a stabled one in play, a reclaimed one with the keeper. One whose COMMIT
+  gets no reply is settled from the pet's row, as described above.
+- A snapshot (`save_char_pets()`) whose COMMIT reports an error is not
+  reconciled against pfiles or live objects; the next snapshot replaces the
+  active rows.
 
 The copyover and restart acceptance run is recorded in
 `docs/testing/pet-copyover-restart-acceptance-2026-09-12.txt`.
@@ -421,7 +419,10 @@ Nothing leaves memory while it is written.
   rolling back would lose more; the staff see one line naming the owner and the count, and the
   log names each object.
 - **Retry.** `Crash_crashsave()` returns whether the save was complete, and sets `PLR_CRASH`
-  after a failed or incomplete one, so the next crash-save pass saves the player again.
+  after a failed or incomplete one, so the next crash-save pass saves the player again. An
+  incomplete save still reports progress to the persistence scheduler: a reported failure makes
+  the scheduler retry the same player or house a second later and holds the pass for everyone
+  behind it.
 - **Leaving the game.** The rent, idle and cryo saves take the objects out of memory afterwards,
   written or not: `extract_char()` would drop what the character still held in the room, beside
   a save that holds it. A save that did not reach the database is therefore written a second

@@ -1,5 +1,5 @@
 -- Vessel System Phase 23: DurisMUD study step S7, rewards and economy
--- (docs/ongoing-projects/vessels-ships.md, Phase 7). Mirrors the runtime DDL
+-- (docs/adr/0003-durismud-naval-model.md). Mirrors the runtime DDL
 -- in vessel_persistence_ensure_schema() (src/vessels/vessels_db.c) and
 -- vessel_trade_ensure_schema() (src/vessels/vessels_trade.c), so it also
 -- applies to a database that Phase 07 has not reached.

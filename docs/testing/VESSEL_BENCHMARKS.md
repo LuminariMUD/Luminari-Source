@@ -1026,7 +1026,7 @@ The completed release evidence now demonstrates:
 ## S2 Momentum Re-baseline
 
 S2 (DurisMUD movement and pacing, see
-[vessels-ships.md](../ongoing-projects/vessels-ships.md)) replaced the old
+[ADR 0003](../adr/0003-durismud-naval-model.md)) replaced the old
 one-room-per-tick movement with momentum sailing: a hull covers speed / 90
 rooms per 0.5-second vessel tick, so speed 10 crosses a room every 4.5
 seconds, and it accelerates, turns, casts off, and comes to rest over time.
@@ -1147,9 +1147,11 @@ in the first 70 seconds while the whole fleet gathers way and fans out from
 one room. The largest single hull event (21 ms) and the pulse maximum
 (86.8 ms) belong with the other systems' spikes in the same window
 (`dg.trigger.wait` 63.7 ms, `mobile.autonomous.agenda` 34.2 ms); no pulse
-exceeded the 100 ms budget. The two `SYSERR` rows are a pre-existing interior
-defect on one 10-room hull (ship 203), unrelated to movement and recorded in
-[vessels-ships.md](../ongoing-projects/vessels-ships.md).
+exceeded the 100 ms budget. The two `SYSERR` rows are an interior defect on
+one 10-room hull (ship 203), unrelated to movement: the generator of the time
+gave the bridge a ninth spoke over its first, and boot dropped the duplicate
+connection. The generator has since been rewritten to place rooms beyond the
+eighth further out along the same rays (`src/vessels/vessels_rooms.c`).
 
 ## Current Verdict
 

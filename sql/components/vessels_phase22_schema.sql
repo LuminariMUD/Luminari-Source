@@ -1,5 +1,5 @@
 -- Vessel System Phase 22: DurisMUD study step S6, NPC raiders
--- (docs/ongoing-projects/vessels-ships.md 3.3.8). Mirrors the runtime DDL in
+-- (docs/adr/0003-durismud-naval-model.md, 3.3.8). Mirrors the runtime DDL in
 -- vessel_raider_ensure_schema() (src/vessels/vessels_raiders.c).
 
 -- Each row lets one ship prototype sail as a raider of one tier (0-3). A

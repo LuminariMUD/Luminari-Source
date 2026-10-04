@@ -1,5 +1,5 @@
 -- Vessel System Phase 20: DurisMUD study step S4, weapons and gunnery
--- (docs/ongoing-projects/vessels-ships.md 3.3.4 and 3.3.10). Mirrors the
+-- (docs/adr/0003-durismud-naval-model.md, 3.3.4 and 3.3.10). Mirrors the
 -- runtime DDL in vessel_persistence_ensure_schema() (src/vessels/vessels_db.c);
 -- it requires Phases 10 and 19.
 

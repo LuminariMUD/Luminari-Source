@@ -1,5 +1,5 @@
 -- Vessel System Phase 25: study step S14, two-phase vessel settlements
--- (docs/ongoing-projects/vessels-ships.md, Phase 14; GitLab work item #12).
+-- (docs/adr/0003-durismud-naval-model.md; GitLab work item #12).
 -- Mirrors the runtime DDL in vessel_settlement_ensure_schema()
 -- (src/vessels/vessels_settlement.c).
 

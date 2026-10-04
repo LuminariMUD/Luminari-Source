@@ -250,7 +250,11 @@ failures. It writes a temporary file, syncs it, renames it over the player
 file and syncs the directory, so a save it reports is not lost to a crash of
 the host. A directory sync that fails is logged and not reported: the new
 file is in place by then, and a caller that undoes its work on FALSE would
-undo it against a file that holds the save. `save_char()` is the legacy
+undo it against a file that holds the save. For the same reason no failure
+return may be added after the rename: the vessel settlements and the checked
+vessel payments undo their ship side on FALSE and rely on the old file still
+being in place. The one FALSE left after the rename is a character missing
+from the player index, which no character in the game is. `save_char()` is the legacy
 wrapper used by call sites that do not consume a result. The player index
 follows the same pattern with `save_player_index_checked()` and
 `save_player_index()`.

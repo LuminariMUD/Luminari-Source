@@ -1,5 +1,5 @@
 -- Vessel System Phase 19: DurisMUD study step S3, the damage model
--- (docs/ongoing-projects/vessels-ships.md 3.3.10). Mirrors the runtime DDL in
+-- (docs/adr/0003-durismud-naval-model.md, 3.3.10). Mirrors the runtime DDL in
 -- vessel_prototype_ensure_schema() (src/vessels/vessels_edit.c) and
 -- vessel_persistence_ensure_schema() (src/vessels/vessels_db.c), so it also
 -- applies to a database that Phases 04 and 18 have not reached; it requires

@@ -1,5 +1,5 @@
 -- Vessel System Phase 24: study step S12, owned waypoints and routes
--- (docs/ongoing-projects/vessels-ships.md, Phase 12; GitLab work item #11).
+-- (docs/adr/0003-durismud-naval-model.md; GitLab work item #11).
 -- Mirrors the runtime DDL in vessel_ownership_ensure_schema()
 -- (src/vessels/vessels_ownership.c).
 

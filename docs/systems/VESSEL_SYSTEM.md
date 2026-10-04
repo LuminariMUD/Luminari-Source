@@ -139,7 +139,9 @@ not allowed.
 ### Movement and Pacing
 
 `src/vessels/vessels_movement.c` implements DurisMUD's momentum sailing at
-decision D1's pacing (vessels-ships study, section 3.3.2). Orders set targets
+decision D1's pacing (vessels-ships study, section 3.3.2;
+[ADR 0003](../adr/0003-durismud-naval-model.md) records the study's decisions
+and keys its section numbers). Orders set targets
 and every 0.5-second vessel tick converges on them:
 
 - `speed` sets `setspeed` and `heading` sets `setheading`. Each tick
@@ -858,7 +860,10 @@ strict JSON in the `MSDP` GMCP package (see
 [MSDP Variables](MSDP_VARIABLES.md#wire-encodings)): tables become objects and
 arrays become arrays. The old unquoted `MSDP.<variable> <value>` fallback is
 not accepted as vessel support, and a separate GMCP ship package is not part
-of this release contract.
+of this release contract. The MSDP help entry lists the vessel variables but
+covers the whole protocol, so `sql/components/help_vessel_entries.sql` does not
+own it: a change to it is made as any other help edit, in `help.hlp` and the
+database, and then synced.
 
 `vesseldebug encounter` is an acceptance hook, not a parallel spawner. It
 advances the cadence counter and immediately invokes the same production
@@ -1034,7 +1039,10 @@ A row that is still there is settled by `vessel_settlements_reconcile()` from
 the player file of the captain it names: when the file's marker is the row's
 id, the gold is saved and the row is deleted; with any other marker the gold
 never reached the file and the ship's side is undone from the row, in one
-transaction, with no gold moved. The acting character is judged from memory
+transaction, with no gold moved. The test is equality, not the "at or below
+the marker" the insurance and merchant markers use: a table that was dropped
+and created again hands out ids below the markers already in player files, and
+with one open row for a player the two tests agree anyway. The acting character is judged from memory
 (outside `vessel_settlement_pay()` the marker in memory is the one in the
 file, since a failed save puts it back) and any other captain from his file,
 so a ship does not wait for an absent helmsman; a mob and a removed player
@@ -1114,7 +1122,9 @@ writes splits them, and always against the player.
   save completes them if that fails too. "Nothing was done" is never said of
   a purchase the rows may still hold.
 - A payout writes the ship's side first; a failed write puts the item back and
-  pays nothing. Then `vessel_gold_saved()` pays and saves. A failed save takes
+  pays nothing (if she cannot be written back either, that is logged: her rows
+  may hold part of the sale until her next save, with the item aboard in memory
+  and no gold paid). Then `vessel_gold_saved()` pays and saves. A failed save takes
   the gold back and puts the item back, in memory and in the rows. If the
   put-back cannot be written, the sale stands: the rows say sold, so the gold
   is paid in memory and the per-minute save stores it.
@@ -1185,7 +1195,8 @@ blocks manual departure and pauses autopilot; `dockfees pay` is limited to the
 owner or a permitted helmsman and is a two-phase settlement: the cleared
 balance and its settlement row commit together, the gold is saved with the
 row, and an unpaid payment is undone by making the fee owed again. The clan
-is credited once the gold is saved. Revenue assessed at a clan-owned port goes
+is credited once the gold is saved; the credit is outside the settlement, so a
+crash between the two leaves the fee paid and the clan without it. Revenue assessed at a clan-owned port goes
 to that clan even if control changes before settlement. Public-port revenue leaves the
 economy. Unowned NPC and test hulls are exempt so public ferries cannot strand
 themselves. Departure clears and persists berth state only when an actual fee
@@ -1201,7 +1212,18 @@ lives in `ship_schedules`, appears in `showschedule`, and survives reboot.
 `ship_schedules.next_departure` is an absolute MUD hour (`schedule_mud_hour()`,
 the hour of the day modulo 24), so a departure past midnight, or an interval of
 24, is not taken for one already due; a row saved as an hour of the day before
-this reads as overdue and departs once.
+this reads as overdue and departs once. A hull whose autopilot is travelling or
+waiting is never due (`schedule_check_trigger()`), so a hull on a loop route
+departs on her schedule once and sails the loop from then on.
+
+A scheduled departure whose route no longer passes the traversal check clears
+`SCHEDULE_FLAG_ENABLED`, saves it, tells those aboard, and logs "Disabled
+untraversable scheduled route". Nothing enables it again, so an NPC merchant or
+ferry then stays in port. The known causes are route content older than the
+code that sails it and a hull stalled off her route. Correct the route
+(re-apply its content package), then give `setschedule` again from her helm;
+`provision_vessel_campaign.sh` re-enables the Vailand merchant's schedule
+itself.
 
 Freight contracts (`src/vessels/vessels_contracts.c`): each port's board offers runs
 to other *known trading* ports (any with `port_commodities` rows that is a port
@@ -1360,7 +1382,10 @@ cargo; each costs a fifth of the class price. A plating or reinforcement refit
 adds its points to the arc's current value as well as its ceiling, so it
 repairs nothing (L10). The refit bit (`ship_interiors.upgrades`) and the
 ceilings (the runtime row) are saved together with the purchase (S15). `vessel_upkeep_tick()` grinds armor and subsystems down
-while under way (never below 1 structure per section). Insurance is automatic
+while under way (never below 1 structure per section). Wear and weather damage
+kept their absolute points when S3 enlarged armor and sails, so they matter
+proportionally less than they did; that is an input to the open balance gate,
+not a tuned value. Insurance is automatic
 (S5): a lost owned hull's payout (`vessel_insurance_payout()`) becomes one
 durable `vessel_insurance_claims` row plus a system-mail receipt
 (`vessel_pay_insurance()`). Online owners receive the gold immediately;
@@ -1469,8 +1494,8 @@ study 3.3.1, 3.3.3).
   struck arc, five times the structural damage) accumulates in the slot's
   `damage`, persisted in `ship_weapons.weapon_damage`: 1 or more disables the
   weapon (`vessel_weapon_ready()`), 100 destroys it. `shiprepair` mends
-  damaged weapons, and restores a destroyed one while berthed, until S5
-  prices repairs; `shipfix` clears all damage.
+  damaged weapons at sea from the repair stores, and a shipyard prices the
+  rest (Crew, Repair and Loss (S5) below); `shipfix` clears all damage.
 - Knockdown (`vessel_knockdown_aboard()`): one structural hit in nine makes
   everyone aboard but staff roll Reflex (d20 plus their Reflex save) against
   DC 15 or fall prone (reclining) with two combat rounds of lag.
@@ -1586,7 +1611,8 @@ Prices are 2 gold per Duris platinum. Reloads are in 0.5 s vessel ticks: Duris's
   departure from a berth (`vessel_begin_departure()`).
 - Shipyard (`vessel_refit_ship()`: the owner, berthed in port with no
   departure under way, not refused by the port): `shipweapon buy` mounts a loaded weapon in the first free slot; a
-  capital weapon also needs a veteran gunner (renown arrives in S7).
+  capital weapon also needs its renown or a veteran gunner (Rewards, Renown
+  and Contraband (S7) below).
   `shipweapon sell` pays 90%, or 10% for a damaged weapon; `swap` exchanges
   two slots whole. `shipequip` fits one ram (2 gold per hull weight) or
   neutral colors (free), sold back at 90%; colors stay while cargo is aboard.
@@ -2651,6 +2677,10 @@ and the trigger was removed.
 | `scripts/vessels/test_vessel_narrative_in_game.sh` | Reversible Kohdee at-sea and forced-ambient narrative gate |
 | `scripts/vessels/test_vessel_boarding_in_game.sh` | Boarding gate; delegates to the shared tactical acceptance harness |
 | `scripts/vessels/test_vessel_rules_in_game.sh` | Two-character shipyard, contact-ID, gunnery, hull-level, route-ownership, hull-cap, and bounty gate; delegates to the shared tactical harness |
+| `scripts/vessels/test_vessel_movement_in_game.sh` | Berth, departure, momentum, turning, maneuver, and anchoring gate; delegates to the shared tactical harness |
+| `scripts/vessels/test_vessel_damage_in_game.sh` | Hull condition, struck colors, holing, sinking, wreck registry, summons, and dock repair gate; delegates to the shared tactical harness |
+| `scripts/vessels/test_vessel_gunnery_in_game.sh` | Shipyard fitting, lock, battle stations, scan, sight, and arc fire gate; delegates to the shared tactical harness |
+| `scripts/vessels/test_vessel_raider_in_game.sh` | Ramming, raider launch, approach, boarding attempt, dead captain, and retirement-at-restart gate; needs the raider content; delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_loss_in_game.sh` | Two-character crew hiring, rename fee, summons, and trade-in gate, with a purchase and a trade-in the database refuses to record (S15); delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_economy_in_game.sh` | Two-character contraband, customs, sale modifier, prize money, and renown gate; delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_client_in_game.sh` | Native MSDP client-data gate at sea and ashore; delegates to the shared tactical harness |
@@ -2798,7 +2828,9 @@ and the trigger was removed.
 
 **NPC Pilot Issues**: Verify pilot in ship interior, check `pilot_mob_vnum`, reassign with `assignpilot`
 
-**Schedule Issues**: Check `showschedule`, verify `SCHEDULE_FLAG_ENABLED`, route active
+**Schedule Issues**: Check `showschedule`, verify `SCHEDULE_FLAG_ENABLED`, route active; a
+departure whose route failed the traversal check disables the schedule until `setschedule` is
+given again
 
 ### Debug Logging
 
@@ -3049,6 +3081,8 @@ For each vessel behavior change:
 - [the archived changelogs](../previous_changelogs/) - What shipped when
 - [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md) - 30-step manual regression script
 - [0001-unified-vessel-system.md](../adr/0001-unified-vessel-system.md) - Architecture decision and invariants
+- [0003-durismud-naval-model.md](../adr/0003-durismud-naval-model.md) - Naval model decisions (D1-D6),
+  DurisMUD conversions, balance anchors, and the key to "vessels-ships study" citations
 - [TECHNICAL_DOCUMENTATION_MASTER_INDEX.md](../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md) - Complete docs index
 
 ---
