@@ -486,6 +486,19 @@ ACMD(do_shiplist)
     ship = &greyhawk_ships[i];
     if (!is_valid_ship(ship) && !ship->stowed)
     {
+      /* Her rows are stored and her hull is not in the game: the slot is
+       * held for them. */
+      if (!vessel_slot_free(i))
+      {
+        if (!summary_only)
+        {
+          send_to_char(ch,
+                       "%4d (stored records of a hull that is not in the game; SHIPPURGE "
+                       "removes them)\r\n",
+                       i);
+        }
+        listed++;
+      }
       continue;
     }
 
@@ -726,7 +739,25 @@ ACMD(do_shippurge)
   ship = &greyhawk_ships[slot];
   if (!is_valid_ship(ship) && !ship->stowed)
   {
-    send_to_char(ch, "Slot %d is empty.\r\n", slot);
+    /* A held slot has only her rows to remove: boot could not rebuild her,
+     * or her purge failed after she left the game. */
+    if (vessel_slot_free(slot))
+    {
+      send_to_char(ch, "Slot %d is empty.\r\n", slot);
+    }
+    else if (vessel_delete_persistence(slot))
+    {
+      send_to_char(ch,
+                   "Slot %d held the stored records of a hull that is not in the game. They are "
+                   "removed and the slot is free.\r\n",
+                   slot);
+      log("Info: %s purged the stored records of ship %d, which was not in the game", GET_NAME(ch),
+          slot);
+    }
+    else
+    {
+      send_to_char(ch, "Database cleanup failed; slot %d is still held.\r\n", slot);
+    }
     return;
   }
 

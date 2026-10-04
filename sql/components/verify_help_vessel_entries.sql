@@ -168,8 +168,8 @@ AND CHAR_LENGTH(TRIM(entry)) > 0;
 SELECT
   'content_contracts' AS check_name,
   COUNT(*) AS actual,
-  58 AS expected,
-  IF(COUNT(*) = 58, 'PASS', 'FAIL') AS result
+  59 AS expected,
+  IF(COUNT(*) = 59, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
   SELECT 'VESSELS' AS tag, 'moving no faster than speed 2' AS required_pattern
@@ -230,6 +230,7 @@ JOIN (
   UNION ALL SELECT 'MARKET', 'Settling up: a trade is recorded together with your gold'
   UNION ALL SELECT 'CONTRACTS', 'the job goes back on the board and the freight ashore'
   UNION ALL SELECT 'VESSELS', 'the payment is undone and the fee is owed again'
+  UNION ALL SELECT 'SHIPLIST', 'stored records of a hull that is not in the[[:space:]]+game'
 ) AS expected_content ON BINARY h.tag = expected_content.tag
 WHERE h.entry REGEXP expected_content.required_pattern;
 

@@ -1399,11 +1399,28 @@ int is_valid_ship(const struct greyhawk_ship_data *ship)
   return &greyhawk_ships[ship->shipnum] == ship;
 }
 
+/* Fleet slots whose hull is not in memory while her rows may still be in the
+ * database: boot could not rebuild her, or her purge failed. A spawn in such
+ * a slot would write over her rows and inherit the rest (her manifest, her
+ * open settlement), so the slot is held until `shippurge` deletes the rows.
+ * Runtime only: every boot reads the rows again. */
+static bool slot_rows_held[GREYHAWK_MAXSHIPS];
+
+/** May a spawn take this fleet slot: no hull in play or stowed, no rows held? */
+bool vessel_slot_free(int shipnum)
+{
+  return shipnum >= 0 && shipnum < GREYHAWK_MAXSHIPS && !greyhawk_ships[shipnum].active &&
+         !greyhawk_ships[shipnum].stowed && !slot_rows_held[shipnum];
+}
+
 /**
  * Delete all persistence owned by one runtime ship slot.
  *
  * This transaction intentionally does not touch prototypes, routes, or
  * waypoints, which are reusable builder data rather than ship-instance data.
+ *
+ * A purge that fails holds the slot (vessel_slot_free()): callers free it in
+ * memory whether or not her rows are gone.
  *
  * @param shipnum Canonical fleet slot
  * @return TRUE when the transaction commits
@@ -1419,6 +1436,7 @@ bool vessel_delete_persistence(int shipnum)
 
   vessel_persistence_ensure_schema();
   vessel_settlement_ensure_schema();
+  slot_rows_held[shipnum] = TRUE;
   if (mysql_query(conn, "START TRANSACTION"))
   {
     log("SYSERR: Unable to begin vessel purge transaction: %s", mysql_error(conn));
@@ -1464,6 +1482,7 @@ bool vessel_delete_persistence(int shipnum)
     return FALSE;
   }
 
+  slot_rows_held[shipnum] = FALSE;
   vessel_reset_customization(&greyhawk_ships[shipnum]);
   return TRUE;
 
@@ -1561,9 +1580,12 @@ void load_all_ship_interiors(void)
     {
       if (shipnum >= 2)
       {
-        log("SYSERR: Dynamic ship %d has no runtime snapshot; leaving it inactive", shipnum);
+        log("SYSERR: Dynamic ship %d has no runtime snapshot; leaving it inactive and its slot "
+            "held",
+            shipnum);
         vessel_periodic_forget(ship);
         memset(ship, 0, sizeof(*ship));
+        slot_rows_held[shipnum] = TRUE;
         continue;
       }
       log("Info: Legacy ship %d has no runtime snapshot; using compiled defaults", shipnum);
@@ -1589,7 +1611,8 @@ void load_all_ship_interiors(void)
     {
       if (!restore_ship_interior(ship) || !vessel_create_runtime_hull(ship))
       {
-        log("SYSERR: Dynamic ship %d could not be reconstructed; leaving persistence intact",
+        log("SYSERR: Dynamic ship %d could not be reconstructed; leaving persistence intact and "
+            "its slot held",
             shipnum);
         vessel_reclaim_interior_rooms(ship, 0);
         autopilot_cleanup(ship);
@@ -1599,6 +1622,7 @@ void load_all_ship_interiors(void)
         }
         vessel_periodic_forget(ship);
         memset(ship, 0, sizeof(*ship));
+        slot_rows_held[shipnum] = TRUE;
         continue;
       }
     }

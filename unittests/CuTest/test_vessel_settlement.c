@@ -118,7 +118,7 @@ static void settle_rows_end(MYSQL *connection)
                           "AND destination_vnum = 101");
   mysql_query(connection, "DELETE FROM ship_cargo_manifest WHERE ship_id IN (476, 486)");
   mysql_query(connection, "DELETE FROM ship_runtime_state WHERE ship_id = 486");
-  mysql_query(connection, "DELETE FROM ship_interiors WHERE ship_id = 486");
+  mysql_query(connection, "DELETE FROM ship_interiors WHERE ship_id IN (476, 486)");
   mysql_query(connection, "DELETE FROM port_commodities WHERE port_vnum = 100");
   mysql_query(connection, "DELETE FROM vessel_bounties WHERE player_name = 'Tern'");
 }
@@ -1059,6 +1059,73 @@ void Test_vessel_settlement_waits_for_a_hull_not_in_memory(CuTest *tc)
   settle_open_purchase(tc, &fixture, SETTLE_WREN, SETTLE_SHIP);
   CuAssertTrue(tc, vessel_delete_persistence(SETTLE_SHIP));
   settle_assert(tc, &fixture, 1000, 0, 0, 90, 0);
+
+  settle_end(tc, &fixture);
+}
+
+/* A hull that left memory while her purge failed keeps her rows, and her
+ * fleet slot is held for them: no spawn takes it, so her settlement is never
+ * undone on another hull. Staff see the slot and purge the rows. */
+void Test_vessel_settlement_holds_the_slot_of_a_hull_not_in_memory(CuTest *tc)
+{
+  static const char *lost_rows = "SELECT COUNT(*) FROM ship_interiors WHERE ship_id = 476";
+  struct settle_fixture fixture;
+  const char *output;
+  long long cost;
+
+  if (!settle_begin(tc, &fixture))
+  {
+    return;
+  }
+
+  /* She sank with Tern's unpaid purchase of ten salt aboard, and the purge
+   * of her rows lost its connection: every row is still there. */
+  CuAssertIntEquals(
+      tc, 0, mysql_query(fixture.connection, "INSERT INTO ship_interiors (ship_id) VALUES (476)"));
+  settle_stock(tc, &fixture, 0, 90);
+  settle_open_purchase(tc, &fixture, SETTLE_TERN, SETTLE_LOST_SHIP);
+  CuAssertTrue(tc, vessel_slot_free(SETTLE_LOST_SHIP));
+  mysql_test_drop_connection_at("DELETE FROM ship_interiors", 1, FALSE);
+  CuAssertTrue(tc, !vessel_delete_persistence(SETTLE_LOST_SHIP));
+  CuAssertIntEquals(tc, 1, (int)settle_query_number(tc, fixture.connection, lost_rows));
+  settle_assert(tc, &fixture, 1000, 0, 0, 90, 1);
+
+  /* Her slot is not free, a hull in play or stowed never is, and no number
+   * outside the fleet is. Her settlement waits, and Tern's accounts. */
+  CuAssertTrue(tc, !vessel_slot_free(SETTLE_LOST_SHIP));
+  CuAssertTrue(tc, !vessel_slot_free(SETTLE_SHIP));
+  CuAssertTrue(tc, !vessel_slot_free(-1));
+  CuAssertTrue(tc, !vessel_slot_free(GREYHAWK_MAXSHIPS));
+  output = settle_login(&fixture);
+  CuAssertStrEquals(tc, "", output);
+  output = settle_command(&fixture, do_cargobuy, "salt 1");
+  CuAssertTrue(tc, strstr(output, "still settling an earlier account") != NULL);
+  settle_assert(tc, &fixture, 1000, 0, 0, 90, 1);
+
+  /* A purge that fails again leaves the slot held. */
+  output = settle_command(&fixture, do_shiplist, "");
+  CuAssertTrue(tc,
+               strstr(output, " 476 (stored records of a hull that is not in the game") != NULL);
+  mysql_test_drop_connection_at("DELETE FROM ship_interiors", 1, FALSE);
+  output = settle_command(&fixture, do_shippurge, "476");
+  CuAssertTrue(tc, strstr(output, "Database cleanup failed; slot 476 is still held.") != NULL);
+  CuAssertTrue(tc, !vessel_slot_free(SETTLE_LOST_SHIP));
+
+  /* Purged, her settlement goes with her rows: the slot is free and his
+   * accounts are open. */
+  output = settle_command(&fixture, do_shippurge, "476");
+  CuAssertTrue(tc, strstr(output, "Slot 476 held the stored records of a hull") != NULL);
+  CuAssertTrue(tc, vessel_slot_free(SETTLE_LOST_SHIP));
+  CuAssertIntEquals(tc, 0, (int)settle_query_number(tc, fixture.connection, lost_rows));
+  settle_assert(tc, &fixture, 1000, 0, 0, 90, 0);
+  output = settle_command(&fixture, do_shiplist, "");
+  CuAssertTrue(tc, strstr(output, " 476 (stored records") == NULL);
+  output = settle_command(&fixture, do_shippurge, "476");
+  CuAssertTrue(tc, strstr(output, "Slot 476 is empty.") != NULL);
+  cost = vessel_trade_buy_cost(fixture.base_price, 90, 1);
+  output = settle_command(&fixture, do_cargobuy, "salt 1");
+  CuAssertTrue(tc, strstr(output, "You load 1 units of salt") != NULL);
+  settle_assert(tc, &fixture, 1000 - (int)cost, 1, 1, 89, 0);
 
   settle_end(tc, &fixture);
 }

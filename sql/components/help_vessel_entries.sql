@@ -858,6 +858,11 @@ SHIPLIST [summary]
   figures. Use it for large fleets so the totals fit in one socket output
   buffer.
 
+  A slot can hold only the stored records of a hull that is not in the
+  game: the boot could not rebuild her, or her removal could not be
+  recorded. It is listed as such and counts as in use, and no new vessel
+  takes it until SHIPPURGE removes the records.
+
   The room pool matters: it is shared with every traveller in the
   wilderness, not reserved for ships. If it approaches exhaustion the
   listing flags PRESSURE, and ship movement degrades to reusing the
@@ -878,6 +883,10 @@ SHIPPURGE <slot>
   it evacuates occupants and loose objects to the exterior and releases loaded
   vehicles before reclaiming the interior. Confirm the target carefully. The
   protected legacy fixture slots 0 and 1 cannot be purged with this command.
+
+  On a slot that holds only stored records (see SHIPLIST) it deletes them,
+  with any account the harbor office still holds open for that hull, and
+  frees the slot.
 
 SHIPLOAD
   Reserved legacy placeholder. It currently performs no loading operation.

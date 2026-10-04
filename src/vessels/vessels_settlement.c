@@ -303,9 +303,11 @@ static bool settlement_undo_write(struct greyhawk_ship_data *ship,
  * cannot be read back, memory stays undone and the hull remembers the
  * settlement for the next reconcile.
  *
- * A hull that is not in memory (boot could not rebuild her and left her rows)
- * keeps her settlement: her manifest and fee are not undone without her. It
- * is undone once she is loaded, or deleted with her rows when she is purged.
+ * A hull that is not in memory (boot could not rebuild her and left her rows,
+ * or her purge failed) keeps her settlement: her manifest and fee are not
+ * undone without her. Her slot is held for her rows (vessel_slot_free()), so
+ * no other hull is found in it. The settlement is undone once a boot loads
+ * her, or deleted with her rows when `shippurge` removes them.
  *
  * @return TRUE once the undo is committed
  */
@@ -317,7 +319,8 @@ static bool settlement_undo(const struct vessel_settlement *settlement)
   ship = settlement_ship(settlement->ship_id);
   if (ship == NULL)
   {
-    log("SYSERR: The %s settlement %llu waits for ship %d, which is not in memory",
+    log("SYSERR: The %s settlement %llu waits for ship %d, which is not in memory (shippurge "
+        "removes her rows)",
         settlement_account(settlement), settlement->id, settlement->ship_id);
     return FALSE;
   }

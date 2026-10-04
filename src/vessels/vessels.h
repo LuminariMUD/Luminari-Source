@@ -2053,6 +2053,7 @@ bool vessel_place_hull_object(struct greyhawk_ship_data *ship, struct obj_data *
 bool vessel_create_runtime_hull(struct greyhawk_ship_data *ship);
 bool vessel_save_one(struct greyhawk_ship_data *ship);
 void vessel_persistence_ensure_schema(void);
+bool vessel_slot_free(int shipnum);
 bool vessel_delete_persistence(int shipnum);
 
 /* NPC Pilot Persistence */
