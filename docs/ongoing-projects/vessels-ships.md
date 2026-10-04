@@ -31,7 +31,7 @@ here records the merge.
 | S12 Owned waypoints and routes (work item #11) | Merged `e6881c1d1` (MR !18), review fixes `bde4a0f44` (MR !19) | [Phase 12](vessels-ships-history.md#phase-12-s12-progress) |
 | S13 Transactions that survive a lost connection (work item #13) | Merged `9eb723913` (MR !20) | [Phase 13](vessels-ships-history.md#phase-13-s13-progress) |
 | S14 Two-phase vessel settlements (work item #12) | Merged `e7bc5242c` (MR !21) | [Phase 14](vessels-ships-history.md#phase-14-s14-progress) |
-| S15 Checked vessel purchases and payouts (work item #14) | Not started: next | [Part 5](#part-5-implementation-sequence) |
+| S15 Checked vessel purchases and payouts (work item #14) | In progress on `feat/vessels-s15`: planned, not built | [Phase 15](#phase-15-s15-progress) |
 
 Production help is current through S14 (help sync plan `20d457173b87`, 2026-10-04). S1-S14 are
 merged: the study's steps, S1-S8; S-immediate, which readied the local Luminari Web client for
@@ -44,7 +44,7 @@ transaction whole when its connection is lost or its `COMMIT` goes unanswered (w
 and S14, which settles a cargo trade, a freight acceptance and a dock-fee payment in two phases,
 so a crash between the ship's side and the captain's gold leaves neither without the other (work
 item #12). One follow-up remains in the sequence, resolved in this worktree: S15 for work item
-#14, which is next.
+#14, which is the active step.
 
 ## Working a step
 
@@ -235,10 +235,7 @@ ship data panel among them.
 
 ## Active step
 
-S15 is next, not started. Branch `feat/vessels-s15` from the S14 merge `e7bc5242c`, where the
-annotated tag `vessels-s15-base` stands; the first commit after the S14 close-out is the S15 plan,
-a "Phase 15 (S15) progress" section here. Its merge request says `Closes #14`, which lists it on
-the work item and closes the item when it merges. S15 is the last step in the sequence.
+S15 is the active step and the last in the sequence. Its record follows the open items.
 
 Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's,
 S12's, S13's and S14's code (S12's with schema Phase 24, which boot adds, S13's with migration
@@ -247,6 +244,125 @@ creates) and the review fixes, the Open player-data balance and human beta gates
 `VESSEL_SYSTEM_REQUIREMENTS.md`, and closing these study documents once S15 merges:
 `docs/ongoing-projects/` is temporary, and their enduring content lives in `VESSEL_SYSTEM.md` and
 the guide.
+
+### Phase 15 (S15) progress
+
+Planned (2026-10-04), not built yet. Branch `feat/vessels-s15` from the S14 merge `e7bc5242c` (tag
+`vessels-s15-base`); the S14 close-out `16c6611fb` comes first, then this plan. Hand-off as in the
+routine: tag `vessels-s15` and a merge request that says `Closes #14`; review fixes go on top.
+Scope: [work item #14](https://gitlab.com/max757/Luminari-Source/-/work_items/14) and its note.
+
+The model. Each of the fifteen movements has the captain's gold in the player file and a ship side
+in MariaDB, and no record spans the two. Each command writes both stores inside itself and checks
+both.
+
+- A purchase takes the gold first: the debit is saved with `save_char_checked()`, and a failed
+  save puts the gold back and refuses the purchase before anything aboard has changed. Then the
+  ship side is written. If that write fails, the hull is put back as she was in memory and
+  written back, and the gold is returned.
+- A payout writes the ship side first: a failed write puts the item back and pays nothing. Then
+  the gold is paid and saved. A failed save takes the gold back and puts the item back, in memory
+  and in the database.
+
+A single failed write is undone and reported. Only a crash between a command's two writes splits
+the stores, and always against the player: a purchase paid for and not delivered, or a sale
+delivered and not paid. Nothing is given free.
+
+Items:
+
+01. The helper, a new `src/vessels/vessels_payment.c` (both build lists, the parity check):
+    - `vessel_gold_saved()`: the body of the passenger fare. It moves the gold (a signed amount),
+      saves, and puts the gold back on a failed save. `vessel_collect_passenger_fare()` calls it.
+    - `vessel_charge()`: a purchase's first half. It tells the buyer when no gold was taken.
+    - `vessel_refund()`: gives gold back and saves. A refund whose save fails stays with the
+      captain in memory and is logged; the per-minute save stores it.
+    - `vessel_purchase_recorded()`: a purchase's second half for work on a hull. It writes the
+      hull (item 02); on a failure it restores her from the copy taken before the work, writes
+      her back, refunds and tells the buyer.
+    - `vessel_sale_recorded()`: a sale off a hull. It writes the hull and pays, and puts her back
+      if either fails.
+02. `vessel_save_hull()` in `vessels_db.c`: the interior row, the runtime state, the weapons, the
+    owner, the crew and the refits, each checked. It is everything a shipyard job changes, so one
+    checked write serves every job. `vessel_save_one()` becomes that plus what it wrote besides
+    (permits, cargo, pilot, schedule). `vessel_db_save_crew()` and `vessel_db_save_extras()`
+    return their result.
+03. Through `vessel_charge()` and `vessel_purchase_recorded()`: `shiphire`, `shipweapon buy`,
+    `shipequip buy`, `shiprearm`, `shiprepair`, `shipupgrade` and `shipchristen`. Each copies the
+    hull before it changes her, and the copy is the undo. `shipchristen` renames the hull object
+    and the rooms only after the write.
+04. `shipbuy`: the charge, then the spawn, which already rolls itself back when the hull cannot
+    be saved; a failed spawn refunds.
+05. The trade-in. What the captain owes before the fittings are counted (the price less the
+    credit) is charged before the rebuild. The rebuilt hull is saved with `vessel_save_one()`
+    (now checked), then the shipwrights pay for the fittings she cannot carry, with any credit
+    left over. If the save or that payment fails, the rebuild is undone (the new interior
+    reclaimed, the hull restored from the copy taken before the work, her old rooms recreated the
+    way boot recreates them, and she is written back) and the charge is refunded.
+06. `shipsummon`: the charge, then the summons. `vessel_stow()` returns whether the stowed hull
+    was saved. If not, she is put back where she was (restored from the copy, her hull object
+    recreated the way a summoned hull's is when she makes port, and written back) and the fee is
+    refunded. Those aboard are put ashore only once the summons is saved.
+07. The bounty pay-off and `marque`: the charge, then the row; a refused row refunds.
+08. `shipweapon sell` and `shipequip sell`: `vessel_sale_recorded()`.
+09. `contractdeliver`: the contract marked done and the manifest in one transaction, through
+    `mysql_commit_transaction()`, then the payout. A failed save loads the freight again and
+    writes the contract back as taken.
+10. Tests, DB-backed, on the real tables with real drops (`mysql_test_drop_connection_at()`) and
+    an unsaveable player file, for each command: a failed gold save (nothing changed in either
+    store) and a refused ship-side write (the hull as she was, the gold as it was, the rows as
+    they were), and the success path's two stores (the file holds the new gold and the rows hold
+    the work). The tests that already buy or sell through these commands get both stores.
+11. Help and docs: the vessel overview entry says what happens to a purchase or a sale that
+    cannot be recorded, in `help.hlp` and `help_vessel_entries.sql` with the verifier;
+    `VESSEL_SYSTEM.md` describes the checked purchases and payouts.
+12. Verification as in the routine: `make test-all` with the database cases on, the help
+    verifier, the live gates and the local CI matrix.
+
+Interpretations:
+
+- The order follows the work item: gold first for a purchase (refused, or refunded), the ship
+  side first for a payout (put back). A crash between the two writes then costs the player,
+  never the economy.
+- "The ship-side write" of a shipyard job is the whole of `vessel_save_hull()`, not only the
+  table the job changed. One undo (the copy of the hull) and one write-back then serve seven
+  commands, and a command cannot check too little.
+- The write-back. A ship side of several statements can fail part way, so after the hull is
+  restored in memory she is written again. Without it the rows would keep a half-recorded
+  purchase until shutdown: the fleet is saved as a whole only then.
+- A sale or a delivery whose gold cannot be saved and whose put-back cannot be written stands:
+  the gold is paid in memory and the per-minute save stores it. Memory then equals the database,
+  and "undone" is never said of a sale the database still holds (S11's review round 1).
+- A server without a database refuses these purchases: the ship side cannot be written. The
+  game does not run without one; the tests that bought and sold in memory only get the database.
+- `shipupgrade` also saves the runtime row. It raised the armor, structure or speed ceilings in
+  memory and saved only the refit bit, so a crash kept "installed" without its points.
+- The trade-in moves gold twice: the charge known before the rebuild, and what the shipwrights
+  pay after it. One movement would need the fittings counted before the rebuild, on a copy of a
+  hull that does not exist yet.
+- What a failed summons leaves: a docking cast off, vehicles put off, the autopilot stopped.
+  Those happen before the hull is stowed and are not undone; the hull, her cargo and the gold are.
+- `contractdeliver` after a `COMMIT` without a reply: both writes of its transaction are absolute
+  (the contract's status, the whole manifest), so the transaction is sent once more, as the
+  query layer allows ("or writes again"). If that fails too, the delivery counts as not recorded
+  and the hold's state is written back; no read-back and no pending state.
+- A mob cannot buy: it has no player file to save. `shipbuy` and `shipsummon` already refuse
+  mobs, and no mob owns a hull.
+
+Planning ablation:
+
+- Dropped: a "no database, nothing to store" branch for tests that buy in memory (a production
+  rule that only tests would use); a save callback or a saver per command (item 02 serves all);
+  a transaction inside `vessel_db_save_crew()` (the write-back covers its delete-then-insert);
+  a quote of the trade-in's fittings on a scratch hull; a read-back and a pending state for
+  `contractdeliver`'s unanswered `COMMIT`; holding the shipyard commands behind the settlement
+  gate; a rewrite of the existing tests' connection helpers.
+- Simplified: the copy of the hull is the undo of every in-memory change; `shipchristen` does its
+  cosmetic renames after the checked write, so they need no undo; the trade-in's and the
+  summons's undo reuse the paths boot and an arriving hull already take; one fixture module gives
+  a test both stores.
+- Kept: the write-back; "the sale stands" (a reviewer found its absence in S11); the undo of the
+  trade-in and of the summons, without which a failed hull write would leave a paid fee and the
+  old hull in the database until shutdown.
 
 ## Estimate (remaining)
 
