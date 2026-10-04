@@ -30,7 +30,7 @@ here records the merge.
 | S11 Checked cargo trades (work item #10) | Merged `f18208549` (MR !17) | [Phase 11](vessels-ships-history.md#phase-11-s11-progress) |
 | S12 Owned waypoints and routes (work item #11) | Merged `e6881c1d1` (MR !18), review fixes `bde4a0f44` (MR !19) | [Phase 12](vessels-ships-history.md#phase-12-s12-progress) |
 | S13 Transactions that survive a lost connection (work item #13) | Merged `9eb723913` (MR !20) | [Phase 13](vessels-ships-history.md#phase-13-s13-progress) |
-| S14 Two-phase vessel settlements (work item #12) | Not started: next | [Part 5](#part-5-implementation-sequence) |
+| S14 Two-phase vessel settlements (work item #12) | In progress on `feat/vessels-s14` | [Phase 14](#phase-14-s14-progress) |
 | S15 Checked vessel purchases and payouts (work item #14) | Not started | [Part 5](#part-5-implementation-sequence) |
 
 Production help is current through S12 and its review fixes (help sync plan `e0d8a08faa27`,
@@ -234,11 +234,125 @@ ship data panel among them.
 
 ## Active step
 
-S14 is next, not started. Branch `feat/vessels-s14` from the S13 merge `9eb723913`, where the
-annotated tag `vessels-s14-base` stands; the first commit after the S13 close-out is the S14 plan,
-a "Phase 14 (S14) progress" section here. Its merge request says `Closes #12`, which lists it on
-the work item and closes the item when it merges. S15 follows from S14's merge, on
-`feat/vessels-s15` with `vessels-s15-base`; its merge request says `Closes #14`.
+S14 is the active step, on `feat/vessels-s14` from the S13 merge `9eb723913`, where the annotated
+tag `vessels-s14-base` stands. Its merge request says `Closes #12`, which lists it on the work item
+and closes the item when it merges. S15 follows from S14's merge, on `feat/vessels-s15` with
+`vessels-s15-base`; its merge request says `Closes #14`.
+
+### Phase 14 (S14) progress
+
+In progress. Branch `feat/vessels-s14` from the S13 merge `9eb723913` (tag `vessels-s14-base`); the
+S13 close-out `96b3af5a1` comes first, then this plan. Hand-off as in the routine: tag
+`vessels-s14` and a merge request that says `Closes #12`; review fixes go on top. Scope:
+[work item #12](https://gitlab.com/max757/Luminari-Source/-/work_items/12) and its two notes.
+
+The model. A settlement has a ship side in MariaDB and the captain's gold in the player file. The
+ship side is written with a settlement row in one transaction; the gold is saved with the row's id
+as the file's marker; then the row is deleted. A row that is still there is judged by the file of
+the player it names: the marker is its id, so the gold is saved and the row is deleted; any other
+marker, so the gold never reached the file and the ship side is undone from the row. The undo
+never touches gold. Outside the function that pays, a character's marker in memory equals the one
+in the file (a failed save puts it back), so the acting character is judged from memory and anyone
+else from the file, online or not.
+
+Items:
+
+01. Schema Phase 25, `vessel_settlements`: `settlement_id` (auto-increment), `player_id` (the
+    player's ID, 0 for a mob), `ship_id`, and the undo: `port_vnum`, `commodity_id`,
+    `supply_delta` and `cargo_delta` (signed, added to the port's supply and to the hold's lot),
+    `contract_id` (the freight contract to reopen), `fee_amount`, `fee_port` and `fee_clan` (the
+    dock fee owed again), and `created_at`. Unique keys on `ship_id` and on `player_id`: the
+    schema allows one open settlement for a ship and one for a player, which is "the ship's
+    trading is held while a row is open". `vessels_phase25_schema.sql`,
+    `vessels_phase25_rollback.sql`, `verify_vessels_phase25.sql`, their `ci_schema_manifest.txt`
+    lines, `master_schema.sql`, and a boot ensure function called from
+    `vessel_trade_ensure_schema()`.
+02. Player file: `VSet`, the id of the newest settlement whose gold the file holds
+    (`GET_VESSEL_SETTLEMENT()`, `vessel_settlement_id` beside the `VIns` and `VMer` fields), read
+    and written where they are.
+03. A new `src/vessels/vessels_settlement.c` (both build lists, the parity check) with one
+    record, `struct vessel_settlement`, used for the insert, the undo and the rows read back:
+    - `vessel_settlement_commit()`: inserts the row and commits the caller's open transaction
+      through `mysql_commit_transaction()`. An unanswered `COMMIT` is settled by a locking read
+      of the row: there, the settlement stands; gone, it does not; unreadable, see item 05.
+    - `vessel_settlement_pay()`: moves the gold, sets the marker, saves with
+      `save_char_checked()`, and deletes the row (a failed delete is the reconcile's to repeat).
+      If the save fails, the gold and the marker go back and the settlement is undone; "undone"
+      is said only when the undo committed, and otherwise the player is told the account is held.
+    - The undo, one transaction: the supply moved back by `supply_delta` inside the market's
+      band, the contract reopened if this captain still holds it, the hold's lot changed by
+      `cargo_delta` (never below zero; goods with no free bay to return to are left ashore and
+      logged) and the manifest written, the fee owed again if the hull owes none (a runtime save
+      rewrites the balance from memory at any time, so this part is a restore, not a delta), and
+      the row deleted.
+    - `vessel_settlements_reconcile()`: reads the open rows of a ship or a player (at most one
+      each) and deletes or undoes each. It returns whether none is left.
+04. The reconcile runs at login beside the two deliveries (`src/core/interpreter.c`), where a
+    player whose settlement was undone is told; and as a gate at the start of `cargobuy`,
+    `cargosell`, `contractaccept`, `contractdeliver`, `contractabandon` and `dockfees pay`, which
+    refuse while a row of the ship or the player stays open. Delivering or abandoning a contract
+    whose acceptance is unsettled would keep its freight or payout, so they wait too; they do
+    not become two-phase (the payout is S15's).
+05. A settlement whose outcome is unknown. When a `COMMIT` goes unanswered and the row cannot be
+    read back (the usual case after a server restart), or an undo fails, memory is left without
+    the settlement and the hull remembers the row's id (`settlement_unresolved`): if that row is
+    there, its cargo is not in the hold in memory. The next reconcile then undoes it in the
+    database only, or finds no row and forgets it. Until then `vessel_db_save_cargo()` refuses,
+    after trying the reconcile itself: a manifest written from memory under an open row would
+    have the lot undone twice after a reboot. A reboot forgets the id and reloads the hold from
+    the manifest, which then agrees with the row.
+06. `cargobuy` and `cargosell`: `trade_record()` writes the supply, the manifest and the row,
+    and `trade_settle()` becomes `vessel_settlement_pay()`. The second write after an unanswered
+    `COMMIT` (S11 review round 2) and "the trade stands and will be saved shortly" (S11 review
+    round 1) go: the row settles both.
+07. `contractaccept`: the claim, the manifest and the row in one transaction, through the same
+    two functions. `contractdeliver` and `contractabandon` take the gate.
+08. `dockfees pay`: the cleared balance (`vessel_db_save_runtime()`) and the row in one
+    transaction, then the gold; the clan is credited only after the gold is saved, as now.
+09. Removal: a purged ship's row goes with her other rows (`vessel_delete_persistence()`); a removed
+    player's row is judged as any other, and with no file left it is undone.
+10. Tests, DB-backed, in `unittests/CuTest/test_vessel_rewards.c` beside the S11 trade tests
+    they replace, at each crash point, for a purchase, a sale, a freight acceptance and a fee
+    payment: stopped after the ship side committed (row open, file without the marker: undone at
+    login, by deltas, after the supply and the hold moved meanwhile); stopped after the gold was
+    saved (row open, marker in the file: deleted, nothing undone); a failed save (undone at
+    once); a failed save and a failed undo (held, cargo saves refused, undone by the next
+    reconcile, and after a simulated reboot); an unanswered `COMMIT` both ways and unreadable;
+    another player's row on the ship, judged from the file; the gate on all six commands; the
+    marker's round trip through the player file. Real drops on persistent tables, as S13.
+11. The economy gate: the session's trades leave no open row and Vesselmate's file carries the
+    marker (two checks in the harness's economy branch), and the full gate passes.
+12. Help and docs: SHIP TRADE (the entry `cargobuy` and `cargosell` share) says what happens to
+    an account whose gold could not be saved, in `help.hlp` and `help_vessel_entries.sql` with
+    the verifier; `VESSEL_SYSTEM.md` (trade, freight, dock fees, login, the tables and files);
+    the player guide only if it quotes a changed message (it does not).
+
+Interpretations:
+
+- "Covered" is `marker == settlement_id`, not `<=` as `VIns` and `VMer` use. With one open row
+  for a player the two agree, and equality does not depend on ids never restarting (the table is
+  normally empty, so a re-created table would hand out ids below old markers).
+- A settlement of another player on the ship is judged from that player's file. Holding the ship
+  until that player logs in would let an absent helmsman's row stop the owner's trading.
+- An undo that cannot be recorded no longer leaves the trade standing in memory. Memory is
+  undone at once and the row waits for the reconcile; the player keeps the gold and is told the
+  account is held. One undo path, and no state in which memory holds gold the file may never get.
+- The dock fee's clan credit stays after the gold save and outside the settlement: the work item
+  names the captain's gold and the ship's side.
+
+Planning ablation:
+
+- Dropped: a gold column on the row (the undo applies only when no file holds the gold, and the
+  command that pays knows the amount); a kind or status column (a settled row is deleted, and
+  the undo follows from which columns are set); the second write after an unanswered `COMMIT`
+  and the "stands" branch; a search for the row's player among those online (memory equals
+  file); a reconcile pass at boot or on a timer (login, the gate and the flagged cargo save
+  reach every row); a change to the player-removal hook; making `contractdeliver` two-phase.
+- Simplified: one undo serves the command, the login and the gate; unique keys hold a ship's
+  and a player's accounts instead of code; the fee part of the undo is a restore.
+- Kept: the file read for another player's row; `settlement_unresolved` and the cargo-save
+  refusal (S13's review: an unreadable read-back is the usual case, so it needs a pending
+  state); the gate on `contractdeliver` and `contractabandon`.
 
 Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's,
 S12's and S13's code (S12's with schema Phase 24, which boot adds, and S13's with migration
