@@ -30,7 +30,7 @@ here records the merge.
 | S11 Checked cargo trades (work item #10) | Merged `f18208549` (MR !17) | [Phase 11](vessels-ships-history.md#phase-11-s11-progress) |
 | S12 Owned waypoints and routes (work item #11) | Merged `e6881c1d1` (MR !18), review fixes `bde4a0f44` (MR !19) | [Phase 12](vessels-ships-history.md#phase-12-s12-progress) |
 | S13 Transactions that survive a lost connection (work item #13) | Merged `9eb723913` (MR !20) | [Phase 13](vessels-ships-history.md#phase-13-s13-progress) |
-| S14 Two-phase vessel settlements (work item #12) | In progress on `feat/vessels-s14` | [Phase 14](#phase-14-s14-progress) |
+| S14 Two-phase vessel settlements (work item #12) | In review: tag `vessels-s14`, merge request from `feat/vessels-s14` | [Phase 14](#phase-14-s14-progress) |
 | S15 Checked vessel purchases and payouts (work item #14) | Not started | [Part 5](#part-5-implementation-sequence) |
 
 Production help is current through S12 and its review fixes (help sync plan `e0d8a08faa27`,
@@ -43,7 +43,7 @@ and save the gold checked (GitLab work item #10); S12, which gave waypoints and 
 who alone (with the staff) may change them (work item #11); and S13, which keeps a database
 transaction whole when its connection is lost or its `COMMIT` goes unanswered (work item #13). Two
 follow-ups remain in the sequence, both resolved in this worktree: S14 for work item #12, which is
-next, and S15 for work item #14.
+built and in review, and S15 for work item #14, which follows its merge.
 
 ## Working a step
 
@@ -235,14 +235,15 @@ ship data panel among them.
 ## Active step
 
 S14 is the active step, on `feat/vessels-s14` from the S13 merge `9eb723913`, where the annotated
-tag `vessels-s14-base` stands. Its merge request says `Closes #12`, which lists it on the work item
-and closes the item when it merges. S15 follows from S14's merge, on `feat/vessels-s15` with
+tag `vessels-s14-base` stands. It is built, verified and handed to review (tag `vessels-s14`; the
+merge request says `Closes #12`, which lists it on the work item and closes the item when it
+merges). Review fixes go on top of the tag, one commit each, recorded in the section below. S15 follows from S14's merge, on `feat/vessels-s15` with
 `vessels-s15-base`; its merge request says `Closes #14`.
 
 ### Phase 14 (S14) progress
 
-In progress. Branch `feat/vessels-s14` from the S13 merge `9eb723913` (tag `vessels-s14-base`); the
-S13 close-out `96b3af5a1` comes first, then this plan. Hand-off as in the routine: tag
+Handed to review (2026-10-04). Branch `feat/vessels-s14` from the S13 merge `9eb723913` (tag
+`vessels-s14-base`); the S13 close-out `96b3af5a1` comes first, then this plan. Hand-off as in the routine: tag
 `vessels-s14` and a merge request that says `Closes #12`; review fixes go on top. Scope:
 [work item #12](https://gitlab.com/max757/Luminari-Source/-/work_items/12) and its two notes.
 
@@ -437,6 +438,48 @@ Found before hand-off, and fixed:
   under way after `strikecolors` can land with the output of `speed 1`, and the check looked
   for "colors fly again" only in what followed. It now accepts the line in either
   (`scripts/development/dev_kohdee_login_smoke.sh`).
+
+Commits: the plan `4ddf5f9ba`, the build `6bdce1e49`, the economy gate's planted settlement
+`8ed5d8a3a`, the fixes found before hand-off `a4ab96a35`, the damage gate's race `9a8ca39a8`, their
+record `80f6d45e5`, then this record, which the tag `vessels-s14` marks.
+
+Verification (2026-10-04). The first round ran on `8ed5d8a3a`; what the fixes touch ran again on
+`80f6d45e5`, the last commit that changes code.
+
+- `make test-all` with the database cases (S9's `testenv.sh`, the `luminari-vessels-testdb`
+  container) on `80f6d45e5`: 2,028 production tests and the 32 protocol tests pass, the ten
+  settlement tests among them. The one test over a second is the settlement test that waits on a
+  row lock twice (2.1 s).
+- Phase 25 SQL on the test database: the verifier reads 0 columns and 0 keys after the rollback
+  and 12 and 2 after the schema, applied twice; the table the boot function creates and the one
+  `master_schema.sql` creates are the same as the schema file's (`SHOW CREATE TABLE` compared).
+  On a reload of the development dump, which has no such table: 0 and 0, then 12 and 2, then 0
+  and 0 after the rollback; the gates' boots then created it.
+- The vessel help verifier, on the test database and on the dump with the new entries applied:
+  seven checks pass, 58 content phrases.
+- Live gates, the private-namespace harness (`/tmp/claude-1000/vs4`, jobs in `stage-s14/`) on a
+  reload of the development dump, on `8ed5d8a3a`: 21 of 22 jobs passed (merchant, campaign and its
+  merchant, builder, gunnery, tactical, lookout, boarding, narrative, rules, events, movement,
+  loss, derelict, hunter, frontier, raider, economy, client, and the economy gate again with
+  every database session of the server killed twice while it idled). The damage gate failed on
+  the race recorded above. The economy gate now also checks that the session's trades left no
+  settlement open, that Vesselmate's file has a `VSet` line, and that a freight acceptance
+  planted as a crash would leave it (a taken contract and a settlement row his file does not
+  name) is undone by his next login.
+- On `80f6d45e5`: the economy gate after a fresh dump reload (212 s), the economy gate with the
+  sessions killed (253 s), and the damage gate (664 s). The login reconcile these play is
+  the one inside the insurance delivery.
+- The local CI matrix, `scripts/ci/local/run.py --base gitlab/master`: on `8ed5d8a3a` 32 of 33
+  jobs passed and the coverage job failed on the one login line in `src/core/interpreter.c`
+  (0 of 1 changed lines covered, floor 26.39); on `80f6d45e5` all 33 passed in 687 s
+  (`--jobs 3 --cpus 4`), the coverage policy with 5 of 5 changed lines of `players.c` covered.
+  clang-tidy, both warning budgets, the sanitizer and memory-check jobs and the migration job
+  passed in both runs.
+
+After the merge: sync the three help entries to production (MARKET, CONTRACTS, VESSELS), move
+this section to the history document, set the status row, and tag `vessels-s15-base` and branch
+`feat/vessels-s15` from the merge. Production gets the table at boot
+(`vessel_settlement_ensure_schema()`); the Phase 25 SQL is for a manual apply.
 
 Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's,
 S12's and S13's code (S12's with schema Phase 24, which boot adds, and S13's with migration
