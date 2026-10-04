@@ -1063,6 +1063,123 @@ void Test_vessel_settlement_waits_for_a_hull_not_in_memory(CuTest *tc)
   settle_end(tc, &fixture);
 }
 
+/* A dock-fee payment and a freight acceptance whose COMMIT gets no reply
+ * settle as a trade does: by the row when it can be read, and by the hull's
+ * memory of it when the database is away for the read-back. */
+void Test_vessel_settlement_settles_a_fee_and_a_bond_without_a_reply(CuTest *tc)
+{
+  static const char *recorded_fee =
+      "SELECT CONCAT(dock_fee_balance, ':', dock_fee_port) FROM ship_runtime_state "
+      "WHERE ship_id = 486";
+  static char no_socket[] = "/nonexistent/s14.sock";
+  struct settle_fixture fixture;
+  struct greyhawk_ship_data *ship;
+  const char *output;
+  char *unix_socket;
+  unsigned int tcp_port;
+  char accept[32];
+  char status[128];
+  char query[256];
+  char value[64];
+  int contract;
+
+  if (!settle_begin(tc, &fixture))
+  {
+    return;
+  }
+  tcp_port = fixture.connection->port;
+  unix_socket = fixture.connection->unix_socket;
+  ship = fixture.ship;
+  ship->dock_fee_balance = 25;
+  ship->dock_fee_port = SETTLE_PORT;
+  CuAssertTrue(tc, vessel_db_save_runtime(ship));
+
+  /* The payment was committed, though its reply was lost: it is paid once. */
+  mysql_test_drop_connection_at("COMMIT", 1, TRUE);
+  output = settle_command(&fixture, do_dockfees, "pay");
+  CuAssertTrue(tc, strstr(output, "You settle 25 gold in dock fees.") != NULL);
+  settle_assert(tc, &fixture, 975, 0, 0, 100, 0);
+  CuAssertIntEquals(tc, 0, ship->dock_fee_balance);
+  settle_query_value(tc, fixture.connection, recorded_fee, value, sizeof(value));
+  CuAssertStrEquals(tc, "0:100", value);
+
+  /* Its COMMIT never arrived: no gold is taken and the fee is still owed. */
+  ship->dock_fee_balance = 25;
+  CuAssertTrue(tc, vessel_db_save_runtime(ship));
+  mysql_test_drop_connection_at("COMMIT", 1, FALSE);
+  output = settle_command(&fixture, do_dockfees, "pay");
+  CuAssertTrue(tc, strstr(output, "The harbor ledger is unavailable; no gold was taken.") != NULL);
+  settle_assert(tc, &fixture, 975, 0, 0, 100, 0);
+  CuAssertIntEquals(tc, 25, ship->dock_fee_balance);
+  CuAssertTrue(tc, ship->settlement_unresolved == 0);
+  settle_query_value(tc, fixture.connection, recorded_fee, value, sizeof(value));
+  CuAssertStrEquals(tc, "25:100", value);
+
+  /* Committed, its reply lost, and the database away for the read-back: no
+   * gold is taken, the fee is owed in memory, and she remembers the
+   * settlement, which the database holds with the cleared fee. */
+  mysql_test_drop_connection_at("COMMIT", 1, TRUE);
+  fixture.connection->port = 1;
+  fixture.connection->unix_socket = no_socket;
+  output = settle_command(&fixture, do_dockfees, "pay");
+  CuAssertTrue(tc, strstr(output, "The harbor ledger is unavailable; no gold was taken.") != NULL);
+  fixture.connection->port = tcp_port;
+  fixture.connection->unix_socket = unix_socket;
+  CuAssertTrue(tc, ship->settlement_unresolved != 0);
+  CuAssertIntEquals(tc, 25, ship->dock_fee_balance);
+  settle_assert(tc, &fixture, 975, 0, 0, 100, 1);
+  settle_query_value(tc, fixture.connection, recorded_fee, value, sizeof(value));
+  CuAssertStrEquals(tc, "0:100", value);
+
+  /* The next payment undoes it and then pays the fee, once. */
+  output = settle_command(&fixture, do_dockfees, "pay");
+  CuAssertTrue(tc, strstr(output, "so it has been undone") != NULL);
+  CuAssertTrue(tc, strstr(output, "You settle 25 gold in dock fees.") != NULL);
+  settle_assert(tc, &fixture, 950, 0, 0, 100, 0);
+  CuAssertIntEquals(tc, 0, ship->dock_fee_balance);
+  CuAssertTrue(tc, ship->settlement_unresolved == 0);
+  settle_query_value(tc, fixture.connection, recorded_fee, value, sizeof(value));
+  CuAssertStrEquals(tc, "0:100", value);
+  output = settle_command(&fixture, do_dockfees, "pay");
+  CuAssertTrue(tc, strstr(output, "has no outstanding dock fees") != NULL);
+  settle_assert(tc, &fixture, 950, 0, 0, 100, 0);
+
+  /* A freight acceptance the same way: the freight is out of her hold, the
+   * database holds the taken job and its row, and no bond is taken. */
+  snprintf(query, sizeof(query),
+           "INSERT INTO freight_contracts (origin_vnum, destination_vnum, commodity_id, quantity, "
+           "payout, status) VALUES (100, 101, %d, 10, 300, 0)",
+           fixture.salt_id);
+  CuAssertIntEquals(tc, 0, mysql_query(fixture.connection, query));
+  contract = (int)mysql_insert_id(fixture.connection);
+  snprintf(accept, sizeof(accept), "%d", contract);
+  snprintf(status, sizeof(status),
+           "SELECT CONCAT(status, ':', taken_by) FROM freight_contracts WHERE contract_id = %d",
+           contract);
+  mysql_test_drop_connection_at("COMMIT", 1, TRUE);
+  fixture.connection->port = 1;
+  fixture.connection->unix_socket = no_socket;
+  output = settle_command(&fixture, do_contractaccept, accept);
+  CuAssertTrue(tc, strstr(output, "cannot record that freight; no gold was taken") != NULL);
+  fixture.connection->port = tcp_port;
+  fixture.connection->unix_socket = unix_socket;
+  CuAssertTrue(tc, ship->settlement_unresolved != 0);
+  settle_assert(tc, &fixture, 950, 0, 10, 100, 1);
+  settle_query_value(tc, fixture.connection, status, value, sizeof(value));
+  CuAssertStrEquals(tc, "1:Tern", value);
+
+  /* The next acceptance undoes it and takes the job, with one bond. */
+  output = settle_command(&fixture, do_contractaccept, accept);
+  CuAssertTrue(tc, strstr(output, "so it has been undone") != NULL);
+  CuAssertTrue(tc, strstr(output, "you post a 140-gold bond, 10 units are loaded") != NULL);
+  settle_assert(tc, &fixture, 810, 10, 10, 100, 0);
+  CuAssertTrue(tc, ship->settlement_unresolved == 0);
+  settle_query_value(tc, fixture.connection, status, value, sizeof(value));
+  CuAssertStrEquals(tc, "1:Tern", value);
+
+  settle_end(tc, &fixture);
+}
+
 /* A hull that left memory while her purge failed keeps her rows, and her
  * fleet slot is held for them: no spawn takes it, so her settlement is never
  * undone on another hull. Staff see the slot and purge the rows. */
