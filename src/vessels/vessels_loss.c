@@ -461,6 +461,8 @@ ACMD(do_shipsummon)
   char wait[64];
   room_rnum here;
   room_rnum exterior;
+  int autopilot_state;
+  int autopilot_waypoint;
   int wanted;
   int count;
   int fee;
@@ -544,22 +546,22 @@ ACMD(do_shipsummon)
     return;
   }
   seconds = GET_LEVEL(ch) >= LVL_IMMORT ? 1 : vessel_summon_seconds(ship);
-  exterior = NOWHERE;
-  if (!ship->stowed)
-  {
-    exterior = ship->shipobj != NULL ? IN_ROOM(ship->shipobj) : NOWHERE;
-    vessel_abort_docking(ship);
-    vehicle_release_all_from_vessel(ship, exterior);
-    if (ship->autopilot != NULL)
-    {
-      autopilot_stop(ship);
-    }
-  }
 
   /* She will appear where she is saved: this shipyard. The summons is saved
-   * before she leaves the world, so one that cannot be saved leaves her where
-   * she is, with her cargo. */
+   * before she leaves the world and before anything alongside or aboard is
+   * touched, so one that cannot be saved leaves her as she was. Her
+   * autopilot's state lies outside the copy of the hull. */
   before = *ship;
+  autopilot_state = AUTOPILOT_OFF;
+  autopilot_waypoint = 0;
+  if (!ship->stowed && ship->autopilot != NULL)
+  {
+    autopilot_state = ship->autopilot->state;
+    autopilot_waypoint = ship->autopilot->current_waypoint_index;
+    autopilot_stop(ship);
+  }
+  ship->docked_to_ship = -1;
+  ship->docking_room = 0;
   memset(ship->cargo, 0, sizeof(ship->cargo));
   ship->num_cargo_lots = 0;
   ship->location = (int)world[here].number;
@@ -575,10 +577,18 @@ ACMD(do_shipsummon)
   ship->lock_target = 0;
   ship->summon_due = time(0) + seconds;
   ship->stowed = TRUE;
-  if (!vessel_save_hull(ship) || !vessel_db_save_cargo(ship))
+
+  /* The emptied manifest goes first: a crash between the two writes must not
+   * bring her in with the cargo the summons leaves behind. */
+  if (!vessel_db_save_cargo(ship) || !vessel_save_hull(ship))
   {
     *ship = before;
-    if (!vessel_save_hull(ship) || !vessel_db_save_cargo(ship))
+    if (!ship->stowed && ship->autopilot != NULL)
+    {
+      ship->autopilot->state = autopilot_state;
+      ship->autopilot->current_waypoint_index = autopilot_waypoint;
+    }
+    if (!vessel_db_save_cargo(ship) || !vessel_save_hull(ship))
     {
       log("SYSERR: Ship %d could not be written back after a refused summons; her rows may hold "
           "part of it until she is saved again",
@@ -591,10 +601,19 @@ ACMD(do_shipsummon)
                  ship->name, fee);
     return;
   }
-  if (exterior != NOWHERE)
+  if (!before.stowed)
   {
-    vessel_put_ashore(ship, exterior);
-    send_to_room(exterior, "%s makes sail and is soon out of sight.\r\n", ship->name);
+    /* Saved as cast off: now withdraw the gangway from the hull alongside. */
+    exterior = ship->shipobj != NULL ? IN_ROOM(ship->shipobj) : NOWHERE;
+    ship->docked_to_ship = before.docked_to_ship;
+    ship->docking_room = before.docking_room;
+    vessel_abort_docking(ship);
+    vehicle_release_all_from_vessel(ship, exterior);
+    if (exterior != NOWHERE)
+    {
+      vessel_put_ashore(ship, exterior);
+      send_to_room(exterior, "%s makes sail and is soon out of sight.\r\n", ship->name);
+    }
   }
   vessel_restow(ship);
 

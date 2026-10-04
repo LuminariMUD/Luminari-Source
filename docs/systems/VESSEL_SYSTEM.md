@@ -1121,26 +1121,33 @@ writes splits them, and always against the player.
   same way ("... so nothing was sold." or "Your payment could not be recorded,
   so the sale is undone.").
 - `shipbuy` charges, then spawns; the spawn rolls itself back when the hull
-  cannot be saved, and the price is returned. A trade-in charges what the
-  captain owes before the fittings are counted, rebuilds and saves the hull,
-  then pays for the fittings she cannot carry and any credit left over. If
-  the save or that payment fails, the rebuild is undone: the new interior is
-  reclaimed, the hull restored from the copy taken before the work, her old
-  rooms recreated as boot recreates them (`restore_ship_interior()`), and the
-  charge returned.
-- `shipsummon` charges, then saves the summons (the hull as stowed at the
-  shipyard, and her emptied manifest) before she leaves the world. A summons
-  that cannot be saved leaves her where she is with her cargo and those
-  aboard, and returns the fee; a docking cast off, vehicles put off and a
-  stopped autopilot are not undone.
+  cannot be saved, and the price is returned. The spawn writes the runtime
+  row last: boot rebuilds only a hull that has one, so rows a failed rollback
+  leaves behind hold her slot instead of becoming a hull nobody paid for. A
+  trade-in charges what the captain owes before the fittings are counted,
+  rebuilds and saves the hull, then pays for the fittings she cannot carry and
+  any credit left over. If the rebuild, the save or that payment fails, the
+  rebuild is undone: the new interior is reclaimed, the hull restored from the
+  copy taken before the work, her old rooms recreated as boot recreates them
+  (`restore_ship_interior()`), and the charge returned. Those aboard and the
+  vehicles in her bay stay on the dock.
+- `shipsummon` charges, then saves the summons (her emptied manifest, then
+  the hull as stowed at the shipyard, cast off and with her autopilot
+  stopped) before she leaves the world or anything alongside or aboard is
+  touched. A summons that cannot be saved leaves her as she was, with her
+  cargo, her course, the hull alongside and those aboard, and returns the
+  fee.
 - `bounty pay` and `marque` charge, then write the `vessel_bounties` row. When
   the write reports a failure the row is read back, since a write whose reply
   was lost has been made; the fee is returned only if the row does not show
-  it.
+  it. A row that cannot be read counts as not written.
 - `contractdeliver` writes the contract as done and the manifest in one
   transaction (both writes are absolute, so after a `COMMIT` without a reply
   the transaction is sent once more), then pays. A payout that cannot be saved
-  loads the freight again and writes the contract back as taken.
+  loads the freight again and writes the contract back as taken. When neither
+  the delivery nor taking it back can be confirmed (the database went away in
+  mid-command), the freight stays aboard, and the captain and the staff are
+  told that the books may be wrong.
 
 A server without a database refuses these purchases, since the ship's side
 cannot be written.
@@ -1719,10 +1726,10 @@ renown gates came in S7 (Rewards, Renown and Contraband below).
   empty-hold maximum speed in Duris units (less 20 for the rest, at least 2),
   doubled from the registry, at most 60 mud hours; staff take a second. It is
   refused while sinking, at battle stations, or already summoned. The hull
-  casts off anything alongside, releases vehicles, stops her autopilot,
-  empties her hold, and saves the shipyard as her location with `summon_due`
-  (a stowed hull's runtime row holds where she will appear, not where her hull
-  object stands); once that is saved she puts everyone aboard into her
+  stops her autopilot, empties her hold, and saves the shipyard as her
+  location with `summon_due` (a stowed hull's runtime row holds where she will
+  appear, not where her hull object stands); once that is saved she casts off
+  anything alongside, releases vehicles, puts everyone aboard into her
   exterior room and stows. The fee and the summons are a checked purchase
   (S15). `vessel_summon_tick()`
   (service event) brings a due hull in: `vessel_create_runtime_hull()` at the

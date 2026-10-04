@@ -158,12 +158,20 @@ static const char *payment_command_unsaved(struct payment_berth *berth, ACMD_DEC
   return output;
 }
 
+/* Whether the hull is, byte for byte, the copy taken before a command. */
+static bool payment_hull_is(const struct greyhawk_ship_data *ship,
+                            const struct greyhawk_ship_data *before)
+{
+  /* NOLINTNEXTLINE(bugprone-suspicious-memory-comparison) -- whole copies of one fleet slot */
+  return memcmp(ship, before, sizeof(*before)) == 0;
+}
+
 /* Both stores hold this gold and this hull. */
 static void payment_assert_unchanged(CuTest *tc, struct payment_berth *berth,
                                      const struct greyhawk_ship_data *before, int gold,
                                      long long rows)
 {
-  CuAssertIntEquals(tc, 0, memcmp(berth->ship, before, sizeof(*before)));
+  CuAssertTrue(tc, payment_hull_is(berth->ship, before));
   CuAssertIntEquals(tc, gold, GET_GOLD(&berth->captain));
   CuAssertIntEquals(tc, gold, vessel_test_file_gold(tc, &berth->stores));
   CuAssertTrue(tc, vessel_test_number(tc, &berth->stores, PAYMENT_ROWS) == rows);
@@ -194,6 +202,7 @@ void Test_vessel_purchase_writes_both_stores_or_neither(CuTest *tc)
   };
   struct payment_berth berth;
   struct greyhawk_ship_data before;
+  struct char_data mob;
   const char *output;
   long long rows;
   size_t i;
@@ -233,7 +242,7 @@ void Test_vessel_purchase_writes_both_stores_or_neither(CuTest *tc)
     CuAssertTrue(tc, strstr(output, "could not") == NULL);
     CuAssertTrue(tc, GET_GOLD(&berth.captain) < gold);
     CuAssertIntEquals(tc, GET_GOLD(&berth.captain), vessel_test_file_gold(tc, &berth.stores));
-    CuAssertTrue(tc, memcmp(berth.ship, &before, sizeof(before)) != 0);
+    CuAssertTrue(tc, !payment_hull_is(berth.ship, &before));
     CuAssertTrue(tc, vessel_test_number(tc, &berth.stores, PAYMENT_ROWS) != rows);
   }
 
@@ -261,8 +270,25 @@ void Test_vessel_purchase_writes_both_stores_or_neither(CuTest *tc)
   output = payment_command(&berth, do_shiphire, "bosun green");
   mysql_available = TRUE;
   CuAssertTrue(tc, strstr(output, "so nothing was done and your ") != NULL);
-  CuAssertIntEquals(tc, 0, memcmp(berth.ship, &before, sizeof(before)));
+  CuAssertTrue(tc, payment_hull_is(berth.ship, &before));
   CuAssertIntEquals(tc, gold, GET_GOLD(&berth.captain));
+
+  /* A mob has no player file to save its gold in, so it buys nothing. */
+  memset(&mob, 0, sizeof(mob));
+  SET_BIT_AR(MOB_FLAGS(&mob), MOB_ISNPC);
+  GET_GOLD(&mob) = 100;
+  CuAssertTrue(tc, !vessel_charge(&mob, 10));
+  CuAssertIntEquals(tc, 100, GET_GOLD(&mob));
+
+  /* The fleet's save of a hull writes every part it can: with the reply to
+   * her owner lost it fails, and her manifest is written all the same. */
+  berth.ship->cargo[0].commodity_id = 1;
+  berth.ship->cargo[0].quantity = 5;
+  mysql_test_drop_connection_at("UPDATE ship_interiors SET owner", 1, TRUE);
+  CuAssertTrue(tc, !vessel_save_one(berth.ship));
+  CuAssertTrue(tc, vessel_test_number(tc, &berth.stores,
+                                      "SELECT COALESCE(SUM(item_count), 0) FROM "
+                                      "ship_cargo_manifest WHERE ship_id = 487") == 5);
 
   payment_end(tc, &berth);
 }
@@ -447,6 +473,30 @@ void Test_vessel_delivery_is_undone_when_the_payout_cannot_be_saved(CuTest *tc)
   CuAssertIntEquals(tc, gold, GET_GOLD(&berth.captain));
   CuAssertTrue(tc, vessel_test_number(tc, &berth.stores, status) == CONTRACT_STATUS_TAKEN);
   CuAssertTrue(tc, vessel_test_number(tc, &berth.stores, manifest) == 20);
+
+  /* Nor when the manifest's half of the transaction is lost. */
+  mysql_test_drop_connection_at("DELETE FROM ship_cargo_manifest", 1, FALSE);
+  output = payment_command(&berth, do_contractdeliver, deliver);
+  CuAssertTrue(tc, strstr(output, "The freight office cannot record the delivery; the freight "
+                                  "stays aboard.") != NULL);
+  CuAssertIntEquals(tc, 20, berth.ship->cargo[0].quantity);
+  CuAssertIntEquals(tc, gold, GET_GOLD(&berth.captain));
+  CuAssertTrue(tc, vessel_test_number(tc, &berth.stores, status) == CONTRACT_STATUS_TAKEN);
+  CuAssertTrue(tc, vessel_test_number(tc, &berth.stores, manifest) == 20);
+
+  /* The database goes away in mid-command: the delivery fails, and so does
+   * taking it back (the command's fourth query opens that transaction). The
+   * freight stays aboard, and the captain and the staff are told the books
+   * may be wrong. */
+  mysql_test_drop_connection_at("UPDATE freight_contracts SET status", 1, FALSE);
+  mysql_test_fail_nth_query(4);
+  output = payment_command(&berth, do_contractdeliver, deliver);
+  mysql_test_clear_query_failure();
+  CuAssertTrue(tc, strstr(output, "The freight office cannot confirm whether the delivery was "
+                                  "recorded.") != NULL);
+  CuAssertIntEquals(tc, 20, berth.ship->cargo[0].quantity);
+  CuAssertIntEquals(tc, gold, GET_GOLD(&berth.captain));
+  CuAssertTrue(tc, vessel_test_number(tc, &berth.stores, status) == CONTRACT_STATUS_TAKEN);
 
   /* The payout cannot be saved: the freight is loaded again, in her rows too. */
   output = payment_command_unsaved(&berth, do_contractdeliver, deliver);

@@ -1679,21 +1679,27 @@ bool vessel_save_hull(struct greyhawk_ship_data *ship)
 }
 
 /**
- * Save one vessel's complete state.
+ * Save one vessel's complete state. Past her interior, runtime and weapon
+ * rows every part is attempted, so one part that fails does not keep the
+ * others from being saved.
  *
- * @return FALSE when any part could not be saved
+ * @return FALSE when any part but the permits and the manifest could not be
+ *         saved
  */
 bool vessel_save_one(struct greyhawk_ship_data *ship)
 {
   bool saved;
 
-  if (!vessel_save_hull(ship))
+  if (!save_ship_interior(ship) || !vessel_db_save_runtime(ship) || !vessel_db_save_weapons(ship))
   {
     return FALSE;
   }
+  saved = vessel_db_save_owner(ship);
   vessel_db_save_permits(ship);
+  saved = vessel_db_save_crew(ship) && saved;
+  saved = vessel_db_save_extras(ship) && saved;
   vessel_db_save_cargo(ship);
-  saved = vessel_db_save_pilot(ship);
+  saved = vessel_db_save_pilot(ship) && saved;
   return schedule_save(ship) && saved;
 }
 

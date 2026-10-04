@@ -736,9 +736,19 @@ ACMD(do_contractdeliver)
     /* The outcome may be unknown: write the hold back as it stands. */
     ship->cargo[lot].commodity_id = commodity_id;
     ship->cargo[lot].quantity += quantity;
-    contract_record(ship, contract_id, CONTRACT_STATUS_TAKEN);
-    send_to_char(ch,
-                 "The freight office cannot record the delivery; the freight stays aboard.\r\n");
+    if (contract_record(ship, contract_id, CONTRACT_STATUS_TAKEN))
+    {
+      send_to_char(ch,
+                   "The freight office cannot record the delivery; the freight stays aboard.\r\n");
+      return;
+    }
+    /* The database went away mid-command: the delivery may be in its books. */
+    mudlog(BRF, LVL_STAFF, TRUE,
+           "SYSERR: Freight contract %d of %s may be recorded as delivered without its %d gold "
+           "payout: neither the delivery nor its undo could be confirmed.",
+           contract_id, GET_NAME(ch), payout);
+    send_to_char(ch, "The freight office cannot confirm whether the delivery was recorded. The "
+                     "freight stays aboard, and the staff have been told.\r\n");
     return;
   }
   if (!vessel_gold_saved(ch, payout))

@@ -156,7 +156,9 @@ bool vessel_sale_recorded(struct char_data *ch, struct greyhawk_ship_data *ship,
     send_to_char(ch, "Your payment could not be recorded, so the sale is undone.\r\n");
     return FALSE;
   }
+  /* The put-back may have rewritten part of her rows before it failed. */
   *ship = sold;
+  vessel_save_hull(ship);
   award_gold(ch, amount);
   log("SYSERR: The %d gold %s was paid for a sale off ship %d is not saved yet; the next save "
       "of the player stores it",

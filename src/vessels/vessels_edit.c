@@ -794,9 +794,11 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
   vessel_sync_berth(ship);
 
   /* Persist immediately so both the interior and the live instance survive
-   * reboot/copyover. Abort the spawn if either half cannot be committed. */
-  if (!save_ship_interior(ship) || !vessel_db_save_runtime(ship) || !vessel_db_save_weapons(ship) ||
-      !vessel_db_save_owner(ship))
+   * reboot/copyover. Abort the spawn if either half cannot be committed. The
+   * runtime row goes last: boot rebuilds only a hull that has one, so rows a
+   * failed rollback leaves behind hold her slot instead of becoming a hull. */
+  if (!save_ship_interior(ship) || !vessel_db_save_weapons(ship) || !vessel_db_save_owner(ship) ||
+      !vessel_db_save_runtime(ship))
   {
     room_rnum evacuation_room;
 
@@ -932,7 +934,8 @@ ACMD(do_shipbrowse)
 /**
  * Undo a trade-in's rebuild: the new interior is reclaimed, the hull goes
  * back to the copy taken before the work, and her old rooms are recreated
- * the way boot recreates them. She is written back.
+ * the way boot recreates them. She is written back, unless her rooms could
+ * not be recreated: her rows would then say she has none.
  */
 static void vessel_trade_in_undo(struct greyhawk_ship_data *ship,
                                  const struct greyhawk_ship_data *before, room_rnum dock)
@@ -942,6 +945,7 @@ static void vessel_trade_in_undo(struct greyhawk_ship_data *ship,
   if (!restore_ship_interior(ship) || !vessel_place_hull_object(ship, ship->shipobj))
   {
     log("SYSERR: Ship %d lost her interior when her trade-in was undone", ship->shipnum);
+    return;
   }
   vessel_refresh_hull_strings(ship, FALSE);
   if (!vessel_save_one(ship))
@@ -961,7 +965,8 @@ static void vessel_trade_in_undo(struct greyhawk_ship_data *ship,
  *
  * What the captain owes before the fittings are counted is charged before
  * the rebuild, and what the shipwrights owe is paid after the rebuilt hull
- * is saved. A hull or a payment that cannot be recorded undoes the trade.
+ * is saved. A hull that cannot be rebuilt or recorded, or a payment that
+ * cannot be saved, undoes the trade.
  */
 static void vessel_trade_in(struct char_data *ch, int id, int vclass, int max_speed, int armor,
                             int price)
@@ -971,6 +976,7 @@ static void vessel_trade_in(struct char_data *ch, int id, int vclass, int max_sp
   struct greyhawk_ship_data *ship;
   enum vessel_class old_class;
   room_rnum dock;
+  bool traded;
   int credit;
   int charge;
   int sold;
@@ -1030,25 +1036,24 @@ static void vessel_trade_in(struct char_data *ch, int id, int vclass, int max_sp
   vehicle_release_all_from_vessel(ship, dock);
   before = *ship;
   vessel_reclaim_interior_rooms(ship, dock);
-  if (!vessel_rebuild_hull(ship, id, vclass, max_speed, armor))
+  sold = 0;
+  traded = vessel_rebuild_hull(ship, id, vclass, max_speed, armor);
+  if (traded)
   {
-    log("SYSERR: Ship %d lost her interior in a trade-in", ship->shipnum);
-    vessel_refund(ch, charge);
-    send_to_char(ch, "The shipwrights botch the work; tell the staff.\r\n");
-    return;
+    vessel_fit_default_weapons(ship);
+    sold = vessel_carry_fitout(ship, old_slots, old_class);
+    vessel_place_hull_object(ship, ship->shipobj);
+    vessel_refresh_hull_strings(ship, FALSE);
+    traded = vessel_save_one(ship) && vessel_gold_saved(ch, sold + MAX(0, credit - price));
   }
-  vessel_fit_default_weapons(ship);
-  sold = vessel_carry_fitout(ship, old_slots, old_class);
-  vessel_place_hull_object(ship, ship->shipobj);
-  vessel_refresh_hull_strings(ship, FALSE);
-  if (!vessel_save_one(ship) || !vessel_gold_saved(ch, sold + MAX(0, credit - price)))
+  if (!traded)
   {
-    log("SYSERR: The trade-in of ship %d could not be recorded and is undone", ship->shipnum);
+    log("SYSERR: The trade-in of ship %d could not be completed and is undone", ship->shipnum);
     vessel_trade_in_undo(ship, &before, dock);
     vessel_refund(ch, charge);
     send_to_char(ch,
-                 "The shipwrights cannot record the trade, so it is undone: %s is put back as she "
-                 "was and no gold changes hands.\r\n",
+                 "The shipwrights cannot complete the trade, so it is undone: %s is rebuilt as "
+                 "she was and no gold changes hands.\r\n",
                  ship->name);
     return;
   }

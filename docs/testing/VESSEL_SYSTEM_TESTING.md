@@ -641,8 +641,11 @@ id is the helper's second argument. On the dock, before the trade-in above,
 Vesselmate (who owns only the check's boat) orders `shipbuy <design>` and
 `shipbuy <design> trade`. The first must report
 `The ship could not be persisted, so the spawn was rolled back.` and
-`gold is returned.`; the second `The shipwrights cannot record the trade, so it is undone: Losscheck Tern is put back as she was and no gold changes hands.` `gold` must show the same purse before and after, `shiplist` must
-still list her as a boat, and `shipcrew` her owner and her bosun. After the
+`gold is returned.`; the second
+`The shipwrights cannot complete the trade, so it is undone:` followed by
+`Losscheck Tern is rebuilt as she was and no gold changes hands.` The `gold`
+command must show the same purse before and after, `shiplist` must still list
+her as a boat, and `shipcrew` her owner and her bosun. After the
 session no runtime row may name the refused design; the harness drops the
 constraint, also when a run fails, and the session's cleanup deletes the
 design.

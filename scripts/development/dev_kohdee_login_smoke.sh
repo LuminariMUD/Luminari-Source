@@ -3119,7 +3119,7 @@ proc run_vessel_loss_check {requested_character refused_id} {
     require_game_output $output "gold is returned." "refused purchase refund"
     set output [run_game_command "shipbuy $refused_id trade"]
     require_game_output $output \
-      "The shipwrights cannot record the trade, so it is undone: Losscheck Tern is put back as she was and no gold changes hands." \
+      "The shipwrights cannot complete the trade, so it is undone: Losscheck Tern is rebuilt as she was and no gold changes hands." \
       "refused trade-in"
     set output [run_game_command "gold"]
     require_game_output $output "You have $purse gold coins." "purse after the refused orders"
