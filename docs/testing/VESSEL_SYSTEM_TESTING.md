@@ -633,6 +633,21 @@ large ballista on the bow, berthed, keeping her owner and her bosun. Cleanup
 purges the hull, deletes both prototypes, and returns both characters to
 room 1204.
 
+The harness then plays a hull the harbor cannot record (study step S15), in
+four `--commands` sessions as Kohdee. He creates a `Losscheck Skiff` raft and
+a `Losscheck Cutter` boat design, lists both, and buys a raft at the east
+dock. The harness adds a `vessel_payment_refused` CHECK constraint to
+`ship_runtime_state` that refuses the runtime row of the boat design, and
+Kohdee orders `shipbuy <boat>` and `shipbuy <boat> trade`. The first must
+report `The ship could not be persisted, so the spawn was rolled back.` and
+`gold is returned.`; the second
+`The shipwrights cannot record the trade, so it is undone:` with
+`is put back as she was and no gold changes hands.` The `Gold:` line of
+Kohdee's player file must be what it was after he bought the raft, no runtime
+row may name the boat design, and the raft's rows must still be a raft's. With
+the constraint dropped the same trade-in must rebuild her as a boat. Cleanup
+purges her and deletes both designs; a failed run drops the constraint.
+
 On 2026-09-30 the gate passed in 79 seconds inside the private namespace
 described under the Vessel Rules Check, on source `398e23a7f`. In the same
 batch on the same binary the builder (73 s), gunnery (72 s), tactical (279 s),
