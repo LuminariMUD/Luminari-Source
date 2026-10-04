@@ -588,7 +588,10 @@ ACMD(do_shipsummon)
       ship->autopilot->state = autopilot_state;
       ship->autopilot->current_waypoint_index = autopilot_waypoint;
     }
-    if (!vessel_db_save_cargo(ship) || !vessel_save_hull(ship))
+    /* Written back the other way round, the hull first: a stop between the
+     * two writes then leaves her where she was with an empty manifest, never
+     * due at this shipyard with her hold full. */
+    if (!vessel_save_hull(ship) || !vessel_db_save_cargo(ship))
     {
       log("SYSERR: Ship %d could not be written back after a refused summons; her rows may hold "
           "part of it until she is saved again",
