@@ -16,6 +16,7 @@
 #include "../../src/database/mysql.h"
 #include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"
+#include "test_vessel_stores.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -207,16 +208,51 @@ static void loss_harbor_end(struct loss_harbor *harbor)
 void Test_vessel_summons_sends_a_hull_out_of_the_world(CuTest *tc)
 {
   struct loss_harbor harbor;
+  struct vessel_test_stores stores;
   struct greyhawk_ship_data *ship;
   const char *output;
   time_t ordered;
 
+  /* A summons is paid for and recorded: it needs both stores. */
   ship = loss_harbor_begin(tc, &harbor);
+  if (!vessel_test_stores_begin(tc, &stores, LOSS_SHIP, &harbor.captain))
+  {
+    loss_harbor_end(&harbor);
+    return;
+  }
 
   /* The list names each hull with its fee and passage. */
   output = loss_harbor_command(&harbor, "");
   CuAssertTrue(tc, strstr(output, " 1. the Petrel (Warship): at sea; 28 gold, about 2 minutes.") !=
                        NULL);
+
+  /* A fee that cannot be saved summons nothing. */
+  GET_PFILEPOS(&harbor.captain) = -1;
+  output = loss_harbor_command(&harbor, "1");
+  GET_PFILEPOS(&harbor.captain) = 0;
+  CuAssertTrue(tc,
+               strstr(output, "Your payment could not be recorded; no gold was taken.") != NULL);
+  CuAssertIntEquals(tc, 1000, GET_GOLD(&harbor.captain));
+  CuAssertTrue(tc, !ship->stowed && ship->summon_due == 0);
+
+  /* A summons that cannot be recorded leaves her where she is, with her
+   * passenger and her cargo, and the fee is returned. The reply to her
+   * runtime row is lost, so the row is written before she is written back. */
+  mysql_test_drop_connection_at("REPLACE INTO ship_runtime_state", 1, TRUE);
+  output = loss_harbor_command(&harbor, "1");
+  CuAssertTrue(tc, strstr(output, "The harbor master cannot record the summons, so the Petrel "
+                                  "stays where she is and your 28 gold is returned.") != NULL);
+  CuAssertIntEquals(tc, 1000, GET_GOLD(&harbor.captain));
+  CuAssertIntEquals(tc, 1000, vessel_test_file_gold(tc, &stores));
+  CuAssertIntEquals(tc, 2, IN_ROOM(&harbor.passenger));
+  CuAssertIntEquals(tc, 40, ship->cargo[0].quantity);
+  CuAssertTrue(tc, !ship->stowed && ship->active && ship->summon_due == 0);
+  CuAssertPtrNotNull(tc, ship->shipobj);
+  CuAssertIntEquals(tc, 1, IN_ROOM(ship->shipobj));
+  CuAssertIntEquals(tc, LOSS_SEA_VNUM, ship->location);
+  CuAssertTrue(tc, vessel_test_number(tc, &stores,
+                                      "SELECT COUNT(*) FROM ship_runtime_state "
+                                      "WHERE ship_id = 485 AND stowed = 1") == 0);
 
   /* Summoned, she leaves at once: the passenger goes over the side, the hold
    * is emptied, and she is out of the world until her passage is done. */
@@ -224,6 +260,10 @@ void Test_vessel_summons_sends_a_hull_out_of_the_world(CuTest *tc)
   output = loss_harbor_command(&harbor, "1");
   CuAssertTrue(tc, strstr(output, "You pay 28 gold.") != NULL);
   CuAssertIntEquals(tc, 972, GET_GOLD(&harbor.captain));
+  CuAssertIntEquals(tc, 972, vessel_test_file_gold(tc, &stores));
+  CuAssertTrue(tc, vessel_test_number(tc, &stores,
+                                      "SELECT COUNT(*) FROM ship_runtime_state WHERE ship_id = 485 "
+                                      "AND stowed = 1 AND location_vnum = 169980") == 1);
   CuAssertIntEquals(tc, 1, IN_ROOM(&harbor.passenger));
   CuAssertIntEquals(tc, 0, ship->cargo[0].quantity);
   CuAssertTrue(tc, ship->stowed);
@@ -241,6 +281,7 @@ void Test_vessel_summons_sends_a_hull_out_of_the_world(CuTest *tc)
   output = loss_harbor_command(&harbor, "");
   CuAssertTrue(tc, strstr(output, "the Petrel (Warship): under summons, due in") != NULL);
 
+  vessel_test_stores_end(tc, &stores);
   loss_harbor_end(&harbor);
 }
 
@@ -645,11 +686,18 @@ void Test_vessel_stowed_hulls_are_saved_with_the_fleet(CuTest *tc)
 void Test_vessel_rename_costs_a_tenth_of_her_value(CuTest *tc)
 {
   struct loss_harbor harbor;
+  struct vessel_test_stores stores;
   struct greyhawk_ship_data *ship;
 
   /* Her owner is aboard. The frigate is worth 44,000, and a hull without a
-   * shipyard name of record has had her christening. */
+   * shipyard name of record has had her christening. The fee is saved and
+   * the name recorded, so the rename needs both stores. */
   ship = loss_harbor_begin(tc, &harbor);
+  if (!vessel_test_stores_begin(tc, &stores, LOSS_SHIP, &harbor.captain))
+  {
+    loss_harbor_end(&harbor);
+    return;
+  }
   char_from_room(&harbor.captain);
   char_to_room(&harbor.captain, 2);
   memset(harbor.output, 0, sizeof(harbor.output));
@@ -674,5 +722,6 @@ void Test_vessel_rename_costs_a_tenth_of_her_value(CuTest *tc)
   /* Christening wrote the bridge's name and description. */
   free(harbor.rooms[2].name);
   free(harbor.rooms[2].description);
+  vessel_test_stores_end(tc, &stores);
   loss_harbor_end(&harbor);
 }

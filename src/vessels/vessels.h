@@ -920,7 +920,7 @@ int vessel_upgrade_cost(int index, enum vessel_class vessel_type);
 short int vessel_rigged_speed(int design_speed);
 void vessel_upkeep_tick(void);
 void vessel_upkeep_tick_one(struct greyhawk_ship_data *ship);
-void vessel_db_save_extras(struct greyhawk_ship_data *ship);
+bool vessel_db_save_extras(struct greyhawk_ship_data *ship);
 void vessel_db_load_extras(struct greyhawk_ship_data *ship);
 void vessel_pay_insurance(struct greyhawk_ship_data *ship, int amount);
 bool vessel_queue_claim(struct greyhawk_ship_data *ship, int amount, const char *subject,
@@ -1313,6 +1313,15 @@ void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_roo
 int vessel_passenger_fare(const struct greyhawk_ship_data *ship);
 bool vessel_collect_passenger_fare(struct char_data *ch, struct greyhawk_ship_data *ship);
 
+/* Checked purchases and payouts (vessels_payment.c) */
+bool vessel_gold_saved(struct char_data *ch, int amount);
+bool vessel_charge(struct char_data *ch, int cost);
+void vessel_refund(struct char_data *ch, int amount);
+bool vessel_purchase_recorded(struct char_data *ch, struct greyhawk_ship_data *ship,
+                              const struct greyhawk_ship_data *before, int cost);
+bool vessel_sale_recorded(struct char_data *ch, struct greyhawk_ship_data *ship,
+                          const struct greyhawk_ship_data *before, int amount);
+
 const char *vessel_crew_position_name(int position);
 const char *vessel_crew_tier_name(int tier);
 int vessel_crew_hire_cost(int position, int tier);
@@ -1328,7 +1337,7 @@ double vessel_stamina_modifier(const struct greyhawk_ship_data *ship);
 double vessel_hull_effort(const struct greyhawk_ship_data *ship);
 void vessel_crew_tick_one(struct greyhawk_ship_data *ship);
 void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship);
-void vessel_db_save_crew(struct greyhawk_ship_data *ship);
+bool vessel_db_save_crew(struct greyhawk_ship_data *ship);
 void vessel_db_load_crew(struct greyhawk_ship_data *ship);
 
 bool vessel_helm_permitted(struct char_data *ch, struct greyhawk_ship_data *ship);
@@ -2051,6 +2060,7 @@ bool vessel_db_save_weapons(struct greyhawk_ship_data *ship);
 bool vessel_db_load_weapons(struct greyhawk_ship_data *ship);
 bool vessel_place_hull_object(struct greyhawk_ship_data *ship, struct obj_data *obj);
 bool vessel_create_runtime_hull(struct greyhawk_ship_data *ship);
+bool vessel_save_hull(struct greyhawk_ship_data *ship);
 bool vessel_save_one(struct greyhawk_ship_data *ship);
 void vessel_persistence_ensure_schema(void);
 bool vessel_slot_free(int shipnum);

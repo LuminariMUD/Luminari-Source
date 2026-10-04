@@ -13,6 +13,7 @@
 #include "../../src/database/mysql.h"
 #include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"
+#include "test_vessel_stores.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -496,10 +497,17 @@ void Test_vessel_sinking_pays_prize_money_and_the_bounty(CuTest *tc)
 void Test_vessel_renown_gates_the_hiring_hall(CuTest *tc)
 {
   struct rewards_berth berth;
+  struct vessel_test_stores stores;
   struct greyhawk_ship_data *ship;
   const char *output;
 
+  /* A hire is paid for and recorded: it needs both stores. */
   ship = rewards_berth_begin(tc, &berth, VESSEL_SHIP);
+  if (!vessel_test_stores_begin(tc, &stores, ship->shipnum, &berth.captain))
+  {
+    rewards_berth_end(&berth);
+    return;
+  }
   ship->renown = 699;
   output = rewards_berth_command(&berth, do_shiphire, "gunner able");
   CuAssertTrue(tc, strstr(output, "No able gunner will sign on with a hull of less than 700 "
@@ -513,6 +521,7 @@ void Test_vessel_renown_gates_the_hiring_hall(CuTest *tc)
   output = rewards_berth_command(&berth, do_shiphire, "sailmaster veteran");
   CuAssertTrue(tc, strstr(output, "less than 1350 renown") != NULL);
 
+  vessel_test_stores_end(tc, &stores);
   rewards_berth_end(&berth);
 }
 

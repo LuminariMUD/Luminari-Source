@@ -387,6 +387,7 @@ static void vessel_dock_repair_apply(struct greyhawk_ship_data *ship, int kind)
 ACMD(do_shiprepair)
 {
   struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data before;
   char arg[MAX_INPUT_LENGTH];
   int points[NUM_DOCK_REPAIRS];
   int costs[NUM_DOCK_REPAIRS];
@@ -481,7 +482,11 @@ ACMD(do_shiprepair)
     return;
   }
 
-  award_gold(ch, -total_cost);
+  before = *ship;
+  if (!vessel_charge(ch, total_cost))
+  {
+    return;
+  }
   if (kind == NUM_DOCK_REPAIRS)
   {
     for (kind = 0; kind < NUM_DOCK_REPAIRS; kind++)
@@ -494,8 +499,10 @@ ACMD(do_shiprepair)
     vessel_dock_repair_apply(ship, kind);
   }
   vessel_add_maintenance(ship, ch, total_ticks);
-  vessel_db_save_runtime(ship);
-  vessel_db_save_weapons(ship);
+  if (!vessel_purchase_recorded(ch, ship, &before, total_cost))
+  {
+    return;
+  }
 
   send_to_char(ch, "You pay %d gold. The shipwrights set to work on %s: %d seconds.\r\n",
                total_cost, ship->name, total_ticks / 2);

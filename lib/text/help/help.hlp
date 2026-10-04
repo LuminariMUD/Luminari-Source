@@ -7782,6 +7782,8 @@ CONTRACTDELIVER <id>
   At the destination port, hand over the freight and collect: the payout
   repays the bond with a premium for the distance. The cargo must still be
   aboard - lose it to pirates or a sinking and there is nothing to deliver.
+  If your payment cannot be saved, the delivery is undone and the freight
+  stays aboard.
 
 CONTRACTABANDON <id>
   Give up a job. It returns to the board for another captain. The freight
@@ -25472,13 +25474,14 @@ BOUNTY [<player>]
 BOUNTY PAY
   Ashore at a lawful port's admiralty office (any dock outside a pirate
   cove), clear your whole bounty for 125% of it. Even a WANTED captain may
-  pay.
+  pay. A payment the admiralty cannot record is returned.
 
 MARQUE
   Ashore at a port's admiralty office (any dock), buy a letter of
   marque. It makes your prizes lawful where an authority would otherwise
   post a bounty. Costs 2000 gold and lasts one day. The admiralty will not commission a
-  captain who is already WANTED - settle your bounty first (BOUNTY PAY).
+  captain who is already WANTED - settle your bounty first (BOUNTY PAY). A
+  fee the admiralty cannot record is returned.
 
 Regional law comes from builder-authored wilderness geography. Territorial
 waters, free seas, and pirate coves can scale the standard 15-gold bounty per
@@ -31916,6 +31919,10 @@ SHIPSUMMON [<number | name>]
   will not answer. A summons survives a reboot. Word reaches you wherever
   you are when she makes port.
 
+A hull, a trade-in, a rename, and a summons are paid for when you order
+them; one that cannot be recorded is undone and your gold is returned (see
+SHIPHIRE, Paying the yard).
+
 Hull levels: taking a hull out of port, engaging its autopilot, or putting
 an NPC pilot or schedule to work needs the hull's level: 1 for rafts and
 boats, 16 for ships, 21 for transports, 22 for warships, 23 for submarines,
@@ -32081,7 +32088,8 @@ SHIPREPAIR [armor | structure | sails | rudder | weapons | all]
   At a shipyard, with the hull berthed, her owner buys the rest: armor and
   structure at 2 gold a point, sails and rudder at 4, a damaged weapon at
   2 gold a point of damage, and a destroyed one for half its price. Each
-  order keeps her at the berth 75 seconds plus a second a point (75 for a
+  order is paid like other yard work (SHIPHIRE, Paying the yard) and
+  keeps her at the berth 75 seconds plus a second a point (75 for a
   weapon, 150 rebuilt). SHIPREPAIR alone shows the shipwrights' quote.
 
 CLAIMSHIP
@@ -32196,6 +32204,14 @@ SHIPREARM [<slot> | all]
   Refill ammunition at 2 gold a round; the shipwrights need 75 seconds per
   weapon. A weapon with no rounds left cannot fire. A destroyed weapon is
   not rearmed.
+
+Paying the yard: crew, refits, weapons, equipment, rounds, and dock repairs
+are paid for when you order them, and your gold is saved with the order. If
+the game cannot save your gold, nothing is charged and nothing is done. If
+the yard cannot record the work, it is undone and your gold is returned. A
+sale that cannot be recorded, or whose payment cannot be saved, is undone
+the same way. Hulls, renames, and summonses (SHIP OWNERSHIP) and the
+admiralty fees (BOUNTY) are paid like this too.
 
 Wear: hulls under way slowly lose armor and subsystem condition. Put in
 for repairs before a fight, not after.

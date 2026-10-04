@@ -14,6 +14,7 @@
 #include "../../src/database/mysql.h"
 #include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"
+#include "test_vessel_stores.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -269,10 +270,17 @@ static void crew_harbor_end(struct crew_harbor *harbor)
 void Test_vessel_hire_takes_green_hands_at_their_floor(CuTest *tc)
 {
   struct crew_harbor harbor;
+  struct vessel_test_stores stores;
   struct greyhawk_ship_data *ship;
   const char *output;
 
+  /* A hire is paid for and recorded: it needs both stores. */
   ship = crew_harbor_begin(tc, &harbor, 20);
+  if (!vessel_test_stores_begin(tc, &stores, CREW_SHIP, &harbor.captain))
+  {
+    crew_harbor_end(&harbor);
+    return;
+  }
 
   /* Without renown only green hands sign on, and nothing is charged. */
   output = crew_harbor_command(&harbor, do_shiphire, "gunner able");
@@ -300,6 +308,7 @@ void Test_vessel_hire_takes_green_hands_at_their_floor(CuTest *tc)
   CuAssertIntEquals(tc, CREW_TIER_VETERAN, ship->crew_tier[CREW_GUNNER]);
   CuAssertDblEquals(tc, 2500.0, ship->crew_xp[CREW_GUNNER], 0.0);
 
+  vessel_test_stores_end(tc, &stores);
   crew_harbor_end(&harbor);
 }
 
@@ -580,10 +589,17 @@ void Test_vessel_character_repair_patches_one_point_at_sea(CuTest *tc)
 void Test_vessel_shipwrights_price_dock_repairs(CuTest *tc)
 {
   struct crew_harbor harbor;
+  struct vessel_test_stores stores;
   struct greyhawk_ship_data *ship;
   const char *output;
 
+  /* Dock repairs are paid for and recorded: they need both stores. */
   ship = crew_harbor_begin(tc, &harbor, 20);
+  if (!vessel_test_stores_begin(tc, &stores, CREW_SHIP, &harbor.captain))
+  {
+    crew_harbor_end(&harbor);
+    return;
+  }
   ship->parmor = 89;    /* 20 armor points */
   ship->sinternal = 37; /* 10 structure points */
   ship->mainsail = 130; /* 10 sail points */
@@ -619,6 +635,7 @@ void Test_vessel_shipwrights_price_dock_repairs(CuTest *tc)
   output = crew_harbor_command(&harbor, do_shiprepair, "sails");
   CuAssertTrue(tc, strstr(output, "needs no such work") != NULL);
 
+  vessel_test_stores_end(tc, &stores);
   crew_harbor_end(&harbor);
 }
 

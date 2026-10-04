@@ -129,7 +129,6 @@ int vessel_passenger_fare(const struct greyhawk_ship_data *ship)
 bool vessel_collect_passenger_fare(struct char_data *ch, struct greyhawk_ship_data *ship)
 {
   int fare;
-  int old_gold;
 
   if (ch == NULL || ship == NULL)
   {
@@ -149,11 +148,8 @@ bool vessel_collect_passenger_fare(struct char_data *ch, struct greyhawk_ship_da
     return FALSE;
   }
 
-  old_gold = GET_GOLD(ch);
-  award_gold(ch, -fare);
-  if (!save_char_checked(ch, 0))
+  if (!vessel_gold_saved(ch, -fare))
   {
-    award_set_points(ch, AWARD_GOLD, old_gold);
     send_to_char(ch, "The purser cannot record your fare; no gold was taken.\r\n");
     return FALSE;
   }

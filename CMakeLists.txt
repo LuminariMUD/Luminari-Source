@@ -800,6 +800,7 @@ set(SRC_C_FILES
     src/vessels/vessels_ownership.c
     src/vessels/vessels_rooms.c
     src/vessels/vessels_contracts.c
+    src/vessels/vessels_payment.c
     src/vessels/vessels_piracy.c
     src/vessels/vessels_settlement.c
     src/vessels/vessels_trade.c
@@ -1262,6 +1263,8 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_vessel_raiders.c
     unittests/CuTest/test_vessel_rewards.c
     unittests/CuTest/test_vessel_settlement.c
+    unittests/CuTest/test_vessel_payment.c
+    unittests/CuTest/test_vessel_stores.c
     unittests/CuTest/test_database_persistence.c
     unittests/CuTest/test_database_transactions.c
     unittests/CuTest/test_dg_scripts_production.c

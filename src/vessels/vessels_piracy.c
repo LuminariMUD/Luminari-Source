@@ -1058,6 +1058,7 @@ static void vessel_bounty_pay(struct char_data *ch)
   struct vessel_piracy_law law;
   room_rnum room;
   int bounty;
+  int standing;
   int cost;
 
   room = IN_ROOM(ch);
@@ -1087,13 +1088,18 @@ static void vessel_bounty_pay(struct char_data *ch)
                  GET_GOLD(ch));
     return;
   }
-  if (!vessel_clear_bounty(GET_NAME(ch)))
+  if (!vessel_charge(ch, cost))
   {
-    send_to_char(ch, "The clerk cannot record the settlement.\r\n");
+    return;
+  }
+  /* A write whose reply was lost may have been made: the row says. */
+  if (!vessel_clear_bounty(GET_NAME(ch)) && (!bounty_read(GET_NAME(ch), &standing) || standing > 0))
+  {
+    vessel_refund(ch, cost);
+    send_to_char(ch, "The clerk cannot record the settlement; your %d gold is returned.\r\n", cost);
     return;
   }
 
-  award_gold(ch, -cost);
   send_to_char(ch, "You pay %d gold. The admiralty strikes the %d gold bounty from its rolls.\r\n",
                cost, bounty);
   log("Info: %s paid %d gold to clear a %d gold vessel bounty", GET_NAME(ch), cost, bounty);
@@ -1193,20 +1199,26 @@ ACMD(do_marque)
     return;
   }
 
+  if (!vessel_charge(ch, MARQUE_COST))
+  {
+    return;
+  }
   expiry = (int)time(0) + MARQUE_DURATION;
   mysql_real_escape_string(conn, escaped, GET_NAME(ch), strlen(GET_NAME(ch)));
   snprintf(query, sizeof(query),
            "INSERT INTO vessel_bounties (player_name, marque_until) VALUES ('%s', %d) "
            "ON DUPLICATE KEY UPDATE marque_until = %d",
            escaped, expiry, expiry);
-  if (mysql_query(conn, query))
+  /* A write whose reply was lost may have been made: the row says. */
+  if (mysql_query(conn, query) && !vessel_has_letter_of_marque(GET_NAME(ch)))
   {
     log("SYSERR: marque issue failed: %s", mysql_error(conn));
-    send_to_char(ch, "The clerk cannot complete the commission.\r\n");
+    vessel_refund(ch, MARQUE_COST);
+    send_to_char(ch, "The clerk cannot complete the commission; your %d gold is returned.\r\n",
+                 MARQUE_COST);
     return;
   }
 
-  award_gold(ch, -MARQUE_COST);
   send_to_char(ch,
                "You pay %d gold. The admiralty commissions you as a privateer - prizes "
                "taken now are lawful.\r\n",

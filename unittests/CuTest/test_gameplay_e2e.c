@@ -99,6 +99,7 @@
 #include "../../src/wilderness/wilderness.h"
 #include "../../src/wilderness/perlin.h"
 #include "../../src/config/harvest_vnums.h"
+#include "test_vessel_stores.h"
 
 /* Real player saves also write the index: keep every persistence fixture isolated. */
 static void enter_player_fixture(CuTest *tc, char *temporary_directory)
@@ -12855,6 +12856,7 @@ void Test_gameplay_freight_delivery_waits_until_the_payment_fits(CuTest *tc)
   struct descriptor_data descriptor = {0};
   struct greyhawk_ship_data saved_ship;
   struct greyhawk_ship_data *ship = &greyhawk_ships[GREYHAWK_MAXSHIPS - 1];
+  struct vessel_test_stores stores = {0};
   struct obj_data *hull;
   MYSQL *saved_conn = conn;
   bool saved_available = mysql_available;
@@ -12904,6 +12906,8 @@ void Test_gameplay_freight_delivery_waits_until_the_payment_fits(CuTest *tc)
   snprintf(query, sizeof(query), "SELECT status FROM freight_contracts WHERE contract_id = %d",
            contract_id);
 
+  /* The payout is saved with the captain. */
+  vessel_test_pfile_begin(tc, &stores, &fixture.actor);
   GET_GOLD(&fixture.actor) = MAX_GOLD - 899;
   do_contractdeliver(&fixture.actor, command, 0, 0);
   refused = GET_GOLD(&fixture.actor) == MAX_GOLD - 899 && ship->cargo[0].quantity == 5 &&
@@ -12914,6 +12918,7 @@ void Test_gameplay_freight_delivery_waits_until_the_payment_fits(CuTest *tc)
   do_contractdeliver(&fixture.actor, command, 0, 0);
   delivered = GET_GOLD(&fixture.actor) == 900 && ship->cargo[0].quantity == 0 &&
               keeper_query_int(connection, query) == CONTRACT_STATUS_DONE;
+  vessel_test_pfile_end(tc, &stores);
 
   fixture.rooms[0].ship = NULL;
   extract_obj(hull);

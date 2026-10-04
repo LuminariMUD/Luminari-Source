@@ -89,7 +89,7 @@ and operator controls in one system.
 | Upgrades | Refits, wear, insurance settlement | vessels_upgrades.c |
 | Repair | Repair stores, crew and character repairs, dock repairs | vessels_repair.c |
 | Loss and Recovery | Wreck registry, automatic insurance, summons, trade-in rebuild | vessels_loss.c |
-| Economy | Cargo, markets, freight, piracy, settlements | vessels_trade.c, vessels_contracts.c, vessels_piracy.c, vessels_settlement.c |
+| Economy | Cargo, markets, freight, piracy, settlements, checked purchases and payouts | vessels_trade.c, vessels_contracts.c, vessels_piracy.c, vessels_settlement.c, vessels_payment.c |
 | NPC Merchant Fleet | Durable definitions, assembly, consequences, respawn | vessels_merchants.c |
 | Bounty Hunters | HUNTED encounter policy, pursuit, durable lifecycle | vessels_hunters.c |
 | NPC Raiders | Ambushes, raider tiers, raider AI, boarding and looting, running merchants | vessels_raiders.c |
@@ -1091,6 +1091,60 @@ schema. Where the server can stop:
 A purged hull's settlement is deleted with her other rows
 (`vessel_delete_persistence()`).
 
+Checked purchases and payouts (`src/vessels/vessels_payment.c`, study step
+S15). The other vessel commands that take or pay gold have no settlement row:
+each writes the captain's gold to the player file and the ship's side to
+MariaDB inside the command and checks both, so only a crash between the two
+writes splits them, and always against the player.
+
+- A purchase takes the gold first. `vessel_charge()` debits it and saves with
+  `save_char_checked()`; a failed save puts the gold back and refuses the
+  purchase before anything aboard has changed ("Your payment could not be
+  recorded; no gold was taken."). Then the ship's side is written. If that
+  fails, the ship's side is put back and the gold returned (`vessel_refund()`;
+  a refund that cannot be saved stays with the captain in memory, and the
+  per-minute save of the player stores it).
+- A payout writes the ship's side first; a failed write puts the item back and
+  pays nothing. Then `vessel_gold_saved()` pays and saves. A failed save takes
+  the gold back and puts the item back, in memory and in the rows. If the
+  put-back cannot be written, the sale stands: the rows say sold, so the gold
+  is paid in memory and the per-minute save stores it.
+- The shipyard jobs (`shiphire`, `shipweapon buy`, `shipequip buy`,
+  `shiprearm`, `shiprepair` at a dock, `shipupgrade`, `shipchristen`) copy the
+  hull before they change her, and `vessel_purchase_recorded()` writes her
+  with `vessel_save_hull()`: the interior row, runtime state, weapons, owner,
+  crew and refits, each checked. A failed write restores the hull from the
+  copy and writes her again, because a write of several statements can fail
+  part way and one whose reply is lost has been made ("The harbor office could
+  not record that, so nothing was done and your N gold is returned.").
+  `shipweapon sell` and `shipequip sell` use `vessel_sale_recorded()` the
+  same way ("... so nothing was sold." or "Your payment could not be recorded,
+  so the sale is undone.").
+- `shipbuy` charges, then spawns; the spawn rolls itself back when the hull
+  cannot be saved, and the price is returned. A trade-in charges what the
+  captain owes before the fittings are counted, rebuilds and saves the hull,
+  then pays for the fittings she cannot carry and any credit left over. If
+  the save or that payment fails, the rebuild is undone: the new interior is
+  reclaimed, the hull restored from the copy taken before the work, her old
+  rooms recreated as boot recreates them (`restore_ship_interior()`), and the
+  charge returned.
+- `shipsummon` charges, then saves the summons (the hull as stowed at the
+  shipyard, and her emptied manifest) before she leaves the world. A summons
+  that cannot be saved leaves her where she is with her cargo and those
+  aboard, and returns the fee; a docking cast off, vehicles put off and a
+  stopped autopilot are not undone.
+- `bounty pay` and `marque` charge, then write the `vessel_bounties` row. When
+  the write reports a failure the row is read back, since a write whose reply
+  was lost has been made; the fee is returned only if the row does not show
+  it.
+- `contractdeliver` writes the contract as done and the manifest in one
+  transaction (both writes are absolute, so after a `COMMIT` without a reply
+  the transaction is sent once more), then pays. A payout that cannot be saved
+  loads the freight again and writes the contract back as taken.
+
+A server without a database refuses these purchases, since the ship's side
+cannot be written.
+
 Staff can run `vtradecheck 1000` to execute the deterministic sustained-market
 gate without changing live port or character state. It must report all 1,000
 adversarial transfers inside the supply bounds, finite convergence of a real
@@ -1135,7 +1189,9 @@ the record never keeps the freight without the bond or the bond without the
 freight. Delivering and abandoning wait for an acceptance that is still
 unsettled. Abandoning
 returns the job to the board and leaves the bought freight aboard, so taking
-and dropping a job gains nothing. Delivering requires the freight still aboard.
+and dropping a job gains nothing. Delivering requires the freight still aboard
+and is a checked payout (above): the contract and the unloaded hold are
+written together, then the payout is saved.
 Boards refresh on a TTL; accepted contracts are never cleared by a refresh.
 Market, cargo and freight commands key the port by `vessel_port_room()`: the
 hull object's room when that is a port, else the port at her coordinates.
@@ -1274,7 +1330,8 @@ reinforcement +20% internal structure on every arc (at most 255), rigging +10%
 design speed (at least 1, at most 30, `vessel_rigged_speed()`), hold +25%
 cargo; each costs a fifth of the class price. A plating or reinforcement refit
 adds its points to the arc's current value as well as its ceiling, so it
-repairs nothing (L10). `vessel_upkeep_tick()` grinds armor and subsystems down
+repairs nothing (L10). The refit bit (`ship_interiors.upgrades`) and the
+ceilings (the runtime row) are saved together with the purchase (S15). `vessel_upkeep_tick()` grinds armor and subsystems down
 while under way (never below 1 structure per section). Insurance is automatic
 (S5): a lost owned hull's payout (`vessel_insurance_payout()`) becomes one
 durable `vessel_insurance_claims` row plus a system-mail receipt
@@ -1662,9 +1719,12 @@ renown gates came in S7 (Rewards, Renown and Contraband below).
   empty-hold maximum speed in Duris units (less 20 for the rest, at least 2),
   doubled from the registry, at most 60 mud hours; staff take a second. It is
   refused while sinking, at battle stations, or already summoned. The hull
-  empties her hold, puts everyone aboard into her exterior room, casts off
-  anything alongside, releases vehicles, stops her autopilot, saves the
-  shipyard as her location with `summon_due`, and stows. `vessel_summon_tick()`
+  casts off anything alongside, releases vehicles, stops her autopilot,
+  empties her hold, and saves the shipyard as her location with `summon_due`
+  (a stowed hull's runtime row holds where she will appear, not where her hull
+  object stands); once that is saved she puts everyone aboard into her
+  exterior room and stows. The fee and the summons are a checked purchase
+  (S15). `vessel_summon_tick()`
   (service event) brings a due hull in: `vessel_create_runtime_hull()` at the
   shipyard, berthed, saved, and scheduled again. `vessel_summon_announce()`
   tells the dock, and sends word to her owner if online elsewhere.
@@ -2512,6 +2572,7 @@ and the trigger was removed.
 | `src/vessels/vessels_loss.c` | Hull value, automatic insurance, stowed hulls, wreck registry, summons, in-place rebuild (S5) |
 | `src/vessels/vessels_trade.c` | Commodities, port pricing, bulk cargo (Phase 07); contraband, customs, sale modifiers (S7) |
 | `src/vessels/vessels_settlement.c` | Two-phase settlements of trades, freight bonds and dock fees (S14) |
+| `src/vessels/vessels_payment.c` | Checked purchases and payouts: the gold saved with the ship's side written, refunds and put-backs (S15) |
 | `src/vessels/vessels_rewards.c` | Renown, the rewards of a sinking, and the renown board (S7) |
 | `src/vessels/vessels_contracts.c` | Freight boards and contract lifecycle (Phase 07) |
 | `src/vessels/vessels_piracy.c` | Plunder, bounty, letters of marque (Phase 07) |
@@ -2561,7 +2622,7 @@ and the trigger was removed.
 | `scripts/vessels/test_vessel_narrative_in_game.sh` | Reversible Kohdee at-sea and forced-ambient narrative gate |
 | `scripts/vessels/test_vessel_boarding_in_game.sh` | Boarding gate; delegates to the shared tactical acceptance harness |
 | `scripts/vessels/test_vessel_rules_in_game.sh` | Two-character shipyard, contact-ID, gunnery, hull-level, route-ownership, hull-cap, and bounty gate; delegates to the shared tactical harness |
-| `scripts/vessels/test_vessel_loss_in_game.sh` | Two-character crew hiring, rename fee, summons, and trade-in gate; delegates to the shared tactical harness |
+| `scripts/vessels/test_vessel_loss_in_game.sh` | Two-character crew hiring, rename fee, summons, and trade-in gate, with a purchase and a trade-in the database refuses to record (S15); delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_economy_in_game.sh` | Two-character contraband, customs, sale modifier, prize money, and renown gate; delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_client_in_game.sh` | Native MSDP client-data gate at sea and ashore; delegates to the shared tactical harness |
 | `scripts/vessels/test_vessel_hunter_in_game.sh` | Reversible Kohdee HUNTED bounty-hunter encounter gate |

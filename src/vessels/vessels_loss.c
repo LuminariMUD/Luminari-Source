@@ -456,6 +456,7 @@ static void vessel_list_summonable(struct char_data *ch)
 ACMD(do_shipsummon)
 {
   struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data before;
   const char *arg;
   char wait[64];
   room_rnum here;
@@ -538,18 +539,15 @@ ACMD(do_shipsummon)
     return;
   }
 
-  award_gold(ch, -fee);
-  memset(ship->cargo, 0, sizeof(ship->cargo));
-  ship->num_cargo_lots = 0;
+  if (!vessel_charge(ch, fee))
+  {
+    return;
+  }
   seconds = GET_LEVEL(ch) >= LVL_IMMORT ? 1 : vessel_summon_seconds(ship);
+  exterior = NOWHERE;
   if (!ship->stowed)
   {
     exterior = ship->shipobj != NULL ? IN_ROOM(ship->shipobj) : NOWHERE;
-    if (exterior != NOWHERE)
-    {
-      vessel_put_ashore(ship, exterior);
-      send_to_room(exterior, "%s makes sail and is soon out of sight.\r\n", ship->name);
-    }
     vessel_abort_docking(ship);
     vehicle_release_all_from_vessel(ship, exterior);
     if (ship->autopilot != NULL)
@@ -558,7 +556,12 @@ ACMD(do_shipsummon)
     }
   }
 
-  /* She will appear where she is saved: this shipyard. */
+  /* She will appear where she is saved: this shipyard. The summons is saved
+   * before she leaves the world, so one that cannot be saved leaves her where
+   * she is, with her cargo. */
+  before = *ship;
+  memset(ship->cargo, 0, sizeof(ship->cargo));
+  ship->num_cargo_lots = 0;
   ship->location = (int)world[here].number;
   ship->x = (double)world[here].coords[0];
   ship->y = (double)world[here].coords[1];
@@ -571,7 +574,29 @@ ACMD(do_shipsummon)
   ship->anchored = FALSE;
   ship->lock_target = 0;
   ship->summon_due = time(0) + seconds;
-  vessel_stow(ship);
+  ship->stowed = TRUE;
+  if (!vessel_save_hull(ship) || !vessel_db_save_cargo(ship))
+  {
+    *ship = before;
+    if (!vessel_save_hull(ship) || !vessel_db_save_cargo(ship))
+    {
+      log("SYSERR: Ship %d could not be written back after a refused summons; her rows may hold "
+          "part of it until she is saved again",
+          ship->shipnum);
+    }
+    vessel_refund(ch, fee);
+    send_to_char(ch,
+                 "The harbor master cannot record the summons, so %s stays where she is and your "
+                 "%d gold is returned.\r\n",
+                 ship->name, fee);
+    return;
+  }
+  if (exterior != NOWHERE)
+  {
+    vessel_put_ashore(ship, exterior);
+    send_to_room(exterior, "%s makes sail and is soon out of sight.\r\n", ship->name);
+  }
+  vessel_restow(ship);
 
   vessel_describe_wait(wait, sizeof(wait), seconds);
   send_to_char(ch, "You pay %d gold. Word goes out to %s; she should make port here in %s.\r\n",

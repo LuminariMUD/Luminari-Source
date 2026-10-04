@@ -930,20 +930,49 @@ ACMD(do_shipbrowse)
 }
 
 /**
+ * Undo a trade-in's rebuild: the new interior is reclaimed, the hull goes
+ * back to the copy taken before the work, and her old rooms are recreated
+ * the way boot recreates them. She is written back.
+ */
+static void vessel_trade_in_undo(struct greyhawk_ship_data *ship,
+                                 const struct greyhawk_ship_data *before, room_rnum dock)
+{
+  vessel_reclaim_interior_rooms(ship, dock);
+  *ship = *before;
+  if (!restore_ship_interior(ship) || !vessel_place_hull_object(ship, ship->shipobj))
+  {
+    log("SYSERR: Ship %d lost her interior when her trade-in was undone", ship->shipnum);
+  }
+  vessel_refresh_hull_strings(ship, FALSE);
+  if (!vessel_save_one(ship))
+  {
+    log("SYSERR: Ship %d could not be written back after her trade-in was undone; her rows may "
+        "hold part of it until she is saved again",
+        ship->shipnum);
+  }
+}
+
+/**
  * Trade in the owner's hull berthed at this dock for a new hull from a
  * prototype (study 3.3.7): 90% of her value comes off the price, and more
  * is paid out. She is rebuilt in place keeping her name, crew, cosmetics,
  * and permits; the new hull comes with her class armament, takes aboard
  * what of the old fit-out she legally can, and the shipwrights buy the rest.
+ *
+ * What the captain owes before the fittings are counted is charged before
+ * the rebuild, and what the shipwrights owe is paid after the rebuilt hull
+ * is saved. A hull or a payment that cannot be recorded undoes the trade.
  */
 static void vessel_trade_in(struct char_data *ch, int id, int vclass, int max_speed, int armor,
                             int price)
 {
   struct greyhawk_ship_slot old_slots[GREYHAWK_MAXSLOTS];
+  struct greyhawk_ship_data before;
   struct greyhawk_ship_data *ship;
   enum vessel_class old_class;
   room_rnum dock;
   int credit;
+  int charge;
   int sold;
   int net;
   int i;
@@ -990,13 +1019,21 @@ static void vessel_trade_in(struct char_data *ch, int id, int vclass, int max_sp
     return;
   }
 
+  charge = MAX(0, price - credit);
+  if (!vessel_charge(ch, charge))
+  {
+    return;
+  }
+
   memcpy(old_slots, ship->slot, sizeof(old_slots));
   old_class = ship->vessel_type;
   vehicle_release_all_from_vessel(ship, dock);
+  before = *ship;
   vessel_reclaim_interior_rooms(ship, dock);
   if (!vessel_rebuild_hull(ship, id, vclass, max_speed, armor))
   {
     log("SYSERR: Ship %d lost her interior in a trade-in", ship->shipnum);
+    vessel_refund(ch, charge);
     send_to_char(ch, "The shipwrights botch the work; tell the staff.\r\n");
     return;
   }
@@ -1004,13 +1041,19 @@ static void vessel_trade_in(struct char_data *ch, int id, int vclass, int max_sp
   sold = vessel_carry_fitout(ship, old_slots, old_class);
   vessel_place_hull_object(ship, ship->shipobj);
   vessel_refresh_hull_strings(ship, FALSE);
-  if (!vessel_save_one(ship))
+  if (!vessel_save_one(ship) || !vessel_gold_saved(ch, sold + MAX(0, credit - price)))
   {
-    log("SYSERR: Traded-in ship %d could not be saved completely", ship->shipnum);
+    log("SYSERR: The trade-in of ship %d could not be recorded and is undone", ship->shipnum);
+    vessel_trade_in_undo(ship, &before, dock);
+    vessel_refund(ch, charge);
+    send_to_char(ch,
+                 "The shipwrights cannot record the trade, so it is undone: %s is put back as she "
+                 "was and no gold changes hands.\r\n",
+                 ship->name);
+    return;
   }
 
   net = credit + sold - price;
-  award_gold(ch, net);
   send_to_char(ch,
                "The shipwrights take %s in trade for %d gold%s and rebuild her as a %s. You %s "
                "%d gold.\r\n",
@@ -1107,13 +1150,19 @@ ACMD(do_shipbuy)
     return;
   }
 
+  if (!vessel_charge(ch, price))
+  {
+    return;
+  }
   slot = vessel_spawn_from_prototype(ch, id);
   if (slot < 0)
   {
-    return; /* Spawn failed; no charge */
+    /* The spawn said why and rolled itself back. */
+    vessel_refund(ch, price);
+    send_to_char(ch, "Your %d gold is returned.\r\n", price);
+    return;
   }
 
-  award_gold(ch, -price);
   send_to_char(ch,
                "The shipwrights hand over %s, moored here. You pay %d gold coins. Fair winds, "
                "captain - board her and christen her with 'shipchristen <name>'.\r\n",
@@ -1152,6 +1201,7 @@ static bool vessel_bears_prototype_name(const struct greyhawk_ship_data *ship)
 ACMD(do_shipchristen)
 {
   struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data before;
   const char *name;
   size_t i;
   int fee;
@@ -1196,21 +1246,27 @@ ACMD(do_shipchristen)
                  GET_GOLD(ch));
     return;
   }
+
+  before = *ship;
+  if (!vessel_charge(ch, fee))
+  {
+    return;
+  }
+  strlcpy(ship->name, name, sizeof(ship->name));
+  if (!vessel_purchase_recorded(ch, ship, &before, fee))
+  {
+    return;
+  }
   if (fee > 0)
   {
-    award_gold(ch, -fee);
     send_to_char(ch, "You pay the registry %d gold.\r\n", fee);
   }
+  log("Info: %s christened ship %d '%s' as '%s' (%d gold)", GET_NAME(ch), ship->shipnum,
+      before.name, ship->name, fee);
 
-  log("Info: %s christened ship %d '%s' as '%s' (%d gold)", GET_NAME(ch), ship->shipnum, ship->name,
-      name, fee);
-  strlcpy(ship->name, name, sizeof(ship->name));
-
+  /* Her hull object and rooms are named from her, and are not saved. */
   vessel_refresh_hull_strings(ship, TRUE);
   vessel_rename_interior(ship);
-
-  save_ship_interior(ship);
-  vessel_db_save_owner(ship);
   send_to_ship(ship, "By her owner's word, this vessel is christened %s!", ship->name);
 }
 

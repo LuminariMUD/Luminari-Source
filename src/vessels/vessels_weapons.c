@@ -532,6 +532,7 @@ static void vessel_show_weapon_catalogue(struct char_data *ch, struct greyhawk_s
 static void vessel_buy_weapon(struct char_data *ch, struct greyhawk_ship_data *ship,
                               const char *argument)
 {
+  struct greyhawk_ship_data before;
   const struct vessel_weapon_type *weapon;
   const char *problem;
   char name[MAX_INPUT_LENGTH];
@@ -573,6 +574,7 @@ static void vessel_buy_weapon(struct char_data *ch, struct greyhawk_ship_data *s
     send_to_char(ch, "Every slot aboard %s is taken.\r\n", ship->name);
     return;
   }
+  before = *ship;
   vessel_set_weapon(&ship->slot[slot], weapon_id, arc);
   problem = vessel_fitout_problem(ship);
   if (problem == NULL && IS_SET(weapon->flags, VESSEL_WEAPON_CAPITAL) &&
@@ -597,10 +599,16 @@ static void vessel_buy_weapon(struct char_data *ch, struct greyhawk_ship_data *s
     return;
   }
 
-  award_gold(ch, -weapon->price);
+  if (!vessel_charge(ch, weapon->price))
+  {
+    memset(&ship->slot[slot], 0, sizeof(ship->slot[slot]));
+    return;
+  }
   vessel_add_maintenance(ship, ch, weapon->weight * VESSEL_INSTALL_TICKS_PER_WEIGHT);
-  vessel_db_save_weapons(ship);
-  vessel_db_save_runtime(ship);
+  if (!vessel_purchase_recorded(ch, ship, &before, weapon->price))
+  {
+    return;
+  }
   send_to_char(ch,
                "The shipwrights mount a %s on the %s arc of %s in slot %d for %d gold, loaded "
                "with %d rounds.\r\n",
@@ -621,6 +629,7 @@ static void vessel_buy_weapon(struct char_data *ch, struct greyhawk_ship_data *s
 ACMD(do_shipweapon)
 {
   struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data before;
   struct greyhawk_ship_slot swap;
   const struct vessel_weapon_type *weapon;
   char command[MAX_INPUT_LENGTH];
@@ -659,9 +668,12 @@ ACMD(do_shipweapon)
       return;
     }
     value = vessel_slot_sale_value(&ship->slot[slot], ship->vessel_type);
-    award_gold(ch, value);
+    before = *ship;
     memset(&ship->slot[slot], 0, sizeof(ship->slot[slot]));
-    vessel_db_save_weapons(ship);
+    if (!vessel_sale_recorded(ch, ship, &before, value))
+    {
+      return;
+    }
     send_to_char(ch, "The shipwrights take the %s out of slot %d and pay you %d gold.\r\n",
                  weapon->name, slot, value);
     log("Info: %s sold the %s from ship %d slot %d for %d gold", GET_NAME(ch), weapon->name,
@@ -781,6 +793,7 @@ bool vessel_has_cargo(const struct greyhawk_ship_data *ship)
 ACMD(do_shipequip)
 {
   struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data before;
   struct greyhawk_ship_slot fitted;
   const char *problem;
   char command[MAX_INPUT_LENGTH];
@@ -844,9 +857,12 @@ ACMD(do_shipequip)
       return;
     }
     price = vessel_slot_sale_value(&ship->slot[slot], ship->vessel_type);
+    before = *ship;
     memset(&ship->slot[slot], 0, sizeof(ship->slot[slot]));
-    award_gold(ch, price);
-    vessel_db_save_weapons(ship);
+    if (!vessel_sale_recorded(ch, ship, &before, price))
+    {
+      return;
+    }
     send_to_char(ch, "The shipwrights remove the %s and pay you %d gold.\r\n",
                  equipment_names[equipment], price);
     return;
@@ -864,6 +880,7 @@ ACMD(do_shipequip)
     send_to_char(ch, "Every slot aboard %s is taken.\r\n", ship->name);
     return;
   }
+  before = *ship;
   ship->slot[slot].type = VESSEL_SLOT_EQUIPMENT;
   ship->slot[slot].item = (unsigned char)equipment;
   problem = vessel_fitout_problem(ship);
@@ -882,11 +899,17 @@ ACMD(do_shipequip)
     return;
   }
 
-  award_gold(ch, -price);
+  if (!vessel_charge(ch, price))
+  {
+    memset(&ship->slot[slot], 0, sizeof(ship->slot[slot]));
+    return;
+  }
   vessel_add_maintenance(
       ship, ch, vessel_slot_weight(ship, &ship->slot[slot]) * VESSEL_INSTALL_TICKS_PER_WEIGHT);
-  vessel_db_save_weapons(ship);
-  vessel_db_save_runtime(ship);
+  if (!vessel_purchase_recorded(ch, ship, &before, price))
+  {
+    return;
+  }
   send_to_char(ch, "The shipwrights fit %s with %s%s for %d gold.\r\n", ship->name,
                equipment == VESSEL_EQUIPMENT_COLORS ? "" : "a ", equipment_names[equipment], price);
   if (ship->maintenance_ticks > 0)
@@ -903,6 +926,7 @@ ACMD(do_shipequip)
 ACMD(do_shiprearm)
 {
   struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data before;
   const struct vessel_weapon_type *weapon;
   char arg[MAX_INPUT_LENGTH];
   int full[GREYHAWK_MAXSLOTS]; /* rounds each chosen weapon is refilled to; 0 if not chosen */
@@ -950,7 +974,11 @@ ACMD(do_shiprearm)
     return;
   }
 
-  award_gold(ch, -cost);
+  before = *ship;
+  if (!vessel_charge(ch, cost))
+  {
+    return;
+  }
   for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
   {
     if (full[i] > 0)
@@ -959,8 +987,10 @@ ACMD(do_shiprearm)
     }
   }
   vessel_add_maintenance(ship, ch, weapons * VESSEL_REARM_TICKS);
-  vessel_db_save_weapons(ship);
-  vessel_db_save_runtime(ship);
+  if (!vessel_purchase_recorded(ch, ship, &before, cost))
+  {
+    return;
+  }
   send_to_char(ch, "The shipwrights rearm %d weapon%s for %d gold.\r\n", weapons,
                weapons == 1 ? "" : "s", cost);
   if (ship->maintenance_ticks > 0)
