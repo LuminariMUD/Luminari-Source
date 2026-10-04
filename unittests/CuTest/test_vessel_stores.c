@@ -125,6 +125,24 @@ void vessel_test_stores_end(CuTest *tc, struct vessel_test_stores *stores)
   mysql_close(stores->connection);
 }
 
+void vessel_test_database_away(struct vessel_test_stores *stores, bool away)
+{
+  static char no_socket[] = "/nonexistent/vessel-stores.sock";
+
+  if (away)
+  {
+    stores->saved_port = stores->connection->port;
+    stores->saved_unix_socket = stores->connection->unix_socket;
+    stores->connection->port = 1;
+    stores->connection->unix_socket = no_socket;
+  }
+  else
+  {
+    stores->connection->port = stores->saved_port;
+    stores->connection->unix_socket = stores->saved_unix_socket;
+  }
+}
+
 int vessel_test_file_gold(CuTest *tc, const struct vessel_test_stores *stores)
 {
   struct char_data *loaded;

@@ -364,7 +364,12 @@ static void vessel_summon_arrive(struct greyhawk_ship_data *ship)
     return;
   }
   vessel_sync_berth(ship);
-  vessel_db_save_runtime(ship);
+  /* The manifest first, as when she was summoned: a summons that stood
+   * unrecorded (do_shipsummon) may have left her hold in her rows. */
+  if (!vessel_db_save_cargo(ship) || !vessel_db_save_runtime(ship))
+  {
+    log("SYSERR: Summoned ship %d made port and could not be saved", ship->shipnum);
+  }
   vessel_periodic_sync(ship);
   vessel_summon_announce(ship);
   log("Info: Summoned ship %d '%s' made port at room %d", ship->shipnum, ship->name,
@@ -457,6 +462,7 @@ ACMD(do_shipsummon)
 {
   struct greyhawk_ship_data *ship;
   struct greyhawk_ship_data before;
+  struct greyhawk_ship_data summoned;
   const char *arg;
   char wait[64];
   room_rnum here;
@@ -549,8 +555,9 @@ ACMD(do_shipsummon)
 
   /* She will appear where she is saved: this shipyard. The summons is saved
    * before she leaves the world and before anything alongside or aboard is
-   * touched, so one that cannot be saved leaves her as she was. Her
-   * autopilot's state lies outside the copy of the hull. */
+   * touched, so one that cannot be saved leaves her as she was, unless that
+   * cannot be saved either. Her autopilot's state lies outside the copy of
+   * the hull. */
   before = *ship;
   autopilot_state = AUTOPILOT_OFF;
   autopilot_waypoint = 0;
@@ -582,6 +589,7 @@ ACMD(do_shipsummon)
    * bring her in with the cargo the summons leaves behind. */
   if (!vessel_db_save_cargo(ship) || !vessel_save_hull(ship))
   {
+    summoned = *ship;
     *ship = before;
     if (!ship->stowed && ship->autopilot != NULL)
     {
@@ -591,18 +599,29 @@ ACMD(do_shipsummon)
     /* Written back the other way round, the hull first: a stop between the
      * two writes then leaves her where she was with an empty manifest, never
      * due at this shipyard with her hold full. */
-    if (!vessel_save_hull(ship) || !vessel_db_save_cargo(ship))
+    if (vessel_save_hull(ship) && vessel_db_save_cargo(ship))
     {
-      log("SYSERR: Ship %d could not be written back after a refused summons; her rows may hold "
-          "part of it until she is saved again",
+      vessel_refund(ch, fee);
+      send_to_char(ch,
+                   "The harbor master cannot record the summons, so %s stays where she is and "
+                   "your %d gold is returned.\r\n",
+                   ship->name, fee);
+      return;
+    }
+    /* Her rows may hold the summons (a write whose reply is lost has been
+     * made), so it stands and the fee stays paid. The write-back may have
+     * rewritten part of her rows before it failed. */
+    if (!ship->stowed)
+    {
+      autopilot_stop(ship);
+    }
+    *ship = summoned;
+    if (!vessel_db_save_cargo(ship) || !vessel_save_hull(ship))
+    {
+      log("SYSERR: The summons of ship %d could be neither written nor written back; it stands, "
+          "and she is saved when she makes port",
           ship->shipnum);
     }
-    vessel_refund(ch, fee);
-    send_to_char(ch,
-                 "The harbor master cannot record the summons, so %s stays where she is and your "
-                 "%d gold is returned.\r\n",
-                 ship->name, fee);
-    return;
   }
   if (!before.stowed)
   {

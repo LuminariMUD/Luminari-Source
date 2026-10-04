@@ -25,6 +25,8 @@ struct vessel_test_stores
   struct player_index_element index[1];
   struct player_index_element *saved_table;
   int saved_top;
+  unsigned int saved_port;
+  char *saved_unix_socket;
 };
 
 /* A scratch player directory and index for the captain, whose file is saved. */
@@ -38,6 +40,11 @@ void vessel_test_pfile_end(CuTest *tc, struct vessel_test_stores *stores);
 bool vessel_test_stores_begin(CuTest *tc, struct vessel_test_stores *stores, int shipnum,
                               struct char_data *captain);
 void vessel_test_stores_end(CuTest *tc, struct vessel_test_stores *stores);
+
+/* Put the database out of reach of the reconnect a lost connection needs, so
+ * a command whose connection is lost finds it gone for the rest of its
+ * writes; or bring it back. */
+void vessel_test_database_away(struct vessel_test_stores *stores, bool away);
 
 /* The gold the captain's player file holds. */
 int vessel_test_file_gold(CuTest *tc, const struct vessel_test_stores *stores);

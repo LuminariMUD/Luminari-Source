@@ -16,6 +16,7 @@
 #include "core/comm.h"
 #include "core/db.h"
 #include "character/rewards.h"
+#include "database/mysql.h"
 #include "vessels.h"
 
 /**
@@ -45,13 +46,20 @@ bool vessel_gold_saved(struct char_data *ch, int amount)
 }
 
 /**
- * Take a purchase's price before the ship's side is written.
+ * Take a purchase's price before the ship's side is written. A database that
+ * does not answer refuses the purchase first: the ship's side could be
+ * neither written nor put back.
  *
- * @return FALSE when the gold could not be saved; the buyer is told, and
- *         nothing was taken
+ * @return FALSE when the purchase is refused; the buyer is told, and nothing
+ *         was taken
  */
 bool vessel_charge(struct char_data *ch, int cost)
 {
+  if (!mysql_available || conn == NULL || !MYSQL_PING_CONN(conn))
+  {
+    send_to_char(ch, "The harbor's records cannot be reached; no gold was taken.\r\n");
+    return FALSE;
+  }
   if (vessel_gold_saved(ch, -cost))
   {
     return TRUE;
@@ -86,23 +94,37 @@ void vessel_refund(struct char_data *ch, int amount)
  * taken before the work, in memory and in her rows (a write of several
  * statements can fail part way), and the price is refunded.
  *
+ * A write-back that fails lets the purchase stand instead: her rows may hold
+ * it (a write whose reply is lost has been made), so she keeps the work, the
+ * price stays paid, and her next save completes her rows. "Nothing was done"
+ * is never said of a purchase her rows may still hold.
+ *
  * @param before The hull as she was before the work
  * @return FALSE when the purchase was undone; the buyer is told
  */
 bool vessel_purchase_recorded(struct char_data *ch, struct greyhawk_ship_data *ship,
                               const struct greyhawk_ship_data *before, int cost)
 {
+  struct greyhawk_ship_data bought;
+
   if (vessel_save_hull(ship))
   {
     return TRUE;
   }
 
+  bought = *ship;
   *ship = *before;
   if (!vessel_save_hull(ship))
   {
-    log("SYSERR: Ship %d could not be written back after a refused purchase; her rows may hold "
-        "part of it until she is saved again",
-        ship->shipnum);
+    /* The write-back may have rewritten part of her rows before it failed. */
+    *ship = bought;
+    if (!vessel_save_hull(ship))
+    {
+      log("SYSERR: The work %s paid %d gold for on ship %d could be neither written nor written "
+          "back; it stands, and her next save completes her rows",
+          GET_NAME(ch), cost, ship->shipnum);
+    }
+    return TRUE;
   }
   vessel_refund(ch, cost);
   send_to_char(ch, "The harbor office could not record that, so nothing was done");

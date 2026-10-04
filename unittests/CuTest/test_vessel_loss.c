@@ -332,6 +332,52 @@ void Test_vessel_summons_sends_a_hull_out_of_the_world(CuTest *tc)
   loss_harbor_end(&harbor);
 }
 
+/* The reply to her stowed runtime row is lost and the database stays out of
+ * reach for the write-back: her rows hold the summons, so it stands and the
+ * fee stays paid. Returning the fee would leave a summons nobody paid for. */
+void Test_vessel_summons_stands_when_it_cannot_be_written_back(CuTest *tc)
+{
+  struct loss_harbor harbor;
+  struct vessel_test_stores stores;
+  struct greyhawk_ship_data *ship;
+  const char *output;
+
+  ship = loss_harbor_begin(tc, &harbor);
+  if (!vessel_test_stores_begin(tc, &stores, LOSS_SHIP, &harbor.captain))
+  {
+    loss_harbor_end(&harbor);
+    return;
+  }
+  autopilot_init(ship);
+  ship->autopilot->state = AUTOPILOT_TRAVELING;
+
+  mysql_test_drop_connection_at("REPLACE INTO ship_runtime_state", 1, TRUE);
+  vessel_test_database_away(&stores, TRUE);
+  output = loss_harbor_command(&harbor, "1");
+  vessel_test_database_away(&stores, FALSE);
+
+  CuAssertTrue(tc, strstr(output, "You pay 28 gold.") != NULL);
+  CuAssertTrue(tc, strstr(output, "is returned") == NULL);
+  CuAssertIntEquals(tc, 972, GET_GOLD(&harbor.captain));
+  CuAssertIntEquals(tc, 972, vessel_test_file_gold(tc, &stores));
+  CuAssertTrue(tc, ship->stowed && !ship->active && ship->summon_due > 0);
+  CuAssertPtrEquals(tc, NULL, ship->shipobj);
+  CuAssertIntEquals(tc, LOSS_DOCK_VNUM, ship->location);
+  CuAssertIntEquals(tc, 0, ship->cargo[0].quantity);
+  CuAssertIntEquals(tc, AUTOPILOT_OFF, ship->autopilot->state);
+  CuAssertIntEquals(tc, 1, IN_ROOM(&harbor.passenger));
+  CuAssertTrue(tc, vessel_test_number(tc, &stores,
+                                      "SELECT COUNT(*) FROM ship_runtime_state WHERE ship_id = 485 "
+                                      "AND stowed = 1 AND location_vnum = 169980") == 1);
+  CuAssertTrue(tc, vessel_test_number(tc, &stores,
+                                      "SELECT COUNT(*) FROM ship_cargo_manifest "
+                                      "WHERE ship_id = 485") == 0);
+
+  autopilot_cleanup(ship);
+  vessel_test_stores_end(tc, &stores);
+  loss_harbor_end(&harbor);
+}
+
 void Test_vessel_summoned_hull_sends_word_to_her_owner(CuTest *tc)
 {
   struct loss_harbor harbor;

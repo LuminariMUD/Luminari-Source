@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
@@ -264,14 +265,25 @@ void Test_vessel_purchase_writes_both_stores_or_neither(CuTest *tc)
   CuAssertIntEquals(tc, gold, GET_GOLD(&berth.captain));
   GET_LEVEL(&berth.captain) = 20;
 
-  /* Without a database the hull cannot be written, so nothing is sold. */
-  mysql_available = FALSE;
+  /* A database that does not answer sells nothing and charges nothing: the
+   * hull could be neither written nor written back. */
   before = *berth.ship;
+  mysql_available = FALSE;
   output = payment_command(&berth, do_shiphire, "bosun green");
   mysql_available = TRUE;
-  CuAssertTrue(tc, strstr(output, "so nothing was done and your ") != NULL);
+  CuAssertTrue(tc, strstr(output, "The harbor's records cannot be reached; no gold was taken.") !=
+                       NULL);
   CuAssertTrue(tc, payment_hull_is(berth.ship, &before));
   CuAssertIntEquals(tc, gold, GET_GOLD(&berth.captain));
+  vessel_test_database_away(&berth.stores, TRUE);
+  shutdown(mysql_get_socket(conn), SHUT_RDWR);
+  output = payment_command(&berth, do_shiphire, "bosun green");
+  vessel_test_database_away(&berth.stores, FALSE);
+  CuAssertTrue(tc, strstr(output, "The harbor's records cannot be reached; no gold was taken.") !=
+                       NULL);
+  CuAssertTrue(tc, payment_hull_is(berth.ship, &before));
+  CuAssertIntEquals(tc, gold, GET_GOLD(&berth.captain));
+  CuAssertIntEquals(tc, gold, vessel_test_file_gold(tc, &berth.stores));
 
   /* A mob has no player file to save its gold in, so it buys nothing. */
   memset(&mob, 0, sizeof(mob));
@@ -289,6 +301,42 @@ void Test_vessel_purchase_writes_both_stores_or_neither(CuTest *tc)
   CuAssertTrue(tc, vessel_test_number(tc, &berth.stores,
                                       "SELECT COALESCE(SUM(item_count), 0) FROM "
                                       "ship_cargo_manifest WHERE ship_id = 487") == 5);
+
+  payment_end(tc, &berth);
+}
+
+/* The reply to her crew's row is lost and the database stays out of reach
+ * for the write-back: her rows hold the hire, so it stands and stays paid.
+ * "Nothing was done" with the gold returned would leave a gunner nobody paid
+ * for in them. */
+void Test_vessel_purchase_stands_when_it_cannot_be_written_back(CuTest *tc)
+{
+  struct payment_berth berth;
+  const char *output;
+  int cost;
+
+  if (!payment_begin(tc, &berth))
+  {
+    return;
+  }
+
+  mysql_test_drop_connection_at("INSERT INTO ship_crew_roster", 1, TRUE);
+  vessel_test_database_away(&berth.stores, TRUE);
+  output = payment_command(&berth, do_shiphire, "gunner green");
+  vessel_test_database_away(&berth.stores, FALSE);
+
+  CuAssertTrue(tc, strstr(output, "could not") == NULL);
+  CuAssertTrue(tc, strstr(output, "returned") == NULL);
+  CuAssertTrue(tc, berth.ship->crew_tier[CREW_GUNNER] == CREW_TIER_GREEN);
+  cost = PAYMENT_GOLD - GET_GOLD(&berth.captain);
+  CuAssertTrue(tc, cost > 0);
+  CuAssertIntEquals(tc, PAYMENT_GOLD - cost, vessel_test_file_gold(tc, &berth.stores));
+  CuAssertTrue(tc, vessel_test_number(tc, &berth.stores,
+                                      "SELECT COUNT(*) FROM ship_crew_roster "
+                                      "WHERE ship_id = 487") == 1);
+
+  /* Her next save completes her rows. */
+  CuAssertTrue(tc, vessel_save_hull(berth.ship));
 
   payment_end(tc, &berth);
 }

@@ -936,8 +936,11 @@ ACMD(do_shipbrowse)
  * back to the copy taken before the work, and her old rooms are recreated
  * the way boot recreates them. She is written back, unless her rooms could
  * not be recreated: her rows would then say she has none.
+ *
+ * @return FALSE when she is not as she was in play and in her rows, which
+ *         may then hold part of the new hull
  */
-static void vessel_trade_in_undo(struct greyhawk_ship_data *ship,
+static bool vessel_trade_in_undo(struct greyhawk_ship_data *ship,
                                  const struct greyhawk_ship_data *before, room_rnum dock)
 {
   vessel_reclaim_interior_rooms(ship, dock);
@@ -945,15 +948,10 @@ static void vessel_trade_in_undo(struct greyhawk_ship_data *ship,
   if (!restore_ship_interior(ship) || !vessel_place_hull_object(ship, ship->shipobj))
   {
     log("SYSERR: Ship %d lost her interior when her trade-in was undone", ship->shipnum);
-    return;
+    return FALSE;
   }
   vessel_refresh_hull_strings(ship, FALSE);
-  if (!vessel_save_one(ship))
-  {
-    log("SYSERR: Ship %d could not be written back after her trade-in was undone; her rows may "
-        "hold part of it until she is saved again",
-        ship->shipnum);
-  }
+  return vessel_save_one(ship);
 }
 
 /**
@@ -966,7 +964,8 @@ static void vessel_trade_in_undo(struct greyhawk_ship_data *ship,
  * What the captain owes before the fittings are counted is charged before
  * the rebuild, and what the shipwrights owe is paid after the rebuilt hull
  * is saved. A hull that cannot be rebuilt or recorded, or a payment that
- * cannot be saved, undoes the trade.
+ * cannot be saved, undoes the trade. An undo that cannot be recorded keeps
+ * the charge: her rows may hold the new hull, so the staff settle it.
  */
 static void vessel_trade_in(struct char_data *ch, int id, int vclass, int max_speed, int armor,
                             int price)
@@ -1049,7 +1048,28 @@ static void vessel_trade_in(struct char_data *ch, int id, int vclass, int max_sp
   if (!traded)
   {
     log("SYSERR: The trade-in of ship %d could not be completed and is undone", ship->shipnum);
-    vessel_trade_in_undo(ship, &before, dock);
+    if (!vessel_trade_in_undo(ship, &before, dock))
+    {
+      mudlog(BRF, LVL_STAFF, TRUE,
+             "SYSERR: %s's trade-in of ship %d failed and could not be undone in full; the "
+             "database may hold the new hull: the %d gold charged is kept and has to be settled "
+             "by hand.",
+             GET_NAME(ch), ship->shipnum, charge);
+      send_to_char(ch,
+                   "The shipwrights cannot complete the trade, and the harbor office cannot "
+                   "put its records of %s right. ",
+                   ship->name);
+      if (charge > 0)
+      {
+        send_to_char(ch, "Your %d gold stays paid until the staff settle it; they ", charge);
+      }
+      else
+      {
+        send_to_char(ch, "The staff ");
+      }
+      send_to_char(ch, "have been told.\r\n");
+      return;
+    }
     vessel_refund(ch, charge);
     send_to_char(ch,
                  "The shipwrights cannot complete the trade, so it is undone: %s is rebuilt as "
