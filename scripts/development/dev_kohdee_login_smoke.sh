@@ -2023,7 +2023,10 @@ proc run_vessel_damage_check {warship_id} {
   require_game_output $output "Colors: struck, for about" "struck colors status"
   set output [run_game_command "speed 1"]
   require_game_output $output "Speed set to 1." "getting under way"
-  set output [wait_for_game_output 3 "colors fly again"]
+  # The tick that gets her under way can land with the order's own output.
+  if {[string first "colors fly again" $output] < 0} {
+    set output [wait_for_game_output 3 "colors fly again"]
+  }
   require_game_output $output "Starfall Bastion's colors fly again." "colors hoisted"
   run_game_command "speed 0"
   run_game_command "@wait 3"
