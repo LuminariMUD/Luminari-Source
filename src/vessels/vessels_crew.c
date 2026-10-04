@@ -360,8 +360,10 @@ void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship)
 
 /**
  * Persist hired crew (delete-and-reinsert, idempotent).
+ *
+ * @return FALSE when a write failed, which may leave the roster cleared
  */
-void vessel_db_save_crew(struct greyhawk_ship_data *ship)
+bool vessel_db_save_crew(struct greyhawk_ship_data *ship)
 {
   char query[MAX_STRING_LENGTH];
   bool has_crew;
@@ -370,7 +372,7 @@ void vessel_db_save_crew(struct greyhawk_ship_data *ship)
 
   if (!mysql_available || conn == NULL || ship == NULL)
   {
-    return;
+    return FALSE;
   }
 
   snprintf(query, sizeof(query),
@@ -380,7 +382,7 @@ void vessel_db_save_crew(struct greyhawk_ship_data *ship)
   {
     log("SYSERR: vessel_db_save_crew (clear) failed for ship %d: %s", ship->shipnum,
         mysql_error(conn));
-    return;
+    return FALSE;
   }
 
   length = snprintf(query, sizeof(query),
@@ -389,7 +391,7 @@ void vessel_db_save_crew(struct greyhawk_ship_data *ship)
   if (length < 0 || length >= (int)sizeof(query))
   {
     log("SYSERR: vessel_db_save_crew could not build insert for ship %d", ship->shipnum);
-    return;
+    return FALSE;
   }
 
   has_crew = FALSE;
@@ -410,14 +412,16 @@ void vessel_db_save_crew(struct greyhawk_ship_data *ship)
   if (length >= (int)sizeof(query) - 1)
   {
     log("SYSERR: vessel_db_save_crew insert overflow for ship %d", ship->shipnum);
-    return;
+    return FALSE;
   }
 
   if (has_crew && mysql_query(conn, query))
   {
     log("SYSERR: vessel_db_save_crew (insert) failed for ship %d: %s", ship->shipnum,
         mysql_error(conn));
+    return FALSE;
   }
+  return TRUE;
 }
 
 /**
@@ -507,6 +511,7 @@ static struct greyhawk_ship_data *crew_command_ship(struct char_data *ch)
 ACMD(do_shiphire)
 {
   struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data before;
   char arg1[MAX_INPUT_LENGTH];
   char arg2[MAX_INPUT_LENGTH];
   int position;
@@ -592,11 +597,18 @@ ACMD(do_shiphire)
     return;
   }
 
-  award_gold(ch, -cost);
+  before = *ship;
+  if (!vessel_charge(ch, cost))
+  {
+    return;
+  }
   ship->crew_tier[position] = tier;
   ship->crew_xp[position] = vessel_crew_floor(position, tier);
   vessel_apply_crew_bonuses(ship);
-  vessel_db_save_crew(ship);
+  if (!vessel_purchase_recorded(ch, ship, &before, cost))
+  {
+    return;
+  }
 
   send_to_char(ch, "You sign on a %s %s for %d gold.\r\n", vessel_crew_tier_name(tier),
                vessel_crew_position_name(position), cost);

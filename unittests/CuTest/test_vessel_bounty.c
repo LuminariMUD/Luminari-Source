@@ -12,6 +12,7 @@
 #include "../../src/database/mysql.h"
 #include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"
+#include "test_vessel_stores.h"
 
 #include <limits.h>
 #include <stdlib.h>
@@ -82,6 +83,7 @@ void Test_vessel_bounty_accrues_decays_and_pays_off(CuTest *tc)
   struct room_data rooms[2];
   struct room_data *saved_world;
   room_rnum saved_top_of_world;
+  struct vessel_test_stores stores;
   MYSQL *saved_conn;
   MYSQL *connection;
   bool saved_mysql_available;
@@ -149,8 +151,11 @@ void Test_vessel_bounty_accrues_decays_and_pays_off(CuTest *tc)
   descriptor.pProtocol = ProtocolCreate();
   CuAssertPtrNotNull(tc, descriptor.pProtocol);
 
+  /* The pay-off is saved with the captain. */
   IN_ROOM(&pirate) = 0;
   GET_GOLD(&pirate) = 1000;
+  memset(&stores, 0, sizeof(stores));
+  vessel_test_pfile_begin(tc, &stores, &pirate);
   do_bounty(&pirate, "pay", 0, 0);
   CuAssertTrue(tc, strstr(output, "lawful port's admiralty office") != NULL);
   CuAssertIntEquals(tc, 460, vessel_get_bounty("Corr"));
@@ -173,6 +178,7 @@ void Test_vessel_bounty_accrues_decays_and_pays_off(CuTest *tc)
   do_bounty(&pirate, "", 0, 0);
   CuAssertTrue(tc, strstr(output, "You carry no price.") != NULL);
 
+  vessel_test_pfile_end(tc, &stores);
   ProtocolDestroy(descriptor.pProtocol);
   vessel_piracy_clear_laws();
   world = saved_world;

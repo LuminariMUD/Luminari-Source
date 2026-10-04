@@ -427,7 +427,7 @@ static bool contract_fetch(int contract_id, int *commodity_id, int *quantity, in
   return found;
 }
 
-/* Take freight back out of a hold bay: the acceptance did not go through. */
+/* Take freight out of a hold bay: an acceptance that did not go through, or a delivery. */
 static void contract_unload(struct greyhawk_ship_data *ship, int lot, int quantity)
 {
   ship->cargo[lot].quantity -= quantity;
@@ -613,13 +613,61 @@ ACMD(do_contractaccept)
 }
 
 /**
+ * Write a contract's status and the hold's manifest in one transaction: a
+ * delivery, or a delivery taken back. Both writes are absolute, so after a
+ * COMMIT that got no reply the transaction is sent once more.
+ *
+ * @return FALSE when the transaction is not known to be committed
+ */
+static bool contract_record(struct greyhawk_ship_data *ship, int contract_id, int status)
+{
+  PREPARED_STMT *statement;
+  enum mysql_commit_result result;
+  bool written;
+  int attempt;
+
+  for (attempt = 0; attempt < 2; attempt++)
+  {
+    if (mysql_query(conn, "START TRANSACTION"))
+    {
+      break;
+    }
+    statement = mysql_stmt_create(conn);
+    written = statement != NULL &&
+              mysql_stmt_prepare_query(
+                  statement, "UPDATE freight_contracts SET status = ? WHERE contract_id = ?") &&
+              mysql_stmt_bind_param_int(statement, 0, status) &&
+              mysql_stmt_bind_param_int(statement, 1, contract_id) &&
+              mysql_stmt_execute_prepared(statement);
+    mysql_stmt_cleanup(statement);
+    if (!written || !vessel_db_save_cargo(ship))
+    {
+      mysql_query(conn, "ROLLBACK");
+      break;
+    }
+    result = mysql_commit_transaction(conn);
+    if (result != MYSQL_COMMIT_UNANSWERED)
+    {
+      return result == MYSQL_COMMIT_DONE;
+    }
+  }
+  log("SYSERR: Could not record contract %d as status %d with the manifest of ship %d", contract_id,
+      status, ship->shipnum);
+  return FALSE;
+}
+
+/**
  * contractdeliver <id> - deliver at the destination and collect.
+ *
+ * The contract and the unloaded hold are written first, then the payout is
+ * saved. If the payout cannot be saved, the freight is loaded again and the
+ * contract written back as taken; if that cannot be written either, the
+ * delivery stands and the per-minute save of the player stores the gold.
  */
 ACMD(do_contractdeliver)
 {
   struct greyhawk_ship_data *ship;
   char arg[MAX_INPUT_LENGTH];
-  char query[MAX_STRING_LENGTH];
   char taken_by[64];
   int port_vnum;
   int contract_id;
@@ -682,21 +730,43 @@ ACMD(do_contractdeliver)
     return;
   }
 
-  ship->cargo[lot].quantity -= quantity;
-  if (ship->cargo[lot].quantity <= 0)
+  contract_unload(ship, lot, quantity);
+  if (!contract_record(ship, contract_id, CONTRACT_STATUS_DONE))
   {
-    ship->cargo[lot].commodity_id = 0;
+    /* The outcome may be unknown: write the hold back as it stands. */
+    ship->cargo[lot].commodity_id = commodity_id;
+    ship->cargo[lot].quantity += quantity;
+    if (contract_record(ship, contract_id, CONTRACT_STATUS_TAKEN))
+    {
+      send_to_char(ch,
+                   "The freight office cannot record the delivery; the freight stays aboard.\r\n");
+      return;
+    }
+    /* The database went away mid-command: the delivery may be in its books. */
+    mudlog(BRF, LVL_STAFF, TRUE,
+           "SYSERR: Freight contract %d of %s may be recorded as delivered without its %d gold "
+           "payout: neither the delivery nor its undo could be confirmed.",
+           contract_id, GET_NAME(ch), payout);
+    send_to_char(ch, "The freight office cannot confirm whether the delivery was recorded. The "
+                     "freight stays aboard, and the staff have been told.\r\n");
+    return;
   }
-  vessel_db_save_cargo(ship);
-
-  snprintf(query, sizeof(query), "UPDATE freight_contracts SET status = %d WHERE contract_id = %d",
-           CONTRACT_STATUS_DONE, contract_id);
-  if (mysql_query(conn, query))
+  if (!vessel_gold_saved(ch, payout))
   {
-    log("SYSERR: contract completion update failed: %s", mysql_error(conn));
+    ship->cargo[lot].commodity_id = commodity_id;
+    ship->cargo[lot].quantity += quantity;
+    if (contract_record(ship, contract_id, CONTRACT_STATUS_TAKEN))
+    {
+      send_to_char(ch, "Your payment could not be recorded, so the delivery is undone.\r\n");
+      return;
+    }
+    contract_unload(ship, lot, quantity);
+    award_gold(ch, payout);
+    log("SYSERR: The %d gold %s was paid for contract %d is not saved yet; the next save of the "
+        "player stores it",
+        payout, GET_NAME(ch), contract_id);
   }
 
-  award_gold(ch, payout);
   send_to_char(ch, "Freight delivered. The consignee pays %d gold.\r\n", payout);
   send_to_ship(ship, "Dockhands unload %d units of freight from %s.", quantity, ship->name);
   log("Info: %s delivered freight contract %d for %d gold", GET_NAME(ch), contract_id, payout);

@@ -13,6 +13,7 @@
 #include "../../src/database/mysql.h"
 #include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"
+#include "test_vessel_stores.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -482,6 +483,10 @@ void Test_vessel_shipyard_sells_only_listed_hulls(CuTest *tc)
   struct room_data dock;
   struct room_data *saved_world;
   struct greyhawk_ship_data ship;
+  struct vessel_test_stores stores;
+  struct index_data no_hull_object;
+  struct index_data *saved_obj_index;
+  obj_rnum saved_top_of_objt;
   room_rnum saved_top_of_world;
   MYSQL_RES *result;
   MYSQL *saved_conn;
@@ -629,6 +634,47 @@ void Test_vessel_shipyard_sells_only_listed_hulls(CuTest *tc)
   do_shipbuy(&buyer.ch, "1 barter", 0, 0);
   CuAssertTrue(tc, strstr(output, "Usage: shipbuy <id> [trade]") != NULL);
   CuAssertIntEquals(tc, 1000000, GET_GOLD(&buyer.ch));
+
+  /* A price that cannot be saved buys no hull and trades none in. */
+  memset(&stores, 0, sizeof(stores));
+  vessel_test_pfile_begin(tc, &stores, &buyer.ch);
+  GET_PFILEPOS(&buyer.ch) = -1;
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  do_shipbuy(&buyer.ch, "1", 0, 0);
+  CuAssertTrue(tc,
+               strstr(output, "Your payment could not be recorded; no gold was taken.") != NULL);
+  CuAssertIntEquals(tc, 1, vessel_owned_hull_count("Corr"));
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  do_shipbuy(&buyer.ch, "1 trade", 0, 0);
+  CuAssertTrue(tc,
+               strstr(output, "Your payment could not be recorded; no gold was taken.") != NULL);
+  CuAssertTrue(tc, greyhawk_ships[SHIPYARD_FIRST_SLOT].wreck_hull);
+  CuAssertIntEquals(tc, 1000000, GET_GOLD(&buyer.ch));
+  GET_PFILEPOS(&buyer.ch) = 0;
+
+  /* A hull the yard cannot deliver is refunded: this world's object table
+   * has no hull object to build her from. */
+  memset(&no_hull_object, 0, sizeof(no_hull_object));
+  no_hull_object.vnum = 1;
+  saved_obj_index = obj_index;
+  saved_top_of_objt = top_of_objt;
+  obj_index = &no_hull_object;
+  top_of_objt = 0;
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  do_shipbuy(&buyer.ch, "1", 0, 0);
+  obj_index = saved_obj_index;
+  top_of_objt = saved_top_of_objt;
+  CuAssertTrue(tc, strstr(output, "Your 183 gold is returned.") != NULL);
+  CuAssertIntEquals(tc, 1, vessel_owned_hull_count("Corr"));
+  CuAssertIntEquals(tc, 1000000, GET_GOLD(&buyer.ch));
+  CuAssertIntEquals(tc, 1000000, vessel_test_file_gold(tc, &stores));
+  vessel_test_pfile_end(tc, &stores);
 
   /* A prototype's own level overrides its class minimum. */
   memset(&ship, 0, sizeof(ship));

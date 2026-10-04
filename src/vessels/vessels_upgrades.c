@@ -225,14 +225,16 @@ short int vessel_rigged_speed(int design_speed)
 
 /**
  * Persist upgrades.
+ *
+ * @return FALSE when the write failed
  */
-void vessel_db_save_extras(struct greyhawk_ship_data *ship)
+bool vessel_db_save_extras(struct greyhawk_ship_data *ship)
 {
   char query[MAX_STRING_LENGTH];
 
   if (!mysql_available || conn == NULL || ship == NULL)
   {
-    return;
+    return FALSE;
   }
 
   snprintf(query, sizeof(query), "UPDATE ship_interiors SET upgrades = %d WHERE ship_id = %d",
@@ -241,7 +243,9 @@ void vessel_db_save_extras(struct greyhawk_ship_data *ship)
   if (mysql_query(conn, query))
   {
     log("SYSERR: vessel_db_save_extras failed for ship %d: %s", ship->shipnum, mysql_error(conn));
+    return FALSE;
   }
+  return TRUE;
 }
 
 /**
@@ -552,6 +556,7 @@ struct greyhawk_ship_data *vessel_refit_ship(struct char_data *ch)
 ACMD(do_shipupgrade)
 {
   struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data before;
   char arg[MAX_INPUT_LENGTH];
   int index;
   int cost;
@@ -599,7 +604,11 @@ ACMD(do_shipupgrade)
     return;
   }
 
-  award_gold(ch, -cost);
+  before = *ship;
+  if (!vessel_charge(ch, cost))
+  {
+    return;
+  }
   SET_BIT(ship->upgrades, bit);
 
   /* Raise the relevant ceilings once, at install time (study 3.3.1) */
@@ -617,8 +626,11 @@ ACMD(do_shipupgrade)
     break;
   }
 
-  vessel_db_save_extras(ship);
-  save_ship_interior(ship);
+  /* The ceilings live in her runtime row, the refit bit in her interior row. */
+  if (!vessel_purchase_recorded(ch, ship, &before, cost))
+  {
+    return;
+  }
 
   send_to_char(ch, "The shipwrights fit %s to %s for %d gold.\r\n", vessel_upgrade_name(index),
                ship->name, cost);

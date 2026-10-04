@@ -73,6 +73,7 @@ baseline_secondary_bounty=
 warship_prototype_id=
 contraband_unstocked=false
 settlement_contract_id=
+payment_refusal_planted=false
 snapshot_ready=false
 cleanup_needed=false
 acceptance_complete=false
@@ -305,6 +306,29 @@ set_east_dock_tomes_stock() {
   fi
 }
 
+# The loss check has the database refuse the runtime row of one hull design,
+# so a purchase of it cannot be recorded (study step S15).
+plant_payment_refusal() {
+  local prototype_id=$1
+
+  database_query "
+    ALTER TABLE ship_runtime_state
+      ADD CONSTRAINT vessel_payment_refused CHECK (prototype_id <> $prototype_id);"
+}
+
+remove_payment_refusal() {
+  database_query "
+    ALTER TABLE ship_runtime_state DROP CONSTRAINT IF EXISTS vessel_payment_refused;"
+}
+
+# A number a payment-check session printed after this text, if any.
+payment_value() {
+  local session_log=$1
+  local text=$2
+
+  sed -n "s/.*${text}\([1-9][0-9]*\).*/\1/p" "$session_log" | head -n 1
+}
+
 # Remove the unpaid settlement the economy check plants, and its contract.
 remove_planted_settlement() {
   database_query "
@@ -428,6 +452,9 @@ restore_baseline() {
   if [[ -n "$settlement_contract_id" ]]; then
     remove_planted_settlement || cleanup_status=1
   fi
+  if [[ "$payment_refusal_planted" == true ]]; then
+    remove_payment_refusal || cleanup_status=1
+  fi
 
   if [[ "$cleanup_status" == 0 ]]; then
     start_server_without_login || cleanup_status=1
@@ -491,8 +518,9 @@ finish() {
         "$elapsed_seconds"
     elif [[ "$acceptance_mode" == loss ]]; then
       printf 'PASS: Kohdee and Vesselmate validated the retired insurance command, the crew '
-      printf 'hiring gate and experience, the rename fee, a summons, and a trade-in with '
-      printf 'exact two-character restoration (%ss).\n' "$elapsed_seconds"
+      printf 'hiring gate and experience, the rename fee, a summons, a trade-in, and a '
+      printf 'purchase and a trade-in the harbor could not record, with exact two-character '
+      printf 'restoration (%ss).\n' "$elapsed_seconds"
     elif [[ "$acceptance_mode" == economy ]]; then
       printf 'PASS: Kohdee and Vesselmate validated contraband buying, the neutral-colors '
       printf 'sale, customs, prize money, and renown with exact two-character restoration (%ss).\n' \
@@ -960,15 +988,40 @@ elif [[ "$acceptance_mode" == loss ]]; then
   [[ "$loss_help_state" == 2 ]] ||
     fail "the authoritative vessel loss help is stale"
 
+  # A hull the harbor cannot record is refunded and undone (study step S15).
+  # Kohdee lists a design whose runtime row the database then refuses; in the
+  # loss session Vesselmate, who owns only the check's boat, buys a hull of
+  # that design and trades the boat in for one.
+  run_kohdee_commands "$run_dir/02-kohdee-payment-design.log" \
+    "vedit new 2 Losscheck Refused $(date +%s)" ||
+    fail "Kohdee could not create the design the database refuses"
+  payment_refused_id=$(payment_value "$run_dir/02-kohdee-payment-design.log" \
+    'Created Ship prototype ')
+  [[ -n "$payment_refused_id" ]] || fail "could not read the refused design's id"
+  run_kohdee_commands "$run_dir/02-kohdee-payment-listing.log" \
+    "vedit set $payment_refused_id forsale yes" ||
+    fail "Kohdee could not list the design the database refuses"
+  payment_refusal_planted=true
+  plant_payment_refusal "$payment_refused_id" ||
+    fail "could not have the database refuse the listed design's runtime row"
+
   timeout 300 env DEV_MUD_CHARACTER="$target_player" \
     "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --vessel-loss-check \
-    "$secondary_player" >"$run_dir/02-kohdee-vessel-loss.log" 2>&1 ||
+    "$secondary_player" "$payment_refused_id" >"$run_dir/02-kohdee-vessel-loss.log" 2>&1 ||
     fail "the actual Kohdee and Vesselmate vessel-loss session failed"
+  payment_refused_rows=$(database_query "
+    SELECT COUNT(*) FROM ship_runtime_state WHERE prototype_id = $payment_refused_id;") ||
+    payment_refused_rows=unreadable
+  remove_payment_refusal || fail "could not lift the refusal of the listed design's runtime row"
+  payment_refusal_planted=false
+  [[ "$payment_refused_rows" == 0 ]] ||
+    fail "the refused purchases left runtime rows behind: $payment_refused_rows"
 
   for expected_text in \
     'PASS: the retired SHIPINSURE command is gone.' \
     'was refused an able gunner and hired a green bosun' \
     'PASS: the first christening was free and the rename cost 60 gold.' \
+    'PASS: a hull and a trade-in the harbor could not record were undone, and nothing was charged.' \
     'PASS: summoned from sea to the east dock, the boat made port in 37 seconds.' \
     'PASS: traded in at the east dock, she became a warship design' \
     'PASS: the vessel loss check completed and purged all temporary hulls'; do

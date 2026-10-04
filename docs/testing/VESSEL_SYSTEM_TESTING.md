@@ -614,8 +614,8 @@ After a clean candidate is built and installed, run:
 The wrapper runs the shared tactical harness in `--loss` mode, which reads the
 SHIPSUMMON and SHIPREPAIR help as Kohdee, checks the authoritative help rows,
 refuses to start if Vesselmate already owns a hull, and calls
-`--vessel-loss-check Vesselmate` in the login helper with the same snapshots
-and two-character restoration as the rules gate.
+`--vessel-loss-check Vesselmate <refused-design>` in the login helper with the
+same snapshots and two-character restoration as the rules gate.
 
 `shipinsure` must be unknown (`Huh!?!`). Kohdee launches a `Losscheck Boat`
 prototype at sea at `(-63, 82)`, one room west of the harbor's east dock, sets
@@ -632,6 +632,32 @@ the boat in for 540 gold of credit, and she is rebuilt as a warship with a
 large ballista on the bow, berthed, keeping her owner and her bosun. Cleanup
 purges the hull, deletes both prototypes, and returns both characters to
 room 1204.
+
+The session also plays a hull the harbor cannot record (study step S15).
+Before it starts, Kohdee creates and lists a `Losscheck Refused` ship design,
+and the harness adds a `vessel_payment_refused` CHECK constraint to
+`ship_runtime_state` that refuses the runtime row of that design; the design's
+id is the helper's second argument. On the dock, before the trade-in above,
+Vesselmate (who owns only the check's boat) orders `shipbuy <design>` and
+`shipbuy <design> trade`. The first must report
+`The ship could not be persisted, so the spawn was rolled back.` and
+`gold is returned.`; the second
+`The shipwrights cannot complete the trade, so it is undone:` followed by
+`Losscheck Tern is rebuilt as she was and no gold changes hands.` The `gold`
+command must show the same purse before and after, `shiplist` must still list
+her as a boat, and `shipcrew` her owner and her bosun. After the
+session no runtime row may name the refused design; the harness drops the
+constraint, also when a run fails, and the session's cleanup deletes the
+design.
+
+On 2026-10-04 the gate passed with this step in 84 seconds inside the private
+namespace described under the Vessel Rules Check, on source `bc3f39c30`:
+Vesselmate's purse was 57,938 gold before and after the two refused orders. In
+the same batch on the same binary all 22 jobs passed: both merchant gates, the
+campaign provisioning, builder, gunnery (76 s), tactical (282 s), lookout,
+boarding, narrative, rules, events, movement (104 s), damage (547 s),
+derelict, hunter (90 s), frontier (221 s), raider (174 s), economy (240 s),
+client, and the economy gate with every database session killed twice.
 
 On 2026-09-30 the gate passed in 79 seconds inside the private namespace
 described under the Vessel Rules Check, on source `398e23a7f`. In the same

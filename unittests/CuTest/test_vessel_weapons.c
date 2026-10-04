@@ -12,6 +12,7 @@
 #include "../../src/database/mysql.h"
 #include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"
+#include "test_vessel_stores.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -284,10 +285,17 @@ static void weapons_berth_end(struct weapons_berth *berth)
 void Test_vessel_shipyard_fits_weapons_and_equipment(CuTest *tc)
 {
   struct weapons_berth berth;
+  struct vessel_test_stores stores;
   struct greyhawk_ship_data *ship;
   const char *output;
 
+  /* The yard's work is paid for and recorded: it needs both stores. */
   ship = weapons_berth_begin(tc, &berth);
+  if (!vessel_test_stores_begin(tc, &stores, WEAPONS_SHIP, &berth.captain))
+  {
+    weapons_berth_end(&berth);
+    return;
+  }
 
   output = weapons_berth_command(&berth, do_shipweapon, "list");
   CuAssertTrue(tc, strstr(output, "Long Tom Catapult") != NULL);
@@ -400,6 +408,7 @@ void Test_vessel_shipyard_fits_weapons_and_equipment(CuTest *tc)
   vessel_add_maintenance(ship, &berth.captain, 100);
   CuAssertIntEquals(tc, 0, ship->maintenance_ticks);
 
+  vessel_test_stores_end(tc, &stores);
   weapons_berth_end(&berth);
 }
 

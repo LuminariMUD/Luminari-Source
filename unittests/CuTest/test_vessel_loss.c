@@ -16,6 +16,7 @@
 #include "../../src/database/mysql.h"
 #include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"
+#include "test_vessel_stores.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -206,17 +207,79 @@ static void loss_harbor_end(struct loss_harbor *harbor)
 
 void Test_vessel_summons_sends_a_hull_out_of_the_world(CuTest *tc)
 {
+  static const char *const lost_replies[] = {"DELETE FROM ship_cargo_manifest",
+                                             "REPLACE INTO ship_runtime_state"};
   struct loss_harbor harbor;
+  struct vessel_test_stores stores;
   struct greyhawk_ship_data *ship;
+  struct vehicle_data *cart;
   const char *output;
+  char query[160];
   time_t ordered;
+  size_t i;
 
+  /* A summons is paid for and recorded: it needs both stores. She sails
+   * under her autopilot with a hull alongside and a cart in her bay. */
   ship = loss_harbor_begin(tc, &harbor);
+  if (!vessel_test_stores_begin(tc, &stores, LOSS_SHIP, &harbor.captain))
+  {
+    loss_harbor_end(&harbor);
+    return;
+  }
+  autopilot_init(ship);
+  ship->autopilot->state = AUTOPILOT_TRAVELING;
+  ship->autopilot->current_waypoint_index = 2;
+  ship->docked_to_ship = 3;
+  ship->docking_room = LOSS_BRIDGE_VNUM;
+  cart = vehicle_create(VEHICLE_CART, "a summons cart");
+  CuAssertPtrNotNull(tc, cart);
+  cart->parent_vessel_id = LOSS_SHIP;
 
   /* The list names each hull with its fee and passage. */
   output = loss_harbor_command(&harbor, "");
   CuAssertTrue(tc, strstr(output, " 1. the Petrel (Warship): at sea; 28 gold, about 2 minutes.") !=
                        NULL);
+
+  /* A fee that cannot be saved summons nothing. */
+  GET_PFILEPOS(&harbor.captain) = -1;
+  output = loss_harbor_command(&harbor, "1");
+  GET_PFILEPOS(&harbor.captain) = 0;
+  CuAssertTrue(tc,
+               strstr(output, "Your payment could not be recorded; no gold was taken.") != NULL);
+  CuAssertIntEquals(tc, 1000, GET_GOLD(&harbor.captain));
+  CuAssertTrue(tc, !ship->stowed && ship->summon_due == 0);
+
+  /* A summons that cannot be recorded leaves her as she was: where she is,
+   * with her passenger, her cargo, her course and the hull alongside, and
+   * the fee is returned. The reply to her emptied manifest or to her runtime
+   * row is lost, so the server has made that write before she is written
+   * back. */
+  for (i = 0; i < sizeof(lost_replies) / sizeof(lost_replies[0]); i++)
+  {
+    mysql_test_drop_connection_at(lost_replies[i], 1, TRUE);
+    output = loss_harbor_command(&harbor, "1");
+    CuAssertTrue(tc, strstr(output, "The harbor master cannot record the summons, so the Petrel "
+                                    "stays where she is and your 28 gold is returned.") != NULL);
+    CuAssertIntEquals(tc, 1000, GET_GOLD(&harbor.captain));
+    CuAssertIntEquals(tc, 1000, vessel_test_file_gold(tc, &stores));
+    CuAssertIntEquals(tc, 2, IN_ROOM(&harbor.passenger));
+    CuAssertIntEquals(tc, 40, ship->cargo[0].quantity);
+    CuAssertTrue(tc, !ship->stowed && ship->active && ship->summon_due == 0);
+    CuAssertPtrNotNull(tc, ship->shipobj);
+    CuAssertIntEquals(tc, 1, IN_ROOM(ship->shipobj));
+    CuAssertIntEquals(tc, LOSS_SEA_VNUM, ship->location);
+    CuAssertIntEquals(tc, AUTOPILOT_TRAVELING, ship->autopilot->state);
+    CuAssertIntEquals(tc, 2, ship->autopilot->current_waypoint_index);
+    CuAssertIntEquals(tc, 3, ship->docked_to_ship);
+    CuAssertIntEquals(tc, LOSS_BRIDGE_VNUM, ship->docking_room);
+    CuAssertIntEquals(tc, LOSS_SHIP, cart->parent_vessel_id);
+    CuAssertTrue(tc, vessel_test_number(tc, &stores,
+                                        "SELECT COUNT(*) FROM ship_runtime_state "
+                                        "WHERE ship_id = 485 AND stowed = 1") == 0);
+    CuAssertTrue(tc, vessel_test_number(tc, &stores,
+                                        "SELECT COALESCE(SUM(item_count), 0) FROM "
+                                        "ship_cargo_manifest WHERE ship_id = 485") == 40);
+  }
 
   /* Summoned, she leaves at once: the passenger goes over the side, the hold
    * is emptied, and she is out of the world until her passage is done. */
@@ -224,6 +287,16 @@ void Test_vessel_summons_sends_a_hull_out_of_the_world(CuTest *tc)
   output = loss_harbor_command(&harbor, "1");
   CuAssertTrue(tc, strstr(output, "You pay 28 gold.") != NULL);
   CuAssertIntEquals(tc, 972, GET_GOLD(&harbor.captain));
+  CuAssertIntEquals(tc, 972, vessel_test_file_gold(tc, &stores));
+  CuAssertTrue(tc, vessel_test_number(tc, &stores,
+                                      "SELECT COUNT(*) FROM ship_runtime_state WHERE ship_id = 485 "
+                                      "AND stowed = 1 AND location_vnum = 169980 "
+                                      "AND docked_to_ship = -1 AND autopilot_state = 0") == 1);
+  CuAssertTrue(tc, vessel_test_number(tc, &stores,
+                                      "SELECT COUNT(*) FROM ship_cargo_manifest "
+                                      "WHERE ship_id = 485") == 0);
+  CuAssertIntEquals(tc, AUTOPILOT_OFF, ship->autopilot->state);
+  CuAssertIntEquals(tc, -1, ship->docked_to_ship);
   CuAssertIntEquals(tc, 1, IN_ROOM(&harbor.passenger));
   CuAssertIntEquals(tc, 0, ship->cargo[0].quantity);
   CuAssertTrue(tc, ship->stowed);
@@ -234,6 +307,18 @@ void Test_vessel_summons_sends_a_hull_out_of_the_world(CuTest *tc)
   CuAssertDblEquals(tc, 40.0, ship->x, 0.0);
   CuAssertTrue(tc, ship->summon_due >= ordered + 143 && ship->summon_due <= time(0) + 143);
 
+  /* The cart is put off where she lay, not at the shipyard she is due at: a
+   * vehicle's coordinates are where it drives from and where boot puts it. */
+  CuAssertIntEquals(tc, 0, cart->parent_vessel_id);
+  CuAssertIntEquals(tc, 1, cart->location);
+  CuAssertIntEquals(tc, 10, cart->x_coord);
+  CuAssertIntEquals(tc, 12, cart->y_coord);
+  snprintf(query, sizeof(query),
+           "SELECT COUNT(*) FROM vehicle_data WHERE vehicle_id = %d AND parent_vessel_id = 0 "
+           "AND x_coord = 10 AND y_coord = 12",
+           cart->id);
+  CuAssertTrue(tc, vessel_test_number(tc, &stores, query) == 1);
+
   /* She still counts against the owner's cap, and is not summoned twice. */
   CuAssertIntEquals(tc, 1, vessel_owned_hull_count("Corr"));
   output = loss_harbor_command(&harbor, "the pet");
@@ -241,6 +326,55 @@ void Test_vessel_summons_sends_a_hull_out_of_the_world(CuTest *tc)
   output = loss_harbor_command(&harbor, "");
   CuAssertTrue(tc, strstr(output, "the Petrel (Warship): under summons, due in") != NULL);
 
+  vehicle_destroy(cart);
+  autopilot_cleanup(ship);
+  vessel_test_stores_end(tc, &stores);
+  loss_harbor_end(&harbor);
+}
+
+/* The reply to her stowed runtime row is lost and the database stays out of
+ * reach for the write-back: her rows hold the summons, so it stands and the
+ * fee stays paid. Returning the fee would leave a summons nobody paid for. */
+void Test_vessel_summons_stands_when_it_cannot_be_written_back(CuTest *tc)
+{
+  struct loss_harbor harbor;
+  struct vessel_test_stores stores;
+  struct greyhawk_ship_data *ship;
+  const char *output;
+
+  ship = loss_harbor_begin(tc, &harbor);
+  if (!vessel_test_stores_begin(tc, &stores, LOSS_SHIP, &harbor.captain))
+  {
+    loss_harbor_end(&harbor);
+    return;
+  }
+  autopilot_init(ship);
+  ship->autopilot->state = AUTOPILOT_TRAVELING;
+
+  mysql_test_drop_connection_at("REPLACE INTO ship_runtime_state", 1, TRUE);
+  vessel_test_database_away(&stores, TRUE);
+  output = loss_harbor_command(&harbor, "1");
+  vessel_test_database_away(&stores, FALSE);
+
+  CuAssertTrue(tc, strstr(output, "You pay 28 gold.") != NULL);
+  CuAssertTrue(tc, strstr(output, "is returned") == NULL);
+  CuAssertIntEquals(tc, 972, GET_GOLD(&harbor.captain));
+  CuAssertIntEquals(tc, 972, vessel_test_file_gold(tc, &stores));
+  CuAssertTrue(tc, ship->stowed && !ship->active && ship->summon_due > 0);
+  CuAssertPtrEquals(tc, NULL, ship->shipobj);
+  CuAssertIntEquals(tc, LOSS_DOCK_VNUM, ship->location);
+  CuAssertIntEquals(tc, 0, ship->cargo[0].quantity);
+  CuAssertIntEquals(tc, AUTOPILOT_OFF, ship->autopilot->state);
+  CuAssertIntEquals(tc, 1, IN_ROOM(&harbor.passenger));
+  CuAssertTrue(tc, vessel_test_number(tc, &stores,
+                                      "SELECT COUNT(*) FROM ship_runtime_state WHERE ship_id = 485 "
+                                      "AND stowed = 1 AND location_vnum = 169980") == 1);
+  CuAssertTrue(tc, vessel_test_number(tc, &stores,
+                                      "SELECT COUNT(*) FROM ship_cargo_manifest "
+                                      "WHERE ship_id = 485") == 0);
+
+  autopilot_cleanup(ship);
+  vessel_test_stores_end(tc, &stores);
   loss_harbor_end(&harbor);
 }
 
@@ -645,11 +779,18 @@ void Test_vessel_stowed_hulls_are_saved_with_the_fleet(CuTest *tc)
 void Test_vessel_rename_costs_a_tenth_of_her_value(CuTest *tc)
 {
   struct loss_harbor harbor;
+  struct vessel_test_stores stores;
   struct greyhawk_ship_data *ship;
 
   /* Her owner is aboard. The frigate is worth 44,000, and a hull without a
-   * shipyard name of record has had her christening. */
+   * shipyard name of record has had her christening. The fee is saved and
+   * the name recorded, so the rename needs both stores. */
   ship = loss_harbor_begin(tc, &harbor);
+  if (!vessel_test_stores_begin(tc, &stores, LOSS_SHIP, &harbor.captain))
+  {
+    loss_harbor_end(&harbor);
+    return;
+  }
   char_from_room(&harbor.captain);
   char_to_room(&harbor.captain, 2);
   memset(harbor.output, 0, sizeof(harbor.output));
@@ -674,5 +815,6 @@ void Test_vessel_rename_costs_a_tenth_of_her_value(CuTest *tc)
   /* Christening wrote the bridge's name and description. */
   free(harbor.rooms[2].name);
   free(harbor.rooms[2].description);
+  vessel_test_stores_end(tc, &stores);
   loss_harbor_end(&harbor);
 }

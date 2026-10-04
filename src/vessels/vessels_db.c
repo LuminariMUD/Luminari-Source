@@ -568,8 +568,10 @@ bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
     return FALSE;
   }
 
+  /* A stowed hull is saved where she will appear: a summons is saved while
+   * her hull object still stands where she was. */
   location_vnum = ship->location;
-  if (ship->shipobj != NULL && IN_ROOM(ship->shipobj) != NOWHERE)
+  if (!ship->stowed && ship->shipobj != NULL && IN_ROOM(ship->shipobj) != NOWHERE)
   {
     location_vnum = world[IN_ROOM(ship->shipobj)].number;
   }
@@ -1664,9 +1666,25 @@ void vessel_db_restore_berth(struct greyhawk_ship_data *ship)
 }
 
 /**
- * Save one vessel's complete state.
+ * Save what a shipyard changes aboard a hull: her interior row (her name),
+ * runtime state, weapons, owner, crew and refits. It is the ship's side of a
+ * shipyard purchase or sale (vessels_payment.c), so every part is checked.
  *
- * @return FALSE when any part could not be saved
+ * @return FALSE at the first part that could not be saved
+ */
+bool vessel_save_hull(struct greyhawk_ship_data *ship)
+{
+  return save_ship_interior(ship) && vessel_db_save_runtime(ship) && vessel_db_save_weapons(ship) &&
+         vessel_db_save_owner(ship) && vessel_db_save_crew(ship) && vessel_db_save_extras(ship);
+}
+
+/**
+ * Save one vessel's complete state. Past her interior, runtime and weapon
+ * rows every part is attempted, so one part that fails does not keep the
+ * others from being saved.
+ *
+ * @return FALSE when any part but the permits and the manifest could not be
+ *         saved
  */
 bool vessel_save_one(struct greyhawk_ship_data *ship)
 {
@@ -1676,12 +1694,12 @@ bool vessel_save_one(struct greyhawk_ship_data *ship)
   {
     return FALSE;
   }
-  vessel_db_save_owner(ship);
+  saved = vessel_db_save_owner(ship);
   vessel_db_save_permits(ship);
-  vessel_db_save_crew(ship);
-  vessel_db_save_extras(ship);
+  saved = vessel_db_save_crew(ship) && saved;
+  saved = vessel_db_save_extras(ship) && saved;
   vessel_db_save_cargo(ship);
-  saved = vessel_db_save_pilot(ship);
+  saved = vessel_db_save_pilot(ship) && saved;
   return schedule_save(ship) && saved;
 }
 

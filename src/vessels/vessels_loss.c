@@ -364,7 +364,12 @@ static void vessel_summon_arrive(struct greyhawk_ship_data *ship)
     return;
   }
   vessel_sync_berth(ship);
-  vessel_db_save_runtime(ship);
+  /* The manifest first, as when she was summoned: a summons that stood
+   * unrecorded (do_shipsummon) may have left her hold in her rows. */
+  if (!vessel_db_save_cargo(ship) || !vessel_db_save_runtime(ship))
+  {
+    log("SYSERR: Summoned ship %d made port and could not be saved", ship->shipnum);
+  }
   vessel_periodic_sync(ship);
   vessel_summon_announce(ship);
   log("Info: Summoned ship %d '%s' made port at room %d", ship->shipnum, ship->name,
@@ -456,10 +461,14 @@ static void vessel_list_summonable(struct char_data *ch)
 ACMD(do_shipsummon)
 {
   struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data before;
+  struct greyhawk_ship_data summoned;
   const char *arg;
   char wait[64];
   room_rnum here;
   room_rnum exterior;
+  int autopilot_state;
+  int autopilot_waypoint;
   int wanted;
   int count;
   int fee;
@@ -538,27 +547,30 @@ ACMD(do_shipsummon)
     return;
   }
 
-  award_gold(ch, -fee);
+  if (!vessel_charge(ch, fee))
+  {
+    return;
+  }
+  seconds = GET_LEVEL(ch) >= LVL_IMMORT ? 1 : vessel_summon_seconds(ship);
+
+  /* She will appear where she is saved: this shipyard. The summons is saved
+   * before she leaves the world and before anything alongside or aboard is
+   * touched, so one that cannot be saved leaves her as she was, unless that
+   * cannot be saved either. Her autopilot's state lies outside the copy of
+   * the hull. */
+  before = *ship;
+  autopilot_state = AUTOPILOT_OFF;
+  autopilot_waypoint = 0;
+  if (!ship->stowed && ship->autopilot != NULL)
+  {
+    autopilot_state = ship->autopilot->state;
+    autopilot_waypoint = ship->autopilot->current_waypoint_index;
+    autopilot_stop(ship);
+  }
+  ship->docked_to_ship = -1;
+  ship->docking_room = 0;
   memset(ship->cargo, 0, sizeof(ship->cargo));
   ship->num_cargo_lots = 0;
-  seconds = GET_LEVEL(ch) >= LVL_IMMORT ? 1 : vessel_summon_seconds(ship);
-  if (!ship->stowed)
-  {
-    exterior = ship->shipobj != NULL ? IN_ROOM(ship->shipobj) : NOWHERE;
-    if (exterior != NOWHERE)
-    {
-      vessel_put_ashore(ship, exterior);
-      send_to_room(exterior, "%s makes sail and is soon out of sight.\r\n", ship->name);
-    }
-    vessel_abort_docking(ship);
-    vehicle_release_all_from_vessel(ship, exterior);
-    if (ship->autopilot != NULL)
-    {
-      autopilot_stop(ship);
-    }
-  }
-
-  /* She will appear where she is saved: this shipyard. */
   ship->location = (int)world[here].number;
   ship->x = (double)world[here].coords[0];
   ship->y = (double)world[here].coords[1];
@@ -571,7 +583,63 @@ ACMD(do_shipsummon)
   ship->anchored = FALSE;
   ship->lock_target = 0;
   ship->summon_due = time(0) + seconds;
-  vessel_stow(ship);
+  ship->stowed = TRUE;
+
+  /* The emptied manifest goes first: a crash between the two writes must not
+   * bring her in with the cargo the summons leaves behind. */
+  if (!vessel_db_save_cargo(ship) || !vessel_save_hull(ship))
+  {
+    summoned = *ship;
+    *ship = before;
+    if (!ship->stowed && ship->autopilot != NULL)
+    {
+      ship->autopilot->state = autopilot_state;
+      ship->autopilot->current_waypoint_index = autopilot_waypoint;
+    }
+    /* Written back the other way round, the hull first: a stop between the
+     * two writes then leaves her where she was with an empty manifest, never
+     * due at this shipyard with her hold full. */
+    if (vessel_save_hull(ship) && vessel_db_save_cargo(ship))
+    {
+      vessel_refund(ch, fee);
+      send_to_char(ch,
+                   "The harbor master cannot record the summons, so %s stays where she is and "
+                   "your %d gold is returned.\r\n",
+                   ship->name, fee);
+      return;
+    }
+    /* Her rows may hold the summons (a write whose reply is lost has been
+     * made), so it stands and the fee stays paid. The write-back may have
+     * rewritten part of her rows before it failed. */
+    if (!ship->stowed)
+    {
+      autopilot_stop(ship);
+    }
+    *ship = summoned;
+    if (!vessel_db_save_cargo(ship) || !vessel_save_hull(ship))
+    {
+      log("SYSERR: The summons of ship %d could be neither written nor written back; it stands, "
+          "and she is saved when she makes port",
+          ship->shipnum);
+    }
+  }
+  if (!before.stowed)
+  {
+    /* Saved as cast off: now withdraw the gangway from the hull alongside.
+     * Her vehicles are put off where she was: her own position is already
+     * the shipyard's. */
+    exterior = ship->shipobj != NULL ? IN_ROOM(ship->shipobj) : NOWHERE;
+    ship->docked_to_ship = before.docked_to_ship;
+    ship->docking_room = before.docking_room;
+    vessel_abort_docking(ship);
+    vehicle_release_all_from_vessel(&before, exterior);
+    if (exterior != NOWHERE)
+    {
+      vessel_put_ashore(ship, exterior);
+      send_to_room(exterior, "%s makes sail and is soon out of sight.\r\n", ship->name);
+    }
+  }
+  vessel_restow(ship);
 
   vessel_describe_wait(wait, sizeof(wait), seconds);
   send_to_char(ch, "You pay %d gold. Word goes out to %s; she should make port here in %s.\r\n",
