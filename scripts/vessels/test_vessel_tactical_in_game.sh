@@ -72,6 +72,7 @@ baseline_secondary_player_sha256=
 baseline_secondary_bounty=
 warship_prototype_id=
 contraband_unstocked=false
+settlement_contract_id=
 snapshot_ready=false
 cleanup_needed=false
 acceptance_complete=false
@@ -304,6 +305,13 @@ set_east_dock_tomes_stock() {
   fi
 }
 
+# Remove the unpaid settlement the economy check plants, and its contract.
+remove_planted_settlement() {
+  database_query "
+    DELETE FROM vessel_settlements WHERE contract_id = $settlement_contract_id;
+    DELETE FROM freight_contracts WHERE contract_id = $settlement_contract_id;"
+}
+
 # A value the economy session reported, if any.
 economy_value() {
   local key=$1
@@ -416,6 +424,9 @@ restore_baseline() {
   fi
   if [[ "$contraband_unstocked" == true ]]; then
     set_east_dock_tomes_stock true || cleanup_status=1
+  fi
+  if [[ -n "$settlement_contract_id" ]]; then
+    remove_planted_settlement || cleanup_status=1
   fi
 
   if [[ "$cleanup_status" == 0 ]]; then
@@ -991,12 +1002,56 @@ elif [[ "$acceptance_mode" == economy ]]; then
       fail "the economy session did not report '$expected_text'"
   done
 
+  # The captain's trades were settled in two phases (study step S14): no
+  # settlement is left open, and his player file names the last one.
+  economy_open_settlements=$(database_query "SELECT COUNT(*) FROM vessel_settlements;") ||
+    economy_open_settlements=unreadable
+  [[ "$economy_open_settlements" == 0 ]] ||
+    fail "the economy session left vessel settlements open: $economy_open_settlements"
+  grep -Eq '^VSet: [1-9][0-9]*$' "$secondary_player_file" ||
+    fail "$secondary_player's player file names no settlement after the economy session's trades"
+
   # With the dock's own stock of tomes lifted, its customs meet the ones
   # she carries back in.
   economy_ship_slot=$(economy_value economy_ship_slot)
   economy_ship_prototype_id=$(economy_value economy_ship_prototype_id)
   [[ -n "$economy_ship_slot" && -n "$economy_ship_prototype_id" ]] ||
     fail "the economy session did not report its smuggler"
+
+  # A settlement his file does not name is undone when he next enters the
+  # game: a freight acceptance is planted as the server would leave it had it
+  # stopped before saving his bond, and his login puts the job back on the
+  # board.
+  settlement_player_id=$(sed -n 's/^Id  : \([1-9][0-9]*\)$/\1/p' "$secondary_player_file" |
+    head -n 1)
+  [[ -n "$settlement_player_id" ]] ||
+    fail "could not read $secondary_player's player ID for the settlement check"
+  settlement_contract_id=$(database_query "
+    INSERT INTO freight_contracts
+      (origin_vnum, destination_vnum, commodity_id, quantity, payout, status, taken_by)
+    SELECT 1000390, 1000390, commodity_id, 1, 1, 1, '$secondary_player'
+      FROM trade_commodities
+     WHERE name = 'salt';
+    SELECT LAST_INSERT_ID();") || settlement_contract_id=
+  [[ "$settlement_contract_id" =~ ^[1-9][0-9]*$ ]] ||
+    fail "could not plant the freight contract of the settlement check"
+  database_query "
+    INSERT INTO vessel_settlements (player_id, ship_id, contract_id)
+    VALUES ($settlement_player_id, $economy_ship_slot, $settlement_contract_id);" ||
+    fail "could not plant the unpaid settlement"
+  timeout 150 env DEV_MUD_CHARACTER="$secondary_player" \
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --commands score \
+    >"$run_dir/02-vesselmate-settlement.log" 2>&1 ||
+    fail "$secondary_player could not enter the game for the settlement check"
+  settlement_state=$(database_query "
+    SELECT CONCAT(
+      (SELECT COUNT(*) FROM vessel_settlements), ':',
+      (SELECT CONCAT(status, ':', taken_by) FROM freight_contracts
+        WHERE contract_id = $settlement_contract_id));") || settlement_state=unreadable
+  [[ "$settlement_state" == "0:0:" ]] ||
+    fail "$secondary_player's login did not undo the unpaid settlement: $settlement_state"
+  remove_planted_settlement || fail "could not remove the planted freight contract"
+  settlement_contract_id=
   contraband_unstocked=true
   set_east_dock_tomes_stock false ||
     fail "could not lift the East Dock's stock of forbidden tomes"

@@ -29,19 +29,21 @@ here records the merge.
 | S10 Player guide | Merged `60ef66ad1` (MR !16) | [Phase 10](vessels-ships-history.md#phase-10-s10-progress) |
 | S11 Checked cargo trades (work item #10) | Merged `f18208549` (MR !17) | [Phase 11](vessels-ships-history.md#phase-11-s11-progress) |
 | S12 Owned waypoints and routes (work item #11) | Merged `e6881c1d1` (MR !18), review fixes `bde4a0f44` (MR !19) | [Phase 12](vessels-ships-history.md#phase-12-s12-progress) |
-| S13 Transactions that survive a lost connection (work item #13) | In review (MR !20), round 1 fixed | [Phase 13](#phase-13-s13-progress) |
-| S14 Two-phase vessel settlements (work item #12) | Not started | [Part 5](#part-5-implementation-sequence) |
+| S13 Transactions that survive a lost connection (work item #13) | Merged `9eb723913` (MR !20) | [Phase 13](vessels-ships-history.md#phase-13-s13-progress) |
+| S14 Two-phase vessel settlements (work item #12) | In review: tag `vessels-s14`, merge request from `feat/vessels-s14`; review round 1 fixed on top | [Phase 14](#phase-14-s14-progress) |
 | S15 Checked vessel purchases and payouts (work item #14) | Not started | [Part 5](#part-5-implementation-sequence) |
 
 Production help is current through S12 and its review fixes (help sync plan `e0d8a08faa27`,
-2026-10-03). S1-S12 are merged: the study's steps, S1-S8; S-immediate, which readied the local
-Luminari Web client for S9; S9, which played the whole system in game and recorded it; S10, which
-turned that record into the [Vessel Player Guide](../guides/VESSEL_PLAYER_GUIDE.md) and fixed what
-checking its facts against the code found; S11, which made `cargobuy` and `cargosell` record a
-trade before the gold moves and save the gold checked (GitLab work item #10); and S12, which gave
-waypoints and routes a creator who alone (with the staff) may change them (work item #11). Three
-follow-ups join the sequence, all resolved in this worktree: S13 for work item #13, S14 for work
-item #12 and S15 for work item #14, the three vessel work items still open.
+2026-10-03); S13 changed no help. S1-S13 are merged: the study's steps, S1-S8; S-immediate, which
+readied the local Luminari Web client for S9; S9, which played the whole system in game and
+recorded it; S10, which turned that record into the
+[Vessel Player Guide](../guides/VESSEL_PLAYER_GUIDE.md) and fixed what checking its facts against
+the code found; S11, which made `cargobuy` and `cargosell` record a trade before the gold moves
+and save the gold checked (GitLab work item #10); S12, which gave waypoints and routes a creator
+who alone (with the staff) may change them (work item #11); and S13, which keeps a database
+transaction whole when its connection is lost or its `COMMIT` goes unanswered (work item #13). Two
+follow-ups remain in the sequence, both resolved in this worktree: S14 for work item #12, which is
+built and in review, and S15 for work item #14, which follows its merge.
 
 ## Working a step
 
@@ -232,367 +234,323 @@ ship data panel among them.
 
 ## Active step
 
-S13, on `feat/vessels-s13`. S14 follows from S13's merge, on `feat/vessels-s14` with
-`vessels-s14-base`, and S15 from S14's, on `feat/vessels-s15` with `vessels-s15-base`. Each step's
-merge request says `Closes #13`, `Closes #12` or `Closes #14`, which lists it on its work item and
-closes the item when it merges.
+S14 is the active step, on `feat/vessels-s14` from the S13 merge `9eb723913`, where the annotated
+tag `vessels-s14-base` stands. It is built, verified and handed to review (tag `vessels-s14`; the
+merge request says `Closes #12`, which lists it on the work item and closes the item when it
+merges). Review fixes go on top of the tag, one commit each, recorded in the section below. S15 follows from S14's merge, on `feat/vessels-s15` with
+`vessels-s15-base`; its merge request says `Closes #14`.
 
-### Phase 13 (S13) progress
+### Phase 14 (S14) progress
 
-In review (2026-10-04); review round 1 is fixed (see below). Branch `feat/vessels-s13` from master `ec8f55b26` (the S12 review fixes'
-merge and its record), where the annotated tag `vessels-s13-base` stands. The four planning commits
-that put S13, S14 and S15 into Part 5 come first (`b15a8bc60`, `b1a42c2c3`, `5e4ee1425`,
-`92efc3d73`), then this plan. Hand-off as in the routine: tag `vessels-s13` and a merge request
-that says `Closes #13`; review fixes go on top. Scope:
-[work item #13](https://gitlab.com/max757/Luminari-Source/-/work_items/13) and its two notes.
+Handed to review (2026-10-04). Branch `feat/vessels-s14` from the S13 merge `9eb723913` (tag
+`vessels-s14-base`); the S13 close-out `96b3af5a1` comes first, then this plan. Hand-off as in the routine: tag
+`vessels-s14` and a merge request that says `Closes #12`; review fixes go on top. Scope:
+[work item #12](https://gitlab.com/max757/Luminari-Source/-/work_items/12) and its two notes.
 
-What the client library does, probed on the test MariaDB with real drops (`shutdown()` of the
-connection's socket) before planning:
-
-- A statement after a drop inside a transaction fails once with 2006 (the library refuses to
-  reconnect and clears its in-transaction flag). The next statement reconnects silently and runs
-  in autocommit on a new session.
-- A statement whose reply is lost fails with 2013 and leaves the flag set; a `COMMIT` lost that way
-  had committed, and a locking read on a new session saw the committed row at once.
-- `mysql_ping()` retries by itself: inside a transaction, after a drop, it returns success on a new
-  session. So does the `COM_STMT_CLOSE` that `mysql_stmt_close()` sends after a failed execution.
-  When the close is the first command to meet the drop, it fails without any statement having
-  failed, and the next statement autocommits.
-- Data stored on a handle with `MARIADB_OPT_USERDATA` survives a reconnect and dies with the handle.
+The model. A settlement has a ship side in MariaDB and the captain's gold in the player file. The
+ship side is written with a settlement row in one transaction; the gold is saved with the row's id
+as the file's marker; then the row is deleted. A row that is still there is judged by the file of
+the player it names: the marker is its id, so the gold is saved and the row is deleted; any other
+marker, so the gold never reached the file and the ship side is undone from the row. The undo
+never touches gold. Outside the function that pays, a character's marker in memory equals the one
+in the file (a failed save puts it back), so the acting character is judged from memory and anyone
+else from the file, online or not.
 
 Items:
 
-01. The rule, in `src/database/mysql.c`. A connection is marked when, with the library's
-    in-transaction flag set, a command fails with 2006 or 2013, fails with the flag cleared (how
-    the library leaves a reconnect it refused or could not make), or changes the session. A marked
-    connection sends nothing: `luminari_mysql_query()`, `mysql_stmt_prepare_query()` and
-    `mysql_stmt_execute_prepared()` refuse. The mark ends with the transaction: `ROLLBACK` is sent
-    (on a new session if need be), a `COMMIT` is answered with a `ROLLBACK` and fails, and a new
-    `START TRANSACTION` starts clean. The two pings (`ensure_mysql_connection()` and the pool's) and
-    `mysql_stmt_cleanup()` mark as well. A failed `COMMIT` or `ROLLBACK` clears the library's stale
-    flag, so the statement after it is not refused for a transaction that is over. The mark
-    does not outlast the game pulse it was set in (see "Found while building").
-02. `mysql_commit_transaction()`: committed, refused (the server said no, or the transaction was
-    already lost) or unanswered (any client error, `trade_commit()`'s test); anything but committed
-    is rolled back there. `trade_commit()` goes, and `trade_write()` calls the helper.
-03. One test seam, `mysql_test_drop_connection_at()`: at the Nth statement that begins with a
-    given text, a query or a prepared execution, the socket is really shut down, before the
-    statement or (plain queries) after it was sent. It replaces
-    `vessel_trade_lose_commit_reply_for_test()`, and the trade test moves to real drops on
-    persistent tables.
-04. Unanswered `COMMIT`, read back with a locking read before a state is chosen: `pet_store_pet()`
-    (is the row stored), `pet_retrieve_stored()` (is it active), `vessel_transfer_owner()` (who
-    owns the hull), `vessel_event_finish()` (the event's status).
-05. Object saves (`src/obj/objsave.c`, `src/obj/house.c`):
-    - The object and sheath writers return whether the row was written, and `Crash_save()` and
-      `House_save()` count the rows that were not, their recursive calls included.
-    - A save commits what it could write. With unwritten rows it is incomplete: `PLR_CRASH` or
-      `ROOM_HOUSE_CRASH` stays, one staff line names the owner and the count, and each row is in
-      the log with its item.
-    - `Crash_crashsave()` returns whether the save was complete, and `Crash_save_single()` keeps
-      `PLR_CRASH` unless both the objects and the character saved.
-    - `Crash_idlesave()` commits, the empty save included (it deleted the file and rolled the
-      row delete back).
-    - An extra description that does not fit the record is left out, in both writers, through one
-      helper that reserves room for the parts written after it. The bounded parts of the longest
-      record need 35,760 bytes of the 36,767-byte buffer, which stays under the 65,535 bytes of the
-      live `BLOB` columns.
-06. `house_data` loses the unique key on `vnum` in `sql/master_schema.sql` and
-    `src/database/db_init.c`; a boot migration in `run_legacy_table_migrations()` drops it where a
-    database was created from them and makes sure of the plain `idx_vnum`.
-07. `vessel_bounty_record_offense()` writes nothing when the bounty could not be read;
-    `vessel_get_bounty()` keeps returning 0 for its display and threshold callers.
-08. The pool reconnects a stale handle in place (`ensure_mysql_connection()`) instead of closing
-    it: `conn`, `conn2` and `conn3` are those handles. `mysql_pool_health_check()` and
-    `mysql_pool_shrink()`, which close them too and have no callers, are removed. With the
-    database away, `mysql_pool_acquire()` returns no connection instead of waiting for one (see
-    "Found while building").
-09. `help_sync_database_lock_held()` asks the server whether this session still holds the lock.
-    `hedit`'s save and delete and the help import check it inside their transaction, where the
-    session can no longer change unnoticed, and roll back without it; `helpgen`'s other writers,
-    which autocommit, warn the staff member afterwards.
-10. `hedit` reads the entry's stored keywords from the prepared statement that selected them, so
-    removed keywords are deleted.
-11. Tests, DB-backed, in a new `unittests/CuTest/test_database_transactions.c` (and the vessel
-    files for the vessel sites): the rule for a query, a prepared statement, a statement close and
-    a ping; the helper's three results; each read-back both ways; a crash save, a house save and a
-    pet save whose connection drops at a row (nothing lands, the flag stays, the retry saves);
-    a row refused on a good connection (the rest commits, the flag stays, the staff line); the
-    idle save; the longest record and the oversized extra description; the migration on the old
-    table shape; the bounty read; the pool; the lock; the keywords. Real drops use persistent
-    tables and rows with test-only keys, removed afterwards.
-12. Docs: `VESSEL_SYSTEM.md` where the vessel sites change, the developer guide's database
-    section for the rule and the helper, and the testing guide for the seam. No help entry
-    changes: no command's use or wording toward players changes.
+01. Schema Phase 25, `vessel_settlements`: `settlement_id` (auto-increment), `player_id` (the
+    player's ID, 0 for a mob), `ship_id`, and the undo: `port_vnum`, `commodity_id`,
+    `supply_delta` and `cargo_delta` (signed, added to the port's supply and to the hold's lot),
+    `contract_id` (the freight contract to reopen), `fee_amount`, `fee_port` and `fee_clan` (the
+    dock fee owed again), and `created_at`. Unique keys on `ship_id` and on `player_id`: the
+    schema allows one open settlement for a ship and one for a player, which is "the ship's
+    trading is held while a row is open". `vessels_phase25_schema.sql`,
+    `vessels_phase25_rollback.sql`, `verify_vessels_phase25.sql`, their `ci_schema_manifest.txt`
+    lines, `master_schema.sql`, and a boot ensure function called from
+    `vessel_trade_ensure_schema()`.
+02. Player file: `VSet`, the id of the newest settlement whose gold the file holds
+    (`GET_VESSEL_SETTLEMENT()`, `vessel_settlement_id` beside the `VIns` and `VMer` fields), read
+    and written where they are.
+03. A new `src/vessels/vessels_settlement.c` (both build lists, the parity check) with one
+    record, `struct vessel_settlement`, used for the insert, the undo and the rows read back:
+    - `vessel_settlement_commit()`: inserts the row and commits the caller's open transaction
+      through `mysql_commit_transaction()`. An unanswered `COMMIT` is settled by a locking read
+      of the row: there, the settlement stands; gone, it does not; unreadable, see item 05.
+    - `vessel_settlement_pay()`: moves the gold, sets the marker, saves with
+      `save_char_checked()`, and deletes the row (a failed delete is the reconcile's to repeat).
+      If the save fails, the gold and the marker go back and the settlement is undone; "undone"
+      is said only when the undo committed, and otherwise the player is told the account is held.
+    - The undo, one transaction: the supply moved back by `supply_delta` inside the market's
+      band, the contract reopened if this captain still holds it, the hold's lot changed by
+      `cargo_delta` (never below zero; goods with no free bay to return to are left ashore and
+      logged) and the manifest written, the fee owed again if the hull owes none (a runtime save
+      rewrites the balance from memory at any time, so this part is a restore, not a delta), and
+      the row deleted.
+    - `vessel_settlements_reconcile()`: reads the open rows of a ship or a player (at most one
+      each) and deletes or undoes each. It returns whether none is left.
+04. The reconcile runs at login beside the two deliveries (`src/core/interpreter.c`; from inside
+    the first of them in the end, see "Decided while building"), where a player whose settlement
+    was undone is told; and as a gate at the start of `cargobuy`,
+    `cargosell`, `contractaccept`, `contractdeliver`, `contractabandon` and `dockfees pay`, which
+    refuse while a row of the ship or the player stays open. Delivering or abandoning a contract
+    whose acceptance is unsettled would keep its freight or payout, so they wait too; they do
+    not become two-phase (the payout is S15's).
+05. A settlement whose outcome is unknown. When a `COMMIT` goes unanswered and the row cannot be
+    read back (the usual case after a server restart), or an undo fails, memory is left without
+    the settlement and the hull remembers the row's id (`settlement_unresolved`): if that row is
+    there, its cargo is not in the hold in memory. The next reconcile then undoes it in the
+    database only, or finds no row and forgets it. Until then `vessel_db_save_cargo()` refuses,
+    after trying the reconcile itself: a manifest written from memory under an open row would
+    have the lot undone twice after a reboot. A reboot forgets the id and reloads the hold from
+    the manifest, which then agrees with the row.
+06. `cargobuy` and `cargosell`: `trade_record()` writes the supply, the manifest and the row,
+    and `trade_settle()` becomes `vessel_settlement_pay()`. The second write after an unanswered
+    `COMMIT` (S11 review round 2) and "the trade stands and will be saved shortly" (S11 review
+    round 1) go: the row settles both.
+07. `contractaccept`: the claim, the manifest and the row in one transaction, through the same
+    two functions. `contractdeliver` and `contractabandon` take the gate.
+08. `dockfees pay`: the cleared balance (`vessel_db_save_runtime()`) and the row in one
+    transaction, then the gold; the clan is credited only after the gold is saved, as now.
+09. Removal: a purged ship's row goes with her other rows (`vessel_delete_persistence()`); a removed
+    player's row is judged as any other, and with no file left it is undone.
+10. Tests, DB-backed, in `unittests/CuTest/test_vessel_rewards.c` beside the S11 trade tests
+    they replace (a new file in the end, see "Decided while building"), at each crash point, for a purchase, a sale, a freight acceptance and a fee
+    payment: stopped after the ship side committed (row open, file without the marker: undone at
+    login, by deltas, after the supply and the hold moved meanwhile); stopped after the gold was
+    saved (row open, marker in the file: deleted, nothing undone); a failed save (undone at
+    once); a failed save and a failed undo (held, cargo saves refused, undone by the next
+    reconcile, and after a simulated reboot); an unanswered `COMMIT` both ways and unreadable;
+    another player's row on the ship, judged from the file; the gate on all six commands; the
+    marker's round trip through the player file. Real drops on persistent tables, as S13.
+11. The economy gate: the session's trades leave no open row and Vesselmate's file carries the
+    marker (two checks in the harness's economy branch), and the full gate passes.
+12. Help and docs: SHIP TRADE (the entry `cargobuy` and `cargosell` share) says what happens to
+    an account whose gold could not be saved, in `help.hlp` and `help_vessel_entries.sql` with
+    the verifier; `VESSEL_SYSTEM.md` (trade, freight, dock fees, login, the tables and files);
+    the player guide only if it quotes a changed message (it does not).
 
-Found while tracing, fixed here because the same lines change: `Crash_cryosave()` writes its rows
-with no transaction and without deleting the previous save's, so a frozen character's objects are
-stored twice; it takes the begin and commit the other saves use. It runs only where rent is not
-free (`free_rent` is YES by default).
+Interpretations:
 
-Found while building, fixed here because the same lines change: `mysql_pool_acquire()` could hold
-the game while the database was away. A pooled connection that failed its idle check was retired
-for good, and once all were retired the function tried to open a new one and, failing, tried
-again at once, with no way out. The game runs on that thread, so the first wilderness description,
-region hint or wind lookup of an outage would have stopped it for everyone until the database
-returned, an error line logged at each attempt; and each outage left the pool that many
-connections short. Read from the code, not seen in production; it predates S13. Now a failed check
-returns no connection, which the pool's one caller (`mysql_pool_query()`) already takes as a
-failed query; the entry stays free, since its handle reconnects by itself at its next use; and a
-pool that cannot open another connection says so instead of trying again. The retired state is
-gone (`CONN_STATE_ERROR`, and `CONN_STATE_STALE`, which nothing set).
-`Test_database_pool_keeps_its_handles_and_never_waits_for_the_database` makes the database really
-unreachable.
+- "Covered" is `marker == settlement_id`, not `<=` as `VIns` and `VMer` use. With one open row
+  for a player the two agree, and equality does not depend on ids never restarting (the table is
+  normally empty, so a re-created table would hand out ids below old markers).
+- A settlement of another player on the ship is judged from that player's file. Holding the ship
+  until that player logs in would let an absent helmsman's row stop the owner's trading.
+- An undo that cannot be recorded no longer leaves the trade standing in memory. Memory is
+  undone at once and the row waits for the reconcile; the player keeps the gold and is told the
+  account is held. One undo path, and no state in which memory holds gold the file may never get.
+- The dock fee's clan credit stays after the gold save and outside the settlement: the work item
+  names the captain's gold and the ship's side.
 
-Found while building, in the rule itself: a caller that failed without ending its transaction
-would leave the connection marked, and it would refuse every statement, anyone's, until some later
-save began a transaction. The query that loads a player's objects at login stops the server when
-it fails (`exit(1)` in `Crash_load_objs()` and the object parsers), so one missed `ROLLBACK` and
-one dropped connection could have taken the game down. Two answers:
+Planning ablation:
 
-- Every site was read for such a path. All 26 `START TRANSACTION` sites end their transaction on
-  every way out; `begin_account_character_removal()` leaves its transaction to its caller, which
-  ends it on both paths. No stored procedure call, `SET autocommit` or savepoint opens one
-  elsewhere.
-- The mark is limited to the pulse it was set in. All database work is done within the game pulse
-  that starts it, so a mark met in a later pulse belongs to code that has returned: the layer
-  rolls the transaction back itself, logs a `SYSERR`, and lets the statement through. A missed
-  `ROLLBACK` in code written later can then block the connection for the rest of one pulse at
-  most. At boot no pulse passes and nothing heals; a boot that loses its connection inside a
-  transaction fails loudly either way.
+- Dropped: a gold column on the row (the undo applies only when no file holds the gold, and the
+  command that pays knows the amount); a kind or status column (a settled row is deleted, and
+  the undo follows from which columns are set); the second write after an unanswered `COMMIT`
+  and the "stands" branch; a search for the row's player among those online (memory equals
+  file); a reconcile pass at boot or on a timer (login, the gate and the flagged cargo save
+  reach every row); a change to the player-removal hook; making `contractdeliver` two-phase.
+- Simplified: one undo serves the command, the login and the gate; unique keys hold a ship's
+  and a player's accounts instead of code; the fee part of the undo is a restore.
+- Kept: the file read for another player's row; `settlement_unresolved` and the cargo-save
+  refusal (S13's review: an unreadable read-back is the usual case, so it needs a pending
+  state); the gate on `contractdeliver` and `contractabandon`.
 
-Interpretations decided while planning S13:
+Built (2026-10-04), items 01-12 as planned except where "Decided while building" says otherwise:
 
-- Lost means the connection: 2006, 2013, or a changed session. Other client errors (a statement
-  used wrongly) leave the session and its transaction as they were, and stay the caller's.
-- An unanswered `COMMIT` is any client error, the wider test: taking a known rollback for unknown
-  costs one read, the reverse costs data.
-- The read-backs lock (`LOCK IN SHARE MODE`), so they wait until the lost session's `COMMIT` or
-  rollback has finished on the server.
-- If the read-back fails too, the site does what it did before (takes it for a rollback) and logs
-  the row to check: two faults in a row, and the database is unreachable at that moment.
-- The locking read waits for the lost session's locks. The database here is local
-  (`mysql_host = localhost`), where a lost connection means the server closed the session and
-  freed them. With a remote database and a broken network, the server could keep the session, and
-  the read would wait out `innodb_lock_wait_timeout` (50 seconds) before the site takes the
-  transaction for rolled back; the cargo trade's second write has waited the same way since MR
-  !18.
-- An incomplete save reports progress to the persistence scheduler, so its retry is the next
-  autosave pass. Reporting failure would retry the same player or house every second and hold the
-  pass for everyone behind it.
-- The staff line is one per save, not one per row: a fault that refuses every row would otherwise
-  print the whole inventory each pass.
-- The record's order is unchanged; the room kept for the spellbook, special ability and activation
-  lines is taken only when the object has them.
+- Phase 25 SQL (schema, rollback, verifier, manifest lines), `master_schema.sql`, and
+  `vessel_settlement_ensure_schema()`, called from `vessel_trade_ensure_schema()`.
+- `VSet` and `GET_VESSEL_SETTLEMENT()` in `structs.h`, `utils.h` and `players.c`.
+- `src/vessels/vessels_settlement.c`: `vessel_settlement_commit()`, `vessel_settlement_pay()`,
+  `vessel_settlements_reconcile()`, `vessel_settlement_gate()`, `vessel_settlement_forget_ship()`,
+  and `settlement_unresolved` on the hull.
+- `trade_record()` (supply, manifest and row in one transaction) replaces `trade_write()`, the old
+  `trade_record()` and `trade_settle()`; `do_cargobuy`, `do_cargosell`, `do_contractaccept` and
+  `do_dockfees` record and pay through the settlement; `contract_reopen()` is gone (the undo
+  reopens the job); the gate is in the six commands and the reconcile in the login path.
+- `vessel_db_save_cargo()` refuses for a hull that remembers a settlement, after trying the
+  reconcile, and always inside another transaction.
+- Help: MARKET (the SHIP TRADE entry) has a "Settling up" paragraph, CONTRACTS and VESSELS
+  (`contractaccept`, `dockfees`) a sentence each, in `help.hlp` and `help_vessel_entries.sql`; the
+  verifier checks the three phrases (58 content checks).
+- `VESSEL_SYSTEM.md`: a "Two-phase settlements" passage in the economy model, the freight and
+  dock-fee paragraphs, the table and file lists.
+- The economy gate checks that the session's trades left no settlement open and that
+  Vesselmate's file has a `VSet` line.
 
-Ablation (planning): dropped the writers stopping at their first failure and the per-site checks
-of the help writers (item 1 refuses the statements for them), a second, simulated lost-reply seam
-(one real seam), repairs to the two uncalled pool functions (removed instead), a table of marked
-handles (the handle carries its own mark, so a closed handle leaves none behind), a merge of the
-three object writers (the sheath and pet records differ in content), a new SQL component for the
-`house_data` key (the boot migration reaches every database), handling of a transaction the
-server rolls back on a live connection (a deadlock; no lost connection, and the game is the
-only writer of these tables), and a second line of defense for a failed read-back. Simplified:
-the helper rolls back itself, so its callers lose their own; one lock check serves three
-writers; the extra-description rule is one function for two writers. Kept: real drops on
-persistent tables (the work item's proof, and TEMPORARY tables vanish with the session), the ping
-and statement-close marks (the probe showed both replace the session silently), and the staff
-line.
+Decided while building:
 
-Verification: `make test-all` with the database cases on (S9's `testenv.sh`, the
-`luminari-vessels-testdb` container); the boot migration on a database built from the old
-definitions; sqlfluff on `master_schema.sql`; the local CI matrix
-`scripts/ci/local/run.py --base gitlab/master`; and every live gate in `scripts/vessels/` in the
-namespace harness on a reload of the development dump, because every statement of every gate now
-passes through the changed layer.
+- The tests are a new file, `unittests/CuTest/test_vessel_settlement.c` (nine tests), not more
+  cases in `test_vessel_rewards.c`: they lose real connections, so they need the real tables, and
+  the rewards file was already past 1,200 lines. S11's two trade tests moved there, rewritten;
+  the rewards file keeps the freight and contraband tests on TEMPORARY tables, with a TEMPORARY
+  `vessel_settlements`.
+- The gate comes before any check that reads the hold or the fee: the undo it may run changes
+  them. In `dockfees` it runs only for `pay`, before the balance is read.
+- The undo reopens a contract by its id and its taken status, without the taker's name: while
+  the settlement is open only its captain can hold the job, since delivering and abandoning wait.
+- `vessel_delete_persistence()` makes sure the table exists before its transaction, as it does
+  for the tables it already clears.
+- The login reconcile is called from `vessel_deliver_pending_insurance()`, which
+  `enter_player_game()` already calls, not from a new line in `src/core/interpreter.c`: no unit
+  test runs the login path, and the coverage gate holds the changed lines of that file to its
+  subsystem's floor (S6 put its boot hook inside a vessel boot function for the same reason).
+  The delivery also runs when a claim is queued for an owner in the game, after that claim's
+  transaction is committed; a reconcile there reads one row at most. The settlement tests enter
+  through that function.
+- The verifier counts the columns and the unique keys and lists nothing: a query on the table
+  fails after the rollback.
+- `GET_VESSEL_SETTLEMENT()` parenthesizes its argument; the two older marker macros do not, and
+  are left alone.
+- A reconcile reads two rows, the most the unique keys allow. More than two (a table without the
+  keys) leaves the ship held until the next call.
+- `save_char_checked()` returns FALSE after the file is in place only for a character missing
+  from the player index, which no player in the game is; so a failed save means the file kept
+  its old gold and marker, which the undo relies on.
+- Messages. Paid: unchanged. Save failed and undone: "Your gold could not be recorded, so the
+  trade (contract, payment) is undone." Not undone yet: "... could not be undone yet. No gold
+  changed hands; the harbor office holds this ship's accounts until it is undone." Gate: "The
+  harbor office is still settling an earlier account. Try again shortly." Login or gate, to the
+  captain whose settlement was undone: "The harbor office never recorded your gold for a cargo
+  trade (freight contract, dock-fee payment) aboard <ship>, so it has been undone."
 
-Progress log (2026-10-04, kept current as the work goes):
+Found before hand-off, and fixed:
 
-- Plan committed (`0eae5efbe`).
-- The build, `f49fbbb30`, as planned, with these decisions made on the way:
-  - The mark is stored on the handle itself (`MARIADB_OPT_USERDATA`), read at every statement.
-  - A command also loses the transaction when it fails after the library gave the transaction
-    up: a ping that cannot reconnect fails with 2002 or 2003, not 2006, and leaves the flag
-    cleared, so the statement after it would have opened a session of its own once the database
-    was back.
-  - The seam names its statement by text instead of counting statements, so a test says which
-    statement loses the connection and a new query in the code under test does not shift it. For
-    a reply lost after the server ran the statement, the seam waits for the reply and throws it
-    away before it shuts the socket down: in the CI containers the reply arrived before the
-    shutdown, and three jobs of the first matrix run failed on that.
-  - `Crash_save()` and `House_save()` return the number of rows not written;
-    `objsave_commit_player_save()` commits for the four player saves and prints the staff line.
-  - `vessel_db_save_cargo()` lost the stop at its first failure inside a transaction (MR !19):
-    item 1 makes it unnecessary.
-  - The pet writer takes the extra-description rule too. Its other lines are built in buffers of
-    the record's size, and a pet save stays all or nothing, so a string that overfills a record
-    still fails it; the game enters those strings through one line of input.
-  - `Crash_cryosave()` is declared in `db.h` beside the other saves, for its test.
-  - The help import and delete check the lock like the save; no test drives them, since they
-    call the function the save's test covers.
-  - `sql_interpolation_baseline.txt`: `src/obj/objsave.c` from 11 to 8.
-- The pulse limit, `3eab48d60` (see "Found while building"): a mark does not outlast the game
-  pulse it was set in.
-- The migration met a database built from the old definitions: the test database came from
-  `master_schema.sql`, and the new house test failed there with "Duplicate entry '91399' for key
-  'vnum'" on a house's second object. The suite's boot test then applied `2026100401` to it (the
-  unique key gone, `idx_vnum` kept), and the test passed.
-- Filed, not S13's: [work item #15](https://gitlab.com/max757/Luminari-Source/-/work_items/15),
-  an object with no prototype leaks its arcane mark when freed (`free_object_strings()`), met
-  while writing the record test.
+- An independent read of the build (a side agent, read-only, on `8ed5d8a3a`) found no way to
+  free cargo, a double sale or a lost bond or fee from a single fault, and two cases that need a
+  second, rare one:
+  - A `COMMIT` that got no reply and could not be read back may still be on its way (a stalled
+    server). A reconcile read no row, took the settlement for never recorded and forgot it; the
+    `COMMIT` then landed, and the undo changed a hold that no longer held the trade. A hull's
+    remembered settlement is now forgotten only after a locking read of its row, which waits
+    for the lost session.
+  - A hull that boot could not rebuild ("leaving persistence intact") was taken for gone: the
+    undo moved the port's stock, skipped her manifest and fee, and deleted the row. Her
+    settlement is now kept until she is loaded (or purged, which deletes it), and its captain's
+    accounts wait. Since a purge deletes the row, a settlement never outlives its hull's rows,
+    so "a lost ship" has no case left.
+- The same read named four things no test ran; each has one now: a mob's trade (undone in the
+  command), the manifest refused inside another transaction, a sale and a fee payment made right
+  after their gate undid an earlier settlement (unpaid goods cannot be sold; the fee is owed
+  again and then paid), and the two fixes above (a second session holds the row uncommitted; a
+  slot that is empty and then loaded). Ten tests in all.
+- The damage gate failed once in the batch on a race of its own: the tick that gets the hull
+  under way after `strikecolors` can land with the output of `speed 1`, and the check looked
+  for "colors fly again" only in what followed. It now accepts the line in either
+  (`scripts/development/dev_kohdee_login_smoke.sh`).
 
-Verification (2026-10-04, on `3eab48d60`, the final source):
+Commits: the plan `4ddf5f9ba`, the build `6bdce1e49`, the economy gate's planted settlement
+`8ed5d8a3a`, the fixes found before hand-off `a4ab96a35`, the damage gate's race `9a8ca39a8`, their
+record `80f6d45e5`, then this record, which the tag `vessels-s14` marks.
+
+Verification (2026-10-04). The first round ran on `8ed5d8a3a`; what the fixes touch ran again on
+`80f6d45e5`, the last commit that changes code.
 
 - `make test-all` with the database cases (S9's `testenv.sh`, the `luminari-vessels-testdb`
-  container): 2,015 CuTest cases OK (seed 1), the protocol harness's 32, and the Python suites
-  (542, 37 skipped); `check_sql_interpolation.py` within baseline (317 sites).
-- The boot migration on a database built from the old definitions (the test container):
-  `SHOW INDEX` read the unique key `vnum` before; the suite's boot test applied `2026100401`;
-  after it the key was gone, `idx_vnum` stayed, and `schema_migrations` held the version.
-  `Test_legacy_table_migrations_repair_old_shapes_idempotently` plays the same on a table of the
-  old shape, twice. sqlfluff passed `master_schema.sql` in the commit hook.
-- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`). The first build, since
-  amended, failed clang-tidy (two findings in the new tests) and three cmake jobs (the seam's
-  race, above). On `f49fbbb30` all 33 jobs passed in 1,557 s. On `3eab48d60` all 33 passed in 855
-  s, clang-tidy with 0 findings, the changed lines covered at 95.83% in `sql` (115 of 120) and
-  84.75% in `persistence` (100 of 118).
-- The namespace harness (`/tmp/claude-1000/vs4`, jobs `u01` to `u22`) on fresh reloads of the
-  development dump, on `3eab48d60`: all 20 gates and provisioners passed (merchant 45 s, campaign
-  167 s, Vailand merchant 157 s, builder 65 s, gunnery 80 s, tactical 331 s, lookout 28 s,
-  boarding 53 s, narrative 28 s, rules 40 s, events 48 s, movement 111 s, loss 77 s, damage 647
-  s, derelict 40 s, hunter 100 s, frontier 237 s, raider 253 s, economy 225 s, client 27 s).
-- A live check of the layer, job `u22`: the economy gate again while a second process killed the
-  server's database sessions, all three 20 seconds after they appeared and the one that had
-  reconnected 45 seconds later. The gate passed in 216 s, its trades included, and the server's
-  log has no `SYSERR`.
+  container) on `80f6d45e5`: 2,028 production tests and the 32 protocol tests pass, the ten
+  settlement tests among them. The one test over a second is the settlement test that waits on a
+  row lock twice (2.1 s).
+- Phase 25 SQL on the test database: the verifier reads 0 columns and 0 keys after the rollback
+  and 12 and 2 after the schema, applied twice; the table the boot function creates and the one
+  `master_schema.sql` creates are the same as the schema file's (`SHOW CREATE TABLE` compared).
+  On a reload of the development dump, which has no such table: 0 and 0, then 12 and 2, then 0
+  and 0 after the rollback; the gates' boots then created it.
+- The vessel help verifier, on the test database and on the dump with the new entries applied:
+  seven checks pass, 58 content phrases.
+- Live gates, the private-namespace harness (`/tmp/claude-1000/vs4`, jobs in `stage-s14/`) on a
+  reload of the development dump, on `8ed5d8a3a`: 21 of 22 jobs passed (merchant, campaign and its
+  merchant, builder, gunnery, tactical, lookout, boarding, narrative, rules, events, movement,
+  loss, derelict, hunter, frontier, raider, economy, client, and the economy gate again with
+  every database session of the server killed twice while it idled). The damage gate failed on
+  the race recorded above. The economy gate now also checks that the session's trades left no
+  settlement open, that Vesselmate's file has a `VSet` line, and that a freight acceptance
+  planted as a crash would leave it (a taken contract and a settlement row his file does not
+  name) is undone by his next login.
+- On `80f6d45e5`: the economy gate after a fresh dump reload (212 s), the economy gate with the
+  sessions killed (253 s), and the damage gate (664 s). The login reconcile these play is
+  the one inside the insurance delivery.
+- The local CI matrix, `scripts/ci/local/run.py --base gitlab/master`: on `8ed5d8a3a` 32 of 33
+  jobs passed and the coverage job failed on the one login line in `src/core/interpreter.c`
+  (0 of 1 changed lines covered, floor 26.39); on `80f6d45e5` all 33 passed in 687 s
+  (`--jobs 3 --cpus 4`), the coverage policy with 5 of 5 changed lines of `players.c` covered.
+  clang-tidy, both warning budgets, the sanitizer and memory-check jobs and the migration job
+  passed in both runs.
 
-Cleanup: the harness is stopped (its disposable database stops with its namespace); the gates
-restored their player files and rows; the tests removed their rows from the test database, whose
-`house_data` keeps the migrated shape; no scratch files were left in the worktree.
+Review round 1 (2026-10-04, range `vessels-s14..feat/vessels-s14`): two [P3] findings on MR !21,
+each reproduced or read by the reviewer on `5293b0ac0`, both fixed, one commit each.
 
-Hand-off: tag `vessels-s13` and MR !20 from `feat/vessels-s13`, which says `Closes #13` (range
-`vessels-s13-base..vessels-s13`; squash and remove-source off). Review fixes go on top, one
-commit each. After the merge: no help to sync (no entry changed); production gets the code with
-its next deploy, and boot then applies `2026100401` (on the live `house_data`, which never had
-the key, it adds `idx_vnum`); move this section to the history; tag `vessels-s14-base` on the
-merge and branch `feat/vessels-s14` from it, whose first commit is the S14 plan. S14's freight
-acceptance reads its settlement row back through `mysql_commit_transaction()`.
+- [P3] A settlement was undone on whatever hull held the fleet slot (`bf82f7c93`). A slot can be
+  empty in memory while its rows remain: boot could not rebuild the hull, or a purge failed and
+  its caller freed the slot anyway (a sinking, a merchant rollback, a removed owner's stowed
+  hull, a spawn rollback). The next spawn took the lowest such slot and wrote over her rows,
+  which predates S14; with S14 her open settlement was then undone on the stranger (goods in a
+  hold that never traded them, or a dock fee on an unowned hull), `shippurge` called the slot
+  empty, and her captain's accounts waited for good. This replaces "a settlement never outlives
+  its hull's rows" above: it did, when the purge that should have deleted it failed.
+  `vessel_delete_persistence()` now marks the slot until a purge of it commits, boot marks it at
+  the two places it gives up on a persisted hull, and a spawn takes only a slot that
+  `vessel_slot_free()` passes. `shiplist` shows a held slot and counts it as in use; `shippurge`
+  deletes its rows, the settlement among them, and frees it. The mark is runtime only: every
+  boot reads the rows again. The fee restore is unchanged: it now reaches only the hull that
+  paid, and a hull whose owner is removed already keeps a fee she owes.
+- [P3] The row was deleted on a save that a host crash could still lose (`74ee6fe5d`).
+  `save_char_checked()` synced the temporary file and renamed it over the player file, and never
+  synced the directory, so the rename was durable only at the filesystem's next journal commit
+  while the row's delete was durable at once. The directory is now synced after the rename. A
+  failure is logged and not returned: the new file is in place by then, and a FALSE would send
+  the undo against a file that holds the gold. Every caller of the checked save gets it.
+- The reviewer's four probes of paths no test ran, all of which came out right, are a test now
+  (`a5abda25b`): a dock-fee payment whose `COMMIT` reply is lost (paid once), one whose `COMMIT`
+  never arrives (nothing taken, the fee still owed), one committed with the database away for
+  the read-back (the hull remembers it; the next payment undoes it and pays once), and a freight
+  acceptance in that state (the next acceptance undoes it and posts one bond). Twelve settlement
+  tests in all; the twelfth is the held slot.
 
-Review round 1 (2026-10-04, range `vessels-s13..feat/vessels-s13`): nine findings on MR !20,
-each reproduced or read by the reviewer on `a25b937e9`, all fixed, one commit each.
+Help: the SHIP-ADMIN entry (tag `SHIPLIST`) says what a held slot is and what `shippurge` does
+on one, and the verifier checks one more phrase (59). The system documents follow in
+`63ee4c809`: `VESSEL_SYSTEM.md`, `PLAYER_MANAGEMENT_SYSTEM.md` and the staff section of the
+player guide.
 
-- [P1] A sheath holding a weapon, lying in a house, stopped the server at the next house save
-  (`44b82187b`). The house save handed its NULL owner to the sheath writer. The crash predates
-  S13. `House_save()` now stores a sheath's weapons as the house's own objects, beside the
-  sheath, and the record writer leaves the sheath rows to saves that have an owner. The
-  reviewer's other half, emptying a sheath when it is removed, was not taken: the help entry
-  `DRAW-WEAPONS` says a player can keep several sheaths with weapons in them, and the player
-  save stores a carried sheath's weapons. With the weapons stored by the house, nothing is lost
-  there either.
-- [P2] The cryo and idle saves deleted the bag rows and never wrote them back (`69ecda7a4`).
-  The cryo save writes the bags like the other saves. The idle save lost its "nothing to store"
-  return, which looked only at what was worn and carried: it always writes what there is.
-- [P2] The rent, idle and cryo saves returned at a failed COMMIT, or a failed start, with the
-  objects still in memory, and `extract_char()` dropped them in the room beside a save that held
-  them (`4c54755ce`). The four player saves now share one writer,
-  `objsave_write_player_save()`, which leaves everything in memory and commits through
-  `mysql_commit_transaction()`; `objsave_commit_player_save()` went into it. A leaving save
-  (`objsave_save_and_extract()`) that did not reach the database is written once more on the
-  session the connection has by then: the save replaces the last one whole, so a second write is
-  safe. The objects then leave memory whether it was written or not. After two failures the
-  database keeps the last save that reached it and the staff are told. The crash save keeps its
-  one attempt: its flag is its retry.
-- [P2] A deadlock's victim loses its whole transaction with the connection up, and was not
-  marked (`796f9a8a8`). `transaction_watch_end()` marks on error 1213 too. This replaces the
-  planning ablation above, which left a deadlock out because the game is the only writer of
-  these tables: an outside writer (administrative SQL, tooling) is enough, and the writers go on
-  after a failed row by design.
-- [P2] When a COMMIT got no reply and the read-back could not run either, the vessel event and
-  the pet keeper took that for a rollback (`263f76864`). That is the usual case, not two faults
-  in a row: a reply is mostly lost to a server restart, and then the read-back cannot connect.
-  It replaces the planning interpretation above ("the site does what it did before").
-  - The event's finish is idempotent on its own row. The status is written first, only to an
-    event that has not ended, and the scores only when that changed a row; the `recovery_failed`
-    mark has the same condition. The retry the staff are told to make adds no score twice.
-  - The pet keeper chooses no state. The roster goes back to "restore failed", the state a
-    failed login restore leaves: no snapshot replaces the pet rows and the keeper is closed.
-    `pets restore` settles it from the rows. It publishes a pet whose row is active, as before,
-    and now takes a follower out of play whose row says the keeper has it.
-  - The hull's change of owner keeps taking an unreadable outcome for a rollback: the owner in
-    memory is written again, as an absolute value, by `save_all_vessels()` at shutdown and
-    copyover, so the database converges on what the players were told. Only a crash before that
-    save lets the database's owner stand.
-- [P3] An incomplete save left the crash flag as it found it, so a save made with the flag
-  clear (the `save` command, the crafting saves, the direct house saves) was never retried
-  (`5976699d8`). `Crash_crashsave()` and `House_crashsave()` set the flag after a failed or
-  incomplete save. The house save looks its room up before it opens the transaction.
-- [P3] `log_hint_usage()` freed an uninitialized pointer when its pool query failed
-  (`9ea0d4f94`). `mysql_pool_query()` clears the caller's result first. Predates S13.
-- [P3] `hedit` deleted another entry's keywords when it saved under a tag it had not loaded
-  (`456000371`). The editor keeps the tag of the entry it loaded, none for a new entry. A save
-  under any other tag locks that tag's row inside the transaction and is refused when the row
-  exists; the editor stays open for another tag. The help entry `HEDIT` already calls the tag
-  unique, so no help text changes.
-- [P3] A plunder's bounty that was not recorded was still announced and passed on as applied
-  (`1b4363645`). `vessel_add_bounty()` tries once more, since outside a transaction the
-  connection has reconnected by then, and reports the result. `plunder` announces and passes on
-  only a recorded bounty; otherwise the staff are told the amount to apply by hand.
+Ablation (review fixes): one mark, set where the purge fails, instead of a flag at each of the
+six callers; no second kind of mark for rows that were meant to be deleted and no automatic
+retry of a failed purge (the staff purge the slot, or the next boot rebuilds her); no owner
+exemption in the fee restore; no test seam for a failing directory sync (the helper returns
+nothing, so the failure cannot reach a caller); no directory sync for the other files the game
+renames.
 
-The system documents follow in `9a0e69438`: `DATABASE_INTEGRATION.md`,
-`SAVE_SYSTEMS_BREAKDOWN.md`, `VESSEL_SYSTEM.md` and the testing guide.
+Verification of the fixes (2026-10-04, on `63ee4c809`):
 
-Ablation (review fixes): no pending-outcome list for the pets (the roster's existing "restore
-failed" state is the pending state); no retry loops (one more attempt for a leaving save and for
-a plunder's bounty, none for the crash save); one error number added to the mark's rule instead
-of a general test for a transaction the server ended; no new table, column or editor field (the
-editor's unused storage field holds the loaded tag); no second copy of "remove a pet with its
-gear" (the keeper's two paths share `discard_unpublished_saved_pet()`).
+- `make test-all` with the database cases: 2,030 production tests and the 32 protocol tests
+  pass.
+- `strace` of one settlement test: each save is `fsync` of the temporary file, `rename`,
+  `openat` of `plrfiles/P-T` with `O_DIRECTORY`, and `fsync` of it, before the row's delete.
+- Live, in the private-namespace harness on a reload of the development dump: slot 13, the
+  lowest free one, was given a `ship_interiors` row with no runtime snapshot and a settlement
+  row. Boot logged the held slot and `shiplist` showed it; `vedit spawn` took slot 14;
+  `shippurge 13` removed the records; the next `vedit spawn` took slot 13; no settlement and no
+  row of the slot were left. The builder gate and the economy gate (286 s, after a fresh
+  reload) pass.
+- The local CI matrix, `scripts/ci/local/run.py --base gitlab/master`: all 33 jobs pass in 871 s
+  (`--jobs 3 --cpus 4`), the coverage policy with 17 of 19 changed lines of `players.c` covered
+  (floor 61.37); the two not run are the log of a failed directory sync and the return for a
+  path without a directory.
 
-Filed, not S13's: [work item #16](https://gitlab.com/max757/Luminari-Source/-/work_items/16)
-(bagged objects stay in memory when their owner leaves the game) and
-[work item #17](https://gitlab.com/max757/Luminari-Source/-/work_items/17) (a loaded sheath
-loses its weapons on a pet and leaks them when extracted). Both were read from the code while
-fixing the sheath and bag findings.
+After the merge: sync the four help entries to production (MARKET, CONTRACTS, VESSELS and
+SHIPLIST, the SHIP-ADMIN entry), move this section to the history document, set the status row,
+and tag `vessels-s15-base` and branch `feat/vessels-s15` from the merge. Production gets the
+table at boot (`vessel_settlement_ensure_schema()`); the Phase 25 SQL is for a manual apply.
 
-Verification (2026-10-04, on `1b4363645`, the final source, and `9a0e69438` with the documents):
-
-- New DB-backed tests, each a finding's reproduction turned around:
-  `Test_house_save_stores_a_sheaths_weapons_as_its_own`,
-  `Test_cryo_and_idle_saves_keep_what_is_in_the_bags`,
-  `Test_leaving_save_is_written_again_and_takes_the_objects_along` (a row lost, a COMMIT's
-  reply lost, and the database away for both attempts),
-  `Test_database_deadlock_victim_takes_no_statement_until_it_ends` (two sessions, 20 runs in a
-  row), and `Test_pet_keeper_waits_for_a_row_it_cannot_read_back`. Extended: the event test (the
-  database away at the read-back, then the retry), the object and house save tests (the flag is
-  no longer set by hand), the pool test, the hedit test (a new entry and a retagged one under an
-  existing tag), the bounty test and the plunder test.
-- `make test-all` with the database cases (S9's `testenv.sh`, the `luminari-vessels-testdb`
-  container): 2,020 CuTest cases OK (seed 1), the protocol harness's 32, and the Python suites
-  (542, 37 skipped); `check_sql_interpolation.py` within baseline (317 sites).
-- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`) on `9a0e69438`: all 33
-  jobs passed in 1,334 s, clang-tidy with 0 findings, the changed lines covered at 95.93% in
-  `sql` (118 of 123) and 93.79% in `persistence` (136 of 145).
-- Live, in the namespace harness on a fresh reload of the development dump (job `r1-review`):
-  the events gate passed in 52 s through the changed finish. Then Kohdee loaded two objects,
-  sorted one into a bag and quit; at the next login the one was carried and the other came out
-  of the bag, through the rewritten rent save and its load.
-- The other gates were not rerun. The rest of this round is reached only on a failure path (a
-  lost connection, a deadlock, a refused row, a database that is away), which the DB-backed
-  tests drive with real faults.
-
-After the merge: as in the hand-off above. No help to sync: no entry changed.
-
-Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's and
-S12's code (S12's with schema Phase 24, which boot adds) and the review fixes, the Open
-player-data balance and human beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`, and closing these
-study documents once S15 merges: `docs/ongoing-projects/` is temporary, and their enduring content
-lives in `VESSEL_SYSTEM.md` and the guide.
+Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's,
+S12's and S13's code (S12's with schema Phase 24, which boot adds, and S13's with migration
+`2026100401`, which boot applies) and the review fixes, the Open player-data balance and human
+beta gates in `VESSEL_SYSTEM_REQUIREMENTS.md`, and closing these study documents once S15 merges:
+`docs/ongoing-projects/` is temporary, and their enduring content lives in `VESSEL_SYSTEM.md` and
+the guide.
 
 ## Estimate (remaining)
 
 | Step | What drives the size | Days |
 | -- | -- | -: |
-| S13 Transactions that survive a lost connection | The query-layer rule and the `COMMIT` helper, four unanswered-`COMMIT` sites, six site fixes, and the object writers (record size, the `house_data` key and its migration, the incomplete-save report) across the server, real-drop DB tests | 3 |
 | S14 Two-phase vessel settlements | Schema phase with rollback and verifier, player-file marker, login reconcile, four commands, crash-point tests, the economy gate | 2 |
 | S15 Checked vessel purchases and payouts | One shared helper, fifteen gold movements in twelve commands, failure tests per command family | 1.5 |
 

@@ -393,6 +393,7 @@ luminari_SOURCES = \
 	src/vessels/vessels_rooms.c \
 	src/vessels/vessels_contracts.c \
 	src/vessels/vessels_piracy.c \
+	src/vessels/vessels_settlement.c \
 	src/vessels/vessels_trade.c \
 	src/vessels/vessels_upgrades.c \
 	src/vessels/vessels_gunnery.c \
@@ -489,6 +490,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_vessel_loss.c \
 	unittests/CuTest/test_vessel_raiders.c \
 	unittests/CuTest/test_vessel_rewards.c \
+	unittests/CuTest/test_vessel_settlement.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_database_transactions.c \
 	unittests/CuTest/test_dg_scripts_production.c \
@@ -591,6 +593,7 @@ cutest_test_files = \
 	unittests/CuTest/test_vessel_loss.c \
 	unittests/CuTest/test_vessel_raiders.c \
 	unittests/CuTest/test_vessel_rewards.c \
+	unittests/CuTest/test_vessel_settlement.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_database_transactions.c \
 	unittests/CuTest/test_dg_scripts_production.c \

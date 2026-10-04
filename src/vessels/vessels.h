@@ -1030,6 +1030,37 @@ bool vessel_balance_report(struct char_data *ch, int duel_count);
 void vessel_trade_restock_tick(void);
 bool vessel_db_save_cargo(struct greyhawk_ship_data *ship);
 void vessel_db_load_cargo(struct greyhawk_ship_data *ship);
+int vessel_cargo_lot(struct greyhawk_ship_data *ship, int commodity_id, bool create);
+
+/* ========================================================================= */
+/* TWO-PHASE SETTLEMENTS (study step S14, vessels_settlement.c)              */
+/* ========================================================================= */
+
+/* The ship side of a cargo trade, a freight acceptance or a dock-fee payment
+ * as its vessel_settlements row records it: what undoes it. */
+struct vessel_settlement
+{
+  unsigned long long id;
+  long player_id;   /* The captain; 0 for a mob */
+  int ship_id;      /* Her fleet slot */
+  int port_vnum;    /* The port whose supply of commodity_id moved */
+  int commodity_id; /* The goods traded or carried */
+  int supply_delta; /* Added to that supply by the undo */
+  int cargo_delta;  /* Added to the hold's lot of the goods by the undo */
+  int contract_id;  /* The freight contract the undo reopens */
+  int fee_amount;   /* The dock fee the undo makes owed again... */
+  int fee_port;     /* ...at this port... */
+  int fee_clan;     /* ...to this clan */
+};
+
+void vessel_settlement_ensure_schema(void);
+bool vessel_settlement_gate(struct char_data *ch, struct greyhawk_ship_data *ship);
+bool vessel_settlement_commit(struct char_data *ch, struct greyhawk_ship_data *ship,
+                              struct vessel_settlement *settlement);
+bool vessel_settlement_pay(struct char_data *ch, const struct vessel_settlement *settlement,
+                           int gold, const char *account);
+bool vessel_settlements_reconcile(struct char_data *ch, struct greyhawk_ship_data *ship);
+bool vessel_settlement_forget_ship(int shipnum);
 
 /* ========================================================================= */
 /* LIVING WORLD: WEATHER HAZARDS AND ENCOUNTERS (Phase 08)                   */
@@ -1881,6 +1912,11 @@ struct greyhawk_ship_data
   } cargo[MAX_CARGO_LOTS];
   int num_cargo_lots;
 
+  /* S14, runtime only: a settlement whose row may be in the database while
+   * its cargo is not in the hold above (its COMMIT or its undo went
+   * unanswered). The manifest is not written until a reconcile settles it. */
+  unsigned long long settlement_unresolved;
+
   /* Phase 14: data-driven NPC merchant identity. The definition table is
    * authoritative; these fields are rebuilt at boot and after respawn. */
   int merchant_id;
@@ -2017,6 +2053,7 @@ bool vessel_place_hull_object(struct greyhawk_ship_data *ship, struct obj_data *
 bool vessel_create_runtime_hull(struct greyhawk_ship_data *ship);
 bool vessel_save_one(struct greyhawk_ship_data *ship);
 void vessel_persistence_ensure_schema(void);
+bool vessel_slot_free(int shipnum);
 bool vessel_delete_persistence(int shipnum);
 
 /* NPC Pilot Persistence */

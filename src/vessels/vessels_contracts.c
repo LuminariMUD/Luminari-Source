@@ -427,26 +427,6 @@ static bool contract_fetch(int contract_id, int *commodity_id, int *quantity, in
   return found;
 }
 
-/* Put a contract back on the board after its taker's bond failed to save. */
-static bool contract_reopen(int contract_id, const char *taker)
-{
-  PREPARED_STMT *statement;
-  bool reopened;
-
-  statement = mysql_stmt_create(conn);
-  reopened = statement != NULL &&
-             mysql_stmt_prepare_query(statement,
-                                      "UPDATE freight_contracts SET status = ?, taken_by = '' "
-                                      "WHERE contract_id = ? AND status = ? AND taken_by = ?") &&
-             mysql_stmt_bind_param_int(statement, 0, CONTRACT_STATUS_OPEN) &&
-             mysql_stmt_bind_param_int(statement, 1, contract_id) &&
-             mysql_stmt_bind_param_int(statement, 2, CONTRACT_STATUS_TAKEN) &&
-             mysql_stmt_bind_param_string(statement, 3, taker) &&
-             mysql_stmt_execute_prepared(statement);
-  mysql_stmt_cleanup(statement);
-  return reopened;
-}
-
 /* Take freight back out of a hold bay: the acceptance did not go through. */
 static void contract_unload(struct greyhawk_ship_data *ship, int lot, int quantity)
 {
@@ -464,6 +444,7 @@ static void contract_unload(struct greyhawk_ship_data *ship, int lot, int quanti
 ACMD(do_contractaccept)
 {
   struct greyhawk_ship_data *ship;
+  struct vessel_settlement settlement;
   char arg[MAX_INPUT_LENGTH];
   char query[MAX_STRING_LENGTH];
   char escaped[130];
@@ -472,7 +453,7 @@ ACMD(do_contractaccept)
   int contract_id;
   int commodity_id, quantity, payout, destination, status;
   int bond;
-  int old_gold;
+  bool stowed;
   int lot = -1;
   int i;
   int empty = -1;
@@ -486,6 +467,10 @@ ACMD(do_contractaccept)
   if (!vessel_helm_permitted(ch, ship))
   {
     send_to_char(ch, "You are not cleared to commit this ship to a contract.\r\n");
+    return;
+  }
+  if (!vessel_settlement_gate(ch, ship))
+  {
     return;
   }
 
@@ -564,9 +549,9 @@ ACMD(do_contractaccept)
   }
 
   /* The contract, the freight and the bond stand or fall together: the job
-   * is taken and the freight stowed in one transaction, and the bond is
-   * debited only once that commits. If the captain's save then fails, the
-   * job and the freight are put back. */
+   * is taken and the freight stowed with a settlement in one transaction,
+   * and the bond is saved with that settlement (vessel_settlement_pay()),
+   * whose undo reopens the job and unloads the freight. */
   mysql_real_escape_string(conn, escaped, GET_NAME(ch), strlen(GET_NAME(ch)));
   if (mysql_query(conn, "START TRANSACTION"))
   {
@@ -595,28 +580,26 @@ ACMD(do_contractaccept)
     send_to_char(ch, "Another captain just took that contract.\r\n");
     return;
   }
-  if (!vessel_db_save_cargo(ship) || mysql_query(conn, "COMMIT"))
+  memset(&settlement, 0, sizeof(settlement));
+  settlement.commodity_id = commodity_id;
+  settlement.cargo_delta = -quantity;
+  settlement.contract_id = contract_id;
+  stowed = vessel_db_save_cargo(ship);
+  if (!stowed)
+  {
+    mysql_query(conn, "ROLLBACK");
+  }
+  if (!stowed || !vessel_settlement_commit(ch, ship, &settlement))
   {
     log("SYSERR: Could not stow the freight of contract %d aboard ship %d", contract_id,
         ship->shipnum);
-    mysql_query(conn, "ROLLBACK");
     contract_unload(ship, lot, quantity);
     send_to_char(ch, "The shipping office cannot record that freight; no gold was taken.\r\n");
     return;
   }
 
-  old_gold = GET_GOLD(ch);
-  award_gold(ch, -bond);
-  if (!save_char_checked(ch, 0))
+  if (!vessel_settlement_pay(ch, &settlement, -bond, "contract"))
   {
-    award_set_points(ch, AWARD_GOLD, old_gold);
-    contract_unload(ship, lot, quantity);
-    if (!contract_reopen(contract_id, GET_NAME(ch)) || !vessel_db_save_cargo(ship))
-    {
-      log("SYSERR: Could not reopen contract %d and unload ship %d after %s's save failed",
-          contract_id, ship->shipnum, GET_NAME(ch));
-    }
-    send_to_char(ch, "Your bond could not be recorded; no gold was taken.\r\n");
     return;
   }
 
@@ -645,7 +628,7 @@ ACMD(do_contractdeliver)
   int i;
 
   ship = contract_context(ch, &port_vnum);
-  if (ship == NULL)
+  if (ship == NULL || !vessel_settlement_gate(ch, ship))
   {
     return;
   }
@@ -733,6 +716,11 @@ ACMD(do_contractabandon)
   if (!mysql_available || conn == NULL)
   {
     send_to_char(ch, "The freight office is closed.\r\n");
+    return;
+  }
+  /* An acceptance still unsettled may yet be undone. */
+  if (!vessel_settlement_gate(ch, get_ship_from_room(IN_ROOM(ch))))
+  {
     return;
   }
 

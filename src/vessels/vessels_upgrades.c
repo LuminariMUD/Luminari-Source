@@ -287,6 +287,10 @@ void vessel_db_load_extras(struct greyhawk_ship_data *ship)
  * next login recognizes the saved high-water mark and closes the rows without
  * crediting the gold twice.
  *
+ * A player entering the game comes through here, so the same call settles an
+ * account that a crash left open between the player's gold and a ship's side
+ * (vessel_settlements_reconcile()).
+ *
  * @return Number of newly credited claims
  */
 int vessel_deliver_pending_insurance(struct char_data *ch)
@@ -307,6 +311,7 @@ int vessel_deliver_pending_insurance(struct char_data *ch)
   {
     return 0;
   }
+  vessel_settlements_reconcile(ch, NULL);
 
   mysql_real_escape_string(conn, escaped_owner, GET_NAME(ch), strlen(GET_NAME(ch)));
   snprintf(query, sizeof(query),

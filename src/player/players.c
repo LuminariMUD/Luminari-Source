@@ -668,6 +668,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_PVP_TIMER(ch) = 0;
     GET_VESSEL_INSURANCE_CLAIM(ch) = 0;
     GET_VESSEL_MERCHANT_CONSEQUENCE(ch) = 0;
+    GET_VESSEL_SETTLEMENT(ch) = 0;
     GET_QUIT_SURVEY_DONE(ch) = FALSE;
     ch->player_specials->saved.last_device_recharge = 0;
 
@@ -2209,6 +2210,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_VESSEL_INSURANCE_CLAIM(ch) = strtoull(line, NULL, 10);
         else if (!strcmp(tag, "VMer"))
           GET_VESSEL_MERCHANT_CONSEQUENCE(ch) = strtoull(line, NULL, 10);
+        else if (!strcmp(tag, "VSet"))
+          GET_VESSEL_SETTLEMENT(ch) = strtoull(line, NULL, 10);
         break;
 
       case 'W':
@@ -2514,6 +2517,40 @@ void save_char_fail_fchmod_for_test(bool fail)
 #else
 #define SAVE_CHAR_FCHMOD(fd, mode) fchmod(fd, mode)
 #endif
+
+/**
+ * Put a player file's directory on disk, so the rename that installed the
+ * file survives a host crash: until then the directory can still name the
+ * file it replaced, after the caller was told the save succeeded.
+ *
+ * A failure is logged and not returned. The new file is in place by now, and
+ * a caller that undoes its work on FALSE would undo it against a file that
+ * holds the save.
+ */
+static void save_char_sync_directory(const char *filename)
+{
+  char directory[40];
+  char *slash;
+  int fd;
+
+  strlcpy(directory, filename, sizeof(directory));
+  slash = strrchr(directory, '/');
+  if (slash == NULL)
+  {
+    return;
+  }
+  *slash = '\0';
+
+  fd = open(directory, O_RDONLY | O_DIRECTORY);
+  if (fd < 0 || fsync(fd) != 0)
+  {
+    log("SYSERR: save_char: Failed to sync the directory of %s: %s", filename, strerror(errno));
+  }
+  if (fd >= 0)
+  {
+    close(fd);
+  }
+}
 
 /**
  * Write a player file, reporting whether the write actually succeeded.
@@ -2936,6 +2973,8 @@ bool save_char_checked(struct char_data *ch, int mode)
     BUFFER_WRITE("VIns: %llu\n", GET_VESSEL_INSURANCE_CLAIM(ch));
   if (GET_VESSEL_MERCHANT_CONSEQUENCE(ch) != 0)
     BUFFER_WRITE("VMer: %llu\n", GET_VESSEL_MERCHANT_CONSEQUENCE(ch));
+  if (GET_VESSEL_SETTLEMENT(ch) != 0)
+    BUFFER_WRITE("VSet: %llu\n", GET_VESSEL_SETTLEMENT(ch));
 
   sprintascii(bits, PLR_FLAGS(ch)[0]);
   sprintascii(bits2, PLR_FLAGS(ch)[1]);
@@ -4148,8 +4187,12 @@ save_char_restore:
   }
   if (!save_ok)
     unlink(temp_filename);
-  else if (ch->player_specials)
-    ch->player_specials->craft_migration_unsaved = FALSE;
+  else
+  {
+    save_char_sync_directory(filename);
+    if (ch->player_specials)
+      ch->player_specials->craft_migration_unsaved = FALSE;
+  }
 
   /* Free the write buffer */
   free(write_buffer);

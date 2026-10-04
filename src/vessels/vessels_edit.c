@@ -557,7 +557,8 @@ static void vedit_delete(struct char_data *ch, int id)
  *
  * Slot 1 is reserved for the legacy world-file test vessel. Slot 0 remains
  * reserved because older vehicle and combat relationships use zero for none.
- * A stowed hull keeps her slot.
+ * A stowed hull keeps her slot, and so do the rows of a hull that is not in
+ * memory (vessel_slot_free()).
  *
  * @return Free slot index, or -1 if the fleet is full
  */
@@ -567,7 +568,7 @@ static int vedit_find_free_slot(void)
 
   for (i = 2; i < GREYHAWK_MAXSHIPS; i++)
   {
-    if (!greyhawk_ships[i].active && !greyhawk_ships[i].stowed)
+    if (vessel_slot_free(i))
     {
       return i;
     }

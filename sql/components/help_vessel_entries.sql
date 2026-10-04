@@ -90,7 +90,9 @@ DOCKFEES [pay]
   Show the one-time berthing fee assessed when an owned vessel enters a port.
   The vessel cannot leave until an owner or permitted helmsman pays it. A
   clan that owns the port\'s zone receives the fee; public-port fees leave the
-  economy. Unowned public and NPC hulls are exempt.
+  economy. Unowned public and NPC hulls are exempt. If your gold cannot be
+  saved, the payment is undone and the fee is owed again (see SHIP TRADE,
+  Settling up).
 
 UNDOCK
   With a vessel alongside, remove the gangway. Otherwise cast off from a
@@ -678,6 +680,13 @@ percent for each unit of the lot, less a fifth of the square root of her
 renown, and raised the emptier her hold: contraband hides best among a
 full hold of honest cargo. The chance is never below 5 percent.
 
+Settling up: a trade is recorded together with your gold. If the game
+cannot save your gold, the trade is undone and nothing is charged or paid;
+a trade caught unsaved by a crash is undone when you next enter the game.
+Until an account is settled, the harbor office opens no other for you or
+for that ship: no trade, freight contract, or dock-fee payment. A freight
+bond (CONTRACTACCEPT) and a dock fee (DOCKFEES) settle the same way.
+
 Cargo is part of the ship, not your inventory: it survives reboots, it
 counts against capacity, and it can be lost with the ship.
 
@@ -706,7 +715,9 @@ CONTRACTS
 CONTRACTACCEPT <id>
   Take a job. You post the goods\' worth as a bond, and the freight is
   loaded into your hold immediately, so you need the gold and the capacity
-  free before you accept. Payout is fixed at acceptance.
+  free before you accept. Payout is fixed at acceptance. If your gold
+  cannot be saved, the job goes back on the board and the freight ashore
+  (see SHIP TRADE, Settling up).
 
 CONTRACTDELIVER <id>
   At the destination port, hand over the freight and collect: the payout
@@ -847,6 +858,11 @@ SHIPLIST [summary]
   figures. Use it for large fleets so the totals fit in one socket output
   buffer.
 
+  A slot can hold only the stored records of a hull that is not in the
+  game: the boot could not rebuild her, or her removal could not be
+  recorded. It is listed as such and counts as in use, and no new vessel
+  takes it until SHIPPURGE removes the records.
+
   The room pool matters: it is shared with every traveller in the
   wilderness, not reserved for ships. If it approaches exhaustion the
   listing flags PRESSURE, and ship movement degrades to reusing the
@@ -867,6 +883,10 @@ SHIPPURGE <slot>
   it evacuates occupants and loose objects to the exterior and releases loaded
   vehicles before reclaiming the interior. Confirm the target carefully. The
   protected legacy fixture slots 0 and 1 cannot be purged with this command.
+
+  On a slot that holds only stored records (see SHIPLIST) it deletes them,
+  with any account the harbor office still holds open for that hull, and
+  frees the slot.
 
 SHIPLOAD
   Reserved legacy placeholder. It currently performs no loading operation.
